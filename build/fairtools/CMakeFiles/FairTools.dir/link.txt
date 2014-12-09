@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC -g   -shared -Wl,-soname,libFairTools.so.0 -o ../lib/libFairTools.so.0.0.0 CMakeFiles/FairTools.dir/FairLogger.cxx.o CMakeFiles/FairTools.dir/G__FairToolsDict.cxx.o  -L/opt/fairsoft/install/lib/root 

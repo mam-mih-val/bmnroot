@@ -1,0 +1,9 @@
+23/06/2005  (M.Al-Turany, D.Bertini)
+----------
+     1_ New Framework Library Structure
+     2_ Integration of a Runtime Database
+                   - Used for Initialisation of parameter in
+                                    - Simulation
+                                    - Analysis
+                                    
+

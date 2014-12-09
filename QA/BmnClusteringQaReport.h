@@ -1,0 +1,86 @@
+/**
+ * \file BmnClusteringQaReport.h
+ * \brief Simulation report for clustering QA.
+ * \author Andrey Lebedev <andrey.lebedev@gsi.de>
+ * \date 2011
+ */
+
+#ifndef BMNCLUSTERINGQAREPORT_H_
+#define BMNCLUSTERINGQAREPORT_H_
+
+#include "report/BmnSimulationReport.h"
+#include <string>
+using std::string;
+
+/**
+ * \class BmnClusteringQaReport
+ * \brief Simulation report for clustering QA.
+ * \author Andrey Lebedev <andrey.lebedev@gsi.de>
+ * \date 2011
+ */
+class BmnClusteringQaReport : public BmnSimulationReport {
+public:
+    /**
+     * \brief Constructor.
+     */
+    BmnClusteringQaReport();
+
+    /**
+     * \brief Destructor.
+     */
+    virtual ~BmnClusteringQaReport();
+
+    static Double_t CalcEfficiency(
+            const TH1* histRec,
+            const TH1* histAcc,
+            Double_t scale);
+
+private:
+    /**
+     * \brief Inherited from CbmSimulationReport.
+     */
+    virtual void Create();
+
+    /**
+     * \brief Inherited from CbmSimulationReport.
+     */
+    virtual void Draw();
+
+    /**
+     * \brief Print number of objects table.
+     */
+    string PrintNofObjects() const;
+
+    void DrawNofObjectsHistograms(
+            const string& detName,
+            const string& parameter);
+
+    void DrawResidualsAndPulls(
+            const string& detName);
+
+    //   void DrawAccAndRec(
+    //         const string& canvasName,
+    //         const string& histNamePattern);
+
+    //   void DrawEfficiency(
+    //         const string& canvasName,
+    //         const string& histNamePattern,
+    //         string (*labelFormatter)(const string&, const CbmHistManager*));
+
+    void ScaleAndShrinkHistograms();
+
+    void DivideHistos(
+            TH1* histo1,
+            TH1* histo2,
+            TH1* histo3,
+            Double_t scale);
+
+    void CalculateEfficiencyHistos(
+            const string& acc,
+            const string& rec,
+            const string& eff);
+
+    ClassDef(BmnClusteringQaReport, 1)
+};
+
+#endif /* BMNCLUSTERINGQAREPORT_H_ */

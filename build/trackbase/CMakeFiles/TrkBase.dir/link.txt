@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC -g   -shared -Wl,-soname,libTrkBase.so.0 -o ../lib/libTrkBase.so.0.0.0 CMakeFiles/TrkBase.dir/FairTrackPar.cxx.o CMakeFiles/TrkBase.dir/FairTrackParP.cxx.o CMakeFiles/TrkBase.dir/FairTrackParH.cxx.o CMakeFiles/TrkBase.dir/FairGeaneUtil.cxx.o CMakeFiles/TrkBase.dir/G__TrkBaseDict.cxx.o  -L/opt/fairsoft/install/lib/root 

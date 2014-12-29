@@ -92,6 +92,8 @@ protected:
     
     void DrawEtaP(const string& canvasName);
     
+    void DrawEffGhost(const string& canvasName);
+    
     void DrawPsimPrec(const string& canvasName);
     
     void DrawEventsInfo(const string& canvasName);

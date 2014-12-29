@@ -433,6 +433,12 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
     CreateH1("momRes_1D", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", nBins / 2, 0.0, 5.0);
     CreateH2("P_rec_P_sim", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 10.0, 400, 0.0, 10.0);
+    
+    CreateH1("ghostGemDistr", "P_{sim}, GeV/c", "Counter", nBins, 0.0, 5.0);
+    CreateH1("recoGemDistr", "P_{sim}, GeV/c", "Counter", nBins, 0.0, 5.0);
+    CreateH1("allGemDistr", "P_{sim}, GeV/c", "Counter", nBins, 0.0, 5.0);
+    CreateH1("EffGemDistr", "P_{sim}, GeV/c", "Efficiency, %", nBins, 0.0, 5.0);
+    CreateH1("FakeGemDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", nBins, 0.0, 5.0);
 
     cout << fHM->ToString();
 }
@@ -491,9 +497,11 @@ void BmnTrackingQa::ProcessGlobalTracks() {
             isGemOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota; //CheckTrackQuality(stsTrackMatch, kGEM);
             FillTrackQualityHistograms(gemTrackMatch, kGEM);
             if (!isGemOk) { // ghost track
-                Int_t nofHits = gemTrackMatch->GetNofHits(); //stsTrackMatch->GetNofTrueHits() + stsTrackMatch->GetNofWrongHits() + stsTrackMatch->GetNofFakeHits();
+                Int_t nofHits = gemTrackMatch->GetNofHits();
                 fHM->H1("hng_NofGhosts_Gem_Nh")->Fill(nofHits);
+                fHM->H1("ghostGemDistr")->Fill(P_sim);
             }
+            fHM->H1("recoGemDistr")->Fill(P_sim);
         }
 
         // Get MC indices of track segments
@@ -607,6 +615,8 @@ void BmnTrackingQa::ProcessMcTracks() {
 
         vector<Double_t> tmp5 = list_of(mcY)(mcPt);
         parMap["YPt"] = tmp5;
+        
+        if (isGemOk) fHM->H1("allGemDistr")->Fill(mcP);
 
         for (Int_t iHist = 0; iHist < nofEffHistos; iHist++) {
             TH1* hist = effHistos[iHist];

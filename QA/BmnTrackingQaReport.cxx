@@ -61,7 +61,7 @@ fHeader(header) {
 BmnTrackingQaReport::~BmnTrackingQaReport() {
 }
 
-void BmnTrackingQaReport::Create() {    
+void BmnTrackingQaReport::Create() {
     Out() << R()->DocumentBegin();
     Out() << R()->Title(0, GetTitle());
     Out() << PrintEventInfo();
@@ -191,6 +191,7 @@ void BmnTrackingQaReport::Draw() {
     FillGlobalTrackVariants();
     SetDefaultDrawStyle();
     DrawEfficiencyHistos();
+    DrawEffGhost("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event");
     DrawYPtHistos();
     DrawEtaP("Distribution of MC-tracks and RECO-tracks in Pseudorapidity and Momentum");
     DrawPsimPrec("P_{rec} vs P_{sim} for RECO-tracks with link to MC-track");
@@ -259,6 +260,29 @@ void BmnTrackingQaReport::DrawEfficiency(const string& canvasName, const string&
     DrawMeanEfficiencyLines(histos, efficiencies);
 }
 
+void BmnTrackingQaReport::DrawEffGhost(const string& canvasName) {
+    Int_t nofEvents = HM()->H1("hen_EventNo_TrackingQa")->GetEntries();
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1200, 600);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    HM()->H1("allGemDistr")->Scale(1. / nofEvents);
+    HM()->H1("recoGemDistr")->Scale(1. / nofEvents);
+    HM()->H1("ghostGemDistr")->Scale(1. / nofEvents);
+    DrawH1(HM()->H1("allGemDistr"), kLinear, kLinear, "", kBlue);
+    DrawH1(HM()->H1("recoGemDistr"), kLinear, kLinear, "same", kGreen);
+    DrawH1(HM()->H1("ghostGemDistr"), kLinear, kLinear, "same", kRed);
+    
+    canvas->cd(2);
+    DivideHistos(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), HM()->H1("EffGemDistr"), 100.);
+    HM()->H1("EffGemDistr")->SetMinimum(0.);
+    HM()->H1("EffGemDistr")->SetMaximum(100.);
+    DrawH1(HM()->H1("EffGemDistr"), kLinear, kLinear, "", kGreen);
+    
+    DivideHistos(HM()->H1("ghostGemDistr"), HM()->H1("recoGemDistr"), HM()->H1("FakeGemDistr"), 100.);
+    DrawH1(HM()->H1("FakeGemDistr"), kLinear, kLinear, "same", kRed);
+}
+
 void BmnTrackingQaReport::DrawPsimPrec(const string& canvasName) {
     TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 600, 600);
     canvas->SetGrid();
@@ -311,9 +335,7 @@ void BmnTrackingQaReport::DrawMeanEfficiencyLines(
     }
 }
 
-void BmnTrackingQaReport::DrawAccAndRec(
-        const string& canvasName,
-        const string& histNamePattern) {
+void BmnTrackingQaReport::DrawAccAndRec(const string& canvasName, const string& histNamePattern) {
     vector<TH1*> histos = HM()->H1Vector(histNamePattern);
     if (histos.size() == 0) return;
 

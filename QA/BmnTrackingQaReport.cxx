@@ -61,14 +61,14 @@ fHeader(header) {
 BmnTrackingQaReport::~BmnTrackingQaReport() {
 }
 
-void BmnTrackingQaReport::Create() {
-    Out().precision(3);
+void BmnTrackingQaReport::Create() {    
     Out() << R()->DocumentBegin();
     Out() << R()->Title(0, GetTitle());
     Out() << PrintEventInfo();
     Out() << PrintNofObjects();
     Out() << PrintTrackHits();
     Out() << PrintNofGhosts();
+    Out().precision(3);
     Out() << PrintTrackingEfficiency(false);
     Out() << "<hr>" << endl;
     PrintCanvases();

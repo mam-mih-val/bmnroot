@@ -59,7 +59,7 @@ fPtRangeMin(0.),
 fPtRangeMax(3.),
 fPtRangeBins(100),
 fAngleRangeMin(0.),
-fAngleRangeMax(25.),
+fAngleRangeMax(40.),
 fAngleRangeBins(100),
 fHeader(),
 fMcToRecoMap(),
@@ -339,8 +339,8 @@ void BmnTrackingQa::CreateHistograms() {
 
     // Number of points distributions
     Double_t minNofPoints = 0.;
-    Double_t maxNofPoints = 100.;
-    Int_t nofBinsPoints = 100;
+    Double_t maxNofPoints = 20.;
+    Int_t nofBinsPoints = 20;
 
     // Reconstruction efficiency histograms
     // Local efficiency histograms

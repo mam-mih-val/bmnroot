@@ -50,13 +50,13 @@ fMinNofPointsDch(1),
 fQuota(0.7),
 fUseConsecutivePointsInGem(kTRUE),
 fPRangeMin(0.),
-fPRangeMax(5.),
+fPRangeMax(3.),
 fPRangeBins(100),
 fYRangeMin(0.),
 fYRangeMax(4.),
 fYRangeBins(100),
 fPtRangeMin(0.),
-fPtRangeMax(3.),
+fPtRangeMax(2.),
 fPtRangeBins(100),
 fAngleRangeMin(0.),
 fAngleRangeMax(40.),
@@ -431,14 +431,14 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("momRes_2D", "P_{sim}, GeV/c", "#Delta P / P, %", "", nBins, 0.0, 5.0, nBins, 0.0, 5.0);
     CreateH2("EtaP_rec", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
-    CreateH1("momRes_1D", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", nBins / 2, 0.0, 5.0);
+    CreateH1("momRes_1D", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", nBins / 2, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 10.0, 400, 0.0, 10.0);
     
-    CreateH1("ghostGemDistr", "P_{sim}, GeV/c", "Counter", nBins, 0.0, 5.0);
-    CreateH1("recoGemDistr", "P_{sim}, GeV/c", "Counter", nBins, 0.0, 5.0);
-    CreateH1("allGemDistr", "P_{sim}, GeV/c", "Counter", nBins, 0.0, 5.0);
-    CreateH1("EffGemDistr", "P_{sim}, GeV/c", "Efficiency, %", nBins, 0.0, 5.0);
-    CreateH1("FakeGemDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", nBins, 0.0, 5.0);
+    CreateH1("ghostGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("recoGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("allGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("EffGemDistr", "P_{sim}, GeV/c", "Efficiency, %", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("FakeGemDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", nBins, fPRangeMin, fPRangeMax);
 
     cout << fHM->ToString();
 }

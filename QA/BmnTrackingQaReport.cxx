@@ -78,7 +78,7 @@ void BmnTrackingQaReport::Create() {
 
 string BmnTrackingQaReport::PrintEventInfo() {
     Out() << "<h2>Event generator: UrQMD</h2>" << endl;
-    Out() << "<h2>Energy: 4 GeV/c</h2>" << endl;
+    Out() << "<h2>Energy: 4 GeV/n</h2>" << endl;
     Out() << "<h2>Number of events: " << HM()->H1("hen_EventNo_TrackingQa")->GetEntries() << "</h2>" << endl;
     Out() << "<h2>Mean impact parameter: " << HM()->H1("Impact parameter")->GetMean() << "</h2>" << endl;
     Out() << "<h2>Mean multiplicity: " << HM()->H1("Multiplicity")->GetMean() << "</h2>" << endl;
@@ -269,7 +269,7 @@ void BmnTrackingQaReport::DrawEffGhost(const string& canvasName) {
     HM()->H1("allGemDistr")->Scale(1. / nofEvents);
     HM()->H1("recoGemDistr")->Scale(1. / nofEvents);
     HM()->H1("ghostGemDistr")->Scale(1. / nofEvents);
-    DrawH1(HM()->H1("allGemDistr"), kLinear, kLinear, "", kBlue);
+    DrawH1(HM()->H1("allGemDistr"), kLinear, kLinear, "PE1", kBlue);
     DrawH1(HM()->H1("recoGemDistr"), kLinear, kLinear, "same", kGreen);
     DrawH1(HM()->H1("ghostGemDistr"), kLinear, kLinear, "same", kRed);
     
@@ -277,7 +277,7 @@ void BmnTrackingQaReport::DrawEffGhost(const string& canvasName) {
     DivideHistos(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), HM()->H1("EffGemDistr"), 100.);
     HM()->H1("EffGemDistr")->SetMinimum(0.);
     HM()->H1("EffGemDistr")->SetMaximum(100.);
-    DrawH1(HM()->H1("EffGemDistr"), kLinear, kLinear, "", kGreen);
+    DrawH1(HM()->H1("EffGemDistr"), kLinear, kLinear, "PE1", kGreen);
     
     DivideHistos(HM()->H1("ghostGemDistr"), HM()->H1("recoGemDistr"), HM()->H1("FakeGemDistr"), 100.);
     DrawH1(HM()->H1("FakeGemDistr"), kLinear, kLinear, "same", kRed);

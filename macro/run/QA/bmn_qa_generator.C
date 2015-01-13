@@ -32,7 +32,7 @@ void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TStr
   fRun->AddTask(mcMatching);
     
   BmnClusteringQa* clQa = new BmnClusteringQa();
-  fRun->AddTask(clQa);  
+//  fRun->AddTask(clQa);  
     
   BmnTrackingQa* trQa = new BmnTrackingQa();
   fRun->AddTask(trQa);

@@ -101,12 +101,12 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
     if (fMakeQA) {
         for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
-            BmnGemHit* hit = GetHit(hitIdx);
+            BmnHit* hit = GetHit(hitIdx);
             Float_t x = hit->GetX();
             Float_t y = hit->GetY();
             Float_t z = hit->GetZ();
             Float_t R = Sqrt(x * x + y * y + z * z);
-            Int_t station = hit->GetStationNumber() + 1;
+            Int_t station = hit->GetStation() + 1;
             fHisto->_hyRxR_all->Fill(x / R, y / R, station);
             fHisto->_hXYAllHits->Fill(x, y, station);
             fHisto->_hZYAllHits->Fill(z, y, station);
@@ -129,7 +129,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         for (Int_t iTr = 0; iTr < fGemSeedsArray->GetEntriesFast(); ++iTr) {
             BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArray->At(iTr);
             for (Int_t iHit = 0; iHit < track->GetNHits(); ++iHit) {
-                BmnGemHit* hit = GetHit(track->GetHitIndex(iHit));
+                BmnHit* hit = GetHit(track->GetHitIndex(iHit));
                 if (!hit) continue;
                 fHisto->_hXYFoundHits->Fill(hit->GetX(), hit->GetY(), iTr + 1);
                 fHisto->_hZYFoundHits->Fill(hit->GetZ(), hit->GetY(), iTr + 1);
@@ -162,7 +162,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         }
 
         for (Int_t j = 0; j < track->GetNHits(); ++j) { //loop over hits from the second to the last. Needed for comparing id of hits
-            BmnGemHit* hit = GetHit(track->GetHitIndex(j));
+            BmnHit* hit = GetHit(track->GetHitIndex(j));
             CbmStsPoint* point = (CbmStsPoint*) fMCPointsArray->At(hit->GetRefIndex());
             if (!point) {
                 cout << "GEM_TRACKING: There is no MC-point corresponded to current hit" << endl;
@@ -175,7 +175,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
                 (indexes.find(point->GetTrackID())->second)++;
             }
             
-            if (hit->GetStationNumber() < kNHITSFORSEED) continue;
+            if (hit->GetStation() < kNHITSFORSEED) continue;
             if (point->GetTrackID() == seed->GetRef()) {
                 wellFoundCntr++;
             } else {
@@ -198,7 +198,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
     allTrackCntr += fGemSeedsArray->GetEntriesFast();
     for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
-        if (GetHit(hitIdx)->GetStationNumber() + 1 <= kNHITSFORSEED) continue;
+        if (GetHit(hitIdx)->GetStation() + 1 <= kNHITSFORSEED) continue;
         allHitCntr++;
     }
 
@@ -238,7 +238,7 @@ BmnStatus BmnGemTrackFinder::Refit(BmnGemTrack* tr) {
 
     //    for (Int_t iHit = 0; iHit < tr->GetNHits(); iHit++) {
     for (Int_t iHit = tr->GetNHits() - 1; iHit >= 0; iHit--) {
-        CbmStsHit* hit = (CbmStsHit*) GetHit(tr->GetHitIndex(iHit));
+        BmnHit* hit = GetHit(tr->GetHitIndex(iHit));
         if (!hit) continue;
         Float_t Ze = hit->GetZ();
         Float_t length = 0;
@@ -254,6 +254,7 @@ BmnStatus BmnGemTrackFinder::Refit(BmnGemTrack* tr) {
         nodes[iHit].SetPredictedParam(&par);
         nodes[iHit].SetF(F);
         Float_t chi2Hit = 0.;
+//        cout << "GOOD \t Xt = " << par.GetX() << "\tYt = " << par.GetY() << "\tZt = " << par.GetZ() << endl;
         if (fUpdate->Update(&par, hit, chi2Hit) == kBMNERROR) {
             tr->SetFlag(kBMNBAD);
             cout << "UPD ERROR: Ze = " << Ze << " length = " << length << " \npar = ";
@@ -287,8 +288,8 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* tr) {
     map<Float_t, FairTrackParam> zParamMap;
 
     for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
-        const BmnGemHit* hit = GetHit(hitIdx);
-        if (hit->GetStationNumber() != station || hit->IsUsed()) continue;
+        const BmnHit* hit = GetHit(hitIdx);
+        if (hit->GetStation() != station || hit->IsUsed()) continue;
         zMin = min(zMin, hit->GetZ());
         zParamMap[hit->GetZ()] = FairTrackParam();
     }
@@ -310,14 +311,14 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* tr) {
 
     // Loop over hits
     Float_t minChiSq = 10e10; // minimum chi-square of hit
-    BmnGemHit* minHit = NULL; // Pointer to hit with minimum chi-square
+    BmnHit* minHit = NULL; // Pointer to hit with minimum chi-square
     Float_t minDist = 10e6;
     Int_t minIdx = 0;
     Float_t dist = 0.0;
     FairTrackParam minPar; // Track parameters for closest hit
     for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
-        BmnGemHit* hit = GetHit(hitIdx);
-        if (hit->GetStationNumber() != station || hit->IsUsed()) continue;
+        BmnHit* hit = GetHit(hitIdx);
+        if (hit->GetStation() != station || hit->IsUsed()) continue;
         if (zParamMap.find(hit->GetZ()) == zParamMap.end()) { // This should never happen
             cout << "-E- NearestHitMerge: Z position " << hit->GetZ() << " not found in map. Something is wrong.\n";
         }
@@ -364,8 +365,8 @@ Float_t BmnGemTrackFinder::Sqr(Float_t x) {
     return x * x;
 }
 
-BmnGemHit* BmnGemTrackFinder::GetHit(Int_t i) {
-    BmnGemHit* hit = (BmnGemHit*) fGemHitArray->At(i);
+BmnHit* BmnGemTrackFinder::GetHit(Int_t i) {
+    BmnHit* hit = (BmnHit*) fGemHitArray->At(i);
     if (!hit) cout << "-W- Wrong attempting to get hit number " << i << " from fGemHitArray, which contains " << fGemHitArray->GetEntriesFast() << " elements" << endl;
     return hit;
 }

@@ -214,45 +214,51 @@ BmnStatus BmnKalmanFilter::Update(FairTrackParam* par, const BmnGemHit* hit, Flo
 }
 
 BmnStatus BmnKalmanFilter::Update(FairTrackParam* par, const BmnHit* hit, Float_t& chiSq) { //FIXME!!! Pixel or Strip hit? What's difference?  
-    
-      //   vector<Float_t> cIn = par->GetCovMatrix();
+
+    //   vector<Float_t> cIn = par->GetCovMatrix();
     Double_t cIn[15];
     par->CovMatrix(cIn);
 
     static const Float_t ONE = 1., TWO = 2.;
 
-    Float_t dxx = hit->GetDx() * hit->GetDx();
-    Float_t dxy = 0.0;//hit->GetDx() * hit->GetDy(); //FIXME!!!
-    Float_t dyy = hit->GetDy() * hit->GetDy();
+    Double_t dxx = hit->GetDx() * hit->GetDx();
+    Double_t dxy = 0.0;//hit->GetDx() * hit->GetDy(); //FIXME!!!
+    Double_t dyy = hit->GetDy() * hit->GetDy();
 
     // calculate residuals
-    Float_t dx = hit->GetX() - par->GetX();
-    Float_t dy = hit->GetY() - par->GetY();
+    Double_t dx = hit->GetX() - par->GetX();
+    Double_t dy = hit->GetY() - par->GetY();
     
 //    cout << "dX = " << dx << "\t dY = " << dy << endl;
 
     // Calculate and inverse residual covariance matrix
-    Float_t t = ONE / (dxx * dyy + dxx * cIn[5] + dyy * cIn[0] + cIn[0] * cIn[5] -
-            dxy * dxy - TWO * dxy * cIn[1] - cIn[1] * cIn[1]);
-    Float_t R00 = (dyy + cIn[5]) * t;
-    Float_t R01 = -(dxy + cIn[1]) * t;
-    Float_t R11 = (dxx + cIn[0]) * t;
+    Double_t t = (dxx * dyy + dxx * cIn[5] + dyy * cIn[0] + cIn[0] * cIn[5] - dxy * dxy - TWO * dxy * cIn[1] - cIn[1] * cIn[1]);
+    if (t == 0.0) return kBMNERROR;
+    else t = ONE / (dxx * dyy + dxx * cIn[5] + dyy * cIn[0] + cIn[0] * cIn[5] - dxy * dxy - TWO * dxy * cIn[1] - cIn[1] * cIn[1]);
+    
+    Double_t R00 = (dyy + cIn[5]) * t;
+    Double_t R01 = -(dxy + cIn[1]) * t;
+    Double_t R11 = (dxx + cIn[0]) * t;
+//    cout << "cIn[5] = " << cIn[5] << " cIn[1] = " << cIn[1] << " cIn[0] = " << cIn[0] << endl;
+//    cout << "dyy = " << dyy << " dxy = " << dxy << " dxx = " << dxx << endl;
+//    cout << "t = " << t << endl;
 
     // Calculate Kalman gain matrix
-    Float_t K00 = cIn[0] * R00 + cIn[1] * R01;
-    Float_t K01 = cIn[0] * R01 + cIn[1] * R11;
-    Float_t K10 = cIn[1] * R00 + cIn[5] * R01;
-    Float_t K11 = cIn[1] * R01 + cIn[5] * R11;
-    Float_t K20 = cIn[2] * R00 + cIn[6] * R01;
-    Float_t K21 = cIn[2] * R01 + cIn[6] * R11;
-    Float_t K30 = cIn[3] * R00 + cIn[7] * R01;
-    Float_t K31 = cIn[3] * R01 + cIn[7] * R11;
-    Float_t K40 = cIn[4] * R00 + cIn[8] * R01;
-    Float_t K41 = cIn[4] * R01 + cIn[8] * R11;
+    Double_t K00 = cIn[0] * R00 + cIn[1] * R01;
+    Double_t K01 = cIn[0] * R01 + cIn[1] * R11;
+    Double_t K10 = cIn[1] * R00 + cIn[5] * R01;
+    Double_t K11 = cIn[1] * R01 + cIn[5] * R11;
+    Double_t K20 = cIn[2] * R00 + cIn[6] * R01;
+    Double_t K21 = cIn[2] * R01 + cIn[6] * R11;
+    Double_t K30 = cIn[3] * R00 + cIn[7] * R01;
+    Double_t K31 = cIn[3] * R01 + cIn[7] * R11;
+    Double_t K40 = cIn[4] * R00 + cIn[8] * R01;
+    Double_t K41 = cIn[4] * R01 + cIn[8] * R11;
 
     // Calculate filtered state vector
-    Float_t xOut[5] = {par->GetX(), par->GetY(), par->GetTx(), par->GetTy(), par->GetQp()};
+    Double_t xOut[5] = {par->GetX(), par->GetY(), par->GetTx(), par->GetTy(), par->GetQp()};
     xOut[0] += K00 * dx + K01 * dy;
+//    cout << "xOut[0] = " << xOut[0] << endl;
     xOut[1] += K10 * dx + K11 * dy;
     xOut[2] += K20 * dx + K21 * dy;
     xOut[3] += K30 * dx + K31 * dy;
@@ -295,14 +301,14 @@ BmnStatus BmnKalmanFilter::Update(FairTrackParam* par, const BmnHit* hit, Float_
 //    cout << par->GetX() << " " << par->GetY() << " " << par->GetTx() << " " << par->GetTy() << " " << par->GetQp() << endl;
 
     // Calculate chi-square
-    Float_t xmx = hit->GetX() - par->GetX();
-    Float_t ymy = hit->GetY() - par->GetY();
+    Double_t xmx = hit->GetX() - par->GetX();
+    Double_t ymy = hit->GetY() - par->GetY();
 //    cout << "dX = " << xmx << "\t dY = " << ymy << endl;
-    Float_t C0 = cOut[0];
-    Float_t C1 = cOut[1];
-    Float_t C5 = cOut[5];
+    Double_t C0 = cOut[0];
+    Double_t C1 = cOut[1];
+    Double_t C5 = cOut[5];
 
-    Float_t norm = dxx * dyy - dxx * C5 - dyy * C0 + C0 * C5 - dxy * dxy + 2 * dxy * C1 - C1 * C1;
+    Double_t norm = dxx * dyy - dxx * C5 - dyy * C0 + C0 * C5 - dxy * dxy + 2 * dxy * C1 - C1 * C1;
 
     chiSq = ((xmx * (dyy - C5) - ymy * (dxy - C1)) * xmx + (-xmx * (dxy - C1) + ymy * (dxx - C0)) * ymy) / norm;
     
@@ -317,6 +323,7 @@ BmnStatus BmnKalmanFilter::Update(FairTrackParam* par, const BmnHit* hit, Float_
 //        cout << "dx = " << dx << " dy = " << dy << endl;
 //        cout << "xMx = " << xmx << " yMy = " << ymy << endl;
    // }
+//    cout << "AFTER UPDATE: ";
 //    par->Print();
 
     return kBMNSUCCESS;
@@ -421,7 +428,7 @@ BmnStatus BmnKalmanFilter::Update(FairTrackParam* par, const CbmPixelHit* hit, F
 //        cout << "C0 = " << C0 << " C5 = " << C5 << " C1 = " << C1 << endl;
 //        cout << "Dxx = " << dxx << " Dyy = " << dyy << " Dxy = " << dxy << endl;
 //    }
-//    par->Print();
+    par->Print();
 
     return kBMNSUCCESS;
 }

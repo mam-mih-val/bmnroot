@@ -101,6 +101,9 @@ void BmnGemStripHitMaker::ProcessMCPoints() {
                 //Add hit
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
                     BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), index);
+                BmnGemStripHit* hit = (BmnGemStripHit*) fBmnGemStripHitsArray->At(fBmnGemStripHitsArray->GetEntriesFast() - 1);
+                hit->SetStation(iStation);
+                hit->SetIndex(fBmnGemStripHitsArray->GetEntriesFast() - 1);
 
                 index++;
             }

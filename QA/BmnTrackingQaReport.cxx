@@ -269,7 +269,7 @@ void BmnTrackingQaReport::DrawEffGhost(const string& canvasName) {
     HM()->H1("allGemDistr")->Scale(1. / nofEvents);
     HM()->H1("recoGemDistr")->Scale(1. / nofEvents);
     HM()->H1("ghostGemDistr")->Scale(1. / nofEvents);
-    DrawH1(HM()->H1("allGemDistr"), kLinear, kLinear, "PE1", kBlue);
+    DrawH1(HM()->H1("allGemDistr"), kLinear, kLinear, "P", kBlue);
     DrawH1(HM()->H1("recoGemDistr"), kLinear, kLinear, "same", kGreen);
     DrawH1(HM()->H1("ghostGemDistr"), kLinear, kLinear, "same", kRed);
     
@@ -277,7 +277,7 @@ void BmnTrackingQaReport::DrawEffGhost(const string& canvasName) {
     DivideHistos(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), HM()->H1("EffGemDistr"), 100.);
     HM()->H1("EffGemDistr")->SetMinimum(0.);
     HM()->H1("EffGemDistr")->SetMaximum(100.);
-    DrawH1(HM()->H1("EffGemDistr"), kLinear, kLinear, "PE1", kGreen);
+    DrawH1(HM()->H1("EffGemDistr"), kLinear, kLinear, "P", kGreen);
     
     DivideHistos(HM()->H1("ghostGemDistr"), HM()->H1("recoGemDistr"), HM()->H1("FakeGemDistr"), 100.);
     DrawH1(HM()->H1("FakeGemDistr"), kLinear, kLinear, "same", kRed);

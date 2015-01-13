@@ -35,7 +35,7 @@ public:
     //some useful functions
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
     Float_t Sqr(Float_t x);
-    BmnGemHit* GetHit(Int_t i);
+    BmnHit* GetHit(Int_t i);
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);

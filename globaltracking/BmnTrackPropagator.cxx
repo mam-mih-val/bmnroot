@@ -111,8 +111,11 @@ BmnStatus BmnTrackPropagator::TGeoTrackPropagate(FairTrackParam* par, Float_t zO
         }
     }
     
-    if (!IsParCorrect(par)) return kBMNERROR;
-    else return kBMNSUCCESS;
+    if (!IsParCorrect(par)) {
+        return kBMNERROR;
+    } else {
+        return kBMNSUCCESS;
+    }
 }
 
 void BmnTrackPropagator::UpdateF(vector<Double_t>& F, const vector<Double_t>& newF) {

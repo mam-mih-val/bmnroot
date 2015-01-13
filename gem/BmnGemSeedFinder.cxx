@@ -44,6 +44,10 @@ InitStatus BmnGemSeedFinder::Init() {
     }
 
     fGemHitsArray = (TClonesArray*) ioman->GetObject(fHitsBranchName); //in
+    if (fGemHitsArray == NULL) {
+        cout << "ERROR: No input hits array" << endl;
+        return kERROR;
+    }
     fGemSeedsArray = new TClonesArray(fSeedsBranchName, 100); //out
     ioman->Register("BmnGemSeeds", "GEM", fGemSeedsArray, kTRUE);
 
@@ -321,6 +325,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         TVector3 circPar = CircleFit(&trackCand);
         TVector3 linePar = LineFit(&trackCand);
         if (circPar.Z() == 0.0) {
+//            cout << "BAD circle fit" << endl;
             continue;
         } //FIXME maybe better to check not only zero-radius
         trCntr++;
@@ -469,7 +474,6 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar,
     Float_t Tx_last = (Zc - lZ) / (lX - Xc);
 
     par.SetPosition(TVector3(lX, lY, lZ));
-    par.Print();
     par.SetTx(Tx_last);
     par.SetTy(B); //par.SetTy(-B / (lX - Xc));
     const Float_t Pxz = 0.0003 * Abs(fField->GetBy(lX, lY, lZ)) * R; // Pt
@@ -480,6 +484,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar,
     if ((Tx_last - Tx_first) < 0) QP *= -1.0; //FIXME ???????
     par.SetQp(QP);
     tr->SetParamLast(par);
+//    par.Print();
 
     //update for firstParam
     par.SetPosition(TVector3(fX, fY, fZ));

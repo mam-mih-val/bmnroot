@@ -191,7 +191,7 @@ void BmnTrackingQaReport::Draw() {
     FillGlobalTrackVariants();
     SetDefaultDrawStyle();
     DrawEfficiencyHistos();
-    DrawEffGhost("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event");
+    DrawEffGhost("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM detector");
     DrawYPtHistos();
     DrawEtaP("Distribution of MC-tracks and RECO-tracks in Pseudorapidity and Momentum");
     DrawPsimPrec("P_{rec} vs P_{sim} for RECO-tracks with link to MC-track");
@@ -269,18 +269,26 @@ void BmnTrackingQaReport::DrawEffGhost(const string& canvasName) {
     HM()->H1("allGemDistr")->Scale(1. / nofEvents);
     HM()->H1("recoGemDistr")->Scale(1. / nofEvents);
     HM()->H1("ghostGemDistr")->Scale(1. / nofEvents);
-    DrawH1(HM()->H1("allGemDistr"), kLinear, kLinear, "P0", kBlue);
-    DrawH1(HM()->H1("recoGemDistr"), kLinear, kLinear, "same", kGreen);
-    DrawH1(HM()->H1("ghostGemDistr"), kLinear, kLinear, "same", kRed);
-    
+    vector<TH1*> histos1;
+    histos1.push_back(HM()->H1("allGemDistr"));
+    histos1.push_back(HM()->H1("recoGemDistr"));
+    histos1.push_back(HM()->H1("ghostGemDistr"));
+    vector<string> labels1;
+    labels1.push_back("MC tracks");
+    labels1.push_back("Reco tracks");
+    labels1.push_back("Ghost tracks");
+    DrawH1(histos1, labels1, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
+
     canvas->cd(2);
+    vector<string> labels2;
+    labels2.push_back("Efficiency");
+    labels2.push_back("Percent of ghosts");
     DivideHistos(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), HM()->H1("EffGemDistr"), 100.);
-    HM()->H1("EffGemDistr")->SetMinimum(0.);
-    HM()->H1("EffGemDistr")->SetMaximum(100.);
-    DrawH1(HM()->H1("EffGemDistr"), kLinear, kLinear, "P0", kGreen);
-    
     DivideHistos(HM()->H1("ghostGemDistr"), HM()->H1("recoGemDistr"), HM()->H1("FakeGemDistr"), 100.);
-    DrawH1(HM()->H1("FakeGemDistr"), kLinear, kLinear, "same", kRed);
+    vector<TH1*> histos2;
+    histos2.push_back(HM()->H1("EffGemDistr"));
+    histos2.push_back(HM()->H1("FakeGemDistr"));
+    DrawH1(histos2, labels2, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
 }
 
 void BmnTrackingQaReport::DrawPsimPrec(const string& canvasName) {

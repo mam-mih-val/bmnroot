@@ -187,7 +187,6 @@ string BmnTrackingQaReport::PrintTrackingEfficiency(Bool_t isPidEfficiency) cons
 void BmnTrackingQaReport::Draw() {
     DrawEventsInfo("Distribution of impact parameter and multiplicity");
     CalculateEfficiencyHistos();
-    CalculatePionSuppressionHistos();
     FillGlobalTrackVariants();
     SetDefaultDrawStyle();
     DrawEfficiencyHistos();
@@ -266,9 +265,9 @@ void BmnTrackingQaReport::DrawEffGhost(const string& canvasName) {
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
-    HM()->H1("allGemDistr")->Scale(1. / nofEvents);
-    HM()->H1("recoGemDistr")->Scale(1. / nofEvents);
-    HM()->H1("ghostGemDistr")->Scale(1. / nofEvents);
+    HM()->H1("allGemDistr")->Sumw2(); HM()->H1("allGemDistr")->Scale(1. / nofEvents);
+    HM()->H1("recoGemDistr")->Sumw2(); HM()->H1("recoGemDistr")->Scale(1. / nofEvents);
+    HM()->H1("ghostGemDistr")->Sumw2(); HM()->H1("ghostGemDistr")->Scale(1. / nofEvents);
     vector<TH1*> histos1;
     histos1.push_back(HM()->H1("allGemDistr"));
     histos1.push_back(HM()->H1("recoGemDistr"));
@@ -283,8 +282,10 @@ void BmnTrackingQaReport::DrawEffGhost(const string& canvasName) {
     vector<string> labels2;
     labels2.push_back("Efficiency");
     labels2.push_back("Percent of ghosts");
-    DivideHistos(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), HM()->H1("EffGemDistr"), 100.);
-    DivideHistos(HM()->H1("ghostGemDistr"), HM()->H1("recoGemDistr"), HM()->H1("FakeGemDistr"), 100.);
+    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
+    HM()->H1("EffGemDistr")->Scale(100.0);
+    HM()->H1("FakeGemDistr")->Divide(HM()->H1("ghostGemDistr"), HM()->H1("recoGemDistr"), 1., 1., "B");
+    HM()->H1("FakeGemDistr")->Scale(100.0);
     vector<TH1*> histos2;
     histos2.push_back(HM()->H1("EffGemDistr"));
     histos2.push_back(HM()->H1("FakeGemDistr"));
@@ -314,7 +315,9 @@ void BmnTrackingQaReport::DrawMomRes(const string& canvasName) {
     canvas->cd(1);
     DrawH2(HM()->H2("momRes_2D"), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
-    DrawH1(HM()->H1("momRes_1D"), kLinear, kLinear, "P", kRed, 0.7, 0.75, 1.1, 20);
+    HM()->H1("momRes_1D")->SetMaximum(5.0);
+    HM()->H1("momRes_1D")->SetMinimum(0.0);
+    DrawH1(HM()->H1("momRes_1D"), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
 }
 
 void BmnTrackingQaReport::DrawEtaP(const string& canvasName) {

@@ -20,6 +20,7 @@
 #pragma link C++ class BmnGemStripStation+;
 #pragma link C++ class BmnGemStripStationSet+;
 #pragma link C++ class BmnGemStripDigit+;
+#pragma link C++ class BmnGemStripDigitizer+;
 #pragma link C++ class BmnGemStripHit+;
 #pragma link C++ class BmnGemStripHitMaker+;
 

@@ -68,11 +68,11 @@ public:
     Int_t GetMaxValidTheoreticalIntersections() { return NMaxValidTheoreticalIntersections; }
 
 //Interface methods for adding points
-    Bool_t AddRealPoint(Double_t xcoord, Double_t ycoord, Double_t zcoord); //old
+    Bool_t AddRealPoint(Double_t x, Double_t y, Double_t z); //old
     Bool_t AddRealPointFull(Double_t x, Double_t y, Double_t z,
                             Double_t px, Double_t py, Double_t pz);
 
-    Bool_t AddRealPointFullOne(Double_t xcoord, Double_t ycoord, Double_t zcoord);
+    Bool_t AddRealPointFullOne(Double_t x, Double_t y, Double_t z);
 
 //Interface methods for calculating intersections points
     void CalculateStripHitIntersectionPoints();
@@ -81,12 +81,17 @@ public:
     void CalculateRightIntersectionPoints();
     void CalculateBorderIntersectionPoints();
 
+//Value setters
+    //Strips
+    Bool_t SetValueOfLowerStrip(Int_t indx, Double_t val);
+    Bool_t SetValueOfUpperStrip(Int_t indx, Double_t val);
+
 //Value getters
     //Strips
     Int_t CountLowerStrips(); //strip quantity in the lower layer
     Int_t CountUpperStrips(); //strip quantity in the upper layer
-    Int_t GetValueOfLowerStrip(Int_t indx); //signal value of i-strips in lower layer
-    Int_t GetValueOfUpperStrip(Int_t indx); //signal value of i-strips in upper layer
+    Double_t GetValueOfLowerStrip(Int_t indx); //signal value of i-strips in lower layer
+    Double_t GetValueOfUpperStrip(Int_t indx); //signal value of i-strips in upper layer
 
     //Added (real) points
     Int_t GetNRealPoints() {return RealPointsX.size();} //quantity of added points

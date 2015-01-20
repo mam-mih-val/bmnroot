@@ -33,7 +33,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     //  Digitisation files.
     // Add TObjectString containing the different file names to
     // a TList which is passed as input to the FairParAsciiFileIo.
-    // The FairParAsciiFileIo will take care to create on the fly 
+    // The FairParAsciiFileIo will take care to create on the fly
     // a concatenated input parameter file which is then used during
     // the reconstruction.
     TList *parFileList = new TList();
@@ -200,8 +200,11 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 //    gemHP->SetOnlyPrimary(kTRUE);
     fRun->AddTask(gemHP);
 
-    //  BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
-    //  fRun->AddTask(gemHM);
+      //BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
+      //fRun->AddTask(gemDigit);
+
+      //BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
+      //fRun->AddTask(gemHM);
 
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //

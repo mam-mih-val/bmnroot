@@ -162,38 +162,38 @@ BmnGemStripStation::BmnGemStripStation(Int_t iStation,
 }
 
 BmnGemStripStation::~BmnGemStripStation() {
-
     for(UInt_t i = 0; i < 8; i++) {
         if(ReadoutModules[i]) delete ReadoutModules[i];
     }
 }
 
 Bool_t BmnGemStripStation::CheckPointModuleOwnership(Double_t xcoord, Double_t ycoord, Int_t readout_module) {
-
     //Info: readout_module can be from 0 to 7, where 0-3 - indices of big modules, 4-7 - small (inner) modules
-
     if(readout_module >= 0 && readout_module <= 7) {
-
         if((xcoord >= XMin_ReadoutModule[readout_module]) && (xcoord <= XMax_ReadoutModule[readout_module])
         && (ycoord >= YMin_ReadoutModule[readout_module]) && (ycoord <= YMax_ReadoutModule[readout_module]))
             return true;
         else return false;
     }
-
     return false;
 }
 
-Int_t BmnGemStripStation::AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord) {
+Int_t BmnGemStripStation::GetPointModuleOwhership(Double_t xcoord, Double_t ycoord) {
+    for(Int_t iModule = 7; iModule >= 0; iModule--) {
+            if(CheckPointModuleOwnership(xcoord, ycoord, iModule)) return iModule;
+            //if(ReadoutModules[iModule]->AddRealPoint(xcoord, ycoord, zcoord)) return iModule;
+        }
+    return -1;
+}
 
+Int_t BmnGemStripStation::AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord) {
         for(Int_t iModule = 7; iModule >= 0; iModule--) {
             if(CheckPointModuleOwnership(xcoord, ycoord, iModule)) {
-
                 //if(ReadoutModules[iModule]->AddRealPoint(xcoord, ycoord, zcoord)) return iModule;
                 if(ReadoutModules[iModule]->AddRealPointFullOne(xcoord, ycoord, zcoord)) return iModule;
                 else return -1;
             }
         }
-
     return -1;
 }
 

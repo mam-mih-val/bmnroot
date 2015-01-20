@@ -2,7 +2,7 @@
 
 set(INCLUDE_DIRECTORIES
 ${BASE_INCLUDE_DIRECTORIES}
-${ROOT_INCLUDE_DIR} 
+${ROOT_INCLUDE_DIR}
 ${Boost_INCLUDE_DIR}
 
 ${BMNROOT_SOURCE_DIR}/base
@@ -37,7 +37,7 @@ set(SRCS
   BmnGemGeo.cxx
   BmnGemDigit.cxx
   BmnGemDigitizerTask.cxx
-  BmnGemGas.cxx 
+  BmnGemGas.cxx
   BmnManageQA.cxx
   BmnGemDigitizerQAHistograms.cxx
   BmnGemSeedFinder.cxx
@@ -48,6 +48,7 @@ set(SRCS
   BmnGemStripStation.cxx
   BmnGemStripStationSet.cxx
   BmnGemStripDigit.cxx
+  BmnGemStripDigitizer.cxx
   BmnGemStripHit.cxx
   BmnGemStripHitMaker.cxx
 )
@@ -70,6 +71,7 @@ set(HEADERS
   BmnGemStripStation.h
   BmnGemStripStationSet.h
   BmnGemStripDigit.h
+  BmnGemStripDigitizer.h
   BmnGemStripHit.h
   BmnGemStripHitMaker.h
 )
@@ -90,7 +92,7 @@ EndIf (Boost_FOUND)
 set(LINKDEF  GemLinkDef.h)
 Set(LIBRARY_NAME Gem)
 Set(DEPENDENCIES
-    KF Sts BmnBase BmnData Base 
+    KF Sts BmnBase BmnData Base
 )
 
 GENERATE_LIBRARY()

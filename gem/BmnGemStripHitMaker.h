@@ -26,32 +26,28 @@ public:
 
     virtual ~BmnGemStripHitMaker();
 
+    void SetVerbosity(Bool_t verbose);
+
     virtual InitStatus Init();
 
     virtual void Exec(Option_t* opt);
 
     virtual void Finish();
 
-    void ProcessMCPoints();
+    void ProcessDigits();
 
 private:
 
-    TString fInputBranchName;
-    TString fOutputDigitsBranchName;
+    TString fInputPointsBranchName;
+    TString fInputDigitsBranchName;
     TString fOutputHitsBranchName;
 
     /** Input array of Gem Points **/
     TClonesArray* fBmnGemStripPointsArray;
-
-    /** Input array of MC Tracks **/
-    //TClonesArray* fMCTracksArray;
-
-    /** Output array of Gem Digits **/
     TClonesArray* fBmnGemStripDigitsArray;
 
     /** Output array of Gem Hits **/
     TClonesArray* fBmnGemStripHitsArray;
-
 
     ClassDef(BmnGemStripHitMaker,1);
 };

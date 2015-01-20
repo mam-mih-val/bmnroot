@@ -178,9 +178,9 @@ Double_t BmnGemStripReadoutModule::GetYErrorIntersection() {
    return GetYStripsIntersectionSize()/2;
 }
 
-Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t xcoord, Double_t ycoord, Double_t zcoord) {
-    Int_t numLowStrip = ConvertRealPointToLowerStripNum(xcoord, ycoord);
-    Int_t numUpStrip = ConvertRealPointToUpperStripNum(xcoord, ycoord);
+Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z) {
+    Int_t numLowStrip = ConvertRealPointToLowerStripNum(x, y);
+    Int_t numUpStrip = ConvertRealPointToUpperStripNum(x, y);
 
     if(numLowStrip < ReadoutLowerPlane.size() && numUpStrip < ReadoutUpperPlane.size()) {
 
@@ -194,13 +194,13 @@ Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t xcoord, Double_t ycoord, 
         RealPointsLowerStrip.push_back(numLowStrip);
         RealPointsUpperStrip.push_back(numUpStrip);
 
-        RealPointsX.push_back(xcoord);
-        RealPointsY.push_back(ycoord);
+        RealPointsX.push_back(x);
+        RealPointsY.push_back(y);
 
         return true;
     }
     else {
-        cout << "WARNING: Point (" << xcoord << " : " << ycoord << ") is out of the readout plane" << "\n";
+        cout << "WARNING: Point (" << x << " : " << y << ") is out of the readout plane" << "\n";
         return false;
     }
 }
@@ -734,6 +734,22 @@ Double_t BmnGemStripReadoutModule::CalculateUpperStripZonePosition(Double_t xcoo
     return (ConvertRealPointToUpperX(xcoord, ycoord)-XMinReadout)/Pitch;
 }
 
+Bool_t BmnGemStripReadoutModule::SetValueOfLowerStrip(Int_t indx, Double_t val) {
+    if(indx < ReadoutLowerPlane.size()) {
+        ReadoutLowerPlane.at(indx) = val;
+        return true;
+    }
+    else return false;
+}
+
+Bool_t BmnGemStripReadoutModule::SetValueOfUpperStrip(Int_t indx, Double_t val) {
+    if(indx < ReadoutUpperPlane.size()) {
+        ReadoutUpperPlane.at(indx) = val;
+        return true;
+    }
+    else return false;
+}
+
 Int_t BmnGemStripReadoutModule::CountLowerStrips(){
     Double_t ratio = (XMaxReadout-XMinReadout)/Pitch;
     if((Abs(ratio) - Abs((int)ratio)) < 1E-10) {
@@ -762,14 +778,13 @@ Int_t BmnGemStripReadoutModule::CountUpperStrips(){
     }
 }
 
-Int_t BmnGemStripReadoutModule::GetValueOfLowerStrip(Int_t indx) {
+Double_t BmnGemStripReadoutModule::GetValueOfLowerStrip(Int_t indx) {
     if(indx < ReadoutLowerPlane.size()) {
         return ReadoutLowerPlane.at(indx);
     }
     else return -1;
 }
-
-Int_t BmnGemStripReadoutModule::GetValueOfUpperStrip(Int_t indx) {
+Double_t BmnGemStripReadoutModule::GetValueOfUpperStrip(Int_t indx) {
     if(indx < ReadoutUpperPlane.size()) {
         return ReadoutUpperPlane.at(indx);
     }

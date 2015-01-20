@@ -2,44 +2,38 @@
 #define	BMNGEMSTRIPDIGIT_H
 
 #include <iostream>
+#include <vector>
 #include "Rtypes.h"
 #include "TNamed.h"
 
+using namespace std;
+
 class BmnGemStripDigit : public TNamed {
 public:
-
     BmnGemStripDigit();
     BmnGemStripDigit(BmnGemStripDigit* digit);
-    BmnGemStripDigit(Int_t iStation, Int_t iModule, Int_t iLowStrip, Int_t iUpStrip, Double_t xcoord, Double_t ycoord, Double_t zcoord);
+    BmnGemStripDigit(Int_t iStation, Int_t iModule, Int_t iStripLayer, Int_t iStripNumber, Double_t iStripSignal);
 
     virtual ~BmnGemStripDigit();
 
-    Double_t GetX() { return fX; }
-    Double_t GetY() { return fY; }
-    Double_t GetZ() { return fZ; }
     Int_t GetStation() { return fStation; }
     Int_t GetModule() { return fModule; }
-    Int_t GetLowerStrip() { return fLowerStrip; }
-    Int_t GetUpperStrip() { return fUpperStrip; }
+    Int_t GetStripLayer() { return fStripLayer; }
+    Int_t GetStripNumber() { return fStripNumber; }
+    Double_t GetStripSignal() { return fStripSignal; }
 
-    void SetX(Double_t x) { fX = x; }
-    void SetY(Double_t y) { fY = y; }
-    void SetZ(Double_t z) { fZ = z; }
-    void SetStation(Int_t st) { fStation = st; }
-    void SetModule(Int_t mod) { fModule = mod; }
-    void SetLowerStrip(Int_t lstrip) { fLowerStrip = lstrip; }
-    void SetUpperStrip(Int_t ustrip) { fUpperStrip = ustrip; }
+    void SetStation(Int_t station) { fStation = station; }
+    void SetModule(Int_t module) { fModule = module; }
+    void SetStripLayer(Int_t layer) { fStripLayer = layer; }
+    void SetStripNumber(Int_t num) { fStripNumber = num; }
+    void SetStripSignal(Double_t signal) { fStripSignal = signal; }
 
 private:
-
     Int_t fStation;
     Int_t fModule;
-    Int_t fLowerStrip;
-    Int_t fUpperStrip;
-
-    Double_t fX;
-    Double_t fY;
-    Double_t fZ;
+    Int_t fStripLayer; // 0 - lower layer, 1 - upper layer
+    Int_t fStripNumber;
+    Double_t fStripSignal;
 
     ClassDef(BmnGemStripDigit,1);
 };

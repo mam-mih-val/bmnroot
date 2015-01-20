@@ -2,9 +2,11 @@
 
 BmnGemStripHitMaker::BmnGemStripHitMaker() {
 
-    fInputBranchName = "StsPoint";
-    fOutputDigitsBranchName = "BmnGemStripDigit";
+    fInputPointsBranchName = "StsPoint";
+    fInputDigitsBranchName = "BmnGemStripDigit";
     fOutputHitsBranchName = "BmnGemStripHit";
+
+    fVerbose = 1;
 }
 
 BmnGemStripHitMaker::~BmnGemStripHitMaker() {
@@ -13,15 +15,12 @@ BmnGemStripHitMaker::~BmnGemStripHitMaker() {
 
 InitStatus BmnGemStripHitMaker::Init() {
 
-    cout << " BmnGemStripHitMaker::Init()\n ";
+    if(fVerbose) cout << " BmnGemStripHitMaker::Init()\n ";
 
     FairRootManager* ioman = FairRootManager::Instance();
 
-    fBmnGemStripPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
-    //fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
-
-    fBmnGemStripDigitsArray = new TClonesArray(fOutputDigitsBranchName);
-    ioman->Register(fOutputDigitsBranchName, "GEM", fBmnGemStripDigitsArray, kTRUE);
+    fBmnGemStripPointsArray = (TClonesArray*) ioman->GetObject(fInputPointsBranchName);
+    fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
 
     fBmnGemStripHitsArray = new TClonesArray(fOutputHitsBranchName);
     ioman->Register(fOutputHitsBranchName, "GEM", fBmnGemStripHitsArray, kTRUE);
@@ -31,84 +30,118 @@ InitStatus BmnGemStripHitMaker::Init() {
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
 
-    fBmnGemStripDigitsArray->Clear();
     fBmnGemStripHitsArray->Clear();
 
     if (!fBmnGemStripPointsArray) {
         Error("BmnGemStripHitMaker::Init()", " !!! Unknown branch name !!! ");
         return;
     }
+    if (!fBmnGemStripDigitsArray) {
+        Error("BmnGemStripHitMaker::Init()", " !!! Unknown branch name !!! ");
+        return;
+    }
 
-    cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripPoints = " << fBmnGemStripPointsArray->GetEntriesFast() << "\n";
+    if(fVerbose) cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripDigits = " << fBmnGemStripDigitsArray->GetEntriesFast() << "\n";
 
-    ProcessMCPoints();
+    ProcessDigits();
 
-    cout << " BmnGemStripHitMaker::Exec() finished\n";
+    if(fVerbose) cout << " BmnGemStripHitMaker::Exec() finished\n";
 }
 
-void BmnGemStripHitMaker::ProcessMCPoints() {
+void BmnGemStripHitMaker::ProcessDigits() {
 
-    FairMCPoint* GemStripPoint;
+    FairMCPoint* MCPoint;
+    BmnGemStripDigit* digit;
 
     BmnGemStripStationSet StationSet;
 
-    for(UInt_t ipoint = 0; ipoint < fBmnGemStripPointsArray->GetEntriesFast(); ipoint++) {
-        GemStripPoint = (FairMCPoint*) fBmnGemStripPointsArray->At(ipoint);
+    BmnGemStripStation* station;
+    BmnGemStripReadoutModule* module;
 
-        Double_t x = -GemStripPoint->GetX(); // invert because in current geometry +x -left, -x - right
-        Double_t y = GemStripPoint->GetY();
-        Double_t z = GemStripPoint->GetZ();
+//Loading digits
+    Int_t AddedDigits = 0;
+    for(UInt_t idigit = 0; idigit < fBmnGemStripDigitsArray->GetEntriesFast(); idigit++) {
+        digit = (BmnGemStripDigit*)fBmnGemStripDigitsArray->At(idigit);
+        station = StationSet.GetGemStation(digit->GetStation());
+        module = station->GetReadoutModule(digit->GetModule());
 
-        //Double_t px = GemStripPoint->GetPx();
-        //Double_t py = GemStripPoint->GetPy();
-        //Double_t pz = GemStripPoint->GetPz();
-
-        StationSet.AddPointToDetector(x, y, z);
+        if(digit->GetStripLayer() == 0) {
+            if(module->SetValueOfLowerStrip(digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
+        }
+        if(digit->GetStripLayer() == 1) {
+            if(module->SetValueOfUpperStrip(digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
+        }
     }
+    if(fVerbose) cout << "   Processed strip digits  : " << AddedDigits << "\n";
+//------------------------------------------------------------------------------
 
+//Processing digits
     StationSet.ProcessPointsInDetector();
 
-    Int_t NAddedPoints = StationSet.CountNAddedToDetectorPoints();
     Int_t NCalculatedPoints = StationSet.CountNProcessedPointsInDetector();
+    if(fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
 
-    cout << "   Processed MC points  : " << NAddedPoints << "\n";
-    cout << "   Calculated points  : " << NCalculatedPoints << "\n";
-
-    Int_t index = 0;
-
-    for(Int_t iStation = 0; iStation < StationSet.GetNStations(); iStation++) {
+    Int_t match_cnt = 0;
+    for(Int_t iStation = 0; iStation < StationSet.GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet.GetGemStation(iStation);
 
-        for(Int_t iModule = 0; iModule < station->GetNModules(); iModule++) {
+        for(Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripReadoutModule *module = station->GetReadoutModule(iModule);
-
             Double_t z = module->GetZPositionReadout();
             Double_t x_err = 0.0;
             Double_t y_err = 0.0;
             Double_t z_err = 0.0;
 
-            for(Int_t iPoint = 0; iPoint < module->GetNIntersectionPoints(); iPoint++) {
-                Double_t x = -module->GetIntersectionPointX(iPoint); // invert back
+            for(Int_t iPoint = 0; iPoint < module->GetNIntersectionPoints(); ++iPoint) {
+                Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
 
-                Int_t lower_strip = module->GetIntersectionPointLowerStrip(iPoint);
-                Int_t upper_strip = module->GetIntersectionPointUpperStrip(iPoint);
+                //match intersection points with MC-points (find RefMCIndex)
+                Int_t RefMCIndex = -1;
+                Double_t min_distance = 1E10;
 
-                //Add digit
-                new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
-                    BmnGemStripDigit(iStation, iModule, lower_strip, upper_strip, x, y, z);
+                for(Int_t iMCPoint = 0; iMCPoint < fBmnGemStripPointsArray->GetEntriesFast(); iMCPoint++) {
+                    MCPoint = (FairMCPoint*) fBmnGemStripPointsArray->At(iMCPoint);
+                    Double_t xmc = -MCPoint->GetX();
+                    Double_t ymc = MCPoint->GetY();
+                    Double_t zmc = MCPoint->GetZ();
+                    Int_t StationNum = StationSet.GetPointStationOwnership(zmc);
+                    Int_t ModuleNum = station->GetPointModuleOwhership(xmc, ymc);
+
+                    if((StationNum == iStation) && (ModuleNum == iModule)) {
+                        Double_t pitch = StationSet.GetGemStation(iStation)->GetReadoutModule(iModule)->GetPitch();
+                        Double_t angle = StationSet.GetGemStation(iStation)->GetReadoutModule(iModule)->GetAngleDeg();
+
+                        Double_t max_xdeviation = pitch;
+                        Double_t max_ydeviation = pitch/Sin(Abs(angle)*Pi()/180.0);
+
+                        if( (Abs(x-xmc) <= max_xdeviation) && (Abs(y-ymc) <= max_ydeviation) ) {
+                            Double_t cur_distance = (x-xmc)*(x-xmc) + (y-ymc)*(y-ymc);
+                            if(cur_distance < min_distance) {
+                                min_distance = cur_distance;
+                                RefMCIndex = iMCPoint;
+                            }
+                            match_cnt++;
+                        }
+                    }
+                }
+                //--------------------------------------------------------------
 
                 //Add hit
+                x *= -1; // invert to global X
+
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
-                    BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), index);
+                    BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
+
                 BmnGemStripHit* hit = (BmnGemStripHit*) fBmnGemStripHitsArray->At(fBmnGemStripHitsArray->GetEntriesFast() - 1);
                 hit->SetStation(iStation);
                 hit->SetIndex(fBmnGemStripHitsArray->GetEntriesFast() - 1);
-
-                index++;
+                //--------------------------------------------------------------
             }
         }
     }
+    if(fVerbose) cout << "   N matches with MC-points = " << match_cnt << "\n";
+//------------------------------------------------------------------------------
 }
 
 void BmnGemStripHitMaker::Finish() {

@@ -22,9 +22,9 @@ TGeoManager* gGeoMan = NULL;
 const Int_t NofPlanes = 6;
 
 //Detector's position
-const Double_t MWPC2_Xpos = 0.0;
+const Double_t MWPC2_Xpos = 60.0;
 const Double_t MWPC2_Ypos = 0.0;
-const Double_t MWPC2_Zpos = 80.0;
+const Double_t MWPC2_Zpos = 460.0;
 
 //           x   
 //        A______B

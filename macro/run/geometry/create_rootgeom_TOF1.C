@@ -6,7 +6,7 @@ TGeoManager* gGeoMan = NULL;
 //Detector's position
 const Double_t TOF1_Xpos = 0.0;
 const Double_t TOF1_Ypos = 0.0;
-const Double_t TOF1_Zpos = 400.0; //cm
+const Double_t TOF1_Zpos = 440.0; //cm
 
 //Detector's construct parameters   
 const Double_t XWidthOfModule_TOF1 = 100.0;

@@ -81,6 +81,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
+//        if (hit->GetRefIndex() < 0) continue; //FIXME!!! 
         if (hit->GetStation() > kNHITSFORSEED - 1) continue;
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         const Float_t newX = hit->GetX() / R;
@@ -162,7 +163,9 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
             }
 
             BmnGemStripHit* firstHit = GetHit(track->GetHitIndex(0));
-            CbmStsPoint* firstPoint = (CbmStsPoint*) fMCPointsArray->At(firstHit->GetRefIndex());
+            Int_t refId = firstHit->GetRefIndex();
+            if (refId < 0) continue;
+            CbmStsPoint* firstPoint = (CbmStsPoint*) fMCPointsArray->At(refId);
             if (!firstPoint) {
                 cout << "GEM_SEEDING: There is no MC-point corresponded to current hit" << endl;
                 continue;
@@ -172,7 +175,9 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
             for (Int_t j = 1; j < track->GetNHits(); ++j) { //loop over hits from the second to the last. Needed for comparing id of hits
                 BmnGemStripHit* curHit = GetHit(track->GetHitIndex(j));
                 if (!curHit) continue;
-                CbmStsPoint* curPoint = (CbmStsPoint*) fMCPointsArray->At(curHit->GetRefIndex());
+                Int_t refId = curHit->GetRefIndex();
+                if (refId < 0) continue;
+                CbmStsPoint* curPoint = (CbmStsPoint*) fMCPointsArray->At(refId);
                 if (!curPoint) {
                     cout << "GEM_SEEDING: There is no MC-point corresponded to current hit" << endl;
                     continue;
@@ -223,8 +228,8 @@ BmnStatus BmnGemSeedFinder::DoSeeding() {
     for (Int_t i = 0; i < 5; ++i) {
         for (Int_t j = 0; j < 4; ++j)
             FindSeeds(i, j, kTRUE); // from station #i, in gate = 2 * j + 1, only hits presented in every station 
-        for (Int_t j = 0; j < 4; ++j)
-            FindSeeds(i, j, kFALSE); // from station #i, in gate = 2 * j + 1, 
+//        for (Int_t j = 0; j < 4; ++j)
+//            FindSeeds(i, j, kFALSE); // from station #i, in gate = 2 * j + 1, 
     }
 
 //        TH1F* hTheta = new TH1F("tmp", "tmp", 240, -6, 6);
@@ -339,7 +344,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
 
 void BmnGemSeedFinder::SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal) {
 
-    if (((*hitCntr) > 1) && Abs(i - (*startBin)) > 4 * (*maxDist)) return; //condition for finishing is dist < 4 * MaxDist //FIXME check this condition in mother functions
+    if (((*hitCntr) > 1) && Abs(i - (*startBin)) > 2 * (*maxDist)) return; //condition for finishing is dist < 4 * MaxDist //FIXME check this condition in mother functions
 
     BmnGemStripHit* hit = NULL;
 

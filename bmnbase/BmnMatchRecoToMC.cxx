@@ -153,7 +153,7 @@ void BmnMatchRecoToMC::Exec(Option_t* opt) {
         //MatchHitsGem(fGemClusterMatches, fGemHits, fGemHitMatches);
         //      MatchTracks(fGemHitMatches, fGemPoints, fGemTracks, fGemTrackMatches);
     } else if (fGemHits) { // MC->hit->track
-//        MatchGemHitsToPoints(fGemPoints, fGemHits, fGemHitMatches);
+        //        MatchGemHitsToPoints(fGemPoints, fGemHits, fGemHitMatches);
         MatchHitsToPoints(fGemPoints, fGemHits, fGemHitMatches);
         MatchGemTracks(fGemHitMatches, fGemPoints, fGemTracks, fGemTrackMatches);
     }
@@ -164,7 +164,7 @@ void BmnMatchRecoToMC::Exec(Option_t* opt) {
         //MatchHitsTof1(fTof1ClusterMatches, fTof1Hits, fTof1HitMatches);
         //      MatchTracks(fTof1HitMatches, fTof1Points, fTof1Tracks, fTof1TrackMatches);
     } else if (fTof1Hits) { // MC->hit->track
-//        MatchTofHitsToPoints(fTof1Points, fTof1Hits, fTof1HitMatches);
+        //        MatchTofHitsToPoints(fTof1Points, fTof1Hits, fTof1HitMatches);
         MatchHitsToPoints(fTof1Points, fTof1Hits, fTof1HitMatches);
     }
 
@@ -174,7 +174,7 @@ void BmnMatchRecoToMC::Exec(Option_t* opt) {
         //MatchHitsTof2(fTof2ClusterMatches, fTof2Hits, fTof2HitMatches);
         //      MatchTracks(fTof2HitMatches, fTof2Points, fTof2Tracks, fTof2TrackMatches);
     } else if (fTof2Hits) { // MC->hit->track
-//        MatchTofHitsToPoints(fTof2Points, fTof2Hits, fTof2HitMatches);
+        //        MatchTofHitsToPoints(fTof2Points, fTof2Hits, fTof2HitMatches);
         MatchHitsToPoints(fTof2Points, fTof2Hits, fTof2HitMatches);
     }
 
@@ -184,7 +184,7 @@ void BmnMatchRecoToMC::Exec(Option_t* opt) {
         //MatchHitsDch1(fDch1ClusterMatches, fDch1Hits, fDch1HitMatches);
         //      MatchTracks(fDch1HitMatches, fDch1Points, fDch1Tracks, fDch1TrackMatches);
     } else if (fDch1Hits) { // MC->hit->track
-//        MatchDchHitsToPoints(fDch1Points, fDch1Hits, fDch1HitMatches);
+        //        MatchDchHitsToPoints(fDch1Points, fDch1Hits, fDch1HitMatches);
         MatchHitsToPoints(fDch1Points, fDch1Hits, fDch1HitMatches);
     }
 
@@ -194,7 +194,7 @@ void BmnMatchRecoToMC::Exec(Option_t* opt) {
         //MatchHitsDch2(fDch2ClusterMatches, fDch2Hits, fDch2HitMatches);
         //      MatchTracks(fDch2HitMatches, fDch2Points, fDch2Tracks, fDch2TrackMatches);
     } else if (fDch2Hits) { // MC->hit->track
-//        MatchDchHitsToPoints(fDch2Points, fDch2Hits, fDch2HitMatches);
+        //        MatchDchHitsToPoints(fDch2Points, fDch2Hits, fDch2HitMatches);
         MatchHitsToPoints(fDch2Points, fDch2Hits, fDch2HitMatches);
     }
     MatchGlobalTracks(fGemHitMatches, fTof1HitMatches,
@@ -309,9 +309,11 @@ void BmnMatchRecoToMC::MatchHitsToPoints(const TClonesArray* points, const TClon
     for (Int_t iHit = 0; iHit < nofHits; ++iHit) {
         const BmnHit* hit = (const BmnHit*) (hits->At(iHit));
         BmnMatch* hitMatch = new ((*hitMatches)[iHit]) BmnMatch();
-        const FairMCPoint* point = (const FairMCPoint*) (points->At(hit->GetRefIndex()));
+        Int_t refId = hit->GetRefIndex();
+        if (refId < 0) continue;
+        const FairMCPoint* point = (const FairMCPoint*) (points->At(refId));
         if (point == NULL) continue;
-        hitMatch->AddLink(BmnLink(point->GetEnergyLoss(), hit->GetRefIndex()));
+        hitMatch->AddLink(BmnLink(point->GetEnergyLoss(), refId));
     }
 }
 

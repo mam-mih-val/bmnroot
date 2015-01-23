@@ -163,7 +163,9 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         for (Int_t j = 0; j < track->GetNHits(); ++j) { //loop over hits from the second to the last. Needed for comparing id of hits
             BmnHit* hit = GetHit(track->GetHitIndex(j));
-            CbmStsPoint* point = (CbmStsPoint*) fMCPointsArray->At(hit->GetRefIndex());
+            Int_t refId = hit->GetRefIndex();
+            if (refId < 0) continue;
+            CbmStsPoint* point = (CbmStsPoint*) fMCPointsArray->At(refId);
             if (!point) {
                 cout << "GEM_TRACKING: There is no MC-point corresponded to current hit" << endl;
                 continue;

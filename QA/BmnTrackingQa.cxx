@@ -475,8 +475,11 @@ void BmnTrackingQa::ProcessGlobalTracks() {
         Float_t coef = Sqrt(Tx * Tx + Ty * Ty + 1);
         Float_t Pz_rec = P_rec / coef;
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
+        
 
-        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(globalTrack->GetRefId()));
+        Int_t refId = globalTrack->GetRefId();
+        if (refId < 0) continue;
+        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(refId));
         Float_t P_sim = mcTrack->GetP();
         Float_t Pz_sim = mcTrack->GetPz();
         Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));

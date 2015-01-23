@@ -81,7 +81,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
-//        if (hit->GetRefIndex() < 0) continue; //FIXME!!! 
+        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits)
         if (hit->GetStation() > kNHITSFORSEED - 1) continue;
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         const Float_t newX = hit->GetX() / R;

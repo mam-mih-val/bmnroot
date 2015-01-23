@@ -75,7 +75,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                          (where available)                        ===
     // =========================================================================
 
-
+/*
 
     // -----   STS digitizer   -------------------------------------------------
     Double_t threshold = 4;
@@ -147,7 +147,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // =========================================================================
 
 
-    // ======================================================  ===================
+    // =========================================================================
     // ===                     PSD Digitization                      ===
     // =========================================================================
 
@@ -159,7 +159,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     CbmPsdReactionPlaneMaker *psdrp = new CbmPsdReactionPlaneMaker();
     //   fRun->AddTask(psdrp);
 
-
+*/
     //SM --->
 
     //Temporary flag to change reconstruction chain between standard and RUN-1
@@ -198,13 +198,13 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 
     BmnGemHitProducer* gemHP = new BmnGemHitProducer();
 //    gemHP->SetOnlyPrimary(kTRUE);
-    fRun->AddTask(gemHP);
+//    fRun->AddTask(gemHP);
 
-      //BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
-      //fRun->AddTask(gemDigit);
+      BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
+      fRun->AddTask(gemDigit);
 
-      //BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
-      //fRun->AddTask(gemHM);
+      BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
+      fRun->AddTask(gemHM);
 
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //

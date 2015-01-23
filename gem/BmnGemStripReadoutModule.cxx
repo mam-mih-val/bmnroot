@@ -1,7 +1,5 @@
 #include "BmnGemStripReadoutModule.h"
 
-ClassImp(BmnGemStripReadoutModule)
-
 BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
     Pitch = 400*1E-4;           //cm
     LowerStripWidth = Pitch;  //cm
@@ -98,6 +96,9 @@ void BmnGemStripReadoutModule::ResetIntersectionPoints() {
 
     IntersectionPointsLowerStrip.clear();
     IntersectionPointsUpperStrip.clear();
+
+    IntersectionPointsXErrors.clear();
+    IntersectionPointsYErrors.clear();
 }
 
 void BmnGemStripReadoutModule::ResetRealPoints() {
@@ -113,6 +114,8 @@ void BmnGemStripReadoutModule::ResetRealPoints() {
 void BmnGemStripReadoutModule::ResetStripHits() {
     LowerStripHits.clear();
     UpperStripHits.clear();
+    LowerStripHitsErrors.clear();
+    UpperStripHitsErrors.clear();
 }
 
 void BmnGemStripReadoutModule::SetPitch(Double_t pitch) {
@@ -551,11 +554,11 @@ Bool_t BmnGemStripReadoutModule::MakeCluster(Double_t x, Double_t y) {
 
 void BmnGemStripReadoutModule::FindClusterHitsInReadoutPlane() {
     ResetStripHits();
-    FindClustersInLayer(ReadoutLowerPlane, LowerStripHits);
-    FindClustersInLayer(ReadoutUpperPlane, UpperStripHits);
+    FindClustersInLayer(ReadoutLowerPlane, LowerStripHits, LowerStripHitsErrors);
+    FindClustersInLayer(ReadoutUpperPlane, UpperStripHits, UpperStripHitsErrors);
 }
 
-void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits) {
+void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsErrors) {
 
     Double_t threshold = 0.0;
 
@@ -575,7 +578,7 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
                 descent = false;
                 ascent = false;
                 //make strip hit
-                MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, is);
+                MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsErrors, is);
             }
             continue;
         }
@@ -586,7 +589,7 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
                     ascent = false;
                     descent = false;
                     //make strip hit
-                    MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, is);
+                    MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsErrors, is);
                     //continue;
                 }
                 ascent = true;
@@ -609,11 +612,11 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
     if(clusterDigits.size() != 0) {
         //make strip hit
         Int_t lastnum = Strips.size()-1;
-        MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, lastnum);
+        MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsErrors, lastnum);
     }
 }
 
-void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector<Double_t> &clusterValues, vector<Double_t> &Strips, vector<Double_t> &StripHits, Int_t &curcnt) {
+void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector<Double_t> &clusterValues, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsErrors, Int_t &curcnt) {
 
     //find max strip
     Double_t maxval = 0.0;
@@ -641,6 +644,7 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
     //TCanvas canv("canv", "canv");
 
     Double_t Mean = 0.0;
+    Double_t Sigma = 0.0;
     TH1F hist("hist", "hist", clusterDigits.size()+1, 0, clusterDigits.size()+1);
     for(Int_t i = 0; i < clusterDigits.size(); i++) {
         hist.SetBinContent(i+1, clusterValues.at(i));
@@ -653,8 +657,16 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
     else {
         Mean = clusterDigits.at(0) + 0.5;
     }
+    Sigma = hist.GetFunction("gaus")->GetParameter(2);
+
+    //Double_t sigstrip = hist.GetFunction("gaus")->GetParameter(2);
+    //cout << "Sigma = " << sigstrip << "\n";
+    //TString sstr = "";
+    //sstr += sigstrip;
+    //hist.SetTitle(sstr);
 
     StripHits.push_back(Mean);
+    StripHitsErrors.push_back(Sigma);
 
     clusterDigits.clear();
     clusterValues.clear();
@@ -889,6 +901,9 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
 
                 IntersectionPointsLowerStrip.push_back((int)LowerStripHits.at(i));
                 IntersectionPointsUpperStrip.push_back((int)UpperStripHits.at(j));
+
+                IntersectionPointsXErrors.push_back(LowerStripHitsErrors.at(i)*Pitch);
+                IntersectionPointsYErrors.push_back(UpperStripHitsErrors.at(j)*(Pitch/Sin(Abs(AngleRad)))); //FIX IT
             }
         }
     }
@@ -910,6 +925,9 @@ void BmnGemStripReadoutModule::CalculateMiddleIntersectionPoints() {
 
                         IntersectionPointsLowerStrip.push_back(i);
                         IntersectionPointsUpperStrip.push_back(j);
+
+                        IntersectionPointsXErrors.push_back(0); //FIX IT
+                        IntersectionPointsYErrors.push_back(0); //FIX IT
                     }
 
                 }
@@ -942,6 +960,9 @@ void BmnGemStripReadoutModule::CalculateLeftIntersectionPoints() {
 
                         IntersectionPointsLowerStrip.push_back(i);
                         IntersectionPointsUpperStrip.push_back(j);
+
+                        IntersectionPointsXErrors.push_back(0); //FIX IT
+                        IntersectionPointsYErrors.push_back(0); //FIX IT
                     }
                 }
             }
@@ -973,6 +994,9 @@ void BmnGemStripReadoutModule::CalculateRightIntersectionPoints() {
 
                         IntersectionPointsLowerStrip.push_back(i);
                         IntersectionPointsUpperStrip.push_back(j);
+
+                        IntersectionPointsXErrors.push_back(0); //FIX IT
+                        IntersectionPointsYErrors.push_back(0); //FIX IT
                     }
                 }
             }
@@ -1020,6 +1044,9 @@ void BmnGemStripReadoutModule::CalculateBorderIntersectionPoints() {
 
                             IntersectionPointsLowerStrip.push_back(i);
                             IntersectionPointsUpperStrip.push_back(j);
+
+                            IntersectionPointsXErrors.push_back(0); //FIX IT
+                            IntersectionPointsYErrors.push_back(0); //FIX IT
                         }
                     }
                     else {
@@ -1033,6 +1060,9 @@ void BmnGemStripReadoutModule::CalculateBorderIntersectionPoints() {
 
                                 IntersectionPointsLowerStrip.push_back(i);
                                 IntersectionPointsUpperStrip.push_back(j);
+
+                                IntersectionPointsXErrors.push_back(0); //FIX IT
+                                IntersectionPointsYErrors.push_back(0); //FIX IT
                             }
                         }
                         if( InYMaxBound ) {
@@ -1045,6 +1075,9 @@ void BmnGemStripReadoutModule::CalculateBorderIntersectionPoints() {
 
                                 IntersectionPointsLowerStrip.push_back(i);
                                 IntersectionPointsUpperStrip.push_back(j);
+
+                                IntersectionPointsXErrors.push_back(0); //FIX IT
+                                IntersectionPointsYErrors.push_back(0); //FIX IT
                             }
                         }
 
@@ -1054,3 +1087,5 @@ void BmnGemStripReadoutModule::CalculateBorderIntersectionPoints() {
         }
     }
 }
+
+ClassImp(BmnGemStripReadoutModule)

@@ -107,6 +107,8 @@ public:
     Double_t GetIntersectionPointY(Int_t indx) { return IntersectionPointsY.at(indx); } //Y-coord of i-intersection point
     Int_t GetIntersectionPointLowerStrip(Int_t indx) { return IntersectionPointsLowerStrip.at(indx); } //Lower strip number of i-intersection point
     Int_t GetIntersectionPointUpperStrip(Int_t indx) { return IntersectionPointsUpperStrip.at(indx); } //Upper strip number of i-intersection point
+    Double_t GetIntersectionPointXError(Int_t indx) { return IntersectionPointsXErrors.at(indx); } //X-coord error of i-intersection point
+    Double_t GetIntersectionPointYError(Int_t indx) { return IntersectionPointsYErrors.at(indx); } //Y-coord error of i-intersection point
 
     //Strip hits
     Double_t GetLowerStripHit(Int_t num); //hit position at the lower layer
@@ -123,8 +125,8 @@ public: //private (public - for test)
 
     //Find clusters and hits
     void FindClusterHitsInReadoutPlane();
-    void FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits);
-    void MakeStripHit(vector<Int_t> &clusterDigits, vector<Double_t> &clusterValues, vector<Double_t> &Strips, vector<Double_t> &StripHits, Int_t &curcnt);
+    void FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsErrors);
+    void MakeStripHit(vector<Int_t> &clusterDigits, vector<Double_t> &clusterValues, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsErrors, Int_t &curcnt);
 
     Double_t ConvertRealPointToUpperX(Double_t xcoord, Double_t ycoord);
     Double_t ConvertRealPointToUpperY(Double_t xcoord, Double_t ycoord);
@@ -181,6 +183,8 @@ private:
     vector<Double_t> IntersectionPointsY;
     vector<Int_t> IntersectionPointsLowerStrip;
     vector<Int_t> IntersectionPointsUpperStrip;
+    vector<Double_t> IntersectionPointsXErrors;
+    vector<Double_t> IntersectionPointsYErrors;
 
     //Int_t NDubbedPoints;
     Int_t NMaxValidTheoreticalIntersections;
@@ -188,6 +192,8 @@ private:
     //for hits
     vector<Double_t> LowerStripHits;
     vector<Double_t> UpperStripHits;
+    vector<Double_t> LowerStripHitsErrors;
+    vector<Double_t> UpperStripHitsErrors;
 
 private:
     BmnGemStripReadoutModule(const BmnGemStripReadoutModule&);

@@ -17,6 +17,8 @@
 #pragma link C++ class  FairHitPointSetDraw;
 #pragma link C++ class  FairMCPointDraw;
 #pragma link C++ class  FairTimeStampPointDraw;
+#pragma link C++ class  OnlineEventManager;
+#pragma link C++ class  OnlineEventManagerEditor;
 
 #endif
 

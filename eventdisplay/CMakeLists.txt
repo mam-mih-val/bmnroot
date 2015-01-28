@@ -17,6 +17,7 @@ ${CMAKE_SOURCE_DIR}/kalman
 ${CMAKE_SOURCE_DIR}/tpc
 ${CMAKE_SOURCE_DIR}/lhetrack
 ${CMAKE_SOURCE_DIR}/eventdisplay
+${CMAKE_SOURCE_DIR}/mwpc
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -41,6 +42,8 @@ FairMCPointDraw.cxx
 FairHitDraw.cxx
 FairHitPointSetDraw.cxx
 FairTimeStampPointDraw.cxx
+OnlineEventManager.cxx 
+OnlineEventManagerEditor.cxx
 )
 
 Set(HEADERS )

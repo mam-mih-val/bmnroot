@@ -649,21 +649,25 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
     for(Int_t i = 0; i < clusterDigits.size(); i++) {
         hist.SetBinContent(i+1, clusterValues.at(i));
     }
+
     if(clusterDigits.size() > 1) {
         hist.Fit("gaus", "WQ0"); //Q - quit mode (without information on the screen)
                                  //0 - not draw
-        Mean = hist.GetFunction("gaus")->GetParameter(1) + clusterDigits.at(0);
+
+        TF1* gausF = hist.GetFunction("gaus");
+        if(gausF) {
+            Mean = gausF->GetParameter(1) + clusterDigits.at(0);
+            Sigma = gausF->GetParameter(2);
+        }
+        else {
+            Mean = clusterDigits.at(0) + 0.5;
+            Sigma = 0.33;
+        }
     }
     else {
         Mean = clusterDigits.at(0) + 0.5;
+        Sigma = 0.33;
     }
-    Sigma = hist.GetFunction("gaus")->GetParameter(2);
-
-    //Double_t sigstrip = hist.GetFunction("gaus")->GetParameter(2);
-    //cout << "Sigma = " << sigstrip << "\n";
-    //TString sstr = "";
-    //sstr += sigstrip;
-    //hist.SetTitle(sstr);
 
     StripHits.push_back(Mean);
     StripHitsErrors.push_back(Sigma);

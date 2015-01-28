@@ -490,7 +490,8 @@ void BmnTrackingQa::ProcessGlobalTracks() {
         fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
         for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += 2) {
             fHM->H2("momRes_1D")->SetBinContent(iBin / 2, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin + 2)->GetMean());
-            fHM->H2("momRes_1D")->SetBinError(iBin / 2, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin + 2)->GetStdDev(1));
+//            fHM->H2("momRes_1D")->SetBinError(iBin / 2, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin + 2)->GetStdDev(1));
+            fHM->H2("momRes_1D")->SetBinError(iBin / 2, 0.0); //FIXME! MAKE CORRECT CALCULATION OF ERRORS! 
         }
 
         // check the quality of track segments

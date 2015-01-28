@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------
 // -----                        FairPointSetDraw source file                  -----
 // -----                  Created 03/01/08  by M. Al-Turany            -----
 // -------------------------------------------------------------------------
@@ -76,7 +76,6 @@ InitStatus FairPointSetDraw::Init()
   return kSUCCESS;
 }
 
-// -------------------------------------------------------------------------
 void FairPointSetDraw::Exec(Option_t* option)
 {
   if (IsActive())
@@ -92,7 +91,7 @@ void FairPointSetDraw::Exec(Option_t* option)
     q->SetMarkerStyle(fStyle);
     //std::cout << "fPointList: " << fPointList << " " << fPointList->GetEntries() << std::endl;
 
-    for (Int_t i=0; i < npoints; i++)
+    for (Int_t i = 0; i < npoints; i++)
     {
       TObject* p = (TObject*)fPointList->At(i);
       if(p != 0)

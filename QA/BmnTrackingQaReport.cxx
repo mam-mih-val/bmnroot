@@ -203,25 +203,25 @@ void BmnTrackingQaReport::DrawEfficiencyHistos() {
     for (UInt_t i = 0; i < fGlobalTrackVariants.size(); i++) {
         string variant = fGlobalTrackVariants[i];
         cout << "variant = " << variant << endl;
-        DrawEfficiency("Global tracking efficiency vs momentum (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_p", DefaultEfficiencyLabelFormatter);
-        DrawEfficiency("Global tracking efficiency vs transverse momentum (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_pt", DefaultEfficiencyLabelFormatter);
-        DrawEfficiency("Global tracking efficiency vs rapidity (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_y", DefaultEfficiencyLabelFormatter);
-        DrawEfficiency("Global tracking efficiency vs polar angle (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_Angle", DefaultEfficiencyLabelFormatter);
+        //DrawEfficiency("Global tracking efficiency vs momentum (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_p", DefaultEfficiencyLabelFormatter);
+        //DrawEfficiency("Global tracking efficiency vs transverse momentum (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_pt", DefaultEfficiencyLabelFormatter);
+        //DrawEfficiency("Global tracking efficiency vs rapidity (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_y", DefaultEfficiencyLabelFormatter);
+        //DrawEfficiency("Global tracking efficiency vs polar angle (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_Angle", DefaultEfficiencyLabelFormatter);
     }
 
     // Draw local tracking efficiency
     //    vector<string> localTrackVariants = list_of("Gem")("Tof");
-    vector<string> localTrackVariants;
-    for (UInt_t i = 0; i < localTrackVariants.size(); i++) {
-        string variant = localTrackVariants[i];
-        string re = (variant == "Gem") ? "hte_Gem_Gem_All_Eff" : "hte_" + variant + "_.*_All_Eff";
-        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_p", re + "_p", DefaultEfficiencyLabelFormatter);
-        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_pt", re + "_pt", DefaultEfficiencyLabelFormatter);
-        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_y", "hte_" + variant + "_.*" + variant + ".*_(All|Electron)_Eff_y", DefaultEfficiencyLabelFormatter);
-
-        string re2 = (variant == "Gem") ? "hte_Gem_Gem_All_Eff" : "hte_" + variant + "_.*_All_Eff";
-        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_angle", re2 + "_Angle", DefaultEfficiencyLabelFormatter);
-    }
+//    vector<string> localTrackVariants;
+//    for (UInt_t i = 0; i < localTrackVariants.size(); i++) {
+//        string variant = localTrackVariants[i];
+//        string re = (variant == "Gem") ? "hte_Gem_Gem_All_Eff" : "hte_" + variant + "_.*_All_Eff";
+//        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_p", re + "_p", DefaultEfficiencyLabelFormatter);
+//        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_pt", re + "_pt", DefaultEfficiencyLabelFormatter);
+//        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_y", "hte_" + variant + "_.*" + variant + ".*_(All|Electron)_Eff_y", DefaultEfficiencyLabelFormatter);
+//
+//        string re2 = (variant == "Gem") ? "hte_Gem_Gem_All_Eff" : "hte_" + variant + "_.*_All_Eff";
+//        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_angle", re2 + "_Angle", DefaultEfficiencyLabelFormatter);
+//    }
 
     // Draw local accepted and reconstructed tracks vs number of points
     HM()->ShrinkEmptyBinsH1ByPattern("hte_.+_.+_.+_.+_Np");
@@ -230,10 +230,10 @@ void BmnTrackingQaReport::DrawEfficiencyHistos() {
         string variant = accRecTracks[i];
 
         string re = (variant == "Gem") ? "hte_Gem_Gem_All_(Acc|Rec)_Np" : "hte_" + variant + "_.*_All_(Acc|Rec)_Np";
-        DrawAccAndRec("Number of simulated and reconstructed tracks in " + variant + " vs Number of hits", re);
+        DrawAccAndRec("Number of simulated and reconstructed tracks in vs Number of hits", re);
 
-        re = (variant == "Gem") ? "hte_Gem_Gem_All_(Acc|Rec)_p" : "hte_" + variant + "_.*_All_(Acc|Rec)_p";
-        DrawAccAndRec("Number of simulated and reconstructed tracks in " + variant + " vs momentum", re);
+        //re = (variant == "Gem") ? "hte_Gem_Gem_All_(Acc|Rec)_p" : "hte_" + variant + "_.*_All_(Acc|Rec)_p";
+        //DrawAccAndRec("Number of simulated and reconstructed tracks in " + variant + " vs momentum", re);
     }
 
 }

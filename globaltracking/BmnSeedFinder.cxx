@@ -1,5 +1,6 @@
 
 #include "BmnSeedFinder.h"
+#include "BmnGlobalTrack.h"
 
 //some variables for efficiency calculation
 static Int_t allFoundCntr = 0;
@@ -22,10 +23,22 @@ using namespace TMath;
 BmnSeedFinder::BmnSeedFinder() : fEventNo(0) {
 
     fSeedHits.clear();
+    fTof1HitsArray = NULL;
+    fTof1PointsArray = NULL;
+    fTof2HitsArray = NULL;
+    fTof2PointsArray = NULL;
+    fDch1HitsArray = NULL;
+    fDch1PointsArray = NULL;
+    fDch2HitsArray = NULL;
+    fDch2PointsArray = NULL;
     fMwpc1HitsArray = NULL;
+    fMwpc1PointsArray = NULL;
     fMwpc2HitsArray = NULL;
+    fMwpc2PointsArray = NULL;
     fMwpc3HitsArray = NULL;
+    fMwpc3PointsArray = NULL;
     fGemHitsArray = NULL;
+    fGemPointsArray = NULL;
     fSeedsArray = NULL;
     fMakeQA = kTRUE;
     fSeedsBranchName = "BmnGemTrack";
@@ -49,21 +62,36 @@ InitStatus BmnSeedFinder::Init() {
     cout << fDet.ToString();
 
     if (fDet.GetDet(kGEM)) {
-        fGemHitsArray = (TClonesArray*) ioman->GetObject("BmnGemStripHit"); //in
+        fGemHitsArray = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
         fGemPointsArray = (TClonesArray*) ioman->GetObject("StsPoint");
     }
     if (fDet.GetDet(kMWPC1)) {
-        fMwpc1HitsArray = (TClonesArray*) ioman->GetObject("BmnMwpc1Hit"); //in
+        fMwpc1HitsArray = (TClonesArray*) ioman->GetObject("BmnMwpc1Hit");
         fMwpc1PointsArray = (TClonesArray*) ioman->GetObject("MWPC1Point");
     }
     if (fDet.GetDet(kMWPC2)) {
-        fMwpc2HitsArray = (TClonesArray*) ioman->GetObject("BmnMwpc2Hit"); //in
+        fMwpc2HitsArray = (TClonesArray*) ioman->GetObject("BmnMwpc2Hit");
         fMwpc2PointsArray = (TClonesArray*) ioman->GetObject("MWPC2Point");
     }
     if (fDet.GetDet(kMWPC3)) {
-        fMwpc3HitsArray = (TClonesArray*) ioman->GetObject("BmnMwpc3Hit"); //in
+        fMwpc3HitsArray = (TClonesArray*) ioman->GetObject("BmnMwpc3Hit");
         fMwpc3PointsArray = (TClonesArray*) ioman->GetObject("MWPC3Point");
-
+    }
+    if (fDet.GetDet(kTOF1)) {
+        fTof1HitsArray = (TClonesArray*) ioman->GetObject("TOF1Hit");
+        fTof1PointsArray = (TClonesArray*) ioman->GetObject("TOF1Point");
+    }
+    if (fDet.GetDet(kTOF)) {
+        fTof2HitsArray = (TClonesArray*) ioman->GetObject("BmnTof2Hit");
+        fTof2PointsArray = (TClonesArray*) ioman->GetObject("TofPoint");
+    }
+    if (fDet.GetDet(kDCH1)) {
+        fDch1HitsArray = (TClonesArray*) ioman->GetObject("BmnDch1Hit");
+        fDch1PointsArray = (TClonesArray*) ioman->GetObject("DCH1Point");
+    }
+    if (fDet.GetDet(kDCH2)) {
+        fDch2HitsArray = (TClonesArray*) ioman->GetObject("BmnDch2Hit");
+        fDch2PointsArray = (TClonesArray*) ioman->GetObject("DCH2Point");
     }
 
     fSeedsArray = new TClonesArray(fSeedsBranchName, 100); //out
@@ -89,34 +117,18 @@ void BmnSeedFinder::Exec(Option_t* opt) {
     fSeedHits.clear();
     addresses.clear();
 
-    if (fDet.GetDet(kMWPC1)) {
-        for (Int_t hitIdx = 0; hitIdx < fMwpc1HitsArray->GetEntriesFast(); ++hitIdx) {
-            BmnHit* hit = (BmnHit*) fMwpc1HitsArray->At(hitIdx);
-            fSeedHits.push_back(hit);
-        }
-    }
-    if (fDet.GetDet(kMWPC2)) {
-        for (Int_t hitIdx = 0; hitIdx < fMwpc2HitsArray->GetEntriesFast(); ++hitIdx) {
-            BmnHit* hit = (BmnHit*) fMwpc2HitsArray->At(hitIdx);
-            fSeedHits.push_back(hit);
-        }
-    }
-    if (fDet.GetDet(kMWPC3)) {
-        for (Int_t hitIdx = 0; hitIdx < fMwpc3HitsArray->GetEntriesFast(); ++hitIdx) {
-            BmnHit* hit = (BmnHit*) fMwpc3HitsArray->At(hitIdx);
-            fSeedHits.push_back(hit);
-        }
-    }
-    if (fDet.GetDet(kGEM)) {
-        for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
-            BmnHit* hit = (BmnHit*) fGemHitsArray->At(hitIdx);
-            fSeedHits.push_back(hit);
-        }
-    }
+    FillHitsArray(kMWPC1, fMwpc1HitsArray);
+    FillHitsArray(kTOF1, fTof1HitsArray);
+    FillHitsArray(kMWPC2, fMwpc2HitsArray);
+    FillHitsArray(kDCH1, fDch1HitsArray);
+    FillHitsArray(kDCH2, fDch2HitsArray);
+    FillHitsArray(kTOF, fTof2HitsArray);
+
     if (isRUN1) {
         cout << "GEOMETRY RUN1\n";
-        DoSeedingRun1(1000);
-        DoSeedingRun1(500);
+        //        DoSeedingRun1(1000);
+        //        DoSeedingRun1(500);
+        DoSeeding();
     } else {
         cout << "STANDARD GEOMETRY\n";
         DoSeeding();
@@ -131,12 +143,27 @@ void BmnSeedFinder::Exec(Option_t* opt) {
 
 }
 
+BmnStatus BmnSeedFinder::FillHitsArray(DetectorId det, TClonesArray* arr) {
+    if (fDet.GetDet(det)) {
+        for (Int_t hitIdx = 0; hitIdx < arr->GetEntriesFast(); ++hitIdx) {
+            BmnHit* hit = (BmnHit*) arr->At(hitIdx);
+            Short_t st = (det == kMWPC1) ? 1 : (det == kTOF1) ? 2 : (det == kMWPC2) ? 3 : (det == kDCH1) ? 4 : (det == kDCH2) ? 5 : (det == kTOF) ? 6 : -1;
+            hit->SetStation(st);
+            fSeedHits.push_back(hit);
+        }
+    }
+    return kBMNSUCCESS;
+}
+
 BmnStatus BmnSeedFinder::DoSeeding() {
+
+    TH2F* h2 = new TH2F("tmp1", "tmp1", 3000, -0.4, 0.4, 3000, -0.4, 0.4);
+    TH2F* h3 = new TH2F("tmp2", "tmp2", 3000, -100, 100, 3000, -50, 50);
 
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fSeedHits.size(); ++hitIdx) {
         BmnHit* hit = (BmnHit*) fSeedHits.at(hitIdx);
-        if (hit->GetStation() > kNHITSFORSEED - 1) continue;
+        //if (hit->GetStation() > kNHITSFORSEED - 1) continue;
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         const Float_t newX = hit->GetX() / R;
         const Float_t newY = hit->GetY() / R;
@@ -147,7 +174,19 @@ BmnStatus BmnSeedFinder::DoSeeding() {
         hit->SetXaddr(xAddr);
         hit->SetYaddr(yAddr);
         addresses.insert(pair<Long_t, Int_t > (addr, hitIdx));
+        h2->Fill(newX, newY, hit->GetStation());
+        h3->Fill(hit->GetX(), hit->GetY(), hit->GetStation());
     }
+
+    TCanvas* c = new TCanvas("c", "c", 1000, 1000);
+    h2->Draw("text");
+    c->SaveAs("xRyR.png");
+    delete c;
+
+    TCanvas* c1 = new TCanvas("c1", "c1", 1000, 1000);
+    h3->Draw("text");
+    c1->SaveAs("xy.png");
+    delete c1;
 
     for (Int_t i = 0; i < 5; ++i) {
         for (Int_t j = 0; j < 4; ++j)
@@ -160,12 +199,16 @@ BmnStatus BmnSeedFinder::DoSeeding() {
 
 BmnStatus BmnSeedFinder::DoSeedingRun1(Int_t nBins) {
 
-//    Int_t nBins = 1000;
+    //    Int_t nBins = 1000;
     Float_t minY = -0.4;
     Float_t maxY = -minY;
     Float_t width = (maxY - minY) / nBins;
 
     TH1F* h = new TH1F("tmp", "tmp", nBins, minY, maxY);
+
+    TH2F* h2 = new TH2F("tmp1", "tmp1", 3000, minY, maxY, 3000, minY, maxY);
+    TH2F* h3 = new TH2F("tmp2", "tmp2", 3000, -100, 100, 3000, -50, 50);
+
     for (Int_t iHit = 0; iHit < fSeedHits.size(); ++iHit) {
         BmnHit* hit = (BmnHit*) fSeedHits.at(iHit);
         if (hit->IsUsed()) continue;
@@ -180,7 +223,18 @@ BmnStatus BmnSeedFinder::DoSeedingRun1(Int_t nBins) {
         hit->SetYaddr(yAddr);
         //addresses.insert(pair<Long_t, Int_t > (addr, iHit));
         h->Fill(newY);
+        h2->Fill(newX, newY, hit->GetStation());
+        h3->Fill(hit->GetX(), hit->GetY(), hit->GetStation());
     }
+    TCanvas* c = new TCanvas("c", "c", 1000, 1000);
+    h2->Draw("text");
+    c->SaveAs("xRyR.png");
+    delete c;
+
+    TCanvas* c1 = new TCanvas("c1", "c1", 1000, 1000);
+    h3->Draw("text");
+    c1->SaveAs("xy.png");
+    delete c1;
 
     for (Int_t iBin = 0; iBin < h->GetNbinsX(); ++iBin) {
         if (h->GetBinContent(iBin) < 3) continue;
@@ -224,8 +278,9 @@ BmnStatus BmnSeedFinder::DoSeedingRun1(Int_t nBins) {
 
 void BmnSeedFinder::Finish() {
 
-    cout.precision(2);
-    cout.setf(ios::fixed, ios::floatfield);
+    addresses.clear();
+    //cout.precision(2);
+    //cout.setf(ios::fixed, ios::floatfield);
 
     //    cout << "\n\t-----------------------------------------------------------------------------------------" << endl;
     //    cout << "\t|                                 Efficiency of seeding                                 |" << endl;
@@ -295,11 +350,12 @@ UInt_t BmnSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, Bool
         }
 
         trackCand.SortHits();
-        Int_t nHitsForCand = ((gate * 2 + 1) > 4) ? 4 : 5;
+        Int_t nHitsForCand = 4; //((gate * 2 + 1) > 4) ? 4 : 5;
         if (trackCand.GetNHits() < nHitsForCand) { // don't fit track by circle with less then 4 hits
-            for (Int_t i = 0; i < trackCand.GetNHits(); ++i)
+            for (Int_t i = 0; i < trackCand.GetNHits(); ++i) {
                 BmnHit * hit = (BmnHit*) fSeedHits.at(trackCand.GetHitIndex(i));
-            hit->SetUsing(kFALSE);
+                hit->SetUsing(kFALSE);
+            }
             continue;
         }
         vector<BmnHit*> hitsInTrack;
@@ -315,7 +371,18 @@ UInt_t BmnSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, Bool
         trCntr++;
         trackCand.SortHits();
         if (CalculateTrackParams(&trackCand, hitsInTrack, circPar, linePar)) {
-            new((*fSeedsArray)[fSeedsArray->GetEntriesFast()]) BmnGemTrack(trackCand);
+            if(isRUN1) {
+                new((*fSeedsArray)[fSeedsArray->GetEntriesFast()]) BmnGlobalTrack();
+                BmnGlobalTrack* glTr = (BmnGlobalTrack*) fSeedsArray->At(fSeedsArray->GetEntriesFast() - 1);
+                glTr->SetNofHits(trackCand.GetNHits());
+                glTr->SetNDF(trackCand.GetNDF());
+                for (Int_t i = 0; i < hitsInTrack.size(); ++i) {
+                    BmnHit* hit = (BmnHit*) hitsInTrack.at(i);
+                    //FIXME! set indexes of stations for glTr;
+                }
+            } else {
+                new((*fSeedsArray)[fSeedsArray->GetEntriesFast()]) BmnGemTrack(trackCand);
+            }
         }
     }
     return trCntr;

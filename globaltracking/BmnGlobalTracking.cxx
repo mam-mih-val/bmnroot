@@ -108,14 +108,14 @@ InitStatus BmnGlobalTracking::Init() {
     // ----------------- GEM initialization -----------------//
     if (fDet.GetDet(kGEM)) {
 
-        if (isRUN1) {
-            fSeeds = (TClonesArray*) ioman->GetObject("BmnSeeds"); //in
-        } else {
-            fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTracks");
-            if (!fGemTracks) {
-                Fatal("Init", "No BmnGemTracks array!");
-            }
-        }
+        //        if (isRUN1) {
+        //            fSeeds = (TClonesArray*) ioman->GetObject("BmnSeeds"); //in
+        //        } else {
+        //            fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTracks");
+        //            if (!fGemTracks) {
+        //                Fatal("Init", "No BmnGemTracks array!");
+        //            }
+        //        }
 
         fGemHits = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
         if (!fGemHits) {
@@ -128,7 +128,16 @@ InitStatus BmnGlobalTracking::Init() {
         }
     } else {
         cout << "\nERROR!GEM stations are excluded from global tracking!!!\n" << endl;
-        Fatal("Init", "No GEM stations!");
+        //Fatal("Init", "No GEM stations!");
+    }
+
+    if (isRUN1) {
+        fSeeds = (TClonesArray*) ioman->GetObject("BmnSeeds"); //in
+    } else {
+        fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTracks");
+        if (!fGemTracks) {
+            Fatal("Init", "No BmnGemTracks array!");
+        }
     }
     // ------------------------------------------------------//
 
@@ -232,7 +241,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fGlobalTracks->Clear();
 
-    if (isRUN1) Run1GlobalTrackFinder();
+    //if (isRUN1) Run1GlobalTrackFinder();
 
     if (isRUN1) {
         for (Int_t i = 0; i < fSeeds->GetEntriesFast(); ++i) {
@@ -241,25 +250,25 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             BmnGlobalTrack* glTr = (BmnGlobalTrack*) fGlobalTracks->At(i);
             glTr->SetParamFirst(seed->GetParamFirst());
             glTr->SetParamLast(seed->GetParamLast());
-            glTr->SetGemTrackIndex(i);
+            //glTr->SetGemTrackIndex(i);
             glTr->SetNofHits(seed->GetNHits());
             glTr->SetRefId(seed->GetRef());
             //glTr->SetFlag(kBMNGOOD); //kBMNGOOD or kBMNGOODMERGE???
 
             //            if (NearestHitMergeGEM(glTr) == kBMNSUCCESS) {
             //                /*Refit(glTr);*/            }
-            if (NearestHitMergeTOF(glTr, 1) == kBMNSUCCESS) {
-                /*Refit(glTr);*/            }
-            if (NearestHitMergeDCH(glTr, 1) == kBMNSUCCESS) {
-                /*Refit(glTr);*/            }
-            if (NearestHitMergeDCH(glTr, 2) == kBMNSUCCESS) {
-                /*Refit(glTr);*/            }
-            if (NearestHitMergeTOF(glTr, 2) == kBMNSUCCESS) {
-                /*Refit(glTr);*/            }
-            if (Refit(glTr) == kBMNERROR)
-                glTr->SetFlag(kBMNBAD);
-            else
-                glTr->SetFlag(kBMNGOOD);
+//            if (NearestHitMergeTOF(glTr, 1) == kBMNSUCCESS) {
+//                /*Refit(glTr);*/            }
+//            if (NearestHitMergeDCH(glTr, 1) == kBMNSUCCESS) {
+//                /*Refit(glTr);*/            }
+//            if (NearestHitMergeDCH(glTr, 2) == kBMNSUCCESS) {
+//                /*Refit(glTr);*/            }
+//            if (NearestHitMergeTOF(glTr, 2) == kBMNSUCCESS) {
+//                /*Refit(glTr);*/            }
+//            if (Refit(glTr) == kBMNERROR)
+//                glTr->SetFlag(kBMNBAD);
+//            else
+//                glTr->SetFlag(kBMNGOOD);
         }
     } else {
         for (Int_t i = 0; i < fGemTracks->GetEntriesFast(); ++i) {
@@ -298,14 +307,19 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         for (Int_t i = 0; i < fGlobalTracks->GetEntriesFast(); ++i) {
             BmnGlobalTrack* globalTrack = (BmnGlobalTrack*) fGlobalTracks->At(i);
             if (globalTrack->GetFlag() == kBMNBAD) continue;
-            BmnGemTrack* gemTr = (BmnGemTrack*) fGemTracks->At(globalTrack->GetGemTrackIndex());
-            Int_t numHitsInTrack = gemTr->GetNHits();
+            Int_t numHitsInTrack = 0;
             Int_t nodeIdx = 0;
-            for (Int_t idx = 0; idx < gemTr->GetNHits(); ++idx) {
-                BmnHit* hit = (BmnHit*) fGemHits->At(gemTr->GetHitIndex(idx));
-                if (!hit) continue;
-                FillGlobHistoQA(globalTrack, nodeIdx, TVector3(hit->GetX(), hit->GetY(), hit->GetZ()));
-                nodeIdx++;
+
+
+            if (fDet.GetDet(kGEM)) {
+                BmnGemTrack* gemTr = (BmnGemTrack*) fGemTracks->At(globalTrack->GetGemTrackIndex());
+                numHitsInTrack += gemTr->GetNHits();
+                for (Int_t idx = 0; idx < gemTr->GetNHits(); ++idx) {
+                    BmnHit* hit = (BmnHit*) fGemHits->At(gemTr->GetHitIndex(idx));
+                    if (!hit) continue;
+                    FillGlobHistoQA(globalTrack, nodeIdx, TVector3(hit->GetX(), hit->GetY(), hit->GetZ()));
+                    nodeIdx++;
+                }
             }
             if (fDet.GetDet(kTOF1)) {
                 if (globalTrack->GetTof1HitIndex() != -1) {

@@ -28,6 +28,8 @@
 #include "BmnHit.h"
 #include "BmnDetectorSetup.h"
 #include "TH1F.h"
+#include "TH2F.h"
+#include "TCanvas.h"
 
 using namespace std;
 
@@ -60,7 +62,8 @@ public:
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
     Float_t Sqr(Float_t x);
 
-
+    BmnStatus FillHitsArray(DetectorId det, TClonesArray* arr);
+    
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
     virtual void Finish();
@@ -95,6 +98,14 @@ private:
     TClonesArray* fMwpc1PointsArray;
     TClonesArray* fMwpc2PointsArray;
     TClonesArray* fMwpc3PointsArray;
+    TClonesArray* fTof1HitsArray;
+    TClonesArray* fTof1PointsArray;
+    TClonesArray* fTof2HitsArray;
+    TClonesArray* fTof2PointsArray;
+    TClonesArray* fDch1HitsArray;
+    TClonesArray* fDch1PointsArray;
+    TClonesArray* fDch2HitsArray;
+    TClonesArray* fDch2PointsArray;
 
     FairField* fField;
 

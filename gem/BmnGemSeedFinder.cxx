@@ -14,7 +14,8 @@ static Float_t workTime = 0.0;
 const Float_t thresh = 0.7; // threshold for efficiency calculation (70%)
 
 map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
-const UInt_t kNHITSFORSEED = 7; // we search seeds only in first kNHITSFORSEED stations
+const UInt_t kNHITSFORSEED = 4; // we use for seeds only kNHITSFORSEED hits
+const UInt_t kMAXSTATIONFORSEED = 3; // we start to search seeds only from stations in range of (0..kMAXSTATIONFORSEED)
 
 using std::cout;
 using namespace TMath;
@@ -70,19 +71,19 @@ InitStatus BmnGemSeedFinder::Init() {
 }
 
 void BmnGemSeedFinder::Exec(Option_t* opt) {
-    
+
     cout << "\n======================== GEM seed finder exec started =====================\n" << endl;
     cout << "Event number: " << fEventNo++ << endl;
 
     clock_t tStart = clock();
     fGemSeedsArray->Clear();
     addresses.clear();
-  
+
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits)
-        if (hit->GetStation() > kNHITSFORSEED - 1) continue;
+        if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         const Float_t newX = hit->GetX() / R;
         const Float_t newY = hit->GetY() / R;
@@ -110,7 +111,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
             Float_t z = hit->GetZ();
             Float_t R = Sqrt(x * x + y * y + z * z);
             Int_t station = hit->GetStation() + 1;
-            if (station > kNHITSFORSEED) continue;
+            if (station > kNHITSFORSEED + kMAXSTATIONFORSEED) continue;
             fHisto->_hyRxR_all->Fill(x / R, y / R, station);
             fHisto->_hXYAllHits->Fill(x, y, station);
             fHisto->_hZYAllHits->Fill(z, y, station);
@@ -213,7 +214,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 
         allTrackCntr += fGemSeedsArray->GetEntriesFast();
         for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
-            if (GetHit(hitIdx)->GetStation() + 1 > kNHITSFORSEED) continue;
+            if (GetHit(hitIdx)->GetStation() + 1 > kNHITSFORSEED + kMAXSTATIONFORSEED) continue;
             allHitCntr++;
         }
     }
@@ -225,23 +226,23 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 
 BmnStatus BmnGemSeedFinder::DoSeeding() {
 
-    for (Int_t i = 0; i < 5; ++i) {
+    for (Int_t i = 0; i < kMAXSTATIONFORSEED; ++i) {
         for (Int_t j = 0; j < 4; ++j)
             FindSeeds(i, j, kTRUE); // from station #i, in gate = 2 * j + 1, only hits presented in every station 
         for (Int_t j = 0; j < 4; ++j)
             FindSeeds(i, j, kFALSE); // from station #i, in gate = 2 * j + 1
     }
 
-//        TH1F* hTheta = new TH1F("tmp", "tmp", 240, -6, 6);
-//        for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
-//            BmnGemStripHit* hit = GetHit(iHit);
-//            if (hit->IsUsed()) continue;
-//            Float_t z = hit->GetZ();
-//            Float_t y = hit->GetY();
-//            Float_t theta = ATan2(y, z) * RadToDeg();
-//            if (Abs(theta) > 6) continue; //use only hits in narrow acceptance
-//            hTheta->Fill(theta);
-//        }
+    //        TH1F* hTheta = new TH1F("tmp", "tmp", 240, -6, 6);
+    //        for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
+    //            BmnGemStripHit* hit = GetHit(iHit);
+    //            if (hit->IsUsed()) continue;
+    //            Float_t z = hit->GetZ();
+    //            Float_t y = hit->GetY();
+    //            Float_t theta = ATan2(y, z) * RadToDeg();
+    //            if (Abs(theta) > 6) continue; //use only hits in narrow acceptance
+    //            hTheta->Fill(theta);
+    //        }
 
     return kBMNSUCCESS;
 }
@@ -249,18 +250,18 @@ BmnStatus BmnGemSeedFinder::DoSeeding() {
 void BmnGemSeedFinder::Finish() {
 
     addresses.clear();
-//    cout.precision(2);
-//    cout.setf(ios::fixed, ios::floatfield);
+    //    cout.precision(2);
+    //    cout.setf(ios::fixed, ios::floatfield);
 
-//    cout << "\n\t-----------------------------------------------------------------------------------------" << endl;
-//    cout << "\t|                                 Efficiency of seeding                                 |" << endl;
-//    cout << "\t-----------------------------------------------------------------------------------------" << endl;
-//    cout << "\t|  Percent of connected hits:\t\t\t|\t" << allFoundCntr << " / " << allHitCntr << "\t|  " << allFoundCntr * 100.0 / allHitCntr << "%\t|" << endl;
-//    cout << "\t|  Percent of well connected hits:\t\t|\t" << wellFoundCntr << " / " << allFoundCntr << "\t|  " << wellFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
-//    cout << "\t|  Percent of wrong connected hits:\t\t|\t" << wrongFoundCntr << " / " << allFoundCntr << "\t|  " << wrongFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
-//    cout << "\t|  Percent of well found tracks (thr = " << thresh << "):\t|\t" << goodTrackCntr << " / " << allTrackCntr << "\t|  " << goodTrackCntr * 100.0 / allTrackCntr << "%\t|" << endl;
-//    cout << "\t|  Work time: full / per one event:\t\t|\t" << workTime << " sec.\t|  " << workTime / fEventNo << " sec.\t|" << endl;
-//    cout << "\t-----------------------------------------------------------------------------------------" << endl;
+    //    cout << "\n\t-----------------------------------------------------------------------------------------" << endl;
+    //    cout << "\t|                                 Efficiency of seeding                                 |" << endl;
+    //    cout << "\t-----------------------------------------------------------------------------------------" << endl;
+    //    cout << "\t|  Percent of connected hits:\t\t\t|\t" << allFoundCntr << " / " << allHitCntr << "\t|  " << allFoundCntr * 100.0 / allHitCntr << "%\t|" << endl;
+    //    cout << "\t|  Percent of well connected hits:\t\t|\t" << wellFoundCntr << " / " << allFoundCntr << "\t|  " << wellFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
+    //    cout << "\t|  Percent of wrong connected hits:\t\t|\t" << wrongFoundCntr << " / " << allFoundCntr << "\t|  " << wrongFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
+    //    cout << "\t|  Percent of well found tracks (thr = " << thresh << "):\t|\t" << goodTrackCntr << " / " << allTrackCntr << "\t|  " << goodTrackCntr * 100.0 / allTrackCntr << "%\t|" << endl;
+    //    cout << "\t|  Work time: full / per one event:\t\t|\t" << workTime << " sec.\t|  " << workTime / fEventNo << " sec.\t|" << endl;
+    //    cout << "\t-----------------------------------------------------------------------------------------" << endl;
 
     if (fMakeQA) {
         toDirectory("QA/GEM/SEEDS");
@@ -312,13 +313,13 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
             for (Int_t i = xAddr; i > 0; i--) {
                 SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, gate, isIdeal);
                 if ((hitCntr > 1) && Abs(i - startBin) > 2 * maxDist) break; //condition to finish search is dist < 2 * MaxDist
-                //                if (hitCntr == kNHITSFORSEED) break;
+                if (hitCntr == kNHITSFORSEED) break;
             }
         } else { //search track-candidate in right direction
             for (Int_t i = xAddr; i < fNBins; ++i) {
                 SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, gate, isIdeal);
                 if ((hitCntr > 1) && Abs(i - startBin) > 2 * maxDist) break; //condition to finish search is dist < 2 * MaxDist
-                //                if (hitCntr == kNHITSFORSEED) break;
+                if (hitCntr == kNHITSFORSEED) break;
             }
         }
 
@@ -486,7 +487,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar,
     if ((Tx_last - Tx_first) < 0) QP *= -1.0; //FIXME ???????
     par.SetQp(QP);
     tr->SetParamLast(par);
-//    par.Print();
+    //    par.Print();
 
     //update for firstParam
     par.SetPosition(TVector3(fX, fY, fZ));
@@ -534,10 +535,13 @@ TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack* track) {
     Float_t Sw = 0.0; // sum of weights
     Float_t Swd = 0.0; // sum of (w * d^2)
 
+    Bool_t flagFake = kFALSE;
+
     //first approximation with equal weights
     for (Int_t i = 0; i < nHits; ++i) {
         //        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        FairHit* hit = (FairHit*) fGemHitsArray->At(track->GetHitIndex(i));
+        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
+        if (hit->GetRefIndex() == -1) flagFake = kTRUE;
         Xi = hit->GetX();
         Zi = hit->GetZ();
         Sxx += Wi * Sqr(Xi - Xo);
@@ -608,7 +612,7 @@ TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack* track) {
         Sig = Swd / Sw;
         thresh = C * Sig;
     }
-
+    
     Float_t chi2 = 0.0;
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));

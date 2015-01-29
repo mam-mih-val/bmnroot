@@ -257,18 +257,18 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
 
             //            if (NearestHitMergeGEM(glTr) == kBMNSUCCESS) {
             //                /*Refit(glTr);*/            }
-//            if (NearestHitMergeTOF(glTr, 1) == kBMNSUCCESS) {
-//                /*Refit(glTr);*/            }
-//            if (NearestHitMergeDCH(glTr, 1) == kBMNSUCCESS) {
-//                /*Refit(glTr);*/            }
-//            if (NearestHitMergeDCH(glTr, 2) == kBMNSUCCESS) {
-//                /*Refit(glTr);*/            }
-//            if (NearestHitMergeTOF(glTr, 2) == kBMNSUCCESS) {
-//                /*Refit(glTr);*/            }
-//            if (Refit(glTr) == kBMNERROR)
-//                glTr->SetFlag(kBMNBAD);
-//            else
-//                glTr->SetFlag(kBMNGOOD);
+            //            if (NearestHitMergeTOF(glTr, 1) == kBMNSUCCESS) {
+            //                /*Refit(glTr);*/            }
+            //            if (NearestHitMergeDCH(glTr, 1) == kBMNSUCCESS) {
+            //                /*Refit(glTr);*/            }
+            //            if (NearestHitMergeDCH(glTr, 2) == kBMNSUCCESS) {
+            //                /*Refit(glTr);*/            }
+            //            if (NearestHitMergeTOF(glTr, 2) == kBMNSUCCESS) {
+            //                /*Refit(glTr);*/            }
+            //            if (Refit(glTr) == kBMNERROR)
+            //                glTr->SetFlag(kBMNBAD);
+            //            else
+            //                glTr->SetFlag(kBMNGOOD);
         }
     } else {
         for (Int_t i = 0; i < fGemTracks->GetEntriesFast(); ++i) {
@@ -605,6 +605,40 @@ BmnStatus BmnGlobalTracking::NearestHitMergeDCH(BmnGlobalTrack* tr, Int_t num) {
 
 }
 
+BmnStatus BmnGlobalTracking::RefitToDetector(BmnGlobalTrack* tr, Int_t hitId, TClonesArray* hitArr, FairTrackParam* par, Int_t* nodeIdx, vector<BmnFitNode>* nodes) {
+    if (tr->GetTof2HitIndex() != -1) {
+        BmnHit* hit = (BmnHit*) hitArr->At(hitId);
+        Float_t Ze = hit->GetZ();
+        Float_t length = 0;
+        vector<Double_t> F(25);
+        if (fPropagator->TGeoTrackPropagate(par, Ze, 211/*glTr->GetPDG()*/, &F, &length, TString("field")) == kBMNERROR) {
+            tr->SetFlag(kBMNBAD);
+            //                cout << "PROP ERROR: hit number = " << nodeIdx << " Ze = " << Ze << " length = " << length << " \npar = ";
+            //                par->Print();
+            return kBMNERROR;
+        }
+
+        nodes->at(*nodeIdx).SetPredictedParam(par);
+        nodes->at(*nodeIdx).SetF(F);
+        Float_t chi2Hit = 0.;
+        if (fUpdater->Update(par, hit, chi2Hit) == kBMNERROR) {
+            tr->SetFlag(kBMNBAD);
+            //                cout << "UPD ERROR: Ze = " << Ze << " length = " << length << " \npar = ";
+            //                par->Print();
+            return kBMNERROR;
+        }
+//        tr->SetParamLast(par);
+//        tr->SetParamFirst(par);
+
+        nodes->at(*nodeIdx).SetUpdatedParam(par);
+        nodes->at(*nodeIdx).SetChiSqFiltered(chi2Hit);
+        tr->SetChi2(tr->GetChi2() + chi2Hit);
+        tr->SetLength(tr->GetLength() + length);
+        (*nodeIdx)--;
+    }
+    return kBMNSUCCESS;
+}
+
 BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
 
     vector<BmnFitNode> nodes(tr->GetNofHits());
@@ -613,170 +647,30 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
     //    FairTrackParam par = *(tr->GetParamFirst());
 
     //TOF2 part
-    if (fDet.GetDet(kTOF)) {
-        if (tr->GetTof2HitIndex() != -1) {
-            BmnHit* tof2Hit = (BmnHit*) fTof2Hits->At(tr->GetTof2HitIndex());
-            Float_t Ze = tof2Hit->GetZ();
-            Float_t length = 0;
-            vector<Double_t> F(25);
-            if (fPropagator->TGeoTrackPropagate(&par, Ze, 211/*glTr->GetPDG()*/, &F, &length, TString("field")) == kBMNERROR) {
-                tr->SetFlag(kBMNBAD);
-                cout << "PROP ERROR: hit number = " << nodeIdx << " Ze = " << Ze << " length = " << length << " \npar = ";
-                par.Print();
-                return kBMNERROR;
-            }
-
-            nodes[nodeIdx].SetPredictedParam(&par);
-            nodes[nodeIdx].SetF(F);
-            Float_t chi2Hit = 0.;
-            if (fUpdater->Update(&par, tof2Hit, chi2Hit) == kBMNERROR) {
-                tr->SetFlag(kBMNBAD);
-                cout << "UPD ERROR: Ze = " << Ze << " length = " << length << " \npar = ";
-                par.Print();
-                return kBMNERROR;
-            }
-            tr->SetParamLast(&par);
-
-            nodes[nodeIdx].SetUpdatedParam(&par);
-            nodes[nodeIdx].SetChiSqFiltered(chi2Hit);
-            tr->SetChi2(tr->GetChi2() + chi2Hit);
-            tr->SetLength(tr->GetLength() + length);
-            nodeIdx--;
-        }
+    if (fDet.GetDet(kTOF) && tr->GetTof2HitIndex() != -1) {
+        if (RefitToDetector(tr, tr->GetTof2HitIndex(), fTof2Hits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
     }
-
     //DCH2 part
-    if (fDet.GetDet(kDCH2)) {
-        if (tr->GetDch2HitIndex() != -1) {
-            BmnHit* dch2Hit = (BmnHit*) fDch2Hits->At(tr->GetDch2HitIndex());
-            Float_t Ze = dch2Hit->GetZ();
-            Float_t length = 0;
-            vector<Double_t> F(25);
-            if (fPropagator->TGeoTrackPropagate(&par, Ze, 211/*glTr->GetPDG()*/, &F, &length, TString("field")) == kBMNERROR) {
-                tr->SetFlag(kBMNBAD);
-                cout << "PROP ERROR: hit number = " << nodeIdx << " Ze = " << Ze << " length = " << length << " \npar = ";
-                par.Print();
-                return kBMNERROR;
-            }
-
-            nodes[nodeIdx].SetPredictedParam(&par);
-            nodes[nodeIdx].SetF(F);
-            Float_t chi2Hit = 0.;
-            if (fUpdater->Update(&par, dch2Hit, chi2Hit) == kBMNERROR) {
-                tr->SetFlag(kBMNBAD);
-                cout << "UPD ERROR: Ze = " << Ze << " length = " << length << " \npar = ";
-                par.Print();
-                return kBMNERROR;
-            }
-            tr->SetParamLast(&par);
-
-            nodes[nodeIdx].SetUpdatedParam(&par);
-            nodes[nodeIdx].SetChiSqFiltered(chi2Hit);
-            tr->SetChi2(tr->GetChi2() + chi2Hit);
-            tr->SetLength(tr->GetLength() + length);
-            nodeIdx--;
-        }
+    if (fDet.GetDet(kDCH2) && tr->GetDch2HitIndex() != -1) {
+        if (RefitToDetector(tr, tr->GetDch2HitIndex(), fDch2Hits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
     }
-
     //DCH1 part
-    if (fDet.GetDet(kDCH1)) {
-        if (tr->GetDch1HitIndex() != -1) {
-            BmnHit* dch1Hit = (BmnHit*) fDch1Hits->At(tr->GetDch1HitIndex());
-            Float_t Ze = dch1Hit->GetZ();
-            Float_t length = 0;
-            vector<Double_t> F(25);
-            if (fPropagator->TGeoTrackPropagate(&par, Ze, 211/*glTr->GetPDG()*/, &F, &length, TString("field")) == kBMNERROR) {
-                tr->SetFlag(kBMNBAD);
-                cout << "PROP ERROR: hit number = " << nodeIdx << " Ze = " << Ze << " length = " << length << " \npar = ";
-                par.Print();
-                return kBMNERROR;
-            }
-
-            nodes[nodeIdx].SetPredictedParam(&par);
-            nodes[nodeIdx].SetF(F);
-            Float_t chi2Hit = 0.;
-            if (fUpdater->Update(&par, dch1Hit, chi2Hit) == kBMNERROR) {
-                tr->SetFlag(kBMNBAD);
-                cout << "UPD ERROR: Ze = " << Ze << " length = " << length << " \npar = ";
-                par.Print();
-                return kBMNERROR;
-            }
-            tr->SetParamLast(&par);
-
-            nodes[nodeIdx].SetUpdatedParam(&par);
-            nodes[nodeIdx].SetChiSqFiltered(chi2Hit);
-            tr->SetChi2(tr->GetChi2() + chi2Hit);
-            tr->SetLength(tr->GetLength() + length);
-            nodeIdx--;
-        }
+    if (fDet.GetDet(kDCH1) && tr->GetDch1HitIndex() != -1) {
+        if (RefitToDetector(tr, tr->GetDch1HitIndex(), fDch1Hits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
     }
-
     //TOF1 part
-    if (fDet.GetDet(kTOF1)) {
-        if (tr->GetTof1HitIndex() != -1) {
-            BmnHit* tof1Hit = (BmnHit*) fTof1Hits->At(tr->GetTof1HitIndex());
-            Float_t Ze = tof1Hit->GetZ();
-            Float_t length = 0;
-            vector<Double_t> F(25);
-            if (fPropagator->TGeoTrackPropagate(&par, Ze, 211/*glTr->GetPDG()*/, &F, &length, TString("field")) == kBMNERROR) {
-                tr->SetFlag(kBMNBAD);
-                cout << "PROP ERROR: hit number = " << nodeIdx << " Ze = " << Ze << " length = " << length << " \npar = ";
-                par.Print();
-                return kBMNERROR;
-            }
-
-            nodes[nodeIdx].SetPredictedParam(&par);
-            nodes[nodeIdx].SetF(F);
-            Float_t chi2Hit = 0.;
-            if (fUpdater->Update(&par, tof1Hit, chi2Hit) == kBMNERROR) {
-                tr->SetFlag(kBMNBAD);
-                cout << "UPD ERROR: Ze = " << Ze << " length = " << length << " \npar = ";
-                par.Print();
-                return kBMNERROR;
-            }
-            tr->SetParamLast(&par);
-
-            nodes[nodeIdx].SetUpdatedParam(&par);
-            nodes[nodeIdx].SetChiSqFiltered(chi2Hit);
-            tr->SetChi2(tr->GetChi2() + chi2Hit);
-            tr->SetLength(tr->GetLength() + length);
-            nodeIdx--;
+    if (fDet.GetDet(kTOF1) && tr->GetTof1HitIndex() != -1) {
+        if (RefitToDetector(tr, tr->GetTof1HitIndex(), fTof1Hits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
+    }
+    //GEM part
+    if (fDet.GetDet(kGEM) && tr->GetGemTrackIndex() != -1) {
+        BmnGemTrack* gemTr = (BmnGemTrack*) fGemTracks->At(tr->GetGemTrackIndex());
+        for (Int_t i = gemTr->GetNHits() - 1; i >= 0; --i) {
+            if (RefitToDetector(tr, i, fGemHits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
         }
     }
 
-    if (!isRUN1) {
-        //GEM part
-        if (tr->GetGemTrackIndex() != -1) {
-            BmnHit* hit = (BmnHit*) fGemHits->At(tr->GetGemTrackIndex());
-            Float_t Ze = hit->GetZ();
-            Float_t length = 0;
-            vector<Double_t> F(25);
-            if (fPropagator->TGeoTrackPropagate(&par, Ze, 211/*glTr->GetPDG()*/, &F, &length, TString("field")) == kBMNERROR) {
-                tr->SetFlag(kBMNBAD);
-                cout << "PROP ERROR: hit number = " << nodeIdx << " Ze = " << Ze << " length = " << length << " \npar = ";
-                par.Print();
-                return kBMNERROR;
-            }
-
-            nodes[nodeIdx].SetPredictedParam(&par);
-            nodes[nodeIdx].SetF(F);
-            Float_t chi2Hit = 0.;
-            if (fUpdater->Update(&par, hit, chi2Hit) == kBMNERROR) {
-                tr->SetFlag(kBMNBAD);
-                cout << "UPD ERROR: Ze = " << Ze << " length = " << length << " \npar = ";
-                par.Print();
-                return kBMNERROR;
-            }
-            tr->SetParamFirst(&par);
-
-            nodes[nodeIdx].SetUpdatedParam(&par);
-            nodes[nodeIdx].SetChiSqFiltered(chi2Hit);
-            tr->SetChi2(tr->GetChi2() + chi2Hit);
-            tr->SetLength(tr->GetLength() + length);
-            nodeIdx--;
-        }
-    }
-
+    tr->SetParamFirst(&par);
     tr->SetFitNodes(nodes);
     return kBMNSUCCESS;
 }

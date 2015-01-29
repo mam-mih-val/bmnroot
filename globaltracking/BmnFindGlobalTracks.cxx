@@ -148,7 +148,7 @@ void BmnFindGlobalTracks::Exec(Option_t* opt) {
 //            if (globalTrack->GetFlag() == kBMNGOODMERGE) {
               if (globalTrack->GetTofHitIndex() != -1) { //FIXME use flags, not indexes!!! (Now there are problems...)
                 CbmTofHit* hit = (CbmTofHit*) fTofHits->UncheckedAt(globalTrack->GetTofHitIndex());
-                if (hit == NULL) continue; //FIXME!!! Do we need this check???
+                if (hit == NULL) continue;
                 const Float_t trX = globalTrack->GetParamFirst()->GetX();
                 const Float_t trY = globalTrack->GetParamFirst()->GetY();
                 const Float_t x = hit->GetX();
@@ -188,7 +188,7 @@ void BmnFindGlobalTracks::Exec(Option_t* opt) {
             fHisto->_hPy->Fill(mom.Y());
             fHisto->_hPz->Fill(mom.Z());
             fHisto->_hPt->Fill(Sqrt(mom.X() * mom.X() + mom.Z() * mom.Z()));
-            fHisto->_hTofMergeEff->Fill(Sqrt(mom.X() * mom.X() + mom.Z() * mom.Z()), numTofHitsInTrack); //FIXME!
+            fHisto->_hTofMergeEff->Fill(Sqrt(mom.X() * mom.X() + mom.Z() * mom.Z()), numTofHitsInTrack);
         }
         
         for (Int_t hitId = 0; hitId < fTofHits->GetEntriesFast(); ++hitId) {

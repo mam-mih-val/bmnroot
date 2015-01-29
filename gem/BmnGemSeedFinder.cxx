@@ -77,7 +77,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fGemSeedsArray->Clear();
     addresses.clear();
-
+  
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
@@ -228,8 +228,8 @@ BmnStatus BmnGemSeedFinder::DoSeeding() {
     for (Int_t i = 0; i < 5; ++i) {
         for (Int_t j = 0; j < 4; ++j)
             FindSeeds(i, j, kTRUE); // from station #i, in gate = 2 * j + 1, only hits presented in every station 
-//        for (Int_t j = 0; j < 4; ++j)
-//            FindSeeds(i, j, kFALSE); // from station #i, in gate = 2 * j + 1, 
+        for (Int_t j = 0; j < 4; ++j)
+            FindSeeds(i, j, kFALSE); // from station #i, in gate = 2 * j + 1
     }
 
 //        TH1F* hTheta = new TH1F("tmp", "tmp", 240, -6, 6);
@@ -311,11 +311,13 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         if (isLeft) { //search track-candidate in left direction
             for (Int_t i = xAddr; i > 0; i--) {
                 SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, gate, isIdeal);
+                if ((hitCntr > 1) && Abs(i - startBin) > 2 * maxDist) break; //condition to finish search is dist < 2 * MaxDist
                 //                if (hitCntr == kNHITSFORSEED) break;
             }
         } else { //search track-candidate in right direction
             for (Int_t i = xAddr; i < fNBins; ++i) {
                 SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, gate, isIdeal);
+                if ((hitCntr > 1) && Abs(i - startBin) > 2 * maxDist) break; //condition to finish search is dist < 2 * MaxDist
                 //                if (hitCntr == kNHITSFORSEED) break;
             }
         }
@@ -329,10 +331,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         }
         TVector3 circPar = CircleFit(&trackCand);
         TVector3 linePar = LineFit(&trackCand);
-        if (circPar.Z() == 0.0) {
-//            cout << "BAD circle fit" << endl;
-            continue;
-        } //FIXME maybe better to check not only zero-radius
+        if (circPar.Z() == 0.0) continue;
         trCntr++;
         trackCand.SortHits();
         if (CalculateTrackParams(&trackCand, circPar, linePar)) {
@@ -343,8 +342,6 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
 }
 
 void BmnGemSeedFinder::SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal) {
-
-    if (((*hitCntr) > 1) && Abs(i - (*startBin)) > 2 * (*maxDist)) return; //condition for finishing is dist < 4 * MaxDist //FIXME check this condition in mother functions
 
     BmnGemStripHit* hit = NULL;
 
@@ -658,7 +655,6 @@ TVector3 BmnGemSeedFinder::LineFit(BmnGemTrack* track) {
 }
 
 Float_t BmnGemSeedFinder::Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
-    //FIXME
     if (Sqr(x1 - x2) + Sqr(y1 - y2) < 0.0) {
         return 0.0;
     } else {

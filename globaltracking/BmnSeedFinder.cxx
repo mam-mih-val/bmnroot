@@ -365,9 +365,7 @@ UInt_t BmnSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, Bool
         }
         TVector3 circPar = CircleFit(hitsInTrack);
         TVector3 linePar = LineFit(hitsInTrack);
-        if (circPar.Z() == 0.0) {
-            continue;
-        } //FIXME maybe better to check not only zero-radius
+        if (circPar.Z() == 0.0) continue;
         trCntr++;
         trackCand.SortHits();
         if (CalculateTrackParams(&trackCand, hitsInTrack, circPar, linePar)) {
@@ -704,7 +702,6 @@ TVector3 BmnSeedFinder::LineFit(vector<BmnHit*> hits) {
 }
 
 Float_t BmnSeedFinder::Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
-    //FIXME
     if (Sqr(x1 - x2) + Sqr(y1 - y2) < 0.0) {
         return 0.0;
     } else {

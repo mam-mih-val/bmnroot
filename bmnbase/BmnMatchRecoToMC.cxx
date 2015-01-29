@@ -372,7 +372,7 @@ void BmnMatchRecoToMC::MatchGlobalTracks(
     for (Int_t iTrack = 0; iTrack < globTracks->GetEntriesFast(); ++iTrack) {
         const BmnGlobalTrack* track = (const BmnGlobalTrack*) (globTracks->At(iTrack));
         BmnTrackMatch* trackMatch = (editMode) ? (BmnTrackMatch*) (trackMatches->At(iTrack)) : new ((*trackMatches)[iTrack]) BmnTrackMatch();
-        if (!trackMatch) continue; // FIXME!!! Check it!
+        if (!trackMatch) continue;
 
         //GEM
         BmnGemTrack* gemTr = (BmnGemTrack*) gemTracks->At(track->GetGemTrackIndex());

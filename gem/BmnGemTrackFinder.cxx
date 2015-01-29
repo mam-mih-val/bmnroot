@@ -296,7 +296,7 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* tr) {
         zParamMap[hit->GetZ()] = FairTrackParam();
     }
 
-    tr->SetFlag(kBMNGOOD); //FIXME: check it
+    tr->SetFlag(kBMNGOOD);
     FairTrackParam par(*(tr->GetParamLast()));
     // Extrapolate track minimum Z position of hit using magnetic field propagator
     if (fPropagator->TGeoTrackPropagate(&par, zMin, fPDG, NULL, NULL, "field") == kBMNERROR) {
@@ -355,7 +355,6 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* tr) {
 //****************************************************************************//
 
 Float_t BmnGemTrackFinder::Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
-    //FIXME
     if (Sqr(x1 - x2) + Sqr(y1 - y2) < 0.0) {
         return 0.0;
     } else {

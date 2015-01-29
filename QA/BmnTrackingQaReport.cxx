@@ -200,14 +200,14 @@ void BmnTrackingQaReport::Draw() {
 
 void BmnTrackingQaReport::DrawEfficiencyHistos() {
     // Draw global tracking efficiency
-    for (UInt_t i = 0; i < fGlobalTrackVariants.size(); i++) {
-        string variant = fGlobalTrackVariants[i];
-        cout << "variant = " << variant << endl;
+    //for (UInt_t i = 0; i < fGlobalTrackVariants.size(); i++) {
+        //string variant = fGlobalTrackVariants[i];
+        //cout << "variant = " << variant << endl;
         //DrawEfficiency("Global tracking efficiency vs momentum (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_p", DefaultEfficiencyLabelFormatter);
         //DrawEfficiency("Global tracking efficiency vs transverse momentum (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_pt", DefaultEfficiencyLabelFormatter);
         //DrawEfficiency("Global tracking efficiency vs rapidity (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_y", DefaultEfficiencyLabelFormatter);
         //DrawEfficiency("Global tracking efficiency vs polar angle (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_Angle", DefaultEfficiencyLabelFormatter);
-    }
+    //}
 
     // Draw local tracking efficiency
     //    vector<string> localTrackVariants = list_of("Gem")("Tof");

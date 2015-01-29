@@ -183,6 +183,7 @@ private:
 
     BmnGlobalTracking(const BmnGlobalTracking&);
     //    BmnGlobalTracking& operator=(const BmnGlobalTracking&);
+    BmnStatus RefitToDetector(BmnGlobalTrack* tr, Int_t hitId, TClonesArray* hitArr, FairTrackParam* par, Int_t* nodeIdx, vector<BmnFitNode>* nodes);
 
     ClassDef(BmnGlobalTracking, 1);
 };

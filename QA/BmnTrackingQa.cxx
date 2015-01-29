@@ -648,22 +648,8 @@ void BmnTrackingQa::ProcessMcTracks() {
             Bool_t dch1 = (normName.find("Dch1") != string::npos) ? isDch1Ok : kTRUE;
             Bool_t dch2 = (normName.find("Dch2") != string::npos) ? isDch2Ok : kTRUE;
 
-            //FIXME!!! --->
-            if (effName == "Trd" || effName == "Much" || effName == "Tof") {
-                //            string prevRecName = FindAndReplace(normName, effName, "");
-                //            Bool_t isPrevRec = fMcToRecoMap[prevRecName].find(iMCTrack) != fMcToRecoMap[prevRecName].end();
-                //            Bool_t accOk = isPrevRec && sts && trd && much && tof && rich;
-                //            if (accOk) {
-                //               FillGlobalReconstructionHistos(iMCTrack, fMcToRecoMap[normName], histName, histTypeName, effName, catName, par);
-                //            }
-            } else {
-
-                Bool_t accOk = gem && tof1 && tof2 && dch1 && dch2;
-                if (accOk) {
-                    FillGlobalReconstructionHistos(iMCTrack, fMcToRecoMap[effName], histName, histTypeName, effName, catName, par);
-                }
-            }
-            // <--- FIXME!!! 
+            Bool_t accOk = gem && tof1 && tof2 && dch1 && dch2;
+            if (accOk) FillGlobalReconstructionHistos(iMCTrack, fMcToRecoMap[effName], histName, histTypeName, effName, catName, par);
         } // Loop over efficiency histograms
     } // Loop over MCTracks
 }

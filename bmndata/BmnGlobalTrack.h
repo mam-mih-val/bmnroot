@@ -75,7 +75,7 @@ class BmnGlobalTrack : public TObject
 
  private:
 
-  /** Indices of local StsTrack, TrdTrack, MuchTrack, RichRing and TofHit **/
+  /** Indices of local parts of global track **/
   Int_t fGemTrack;
   Int_t fTof1Hit;
   Int_t fTof2Hit;

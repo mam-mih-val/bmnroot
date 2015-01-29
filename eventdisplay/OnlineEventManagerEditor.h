@@ -65,7 +65,7 @@ struct ThreadParam_ReadFile
 {
     vector<EventData*>* fEventReadData;
     vector<EventData*>* fEventDrawData;
-    char* raw_file_name_begin = NULL;
+    char* raw_file_name_begin;
     TSemaphore* semEventData;
 };
 

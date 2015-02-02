@@ -36,6 +36,8 @@ class FairEventManagerEditor : public TGedFrame
     TGCompositeFrame* title1;
     TGGroupFrame *groupData;
     TGCheckButton* fShowMCPoints, *fShowMCTracks, *fShowRecoPoints, *fShowRecoTracks;
+    // 'Update' button
+    TGTextButton* fUpdate;
 
   public:
     FairEventManagerEditor(const TGWindow* p=0, Int_t width=170, Int_t height=30,
@@ -50,6 +52,7 @@ class FairEventManagerEditor : public TGedFrame
     virtual void Init();
 
     virtual void SwitchBackground(Bool_t is_on);
+    virtual void SwitchTransparency(Bool_t is_on);
     virtual void ShowGeometry(Bool_t is_show);
     virtual void ShowMCPoints(Bool_t is_show);
     virtual void ShowMCTracks(Bool_t is_show);

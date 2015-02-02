@@ -9,7 +9,4 @@
 #pragma link C++ class  BmnMWPC2Geo+;
 #pragma link C++ class  BmnMWPC2GeoPar+;
 #pragma link C++ class  BmnMWPC2ContFact+;
-#pragma link C++ class  BmnMwpcHitProducer+;
-#pragma link C++ class  BmnMwpcDigitizer+;
-#pragma link C++ class  BmnMwpcHitFinder;
 #endif

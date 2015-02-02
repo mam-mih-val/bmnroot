@@ -69,26 +69,30 @@ void eventdisplay (char* sim_file = 0, char* dst_file = 0, char* out_file = 0)
   // Create event manager
   FairEventManager *fMan= new FairEventManager();
 
+
+  Style_t pointMarker = kFullDotSmall;
+  Color_t pointColor = kRed;
+
   // draw MC points
-  FairMCPointDraw *TofPoint = new FairMCPointDraw("TofPoint", kRed, kDot);
+  FairMCPointDraw *TofPoint = new FairMCPointDraw("TofPoint", pointColor, pointMarker);
   fMan->AddTask(TofPoint);
-  FairMCPointDraw *PsdPoint = new FairMCPointDraw("PsdPoint", kRed, kDot);
+  FairMCPointDraw *PsdPoint = new FairMCPointDraw("PsdPoint", pointColor, pointMarker);
   fMan->AddTask(PsdPoint);
-  FairMCPointDraw *StsPoint = new FairMCPointDraw("StsPoint", kRed, kDot);
+  FairMCPointDraw *StsPoint = new FairMCPointDraw("StsPoint", pointColor, pointMarker);
   fMan->AddTask(StsPoint);
-  FairMCPointDraw *RecoilPoint = new FairMCPointDraw("RecoilPoint", kRed, kDot);
+  FairMCPointDraw *RecoilPoint = new FairMCPointDraw("RecoilPoint", pointColor, pointMarker);
   fMan->AddTask(RecoilPoint);
-  FairMCPointDraw *TOF1Point = new FairMCPointDraw("TOF1Point", kRed, kDot);
+  FairMCPointDraw *TOF1Point = new FairMCPointDraw("TOF1Point", pointColor, pointMarker);
   fMan->AddTask(TOF1Point);
-  FairMCPointDraw *DCH1Point = new FairMCPointDraw("DCH1Point", kRed, kDot);
+  FairMCPointDraw *DCH1Point = new FairMCPointDraw("DCH1Point", pointColor, pointMarker);
   fMan->AddTask(DCH1Point);
-  FairMCPointDraw *DCH2Point = new FairMCPointDraw("DCH2Point", kRed, kDot);
+  FairMCPointDraw *DCH2Point = new FairMCPointDraw("DCH2Point", pointColor, pointMarker);
   fMan->AddTask(DCH2Point);
-  FairMCPointDraw *MWPC1Point = new FairMCPointDraw("MWPC1Point", kRed, kDot);
+  FairMCPointDraw *MWPC1Point = new FairMCPointDraw("MWPC1Point", pointColor, pointMarker);
   fMan->AddTask(MWPC1Point);
-  FairMCPointDraw *MWPC2Point = new FairMCPointDraw("MWPC2Point", kRed, kDot);
+  FairMCPointDraw *MWPC2Point = new FairMCPointDraw("MWPC2Point", pointColor, pointMarker);
   fMan->AddTask(MWPC2Point);
-  FairMCPointDraw *MWPC3Point = new FairMCPointDraw("MWPC3Point", kRed, kDot);
+  FairMCPointDraw *MWPC3Point = new FairMCPointDraw("MWPC3Point", pointColor, pointMarker);
   fMan->AddTask(MWPC3Point);
 
   // draw MC geometry tracks
@@ -100,15 +104,15 @@ void eventdisplay (char* sim_file = 0, char* dst_file = 0, char* out_file = 0)
   //fMan->AddTask(MCTrack);
 
   // DST hits
-  FairHitPointSetDraw *BmnGemHit = new FairHitPointSetDraw("BmnGemHit", kBlack, kDot);
+  FairHitPointSetDraw *BmnGemHit = new FairHitPointSetDraw("BmnGemHit", kBlack, pointMarker);
   fMan->AddTask(BmnGemHit);
-  FairHitPointSetDraw *TOF1Hit = new FairHitPointSetDraw("TOF1Hit", kBlack, kDot);
+  FairHitPointSetDraw *TOF1Hit = new FairHitPointSetDraw("TOF1Hit", kBlack, pointMarker);
   fMan->AddTask(TOF1Hit);
-  FairHitPointSetDraw *BmnDch1Hit = new FairHitPointSetDraw("BmnDch1Hit", kBlack, kDot);
+  FairHitPointSetDraw *BmnDch1Hit = new FairHitPointSetDraw("BmnDch1Hit", kBlack, pointMarker);
   fMan->AddTask(BmnDch1Hit);
-  FairHitPointSetDraw *BmnDch2Hit = new FairHitPointSetDraw("BmnDch2Hit", kBlack, kDot);
+  FairHitPointSetDraw *BmnDch2Hit = new FairHitPointSetDraw("BmnDch2Hit", kBlack, pointMarker);
   fMan->AddTask(BmnDch2Hit);
-  FairHitPointSetDraw *BmnTof2Hit = new FairHitPointSetDraw("BmnTof2Hit", kBlack, kDot);
+  FairHitPointSetDraw *BmnTof2Hit = new FairHitPointSetDraw("BmnTof2Hit", kBlack, pointMarker);
   fMan->AddTask(BmnTof2Hit);
 
   // DST hits (box view)

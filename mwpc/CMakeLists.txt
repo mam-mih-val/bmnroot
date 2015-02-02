@@ -40,9 +40,6 @@ BmnMWPC2Point.cxx
 BmnMWPC2ContFact.cxx  
 BmnMWPC2Geo.cxx 
 BmnMWPC2GeoPar.cxx
-BmnMwpcHitProducer.cxx
-BmnMwpcDigitizer.cxx
-BmnMwpcHitFinder.cxx
 )
 
 set(MWPC3_SRCS
@@ -51,9 +48,6 @@ BmnMWPC3Point.cxx
 BmnMWPC3ContFact.cxx  
 BmnMWPC3Geo.cxx 
 BmnMWPC3GeoPar.cxx
-BmnMwpcHitProducer.cxx
-BmnMwpcDigitizer.cxx
-BmnMwpcHitFinder.cxx
 )
 
 # fill list of header files from list of source files

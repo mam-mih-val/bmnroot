@@ -166,6 +166,11 @@ void FairEventManagerEditor::Init()
   title1->AddFrame(fBackground, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 5,5,1,1));
   fBackground->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "SwitchBackground(Bool_t)");
 
+  // button for high transparency to highlight event objects
+  TGCheckButton* fTransparency = new TGCheckButton(title1, "high transparency");
+  title1->AddFrame(fTransparency, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 5,5,1,1));
+  fTransparency->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "SwitchTransparency(Bool_t)");
+
   // group for displaying simulation and reconstruction data
   groupData = new TGGroupFrame(title1, "Show MC and reco data");
   groupData->SetTitlePos(TGGroupFrame::kCenter);
@@ -175,11 +180,13 @@ void FairEventManagerEditor::Init()
   fShowMCPoints = new TGCheckButton(framePointsInfo, "MC points");
   framePointsInfo->AddFrame(fShowMCPoints, new TGLayoutHints(kLHintsNormal, 0,0,0,0));
   fShowMCPoints->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMCPoints(Bool_t)");
+  fShowMCPoints->SetDisabledAndSelected(kFALSE);
 
   // button for show|hide reconstructed points
   fShowRecoPoints = new TGCheckButton(framePointsInfo, "Reco points");
   framePointsInfo->AddFrame(fShowRecoPoints, new TGLayoutHints(kLHintsRight, 0,0,1,0));
   fShowRecoPoints->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowRecoPoints(Bool_t)");
+  fShowRecoPoints->SetDisabledAndSelected(kFALSE);
   groupData->AddFrame(framePointsInfo, new TGLayoutHints(kLHintsNormal | kLHintsExpandX, 1,1,5,0));
 
   TGHorizontalFrame* frameTracksInfo = new TGHorizontalFrame(groupData);
@@ -187,17 +194,19 @@ void FairEventManagerEditor::Init()
   fShowMCTracks = new TGCheckButton(frameTracksInfo, "MC tracks");
   frameTracksInfo->AddFrame(fShowMCTracks, new TGLayoutHints(kLHintsNormal, 0,0,0,0));
   fShowMCTracks->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMCTracks(Bool_t)");
+  fShowMCTracks->SetDisabledAndSelected(kFALSE);
 
   // button for show|hide reco tracks
   fShowRecoTracks = new TGCheckButton(frameTracksInfo, "Reco tracks");
   frameTracksInfo->AddFrame(fShowRecoTracks, new TGLayoutHints(kLHintsRight, 0,0,1,0));
   fShowRecoTracks->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowRecoTracks(Bool_t)");
+  fShowRecoTracks->SetDisabledAndSelected(kFALSE);
   groupData->AddFrame(frameTracksInfo, new TGLayoutHints(kLHintsNormal | kLHintsExpandX, 1,1,5,0));
 
   title1->AddFrame(groupData, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 3,15,1,1));
 
   // button for update of event visualization
-  TGTextButton* fUpdate = new TGTextButton(title1, "Update");
+  fUpdate = new TGTextButton(title1, "Update");
   title1->AddFrame(fUpdate, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 3,15,1,1));
   fUpdate->Connect("Clicked()", "FairEventManagerEditor", this, "SelectEvent()");
 
@@ -243,16 +252,27 @@ void FairEventManagerEditor::SelectEvent()
   // exec event visualization of selected event
   fManager->GotoEvent(iNewEvent);
 
+  // first time checking for active buttons
   if (iCurrentEvent == -1)
   {
       if (fManager->EveMCPoints == NULL)
           fShowMCPoints->SetDisabledAndSelected(kFALSE);
+      else
+          fShowMCPoints->SetEnabled(kTRUE);
       if (fManager->EveMCTracks == NULL)
           fShowMCTracks->SetDisabledAndSelected(kFALSE);
+      else
+          fShowMCTracks->SetEnabled(kTRUE);
       if (fManager->EveRecoPoints == NULL)
           fShowRecoPoints->SetDisabledAndSelected(kFALSE);
+      else
+          fShowRecoPoints->SetEnabled(kTRUE);
       if (fManager->EveRecoTracks == NULL)
           fShowRecoTracks->SetDisabledAndSelected(kFALSE);
+      else
+          fShowRecoTracks->SetEnabled(kTRUE);
+
+      fUpdate->SetEnabled(kFALSE);
   }
 
   if (iCurrentEvent != iNewEvent)
@@ -289,6 +309,16 @@ void FairEventManagerEditor::SelectEvent()
 void FairEventManagerEditor::SwitchBackground(Bool_t is_on)
 {
     gEve->GetViewers()->SwitchColorSet();
+}
+
+// set transparency to high value (80%)
+void FairEventManagerEditor::SwitchTransparency(Bool_t is_on)
+{
+    fManager->SelectedGeometryTransparent(is_on);
+
+    gEve->GetGlobalScene()->SetRnrState(kFALSE);
+    gEve->GetGlobalScene()->SetRnrState(kTRUE);
+    gEve->Redraw3D();
 }
 
 //______________________________________________________________________________

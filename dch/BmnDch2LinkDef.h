@@ -9,5 +9,4 @@
 #pragma link C++ class  BmnDch2Geo+;
 #pragma link C++ class  BmnDch2GeoPar+;
 #pragma link C++ class  BmnDch2ContFact+;
-#pragma link C++ class  BmnDchHitProducer+;
 #endif

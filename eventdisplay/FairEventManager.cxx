@@ -204,7 +204,7 @@ void FairEventManager::InitColorStructure()
         i++;
 
         // TOF1 color
-        arrSelectedColoring[i].detector_name =          "tof1";
+        arrSelectedColoring[i].detector_name =          "TOFB1";
         arrSelectedColoring[i].detector_color =         "spring";
         arrSelectedColoring[i].detector_transparency =  15;
         arrSelectedColoring[i].isRecursiveColoring =    true;
@@ -239,10 +239,10 @@ void FairEventManager::InitColorStructure()
 
         /*
         // ZDC color
-        arrSelectedColoring[i].detector_name =          "VETO";
+        arrSelectedColoring[i].detector_name =          "VMDL";
         arrSelectedColoring[i].detector_color =         "yellow";
         arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
+        arrSelectedColoring[i].isRecursiveColoring =    false;
         i++;
         */
     }
@@ -559,7 +559,7 @@ void FairEventManager::SelectedGeometryColoring()
 
 void FairEventManager::RecursiveChangeNodeProperty(TGeoNode* node, Int_t color, int transparency)
 {
-    for(int i = 0; i < node->GetNdaughters(); i++)
+    for (int i = 0; i < node->GetNdaughters(); i++)
     {
         TGeoNode* child = node->GetDaughter(i);
         TGeoVolume* curVolume = child->GetVolume();
@@ -570,6 +570,54 @@ void FairEventManager::RecursiveChangeNodeProperty(TGeoNode* node, Int_t color, 
 
         if (child->GetNdaughters() != 0)
             RecursiveChangeNodeProperty(child, color, transparency);
+    }
+}
+
+// set transparent geometry
+void FairEventManager::SelectedGeometryTransparent(bool is_on)
+{
+    TGeoVolume* curVolume;
+    for (int i = 0; i < cntSelectedColoring; i++)
+    {
+        curVolume = gGeoManager->GetVolume(arrSelectedColoring[i].detector_name);
+        if (!curVolume)
+        {
+            cout<<"There is no volume with given name: "<< arrSelectedColoring[i].detector_name<<endl;
+            continue;
+        }
+
+        Int_t curTransparency = 80;
+        if (!is_on)
+            curTransparency = arrSelectedColoring[i].detector_transparency;
+
+        curVolume->SetTransparency(curTransparency);
+
+        for (int j = 0; j < curVolume->GetNdaughters(); j++)
+        {
+            TGeoNode* child = curVolume->GetNode(j);
+            TGeoVolume* subVolume = child->GetVolume();
+
+            subVolume->SetTransparency(curTransparency);
+
+            if (child->GetNdaughters() != 0)
+                RecursiveChangeNodeTransparent(child, curTransparency);
+            }
+    }
+
+    return;
+}
+
+void FairEventManager::RecursiveChangeNodeTransparent(TGeoNode* node, int transparency)
+{
+    for (int i = 0; i < node->GetNdaughters(); i++)
+    {
+        TGeoNode* child = node->GetDaughter(i);
+        TGeoVolume* curVolume = child->GetVolume();
+
+        curVolume->SetTransparency(transparency);
+
+        if (child->GetNdaughters() != 0)
+            RecursiveChangeNodeTransparent(child, transparency);
     }
 }
 

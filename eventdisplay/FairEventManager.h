@@ -130,7 +130,9 @@ class FairEventManager : public TEveEventManager
 
     TEveElementList* EveMCPoints, *EveMCTracks, *EveRecoPoints, *EveRecoTracks;
 
-    ClassDef(FairEventManager,1);
+    void SelectedGeometryTransparent(bool is_on);
+    void RecursiveChangeNodeTransparent(TGeoNode* parentNode, int transparency);
+
   private:
     FairRootManager* fRootManager; //!
     Int_t fEntry;                 //!
@@ -165,6 +167,8 @@ class FairEventManager : public TEveEventManager
     void LevelChangeNodeProperty(TGeoNode* node, int level);
     void SelectedGeometryColoring();
     void RecursiveChangeNodeProperty(TGeoNode* parentNode, Int_t color, int transparency);
+
+    ClassDef(FairEventManager,1);
 };
 
 #endif

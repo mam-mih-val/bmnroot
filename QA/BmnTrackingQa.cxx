@@ -414,7 +414,7 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("hno_NofObjects_GlobalTracks", "Tracks per event", "Yield", nofBinsC, 1., maxXC);
     if (fDet.GetDet(kGEM)) {
         CreateH1("hno_NofObjects_GemTracks", "Tracks per event", "Yield", nofBinsC, 1., maxXC);
-        CreateH1("hno_NofObjects_GemHits", "GEM hits per event", "Yield", nofBinsC, 1., 5 * maxXC);
+        CreateH1("hno_NofObjects_GemHits", "GEM hits per event", "Yield", 100 * nofBinsC, 1., 100 * maxXC);
     }
     if (fDet.GetDet(kTOF1)) CreateH1("hno_NofObjects_Tof1Hits", "TOF1 hits per event", "Yield", nofBinsC, 1., maxXC);
     if (fDet.GetDet(kDCH1)) CreateH1("hno_NofObjects_Dch1Hits", "DCH1 hits per event", "Yield", nofBinsC, 1., maxXC);

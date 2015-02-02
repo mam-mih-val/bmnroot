@@ -127,7 +127,7 @@ class OnlineEventManager : public TEveEventManager
     TEveScene* fRhoZEventScene;
 
     int background_color;
-    char* file_name_begin;
+    char* file_name_begin;  //!
 
     TEveElementList* EveMCPoints, *EveMCTracks, *EveRecoPoints, *EveRecoTracks;
 

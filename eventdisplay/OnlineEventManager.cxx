@@ -61,7 +61,8 @@ OnlineEventManager::OnlineEventManager()
    EveMCPoints(NULL),
    EveMCTracks(NULL),
    EveRecoPoints(NULL),
-   EveRecoTracks(NULL)
+   EveRecoTracks(NULL),
+   file_name_begin(NULL)
 {
     fgRinstance = this;
 

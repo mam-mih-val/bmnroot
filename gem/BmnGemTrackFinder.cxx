@@ -33,7 +33,7 @@ fPDG(211),
 fEventNo(0),
 fChiSqCut(25.) {
 
-    fMakeQA = kTRUE;
+    fMakeQA = kFALSE;
     fGemHitArray = NULL;
     fGemTracksArray = NULL;
     fMCTracksArray = NULL;

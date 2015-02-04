@@ -3,11 +3,9 @@
 // nEvents - number of events to transport, default: 1
 // outFile - output file with MC data, default: evetest.root
 // flag_store_FairRadLenPoint
-// isFieldMap = kTRUE corresponds to the FieldMap use; isFieldMap = kFALSE define constant field B(0, 9, 0) kG and should be used for test purporses
 
 void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
-        Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE)
-{
+        Bool_t flag_store_FairRadLenPoint = kFALSE) {
 
 #define URQMD
 
@@ -19,7 +17,7 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = 
     bmnloadlibs(); // load libraries
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
-//    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run1.C");
+    //    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run1.C");
 
     // -----   Create simulation run   ----------------------------------------
     FairRunSim *fRun = new FairRunSim();
@@ -29,7 +27,7 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = 
     // fRun->SetName("TGeant4");
     // fRun->SetGeoModel("G3Native");
 
-//    geometry_run1(fRun); // load bmn geometry
+    //    geometry_run1(fRun); // load bmn geometry
     geometry(fRun); // load bmn geometry
 
     // Use the experiment specific MC Event header instead of the default one
@@ -161,25 +159,13 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = 
     fRun->SetOutputFile(outFile.Data());
 
     // -----   Create magnetic field   ----------------------------------------
+    Double_t fieldScale = 1.;
+    BmnFieldMap* magField = new BmnNewFieldMap("NEW_field_sp41v1_ascii_noExtrap.dat");
+    // Double_t fieldZ = 124.5; // field centre z position 
+    // magField->SetPosition(0., 0., fieldZ);
+    magField->SetScale(fieldScale);
+    fRun->SetField(magField);
     
-    // field_sp41v1_ascii_Extrap.dat - extrapolated FieldMap
-    // field_sp41v1_ascii_noExtrap.dat - original FieldMap, without extrapolation
-    if (isFieldMap) {
-        Double_t fieldZ = 124.5; // field centre z position
-        Double_t fieldScale = 0.44;
-        BmnFieldMap* magField = new BmnFieldMapSym3("field_sp41v1_ascii_Extrap.dat");
-        // BmnFieldMap* magField = new BmnFieldMapSym3("field_sp41v1_ascii_noExtrap.dat"); 
-        magField->SetPosition(0., 0., fieldZ);
-        magField->SetScale(fieldScale);
-        fRun->SetField(magField);
-        
-    } else {
-        BmnFieldConst* magField = new BmnFieldConst();
-        magField->SetFieldRegion(-300., 300., -300., 300., -300., 300);
-        magField->SetField(0.0, -9.0 * 0.44, 0.0);
-        fRun->SetField(magField);
-    }
-
     fRun->SetStoreTraj(kTRUE);
     fRun->SetRadLenRegister(flag_store_FairRadLenPoint); // radiation length manager
 

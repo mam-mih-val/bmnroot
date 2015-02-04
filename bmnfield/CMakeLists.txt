@@ -19,20 +19,16 @@ ${ROOT_LIBRARY_DIR}
 link_directories( ${LINK_DIRECTORIES})
 
 set(FIELD_SRCS
-BmnFieldConst.cxx     
+BmnNewFieldMap.cxx
+#BmnFieldConst.cxx     
 BmnFieldContFact.cxx    
 BmnFieldMap.cxx
 BmnFieldMapCreator.cxx         
 BmnFieldMapData.cxx     
-#BmnFieldMapSym2.cxx     
-BmnFieldMapSym3.cxx     
+#BmnFieldMapSym3.cxx     
 BmnFieldPar.cxx         
-#BmnBsField.cxx 
-BmnFieldCreator.cxx 
-#BmnFieldMapDistorted.cxx       
-#BmnFieldMapSym1.cxx 
+BmnFieldCreator.cxx
 )
-
 
 # fill list of header files from list of source files
 # by exchanging the file extension

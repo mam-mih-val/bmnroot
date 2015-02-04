@@ -1,38 +1,23 @@
 // -------------------------------------------------------------------------
-// -----                      BmnFieldMap source file                  -----
-// -----         Created 12/01/04  by M. Al/Turany (BmnField.cxx)      -----
-// -----                Redesign 13/02/06  by V. Friese                -----
+// -----                    BmnFieldMap source file                    -----
+// -----                   Created 03/02/2015  by P. Batyuk            -----
+// -----                        JINR, batyuk@jinr.ru                   -----
 // -------------------------------------------------------------------------
-// Includes from CBMROOT
+
 #include "BmnFieldMap.h"
 #include "FairRun.h"
 #include "FairRuntimeDb.h"
-
 #include "BmnFieldMapCreator.h"
 #include "BmnFieldMapData.h"
 #include "BmnFieldPar.h"
-
-// Includes from ROOT
 #include "TArrayF.h"
 #include "TFile.h"
 #include "TMath.h"
 #include "FairRunSim.h"
-
-// Includes from C
 #include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <vector>
-
-//using std::cout;
-//using std::cerr;
-//using std::endl;
-//using std::right;
-//using std::flush;
-//using std::setw;
-//using std::showpoint;
-
-// -------------   Default constructor  ----------------------------------
 
 BmnFieldMap::BmnFieldMap()
 : FairField(),
@@ -73,11 +58,6 @@ fBz(NULL) {
     fName = "";
     fType = 1;
 }
-// ------------------------------------------------------------------------
-
-
-
-// -------------   Standard constructor   ---------------------------------
 
 BmnFieldMap::BmnFieldMap(const char* mapName)
 : FairField(),
@@ -122,11 +102,6 @@ fDebugInfo(kFALSE) {
 
     fType = 1;
 }
-// ------------------------------------------------------------------------
-
-
-
-// ------------   Constructor from BmnFieldPar   --------------------------
 
 BmnFieldMap::BmnFieldMap(BmnFieldPar* fieldPar)
 : FairField(),
@@ -180,11 +155,6 @@ fBz(NULL) {
         fType = fieldPar->GetType();
     }
 }
-// ------------------------------------------------------------------------
-
-
-
-// ------------  Constructor from BmnFieldMapCreator  ---------------------
 
 BmnFieldMap::BmnFieldMap(BmnFieldMapCreator* creator)
 : FairField(),
@@ -247,170 +217,22 @@ fBz(NULL) {
     }
 }
 
-// ------------------------------------------------------------------------
-
-
-
-// ------------   Destructor   --------------------------------------------
-
 BmnFieldMap::~BmnFieldMap() {
     if (fBx) delete fBx;
     if (fBy) delete fBy;
     if (fBz) delete fBz;
 }
-// ------------------------------------------------------------------------
-
-
-
-// -----------   Intialisation   ------------------------------------------
 
 void BmnFieldMap::Init() {
     if (fFileName.EndsWith(".root")) ReadRootFile(fFileName, fName);
     else if (fFileName.EndsWith(".dat")) ReadAsciiFile(fFileName);
+
     else {
         cerr << "-E- BmnFieldMap::Init: No proper file name defined! ("
                 << fFileName << ")" << endl;
         Fatal("Init", "No proper file name");
     }
 }
-// ------------------------------------------------------------------------
-
-
-
-// -----------   Get x component of the field   ---------------------------
-
-Double_t BmnFieldMap::GetBx(Double_t x, Double_t y, Double_t z) {
-
-    Int_t ix = 0;
-    Int_t iy = 0;
-    Int_t iz = 0;
-    Double_t dx = 0.;
-    Double_t dy = 0.;
-    Double_t dz = 0.;
-
-    if (IsInside(x, y, z, ix, iy, iz, dx, dy, dz)) {
-
-        // Get Bx field values at grid cell corners
-        fHa[0][0][0] = fBx->At(ix * fNy * fNz + iy * fNz + iz);
-        fHa[1][0][0] = fBx->At((ix + 1) * fNy * fNz + iy * fNz + iz);
-        fHa[0][1][0] = fBx->At(ix * fNy * fNz + (iy + 1) * fNz + iz);
-        fHa[1][1][0] = fBx->At((ix + 1) * fNy * fNz + (iy + 1) * fNz + iz);
-        fHa[0][0][1] = fBx->At(ix * fNy * fNz + iy * fNz + (iz + 1));
-        fHa[1][0][1] = fBx->At((ix + 1) * fNy * fNz + iy * fNz + (iz + 1));
-        fHa[0][1][1] = fBx->At(ix * fNy * fNz + (iy + 1) * fNz + (iz + 1));
-        fHa[1][1][1] = fBx->At((ix + 1) * fNy * fNz + (iy + 1) * fNz + (iz + 1));
-
-        // Return interpolated field value
-        return Interpolate(dx, dy, dz);
-
-    }
-
-    return 0.;
-}
-
-// -----------   Get y component of the field   ---------------------------
-
-Double_t BmnFieldMap::GetBy(Double_t x, Double_t y, Double_t z) {
-    
-    Int_t ix = 0;
-    Int_t iy = 0;
-    Int_t iz = 0;
-    Double_t dx = 0.;
-    Double_t dy = 0.;
-    Double_t dz = 0.;
-
-    if (IsInside(x, y, z, ix, iy, iz, dx, dy, dz)) {
-
-        // Get By field values at grid cell corners
-        fHa[0][0][0] = fBy->At(ix * fNy * fNz + iy * fNz + iz);
-        fHa[1][0][0] = fBy->At((ix + 1) * fNy * fNz + iy * fNz + iz);
-        fHa[0][1][0] = fBy->At(ix * fNy * fNz + (iy + 1) * fNz + iz);
-        fHa[1][1][0] = fBy->At((ix + 1) * fNy * fNz + (iy + 1) * fNz + iz);
-        fHa[0][0][1] = fBy->At(ix * fNy * fNz + iy * fNz + (iz + 1));
-        fHa[1][0][1] = fBy->At((ix + 1) * fNy * fNz + iy * fNz + (iz + 1));
-        fHa[0][1][1] = fBy->At(ix * fNy * fNz + (iy + 1) * fNz + (iz + 1));
-        fHa[1][1][1] = fBy->At((ix + 1) * fNy * fNz + (iy + 1) * fNz + (iz + 1));
-
-        // Return interpolated field value
-        return Interpolate(dx, dy, dz);
-
-    }
-
-    return 0.;
-}
-
-// -----------   Get z component of the field   ---------------------------
-
-Double_t BmnFieldMap::GetBz(Double_t x, Double_t y, Double_t z) {
-
-    Int_t ix = 0;
-    Int_t iy = 0;
-    Int_t iz = 0;
-    Double_t dx = 0.;
-    Double_t dy = 0.;
-    Double_t dz = 0.;
-
-    if (IsInside(x, y, z, ix, iy, iz, dx, dy, dz)) {
-
-        // Get Bz field values at grid cell corners
-        fHa[0][0][0] = fBz->At(ix * fNy * fNz + iy * fNz + iz);
-        fHa[1][0][0] = fBz->At((ix + 1) * fNy * fNz + iy * fNz + iz);
-        fHa[0][1][0] = fBz->At(ix * fNy * fNz + (iy + 1) * fNz + iz);
-        fHa[1][1][0] = fBz->At((ix + 1) * fNy * fNz + (iy + 1) * fNz + iz);
-        fHa[0][0][1] = fBz->At(ix * fNy * fNz + iy * fNz + (iz + 1));
-        fHa[1][0][1] = fBz->At((ix + 1) * fNy * fNz + iy * fNz + (iz + 1));
-        fHa[0][1][1] = fBz->At(ix * fNy * fNz + (iy + 1) * fNz + (iz + 1));
-        fHa[1][1][1] = fBz->At((ix + 1) * fNy * fNz + (iy + 1) * fNz + (iz + 1));
-
-        // Return interpolated field value
-        return Interpolate(dx, dy, dz);
-
-    }
-
-    return 0.;
-}
-// ------------------------------------------------------------------------
-
-
-
-// -----------   Check whether a poInt_t is inside the map   ----------------
-
-Bool_t BmnFieldMap::IsInside(Double_t x, Double_t y, Double_t z,
-        Int_t& ix, Int_t& iy, Int_t& iz,
-        Double_t& dx, Double_t& dy, Double_t& dz) {
-
-    // --- Transform into local coordinate system
-    Double_t xl = x - fPosX;
-    Double_t yl = y - fPosY;
-    Double_t zl = z - fPosZ;
-
-    // ---  Check for being outside the map range
-    if (!(xl >= fXmin && xl < fXmax && yl >= fYmin && yl < fYmax &&
-            zl >= fZmin && zl < fZmax)) {
-        ix = iy = iz = 0;
-        dx = dy = dz = 0.;
-        return kFALSE;
-    }
-
-    // --- Determine grid cell
-    ix = Int_t((xl - fXmin) / fXstep);
-    iy = Int_t((yl - fYmin) / fYstep);
-    iz = Int_t((zl - fZmin) / fZstep);
-
-
-    // Relative distance from grid poInt_t (in units of cell size)
-    dx = (xl - fXmin) / fXstep - Double_t(ix);
-    dy = (yl - fYmin) / fYstep - Double_t(iy);
-    dz = (zl - fZmin) / fZstep - Double_t(iz);
-
-    return kTRUE;
-
-}
-// ------------------------------------------------------------------------
-
-
-
-// ----------   Write the map to an ASCII file   --------------------------
 
 void BmnFieldMap::WriteAsciiFile(const char* fileName) {
 
@@ -461,11 +283,6 @@ void BmnFieldMap::WriteAsciiFile(const char* fileName) {
 
 
 }
-// ------------------------------------------------------------------------
-
-
-
-// -------   Write field map to a ROOT file   -----------------------------
 
 void BmnFieldMap::WriteRootFile(const char* fileName,
         const char* mapName) {
@@ -478,22 +295,12 @@ void BmnFieldMap::WriteRootFile(const char* fileName,
     if (oldFile) oldFile->cd();
 
 }
-// ------------------------------------------------------------------------
-
-
-
-// -----  Set the position of the field centre in global coordinates  -----
 
 void BmnFieldMap::SetPosition(Double_t x, Double_t y, Double_t z) {
     fPosX = x;
     fPosY = y;
     fPosZ = z;
 }
-// ------------------------------------------------------------------------
-
-
-
-// ---------   Screen output   --------------------------------------------
 
 void BmnFieldMap::Print() {
     TString type = "Map";
@@ -514,22 +321,17 @@ void BmnFieldMap::Print() {
     cout << "----  z = " << setw(4) << fZmin << " to " << setw(4) << fZmax
             << " cm, " << fNz << " grid points, dz = " << fZstep << " cm" << endl;
     cout << endl;
-    cout << "----  Field centre position: ( " << setw(6) << fPosX << ", "
+    cout << "----  Target position: ( " << setw(6) << fPosX << ", "
             << setw(6) << fPosY << ", " << setw(6) << fPosZ << ") cm" << endl;
     cout << "----  Field scaling factor: " << fScale << endl;
-    Double_t bx = GetBx(fPosX, fPosY, fPosZ);
-    Double_t by = GetBy(fPosX, fPosY, fPosZ);
+    Double_t bx = GetBx(fPosX, fPosY, fPosX);
+    Double_t by = GetBy(fPosX, fPosY, fPosY);
     Double_t bz = GetBz(fPosX, fPosY, fPosZ);
     cout << "----" << endl;
-    cout << "----  Field at Magnet Center ( " << setw(6) << bx << ", " << setw(6)
+    cout << "----  Field at Target Position ( " << setw(6) << bx << ", " << setw(6)
             << by << ", " << setw(6) << bz << ") kG" << endl;
     cout << "======================================================" << endl;
 }
-// ------------------------------------------------------------------------
-
-
-
-// ---------    Reset parameters and data (private)  ----------------------
 
 void BmnFieldMap::Reset() {
     fPosX = fPosY = fPosZ = 0.;
@@ -551,11 +353,6 @@ void BmnFieldMap::Reset() {
         fBz = NULL;
     }
 }
-// ------------------------------------------------------------------------
-
-
-
-// -----   Read field map from ASCII file (private)   ---------------------
 
 void BmnFieldMap::ReadAsciiFile(const char* fileName) {
 
@@ -636,15 +433,7 @@ void BmnFieldMap::ReadAsciiFile(const char* fileName) {
     cout << "   " << index + 1 << " read" << endl;
 
     mapFile.close();
-    
-    Print();
-
 }
-// ------------------------------------------------------------------------
-
-
-
-// -------------   Read field map from ROOT file (private)  ---------------
 
 void BmnFieldMap::ReadRootFile(const char* fileName,
         const char* mapName) {
@@ -679,11 +468,6 @@ void BmnFieldMap::ReadRootFile(const char* fileName,
     if (oldFile) oldFile->cd();
 
 }
-// ------------------------------------------------------------------------
-
-
-
-// ------------   Set field parameters and data (private)  ----------------
 
 void BmnFieldMap::SetField(const BmnFieldMapData* data) {
 
@@ -699,7 +483,6 @@ void BmnFieldMap::SetField(const BmnFieldMapData* data) {
         } else
             cout << "   BmnFieldMap::SetField: Warning:  You are using PosDepScaled map (original map type = 3)" << endl;
     }
-
 
     fXmin = data->GetXmin();
     fYmin = data->GetYmin();
@@ -734,11 +517,6 @@ void BmnFieldMap::SetField(const BmnFieldMapData* data) {
         }
     }
 }
-// ------------------------------------------------------------------------
-
-
-
-// ------------   Interpolation in a grid cell (private)  -----------------
 
 Double_t BmnFieldMap::Interpolate(Double_t dx, Double_t dy, Double_t dz) {
 
@@ -755,535 +533,6 @@ Double_t BmnFieldMap::Interpolate(Double_t dx, Double_t dy, Double_t dz) {
     // Interpolate in z coordinate
     return fHc[0] + (fHc[1] - fHc[0]) * dz;
 
-}
-
-// ------------------------------------------------------------------------
-
-void BmnFieldMap::FillParContainer() {
-
-}
-
-// FUNCTIONS TO RECALCULATE MAG.FIELD, ITS APPROXIMATION AND ITS EXTRAPOLATION
-
-Double_t* BmnFieldMap::InterpolateMagField(Int_t N, BmnFieldMap* magField, Char_t dir) {
-
-    if (fDebugInfo)
-        cout << "DIRECTION is " << dir << endl;
-
-    const Int_t size = (Int_t) pow(N, 3);
-
-    /// Ax = B - matrix form of a set of linear equations 
-
-    Double_t** A = new Double_t* [size]; // A-matrix of coefficients (left side), A is a square matrix !!!
-    Double_t** A_orig = NULL; // Copy of A-matrix to check solution
-    Double_t* B = new Double_t[size]; // B-vector (right side) 
-    Double_t* B_orig = NULL; // Copy of B-vector to check solution
-    Double_t* coeff = new Double_t[size]; // Solution of the Ax = B  
-
-    //
-    for (Int_t i = 0; i < size; i++) 
-        A[i] = new Double_t[size + 1];
-       
-    
-    cout << "Size = " << sizeof (Double_t) * size * (size + 1) / pow(1024, 3) << " GBytes" << endl;
-
-    BuildGrid(N, size, magField, A, B, coeff, dir, 0);
-
-    if (fDebugInfo) {
-        B_orig = new Double_t[size];
-        A_orig = new Double_t* [size];
-        for (Int_t i = 0; i < size; i++) {
-            A_orig[i] = new Double_t[size];
-            B_orig[i] = B[i];
-            for (Int_t j = 0; j < size; j++)
-                A_orig[i][j] = A[i][j];
-        }
-    }
-
-       Double_t uncert = 1e-6;
-
-        for (Int_t i = 0; i < size; i++) {
-            if (TMath::Abs(A[i][i]) < uncert) {
-                cout << " A[i][i] " << A[i][i] << endl;
-                for (Int_t k = i + 1; k < size; k++) {
-                    if (A[k][i] >= uncert) {
-                        StringPermutation(size, A, B, i, k);
-                        break;
-                    }
-                }
-            }
-        }
-
-        MakeTransform(size, A, B);
-
-    // Print Original Matrix
-    //    for (Int_t i = 0; i < size; i++) {
-    //        for (Int_t j = 0; j <= size; j++) {
-    //            cout << A[i][j] << "\t";
-    //        }
-    //        cout << endl;
-    //    }
-
-    
-    // coeff = DoConjugGradient(size, A, B, uncert);
-    // coeff = DoSeidelSolution(size, A, coeff, B, uncert);
-    coeff = DoGausSolution(size, A, A_orig);
-
-    vector<Double_t> solution;
-
-    for (Int_t i = 0; i < size; i++) {
-        solution.push_back(coeff[i]);
-        cout << " a[" << i << "] = " << coeff[i] << endl;
-    }
-
-    if (fDebugInfo) {
-        // BuildGrid(N, size, magField, A, B, coeff, dir, 1);
-        DoCheckSolution(A_orig, B_orig, solution, size);
-    }
-
-    for (Int_t i = 0; i < size; i++) {
-        delete [] A[i];
-        if (fDebugInfo)
-            delete [] A_orig[i];
-    }
-    delete [] A;
-    if (fDebugInfo) {
-        delete [] A_orig;
-        delete [] B_orig;
-    }
-
-    return coeff;
-}
-
-Double_t* BmnFieldMap::DoConjugGradient(Int_t N, Double_t** A, Double_t* B, Double_t eps) {
-
-    Double_t alpha = 0.;
-    Double_t beta = 0.;
-
-    Double_t* p = new Double_t[N];
-    for (Int_t i = 0; i < N; i++)
-        p[i] = B[i];
-
-    Double_t* tmp = MatrixByVectorMult(N, A, p);
-
-    Double_t* r = new Double_t[N];
-    Double_t* r_prev = new Double_t[N];
-
-    Double_t* z = new Double_t[N];
-    Double_t* z_prev = new Double_t[N];
-
-    Double_t* x = new Double_t[N];
-
-    //iteration = 0
-    for (Int_t i = 0; i < N; i++) {
-        r_prev[i] = B[i] - tmp[i]; // cout << tmp[i] << endl;
-        z_prev[i] = r_prev[i];
-    }
-
-    Int_t k = 0;
-
-    //iterations > 1
-    do {
-        k++;
-
-        cout << "counter = " << k << endl;
-
-        if (k >= 2) {
-            for (Int_t i = 0; i < N; i++)
-                p[i] = x[i];
-        }
-
-        alpha = VectorByVectorMult(N, r_prev, r_prev) / VectorByVectorMult(N, MatrixByVectorMult(N, A, z_prev), z_prev);
-        // cout << " alpha = " << alpha << endl;
-
-        for (Int_t i = 0; i < N; i++) {
-            x[i] = p[i] + alpha * z_prev[i];
-            tmp = MatrixByVectorMult(N, A, z_prev);
-            r[i] = r_prev[i] - alpha * tmp[i];
-        }
-
-        beta = VectorByVectorMult(N, r, r) / VectorByVectorMult(N, r_prev, r_prev);
-
-        for (Int_t i = 0; i < N; i++)
-            z[i] = r[i] + beta * z_prev[i];
-
-        for (Int_t i = 0; i < N; i++) {
-            r_prev[i] = r[i];
-            z_prev[i] = z[i];
-        }
-
-    } while (!ConvergeSeidel(x, p, N, eps));
-
-    delete [] z_prev;
-    delete [] z;
-    delete [] r_prev;
-    delete [] r;
-    delete [] tmp;
-    delete [] p;
-
-    cout << "Number of Iterations = " << k << endl;
-
-    return x;
-}
-
-Double_t* BmnFieldMap::MatrixByVectorMult(Int_t N, Double_t** matrix, Double_t* vector) {
-
-    Double_t* res = new Double_t[N];
-    Double_t sum = 0.;
-
-    for (Int_t i = 0; i < N; i++) {
-        sum = 0.0;
-
-        for (Int_t j = 0; j < N; j++) {
-            sum += matrix[i][j] * vector[j];
-        }
-        res[i] = sum;
-    }
-    return res;
-}
-
-Double_t BmnFieldMap::VectorByVectorMult(Int_t N, Double_t* vec1, Double_t* vec2) {
-
-    Double_t sum = 0.;
-
-    for (Int_t i = 0; i < N; i++)
-        sum += vec1[i] * vec2[i];
-
-    return sum;
-}
-
-Double_t* BmnFieldMap::DoSeidelSolution(Int_t N, Double_t** a, Double_t* x, Double_t* b, Double_t eps) {
-
-    Int_t counter = 0;
-    Double_t* p = new Double_t[N];
-
-    do {
-        //        cout << "counter: " << counter << " ";
-        //        for (Int_t i = 0; i < N; i++) {
-        //            cout << " a[" << i << "] = " << x[i] << " ";
-        //        }
-        //        cout << endl;
-        counter++;
-        for (Int_t i = 0; i < N; i++) {
-            p[i] = x[i];
-            // cout << "x = " << x[i] << " p = " << p[i] << endl; 
-        }
-
-        for (Int_t i = 0; i < N; i++) {
-
-            Double_t var = 0.;
-
-            for (Int_t j = 0; j < i; j++)
-                var += (a[i][j] * x[j]);
-
-            for (Int_t j = i; j < N; j++)
-                var += (a[i][j] * p[j]);
-
-            // cout << a[i][i] << endl;
-            x[i] = (b[i] - var) / a[i][i];
-            //            if (TMath::Abs(a[i][i]) < 0.0001) {
-            //                cout << "b = " << b[i] << " var = " << var << " a = " << a[i][i] << endl;
-            //            }
-
-            //            x[i] = (a[i][N] - var) / a[i][i];
-        }
-    } while (!ConvergeSeidel(x, p, N, eps));
-
-    // cout << counter << endl;
-
-    return x;
-}
-
-Bool_t BmnFieldMap::ConvergeSeidel(Double_t* xk, Double_t* xkp, Int_t N, Double_t eps) {
-
-    Double_t norm = 0;
-    for (Int_t i = 0; i < N; i++) {
-        norm += (xk[i] - xkp[i])*(xk[i] - xkp[i]);
-        // cout << "x = " << xk[i] << " p = " << xkp[i]; 
-    }
-
-    // cout << " Norm = " << sqrt(norm) << endl;
-    if (sqrt(norm) >= eps)
-        return kFALSE;
-
-    return kTRUE;
-}
-
-Double_t* BmnFieldMap::DoGausSolution(Int_t dim, Double_t** matrix, Double_t** matrix_orig) {
-
-    const Int_t dim2 = dim + 1;
-
-    Double_t* xx = new Double_t[dim2];
-    Double_t tmp;
-    Int_t k;
-
-    Int_t counter = 0;
-
-    for (Int_t i = 0; i < dim; i++) {
-        counter++;
-        tmp = matrix[i][i];
-        for (Int_t j = dim; j >= i; j--)
-            matrix[i][j] /= tmp;
-        for (Int_t j = i + 1; j < dim; j++) {
-            tmp = matrix[j][i];
-            for (Int_t k = dim; k >= i; k--)
-                matrix[j][k] -= tmp * matrix[i][k];
-        }
-        // cout << "Transformation N = " << counter << " DONE! " << endl; 
-    }
-
-    // cout << endl;
-
-    xx[dim - 1] = matrix[dim - 1][dim];
-    for (Int_t i = dim - 2; i >= 0; i--) {
-        xx[i] = matrix[i][dim];
-        for (Int_t j = i + 1; j < dim; j++) xx[i] -= matrix[i][j] * xx[j];
-    }
-
-    if (fDebugInfo)
-        for (Int_t i = 0; i < dim; i++)
-            cout << " a[" << i << "] = " << xx[i] << endl;
-
-    vector<Double_t> solution;
-    for (Int_t i = 0; i < dim; i++)
-        solution.push_back(xx[i]);
-
-    // if (fDebugInfo) DoCheckSolution(matrix_orig, solution, dim);
-
-    return xx;
-}
-
-Bool_t BmnFieldMap::DoCheckSolution(Double_t** matrix_orig, Double_t* b_orig, vector<Double_t> &sol, Int_t dim) {
-
-    vector<Double_t > sum;
-
-    Double_t tmp = 0;
-    Double_t tmp2 = 0;
-
-    for (Int_t i = 0; i < dim; i++) {
-        for (Int_t j = 0; j < dim; j++) {
-            tmp += matrix_orig[i][j] * sol.at(j);
-            //cout << tmp << endl;
-        }
-
-        sum.push_back(tmp);
-        tmp = 0;
-    }
-
-    for (Int_t i = 0; i < dim; i++) {
-        tmp2 = sum.at(i) - b_orig[i];
-        cout << "Residual = " << tmp2 << endl;
-    }
-
-    return kTRUE;
-}
-
-void BmnFieldMap::BuildGrid(Int_t N, Int_t size, BmnFieldMap* magField, Double_t** arr, Double_t* &B, Double_t* arr1, Char_t dir, Int_t sw) {
-
-    Double_t x, y, z;
-    Double_t FieldFound = 0.0;
-
-    fScale = 0.9;
-
-    Double_t Xmax = magField->GetXmax() * fScale;
-    Double_t Xmin = -Xmax * fScale;
-
-    Double_t Ymax = magField->GetYmax() * fScale;
-    Double_t Ymin = -Ymax * fScale;
-
-    Double_t Zmin = magField->GetZmin(); //* fScale;
-    Double_t Zmax = magField->GetZmax(); //* fScale;
-
-    for (Int_t zIdx = 0; zIdx < N - 1; ++zIdx) {
-        z = Zmin + (Zmax - Zmin) / (N - 1) * zIdx;
-        for (Int_t xIdx = 0; xIdx < N; ++xIdx) {
-            x = Xmin + (Xmax - Xmin) / (N - 1) * xIdx;
-            for (Int_t yIdx = 0; yIdx < N; ++yIdx) {
-                y = Ymin + (Ymax - Ymin) / (N - 1) * yIdx;
-                for (Int_t i = 0; i < N; i++) {
-                    for (Int_t j = 0; j < N; j++) {
-                        for (Int_t k = 0; k < N; k++) {
-                            Int_t first = xIdx * N * N + yIdx * N + zIdx;
-                            Int_t second = i * N * N + j * N + k;
-
-                            if (sw == 0)
-                                arr[first][second] = pow(x, i) * pow(y, j) * pow(z, k);
-
-                            else if (sw == 1)
-                                FieldFound += arr1[i * N * N + j * N + k] * pow(x, i) * pow(y, j) * pow(z, k);
-                            //                            cout << arr[xIdx * N * N + yIdx * N + zIdx][i * N * N + j * N + k] << "\t";
-                            //                            cout <<endl;
-
-                        }
-                    }
-                }
-                if (sw == 0) {
-                    if (dir == 'X') {
-                        arr[xIdx * N * N + yIdx * N + zIdx][size] = magField->GetBx(x, y, z);
-                        B[xIdx * N * N + yIdx * N + zIdx] = magField->GetBx(x, y, z);
-                    } else if (dir == 'Y') {
-                        arr[xIdx * N * N + yIdx * N + zIdx][size] = magField->GetBy(x, y, z);
-                        B[xIdx * N * N + yIdx * N + zIdx] = magField->GetBy(x, y, z);
-                    } else if (dir == 'Z') {
-                        arr[xIdx * N * N + yIdx * N + zIdx][size] = magField->GetBz(x, y, z);
-                        B[xIdx * N * N + yIdx * N + zIdx] = magField->GetBz(x, y, z);
-                    }
-                    // cout << arr[xIdx * N * N + yIdx * N + zIdx][size] << endl;
-
-                    //cout << i << " " << j << " " << k << endl;
-                }
-                else if (sw == 1) {
-                    if (dir == 'X')
-                        cout << " Residuals at the grid used, X " << FieldFound - magField->GetBx(x, y, z) << endl;
-                    else if (dir == 'Y')
-                        cout << " Residuals at the grid used, Y " << FieldFound - magField->GetBy(x, y, z) << endl;
-                    else if (dir == 'Z')
-                        cout << " Residuals at the grid used, Z " << FieldFound - magField->GetBz(x, y, z) << endl;
-                    FieldFound = 0.0;
-                }
-            }
-        }
-    }
-}
-
-Double_t BmnFieldMap::Lagrange(Int_t N, Double_t* arr, TVector3 coord) {
-
-    Double_t res = 0;
-
-    for (Int_t i = 0; i < N; i++) {
-        for (Int_t j = 0; j < N; j++) {
-            for (Int_t k = 0; k < N; k++)
-                res += arr[i * N * N + j * N + k] * pow(coord.X(), i) * pow(coord.Y(), j) * pow(coord.Z(), k);
-        }
-    }
-    return res;
-}
-
-void BmnFieldMap::StringPermutation(Int_t size, Double_t** A, Double_t* B, Int_t i, Int_t k) {
-
-    Double_t tmp = 0.;
-
-    for (Int_t j = 0; j < size; j++) {
-        tmp = A[i][j];
-        A[i][j] = A[k][j];
-        A[k][j] = tmp;
-    }
-
-    tmp = 0.;
-
-    tmp = B[i];
-    B[i] = B[k];
-    B[k] = tmp;
-}
-
-Double_t BmnFieldMap::FirstNorm(Double_t** A, Int_t n, Int_t m) {
-
-    Int_t i, j;
-    Double_t sum = 0, subSum;
-    for (Int_t i = 0; i < n; i++) {
-        subSum = 0;
-        for (j = 0; j < m; j++) {
-            subSum += abs(A[i][j]);
-        }
-
-        if (subSum > sum) {
-            sum = subSum;
-        }
-    }
-    return sum;
-}
-
-Double_t BmnFieldMap::SecondNorm(Double_t** A, Int_t n, Int_t m) {
-
-    Int_t i, j;
-    Double_t sum = 0, subSum;
-    for (j = 0; j < n; j++) {
-        subSum = 0;
-        for (i = 0; i < m; i++) {
-            subSum += abs(A[i][j]);
-        }
-
-        if (subSum > sum) {
-            sum = subSum;
-        }
-    }
-    return sum;
-}
-
-Double_t BmnFieldMap::ThirdNorm(Double_t** A, Int_t n, Int_t m) {
-
-    Int_t i, j;
-    Double_t sum = 0;
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < m; j++) {
-            sum += (A[i][j] * A[i][j]);
-        }
-    }
-    sum = sqrt(sum);
-    return sum;
-}
-
-void BmnFieldMap::MakeTransform(Int_t size, Double_t** A, Double_t* B) {
-
-    Double_t** buff = new Double_t*[size]; // A^{transposed}
-    Double_t** buff2 = new Double_t*[size]; // A^{transposed} * A
-    Double_t* buff3 = new Double_t[size]; // A^{transposed} * B
-
-    for (Int_t i = 0; i < size; i++) {
-        buff[i] = new Double_t[size];
-        buff2[i] = new Double_t[size];
-    }
-
-    // A ---> A^{transposed}
-    for (Int_t i = 0; i < size; i++)
-        for (Int_t j = 0; j < size; j++)
-            buff[i][j] = A[j][i];
-
-    Double_t sum = 0.;
-
-    for (Int_t i = 0; i < size; i++)
-        for (Int_t j = 0; j < size; j++) {
-            sum = 0.0;
-            if (i <= j) {
-                for (Int_t k = 0; k < size; k++) {
-                    sum += buff[i][k] * A[k][j];
-                }
-                buff2[i][j] = sum;
-            }
-        }
-
-    for (Int_t i = 0; i < size; i++)
-        for (Int_t j = 0; j < size; j++)
-            if (i > j)
-                buff2[i][j] = buff2[j][i];
-
-    Double_t norm_factor = 2. / ThirdNorm(buff2, size, size);
-
-    for (Int_t i = 0; i < size; i++)
-        for (Int_t j = 0; j < size; j++) {
-            A[i][j] = norm_factor * buff2[i][j];
-            //  cout << A[i][j] << "\t";
-        }
-
-    for (Int_t i = 0; i < size; i++) {
-        sum = 0.0;
-        for (Int_t j = 0; j < size; j++) {
-            sum += buff[i][j] * B[j];
-        }
-        buff3[i] = sum;
-    }
-
-    for (Int_t i = 0; i < size; i++)
-        B[i] = norm_factor * buff3[i];
-
-    for (Int_t i = 0; i < size; i++) {
-        delete [] buff[i];
-        delete [] buff2[i];
-    }
-
-    delete [] buff;
-    delete [] buff2;
-    delete [] buff3;
 }
 
 ClassImp(BmnFieldMap)

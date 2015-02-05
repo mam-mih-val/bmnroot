@@ -17,6 +17,9 @@
 #include <TEveScene.h>
 #include <TGeoNode.h>
 #include <TEveProjectionManager.h>
+#include "FairMCPointDraw.h"
+#include "FairMCTracks.h"
+#include "FairHitPointSetDraw.h"
 
 class FairRootManager; //does not work with streamer, reason unclear
 class FairTask;
@@ -127,11 +130,14 @@ class FairEventManager : public TEveEventManager
     TEveScene* fRhoZEventScene;
 
     int background_color;
+    bool is_online;
+    char* source_file_name;  //!
 
     TEveElementList* EveMCPoints, *EveMCTracks, *EveRecoPoints, *EveRecoTracks;
 
     void SelectedGeometryTransparent(bool is_on);
     void RecursiveChangeNodeTransparent(TGeoNode* parentNode, int transparency);
+    void GetDataSource(Int_t data_source);
 
   private:
     FairRootManager* fRootManager; //!

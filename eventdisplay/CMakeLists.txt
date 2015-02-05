@@ -42,8 +42,6 @@ FairMCPointDraw.cxx
 FairHitDraw.cxx
 FairHitPointSetDraw.cxx
 FairTimeStampPointDraw.cxx
-OnlineEventManager.cxx 
-OnlineEventManagerEditor.cxx
 )
 
 Set(HEADERS )

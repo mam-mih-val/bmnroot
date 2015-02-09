@@ -193,7 +193,7 @@ void BmnTrackingQaReport::Draw() {
     DrawEffGhost("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM detector");
     DrawYPtHistos();
     DrawEtaP("Distribution of MC-tracks and RECO-tracks in Pseudorapidity and Momentum");
-    DrawPsimPrec("P_{rec} vs P_{sim} for RECO-tracks with link to MC-track");
+    DrawPsimPrec("Reco vs MC for Pseudorapidity and Momentum");
     DrawMomRes("Momentum resolution of RECO-track");
     DrawHitsHistos();
 }
@@ -295,7 +295,11 @@ void BmnTrackingQaReport::DrawEffGhost(const string& canvasName) {
 void BmnTrackingQaReport::DrawPsimPrec(const string& canvasName) {
     TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 600, 600);
     canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
     DrawH2(HM()->H2("P_rec_P_sim"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(2);
+    DrawH2(HM()->H2("Eta_rec_Eta_sim"), kLinear, kLinear, kLinear, "colz");
 }
 
 void BmnTrackingQaReport::DrawEventsInfo(const string& canvasName) {

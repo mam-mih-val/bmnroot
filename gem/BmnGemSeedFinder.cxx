@@ -78,13 +78,14 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fGemSeedsArray->Clear();
     addresses.clear();
-
+ 
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits)
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-        const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
+//        const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
+        const Float_t R = hit->GetZ(); //Test for different type of transformation
         const Float_t newX = hit->GetX() / R;
         const Float_t newY = hit->GetY() / R;
         Int_t xAddr = ceil((newX - fMin) / fWidth);
@@ -96,7 +97,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
         addresses.insert(pair<ULong_t, Int_t > (addr, hitIdx));
     }
     DoSeeding();
-
+    
     cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
 
     clock_t tFinish = clock();
@@ -324,7 +325,8 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         }
 
         trackCand.SortHits();
-        Int_t nHitsForCand = ((gate * 2 + 1) > 4) ? 4 : 5;
+//        Int_t nHitsForCand = ((gate * 2 + 1) > 4) ? 4 : 5;
+        Int_t nHitsForCand = 4;
         if (trackCand.GetNHits() < nHitsForCand) { // don't fit track by circle with less then 4 hits
             for (Int_t i = 0; i < trackCand.GetNHits(); ++i)
                 GetHit(trackCand.GetHitIndex(i))->SetUsing(kFALSE);

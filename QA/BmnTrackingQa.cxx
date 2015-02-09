@@ -433,6 +433,7 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
     CreateH1("momRes_1D", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", nBins / 2, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 10.0, 400, 0.0, 10.0);
+    CreateH2("Eta_rec_Eta_sim", "#eta_{sim}", "#eta_{rec}", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 5.0);
     
     CreateH1("ghostGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("recoGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
@@ -469,7 +470,7 @@ void BmnTrackingQa::ProcessGlobalTracks() {
         Bool_t isDch1Ok = dch1Id > -1 && fDet.GetDet(kDCH1);
         Bool_t isDch2Ok = dch2Id > -1 && fDet.GetDet(kDCH2);
 
-        Float_t P_rec = 1.0 / globalTrack->GetParamFirst()->GetQp();
+        Float_t P_rec = Abs(1.0 / globalTrack->GetParamFirst()->GetQp());
         Float_t Tx = globalTrack->GetParamFirst()->GetTx();
         Float_t Ty = globalTrack->GetParamFirst()->GetTy();
         Float_t coef = Sqrt(Tx * Tx + Ty * Ty + 1);
@@ -486,6 +487,7 @@ void BmnTrackingQa::ProcessGlobalTracks() {
 
         fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec) / P_sim * 100.0);
         fHM->H2("P_rec_P_sim")->Fill(P_sim, P_rec);
+        fHM->H2("Eta_rec_Eta_sim")->Fill(Eta_sim, Eta_rec);
         fHM->H2("EtaP_rec")->Fill(Eta_rec, P_rec);
         fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
         for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += 2) {

@@ -21,7 +21,6 @@
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 // outFile - output file with reconstructed data, default: mpddst.root
-
 void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 10000000) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
@@ -37,7 +36,6 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // a concatenated input parameter file which is then used during
     // the reconstruction.
     TList *parFileList = new TList();
-
     TObjString stsDigiFile = "$VMCWORKDIR/parameters/sts_v15a_gem.digi.par";
     parFileList->Add(&stsDigiFile);
 
@@ -55,7 +53,6 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ----  Load libraries   -------------------------------------------------
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
-
     // ------------------------------------------------------------------------
 
     // -----   Timer   --------------------------------------------------------
@@ -196,7 +193,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
 
-    BmnGemHitProducer* gemHP = new BmnGemHitProducer();
+      BmnGemHitProducer* gemHP = new BmnGemHitProducer();
 //    gemHP->SetOnlyPrimary(kTRUE);
 //    fRun->AddTask(gemHP);
 
@@ -213,12 +210,11 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer();
     //tof1HP->SetOnlyPrimary(kTRUE);
     fRun->AddTask(tof1HP);
-
     // ====================================================================== //
     // ===                           DCH1 hit finder                      === //
     // ====================================================================== //
 
-    BmnDchHitProducer* dch1HP = new BmnDchHitProducer(1);
+    BmnDchHitProducer* dch1HP = new BmnDchHitProducer(1,0,false);
     //dch1HP->SetOnlyPrimary(kTRUE);
     fRun->AddTask(dch1HP);
 
@@ -226,7 +222,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                          DCH2 hit finder                       === //
     // ====================================================================== //
 
-    BmnDchHitProducer* dch2HP = new BmnDchHitProducer(2);
+    BmnDchHitProducer* dch2HP = new BmnDchHitProducer(2,0,false);
     //dch2HP->SetOnlyPrimary(kTRUE);
     fRun->AddTask(dch2HP);
 

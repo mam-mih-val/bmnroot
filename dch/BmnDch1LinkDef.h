@@ -10,4 +10,8 @@
 #pragma link C++ class  BmnDch1GeoPar+;
 #pragma link C++ class  BmnDch1ContFact+;
 #pragma link C++ class  BmnDchHitProducer+;
+#pragma link C++ class  ScalarD+;
+#pragma link C++ class  ScalarI+;
+#pragma link C++ class  ScalarUI+;
+#pragma link C++ class  DchHitPlane+;
 #endif

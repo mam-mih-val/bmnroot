@@ -16,7 +16,7 @@
 #include "ScalarI.h"
 #include "ScalarUI.h"
 #include "DchHitPlane.h"
-#include "DCHgeometryconstants_bmn.h"
+//#include "DCHgeometryconstants_bmn.h"
 
 class TClonesArray;
 class TObjectArray;
@@ -43,7 +43,7 @@ class BmnDchHitProducer : public FairTask
         /** Output array of Dch Hits **/
         //TClonesArray* fBmnDchHitsArray;
         //DchHitPlane *dchhitplane[numChambers][numLayers];
-        DchHitPlane *dchhitplane[numLayers+ngaps];
+        DchHitPlane *dchhitplane[numLayers];
         Bool_t fOnlyPrimary;
         UShort_t fDchNum;
         Bool_t fDchUsed;
@@ -69,8 +69,6 @@ class BmnDchHitProducer : public FairTask
 	typedef occupMap::iterator 		occupIter;
 	occupMap			fMapOccup;
         Bool_t wireUsed[numLayers][numWiresPerLayer];
-        UInt_t          ijkl2[ngaps];
-        //Double_t        zgap[numChambers][ngaps];
         Double_t        zLayer[numLayers];
         Double_t        xyTolerance,radialRange;
 	void		Rotate(UInt_t proj, Double_t x,Double_t y, Double_t& xRot, Double_t& yRot, Bool_t back=false);	

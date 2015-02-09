@@ -366,11 +366,8 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
              }
           }
         //}
-          for (UShort_t k = numLayers; k < numLayers+ngaps; k++) {
+          for (UShort_t k = numLayers; k < numLayers; k++) {
              dchhitplane[k] = new DchHitPlane();
-          }
-          for (UShort_t k = 0; k < ngaps; k++) {
-             ijkl2[k]=0;
           }
 
 	Int_t nDchPoint = fBmnDchPointsArray->GetEntriesFast();
@@ -639,7 +636,7 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
  	//cout<<" "<<pHitCollection0->GetEntriesFast()<<"("<<hitID<<") hits created.\n";
 
         //for (UShort_t j = 0; j < numChambers; j++) {
-          for (UShort_t k = 0; k < numLayers+ngaps; k++) {
+          for (UShort_t k = 0; k < numLayers; k++) {
              delete dchhitplane[k];
              dchhitplane[k] = 0;
           }

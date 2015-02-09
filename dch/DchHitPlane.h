@@ -27,7 +27,7 @@ class DchHitPlane : public TObject {
 protected:
   
   //UInt_t ijkl[numChambers][numLayers];  // number of drift chambers, number of planes in dch
-  UInt_t ijkl[numLayers+3];  // numlayers = number of planes in dch
+  UInt_t ijkl[numLayers];  // numlayers = number of planes in dch
 
 public:    
 

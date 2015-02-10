@@ -626,7 +626,7 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
           }
         //}
 
-        HitFinder();
+        //HitFinder();
         
         if(checkDch){
          hXYZpoints->Write(); 
@@ -740,6 +740,15 @@ void BmnDchHitProducer::HitFinder(){
                             cout<<"------------------------------------------------------"<<endl; 
                            }
                            //}
+                          }
+                          if(jk==3){
+                            cout<<"trId0 = "<<trackId[0]->GetSV()<<", trId2 = "<<trackId[2]->GetSV()<<", trId4 = "<<trackId[4]->GetSV()<<", trId6 = "<<trackId[6]->GetSV()<<", chamber = "<<fDchNum<<endl; 
+                            if(trackId[0]->GetSV()==trackId[2]->GetSV()&&trackId[2]->GetSV()==trackId[4]->GetSV()&&trackId[4]->GetSV()==trackId[6]->GetSV()){
+                             for (UInt_t jkk = 0; jkk < numLayers/2; jkk++) {
+                              dchPoint = (FairMCPoint*) fBmnDchPointsArray->At(pointind[2*jkk]->GetSV());
+                              cout<<" event = "<<eventNum<<", track cand. = "<<trackId[2*jkk]->GetSV()<<", chamber = "<<fDchNum<<", difference2 (x,y,r): "<<x[jkk]+detXshift[fDchNum-1]-dchPoint->GetX()<<" "<<y[jkk]-dchPoint->GetY()<<" "<<sqrt(pow(x[jkk]+detXshift[fDchNum-1],2.)+pow(y[jkk],2.))-sqrt(pow(dchPoint->GetX(),2.)+pow(dchPoint->GetY(),2.))<<endl;
+                             }
+                            }
                           }
 	                  dchCombHit = AddHit(hitID++, detId[2*jk]->GetSV(), pos, dpos, trackId[2*jk]->GetSV(), pointind[2*jk]->GetSV(), 0, jk*2);
                           /*if (fDchNum == 1) {

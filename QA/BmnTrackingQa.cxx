@@ -144,41 +144,41 @@ void BmnTrackingQa::ReadDataBranches() {
     if (fDet.GetDet(kTOF1)) {
         fTof1Points = (TClonesArray*) ioman->GetObject("TOF1Point");
         if (NULL == fTof1Points) {
-            Fatal("Init", ": No TOF1Point array!");
+            cout << "BmnTrackingQA::Init: No TOF1Point array!" << endl;
         }
         fTof1Hits = (TClonesArray*) ioman->GetObject("TOF1Hit");
         if (NULL == fTof1Hits) {
-            Fatal("Init", ": No BmnTof1Hit array!");
+            cout << "BmnTrackingQA::Init: No BmnTof1Hit array!" << endl;
         }
     }
     if (fDet.GetDet(kDCH1)) {
         fDch1Points = (TClonesArray*) ioman->GetObject("DCH1Point");
         if (NULL == fDch1Points) {
-            Fatal("Init", ": No DCH1Point array!");
+            cout << "BmnTrackingQA::Init: No DCH1Point array!" << endl;
         }
         fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit");
         if (NULL == fDch1Hits) {
-            Fatal("Init", ": No BmnDch1Hit array!");
+            cout << "BmnTrackingQA::Init: No BmnDch1Hit array!" << endl;
         }
     }
     if (fDet.GetDet(kDCH2)) {
         fDch2Points = (TClonesArray*) ioman->GetObject("DCH2Point");
         if (NULL == fDch2Points) {
-            Fatal("Init", ": No DCH2Point array!");
+            cout << "BmnTrackingQA::Init: No DCH2Point array!" << endl;
         }
         fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit");
         if (NULL == fDch2Hits) {
-            Fatal("Init", ": No BmnDch2Hit array!");
+            cout << "BmnTrackingQA::Init: No BmnDch2Hit array!" << endl;
         }
     }
     if (fDet.GetDet(kTOF)) {
         fTof2Points = (TClonesArray*) ioman->GetObject("TofPoint");
         if (NULL == fTof2Points) {
-            Fatal("Init", ": No TofPoint array!");
+            cout << "BmnTrackingQA::Init: No TofPoint array!" << endl;
         }
         fTof2Hits = (TClonesArray*) ioman->GetObject("BmnTof2Hit");
         if (NULL == fTof2Hits) {
-            Fatal("Init", ": No BmnTof2Hit array!");
+            cout << "BmnTrackingQA::Init: No BmnTof2Hit array!" << endl;
         }
     }
 }
@@ -465,10 +465,10 @@ void BmnTrackingQa::ProcessGlobalTracks() {
 
         // check track segments
         Bool_t isGemOk = gemId > -1 && fDet.GetDet(kGEM);
-        Bool_t isTof1Ok = tof1Id > -1 && fDet.GetDet(kTOF1);
-        Bool_t isTof2Ok = tof2Id > -1 && fDet.GetDet(kTOF);
-        Bool_t isDch1Ok = dch1Id > -1 && fDet.GetDet(kDCH1);
-        Bool_t isDch2Ok = dch2Id > -1 && fDet.GetDet(kDCH2);
+        Bool_t isTof1Ok = tof1Id > -1 && fDet.GetDet(kTOF1) && fTof1Hits;
+        Bool_t isTof2Ok = tof2Id > -1 && fDet.GetDet(kTOF) && fTof2Hits;
+        Bool_t isDch1Ok = dch1Id > -1 && fDet.GetDet(kDCH1) && fDch1Hits;
+        Bool_t isDch2Ok = dch2Id > -1 && fDet.GetDet(kDCH2) && fDch2Hits;
 
         Float_t P_rec = Abs(1.0 / globalTrack->GetParamFirst()->GetQp());
         Float_t Tx = globalTrack->GetParamFirst()->GetTx();
@@ -694,10 +694,10 @@ void BmnTrackingQa::IncreaseCounters() {
         fHM->H1("hno_NofObjects_GemTracks")->Fill(fGemTracks->GetEntriesFast());
         fHM->H1("hno_NofObjects_GemHits")->Fill(fGemHits->GetEntriesFast());
     }
-    if (fDet.GetDet(kTOF1)) fHM->H1("hno_NofObjects_Tof1Hits")->Fill(fTof1Hits->GetEntriesFast());
-    if (fDet.GetDet(kDCH1)) fHM->H1("hno_NofObjects_Dch1Hits")->Fill(fDch1Hits->GetEntriesFast());
-    if (fDet.GetDet(kDCH2)) fHM->H1("hno_NofObjects_Dch2Hits")->Fill(fDch2Hits->GetEntriesFast());
-    if (fDet.GetDet(kTOF)) fHM->H1("hno_NofObjects_Tof2Hits")->Fill(fTof2Hits->GetEntriesFast());
+    if (fDet.GetDet(kTOF1) && fTof1Hits) fHM->H1("hno_NofObjects_Tof1Hits")->Fill(fTof1Hits->GetEntriesFast());
+    if (fDet.GetDet(kDCH1) && fDch1Hits) fHM->H1("hno_NofObjects_Dch1Hits")->Fill(fDch1Hits->GetEntriesFast());
+    if (fDet.GetDet(kDCH2) && fDch2Hits) fHM->H1("hno_NofObjects_Dch2Hits")->Fill(fDch2Hits->GetEntriesFast());
+    if (fDet.GetDet(kTOF) && fTof2Hits) fHM->H1("hno_NofObjects_Tof2Hits")->Fill(fTof2Hits->GetEntriesFast());
 }
 
 ClassImp(BmnTrackingQa);

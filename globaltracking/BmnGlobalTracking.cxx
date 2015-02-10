@@ -80,7 +80,7 @@ InitStatus BmnGlobalTracking::Init() {
             Fatal("Init", "No BmnMwpc1Hit array!");
         }
     } else {
-        cout << "\nWARNING! Detector MWPC1 is excluded from global tracking!!!\n" << endl;
+        cout << "\nWARNING! Detector MWPC1 is excluded from global tracking!!!" << endl;
     }
 
 
@@ -91,7 +91,7 @@ InitStatus BmnGlobalTracking::Init() {
             Fatal("Init", "No BmnMwpc2Hit array!");
         }
     } else {
-        cout << "\nWARNING! Detector MWPC2 is excluded from global tracking!!!\n" << endl;
+        cout << "\nWARNING! Detector MWPC2 is excluded from global tracking!!!" << endl;
     }
 
 
@@ -102,7 +102,7 @@ InitStatus BmnGlobalTracking::Init() {
             Fatal("Init", "No BmnMwpc3Hit array!");
         }
     } else {
-        cout << "\nWARNING! Detector MWPC3 is excluded from global tracking!!!\n" << endl;
+        cout << "\nWARNING! Detector MWPC3 is excluded from global tracking!!!" << endl;
     }
 
     // ----------------- GEM initialization -----------------//
@@ -127,7 +127,7 @@ InitStatus BmnGlobalTracking::Init() {
             Fatal("Init", "No StsPoint array!");
         }
     } else {
-        cout << "\nERROR!GEM stations are excluded from global tracking!!!\n" << endl;
+        cout << "\nERROR!GEM stations are excluded from global tracking!!!" << endl;
         //Fatal("Init", "No GEM stations!");
     }
 
@@ -145,15 +145,15 @@ InitStatus BmnGlobalTracking::Init() {
     if (fDet.GetDet(kTOF1)) {
         fTof1Hits = (TClonesArray*) ioman->GetObject("TOF1Hit");
         if (!fTof1Hits) {
-            Fatal("Init", "No BmnTof1Hit array!");
-        }
-
-        fTof1McPoints = (TClonesArray*) ioman->GetObject("TOF1Point");
-        if (!fTof1McPoints) {
-            Fatal("Init", "No TOF1Point array!");
+            cout << "BmnGlobalTracking::Init: No BmnTof1Hit array!" << endl;
+        } else {
+            fTof1McPoints = (TClonesArray*) ioman->GetObject("TOF1Point");
+            if (!fTof1McPoints) {
+                cout << "BmnGlobalTracking::Init: No TOF1Point array!" << endl;
+            }
         }
     } else {
-        cout << "\nWARNING! Detector TOF1 is excluded from global tracking!!!\n" << endl;
+        cout << "\nWARNING! Detector TOF1 is excluded from global tracking!!!" << endl;
     }
     // ------------------------------------------------------//
 
@@ -161,15 +161,15 @@ InitStatus BmnGlobalTracking::Init() {
     if (fDet.GetDet(kTOF)) {
         fTof2Hits = (TClonesArray*) ioman->GetObject("BmnTof2Hit");
         if (!fTof2Hits) {
-            Fatal("Init", "No BmnTof2Hit array!");
-        }
-
-        fTof2McPoints = (TClonesArray*) ioman->GetObject("TofPoint");
-        if (!fTof2McPoints) {
-            Fatal("Init", "No TofPoint array!");
+            cout << "BmnGlobalTracking::Init: No BmnTof2Hit array!" << endl;
+        } else {
+            fTof2McPoints = (TClonesArray*) ioman->GetObject("TofPoint");
+            if (!fTof2McPoints) {
+                cout << "BmnGlobalTracking::Init: No TofPoint array!" << endl;
+            }
         }
     } else {
-        cout << "\nWARNING! Detector TOF2 is excluded from global tracking!!!\n" << endl;
+        cout << "\nWARNING! Detector TOF2 is excluded from global tracking!!!" << endl;
     }
     // ------------------------------------------------------//
 
@@ -177,15 +177,15 @@ InitStatus BmnGlobalTracking::Init() {
     if (fDet.GetDet(kDCH1)) {
         fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit");
         if (!fDch1Hits) {
-            Fatal("Init", "No BmnDch1Hit array!");
-        }
-
-        fDch1McPoints = (TClonesArray*) ioman->GetObject("DCH1Point");
-        if (!fDch1McPoints) {
-            Fatal("Init", "No DCH1Point array!");
+            cout << "BmnGlobalTracking::Init: No BmnDch1Hit array!" << endl;
+        } else {
+            fDch1McPoints = (TClonesArray*) ioman->GetObject("DCH1Point");
+            if (!fDch1McPoints) {
+                cout << "BmnGlobalTracking::Init: No DCH1Point array!" << endl;
+            }
         }
     } else {
-        cout << "\nWARNING! Detector DCH1 is excluded from global tracking!!!\n" << endl;
+        cout << "\nWARNING! Detector DCH1 is excluded from global tracking!!!" << endl;
     }
     // ------------------------------------------------------// 
 
@@ -193,15 +193,15 @@ InitStatus BmnGlobalTracking::Init() {
     if (fDet.GetDet(kDCH2)) {
         fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit");
         if (!fDch2Hits) {
-            Fatal("Init", "No BmnDch2Hit array!");
-        }
-
-        fDch2McPoints = (TClonesArray*) ioman->GetObject("DCH2Point");
-        if (!fDch2McPoints) {
-            Fatal("Init", "No DCH2Point array!");
+            cout << "BmnGlobalTracking::Init: No BmnDch2Hit array!" << endl;
+        } else {
+            fDch2McPoints = (TClonesArray*) ioman->GetObject("DCH2Point");
+            if (!fDch2McPoints) {
+                cout << "BmnGlobalTracking::Init: No DCH2Point array!" << endl;
+            }
         }
     } else {
-        cout << "\nWARNING! Detector DCH2 is excluded from global tracking!!!\n" << endl;
+        cout << "\nWARNING! Detector DCH2 is excluded from global tracking!!!" << endl;
     }
     // ------------------------------------------------------// 
 
@@ -321,7 +321,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
                     nodeIdx++;
                 }
             }
-            if (fDet.GetDet(kTOF1)) {
+            if (fDet.GetDet(kTOF1) && fTof1Hits) {
                 if (globalTrack->GetTof1HitIndex() != -1) {
                     CbmHit* hit = (CbmHit*) fTof1Hits->At(globalTrack->GetTof1HitIndex());
                     if (!hit) continue;
@@ -332,7 +332,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
                 }
             }
 
-            if (fDet.GetDet(kDCH1)) {
+            if (fDet.GetDet(kDCH1) && fDch1Hits) {
                 if (globalTrack->GetDch1HitIndex() != -1) {
                     BmnHit* hit = (BmnHit*) fDch1Hits->At(globalTrack->GetDch1HitIndex());
                     if (!hit) continue;
@@ -343,7 +343,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
                 }
             }
 
-            if (fDet.GetDet(kDCH2)) {
+            if (fDet.GetDet(kDCH2) && fDch2Hits) {
                 if (globalTrack->GetDch2HitIndex() != -1) {
                     BmnHit* hit = (BmnHit*) fDch2Hits->At(globalTrack->GetDch2HitIndex());
                     if (!hit) continue;
@@ -354,7 +354,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
                 }
             }
 
-            if (fDet.GetDet(kTOF)) {
+            if (fDet.GetDet(kTOF) && fTof2Hits) {
                 if (globalTrack->GetTof2HitIndex() != -1) {
                     CbmHit* hit = (CbmHit*) fTof2Hits->At(globalTrack->GetTof2HitIndex());
                     if (!hit) continue;
@@ -454,7 +454,8 @@ BmnStatus BmnGlobalTracking::NearestHitMergeGEM(BmnGlobalTrack* tr) {
 
 BmnStatus BmnGlobalTracking::NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num) {
 
-    TClonesArray* tofHits = (num == 1) ? fTof1Hits : fTof2Hits;
+    TClonesArray* tofHits = (num == 1 && fTof1Hits) ? fTof1Hits : (num == 2 && fTof2Hits) ? fTof2Hits : NULL;
+    if (!tofHits) return kBMNERROR;
     if ((num == 1) && (!fDet.GetDet(kTOF1))) return kBMNERROR;
     if ((num == 2) && (!fDet.GetDet(kTOF))) return kBMNERROR;
 
@@ -530,7 +531,8 @@ BmnStatus BmnGlobalTracking::NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num) {
 
 BmnStatus BmnGlobalTracking::NearestHitMergeDCH(BmnGlobalTrack* tr, Int_t num) {
 
-    TClonesArray* dchHits = (num == 1) ? fDch1Hits : fDch2Hits;
+    TClonesArray* dchHits = (num == 1 && fDch1Hits) ? fDch1Hits : (num == 2 && fDch2Hits) ? fDch2Hits : NULL;
+    if (!dchHits) return kBMNERROR;
     if ((num == 1) && (!fDet.GetDet(kDCH1))) return kBMNERROR;
     if ((num == 2) && (!fDet.GetDet(kDCH2))) return kBMNERROR;
 
@@ -627,8 +629,8 @@ BmnStatus BmnGlobalTracking::RefitToDetector(BmnGlobalTrack* tr, Int_t hitId, TC
             //                par->Print();
             return kBMNERROR;
         }
-//        tr->SetParamLast(par);
-//        tr->SetParamFirst(par);
+        //        tr->SetParamLast(par);
+        //        tr->SetParamFirst(par);
 
         nodes->at(*nodeIdx).SetUpdatedParam(par);
         nodes->at(*nodeIdx).SetChiSqFiltered(chi2Hit);
@@ -647,19 +649,19 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
     //    FairTrackParam par = *(tr->GetParamFirst());
 
     //TOF2 part
-    if (fDet.GetDet(kTOF) && tr->GetTof2HitIndex() != -1) {
+    if (fDet.GetDet(kTOF) && tr->GetTof2HitIndex() != -1 && fTof2Hits) {
         if (RefitToDetector(tr, tr->GetTof2HitIndex(), fTof2Hits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
     }
     //DCH2 part
-    if (fDet.GetDet(kDCH2) && tr->GetDch2HitIndex() != -1) {
+    if (fDet.GetDet(kDCH2) && tr->GetDch2HitIndex() != -1 && fDch2Hits) {
         if (RefitToDetector(tr, tr->GetDch2HitIndex(), fDch2Hits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
     }
     //DCH1 part
-    if (fDet.GetDet(kDCH1) && tr->GetDch1HitIndex() != -1) {
+    if (fDet.GetDet(kDCH1) && tr->GetDch1HitIndex() != -1 && fDch1Hits) {
         if (RefitToDetector(tr, tr->GetDch1HitIndex(), fDch1Hits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
     }
     //TOF1 part
-    if (fDet.GetDet(kTOF1) && tr->GetTof1HitIndex() != -1) {
+    if (fDet.GetDet(kTOF1) && tr->GetTof1HitIndex() != -1 && fTof1Hits) {
         if (RefitToDetector(tr, tr->GetTof1HitIndex(), fTof1Hits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
     }
     //GEM part
@@ -920,7 +922,7 @@ void BmnGlobalTracking::CalculateLength() {
             }
         }
         if (fDet.GetDet(kTOF1)) {
-            if (glTr->GetTof1HitIndex() > -1) {
+            if (glTr->GetTof1HitIndex() > -1 && fTof1Hits) {
                 const BmnHit* hit = (BmnHit*) fTof1Hits->At(glTr->GetTof1HitIndex());
                 if (!hit) continue;
                 X.push_back(hit->GetX());
@@ -929,7 +931,7 @@ void BmnGlobalTracking::CalculateLength() {
             }
         }
         if (fDet.GetDet(kDCH1)) {
-            if (glTr->GetDch1HitIndex() > -1) {
+            if (glTr->GetDch1HitIndex() > -1 && fDch1Hits) {
                 const BmnHit* hit = (BmnHit*) fDch1Hits->At(glTr->GetDch1HitIndex());
                 if (!hit) continue;
                 X.push_back(hit->GetX());
@@ -938,7 +940,7 @@ void BmnGlobalTracking::CalculateLength() {
             }
         }
         if (fDet.GetDet(kDCH2)) {
-            if (glTr->GetDch2HitIndex() > -1) {
+            if (glTr->GetDch2HitIndex() > -1 && fDch2Hits) {
                 const BmnHit* hit = (BmnHit*) fDch2Hits->At(glTr->GetDch2HitIndex());
                 if (!hit) continue;
                 X.push_back(hit->GetX());
@@ -947,7 +949,7 @@ void BmnGlobalTracking::CalculateLength() {
             }
         }
         if (fDet.GetDet(kTOF)) {
-            if (glTr->GetTof2HitIndex() > -1) {
+            if (glTr->GetTof2HitIndex() > -1 && fTof2Hits) {
                 const BmnHit* hit = (BmnHit*) fTof2Hits->At(glTr->GetTof2HitIndex());
                 if (!hit) continue;
                 X.push_back(hit->GetX());

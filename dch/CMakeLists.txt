@@ -30,6 +30,10 @@ BmnDch1ContFact.cxx
 BmnDch1Geo.cxx 
 BmnDch1GeoPar.cxx
 BmnDchHitProducer.cxx
+ScalarD.cxx
+ScalarI.cxx
+ScalarUI.cxx
+DchHitPlane.cxx
 )
 
 set(Dch2_SRCS
@@ -38,7 +42,11 @@ BmnDch2Point.cxx
 BmnDch2ContFact.cxx  
 BmnDch2Geo.cxx 
 BmnDch2GeoPar.cxx
-BmnDchHitProducer.cxx
+#BmnDchHitProducer.cxx
+#ScalarD.cxx
+#ScalarI.cxx
+#ScalarUI.cxx
+#DchHitPlane.cxx
 )
 
 

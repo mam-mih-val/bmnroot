@@ -54,6 +54,8 @@ public:
     TH1F* _hStationWellHits;
     TH1F* _hStationWrongHits;
     
+    TH2F* _hPsimPrec;
+    
     TH1F* _hNumMcTrack; // number of references to MC tracks in one Global track
     
 

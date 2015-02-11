@@ -13,9 +13,9 @@ static Float_t workTime = 0.0;
 
 const Float_t thresh = 0.7; // threshold for efficiency calculation (70%)
 
-map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
-const UInt_t kNHITSFORSEED = 4; // we use for seeds only kNHITSFORSEED hits
-const UInt_t kMAXSTATIONFORSEED = 3; // we start to search seeds only from stations in range of (0..kMAXSTATIONFORSEED)
+map<ULong_t, Int_t> addresses;       // map for calculating addresses of hits in histogram {x/R, y/R}
+const UInt_t kNHITSFORSEED = 5;      // we use for seeds only kNHITSFORSEED hits
+const UInt_t kMAXSTATIONFORSEED = 3; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
 
 using std::cout;
 using namespace TMath;
@@ -78,13 +78,13 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fGemSeedsArray->Clear();
     addresses.clear();
- 
+
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits)
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-//        const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
+        //        const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         const Float_t R = hit->GetZ(); //Test for different type of transformation
         const Float_t newX = hit->GetX() / R;
         const Float_t newY = hit->GetY() / R;
@@ -97,7 +97,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
         addresses.insert(pair<ULong_t, Int_t > (addr, hitIdx));
     }
     DoSeeding();
-    
+
     cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
 
     clock_t tFinish = clock();
@@ -212,12 +212,21 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
                 fHisto->_hNumMcTrack->Fill(indexes.size());
             }
         }
-
-        allTrackCntr += fGemSeedsArray->GetEntriesFast();
-        for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
-            if (GetHit(hitIdx)->GetStation() + 1 > kNHITSFORSEED + kMAXSTATIONFORSEED) continue;
-            allHitCntr++;
+        
+        for (Int_t i = 0; i < fGemSeedsArray->GetEntriesFast(); ++i) {
+            BmnGemTrack* seed = (BmnGemTrack*) fGemSeedsArray->At(i);
+            CbmMCTrack* mcTrack = (CbmMCTrack*) fMCTracksArray->At(seed->GetRef());
+            Float_t P_sim = mcTrack->GetP();
+            Float_t P_rec = Abs(1.0 / seed->GetParamFirst()->GetQp());
+            fHisto->_hPsimPrec->Fill(P_sim, P_rec);
         }
+        
+
+//        allTrackCntr += fGemSeedsArray->GetEntriesFast();
+//        for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
+//            if (GetHit(hitIdx)->GetStation() + 1 > kNHITSFORSEED + kMAXSTATIONFORSEED) continue;
+//            allHitCntr++;
+//        }
     }
 
 
@@ -313,21 +322,20 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         if (isLeft) { //search track-candidate in left direction
             for (Int_t i = xAddr; i > 0; i--) {
                 SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, gate, isIdeal);
-                if ((hitCntr > 1) && Abs(i - startBin) > 2 * maxDist) break; //condition to finish search is dist < 2 * MaxDist
-                if (hitCntr == kNHITSFORSEED) break;
+                if ((hitCntr > 1) && Abs(i - startBin) > 3 * maxDist) break; //condition to finish search is dist < 3 * MaxDist
+                if (hitCntr >= kNHITSFORSEED) break;
             }
         } else { //search track-candidate in right direction
             for (Int_t i = xAddr; i < fNBins; ++i) {
                 SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, gate, isIdeal);
-                if ((hitCntr > 1) && Abs(i - startBin) > 2 * maxDist) break; //condition to finish search is dist < 2 * MaxDist
-                if (hitCntr == kNHITSFORSEED) break;
+                if ((hitCntr > 1) && Abs(i - startBin) > 3 * maxDist) break; //condition to finish search is dist < 3 * MaxDist
+                if (hitCntr >= kNHITSFORSEED) break;
             }
         }
 
         trackCand.SortHits();
-//        Int_t nHitsForCand = ((gate * 2 + 1) > 4) ? 4 : 5;
-        Int_t nHitsForCand = 4;
-        if (trackCand.GetNHits() < nHitsForCand) { // don't fit track by circle with less then 4 hits
+        const Int_t minNHitsForFit = 4;
+        if (trackCand.GetNHits() < minNHitsForFit) { // don't fit track by circle with less then 4 hits
             for (Int_t i = 0; i < trackCand.GetNHits(); ++i)
                 GetHit(trackCand.GetHitIndex(i))->SetUsing(kFALSE);
             continue;
@@ -614,7 +622,7 @@ TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack* track) {
         Sig = Swd / Sw;
         thresh = C * Sig;
     }
-    
+
     Float_t chi2 = 0.0;
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
@@ -676,4 +684,49 @@ BmnGemStripHit* BmnGemSeedFinder::GetHit(Int_t i) {
     BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(i);
     if (!hit) cout << "-W- Wrong attempting to get hit number " << i << " from fGemHitsArray, which contains " << fGemHitsArray->GetEntriesFast() << " elements" << endl;
     return hit;
+}
+
+BmnStatus BmnGemSeedFinder::DoHistoTracking() {
+    const Int_t dY = 10; //step on Y/R
+    for (Int_t yAddr = 0; yAddr < fNBins; yAddr += dY) {
+        FindSeedInYSlice(yAddr, dY);
+    }
+
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnGemSeedFinder::FindSeedInYSlice(Int_t yAddr, Int_t yStep) {
+    
+    const Float_t alphaMin = -15.0 * DegToRad();
+    const Float_t tgMin = Tan(alphaMin);
+    const Float_t alphaMax = -alphaMin;
+    const Float_t hHist = (fMax - fMin) / 1000;
+    const Float_t zMax = 124.0; // tmp
+    const Float_t alphaStep = hHist / zMax;
+    
+    const Float_t thresh = 4;
+    
+    Float_t alpha = alphaMin;
+    Int_t k = 0; // counter
+    while (alpha < alphaMax) {
+        TH1F* hist = new TH1F("hist", "hist", fNBins, fMin, fMax);
+        for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
+            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(iHit);
+            if(hit->IsUsed()) continue;
+            Int_t hitYaddr = hit->GetYaddr();
+            if (hitYaddr < yAddr + yStep && hitYaddr >= yAddr) {
+                Float_t x = hit->GetX() / Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
+                Float_t z = hit->GetZ();
+                Float_t xProj = x - z * (tgMin + k * alphaStep);
+                hist->Fill(xProj);
+            }
+        }
+        for (Int_t iBin = 0; iBin < hist->GetNbinsX(); ++iBin) {
+            if (hist->GetBinContent(iBin) >= thresh) {
+                cout << hist->GetBinCenter(iBin) << endl;
+            }
+        }
+        k++;
+    }
+    return kBMNSUCCESS;
 }

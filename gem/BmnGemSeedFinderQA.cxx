@@ -36,7 +36,7 @@ _hXYGoodHits(0), _hXYBadHits(0), _hXYAllHits(0),
 _hZYGoodHits(0), _hZYBadHits(0), _hZYAllHits(0),
 _hZXGoodHits(0), _hZXBadHits(0), _hZXAllHits(0),
 _hXYFoundHits(0), _hZXFoundHits(0), _hZYFoundHits(0),
-_hyRxR_all(0), _hyRxR_good(0), _hyRxR_bad(0), _hNumMcTrack(0)
+_hyRxR_all(0), _hyRxR_good(0), _hyRxR_bad(0), _hNumMcTrack(0), _hPsimPrec(0)
 {
 }
 
@@ -71,6 +71,7 @@ BmnGemSeedFinderQA::~BmnGemSeedFinderQA() {
     delete _hStationWellHits;
     delete _hStationWrongHits;
     delete _hNumMcTrack;
+    delete _hPsimPrec;
 }
 
 void BmnGemSeedFinderQA::Initialize() {
@@ -137,6 +138,8 @@ void BmnGemSeedFinderQA::Initialize() {
     
     _hNumMcTrack = CreateHistogram1("Number of MC-references in one Global track, after Seeding", "N MC-ref", 10, 0.0, 10.0);
     
+    _hPsimPrec = CreateHistogram2("hPsimPrec", _prefix, "P_{sim}", "P_{rec}", nBins, 0.0, 0.0, nBins, 0.0, 0.0);
+    
 }
 
 void BmnGemSeedFinderQA::Write() {
@@ -170,4 +173,5 @@ void BmnGemSeedFinderQA::Write() {
     _hStationWellHits->Write(0, kOverwrite);
     _hStationWrongHits->Write(0, kOverwrite);
     _hNumMcTrack->Write(0, kOverwrite);
+    _hPsimPrec->Write(0, kOverwrite);
 }

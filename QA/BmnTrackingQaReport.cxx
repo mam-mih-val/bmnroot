@@ -292,6 +292,7 @@ void BmnTrackingQaReport::DrawEffGhost(const string& canvasName) {
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
 }
 
+
 void BmnTrackingQaReport::DrawPsimPrec(const string& canvasName) {
     TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
     canvas->SetGrid();

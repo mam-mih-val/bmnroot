@@ -35,6 +35,9 @@ public:
     BmnStatus DoSeeding();
     TVector3 CircleFit(BmnGemTrack* track);
     TVector3 LineFit(BmnGemTrack* track);
+    
+    BmnStatus DoHistoTracking();
+    BmnStatus FindSeedInYSlice(Int_t yAddr, Int_t yStep);
 
     void SetMakeQA(Bool_t qa) {
         fMakeQA = qa;

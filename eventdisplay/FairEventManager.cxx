@@ -20,6 +20,8 @@
 
 #include "constants.h"
 
+#include <cerrno>
+#include <map>
 #include <iostream>
 using namespace std;
 
@@ -59,7 +61,8 @@ FairEventManager::FairEventManager()
    EveMCPoints(NULL),
    EveMCTracks(NULL),
    EveRecoPoints(NULL),
-   EveRecoTracks(NULL)
+   EveRecoTracks(NULL),
+   source_file_name(NULL)
 {
     fgRinstance = this;
 
@@ -239,7 +242,7 @@ void FairEventManager::InitColorStructure()
 
         /*
         // ZDC color
-        arrSelectedColoring[i].detector_name =          "VMDL";
+        arrSelectedColoring[i].detector_name =          "VMDL"; //"VET0";
         arrSelectedColoring[i].detector_color =         "yellow";
         arrSelectedColoring[i].detector_transparency =  0;
         arrSelectedColoring[i].isRecursiveColoring =    false;
@@ -901,4 +904,63 @@ void FairEventManager::AddParticlesToPdgDataBase(Int_t pdg)
   if ( !pdgDB->GetParticle(50000051) )
     pdgDB->AddParticle("FeedbackPhoton","FeedbackPhoton",0,kFALSE,
                        0,0,"Special",50000051);
+}
+
+void FairEventManager::GetDataSource(Int_t data_source)
+{
+    if (data_source == 0)
+    {
+        Style_t pointMarker = kFullDotSmall;
+        Color_t pointColor = kRed;
+
+        // draw MC points
+        FairMCPointDraw *TofPoint = new FairMCPointDraw("TofPoint", pointColor, pointMarker);
+        this->AddTask(TofPoint);
+        FairMCPointDraw *PsdPoint = new FairMCPointDraw("PsdPoint", pointColor, pointMarker);
+        this->AddTask(PsdPoint);
+        FairMCPointDraw *StsPoint = new FairMCPointDraw("StsPoint", pointColor, pointMarker);
+        this->AddTask(StsPoint);
+        FairMCPointDraw *RecoilPoint = new FairMCPointDraw("RecoilPoint", pointColor, pointMarker);
+        this->AddTask(RecoilPoint);
+        FairMCPointDraw *TOF1Point = new FairMCPointDraw("TOF1Point", pointColor, pointMarker);
+        this->AddTask(TOF1Point);
+        FairMCPointDraw *DCH1Point = new FairMCPointDraw("DCH1Point", pointColor, pointMarker);
+        this->AddTask(DCH1Point);
+        FairMCPointDraw *DCH2Point = new FairMCPointDraw("DCH2Point", pointColor, pointMarker);
+        this->AddTask(DCH2Point);
+        FairMCPointDraw *MWPC1Point = new FairMCPointDraw("MWPC1Point", pointColor, pointMarker);
+        this->AddTask(MWPC1Point);
+        FairMCPointDraw *MWPC2Point = new FairMCPointDraw("MWPC2Point", pointColor, pointMarker);
+        this->AddTask(MWPC2Point);
+        FairMCPointDraw *MWPC3Point = new FairMCPointDraw("MWPC3Point", pointColor, pointMarker);
+        this->AddTask(MWPC3Point);
+
+        // draw MC geometry tracks
+        FairMCTracks* GeoTrack = new FairMCTracks("GeoTracks");
+        this->AddTask(GeoTrack);
+
+        // draw MC tracks
+        //FairMCStack* MCTrack = new FairMCStack("MCTrack");
+        //fMan->AddTask(MCTrack);
+
+        // DST hits
+        FairHitPointSetDraw *BmnGemHit = new FairHitPointSetDraw("BmnGemHit", kBlack, pointMarker);
+        this->AddTask(BmnGemHit);
+        FairHitPointSetDraw *TOF1Hit = new FairHitPointSetDraw("TOF1Hit", kBlack, pointMarker);
+        this->AddTask(TOF1Hit);
+        FairHitPointSetDraw *BmnDch1Hit = new FairHitPointSetDraw("BmnDch1Hit", kBlack, pointMarker);
+        this->AddTask(BmnDch1Hit);
+        FairHitPointSetDraw *BmnDch2Hit = new FairHitPointSetDraw("BmnDch2Hit", kBlack, pointMarker);
+        this->AddTask(BmnDch2Hit);
+        FairHitPointSetDraw *BmnTof2Hit = new FairHitPointSetDraw("BmnTof2Hit", kBlack, pointMarker);
+        this->AddTask(BmnTof2Hit);
+
+        // DST hits (box view)
+        //FairHitDraw *MpdTpcHit = new FairHitDraw("TpcHit", 1);
+        //fMan->AddTask(MpdTpcHit);
+
+        // DST tracks
+        //MpdTrackDraw *MpdGlobalTrack = new MpdTrackDraw("GlobalTracks");
+        //fMan->AddTask(MpdGlobalTrack);
+    }
 }

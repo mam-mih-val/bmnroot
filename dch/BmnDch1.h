@@ -82,9 +82,9 @@ public:
     // @value         kTRUE if volume is sensitive, else kFALSE
     virtual Bool_t CheckIfSensitive(std::string name);
  
-    static Int_t GetWheel(Int_t uid){ return ((uid-1) >>3); };  //lsp  [0-1] == [inner,outer]
-   	static Int_t GetProj(Int_t uid){ return ((uid-1) & 6)>>1; }; //lsp [0-3] == [x,y,u,v] 
- 	static Int_t GetGasGap(Int_t uid){ return ((uid-1) & 0x0001); }; //lsp [0-1] == [inner,outer] 
+    //static Int_t GetWheel(Int_t uid){ return ((uid-1) >>3); };  //lsp  [0-1] == [inner,outer]
+    //static Int_t GetProj(Int_t uid){ return ((uid-1) & 6)>>1; }; //lsp [0-3] == [x,y,u,v] 
+    //static Int_t GetGasGap(Int_t uid){ return ((uid-1) & 0x0001); }; //lsp [0-1] == [inner,outer] 
   
 private:
 

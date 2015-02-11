@@ -6,18 +6,75 @@
 #define ROOT_FAIREVENTMANAGEREDITOR
 
 #include "TGedFrame.h"                  // for TGedFrame
+#include "TGNumberEntry.h"              // for TGNumberEntry, etc
+#include "TGButton.h"                   // for TGCheckButton, TGTextButton
+#include "TEveGValuators.h"             // for TEveGValuator
+#include "TGLabel.h"                    // for TGLabel
+#include "TClonesArray.h"               // for TClonesArray
+#include "TMutex.h"
+#include "TSemaphore.h"
 
 #include "GuiTypes.h"                   // for Pixel_t
 #include "Rtypes.h"                     // for ClassDef
 #include "TGFrame.h"                    // for EFrameType::kChildFrame
+#include "BmnMwpcDigit.h"
+
+#include <vector>
+#include <pthread.h>
+#include <stddef.h>                     // for NULL
+#include <cerrno>
+#include <map>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+using namespace std;
 
 class FairEventManager;
-class TEveGValuator;
-class TGCheckButton;
-class TGLabel;
-class TGNumberEntry;
-class TGWindow;
-class TObject;
+
+class EventData : public TObject
+{
+  public:
+    //bool isEventDataFinished;
+    //unsigned int uiEventNumber;
+    ULong64_t event_timestamp;
+
+    vector<BmnMwpcDigit*> MWPC1Planes[6];
+    vector<BmnMwpcDigit*> MWPC2Planes[6];
+
+    EventData()
+    {
+        //isEventDataFinished = false;
+    }
+
+    EventData(const EventData& event_data)
+    {
+        //uiEventNumber = event_data.uiEventNumber;
+        event_timestamp = event_data.event_timestamp;
+
+        for (int i = 0; i < 6; i++)
+            MWPC1Planes[i] = event_data.MWPC1Planes[i];
+
+        for (int i = 0; i < 6; i++)
+            MWPC2Planes[i] = event_data.MWPC2Planes[i];
+    }
+
+    virtual ~EventData() {}
+};
+
+struct ThreadParam_ReadFile
+{
+    vector<EventData*>* fEventReadData;
+    vector<EventData*>* fEventDrawData;
+    char* raw_file_name_begin;
+    TSemaphore* semEventData;
+};
+
+struct ThreadParam_Draw
+{
+    vector<EventData*>* fEventDrawData;
+    FairEventManager* fEventManager;
+    TSemaphore* semEventData;
+};
 
 class FairEventManagerEditor : public TGedFrame
 {
@@ -39,10 +96,18 @@ class FairEventManagerEditor : public TGedFrame
     // 'Update' button
     TGTextButton* fUpdate;
 
+    vector<EventData*>* fEventReadData;
+    vector<EventData*>* fEventDrawData;
+    TSemaphore* semEventData;
+    //void* ReadDetectorFile(void* ptr);
+    //int ParseDetectorFile(unsigned int* buffer, long size);
+    void RunReadFileThread();
+    void RunDrawThread();
+
   public:
     FairEventManagerEditor(const TGWindow* p=0, Int_t width=170, Int_t height=30,
                            UInt_t options = kChildFrame, Pixel_t back=GetDefaultFrameBackground());
-    virtual ~FairEventManagerEditor() {}
+    virtual ~FairEventManagerEditor() { delete semEventData; }
     void SetModel(TObject* obj);
     virtual void SelectEvent();
     virtual void SelectPDG();

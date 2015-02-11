@@ -8,7 +8,7 @@
 #pragma link off all functions;
 
 #pragma link C++ class BmnNewFieldMap+;
-//#pragma link C++ class BmnFieldConst+;
+#pragma link C++ class BmnFieldConst+;
 #pragma link C++ class BmnFieldContFact+;
 #pragma link C++ class BmnFieldMap+;
 #pragma link C++ class BmnFieldMapCreator+;

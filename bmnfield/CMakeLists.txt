@@ -20,7 +20,7 @@ link_directories( ${LINK_DIRECTORIES})
 
 set(FIELD_SRCS
 BmnNewFieldMap.cxx
-#BmnFieldConst.cxx     
+BmnFieldConst.cxx     
 BmnFieldContFact.cxx    
 BmnFieldMap.cxx
 BmnFieldMapCreator.cxx         

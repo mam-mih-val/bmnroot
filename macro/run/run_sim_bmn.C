@@ -1,3 +1,6 @@
+
+#include <Rtypes.h>
+
 // inFile - input file with generator data, default: auau.09gev.mbias.98k.ftn14
 // nStartEvent - for compatibility, any number
 // nEvents - number of events to transport, default: 1
@@ -5,7 +8,7 @@
 // flag_store_FairRadLenPoint
 
 void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
-        Bool_t flag_store_FairRadLenPoint = kFALSE) {
+        Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kFALSE) {
 
 #define URQMD
 
@@ -159,13 +162,21 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = 
     fRun->SetOutputFile(outFile.Data());
 
     // -----   Create magnetic field   ----------------------------------------
-    Double_t fieldScale = 1.;
-    BmnFieldMap* magField = new BmnNewFieldMap("NEW_field_sp41v1_ascii_noExtrap.dat");
-    // Double_t fieldZ = 124.5; // field centre z position 
-    // magField->SetPosition(0., 0., fieldZ);
-    magField->SetScale(fieldScale);
-    fRun->SetField(magField);
-    
+    if (isFieldMap) {
+        Double_t fieldScale = 1.;
+        BmnFieldMap* magField = new BmnNewFieldMap("NEW_field_sp41v1_ascii_noExtrap.dat");
+        // Double_t fieldZ = 124.5; // field centre z position 
+        // magField->SetPosition(0., 0., fieldZ);
+        magField->SetScale(fieldScale);
+        fRun->SetField(magField);
+    }
+    else {
+        BmnFieldConst* magField = new BmnFieldConst();
+        magField->SetFieldRegion(-300., 300., -300., 300., -300., 300);
+        magField->SetField(0., -9. * 0.44, 0.);
+        fRun->SetField(magField);
+    }
+
     fRun->SetStoreTraj(kTRUE);
     fRun->SetRadLenRegister(flag_store_FairRadLenPoint); // radiation length manager
 

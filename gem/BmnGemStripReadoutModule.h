@@ -14,6 +14,8 @@
 using namespace TMath;
 using namespace std;
 
+struct ClusterParameters;
+
 class BmnGemStripReadoutModule {
 
 public:
@@ -44,6 +46,7 @@ public:
     void SetMeanCollisionDistance(Double_t mcd) { MCD = mcd; }
     void SetDriftGap(Double_t drift_gap) { DriftGap = drift_gap; }
     void SetGain(Double_t gain) { Gain = gain; }
+    void SetDistortion(Double_t distortion);  //example: 0.1 is equal 10%
 
 //Parameter getters
     Double_t GetPitch() { return Pitch; }
@@ -61,6 +64,7 @@ public:
     Double_t GetMeanCollisionDistance() { return MCD; }
     Double_t GetDriftGap() { return DriftGap; }
     Double_t GetGain() { return Gain; }
+    Double_t GetDistortion() { return SignalDistortion; }
     Double_t GetXStripsIntersectionSize();
     Double_t GetYStripsIntersectionSize();
     Double_t GetXErrorIntersection();
@@ -68,11 +72,11 @@ public:
     Int_t GetMaxValidTheoreticalIntersections() { return NMaxValidTheoreticalIntersections; }
 
 //Interface methods for adding points
-    Bool_t AddRealPoint(Double_t x, Double_t y, Double_t z); //old
+    Bool_t AddRealPoint(Double_t x, Double_t y, Double_t z, Double_t signal); //old
     Bool_t AddRealPointFull(Double_t x, Double_t y, Double_t z,
-                            Double_t px, Double_t py, Double_t pz);
+                            Double_t px, Double_t py, Double_t pz, Double_t signal);
 
-    Bool_t AddRealPointFullOne(Double_t x, Double_t y, Double_t z);
+    Bool_t AddRealPointFullOne(Double_t x, Double_t y, Double_t z, Double_t signal);
 
 //Interface methods for calculating intersections points
     void CalculateStripHitIntersectionPoints();
@@ -97,36 +101,46 @@ public:
     Int_t GetNRealPoints() {return RealPointsX.size();} //quantity of added points
     Double_t GetRealPointX(Int_t indx) { return RealPointsX.at(indx); } //X-coord of i-added point
     Double_t GetRealPointY(Int_t indx) { return RealPointsY.at(indx); } //Y-coord of i-added point
-    Int_t GetRealPointLowerStrip(Int_t indx) { return RealPointsLowerStrip.at(indx); } //lower strip number of i-added point
-    Int_t GetRealPointUpperStrip(Int_t indx) { return RealPointsUpperStrip.at(indx); } //upper strip number of i-added point
+    Int_t GetRealPointLowerStrip(Int_t indx) { return (Int_t)RealPointsLowerStripPos.at(indx); } //lower strip number of i-added point
+    Int_t GetRealPointUpperStrip(Int_t indx) { return (Int_t)RealPointsUpperStripPos.at(indx); } //upper strip number of i-added point
+    Double_t GetRealPointLowerStripPos(Int_t indx) { return RealPointsLowerStripPos.at(indx); } //lower strip position of i-added point
+    Double_t GetRealPointUpperStripPos(Int_t indx) { return RealPointsUpperStripPos.at(indx); } //upper strip position of i-added point
+    Double_t GetRealPointsLowerTotalSignal(Int_t indx) { return RealPointsLowerTotalSignal.at(indx); } //sum signal of all lower strips actived by i-added point
+    Double_t GetRealPointsUpperTotalSignal(Int_t indx) { return RealPointsUpperTotalSignal.at(indx); } //sum signal of all upper strips actived by i-added point
     //Int_t GetNDubbedPoints() { return NDubbedPoints; }
 
     //Intersection points
     Int_t GetNIntersectionPoints() {return IntersectionPointsX.size();} //quantity of intersections
     Double_t GetIntersectionPointX(Int_t indx) { return IntersectionPointsX.at(indx); } //X-coord of i-intersection point
     Double_t GetIntersectionPointY(Int_t indx) { return IntersectionPointsY.at(indx); } //Y-coord of i-intersection point
-    Int_t GetIntersectionPointLowerStrip(Int_t indx) { return IntersectionPointsLowerStrip.at(indx); } //Lower strip number of i-intersection point
-    Int_t GetIntersectionPointUpperStrip(Int_t indx) { return IntersectionPointsUpperStrip.at(indx); } //Upper strip number of i-intersection point
+    Int_t GetIntersectionPointLowerStrip(Int_t indx) { return (Int_t)IntersectionPointsLowerStripPos.at(indx); } //Lower strip number of i-intersection point
+    Int_t GetIntersectionPointUpperStrip(Int_t indx) { return (Int_t)IntersectionPointsUpperStripPos.at(indx); } //Upper strip number of i-intersection point
+    Double_t GetIntersectionPointLowerStripPos(Int_t indx) { return IntersectionPointsLowerStripPos.at(indx); } //Lower strip position of i-intersection point
+    Double_t GetIntersectionPointUpperStripPos(Int_t indx) { return IntersectionPointsUpperStripPos.at(indx); } //Upper strip position of i-intersection point
+    Double_t GetIntersectionPointsLowerTotalSignal(Int_t indx) { return IntersectionPointsLowerTotalSignal.at(indx); } //sum signal of all lower strips for i-intersection point
+    Double_t GetIntersectionPointsUpperTotalSignal(Int_t indx) { return IntersectionPointsUpperTotalSignal.at(indx); } //sum signal of all upper strips for i-intersection point
     Double_t GetIntersectionPointXError(Int_t indx) { return IntersectionPointsXErrors.at(indx); } //X-coord error of i-intersection point
     Double_t GetIntersectionPointYError(Int_t indx) { return IntersectionPointsYErrors.at(indx); } //Y-coord error of i-intersection point
 
     //Strip hits
-    Double_t GetLowerStripHit(Int_t num); //hit position at the lower layer
-    Double_t GetUpperStripHit(Int_t num); //hit position at the upper layer
     Int_t GetNLowerStripHits() { return LowerStripHits.size(); } //quatity of hits at the lower layer
     Int_t GetNUpperStripHits() { return UpperStripHits.size(); } //quatity of hits at the upper layer
+    Double_t GetLowerStripHitPos(Int_t num); //hit position at the lower layer
+    Double_t GetUpperStripHitPos(Int_t num); //hit position at the upper layer
+    Double_t GetLowerStripHitTotalSignal(Int_t num); //sum signal of lower hit
+    Double_t GetUpperStripHitTotalSignal(Int_t num); //sum signal of upper hit
 
 
 //Inner methods
 public: //private (public - for test)
 
     //Make cluster from a single point (spread)
-    Bool_t MakeCluster(Double_t x, Double_t y);
+    ClusterParameters MakeLowerCluster(Double_t x, Double_t y,  Double_t signal); // on lower layer
+    ClusterParameters MakeUpperCluster(Double_t x, Double_t y,  Double_t signal); // on upper layer
 
     //Find clusters and hits
-    void FindClusterHitsInReadoutPlane();
-    void FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsErrors);
-    void MakeStripHit(vector<Int_t> &clusterDigits, vector<Double_t> &clusterValues, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsErrors, Int_t &curcnt);
+    void FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors);
+    void MakeStripHit(vector<Int_t> &clusterDigits, vector<Double_t> &clusterValues, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors, Int_t &curcnt);
 
     Double_t ConvertRealPointToUpperX(Double_t xcoord, Double_t ycoord);
     Double_t ConvertRealPointToUpperY(Double_t xcoord, Double_t ycoord);
@@ -170,19 +184,24 @@ private:
     Double_t DriftGap;
     Double_t InductionGap;
     Double_t Gain;
+    Double_t SignalDistortion;
 
     vector<Double_t> ReadoutLowerPlane;
     vector<Double_t> ReadoutUpperPlane;
 
     vector<Double_t> RealPointsX;
     vector<Double_t> RealPointsY;
-    vector<Int_t> RealPointsLowerStrip;
-    vector<Int_t> RealPointsUpperStrip;
+    vector<Double_t> RealPointsLowerStripPos;
+    vector<Double_t> RealPointsUpperStripPos;
+    vector<Double_t> RealPointsLowerTotalSignal;
+    vector<Double_t> RealPointsUpperTotalSignal;
 
     vector<Double_t> IntersectionPointsX;
     vector<Double_t> IntersectionPointsY;
-    vector<Int_t> IntersectionPointsLowerStrip;
-    vector<Int_t> IntersectionPointsUpperStrip;
+    vector<Double_t> IntersectionPointsLowerStripPos;
+    vector<Double_t> IntersectionPointsUpperStripPos;
+    vector<Double_t> IntersectionPointsLowerTotalSignal;
+    vector<Double_t> IntersectionPointsUpperTotalSignal;
     vector<Double_t> IntersectionPointsXErrors;
     vector<Double_t> IntersectionPointsYErrors;
 
@@ -192,6 +211,8 @@ private:
     //for hits
     vector<Double_t> LowerStripHits;
     vector<Double_t> UpperStripHits;
+    vector<Double_t> LowerStripHitsTotalSignal;
+    vector<Double_t> UpperStripHitsTotalSignal;
     vector<Double_t> LowerStripHitsErrors;
     vector<Double_t> UpperStripHitsErrors;
 
@@ -200,6 +221,20 @@ private:
     BmnGemStripReadoutModule& operator=(const BmnGemStripReadoutModule&);
 
     ClassDef(BmnGemStripReadoutModule, 1);
+};
+//------------------------------------------------------------------------------
+
+struct ClusterParameters {
+    Double_t MeanPosition;
+    Double_t TotalSignal;
+
+    vector<Int_t> Strips;
+    vector<Double_t> Signals;
+
+    ClusterParameters(Double_t mean_position, Double_t total_signal) : MeanPosition(mean_position), TotalSignal(total_signal) {
+        Strips.clear();
+        Signals.clear();
+    }
 };
 
 #endif	/* BMNGEMSTRIPREADOUTMODULE_H */

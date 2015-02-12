@@ -136,7 +136,12 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 BmnGemStripHit* hit = (BmnGemStripHit*) fBmnGemStripHitsArray->At(fBmnGemStripHitsArray->GetEntriesFast() - 1);
                 hit->SetStation(iStation);
+                hit->SetModule(iModule);
                 hit->SetIndex(fBmnGemStripHitsArray->GetEntriesFast() - 1);
+
+                Double_t deloss_lower = module->GetIntersectionPointsLowerTotalSignal(iPoint);
+                Double_t deloss_upper = module->GetIntersectionPointsUpperTotalSignal(iPoint);
+                hit->SetEnergyLoss(deloss_lower+deloss_upper);
                 //--------------------------------------------------------------
             }
         }

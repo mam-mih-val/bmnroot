@@ -31,7 +31,7 @@ public:
 
     Int_t GetPointStationOwnership(Double_t zcoord);
 
-    Bool_t AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord);
+    Bool_t AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss);
 
     Int_t CountNAddedToDetectorPoints();
 
@@ -41,7 +41,6 @@ public:
 
     BmnGemStripStation* GetGemStation(Int_t index);
     Int_t GetNStations() { return NStations; }
-
 
 private:
     BmnGemStripStationSet(const BmnGemStripStationSet&);

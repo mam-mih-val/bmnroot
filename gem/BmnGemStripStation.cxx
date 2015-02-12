@@ -186,11 +186,11 @@ Int_t BmnGemStripStation::GetPointModuleOwhership(Double_t xcoord, Double_t ycoo
     return -1;
 }
 
-Int_t BmnGemStripStation::AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord) {
+Int_t BmnGemStripStation::AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss) {
         for(Int_t iModule = 7; iModule >= 0; iModule--) {
             if(CheckPointModuleOwnership(xcoord, ycoord, iModule)) {
                 //if(ReadoutModules[iModule]->AddRealPoint(xcoord, ycoord, zcoord)) return iModule;
-                if(ReadoutModules[iModule]->AddRealPointFullOne(xcoord, ycoord, zcoord)) return iModule;
+                if(ReadoutModules[iModule]->AddRealPointFullOne(xcoord, ycoord, zcoord, dEloss)) return iModule;
                 else return -1;
             }
         }

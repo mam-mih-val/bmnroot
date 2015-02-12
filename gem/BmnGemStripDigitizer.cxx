@@ -55,8 +55,9 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
         Double_t x = -GemStripPoint->GetX(); // invert because in current geometry +x -left, -x - right
         Double_t y = GemStripPoint->GetY();
         Double_t z = GemStripPoint->GetZ();
+        Double_t dEloss = GemStripPoint->GetEnergyLoss()*1e6; // in keV
 
-        StationSet.AddPointToDetector(x, y, z);
+        StationSet.AddPointToDetector(x, y, z, dEloss);
     }
 
     Int_t NAddedPoints = StationSet.CountNAddedToDetectorPoints();

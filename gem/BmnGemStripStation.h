@@ -84,7 +84,7 @@ public:
 
     Bool_t CheckPointModuleOwnership(Double_t xcoord, Double_t ycoord, Int_t readout_module);
     Int_t GetPointModuleOwhership(Double_t xcoord, Double_t ycoord);
-    Int_t AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord);
+    Int_t AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss);
 
     Int_t CountNAddedToStationPoints();
 

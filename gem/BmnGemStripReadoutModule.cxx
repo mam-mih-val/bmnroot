@@ -17,9 +17,10 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
 
     AvalancheRadius = 0.1; //cm
     MCD = 0.0264; //cm
-    Gain = 10000.0; //electons
+    Gain = 1000.0; //gain level
     DriftGap = 0.3; //cm
     InductionGap = 0.15; //cm
+    SignalDistortion = 0.0;
 
     CreateReadoutPlanes();
 }
@@ -44,9 +45,10 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule(Double_t xsize, Double_t ysiz
 
     AvalancheRadius = 0.1; //cm
     MCD = 0.0264; //cm
-    Gain = 10000.0; //electrons
+    Gain = 1000.0; //gain level
     DriftGap = 0.3; //cm
     InductionGap = 0.2; //cm
+    SignalDistortion = 0.0;
 
     CreateReadoutPlanes();
 }
@@ -94,19 +96,25 @@ void BmnGemStripReadoutModule::ResetIntersectionPoints() {
     IntersectionPointsX.clear();
     IntersectionPointsY.clear();
 
-    IntersectionPointsLowerStrip.clear();
-    IntersectionPointsUpperStrip.clear();
+    IntersectionPointsLowerStripPos.clear();
+    IntersectionPointsUpperStripPos.clear();
+
+    IntersectionPointsLowerTotalSignal.clear();
+    IntersectionPointsUpperTotalSignal.clear();
 
     IntersectionPointsXErrors.clear();
     IntersectionPointsYErrors.clear();
 }
 
 void BmnGemStripReadoutModule::ResetRealPoints() {
-    RealPointsLowerStrip.clear();
-    RealPointsUpperStrip.clear();
-
     RealPointsX.clear();
     RealPointsY.clear();
+
+    RealPointsLowerStripPos.clear();
+    RealPointsUpperStripPos.clear();
+
+    RealPointsLowerTotalSignal.clear();
+    RealPointsUpperTotalSignal.clear();
 
     //NDubbedPoints = 0;
 }
@@ -114,6 +122,8 @@ void BmnGemStripReadoutModule::ResetRealPoints() {
 void BmnGemStripReadoutModule::ResetStripHits() {
     LowerStripHits.clear();
     UpperStripHits.clear();
+    LowerStripHitsTotalSignal.clear();
+    UpperStripHitsTotalSignal.clear();
     LowerStripHitsErrors.clear();
     UpperStripHitsErrors.clear();
 }
@@ -153,6 +163,11 @@ void BmnGemStripReadoutModule::SetAngleDeg(Double_t deg) {
     RebuildReadoutPlanes();
 }
 
+void BmnGemStripReadoutModule::SetDistortion(Double_t distortion) {
+    if( distortion >= 0.0 && distortion <= 1.0 ) SignalDistortion = distortion;
+    else SignalDistortion = 0.0;
+}
+
 Double_t BmnGemStripReadoutModule::GetXStripsIntersectionSize() {
     return LowerStripWidth;
 }
@@ -181,7 +196,7 @@ Double_t BmnGemStripReadoutModule::GetYErrorIntersection() {
    return GetYStripsIntersectionSize()/2;
 }
 
-Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z) {
+Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z, Double_t signal) {
     Int_t numLowStrip = ConvertRealPointToLowerStripNum(x, y);
     Int_t numUpStrip = ConvertRealPointToUpperStripNum(x, y);
 
@@ -194,11 +209,14 @@ Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z
         ReadoutLowerPlane.at(numLowStrip)++;
         ReadoutUpperPlane.at(numUpStrip)++;
 
-        RealPointsLowerStrip.push_back(numLowStrip);
-        RealPointsUpperStrip.push_back(numUpStrip);
-
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
+
+        RealPointsLowerStripPos.push_back(numLowStrip);
+        RealPointsUpperStripPos.push_back(numUpStrip);
+
+        RealPointsLowerTotalSignal.push_back(signal);
+        RealPointsUpperTotalSignal.push_back(signal);
 
         return true;
     }
@@ -209,7 +227,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z
 }
 
 Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
-                                                  Double_t px, Double_t py, Double_t pz) {
+                                                  Double_t px, Double_t py, Double_t pz, Double_t signal) {
 
     if(pz == 0) return false;
     if(px == 0 && py == 0) px = 1e-8;
@@ -282,7 +300,8 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
 
         if( (xs < XMinReadout) || (xs > XMaxReadout) || (ys < YMinReadout) || (ys > YMaxReadout) ) break;
 
-        MakeCluster(xs, ys);
+        MakeLowerCluster(xs, ys, signal);
+        MakeUpperCluster(xs, ys, signal);
 
         cout << iColl << ") xys = " << xs << " : " << ys << "\n";
     }
@@ -308,25 +327,80 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
     //canv->SaveAs("/home/diman/Software/test.png");
     //delete box;
     //delete canv;
-
  */
 }
 
-Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z) {
+Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z, Double_t signal) {
+#define SUBTRACT_SIGNAL
+#define ALIGN_SIGNAL
 
     if( x >= XMinReadout && x <= XMaxReadout &&
         y >= YMinReadout && y <= YMaxReadout ) {
 
-        MakeCluster(x, y);
+        if(signal <= 0.0) signal = 1e-16;
+
+        ClusterParameters lower_cluster = MakeLowerCluster(x, y, signal);
+        ClusterParameters upper_cluster = MakeUpperCluster(x, y, signal);
+
+        Double_t mean_pos_low_cluster = lower_cluster.MeanPosition;
+        Double_t mean_pos_up_cluster = upper_cluster.MeanPosition;
+        Double_t total_signal_low_cluster = lower_cluster.TotalSignal;
+        Double_t total_signal_up_cluster = upper_cluster.TotalSignal;
+        Double_t gained_signal = signal*Gain;
+
+#ifdef SUBTRACT_SIGNAL
+//Consider subtraction of signal from lower layer that stolen by upper layer strips
+        Double_t signal_stolen_by_upper_layer = (total_signal_low_cluster + total_signal_up_cluster) - gained_signal;
+        Double_t stolen_signal_ratio = signal_stolen_by_upper_layer/(gained_signal);
+        for(Int_t istrip = 0; istrip < lower_cluster.Strips.size(); ++istrip) {
+            Int_t strip_num = lower_cluster.Strips.at(istrip);
+            ReadoutLowerPlane.at(strip_num) -= lower_cluster.Signals.at(istrip)*stolen_signal_ratio;
+            lower_cluster.Signals.at(istrip) -= lower_cluster.Signals.at(istrip)*stolen_signal_ratio;
+            if(ReadoutLowerPlane.at(strip_num) < 0.0) ReadoutLowerPlane.at(strip_num) = 0.0;
+            if(lower_cluster.Signals.at(istrip) < 0.0) lower_cluster.Signals.at(istrip) = 0.0;
+        }
+        total_signal_low_cluster -= total_signal_low_cluster*stolen_signal_ratio;
+        lower_cluster.TotalSignal = total_signal_low_cluster;
+//------------------------------------------------------------------------------
+#endif
+
+#ifdef ALIGN_SIGNAL
+//Alignment of lower and upper signals
+        Double_t align_low_coef = (gained_signal/2.0)/total_signal_low_cluster;
+        Double_t align_up_coef = (gained_signal/2.0)/total_signal_up_cluster;
+
+        for(Int_t istrip = 0; istrip < lower_cluster.Strips.size(); ++istrip) {
+            Int_t strip_num = lower_cluster.Strips.at(istrip);
+            Double_t strip_signal = lower_cluster.Signals.at(istrip);
+            ReadoutLowerPlane.at(strip_num) -= strip_signal;
+            strip_signal *= align_low_coef;
+            ReadoutLowerPlane.at(strip_num) += strip_signal;
+            lower_cluster.Signals.at(istrip) = strip_signal;
+            if(ReadoutLowerPlane.at(strip_num) < 0.0) ReadoutLowerPlane.at(strip_num) = 0.0;
+        }
+        total_signal_low_cluster *= align_low_coef;
+
+        for(Int_t istrip = 0; istrip < upper_cluster.Strips.size(); ++istrip) {
+            Int_t strip_num = upper_cluster.Strips.at(istrip);
+            Double_t strip_signal = upper_cluster.Signals.at(istrip);
+            ReadoutUpperPlane.at(strip_num) -= strip_signal;
+            strip_signal *= align_up_coef;
+            ReadoutUpperPlane.at(strip_num) += strip_signal;
+            upper_cluster.Signals.at(istrip) = strip_signal;
+            if(ReadoutUpperPlane.at(strip_num) < 0.0) ReadoutUpperPlane.at(strip_num) = 0.0;
+        }
+        total_signal_up_cluster *= align_up_coef;
+//------------------------------------------------------------------------------
+#endif
 
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
 
-        Int_t numLowStrip = ConvertRealPointToLowerStripNum(x, y);
-        Int_t numUpStrip = ConvertRealPointToUpperStripNum(x, y);
+        RealPointsLowerStripPos.push_back(mean_pos_low_cluster);
+        RealPointsUpperStripPos.push_back(mean_pos_up_cluster);
 
-        RealPointsLowerStrip.push_back(numLowStrip);
-        RealPointsUpperStrip.push_back(numUpStrip);
+        RealPointsLowerTotalSignal.push_back(total_signal_low_cluster);
+        RealPointsUpperTotalSignal.push_back(total_signal_up_cluster);
 
         return true;
     }
@@ -336,11 +410,11 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
     }
 }
 
-Bool_t BmnGemStripReadoutModule::MakeCluster(Double_t x, Double_t y) {
-    //Double_t ratio = InductionGap/AvalancheRadius;
+ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t x, Double_t y,  Double_t signal) {
+    ClusterParameters cluster(0, 0);
+
     if( AvalancheRadius <= 0.0 ) AvalancheRadius = 1e-8;
     Double_t RadiusInZones = AvalancheRadius/Pitch; //radius in zone units
-    Double_t InductionGapInZones = InductionGap/Pitch; // induction in zone units
     Double_t Sigma = RadiusInZones/3.33;
 
     TF1 gausF("gausF", "gaus", -4*Sigma, 4*Sigma);
@@ -348,19 +422,20 @@ Bool_t BmnGemStripReadoutModule::MakeCluster(Double_t x, Double_t y) {
     gausF.SetParameter(1, 0.0); // mean (center position)
     gausF.SetParameter(2, Sigma); //sigma
 
-    Double_t SRadius = gausF(0.0)*RadiusInZones/2; ///rough square of the one side distribution
-    //Double_t SRadius = gausF.Integral(0.0, 4*Sigma); //square of the one side distribution
+    //Double_t SRadius = gausF(0.0)*RadiusInZones/2; ///rough square of the one side distribution
+    Double_t SRadius = gausF.Integral(0.0, 4*Sigma); //square of the one side distribution (more exactly)
 
     TRandom rand(0);
-    Double_t var_level = 0.0; //signal variation (0.1 is 10%)
+    Double_t var_level = SignalDistortion; //signal variation (0.1 is 10%)
 
 //Make cluster on lower strips -------------------------------------------------
 
     Double_t LowerZonePos = CalculateLowerStripZonePosition(x, y);
-    Int_t LowerZoneNum = (int)LowerZonePos;
     Double_t LowerStripFill = LowerStripWidth/Pitch; //fill position of a lower strip
 
     gausF.SetParameter(1, LowerZonePos);
+
+    Double_t total_signal = 0.0;
 
     //Processing left radius
     Double_t LeftLowerZonePos = LowerZonePos - RadiusInZones;
@@ -379,15 +454,18 @@ Bool_t BmnGemStripReadoutModule::MakeCluster(Double_t x, Double_t y) {
 
             h = lastPosInZoneLower - firstPosInZoneLower;
             Double_t x = LeftLowerZonePos + dist;
-            Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
-            //Double_t S = gausF.Integral(x, x+h); //more exactly
+            //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
+            Double_t S = gausF.Integral(x, x+h); //more exactly
 
-            Double_t nelectrons = (Gain/2)*(S/SRadius); // number of electrons in the segment
-            nelectrons += rand.Gaus(0, var_level*nelectrons);
-            if(nelectrons < 0) nelectrons = 0;
+            Double_t Energy = (signal*Gain/2)*(S/SRadius); // energy in the segment
+            Energy += rand.Gaus(0, var_level*Energy);
+            if(Energy < 0) Energy = 0;
 
         if(NumCurrentZone >=0 && NumCurrentZone < ReadoutLowerPlane.size()) {
-                ReadoutLowerPlane.at(NumCurrentZone) += nelectrons;
+                ReadoutLowerPlane.at(NumCurrentZone) += Energy;
+                total_signal += Energy;
+                cluster.Strips.push_back(NumCurrentZone);
+                cluster.Signals.push_back(Energy);
             }
         }
         else {
@@ -408,7 +486,6 @@ Bool_t BmnGemStripReadoutModule::MakeCluster(Double_t x, Double_t y) {
     }
 
     //Processing right radius
-    Double_t RightLowerZonePos = LowerZonePos + RadiusInZones;
     dist = 0;
     firstPosInZoneLower = LowerZonePos - (Int_t)LowerZonePos;
     lastPosInZoneLower = 1.0;
@@ -423,15 +500,23 @@ Bool_t BmnGemStripReadoutModule::MakeCluster(Double_t x, Double_t y) {
 
             h = lastPosInZoneLower - firstPosInZoneLower;
             Double_t x = LowerZonePos + dist;
-            Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
-            //Double_t S = gausF.Integral(x, x+h); //more exactly
+            //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
+            Double_t S = gausF.Integral(x, x+h); //more exactly
 
-            Double_t nelectrons = (Gain/2)*(S/SRadius);
-            nelectrons += rand.Gaus(0, var_level*nelectrons);
-            if(nelectrons < 0) nelectrons = 0;
+            Double_t Energy = (signal*Gain/2)*(S/SRadius);
+            Energy += rand.Gaus(0, var_level*Energy);
+            if(Energy < 0) Energy = 0;
 
             if(NumCurrentZone >=0 && NumCurrentZone < ReadoutLowerPlane.size()) {
-                ReadoutLowerPlane.at(NumCurrentZone) += nelectrons;
+                ReadoutLowerPlane.at(NumCurrentZone) += Energy;
+                total_signal += Energy;
+                if(NumCurrentZone != cluster.Strips.at(cluster.Strips.size()-1)) {
+                    cluster.Strips.push_back(NumCurrentZone);
+                    cluster.Signals.push_back(Energy);
+                }
+                else {
+                    cluster.Signals.at(cluster.Strips.size()-1) += Energy;
+                }
             }
         }
         else {
@@ -451,17 +536,76 @@ Bool_t BmnGemStripReadoutModule::MakeCluster(Double_t x, Double_t y) {
         if(dist >= RadiusInZones) break;
     }
 
-//Make cluster on upper strips -------------------------------------------------
+//find mean value of avalanche position (fitting by gaus function)
+    Double_t mean_fit_pos = 0.0;
+    //Double_t total_signal = 0.0;
+    Int_t begin_strip_num = (Int_t)(LowerZonePos-RadiusInZones);
+    Int_t last_strip_num = (Int_t)(LowerZonePos+RadiusInZones);
+    Int_t nstrips = last_strip_num - begin_strip_num + 1;
+
+    TH1F hist("hist", "hist", nstrips, begin_strip_num, last_strip_num+1);
+    Int_t hist_index = 0;
+
+    for(Int_t istrip = begin_strip_num; istrip < last_strip_num+1; istrip++) {
+        Double_t value = GetValueOfLowerStrip(istrip);
+        if(value != -1) {
+            hist.SetBinContent(hist_index+1, value);
+            //total_signal += value;
+        }
+        else {
+            hist.SetBinContent(hist_index+1, 0.0);
+        }
+        hist_index++;
+    }
+
+    hist.Fit("gaus", "WQ0"); //Q - quit mode (without information on the screen); 0 - not draw
+    TF1* gausFitFunction = hist.GetFunction("gaus");
+    if(gausFitFunction) {
+        mean_fit_pos = gausFitFunction->GetParameter(1);
+    }
+    else {
+        mean_fit_pos = (Int_t)LowerZonePos + 0.5;
+    }
+
+    //gPad->GetCanvas()->SaveAs("/home/diman/Software/pics/test_lower.png");
+    //cout << "total_signal_lower = " << total_signal << "\n";
+
+    cluster.MeanPosition = mean_fit_pos;
+    cluster.TotalSignal = total_signal;
+
+    return cluster;
+}
+
+ClusterParameters BmnGemStripReadoutModule::MakeUpperCluster(Double_t x, Double_t y,  Double_t signal) {
+    ClusterParameters cluster(0, 0);
+
+    if( AvalancheRadius <= 0.0 ) AvalancheRadius = 1e-8;
+    Double_t RadiusInZones = AvalancheRadius/Pitch; //radius in zone units
+    Double_t Sigma = RadiusInZones/3.33;
+
+    TF1 gausF("gausF", "gaus", -4*Sigma, 4*Sigma);
+    gausF.SetParameter(0, 1.0); // constant (altitude)
+    gausF.SetParameter(1, 0.0); // mean (center position)
+    gausF.SetParameter(2, Sigma); //sigma
+
+    //Double_t SRadius = gausF(0.0)*RadiusInZones/2; ///rough square of the one side distribution
+    Double_t SRadius = gausF.Integral(0.0, 4*Sigma); //square of the one side distribution (more exactly)
+
+    TRandom rand(0);
+    Double_t var_level = SignalDistortion; //signal variation (0.1 is 10%)
+
+    //Make cluster on upper strips -------------------------------------------------
 
     Double_t UpperZonePos = CalculateUpperStripZonePosition(x, y);
-    Int_t UpperZoneNum = (int)UpperZonePos;
     Double_t UpperStripFill = UpperStripWidth/Pitch; //fill position of a upper strip
 
     gausF.SetParameter(1, UpperZonePos);
 
+    Double_t total_signal = 0.0;
+
     //Processing left radius
     Double_t LeftUpperZonePos = UpperZonePos - RadiusInZones;
-    dist = 0;
+    Double_t dist = 0;
     Double_t firstPosInZoneUpper = LeftUpperZonePos - (Int_t)LeftUpperZonePos;
     Double_t lastPosInZoneUpper = 1.0;
 
@@ -476,15 +620,18 @@ Bool_t BmnGemStripReadoutModule::MakeCluster(Double_t x, Double_t y) {
 
             h = lastPosInZoneUpper - firstPosInZoneUpper;
             Double_t x = LeftUpperZonePos + dist;
-            Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
-            //Double_t S = gausF.Integral(x, x+h); //more exactly
+            //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
+            Double_t S = gausF.Integral(x, x+h); //more exactly
 
-            Double_t nelectrons = (Gain/2)*(S/SRadius); // number of electrons in the segment
-            nelectrons += rand.Gaus(0, var_level*nelectrons);
-            if(nelectrons < 0) nelectrons = 0;
+            Double_t Energy = (signal*Gain/2)*(S/SRadius); // energy in the segment
+            Energy += rand.Gaus(0, var_level*Energy);
+            if(Energy < 0) Energy = 0;
 
         if(NumCurrentZone >=0 && NumCurrentZone < ReadoutUpperPlane.size()) {
-                ReadoutUpperPlane.at(NumCurrentZone) += nelectrons;
+                ReadoutUpperPlane.at(NumCurrentZone) += Energy;
+                total_signal += Energy;
+                cluster.Strips.push_back(NumCurrentZone);
+                cluster.Signals.push_back(Energy);
             }
         }
         else {
@@ -505,7 +652,6 @@ Bool_t BmnGemStripReadoutModule::MakeCluster(Double_t x, Double_t y) {
     }
 
     //Processing right radius
-    Double_t RightUpperZonePos = UpperZonePos + RadiusInZones;
     dist = 0;
     firstPosInZoneUpper = UpperZonePos - (Int_t)UpperZonePos;
     lastPosInZoneUpper = 1.0;
@@ -520,15 +666,23 @@ Bool_t BmnGemStripReadoutModule::MakeCluster(Double_t x, Double_t y) {
 
             h = lastPosInZoneUpper - firstPosInZoneUpper;
             Double_t x = UpperZonePos + dist;
-            Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
-            //Double_t S = gausF.Integral(x, x+h); //more exactly
+            //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
+            Double_t S = gausF.Integral(x, x+h); //more exactly
 
-            Double_t nelectrons = (Gain/2)*(S/SRadius);
-            nelectrons += rand.Gaus(0, var_level*nelectrons);
-            if(nelectrons < 0) nelectrons = 0;
+            Double_t Energy = (signal*Gain/2)*(S/SRadius);
+            Energy += rand.Gaus(0, var_level*Energy);
+            if(Energy < 0) Energy = 0;
 
             if(NumCurrentZone >=0 && NumCurrentZone < ReadoutUpperPlane.size()) {
-                ReadoutUpperPlane.at(NumCurrentZone) += nelectrons;
+                ReadoutUpperPlane.at(NumCurrentZone) += Energy;
+                total_signal += Energy;
+                if(NumCurrentZone != cluster.Strips.at(cluster.Strips.size()-1)) {
+                    cluster.Strips.push_back(NumCurrentZone);
+                    cluster.Signals.push_back(Energy);
+                }
+                else {
+                    cluster.Signals.at(cluster.Strips.size()-1) += Energy;
+                }
             }
         }
         else {
@@ -548,17 +702,47 @@ Bool_t BmnGemStripReadoutModule::MakeCluster(Double_t x, Double_t y) {
         if(dist >= RadiusInZones) break;
     }
 
-    //cout << "LowerZonePos = " << LowerZonePos << "\n";
-    //cout << "UpperZonePos =      " << UpperZonePos << "\n";
+//find mean value of avalanche position (fitting by gaus function)
+    Double_t mean_fit_pos = 0.0;
+    //Double_t total_signal = 0.0;
+    Int_t begin_strip_num = (Int_t)(UpperZonePos-RadiusInZones);
+    Int_t last_strip_num = (Int_t)(UpperZonePos+RadiusInZones);
+    Int_t nstrips = last_strip_num - begin_strip_num + 1;
+
+    TH1F hist("hist", "hist", nstrips, begin_strip_num, last_strip_num+1);
+    Int_t hist_index = 0;
+
+    for(Int_t istrip = begin_strip_num; istrip < last_strip_num+1; istrip++) {
+        Double_t value = GetValueOfUpperStrip(istrip);
+        if(value != -1) {
+            hist.SetBinContent(hist_index+1, value);
+            //total_signal += value;
+        }
+        else {
+            hist.SetBinContent(hist_index+1, 0.0);
+        }
+        hist_index++;
+    }
+
+    hist.Fit("gaus", "WQ0"); //Q - quit mode (without information on the screen); 0 - not draw
+    TF1* gausFitFunction = hist.GetFunction("gaus");
+    if(gausFitFunction) {
+        mean_fit_pos = gausFitFunction->GetParameter(1);
+    }
+    else {
+        mean_fit_pos = (Int_t)UpperZonePos + 0.5;
+    }
+
+    //gPad->GetCanvas()->SaveAs("/home/diman/Software/pics/test_upper.png");
+    //cout << "total_signal_upper = " << total_signal << "\n";
+
+    cluster.MeanPosition = mean_fit_pos;
+    cluster.TotalSignal = total_signal;
+
+    return cluster;
 }
 
-void BmnGemStripReadoutModule::FindClusterHitsInReadoutPlane() {
-    ResetStripHits();
-    FindClustersInLayer(ReadoutLowerPlane, LowerStripHits, LowerStripHitsErrors);
-    FindClustersInLayer(ReadoutUpperPlane, UpperStripHits, UpperStripHitsErrors);
-}
-
-void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsErrors) {
+void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors) {
 
     Double_t threshold = 0.0;
 
@@ -578,7 +762,7 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
                 descent = false;
                 ascent = false;
                 //make strip hit
-                MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsErrors, is);
+                MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsTotalSignal, StripHitsErrors, is);
             }
             continue;
         }
@@ -589,7 +773,7 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
                     ascent = false;
                     descent = false;
                     //make strip hit
-                    MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsErrors, is);
+                    MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsTotalSignal, StripHitsErrors, is);
                     //continue;
                 }
                 ascent = true;
@@ -612,36 +796,45 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
     if(clusterDigits.size() != 0) {
         //make strip hit
         Int_t lastnum = Strips.size()-1;
-        MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsErrors, lastnum);
+        MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsTotalSignal, StripHitsErrors, lastnum);
     }
 }
 
-void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector<Double_t> &clusterValues, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsErrors, Int_t &curcnt) {
+void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector<Double_t> &clusterValues, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors, Int_t &curcnt) {
+
+    Double_t total_signal = 0.0;
 
     //find max strip
     Double_t maxval = 0.0;
     Int_t maxdig = 0;
     for(Int_t i = 0; i < clusterDigits.size(); i++) {
-        if(clusterValues.at(i) > maxval) {
-            maxval = clusterValues.at(i);
+        Double_t signal = clusterValues.at(i);
+        if(signal > maxval) {
+            maxval = signal;
             maxdig = i;
         }
+        total_signal += signal;
     }
-    //subtraction from the last bin
-    Double_t diff = 0.0;
-    Int_t numObr = 2*maxdig - (clusterValues.size()-1);
-    if( numObr >= 0 ) {
-        diff = clusterValues.at(clusterValues.size()-1) - clusterValues.at(numObr);
-        if(diff > 0) {
-            clusterValues.at(clusterValues.size()-1) -= diff;
-            Strips.at(clusterDigits.at(clusterDigits.size()-1)) = diff;
+
+    //subtraction from the last bin if the next bin is not zero
+    Int_t nextStripNum = clusterDigits.at(clusterDigits.size()-1)+1;
+    if(nextStripNum < Strips.size()) {
+        if(Strips.at(nextStripNum) > 0.0) {
+            Double_t diff = 0.0;
+            Int_t numObr = 2*maxdig - (clusterValues.size()-1);
+            if( numObr >= 0 ) {
+                diff = clusterValues.at(clusterValues.size()-1) - clusterValues.at(numObr);
+                if(diff > 0) {
+                    clusterValues.at(clusterValues.size()-1) -= diff;
+                    Strips.at(clusterDigits.at(clusterDigits.size()-1)) = diff;
+                    total_signal -= diff;
+                }
+            }
         }
     }
 
     curcnt--;
     if( curcnt < 0 ) curcnt = 0;
-
-    //TCanvas canv("canv", "canv");
 
     Double_t Mean = 0.0;
     Double_t Sigma = 0.0;
@@ -651,8 +844,8 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
     }
 
     if(clusterDigits.size() > 1) {
-        hist.Fit("gaus", "WQ0"); //Q - quit mode (without information on the screen)
-                                 //0 - not draw
+        hist.Fit("gaus", "WQ0"); //Q - quit mode (without information on the screen); 0 - not draw
+        //hist.Fit("gaus", "W");
 
         TF1* gausF = hist.GetFunction("gaus");
         if(gausF) {
@@ -670,28 +863,45 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
     }
 
     StripHits.push_back(Mean);
+    StripHitsTotalSignal.push_back(total_signal);
     StripHitsErrors.push_back(Sigma);
 
     clusterDigits.clear();
     clusterValues.clear();
 
     //for testing
+    //TRandom rand(0);
     //TString str = "/home/diman/Software/pics/hist";
-    //str += curcnt;
-    //str += ".png";
-    //canv.SaveAs(str);
+    ///str += curcnt;str += "_";str += rand.Uniform(0,1);str += ".png";
+    //gPad->GetCanvas()->.SaveAs(str);
+
+    //cout << "total_signal_after_reconstruction = " << total_signal << "\n";
 }
 
-Double_t BmnGemStripReadoutModule::GetLowerStripHit(Int_t num) {
+Double_t BmnGemStripReadoutModule::GetLowerStripHitPos(Int_t num) {
     if(num >= 0 && num < LowerStripHits.size()) {
         return LowerStripHits.at(num);
     }
     return -1.0;
 }
 
-Double_t BmnGemStripReadoutModule::GetUpperStripHit(Int_t num) {
+Double_t BmnGemStripReadoutModule::GetUpperStripHitPos(Int_t num) {
     if(num >= 0 && num < UpperStripHits.size()) {
         return UpperStripHits.at(num);
+    }
+    return -1.0;
+}
+
+Double_t BmnGemStripReadoutModule::GetLowerStripHitTotalSignal(Int_t num) {
+    if(num >= 0 && num < LowerStripHits.size()) {
+        return LowerStripHitsTotalSignal.at(num);
+    }
+    return -1.0;
+}
+
+Double_t BmnGemStripReadoutModule::GetUpperStripHitTotalSignal(Int_t num) {
+     if(num >= 0 && num < UpperStripHits.size()) {
+        return UpperStripHitsTotalSignal.at(num);
     }
     return -1.0;
 }
@@ -795,13 +1005,13 @@ Int_t BmnGemStripReadoutModule::CountUpperStrips(){
 }
 
 Double_t BmnGemStripReadoutModule::GetValueOfLowerStrip(Int_t indx) {
-    if(indx < ReadoutLowerPlane.size()) {
+    if(indx >= 0 && indx < ReadoutLowerPlane.size()) {
         return ReadoutLowerPlane.at(indx);
     }
     else return -1;
 }
 Double_t BmnGemStripReadoutModule::GetValueOfUpperStrip(Int_t indx) {
-    if(indx < ReadoutUpperPlane.size()) {
+    if(indx >= 0 && indx < ReadoutUpperPlane.size()) {
         return ReadoutUpperPlane.at(indx);
     }
     else return -1;
@@ -891,8 +1101,10 @@ Double_t BmnGemStripReadoutModule::FindYHitIntersectionPoint(Double_t LowerStrip
 
 void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
     ResetIntersectionPoints();
+    ResetStripHits();
 
-    FindClusterHitsInReadoutPlane();
+    FindClustersInLayer(ReadoutLowerPlane, LowerStripHits, LowerStripHitsTotalSignal, LowerStripHitsErrors);
+    FindClustersInLayer(ReadoutUpperPlane, UpperStripHits, UpperStripHitsTotalSignal, UpperStripHitsErrors);
 
     for(UInt_t i = 0; i < LowerStripHits.size(); ++i) {
         for(UInt_t j = 0; j < UpperStripHits.size(); ++j) {
@@ -903,8 +1115,11 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
                 IntersectionPointsX.push_back(xcoord);
                 IntersectionPointsY.push_back(ycoord);
 
-                IntersectionPointsLowerStrip.push_back((int)LowerStripHits.at(i));
-                IntersectionPointsUpperStrip.push_back((int)UpperStripHits.at(j));
+                IntersectionPointsLowerStripPos.push_back(LowerStripHits.at(i));
+                IntersectionPointsUpperStripPos.push_back(UpperStripHits.at(j));
+
+                IntersectionPointsLowerTotalSignal.push_back(LowerStripHitsTotalSignal.at(i));
+                IntersectionPointsUpperTotalSignal.push_back(UpperStripHitsTotalSignal.at(j));
 
                 IntersectionPointsXErrors.push_back(LowerStripHitsErrors.at(i)*Pitch);
                 IntersectionPointsYErrors.push_back(UpperStripHitsErrors.at(j)*(Pitch/Sin(Abs(AngleRad)))); //FIX IT
@@ -927,13 +1142,15 @@ void BmnGemStripReadoutModule::CalculateMiddleIntersectionPoints() {
                         IntersectionPointsX.push_back(xcoord);
                         IntersectionPointsY.push_back(ycoord);
 
-                        IntersectionPointsLowerStrip.push_back(i);
-                        IntersectionPointsUpperStrip.push_back(j);
+                        IntersectionPointsLowerStripPos.push_back(i);
+                        IntersectionPointsUpperStripPos.push_back(j);
+
+                        IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
+                        IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
 
                         IntersectionPointsXErrors.push_back(0); //FIX IT
                         IntersectionPointsYErrors.push_back(0); //FIX IT
                     }
-
                 }
             }
         }
@@ -962,8 +1179,11 @@ void BmnGemStripReadoutModule::CalculateLeftIntersectionPoints() {
                         IntersectionPointsX.push_back(xcoord);
                         IntersectionPointsY.push_back(ycoord);
 
-                        IntersectionPointsLowerStrip.push_back(i);
-                        IntersectionPointsUpperStrip.push_back(j);
+                        IntersectionPointsLowerStripPos.push_back(i);
+                        IntersectionPointsUpperStripPos.push_back(j);
+
+                        IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
+                        IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
 
                         IntersectionPointsXErrors.push_back(0); //FIX IT
                         IntersectionPointsYErrors.push_back(0); //FIX IT
@@ -996,8 +1216,11 @@ void BmnGemStripReadoutModule::CalculateRightIntersectionPoints() {
                         IntersectionPointsX.push_back(xcoord);
                         IntersectionPointsY.push_back(ycoord);
 
-                        IntersectionPointsLowerStrip.push_back(i);
-                        IntersectionPointsUpperStrip.push_back(j);
+                        IntersectionPointsLowerStripPos.push_back(i);
+                        IntersectionPointsUpperStripPos.push_back(j);
+
+                        IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
+                        IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
 
                         IntersectionPointsXErrors.push_back(0); //FIX IT
                         IntersectionPointsYErrors.push_back(0); //FIX IT
@@ -1046,8 +1269,11 @@ void BmnGemStripReadoutModule::CalculateBorderIntersectionPoints() {
                             IntersectionPointsX.push_back(xcoord_point);
                             IntersectionPointsY.push_back(ycoord_point);
 
-                            IntersectionPointsLowerStrip.push_back(i);
-                            IntersectionPointsUpperStrip.push_back(j);
+                            IntersectionPointsLowerStripPos.push_back(i);
+                            IntersectionPointsUpperStripPos.push_back(j);
+
+                            IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
+                            IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
 
                             IntersectionPointsXErrors.push_back(0); //FIX IT
                             IntersectionPointsYErrors.push_back(0); //FIX IT
@@ -1062,8 +1288,11 @@ void BmnGemStripReadoutModule::CalculateBorderIntersectionPoints() {
                                 IntersectionPointsX.push_back((xcoord_min+xcoord_max)/2);
                                 IntersectionPointsY.push_back((ycoord_min+ycoord_max)/2);
 
-                                IntersectionPointsLowerStrip.push_back(i);
-                                IntersectionPointsUpperStrip.push_back(j);
+                                IntersectionPointsLowerStripPos.push_back(i);
+                                IntersectionPointsUpperStripPos.push_back(j);
+
+                                IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
+                                IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
 
                                 IntersectionPointsXErrors.push_back(0); //FIX IT
                                 IntersectionPointsYErrors.push_back(0); //FIX IT
@@ -1077,14 +1306,16 @@ void BmnGemStripReadoutModule::CalculateBorderIntersectionPoints() {
                                 IntersectionPointsX.push_back((xcoord_min+xcoord_max)/2);
                                 IntersectionPointsY.push_back((ycoord_min+ycoord_max)/2);
 
-                                IntersectionPointsLowerStrip.push_back(i);
-                                IntersectionPointsUpperStrip.push_back(j);
+                                IntersectionPointsLowerStripPos.push_back(i);
+                                IntersectionPointsUpperStripPos.push_back(j);
+
+                                IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
+                                IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
 
                                 IntersectionPointsXErrors.push_back(0); //FIX IT
                                 IntersectionPointsYErrors.push_back(0); //FIX IT
                             }
                         }
-
                     }
                 }
             }

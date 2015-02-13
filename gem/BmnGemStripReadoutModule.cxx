@@ -331,16 +331,17 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
 }
 
 Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z, Double_t signal) {
-#define SUBTRACT_SIGNAL
-#define ALIGN_SIGNAL
+//#define ALIGN_SUM_SIGNAL
+#define EQUAL_SIGNAL
 
     if( x >= XMinReadout && x <= XMaxReadout &&
         y >= YMinReadout && y <= YMaxReadout ) {
 
         if(signal <= 0.0) signal = 1e-16;
 
-        ClusterParameters lower_cluster = MakeLowerCluster(x, y, signal);
         ClusterParameters upper_cluster = MakeUpperCluster(x, y, signal);
+        Double_t remained_signal = signal - upper_cluster.TotalSignal/Gain;
+        ClusterParameters lower_cluster = MakeLowerCluster(x, y, remained_signal);
 
         Double_t mean_pos_low_cluster = lower_cluster.MeanPosition;
         Double_t mean_pos_up_cluster = upper_cluster.MeanPosition;
@@ -348,48 +349,69 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
         Double_t total_signal_up_cluster = upper_cluster.TotalSignal;
         Double_t gained_signal = signal*Gain;
 
-#ifdef SUBTRACT_SIGNAL
-//Consider subtraction of signal from lower layer that stolen by upper layer strips
-        Double_t signal_stolen_by_upper_layer = (total_signal_low_cluster + total_signal_up_cluster) - gained_signal;
-        Double_t stolen_signal_ratio = signal_stolen_by_upper_layer/(gained_signal);
-        for(Int_t istrip = 0; istrip < lower_cluster.Strips.size(); ++istrip) {
-            Int_t strip_num = lower_cluster.Strips.at(istrip);
-            ReadoutLowerPlane.at(strip_num) -= lower_cluster.Signals.at(istrip)*stolen_signal_ratio;
-            lower_cluster.Signals.at(istrip) -= lower_cluster.Signals.at(istrip)*stolen_signal_ratio;
-            if(ReadoutLowerPlane.at(strip_num) < 0.0) ReadoutLowerPlane.at(strip_num) = 0.0;
-            if(lower_cluster.Signals.at(istrip) < 0.0) lower_cluster.Signals.at(istrip) = 0.0;
-        }
-        total_signal_low_cluster -= total_signal_low_cluster*stolen_signal_ratio;
-        lower_cluster.TotalSignal = total_signal_low_cluster;
-//------------------------------------------------------------------------------
-#endif
-
-#ifdef ALIGN_SIGNAL
-//Alignment of lower and upper signals
-        Double_t align_low_coef = (gained_signal/2.0)/total_signal_low_cluster;
-        Double_t align_up_coef = (gained_signal/2.0)/total_signal_up_cluster;
+#ifdef ALIGN_SUM_SIGNAL
+//Align sum of lower and upper cluster signal with signal*Gain
+        Double_t signal_sum = total_signal_low_cluster + total_signal_up_cluster;
+        Double_t signal_diff = gained_signal - signal_sum;
+        Double_t low_compensated_signal = signal_diff*(total_signal_low_cluster/signal_sum);
+        Double_t up_compensated_signal = signal_diff*(total_signal_up_cluster/signal_sum);
+        Double_t align_low_coef = low_compensated_signal/total_signal_low_cluster;
+        Double_t align_up_coef = up_compensated_signal/total_signal_up_cluster;
 
         for(Int_t istrip = 0; istrip < lower_cluster.Strips.size(); ++istrip) {
             Int_t strip_num = lower_cluster.Strips.at(istrip);
             Double_t strip_signal = lower_cluster.Signals.at(istrip);
             ReadoutLowerPlane.at(strip_num) -= strip_signal;
-            strip_signal *= align_low_coef;
+            strip_signal += strip_signal*align_low_coef;
             ReadoutLowerPlane.at(strip_num) += strip_signal;
             lower_cluster.Signals.at(istrip) = strip_signal;
             if(ReadoutLowerPlane.at(strip_num) < 0.0) ReadoutLowerPlane.at(strip_num) = 0.0;
         }
-        total_signal_low_cluster *= align_low_coef;
+        total_signal_low_cluster += low_compensated_signal;
+        lower_cluster.TotalSignal = total_signal_low_cluster;
 
         for(Int_t istrip = 0; istrip < upper_cluster.Strips.size(); ++istrip) {
             Int_t strip_num = upper_cluster.Strips.at(istrip);
             Double_t strip_signal = upper_cluster.Signals.at(istrip);
             ReadoutUpperPlane.at(strip_num) -= strip_signal;
-            strip_signal *= align_up_coef;
+            strip_signal += strip_signal*align_up_coef;
             ReadoutUpperPlane.at(strip_num) += strip_signal;
             upper_cluster.Signals.at(istrip) = strip_signal;
             if(ReadoutUpperPlane.at(strip_num) < 0.0) ReadoutUpperPlane.at(strip_num) = 0.0;
         }
-        total_signal_up_cluster *= align_up_coef;
+        total_signal_up_cluster += up_compensated_signal;
+        upper_cluster.TotalSignal = total_signal_up_cluster;
+//------------------------------------------------------------------------------
+#endif
+
+#ifdef EQUAL_SIGNAL
+//Equalize lower and upper signals
+        Double_t equal_low_coef = (gained_signal/2.0)/total_signal_low_cluster;
+        Double_t equal_up_coef = (gained_signal/2.0)/total_signal_up_cluster;
+
+        for(Int_t istrip = 0; istrip < lower_cluster.Strips.size(); ++istrip) {
+            Int_t strip_num = lower_cluster.Strips.at(istrip);
+            Double_t strip_signal = lower_cluster.Signals.at(istrip);
+            ReadoutLowerPlane.at(strip_num) -= strip_signal;
+            strip_signal *= equal_low_coef;
+            ReadoutLowerPlane.at(strip_num) += strip_signal;
+            lower_cluster.Signals.at(istrip) = strip_signal;
+            if(ReadoutLowerPlane.at(strip_num) < 0.0) ReadoutLowerPlane.at(strip_num) = 0.0;
+        }
+        total_signal_low_cluster *= equal_low_coef;
+        lower_cluster.TotalSignal = total_signal_low_cluster;
+
+        for(Int_t istrip = 0; istrip < upper_cluster.Strips.size(); ++istrip) {
+            Int_t strip_num = upper_cluster.Strips.at(istrip);
+            Double_t strip_signal = upper_cluster.Signals.at(istrip);
+            ReadoutUpperPlane.at(strip_num) -= strip_signal;
+            strip_signal *= equal_up_coef;
+            ReadoutUpperPlane.at(strip_num) += strip_signal;
+            upper_cluster.Signals.at(istrip) = strip_signal;
+            if(ReadoutUpperPlane.at(strip_num) < 0.0) ReadoutUpperPlane.at(strip_num) = 0.0;
+        }
+        total_signal_up_cluster *= equal_up_coef;
+        upper_cluster.TotalSignal = total_signal_up_cluster;
 //------------------------------------------------------------------------------
 #endif
 

@@ -8,7 +8,7 @@ ClassImp(BmnTOF1Geo)
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTOF1Geo::BmnTOF1Geo() 
 {
-	fName = "TOFB";
+	fName = "TOFB1";
 	maxSectors = 0;
 	maxModules = 200;
 }
@@ -22,7 +22,7 @@ return modName;
 //--------------------------------------------------------------------------------------------------------------------------------------
 const char* BmnTOF1Geo::getEleName(Int_t m) 
 {
-	sprintf(eleName, "t%i", m+1);
+	sprintf(eleName, "TOFB%i", m+1);
   
 return eleName;
 }

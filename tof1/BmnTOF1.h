@@ -29,7 +29,6 @@ public:
 	BmnTOF1(const char* name, Bool_t active);
 
 
-  /** Destructor **/
 	virtual ~BmnTOF1();
 
 
@@ -42,11 +41,11 @@ public:
   /** Virtual method ProcessHits
    **
    ** Defines the action to be taken when a step is inside the
-   ** active volume. Creates BmnTOF1Points and BmnTOF1MirrorPoints and adds 
+   ** active volume. Creates BmnTOF1Points and adds 
    ** them to the collections.
    *@param vol  Pointer to the active volume
    **/
-	virtual Bool_t ProcessHits(FairVolume* vol = 0);
+	virtual Bool_t ProcessHits(FairVolume* vol = nullptr);
 
 
   /** Virtual method EndOfEvent
@@ -102,20 +101,17 @@ public:
 	virtual Bool_t CheckIfSensitive(std::string name);
 
 
-	BmnTOF1Point* AddHit(Int_t trackID, Int_t detID, TVector3 pos, TVector3 mom, Double_t tof, Double_t length, Double_t eLoss);
+	BmnTOF1Point* AddPoint(Int_t trackID, Int_t detID, TVector3 pos, TVector3 mom, Double_t tof, Double_t length, Double_t eLoss);
 
 private:
-	Int_t          	fTrackID;           //!  track index
-	Int_t          	fVolumeID;          //!  volume id
-	Int_t          	fEventID;           //!  event id
 	TLorentzVector 	fPos;               //!  position
 	TLorentzVector 	fMom;               //!  momentum
 	Double32_t     	fTime;              //!  time
 	Double32_t     	fLength;            //!  length
 	Double32_t     	fELoss;             //!  energy loss
 	Int_t 		fPosIndex;		//! 
-	Int_t 		volDetector;		//!  MC volume ID of MUO
-  
+  	const double	nan;			//!
+  	
   	TClonesArray	*fTofCollection;	//! Hit collection
   
 	// reset all parameters   
@@ -126,10 +122,9 @@ ClassDef(BmnTOF1,2)
 //--------------------------------------------------------------------------------------------------------------------------------------
 inline void BmnTOF1::ResetParameters() 
 {
-	fTrackID = fVolumeID = 0;
-	fPos.SetXYZM(0.0, 0.0, 0.0, 0.0);
-	fMom.SetXYZM(0.0, 0.0, 0.0, 0.0);
-	fTime = fLength = fELoss = 0;
+	fPos.SetXYZM(nan, nan, nan, nan);
+	fMom.SetXYZM(nan, nan, nan, nan);
+	fTime = fLength = fELoss = nan;
 	fPosIndex = 0;
 };
 

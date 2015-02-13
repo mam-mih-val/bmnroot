@@ -23,18 +23,33 @@ public:
    *@param eLoss    Energy deposit [GeV]
    **/ 
   	BmnTOF1Point(Int_t trackID, Int_t detID, TVector3 pos, TVector3 mom, Double_t tof, Double_t length, Double_t eLoss);
-	BmnTOF1Point(const BmnTOF1Point& point) { *this = point; };
   
 	virtual void 	Print(const Option_t* opt) const;
 
-	// FIXME: padID MAX_VALUE = 255, moduleID MAX_VALUE = 255
-  	Int_t 		GetPad() const   {return (fDetectorID & 0xFF);};
-  	Int_t 		GetModule() const {return ((fDetectorID>>8) & 0xFF);};
-   	Int_t 		GetDetectorID() const {return fDetectorID;};
+	// CATION: stripID MAX_VALUE = 255, moduleID MAX_VALUE = 255, regionID MAX_VALUE = 255 
+  	Int_t 		GetStrip() const  {return (fDetectorID & 0x000000FF);};
+  	Int_t 		GetModule() const {return (fDetectorID & 0x0000FF00) >> 8; };
+   	Int_t 		GetRegion() const {return (fDetectorID & 0x00FF0000) >> 16;}; 	
+   	Int_t 		GetVolumeUID() const {return fDetectorID;};
 
-	static Int_t 	GetPad(Int_t uid){ return (uid & 0xFF); };
-   	static Int_t 	GetModule(Int_t uid){ return ((uid>>8) & 0xFF); };
-  	static Int_t 	GetVolumeUID(Int_t modID, Int_t padID) { return (modID<<8) + padID; };
+	static Int_t 	GetStrip(Int_t uid){  return (uid & 0x000000FF); };
+   	static Int_t 	GetModule(Int_t uid){ return (uid & 0x0000FF00) >> 8; };
+   	static Int_t 	GetRegion(Int_t uid){ return (uid & 0x00FF0000) >> 16; };  	
+  	static Int_t 	GetVolumeUID(Int_t regID, Int_t modID, Int_t stripID) 
+  	{ 
+#ifdef DEBUG
+ 	Int_t uid = (regID << 16) | (modID << 8) | stripID; 
+ 	Int_t region =	GetRegion(uid);
+ 	Int_t module =	GetModule(uid);
+  	Int_t strip =	GetStrip(uid);	
+assert(region == regID);  
+assert(module == modID); 
+assert(strip == stripID); 	
+	return uid;
+#else  	
+  	return (regID << 16) | (modID << 8) | stripID; 
+#endif  	
+  	};
  
 ClassDef(BmnTOF1Point, 1)
 };

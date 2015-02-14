@@ -1,490 +1,27 @@
-#include "globals.h"
-
 #include "FairEventManagerEditor.h"
+#include "RawDataConverter.h"
+#include "FairRootManager.h"
+#include "FairRunAna.h"
 
-#include "FairEventManager.h"           // for FairEventManager
-#include "FairRootManager.h"            // for FairRootManager
-#include "FairRunAna.h"                 // for FairRunAna
-
-#include "TChain.h"                     // for TChain
-#include "TEveGValuators.h"             // for TEveGValuator
-#include "TFile.h"                      // for TFile
-#include "TGButton.h"                   // for TGCheckButton, TGTextButton
-#include "TGLabel.h"                    // for TGLabel
-#include "TGLayout.h"                   // for TGLayoutHints, etc
-#include "TGNumberEntry.h"              // for TGNumberEntry, etc
-#include "TGeoManager.h"                // for TGeoManager, gGeoManager
-#include "TString.h"                    // for TString
-#include "TEveManager.h"                // for TEveManager, gEve
-#include "TEveElement.h"                // for TEveElement
-#include "TPRegexp.h"
-#include "TEvePointSet.h"               // for TEvePointSet
-
-#include <stddef.h>                     // for NULL
+#include "TChain.h"
+#include "TFile.h"
+#include "TGLayout.h"
+#include "TGeoManager.h"
+#include "TString.h"
+#include "TEveManager.h"
+#include "TEveElement.h"
+#include "TEvePointSet.h"
+#include "TVector3.h"
+#include "TObject.h"
+#include "TGWindow.h"
+#include <TGLViewer.h>
 
 #include <iostream>
 using namespace std;
 
-class TGWindow;
-class TObject;
-
 #define MAXE 12
 
-//map with device identificator corresponding plane number (starting with 1)
-map<int, int> device_serial;// = { {0x1A8D, 1}, {0x2950, 2}, {0x3043, 3}, {0x304E, 4}, {0x4514, 5}, {0x45DF, 6} };
-map<int, int> device_serial1;// = { {0x3F8B, 1}, {0x2950, 2}, {0x4514, 3}, {0x4504, 4}, {0x3043, 5}, {0x304E, 6} };
-map<int, int> device_serial2;// = { {0x47CB, 1}, {0x2A79, 2}, {0x3F1D, 3}, {0x4513, 4}, {0x3F97, 5}, {0x2FFF, 6} };
-
-/*map<int,int> create_map()
-{
-  map<int,int> m;
-  m[0x1A8D] = 1;
-  m[0x2950] = 2;
-  m[0x3043] = 3;
-  m[0x304E] = 4;
-  m[0x4514] = 5;
-  m[0x45DF] = 6;
-
-  return m;
-}*/
-
-map<int,int> create_map1()
-{
-  map<int,int> m;
-  m[0x3F8B] = 1;
-  m[0x2950] = 2;
-  m[0x4514] = 3;
-  m[0x4504] = 4;
-  m[0x3043] = 5;
-  m[0x304E] = 6;
-
-  return m;
-}
-
-map<int,int> create_map2()
-{
-  map<int,int> m;
-  m[0x47CB] = 1;
-  m[0x2A79] = 2;
-  m[0x3F1D] = 3;
-  m[0x4513] = 4;
-  m[0x3F97] = 5;
-  m[0x2FFF] = 6;
-
-  return m;
-}
-
-// convert integer (hexadecimal value) to string with hexadecimal presentation without "0x"
-string int_to_hex_string(int int_number)
-{
-  stringstream stream;
-  stream << std::hex << int_number;
-  return stream.str();
-}
-
-// check bit in 'variable' at 'position'
-#define CHECK_BIT(variable,position) ((variable) & (1ULL<<(position)))
-
-
-//buffer - unsigned int array from file with HRB Raw Data Format 1.0
-//size - size of 'buffer' variable in words (unsigned int)
-//fEventReadData - vector with EventData objects
-//fEventDrawData - vector with EventDrawData objects
-//semEventData - semaphore to add EventData objects to global vector
-int ParseHRB1Buffer(unsigned int* buffer, long size, vector<EventData*>* fEventReadData,
-                    vector<EventData*>* fEventDrawData, TSemaphore* semEventData)
-{
-    unsigned char byte_hh;//, byte_hl, byte_lh, byte_ll;
-    unsigned int int_h, int_l;
-    long cur_word = 0, i = 0;
-    //unsigned int max_diff = 0,  = 0;
-    cout<<"enter of parsing file"<<endl;
-    //sleep(1);
-    int max_event_diff = 0, ind = 0;
-    while (cur_word < size)
-    {
-        ind++;
-        // M-Link HEADER - frame type
-        unsigned int x = buffer[cur_word++];
-
-        // check sync word: 0x2A50
-        int_h = x >> 16;
-        if (int_h != 0x2A50)
-        {
-            fputs("sync word error, should be 0x2A50", stderr);
-            return -1;
-        }
-
-        // check frame type: 0x5354 - stream data
-        int_l = x & 0xFFFF;
-        if (int_l != 0x5354)
-        {
-            fputs("frame type error, should be 0x5354", stderr);
-            return -2;
-        }
-
-        // M-Link HEADER - frame info
-        x = buffer[cur_word++];
-
-        unsigned int frame_length = x >> 16;
-        unsigned int frame_number = x & 0xFFFF;
-        //cout<<"frame_length: "<<frame_length<<endl;
-        //cout<<"frame_number: "<<frame_number<<endl;
-
-        // skip destination and source address
-        cur_word++;
-
-        // M-Stream Header - data type and flags
-        x = buffer[cur_word++];
-        byte_hh = *((unsigned char*)&x + 3);
-        if (byte_hh != 0xBC)
-        {
-            fputs("data type error, should be 0xBC", stderr);
-            return -3;
-        }
-        unsigned int fragment_length = x & 0xFFFF;
-        //cout<<"fragment_length: "<<fragment_length<<endl;
-
-        // skip fragment ID and offset
-        cur_word++;
-
-        // M-Stream Payload - device serial (define plane number starting with 1)
-        x = buffer[cur_word++];
-        unsigned int plane_number = device_serial.find(x & 0xFFFF)->second;
-        //cout<<"plane_number: "<<plane_number<<endl;
-
-        // M-Stream Payload - event (0:23 bits) and channel number
-        x = buffer[cur_word++];
-        unsigned int event_number = x & 0xFFFFFF;
-        //cout<<"event_number: "<<event_number<<endl;
-        //if (event_number > max_event)
-        //    max_event = event_number;
-        //if ((max_event - event_number) > max_diff)
-        //    max_diff = max_event - event_number;
-        /*
-        vector<EventData*>::iterator it = fEventReadData->begin();
-        EventData* pCurEvent = NULL;
-        for (i = 0; i < fEventReadData->size(); i++, it++)
-        {
-            pCurEvent = (*fEventReadData)[i];
-
-            if (pCurEvent->uiEventNumber == event_number)
-                break;
-
-            if (pCurEvent->uiEventNumber > event_number)
-            {
-                pCurEvent = new EventData();
-                pCurEvent->uiEventNumber = event_number;
-
-                fEventReadData->insert(it, pCurEvent);
-                //cout<<"event was inner added: "<<i<<" event_number="<<event_number<<endl;
-                break;
-            }
-        }
-        if (i == fEventReadData->size())
-        {
-            pCurEvent = new EventData();
-            pCurEvent->uiEventNumber = event_number;
-
-            fEventReadData->push_back(pCurEvent);
-            //cout<<"event was outer added: "<<i<<" event_number="<<event_number<<endl;
-        }
-        */
-
-        // M-Stream Payload - timestamp (high and low)
-        x = buffer[cur_word++];
-        ULong64_t event_timestamp = x + (((ULong64_t)buffer[cur_word++]) << 32);
-        //ULong64_t event_timestamp = (((ULong64_t)x) << 32) + buffer[cur_word++];
-
-        vector<EventData*>::iterator it = fEventReadData->end();
-        EventData* pCurEvent = NULL;
-        int cnt = 0;
-        for (i = fEventReadData->size() - 1; i >= 0; i--, it--, cnt++)
-        {
-            pCurEvent = (*fEventReadData)[i];
-
-            if (pCurEvent->event_timestamp < event_timestamp)
-            {
-                pCurEvent = new EventData();
-                pCurEvent->event_timestamp = event_timestamp;
-
-                //if (i == (fEventReadData->size()-1))
-                //    fEventReadData->push_back(pCurEvent);
-                //else
-                fEventReadData->insert(it, pCurEvent);
-
-                break;
-            }
-
-            if (pCurEvent->event_timestamp == event_timestamp)
-                break;
-        }// for
-        if (i < 0)
-        {
-            pCurEvent = new EventData();
-            pCurEvent->event_timestamp = event_timestamp;
-
-            if (fEventReadData->size() == 0)
-                fEventReadData->push_back(pCurEvent);
-            else
-            {
-                if (*it != *(fEventReadData->begin()))
-                {
-                    cout<<"DATA ERROR: it != fEventReadData->begin()"<<endl;
-                    sleep(3);
-                }
-
-                fEventReadData->insert(it, pCurEvent);
-            }
-        }
-        if (cnt > max_event_diff)
-            max_event_diff = cnt;
-
-        // define vector for digits by plane_number
-        vector<BmnMwpcDigit*>* pDigitsPlane = &pCurEvent->MWPC1Planes[plane_number-1];
-
-        // M-Stream data - searching for "1" bits - working only with 32-bit words ratio, can be generalized
-        if (((fragment_length / 16) * 16) != fragment_length)
-        {
-            fputs("fragment length isn't aligned with 4 32-bit word", stderr);
-            return -4;
-        }
-        int time_bin = 1;   // starting from 1
-        for (unsigned int i = 16; i < fragment_length; i += 16, time_bin++)
-        {
-            // 96 bit for every wire and 32 bit is empty (zero)
-            for (int j = 0; j < 3; j++)
-            {
-                x = buffer[cur_word++];
-
-                int pos = sizeof(unsigned int)*8 - 1;
-                while ((pos--) >= 0)
-                {
-                    if (CHECK_BIT(x, pos))
-                    {
-                        // starting number from 0
-                        int active_wire = j*32 + pos;
-
-                        //cout<<"event timestamp: "<<event_timestamp<<"; plane: "<<plane_number<<"; time: "<<time_bin<<"; wire: "<<active_wire<<endl;
-                        //sleep(1);
-
-                        BmnMwpcDigit* pDigit = new BmnMwpcDigit(plane_number, active_wire, time_bin, -1);
-
-                        pDigitsPlane->push_back(pDigit);
-                    }
-                }
-            }
-            cur_word++;
-        }// for detector's wires
-
-        // skip M-Link CRC
-        cur_word++;
-
-        //cout<<endl<<endl;
-    }// while not end of file
-
-    cout<<"exit of parsing file"<<" iterations count: "<<ind<<endl;
-    //cout<<"event count: "<<fEventReadData->size()<<endl;
-    //cout<<"max_event_diff: "<<max_event_diff<<endl;
-    //sleep(3);
-}
-
-//buffer - unsigned int array from file with HRB Raw Data Format 2.0
-//size - size of 'buffer' variable in words (unsigned int)
-//fEventReadData - vector with EventData objects
-//fEventDrawData - vector with EventDrawData objects
-//semEventData - semaphore to add EventData objects to global vector
-int ParseHRB2Buffer(unsigned int* buffer, long size, vector<EventData*>* fEventReadData,
-                    vector<EventData*>* fEventDrawData, TSemaphore* semEventData)
-{
-    unsigned char byte_hh;  //, byte_hl, byte_lh, byte_ll;
-    unsigned int int_h, int_l;
-    long cur_word = 0, i = 0;
-    //unsigned int max_diff = 0,  = 0;
-    cout<<"enter of parsing file"<<endl;
-    //sleep(1);
-    int max_event_diff = 0, ind = 0;
-    while (cur_word < size)
-    {
-        ind++;
-        // M-Link HEADER - frame type
-        unsigned int x = buffer[cur_word++];
-
-        // check sync word: 0x2A50
-        int_h = x >> 16;
-        if (int_h != 0x2A50)
-        {
-            cout<<"sync word error, should be 0x2A50, but it's equal to "<<int_h<<endl;
-            return -1;
-        }
-
-        // check frame type: 0x2A50 - stream data 2.0
-        int_l = x & 0xFFFF;
-        if (int_l != 0x2A50)
-        {
-            fputs("frame type error, should be 0x2A50", stderr);
-            return -2;
-        }
-
-        // M-Link HEADER - frame info
-        x = buffer[cur_word++];
-
-        unsigned int frame_length = x >> 16;
-        unsigned int frame_number = x & 0xFFFF;
-        //cout<<"frame_length: "<<frame_length<<endl;
-        //cout<<"frame_number: "<<frame_number<<endl;
-
-        // skip destination and source address
-        cur_word++;
-
-        int MWPC_number = -1;
-        unsigned int plane_number = 0;
-        // M-Stream Subtype 0 - device serial id (define plane number starting with 1)
-        x = buffer[cur_word++];
-        int_l = x & 0xFFFF;
-        //cout<<"device_serial: 0x"<<int_to_hex_string(int_l)<<endl;
-        map<int,int>::iterator it_device = device_serial1.find(int_l);
-        if (it_device != device_serial1.end())
-        {
-            MWPC_number = 1;
-            plane_number = it_device->second;
-        }
-        else
-        {
-            MWPC_number = 2;
-            it_device = device_serial2.find(int_l);
-            if (it_device == device_serial2.end())
-            {
-                cout<<"error: device serial wasn't found in the map, exiting of parsing this file"<<endl;
-                return -3;
-            }
-            plane_number = it_device->second;
-        }
-        //cout<<"MWPC number: "<<MWPC_number<<". plane_number: "<<plane_number<<endl;
-
-        // M-Stream Subtype 0 - device_id and fragment_length
-        x = buffer[cur_word++];
-        unsigned int fragment_length = x & 0xFFFF;
-        //cout<<"fragment_length: "<<fragment_length<<endl;
-        unsigned int device_id = x >> 24;
-        //cout<<"device_id: 0x"<<int_to_hex_string(device_id)<<endl;
-
-        // M-Stream Subtype 0 - event (0:23 bits)
-        x = buffer[cur_word++];
-        unsigned int event_number = x & 0xFFFFFF;
-        //cout<<"event_number: "<<event_number<<endl;
-
-        // M-Stream Subtype 0 - trigger timestamps: nanoseconds (32-bit word) and then seconds (32-bit word), e.i. low the high timestamp
-        x = buffer[cur_word++];
-        //unsigned int timestamp_seconds = x;
-        //x = buffer[cur_word++];
-        //unsigned int timestamp_nanoseconds = x;
-        ULong64_t event_timestamp = x + (((ULong64_t)buffer[cur_word++]) << 32);
-        //ULong64_t event_timestamp = (((ULong64_t)x) << 32) + buffer[cur_word++];
-
-        vector<EventData*>::iterator it = fEventReadData->end();
-        EventData* pCurEvent = NULL;
-        int cnt = 0;
-        for (i = fEventReadData->size() - 1; i >= 0; i--, it--, cnt++)
-        {
-            pCurEvent = (*fEventReadData)[i];
-
-            if (pCurEvent->event_timestamp < event_timestamp)
-            {
-                pCurEvent = new EventData();
-                pCurEvent->event_timestamp = event_timestamp;
-
-                //if (i == (fEventReadData->size()-1))
-                //    fEventReadData->push_back(pCurEvent);
-                //else
-                fEventReadData->insert(it, pCurEvent);
-
-                break;
-            }
-
-            if (pCurEvent->event_timestamp == event_timestamp)
-                break;
-        }// for
-        if (i < 0)
-        {
-            pCurEvent = new EventData();
-            pCurEvent->event_timestamp = event_timestamp;
-
-            if (fEventReadData->size() == 0)
-                fEventReadData->push_back(pCurEvent);
-            else
-            {
-                if (*it != *(fEventReadData->begin()))
-                {
-                    cout<<"DATA ERROR: it != fEventReadData->begin()"<<endl;
-                    sleep(3);
-                }
-
-                fEventReadData->insert(it, pCurEvent);
-            }
-        }
-        if (cnt > max_event_diff)
-            max_event_diff = cnt;
-
-        // define vector for digits by MWPC and plane number
-        vector<BmnMwpcDigit*>* pDigitsPlane;
-        if (MWPC_number == 1)
-            pDigitsPlane = &pCurEvent->MWPC1Planes[plane_number-1];
-        else
-            pDigitsPlane = &pCurEvent->MWPC2Planes[plane_number-1];
-
-        // M-Stream data - searching for "1" bits - working only with 32-bit words ratio, can be generalized
-        unsigned int start_data = 12;
-        if ((fragment_length - start_data) % 16 != 0)
-        {
-            cout<<"data length isn't aligned with 4 32-bit word"<<endl;
-            return -4;
-        }
-        int time_bin = 1;   // starting from 1
-        int pos_bits = sizeof(unsigned int)*8 - 1, pos;
-        for (unsigned int i = start_data; i < fragment_length; i += 16, time_bin++)
-        {
-            // 96 bit for every wire and 32 bit is empty (zero)
-            for (int j = 0; j < 3; j++)
-            {
-                x = buffer[cur_word++];
-                if (x == 0)
-                    continue;
-
-                pos = pos_bits;
-                while ((pos--) >= 0)
-                {
-                    if (CHECK_BIT(x, pos))
-                    {
-                        // starting number from 0
-                        int active_wire = j*32 + pos;
-
-                        cout<<"time stamp: "<<event_timestamp<<", bin: "<<time_bin<<"; MWPC: "<<MWPC_number<<"; plane: "<<plane_number<<"; wire: "<<active_wire<<endl;
-                        //sleep(1);
-
-                        BmnMwpcDigit* pDigit = new BmnMwpcDigit(plane_number, active_wire, time_bin, -1);
-
-                        pDigitsPlane->push_back(pDigit);
-                    }
-                }
-            }
-            cur_word++;
-        }// for detector's wires
-
-        // skip M-Link CRC
-        //cur_word++;
-
-        //cout<<endl<<endl;
-    }// while not end of file
-
-    cout<<"exit of parsing file"<<" iterations count: "<<ind<<endl;
-    cout<<"event count: "<<fEventReadData->size()<<endl;
-    //cout<<"max_event_diff: "<<max_event_diff<<endl;
-    sleep(1);
-
-    return 0;
-}
-
+// thread function for reading of MWPC files
 void* ReadMWPCFiles(void* ptr)
 {
      ThreadParam_ReadFile* thread_par = (ThreadParam_ReadFile*) ptr;
@@ -492,106 +29,28 @@ void* ReadMWPCFiles(void* ptr)
      vector<EventData*>* fEventReadData = thread_par->fEventReadData;
      vector<EventData*>* fEventDrawData = thread_par->fEventDrawData;
 
-     // buffer with 4-bytes words
-     unsigned int* buffer;
-     long curStart = 0, lSize = 0;
+     // read source files and generate vector of EventData objects
+     RawDataParser raw_parser;
+
+     TString* mwpc_names = new TString[12];
+     raw_parser.GenerateMWPCFileNames(raw_file_name_begin, &raw_parser.device_serial1, mwpc_names);
+     raw_parser.GenerateMWPCFileNames(raw_file_name_begin, &raw_parser.device_serial2, &mwpc_names[6]);
+
      long lStart[12] = { 0 };
-     size_t size;
-     FILE* pRawFile;
-     TString file_name_begin(raw_file_name_begin), raw_file;
      int processed_events = 0;
      while (1)
      {
-        //cout<<"before open 1"<<endl;
-        //sleep(1);
+         raw_parser.ParseHRBFiles(fEventReadData, mwpc_names, lStart);
 
-        for (int mwpc_iter = 1; mwpc_iter < 3; mwpc_iter++)
-        {
-            map<int,int>::iterator it_planes;
-            if (mwpc_iter == 1)
-                it_planes = device_serial1.begin();
-            else
-                it_planes = device_serial2.begin();
-
-            // cycle for six plane (six device identificator)
-            for (int i = 1;  i <= 6; i++, it_planes++)
-            {
-                raw_file = file_name_begin;
-                raw_file += int_to_hex_string(it_planes->first);
-                raw_file += ".dat";
-                pRawFile = fopen(raw_file, "rb");
-                if (pRawFile == NULL)
-                {
-                    //perror("Error opening file: ");
-                    fprintf(stderr,"Error opening file (%s): %s\n", strerror(errno), raw_file.Data());
-                    return 0;
-                }
-
-                // obtain file size:
-                fseek(pRawFile, 0, SEEK_END);
-                lSize = ftell(pRawFile);
-
-                curStart = lStart[(mwpc_iter-1)*6 + (i-1)];
-
-                //cout<<"read index: "<<i<<"... "<<lStart<<" : "<<lSize<<endl;
-                //sleep(2);
-
-                if (lSize <= curStart)
-                {
-                    fclose(pRawFile);
-                    continue;
-                }
-
-                //cout<<"reading file tail..."<<endl;
-
-                fseek(pRawFile, curStart, SEEK_SET);
-
-                // allocate memory to contain new tail of file:
-                buffer =  new unsigned int[(lSize-curStart)/4];
-                if (buffer == NULL)
-                {
-                    fputs("Memory error", stderr);
-                    fclose(pRawFile);
-
-                    return 0;
-                }
-
-                // copy the file into the buffer:
-                size = fread(buffer, 4, (lSize-curStart)/4, pRawFile);
-                if (size != (lSize-curStart)/4)
-                {
-                    fputs("Reading error", stderr);
-                    free(buffer);
-                    fclose(pRawFile);
-
-                    return 0;
-                }
-
-                // the whole file is now loaded in the memory 'buffer'
-                fclose(pRawFile);
-
-                //parse the data
-                int result_error = ParseHRB2Buffer(buffer, (lSize-curStart)/4, fEventReadData, fEventDrawData, thread_par->semEventData);
-
-                free(buffer);
-
-                lStart[(mwpc_iter-1)*6 + (i-1)] = lSize;
-            }// for cycle for six plane (six device identificator)
-        }// for cycle for MWPC detectors
-
-        // copy complete event to another draw vector
-        //cout<<"Event count: "<<fEventReadData->size()<<" processed: "<<processed_events<<endl;
-        //sleep(2);
-        for (int i = processed_events; i < fEventReadData->size(); i++)
-        {
-            processed_events = fEventReadData->size();
-            EventData* pCurEvent = (*fEventReadData)[i];
-            EventData* pDrawEvent = new EventData(*pCurEvent);
-            fEventDrawData->push_back(pDrawEvent);
-            thread_par->semEventData->Post();
-        }
-
-        //return 0;
+         // copy complete events to another draw vector to exclude time-consuming sharing
+         for (int i = processed_events; i < fEventReadData->size(); i++)
+         {
+             processed_events = fEventReadData->size();
+             EventData* pCurEvent = (*fEventReadData)[i];
+             EventData* pDrawEvent = new EventData(*pCurEvent);
+             fEventDrawData->push_back(pDrawEvent);
+             thread_par->semEventData->Post();
+         }
      }// while (1)
 
      return 0;
@@ -647,12 +106,13 @@ void GeoDraw(vector<TVector3*>* pPointVector, FairEventManager* fEventManager, T
 
     *fq = q;
 
-    if (npoints == 1)
-        sleep(90);
+    //if (npoints == 1)
+        //sleep(90);
 
     return;
 }
 
+// thread function for event drawing
 void* DrawEvent(void* ptr)
 {
     ThreadParam_Draw* thread_par = (ThreadParam_Draw*) ptr;
@@ -675,48 +135,48 @@ void* DrawEvent(void* ptr)
         //cout<<i<<" "<<fEventData->size()<<endl;
 
         EventData* curEvent = (*fEventDrawData)[i];
-        //if (curEvent->isEventDataFinished)
-        //{
-            cout<<"Event processing: "<<i<<endl;
+        cout<<"Event processing: "<<i<<endl;
 
-            bool isEmptyPlane = false;
-            for (int j = 0; j< 6; j++)
-            {
-                if (curEvent->MWPC1Planes[j].size() == 0)
-                    isEmptyPlane = true;
-            }
+        RawDataConverter raw_converter;
+        vector<TVector3*> event_hits = raw_converter.MWPCEventToGeoVector(curEvent);
 
-            if (isEmptyPlane)
-                cout<<"WARNING!!! digits count 0"<<endl;
+        cout<<"Point vector size: "<<event_hits.size()<<endl;
 
-            cout<<"Search hits: "<<curEvent->MWPC1Planes[0].size()<<" : "<<curEvent->MWPC1Planes[1].size()<<" : "<<curEvent->MWPC1Planes[2].size()<<" : "
-               <<curEvent->MWPC1Planes[3].size()<<" : "<<curEvent->MWPC1Planes[4].size()<<" : "<<curEvent->MWPC1Planes[5].size()<<endl;
+        GeoDraw(&event_hits, fEventManager, &fq);
 
-            /*for (int z=0; z < curEvent->digitsPlane1.size(); z++)
-                curEvent->digitsPlane1[z]->Dump();
-            for (int z=0; z < curEvent->digitsPlane2.size(); z++)
-                curEvent->digitsPlane2[z]->Dump();
-            for (int z=0; z < curEvent->digitsPlane3.size(); z++)
-                curEvent->digitsPlane3[z]->Dump();
-            for (int z=0; z < curEvent->digitsPlane4.size(); z++)
-                curEvent->digitsPlane4[z]->Dump();
-            for (int z=0; z < curEvent->digitsPlane5.size(); z++)
-                curEvent->digitsPlane5[z]->Dump();
-            for (int z=0; z < curEvent->digitsPlane6.size(); z++)
-                curEvent->digitsPlane6[z]->Dump();
-            */
+        cout<<"Event hits were drawn for event "<<i<<endl;
+        sleep(1);
+        i++;
+    }
+}
 
-            vector<TVector3*> event_hits = SearchHits(curEvent->MWPC1Planes[0], curEvent->MWPC1Planes[1], curEvent->MWPC1Planes[2],
-                                                      curEvent->MWPC1Planes[3], curEvent->MWPC1Planes[4], curEvent->MWPC1Planes[5]);
+// thread function for run tasks
+void* RunTasks(void* ptr)
+{
+    ThreadParam_RunTask* thread_par = (ThreadParam_RunTask*) ptr;
+    FairEventManager* fManager = thread_par->fEventManager;
 
-            cout<<"Point vector size: "<<event_hits.size()<<endl;
+    // get all tasks from FairRunAna
+    FairRunAna* pRun = fManager->fRunAna;
+    FairTask* pMainTask = pRun->GetMainTask();
+    TList* taskList = pMainTask->GetListOfTasks();
 
-            GeoDraw(&event_hits, fEventManager, &fq);
+    FairRootManager* fRootManager=FairRootManager::Instance();
 
-            cout<<"Event hits were drawn for event "<<i<<endl;
-            sleep(3);
-            i++;
-        //}
+    for (int i = 1; i < 20; i++)
+    {
+        fRootManager->ReadEvent(i);
+
+        int iter = 1;
+        TObjLink *lnk = taskList->FirstLink();
+        while (lnk)
+        {
+            FairTask* pCurTask = (FairTask*) lnk->GetObject();
+            pCurTask->ExecuteTask("");
+            cout<<"Complete task: "<<iter++<<endl;
+            lnk = lnk->Next();
+        }
+        gEve->Redraw3D(kFALSE);
     }
 }
 
@@ -752,7 +212,7 @@ void FairEventManagerEditor::Init()
 {
   // get input file
   FairRootManager* fRootManager=FairRootManager::Instance();
-  TChain* chain =fRootManager->GetInChain();
+  TChain* chain = fRootManager->GetInChain();
   Int_t Entries= chain->GetEntriesFast();
 
   // create tab for event visualization
@@ -765,22 +225,22 @@ void FairEventManagerEditor::Init()
   // display file name
   TString Infile= "file : ";
 //  TFile* file =FairRunAna::Instance()->GetInputFile();
-  TFile* file =FairRootManager::Instance()->GetInChain()->GetFile();
-  Infile+=file->GetName();
+  TFile* file = FairRootManager::Instance()->GetInChain()->GetFile();
+  Infile += file->GetName();
   TGLabel* TFName=new TGLabel(title1, Infile.Data());
   title1->AddFrame(TFName);
 
   // display Run ID
-  UInt_t RunId= FairRunAna::Instance()->getRunId();
-  TString run= "Run Id : ";
+  UInt_t RunId = FairRunAna::Instance()->getRunId();
+  TString run = "Run Id : ";
   run += RunId;
   TGLabel* TRunId=new TGLabel(title1, run.Data());
   title1->AddFrame(TRunId);
 
   // display event count
   TString nevent= "No of events : ";
-  nevent +=Entries ;
-  TGLabel* TEvent=new TGLabel(title1, nevent.Data());
+  nevent += Entries;
+  TGLabel* TEvent = new TGLabel(title1, nevent.Data());
   title1->AddFrame(TEvent);
 
   // count of geometry nodes
@@ -944,20 +404,40 @@ void FairEventManagerEditor::SetModel(TObject* obj)
 //______________________________________________________________________________
 void FairEventManagerEditor::SelectEvent()
 {
-    if (fManager->is_online)
+    if ((fManager->isOnline) && ((fManager->fDataSource == 1) || (iCurrentEvent != -1)))
     {
-        semEventData = new TSemaphore(0);
+        if (fManager->fDataSource == 1)
+        {
+            semEventData = new TSemaphore(0);
 
-        // map of plane id: number plane - id in data file
-        //device_serial = create_map();
-        device_serial1 = create_map1();
-        device_serial2 = create_map2();
+            // run thread for data files parsing
+            ThreadParam_ReadFile* par_read_file = new ThreadParam_ReadFile();
+            par_read_file->fEventReadData = fEventReadData;
+            par_read_file->fEventDrawData = fEventDrawData;
+            par_read_file->raw_file_name_begin = fManager->source_file_name;
+            par_read_file->semEventData = semEventData;
 
-        // run thread for MWPC data file parsing
-        RunReadFileThread();
+            TThread* thread_read_file = new TThread(ReadMWPCFiles, (void*)par_read_file);
+            thread_read_file->Run();
 
-        // draw hit arrays if ready
-        RunDrawThread();
+            // run thread to draw hit arrays if ready
+            ThreadParam_Draw* par_draw = new ThreadParam_Draw();
+            par_draw->fEventDrawData = fEventDrawData;
+            par_draw->fEventManager = fManager;
+            par_draw->semEventData = semEventData;
+
+            TThread* thread_draw = new TThread(DrawEvent, (void*)par_draw);
+            thread_draw->Run();
+        }
+        else
+        {
+            // run thread for online presentation of simulation data
+            ThreadParam_RunTask* par_run_task = new ThreadParam_RunTask();
+            par_run_task->fEventManager = fManager;
+
+            TThread* thread_run_task = new TThread(RunTasks, (void*)par_run_task);
+            thread_run_task->Run();
+        }
     }
     // if offline
     else
@@ -986,7 +466,7 @@ void FairEventManagerEditor::SelectEvent()
             else
                 fShowRecoTracks->SetEnabled(kTRUE);
 
-            fUpdate->SetEnabled(kFALSE);
+            //fUpdate->SetEnabled(kFALSE);
         }
 
         if (iCurrentEvent != iNewEvent)
@@ -999,7 +479,7 @@ void FairEventManagerEditor::SelectEvent()
             time += " ns";
             fEventTime->SetText(time.Data());
 
-            // new min and max energy limits given by event energy range
+            // display and set new min and max energy limits given by event energy range
             fMinEnergy->SetLimits(fManager->GetEvtMinEnergy(), fManager->GetEvtMaxEnergy(), 100);
             fMinEnergy->SetValue(fManager->GetEvtMinEnergy());
             MinEnergy();
@@ -1009,38 +489,18 @@ void FairEventManagerEditor::SelectEvent()
         }
     }
 
-  // update tab controls
-  Update();
+    // update tab controls
+    Update();
 
-  // update all scenes
-  fManager->fRPhiView->GetGLViewer()->UpdateScene(kTRUE);
-  fManager->fRhoZView->GetGLViewer()->UpdateScene(kTRUE);
-  fManager->fMulti3DView->GetGLViewer()->UpdateScene(kTRUE);
-  fManager->fMultiRPhiView->GetGLViewer()->UpdateScene(kTRUE);
-  fManager->fMultiRhoZView->GetGLViewer()->UpdateScene(kTRUE);
-}
-
-void FairEventManagerEditor::RunReadFileThread()
-{
-    ThreadParam_ReadFile* par_read_file = new ThreadParam_ReadFile();
-    par_read_file->fEventReadData = fEventReadData;
-    par_read_file->fEventDrawData = fEventDrawData;
-    par_read_file->raw_file_name_begin = fManager->source_file_name;
-    par_read_file->semEventData = semEventData;
-
-    TThread* thread_read_file = new TThread(ReadMWPCFiles, (void*)par_read_file);
-    thread_read_file->Run();
-}
-
-void FairEventManagerEditor::RunDrawThread()
-{
-    ThreadParam_Draw* par_draw = new ThreadParam_Draw();
-    par_draw->fEventDrawData = fEventDrawData;
-    par_draw->fEventManager = fManager;
-    par_draw->semEventData = semEventData;
-
-    TThread* thread_draw = new TThread(DrawEvent, (void*)par_draw);
-    thread_draw->Run();
+    if (!fManager->isOnline)
+    {
+    // update all scenes
+    fManager->fRPhiView->GetGLViewer()->UpdateScene(kTRUE);
+    fManager->fRhoZView->GetGLViewer()->UpdateScene(kTRUE);
+    fManager->fMulti3DView->GetGLViewer()->UpdateScene(kTRUE);
+    fManager->fMultiRPhiView->GetGLViewer()->UpdateScene(kTRUE);
+    fManager->fMultiRhoZView->GetGLViewer()->UpdateScene(kTRUE);
+    }
 }
 
 //______________________________________________________________________________
@@ -1092,6 +552,68 @@ void FairEventManagerEditor::ShowMCPoints(Bool_t is_show)
     }
 
     points->SetRnrState(is_show);
+
+    // highlight ZDC modules
+    if (fManager->isZDCModule)
+    {
+        if (is_show == true)
+        {
+            TGeoVolume* curVolume = gGeoManager->GetVolume("VETO");
+            if (!curVolume)
+            {
+                cout<<"ERROR: There is no volume with given name: VETO"<<endl;
+            }
+            //for (int i = 0; i < curVolume->GetNdaughters(); i++)
+            for (int i = 0; i < 104; i++)
+            {
+                if (fManager->isZDCModule[i] == false)
+                {
+                    TString vol_name = "";
+                    if (i < 68)
+                        vol_name.Form("VMDL_%d", i+1);
+                    else
+                        vol_name.Form("UMDL_%d", i+1-68);
+                    TGeoNode* child = curVolume->FindNode(vol_name);
+                    if (child == NULL)
+                        continue;
+
+                    //cout<<"Node: "<<child->GetName()<<". Number is equal "<<i<<endl;
+                    child->SetVisibility(false);
+                    child->VisibleDaughters(false);
+                }
+            }
+        }
+        else
+        {
+            TGeoVolume* curVolume = gGeoManager->GetVolume("VETO");
+            if (!curVolume)
+            {
+                cout<<"ERROR: There is no volume with given name: VETO"<<endl;
+            }
+            //for (int i = 0; i < curVolume->GetNdaughters(); i++)
+            for (int i = 0; i < 104; i++)
+            {
+                if (fManager->isZDCModule[i] == false)
+                {
+                    TString vol_name = "";
+                    if (i < 68)
+                        vol_name.Form("VMDL_%d", i+1);
+                    else
+                        vol_name.Form("UMDL_%d", i+1-68);
+                    TGeoNode* child = curVolume->FindNode(vol_name);
+                    if (child == NULL)
+                        continue;
+
+                    //cout<<"Node: "<<child->GetName()<<". Number is equal "<<i<<endl;
+                    child->SetVisibility(true);
+                    child->VisibleDaughters(true);
+                }
+            }
+        }
+    }
+
+    gEve->GetGlobalScene()->SetRnrState(kFALSE);
+    gEve->GetGlobalScene()->SetRnrState(kTRUE);
     gEve->Redraw3D();
 }
 

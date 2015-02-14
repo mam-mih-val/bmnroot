@@ -1,27 +1,23 @@
-//______________________________________________________________________________
-/** FairEventManager
-*  class for event management and navigation.
-*  M. Al-Turany 06.12.2007
-**/
 #include "FairEventManager.h"
+#include "RawMWPCDigitDraw.h"
+#include "constants.h"
 
-#include "FairRootManager.h"            // for FairRootManager
-#include "FairRunAna.h"                 // for FairRunAna
+#include "FairMCPointDraw.h"
+#include "FairMCModuleDraw.h"
+#include "FairMCTracks.h"
+#include "FairHitPointSetDraw.h"
 
-#include "TDatabasePDG.h"               // for TDatabasePDG
-#include "TEveGeoNode.h"                // for TEveGeoTopNode
-#include "TEveManager.h"                // for TEveManager, gEve
-#include "TGeoManager.h"                // for gGeoManager, TGeoManager
-
+#include "TDatabasePDG.h"
+#include "TEveGeoNode.h"
+#include "TEveManager.h"
+#include "TGeoManager.h"
+#include <TGLViewer.h>
 #include <TGLCameraOverlay.h>
 #include <TGLLightSet.h>
 #include <TEveProjectionAxes.h>
 #include <TEveBrowser.h>
 
-#include "constants.h"
-
 #include <cerrno>
-#include <map>
 #include <iostream>
 using namespace std;
 
@@ -33,6 +29,7 @@ FairEventManager* FairEventManager::Instance()
 {
   return fgRinstance;
 }
+
 //______________________________________________________________________________
 FairEventManager::FairEventManager()
   :TEveEventManager("FairEventManager", ""),
@@ -57,12 +54,15 @@ FairEventManager::FairEventManager()
    fRhoZGeomScene(0),
    fRPhiEventScene(0),
    fRhoZEventScene(0),
-   background_color(1),
    EveMCPoints(NULL),
    EveMCTracks(NULL),
    EveRecoPoints(NULL),
    EveRecoTracks(NULL),
-   source_file_name(NULL)
+   arrSelectedColoring(NULL),
+   arrLevelColoring(NULL),
+   background_color(1),
+   source_file_name(NULL),
+   isZDCModule(NULL)
 {
     fgRinstance = this;
 
@@ -366,6 +366,16 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
   gEve->FullRedraw3D(kTRUE);
   fEvent = gEve->AddEvent(this);
 
+  // first 3D viewer
+  gEve->GetDefaultViewer()->SetElementName("3D View");
+  // switch off left and right light sources for first window
+  gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+  gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+  gEve->GetDefaultViewer()->GetGLViewer()->SetClearColor(background_color);
+
+  // many views for Offline mode
+  if (!isOnline)
+  {
   // create projection managers
   fRPhiMng = new TEveProjectionManager();
   fRPhiMng->SetProjection(TEveProjection::kPT_RPhi);
@@ -377,14 +387,7 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
 
   // create axes for viewers
   TEveProjectionAxes* axes = new TEveProjectionAxes(fRPhiMng);
-  axes->SetMainColor(kWhite);
-
-  // first 3D viewer
-  gEve->GetDefaultViewer()->SetElementName("3D View");
-  // switch off left and right light sources for first window
-  gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  gEve->GetDefaultViewer()->GetGLViewer()->SetClearColor(background_color);
+  axes->SetMainColor(kRed);
 
   // add window in EventDisplay for RPhi projection
   TEveWindowSlot *RPhiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
@@ -519,7 +522,8 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
   fMulti3DView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
   fMultiRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
   fMultiRhoZView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
-}
+  }//if (!isOnline)
+}//FairEventManager::Init
 
 // changing of geometry color
 void FairEventManager::SelectedGeometryColoring()
@@ -695,21 +699,25 @@ void FairEventManager::SetDepth(Float_t d)
     fRPhiMng->SetCurrentDepth(d);
     fRhoZMng->SetCurrentDepth(d);
 }
+
 //______________________________________________________________________________
 void FairEventManager::ImportGeomRPhi(TEveElement* el)
 {
     fRPhiMng->ImportElements(el, fRPhiGeomScene);
 }
+
 //______________________________________________________________________________
 void FairEventManager::ImportGeomRhoZ(TEveElement* el)
 {
     fRhoZMng->ImportElements(el, fRhoZGeomScene);
 }
+
 //______________________________________________________________________________
 void FairEventManager::ImportEventRPhi(TEveElement* el)
 {
     fRPhiMng->ImportElements(el, fRPhiEventScene);
 }
+
 //______________________________________________________________________________
 void FairEventManager::ImportEventRhoZ(TEveElement* el)
 {
@@ -717,37 +725,8 @@ void FairEventManager::ImportEventRhoZ(TEveElement* el)
 }
 
 //______________________________________________________________________________
-void FairEventManager::UpdateEditor()
-{
-}
-
-// FairEventManager destructor (empty now)
-FairEventManager::~FairEventManager()
-{
-}
-
-//______________________________________________________________________________
 void FairEventManager::Open()
 {
-}
-
-// go to FairRunAna event with given number for scene data getting
-void FairEventManager::GotoEvent(Int_t event)
-{
-  fEntry=event;
-  fRunAna->Run((Long64_t)event);
-}
-// go to next FairRunAna event for scene data getting
-void FairEventManager::NextEvent()
-{
-  fEntry+=1;
-  fRunAna->Run((Long64_t)fEntry);
-}
-// go to previous FairRunAna event for scene data getting
-void FairEventManager::PrevEvent()
-{
-  fEntry-=1;
-  fRunAna->Run((Long64_t)fEntry);
 }
 
 //______________________________________________________________________________
@@ -756,15 +735,49 @@ void FairEventManager::Close()
 }
 
 //______________________________________________________________________________
-
 void FairEventManager::DisplaySettings()
 {
+}
+
+//______________________________________________________________________________
+void FairEventManager::UpdateEditor()
+{
+}
+
+// FairEventManager destructor
+FairEventManager::~FairEventManager()
+{
+    if (arrSelectedColoring)
+        delete[] arrSelectedColoring;
+    if (arrLevelColoring)
+        delete[] arrLevelColoring;
+}
+
+// go to FairRunAna event with given number for scene data getting
+void FairEventManager::GotoEvent(Int_t event)
+{
+    fEntry = event;
+    fRunAna->Run((Long64_t)event);
+}
+
+// go to next FairRunAna event for scene data getting
+void FairEventManager::NextEvent()
+{
+    fEntry += 1;
+    fRunAna->Run((Long64_t)fEntry);
+}
+
+// go to previous FairRunAna event for scene data getting
+void FairEventManager::PrevEvent()
+{
+    fEntry -= 1;
+    fRunAna->Run((Long64_t)fEntry);
 }
 
 // return integer value of color for track by particle pdg (default, white)
 Int_t FairEventManager::Color(int pdg)
 {
-  switch(pdg) {
+  switch(pdg){
   case   22     :
     return  623;    // photon
   case   -2112  :
@@ -788,7 +801,7 @@ Int_t FairEventManager::Color(int pdg)
   case   13     :
     return  11;    // mu-
   case   -3322  :
-    return  12;   // Xi0
+    return  12;   // Xi0MWPCDigit
   case   111    :
     return  13;    // pi0
   case   -3312  :
@@ -906,8 +919,11 @@ void FairEventManager::AddParticlesToPdgDataBase(Int_t pdg)
                        0,0,"Special",50000051);
 }
 
-void FairEventManager::GetDataSource(Int_t data_source)
+void FairEventManager::SetDataSource(bool is_online, int data_source)
 {
+    isOnline = is_online;
+    fDataSource = data_source;
+
     if (data_source == 0)
     {
         Style_t pointMarker = kFullDotSmall;
@@ -916,7 +932,7 @@ void FairEventManager::GetDataSource(Int_t data_source)
         // draw MC points
         FairMCPointDraw *TofPoint = new FairMCPointDraw("TofPoint", pointColor, pointMarker);
         this->AddTask(TofPoint);
-        FairMCPointDraw *PsdPoint = new FairMCPointDraw("PsdPoint", pointColor, pointMarker);
+        FairMCModuleDraw *PsdPoint = new FairMCModuleDraw("PsdPoint", pointColor, pointMarker);
         this->AddTask(PsdPoint);
         FairMCPointDraw *StsPoint = new FairMCPointDraw("StsPoint", pointColor, pointMarker);
         this->AddTask(StsPoint);
@@ -962,5 +978,16 @@ void FairEventManager::GetDataSource(Int_t data_source)
         // DST tracks
         //MpdTrackDraw *MpdGlobalTrack = new MpdTrackDraw("GlobalTracks");
         //fMan->AddTask(MpdGlobalTrack);
+    }
+
+    if ((data_source == 1) && (!is_online))
+    {
+        Style_t pointMarker = kFullDotSmall;
+        Color_t pointColor = kRed;
+
+        // draw MWPC Digits
+        RawMWPCDigitDraw* MWPCDigit = new RawMWPCDigitDraw("MWPCDigit", pointColor, pointMarker);
+        MWPCDigit->source_file_name = source_file_name;
+        this->AddTask(MWPCDigit);
     }
 }

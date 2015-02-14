@@ -18,6 +18,7 @@ ${CMAKE_SOURCE_DIR}/tpc
 ${CMAKE_SOURCE_DIR}/lhetrack
 ${CMAKE_SOURCE_DIR}/eventdisplay
 ${CMAKE_SOURCE_DIR}/mwpc
+${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/src
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -42,6 +43,10 @@ FairMCPointDraw.cxx
 FairHitDraw.cxx
 FairHitPointSetDraw.cxx
 FairTimeStampPointDraw.cxx
+FairMCModuleDraw.cxx
+RawDataParser.cxx
+RawDataConverter.cxx
+RawMWPCDigitDraw.cxx
 )
 
 Set(HEADERS )

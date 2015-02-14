@@ -1,29 +1,16 @@
-/**
-* class for event management and navigation.
-* 06.12.07 M.Al-Turany
-*/
 #ifndef FairEventManager_H
 #define FairEventManager_H
 
-#include "TEveEventManager.h"           // for TEveEventManager
+#include "FairRootManager.h"
+#include "FairRunAna.h"
+#include "FairTask.h"
 
-#include "FairRunAna.h"                 // for FairRunAna
-
-#include "Rtypes.h"                     // for Float_t, Int_t, Bool_t, etc
-
-//new
 #include <TEveViewer.h>
-#include <TGLViewer.h>
+#include "TEveEventManager.h"
 #include <TEveScene.h>
 #include <TGeoNode.h>
 #include <TEveProjectionManager.h>
-#include "FairMCPointDraw.h"
-#include "FairMCTracks.h"
-#include "FairHitPointSetDraw.h"
-
-class FairRootManager; //does not work with streamer, reason unclear
-class FairTask;
-class TGListTreeItem;
+#include "TGListTree.h"
 
 class FairEventManager : public TEveEventManager
 {
@@ -71,32 +58,32 @@ class FairEventManager : public TEveEventManager
     static FairEventManager* Instance();
     FairEventManager();
     virtual ~FairEventManager();
+
     virtual void Open();
     virtual void GotoEvent(Int_t event);    // *MENU*
     virtual void NextEvent();               // *MENU*
     virtual void PrevEvent();               // *MENU*
     virtual void Close();
     virtual void DisplaySettings();         //  *Menu*
-    virtual Int_t Color(Int_t pdg);
-    void AddTask(FairTask* t) {fRunAna->AddTask(t);}
-    virtual void Init(Int_t visopt = 1, Int_t vislvl = 3, Int_t maxvisnds = 10000);
-    virtual Int_t GetCurrentEvent() {return fEntry;}
-    virtual void SetPriOnly(Bool_t Pri) {fPriOnly=Pri;}
-    virtual Bool_t IsPriOnly() {return fPriOnly;}
-    virtual void SelectPDG(Int_t PDG) {fCurrentPDG=PDG;}
-    virtual Int_t GetCurrentPDG() {return fCurrentPDG;}
-
-    virtual void SetMaxEnergy(Float_t max) {fMaxEnergy = max;}
-    virtual void SetMinEnergy(Float_t min) {fMinEnergy = min;}
-    virtual void SetEvtMaxEnergy(Float_t max) {fEvtMaxEnergy = max;}
-    virtual void SetEvtMinEnergy(Float_t min) {fEvtMinEnergy = min;}
-    virtual Float_t GetEvtMaxEnergy() {return fEvtMaxEnergy;}
-    virtual Float_t GetEvtMinEnergy() {return fEvtMinEnergy;}
-    virtual Float_t GetMaxEnergy() {return fMaxEnergy;}
-    virtual Float_t GetMinEnergy() {return fMinEnergy;}
-
     void UpdateEditor();
-    virtual void AddParticlesToPdgDataBase(Int_t pdg=0);
+    virtual Int_t Color(Int_t pdg);
+    void AddTask(FairTask* t) { fRunAna->AddTask(t); }
+    virtual void Init(Int_t visopt = 1, Int_t vislvl = 3, Int_t maxvisnds = 10000);
+    virtual Int_t GetCurrentEvent() { return fEntry; }
+    virtual void SetPriOnly(Bool_t Pri) { fPriOnly = Pri; }
+    virtual Bool_t IsPriOnly() { return fPriOnly; }
+    virtual void SelectPDG(Int_t PDG) { fCurrentPDG = PDG; }
+    virtual Int_t GetCurrentPDG() { return fCurrentPDG; }
+    virtual void AddParticlesToPdgDataBase( Int_t pdg = 0 );
+
+    virtual void SetMaxEnergy(Float_t max) { fMaxEnergy = max; }
+    virtual void SetMinEnergy(Float_t min) { fMinEnergy = min; }
+    virtual void SetEvtMaxEnergy(Float_t max) { fEvtMaxEnergy = max; }
+    virtual void SetEvtMinEnergy(Float_t min) { fEvtMinEnergy = min; }
+    virtual Float_t GetEvtMaxEnergy() { return fEvtMaxEnergy; }
+    virtual Float_t GetEvtMinEnergy() { return fEvtMinEnergy; }
+    virtual Float_t GetMaxEnergy() { return fMaxEnergy; }
+    virtual Float_t GetMinEnergy() { return fMinEnergy; }
 
     //MultiView features
     void SetDepth(Float_t d);
@@ -129,38 +116,53 @@ class FairEventManager : public TEveEventManager
     // scene for event presenation in RPhoZ plane
     TEveScene* fRhoZEventScene;
 
+    // background color of EVE Viewers
     int background_color;
-    bool is_online;
-    char* source_file_name;  //!
+    // file name with data source
+    char* source_file_name; //!
+    // whether Online of Offline mode
+    bool isOnline;
+    // data source: 0 - simulation data; 1 - raw detector data
+    int fDataSource;
 
+    // Event Elements of Event Scene
     TEveElementList* EveMCPoints, *EveMCTracks, *EveRecoPoints, *EveRecoTracks;
+    // ZDC module visibility flags. NULL if there are no ZDC modules to show
+    bool* isZDCModule; //!
 
+    // set high (80) transparency for detector geometry
     void SelectedGeometryTransparent(bool is_on);
     void RecursiveChangeNodeTransparent(TGeoNode* parentNode, int transparency);
-    void GetDataSource(Int_t data_source);
+
+    // set FairRunAna tasks depending from data source and on/offline mode
+    void SetDataSource(bool is_online, int data_source);
+
+    // event number
+    Int_t fEntry; //!
+    // FairRunAna to init and to execute visualization tasks
+    FairRunAna* fRunAna; //!
 
   private:
     FairRootManager* fRootManager; //!
-    Int_t fEntry;                 //!
-    FairRunAna* fRunAna;          //!
-    TGListTreeItem*  fEvent;     //!
-    Bool_t fPriOnly;             //!
-    Int_t fCurrentPDG;           //!
+    TGListTreeItem* fEvent; //!
+    Bool_t fPriOnly; //!
+    Int_t fCurrentPDG; //!
     // the most minimum particle energy for selected event
-    Float_t fMinEnergy;         //!
+    Float_t fMinEnergy; //!
     // the most maximum particle energy for selected event
-    Float_t fMaxEnergy;         //!
+    Float_t fMaxEnergy; //!
     // minimum energy to cut particles by energy in selected event
-    Float_t fEvtMinEnergy;      //!
+    Float_t fEvtMinEnergy; //!
     // maximum energy to cut particles by energy in selected event
-    Float_t fEvtMaxEnergy;      //!
+    Float_t fEvtMaxEnergy; //!
 
+    // skeleton Singleton Instance
     static FairEventManager* fgRinstance; //!
 
     int cntSelectedColoring;
     structSelectedColoring* arrSelectedColoring; //!
     int cntLevelColoring;
-    structLevelColoring* arrLevelColoring;       //!
+    structLevelColoring* arrLevelColoring; //!
 
     FairEventManager(const FairEventManager&);
     FairEventManager& operator=(const FairEventManager&);

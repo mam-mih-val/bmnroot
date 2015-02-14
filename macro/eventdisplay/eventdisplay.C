@@ -1,5 +1,5 @@
 // is_online: true - use Online Mode for EventManager, false - use Offline Mode for EventManager
-// data source: 0 - root files with simulation data, 1 - raw files with detector stream data
+// data source: 0 - root files with reconstructed and simulation data, 1 - raw files with detector stream data
 // input_file - input file name corresponding data source: reconstructed or raw data (begin of file name for raw data files from detector MWPC)
 // add_file - second file: if simulation - file with MC data to check reconstruction; if raw - file with geometry to display detectors
 // out_file - output file
@@ -75,10 +75,9 @@ void eventdisplay (char* input_file = 0, char* add_file = 0, char* out_file = 0,
   // Create event manager
   FairEventManager *fMan= new FairEventManager();
   fMan->source_file_name = input_file;
-  fMan->is_online = is_online;
 
-
-  fMan->GetDataSource(data_source);
+  // set FairTasks for initialization and Run/Draw
+  fMan->SetDataSource(data_source);
 
   if (gGeoManager)
       gGeoManager->SetVisLevel(3);

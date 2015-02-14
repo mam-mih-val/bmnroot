@@ -1,26 +1,51 @@
-#include "TMath.h"
-#include "TVector3.h"
-#include "../bmndata/BmnMwpcDigit.h"
+#include "RawDataConverter.h"
 
+#include "TMath.h"
 using namespace TMath;
+
+#include <iostream>
 using namespace std;
 
-const Short_t kTimeBin = 8; // ns
-const Short_t kNWires = 102; //in one plane
-const Float_t kAngleStep = 60; // degrees
-const Float_t kWireStep = 0.25; // cm
-const Float_t kPlaneHeight = 43.3; // cm
-const Float_t kPlaneWidth = kNWires * kWireStep; // cm
+RawDataConverter::RawDataConverter()
+{
+    kTimeBin = 8; // ns
+    kNWires = 102; //in one plane
+    kAngleStep = 60.0; // degrees
+    kWireStep = 0.25; // cm
+    kPlaneHeight = 43.3; // cm
+    kPlaneWidth; // cm
+    kPlaneWidth = kNWires * kWireStep; // cm
 
-const Float_t kMwpcZpos = 50.0; // z-position of the center of MWPC
-const Int_t kMwpcNum = 1; //number of MWPC (from 1 to 3)
+    kMwpcZpos = 50.0; // z-position of the center of MWPC
+    kMwpcNum = 1; //number of MWPC (from 1 to 3)
+}
 
-// nWire1 - number of the first wire      //from 0 to 102
-// nWire2 - number of the second wire     //from 0 to 102
-// nPlane1 - number of the first plane    //from 1 to 6
-// nPlane2 - number of the second plane   //from 1 to 6
+RawDataConverter::~RawDataConverter()
+{
+}
 
-TVector3* CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ) {
+vector<TVector3*> RawDataConverter::MWPCEventToGeoVector(EventData* curEvent)
+{
+    bool isEmptyPlane = false;
+    for (int j = 0; j< 6; j++)
+    {
+        if (curEvent->MWPC1Planes[j].size() == 0)
+            isEmptyPlane = true;
+    }
+
+    if (isEmptyPlane)
+        cout<<"WARNING!!! digits count 0"<<endl;
+
+    cout<<"Search hits: "<<curEvent->MWPC1Planes[0].size()<<" : "<<curEvent->MWPC1Planes[1].size()<<" : "<<curEvent->MWPC1Planes[2].size()<<" : "
+        <<curEvent->MWPC1Planes[3].size()<<" : "<<curEvent->MWPC1Planes[4].size()<<" : "<<curEvent->MWPC1Planes[5].size()<<endl;
+
+    vector<TVector3*> event_hits = SearchHits(curEvent->MWPC1Planes[0], curEvent->MWPC1Planes[1], curEvent->MWPC1Planes[2],
+                                                  curEvent->MWPC1Planes[3], curEvent->MWPC1Planes[4], curEvent->MWPC1Planes[5]);
+
+    return event_hits;
+}
+
+TVector3* RawDataConverter::CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ) {
     Short_t dWireI = dI->GetWireNumber();
     Short_t dWireJ = dJ->GetWireNumber();
     Float_t xI = kPlaneWidth * (dWireI * 1.0 / kNWires - 0.5); //local X by wire number
@@ -34,7 +59,7 @@ TVector3* CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ) {
     return pos;
 }
 
-vector<TVector3*> CreateHitsByTwoPlanes(vector<BmnMwpcDigit*> x, vector<BmnMwpcDigit*> y) {
+vector<TVector3*> RawDataConverter::CreateHitsByTwoPlanes(vector<BmnMwpcDigit*> x, vector<BmnMwpcDigit*> y) {
     vector<TVector3*> v;
     for (Int_t i = 0; i < x.size(); ++i) {
         BmnMwpcDigit* dI = (BmnMwpcDigit*) x.at(i);
@@ -47,7 +72,7 @@ vector<TVector3*> CreateHitsByTwoPlanes(vector<BmnMwpcDigit*> x, vector<BmnMwpcD
     return v;
 }
 
-vector<TVector3*> SearchHits(vector<BmnMwpcDigit*> x1, vector<BmnMwpcDigit*> u1, vector<BmnMwpcDigit*> v1, vector<BmnMwpcDigit*> x2, vector<BmnMwpcDigit*> u2, vector<BmnMwpcDigit*> v2) {
+vector<TVector3*> RawDataConverter::SearchHits(vector<BmnMwpcDigit*> x1, vector<BmnMwpcDigit*> u1, vector<BmnMwpcDigit*> v1, vector<BmnMwpcDigit*> x2, vector<BmnMwpcDigit*> u2, vector<BmnMwpcDigit*> v2) {
 
     Float_t x = 0.0;
     Float_t y = 0.0;

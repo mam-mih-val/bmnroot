@@ -77,7 +77,7 @@ void eventdisplay (char* input_file = 0, char* add_file = 0, char* out_file = 0,
   fMan->source_file_name = input_file;
 
   // set FairTasks for initialization and Run/Draw
-  fMan->SetDataSource(data_source);
+  fMan->SetDataSource(is_online, data_source);
 
   if (gGeoManager)
       gGeoManager->SetVisLevel(3);

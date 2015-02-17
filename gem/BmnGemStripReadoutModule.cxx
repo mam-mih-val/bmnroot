@@ -433,6 +433,8 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
 }
 
 ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t x, Double_t y,  Double_t signal) {
+    //#define DRAW_REAL_LOWER_CLUSTER_HISTOGRAMS
+
     ClusterParameters cluster(0, 0);
 
     if( AvalancheRadius <= 0.0 ) AvalancheRadius = 1e-8;
@@ -560,45 +562,68 @@ ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t x, Double_
 
 //find mean value of avalanche position (fitting by gaus function)
     Double_t mean_fit_pos = 0.0;
-    //Double_t total_signal = 0.0;
-    Int_t begin_strip_num = (Int_t)(LowerZonePos-RadiusInZones);
-    Int_t last_strip_num = (Int_t)(LowerZonePos+RadiusInZones);
+
+    Int_t begin_strip_num = cluster.Strips.at(0);
+    Int_t last_strip_num = cluster.Strips.at(cluster.Strips.size()-1);
     Int_t nstrips = last_strip_num - begin_strip_num + 1;
 
-    TH1F hist("hist", "hist", nstrips, begin_strip_num, last_strip_num+1);
+    TH1F hist("hist_for_fit", "hist_for_fit", nstrips, begin_strip_num, last_strip_num+1);
     Int_t hist_index = 0;
 
-    for(Int_t istrip = begin_strip_num; istrip < last_strip_num+1; istrip++) {
-        Double_t value = GetValueOfLowerStrip(istrip);
-        if(value != -1) {
-            hist.SetBinContent(hist_index+1, value);
-            //total_signal += value;
-        }
-        else {
-            hist.SetBinContent(hist_index+1, 0.0);
-        }
+    for(Int_t i = 0; i < cluster.Strips.size(); ++i) {
+        Double_t value = cluster.Signals.at(i);
+        hist.SetBinContent(hist_index+1, value);
         hist_index++;
     }
 
-    hist.Fit("gaus", "WQ0"); //Q - quit mode (without information on the screen); 0 - not draw
-    TF1* gausFitFunction = hist.GetFunction("gaus");
-    if(gausFitFunction) {
-        mean_fit_pos = gausFitFunction->GetParameter(1);
+    TF1* gausFitFunction = 0;
+        TString fit_params = "WQ0";
+
+    #ifdef DRAW_REAL_UPPER_CLUSTER_HISTOGRAMS
+                fit_params = "WQ";
+    #endif
+
+    if(nstrips > 2) {
+        hist.Fit("gaus", fit_params); //Q - quit mode (without information on the screen); 0 - not draw
+        gausFitFunction = hist.GetFunction("gaus");
+        if(gausFitFunction) {
+            mean_fit_pos = gausFitFunction->GetParameter(1);
+        }
+        else {
+            mean_fit_pos = hist.GetMean();
+        }
     }
     else {
-        mean_fit_pos = (Int_t)LowerZonePos + 0.5;
+        mean_fit_pos = hist.GetMean();
     }
-
-    //gPad->GetCanvas()->SaveAs("/home/diman/Software/pics/test_lower.png");
-    //cout << "total_signal_lower = " << total_signal << "\n";
 
     cluster.MeanPosition = mean_fit_pos;
     cluster.TotalSignal = total_signal;
+
+#ifdef DRAW_REAL_LOWER_CLUSTER_HISTOGRAMS
+    //drawing cluster histograms
+    TString hist_fit_title = "";
+    hist_fit_title += "sz: "; hist_fit_title += nstrips;
+    hist_fit_title += ", mean_fit_pos: "; hist_fit_title += mean_fit_pos;
+    hist_fit_title += ", sigma_fit: "; if(gausFitFunction) { hist_fit_title += gausFitFunction->GetParameter(2); } else {  hist_fit_title += "---"; }
+    hist_fit_title += ", mean_h "; hist_fit_title += hist.GetMean();
+    if(gausFitFunction) { hist_fit_title += ", mean_g:"; hist_fit_title += gausFitFunction->GetParameter(1); }
+    hist.SetTitle(hist_fit_title);
+    hist.SetMinimum(0);
+    hist.SetFillColor(TColor::GetColor("#ffc0cb"));
+    TCanvas canv_fit("canv_fit","canv_fit", 0, 0, 1200, 600);
+    hist.Draw();
+    TString file_name = "/home/diman/Software/pics/real_low_cluster_";
+    file_name += mean_fit_pos; file_name += ".png";
+    gPad->GetCanvas()->SaveAs(file_name);
+#endif
 
     return cluster;
 }
 
 ClusterParameters BmnGemStripReadoutModule::MakeUpperCluster(Double_t x, Double_t y,  Double_t signal) {
+    //#define DRAW_REAL_UPPER_CLUSTER_HISTOGRAMS
+
     ClusterParameters cluster(0, 0);
 
     if( AvalancheRadius <= 0.0 ) AvalancheRadius = 1e-8;
@@ -726,40 +751,61 @@ ClusterParameters BmnGemStripReadoutModule::MakeUpperCluster(Double_t x, Double_
 
 //find mean value of avalanche position (fitting by gaus function)
     Double_t mean_fit_pos = 0.0;
-    //Double_t total_signal = 0.0;
-    Int_t begin_strip_num = (Int_t)(UpperZonePos-RadiusInZones);
-    Int_t last_strip_num = (Int_t)(UpperZonePos+RadiusInZones);
+
+    Int_t begin_strip_num = cluster.Strips.at(0);
+    Int_t last_strip_num = cluster.Strips.at(cluster.Strips.size()-1);
     Int_t nstrips = last_strip_num - begin_strip_num + 1;
 
-    TH1F hist("hist", "hist", nstrips, begin_strip_num, last_strip_num+1);
+    TH1F hist("hist_for_fit", "hist_for_fit", nstrips, begin_strip_num, last_strip_num+1);
     Int_t hist_index = 0;
 
-    for(Int_t istrip = begin_strip_num; istrip < last_strip_num+1; istrip++) {
-        Double_t value = GetValueOfUpperStrip(istrip);
-        if(value != -1) {
-            hist.SetBinContent(hist_index+1, value);
-            //total_signal += value;
-        }
-        else {
-            hist.SetBinContent(hist_index+1, 0.0);
-        }
+    for(Int_t i = 0; i < cluster.Strips.size(); ++i) {
+        Double_t value = cluster.Signals.at(i);
+        hist.SetBinContent(hist_index+1, value);
         hist_index++;
     }
 
-    hist.Fit("gaus", "WQ0"); //Q - quit mode (without information on the screen); 0 - not draw
-    TF1* gausFitFunction = hist.GetFunction("gaus");
-    if(gausFitFunction) {
-        mean_fit_pos = gausFitFunction->GetParameter(1);
+    TF1* gausFitFunction = 0;
+    TString fit_params = "WQ0";
+
+#ifdef DRAW_REAL_UPPER_CLUSTER_HISTOGRAMS
+            fit_params = "WQ";
+#endif
+
+    if(nstrips > 2) {
+        hist.Fit("gaus", fit_params); //Q - quit mode (without information on the screen); 0 - not draw
+        gausFitFunction = hist.GetFunction("gaus");
+        if(gausFitFunction) {
+            mean_fit_pos = gausFitFunction->GetParameter(1);
+        }
+        else {
+            mean_fit_pos = hist.GetMean();
+        }
     }
     else {
-        mean_fit_pos = (Int_t)UpperZonePos + 0.5;
+        mean_fit_pos = hist.GetMean();
     }
-
-    //gPad->GetCanvas()->SaveAs("/home/diman/Software/pics/test_upper.png");
-    //cout << "total_signal_upper = " << total_signal << "\n";
 
     cluster.MeanPosition = mean_fit_pos;
     cluster.TotalSignal = total_signal;
+
+#ifdef DRAW_REAL_UPPER_CLUSTER_HISTOGRAMS
+    //drawing cluster histograms
+    TString hist_fit_title = "";
+    hist_fit_title += "sz: "; hist_fit_title += nstrips;
+    hist_fit_title += ", mean_fit_pos: "; hist_fit_title += mean_fit_pos;
+    hist_fit_title += ", sigma_fit: "; if(gausFitFunction) { hist_fit_title += gausFitFunction->GetParameter(2); } else {  hist_fit_title += "---"; }
+    hist_fit_title += ", mean_h "; hist_fit_title += hist.GetMean();
+    if(gausFitFunction) { hist_fit_title += ", mean_g:"; hist_fit_title += gausFitFunction->GetParameter(1); }
+    hist.SetTitle(hist_fit_title);
+    hist.SetMinimum(0);
+    hist.SetFillColor(TColor::GetColor("#b6e1fc"));
+    TCanvas canv_fit("canv_fit","canv_fit", 0, 0, 1200, 600);
+    hist.Draw();
+    TString file_name = "/home/diman/Software/pics/real_up_cluster_";
+    file_name += mean_fit_pos; file_name += ".png";
+    gPad->GetCanvas()->SaveAs(file_name);
+#endif
 
     return cluster;
 }
@@ -823,6 +869,7 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
 }
 
 void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector<Double_t> &clusterValues, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors, Int_t &curcnt) {
+    //#define DRAW_FOUND_CLUSTER_HISTOGRAMS
 
     Double_t total_signal = 0.0;
 
@@ -842,7 +889,7 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
     Int_t nextStripNum = clusterDigits.at(clusterDigits.size()-1)+1;
     if(nextStripNum < Strips.size()) {
         if(Strips.at(nextStripNum) > 0.0) {
-            Double_t diff = 0.0;
+            /*Double_t diff = 0.0;
             Int_t numObr = 2*maxdig - (clusterValues.size()-1);
             if( numObr >= 0 ) {
                 diff = clusterValues.at(clusterValues.size()-1) - clusterValues.at(numObr);
@@ -851,53 +898,83 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
                     Strips.at(clusterDigits.at(clusterDigits.size()-1)) = diff;
                     total_signal -= diff;
                 }
-            }
+            }*/
+
+            /*Double_t last_value = clusterValues.at(clusterValues.size()-1);
+            clusterValues.at(clusterValues.size()-1) -= last_value/2.0;
+            Strips.at(clusterDigits.at(clusterDigits.size()-1)) = last_value/2.0;
+            total_signal -= last_value/2.0;*/
         }
     }
 
     curcnt--;
     if( curcnt < 0 ) curcnt = 0;
 
-    Double_t Mean = 0.0;
-    Double_t Sigma = 0.0;
-    TH1F hist("hist", "hist", clusterDigits.size()+1, 0, clusterDigits.size()+1);
-    for(Int_t i = 0; i < clusterDigits.size(); i++) {
-        hist.SetBinContent(i+1, clusterValues.at(i));
+    Double_t mean_fit_pos = 0.0;
+    Double_t sigma_fit = 0.0;
+
+    Int_t begin_strip_num = (Int_t)(clusterDigits.at(0));
+    Int_t last_strip_num = (Int_t)(clusterDigits.at(clusterDigits.size()-1));
+    Int_t nstrips = last_strip_num - begin_strip_num + 1;
+
+    TH1F hist("hist_for_fit", "hist_for_fit", nstrips, begin_strip_num, last_strip_num+1);
+    Int_t hist_index = 0;
+
+    for(Int_t i = 0; i < clusterDigits.size(); ++i) {
+        Double_t value = clusterValues.at(i);
+        hist.SetBinContent(hist_index+1, value);
+        hist_index++;
     }
 
-    if(clusterDigits.size() > 1) {
-        hist.Fit("gaus", "WQ0"); //Q - quit mode (without information on the screen); 0 - not draw
-        //hist.Fit("gaus", "W");
+    TF1* gausFitFunction = 0;
+        TString fit_params = "WQ0";
 
-        TF1* gausF = hist.GetFunction("gaus");
-        if(gausF) {
-            Mean = gausF->GetParameter(1) + clusterDigits.at(0);
-            Sigma = gausF->GetParameter(2);
+    #ifdef DRAW_REAL_UPPER_CLUSTER_HISTOGRAMS
+                fit_params = "WQ";
+    #endif
+
+    if(nstrips > 2) {
+        hist.Fit("gaus", fit_params); //Q - quit mode (without information on the screen); 0 - not draw
+        gausFitFunction = hist.GetFunction("gaus");
+        if(gausFitFunction) {
+            mean_fit_pos = gausFitFunction->GetParameter(1);
+            sigma_fit = gausFitFunction->GetParameter(2);
         }
         else {
-            Mean = clusterDigits.at(0) + 0.5;
-            Sigma = 0.33;
+            mean_fit_pos = hist.GetMean();
+            sigma_fit = hist.GetRMS();
         }
     }
     else {
-        Mean = clusterDigits.at(0) + 0.5;
-        Sigma = 0.33;
+        mean_fit_pos = hist.GetMean();
+        sigma_fit = hist.GetRMS();
     }
 
-    StripHits.push_back(Mean);
+    StripHits.push_back(mean_fit_pos);
     StripHitsTotalSignal.push_back(total_signal);
-    StripHitsErrors.push_back(Sigma);
+    StripHitsErrors.push_back(sigma_fit);
 
     clusterDigits.clear();
     clusterValues.clear();
 
-    //for testing
-    //TRandom rand(0);
-    //TString str = "/home/diman/Software/pics/hist";
-    ///str += curcnt;str += "_";str += rand.Uniform(0,1);str += ".png";
-    //gPad->GetCanvas()->.SaveAs(str);
-
-    //cout << "total_signal_after_reconstruction = " << total_signal << "\n";
+#ifdef DRAW_FOUND_CLUSTER_HISTOGRAMS
+    //drawing cluster histograms
+    TString hist_fit_title = "";
+    hist_fit_title += "sz: "; hist_fit_title += nstrips;
+    hist_fit_title += ", mean_fit_pos: "; hist_fit_title += mean_fit_pos;
+    hist_fit_title += ", sigma_fit: "; hist_fit_title += sigma_fit;
+    hist_fit_title += ", mean_h "; hist_fit_title += hist.GetMean();
+    if(gausFitFunction) { hist_fit_title += ", mean_g:"; hist_fit_title += gausFitFunction->GetParameter(1); }
+    hist.SetTitle(hist_fit_title);
+    hist.SetMinimum(0);
+    hist.SetFillColor(TColor::GetColor("#ffc8a8"));
+    TCanvas canv_fit("canv_fit","canv_fit", 0, 0, 1200, 600);
+    hist.Draw();
+    TRandom rand(0); Int_t rnd = rand.Uniform(1,100);
+    TString file_name = "/home/diman/Software/pics/found_cluster_";
+    file_name += mean_fit_pos; file_name += "_"; file_name += rnd; file_name += ".png";
+    gPad->GetCanvas()->SaveAs(file_name);
+#endif
 }
 
 Double_t BmnGemStripReadoutModule::GetLowerStripHitPos(Int_t num) {

@@ -644,25 +644,26 @@ Int_t CbmStsSensor::GetBackChannel (Double_t x, Double_t y, Double_t z) {
   // Calculate internal coordinates. Return -1 if outside sensor.
   Double_t xint  = 0;
   Double_t yint  = 0;
+  Double_t xp = 0;
   if ( ! IntCoord(x, y, xint, yint) ) return -1;
   Int_t    iChan = 0;
 
 //  xint += gRandom->Gaus(0.,fXSmearWidth+fZSmearSlope*z);
 //  yint += gRandom->Gaus(0.,fXSmearWidth+fZSmearSlope*z);
   if (fStereoB*180/TMath::Pi()>80) {
-    Double_t xp = yint;
+    xp = yint;
     xp = xp - TMath::Floor(xp/fLy) * fLy;
     iChan = (Int_t)(xp/fDy);
   }
   else {
-    Double_t xp = xint + fBackStripShift + yint * TMath::Tan(fStereoB);
+    xp = xint + fBackStripShift + yint * TMath::Tan(fStereoB);
     //AZ xp = xp - TMath::Floor(xp/fLx) * fLx;
     if (fType != 2) xp = xp - TMath::Floor(xp/fLx) * fLx;
     iChan = (Int_t)(xp/fDx);
   }
   
 
-  //cout << "  " << xint << " " << yint << " -> " << xp << " -> " << iChan << endl;
+  //if (fZ0 < 25) cout << "  " << xint << " " << yint << " -> " << xp << " -> " << iChan << " " << fNChannelsBack << endl;
   if ( iChan < 0 || iChan > fNChannelsBack ) return -1;
   return iChan;
 }
@@ -1055,7 +1056,9 @@ Int_t CbmStsSensor::IntersectClusters(Double_t fChan, Double_t bChan,
   if ( zCross < 0.001 ) return -1;
   
   //AZ - Reject points outside of the sensor boundaries (for complex geometries)
-  if (!fName.Contains(gGeoManager->FindNode(xCross, yCross, zCross)->GetName())) return -1;
+  TString where = gGeoManager->FindNode(xCross, yCross, zCross)->GetName();
+  if (!fName.Contains(where)) return -1;
+  if (!where.Contains("sens",TString::kIgnoreCase)) return -1;
 
   return fDetectorId;
 }

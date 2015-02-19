@@ -36,6 +36,8 @@ public:
 
     void ProcessDigits();
 
+    void FindHitsAndFakes(Int_t *PointTypeArray, BmnGemStripStation* station, BmnGemStripReadoutModule* module);
+
 private:
 
     TString fInputPointsBranchName;

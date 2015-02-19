@@ -21,6 +21,10 @@ public:
         fELoss = de;
     }
 
+    void SetType(Int_t type) {
+        fType = type;
+    }
+
     Double_t GetEnergyLoss() {
         return fELoss;
     }
@@ -29,9 +33,14 @@ public:
         return fModule;
     }
 
+    Int_t GetType() {
+        return fType;
+    }
+
 private:
     Int_t fModule;
     Double_t fELoss;
+    Int_t fType; // 0 - fake, 1 - hit, -1 - undefined
 
     ClassDef(BmnGemStripHit, 1);
 };

@@ -80,7 +80,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
     Int_t NCalculatedPoints = StationSet.CountNProcessedPointsInDetector();
     if(fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
-    
+
     Int_t match_cnt = 0;
     for(Int_t iStation = 0; iStation < StationSet.GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet.GetGemStation(iStation);
@@ -88,6 +88,14 @@ void BmnGemStripHitMaker::ProcessDigits() {
         for(Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripReadoutModule *module = station->GetReadoutModule(iModule);
             Double_t z = module->GetZPositionReadout();
+
+//Find hits and fakes-----------------------------------------------------------
+            Int_t *PointTypeArray = new Int_t[module->GetNIntersectionPoints()];
+            for(Int_t i = 0; i < module->GetNIntersectionPoints(); ++i) {
+                PointTypeArray[i] = -1; //set undef feature
+            }
+            FindHitsAndFakes(PointTypeArray, station, module);
+//------------------------------------------------------------------------------
 
             for(Int_t iPoint = 0; iPoint < module->GetNIntersectionPoints(); ++iPoint) {
                 Double_t x = module->GetIntersectionPointX(iPoint);
@@ -126,7 +134,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
                         }
                     }
                 }
-                //--------------------------------------------------------------
+//------------------------------------------------------------------------------
 
                 //Add hit
                 x *= -1; // invert to global X
@@ -142,12 +150,52 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 Double_t deloss_lower = module->GetIntersectionPointsLowerTotalSignal(iPoint);
                 Double_t deloss_upper = module->GetIntersectionPointsUpperTotalSignal(iPoint);
                 hit->SetEnergyLoss(deloss_lower+deloss_upper);
+
+                hit->SetType(PointTypeArray[iPoint]);
                 //--------------------------------------------------------------
             }
+            delete [] PointTypeArray;
         }
     }
     if(fVerbose) cout << "   N matches with MC-points = " << match_cnt << "\n";
 //------------------------------------------------------------------------------
+}
+
+void BmnGemStripHitMaker::FindHitsAndFakes(Int_t *PointTypeArray, BmnGemStripStation* station, BmnGemStripReadoutModule* module) {
+    Double_t hit_rate_threshold = 0.01;
+    Double_t fake_rate_threshold = 0.5;
+
+    for(Int_t iPoint = 0; iPoint < module->GetNIntersectionPoints(); ++iPoint) {
+        Double_t lower_pos = module->GetIntersectionPointLowerStripPos(iPoint);
+        Double_t upper_pos = module->GetIntersectionPointUpperStripPos(iPoint);
+
+        Double_t lower_signal = module->GetIntersectionPointsLowerTotalSignal(iPoint);
+        Double_t upper_signal = module->GetIntersectionPointsUpperTotalSignal(iPoint);
+
+        Double_t diff_signal = lower_signal - upper_signal;
+        Double_t diff_signal_normalized = diff_signal/(lower_signal+upper_signal);
+
+        if( Abs(diff_signal_normalized) <= hit_rate_threshold ) {
+            PointTypeArray[iPoint] = 1; // hit
+
+            for(Int_t i = 0; i < module->GetNIntersectionPoints(); ++i) {
+                if(i != iPoint) {
+                    if(PointTypeArray[i] != 1) {
+                       Double_t lpos = module->GetIntersectionPointLowerStripPos(i);
+                       Double_t upos = module->GetIntersectionPointUpperStripPos(i);
+                       if(lpos == lower_pos || upos == upper_pos) {
+                           PointTypeArray[i] = 0; //fake
+                       }
+                    }
+                }
+            }
+        }
+        else {
+            if( Abs(diff_signal_normalized) > fake_rate_threshold ) {
+                //PointTypeArray[iPoint] = 0; //fake
+            }
+        }
+    }
 }
 
 void BmnGemStripHitMaker::Finish() {

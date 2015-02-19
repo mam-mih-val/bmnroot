@@ -80,7 +80,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
     Int_t NCalculatedPoints = StationSet.CountNProcessedPointsInDetector();
     if(fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
-
+    
     Int_t match_cnt = 0;
     for(Int_t iStation = 0; iStation < StationSet.GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet.GetGemStation(iStation);

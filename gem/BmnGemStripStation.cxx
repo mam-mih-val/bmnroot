@@ -136,15 +136,19 @@ BmnGemStripStation::BmnGemStripStation(Int_t iStation,
 //Big readout modules
     ReadoutModules[0] =
         new BmnGemStripReadoutModule(XSizeBigReadoutModule, YSizeBigReadoutModule, XMin_ReadoutModule[0], YMin_ReadoutModule[0], PitchValueBigModule, StripAngle, LowerStripWidth, UpperStripWidth, displ);
+    ReadoutModules[0]->SetDeadZone(XMin_ReadoutModule[4], XMax_ReadoutModule[4], YMin_ReadoutModule[4], YMax_ReadoutModule[4]);
 
     ReadoutModules[1] =
         new BmnGemStripReadoutModule(XSizeBigReadoutModule, YSizeBigReadoutModule, XMin_ReadoutModule[1], YMin_ReadoutModule[1], PitchValueBigModule, -StripAngle, LowerStripWidth, UpperStripWidth, displ+ZSizeReadoutModule);
+    ReadoutModules[1]->SetDeadZone(XMin_ReadoutModule[5], XMax_ReadoutModule[5], YMin_ReadoutModule[5], YMax_ReadoutModule[5]);
 
     ReadoutModules[2] =
         new BmnGemStripReadoutModule(XSizeBigReadoutModule, YSizeBigReadoutModule, XMin_ReadoutModule[2], YMin_ReadoutModule[2], PitchValueBigModule, StripAngle, LowerStripWidth, UpperStripWidth, displ);
+    ReadoutModules[2]->SetDeadZone(XMin_ReadoutModule[6], XMax_ReadoutModule[6], YMin_ReadoutModule[6], YMax_ReadoutModule[6]);
 
     ReadoutModules[3] =
         new BmnGemStripReadoutModule(XSizeBigReadoutModule, YSizeBigReadoutModule, XMin_ReadoutModule[3], YMin_ReadoutModule[3], PitchValueBigModule, -StripAngle, LowerStripWidth, UpperStripWidth, displ+ZSizeReadoutModule);
+    ReadoutModules[3]->SetDeadZone(XMin_ReadoutModule[7], XMax_ReadoutModule[7], YMin_ReadoutModule[7], YMax_ReadoutModule[7]);
 
 //Small readout modules (inners))
     ReadoutModules[4] =

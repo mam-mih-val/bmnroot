@@ -1,6 +1,8 @@
 #include "BmnGemStripReadoutModule.h"
 
 BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
+    Verbosity = kTRUE;
+
     Pitch = 400*1E-4;           //cm
     LowerStripWidth = Pitch;  //cm
     UpperStripWidth = Pitch;   //cm
@@ -30,6 +32,8 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule(Double_t xsize, Double_t ysiz
                                        Double_t pitch, Double_t adeg,
                                        Double_t low_strip_width, Double_t up_strip_width,
                                        Double_t zpos_module) {
+    Verbosity = kTRUE;
+
     XMinReadout = xorig;
     XMaxReadout = xorig + xsize;
     YMinReadout = yorig;
@@ -82,8 +86,6 @@ void BmnGemStripReadoutModule::CreateReadoutPlanes() {
 
     ResetIntersectionPoints();
     ResetRealPoints();
-
-    //if(GetYStripsIntersectionSize() > (YMaxReadout-YMinReadout)) cout<<"WARNING: Y-size of a strip intersection is more than y-size of the readout plane ("<<GetYStripsIntersectionSize()<<" > "<< YMaxReadout-YMinReadout<<")\n";
 
     ResetStripHits();
 }
@@ -150,6 +152,17 @@ void BmnGemStripReadoutModule::SetReadoutSizes(Double_t xsize, Double_t ysize, D
     RebuildReadoutPlanes();
 }
 
+Bool_t BmnGemStripReadoutModule::SetDeadZone(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax) {
+    if((xmax - xmin) >= 0 && (ymax - ymin) >=0) {
+        DeadZone.Xmin = xmin;
+        DeadZone.Xmax = xmax;
+        DeadZone.Ymin = ymin;
+        DeadZone.Ymax = ymax;
+        return true;
+    }
+    else return false;
+}
+
 void BmnGemStripReadoutModule::SetAngleDeg(Double_t deg) {
     if(Abs(deg) <= 90.0) {
          AngleDeg = deg;
@@ -197,137 +210,120 @@ Double_t BmnGemStripReadoutModule::GetYErrorIntersection() {
 }
 
 Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z, Double_t signal) {
-    Int_t numLowStrip = ConvertRealPointToLowerStripNum(x, y);
-    Int_t numUpStrip = ConvertRealPointToUpperStripNum(x, y);
+    if( x >= XMinReadout && x <= XMaxReadout &&
+        y >= YMinReadout && y <= YMaxReadout &&
+        !DeadZone.IsInside(x, y) ) {
 
-    if(numLowStrip < ReadoutLowerPlane.size() && numUpStrip < ReadoutUpperPlane.size()) {
+        Int_t numLowStrip = ConvertRealPointToLowerStripNum(x, y);
+        Int_t numUpStrip = ConvertRealPointToUpperStripNum(x, y);
 
-//        if((GetValueOfLowerStrip(numLowStrip) > 0) && (GetValueOfUpperStrip(numUpStrip) > 0)) {
-//            NDubbedPoints++;
-//        }
+        if(numLowStrip < ReadoutLowerPlane.size() && numUpStrip < ReadoutUpperPlane.size()) {
+            ReadoutLowerPlane.at(numLowStrip)++;
+            ReadoutUpperPlane.at(numUpStrip)++;
 
-        ReadoutLowerPlane.at(numLowStrip)++;
-        ReadoutUpperPlane.at(numUpStrip)++;
+            RealPointsX.push_back(x);
+            RealPointsY.push_back(y);
 
-        RealPointsX.push_back(x);
-        RealPointsY.push_back(y);
+            RealPointsLowerStripPos.push_back(numLowStrip);
+            RealPointsUpperStripPos.push_back(numUpStrip);
 
-        RealPointsLowerStripPos.push_back(numLowStrip);
-        RealPointsUpperStripPos.push_back(numUpStrip);
-
-        RealPointsLowerTotalSignal.push_back(signal);
-        RealPointsUpperTotalSignal.push_back(signal);
-
+            RealPointsLowerTotalSignal.push_back(signal);
+            RealPointsUpperTotalSignal.push_back(signal);
+        }
+        else return false;
         return true;
     }
     else {
-        cout << "WARNING: Point (" << x << " : " << y << ") is out of the readout plane" << "\n";
+        if(Verbosity) cout << "WARNING: Point (" << x << " : " << y << ") is out of the readout plane or inside a dead zone\n";
         return false;
     }
 }
 
 Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
                                                   Double_t px, Double_t py, Double_t pz, Double_t signal) {
+    if( x >= XMinReadout && x <= XMaxReadout &&
+        y >= YMinReadout && y <= YMaxReadout &&
+        !DeadZone.IsInside(x, y) ) {
 
-    if(pz == 0) return false;
-    if(px == 0 && py == 0) px = 1e-8;
+        if(pz == 0) return false;
+        if(px == 0 && py == 0) px = 1e-8;
 
-    Double_t zdist = DriftGap - Abs(z-ZReadoutModulePosition);
-    if(zdist < 0) {
-        cout << "WARNING: Point (" << x << " : " << y << " : " << z << ") is out of a drift zone\n";
-        return false;
+        Double_t zdist = DriftGap - Abs(z-ZReadoutModulePosition);
+        if(zdist < 0) {
+            if(Verbosity) cout << "WARNING: Point (" << x << " : " << y << " : " << z << ") is out of a drift zone\n";
+            return false;
+        }
+
+        //Particle direction at the current point
+        Double_t dirx = px/Abs(pz);
+        Double_t diry = py/Abs(pz);
+        Double_t dirz = pz/Abs(pz);
+
+        if(Verbosity) cout << "x = " << x << "\n";
+        if(Verbosity) cout << "y = " << y << "\n";
+        if(Verbosity) cout << "z = " << z << "\n";
+
+        if(Verbosity) cout << "px = " << px << "\n";
+        if(Verbosity) cout << "py = " << py << "\n";
+        if(Verbosity) cout << "pz = " << pz << "\n";
+
+        if(Verbosity) cout << "dirx = " << dirx << "\n";
+        if(Verbosity) cout << "diry = " << diry << "\n";
+        if(Verbosity) cout << "dirz = " << dirz << "\n";
+
+        if(Verbosity) cout << "zdist = " << zdist << "\n";
+
+        Double_t x_out = dirx*zdist + x;
+        Double_t y_out = diry*zdist + y;
+
+        //if(x_out < XMinReadout) { x_out = XMinReadout; }
+        //if(x_out > XMaxReadout) { x_out = XMaxReadout; }
+        //if(y_out < YMinReadout) { y_out = YMinReadout; }
+        //if(y_out > YMaxReadout) { y_out = YMaxReadout; }
+
+        if(Verbosity) cout << "x_out = " << x_out << "\n";
+        if(Verbosity) cout << "y_out = " << y_out << "\n";
+        if(Verbosity) cout << "z_out = " << DriftGap << "\n";
+
+        Double_t dist_track = Sqrt((x_out-x)*(x_out-x) + (y_out-y)*(y_out-y) + zdist*zdist);
+        Double_t dist_projXY = Sqrt((x_out-x)*(x_out-x) + (y_out-y)*(y_out-y));
+
+        Double_t dist_projX = Abs(x_out-x);
+        Double_t dist_projY = Abs(y_out-y);
+
+        if(Verbosity) cout << "dist_track = " << dist_track << "\n";
+        if(Verbosity) cout << "dist_XY = " << dist_projXY << "\n";
+        if(Verbosity) cout << "dist_projX = " << dist_projX << "\n";
+        if(Verbosity) cout << "dist_projY = " << dist_projY << "\n";
+
+        Int_t NCollisions = (int)(dist_track/MCD);
+
+        if(Verbosity) cout << "NCollisions = " << NCollisions << "\n";
+
+        Double_t xstep = MCD*(dist_projXY/dist_track)*(dist_projX/dist_projXY);
+        Double_t ystep = MCD*(dist_projXY/dist_track)*(dist_projY/dist_projXY);
+
+        if(dirx < 0) xstep *= -1.0;
+        if(diry < 0) ystep *= -1.0;
+
+        if(Verbosity) cout << "xstep = " << xstep << " (" << MCD << ")" << "\n";
+        if(Verbosity) cout << "ystep = " << ystep << " (" << MCD << ")" << "\n";
+
+        Int_t rcoll = 0;
+        for(Int_t iColl = 0; iColl < NCollisions+1; iColl++) {
+            Double_t xs = x + iColl*xstep;
+            Double_t ys = y + iColl*ystep;
+
+            if( (xs < XMinReadout) || (xs > XMaxReadout) || (ys < YMinReadout) || (ys > YMaxReadout) ) break;
+
+            MakeLowerCluster(xs, ys, signal);
+            MakeUpperCluster(xs, ys, signal);
+
+            if(Verbosity) cout << iColl << ") xys = " << xs << " : " << ys << "\n";
+        }
+        return true;
     }
-
-    //Particle direction at the current point
-    Double_t dirx = px/Abs(pz);
-    Double_t diry = py/Abs(pz);
-    Double_t dirz = pz/Abs(pz);
-
-    cout << "x = " << x << "\n";
-    cout << "y = " << y << "\n";
-    cout << "z = " << z << "\n";
-
-    cout << "px = " << px << "\n";
-    cout << "py = " << py << "\n";
-    cout << "pz = " << pz << "\n";
-
-    cout << "dirx = " << dirx << "\n";
-    cout << "diry = " << diry << "\n";
-    cout << "dirz = " << dirz << "\n";
-
-    cout << "zdist = " << zdist << "\n";
-
-    Double_t x_out = dirx*zdist + x;
-    Double_t y_out = diry*zdist + y;
-
-    //if(x_out < XMinReadout) { x_out = XMinReadout; }
-    //if(x_out > XMaxReadout) { x_out = XMaxReadout; }
-    //if(y_out < YMinReadout) { y_out = YMinReadout; }
-    //if(y_out > YMaxReadout) { y_out = YMaxReadout; }
-
-    cout << "x_out = " << x_out << "\n";
-    cout << "y_out = " << y_out << "\n";
-    cout << "z_out = " << DriftGap << "\n";
-
-    Double_t dist_track = Sqrt((x_out-x)*(x_out-x) + (y_out-y)*(y_out-y) + zdist*zdist);
-    Double_t dist_projXY = Sqrt((x_out-x)*(x_out-x) + (y_out-y)*(y_out-y));
-
-    Double_t dist_projX = Abs(x_out-x);
-    Double_t dist_projY = Abs(y_out-y);
-
-    cout << "dist_track = " << dist_track << "\n";
-    cout << "dist_XY = " << dist_projXY << "\n";
-    cout << "dist_projX = " << dist_projX << "\n";
-    cout << "dist_projY = " << dist_projY << "\n";
-
-    Int_t NCollisions = (int)(dist_track/MCD);
-
-    cout << "NCollisions = " << NCollisions << "\n";
-
-    Double_t xstep = MCD*(dist_projXY/dist_track)*(dist_projX/dist_projXY);
-    Double_t ystep = MCD*(dist_projXY/dist_track)*(dist_projY/dist_projXY);
-
-    if(dirx < 0) xstep *= -1.0;
-    if(diry < 0) ystep *= -1.0;
-
-    cout << "xstep = " << xstep << " (" << MCD << ")" << "\n";
-    cout << "ystep = " << ystep << " (" << MCD << ")" << "\n";
-
-    Int_t rcoll = 0;
-    for(Int_t iColl = 0; iColl < NCollisions+1; iColl++) {
-        Double_t xs = x + iColl*xstep;
-        Double_t ys = y + iColl*ystep;
-
-        if( (xs < XMinReadout) || (xs > XMaxReadout) || (ys < YMinReadout) || (ys > YMaxReadout) ) break;
-
-        MakeLowerCluster(xs, ys, signal);
-        MakeUpperCluster(xs, ys, signal);
-
-        cout << iColl << ") xys = " << xs << " : " << ys << "\n";
-    }
-
-/*
-    static TCanvas *canv = new TCanvas("canv", "canv_title", 10, 10, 700, 700);
-    static TPad *pad = new TPad("pad", "pad_title", 0.05, 0.05, 0.95, 0.95, TColor::GetColor("#eeeeee"));
-
-    pad->Range(XMinReadout, YMinReadout,  XMaxReadout, YMaxReadout);
-    //pad->Range(x, y,  x_out, y_out);
-
-    pad->Draw();
-    pad->cd();
-
-    TEllipse *point_in = new TEllipse(x,y, 0.02);
-    point_in->SetFillColor(kBlue);
-    TEllipse *point_out = new TEllipse(x_out, y_out, 0.02);
-    point_out->SetFillColor(kBlue);
-
-    point_in->Draw();
-    point_out->Draw();
-
-    //canv->SaveAs("/home/diman/Software/test.png");
-    //delete box;
-    //delete canv;
- */
+    return false;
 }
 
 Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z, Double_t signal) {
@@ -335,7 +331,8 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
 #define EQUAL_SIGNAL
 
     if( x >= XMinReadout && x <= XMaxReadout &&
-        y >= YMinReadout && y <= YMaxReadout ) {
+        y >= YMinReadout && y <= YMaxReadout &&
+        !DeadZone.IsInside(x, y) ) {
 
         if(signal <= 0.0) signal = 1e-16;
 
@@ -427,7 +424,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
         return true;
     }
     else {
-        cout << "WARNING: Point (" << x << " : " << y << ") is out of the readout plane" << "\n";
+        if(Verbosity) cout << "WARNING: Point (" << x << " : " << y << ") is out of the readout plane or inside a dead zone\n";
         return false;
     }
 }
@@ -1210,7 +1207,7 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
             Double_t xcoord = FindXHitIntersectionPoint(LowerStripHits.at(i),UpperStripHits.at(j));
             Double_t ycoord = FindYHitIntersectionPoint(LowerStripHits.at(i),UpperStripHits.at(j));
 
-            if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) ) {
+            if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) && !DeadZone.IsInside(xcoord, ycoord)) {
                 IntersectionPointsX.push_back(xcoord);
                 IntersectionPointsY.push_back(ycoord);
 
@@ -1236,7 +1233,7 @@ void BmnGemStripReadoutModule::CalculateMiddleIntersectionPoints() {
                     Double_t xcoord = FindXMiddleIntersectionPoint(i,j);
                     Double_t ycoord = FindYMiddleIntersectionPoint(i,j);
 
-                    if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) )
+                    if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) && !DeadZone.IsInside(xcoord, ycoord) )
                     {
                         IntersectionPointsX.push_back(xcoord);
                         IntersectionPointsY.push_back(ycoord);
@@ -1273,7 +1270,7 @@ void BmnGemStripReadoutModule::CalculateLeftIntersectionPoints() {
                         ycoord = FindYHighIntersectionPoint(i,j);
                     }
 
-                    if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) )
+                    if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) && !DeadZone.IsInside(xcoord, ycoord) )
                     {
                         IntersectionPointsX.push_back(xcoord);
                         IntersectionPointsY.push_back(ycoord);
@@ -1310,7 +1307,7 @@ void BmnGemStripReadoutModule::CalculateRightIntersectionPoints() {
                         ycoord = FindYLowIntersectionPoint(i,j);
                     }
 
-                    if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) )
+                    if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) && !DeadZone.IsInside(xcoord, ycoord) )
                     {
                         IntersectionPointsX.push_back(xcoord);
                         IntersectionPointsY.push_back(ycoord);
@@ -1356,11 +1353,10 @@ void BmnGemStripReadoutModule::CalculateBorderIntersectionPoints() {
                     }
                     Bool_t InYMinBound = false;
                     Bool_t InYMaxBound = false;
-                    if( (ycoord_min <= YMaxReadout) && (ycoord_min >= YMinReadout) ) InYMinBound = true;
-                    if( (ycoord_max <= YMaxReadout) && (ycoord_max >= YMinReadout) ) InYMaxBound = true;
+                    if( (ycoord_min <= YMaxReadout) && (ycoord_min >= YMinReadout) && (ycoord_min < DeadZone.Ymax) && (ycoord_min > DeadZone.Ymin) ) InYMinBound = true;
+                    if( (ycoord_max <= YMaxReadout) && (ycoord_max >= YMinReadout) && (ycoord_max < DeadZone.Ymax) && (ycoord_max > DeadZone.Ymin) ) InYMaxBound = true;
 
-                    if( InYMinBound && InYMaxBound )
-                    {
+                    if( InYMinBound && InYMaxBound ) {
                         Double_t xcoord_point = (xcoord_min+xcoord_max)/2;
                         Double_t ycoord_point = (ycoord_min+ycoord_max)/2;
 

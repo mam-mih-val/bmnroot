@@ -17,6 +17,21 @@ using namespace std;
 
 struct ClusterParameters;
 
+struct DeadStripZone {
+    Double_t Xmin;
+    Double_t Xmax;
+    Double_t Ymin;
+    Double_t Ymax;
+
+    DeadStripZone() : Xmin(0), Xmax(0), Ymin(0), Ymax(0) {}
+    DeadStripZone(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax) : Xmin(xmin), Xmax(xmax), Ymin(ymin), Ymax(ymax) {}
+
+    Bool_t IsInside(Double_t x, Double_t y) {
+        if(x>Xmin && x<Xmax && y>Ymin && y<Ymax) return true;
+        else return false;
+    }
+};
+
 class BmnGemStripReadoutModule {
 
 public:
@@ -38,9 +53,11 @@ public:
     void ResetStripHits();
 
 //Parameter setters
+    void SetVerbosity(Bool_t verb) { Verbosity = verb; }
     void SetPitch(Double_t pitch); //cm
     void SetStripWidths(Double_t low_strip_width, Double_t up_strip_width);
     void SetReadoutSizes(Double_t xsize, Double_t ysize, Double_t xorig=0.0, Double_t yorig=0.0);
+    Bool_t SetDeadZone(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax);
     void SetAngleDeg(Double_t deg); //minis - clockwise, plus - anticlockwise
     void SetZPosition(Double_t zpos_module) { ZReadoutModulePosition = zpos_module; }
     void SetAvalancheRadius(Double_t aval_radius) { AvalancheRadius = aval_radius; }
@@ -50,6 +67,7 @@ public:
     void SetDistortion(Double_t distortion);  //example: 0.1 is equal 10%
 
 //Parameter getters
+    Bool_t GetVerbosity() { return Verbosity; }
     Double_t GetPitch() { return Pitch; }
     Double_t GetLowerStripWidth() { return LowerStripWidth; }
     Double_t GetUpperStripWidth() { return UpperStripWidth; }
@@ -60,6 +78,10 @@ public:
     Double_t GetXMaxReadout() { return XMaxReadout; }
     Double_t GetYMinReadout() { return YMinReadout; }
     Double_t GetYMaxReadout() { return YMaxReadout; }
+    Double_t GetXMinDeadZone() { return DeadZone.Xmin; }
+    Double_t GetXMaxDeadZone() { return DeadZone.Xmax; }
+    Double_t GetYMinDeadZone() { return DeadZone.Ymin; }
+    Double_t GetYMaxDeadZone() { return DeadZone.Ymax; }
     Double_t GetZPositionReadout() { return ZReadoutModulePosition; }
     Double_t GetAvalancheRadius() { return AvalancheRadius; }
     Double_t GetMeanCollisionDistance() { return MCD; }
@@ -167,6 +189,7 @@ public: //private (public - for test)
 
 //Data-members
 private:
+    Bool_t Verbosity;
     Double_t Pitch;
     Double_t LowerStripWidth;
     Double_t UpperStripWidth;
@@ -177,6 +200,8 @@ private:
     Double_t XMaxReadout;
     Double_t YMinReadout;
     Double_t YMaxReadout;
+
+    DeadStripZone DeadZone;
 
     Double_t ZReadoutModulePosition;
 

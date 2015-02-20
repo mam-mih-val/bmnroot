@@ -101,6 +101,9 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
 
+                Double_t low_pos_intersec = module->GetIntersectionPointLowerStripPos(iPoint);
+                Double_t up_pos_intersec = module->GetIntersectionPointUpperStripPos(iPoint);
+
                 Double_t x_err = module->GetIntersectionPointXError(iPoint);
                 Double_t y_err = module->GetIntersectionPointYError(iPoint);
                 Double_t z_err = 0.0;
@@ -118,14 +121,14 @@ void BmnGemStripHitMaker::ProcessDigits() {
                     Int_t ModuleNum = station->GetPointModuleOwhership(xmc, ymc);
 
                     if((StationNum == iStation) && (ModuleNum == iModule)) {
-                        Double_t pitch = StationSet.GetGemStation(iStation)->GetReadoutModule(iModule)->GetPitch();
-                        Double_t angle = StationSet.GetGemStation(iStation)->GetReadoutModule(iModule)->GetAngleDeg();
+                        Double_t low_pos_mc = module->CalculateLowerStripZonePosition(xmc, ymc);
+                        Double_t up_pos_mc = module->CalculateUpperStripZonePosition(xmc, ymc);
 
-                        Double_t max_xdeviation = pitch;
-                        Double_t max_ydeviation = pitch/Sin(Abs(angle)*Pi()/180.0);
+                        Double_t low_diff_pos = Abs(low_pos_intersec - low_pos_mc);
+                        Double_t up_diff_pos = Abs(up_pos_intersec - up_pos_mc);
 
-                        if( (Abs(x-xmc) <= max_xdeviation) && (Abs(y-ymc) <= max_ydeviation) ) {
-                            Double_t cur_distance = (x-xmc)*(x-xmc) + (y-ymc)*(y-ymc);
+                        if( low_diff_pos <= 1.5 && up_diff_pos <= 1.5 ) {
+                            Double_t cur_distance = low_diff_pos + up_diff_pos;
                             if(cur_distance < min_distance) {
                                 min_distance = cur_distance;
                                 RefMCIndex = iMCPoint;

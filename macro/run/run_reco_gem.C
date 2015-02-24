@@ -56,13 +56,12 @@ void run_reco_gem(TString mcFile = "mc.root", Int_t nEvents = 2) {
   paramDir += "/parameters";
 
   //TObjString stsDigiFile = paramDir + "/sts/sts_v12b_12344444_std.digi.par";
-  TObjString stsDigiFile = paramDir + "/sts_v16a_gem.digi.par";
+  TObjString stsDigiFile = paramDir + "/sts_v17a_gem.digi.par";
   //TObjString stsDigiFile = paramDir + "/sts_v15a90_gem.digi.par";
   //TObjString stsDigiFile = paramDir + "/sts_1st_30.digi.par";
   //TObjString stsDigiFile = paramDir + "/sts_var.digi.par";
   TString stsMatBudgetFile = ""; //paramDir + "/sts/sts_matbudget_v12b_12344444.root";
   //TString stsMatBudgetFile = paramDir + "/sts_matbudget_var_fr.root";
-  //TString stsMatBudgetFile = paramDir + "/radThick_v16a.root";
   parFileList->Add(&stsDigiFile);
 
   // In general, the following parts need not be touched

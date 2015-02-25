@@ -111,8 +111,14 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 //match intersection points with MC-points (find RefMCIndex)
                 Int_t RefMCIndex = -1;
                 Double_t min_distance = 1E10;
+                Int_t *MCPointsStatArray = new Int_t[fBmnGemStripPointsArray->GetEntriesFast()]; // 0 - not used MC point, 1 - used
+                for(Int_t i = 0; i < fBmnGemStripPointsArray->GetEntriesFast(); ++i) {
+                    MCPointsStatArray[i] = 0; //unused status
+                }
 
                 for(Int_t iMCPoint = 0; iMCPoint < fBmnGemStripPointsArray->GetEntriesFast(); iMCPoint++) {
+                    if(MCPointsStatArray[iMCPoint] == 1) continue;
+                    
                     MCPoint = (FairMCPoint*) fBmnGemStripPointsArray->At(iMCPoint);
                     Double_t xmc = -MCPoint->GetX();
                     Double_t ymc = MCPoint->GetY();
@@ -132,11 +138,13 @@ void BmnGemStripHitMaker::ProcessDigits() {
                             if(cur_distance < min_distance) {
                                 min_distance = cur_distance;
                                 RefMCIndex = iMCPoint;
+                                match_cnt++;
                             }
-                            match_cnt++;
                         }
                     }
                 }
+                if(RefMCIndex != -1) MCPointsStatArray[RefMCIndex] = 1;
+                delete [] MCPointsStatArray;
 //------------------------------------------------------------------------------
 
                 //Add hit

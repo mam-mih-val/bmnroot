@@ -38,6 +38,7 @@ public:
     
     BmnStatus DoHistoTracking();
     BmnStatus FindSeedInYSlice(Int_t yAddr, Int_t yStep);
+    Float_t GetOrdAfterRotate(Float_t angle, Float_t xOld, Float_t yOld); //rotate coordinate system and return new value of ordinate
 
     void SetMakeQA(Bool_t qa) {
         fMakeQA = qa;

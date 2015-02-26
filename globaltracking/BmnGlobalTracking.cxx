@@ -176,7 +176,7 @@ InitStatus BmnGlobalTracking::Init() {
 
     // ----------------- DCH1 initialization -----------------// 
     if (fDet.GetDet(kDCH1)) {
-        fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit");
+        fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit0");
         if (!fDch1Hits) {
             cout << "BmnGlobalTracking::Init: No BmnDch1Hit array!" << endl;
         } else {
@@ -192,7 +192,7 @@ InitStatus BmnGlobalTracking::Init() {
 
     // ----------------- DCH2 initialization -----------------// 
     if (fDet.GetDet(kDCH2)) {
-        fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit");
+        fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit0");
         if (!fDch2Hits) {
             cout << "BmnGlobalTracking::Init: No BmnDch2Hit array!" << endl;
         } else {

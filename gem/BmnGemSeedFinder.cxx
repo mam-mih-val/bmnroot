@@ -13,8 +13,8 @@ static Float_t workTime = 0.0;
 
 const Float_t thresh = 0.7; // threshold for efficiency calculation (70%)
 
-map<ULong_t, Int_t> addresses;       // map for calculating addresses of hits in histogram {x/R, y/R}
-const UInt_t kNHITSFORSEED = 5;      // we use for seeds only kNHITSFORSEED hits
+map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
+const UInt_t kNHITSFORSEED = 5; // we use for seeds only kNHITSFORSEED hits
 const UInt_t kMAXSTATIONFORSEED = 3; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
 
 using std::cout;
@@ -82,8 +82,8 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
-//        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits)
-        if (hit->GetType() == 0) continue; //Excluding fake hits 
+        //        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits)
+        if (hit->GetType() != 1) continue; //Using ONLY real hits 
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
         //        const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         const Float_t R = hit->GetZ(); //Test for different type of transformation
@@ -93,11 +93,14 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
         Int_t yAddr = ceil((newY - fMin) / fWidth);
         ULong_t addr = yAddr * fNBins + xAddr;
         hit->SetAddr(addr);
-        hit->SetXaddr(xAddr);
+        //        hit->SetXaddr(xAddr);
+        hit->SetXaddr(-1);
         hit->SetYaddr(yAddr);
         addresses.insert(pair<ULong_t, Int_t > (addr, hitIdx));
     }
     DoSeeding();
+
+    //DoHistoTracking();
 
     cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
 
@@ -213,7 +216,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
                 fHisto->_hNumMcTrack->Fill(indexes.size());
             }
         }
-        
+
         for (Int_t i = 0; i < fGemSeedsArray->GetEntriesFast(); ++i) {
             BmnGemTrack* seed = (BmnGemTrack*) fGemSeedsArray->At(i);
             CbmMCTrack* mcTrack = (CbmMCTrack*) fMCTracksArray->At(seed->GetRef());
@@ -221,13 +224,13 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
             Float_t P_rec = Abs(1.0 / seed->GetParamFirst()->GetQp());
             fHisto->_hPsimPrec->Fill(P_sim, P_rec);
         }
-        
 
-//        allTrackCntr += fGemSeedsArray->GetEntriesFast();
-//        for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
-//            if (GetHit(hitIdx)->GetStation() + 1 > kNHITSFORSEED + kMAXSTATIONFORSEED) continue;
-//            allHitCntr++;
-//        }
+
+        //        allTrackCntr += fGemSeedsArray->GetEntriesFast();
+        //        for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
+        //            if (GetHit(hitIdx)->GetStation() + 1 > kNHITSFORSEED + kMAXSTATIONFORSEED) continue;
+        //            allHitCntr++;
+        //        }
     }
 
 
@@ -688,7 +691,8 @@ BmnGemStripHit* BmnGemSeedFinder::GetHit(Int_t i) {
 }
 
 BmnStatus BmnGemSeedFinder::DoHistoTracking() {
-    const Int_t dY = 10; //step on Y/R
+    //const Int_t dY = 10; //step on Y/R
+    const Int_t dY = fNBins; //step on Y/R
     for (Int_t yAddr = 0; yAddr < fNBins; yAddr += dY) {
         FindSeedInYSlice(yAddr, dY);
     }
@@ -697,37 +701,67 @@ BmnStatus BmnGemSeedFinder::DoHistoTracking() {
 }
 
 BmnStatus BmnGemSeedFinder::FindSeedInYSlice(Int_t yAddr, Int_t yStep) {
-    
-    const Float_t alphaMin = -15.0 * DegToRad();
-    const Float_t tgMin = Tan(alphaMin);
+
+    const Float_t alphaMin = -0.15 * DegToRad();
     const Float_t alphaMax = -alphaMin;
-    const Float_t hHist = (fMax - fMin) / 1000;
-    const Float_t zMax = 124.0; // tmp
-    const Float_t alphaStep = hHist / zMax;
-    
-    const Float_t thresh = 4;
-    
+    const Int_t nAlphaSteps = 100;
+    const Float_t alphaStep = (alphaMax - alphaMin) / nAlphaSteps;
+    const Float_t hHist = (fMax - fMin) / 100;
+
+    const Float_t thresh = 6; //4;
+
+    //cout << "Params: " << alphaMin << " " << alphaMax << " " << alphaStep << endl;
+
     Float_t alpha = alphaMin;
-    Int_t k = 0; // counter
+
     while (alpha < alphaMax) {
-        TH1F* hist = new TH1F("hist", "hist", fNBins, fMin, fMax);
+        cout << "alpha = " << alpha * RadToDeg() << endl;
+        map<ULong_t, Int_t> projHist;
         for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
             BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(iHit);
-            if(hit->IsUsed()) continue;
+            // if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
+            if (hit->IsUsed()) continue;
             Int_t hitYaddr = hit->GetYaddr();
             if (hitYaddr < yAddr + yStep && hitYaddr >= yAddr) {
                 Float_t x = hit->GetX() / Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
                 Float_t z = hit->GetZ();
-                Float_t xProj = x - z * (tgMin + k * alphaStep);
-                hist->Fill(xProj);
+                Float_t xProj = GetOrdAfterRotate(alpha, z, x);
+                //                Int_t xAddr = ceil((xProj - fMin) / fWidth);
+                Int_t xAddr = ceil((xProj - fMin) / hHist);
+                //cout << hit->GetXaddr();
+                hit->SetXaddr(xAddr);
+                //cout << " " << hit->GetXaddr() << endl;
+                if (projHist.find(xAddr) == projHist.end()) {
+                    projHist.insert(pair<ULong_t, Int_t > (xAddr, 1));
+                } else {
+                    projHist.find(xAddr)->second++;
+                }
             }
         }
-        for (Int_t iBin = 0; iBin < hist->GetNbinsX(); ++iBin) {
-            if (hist->GetBinContent(iBin) >= thresh) {
-                cout << hist->GetBinCenter(iBin) << endl;
+
+        for (map<ULong_t, Int_t>::iterator it = projHist.begin(); it != projHist.end(); ++it) {
+            if (it->second >= thresh) {
+                for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
+                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(iHit);
+                    if (hit->IsUsed()) continue;
+                    if (hit->GetXaddr() == it->first) {
+                        cout << hit->GetXaddr() << " alpha = " << alpha * RadToDeg() << endl;
+                        hit->SetUsing(kTRUE);
+                    }
+                }
             }
         }
-        k++;
+
+        for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
+            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(iHit);
+            hit->SetXaddr(-1);
+        }
+
+        alpha += alphaStep;
     }
     return kBMNSUCCESS;
+}
+
+Float_t BmnGemSeedFinder::GetOrdAfterRotate(Float_t angle, Float_t xOld, Float_t yOld) {
+    return xOld * (-Sin(angle)) + yOld * Cos(angle);
 }

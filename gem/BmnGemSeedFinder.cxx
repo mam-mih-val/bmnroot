@@ -93,8 +93,8 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
         Int_t yAddr = ceil((newY - fMin) / fWidth);
         ULong_t addr = yAddr * fNBins + xAddr;
         hit->SetAddr(addr);
-        //        hit->SetXaddr(xAddr);
-        hit->SetXaddr(-1);
+        hit->SetXaddr(xAddr);
+        //        hit->SetXaddr(-1);
         hit->SetYaddr(yAddr);
         addresses.insert(pair<ULong_t, Int_t > (addr, hitIdx));
     }

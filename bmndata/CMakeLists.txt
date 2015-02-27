@@ -57,13 +57,17 @@ CbmMvdGeoPar.cxx
 CbmGeoSttPar.cxx
 BmnDchHit.cxx
 BmnGlobalTrack.cxx
-BmnMwpcDigit.cxx
 BmnMwpcHit.cxx
 BmnTofHit.cxx
 BmnLink.cxx
 BmnMatch.cxx
 BmnTrackMatch.cxx
 BmnHit.cxx
+BmnMwpcDigit.cxx
+BmnTof1Digit.cxx
+BmnTof2Digit.cxx
+BmnDchDigit.cxx
+BmnEcalDigit.cxx
 )
 
 # fill list of header files from list of source files

@@ -17,7 +17,7 @@ const Float_t thresh = 0.7; // threshold for efficiency calculation (70%)
 
 map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
 const UInt_t kNHITSFORSEED = 5; // we use for seeds only kNHITSFORSEED hits
-const UInt_t kMAXSTATIONFORSEED = 2; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
+const UInt_t kMAXSTATIONFORSEED = 3; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
 
 using std::cout;
 using namespace TMath;
@@ -84,7 +84,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
-        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits)
+        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
         //        if (hit->GetType() != 1) continue; //Using ONLY real hits 
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
@@ -346,8 +346,8 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
                 GetHit(trackCand.GetHitIndex(i))->SetUsing(kFALSE);
             continue;
         }
-        TVector3 circPar = CircleFit(&trackCand);
-        //TVector3 circPar = CircleFitNew(&trackCand);
+//        TVector3 circPar = CircleFit(&trackCand);
+        TVector3 circPar = CircleFitNew(&trackCand);
         TVector3 linePar = LineFit(&trackCand);
         if (circPar.Z() == 0.0) continue;
         trCntr++;
@@ -653,64 +653,106 @@ TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack* track) {
 }
 
 TVector3 BmnGemSeedFinder::CircleFitNew(BmnGemTrack* track) {
+    
+    Int_t iter = 0;
+    const Int_t iterMax = 20;
 
-    const Float_t nHits = track->GetNHits();
+    Double_t Xi, Yi; //centered coordinates
+    Double_t Mx, My; // 1-st momentum
+    Double_t Ri;     // radii
+    Double_t Mr, Mxy, Mxx, Myy, Mxr, Myr, Mrr, Mxr2, Myr2, Cov_xy;
+    Double_t A0, A1, A2, A22;
+    const Double_t epsilon = 0.000000000001;
+    Double_t Dy, xnew, xold, ynew, yold = 100000000000.;
+    Double_t GAM, DET;
+    Double_t Xc, Yc, R;
 
-    Float_t Xi = 0.0, Zi = 0.0; // coordinates of current track point
-    Float_t Sxx = 0.0, Szz = 0.0, Szx = 0.0;
-    Float_t Szzz = 0.0, Szxx = 0.0, Szzx = 0.0, Sxxx = 0.0;
-    Float_t Szzzz = 0.0, Sxxxx = 0.0, Szzxx = 0.0;
-
-    //first approximation with equal weights
-    for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        Xi = hit->GetX();
-        Zi = hit->GetZ();
-        Sxx += Xi * Xi;
-        Szz += Zi * Zi;
-        Szx += Zi * Xi;
-        Szzz += Zi * Zi * Zi;
-        Sxxx += Xi * Xi * Xi;
-        Szxx += Zi * Xi * Xi;
-        Szzx += Zi * Zi * Xi;
-        Szzzz += Zi * Zi * Zi * Zi;
-        Sxxxx += Xi * Xi * Xi * Xi;
-        Szzxx += Zi * Zi * Xi * Xi;
-    }
-
-    const Float_t K = (3 * Szz + Sxx) / nHits;
-    const Float_t G = (Szz + 3 * Sxx) / nHits;
-    const Float_t P = (Szzz + Szxx) / nHits;
-    const Float_t Q = (Szzx + Sxxx) / nHits;
-    const Float_t H = 2 * Szx / nHits;
-    const Float_t T = (Szzzz + Sxxxx + 2 * Szzxx) / nHits;
-    const Float_t Gamma0 = (Szz + Sxx) / nHits;
-    const Float_t Gamma0_2 = Gamma0 * Gamma0;
-    const Float_t Gamma0_3 = Gamma0_2 * Gamma0;
-    const Float_t Gamma0_4 = Gamma0_2 * Gamma0_2;
-
-    const Float_t Ao = (-K - G) / Gamma0;
-    const Float_t Bo = (K * G - T - H * H) / Gamma0_2;
-    const Float_t Co = (T * (K + G) - 2 * (P * P + Q * Q)) / Gamma0_3;
-    const Float_t Do = (T * (H * H - K * G) + 2 * (P * P * G + Q * Q * K) - 4 * P * Q * H) / Gamma0_4;
-
-    const Float_t Gamma = Gamma0 * NewtonSolver(Ao, Bo, Co, Do);
-    //    Float_t Xc = (H * P - Q * (K - Gamma)) / (H * H + (Gamma - G) * (K - Gamma));
-    Float_t Xc = (2 * Q * P - H * T - H * Gamma) / (2 * P * G - P * Gamma - H * Q);
-    //    Float_t Zc = (P - H * Xc) / (K - Gamma);
-    Float_t Zc = (T - 2 * Q * Xc - Gamma * Gamma) / (2 * P);
-    Float_t R = Sqrt(Xc * Xc + Zc * Zc + Gamma);
+    const Float_t nHits = track->GetNHits();;
+    Mx=My=0.;
 
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        Xi = hit->GetX();
-        Zi = hit->GetZ();
-        cout << "Ri = " << Sqrt((Xi - Xc) * (Xi - Xc) + (Zi - Zc) * (Zi - Zc)) << endl;
+        Mx += hit->GetX();
+        My += hit->GetZ();
+    }
+    Mx /= nHits;
+    My /= nHits;
+
+//     computing moments (note: all moments are normed, i.e. divided by N)
+
+    Mxx = Myy = Mxy = Mxr = Myr = Mrr = 0.;
+
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
+        Xi = hit->GetX() - Mx;
+        Yi = hit->GetZ() - My;
+        Ri = Xi * Xi + Yi * Yi;
+
+        Mxy += Xi * Yi;
+        Mxx += Xi * Xi;
+        Myy += Yi * Yi;
+        Mxr += Xi * Ri;
+        Myr += Yi * Ri;
+        Mrr += Ri * Ri;
+    }
+    Mxx /= nHits;
+    Myy /= nHits;
+    Mxy /= nHits;
+    Mxr /= nHits;
+    Myr /= nHits;
+    Mrr /= nHits;
+
+//    computing the coefficients of the characteristic polynomial
+
+    Mr = Mxx + Myy;
+    Cov_xy = Mxx * Myy - Mxy * Mxy;
+    Mxr2 = Mxr * Mxr;
+    Myr2 = Myr * Myr;
+
+    A2 = 4.0 * Cov_xy - 3.0 * Mr * Mr - Mrr;
+    A1 = Mrr * Mr + 4.0 * Cov_xy * Mr - Mxr2 - Myr2 - Mr * Mr * Mr;
+    A0 = Mxr2 * Myy + Myr2 * Mxx - Mrr * Cov_xy - 2.0 * Mxr * Myr * Mxy + Mr * Mr * Cov_xy;
+
+    A22 = A2 + A2;
+    iter = 0;
+    xnew = 0.;
+
+//    Newton's method starting at x=0
+
+    for (iter = 0; iter < iterMax; ++iter) {
+        ynew = A0 + xnew * (A1 + xnew * (A2 + 4.0 * xnew * xnew));
+
+        if (fabs(ynew) > fabs(yold)) {
+            xnew = 0.;
+            break;
+        }
+
+        Dy = A1 + xnew * (A22 + 16.0 * xnew * xnew);
+        xold = xnew;
+        xnew = xold - ynew / Dy;
+        if (fabs((xnew - xold) / xnew) < epsilon) break;
     }
 
-    cout << "Xc = " << Xc << " Zc = " << Zc << " R = " << R << endl;
+    if (iter == iterMax - 1) {
+        xnew = 0.;
+    }
+    
+    if (xnew < 0.0) {
+        iter = 30;
+    }
 
-    return TVector3(Xc, Zc, R);
+//    computing the circle parameters
+
+    GAM = - Mr - xnew - xnew;
+    DET = xnew * xnew - xnew * Mr + Cov_xy;
+    Xc = (Mxr * (Myy - xnew) - Myr * Mxy) / DET / 2.;
+    Yc = (Myr * (Mxx - xnew) - Mxr * Mxy) / DET / 2.;
+    R = sqrt(Xc * Xc + Yc * Yc - GAM);
+
+    Xc += Mx;
+    Yc += My;
+
+    return TVector3(Xc, Yc, R);
 }
 
 TVector3 BmnGemSeedFinder::LineFit(BmnGemTrack* track) {

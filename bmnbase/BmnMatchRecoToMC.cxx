@@ -261,7 +261,7 @@ void BmnMatchRecoToMC::ReadAndCreateDataBranches() {
     fDch1Points = (TClonesArray*) ioman->GetObject("DCH1Point");
     //fDch1Digis = (TClonesArray*) ioman->GetObject("Dch1Digi");
     //fDch1Clusters = (TClonesArray*) ioman->GetObject("Dch1Cluster");
-    fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit");
+    fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit0");
     //fDch1DigiMatches = (TClonesArray*) ioman->GetObject("BmnDch1DigiMatch");
     if (fDch1Clusters != NULL) {
         //fDch1ClusterMatches = new TClonesArray("BmnMatch", 100);
@@ -276,7 +276,7 @@ void BmnMatchRecoToMC::ReadAndCreateDataBranches() {
     fDch2Points = (TClonesArray*) ioman->GetObject("DCH2Point");
     //fDch2Digis = (TClonesArray*) ioman->GetObject("Dch2Digi");
     //fDch2Clusters = (TClonesArray*) ioman->GetObject("Dch2Cluster");
-    fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit");
+    fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit0");
     //fDch2DigiMatches = (TClonesArray*) ioman->GetObject("BmnDch2DigiMatch");
     if (fDch2Clusters != NULL) {
         //fDch2ClusterMatches = new TClonesArray("BmnMatch", 100);

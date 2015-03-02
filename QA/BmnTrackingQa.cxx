@@ -157,9 +157,9 @@ void BmnTrackingQa::ReadDataBranches() {
         if (NULL == fDch1Points) {
             cout << "BmnTrackingQA::Init: No DCH1Point array!" << endl;
         }
-        fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit");
+        fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit0");
         if (NULL == fDch1Hits) {
-            cout << "BmnTrackingQA::Init: No BmnDch1Hit array!" << endl;
+            cout << "BmnTrackingQA::Init: No BmnDch1Hit0 array!" << endl;
         }
     }
     if (fDet.GetDet(kDCH2)) {
@@ -167,9 +167,9 @@ void BmnTrackingQa::ReadDataBranches() {
         if (NULL == fDch2Points) {
             cout << "BmnTrackingQA::Init: No DCH2Point array!" << endl;
         }
-        fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit");
+        fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit0");
         if (NULL == fDch2Hits) {
-            cout << "BmnTrackingQA::Init: No BmnDch2Hit array!" << endl;
+            cout << "BmnTrackingQA::Init: No BmnDch2Hit0 array!" << endl;
         }
     }
     if (fDet.GetDet(kTOF)) {
@@ -410,12 +410,12 @@ void BmnTrackingQa::CreateHistograms() {
     if (fDet.GetDet(kGEM)) CreateTrackHitsHistogram("Gem");
 
     // Create number of object histograms
-    Int_t nofBinsC = 1000;
-    Double_t maxXC = 1000;
+    UInt_t nofBinsC = 100000;
+    Double_t maxXC = (Double_t)nofBinsC;
     CreateH1("hno_NofObjects_GlobalTracks", "Tracks per event", "Yield", nofBinsC, 1., maxXC);
     if (fDet.GetDet(kGEM)) {
         CreateH1("hno_NofObjects_GemTracks", "Tracks per event", "Yield", nofBinsC, 1., maxXC);
-        CreateH1("hno_NofObjects_GemHits", "GEM hits per event", "Yield", 100 * nofBinsC, 1., 100 * maxXC);
+        CreateH1("hno_NofObjects_GemHits", "GEM hits per event", "Yield", nofBinsC, 1., maxXC);
     }
     if (fDet.GetDet(kTOF1)) CreateH1("hno_NofObjects_Tof1Hits", "TOF1 hits per event", "Yield", nofBinsC, 1., maxXC);
     if (fDet.GetDet(kDCH1)) CreateH1("hno_NofObjects_Dch1Hits", "DCH1 hits per event", "Yield", nofBinsC, 1., maxXC);
@@ -699,6 +699,9 @@ void BmnTrackingQa::IncreaseCounters() {
     if (fDet.GetDet(kDCH1) && fDch1Hits) fHM->H1("hno_NofObjects_Dch1Hits")->Fill(fDch1Hits->GetEntriesFast());
     if (fDet.GetDet(kDCH2) && fDch2Hits) fHM->H1("hno_NofObjects_Dch2Hits")->Fill(fDch2Hits->GetEntriesFast());
     if (fDet.GetDet(kTOF) && fTof2Hits) fHM->H1("hno_NofObjects_Tof2Hits")->Fill(fTof2Hits->GetEntriesFast());
+    
+    cout << "IncreaseCounters     Dch2Hits = " << fHM->H1("hno_NofObjects_Dch2Hits")->GetMean() << endl;
+    cout << "IncreaseCounters     Dch1Hits = " << fHM->H1("hno_NofObjects_Dch1Hits")->GetMean() << endl;
 }
 
 ClassImp(BmnTrackingQa);

@@ -131,8 +131,8 @@ void BmnClusteringQa::ReadDataBranches() {
     fGemHits = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
     fTof1Hits = (TClonesArray*) ioman->GetObject("TOF1Hit");
     fTof2Hits = (TClonesArray*) ioman->GetObject("BmnTof2Hit");
-    fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit");
-    fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit");
+    fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit0");
+    fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit0");
 
     fGemHitMatches = (TClonesArray*) ioman->GetObject("GemHitMatch");
     fTof1HitMatches = (TClonesArray*) ioman->GetObject("Tof1HitMatch");

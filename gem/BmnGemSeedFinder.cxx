@@ -84,8 +84,8 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
-                if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits)
-//        if (hit->GetType() != 1) continue; //Using ONLY real hits 
+        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits)
+        //        if (hit->GetType() != 1) continue; //Using ONLY real hits 
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         //const Float_t R = hit->GetZ(); //Test for different type of transformation
@@ -96,7 +96,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
         ULong_t addr = yAddr * fNBins + xAddr;
         hit->SetAddr(addr);
         hit->SetXaddr(xAddr);
-//                hit->SetXaddr(-1);
+        //                hit->SetXaddr(-1);
         hit->SetYaddr(yAddr);
         addresses.insert(pair<ULong_t, Int_t > (addr, hitIdx));
     }
@@ -653,9 +653,9 @@ TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack* track) {
 }
 
 TVector3 BmnGemSeedFinder::CircleFitNew(BmnGemTrack* track) {
-    
+
     const Float_t nHits = track->GetNHits();
-    
+
     Float_t Xi = 0.0, Zi = 0.0; // coordinates of current track point
     Float_t Sxx = 0.0, Szz = 0.0, Szx = 0.0;
     Float_t Szzz = 0.0, Szxx = 0.0, Szzx = 0.0, Sxxx = 0.0;
@@ -677,7 +677,7 @@ TVector3 BmnGemSeedFinder::CircleFitNew(BmnGemTrack* track) {
         Sxxxx += Xi * Xi * Xi * Xi;
         Szzxx += Zi * Zi * Xi * Xi;
     }
-    
+
     const Float_t K = (3 * Szz + Sxx) / nHits;
     const Float_t G = (Szz + 3 * Sxx) / nHits;
     const Float_t P = (Szzz + Szxx) / nHits;
@@ -695,19 +695,19 @@ TVector3 BmnGemSeedFinder::CircleFitNew(BmnGemTrack* track) {
     const Float_t Do = (T * (H * H - K * G) + 2 * (P * P * G + Q * Q * K) - 4 * P * Q * H) / Gamma0_4;
 
     const Float_t Gamma = Gamma0 * NewtonSolver(Ao, Bo, Co, Do);
-//    Float_t Xc = (H * P - Q * (K - Gamma)) / (H * H + (Gamma - G) * (K - Gamma));
+    //    Float_t Xc = (H * P - Q * (K - Gamma)) / (H * H + (Gamma - G) * (K - Gamma));
     Float_t Xc = (2 * Q * P - H * T - H * Gamma) / (2 * P * G - P * Gamma - H * Q);
-//    Float_t Zc = (P - H * Xc) / (K - Gamma);
+    //    Float_t Zc = (P - H * Xc) / (K - Gamma);
     Float_t Zc = (T - 2 * Q * Xc - Gamma * Gamma) / (2 * P);
     Float_t R = Sqrt(Xc * Xc + Zc * Zc + Gamma);
-    
+
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
         Xi = hit->GetX();
         Zi = hit->GetZ();
         cout << "Ri = " << Sqrt((Xi - Xc) * (Xi - Xc) + (Zi - Zc) * (Zi - Zc)) << endl;
     }
-    
+
     cout << "Xc = " << Xc << " Zc = " << Zc << " R = " << R << endl;
 
     return TVector3(Xc, Zc, R);
@@ -775,7 +775,7 @@ BmnStatus BmnGemSeedFinder::FindSeedInYSlice(Int_t yAddr, Int_t yStep) {
 
     const Float_t thresh = 6; //4;
 
-//    cout << "Params: " << alphaMin << " " << alphaMax << " " << alphaStep << endl;
+    //    cout << "Params: " << alphaMin << " " << alphaMax << " " << alphaStep << endl;
 
     Float_t alpha = alphaMin;
 
@@ -840,7 +840,7 @@ Float_t BmnGemSeedFinder::NewtonSolver(Float_t Ao, Float_t Bo, Float_t Co, Float
         Float_t Xpre3 = Xpre2 * Xpre;
         Float_t Xpre4 = Xpre2 * Xpre2;
         Xcur = (3 * Xpre4 + 2 * Ao * Xpre3 + Bo * Xpre2 - Do) / (4 * Xpre3 + 3 * Ao * Xpre2 + 2 * Bo * Xpre + Co);
-//        cout << "X = " << Xcur << " diff = " << Abs(Xcur - Xpre) << endl;
+        //        cout << "X = " << Xcur << " diff = " << Abs(Xcur - Xpre) << endl;
     }
     return Xcur;
 }

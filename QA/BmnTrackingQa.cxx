@@ -157,7 +157,7 @@ void BmnTrackingQa::ReadDataBranches() {
         if (NULL == fDch1Points) {
             cout << "BmnTrackingQA::Init: No DCH1Point array!" << endl;
         }
-        fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit");
+        fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit0");
         if (NULL == fDch1Hits) {
             cout << "BmnTrackingQA::Init: No BmnDch1Hit array!" << endl;
         }
@@ -167,7 +167,7 @@ void BmnTrackingQa::ReadDataBranches() {
         if (NULL == fDch2Points) {
             cout << "BmnTrackingQA::Init: No DCH2Point array!" << endl;
         }
-        fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit");
+        fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit0");
         if (NULL == fDch2Hits) {
             cout << "BmnTrackingQA::Init: No BmnDch2Hit array!" << endl;
         }

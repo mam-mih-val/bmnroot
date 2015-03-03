@@ -247,8 +247,8 @@ BmnStatus BmnGemTrackFinder::Refit(BmnGemTrack* tr) {
         vector<Double_t> F(25);
         if (fPropagator->TGeoTrackPropagate(&par, Ze, 211/*glTr->GetPDG()*/, &F, &length, TString("field")) == kBMNERROR) {
             tr->SetFlag(kBMNBAD);
-            cout << "PROP ERROR: hit number = " << iHit << " Ze = " << Ze << " length = " << length << " \npar = ";
-            par.Print();
+            //cout << "PROP ERROR: hit number = " << iHit << " Ze = " << Ze << " length = " << length << " \npar = ";
+            //par.Print();
             return kBMNERROR;
         }
 

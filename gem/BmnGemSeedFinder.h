@@ -34,13 +34,12 @@ public:
     Bool_t CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar, TVector3 linePar);
     BmnStatus DoSeeding();
     TVector3 CircleFit(BmnGemTrack* track);
-    TVector3 CircleFitNew(BmnGemTrack* track);
     TVector3 LineFit(BmnGemTrack* track);
     
     BmnStatus DoHistoTracking();
     BmnStatus FindSeedInYSlice(Int_t yAddr, Int_t yStep);
     Float_t GetOrdAfterRotate(Float_t angle, Float_t xOld, Float_t yOld); //rotate coordinate system and return new value of ordinate
-    Float_t NewtonSolver(Float_t Ao, Float_t Bo, Float_t Co, Float_t Do, Float_t eps = 10e-4, Float_t Xo = 0.0);
+    Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
 
     void SetMakeQA(Bool_t qa) {
         fMakeQA = qa;

@@ -53,7 +53,10 @@ void BmnMwpcDigitizer::Exec(Option_t* opt) {
 
     cout << Form("BmnMwpc%dDigitizer::Exec() started!", fMwpcNum) << endl;
     cout << "number of MC points is " << fBmnMwpcPointArray->GetEntriesFast() << endl;
-
+    if (!fBmnMwpcPointArray) {
+        Error("BmnMwpcDigitizer::Exec()", " !!! Unknown branch name !!! ");
+        return;
+    }
     fBmnMwpcDigitArray->Clear();
 
     if (!fBmnMwpcPointArray) {

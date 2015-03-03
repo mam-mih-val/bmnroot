@@ -346,8 +346,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
                 GetHit(trackCand.GetHitIndex(i))->SetUsing(kFALSE);
             continue;
         }
-//        TVector3 circPar = CircleFit(&trackCand);
-        TVector3 circPar = CircleFitNew(&trackCand);
+        TVector3 circPar = CircleFit(&trackCand);
         TVector3 linePar = LineFit(&trackCand);
         if (circPar.Z() == 0.0) continue;
         trCntr++;
@@ -536,173 +535,61 @@ void BmnGemSeedFinder::FindXYRSeeds(TH1F* h) {
 
 TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack* track) {
 
-    const Float_t nHits = track->GetNHits();
+    Float_t Xi, Yi; //centered coordinates
+    Float_t Mx, My; // 1-st momentum
+    Float_t Ri; // radius
+    Float_t Mr, Mxy, Mxx, Myy, Mxr, Myr, Mrr, Mxr2, Myr2, Cov_xy;
     const Float_t C = 3; // parameter for robust fitting (3*Sigma rule)
-
-    Float_t Xi = 0.0, Zi = 0.0; // coordinates of current track point
-    Float_t Xo = 0.0, Zo = 0.0; // coordinates of vertex (point on circle) Now it's {0.0, 0.0}
-    Float_t Xc = 0.0, Zc = 0.0; // coordinates of circle center
-    Float_t R = 0.0; //radius of circle
-    Float_t XcPrev = 0.0, ZcPrev = 0.0; // coordinates of circle center on previous iteration
-    Float_t Rprev = 0.0; //radius of circle on previous iteration
-    Float_t Sxx = 0.0, Szz = 0.0, Sxz = 0.0, Srx = 0.0, Srz = 0.0; // partial sums to calculate center of circle
     Float_t Wi = 1.0; // weight for robust approach // In first approach it's equal 1.0
     Float_t Di = 0.0; //distance between circle and point
     Float_t Sig = 1.0;
     Float_t thresh = C * Sig; // threshold for weights calculating
     Float_t Sw = 0.0; // sum of weights
     Float_t Swd = 0.0; // sum of (w * d^2)
+    Float_t A0, A1, A2, A22;
+    Float_t GAM, DET;
+    Float_t Xc, Yc, R;
+    Float_t XcPrev = 1000000.0, YcPrev = 1000000.0; // coordinates of circle center on previous iteration
+    Float_t Rprev = 1000000.0; //radius of circle on previous iteration
 
-    Bool_t flagFake = kFALSE;
+    const Float_t nHits = track->GetNHits();
 
-    //first approximation with equal weights
-    for (Int_t i = 0; i < nHits; ++i) {
-        //        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        if (hit->GetRefIndex() == -1) flagFake = kTRUE;
-        Xi = hit->GetX();
-        Zi = hit->GetZ();
-        Sxx += Wi * Sqr(Xi - Xo);
-        Szz += Wi * Sqr(Zi - Zo);
-        Sxz += Wi * (Xi - Xo) * (Zi - Zo);
-        Srx += 0.5 * Wi * (Sqr(Xi) + Sqr(Zi) - Sqr(Xo) - Sqr(Zo)) * (Xi - Xo);
-        Srz += 0.5 * Wi * (Sqr(Xi) + Sqr(Zi) - Sqr(Xo) - Sqr(Zo)) * (Zi - Zo);
-    }
-
-    Xc = (Srz * Sxz - Srx * Szz) / (Sqr(Sxz) - Sxx * Szz);
-    Zc = (Srx * Sxz - Srz * Sxx) / (Sqr(Sxz) - Sxx * Szz);
-    R = Dist(Xo, Zo, Xc, Zc);
-
+    //=============== first approximation with equal weights ===============//
+    Mx = My = Mxx = Myy = Mxy = Mxr = Myr = Mrr = 0.0;
 
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        Xi = hit->GetX();
-        Zi = hit->GetZ();
-        Di = Dist(Xi, Zi, Xc, Zc) - R;
+        if (!(hit->IsUsed())) continue;
+        Mx += Wi * hit->GetX();
+        My += Wi * hit->GetZ();
         Sw += Wi;
-        Swd += Wi * Sqr(Di);
     }
+    Mx /= Sw;
+    My /= Sw;
 
-    Sig = Sqrt(Swd / Sw);
-    thresh = C * Sig;
-
-    UInt_t cntr = 0; // tmp counter 
-
-    while ((Abs(Xc - XcPrev) / XcPrev > 0.001 || Abs(Zc - ZcPrev) / ZcPrev > 0.001 || Abs(R - Rprev) / Rprev > 0.001) && (cntr < 10)) {
-        ++cntr;
-        Sxx = Szz = Sxz = Srx = Srz = Sw = Swd = 0.0;
-        for (Int_t i = 0; i < nHits; ++i) {
-            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-            Xi = hit->GetX();
-            Zi = hit->GetZ();
-            Di = Dist(Xi, Zi, Xc, Zc) - R;
-            if (Abs(Di) <= thresh) {
-                Wi = Sqr(1 - Sqr(Di / thresh));
-            } else {
-                Wi = 0.0;
-                continue;
-            }
-
-            Sxx += Wi * Sqr(Xi - Xo);
-            Szz += Wi * Sqr(Zi - Zo);
-            Sxz += Wi * (Xi - Xo) * (Zi - Zo);
-            Srx += 0.5 * Wi * (Sqr(Xi) + Sqr(Zi) - Sqr(Xo) - Sqr(Zo)) * (Xi - Xo);
-            Srz += 0.5 * Wi * (Sqr(Xi) + Sqr(Zi) - Sqr(Xo) - Sqr(Zo)) * (Zi - Zo);
-        }
-
-        XcPrev = Xc;
-        ZcPrev = Zc;
-        Rprev = R;
-
-        Float_t znam = (Sqr(Sxz) - Sxx * Szz);
-        if (znam == 0) continue;
-        Xc = (Srz * Sxz - Srx * Szz) / znam;
-        Zc = (Srx * Sxz - Srz * Sxx) / znam;
-        R = Dist(Xo, Zo, Xc, Zc);
-
-        for (Int_t i = 0; i < nHits; ++i) {
-            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-            Di = Dist(hit->GetX(), hit->GetZ(), Xc, Zc) - R;
-            Sw += Wi;
-            Swd += Wi * Sqr(Di);
-        }
-
-        Sig = Swd / Sw;
-        thresh = C * Sig;
-    }
-
-    Float_t chi2 = 0.0;
+    // computing moments
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        chi2 += Sqr(R - Dist(hit->GetX(), hit->GetZ(), Xc, Zc)) / R;
-    }
-
-    chi2 *= nHits;
-    track->SetChi2(chi2);
-    track->SetNDF(nHits - 1);
-    if (chi2 > ChisquareQuantile(0.95, nHits - 1)) {
-        for (Int_t i = 0; i < nHits; ++i) {
-            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-            hit->SetUsing(kFALSE);
-        }
-        //        cout << "Fitting was failed:\n";
-        return TVector3(0.0, 0.0, 0.0);
-    }
-
-    return TVector3(Xc, Zc, R);
-}
-
-TVector3 BmnGemSeedFinder::CircleFitNew(BmnGemTrack* track) {
-    
-    Int_t iter = 0;
-    const Int_t iterMax = 20;
-
-    Double_t Xi, Yi; //centered coordinates
-    Double_t Mx, My; // 1-st momentum
-    Double_t Ri;     // radii
-    Double_t Mr, Mxy, Mxx, Myy, Mxr, Myr, Mrr, Mxr2, Myr2, Cov_xy;
-    Double_t A0, A1, A2, A22;
-    const Double_t epsilon = 0.000000000001;
-    Double_t Dy, xnew, xold, ynew, yold = 100000000000.;
-    Double_t GAM, DET;
-    Double_t Xc, Yc, R;
-
-    const Float_t nHits = track->GetNHits();;
-    Mx=My=0.;
-
-    for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        Mx += hit->GetX();
-        My += hit->GetZ();
-    }
-    Mx /= nHits;
-    My /= nHits;
-
-//     computing moments (note: all moments are normed, i.e. divided by N)
-
-    Mxx = Myy = Mxy = Mxr = Myr = Mrr = 0.;
-
-    for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
+        if (!(hit->IsUsed())) continue;
         Xi = hit->GetX() - Mx;
         Yi = hit->GetZ() - My;
         Ri = Xi * Xi + Yi * Yi;
 
-        Mxy += Xi * Yi;
-        Mxx += Xi * Xi;
-        Myy += Yi * Yi;
-        Mxr += Xi * Ri;
-        Myr += Yi * Ri;
-        Mrr += Ri * Ri;
+        Mxy += Wi * Xi * Yi;
+        Mxx += Wi * Xi * Xi;
+        Myy += Wi * Yi * Yi;
+        Mxr += Wi * Xi * Ri;
+        Myr += Wi * Yi * Ri;
+        Mrr += Wi * Ri * Ri;
     }
-    Mxx /= nHits;
-    Myy /= nHits;
-    Mxy /= nHits;
-    Mxr /= nHits;
-    Myr /= nHits;
-    Mrr /= nHits;
+    Mxx /= Sw;
+    Myy /= Sw;
+    Mxy /= Sw;
+    Mxr /= Sw;
+    Myr /= Sw;
+    Mrr /= Sw;
 
-//    computing the coefficients of the characteristic polynomial
+    // computing the coefficients of the characteristic polynomial
 
     Mr = Mxx + Myy;
     Cov_xy = Mxx * Myy - Mxy * Mxy;
@@ -712,45 +599,140 @@ TVector3 BmnGemSeedFinder::CircleFitNew(BmnGemTrack* track) {
     A2 = 4.0 * Cov_xy - 3.0 * Mr * Mr - Mrr;
     A1 = Mrr * Mr + 4.0 * Cov_xy * Mr - Mxr2 - Myr2 - Mr * Mr * Mr;
     A0 = Mxr2 * Myy + Myr2 * Mxx - Mrr * Cov_xy - 2.0 * Mxr * Myr * Mxy + Mr * Mr * Cov_xy;
-
     A22 = A2 + A2;
-    iter = 0;
-    xnew = 0.;
 
-//    Newton's method starting at x=0
+    Float_t x = NewtonSolver(A0, A1, A2, A22);
 
-    for (iter = 0; iter < iterMax; ++iter) {
-        ynew = A0 + xnew * (A1 + xnew * (A2 + 4.0 * xnew * xnew));
-
-        if (fabs(ynew) > fabs(yold)) {
-            xnew = 0.;
-            break;
-        }
-
-        Dy = A1 + xnew * (A22 + 16.0 * xnew * xnew);
-        xold = xnew;
-        xnew = xold - ynew / Dy;
-        if (fabs((xnew - xold) / xnew) < epsilon) break;
-    }
-
-    if (iter == iterMax - 1) {
-        xnew = 0.;
-    }
-    
-    if (xnew < 0.0) {
-        iter = 30;
-    }
-
-//    computing the circle parameters
-
-    GAM = - Mr - xnew - xnew;
-    DET = xnew * xnew - xnew * Mr + Cov_xy;
-    Xc = (Mxr * (Myy - xnew) - Myr * Mxy) / DET / 2.;
-    Yc = (Myr * (Mxx - xnew) - Mxr * Mxy) / DET / 2.;
+    // computing the circle parameters (coordinates of center and radius)
+    GAM = -Mr - x - x;
+    DET = x * x - x * Mr + Cov_xy;
+    Xc = (Mxr * (Myy - x) - Myr * Mxy) / DET / 2.;
+    Yc = (Myr * (Mxx - x) - Mxr * Mxy) / DET / 2.;
     R = sqrt(Xc * Xc + Yc * Yc - GAM);
 
     Xc += Mx;
     Yc += My;
+
+    //=============== end of first approx. with equal weights ================//
+
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
+        if (!(hit->IsUsed())) continue;
+        Xi = hit->GetX();
+        Yi = hit->GetZ();
+        Di = Dist(Xi, Yi, Xc, Yc) - R;
+        Swd += Wi * Sqr(Di);
+    }
+
+    Sig = Sqrt(Swd / Sw);
+    thresh = C * Sig;
+    UInt_t cntr = 0; // tmp counter 
+
+    //================= robust procedure with Tukey weights =================//
+    while ((Abs(Xc - XcPrev) / XcPrev > 0.001 || Abs(Yc - YcPrev) / YcPrev > 0.001 || Abs(R - Rprev) / Rprev > 0.001) && (cntr < 10)) {
+        ++cntr;
+        Mx = My = Mxx = Myy = Mxy = Mxr = Myr = Mrr = 0.0;
+        Sw = Swd = 0.0;
+
+        for (Int_t i = 0; i < nHits; ++i) {
+            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
+            if (!(hit->IsUsed())) continue;
+            Di = Dist(hit->GetX(), hit->GetZ(), Xc, Yc) - R;
+            if (Abs(Di) <= thresh) {
+                Wi = Sqr(1 - Sqr(Di / thresh));
+            } else {
+                Wi = 0.0;
+                hit->SetUsing(kFALSE);
+                continue;
+            }
+            Mx += Wi * hit->GetX();
+            My += Wi * hit->GetZ();
+            Sw += Wi;
+        }
+
+        Mx /= Sw;
+        My /= Sw;
+
+        // computing moments (note: all moments are normed, i.e. divided by N)
+
+        for (Int_t i = 0; i < nHits; ++i) {
+            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
+            if (!(hit->IsUsed())) continue;
+            Xi = hit->GetX() - Mx;
+            Yi = hit->GetZ() - My;
+            Ri = Xi * Xi + Yi * Yi;
+
+            Mxy += Wi * Xi * Yi;
+            Mxx += Wi * Xi * Xi;
+            Myy += Wi * Yi * Yi;
+            Mxr += Wi * Xi * Ri;
+            Myr += Wi * Yi * Ri;
+            Mrr += Wi * Ri * Ri;
+        }
+        Mxx /= Sw;
+        Myy /= Sw;
+        Mxy /= Sw;
+        Mxr /= Sw;
+        Myr /= Sw;
+        Mrr /= Sw;
+
+        // computing the coefficients of the characteristic polynomial
+
+        Mr = Mxx + Myy;
+        Cov_xy = Mxx * Myy - Mxy * Mxy;
+        Mxr2 = Mxr * Mxr;
+        Myr2 = Myr * Myr;
+
+        A2 = 4.0 * Cov_xy - 3.0 * Mr * Mr - Mrr;
+        A1 = Mrr * Mr + 4.0 * Cov_xy * Mr - Mxr2 - Myr2 - Mr * Mr * Mr;
+        A0 = Mxr2 * Myy + Myr2 * Mxx - Mrr * Cov_xy - 2.0 * Mxr * Myr * Mxy + Mr * Mr * Cov_xy;
+        A22 = A2 + A2;
+
+        Float_t x = NewtonSolver(A0, A1, A2, A22);
+        // computing the circle parameters (coordinates of center and radius)
+        GAM = -Mr - x - x;
+        DET = x * x - x * Mr + Cov_xy;
+        Xc = (Mxr * (Myy - x) - Myr * Mxy) / DET / 2.0;
+        Yc = (Myr * (Mxx - x) - Mxr * Mxy) / DET / 2.0;
+        R = Sqrt(Xc * Xc + Yc * Yc - GAM);
+
+        Xc += Mx;
+        Yc += My;
+
+        for (Int_t i = 0; i < nHits; ++i) {
+            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
+            if (!(hit->IsUsed())) continue;
+            Di = Dist(hit->GetX(), hit->GetZ(), Xc, Yc) - R;
+            Swd += Wi * Sqr(Di);
+        }
+
+        Sig = Swd / Sw;
+        thresh = C * Sig;
+        XcPrev = Xc;
+        YcPrev = Yc;
+        Rprev = R;
+    }
+
+    Float_t chi2 = 0.0;
+    Int_t nReal = 0;
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
+        if (!(hit->IsUsed())) continue;
+        chi2 += Sqr(R - Dist(hit->GetX(), hit->GetZ(), Xc, Yc)) / R;
+        nReal++;
+    }
+
+    chi2 *= nReal;
+    track->SetChi2(chi2);
+    track->SetNDF(nReal - 1);
+    if (chi2 > ChisquareQuantile(0.95, nReal - 1)) {
+        for (Int_t i = 0; i < nHits; ++i) {
+            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
+            hit->SetUsing(kFALSE);
+        }
+        return TVector3(0.0, 0.0, 0.0);
+    }
+
 
     return TVector3(Xc, Yc, R);
 }
@@ -780,7 +762,7 @@ TVector3 BmnGemSeedFinder::LineFit(BmnGemTrack* track) {
 }
 
 Float_t BmnGemSeedFinder::Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
-    if (Sqr(x1 - x2) + Sqr(y1 - y2) < 0.0) {
+    if (Sqr(x1 - x2) + Sqr(y1 - y2) <= 0.0) {
         return 0.0;
     } else {
         return Sqrt(Sqr(x1 - x2) + Sqr(y1 - y2));
@@ -873,16 +855,31 @@ Float_t BmnGemSeedFinder::GetOrdAfterRotate(Float_t angle, Float_t xOld, Float_t
     return xOld * (-Sin(angle)) + yOld * Cos(angle);
 }
 
-Float_t BmnGemSeedFinder::NewtonSolver(Float_t Ao, Float_t Bo, Float_t Co, Float_t Do, Float_t eps, Float_t Xo) {
-    Float_t Xcur = Xo;
-    Float_t Xpre = 1000000.0;
-    while (Abs(Xcur - Xpre) > eps) {
-        Xpre = Xcur;
-        Float_t Xpre2 = Xpre * Xpre;
-        Float_t Xpre3 = Xpre2 * Xpre;
-        Float_t Xpre4 = Xpre2 * Xpre2;
-        Xcur = (3 * Xpre4 + 2 * Ao * Xpre3 + Bo * Xpre2 - Do) / (4 * Xpre3 + 3 * Ao * Xpre2 + 2 * Bo * Xpre + Co);
-        //        cout << "X = " << Xcur << " diff = " << Abs(Xcur - Xpre) << endl;
+Float_t BmnGemSeedFinder::NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22) {
+
+    Double_t Dy = 0.0;
+    Double_t xnew = 0.0;
+    Double_t ynew = 0.0;
+    Double_t yold = 1e+11;
+    Double_t xold = 0.0;
+    const Double_t eps = 1e-12;
+    Int_t iter = 0;
+    const Int_t iterMax = 20;
+    do {
+        ynew = A0 + xnew * (A1 + xnew * (A2 + 4.0 * xnew * xnew));
+        if (fabs(ynew) > fabs(yold)) {
+            xnew = 0.0;
+            break;
+        }
+        Dy = A1 + xnew * (A22 + 16.0 * xnew * xnew);
+        xold = xnew;
+        xnew = xold - ynew / Dy;
+        iter++;
+    } while (Abs((xnew - xold) / xnew) > eps && iter < iterMax);
+
+    if (iter == iterMax - 1) {
+        xnew = 0.0;
     }
-    return Xcur;
+
+    return xnew;
 }

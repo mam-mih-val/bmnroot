@@ -95,6 +95,7 @@ protected:
     void DrawEffGhost(const string& canvasName);
     
     void DrawPsimPrec(const string& canvasName);
+    void DrawPsimPrecComponents(const string& canvasName);
     
     void DrawEventsInfo(const string& canvasName);
     

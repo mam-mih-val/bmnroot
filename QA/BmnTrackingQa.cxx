@@ -433,7 +433,10 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("EtaP_rec", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
     CreateH1("momRes_1D", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", nBins / 2, fPRangeMin, fPRangeMax);
-    CreateH2("P_rec_P_sim", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 10.0, 400, 0.0, 10.0);
+    CreateH2("P_rec_P_sim", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 10.0, 4 * nBins, 0.0, 10.0);
+    CreateH2("Px_rec_Px_sim", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * nBins, 0.0, 2.0, 4 * nBins, 0.0, 2.0);
+    CreateH2("Py_rec_Py_sim", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * nBins, 0.0, 2.0, 4 * nBins, 0.0, 2.0);
+    CreateH2("Pz_rec_Pz_sim", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * nBins, 0.0, 8.0, 4 * nBins, 0.0, 8.0);
     CreateH2("Eta_rec_Eta_sim", "#eta_{sim}", "#eta_{rec}", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 5.0);
     
     CreateH1("ghostGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
@@ -476,6 +479,8 @@ void BmnTrackingQa::ProcessGlobalTracks() {
         Float_t Ty = globalTrack->GetParamFirst()->GetTy();
         Float_t coef = Sqrt(Tx * Tx + Ty * Ty + 1);
         Float_t Pz_rec = P_rec / coef;
+        Float_t Px_rec = Pz_rec * Tx;
+        Float_t Py_rec = Pz_rec * Ty;
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
         
 
@@ -483,11 +488,16 @@ void BmnTrackingQa::ProcessGlobalTracks() {
         if (refId < 0) continue;
         const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(refId));
         Float_t P_sim = mcTrack->GetP();
+        Float_t Px_sim = mcTrack->GetPx();
+        Float_t Py_sim = mcTrack->GetPy();
         Float_t Pz_sim = mcTrack->GetPz();
         Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
 
         fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec) / P_sim * 100.0);
         fHM->H2("P_rec_P_sim")->Fill(P_sim, P_rec);
+        fHM->H2("Px_rec_Px_sim")->Fill(Px_sim, Px_rec);
+        fHM->H2("Py_rec_Py_sim")->Fill(Py_sim, Py_rec);
+        fHM->H2("Pz_rec_Pz_sim")->Fill(Pz_sim, Pz_rec);
         fHM->H2("Eta_rec_Eta_sim")->Fill(Eta_sim, Eta_rec);
         fHM->H2("EtaP_rec")->Fill(Eta_rec, P_rec);
         fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);

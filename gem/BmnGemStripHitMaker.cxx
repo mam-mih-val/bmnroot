@@ -91,10 +91,12 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
 //Find hits and fakes-----------------------------------------------------------
             Int_t *PointTypeArray = new Int_t[module->GetNIntersectionPoints()];
+            Double_t *PointSignalDiffArray = new Double_t[module->GetNIntersectionPoints()];
             for(Int_t i = 0; i < module->GetNIntersectionPoints(); ++i) {
                 PointTypeArray[i] = -1; //set undef feature
+                PointSignalDiffArray[i] = -1; //set unknown signal diff
             }
-            FindHitsAndFakes(PointTypeArray, station, module);
+            FindHitsAndFakes(PointTypeArray, PointSignalDiffArray, station, module);
 //------------------------------------------------------------------------------
 
             for(Int_t iPoint = 0; iPoint < module->GetNIntersectionPoints(); ++iPoint) {
@@ -118,7 +120,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 for(Int_t iMCPoint = 0; iMCPoint < fBmnGemStripPointsArray->GetEntriesFast(); iMCPoint++) {
                     if(MCPointsStatArray[iMCPoint] == 1) continue;
-                    
+
                     MCPoint = (FairMCPoint*) fBmnGemStripPointsArray->At(iMCPoint);
                     Double_t xmc = -MCPoint->GetX();
                     Double_t ymc = MCPoint->GetY();
@@ -138,12 +140,14 @@ void BmnGemStripHitMaker::ProcessDigits() {
                             if(cur_distance < min_distance) {
                                 min_distance = cur_distance;
                                 RefMCIndex = iMCPoint;
-                                match_cnt++;
                             }
                         }
                     }
                 }
-                if(RefMCIndex != -1) MCPointsStatArray[RefMCIndex] = 1;
+                if(RefMCIndex != -1)  {
+                    MCPointsStatArray[RefMCIndex] = 1;
+                    match_cnt++;
+                }
                 delete [] MCPointsStatArray;
 //------------------------------------------------------------------------------
 
@@ -163,16 +167,18 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 hit->SetEnergyLoss(deloss_lower+deloss_upper);
 
                 hit->SetType(PointTypeArray[iPoint]);
+                hit->SetSignalDiff(PointSignalDiffArray[iPoint]);
                 //--------------------------------------------------------------
             }
             delete [] PointTypeArray;
+            delete [] PointSignalDiffArray;
         }
     }
     if(fVerbose) cout << "   N matches with MC-points = " << match_cnt << "\n";
 //------------------------------------------------------------------------------
 }
 
-void BmnGemStripHitMaker::FindHitsAndFakes(Int_t *PointTypeArray, BmnGemStripStation* station, BmnGemStripReadoutModule* module) {
+void BmnGemStripHitMaker::FindHitsAndFakes(Int_t *PointTypeArray, Double_t *PointSignalDiffArray, BmnGemStripStation* station, BmnGemStripReadoutModule* module) {
     Double_t hit_rate_threshold = 0.01;
     Double_t fake_rate_threshold = 0.5;
 
@@ -184,9 +190,11 @@ void BmnGemStripHitMaker::FindHitsAndFakes(Int_t *PointTypeArray, BmnGemStripSta
         Double_t upper_signal = module->GetIntersectionPointsUpperTotalSignal(iPoint);
 
         Double_t diff_signal = lower_signal - upper_signal;
-        Double_t diff_signal_normalized = diff_signal/(lower_signal+upper_signal);
+        Double_t diff_signal_normalized = Abs(diff_signal/(lower_signal+upper_signal));
 
-        if( Abs(diff_signal_normalized) <= hit_rate_threshold ) {
+        PointSignalDiffArray[iPoint] = diff_signal_normalized;
+
+        if( diff_signal_normalized <= hit_rate_threshold ) {
             PointTypeArray[iPoint] = 1; // hit
 
             for(Int_t i = 0; i < module->GetNIntersectionPoints(); ++i) {

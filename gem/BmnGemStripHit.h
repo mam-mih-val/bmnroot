@@ -25,6 +25,10 @@ public:
         fType = type;
     }
 
+    void SetSignalDiff(Double_t sdiff) {
+        fNormSignalDiff = sdiff;
+    }
+
     Double_t GetEnergyLoss() {
         return fELoss;
     }
@@ -37,10 +41,16 @@ public:
         return fType;
     }
 
+    Double_t GetSignalDiff() {
+        return fNormSignalDiff;
+    }
+
 private:
     Int_t fModule;
     Double_t fELoss;
     Int_t fType; // 0 - fake, 1 - hit, -1 - undefined
+    Double_t fNormSignalDiff; //normalized signal difference between lower and upper strips (0 is min diff,..., 1 is max dif)
+
 
     ClassDef(BmnGemStripHit, 1);
 };

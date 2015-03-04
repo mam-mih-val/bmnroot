@@ -257,6 +257,8 @@ private:
     TClonesArray* fGlobalTracks; // BmnGlobalTrack array
     TClonesArray* fGemTracks; // BmnGemTrack array
     TClonesArray* fGemMatches; // BmnGemTrackMatch array
+    
+    TClonesArray* fGlobalTrackMatches; // BmnGemTrackMatch array
 
     TClonesArray* fGemHits;
     TClonesArray* fTof1Points;

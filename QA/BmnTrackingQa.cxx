@@ -124,6 +124,8 @@ void BmnTrackingQa::ReadDataBranches() {
     }
 
     fGlobalTracks = (TClonesArray*) ioman->GetObject("GlobalTrack");
+    fGlobalTrackMatches = (TClonesArray*) ioman->GetObject("GlobalTrackMatch");
+    
     if (NULL == fGlobalTracks) {
         Fatal("Init", "No GlobalTrack array!");
     }
@@ -186,8 +188,8 @@ void BmnTrackingQa::ReadDataBranches() {
 
 void BmnTrackingQa::ReadEventHeader() {
     FairMCEventHeader* evHead = (FairMCEventHeader*) FairRootManager::Instance()->GetObject("MCEventHeader.");
-//    fHeader.push_back("Event generator: UrQMD");
-//    fHeader.push_back("Energy: 4 GeV/c");
+    //    fHeader.push_back("Event generator: UrQMD");
+    //    fHeader.push_back("Energy: 4 GeV/c");
     fHM->H1("Impact parameter")->Fill(evHead->GetB());
     fHM->H1("Multiplicity")->Fill(evHead->GetNPrim());
 }
@@ -411,7 +413,7 @@ void BmnTrackingQa::CreateHistograms() {
 
     // Create number of object histograms
     UInt_t nofBinsC = 100000;
-    Double_t maxXC = (Double_t)nofBinsC;
+    Double_t maxXC = (Double_t) nofBinsC;
     CreateH1("hno_NofObjects_GlobalTracks", "Tracks per event", "Yield", nofBinsC, 1., maxXC);
     if (fDet.GetDet(kGEM)) {
         CreateH1("hno_NofObjects_GemTracks", "Tracks per event", "Yield", nofBinsC, 1., maxXC);
@@ -426,7 +428,7 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("hen_EventNo_TrackingQa", "", "", 1, 0, 1.);
     CreateH1("Impact parameter", "B, fm", "Counter", 100, 0.0, 0.0);
     CreateH1("Multiplicity", "N_{prim}", "Counter", 100, 0.0, 0.0);
-    
+
     // Physics
     const Int_t nBins = 100;
     CreateH2("momRes_2D", "P_{sim}, GeV/c", "#Delta P / P, %", "", nBins, 0.0, 5.0, nBins, 0.0, 5.0);
@@ -438,12 +440,17 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("Py_rec_Py_sim", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * nBins, 0.0, 2.0, 4 * nBins, 0.0, 2.0);
     CreateH2("Pz_rec_Pz_sim", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * nBins, 0.0, 8.0, 4 * nBins, 0.0, 8.0);
     CreateH2("Eta_rec_Eta_sim", "#eta_{sim}", "#eta_{rec}", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 5.0);
-    
+
     CreateH1("ghostGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("ghostGlobDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("recoGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("recoGlobDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("allGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("allGlobDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("EffGemDistr", "P_{sim}, GeV/c", "Efficiency, %", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("EffGlobDistr", "P_{sim}, GeV/c", "Efficiency, %", nBins, fPRangeMin, fPRangeMax);
     CreateH1("FakeGemDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("FakeGlobDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", nBins, fPRangeMin, fPRangeMax);
 
     cout << fHM->ToString();
 }
@@ -482,7 +489,7 @@ void BmnTrackingQa::ProcessGlobalTracks() {
         Float_t Px_rec = Pz_rec * Tx;
         Float_t Py_rec = Pz_rec * Ty;
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
-        
+
 
         Int_t refId = globalTrack->GetRefId();
         if (refId < 0) continue;
@@ -503,11 +510,21 @@ void BmnTrackingQa::ProcessGlobalTracks() {
         fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
         for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += 2) {
             fHM->H2("momRes_1D")->SetBinContent(iBin / 2, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin + 2)->GetMean());
-//            fHM->H2("momRes_1D")->SetBinError(iBin / 2, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin + 2)->GetStdDev(1));
+            //            fHM->H2("momRes_1D")->SetBinError(iBin / 2, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin + 2)->GetStdDev(1));
             fHM->H2("momRes_1D")->SetBinError(iBin / 2, 0.0); //FIXME! MAKE CORRECT CALCULATION OF ERRORS! 
         }
 
-        // check the quality of track segments
+        // check the quality of global track ---->
+        const BmnTrackMatch* glTrackMatch = (const BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
+        if (!glTrackMatch) continue;
+        Bool_t isTrackOk = glTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
+        if (!isTrackOk) { // ghost track
+            fHM->H1("ghostGlobDistr")->Fill(P_sim);
+        }
+        fHM->H1("recoGlobDistr")->Fill(P_sim);
+        // <---- check the quality of global track
+
+        //check the quality of track segments
         const BmnTrackMatch* gemTrackMatch;
         if (isGemOk) {
             //            cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
@@ -633,8 +650,11 @@ void BmnTrackingQa::ProcessMcTracks() {
 
         vector<Double_t> tmp5 = list_of(mcY)(mcPt);
         parMap["YPt"] = tmp5;
-        
-        if (isGemOk) fHM->H1("allGemDistr")->Fill(mcP);
+
+        if (isGemOk) {
+            fHM->H1("allGemDistr")->Fill(mcP);
+            fHM->H1("allGlobDistr")->Fill(mcP);
+        }
 
         for (Int_t iHist = 0; iHist < nofEffHistos; iHist++) {
             TH1* hist = effHistos[iHist];
@@ -709,7 +729,7 @@ void BmnTrackingQa::IncreaseCounters() {
     if (fDet.GetDet(kDCH1) && fDch1Hits) fHM->H1("hno_NofObjects_Dch1Hits")->Fill(fDch1Hits->GetEntriesFast());
     if (fDet.GetDet(kDCH2) && fDch2Hits) fHM->H1("hno_NofObjects_Dch2Hits")->Fill(fDch2Hits->GetEntriesFast());
     if (fDet.GetDet(kTOF) && fTof2Hits) fHM->H1("hno_NofObjects_Tof2Hits")->Fill(fTof2Hits->GetEntriesFast());
-    
+
     cout << "IncreaseCounters     Dch2Hits = " << fHM->H1("hno_NofObjects_Dch2Hits")->GetMean() << endl;
     cout << "IncreaseCounters     Dch1Hits = " << fHM->H1("hno_NofObjects_Dch1Hits")->GetMean() << endl;
 }

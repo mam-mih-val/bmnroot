@@ -367,7 +367,7 @@ void BmnMatchRecoToMC::MatchGlobalTracks(
 
     if (!(globTracks && trackMatches)) return;
 
-    Bool_t editMode = (trackMatches->GetEntriesFast() != 0);
+    Bool_t editMode = kFALSE;//(trackMatches->GetEntriesFast() != 0);
 
     for (Int_t iTrack = 0; iTrack < globTracks->GetEntriesFast(); ++iTrack) {
         const BmnGlobalTrack* track = (const BmnGlobalTrack*) (globTracks->At(iTrack));

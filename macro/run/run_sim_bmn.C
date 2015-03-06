@@ -99,7 +99,7 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = 
 #ifdef BOX
     gRandom->SetSeed(0);
     // ------- Box Generator 
-    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 10); // 13 = muon; 1 = multipl.
+    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 100); // 13 = muon; 1 = multipl.
     boxGen->SetPRange(1.0, 3.0); // GeV/c //setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
@@ -163,7 +163,8 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = 
     // -----   Create magnetic field   ----------------------------------------
     if (isFieldMap) {
         Double_t fieldScale = 1.;
-        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
+        // BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
+        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v2_ascii_Extrap.dat");
         // Double_t fieldZ = 124.5; // field centre z position 
         // magField->SetPosition(0., 0., fieldZ);
         magField->SetScale(fieldScale);

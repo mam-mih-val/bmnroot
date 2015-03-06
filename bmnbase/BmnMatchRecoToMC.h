@@ -13,10 +13,6 @@
 #include "FairTask.h"
 #include "BmnMatch.h"
 #include "BmnTrackMatch.h"
-//#include "BmnCluster.h"
-//#include "BmnBaseHit.h"
-//#include "BmnStsHit.h"
-//#include "BmnTrack.h"
 #include "BmnGlobalTrack.h"
 #include "BmnGemTrack.h"
 #include "BmnGemStripHit.h"
@@ -83,8 +79,6 @@ private:
     //          TClonesArray* hitMatches);
     
     BmnStatus LinkToMC(const TClonesArray* hitMatchArr, const TClonesArray* points, Int_t id, BmnTrackMatch* trackMatch);
-    BmnStatus TrueAndWrongCalc(const TClonesArray* hitMatchArr, const TClonesArray* points, Int_t id, BmnTrackMatch* trackMatch, Int_t* trueCounter, Int_t* wrongCounter);
-
     void MatchHitsToPoints(
             const TClonesArray* points,
             const TClonesArray* hits,

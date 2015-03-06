@@ -18,7 +18,7 @@
 #include "CbmBaseHit.h"
 #include "FairMCPoint.h"
 #include "CbmStsTrack.h"
-#include "CbmMvdHitMatch.h"
+#include "BmnGemTrack.h"
 #include "BmnTrackMatch.h"
 #include "CbmTofHit.h"
 #include "BmnDchHit.h"
@@ -489,8 +489,7 @@ void BmnTrackingQa::ProcessGlobalTracks() {
         Float_t Px_rec = Pz_rec * Tx;
         Float_t Py_rec = Pz_rec * Ty;
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
-
-
+        
         Int_t refId = globalTrack->GetRefId();
         if (refId < 0) continue;
         const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(refId));
@@ -729,9 +728,6 @@ void BmnTrackingQa::IncreaseCounters() {
     if (fDet.GetDet(kDCH1) && fDch1Hits) fHM->H1("hno_NofObjects_Dch1Hits")->Fill(fDch1Hits->GetEntriesFast());
     if (fDet.GetDet(kDCH2) && fDch2Hits) fHM->H1("hno_NofObjects_Dch2Hits")->Fill(fDch2Hits->GetEntriesFast());
     if (fDet.GetDet(kTOF) && fTof2Hits) fHM->H1("hno_NofObjects_Tof2Hits")->Fill(fTof2Hits->GetEntriesFast());
-
-    cout << "IncreaseCounters     Dch2Hits = " << fHM->H1("hno_NofObjects_Dch2Hits")->GetMean() << endl;
-    cout << "IncreaseCounters     Dch1Hits = " << fHM->H1("hno_NofObjects_Dch1Hits")->GetMean() << endl;
 }
 
 ClassImp(BmnTrackingQa);

@@ -353,6 +353,17 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         trackCand.SortHits();
         if (CalculateTrackParams(&trackCand, circPar, linePar)) {
             new((*fGemSeedsArray)[fGemSeedsArray->GetEntriesFast()]) BmnGemTrack(trackCand);
+            //            if (Abs(Abs(1.0 / trackCand.GetParamFirst()->GetQp()) - 1.5) > 1.0) {
+            //                cout << "\nN_HITS = " << trackCand.GetNHits() << " mom = " << 1.0 / trackCand.GetParamFirst()->GetQp() << endl;
+            //                //                cout << "First: \n";
+            //                //                trackCand.GetParamFirst()->Print();
+            //                //                cout << "Last: \n";
+            //                //                trackCand.GetParamLast()->Print();
+            //                for (Int_t i = 0; i < trackCand.GetNHits(); ++i) {
+            //                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(trackCand.GetHitIndex(i));
+            //                    cout << "x = " << hit->GetX() << " z = " << hit->GetZ() << endl;
+            //                }
+            //            }
         }
     }
     return trCntr;
@@ -715,26 +726,40 @@ TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack* track) {
 
     Float_t chi2 = 0.0;
     Int_t nReal = 0;
+    Float_t dX, dY, dR, sum = 0.0;
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
         if (!(hit->IsUsed())) continue;
         chi2 += Sqr(R - Dist(hit->GetX(), hit->GetZ(), Xc, Yc)) / R;
+        dX = hit->GetX() - Xc;
+        dY = hit->GetZ() - Yc;
+        dR = Sqrt(dX * dX + dY * dY) - R;
+        sum += dR * dR;
         nReal++;
     }
+    Float_t sigma = Sqrt(sum / nReal);
 
     chi2 *= nReal;
     track->SetChi2(chi2);
     track->SetNDF(nReal - 1);
-    if (chi2 > ChisquareQuantile(0.95, nReal - 1)) {
+    //    if (chi2 > ChisquareQuantile(0.95, nReal - 1)) {
+    //        for (Int_t i = 0; i < nHits; ++i) {
+    //            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
+    //            hit->SetUsing(kFALSE);
+    //        }
+    //        return TVector3(0.0, 0.0, 0.0);
+    //    }
+
+//    cout << "sigm = " << sigma << " chi2 = " << chi2 << " nReal = " << nReal << " R = " << R << " arb.error = " << sigma / R * 100.0 << endl;
+    if (sigma / R * 100.0 > 2.0) { //test check. RMS <= 2% of Radius
         for (Int_t i = 0; i < nHits; ++i) {
             BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
             hit->SetUsing(kFALSE);
         }
         return TVector3(0.0, 0.0, 0.0);
+    } else {
+        return TVector3(Xc, Yc, R);
     }
-
-
-    return TVector3(Xc, Yc, R);
 }
 
 TVector3 BmnGemSeedFinder::LineFit(BmnGemTrack* track) {

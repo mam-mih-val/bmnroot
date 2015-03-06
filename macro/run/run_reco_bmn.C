@@ -214,7 +214,8 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                           DCH1 hit finder                      === //
     // ====================================================================== //
 
-    BmnDchHitProducer* dch1HP = new BmnDchHitProducer(1,0,false);
+//    BmnDchHitProducer* dch1HP = new BmnDchHitProducer(1,0,false);
+    BmnDchHitProducerTmp* dch1HP = new BmnDchHitProducerTmp(1);
     //dch1HP->SetOnlyPrimary(kTRUE);
     fRun->AddTask(dch1HP);
 
@@ -222,7 +223,8 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                          DCH2 hit finder                       === //
     // ====================================================================== //
 
-    BmnDchHitProducer* dch2HP = new BmnDchHitProducer(2,0,false);
+//    BmnDchHitProducer* dch2HP = new BmnDchHitProducer(2,0,false);
+    BmnDchHitProducerTmp* dch2HP = new BmnDchHitProducerTmp(2);
     //dch2HP->SetOnlyPrimary(kTRUE);
     fRun->AddTask(dch2HP);
 

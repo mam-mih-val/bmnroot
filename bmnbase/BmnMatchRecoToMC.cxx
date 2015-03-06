@@ -132,6 +132,8 @@ void BmnMatchRecoToMC::Exec(Option_t* opt) {
     if (fDch2ClusterMatches != NULL) fDch2ClusterMatches->Delete();
     if (fDch2HitMatches != NULL) fDch2HitMatches->Delete();
 
+    if (fTrackMatches != NULL) fTrackMatches->Delete();
+
     // GEM
     if (fGemDigis && fGemClusters && fGemHits) { // MC->digi->cluster->hit->track
         //MatchClusters(fGemDigiMatches, fGemClusters, fGemClusterMatches);
@@ -322,9 +324,11 @@ void BmnMatchRecoToMC::MatchGemTracks(
             for (Int_t iLink = 0; iLink < nofLinks; ++iLink) {
                 const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetLink(iLink).GetIndex()));
                 if (NULL == point) continue;
+                //cout << point->GetTrackID() << " ";
                 trackMatch->AddLink(BmnLink(1., point->GetTrackID()));
             }
         }
+        //cout << endl;
         // Calculate number of true and wrong hits
         Int_t trueCounter = trackMatch->GetNofTrueHits();
         Int_t wrongCounter = trackMatch->GetNofWrongHits();
@@ -367,7 +371,7 @@ void BmnMatchRecoToMC::MatchGlobalTracks(
 
     if (!(globTracks && trackMatches)) return;
 
-    Bool_t editMode = kFALSE;//(trackMatches->GetEntriesFast() != 0);
+    Bool_t editMode = (trackMatches->GetEntriesFast() != 0);
 
     for (Int_t iTrack = 0; iTrack < globTracks->GetEntriesFast(); ++iTrack) {
         const BmnGlobalTrack* track = (const BmnGlobalTrack*) (globTracks->At(iTrack));
@@ -377,36 +381,20 @@ void BmnMatchRecoToMC::MatchGlobalTracks(
         //GEM
         BmnGemTrack* gemTr = (BmnGemTrack*) gemTracks->At(track->GetGemTrackIndex());
         for (Int_t iHit = 0; iHit < gemTr->GetNHits(); ++iHit)
-            if (LinkToMC(gemHitMatches, gemPoints, gemTr->GetHitIndex(iHit), trackMatch) == kBMNERROR) continue;
+            LinkToMC(gemHitMatches, gemPoints, gemTr->GetHitIndex(iHit), trackMatch);
         //TOF1
-        if (LinkToMC(tof1HitMatches, tof1Points, track->GetTof1HitIndex(), trackMatch) == kBMNERROR) continue;
-        //TOF2
-        if (LinkToMC(tof2HitMatches, tof2Points, track->GetTof2HitIndex(), trackMatch) == kBMNERROR) continue;
+        LinkToMC(tof1HitMatches, tof1Points, track->GetTof1HitIndex(), trackMatch);
         //DCH1
-        if (LinkToMC(dch1HitMatches, dch1Points, track->GetDch1HitIndex(), trackMatch) == kBMNERROR) continue;
+        LinkToMC(dch1HitMatches, dch1Points, track->GetDch1HitIndex(), trackMatch);
         //DCH2
-        if (LinkToMC(dch2HitMatches, dch2Points, track->GetDch2HitIndex(), trackMatch) == kBMNERROR) continue;
+        LinkToMC(dch2HitMatches, dch2Points, track->GetDch2HitIndex(), trackMatch);
+        //TOF2
+        LinkToMC(tof2HitMatches, tof2Points, track->GetTof2HitIndex(), trackMatch);
 
-        
+
         //=== Calculate number of true and wrong hits ===//
-
-        Int_t trueCounter = trackMatch->GetNofTrueHits();
-        Int_t wrongCounter = trackMatch->GetNofWrongHits();
-
-        //GEM
-        for (Int_t iHit = 0; iHit < gemTr->GetNHits(); ++iHit)
-            if (TrueAndWrongCalc(gemHitMatches, gemPoints, gemTr->GetHitIndex(iHit), trackMatch, &trueCounter, &wrongCounter) == kBMNERROR) continue;
-        //TOF1
-        if (TrueAndWrongCalc(tof1HitMatches, tof1Points, track->GetTof1HitIndex(), trackMatch, &trueCounter, &wrongCounter) == kBMNERROR) continue;
-        //TOF2
-        if (TrueAndWrongCalc(tof2HitMatches, tof2Points, track->GetTof2HitIndex(), trackMatch, &trueCounter, &wrongCounter) == kBMNERROR) continue;
-        //DCH1
-        if (TrueAndWrongCalc(dch1HitMatches, dch1Points, track->GetDch1HitIndex(), trackMatch, &trueCounter, &wrongCounter) == kBMNERROR) continue;
-        //DCH2
-        if (TrueAndWrongCalc(dch2HitMatches, dch2Points, track->GetDch2HitIndex(), trackMatch, &trueCounter, &wrongCounter) == kBMNERROR) continue;
-
-        trackMatch->SetNofTrueHits(trueCounter);
-        trackMatch->SetNofWrongHits(wrongCounter);
+        trackMatch->SetNofTrueHits(trackMatch->GetMatchedLink().GetWeight());
+        trackMatch->SetNofWrongHits(track->GetNofHits() - trackMatch->GetMatchedLink().GetWeight());
     }
 }
 
@@ -419,29 +407,6 @@ BmnStatus BmnMatchRecoToMC::LinkToMC(const TClonesArray* hitMatchArr, const TClo
             const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetLink(iLink).GetIndex()));
             if (NULL == point) return kBMNERROR;
             trackMatch->AddLink(BmnLink(1., point->GetTrackID()));
-        }
-    }
-    return kBMNSUCCESS;
-}
-
-BmnStatus BmnMatchRecoToMC::TrueAndWrongCalc(const TClonesArray* hitMatchArr, const TClonesArray* points, Int_t id, BmnTrackMatch* trackMatch, Int_t* trueCounter, Int_t* wrongCounter) {
-
-    if (id != -1) {
-        const BmnMatch* hitMatch = (BmnMatch*) (hitMatchArr->At(id));
-        if (hitMatch == NULL) return kBMNERROR;
-        Bool_t hasTrue = kFALSE;
-        for (Int_t iLink = 0; iLink < hitMatch->GetNofLinks(); ++iLink) {
-            const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetLink(iLink).GetIndex()));
-            if (NULL == point) return kBMNERROR;
-            if (point->GetTrackID() == trackMatch->GetMatchedLink().GetIndex()) {
-                hasTrue = true;
-                break;
-            }
-        }
-        if (hasTrue) {
-            (*trueCounter)++;
-        } else {
-            (*wrongCounter)++;
         }
     }
     return kBMNSUCCESS;

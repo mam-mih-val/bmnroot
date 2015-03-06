@@ -30,6 +30,7 @@ BmnDch1ContFact.cxx
 BmnDch1Geo.cxx 
 BmnDch1GeoPar.cxx
 BmnDchHitProducer.cxx
+BmnDchHitProducerTmp.cxx
 ScalarD.cxx
 ScalarI.cxx
 ScalarUI.cxx

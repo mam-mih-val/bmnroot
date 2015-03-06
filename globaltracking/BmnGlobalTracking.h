@@ -71,6 +71,8 @@ public:
      * \brief Inherited from FairTask.
      */
     virtual void Finish();
+    
+    Float_t Sqr(Float_t x);
 
     void SetRun1(Bool_t run) {
         isRUN1 = run;
@@ -165,7 +167,7 @@ private:
     Int_t fPDG; // PDG hypothesis
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
 
-    BmnStatus NearestHitMergeGEM(BmnGlobalTrack* tr);
+//    BmnStatus NearestHitMergeGEM(BmnGlobalTrack* tr);
     BmnStatus NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num);
     BmnStatus NearestHitMergeDCH(BmnGlobalTrack* tr, Int_t num);
     

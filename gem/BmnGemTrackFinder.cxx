@@ -80,14 +80,15 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
     cout << "\n====================== GEM track finder exec started ======================" << endl;
     cout << "\n Event number: " << fEventNo++ << endl;
-    
+
     clock_t tStart = clock();
-    fGemTracksArray->Clear();    
+    fGemTracksArray->Clear();
     for (Int_t i = 0; i < fGemSeedsArray->GetEntriesFast(); ++i) {
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArray->At(i);
         BmnGemTrack tr = *track;
         Refit(&tr); //refit seeds with KF
-        for (Int_t iStat = kNHITSFORSEED; iStat < 12; ++iStat) {
+        for (Int_t iStat = tr.GetNHits(); iStat < 12; ++iStat) {
+            //            for (Int_t iStat = kNHITSFORSEED; iStat < 12; ++iStat) {
             if (NearestHitMerge(iStat, &tr) != kBMNSUCCESS) continue; //Attaching hits on each GEM-station to track
             Refit(&tr); //refit seeds with KF
         }
@@ -170,13 +171,13 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
                 cout << "GEM_TRACKING: There is no MC-point corresponded to current hit" << endl;
                 continue;
             }
-            
+
             if (indexes.find(point->GetTrackID()) == indexes.end()) {
                 indexes.insert(pair<Int_t, Int_t > (point->GetTrackID(), 1));
             } else {
                 (indexes.find(point->GetTrackID())->second)++;
             }
-            
+
             if (hit->GetStation() < kNHITSFORSEED) continue;
             if (point->GetTrackID() == seed->GetRef()) {
                 wellFoundCntr++;
@@ -193,7 +194,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             if ((*it).second > track->GetNHits() * thresh) goodTrackCntr++;
         }
         track->SetRef(refId);
-        if(fMakeQA) {
+        if (fMakeQA) {
             fHisto->_hNumMcTrack->Fill(indexes.size());
         }
     }
@@ -209,19 +210,19 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 }
 
 void BmnGemTrackFinder::Finish() {
-    
+
     cout.precision(2);
-    cout.setf(ios::fixed, ios::floatfield );
-    
-//    cout << "\n\t-----------------------------------------------------------------------------------------" << endl;
-//    cout << "\t|                              Efficiency of GEM-tracking                               |" << endl;
-//    cout << "\t-----------------------------------------------------------------------------------------" << endl;
-//    cout << "\t|  Percent of connected hits:\t\t\t|\t" << allFoundCntr << " / " << allHitCntr << "\t|  " << allFoundCntr * 100.0 / allHitCntr << "%\t|" << endl;
-//    cout << "\t|  Percent of well connected hits:\t\t|\t" << wellFoundCntr << " / " << allFoundCntr << "\t|  " << wellFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
-//    cout << "\t|  Percent of wrong connected hits:\t\t|\t" << wrongFoundCntr << " / " << allFoundCntr << "\t|  " << wrongFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
-//    cout << "\t|  Percent of well found tracks (thr = " << thresh << "):\t|\t" << goodTrackCntr << " / " << allTrackCntr << "\t|  " << goodTrackCntr * 100.0 / allTrackCntr << "%\t|" << endl;
-//    cout << "\t|  Work time: full / per one event:\t\t|\t" << workTime << " sec.\t|  " << workTime / fEventNo << " sec.\t|" << endl;
-//    cout << "\t-----------------------------------------------------------------------------------------" << endl;
+    cout.setf(ios::fixed, ios::floatfield);
+
+    //    cout << "\n\t-----------------------------------------------------------------------------------------" << endl;
+    //    cout << "\t|                              Efficiency of GEM-tracking                               |" << endl;
+    //    cout << "\t-----------------------------------------------------------------------------------------" << endl;
+    //    cout << "\t|  Percent of connected hits:\t\t\t|\t" << allFoundCntr << " / " << allHitCntr << "\t|  " << allFoundCntr * 100.0 / allHitCntr << "%\t|" << endl;
+    //    cout << "\t|  Percent of well connected hits:\t\t|\t" << wellFoundCntr << " / " << allFoundCntr << "\t|  " << wellFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
+    //    cout << "\t|  Percent of wrong connected hits:\t\t|\t" << wrongFoundCntr << " / " << allFoundCntr << "\t|  " << wrongFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
+    //    cout << "\t|  Percent of well found tracks (thr = " << thresh << "):\t|\t" << goodTrackCntr << " / " << allTrackCntr << "\t|  " << goodTrackCntr * 100.0 / allTrackCntr << "%\t|" << endl;
+    //    cout << "\t|  Work time: full / per one event:\t\t|\t" << workTime << " sec.\t|  " << workTime / fEventNo << " sec.\t|" << endl;
+    //    cout << "\t-----------------------------------------------------------------------------------------" << endl;
 
     if (fMakeQA) {
         toDirectory("QA/GEM/TRACKS");
@@ -231,7 +232,7 @@ void BmnGemTrackFinder::Finish() {
 
 }
 
-BmnStatus BmnGemTrackFinder::Refit(BmnGemTrack* tr) {
+BmnStatus BmnGemTrackFinder::Refit(BmnGemTrack * tr) {
 
     Float_t totalLength = 0.;
     vector<BmnFitNode> nodes(tr->GetNHits());
@@ -256,7 +257,7 @@ BmnStatus BmnGemTrackFinder::Refit(BmnGemTrack* tr) {
         nodes[iHit].SetPredictedParam(&par);
         nodes[iHit].SetF(F);
         Float_t chi2Hit = 0.;
-//        cout << "GOOD \t Xt = " << par.GetX() << "\tYt = " << par.GetY() << "\tZt = " << par.GetZ() << endl;
+        //        cout << "GOOD \t Xt = " << par.GetX() << "\tYt = " << par.GetY() << "\tZt = " << par.GetZ() << endl;
         if (fUpdate->Update(&par, hit, chi2Hit) == kBMNERROR) {
             tr->SetFlag(kBMNBAD);
             cout << "UPD ERROR: Ze = " << Ze << " length = " << length << " \npar = ";
@@ -280,7 +281,7 @@ BmnStatus BmnGemTrackFinder::Refit(BmnGemTrack* tr) {
 
 //**************Implementation of Lebedev's algorithm for merging*************//
 
-BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* tr) {
+BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
     // First find hit with minimum Z position and build map from Z hit position
     // to track parameter to improve the calculation speed.
 
@@ -326,9 +327,11 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* tr) {
         }
         FairTrackParam tpar(zParamMap[hit->GetZ()]);
         Float_t chi = 0.0;
+//        cout << "BEFORE = " << tpar.GetX() << " " << tpar.GetY() << " " << tpar.GetZ() << " " << tpar.GetTx() << " " << tpar.GetTy() << " " << tpar.GetQp() << " chi = " << chi << endl;
         fUpdate->Update(&tpar, hit, chi); //update by KF
+//        cout << "AFTER = " << tpar.GetX() << " " << tpar.GetY() << " " << tpar.GetZ() << " " << tpar.GetTx() << " " << tpar.GetTy() << " " << tpar.GetQp() << " chi = " << chi << endl;
         dist = Dist(tpar.GetX(), tpar.GetY(), hit->GetX(), hit->GetY());
-        if (chi < fChiSqCut && chi < minChiSq) { // Check if hit is inside validation gate and closer to the track.
+        if (chi < fChiSqCut && chi < minChiSq && dist < minDist) { // Check if hit is inside validation gate and closer to the track.
             minDist = dist;
             minChiSq = chi;
             minHit = hit;
@@ -339,6 +342,7 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* tr) {
 
     if (minHit != NULL) { // Check if hit was added
 
+//        cout << "z = " << minHit->GetZ() << " GEM" << endl;
         //        if (fMakeQA) {
         //            fHisto->_hHitsDist->Fill(minDist);
         //            fHisto->_hHitsXDist->Fill(minPar.GetX() - minHit->GetX());
@@ -366,7 +370,7 @@ Float_t BmnGemTrackFinder::Sqr(Float_t x) {
     return x * x;
 }
 
-BmnHit* BmnGemTrackFinder::GetHit(Int_t i) {
+BmnHit * BmnGemTrackFinder::GetHit(Int_t i) {
     BmnHit* hit = (BmnHit*) fGemHitArray->At(i);
     if (!hit) cout << "-W- Wrong attempting to get hit number " << i << " from fGemHitArray, which contains " << fGemHitArray->GetEntriesFast() << " elements" << endl;
     return hit;

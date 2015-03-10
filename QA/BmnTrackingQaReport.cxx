@@ -190,10 +190,11 @@ void BmnTrackingQaReport::Draw() {
     FillGlobalTrackVariants();
     SetDefaultDrawStyle();
     DrawEfficiencyHistos();
-    DrawEffGhostGem("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM detector");
+    DrawEffGhostSeed("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for SEEDS only");
+    DrawEffGhostGem("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS");
     DrawEffGhostGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS");
     DrawYPtHistos();
-    DrawEtaP("Distribution of MC-tracks and RECO-tracks in Pseudorapidity and Momentum");
+    DrawEtaP("Distribution of MC-tracks, Seeds, GEM-tracks and Global tracks in Pseudorapidity and Momentum");
     DrawPsimPrec("Reco vs MC for Pseudorapidity and Momentum");
     DrawPsimPrecComponents("Reco vs MC for X-, Y- and Z-component of Momentum");
     DrawMomRes("Momentum resolution of RECO-track");
@@ -259,6 +260,39 @@ void BmnTrackingQaReport::DrawEfficiency(const string& canvasName, const string&
 
     DrawH1(histos, labels, kLinear, kLinear, true, 0.6, 0.9, 0.9, 1.0, "PE1");
     DrawMeanEfficiencyLines(histos, efficiencies);
+}
+
+void BmnTrackingQaReport::DrawEffGhostSeed(const string& canvasName) {
+    Int_t nofEvents = HM()->H1("hen_EventNo_TrackingQa")->GetEntries();
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1200, 600);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    HM()->H1("allSeedDistr")->Sumw2(); HM()->H1("allSeedDistr")->Scale(1. / nofEvents);
+    HM()->H1("recoSeedDistr")->Sumw2(); HM()->H1("recoSeedDistr")->Scale(1. / nofEvents);
+    HM()->H1("ghostSeedDistr")->Sumw2(); HM()->H1("ghostSeedDistr")->Scale(1. / nofEvents);
+    vector<TH1*> histos1;
+    histos1.push_back(HM()->H1("allSeedDistr"));
+    histos1.push_back(HM()->H1("recoSeedDistr"));
+    histos1.push_back(HM()->H1("ghostSeedDistr"));
+    vector<string> labels1;
+    labels1.push_back("MC tracks");
+    labels1.push_back("Reco tracks");
+    labels1.push_back("Ghost tracks");
+    DrawH1(histos1, labels1, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
+
+    canvas->cd(2);
+    vector<string> labels2;
+    labels2.push_back("Efficiency");
+    labels2.push_back("Percent of ghosts");
+    HM()->H1("EffSeedDistr")->Divide(HM()->H1("recoSeedDistr"), HM()->H1("allSeedDistr"), 1., 1., "B");
+    HM()->H1("EffSeedDistr")->Scale(100.0);
+    HM()->H1("FakeSeedDistr")->Divide(HM()->H1("ghostSeedDistr"), HM()->H1("recoSeedDistr"), 1., 1., "B");
+    HM()->H1("FakeSeedDistr")->Scale(100.0);
+    vector<TH1*> histos2;
+    histos2.push_back(HM()->H1("EffSeedDistr"));
+    histos2.push_back(HM()->H1("FakeSeedDistr"));
+    DrawH1(histos2, labels2, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
 }
 
 void BmnTrackingQaReport::DrawEffGhostGem(const string& canvasName) {
@@ -372,13 +406,21 @@ void BmnTrackingQaReport::DrawMomRes(const string& canvasName) {
 }
 
 void BmnTrackingQaReport::DrawEtaP(const string& canvasName) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 2000, 500);
     canvas->SetGrid();
-    canvas->Divide(2, 1);
+    canvas->Divide(4, 1);
     canvas->cd(1);
+    canvas->GetPad(1)->SetTitle("MC-tracks");
     DrawH2(HM()->H2("EtaP_sim"), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
-    DrawH2(HM()->H2("EtaP_rec"), kLinear, kLinear, kLinear, "colz");
+    canvas->GetPad(2)->SetTitle("Seeds only");
+    DrawH2(HM()->H2("EtaP_rec_seed"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(3);
+    canvas->GetPad(3)->SetTitle("GEM tracks only");
+    DrawH2(HM()->H2("EtaP_rec_gem"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(4);
+    canvas->GetPad(4)->SetTitle("Global tracks");
+    DrawH2(HM()->H2("EtaP_rec_glob"), kLinear, kLinear, kLinear, "colz");
 }
 
 void BmnTrackingQaReport::DrawMeanEfficiencyLines(

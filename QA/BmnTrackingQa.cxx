@@ -125,12 +125,20 @@ void BmnTrackingQa::ReadDataBranches() {
 
     fGlobalTracks = (TClonesArray*) ioman->GetObject("GlobalTrack");
     fGlobalTrackMatches = (TClonesArray*) ioman->GetObject("GlobalTrackMatch");
-    
+
     if (NULL == fGlobalTracks) {
         Fatal("Init", "No GlobalTrack array!");
     }
 
     if (fDet.GetDet(kGEM)) {
+        fGemSeeds = (TClonesArray*) ioman->GetObject("BmnGemSeeds");
+        if (NULL == fGemSeeds) {
+            Fatal("Init", ": No GemSeeds array!");
+        }
+        fGemSeedMatches = (TClonesArray*) ioman->GetObject("BmnGemSeedMatch");
+        if (NULL == fGemSeedMatches) {
+            Fatal("Init", ": No BmnGemSeedMatch array!");
+        }
         fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTracks");
         if (NULL == fGemTracks) {
             Fatal("Init", ": No GemTrack array!");
@@ -432,7 +440,9 @@ void BmnTrackingQa::CreateHistograms() {
     // Physics
     const Int_t nBins = 100;
     CreateH2("momRes_2D", "P_{sim}, GeV/c", "#Delta P / P, %", "", nBins, 0.0, 5.0, nBins, 0.0, 5.0);
-    CreateH2("EtaP_rec", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
+    CreateH2("EtaP_rec_seed", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
+    CreateH2("EtaP_rec_gem", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
+    CreateH2("EtaP_rec_glob", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
     CreateH1("momRes_1D", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", nBins / 2, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 10.0, 4 * nBins, 0.0, 10.0);
@@ -441,14 +451,19 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("Pz_rec_Pz_sim", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * nBins, 0.0, 8.0, 4 * nBins, 0.0, 8.0);
     CreateH2("Eta_rec_Eta_sim", "#eta_{sim}", "#eta_{rec}", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 5.0);
 
+    CreateH1("ghostSeedDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("ghostGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("ghostGlobDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("recoSeedDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("recoGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("recoGlobDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("allSeedDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("allGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("allGlobDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("EffSeedDistr", "P_{sim}, GeV/c", "Efficiency, %", nBins, fPRangeMin, fPRangeMax);
     CreateH1("EffGemDistr", "P_{sim}, GeV/c", "Efficiency, %", nBins, fPRangeMin, fPRangeMax);
     CreateH1("EffGlobDistr", "P_{sim}, GeV/c", "Efficiency, %", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("FakeSeedDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", nBins, fPRangeMin, fPRangeMax);
     CreateH1("FakeGemDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", nBins, fPRangeMin, fPRangeMax);
     CreateH1("FakeGlobDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", nBins, fPRangeMin, fPRangeMax);
 
@@ -476,20 +491,40 @@ void BmnTrackingQa::ProcessGlobalTracks() {
 
         // check track segments
         Bool_t isGemOk = gemId > -1 && fDet.GetDet(kGEM);
+        Bool_t isSeedOk = gemId > -1 && fDet.GetDet(kGEM);
         Bool_t isTof1Ok = tof1Id > -1 && fDet.GetDet(kTOF1) && fTof1Hits;
         Bool_t isTof2Ok = tof2Id > -1 && fDet.GetDet(kTOF) && fTof2Hits;
         Bool_t isDch1Ok = dch1Id > -1 && fDet.GetDet(kDCH1) && fDch1Hits;
         Bool_t isDch2Ok = dch2Id > -1 && fDet.GetDet(kDCH2) && fDch2Hits;
 
-        Float_t P_rec = Abs(1.0 / globalTrack->GetParamFirst()->GetQp());
-        Float_t Tx = globalTrack->GetParamFirst()->GetTx();
-        Float_t Ty = globalTrack->GetParamFirst()->GetTy();
-        Float_t coef = Sqrt(Tx * Tx + Ty * Ty + 1);
-        Float_t Pz_rec = P_rec / coef;
-        Float_t Px_rec = Pz_rec * Tx;
-        Float_t Py_rec = Pz_rec * Ty;
-        Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
+        Float_t P_rec_glob = Abs(1.0 / globalTrack->GetParamFirst()->GetQp());
+        Float_t Tx_glob = globalTrack->GetParamFirst()->GetTx();
+        Float_t Ty_glob = globalTrack->GetParamFirst()->GetTy();
+        Float_t Pz_rec_glob = P_rec_glob / Sqrt(Tx_glob * Tx_glob + Ty_glob * Ty_glob + 1);
+        Float_t Px_rec_glob = Pz_rec_glob * Tx_glob;
+        Float_t Py_rec_glob = Pz_rec_glob * Ty_glob;
+        Float_t Eta_rec_glob = 0.5 * Log((P_rec_glob + Pz_rec_glob) / (P_rec_glob - Pz_rec_glob));
         
+        Float_t Eta_rec_seed, Eta_rec_gem;
+        Float_t P_rec_seed, P_rec_gem;
+        if (isGemOk) {
+            BmnGemTrack* gemTrack = (BmnGemTrack*) (fGemTracks->At(gemId));
+            BmnGemTrack* gemSeed = (BmnGemTrack*) (fGemSeeds->At(gemId));
+            
+            P_rec_gem = Abs(1.0 / gemTrack->GetParamFirst()->GetQp());
+            P_rec_seed = Abs(1.0 / gemSeed->GetParamFirst()->GetQp());
+            Float_t Tx_gem = gemTrack->GetParamFirst()->GetTx();
+            Float_t Tx_seed = gemSeed->GetParamFirst()->GetTx();
+            Float_t Ty_gem = gemTrack->GetParamFirst()->GetTy();
+            Float_t Ty_seed = gemSeed->GetParamFirst()->GetTy();
+            Float_t Pz_rec_gem = P_rec_gem / Sqrt(Tx_gem * Tx_gem + Ty_gem * Ty_gem + 1);
+            Float_t Pz_rec_seed = P_rec_seed / Sqrt(Tx_seed * Tx_seed + Ty_seed * Ty_seed + 1);
+            Float_t Px_rec_gem = Pz_rec_gem * Tx_gem;
+            Float_t Py_rec_seed = Pz_rec_seed * Ty_seed;
+            Eta_rec_gem = 0.5 * Log((P_rec_gem + Pz_rec_gem) / (P_rec_gem - Pz_rec_gem));
+            Eta_rec_seed = 0.5 * Log((P_rec_seed + Pz_rec_seed) / (P_rec_seed - Pz_rec_seed));
+        }
+
         Int_t refId = globalTrack->GetRefId();
         if (refId < 0) continue;
         const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(refId));
@@ -499,13 +534,15 @@ void BmnTrackingQa::ProcessGlobalTracks() {
         Float_t Pz_sim = mcTrack->GetPz();
         Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
 
-        fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec) / P_sim * 100.0);
-        fHM->H2("P_rec_P_sim")->Fill(P_sim, P_rec);
-        fHM->H2("Px_rec_Px_sim")->Fill(Px_sim, Px_rec);
-        fHM->H2("Py_rec_Py_sim")->Fill(Py_sim, Py_rec);
-        fHM->H2("Pz_rec_Pz_sim")->Fill(Pz_sim, Pz_rec);
-        fHM->H2("Eta_rec_Eta_sim")->Fill(Eta_sim, Eta_rec);
-        fHM->H2("EtaP_rec")->Fill(Eta_rec, P_rec);
+        fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec_glob) / P_sim * 100.0);
+        fHM->H2("P_rec_P_sim")->Fill(P_sim, P_rec_glob);
+        fHM->H2("Px_rec_Px_sim")->Fill(Px_sim, Px_rec_glob);
+        fHM->H2("Py_rec_Py_sim")->Fill(Py_sim, Py_rec_glob);
+        fHM->H2("Pz_rec_Pz_sim")->Fill(Pz_sim, Pz_rec_glob);
+        fHM->H2("Eta_rec_Eta_sim")->Fill(Eta_sim, Eta_rec_glob);
+        fHM->H2("EtaP_rec_seed")->Fill(Eta_rec_seed, P_rec_seed);
+        fHM->H2("EtaP_rec_gem")->Fill(Eta_rec_gem, P_rec_gem);
+        fHM->H2("EtaP_rec_glob")->Fill(Eta_rec_glob, P_rec_glob);
         fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
         for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += 2) {
             fHM->H2("momRes_1D")->SetBinContent(iBin / 2, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin + 2)->GetMean());
@@ -525,6 +562,7 @@ void BmnTrackingQa::ProcessGlobalTracks() {
 
         //check the quality of track segments
         const BmnTrackMatch* gemTrackMatch;
+        const BmnTrackMatch* gemSeedMatch;
         if (isGemOk) {
             //            cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
             gemTrackMatch = (const BmnTrackMatch*) (fGemMatches->At(gemId));
@@ -536,6 +574,19 @@ void BmnTrackingQa::ProcessGlobalTracks() {
                 fHM->H1("ghostGemDistr")->Fill(P_sim);
             }
             fHM->H1("recoGemDistr")->Fill(P_sim);
+        }
+
+        if (isSeedOk) {
+            //            cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
+            gemSeedMatch = (const BmnTrackMatch*) (fGemSeedMatches->At(gemId));
+            isSeedOk = gemSeedMatch->GetTrueOverAllHitsRatio() >= fQuota; //CheckTrackQuality(stsTrackMatch, kGEM);
+            //            FillTrackQualityHistograms(gemSeedMatch, kGEM);
+            if (!isSeedOk) { // ghost track
+                Int_t nofHits = gemSeedMatch->GetNofHits();
+                //fHM->H1("hng_NofGhosts_Gem_Nh")->Fill(nofHits);
+                fHM->H1("ghostSeedDistr")->Fill(P_sim);
+            }
+            fHM->H1("recoSeedDistr")->Fill(P_sim);
         }
 
         // Get MC indices of track segments
@@ -652,6 +703,7 @@ void BmnTrackingQa::ProcessMcTracks() {
 
         if (isGemOk) {
             fHM->H1("allGemDistr")->Fill(mcP);
+            fHM->H1("allSeedDistr")->Fill(mcP);
             fHM->H1("allGlobDistr")->Fill(mcP);
         }
 

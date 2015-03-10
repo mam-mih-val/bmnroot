@@ -19,10 +19,12 @@ fGemDigis(NULL),
 fGemClusters(NULL),
 fGemHits(NULL),
 fGemTracks(NULL),
+fGemSeeds(NULL),        
 fGemDigiMatches(NULL),
 fGemClusterMatches(NULL),
 fGemHitMatches(NULL),
 fGemTrackMatches(NULL),
+fGemSeedMatches(NULL),
 fTof1Points(NULL),
 fTof1Digis(NULL),
 fTof1Clusters(NULL),
@@ -66,6 +68,10 @@ BmnMatchRecoToMC::~BmnMatchRecoToMC() {
     if (fGemTrackMatches) {
         fGemTrackMatches->Delete();
         delete fGemTrackMatches;
+    }
+    if (fGemSeedMatches) {
+        fGemSeedMatches->Delete();
+        delete fGemSeedMatches;
     }
 
     if (fTof1ClusterMatches != NULL) {
@@ -119,6 +125,7 @@ void BmnMatchRecoToMC::Exec(Option_t* opt) {
     if (fGemClusterMatches != NULL) fGemClusterMatches->Delete();
     if (fGemHitMatches != NULL) fGemHitMatches->Delete();
     if (fGemTrackMatches != NULL) fGemTrackMatches->Delete();
+    if (fGemSeedMatches != NULL) fGemSeedMatches->Delete();
 
     if (fTof1ClusterMatches != NULL) fTof1ClusterMatches->Delete();
     if (fTof1HitMatches != NULL) fTof1HitMatches->Delete();
@@ -143,6 +150,7 @@ void BmnMatchRecoToMC::Exec(Option_t* opt) {
         //        MatchGemHitsToPoints(fGemPoints, fGemHits, fGemHitMatches);
         MatchHitsToPoints(fGemPoints, fGemHits, fGemHitMatches);
         MatchGemTracks(fGemHitMatches, fGemPoints, fGemTracks, fGemTrackMatches);
+        MatchGemSeeds(fGemHitMatches, fGemPoints, fGemSeeds, fGemSeedMatches);
     }
 
     // TOF1
@@ -215,6 +223,7 @@ void BmnMatchRecoToMC::ReadAndCreateDataBranches() {
     //fGemClusters = (TClonesArray*) ioman->GetObject("GemCluster");
     fGemHits = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
     fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTracks");
+    fGemSeeds = (TClonesArray*) ioman->GetObject("BmnGemSeeds");
     //fGemDigiMatches = (TClonesArray*) ioman->GetObject("GemDigiMatch");
     if (fGemClusters != NULL) {
         //fGemClusterMatches = new TClonesArray("BmnMatch", 100);
@@ -227,6 +236,10 @@ void BmnMatchRecoToMC::ReadAndCreateDataBranches() {
     if (fGemTracks != NULL) {
         fGemTrackMatches = new TClonesArray("BmnTrackMatch", 100);
         ioman->Register("BmnGemTrackMatch", "GEM", fGemTrackMatches, kTRUE);
+    }
+    if (fGemSeeds != NULL) {
+        fGemSeedMatches = new TClonesArray("BmnTrackMatch", 100);
+        ioman->Register("BmnGemSeedMatch", "GEM", fGemSeedMatches, kTRUE);
     }
 
     // TOF1
@@ -317,6 +330,56 @@ void BmnMatchRecoToMC::MatchGemTracks(
     for (Int_t iTrack = 0; iTrack < nofTracks; ++iTrack) {
         const BmnGemTrack* track = (const BmnGemTrack*) (tracks->At(iTrack));
         BmnTrackMatch* trackMatch = (editMode) ? (BmnTrackMatch*) (trackMatches->At(iTrack)) : new ((*trackMatches)[iTrack]) BmnTrackMatch();
+        Int_t nofHits = track->GetNHits();
+        for (Int_t iHit = 0; iHit < nofHits; ++iHit) {
+            const BmnMatch* hitMatch = (BmnMatch*) (hitMatches->At(track->GetHitIndex(iHit)));
+            Int_t nofLinks = hitMatch->GetNofLinks();
+            for (Int_t iLink = 0; iLink < nofLinks; ++iLink) {
+                const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetLink(iLink).GetIndex()));
+                if (NULL == point) continue;
+                //cout << point->GetTrackID() << " ";
+                trackMatch->AddLink(BmnLink(1., point->GetTrackID()));
+            }
+        }
+        //cout << endl;
+        // Calculate number of true and wrong hits
+        Int_t trueCounter = trackMatch->GetNofTrueHits();
+        Int_t wrongCounter = trackMatch->GetNofWrongHits();
+        for (Int_t iHit = 0; iHit < nofHits; ++iHit) {
+            const BmnMatch* hitMatch = (BmnMatch*) (hitMatches->At(track->GetHitIndex(iHit)));
+            Int_t nofLinks = hitMatch->GetNofLinks();
+            Bool_t hasTrue = false;
+            for (Int_t iLink = 0; iLink < nofLinks; ++iLink) {
+                const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetLink(iLink).GetIndex()));
+                if (NULL == point) continue;
+                if (point->GetTrackID() == trackMatch->GetMatchedLink().GetIndex()) {
+                    hasTrue = true;
+                    break;
+                }
+            }
+            if (hasTrue)
+                trueCounter++;
+            else
+                wrongCounter++;
+        }
+        trackMatch->SetNofTrueHits(trueCounter);
+        trackMatch->SetNofWrongHits(wrongCounter);
+    }
+}
+
+void BmnMatchRecoToMC::MatchGemSeeds(
+        const TClonesArray* hitMatches,
+        const TClonesArray* points,
+        const TClonesArray* seeds,
+        TClonesArray* seedMatches) {
+    if (!(hitMatches && points && seeds && seedMatches)) return;
+
+    Bool_t editMode = (seedMatches->GetEntriesFast() != 0);
+
+    Int_t nofSeeds = seeds->GetEntriesFast();
+    for (Int_t iTrack = 0; iTrack < nofSeeds; ++iTrack) {
+        const BmnGemTrack* track = (const BmnGemTrack*) (seeds->At(iTrack));
+        BmnTrackMatch* trackMatch = (editMode) ? (BmnTrackMatch*) (seedMatches->At(iTrack)) : new ((*seedMatches)[iTrack]) BmnTrackMatch();
         Int_t nofHits = track->GetNHits();
         for (Int_t iHit = 0; iHit < nofHits; ++iHit) {
             const BmnMatch* hitMatch = (BmnMatch*) (hitMatches->At(track->GetHitIndex(iHit)));

@@ -61,4 +61,9 @@
 #pragma link C++ class BmnDchDigit+;
 #pragma link C++ class BmnEcalDigit+;
 
+#pragma link C++ class BmnADCDigit+;
+#pragma link C++ class BmnTDCDigit+;
+#pragma link C++ class BmnSyncDigit+;
+#pragma link C++ class BmnDCHdetector+;
+
 #endif

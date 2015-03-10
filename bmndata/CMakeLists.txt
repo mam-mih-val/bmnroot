@@ -69,6 +69,10 @@ BmnTof1Digit.cxx
 BmnTof2Digit.cxx
 BmnDchDigit.cxx
 BmnEcalDigit.cxx
+BmnADCDigit.cxx
+BmnTDCDigit.cxx
+BmnSyncDigit.cxx
+BmnDCHdetector.cxx
 )
 
 # fill list of header files from list of source files

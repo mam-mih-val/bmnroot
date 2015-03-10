@@ -445,11 +445,15 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("EtaP_rec_glob", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 10.0);
     CreateH1("momRes_1D", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", nBins / 2, fPRangeMin, fPRangeMax);
-    CreateH2("P_rec_P_sim", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 10.0, 4 * nBins, 0.0, 10.0);
+    CreateH2("P_rec_P_sim_seed", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 10.0, 4 * nBins, 0.0, 10.0);
+    CreateH2("P_rec_P_sim_gem", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 10.0, 4 * nBins, 0.0, 10.0);
+    CreateH2("P_rec_P_sim_glob", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * nBins, 0.0, 10.0, 4 * nBins, 0.0, 10.0);
     CreateH2("Px_rec_Px_sim", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * nBins, 0.0, 2.0, 4 * nBins, 0.0, 2.0);
     CreateH2("Py_rec_Py_sim", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * nBins, 0.0, 2.0, 4 * nBins, 0.0, 2.0);
     CreateH2("Pz_rec_Pz_sim", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * nBins, 0.0, 8.0, 4 * nBins, 0.0, 8.0);
-    CreateH2("Eta_rec_Eta_sim", "#eta_{sim}", "#eta_{rec}", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 5.0);
+    CreateH2("Eta_rec_Eta_sim_seed", "#eta_{sim}", "#eta_{rec}", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 5.0);
+    CreateH2("Eta_rec_Eta_sim_gem", "#eta_{sim}", "#eta_{rec}", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 5.0);
+    CreateH2("Eta_rec_Eta_sim_glob", "#eta_{sim}", "#eta_{rec}", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 5.0);
 
     CreateH1("ghostSeedDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("ghostGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
@@ -504,13 +508,22 @@ void BmnTrackingQa::ProcessGlobalTracks() {
         Float_t Px_rec_glob = Pz_rec_glob * Tx_glob;
         Float_t Py_rec_glob = Pz_rec_glob * Ty_glob;
         Float_t Eta_rec_glob = 0.5 * Log((P_rec_glob + Pz_rec_glob) / (P_rec_glob - Pz_rec_glob));
-        
+
+        Int_t refId = globalTrack->GetRefId();
+        if (refId < 0) continue;
+        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(refId));
+        Float_t P_sim = mcTrack->GetP();
+        Float_t Px_sim = mcTrack->GetPx();
+        Float_t Py_sim = mcTrack->GetPy();
+        Float_t Pz_sim = mcTrack->GetPz();
+        Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
+
         Float_t Eta_rec_seed, Eta_rec_gem;
         Float_t P_rec_seed, P_rec_gem;
         if (isGemOk) {
             BmnGemTrack* gemTrack = (BmnGemTrack*) (fGemTracks->At(gemId));
             BmnGemTrack* gemSeed = (BmnGemTrack*) (fGemSeeds->At(gemId));
-            
+
             P_rec_gem = Abs(1.0 / gemTrack->GetParamFirst()->GetQp());
             P_rec_seed = Abs(1.0 / gemSeed->GetParamFirst()->GetQp());
             Float_t Tx_gem = gemTrack->GetParamFirst()->GetTx();
@@ -523,25 +536,20 @@ void BmnTrackingQa::ProcessGlobalTracks() {
             Float_t Py_rec_seed = Pz_rec_seed * Ty_seed;
             Eta_rec_gem = 0.5 * Log((P_rec_gem + Pz_rec_gem) / (P_rec_gem - Pz_rec_gem));
             Eta_rec_seed = 0.5 * Log((P_rec_seed + Pz_rec_seed) / (P_rec_seed - Pz_rec_seed));
+            fHM->H2("EtaP_rec_seed")->Fill(Eta_rec_seed, P_rec_seed);
+            fHM->H2("EtaP_rec_gem")->Fill(Eta_rec_gem, P_rec_gem);
+            fHM->H2("P_rec_P_sim_seed")->Fill(P_sim, P_rec_seed);
+            fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec_gem);
+            fHM->H2("Eta_rec_Eta_sim_seed")->Fill(Eta_sim, Eta_rec_seed);
+            fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec_gem);            
         }
 
-        Int_t refId = globalTrack->GetRefId();
-        if (refId < 0) continue;
-        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(refId));
-        Float_t P_sim = mcTrack->GetP();
-        Float_t Px_sim = mcTrack->GetPx();
-        Float_t Py_sim = mcTrack->GetPy();
-        Float_t Pz_sim = mcTrack->GetPz();
-        Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
-
         fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec_glob) / P_sim * 100.0);
-        fHM->H2("P_rec_P_sim")->Fill(P_sim, P_rec_glob);
+        fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec_glob);
+        fHM->H2("Eta_rec_Eta_sim_glob")->Fill(Eta_sim, Eta_rec_glob);
         fHM->H2("Px_rec_Px_sim")->Fill(Px_sim, Px_rec_glob);
         fHM->H2("Py_rec_Py_sim")->Fill(Py_sim, Py_rec_glob);
         fHM->H2("Pz_rec_Pz_sim")->Fill(Pz_sim, Pz_rec_glob);
-        fHM->H2("Eta_rec_Eta_sim")->Fill(Eta_sim, Eta_rec_glob);
-        fHM->H2("EtaP_rec_seed")->Fill(Eta_rec_seed, P_rec_seed);
-        fHM->H2("EtaP_rec_gem")->Fill(Eta_rec_gem, P_rec_gem);
         fHM->H2("EtaP_rec_glob")->Fill(Eta_rec_glob, P_rec_glob);
         fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
         for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += 2) {

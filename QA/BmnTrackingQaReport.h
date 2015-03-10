@@ -96,6 +96,7 @@ protected:
     void DrawEffGhostGem(const string& canvasName);
     void DrawEffGhostGlob(const string& canvasName);    
     void DrawPsimPrec(const string& canvasName);
+    void DrawEtaSimEtaRec(const string& canvasName);
     void DrawPsimPrecComponents(const string& canvasName);
     
     void DrawEventsInfo(const string& canvasName);

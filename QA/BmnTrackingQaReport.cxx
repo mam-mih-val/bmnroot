@@ -195,7 +195,8 @@ void BmnTrackingQaReport::Draw() {
     DrawEffGhostGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS");
     DrawYPtHistos();
     DrawEtaP("Distribution of MC-tracks, Seeds, GEM-tracks and Global tracks in Pseudorapidity and Momentum");
-    DrawPsimPrec("Reco vs MC for Pseudorapidity and Momentum");
+    DrawPsimPrec("Reco vs MC for Seeds, GEM-tracks and Global tracks");
+    DrawEtaSimEtaRec("Reco vs MC for Pseudorapidity and Momentum");
     DrawPsimPrecComponents("Reco vs MC for X-, Y- and Z-component of Momentum");
     DrawMomRes("Momentum resolution of RECO-track");
     DrawHitsHistos();
@@ -362,13 +363,27 @@ void BmnTrackingQaReport::DrawEffGhostGlob(const string& canvasName) {
 }
 
 void BmnTrackingQaReport::DrawPsimPrec(const string& canvasName) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1500, 500);
     canvas->SetGrid();
-    canvas->Divide(2, 1);
+    canvas->Divide(3, 1);
     canvas->cd(1);
-    DrawH2(HM()->H2("P_rec_P_sim"), kLinear, kLinear, kLinear, "colz");
+    DrawH2(HM()->H2("P_rec_P_sim_seed"), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
-    DrawH2(HM()->H2("Eta_rec_Eta_sim"), kLinear, kLinear, kLinear, "colz");
+    DrawH2(HM()->H2("P_rec_P_sim_gem"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(3);
+    DrawH2(HM()->H2("P_rec_P_sim_glob"), kLinear, kLinear, kLinear, "colz");
+}
+
+void BmnTrackingQaReport::DrawEtaSimEtaRec(const string& canvasName) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1500, 500);
+    canvas->SetGrid();
+    canvas->Divide(3, 1);
+    canvas->cd(1);
+    DrawH2(HM()->H2("Eta_rec_Eta_sim_seed"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(2);
+    DrawH2(HM()->H2("Eta_rec_Eta_sim_gem"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(3);
+    DrawH2(HM()->H2("Eta_rec_Eta_sim_glob"), kLinear, kLinear, kLinear, "colz");
 }
 
 void BmnTrackingQaReport::DrawPsimPrecComponents(const string& canvasName) {

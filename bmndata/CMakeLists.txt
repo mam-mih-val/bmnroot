@@ -73,6 +73,8 @@ BmnADCDigit.cxx
 BmnTDCDigit.cxx
 BmnSyncDigit.cxx
 BmnDchRaw2Digit.cxx
+BmnZDCRaw2Digit.cxx
+BmnZDCDigit.cxx
 )
 
 # fill list of header files from list of source files

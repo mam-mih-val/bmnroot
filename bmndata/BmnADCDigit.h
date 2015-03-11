@@ -17,12 +17,12 @@ public:
 
     UInt_t  GetSerial()   const {return fSerial;}
     UInt_t  GetSamples()  const {return fSamples;}
+    UInt_t  GetChannel()  const {return fChannel;}
     UShort_t *GetValue()  const {return (UShort_t *)fValue;}
     void    SetSample(UShort_t val);
     /** Destructor **/
     virtual ~BmnADCDigit();
-
-//private:
+private:
     UInt_t    fSerial; 
     UChar_t   fChannel;
     UInt_t    fSamples;

@@ -72,7 +72,7 @@ BmnEcalDigit.cxx
 BmnADCDigit.cxx
 BmnTDCDigit.cxx
 BmnSyncDigit.cxx
-BmnDCHdetector.cxx
+BmnDchRaw2Digit.cxx
 )
 
 # fill list of header files from list of source files

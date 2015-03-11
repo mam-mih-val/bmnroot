@@ -3,29 +3,41 @@
 
 #include "TNamed.h"
 
-class BmnDchDigit : public TNamed
-{
-  public:
-    /** Default constructor **/
+using namespace std;
+
+class BmnDchDigit : public TNamed {
+
+public:
+    
+/** Default constructor **/
     BmnDchDigit();
 
-    /** Main constructor **/
-    BmnDchDigit(Short_t plane, Float_t signal);
+    /** Constructor to use **/
+    BmnDchDigit(Short_t iPlane, Short_t iWire, Short_t iTime, Int_t refId);
 
-    Short_t GetPlane() const { return fPlane; }
-    Float_t GetSignal() const { return fSignal; }
+    Short_t  GetPlane() const {return fPlane;}
+    Short_t  GetWireNumber() const {return fWire;}
+    Short_t  GetTime() const {return fTime;}
+    Int_t    GetRefId() const {return fRef;}
 
-    void SetPlane(Short_t plane) { fPlane = plane; }
-    void SetSignal(Float_t signal) { fSignal = signal; }
+    void SetPlane(Short_t _tmp) {fPlane = _tmp;}
+    void SetWireNumber(Short_t _tmp) {fWire = _tmp;}
+    void SetTime(Short_t _tmp) {fTime = _tmp;}
+    void SetRefId(Int_t _tmp) {fRef = _tmp;}
 
     /** Destructor **/
     virtual ~BmnDchDigit();
 
 private:
+
     Short_t fPlane;
-    Float_t fSignal;
+    Short_t fWire;
+    Short_t fTime;
+    Int_t   fRef;
 
     ClassDef(BmnDchDigit, 1);
+
 };
 
 #endif	/* BMNDCHDIGIT_H */
+

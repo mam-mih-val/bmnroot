@@ -1,19 +1,24 @@
+
+
 #include "BmnDchDigit.h"
 
-BmnDchDigit::BmnDchDigit()
-{
+
+BmnDchDigit::BmnDchDigit() {
+    fTime = -1;
     fPlane = -1;
-    fSignal = -1.0;
+    fWire = -1;
+    fRef = -1;
 }
 
-BmnDchDigit::BmnDchDigit(Short_t plane, Float_t signal)
-{
-    fPlane = plane;
-    fSignal = signal;
+BmnDchDigit::BmnDchDigit(Short_t iPlane, Short_t iWire, Short_t iTime, Int_t refId) {
+    fTime = iTime;
+    fPlane = iPlane;
+    fWire = iWire;
+    fRef = refId;
 }
 
-BmnDchDigit::~BmnDchDigit()
-{
+BmnDchDigit::~BmnDchDigit() {
+
 }
 
 ClassImp(BmnDchDigit)

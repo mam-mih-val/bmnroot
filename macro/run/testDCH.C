@@ -1,14 +1,3 @@
-#include "TROOT.h"
-#include "TFile.h"
-#include "TTree.h"
-#include "TH1F.h"
-#include "TH2F.h"
-#include "TProfile.h"
-#include "TCanvas.h"
-#include "TStyle.h"
-#include "TLegend.h"
-#include "TSystem.h"
-#include "TClonesArray.h"
 
 using namespace std;
 
@@ -21,7 +10,7 @@ void testDCH(char *fname="bmn_run0166.root") {
     const char *mapping;
     if (run < 189) mapping = "DCH_map_Feb20_Feb25.txt";
     else mapping = "DCH_map_Mar4.txt";
-    BmnDCHdetector DCH(mapping);
+    BmnDchRaw2Digit DCH(mapping);
     cout << "RUN:  " << run << endl;
     DCH.print();
 
@@ -62,8 +51,8 @@ void testDCH(char *fname="bmn_run0166.root") {
 
         for (int p = 0; p < 16; p++)for (int c = 0; c < 256; c++) {
                 unsigned short *d;
-                int nHits = DCH.get(p, c, &d);
-                if (nHits > 0) {
+                int ndigit = DCH.getdata(p, c, &d);
+                if (ndigit > 0) {
                     h[p]->Fill(c);
                     t[p]->Fill(d[0]);
                     tm[p] = d[0];
@@ -72,7 +61,7 @@ void testDCH(char *fname="bmn_run0166.root") {
             }
         T0->Fill(DCH.get_t0());
         for (int p = 0; p < 16; p += 2) {
-            if (DCH.getnhits(p) == 1 && DCH.getnhits(p + 1) == 1 && DCH.get_t0() > 0) {
+            if (DCH.getndigit(p) == 1 && DCH.getndigit(p + 1) == 1 && DCH.get_t0() > 0) {
                 if (ch[p] == ch[p + 1]) Corr->Fill(tm[p], tm[p + 1]);
             }
         }

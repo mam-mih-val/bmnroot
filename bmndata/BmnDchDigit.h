@@ -15,10 +15,10 @@ public:
     /** Constructor to use **/
     BmnDchDigit(Short_t iPlane, Short_t iWire, Short_t iTime, Int_t refId);
 
-    Short_t  GetPlane() const {return fPlane;}
+    Short_t  GetPlane()      const {return fPlane;}
     Short_t  GetWireNumber() const {return fWire;}
-    Short_t  GetTime() const {return fTime;}
-    Int_t    GetRefId() const {return fRef;}
+    Short_t  GetTime()       const {return fTime;}
+    Int_t    GetRefId()      const {return fRef;}
 
     void SetPlane(Short_t _tmp) {fPlane = _tmp;}
     void SetWireNumber(Short_t _tmp) {fWire = _tmp;}

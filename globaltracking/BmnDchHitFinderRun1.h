@@ -23,7 +23,7 @@ const Float_t HoleSize_DCH1 = 12.0;
 const Float_t SideLengthOfOctagon = 120.0;
 const Float_t InnerRadiusOfOctagon = (2.414 * SideLengthOfOctagon) / 2.0;
 
-const UInt_t nWires = 256; // 0 - 255
+const UInt_t nWires = 240; // 0 - 255
 const UInt_t nPlanes = 16; // 0 - 15
 const Float_t WireStep = 2.0 * InnerRadiusOfOctagon / nWires;
 const Float_t HalfStep = WireStep / 2.0;
@@ -101,7 +101,7 @@ void ProcessEvent(TClonesArray* digits, TClonesArray* hitsArray) {
     for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); ++iDig) {
         digit = (BmnDchDigit*) digits->At(iDig);
         if (digit == NULL) continue;
-        cout << "plane = " << digit->GetPlane() << " wire = " << digit->GetWireNumber() << endl;
+        //cout << "plane = " << digit->GetPlane() << " wire = " << digit->GetWireNumber() << endl;
         Short_t plane = digit->GetPlane();
         switch (plane) {
             case 0: va1.push_back(digit); break;
@@ -163,7 +163,6 @@ void ProcessEvent(TClonesArray* digits, TClonesArray* hitsArray) {
     vector<TVector3*> v2u2 = CreateHitsByTwoPlanes(u2, v2, DCH2_Zpos - 5.0);
     vector<TVector3*> x2y2 = CreateHitsByTwoPlanes(x2, y2, DCH2_Zpos + 5.0);
 
-    vector<TVector3*> hits;
 //    cout << "N v1u1 = " << v1u1.size() << endl;
 //    cout << "N x1y1 = " << x1y1.size() << endl;
 //    cout << "N v2u2 = " << v2u2.size() << endl;
@@ -174,6 +173,6 @@ void ProcessEvent(TClonesArray* digits, TClonesArray* hitsArray) {
     CombineHits(x2y2, hitsArray, 3);
 
     cout << "Nuber of input digits = " << digits->GetEntriesFast() << endl;
-    cout << "Nuber of output hits  = " << hits.size() << endl;
+    cout << "Nuber of output hits  = " << hitsArray->GetEntriesFast() << endl;
         
 }

@@ -39,6 +39,7 @@ public:
    const BmnLink& GetMatchedLink() const { return fLinks[fMatchedIndex]; }
    Int_t GetNofLinks() const { return fLinks.size(); }
    Double_t GetTotalWeight() const { return fTotalWeight; }
+   Int_t GetMatchedIndex() const { return fMatchedIndex; }
 
    /* Modifiers */
    void AddLink(const BmnMatch& match);

@@ -9,6 +9,7 @@
 #include "CbmMCTrack.h"
 #include "CbmStsPoint.h"
 #include "FairRunAna.h"
+#include "BmnGemStripHit.h"
 
 //-----------------------------------------
 
@@ -163,9 +164,10 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         }
 
         for (Int_t j = 0; j < track->GetNHits(); ++j) { //loop over hits from the second to the last. Needed for comparing id of hits
-            BmnHit* hit = GetHit(track->GetHitIndex(j));
+            BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(track->GetHitIndex(j));
             Int_t refId = hit->GetRefIndex();
             if (refId < 0) continue;
+            if (hit->GetType() == 0) continue;
             CbmStsPoint* point = (CbmStsPoint*) fMCPointsArray->At(refId);
             if (!point) {
                 cout << "GEM_TRACKING: There is no MC-point corresponded to current hit" << endl;
@@ -241,8 +243,9 @@ BmnStatus BmnGemTrackFinder::Refit(BmnGemTrack * tr) {
 
     //    for (Int_t iHit = 0; iHit < tr->GetNHits(); iHit++) {
     for (Int_t iHit = tr->GetNHits() - 1; iHit >= 0; iHit--) {
-        BmnHit* hit = GetHit(tr->GetHitIndex(iHit));
+        BmnGemStripHit* hit = (BmnGemStripHit*)GetHit(tr->GetHitIndex(iHit));
         if (!hit) continue;
+        if (hit->GetType() == 0) continue; //don't use fakes
         Float_t Ze = hit->GetZ();
         Float_t length = 0;
         vector<Double_t> F(25);
@@ -291,8 +294,9 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
     map<Float_t, FairTrackParam> zParamMap;
 
     for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
-        const BmnHit* hit = GetHit(hitIdx);
+        BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(hitIdx);
         if (hit->GetStation() != station || hit->IsUsed()) continue;
+        if (hit->GetType() == 0) continue; //don't use fakes
         zMin = min(zMin, hit->GetZ());
         zParamMap[hit->GetZ()] = FairTrackParam();
     }
@@ -320,8 +324,9 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
     Float_t dist = 0.0;
     FairTrackParam minPar; // Track parameters for closest hit
     for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
-        BmnHit* hit = GetHit(hitIdx);
+        BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(hitIdx);
         if (hit->GetStation() != station || hit->IsUsed()) continue;
+        if (hit->GetType() == 0) continue; //don't use fakes
         if (zParamMap.find(hit->GetZ()) == zParamMap.end()) { // This should never happen
             cout << "-E- NearestHitMerge: Z position " << hit->GetZ() << " not found in map. Something is wrong.\n";
         }

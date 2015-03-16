@@ -64,7 +64,7 @@ string BmnHtmlReportElement::Image(
 {
    stringstream ss;
    ss << "<h3>" << title << "</h3>";
-   ss << "<img src=\"" << file << ".gif\" alt=\"" << title << "\" />";
+   ss << "<img src=\"" << file << ".png\" alt=\"" << title << "\" />";
 
    return ss.str();
 }

@@ -143,7 +143,7 @@ void BmnDchRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClonesA
         int plane = (rel[digit->GetSlot()][digit->GetChannel()] >> 8)&0xF;
         int group = (rel[digit->GetSlot()][digit->GetChannel()] >> 4)&0xF;
         int chan = (rel[digit->GetSlot()][digit->GetChannel()])&0xF;
-        int tm = digit->GetValue() / 10.0 - (T0 + (t0time - digittime));
+        float tm = digit->GetValue() / 10.0 - (T0 + (t0time - digittime));
         TClonesArray &ar_dch = *dhcdigit;
         new(ar_dch[dhcdigit->GetEntriesFast()]) BmnDchDigit(plane,group*16+chan,tm,0);
     }

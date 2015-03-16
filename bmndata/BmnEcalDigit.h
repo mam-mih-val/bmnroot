@@ -2,6 +2,7 @@
 #define	BMNECALDIGIT_H
 
 #include "TNamed.h"
+#include "TArrayS.h"
 
 class BmnEcalDigit : public TNamed
 {
@@ -10,20 +11,34 @@ class BmnEcalDigit : public TNamed
     BmnEcalDigit();
 
     /** Main constructor **/
-    BmnEcalDigit(Short_t plane, Float_t signal);
+    BmnEcalDigit(Char_t x,Char_t y,Char_t size,Char_t ch,Short_t samples,UShort_t *data);
 
-    Short_t GetPlane() const { return fPlane; }
-    Float_t GetSignal() const { return fSignal; }
 
-    void SetPlane(Short_t plane) { fPlane = plane; }
-    void SetSignal(Float_t signal) { fSignal = signal; }
+    void SetX(Char_t x)        { fX = x;        }
+    void SetY(Char_t y)        { fY = y;        }
+    void SetSize(Char_t size)  { fSize = size;  }
+    void SetChannel(Char_t ch) { fChannel = ch; }
+    void SetSamples(Short_t samples);
+    void SetWaveform(Short_t sample,Float_t val);
+
+    Char_t GetX()         const  { return fX;}
+    Char_t GetY()         const  { return fY;}
+    Char_t GetSize()      const  { return fSize;}
+    Char_t GetChannel()   const  { return fChannel;}
+    Short_t GetSamples()  const  { return fSamples;}
+    unsigned short *GetWaveform();
+
 
     /** Destructor **/
     virtual ~BmnEcalDigit();
 
 private:
-    Short_t fPlane;
-    Float_t fSignal;
+    Char_t  fX;
+    Char_t  fY;
+    Char_t  fSize;
+    Char_t  fChannel;
+    Short_t  fSamples;
+    TArrayS fWaveform;
 
     ClassDef(BmnEcalDigit, 1);
 };

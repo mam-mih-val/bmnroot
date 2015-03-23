@@ -72,7 +72,6 @@ BmnEcalDigit.cxx
 BmnADCDigit.cxx
 BmnTDCDigit.cxx
 BmnSyncDigit.cxx
-BmnTTBDigit.cxx
 BmnDchRaw2Digit.cxx
 BmnZDCRaw2Digit.cxx
 BmnZDCDigit.cxx

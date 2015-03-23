@@ -352,6 +352,7 @@ void BmnMatchRecoToMC::MatchGemTracks(
             for (Int_t iLink = 0; iLink < nofLinks; ++iLink) {
                 const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetLink(iLink).GetIndex()));
                 if (NULL == point) continue;
+                if (trackMatch->GetMatchedIndex() < 0) continue;
                 if (point->GetTrackID() == trackMatch->GetMatchedLink().GetIndex()) {
                     hasTrue = true;
                     break;
@@ -402,6 +403,7 @@ void BmnMatchRecoToMC::MatchGemSeeds(
             for (Int_t iLink = 0; iLink < nofLinks; ++iLink) {
                 const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetLink(iLink).GetIndex()));
                 if (NULL == point) continue;
+                if (trackMatch->GetMatchedIndex() < 0) continue;
                 if (point->GetTrackID() == trackMatch->GetMatchedLink().GetIndex()) {
                     hasTrue = true;
                     break;
@@ -456,8 +458,11 @@ void BmnMatchRecoToMC::MatchGlobalTracks(
 
 
         //=== Calculate number of true and wrong hits ===//
-        trackMatch->SetNofTrueHits(trackMatch->GetMatchedLink().GetWeight());
-        trackMatch->SetNofWrongHits(track->GetNofHits() - trackMatch->GetMatchedLink().GetWeight());
+        if (trackMatch->GetMatchedIndex() < 0) continue;
+        const BmnLink& lnk = trackMatch->GetMatchedLink();
+        Float_t weight = lnk.GetWeight();
+        trackMatch->SetNofTrueHits(weight);
+        trackMatch->SetNofWrongHits(track->GetNofHits() - weight);
     }
 }
 

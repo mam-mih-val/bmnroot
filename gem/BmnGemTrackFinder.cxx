@@ -9,6 +9,7 @@
 #include "CbmMCTrack.h"
 #include "CbmStsPoint.h"
 #include "FairRunAna.h"
+#include "BmnGemStripHit.h"
 
 //-----------------------------------------
 
@@ -139,71 +140,68 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         }
     }
 
+//    for (Int_t i = 0; i < fGemTracksArray->GetEntriesFast(); ++i) {
+//        Int_t max = -1;
+//        Int_t refId = -1;
+//        map<Int_t, Int_t> indexes; //pairs of trackId and number of hits corresponded this trackId
+//        BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(i);
+//        BmnGemTrack* seed = (BmnGemTrack*) fGemSeedsArray->At(i);
+//        allFoundCntr += (track->GetNHits() - seed->GetNHits());
+//
+//        if (fMakeQA) {
+//            fHisto->_hNumOfHitsDistr->Fill(track->GetNHits());
+//            TVector3 mom;
+//            track->GetParamLast()->Momentum(mom);
+//            fHisto->_hMomentumDistr->Fill(mom.Mag());
+//            fHisto->_hPx->Fill(mom.X());
+//            fHisto->_hPy->Fill(mom.Y());
+//            fHisto->_hPz->Fill(mom.Z());
+//            fHisto->_hPt->Fill(Sqrt(Sqr(mom.X()) + Sqr(mom.Z())));
+//        }
+//
+//        for (Int_t j = 0; j < track->GetNHits(); ++j) { //loop over hits from the second to the last. Needed for comparing id of hits
+//            BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(track->GetHitIndex(j));
+//            Int_t refId = hit->GetRefIndex();
+//            if (refId < 0) continue;
+//            if (hit->GetType() == 0) continue;
+//            CbmStsPoint* point = (CbmStsPoint*) fMCPointsArray->At(refId);
+//            if (!point) {
+//                cout << "GEM_TRACKING: There is no MC-point corresponded to current hit" << endl;
+//                continue;
+//            }
+//
+//            if (indexes.find(point->GetTrackID()) == indexes.end()) {
+//                indexes.insert(pair<Int_t, Int_t > (point->GetTrackID(), 1));
+//            } else {
+//                (indexes.find(point->GetTrackID())->second)++;
+//            }
+//
+//            if (hit->GetStation() < kNHITSFORSEED) continue;
+//            if (point->GetTrackID() == seed->GetRef()) {
+//                wellFoundCntr++;
+//            } else {
+//                wrongFoundCntr++;
+//            }
+//
+//        }
+//        for (map<Int_t, Int_t>::iterator it = indexes.begin(); it != indexes.end(); it++) {
+//            if ((*it).second > max) {
+//                max = (*it).second;
+//                refId = (*it).first;
+//            }
+//            if ((*it).second > track->GetNHits() * thresh) goodTrackCntr++;
+//        }
+//        track->SetRef(refId);
+//        if (fMakeQA) {
+//            fHisto->_hNumMcTrack->Fill(indexes.size());
+//        }
+//    }
 
-    //    Int_t GemTrackId = -1;
-    //    Int_t max = -1;
-
-    for (Int_t i = 0; i < fGemTracksArray->GetEntriesFast(); ++i) {
-        Int_t max = -1;
-        Int_t refId = -1;
-        map<Int_t, Int_t> indexes; //pairs of trackId and number of hits corresponded this trackId
-        BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(i);
-        BmnGemTrack* seed = (BmnGemTrack*) fGemSeedsArray->At(i);
-        allFoundCntr += (track->GetNHits() - seed->GetNHits());
-
-        if (fMakeQA) {
-            fHisto->_hNumOfHitsDistr->Fill(track->GetNHits());
-            TVector3 mom;
-            track->GetParamLast()->Momentum(mom);
-            fHisto->_hMomentumDistr->Fill(mom.Mag());
-            fHisto->_hPx->Fill(mom.X());
-            fHisto->_hPy->Fill(mom.Y());
-            fHisto->_hPz->Fill(mom.Z());
-            fHisto->_hPt->Fill(Sqrt(Sqr(mom.X()) + Sqr(mom.Z())));
-        }
-
-        for (Int_t j = 0; j < track->GetNHits(); ++j) { //loop over hits from the second to the last. Needed for comparing id of hits
-            BmnHit* hit = GetHit(track->GetHitIndex(j));
-            Int_t refId = hit->GetRefIndex();
-            if (refId < 0) continue;
-            CbmStsPoint* point = (CbmStsPoint*) fMCPointsArray->At(refId);
-            if (!point) {
-                cout << "GEM_TRACKING: There is no MC-point corresponded to current hit" << endl;
-                continue;
-            }
-
-            if (indexes.find(point->GetTrackID()) == indexes.end()) {
-                indexes.insert(pair<Int_t, Int_t > (point->GetTrackID(), 1));
-            } else {
-                (indexes.find(point->GetTrackID())->second)++;
-            }
-
-            if (hit->GetStation() < kNHITSFORSEED) continue;
-            if (point->GetTrackID() == seed->GetRef()) {
-                wellFoundCntr++;
-            } else {
-                wrongFoundCntr++;
-            }
-
-        }
-        for (map<Int_t, Int_t>::iterator it = indexes.begin(); it != indexes.end(); it++) {
-            if ((*it).second > max) {
-                max = (*it).second;
-                refId = (*it).first;
-            }
-            if ((*it).second > track->GetNHits() * thresh) goodTrackCntr++;
-        }
-        track->SetRef(refId);
-        if (fMakeQA) {
-            fHisto->_hNumMcTrack->Fill(indexes.size());
-        }
-    }
-
-    allTrackCntr += fGemSeedsArray->GetEntriesFast();
-    for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
-        if (GetHit(hitIdx)->GetStation() + 1 <= kNHITSFORSEED) continue;
-        allHitCntr++;
-    }
+//    allTrackCntr += fGemSeedsArray->GetEntriesFast();
+//    for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
+//        if (GetHit(hitIdx)->GetStation() + 1 <= kNHITSFORSEED) continue;
+//        allHitCntr++;
+//    }
 
     cout << "\n====================== GEM track finder exec finished =====================" << endl;
 
@@ -241,8 +239,9 @@ BmnStatus BmnGemTrackFinder::Refit(BmnGemTrack * tr) {
 
     //    for (Int_t iHit = 0; iHit < tr->GetNHits(); iHit++) {
     for (Int_t iHit = tr->GetNHits() - 1; iHit >= 0; iHit--) {
-        BmnHit* hit = GetHit(tr->GetHitIndex(iHit));
+        BmnGemStripHit* hit = (BmnGemStripHit*)GetHit(tr->GetHitIndex(iHit));
         if (!hit) continue;
+        if (hit->GetType() == 0) continue; //don't use fakes
         Float_t Ze = hit->GetZ();
         Float_t length = 0;
         vector<Double_t> F(25);
@@ -291,8 +290,9 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
     map<Float_t, FairTrackParam> zParamMap;
 
     for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
-        const BmnHit* hit = GetHit(hitIdx);
+        BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(hitIdx);
         if (hit->GetStation() != station || hit->IsUsed()) continue;
+        if (hit->GetType() == 0) continue; //don't use fakes
         zMin = min(zMin, hit->GetZ());
         zParamMap[hit->GetZ()] = FairTrackParam();
     }
@@ -320,8 +320,9 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
     Float_t dist = 0.0;
     FairTrackParam minPar; // Track parameters for closest hit
     for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
-        BmnHit* hit = GetHit(hitIdx);
+        BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(hitIdx);
         if (hit->GetStation() != station || hit->IsUsed()) continue;
+        if (hit->GetType() == 0) continue; //don't use fakes
         if (zParamMap.find(hit->GetZ()) == zParamMap.end()) { // This should never happen
             cout << "-E- NearestHitMerge: Z position " << hit->GetZ() << " not found in map. Something is wrong.\n";
         }

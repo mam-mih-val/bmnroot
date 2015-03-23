@@ -31,21 +31,27 @@ const Float_t HalfStep = WireStep / 2.0;
 const Float_t MaxRadiusOfActiveVolume = 120.0;
 const Float_t MinRadiusOfActiveVolume = 12.0;
 
-void CombineHits(vector<TVector3*> vec, TClonesArray* hits, Short_t plane) {
+void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
     for (Int_t i = 0; i < vec.size(); ++i) {
-        TVector3* hit = (TVector3*) vec.at(i);
-        if ((plane == 0) || (plane == 2)) hit->RotateZ(-45.0 * DegToRad());
-        new((*hits)[hits->GetEntriesFast()]) BmnDchHit(0, *hit, TVector3(0, 0, 0), 0, 0, 0, plane);
+        TVector3 hit = vec.at(i);
+        if ((plane == 0) || (plane == 2)) {
+            hit.RotateZ(-45.0 * DegToRad());
+            hit.SetX(-1.0 * hit.X());
+            //hit->SetY(-1.0 * hit->Y());
+        }
+        new((*hits)[hits->GetEntriesFast()]) BmnDchHit(0, hit, TVector3(0, 0, 0), 0, 0, 0, plane);
+//        BmnDchHit* dchHit = (BmnDchHit*) hits->At(hits->GetEntriesFast() - 1);
+//        dchHit->SetPhi(); //tmp
     }
 }
 
-vector<TVector3*> CreateHitsByTwoPlanes(vector<Float_t> vec1, vector<Float_t> vec2, Float_t zPos) {
-    vector<TVector3*> v;
+vector<TVector3> CreateHitsByTwoPlanes(vector<Float_t> vec1, vector<Float_t> vec2, Float_t zPos) {
+    vector<TVector3> v;
     for (Int_t i = 0; i < vec1.size(); ++i) {
         Float_t x = vec1.at(i);
         for (Int_t j = 0; j < vec2.size(); ++j) {
             Float_t y = vec2.at(j);
-            TVector3* pos = new TVector3(x, y, zPos);
+            TVector3 pos(x, y, zPos);
             v.push_back(pos);
         }
     }
@@ -94,15 +100,12 @@ void ProcessEvent(TClonesArray* digits, TClonesArray* hitsArray) {
     //    const Float_t errZ = 1.0 / Sqrt(12.0); // zStep = 1.0 cm
     //    TVector3 errors = TVector3(errX, errY, errZ); //FIXME!!! Calculate by formulae
 
-    Float_t x = 0.0;
-    Float_t y = 0.0;
-    Float_t z = 0.0;
-
     for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); ++iDig) {
         digit = (BmnDchDigit*) digits->At(iDig);
         if (digit == NULL) continue;
         //cout << "plane = " << digit->GetPlane() << " wire = " << digit->GetWireNumber() << endl;
         Short_t plane = digit->GetPlane();
+        if (digit->GetTime() <= 450) continue;
         switch (plane) {
             case 0: va1.push_back(digit); break;
             case 1: vb1.push_back(digit); break;
@@ -158,21 +161,21 @@ void ProcessEvent(TClonesArray* digits, TClonesArray* hitsArray) {
 //    cout << "N x2 = " << x2.size() << endl;
 //    cout << "N y2 = " << y2.size() << endl;
 
-    vector<TVector3*> v1u1 = CreateHitsByTwoPlanes(u1, v1, DCH1_Zpos - 5.0);
-    vector<TVector3*> x1y1 = CreateHitsByTwoPlanes(x1, y1, DCH1_Zpos + 5.0);
-    vector<TVector3*> v2u2 = CreateHitsByTwoPlanes(u2, v2, DCH2_Zpos - 5.0);
-    vector<TVector3*> x2y2 = CreateHitsByTwoPlanes(x2, y2, DCH2_Zpos + 5.0);
+    vector<TVector3> u1v1 = CreateHitsByTwoPlanes(u1, v1, DCH1_Zpos - 5.0);
+    vector<TVector3> x1y1 = CreateHitsByTwoPlanes(x1, y1, DCH1_Zpos + 5.0);
+    vector<TVector3> u2v2 = CreateHitsByTwoPlanes(u2, v2, DCH2_Zpos - 5.0);
+    vector<TVector3> x2y2 = CreateHitsByTwoPlanes(x2, y2, DCH2_Zpos + 5.0);
 
 //    cout << "N v1u1 = " << v1u1.size() << endl;
 //    cout << "N x1y1 = " << x1y1.size() << endl;
 //    cout << "N v2u2 = " << v2u2.size() << endl;
 //    cout << "N x2y2 = " << x2y2.size() << endl;
-    CombineHits(v1u1, hitsArray, 0);
+    CombineHits(u1v1, hitsArray, 0);
     CombineHits(x1y1, hitsArray, 1);
-    CombineHits(v2u2, hitsArray, 2);
+    CombineHits(u2v2, hitsArray, 2);
     CombineHits(x2y2, hitsArray, 3);
 
-    cout << "Nuber of input digits = " << digits->GetEntriesFast() << endl;
-    cout << "Nuber of output hits  = " << hitsArray->GetEntriesFast() << endl;
+//    cout << "Nuber of input digits = " << digits->GetEntriesFast() << endl;
+//    cout << "Nuber of output hits  = " << hitsArray->GetEntriesFast() << endl;
         
 }

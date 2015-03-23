@@ -22,6 +22,8 @@
 #include "FairLogger.h"
 #include "TClonesArray.h"
 #include "BmnEnums.h"
+#include "BmnLink.h"
+
 class TClonesArray;
 
 class BmnMatchRecoToMC : public FairTask {

@@ -2,14 +2,20 @@
 
 BmnTof1Digit::BmnTof1Digit()
 {
-    fPlane = -1;
-    fSignal = -1.0;
+   fPlane=-1;
+   fStrip=-1;
+   fSide=-1;
+   fAmplitude=-1;
+   fTime=-1;
 }
 
-BmnTof1Digit::BmnTof1Digit(Short_t plane, Float_t signal)
+BmnTof1Digit::BmnTof1Digit(Short_t plane, Short_t strip, Short_t side,Float_t t,Float_t a)
 {
-    fPlane = plane;
-    fSignal = signal;
+   fPlane=plane;
+   fStrip=strip;
+   fSide=side;
+   fAmplitude=a;
+   fTime=t;
 }
 
 BmnTof1Digit::~BmnTof1Digit()

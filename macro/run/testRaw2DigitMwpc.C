@@ -1,11 +1,11 @@
 
 using namespace std;
 
-void testRaw2Digit(char *fname="bmn_run0166.root") {
+void testRaw2DigitMwpc(char *fname="/nica/data4mpd1/dataBMN/bmnroot/EB+HRB/bmn_run0607_eb+hrb.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
-    int RUN; sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
+    int RUN; sscanf(&fname[strlen(fname) - 16], "%d", &RUN);
     const char *mapping;
     if (RUN < 189) mapping = "DCH_map_Feb20_Feb25.txt";
     else if (RUN >= 189 && RUN < 470) mapping = "DCH_map_Mar4.txt";
@@ -35,6 +35,8 @@ void testRaw2Digit(char *fname="bmn_run0166.root") {
     TClonesArray *tof2_raw = new TClonesArray("BmnTDCDigit");
     TClonesArray *zdc_raw  = new TClonesArray("BmnADCDigit");
     TClonesArray *ecal_raw = new TClonesArray("BmnADCDigit");
+    TClonesArray *mwpc     = new TClonesArray("BmnMwpcDigit");
+    _t_in->SetBranchAddress("bmn_mwpc",  &mwpc);
     _t_in->SetBranchAddress("bmn_t0",    &t0_raw);
     _t_in->SetBranchAddress("bmn_sync",  &sync_raw);
     _t_in->SetBranchAddress("bmn_dch",   &dch_raw);
@@ -62,11 +64,12 @@ void testRaw2Digit(char *fname="bmn_run0166.root") {
     _t_out->Branch("bmn_zdc_digit",   &zdc_digit);   
     _t_out->Branch("bmn_tof2_digit",  &tof2_digit);   
     _t_out->Branch("bmn_tof1_digit",  &tof1_digit);   
+    _t_out->Branch("bmn_mwpc_digit",  &mwpc);   
     /////////////////////////////////////////////////////////////////////////////////////
 
     for (int ev = 0; ev < _t_in->GetEntries(); ev++) {
         if ((ev % 100) == 0) printf("%d\n", EVENT);
-        sync_raw->Clear(); t0_raw->Clear(); dch_raw->Clear();
+        sync_raw->Clear(); t0_raw->Clear(); dch_raw->Clear(); mwpc->Clear();
         tof1_raw->Clear(); tof2_raw->Clear(); zdc_raw->Clear(); ecal_raw->Clear();
 
         dch_digit->Clear();

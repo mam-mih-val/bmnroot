@@ -35,9 +35,8 @@ void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
     for (Int_t i = 0; i < vec.size(); ++i) {
         TVector3 hit = vec.at(i);
         if ((plane == 0) || (plane == 2)) {
-            hit.RotateZ(-45.0 * DegToRad());
-            hit.SetX(-1.0 * hit.X());
-            //hit->SetY(-1.0 * hit->Y());
+            hit.RotateZ(-135.0 * DegToRad());
+            hit.SetY(-1.0 * hit.Y());
         }
         new((*hits)[hits->GetEntriesFast()]) BmnDchHit(0, hit, TVector3(0, 0, 0), 0, 0, 0, plane);
 //        BmnDchHit* dchHit = (BmnDchHit*) hits->At(hits->GetEntriesFast() - 1);
@@ -178,4 +177,33 @@ void ProcessEvent(TClonesArray* digits, TClonesArray* hitsArray) {
 //    cout << "Nuber of input digits = " << digits->GetEntriesFast() << endl;
 //    cout << "Nuber of output hits  = " << hitsArray->GetEntriesFast() << endl;
         
+}
+
+Float_t Sqr(Float_t x) {
+    return x * x;
+}
+
+
+TVector3 LineFit(TClonesArray* hits) {
+
+    //Least Square Method//
+    Float_t Xi = 0.0, Zi = 0.0; // coordinates of current track point
+    Float_t a = 0.0, b = 0.0; // parameters of line: x = a * z + b
+    Float_t SumX = 0.0, SumZ = 0.0, SumXZ = 0.0, SumZ2 = 0.0;
+    const Float_t nHits = hits->GetEntriesFast();
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnHit* hit = (BmnHit*) hits->At(i);
+        cout << "x = " << hit->GetX() << "z = " << hit->GetZ() << endl;
+        Xi = hit->GetX();
+        Zi = hit->GetZ();
+        SumX += Xi;
+        SumZ += Zi;
+        SumXZ += Xi * Zi;
+        SumZ2 += Sqr(Zi);
+    }
+
+    a = (nHits * SumXZ - SumX * SumZ) / (nHits * SumZ2 - Sqr(SumZ));
+    b = (SumX - a * SumZ) / nHits;
+
+    return TVector3(a, b, 0.0);
 }

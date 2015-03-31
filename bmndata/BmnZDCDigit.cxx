@@ -9,7 +9,9 @@ BmnZDCDigit::BmnZDCDigit(){
    fSamples=0;
 }
 
-BmnZDCDigit::BmnZDCDigit(Char_t x,Char_t y,Char_t size,Char_t ch,Short_t samples,UShort_t *data){
+BmnZDCDigit::BmnZDCDigit(Char_t ix,Char_t iy,Float_t x,Float_t y,Char_t size,Char_t ch,Short_t samples,UShort_t *data){
+   fIX=ix;
+   fIY=iy;
    fX=x;
    fY=y;
    fSize=size;

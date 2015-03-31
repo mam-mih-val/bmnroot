@@ -12,7 +12,8 @@ void testRaw2Digit(char *fname="bmn_run0166.root") {
     else  mapping = "DCH_map_Mar11.txt";
     BmnDchRaw2Digit  DCH(mapping); DCH.print();
 
-    BmnZDCRaw2Digit  ZDC("ZDC_map_Feb20.txt"); ZDC.print();
+    //   BmnZDCRaw2Digit  ZDC("ZDC_map_Feb20.txt"); ZDC.print();
+   BmnZDCRaw2Digit  ZDC("ZDC_map_Mar08.txt"); ZDC.print();
 
     if(RUN < 470) mapping="TOF700_map_Feb20_Mar11.txt";
     else mapping="TOF700_map_Mar11.txt";

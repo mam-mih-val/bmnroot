@@ -11,7 +11,7 @@ class BmnZDCDigit : public TNamed
     BmnZDCDigit();
 
     /** Main constructor **/
-    BmnZDCDigit(Char_t x,Char_t y,Char_t size,Char_t ch,Short_t samples,UShort_t *data);
+    BmnZDCDigit(Char_t ix,Char_t iy,Float_t x,Float_t y,Char_t size,Char_t ch,Short_t samples,UShort_t *data);
 
 
     void SetX(Char_t x)        { fX = x;        }
@@ -21,8 +21,10 @@ class BmnZDCDigit : public TNamed
     void SetSamples(Short_t samples);
     void SetWaveform(Short_t sample,Float_t val);
 
-    Char_t GetX()         const  { return fX;}
-    Char_t GetY()         const  { return fY;}
+    Char_t GetIX()         const  { return fIX;}
+    Char_t GetIY()         const  { return fIY;}
+    Float_t GetX()        const  { return fX;}
+    Float_t GetY()        const  { return fY;}
     Char_t GetSize()      const  { return fSize;}
     Char_t GetChannel()   const  { return fChannel;}
     Short_t GetSamples()  const  { return fSamples;}
@@ -33,14 +35,16 @@ class BmnZDCDigit : public TNamed
     virtual ~BmnZDCDigit();
 
 private:
-    Char_t  fX;
-    Char_t  fY;
+    Char_t  fIX;
+    Char_t  fIY;
+    Float_t fX;
+    Float_t fY;
     Char_t  fSize;
     Char_t  fChannel;
     Short_t  fSamples;
     TArrayS fWaveform;
 
-    ClassDef(BmnZDCDigit, 1);
+    ClassDef(BmnZDCDigit, 2);
 };
 
 #endif	/* BMNZDCDIGIT_H */

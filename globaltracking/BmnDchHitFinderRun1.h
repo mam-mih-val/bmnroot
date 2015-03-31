@@ -1,9 +1,10 @@
 #include <vector>
 #include "TVector3.h"
 #include "../bmndata/BmnDchDigit.h"
+#include "BmnHit.h"
 #include "TClonesArray.h"
 #include "TMath.h"
-
+cd cd
 using namespace std;
 using namespace TMath;
 
@@ -193,7 +194,7 @@ TVector3 LineFit(TClonesArray* hits) {
     const Float_t nHits = hits->GetEntriesFast();
     for (Int_t i = 0; i < nHits; ++i) {
         BmnHit* hit = (BmnHit*) hits->At(i);
-        cout << "x = " << hit->GetX() << "z = " << hit->GetZ() << endl;
+        cout << "x = " << hit->GetX() << " z = " << hit->GetZ() << endl;
         Xi = hit->GetX();
         Zi = hit->GetZ();
         SumX += Xi;

@@ -33,8 +33,6 @@ void recoRun1() {
     TH1F* hv1 = new TH1F("hv_DCH1", "hv_DCH1", nBins, -bound, bound);
     TH1F* hx1 = new TH1F("hx_DCH1", "hx_DCH1", nBins, -bound, bound);
     TH1F* hy1 = new TH1F("hy_DCH1", "hy_DCH1", nBins, -bound, bound);
-    TH1F* hu1_rot = new TH1F("hu_DCH1_rot", "hu_DCH1_rot", nBins, -bound, bound);
-    TH1F* hv1_rot = new TH1F("hv_DCH1_rot", "hv_DCH1_rot", nBins, -bound, bound);
 
     TH1F* hu2 = new TH1F("hu_DCH2", "hu_DCH2", nBins, -bound, bound);
     TH1F* hv2 = new TH1F("hv_DCH2", "hv_DCH2", nBins, -bound, bound);
@@ -141,7 +139,7 @@ void recoRun1() {
     hzx->Draw("colz");
     Float_t a = params.X();
     Float_t b = params.Y();
-    cout << "a = " << a << " b = " << b << endl;
+    //cout << "a = " << a << " b = " << b << endl;
     TLine* line = new TLine(zMin, a * zMin + b, zMax, a * zMax + b);
     line->SetLineColor(kBlue);
     line->Draw();

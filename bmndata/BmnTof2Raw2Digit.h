@@ -11,6 +11,8 @@
 #include <iostream>
 #include "Riostream.h"
 #include "BmnTof2Digit.h"
+#include <cstdlib>
+
 class Bmn_Tof2_map_element{
 public:
    Bmn_Tof2_map_element(){

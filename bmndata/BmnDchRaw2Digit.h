@@ -9,6 +9,7 @@
 #include <iostream>
 #include "Riostream.h"
 #include "BmnDchDigit.h"
+#include <cstdlib>
 
 enum {
     VA_1 = 0, VB_1 = 1, UA_1 = 2, UB_1 = 3, XA_1 = 4, XB_1 = 5, YA_1 = 6, YB_1 = 7,

@@ -19,7 +19,9 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = 
     bmnloadlibs(); // load libraries
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
-    //    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run1.C");
+    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run1.C");
+    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run02.C");
+    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run03.C");
 
     // -----   Create simulation run   ----------------------------------------
     FairRunSim *fRun = new FairRunSim();

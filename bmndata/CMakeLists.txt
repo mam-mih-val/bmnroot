@@ -57,6 +57,7 @@ CbmPsdEventData.cxx
 CbmMvdGeoPar.cxx
 CbmGeoSttPar.cxx
 BmnDchHit.cxx
+BmnDchHitOriginal.cxx
 BmnGlobalTrack.cxx
 BmnMwpcHit.cxx
 BmnTofHit.cxx

@@ -13,6 +13,7 @@
 #pragma link C++ class CbmStack+;
 #pragma link C++ class CbmMCTrack+;
 #pragma link C++ class BmnDchHit+;
+#pragma link C++ class BmnDchHitOriginal+;
 #pragma link C++ class BmnGlobalTrack+;
 
 #pragma link C++ class CbmMCBuffer+;

@@ -6,6 +6,7 @@
 #include "TClonesArray.h"
 #include <vector>
 #include "TVector3.h"
+#include "TFile.h"
 
 using namespace TMath;
 
@@ -27,9 +28,10 @@ void recoRun1() {
     TClonesArray *dchDigits;
     bmnTree->SetBranchAddress("bmn_dch_digit", &dchDigits);
 
-    Int_t events = bmnTree->GetEntries();
+    Int_t events = 5000;
     cout << "N events = " << events << endl;
     TClonesArray* hits = new TClonesArray("BmnDchHit");
+    TClonesArray* hitsOrig = new TClonesArray("BmnDchHitOriginal");
 
     UInt_t nBins = 300;
     Float_t bound = InnerRadiusOfOctagon;
@@ -66,11 +68,19 @@ void recoRun1() {
     Float_t AlignmentDeltaX = 3.75; //very rough!!!
     TVector3 params;
 
+    TFile* fReco = new TFile("bmndst_test.root", "RECREATE");
+    TTree* tReco = new TTree("cbmsim", "test_bmn");
+    tReco->Branch("BmnDchHit", &hits);
+    tReco->Branch("BmnDchHitOriginal", &hitsOrig);
+
     for (Int_t iEv = 0; iEv < events; iEv++) {
         bmnTree->GetEntry(iEv);
         hits->Clear();
+        hitsOrig->Clear();
+
         cout << "Event: " << iEv + 1 << "/" << events << endl;
         ProcessEvent(dchDigits, hits);
+
         if (hits->GetEntriesFast() != 4) continue;
 
         UInt_t prevLay = 100000;
@@ -85,6 +95,7 @@ void recoRun1() {
             prevLay = lay;
         }
         if (!flag) continue;
+
         for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
             BmnDchHit* hit = (BmnDchHit*) hits->At(i);
             Float_t x = hit->GetX();
@@ -95,6 +106,11 @@ void recoRun1() {
             Float_t yR = y / R;
             Float_t zR = z / R;
 
+            TVector3 pos(x, y, z);
+            TVector3 dpos(0., 0., 0.);
+
+            new((*hitsOrig)[hitsOrig->GetEntriesFast()]) BmnDchHitOriginal(0, pos, dpos, 0);
+
             UInt_t lay = hit->GetLayer();
             if (lay == 1) {
                 hx1->Fill(x);
@@ -102,6 +118,7 @@ void recoRun1() {
                 hxy1->Fill(x, y);
                 hxyR_1->Fill(xR, yR);
                 hzx->Fill(z, x);
+
             }
             if (lay == 0) {
                 hu1->Fill(x);
@@ -109,6 +126,7 @@ void recoRun1() {
                 huv1->Fill(x, y);
                 hxyR_1->Fill(xR, yR);
                 hzx->Fill(z, x);
+
             }
             if (lay == 3) {
                 x += AlignmentDeltaX;
@@ -119,6 +137,7 @@ void recoRun1() {
                 hxyR_2->Fill(xR, yR);
                 hxyR_1->Fill(xR, yR);
                 hzx->Fill(z, x);
+
             }
             if (lay == 2) {
                 x += AlignmentDeltaX;
@@ -129,12 +148,18 @@ void recoRun1() {
                 hxyR_2->Fill(xR, yR);
                 hxyR_1->Fill(xR, yR);
                 hzx->Fill(z, x);
+
             }
         }
         params = LineFit(hits);
+
         //break;
         //params.Print();
+        tReco->Fill();
     } // event loop
+
+    tReco->Write();
+    fReco->Close();
 
     Draw2x2histo(hx1, hy1, hu1, hv1, "prof_DCH1");
     Draw2x2histo(hx2, hy2, hu2, hv2, "prof_DCH2");
@@ -157,6 +182,7 @@ void recoRun1() {
     c6->cd(2);
     hxyR_2->Draw("colz");
     c6->SaveAs("xyR.png");
+
 }
 
 void Draw2x2histo(TH1F* h1, TH1F* h2, TH1F* h3, TH1F* h4, TString name) {

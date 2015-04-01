@@ -33,6 +33,10 @@ public:
     ULong_t GetAddr() const {
         return fAddr;
     }
+    
+    Short_t GetMwpcId() const {
+        return fMwpcId;
+    }
 
     Bool_t IsUsed() const {
         return fUsing;
@@ -53,6 +57,11 @@ public:
     void SetAddr(ULong_t addr) {
         fAddr = addr;
     }
+    
+    void SetMwpcId(Short_t id) {
+        fMwpcId = id;
+    }
+    
 
     /** Destructor **/
     virtual ~BmnMwpcHit();
@@ -63,6 +72,7 @@ private:
     Int_t fXaddr;
     Int_t fYaddr;
     ULong_t fAddr;
+    Short_t fMwpcId; // 1, 2, 3
 
     ClassDef(BmnMwpcHit, 1);
 

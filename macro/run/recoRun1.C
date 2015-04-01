@@ -10,16 +10,19 @@
 
 using namespace TMath;
 
-void recoRun1() {
 
+//
+//  runType - "run1", "run2", "run3"
+//
+void recoRun1(TString runType = "run1") {
+    
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
     
-//    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
-//    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run1.C");
-//    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run02.C");
-//    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run03.C");   
+    TString geoName = (runType == "run1") ? "geometry_run1.C" : (runType == "run2") ? "geometry_run02.C" : (runType == "run3") ? "geometry_run03.C" : "NO GEOMETRY FOUND!!!";
+    cout << "INFO: Geometry type: " << geoName << endl;
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/" + geoName);
 
     TChain *bmnTree = new TChain("BMN_DIGIT");
     //    bmnTree->Add("/home/merz/bmn_run0607_digit.root");
@@ -28,7 +31,7 @@ void recoRun1() {
     TClonesArray *dchDigits;
     bmnTree->SetBranchAddress("bmn_dch_digit", &dchDigits);
 
-    Int_t events = 5000;
+    Int_t events = 50;//bmnTree->GetEntries();
     cout << "N events = " << events << endl;
     TClonesArray* hits = new TClonesArray("BmnDchHit");
     TClonesArray* hitsOrig = new TClonesArray("BmnDchHitOriginal");
@@ -79,7 +82,7 @@ void recoRun1() {
         hitsOrig->Clear();
 
         cout << "Event: " << iEv + 1 << "/" << events << endl;
-        ProcessEvent(dchDigits, hits);
+        ProcessDchDigits(dchDigits, hits);
 
         if (hits->GetEntriesFast() != 4) continue;
 

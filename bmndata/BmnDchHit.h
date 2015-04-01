@@ -33,8 +33,9 @@ public:
   Double_t GetMeas(Int_t indx = 0) const { return fMeas[indx]; } // get measurement 
   Double_t GetError(Int_t indx = 0) const { return fError[indx]; } // get measurement error
   const TArrayI* Index() const { return &fIndex; } ///< Get index array of the hit
+  Short_t GetDchId() const { return fDchId; }
 
-	Double_t	GetDrift(void) const {return fDriftLength; };
+        Double_t	GetDrift(void) const {return fDriftLength; };
 	void		SetDrift(Double_t v) { fDriftLength = v; };
 	Double_t	GetWirePosition(void) const {return fWirePos; };
 	void		SetWirePosition(Double_t v) { fWirePos = v; };
@@ -46,6 +47,7 @@ public:
   /** Modifiers **/
   //void SetTrackId(Int_t trackID) { fTrackID = trackID; }
   void SetFlag(Int_t flag) { fFlag = flag; }
+  void SetDchId(Short_t id) { fDchId = id; }
   void SetNofDim(Int_t dim) { fNofDim = dim; } // set number of measurements per point
   void SetPhi(Double_t phi) { fPhi = phi; } // set rotation angle 
   void SetMeas(Double_t meas, Int_t indx = 0) { fMeas[indx] = meas; } // set measurement 
@@ -76,6 +78,7 @@ protected:
   Double32_t fMeas[2]; 		// measurements (coordinates)
   Double32_t fError[2]; 	// measurement errors
   TArrayI fIndex; 		// array of indices of overlapped MC points
+  Short_t fDchId;                // DCH Id (1, 2)
   
   Double32_t	fDriftLength, fWirePos, fWireDelayLength, fTS;
 

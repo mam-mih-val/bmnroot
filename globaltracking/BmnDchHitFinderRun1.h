@@ -4,7 +4,7 @@
 #include "BmnHit.h"
 #include "TClonesArray.h"
 #include "TMath.h"
-cd cd
+
 using namespace std;
 using namespace TMath;
 

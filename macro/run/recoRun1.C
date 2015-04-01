@@ -14,6 +14,11 @@ void recoRun1() {
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
+    
+//    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
+//    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run1.C");
+//    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run02.C");
+//    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run03.C");   
 
     TChain *bmnTree = new TChain("BMN_DIGIT");
     //    bmnTree->Add("/home/merz/bmn_run0607_digit.root");

@@ -1,6 +1,7 @@
 #include <vector>
 #include "TVector3.h"
 #include "../bmndata/BmnDchDigit.h"
+#include "BmnHit.h"
 #include "TClonesArray.h"
 #include "TMath.h"
 
@@ -39,8 +40,8 @@ void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
             hit.SetY(-1.0 * hit.Y());
         }
         new((*hits)[hits->GetEntriesFast()]) BmnDchHit(0, hit, TVector3(0, 0, 0), 0, 0, 0, plane);
-//        BmnDchHit* dchHit = (BmnDchHit*) hits->At(hits->GetEntriesFast() - 1);
-//        dchHit->SetPhi(); //tmp
+        BmnDchHit* dchHit = (BmnDchHit*) hits->At(hits->GetEntriesFast() - 1);
+        dchHit->SetDchId(plane / 2 + 1);
     }
 }
 
@@ -72,7 +73,7 @@ vector<Float_t> MergeSubPlanes(vector<BmnDchDigit*> vec1, vector<BmnDchDigit*> v
     return v;
 }
 
-void ProcessEvent(TClonesArray* digits, TClonesArray* hitsArray) {
+void ProcessDchDigits(TClonesArray* digits, TClonesArray* hitsArray) {
 
     BmnDchDigit* digit = NULL;
 
@@ -179,11 +180,6 @@ void ProcessEvent(TClonesArray* digits, TClonesArray* hitsArray) {
         
 }
 
-Float_t Sqr(Float_t x) {
-    return x * x;
-}
-
-
 TVector3 LineFit(TClonesArray* hits) {
 
     //Least Square Method//
@@ -193,16 +189,16 @@ TVector3 LineFit(TClonesArray* hits) {
     const Float_t nHits = hits->GetEntriesFast();
     for (Int_t i = 0; i < nHits; ++i) {
         BmnHit* hit = (BmnHit*) hits->At(i);
-        cout << "x = " << hit->GetX() << "z = " << hit->GetZ() << endl;
+//        cout << "x = " << hit->GetX() << " z = " << hit->GetZ() << endl;
         Xi = hit->GetX();
         Zi = hit->GetZ();
         SumX += Xi;
         SumZ += Zi;
         SumXZ += Xi * Zi;
-        SumZ2 += Sqr(Zi);
+        SumZ2 += Zi * Zi;
     }
 
-    a = (nHits * SumXZ - SumX * SumZ) / (nHits * SumZ2 - Sqr(SumZ));
+    a = (nHits * SumXZ - SumX * SumZ) / (nHits * SumZ2 - SumZ * SumZ);
     b = (SumX - a * SumZ) / nHits;
 
     return TVector3(a, b, 0.0);

@@ -10,11 +10,19 @@
 
 using namespace TMath;
 
-void recoRun1() {
 
+//
+//  runType - "run1", "run2", "run3"
+//
+void recoRun1(TString runType = "run1") {
+    
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
+    
+    TString geoName = (runType == "run1") ? "geometry_run1.C" : (runType == "run2") ? "geometry_run02.C" : (runType == "run3") ? "geometry_run03.C" : "NO GEOMETRY FOUND!!!";
+    cout << "INFO: Geometry type: " << geoName << endl;
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/" + geoName);
 
     TChain *bmnTree = new TChain("BMN_DIGIT");
     //    bmnTree->Add("/home/merz/bmn_run0607_digit.root");
@@ -23,7 +31,7 @@ void recoRun1() {
     TClonesArray *dchDigits;
     bmnTree->SetBranchAddress("bmn_dch_digit", &dchDigits);
 
-    Int_t events = 5000;
+    Int_t events = 50;//bmnTree->GetEntries();
     cout << "N events = " << events << endl;
     TClonesArray* hits = new TClonesArray("BmnDchHit");
     TClonesArray* hitsOrig = new TClonesArray("BmnDchHitOriginal");
@@ -35,8 +43,6 @@ void recoRun1() {
     TH1F* hv1 = new TH1F("hv_DCH1", "hv_DCH1", nBins, -bound, bound);
     TH1F* hx1 = new TH1F("hx_DCH1", "hx_DCH1", nBins, -bound, bound);
     TH1F* hy1 = new TH1F("hy_DCH1", "hy_DCH1", nBins, -bound, bound);
-    TH1F* hu1_rot = new TH1F("hu_DCH1_rot", "hu_DCH1_rot", nBins, -bound, bound);
-    TH1F* hv1_rot = new TH1F("hv_DCH1_rot", "hv_DCH1_rot", nBins, -bound, bound);
 
     TH1F* hu2 = new TH1F("hu_DCH2", "hu_DCH2", nBins, -bound, bound);
     TH1F* hv2 = new TH1F("hv_DCH2", "hv_DCH2", nBins, -bound, bound);
@@ -76,7 +82,7 @@ void recoRun1() {
         hitsOrig->Clear();
 
         cout << "Event: " << iEv + 1 << "/" << events << endl;
-        ProcessEvent(dchDigits, hits);
+        ProcessDchDigits(dchDigits, hits);
 
         if (hits->GetEntriesFast() != 4) continue;
 
@@ -166,7 +172,7 @@ void recoRun1() {
     hzx->Draw("colz");
     Float_t a = params.X();
     Float_t b = params.Y();
-    cout << "a = " << a << " b = " << b << endl;
+    //cout << "a = " << a << " b = " << b << endl;
     TLine* line = new TLine(zMin, a * zMin + b, zMax, a * zMax + b);
     line->SetLineColor(kBlue);
     line->Draw();

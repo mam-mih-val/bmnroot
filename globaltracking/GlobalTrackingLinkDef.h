@@ -22,5 +22,5 @@
 #pragma link C++ class BmnGlobalTracking+;
 #pragma link C++ class BmnSeedFinder+;
 
-#pragma link C++ defined_in "BmnDchHitFinderRun1.h";
+#pragma link C++ defined_in "BmnHitFinderRun1.h";
 #endif

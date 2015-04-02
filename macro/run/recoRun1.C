@@ -25,15 +25,26 @@ void recoRun1(TString runType = "run1") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/" + geoName);
 
     TChain *bmnTree = new TChain("BMN_DIGIT");
-    //    bmnTree->Add("/home/merz/bmn_run0607_digit.root");
     bmnTree->Add("bmn_run0166_digit.root");
-
+    
+    TChain *bmnRawTree = new TChain("BMN_RAW"); //needed for mwpc digit //why?!?!?!??!
+    bmnRawTree->Add("bmn_run0607_eb+hrb.root");    
+    
     TClonesArray *dchDigits;
+    TClonesArray *mwpcDigits;
+    TClonesArray *tof400Digits;
+    TClonesArray *tof700Digits;
+    TClonesArray *zdcDigits;
     bmnTree->SetBranchAddress("bmn_dch_digit", &dchDigits);
+    bmnTree->SetBranchAddress("bmn_tof1_digit", &tof400Digits);
+    bmnTree->SetBranchAddress("bmn_tof2_digit", &tof700Digits);
+    bmnTree->SetBranchAddress("bmn_zdc_digit", &zdcDigits);
+    bmnRawTree->SetBranchAddress("bmn_mwpc", &mwpcDigits);
 
     Int_t events = 50;//bmnTree->GetEntries();
     cout << "N events = " << events << endl;
-    TClonesArray* hits = new TClonesArray("BmnDchHit");
+    TClonesArray* dchHits  = new TClonesArray("BmnDchHit");
+    TClonesArray* mwpcHits = new TClonesArray("BmnMwpcHit");
     TClonesArray* hitsOrig = new TClonesArray("BmnDchHitOriginal");
 
     UInt_t nBins = 300;
@@ -73,118 +84,134 @@ void recoRun1(TString runType = "run1") {
 
     TFile* fReco = new TFile("bmndst_test.root", "RECREATE");
     TTree* tReco = new TTree("cbmsim", "test_bmn");
-    tReco->Branch("BmnDchHit", &hits);
+    tReco->Branch("BmnDchHit", &dchHits);
+    tReco->Branch("BmnMwpcHit", &mwpcHits);
     tReco->Branch("BmnDchHitOriginal", &hitsOrig);
 
     for (Int_t iEv = 0; iEv < events; iEv++) {
         bmnTree->GetEntry(iEv);
-        hits->Clear();
+        bmnRawTree->GetEntry(iEv);
+        
+        dchHits->Clear();
+        mwpcHits->Clear();
         hitsOrig->Clear();
 
         cout << "Event: " << iEv + 1 << "/" << events << endl;
-        ProcessDchDigits(dchDigits, hits);
+        ProcessDchDigits(dchDigits, dchHits);
+        ProcessMwpcDigits(mwpcDigits, mwpcHits);
 
-        if (hits->GetEntriesFast() != 4) continue;
+//        if (hits->GetEntriesFast() != 4) continue;
+//
+//        UInt_t prevLay = 100000;
+//        Bool_t flag = kTRUE;
+//        for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
+//            BmnDchHit* hit = (BmnDchHit*) hits->At(i);
+//            UInt_t lay = hit->GetLayer();
+//            if (lay == prevLay) {
+//                flag = kFALSE;
+//                break;
+//            }
+//            prevLay = lay;
+//        }
+//        if (!flag) continue;
+//
+//        for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
+//            BmnDchHit* hit = (BmnDchHit*) hits->At(i);
+//            Float_t x = hit->GetX();
+//            Float_t y = hit->GetY();
+//            Float_t z = hit->GetZ();
+//            Float_t R = Sqrt(x * x + y * y + z * z);
+//            Float_t xR = x / R;
+//            Float_t yR = y / R;
+//            Float_t zR = z / R;
+//
+//            TVector3 pos(x, y, z);
+//            TVector3 dpos(0., 0., 0.);
+//
+//            new((*hitsOrig)[hitsOrig->GetEntriesFast()]) BmnDchHitOriginal(0, pos, dpos, 0);
+//
+//            UInt_t lay = hit->GetLayer();
+//            if (lay == 1) {
+//                hx1->Fill(x);
+//                hy1->Fill(y);
+//                hxy1->Fill(x, y);
+//                hxyR_1->Fill(xR, yR);
+//                hzx->Fill(z, x);
+//
+//            }
+//            if (lay == 0) {
+//                hu1->Fill(x);
+//                hv1->Fill(y);
+//                huv1->Fill(x, y);
+//                hxyR_1->Fill(xR, yR);
+//                hzx->Fill(z, x);
+//
+//            }
+//            if (lay == 3) {
+////                x += AlignmentDeltaX;
+//                hit->SetX(x);
+//                hx2->Fill(x);
+//                hy2->Fill(y);
+//                hxy2->Fill(x, y);
+//                hxyR_2->Fill(xR, yR);
+//                hxyR_1->Fill(xR, yR);
+//                hzx->Fill(z, x);
+//
+//            }
+//            if (lay == 2) {
+////                x += AlignmentDeltaX;
+//                hit->SetX(x);
+//                hu2->Fill(x);
+//                hv2->Fill(y);
+//                huv2->Fill(x, y);
+//                hxyR_2->Fill(xR, yR);
+//                hxyR_1->Fill(xR, yR);
+//                hzx->Fill(z, x);
+//
+//            }
+//        }
+//        params = LineFit(hits);
 
-        UInt_t prevLay = 100000;
-        Bool_t flag = kTRUE;
-        for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
-            BmnDchHit* hit = (BmnDchHit*) hits->At(i);
-            UInt_t lay = hit->GetLayer();
-            if (lay == prevLay) {
-                flag = kFALSE;
-                break;
-            }
-            prevLay = lay;
-        }
-        if (!flag) continue;
-
-        for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
-            BmnDchHit* hit = (BmnDchHit*) hits->At(i);
-            Float_t x = hit->GetX();
-            Float_t y = hit->GetY();
-            Float_t z = hit->GetZ();
-            Float_t R = Sqrt(x * x + y * y + z * z);
-            Float_t xR = x / R;
-            Float_t yR = y / R;
-            Float_t zR = z / R;
-
-            TVector3 pos(x, y, z);
-            TVector3 dpos(0., 0., 0.);
-
-            new((*hitsOrig)[hitsOrig->GetEntriesFast()]) BmnDchHitOriginal(0, pos, dpos, 0);
-
-            UInt_t lay = hit->GetLayer();
-            if (lay == 1) {
-                hx1->Fill(x);
-                hy1->Fill(y);
-                hxy1->Fill(x, y);
-                hxyR_1->Fill(xR, yR);
-                hzx->Fill(z, x);
-
-            }
-            if (lay == 0) {
-                hu1->Fill(x);
-                hv1->Fill(y);
-                huv1->Fill(x, y);
-                hxyR_1->Fill(xR, yR);
-                hzx->Fill(z, x);
-
-            }
-            if (lay == 3) {
-                x += AlignmentDeltaX;
-                hit->SetX(x);
-                hx2->Fill(x);
-                hy2->Fill(y);
-                hxy2->Fill(x, y);
-                hxyR_2->Fill(xR, yR);
-                hxyR_1->Fill(xR, yR);
-                hzx->Fill(z, x);
-
-            }
-            if (lay == 2) {
-                x += AlignmentDeltaX;
-                hit->SetX(x);
-                hu2->Fill(x);
-                hv2->Fill(y);
-                huv2->Fill(x, y);
-                hxyR_2->Fill(xR, yR);
-                hxyR_1->Fill(xR, yR);
-                hzx->Fill(z, x);
-
-            }
-        }
-        params = LineFit(hits);
-
-        //break;
+//        break;
         //params.Print();
         tReco->Fill();
     } // event loop
+    
+//    for (Int_t iEv = 0; iEv < events; iEv++) {
+//        bmnRawTree->GetEntry(iEv);
+//        
+//        mwpcHits->Clear();
+//
+//        cout << "Event: " << iEv + 1 << "/" << events << endl;
+//        ProcessMwpcDigits(mwpcDigits, mwpcHits);
+//        cout << "n hits = " << mwpcHits->GetEntriesFast() << endl;
+//        tReco->Fill();
+//    } // event loop
 
     tReco->Write();
     fReco->Close();
 
-    Draw2x2histo(hx1, hy1, hu1, hv1, "prof_DCH1");
-    Draw2x2histo(hx2, hy2, hu2, hv2, "prof_DCH2");
-    Draw2x2histo(hxy1, huv1, hxy2, huv2, "2D");
-
-    TCanvas* c5 = new TCanvas("c5", "c5", 1600, 800);
-    hzx->Draw("colz");
-    Float_t a = params.X();
-    Float_t b = params.Y();
-    //cout << "a = " << a << " b = " << b << endl;
-    TLine* line = new TLine(zMin, a * zMin + b, zMax, a * zMax + b);
-    line->SetLineColor(kBlue);
-    line->Draw();
-    c5->SaveAs("ZX.png");
-
-    TCanvas* c6 = new TCanvas("c6", "c6", 1600, 800);
-    c6->Divide(2, 1);
-    c6->cd(1);
-    hxyR_1->Draw("colz");
-    c6->cd(2);
-    hxyR_2->Draw("colz");
-    c6->SaveAs("xyR.png");
+//    Draw2x2histo(hx1, hy1, hu1, hv1, "prof_DCH1");
+//    Draw2x2histo(hx2, hy2, hu2, hv2, "prof_DCH2");
+//    Draw2x2histo(hxy1, huv1, hxy2, huv2, "2D");
+//
+//    TCanvas* c5 = new TCanvas("c5", "c5", 1600, 800);
+//    hzx->Draw("colz");
+//    Float_t a = params.X();
+//    Float_t b = params.Y();
+//    //cout << "a = " << a << " b = " << b << endl;
+//    TLine* line = new TLine(zMin, a * zMin + b, zMax, a * zMax + b);
+//    line->SetLineColor(kBlue);
+//    line->Draw();
+//    c5->SaveAs("ZX.png");
+//
+//    TCanvas* c6 = new TCanvas("c6", "c6", 1600, 800);
+//    c6->Divide(2, 1);
+//    c6->cd(1);
+//    hxyR_1->Draw("colz");
+//    c6->cd(2);
+//    hxyR_2->Draw("colz");
+//    c6->SaveAs("xyR.png");
 
 }
 

@@ -556,6 +556,7 @@ void CbmKFParticle::ConstructFromKFParticle( vector<CbmKFParticle*> &vDaughters,
       VertexGuess[1] = Tr->GetTrack()[1];
       VertexGuess[2] = Tr->GetTrack()[5];
       delete Tr;
+      delete TrInt; //AZ 
       r0[0] = VertexGuess[0];
       r0[1] = VertexGuess[1];
       r0[2] = VertexGuess[2];

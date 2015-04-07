@@ -7,6 +7,7 @@
 #include <vector>
 #include "TVector3.h"
 #include "TFile.h"
+#include "TGeoManager.h"
 
 using namespace TMath;
 
@@ -14,22 +15,25 @@ using namespace TMath;
 //
 //  runType - "run1", "run2", "run3"
 //
+
 void recoRun1(TString runType = "run1") {
-    
+
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
-    
-    TString geoName = (runType == "run1") ? "geometry_run1.C" : (runType == "run2") ? "geometry_run02.C" : (runType == "run3") ? "geometry_run03.C" : "NO GEOMETRY FOUND!!!";
+
+    TString geoName = (runType == "run1") ? "geometry_run1" : (runType == "run2") ? "geometry_run2" : (runType == "run3") ? "geometry_run3" : "NO GEOMETRY FOUND!!!";
     cout << "INFO: Geometry type: " << geoName << endl;
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/" + geoName);
+    if (geoName == "NO GEOMETRY FOUND!!!") return;
+    
+    TGeoManager::Import(geoName + ".root");
 
     TChain *bmnTree = new TChain("BMN_DIGIT");
     bmnTree->Add("bmn_run0166_digit.root");
-    
+
     TChain *bmnRawTree = new TChain("BMN_RAW"); //needed for mwpc digit //why?!?!?!??!
-    bmnRawTree->Add("bmn_run0607_eb+hrb.root");    
-    
+    bmnRawTree->Add("bmn_run0607_eb+hrb.root");
+
     TClonesArray *dchDigits;
     TClonesArray *mwpcDigits;
     TClonesArray *tof400Digits;
@@ -41,9 +45,9 @@ void recoRun1(TString runType = "run1") {
     bmnTree->SetBranchAddress("bmn_zdc_digit", &zdcDigits);
     bmnRawTree->SetBranchAddress("bmn_mwpc", &mwpcDigits);
 
-    Int_t events = 50;//bmnTree->GetEntries();
+    Int_t events = 10;//bmnTree->GetEntries();
     cout << "N events = " << events << endl;
-    TClonesArray* dchHits  = new TClonesArray("BmnDchHit");
+    TClonesArray* dchHits = new TClonesArray("BmnDchHit");
     TClonesArray* mwpcHits = new TClonesArray("BmnMwpcHit");
     TClonesArray* hitsOrig = new TClonesArray("BmnDchHitOriginal");
 
@@ -79,7 +83,7 @@ void recoRun1(TString runType = "run1") {
 
     Float_t angle = 45.0 * DegToRad();
 
-    Float_t AlignmentDeltaX = 3.75; //very rough!!!
+    //Float_t AlignmentDeltaX = 3.75; //very rough!!!
     TVector3 params;
 
     TFile* fReco = new TFile("bmndst_test.root", "RECREATE");
@@ -91,102 +95,99 @@ void recoRun1(TString runType = "run1") {
     for (Int_t iEv = 0; iEv < events; iEv++) {
         bmnTree->GetEntry(iEv);
         bmnRawTree->GetEntry(iEv);
-        
+
         dchHits->Clear();
         mwpcHits->Clear();
         hitsOrig->Clear();
 
         cout << "Event: " << iEv + 1 << "/" << events << endl;
+        
+        //FIXME! Calling of this functions should depend on runType
         ProcessDchDigits(dchDigits, dchHits);
         ProcessMwpcDigits(mwpcDigits, mwpcHits);
+        TVector3 vertex;
+        TVector3 direction;
+        LineFit3D(dchHits, vertex, direction);
+        cout << dchHits->GetEntriesFast() << endl;
+        vertex.Print();
+        direction.Print();
+                
+//                if (dchHits->GetEntriesFast() != 4) continue;
+//        
+//                UInt_t prevLay = 100000;
+//                Bool_t flag = kTRUE;
+//                for (Int_t i = 0; i < dchHits->GetEntriesFast(); ++i) {
+//                    BmnDchHit* hit = (BmnDchHit*) dchHits->At(i);
+//                    UInt_t lay = hit->GetLayer();
+//                    if (lay == prevLay) {
+//                        flag = kFALSE;
+//                        break;
+//                    }
+//                    prevLay = lay;
+//                }
+//                if (!flag) continue;
+        
+//                for (Int_t i = 0; i < dchHits->GetEntriesFast(); ++i) {
+//                    BmnDchHit* hit = (BmnDchHit*) dchHits->At(i);
+//                    Float_t x = hit->GetX();
+//                    Float_t y = hit->GetY();
+//                    Float_t z = hit->GetZ();
+//                    Float_t R = Sqrt(x * x + y * y + z * z);
+//                    Float_t xR = x / R;
+//                    Float_t yR = y / R;
+//                    Float_t zR = z / R;
+//        
+//                    TVector3 pos(x, y, z);
+//                    TVector3 dpos(0., 0., 0.);
+//        
+//                    new((*hitsOrig)[hitsOrig->GetEntriesFast()]) BmnDchHitOriginal(0, pos, dpos, 0);
+//        
+//                    UInt_t lay = hit->GetLayer();
+//                    if (lay == 1) {
+//                        hx1->Fill(x);
+//                        hy1->Fill(y);
+//                        hxy1->Fill(x, y);
+//                        hxyR_1->Fill(xR, yR);
+//                        hzx->Fill(z, x);
+//        
+//                    }
+//                    if (lay == 0) {
+//                        hu1->Fill(x);
+//                        hv1->Fill(y);
+//                        huv1->Fill(x, y);
+//                        hxyR_1->Fill(xR, yR);
+//                        hzx->Fill(z, x);
+//        
+//                    }
+//                    if (lay == 3) {
+//        //                x += AlignmentDeltaX;
+//                        hit->SetX(x);
+//                        hx2->Fill(x);
+//                        hy2->Fill(y);
+//                        hxy2->Fill(x, y);
+//                        hxyR_2->Fill(xR, yR);
+//                        hxyR_1->Fill(xR, yR);
+//                        hzx->Fill(z, x);
+//        
+//                    }
+//                    if (lay == 2) {
+//        //                x += AlignmentDeltaX;
+//                        hit->SetX(x);
+//                        hu2->Fill(x);
+//                        hv2->Fill(y);
+//                        huv2->Fill(x, y);
+//                        hxyR_2->Fill(xR, yR);
+//                        hxyR_1->Fill(xR, yR);
+//                        hzx->Fill(z, x);
+//        
+//                    }
+//                }
+//                params = LineFit(dchHits);
 
-//        if (hits->GetEntriesFast() != 4) continue;
-//
-//        UInt_t prevLay = 100000;
-//        Bool_t flag = kTRUE;
-//        for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
-//            BmnDchHit* hit = (BmnDchHit*) hits->At(i);
-//            UInt_t lay = hit->GetLayer();
-//            if (lay == prevLay) {
-//                flag = kFALSE;
-//                break;
-//            }
-//            prevLay = lay;
-//        }
-//        if (!flag) continue;
-//
-//        for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
-//            BmnDchHit* hit = (BmnDchHit*) hits->At(i);
-//            Float_t x = hit->GetX();
-//            Float_t y = hit->GetY();
-//            Float_t z = hit->GetZ();
-//            Float_t R = Sqrt(x * x + y * y + z * z);
-//            Float_t xR = x / R;
-//            Float_t yR = y / R;
-//            Float_t zR = z / R;
-//
-//            TVector3 pos(x, y, z);
-//            TVector3 dpos(0., 0., 0.);
-//
-//            new((*hitsOrig)[hitsOrig->GetEntriesFast()]) BmnDchHitOriginal(0, pos, dpos, 0);
-//
-//            UInt_t lay = hit->GetLayer();
-//            if (lay == 1) {
-//                hx1->Fill(x);
-//                hy1->Fill(y);
-//                hxy1->Fill(x, y);
-//                hxyR_1->Fill(xR, yR);
-//                hzx->Fill(z, x);
-//
-//            }
-//            if (lay == 0) {
-//                hu1->Fill(x);
-//                hv1->Fill(y);
-//                huv1->Fill(x, y);
-//                hxyR_1->Fill(xR, yR);
-//                hzx->Fill(z, x);
-//
-//            }
-//            if (lay == 3) {
-////                x += AlignmentDeltaX;
-//                hit->SetX(x);
-//                hx2->Fill(x);
-//                hy2->Fill(y);
-//                hxy2->Fill(x, y);
-//                hxyR_2->Fill(xR, yR);
-//                hxyR_1->Fill(xR, yR);
-//                hzx->Fill(z, x);
-//
-//            }
-//            if (lay == 2) {
-////                x += AlignmentDeltaX;
-//                hit->SetX(x);
-//                hu2->Fill(x);
-//                hv2->Fill(y);
-//                huv2->Fill(x, y);
-//                hxyR_2->Fill(xR, yR);
-//                hxyR_1->Fill(xR, yR);
-//                hzx->Fill(z, x);
-//
-//            }
-//        }
-//        params = LineFit(hits);
-
-//        break;
+        //        break;
         //params.Print();
         tReco->Fill();
     } // event loop
-    
-//    for (Int_t iEv = 0; iEv < events; iEv++) {
-//        bmnRawTree->GetEntry(iEv);
-//        
-//        mwpcHits->Clear();
-//
-//        cout << "Event: " << iEv + 1 << "/" << events << endl;
-//        ProcessMwpcDigits(mwpcDigits, mwpcHits);
-//        cout << "n hits = " << mwpcHits->GetEntriesFast() << endl;
-//        tReco->Fill();
-//    } // event loop
 
     tReco->Write();
     fReco->Close();
@@ -212,7 +213,7 @@ void recoRun1(TString runType = "run1") {
 //    c6->cd(2);
 //    hxyR_2->Draw("colz");
 //    c6->SaveAs("xyR.png");
-
+    
 }
 
 void Draw2x2histo(TH1F* h1, TH1F* h2, TH1F* h3, TH1F* h4, TString name) {

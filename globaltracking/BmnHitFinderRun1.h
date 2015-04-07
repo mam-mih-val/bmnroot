@@ -1,9 +1,12 @@
+#ifndef BMNHITFINDERRUN1_H
+#define	BMNHITFINDERRUN1_H
+
 #include <vector>
+#include "TGeoVolume.h"
+#include "TGeoManager.h"
 #include "TVector3.h"
-#include "TLorentzVector.h"
 #include "BmnDchDigit.h"
 #include "BmnMwpcDigit.h"
-#include "BmnHit.h"
 #include "BmnMwpcHit.h"
 #include "TClonesArray.h"
 #include "TMath.h"
@@ -48,13 +51,28 @@ const Float_t MaxRadiusOfActiveVolume = 120.0;
 const Float_t MinRadiusOfActiveVolume = 12.0;
 
 void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
+    
+    TVector3 dchPos;
+
+    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
+    if (pVolume != NULL) {
+        TString node_name = TString::Format("dch%d_0", plane / 2 + 1);
+        TGeoNode* pNode = pVolume->FindNode(node_name);
+        if (pNode != NULL) {
+            TGeoMatrix* pMatrix = pNode->GetMatrix();
+            dchPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
+        } else
+            cout << "DCH detector (" << node_name << ") wasn't found." << endl;
+    } else
+        cout << "Cave volume wasn't found." << endl;
+    
     for (Int_t i = 0; i < vec.size(); ++i) {
         TVector3 hit = vec.at(i);
         if ((plane == 0) || (plane == 2)) {
             hit.RotateZ(-135.0 * DegToRad());
             hit.SetY(-1.0 * hit.Y());
         }
-        new((*hits)[hits->GetEntriesFast()]) BmnDchHit(0, hit, TVector3(0, 0, 0), 0, 0, 0, plane);
+        new((*hits)[hits->GetEntriesFast()]) BmnDchHit(0, hit + dchPos, TVector3(0, 0, 0), 0, 0, 0, plane);
         BmnDchHit* dchHit = (BmnDchHit*) hits->At(hits->GetEntriesFast() - 1);
         dchHit->SetDchId(plane / 2 + 1);
     }
@@ -157,23 +175,6 @@ void ProcessDchDigits(TClonesArray* digits, TClonesArray* hitsArray) {
         }
     }
 
-    //    cout << "N va1 = " << va1.size() << endl;
-    //    cout << "N vb1 = " << vb1.size() << endl;
-    //    cout << "N ua1 = " << ua1.size() << endl;
-    //    cout << "N ub1 = " << ub1.size() << endl;
-    //    cout << "N xa1 = " << xa1.size() << endl;
-    //    cout << "N xb1 = " << xb1.size() << endl;
-    //    cout << "N ya1 = " << ya1.size() << endl;
-    //    cout << "N yb1 = " << yb1.size() << endl;
-    //    cout << "N va2 = " << va2.size() << endl;
-    //    cout << "N vb2 = " << vb2.size() << endl;
-    //    cout << "N ua2 = " << ua2.size() << endl;
-    //    cout << "N ub2 = " << ub2.size() << endl;
-    //    cout << "N xa2 = " << xa2.size() << endl;
-    //    cout << "N xb2 = " << xb2.size() << endl;
-    //    cout << "N ya2 = " << ya2.size() << endl;
-    //    cout << "N yb2 = " << yb2.size() << endl;
-
     vector<Float_t> v1 = MergeSubPlanes(va1, vb1);
     vector<Float_t> u1 = MergeSubPlanes(ua1, ub1);
     vector<Float_t> x1 = MergeSubPlanes(xa1, xb1);
@@ -183,24 +184,11 @@ void ProcessDchDigits(TClonesArray* digits, TClonesArray* hitsArray) {
     vector<Float_t> x2 = MergeSubPlanes(xa2, xb2);
     vector<Float_t> y2 = MergeSubPlanes(ya2, yb2);
 
-    //    cout << "N v1 = " << v1.size() << endl;
-    //    cout << "N u1 = " << u1.size() << endl;
-    //    cout << "N x1 = " << x1.size() << endl;
-    //    cout << "N y1 = " << y1.size() << endl;
-    //    cout << "N v2 = " << v2.size() << endl;
-    //    cout << "N u2 = " << u2.size() << endl;
-    //    cout << "N x2 = " << x2.size() << endl;
-    //    cout << "N y2 = " << y2.size() << endl;
+    vector<TVector3> u1v1 = CreateHitsByTwoPlanes(u1, v1, -5.0);
+    vector<TVector3> x1y1 = CreateHitsByTwoPlanes(x1, y1, 5.0);
+    vector<TVector3> u2v2 = CreateHitsByTwoPlanes(u2, v2, -5.0);
+    vector<TVector3> x2y2 = CreateHitsByTwoPlanes(x2, y2, 5.0);
 
-    vector<TVector3> u1v1 = CreateHitsByTwoPlanes(u1, v1, DCH1_Zpos - 5.0);
-    vector<TVector3> x1y1 = CreateHitsByTwoPlanes(x1, y1, DCH1_Zpos + 5.0);
-    vector<TVector3> u2v2 = CreateHitsByTwoPlanes(u2, v2, DCH2_Zpos - 5.0);
-    vector<TVector3> x2y2 = CreateHitsByTwoPlanes(x2, y2, DCH2_Zpos + 5.0);
-
-    //    cout << "N v1u1 = " << v1u1.size() << endl;
-    //    cout << "N x1y1 = " << x1y1.size() << endl;
-    //    cout << "N v2u2 = " << v2u2.size() << endl;
-    //    cout << "N x2y2 = " << x2y2.size() << endl;
     CombineHits(u1v1, hitsArray, 0);
     CombineHits(x1y1, hitsArray, 1);
     CombineHits(u2v2, hitsArray, 2);
@@ -211,29 +199,6 @@ void ProcessDchDigits(TClonesArray* digits, TClonesArray* hitsArray) {
 
 }
 
-//TVector3 CalcHitPosByThreeDigits(BmnMwpcDigit* dX, BmnMwpcDigit* dU, BmnMwpcDigit* dV) { // we need three planes to check fakes
-//    
-//    Short_t dWireX = dX->GetWireNumber();
-//    Short_t dWireU = dU->GetWireNumber();
-//    Short_t dWireV = dV->GetWireNumber();
-//    
-//    Float_t xX = kPlaneWidth * (dWireX * 1.0 / kNWires - 0.5); //local X by wire number
-//    Float_t xU = kPlaneWidth * (dWireU * 1.0 / kNWires - 0.5); //local X by wire number
-//    Float_t xV = kPlaneWidth * (dWireV * 1.0 / kNWires - 0.5); //local X by wire number
-//    
-//    Float_t aX = (dX->GetPlane() % kNPlanes) * kAngleStep * DegToRad(); //rotation angle by plane number
-//    Float_t aU = (dU->GetPlane() % kNPlanes) * kAngleStep * DegToRad(); //rotation angle by plane number
-//    Float_t aV = (dV->GetPlane() % kNPlanes) * kAngleStep * DegToRad(); //rotation angle by plane number
-//    
-//    Float_t xGlob = (xI * Sin(aJ) - xJ * Sin(aI)) / Sin(aJ - aI);
-//    Float_t yGlob = (xI * Cos(aJ) - xJ * Cos(aI)) / Sin(aJ - aI);
-//    Float_t zGlob = kMwpcZpos - Float_t(min(dI->GetPlane(), dJ->GetPlane()) - 3); //average position between two neighbor planes
-//    Float_t ref = -1;
-//    if (dI->GetRefId() == dI->GetRefId()) ref = dI->GetRefId();
-//    TVector3 pos(xGlob, yGlob, zGlob);
-//    return pos;
-//}
-
 TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ) {
     Short_t dWireI = dI->GetWireNumber();
     Short_t dWireJ = dJ->GetWireNumber();
@@ -243,7 +208,7 @@ TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ) {
     Float_t aJ = (dJ->GetPlane() - 1) * kAngleStep * DegToRad(); //rotation angle by plane number
     Float_t xGlob = (xI * Sin(aJ) - xJ * Sin(aI)) / Sin(aJ - aI);
     Float_t yGlob = (xI * Cos(aJ) - xJ * Cos(aI)) / Sin(aJ - aI);
-    Float_t zGlob = kMwpcZpos - Float_t(min(dI->GetPlane(), dJ->GetPlane()) - 3); //average position between two neighbor planes
+    Float_t zGlob = Float_t(min(dI->GetPlane(), dJ->GetPlane()) - 3); //average position between two neighbor planes
     Float_t ref = -1;
     if (dI->GetRefId() == dI->GetRefId()) ref = dI->GetRefId();
     TVector3 pos(xGlob, yGlob, zGlob);
@@ -267,78 +232,126 @@ Float_t dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
     return Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 }
 
-void ProcessMwpcDigits(TClonesArray* digits, TClonesArray* hits) {
-
-    //temporary containers
-    vector<BmnMwpcDigit*> x1;
-    vector<BmnMwpcDigit*> u1;
-    vector<BmnMwpcDigit*> v1;
-    vector<BmnMwpcDigit*> x2;
-    vector<BmnMwpcDigit*> u2;
-    vector<BmnMwpcDigit*> v2;    
-
-    for (Int_t i = 0; i < digits->GetEntriesFast(); ++i) {
-        BmnMwpcDigit* digit = (BmnMwpcDigit*) digits->At(i);
-        Short_t dPlane = digit->GetPlane();
-        if (dPlane % kNPlanes == 0) x1.push_back(digit);
-        else if (dPlane % kNPlanes == 1) u1.push_back(digit);
-        else if (dPlane % kNPlanes == 2) v1.push_back(digit);
-        else if (dPlane % kNPlanes == 3) x2.push_back(digit);
-        else if (dPlane % kNPlanes == 4) u2.push_back(digit);
-        else if (dPlane % kNPlanes == 5) v2.push_back(digit);
-    }
+void CreateMwpcHits(vector<TVector3> pos, TClonesArray* hits, Short_t mwpcId) {
 
     const Float_t errX = kWireStep / Sqrt(12.0);
     const Float_t errY = kWireStep / Sqrt(12.0);
     const Float_t errZ = 1.0 / Sqrt(12.0); // zStep = 1.0 cm
     TVector3 errors = TVector3(errX, errY, errZ); //FIXME!!! Calculate by formulae
+    TVector3 mwpcPos;
 
-    Float_t x = 0.0;
-    Float_t y = 0.0;
-    Float_t z = 0.0;
+    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
+    if (pVolume != NULL) {
+        TString node_name = TString::Format("mwpc%d_0", mwpcId + 1);
+        TGeoNode* pNode = pVolume->FindNode(node_name);
+        if (pNode != NULL) {
+            TGeoMatrix* pMatrix = pNode->GetMatrix();
+            mwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
+        } else
+            cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
+    } else
+        cout << "Cave volume wasn't found." << endl;
+
+
+    for (Int_t i = 0; i < pos.size(); ++i) {
+        new((*hits)[hits->GetEntriesFast()]) BmnMwpcHit(0, pos.at(i) + mwpcPos, errors, -1);
+        BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(hits->GetEntriesFast() - 1);
+        hit->SetMwpcId(mwpcId);
+    }
+
+
+
+}
+
+void ProcessMwpcDigits(TClonesArray* digits, TClonesArray* hits) {
+
+    //temporary containers
+    vector<BmnMwpcDigit*> x1_mwpc0;
+    vector<BmnMwpcDigit*> u1_mwpc0;
+    vector<BmnMwpcDigit*> v1_mwpc0;
+    vector<BmnMwpcDigit*> x2_mwpc0;
+    vector<BmnMwpcDigit*> u2_mwpc0;
+    vector<BmnMwpcDigit*> v2_mwpc0;
+    vector<BmnMwpcDigit*> x1_mwpc1;
+    vector<BmnMwpcDigit*> u1_mwpc1;
+    vector<BmnMwpcDigit*> v1_mwpc1;
+    vector<BmnMwpcDigit*> x2_mwpc1;
+    vector<BmnMwpcDigit*> u2_mwpc1;
+    vector<BmnMwpcDigit*> v2_mwpc1;
+    vector<BmnMwpcDigit*> x1_mwpc2;
+    vector<BmnMwpcDigit*> u1_mwpc2;
+    vector<BmnMwpcDigit*> v1_mwpc2;
+    vector<BmnMwpcDigit*> x2_mwpc2;
+    vector<BmnMwpcDigit*> u2_mwpc2;
+    vector<BmnMwpcDigit*> v2_mwpc2;
+
+    for (Int_t i = 0; i < digits->GetEntriesFast(); ++i) {
+        BmnMwpcDigit* digit = (BmnMwpcDigit*) digits->At(i);
+        Short_t dPlane = digit->GetPlane();
+        switch (dPlane) {
+            case 0: x1_mwpc0.push_back(digit);
+                break;
+            case 1: u1_mwpc0.push_back(digit);
+                break;
+            case 2: v1_mwpc0.push_back(digit);
+                break;
+            case 3: x2_mwpc0.push_back(digit);
+                break;
+            case 4: u2_mwpc0.push_back(digit);
+                break;
+            case 5: v2_mwpc0.push_back(digit);
+                break;
+            case 6: x1_mwpc1.push_back(digit);
+                break;
+            case 7: u1_mwpc1.push_back(digit);
+                break;
+            case 8: v1_mwpc1.push_back(digit);
+                break;
+            case 9: x2_mwpc1.push_back(digit);
+                break;
+            case 10: u2_mwpc1.push_back(digit);
+                break;
+            case 11: v2_mwpc1.push_back(digit);
+                break;
+            case 12: x1_mwpc2.push_back(digit);
+                break;
+            case 13: u1_mwpc2.push_back(digit);
+                break;
+            case 14: v1_mwpc2.push_back(digit);
+                break;
+            case 15: x2_mwpc2.push_back(digit);
+                break;
+            case 16: u2_mwpc2.push_back(digit);
+                break;
+            case 17: v2_mwpc2.push_back(digit);
+                break;
+        }
+    }
 
     //    Float_t delta = (fMwpcNum == 1) ? 1.0 : (fMwpcNum == 2) ? 1.5 : 2.00; //cm
-    Float_t delta = 2.00; //cm //FIXME!
+    //    Float_t delta = 2.00; //cm //FIXME!
 
-    vector<TVector3> x1u1 = CreateHitsByTwoPlanes(x1, u1);
-    vector<TVector3> v1x2 = CreateHitsByTwoPlanes(v1, x2);
-    vector<TVector3> u2v2 = CreateHitsByTwoPlanes(u2, v2);
+    vector<TVector3> x1u1_mwpc0 = CreateHitsByTwoPlanes(x1_mwpc0, u1_mwpc0);
+    vector<TVector3> v1x2_mwpc0 = CreateHitsByTwoPlanes(v1_mwpc0, x2_mwpc0);
+    vector<TVector3> u2v2_mwpc0 = CreateHitsByTwoPlanes(u2_mwpc0, v2_mwpc0);
 
-//    cout << x1u1.size() << endl;
-//    cout << v1x2.size() << endl;
-//    cout << u2v2.size() << endl;
+    vector<TVector3> x1u1_mwpc1 = CreateHitsByTwoPlanes(x1_mwpc1, u1_mwpc1);
+    vector<TVector3> v1x2_mwpc1 = CreateHitsByTwoPlanes(v1_mwpc1, x2_mwpc1);
+    vector<TVector3> u2v2_mwpc1 = CreateHitsByTwoPlanes(u2_mwpc1, v2_mwpc1);
 
-    for (Int_t i1 = 0; i1 < x1u1.size(); ++i1) {
-        new((*hits)[hits->GetEntriesFast()]) BmnMwpcHit(0, x1u1.at(i1), errors, -1);
-    }
-    for (Int_t i1 = 0; i1 < v1x2.size(); ++i1) {
-        new((*hits)[hits->GetEntriesFast()]) BmnMwpcHit(0, v1x2.at(i1), errors, -1);
-    }
-    for (Int_t i1 = 0; i1 < u2v2.size(); ++i1) {
-        new((*hits)[hits->GetEntriesFast()]) BmnMwpcHit(0, u2v2.at(i1), errors, -1);
-    }
+    vector<TVector3> x1u1_mwpc2 = CreateHitsByTwoPlanes(x1_mwpc2, u1_mwpc2);
+    vector<TVector3> v1x2_mwpc2 = CreateHitsByTwoPlanes(v1_mwpc2, x2_mwpc2);
+    vector<TVector3> u2v2_mwpc2 = CreateHitsByTwoPlanes(u2_mwpc2, v2_mwpc2);
+
+    CreateMwpcHits(x1u1_mwpc0, hits, 0);
+    CreateMwpcHits(v1x2_mwpc0, hits, 0);
+    CreateMwpcHits(u2v2_mwpc0, hits, 0);
+    CreateMwpcHits(x1u1_mwpc1, hits, 1);
+    CreateMwpcHits(v1x2_mwpc1, hits, 1);
+    CreateMwpcHits(u2v2_mwpc1, hits, 1);
+    CreateMwpcHits(x1u1_mwpc2, hits, 2);
+    CreateMwpcHits(v1x2_mwpc2, hits, 2);
+    CreateMwpcHits(u2v2_mwpc2, hits, 2);
 }
 
-TVector3 LineFit(TClonesArray* hits) {
-
-    //Least Square Method//
-    Float_t Xi = 0.0, Zi = 0.0; // coordinates of current track point
-    Float_t a = 0.0, b = 0.0; // parameters of line: x = a * z + b
-    Float_t SumX = 0.0, SumZ = 0.0, SumXZ = 0.0, SumZ2 = 0.0;
-    const Float_t nHits = hits->GetEntriesFast();
-    for (Int_t i = 0; i < nHits; ++i) {
-        BmnHit* hit = (BmnHit*) hits->At(i);
-        //        cout << "x = " << hit->GetX() << " z = " << hit->GetZ() << endl;
-        Xi = hit->GetX();
-        Zi = hit->GetZ();
-        SumX += Xi;
-        SumZ += Zi;
-        SumXZ += Xi * Zi;
-        SumZ2 += Zi * Zi;
-    }
-
-    a = (nHits * SumXZ - SumX * SumZ) / (nHits * SumZ2 - SumZ * SumZ);
-    b = (SumX - a * SumZ) / nHits;
-
-    return TVector3(a, b, 0.0);
-}
+#endif	/* BMNHITFINDERRUN1_H */

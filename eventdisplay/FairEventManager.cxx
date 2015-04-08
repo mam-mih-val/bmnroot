@@ -1,5 +1,6 @@
 #include "FairEventManager.h"
 #include "RawMWPCDigitDraw.h"
+#include "BmnDigitDraw.h"
 #include "constants.h"
 
 #include "FairMCPointDraw.h"
@@ -61,7 +62,10 @@ FairEventManager::FairEventManager()
    arrSelectedColoring(NULL),
    arrLevelColoring(NULL),
    background_color(1),
+   isDarkColor(true),
    source_file_name(NULL),
+   geo_file_name(NULL),
+   fEntryCount(0),
    isZDCModule(NULL)
 {
     fgRinstance = this;
@@ -337,16 +341,10 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
   TEveManager::Create();
   fRunAna->Init();
 
-  // if no gGeoManager in input file - get it from evetest.root directly for BMNRoot and MPDRoot
-  if (!gGeoManager)
+  // for raw and digit root files - get gGeoManager from additional file
+  if ((!gGeoManager) && (geo_file_name))
   {
-      std::cout<<"\ngGeoManager is NULL. It's loading manually"<<std::endl;
-      TFile* f = NULL;
-      if (gCoordinateSystem == sysLaboratory) //BMNRoot
-          f = new TFile("$VMCWORKDIR/macro/run/evetest.root");
-      else                                    //MPDRoot
-          f = new TFile("$VMCWORKDIR/macro/mpd/evetest.root");
-
+      TFile* f = new TFile(geo_file_name);
       f->Get("FairBaseParSet");
   }
 
@@ -371,6 +369,8 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
   // switch off left and right light sources for first window
   gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
   gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+  if (!isDarkColor)
+      gEve->GetDefaultViewer()->GetGLViewer()->UseLightColorSet();
   gEve->GetDefaultViewer()->GetGLViewer()->SetClearColor(background_color);
 
   // many views for Offline mode
@@ -408,6 +408,8 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
   fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
   fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
   fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
+  if (!isDarkColor)
+      fRPhiView->GetGLViewer()->UseLightColorSet();
   fRPhiView->GetGLViewer()->SetClearColor(background_color);
   // create scene holding projected geometry for the RPhi view
   fRPhiGeomScene  = gEve->SpawnNewScene("RPhi Geometry", "Scene holding projected geometry for the RPhi view.");
@@ -437,6 +439,8 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
   fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
   fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
   fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
+  if (!isDarkColor)
+      fRhoZView->GetGLViewer()->UseLightColorSet();
   fRhoZView->GetGLViewer()->SetClearColor(background_color);
   // create scene holding projected geometry for the RhoZ view.
   fRhoZGeomScene  = gEve->SpawnNewScene("RhoZ Geometry", "Scene holding projected geometry for the RhoZ view.");
@@ -459,6 +463,8 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
   // switch off left and right light sources for 3D MultiView
   fMulti3DView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
   fMulti3DView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+  if (!isDarkColor)
+      fMulti3DView->GetGLViewer()->UseLightColorSet();
   fMulti3DView->GetGLViewer()->SetClearColor(background_color);
   // add 3D scenes (first tab) to 3D MultiView
   fMulti3DView->AddScene(gEve->GetGlobalScene());
@@ -480,6 +486,8 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
   fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
   fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
   fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
+  if (!isDarkColor)
+      fMultiRPhiView->GetGLViewer()->UseLightColorSet();
   fMultiRPhiView->GetGLViewer()->SetClearColor(background_color);
   // add RPhi scenes (second tab) to RPhi MultiView
   fMultiRPhiView->AddScene(fRPhiGeomScene);
@@ -498,6 +506,8 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
   fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
   fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
   fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
+  if (!isDarkColor)
+      fMultiRhoZView->GetGLViewer()->UseLightColorSet();
   fMultiRhoZView->GetGLViewer()->SetClearColor(background_color);
   // add RhoZ scenes (second tab) to RhoZ MultiView
   fMultiRhoZView->AddScene(fRhoZGeomScene);
@@ -917,77 +927,4 @@ void FairEventManager::AddParticlesToPdgDataBase(Int_t pdg)
   if ( !pdgDB->GetParticle(50000051) )
     pdgDB->AddParticle("FeedbackPhoton","FeedbackPhoton",0,kFALSE,
                        0,0,"Special",50000051);
-}
-
-void FairEventManager::SetDataSource(bool is_online, int data_source)
-{
-    isOnline = is_online;
-    fDataSource = data_source;
-
-    if (data_source == 0)
-    {
-        Style_t pointMarker = kFullDotSmall;
-        Color_t pointColor = kRed;
-
-        // draw MC points
-        FairMCPointDraw *TofPoint = new FairMCPointDraw("TofPoint", pointColor, pointMarker);
-        this->AddTask(TofPoint);
-        FairMCModuleDraw *PsdPoint = new FairMCModuleDraw("PsdPoint", pointColor, pointMarker);
-        this->AddTask(PsdPoint);
-        FairMCPointDraw *StsPoint = new FairMCPointDraw("StsPoint", pointColor, pointMarker);
-        this->AddTask(StsPoint);
-        FairMCPointDraw *RecoilPoint = new FairMCPointDraw("RecoilPoint", pointColor, pointMarker);
-        this->AddTask(RecoilPoint);
-        FairMCPointDraw *TOF1Point = new FairMCPointDraw("TOF1Point", pointColor, pointMarker);
-        this->AddTask(TOF1Point);
-        FairMCPointDraw *DCH1Point = new FairMCPointDraw("DCH1Point", pointColor, pointMarker);
-        this->AddTask(DCH1Point);
-        FairMCPointDraw *DCH2Point = new FairMCPointDraw("DCH2Point", pointColor, pointMarker);
-        this->AddTask(DCH2Point);
-        FairMCPointDraw *MWPC1Point = new FairMCPointDraw("MWPC1Point", pointColor, pointMarker);
-        this->AddTask(MWPC1Point);
-        FairMCPointDraw *MWPC2Point = new FairMCPointDraw("MWPC2Point", pointColor, pointMarker);
-        this->AddTask(MWPC2Point);
-        FairMCPointDraw *MWPC3Point = new FairMCPointDraw("MWPC3Point", pointColor, pointMarker);
-        this->AddTask(MWPC3Point);
-
-        // draw MC geometry tracks
-        FairMCTracks* GeoTrack = new FairMCTracks("GeoTracks");
-        this->AddTask(GeoTrack);
-
-        // draw MC tracks
-        //FairMCStack* MCTrack = new FairMCStack("MCTrack");
-        //fMan->AddTask(MCTrack);
-
-        // DST hits
-        FairHitPointSetDraw *BmnGemHit = new FairHitPointSetDraw("BmnGemHit", kBlack, pointMarker);
-        this->AddTask(BmnGemHit);
-        FairHitPointSetDraw *TOF1Hit = new FairHitPointSetDraw("TOF1Hit", kBlack, pointMarker);
-        this->AddTask(TOF1Hit);
-        FairHitPointSetDraw *BmnDch1Hit = new FairHitPointSetDraw("BmnDch1Hit", kBlack, pointMarker);
-        this->AddTask(BmnDch1Hit);
-        FairHitPointSetDraw *BmnDch2Hit = new FairHitPointSetDraw("BmnDch2Hit", kBlack, pointMarker);
-        this->AddTask(BmnDch2Hit);
-        FairHitPointSetDraw *BmnTof2Hit = new FairHitPointSetDraw("BmnTof2Hit", kBlack, pointMarker);
-        this->AddTask(BmnTof2Hit);
-
-        // DST hits (box view)
-        //FairHitDraw *MpdTpcHit = new FairHitDraw("TpcHit", 1);
-        //fMan->AddTask(MpdTpcHit);
-
-        // DST tracks
-        //MpdTrackDraw *MpdGlobalTrack = new MpdTrackDraw("GlobalTracks");
-        //fMan->AddTask(MpdGlobalTrack);
-    }
-
-    if ((data_source == 1) && (!is_online))
-    {
-        Style_t pointMarker = kFullDotSmall;
-        Color_t pointColor = kRed;
-
-        // draw MWPC Digits
-        RawMWPCDigitDraw* MWPCDigit = new RawMWPCDigitDraw("MWPCDigit", pointColor, pointMarker);
-        MWPCDigit->source_file_name = source_file_name;
-        this->AddTask(MWPCDigit);
-    }
 }

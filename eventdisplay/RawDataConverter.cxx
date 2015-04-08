@@ -1,5 +1,7 @@
 #include "RawDataConverter.h"
+#include "BmnMwpcHit.h"
 
+#include "TGeoManager.h"
 #include "TMath.h"
 using namespace TMath;
 
@@ -9,15 +11,14 @@ using namespace std;
 RawDataConverter::RawDataConverter()
 {
     kTimeBin = 8; // ns
-    kNWires = 102; //in one plane
+    kNWires = 96; //in one plane
     kAngleStep = 60.0; // degrees
     kWireStep = 0.25; // cm
-    kPlaneHeight = 43.3; // cm
-    kPlaneWidth; // cm
     kPlaneWidth = kNWires * kWireStep; // cm
 
     kMwpcZpos = 50.0; // z-position of the center of MWPC
-    kMwpcNum = 1; //number of MWPC (from 1 to 3)
+
+    MwpcPosition[0] = NULL; MwpcPosition[1] = NULL; MwpcPosition[2] = NULL;
 }
 
 RawDataConverter::~RawDataConverter()
@@ -40,12 +41,94 @@ vector<TVector3*> RawDataConverter::MWPCEventToGeoVector(EventData* curEvent)
         <<curEvent->MWPC1Planes[3].size()<<" : "<<curEvent->MWPC1Planes[4].size()<<" : "<<curEvent->MWPC1Planes[5].size()<<endl;
 
     vector<TVector3*> event_hits = SearchHits(curEvent->MWPC1Planes[0], curEvent->MWPC1Planes[1], curEvent->MWPC1Planes[2],
-                                                  curEvent->MWPC1Planes[3], curEvent->MWPC1Planes[4], curEvent->MWPC1Planes[5]);
+                                              curEvent->MWPC1Planes[3], curEvent->MWPC1Planes[4], curEvent->MWPC1Planes[5]);
 
     return event_hits;
 }
 
-TVector3* RawDataConverter::CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ) {
+TEvePointSet* RawDataConverter::Vector2EvePoints(vector<TVector3*>* pPointVector, TString strSetName, Color_t fColor, Style_t fStyle, Int_t iMarkerSize, bool isDebug)
+{
+    Int_t npoints = pPointVector->size();
+    TEvePointSet* q = new TEvePointSet(strSetName, npoints, TEvePointSelectorConsumer::kTVT_XYZ);
+
+    q->SetOwnIds(kTRUE);
+    q->SetMarkerColor(fColor);
+    q->SetMarkerSize(iMarkerSize);
+    q->SetMarkerStyle(fStyle);
+
+    for (Int_t i = 0; i < npoints; i++)
+    {
+        TVector3* vec = (*pPointVector)[i];
+        if (isDebug)
+            cout<<"Point "<<i<<": x="<<vec->X()<<" y="<<vec->Y()<<" z="<<vec->Z()<<endl;
+
+        q->SetNextPoint(vec->X(), vec->Y(), vec->Z());
+        q->SetPointId(new TNamed(Form("Point %d", i), strSetName.Data()));
+
+        // bug in ROOT with one point
+        if (npoints == 1)
+        {
+            TVector3* vecAdd = new TVector3(vec->X(), vec->Y(), vec->Z());
+            if (isDebug)
+                cout<<"Point 1: x="<<vecAdd->X()<<" y="<<vecAdd->Y()<<" z="<<vecAdd->Z()<<endl;
+            q->SetNextPoint(vecAdd->X(), vecAdd->Y(), vecAdd->Z());
+            q->SetPointId(new TNamed("Point 1", strSetName.Data()));
+        }
+    }
+
+    return q;
+}
+
+void RawDataConverter::SetMwpcPosition(int mwpc_number, TVector3 mwpc_position)
+{
+    if ((mwpc_number > 0) && (mwpc_number < 4))
+        MwpcPosition[mwpc_number-1] = new TVector3(mwpc_position);
+    else
+        cout<<"RawDataConverter::SetMwpcPosition function error: incorrect MWPC number - "<<mwpc_number<<endl;
+}
+
+void RawDataConverter::MwpcDigits2MwpcHits(TClonesArray* pMwpcDigits, TClonesArray* pMwpcHits)
+{
+    // divide digits by three MWPC
+    vector<BmnMwpcDigit*> x[3][6];
+    for (int i = 0; i < pMwpcDigits->GetEntriesFast(); i++)
+    {
+        BmnMwpcDigit* pDigit = (BmnMwpcDigit*)pMwpcDigits->At(i);
+        int mwpc_number = pDigit->GetPlane() / 6;
+        int plane_number = pDigit->GetPlane() - mwpc_number*6;
+        pDigit->SetPlane(plane_number);
+        x[mwpc_number][plane_number].push_back(pDigit);
+    }
+
+    // for three MWPC detectors convert to MWPC hits
+    for (int i = 0; i < 3; i++)
+    {
+        vector<TVector3*> hits = SearchHits(x[i][0], x[i][1], x[i][2], x[i][3], x[i][4], x[i][5]);
+
+        // correct MWPC position
+        TVector3* pShift = MwpcPosition[i];
+        if (pShift != NULL)
+        {
+            double dx = pShift->X(), dy = pShift->Y(), dz = pShift->Z();
+            for (int j = 0; j < hits.size(); j++)
+            {
+                *hits[j] += TVector3(dx, dy, dz - kMwpcZpos);
+            }
+        }
+
+        // write to MwpcHits array (TClonesArray)
+        for (int j = 0; j < hits.size(); j++)
+        {
+            new ((*pMwpcHits)[pMwpcHits->GetEntriesFast()]) BmnMwpcHit(0, *hits[j], TVector3(0, 0, 0), i);
+            //cout<<"Hit X: "<<hits[j]->X()<<" Y:"<<hits[j]->Y()<<" Z:"<<hits[j]->Z()<<endl;
+        }
+    }
+
+    return;
+}
+
+TVector3* RawDataConverter::CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ)
+{
     Short_t dWireI = dI->GetWireNumber();
     Short_t dWireJ = dJ->GetWireNumber();
     Float_t xI = kPlaneWidth * (dWireI * 1.0 / kNWires - 0.5); //local X by wire number
@@ -72,14 +155,14 @@ vector<TVector3*> RawDataConverter::CreateHitsByTwoPlanes(vector<BmnMwpcDigit*> 
     return v;
 }
 
-vector<TVector3*> RawDataConverter::SearchHits(vector<BmnMwpcDigit*> x1, vector<BmnMwpcDigit*> u1, vector<BmnMwpcDigit*> v1, vector<BmnMwpcDigit*> x2, vector<BmnMwpcDigit*> u2, vector<BmnMwpcDigit*> v2) {
-
+vector<TVector3*> RawDataConverter::SearchHits(vector<BmnMwpcDigit*> x1, vector<BmnMwpcDigit*> u1, vector<BmnMwpcDigit*> v1, vector<BmnMwpcDigit*> x2, vector<BmnMwpcDigit*> u2, vector<BmnMwpcDigit*> v2)
+{
     Float_t x = 0.0;
     Float_t y = 0.0;
     Float_t z = 0.0;
 
     //temporary parameter for excluding fakes
-    Float_t delta = (kMwpcNum == 1) ? 4.0 : (kMwpcNum == 2) ? 4.5 : 5.0; //cm
+    Float_t delta = 4.0; //cm
 
     vector<TVector3*> x1u1 = CreateHitsByTwoPlanes(x1, u1);
     vector<TVector3*> u1v1 = CreateHitsByTwoPlanes(u1, v1);
@@ -122,14 +205,16 @@ vector<TVector3*> RawDataConverter::SearchHits(vector<BmnMwpcDigit*> x1, vector<
 
     Double_t k = Tan(kAngleStep / 2 * DegToRad());
     Double_t b = kPlaneWidth * k;
-    delta = (kMwpcNum == 1) ? 0.5 : (kMwpcNum == 2) ? 0.7 : 1.0; //cm
+    delta = 0.5; //cm
 
     //Checking angle s between x1 and u1, x2 and u2
-    for (Int_t i = 0; i < x1u1.size(); ++i) {
+    for (Int_t i = 0; i < x1u1.size(); ++i)
+    {
         TVector3* pos1 = x1u1.at(i);
         if (pos1->z() < 0) continue;
         if ((pos1->y() < (-k * pos1->x() + b)) && pos1->y() < (-k * pos1->x() - b)) continue;
-        for (Int_t j = 0; j < x2u2.size(); ++j) {
+        for (Int_t j = 0; j < x2u2.size(); ++j)
+        {
             TVector3* pos2 = x2u2.at(j);
             if (pos2->z() < 0 || pos1->z() < 0) continue;
             if ((pos2->y() < (-k * pos2->x() + b)) && pos2->y() < (-k * pos2->x() - b)) continue;

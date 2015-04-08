@@ -641,7 +641,7 @@ void RawDataParser::ParseHRBFiles(vector<EventData*>* pEventData, TString* raw_f
          // cycle for six plane (six device identificator)
          for (int i = 1;  i <= 6; i++)
          {
-             pRawFile = fopen(raw_file_names[(mwpc_iter-1)*6 + (i-1)], "rb");
+             pRawFile = fopen(replace_vmc_path_linux(raw_file_names[(mwpc_iter-1)*6 + (i-1)].Data()).data(), "rb");
              if (pRawFile == NULL)
              {
                  fprintf(stderr,"Error opening file (%s): %s\n", strerror(errno), raw_file_names[(mwpc_iter-1)*6 + (i-1)].Data());

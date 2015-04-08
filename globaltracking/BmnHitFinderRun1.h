@@ -27,12 +27,6 @@ const Float_t kMwpcZpos = 350; //FIXME!!! Get coords from geometry
 // <=== constants for mwpc
 
 //Detector's position
-const Float_t tanpipeangle = 0.3 / 5.7; // tangent of pipe angle
-//const Double_t DCH1_Xpos = 0.0;
-const Float_t DCH1_Ypos = 0.0;
-const Float_t DCH1_Zpos = 550.0; //cm
-const Float_t DCH2_Zpos = 650.0; //cm
-const Float_t DCH1_Xpos = DCH1_Zpos*tanpipeangle;
 
 //Detector's construct parameters
 const Float_t ZLength_DCH1 = 20.0;
@@ -208,9 +202,7 @@ TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ) {
     Float_t aJ = (dJ->GetPlane() - 1) * kAngleStep * DegToRad(); //rotation angle by plane number
     Float_t xGlob = (xI * Sin(aJ) - xJ * Sin(aI)) / Sin(aJ - aI);
     Float_t yGlob = (xI * Cos(aJ) - xJ * Cos(aI)) / Sin(aJ - aI);
-    Float_t zGlob = Float_t(min(dI->GetPlane(), dJ->GetPlane()) - 3); //average position between two neighbor planes
-    Float_t ref = -1;
-    if (dI->GetRefId() == dI->GetRefId()) ref = dI->GetRefId();
+    Float_t zGlob = Float_t(min(dI->GetPlane() % kNPlanes + 1, dJ->GetPlane() % kNPlanes + 1) - 3); //average position between two neighbor planes
     TVector3 pos(xGlob, yGlob, zGlob);
     return pos;
 }
@@ -247,10 +239,14 @@ void CreateMwpcHits(vector<TVector3> pos, TClonesArray* hits, Short_t mwpcId) {
         if (pNode != NULL) {
             TGeoMatrix* pMatrix = pNode->GetMatrix();
             mwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
-        } else
+        } else {
             cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
-    } else
+            mwpcPos = TVector3(0.0, 0.0, -100.0);
+        }
+    } else {
         cout << "Cave volume wasn't found." << endl;
+        mwpcPos = TVector3(0.0, 0.0, -100.0);
+    }
 
 
     for (Int_t i = 0; i < pos.size(); ++i) {

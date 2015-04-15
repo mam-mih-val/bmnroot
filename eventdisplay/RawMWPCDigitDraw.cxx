@@ -56,6 +56,12 @@ InitStatus RawMWPCDigitDraw::Init()
     if (fVerbose > 2)
         cout<<"RawMWPCDigitDraw::Init() get instance of FairEventManager "<<endl;
 
+    //cout<<endl<<"fEntryCount "<<fEventManager->fEntryCount<<" Event Count "<<pEventData->size()<<endl;
+    if (fEventManager->fEntryCount == 0)
+        fEventManager->fEntryCount = pEventData->size();
+    else
+        fEventManager->fEntryCount = TMath::Min(fEventManager->fEntryCount, (Long64_t)pEventData->size());
+
     return kSUCCESS;
 }
 

@@ -14,6 +14,7 @@ ${CMAKE_SOURCE_DIR}/geane
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/mpddata
 ${CMAKE_SOURCE_DIR}/kalman
+${CMAKE_SOURCE_DIR}/globaltracking
 ${CMAKE_SOURCE_DIR}/tpc
 ${CMAKE_SOURCE_DIR}/lhetrack
 ${CMAKE_SOURCE_DIR}/eventdisplay
@@ -47,6 +48,7 @@ FairMCModuleDraw.cxx
 RawDataParser.cxx
 RawDataConverter.cxx
 RawMWPCDigitDraw.cxx
+BmnDigitDraw.cxx
 )
 
 Set(HEADERS )

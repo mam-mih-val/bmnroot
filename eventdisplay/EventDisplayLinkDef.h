@@ -22,6 +22,7 @@
 #pragma link C++ class RawDataParser;
 #pragma link C++ class RawDataConverter;
 #pragma link C++ class RawMWPCDigitDraw;
+#pragma link C++ class BmnDigitDraw;
 
 #endif
 

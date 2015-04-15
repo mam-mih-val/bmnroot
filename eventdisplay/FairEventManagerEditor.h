@@ -29,31 +29,38 @@ struct ThreadParam_Draw
     TSemaphore* semEventData;
 };
 
+class FairEventManagerEditor;
 struct ThreadParam_RunTask
 {
     FairEventManager* fEventManager;
+    FairEventManagerEditor* fManagerEditor;
+    bool isZDCRedraw;
+    bool isRootManagerReadEvent;
 };
+
+// multithread functions
+void* ReadMWPCFiles(void* ptr);
+void* DrawEvent(void* ptr);
+void* RunTasks(void* ptr);
 
 class FairEventManagerEditor : public TGedFrame
 {
   private:
     TObject* fObject;
-    FairEventManager*  fManager;
-    TGNumberEntry*  fCurrentEvent, *fCurrentPDG;
-    TGCheckButton*  fVizPri;
-    TEveGValuator *fMinEnergy, *fMaxEnergy;
+    FairEventManager* fManager;
+    TGNumberEntry* fCurrentPDG;
+    TGCheckButton* fVizPri;
+    TEveGValuator* fMinEnergy, *fMaxEnergy;
     TGLabel* fEventTime;
     TGCompositeFrame* title1;
-    TGGroupFrame *groupData;
+    TGGroupFrame* groupData;
     TGCheckButton* fShowMCPoints, *fShowMCTracks, *fShowRecoPoints, *fShowRecoTracks;
-    // 'Update' button
-    TGTextButton* fUpdate;
 
     vector<EventData*>* fEventReadData;
     vector<EventData*>* fEventDrawData;
     TSemaphore* semEventData;
     // current event number
-    int iCurrentEvent;
+    int iEventNumber;
 
   public:
     FairEventManagerEditor(const TGWindow* p=0, Int_t width=170, Int_t height=30,
@@ -77,6 +84,20 @@ class FairEventManagerEditor : public TGedFrame
     virtual void ShowMCTracks(Bool_t is_show);
     virtual void ShowRecoPoints(Bool_t is_show);
     virtual void ShowRecoTracks(Bool_t is_show);
+
+    // event count
+    int iEventCount;
+    // 'Update' button
+    TGTextButton* fUpdate;
+    // 'Current Event Number' textbox with spin buttons
+    TGNumberEntry* fCurrentEvent;
+    // 'Show Geometry' checkbox
+    TGCheckButton* fGeometry;
+
+    void RedrawZDC();
+    void RestoreZDC();
+    void BlockUI();
+    void UnblockUI();
 
     ClassDef(FairEventManagerEditor, 0); // Specialization of TGedEditor for proper update propagation to TEveManager
 };

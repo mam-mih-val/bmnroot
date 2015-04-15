@@ -76,6 +76,7 @@ class FairEventManager : public TEveEventManager
     virtual Int_t GetCurrentPDG() { return fCurrentPDG; }
     virtual void AddParticlesToPdgDataBase( Int_t pdg = 0 );
 
+    virtual void SetCurrentEvent(Int_t event_number) { fEntry = event_number; }
     virtual void SetMaxEnergy(Float_t max) { fMaxEnergy = max; }
     virtual void SetMinEnergy(Float_t min) { fMinEnergy = min; }
     virtual void SetEvtMaxEnergy(Float_t max) { fEvtMaxEnergy = max; }
@@ -118,8 +119,14 @@ class FairEventManager : public TEveEventManager
 
     // background color of EVE Viewers
     int background_color;
+    // whether background color is dark
+    bool isDarkColor;
     // file name with data source
     char* source_file_name; //!
+    // file name with data source
+    char* geo_file_name; //!
+    // event count
+    Long64_t fEntryCount; //!
     // whether Online of Offline mode
     bool isOnline;
     // data source: 0 - simulation data; 1 - raw detector data
@@ -134,17 +141,14 @@ class FairEventManager : public TEveEventManager
     void SelectedGeometryTransparent(bool is_on);
     void RecursiveChangeNodeTransparent(TGeoNode* parentNode, int transparency);
 
-    // set FairRunAna tasks depending from data source and on/offline mode
-    void SetDataSource(bool is_online, int data_source);
-
-    // event number
-    Int_t fEntry; //!
     // FairRunAna to init and to execute visualization tasks
     FairRunAna* fRunAna; //!
 
   private:
     FairRootManager* fRootManager; //!
     TGListTreeItem* fEvent; //!
+    // current event number
+    Int_t fEntry; //!
     Bool_t fPriOnly; //!
     Int_t fCurrentPDG; //!
     // the most minimum particle energy for selected event

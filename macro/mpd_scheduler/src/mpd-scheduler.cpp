@@ -23,6 +23,9 @@
 enum enumSchedulerName {Torque};
 enumSchedulerName scheduler_name;
 
+const int MAX_BUFFER = 255;
+char buffer[MAX_BUFFER];
+
 // files to process with 'start event', 'event count' and 'parallel_mode' parameters
 struct structFilePar
 {

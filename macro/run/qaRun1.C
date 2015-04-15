@@ -158,5 +158,5 @@ void qaRun1() {
     for (Int_t i = 0; i < fits.size(); ++i) {
         fits.at(i)->Draw();
     }
-    c3->SaveAs("tracks.png");
+    c4->SaveAs("tracks.png");
 }

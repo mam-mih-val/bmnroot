@@ -5,7 +5,7 @@ TGeoManager* gGeoMan = NULL;
 
 //Detector's position
 const Double_t tanpipeangle = 0.3/5.7 ; // tangent of pipe angle
-const Double_t DCH2_Xpos = 0.0;
+const Double_t DCH2_Xpos = +25.0;
 const Double_t DCH2_Ypos = 0.0;
 const Double_t DCH2_Zpos = 748.35; //cm
 //const Double_t DCH2_Xpos = DCH2_Zpos*tanpipeangle;

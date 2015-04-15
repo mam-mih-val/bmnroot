@@ -8,7 +8,6 @@
 #include "TVector3.h"
 #include "TFile.h"
 #include "TGeoManager.h"
-
 using namespace TMath;
 
 
@@ -16,20 +15,24 @@ using namespace TMath;
 //  runType - "run1", "run2", "run3"
 //
 
-void recoRun1(TString runType = "run1") {
+void recoRun1(Int_t runId = 166) {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
 
-    TString geoName = (runType == "run1") ? "geometry_run1" : (runType == "run2") ? "geometry_run2" : (runType == "run3") ? "geometry_run3" : "NO GEOMETRY FOUND!!!";
-    cout << "INFO: Geometry type: " << geoName << endl;
-    if (geoName == "NO GEOMETRY FOUND!!!") return;
+    TString geoName = (runId >= 12 && runId <= 188) ? "geometry_run1" :
+            (runId >= 220 && runId <= 395) ? "geometry_run2" :
+            (runId >= 403 && runId <= 688) ? "geometry_run3" :
+            "WRONG runId = " + runId + "! NO GEOMETRY FOUND!!!";
     
+    cout << "INFO: Geometry type: " << geoName << endl;
+    if (geoName.Contains("NO GEOMETRY FOUND!!!")) return;
+
     TGeoManager::Import(geoName + ".root");
 
     TChain *bmnTree = new TChain("BMN_DIGIT");
-    bmnTree->Add("bmn_run0166_digit.root");
+    bmnTree->Add(TString::Format("bmn_run0%d_digit.root", runId));
 
     TChain *bmnRawTree = new TChain("BMN_RAW"); //needed for mwpc digit //why?!?!?!??!
     bmnRawTree->Add("bmn_run0607_eb+hrb.root");
@@ -45,41 +48,41 @@ void recoRun1(TString runType = "run1") {
     bmnTree->SetBranchAddress("bmn_zdc_digit", &zdcDigits);
     bmnRawTree->SetBranchAddress("bmn_mwpc", &mwpcDigits);
 
-    Int_t events = 10;//bmnTree->GetEntries();
-    cout << "N events = " << events << endl;
+    Int_t events = 100000;//bmnTree->GetEntries();
     TClonesArray* dchHits = new TClonesArray("BmnDchHit");
     TClonesArray* mwpcHits = new TClonesArray("BmnMwpcHit");
     TClonesArray* hitsOrig = new TClonesArray("BmnDchHitOriginal");
+    TClonesArray* recoTracks = new TClonesArray("CbmTrack");
 
-    UInt_t nBins = 300;
-    Float_t bound = InnerRadiusOfOctagon;
-
-    TH1F* hu1 = new TH1F("hu_DCH1", "hu_DCH1", nBins, -bound, bound);
-    TH1F* hv1 = new TH1F("hv_DCH1", "hv_DCH1", nBins, -bound, bound);
-    TH1F* hx1 = new TH1F("hx_DCH1", "hx_DCH1", nBins, -bound, bound);
-    TH1F* hy1 = new TH1F("hy_DCH1", "hy_DCH1", nBins, -bound, bound);
-
-    TH1F* hu2 = new TH1F("hu_DCH2", "hu_DCH2", nBins, -bound, bound);
-    TH1F* hv2 = new TH1F("hv_DCH2", "hv_DCH2", nBins, -bound, bound);
-    TH1F* hx2 = new TH1F("hx_DCH2", "hx_DCH2", nBins, -bound, bound);
-    TH1F* hy2 = new TH1F("hy_DCH2", "hy_DCH2", nBins, -bound, bound);
-
-    TH2F* hxy1 = new TH2F("hxy_DCH1", "hxy_DCH1", nBins, -bound, bound, nBins, -bound, bound);
-    TH2F* huv1 = new TH2F("huv_DCH1", "huv_DCH1", nBins, -bound, bound, nBins, -bound, bound);
-    TH2F* hxy2 = new TH2F("hxy_DCH2", "hxy_DCH2", nBins, -bound, bound, nBins, -bound, bound);
-    TH2F* huv2 = new TH2F("huv_DCH2", "huv_DCH2", nBins, -bound, bound, nBins, -bound, bound);
-
-    TH2F* hxu1 = new TH2F("hxu1", "hxu1", nBins, -bound, bound, nBins, -bound, bound);
-    TH2F* hyv1 = new TH2F("hyv1", "hyv1", nBins, -bound, bound, nBins, -bound, bound);
-    TH2F* hxu2 = new TH2F("hxu2", "hxu2", nBins, -bound, bound, nBins, -bound, bound);
-    TH2F* hyv2 = new TH2F("hyv2", "hyv2", nBins, -bound, bound, nBins, -bound, bound);
-
-    Float_t zMin = 540;
-    Float_t zMax = 660;
-    TH2F* hzx = new TH2F("hzx", "hzx", nBins, zMin, zMax, nBins, -bound, bound);
-    Float_t bound1 = 0.2;
-    TH2F* hxyR_1 = new TH2F("hxyR_1", "hxyR_1", nBins, -bound1, bound1, nBins, -bound1, bound1);
-    TH2F* hxyR_2 = new TH2F("hxyR_2", "hxyR_2", nBins, -bound1, bound1, nBins, -bound1, bound1);
+    //    UInt_t nBins = 300;
+    //    Float_t bound = InnerRadiusOfOctagon;
+    //
+    //    TH1F* hu1 = new TH1F("hu_DCH1", "hu_DCH1", nBins, -bound, bound);
+    //    TH1F* hv1 = new TH1F("hv_DCH1", "hv_DCH1", nBins, -bound, bound);
+    //    TH1F* hx1 = new TH1F("hx_DCH1", "hx_DCH1", nBins, -bound, bound);
+    //    TH1F* hy1 = new TH1F("hy_DCH1", "hy_DCH1", nBins, -bound, bound);
+    //
+    //    TH1F* hu2 = new TH1F("hu_DCH2", "hu_DCH2", nBins, -bound, bound);
+    //    TH1F* hv2 = new TH1F("hv_DCH2", "hv_DCH2", nBins, -bound, bound);
+    //    TH1F* hx2 = new TH1F("hx_DCH2", "hx_DCH2", nBins, -bound, bound);
+    //    TH1F* hy2 = new TH1F("hy_DCH2", "hy_DCH2", nBins, -bound, bound);
+    //
+    //    TH2F* hxy1 = new TH2F("hxy_DCH1", "hxy_DCH1", nBins, -bound, bound, nBins, -bound, bound);
+    //    TH2F* huv1 = new TH2F("huv_DCH1", "huv_DCH1", nBins, -bound, bound, nBins, -bound, bound);
+    //    TH2F* hxy2 = new TH2F("hxy_DCH2", "hxy_DCH2", nBins, -bound, bound, nBins, -bound, bound);
+    //    TH2F* huv2 = new TH2F("huv_DCH2", "huv_DCH2", nBins, -bound, bound, nBins, -bound, bound);
+    //
+    //    TH2F* hxu1 = new TH2F("hxu1", "hxu1", nBins, -bound, bound, nBins, -bound, bound);
+    //    TH2F* hyv1 = new TH2F("hyv1", "hyv1", nBins, -bound, bound, nBins, -bound, bound);
+    //    TH2F* hxu2 = new TH2F("hxu2", "hxu2", nBins, -bound, bound, nBins, -bound, bound);
+    //    TH2F* hyv2 = new TH2F("hyv2", "hyv2", nBins, -bound, bound, nBins, -bound, bound);
+    //
+    //    Float_t zMin = 540;
+    //    Float_t zMax = 660;
+    //    TH2F* hzx = new TH2F("hzx", "hzx", nBins, zMin, zMax, nBins, -bound, bound);
+    //    Float_t bound1 = 0.2;
+    //    TH2F* hxyR_1 = new TH2F("hxyR_1", "hxyR_1", nBins, -bound1, bound1, nBins, -bound1, bound1);
+    //    TH2F* hxyR_2 = new TH2F("hxyR_2", "hxyR_2", nBins, -bound1, bound1, nBins, -bound1, bound1);
 
     Float_t angle = 45.0 * DegToRad();
 
@@ -91,6 +94,7 @@ void recoRun1(TString runType = "run1") {
     tReco->Branch("BmnDchHit", &dchHits);
     tReco->Branch("BmnMwpcHit", &mwpcHits);
     tReco->Branch("BmnDchHitOriginal", &hitsOrig);
+    tReco->Branch("RecoTracks", &recoTracks);
 
     for (Int_t iEv = 0; iEv < events; iEv++) {
         bmnTree->GetEntry(iEv);
@@ -99,121 +103,56 @@ void recoRun1(TString runType = "run1") {
         dchHits->Clear();
         mwpcHits->Clear();
         hitsOrig->Clear();
+        recoTracks->Clear();
 
-        cout << "Event: " << iEv + 1 << "/" << events << endl;
-        
+        if (iEv % 1000 == 0) cout << "Event: " << iEv + 1 << "/" << events << endl;
+
+        /* ======= Functions for hits reconstruction ======= */
+
         //FIXME! Calling of this functions should depend on runType
         ProcessDchDigits(dchDigits, dchHits);
-        ProcessMwpcDigits(mwpcDigits, mwpcHits);
-        TVector3 vertex;
-        TVector3 direction;
-        LineFit3D(dchHits, vertex, direction);
-        cout << dchHits->GetEntriesFast() << endl;
-        vertex.Print();
-        direction.Print();
-                
-//                if (dchHits->GetEntriesFast() != 4) continue;
-//        
-//                UInt_t prevLay = 100000;
-//                Bool_t flag = kTRUE;
-//                for (Int_t i = 0; i < dchHits->GetEntriesFast(); ++i) {
-//                    BmnDchHit* hit = (BmnDchHit*) dchHits->At(i);
-//                    UInt_t lay = hit->GetLayer();
-//                    if (lay == prevLay) {
-//                        flag = kFALSE;
-//                        break;
-//                    }
-//                    prevLay = lay;
-//                }
-//                if (!flag) continue;
-        
-//                for (Int_t i = 0; i < dchHits->GetEntriesFast(); ++i) {
-//                    BmnDchHit* hit = (BmnDchHit*) dchHits->At(i);
-//                    Float_t x = hit->GetX();
-//                    Float_t y = hit->GetY();
-//                    Float_t z = hit->GetZ();
-//                    Float_t R = Sqrt(x * x + y * y + z * z);
-//                    Float_t xR = x / R;
-//                    Float_t yR = y / R;
-//                    Float_t zR = z / R;
-//        
-//                    TVector3 pos(x, y, z);
-//                    TVector3 dpos(0., 0., 0.);
-//        
-//                    new((*hitsOrig)[hitsOrig->GetEntriesFast()]) BmnDchHitOriginal(0, pos, dpos, 0);
-//        
-//                    UInt_t lay = hit->GetLayer();
-//                    if (lay == 1) {
-//                        hx1->Fill(x);
-//                        hy1->Fill(y);
-//                        hxy1->Fill(x, y);
-//                        hxyR_1->Fill(xR, yR);
-//                        hzx->Fill(z, x);
-//        
-//                    }
-//                    if (lay == 0) {
-//                        hu1->Fill(x);
-//                        hv1->Fill(y);
-//                        huv1->Fill(x, y);
-//                        hxyR_1->Fill(xR, yR);
-//                        hzx->Fill(z, x);
-//        
-//                    }
-//                    if (lay == 3) {
-//        //                x += AlignmentDeltaX;
-//                        hit->SetX(x);
-//                        hx2->Fill(x);
-//                        hy2->Fill(y);
-//                        hxy2->Fill(x, y);
-//                        hxyR_2->Fill(xR, yR);
-//                        hxyR_1->Fill(xR, yR);
-//                        hzx->Fill(z, x);
-//        
-//                    }
-//                    if (lay == 2) {
-//        //                x += AlignmentDeltaX;
-//                        hit->SetX(x);
-//                        hu2->Fill(x);
-//                        hv2->Fill(y);
-//                        huv2->Fill(x, y);
-//                        hxyR_2->Fill(xR, yR);
-//                        hxyR_1->Fill(xR, yR);
-//                        hzx->Fill(z, x);
-//        
-//                    }
-//                }
-//                params = LineFit(dchHits);
+        //        ProcessMwpcDigits(mwpcDigits, mwpcHits);
 
-        //        break;
-        //params.Print();
+        /* ======= Functions for "seeding" ======= */
+        //Make here coordinates transformation to find hits corresponded same track
+        FindSeed(dchHits, recoTracks);
+
+        /* ======= Functions for tracks reconstruction ======= */
+        //        TVector3 vertex;
+        //        TVector3 direction;
+        //        LineFit3D(dchHits, vertex, direction);
+        //        cout << dchHits->GetEntriesFast() << endl;
+        //        vertex.Print();
+        //        direction.Print();
+        
         tReco->Fill();
     } // event loop
 
     tReco->Write();
     fReco->Close();
 
-//    Draw2x2histo(hx1, hy1, hu1, hv1, "prof_DCH1");
-//    Draw2x2histo(hx2, hy2, hu2, hv2, "prof_DCH2");
-//    Draw2x2histo(hxy1, huv1, hxy2, huv2, "2D");
-//
-//    TCanvas* c5 = new TCanvas("c5", "c5", 1600, 800);
-//    hzx->Draw("colz");
-//    Float_t a = params.X();
-//    Float_t b = params.Y();
-//    //cout << "a = " << a << " b = " << b << endl;
-//    TLine* line = new TLine(zMin, a * zMin + b, zMax, a * zMax + b);
-//    line->SetLineColor(kBlue);
-//    line->Draw();
-//    c5->SaveAs("ZX.png");
-//
-//    TCanvas* c6 = new TCanvas("c6", "c6", 1600, 800);
-//    c6->Divide(2, 1);
-//    c6->cd(1);
-//    hxyR_1->Draw("colz");
-//    c6->cd(2);
-//    hxyR_2->Draw("colz");
-//    c6->SaveAs("xyR.png");
-    
+    //    Draw2x2histo(hx1, hy1, hu1, hv1, "prof_DCH1");
+    //    Draw2x2histo(hx2, hy2, hu2, hv2, "prof_DCH2");
+    //    Draw2x2histo(hxy1, huv1, hxy2, huv2, "2D");
+    //
+    //    TCanvas* c5 = new TCanvas("c5", "c5", 1600, 800);
+    //    hzx->Draw("colz");
+    //    Float_t a = params.X();
+    //    Float_t b = params.Y();
+    //    //cout << "a = " << a << " b = " << b << endl;
+    //    TLine* line = new TLine(zMin, a * zMin + b, zMax, a * zMax + b);
+    //    line->SetLineColor(kBlue);
+    //    line->Draw();
+    //    c5->SaveAs("ZX.png");
+    //
+    //    TCanvas* c6 = new TCanvas("c6", "c6", 1600, 800);
+    //    c6->Divide(2, 1);
+    //    c6->cd(1);
+    //    hxyR_1->Draw("colz");
+    //    c6->cd(2);
+    //    hxyR_2->Draw("colz");
+    //    c6->SaveAs("xyR.png");
+
 }
 
 void Draw2x2histo(TH1F* h1, TH1F* h2, TH1F* h3, TH1F* h4, TString name) {

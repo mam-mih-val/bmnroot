@@ -158,7 +158,7 @@ void qaRun1() {
         fits.at(i)->SetLineColor(kRed);
         fits.at(i)->Draw();
     }
-    c3->SaveAs("tracks.png");
+    c4->SaveAs("tracks.png");
 }
 
 Bool_t CheckEvent(TClonesArray* hits) {

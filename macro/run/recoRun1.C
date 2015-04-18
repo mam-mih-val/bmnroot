@@ -8,6 +8,8 @@
 #include "TVector3.h"
 #include "TFile.h"
 #include "TGeoManager.h"
+
+
 using namespace TMath;
 
 
@@ -25,7 +27,7 @@ void recoRun1(Int_t runId = 166) {
             (runId >= 220 && runId <= 395) ? "geometry_run2" :
             (runId >= 403 && runId <= 688) ? "geometry_run3" :
             "WRONG runId = " + runId + "! NO GEOMETRY FOUND!!!";
-    
+
     cout << "INFO: Geometry type: " << geoName << endl;
     if (geoName.Contains("NO GEOMETRY FOUND!!!")) return;
 
@@ -48,46 +50,12 @@ void recoRun1(Int_t runId = 166) {
     bmnTree->SetBranchAddress("bmn_zdc_digit", &zdcDigits);
     bmnRawTree->SetBranchAddress("bmn_mwpc", &mwpcDigits);
 
-    Int_t events = 100000;//bmnTree->GetEntries();
+    Int_t startEvent = 789;
+    Int_t nEvents = 1;//bmnTree->GetEntries();
     TClonesArray* dchHits = new TClonesArray("BmnDchHit");
     TClonesArray* mwpcHits = new TClonesArray("BmnMwpcHit");
     TClonesArray* hitsOrig = new TClonesArray("BmnDchHitOriginal");
     TClonesArray* recoTracks = new TClonesArray("CbmTrack");
-
-    //    UInt_t nBins = 300;
-    //    Float_t bound = InnerRadiusOfOctagon;
-    //
-    //    TH1F* hu1 = new TH1F("hu_DCH1", "hu_DCH1", nBins, -bound, bound);
-    //    TH1F* hv1 = new TH1F("hv_DCH1", "hv_DCH1", nBins, -bound, bound);
-    //    TH1F* hx1 = new TH1F("hx_DCH1", "hx_DCH1", nBins, -bound, bound);
-    //    TH1F* hy1 = new TH1F("hy_DCH1", "hy_DCH1", nBins, -bound, bound);
-    //
-    //    TH1F* hu2 = new TH1F("hu_DCH2", "hu_DCH2", nBins, -bound, bound);
-    //    TH1F* hv2 = new TH1F("hv_DCH2", "hv_DCH2", nBins, -bound, bound);
-    //    TH1F* hx2 = new TH1F("hx_DCH2", "hx_DCH2", nBins, -bound, bound);
-    //    TH1F* hy2 = new TH1F("hy_DCH2", "hy_DCH2", nBins, -bound, bound);
-    //
-    //    TH2F* hxy1 = new TH2F("hxy_DCH1", "hxy_DCH1", nBins, -bound, bound, nBins, -bound, bound);
-    //    TH2F* huv1 = new TH2F("huv_DCH1", "huv_DCH1", nBins, -bound, bound, nBins, -bound, bound);
-    //    TH2F* hxy2 = new TH2F("hxy_DCH2", "hxy_DCH2", nBins, -bound, bound, nBins, -bound, bound);
-    //    TH2F* huv2 = new TH2F("huv_DCH2", "huv_DCH2", nBins, -bound, bound, nBins, -bound, bound);
-    //
-    //    TH2F* hxu1 = new TH2F("hxu1", "hxu1", nBins, -bound, bound, nBins, -bound, bound);
-    //    TH2F* hyv1 = new TH2F("hyv1", "hyv1", nBins, -bound, bound, nBins, -bound, bound);
-    //    TH2F* hxu2 = new TH2F("hxu2", "hxu2", nBins, -bound, bound, nBins, -bound, bound);
-    //    TH2F* hyv2 = new TH2F("hyv2", "hyv2", nBins, -bound, bound, nBins, -bound, bound);
-    //
-    //    Float_t zMin = 540;
-    //    Float_t zMax = 660;
-    //    TH2F* hzx = new TH2F("hzx", "hzx", nBins, zMin, zMax, nBins, -bound, bound);
-    //    Float_t bound1 = 0.2;
-    //    TH2F* hxyR_1 = new TH2F("hxyR_1", "hxyR_1", nBins, -bound1, bound1, nBins, -bound1, bound1);
-    //    TH2F* hxyR_2 = new TH2F("hxyR_2", "hxyR_2", nBins, -bound1, bound1, nBins, -bound1, bound1);
-
-    Float_t angle = 45.0 * DegToRad();
-
-    //Float_t AlignmentDeltaX = 3.75; //very rough!!!
-    TVector3 params;
 
     TFile* fReco = new TFile("bmndst_test.root", "RECREATE");
     TTree* tReco = new TTree("cbmsim", "test_bmn");
@@ -96,7 +64,7 @@ void recoRun1(Int_t runId = 166) {
     tReco->Branch("BmnDchHitOriginal", &hitsOrig);
     tReco->Branch("RecoTracks", &recoTracks);
 
-    for (Int_t iEv = 0; iEv < events; iEv++) {
+    for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
         bmnTree->GetEntry(iEv);
         bmnRawTree->GetEntry(iEv);
 
@@ -105,18 +73,19 @@ void recoRun1(Int_t runId = 166) {
         hitsOrig->Clear();
         recoTracks->Clear();
 
-        if (iEv % 1000 == 0) cout << "Event: " << iEv + 1 << "/" << events << endl;
+        if (iEv % 1000 == 0) cout << "Event: " << iEv + 1 << "/" << startEvent + nEvents << endl;
 
         /* ======= Functions for hits reconstruction ======= */
 
         //FIXME! Calling of this functions should depend on runType
         ProcessDchDigits(dchDigits, dchHits);
         //        ProcessMwpcDigits(mwpcDigits, mwpcHits);
-
+      
         /* ======= Functions for "seeding" ======= */
         //Make here coordinates transformation to find hits corresponded same track
+//        BmnStatus status = FindSeed(dchHits, recoTracks);
         FindSeed(dchHits, recoTracks);
-
+        
         /* ======= Functions for tracks reconstruction ======= */
         //        TVector3 vertex;
         //        TVector3 direction;
@@ -124,61 +93,11 @@ void recoRun1(Int_t runId = 166) {
         //        cout << dchHits->GetEntriesFast() << endl;
         //        vertex.Print();
         //        direction.Print();
-        
+
         tReco->Fill();
     } // event loop
 
     tReco->Write();
     fReco->Close();
 
-    //    Draw2x2histo(hx1, hy1, hu1, hv1, "prof_DCH1");
-    //    Draw2x2histo(hx2, hy2, hu2, hv2, "prof_DCH2");
-    //    Draw2x2histo(hxy1, huv1, hxy2, huv2, "2D");
-    //
-    //    TCanvas* c5 = new TCanvas("c5", "c5", 1600, 800);
-    //    hzx->Draw("colz");
-    //    Float_t a = params.X();
-    //    Float_t b = params.Y();
-    //    //cout << "a = " << a << " b = " << b << endl;
-    //    TLine* line = new TLine(zMin, a * zMin + b, zMax, a * zMax + b);
-    //    line->SetLineColor(kBlue);
-    //    line->Draw();
-    //    c5->SaveAs("ZX.png");
-    //
-    //    TCanvas* c6 = new TCanvas("c6", "c6", 1600, 800);
-    //    c6->Divide(2, 1);
-    //    c6->cd(1);
-    //    hxyR_1->Draw("colz");
-    //    c6->cd(2);
-    //    hxyR_2->Draw("colz");
-    //    c6->SaveAs("xyR.png");
-
-}
-
-void Draw2x2histo(TH1F* h1, TH1F* h2, TH1F* h3, TH1F* h4, TString name) {
-    TCanvas* c1 = new TCanvas(name, name, 800, 800);
-    c1->Divide(2, 2);
-    c1->cd(1)->SetLogy();
-    h1->Draw();
-    c1->cd(2)->SetLogy();
-    h2->Draw();
-    c1->cd(3)->SetLogy();
-    h3->Draw();
-    c1->cd(4)->SetLogy();
-    h4->Draw();
-    c1->SaveAs(name + ".png");
-}
-
-void Draw2x2histo(TH2F* h1, TH2F* h2, TH2F* h3, TH2F* h4, TString name) {
-    TCanvas* c1 = new TCanvas(name, name, 800, 800);
-    c1->Divide(2, 2);
-    c1->cd(1)->SetLogz();
-    h1->Draw("colz");
-    c1->cd(2)->SetLogz();
-    h2->Draw("colz");
-    c1->cd(3)->SetLogz();
-    h3->Draw("colz");
-    c1->cd(4)->SetLogz();
-    h4->Draw("colz");
-    c1->SaveAs(name + ".png");
 }

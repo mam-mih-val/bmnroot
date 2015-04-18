@@ -585,7 +585,7 @@ void BmnTrackingQa::ProcessGlobalTracks() {
         }
 
         if (isSeedOk) {
-            //            cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
+//                        cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
             gemSeedMatch = (const BmnTrackMatch*) (fGemSeedMatches->At(gemId));
             isSeedOk = gemSeedMatch->GetTrueOverAllHitsRatio() >= fQuota; //CheckTrackQuality(stsTrackMatch, kGEM);
             //            FillTrackQualityHistograms(gemSeedMatch, kGEM);

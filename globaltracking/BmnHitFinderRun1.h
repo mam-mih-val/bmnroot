@@ -44,6 +44,25 @@ const Float_t HalfStep = WireStep / 2.0;
 const Float_t MaxRadiusOfActiveVolume = 120.0;
 const Float_t MinRadiusOfActiveVolume = 12.0;
 
+void CheckHits(vector<TVector3> &vec1, vector<TVector3> &vec2) {
+
+    Bool_t flag = kFALSE;
+    Float_t delta = 100.0; // cm
+    for (Int_t i = 0; i < vec1.size(); ++i) {
+        TVector3* hit1 = &(vec1.at(i));
+        for (Int_t j = 0; j < vec2.size(); ++j) {
+            TVector3 hit2 = vec2.at(j);
+            if (Abs(hit1->Perp() - hit2.Perp()) < delta) {
+                flag = kTRUE;
+                break;
+            }
+        }
+        if (!flag) {
+            hit1->SetXYZ(-1000.0, -1000.0, -1000.0);
+        }
+    }
+}
+
 void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
     
     TVector3 dchPos;
@@ -59,13 +78,28 @@ void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
             cout << "DCH detector (" << node_name << ") wasn't found." << endl;
     } else
         cout << "Cave volume wasn't found." << endl;
-    
+
+    Float_t delta = 2.0; //roughly
+    for (Int_t i = 0; i < vec.size(); ++i) {
+        TVector3* hitI = &(vec.at(i));
+        for (Int_t j = i + 1; j < vec.size(); ++j) {
+            TVector3* hitJ = &(vec.at(j));
+//            cout << "Abs(hitI.Mag() - hitJ.Mag()) = " << Abs(hitI.Mag() - hitJ.Mag()) << endl;
+            if (Abs(hitI->Mag() - hitJ->Mag()) < delta) {
+                hitI->SetZ(-1000);
+                break;
+            }
+        }
+    }
     for (Int_t i = 0; i < vec.size(); ++i) {
         TVector3 hit = vec.at(i);
+        
+        if(hit.Z() < -100.0) continue;
         if ((plane == 0) || (plane == 2)) {
             hit.RotateZ(-135.0 * DegToRad());
             hit.SetY(-1.0 * hit.Y());
         }
+//        cout << hit.X() << " " << hit.Y() << " " << hit.Z() << " " << hit.Mag() << endl;
         new((*hits)[hits->GetEntriesFast()]) BmnDchHit(0, hit + dchPos, TVector3(0, 0, 0), 0, 0, 0, plane);
         BmnDchHit* dchHit = (BmnDchHit*) hits->At(hits->GetEntriesFast() - 1);
         dchHit->SetDchId(plane / 2 + 1);
@@ -100,7 +134,7 @@ vector<Float_t> MergeSubPlanes(vector<BmnDchDigit*> vec1, vector<BmnDchDigit*> v
     return v;
 }
 
-void ProcessDchDigits(TClonesArray* digits, TClonesArray* hitsArray) {
+void ProcessDchDigits(TClonesArray* digits, TClonesArray * hitsArray) {
 
     BmnDchDigit* digit = NULL;
 
@@ -183,6 +217,11 @@ void ProcessDchDigits(TClonesArray* digits, TClonesArray* hitsArray) {
     vector<TVector3> u2v2 = CreateHitsByTwoPlanes(u2, v2, -5.0);
     vector<TVector3> x2y2 = CreateHitsByTwoPlanes(x2, y2, 5.0);
 
+//    CheckHits(u1v1, x1y1);
+//    CheckHits(x1y1, u1v1);
+//    CheckHits(u2v2, x2y2);
+//    CheckHits(x2y2, u2v2);
+
     CombineHits(u1v1, hitsArray, 0);
     CombineHits(x1y1, hitsArray, 1);
     CombineHits(u2v2, hitsArray, 2);
@@ -193,7 +232,7 @@ void ProcessDchDigits(TClonesArray* digits, TClonesArray* hitsArray) {
 
 }
 
-TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ) {
+TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit * dJ) {
     Short_t dWireI = dI->GetWireNumber();
     Short_t dWireJ = dJ->GetWireNumber();
     Float_t xI = kPlaneWidth * (dWireI * 1.0 / kNWires - 0.5); //local X by wire number
@@ -259,7 +298,7 @@ void CreateMwpcHits(vector<TVector3> pos, TClonesArray* hits, Short_t mwpcId) {
 
 }
 
-void ProcessMwpcDigits(TClonesArray* digits, TClonesArray* hits) {
+void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
 
     //temporary containers
     vector<BmnMwpcDigit*> x1_mwpc0;

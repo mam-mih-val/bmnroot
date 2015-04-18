@@ -11,6 +11,11 @@
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TLine.h"
+#include "BmnEnums.h"
+#include "TMath.h"
+
+using namespace std;
+using namespace TMath;
 
 TVector3 LineFit(TClonesArray* hits) {
 
@@ -36,9 +41,16 @@ TVector3 LineFit(TClonesArray* hits) {
     return TVector3(a, b, 0.0);
 }
 
-void LineFit3D(vector<BmnHit*> hits, TVector3& vertex, TVector3& direction) {
+void LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction) {
 
     const Int_t nHits = hits.size();
+
+    if (nHits < 3) {
+        cout << "WARNING: not enough hits for tracking! (Number of hits is " << nHits << ")" << endl;
+        vertex = TVector3(0.0, 0.0, 0.0);
+        direction = TVector3(0.0, 0.0, 0.0);
+        return;
+    }
 
     //Rough checking for hits. They shouldn't be on the same DCH
     BmnDchHit* hit0 = (BmnDchHit*) hits.at(0);
@@ -53,14 +65,7 @@ void LineFit3D(vector<BmnHit*> hits, TVector3& vertex, TVector3& direction) {
         }
     }
     if (!flag) {
-        cout << "WARNING: All its on the same DCH" << endl;
-        vertex = TVector3(0.0, 0.0, 0.0);
-        direction = TVector3(0.0, 0.0, 0.0);
-        return;;
-    }
-
-    if (nHits < 3) {
-        cout << "WARNING: not enough hits for tracking! (Number of hits is " << nHits << ")" << endl;
+        cout << "WARNING: All hits on the same DCH" << endl;
         vertex = TVector3(0.0, 0.0, 0.0);
         direction = TVector3(0.0, 0.0, 0.0);
         return;
@@ -73,11 +78,16 @@ void LineFit3D(vector<BmnHit*> hits, TVector3& vertex, TVector3& direction) {
     Float_t SumW = 0.0;
     Float_t SumC = 0.0, SumC2 = 0.0;
     Float_t Wi = 1.0 / nHits; // weight    
-    Float_t ZV = ((BmnHit*) hits.at(0))->GetZ(); //Z-coordinate of vertex
-    Float_t ZN = ((BmnHit*) hits.at(nHits - 1))->GetZ();
+    Float_t ZV = ((BmnDchHit*) hits.at(0))->GetZ(); //Z-coordinate of vertex
+    Float_t ZN = ((BmnDchHit*) hits.at(nHits - 1))->GetZ();
     Float_t Az = (ZN - ZV);
+    if (Az == 0.0) {
+        vertex = TVector3(0.0, 0.0, 0.0);
+        direction = TVector3(0.0, 0.0, 0.0);
+        return;
+    }
     for (Int_t i = 0; i < nHits; ++i) {
-        BmnHit* hit = (BmnHit*) hits.at(i);
+        BmnDchHit* hit = (BmnDchHit*) hits.at(i);
         if (hit == NULL) continue;
         Xi = hit->GetX();
         Yi = hit->GetY();
@@ -95,19 +105,28 @@ void LineFit3D(vector<BmnHit*> hits, TVector3& vertex, TVector3& direction) {
         SumC2 += (Ci * Ci * Wi);
         SumW += Wi;
     }
-    Float_t koef = 1.0 / (SumC2 * SumW - SumC * SumC);
-    Float_t XV = (SumXW * SumC2 - SumC * SumXWC) * koef;
-    Float_t YV = (SumYW * SumC2 - SumC * SumYWC) * koef;
-    Float_t Ax = (SumXWC * SumW - SumC * SumXW) * koef;
-    Float_t Ay = (SumYWC * SumW - SumC * SumYW) * koef;
+    Float_t koef = (SumC2 * SumW - SumC * SumC);
+    if (koef == 0.0) {
+        vertex = TVector3(0.0, 0.0, 0.0);
+        direction = TVector3(0.0, 0.0, 0.0);
+        return;
+    }
+    Float_t XV = (SumXW * SumC2 - SumC * SumXWC) / koef;
+    Float_t YV = (SumYW * SumC2 - SumC * SumYWC) / koef;
+    Float_t Ax = (SumXWC * SumW - SumC * SumXW) / koef;
+    Float_t Ay = (SumYWC * SumW - SumC * SumYW) / koef;
 
     vertex = TVector3(XV, YV, ZV);
     direction = TVector3(Ax, Ay, Az);
+    vertex.Print();
+    direction.Print();
 }
 
-void FindSeed(TClonesArray* hits, TClonesArray* tracks) {
+BmnStatus FindSeed(TClonesArray* hits, TClonesArray* tracks) {
 
-    const Int_t nBins = 400;
+    Int_t hitsThresh = 4;
+
+    const Int_t nBins = 200;
     const Int_t nHits = hits->GetEntriesFast();
     Float_t minY = -0.4;
     Float_t maxY = -minY;
@@ -115,36 +134,89 @@ void FindSeed(TClonesArray* hits, TClonesArray* tracks) {
 
     TH1F* h = new TH1F("yOverR", "yOverR", nBins, minY, maxY);
 
+    if (nHits < hitsThresh) {
+        cout << "WARNING: Too few hits: Nhits = " << nHits << endl;
+        return kBMNERROR;
+    }
+    Bool_t lay0 = kFALSE;
+    Bool_t lay1 = kFALSE;
+    Bool_t lay2 = kFALSE;
+    Bool_t lay3 = kFALSE;
+
+    for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
+        BmnDchHit* hit = (BmnDchHit*) hits->At(i);
+        UInt_t lay = hit->GetLayer();
+        switch (lay) {
+            case 0: lay0 = kTRUE;
+                break;
+            case 1: lay1 = kTRUE;
+                break;
+            case 2: lay2 = kTRUE;
+                break;
+            case 3: lay3 = kTRUE;
+                break;
+        }
+    }
+    cout << lay0 << " " << lay1 << " " << lay2 << " " << lay3 << endl;
+
+    if (!(lay0 && lay1 && lay2 && lay3)) {
+        cout << "Hits for track not presented on each plane of DCHs" << endl;
+        return kBMNERROR;
+    }
+
     for (Int_t iHit = 0; iHit < nHits; ++iHit) {
-        BmnHit* hit = (BmnHit*) hits->At(iHit);
+        BmnDchHit* hit = (BmnDchHit*) hits->At(iHit);
         const Float_t R = Sqrt(hit->GetX() * hit->GetX() + hit->GetY() * hit->GetY() + hit->GetZ() * hit->GetZ());
         const Float_t newX = hit->GetX() / R;
         const Float_t newY = hit->GetY() / R;
-        Int_t xAddr = ceil((newX - minY) / width);
+        //        Int_t xAddr = ceil((newX - minY) / width);
         Int_t yAddr = ceil((newY - minY) / width);
-        Long_t addr = yAddr * nBins + xAddr;
-        hit->SetAddr(addr);
-        hit->SetXaddr(xAddr);
-        hit->SetYaddr(yAddr);
+        //        Long_t addr = yAddr * nBins + xAddr;
+        //        hit->SetAddr(addr);
+        //        hit->SetXaddr(xAddr);
+        hit->SetFlag(yAddr); //tmp storage
         h->Fill(newY);
         hit->SetIndex(iHit);
     }
 
-    for (Int_t iBin = 0; iBin < h->GetNbinsX(); ++iBin) {
-        vector<BmnHit*> hitsInTrack;
-        for (Int_t iHit = 0; iHit < nHits; ++iHit) {
-            BmnHit* hit = (BmnHit*) hits->At(iHit);
-            if (hit->IsUsed()) continue;
-            if (hit->GetYaddr() == iBin) {
-                hit->SetUsing(kTRUE);
-                hitsInTrack.push_back(hit);
+    vector<Int_t> peaks; // vector of connected bins
+    for (Int_t iBin = 0; iBin < h->GetNbinsX(); iBin += (peaks.size() + 1)) {
+        peaks.clear();
+        peaks.resize(0);
+        if (h->GetBinContent(iBin) > 0.0) {
+            peaks.push_back(iBin);
+            for (Int_t iBinPeak = iBin + 1; iBinPeak < h->GetNbinsX(); ++iBinPeak) {
+                if (h->GetBinContent(iBinPeak) > 0.0) {
+                    peaks.push_back(iBinPeak);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        vector<BmnDchHit*> hitsInTrack;
+        for (Int_t iBinPeak = 0; iBinPeak < peaks.size(); ++iBinPeak) {
+            for (Int_t iHit = 0; iHit < nHits; ++iHit) {
+                BmnDchHit* hit = (BmnDchHit*) hits->At(iHit);
+                if (hit->IsUsed()) continue;
+                if (hit->GetFlag() == peaks.at(iBinPeak)) {
+                    hit->SetUsing(kTRUE);
+                    hitsInTrack.push_back(hit);
+                }
             }
         }
         TVector3 vertex;
         TVector3 direction;
-        if (hitsInTrack.size() > 2) {
+
+        if (hitsInTrack.size() >= hitsThresh) {
+            cout << "Hits in track: " << endl;
+//            for (Int_t iHit = 0; iHit < hitsInTrack.size(); ++iHit) {
+//                BmnDchHit* hit = hitsInTrack.at(iHit);
+//                cout << hit->GetX() << " " << hit->GetY() << " " << hit->GetZ() << endl;
+//            }
+
             LineFit3D(hitsInTrack, vertex, direction);
-            //            new((*tracks)[tracks->GetEntriesFast()]) CbmMCTrack(/*pdg*/ 0, /*motherId*/ -1, direction.X(), direction.Y(), direction.Z(), vertex.X(), vertex.Y(), vertex.Z(), /*start time*/0.0, hitsInTrack.size());
+            if (direction.Mag() == 0.0 && direction.Mag() == 0.0) continue;
             new((*tracks)[tracks->GetEntriesFast()]) CbmTrack();
             CbmTrack* track = (CbmTrack*) tracks->At(tracks->GetEntriesFast() - 1);
             for (Int_t iHit = 0; iHit < hitsInTrack.size(); ++iHit) {
@@ -158,8 +230,13 @@ void FindSeed(TClonesArray* hits, TClonesArray* tracks) {
         }
     }
 
+    TCanvas* c12 = new TCanvas("c12", "c12", 1600, 800);
+    h->Draw("");
+    c12->SaveAs("yR.png");
     delete h;
+    return kBMNSUCCESS;
 }
+
 
 #endif	/* BMNTRACKFINDERRUN1_H */
 

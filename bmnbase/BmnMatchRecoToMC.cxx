@@ -439,13 +439,13 @@ void BmnMatchRecoToMC::MatchGlobalTracks(
     Bool_t editMode = (trackMatches->GetEntriesFast() != 0);
 
     for (Int_t iTrack = 0; iTrack < globTracks->GetEntriesFast(); ++iTrack) {
-        const BmnGlobalTrack* track = (const BmnGlobalTrack*) (globTracks->At(iTrack));
+        BmnGlobalTrack* track = (BmnGlobalTrack*) (globTracks->At(iTrack));
         BmnTrackMatch* trackMatch = (editMode) ? (BmnTrackMatch*) (trackMatches->At(iTrack)) : new ((*trackMatches)[iTrack]) BmnTrackMatch();
         if (!trackMatch) continue;
 
         //GEM
         BmnGemTrack* gemTr = (BmnGemTrack*) gemTracks->At(track->GetGemTrackIndex());
-        for (Int_t iHit = 0; iHit < gemTr->GetNHits(); ++iHit)
+        for (Int_t iHit = 0; iHit < gemTr->GetNHits(); ++iHit) 
             LinkToMC(gemHitMatches, gemPoints, gemTr->GetHitIndex(iHit), trackMatch);
         //TOF1
         LinkToMC(tof1HitMatches, tof1Points, track->GetTof1HitIndex(), trackMatch);
@@ -463,6 +463,7 @@ void BmnMatchRecoToMC::MatchGlobalTracks(
         Float_t weight = lnk.GetWeight();
         trackMatch->SetNofTrueHits(weight);
         trackMatch->SetNofWrongHits(track->GetNofHits() - weight);
+        track->SetRefId(trackMatch->GetMatchedLink().GetIndex());
     }
 }
 

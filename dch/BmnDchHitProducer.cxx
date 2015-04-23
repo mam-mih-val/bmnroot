@@ -26,10 +26,13 @@
 #include "CbmMCTrack.h"
 #include "CbmStack.h"
 #include "BmnDchHitProducer.h"
+#include <TF1.h>
 //#include <TObjectTable.h>
 
+// DCH hit producer for low multiplicity events
+
 // constants definition
-        const Double_t BmnDchHitProducer::detXshift[numChambers]={DCH1_Xpos,DCH2_Xpos}; // DCH1 and DCH2 x shifts, cm
+        //const Double_t BmnDchHitProducer::detXshift[numChambers]={DCH1_Xpos,DCH2_Xpos}; // DCH1 and DCH2 x shifts, cm
         const Double_t BmnDchHitProducer::cosPhi_45 = TMath::Cos(-45.*TMath::DegToRad()); 
         const Double_t BmnDchHitProducer::sinPhi_45 = TMath::Sin(-45.*TMath::DegToRad());
         const Double_t BmnDchHitProducer::cosPhi45 = TMath::Cos(45.*TMath::DegToRad()); 
@@ -77,9 +80,21 @@ BmnDchHitProducer::~BmnDchHitProducer()
 void BmnDchHitProducer::InitDchParameters(){
   checkDch=kFALSE;
   //checkDch=kTRUE;
+  checkGraphs=kFALSE;
+  //checkGraphs=kTRUE;
+  //fAngleCorrectionFill=kFALSE;
+  //fAngleCorrectionFill=kTRUE;
   eventNum=0; 
-  if(fDoTest)BookHistograms(); 
+ 
+  if(fDchNum==1){detXshift[0]=DCH1_Xpos[0];}
+  else if(fDchNum==2){detXshift[1]=DCH2_Xpos[0];}
+  // DCH1 and DCH2 x shifts, cm
   
+  for (UShort_t i = 0; i < numLayers; i++) {
+    DCH1_ZlayerPos_global[i]=DCH_ZlayerPos_local[i]+DCH1_Zpos[0];
+    DCH2_ZlayerPos_global[i]=DCH_ZlayerPos_local[i]+DCH2_Zpos[0];
+  } 
+ 
   if(fDchNum==1){
         z3121=(DCH1_ZlayerPos_global[4]-DCH1_ZlayerPos_global[0])/(DCH1_ZlayerPos_global[2]-DCH1_ZlayerPos_global[0]);
         z4121=(DCH1_ZlayerPos_global[6]-DCH1_ZlayerPos_global[0])/(DCH1_ZlayerPos_global[2]-DCH1_ZlayerPos_global[0]);
@@ -90,7 +105,7 @@ void BmnDchHitProducer::InitDchParameters(){
         //z4131=(DCH2_ZlayerPos_global[6]-DCH2_ZlayerPos_global[0])/(DCH2_ZlayerPos_global[4]-DCH2_ZlayerPos_global[0]);
   }
 
-  for (UInt_t k = 0; k < numLayers; k++) {
+  for (UShort_t k = 0; k < numLayers; k++) {
     //for (UInt_t i = 0; i < numChambers; i++) {
       if(fDchNum==1){
         zLayer[k]=DCH1_ZlayerPos_global[k]; 
@@ -105,7 +120,7 @@ void BmnDchHitProducer::InitDchParameters(){
   //if(checkDch){
    cout<<"DCH = "<<fDchNum<<endl;
    cout<<"Z of DCH layer (lab coordinate frame): "<<endl;
-   for (UInt_t k = 0; k < numLayers; k++) {
+   for (UShort_t k = 0; k < numLayers; k++) {
     if(fDchNum==1){
      cout<<DCH1_ZlayerPos_global[k]<<" ";
     }else if(fDchNum==2){
@@ -155,11 +170,11 @@ void BmnDchHitProducer::BookHistograms(){
 		hZ->SetDirectory(0); fList.Add(hZ);			
 		hRadiusRange = new TH1D("hRadiusRange", "track radius range in next plane", 100, 0., 10.); 
 		hRadiusRange->SetDirectory(0); fList.Add(hRadiusRange);		
-		hResolX = new TH1D("hResolX", "hit X coordinate resolution", 100, -10., 10.); 
+		hResolX = new TH1D("hResolX", "hit X coordinate resolution", 500, -5., 5.); 
 		hResolX->SetDirectory(0); fList.Add(hResolX);		
-		hResolY = new TH1D("hResolY", "hit Y coordinate resolution", 100, -10., 10.); 
+		hResolY = new TH1D("hResolY", "hit Y coordinate resolution", 500, -5., 5.); 
 		hResolY->SetDirectory(0); fList.Add(hResolY);		
-		hResolR = new TH1D("hResolR", "hit R coordinate resolution", 100, 0., 10.); 
+		hResolR = new TH1D("hResolR", "hit R coordinate resolution", 500, 0., 5.); 
 		hResolR->SetDirectory(0); fList.Add(hResolR);		
 		//hXYZcombhits1 = new TH3D("hXYZcombhits1", "XYZ of combinatorial hits in first DCH", 240, -MaxRadiusOfActiveVolume, MaxRadiusOfActiveVolume, 240, -MaxRadiusOfActiveVolume, MaxRadiusOfActiveVolume, 100, 540., 560.); 		
 		//hXYZcombhits2 = new TH3D("hXYZcombhits2", "XYZ of combinatorial hits in second DCH", 240, -MaxRadiusOfActiveVolume, MaxRadiusOfActiveVolume, 240, -MaxRadiusOfActiveVolume, MaxRadiusOfActiveVolume, 100, 640., 660.); 		
@@ -173,12 +188,61 @@ void BmnDchHitProducer::BookHistograms(){
 		//hXYZpoints->SetDirectory(0); fList.Add(hXYZpoints);			
 }
 //------------------------------------------------------------------------------------------------------------------------
+void BmnDchHitProducer::BookHistsAngleCorr(){
+
+                TString str; 
+                for (UShort_t i = 0; i < numLayers; i+=2) {
+                 str.Form("%u",i);
+                 TString name   = TString("hAngleVsWirepos") + str;
+		 hAngleVsWirepos[i]= new TH2D(name, "angle vs wire position", numWiresPerLayer, -MaxRadiusOfActiveVolume, MaxRadiusOfActiveVolume, 180, -90., 90.); 		
+		 hAngleVsWirepos[i]->SetDirectory(0); fList.Add(hAngleVsWirepos[i]);	
+                }
+}
+//------------------------------------------------------------------------------------------------------------------------
+void BmnDchHitProducer::FitHistsAngleCorr(){
+
+     Double_t hMax,minval;
+     Int_t nbinsX,nbinsY;
+     
+     TFile *corrfile; 
+     if (fDchNum == 1) {corrfile = new TFile("test01.BmnDchHitProducer.root","read");}
+     else if (fDchNum == 2) {corrfile = new TFile("test02.BmnDchHitProducer.root","read");}
+    
+     corrfile->cd(); 
+
+             TString str; 
+             for (UShort_t i = 0; i < numLayers; i+=2) {
+              str.Form("%u",i);
+              TString name   = TString("hAngleVsWirepos") + str;
+              hAngleVsWirepos[i] = (TH2D*)corrfile->Get(name);
+              //hAngleVsWirepos[i] = (TH2D*)hAngleVsWirepos[i]->Clone(name);
+              hMax=hAngleVsWirepos[i]->GetMaximum();
+              minval=0.05*hMax;
+              nbinsX=hAngleVsWirepos[i]->GetNbinsX();
+              nbinsY=hAngleVsWirepos[i]->GetNbinsY();
+              for (Int_t j = 0; j < nbinsX; j++) {
+               for (Int_t k = 0; k < nbinsY; k++) {
+	        if(hAngleVsWirepos[i]->GetBinContent(j,k)<minval)hAngleVsWirepos[i]->SetBinContent(j,k,0.);
+               }
+              }
+              hAngleVsWirepos[i]->Fit("pol1");
+              TF1 *myfit = (TF1*) hAngleVsWirepos[i]->GetFunction("pol1");
+              anglepar[i+1][0]=myfit->GetParameter(0);
+              anglepar[i+1][1]=myfit->GetParameter(1);
+              cout<<" angle lin. fit params: "<<anglepar[i+1][0]<<", "<<anglepar[i+1][1]<<endl;
+             }
+
+} 
+//------------------------------------------------------------------------------------------------------------------------
 InitStatus 		BmnDchHitProducer::Init() 
 {
 
         cout << " BmnDchHitProducer::Init() " << endl;
 
         InitDchParameters();
+        if(fDoTest)BookHistograms(); 
+        //if(fAngleCorrectionFill)BookHistsAngleCorr(); 
+        //if(fAngleCorrectionFill==false)FitHistsAngleCorr();
         
         if (fOnlyPrimary) cout << " Only primary particles are processed!!! " << endl;
 
@@ -187,7 +251,9 @@ InitStatus 		BmnDchHitProducer::Init()
 
   	if(ioman==0){ Error("BmnDchHitProducer::Init","FairRootManager XUINJA"); return kERROR; }
         fBmnDchPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
+        //fBmnDchPointsArray->Dump();
         fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
+        //cout<<"nevents = "<<fBmnDchPointsArray->GetEntriesFast()<<endl;
   	if(!fBmnDchPointsArray  || !fMCTracksArray){ Error("BmnDchHitProducer::Init","Branch not found!"); return kERROR; }
   	// Create and register output array
   	pHitCollection0 = new TClonesArray(fOutputHitsBranchName);  
@@ -208,7 +274,7 @@ return kSUCCESS;
 
 }
 //------------------------------------------------------------------------------------------------------------------------
-void			BmnDchHitProducer::Rotate(UInt_t proj, Double_t x, Double_t y, Double_t& xRot, Double_t& yRot, Bool_t back)
+void			BmnDchHitProducer::Rotate(UShort_t proj, Double_t x, Double_t y, Double_t& xRot, Double_t& yRot, Bool_t back)
 {
     	// Transform to the rotated coordinate system
 	// [0-3]==[x,y,u,v]  0, 90, -45, 45
@@ -256,7 +322,7 @@ void			BmnDchHitProducer::Rotate(UInt_t proj, Double_t x, Double_t y, Double_t& 
 	}
 }
 //------------------------------------------------------------------------------------------------------------------------
-inline Double_t			BmnDchHitProducer::GetPhi(UInt_t proj)
+inline Double_t			BmnDchHitProducer::GetPhi(UShort_t proj)
 {
 
 	switch(proj)
@@ -269,7 +335,7 @@ inline Double_t			BmnDchHitProducer::GetPhi(UInt_t proj)
 	}
 }
 //------------------------------------------------------------------------------------------------------------------------
-Double_t		BmnDchHitProducer::GetDriftLength(UInt_t proj, UInt_t gasgap, Double_t x, Double_t& wirePos)
+Double_t		BmnDchHitProducer::GetDriftLength(UShort_t proj, UShort_t gasgap, Double_t x, Double_t& wirePos)
 {
 	//   ... -1	0	1	...  - first(0) gap wire  position (X) [cm]
 	//   ...    -0.5   0.5     1.5  ...  - second(1) gap wire  position (X) [cm]
@@ -348,7 +414,7 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
         
         //gObjectTable->Print();
   
-        if(checkDch){	
+        if(checkGraphs){	
          hXYZcombhits = new TGraph2D(); 
          hXYZcombhits->SetNameTitle("hXYZcombhits","Hits in DCH");
          hXYZpoints = new TGraph2D(); 
@@ -376,14 +442,16 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
 	FairMCPoint     *dchPoint;
 	BmnDchHit	*pHit;
         Double_t	R, Rphi, x, y, xRot, yRot, xRot1, yRot1, driftLength, wirePos, L;
+        Double_t        PyRot;
 	Double_t 	dRphi = 0., dR = 0.;
-	Double_t 	dchZpos;
+	Double_t 	dchZpos,corrWirePos=0.,wirePos2;
 	TVector3	pos, dpos;	
-        UInt_t   	uid, uidLocal, wheel, gasgap, proj;
+        UShort_t   	uid, uidLocal, wheel, gasgap, proj;
         Int_t   	detID;
         UInt_t   	hitWire;
         //Int_t           ijkl[numChambers][numLayers]={{0}};
         Int_t jjgr=0; 
+        cout.precision(5);
 
         if (!fBmnDchPointsArray) {
          Error("BmnDchHitProducer::Init()", " !!! Unknown branch name !!! ");
@@ -393,12 +461,12 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
 	{
                 dchPoint = (FairMCPoint*) fBmnDchPointsArray->UncheckedAt(i);
                 if(checkDch){
-                 cout<<"DCH points (local): "<<dchPoint->GetX()-detXshift[fDchNum-1]<<", "<<dchPoint->GetY()<<", "<<dchPoint->GetZ()<<endl;
-                 cout<<"DCH points (global): "<<dchPoint->GetX()<<", "<<dchPoint->GetY()<<", "<<dchPoint->GetZ()<<endl;
+                 cout<<"DCH points (local): "<<dchPoint->GetX()-detXshift[fDchNum-1]<<", "<<dchPoint->GetY()<<", "<<dchPoint->GetZ()<<", track ID = "<<dchPoint->GetTrackID()<<", chamber = "<<fDchNum<<endl;
+                 cout<<"DCH points (global): "<<dchPoint->GetX()<<", "<<dchPoint->GetY()<<", "<<dchPoint->GetZ()<<", track ID = "<<dchPoint->GetTrackID()<<", chamber = "<<fDchNum<<endl;
                 }
 
 ///////		if( ((FairMCTrack*)pMCTracks->UncheckedAt(pPoint1->GetTrackID()))->GetMotherId() != -1)continue; // primary ONLY !!!
-                if(checkDch)hXYZpoints->SetPoint(jjgr++,dchPoint->GetX()-detXshift[fDchNum-1],dchPoint->GetY(),dchPoint->GetZ());
+                if(checkGraphs)hXYZpoints->SetPoint(jjgr++,dchPoint->GetX()-detXshift[fDchNum-1],dchPoint->GetY(),dchPoint->GetZ());
                 //RadialRange(dchPoint);
                 if (fOnlyPrimary) {
                   if (dchPoint->GetTrackID() < 0) continue; 
@@ -410,8 +478,8 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
                 //cout<<"---------------------------------------------------------------------"<<endl;	
 		detID = dchPoint->GetDetectorID();
                 uidLocal=0;
-                if (fDchNum == 1) {dchZpos=DCH1_Zpos;}
-                else if (fDchNum == 2) {dchZpos=DCH2_Zpos;}
+                if (fDchNum == 1) {dchZpos=DCH1_Zpos[0];}
+                else if (fDchNum == 2) {dchZpos=DCH2_Zpos[0];}
                 Double_t zLocal=dchPoint->GetZ()-dchZpos;
                 //cout<<zLocal<<" "<<DCH_ZlayerPos_local[uidLocal]<<" "<<uidLocal<<" "<<dchPoint->GetZ()<<" "<<dchZpos<<endl;
                 if(zLocal>0.)uidLocal=uidLocal+numLayers_half;
@@ -426,7 +494,7 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
                 uid=uidLocal; 
                 //cout<<"uid = "<<uid<<endl;
                 //wheel = GetWheel(uid); // [0-1] == [inner,outer] 
-                wheel = fDchNum-1; // [0-1] == [inner,outer] 
+                //wheel = fDchNum-1; // [0-1] == [inner,outer] //not needed now
 		proj = GetProj(uid);	    // [0-3] == [x,y,u,v] 
 		gasgap = GetGasGap(uid); // [0-1] == [inner,outer] 
 
@@ -448,9 +516,25 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
 		//driftLength = GetDriftLength(proj, gasgap, xRot1, wirePos); // [cm]
 	        //cout<<"yRot2 = "<<yRot<<", xRot2 = "<<xRot<<", angle = "<<angleLayerRad[uidLocal]<<", plane ID = "<<uidLocal<<", chamber = "<<fDchNum<<", wirepos = "<<wirePos<<endl;	
 	        //cout<<"driftLength = "<<driftLength<<endl;	
-                //cout<<"wirepos = "<<wirePos<<", xRot = "<<xRot<<", yRot = "<<yRot<<", z = "<<dchPoint->GetZ()<<", angle = "<<-angleLayer[uidLocal]<<endl;
-		//R =  yRot1; 
-		R =  xRot; 
+	        //if(uidlocal%2)wirepos2 = wirepos-(anglepar[uidlocal][0]+wirepos*anglepar[uidlocal][1]); 
+	        /*if(uidLocal%2!=0){ 
+                 corrWirePos = 1.2*tan(TMath::DegToRad()*(anglepar[uidLocal][0]+wirePos*anglepar[uidLocal][1]));
+	         wirePos2 = (gasgap == 0) ? TMath::Nint(yRot-corrWirePos) : TMath::Nint(yRot-corrWirePos + 0.5) - 0.5;
+                 //cout<<"angle corr. = "<<corrWirePos<<", wirePos = "<<wirePos<<", wirePos2= "<<wirePos2<<" "<<anglepar[uidLocal][0]<<", "<<anglepar[uidLocal][1]<<endl; 
+                }*/
+                if(checkDch)cout<<"wirepos = "<<wirePos<<", xRot = "<<xRot<<", yRot = "<<yRot<<", z = "<<dchPoint->GetZ()<<", angle = "<<-angleLayer[uidLocal]<<endl;
+
+		/*if(fAngleCorrectionFill){
+                 TVector2 Pxy2,Pxy(dchPoint->GetPx(),dchPoint->GetPy());
+                 Pxy2=Pxy.Rotate(-angleLayerRad[uidLocal]);//GlobalToLocal
+                 //PxRot=Pxy2.X();
+                 PyRot=Pxy2.Y();
+                 if(uidLocal==2||uidLocal==3)PyRot=-PyRot;
+                 if(uidLocal%2==0)hAngleVsWirepos[uidLocal]->Fill(wirePos,TMath::RadToDeg()*atan(PyRot/dchPoint->GetPz()));
+                 //cout<<" dipangle = "<<TMath::RadToDeg()*atan(PyRot/dchPoint->GetPz())<<", "<<PyRot<<", momentum (z,x,y,full): "<<dchPoint->GetPz()<<", "<<dchPoint->GetPx()<<", "<<dchPoint->GetPy()<<", "<<sqrt(pow(dchPoint->GetPx(),2.)+pow(dchPoint->GetPz(),2.)+pow(dchPoint->GetPz(),2.))<<endl;
+                }*/ 
+		//R = yRot1; 
+		R = xRot; 
 		Rphi = driftLength;
 		pRandom->Rannor(dRphi,dR);
 				
@@ -478,6 +562,7 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
                 //cout<<pos<<" "<<dpos<<endl;
                 //cout<<"track id = "<<dchPoint->GetTrackID()<<", point index = "<<i<<endl;
 		pHit = AddHit0(hitID, detID, pos, dpos, dchPoint->GetTrackID(), i, 0, uid);
+		//pHit->SetAngleCorrWirePos(wirePos2);
 		pHit->SetPhi(GetPhi(proj));
     		pHit->SetMeas(Rphi + dRphi * fRPhiSigma); 	// R-Phi
     		pHit->SetError(fRPhiSigma);
@@ -610,8 +695,12 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
 	{
                 dchHit = (BmnDchHit*) pHitCollection0->At(i);
                 uidLocal=dchHit->GetLayer(); 
-                uidLocal%2?(hitWire=UInt_t(Int_t(dchHit->GetWirePosition())+Int_t(halfNumWiresPerLayer))):(hitWire=UInt_t(Int_t(dchHit->GetWirePosition()+0.5)+Int_t(halfNumWiresPerLayer)));
-                //cout<<"hitWire = "<<hitWire<<" "<<dchHit->GetWirePosition()<<endl; 
+                uidLocal%2==0?(hitWire=UInt_t(Int_t(dchHit->GetWirePosition())+Int_t(halfNumWiresPerLayer))):(hitWire=UInt_t(Int_t(dchHit->GetWirePosition()-0.5)+Int_t(halfNumWiresPerLayer)));
+                //uidLocal%2?(hitWire=UInt_t(floor(dchHit->GetWirePosition())+Int_t(halfNumWiresPerLayer))):(hitWire=UInt_t(floor(dchHit->GetWirePosition()+0.5)+Int_t(halfNumWiresPerLayer)));
+                if(checkDch)cout<<"hitWire = "<<hitWire<<" "<<dchHit->GetWirePosition()<<", uidLocal = "<<uidLocal<<", trackId = "<<dchHit->GetTrackID()<<endl; 
+                //cout<<" angle wire position correction = "<<dchHit->GetAngleCorrWirePos()<<endl;
+                //uidLocal%2==0?(hitWire=UInt_t(Int_t(dchHit->GetWirePosition())+Int_t(halfNumWiresPerLayer))):(hitWire=UInt_t(Int_t(dchHit->GetAngleCorrWirePos()-0.5)+Int_t(halfNumWiresPerLayer)));
+                //cout<<"hitWire = "<<hitWire<<" "<<dchHit->GetAngleCorrWirePos()<<", uidLocal = "<<uidLocal<<", trackId = "<<dchHit->GetTrackID()<<endl; 
 		if(wireUsed[uidLocal][hitWire]==false)wireUsed[uidLocal][hitWire]=true; 
                 dchhitplane[uidLocal]->SetDchPlaneHit(ijkl[uidLocal]++, dchHit->GetWirePosition(),0.,dchHit->GetTrackID(),dchHit->GetDetectorID(),hitWire,fabs(dchHit->GetDrift()),dchHit->GetRefIndex());
                 //cout<<" hits "<<ijkl[uidLocal]<<" "<<fDchNum-1<<" "<<uidLocal<<endl;
@@ -626,9 +715,9 @@ void 			BmnDchHitProducer::Exec(Option_t* opt)
           }
         //}
 
-        //HitFinder();
+        HitFinder();
         
-        if(checkDch){
+        if(checkGraphs){
          hXYZpoints->Write(); 
          hXYZcombhits->Write(); 
         }
@@ -670,7 +759,7 @@ void BmnDchHitProducer::HitFinder(){
               LRambiguity(ijk,hittmp,hitX[ijk]->GetSV(),driftdist0,hw0,nhits[ijk]);
               for (UInt_t ii = 0; ii < nhits[ijk]; ii++) {
                 hity1[ii]=hittmp[ii];
-                //cout<<"hittmp0: "<<hittmp[ii]<<" "<<ii<<endl;
+                if(checkDch)cout<<"hittmp0: "<<hittmp[ii]<<" "<<ii<<endl;
               }
               numPlaneHits[ijk+2]=dchhitplane[ijk+2]->GetDchPlaneHitsNumber(ijk+2); //hits in plane 2
               for (UInt_t j = 0; j < numPlaneHits[ijk+2]; j++) {
@@ -680,7 +769,7 @@ void BmnDchHitProducer::HitFinder(){
                LRambiguity(ijk+2,hittmp,hitX[ijk+2]->GetSV(),driftdist2,hw2,nhits[ijk+2]);
                for (UInt_t ii = 0; ii < nhits[ijk+2]; ii++) {
                  hitx2[ii]=hittmp[ii];
-                 //cout<<"hittmp1: "<<hittmp[ii]<<" "<<ii<<endl;
+                 if(checkDch)cout<<"hittmp1: "<<hittmp[ii]<<" "<<ii<<endl;
                }
                numPlaneHits[ijk+4]=dchhitplane[ijk+4]->GetDchPlaneHitsNumber(ijk+4); //hits in plane 4 
                for (UInt_t k = 0; k < numPlaneHits[ijk+4]; k++) {
@@ -690,7 +779,8 @@ void BmnDchHitProducer::HitFinder(){
                 LRambiguity(ijk+4,hittmp,hitX[ijk+4]->GetSV(),driftdist4,hw4,nhits[ijk+4]);
                 for (UInt_t ii = 0; ii < nhits[ijk+4]; ii++) {
                   hitq3[ii]=hittmp[ii]*sqrt2;
-                  //cout<<"hittmp2: "<<hittmp[ii]<<" "<<ii<<endl;
+                  //if(checkDch)cout<<"hittmp2: "<<hittmp[ii]<<" "<<ii<<endl;
+                  if(checkDch)cout<<"hittmp2: "<<hittmp[ii]<<" "<<ii<<", hitX = "<<hitX[ijk+4]->GetSV()<<", driftdist = "<<driftdist4<<endl;
                 }
                 numPlaneHits[ijk+6]=dchhitplane[ijk+6]->GetDchPlaneHitsNumber(ijk+6); //hits in plane 6 
                  for (UInt_t l = 0; l < numPlaneHits[ijk+6]; l++) {
@@ -700,7 +790,7 @@ void BmnDchHitProducer::HitFinder(){
                   LRambiguity(ijk+6,hittmp,hitX[ijk+6]->GetSV(),driftdist6,hw6,nhits[ijk+6]);
                   for (UInt_t ii = 0; ii < nhits[ijk+6]; ii++) {
                     hitq4[ii]=hittmp[ii]*sqrt2;
-                    //cout<<"hittmp3: "<<hittmp[ii]<<" "<<ii<<endl;
+                    if(checkDch)cout<<"hittmp3: "<<hittmp[ii]<<" "<<ii<<endl;
                   }
                   for (UInt_t m = 0; m < nhits[ijk]; m++) {
                    y1=hity1[m];
@@ -716,7 +806,7 @@ void BmnDchHitProducer::HitFinder(){
                        if(sqrt(pow(x[1]-x[0],2.)+pow(y[1]-y[0],2.))>radialRange)radcond=false;
                        //cout<<"radcond = "<<radcond<<" "<<1<<" "<<sqrt(pow(x[1]-x[0],2.)+pow(y[1]-y[0],2.))<<endl;
                        if(radcond){
-                        for (UInt_t jk = 0; jk < numLayers/2; jk++) {
+                        for (UShort_t jk = 0; jk < numLayers/2; jk++) {
                          if(sqrt(pow(x[jk],2.)+pow(y[jk],2.))>MinRadiusOfActiveVolume&&sqrt(pow(x[jk],2.)+pow(y[jk],2.))<MaxRadiusOfActiveVolume){
 	                  if(fDoTest){if(k==4)hXYhit->Fill(x[3],y[3]);}
                           Double_t dX = pRandom->Gaus(0., hitErr[0]);	
@@ -725,14 +815,14 @@ void BmnDchHitProducer::HitFinder(){
 		          //dpos.SetXYZ(dX,dY,hitErr[2]); 
 		          dpos.SetXYZ(hitErr[0],hitErr[1],hitErr[2]); 
                           if(fDoTest||checkDch)dchPoint = (FairMCPoint*) fBmnDchPointsArray->At(pointind[2*jk]->GetSV());
-                          if(fDoTest){ 
-                           hResolX->Fill(x[jk]+detXshift[fDchNum-1]-dchPoint->GetX());
-                           hResolY->Fill(y[jk]-dchPoint->GetY());
-                           hResolR->Fill(sqrt(pow(x[jk]+detXshift[fDchNum-1],2.)+pow(y[jk],2.))-sqrt(pow(dchPoint->GetX(),2.)+pow(dchPoint->GetY(),2.)));
-                          }
+                          //if(fDoTest){ 
+                           //hResolX->Fill(x[jk]+detXshift[fDchNum-1]-dchPoint->GetX());
+                           //hResolY->Fill(y[jk]-dchPoint->GetY());
+                           //hResolR->Fill(sqrt(pow(x[jk]+detXshift[fDchNum-1],2.)+pow(y[jk],2.))-sqrt(pow(dchPoint->GetX(),2.)+pow(dchPoint->GetY(),2.)));
+                          //}
                           if(checkDch){
                            cout<<"hits(x,y,z): "<<x[jk]<<", "<<y[jk]<<", "<<zLayer[2*jk]<<", hit number = "<<jjgr2<<endl;
-                           hXYZcombhits->SetPoint(jjgr2++,x[jk],y[jk],zLayer[2*jk]);
+                           if(checkGraphs)hXYZcombhits->SetPoint(jjgr2++,x[jk],y[jk],zLayer[2*jk]);
                            //if(fabs(x[jk]+detXshift[fDchNum-1]-dchPoint->GetX())<0.015&&fabs(y[jk]-dchPoint->GetY())<0.015) {
                            cout<<" event = "<<eventNum<<", track cand. = "<<trackId[2*jk]->GetSV()<<", chamber = "<<fDchNum<<", difference (x,y,r): "<<x[jk]+detXshift[fDchNum-1]-dchPoint->GetX()<<" "<<y[jk]-dchPoint->GetY()<<" "<<sqrt(pow(x[jk]+detXshift[fDchNum-1],2.)+pow(y[jk],2.))-sqrt(pow(dchPoint->GetX(),2.)+pow(dchPoint->GetY(),2.))<<endl;
                            if(jk==3){
@@ -742,11 +832,16 @@ void BmnDchHitProducer::HitFinder(){
                            //}
                           }
                           if(jk==3){
-                            cout<<"trId0 = "<<trackId[0]->GetSV()<<", trId2 = "<<trackId[2]->GetSV()<<", trId4 = "<<trackId[4]->GetSV()<<", trId6 = "<<trackId[6]->GetSV()<<", chamber = "<<fDchNum<<endl; 
+                            if(checkDch)cout<<"trId0 = "<<trackId[0]->GetSV()<<", trId2 = "<<trackId[2]->GetSV()<<", trId4 = "<<trackId[4]->GetSV()<<", trId6 = "<<trackId[6]->GetSV()<<", chamber = "<<fDchNum<<endl; 
                             if(trackId[0]->GetSV()==trackId[2]->GetSV()&&trackId[2]->GetSV()==trackId[4]->GetSV()&&trackId[4]->GetSV()==trackId[6]->GetSV()){
-                             for (UInt_t jkk = 0; jkk < numLayers/2; jkk++) {
+                             for (UShort_t jkk = 0; jkk < numLayers/2; jkk++) {
                               dchPoint = (FairMCPoint*) fBmnDchPointsArray->At(pointind[2*jkk]->GetSV());
-                              cout<<" event = "<<eventNum<<", track cand. = "<<trackId[2*jkk]->GetSV()<<", chamber = "<<fDchNum<<", difference2 (x,y,r): "<<x[jkk]+detXshift[fDchNum-1]-dchPoint->GetX()<<" "<<y[jkk]-dchPoint->GetY()<<" "<<sqrt(pow(x[jkk]+detXshift[fDchNum-1],2.)+pow(y[jkk],2.))-sqrt(pow(dchPoint->GetX(),2.)+pow(dchPoint->GetY(),2.))<<endl;
+                              if(checkDch)cout<<" event = "<<eventNum<<", track cand. = "<<trackId[2*jkk]->GetSV()<<", chamber = "<<fDchNum<<", difference2 (x,y,r): "<<x[jkk]+detXshift[fDchNum-1]-dchPoint->GetX()<<" "<<y[jkk]-dchPoint->GetY()<<" "<<sqrt(pow(x[jkk]+detXshift[fDchNum-1],2.)+pow(y[jkk],2.))-sqrt(pow(dchPoint->GetX(),2.)+pow(dchPoint->GetY(),2.))<<endl;
+                              if(fDoTest){ 
+                               hResolX->Fill(x[jkk]+detXshift[fDchNum-1]-dchPoint->GetX());
+                               hResolY->Fill(y[jkk]-dchPoint->GetY());
+                               hResolR->Fill(sqrt(pow(x[jkk]+detXshift[fDchNum-1],2.)+pow(y[jkk],2.))-sqrt(pow(dchPoint->GetX(),2.)+pow(dchPoint->GetY(),2.)));
+                              }
                              }
                             }
                           }
@@ -758,7 +853,8 @@ void BmnDchHitProducer::HitFinder(){
                            dchCombHit->SetDetId(kDCH2);
                            dchCombHit->SetStation(14);
                           }*/
-                         }
+                          if(jk==3)++trcand;
+                         }//radii test
                         }// layers
                         if(checkDch)++trcand;
                        }// radcond
@@ -802,7 +898,7 @@ void		BmnDchHitProducer::Finish()
     	{				
              TString str;
              str.Form("%d",fDchNum);
-             fOutputTestFileName = TString("test") + str + TString(".BmnDchHitProducer.root");
+             fOutputTestFileName = TString("test00") + str + TString(".BmnDchHitProducer.root");
 	     TFile file(fOutputTestFileName, "RECREATE");
              TH1D *h1 = (TH1D*) htTimeA->Clone("htTimeEff"); h1->Divide(htTime); h1->SetYTitle("Efficiency"); h1->Write();		
      	     h1 = (TH1D*) htGasDriftA->Clone("htGasDriftEff"); h1->Divide(htGasDrift); h1->SetYTitle("Efficiency"); h1->Write();
@@ -855,27 +951,34 @@ Double_t dircosx,dircosy,dircosz;
 void BmnDchHitProducer::LRambiguity(UInt_t k, Double_t hittmp[2], Double_t hitx, Double_t driftdist, UInt_t hw, UShort_t &nhits){
 
               if(hw!=0&&hw!=numWiresPerLayer){
+               //cout<<"wireUsed: "<<wireUsed[k+1][hw]<<" "<<wireUsed[k+1][hw-1]<<" "<<hw<<endl;
                if(wireUsed[k+1][hw]&&wireUsed[k+1][hw-1]){
                  nhits=2; 
                  hittmp[0]=hitx-driftdist;
                  hittmp[1]=hitx+driftdist;
+                 //cout<<"here1"<<endl;
                }else if(!wireUsed[k+1][hw]&&!wireUsed[k+1][hw-1]){
                  nhits=2; 
                  hittmp[0]=hitx-driftdist;
                  hittmp[1]=hitx+driftdist;
+                 //cout<<"here2"<<endl;
                }else if(!wireUsed[k+1][hw]&&wireUsed[k+1][hw-1]){
                  hittmp[0]=hitx-driftdist;
                  nhits=1; 
+                 //cout<<"here3"<<endl;
                }else if(wireUsed[k+1][hw]&&!wireUsed[k+1][hw-1]){
                  hittmp[0]=hitx+driftdist;
                  nhits=1; 
+                 //cout<<"here4"<<endl;
                }
               }else if(hw==0){
                nhits=1; 
                hittmp[0]=hitx+driftdist;
+               //cout<<"here5"<<endl;
               }else if(hw==numWiresPerLayer){ 
                nhits=1; 
                hittmp[0]=hitx-driftdist;
+               //cout<<"here6"<<endl;
               }
 }
 //-------------------------------------------------------------------------------------------------------------------------
@@ -893,7 +996,7 @@ void BmnDchHitProducer::CoordinateFinder(Double_t y1,Double_t x2,Double_t k3,Dou
              y[3]=k4*x[3]+q4;
              
 /*                      cout<<"2------------------------------------------------------"<<endl; 
-                      for (UInt_t jk = 0; jk < numLayers/2; jk++) {
+                      for (UShort_t jk = 0; jk < numLayers/2; jk++) {
                        cout<<"points: "<<x[jk]<<" "<<y[jk]<<endl;
                       }
                       cout<<"2------------------------------------------------------"<<endl; 

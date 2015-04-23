@@ -49,17 +49,22 @@ class BmnDchHitProducer : public FairTask
         Bool_t fDchUsed;
         UInt_t eventNum; 
         Double_t z3121,z4121,z4131;
+        Double_t anglepar[numLayers][2];
+        Double_t DCH1_ZlayerPos_global[numLayers],DCH2_ZlayerPos_global[numLayers];
+        Double_t detXshift[numChambers];
   	TRandom		 *pRandom;
 	TClonesArray	 *pHitCollection0,*pHitCollection; 
 	//TClonesArray			*pDchPoints;
 	//TClonesArray			*pMCTracks;
 	TList		 fList;	
 	Bool_t		 fDoTest;
-        Bool_t           checkDch;
+        Bool_t           checkDch,fAngleCorrectionFill,checkGraphs;
 	Double_t	 fRSigma, fRPhiSigma; // [cm] default 2mm in R, 200um in R-Phi
 
 	TH1D		 *htOccup,  *htWireN, *htMCTime, *hX, *hY, *hZ, *hRadiusRange;
-	TH2D		 *htXYlocal, *htRvsR, *hXYhit;	
+	TH2D		 *htXYlocal, *htRvsR, *hXYhit;
+        //TH2D             *hAngleVsWirepos0,*hAngleVsWirepos2,*hAngleVsWirepos4,*hAngleVsWirepos6,;	
+        TH2D             *hAngleVsWirepos[numLayers];	
 	TH1D		 *htGasDrift,*htGasDriftA, *htTime, *htTimeA, *htPerp, *htPerpA;
 	TH1D		 *hResolX,*hResolY,*hResolR;
 	TGraph2D	 *hXYZcombhits,*hXYZpoints;
@@ -71,11 +76,11 @@ class BmnDchHitProducer : public FairTask
         Bool_t wireUsed[numLayers][numWiresPerLayer];
         Double_t        zLayer[numLayers];
         Double_t        xyTolerance,radialRange;
-	void		Rotate(UInt_t proj, Double_t x,Double_t y, Double_t& xRot, Double_t& yRot, Bool_t back=false);	
-	Double_t	GetDriftLength(UInt_t proj, UInt_t gasgap, Double_t x, Double_t& wirePos);
+	void		Rotate(UShort_t proj, Double_t x,Double_t y, Double_t& xRot, Double_t& yRot, Bool_t back=false);	
+	Double_t	GetDriftLength(UShort_t proj, UShort_t gasgap, Double_t x, Double_t& wirePos);
 	Double_t	GetTShift(Double_t driftLength, Double_t wirePos, Double_t R, Double_t&);
 	Bool_t 		HitExist(Double_t delta);	
-	Double_t	GetPhi(UInt_t proj);
+	Double_t	GetPhi(UShort_t proj);
 	Int_t		WireID(UInt_t uid, Double_t wirePos, Double_t R);
 	
   	BmnDchHit* 	AddHit0(Int_t index, Int_t detID, const TVector3& posHit, const TVector3& posHitErr, Int_t trackIndex, Int_t pointIndex, Int_t flag, UInt_t dchlayer);
@@ -96,17 +101,18 @@ public:
 	void		SetErrors(Double_t errR, Double_t errRphi){ fRSigma = errR; fRPhiSigma = errRphi; };
         void            InitDchParameters();
         void            BookHistograms();
+        void            BookHistsAngleCorr();
+        void            FitHistsAngleCorr();
         void            LRambiguity(UInt_t k, Double_t hittmp[2], Double_t hitx, Double_t driftdist, UInt_t hw, UShort_t &nhits);
         Double_t        PointLineDistance(const Double_t x0, const Double_t y0, const Double_t z0, const Double_t x, const Double_t y, const Double_t z, const Double_t dircosx, const Double_t dircosy, const Double_t dircosz);
         void            RadialRange(FairMCPoint* dchPoint);
         void            HitFinder();
         void            CoordinateFinder(Double_t y1,Double_t x2,Double_t k3,Double_t q3,Double_t k4,Double_t q4,Double_t x[],Double_t y[]);
-        ScalarD* hitX[numLayers];
         void            ReturnPointers(UInt_t ijk,UInt_t i,ScalarD* &hitX,ScalarI* &trackId, ScalarI* &detId,ScalarUI* &hitwire,ScalarD* &driftlen,ScalarI* &pointind);
-        static UInt_t GetProj(UInt_t uid){ return uid/2; }; //lsp [0-3] == [x,y,u,v]
-        static UInt_t GetGasGap(UInt_t uid){ return uid%2; }; //lsp [0-1] == [inner,outer]
+        static UShort_t GetProj(UShort_t uid){ return uid/2; }; //lsp [0-3] == [x,y,u,v]
+        static UShort_t GetGasGap(UShort_t uid){ return uid%2; }; //lsp [0-1] == [inner,outer]
 
-        static const Double_t detXshift[numChambers];
+        //static const Double_t detXshift[numChambers];
         static const Double_t cosPhi_45, sinPhi_45, cosPhi45, sinPhi45;
         static const Double_t Phi_45, Phi45, Phi90;
         static const Double_t sqrt2,tg3,tg4;

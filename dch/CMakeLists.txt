@@ -19,6 +19,7 @@ include_directories( ${INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
+${FAIRROOT_LIBRARY_DIR}
 )
  
 link_directories( ${LINK_DIRECTORIES})
@@ -31,10 +32,12 @@ BmnDch1Geo.cxx
 BmnDch1GeoPar.cxx
 BmnDchHitProducer.cxx
 BmnDchHitProducerTmp.cxx
+BmnDchHitProducer_exp.cxx
 ScalarD.cxx
 ScalarI.cxx
 ScalarUI.cxx
 DchHitPlane.cxx
+${CMAKE_SOURCE_DIR}/bmndata/BmnDchRaw2Digit.cxx
 )
 
 set(Dch2_SRCS

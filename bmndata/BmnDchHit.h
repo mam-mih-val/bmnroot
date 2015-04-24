@@ -12,7 +12,7 @@ class BmnDchHit : public FairHit
 public:
 
   BmnDchHit();
-  BmnDchHit(Int_t detectorID, TVector3 pos, TVector3 dpos, Int_t refIndex, Int_t flag, Int_t trackIndex, UInt_t dchlayer);
+  BmnDchHit(Int_t detectorID, TVector3 pos, TVector3 dpos, Int_t refIndex, Int_t flag, Int_t trackIndex, UShort_t dchlayer);
   BmnDchHit(Int_t detectorID, TVector3 pos, TVector3 dpos, Int_t refIndex, Int_t flag);
   BmnDchHit(Int_t detectorID, TVector3 pos, TVector3 dpos, Int_t refIndex);
 
@@ -27,7 +27,7 @@ public:
   Int_t GetNofDim() const { return fNofDim; } // get number of measurements per point
   Int_t Overlap() const { return fIndex.GetSize()-1; } // 
   Int_t GetIndex(Int_t indx = 0) const { return fIndex[indx]; } // 
-  UInt_t GetLayer() const { return  fDchLayer; } // 
+  UShort_t GetLayer() const { return  fDchLayer; } // 
   Int_t GetDetectorID() const { return  fDetectorID; } // 
   Double_t GetPhi() const { return fPhi; } // get rotation angle 
   Double_t GetMeas(Int_t indx = 0) const { return fMeas[indx]; } // get measurement 
@@ -69,7 +69,7 @@ public:
 
 protected:
 
-  Int_t fDetectorID;               // track ID
+  Int_t fDetectorID;            // Detector ID
   UInt_t fDchLayer;             // Dch layer ID (0-7)
   Int_t fTrackID;               // track ID
   Int_t fFlag; 			// Flag for general purposes [TDC, event tagging...]

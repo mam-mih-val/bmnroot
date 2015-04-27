@@ -10,7 +10,8 @@
 #pragma link C++ class MpdPlutoGenerator+;
 #pragma link C++ class MpdRainGenerator+;
 #pragma link C++ class MpdPHSDGenerator+;
-#pragma link C++ class MpdUrqmdGenerator+;
+#pragma link C++ class MpdUrqmd23Generator+;
+#pragma link C++ class MpdUrqmd34Generator+;
 #pragma link C++ class MpdLibZ+;
 #pragma link C++ class MpdGetNumEvents+;
 #pragma link C++ class MpdHistoGenerator+;

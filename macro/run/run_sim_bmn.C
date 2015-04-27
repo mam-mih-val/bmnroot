@@ -18,9 +18,9 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load libraries
 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
+    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
     //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run1.C");
-    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run02.C");
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run02.C");
     //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run03.C");
 
     // -----   Create simulation run   ----------------------------------------
@@ -75,7 +75,10 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = 
 
     if (!CheckFileExist(dataFile)) return;
 
-    MpdUrqmdGenerator* urqmdGen = new MpdUrqmdGenerator(dataFile);
+    MpdUrqmd23Generator* urqmdGen = new MpdUrqmd23Generator(dataFile);
+    // Don't forget to use appropriate class for reading *.f14 in case of UrQMD34
+    // Header of UrQMD23 is not consisted with UrQMD34 
+    // MpdUrqmd34Generator* urqmdGen = new MpdUrqmd34Generator(dataFile);
     primGen->AddGenerator(urqmdGen);
     if (nStartEvent > 0) urqmdGen->SkipEvents(nStartEvent);
 

@@ -25,7 +25,6 @@ static Float_t workTime = 0.0;
 
 const Float_t thresh = 0.7; // threshold for efficiency calculation (70%)
 
-const UInt_t kNHITSFORSEED = 5;
 using std::cout;
 using namespace TMath;
 

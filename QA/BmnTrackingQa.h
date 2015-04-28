@@ -162,7 +162,7 @@ private:
     vector<string> CreateGlobalTrackingHistogramNames(const vector<string>& detectors);
 
     vector<string> CreateGlobalTrackingHistogramNames();
-    
+
     void ReadEventHeader();
 
     string LocalEfficiencyNormalization(const string& detName);
@@ -213,7 +213,7 @@ private:
      * \brief Increase number of objects counters.
      */
     void IncreaseCounters();
-    
+
     vector<string> fHeader;
 
     BmnHistManager* fHM; // Histogram manager
@@ -260,8 +260,8 @@ private:
     TClonesArray* fGemMatches; // BmnGemTrackMatch array
     TClonesArray* fGemSeeds; // BmnGemTrack array
     TClonesArray* fGemSeedMatches; // BmnGemTrackMatch array
-    
 
+    TClonesArray* fGemPoints;
     TClonesArray* fGemHits;
     TClonesArray* fTof1Points;
     TClonesArray* fTof1Hits;

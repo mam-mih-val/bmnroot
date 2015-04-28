@@ -297,6 +297,12 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         }
     }
     CalculateLength();
+    
+    for (Int_t i = 0; i < fGlobalTracks->GetEntriesFast(); ++i) {
+        BmnGlobalTrack* globalTrack = (BmnGlobalTrack*) fGlobalTracks->At(i);
+        if ((globalTrack->GetChi2() / (globalTrack->GetNofHits() - 1)  > fChiSqCut) || (globalTrack->GetNofHits() < 6)) globalTrack->SetFlag(kBMNBAD);
+    }
+    
     clock_t tFinish = clock();
 
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
@@ -977,105 +983,6 @@ void BmnGlobalTracking::CalculateLength() {
             fGlobHisto->_hTrackLength->Fill(length);
         }
     }
-}
-
-BmnStatus BmnGlobalTracking::Run1GlobalTrackFinder() {
-
-    Float_t houghMin = 0.0;
-    Float_t houghMax = 180.0;
-    Int_t nBins = Int_t(houghMax - houghMin) * 20;
-    TH2F* hough = new TH2F("hough", "hough", 500, houghMin, houghMax, 500, -0.03, 0.03);
-    TH1F* h1 = new TH1F("1", "1", 200, -0.4, 0.4);
-    TGraph* orig = new TGraph();
-    TGraph* seeds = new TGraph();
-    //    seeds->SetMinimum(-1);
-    //    seeds->SetMaximum(1);
-    seeds->SetMarkerStyle(8);
-    seeds->SetMarkerSize(0.5);
-    TH2F* cm = new TH2F("cm", "cm", 500, -0.3, 0.3, 500, -0.3, 0.3);
-
-    //    FillHoughHistogram(hough, orig, cm, seeds, fMwpc1Hits);
-    //    FillHoughHistogram(hough, orig, cm, seeds, fMwpc2Hits);
-    //    FillHoughHistogram(hough, orig, cm, seeds, fMwpc3Hits);
-    //    FillHoughHistogram(hough, orig, cm, seeds, fGemHits);
-    //    FillHoughHistogram(hough, orig, cm, seeds, fTof1Hits);
-    //    FillHoughHistogram(hough, orig, cm, seeds, fDch1Hits);
-    //    FillHoughHistogram(hough, orig, cm, seeds, fDch2Hits);
-    //    FillHoughHistogram(hough, orig, cm, seeds, fTof2Hits);
-
-    FillHoughHistogram(h1, orig, cm, seeds, fMwpc1Hits);
-    FillHoughHistogram(h1, orig, cm, seeds, fMwpc2Hits);
-    FillHoughHistogram(h1, orig, cm, seeds, fMwpc3Hits);
-    FillHoughHistogram(h1, orig, cm, seeds, fGemHits);
-    //    FillHoughHistogram(h1, orig, cm, seeds, fTof1Hits);
-    //    FillHoughHistogram(h1, orig, cm, seeds, fDch1Hits);
-    //    FillHoughHistogram(h1, orig, cm, seeds, fDch2Hits);
-    //    FillHoughHistogram(h1, orig, cm, seeds, fTof2Hits);
-
-    Float_t max = 0.0;
-    for (Int_t i = 1; i < hough->GetNbinsX(); ++i)
-        for (Int_t j = 1; j < hough->GetNbinsY(); ++j)
-            if (hough->GetBinContent(i, j) > max)
-                max = hough->GetBinContent(i, j);
-
-
-    cout << "MAX = " << max << endl;
-    for (Int_t i = 1; i < hough->GetNbinsX(); ++i) {
-        for (Int_t j = 1; j < hough->GetNbinsY(); ++j) {
-            if (hough->GetBinContent(i, j) > 0.95 * max) {
-                Float_t phi0 = hough->GetXaxis()->GetBinCenter(i);
-                Float_t r0 = hough->GetYaxis()->GetBinCenter(j);
-                cout << "i = " << i << " j = " << j << " r0 = " << r0 << " phi0 = " << phi0 << " content = " << hough->GetBinContent(i, j) << endl;
-                for (Int_t k = 0; k < 1000; ++k) {
-                    Float_t x = 0.6 * k / 1000 - 0.3;
-                    Float_t y = (r0 - x * Cos(phi0)) / Sin(phi0);
-                    cm->Fill(x, y);
-                }
-            }
-        }
-    }
-
-    //    TCanvas* c = new TCanvas("c", "c", 800, 800);
-    //    c->Divide(2, 2);
-    //    c->cd(1);
-    //    orig->Draw("AP");
-    //    c->cd(2);
-    //    seeds->Draw("AP");
-    //    c->cd(3);
-    //    cm->Draw("colz");
-    //    c->cd(4);
-    ////    hough->Draw("colz");
-    //    h1->Draw("");
-
-    return kBMNSUCCESS;
-}
-
-BmnStatus BmnGlobalTracking::FillHoughHistogram(TH1F* h, TGraph* orig, TH2F* cm, TGraph* seeds, TClonesArray* arr) {
-
-    for (Int_t i = 0; i < arr->GetEntriesFast(); ++i) {
-        BmnHit* hit = (BmnHit*) arr->At(i);
-        //if (hit->IsUsed()) continue;
-        Float_t x = hit->GetX();
-        Float_t y = hit->GetY();
-        Float_t z = hit->GetZ();
-        Float_t r2 = x * x + y * y;
-        Float_t R = Sqrt(x * x + y * y + z * z);
-        Float_t xr2 = x / r2;
-        Float_t yr2 = y / r2;
-
-        Int_t N = 10000;
-        for (Int_t iBin = 0; iBin < N; ++iBin) {
-            Float_t phi = (180.0 * iBin) / N;
-            Float_t r = xr2 * Cos(phi * DegToRad()) + yr2 * Sin(phi * DegToRad());
-            //            hough->Fill(phi, r);
-        }
-        seeds->SetPoint(seeds->GetN(), x / R, y / R);
-        //        seeds->SetPoint(seeds->GetN() + 1, x*R , y*R );
-        orig->SetPoint(orig->GetN(), x, y);
-        cm->Fill(xr2, yr2, 100);
-        h->Fill(y / R);
-    }
-    return kBMNSUCCESS;
 }
 
 Float_t BmnGlobalTracking::Sqr(Float_t x) {

@@ -98,6 +98,7 @@ protected:
     void DrawPsimPrec(const string& canvasName);
     void DrawEtaSimEtaRec(const string& canvasName);
     void DrawPsimPrecComponents(const string& canvasName);
+    void DrawMeanLine(TH1* hist);
     
     void DrawEventsInfo(const string& canvasName);
     

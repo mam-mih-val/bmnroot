@@ -28,6 +28,7 @@
 #include "TH1.h"
 #include "TH2F.h"
 #include "TClonesArray.h"
+#include "BmnEnums.h"
 
 #include <boost/assign/list_of.hpp>
 
@@ -45,7 +46,8 @@ FairTask("BmnTrackingQA", 1),
 fHM(NULL),
 fOutputDir("./"),
 fDet(),
-fMinNofPointsGem(4),
+//fMinNofPointsGem(4),
+fMinNofPointsGem(6),
 fMinNofPointsTof(1),
 fMinNofPointsDch(1),
 fQuota(0.7),
@@ -150,6 +152,10 @@ void BmnTrackingQa::ReadDataBranches() {
         fGemHits = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
         if (NULL == fGemHits) {
             Fatal("Init", ": No BmnGemStripHit array!");
+        }
+        fGemPoints = (TClonesArray*) ioman->GetObject("StsPoint");
+        if (NULL == fGemPoints) {
+            cout << "BmnTrackingQA::Init: No GemPoint array!" << endl;
         }
     }
     if (fDet.GetDet(kTOF1)) {
@@ -455,6 +461,9 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("Eta_rec_Eta_sim_gem", "#eta_{sim}", "#eta_{rec}", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 5.0);
     CreateH2("Eta_rec_Eta_sim_glob", "#eta_{sim}", "#eta_{rec}", "", 4 * nBins, 0.0, 5.0, 4 * nBins, 0.0, 5.0);
 
+    CreateH1("wellSeedDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("wellGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
+    CreateH1("wellGlobDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("ghostSeedDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("ghostGemDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
     CreateH1("ghostGlobDistr", "P_{sim}, GeV/c", "Counter", nBins, fPRangeMin, fPRangeMax);
@@ -485,6 +494,7 @@ void BmnTrackingQa::ProcessGlobalTracks() {
 
     for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); iTrack++) {
         const BmnGlobalTrack* globalTrack = (const BmnGlobalTrack*) (fGlobalTracks->At(iTrack));
+        if (globalTrack->GetFlag() == kBMNBAD) continue;
 
         // get track segments indices
         Int_t gemId = globalTrack->GetGemTrackIndex();
@@ -541,7 +551,7 @@ void BmnTrackingQa::ProcessGlobalTracks() {
             fHM->H2("P_rec_P_sim_seed")->Fill(P_sim, P_rec_seed);
             fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec_gem);
             fHM->H2("Eta_rec_Eta_sim_seed")->Fill(Eta_sim, Eta_rec_seed);
-            fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec_gem);            
+            fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec_gem);
         }
 
         fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec_glob) / P_sim * 100.0);
@@ -580,19 +590,23 @@ void BmnTrackingQa::ProcessGlobalTracks() {
                 Int_t nofHits = gemTrackMatch->GetNofHits();
                 fHM->H1("hng_NofGhosts_Gem_Nh")->Fill(nofHits);
                 fHM->H1("ghostGemDistr")->Fill(P_sim);
+            } else {
+                fHM->H1("wellGemDistr")->Fill(P_sim);
             }
             fHM->H1("recoGemDistr")->Fill(P_sim);
         }
 
         if (isSeedOk) {
-//                        cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
+            //                        cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
             gemSeedMatch = (const BmnTrackMatch*) (fGemSeedMatches->At(gemId));
             isSeedOk = gemSeedMatch->GetTrueOverAllHitsRatio() >= fQuota; //CheckTrackQuality(stsTrackMatch, kGEM);
             //            FillTrackQualityHistograms(gemSeedMatch, kGEM);
             if (!isSeedOk) { // ghost track
-                Int_t nofHits = gemSeedMatch->GetNofHits();
+                //                Int_t nofHits = gemSeedMatch->GetNofHits();
                 //fHM->H1("hng_NofGhosts_Gem_Nh")->Fill(nofHits);
                 fHM->H1("ghostSeedDistr")->Fill(P_sim);
+            } else {
+                fHM->H1("wellSeedDistr")->Fill(P_sim);
             }
             fHM->H1("recoSeedDistr")->Fill(P_sim);
         }
@@ -671,8 +685,22 @@ void BmnTrackingQa::ProcessMcTracks() {
         Int_t nofPointsDch1 = bmnMCTrack.GetNofPoints(kDCH1);
         Int_t nofPointsDch2 = bmnMCTrack.GetNofPoints(kDCH2);
 
+        //        cout << "nofPointsGem = " << nofPointsGem << " nofPointsTof1 = " << nofPointsTof1 << " nofPointsTof2 = " << nofPointsTof2 << " nofPointsDch1 = " << nofPointsDch1 << " nofPointsDch2 = " << nofPointsDch2 << endl;
+
         // Check local tracks
         //Bool_t gemConsecutive = (fUseConsecutivePointsInGem) ? bmnMCTrack.GetNofConsecutivePoints(kGEM) >= fMinNofPointsGem : kTRUE;
+        
+//        Int_t goodCntr = 0;
+//        for (Int_t iP = 0; iP < fGemPoints->GetEntriesFast(); ++iP) {
+//            FairMCPoint* point = (FairMCPoint*) fGemPoints->At(iP);
+//            Int_t id = point->GetTrackID();
+//            if (id == iMCTrack) {
+//                goodCntr++;
+//            }
+//        }
+//        
+//        cout << "goodCntr = " << goodCntr << " nofPointsGem = " << nofPointsGem << endl;
+
         Bool_t isGemOk = nofPointsGem >= fMinNofPointsGem && fDet.GetDet(kGEM); // && gemConsecutive;
         Bool_t isTof1Ok = nofPointsTof1 >= fMinNofPointsTof && fDet.GetDet(kTOF1);
         Bool_t isTof2Ok = nofPointsTof2 >= fMinNofPointsTof && fDet.GetDet(kTOF);

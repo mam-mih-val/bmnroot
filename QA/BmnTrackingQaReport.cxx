@@ -271,6 +271,7 @@ void BmnTrackingQaReport::DrawEffGhostSeed(const string& canvasName) {
     canvas->cd(1);
     HM()->H1("allSeedDistr")->Sumw2(); HM()->H1("allSeedDistr")->Scale(1. / nofEvents);
     HM()->H1("recoSeedDistr")->Sumw2(); HM()->H1("recoSeedDistr")->Scale(1. / nofEvents);
+    HM()->H1("wellSeedDistr")->Sumw2(); HM()->H1("wellSeedDistr")->Scale(1. / nofEvents);
     HM()->H1("ghostSeedDistr")->Sumw2(); HM()->H1("ghostSeedDistr")->Scale(1. / nofEvents);
     vector<TH1*> histos1;
     histos1.push_back(HM()->H1("allSeedDistr"));
@@ -286,7 +287,8 @@ void BmnTrackingQaReport::DrawEffGhostSeed(const string& canvasName) {
     vector<string> labels2;
     labels2.push_back("Efficiency");
     labels2.push_back("Percent of ghosts");
-    HM()->H1("EffSeedDistr")->Divide(HM()->H1("recoSeedDistr"), HM()->H1("allSeedDistr"), 1., 1., "B");
+//    HM()->H1("EffSeedDistr")->Divide(HM()->H1("recoSeedDistr"), HM()->H1("allSeedDistr"), 1., 1., "B");
+    HM()->H1("EffSeedDistr")->Divide(HM()->H1("wellSeedDistr"), HM()->H1("allSeedDistr"), 1., 1., "B");
     HM()->H1("EffSeedDistr")->Scale(100.0);
     HM()->H1("FakeSeedDistr")->Divide(HM()->H1("ghostSeedDistr"), HM()->H1("recoSeedDistr"), 1., 1., "B");
     HM()->H1("FakeSeedDistr")->Scale(100.0);
@@ -294,6 +296,8 @@ void BmnTrackingQaReport::DrawEffGhostSeed(const string& canvasName) {
     histos2.push_back(HM()->H1("EffSeedDistr"));
     histos2.push_back(HM()->H1("FakeSeedDistr"));
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
+    DrawMeanLine(HM()->H1("EffSeedDistr"));
+    DrawMeanLine(HM()->H1("FakeSeedDistr"));
 }
 
 void BmnTrackingQaReport::DrawEffGhostGem(const string& canvasName) {
@@ -304,6 +308,7 @@ void BmnTrackingQaReport::DrawEffGhostGem(const string& canvasName) {
     canvas->cd(1);
     HM()->H1("allGemDistr")->Sumw2(); HM()->H1("allGemDistr")->Scale(1. / nofEvents);
     HM()->H1("recoGemDistr")->Sumw2(); HM()->H1("recoGemDistr")->Scale(1. / nofEvents);
+    HM()->H1("wellGemDistr")->Sumw2(); HM()->H1("wellGemDistr")->Scale(1. / nofEvents);
     HM()->H1("ghostGemDistr")->Sumw2(); HM()->H1("ghostGemDistr")->Scale(1. / nofEvents);
     vector<TH1*> histos1;
     histos1.push_back(HM()->H1("allGemDistr"));
@@ -319,7 +324,8 @@ void BmnTrackingQaReport::DrawEffGhostGem(const string& canvasName) {
     vector<string> labels2;
     labels2.push_back("Efficiency");
     labels2.push_back("Percent of ghosts");
-    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
+//    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
+    HM()->H1("EffGemDistr")->Divide(HM()->H1("wellGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
     HM()->H1("EffGemDistr")->Scale(100.0);
     HM()->H1("FakeGemDistr")->Divide(HM()->H1("ghostGemDistr"), HM()->H1("recoGemDistr"), 1., 1., "B");
     HM()->H1("FakeGemDistr")->Scale(100.0);
@@ -327,6 +333,8 @@ void BmnTrackingQaReport::DrawEffGhostGem(const string& canvasName) {
     histos2.push_back(HM()->H1("EffGemDistr"));
     histos2.push_back(HM()->H1("FakeGemDistr"));
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
+    DrawMeanLine(HM()->H1("EffGemDistr"));
+    DrawMeanLine(HM()->H1("FakeGemDistr"));
 }
 
 void BmnTrackingQaReport::DrawEffGhostGlob(const string& canvasName) {
@@ -360,6 +368,8 @@ void BmnTrackingQaReport::DrawEffGhostGlob(const string& canvasName) {
     histos2.push_back(HM()->H1("EffGlobDistr"));
     histos2.push_back(HM()->H1("FakeGlobDistr"));
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
+    DrawMeanLine(HM()->H1("EffGlobDistr"));
+    DrawMeanLine(HM()->H1("FakeGlobDistr"));
 }
 
 void BmnTrackingQaReport::DrawPsimPrec(const string& canvasName) {
@@ -452,6 +462,16 @@ void BmnTrackingQaReport::DrawMeanEfficiencyLines(
         line->SetLineColor(histos[iHist]->GetLineColor());
         line->Draw();
     }
+}
+
+void BmnTrackingQaReport::DrawMeanLine(TH1* hist) {
+    
+    Float_t minX = hist->GetXaxis()->GetXmin();
+    Float_t maxX = hist->GetXaxis()->GetXmax();
+    TLine* line = new TLine(minX, hist->Integral() / hist->GetNbinsX(), maxX, hist->Integral() / hist->GetNbinsX());
+    line->SetLineWidth(2);
+    line->SetLineColor(hist->GetLineColor());
+    line->Draw();
 }
 
 void BmnTrackingQaReport::DrawAccAndRec(const string& canvasName, const string& histNamePattern) {

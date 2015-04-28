@@ -17,7 +17,7 @@ fUsing(kFALSE) {
 }
 //------------------------------------------------------------------------------------------------------------------------
 
-BmnDchHit::BmnDchHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t index, Int_t flag, Int_t trackIndex, UInt_t dchlayer)
+BmnDchHit::BmnDchHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t index, Int_t flag, Int_t trackIndex, UShort_t dchlayer)
 : FairHit(detID, pos, dpos, index),
 fDetectorID(detID),
 fDchLayer(dchlayer),

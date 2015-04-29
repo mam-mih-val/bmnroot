@@ -89,9 +89,9 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
-        //if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
+        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
         if (hit->IsUsed()) continue; //Don't use used hits
-        if (hit->GetType() == 0) continue; //Don't use fakes
+//        if (hit->GetType() == 0) continue; //Don't use fakes
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         //const Float_t R = hit->GetZ(); //Test for different type of transformation
@@ -108,74 +108,76 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
         addresses.insert(pair<ULong_t, Int_t > (addr, hitIdx));
     }
 
-    for (Int_t j = 0; j < fNBins; ++j) {
-        for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
-            BmnGemStripHit* hit0 = GetHit(iHit);
-            if (hit0->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-            if (hit0->GetType() == 0) continue;
-            if (hit0->GetYaddr() != j) continue;
-            const Float_t R = Sqrt(Sqr(hit0->GetX()) + Sqr(hit0->GetY()) + Sqr(hit0->GetZ()));
-            const Float_t x = hit0->GetX() / R;
-            const Float_t y = hit0->GetY() / R;
-            for (Int_t i = 0; i < fNBins; ++i) {
-                Float_t pot = sigma_x2 / (sigma_x2 + Sqr(x - lorentz->GetXaxis()->GetBinCenter(i)));
-                lorentz->Fill(lorentz->GetXaxis()->GetBinCenter(i), lorentz->GetYaxis()->GetBinCenter(j / 2), pot);
-            }
-        }
-    }
-
-//    TH1D* prof = lorentz->ProjectionX("prof", GetHit(0)->GetYaddr(), GetHit(0)->GetYaddr() + 1);
-//    prof->Draw();
-
-    for (Int_t j = 0; j < fNBins / 2; ++j) {
-        for (Int_t i = 0; i < fNBins; ++i) {
-            if (lorentz->GetBinContent(i, j) <= 1.5) lorentz->SetBinContent(i, j, 0.0);
-        }
-    }
-
-    for (Int_t j = 0; j < fNBins / 2; ++j) {
-        Float_t max = -1.0;
-        Int_t startBin = -10;
-        Bool_t inPeak = kFALSE;
-        Int_t finishBin = -10;
-        for (Int_t i = 0; i < fNBins; ++i) {
-            if (!inPeak && lorentz->GetBinContent(i, j) > 0.0) { //start signal
-                startBin = i;
-                inPeak = kTRUE;
-            }
-            if (inPeak && lorentz->GetBinContent(i, j) > max) max = lorentz->GetBinContent(i, j);
-            if (inPeak && lorentz->GetBinContent(i, j) < 1.0) { //stop signal
-                finishBin = i;
-                inPeak = kFALSE;
-                for (Int_t k = startBin; k < finishBin; ++k) {
-                    if (lorentz->GetBinContent(k, j) < max / 2.0) lorentz->SetBinContent(k, j, 0.0);
-                }
-                max = -1.0;
-            }
-        }
-    }
-
-    for (Int_t j = 0; j < fNBins / 2; ++j) {
-        for (Int_t i = 0; i < fNBins; ++i) {
-            if (lorentz->GetBinContent(i, j) > 0.0) {
-                for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
-                    BmnGemStripHit* hit0 = GetHit(iHit);
-                    if (hit0->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-                    if (hit0->GetType() == 0) continue;
-                    if (hit0->GetYaddr() / 2 == j && hit0->GetXaddr() == i) {
-//                        const Float_t R = Sqrt(Sqr(hit0->GetX()) + Sqr(hit0->GetY()) + Sqr(hit0->GetZ()));
-//                        const Float_t x = hit0->GetX() / R;
-//                        const Float_t y = hit0->GetY() / R;
-//                        Int_t xAddr = ceil((x - fMin) / fWidth);
-//                        Int_t yAddr = ceil((y - fMin) / fWidth);
-//                        ULong_t addr = yAddr * fNBins + xAddr;
-                        addresses.insert(pair<ULong_t, Int_t > (hit0->GetAddr(), iHit));
-                        //xRyR_after->Fill(x, y);
-                    }
-                }
-            }
-        }
-    }
+//    for (Int_t j = 0; j < fNBins; ++j) {
+//        for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
+//            BmnGemStripHit* hit0 = GetHit(iHit);
+//            if (hit0->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
+////            if (hit0->GetType() == 0) continue;
+//            if (hit0->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
+//            if (hit0->GetYaddr() != j) continue;
+//            const Float_t R = Sqrt(Sqr(hit0->GetX()) + Sqr(hit0->GetY()) + Sqr(hit0->GetZ()));
+//            const Float_t x = hit0->GetX() / R;
+//            const Float_t y = hit0->GetY() / R;
+//            for (Int_t i = 0; i < fNBins; ++i) {
+//                Float_t pot = sigma_x2 / (sigma_x2 + Sqr(x - lorentz->GetXaxis()->GetBinCenter(i)));
+//                lorentz->Fill(lorentz->GetXaxis()->GetBinCenter(i), lorentz->GetYaxis()->GetBinCenter(j / 2), pot);
+//            }
+//        }
+//    }
+//
+////    TH1D* prof = lorentz->ProjectionX("prof", GetHit(0)->GetYaddr(), GetHit(0)->GetYaddr() + 1);
+////    prof->Draw();
+//
+//    for (Int_t j = 0; j < fNBins / 2; ++j) {
+//        for (Int_t i = 0; i < fNBins; ++i) {
+//            if (lorentz->GetBinContent(i, j) <= 1.5) lorentz->SetBinContent(i, j, 0.0);
+//        }
+//    }
+//
+//    for (Int_t j = 0; j < fNBins / 2; ++j) {
+//        Float_t max = -1.0;
+//        Int_t startBin = -10;
+//        Bool_t inPeak = kFALSE;
+//        Int_t finishBin = -10;
+//        for (Int_t i = 0; i < fNBins; ++i) {
+//            if (!inPeak && lorentz->GetBinContent(i, j) > 0.0) { //start signal
+//                startBin = i;
+//                inPeak = kTRUE;
+//            }
+//            if (inPeak && lorentz->GetBinContent(i, j) > max) max = lorentz->GetBinContent(i, j);
+//            if (inPeak && lorentz->GetBinContent(i, j) < 1.0) { //stop signal
+//                finishBin = i;
+//                inPeak = kFALSE;
+//                for (Int_t k = startBin; k < finishBin; ++k) {
+//                    if (lorentz->GetBinContent(k, j) < max / 2.0) lorentz->SetBinContent(k, j, 0.0);
+//                }
+//                max = -1.0;
+//            }
+//        }
+//    }
+//
+//    for (Int_t j = 0; j < fNBins / 2; ++j) {
+//        for (Int_t i = 0; i < fNBins; ++i) {
+//            if (lorentz->GetBinContent(i, j) > 0.0) {
+//                for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
+//                    BmnGemStripHit* hit0 = GetHit(iHit);
+//                    if (hit0->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
+////                    if (hit0->GetType() == 0) continue;
+//                    if (hit0->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
+//                    if (hit0->GetYaddr() / 2 == j && hit0->GetXaddr() == i) {
+////                        const Float_t R = Sqrt(Sqr(hit0->GetX()) + Sqr(hit0->GetY()) + Sqr(hit0->GetZ()));
+////                        const Float_t x = hit0->GetX() / R;
+////                        const Float_t y = hit0->GetY() / R;
+////                        Int_t xAddr = ceil((x - fMin) / fWidth);
+////                        Int_t yAddr = ceil((y - fMin) / fWidth);
+////                        ULong_t addr = yAddr * fNBins + xAddr;
+//                        addresses.insert(pair<ULong_t, Int_t > (hit0->GetAddr(), iHit));
+//                        //xRyR_after->Fill(x, y);
+//                    }
+//                }
+//            }
+//        }
+//    }
     delete lorentz;
 
 //    TCanvas* cLorentz = new TCanvas("cLorentz", "cLorentz", 1000, 1000);

@@ -300,7 +300,8 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
     
     for (Int_t i = 0; i < fGlobalTracks->GetEntriesFast(); ++i) {
         BmnGlobalTrack* globalTrack = (BmnGlobalTrack*) fGlobalTracks->At(i);
-        if ((globalTrack->GetChi2() / (globalTrack->GetNofHits() - 1)  > fChiSqCut) || (globalTrack->GetNofHits() < 6)) globalTrack->SetFlag(kBMNBAD);
+//        if ((globalTrack->GetChi2() / (globalTrack->GetNofHits() - 1)  > fChiSqCut) || (globalTrack->GetNofHits() < 6)) globalTrack->SetFlag(kBMNBAD);
+        if (globalTrack->GetNofHits() < 5) globalTrack->SetFlag(kBMNBAD);
     }
     
     clock_t tFinish = clock();

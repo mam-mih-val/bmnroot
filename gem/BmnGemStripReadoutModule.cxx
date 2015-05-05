@@ -88,6 +88,9 @@ void BmnGemStripReadoutModule::CreateReadoutPlanes() {
     ResetRealPoints();
 
     ResetStripHits();
+
+    LowerStripWidthRatio = LowerStripWidth/Pitch;
+    UpperStripWidthRatio = UpperStripWidth/Pitch;
 }
 
 void BmnGemStripReadoutModule::RebuildReadoutPlanes() {
@@ -939,12 +942,14 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
         }
         else {
             mean_fit_pos = hist.GetMean();
-            sigma_fit = hist.GetRMS();
+            //sigma_fit = hist.GetRMS();
+            sigma_fit = 0.5*nstrips*0.333;
         }
     }
     else {
         mean_fit_pos = hist.GetMean();
-        sigma_fit = hist.GetRMS();
+        //sigma_fit = hist.GetRMS();
+        sigma_fit = 0.5*nstrips*0.333;
     }
 
     StripHits.push_back(mean_fit_pos);
@@ -1175,6 +1180,12 @@ Double_t BmnGemStripReadoutModule::FindYHighIntersectionPoint(Int_t numLowerStri
 }
 
 Double_t BmnGemStripReadoutModule::FindXHitIntersectionPoint(Double_t LowerStripZonePos, Double_t UpperStripZonePos) {
+    //find real posision on lower strip
+    Int_t low_strip_num = (Int_t)LowerStripZonePos;
+    Double_t low_strip_pos = LowerStripZonePos - low_strip_num;
+    low_strip_pos *= LowerStripWidthRatio;
+    LowerStripZonePos = low_strip_num + low_strip_pos;
+
     return (LowerStripZonePos*Pitch) + XMinReadout;
 }
 
@@ -1182,6 +1193,12 @@ Double_t BmnGemStripReadoutModule::FindYHitIntersectionPoint(Double_t LowerStrip
     Double_t xcoord = FindXHitIntersectionPoint(LowerStripZonePos);
     Double_t hypoten = Pitch/Sin(Abs(AngleRad));
     Double_t ycoord;
+
+    //find real posision on upper strip
+    Int_t up_strip_num = (Int_t)UpperStripZonePos;
+    Double_t up_strip_pos = UpperStripZonePos - up_strip_num;
+    up_strip_pos *= UpperStripWidthRatio;
+    UpperStripZonePos = up_strip_num + up_strip_pos;
 
     if(AngleDeg <= 0 && AngleDeg >=-90.0) {
         ycoord = Tan(AngleRad+PiOver2())*(xcoord-XMinReadout) +  (YMaxReadout - UpperStripZonePos*hypoten);

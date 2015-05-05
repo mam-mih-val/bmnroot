@@ -193,6 +193,8 @@ private:
     Double_t Pitch;
     Double_t LowerStripWidth;
     Double_t UpperStripWidth;
+    Double_t LowerStripWidthRatio;
+    Double_t UpperStripWidthRatio;
     Double_t AngleDeg; //Angle between two sets of parellel strip
     Double_t AngleRad;
 

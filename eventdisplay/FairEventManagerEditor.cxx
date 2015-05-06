@@ -658,15 +658,12 @@ void* DrawEvent(void* ptr)
             continue;
         }
 
-        //cout<<i<<" "<<fEventData->size()<<endl;
-
         EventData* curEvent = (*fEventDrawData)[i];
-        cout<<"Event processing: "<<i<<endl;
 
         RawDataConverter raw_converter;
         vector<TVector3*> event_hits = raw_converter.MWPCEventToGeoVector(curEvent);
 
-        cout<<"Point vector size: "<<event_hits.size()<<endl;
+        cout<<"Event processing: "<<i<<". Point vector size: "<<event_hits.size()<<endl;
 
         if (fq)
         {
@@ -689,11 +686,11 @@ void* DrawEvent(void* ptr)
 
         fq = q;
 
-        if (q->Size() == 2)
+        /*if (q->Size() == 2)
         {
-            cout<<"sleep 90..."<<endl;
-            sleep(90);
-        }
+            cout<<"sleep 20..."<<endl;
+            sleep(20);
+        }*/
 
         cout<<"Event hits were drawn for event "<<i<<endl;
         sleep(1);

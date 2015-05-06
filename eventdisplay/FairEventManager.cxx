@@ -787,7 +787,8 @@ void FairEventManager::PrevEvent()
 // return integer value of color for track by particle pdg (default, white)
 Int_t FairEventManager::Color(int pdg)
 {
-  switch(pdg){
+  switch (pdg)
+  {
   case   22     :
     return  623;    // photon
   case   -2112  :
@@ -886,6 +887,8 @@ Int_t FairEventManager::Color(int pdg)
     return  50;
   case   1000020030   :
     return  55;
+  case   0:
+    return  27;    // Rootino
   default  :
     return 0;
   }//switch

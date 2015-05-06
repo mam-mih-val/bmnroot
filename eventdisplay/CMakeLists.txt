@@ -20,6 +20,7 @@ ${CMAKE_SOURCE_DIR}/lhetrack
 ${CMAKE_SOURCE_DIR}/eventdisplay
 ${CMAKE_SOURCE_DIR}/mwpc
 ${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/src
+${CMAKE_SOURCE_DIR}/gem
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -49,6 +50,7 @@ RawDataParser.cxx
 RawDataConverter.cxx
 RawMWPCDigitDraw.cxx
 BmnDigitDraw.cxx
+BmnTrackDraw.cxx
 )
 
 Set(HEADERS )

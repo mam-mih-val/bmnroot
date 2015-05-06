@@ -135,13 +135,13 @@ void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
         //fMan->AddTask(MCTrack);
 
         // DST hits
-        FairHitPointSetDraw *BmnGemHit = new FairHitPointSetDraw("BmnGemHit", kBlack, pointMarker);
+        FairHitPointSetDraw *BmnGemHit = new FairHitPointSetDraw("BmnGemStripHit", kBlack, pointMarker);
         fMan->AddTask(BmnGemHit);
         FairHitPointSetDraw *TOF1Hit = new FairHitPointSetDraw("TOF1Hit", kBlack, pointMarker);
         fMan->AddTask(TOF1Hit);
-        FairHitPointSetDraw *BmnDch1Hit = new FairHitPointSetDraw("BmnDch1Hit", kBlack, pointMarker);
+        FairHitPointSetDraw *BmnDch1Hit = new FairHitPointSetDraw("BmnDch1Hit0", kBlack, pointMarker);
         fMan->AddTask(BmnDch1Hit);
-        FairHitPointSetDraw *BmnDch2Hit = new FairHitPointSetDraw("BmnDch2Hit", kBlack, pointMarker);
+        FairHitPointSetDraw *BmnDch2Hit = new FairHitPointSetDraw("BmnDch2Hit0", kBlack, pointMarker);
         fMan->AddTask(BmnDch2Hit);
         FairHitPointSetDraw *BmnTof2Hit = new FairHitPointSetDraw("BmnTof2Hit", kBlack, pointMarker);
         fMan->AddTask(BmnTof2Hit);
@@ -151,8 +151,8 @@ void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
         //fMan->AddTask(MpdTpcHit);
 
         // DST tracks
-        //MpdTrackDraw *MpdGlobalTrack = new MpdTrackDraw("GlobalTracks");
-        //fMan->AddTask(MpdGlobalTrack);
+        BmnTrackDraw* BmnGlobalTrack = new BmnTrackDraw("GlobalTrack");
+        fMan->AddTask(BmnGlobalTrack);
 
         return;
     }
@@ -164,7 +164,7 @@ void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
 
         // draw MWPC Digits
         RawMWPCDigitDraw* MWPCDigit = new RawMWPCDigitDraw("MWPCDigit", pointColor, pointMarker);
-        MWPCDigit->source_file_name = source_file_name;
+        MWPCDigit->source_file_name = fMan->source_file_name;
         fMan->AddTask(MWPCDigit);
     }
 

@@ -912,6 +912,7 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
 
     Double_t mean_fit_pos = 0.0;
     Double_t sigma_fit = 0.0;
+    Double_t sigma_fit_err = 0.0;
 
     Int_t begin_strip_num = (Int_t)(clusterDigits.at(0));
     Int_t last_strip_num = (Int_t)(clusterDigits.at(clusterDigits.size()-1));
@@ -939,22 +940,25 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
         if(gausFitFunction) {
             mean_fit_pos = gausFitFunction->GetParameter(1);
             sigma_fit = gausFitFunction->GetParameter(2);
+            sigma_fit_err = gausFitFunction->GetParError(2);
         }
         else {
             mean_fit_pos = hist.GetMean();
             //sigma_fit = hist.GetRMS();
             sigma_fit = 0.5*nstrips*0.333;
+            sigma_fit_err = 0.001;
         }
     }
     else {
         mean_fit_pos = hist.GetMean();
         //sigma_fit = hist.GetRMS();
         sigma_fit = 0.5*nstrips*0.333;
+        sigma_fit_err = 0.001;
     }
 
     StripHits.push_back(mean_fit_pos);
     StripHitsTotalSignal.push_back(total_signal);
-    StripHitsErrors.push_back(sigma_fit);
+    StripHitsErrors.push_back(sigma_fit_err);
 
     clusterDigits.clear();
     clusterValues.clear();
@@ -973,7 +977,7 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
     TCanvas canv_fit("canv_fit","canv_fit", 0, 0, 1200, 600);
     hist.Draw();
     TRandom rand(0); Int_t rnd = rand.Uniform(1,100);
-    TString file_name = "/home/diman/Software/pics/found_cluster_";
+    TString file_name = "/home/diman/Software/pics/tmp/found_cluster_";
     file_name += mean_fit_pos; file_name += "_"; file_name += rnd; file_name += ".png";
     gPad->GetCanvas()->SaveAs(file_name);
 #endif
@@ -1234,8 +1238,22 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
                 IntersectionPointsLowerTotalSignal.push_back(LowerStripHitsTotalSignal.at(i));
                 IntersectionPointsUpperTotalSignal.push_back(UpperStripHitsTotalSignal.at(j));
 
-                IntersectionPointsXErrors.push_back(LowerStripHitsErrors.at(i)*Pitch);
-                IntersectionPointsYErrors.push_back(UpperStripHitsErrors.at(j)*(Pitch/Sin(Abs(AngleRad)))); //FIX IT
+                //error correction coefficient to pull sigma ~ 1.0
+                Double_t xerr_correct_coef = 1.0;
+                Double_t yerr_correct_coef = 1.0;
+
+                if(Pitch == 0.04) {
+                    xerr_correct_coef = 0.04;
+                    yerr_correct_coef = 0.0065;
+                }
+                if(Pitch == 0.08) {
+                    xerr_correct_coef = 0.09;
+                    yerr_correct_coef = 0.028;
+                }
+
+
+                IntersectionPointsXErrors.push_back(LowerStripHitsErrors.at(i)*Pitch/xerr_correct_coef);
+                IntersectionPointsYErrors.push_back(UpperStripHitsErrors.at(j)*(Pitch/Sin(Abs(AngleRad)))/yerr_correct_coef); //FIX IT
             }
         }
     }

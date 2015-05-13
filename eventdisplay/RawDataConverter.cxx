@@ -65,13 +65,10 @@ TEvePointSet* RawDataConverter::Vector2EvePoints(vector<TVector3*>* pPointVector
         q->SetNextPoint(vec->X(), vec->Y(), vec->Z());
         q->SetPointId(new TNamed(Form("Point %d", i), strSetName.Data()));
 
-        // bug in ROOT with one point
+        // bug in ROOT with one point drawing
         if (npoints == 1)
         {
-            TVector3* vecAdd = new TVector3(vec->X(), vec->Y(), vec->Z());
-            if (isDebug)
-                cout<<"Point 1: x="<<vecAdd->X()<<" y="<<vecAdd->Y()<<" z="<<vecAdd->Z()<<endl;
-            q->SetNextPoint(vecAdd->X(), vecAdd->Y(), vecAdd->Z());
+            q->SetNextPoint(vec->X()+0.0001, vec->Y(), vec->Z());
             q->SetPointId(new TNamed("Point 1", strSetName.Data()));
         }
     }

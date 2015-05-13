@@ -10,14 +10,14 @@
 using namespace TMath;
 using namespace std;
 
-void qaRun1() {
+void qaRun1(Int_t runId = 650) {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
 
     TChain *dstTree = new TChain("cbmsim");
-    dstTree->Add("bmndst_test.root");
+    dstTree->Add(TString::Format("bmndst_run%d.root", runId));
 
     TClonesArray *recoTracks;
     dstTree->SetBranchAddress("RecoTracks", &recoTracks);
@@ -41,8 +41,8 @@ void qaRun1() {
     TH2F* h_xy_tracks = new TH2F("hxy_tracks", "hxy_tracks", nBins1, -boundX, boundX, nBins1, -boundX, boundX);
     TH2F* h_zx_tracks = new TH2F("hzx_tracks", "hzx_tracks", nBins1, zMin, zMax, nBins1, -boundX, boundX);
 
-    UInt_t nBins2 = 100;
-    Float_t res_bound = 2.0; // cm
+    UInt_t nBins2 = 400;
+    Float_t res_bound = 0.0; // cm
     TH1F* h_dch1_dist = new TH1F("h_dch1_dist", "h_dch1_dist", nBins2, 0.0, res_bound);
     TH1F* h_dch2_dist = new TH1F("h_dch2_dist", "h_dch2_dist", nBins2, 0.0, res_bound);
     TH1F* h_dch1_xRes = new TH1F("h_dch1_xRes", "h_dch1_xRes", nBins2, -res_bound, res_bound);
@@ -112,9 +112,9 @@ void qaRun1() {
                     h_xy2->Fill(Hx, Hy);
                 }
             }
-            break; //TEST to get one good event
+            //break; //TEST to get one good event
         } else {
-            cout << "Skip bad event" << endl;
+//            cout << "Skip bad event" << endl;
         }
     } // event loop
 
@@ -182,7 +182,7 @@ Bool_t CheckEvent(TClonesArray* hits) {
                 break;
         }
     }
-    cout << lay0 << " " << lay1 << " " << lay2 << " " << lay3 << endl;
+//    cout << lay0 << " " << lay1 << " " << lay2 << " " << lay3 << endl;
 
     return (lay0 && lay1 && lay2 && lay3);
 }

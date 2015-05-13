@@ -103,6 +103,7 @@ void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
         new((*hits)[hits->GetEntriesFast()]) BmnDchHit(0, hit + dchPos, TVector3(0, 0, 0), 0, 0, 0, plane);
         BmnDchHit* dchHit = (BmnDchHit*) hits->At(hits->GetEntriesFast() - 1);
         dchHit->SetDchId(plane / 2 + 1);
+        dchHit->SetHitId(hits->GetEntriesFast() - 1);
     }
 }
 

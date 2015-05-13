@@ -34,6 +34,7 @@ public:
   Double_t GetError(Int_t indx = 0) const { return fError[indx]; } // get measurement error
   const TArrayI* Index() const { return &fIndex; } ///< Get index array of the hit
   Short_t GetDchId() const { return fDchId; }
+  Int_t GetHitId() const { return fID; }
 
         Double_t	GetDrift(void) const {return fDriftLength; };
 	void		SetDrift(Double_t v) { fDriftLength = v; };
@@ -53,6 +54,7 @@ public:
   void SetMeas(Double_t meas, Int_t indx = 0) { fMeas[indx] = meas; } // set measurement 
   void SetError(Double_t err, Int_t indx = 0) { fError[indx] = err; } // set measurement 
   void SetIndex(Int_t indx); ///< Add index of detector hit
+  void SetHitId(Int_t idx) { fID = idx; }
   
   Bool_t IsSortable() const { return kTRUE; }
   Int_t Compare(const TObject* hit) const; ///< sort in ascending order in abs(Z)
@@ -68,7 +70,8 @@ public:
   
 
 protected:
-
+   
+  Int_t fID; // identifier of hit in hits array
   Int_t fDetectorID;            // Detector ID
   UInt_t fDchLayer;             // Dch layer ID (0-7)
   Int_t fTrackID;               // track ID

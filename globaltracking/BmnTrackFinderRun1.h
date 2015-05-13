@@ -41,15 +41,16 @@ TVector3 LineFit(TClonesArray* hits) {
     return TVector3(a, b, 0.0);
 }
 
-void LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction) {
+Float_t LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction) {
 
+    //    cout << "LineFit3D started!" << endl;
     const Int_t nHits = hits.size();
 
     if (nHits < 3) {
         cout << "WARNING: not enough hits for tracking! (Number of hits is " << nHits << ")" << endl;
         vertex = TVector3(0.0, 0.0, 0.0);
         direction = TVector3(0.0, 0.0, 0.0);
-        return;
+        return 1000.0;
     }
 
     //Rough checking for hits. They shouldn't be on the same DCH
@@ -68,7 +69,7 @@ void LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction) {
         cout << "WARNING: All hits on the same DCH" << endl;
         vertex = TVector3(0.0, 0.0, 0.0);
         direction = TVector3(0.0, 0.0, 0.0);
-        return;
+        return 1000.0;
     }
 
     Float_t Xi = 0.0, Yi = 0.0, Zi = 0.0; // coordinates of current track point
@@ -82,9 +83,10 @@ void LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction) {
     Float_t ZN = ((BmnDchHit*) hits.at(nHits - 1))->GetZ();
     Float_t Az = (ZN - ZV);
     if (Az == 0.0) {
+        cout << "Az = 0.0" << endl;
         vertex = TVector3(0.0, 0.0, 0.0);
         direction = TVector3(0.0, 0.0, 0.0);
-        return;
+        return 1000.0;
     }
     for (Int_t i = 0; i < nHits; ++i) {
         BmnDchHit* hit = (BmnDchHit*) hits.at(i);
@@ -107,9 +109,10 @@ void LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction) {
     }
     Float_t koef = (SumC2 * SumW - SumC * SumC);
     if (koef == 0.0) {
+        cout << "koef = 0.0" << endl;
         vertex = TVector3(0.0, 0.0, 0.0);
         direction = TVector3(0.0, 0.0, 0.0);
-        return;
+        return 1000.0;
     }
     Float_t XV = (SumXW * SumC2 - SumC * SumXWC) / koef;
     Float_t YV = (SumYW * SumC2 - SumC * SumYWC) / koef;
@@ -118,8 +121,35 @@ void LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction) {
 
     vertex = TVector3(XV, YV, ZV);
     direction = TVector3(Ax, Ay, Az);
-    vertex.Print();
-    direction.Print();
+    //    vertex.Print();
+    //    direction.Print();
+
+    //chi2 calculation
+
+    Float_t sumChi2xy = 0.0;
+    Float_t sumChi2xz = 0.0;
+    Float_t sumChi2yz = 0.0;
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnDchHit* hit = (BmnDchHit*) hits.at(i);
+        if (hit == NULL) continue;
+        Xi = hit->GetX();
+        Yi = hit->GetY();
+        Zi = hit->GetZ();
+        //XY
+        Float_t Y_Xi = Ay / Ax * (Xi - XV) + YV;
+        Float_t X_Zi = Ax / Az * (Zi - ZV) + XV;
+        Float_t Y_Zi = Ay / Az * (Zi - ZV) + YV;
+        sumChi2xy += ((Y_Xi - Yi) * (Y_Xi - Yi) / Yi / Yi);
+        sumChi2xz += ((X_Zi - Xi) * (X_Zi - Xi) / Xi / Xi);
+        sumChi2yz += ((Y_Zi - Yi) * (Y_Zi - Yi) / Yi / Yi);
+    }
+    sumChi2xy /= (nHits - 1);
+    sumChi2xz /= (nHits - 1);
+    sumChi2yz /= (nHits - 1);
+
+    //cout << "sumChi2xy = " << sumChi2xy << " | sumChi2xz = " << sumChi2xz << " | sumChi2yz = " << sumChi2yz << endl;
+
+    return Max(sumChi2xy, Max(sumChi2xz, sumChi2yz));
 }
 
 BmnStatus FindSeed(TClonesArray* hits, TClonesArray* tracks) {
@@ -210,10 +240,10 @@ BmnStatus FindSeed(TClonesArray* hits, TClonesArray* tracks) {
 
         if (hitsInTrack.size() >= hitsThresh) {
             cout << "Hits in track: " << endl;
-//            for (Int_t iHit = 0; iHit < hitsInTrack.size(); ++iHit) {
-//                BmnDchHit* hit = hitsInTrack.at(iHit);
-//                cout << hit->GetX() << " " << hit->GetY() << " " << hit->GetZ() << endl;
-//            }
+            //            for (Int_t iHit = 0; iHit < hitsInTrack.size(); ++iHit) {
+            //                BmnDchHit* hit = hitsInTrack.at(iHit);
+            //                cout << hit->GetX() << " " << hit->GetY() << " " << hit->GetZ() << endl;
+            //            }
 
             LineFit3D(hitsInTrack, vertex, direction);
             if (direction.Mag() == 0.0 && direction.Mag() == 0.0) continue;
@@ -237,6 +267,118 @@ BmnStatus FindSeed(TClonesArray* hits, TClonesArray* tracks) {
     return kBMNSUCCESS;
 }
 
+Float_t LineBy4Hits(BmnDchHit* hit0, BmnDchHit* hit1, BmnDchHit* hit2, BmnDchHit* hit3, TVector3& vertex, TVector3& direction) {
+    vector<BmnDchHit*> hits;
+    hits.push_back(hit0);
+    hits.push_back(hit1);
+    hits.push_back(hit2);
+    hits.push_back(hit3);
+    return LineFit3D(hits, vertex, direction);
+}
+
+BmnStatus FindTracks(TClonesArray* hits, TClonesArray* tracks, Float_t chi2Thresh) {
+    Int_t hitsThresh = 4;
+    Int_t nHits = hits->GetEntriesFast();
+
+//    if (nHits < hitsThresh) {
+//        cout << "WARNING: Too few hits for tracking: Nhits = " << nHits << endl;
+//        return kBMNERROR;
+//    }
+
+
+    Bool_t lay0 = kFALSE;
+    Bool_t lay1 = kFALSE;
+    Bool_t lay2 = kFALSE;
+    Bool_t lay3 = kFALSE;
+
+    vector<BmnDchHit*> lay0hits;
+    vector<BmnDchHit*> lay1hits;
+    vector<BmnDchHit*> lay2hits;
+    vector<BmnDchHit*> lay3hits;
+
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnDchHit* hit = (BmnDchHit*) hits->At(i);
+        UInt_t lay = hit->GetLayer();
+        switch (lay) {
+            case 0:
+            {
+                lay0hits.push_back(hit);
+                lay0 = kTRUE;
+                break;
+            }
+            case 1:
+            {
+                lay1hits.push_back(hit);
+                lay1 = kTRUE;
+                break;
+            }
+            case 2:
+            {
+                lay2hits.push_back(hit);
+                lay2 = kTRUE;
+                break;
+            }
+            case 3:
+            {
+                lay3hits.push_back(hit);
+                lay3 = kTRUE;
+                break;
+            }
+        }
+    }
+
+//    cout << lay0 << " " << lay1 << " " << lay2 << " " << lay3 << endl;
+
+//    if (!(lay0 && lay1 && lay2 && lay3)) {
+//        cout << "Hits for track not presented on each plane of DCHs" << endl;
+//        return kBMNERROR;
+//    }
+
+
+    TVector3 vertex;
+    TVector3 direction;
+
+
+    vector<CbmTrack*> trackCand;
+
+    for (Int_t i0 = 0; i0 < lay0hits.size(); ++i0) {
+        BmnDchHit* hit0 = (BmnDchHit*) lay0hits.at(i0);
+        //        if (hit0->IsUsed()) continue;
+        for (Int_t i1 = 0; i1 < lay1hits.size(); ++i1) {
+            BmnDchHit* hit1 = (BmnDchHit*) lay1hits.at(i1);
+            //            if (hit1->IsUsed()) continue;
+            for (Int_t i2 = 0; i2 < lay2hits.size(); ++i2) {
+                BmnDchHit* hit2 = (BmnDchHit*) lay2hits.at(i2);
+                //                if (hit2->IsUsed()) continue;
+                for (Int_t i3 = 0; i3 < lay3hits.size(); ++i3) {
+                    BmnDchHit* hit3 = (BmnDchHit*) lay3hits.at(i3);
+                    //                    if (hit3->IsUsed()) continue;
+                    Float_t maxChi2 = LineBy4Hits(hit0, hit1, hit2, hit3, vertex, direction);
+                    if (maxChi2 > chi2Thresh)
+                        continue;
+                    else {
+                        hit0->SetUsing(kTRUE);
+                        hit1->SetUsing(kTRUE);
+                        hit2->SetUsing(kTRUE);
+                        hit3->SetUsing(kTRUE);
+                        new((*tracks)[tracks->GetEntriesFast()]) CbmTrack();
+                        CbmTrack* track = (CbmTrack*) tracks->At(tracks->GetEntriesFast() - 1);
+                        FairTrackParam* par = new FairTrackParam();
+                        par->SetPosition(vertex);
+                        par->SetTx(direction.X() / direction.Z());
+                        par->SetTy(direction.Y() / direction.Z());
+                        track->SetParamFirst(par);
+                        track->AddHit(hit0->GetHitId(), HitType(0));
+                        track->AddHit(hit1->GetHitId(), HitType(0));
+                        track->AddHit(hit2->GetHitId(), HitType(0));
+                        track->AddHit(hit3->GetHitId(), HitType(0));
+                        track->SetChiSq(maxChi2);
+                    }
+                }
+            }
+        }
+    }
+}
 
 #endif	/* BMNTRACKFINDERRUN1_H */
 

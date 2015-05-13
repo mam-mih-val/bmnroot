@@ -9,15 +9,9 @@
 #include "TFile.h"
 #include "TGeoManager.h"
 
-
 using namespace TMath;
 
-
-//
-//  runType - "run1", "run2", "run3"
-//
-
-void recoRun1(Int_t runId = 166) {
+void recoRun1(Int_t runId = 650) {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -45,20 +39,20 @@ void recoRun1(Int_t runId = 166) {
     TClonesArray *tof700Digits;
     TClonesArray *zdcDigits;
     bmnTree->SetBranchAddress("bmn_dch_digit", &dchDigits);
-    bmnTree->SetBranchAddress("bmn_tof1_digit", &tof400Digits);
-    bmnTree->SetBranchAddress("bmn_tof2_digit", &tof700Digits);
+    //    bmnTree->SetBranchAddress("bmn_tof1_digit", &tof400Digits);
+    //    bmnTree->SetBranchAddress("bmn_tof2_digit", &tof700Digits);
     bmnTree->SetBranchAddress("bmn_zdc_digit", &zdcDigits);
     bmnRawTree->SetBranchAddress("bmn_mwpc", &mwpcDigits);
 
-    Int_t startEvent = 789;
-    Int_t nEvents = 1;//bmnTree->GetEntries();
+    Int_t startEvent = 1;
+    Int_t nEvents = bmnTree->GetEntries();
     TClonesArray* dchHits = new TClonesArray("BmnDchHit");
     TClonesArray* mwpcHits = new TClonesArray("BmnMwpcHit");
     TClonesArray* hitsOrig = new TClonesArray("BmnDchHitOriginal");
     TClonesArray* recoTracks = new TClonesArray("CbmTrack");
 
-    TFile* fReco = new TFile("bmndst_test.root", "RECREATE");
-    TTree* tReco = new TTree("cbmsim", "test_bmn");
+    TFile* fReco = new TFile(TString::Format("bmndst_run%d.root", runId), "RECREATE");
+    TTree* tReco = new TTree("cbmsim", TString::Format("bmndst_run%d", runId));
     tReco->Branch("BmnDchHit", &dchHits);
     tReco->Branch("BmnMwpcHit", &mwpcHits);
     tReco->Branch("BmnDchHitOriginal", &hitsOrig);
@@ -79,13 +73,16 @@ void recoRun1(Int_t runId = 166) {
 
         //FIXME! Calling of this functions should depend on runType
         ProcessDchDigits(dchDigits, dchHits);
+        //        if (dchHits->GetEntriesFast() != 4) continue;
         //        ProcessMwpcDigits(mwpcDigits, mwpcHits);
-      
+
         /* ======= Functions for "seeding" ======= */
         //Make here coordinates transformation to find hits corresponded same track
-//        BmnStatus status = FindSeed(dchHits, recoTracks);
-        FindSeed(dchHits, recoTracks);
-        
+        //BmnStatus status = FindSeed(dchHits, recoTracks);
+        //FindSeed(dchHits, recoTracks);
+        //This function searches all straight tracks in DCHs by four hits
+        FindTracks(dchHits, recoTracks, 0.01);
+
         /* ======= Functions for tracks reconstruction ======= */
         //        TVector3 vertex;
         //        TVector3 direction;

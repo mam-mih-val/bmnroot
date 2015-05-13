@@ -9,6 +9,7 @@ using namespace std;
 BmnDchHit::BmnDchHit()
 : FairHit(),
 fTrackID(0),
+fID(0),
 fFlag(0),
 fNofDim(1),
 fPhi(0.),

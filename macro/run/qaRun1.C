@@ -51,6 +51,21 @@ void qaRun1(Int_t runId = 650) {
     TH1F* h_dch2_yRes = new TH1F("h_dch2_yRes", "h_dch2_yRes", nBins2, -res_bound, res_bound);
     TH1I* h_nHitsInTrack = new TH1I("h_nHitsInTrack", "h_nHitsInTrack", 30, 0, 30);
 
+    TH2F* h_dch1_xRes_yRes = new TH2F("h_dch1_xRes_yRes", "h_dch1_xRes_yRes", nBins2, -res_bound, res_bound, nBins2, -res_bound, res_bound);
+    TH2F* h_dch1_xRes_zRes = new TH2F("h_dch1_xRes_zRes", "h_dch1_xRes_zRes", nBins2, -res_bound, res_bound, nBins2, -res_bound, res_bound);
+    TH2F* h_dch1_yRes_zRes = new TH2F("h_dch1_yRes_zRes", "h_dch1_yRes_zRes", nBins2, -res_bound, res_bound, nBins2, -res_bound, res_bound);
+    TH2F* h_dch2_xRes_yRes = new TH2F("h_dch2_xRes_yRes", "h_dch2_xRes_yRes", nBins2, -res_bound, res_bound, nBins2, -res_bound, res_bound);
+    TH2F* h_dch2_xRes_zRes = new TH2F("h_dch2_xRes_zRes", "h_dch2_xRes_zRes", nBins2, -res_bound, res_bound, nBins2, -res_bound, res_bound);
+    TH2F* h_dch2_yRes_zRes = new TH2F("h_dch2_yRes_zRes", "h_dch2_yRes_zRes", nBins2, -res_bound, res_bound, nBins2, -res_bound, res_bound);
+
+    TH1F* h_dch1_dist_xy = new TH1F("h_dch1_dist_xy", "h_dch1_dist_xy", nBins2, 0.0, res_bound);
+    TH1F* h_dch1_dist_xz = new TH1F("h_dch1_dist_xz", "h_dch1_dist_xz", nBins2, 0.0, res_bound);
+    TH1F* h_dch1_dist_yz = new TH1F("h_dch1_dist_yz", "h_dch1_dist_yz", nBins2, 0.0, res_bound);
+    TH1F* h_dch2_dist_xy = new TH1F("h_dch2_dist_xy", "h_dch2_dist_xy", nBins2, 0.0, res_bound);
+    TH1F* h_dch2_dist_xz = new TH1F("h_dch2_dist_xz", "h_dch2_dist_xz", nBins2, 0.0, res_bound);
+    TH1F* h_dch2_dist_yz = new TH1F("h_dch2_dist_yz", "h_dch2_dist_yz", nBins2, 0.0, res_bound);
+
+
     vector<TLine*> fits;
     for (Int_t iEv = 0; iEv < events; iEv++) {
         dstTree->GetEntry(iEv);
@@ -72,22 +87,46 @@ void qaRun1(Int_t runId = 650) {
                         Float_t Hx = hit->GetX();
                         Float_t Hy = hit->GetY();
                         Float_t Hz = hit->GetZ();
-                        Float_t Mx = Tx * (Hz - Vz) + Vx;
-                        Float_t My = Ty * (Hz - Vz) + Vy;
-                        Float_t d = Sqrt((Hx - Mx) * (Hx - Mx) + (Hy - My) * (Hy - My));
-                        h_dch1_dist->Fill(d);
-                        h_dch1_xRes->Fill(Hx - Mx);
-                        h_dch1_yRes->Fill(Hy - My);
+
+                        //XY
+                        Float_t My_xy = Ty / Tx * (Hx - Vx) + Vy;
+                        Float_t Mx_xy = Tx / Ty * (Hy - Vy) + Vx;
+                        h_dch1_dist_xy->Fill(DistFromPoinToLine(Ty / Tx, -1.0, Vy - Ty / Tx * Vx, Hx, Hy));
+                        h_dch1_xRes_yRes->Fill(Hx - Mx_xy, Hy - My_xy);
+
+                        //ZX
+                        Float_t Mx_zx = Tx * (Hz - Vz) + Vx;
+                        Float_t Mz_zx = 1.0 / Tx * (Hx - Vx) + Vz;
+                        h_dch1_dist_xz->Fill(DistFromPoinToLine(Tx, -1.0, Vx - Tx * Vz, Hz, Hx));
+                        h_dch1_xRes_zRes->Fill(Hx - Mx_zx, Hz - Mz_zx);
+
+                        //ZY
+                        Float_t My_zy = Ty * (Hz - Vz) + Vy;
+                        Float_t Mz_zy = 1.0 / Ty * (Hy - Vy) + Vz;
+                        h_dch1_dist_yz->Fill(DistFromPoinToLine(Ty, -1.0, Vy - Ty * Vz, Hz, Hy));
+                        h_dch1_yRes_zRes->Fill(Hy - My_zy, Hz - Mz_zy);
+                        
                     } else if (dchId == 2) {
                         Float_t Hx = hit->GetX();
                         Float_t Hy = hit->GetY();
                         Float_t Hz = hit->GetZ();
-                        Float_t Mx = Tx * (Hz - Vz) + Vx;
-                        Float_t My = Ty * (Hz - Vz) + Vy;
-                        Float_t d = Sqrt((Hx - Mx) * (Hx - Mx) + (Hy - My) * (Hy - My));
-                        h_dch2_dist->Fill(d);
-                        h_dch2_xRes->Fill(Hx - Mx);
-                        h_dch2_yRes->Fill(Hy - My);
+                        //XY
+                        Float_t My_xy = Ty / Tx * (Hx - Vx) + Vy;
+                        Float_t Mx_xy = Tx / Ty * (Hy - Vy) + Vx;
+                        h_dch2_dist_xy->Fill(DistFromPoinToLine(Ty / Tx, -1.0, Vy - Ty / Tx * Vx, Hx, Hy));
+                        h_dch2_xRes_yRes->Fill(Hx - Mx_xy, Hy - My_xy);
+
+                        //ZX
+                        Float_t Mx_zx = Tx * (Hz - Vz) + Vx;
+                        Float_t Mz_zx = 1.0 / Tx * (Hx - Vx) + Vz;
+                        h_dch2_dist_xz->Fill(DistFromPoinToLine(Tx, -1.0, Vx - Tx * Vz, Hz, Hx));
+                        h_dch2_xRes_zRes->Fill(Hx - Mx_zx, Hz - Mz_zx);
+
+                        //ZY
+                        Float_t My_zy = Ty * (Hz - Vz) + Vy;
+                        Float_t Mz_zy = 1.0 / Ty * (Hy - Vy) + Vz;
+                        h_dch2_dist_yz->Fill(DistFromPoinToLine(Ty, -1.0, Vy - Ty * Vz, Hz, Hy));
+                        h_dch2_yRes_zRes->Fill(Hy - My_zy, Hz - Mz_zy);
                     }
                     h_nHitsInTrack->Fill(track->GetNofHits());
                 }
@@ -114,7 +153,7 @@ void qaRun1(Int_t runId = 650) {
             }
             //break; //TEST to get one good event
         } else {
-//            cout << "Skip bad event" << endl;
+            //            cout << "Skip bad event" << endl;
         }
     } // event loop
 
@@ -130,20 +169,36 @@ void qaRun1(Int_t runId = 650) {
 
 
     TCanvas* c2 = new TCanvas("c2", "c2", 1800, 600);
-    c2->Divide(3, 2);
+    c2->Divide(2, 3);
     c2->cd(1);
-    h_dch1_dist->Draw("");
+    h_dch1_dist_xy->Draw("");
     c2->cd(2);
-    h_dch1_xRes->Draw("");
+    h_dch2_dist_xy->Draw("");
     c2->cd(3);
-    h_dch1_yRes->Draw("");
+    h_dch1_dist_xz->Draw("");
     c2->cd(4);
-    h_dch2_dist->Draw("");
+    h_dch2_dist_xz->Draw("");
     c2->cd(5);
-    h_dch2_xRes->Draw("");
+    h_dch1_dist_yz->Draw("");
     c2->cd(6);
-    h_dch2_yRes->Draw("");
-    c2->SaveAs("xyDch_res.png");
+    h_dch2_dist_yz->Draw("");
+    c2->SaveAs("dch_dist.png");
+
+    TCanvas* c5 = new TCanvas("c5", "c5", 1800, 600);
+    c5->Divide(2, 3);
+    c5->cd(1);
+    h_dch1_xRes_yRes->Draw("colz");
+    c5->cd(2);
+    h_dch2_xRes_yRes->Draw("colz");
+    c5->cd(3);
+    h_dch1_xRes_zRes->Draw("colz");
+    c5->cd(4);
+    h_dch2_xRes_zRes->Draw("colz");
+    c5->cd(5);
+    h_dch1_yRes_zRes->Draw("colz");
+    c5->cd(6);
+    h_dch2_yRes_zRes->Draw("colz");
+    c5->SaveAs("dch_res_2D.png");
 
     TCanvas* c3 = new TCanvas("c3", "c3", 800, 800);
     h_nHitsInTrack->Draw("");
@@ -162,7 +217,7 @@ void qaRun1(Int_t runId = 650) {
 }
 
 Bool_t CheckEvent(TClonesArray* hits) {
-    
+
     Bool_t lay0 = kFALSE;
     Bool_t lay1 = kFALSE;
     Bool_t lay2 = kFALSE;
@@ -182,7 +237,13 @@ Bool_t CheckEvent(TClonesArray* hits) {
                 break;
         }
     }
-//    cout << lay0 << " " << lay1 << " " << lay2 << " " << lay3 << endl;
+    //    cout << lay0 << " " << lay1 << " " << lay2 << " " << lay3 << endl;
 
     return (lay0 && lay1 && lay2 && lay3);
+}
+
+Float_t DistFromPoinToLine(Float_t A, Float_t B, Float_t C, Float_t Mx, Float_t My) {
+    // Distance from point (Mx, My) to line Ax + By + C = 0 is equal:
+    // d = |A * Mx + B * My + C| / Sqrt(A^2 + B^2)
+    return Abs(A * Mx + B * My + C) / Sqrt(A * A + B * B);
 }

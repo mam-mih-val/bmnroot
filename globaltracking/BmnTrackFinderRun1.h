@@ -367,6 +367,7 @@ BmnStatus FindTracks(TClonesArray* hits, TClonesArray* tracks, Float_t chi2Thres
                         par->SetPosition(vertex);
                         par->SetTx(direction.X() / direction.Z());
                         par->SetTy(direction.Y() / direction.Z());
+                        par->SetQp(direction.Mag());
                         track->SetParamFirst(par);
                         track->AddHit(hit0->GetHitId(), HitType(0));
                         track->AddHit(hit1->GetHitId(), HitType(0));

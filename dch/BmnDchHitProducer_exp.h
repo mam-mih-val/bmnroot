@@ -12,7 +12,7 @@
 #include "TH1D.h"
 #include "TH2D.h"
 #include <TF1.h>
-//#include "TGraph2DErrors.h"
+#include "TGraph2DErrors.h"
 #include "TGraph2D.h"
 #include <TGraph.h>
 #include <TSpline.h>
@@ -52,7 +52,8 @@ class BmnDchHitProducer_exp : public FairTask
         Bool_t fOnlyPrimary;
         UShort_t fDchNum;
         Bool_t fDchUsed;
-        UInt_t eventNum; 
+	UInt_t eventNum; 
+        UShort_t calibMethod; 
         Int_t nevents; 
         UInt_t neventsUsed; 
         //Double_t z3121,z4121,z4131;
@@ -99,22 +100,23 @@ class BmnDchHitProducer_exp : public FairTask
 	Bool_t 		HitExist(Double_t delta);	
 	Double_t	GetPhi(UShort_t proj);
 	Int_t		WireID(UInt_t uid, Double_t wirePos, Double_t R);
-        Double_t        wirePosition(UShort_t gasgap, UInt_t wirenum);
+        Double_t        wirePosition(UShort_t gasgap, UInt_t wirenum, UShort_t uidLocalproj);
         Double_t        rtCurve(Double_t time);
         UShort_t        PlanesTopology();
         void            ExtrapToDch(const Double_t x[],const Double_t y[],const Double_t zLayer[],const UShort_t ijk[],Int_t &jjgr2);
-	
+        void LinearTrackFitter(TGraph2DErrors* cpctrgr, Double_t seg1tan, Double_t phi1, Double_t *parFit, TH1F *chi2linfit);
   	BmnDchHit* 	AddHit0(Int_t index, Int_t detID, const TVector3& posHit, const TVector3& posHitErr, Int_t trackIndex, Int_t pointIndex, Int_t flag, UInt_t dchlayer);
   	BmnDchHit* 	AddHit(Int_t index, Int_t detID, const TVector3& posHit, const TVector3& posHitErr, Int_t trackIndex, Int_t pointIndex, Int_t flag, UInt_t dchlayer);
 
 		
 public:
 
-  	BmnDchHitProducer_exp(UInt_t num, Int_t verbose = 1, Bool_t DoTest = false, TString runtype="run1");
+  	BmnDchHitProducer_exp(UShort_t num, Int_t verbose = 1, Bool_t DoTest = false, TString runtype="run1");
   	~BmnDchHitProducer_exp();
 
  	//InitStatus	Init();
  	void	        InitDch(TChain *bmntree, TClonesArray *dchDigits, TTree* tReco);
+  	//void 		ExecDch(Int_t iev, TClonesArray *dchDigits, TClonesArray* &dchHits);
   	void 		ExecDch(Int_t iev, TClonesArray *dchDigits);
 	void		FinishDch();
 

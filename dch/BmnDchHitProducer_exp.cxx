@@ -16,6 +16,9 @@
 //#include <TSpectrum.h>
 #include "TSpectrum.h"
 #include "TRandom2.h"
+#include "TVirtualFitter.h"
+#include "Math/Vector3D.h"
+#include "TGraphErrors.h"
 #include "Math/WrappedTF1.h"
 #include "Math/BrentRootFinder.h"
 #include "BmnDch1.h"
@@ -34,6 +37,10 @@
 #include "BmnDchRaw2Digit.h"
 //#include "BmnDchDigit.h"
 //#include <TObjectTable.h>
+
+using namespace ROOT::Math;
+
+Bool_t checkFitDch=true;
 
 // constants definition
         const Double_t BmnDchHitProducer_exp::cosPhi_45 = TMath::Cos(-45.*TMath::DegToRad()); 
@@ -67,7 +74,7 @@ struct __ltstr
 };
 
 //------------------------------------------------------------------------------------------------------------------------
-BmnDchHitProducer_exp::BmnDchHitProducer_exp(UInt_t num = 1, Int_t verbose, Bool_t test, TString runtype) : FairTask("Dch HitProducer", verbose), fDoTest(test), fRSigma(0.2000), fRPhiSigma(0.0200), fOnlyPrimary(kFALSE)
+BmnDchHitProducer_exp::BmnDchHitProducer_exp(UShort_t num = 1, Int_t verbose, Bool_t test, TString runtype) : FairTask("Dch HitProducer", verbose), fDoTest(test), fRSigma(0.2000), fRPhiSigma(0.0200), fOnlyPrimary(kFALSE)
 {
 	pRandom = new TRandom2;
         fDchNum = num;
@@ -92,8 +99,8 @@ void BmnDchHitProducer_exp::InitDchParameters(){
   //checkGraphs=kTRUE;
   fDoOccupancy=kFALSE;
   //fDoOccupancy=kTRUE;
-  //useCalib=kFALSE;
-  //useCalib=kTRUE;
+  //calibMethod=1;// maximum interval
+  calibMethod=2; //inflex points
   //fAngleCorrectionFill=kFALSE;
   //fAngleCorrectionFill=kTRUE;
   eventNum=0; 
@@ -253,7 +260,6 @@ void	BmnDchHitProducer_exp::InitDch(TChain *bmnTree,TClonesArray *dchDigits,TTre
 	minDriftTime[fDchNum-1] = new TH1D(minDriftTimeName,"minimal drift times",900, 300.,1200.); 
         //if(fAngleCorrectionFill)BookHistsAngleCorr(); 
         //if(fAngleCorrectionFill==false)FitHistsAngleCorr();
-        //if(useCalib)rtCalibration();
         rtCalibration(bmnTree,dchDigits);
         cout << " RT calibration done. " << endl;
         
@@ -362,11 +368,30 @@ Double_t BmnDchHitProducer_exp::GetDriftLength(UShort_t gasgap, Double_t x, Doub
 return x - wirePos;	// [cm]
 }
 //------------------------------------------------------------------------------------------------------------------------
-Double_t BmnDchHitProducer_exp::wirePosition(UShort_t gasgap, UInt_t wirenum)
+Double_t BmnDchHitProducer_exp::wirePosition(UShort_t gasgap, UInt_t wirenum, UShort_t uidLocalproj)
 {
 
+Double_t wirePos;
+//cout<<"uidLocalproj = "<<uidLocalproj<<endl;
+
 //wire position in local frame
-        Double_t wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf);
+        if(uidLocalproj==0){
+          //wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+1):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf+1);
+          wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf);
+          //wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer));
+        }else if(uidLocalproj==1){
+          //wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+1):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf+1);
+          wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf);
+          //wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer));
+        }else if(uidLocalproj==2){
+          //wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+1):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf+1);
+          wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf);
+          //wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer));
+        }else if(uidLocalproj==3){
+          //wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+1):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf+1);
+          wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf);
+          //wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer));
+        }
         //Double_t wirePos = (gasgap == 0) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer)-stepXYhalf);
         //Double_t wirePos = (gasgap == 1) ? (Double_t(wirenum)-Double_t(halfNumWiresPerLayer)):(Double_t(wirenum)-Double_t(halfNumWiresPerLayer)+stepXYhalf);
 		
@@ -470,6 +495,12 @@ for (Int_t j = 1; j <= nbinsdth2; j++) {
 }
 */
 //Int_t binmax = minDriftTime[fDchNum-1]->GetMaximumBin();
+Int_t nbinsUsed;
+//spline3 = new TSpline3(minDriftTime[fDchNum-1], "", 0., 0.);
+spline5[fDchNum-1] = new TSpline5(minDriftTime[fDchNum-1], "", 0.,0.,0.,0.);
+spline5[fDchNum-1]->SetTitle("TDC");
+spline5[fDchNum-1]->SetName("tdc");
+if(calibMethod==1){
 Double_t hmax = minDriftTime[fDchNum-1]->GetMaximum();
 Int_t hmaxbin = minDriftTime[fDchNum-1]->GetMaximumBin();
 Double_t hmin = minDriftTime[fDchNum-1]->GetMinimum();
@@ -542,24 +573,30 @@ do{
  i--; 
 }while(!((bincon1>bincon0&&bincon1<upperlim)||UInt_t(bincon1)==0));
 ranminbin=i+2;
-Int_t nbinsUsed=hminbin2-ranminbin+1;
+//cout<<ranmaxbin<<" "<<ranmaxbin<<endl;
+cout<<"ranminbin = "<<ranminbin<<endl;
+nbinsUsed=hminbin2-ranminbin+1;
 //Int_t nbinsUsed=hminbin2-hminbin1+1;
 //ranmin=minDriftTime[fDchNum-1]->GetBinCenter(hminbin1)-0.5*(minDriftTime[fDchNum-1]->GetBinWidth(hminbin1)); 
 ranmin=minDriftTime[fDchNum-1]->GetBinCenter(ranminbin)-0.5*(minDriftTime[fDchNum-1]->GetBinWidth(ranminbin)); 
 ranmax=minDriftTime[fDchNum-1]->GetBinCenter(hminbin2)+0.5*(minDriftTime[fDchNum-1]->GetBinWidth(hminbin2)); 
+}else if(calibMethod==2){
+Double_t inflX1,inflX2;
+tdcInflexPoints(inflX1,inflX2);
+cout<<"inflex points (left,right) = "<<inflX1<<", "<<inflX2<<endl;
+ranmin=inflX1;
+ranmax=inflX2;
+Double_t binwidth=minDriftTime[fDchNum-1]->GetBinWidth(1);
+nbinsUsed=Int_t(ranmax/binwidth)-Int_t(ranmin/binwidth)+1;
+}
 Double_t timeRange=ranmax-ranmin;
-//spline3 = new TSpline3(minDriftTime[fDchNum-1], "", 0., 0.);
-spline5[fDchNum-1] = new TSpline5(minDriftTime[fDchNum-1], "", 0.,0.,0.,0.);
-spline5[fDchNum-1]->SetTitle("TDC");
-spline5[fDchNum-1]->SetName("tdc");
-//cout<<ranminbin<<" "<<ranmaxbin<<endl;
-cout<<"ranminbin = "<<ranminbin<<endl;
 cout<<"time interval: "<<ranmin<<" "<<ranmax<<endl;
 const UInt_t nintervals=40,npoints=nintervals+1;
 Double_t deldt=(ranmax-ranmin)/Double_t(nintervals);
 Double_t dt[npoints],r[npoints];
 //Double_t norm=diagonal/(fitdt->Integral(0.,ranmax));
 //Double_t norm=stepXYhalf/(fitdt->Integral(0.,ranmax));
+if(checkDch)cout<<"nbinsUsed = "<<nbinsUsed<<endl;
 Double_t norm=stepXYhalf/SplineIntegral(ranmin,ranmax,nbinsUsed*5);
 for (Int_t j = 0; j <= nintervals; j++) {
  dt[j]=deldt*Double_t(j);
@@ -589,9 +626,6 @@ spline5rt[fDchNum-1]->SetName("rtCalibSpline");
 //spline3 = new TSpline3("spline3",splinederiv->GetX(),splinederiv->GetY(),splinederiv->GetN());
 //fdstread->Close();
 //NumericalRootFinder();
-Double_t inflX1,inflX2;
-tdcInflexPoints(inflX1,inflX2);
-cout<<"inflex points (left,right) = "<<inflX1<<", "<<inflX2<<endl;
 
 
 }
@@ -632,6 +666,7 @@ TSpectrum *s = new TSpectrum(10,1.);
 Int_t nfound = s->Search(hist_new,2,"nobackground");
 Float_t *xpeaks = s->GetPositionX();
 inflX2 = Double_t(xpeaks[1]); //right inflex point
+delete hist_new;
 
 }
  
@@ -697,6 +732,7 @@ Int_t		BmnDchHitProducer_exp::WireID(UInt_t uid, Double_t wirePos, Double_t R)
 return (int)(wirePos + 1000.*uid);  // one wire 
 }
 //------------------------------------------------------------------------------------------------------------------------
+//void 			BmnDchHitProducer_exp::ExecDch(Int_t iev, TClonesArray *dchDigits, TClonesArray* &dchHits) 
 void 			BmnDchHitProducer_exp::ExecDch(Int_t iev, TClonesArray *dchDigits) 
 {
   	pHitCollection->Delete();
@@ -753,13 +789,13 @@ void 			BmnDchHitProducer_exp::ExecDch(Int_t iev, TClonesArray *dchDigits)
                 //uidLocal%2==0?(hitWire=UInt_t(Int_t(dchHit->GetWirePosition())+Int_t(halfNumWiresPerLayer))):(hitWire=UInt_t(Int_t(dchHit->GetWirePosition()-0.5)+Int_t(halfNumWiresPerLayer)));
                 hitWire=UInt_t(digit->GetWireNumber()); 
 		gasgap = GetGasGap(uid); 
-                if(checkDch)cout<<"hitWire = "<<hitWire<<" "<<wirePosition(gasgap,hitWire)<<", uidLocal = "<<uidLocal<<endl; 
+                if(checkDch)cout<<"hitWire = "<<hitWire<<" "<<wirePosition(gasgap,hitWire,GetProj(uidLocal))<<", uidLocal = "<<uidLocal<<endl; 
                 //cout<<" angle wire position correction = "<<dchHit->GetAngleCorrWirePos()<<endl;
                 //uidLocal%2==0?(hitWire=UInt_t(Int_t(dchHit->GetWirePosition())+Int_t(halfNumWiresPerLayer))):(hitWire=UInt_t(Int_t(dchHit->GetAngleCorrWirePos()-0.5)+Int_t(halfNumWiresPerLayer)));
                 //cout<<"hitWire = "<<hitWire<<" "<<dchHit->GetAngleCorrWirePos()<<", uidLocal = "<<uidLocal<<", trackId = "<<dchHit->GetTrackID()<<endl; 
                 uid<numLayers?detID=detIdDch1:detID=detIdDch2;  
 		if(wireUsed[uidLocal][hitWire]==false)wireUsed[uidLocal][hitWire]=true; 
-                dchhitplane[uidLocal]->SetDchPlaneHit(ijkl[uidLocal]++, wirePosition(gasgap,hitWire),0.,0,detID,hitWire,rtCurve(digit->GetTime()),i);
+                dchhitplane[uidLocal]->SetDchPlaneHit(ijkl[uidLocal]++, wirePosition(gasgap,hitWire,GetProj(uidLocal)),0.,0,detID,hitWire,rtCurve(digit->GetTime()),i);
                 //cout<<" drift distance = "<<fitrt->Eval(digit->GetTime()-timeOffset)<<endl;
                 //cout<<" hits "<<ijkl[uidLocal]<<" "<<fDchNum-1<<" "<<uidLocal<<endl;
                 //cout<<" hit position (global)(x,y,z): "<<dchHit->GetX()<<" "<<dchHit->GetY()<<" "<<dchHit->GetZ()<<endl;
@@ -781,12 +817,17 @@ void 			BmnDchHitProducer_exp::ExecDch(Int_t iev, TClonesArray *dchDigits)
         //if(topol==0){
          HitFinder();
         }else{
-         cout<<"Not enough hits in DCH! Hits not produced!"<<endl; 
+         cout<<"Not enough hits in DCH"<<fDchNum<<"! Hits not produced!"<<endl; 
         }
-        
+       
+        //dchHits = (TClonesArray*)pHitCollection->Clone();
+        //Int_t nentries=dchHits->GetEntries();
+        //cout<<"nentries1 = "<<nentries<<endl;
+ 
         if(checkGraphs){
          gList.Add(hXYZcombhits); 
         }
+
 	
         //for (UShort_t j = 0; j < numChambers; j++) {
           for (UShort_t k = 0; k < numLayers; k++) {
@@ -990,8 +1031,10 @@ void		BmnDchHitProducer_exp::FinishDch()
         //fitdt->Write();
         spline5[fDchNum-1]->Write();
         spline5rt[fDchNum-1]->Write();
-        splinederiv[fDchNum-1]->Write();
-        splinederivsmooth[fDchNum-1]->Write();
+        if(calibMethod==2){ 
+         splinederiv[fDchNum-1]->Write();
+         splinederivsmooth[fDchNum-1]->Write();
+        }
         //fitrt->Write();
 
       	file.Close();
@@ -1196,14 +1239,16 @@ Double_t BmnDchHitProducer_exp::rtCurve(Double_t time)
 Double_t radDist;
 if(time<ranmin){
 radDist=0.;
+if(checkDch)cout<<"drift time underflow"<<endl;
 }else if(time>=ranmin&&time<=ranmax){
 radDist=spline5rt[fDchNum-1]->Eval(time-ranmin);
 }else{
 //cout<<"spline5rt[fDchNum-1] "<<time<<" "<<ranmax<<" "<<ranmin<<endl;
 radDist=spline5rt[fDchNum-1]->Eval(ranmax-ranmin);
+if(checkDch)cout<<"drift time overflow"<<endl;
 }
 if(radDist<0.)radDist=0.;
-  
+
 return radDist;
  
 }
@@ -1283,7 +1328,7 @@ UShort_t pairPlanesUsed=0,planesUsed=0,topol;
      }
      if(planesUsed==8)topol=0;
 
-cout<<"planes topology = "<<topol<<", main planes (0 to 4) = "<<pairPlanesUsed<<", planes (0 to 8) = "<<planesUsed<<endl; 
+cout<<"planes topology in DCH"<<fDchNum<<" = "<<topol<<", main planes (0 to 4) = "<<pairPlanesUsed<<", planes (0 to 8) = "<<planesUsed<<endl; 
 
 return topol;
 
@@ -1308,7 +1353,7 @@ Double_t delZ=zLayer[ijk[1]]-zLayer[ijk[0]],delZ2;
 //Double_t delXshift=detXshift[1]-detXshift[0];
 Double_t tgx=(x[1]-x[0])/delZ;
 Double_t tgy=(y[1]-y[0])/delZ;
-if(checkDch)cout<<"tgx = "<<tgx<<", tgy = "<<tgy<<endl;
+if(checkDch)cout<<"tgx = "<<tgx<<", tgy = "<<tgy<<", delZ = "<<delZ<<", x[1] = "<<x[1]<<", x[0] = "<<x[0]<<", y[1] = "<<y[1]<<", y[0] = "<<y[0]<<endl;
 /*if(fDchNum==2){
 tgx=-tgx;
 tgy=-tgy;
@@ -1319,7 +1364,7 @@ Double_t xExtrap[numLayers],yExtrap[numLayers];
        delZ2=(zLayerExtrap[i]-zLayer[ijk[0]]);
        //xExtrap[i]=x[0]+tgx*delZ2+delXshift;
        xExtrap[i]=x[0]+detXshift[fDchNum-1]+tgx*delZ2;
-       if(checkDch)cout<<"xExtrap[i] = "<<xExtrap[i]<<", x[i] = "<<x[i]<<", detXshift[fDchNum-1] = "<<detXshift[fDchNum-1]<<", x[i] + detXshift[fDchNum-1] = "<<x[i] + detXshift[fDchNum-1]<<", tgx*delZ2 = "<<tgx*delZ2<<endl;
+       if(checkDch)cout<<"xExtrap[i] = "<<xExtrap[i]<<", x[i] = "<<x[i/2]<<", detXshift[fDchNum-1] = "<<detXshift[fDchNum-1]<<", x[i] + detXshift[fDchNum-1] = "<<x[i/2] + detXshift[fDchNum-1]<<", tgx*delZ2 = "<<tgx*delZ2<<endl;
        //xExtrap[i]=x[0]+tgx*delZ2;
        yExtrap[i]=y[0]+tgy*delZ2;
        if(checkDch)cout<<"yExtrap[i] = "<<yExtrap[i]<<", y[0] = "<<y[0]<<", tgy*delZ2 = "<<tgy*delZ2<<endl;
@@ -1329,5 +1374,6 @@ Double_t xExtrap[numLayers],yExtrap[numLayers];
 
 
 }
+
 //-------------------------------------------------------------------------------------------------------------------------
 ClassImp(BmnDchHitProducer_exp)

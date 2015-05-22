@@ -11,7 +11,7 @@
 
 using namespace TMath;
 
-void recoRun1(Int_t runId = 650) {
+void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -45,20 +45,22 @@ void recoRun1(Int_t runId = 650) {
     bmnRawTree->SetBranchAddress("bmn_mwpc", &mwpcDigits);
 
     Int_t startEvent = 1;
-    Int_t nEvents = bmnTree->GetEntries();
+    Int_t events = (nEvents == 0) ? bmnTree->GetEntries() : nEvents;
+    
+    TFile* fReco = new TFile(TString::Format("bmndst_run%d.root", runId), "RECREATE");
+    TTree* tReco = new TTree("cbmsim", TString::Format("bmndst_run%d", runId));
+    
     TClonesArray* dchHits = new TClonesArray("BmnDchHit");
     TClonesArray* mwpcHits = new TClonesArray("BmnMwpcHit");
     TClonesArray* hitsOrig = new TClonesArray("BmnDchHitOriginal");
     TClonesArray* recoTracks = new TClonesArray("CbmTrack");
 
-    TFile* fReco = new TFile(TString::Format("bmndst_run%d.root", runId), "RECREATE");
-    TTree* tReco = new TTree("cbmsim", TString::Format("bmndst_run%d", runId));
     tReco->Branch("BmnDchHit", &dchHits);
     tReco->Branch("BmnMwpcHit", &mwpcHits);
     tReco->Branch("BmnDchHitOriginal", &hitsOrig);
     tReco->Branch("RecoTracks", &recoTracks);
 
-    for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
+    for (Int_t iEv = startEvent; iEv < startEvent + events; iEv++) {
         bmnTree->GetEntry(iEv);
         bmnRawTree->GetEntry(iEv);
 
@@ -67,29 +69,16 @@ void recoRun1(Int_t runId = 650) {
         hitsOrig->Clear();
         recoTracks->Clear();
 
-        if (iEv % 1000 == 0) cout << "Event: " << iEv + 1 << "/" << startEvent + nEvents << endl;
+        if (iEv % 1000 == 0) cout << "Event: " << iEv + 1 << "/" << startEvent + events << endl;
 
         /* ======= Functions for hits reconstruction ======= */
-
-        //FIXME! Calling of this functions should depend on runType
         ProcessDchDigits(dchDigits, dchHits);
-        //        if (dchHits->GetEntriesFast() != 4) continue;
         //        ProcessMwpcDigits(mwpcDigits, mwpcHits);
 
         /* ======= Functions for "seeding" ======= */
-        //Make here coordinates transformation to find hits corresponded same track
-        //BmnStatus status = FindSeed(dchHits, recoTracks);
-        //FindSeed(dchHits, recoTracks);
-        //This function searches all straight tracks in DCHs by four hits
-        FindTracks(dchHits, recoTracks, 0.01);
+        DchTrackFinder(dchHits, recoTracks);
 
-        /* ======= Functions for tracks reconstruction ======= */
-        //        TVector3 vertex;
-        //        TVector3 direction;
-        //        LineFit3D(dchHits, vertex, direction);
-        //        cout << dchHits->GetEntriesFast() << endl;
-        //        vertex.Print();
-        //        direction.Print();
+        /* ======= Functions for tracks matching ======= */
 
         tReco->Fill();
     } // event loop

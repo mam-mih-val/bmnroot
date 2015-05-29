@@ -10,8 +10,11 @@ void recoRunDCH() {
     bmnloadlibs(); // load bmn libraries
 
     Int_t bmn_event,bmn_run;
-    //UInt_t EventSelect=100000;
+    //UInt_t EventSelect=250000;
+    //UInt_t EventSelect=30000;
     UInt_t EventSelect=10000;
+    //UInt_t EventSelect=5000;
+    //UInt_t EventSelect=1000;
     UInt_t ievProcessed=0;
     Char_t* runname="bmn_run0166_digit.root";
     //Char_t* runname="bmn_run0607_digit.root";
@@ -52,27 +55,45 @@ void recoRunDCH() {
     dchexp1->InitDch(bmnTree,dchDigits,tReco);
     dchexp2->InitDch(bmnTree,dchDigits,tReco);
 
+    //TClonesArray *dchHits1,*dchHits2; 
+    //BmnDchHit *dchHit;
+
     for (Int_t iev = 0; iev < nevents; iev++) {
         bmnTree->GetEntry(iev);
         if(iev%EventSelect==0){
          cout << "event number = " << iev << endl;
          ievProcessed++;
         }
-        //cout<<"nhits in Dch = "<<nhits<<endl;
-        //if(iev==30000)dchexp1->ExecDch(iev,dchDigits);
-        //if(iev==30000)dchexp2->ExecDch(iev,dchDigits);
         if(iev%EventSelect==0)dchexp1->ExecDch(iev,dchDigits);
         if(iev%EventSelect==0)dchexp2->ExecDch(iev,dchDigits);
+        //if(iev==20000)dchexp1->ExecDch(iev,dchDigits);
+        //if(iev==20000)dchexp2->ExecDch(iev,dchDigits);
         //dchexp->ExecDch(iev,dchDigits);
+        /*if(iev%EventSelect==0)dchexp1->ExecDch(iev,dchDigits,dchHits1);
+        if(iev%EventSelect==0)dchexp2->ExecDch(iev,dchDigits,dchHits2);
+        if(iev%EventSelect==0){
+         Int_t nentries=dchHits1->GetEntries();   
+         for (Int_t ihit = 0; ihit < nentries; ihit++) {
+           dchHit = (BmnDchHit*) dchHits1->UncheckedAt(ihit);
+           //cout<<"layer1 = "<<dchHit->GetLayer()<<endl;
+         }
+         cout<<"nentries = "<<nentries<<endl;
+         delete dchHits1;
+         Int_t nentries=dchHits2->GetEntries();   
+         cout<<"nentries = "<<nentries<<endl;
+         delete dchHits2;
+        }*/
         tReco->Fill();
+        //dchHits1->Clear(); 
+        //dchHits2->Clear(); 
     } // event loop
+
 
     //dchexp->FinishDch();
     dchexp1->FinishDch();
     dchexp2->FinishDch();
     fReco->cd();
     tReco->Write();
-    //tReco->Dump();
     fReco->Close();
     //delete dchexp;
     delete dchexp1;

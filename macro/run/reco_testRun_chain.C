@@ -31,13 +31,15 @@ TH2F* h_dch2_dist_x = new TH2F("h_dch2_dist_x", "h_dch2_dist_x", nBins2, -res_bo
 TH2F* h_dch2_dist_y = new TH2F("h_dch2_dist_y", "h_dch2_distyx", nBins2, -res_bound, res_bound, nBins2, -res_bound, res_bound);
 TH2F* h_dch2_dist_z = new TH2F("h_dch2_dist_z", "h_dch2_dist_z", nBins2, -res_bound, res_bound, nBins2, -res_bound, res_bound);
 
+
+
 void reco_testRun_chain() {
 
-    recoRun1(650, 0);
+    recoRun1(250, 0);
     //recoRun1(649);
 
     //qaRun1(649, 0);
-    qaRun1(650, 0);
+//    qaRun1(650, 0);
 
     fOut->Write();
     fOut->Close();

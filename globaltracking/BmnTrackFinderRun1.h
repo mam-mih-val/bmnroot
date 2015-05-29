@@ -17,60 +17,10 @@
 using namespace std;
 using namespace TMath;
 
-//TVector3 LineFit(TClonesArray* hits) {
-//
-//    //Least Square Method//
-//    Float_t Xi = 0.0, Zi = 0.0; // coordinates of current track point
-//    Float_t a = 0.0, b = 0.0; // parameters of line: x = a * z + b
-//    Float_t SumX = 0.0, SumZ = 0.0, SumXZ = 0.0, SumZ2 = 0.0;
-//    const Int_t nHits = hits->GetEntriesFast();
-//    for (Int_t i = 0; i < nHits; ++i) {
-//        BmnHit* hit = (BmnHit*) hits->At(i);
-//        //        cout << "x = " << hit->GetX() << " z = " << hit->GetZ() << endl;
-//        Xi = hit->GetX();
-//        Zi = hit->GetZ();
-//        SumX += Xi;
-//        SumZ += Zi;
-//        SumXZ += Xi * Zi;
-//        SumZ2 += Zi * Zi;
-//    }
-//
-//    a = (nHits * SumXZ - SumX * SumZ) / (nHits * SumZ2 - SumZ * SumZ);
-//    b = (SumX - a * SumZ) / nHits;
-//
-//    return TVector3(a, b, 0.0);
-//}
-
-Float_t LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction) {
+Float_t LineFit3D(vector<FairHit*> hits, TVector3& vertex, TVector3& direction) {
 
     //    cout << "LineFit3D started!" << endl;
     const Int_t nHits = hits.size();
-
-    if (nHits < 3) {
-        cout << "WARNING: not enough hits for tracking! (Number of hits is " << nHits << ")" << endl;
-        vertex = TVector3(0.0, 0.0, 0.0);
-        direction = TVector3(0.0, 0.0, 0.0);
-        return 1000.0;
-    }
-
-    //Rough checking for hits. They shouldn't be on the same DCH
-    BmnDchHit* hit0 = (BmnDchHit*) hits.at(0);
-    UInt_t dchId0 = hit0->GetLayer();
-    Bool_t flag = kFALSE;
-    for (Int_t i = 1; i < hits.size(); ++i) {
-        BmnDchHit* hit = (BmnDchHit*) hits.at(i);
-        UInt_t dchId = hit->GetDchId();
-        if (dchId != dchId0) {
-            flag = kTRUE;
-            break;
-        }
-    }
-    if (!flag) {
-        cout << "WARNING: All hits on the same DCH" << endl;
-        vertex = TVector3(0.0, 0.0, 0.0);
-        direction = TVector3(0.0, 0.0, 0.0);
-        return 1000.0;
-    }
 
     Float_t Xi = 0.0, Yi = 0.0, Zi = 0.0; // coordinates of current track point
     Float_t Ci;
@@ -79,8 +29,8 @@ Float_t LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction
     Float_t SumW = 0.0;
     Float_t SumC = 0.0, SumC2 = 0.0;
     Float_t Wi = 1.0 / nHits; // weight    
-    Float_t ZV = ((BmnDchHit*) hits.at(0))->GetZ(); //Z-coordinate of vertex
-    Float_t ZN = ((BmnDchHit*) hits.at(nHits - 1))->GetZ();
+    Float_t ZV = ((FairHit*) hits.at(0))->GetZ(); //Z-coordinate of vertex
+    Float_t ZN = ((FairHit*) hits.at(nHits - 1))->GetZ();
     Float_t Az = (ZN - ZV);
     if (Az == 0.0) {
         cout << "Az = 0.0" << endl;
@@ -89,15 +39,15 @@ Float_t LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction
         return 1000.0;
     }
     for (Int_t i = 0; i < nHits; ++i) {
-        BmnDchHit* hit = (BmnDchHit*) hits.at(i);
+        FairHit* hit = (FairHit*) hits.at(i);
         if (hit == NULL) continue;
         Xi = hit->GetX();
         Yi = hit->GetY();
         Zi = hit->GetZ();
-        if (Zi < 0.0) {
-            cout << "WARNING: bad hit!" << endl;
-            //            hit->Print();
-        }
+        //        if (Zi < 0.0) {
+        //            cout << "WARNING: bad hit!" << endl;
+        //            //            hit->Print();
+        //        }
         Ci = (Zi - ZV) / Az;
         SumXW += (Xi * Wi);
         SumYW += (Yi * Wi);
@@ -130,7 +80,7 @@ Float_t LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction
     Float_t sumChi2xz = 0.0;
     Float_t sumChi2yz = 0.0;
     for (Int_t i = 0; i < nHits; ++i) {
-        BmnDchHit* hit = (BmnDchHit*) hits.at(i);
+        FairHit* hit = (FairHit*) hits.at(i);
         if (hit == NULL) continue;
         Xi = hit->GetX();
         Yi = hit->GetY();
@@ -152,221 +102,27 @@ Float_t LineFit3D(vector<BmnDchHit*> hits, TVector3& vertex, TVector3& direction
     else return -1000.0;
 }
 
-//BmnStatus FindSeed(TClonesArray* hits, TClonesArray* tracks) {
-//
-//    Int_t hitsThresh = 4;
-//
-//    const Int_t nBins = 200;
-//    const Int_t nHits = hits->GetEntriesFast();
-//    Float_t minY = -0.4;
-//    Float_t maxY = -minY;
-//    Float_t width = (maxY - minY) / nBins;
-//
-//    TH1F* h = new TH1F("yOverR", "yOverR", nBins, minY, maxY);
-//
-//    if (nHits < hitsThresh) {
-//        cout << "WARNING: Too few hits: Nhits = " << nHits << endl;
-//        return kBMNERROR;
-//    }
-//    Bool_t lay0 = kFALSE;
-//    Bool_t lay1 = kFALSE;
-//    Bool_t lay2 = kFALSE;
-//    Bool_t lay3 = kFALSE;
-//
-//    for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
-//        BmnDchHit* hit = (BmnDchHit*) hits->At(i);
-//        UInt_t lay = hit->GetLayer();
-//        switch (lay) {
-//            case 0: lay0 = kTRUE;
-//                break;
-//            case 1: lay1 = kTRUE;
-//                break;
-//            case 2: lay2 = kTRUE;
-//                break;
-//            case 3: lay3 = kTRUE;
-//                break;
-//        }
-//    }
-//    cout << lay0 << " " << lay1 << " " << lay2 << " " << lay3 << endl;
-//
-//    if (!(lay0 && lay1 && lay2 && lay3)) {
-//        cout << "Hits for track not presented on each plane of DCHs" << endl;
-//        return kBMNERROR;
-//    }
-//
-//    for (Int_t iHit = 0; iHit < nHits; ++iHit) {
-//        BmnDchHit* hit = (BmnDchHit*) hits->At(iHit);
-//        const Float_t R = Sqrt(hit->GetX() * hit->GetX() + hit->GetY() * hit->GetY() + hit->GetZ() * hit->GetZ());
-//        const Float_t newX = hit->GetX() / R;
-//        const Float_t newY = hit->GetY() / R;
-//        //        Int_t xAddr = ceil((newX - minY) / width);
-//        Int_t yAddr = ceil((newY - minY) / width);
-//        //        Long_t addr = yAddr * nBins + xAddr;
-//        //        hit->SetAddr(addr);
-//        //        hit->SetXaddr(xAddr);
-//        hit->SetFlag(yAddr); //tmp storage
-//        h->Fill(newY);
-//        hit->SetIndex(iHit);
-//    }
-//
-//    vector<Int_t> peaks; // vector of connected bins
-//    for (Int_t iBin = 0; iBin < h->GetNbinsX(); iBin += (peaks.size() + 1)) {
-//        peaks.clear();
-//        peaks.resize(0);
-//        if (h->GetBinContent(iBin) > 0.0) {
-//            peaks.push_back(iBin);
-//            for (Int_t iBinPeak = iBin + 1; iBinPeak < h->GetNbinsX(); ++iBinPeak) {
-//                if (h->GetBinContent(iBinPeak) > 0.0) {
-//                    peaks.push_back(iBinPeak);
-//                } else {
-//                    break;
-//                }
-//            }
-//        }
-//
-//        vector<BmnDchHit*> hitsInTrack;
-//        for (Int_t iBinPeak = 0; iBinPeak < peaks.size(); ++iBinPeak) {
-//            for (Int_t iHit = 0; iHit < nHits; ++iHit) {
-//                BmnDchHit* hit = (BmnDchHit*) hits->At(iHit);
-//                if (hit->IsUsed()) continue;
-//                if (hit->GetFlag() == peaks.at(iBinPeak)) {
-//                    hit->SetUsing(kTRUE);
-//                    hitsInTrack.push_back(hit);
-//                }
-//            }
-//        }
-//        TVector3 vertex;
-//        TVector3 direction;
-//
-//        if (hitsInTrack.size() >= hitsThresh) {
-//            cout << "Hits in track: " << endl;
-//            //            for (Int_t iHit = 0; iHit < hitsInTrack.size(); ++iHit) {
-//            //                BmnDchHit* hit = hitsInTrack.at(iHit);
-//            //                cout << hit->GetX() << " " << hit->GetY() << " " << hit->GetZ() << endl;
-//            //            }
-//
-//            LineFit3D(hitsInTrack, vertex, direction);
-//            if (direction.Mag() == 0.0 && direction.Mag() == 0.0) continue;
-//            new((*tracks)[tracks->GetEntriesFast()]) CbmTrack();
-//            CbmTrack* track = (CbmTrack*) tracks->At(tracks->GetEntriesFast() - 1);
-//            for (Int_t iHit = 0; iHit < hitsInTrack.size(); ++iHit) {
-//                track->AddHit(hitsInTrack.at(iHit)->GetIndex(), HitType(0));
-//                FairTrackParam* par = new FairTrackParam();
-//                par->SetPosition(vertex);
-//                par->SetTx(direction.X() / direction.Z());
-//                par->SetTy(direction.Y() / direction.Z());
-//                track->SetParamFirst(par);
-//            }
-//        }
-//    }
-//
-//    TCanvas* c12 = new TCanvas("c12", "c12", 1600, 800);
-//    h->Draw("");
-//    c12->SaveAs("yR.png");
-//    delete h;
-//    return kBMNSUCCESS;
-//}
+void AddHits(vector<BmnDchHit*>& trackHits, CbmTrack& track) {
+    for (Int_t i = 0; i < trackHits.size(); ++i)
+        track.AddHit(trackHits.at(i)->GetHitId(), HitType(0));
+}
 
-//Float_t LineBy4Hits(BmnDchHit* hit0, BmnDchHit* hit1, BmnDchHit* hit2, BmnDchHit* hit3, TVector3& vertex, TVector3& direction) {
-//    vector<BmnDchHit*> hits;
-//    hits.push_back(hit0);
-//    hits.push_back(hit1);
-//    hits.push_back(hit2);
-//    hits.push_back(hit3);
-//    return LineFit3D(hits, vertex, direction);
-//}
+void AddHits(vector<BmnMwpcHit*>& trackHits, CbmTrack& track) {
+    for (Int_t i = 0; i < trackHits.size(); ++i)
+        track.AddHit(trackHits.at(i)->GetHitId(), HitType(0));
+}
 
-//BmnStatus FindSeedsOver4hits(TClonesArray* hits, TClonesArray* tracks, Float_t chi2Thresh) {
-//    Int_t hitsThresh = 4;
-//    Int_t nHits = hits->GetEntriesFast();
-//
-//    Bool_t lay0 = kFALSE;
-//    Bool_t lay1 = kFALSE;
-//    Bool_t lay2 = kFALSE;
-//    Bool_t lay3 = kFALSE;
-//
-//    vector<BmnDchHit*> lay0hits;
-//    vector<BmnDchHit*> lay1hits;
-//    vector<BmnDchHit*> lay2hits;
-//    vector<BmnDchHit*> lay3hits;
-//
-//    for (Int_t i = 0; i < nHits; ++i) {
-//        BmnDchHit* hit = (BmnDchHit*) hits->At(i);
-//        UInt_t lay = hit->GetLayer();
-//        switch (lay) {
-//            case 0:
-//            {
-//                lay0hits.push_back(hit);
-//                lay0 = kTRUE;
-//                break;
-//            }
-//            case 1:
-//            {
-//                lay1hits.push_back(hit);
-//                lay1 = kTRUE;
-//                break;
-//            }
-//            case 2:
-//            {
-//                lay2hits.push_back(hit);
-//                lay2 = kTRUE;
-//                break;
-//            }
-//            case 3:
-//            {
-//                lay3hits.push_back(hit);
-//                lay3 = kTRUE;
-//                break;
-//            }
-//        }
-//    }
-//
-//    TVector3 vertex;
-//    TVector3 direction;
-//
-//    for (Int_t i0 = 0; i0 < lay0hits.size(); ++i0) {
-//        BmnDchHit* hit0 = (BmnDchHit*) lay0hits.at(i0);
-//        //        if (hit0->IsUsed()) continue;
-//        for (Int_t i1 = 0; i1 < lay1hits.size(); ++i1) {
-//            BmnDchHit* hit1 = (BmnDchHit*) lay1hits.at(i1);
-//            //            if (hit1->IsUsed()) continue;
-//            for (Int_t i2 = 0; i2 < lay2hits.size(); ++i2) {
-//                BmnDchHit* hit2 = (BmnDchHit*) lay2hits.at(i2);
-//                //                if (hit2->IsUsed()) continue;
-//                for (Int_t i3 = 0; i3 < lay3hits.size(); ++i3) {
-//                    BmnDchHit* hit3 = (BmnDchHit*) lay3hits.at(i3);
-//                    //                    if (hit3->IsUsed()) continue;
-//                    vector<BmnDchHit*> hitsForLine;
-//                    hitsForLine.push_back(hit0);
-//                    hitsForLine.push_back(hit1);
-//                    hitsForLine.push_back(hit2);
-//                    hitsForLine.push_back(hit3);
-//                    Float_t maxChi2 = LineFit3D(hitsForLine, vertex, direction);
-//                    if (maxChi2 > chi2Thresh)
-//                        continue;
-//                    else {
-//                        new((*tracks)[tracks->GetEntriesFast()]) CbmTrack(CreateTrack(direction, vertex, hitsForLine, maxChi2));
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
-BmnStatus CreateTrack(TVector3 dir, TVector3 vert, vector<BmnDchHit*>& trackHits, CbmTrack& track, FairTrackParam& par, Float_t chi2) {
+BmnStatus CreateTrack(TVector3 dir, TVector3 vert, CbmTrack& track, FairTrackParam& par, Float_t chi2) {
     par.SetPosition(vert);
     par.SetTx(dir.X() / dir.Z());
     par.SetTy(dir.Y() / dir.Z());
     par.SetQp(dir.Mag());
     track.SetParamFirst(&par);
     track.SetChiSq(chi2);
-    for (Int_t i = 0; i < trackHits.size(); ++i) {
-        track.AddHit(trackHits.at(i)->GetHitId(), HitType(0));
-    }
     return kBMNSUCCESS;
 }
 
-BmnStatus TwoHitLine(BmnDchHit* hit1, BmnDchHit* hit2, TVector3& vertex, TVector3& direction) {
+BmnStatus TwoHitLine(FairHit* hit1, FairHit* hit2, TVector3& vertex, TVector3& direction) {
 
     Float_t x1 = hit1->GetX();
     Float_t x2 = hit2->GetX();
@@ -392,13 +148,14 @@ BmnStatus SeedFinder(vector<BmnDchHit*> lay0hits, vector<BmnDchHit*> lay1hits, v
         for (Int_t i1 = 0; i1 < lay1hits.size(); ++i1) {
             BmnDchHit* hit1 = (BmnDchHit*) lay1hits.at(i1);
             if (hit1->IsUsed()) continue;
-            TwoHitLine(hit0, hit1, vertex, direction);
+            TwoHitLine((FairHit*) hit0, (FairHit*) hit1, vertex, direction);
             vector<BmnDchHit*> trackHits;
             trackHits.push_back(hit0);
             trackHits.push_back(hit1);
             CbmTrack seed;
             FairTrackParam par;
-            CreateTrack(direction, vertex, trackHits, seed, par, -100.0);
+            CreateTrack(direction, vertex, seed, par, -100.0);
+            AddHits(trackHits, seed);
             seeds.push_back(seed);
         }
     }
@@ -441,27 +198,63 @@ BmnStatus TrackPropagation(vector<BmnDchHit*> &layHits, vector<CbmTrack>& seeds)
     }
 }
 
+BmnStatus TrackPropagation(vector<BmnMwpcHit*> &layHits, CbmTrack& seed) {
+
+    const Float_t kMINDIST = 3.0; //minimal distance for matching hits to track
+
+    Float_t minDist = 1000.0;
+    BmnMwpcHit* minHit = NULL;
+    for (Int_t iHit = 0; iHit < layHits.size(); ++iHit) {
+        BmnMwpcHit* hit = (BmnMwpcHit*) layHits.at(iHit);
+        if (hit->IsUsed()) continue;
+        //hit information
+        Float_t Hx = hit->GetX();
+        Float_t Hy = hit->GetY();
+        Float_t Hz = hit->GetZ();
+        //seed information
+        Float_t Tx = seed.GetParamFirst()->GetTx();
+        Float_t Ty = seed.GetParamFirst()->GetTy();
+        Float_t Vx = seed.GetParamFirst()->GetX();
+        Float_t Vy = seed.GetParamFirst()->GetY();
+        Float_t Vz = seed.GetParamFirst()->GetZ();
+        //coordinates of seed on current layer
+        Float_t xLay = Tx * (Hz - Vz) + Vx;
+        Float_t yLay = Ty * (Hz - Vz) + Vy;
+        Float_t dist = Sqrt((Hx - xLay) * (Hx - xLay) + (Hy - yLay) * (Hy - yLay));
+        if (dist < minDist) {
+            minDist = dist;
+            minHit = hit;
+        }
+    }
+    if (minDist <= kMINDIST) {
+        seed.AddHit(minHit->GetHitId(), HitType(0));
+    }
+}
+
 BmnStatus TrackSelection(TClonesArray* hits, vector<CbmTrack>& seeds, TClonesArray* tracks, Int_t flag) {
     //select "long" tracks 
     for (Int_t iSeed = 0; iSeed < seeds.size(); ++iSeed) {
         CbmTrack seed = seeds.at(iSeed);
-        vector<BmnDchHit*> hitsForRefit;
+        vector<FairHit*> hitsForRefit;
+        vector<BmnDchHit*> resultTrackHits;
         if (seed.GetNofHits() >= 3) {
             for (Int_t iHit = 0; iHit < seed.GetNofHits(); ++iHit) {
                 BmnDchHit* hit = (BmnDchHit*) hits->At(seed.GetHitIndex(iHit));
-                hitsForRefit.push_back(hit);
+                hitsForRefit.push_back((FairHit*) hit);
+                resultTrackHits.push_back(hit);
             }
             TVector3 vert;
             TVector3 dir;
             Float_t chi2 = LineFit3D(hitsForRefit, vert, dir);
-            if (Abs(chi2) > 100 ) continue;
+            if (Abs(chi2) > 100) continue;
             for (Int_t iHit = 0; iHit < seed.GetNofHits(); ++iHit) {
                 BmnDchHit* hit = (BmnDchHit*) hits->At(seed.GetHitIndex(iHit));
                 hit->SetUsing(kTRUE);
             }
             CbmTrack* track = new CbmTrack();
             FairTrackParam* par = new FairTrackParam();
-            CreateTrack(dir, vert, hitsForRefit, *track, *par, chi2);
+            CreateTrack(dir, vert, *track, *par, chi2);
+            AddHits(resultTrackHits, *track);
             //flag = +1 for forward seeding
             //flag = -1 for backward seeding
             track->SetFlag(flag);
@@ -499,6 +292,129 @@ BmnStatus DchTrackFinder(TClonesArray* hits, TClonesArray* tracks) {
     TrackPropagation(lay1hits, seedsBack);
     TrackPropagation(lay0hits, seedsBack);
     TrackSelection(hits, seedsBack, tracks, -1);
+
+    return kBMNSUCCESS;
+}
+
+TVector3 GetMwpcPosition(Short_t MWPC_ID) {
+    TVector3 mwpcPos;
+    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
+    if (pVolume != NULL) {
+        TString node_name = TString::Format("mwpc%d_0", MWPC_ID + 1);
+        TGeoNode* pNode = pVolume->FindNode(node_name);
+        if (pNode != NULL) {
+            TGeoMatrix* pMatrix = pNode->GetMatrix();
+            mwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
+        } else {
+            cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
+            mwpcPos = TVector3(0.0, 0.0, -1000.0);
+        }
+    } else {
+        cout << "Cave volume wasn't found." << endl;
+        mwpcPos = TVector3(0.0, 0.0, -1000.0);
+    }
+    return mwpcPos;
+}
+
+BmnStatus MwpcTrackFinder(TClonesArray* hits, TClonesArray* tracks, Short_t MWPC_ID) {
+    //main function for tracking in MWPC
+
+    vector<BmnMwpcHit*> lay0hits;
+    vector<BmnMwpcHit*> lay1hits;
+    vector<BmnMwpcHit*> lay2hits;
+
+    TVector3 mwpcPos = GetMwpcPosition(MWPC_ID);
+
+    for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
+        BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(i);
+        if (hit->IsUsed()) continue;
+        if (hit->GetMwpcId() != MWPC_ID) continue;
+        Float_t zGlob = hit->GetZ();
+        Float_t zLoc = zGlob - mwpcPos.Z();
+        if (Abs(zLoc + 2) < 1e-3) lay0hits.push_back(hit);
+        else if (Abs(zLoc) < 1e-3) lay1hits.push_back(hit);
+        else if (Abs(zLoc - 2) < 1e-3) lay2hits.push_back(hit);
+        else continue;
+    }
+
+    UInt_t s0 = lay0hits.size();
+    UInt_t s1 = lay1hits.size();
+    UInt_t s2 = lay2hits.size();
+
+    Bool_t s0_bool = Bool_t(s0);
+    Bool_t s1_bool = Bool_t(s1);
+    Bool_t s2_bool = Bool_t(s2);
+
+//    cout << "s0 = " << s0 << " s1 = " << s1 << " s2 = " << s2 << endl;
+
+    if (s0_bool) {
+        if (s1_bool) {
+            for (Int_t i0 = 0; i0 < s0; ++i0) {
+                BmnMwpcHit* hit0 = (BmnMwpcHit*) lay0hits.at(i0);
+                if (hit0->IsUsed()) continue;
+                for (Int_t i1 = 0; i1 < s1; ++i1) {
+                    BmnMwpcHit* hit1 = (BmnMwpcHit*) lay1hits.at(i1);
+                    if (hit1->IsUsed()) continue;
+                    TVector3 vertex;
+                    TVector3 direction;
+                    TwoHitLine((FairHit*) hit0, (FairHit*) hit1, vertex, direction); //form line by 2 hits
+                    vector<BmnMwpcHit*> trackHits;
+                    trackHits.push_back(hit0);
+                    trackHits.push_back(hit1);
+                    CbmTrack seed;
+                    FairTrackParam par;
+                    CreateTrack(direction, vertex, seed, par, 0.0);
+                    AddHits(trackHits, seed);
+                    if (s2_bool) {
+                        TrackPropagation(lay2hits, seed); //propagate line to hit on the third plane
+                        vector<FairHit*> hitsForRefit;
+                        for (Int_t iHit = 0; iHit < seed.GetNofHits(); ++iHit) {
+                            BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(seed.GetHitIndex(iHit));
+                            hitsForRefit.push_back((FairHit*) hit);
+                        }
+                        Float_t chi2 = LineFit3D(hitsForRefit, vertex, direction);
+                        if (Abs(chi2) > 100) continue;
+                        for (Int_t iHit = 0; iHit < seed.GetNofHits(); ++iHit) {
+                            BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(seed.GetHitIndex(iHit));
+                            hit->SetUsing(kTRUE);
+                        }
+                        CreateTrack(direction, vertex, seed, par, chi2);
+                        new((*tracks)[tracks->GetEntriesFast()]) CbmTrack(seed); //make track and put it to output array
+                    } else {
+                        new((*tracks)[tracks->GetEntriesFast()]) CbmTrack(seed); //make track and put it to output array
+                    }
+                }
+            }
+        } else {
+            return kBMNERROR;
+        }
+    } else if (s1_bool) {
+        if (s2_bool) {
+            for (Int_t i1 = 0; i1 < s1; ++i1) {
+                BmnMwpcHit* hit1 = (BmnMwpcHit*) lay1hits.at(i1);
+                if (hit1->IsUsed()) continue;
+                for (Int_t i2 = 0; i2 < s2; ++i2) {
+                    BmnMwpcHit* hit2 = (BmnMwpcHit*) lay2hits.at(i2);
+                    if (hit2->IsUsed()) continue;
+                    TVector3 vertex;
+                    TVector3 direction;
+                    TwoHitLine((FairHit*) hit1, (FairHit*) hit2, vertex, direction); //form line by 2 hits
+                    vector<BmnMwpcHit*> trackHits;
+                    trackHits.push_back(hit1);
+                    trackHits.push_back(hit2);
+                    CbmTrack seed;
+                    FairTrackParam par;
+                    CreateTrack(direction, vertex, seed, par, 0.0);
+                    AddHits(trackHits, seed);
+                    new((*tracks)[tracks->GetEntriesFast()]) CbmTrack(seed); //make track and put it to output array
+                }
+            }
+        }
+    } else {
+        return kBMNERROR;
+    }
+
+    return kBMNSUCCESS;
 }
 
 #endif	/* BMNTRACKFINDERRUN1_H */

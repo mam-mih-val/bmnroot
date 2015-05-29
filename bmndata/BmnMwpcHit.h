@@ -33,9 +33,13 @@ public:
     ULong_t GetAddr() const {
         return fAddr;
     }
-    
+
     Short_t GetMwpcId() const {
         return fMwpcId;
+    }
+
+    Int_t GetHitId() const {
+        return fID;
     }
 
     Bool_t IsUsed() const {
@@ -57,17 +61,21 @@ public:
     void SetAddr(ULong_t addr) {
         fAddr = addr;
     }
-    
+
     void SetMwpcId(Short_t id) {
         fMwpcId = id;
     }
-    
+
+    void SetHitId(Int_t idx) {
+        fID = idx;
+    }
 
     /** Destructor **/
     virtual ~BmnMwpcHit();
 
 private:
 
+    Int_t fID; // identifier of hit in hits array
     Bool_t fUsing;
     Int_t fXaddr;
     Int_t fYaddr;

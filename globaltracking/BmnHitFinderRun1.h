@@ -64,7 +64,7 @@ void CheckHits(vector<TVector3> &vec1, vector<TVector3> &vec2) {
 }
 
 void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
-    
+
     TVector3 dchPos;
 
     TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
@@ -84,7 +84,7 @@ void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
         TVector3* hitI = &(vec.at(i));
         for (Int_t j = i + 1; j < vec.size(); ++j) {
             TVector3* hitJ = &(vec.at(j));
-//            cout << "Abs(hitI.Mag() - hitJ.Mag()) = " << Abs(hitI.Mag() - hitJ.Mag()) << endl;
+            //            cout << "Abs(hitI.Mag() - hitJ.Mag()) = " << Abs(hitI.Mag() - hitJ.Mag()) << endl;
             if (Abs(hitI->Mag() - hitJ->Mag()) < delta) {
                 hitI->SetZ(-1000);
                 break;
@@ -93,13 +93,13 @@ void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
     }
     for (Int_t i = 0; i < vec.size(); ++i) {
         TVector3 hit = vec.at(i);
-        
-        if(hit.Z() < -100.0) continue;
+
+        if (hit.Z() < -100.0) continue;
         if ((plane == 0) || (plane == 2)) {
             hit.RotateZ(-135.0 * DegToRad());
             hit.SetY(-1.0 * hit.Y());
         }
-//        cout << hit.X() << " " << hit.Y() << " " << hit.Z() << " " << hit.Mag() << endl;
+        //        cout << hit.X() << " " << hit.Y() << " " << hit.Z() << " " << hit.Mag() << endl;
         new((*hits)[hits->GetEntriesFast()]) BmnDchHit(0, hit + dchPos, TVector3(0, 0, 0), 0, 0, 0, plane);
         BmnDchHit* dchHit = (BmnDchHit*) hits->At(hits->GetEntriesFast() - 1);
         dchHit->SetDchId(plane / 2 + 1);
@@ -218,10 +218,10 @@ void ProcessDchDigits(TClonesArray* digits, TClonesArray * hitsArray) {
     vector<TVector3> u2v2 = CreateHitsByTwoPlanes(u2, v2, -5.0);
     vector<TVector3> x2y2 = CreateHitsByTwoPlanes(x2, y2, 5.0);
 
-//    CheckHits(u1v1, x1y1);
-//    CheckHits(x1y1, u1v1);
-//    CheckHits(u2v2, x2y2);
-//    CheckHits(x2y2, u2v2);
+    //    CheckHits(u1v1, x1y1);
+    //    CheckHits(x1y1, u1v1);
+    //    CheckHits(u2v2, x2y2);
+    //    CheckHits(x2y2, u2v2);
 
     CombineHits(u1v1, hitsArray, 0);
     CombineHits(x1y1, hitsArray, 1);
@@ -253,7 +253,7 @@ vector<TVector3> CreateHitsByTwoPlanes(vector<BmnMwpcDigit*> x, vector<BmnMwpcDi
         BmnMwpcDigit* dI = (BmnMwpcDigit*) x.at(i);
         for (Int_t j = 0; j < y.size(); ++j) {
             BmnMwpcDigit* dJ = (BmnMwpcDigit*) y.at(j);
-            if (dI->GetTime() != dJ->GetTime()) continue;
+            if (Abs(dI->GetTime() - dJ->GetTime()) > 2) continue;
             v.push_back(CalcHitPosByTwoDigits(dI, dJ));
         }
     }
@@ -281,22 +281,38 @@ void CreateMwpcHits(vector<TVector3> pos, TClonesArray* hits, Short_t mwpcId) {
             mwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
         } else {
             cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
-            mwpcPos = TVector3(0.0, 0.0, -100.0);
+            mwpcPos = TVector3(0.0, 0.0, -1000.0);
         }
     } else {
         cout << "Cave volume wasn't found." << endl;
-        mwpcPos = TVector3(0.0, 0.0, -100.0);
+        mwpcPos = TVector3(0.0, 0.0, -1000.0);
     }
-
 
     for (Int_t i = 0; i < pos.size(); ++i) {
         new((*hits)[hits->GetEntriesFast()]) BmnMwpcHit(0, pos.at(i) + mwpcPos, errors, -1);
         BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(hits->GetEntriesFast() - 1);
         hit->SetMwpcId(mwpcId);
+        hit->SetHitId(hits->GetEntriesFast() - 1);
     }
+}
 
-
-
+vector<BmnMwpcDigit*> CheckDigits(vector<BmnMwpcDigit*> digitsIn) {
+    vector<BmnMwpcDigit*> digitsOut;
+    for (Int_t i = 0; i < digitsIn.size(); ++i) {
+        BmnMwpcDigit* digitIn = digitsIn.at(i);
+        Bool_t same = kFALSE;
+        for (Int_t j = 0; j < digitsOut.size(); ++j) {
+            BmnMwpcDigit* digitOut = digitsOut.at(j);
+            if (digitIn->GetWireNumber() == digitOut->GetWireNumber()) {
+                same = kTRUE;
+                break;
+            }            
+        }
+        if (!same) {
+            digitsOut.push_back(digitIn);
+        }
+    }
+    return digitsOut;
 }
 
 void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
@@ -323,7 +339,10 @@ void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
 
     for (Int_t i = 0; i < digits->GetEntriesFast(); ++i) {
         BmnMwpcDigit* digit = (BmnMwpcDigit*) digits->At(i);
+        Short_t dTime = digit->GetTime();
         Short_t dPlane = digit->GetPlane();
+        if (dPlane < 12 && dTime > 25) continue; // for MWPC1 and MWPC2 the same cut by time samples
+        if (dPlane > 11 && (dTime > 30 || dTime < 8)) continue; // for MWPC3 we use two-side cut by time samples
         switch (dPlane) {
             case 0: x1_mwpc0.push_back(digit);
                 break;
@@ -363,21 +382,39 @@ void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
                 break;
         }
     }
+    vector<BmnMwpcDigit*> x1_mwpc0_filtered = CheckDigits(x1_mwpc0);
+    vector<BmnMwpcDigit*> u1_mwpc0_filtered = CheckDigits(u1_mwpc0);
+    vector<BmnMwpcDigit*> v1_mwpc0_filtered = CheckDigits(v1_mwpc0);
+    vector<BmnMwpcDigit*> x2_mwpc0_filtered = CheckDigits(x2_mwpc0);
+    vector<BmnMwpcDigit*> u2_mwpc0_filtered = CheckDigits(u2_mwpc0);
+    vector<BmnMwpcDigit*> v2_mwpc0_filtered = CheckDigits(v2_mwpc0);
+    vector<BmnMwpcDigit*> x1_mwpc1_filtered = CheckDigits(x1_mwpc1);
+    vector<BmnMwpcDigit*> u1_mwpc1_filtered = CheckDigits(u1_mwpc1);
+    vector<BmnMwpcDigit*> v1_mwpc1_filtered = CheckDigits(v1_mwpc1);
+    vector<BmnMwpcDigit*> x2_mwpc1_filtered = CheckDigits(x2_mwpc1);
+    vector<BmnMwpcDigit*> u2_mwpc1_filtered = CheckDigits(u2_mwpc1);
+    vector<BmnMwpcDigit*> v2_mwpc1_filtered = CheckDigits(v2_mwpc1);
+    vector<BmnMwpcDigit*> x1_mwpc2_filtered = CheckDigits(x1_mwpc2);
+    vector<BmnMwpcDigit*> u1_mwpc2_filtered = CheckDigits(u1_mwpc2);
+    vector<BmnMwpcDigit*> v1_mwpc2_filtered = CheckDigits(v1_mwpc2);
+    vector<BmnMwpcDigit*> x2_mwpc2_filtered = CheckDigits(x2_mwpc2);
+    vector<BmnMwpcDigit*> u2_mwpc2_filtered = CheckDigits(u2_mwpc2);
+    vector<BmnMwpcDigit*> v2_mwpc2_filtered = CheckDigits(v2_mwpc2);
 
     //    Float_t delta = (fMwpcNum == 1) ? 1.0 : (fMwpcNum == 2) ? 1.5 : 2.00; //cm
     //    Float_t delta = 2.00; //cm //FIXME!
 
-    vector<TVector3> x1u1_mwpc0 = CreateHitsByTwoPlanes(x1_mwpc0, u1_mwpc0);
-    vector<TVector3> v1x2_mwpc0 = CreateHitsByTwoPlanes(v1_mwpc0, x2_mwpc0);
-    vector<TVector3> u2v2_mwpc0 = CreateHitsByTwoPlanes(u2_mwpc0, v2_mwpc0);
+    vector<TVector3> x1u1_mwpc0 = CreateHitsByTwoPlanes(x1_mwpc0_filtered, u1_mwpc0_filtered);
+    vector<TVector3> v1x2_mwpc0 = CreateHitsByTwoPlanes(v1_mwpc0_filtered, x2_mwpc0_filtered);
+    vector<TVector3> u2v2_mwpc0 = CreateHitsByTwoPlanes(u2_mwpc0_filtered, v2_mwpc0_filtered);
 
-    vector<TVector3> x1u1_mwpc1 = CreateHitsByTwoPlanes(x1_mwpc1, u1_mwpc1);
-    vector<TVector3> v1x2_mwpc1 = CreateHitsByTwoPlanes(v1_mwpc1, x2_mwpc1);
-    vector<TVector3> u2v2_mwpc1 = CreateHitsByTwoPlanes(u2_mwpc1, v2_mwpc1);
+    vector<TVector3> x1u1_mwpc1 = CreateHitsByTwoPlanes(x1_mwpc1_filtered, u1_mwpc1_filtered);
+    vector<TVector3> v1x2_mwpc1 = CreateHitsByTwoPlanes(v1_mwpc1_filtered, x2_mwpc1_filtered);
+    vector<TVector3> u2v2_mwpc1 = CreateHitsByTwoPlanes(u2_mwpc1_filtered, v2_mwpc1_filtered);
 
-    vector<TVector3> x1u1_mwpc2 = CreateHitsByTwoPlanes(x1_mwpc2, u1_mwpc2);
-    vector<TVector3> v1x2_mwpc2 = CreateHitsByTwoPlanes(v1_mwpc2, x2_mwpc2);
-    vector<TVector3> u2v2_mwpc2 = CreateHitsByTwoPlanes(u2_mwpc2, v2_mwpc2);
+    vector<TVector3> x1u1_mwpc2 = CreateHitsByTwoPlanes(x1_mwpc2_filtered, u1_mwpc2_filtered);
+    vector<TVector3> v1x2_mwpc2 = CreateHitsByTwoPlanes(v1_mwpc2_filtered, x2_mwpc2_filtered);
+    vector<TVector3> u2v2_mwpc2 = CreateHitsByTwoPlanes(u2_mwpc2_filtered, v2_mwpc2_filtered);
 
     CreateMwpcHits(x1u1_mwpc0, hits, 0);
     CreateMwpcHits(v1x2_mwpc0, hits, 0);

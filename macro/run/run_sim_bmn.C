@@ -6,7 +6,7 @@
 // outFile - output file with MC data, default: evetest.root
 // flag_store_FairRadLenPoint
 
-void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
+void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
 #define URQMD
@@ -20,7 +20,7 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
     //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run1.C");
-//    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run02.C");
+    //    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run02.C");
     //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run03.C");
 
     // -----   Create simulation run   ----------------------------------------
@@ -75,10 +75,10 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
 
     if (!CheckFileExist(dataFile)) return;
 
-//    MpdUrqmd23Generator* urqmdGen = new MpdUrqmd23Generator(dataFile);
+    MpdUrqmd23Generator* urqmdGen = new MpdUrqmd23Generator(dataFile);
     // Don't forget to use appropriate class for reading *.f14 in case of UrQMD34
     // Header of UrQMD23 is not consisted with UrQMD34 
-    MpdUrqmd34Generator* urqmdGen = new MpdUrqmd34Generator(dataFile);
+    // MpdUrqmd34Generator* urqmdGen = new MpdUrqmd34Generator(dataFile);
     primGen->AddGenerator(urqmdGen);
     if (nStartEvent > 0) urqmdGen->SkipEvents(nStartEvent);
 
@@ -169,7 +169,7 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
     if (isFieldMap) {
         Double_t fieldScale = 1.;
         // BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
-        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v2_ascii_Extrap.dat");
+        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v3_ascii_Extrap.dat");
         // Double_t fieldZ = 124.5; // field centre z position 
         // magField->SetPosition(0., 0., fieldZ);
         magField->SetScale(fieldScale);

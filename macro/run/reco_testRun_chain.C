@@ -121,14 +121,14 @@ TH1I* h_mwpc1_track_nTracks = new TH1I("h_mwpc1_track_nTracks", "Number of track
 TH1I* h_mwpc2_track_nTracks = new TH1I("h_mwpc2_track_nTracks", "Number of tracks distribution in MWPC2", 21, -1, 20);
 
 //MWPC matched tracks
-TH1F* h_mwpc_matched_track_Tx = new TH1F("h_mwpc_matched_track_Tx", "Tx distribution of tracks in MWPC", mwpcN, -15, 15);
-TH1F* h_mwpc_matched_track_Ty = new TH1F("h_mwpc_matched_track_Ty", "Ty distribution of tracks in MWPC", mwpcN, -15, 15);
-TH1I* h_mwpc_matched_track_nHits = new TH1I("h_mwpc_matched_track_nHits", "Number of hit distribution of MWPC tracks", 5, -1, 4);
-TH1F* h_mwpc_matched_track_chi2 = new TH1F("h_mwpc_matched_track_chi2", "#Chi^2 distribution of tracks in MWPC", mwpcN, -1, 20);
+TH1F* h_mwpc_matched_track_Tx = new TH1F("h_mwpc_matched_track_Tx", "Tx distribution of tracks in MWPC", mwpcN, -1.0, 1.0);
+TH1F* h_mwpc_matched_track_Ty = new TH1F("h_mwpc_matched_track_Ty", "Ty distribution of tracks in MWPC", mwpcN, -1.0, 1.0);
+TH1I* h_mwpc_matched_track_nHits = new TH1I("h_mwpc_matched_track_nHits", "Number of hit distribution of MWPC tracks", 8, 0, 8);
+TH1F* h_mwpc_matched_track_chi2 = new TH1F("h_mwpc_matched_track_chi2", "#Chi^2 distribution of tracks in MWPC", mwpcN, 0.0, 10.0);
 TH2F* h_mwpc_matched_track_XYstart = new TH2F("h_mwpc_matched_track_XYstart", "Start hits distribution of track in XY plane in MWPC", mwpcN, -mwpcX, mwpcX, mwpcN, -mwpcY, mwpcY);
 TH1F* h_mwpc_matched_track_Xstart = new TH1F("h_mwpc_matched_track_Xstart", "Start hits distribution of track in X axis in MWPC", mwpcN, -mwpcX, mwpcX);
 TH1F* h_mwpc_matched_track_Ystart = new TH1F("h_mwpc_matched_track_Ystart", "Start hits distribution of track in Y axis in MWPC", mwpcN, -mwpcY, mwpcY);
-TH1I* h_mwpc_matched_track_nTracks = new TH1I("h_mwpc_matched_track_nTracks", "Number of tracks distribution in MWPC", 21, -1, 20);
+TH1I* h_mwpc_matched_track_nTracks = new TH1I("h_mwpc_matched_track_nTracks", "Number of tracks distribution in MWPC", 6, -1, 5);
 
 
 void reco_testRun_chain() {

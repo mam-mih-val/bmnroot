@@ -337,7 +337,7 @@ BmnStatus MwpcTrackFinder(TClonesArray* hits, TClonesArray* tracks, Short_t MWPC
         if (hit->IsUsed()) continue;
         // condition only for RUN2, MWPC0 & MWPC1 were placed before target and they detected beam ===>
         if (MWPC_ID != 2) {
-            if (hit->GetX() < -3 || hit->GetX() > 3) continue;
+            if (hit->GetX() < -1 || hit->GetX() > 2) continue;
             if (hit->GetY() < -10 || hit->GetY() > -6) continue;
         }
         // <===
@@ -527,11 +527,22 @@ BmnStatus MwpcTrackMatchingByAllHits(TClonesArray* hits, TClonesArray* outTracks
     for (Int_t iHit = 0; iHit < hits->GetEntriesFast(); ++iHit) {
         BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(iHit);
         if (hit->GetMwpcId() == 2) continue;
-        if (hit->GetX() < -3 || hit->GetX() > 3) continue;
+        if (hit->GetX() < -1 || hit->GetX() > 2) continue;
         if (hit->GetY() < -10 || hit->GetY() > -6) continue;
-        hitsForRefit.push_back(hit);
+        hitsForRefit.push_back((FairHit*)hit);
+        resultTrackHits.push_back(hit);
     }
-    if (hitsForRefit.size() < 3) return kBMNERROR;
+    
+    Bool_t ch0 = kFALSE;
+    Bool_t ch1 = kFALSE;
+    for (Int_t iHit = 0; iHit < hitsForRefit.size(); ++iHit) {
+        BmnMwpcHit* hit = (BmnMwpcHit*) hitsForRefit.at(iHit);
+        if (hit->GetMwpcId() == 0) ch0 = kTRUE;
+        if (hit->GetMwpcId() == 1) ch1 = kTRUE;
+    }
+    if (!(ch0 && ch1)) return kBMNERROR;
+    
+    if (hitsForRefit.size() < 3 || hitsForRefit.size() > 6) return kBMNERROR;
     Float_t chi2 = LineFit3D(hitsForRefit, vertex, direction);
     if (Abs(chi2) > 100) return kBMNERROR;
     AddHits(resultTrackHits, matchedTrack);

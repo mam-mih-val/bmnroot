@@ -17,6 +17,10 @@
 using namespace std;
 using namespace TMath;
 
+//const Double_t MWPC0_Zpos = -301.3;
+//const Double_t MWPC1_Zpos = -158.5;
+//const Double_t MWPC2_Zpos = 459.5;
+
 Float_t LineFit3D(vector<FairHit*> hits, TVector3& vertex, TVector3& direction) {
 
     //    cout << "LineFit3D started!" << endl;
@@ -112,13 +116,14 @@ void AddHits(vector<BmnMwpcHit*>& trackHits, CbmTrack& track) {
         track.AddHit(trackHits.at(i)->GetHitId(), HitType(0));
 }
 
-BmnStatus CreateTrack(TVector3 dir, TVector3 vert, CbmTrack& track, FairTrackParam& par, Float_t chi2) {
+BmnStatus CreateTrack(TVector3 dir, TVector3 vert, CbmTrack& track, FairTrackParam& par, Float_t chi2, Int_t nHits) {
     par.SetPosition(vert);
     par.SetTx(dir.X() / dir.Z());
     par.SetTy(dir.Y() / dir.Z());
     par.SetQp(dir.Mag());
     track.SetParamFirst(&par);
     track.SetChiSq(chi2);
+    track.SetNDF(nHits);
     return kBMNSUCCESS;
 }
 
@@ -154,8 +159,8 @@ BmnStatus SeedFinder(vector<BmnDchHit*> lay0hits, vector<BmnDchHit*> lay1hits, v
             trackHits.push_back(hit1);
             CbmTrack seed;
             FairTrackParam par;
-            CreateTrack(direction, vertex, seed, par, -100.0);
             AddHits(trackHits, seed);
+            CreateTrack(direction, vertex, seed, par, -100.0, seed.GetNofHits());
             seeds.push_back(seed);
         }
     }
@@ -253,8 +258,8 @@ BmnStatus TrackSelection(TClonesArray* hits, vector<CbmTrack>& seeds, TClonesArr
             }
             CbmTrack* track = new CbmTrack();
             FairTrackParam* par = new FairTrackParam();
-            CreateTrack(dir, vert, *track, *par, chi2);
             AddHits(resultTrackHits, *track);
+            CreateTrack(dir, vert, *track, *par, chi2, track->GetNofHits());
             //flag = +1 for forward seeding
             //flag = -1 for backward seeding
             track->SetFlag(flag);
@@ -297,22 +302,24 @@ BmnStatus DchTrackFinder(TClonesArray* hits, TClonesArray* tracks) {
 }
 
 TVector3 GetMwpcPosition(Short_t MWPC_ID) {
-    TVector3 mwpcPos;
-    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
-    if (pVolume != NULL) {
-        TString node_name = TString::Format("mwpc%d_0", MWPC_ID + 1);
-        TGeoNode* pNode = pVolume->FindNode(node_name);
-        if (pNode != NULL) {
-            TGeoMatrix* pMatrix = pNode->GetMatrix();
-            mwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
-        } else {
-            cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
-            mwpcPos = TVector3(0.0, 0.0, -1000.0);
-        }
-    } else {
-        cout << "Cave volume wasn't found." << endl;
-        mwpcPos = TVector3(0.0, 0.0, -1000.0);
-    }
+    //    TVector3 mwpcPos;
+    //    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
+    //    if (pVolume != NULL) {
+    //        TString node_name = TString::Format("mwpc%d_0", MWPC_ID + 1);
+    //        TGeoNode* pNode = pVolume->FindNode(node_name);
+    //        if (pNode != NULL) {
+    //            TGeoMatrix* pMatrix = pNode->GetMatrix();
+    //            mwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
+    //        } else {
+    //            cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
+    //            mwpcPos = TVector3(0.0, 0.0, -1000.0);
+    //        }
+    //    } else {
+    //        cout << "Cave volume wasn't found." << endl;
+    //        mwpcPos = TVector3(0.0, 0.0, -1000.0);
+    //    }
+    Float_t zPosMwpc = (MWPC_ID == 0) ? MWPC0_Zpos : (MWPC_ID == 1) ? MWPC1_Zpos : (MWPC_ID == 2) ? MWPC2_Zpos : -1000.0;
+    TVector3 mwpcPos = TVector3(0.0, 0.0, zPosMwpc);
     return mwpcPos;
 }
 
@@ -328,6 +335,12 @@ BmnStatus MwpcTrackFinder(TClonesArray* hits, TClonesArray* tracks, Short_t MWPC
     for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
         BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(i);
         if (hit->IsUsed()) continue;
+        // condition only for RUN2, MWPC0 & MWPC1 were placed before target and they detected beam ===>
+        if (MWPC_ID != 2) {
+            if (hit->GetX() < -3 || hit->GetX() > 3) continue;
+            if (hit->GetY() < -10 || hit->GetY() > -6) continue;
+        }
+        // <===
         if (hit->GetMwpcId() != MWPC_ID) continue;
         Float_t zGlob = hit->GetZ();
         Float_t zLoc = zGlob - mwpcPos.Z();
@@ -341,11 +354,13 @@ BmnStatus MwpcTrackFinder(TClonesArray* hits, TClonesArray* tracks, Short_t MWPC
     UInt_t s1 = lay1hits.size();
     UInt_t s2 = lay2hits.size();
 
+    //    if (!((s0 == 1) && (s1 == 1) && (s2 == 1))) return kBMNERROR; //ideal case 
+
     Bool_t s0_bool = Bool_t(s0);
     Bool_t s1_bool = Bool_t(s1);
     Bool_t s2_bool = Bool_t(s2);
 
-//    cout << "s0 = " << s0 << " s1 = " << s1 << " s2 = " << s2 << endl;
+    //        cout << "s0 = " << s0 << " s1 = " << s1 << " s2 = " << s2 << endl;
 
     if (s0_bool) {
         if (s1_bool) {
@@ -363,8 +378,8 @@ BmnStatus MwpcTrackFinder(TClonesArray* hits, TClonesArray* tracks, Short_t MWPC
                     trackHits.push_back(hit1);
                     CbmTrack seed;
                     FairTrackParam par;
-                    CreateTrack(direction, vertex, seed, par, 0.0);
                     AddHits(trackHits, seed);
+                    CreateTrack(direction, vertex, seed, par, 0.0, seed.GetNofHits());
                     if (s2_bool) {
                         TrackPropagation(lay2hits, seed); //propagate line to hit on the third plane
                         vector<FairHit*> hitsForRefit;
@@ -378,7 +393,7 @@ BmnStatus MwpcTrackFinder(TClonesArray* hits, TClonesArray* tracks, Short_t MWPC
                             BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(seed.GetHitIndex(iHit));
                             hit->SetUsing(kTRUE);
                         }
-                        CreateTrack(direction, vertex, seed, par, chi2);
+                        CreateTrack(direction, vertex, seed, par, chi2, seed.GetNofHits());
                         new((*tracks)[tracks->GetEntriesFast()]) CbmTrack(seed); //make track and put it to output array
                     } else {
                         new((*tracks)[tracks->GetEntriesFast()]) CbmTrack(seed); //make track and put it to output array
@@ -404,8 +419,8 @@ BmnStatus MwpcTrackFinder(TClonesArray* hits, TClonesArray* tracks, Short_t MWPC
                     trackHits.push_back(hit2);
                     CbmTrack seed;
                     FairTrackParam par;
-                    CreateTrack(direction, vertex, seed, par, 0.0);
                     AddHits(trackHits, seed);
+                    CreateTrack(direction, vertex, seed, par, 0.0, seed.GetNofHits());
                     new((*tracks)[tracks->GetEntriesFast()]) CbmTrack(seed); //make track and put it to output array
                 }
             }
@@ -416,6 +431,85 @@ BmnStatus MwpcTrackFinder(TClonesArray* hits, TClonesArray* tracks, Short_t MWPC
 
     return kBMNSUCCESS;
 }
+
+BmnStatus MwpcTrackMatching(TClonesArray* hits, TClonesArray* outTracks, TClonesArray* Mwpc1Tracks, TClonesArray* Mwpc2Tracks) {
+
+    const Float_t deltaTx = 10;
+    const Float_t deltaTy = 10;
+    const Float_t deltaX = 10;
+    const Float_t deltaY = 10;
+    
+    const Float_t angThr = Tan(89.9 * DegToRad());
+
+    TVector3 pos1 = GetMwpcPosition(0);
+    TVector3 pos2 = GetMwpcPosition(1);
+
+    Float_t zMid = (pos1.Z() + pos2.Z()) / 2.0;
+
+//    if ((Mwpc1Tracks->GetEntriesFast() != 1) && (Mwpc2Tracks->GetEntriesFast() != 1)) return kBMNERROR;
+
+    for (Int_t i1 = 0; i1 < Mwpc1Tracks->GetEntriesFast(); ++i1) {
+        CbmTrack* tr1 = (CbmTrack*) Mwpc1Tracks->At(i1);
+        const FairTrackParam* par1 = tr1->GetParamFirst();
+        Float_t Tx1 = par1->GetTx();
+        Float_t Ty1 = par1->GetTy();
+        Float_t x1 = par1->GetX();
+        Float_t y1 = par1->GetY();
+        Float_t z1 = par1->GetZ();
+        for (Int_t i2 = 0; i2 < Mwpc2Tracks->GetEntriesFast(); ++i2) {
+            CbmTrack* tr2 = (CbmTrack*) Mwpc2Tracks->At(i2);
+            const FairTrackParam* par2 = tr2->GetParamFirst();
+            Float_t Tx2 = par2->GetTx();
+            Float_t Ty2 = par2->GetTy();
+            Float_t x2 = par2->GetX();
+            Float_t y2 = par2->GetY();
+            Float_t z2 = par2->GetZ();
+//            if (Abs(Tx1 - Tx2) > deltaTx) continue;
+//            if (Abs(Ty1 - Ty2) > deltaTy) continue;
+            if (Abs(Tx1) > angThr) continue;
+            if (Abs(Tx2) > angThr) continue;
+            if (Abs(Ty1) > angThr) continue;
+            if (Abs(Ty2) > angThr) continue;
+            Float_t x1_zMid = Tx1 * (zMid - z1) + x1;
+            Float_t y1_zMid = Ty1 * (zMid - z1) + y1;
+            Float_t x2_zMid = Tx2 * (zMid - z2) + x2;
+            Float_t y2_zMid = Ty2 * (zMid - z2) + y2;
+//            if (Abs(x1_zMid - x2_zMid) > deltaX) continue;
+//            if (Abs(y1_zMid - y2_zMid) > deltaY) continue;
+            //            cout << " deltaY = " << Abs(y2_zMid - y1_zMid) << " deltaX = " << Abs(x2_zMid - x1_zMid) << endl;
+            CbmTrack matchedTrack;
+            FairTrackParam matchedPar;
+            //FOR TEST
+            FairTrackParam tmp;
+            tmp.SetX(x1_zMid - x2_zMid);
+            tmp.SetY(y1_zMid - y2_zMid);
+            //
+            TVector3 vertex;
+            TVector3 direction;
+            vector<FairHit*> hitsForRefit;
+            vector<BmnMwpcHit*> resultTrackHits;
+            for (Int_t iHit = 0; iHit < tr1->GetNofHits(); ++iHit) {
+                BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(tr1->GetHitIndex(iHit));
+                hitsForRefit.push_back((FairHit*) hit);
+                resultTrackHits.push_back(hit);
+            }
+            for (Int_t iHit = 0; iHit < tr2->GetNofHits(); ++iHit) {
+                BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(tr2->GetHitIndex(iHit));
+                hitsForRefit.push_back((FairHit*) hit);
+                resultTrackHits.push_back(hit);
+            }
+            Float_t chi2 = LineFit3D(hitsForRefit, vertex, direction);
+            if (Abs(chi2) > 100) continue;
+            AddHits(resultTrackHits, matchedTrack);
+            CreateTrack(direction, vertex, matchedTrack, matchedPar, chi2, matchedTrack.GetNofHits());
+            matchedTrack.SetParamLast(&tmp);
+            new((*outTracks)[outTracks->GetEntriesFast()]) CbmTrack(matchedTrack);
+        }
+    }
+
+    return kBMNSUCCESS;
+}
+
 
 #endif	/* BMNTRACKFINDERRUN1_H */
 

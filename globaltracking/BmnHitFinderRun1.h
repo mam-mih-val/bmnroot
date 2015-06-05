@@ -18,12 +18,16 @@ using namespace TMath;
 // constants for mwpc ===>
 const Short_t kNPlanes = 6;
 const Short_t kTimeBin = 8; // ns
-const Short_t kNWires = 102; //in one plane
-const Float_t kAngleStep = 60; // degrees
+const Short_t kNWires = 96; //in one plane
+const Float_t kAngleStep = 60 * DegToRad();
 const Float_t kWireStep = 0.25; // cm
 const Float_t kPlaneHeight = 43.3; // cm
 const Float_t kPlaneWidth = kNWires * kWireStep; //24.6; // cm
 const Float_t kMwpcZpos = 350; //FIXME!!! Get coords from geometry
+
+const Double_t MWPC0_Zpos = -301.3;
+const Double_t MWPC1_Zpos = -158.5;
+const Double_t MWPC2_Zpos = 459.5;
 // <=== constants for mwpc
 
 //Detector's position
@@ -233,28 +237,89 @@ void ProcessDchDigits(TClonesArray* digits, TClonesArray * hitsArray) {
 
 }
 
-TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit * dJ) {
-    Short_t dWireI = dI->GetWireNumber();
-    Short_t dWireJ = dJ->GetWireNumber();
+
+//MWPC
+
+
+TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit * dJ, Float_t zPos) {
+    Float_t dWireI = dI->GetWireNumber();
+    Float_t dWireJ = dJ->GetWireNumber();
+    Short_t localPlaneI = dI->GetPlane() % kNPlanes;
+    Short_t localPlaneJ = dJ->GetPlane() % kNPlanes;
+
     Float_t xI = kPlaneWidth * (dWireI * 1.0 / kNWires - 0.5); //local X by wire number
     Float_t xJ = kPlaneWidth * (dWireJ * 1.0 / kNWires - 0.5); //local X by wire number
-    Float_t aI = (dI->GetPlane() - 1) * kAngleStep * DegToRad(); //rotation angle by plane number
-    Float_t aJ = (dJ->GetPlane() - 1) * kAngleStep * DegToRad(); //rotation angle by plane number
+    Float_t aI; //rotation angle by plane number
+    Float_t aJ; //rotation angle by plane number
+
+    switch (localPlaneI) {
+        case 0:
+            xI = xI;
+            aI = 0.0;
+            break;
+        case 1:
+            xI = xI;
+            aI = -kAngleStep;
+            break;
+        case 2:
+            xI = -xI;
+            aI = kAngleStep;
+            break;
+        case 3:
+            xI = -xI;
+            aI = 0.0;
+            break;
+        case 4:
+            xI = -xI;
+            aI = -kAngleStep;
+            break;
+        case 5:
+            xI = xI;
+            aI = kAngleStep;
+            break;
+    }
+
+    switch (localPlaneJ) {
+        case 0:
+            xJ = xJ;
+            aJ = 0.0;
+            break;
+        case 1:
+            xJ = xJ;
+            aJ = -kAngleStep;
+            break;
+        case 2:
+            xJ = -xJ;
+            aJ = kAngleStep;
+            break;
+        case 3:
+            xJ = -xJ;
+            aJ = 0.0;
+            break;
+        case 4:
+            xJ = -xJ;
+            aJ = -kAngleStep;
+            break;
+        case 5:
+            xJ = xJ;
+            aJ = kAngleStep;
+            break;
+    }
     Float_t xGlob = (xI * Sin(aJ) - xJ * Sin(aI)) / Sin(aJ - aI);
     Float_t yGlob = (xI * Cos(aJ) - xJ * Cos(aI)) / Sin(aJ - aI);
-    Float_t zGlob = Float_t(min(dI->GetPlane() % kNPlanes + 1, dJ->GetPlane() % kNPlanes + 1) - 3); //average position between two neighbor planes
-    TVector3 pos(xGlob, yGlob, zGlob);
+    //    Float_t zGlob = Float_t(min(dI->GetPlane() % kNPlanes + 1, dJ->GetPlane() % kNPlanes + 1) - 3); //average position between two neighbor planes
+    TVector3 pos(xGlob, yGlob, zPos);
     return pos;
 }
 
-vector<TVector3> CreateHitsByTwoPlanes(vector<BmnMwpcDigit*> x, vector<BmnMwpcDigit*> y) {
+vector<TVector3> CreateHitsByTwoPlanes(vector<BmnMwpcDigit*> x, vector<BmnMwpcDigit*> y, Float_t zPos) {
     vector<TVector3> v;
     for (Int_t i = 0; i < x.size(); ++i) {
         BmnMwpcDigit* dI = (BmnMwpcDigit*) x.at(i);
         for (Int_t j = 0; j < y.size(); ++j) {
             BmnMwpcDigit* dJ = (BmnMwpcDigit*) y.at(j);
-            if (Abs(dI->GetTime() - dJ->GetTime()) > 2) continue;
-            v.push_back(CalcHitPosByTwoDigits(dI, dJ));
+            if (Abs(dI->GetTime() - dJ->GetTime()) > 6) continue;
+            v.push_back(CalcHitPosByTwoDigits(dI, dJ, zPos));
         }
     }
     return v;
@@ -270,23 +335,24 @@ void CreateMwpcHits(vector<TVector3> pos, TClonesArray* hits, Short_t mwpcId) {
     const Float_t errY = kWireStep / Sqrt(12.0);
     const Float_t errZ = 1.0 / Sqrt(12.0); // zStep = 1.0 cm
     TVector3 errors = TVector3(errX, errY, errZ); //FIXME!!! Calculate by formulae
-    TVector3 mwpcPos;
+    Float_t zPosMwpc = (mwpcId == 0) ? MWPC0_Zpos : (mwpcId == 1) ? MWPC1_Zpos : (mwpcId == 2) ? MWPC2_Zpos : -1000.0;
+    TVector3 mwpcPos = TVector3(0.0, 0.0, zPosMwpc);
 
-    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
-    if (pVolume != NULL) {
-        TString node_name = TString::Format("mwpc%d_0", mwpcId + 1);
-        TGeoNode* pNode = pVolume->FindNode(node_name);
-        if (pNode != NULL) {
-            TGeoMatrix* pMatrix = pNode->GetMatrix();
-            mwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
-        } else {
-            cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
-            mwpcPos = TVector3(0.0, 0.0, -1000.0);
-        }
-    } else {
-        cout << "Cave volume wasn't found." << endl;
-        mwpcPos = TVector3(0.0, 0.0, -1000.0);
-    }
+    //    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
+    //    if (pVolume != NULL) {
+    //        TString node_name = TString::Format("mwpc%d_0", mwpcId + 1);
+    //        TGeoNode* pNode = pVolume->FindNode(node_name);
+    //        if (pNode != NULL) {
+    //            TGeoMatrix* pMatrix = pNode->GetMatrix();
+    //            mwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
+    //        } else {
+    //            cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
+    //            mwpcPos = TVector3(0.0, 0.0, -1000.0);
+    //        }
+    //    } else {
+    //        cout << "Cave volume wasn't found." << endl;
+    //        mwpcPos = TVector3(0.0, 0.0, -1000.0);
+    //    }
 
     for (Int_t i = 0; i < pos.size(); ++i) {
         new((*hits)[hits->GetEntriesFast()]) BmnMwpcHit(0, pos.at(i) + mwpcPos, errors, -1);
@@ -296,22 +362,60 @@ void CreateMwpcHits(vector<TVector3> pos, TClonesArray* hits, Short_t mwpcId) {
     }
 }
 
-vector<BmnMwpcDigit*> CheckDigits(vector<BmnMwpcDigit*> digitsIn) {
-    vector<BmnMwpcDigit*> digitsOut;
-    for (Int_t i = 0; i < digitsIn.size(); ++i) {
-        BmnMwpcDigit* digitIn = digitsIn.at(i);
-        Bool_t same = kFALSE;
-        for (Int_t j = 0; j < digitsOut.size(); ++j) {
-            BmnMwpcDigit* digitOut = digitsOut.at(j);
-            if (digitIn->GetWireNumber() == digitOut->GetWireNumber()) {
-                same = kTRUE;
-                break;
-            }            
-        }
-        if (!same) {
-            digitsOut.push_back(digitIn);
+void FindNeighbour(BmnMwpcDigit* digiStart, vector<BmnMwpcDigit*> digits, vector<BmnMwpcDigit*> buffer) {
+    for (Int_t i = 0; i < digits.size(); ++i) {
+        BmnMwpcDigit* digi = digits.at(i);
+        if (digi->IsUsed()) continue;
+        if (Abs(digiStart->GetWireNumber() - digi->GetWireNumber()) < 2) {
+            digi->SetUsing(kTRUE);
+            buffer.push_back(digi);
+            FindNeighbour(digi, digits, buffer);
         }
     }
+}
+
+vector<BmnMwpcDigit*> CheckDigits(vector<BmnMwpcDigit*> digitsIn) {
+    vector<BmnMwpcDigit*> digitsOut;
+    if (digitsIn.size() > 3) return digitsOut;
+
+    for (Int_t i = 0; i < digitsIn.size(); ++i) {
+        BmnMwpcDigit* dI = digitsIn.at(i);
+        vector<BmnMwpcDigit*> buffer;
+        buffer.push_back(dI);
+        FindNeighbour(dI, digitsIn, buffer);
+        if (buffer.size() == 1) {
+            digitsOut.push_back(dI); //just copy digit 
+        } else {
+            Float_t sumWires = 0.0;
+            Float_t sumTimes = 0.0;
+            for (Int_t j = 0; j < buffer.size(); ++j) {
+                BmnMwpcDigit* digi = buffer.at(j);
+                sumWires += digi->GetWireNumber();
+                sumTimes += digi->GetTime();
+            }
+            BmnMwpcDigit averDigi(dI->GetPlane(), sumWires / buffer.size(), sumTimes / buffer.size(), dI->GetRefId());
+            digitsOut.push_back(&averDigi);
+        }
+    }
+
+
+//    if (digitsIn.size() > 3) return digitsOut;
+//    for (Int_t i = 0; i < digitsIn.size(); ++i) {
+//        BmnMwpcDigit* digitIn = digitsIn.at(i);
+//        Bool_t same = kFALSE;
+//        for (Int_t j = 0; j < digitsOut.size(); ++j) {
+//            BmnMwpcDigit* digitOut = digitsOut.at(j);
+//            //            if (digitIn->GetWireNumber() == digitOut->GetWireNumber()) {
+//            if (Abs(digitIn->GetWireNumber() - digitOut->GetWireNumber()) < 2) {
+//                same = kTRUE;
+//                break;
+//            }
+//        }
+//        if (!same) {
+//            digitsOut.push_back(digitIn);
+//        }
+//    }
+
     return digitsOut;
 }
 
@@ -341,47 +445,50 @@ void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
         BmnMwpcDigit* digit = (BmnMwpcDigit*) digits->At(i);
         Short_t dTime = digit->GetTime();
         Short_t dPlane = digit->GetPlane();
+        Int_t dRef = digit->GetRefId();
         if (dPlane < 12 && dTime > 25) continue; // for MWPC1 and MWPC2 the same cut by time samples
         if (dPlane > 11 && (dTime > 30 || dTime < 8)) continue; // for MWPC3 we use two-side cut by time samples
-        switch (dPlane) {
-            case 0: x1_mwpc0.push_back(digit);
+        digit->SetUsing(kFALSE); //not used in hit finding yet
+        switch (dRef) {
+            case 0x046F304E: x1_mwpc1.push_back(digit);
                 break;
-            case 1: u1_mwpc0.push_back(digit);
+            case 0x046F3043: u1_mwpc1.push_back(digit);
                 break;
-            case 2: v1_mwpc0.push_back(digit);
+            case 0x046F1A8D: v1_mwpc1.push_back(digit);
                 break;
-            case 3: x2_mwpc0.push_back(digit);
+            case 0x046F4504: x2_mwpc1.push_back(digit);
                 break;
-            case 4: u2_mwpc0.push_back(digit);
+            case 0x046F4514: u2_mwpc1.push_back(digit);
                 break;
-            case 5: v2_mwpc0.push_back(digit);
+            case 0x046F45DF: v2_mwpc1.push_back(digit);
                 break;
-            case 6: x1_mwpc1.push_back(digit);
+            case 0x046EFA53: x1_mwpc0.push_back(digit);
                 break;
-            case 7: u1_mwpc1.push_back(digit);
+            case 0x046F3F1D: u1_mwpc0.push_back(digit);
                 break;
-            case 8: v1_mwpc1.push_back(digit);
+            case 0x046F028B: v1_mwpc0.push_back(digit);
                 break;
-            case 9: x2_mwpc1.push_back(digit);
+            case 0x046F3F97: x2_mwpc0.push_back(digit);
                 break;
-            case 10: u2_mwpc1.push_back(digit);
+            case 0x046F4513: u2_mwpc0.push_back(digit);
                 break;
-            case 11: v2_mwpc1.push_back(digit);
+            case 0x046F3F8E: v2_mwpc0.push_back(digit);
                 break;
-            case 12: x1_mwpc2.push_back(digit);
+            case 0x046F47CB: x1_mwpc2.push_back(digit);
                 break;
-            case 13: u1_mwpc2.push_back(digit);
+            case 0x046F3F8B: u1_mwpc2.push_back(digit);
                 break;
-            case 14: v1_mwpc2.push_back(digit);
+            case 0x046F30B8: v1_mwpc2.push_back(digit);
                 break;
-            case 15: x2_mwpc2.push_back(digit);
+            case 0x046F2950: x2_mwpc2.push_back(digit);
                 break;
-            case 16: u2_mwpc2.push_back(digit);
+            case 0x046F2A79: u2_mwpc2.push_back(digit);
                 break;
-            case 17: v2_mwpc2.push_back(digit);
+            case 0x046F2FFF: v2_mwpc2.push_back(digit);
                 break;
         }
     }
+
     vector<BmnMwpcDigit*> x1_mwpc0_filtered = CheckDigits(x1_mwpc0);
     vector<BmnMwpcDigit*> u1_mwpc0_filtered = CheckDigits(u1_mwpc0);
     vector<BmnMwpcDigit*> v1_mwpc0_filtered = CheckDigits(v1_mwpc0);
@@ -401,27 +508,46 @@ void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
     vector<BmnMwpcDigit*> u2_mwpc2_filtered = CheckDigits(u2_mwpc2);
     vector<BmnMwpcDigit*> v2_mwpc2_filtered = CheckDigits(v2_mwpc2);
 
-    //    Float_t delta = (fMwpcNum == 1) ? 1.0 : (fMwpcNum == 2) ? 1.5 : 2.00; //cm
-    //    Float_t delta = 2.00; //cm //FIXME!
+    //    vector<TVector3> x1u1_mwpc0 = CreateHitsByTwoPlanes(x1_mwpc0_filtered, u1_mwpc0_filtered);
+    //    vector<TVector3> v1x2_mwpc0 = CreateHitsByTwoPlanes(v1_mwpc0_filtered, x2_mwpc0_filtered);
+    //    vector<TVector3> u2v2_mwpc0 = CreateHitsByTwoPlanes(u2_mwpc0_filtered, v2_mwpc0_filtered);
+    //
+    //    vector<TVector3> x1u1_mwpc1 = CreateHitsByTwoPlanes(x1_mwpc1_filtered, u1_mwpc1_filtered);
+    //    vector<TVector3> v1x2_mwpc1 = CreateHitsByTwoPlanes(v1_mwpc1_filtered, x2_mwpc1_filtered);
+    //    vector<TVector3> u2v2_mwpc1 = CreateHitsByTwoPlanes(u2_mwpc1_filtered, v2_mwpc1_filtered);
+    //
+    //    vector<TVector3> x1u1_mwpc2 = CreateHitsByTwoPlanes(x1_mwpc2_filtered, u1_mwpc2_filtered);
+    //    vector<TVector3> v1x2_mwpc2 = CreateHitsByTwoPlanes(v1_mwpc2_filtered, x2_mwpc2_filtered);
+    //    vector<TVector3> u2v2_mwpc2 = CreateHitsByTwoPlanes(u2_mwpc2_filtered, v2_mwpc2_filtered);
 
-    vector<TVector3> x1u1_mwpc0 = CreateHitsByTwoPlanes(x1_mwpc0_filtered, u1_mwpc0_filtered);
-    vector<TVector3> v1x2_mwpc0 = CreateHitsByTwoPlanes(v1_mwpc0_filtered, x2_mwpc0_filtered);
-    vector<TVector3> u2v2_mwpc0 = CreateHitsByTwoPlanes(u2_mwpc0_filtered, v2_mwpc0_filtered);
+    vector<TVector3> u1v1_mwpc0 = CreateHitsByTwoPlanes(u1_mwpc0_filtered, v1_mwpc0_filtered, -2.0);
+    vector<TVector3> x2u2_mwpc0 = CreateHitsByTwoPlanes(x2_mwpc0_filtered, u2_mwpc0_filtered, 0.0);
+    vector<TVector3> v2x1_mwpc0 = CreateHitsByTwoPlanes(v2_mwpc0_filtered, x1_mwpc0_filtered, 2.0);
 
-    vector<TVector3> x1u1_mwpc1 = CreateHitsByTwoPlanes(x1_mwpc1_filtered, u1_mwpc1_filtered);
-    vector<TVector3> v1x2_mwpc1 = CreateHitsByTwoPlanes(v1_mwpc1_filtered, x2_mwpc1_filtered);
-    vector<TVector3> u2v2_mwpc1 = CreateHitsByTwoPlanes(u2_mwpc1_filtered, v2_mwpc1_filtered);
+    vector<TVector3> v2u2_mwpc1 = CreateHitsByTwoPlanes(v2_mwpc1_filtered, u2_mwpc1_filtered, -2.0);
+    vector<TVector3> x2v1_mwpc1 = CreateHitsByTwoPlanes(x2_mwpc1_filtered, v1_mwpc1_filtered, 0.0);
+    vector<TVector3> u1x1_mwpc1 = CreateHitsByTwoPlanes(u1_mwpc1_filtered, x1_mwpc1_filtered, 2.0);
 
-    vector<TVector3> x1u1_mwpc2 = CreateHitsByTwoPlanes(x1_mwpc2_filtered, u1_mwpc2_filtered);
-    vector<TVector3> v1x2_mwpc2 = CreateHitsByTwoPlanes(v1_mwpc2_filtered, x2_mwpc2_filtered);
-    vector<TVector3> u2v2_mwpc2 = CreateHitsByTwoPlanes(u2_mwpc2_filtered, v2_mwpc2_filtered);
+    vector<TVector3> x1u1_mwpc2 = CreateHitsByTwoPlanes(x1_mwpc2_filtered, u1_mwpc2_filtered, -2.0);
+    vector<TVector3> v1x2_mwpc2 = CreateHitsByTwoPlanes(v1_mwpc2_filtered, x2_mwpc2_filtered, 0.0);
+    vector<TVector3> u2v2_mwpc2 = CreateHitsByTwoPlanes(u2_mwpc2_filtered, v2_mwpc2_filtered, 2.0);
 
-    CreateMwpcHits(x1u1_mwpc0, hits, 0);
-    CreateMwpcHits(v1x2_mwpc0, hits, 0);
-    CreateMwpcHits(u2v2_mwpc0, hits, 0);
-    CreateMwpcHits(x1u1_mwpc1, hits, 1);
-    CreateMwpcHits(v1x2_mwpc1, hits, 1);
-    CreateMwpcHits(u2v2_mwpc1, hits, 1);
+    //    CreateMwpcHits(x1u1_mwpc0, hits, 0);
+    //    CreateMwpcHits(v1x2_mwpc0, hits, 0);
+    //    CreateMwpcHits(u2v2_mwpc0, hits, 0);
+    //    CreateMwpcHits(x1u1_mwpc1, hits, 1);
+    //    CreateMwpcHits(v1x2_mwpc1, hits, 1);
+    //    CreateMwpcHits(u2v2_mwpc1, hits, 1);
+    //    CreateMwpcHits(x1u1_mwpc2, hits, 2);
+    //    CreateMwpcHits(v1x2_mwpc2, hits, 2);
+    //    CreateMwpcHits(u2v2_mwpc2, hits, 2);
+
+    CreateMwpcHits(u1v1_mwpc0, hits, 0);
+    CreateMwpcHits(x2u2_mwpc0, hits, 0);
+    CreateMwpcHits(v2x1_mwpc0, hits, 0);
+    CreateMwpcHits(v2u2_mwpc1, hits, 1);
+    CreateMwpcHits(x2v1_mwpc1, hits, 1);
+    CreateMwpcHits(u1x1_mwpc1, hits, 1);
     CreateMwpcHits(x1u1_mwpc2, hits, 2);
     CreateMwpcHits(v1x2_mwpc2, hits, 2);
     CreateMwpcHits(u2v2_mwpc2, hits, 2);

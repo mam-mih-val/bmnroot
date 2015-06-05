@@ -30,7 +30,7 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
     TChain *bmnTree = new TChain("BMN_DIGIT");
     bmnTree->Add(TString::Format("bmn_run0%d_digit.root", runId));
 
-    TChain *bmnRawTree = new TChain("BMN_RAW"); //needed for mwpc digit //why?!?!?!??!
+    TChain *bmnRawTree = new TChain("BMN_RAW");
     bmnRawTree->Add(TString::Format("bmn_run0%d_eb+hrb.root", runId));
 
     TClonesArray *dchDigits;
@@ -44,7 +44,7 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
     bmnTree->SetBranchAddress("bmn_zdc_digit", &zdcDigits);
     bmnRawTree->SetBranchAddress("bmn_mwpc", &mwpcDigits);
 
-    Int_t startEvent = 1;
+    Int_t startEvent = 0;
     Int_t events = (nEvents == 0) ? bmnTree->GetEntries() : nEvents;
 
     TFile* fReco = new TFile(TString::Format("bmndst_run%d.root", runId), "RECREATE");
@@ -56,6 +56,7 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
     TClonesArray* mwpcTracks0 = new TClonesArray("CbmTrack");
     TClonesArray* mwpcTracks1 = new TClonesArray("CbmTrack");
     TClonesArray* mwpcTracks2 = new TClonesArray("CbmTrack");
+    TClonesArray* mwpcMatchedTracks = new TClonesArray("CbmTrack");
 
     tReco->Branch("BmnDchHit", &dchHits);
     tReco->Branch("BmnMwpcHit", &mwpcHits);
@@ -63,6 +64,7 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
     tReco->Branch("Mwpc0Seeds", &mwpcTracks0);
     tReco->Branch("Mwpc1Seeds", &mwpcTracks1);
     tReco->Branch("Mwpc2Seeds", &mwpcTracks2);
+    tReco->Branch("MwpcMatchedTracks", &mwpcMatchedTracks);
 
     for (Int_t iEv = startEvent; iEv < startEvent + events; iEv++) {
         bmnTree->GetEntry(iEv);
@@ -74,8 +76,9 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
         mwpcTracks0->Clear();
         mwpcTracks1->Clear();
         mwpcTracks2->Clear();
+        mwpcMatchedTracks->Clear();
 
-        if (iEv % 1000 == 0) cout << "Event: " << iEv + 1 << "/" << startEvent + events << endl;
+        if (iEv % 1000 == 0) cout << "RECO: \tRUN#" << runId << "\tEvent: " << iEv + 1 << "/" << startEvent + events << endl;
 
         /* ======= Functions for hits reconstruction ======= */
         ProcessDchDigits(dchDigits, dchHits);
@@ -88,11 +91,16 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
         MwpcTrackFinder(mwpcHits, mwpcTracks2, 2);
 
         /* ======= Functions for tracks matching ======= */
+        
+        MwpcTrackMatching(mwpcHits, mwpcMatchedTracks, mwpcTracks0, mwpcTracks1);
 
         tReco->Fill();
     } // event loop
 
     tReco->Write();
     fReco->Close();
+    
+    delete bmnTree;
+    delete bmnRawTree;
 
 }

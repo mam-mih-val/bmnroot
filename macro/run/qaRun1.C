@@ -38,6 +38,8 @@ void qaRun1(Int_t runId = 650, Int_t nEvents = 0) {
     dstTree->SetBranchAddress("BmnMwpcHit", &mwpcHits);
     TClonesArray *mwpcDigits;
     bmnRawTree->SetBranchAddress("bmn_mwpc", &mwpcDigits);
+    TClonesArray *mwpcMatchedTracks;
+    dstTree->SetBranchAddress("MwpcMatchedTracks", &mwpcMatchedTracks);
 
     Int_t events = (nEvents == 0) ? dstTree->GetEntries() : nEvents;
 
@@ -87,49 +89,12 @@ void qaRun1(Int_t runId = 650, Int_t nEvents = 0) {
         //MWPC DIGI
         Int_t digiCounter0 = 0;
         Int_t digiCounter1 = 0;
-        Int_t digiCounter2 = 0;
-
-        Int_t digiCntrPlane0_0 = 0;
-        Int_t digiCntrPlane1_0 = 0;
-        Int_t digiCntrPlane2_0 = 0;
-        Int_t digiCntrPlane3_0 = 0;
-        Int_t digiCntrPlane4_0 = 0;
-        Int_t digiCntrPlane5_0 = 0;
-        Int_t digiCntrPlane0_1 = 0;
-        Int_t digiCntrPlane1_1 = 0;
-        Int_t digiCntrPlane2_1 = 0;
-        Int_t digiCntrPlane3_1 = 0;
-        Int_t digiCntrPlane4_1 = 0;
-        Int_t digiCntrPlane5_1 = 0;
-        Int_t digiCntrPlane0_2 = 0;
-        Int_t digiCntrPlane1_2 = 0;
-        Int_t digiCntrPlane2_2 = 0;
-        Int_t digiCntrPlane3_2 = 0;
-        Int_t digiCntrPlane4_2 = 0;
-        Int_t digiCntrPlane5_2 = 0;        
+        Int_t digiCounter2 = 0;       
 
         for (Int_t digId = 0; digId < mwpcDigits->GetEntriesFast(); ++digId) {
             BmnMwpcDigit* digi = (BmnMwpcDigit*) mwpcDigits->At(digId);
             Short_t plane = digi->GetPlane();
             Short_t time = digi->GetTime();
-//            if (plane == 0) digiCntrPlane0_0++;
-//            else if (plane == 1) digiCntrPlane1_0++;
-//            else if (plane == 2) digiCntrPlane2_0++;
-//            else if (plane == 3) digiCntrPlane3_0++;
-//            else if (plane == 4) digiCntrPlane4_0++;
-//            else if (plane == 5) digiCntrPlane5_0++;
-//            else if (plane == 6) digiCntrPlane0_1++;
-//            else if (plane == 7) digiCntrPlane1_1++;
-//            else if (plane == 8) digiCntrPlane2_1++;
-//            else if (plane == 9) digiCntrPlane3_1++;
-//            else if (plane == 10) digiCntrPlane4_1++;
-//            else if (plane == 11) digiCntrPlane5_1++;
-//            else if (plane == 12) digiCntrPlane0_2++;
-//            else if (plane == 13) digiCntrPlane1_2++;
-//            else if (plane == 14) digiCntrPlane2_2++;
-//            else if (plane == 15) digiCntrPlane3_2++;
-//            else if (plane == 16) digiCntrPlane4_2++;
-//            else if (plane == 17) digiCntrPlane5_2++;
 
             if (plane / 6 == 0) {
                 h_mwpc1_digit_time->Fill(time);
@@ -146,25 +111,6 @@ void qaRun1(Int_t runId = 650, Int_t nEvents = 0) {
         h_mwpc0_digit_nDigits->Fill(digiCounter0);
         h_mwpc1_digit_nDigits->Fill(digiCounter1);
         h_mwpc2_digit_nDigits->Fill(digiCounter2);
-
-//        h_mwpc0_digit_plane0_nDigits->Fill(digiCntrPlane0_0);
-//        h_mwpc0_digit_plane1_nDigits->Fill(digiCntrPlane1_0);
-//        h_mwpc0_digit_plane2_nDigits->Fill(digiCntrPlane2_0);
-//        h_mwpc0_digit_plane3_nDigits->Fill(digiCntrPlane3_0);
-//        h_mwpc0_digit_plane4_nDigits->Fill(digiCntrPlane4_0);
-//        h_mwpc0_digit_plane5_nDigits->Fill(digiCntrPlane5_0);
-//        h_mwpc1_digit_plane0_nDigits->Fill(digiCntrPlane0_1);
-//        h_mwpc1_digit_plane1_nDigits->Fill(digiCntrPlane1_1);
-//        h_mwpc1_digit_plane2_nDigits->Fill(digiCntrPlane2_1);
-//        h_mwpc1_digit_plane3_nDigits->Fill(digiCntrPlane3_1);
-//        h_mwpc1_digit_plane4_nDigits->Fill(digiCntrPlane4_1);
-//        h_mwpc1_digit_plane5_nDigits->Fill(digiCntrPlane5_1);
-//        h_mwpc2_digit_plane0_nDigits->Fill(digiCntrPlane0_2);
-//        h_mwpc2_digit_plane1_nDigits->Fill(digiCntrPlane1_2);
-//        h_mwpc2_digit_plane2_nDigits->Fill(digiCntrPlane2_2);
-//        h_mwpc2_digit_plane3_nDigits->Fill(digiCntrPlane3_2);
-//        h_mwpc2_digit_plane4_nDigits->Fill(digiCntrPlane4_2);
-//        h_mwpc2_digit_plane5_nDigits->Fill(digiCntrPlane5_2);
 
         //MWPC HIT
         Int_t hitCounter0 = 0;
@@ -203,52 +149,40 @@ void qaRun1(Int_t runId = 650, Int_t nEvents = 0) {
 
         //MWPC TRACK
         for (Int_t trId = 0; trId < mwpcTracks0->GetEntriesFast(); ++trId) {
-            CbmTrack* tr0 = (CbmTrack*) mwpcTracks0->At(trId);
-            Short_t chi2 = tr0->GetChiSq();
-            Short_t nHits = tr0->GetNDF();
-            Float_t X = tr0->GetParamFirst()->GetX();
-            Float_t Y = tr0->GetParamFirst()->GetY();
-            Float_t Z = tr0->GetParamFirst()->GetZ();
-            Float_t Tx = tr0->GetParamFirst()->GetTx();
-            Float_t Ty = tr0->GetParamFirst()->GetTy();
-            h_mwpc0_track_Tx->Fill(Tx);
-            h_mwpc0_track_Ty->Fill(Ty);
-            h_mwpc0_track_nHits->Fill(nHits);
-            h_mwpc0_track_chi2->Fill(chi2);
+            CbmTrack* tr = (CbmTrack*) mwpcTracks0->At(trId);
+            FairTrackParam* par = tr->GetParamFirst();
+            Float_t X = par->GetX();
+            Float_t Y = par->GetY();
+            h_mwpc0_track_Tx->Fill(par->GetTx());
+            h_mwpc0_track_Ty->Fill(par->GetTy());
+            h_mwpc0_track_nHits->Fill(tr->GetNDF());
+            h_mwpc0_track_chi2->Fill(tr->GetChiSq());
             h_mwpc0_track_XYstart->Fill(X, Y);
             h_mwpc0_track_Xstart->Fill(X);
             h_mwpc0_track_Ystart->Fill(Y);
         }
         for (Int_t trId = 0; trId < mwpcTracks1->GetEntriesFast(); ++trId) {
-            CbmTrack* tr1 = (CbmTrack*) mwpcTracks1->At(trId);
-            Short_t chi2 = tr1->GetChiSq();
-            Short_t nHits = tr1->GetNDF();
-            Float_t X = tr1->GetParamFirst()->GetX();
-            Float_t Y = tr1->GetParamFirst()->GetY();
-            Float_t Z = tr1->GetParamFirst()->GetZ();
-            Float_t Tx = tr1->GetParamFirst()->GetTx();
-            Float_t Ty = tr1->GetParamFirst()->GetTy();
-            h_mwpc1_track_Tx->Fill(Tx);
-            h_mwpc1_track_Ty->Fill(Ty);
-            h_mwpc1_track_nHits->Fill(nHits);
-            h_mwpc1_track_chi2->Fill(chi2);
+            CbmTrack* tr = (CbmTrack*) mwpcTracks1->At(trId);
+            FairTrackParam* par = tr->GetParamFirst();
+            Float_t X = par->GetX();
+            Float_t Y = par->GetY();
+            h_mwpc1_track_Tx->Fill(par->GetTx());
+            h_mwpc1_track_Ty->Fill(par->GetTy());
+            h_mwpc1_track_nHits->Fill(tr->GetNDF());
+            h_mwpc1_track_chi2->Fill(tr->GetChiSq());
             h_mwpc1_track_XYstart->Fill(X, Y);
             h_mwpc1_track_Xstart->Fill(X);
             h_mwpc1_track_Ystart->Fill(Y);
         }
         for (Int_t trId = 0; trId < mwpcTracks2->GetEntriesFast(); ++trId) {
-            CbmTrack* tr2 = (CbmTrack*) mwpcTracks2->At(trId);
-            Short_t chi2 = tr2->GetChiSq();
-            Short_t nHits = tr2->GetNDF();
-            Float_t X = tr2->GetParamFirst()->GetX();
-            Float_t Y = tr2->GetParamFirst()->GetY();
-            Float_t Z = tr2->GetParamFirst()->GetZ();
-            Float_t Tx = tr2->GetParamFirst()->GetTx();
-            Float_t Ty = tr2->GetParamFirst()->GetTy();
-            h_mwpc2_track_Tx->Fill(Tx);
-            h_mwpc2_track_Ty->Fill(Ty);
-            h_mwpc2_track_nHits->Fill(nHits);
-            h_mwpc2_track_chi2->Fill(chi2);
+            CbmTrack* tr = (CbmTrack*) mwpcTracks2->At(trId);
+            FairTrackParam* par = tr->GetParamFirst();
+            Float_t X = par->GetX();
+            Float_t Y = par->GetY();
+            h_mwpc2_track_Tx->Fill(par->GetTx());
+            h_mwpc2_track_Ty->Fill(par->GetTy());
+            h_mwpc2_track_nHits->Fill(tr->GetNDF());
+            h_mwpc2_track_chi2->Fill(tr->GetChiSq());
             h_mwpc2_track_XYstart->Fill(X, Y);
             h_mwpc2_track_Xstart->Fill(X);
             h_mwpc2_track_Ystart->Fill(Y);
@@ -257,7 +191,23 @@ void qaRun1(Int_t runId = 650, Int_t nEvents = 0) {
         h_mwpc0_track_nTracks->Fill(mwpcTracks0->GetEntriesFast());
         h_mwpc1_track_nTracks->Fill(mwpcTracks1->GetEntriesFast());
         h_mwpc2_track_nTracks->Fill(mwpcTracks2->GetEntriesFast());
+        
+        //MWPC matched tracks
+        for (Int_t trId = 0; trId < mwpcMatchedTracks->GetEntriesFast(); ++trId) {
+            CbmTrack* tr = (CbmTrack*) mwpcMatchedTracks->At(trId);
+            FairTrackParam* par = tr->GetParamFirst();
+            Float_t X = par->GetX();
+            Float_t Y = par->GetY();
+            h_mwpc_matched_track_Tx->Fill(par->GetTx());
+            h_mwpc_matched_track_Ty->Fill(par->GetTy());
+            h_mwpc_matched_track_nHits->Fill(tr->GetNDF());
+            h_mwpc_matched_track_chi2->Fill(tr->GetChiSq());
+            h_mwpc_matched_track_XYstart->Fill(X, Y);
+            h_mwpc_matched_track_Xstart->Fill(X);
+            h_mwpc_matched_track_Ystart->Fill(Y);
+        }
 
+        h_mwpc_matched_track_nTracks->Fill(mwpcMatchedTracks->GetEntriesFast());
 
     } // event loop    
 }

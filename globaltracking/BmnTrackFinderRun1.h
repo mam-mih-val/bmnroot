@@ -37,7 +37,7 @@ Float_t LineFit3D(vector<FairHit*> hits, TVector3& vertex, TVector3& direction) 
     Float_t ZN = ((FairHit*) hits.at(nHits - 1))->GetZ();
     Float_t Az = (ZN - ZV);
     if (Az == 0.0) {
-        cout << "Az = 0.0" << endl;
+//        cout << "Az = 0.0" << endl;
         vertex = TVector3(0.0, 0.0, 0.0);
         direction = TVector3(0.0, 0.0, 0.0);
         return 1000.0;
@@ -438,7 +438,7 @@ BmnStatus MwpcTrackMatching(TClonesArray* hits, TClonesArray* outTracks, TClones
     const Float_t deltaTy = 10;
     const Float_t deltaX = 10;
     const Float_t deltaY = 10;
-    
+
     const Float_t angThr = Tan(89.9 * DegToRad());
 
     TVector3 pos1 = GetMwpcPosition(0);
@@ -446,7 +446,7 @@ BmnStatus MwpcTrackMatching(TClonesArray* hits, TClonesArray* outTracks, TClones
 
     Float_t zMid = (pos1.Z() + pos2.Z()) / 2.0;
 
-//    if ((Mwpc1Tracks->GetEntriesFast() != 1) && (Mwpc2Tracks->GetEntriesFast() != 1)) return kBMNERROR;
+    //    if ((Mwpc1Tracks->GetEntriesFast() != 1) && (Mwpc2Tracks->GetEntriesFast() != 1)) return kBMNERROR;
 
     for (Int_t i1 = 0; i1 < Mwpc1Tracks->GetEntriesFast(); ++i1) {
         CbmTrack* tr1 = (CbmTrack*) Mwpc1Tracks->At(i1);
@@ -464,8 +464,8 @@ BmnStatus MwpcTrackMatching(TClonesArray* hits, TClonesArray* outTracks, TClones
             Float_t x2 = par2->GetX();
             Float_t y2 = par2->GetY();
             Float_t z2 = par2->GetZ();
-//            if (Abs(Tx1 - Tx2) > deltaTx) continue;
-//            if (Abs(Ty1 - Ty2) > deltaTy) continue;
+            //            if (Abs(Tx1 - Tx2) > deltaTx) continue;
+            //            if (Abs(Ty1 - Ty2) > deltaTy) continue;
             if (Abs(Tx1) > angThr) continue;
             if (Abs(Tx2) > angThr) continue;
             if (Abs(Ty1) > angThr) continue;
@@ -474,8 +474,8 @@ BmnStatus MwpcTrackMatching(TClonesArray* hits, TClonesArray* outTracks, TClones
             Float_t y1_zMid = Ty1 * (zMid - z1) + y1;
             Float_t x2_zMid = Tx2 * (zMid - z2) + x2;
             Float_t y2_zMid = Ty2 * (zMid - z2) + y2;
-//            if (Abs(x1_zMid - x2_zMid) > deltaX) continue;
-//            if (Abs(y1_zMid - y2_zMid) > deltaY) continue;
+            //            if (Abs(x1_zMid - x2_zMid) > deltaX) continue;
+            //            if (Abs(y1_zMid - y2_zMid) > deltaY) continue;
             //            cout << " deltaY = " << Abs(y2_zMid - y1_zMid) << " deltaX = " << Abs(x2_zMid - x1_zMid) << endl;
             CbmTrack matchedTrack;
             FairTrackParam matchedPar;
@@ -506,6 +506,37 @@ BmnStatus MwpcTrackMatching(TClonesArray* hits, TClonesArray* outTracks, TClones
             new((*outTracks)[outTracks->GetEntriesFast()]) CbmTrack(matchedTrack);
         }
     }
+
+    return kBMNSUCCESS;
+}
+
+BmnStatus MwpcTrackMatchingByAllHits(TClonesArray* hits, TClonesArray* outTracks) {
+
+    const Float_t angThr = Tan(89.9 * DegToRad());
+
+    TVector3 pos1 = GetMwpcPosition(0);
+    TVector3 pos2 = GetMwpcPosition(1);
+
+    TVector3 vertex;
+    TVector3 direction;
+    vector<FairHit*> hitsForRefit;
+    vector<BmnMwpcHit*> resultTrackHits;
+    CbmTrack matchedTrack;
+    FairTrackParam matchedPar;
+
+    for (Int_t iHit = 0; iHit < hits->GetEntriesFast(); ++iHit) {
+        BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(iHit);
+        if (hit->GetMwpcId() == 2) continue;
+        if (hit->GetX() < -3 || hit->GetX() > 3) continue;
+        if (hit->GetY() < -10 || hit->GetY() > -6) continue;
+        hitsForRefit.push_back(hit);
+    }
+    if (hitsForRefit.size() < 3) return kBMNERROR;
+    Float_t chi2 = LineFit3D(hitsForRefit, vertex, direction);
+    if (Abs(chi2) > 100) return kBMNERROR;
+    AddHits(resultTrackHits, matchedTrack);
+    CreateTrack(direction, vertex, matchedTrack, matchedPar, chi2, matchedTrack.GetNofHits());
+    new((*outTracks)[outTracks->GetEntriesFast()]) CbmTrack(matchedTrack);
 
     return kBMNSUCCESS;
 }

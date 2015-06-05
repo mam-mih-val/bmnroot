@@ -92,7 +92,8 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
 
         /* ======= Functions for tracks matching ======= */
         
-        MwpcTrackMatching(mwpcHits, mwpcMatchedTracks, mwpcTracks0, mwpcTracks1);
+//        MwpcTrackMatching(mwpcHits, mwpcMatchedTracks, mwpcTracks0, mwpcTracks1);
+        MwpcTrackMatchingByAllHits(mwpcHits, mwpcMatchedTracks);
 
         tReco->Fill();
     } // event loop

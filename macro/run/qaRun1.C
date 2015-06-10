@@ -48,48 +48,48 @@ void qaRun1(Int_t runId = 650, Int_t nEvents = 0) {
         bmnRawTree->GetEntry(iEv);
 
         if (iEv % 1000 == 0) cout << "QA: \tRUN#" << runId << "\tEvent: " << iEv + 1 << "/" << events << endl;
-        for (Int_t glIdx = 0; glIdx < /*dchTracks->GetEntriesFast()*/ 0; ++glIdx) {
-            CbmTrack* track = (CbmTrack*) dchTracks->At(glIdx);
-            FairTrackParam* par = track->GetParamFirst();
-            Float_t Tx = par->GetTx();
-            Float_t Ty = par->GetTy();
-            Float_t Az = par->GetQp() / Sqrt(Tx * Tx + Ty * Ty + 1.0);
-            Float_t Ax = Az * Tx;
-            Float_t Ay = Az * Ty;
-            Float_t Vx = par->GetX();
-            Float_t Vy = par->GetY();
-            Float_t Vz = par->GetZ();
-            h_nHits->Fill(track->GetNofHits());
-            for (Int_t i = 0; i < track->GetNofHits(); ++i) {
-                BmnDchHit* hit = (BmnDchHit*) dchHits->At(track->GetHitIndex(i));
-                Short_t dchId = hit->GetDchId();
-                Float_t Hx = hit->GetX();
-                Float_t Hy = hit->GetY();
-                Float_t Hz = hit->GetZ();
-
-                //3D
-                Float_t dist = DistFromPointToLine3D(TVector3(Ax, Ay, Az), TVector3(Vx, Vy, Vz), TVector3(Hx, Hy, Hz));
-                if (dchId == 1) {
-                    h_dch1_dist_3d->Fill(dist);
-                    h_dch1_dist_x->Fill(Hx, dist);
-                    h_dch1_dist_y->Fill(Hy, dist);
-                    h_dch1_dist_z->Fill(Hz, dist);
-                    h_xy1->Fill(Hx, Hy);
-
-                } else if (dchId == 2) {
-                    h_dch2_dist_3d->Fill(dist);
-                    h_dch2_dist_x->Fill(Hx, dist);
-                    h_dch2_dist_y->Fill(Hy, dist);
-                    h_dch2_dist_z->Fill(Hz, dist);
-                    h_xy2->Fill(Hx, Hy);
-                }
-            }
-        }
+        //        for (Int_t glIdx = 0; glIdx < /*dchTracks->GetEntriesFast()*/ 0; ++glIdx) {
+        //            CbmTrack* track = (CbmTrack*) dchTracks->At(glIdx);
+        //            FairTrackParam* par = track->GetParamFirst();
+        //            Float_t Tx = par->GetTx();
+        //            Float_t Ty = par->GetTy();
+        //            Float_t Az = par->GetQp() / Sqrt(Tx * Tx + Ty * Ty + 1.0);
+        //            Float_t Ax = Az * Tx;
+        //            Float_t Ay = Az * Ty;
+        //            Float_t Vx = par->GetX();
+        //            Float_t Vy = par->GetY();
+        //            Float_t Vz = par->GetZ();
+        //            h_nHits->Fill(track->GetNofHits());
+        //            for (Int_t i = 0; i < track->GetNofHits(); ++i) {
+        //                BmnDchHit* hit = (BmnDchHit*) dchHits->At(track->GetHitIndex(i));
+        //                Short_t dchId = hit->GetDchId();
+        //                Float_t Hx = hit->GetX();
+        //                Float_t Hy = hit->GetY();
+        //                Float_t Hz = hit->GetZ();
+        //
+        //                //3D
+        //                Float_t dist = DistFromPointToLine3D(TVector3(Ax, Ay, Az), TVector3(Vx, Vy, Vz), TVector3(Hx, Hy, Hz));
+        //                if (dchId == 1) {
+        //                    h_dch1_dist_3d->Fill(dist);
+        //                    h_dch1_dist_x->Fill(Hx, dist);
+        //                    h_dch1_dist_y->Fill(Hy, dist);
+        //                    h_dch1_dist_z->Fill(Hz, dist);
+        //                    h_xy1->Fill(Hx, Hy);
+        //
+        //                } else if (dchId == 2) {
+        //                    h_dch2_dist_3d->Fill(dist);
+        //                    h_dch2_dist_x->Fill(Hx, dist);
+        //                    h_dch2_dist_y->Fill(Hy, dist);
+        //                    h_dch2_dist_z->Fill(Hz, dist);
+        //                    h_xy2->Fill(Hx, Hy);
+        //                }
+        //            }
+        //        }
 
         //MWPC DIGI
         Int_t digiCounter0 = 0;
         Int_t digiCounter1 = 0;
-        Int_t digiCounter2 = 0;       
+        Int_t digiCounter2 = 0;
 
         for (Int_t digId = 0; digId < mwpcDigits->GetEntriesFast(); ++digId) {
             BmnMwpcDigit* digi = (BmnMwpcDigit*) mwpcDigits->At(digId);
@@ -97,12 +97,15 @@ void qaRun1(Int_t runId = 650, Int_t nEvents = 0) {
             Short_t time = digi->GetTime();
 
             if (plane / 6 == 0) {
+                if (time < mwpc0_leftTime || time > mwpc0_rightTime) continue;
                 h_mwpc1_digit_time->Fill(time);
                 digiCounter1++;
             } else if (plane / 6 == 1) {
+                if (time < mwpc1_leftTime || time > mwpc1_rightTime) continue;
                 h_mwpc0_digit_time->Fill(time);
                 digiCounter0++;
             } else if (plane / 6 == 2) {
+                if (time < mwpc2_leftTime || time > mwpc2_rightTime) continue;
                 h_mwpc2_digit_time->Fill(time);
                 digiCounter2++;
             }
@@ -116,7 +119,7 @@ void qaRun1(Int_t runId = 650, Int_t nEvents = 0) {
         Int_t hitCounter0 = 0;
         Int_t hitCounter1 = 0;
         Int_t hitCounter2 = 0;
-
+                       
         for (Int_t hitId = 0; hitId < mwpcHits->GetEntriesFast(); ++hitId) {
             BmnMwpcHit* mwpcHit = (BmnMwpcHit*) mwpcHits->At(hitId);
             Short_t mwpcId = mwpcHit->GetMwpcId();
@@ -174,32 +177,48 @@ void qaRun1(Int_t runId = 650, Int_t nEvents = 0) {
             h_mwpc1_track_Xstart->Fill(X);
             h_mwpc1_track_Ystart->Fill(Y);
         }
-        for (Int_t trId = 0; trId < mwpcTracks2->GetEntriesFast(); ++trId) {
-            CbmTrack* tr = (CbmTrack*) mwpcTracks2->At(trId);
-            FairTrackParam* par = tr->GetParamFirst();
-            Float_t X = par->GetX();
-            Float_t Y = par->GetY();
-            h_mwpc2_track_Tx->Fill(par->GetTx());
-            h_mwpc2_track_Ty->Fill(par->GetTy());
-            h_mwpc2_track_nHits->Fill(tr->GetNDF());
-            h_mwpc2_track_chi2->Fill(tr->GetChiSq());
-            h_mwpc2_track_XYstart->Fill(X, Y);
-            h_mwpc2_track_Xstart->Fill(X);
-            h_mwpc2_track_Ystart->Fill(Y);
-        }
+        //        for (Int_t trId = 0; trId < mwpcTracks2->GetEntriesFast(); ++trId) {
+        //            CbmTrack* tr = (CbmTrack*) mwpcTracks2->At(trId);
+        //            FairTrackParam* par = tr->GetParamFirst();
+        //            Float_t X = par->GetX();
+        //            Float_t Y = par->GetY();
+        //            h_mwpc2_track_Tx->Fill(par->GetTx());
+        //            h_mwpc2_track_Ty->Fill(par->GetTy());
+        //            h_mwpc2_track_nHits->Fill(tr->GetNDF());
+        //            h_mwpc2_track_chi2->Fill(tr->GetChiSq());
+        //            h_mwpc2_track_XYstart->Fill(X, Y);
+        //            h_mwpc2_track_Xstart->Fill(X);
+        //            h_mwpc2_track_Ystart->Fill(Y);
+        //        }
 
         h_mwpc0_track_nTracks->Fill(mwpcTracks0->GetEntriesFast());
         h_mwpc1_track_nTracks->Fill(mwpcTracks1->GetEntriesFast());
-        h_mwpc2_track_nTracks->Fill(mwpcTracks2->GetEntriesFast());
-        
-        //MWPC matched tracks
+        //        h_mwpc2_track_nTracks->Fill(mwpcTracks2->GetEntriesFast());
+
+        //MWPC matched tracks  
         for (Int_t trId = 0; trId < mwpcMatchedTracks->GetEntriesFast(); ++trId) {
             CbmTrack* tr = (CbmTrack*) mwpcMatchedTracks->At(trId);
             FairTrackParam* par = tr->GetParamFirst();
             Float_t X = par->GetX();
             Float_t Y = par->GetY();
-            h_mwpc_matched_track_Tx->Fill(par->GetTx());
-            h_mwpc_matched_track_Ty->Fill(par->GetTy());
+            Float_t Z = par->GetZ();
+            Float_t Tx = par->GetTx();
+            Float_t Ty = par->GetTy();
+            Float_t Az = par->GetQp() / Sqrt(Tx * Tx + Ty * Ty + 1.0);
+            Float_t Ax = Az * Tx;
+            Float_t Ay = Az * Ty;
+            //            for (Int_t i = 0; i < tr->GetNofHits(); ++i) {
+            //                BmnMwpcHit* mwpcHit = (BmnMwpcHit*) mwpcHits->At(tr->GetHitIndex(i));
+            //                Float_t Hx = mwpcHit->GetX();
+            //                Float_t Hy = mwpcHit->GetY();
+            //                Float_t Hz = mwpcHit->GetZ();
+            //
+            //                Float_t dist = DistFromPointToLine3D(TVector3(Ax, Ay, Az), TVector3(X, Y, Z), TVector3(Hx, Hy, Hz));
+            //                h_mwpc_matched_track_dist_3d->Fill(dist);
+            //            }
+
+            h_mwpc_matched_track_Tx->Fill(Tx);
+            h_mwpc_matched_track_Ty->Fill(Ty);
             h_mwpc_matched_track_nHits->Fill(tr->GetNDF());
             h_mwpc_matched_track_chi2->Fill(tr->GetChiSq());
             h_mwpc_matched_track_XYstart->Fill(X, Y);

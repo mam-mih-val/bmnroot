@@ -10,6 +10,9 @@
 #include "BmnMwpcHit.h"
 #include "TClonesArray.h"
 #include "TMath.h"
+#include "TF1.h"
+#include "TH1F.h"
+#include "BmnEnums.h"
 
 using namespace std;
 using namespace TMath;
@@ -28,6 +31,13 @@ const Float_t kMwpcZpos = 350; //FIXME!!! Get coords from geometry
 const Double_t MWPC0_Zpos = -301.3;
 const Double_t MWPC1_Zpos = -158.5;
 const Double_t MWPC2_Zpos = 459.5;
+
+Float_t mwpc0_leftTime = 0.0;
+Float_t mwpc0_rightTime = 0.0;
+Float_t mwpc1_leftTime = 0.0;
+Float_t mwpc1_rightTime = 0.0;
+Float_t mwpc2_leftTime = 0.0;
+Float_t mwpc2_rightTime = 0.0;
 // <=== constants for mwpc
 
 //Detector's position
@@ -240,7 +250,6 @@ void ProcessDchDigits(TClonesArray* digits, TClonesArray * hitsArray) {
 
 //MWPC
 
-
 TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit * dJ, Float_t zPos) {
     Float_t dWireI = dI->GetWireNumber();
     Float_t dWireJ = dJ->GetWireNumber();
@@ -399,24 +408,37 @@ vector<BmnMwpcDigit*> CheckDigits(vector<BmnMwpcDigit*> digitsIn) {
     }
 
 
-//    if (digitsIn.size() > 3) return digitsOut;
-//    for (Int_t i = 0; i < digitsIn.size(); ++i) {
-//        BmnMwpcDigit* digitIn = digitsIn.at(i);
-//        Bool_t same = kFALSE;
-//        for (Int_t j = 0; j < digitsOut.size(); ++j) {
-//            BmnMwpcDigit* digitOut = digitsOut.at(j);
-//            //            if (digitIn->GetWireNumber() == digitOut->GetWireNumber()) {
-//            if (Abs(digitIn->GetWireNumber() - digitOut->GetWireNumber()) < 2) {
-//                same = kTRUE;
-//                break;
-//            }
-//        }
-//        if (!same) {
-//            digitsOut.push_back(digitIn);
-//        }
-//    }
+    //    if (digitsIn.size() > 3) return digitsOut;
+    //    for (Int_t i = 0; i < digitsIn.size(); ++i) {
+    //        BmnMwpcDigit* digitIn = digitsIn.at(i);
+    //        Bool_t same = kFALSE;
+    //        for (Int_t j = 0; j < digitsOut.size(); ++j) {
+    //            BmnMwpcDigit* digitOut = digitsOut.at(j);
+    //            //            if (digitIn->GetWireNumber() == digitOut->GetWireNumber()) {
+    //            if (Abs(digitIn->GetWireNumber() - digitOut->GetWireNumber()) < 2) {
+    //                same = kTRUE;
+    //                break;
+    //            }
+    //        }
+    //        if (!same) {
+    //            digitsOut.push_back(digitIn);
+    //        }
+    //    }
 
     return digitsOut;
+}
+
+BmnStatus DigitsTimeSelection(TH1F* h_times, Float_t& left, Float_t& right) {
+    Float_t pedestal = h_times->GetBinContent(1);
+    TF1* shiftedGaus = new TF1("ShiftedGaus", "gaus+[3]", 0.0, 40.0);
+    shiftedGaus->SetParameters(pedestal, 20, 5, pedestal);
+    h_times->Fit("ShiftedGaus", "SQww");
+    Float_t mean = shiftedGaus->GetParameter(1);
+    Float_t sigma = shiftedGaus->GetParameter(2);
+    left = mean - 3 * sigma;
+    right = mean + 3 * sigma;
+    if (left > 50 || left < -10 || right > 50 || right < -10) return kBMNERROR;
+    else return kBMNSUCCESS;
 }
 
 void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
@@ -446,8 +468,11 @@ void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
         Short_t dTime = digit->GetTime();
         Short_t dPlane = digit->GetPlane();
         Int_t dRef = digit->GetRefId();
-        if (dPlane < 12 && dTime > 25) continue; // for MWPC1 and MWPC2 the same cut by time samples
-        if (dPlane > 11 && (dTime > 30 || dTime < 8)) continue; // for MWPC3 we use two-side cut by time samples
+
+        if ((dPlane > -1 && dPlane < 6) && (dTime < mwpc0_leftTime || dTime > mwpc0_rightTime)) continue;
+        if ((dPlane > 5 && dPlane < 12) && (dTime < mwpc1_leftTime || dTime > mwpc1_rightTime)) continue;
+        if ((dPlane > 11 && dPlane < 18) && (dTime < mwpc2_leftTime || dTime > mwpc2_rightTime)) continue;
+
         digit->SetUsing(kFALSE); //not used in hit finding yet
         switch (dRef) {
             case 0x046F304E: x1_mwpc1.push_back(digit);

@@ -66,6 +66,36 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
     tReco->Branch("Mwpc2Seeds", &mwpcTracks2);
     tReco->Branch("MwpcMatchedTracks", &mwpcMatchedTracks);
 
+    cout << "Time Selection: START" << endl;
+
+    TH1F* h_times0 = new TH1F("h_times0", "mwpc0_times", 40, 0.0, 40.0);
+    TH1F* h_times1 = new TH1F("h_times1", "mwpc1_times", 40, 0.0, 40.0);
+    TH1F* h_times2 = new TH1F("h_times2", "mwpc2_times", 40, 0.0, 40.0);
+    for (Int_t iEv = startEvent; iEv < startEvent + events; iEv++) {
+        if (iEv % 1000 == 0) cout << "TIME SEECTION: \tRUN#" << runId << "\tEvent: " << iEv + 1 << "/" << startEvent + events << endl;
+        bmnRawTree->GetEntry(iEv);
+        for (Int_t iDig = 0; iDig < mwpcDigits->GetEntriesFast(); ++iDig) {
+            BmnMwpcDigit* digi = (BmnMwpcDigit*) mwpcDigits->At(iDig);
+            Short_t plane = digi->GetPlane();
+            if (plane < 6)
+                h_times0->Fill(digi->GetTime());
+            else if (plane < 12)
+                h_times1->Fill(digi->GetTime());
+            else if (plane < 18)
+                h_times2->Fill(digi->GetTime());
+        }
+    }
+
+    DigitsTimeSelection(h_times0, mwpc0_leftTime, mwpc0_rightTime);
+    DigitsTimeSelection(h_times1, mwpc1_leftTime, mwpc1_rightTime);
+    DigitsTimeSelection(h_times2, mwpc2_leftTime, mwpc2_rightTime);
+
+    delete h_times0;
+    delete h_times1;
+    delete h_times2;
+
+    cout << "Time Selection: FINISH" << endl;
+
     for (Int_t iEv = startEvent; iEv < startEvent + events; iEv++) {
         bmnTree->GetEntry(iEv);
         bmnRawTree->GetEntry(iEv);
@@ -91,8 +121,8 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
         MwpcTrackFinder(mwpcHits, mwpcTracks2, 2);
 
         /* ======= Functions for tracks matching ======= */
-        
-//        MwpcTrackMatching(mwpcHits, mwpcMatchedTracks, mwpcTracks0, mwpcTracks1);
+
+        //        MwpcTrackMatching(mwpcHits, mwpcMatchedTracks, mwpcTracks0, mwpcTracks1);
         MwpcTrackMatchingByAllHits(mwpcHits, mwpcMatchedTracks);
 
         tReco->Fill();
@@ -100,7 +130,7 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
 
     tReco->Write();
     fReco->Close();
-    
+
     delete bmnTree;
     delete bmnRawTree;
 

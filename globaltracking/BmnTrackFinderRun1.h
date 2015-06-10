@@ -527,8 +527,8 @@ BmnStatus MwpcTrackMatchingByAllHits(TClonesArray* hits, TClonesArray* outTracks
     for (Int_t iHit = 0; iHit < hits->GetEntriesFast(); ++iHit) {
         BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(iHit);
         if (hit->GetMwpcId() == 2) continue;
-        if (hit->GetX() < -1 || hit->GetX() > 2) continue;
-        if (hit->GetY() < -10 || hit->GetY() > -6) continue;
+        if (hit->GetX() < -10 || hit->GetX() > 10) continue;
+        if (hit->GetY() < -10 || hit->GetY() > 10) continue;
         hitsForRefit.push_back((FairHit*)hit);
         resultTrackHits.push_back(hit);
     }

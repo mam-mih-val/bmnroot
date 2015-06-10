@@ -88,13 +88,16 @@ TH1I* h_mwpc2_hit_nHits = new TH1I("h_mwpc2_hit_nHits", "Number of hits distribu
 
 //MWPC tracks
 
-TH1F* h_mwpc0_track_Tx = new TH1F("h_mwpc0_track_Tx", "Tx distribution of tracks in MWPC0", mwpcN, -15, 15);
-TH1F* h_mwpc1_track_Tx = new TH1F("h_mwpc1_track_Tx", "Tx distribution of tracks in MWPC1", mwpcN, -15, 15);
-TH1F* h_mwpc2_track_Tx = new TH1F("h_mwpc2_track_Tx", "Tx distribution of tracks in MWPC2", mwpcN, -15, 15);
+const Float_t TxBound = 2.0;
+const Float_t TyBound = 2.0;
 
-TH1F* h_mwpc0_track_Ty = new TH1F("h_mwpc0_track_Ty", "Ty distribution of tracks in MWPC0", mwpcN, -15, 15);
-TH1F* h_mwpc1_track_Ty = new TH1F("h_mwpc1_track_Ty", "Ty distribution of tracks in MWPC1", mwpcN, -15, 15);
-TH1F* h_mwpc2_track_Ty = new TH1F("h_mwpc2_track_Ty", "Ty distribution of tracks in MWPC2", mwpcN, -15, 15);
+TH1F* h_mwpc0_track_Tx = new TH1F("h_mwpc0_track_Tx", "Tx distribution of tracks in MWPC0", 100, -TxBound, TxBound);
+TH1F* h_mwpc1_track_Tx = new TH1F("h_mwpc1_track_Tx", "Tx distribution of tracks in MWPC1", 100, -TxBound, TxBound);
+TH1F* h_mwpc2_track_Tx = new TH1F("h_mwpc2_track_Tx", "Tx distribution of tracks in MWPC2", 100, -TxBound, TxBound);
+
+TH1F* h_mwpc0_track_Ty = new TH1F("h_mwpc0_track_Ty", "Ty distribution of tracks in MWPC0", 100, -TyBound, TyBound);
+TH1F* h_mwpc1_track_Ty = new TH1F("h_mwpc1_track_Ty", "Ty distribution of tracks in MWPC1", 100, -TyBound, TyBound);
+TH1F* h_mwpc2_track_Ty = new TH1F("h_mwpc2_track_Ty", "Ty distribution of tracks in MWPC2", 100, -TyBound, TyBound);
 
 TH1I* h_mwpc0_track_nHits = new TH1I("h_mwpc0_track_nHits", "Number of hit distribution of MWPC0 tracks", 5, -1, 4);
 TH1I* h_mwpc1_track_nHits = new TH1I("h_mwpc1_track_nHits", "Number of hit distribution of MWPC1 tracks", 5, -1, 4);
@@ -121,8 +124,8 @@ TH1I* h_mwpc1_track_nTracks = new TH1I("h_mwpc1_track_nTracks", "Number of track
 TH1I* h_mwpc2_track_nTracks = new TH1I("h_mwpc2_track_nTracks", "Number of tracks distribution in MWPC2", 21, -1, 20);
 
 //MWPC matched tracks
-TH1F* h_mwpc_matched_track_Tx = new TH1F("h_mwpc_matched_track_Tx", "Tx distribution of tracks in MWPC", mwpcN, -1.0, 1.0);
-TH1F* h_mwpc_matched_track_Ty = new TH1F("h_mwpc_matched_track_Ty", "Ty distribution of tracks in MWPC", mwpcN, -1.0, 1.0);
+TH1F* h_mwpc_matched_track_Tx = new TH1F("h_mwpc_matched_track_Tx", "Tx distribution of tracks in MWPC", mwpcN, -0.1, 0.1);
+TH1F* h_mwpc_matched_track_Ty = new TH1F("h_mwpc_matched_track_Ty", "Ty distribution of tracks in MWPC", mwpcN, -0.1, 0.1);
 TH1I* h_mwpc_matched_track_nHits = new TH1I("h_mwpc_matched_track_nHits", "Number of hit distribution of MWPC tracks", 8, 0, 8);
 TH1F* h_mwpc_matched_track_chi2 = new TH1F("h_mwpc_matched_track_chi2", "#Chi^2 distribution of tracks in MWPC", mwpcN, 0.0, 10.0);
 TH2F* h_mwpc_matched_track_XYstart = new TH2F("h_mwpc_matched_track_XYstart", "Start hits distribution of track in XY plane in MWPC", mwpcN, -mwpcX, mwpcX, mwpcN, -mwpcY, mwpcY);
@@ -130,14 +133,19 @@ TH1F* h_mwpc_matched_track_Xstart = new TH1F("h_mwpc_matched_track_Xstart", "Sta
 TH1F* h_mwpc_matched_track_Ystart = new TH1F("h_mwpc_matched_track_Ystart", "Start hits distribution of track in Y axis in MWPC", mwpcN, -mwpcY, mwpcY);
 TH1I* h_mwpc_matched_track_nTracks = new TH1I("h_mwpc_matched_track_nTracks", "Number of tracks distribution in MWPC", 6, -1, 5);
 
+TH1F* h_mwpc_matched_track_dist_3d = new TH1F("h_mwpc_matched_track_dist_3d", "h_mwpc_matched_track_dist_3d", mwpcN, 0.0, res_bound);
 
 void reco_testRun_chain() {
 
-    UInt_t nEvents = 0; // zero corresponds to ALL EVENTS in run
+    UInt_t nEvents = 10; // zero corresponds to ALL EVENTS in run
 
     recoRun1(250, nEvents);
-    
+//    recoRun1(256, nEvents);
+//    recoRun1(257, nEvents);
+
     qaRun1(250, nEvents);
+//    qaRun1(256, nEvents);
+//    qaRun1(257, nEvents);
 
     fOut->Write();
     fOut->Close();

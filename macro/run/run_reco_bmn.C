@@ -21,7 +21,8 @@
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 // outFile - output file with reconstructed data, default: mpddst.root
-void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 100000000) {
+
+void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 100) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
@@ -72,91 +73,91 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                          (where available)                        ===
     // =========================================================================
 
-/*
+    /*
 
-    // -----   STS digitizer   -------------------------------------------------
-    Double_t threshold = 4;
-    Double_t noiseWidth = 0.01;
-    Int_t nofBits = 12;
-    Double_t electronsPerAdc = 10;
-    Double_t StripDeadTime = 0.1;
-    CbmStsDigitize* stsDigitize = new CbmStsDigitize("STS Digitiser", iVerbose);
-    stsDigitize->SetRealisticResponse();
-    stsDigitize->SetFrontThreshold(threshold);
-    stsDigitize->SetBackThreshold(threshold);
-    stsDigitize->SetFrontNoiseWidth(noiseWidth);
-    stsDigitize->SetBackNoiseWidth(noiseWidth);
-    stsDigitize->SetFrontNofBits(nofBits);
-    stsDigitize->SetBackNofBits(nofBits);
-    stsDigitize->SetFrontNofElPerAdc(electronsPerAdc);
-    stsDigitize->SetBackNofElPerAdc(electronsPerAdc);
-    stsDigitize->SetStripDeadTime(StripDeadTime);
-    //   fRun->AddTask(stsDigitize);
-    // -------------------------------------------------------------------------
+        // -----   STS digitizer   -------------------------------------------------
+        Double_t threshold = 4;
+        Double_t noiseWidth = 0.01;
+        Int_t nofBits = 12;
+        Double_t electronsPerAdc = 10;
+        Double_t StripDeadTime = 0.1;
+        CbmStsDigitize* stsDigitize = new CbmStsDigitize("STS Digitiser", iVerbose);
+        stsDigitize->SetRealisticResponse();
+        stsDigitize->SetFrontThreshold(threshold);
+        stsDigitize->SetBackThreshold(threshold);
+        stsDigitize->SetFrontNoiseWidth(noiseWidth);
+        stsDigitize->SetBackNoiseWidth(noiseWidth);
+        stsDigitize->SetFrontNofBits(nofBits);
+        stsDigitize->SetBackNofBits(nofBits);
+        stsDigitize->SetFrontNofElPerAdc(electronsPerAdc);
+        stsDigitize->SetBackNofElPerAdc(electronsPerAdc);
+        stsDigitize->SetStripDeadTime(StripDeadTime);
+        //   fRun->AddTask(stsDigitize);
+        // -------------------------------------------------------------------------
 
-    // =========================================================================
-    // ===                      STS local reconstruction                     ===
-    // =========================================================================
-
-
-    // -----   STS Cluster Finder   --------------------------------------------
-    FairTask* stsClusterFinder = new CbmStsClusterFinder("STS Cluster Finder", iVerbose);
-    //   fRun->AddTask(stsClusterFinder);
-    // -------------------------------------------------------------------------
+        // =========================================================================
+        // ===                      STS local reconstruction                     ===
+        // =========================================================================
 
 
-    // -----   STS hit finder   ------------------------------------------------
-    FairTask* stsFindHits = new CbmStsFindHits("STS Hit Finder", iVerbose);
-    //   fRun->AddTask(stsFindHits);
-    // -------------------------------------------------------------------------
+        // -----   STS Cluster Finder   --------------------------------------------
+        FairTask* stsClusterFinder = new CbmStsClusterFinder("STS Cluster Finder", iVerbose);
+        //   fRun->AddTask(stsClusterFinder);
+        // -------------------------------------------------------------------------
 
 
-    // -----  STS hit matching   -----------------------------------------------
-    FairTask* stsMatchHits = new CbmStsMatchHits("STS Hit Matcher", iVerbose);
-    //   fRun->AddTask(stsMatchHits);
-    // -------------------------------------------------------------------------
+        // -----   STS hit finder   ------------------------------------------------
+        FairTask* stsFindHits = new CbmStsFindHits("STS Hit Finder", iVerbose);
+        //   fRun->AddTask(stsFindHits);
+        // -------------------------------------------------------------------------
 
 
-    // ---  STS track finding   ------------------------------------------------
-    CbmKF* kalman = new CbmKF();
-    //   fRun->AddTask(kalman);
-    CbmL1* l1 = new CbmL1();
-    //   fRun->AddTask(l1);
-    CbmStsTrackFinder* stsTrackFinder = new CbmL1StsTrackFinder();
-    FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, stsTrackFinder);
-    //   fRun->AddTask(stsFindTracks);
-    // -------------------------------------------------------------------------
+        // -----  STS hit matching   -----------------------------------------------
+        FairTask* stsMatchHits = new CbmStsMatchHits("STS Hit Matcher", iVerbose);
+        //   fRun->AddTask(stsMatchHits);
+        // -------------------------------------------------------------------------
 
 
-    // ---   STS track matching   ----------------------------------------------
-    FairTask* stsMatchTracks = new CbmStsMatchTracks(iVerbose);
-    //   fRun->AddTask(stsMatchTracks);
-    // -------------------------------------------------------------------------
+        // ---  STS track finding   ------------------------------------------------
+        CbmKF* kalman = new CbmKF();
+        //   fRun->AddTask(kalman);
+        CbmL1* l1 = new CbmL1();
+        //   fRun->AddTask(l1);
+        CbmStsTrackFinder* stsTrackFinder = new CbmL1StsTrackFinder();
+        FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, stsTrackFinder);
+        //   fRun->AddTask(stsFindTracks);
+        // -------------------------------------------------------------------------
 
 
-    // ---   STS track fitting   -----------------------------------------------
-    CbmStsTrackFitter* stsTrackFitter = new CbmStsKFTrackFitter();
-    FairTask* stsFitTracks = new CbmStsFitTracks(stsTrackFitter, iVerbose);
-    //   fRun->AddTask(stsFitTracks);
-    // -------------------------------------------------------------------------
-
-    // ===                 End of STS local reconstruction                   ===
-    // =========================================================================
+        // ---   STS track matching   ----------------------------------------------
+        FairTask* stsMatchTracks = new CbmStsMatchTracks(iVerbose);
+        //   fRun->AddTask(stsMatchTracks);
+        // -------------------------------------------------------------------------
 
 
-    // =========================================================================
-    // ===                     PSD Digitization                      ===
-    // =========================================================================
+        // ---   STS track fitting   -----------------------------------------------
+        CbmStsTrackFitter* stsTrackFitter = new CbmStsKFTrackFitter();
+        FairTask* stsFitTracks = new CbmStsFitTracks(stsTrackFitter, iVerbose);
+        //   fRun->AddTask(stsFitTracks);
+        // -------------------------------------------------------------------------
 
-    CbmPsdIdealDigitizer *psddigi = new CbmPsdIdealDigitizer();
-    //   fRun->AddTask(psddigi);
+        // ===                 End of STS local reconstruction                   ===
+        // =========================================================================
 
-    CbmPsdHitProducer *psdhit = new CbmPsdHitProducer();
-    //   fRun->AddTask(psdhit);
-    CbmPsdReactionPlaneMaker *psdrp = new CbmPsdReactionPlaneMaker();
-    //   fRun->AddTask(psdrp);
 
-*/
+        // =========================================================================
+        // ===                     PSD Digitization                      ===
+        // =========================================================================
+
+        CbmPsdIdealDigitizer *psddigi = new CbmPsdIdealDigitizer();
+        //   fRun->AddTask(psddigi);
+
+        CbmPsdHitProducer *psdhit = new CbmPsdHitProducer();
+        //   fRun->AddTask(psdhit);
+        CbmPsdReactionPlaneMaker *psdrp = new CbmPsdReactionPlaneMaker();
+        //   fRun->AddTask(psdrp);
+
+     */
     //SM --->
 
     //Temporary flag to change reconstruction chain between standard and RUN-1
@@ -193,15 +194,15 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
 
-      BmnGemHitProducer* gemHP = new BmnGemHitProducer();
+    BmnGemHitProducer* gemHP = new BmnGemHitProducer();
 //    gemHP->SetOnlyPrimary(kTRUE);
-//    fRun->AddTask(gemHP);
+    fRun->AddTask(gemHP);
 
-      BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
-      fRun->AddTask(gemDigit);
+    BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
+    //      fRun->AddTask(gemDigit);
 
-      BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
-      fRun->AddTask(gemHM);
+    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
+    //      fRun->AddTask(gemHM);
 
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
@@ -214,7 +215,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                           DCH1 hit finder                      === //
     // ====================================================================== //
 
-//    BmnDchHitProducer* dch1HP = new BmnDchHitProducer(1,0,false);
+    //    BmnDchHitProducer* dch1HP = new BmnDchHitProducer(1,0,false);
     BmnDchHitProducerTmp* dch1HP = new BmnDchHitProducerTmp(1);
     //dch1HP->SetOnlyPrimary(kTRUE);
     fRun->AddTask(dch1HP);
@@ -223,7 +224,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                          DCH2 hit finder                       === //
     // ====================================================================== //
 
-//    BmnDchHitProducer* dch2HP = new BmnDchHitProducer(2,0,false);
+    //    BmnDchHitProducer* dch2HP = new BmnDchHitProducer(2,0,false);
     BmnDchHitProducerTmp* dch2HP = new BmnDchHitProducerTmp(2);
     //dch2HP->SetOnlyPrimary(kTRUE);
     fRun->AddTask(dch2HP);

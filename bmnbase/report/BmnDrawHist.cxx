@@ -133,7 +133,7 @@ void DrawH1(
       DrawH1(hist, logx, logy, opt, BmnDrawingOptions::Color(iHist), BmnDrawingOptions::LineWidth(),
             BmnDrawingOptions::LineStyle(0), BmnDrawingOptions::MarkerSize(), BmnDrawingOptions::MarkerStyle(iHist));
       max = std::max(max, hist->GetMaximum());
-      legend->AddEntry(hist, histLabels[iHist].c_str(), "lp");
+      legend->AddEntry(hist, TString::Format("%s | mean =  %f", histLabels[iHist].c_str(), hist->Integral() / hist->GetNbinsX()).Data(), "lp");
    }
    histos[0]->SetMaximum(max * 1.10);
    if (drawLegend) { legend->Draw(); }

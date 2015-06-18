@@ -6,7 +6,7 @@
 // outFile - output file with MC data, default: evetest.root
 // flag_store_FairRadLenPoint
 
-void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
+void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14.gz", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 100,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
 #define URQMD
@@ -105,7 +105,7 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = 
     gRandom->SetSeed(0);
     // ------- Box Generator 
     FairBoxGenerator* boxGen = new FairBoxGenerator(13, 100); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(1.0, 3.0); // GeV/c //setPRange vs setPtRange
+    boxGen->SetPRange(0.5, 3.0); // GeV/c //setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // mm o cm ??
@@ -167,7 +167,7 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14", TString outFile = 
 
     // -----   Create magnetic field   ----------------------------------------
     if (isFieldMap) {
-        Double_t fieldScale = 1.;
+        Double_t fieldScale = 0.44;//1.;
         // BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v3_ascii_Extrap.dat");
         // Double_t fieldZ = 124.5; // field centre z position 

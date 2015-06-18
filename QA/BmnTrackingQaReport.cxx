@@ -190,6 +190,8 @@ void BmnTrackingQaReport::Draw() {
     FillGlobalTrackVariants();
     SetDefaultDrawStyle();
     DrawEfficiencyHistos();
+    DrawEffGEM("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS NEW");
+    DrawEffGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS NEW");
     DrawEffGhostSeed("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for SEEDS only");
     DrawEffGhostGem("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS");
     DrawEffGhostGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS");
@@ -205,27 +207,27 @@ void BmnTrackingQaReport::Draw() {
 void BmnTrackingQaReport::DrawEfficiencyHistos() {
     // Draw global tracking efficiency
     //for (UInt_t i = 0; i < fGlobalTrackVariants.size(); i++) {
-        //string variant = fGlobalTrackVariants[i];
-        //cout << "variant = " << variant << endl;
-        //DrawEfficiency("Global tracking efficiency vs momentum (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_p", DefaultEfficiencyLabelFormatter);
-        //DrawEfficiency("Global tracking efficiency vs transverse momentum (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_pt", DefaultEfficiencyLabelFormatter);
-        //DrawEfficiency("Global tracking efficiency vs rapidity (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_y", DefaultEfficiencyLabelFormatter);
-        //DrawEfficiency("Global tracking efficiency vs polar angle (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_Angle", DefaultEfficiencyLabelFormatter);
+    //string variant = fGlobalTrackVariants[i];
+    //cout << "variant = " << variant << endl;
+    //DrawEfficiency("Global tracking efficiency vs momentum (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_p", DefaultEfficiencyLabelFormatter);
+    //DrawEfficiency("Global tracking efficiency vs transverse momentum (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_pt", DefaultEfficiencyLabelFormatter);
+    //DrawEfficiency("Global tracking efficiency vs rapidity (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_y", DefaultEfficiencyLabelFormatter);
+    //DrawEfficiency("Global tracking efficiency vs polar angle (DETECTOR: " + variant + ")", "hte_Gem.*_" + variant + "_All_Eff_Angle", DefaultEfficiencyLabelFormatter);
     //}
 
     // Draw local tracking efficiency
     //    vector<string> localTrackVariants = list_of("Gem")("Tof");
-//    vector<string> localTrackVariants;
-//    for (UInt_t i = 0; i < localTrackVariants.size(); i++) {
-//        string variant = localTrackVariants[i];
-//        string re = (variant == "Gem") ? "hte_Gem_Gem_All_Eff" : "hte_" + variant + "_.*_All_Eff";
-//        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_p", re + "_p", DefaultEfficiencyLabelFormatter);
-//        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_pt", re + "_pt", DefaultEfficiencyLabelFormatter);
-//        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_y", "hte_" + variant + "_.*" + variant + ".*_(All|Electron)_Eff_y", DefaultEfficiencyLabelFormatter);
-//
-//        string re2 = (variant == "Gem") ? "hte_Gem_Gem_All_Eff" : "hte_" + variant + "_.*_All_Eff";
-//        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_angle", re2 + "_Angle", DefaultEfficiencyLabelFormatter);
-//    }
+    //    vector<string> localTrackVariants;
+    //    for (UInt_t i = 0; i < localTrackVariants.size(); i++) {
+    //        string variant = localTrackVariants[i];
+    //        string re = (variant == "Gem") ? "hte_Gem_Gem_All_Eff" : "hte_" + variant + "_.*_All_Eff";
+    //        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_p", re + "_p", DefaultEfficiencyLabelFormatter);
+    //        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_pt", re + "_pt", DefaultEfficiencyLabelFormatter);
+    //        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_y", "hte_" + variant + "_.*" + variant + ".*_(All|Electron)_Eff_y", DefaultEfficiencyLabelFormatter);
+    //
+    //        string re2 = (variant == "Gem") ? "hte_Gem_Gem_All_Eff" : "hte_" + variant + "_.*_All_Eff";
+    //        DrawEfficiency("tracking_qa_local_tracking_efficiency_" + variant + "_angle", re2 + "_Angle", DefaultEfficiencyLabelFormatter);
+    //    }
 
     // Draw local accepted and reconstructed tracks vs number of points
     HM()->ShrinkEmptyBinsH1ByPattern("hte_.+_.+_.+_.+_Np");
@@ -269,10 +271,14 @@ void BmnTrackingQaReport::DrawEffGhostSeed(const string& canvasName) {
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
-    HM()->H1("allSeedDistr")->Sumw2(); HM()->H1("allSeedDistr")->Scale(1. / nofEvents);
-    HM()->H1("recoSeedDistr")->Sumw2(); HM()->H1("recoSeedDistr")->Scale(1. / nofEvents);
-    HM()->H1("wellSeedDistr")->Sumw2(); HM()->H1("wellSeedDistr")->Scale(1. / nofEvents);
-    HM()->H1("ghostSeedDistr")->Sumw2(); HM()->H1("ghostSeedDistr")->Scale(1. / nofEvents);
+    HM()->H1("allSeedDistr")->Sumw2();
+    HM()->H1("allSeedDistr")->Scale(1. / nofEvents);
+    HM()->H1("recoSeedDistr")->Sumw2();
+    HM()->H1("recoSeedDistr")->Scale(1. / nofEvents);
+    HM()->H1("wellSeedDistr")->Sumw2();
+    HM()->H1("wellSeedDistr")->Scale(1. / nofEvents);
+    HM()->H1("ghostSeedDistr")->Sumw2();
+    HM()->H1("ghostSeedDistr")->Scale(1. / nofEvents);
     vector<TH1*> histos1;
     histos1.push_back(HM()->H1("allSeedDistr"));
     histos1.push_back(HM()->H1("recoSeedDistr"));
@@ -287,7 +293,7 @@ void BmnTrackingQaReport::DrawEffGhostSeed(const string& canvasName) {
     vector<string> labels2;
     labels2.push_back("Efficiency");
     labels2.push_back("Percent of ghosts");
-//    HM()->H1("EffSeedDistr")->Divide(HM()->H1("recoSeedDistr"), HM()->H1("allSeedDistr"), 1., 1., "B");
+    //    HM()->H1("EffSeedDistr")->Divide(HM()->H1("recoSeedDistr"), HM()->H1("allSeedDistr"), 1., 1., "B");
     HM()->H1("EffSeedDistr")->Divide(HM()->H1("wellSeedDistr"), HM()->H1("allSeedDistr"), 1., 1., "B");
     HM()->H1("EffSeedDistr")->Scale(100.0);
     HM()->H1("FakeSeedDistr")->Divide(HM()->H1("ghostSeedDistr"), HM()->H1("recoSeedDistr"), 1., 1., "B");
@@ -306,10 +312,14 @@ void BmnTrackingQaReport::DrawEffGhostGem(const string& canvasName) {
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
-    HM()->H1("allGemDistr")->Sumw2(); HM()->H1("allGemDistr")->Scale(1. / nofEvents);
-    HM()->H1("recoGemDistr")->Sumw2(); HM()->H1("recoGemDistr")->Scale(1. / nofEvents);
-    HM()->H1("wellGemDistr")->Sumw2(); HM()->H1("wellGemDistr")->Scale(1. / nofEvents);
-    HM()->H1("ghostGemDistr")->Sumw2(); HM()->H1("ghostGemDistr")->Scale(1. / nofEvents);
+    HM()->H1("allGemDistr")->Sumw2();
+    HM()->H1("allGemDistr")->Scale(1. / nofEvents);
+    HM()->H1("recoGemDistr")->Sumw2();
+    HM()->H1("recoGemDistr")->Scale(1. / nofEvents);
+    HM()->H1("wellGemDistr")->Sumw2();
+    HM()->H1("wellGemDistr")->Scale(1. / nofEvents);
+    HM()->H1("ghostGemDistr")->Sumw2();
+    HM()->H1("ghostGemDistr")->Scale(1. / nofEvents);
     vector<TH1*> histos1;
     histos1.push_back(HM()->H1("allGemDistr"));
     histos1.push_back(HM()->H1("recoGemDistr"));
@@ -324,7 +334,7 @@ void BmnTrackingQaReport::DrawEffGhostGem(const string& canvasName) {
     vector<string> labels2;
     labels2.push_back("Efficiency");
     labels2.push_back("Percent of ghosts");
-//    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
+    //    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
     HM()->H1("EffGemDistr")->Divide(HM()->H1("wellGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
     HM()->H1("EffGemDistr")->Scale(100.0);
     HM()->H1("FakeGemDistr")->Divide(HM()->H1("ghostGemDistr"), HM()->H1("recoGemDistr"), 1., 1., "B");
@@ -337,15 +347,102 @@ void BmnTrackingQaReport::DrawEffGhostGem(const string& canvasName) {
     DrawMeanLine(HM()->H1("FakeGemDistr"));
 }
 
+void BmnTrackingQaReport::DrawEffGlob(const string& canvasName) {
+    Int_t nofEvents = HM()->H1("hen_EventNo_TrackingQa")->GetEntries();
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1200, 600);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    HM()->H1("Sim_vs_P_Glob")->Sumw2();
+    HM()->H1("Sim_vs_P_Glob")->Scale(1. / nofEvents);
+    HM()->H1("Rec_vs_P_Glob")->Sumw2();
+    HM()->H1("Rec_vs_P_Glob")->Scale(1. / nofEvents);
+    HM()->H1("Well_vs_P_Glob")->Sumw2();
+    HM()->H1("Well_vs_P_Glob")->Scale(1. / nofEvents);
+    HM()->H1("Ghost_vs_P_Glob")->Sumw2();
+    HM()->H1("Ghost_vs_P_Glob")->Scale(1. / nofEvents);
+    vector<TH1*> histos1;
+    histos1.push_back(HM()->H1("Sim_vs_P_Glob"));
+    histos1.push_back(HM()->H1("Rec_vs_P_Glob"));
+    histos1.push_back(HM()->H1("Ghost_vs_P_Glob"));
+    vector<string> labels1;
+    labels1.push_back("MC tracks");
+    labels1.push_back("Reco tracks");
+    labels1.push_back("Ghost tracks");
+    DrawH1(histos1, labels1, kLinear, kLinear, true, 0.5, 0.75, 1.0, 0.99, "PE1");
+
+    canvas->cd(2);
+    vector<string> labels2;
+    labels2.push_back("Efficiency");
+    labels2.push_back("Percent of ghosts");
+
+    //    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
+    HM()->H1("Eff_vs_P_Glob")->Divide(HM()->H1("Well_vs_P_Glob"), HM()->H1("Sim_vs_P_Glob"), 1., 1., "B");
+    HM()->H1("Eff_vs_P_Glob")->Scale(100.0);
+    HM()->H1("Fake_vs_P_Glob")->Divide(HM()->H1("Ghost_vs_P_Glob"), HM()->H1("Rec_vs_P_Glob"), 1., 1., "B");
+    HM()->H1("Fake_vs_P_Glob")->Scale(100.0);
+    vector<TH1*> histos2;
+    histos2.push_back(HM()->H1("Eff_vs_P_Glob"));
+    histos2.push_back(HM()->H1("Fake_vs_P_Glob"));
+    DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.75, 1.0, 0.99, "PE1");
+    DrawMeanLine(HM()->H1("Eff_vs_P_Glob"));
+    DrawMeanLine(HM()->H1("Fake_vs_P_Glob"));
+}
+
+void BmnTrackingQaReport::DrawEffGEM(const string& canvasName) {
+    Int_t nofEvents = HM()->H1("hen_EventNo_TrackingQa")->GetEntries();
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1200, 600);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    HM()->H1("Sim_vs_P_GEM")->Sumw2();
+    HM()->H1("Sim_vs_P_GEM")->Scale(1. / nofEvents);
+    HM()->H1("Rec_vs_P_GEM")->Sumw2();
+    HM()->H1("Rec_vs_P_GEM")->Scale(1. / nofEvents);
+    HM()->H1("Well_vs_P_GEM")->Sumw2();
+    HM()->H1("Well_vs_P_GEM")->Scale(1. / nofEvents);
+    HM()->H1("Ghost_vs_P_GEM")->Sumw2();
+    HM()->H1("Ghost_vs_P_GEM")->Scale(1. / nofEvents);
+    vector<TH1*> histos1;
+    histos1.push_back(HM()->H1("Sim_vs_P_GEM"));
+    histos1.push_back(HM()->H1("Rec_vs_P_GEM"));
+    histos1.push_back(HM()->H1("Ghost_vs_P_GEM"));
+    vector<string> labels1;
+    labels1.push_back("MC tracks");
+    labels1.push_back("Reco tracks");
+    labels1.push_back("Ghost tracks");
+    DrawH1(histos1, labels1, kLinear, kLinear, true, 0.5, 0.75, 1.0, 0.99, "PE1");
+
+    canvas->cd(2);
+    vector<string> labels2;
+    labels2.push_back("Efficiency");
+    labels2.push_back("Percent of ghosts");
+
+    //    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
+    HM()->H1("Eff_vs_P_GEM")->Divide(HM()->H1("Well_vs_P_GEM"), HM()->H1("Sim_vs_P_GEM"), 1., 1., "B");
+    HM()->H1("Eff_vs_P_GEM")->Scale(100.0);
+    HM()->H1("Fake_vs_P_GEM")->Divide(HM()->H1("Ghost_vs_P_GEM"), HM()->H1("Rec_vs_P_GEM"), 1., 1., "B");
+    HM()->H1("Fake_vs_P_GEM")->Scale(100.0);
+    vector<TH1*> histos2;
+    histos2.push_back(HM()->H1("Eff_vs_P_GEM"));
+    histos2.push_back(HM()->H1("Fake_vs_P_GEM"));
+    DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.75, 1.0, 0.99, "PE1");
+    DrawMeanLine(HM()->H1("Eff_vs_P_GEM"));
+    DrawMeanLine(HM()->H1("Fake_vs_P_GEM"));
+}
+
 void BmnTrackingQaReport::DrawEffGhostGlob(const string& canvasName) {
     Int_t nofEvents = HM()->H1("hen_EventNo_TrackingQa")->GetEntries();
     TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1200, 600);
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
-    HM()->H1("allGlobDistr")->Sumw2(); HM()->H1("allGlobDistr")->Scale(1. / nofEvents);
-    HM()->H1("recoGlobDistr")->Sumw2(); HM()->H1("recoGlobDistr")->Scale(1. / nofEvents);
-    HM()->H1("ghostGlobDistr")->Sumw2(); HM()->H1("ghostGlobDistr")->Scale(1. / nofEvents);
+    HM()->H1("allGlobDistr")->Sumw2();
+    HM()->H1("allGlobDistr")->Scale(1. / nofEvents);
+    HM()->H1("recoGlobDistr")->Sumw2();
+    HM()->H1("recoGlobDistr")->Scale(1. / nofEvents);
+    HM()->H1("ghostGlobDistr")->Sumw2();
+    HM()->H1("ghostGlobDistr")->Scale(1. / nofEvents);
     vector<TH1*> histos1;
     histos1.push_back(HM()->H1("allGlobDistr"));
     histos1.push_back(HM()->H1("recoGlobDistr"));
@@ -465,7 +562,7 @@ void BmnTrackingQaReport::DrawMeanEfficiencyLines(
 }
 
 void BmnTrackingQaReport::DrawMeanLine(TH1* hist) {
-    
+
     Float_t minX = hist->GetXaxis()->GetXmin();
     Float_t maxX = hist->GetXaxis()->GetXmax();
     TLine* line = new TLine(minX, hist->Integral() / hist->GetNbinsX(), maxX, hist->Integral() / hist->GetNbinsX());

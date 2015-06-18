@@ -17,7 +17,7 @@ const Float_t thresh = 0.7; // threshold for efficiency calculation (70%)
 
 map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
 const UInt_t kNHITSFORSEED = 5; // we use for seeds only kNHITSFORSEED hits
-const UInt_t kMAXSTATIONFORSEED = 1; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
+const UInt_t kMAXSTATIONFORSEED = 5; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
 
 using std::cout;
 using namespace TMath;

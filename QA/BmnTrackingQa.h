@@ -178,6 +178,9 @@ private:
      * multimap <MC track index, reconstructed track index>.
      */
     void ProcessGlobalTracks();
+    
+    void EffGem();
+    void EffGlob();
 
     void FillTrackQualityHistograms(const BmnTrackMatch* trackMatch, DetectorId detId);
 
@@ -245,9 +248,12 @@ private:
     Double_t fPtRangeMin; // Minimum Pt for tracks for efficiency calculation [GeV/c]
     Double_t fPtRangeMax; // Maximum Pt for tracks for efficiency calculation [GeV/c]
     Int_t fPtRangeBins; // Number of bins for efficiency vs. Pt histogram
-    Double_t fYRangeMin; // Minimum rapidity for tracks for efficiency calculation [GeV/c]
-    Double_t fYRangeMax; // Maximum rapidity for tracks for efficiency calculation [GeV/c]
+    Double_t fYRangeMin; // Minimum rapidity for tracks for efficiency calculation
+    Double_t fYRangeMax; // Maximum rapidity for tracks for efficiency calculation
     Int_t fYRangeBins; // Number of bins for efficiency vs. rapidity histogram
+    Double_t fEtaRangeMin; // Minimum pseudorapidity for tracks for efficiency calculation
+    Double_t fEtaRangeMax; // Maximum pseudorapidity for tracks for efficiency calculation    
+    Int_t fEtaRangeBins; // Number of bins for efficiency vs. pseudorapidity histogram
     Double_t fAngleRangeMin; // Minimum polar angle [grad]
     Double_t fAngleRangeMax; // Maximum polar angle [grad]
     Int_t fAngleRangeBins; // Number of bins for efficiency vs. polar angle histogram

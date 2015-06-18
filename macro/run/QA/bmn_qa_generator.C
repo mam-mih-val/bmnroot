@@ -2,7 +2,7 @@
 // Macro for generating QA-reports
 // --------------------------------------------------------------------------
 
-void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TString outFile = "qa.root", Int_t nStartEvent = 0, Int_t nEvents = 10000000)
+void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TString outFile = "qa.root", Int_t nStartEvent = 0, Int_t nEvents = 100)
 {
 
   // Parameter file

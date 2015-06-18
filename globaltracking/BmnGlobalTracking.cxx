@@ -37,7 +37,7 @@ fTof2McPoints(NULL),
 fDch1McPoints(NULL),
 fDch2McPoints(NULL),
 fPDG(211),
-fChiSqCut(25.),
+fChiSqCut(100.),
 fEventNo(0),
 fIsHistogramsInitialized(kFALSE),
 fMakeQA(kTRUE),
@@ -301,7 +301,8 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
     for (Int_t i = 0; i < fGlobalTracks->GetEntriesFast(); ++i) {
         BmnGlobalTrack* globalTrack = (BmnGlobalTrack*) fGlobalTracks->At(i);
 //        if ((globalTrack->GetChi2() / (globalTrack->GetNofHits() - 1)  > fChiSqCut) || (globalTrack->GetNofHits() < 6)) globalTrack->SetFlag(kBMNBAD);
-        if (globalTrack->GetNofHits() < 5) globalTrack->SetFlag(kBMNBAD);
+//        if (globalTrack->GetNofHits() < 5) globalTrack->SetFlag(kBMNBAD);
+        if ((globalTrack->GetChi2() / (globalTrack->GetNofHits() - 1)  > fChiSqCut)) globalTrack->SetFlag(kBMNBAD);
     }
     
     clock_t tFinish = clock();

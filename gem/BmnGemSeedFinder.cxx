@@ -27,7 +27,7 @@ BmnGemSeedFinder::BmnGemSeedFinder() : fEventNo(0) {
     fUseLorentz = kFALSE;
     fGemHitsArray = NULL;
     fGemSeedsArray = NULL;
-    fMakeQA = kTRUE;
+    fMakeQA = kFALSE;
     fHisto = NULL;
     fHitsBranchName = "BmnGemStripHit";
     fSeedsBranchName = "BmnGemTrack";

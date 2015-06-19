@@ -36,6 +36,8 @@ public:
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
     Float_t Sqr(Float_t x);
     BmnHit* GetHit(Int_t i);
+    
+    BmnStatus CheckSplitting();
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);

@@ -490,13 +490,13 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Ghost_vs_P_GEM", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Well_vs_P_GEM", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Fake_vs_P_GEM", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    
+
     CreateH1("Eff_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Sim_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Rec_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Ghost_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Well_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Fake_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);    
+    CreateH1("Fake_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
 
     //    cout << fHM->ToString();
 }
@@ -527,11 +527,26 @@ void BmnTrackingQa::CreateHistograms() {
 //}
 
 void BmnTrackingQa::EffGem() {
+    vector<Int_t> refs;
+    vector<Int_t> splits;
     for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
         BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
         CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRef()));
         BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
         Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
+        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
+        if (it != refs.end()) {
+            //            cout << track->GetRef() << endl;
+            splits.push_back(track->GetRef());
+        } else
+            refs.push_back(track->GetRef());
+        //        cout << "\nN true hits = " << gemTrackMatch->GetNofTrueHits() << " | N wrong hits = " << gemTrackMatch->GetNofWrongHits() << " | N all hits = " << gemTrackMatch->GetNofHits() << endl;
+        //        for (Int_t i = 0; i < track->GetNHits(); ++i) {
+        //            BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
+        //            FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
+        //            cout << point->GetTrackID() << " ";
+        //        }
+
         Float_t mom = mcTrack->GetP();
         if (!isTrackOk)
             fHM->H1("Ghost_vs_P_GEM")->Fill(mom);
@@ -540,6 +555,33 @@ void BmnTrackingQa::EffGem() {
 
         fHM->H1("Rec_vs_P_GEM")->Fill(mom);
     }
+
+    for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
+        BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
+        CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRef()));
+        BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
+        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
+        //            cout << track->GetRef() << endl;
+        for (Int_t i = 0; i < splits.size(); ++i) {
+            if (splits.at(i) == track->GetRef()) {
+                cout << "TRACK_ID = " << track->GetRef() << endl;
+                for (Int_t i = 0; i < track->GetNHits(); ++i) {
+                    BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
+                    FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
+                    cout << point->GetTrackID() << " ";
+                }
+                cout << endl;
+            }
+        }
+
+        //        cout << "\nN true hits = " << gemTrackMatch->GetNofTrueHits() << " | N wrong hits = " << gemTrackMatch->GetNofWrongHits() << " | N all hits = " << gemTrackMatch->GetNofHits() << endl;
+        //        for (Int_t i = 0; i < track->GetNHits(); ++i) {
+        //            BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
+        //            FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
+        //            cout << point->GetTrackID() << " ";
+        //        }
+    }
+
     for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
         const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(iTrack));
         if (mcTrack->GetNPoints(kGEM) < fMinNofPointsGem) continue;
@@ -553,6 +595,7 @@ void BmnTrackingQa::EffGlob() {
         CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRefId()));
         BmnTrackMatch* globTrackMatch = (BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
         Bool_t isTrackOk = globTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
+        //        cout << "N true hits = " << globTrackMatch->GetNofTrueHits() << " | N wrong hits = " << globTrackMatch->GetNofWrongHits() << " | N all hits = " << globTrackMatch->GetNofHits() << endl;
         Float_t mom = mcTrack->GetP();
         if (!isTrackOk)
             fHM->H1("Ghost_vs_P_Glob")->Fill(mom);

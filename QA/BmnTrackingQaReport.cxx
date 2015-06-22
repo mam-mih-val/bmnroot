@@ -302,8 +302,6 @@ void BmnTrackingQaReport::DrawEffGhostSeed(const string& canvasName) {
     histos2.push_back(HM()->H1("EffSeedDistr"));
     histos2.push_back(HM()->H1("FakeSeedDistr"));
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
-    DrawMeanLine(HM()->H1("EffSeedDistr"));
-    DrawMeanLine(HM()->H1("FakeSeedDistr"));
 }
 
 void BmnTrackingQaReport::DrawEffGhostGem(const string& canvasName) {
@@ -343,8 +341,6 @@ void BmnTrackingQaReport::DrawEffGhostGem(const string& canvasName) {
     histos2.push_back(HM()->H1("EffGemDistr"));
     histos2.push_back(HM()->H1("FakeGemDistr"));
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
-    DrawMeanLine(HM()->H1("EffGemDistr"));
-    DrawMeanLine(HM()->H1("FakeGemDistr"));
 }
 
 void BmnTrackingQaReport::DrawEffGlob(const string& canvasName) {
@@ -385,8 +381,6 @@ void BmnTrackingQaReport::DrawEffGlob(const string& canvasName) {
     histos2.push_back(HM()->H1("Eff_vs_P_Glob"));
     histos2.push_back(HM()->H1("Fake_vs_P_Glob"));
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.75, 1.0, 0.99, "PE1");
-    DrawMeanLine(HM()->H1("Eff_vs_P_Glob"));
-    DrawMeanLine(HM()->H1("Fake_vs_P_Glob"));
 }
 
 void BmnTrackingQaReport::DrawEffGEM(const string& canvasName) {
@@ -427,8 +421,6 @@ void BmnTrackingQaReport::DrawEffGEM(const string& canvasName) {
     histos2.push_back(HM()->H1("Eff_vs_P_GEM"));
     histos2.push_back(HM()->H1("Fake_vs_P_GEM"));
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.75, 1.0, 0.99, "PE1");
-    DrawMeanLine(HM()->H1("Eff_vs_P_GEM"));
-    DrawMeanLine(HM()->H1("Fake_vs_P_GEM"));
 }
 
 void BmnTrackingQaReport::DrawEffGhostGlob(const string& canvasName) {
@@ -465,8 +457,6 @@ void BmnTrackingQaReport::DrawEffGhostGlob(const string& canvasName) {
     histos2.push_back(HM()->H1("EffGlobDistr"));
     histos2.push_back(HM()->H1("FakeGlobDistr"));
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
-    DrawMeanLine(HM()->H1("EffGlobDistr"));
-    DrawMeanLine(HM()->H1("FakeGlobDistr"));
 }
 
 void BmnTrackingQaReport::DrawPsimPrec(const string& canvasName) {
@@ -561,15 +551,19 @@ void BmnTrackingQaReport::DrawMeanEfficiencyLines(
     }
 }
 
-void BmnTrackingQaReport::DrawMeanLine(TH1* hist) {
-
-    Float_t minX = hist->GetXaxis()->GetXmin();
-    Float_t maxX = hist->GetXaxis()->GetXmax();
-    TLine* line = new TLine(minX, hist->Integral() / hist->GetNbinsX(), maxX, hist->Integral() / hist->GetNbinsX());
-    line->SetLineWidth(2);
-    line->SetLineColor(hist->GetLineColor());
-    line->Draw();
-}
+//void BmnTrackingQaReport:://DrawMeanLine(TH1* hist) {
+//
+//    Float_t minX = hist->GetXaxis()->GetXmin();
+//    Float_t maxX = hist->GetXaxis()->GetXmax();
+//    Int_t nonZeroBins = 0;
+//    for (Int_t i = 0; i < hist->GetNbinsX(); ++i) {
+//        if (hist->GetBinContent(i) != 0.0) nonZeroBins++;
+//    }
+//    TLine* line = new TLine(minX, hist->Integral() / nonZeroBins, maxX, hist->Integral() / nonZeroBins);
+//    line->SetLineWidth(2);
+//    line->SetLineColor(hist->GetLineColor());
+//    line->Draw();
+//}
 
 void BmnTrackingQaReport::DrawAccAndRec(const string& canvasName, const string& histNamePattern) {
     vector<TH1*> histos = HM()->H1Vector(histNamePattern);

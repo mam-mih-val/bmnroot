@@ -6,7 +6,7 @@
 // outFile - output file with MC data, default: evetest.root
 // flag_store_FairRadLenPoint
 
-void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14.gz", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
+void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14.gz", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 100,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
 #define URQMD
@@ -104,8 +104,8 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14.gz", TString outFile
 #ifdef BOX
     gRandom->SetSeed(0);
     // ------- Box Generator 
-    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 100); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(2., 2.); // GeV/c //setPRange vs setPtRange
+    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 50); // 13 = muon; 1 = multipl.
+    boxGen->SetPRange(1.55, 1.55); // GeV/c //setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // mm o cm ??

@@ -83,8 +83,12 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
     clock_t tStart = clock();
     fGemTracksArray->Clear();
+    
+    CheckSplitting();
+    
     for (Int_t i = 0; i < fGemSeedsArray->GetEntriesFast(); ++i) {
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArray->At(i);
+        if (track->GetChi2() > 10000.0) continue; //split param
         BmnGemTrack tr = *track;
         Refit(&tr); //refit seeds with KF
         for (Int_t iStat = tr.GetNHits(); iStat < 12; ++iStat) {
@@ -92,9 +96,9 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             if (NearestHitMerge(iStat, &tr) != kBMNSUCCESS) continue; //Attaching hits on each GEM-station to track
             Refit(&tr); //refit seeds with KF
         }
-//        new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
+        new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
     }
-    CheckSplitting();
+    
     
     clock_t tFinish = clock();
     cout << "GEM_TRACKING: Number of found tracks: " << fGemTracksArray->GetEntriesFast() << endl;
@@ -248,7 +252,7 @@ BmnStatus BmnGemTrackFinder::CheckSplitting() {
             FairTrackParam* lastJ = trackJ->GetParamLast();
             if (lastI->GetZ() >= firstJ->GetZ()) continue;
             Float_t xI = lastI->GetX();
-            Float_t xJ = firstJ->GetX();
+            Float_t xJ = firstJ->GetX();    
             Float_t yI = lastI->GetY();
             Float_t yJ = firstJ->GetY();
             Float_t zI = lastI->GetZ();
@@ -267,17 +271,32 @@ BmnStatus BmnGemTrackFinder::CheckSplitting() {
                 //merge seeds to one track
                 //tmp:
 //                BmnGemTrack tr = *trackI;
+//                cout << "I TRACK_ID = " << trackI->GetRef() << endl;
+//                for (Int_t i = 0; i < trackI->GetNHits(); ++i) {
+//                    BmnGemHit* hit = (BmnGemHit*) fGemHitArray->At(trackI->GetHitIndex(i));
+//                    FairMCPoint* point = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
+//                    cout << point->GetTrackID() << " ";
+//                }
+//                cout << endl;
+//                trackI->Print();
+//                cout << "J TRACK_ID = " << trackJ->GetRef() << endl;
+//                for (Int_t i = 0; i < trackJ->GetNHits(); ++i) {
+//                    BmnGemHit* hit = (BmnGemHit*) fGemHitArray->At(trackJ->GetHitIndex(i));
+//                    FairMCPoint* point = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
+//                    cout << point->GetTrackID() << " ";
+//                }
+//                cout << endl;
+//                trackJ->Print();
+                
                 for (Int_t iHit = 0; iHit < trackJ->GetNHits(); ++iHit) {
                     BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(trackJ->GetHitIndex(iHit));
                     trackI->AddHit(trackJ->GetHitIndex(iHit), hit);
                 }
                 Refit(trackI);
-                firstJ->SetZ(-10000000.0);
+                trackJ->SetChi2(1000000.0);
                 break;
             }
         }
-        if (firstI->GetZ() < -1000.0) continue;
-        new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(*trackI);
     }
 }
 

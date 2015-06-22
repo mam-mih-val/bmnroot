@@ -556,31 +556,32 @@ void BmnTrackingQa::EffGem() {
         fHM->H1("Rec_vs_P_GEM")->Fill(mom);
     }
 
-    for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
-        BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
-        CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRef()));
-        BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
-        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
-        //            cout << track->GetRef() << endl;
-        for (Int_t i = 0; i < splits.size(); ++i) {
-            if (splits.at(i) == track->GetRef()) {
-                cout << "TRACK_ID = " << track->GetRef() << endl;
-                for (Int_t i = 0; i < track->GetNHits(); ++i) {
-                    BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
-                    FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
-                    cout << point->GetTrackID() << " ";
-                }
-                cout << endl;
-            }
-        }
-
-        //        cout << "\nN true hits = " << gemTrackMatch->GetNofTrueHits() << " | N wrong hits = " << gemTrackMatch->GetNofWrongHits() << " | N all hits = " << gemTrackMatch->GetNofHits() << endl;
-        //        for (Int_t i = 0; i < track->GetNHits(); ++i) {
-        //            BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
-        //            FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
-        //            cout << point->GetTrackID() << " ";
-        //        }
-    }
+//    for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
+//        BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
+//        CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRef()));
+//        BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
+//        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
+//        //            cout << track->GetRef() << endl;
+//        for (Int_t i = 0; i < splits.size(); ++i) {
+//            if (splits.at(i) == track->GetRef()) {
+//                cout << "TRACK_ID = " << track->GetRef() << endl;
+//                for (Int_t i = 0; i < track->GetNHits(); ++i) {
+//                    BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
+//                    FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
+//                    cout << point->GetTrackID() << " ";
+//                }
+//                cout << endl;
+//                track->Print();
+//            }
+//        }
+//
+//        //        cout << "\nN true hits = " << gemTrackMatch->GetNofTrueHits() << " | N wrong hits = " << gemTrackMatch->GetNofWrongHits() << " | N all hits = " << gemTrackMatch->GetNofHits() << endl;
+//        //        for (Int_t i = 0; i < track->GetNHits(); ++i) {
+//        //            BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
+//        //            FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
+//        //            cout << point->GetTrackID() << " ";
+//        //        }
+//    }
 
     for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
         const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(iTrack));

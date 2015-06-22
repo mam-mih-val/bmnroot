@@ -207,4 +207,6 @@ void DrawGraph2D(
    HistScale logz = kLinear,
    const string& drawOpt = "colz");
 
+void DrawMeanLine(TH1* hist);
+
 #endif

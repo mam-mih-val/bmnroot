@@ -70,6 +70,7 @@ fAngleRangeBins(100),
 fHeader(),
 fMcToRecoMap(),
 fMCTracks(NULL),
+fPrimes(kFALSE),
 fGlobalTracks(NULL) {
 }
 
@@ -105,9 +106,9 @@ void BmnTrackingQa::Exec(Option_t* opt) {
     fHM->H1("hen_EventNo_TrackingQa")->Fill(0.5);
     ReadEventHeader();
     fMCTrackCreator->Create();
-    EffGem();
-    EffGlob();
-    ProcessGlobalTracks();
+    ProcessGem();
+    ProcessGlobal();
+//    ProcessGlobalTracks();
     ProcessMcTracks();
     IncreaseCounters();
 }
@@ -115,6 +116,7 @@ void BmnTrackingQa::Exec(Option_t* opt) {
 void BmnTrackingQa::Finish() {
     fHM->WriteToFile();
     BmnSimulationReport* report = new BmnTrackingQaReport(fHeader);
+    report->SetOnlyPrimes(fPrimes);
     report->Create(fHM, fOutputDir);
     delete report;
 }
@@ -449,97 +451,69 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Multiplicity", "N_{prim}", "Counter", 100, 0.0, 0.0);
 
     // Physics
-    CreateH2("momRes_2D", "P_{sim}, GeV/c", "#Delta P / P, %", "", fPRangeBins, fPRangeMin, fPRangeMax, fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH2("EtaP_rec_seed", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH2("momRes_2D_glob", "P_{sim}, GeV/c", "#Delta P / P, %", "", fPRangeBins / 2, fPRangeMin, fPRangeMax, fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH2("momRes_2D_gem", "P_{sim}, GeV/c", "#Delta P / P, %", "", fPRangeBins / 2, fPRangeMin, fPRangeMax, fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_rec_gem", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_rec_glob", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("momRes_1D", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH2("P_rec_P_sim_seed", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("momRes_1D_glob", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins / 2, fPRangeMin, fPRangeMax);
+    CreateH1("momRes_1D_gem", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins / 2, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim_gem", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim_glob", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH2("Px_rec_Px_sim", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, 2.0, 4 * fPRangeBins, fPRangeMin, 2.0);
-    CreateH2("Py_rec_Py_sim", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, 2.0, 4 * fPRangeBins, fPRangeMin, 2.0);
-    CreateH2("Pz_rec_Pz_sim", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, 8.0, 4 * fPRangeBins, fPRangeMin, 8.0);
-    CreateH2("Eta_rec_Eta_sim_seed", "#eta_{sim}", "#eta_{rec}", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
+    CreateH2("Px_rec_Px_sim_gem", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, 2.0, 4 * fPRangeBins, fPRangeMin, 2.0);
+    CreateH2("Py_rec_Py_sim_gem", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, 2.0, 4 * fPRangeBins, fPRangeMin, 2.0);
+    CreateH2("Pz_rec_Pz_sim_gem", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, 8.0, 4 * fPRangeBins, fPRangeMin, 8.0);
+    CreateH2("Px_rec_Px_sim_glob", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, 2.0, 4 * fPRangeBins, fPRangeMin, 2.0);
+    CreateH2("Py_rec_Py_sim_glob", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, 2.0, 4 * fPRangeBins, fPRangeMin, 2.0);
+    CreateH2("Pz_rec_Pz_sim_glob", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, 8.0, 4 * fPRangeBins, fPRangeMin, 8.0);
     CreateH2("Eta_rec_Eta_sim_gem", "#eta_{sim}", "#eta_{rec}", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
     CreateH2("Eta_rec_Eta_sim_glob", "#eta_{sim}", "#eta_{rec}", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
 
-    CreateH1("wellSeedDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("wellGemDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("wellGlobDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("ghostSeedDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("ghostGemDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("ghostGlobDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("recoSeedDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("recoGemDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("recoGlobDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("allSeedDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("allGemDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("allGlobDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("EffSeedDistr", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("EffGemDistr", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("EffGlobDistr", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("FakeSeedDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("FakeGemDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("FakeGlobDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
 
-    CreateH1("Eff_vs_P_GEM", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Sim_vs_P_GEM", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Rec_vs_P_GEM", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Ghost_vs_P_GEM", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Well_vs_P_GEM", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Fake_vs_P_GEM", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Eff_vs_P_gem", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Sim_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Rec_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Ghost_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Well_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Fake_vs_P_gem", "P_{sim}, GeV/c", "Percent of ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
 
-    CreateH1("Eff_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Sim_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Rec_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Ghost_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Well_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Fake_vs_P_Glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Eff_vs_P_glob", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Sim_vs_P_glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Rec_vs_P_glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Ghost_vs_P_glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Well_vs_P_glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Fake_vs_P_glob", "P_{sim}, GeV/c", "Percent of ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
 
     //    cout << fHM->ToString();
 }
 
-//void BmnTrackingQa::TestEff() {
-//    for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); iTrack++) {
-//        const BmnGlobalTrack* globalTrack = (const BmnGlobalTrack*) (fGlobalTracks->At(iTrack));
-//        if (globalTrack->GetFlag() == kBMNBAD) continue;
-//        Int_t refId = globalTrack->GetRefId();
-//        if (refId < 0) continue;
-//        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(refId));
-//        Int_t gemId = globalTrack->GetGemTrackIndex();
-//        if (gemId < 0) continue;
-//        const BmnTrackMatch* gemTrackMatch = (const BmnTrackMatch*) (fGemMatches->At(gemId));
-//        Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
-//        if (!isTrackOk)
-//            fHM->H1("Ghost_vs_P")->Fill(mcTrack->GetP());
-//        else
-//            fHM->H1("Well_vs_P")->Fill(mcTrack->GetP());
-//
-//        fHM->H1("Rec_vs_P")->Fill(mcTrack->GetP());
-//    }
-//    for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
-//        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(iTrack));
-//        if (mcTrack->GetNPoints(kGEM) < 5) continue;
-//        fHM->H1("Sim_vs_P")->Fill(mcTrack->GetP());
-//    }
-//}
-
-void BmnTrackingQa::EffGem() {
-    vector<Int_t> refs;
-    vector<Int_t> splits;
+void BmnTrackingQa::ProcessGem() {
+    //    vector<Int_t> refs;
+    //    vector<Int_t> splits;
     for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
         BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
         CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRef()));
         BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
         Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
-        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
-        if (it != refs.end()) {
-            //            cout << track->GetRef() << endl;
-            splits.push_back(track->GetRef());
-        } else
-            refs.push_back(track->GetRef());
+        if (fPrimes && mcTrack->GetMotherId() != -1) continue;
+        //        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
+        //        if (it != refs.end()) {
+        //            //            cout << track->GetRef() << endl;
+        //            splits.push_back(track->GetRef());
+        //        } else
+        //            refs.push_back(track->GetRef());
         //        cout << "\nN true hits = " << gemTrackMatch->GetNofTrueHits() << " | N wrong hits = " << gemTrackMatch->GetNofWrongHits() << " | N all hits = " << gemTrackMatch->GetNofHits() << endl;
         //        for (Int_t i = 0; i < track->GetNHits(); ++i) {
         //            BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
@@ -547,68 +521,120 @@ void BmnTrackingQa::EffGem() {
         //            cout << point->GetTrackID() << " ";
         //        }
 
-        Float_t mom = mcTrack->GetP();
-        if (!isTrackOk)
-            fHM->H1("Ghost_vs_P_GEM")->Fill(mom);
-        else
-            fHM->H1("Well_vs_P_GEM")->Fill(mom);
+        Float_t P_sim = mcTrack->GetP();
+        Float_t P_rec = Abs(1.0 / track->GetParamFirst()->GetQp());
+        Float_t Px_sim = mcTrack->GetPx();
+        Float_t Py_sim = mcTrack->GetPy();
+        Float_t Pz_sim = mcTrack->GetPz();
+        Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
+        Float_t Tx = track->GetParamFirst()->GetTx();
+        Float_t Ty = track->GetParamFirst()->GetTy();
+        Float_t Pz_rec = P_rec / Sqrt(Tx * Tx + Ty * Ty + 1);
+        Float_t Px_rec = Pz_rec * Tx;
+        Float_t Py_rec = Pz_rec * Ty;
+        Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
 
-        fHM->H1("Rec_vs_P_GEM")->Fill(mom);
+        if (!isTrackOk)
+            fHM->H1("Ghost_vs_P_gem")->Fill(P_sim);
+        else
+            fHM->H1("Well_vs_P_gem")->Fill(P_sim);
+
+        fHM->H1("Rec_vs_P_gem")->Fill(P_sim);
+        fHM->H2("momRes_2D_gem")->Fill(P_sim, Abs(P_sim - P_rec) / P_sim * 100.0);
+        fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec);
+        fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec);
+        fHM->H2("Px_rec_Px_sim_gem")->Fill(Px_sim, Px_rec);
+        fHM->H2("Py_rec_Py_sim_gem")->Fill(Py_sim, Py_rec);
+        fHM->H2("Pz_rec_Pz_sim_gem")->Fill(Pz_sim, Pz_rec);
+        fHM->H2("EtaP_rec_gem")->Fill(Eta_rec, P_rec);
+        fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
+        for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D_gem")->GetNbinsX(); iBin += 1) {
+            fHM->H2("momRes_1D_gem")->SetBinContent(iBin, fHM->H2("momRes_2D_gem")->ProjectionY("tmp", iBin, iBin)->GetMean());
+            fHM->H2("momRes_1D_gem")->SetBinError(iBin, fHM->H2("momRes_2D_gem")->ProjectionY("tmp", iBin, iBin)->GetStdDev(1));
+            //            fHM->H2("momRes_1D")->SetBinError(iBin, 0.0); //FIXME! MAKE CORRECT CALCULATION OF ERRORS! 
+        }
     }
 
-//    for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
-//        BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
-//        CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRef()));
-//        BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
-//        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
-//        //            cout << track->GetRef() << endl;
-//        for (Int_t i = 0; i < splits.size(); ++i) {
-//            if (splits.at(i) == track->GetRef()) {
-//                cout << "TRACK_ID = " << track->GetRef() << endl;
-//                for (Int_t i = 0; i < track->GetNHits(); ++i) {
-//                    BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
-//                    FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
-//                    cout << point->GetTrackID() << " ";
-//                }
-//                cout << endl;
-//                track->Print();
-//            }
-//        }
-//
-//        //        cout << "\nN true hits = " << gemTrackMatch->GetNofTrueHits() << " | N wrong hits = " << gemTrackMatch->GetNofWrongHits() << " | N all hits = " << gemTrackMatch->GetNofHits() << endl;
-//        //        for (Int_t i = 0; i < track->GetNHits(); ++i) {
-//        //            BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
-//        //            FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
-//        //            cout << point->GetTrackID() << " ";
-//        //        }
-//    }
+    //    for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
+    //        BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
+    //        CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRef()));
+    //        BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
+    //        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
+    //        //            cout << track->GetRef() << endl;
+    //        for (Int_t i = 0; i < splits.size(); ++i) {
+    //            if (splits.at(i) == track->GetRef()) {
+    //                cout << "TRACK_ID = " << track->GetRef() << endl;
+    //                for (Int_t i = 0; i < track->GetNHits(); ++i) {
+    //                    BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
+    //                    FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
+    //                    cout << point->GetTrackID() << " ";
+    //                }
+    //                cout << endl;
+    //                track->Print();
+    //            }
+    //        }
+    //
+    //        //        cout << "\nN true hits = " << gemTrackMatch->GetNofTrueHits() << " | N wrong hits = " << gemTrackMatch->GetNofWrongHits() << " | N all hits = " << gemTrackMatch->GetNofHits() << endl;
+    //        //        for (Int_t i = 0; i < track->GetNHits(); ++i) {
+    //        //            BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
+    //        //            FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
+    //        //            cout << point->GetTrackID() << " ";
+    //        //        }
+    //    }
 
     for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
         const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(iTrack));
         if (mcTrack->GetNPoints(kGEM) < fMinNofPointsGem) continue;
-        fHM->H1("Sim_vs_P_GEM")->Fill(mcTrack->GetP());
+        if (fPrimes && mcTrack->GetMotherId() != -1) continue;
+        fHM->H1("Sim_vs_P_gem")->Fill(mcTrack->GetP());
     }
 }
 
-void BmnTrackingQa::EffGlob() {
+void BmnTrackingQa::ProcessGlobal() {
     for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); iTrack++) {
         BmnGlobalTrack* track = (BmnGlobalTrack*) (fGlobalTracks->At(iTrack));
         CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRefId()));
         BmnTrackMatch* globTrackMatch = (BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
         Bool_t isTrackOk = globTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
+        if (fPrimes && mcTrack->GetMotherId() != -1) continue;
         //        cout << "N true hits = " << globTrackMatch->GetNofTrueHits() << " | N wrong hits = " << globTrackMatch->GetNofWrongHits() << " | N all hits = " << globTrackMatch->GetNofHits() << endl;
-        Float_t mom = mcTrack->GetP();
+        Float_t P_sim = mcTrack->GetP();
+        Float_t P_rec = Abs(1.0 / track->GetParamFirst()->GetQp());
+        Float_t Px_sim = mcTrack->GetPx();
+        Float_t Py_sim = mcTrack->GetPy();
+        Float_t Pz_sim = mcTrack->GetPz();
+        Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
+        Float_t Tx = track->GetParamFirst()->GetTx();
+        Float_t Ty = track->GetParamFirst()->GetTy();
+        Float_t Pz_rec = P_rec / Sqrt(Tx * Tx + Ty * Ty + 1);
+        Float_t Px_rec = Pz_rec * Tx;
+        Float_t Py_rec = Pz_rec * Ty;
+        Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
         if (!isTrackOk)
-            fHM->H1("Ghost_vs_P_Glob")->Fill(mom);
+            fHM->H1("Ghost_vs_P_glob")->Fill(P_sim);
         else
-            fHM->H1("Well_vs_P_Glob")->Fill(mom);
+            fHM->H1("Well_vs_P_glob")->Fill(P_sim);
 
-        fHM->H1("Rec_vs_P_Glob")->Fill(mom);
+        fHM->H1("Rec_vs_P_glob")->Fill(P_sim);
+        fHM->H2("momRes_2D_glob")->Fill(P_sim, Abs(P_sim - P_rec) / P_sim * 100.0);
+        fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec);
+        fHM->H2("Eta_rec_Eta_sim_glob")->Fill(Eta_sim, Eta_rec);
+        fHM->H2("Px_rec_Px_sim_glob")->Fill(Px_sim, Px_rec);
+        fHM->H2("Py_rec_Py_sim_glob")->Fill(Py_sim, Py_rec);
+        fHM->H2("Pz_rec_Pz_sim_glob")->Fill(Pz_sim, Pz_rec);
+        fHM->H2("EtaP_rec_glob")->Fill(Eta_rec, P_rec);
+        fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
+        for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D_glob")->GetNbinsX(); iBin += 1) {
+            fHM->H2("momRes_1D_glob")->SetBinContent(iBin, fHM->H2("momRes_2D_glob")->ProjectionY("tmp", iBin, iBin)->GetMean());
+            fHM->H2("momRes_1D_glob")->SetBinError(iBin, fHM->H2("momRes_2D_glob")->ProjectionY("tmp", iBin, iBin)->GetStdDev(1));
+            //            fHM->H2("momRes_1D")->SetBinError(iBin, 0.0); //FIXME! MAKE CORRECT CALCULATION OF ERRORS! 
+        }
     }
     for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
         const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(iTrack));
         if (mcTrack->GetNPoints(kGEM) < fMinNofPointsGem) continue;
-        fHM->H1("Sim_vs_P_Glob")->Fill(mcTrack->GetP());
+        if (fPrimes && mcTrack->GetMotherId() != -1) continue;
+        fHM->H1("Sim_vs_P_glob")->Fill(mcTrack->GetP());
     }
 }
 
@@ -685,19 +711,19 @@ void BmnTrackingQa::ProcessGlobalTracks() {
             fHM->H2("Eta_rec_Eta_sim_seed")->Fill(Eta_sim, Eta_rec_seed);
         }
 
-        fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec_glob) / P_sim * 100.0);
-        fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec_glob);
-        fHM->H2("Eta_rec_Eta_sim_glob")->Fill(Eta_sim, Eta_rec_glob);
-        fHM->H2("Px_rec_Px_sim")->Fill(Px_sim, Px_rec_glob);
-        fHM->H2("Py_rec_Py_sim")->Fill(Py_sim, Py_rec_glob);
-        fHM->H2("Pz_rec_Pz_sim")->Fill(Pz_sim, Pz_rec_glob);
-        fHM->H2("EtaP_rec_glob")->Fill(Eta_rec_glob, P_rec_glob);
-        fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
-        for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += 1) {
-            fHM->H2("momRes_1D")->SetBinContent(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetMean());
-            fHM->H2("momRes_1D")->SetBinError(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetStdDev(1));
-            //            fHM->H2("momRes_1D")->SetBinError(iBin, 0.0); //FIXME! MAKE CORRECT CALCULATION OF ERRORS! 
-        }
+        //        fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec_glob) / P_sim * 100.0);
+        //        fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec_glob);
+        //        fHM->H2("Eta_rec_Eta_sim_glob")->Fill(Eta_sim, Eta_rec_glob);
+        //        fHM->H2("Px_rec_Px_sim")->Fill(Px_sim, Px_rec_glob);
+        //        fHM->H2("Py_rec_Py_sim")->Fill(Py_sim, Py_rec_glob);
+        //        fHM->H2("Pz_rec_Pz_sim")->Fill(Pz_sim, Pz_rec_glob);
+        //        fHM->H2("EtaP_rec_glob")->Fill(Eta_rec_glob, P_rec_glob);
+        //        fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
+        //        for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += 1) {
+        //            fHM->H2("momRes_1D")->SetBinContent(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetMean());
+        //            fHM->H2("momRes_1D")->SetBinError(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetStdDev(1));
+        //            //            fHM->H2("momRes_1D")->SetBinError(iBin, 0.0); //FIXME! MAKE CORRECT CALCULATION OF ERRORS! 
+        //        }
 
         // check the quality of global track ---->
         const BmnTrackMatch* glTrackMatch = (const BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
@@ -725,21 +751,6 @@ void BmnTrackingQa::ProcessGlobalTracks() {
                 fHM->H1("wellGemDistr")->Fill(P_sim);
             }
             fHM->H1("recoGemDistr")->Fill(P_sim);
-        }
-
-        if (isSeedOk) {
-            //                        cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
-            gemSeedMatch = (const BmnTrackMatch*) (fGemSeedMatches->At(gemId));
-            isSeedOk = gemSeedMatch->GetTrueOverAllHitsRatio() >= fQuota; //CheckTrackQuality(stsTrackMatch, kGEM);
-            //            FillTrackQualityHistograms(gemSeedMatch, kGEM);
-            if (!isSeedOk) { // ghost track
-                //                Int_t nofHits = gemSeedMatch->GetNofHits();
-                //fHM->H1("hng_NofGhosts_Gem_Nh")->Fill(nofHits);
-                fHM->H1("ghostSeedDistr")->Fill(P_sim);
-            } else {
-                fHM->H1("wellSeedDistr")->Fill(P_sim);
-            }
-            fHM->H1("recoSeedDistr")->Fill(P_sim);
         }
 
         // Get MC indices of track segments
@@ -859,7 +870,6 @@ void BmnTrackingQa::ProcessMcTracks() {
 
         if (isGemOk) {
             fHM->H1("allGemDistr")->Fill(mcP);
-            fHM->H1("allSeedDistr")->Fill(mcP);
             fHM->H1("allGlobDistr")->Fill(mcP);
         }
 

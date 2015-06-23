@@ -102,6 +102,14 @@ public:
         fTrackCategories = trackCategories;
     }
 
+    void SetOnlyPrimes(const Bool_t prime) {
+        fPrimes = prime;
+    }
+
+    Bool_t GetOnlyPrimes() const {
+        return fPrimes;
+    }
+
 private:
     /**
      * \brief Read data branches from input data files.
@@ -178,9 +186,9 @@ private:
      * multimap <MC track index, reconstructed track index>.
      */
     void ProcessGlobalTracks();
-    
-    void EffGem();
-    void EffGlob();
+
+    void ProcessGem();
+    void ProcessGlobal();
 
     void FillTrackQualityHistograms(const BmnTrackMatch* trackMatch, DetectorId detId);
 
@@ -232,6 +240,7 @@ private:
     Double_t fQuota; // True/all hits for track to be considered correctly reconstructed
 
     Bool_t fUseConsecutivePointsInGem; // Use consecutive MC points for STS normalization
+    Bool_t fPrimes; //calculate efficiency only for primaries or for all particles
 
     // Minimal number of hits in track to be considered as accepted.
     // This is needed because the definition of the correctly reconstructed track

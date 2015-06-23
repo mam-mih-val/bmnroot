@@ -35,6 +35,7 @@ void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TStr
 //  fRun->AddTask(clQa);  
     
   BmnTrackingQa* trQa = new BmnTrackingQa();
+  trQa->SetOnlyPrimes(kTRUE);
   fRun->AddTask(trQa);
   
   // ============ TASKS ============= //

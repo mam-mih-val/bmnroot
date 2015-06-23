@@ -79,6 +79,7 @@ void BmnTrackingQaReport::Create() {
 string BmnTrackingQaReport::PrintEventInfo() {
     Out() << "<h2>Event generator: UrQMD</h2>" << endl;
     Out() << "<h2>Energy: 4 GeV/n</h2>" << endl;
+    if (GetOnlyPrimes()) Out() << "<h2>Results only for primaries presented</h2>" << endl;
     Out() << "<h2>Number of events: " << HM()->H1("hen_EventNo_TrackingQa")->GetEntries() << "</h2>" << endl;
     Out() << "<h2>Mean impact parameter: " << HM()->H1("Impact parameter")->GetMean() << "</h2>" << endl;
     Out() << "<h2>Mean multiplicity: " << HM()->H1("Multiplicity")->GetMean() << "</h2>" << endl;
@@ -189,19 +190,21 @@ void BmnTrackingQaReport::Draw() {
     CalculateEfficiencyHistos();
     FillGlobalTrackVariants();
     SetDefaultDrawStyle();
-    DrawEfficiencyHistos();
+    //    DrawEfficiencyHistos();
     DrawEffGEM("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS NEW");
     DrawEffGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS NEW");
-    DrawEffGhostSeed("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for SEEDS only");
-    DrawEffGhostGem("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS");
-    DrawEffGhostGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS");
+    //    DrawEffGhostSeed("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for SEEDS only");
+    //    DrawEffGhostGem("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS");
+    //    DrawEffGhostGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS");
     DrawYPtHistos();
     DrawEtaP("Distribution of MC-tracks, Seeds, GEM-tracks and Global tracks in Pseudorapidity and Momentum");
     DrawPsimPrec("Reco vs MC for Seeds, GEM-tracks and Global tracks");
     DrawEtaSimEtaRec("Reco vs MC for Pseudorapidity and Momentum");
-    DrawPsimPrecComponents("Reco vs MC for X-, Y- and Z-component of Momentum");
-    DrawMomRes("Momentum resolution of RECO-track");
-    DrawHitsHistos();
+    DrawPsimPrecComponentsGem("Reco vs MC for X-, Y- and Z-component of Momentum for GEM-tracks");
+    DrawPsimPrecComponentsGlob("Reco vs MC for X-, Y- and Z-component of Momentum for Global-tracks");
+    DrawMomResGem("Momentum resolution for GEM-tracks");
+    DrawMomResGlob("Momentum resolution for Global-tracks");
+//    DrawHitsHistos();
 }
 
 void BmnTrackingQaReport::DrawEfficiencyHistos() {
@@ -349,18 +352,18 @@ void BmnTrackingQaReport::DrawEffGlob(const string& canvasName) {
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
-    HM()->H1("Sim_vs_P_Glob")->Sumw2();
-    HM()->H1("Sim_vs_P_Glob")->Scale(1. / nofEvents);
-    HM()->H1("Rec_vs_P_Glob")->Sumw2();
-    HM()->H1("Rec_vs_P_Glob")->Scale(1. / nofEvents);
-    HM()->H1("Well_vs_P_Glob")->Sumw2();
-    HM()->H1("Well_vs_P_Glob")->Scale(1. / nofEvents);
-    HM()->H1("Ghost_vs_P_Glob")->Sumw2();
-    HM()->H1("Ghost_vs_P_Glob")->Scale(1. / nofEvents);
+    HM()->H1("Sim_vs_P_glob")->Sumw2();
+    HM()->H1("Sim_vs_P_glob")->Scale(1. / nofEvents);
+    HM()->H1("Rec_vs_P_glob")->Sumw2();
+    HM()->H1("Rec_vs_P_glob")->Scale(1. / nofEvents);
+    HM()->H1("Well_vs_P_glob")->Sumw2();
+    HM()->H1("Well_vs_P_glob")->Scale(1. / nofEvents);
+    HM()->H1("Ghost_vs_P_glob")->Sumw2();
+    HM()->H1("Ghost_vs_P_glob")->Scale(1. / nofEvents);
     vector<TH1*> histos1;
-    histos1.push_back(HM()->H1("Sim_vs_P_Glob"));
-    histos1.push_back(HM()->H1("Rec_vs_P_Glob"));
-    histos1.push_back(HM()->H1("Ghost_vs_P_Glob"));
+    histos1.push_back(HM()->H1("Sim_vs_P_glob"));
+    histos1.push_back(HM()->H1("Well_vs_P_glob"));
+    histos1.push_back(HM()->H1("Ghost_vs_P_glob"));
     vector<string> labels1;
     labels1.push_back("MC tracks");
     labels1.push_back("Reco tracks");
@@ -373,13 +376,13 @@ void BmnTrackingQaReport::DrawEffGlob(const string& canvasName) {
     labels2.push_back("Percent of ghosts");
 
     //    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
-    HM()->H1("Eff_vs_P_Glob")->Divide(HM()->H1("Well_vs_P_Glob"), HM()->H1("Sim_vs_P_Glob"), 1., 1., "B");
-    HM()->H1("Eff_vs_P_Glob")->Scale(100.0);
-    HM()->H1("Fake_vs_P_Glob")->Divide(HM()->H1("Ghost_vs_P_Glob"), HM()->H1("Rec_vs_P_Glob"), 1., 1., "B");
-    HM()->H1("Fake_vs_P_Glob")->Scale(100.0);
+    HM()->H1("Eff_vs_P_glob")->Divide(HM()->H1("Well_vs_P_glob"), HM()->H1("Sim_vs_P_glob"), 1., 1., "B");
+    HM()->H1("Eff_vs_P_glob")->Scale(100.0);
+    HM()->H1("Fake_vs_P_glob")->Divide(HM()->H1("Ghost_vs_P_glob"), HM()->H1("Rec_vs_P_glob"), 1., 1., "B");
+    HM()->H1("Fake_vs_P_glob")->Scale(100.0);
     vector<TH1*> histos2;
-    histos2.push_back(HM()->H1("Eff_vs_P_Glob"));
-    histos2.push_back(HM()->H1("Fake_vs_P_Glob"));
+    histos2.push_back(HM()->H1("Eff_vs_P_glob"));
+    histos2.push_back(HM()->H1("Fake_vs_P_glob"));
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.75, 1.0, 0.99, "PE1");
 }
 
@@ -389,18 +392,18 @@ void BmnTrackingQaReport::DrawEffGEM(const string& canvasName) {
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
-    HM()->H1("Sim_vs_P_GEM")->Sumw2();
-    HM()->H1("Sim_vs_P_GEM")->Scale(1. / nofEvents);
-    HM()->H1("Rec_vs_P_GEM")->Sumw2();
-    HM()->H1("Rec_vs_P_GEM")->Scale(1. / nofEvents);
-    HM()->H1("Well_vs_P_GEM")->Sumw2();
-    HM()->H1("Well_vs_P_GEM")->Scale(1. / nofEvents);
-    HM()->H1("Ghost_vs_P_GEM")->Sumw2();
-    HM()->H1("Ghost_vs_P_GEM")->Scale(1. / nofEvents);
+    HM()->H1("Sim_vs_P_gem")->Sumw2();
+    HM()->H1("Sim_vs_P_gem")->Scale(1. / nofEvents);
+    HM()->H1("Rec_vs_P_gem")->Sumw2();
+    HM()->H1("Rec_vs_P_gem")->Scale(1. / nofEvents);
+    HM()->H1("Well_vs_P_gem")->Sumw2();
+    HM()->H1("Well_vs_P_gem")->Scale(1. / nofEvents);
+    HM()->H1("Ghost_vs_P_gem")->Sumw2();
+    HM()->H1("Ghost_vs_P_gem")->Scale(1. / nofEvents);
     vector<TH1*> histos1;
-    histos1.push_back(HM()->H1("Sim_vs_P_GEM"));
-    histos1.push_back(HM()->H1("Rec_vs_P_GEM"));
-    histos1.push_back(HM()->H1("Ghost_vs_P_GEM"));
+    histos1.push_back(HM()->H1("Sim_vs_P_gem"));
+    histos1.push_back(HM()->H1("Well_vs_P_gem"));
+    histos1.push_back(HM()->H1("Ghost_vs_P_gem"));
     vector<string> labels1;
     labels1.push_back("MC tracks");
     labels1.push_back("Reco tracks");
@@ -413,13 +416,13 @@ void BmnTrackingQaReport::DrawEffGEM(const string& canvasName) {
     labels2.push_back("Percent of ghosts");
 
     //    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
-    HM()->H1("Eff_vs_P_GEM")->Divide(HM()->H1("Well_vs_P_GEM"), HM()->H1("Sim_vs_P_GEM"), 1., 1., "B");
-    HM()->H1("Eff_vs_P_GEM")->Scale(100.0);
-    HM()->H1("Fake_vs_P_GEM")->Divide(HM()->H1("Ghost_vs_P_GEM"), HM()->H1("Rec_vs_P_GEM"), 1., 1., "B");
-    HM()->H1("Fake_vs_P_GEM")->Scale(100.0);
+    HM()->H1("Eff_vs_P_gem")->Divide(HM()->H1("Well_vs_P_gem"), HM()->H1("Sim_vs_P_gem"), 1., 1., "B");
+    HM()->H1("Eff_vs_P_gem")->Scale(100.0);
+    HM()->H1("Fake_vs_P_gem")->Divide(HM()->H1("Ghost_vs_P_gem"), HM()->H1("Rec_vs_P_gem"), 1., 1., "B");
+    HM()->H1("Fake_vs_P_gem")->Scale(100.0);
     vector<TH1*> histos2;
-    histos2.push_back(HM()->H1("Eff_vs_P_GEM"));
-    histos2.push_back(HM()->H1("Fake_vs_P_GEM"));
+    histos2.push_back(HM()->H1("Eff_vs_P_gem"));
+    histos2.push_back(HM()->H1("Fake_vs_P_gem"));
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.75, 1.0, 0.99, "PE1");
 }
 
@@ -460,39 +463,47 @@ void BmnTrackingQaReport::DrawEffGhostGlob(const string& canvasName) {
 }
 
 void BmnTrackingQaReport::DrawPsimPrec(const string& canvasName) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1500, 500);
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
     canvas->SetGrid();
-    canvas->Divide(3, 1);
+    canvas->Divide(2, 1);
     canvas->cd(1);
-    DrawH2(HM()->H2("P_rec_P_sim_seed"), kLinear, kLinear, kLinear, "colz");
-    canvas->cd(2);
     DrawH2(HM()->H2("P_rec_P_sim_gem"), kLinear, kLinear, kLinear, "colz");
-    canvas->cd(3);
+    canvas->cd(2);
     DrawH2(HM()->H2("P_rec_P_sim_glob"), kLinear, kLinear, kLinear, "colz");
 }
 
 void BmnTrackingQaReport::DrawEtaSimEtaRec(const string& canvasName) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1500, 500);
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
     canvas->SetGrid();
-    canvas->Divide(3, 1);
+    canvas->Divide(2, 1);
     canvas->cd(1);
-    DrawH2(HM()->H2("Eta_rec_Eta_sim_seed"), kLinear, kLinear, kLinear, "colz");
-    canvas->cd(2);
     DrawH2(HM()->H2("Eta_rec_Eta_sim_gem"), kLinear, kLinear, kLinear, "colz");
-    canvas->cd(3);
+    canvas->cd(2);
     DrawH2(HM()->H2("Eta_rec_Eta_sim_glob"), kLinear, kLinear, kLinear, "colz");
 }
 
-void BmnTrackingQaReport::DrawPsimPrecComponents(const string& canvasName) {
+void BmnTrackingQaReport::DrawPsimPrecComponentsGem(const string& canvasName) {
     TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1500, 500);
     canvas->SetGrid();
     canvas->Divide(3, 1);
     canvas->cd(1);
-    DrawH2(HM()->H2("Px_rec_Px_sim"), kLinear, kLinear, kLinear, "colz");
+    DrawH2(HM()->H2("Px_rec_Px_sim_gem"), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
-    DrawH2(HM()->H2("Py_rec_Py_sim"), kLinear, kLinear, kLinear, "colz");
+    DrawH2(HM()->H2("Py_rec_Py_sim_gem"), kLinear, kLinear, kLinear, "colz");
     canvas->cd(3);
-    DrawH2(HM()->H2("Pz_rec_Pz_sim"), kLinear, kLinear, kLinear, "colz");
+    DrawH2(HM()->H2("Pz_rec_Pz_sim_gem"), kLinear, kLinear, kLinear, "colz");
+}
+
+void BmnTrackingQaReport::DrawPsimPrecComponentsGlob(const string& canvasName) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1500, 500);
+    canvas->SetGrid();
+    canvas->Divide(3, 1);
+    canvas->cd(1);
+    DrawH2(HM()->H2("Px_rec_Px_sim_glob"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(2);
+    DrawH2(HM()->H2("Py_rec_Py_sim_glob"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(3);
+    DrawH2(HM()->H2("Pz_rec_Pz_sim_glob"), kLinear, kLinear, kLinear, "colz");
 }
 
 void BmnTrackingQaReport::DrawEventsInfo(const string& canvasName) {
@@ -505,33 +516,42 @@ void BmnTrackingQaReport::DrawEventsInfo(const string& canvasName) {
     DrawH1(HM()->H1("Multiplicity"), kLinear, kLinear, "", kRed, 0.7, 0.75, 1.1, 20);
 }
 
-void BmnTrackingQaReport::DrawMomRes(const string& canvasName) {
+void BmnTrackingQaReport::DrawMomResGlob(const string& canvasName) {
     TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
-    DrawH2(HM()->H2("momRes_2D"), kLinear, kLinear, kLinear, "colz");
+    DrawH2(HM()->H2("momRes_2D_glob"), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
-    HM()->H1("momRes_1D")->SetMaximum(5.0);
-    HM()->H1("momRes_1D")->SetMinimum(0.0);
-    DrawH1(HM()->H1("momRes_1D"), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+    HM()->H1("momRes_1D_glob")->SetMaximum(10.0);
+    HM()->H1("momRes_1D_glob")->SetMinimum(0.0);
+    DrawH1(HM()->H1("momRes_1D_glob"), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+}
+
+void BmnTrackingQaReport::DrawMomResGem(const string& canvasName) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    DrawH2(HM()->H2("momRes_2D_gem"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(2);
+    HM()->H1("momRes_1D_gem")->SetMaximum(10.0);
+    HM()->H1("momRes_1D_gem")->SetMinimum(0.0);
+    DrawH1(HM()->H1("momRes_1D_gem"), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
 }
 
 void BmnTrackingQaReport::DrawEtaP(const string& canvasName) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 2000, 500);
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1500, 500);
     canvas->SetGrid();
-    canvas->Divide(4, 1);
+    canvas->Divide(3, 1);
     canvas->cd(1);
     canvas->GetPad(1)->SetTitle("MC-tracks");
     DrawH2(HM()->H2("EtaP_sim"), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
-    canvas->GetPad(2)->SetTitle("Seeds only");
-    DrawH2(HM()->H2("EtaP_rec_seed"), kLinear, kLinear, kLinear, "colz");
-    canvas->cd(3);
-    canvas->GetPad(3)->SetTitle("GEM tracks only");
+    canvas->GetPad(2)->SetTitle("GEM tracks only");
     DrawH2(HM()->H2("EtaP_rec_gem"), kLinear, kLinear, kLinear, "colz");
-    canvas->cd(4);
-    canvas->GetPad(4)->SetTitle("Global tracks");
+    canvas->cd(3);
+    canvas->GetPad(3)->SetTitle("Global tracks");
     DrawH2(HM()->H2("EtaP_rec_glob"), kLinear, kLinear, kLinear, "colz");
 }
 

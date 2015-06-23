@@ -26,7 +26,7 @@ public:
      * \brief Constructor.
      */
     BmnTrackingQaReport();
-    
+
     /**
      * \brief Constructor with parameters.
      */
@@ -88,22 +88,24 @@ protected:
             const string& histNamePattern,
             string(*labelFormatter)(const string&, Float_t));
 
-    void DrawMomRes(const string& canvasName);
-    
+    void DrawMomResGlob(const string& canvasName);
+    void DrawMomResGem(const string& canvasName);
+
     void DrawEtaP(const string& canvasName);
-    
+
     void DrawEffGhostSeed(const string& canvasName);
     void DrawEffGhostGem(const string& canvasName);
     void DrawEffGEM(const string& canvasName);
     void DrawEffGlob(const string& canvasName);
-    void DrawEffGhostGlob(const string& canvasName);    
+    void DrawEffGhostGlob(const string& canvasName);
     void DrawPsimPrec(const string& canvasName);
     void DrawEtaSimEtaRec(const string& canvasName);
-    void DrawPsimPrecComponents(const string& canvasName);
+    void DrawPsimPrecComponentsGem(const string& canvasName);
+    void DrawPsimPrecComponentsGlob(const string& canvasName);
     void DrawMeanLine(TH1* hist);
-    
+
     void DrawEventsInfo(const string& canvasName);
-    
+
     string PrintEventInfo();
 
     /**
@@ -189,7 +191,7 @@ protected:
     void CalculatePionSuppressionHistos();
 
     vector<string> fGlobalTrackVariants;
-    
+
     vector<string> fHeader;
 
     ClassDef(BmnTrackingQaReport, 1)

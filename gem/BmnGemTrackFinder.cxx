@@ -34,6 +34,7 @@ fEventNo(0),
 fChiSqCut(25.) {
 
     fMakeQA = kFALSE;
+    fPrimes = kFALSE;
     fGemHitArray = NULL;
     fGemTracksArray = NULL;
     fMCTracksArray = NULL;
@@ -83,9 +84,9 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
     clock_t tStart = clock();
     fGemTracksArray->Clear();
-    
+
     CheckSplitting();
-    
+
     for (Int_t i = 0; i < fGemSeedsArray->GetEntriesFast(); ++i) {
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArray->At(i);
         if (track->GetChi2() > 10000.0) continue; //split param
@@ -98,8 +99,8 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         }
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
     }
-    
-    
+
+
     clock_t tFinish = clock();
     cout << "GEM_TRACKING: Number of found tracks: " << fGemTracksArray->GetEntriesFast() << endl;
 
@@ -109,6 +110,13 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
     if (fMakeQA) {
         for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
             BmnHit* hit = GetHit(hitIdx);
+
+            if (fPrimes) {
+                FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
+                CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
+                if (mcTr->GetMotherId() != -1) continue;
+            }
+
             Float_t x = hit->GetX();
             Float_t y = hit->GetY();
             Float_t z = hit->GetZ();
@@ -242,17 +250,17 @@ BmnStatus BmnGemTrackFinder::CheckSplitting() {
     const Float_t deltaQp = 1;
     for (Int_t i = 0; i < fGemSeedsArray->GetEntriesFast(); ++i) {
         BmnGemTrack* trackI = (BmnGemTrack*) fGemSeedsArray->At(i);
-        //if (trackI->GetNHits() > 7) continue;
+        if (trackI->GetNHits() > 7) continue;
         FairTrackParam* firstI = trackI->GetParamFirst();
         FairTrackParam* lastI = trackI->GetParamLast();
         for (Int_t j = 0; j < fGemSeedsArray->GetEntriesFast(); ++j) {
             BmnGemTrack* trackJ = (BmnGemTrack*) fGemSeedsArray->At(j);
-            if (trackJ->GetNHits() > 8) continue;
+            if (trackJ->GetNHits() > 7) continue;
             FairTrackParam* firstJ = trackJ->GetParamFirst();
             FairTrackParam* lastJ = trackJ->GetParamLast();
             if (lastI->GetZ() >= firstJ->GetZ()) continue;
             Float_t xI = lastI->GetX();
-            Float_t xJ = firstJ->GetX();    
+            Float_t xJ = firstJ->GetX();
             Float_t yI = lastI->GetY();
             Float_t yJ = firstJ->GetY();
             Float_t zI = lastI->GetZ();
@@ -270,24 +278,24 @@ BmnStatus BmnGemTrackFinder::CheckSplitting() {
                 //cout << trackI->GetRef() << " " << trackJ->GetRef() << endl;
                 //merge seeds to one track
                 //tmp:
-//                BmnGemTrack tr = *trackI;
-//                cout << "I TRACK_ID = " << trackI->GetRef() << endl;
-//                for (Int_t i = 0; i < trackI->GetNHits(); ++i) {
-//                    BmnGemHit* hit = (BmnGemHit*) fGemHitArray->At(trackI->GetHitIndex(i));
-//                    FairMCPoint* point = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
-//                    cout << point->GetTrackID() << " ";
-//                }
-//                cout << endl;
-//                trackI->Print();
-//                cout << "J TRACK_ID = " << trackJ->GetRef() << endl;
-//                for (Int_t i = 0; i < trackJ->GetNHits(); ++i) {
-//                    BmnGemHit* hit = (BmnGemHit*) fGemHitArray->At(trackJ->GetHitIndex(i));
-//                    FairMCPoint* point = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
-//                    cout << point->GetTrackID() << " ";
-//                }
-//                cout << endl;
-//                trackJ->Print();
-                
+                //                BmnGemTrack tr = *trackI;
+                //                cout << "I TRACK_ID = " << trackI->GetRef() << endl;
+                //                for (Int_t i = 0; i < trackI->GetNHits(); ++i) {
+                //                    BmnGemHit* hit = (BmnGemHit*) fGemHitArray->At(trackI->GetHitIndex(i));
+                //                    FairMCPoint* point = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
+                //                    cout << point->GetTrackID() << " ";
+                //                }
+                //                cout << endl;
+                //                trackI->Print();
+                //                cout << "J TRACK_ID = " << trackJ->GetRef() << endl;
+                //                for (Int_t i = 0; i < trackJ->GetNHits(); ++i) {
+                //                    BmnGemHit* hit = (BmnGemHit*) fGemHitArray->At(trackJ->GetHitIndex(i));
+                //                    FairMCPoint* point = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
+                //                    cout << point->GetTrackID() << " ";
+                //                }
+                //                cout << endl;
+                //                trackJ->Print();
+
                 for (Int_t iHit = 0; iHit < trackJ->GetNHits(); ++iHit) {
                     BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(trackJ->GetHitIndex(iHit));
                     trackI->AddHit(trackJ->GetHitIndex(iHit), hit);
@@ -363,6 +371,13 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
     for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(hitIdx);
         if (hit->GetStation() != station || hit->IsUsed()) continue;
+
+        if (fPrimes) {
+            FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
+            CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
+            if (mcTr->GetMotherId() != -1) continue;
+        }
+
         if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
         //        if (hit->GetType() == 0) continue; //don't use fakes
         zMin = min(zMin, hit->GetZ());
@@ -394,6 +409,13 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
     for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(hitIdx);
         if (hit->GetStation() != station || hit->IsUsed()) continue;
+
+        if (fPrimes) {
+            FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
+            CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
+            if (mcTr->GetMotherId() != -1) continue;
+        }
+
         if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
         //        if (hit->GetType() == 0) continue; //don't use fakes
         if (zParamMap.find(hit->GetZ()) == zParamMap.end()) { // This should never happen

@@ -127,7 +127,8 @@ void DrawH1(
         Double_t y1,
         Double_t x2,
         Double_t y2,
-        const string& drawOpt) {
+        const string& drawOpt,
+        Bool_t drawMeanLine) {
     assert(histos.size() != 0 && histLabels.size() == histos.size());
     Double_t max = std::numeric_limits<Double_t>::min();
     Int_t nofHistos = histos.size();
@@ -143,8 +144,8 @@ void DrawH1(
         for (Int_t i = 0; i < hist->GetNbinsX(); ++i) {
             if (hist->GetBinContent(i) != 0.0) nonZeroBins++;
         }
-        legend->AddEntry(hist, TString::Format("%s | mean =  %f", histLabels[iHist].c_str(), hist->Integral() / nonZeroBins).Data(), "lp");
-        DrawMeanLine(hist);
+        legend->AddEntry(hist, TString::Format("%s | mean =  %3.1f", histLabels[iHist].c_str(), hist->Integral() / nonZeroBins).Data(), "lp");
+        if (drawMeanLine) DrawMeanLine(hist);
     }
     histos[0]->SetMaximum(max * 1.10);
     

@@ -28,15 +28,19 @@ public:
     // Constructors/Destructors ---------
     BmnGemTrackFinder();
     virtual ~BmnGemTrackFinder();
-    
+
     BmnStatus Refit(BmnGemTrack*);
     BmnStatus NearestHitMerge(UInt_t station, BmnGemTrack* tr);
-    
+
     //some useful functions
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
     Float_t Sqr(Float_t x);
     BmnHit* GetHit(Int_t i);
-    
+
+    void SetOnlyPrimes(Bool_t pr) {
+        fPrimes = pr;
+    }
+
     BmnStatus CheckSplitting();
 
     virtual InitStatus Init();
@@ -62,10 +66,12 @@ private:
     BmnKalmanFilter* fUpdate;
     Int_t fPDG; // PDG hypothesis
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
-    
+
     FairField* fField;
     Int_t fEventNo; // event counter
-        
+
+    Bool_t fPrimes; //use only primary tracks or not
+
     Bool_t fMakeQA; // create or not in output tree branch with QA histograms
     Bool_t isHistogramsInitialized; // is QA histograms initialized or not
     BmnGemTrackFinderQA* fHisto; // pointer to object needed for QA creating

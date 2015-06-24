@@ -16,8 +16,8 @@ static Float_t workTime = 0.0;
 const Float_t thresh = 0.7; // threshold for efficiency calculation (70%)
 
 map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
-const UInt_t kNHITSFORSEED = 5; // we use for seeds only kNHITSFORSEED hits
-const UInt_t kMAXSTATIONFORSEED = 5; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
+const UInt_t kNHITSFORSEED = 12; // we use for seeds only kNHITSFORSEED hits
+const UInt_t kMAXSTATIONFORSEED = 8; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
 
 using std::cout;
 using namespace TMath;
@@ -25,6 +25,7 @@ using namespace TMath;
 BmnGemSeedFinder::BmnGemSeedFinder() : fEventNo(0) {
 
     fUseLorentz = kFALSE;
+    fPrimes = kFALSE;
     fGemHitsArray = NULL;
     fGemSeedsArray = NULL;
     fMakeQA = kFALSE;
@@ -101,6 +102,13 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 
         for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
             BmnGemStripHit* hit = GetHit(hitIdx);
+
+            if (fPrimes) {
+                FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
+                CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
+                if (mcTr->GetMotherId() != -1) continue;
+            }
+
             if (!hit) continue;
             Float_t x = hit->GetX();
             Float_t y = hit->GetY();
@@ -237,18 +245,18 @@ BmnStatus BmnGemSeedFinder::DoSeeding() {
 void BmnGemSeedFinder::Finish() {
 
     addresses.clear();
-        cout.precision(2);
-        cout.setf(ios::fixed, ios::floatfield);
+    cout.precision(2);
+    cout.setf(ios::fixed, ios::floatfield);
 
-        cout << "\n\t-----------------------------------------------------------------------------------------" << endl;
-        cout << "\t|                                 Efficiency of seeding                                 |" << endl;
-        cout << "\t-----------------------------------------------------------------------------------------" << endl;
-        cout << "\t|  Percent of connected hits:\t\t\t|\t" << allFoundCntr << " / " << allHitCntr << "\t|  " << allFoundCntr * 100.0 / allHitCntr << "%\t|" << endl;
-        cout << "\t|  Percent of well connected hits:\t\t|\t" << wellFoundCntr << " / " << allFoundCntr << "\t|  " << wellFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
-        cout << "\t|  Percent of wrong connected hits:\t\t|\t" << wrongFoundCntr << " / " << allFoundCntr << "\t|  " << wrongFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
-        cout << "\t|  Percent of well found tracks (thr = " << thresh << "):\t|\t" << goodTrackCntr << " / " << allTrackCntr << "\t|  " << goodTrackCntr * 100.0 / allTrackCntr << "%\t|" << endl;
-        cout << "\t|  Work time: full / per one event:\t\t|\t" << workTime << " sec.\t|  " << workTime / fEventNo << " sec.\t|" << endl;
-        cout << "\t-----------------------------------------------------------------------------------------" << endl;
+    cout << "\n\t-----------------------------------------------------------------------------------------" << endl;
+    cout << "\t|                                 Efficiency of seeding                                 |" << endl;
+    cout << "\t-----------------------------------------------------------------------------------------" << endl;
+    cout << "\t|  Percent of connected hits:\t\t\t|\t" << allFoundCntr << " / " << allHitCntr << "\t|  " << allFoundCntr * 100.0 / allHitCntr << "%\t|" << endl;
+    cout << "\t|  Percent of well connected hits:\t\t|\t" << wellFoundCntr << " / " << allFoundCntr << "\t|  " << wellFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
+    cout << "\t|  Percent of wrong connected hits:\t\t|\t" << wrongFoundCntr << " / " << allFoundCntr << "\t|  " << wrongFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
+    cout << "\t|  Percent of well found tracks (thr = " << thresh << "):\t|\t" << goodTrackCntr << " / " << allTrackCntr << "\t|  " << goodTrackCntr * 100.0 / allTrackCntr << "%\t|" << endl;
+    cout << "\t|  Work time: full / per one event:\t\t|\t" << workTime << " sec.\t|  " << workTime / fEventNo << " sec.\t|" << endl;
+    cout << "\t-----------------------------------------------------------------------------------------" << endl;
 
     if (fMakeQA) {
         toDirectory("QA/GEM/SEEDS");
@@ -282,6 +290,12 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
 
         BmnGemStripHit* hit = GetHit(iHit);
+
+        if (fPrimes) {
+            FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
+            CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
+            if (mcTr->GetMotherId() != -1) continue;
+        }
 
         if (hit->IsUsed()) continue;
         if (startStation != hit->GetStation()) continue;
@@ -496,23 +510,6 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar,
 
     return kTRUE;
 
-}
-
-// ========================================================== //
-//                                                            //
-//         Creating 1D histogram from {x/r, y/r} - space.     //
-//         r = Sqrt(x^2 + y^2 + z^2)                          //
-//                                                            //
-// ========================================================== //
-
-void BmnGemSeedFinder::FindXYRSeeds(TH1F* h) {
-    for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
-        BmnGemStripHit* hit = GetHit(hitIdx);
-        if (hit->IsUsed()) continue;
-        const Float_t newY = hit->GetY() / Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
-        hit->SetDetectorID(ceil((newY - h->GetXaxis()->GetXmin()) / h->GetBinWidth(7))); // 7 - not important
-        h->Fill(newY);
-    }
 }
 
 TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack* track) {
@@ -775,78 +772,6 @@ BmnGemStripHit* BmnGemSeedFinder::GetHit(Int_t i) {
     return hit;
 }
 
-BmnStatus BmnGemSeedFinder::DoHistoTracking() {
-    //const Int_t dY = 10; //step on Y/R
-    const Int_t dY = fNBins; //step on Y/R
-    for (Int_t yAddr = 0; yAddr < fNBins; yAddr += dY) {
-        FindSeedInYSlice(yAddr, dY);
-    }
-
-    return kBMNSUCCESS;
-}
-
-BmnStatus BmnGemSeedFinder::FindSeedInYSlice(Int_t yAddr, Int_t yStep) {
-
-    const Float_t alphaMin = -0.15 * DegToRad();
-    const Float_t alphaMax = -alphaMin;
-    const Int_t nAlphaSteps = 100;
-    const Float_t alphaStep = (alphaMax - alphaMin) / nAlphaSteps;
-    const Float_t hHist = (fMax - fMin) / 100;
-
-    const Float_t thresh = 6; //4;
-
-    //    cout << "Params: " << alphaMin << " " << alphaMax << " " << alphaStep << endl;
-
-    Float_t alpha = alphaMin;
-
-    while (alpha < alphaMax) {
-        cout << "alpha = " << alpha * RadToDeg() << endl;
-        map<ULong_t, Int_t> projHist;
-        for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
-            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(iHit);
-            // if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-            if (hit->IsUsed()) continue;
-            Int_t hitYaddr = hit->GetYaddr();
-            if (hitYaddr < yAddr + yStep && hitYaddr >= yAddr) {
-                Float_t x = hit->GetX() / Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
-                Float_t z = hit->GetZ();
-                Float_t xProj = GetOrdAfterRotate(alpha, z, x);
-                //                Int_t xAddr = ceil((xProj - fMin) / fWidth);
-                Int_t xAddr = ceil((xProj - fMin) / hHist);
-                //cout << hit->GetXaddr();
-                hit->SetXaddr(xAddr);
-                //cout << " " << hit->GetXaddr() << endl;
-                if (projHist.find(xAddr) == projHist.end()) {
-                    projHist.insert(pair<ULong_t, Int_t > (xAddr, 1));
-                } else {
-                    projHist.find(xAddr)->second++;
-                }
-            }
-        }
-
-        for (map<ULong_t, Int_t>::iterator it = projHist.begin(); it != projHist.end(); ++it) {
-            if (it->second >= thresh) {
-                for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
-                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(iHit);
-                    if (hit->IsUsed()) continue;
-                    if (hit->GetXaddr() == it->first) {
-                        cout << hit->GetXaddr() << " alpha = " << alpha * RadToDeg() << endl;
-                        hit->SetUsing(kTRUE);
-                    }
-                }
-            }
-        }
-
-        for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
-            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(iHit);
-            hit->SetXaddr(-1);
-        }
-
-        alpha += alphaStep;
-    }
-    return kBMNSUCCESS;
-}
-
 Float_t BmnGemSeedFinder::GetOrdAfterRotate(Float_t angle, Float_t xOld, Float_t yOld) {
     return xOld * (-Sin(angle)) + yOld * Cos(angle);
 }
@@ -884,10 +809,15 @@ void BmnGemSeedFinder::FillAddr() {
     //Needed for searching seeds by addresses 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
-        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
         if (hit->IsUsed()) continue; //Don't use used hits
-        //        if (hit->GetType() == 0) continue; //Don't use fakes
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
+        if (fPrimes) {
+            FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
+            CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
+            if (mcTr->GetMotherId() != -1) continue;
+        }
+        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
+        //        if (hit->GetType() == 0) continue; //Don't use fakes
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         //const Float_t R = hit->GetZ(); //Test for different type of transformation
         const Float_t newX = hit->GetX() / R;

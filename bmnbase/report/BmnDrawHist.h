@@ -141,7 +141,7 @@ void DrawH1(
    Double_t y1 = 0.99,
    Double_t x2 = 0.55,
    Double_t y2 = 0.75,
-   const string& drawOpt = "");
+   const string& drawOpt = "", Bool_t drawMeanLine = kTRUE);
 
 /**
  * \fn DrawGraph

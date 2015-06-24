@@ -195,7 +195,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ====================================================================== //
 
     BmnGemHitProducer* gemHP = new BmnGemHitProducer();
-//    gemHP->SetOnlyPrimary(kTRUE);
+    gemHP->SetOnlyPrimary(kTRUE);
     fRun->AddTask(gemHP);
 
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
@@ -254,9 +254,11 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 
         BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
         gemSF->SetMakeQA(kTRUE);
+        gemSF->SetOnlyPrimes(kTRUE);
         fRun->AddTask(gemSF);
 
         BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
+        gemTF->SetOnlyPrimes(kTRUE);
         fRun->AddTask(gemTF);
     }
 

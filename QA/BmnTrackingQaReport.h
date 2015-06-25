@@ -102,6 +102,9 @@ protected:
     void DrawEffGhostGlob(const string& canvasName);
     void DrawPsimPrec(const string& canvasName);
     void DrawEtaSimEtaRec(const string& canvasName);
+    void DrawTxSimTxRec(const string& canvasName);
+    void DrawTySimTyRec(const string& canvasName);
+    void DrawPtSimPtRec(const string& canvasName);
     void DrawPsimPrecComponentsGem(const string& canvasName);
     void DrawPsimPrecComponentsGlob(const string& canvasName);
     void DrawMeanLine(TH1* hist);

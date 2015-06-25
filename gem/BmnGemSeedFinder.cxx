@@ -17,7 +17,7 @@ const Float_t thresh = 0.7; // threshold for efficiency calculation (70%)
 
 map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
 const UInt_t kNHITSFORSEED = 12; // we use for seeds only kNHITSFORSEED hits
-const UInt_t kMAXSTATIONFORSEED = 8; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
+const UInt_t kMAXSTATIONFORSEED = 5; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
 
 using std::cout;
 using namespace TMath;
@@ -492,12 +492,15 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar,
     par.SetTx(Tx_last);
     par.SetTy(B); //par.SetTy(-B / (lX - Xc));
     const Float_t Pxz = 0.0003 * Abs(fField->GetBy(lX, lY, lZ)) * R; // Pt
+    if (Abs(Pxz) < 0.001) return kFALSE;
     //cout << "Field = " << Abs(fField->GetBy(lX, lY, lZ)) << " Pxz = " << Pxz << endl;
     const Float_t Pz = Pxz / Sqrt(1 + Sqr(par.GetTx()));
     const Float_t Px = Pz * par.GetTx();
     const Float_t Py = Pz * par.GetTy();
     Float_t QP = 1.0 / Sqrt(Px * Px + Py * Py + Pz * Pz);
-    if ((Tx_last - Tx_first) < 0) QP *= -1.0; //FIXME ???????
+//    cout << Abs(fField->GetBy(lX, lY, lZ)) << " " << Pxz << " " << Px << " " << Py << " " << Pz << " " << QP << endl;
+//    cout << lX << " " << lY << " " << lZ << endl;
+//    if ((Tx_last - Tx_first) < 0) QP *= -1.0; //FIXME ???????
     par.SetQp(QP);
     tr->SetParamLast(par);
     //    par.Print();

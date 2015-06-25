@@ -9,7 +9,7 @@
 void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14.gz", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 100,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
-#define URQMD
+#define BOX
 
     TStopwatch timer;
     timer.Start();
@@ -105,7 +105,7 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14.gz", TString outFile
     gRandom->SetSeed(0);
     // ------- Box Generator 
     FairBoxGenerator* boxGen = new FairBoxGenerator(13, 50); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(1.55, 1.55); // GeV/c //setPRange vs setPtRange
+    boxGen->SetPRange(0.2, 5.05); // GeV/c //setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // mm o cm ??

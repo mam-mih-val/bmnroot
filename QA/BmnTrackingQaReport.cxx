@@ -199,9 +199,12 @@ void BmnTrackingQaReport::Draw() {
     //    DrawEffGhostGem("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS");
     //    DrawEffGhostGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS");
     DrawYPtHistos();
-    DrawEtaP("Distribution of MC-tracks, Seeds, GEM-tracks and Global tracks in Pseudorapidity and Momentum");
-    DrawPsimPrec("Reco vs MC for Seeds, GEM-tracks and Global tracks");
+    DrawEtaP("Distribution of MC-tracks, GEM-tracks and Global tracks in Pseudorapidity and Momentum");
+    DrawPsimPrec("Reco vs MC for GEM-tracks and Global tracks");
+    DrawPtSimPtRec("Pt Reco vs MC for GEM-tracks and Global tracks");
     DrawEtaSimEtaRec("Reco vs MC for Pseudorapidity and Momentum");
+    DrawTxSimTxRec("Tx Reco vs MC for GEM-tracks and Global tracks");
+    DrawTySimTyRec("Ty Reco vs MC for GEM-tracks and Global tracks");
     DrawPsimPrecComponentsGem("Reco vs MC for X-, Y- and Z-component of Momentum for GEM-tracks");
     DrawPsimPrecComponentsGlob("Reco vs MC for X-, Y- and Z-component of Momentum for Global-tracks");
     DrawMomResGem("Momentum resolution for GEM-tracks");
@@ -506,6 +509,36 @@ void BmnTrackingQaReport::DrawPsimPrec(const string& canvasName) {
     DrawH2(HM()->H2("P_rec_P_sim_gem"), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
     DrawH2(HM()->H2("P_rec_P_sim_glob"), kLinear, kLinear, kLinear, "colz");
+}
+
+void BmnTrackingQaReport::DrawPtSimPtRec(const string& canvasName) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    DrawH2(HM()->H2("Pt_rec_Pt_sim_gem"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(2);
+    DrawH2(HM()->H2("Pt_rec_Pt_sim_glob"), kLinear, kLinear, kLinear, "colz");
+}
+
+void BmnTrackingQaReport::DrawTxSimTxRec(const string& canvasName) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    DrawH2(HM()->H2("Tx_rec_Tx_sim_gem"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(2);
+    DrawH2(HM()->H2("Tx_rec_Tx_sim_glob"), kLinear, kLinear, kLinear, "colz");
+}
+
+void BmnTrackingQaReport::DrawTySimTyRec(const string& canvasName) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    DrawH2(HM()->H2("Ty_rec_Ty_sim_gem"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(2);
+    DrawH2(HM()->H2("Ty_rec_Ty_sim_glob"), kLinear, kLinear, kLinear, "colz");
 }
 
 void BmnTrackingQaReport::DrawEtaSimEtaRec(const string& canvasName) {

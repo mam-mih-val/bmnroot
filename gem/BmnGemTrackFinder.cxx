@@ -319,8 +319,8 @@ BmnStatus BmnGemTrackFinder::Refit(BmnGemTrack * tr) {
     for (Int_t iHit = tr->GetNHits() - 1; iHit >= 0; iHit--) {
         BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(tr->GetHitIndex(iHit));
         if (!hit) continue;
-        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
-        //        if (hit->GetType() == 0) continue; //don't use fakes
+        //if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
+        if (hit->GetType() == 0) continue; //don't use fakes
         Float_t Ze = hit->GetZ();
         Float_t length = 0;
         vector<Double_t> F(25);
@@ -378,8 +378,8 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
             if (mcTr->GetMotherId() != -1) continue;
         }
 
-        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
-        //        if (hit->GetType() == 0) continue; //don't use fakes
+        //if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
+        if (hit->GetType() == 0) continue; //don't use fakes
         zMin = min(zMin, hit->GetZ());
         zParamMap[hit->GetZ()] = FairTrackParam();
     }
@@ -416,8 +416,8 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
             if (mcTr->GetMotherId() != -1) continue;
         }
 
-        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
-        //        if (hit->GetType() == 0) continue; //don't use fakes
+        //if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
+        if (hit->GetType() == 0) continue; //don't use fakes
         if (zParamMap.find(hit->GetZ()) == zParamMap.end()) { // This should never happen
             cout << "-E- NearestHitMerge: Z position " << hit->GetZ() << " not found in map. Something is wrong.\n";
         }

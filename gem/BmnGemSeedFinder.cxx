@@ -16,7 +16,7 @@ static Float_t workTime = 0.0;
 const Float_t thresh = 0.7; // threshold for efficiency calculation (70%)
 
 map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
-const UInt_t kNHITSFORSEED = 12; // we use for seeds only kNHITSFORSEED hits
+const UInt_t kNHITSFORSEED = 5; // we use for seeds only kNHITSFORSEED hits
 const UInt_t kMAXSTATIONFORSEED = 5; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
 
 using std::cout;
@@ -819,8 +819,8 @@ void BmnGemSeedFinder::FillAddr() {
             CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
             if (mcTr->GetMotherId() != -1) continue;
         }
-        if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
-        //        if (hit->GetType() == 0) continue; //Don't use fakes
+        //if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
+        if (hit->GetType() == 0) continue; //Don't use fakes
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         //const Float_t R = hit->GetZ(); //Test for different type of transformation
         const Float_t newX = hit->GetX() / R;

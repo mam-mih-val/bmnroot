@@ -167,7 +167,7 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14.gz", TString outFile
 
     // -----   Create magnetic field   ----------------------------------------
     if (isFieldMap) {
-        Double_t fieldScale = 0.44;//1.;
+        Double_t fieldScale = 1.;
         // BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v3_ascii_Extrap.dat");
         // Double_t fieldZ = 124.5; // field centre z position 

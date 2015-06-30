@@ -520,6 +520,7 @@ void BmnTrackingQa::ProcessGem() {
         BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
         CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRef()));
         BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
+        if (!track || !mcTrack || !gemTrackMatch) continue;
         Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
         if (fPrimes && mcTrack->GetMotherId() != -1) continue;
         //        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
@@ -621,6 +622,7 @@ void BmnTrackingQa::ProcessGlobal() {
         BmnGlobalTrack* track = (BmnGlobalTrack*) (fGlobalTracks->At(iTrack));
         CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRefId()));
         BmnTrackMatch* globTrackMatch = (BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
+        if (!track || !mcTrack || !globTrackMatch) continue;
         Bool_t isTrackOk = globTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
         if (fPrimes && mcTrack->GetMotherId() != -1) continue;
         //        cout << "N true hits = " << globTrackMatch->GetNofTrueHits() << " | N wrong hits = " << globTrackMatch->GetNofWrongHits() << " | N all hits = " << globTrackMatch->GetNofHits() << endl;

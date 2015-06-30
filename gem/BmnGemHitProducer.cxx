@@ -5,6 +5,7 @@
 #include "TRandom.h"
 #include "TCanvas.h"
 #include "TH1F.h"
+#include "BmnGemStripHit.h"
 
 using std::cout;
 using namespace TMath;
@@ -103,6 +104,12 @@ void BmnGemHitProducer::Exec(Option_t* opt) {
 
         delete rand_gen;
     }
+    
+    for (Int_t i = 0; i < fBmnHitsArray->GetEntriesFast(); ++i) {
+        BmnGemStripHit* hit = (BmnGemStripHit*) fBmnHitsArray->At(i);
+        hit->SetType(1);
+    }
+    
 }
 
 void BmnGemHitProducer::CheckGaussDistrib(TVector3 vec1, TVector3 vec2) {

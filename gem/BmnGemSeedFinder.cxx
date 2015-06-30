@@ -294,6 +294,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         if (fPrimes) {
             FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
             CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
+            if (!mcPnt || !mcTr) continue;
             if (mcTr->GetMotherId() != -1) continue;
         }
 
@@ -817,6 +818,7 @@ void BmnGemSeedFinder::FillAddr() {
         if (fPrimes) {
             FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
             CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
+            if (!mcPnt || !mcTr) continue;
             if (mcTr->GetMotherId() != -1) continue;
         }
         //if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 

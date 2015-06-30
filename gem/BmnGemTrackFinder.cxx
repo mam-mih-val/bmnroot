@@ -114,6 +114,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             if (fPrimes) {
                 FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
                 CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
+                if (!mcPnt || !mcTr) continue;
                 if (mcTr->GetMotherId() != -1) continue;
             }
 
@@ -375,6 +376,7 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
         if (fPrimes) {
             FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
             CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
+            if (!mcPnt || !mcTr) continue;
             if (mcTr->GetMotherId() != -1) continue;
         }
 
@@ -413,6 +415,7 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
         if (fPrimes) {
             FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
             CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
+            if (!mcPnt || !mcTr) continue;
             if (mcTr->GetMotherId() != -1) continue;
         }
 

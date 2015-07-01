@@ -52,7 +52,7 @@ public:
     DetectorId GetDetId() const {
         return fDetId;
     }
-    
+
     Short_t GetStation() const {
         return fStation;
     }
@@ -84,9 +84,17 @@ public:
     void SetDetId(DetectorId det) {
         fDetId = det;
     }
-    
+
     void SetStation(Short_t st) {
         fStation = st;
+    }
+
+    void SetType(Int_t type) {
+        fType = type;
+    }
+
+    Int_t GetType() {
+        return fType;
     }
 
     /** Destructor **/
@@ -108,7 +116,8 @@ private:
     DetectorId fDetId;
     /** station number. It essential for gem, mwpc**/
     Short_t fStation;
-    
+    Int_t fType; // 0 - fake, 1 - hit, -1 - undefined
+
     ClassDef(BmnHit, 1);
 
 };

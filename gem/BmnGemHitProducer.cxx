@@ -84,6 +84,7 @@ void BmnGemHitProducer::Exec(Option_t* opt) {
         BmnHit* hit = (BmnHit*) fBmnHitsArray->At(fBmnHitsArray->GetEntriesFast() - 1);
         hit->SetIndex(fBmnHitsArray->GetEntriesFast() - 1);
         hit->SetDetId(kGEM);
+        hit->SetType(1);
 
         const Float_t delta = 6.; /// for station number calculation
 
@@ -104,12 +105,12 @@ void BmnGemHitProducer::Exec(Option_t* opt) {
 
         delete rand_gen;
     }
-    
-    for (Int_t i = 0; i < fBmnHitsArray->GetEntriesFast(); ++i) {
-        BmnGemStripHit* hit = (BmnGemStripHit*) fBmnHitsArray->At(i);
-        hit->SetType(1);
-    }
-    
+//    
+//    for (Int_t i = 0; i < fBmnHitsArray->GetEntriesFast(); ++i) {
+//        BmnGemStripHit* hit = (BmnGemStripHit*) fBmnHitsArray->At(i);
+//        hit->SetType(1);
+//    }
+//    
 }
 
 void BmnGemHitProducer::CheckGaussDistrib(TVector3 vec1, TVector3 vec2) {

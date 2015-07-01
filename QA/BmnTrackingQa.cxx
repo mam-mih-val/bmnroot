@@ -518,9 +518,12 @@ void BmnTrackingQa::ProcessGem() {
     //    vector<Int_t> splits;
     for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
         BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
-        CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRef()));
         BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
-        if (!track || !mcTrack || !gemTrackMatch) continue;
+        if (!track || !gemTrackMatch) continue;
+        if(gemTrackMatch->GetNofLinks() == 0) continue;
+        Int_t gemMCId = gemTrackMatch->GetMatchedLink().GetIndex();
+        CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(gemMCId));
+        if (!mcTrack) continue;
         Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
         if (fPrimes && mcTrack->GetMotherId() != -1) continue;
         //        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
@@ -619,10 +622,13 @@ void BmnTrackingQa::ProcessGem() {
 
 void BmnTrackingQa::ProcessGlobal() {
     for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); iTrack++) {
-        BmnGlobalTrack* track = (BmnGlobalTrack*) (fGlobalTracks->At(iTrack));
-        CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRefId()));
+        BmnGlobalTrack* track = (BmnGlobalTrack*) (fGlobalTracks->At(iTrack));      
         BmnTrackMatch* globTrackMatch = (BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
-        if (!track || !mcTrack || !globTrackMatch) continue;
+        if (!track || !globTrackMatch) continue;
+        if(globTrackMatch->GetNofLinks() == 0) continue;
+        Int_t globMCId = globTrackMatch->GetMatchedLink().GetIndex();
+        CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(globMCId));
+        if (!mcTrack) continue;
         Bool_t isTrackOk = globTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
         if (fPrimes && mcTrack->GetMotherId() != -1) continue;
         //        cout << "N true hits = " << globTrackMatch->GetNofTrueHits() << " | N wrong hits = " << globTrackMatch->GetNofWrongHits() << " | N all hits = " << globTrackMatch->GetNofHits() << endl;
@@ -673,164 +679,164 @@ void BmnTrackingQa::ProcessGlobal() {
     }
 }
 
-void BmnTrackingQa::ProcessGlobalTracks() {
-    // Clear all maps for MC to reco matching
-    map<string, multimap<Int_t, Int_t> >::iterator it;
-    for (it = fMcToRecoMap.begin(); it != fMcToRecoMap.end(); it++) {
-        multimap<Int_t, Int_t>& mcRecoMap = (*it).second;
-        mcRecoMap.clear();
-        //(*it).second.clear();
-    }
-
-    for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); iTrack++) {
-        const BmnGlobalTrack* globalTrack = (const BmnGlobalTrack*) (fGlobalTracks->At(iTrack));
-        if (globalTrack->GetFlag() == kBMNBAD) continue;
-
-        // get track segments indices
-        Int_t gemId = globalTrack->GetGemTrackIndex();
-        Int_t tof1Id = globalTrack->GetTof1HitIndex();
-        Int_t tof2Id = globalTrack->GetTof2HitIndex();
-        Int_t dch1Id = globalTrack->GetDch1HitIndex();
-        Int_t dch2Id = globalTrack->GetDch2HitIndex();
-
-        // check track segments
-        Bool_t isGemOk = gemId > -1 && fDet.GetDet(kGEM);
-        Bool_t isSeedOk = gemId > -1 && fDet.GetDet(kGEM);
-        Bool_t isTof1Ok = tof1Id > -1 && fDet.GetDet(kTOF1) && fTof1Hits;
-        Bool_t isTof2Ok = tof2Id > -1 && fDet.GetDet(kTOF) && fTof2Hits;
-        Bool_t isDch1Ok = dch1Id > -1 && fDet.GetDet(kDCH1) && fDch1Hits;
-        Bool_t isDch2Ok = dch2Id > -1 && fDet.GetDet(kDCH2) && fDch2Hits;
-
-        Float_t P_rec_glob = Abs(1.0 / globalTrack->GetParamFirst()->GetQp());
-        Float_t Tx_glob = globalTrack->GetParamFirst()->GetTx();
-        Float_t Ty_glob = globalTrack->GetParamFirst()->GetTy();
-        Float_t Pz_rec_glob = P_rec_glob / Sqrt(Tx_glob * Tx_glob + Ty_glob * Ty_glob + 1);
-        Float_t Px_rec_glob = Pz_rec_glob * Tx_glob;
-        Float_t Py_rec_glob = Pz_rec_glob * Ty_glob;
-        Float_t Eta_rec_glob = 0.5 * Log((P_rec_glob + Pz_rec_glob) / (P_rec_glob - Pz_rec_glob));
-
-        Int_t refId = globalTrack->GetRefId();
-        if (refId < 0) continue;
-        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(refId));
-        Float_t P_sim = mcTrack->GetP();
-        Float_t Px_sim = mcTrack->GetPx();
-        Float_t Py_sim = mcTrack->GetPy();
-        Float_t Pz_sim = mcTrack->GetPz();
-        Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
-
-        Float_t Eta_rec_seed, Eta_rec_gem;
-        Float_t P_rec_seed, P_rec_gem;
-        if (isGemOk) {
-            BmnGemTrack* gemTrack = (BmnGemTrack*) (fGemTracks->At(gemId));
-            P_rec_gem = Abs(1.0 / gemTrack->GetParamFirst()->GetQp());
-            Float_t Tx_gem = gemTrack->GetParamFirst()->GetTx();
-            Float_t Ty_gem = gemTrack->GetParamFirst()->GetTy();
-            Float_t Pz_rec_gem = P_rec_gem / Sqrt(Tx_gem * Tx_gem + Ty_gem * Ty_gem + 1);
-            Float_t Px_rec_gem = Pz_rec_gem * Tx_gem;
-            Eta_rec_gem = 0.5 * Log((P_rec_gem + Pz_rec_gem) / (P_rec_gem - Pz_rec_gem));
-            fHM->H2("EtaP_rec_gem")->Fill(Eta_rec_gem, P_rec_gem);
-            fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec_gem);
-            fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec_gem);
-        }
-
-        if (isSeedOk) {
-            BmnGemTrack* gemSeed = (BmnGemTrack*) (fGemSeeds->At(gemId));
-            P_rec_seed = Abs(1.0 / gemSeed->GetParamFirst()->GetQp());
-            Float_t Tx_seed = gemSeed->GetParamFirst()->GetTx();
-            Float_t Ty_seed = gemSeed->GetParamFirst()->GetTy();
-            Float_t Pz_rec_seed = P_rec_seed / Sqrt(Tx_seed * Tx_seed + Ty_seed * Ty_seed + 1);
-            Float_t Py_rec_seed = Pz_rec_seed * Ty_seed;
-            Eta_rec_seed = 0.5 * Log((P_rec_seed + Pz_rec_seed) / (P_rec_seed - Pz_rec_seed));
-            fHM->H2("EtaP_rec_seed")->Fill(Eta_rec_seed, P_rec_seed);
-            fHM->H2("P_rec_P_sim_seed")->Fill(P_sim, P_rec_seed);
-            fHM->H2("Eta_rec_Eta_sim_seed")->Fill(Eta_sim, Eta_rec_seed);
-        }
-
-        //        fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec_glob) / P_sim * 100.0);
-        //        fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec_glob);
-        //        fHM->H2("Eta_rec_Eta_sim_glob")->Fill(Eta_sim, Eta_rec_glob);
-        //        fHM->H2("Px_rec_Px_sim")->Fill(Px_sim, Px_rec_glob);
-        //        fHM->H2("Py_rec_Py_sim")->Fill(Py_sim, Py_rec_glob);
-        //        fHM->H2("Pz_rec_Pz_sim")->Fill(Pz_sim, Pz_rec_glob);
-        //        fHM->H2("EtaP_rec_glob")->Fill(Eta_rec_glob, P_rec_glob);
-        //        fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
-        //        for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += 1) {
-        //            fHM->H2("momRes_1D")->SetBinContent(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetMean());
-        //            fHM->H2("momRes_1D")->SetBinError(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetStdDev(1));
-        //            //            fHM->H2("momRes_1D")->SetBinError(iBin, 0.0); //FIXME! MAKE CORRECT CALCULATION OF ERRORS! 
-        //        }
-
-        // check the quality of global track ---->
-        const BmnTrackMatch* glTrackMatch = (const BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
-        if (!glTrackMatch) continue;
-        Bool_t isTrackOk = glTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
-        if (!isTrackOk) { // ghost track
-            fHM->H1("ghostGlobDistr")->Fill(P_sim);
-        }
-        fHM->H1("recoGlobDistr")->Fill(P_sim);
-        // <---- check the quality of global track
-
-        //check the quality of track segments
-        const BmnTrackMatch* gemTrackMatch;
-        const BmnTrackMatch* gemSeedMatch;
-        if (isGemOk) {
-            //            cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
-            gemTrackMatch = (const BmnTrackMatch*) (fGemMatches->At(gemId));
-            isGemOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota; //CheckTrackQuality(stsTrackMatch, kGEM);
-            FillTrackQualityHistograms(gemTrackMatch, kGEM);
-            if (!isGemOk) { // ghost track
-                Int_t nofHits = gemTrackMatch->GetNofHits();
-                fHM->H1("hng_NofGhosts_Gem_Nh")->Fill(nofHits);
-                fHM->H1("ghostGemDistr")->Fill(P_sim);
-            } else {
-                fHM->H1("wellGemDistr")->Fill(P_sim);
-            }
-            fHM->H1("recoGemDistr")->Fill(P_sim);
-        }
-
-        // Get MC indices of track segments
-        Int_t gemMCId = -1, tof1MCId = -1, tof2MCId = -1, dch1MCId = -1, dch2MCId = -1;
-        if (isGemOk) {
-            gemMCId = gemTrackMatch->GetMatchedLink().GetIndex();
-        }
-        if (isTof1Ok) {
-            const BmnHit* tofHit = (const BmnHit*) (fTof1Hits->At(tof1Id));
-            const FairMCPoint* tofPoint = (const FairMCPoint*) (fTof1Points->At(tofHit->GetRefIndex()));
-            if (tofPoint != NULL) tof1MCId = tofPoint->GetTrackID();
-        }
-        if (isTof2Ok) {
-            const BmnHit* tofHit = (const BmnHit*) (fTof2Hits->At(tof2Id));
-            const FairMCPoint* tofPoint = (const FairMCPoint*) (fTof2Points->At(tofHit->GetRefIndex()));
-            if (tofPoint != NULL) tof2MCId = tofPoint->GetTrackID();
-        }
-        if (isDch1Ok) {
-            const BmnHit* dchHit = (const BmnHit*) (fDch1Hits->At(dch1Id));
-            const FairMCPoint* dchPoint = (const FairMCPoint*) (fDch1Points->At(dchHit->GetRefIndex()));
-            if (dchPoint != NULL) dch1MCId = dchPoint->GetTrackID();
-        }
-        if (isDch2Ok) {
-            const BmnHit* dchHit = (const BmnHit*) (fDch2Hits->At(dch2Id));
-            const FairMCPoint* dchPoint = (const FairMCPoint*) (fDch2Points->At(dchHit->GetRefIndex()));
-            if (dchPoint != NULL) dch2MCId = dchPoint->GetTrackID();
-        }
-
-        map<string, multimap<Int_t, Int_t> >::iterator it;
-        for (it = fMcToRecoMap.begin(); it != fMcToRecoMap.end(); it++) {
-            string name = (*it).first;
-            multimap<Int_t, Int_t>& mcRecoMap = (*it).second;
-            Bool_t gem = (name.find("Gem") != string::npos) ? isGemOk && gemMCId != -1 : kTRUE;
-            Bool_t tof1 = (name.find("Tof1") != string::npos) ? isTof1Ok && gemMCId == tof1MCId : kTRUE;
-            Bool_t tof2 = (name.find("Tof2") != string::npos) ? isTof2Ok && gemMCId == tof2MCId : kTRUE;
-            Bool_t dch1 = (name.find("Dch1") != string::npos) ? isDch1Ok && gemMCId == dch1MCId : kTRUE;
-            Bool_t dch2 = (name.find("Dch2") != string::npos) ? isDch2Ok && gemMCId == dch2MCId : kTRUE;
-
-            if (gem && tof1 && tof2 && dch1 && dch2) {
-                pair<Int_t, Int_t> tmp = make_pair(gemMCId, iTrack);
-                mcRecoMap.insert(tmp);
-            }
-        }
-    }
-}
+//void BmnTrackingQa::ProcessGlobalTracks() {
+//    // Clear all maps for MC to reco matching
+//    map<string, multimap<Int_t, Int_t> >::iterator it;
+//    for (it = fMcToRecoMap.begin(); it != fMcToRecoMap.end(); it++) {
+//        multimap<Int_t, Int_t>& mcRecoMap = (*it).second;
+//        mcRecoMap.clear();
+//        //(*it).second.clear();
+//    }
+//
+//    for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); iTrack++) {
+//        const BmnGlobalTrack* globalTrack = (const BmnGlobalTrack*) (fGlobalTracks->At(iTrack));
+//        if (globalTrack->GetFlag() == kBMNBAD) continue;
+//
+//        // get track segments indices
+//        Int_t gemId = globalTrack->GetGemTrackIndex();
+//        Int_t tof1Id = globalTrack->GetTof1HitIndex();
+//        Int_t tof2Id = globalTrack->GetTof2HitIndex();
+//        Int_t dch1Id = globalTrack->GetDch1HitIndex();
+//        Int_t dch2Id = globalTrack->GetDch2HitIndex();
+//
+//        // check track segments
+//        Bool_t isGemOk = gemId > -1 && fDet.GetDet(kGEM);
+//        Bool_t isSeedOk = gemId > -1 && fDet.GetDet(kGEM);
+//        Bool_t isTof1Ok = tof1Id > -1 && fDet.GetDet(kTOF1) && fTof1Hits;
+//        Bool_t isTof2Ok = tof2Id > -1 && fDet.GetDet(kTOF) && fTof2Hits;
+//        Bool_t isDch1Ok = dch1Id > -1 && fDet.GetDet(kDCH1) && fDch1Hits;
+//        Bool_t isDch2Ok = dch2Id > -1 && fDet.GetDet(kDCH2) && fDch2Hits;
+//
+//        Float_t P_rec_glob = Abs(1.0 / globalTrack->GetParamFirst()->GetQp());
+//        Float_t Tx_glob = globalTrack->GetParamFirst()->GetTx();
+//        Float_t Ty_glob = globalTrack->GetParamFirst()->GetTy();
+//        Float_t Pz_rec_glob = P_rec_glob / Sqrt(Tx_glob * Tx_glob + Ty_glob * Ty_glob + 1);
+//        Float_t Px_rec_glob = Pz_rec_glob * Tx_glob;
+//        Float_t Py_rec_glob = Pz_rec_glob * Ty_glob;
+//        Float_t Eta_rec_glob = 0.5 * Log((P_rec_glob + Pz_rec_glob) / (P_rec_glob - Pz_rec_glob));
+//
+//        Int_t refId = globalTrack->GetRefId();
+//        if (refId < 0) continue;
+//        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(refId));
+//        Float_t P_sim = mcTrack->GetP();
+//        Float_t Px_sim = mcTrack->GetPx();
+//        Float_t Py_sim = mcTrack->GetPy();
+//        Float_t Pz_sim = mcTrack->GetPz();
+//        Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
+//
+//        Float_t Eta_rec_seed, Eta_rec_gem;
+//        Float_t P_rec_seed, P_rec_gem;
+//        if (isGemOk) {
+//            BmnGemTrack* gemTrack = (BmnGemTrack*) (fGemTracks->At(gemId));
+//            P_rec_gem = Abs(1.0 / gemTrack->GetParamFirst()->GetQp());
+//            Float_t Tx_gem = gemTrack->GetParamFirst()->GetTx();
+//            Float_t Ty_gem = gemTrack->GetParamFirst()->GetTy();
+//            Float_t Pz_rec_gem = P_rec_gem / Sqrt(Tx_gem * Tx_gem + Ty_gem * Ty_gem + 1);
+//            Float_t Px_rec_gem = Pz_rec_gem * Tx_gem;
+//            Eta_rec_gem = 0.5 * Log((P_rec_gem + Pz_rec_gem) / (P_rec_gem - Pz_rec_gem));
+//            fHM->H2("EtaP_rec_gem")->Fill(Eta_rec_gem, P_rec_gem);
+//            fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec_gem);
+//            fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec_gem);
+//        }
+//
+//        if (isSeedOk) {
+//            BmnGemTrack* gemSeed = (BmnGemTrack*) (fGemSeeds->At(gemId));
+//            P_rec_seed = Abs(1.0 / gemSeed->GetParamFirst()->GetQp());
+//            Float_t Tx_seed = gemSeed->GetParamFirst()->GetTx();
+//            Float_t Ty_seed = gemSeed->GetParamFirst()->GetTy();
+//            Float_t Pz_rec_seed = P_rec_seed / Sqrt(Tx_seed * Tx_seed + Ty_seed * Ty_seed + 1);
+//            Float_t Py_rec_seed = Pz_rec_seed * Ty_seed;
+//            Eta_rec_seed = 0.5 * Log((P_rec_seed + Pz_rec_seed) / (P_rec_seed - Pz_rec_seed));
+//            fHM->H2("EtaP_rec_seed")->Fill(Eta_rec_seed, P_rec_seed);
+//            fHM->H2("P_rec_P_sim_seed")->Fill(P_sim, P_rec_seed);
+//            fHM->H2("Eta_rec_Eta_sim_seed")->Fill(Eta_sim, Eta_rec_seed);
+//        }
+//
+//        //        fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec_glob) / P_sim * 100.0);
+//        //        fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec_glob);
+//        //        fHM->H2("Eta_rec_Eta_sim_glob")->Fill(Eta_sim, Eta_rec_glob);
+//        //        fHM->H2("Px_rec_Px_sim")->Fill(Px_sim, Px_rec_glob);
+//        //        fHM->H2("Py_rec_Py_sim")->Fill(Py_sim, Py_rec_glob);
+//        //        fHM->H2("Pz_rec_Pz_sim")->Fill(Pz_sim, Pz_rec_glob);
+//        //        fHM->H2("EtaP_rec_glob")->Fill(Eta_rec_glob, P_rec_glob);
+//        //        fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
+//        //        for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += 1) {
+//        //            fHM->H2("momRes_1D")->SetBinContent(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetMean());
+//        //            fHM->H2("momRes_1D")->SetBinError(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetStdDev(1));
+//        //            //            fHM->H2("momRes_1D")->SetBinError(iBin, 0.0); //FIXME! MAKE CORRECT CALCULATION OF ERRORS! 
+//        //        }
+//
+//        // check the quality of global track ---->
+//        const BmnTrackMatch* glTrackMatch = (const BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
+//        if (!glTrackMatch) continue;
+//        Bool_t isTrackOk = glTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
+//        if (!isTrackOk) { // ghost track
+//            fHM->H1("ghostGlobDistr")->Fill(P_sim);
+//        }
+//        fHM->H1("recoGlobDistr")->Fill(P_sim);
+//        // <---- check the quality of global track
+//
+//        //check the quality of track segments
+//        const BmnTrackMatch* gemTrackMatch;
+//        const BmnTrackMatch* gemSeedMatch;
+//        if (isGemOk) {
+//            //            cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
+//            gemTrackMatch = (const BmnTrackMatch*) (fGemMatches->At(gemId));
+//            isGemOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota; //CheckTrackQuality(stsTrackMatch, kGEM);
+//            FillTrackQualityHistograms(gemTrackMatch, kGEM);
+//            if (!isGemOk) { // ghost track
+//                Int_t nofHits = gemTrackMatch->GetNofHits();
+//                fHM->H1("hng_NofGhosts_Gem_Nh")->Fill(nofHits);
+//                fHM->H1("ghostGemDistr")->Fill(P_sim);
+//            } else {
+//                fHM->H1("wellGemDistr")->Fill(P_sim);
+//            }
+//            fHM->H1("recoGemDistr")->Fill(P_sim);
+//        }
+//
+//        // Get MC indices of track segments
+//        Int_t gemMCId = -1, tof1MCId = -1, tof2MCId = -1, dch1MCId = -1, dch2MCId = -1;
+//        if (isGemOk) {
+//            gemMCId = gemTrackMatch->GetMatchedLink().GetIndex();
+//        }
+//        if (isTof1Ok) {
+//            const BmnHit* tofHit = (const BmnHit*) (fTof1Hits->At(tof1Id));
+//            const FairMCPoint* tofPoint = (const FairMCPoint*) (fTof1Points->At(tofHit->GetRefIndex()));
+//            if (tofPoint != NULL) tof1MCId = tofPoint->GetTrackID();
+//        }
+//        if (isTof2Ok) {
+//            const BmnHit* tofHit = (const BmnHit*) (fTof2Hits->At(tof2Id));
+//            const FairMCPoint* tofPoint = (const FairMCPoint*) (fTof2Points->At(tofHit->GetRefIndex()));
+//            if (tofPoint != NULL) tof2MCId = tofPoint->GetTrackID();
+//        }
+//        if (isDch1Ok) {
+//            const BmnHit* dchHit = (const BmnHit*) (fDch1Hits->At(dch1Id));
+//            const FairMCPoint* dchPoint = (const FairMCPoint*) (fDch1Points->At(dchHit->GetRefIndex()));
+//            if (dchPoint != NULL) dch1MCId = dchPoint->GetTrackID();
+//        }
+//        if (isDch2Ok) {
+//            const BmnHit* dchHit = (const BmnHit*) (fDch2Hits->At(dch2Id));
+//            const FairMCPoint* dchPoint = (const FairMCPoint*) (fDch2Points->At(dchHit->GetRefIndex()));
+//            if (dchPoint != NULL) dch2MCId = dchPoint->GetTrackID();
+//        }
+//
+//        map<string, multimap<Int_t, Int_t> >::iterator it;
+//        for (it = fMcToRecoMap.begin(); it != fMcToRecoMap.end(); it++) {
+//            string name = (*it).first;
+//            multimap<Int_t, Int_t>& mcRecoMap = (*it).second;
+//            Bool_t gem = (name.find("Gem") != string::npos) ? isGemOk && gemMCId != -1 : kTRUE;
+//            Bool_t tof1 = (name.find("Tof1") != string::npos) ? isTof1Ok && gemMCId == tof1MCId : kTRUE;
+//            Bool_t tof2 = (name.find("Tof2") != string::npos) ? isTof2Ok && gemMCId == tof2MCId : kTRUE;
+//            Bool_t dch1 = (name.find("Dch1") != string::npos) ? isDch1Ok && gemMCId == dch1MCId : kTRUE;
+//            Bool_t dch2 = (name.find("Dch2") != string::npos) ? isDch2Ok && gemMCId == dch2MCId : kTRUE;
+//
+//            if (gem && tof1 && tof2 && dch1 && dch2) {
+//                pair<Int_t, Int_t> tmp = make_pair(gemMCId, iTrack);
+//                mcRecoMap.insert(tmp);
+//            }
+//        }
+//    }
+//}
 
 void BmnTrackingQa::FillTrackQualityHistograms(const BmnTrackMatch* trackMatch, DetectorId detId) {
     string detName = (detId == kGEM) ? "Gem" : (detId == kTOF1) ? "Tof1" : (detId == kDCH1) ? "Dch1" : (detId == kDCH2) ? "Dch2" : (detId == kTOF) ? "Tof2" : "";

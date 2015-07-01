@@ -37,10 +37,6 @@ public:
     Float_t Sqr(Float_t x);
     BmnHit* GetHit(Int_t i);
 
-    void SetOnlyPrimes(Bool_t pr) {
-        fPrimes = pr;
-    }
-
     BmnStatus CheckSplitting();
 
     virtual InitStatus Init();
@@ -69,8 +65,6 @@ private:
 
     FairField* fField;
     Int_t fEventNo; // event counter
-
-    Bool_t fPrimes; //use only primary tracks or not
 
     Bool_t fMakeQA; // create or not in output tree branch with QA histograms
     Bool_t isHistogramsInitialized; // is QA histograms initialized or not

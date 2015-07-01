@@ -180,12 +180,12 @@ private:
 
     void CreateHistograms();
 
-    /**
-     * \brief Loop over the reconstructed global tracks.
-     * Check if track is correct and fill
-     * multimap <MC track index, reconstructed track index>.
-     */
-    void ProcessGlobalTracks();
+//    /**
+//     * \brief Loop over the reconstructed global tracks.
+//     * Check if track is correct and fill
+//     * multimap <MC track index, reconstructed track index>.
+//     */
+//    void ProcessGlobalTracks();
 
     void ProcessGem();
     void ProcessGlobal();

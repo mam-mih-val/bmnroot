@@ -2,7 +2,7 @@
 #include "FairHit.h"
 #include "FairMCPoint.h"
 #include "CbmMCTrack.h"
-#include "BmnHit.h"
+#include "BmnDchHit.h"
 #include "TGeoManager.h"
 #include "TRandom.h"
 #include "TCanvas.h"
@@ -12,11 +12,10 @@ using namespace std;
 using namespace TMath;
 
 BmnDchHitProducerTmp::BmnDchHitProducerTmp(Int_t num = 1) :
-fOnlyPrimary(kFALSE)
-{
+fOnlyPrimary(kFALSE) {
     fDchNum = num;
     TString str;
-    str.Form("%d",fDchNum);
+    str.Form("%d", fDchNum);
     fInputBranchName = TString("DCH") + str + TString("Point");
     fOutputHitsBranchName = "BmnHit";
 }
@@ -36,9 +35,9 @@ InitStatus BmnDchHitProducerTmp::Init() {
     fBmnDchPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
     fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
     fBmnDchHitsArray = new TClonesArray(fOutputHitsBranchName, 100);
-    TString str; 
-    str.Form("%d",fDchNum);
-    TString name   = TString("BmnDch") + str + TString("Hit0");
+    TString str;
+    str.Form("%d", fDchNum);
+    TString name = TString("BmnDch") + str + TString("Hit0");
     TString folder = TString("DCH") + str;
     ioman->Register(name.Data(), folder.Data(), fBmnDchHitsArray, kTRUE);
 
@@ -57,9 +56,9 @@ void BmnDchHitProducerTmp::Exec(Option_t* opt) {
     }
 
     cout << " BmnDchHitProducerTmp::Exec(), Number of BmnDchPoints = " << fBmnDchPointsArray->GetEntriesFast() << endl;
-    
+
     Float_t err[3] = {0.25 / Sqrt(12), 0.25 / Sqrt(12), 0.25 / Sqrt(12)}; // Uncertainties of coordinates
-    map<Int_t, vector<FairMCPoint*> > sameTrack;  // needed for storing points corresponded same track
+    map<Int_t, vector<FairMCPoint*> > sameTrack; // needed for storing points corresponded same track
     map<Int_t, Int_t > trackPoint; // corresponding of trackId and first point on this track. Needed for storing MC-reference
 
     for (Int_t i = 0; i < fBmnDchPointsArray->GetEntriesFast(); i++) {
@@ -121,16 +120,18 @@ void BmnDchHitProducerTmp::Exec(Option_t* opt) {
         if (fDchNum == 1) {
             hit->SetDetId(kDCH1);
             hit->SetStation(13);
-        } else if (fDchNum == 2) { 
+        } else if (fDchNum == 2) {
             hit->SetDetId(kDCH2);
             hit->SetStation(14);
         }
+        hit->SetType(1);
 
         delete rand_gen;
     }
     cout << "BmnDchHitProducerTmp::Exec() finished!" << endl;
 }
 
-void BmnDchHitProducerTmp::Finish() {}
+void BmnDchHitProducerTmp::Finish() {
+}
 
 ClassImp(BmnDchHitProducerTmp)

@@ -34,7 +34,6 @@ fEventNo(0),
 fChiSqCut(25.) {
 
     fMakeQA = kFALSE;
-    fPrimes = kFALSE;
     fGemHitArray = NULL;
     fGemTracksArray = NULL;
     fMCTracksArray = NULL;
@@ -110,13 +109,6 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
     if (fMakeQA) {
         for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
             BmnHit* hit = GetHit(hitIdx);
-
-            if (fPrimes) {
-                FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
-                CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
-                if (!mcPnt || !mcTr) continue;
-                if (mcTr->GetMotherId() != -1) continue;
-            }
 
             Float_t x = hit->GetX();
             Float_t y = hit->GetY();
@@ -373,13 +365,6 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
         BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(hitIdx);
         if (hit->GetStation() != station || hit->IsUsed()) continue;
 
-        if (fPrimes) {
-            FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
-            CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
-            if (!mcPnt || !mcTr) continue;
-            if (mcTr->GetMotherId() != -1) continue;
-        }
-
         //if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
         if (hit->GetType() == 0) continue; //don't use fakes
         zMin = min(zMin, hit->GetZ());
@@ -411,13 +396,6 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack * tr) {
     for (Int_t hitIdx = 0; hitIdx < fGemHitArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(hitIdx);
         if (hit->GetStation() != station || hit->IsUsed()) continue;
-
-        if (fPrimes) {
-            FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
-            CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
-            if (!mcPnt || !mcTr) continue;
-            if (mcTr->GetMotherId() != -1) continue;
-        }
 
         //if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
         if (hit->GetType() == 0) continue; //don't use fakes

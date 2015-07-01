@@ -2,11 +2,11 @@
 #ifndef __BMN_DCH_HIT_H
 #define __BMN_DCH_HIT_H 1
 
-#include "FairHit.h"
+#include "BmnHit.h"
 
 #include "TArrayI.h"
 //------------------------------------------------------------------------------------------------------------------------
-class BmnDchHit : public FairHit
+class BmnDchHit : public BmnHit
 {
 
 public:

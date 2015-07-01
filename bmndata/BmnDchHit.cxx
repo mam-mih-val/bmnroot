@@ -7,7 +7,7 @@ using namespace std;
 //------------------------------------------------------------------------------------------------------------------------
 
 BmnDchHit::BmnDchHit()
-: FairHit(),
+: BmnHit(),
 fTrackID(0),
 fID(0),
 fFlag(0),
@@ -19,7 +19,7 @@ fUsing(kFALSE) {
 //------------------------------------------------------------------------------------------------------------------------
 
 BmnDchHit::BmnDchHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t index, Int_t flag, Int_t trackIndex, UShort_t dchlayer)
-: FairHit(detID, pos, dpos, index),
+: BmnHit(detID, pos, dpos, index),
 fDetectorID(detID),
 fDchLayer(dchlayer),
 fTrackID(trackIndex),
@@ -32,7 +32,7 @@ fUsing(kFALSE) {
 //------------------------------------------------------------------------------------------------------------------------
 
 BmnDchHit::BmnDchHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t index, Int_t flag)
-: FairHit(detID, pos, dpos, index),
+: BmnHit(detID, pos, dpos, index),
 fFlag(flag),
 fNofDim(1),
 fPhi(0.),
@@ -42,7 +42,7 @@ fUsing(kFALSE) {
 //------------------------------------------------------------------------------------------------------------------------
 
 BmnDchHit::BmnDchHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t index)
-: FairHit(detID, pos, dpos, index),
+: BmnHit(detID, pos, dpos, index),
 fFlag(0),
 fNofDim(1),
 fPhi(0.),

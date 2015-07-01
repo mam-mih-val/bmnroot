@@ -25,7 +25,6 @@ using namespace TMath;
 BmnGemSeedFinder::BmnGemSeedFinder() : fEventNo(0) {
 
     fUseLorentz = kFALSE;
-    fPrimes = kFALSE;
     fGemHitsArray = NULL;
     fGemSeedsArray = NULL;
     fMakeQA = kFALSE;
@@ -89,10 +88,9 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     } else {
         FillAddr();
     }
-
+    
     DoSeeding();
     //DoHistoTracking();
-
     cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
 
     clock_t tFinish = clock();
@@ -102,12 +100,6 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 
         for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
             BmnGemStripHit* hit = GetHit(hitIdx);
-
-            if (fPrimes) {
-                FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
-                CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
-                if (mcTr->GetMotherId() != -1) continue;
-            }
 
             if (!hit) continue;
             Float_t x = hit->GetX();
@@ -248,15 +240,15 @@ void BmnGemSeedFinder::Finish() {
     cout.precision(2);
     cout.setf(ios::fixed, ios::floatfield);
 
-    cout << "\n\t-----------------------------------------------------------------------------------------" << endl;
-    cout << "\t|                                 Efficiency of seeding                                 |" << endl;
-    cout << "\t-----------------------------------------------------------------------------------------" << endl;
-    cout << "\t|  Percent of connected hits:\t\t\t|\t" << allFoundCntr << " / " << allHitCntr << "\t|  " << allFoundCntr * 100.0 / allHitCntr << "%\t|" << endl;
-    cout << "\t|  Percent of well connected hits:\t\t|\t" << wellFoundCntr << " / " << allFoundCntr << "\t|  " << wellFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
-    cout << "\t|  Percent of wrong connected hits:\t\t|\t" << wrongFoundCntr << " / " << allFoundCntr << "\t|  " << wrongFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
-    cout << "\t|  Percent of well found tracks (thr = " << thresh << "):\t|\t" << goodTrackCntr << " / " << allTrackCntr << "\t|  " << goodTrackCntr * 100.0 / allTrackCntr << "%\t|" << endl;
-    cout << "\t|  Work time: full / per one event:\t\t|\t" << workTime << " sec.\t|  " << workTime / fEventNo << " sec.\t|" << endl;
-    cout << "\t-----------------------------------------------------------------------------------------" << endl;
+//    cout << "\n\t-----------------------------------------------------------------------------------------" << endl;
+//    cout << "\t|                                 Efficiency of seeding                                 |" << endl;
+//    cout << "\t-----------------------------------------------------------------------------------------" << endl;
+//    cout << "\t|  Percent of connected hits:\t\t\t|\t" << allFoundCntr << " / " << allHitCntr << "\t|  " << allFoundCntr * 100.0 / allHitCntr << "%\t|" << endl;
+//    cout << "\t|  Percent of well connected hits:\t\t|\t" << wellFoundCntr << " / " << allFoundCntr << "\t|  " << wellFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
+//    cout << "\t|  Percent of wrong connected hits:\t\t|\t" << wrongFoundCntr << " / " << allFoundCntr << "\t|  " << wrongFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
+//    cout << "\t|  Percent of well found tracks (thr = " << thresh << "):\t|\t" << goodTrackCntr << " / " << allTrackCntr << "\t|  " << goodTrackCntr * 100.0 / allTrackCntr << "%\t|" << endl;
+//    cout << "\t|  Work time: full / per one event:\t\t|\t" << workTime << " sec.\t|  " << workTime / fEventNo << " sec.\t|" << endl;
+//    cout << "\t-----------------------------------------------------------------------------------------" << endl;
 
     if (fMakeQA) {
         toDirectory("QA/GEM/SEEDS");
@@ -290,13 +282,6 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
 
         BmnGemStripHit* hit = GetHit(iHit);
-
-        if (fPrimes) {
-            FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
-            CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
-            if (!mcPnt || !mcTr) continue;
-            if (mcTr->GetMotherId() != -1) continue;
-        }
 
         if (hit->IsUsed()) continue;
         if (startStation != hit->GetStation()) continue;
@@ -815,12 +800,6 @@ void BmnGemSeedFinder::FillAddr() {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (hit->IsUsed()) continue; //Don't use used hits
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-        if (fPrimes) {
-            FairMCPoint* mcPnt = (FairMCPoint*) fMCPointsArray->At(hit->GetRefIndex());
-            CbmMCTrack* mcTr = (CbmMCTrack*) fMCTracksArray->At(mcPnt->GetTrackID());
-            if (!mcPnt || !mcTr) continue;
-            if (mcTr->GetMotherId() != -1) continue;
-        }
         //if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
         if (hit->GetType() == 0) continue; //Don't use fakes
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));

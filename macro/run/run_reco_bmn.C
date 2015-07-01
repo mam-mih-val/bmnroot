@@ -255,11 +255,9 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 
         BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
         gemSF->SetMakeQA(kFALSE);
-        gemSF->SetOnlyPrimes(isPrimary);
         fRun->AddTask(gemSF);
 
         BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
-        gemTF->SetOnlyPrimes(isPrimary);
         fRun->AddTask(gemTF);
     }
 

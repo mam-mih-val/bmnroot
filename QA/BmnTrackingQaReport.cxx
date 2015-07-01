@@ -385,6 +385,14 @@ void BmnTrackingQaReport::DrawEffGlob(const string& canvasName) {
     HM()->H1("Eff_vs_P_glob")->Scale(100.0);
     HM()->H1("Fake_vs_P_glob")->Divide(HM()->H1("Ghost_vs_P_glob"), HM()->H1("Rec_vs_P_glob"), 1., 1., "B");
     HM()->H1("Fake_vs_P_glob")->Scale(100.0);
+
+    for (Int_t i = 0; i < HM()->H1("Eff_vs_P_glob")->GetNbinsX(); ++i) {
+        if (HM()->H1("Eff_vs_P_glob")->GetBinContent(i) > 100.0)
+            HM()->H1("Eff_vs_P_glob")->SetBinContent(i, 100.0);
+        if (HM()->H1("Fake_vs_P_glob")->GetBinContent(i) > 100.0)
+            HM()->H1("Fake_vs_P_glob")->SetBinContent(i, 100.0);
+    }
+
     vector<TH1*> histos2;
     histos2.push_back(HM()->H1("Eff_vs_P_glob"));
     histos2.push_back(HM()->H1("Fake_vs_P_glob"));
@@ -425,6 +433,13 @@ void BmnTrackingQaReport::DrawEffGem(const string& canvasName) {
     HM()->H1("Eff_vs_P_gem")->Scale(100.0);
     HM()->H1("Fake_vs_P_gem")->Divide(HM()->H1("Ghost_vs_P_gem"), HM()->H1("Rec_vs_P_gem"), 1., 1., "B");
     HM()->H1("Fake_vs_P_gem")->Scale(100.0);
+    for (Int_t i = 0; i < HM()->H1("Eff_vs_P_gem")->GetNbinsX(); ++i) {
+        if (HM()->H1("Eff_vs_P_gem")->GetBinContent(i) > 100.0)
+            HM()->H1("Eff_vs_P_gem")->SetBinContent(i, 100.0);
+        if (HM()->H1("Fake_vs_P_gem")->GetBinContent(i) > 100.0)
+            HM()->H1("Fake_vs_P_gem")->SetBinContent(i, 100.0);
+    }
+
     vector<TH1*> histos2;
     histos2.push_back(HM()->H1("Eff_vs_P_gem"));
     histos2.push_back(HM()->H1("Fake_vs_P_gem"));
@@ -592,7 +607,7 @@ void BmnTrackingQaReport::DrawMomResGlob(const string& canvasName) {
     canvas->cd(1);
     DrawH2(HM()->H2("momRes_2D_glob"), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
-//    HM()->H1("momRes_1D_glob")->SetMaximum(50.0);
+    //    HM()->H1("momRes_1D_glob")->SetMaximum(50.0);
     HM()->H1("momRes_1D_glob")->SetMinimum(0.0);
     DrawH1(HM()->H1("momRes_1D_glob"), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
 }
@@ -604,7 +619,7 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName) {
     canvas->cd(1);
     DrawH2(HM()->H2("momRes_2D_gem"), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
-//    HM()->H1("momRes_1D_gem")->SetMaximum(50.0);
+    //    HM()->H1("momRes_1D_gem")->SetMaximum(50.0);
     HM()->H1("momRes_1D_gem")->SetMinimum(0.0);
     DrawH1(HM()->H1("momRes_1D_gem"), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
 }

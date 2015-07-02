@@ -465,7 +465,7 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("Px_rec_Px_sim_gem", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
     CreateH2("Py_rec_Py_sim_gem", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
     CreateH2("Pz_rec_Pz_sim_gem", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * fPRangeBins, -8.0, 8.0, 4 * fPRangeBins, -8.0, 8.0);
-    CreateH2("Pt_rec_Pt_sim_gem","P^{t}_{sim}, GeV/c", "P^{t}_{rec}, GeV/c", "", 4 * fPRangeBins, -8.0, 8.0, 4 * fPRangeBins, -8.0, 8.0);
+    CreateH2("Pt_rec_Pt_sim_gem", "P^{t}_{sim}, GeV/c", "P^{t}_{rec}, GeV/c", "", 4 * fPRangeBins, -8.0, 8.0, 4 * fPRangeBins, -8.0, 8.0);
     CreateH2("Px_rec_Px_sim_glob", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
     CreateH2("Py_rec_Py_sim_glob", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
     CreateH2("Pz_rec_Pz_sim_glob", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * fPRangeBins, -8.0, 8.0, 4 * fPRangeBins, -8.0, 8.0);
@@ -520,7 +520,7 @@ void BmnTrackingQa::ProcessGem() {
         BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
         BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
         if (!track || !gemTrackMatch) continue;
-        if(gemTrackMatch->GetNofLinks() == 0) continue;
+        if (gemTrackMatch->GetNofLinks() == 0) continue;
         Int_t gemMCId = gemTrackMatch->GetMatchedLink().GetIndex();
         CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(gemMCId));
         if (!mcTrack) continue;
@@ -554,14 +554,15 @@ void BmnTrackingQa::ProcessGem() {
         Float_t Px_rec = Pz_rec * Tx;
         Float_t Py_rec = Pz_rec * Ty;
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
-
+        
+        fHM->H1("Rec_vs_P_gem")->Fill(P_sim);
         if (!isTrackOk) {
             fHM->H1("Ghost_vs_P_gem")->Fill(P_sim);
             fHM->H1("Ghost_vs_Nh_gem")->Fill(track->GetNHits());
         } else {
             fHM->H1("Well_vs_P_gem")->Fill(P_sim);
             fHM->H1("Well_vs_Nh_gem")->Fill(track->GetNHits());
-            fHM->H1("Rec_vs_P_gem")->Fill(P_sim);
+
             fHM->H2("momRes_2D_gem")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec);
             fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec);
@@ -575,10 +576,10 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
         }
     }
-    Int_t momResStep = 5;
+    Int_t momResStep = 10;
     for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D_gem")->GetNbinsX(); iBin += momResStep) {
         TH1D* proj = fHM->H2("momRes_2D_gem")->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
-        proj->Fit("gaus", "SQww");
+        proj->Fit("gaus", "SQww", "", 0.0, 20.0);
         TF1 *fit = proj->GetFunction("gaus");
         Float_t mean = (fit->GetParameter(1) < 100.0) ? fit->GetParameter(1) : 0.0;
         fHM->H1("momRes_1D_gem")->SetBinContent(iBin, mean);
@@ -622,10 +623,10 @@ void BmnTrackingQa::ProcessGem() {
 
 void BmnTrackingQa::ProcessGlobal() {
     for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); iTrack++) {
-        BmnGlobalTrack* track = (BmnGlobalTrack*) (fGlobalTracks->At(iTrack));      
+        BmnGlobalTrack* track = (BmnGlobalTrack*) (fGlobalTracks->At(iTrack));
         BmnTrackMatch* globTrackMatch = (BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
         if (!track || !globTrackMatch) continue;
-        if(globTrackMatch->GetNofLinks() == 0) continue;
+        if (globTrackMatch->GetNofLinks() == 0) continue;
         Int_t globMCId = globTrackMatch->GetMatchedLink().GetIndex();
         CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(globMCId));
         if (!mcTrack) continue;
@@ -646,13 +647,16 @@ void BmnTrackingQa::ProcessGlobal() {
         Float_t Px_rec = Pz_rec * Tx;
         Float_t Py_rec = Pz_rec * Ty;
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
+        
+        fHM->H1("Rec_vs_P_glob")->Fill(P_sim);
+        
         if (!isTrackOk) {
             fHM->H1("Ghost_vs_P_glob")->Fill(P_sim);
             fHM->H1("Ghost_vs_Nh_glob")->Fill(track->GetNofHits());
         } else {
             fHM->H1("Well_vs_P_glob")->Fill(P_sim);
             fHM->H1("Well_vs_Nh_glob")->Fill(track->GetNofHits());
-            fHM->H1("Rec_vs_P_glob")->Fill(P_sim);
+            
             fHM->H2("momRes_2D_glob")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec);
             fHM->H2("Eta_rec_Eta_sim_glob")->Fill(Eta_sim, Eta_rec);
@@ -666,7 +670,7 @@ void BmnTrackingQa::ProcessGlobal() {
             fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
         }
     }
-    Int_t momResStep = 5;
+    Int_t momResStep = 10;
     for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D_glob")->GetNbinsX(); iBin += momResStep) {
         TH1D* proj = fHM->H2("momRes_2D_glob")->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
         fHM->H1("momRes_1D_glob")->SetBinContent(iBin, proj->GetBinCenter(proj->GetMaximumBin()));

@@ -31,6 +31,12 @@ public:
 
     void ProcessMCPoints();
 
+    //Setters
+
+    void SetOnlyPrimary(Bool_t opt = kFALSE) {
+        fOnlyPrimary = opt;
+    }
+
 private:
 
     TString fInputBranchName;
@@ -40,10 +46,12 @@ private:
     TClonesArray* fBmnGemStripPointsArray;
 
     /** Input array of MC Tracks **/
-    //TClonesArray* fMCTracksArray;
+    TClonesArray* fMCTracksArray;
 
     /** Output array of Gem Digits **/
     TClonesArray* fBmnGemStripDigitsArray;
+
+    Bool_t fOnlyPrimary;
 
     ClassDef(BmnGemStripDigitizer,1);
 };

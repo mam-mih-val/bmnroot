@@ -1,6 +1,8 @@
 #include "BmnGemStripDigitizer.h"
+#include "CbmMCTrack.h"
 
-BmnGemStripDigitizer::BmnGemStripDigitizer() {
+BmnGemStripDigitizer::BmnGemStripDigitizer()
+: fOnlyPrimary(kFALSE) {
 
     fInputBranchName = "StsPoint";
     fOutputDigitsBranchName = "BmnGemStripDigit";
@@ -15,11 +17,12 @@ BmnGemStripDigitizer::~BmnGemStripDigitizer() {
 InitStatus BmnGemStripDigitizer::Init() {
 
     if(fVerbose) cout << " BmnGemStripDigitizer::Init()\n ";
+    if(fVerbose && fOnlyPrimary) cout << " Only primary particles are processed!!! " << endl;
 
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnGemStripPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
-    //fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
+    fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
 
     fBmnGemStripDigitsArray = new TClonesArray(fOutputDigitsBranchName);
     ioman->Register(fOutputDigitsBranchName, "GEM", fBmnGemStripDigitsArray, kTRUE);
@@ -46,11 +49,21 @@ void BmnGemStripDigitizer::Exec(Option_t* opt) {
 void BmnGemStripDigitizer::ProcessMCPoints() {
 
     FairMCPoint* GemStripPoint;
+    Int_t NNotPrimaries = 0;
 
     BmnGemStripStationSet StationSet;
 
     for(UInt_t ipoint = 0; ipoint < fBmnGemStripPointsArray->GetEntriesFast(); ipoint++) {
         GemStripPoint = (FairMCPoint*) fBmnGemStripPointsArray->At(ipoint);
+
+        if(fOnlyPrimary) {
+            CbmMCTrack *track = (CbmMCTrack*)fMCTracksArray->UncheckedAt(GemStripPoint->GetTrackID());
+            if(!track) continue;
+            if(track->GetMotherId() != -1)  {
+                NNotPrimaries++;
+                continue;
+            }
+        }
 
         Double_t x = -GemStripPoint->GetX(); // invert because in current geometry +x -left, -x - right
         Double_t y = GemStripPoint->GetY();
@@ -61,6 +74,7 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
     }
 
     Int_t NAddedPoints = StationSet.CountNAddedToDetectorPoints();
+    if(fVerbose && fOnlyPrimary) cout << "   Number of not primaries points : " << NNotPrimaries << "\n";
     if(fVerbose) cout << "   Processed MC points  : " << NAddedPoints << "\n";
 
     for(Int_t iStation = 0; iStation < StationSet.GetNStations(); ++iStation) {

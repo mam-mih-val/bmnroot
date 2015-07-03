@@ -196,6 +196,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 
     if (gemCF) {
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
+        gemDigit->SetOnlyPrimary(isPrimary);
         fRun->AddTask(gemDigit);
         BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
         fRun->AddTask(gemHM);
@@ -204,7 +205,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
         gemHP->SetOnlyPrimary(isPrimary);
         fRun->AddTask(gemHP);
     }
-    
+
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //

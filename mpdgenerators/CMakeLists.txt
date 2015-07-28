@@ -35,8 +35,7 @@ MpdHypYPtGenerator.cxx
 MpdRainGenerator.cxx
 MpdPlutoGenerator.cxx
 MpdPHSDGenerator.cxx
-MpdUrqmd23Generator.cxx
-MpdUrqmd34Generator.cxx
+MpdUrqmdGenerator.cxx
 MpdGetNumEvents.cxx
 MpdHistoGenerator.cxx
 )

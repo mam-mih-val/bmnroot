@@ -4,21 +4,19 @@
 // -------------------------------------------------------------------------
 
 
-/** MpdUrqmd34Generator.h
+/** MpdUrqmdGenerator.h
  *@ author V.Friese <v.friese@gsi.de>
  *@author D.Bertini <d.bertini@gsi.de>
  *
- The MpdUrqmd34Generator reads the output file 14 (ftn14) from UrQMD. The UrQMD
+ The MpdUrqmdGenerator reads the output file 14 (ftn14) from UrQMD. The UrQMD
  calculation has to be performed in the CM system of the collision; Lorentz
  transformation into the lab is performed by this class.
  Derived from FairGenerator.
 **/
 
 
-
-#ifndef MPDURQMD34GENERATOR_H
-#define MPDURQMD34GENERATOR_H
-
+#ifndef MPDURQMDGENERATOR_H
+#define MPDURQMDGENERATOR_H
 
 #include "FairGenerator.h"
 
@@ -30,23 +28,23 @@
 class TVirtualMCStack;
 class FairPrimaryGenerator;
 
-class MpdUrqmd34Generator : public FairGenerator
+class MpdUrqmdGenerator : public FairGenerator
 {
 
   public:
 
     /** Default constructor without arguments should not be used. **/
-    MpdUrqmd34Generator();
+    MpdUrqmdGenerator();
 
 
     /** Standard constructor.
      * @param fileName The input file name
      **/
-    MpdUrqmd34Generator(const char* fileName);
+    MpdUrqmdGenerator(const char* fileName);
 
 
     /** Destructor. **/
-    ~MpdUrqmd34Generator();
+    ~MpdUrqmdGenerator();
 
 
     /** Reads on event from the input file and pushes the tracks onto
@@ -72,10 +70,10 @@ class MpdUrqmd34Generator : public FairGenerator
         conversion map. Is called from the constructor. **/
     void ReadConversionTable();
 
-    MpdUrqmd34Generator(const MpdUrqmd34Generator&);
-    MpdUrqmd34Generator& operator=(const MpdUrqmd34Generator&);
+    MpdUrqmdGenerator(const MpdUrqmdGenerator&);
+    MpdUrqmdGenerator& operator=(const MpdUrqmdGenerator&);
 
-    ClassDef(MpdUrqmd34Generator,1);
+    ClassDef(MpdUrqmdGenerator,1);
 
 };
 

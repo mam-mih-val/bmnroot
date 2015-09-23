@@ -99,6 +99,7 @@ void eventdisplay(char* input_file = "$VMCWORKDIR/macro/run/bmndst.root", char* 
 class FairEventManager;
 void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
 {
+    // root files with simulation and reconstructed data
     if (data_source == 0)
     {
         Style_t pointMarker = kFullDotSmall;
@@ -157,6 +158,7 @@ void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
         return;
     }
 
+    // raw files with detector stream data
     if ((data_source == 1) && (!is_online))
     {
         Style_t pointMarker = kFullDotSmall;
@@ -168,6 +170,7 @@ void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
         fMan->AddTask(MWPCDigit);
     }
 
+    // root files with digits from raw format
     if (data_source == 2)
     {
         Style_t pointMarker = kFullDotSmall;

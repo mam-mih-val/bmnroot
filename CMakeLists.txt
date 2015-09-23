@@ -155,6 +155,7 @@ add_subdirectory (KF)
 add_subdirectory (cat)
 
 add_subdirectory (eventdisplay)
+add_subdirectory (mpd_db)
 
 add_subdirectory (macro/mpd_scheduler)
 

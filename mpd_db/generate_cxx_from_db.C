@@ -5,8 +5,8 @@ void generate_cxx_from_db()
     timer.Start();
     gDebug = 0;
 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/mpd/mpdloadlibs.C");
-    mpdloadlibs(1, 1); // load main libraries
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+    bmnloadlibs(); // load main libraries
 
     MpdDbGenerateClasses gen;
     int res = gen.GenerateClasses("", "MpdDb", true);

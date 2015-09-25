@@ -1,4 +1,4 @@
-void parse_xml()
+void parse_data_to_db()
 {
     TStopwatch timer;
     timer.Start();
@@ -6,12 +6,12 @@ void parse_xml()
 
     gSystem->Load("/usr/lib/x86_64-linux-gnu/libpugixml");
 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/mpd/mpdloadlibs.C");
-    mpdloadlibs(1, 1); // load main libraries
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+    bmnloadlibs(); // load main libraries
 
     MpdDbParser pars;
     //pars.ParseXml2Db("/home/soul/run.xml", "/home/soul/run.xslt");
-    pars.ParseTxtNoise2Db("/home/soul/Downloads/noise_run3.txt","/home/soul/txt.xslt");
+    pars.ParseCsv2Db("/home/soul/tmp/run2_log.csv", "/home/soul/tmp/csv.xslt", true);
 
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();

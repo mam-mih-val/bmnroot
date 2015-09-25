@@ -6,8 +6,8 @@ void write_geo_to_db(TString geo_file = "$VMCWORKDIR/macro/mpd/geofile_full.root
     timer.Start();
     gDebug = 0;
 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/mpd/mpdloadlibs.C");
-    mpdloadlibs(1, 1); // load main libraries
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+    bmnloadlibs(); // load main libraries
 
     int res = MpdDbGeoConverter::WriteRootGeoToDB(geo_file);
 

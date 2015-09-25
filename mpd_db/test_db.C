@@ -4,8 +4,8 @@ void test_db()
     timer.Start();
     gDebug = 0;
 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/mpd/mpdloadlibs.C");
-    mpdloadlibs(1, 1); // load main libraries
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+    bmnloadlibs(); // load main libraries
 
     MpdDbConnection* connectionUniDb = MpdDbConnection::Open(0);
 

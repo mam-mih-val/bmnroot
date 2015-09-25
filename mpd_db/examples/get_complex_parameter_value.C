@@ -4,8 +4,8 @@
 void get_complex_parameter_value()
 {
     bool return_error = false;
-    gROOT->LoadMacro("$VMCWORKDIR/macro/mpd/mpdloadlibs.C");
-    mpdloadlibs(1, 1); // load main libraries
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+    bmnloadlibs(); // load main libraries
 
     // get noise parameter values presented by IIStructure: Int+Int (slot:channel)
     MpdDbDetectorParameter* pDetectorParameter = MpdDbDetectorParameter::GetDetectorParameter(77, "DCH1", "noise"); //(run_number, detector_name, parameter_name)

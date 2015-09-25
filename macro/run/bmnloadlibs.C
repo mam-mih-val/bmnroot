@@ -34,6 +34,8 @@ void bmnloadlibs()
   gSystem->Load("libGeane");
   gSystem->Load("libKF");
   gSystem->Load("libCat");
+
+  gSystem->Load("libMpdDb");
 }
 
 TString find_path_to_URQMD_files ()

@@ -46,7 +46,7 @@ int MpdDbParser::ParseXml2Db(TString xmlName, TString schemaPath)
     if (!resultXML)
     {
         cout<<"Error: reading XML file '"<<xmlName<<"' was failed"<<endl;
-        return - -1;
+        return -1;
     }
 
     // read schema
@@ -61,7 +61,9 @@ int MpdDbParser::ParseXml2Db(TString xmlName, TString schemaPath)
 
     // open connection to database
     MpdDbConnection* connUniDb = MpdDbConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00) return 0x00;
+    if (connUniDb == 0x00)
+        return -3
+                ;
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
     pugi::xml_node cur_xml_node = docXML;
@@ -345,6 +347,8 @@ int MpdDbParser::ParseXml2Db(TString xmlName, TString schemaPath)
         }// CYCLE PROCESSING
     }// for docSchema level 0
 
+    delete connUniDb;
+
     return 0;
 }
 
@@ -517,8 +521,374 @@ int MpdDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
     }
 
     txtFile.close();
+    delete connUniDb;
+
+    return 0;
+}
+
+int MpdDbParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
+{
+    ifstream csvFile;
+    csvFile.open(csvName, ios::in);
+    if (!csvFile.is_open())
+    {
+        cout<<"Error: reading CSV file '"<<csvName<<"' was failed"<<endl;
+        return -1;
+    }
+    string cur_line;
+
+    // read schema
+    pugi::xml_document docSchema;
+    pugi::xml_parse_result resultSchema = docSchema.load_file(schemaPath);
+
+    if (!resultSchema)
+    {
+        cout<<"Error: reading schema file '"<<schemaPath<<"' was failed"<<endl;
+        return - 2;
+    }
+
+    // open connection to database
+    MpdDbConnection* connUniDb = MpdDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+        return -3;
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    string strTableName = "";
+    // parse SCHEMA file
+    for (pugi::xml_node_iterator it = docSchema.begin(); it != docSchema.end(); ++it)
+    {
+        pugi::xml_node cur_schema_node = *it;
+
+        //cout<<"Current schema node: "<<cur_schema_node.name()<<endl;
+
+        // parse table name if exists
+        if (strcmp(cur_schema_node.attribute("table_name").value(), "") != 0)
+        {
+            strTableName = cur_schema_node.attribute("table_name").value();
+            cout<<"Current database table: "<<strTableName<<endl;
+        }
+
+        if (strcmp(cur_schema_node.name(), "search") == 0)
+        {
+            string strSearchName = cur_schema_node.attribute("name").value();
+        }
+        // PARSE CYCLE
+        else if (strcmp(cur_schema_node.name(), "cycle") == 0)
+        {
+            int skip_count = 0;
+            if (strcmp(cur_schema_node.attribute("skip").value(), "") != 0)
+                skip_count = atoi(cur_schema_node.attribute("skip").value());
+
+            for (int i = 0; i < skip_count; i++)
+                getline(csvFile, cur_line);
+
+            // parse schema
+            vector<structParseSchema> vecElements;
+            // write cycle structure to array vecElements
+            int column_count = 0;
+            for (pugi::xml_node cycle_child = cur_schema_node.first_child(); cycle_child; cycle_child = cycle_child.next_sibling())
+            {
+                string strAction = cycle_child.attribute("action").value();
+                TString column_name = cycle_child.attribute("column_name").value();
+                TString statement_type = cycle_child.attribute("type").value();
+
+                if (strAction == "skip")
+                {
+                    structParseSchema par(true);
+
+                    vecElements.push_back(par);
+                }
+                else if (strAction == "update")
+                {
+                    structParseSchema par(false, column_name, statement_type);
+                    par.isUpdate = true;
+
+                    vecElements.push_back(par);
+                    column_count++;
+                }// if (strAction == "update")
+                else if (strAction == "write")
+                {
+                    structParseSchema par(false, column_name, statement_type);
+
+                    vecElements.push_back(par);
+                    column_count++;
+                }// if (strAction == "write")
+                else if (strAction == "parse")
+                {
+                    structParseSchema par;
+                    par.isSkip = false;
+
+                    int start_index = atoi(cycle_child.attribute("start_index").value());
+                    TString parse_type = cycle_child.attribute("parse_type").value();
+                    structParseRow row(column_name, statement_type, true, start_index, parse_type);
+                    par.vecRows.push_back(row);
+
+                    vecElements.push_back(par);
+                    column_count++;
+                }// if (strAction == "parse")
+                else if (strAction == "multi")
+                {
+                    structParseSchema par;
+                    par.isSkip = false;
+
+                    for (pugi::xml_node cycle_sub_child = cycle_child.first_child(); cycle_sub_child; cycle_sub_child = cycle_sub_child.next_sibling())
+                    {
+                        strAction = cycle_sub_child.attribute("action").value();
+                        column_name = cycle_sub_child.attribute("column_name").value();
+                        statement_type = cycle_sub_child.attribute("type").value();
+
+                        if (strAction == "write")
+                        {
+                            structParseRow row(column_name, statement_type);
+                            par.vecRows.push_back(row);
+                        }
+                        else if (strAction == "parse")
+                        {
+                            int start_index = atoi(cycle_sub_child.attribute("start_index").value());
+                            TString parse_type = cycle_sub_child.attribute("parse_type").value();
+                            structParseRow row(column_name, statement_type, true, start_index, parse_type);
+                            par.vecRows.push_back(row);
+                        }
+                    }
+
+                    vecElements.push_back(par);
+                    column_count++;
+                }// if (strAction == "multi")
+            }// write cycle structure to array vecElements
+
+            // prepare SQL query for CSV cycle
+            TString sql;
+            if (!isUpdate)
+            {
+                sql = "insert into " + strTableName + "(";
+                int count = 0;
+                for (vector<structParseSchema>::iterator it = vecElements.begin(); it != vecElements.end(); ++it)
+                {
+                    structParseSchema schema = *it;
+                    if (schema.isSkip)
+                        continue;
+
+                    for (int j = 0; j < schema.vecRows.size(); j++)
+                    {
+                        structParseRow row = schema.vecRows[j];
+                        if (count == 0)
+                            sql += row.strColumnName;
+                        else
+                            sql += ", " + row.strColumnName;
+
+                        count++;
+                    }
+                }
+                sql += ") values(";
+                for (int i = 1; i <= count; i++)
+                {
+                    if (i == 1)
+                        sql += TString::Format("$%d", i);
+                    else
+                        sql += TString::Format(", $%d", i);
+                }
+                sql += ")";
+            }
+            else
+            {
+                sql = "update " + strTableName + " set ";
+                int count = 0;
+                for (vector<structParseSchema>::iterator it = vecElements.begin(); it != vecElements.end(); ++it)
+                {
+                    structParseSchema schema = *it;
+                    if ((schema.isSkip) || (schema.isUpdate))
+                        continue;
+
+                    for (int j = 0; j < schema.vecRows.size(); j++)
+                    {
+                        structParseRow row = schema.vecRows[j];
+                        if (count == 0)
+                            sql += TString::Format("%s = $%d", row.strColumnName.Data(), count+2);
+                        else
+                            sql += TString::Format(", %s = $%d", row.strColumnName.Data(), count+2);
+
+                        count++;
+                    }
+                }
+                sql += " where ";
+                count = 0;
+                for (vector<structParseSchema>::iterator it = vecElements.begin(); it != vecElements.end(); ++it)
+                {
+                    structParseSchema schema = *it;
+                    if (!schema.isUpdate)
+                        continue;
+
+                    for (int j = 0; j < schema.vecRows.size(); j++)
+                    {
+                        structParseRow row = schema.vecRows[j];
+                        if (count == 0)
+                            sql += TString::Format("%s = $1", row.strColumnName.Data());
+                        //else
+                        //    sql += TString::Format(", %s = $%d", row.strColumnName, count+2);
+
+                        count++;
+                    }
+                }
+            }// prepare SQL query for CSV cycle
+
+            cout<<"SQL code: "<<sql<<endl;
+
+            TSQLStatement* stmt = uni_db->Statement(sql);
+
+            // run CSV file cycle and write the fields to DB
+            while (getline(csvFile, cur_line))
+            {
+                // parse current line
+                string trim_line = trim(cur_line);
+
+                istringstream line_stream(trim_line);
+
+                stmt->NextIteration();
+
+                // parse tokens by symbol separated
+                int count, tmp_count;
+                if (!isUpdate)
+                    count = 0;
+                else
+                    count = 1;
+
+                int i = 0;
+                string token;
+                while (getline(line_stream, token, ';'))
+                {
+                    structParseSchema schema = vecElements[i];
+                    if (schema.isSkip)
+                    {
+                        i++;
+                        continue;
+                    }
+
+                    if (schema.isUpdate)
+                    {
+                        tmp_count = count;
+                        count = 0;
+                    }
+
+                    // cycle for schema
+                    for (int j = 0; j < schema.vecRows.size(); j++)
+                    {
+                        structParseRow row = schema.vecRows[j];
+
+                        if (!row.isParse)
+                        {
+                            if (row.strStatementType == "int")
+                            {
+                                stmt->SetInt(count, atoi(token.c_str()));
+                                cout<<"SetInt: "<<token<<endl;
+                                count++;
+                            }
+                            else
+                            {
+                                if (row.strStatementType == "double")
+                                {
+                                    stmt->SetDouble(count, atof(token.c_str()));
+                                    cout<<"SetDouble: "<<token<<endl;
+                                    count++;
+                                }
+                                else
+                                {
+                                    if (row.strStatementType == "string")
+                                    {
+                                        stmt->SetString(count, token.c_str());
+                                        cout<<"SetString: "<<token<<endl;
+                                        count++;
+                                    }
+                                    else
+                                    {
+                                        if (row.strStatementType == "datetime")
+                                        {
+                                            TDatime d(token.c_str());
+                                            stmt->SetDatime(count, d);
+                                            cout<<"SetDatime: "<<token<<endl;
+                                            count++;
+                                        }
+                                    }
+                                }
+                            }
+                        }// !row.isParse
+                        else
+                        {
+                            if (row.iStartIndex > 0)
+                                token = token.substr(row.iStartIndex, token.length()-row.iStartIndex);
+
+                            if (row.strParseType != "")
+                            {
+                                if (row.strParseType == "int")
+                                {
+                                    int last_digit;
+                                    for (last_digit = 0; last_digit < token.length(); last_digit++)
+                                    {
+                                        if (!isdigit(token[last_digit]))
+                                            break;
+                                    }
+                                    last_digit++;
+
+                                    if (last_digit > 1)
+                                        token = token.substr(0, last_digit-1);
+                                    else
+                                        token = "";
+                                }
+                            }
+
+                            if (row.strStatementType == "int")
+                            {
+                                stmt->SetInt(count, atoi(token.c_str()));
+                                cout<<"SetInt: "<<token<<endl;
+                                count++;
+                            }
+                            else
+                            {
+                                if (row.strStatementType == "double")
+                                {
+                                    stmt->SetDouble(count, atof(token.c_str()));
+                                    cout<<"SetDouble: "<<token<<endl;
+                                    count++;
+                                }
+                                else
+                                {
+                                    if (row.strStatementType == "string")
+                                    {
+                                        stmt->SetString(count, token.c_str());
+                                        cout<<"SetString: "<<token<<endl;
+                                        count++;
+                                    }
+                                    else
+                                    {
+                                        if (row.strStatementType == "datetime")
+                                        {
+                                            TDatime d(token.c_str());
+                                            stmt->SetDatime(count, d);
+                                            cout<<"SetDatime: "<<token<<endl;
+                                            count++;
+                                        }
+                                    }
+                                }
+                            }
+                        }// row.isParse
+                    }// // cycle by schema rows because it can consist multiple writing
+
+                    if (schema.isUpdate)
+                    {
+                        count = tmp_count;
+                    }
+
+                    i++;
+                }// parse CSV line by tokens separated by symbols
+            }// run CSV file cycle and write the fields to DB
+
+            stmt->Process();
+            delete stmt;
+        }// CYCLE PROCESSING
+    }// for docSchema level 0
 
     delete connUniDb;
+    csvFile.close();
 
     return 0;
 }

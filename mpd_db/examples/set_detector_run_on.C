@@ -1,8 +1,8 @@
 // macro for setting 'on' detectors for all runs
 void set_detector_run_on()
 {
-    gROOT->LoadMacro("$VMCWORKDIR/macro/mpd/mpdloadlibs.C");
-    mpdloadlibs(1, 1); // load main libraries
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+    bmnloadlibs(); // load main libraries
 
     MpdDbDetectorParameter* pDetectorParameter;
     for (int i = 12; i <= 688; i++)

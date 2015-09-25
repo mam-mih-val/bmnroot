@@ -22,8 +22,8 @@ int AssignIIStructure(IIStructure* pIIArray, int start_index, int first_int, int
 void add_complex_parameter_value()
 {
     bool return_error = false;
-    gROOT->LoadMacro("$VMCWORKDIR/macro/mpd/mpdloadlibs.C");
-    mpdloadlibs(1, 1); // load main libraries
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+    bmnloadlibs(); // load main libraries
 
     // add noise parameter value presented by IIStructure: Int+Int (slot:channel)
     IIStructure* pValues = new IIStructure[32];

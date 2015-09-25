@@ -3,8 +3,8 @@
 // macro for writing bytes of root geometry file to database
 void set_root_geometry(char* root_file_path, int start_run, int end_run)
 {
-    gROOT->LoadMacro("$VMCWORKDIR/macro/mpd/mpdloadlibs.C");
-    mpdloadlibs(1, 1); // load main libraries
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+    bmnloadlibs(); // load main libraries
 
     FILE* root_file = fopen(root_file_path, "rb");
     if (root_file == NULL)

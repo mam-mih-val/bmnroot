@@ -27,13 +27,16 @@ struct structParseRow
 struct structParseSchema
 {
     bool isSkip;
+    bool isUpdate;
     vector<structParseRow> vecRows;
 
     structParseSchema()
     {
+        isUpdate = false;
     }
     structParseSchema(bool is_skip, TString column_name="", TString statement_type="")
     {
+        isUpdate = false;
         isSkip = is_skip;
         if (is_skip == false)
         {
@@ -44,17 +47,16 @@ struct structParseSchema
     ~structParseSchema()
     {
         if (isSkip == false)
-        {
             vecRows.clear();
-        }
     }
 };
 
 class MpdDbParser
 {
  public:
-    int ParseXml2Db(TString xmlName, TString schemapath);
-    int ParseTxtNoise2Db(TString txtName, TString schemapath);
+    int ParseXml2Db(TString xmlName, TString schemaPath);
+    int ParseTxtNoise2Db(TString txtName, TString schemaPath);
+    int ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate = false);
 
  ClassDef(MpdDbParser,1) //MPDDBPARSER
 };

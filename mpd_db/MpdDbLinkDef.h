@@ -10,7 +10,7 @@
 #pragma link C++ class MpdDbGeoConverter+;
 #pragma link C++ class MpdDbGenerateClasses+;
 #pragma link C++ class MpdDbTangoData+;
-#pragma link C++ class MpdDbParser+;
+//#pragma link C++ class MpdDbParser+;
 
 #pragma link C++ class MpdDbSession+;
 #pragma link C++ class MpdDbDetector+;

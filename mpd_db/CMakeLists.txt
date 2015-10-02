@@ -21,7 +21,7 @@ MpdDbConnection.cxx
 MpdDbGeoConverter.cxx
 MpdDbGenerateClasses.cxx
 MpdDbTangoData.cxx
-MpdDbParser.cxx
+#MpdDbParser.cxx
 
 db_classes/MpdDbSession.cxx
 db_classes/MpdDbDetector.cxx

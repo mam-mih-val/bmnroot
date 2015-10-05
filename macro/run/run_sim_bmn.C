@@ -5,7 +5,6 @@
 // nEvents - number of events to transport, default: 1
 // outFile - output file with MC data, default: evetest.root
 // flag_store_FairRadLenPoint
-
 void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14.gz", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 28, Int_t nEvents = 1,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
@@ -19,9 +18,9 @@ void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14.gz", TString outFile
     bmnloadlibs(); // load libraries
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
-    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run1.C");
-    //    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run02.C");
-    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run03.C");
+    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run1.C");
+    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run2.C");
+    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run3.C");
 
     // -----   Create simulation run   ----------------------------------------
     FairRunSim *fRun = new FairRunSim();

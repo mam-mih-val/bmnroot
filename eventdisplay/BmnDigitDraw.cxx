@@ -68,7 +68,6 @@ InitStatus BmnDigitDraw::Init()
   }
 
   bmn_digit_tree->SetBranchAddress(GetName(), &fDigitList);
-
   if (!bmn_digit_tree->GetBranchStatus(GetName()))
   {
     cout<<"BmnDigitDraw::Init() branch \""<<GetName()<<"\" not found in file ("<<fEventManager->source_file_name<<")! Task will be deactivated "<<endl;

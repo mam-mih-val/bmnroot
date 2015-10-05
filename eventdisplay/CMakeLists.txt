@@ -50,7 +50,9 @@ RawDataParser.cxx
 RawDataConverter.cxx
 RawMWPCDigitDraw.cxx
 BmnDigitDraw.cxx
+BmnHitDraw.cxx
 BmnTrackDraw.cxx
+BmnExpTrackDraw.cxx
 )
 
 Set(HEADERS )

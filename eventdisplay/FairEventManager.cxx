@@ -618,7 +618,7 @@ void FairEventManager::SelectedGeometryTransparent(bool is_on)
 
             if (child->GetNdaughters() != 0)
                 RecursiveChangeNodeTransparent(child, curTransparency);
-            }
+        }
     }
 
     return;

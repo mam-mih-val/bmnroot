@@ -1,9 +1,9 @@
 // is_online: true - use Online Mode for EventManager (multithreads), false - use Offline Mode for EventManager (fair tasks)
-// data source: 0 - root files with reconstructed and simulation data, 1 - raw files with detector stream data, 2 - root files with digits from raw format
-// input_file - input file name corresponding data source: reconstructed or experimental (raw or root with digits) data
-// geo_file - file with detector geometry: if simulation - file with MC data; if experimental - file with detector geometry
+// data source: 0 - root files with simulation and reconstructed data, 1 - raw file with detector STREAM data (+geometry), 2 - root files with experimental data (+geometry)
+// exp_reco_file - file name with data source: experimental (raw or root) or reconstructed data
+// sim_geo_file - file with detector geometry and MC data (if simulation)
 // out_file - output file
-void eventdisplay(char* input_file = "$VMCWORKDIR/macro/run/bmndst.root", char* geo_file = "$VMCWORKDIR/macro/run/evetest.root", char* out_file = "tmp.root", bool is_online = false, int data_source = 0)
+void eventdisplay(char* exp_reco_file = "$VMCWORKDIR/macro/run/bmndst.root", char* geo_sim_file = "$VMCWORKDIR/macro/run/evetest.root", char* out_file = "tmp.root", bool is_online = false, int data_source = 0)
 {
   TStopwatch timer;
   timer.Start();
@@ -19,9 +19,9 @@ void eventdisplay(char* input_file = "$VMCWORKDIR/macro/run/bmndst.root", char* 
 
 
   // define input file
-  TString inputFile = input_file;
+  TString ExpRecoFile = exp_reco_file;
   // define geometry file
-  TString geoFile = geo_file;
+  TString GeoSimFile = geo_sim_file;
   // define output file
   TString outFile = out_file;
 
@@ -38,8 +38,8 @@ void eventdisplay(char* input_file = "$VMCWORKDIR/macro/run/bmndst.root", char* 
   // simulated and reconstructed data for simulation
   if (data_source == 0)
   {
-    if (CheckFileExist(geoFile))
-        fRun->SetInputFile(geoFile);
+    if (CheckFileExist(GeoSimFile))
+        fRun->SetInputFile(GeoSimFile);
     else
     {
         cout<<endl<<"ERROR: Simulation file with detector geometry wasn't found!"<<endl;
@@ -49,14 +49,14 @@ void eventdisplay(char* input_file = "$VMCWORKDIR/macro/run/bmndst.root", char* 
     // set parameter file with simulation data and detector geometry
     FairRuntimeDb *rtdb = fRun->GetRuntimeDb();
     FairParRootFileIo *parIo1 = new FairParRootFileIo();
-    parIo1->open(geoFile.Data());
+    parIo1->open(GeoSimFile.Data());
     rtdb->setFirstInput(parIo1);
     rtdb->setOutput(parIo1);
     rtdb->saveOutput();
 
     // add file with reconstruction data as friend
-    if (CheckFileExist(inputFile))
-        fRun->AddFriend(inputFile);
+    if (CheckFileExist(ExpRecoFile))
+        fRun->AddFriend(ExpRecoFile);
     else
         cout<<endl<<"Warning: File with reconstructed data wasn't found!"<<endl;
   }
@@ -64,16 +64,16 @@ void eventdisplay(char* input_file = "$VMCWORKDIR/macro/run/bmndst.root", char* 
   else
   {
     // add file with detector geometry
-    if (!CheckFileExist(geoFile))
+    if (!CheckFileExist(GeoSimFile))
     {
         cout<<endl<<"ERROR: File with detector geometry wasn't found!"<<endl;
         return;
     }
     else
-        fRun->SetInputFile(geoFile);
+        fRun->SetInputFile(GeoSimFile);
 
-    fMan->source_file_name = input_file;
-    fMan->geo_file_name = geoFile;
+    fMan->source_file_name = ExpRecoFile;
+    fMan->geo_file_name = GeoSimFile;
   }
 
   // set output file
@@ -151,7 +151,7 @@ void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
         //FairHitDraw *MpdTpcHit = new FairHitDraw("TpcHit", 1);
         //fMan->AddTask(MpdTpcHit);
 
-        // DST tracks
+        // DST tracks from simulation data
         BmnTrackDraw* BmnGlobalTrack = new BmnTrackDraw("GlobalTrack");
         fMan->AddTask(BmnGlobalTrack);
 
@@ -177,11 +177,23 @@ void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
         Color_t pointColor = kRed;
 
         // draw MWPC digits
-        BmnDigitDraw* MwpcDigit = new BmnDigitDraw("bmn_mwpc_digit", 1, pointColor, pointMarker);
-        fMan->AddTask(MwpcDigit);
+        //BmnDigitDraw* MwpcDigit = new BmnDigitDraw("bmn_mwpc_digit", 1, pointColor, pointMarker);
+        //fMan->AddTask(MwpcDigit);
 
         // draw DCH digits
-        BmnDigitDraw* DchDigit = new BmnDigitDraw("bmn_dch_digit", 2, pointColor, pointMarker);
-        fMan->AddTask(DchDigit);
+        //BmnDigitDraw* DchDigit = new BmnDigitDraw("bmn_dch_digit", 2, pointColor, pointMarker);
+        //fMan->AddTask(DchDigit);
+
+        // draw MWPC hits
+        BmnHitDraw* MwpcHit = new BmnHitDraw("BmnMwpcHit", pointColor, pointMarker);
+        fMan->AddTask(MwpcHit);
+
+        // draw DCH hits
+        BmnHitDraw* DchHit = new BmnHitDraw("BmnDchHit", pointColor, pointMarker);
+        fMan->AddTask(DchHit);
+
+        // draw tracks
+        BmnExpTrackDraw* BmnTrack = new BmnExpTrackDraw("MwpcMatchedTracks");
+        fMan->AddTask(BmnTrack);
     }
 }

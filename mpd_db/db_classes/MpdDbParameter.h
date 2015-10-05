@@ -13,7 +13,7 @@
 #include "TString.h"
 #include "TDatime.h"
 
-#include "MpdDbConnection.h"
+#include "../MpdDbConnection.h"
 
 #include <iostream>
 using namespace std;

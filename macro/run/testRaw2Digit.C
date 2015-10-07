@@ -1,7 +1,7 @@
 
 using namespace std;
 
-void testRaw2Digit(char *fname="bmn_run0166.root") {
+void testRaw2Digit(char *fname="bmn_run0648.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////

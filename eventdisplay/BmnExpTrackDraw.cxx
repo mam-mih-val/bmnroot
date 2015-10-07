@@ -21,7 +21,8 @@ using namespace std;
 BmnExpTrackDraw::BmnExpTrackDraw()
   : FairTask("BmnExpTrackDraw", 0),
     fTrackList(NULL),
-    fMwpcHitList(NULL),
+    fHitsName(""),
+    fHitList(NULL),
     fTrPr(NULL),
     fEventManager(NULL),
     fEveTrList(NULL),
@@ -34,10 +35,11 @@ BmnExpTrackDraw::BmnExpTrackDraw()
 }
 
 // standard constructor
-BmnExpTrackDraw::BmnExpTrackDraw(const char* name, Int_t iVerbose)
+BmnExpTrackDraw::BmnExpTrackDraw(const char* name, TString hitsName, Int_t iVerbose)
   : FairTask(name, iVerbose),
     fTrackList(NULL),
-    fMwpcHitList(NULL),
+    fHitsName(hitsName),
+    fHitList(NULL),
     fTrPr(NULL),
     fEventManager(NULL),
     fEveTrList(new TObjArray(16)),
@@ -80,17 +82,17 @@ InitStatus BmnExpTrackDraw::Init()
     if (fVerbose > 2)
         cout<<"BmnExpTrackDraw::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
 
-    TString strMWPCbranch = "BmnMwpcHit";
-    bmn_data_tree->SetBranchAddress(strMWPCbranch, &fMwpcHitList);
-    if (!bmn_data_tree->GetBranchStatus(strMWPCbranch))
+    TString strBranch = fHitsName;
+    bmn_data_tree->SetBranchAddress(strBranch, &fHitList);
+    if (!bmn_data_tree->GetBranchStatus(strBranch))
     {
-      cout<<"BmnExpTrackDraw::Init() branch '"<<strMWPCbranch<<"' not found in file ("<<fEventManager->source_file_name<<")! Task will be deactivated "<<endl;
+      cout<<"BmnExpTrackDraw::Init() branch '"<<strBranch<<"' not found in file ("<<fEventManager->source_file_name<<")! Task will be deactivated "<<endl;
       SetActive(kFALSE);
       return kERROR;
     }
 
     if (fVerbose > 2)
-        cout<<"BmnExpTrackDraw::Init() get MWPC digits list "<<fMwpcHitList<<" from branch '"<<strMWPCbranch<<"'"<<endl;
+        cout<<"BmnExpTrackDraw::Init() get list of hits "<<fHitList<<" from branch '"<<strBranch<<"'"<<endl;
 
     //cout<<endl<<"fEntryCount "<<fEventManager->fEntryCount<<" Event Count "<<bmn_data_tree->GetEntries()<<endl;
     if (fEventManager->fEntryCount == 0)
@@ -160,10 +162,11 @@ void BmnExpTrackDraw::Exec(Option_t* option)
         Int_t Np = current_track->GetNofHits();
 
         // cycle: add hits (points) to EVE path for this track
-        //cout<<"Points: "<<Np<<endl;
+        cout<<"Points: "<<Np<<endl;
         for (Int_t n = 0; n < Np; n++)
         {
-            FairHit* pHit = (FairHit*) fMwpcHitList->UncheckedAt(current_track->GetHitIndex(n));
+            FairHit* pHit = NULL;
+            pHit = (FairHit*) fHitList->UncheckedAt(current_track->GetHitIndex(n));
 
             track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
 

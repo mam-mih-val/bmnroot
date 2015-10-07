@@ -24,7 +24,7 @@ const Int_t NofPlanes = 6;
 //Detector's position
 const Double_t MWPC2_Xpos = 0.0;
 const Double_t MWPC2_Ypos = 0.0;
-const Double_t MWPC2_Zpos = 424.0;
+const Double_t MWPC2_Zpos = 453.0;//424.0;
 
 //           x
 //        A______B

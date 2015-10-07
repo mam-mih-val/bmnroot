@@ -51,7 +51,7 @@ set(MPDDB_SRCS ${MPDDB_SRCS} ${MPDDB_DICTIONARY})
 
 
 add_library(MpdDb SHARED ${MPDDB_SRCS})
-target_link_libraries(MpdDb ${ROOT_LIBRARIES} -lpugixml)
+#target_link_libraries(MpdDb ${ROOT_LIBRARIES} -lpugixml)
 set_target_properties(MpdDb PROPERTIES VERSION 0.0.1 SOVERSION 0)
 
 add_executable (get_mpd_prod get_mpd_prod.cxx)

@@ -28,10 +28,6 @@ const Float_t kPlaneHeight = 43.3; // cm
 const Float_t kPlaneWidth = kNWires * kWireStep; //24.6; // cm
 const Float_t kMwpcZpos = 350; //FIXME!!! Get coords from geometry
 
-const Double_t MWPC0_Zpos = -301.3;
-const Double_t MWPC1_Zpos = -158.5;
-const Double_t MWPC2_Zpos = 459.5;
-
 Float_t mwpc0_leftTime = 0.0;
 Float_t mwpc0_rightTime = 0.0;
 Float_t mwpc1_leftTime = 0.0;
@@ -61,7 +57,7 @@ const Float_t MinRadiusOfActiveVolume = 12.0;
 void CheckHits(vector<TVector3> &vec1, vector<TVector3> &vec2) {
 
     Bool_t flag = kFALSE;
-    Float_t delta = 100.0; // cm
+    Float_t delta = 10.0; // cm
     for (Int_t i = 0; i < vec1.size(); ++i) {
         TVector3* hit1 = &(vec1.at(i));
         for (Int_t j = 0; j < vec2.size(); ++j) {
@@ -232,10 +228,10 @@ void ProcessDchDigits(TClonesArray* digits, TClonesArray * hitsArray) {
     vector<TVector3> u2v2 = CreateHitsByTwoPlanes(u2, v2, -5.0);
     vector<TVector3> x2y2 = CreateHitsByTwoPlanes(x2, y2, 5.0);
 
-    //    CheckHits(u1v1, x1y1);
-    //    CheckHits(x1y1, u1v1);
-    //    CheckHits(u2v2, x2y2);
-    //    CheckHits(x2y2, u2v2);
+//    CheckHits(u1v1, x1y1);
+//    CheckHits(x1y1, u1v1);
+//    CheckHits(u2v2, x2y2);
+//    CheckHits(x2y2, u2v2);
 
     CombineHits(u1v1, hitsArray, 0);
     CombineHits(x1y1, hitsArray, 1);
@@ -344,27 +340,22 @@ void CreateMwpcHits(vector<TVector3> pos, TClonesArray* hits, Short_t mwpcId) {
     const Float_t errY = kWireStep / Sqrt(12.0);
     const Float_t errZ = 1.0 / Sqrt(12.0); // zStep = 1.0 cm
     TVector3 errors = TVector3(errX, errY, errZ); //FIXME!!! Calculate by formulae
-    Float_t zPosMwpc = (mwpcId == 0) ? MWPC0_Zpos : (mwpcId == 1) ? MWPC1_Zpos : (mwpcId == 2) ? MWPC2_Zpos : -1000.0;
-    TVector3 mwpcPos = TVector3(0.0, 0.0, zPosMwpc);
 
-    //    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
-    //    if (pVolume != NULL) {
-    //        TString node_name = TString::Format("mwpc%d_0", mwpcId + 1);
-    //        TGeoNode* pNode = pVolume->FindNode(node_name);
-    //        if (pNode != NULL) {
-    //            TGeoMatrix* pMatrix = pNode->GetMatrix();
-    //            mwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
-    //        } else {
-    //            cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
-    //            mwpcPos = TVector3(0.0, 0.0, -1000.0);
-    //        }
-    //    } else {
-    //        cout << "Cave volume wasn't found." << endl;
-    //        mwpcPos = TVector3(0.0, 0.0, -1000.0);
-    //    }
+    TVector3 globMwpcPos;
+    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
+    if (pVolume != NULL) {
+        TString node_name = TString::Format("mwpc%d_0", mwpcId + 1);
+        TGeoNode* pNode = pVolume->FindNode(node_name);
+        if (pNode != NULL) {
+            TGeoMatrix* pMatrix = pNode->GetMatrix();
+            globMwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
+        } else
+            cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
+    } else
+        cout << "Cave volume wasn't found." << endl;
 
     for (Int_t i = 0; i < pos.size(); ++i) {
-        new((*hits)[hits->GetEntriesFast()]) BmnMwpcHit(0, pos.at(i) + mwpcPos, errors, -1);
+        new((*hits)[hits->GetEntriesFast()]) BmnMwpcHit(0, pos.at(i) + globMwpcPos, errors, -1);
         BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(hits->GetEntriesFast() - 1);
         hit->SetMwpcId(mwpcId);
         hit->SetHitId(hits->GetEntriesFast() - 1);

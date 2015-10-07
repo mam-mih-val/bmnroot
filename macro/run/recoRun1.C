@@ -9,9 +9,12 @@
 #include "TFile.h"
 #include "TGeoManager.h"
 
+#include <fstream> 
+#include <iostream>
+
 using namespace TMath;
 
-void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
+void recoRun1(Int_t runId = 648, Int_t nEvents = 10000) {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -25,7 +28,7 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
     cout << "INFO: Geometry type: " << geoName << endl;
     if (geoName.Contains("NO GEOMETRY FOUND!!!")) return;
 
-    TGeoManager::Import(geoName + ".root");
+    TGeoManager::Import("geometry_run/" + geoName + ".root");
 
     TChain *bmnTree = new TChain("BMN_DIGIT");
     bmnTree->Add(TString::Format("bmn_run0%d_digit.root", runId));
@@ -35,13 +38,13 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
 
     TClonesArray *dchDigits;
     TClonesArray *mwpcDigits;
-    TClonesArray *tof400Digits;
-    TClonesArray *tof700Digits;
-    TClonesArray *zdcDigits;
+    //    TClonesArray *tof400Digits;
+    //    TClonesArray *tof700Digits;
+    //    TClonesArray *zdcDigits;
     bmnTree->SetBranchAddress("bmn_dch_digit", &dchDigits);
     //    bmnTree->SetBranchAddress("bmn_tof1_digit", &tof400Digits);
     //    bmnTree->SetBranchAddress("bmn_tof2_digit", &tof700Digits);
-    bmnTree->SetBranchAddress("bmn_zdc_digit", &zdcDigits);
+    //    bmnTree->SetBranchAddress("bmn_zdc_digit", &zdcDigits);
     bmnRawTree->SetBranchAddress("bmn_mwpc", &mwpcDigits);
 
     Int_t startEvent = 0;
@@ -65,6 +68,35 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
     tReco->Branch("Mwpc1Seeds", &mwpcTracks1);
     tReco->Branch("Mwpc2Seeds", &mwpcTracks2);
     tReco->Branch("MwpcMatchedTracks", &mwpcMatchedTracks);
+
+
+//    cout << "DCH tracks reading: START" << endl;
+//    //File is prepared by Nikolay Voytishin
+//    Int_t nEv = 0;
+//    Float_t x1, y1, z1;
+//    Float_t x2, y2, z2;
+//
+//    ifstream ifs;
+//    ifs.open("dc_segments_run0648.txt", ifstream::in);
+//    //    while (!ifs.eof()) {
+//    for (Int_t iTr = 0; iTr < 15; ++iTr) {
+//        dchHits->Clear();
+//        dchTracks->Clear();
+//        ifs >> nEv >> x1 >> y1 >> z1 >> x2 >> y2 >> z2;
+//        cout << nEv << " " << x1 << " " << y1 << " " << z1 << " " << x2 << " " << y2 << " " << z2 << endl;
+//        TVector3 pos1(x1, y1, z1);
+//        new((*dchHits)[dchHits->GetEntriesFast()]) BmnDchHit(0, pos1, TVector3(0, 0, 0), 0);
+//        TVector3 pos2(x2, y2, z2);
+//        new((*dchHits)[dchHits->GetEntriesFast()]) BmnDchHit(0, pos2, TVector3(0, 0, 0), 0);
+//        new((*dchTracks)[dchTracks->GetEntriesFast()]) CbmTrack();
+//        CbmTrack* tr = (CbmTrack*) dchTracks->At(dchTracks->GetEntriesFast() - 1);
+//        tr->AddHit(dchHits->GetEntriesFast() - 2, (HitType) 0);
+//        tr->AddHit(dchHits->GetEntriesFast() - 1, (HitType) 0);
+//        tReco->Fill();
+//    }
+//
+//    ifs.close();
+//    cout << "DCH tracks reading: FINISH" << endl;
 
     cout << "Time Selection: START" << endl;
 
@@ -109,6 +141,7 @@ void recoRun1(Int_t runId = 650, Int_t nEvents = 0) {
         mwpcMatchedTracks->Clear();
 
         if (iEv % 1000 == 0) cout << "RECO: \tRUN#" << runId << "\tEvent: " << iEv + 1 << "/" << startEvent + events << endl;
+        cout << "Event: " << iEv << endl;
 
         /* ======= Functions for hits reconstruction ======= */
         ProcessDchDigits(dchDigits, dchHits);

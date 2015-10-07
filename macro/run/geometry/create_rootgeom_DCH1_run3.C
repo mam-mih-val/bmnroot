@@ -5,9 +5,9 @@ TGeoManager* gGeoMan = NULL;
 
 //Detector's position
 const Double_t tanpipeangle = 0.3/5.7 ; // tangent of pipe angle
-const Double_t DCH1_Xpos = +21.0;
-const Double_t DCH1_Ypos = 0.0;
-const Double_t DCH1_Zpos = 637.85; //cm
+const Double_t DCH1_Xpos = +21.0 + 5.2; // 21cm - shifting; 5.2cm - alignment.
+const Double_t DCH1_Ypos = +5.7; //5.7cm - alignment
+const Double_t DCH1_Zpos = 610.0;//637.85; //cm
 //const Double_t DCH1_Xpos = DCH1_Zpos*tanpipeangle;
 
 //Detector's construct parameters

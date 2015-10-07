@@ -80,7 +80,7 @@ protected:
   Double32_t fPhi; 		// tube rotation angle
   Double32_t fMeas[2]; 		// measurements (coordinates)
   Double32_t fError[2]; 	// measurement errors
-  TArrayI fIndex; 		// array of indices of overlapped MC points
+  TArrayI fIndex; 		//!     // array of indices of overlapped MC points
   Short_t fDchId;                // DCH Id (1, 2)
   
   Double32_t	fDriftLength, fWirePos, fWireDelayLength, fTS;

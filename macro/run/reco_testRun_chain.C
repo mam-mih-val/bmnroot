@@ -137,13 +137,13 @@ TH1F* h_mwpc_matched_track_dist_3d = new TH1F("h_mwpc_matched_track_dist_3d", "h
 
 void reco_testRun_chain() {
 
-    UInt_t nEvents = 10; // zero corresponds to ALL EVENTS in run
+    UInt_t nEvents = 10000; // zero corresponds to ALL EVENTS in run
 
-    recoRun1(250, nEvents);
+    recoRun1(648, nEvents);
 //    recoRun1(256, nEvents);
 //    recoRun1(257, nEvents);
 
-    qaRun1(250, nEvents);
+    qaRun1(648, nEvents);
 //    qaRun1(256, nEvents);
 //    qaRun1(257, nEvents);
 

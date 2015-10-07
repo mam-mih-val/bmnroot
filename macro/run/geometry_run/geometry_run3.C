@@ -41,4 +41,19 @@ geometry(FairRunSim *fRun)
     FairDetector* dch2 = new BmnDch2("DCH2", kTRUE);
     dch2->SetGeometryFileName("dch2_v1_run3.root");
     fRun->AddModule(dch2);
+    
+    
+    FairDetector* tof = new CbmTof("TOF", kTRUE);
+    tof->SetGeometryFileName("tof_v07a.geo");
+    fRun->AddModule(tof);
+
+    FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
+    tof1->SetGeometryFileName("tof1_W400_v1.geo");
+    fRun->AddModule(tof1);
+
+    CbmPsdv1* psd = new CbmPsdv1("PSD", kTRUE);
+    psd->SetXshift(45.);
+    psd->SetZposition(1000.);
+    psd->SetHole(1); // 0 for no hole
+    fRun->AddModule(psd);
 }

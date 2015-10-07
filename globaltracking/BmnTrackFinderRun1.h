@@ -37,7 +37,7 @@ Float_t LineFit3D(vector<FairHit*> hits, TVector3& vertex, TVector3& direction) 
     Float_t ZN = ((FairHit*) hits.at(nHits - 1))->GetZ();
     Float_t Az = (ZN - ZV);
     if (Az == 0.0) {
-//        cout << "Az = 0.0" << endl;
+        //        cout << "Az = 0.0" << endl;
         vertex = TVector3(0.0, 0.0, 0.0);
         direction = TVector3(0.0, 0.0, 0.0);
         return 1000.0;
@@ -169,7 +169,7 @@ BmnStatus SeedFinder(vector<BmnDchHit*> lay0hits, vector<BmnDchHit*> lay1hits, v
 
 BmnStatus TrackPropagation(vector<BmnDchHit*> &layHits, vector<CbmTrack>& seeds) {
 
-    const Float_t kMINDIST = 10.0; //minimal distance for matching hits to track
+    const Float_t kMINDIST = 15.0; //minimal distance for matching hits to track
 
     for (Int_t iSeed = 0; iSeed < seeds.size(); ++iSeed) {
         CbmTrack* seed = &(seeds.at(iSeed));
@@ -297,29 +297,29 @@ BmnStatus DchTrackFinder(TClonesArray* hits, TClonesArray* tracks) {
     TrackPropagation(lay1hits, seedsBack);
     TrackPropagation(lay0hits, seedsBack);
     TrackSelection(hits, seedsBack, tracks, -1);
-
+    
     return kBMNSUCCESS;
 }
 
 TVector3 GetMwpcPosition(Short_t MWPC_ID) {
-    //    TVector3 mwpcPos;
-    //    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
-    //    if (pVolume != NULL) {
-    //        TString node_name = TString::Format("mwpc%d_0", MWPC_ID + 1);
-    //        TGeoNode* pNode = pVolume->FindNode(node_name);
-    //        if (pNode != NULL) {
-    //            TGeoMatrix* pMatrix = pNode->GetMatrix();
-    //            mwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
-    //        } else {
-    //            cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
-    //            mwpcPos = TVector3(0.0, 0.0, -1000.0);
-    //        }
-    //    } else {
-    //        cout << "Cave volume wasn't found." << endl;
-    //        mwpcPos = TVector3(0.0, 0.0, -1000.0);
-    //    }
-    Float_t zPosMwpc = (MWPC_ID == 0) ? MWPC0_Zpos : (MWPC_ID == 1) ? MWPC1_Zpos : (MWPC_ID == 2) ? MWPC2_Zpos : -1000.0;
-    TVector3 mwpcPos = TVector3(0.0, 0.0, zPosMwpc);
+    TVector3 mwpcPos;
+    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
+    if (pVolume != NULL) {
+        TString node_name = TString::Format("mwpc%d_0", MWPC_ID + 1);
+        TGeoNode* pNode = pVolume->FindNode(node_name);
+        if (pNode != NULL) {
+            TGeoMatrix* pMatrix = pNode->GetMatrix();
+            mwpcPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
+        } else {
+            cout << "MWPC detector (" << node_name << ") wasn't found." << endl;
+            mwpcPos = TVector3(0.0, 0.0, -1000.0);
+        }
+    } else {
+        cout << "Cave volume wasn't found." << endl;
+        mwpcPos = TVector3(0.0, 0.0, -1000.0);
+    }
+//    Float_t zPosMwpc = (MWPC_ID == 0) ? MWPC0_Zpos : (MWPC_ID == 1) ? MWPC1_Zpos : (MWPC_ID == 2) ? MWPC2_Zpos : -1000.0;
+//    TVector3 mwpcPos = TVector3(0.0, 0.0, zPosMwpc);
     return mwpcPos;
 }
 
@@ -335,12 +335,12 @@ BmnStatus MwpcTrackFinder(TClonesArray* hits, TClonesArray* tracks, Short_t MWPC
     for (Int_t i = 0; i < hits->GetEntriesFast(); ++i) {
         BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(i);
         if (hit->IsUsed()) continue;
-        // condition only for RUN2, MWPC0 & MWPC1 were placed before target and they detected beam ===>
-        if (MWPC_ID != 2) {
-            if (hit->GetX() < -1 || hit->GetX() > 2) continue;
-            if (hit->GetY() < -10 || hit->GetY() > -6) continue;
-        }
-        // <===
+//        // condition only for RUN2, MWPC0 & MWPC1 were placed before target and they detected beam ===>
+//        if (MWPC_ID != 2) {
+//            if (hit->GetX() < -1 || hit->GetX() > 2) continue;
+//            if (hit->GetY() < -10 || hit->GetY() > -6) continue;
+//        }
+//        // <===
         if (hit->GetMwpcId() != MWPC_ID) continue;
         Float_t zGlob = hit->GetZ();
         Float_t zLoc = zGlob - mwpcPos.Z();
@@ -526,13 +526,13 @@ BmnStatus MwpcTrackMatchingByAllHits(TClonesArray* hits, TClonesArray* outTracks
 
     for (Int_t iHit = 0; iHit < hits->GetEntriesFast(); ++iHit) {
         BmnMwpcHit* hit = (BmnMwpcHit*) hits->At(iHit);
-        if (hit->GetMwpcId() == 2) continue;
-        if (hit->GetX() < -10 || hit->GetX() > 10) continue;
-        if (hit->GetY() < -10 || hit->GetY() > 10) continue;
-        hitsForRefit.push_back((FairHit*)hit);
+//        if (hit->GetMwpcId() == 2) continue;
+//        if (hit->GetX() < -10 || hit->GetX() > 10) continue;
+//        if (hit->GetY() < -10 || hit->GetY() > 10) continue;
+        hitsForRefit.push_back((FairHit*) hit);
         resultTrackHits.push_back(hit);
     }
-    
+
     Bool_t ch0 = kFALSE;
     Bool_t ch1 = kFALSE;
     for (Int_t iHit = 0; iHit < hitsForRefit.size(); ++iHit) {
@@ -541,8 +541,8 @@ BmnStatus MwpcTrackMatchingByAllHits(TClonesArray* hits, TClonesArray* outTracks
         if (hit->GetMwpcId() == 1) ch1 = kTRUE;
     }
     if (!(ch0 && ch1)) return kBMNERROR;
-    
-    if (hitsForRefit.size() < 3 || hitsForRefit.size() > 6) return kBMNERROR;
+
+    //if (hitsForRefit.size() < 3 || hitsForRefit.size() > 6) return kBMNERROR;
     Float_t chi2 = LineFit3D(hitsForRefit, vertex, direction);
     if (Abs(chi2) > 100) return kBMNERROR;
     AddHits(resultTrackHits, matchedTrack);

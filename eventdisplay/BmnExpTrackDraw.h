@@ -26,7 +26,7 @@ class BmnExpTrackDraw : public FairTask
     BmnExpTrackDraw();
 
     // constructor: @name - name of task, @iVerbose - verbosity level
-    BmnExpTrackDraw(const char* name, TString hitsName, Int_t iVerbose = 1);
+    BmnExpTrackDraw(const char* name, TString hitsBranchName, Int_t iVerbose = 1);
 
     // destructor
     virtual ~BmnExpTrackDraw();
@@ -61,7 +61,7 @@ class BmnExpTrackDraw : public FairTask
     Double_t MinEnergyLimit;
     Double_t MaxEnergyLimit;
     Double_t PEnergy;
-    TString fHitsName;
+    TString fHitsBranchName;
     
 
   private:

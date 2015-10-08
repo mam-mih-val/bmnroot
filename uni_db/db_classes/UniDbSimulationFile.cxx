@@ -13,7 +13,7 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbSimulationFile::UniDbSimulationFile(UniDbConnection* connUniDb, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, double* file_size_kb)
+UniDbSimulationFile::UniDbSimulationFile(UniDbConnection* connUniDb, int file_id, TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, double* file_size)
 {
 	connectionUniDb = connUniDb;
 
@@ -26,7 +26,7 @@ UniDbSimulationFile::UniDbSimulationFile(UniDbConnection* connUniDb, int file_id
 	str_centrality = centrality;
 	i_event_count = event_count;
 	str_file_desc = file_desc;
-	d_file_size_kb = file_size_kb;
+	d_file_size = file_size;
 }
 
 // -----   Destructor   -------------------------------------------------
@@ -42,12 +42,12 @@ UniDbSimulationFile::~UniDbSimulationFile()
 		delete i_event_count;
 	if (str_file_desc)
 		delete str_file_desc;
-	if (d_file_size_kb)
-		delete d_file_size_kb;
+	if (d_file_size)
+		delete d_file_size;
 }
 
 // -----   Creating new record in class table ---------------------------
-UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, double* file_size_kb)
+UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, double* file_size)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -55,7 +55,7 @@ UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"insert into simulation_file(file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size_kb) "
+		"insert into simulation_file(file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size) "
 		"values ($1, $2, $3, $4, $5, $6, $7, $8, $9)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -80,10 +80,10 @@ UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path
 		stmt->SetNull(7);
 	else
 		stmt->SetString(7, *file_desc);
-	if (file_size_kb == NULL)
+	if (file_size == NULL)
 		stmt->SetNull(8);
 	else
-		stmt->SetDouble(8, *file_size_kb);
+		stmt->SetDouble(8, *file_size);
 
 	// inserting new record to DB
 	if (!stmt->Process())
@@ -152,12 +152,12 @@ UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path
 	if (file_desc == NULL) tmp_file_desc = NULL;
 	else
 		tmp_file_desc = new TString(*file_desc);
-	double* tmp_file_size_kb;
-	if (file_size_kb == NULL) tmp_file_size_kb = NULL;
+	double* tmp_file_size;
+	if (file_size == NULL) tmp_file_size = NULL;
 	else
-		tmp_file_size_kb = new double(*file_size_kb);
+		tmp_file_size = new double(*file_size);
 
-	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size_kb);
+	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size);
 }
 
 // -----   Get table record from database ---------------------------
@@ -169,7 +169,7 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select file_id, file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size_kb "
+		"select file_id, file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size "
 		"from simulation_file "
 		"where file_id = %d", file_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -223,14 +223,14 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 	if (stmt->IsNull(8)) tmp_file_desc = NULL;
 	else
 		tmp_file_desc = new TString(stmt->GetString(8));
-	double* tmp_file_size_kb;
-	if (stmt->IsNull(9)) tmp_file_size_kb = NULL;
+	double* tmp_file_size;
+	if (stmt->IsNull(9)) tmp_file_size = NULL;
 	else
-		tmp_file_size_kb = new double(stmt->GetDouble(9));
+		tmp_file_size = new double(stmt->GetDouble(9));
 
 	delete stmt;
 
-	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size_kb);
+	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size);
 }
 
 // -----   Get table record from database for unique key--------------
@@ -242,7 +242,7 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select file_id, file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size_kb "
+		"select file_id, file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size "
 		"from simulation_file "
 		"where lower(file_path) = lower('%s')", file_path.Data());
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -296,14 +296,14 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 	if (stmt->IsNull(8)) tmp_file_desc = NULL;
 	else
 		tmp_file_desc = new TString(stmt->GetString(8));
-	double* tmp_file_size_kb;
-	if (stmt->IsNull(9)) tmp_file_size_kb = NULL;
+	double* tmp_file_size;
+	if (stmt->IsNull(9)) tmp_file_size = NULL;
 	else
-		tmp_file_size_kb = new double(stmt->GetDouble(9));
+		tmp_file_size = new double(stmt->GetDouble(9));
 
 	delete stmt;
 
-	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size_kb);
+	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size);
 }
 
 // -----   Delete record from class table ---------------------------
@@ -377,7 +377,7 @@ int UniDbSimulationFile::PrintAll()
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select file_id, file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size_kb "
+		"select file_id, file_path, generator_name, beam_particle, target_particle, energy, centrality, event_count, file_desc, file_size "
 		"from simulation_file");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -424,7 +424,7 @@ int UniDbSimulationFile::PrintAll()
 		if (stmt->IsNull(8)) cout<<"NULL";
 		else
 			cout<<stmt->GetString(8);
-		cout<<". file_size_kb: ";
+		cout<<". file_size: ";
 		if (stmt->IsNull(9)) cout<<"NULL";
 		else
 			cout<<stmt->GetDouble(9);
@@ -747,7 +747,7 @@ int UniDbSimulationFile::SetFileDesc(TString* file_desc)
 	return 0;
 }
 
-int UniDbSimulationFile::SetFileSizeKb(double* file_size_kb)
+int UniDbSimulationFile::SetFileSize(double* file_size)
 {
 	if (!connectionUniDb)
 	{
@@ -759,15 +759,15 @@ int UniDbSimulationFile::SetFileSizeKb(double* file_size_kb)
 
 	TString sql = TString::Format(
 		"update simulation_file "
-		"set file_size_kb = $1 "
+		"set file_size = $1 "
 		"where file_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	if (file_size_kb == NULL)
+	if (file_size == NULL)
 		stmt->SetNull(0);
 	else
-		stmt->SetDouble(0, *file_size_kb);
+		stmt->SetDouble(0, *file_size);
 	stmt->SetInt(1, i_file_id);
 
 	// write new value to database
@@ -779,11 +779,11 @@ int UniDbSimulationFile::SetFileSizeKb(double* file_size_kb)
 		return -2;
 	}
 
-	if (d_file_size_kb)
-		delete d_file_size_kb;
-	if (file_size_kb == NULL) d_file_size_kb = NULL;
+	if (d_file_size)
+		delete d_file_size;
+	if (file_size == NULL) d_file_size = NULL;
 	else
-		d_file_size_kb = new double(*file_size_kb);
+		d_file_size = new double(*file_size);
 
 	delete stmt;
 	return 0;
@@ -793,7 +793,7 @@ int UniDbSimulationFile::SetFileSizeKb(double* file_size_kb)
 void UniDbSimulationFile::Print()
 {
 	cout<<"Table 'simulation_file'";
-	cout<<". file_id: "<<i_file_id<<". file_path: "<<str_file_path<<". generator_name: "<<str_generator_name<<". beam_particle: "<<str_beam_particle<<". target_particle: "<<(str_target_particle == NULL? "NULL": *str_target_particle)<<". energy: "<<(d_energy == NULL? "NULL": TString::Format("%f", *d_energy))<<". centrality: "<<str_centrality<<". event_count: "<<(i_event_count == NULL? "NULL": TString::Format("%d", *i_event_count))<<". file_desc: "<<(str_file_desc == NULL? "NULL": *str_file_desc)<<". file_size_kb: "<<(d_file_size_kb == NULL? "NULL": TString::Format("%f", *d_file_size_kb))<<endl;
+	cout<<". file_id: "<<i_file_id<<". file_path: "<<str_file_path<<". generator_name: "<<str_generator_name<<". beam_particle: "<<str_beam_particle<<". target_particle: "<<(str_target_particle == NULL? "NULL": *str_target_particle)<<". energy: "<<(d_energy == NULL? "NULL": TString::Format("%f", *d_energy))<<". centrality: "<<str_centrality<<". event_count: "<<(i_event_count == NULL? "NULL": TString::Format("%d", *i_event_count))<<". file_desc: "<<(str_file_desc == NULL? "NULL": *str_file_desc)<<". file_size: "<<(d_file_size == NULL? "NULL": TString::Format("%f", *d_file_size))<<endl;
 
 	return;
 }

@@ -16,12 +16,15 @@
 
 struct structColumnInfo
 {
-    // column name
+    // column name (e.g. run_number)
     TString strColumnName;
-    // the same as strColumnName, except pointers: *strColumnName
-    TString strColumnValue;
+    // <column name> for 'not null' (e.g. run_number),  *<column_name> for null (e.g. *run_number)
+    TString strColumnPointer;
+    // column name with spaces instead of '_' (e.g. run number)
+    TString strColumnNameSpace;
+    // C++/ROOT variable type corresponding column (e.g. int and int*)
     TString strVariableType;
-    // the same as strVariableType, except pointers: strVariableType without '*' at the end
+    // <variable type> for 'not null', <variable type> without '*' at the end for null (e.g. int and int)
     TString strVariableTypePointer;
     TString strStatementType;
     // symbol corresponding variable type as it presented in printf (or TString::Format)

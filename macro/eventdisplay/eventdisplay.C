@@ -3,7 +3,7 @@
 // exp_reco_file - file name with data source: experimental (raw or root) or reconstructed data
 // sim_geo_file - file with detector geometry and MC data (if simulation)
 // out_file - output file
-void eventdisplay(char* exp_reco_file = "$VMCWORKDIR/macro/run/bmndst_run648.root", char* geo_sim_file = "$VMCWORKDIR/macro/run/evetest.root", char* out_file = "tmp.root", bool is_online = false, int data_source = 2)
+void eventdisplay(char* exp_reco_file = "$VMCWORKDIR/macro/run/bmndst.root", char* geo_sim_file = "$VMCWORKDIR/macro/run/evetest.root", char* out_file = "tmp.root", bool is_online = false, int data_source = 0)
 {
   TStopwatch timer;
   timer.Start();
@@ -192,18 +192,12 @@ void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
         BmnHitDraw* DchHit = new BmnHitDraw("BmnDchHit", pointColor, pointMarker);
         fMan->AddTask(DchHit);
 
-        // draw tracks
+        // draw MWPC tracks
         BmnExpTrackDraw* MwpcTrack = new BmnExpTrackDraw("MwpcMatchedTracks", "BmnMwpcHit");
         fMan->AddTask(MwpcTrack);
         
+        // draw DCH tracks
         BmnExpTrackDraw* DchTrack = new BmnExpTrackDraw("DchTracks", "BmnDchHit");
         fMan->AddTask(DchTrack);
-        
-//        BmnExpTrackDraw* Mwpc0Track = new BmnExpTrackDraw("Mwpc0Seeds");
-//        fMan->AddTask(Mwpc0Track);
-//        BmnExpTrackDraw* Mwpc1Track = new BmnExpTrackDraw("Mwpc1Seeds");
-//        fMan->AddTask(Mwpc1Track);
-//        BmnExpTrackDraw* Mwpc2Track = new BmnExpTrackDraw("Mwpc2Seeds");
-//        fMan->AddTask(Mwpc2Track);
     }
 }

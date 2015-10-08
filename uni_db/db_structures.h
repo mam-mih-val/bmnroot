@@ -7,4 +7,4 @@ struct IIStructure
     int int_2;
 };//__attribute__((packed));
 
-#endif // SETTINGS_H
+#endif // DB_STRUCTURES_H

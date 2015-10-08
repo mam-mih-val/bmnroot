@@ -21,7 +21,7 @@ using namespace std;
 BmnExpTrackDraw::BmnExpTrackDraw()
   : FairTask("BmnExpTrackDraw", 0),
     fTrackList(NULL),
-    fHitsName(""),
+    fHitsBranchName(""),
     fHitList(NULL),
     fTrPr(NULL),
     fEventManager(NULL),
@@ -35,10 +35,10 @@ BmnExpTrackDraw::BmnExpTrackDraw()
 }
 
 // standard constructor
-BmnExpTrackDraw::BmnExpTrackDraw(const char* name, TString hitsName, Int_t iVerbose)
+BmnExpTrackDraw::BmnExpTrackDraw(const char* name, TString hitsBranchName, Int_t iVerbose)
   : FairTask(name, iVerbose),
     fTrackList(NULL),
-    fHitsName(hitsName),
+    fHitsBranchName(hitsBranchName),
     fHitList(NULL),
     fTrPr(NULL),
     fEventManager(NULL),
@@ -82,17 +82,16 @@ InitStatus BmnExpTrackDraw::Init()
     if (fVerbose > 2)
         cout<<"BmnExpTrackDraw::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
 
-    TString strBranch = fHitsName;
-    bmn_data_tree->SetBranchAddress(strBranch, &fHitList);
-    if (!bmn_data_tree->GetBranchStatus(strBranch))
+    bmn_data_tree->SetBranchAddress(fHitsBranchName, &fHitList);
+    if (!bmn_data_tree->GetBranchStatus(fHitsBranchName))
     {
-      cout<<"BmnExpTrackDraw::Init() branch '"<<strBranch<<"' not found in file ("<<fEventManager->source_file_name<<")! Task will be deactivated "<<endl;
+      cout<<"BmnExpTrackDraw::Init() branch '"<<fHitsBranchName<<"' not found in file ("<<fEventManager->source_file_name<<")! Task will be deactivated "<<endl;
       SetActive(kFALSE);
       return kERROR;
     }
 
     if (fVerbose > 2)
-        cout<<"BmnExpTrackDraw::Init() get list of hits "<<fHitList<<" from branch '"<<strBranch<<"'"<<endl;
+        cout<<"BmnExpTrackDraw::Init() get list of hits "<<fHitList<<" from branch '"<<fHitsBranchName<<"'"<<endl;
 
     //cout<<endl<<"fEntryCount "<<fEventManager->fEntryCount<<" Event Count "<<bmn_data_tree->GetEntries()<<endl;
     if (fEventManager->fEntryCount == 0)

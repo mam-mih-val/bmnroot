@@ -4,4 +4,4 @@
 const char* const BMN_DB_USERNAME = "db_reader";
 const char* const BMN_DB_PASSWORD = "reader_pass";
 
-#endif // SETTINGS_H
+#endif // DB_SETTINGS_H

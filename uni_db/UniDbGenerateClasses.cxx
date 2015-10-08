@@ -128,6 +128,14 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             if (strColumnNameWO[strColumnNameWO.Length()-1] == '_')
                 strColumnNameWO = strColumnNameWO.Remove(strColumnNameWO.Length()-1);
 
+            TString strColumnNameSpace = strColumnNameWO;
+            Ssiz_t char_under;
+            while ((char_under = strColumnNameSpace.First('_')) != kNPOS)
+            {
+                strColumnNameSpace = strColumnNameSpace.Replace(char_under, 1, ' ');
+            }
+            sColumnInfo->strColumnNameSpace = strColumnNameSpace;
+
             // define column properties depended on column type
             TSQLColumnInfo* pColumnInfo = pTableInfo->FindColumn(strColumnName);
             switch (pColumnInfo->GetSQLType())
@@ -217,7 +225,6 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             // form short variable name (e.g. ComponentName for 'component_name' column)
             TString strShortVar = strColumnNameWO;
             strShortVar = strShortVar.Replace(0, 1, toupper(strShortVar[0]));
-            Ssiz_t char_under;
             while ((char_under = strShortVar.First('_')) != kNPOS)
             {
                 strShortVar = strShortVar.Remove(char_under,1);
@@ -249,10 +256,10 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             if ((sColumnInfo->isNullable) || (sColumnInfo->isBinary))
             {
                 sColumnInfo->strVariableType += "*";
-                sColumnInfo->strColumnValue = "*" + strColumnNameWO;
+                sColumnInfo->strColumnPointer = "*" + strColumnNameWO;
             }
             else
-                sColumnInfo->strColumnValue = strColumnNameWO;
+                sColumnInfo->strColumnPointer = strColumnNameWO;
 
             vecColumns.push_back(sColumnInfo);
 
@@ -263,6 +270,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                 sColumnInfoBinary->strTempVariableName = "tmp_sz_" + strColumnNameWO;
                 sColumnInfoBinary->strVariableType = "Long_t";
                 sColumnInfoBinary->strColumnName = "size_" + strColumnNameWO;
+                sColumnInfoBinary->strColumnNameSpace = "size of " + strColumnNameSpace;
                 sColumnInfoBinary->strShortVariableName = sColumnInfo->strShortVariableName + "Size";
                 sColumnInfoBinary->strStatementType = "";
 
@@ -285,6 +293,12 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         }
         TString strShortTableName = strClassName;
         strClassName = class_prefix + strClassName;
+
+        TString strTableNameSpace = strTableName;
+        if (strTableNameSpace[strTableNameSpace.Length()-1] == '_')
+            strTableNameSpace = strTableNameSpace.Remove(strTableNameSpace.Length()-1);
+        while ((char_under = strTableNameSpace.First('_')) != kNPOS)
+            strTableNameSpace = strTableNameSpace.Replace(char_under, 1, ' ');
 
         // CREATING OR CHANGING HEADER FILE
         TString strFileName = "db_classes/" + strClassName + ".h"; // set header file name
@@ -352,12 +366,15 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         }
 
         hFile<<"\t/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */\n";
+
+        hFile<<"\t/// connection to the database\n";
         hFile<<"\tUniDbConnection* connectionUniDb;\n\n";
 
         // adding member variables corresding table columns
         for(vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
             structColumnInfo* cur_col= *it;
+            hFile<<(TString::Format("\t/// %s\n", cur_col->strColumnNameSpace.Data())).Data();
             hFile<<(TString::Format("\t%s %s;\n", cur_col->strVariableType.Data(), cur_col->strVariableName.Data())).Data();
         }
 
@@ -397,6 +414,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         hFile<<(TString::Format("\tvirtual ~%s(); // Destructor\n\n", strClassName.Data())).Data();
 
         hFile<<"\t// static class functions\n";
+        hFile<<(TString::Format("\t/// add new %s to the database\n", strTableNameSpace.Data())).Data();
         hFile<<(TString::Format("\tstatic %s* Create%s(", strClassName.Data(), strShortTableName.Data())).Data();
         int count = 0;
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
@@ -415,6 +433,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         hFile<<");\n";
 
         // // GET RECORD - DECLARATION
+        hFile<<(TString::Format("\t/// get %s from the database\n", strTableNameSpace.Data())).Data();
         hFile<<(TString::Format("\tstatic %s* Get%s(", strClassName.Data(), strShortTableName.Data())).Data();
         count = 0;
         bool is_flag = false;
@@ -443,11 +462,13 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                 if (!cur_col->isUnique)
                     continue;
 
+                hFile<<(TString::Format("\t/// get %s from the database\n", strTableNameSpace.Data())).Data();
                 hFile<<(TString::Format("\tstatic %s* Get%s(%s %s);\n", strClassName.Data(), strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
             }
         }
 
         // DELETE RECORD - DECLARATION
+        hFile<<(TString::Format("\t/// delete %s from the database\n", strTableNameSpace.Data())).Data();
         hFile<<(TString::Format("\tstatic int Delete%s(", strShortTableName.Data())).Data();
         count = 0;
         is_flag = false;
@@ -476,11 +497,13 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                 if (!cur_col->isUnique)
                     continue;
 
+                hFile<<(TString::Format("\t/// delete %s from the database\n", strTableNameSpace.Data())).Data();
                 hFile<<(TString::Format("\tstatic int Delete%s(%s %s);\n", strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
             }
         }
 
         // PRINT ALL ROWS -DECLARATION
+        hFile<<(TString::Format("\t/// print all %ss\n", strTableNameSpace.Data())).Data();
         hFile<<"\tstatic int PrintAll();\n";
 
         // GETTERS FUNCTIONS - IMPLEMENTATIONS
@@ -488,6 +511,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
             structColumnInfo* cur_col= *it;
+            hFile<<(TString::Format("\t/// get %s of the current %s\n", cur_col->strColumnNameSpace.Data(), strTableNameSpace.Data())).Data();
             hFile<<(TString::Format("\t%s Get%s() {", cur_col->strVariableType.Data(), cur_col->strShortVariableName.Data())).Data();
 
             if (cur_col->isNullable)
@@ -524,9 +548,13 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         {
             structColumnInfo* cur_col= *it;
             if (!cur_col->isBinary)
+            {
+                hFile<<(TString::Format("\t/// set %s of the current %s\n", cur_col->strColumnNameSpace.Data(), strTableNameSpace.Data())).Data();
                 hFile<<(TString::Format("\tint Set%s(%s %s);\n", cur_col->strShortVariableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
+            }
             else
             {
+                hFile<<(TString::Format("\t/// set %s of the current %s\n", cur_col->strColumnNameSpace.Data(), strTableNameSpace.Data())).Data();
                 hFile<<(TString::Format("\tint Set%s(%s %s, ", cur_col->strShortVariableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
                 ++it;
                 cur_col= *it;
@@ -535,6 +563,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         }
 
         // PRINT VALUES -DECLARATION
+        hFile<<(TString::Format("\t/// print information about current %s\n", strTableNameSpace.Data())).Data();
         hFile<<"\tvoid Print();\n";
         hFile<<"\t/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */\n";
 
@@ -734,7 +763,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                 cxxFile<<(TString::Format("\tif (%s == NULL)\n\t\tstmt->SetNull(%d);\n\telse\n\t", cur_col->strColumnName.Data(), count)).Data();
 
             if (!cur_col->isBinary)
-                cxxFile<<(TString::Format("\tstmt->Set%s(%d, %s);\n", cur_col->strStatementType.Data(), count, cur_col->strColumnValue.Data())).Data();
+                cxxFile<<(TString::Format("\tstmt->Set%s(%d, %s);\n", cur_col->strStatementType.Data(), count, cur_col->strColumnPointer.Data())).Data();
             else
             {
                 cxxFile<<(TString::Format("\tstmt->Set%s(%d, %s, ", cur_col->strStatementType.Data(), count, cur_col->strColumnName.Data())).Data();
@@ -1398,7 +1427,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                 cxxFile<<(TString::Format("\tif (%s == NULL)\n\t\tstmt->SetNull(0);\n\telse\n\t", cur_col->strColumnName.Data())).Data();
 
             if (!cur_col->isBinary)
-                cxxFile<<(TString::Format("\tstmt->Set%s(0, %s);\n", cur_col->strStatementType.Data(), cur_col->strColumnValue.Data())).Data();
+                cxxFile<<(TString::Format("\tstmt->Set%s(0, %s);\n", cur_col->strStatementType.Data(), cur_col->strColumnPointer.Data())).Data();
             else
             {
                 cxxFile<<(TString::Format("\tstmt->Set%s(0, %s, ", cur_col->strStatementType.Data(), cur_col->strColumnName.Data())).Data();

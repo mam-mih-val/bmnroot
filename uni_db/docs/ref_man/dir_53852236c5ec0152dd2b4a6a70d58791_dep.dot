@@ -1,0 +1,6 @@
+digraph "db_classes" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  dir_53852236c5ec0152dd2b4a6a70d58791 [shape=box, label="db_classes", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_53852236c5ec0152dd2b4a6a70d58791.html"];
+}

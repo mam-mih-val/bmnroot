@@ -19,9 +19,12 @@ class UniDbMapping
 {
  private:
 	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/// connection to the database
 	UniDbConnection* connectionUniDb;
 
+	/// map id
 	int i_map_id;
+	/// map type
 	int i_map_type;
 
 	//Constructor
@@ -33,18 +36,27 @@ class UniDbMapping
 	virtual ~UniDbMapping(); // Destructor
 
 	// static class functions
+	/// add new mapping to the database
 	static UniDbMapping* CreateMapping(int map_type);
+	/// get mapping from the database
 	static UniDbMapping* GetMapping(int map_id);
+	/// delete mapping from the database
 	static int DeleteMapping(int map_id);
+	/// print all mappings
 	static int PrintAll();
 
 	// Getters
+	/// get map id of the current mapping
 	int GetMapId() {return i_map_id;}
+	/// get map type of the current mapping
 	int GetMapType() {return i_map_type;}
 
 	// Setters
+	/// set map id of the current mapping
 	int SetMapId(int map_id);
+	/// set map type of the current mapping
 	int SetMapType(int map_type);
+	/// print information about current mapping
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 

@@ -44,11 +44,11 @@ UniDbSession* UniDbSession::CreateSession(int session_number, TDatime start_date
 		"values ($1, $2, $3)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-    stmt->NextIteration();
+	stmt->NextIteration();
 	stmt->SetInt(0, session_number);
 	stmt->SetDatime(1, start_datetime);
-    if (end_datetime == NULL)
-        stmt->SetNull(2);
+	if (end_datetime == NULL)
+		stmt->SetNull(2);
 	else
 		stmt->SetDatime(2, *end_datetime);
 

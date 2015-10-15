@@ -13,7 +13,7 @@
 
 #include "FairTask.h"
 #include "BmnTrackFinder.h"
-#include "BmnTrackFitter.h"
+//#include "BmnTrackFitter.h"
 #include "BmnTrackPropagator.h"
 #include "BmnHitToTrackMerger.h"
 #include "BmnGlobalTrackingQA.h"
@@ -23,10 +23,7 @@
 #include "CbmStsPoint.h"
 #include "CbmTofPoint.h"
 #include "BmnHit.h"
-#include "CbmStripHit.h"
-#include "CbmStsTrack.h"
 #include "BmnGemTrack.h"
-#include "CbmTofTrack.h"
 #include "FairRootManager.h"
 #include "FairRunAna.h"
 #include "FairRuntimeDb.h"
@@ -76,10 +73,6 @@ public:
 
     void SetRun1(Bool_t run) {
         isRUN1 = run;
-    }
-
-    void SetMakeQA(const Bool_t makeQA) {
-        fMakeQA = makeQA;
     }
 
     void SetDetConf(Bool_t gem, Bool_t tof1, Bool_t dch1, Bool_t dch2, Bool_t tof2) {
@@ -134,7 +127,7 @@ private:
     // Tools
     BmnTrackFinder* fFinder; // track finder
     BmnHitToTrackMerger* fMerger; // hit-to-track merger
-    BmnTrackFitter* fFitter; // track fitter
+//    BmnTrackFitter* fFitter; // track fitter
     // track propagator
     // Used to propagate STS track to the last STS station!!!
     // Since this cannot be done in parallel mode!!!
@@ -154,20 +147,11 @@ private:
 
     Int_t fEventNo; // event counter
 
-    BmnGlobalTrackingQA* fGlobHisto; // pointer to object needed only for QA creating
-    BmnHitMatchingQA* fTof1Histo; // pointer to object needed only for QA creating
-    BmnHitMatchingQA* fTof2Histo; // pointer to object needed only for QA creating
-    BmnHitMatchingQA* fDch1Histo; // pointer to object needed only for QA creating
-    BmnHitMatchingQA* fDch2Histo; // pointer to object needed only for QA creating
-    Bool_t fIsHistogramsInitialized; // is QA histograms initialized or not
-    Bool_t fMakeQA; // create or not in output tree branch with QA histograms
-
     Bool_t isRUN1; // temporary flag for switching between full GEM-geometry and prototype
 
     Int_t fPDG; // PDG hypothesis
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
 
-//    BmnStatus NearestHitMergeGEM(BmnGlobalTrack* tr);
     BmnStatus NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num);
     BmnStatus NearestHitMergeDCH(BmnGlobalTrack* tr, Int_t num);
     
@@ -175,13 +159,10 @@ private:
     BmnStatus EfficiencyCalculation();
     
     BmnStatus Run1GlobalTrackFinder();
-//    BmnStatus FillHoughHistogram(TH2F* hough, TGraph* orig, TH2F* cm, TGraph* seeds, TClonesArray* arr);
     BmnStatus FillHoughHistogram(TH1F* h, TGraph* orig, TH2F* cm, TGraph* seeds, TClonesArray* arr);
 
     void IdChecker(Int_t refId, Int_t hitId, TVector3 pos, BmnHitMatchingQA* hist);
     void FillIndexMap(map<Int_t, Int_t> &indexes, Int_t id);
-    void FillGlobHistoQA(BmnGlobalTrack* tr, Int_t node, TVector3 pos); //filling histograms for global tracking QA
-    void FillMatchHistoQA(BmnGlobalTrack* tr, Int_t nodeId, TVector3 pos, BmnHitMatchingQA* hist); //filling histograms for hits matching QA
 
     BmnGlobalTracking(const BmnGlobalTracking&);
     //    BmnGlobalTracking& operator=(const BmnGlobalTracking&);

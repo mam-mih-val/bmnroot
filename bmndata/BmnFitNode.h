@@ -9,6 +9,7 @@
 #define BMNFITNODE_H_
 
 #include "FairTrackParam.h"
+#include "TMatrixD.h"
 #include <vector>
 using namespace std;
 
@@ -31,6 +32,7 @@ public:
       fSmoothedParam(),
       fChiSqFiltered(0.),
       fChiSqSmoothed(0.) {
+          fF_matr.ResizeTo(5, 5);
    }
 
    /**
@@ -40,6 +42,7 @@ public:
 
    /* Getters */
    const vector<Double_t>& GetF() const { return fF; }
+   const TMatrixD GetF_matr() const { return fF_matr; }
    const FairTrackParam* GetPredictedParam() const { return &fPredictedParam; }
    const FairTrackParam* GetUpdatedParam() const { return &fUpdatedParam; }
    const FairTrackParam* GetSmoothedParam() const { return &fSmoothedParam; }
@@ -48,6 +51,7 @@ public:
 
    /* Setters */
    void SetF(const vector<Double_t>& F) { fF.assign(F.begin(), F.end()); }
+   void SetF_matr(const TMatrixD& F) { fF_matr = F; }
    void SetPredictedParam(const FairTrackParam* par) { fPredictedParam = *par;}
    void SetUpdatedParam(const FairTrackParam* par) { fUpdatedParam = *par;}
    void SetSmoothedParam(const FairTrackParam* par) { fSmoothedParam = *par;}
@@ -56,6 +60,8 @@ public:
 
 private:
    vector<Double_t> fF; // Transport matrix.
+   
+   TMatrixD fF_matr; // Transport matrix.
 
    FairTrackParam fPredictedParam; // Predicted track parameters.
    FairTrackParam fUpdatedParam; // Updated with KF track parameters.

@@ -63,156 +63,158 @@ BmnStatus BmnTrackExtrapolator::RK4TrackExtrapolate(FairTrackParam* par, Float_t
 }
 
 void BmnTrackExtrapolator::RK4Order(const vector<Double_t>& xIn, Float_t zIn, vector<Double_t>& xOut, Float_t zOut, vector<Double_t>& derivs) const {
-       const Float_t fC = 0.000299792458; //?????
-    
-       Float_t coef[4] = {0.0, 0.5, 0.5, 1.0};
-    
-       Float_t Ax[4], Ay[4];
-       Float_t dAx_dtx[4], dAy_dtx[4], dAx_dty[4], dAy_dty[4];
-       Float_t k[4][4];
-    
-       Float_t h = zOut - zIn;
-       Float_t hC   = h * fC;
-       Float_t hCqp = h * fC * xIn[4];
-       Float_t x0[4];
-    
-       Float_t x[4] = {xIn[0], xIn[1], xIn[2], xIn[3]};
+    const Float_t fC = 0.000299792458;
 
-       for (UInt_t iStep = 0; iStep < 4; iStep++) { // 1
-          if (iStep > 0) {
-             for(UInt_t i = 0; i < 4; i++) {
+    Float_t coef[4] = {0.0, 0.5, 0.5, 1.0};
+
+    Float_t Ax[4], Ay[4];
+    Float_t dAx_dtx[4], dAy_dtx[4], dAx_dty[4], dAy_dty[4];
+    Float_t k[4][4];
+
+    Float_t h = zOut - zIn;
+    Float_t hC = h * fC;
+    Float_t hCqp = h * fC * xIn[4];
+    Float_t x0[4];
+
+    Float_t x[4] = {xIn[0], xIn[1], xIn[2], xIn[3]};
+
+    for (UInt_t iStep = 0; iStep < 4; iStep++) { // 1
+        if (iStep > 0) {
+            for (UInt_t i = 0; i < 4; i++) {
                 x[i] = xIn[i] + coef[iStep] * k[i][iStep - 1];
-             }
-          }
-    
-          Float_t Bx = fField->GetBx(x[0], x[1], zIn + coef[iStep] * h);
-          Float_t By = fField->GetBy(x[0], x[1], zIn + coef[iStep] * h);
-          Float_t Bz = fField->GetBz(x[0], x[1], zIn + coef[iStep] * h);
-          
-          Float_t tx = x[2];
-          Float_t ty = x[3];
-          Float_t txtx = tx * tx;
-          Float_t tyty = ty * ty;
-          Float_t txty = tx * ty;
-          Float_t txtxtyty1= 1.0 + txtx + tyty;
-          Float_t t1 = Sqrt(txtxtyty1);
-          Float_t t2 = 1.0 / txtxtyty1;
-    
-          Ax[iStep] = ( txty * Bx + ty * Bz - ( 1.0 + txtx ) * By ) * t1;
-          Ay[iStep] = (-txty * By - tx * Bz + ( 1.0 + tyty ) * Bx ) * t1;
-    
-          dAx_dtx[iStep] = Ax[iStep] * tx * t2 + ( ty * Bx - 2.0 * tx * By ) * t1;
-          dAx_dty[iStep] = Ax[iStep] * ty * t2 + ( tx * Bx + Bz ) * t1;
-          dAy_dtx[iStep] = Ay[iStep] * tx * t2 + (-ty * By - Bz ) * t1;
-          dAy_dty[iStep] = Ay[iStep] * ty * t2 + (-tx * By + 2.0 * ty * Bx ) * t1;
-    
-          k[0][iStep] = tx * h;
-          k[1][iStep] = ty * h;
-          k[2][iStep] = Ax[iStep] * hCqp;
-          k[3][iStep] = Ay[iStep] * hCqp;
-    
-       } // 1
-    
-       for (UInt_t i = 0; i < 4; i++) { xOut[i] = CalcOut(xIn[i], k[i]); }
-       xOut[4] = xIn[4];
-    
-       // Calculation of the derivatives
-    
-       // derivatives dx/dx and dx/dy
-       // dx/dx
-       derivs[0] = 1.;
-       derivs[5] = 0.;
-       derivs[10] = 0.;
-       derivs[15] = 0.;
-       derivs[20] = 0.;
-       // dx/dy
-       derivs[1] = 0.;
-       derivs[6] = 1.;
-       derivs[11] = 0.;
-       derivs[16] = 0.;
-       derivs[21] = 0.;
-       // end of derivatives dx/dx and dx/dy
-    
-       // Derivatives dx/tx
-       x[0] = x0[0] = 0.0;
-       x[1] = x0[1] = 0.0;
-       x[2] = x0[2] = 1.0;
-       x[3] = x0[3] = 0.0;
-       for (UInt_t iStep = 0; iStep < 4; iStep++) { // 2
-          if (iStep > 0) {
-             for (UInt_t i = 0; i < 4; i++) {
+            }
+        }
+
+        Float_t Bx = fField->GetBx(x[0], x[1], zIn + coef[iStep] * h);
+        Float_t By = fField->GetBy(x[0], x[1], zIn + coef[iStep] * h);
+        Float_t Bz = fField->GetBz(x[0], x[1], zIn + coef[iStep] * h);
+
+        Float_t tx = x[2];
+        Float_t ty = x[3];
+        Float_t txtx = tx * tx;
+        Float_t tyty = ty * ty;
+        Float_t txty = tx * ty;
+        Float_t txtxtyty1 = 1.0 + txtx + tyty;
+        Float_t t1 = Sqrt(txtxtyty1);
+        Float_t t2 = 1.0 / txtxtyty1;
+
+        Ax[iStep] = (txty * Bx + ty * Bz - (1.0 + txtx) * By) * t1;
+        Ay[iStep] = (-txty * By - tx * Bz + (1.0 + tyty) * Bx) * t1;
+
+        dAx_dtx[iStep] = Ax[iStep] * tx * t2 + (ty * Bx - 2.0 * tx * By) * t1;
+        dAx_dty[iStep] = Ax[iStep] * ty * t2 + (tx * Bx + Bz) * t1;
+        dAy_dtx[iStep] = Ay[iStep] * tx * t2 + (-ty * By - Bz) * t1;
+        dAy_dty[iStep] = Ay[iStep] * ty * t2 + (-tx * By + 2.0 * ty * Bx) * t1;
+
+        k[0][iStep] = tx * h;
+        k[1][iStep] = ty * h;
+        k[2][iStep] = Ax[iStep] * hCqp;
+        k[3][iStep] = Ay[iStep] * hCqp;
+
+    } // 1
+
+    for (UInt_t i = 0; i < 4; i++) {
+        xOut[i] = CalcOut(xIn[i], k[i]);
+    }
+    xOut[4] = xIn[4];
+
+    // Calculation of the derivatives
+
+    // derivatives dx/dx and dx/dy
+    // dx/dx
+    derivs[0] = 1.;
+    derivs[5] = 0.;
+    derivs[10] = 0.;
+    derivs[15] = 0.;
+    derivs[20] = 0.;
+    // dx/dy
+    derivs[1] = 0.;
+    derivs[6] = 1.;
+    derivs[11] = 0.;
+    derivs[16] = 0.;
+    derivs[21] = 0.;
+    // end of derivatives dx/dx and dx/dy
+
+    // Derivatives dx/tx
+    x[0] = x0[0] = 0.0;
+    x[1] = x0[1] = 0.0;
+    x[2] = x0[2] = 1.0;
+    x[3] = x0[3] = 0.0;
+    for (UInt_t iStep = 0; iStep < 4; iStep++) { // 2
+        if (iStep > 0) {
+            for (UInt_t i = 0; i < 4; i++) {
                 if (i != 2) {
-                   x[i] = x0[i] + coef[iStep] * k[i][iStep - 1];
+                    x[i] = x0[i] + coef[iStep] * k[i][iStep - 1];
                 }
-             }
-          }
-    
-          k[0][iStep] = x[2] * h;
-          k[1][iStep] = x[3] * h;
-          //k[2][iStep] = (dAx_dtx[iStep] * x[2] + dAx_dty[iStep] * x[3]) * hCqp;
-          k[3][iStep] = (dAy_dtx[iStep] * x[2] + dAy_dty[iStep] * x[3]) * hCqp;
-       } // 2
-    
-       derivs[2] = CalcOut(x0[0], k[0]);
-       derivs[7] = CalcOut(x0[1], k[1]);
-       derivs[12] = 1.0;
-       derivs[17] = CalcOut(x0[3], k[3]);
-       derivs[22] = 0.0;
-       // end of derivatives dx/dtx
-    
-       // Derivatives    dx/ty
-       x[0] = x0[0] = 0.0;
-       x[1] = x0[1] = 0.0;
-       x[2] = x0[2] = 0.0;
-       x[3] = x0[3] = 1.0;
-       for (UInt_t iStep = 0; iStep < 4; iStep++) { // 4
-          if (iStep > 0) {
-             for(UInt_t i = 0; i < 4; i++) {
-                if(i!=3) {
-                   x[i] = x0[i] + coef[iStep] * k[i][iStep - 1];
+            }
+        }
+
+        k[0][iStep] = x[2] * h;
+        k[1][iStep] = x[3] * h;
+        //k[2][iStep] = (dAx_dtx[iStep] * x[2] + dAx_dty[iStep] * x[3]) * hCqp;
+        k[3][iStep] = (dAy_dtx[iStep] * x[2] + dAy_dty[iStep] * x[3]) * hCqp;
+    } // 2
+
+    derivs[2] = CalcOut(x0[0], k[0]);
+    derivs[7] = CalcOut(x0[1], k[1]);
+    derivs[12] = 1.0;
+    derivs[17] = CalcOut(x0[3], k[3]);
+    derivs[22] = 0.0;
+    // end of derivatives dx/dtx
+
+    // Derivatives    dx/ty
+    x[0] = x0[0] = 0.0;
+    x[1] = x0[1] = 0.0;
+    x[2] = x0[2] = 0.0;
+    x[3] = x0[3] = 1.0;
+    for (UInt_t iStep = 0; iStep < 4; iStep++) { // 4
+        if (iStep > 0) {
+            for (UInt_t i = 0; i < 4; i++) {
+                if (i != 3) {
+                    x[i] = x0[i] + coef[iStep] * k[i][iStep - 1];
                 }
-             }
-          }
-    
-          k[0][iStep] = x[2] * h;
-          k[1][iStep] = x[3] * h;
-          k[2][iStep] = (dAx_dtx[iStep] * x[2] + dAx_dty[iStep] * x[3]) * hCqp;
-          //k[3][iStep] = (dAy_dtx[iStep] * x[2] + dAy_dty[iStep] * x[3]) * hCqp;
-       }  // 4
-    
-       derivs[3] = CalcOut(x0[0], k[0]);
-       derivs[8] = CalcOut(x0[1], k[1]);
-       derivs[13] = CalcOut(x0[2], k[2]);
-       derivs[18] = 1.;
-       derivs[23] = 0.;
-       // end of derivatives dx/dty
-    
-       // Derivatives dx/dqp
-       x[0] = x0[0] = 0.0;
-       x[1] = x0[1] = 0.0;
-       x[2] = x0[2] = 0.0;
-       x[3] = x0[3] = 0.0;
-       for (UInt_t iStep = 0; iStep < 4; iStep++) { // 4
-          if (iStep > 0) {
-             for(UInt_t i = 0; i < 4; i++) {
+            }
+        }
+
+        k[0][iStep] = x[2] * h;
+        k[1][iStep] = x[3] * h;
+        k[2][iStep] = (dAx_dtx[iStep] * x[2] + dAx_dty[iStep] * x[3]) * hCqp;
+        //k[3][iStep] = (dAy_dtx[iStep] * x[2] + dAy_dty[iStep] * x[3]) * hCqp;
+    } // 4
+
+    derivs[3] = CalcOut(x0[0], k[0]);
+    derivs[8] = CalcOut(x0[1], k[1]);
+    derivs[13] = CalcOut(x0[2], k[2]);
+    derivs[18] = 1.;
+    derivs[23] = 0.;
+    // end of derivatives dx/dty
+
+    // Derivatives dx/dqp
+    x[0] = x0[0] = 0.0;
+    x[1] = x0[1] = 0.0;
+    x[2] = x0[2] = 0.0;
+    x[3] = x0[3] = 0.0;
+    for (UInt_t iStep = 0; iStep < 4; iStep++) { // 4
+        if (iStep > 0) {
+            for (UInt_t i = 0; i < 4; i++) {
                 x[i] = x0[i] + coef[iStep] * k[i][iStep - 1];
-             }
-          }
-    
-          k[0][iStep] = x[2] * h;
-          k[1][iStep] = x[3] * h;
-          k[2][iStep] = Ax[iStep] * hC +
-                        hCqp * (dAx_dtx[iStep] * x[2] + dAx_dty[iStep] * x[3]);
-          k[3][iStep] = Ay[iStep] * hC +
-                        hCqp * (dAy_dtx[iStep] * x[2] + dAy_dty[iStep] * x[3]);
-       }  // 4
-    
-       derivs[4] = CalcOut(x0[0], k[0]);
-       derivs[9] = CalcOut(x0[1], k[1]);
-       derivs[14] = CalcOut(x0[2], k[2]);
-       derivs[19] = CalcOut(x0[3], k[3]);
-       derivs[24] = 1.;
-     //end of derivatives dx/dqp
+            }
+        }
+
+        k[0][iStep] = x[2] * h;
+        k[1][iStep] = x[3] * h;
+        k[2][iStep] = Ax[iStep] * hC +
+                hCqp * (dAx_dtx[iStep] * x[2] + dAx_dty[iStep] * x[3]);
+        k[3][iStep] = Ay[iStep] * hC +
+                hCqp * (dAy_dtx[iStep] * x[2] + dAy_dty[iStep] * x[3]);
+    } // 4
+
+    derivs[4] = CalcOut(x0[0], k[0]);
+    derivs[9] = CalcOut(x0[1], k[1]);
+    derivs[14] = CalcOut(x0[2], k[2]);
+    derivs[19] = CalcOut(x0[3], k[3]);
+    derivs[24] = 1.;
+    //end of derivatives dx/dqp
 
     // end calculation of the derivatives
 }
@@ -265,7 +267,7 @@ void BmnTrackExtrapolator::TransportC(
 //+++++++++++++++++++++++++++++LINE EXTRAPOLATOR+++++++++++++++++++++++++++++++++++++//
 
 BmnStatus BmnTrackExtrapolator::LineTrackExtrapolate(FairTrackParam* par, Float_t zOut, vector<Double_t>* F) {
-    
+
     Float_t X[5] = {par->GetX(), par->GetY(), par->GetTx(), par->GetTy(), par->GetQp()};
 
     Float_t dz = zOut - par->GetZ();

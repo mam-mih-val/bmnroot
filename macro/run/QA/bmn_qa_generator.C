@@ -2,7 +2,7 @@
 // Macro for generating QA-reports
 // --------------------------------------------------------------------------
 
-void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TString outFile = "qa.root", Int_t nStartEvent = 0, Int_t nEvents = 100)
+void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TString outFile = "qa.root", Int_t nStartEvent = 0, Int_t nEvents = 10000000)
 {
 
   // Parameter file
@@ -22,6 +22,7 @@ void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TStr
   FairRunAna *fRun= new FairRunAna();
   fRun->SetInputFile(inFile);
   fRun->AddFriend("$VMCWORKDIR/macro/run/evetest.root");
+//  fRun->AddFriend("$VMCWORKDIR/macro/run/evetest100urqmd.root");
   fRun->SetOutputFile(outFile);
   fRun->SetGeomFile("$VMCWORKDIR/macro/run/geofile_full.root");
   fRun->SetWriteRunInfoFile(false);

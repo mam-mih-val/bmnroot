@@ -8,7 +8,7 @@
 #pragma link C++ class BmnDetectorSetup+;
 #pragma link C++ class BmnGlobalTrackingQA+;
 #pragma link C++ class BmnTrackFinder+;
-#pragma link C++ class BmnTrackFitter+;
+//#pragma link C++ class BmnTrackFitter+;
 #pragma link C++ class BmnTrackPropagator+;
 #pragma link C++ class BmnTrackExtrapolator+;
 #pragma link C++ class BmnHitToTrackMerger+;

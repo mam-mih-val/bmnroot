@@ -5,10 +5,10 @@
 // nEvents - number of events to transport, default: 1
 // outFile - output file with MC data, default: evetest.root
 // flag_store_FairRadLenPoint
-void run_sim_bmn(TString inFile = "auau.04gev.0_3fm.10k.f14.gz", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
+void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
-#define BOX
+#define URQMD
 
     TStopwatch timer;
     timer.Start();

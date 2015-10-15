@@ -35,17 +35,20 @@ public:
     BmnStatus DoSeeding();
     TVector3 CircleFit(BmnGemTrack* track);
     TVector3 LineFit(BmnGemTrack* track);
+    TVector3 CircleBy3Hit(BmnGemTrack* track);
     
-    BmnStatus DoHistoTracking();
-    BmnStatus FindSeedInYSlice(Int_t yAddr, Int_t yStep);
-    Float_t GetOrdAfterRotate(Float_t angle, Float_t xOld, Float_t yOld); //rotate coordinate system and return new value of ordinate
+    Bool_t IsParCorrect(const FairTrackParam* par);
+    
     Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
     
     void FillAddr();
-    void FillAddrWithLorentz();
+    void FillAddrWithLorentz(Float_t sigma_x);
+	
+    void FillHitsForSeedingArray();
 
-    void SetMakeQA(Bool_t qa) {
-        fMakeQA = qa;
+    
+    void SetUseLorentz(Bool_t use) {
+        fUseLorentz = use;
     }
 
     //some useful functions
@@ -64,10 +67,7 @@ private:
     TString fSeedsBranchName;
 
     Bool_t fUseLorentz; //flag for using Lorentz filtration
-    Bool_t fMakeQA; // create or not in output tree branch with QA histograms
-    Bool_t isHistogramsInitialized; // is QA histograms initialized or not
-    BmnGemSeedFinderQA* fHisto; // pointer to object needed for QA creating
-
+    
     Int_t fNBins; // number of bins in histogram  
     Float_t fMin;
     Float_t fMax;

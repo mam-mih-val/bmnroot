@@ -13,11 +13,11 @@ ${BMNROOT_SOURCE_DIR}/bmndata
 ${BMNROOT_SOURCE_DIR}/bmnfield
 ${BMNROOT_SOURCE_DIR}/gem
 ${BMNROOT_SOURCE_DIR}/globaltracking
-${BMNROOT_SOURCE_DIR}/sts
-${BMNROOT_SOURCE_DIR}/sts/setup
+#${BMNROOT_SOURCE_DIR}/sts
+#${BMNROOT_SOURCE_DIR}/sts/setup
 
-${BMNROOT_SOURCE_DIR}/KF
-${BMNROOT_SOURCE_DIR}/KF/Interface
+#${BMNROOT_SOURCE_DIR}/KF
+#${BMNROOT_SOURCE_DIR}/KF/Interface
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -39,7 +39,7 @@ Set(SRCS
     BmnKalmanFilter.cxx
     BmnTrackExtrapolator.cxx
     BmnTrackPropagator.cxx
-    BmnTrackFitter.cxx
+    #BmnTrackFitter.cxx
     BmnMath.cxx
     BmnMatrixMath.cxx
     BmnTrackingGeometryConstructor.cxx
@@ -61,7 +61,7 @@ Set(HEADERS
     BmnKalmanFilter.h
     BmnTrackExtrapolator.h
     BmnTrackPropagator.h
-    BmnTrackFitter.h
+    #BmnTrackFitter.h
     BmnMath.h
     BmnMatrixMath.h
     BmnEnums.h

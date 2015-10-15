@@ -20,6 +20,7 @@ void bmnloadlibs()
   gSystem->Load("libPsd");
   gSystem->Load("libSts");
   gSystem->Load("libRecoil");
+  gSystem->Load("libBmnKalmanFilter_tmp");
   gSystem->Load("libGem");
   gSystem->Load("libGlobalTracking");
   gSystem->Load("libTOF1");

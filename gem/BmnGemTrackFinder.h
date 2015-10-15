@@ -19,6 +19,8 @@
 #include "BmnFitNode.h"
 #include "BmnGemHit.h"
 #include "BmnGemTrackFinderQA.h"
+#include "BmnKalmanFilter_tmp.h"
+#include "BmnTrackFitter.h"
 
 using namespace std;
 
@@ -29,8 +31,15 @@ public:
     BmnGemTrackFinder();
     virtual ~BmnGemTrackFinder();
 
-    BmnStatus Refit(BmnGemTrack*);
     BmnStatus NearestHitMerge(UInt_t station, BmnGemTrack* tr);
+    BmnStatus NearestHitMerge1(UInt_t station, BmnGemTrack* tr);
+    
+    BmnStatus FitSmooth(BmnGemTrack* track);
+    void Smooth(BmnFitNode* thisNode, const BmnFitNode* prevNode);
+    
+    Bool_t IsParCorrect(const FairTrackParam* par);
+    
+    Float_t ChiSq(const FairTrackParam* par, const BmnHit* hit);
 
     //some useful functions
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
@@ -38,6 +47,7 @@ public:
     BmnHit* GetHit(Int_t i);
 
     BmnStatus CheckSplitting();
+    BmnStatus ConnectNearestSeed(BmnGemTrack* seed);
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
@@ -64,11 +74,8 @@ private:
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
 
     FairField* fField;
+    BmnKalmanFilter_tmp* fKalman;
     Int_t fEventNo; // event counter
-
-    Bool_t fMakeQA; // create or not in output tree branch with QA histograms
-    Bool_t isHistogramsInitialized; // is QA histograms initialized or not
-    BmnGemTrackFinderQA* fHisto; // pointer to object needed for QA creating
 
     ClassDef(BmnGemTrackFinder, 1);
 };

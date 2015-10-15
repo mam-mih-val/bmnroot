@@ -35,7 +35,7 @@ BmnStatus BmnTrackPropagator::TGeoTrackPropagate(FairTrackParam* par, Float_t zO
 
     if (!IsParCorrect(par)) return kBMNERROR;
     Float_t zIn = par->GetZ();
-    Float_t dz = zOut - zIn; //???? 
+    Float_t dz = zOut - zIn;
 
     if (fabs(dz) < BmnDefaultSettings::MINIMUM_PROPAGATION_DISTANCE) {
         return kBMNSUCCESS;

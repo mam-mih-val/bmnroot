@@ -255,7 +255,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     } else {
 
         BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
-        gemSF->SetMakeQA(kFALSE);
+        gemSF->SetUseLorentz(kFALSE);
         fRun->AddTask(gemSF);
 
         BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
@@ -264,7 +264,6 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 
     BmnGlobalTracking* glFinder = new BmnGlobalTracking();
     glFinder->SetRun1(kRUN1);
-    glFinder->SetMakeQA(kFALSE);
     fRun->AddTask(glFinder);
 
     // <--- SM

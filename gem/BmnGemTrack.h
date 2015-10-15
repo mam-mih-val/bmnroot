@@ -48,6 +48,7 @@ class BmnGemTrack : public TObject
   Float_t GetChi2()               const { return fChi2; }
   Int_t GetNDF()                   const { return fNDF; }
   Float_t GetB()                  const { return fB; }
+  Bool_t IsUsed()                  const { return fUsed; }
   FairTrackParam* GetParamFirst() { return &fParamFirst; }
   FairTrackParam* GetParamLast()  { return &fParamLast ; }
   
@@ -64,6 +65,7 @@ class BmnGemTrack : public TObject
   void SetB(Double_t b)                      { fB          = b;    }
   void SetFitNodes(const vector<BmnFitNode>& nodes) {fFitNodes = nodes;}
   void SetRef(Int_t ref) {fRef = ref;}
+  void SetUsing(Bool_t use) {fUsed = use;}
   
 
 
@@ -94,7 +96,9 @@ class BmnGemTrack : public TObject
    ** is automatically sorted. Temporary only; not for storage.
    ** The Hit index arrays will be filled by the method SortHits.
    **/
-  std::map<Float_t, Int_t> fHitMap;        //!      
+  std::map<Float_t, Int_t> fHitMap;        //! 
+  
+  Bool_t fUsed; //needed to check seeds splitting
 
   ClassDef(BmnGemTrack,1);
 

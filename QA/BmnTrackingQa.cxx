@@ -52,10 +52,10 @@ fDet(),
 fMinNofPointsGem(4),
 fMinNofPointsTof(1),
 fMinNofPointsDch(1),
-fQuota(0.5),
+fQuota(0.7),
 fUseConsecutivePointsInGem(kTRUE),
 fPRangeMin(0.),
-fPRangeMax(10.),
+fPRangeMax(6.),
 fPRangeBins(100),
 fYRangeMin(0.),
 fYRangeMax(4.),
@@ -64,7 +64,7 @@ fEtaRangeMin(0.),
 fEtaRangeMax(5.),
 fEtaRangeBins(100),
 fPtRangeMin(0.),
-fPtRangeMax(2.),
+fPtRangeMax(1.),
 fPtRangeBins(100),
 fAngleRangeMin(0.),
 fAngleRangeMax(40.),
@@ -462,21 +462,21 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("momRes_1D_gem", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim_gem", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim_glob", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH2("Px_rec_Px_sim_gem", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
-    CreateH2("Py_rec_Py_sim_gem", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
-    CreateH2("Pz_rec_Pz_sim_gem", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * fPRangeBins, -8.0, 8.0, 4 * fPRangeBins, -8.0, 8.0);
-    CreateH2("Pt_rec_Pt_sim_gem", "P^{t}_{sim}, GeV/c", "P^{t}_{rec}, GeV/c", "", 4 * fPRangeBins, -8.0, 8.0, 4 * fPRangeBins, -8.0, 8.0);
-    CreateH2("Px_rec_Px_sim_glob", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
-    CreateH2("Py_rec_Py_sim_glob", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
-    CreateH2("Pz_rec_Pz_sim_glob", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * fPRangeBins, -8.0, 8.0, 4 * fPRangeBins, -8.0, 8.0);
-    CreateH2("Pt_rec_Pt_sim_glob", "P^{t}_{sim}, GeV/c", "P^{t}_{rec}, GeV/c", "", 4 * fPRangeBins, -8.0, 8.0, 4 * fPRangeBins, -8.0, 8.0);
+    CreateH2("Px_rec_Px_sim_gem", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax, 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax);
+    CreateH2("Py_rec_Py_sim_gem", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax, 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax);
+    CreateH2("Pz_rec_Pz_sim_gem", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * fPRangeBins, fPtRangeMin, 4, 4 * fPRangeBins, fPtRangeMin, 4);
+    CreateH2("Pt_rec_Pt_sim_gem", "P^{t}_{sim}, GeV/c", "P^{t}_{rec}, GeV/c", "", 4 * fPRangeBins, fPtRangeMin, 4, 4 * fPRangeBins, fPtRangeMin, 4);
+    CreateH2("Px_rec_Px_sim_glob", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax, 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax);
+    CreateH2("Py_rec_Py_sim_glob", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax, 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax);
+    CreateH2("Pz_rec_Pz_sim_glob", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * fPRangeBins, fPtRangeMin, 4, 4 * fPRangeBins, fPtRangeMin, 4);
+    CreateH2("Pt_rec_Pt_sim_glob", "P^{t}_{sim}, GeV/c", "P^{t}_{rec}, GeV/c", "", 4 * fPRangeBins, fPtRangeMin, 4, 4 * fPRangeBins, fPtRangeMin, 4);
     CreateH2("Eta_rec_Eta_sim_gem", "#eta_{sim}", "#eta_{rec}", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
     CreateH2("Eta_rec_Eta_sim_glob", "#eta_{sim}", "#eta_{rec}", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
 
-    CreateH2("Tx_rec_Tx_sim_gem", "T^{x}_{sim}", "T^{x}_{rec}", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
-    CreateH2("Ty_rec_Ty_sim_gem", "T^{y}_{sim}", "T^{y}_{rec}", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
-    CreateH2("Tx_rec_Tx_sim_glob", "T^{x}_{sim}", "T^{x}_{rec}", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
-    CreateH2("Ty_rec_Ty_sim_glob", "T^{y}_{sim}", "T^{y}_{rec}", "", 4 * fPRangeBins, -2.0, 2.0, 4 * fPRangeBins, -2.0, 2.0);
+    CreateH2("Tx_rec_Tx_sim_gem", "T^{x}_{sim}", "T^{x}_{rec}", "", 4 * fPRangeBins, -1.0, 1.0, 4 * fPRangeBins, -1.0, 1.0);
+    CreateH2("Ty_rec_Ty_sim_gem", "T^{y}_{sim}", "T^{y}_{rec}", "", 4 * fPRangeBins, -1.0, 1.0, 4 * fPRangeBins, -1.0, 1.0);
+    CreateH2("Tx_rec_Tx_sim_glob", "T^{x}_{sim}", "T^{x}_{rec}", "", 4 * fPRangeBins, -1.0, 1.0, 4 * fPRangeBins, -1.0, 1.0);
+    CreateH2("Ty_rec_Ty_sim_glob", "T^{y}_{sim}", "T^{y}_{rec}", "", 4 * fPRangeBins, -1.0, 1.0, 4 * fPRangeBins, -1.0, 1.0);
 
 
     CreateH1("wellGemDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
@@ -576,14 +576,14 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
         }
     }
-    Int_t momResStep = 10;
+    Int_t momResStep = 5;
     for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D_gem")->GetNbinsX(); iBin += momResStep) {
         TH1D* proj = fHM->H2("momRes_2D_gem")->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
         proj->Fit("gaus", "SQww", "", 0.0, 20.0);
         TF1 *fit = proj->GetFunction("gaus");
         Float_t mean = (fit->GetParameter(1) < 100.0) ? fit->GetParameter(1) : 0.0;
         fHM->H1("momRes_1D_gem")->SetBinContent(iBin, mean);
-        //        fHM->H1("momRes_1D_gem")->SetBinContent(iBin, proj->GetBinCenter(proj->GetMaximumBin()));
+//                fHM->H1("momRes_1D_gem")->SetBinContent(iBin, proj->GetBinCenter(proj->GetMaximumBin()));
     }
 
     //    for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {

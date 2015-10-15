@@ -9,13 +9,6 @@
 using namespace TMath;
 
 //some variables for efficiency calculation
-static Int_t allFoundCntr = 0;
-static Int_t wellFoundCntr = 0;
-static Int_t wrongFoundCntr = 0;
-static Int_t allHitCntr = 0;
-static Int_t goodTrackCntr = 0;
-static Int_t allTrackCntr = 0;
-static Int_t allMcTrackCntr = 0;
 static Float_t workTime = 0.0;
 //-----------------------------------------
 
@@ -38,28 +31,20 @@ fDch1McPoints(NULL),
 fDch2McPoints(NULL),
 fPDG(211),
 fChiSqCut(100.),
-fEventNo(0),
-fIsHistogramsInitialized(kFALSE),
-fMakeQA(kTRUE),
-fTof1Histo(NULL),
-fTof2Histo(NULL),
-fDch1Histo(NULL),
-fDch2Histo(NULL),
-fGlobHisto(NULL) {
+fEventNo(0) {
     fMerger = new BmnHitToTrackMerger();
     fFinder = new BmnTrackFinder();
     fPropagator = new BmnTrackPropagator();
     fUpdater = new BmnKalmanFilter();
-    fFitter = new BmnTrackFitter(fPropagator, fUpdater);
+//    fFitter = new BmnTrackFitter(fPropagator, fUpdater);
     isRUN1 = kFALSE;
 }
 
 BmnGlobalTracking::~BmnGlobalTracking() {
     delete fMerger;
-    delete fFitter;
+//    delete fFitter;
     delete fFinder;
     delete fPropagator;
-    delete fGlobHisto;
     delete fUpdater;
 }
 
@@ -216,20 +201,6 @@ InitStatus BmnGlobalTracking::Init() {
     }
     ioman->Register("MCTrack", "MC", fMcTracks, kTRUE);
 
-    if (!fIsHistogramsInitialized && fMakeQA) {
-        fTof1Histo = new BmnHitMatchingQA(TString("TOF1"));
-        fTof2Histo = new BmnHitMatchingQA(TString("TOF2"));
-        fDch1Histo = new BmnHitMatchingQA(TString("DCH1"));
-        fDch2Histo = new BmnHitMatchingQA(TString("DCH2"));
-        fGlobHisto = new BmnGlobalTrackingQA();
-        fGlobHisto->Initialize();
-        fTof1Histo->Initialize();
-        fTof2Histo->Initialize();
-        fDch1Histo->Initialize();
-        fDch2Histo->Initialize();
-        fIsHistogramsInitialized = kTRUE;
-    }
-
     cout << "BmnGlobalTracking::Init finished\n";
     return kSUCCESS;
 }
@@ -311,78 +282,6 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
 
     //    EfficiencyCalculation();
 
-    if (fMakeQA) {
-        for (Int_t i = 0; i < fGlobalTracks->GetEntriesFast(); ++i) {
-            BmnGlobalTrack* globalTrack = (BmnGlobalTrack*) fGlobalTracks->At(i);
-            if (globalTrack->GetFlag() == kBMNBAD) continue;
-            Int_t numHitsInTrack = 0;
-            Int_t nodeIdx = 0;
-
-
-            if (fDet.GetDet(kGEM)) {
-                BmnGemTrack* gemTr = (BmnGemTrack*) fGemTracks->At(globalTrack->GetGemTrackIndex());
-                numHitsInTrack += gemTr->GetNHits();
-                for (Int_t idx = 0; idx < gemTr->GetNHits(); ++idx) {
-                    BmnHit* hit = (BmnHit*) fGemHits->At(gemTr->GetHitIndex(idx));
-                    if (!hit) continue;
-                    FillGlobHistoQA(globalTrack, nodeIdx, TVector3(hit->GetX(), hit->GetY(), hit->GetZ()));
-                    nodeIdx++;
-                }
-            }
-            if (fDet.GetDet(kTOF1) && fTof1Hits) {
-                if (globalTrack->GetTof1HitIndex() != -1) {
-                    CbmHit* hit = (CbmHit*) fTof1Hits->At(globalTrack->GetTof1HitIndex());
-                    if (!hit) continue;
-                    FillGlobHistoQA(globalTrack, nodeIdx, TVector3(hit->GetX(), hit->GetY(), hit->GetZ()));
-                    FillMatchHistoQA(globalTrack, nodeIdx, TVector3(hit->GetX(), hit->GetY(), hit->GetZ()), fTof1Histo);
-                    numHitsInTrack++;
-                    nodeIdx++;
-                }
-            }
-
-            if (fDet.GetDet(kDCH1) && fDch1Hits) {
-                if (globalTrack->GetDch1HitIndex() != -1) {
-                    BmnHit* hit = (BmnHit*) fDch1Hits->At(globalTrack->GetDch1HitIndex());
-                    if (!hit) continue;
-                    FillGlobHistoQA(globalTrack, nodeIdx, TVector3(hit->GetX(), hit->GetY(), hit->GetZ()));
-                    FillMatchHistoQA(globalTrack, nodeIdx, TVector3(hit->GetX(), hit->GetY(), hit->GetZ()), fDch1Histo);
-                    numHitsInTrack++;
-                    nodeIdx++;
-                }
-            }
-
-            if (fDet.GetDet(kDCH2) && fDch2Hits) {
-                if (globalTrack->GetDch2HitIndex() != -1) {
-                    BmnHit* hit = (BmnHit*) fDch2Hits->At(globalTrack->GetDch2HitIndex());
-                    if (!hit) continue;
-                    FillGlobHistoQA(globalTrack, nodeIdx, TVector3(hit->GetX(), hit->GetY(), hit->GetZ()));
-                    FillMatchHistoQA(globalTrack, nodeIdx, TVector3(hit->GetX(), hit->GetY(), hit->GetZ()), fDch2Histo);
-                    numHitsInTrack++;
-                    nodeIdx++;
-                }
-            }
-
-            if (fDet.GetDet(kTOF) && fTof2Hits) {
-                if (globalTrack->GetTof2HitIndex() != -1) {
-                    CbmHit* hit = (CbmHit*) fTof2Hits->At(globalTrack->GetTof2HitIndex());
-                    if (!hit) continue;
-                    FillGlobHistoQA(globalTrack, nodeIdx, TVector3(hit->GetX(), hit->GetY(), hit->GetZ()));
-                    FillMatchHistoQA(globalTrack, nodeIdx, TVector3(hit->GetX(), hit->GetY(), hit->GetZ()), fTof2Histo);
-                    numHitsInTrack++;
-                    nodeIdx++;
-                }
-            }
-
-            fGlobHisto->_hNumOfHitsDistr->Fill(numHitsInTrack);
-            TVector3 mom;
-            globalTrack->GetParamLast()->Momentum(mom);
-            fGlobHisto->_hMomentumDistr->Fill(mom.Mag());
-            fGlobHisto->_hPx->Fill(mom.X());
-            fGlobHisto->_hPy->Fill(mom.Y());
-            fGlobHisto->_hPz->Fill(mom.Z());
-            fGlobHisto->_hPt->Fill(Sqrt(mom.X() * mom.X() + mom.Z() * mom.Z()));
-        }
-    }
     cout << "GLOBAL_TRACKING: Number of merged tracks: " << fGlobalTracks->GetEntriesFast() << endl;
 
     cout << "\n======================= Global tracking exec finished =====================\n" << endl;
@@ -692,222 +591,8 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
     return kBMNSUCCESS;
 }
 
-//BmnStatus BmnGlobalTracking::EfficiencyCalculation() {
-//
-//    for (Int_t i = 0; i < fGlobalTracks->GetEntriesFast(); ++i) {
-//        map<Int_t, Int_t> indexes; //pairs of trackId and number of hits corresponded this trackId
-//        BmnGlobalTrack* glTrack = (BmnGlobalTrack*) fGlobalTracks->At(i);
-//        BmnGemTrack* gemTrack = (BmnGemTrack*) fGemTracks->At(i);
-//        Int_t trId = gemTrack->GetRef(); //id of GEM track (id of 70% hits in GEM track)
-//
-//        for (Int_t j = 0; j < gemTrack->GetNHits(); ++j) { //loop over hits from the second to the last. Needed for comparing id of hits
-//            BmnHit* curHit = (BmnHit*) fGemHits->At(gemTrack->GetHitIndex(j));
-//            if (!curHit) continue;
-//            Int_t id = ((CbmStsPoint*) fGemMcPoints->At(curHit->GetRefIndex()))->GetTrackID();
-//            FillIndexMap(indexes, id);
-//            if (trId == id) {
-//                wellFoundCntr++;
-//            } else {
-//                wrongFoundCntr++;
-//            }
-//        }
-//        if (fDet.GetDet(kTOF1)) {
-//            if (glTrack->GetTof1HitIndex() != -1) {
-//                BmnHit* tofHit = (BmnHit*) fTof1Hits->At(glTrack->GetTof1HitIndex());
-//                if (!tofHit) continue;
-//                Int_t id = ((CbmTofPoint*) fTof1McPoints->At(tofHit->GetRefId()))->GetTrackID();
-//                FillIndexMap(indexes, id);
-//                IdChecker(trId, id, TVector3(tofHit->GetX(), tofHit->GetY(), tofHit->GetZ()), fTof1Histo);
-//                allFoundCntr++;
-//            }
-//        }
-//        if (fDet.GetDet(kDCH1)) {
-//            if (glTrack->GetDch1HitIndex() != -1) {
-//                BmnHit* dchHit = (BmnHit*) fDch1Hits->At(glTrack->GetDch1HitIndex());
-//                if (!dchHit) continue;
-//                Int_t id = ((FairMCPoint*) fDch1McPoints->At(dchHit->GetRefIndex()))->GetTrackID();
-//                FillIndexMap(indexes, id);
-//                IdChecker(trId, id, TVector3(dchHit->GetX(), dchHit->GetY(), dchHit->GetZ()), fDch1Histo);
-//                allFoundCntr++;
-//            }
-//        }
-//        if (fDet.GetDet(kDCH2)) {
-//            if (glTrack->GetDch2HitIndex() != -1) {
-//                BmnHit* dchHit = (BmnHit*) fDch2Hits->At(glTrack->GetDch2HitIndex());
-//                if (!dchHit) continue;
-//                Int_t id = ((FairMCPoint*) fDch2McPoints->At(dchHit->GetRefIndex()))->GetTrackID();
-//                FillIndexMap(indexes, id);
-//                IdChecker(trId, id, TVector3(dchHit->GetX(), dchHit->GetY(), dchHit->GetZ()), fDch2Histo);
-//                allFoundCntr++;
-//            }
-//        }
-//        if (fDet.GetDet(kTOF)) {
-//            if (glTrack->GetTof2HitIndex() != -1) {
-//                BmnHit* tofHit = (BmnHit*) fTof2Hits->At(glTrack->GetTof2HitIndex());
-//                if (!tofHit) continue;
-//                Int_t id = ((CbmTofPoint*) fTof2McPoints->At(tofHit->GetRefId()))->GetTrackID();
-//                FillIndexMap(indexes, id);
-//                IdChecker(trId, id, TVector3(tofHit->GetX(), tofHit->GetY(), tofHit->GetZ()), fTof2Histo);
-//                allFoundCntr++;
-//            }
-//        }
-//
-//        Int_t maxNumOfHits = -1;
-//        Int_t maxId = -1;
-//        for (map<Int_t, Int_t>::iterator it = indexes.begin(); it != indexes.end(); it++) {
-//            if ((*it).second > glTrack->GetNofHits() * thresh) goodTrackCntr++;
-//            if ((*it).second > maxNumOfHits) {
-//                maxNumOfHits = (*it).second;
-//                maxId = (*it).first;
-//            }
-//        }
-//
-//        glTrack->SetRefId(maxId);
-//        if (fMakeQA) {
-//            fGlobHisto->_hNumMcTrack->Fill(indexes.size());
-//        }
-//        allFoundCntr += gemTrack->GetNHits();
-//    }
-//
-//    for (Int_t i = 0; i < fMcTracks->GetEntriesFast(); ++i) {
-//        //Only primaries added now
-//        //FIXME! Use flag!
-//
-//        //if (((CbmMCTrack*) fMcTracks->At(i))->GetMotherId() != -1) continue;
-//        //if (((CbmMCTrack*) fMcTracks->At(i))->GetP() < 0.5) continue; 
-//        allMcTrackCntr++;
-//    }
-//
-//
-//    allTrackCntr += fGemTracks->GetEntriesFast();
-//    allHitCntr += fGemHits->GetEntriesFast();
-//    if (fDet.GetDet(kTOF1)) allHitCntr += fTof1Hits->GetEntriesFast();
-//    if (fDet.GetDet(kDCH1)) allHitCntr += fDch1Hits->GetEntriesFast();
-//    if (fDet.GetDet(kDCH2)) allHitCntr += fDch2Hits->GetEntriesFast();
-//    if (fDet.GetDet(kTOF)) allHitCntr += fTof2Hits->GetEntriesFast();
-//}
-
-void BmnGlobalTracking::FillIndexMap(map<Int_t, Int_t> &indexes, Int_t id) {
-    if (indexes.find(id) == indexes.end()) indexes.insert(pair<Int_t, Int_t > (id, 1));
-    else (indexes.find(id)->second)++;
-}
-
-void BmnGlobalTracking::IdChecker(Int_t refId, Int_t hitId, TVector3 pos, BmnHitMatchingQA* hist) {
-    if (refId == hitId) {
-        hist->_hX_well_matched_hits->Fill(pos.X());
-        hist->_hY_well_matched_hits->Fill(pos.Y());
-        hist->_hZ_well_matched_hits->Fill(pos.Z());
-        hist->_hXY_well_matched_hits->Fill(pos.X(), pos.Y());
-        hist->_hZX_well_matched_hits->Fill(pos.Z(), pos.X());
-        hist->_hZY_well_matched_hits->Fill(pos.Z(), pos.Y());
-        hist->_hZXY_well_matched_hits->Fill(pos.Y(), pos.X(), pos.Y());
-        wellFoundCntr++;
-    } else {
-        hist->_hX_wrong_matched_hits->Fill(pos.X());
-        hist->_hY_wrong_matched_hits->Fill(pos.Y());
-        hist->_hZ_wrong_matched_hits->Fill(pos.Z());
-        hist->_hXY_wrong_matched_hits->Fill(pos.X(), pos.Y());
-        hist->_hZX_wrong_matched_hits->Fill(pos.Z(), pos.X());
-        hist->_hZY_wrong_matched_hits->Fill(pos.Z(), pos.Y());
-        hist->_hZXY_wrong_matched_hits->Fill(pos.Y(), pos.X(), pos.Y());
-        wrongFoundCntr++;
-    }
-}
-
-void BmnGlobalTracking::FillGlobHistoQA(BmnGlobalTrack* tr, Int_t nodeId, TVector3 pos) {
-    const BmnFitNode* n = tr->GetFitNode(nodeId);
-    if (!n) return;
-    const FairTrackParam* par = n->GetUpdatedParam();
-    if (!par) return;
-    const Float_t trX = par->GetX();
-    const Float_t trY = par->GetY();
-    Float_t x = pos.X();
-    Float_t y = pos.Y();
-    Float_t z = pos.Z();
-    fGlobHisto->_hHitDist->Fill(Sqrt((trX - x) * (trX - x) + (trY - y) * (trY - y)));
-    fGlobHisto->_hHitXDist->Fill(trX - x);
-    fGlobHisto->_hHitYDist->Fill(trY - y);
-    fGlobHisto->_hX_global->Fill(x);
-    fGlobHisto->_hY_global->Fill(y);
-    fGlobHisto->_hZ_global->Fill(z);
-    fGlobHisto->_hXY_global->Fill(x, y);
-    fGlobHisto->_hZX_global->Fill(z, x);
-    fGlobHisto->_hZY_global->Fill(z, y);
-    fGlobHisto->_hZXY_global->Fill(z, x, y);
-}
-
-void BmnGlobalTracking::FillMatchHistoQA(BmnGlobalTrack* tr, Int_t nodeId, TVector3 pos, BmnHitMatchingQA* hist) {
-    const BmnFitNode* n = tr->GetFitNode(nodeId);
-    if (!n) return;
-    const FairTrackParam* par = n->GetUpdatedParam();
-    if (!par) return;
-    const Float_t trX = par->GetX();
-    const Float_t trY = par->GetY();
-    Float_t x = pos.X();
-    Float_t y = pos.Y();
-    Float_t z = pos.Z();
-    hist->_hX_matched_hits->Fill(x);
-    hist->_hY_matched_hits->Fill(y);
-    hist->_hZ_matched_hits->Fill(z);
-    //    hist->_hX_not_matched_hits->Fill();
-    //    hist->_hY_not_matched_hits->Fill();
-    //    hist->_hZ_not_matched_hits->Fill();
-
-    hist->_hXY_matched_hits->Fill(x, y);
-    hist->_hZX_matched_hits->Fill(z, x);
-    hist->_hZY_matched_hits->Fill(z, y);
-    //    hist->_hXY_not_matched_hits->Fill();
-    //    hist->_hZX_not_matched_hits->Fill();
-    //    hist->_hZY_not_matched_hits->Fill();
-
-    hist->_hZXY_matched_hits->Fill(z, x, y);
-    //    hist->_hZXY_not_matched_hits->Fill();
-
-    hist->_hRdist_matched_hits->Fill(Sqrt((trX - x) * (trX - x) + (trY - y) * (trY - y)));
-    hist->_hXdist_matched_hits->Fill(trX - x);
-    hist->_hYdist_matched_hits->Fill(trY - y);
-    //    hist->_hRdist_well_matched_hits->Fill();
-    //    hist->_hXdist_well_matched_hits->Fill();
-    //    hist->_hYdist_well_matched_hits->Fill();
-    //    hist->_hRdist_wrong_matched_hits->Fill();
-    //    hist->_hXdist_wrong_matched_hits->Fill();
-    //    hist->_hYdist_wrong_matched_hits->Fill();
-}
-
 void BmnGlobalTracking::Finish() {
-
-
-    cout.precision(2);
-    cout.setf(ios::fixed, ios::floatfield);
-
-    //    cout << "\n\t-----------------------------------------------------------------------------------------" << endl;
-    //    cout << "\t|                              Efficiency of Global tracking                            |" << endl;
-    //    cout << "\t-----------------------------------------------------------------------------------------" << endl;
-    //    cout << "\t|  Percent of connected hits:\t\t\t|\t" << allFoundCntr << " / " << allHitCntr << "\t|  " << allFoundCntr * 100.0 / allHitCntr << "%\t|" << endl;
-    //    cout << "\t|  Percent of well connected hits:\t\t|\t" << wellFoundCntr << " / " << allFoundCntr << "\t|  " << wellFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
-    //    cout << "\t|  Percent of wrong connected hits:\t\t|\t" << wrongFoundCntr << " / " << allFoundCntr << "\t|  " << wrongFoundCntr * 100.0 / allFoundCntr << "%\t|" << endl;
-    //    cout << "\t|  Percent of well found tracks (thr = " << thresh << "):\t|\t" << goodTrackCntr << " / " << allTrackCntr << "\t|  " << goodTrackCntr * 100.0 / allTrackCntr << "%\t|" << endl;
-    //    cout << "\t|  Percent of found tracks:\t\t\t|\t" << allTrackCntr << " / " << allMcTrackCntr << "\t|  " << allTrackCntr * 100.0 / allMcTrackCntr << "%\t|" << endl;
-    //    cout << "\t|  Work time: full / per one event:\t\t|\t" << workTime << " sec.\t|  " << workTime / fEventNo << " sec.\t|" << endl;
-    //    cout << "\t-----------------------------------------------------------------------------------------" << endl;
-
-    if (fMakeQA) {
-        //WRITE QA IN TREE
-        FairRunAna* run = FairRunAna::Instance();
-        TFile* output = run->GetOutputFile();
-        output->cd();
-        toDirectory("QA/GlobalTracking");
-        fGlobHisto->Write();
-        toDirectory("QA/TOF1");
-        fTof1Histo->Write();
-        toDirectory("QA/DCH1");
-        fDch1Histo->Write();
-        toDirectory("QA/DCH2");
-        fDch2Histo->Write();
-        toDirectory("QA/TOF2");
-        fTof2Histo->Write();
-        gFile->cd();
-    }
+    cout << "Global tracking finish" << endl;
 }
 
 void BmnGlobalTracking::CalculateLength() {
@@ -981,9 +666,6 @@ void BmnGlobalTracking::CalculateLength() {
             length += Sqrt(dX * dX + dY * dY + dZ * dZ);
         }
         glTr->SetLength(length);
-        if (fMakeQA) {
-            fGlobHisto->_hTrackLength->Fill(length);
-        }
     }
 }
 

@@ -103,7 +103,6 @@ Bool_t MpdUrqmdGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
     float ppx = 0., ppy = 0., ppz = 0., m = 0.;
 
     // ---> Read and check first event header line from input file
-    Int_t URQMDVERSION[2] = {20030, 30400};
     char read[200];
     gzgets(fInputFile, read, 200); // line 1
     Int_t urqmdVersion = 0;
@@ -134,14 +133,10 @@ Bool_t MpdUrqmdGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
     gzgets(fInputFile, read, 7); // line 6
     gzgets(fInputFile, read, 200); // line 6
     sscanf(read, "%d", &evnr); // line 6
-    if (urqmdVersion == URQMDVERSION[1])
-        for (int iline = 0; iline < 11; iline++) {
+
+    for (Int_t iline = 0; iline < ((urqmdVersion == 30400) ? 11 : 8); iline++) 
             gzgets(fInputFile, read, 200);
-        }// line 7-17
-    else if (urqmdVersion == URQMDVERSION[0])
-        for (int iline = 0; iline < 8; iline++) {
-            gzgets(fInputFile, read, 200);
-        }
+
     gzgets(fInputFile, read, 200); // line 18
     sscanf(read, "%d", &ntracks); // line 18
     gzgets(fInputFile, read, 200); // line 19

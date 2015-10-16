@@ -125,8 +125,10 @@ class UniDbRun
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
     // static class functions (added by user request)
-    // add geometry data (geometry file's data) for runs from start_run_number to end_run_number
+    /// add geometry binary data (geometry file's data) for runs from start_run_number to end_run_number
     static int SetRootGeometry(int start_run_number, int end_run_number, unsigned char* root_geometry, Long_t size_root_geometry);
+    /// get geometry binary data (geometry file's data) for selected run number
+    static int GetRootGeometry(int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry);
 
  ClassDef(UniDbRun,1);
 };

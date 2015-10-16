@@ -994,5 +994,39 @@ int UniDbRun::SetRootGeometry(int start_run_number, int end_run_number, unsigned
     return 0;
 }
 
+int UniDbRun::GetRootGeometry(int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry)
+{
+    UniDbRun* pCurRun = UniDbRun::GetRun(run_number);
+    if (pCurRun == NULL)
+    {
+        cout<<"Error: getting of run with number "<<run_number<<" was failed"<<endl;
+        return -1;
+    }
+
+    if (pCurRun->GetGeometryId() == NULL)
+    {
+        cout<<"Error: no geometry exists for run with number "<<run_number<<endl;
+        return -2;
+    }
+
+    int geometry_id = pCurRun->GetGeometryId()[0];
+    delete pCurRun;
+
+    UniDbRunGeometry* pGeometry = UniDbRunGeometry::GetRunGeometry(geometry_id);
+    if (pGeometry == NULL)
+    {
+        cout<<"Error: getting of geometry was failed"<<endl;
+        return -3;
+    }
+
+    size_root_geometry = pGeometry->GetRootGeometrySize();
+    root_geometry = new unsigned char[size_root_geometry];
+    memcpy(root_geometry, pGeometry->GetRootGeometry(), size_root_geometry);
+
+    delete pGeometry;
+
+    return 0;
+}
+
 // -------------------------------------------------------------------
 ClassImp(UniDbRun);

@@ -2,7 +2,7 @@
 // Macro for generating QA-reports
 // --------------------------------------------------------------------------
 
-void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TString outFile = "qa.root", Int_t nStartEvent = 0, Int_t nEvents = 10000000)
+void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TString outFile = "qa.root", Int_t nStartEvent = 0, Bool_t isPrimary = kTRUE, Int_t nEvents = 10000000)
 {
 
   // Parameter file
@@ -36,7 +36,7 @@ void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TStr
 //  fRun->AddTask(clQa);  
     
   BmnTrackingQa* trQa = new BmnTrackingQa();
-  trQa->SetOnlyPrimes(kTRUE);
+  trQa->SetOnlyPrimes(isPrimary);
   fRun->AddTask(trQa);
   
   // ============ TASKS ============= //

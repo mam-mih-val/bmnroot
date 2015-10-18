@@ -66,6 +66,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     addresses.clear();
 
     if (fUseLorentz) {
+        FillHitsForSeedingArray();
         FillAddrWithLorentz(0.5);
     } else {
         FillAddr();
@@ -700,7 +701,6 @@ void BmnGemSeedFinder::FillAddr() {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (hit->IsUsed()) continue; //Don't use used hits
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-        //if (hit->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
         if (hit->GetType() == 0) continue; //Don't use fakes
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         //const Float_t R = hit->GetZ(); //Test for different type of transformation
@@ -720,32 +720,35 @@ void BmnGemSeedFinder::FillAddr() {
 
 void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x) {
     //Needed for searching seeds by addresses 
-    Float_t sigma_x2 = 0.01 * 0.01;
-    TH2F* lorentz = new TH2F("lorentz", "lorentz", fNBins, fMin, fMax, fNBins / 2, fMin, fMax);
+    Float_t sigma_x2 = 0.5 * 0.5; 
+    UInt_t denom = 20;
+    UInt_t nBinsY = fNBins / denom;
+    TH2F* lorentz = new TH2F("lorentz", "lorentz", fNBins, fMin, fMax, nBinsY, fMin, fMax);
     for (Int_t j = 0; j < fNBins; ++j) {
         for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
             BmnGemStripHit* hit0 = GetHit(iHit);
             if (hit0->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-            //            if (hit0->GetType() == 0) continue;
-            if (hit0->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
+            if (hit0->GetType() == 0) continue;
+//            if (hit0->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
+//            cout << "j = " << j << " Yaddr = " << hit0->GetYaddr() << endl;
             if (hit0->GetYaddr() != j) continue;
             const Float_t R = Sqrt(Sqr(hit0->GetX()) + Sqr(hit0->GetY()) + Sqr(hit0->GetZ()));
             const Float_t x = hit0->GetX() / R;
             const Float_t y = hit0->GetY() / R;
             for (Int_t i = 0; i < fNBins; ++i) {
                 Float_t pot = sigma_x2 / (sigma_x2 + Sqr(x - lorentz->GetXaxis()->GetBinCenter(i)));
-                lorentz->Fill(lorentz->GetXaxis()->GetBinCenter(i), lorentz->GetYaxis()->GetBinCenter(j / 2), pot);
+                lorentz->Fill(lorentz->GetXaxis()->GetBinCenter(i), lorentz->GetYaxis()->GetBinCenter(j / denom), pot);
             }
         }
     }
-
-    for (Int_t j = 0; j < fNBins / 2; ++j) {
+    
+    for (Int_t j = 0; j < nBinsY; ++j) {
         for (Int_t i = 0; i < fNBins; ++i) {
             if (lorentz->GetBinContent(i, j) <= 1.5) lorentz->SetBinContent(i, j, 0.0);
         }
     }
 
-    for (Int_t j = 0; j < fNBins / 2; ++j) {
+    for (Int_t j = 0; j < nBinsY; ++j) {
         Float_t max = -1.0;
         Int_t startBin = -10;
         Bool_t inPeak = kFALSE;
@@ -767,20 +770,24 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x) {
         }
     }
 
-    for (Int_t j = 0; j < fNBins / 2; ++j) {
+    for (Int_t j = 0; j < nBinsY; ++j) {
         for (Int_t i = 0; i < fNBins; ++i) {
             if (lorentz->GetBinContent(i, j) > 0.0) {
                 for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
                     BmnGemStripHit* hit0 = GetHit(iHit);
                     if (hit0->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-                    if (hit0->GetRefIndex() < 0) continue; //FIXME!!! Now only for test! (Excluding fake hits) 
-                    if (hit0->GetYaddr() / 2 == j && hit0->GetXaddr() == i) {
+                    if (hit0->GetYaddr() / denom == j && hit0->GetXaddr() == i) {
                         addresses.insert(pair<ULong_t, Int_t > (hit0->GetAddr(), iHit));
                     }
                 }
             }
         }
     }
+    
+    cout << "addresses.size = " << addresses.size() << endl;
+    
+//    lorentz->Draw("colz");
+    
     delete lorentz;
 }
 

@@ -456,6 +456,7 @@ int main(int argc, char** argv){
 	// temporary variables
 	char* pcSUB;
 	string data;
+	int command_length;
 
 	// path to executable's directory ('/' - last char)
 	string exe_dir = get_app_dir_linux();
@@ -906,7 +907,11 @@ int main(int argc, char** argv){
                 }
 
                 // define total processor count and fill 'parallel_mode' parameter
-                int iParallelCount = 0;
+                int iParallelCount;
+                if (isCommand)
+                	iParallelCount = 1;
+                else
+                	iParallelCount = 0;
                 for (unsigned int i = 0; i < vecFiles.size(); i++)
                 {
                 	structFilePar* filePar = vecFiles.at(i);
@@ -943,6 +948,7 @@ int main(int argc, char** argv){
                 	int proc_count = 1;
                 	if (sproc_count != NULL)
                 	{
+                		// if processor count was set to 0 then use all the available processors
                 		if ((sproc_count[0] == '0') && (strlen(sproc_count) == 1))
                 		{
                 			proc_count = get_sge_processor_count();
@@ -992,9 +998,6 @@ int main(int argc, char** argv){
                     string fileName = "";
                     vector<string> vecParallelOutputs;
                     vector<int> vecUnionMode;
-                    string sMacroName = "";
-                    if (macro_name != NULL)
-                    	sMacroName = macro_name;
 
                     // if there are some files to process then write info to temporary file for SGE
                     if (iParallelCount > 0)
@@ -1114,18 +1117,25 @@ int main(int argc, char** argv){
 
                     // RUN JOB in SGE
                     string MPDqsub_path = exe_dir + "mpd.qsub";
-                    pcSUB = new char[100+sMacroName.length()+fileName.length()+sConfig.length()+MPDqsub_path.length()];
-                    if (isCommand){
-                    	sprintf (pcSUB, "qsub -t 1-1 -tc %d -v config=\"%s\",sched_command_line=\"%s\" %s",
-                    			proc_count, sConfig.c_str(), command_line, MPDqsub_path.c_str());
+                    command_length = 100 + sConfig.length() + MPDqsub_path.length() + fileName.length();
+                    if (command_line != NULL)
+                    	command_length += strlen(command_line);
+                    if (macro_name != NULL)
+                    	command_length += strlen(macro_name);
+                    pcSUB = new char[command_length];
+                    if (isCommand)
+                    {
+                    	sprintf (pcSUB, "qsub -t 1-%d -tc %d -v config=\"%s\",sched_command_line=\"%s\" %s",
+                    			iParallelCount, proc_count, sConfig.c_str(), command_line, MPDqsub_path.c_str());
                     }
-                    else{
+                    else
+                    {
                     	sprintf (pcSUB, "qsub -t 1-%d -tc %d -v macro=\"%s\",files=\"%s\",config=\"%s\" %s",
                     			iParallelCount, proc_count, macro_name, fileName.c_str(), sConfig.c_str(), MPDqsub_path.c_str());
                     }
 
                     // main command
-                    //cout<<"COMMAND: "<<pcSUB<<endl;
+                    //cout<<"Command length: "<<command_length<<". COMMAND: "<<pcSUB<<endl;
 
                     stream = popen(pcSUB, "r");
                     while (fgets(buffer, MAX_BUFFER, stream) != NULL)

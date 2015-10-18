@@ -994,5 +994,125 @@ int UniDbRun::SetRootGeometry(int start_run_number, int end_run_number, unsigned
     return 0;
 }
 
+int UniDbRun::GetRootGeometry(int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry)
+{
+    UniDbRun* pCurRun = UniDbRun::GetRun(run_number);
+    if (pCurRun == NULL)
+    {
+        cout<<"Error: getting of run with number "<<run_number<<" was failed"<<endl;
+        return -1;
+    }
+
+    if (pCurRun->GetGeometryId() == NULL)
+    {
+        cout<<"Error: no geometry exists for run with number "<<run_number<<endl;
+        return -2;
+    }
+
+    int geometry_id = pCurRun->GetGeometryId()[0];
+    delete pCurRun;
+
+    UniDbRunGeometry* pGeometry = UniDbRunGeometry::GetRunGeometry(geometry_id);
+    if (pGeometry == NULL)
+    {
+        cout<<"Error: getting of geometry was failed"<<endl;
+        return -3;
+    }
+
+    size_root_geometry = pGeometry->GetRootGeometrySize();
+    root_geometry = new unsigned char[size_root_geometry];
+    memcpy(root_geometry, pGeometry->GetRootGeometry(), size_root_geometry);
+
+    delete pGeometry;
+
+    return 0;
+}
+
+int UniDbRun::WriteGeometryFile(int start_run_number, int end_run_number, char* geo_file_path)
+{
+    FILE* root_file = fopen(geo_file_path, "rb");
+    if (root_file == NULL)
+    {
+        cout<<"Error: opening root file: "<<geo_file_path<<" was failed"<<endl;
+        return -1;
+    }
+
+    fseek(root_file, 0, SEEK_END);
+    long file_size = ftell(root_file);
+    rewind(root_file);
+    if (file_size <= 0)
+    {
+        cout<<"Error: getting file size: "<<geo_file_path<<" was failed"<<endl;
+        fclose(root_file);
+        return -2;
+    }
+
+    unsigned char* buffer = new unsigned char[file_size];
+    if (buffer == NULL)
+    {
+        cout<<"Error: getting memory from heap"<<" was failed"<<endl;
+        fclose(root_file);
+        return -3;
+    }
+
+    size_t bytes_read = fread(buffer, 1, file_size, root_file);
+    if (bytes_read != file_size)
+    {
+        cout<<"Error: reading file: "<<geo_file_path<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
+        delete [] buffer;
+        fclose(root_file);
+        return -4;
+    }
+
+    fclose(root_file);
+
+    // set root geometry file's bytes for run range
+    int res_code = UniDbRun::SetRootGeometry(start_run_number, end_run_number, buffer, file_size); //(int start_run_number, int end_run_number, unsigned char* root_geometry, Long_t size_root_geometry)
+    if (res_code != 0)
+    {
+        delete [] buffer;
+        return -5;
+    }
+
+    delete [] buffer;
+
+    return 0;
+}
+
+int UniDbRun::ReadGeometryFile(int run_number, char* geo_file_path)
+{
+    // get root geometry file's bytes for selected run
+    unsigned char* buffer = NULL;
+    Long_t file_size;
+    int res_code = UniDbRun::GetRootGeometry(run_number, buffer, file_size); //(int run_number, unsigned char* root_geometry, Long_t size_root_geometry)
+    if (res_code != 0)
+    {
+        return -1;
+    }
+
+    FILE* root_file = fopen(geo_file_path, "wb");
+    if (root_file == NULL)
+    {
+        cout<<"Error: creating root file: "<<geo_file_path<<endl;
+        return -2;
+    }
+
+    size_t bytes_write = fwrite(buffer, 1, file_size, root_file);
+    if (bytes_write != file_size)
+    {
+        cout<<"Error: writing file: "<<geo_file_path<<", put "<<bytes_write<<" bytes of "<<file_size<<endl;
+        delete [] buffer;
+        fclose(root_file);
+        return -3;
+    }
+
+    fclose(root_file);
+
+    if (buffer)
+        delete [] buffer;
+
+    return 0;
+}
+
 // -------------------------------------------------------------------
 ClassImp(UniDbRun);

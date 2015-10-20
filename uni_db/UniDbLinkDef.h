@@ -14,13 +14,10 @@
 
 #pragma link C++ class UniDbSession+;
 #pragma link C++ class UniDbDetector+;
-#pragma link C++ class UniDbSessionDetector+;
-#pragma link C++ class UniDbMapping+;
-#pragma link C++ class UniDbMap1dim+;
-#pragma link C++ class UniDbMap2dim+;
 #pragma link C++ class UniDbRun+;
 #pragma link C++ class UniDbRunGeometry+;
-#pragma link C++ class UniDbDetectorParameter+;
+#pragma link C++ class UniDbRunParameter+;
+#pragma link C++ class UniDbSessionParameter+;
 #pragma link C++ class UniDbParameter+;
 #pragma link C++ class UniDbShift+;
 #pragma link C++ class UniDbSimulationFile+;

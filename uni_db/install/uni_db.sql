@@ -34,62 +34,6 @@ create table shift_
  responsibility varchar(20) null
 );
 
--- DETECTORS AND OTHER COMPONENTS
-create table detector_
-(
- detector_name varchar(10) primary key,
- manufacturer_name varchar(30) null,
- responsible_person varchar(40) null,
- description varchar(30) null
-);
-
--- DETECTORS' MAPPING
--- map_type: 1 - map_1dim, 2 - map_2dim
-create table mapping_
-(
- map_id serial primary key,
- map_type int not null
-);
-
--- drop table map_1dim
--- alter table map_1dim add column plane varchar(4) not null
-create table map_1dim
-(
- map_id int not null references mapping_(map_id) on update cascade on delete cascade,
- map_row int not null,
- serial_hex varchar(20) not null,
- plane varchar(4) not null,
- map_group int not null,
- slot int not null,
- channel_low int not null,
- channel_high int not null,
- primary key (map_id, map_row),
- check (channel_high > channel_low)
-);
-
--- drop table map_2dim
-create table map_2dim
-(
- map_id int not null references mapping_(map_id) on update cascade on delete cascade,
- map_row int not null,
- serial_hex varchar(20) not null,
- channel int not null,
- f_channel int not null,
- channel_size int not null,
- x int not null,
- y int not null,
- is_connected boolean not null default true,
- primary key (map_id, map_row)
-);
-
-create table session_detector
-(
- session_number int not null references session_(session_number) on update cascade,
- detector_name varchar(10) not null references detector_(detector_name),
- map_id int null references mapping_(map_id) on update cascade on delete cascade,
- primary key (session_number, detector_name)
-);
-
 -- GEOMETRY PART
 create table run_geometry
 (
@@ -129,23 +73,91 @@ create table simulation_file
  file_size float null check (file_size > 0)
 );
 
+-- DETECTORS AND OTHER COMPONENTS
+create table detector_
+(
+ detector_name varchar(10) primary key,
+ manufacturer_name varchar(30) null,
+ responsible_person varchar(40) null,
+ description varchar(30) null
+);
+
 -- COMPONENT PARAMETERS
+-- lifetime_type: 0 - run parameter, 1 - session_parameter
 -- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array
 create table parameter_
 (
  parameter_id serial primary key,
  parameter_name varchar(20) not null unique,
- parameter_type int not null
+ parameter_type int not null,
+ lifetime_type int not null default (0)
 );
 
-create table detector_parameter
+create table run_parameter
 (
- run_number int not null references run_(run_number),
  detector_name varchar(10) not null references detector_(detector_name),
+ run_number int not null references run_(run_number),
  parameter_id int not null references parameter_(parameter_id),
  parameter_value bytea not null,
  primary key (run_number, detector_name, parameter_id)
 );
+
+create table session_parameter
+(
+ detector_name varchar(10) not null references detector_(detector_name),
+ session_number int not null references session_(session_number),
+ parameter_id int not null references parameter_(parameter_id),
+ parameter_value bytea not null,
+ primary key (session_number, detector_name, parameter_id)
+);
+
+/*-- DETECTORS' MAPPING (special tables)
+-- map_type: 1 - map_1dim, 2 - map_2dim
+-- drop table mapping_
+create table mapping_
+(
+ map_id serial primary key,
+ map_type int not null
+);
+
+-- drop table map_1dim
+create table map_1dim
+(
+ map_id int not null references mapping_(map_id) on update cascade on delete cascade,
+ map_row int not null,
+ serial_hex varchar(20) not null,
+ plane varchar(4) not null,
+ map_group int not null,
+ slot int not null,
+ channel_low int not null,
+ channel_high int not null,
+ primary key (map_id, map_row),
+ check (channel_high > channel_low)
+);
+
+-- drop table map_2dim
+create table map_2dim
+(
+ map_id int not null references mapping_(map_id) on update cascade on delete cascade,
+ map_row int not null,
+ serial_hex varchar(20) not null,
+ channel int not null,
+ f_channel int not null,
+ channel_size int not null,
+ x int not null,
+ y int not null,
+ is_connected boolean not null default true,
+ primary key (map_id, map_row)
+);
+
+-- drop table session_detector
+create table session_detector
+(
+ session_number int not null references session_(session_number) on update cascade,
+ detector_name varchar(10) not null references detector_(detector_name),
+ map_id int null references mapping_(map_id) on update cascade on delete cascade,
+ primary key (session_number, detector_name)
+);*/
 
 /*-- GEOMETRY PART (decomposition)
 create table geometry_media
@@ -276,7 +288,8 @@ create table geometry_parameter
 -- ORDER BY a.attnum;
 
 create index det_name_lower_idx on detector_((lower(detector_name)));
-create index det_name_par_lower_idx on detector_parameter((lower(detector_name)));
+create index det_name_rpar_lower_idx on run_parameter((lower(detector_name)));
+create index det_name_spar_lower_idx on session_parameter((lower(detector_name)));
 create unique index parameter_name_lower_idx on parameter_((lower(parameter_name)));
 
 -- trigger to remove large_object by OID
@@ -289,8 +302,10 @@ BEGIN
   RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
-CREATE TRIGGER unlink_large_object_parameter
-AFTER UPDATE OR DELETE ON detector_parameter FOR EACH ROW EXECUTE PROCEDURE unlink_lo_parameter();
+CREATE TRIGGER unlink_large_object_rparameter
+AFTER UPDATE OR DELETE ON run_parameter FOR EACH ROW EXECUTE PROCEDURE unlink_lo_parameter();
+CREATE TRIGGER unlink_large_object_sparameter
+AFTER UPDATE OR DELETE ON session_parameter FOR EACH ROW EXECUTE PROCEDURE unlink_lo_parameter();
 
 -- DROP TRIGGER unlink_large_object_geometry ON run_geometry;
 CREATE OR REPLACE FUNCTION unlink_lo_geometry() RETURNS TRIGGER AS $$

@@ -1,14 +1,14 @@
 // ----------------------------------------------------------------------
 //                    UniDbDetector header file 
-//                      Generated 15-09-2015 
+//                      Generated 20-10-2015 
 // ----------------------------------------------------------------------
 
 /** db_classes/UniDbDetector.h 
  ** Class for the table: detector_ 
  **/ 
 
-#ifndef UNIDBDETECTOR_H
-#define UNIDBDETECTOR_H 1
+#ifndef UNIDBDETECTOR_H 
+#define UNIDBDETECTOR_H 1 
 
 #include "TString.h"
 #include "TDatime.h"

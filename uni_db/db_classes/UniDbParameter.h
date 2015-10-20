@@ -1,14 +1,14 @@
 // ----------------------------------------------------------------------
 //                    UniDbParameter header file 
-//                      Generated 15-09-2015 
+//                      Generated 20-10-2015 
 // ----------------------------------------------------------------------
 
 /** db_classes/UniDbParameter.h 
  ** Class for the table: parameter_ 
  **/ 
 
-#ifndef UNIDBPARAMETER_H
-#define UNIDBPARAMETER_H 1
+#ifndef UNIDBPARAMETER_H 
+#define UNIDBPARAMETER_H 1 
 
 #include "TString.h"
 #include "TDatime.h"
@@ -36,9 +36,11 @@ class UniDbParameter
 	TString str_parameter_name;
 	/// parameter type
 	int i_parameter_type;
+	/// lifetime type
+	int i_lifetime_type;
 
 	//Constructor
-	UniDbParameter(UniDbConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type);
+	UniDbParameter(UniDbConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type, int lifetime_type);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -47,7 +49,7 @@ class UniDbParameter
 
 	// static class functions
 	/// add new parameter to the database
-	static UniDbParameter* CreateParameter(TString parameter_name, int parameter_type);
+	static UniDbParameter* CreateParameter(TString parameter_name, int parameter_type, int lifetime_type);
 	/// get parameter from the database
 	static UniDbParameter* GetParameter(int parameter_id);
 	/// get parameter from the database
@@ -66,6 +68,8 @@ class UniDbParameter
 	TString GetParameterName() {return str_parameter_name;}
 	/// get parameter type of the current parameter
 	int GetParameterType() {return i_parameter_type;}
+	/// get lifetime type of the current parameter
+	int GetLifetimeType() {return i_lifetime_type;}
 
 	// Setters
 	/// set parameter id of the current parameter
@@ -74,6 +78,8 @@ class UniDbParameter
 	int SetParameterName(TString parameter_name);
 	/// set parameter type of the current parameter
 	int SetParameterType(int parameter_type);
+	/// set lifetime type of the current parameter
+	int SetLifetimeType(int lifetime_type);
 	/// print information about current parameter
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */

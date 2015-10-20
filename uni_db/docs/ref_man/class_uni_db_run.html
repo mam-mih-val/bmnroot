@@ -196,7 +196,17 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memdesc:a31cb9b042e51f5df0159bdc631d64ff5"><td class="mdescLeft">&#160;</td><td class="mdescRight">print all runs  <a href="#a31cb9b042e51f5df0159bdc631d64ff5">More...</a><br /></td></tr>
 <tr class="separator:a31cb9b042e51f5df0159bdc631d64ff5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16c1a48ca4289527a3cf9b061a469581"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run.html#a16c1a48ca4289527a3cf9b061a469581">SetRootGeometry</a> (int start_run_number, int end_run_number, unsigned char *root_geometry, Long_t size_root_geometry)</td></tr>
+<tr class="memdesc:a16c1a48ca4289527a3cf9b061a469581"><td class="mdescLeft">&#160;</td><td class="mdescRight">set geometry binary data (geometry file's data) for runs from start_run_number to end_run_number  <a href="#a16c1a48ca4289527a3cf9b061a469581">More...</a><br /></td></tr>
 <tr class="separator:a16c1a48ca4289527a3cf9b061a469581"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c4f2ca34245a26a98e053f3ae5af536"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run.html#a9c4f2ca34245a26a98e053f3ae5af536">GetRootGeometry</a> (int run_number, unsigned char *&amp;root_geometry, Long_t &amp;size_root_geometry)</td></tr>
+<tr class="memdesc:a9c4f2ca34245a26a98e053f3ae5af536"><td class="mdescLeft">&#160;</td><td class="mdescRight">get geometry binary data (geometry file's data) for selected run number  <a href="#a9c4f2ca34245a26a98e053f3ae5af536">More...</a><br /></td></tr>
+<tr class="separator:a9c4f2ca34245a26a98e053f3ae5af536"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a633b769c61aa2757ecf31297fe8941a5"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run.html#a633b769c61aa2757ecf31297fe8941a5">WriteGeometryFile</a> (int start_run_number, int end_run_number, char *geo_file_path)</td></tr>
+<tr class="memdesc:a633b769c61aa2757ecf31297fe8941a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">write geometry file for runs from start_run_number to end_run_number to the database  <a href="#a633b769c61aa2757ecf31297fe8941a5">More...</a><br /></td></tr>
+<tr class="separator:a633b769c61aa2757ecf31297fe8941a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14152772dd08b8053fea529f3194ba84"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run.html#a14152772dd08b8053fea529f3194ba84">ReadGeometryFile</a> (int run_number, char *geo_file_path)</td></tr>
+<tr class="memdesc:a14152772dd08b8053fea529f3194ba84"><td class="mdescLeft">&#160;</td><td class="mdescRight">read geometry file for selected run number from the database  <a href="#a14152772dd08b8053fea529f3194ba84">More...</a><br /></td></tr>
+<tr class="separator:a14152772dd08b8053fea529f3194ba84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="_uni_db_run_8h.html">db_classes/UniDbRun.h</a> Class for the table: run_ </p>
@@ -599,6 +609,48 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a9c4f2ca34245a26a98e053f3ae5af536"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int UniDbRun::GetRootGeometry </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>run_number</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned char *&amp;&#160;</td>
+          <td class="paramname"><em>root_geometry</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Long_t &amp;&#160;</td>
+          <td class="paramname"><em>size_root_geometry</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>get geometry binary data (geometry file's data) for selected run number </p>
+
+</div>
+</div>
 <a class="anchor" id="a8a18536d132dc917b628fbcaffba671c"></a>
 <div class="memitem">
 <div class="memproto">
@@ -793,6 +845,42 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a14152772dd08b8053fea529f3194ba84"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int UniDbRun::ReadGeometryFile </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>run_number</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>geo_file_path</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>read geometry file for selected run number from the database </p>
+
+</div>
+</div>
 <a class="anchor" id="aad3708a08370bb8c88960c8a35eb8a0c"></a>
 <div class="memitem">
 <div class="memproto">
@@ -981,6 +1069,8 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>set geometry binary data (geometry file's data) for runs from start_run_number to end_run_number </p>
+
 </div>
 </div>
 <a class="anchor" id="ab001af6cccb53ce0903d2ebebd77b1cd"></a>
@@ -1052,6 +1142,48 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>set target particle of the current run </p>
+
+</div>
+</div>
+<a class="anchor" id="a633b769c61aa2757ecf31297fe8941a5"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int UniDbRun::WriteGeometryFile </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>start_run_number</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>end_run_number</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>geo_file_path</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>write geometry file for runs from start_run_number to end_run_number to the database </p>
 
 </div>
 </div>

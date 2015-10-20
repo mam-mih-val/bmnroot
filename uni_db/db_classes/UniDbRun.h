@@ -1,14 +1,14 @@
 // ----------------------------------------------------------------------
 //                    UniDbRun header file 
-//                      Generated 15-09-2015 
+//                      Generated 20-10-2015 
 // ----------------------------------------------------------------------
 
 /** db_classes/UniDbRun.h 
  ** Class for the table: run_ 
  **/ 
 
-#ifndef UNIDBRUN_H
-#define UNIDBRUN_H 1
+#ifndef UNIDBRUN_H 
+#define UNIDBRUN_H 1 
 
 #include "TString.h"
 #include "TDatime.h"
@@ -49,7 +49,7 @@ class UniDbRun
 
 	//Constructor
 	UniDbRun(UniDbConnection* connUniDb, int run_number, int* session_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id);
-	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */    
+	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
 	/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */

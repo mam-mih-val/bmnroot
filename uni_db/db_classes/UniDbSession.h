@@ -1,14 +1,14 @@
 // ----------------------------------------------------------------------
 //                    UniDbSession header file 
-//                      Generated 15-09-2015 
+//                      Generated 20-10-2015 
 // ----------------------------------------------------------------------
 
 /** db_classes/UniDbSession.h 
  ** Class for the table: session_ 
  **/ 
 
-#ifndef UNIDBSESSION_H
-#define UNIDBSESSION_H 1
+#ifndef UNIDBSESSION_H 
+#define UNIDBSESSION_H 1 
 
 #include "TString.h"
 #include "TDatime.h"

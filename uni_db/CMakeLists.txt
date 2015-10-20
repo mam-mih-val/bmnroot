@@ -25,13 +25,10 @@ UniDbTangoData.cxx
 
 db_classes/UniDbSession.cxx
 db_classes/UniDbDetector.cxx
-db_classes/UniDbSessionDetector.cxx
-db_classes/UniDbMapping.cxx
-db_classes/UniDbMap1dim.cxx
-db_classes/UniDbMap2dim.cxx
 db_classes/UniDbRun.cxx
 db_classes/UniDbRunGeometry.cxx
-db_classes/UniDbDetectorParameter.cxx
+db_classes/UniDbRunParameter.cxx
+db_classes/UniDbSessionParameter.cxx
 db_classes/UniDbParameter.cxx
 db_classes/UniDbShift.cxx
 db_classes/UniDbSimulationFile.cxx

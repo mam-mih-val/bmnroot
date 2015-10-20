@@ -1,7 +1,7 @@
 #include "UniDbParser.h"
 #include "UniDbConnection.h"
 #include "db_classes/UniDbParameter.h"
-#include "db_classes/UniDbDetectorParameter.h"
+#include "db_classes/UniDbRunParameter.h"
 #define ONLY_DECLARATIONS
 #include "../macro/mpd_scheduler/src/function_set.h"
 
@@ -1201,14 +1201,14 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
         cout<<endl;
         */
 
-        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(run_number, "DCH1", "noise", pValues, 32); //(run_number, detector_name, parameter_name, IIStructure_value, element_count)
-        if (pDetectorParameter == NULL)
+        UniDbRunParameter* pRunParameter = UniDbRunParameter::CreateRunParameter(run_number, "DCH1", "noise", pValues, 32); //(run_number, detector_name, parameter_name, IIStructure_value, element_count)
+        if (pRunParameter == NULL)
             continue;
 
         // clean memory after work
         delete [] pValues;
-        if (pDetectorParameter)
-            delete pDetectorParameter;
+        if (pRunParameter)
+            delete pRunParameter;
     }
 
     txtFile.close();

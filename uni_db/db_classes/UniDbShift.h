@@ -1,14 +1,14 @@
 // ----------------------------------------------------------------------
 //                    UniDbShift header file 
-//                      Generated 15-09-2015 
+//                      Generated 20-10-2015 
 // ----------------------------------------------------------------------
 
 /** db_classes/UniDbShift.h 
  ** Class for the table: shift_ 
  **/ 
 
-#ifndef UNIDBSHIFT_H
-#define UNIDBSHIFT_H 1
+#ifndef UNIDBSHIFT_H 
+#define UNIDBSHIFT_H 1 
 
 #include "TString.h"
 #include "TDatime.h"

@@ -52,12 +52,13 @@ create table mapping_
 );
 
 -- drop table map_1dim
+-- alter table map_1dim add column plane varchar(4) not null
 create table map_1dim
 (
  map_id int not null references mapping_(map_id) on update cascade on delete cascade,
  map_row int not null,
  serial_hex varchar(20) not null,
- plane int not null,
+ plane varchar(4) not null,
  map_group int not null,
  slot int not null,
  channel_low int not null,

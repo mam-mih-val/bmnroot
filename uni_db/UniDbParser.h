@@ -55,8 +55,9 @@ class UniDbParser
 {
  public:
     int ParseXml2Db(TString xmlName, TString schemaPath);
-    int ParseTxtNoise2Db(TString txtName, TString schemaPath);
     int ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate = false);
+    int ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate = false);
+    int ParseTxtNoise2Db(TString txtName, TString schemaPath);
 
  ClassDef(UniDbParser,1)
 };

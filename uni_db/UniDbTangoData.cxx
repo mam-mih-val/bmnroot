@@ -226,7 +226,7 @@ void UniDbTangoData::PrintCSVData(CSVData* zdcXY, bool isGraphicPresentation, bo
 HV_Data* UniDbTangoData::GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end)
 {
     //подключение к базе данных
-    TSQLServer* db = TSQLServer::Connect("mysql://159.93.120.66","sima","password");
+    TSQLServer* db = TSQLServer::Connect("mysql://159.93.120.66","user","scs-db");
     db->GetTables("hdb");
 
     //запрос на поиск таблицы, с учётом заданных параметров

@@ -42,9 +42,12 @@ string get_current_date();
 
 #ifndef ONLY_DECLARATIONS
 
+
+/*              */
 /*				*/
 /* OS FUNCTIONS */
 /*				*/
+/*              */
 
 // execute system command in shell (bash)
 int system_command_linux(string aCommand, string& result)
@@ -191,9 +194,11 @@ int get_torque_processor_count()
 }
 
 
+/*                              */
 /*								*/
 /* GLOBAL APPLICATION FUNCTIONS */
 /*								*/
+/*                              */
 
 // get application name in linux
 string get_app_name_linux()
@@ -228,17 +233,21 @@ string get_app_dir_linux()
 }
 
 
+/*                  */
 /*					*/
 /* NUMBER FUNCTIONS */
 /*					*/
+/*                  */
 
 // check bit in 'variable' at 'position'
 #define CHECK_BIT(variable,position) ((variable) & (1ULL<<(position)))
 
 
+/*                  */
 /*					*/
 /* STRING FUNCTIONS */
 /*					*/
+/*                  */
 
 // convert integer number to string
 string convert_integer_to_string(int number)
@@ -284,17 +293,16 @@ char* convert_pchar_to_lowercase_new(char* input_char_array)
 }
 
 // replace string 's' by string 'd' in text
-void replace_string_in_text(string &text, string s, string d)
+void replace_string_in_text(string &text, string old_substring, string new_substring)
 {
 	int start = -1;
-
 	do
 	{
-		start = text.find(s, start + 1);
-	    if(start > -1)
-	    	text.replace(start, s.length(), d.c_str());
+        start = text.find(old_substring, start + 1);
+        if (start > -1)
+            text.replace(start, old_substring.length(), new_substring.c_str());
 	}
-	while(start > -1);
+    while (start > -1);
 }
 
 // return string without leading and trailing spaces and tabs
@@ -333,9 +341,11 @@ string reduce(const string& str, const string& fill, const string& whitespace)
 }
 
 
-/*				  */
-/* FILE FUNCTIONS */
-/*				  */
+/*                  */
+/*                  */
+/*  FILE FUNCTIONS  */
+/*                  */
+/*                  */
 
 // get file name without extension from a path
 string get_file_name(string path)
@@ -367,9 +377,11 @@ string get_file_name_with_ext(string path)
 }
 
 
-/*				  */
-/* TIME FUNCTIONS */
-/*				  */
+/*                  */
+/*                  */
+/*  TIME FUNCTIONS  */
+/*                  */
+/*                  */
 
 // get current date as string
 string get_current_date()

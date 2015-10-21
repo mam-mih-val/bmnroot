@@ -1,6 +1,7 @@
 #include "../db_structures.h"
 
-// macro for getting parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
+// macro for getting 'noise channels' parameter value
+// example runs for all run numbers from 12 to 688 (if run number is not present then error "table record wasn't found" wiil arise - it's ok)
 void histo_noise()
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");

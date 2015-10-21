@@ -387,7 +387,7 @@ UniDbRunParameter* UniDbRunParameter::GetRunParameter(int run_number, TString de
 
     TString sql = TString::Format(
         "select run_number, detector_name, p.parameter_id, parameter_value "
-        "from detector_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id "
+        "from run_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id "
         "where run_number = %d and lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s')", run_number, detector_name.Data(), parameter_name.Data());
     TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -485,7 +485,7 @@ UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString
     Long_t size_parameter_value = sizeof(bool);
 
     sql = TString::Format(
-        "insert into detector_parameter(run_number, detector_name, parameter_id, parameter_value) "
+        "insert into run_parameter(run_number, detector_name, parameter_id, parameter_value) "
         "values ($1, $2, $3, $4)");
     stmt = uni_db->Statement(sql);
 
@@ -599,7 +599,7 @@ int UniDbRunParameter::SetBool(bool parameter_value)
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "update detector_parameter "
+        "update run_parameter "
         "set parameter_value = $1 "
         "where run_number = $2 and detector_name = $3 and parameter_id = $4");
     TSQLStatement* stmt = uni_db->Statement(sql);
@@ -685,7 +685,7 @@ UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString
     Long_t size_parameter_value = sizeof(Int_t);
 
     sql = TString::Format(
-        "insert into detector_parameter(run_number, detector_name, parameter_id, parameter_value) "
+        "insert into run_parameter(run_number, detector_name, parameter_id, parameter_value) "
         "values ($1, $2, $3, $4)");
     stmt = uni_db->Statement(sql);
 
@@ -777,7 +777,7 @@ int UniDbRunParameter::SetInt(int parameter_value)
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "update detector_parameter "
+        "update run_parameter "
         "set parameter_value = $1 "
         "where run_number = $2 and detector_name = $3 and parameter_id = $4");
     TSQLStatement* stmt = uni_db->Statement(sql);
@@ -863,7 +863,7 @@ UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString
     Long_t size_parameter_value = sizeof(Double_t);
 
     sql = TString::Format(
-        "insert into detector_parameter(run_number, detector_name, parameter_id, parameter_value) "
+        "insert into run_parameter(run_number, detector_name, parameter_id, parameter_value) "
         "values ($1, $2, $3, $4)");
     stmt = uni_db->Statement(sql);
 
@@ -955,7 +955,7 @@ int UniDbRunParameter::SetDouble(double parameter_value)
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "update detector_parameter "
+        "update run_parameter "
         "set parameter_value = $1 "
         "where run_number = $2 and detector_name = $3 and parameter_id = $4");
     TSQLStatement* stmt = uni_db->Statement(sql);
@@ -1041,7 +1041,7 @@ UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString
     strcpy(p_parameter_value, parameter_value.Data());
 
     sql = TString::Format(
-        "insert into detector_parameter(run_number, detector_name, parameter_id, parameter_value) "
+        "insert into run_parameter(run_number, detector_name, parameter_id, parameter_value) "
         "values ($1, $2, $3, $4)");
     stmt = uni_db->Statement(sql);
 
@@ -1133,7 +1133,7 @@ int UniDbRunParameter::SetString(TString parameter_value)
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "update detector_parameter "
+        "update run_parameter "
         "set parameter_value = $1 "
         "where run_number = $2 and detector_name = $3 and parameter_id = $4");
     TSQLStatement* stmt = uni_db->Statement(sql);
@@ -1219,7 +1219,7 @@ UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
     sql = TString::Format(
-        "insert into detector_parameter(run_number, detector_name, parameter_id, parameter_value) "
+        "insert into run_parameter(run_number, detector_name, parameter_id, parameter_value) "
         "values ($1, $2, $3, $4)");
     stmt = uni_db->Statement(sql);
 
@@ -1315,7 +1315,7 @@ int UniDbRunParameter::SetIIArray(IIStructure* parameter_value, int element_coun
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "update detector_parameter "
+        "update run_parameter "
         "set parameter_value = $1 "
         "where run_number = $2 and detector_name = $3 and parameter_id = $4");
     TSQLStatement* stmt = uni_db->Statement(sql);

@@ -19,7 +19,7 @@ int AssignIIStructure(IIStructure* pIIArray, int start_index, int first_int, int
 }
 
 // macro for adding parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
-void add_complex_parameter_value()
+void add_parameter_value_complex()
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();

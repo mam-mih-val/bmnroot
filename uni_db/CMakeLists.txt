@@ -29,6 +29,7 @@ db_classes/UniDbRun.cxx
 db_classes/UniDbRunGeometry.cxx
 db_classes/UniDbRunParameter.cxx
 db_classes/UniDbSessionParameter.cxx
+db_classes/UniDbSessionDcParameter.cxx
 db_classes/UniDbParameter.cxx
 db_classes/UniDbShift.cxx
 db_classes/UniDbSimulationFile.cxx

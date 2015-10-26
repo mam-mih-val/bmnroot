@@ -1,7 +1,7 @@
 #include "../db_structures.h"
 
 // macro for getting parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
-void get_complex_parameter_value()
+void get_parameter_value_complex()
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();

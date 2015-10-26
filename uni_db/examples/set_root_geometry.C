@@ -1,5 +1,4 @@
 #include <stdio.h>
-
 // macro for writing ROOT file with detector geometry to the database
 void set_root_geometry(char* root_file_path, int start_run, int end_run)
 {

@@ -1,31 +1,33 @@
 // ----------------------------------------------------------------------
-//                    UniDbSessionParameter cxx file 
-//                      Generated 20-10-2015 
+//                    UniDbSessionDcParameter cxx file 
+//                      Generated 22-10-2015 
 // ----------------------------------------------------------------------
 
 #include "TSQLServer.h"
 #include "TSQLStatement.h"
 
-#include "UniDbSessionParameter.h"
+#include "UniDbSessionDcParameter.h"
 
 #include <iostream>
 using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbSessionParameter::UniDbSessionParameter(UniDbConnection* connUniDb, int session_number, TString detector_name, int parameter_id, unsigned char* parameter_value, Long_t size_parameter_value)
+UniDbSessionDcParameter::UniDbSessionDcParameter(UniDbConnection* connUniDb, int session_number, TString detector_name, int parameter_id, int dc_serial, int channel, unsigned char* parameter_value, Long_t size_parameter_value)
 {
 	connectionUniDb = connUniDb;
 
 	i_session_number = session_number;
 	str_detector_name = detector_name;
 	i_parameter_id = parameter_id;
+	i_dc_serial = dc_serial;
+	i_channel = channel;
 	blob_parameter_value = parameter_value;
 	sz_parameter_value = size_parameter_value;
 }
 
 // -----   Destructor   -------------------------------------------------
-UniDbSessionParameter::~UniDbSessionParameter()
+UniDbSessionDcParameter::~UniDbSessionDcParameter()
 {
 	if (connectionUniDb)
 		delete connectionUniDb;
@@ -34,7 +36,7 @@ UniDbSessionParameter::~UniDbSessionParameter()
 }
 
 // -----   Creating new record in class table ---------------------------
-UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session_number, TString detector_name, int parameter_id, unsigned char* parameter_value, Long_t size_parameter_value)
+UniDbSessionDcParameter* UniDbSessionDcParameter::CreateSessionDcParameter(int session_number, TString detector_name, int parameter_id, int dc_serial, int channel, unsigned char* parameter_value, Long_t size_parameter_value)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -42,15 +44,17 @@ UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"insert into session_parameter(session_number, detector_name, parameter_id, parameter_value) "
-		"values ($1, $2, $3, $4)");
+		"insert into session_dc_parameter(session_number, detector_name, parameter_id, dc_serial, channel, parameter_value) "
+		"values ($1, $2, $3, $4, $5, $6)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, session_number);
 	stmt->SetString(1, detector_name);
 	stmt->SetInt(2, parameter_id);
-	stmt->SetLargeObject(3, parameter_value, size_parameter_value, 0x4000000);
+	stmt->SetInt(3, dc_serial);
+	stmt->SetInt(4, channel);
+	stmt->SetLargeObject(5, parameter_value, size_parameter_value, 0x4000000);
 
 	// inserting new record to DB
 	if (!stmt->Process())
@@ -69,16 +73,20 @@ UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session
 	tmp_detector_name = detector_name;
 	int tmp_parameter_id;
 	tmp_parameter_id = parameter_id;
+	int tmp_dc_serial;
+	tmp_dc_serial = dc_serial;
+	int tmp_channel;
+	tmp_channel = channel;
 	unsigned char* tmp_parameter_value;
 	Long_t tmp_sz_parameter_value = size_parameter_value;
 	tmp_parameter_value = new unsigned char[tmp_sz_parameter_value];
 	memcpy(tmp_parameter_value, parameter_value, tmp_sz_parameter_value);
 
-	return new UniDbSessionParameter(connUniDb, tmp_session_number, tmp_detector_name, tmp_parameter_id, tmp_parameter_value, tmp_sz_parameter_value);
+	return new UniDbSessionDcParameter(connUniDb, tmp_session_number, tmp_detector_name, tmp_parameter_id, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value);
 }
 
 // -----   Get table record from database ---------------------------
-UniDbSessionParameter* UniDbSessionParameter::GetSessionParameter(int session_number, TString detector_name, int parameter_id)
+UniDbSessionDcParameter* UniDbSessionDcParameter::GetSessionDcParameter(int session_number, TString detector_name, int parameter_id, int dc_serial, int channel)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -86,9 +94,9 @@ UniDbSessionParameter* UniDbSessionParameter::GetSessionParameter(int session_nu
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select session_number, detector_name, parameter_id, parameter_value "
-		"from session_parameter "
-		"where session_number = %d and lower(detector_name) = lower('%s') and parameter_id = %d", session_number, detector_name.Data(), parameter_id);
+		"select session_number, detector_name, parameter_id, dc_serial, channel, parameter_value "
+		"from session_dc_parameter "
+		"where session_number = %d and lower(detector_name) = lower('%s') and parameter_id = %d and dc_serial = %d and channel = %d", session_number, detector_name.Data(), parameter_id, dc_serial, channel);
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	// get table record from DB
@@ -120,18 +128,22 @@ UniDbSessionParameter* UniDbSessionParameter::GetSessionParameter(int session_nu
 	tmp_detector_name = stmt->GetString(1);
 	int tmp_parameter_id;
 	tmp_parameter_id = stmt->GetInt(2);
+	int tmp_dc_serial;
+	tmp_dc_serial = stmt->GetInt(3);
+	int tmp_channel;
+	tmp_channel = stmt->GetInt(4);
 	unsigned char* tmp_parameter_value;
 	tmp_parameter_value = NULL;
 	Long_t tmp_sz_parameter_value = 0;
-	stmt->GetLargeObject(3, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
+	stmt->GetLargeObject(5, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 
 	delete stmt;
 
-	return new UniDbSessionParameter(connUniDb, tmp_session_number, tmp_detector_name, tmp_parameter_id, tmp_parameter_value, tmp_sz_parameter_value);
+	return new UniDbSessionDcParameter(connUniDb, tmp_session_number, tmp_detector_name, tmp_parameter_id, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value);
 }
 
 // -----   Delete record from class table ---------------------------
-int UniDbSessionParameter::DeleteSessionParameter(int session_number, TString detector_name, int parameter_id)
+int UniDbSessionDcParameter::DeleteSessionDcParameter(int session_number, TString detector_name, int parameter_id, int dc_serial, int channel)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -139,14 +151,16 @@ int UniDbSessionParameter::DeleteSessionParameter(int session_number, TString de
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"delete from session_parameter "
-		"where session_number = $1 and lower(detector_name) = lower($2) and parameter_id = $3");
+		"delete from session_dc_parameter "
+		"where session_number = $1 and lower(detector_name) = lower($2) and parameter_id = $3 and dc_serial = $4 and channel = $5");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, session_number);
 	stmt->SetString(1, detector_name);
 	stmt->SetInt(2, parameter_id);
+	stmt->SetInt(3, dc_serial);
+	stmt->SetInt(4, channel);
 
 	// delete table record from DB
 	if (!stmt->Process())
@@ -164,7 +178,7 @@ int UniDbSessionParameter::DeleteSessionParameter(int session_number, TString de
 }
 
 // -----   Print all table records ---------------------------------
-int UniDbSessionParameter::PrintAll()
+int UniDbSessionDcParameter::PrintAll()
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -172,8 +186,8 @@ int UniDbSessionParameter::PrintAll()
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select session_number, detector_name, parameter_id, parameter_value "
-		"from session_parameter");
+		"select session_number, detector_name, parameter_id, dc_serial, channel, parameter_value "
+		"from session_dc_parameter");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	// get table record from DB
@@ -190,7 +204,7 @@ int UniDbSessionParameter::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'session_parameter'"<<endl;
+	cout<<"Table 'session_dc_parameter'"<<endl;
 	while (stmt->NextResultRow())
 	{
 		cout<<". session_number: ";
@@ -199,10 +213,14 @@ int UniDbSessionParameter::PrintAll()
 		cout<<(stmt->GetString(1));
 		cout<<". parameter_id: ";
 		cout<<(stmt->GetInt(2));
+		cout<<". dc_serial: ";
+		cout<<(stmt->GetInt(3));
+		cout<<". channel: ";
+		cout<<(stmt->GetInt(4));
 		cout<<". parameter_value: ";
 		unsigned char* tmp_parameter_value = NULL;
 		Long_t tmp_sz_parameter_value=0;
-		stmt->GetLargeObject(3, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
+		stmt->GetLargeObject(5, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 		cout<<(void*)tmp_parameter_value<<", binary size: "<<tmp_sz_parameter_value;
 		cout<<endl;
 	}
@@ -215,7 +233,7 @@ int UniDbSessionParameter::PrintAll()
 
 
 // Setters functions
-int UniDbSessionParameter::SetSessionNumber(int session_number)
+int UniDbSessionDcParameter::SetSessionNumber(int session_number)
 {
 	if (!connectionUniDb)
 	{
@@ -226,9 +244,9 @@ int UniDbSessionParameter::SetSessionNumber(int session_number)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update session_parameter "
+		"update session_dc_parameter "
 		"set session_number = $1 "
-		"where session_number = $2 and detector_name = $3 and parameter_id = $4");
+		"where session_number = $2 and detector_name = $3 and parameter_id = $4 and dc_serial = $5 and channel = $6");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
@@ -236,6 +254,8 @@ int UniDbSessionParameter::SetSessionNumber(int session_number)
 	stmt->SetInt(1, i_session_number);
 	stmt->SetString(2, str_detector_name);
 	stmt->SetInt(3, i_parameter_id);
+	stmt->SetInt(4, i_dc_serial);
+	stmt->SetInt(5, i_channel);
 
 	// write new value to database
 	if (!stmt->Process())
@@ -252,7 +272,7 @@ int UniDbSessionParameter::SetSessionNumber(int session_number)
 	return 0;
 }
 
-int UniDbSessionParameter::SetDetectorName(TString detector_name)
+int UniDbSessionDcParameter::SetDetectorName(TString detector_name)
 {
 	if (!connectionUniDb)
 	{
@@ -263,9 +283,9 @@ int UniDbSessionParameter::SetDetectorName(TString detector_name)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update session_parameter "
+		"update session_dc_parameter "
 		"set detector_name = $1 "
-		"where session_number = $2 and detector_name = $3 and parameter_id = $4");
+		"where session_number = $2 and detector_name = $3 and parameter_id = $4 and dc_serial = $5 and channel = $6");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
@@ -273,6 +293,8 @@ int UniDbSessionParameter::SetDetectorName(TString detector_name)
 	stmt->SetInt(1, i_session_number);
 	stmt->SetString(2, str_detector_name);
 	stmt->SetInt(3, i_parameter_id);
+	stmt->SetInt(4, i_dc_serial);
+	stmt->SetInt(5, i_channel);
 
 	// write new value to database
 	if (!stmt->Process())
@@ -289,7 +311,7 @@ int UniDbSessionParameter::SetDetectorName(TString detector_name)
 	return 0;
 }
 
-int UniDbSessionParameter::SetParameterId(int parameter_id)
+int UniDbSessionDcParameter::SetParameterId(int parameter_id)
 {
 	if (!connectionUniDb)
 	{
@@ -300,9 +322,9 @@ int UniDbSessionParameter::SetParameterId(int parameter_id)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update session_parameter "
+		"update session_dc_parameter "
 		"set parameter_id = $1 "
-		"where session_number = $2 and detector_name = $3 and parameter_id = $4");
+		"where session_number = $2 and detector_name = $3 and parameter_id = $4 and dc_serial = $5 and channel = $6");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
@@ -310,6 +332,8 @@ int UniDbSessionParameter::SetParameterId(int parameter_id)
 	stmt->SetInt(1, i_session_number);
 	stmt->SetString(2, str_detector_name);
 	stmt->SetInt(3, i_parameter_id);
+	stmt->SetInt(4, i_dc_serial);
+	stmt->SetInt(5, i_channel);
 
 	// write new value to database
 	if (!stmt->Process())
@@ -326,7 +350,7 @@ int UniDbSessionParameter::SetParameterId(int parameter_id)
 	return 0;
 }
 
-int UniDbSessionParameter::SetParameterValue(unsigned char* parameter_value, Long_t size_parameter_value)
+int UniDbSessionDcParameter::SetDcSerial(int dc_serial)
 {
 	if (!connectionUniDb)
 	{
@@ -337,9 +361,87 @@ int UniDbSessionParameter::SetParameterValue(unsigned char* parameter_value, Lon
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update session_parameter "
+		"update session_dc_parameter "
+		"set dc_serial = $1 "
+		"where session_number = $2 and detector_name = $3 and parameter_id = $4 and dc_serial = $5 and channel = $6");
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	stmt->NextIteration();
+	stmt->SetInt(0, dc_serial);
+	stmt->SetInt(1, i_session_number);
+	stmt->SetString(2, str_detector_name);
+	stmt->SetInt(3, i_parameter_id);
+	stmt->SetInt(4, i_dc_serial);
+	stmt->SetInt(5, i_channel);
+
+	// write new value to database
+	if (!stmt->Process())
+	{
+		cout<<"Error: updating the record has been failed"<<endl;
+
+		delete stmt;
+		return -2;
+	}
+
+	i_dc_serial = dc_serial;
+
+	delete stmt;
+	return 0;
+}
+
+int UniDbSessionDcParameter::SetChannel(int channel)
+{
+	if (!connectionUniDb)
+	{
+		cout<<"Connection object is null"<<endl;
+		return -1;
+	}
+
+	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"update session_dc_parameter "
+		"set channel = $1 "
+		"where session_number = $2 and detector_name = $3 and parameter_id = $4 and dc_serial = $5 and channel = $6");
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	stmt->NextIteration();
+	stmt->SetInt(0, channel);
+	stmt->SetInt(1, i_session_number);
+	stmt->SetString(2, str_detector_name);
+	stmt->SetInt(3, i_parameter_id);
+	stmt->SetInt(4, i_dc_serial);
+	stmt->SetInt(5, i_channel);
+
+	// write new value to database
+	if (!stmt->Process())
+	{
+		cout<<"Error: updating the record has been failed"<<endl;
+
+		delete stmt;
+		return -2;
+	}
+
+	i_channel = channel;
+
+	delete stmt;
+	return 0;
+}
+
+int UniDbSessionDcParameter::SetParameterValue(unsigned char* parameter_value, Long_t size_parameter_value)
+{
+	if (!connectionUniDb)
+	{
+		cout<<"Connection object is null"<<endl;
+		return -1;
+	}
+
+	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"update session_dc_parameter "
 		"set parameter_value = $1 "
-		"where session_number = $2 and detector_name = $3 and parameter_id = $4");
+		"where session_number = $2 and detector_name = $3 and parameter_id = $4 and dc_serial = $5 and channel = $6");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
@@ -347,6 +449,8 @@ int UniDbSessionParameter::SetParameterValue(unsigned char* parameter_value, Lon
 	stmt->SetInt(1, i_session_number);
 	stmt->SetString(2, str_detector_name);
 	stmt->SetInt(3, i_parameter_id);
+	stmt->SetInt(4, i_dc_serial);
+	stmt->SetInt(5, i_channel);
 
 	// write new value to database
 	if (!stmt->Process())
@@ -368,17 +472,17 @@ int UniDbSessionParameter::SetParameterValue(unsigned char* parameter_value, Lon
 }
 
 // -----   Print current record ---------------------------------------
-void UniDbSessionParameter::Print()
+void UniDbSessionDcParameter::Print()
 {
-	cout<<"Table 'session_parameter'";
-	cout<<". session_number: "<<i_session_number<<". detector_name: "<<str_detector_name<<". parameter_id: "<<i_parameter_id<<". parameter_value: "<<(void*)blob_parameter_value<<", binary size: "<<sz_parameter_value<<endl;
+	cout<<"Table 'session_dc_parameter'";
+	cout<<". session_number: "<<i_session_number<<". detector_name: "<<str_detector_name<<". parameter_id: "<<i_parameter_id<<". dc_serial: "<<i_dc_serial<<". channel: "<<i_channel<<". parameter_value: "<<(void*)blob_parameter_value<<", binary size: "<<sz_parameter_value<<endl;
 
 	return;
 }
 /* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
 
-// get detector parameter by session number, detector name and parameter name
-UniDbSessionParameter* UniDbSessionParameter::GetSessionParameter(int session_number, TString detector_name, TString parameter_name)
+// get detector parameter by session number, detector name, parameter name, TDC/ADC serial and channel number
+UniDbSessionDcParameter* UniDbSessionDcParameter::GetSessionDcParameter(int session_number, TString detector_name, TString parameter_name, int dc_serial, int channel)
 {
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00) return 0x00;
@@ -386,9 +490,9 @@ UniDbSessionParameter* UniDbSessionParameter::GetSessionParameter(int session_nu
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "select session_number, detector_name, p.parameter_id, parameter_value "
-        "from session_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id "
-        "where session_number = %d and lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s')", session_number, detector_name.Data(), parameter_name.Data());
+        "select session_number, detector_name, p.parameter_id, dc_serial, channel, parameter_value "
+        "from session_dc_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id "
+        "where session_number = %d and lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s') and dc_serial = %d and channel = %d", session_number, detector_name.Data(), parameter_name.Data(), dc_serial, channel);
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     // get table record from DB
@@ -420,17 +524,22 @@ UniDbSessionParameter* UniDbSessionParameter::GetSessionParameter(int session_nu
     tmp_detector_name = stmt->GetString(1);
     int tmp_parameter_id;
     tmp_parameter_id = stmt->GetInt(2);
-    unsigned char* tmp_parameter_value = NULL;
+    int tmp_dc_serial;
+    tmp_dc_serial = stmt->GetInt(3);
+    int tmp_channel;
+    tmp_channel = stmt->GetInt(4);
+    unsigned char* tmp_parameter_value;
+    tmp_parameter_value = NULL;
     Long_t tmp_sz_parameter_value = 0;
-    stmt->GetLargeObject(3, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
+    stmt->GetLargeObject(5, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 
     delete stmt;
 
-    return new UniDbSessionParameter(connUniDb, tmp_session_number, tmp_detector_name, tmp_parameter_id, tmp_parameter_value, tmp_sz_parameter_value);
+    return new UniDbSessionDcParameter(connUniDb, tmp_session_number, tmp_detector_name, tmp_parameter_id, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value);
 }
 
 // common function for creating parameter
-UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session_number, TString detector_name, TString parameter_name, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
+UniDbSessionDcParameter* UniDbSessionDcParameter::CreateSessionDcParameter(int session_number, TString detector_name, TString parameter_name, int dc_serial, int channel, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
 {
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00) return 0x00;
@@ -445,16 +554,19 @@ UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session
         return 0x00;
     }
 
+    // insert new parameter value to the database
     TString sql = TString::Format(
-        "insert into session_parameter(session_number, detector_name, parameter_id, parameter_value) "
-        "values ($1, $2, $3, $4)");
+        "insert into session_dc_parameter(session_number, detector_name, parameter_id, dc_serial, channel, parameter_value) "
+        "values ($1, $2, $3, $4, $5, $6)");
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     stmt->NextIteration();
     stmt->SetInt(0, session_number);
     stmt->SetString(1, detector_name);
     stmt->SetInt(2, parameter_id);
-    stmt->SetLargeObject(3, (void*)p_parameter_value, size_parameter_value);
+    stmt->SetInt(3, dc_serial);
+    stmt->SetInt(4, channel);
+    stmt->SetLargeObject(5, (void*)p_parameter_value, size_parameter_value);
     //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
 
     // inserting new record to DB
@@ -468,17 +580,17 @@ UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session
 
     delete stmt;
 
-    return new UniDbSessionParameter(connUniDb, session_number, detector_name, parameter_id, p_parameter_value, size_parameter_value);
+    return new UniDbSessionDcParameter(connUniDb, session_number, detector_name, parameter_id, dc_serial, channel, p_parameter_value, size_parameter_value);
 }
 
-// create boolean detector parameter
-UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session_number, TString detector_name, TString parameter_name, bool parameter_value)
+// create boolean TDC parameter for one channel
+UniDbSessionDcParameter* UniDbSessionDcParameter::CreateSessionDcParameter(int session_number, TString detector_name, TString parameter_name, int dc_serial, int channel, bool parameter_value)
 {
     Long_t size_parameter_value = sizeof(bool);
     bool* p_parameter_value = new bool[1];
     p_parameter_value[0] = parameter_value;
 
-    UniDbSessionParameter* pSessionParameter = UniDbSessionParameter::CreateSessionParameter(session_number, detector_name, parameter_name, (unsigned char*) p_parameter_value, size_parameter_value, BoolType);
+    UniDbSessionDcParameter* pSessionParameter = UniDbSessionDcParameter::CreateSessionDcParameter(session_number, detector_name, parameter_name, dc_serial, channel, (unsigned char*) p_parameter_value, size_parameter_value, BoolType);
 
     if (pSessionParameter == 0x00)
         delete [] p_parameter_value;
@@ -486,14 +598,14 @@ UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session
     return pSessionParameter;
 }
 
-// create integer detector parameter
-UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session_number, TString detector_name, TString parameter_name, int parameter_value)
+// create int TDC parameter for one channel
+UniDbSessionDcParameter* UniDbSessionDcParameter::CreateSessionDcParameter(int run_number, TString detector_name, TString parameter_name, int dc_serial, int channel, int parameter_value)
 {
     Long_t size_parameter_value = sizeof(Int_t);
     Int_t* p_parameter_value = new Int_t[1];
     p_parameter_value[0] = parameter_value;
 
-    UniDbSessionParameter* pSessionParameter = UniDbSessionParameter::CreateSessionParameter(session_number, detector_name, parameter_name, (unsigned char*) p_parameter_value, size_parameter_value, IntType);
+    UniDbSessionDcParameter* pSessionParameter = UniDbSessionDcParameter::CreateSessionDcParameter(run_number, detector_name, parameter_name, dc_serial, channel, (unsigned char*) p_parameter_value, size_parameter_value, IntType);
 
     if (pSessionParameter == 0x00)
         delete [] p_parameter_value;
@@ -502,13 +614,13 @@ UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session
 }
 
 // create double detector parameter
-UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session_number, TString detector_name, TString parameter_name, double parameter_value)
+UniDbSessionDcParameter* UniDbSessionDcParameter::CreateSessionDcParameter(int run_number, TString detector_name, TString parameter_name, int dc_serial, int channel, double parameter_value)
 {
     Long_t size_parameter_value = sizeof(Double_t);
     Double_t* p_parameter_value = new Double_t[1];
     p_parameter_value[0] = parameter_value;
 
-    UniDbSessionParameter* pSessionParameter = UniDbSessionParameter::CreateSessionParameter(session_number, detector_name, parameter_name, (unsigned char*) p_parameter_value, size_parameter_value, DoubleType);
+    UniDbSessionDcParameter* pSessionParameter = UniDbSessionDcParameter::CreateSessionDcParameter(run_number, detector_name, parameter_name, dc_serial, channel, (unsigned char*) p_parameter_value, size_parameter_value, DoubleType);
 
     if (pSessionParameter == 0x00)
         delete [] p_parameter_value;
@@ -517,13 +629,13 @@ UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session
 }
 
 // create string detector parameter
-UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session_number, TString detector_name, TString parameter_name, TString parameter_value)
+UniDbSessionDcParameter* UniDbSessionDcParameter::CreateSessionDcParameter(int run_number, TString detector_name, TString parameter_name, int dc_serial, int channel, TString parameter_value)
 {
     Long_t size_parameter_value = parameter_value.Length()+1;
     char* p_parameter_value = new char[size_parameter_value];
     strcpy(p_parameter_value, parameter_value.Data());
 
-    UniDbSessionParameter* pSessionParameter = UniDbSessionParameter::CreateSessionParameter(session_number, detector_name, parameter_name, (unsigned char*) p_parameter_value, size_parameter_value, StringType);
+    UniDbSessionDcParameter* pSessionParameter = UniDbSessionDcParameter::CreateSessionDcParameter(run_number, detector_name, parameter_name, dc_serial, channel, (unsigned char*) p_parameter_value, size_parameter_value, StringType);
 
     if (pSessionParameter == 0x00)
         delete [] p_parameter_value;
@@ -532,13 +644,13 @@ UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session
 }
 
 // create Integer Array detector parameter
-UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session_number, TString detector_name, TString parameter_name, int* parameter_value, int element_count)
+UniDbSessionDcParameter* UniDbSessionDcParameter::CreateSessionDcParameter(int run_number, TString detector_name, TString parameter_name, int dc_serial, int channel, int* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(int);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
-    UniDbSessionParameter* pSessionParameter = UniDbSessionParameter::CreateSessionParameter(session_number, detector_name, parameter_name, p_parameter_value, size_parameter_value, IntArrayType);
+    UniDbSessionDcParameter* pSessionParameter = UniDbSessionDcParameter::CreateSessionDcParameter(run_number, detector_name, parameter_name, dc_serial, channel, p_parameter_value, size_parameter_value, IntArrayType);
 
     if (pSessionParameter == 0x00)
         delete [] p_parameter_value;
@@ -547,13 +659,13 @@ UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session
 }
 
 // create Double Array detector parameter
-UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session_number, TString detector_name, TString parameter_name, double* parameter_value, int element_count)
+UniDbSessionDcParameter* UniDbSessionDcParameter::CreateSessionDcParameter(int run_number, TString detector_name, TString parameter_name, int dc_serial, int channel, double* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(double);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
-    UniDbSessionParameter* pSessionParameter = UniDbSessionParameter::CreateSessionParameter(session_number, detector_name, parameter_name, p_parameter_value, size_parameter_value, DoubleArrayType);
+    UniDbSessionDcParameter* pSessionParameter = UniDbSessionDcParameter::CreateSessionDcParameter(run_number, detector_name, parameter_name, dc_serial, channel, p_parameter_value, size_parameter_value, DoubleArrayType);
 
     if (pSessionParameter == 0x00)
         delete [] p_parameter_value;
@@ -562,13 +674,13 @@ UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session
 }
 
 // create Int+Int Array detector parameter
-UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session_number, TString detector_name, TString parameter_name, IIStructure* parameter_value, int element_count)
+UniDbSessionDcParameter* UniDbSessionDcParameter::CreateSessionDcParameter(int run_number, TString detector_name, TString parameter_name, int dc_serial, int channel, IIStructure* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(IIStructure);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
-    UniDbSessionParameter* pSessionParameter = UniDbSessionParameter::CreateSessionParameter(session_number, detector_name, parameter_name, p_parameter_value, size_parameter_value, IIArrayType);
+    UniDbSessionDcParameter* pSessionParameter = UniDbSessionDcParameter::CreateSessionDcParameter(run_number, detector_name, parameter_name, dc_serial, channel, p_parameter_value, size_parameter_value, IIArrayType);
 
     if (pSessionParameter == 0x00)
         delete [] p_parameter_value;
@@ -577,7 +689,7 @@ UniDbSessionParameter* UniDbSessionParameter::CreateSessionParameter(int session
 }
 
 // common function for getting parameter
-unsigned char* UniDbSessionParameter::GetUNC(enumParameterType enum_parameter_type)
+unsigned char* UniDbSessionDcParameter::GetUNC(enumParameterType enum_parameter_type)
 {
     if (!connectionUniDb)
     {
@@ -625,32 +737,32 @@ unsigned char* UniDbSessionParameter::GetUNC(enumParameterType enum_parameter_ty
     return blob_parameter_value;
 }
 
-// get boolean value of detector parameter (for current session, detector and parameter)
-bool UniDbSessionParameter::GetBool()
+// get parameter value (bool) for one channel (for current run, detector, TDC/ADC and channel)
+bool UniDbSessionDcParameter::GetBool()
 {
     return *((bool*) GetUNC(BoolType));
 }
 
-// get integer value of detector parameter (for current session, detector and parameter)
-int UniDbSessionParameter::GetInt()
+// get parameter value (int) for one channel (for current run, detector, TDC/ADC and channel)
+int UniDbSessionDcParameter::GetInt()
 {
     return *((int*) GetUNC(IntType));
 }
 
-// get double value of detector parameter (for current session, detector and parameter)
-double UniDbSessionParameter::GetDouble()
+// get parameter value (double) for one channel (for current run, detector, TDC/ADC and channel)
+double UniDbSessionDcParameter::GetDouble()
 {
     return *((double*) GetUNC(DoubleType));
 }
 
-// get string value of detector parameter (for current session, detector and parameter)
-TString UniDbSessionParameter::GetString()
+// get parameter value (string) for one channel (for current run, detector, TDC/ADC and channel)
+TString UniDbSessionDcParameter::GetString()
 {
     return (char*) GetUNC(StringType);
 }
 
-// get Integer array for detector parameter (for current session, detector and parameter)
-int UniDbSessionParameter::GetIntArray(int*& parameter_value, int& element_count)
+// get parameter value (Integer Array) for one channel (for current run, detector, TDC/ADC and channel)
+int UniDbSessionDcParameter::GetIntArray(int*& parameter_value, int& element_count)
 {
     unsigned char* p_parameter_value = GetUNC(IntArrayType);
     if (p_parameter_value == NULL)
@@ -663,8 +775,8 @@ int UniDbSessionParameter::GetIntArray(int*& parameter_value, int& element_count
     return 0;
 }
 
-// get Double array for detector parameter (for current session, detector and parameter)
-int UniDbSessionParameter::GetDoubleArray(double*& parameter_value, int& element_count)
+// get parameter value (Double Array) for one channel (for current run, detector, TDC/ADC and channel)
+int UniDbSessionDcParameter::GetDoubleArray(double*& parameter_value, int& element_count)
 {
     unsigned char* p_parameter_value = GetUNC(DoubleArrayType);
     if (p_parameter_value == NULL)
@@ -677,8 +789,8 @@ int UniDbSessionParameter::GetDoubleArray(double*& parameter_value, int& element
     return 0;
 }
 
-// get Int+Int array for detector parameter (for current session, detector and parameter)
-int UniDbSessionParameter::GetIIArray(IIStructure*& parameter_value, int& element_count)
+// get parameter value (Int+Int Array) for one channel (for current run, detector, TDC/ADC and channel)
+int UniDbSessionDcParameter::GetIIArray(IIStructure*& parameter_value, int& element_count)
 {
     unsigned char* p_parameter_value = GetUNC(IIArrayType);
     if (p_parameter_value == NULL)
@@ -692,7 +804,7 @@ int UniDbSessionParameter::GetIIArray(IIStructure*& parameter_value, int& elemen
 }
 
 // common function for setting parameter
-int UniDbSessionParameter::SetUNC(unsigned char* p_parameter_value, Long_t size_parameter_value)
+int UniDbSessionDcParameter::SetUNC(unsigned char* p_parameter_value, Long_t size_parameter_value)
 {
     if (!connectionUniDb)
     {
@@ -703,9 +815,9 @@ int UniDbSessionParameter::SetUNC(unsigned char* p_parameter_value, Long_t size_
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "update session_parameter "
+        "update session_dc_parameter "
         "set parameter_value = $1 "
-        "where session_number = $2 and detector_name = $3 and parameter_id = $4");
+        "where session_number = $2 and detector_name = $3 and parameter_id = $4 and dc_serial = $5 and channel = $6");
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     stmt->NextIteration();
@@ -713,6 +825,8 @@ int UniDbSessionParameter::SetUNC(unsigned char* p_parameter_value, Long_t size_
     stmt->SetInt(1, i_session_number);
     stmt->SetString(2, str_detector_name);
     stmt->SetInt(3, i_parameter_id);
+    stmt->SetInt(4, i_dc_serial);
+    stmt->SetInt(5, i_channel);
 
     // write new value to database
     if (!stmt->Process())
@@ -730,8 +844,8 @@ int UniDbSessionParameter::SetUNC(unsigned char* p_parameter_value, Long_t size_
     return 0;
 }
 
-// set boolean value to detector parameter
-int UniDbSessionParameter::SetBool(bool parameter_value)
+// set boolean parameter value for one channel TDC/ADC
+int UniDbSessionDcParameter::SetBool(bool parameter_value)
 {
     Long_t size_parameter_value = sizeof(bool);
     bool* p_parameter_value = new bool[1];
@@ -747,8 +861,8 @@ int UniDbSessionParameter::SetBool(bool parameter_value)
     return 0;
 }
 
-// set integer value to detector parameter
-int UniDbSessionParameter::SetInt(int parameter_value)
+// set integer parameter value for one channel TDC/ADC
+int UniDbSessionDcParameter::SetInt(int parameter_value)
 {
     Long_t size_parameter_value = sizeof(Int_t);
     Int_t* p_parameter_value = new Int_t[1];
@@ -764,8 +878,8 @@ int UniDbSessionParameter::SetInt(int parameter_value)
     return 0;
 }
 
-// set double value to detector parameter
-int UniDbSessionParameter::SetDouble(double parameter_value)
+// set double parameter value for one channel TDC/ADC
+int UniDbSessionDcParameter::SetDouble(double parameter_value)
 {
     Long_t size_parameter_value = sizeof(Double_t);
     Double_t* p_parameter_value = new Double_t[1];
@@ -781,8 +895,8 @@ int UniDbSessionParameter::SetDouble(double parameter_value)
     return 0;
 }
 
-// set string value to detector parameter
-int UniDbSessionParameter::SetString(TString parameter_value)
+// set string parameter value for one channel TDC/ADC
+int UniDbSessionDcParameter::SetString(TString parameter_value)
 {
     Long_t size_parameter_value = parameter_value.Length()+1;
     char* p_parameter_value = new char[size_parameter_value];
@@ -798,8 +912,8 @@ int UniDbSessionParameter::SetString(TString parameter_value)
     return 0;
 }
 
-// set Integer array for detector parameter
-int UniDbSessionParameter::SetIntArray(int* parameter_value, int element_count)
+// set parameter value (Integer Array) for one channel TDC/ADC
+int UniDbSessionDcParameter::SetIntArray(int* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(int);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
@@ -815,8 +929,8 @@ int UniDbSessionParameter::SetIntArray(int* parameter_value, int element_count)
     return 0;
 }
 
-// set Double array for detector parameter
-int UniDbSessionParameter::SetDoubleArray(double* parameter_value, int element_count)
+// set parameter value (Double Array) for one channel TDC/ADC
+int UniDbSessionDcParameter::SetDoubleArray(double* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(double);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
@@ -832,8 +946,8 @@ int UniDbSessionParameter::SetDoubleArray(double* parameter_value, int element_c
     return 0;
 }
 
-// set Int+Int array for detector parameter
-int UniDbSessionParameter::SetIIArray(IIStructure* parameter_value, int element_count)
+// set Int+Int parameter value for one channel TDC/ADC
+int UniDbSessionDcParameter::SetIIArray(IIStructure* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(IIStructure);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
@@ -850,4 +964,4 @@ int UniDbSessionParameter::SetIIArray(IIStructure* parameter_value, int element_
 }
 
 // -------------------------------------------------------------------
-ClassImp(UniDbSessionParameter);
+ClassImp(UniDbSessionDcParameter);

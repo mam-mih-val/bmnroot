@@ -18,6 +18,7 @@
 #pragma link C++ class UniDbRunGeometry+;
 #pragma link C++ class UniDbRunParameter+;
 #pragma link C++ class UniDbSessionParameter+;
+#pragma link C++ class UniDbSessionDcParameter+;
 #pragma link C++ class UniDbParameter+;
 #pragma link C++ class UniDbShift+;
 #pragma link C++ class UniDbSimulationFile+;

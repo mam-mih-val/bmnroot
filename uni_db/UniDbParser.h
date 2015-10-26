@@ -13,14 +13,16 @@ struct structParseRow
     bool isParse;
     int iStartIndex;
     TString strParseType;
+    TString strDelimiter;
 
-    structParseRow(TString column_name, TString statement_type, bool is_parse = false, int start_index = 0, TString parse_type = "")
+    structParseRow(TString column_name, TString statement_type, bool is_parse = false, int start_index = 0, TString parse_type = "", TString delimiter = "")
     {
         strColumnName = column_name;
         strStatementType = statement_type;
         isParse = is_parse;
         iStartIndex = start_index;
         strParseType = parse_type;
+        strDelimiter = delimiter;
     }
 };
 
@@ -54,7 +56,7 @@ struct structParseSchema
 class UniDbParser
 {
  public:
-    int ParseXml2Db(TString xmlName, TString schemaPath);
+    int ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate = false);
     int ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate = false);
     int ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate = false);
     int ParseTxtNoise2Db(TString txtName, TString schemaPath);

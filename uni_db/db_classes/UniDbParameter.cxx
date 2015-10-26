@@ -426,5 +426,46 @@ void UniDbParameter::Print()
 }
 /* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
 
+bool UniDbParameter::CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumParameterType enum_parameter_type, int& parameter_id)
+{
+    // get parameter object from 'parameter_' table
+    TString sql = TString::Format(
+        "select parameter_id, parameter_name, parameter_type "
+        "from parameter_ "
+        "where lower(parameter_name) = lower('%s')", parameter_name.Data());
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
+        delete stmt;
+        return false;
+    }
+
+    stmt->StoreResult();
+
+    // extract row with parameter
+    if (!stmt->NextResultRow())
+    {
+        cout<<"Error: the parameter with name '"<<parameter_name<<"' wasn't found"<<endl;
+        delete stmt;
+        return false;
+    }
+
+    parameter_id = stmt->GetInt(0);
+    int parameter_type = stmt->GetInt(2);
+
+    delete stmt;
+
+    if (parameter_type != enum_parameter_type)
+    {
+        cout<<"Error: the parameter with name '"<<parameter_name<<"' isn't the same type"<<endl;
+        return false;
+    }
+
+    return true;
+}
+
 // -------------------------------------------------------------------
 ClassImp(UniDbParameter);

@@ -1,4 +1,4 @@
-/ macro for setting 'on' detectors for all runs
+// macro for setting 'on' detectors for all runs
 void set_detector_run_on()
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");

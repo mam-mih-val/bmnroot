@@ -80,6 +80,13 @@ class UniDbRunParameter
     /// get detector parameter by run number, detector name and parameter name
     static UniDbRunParameter* GetRunParameter(int run_number, TString detector_name, TString parameter_name);
 
+    // common function for creating parameter
+    static UniDbRunParameter* CreateRunParameter(int run_number, TString detector_name, TString parameter_name, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type);
+    // common function for getting parameter
+    unsigned char* GetUNC(enumParameterType enum_parameter_type);
+    // common function for setting parameter
+    int SetUNC(unsigned char* p_parameter_value, Long_t size_parameter_value);
+
     /// add new record - detector parameter value as BOOL
     static UniDbRunParameter* CreateRunParameter(int run_number, TString detector_name, TString parameter_name, bool parameter_value);
     /// add new records - detector parameter value as BOOL for run range
@@ -109,6 +116,20 @@ class UniDbRunParameter
     TString GetString();
     /// set string value to parameter
     int SetString(TString parameter_value);
+
+    /// add new record - detector parameter value as Integer Array
+    static UniDbRunParameter* CreateRunParameter(int run_number, TString detector_name, TString parameter_name, int* parameter_value, int element_count);
+    /// get Integer Array for parameter (for current run, detector and parameter)
+    int GetIntArray(int*& parameter_value, int& element_count);
+    /// set Integer Array array for parameter
+    int SetIntArray(int* parameter_value, int element_count);
+
+    /// add new record - detector parameter value as Double Array
+    static UniDbRunParameter* CreateRunParameter(int run_number, TString detector_name, TString parameter_name, double* parameter_value, int element_count);
+    /// get Double Array for parameter (for current run, detector and parameter)
+    int GetDoubleArray(double*& parameter_value, int& element_count);
+    /// set Double Array array for parameter
+    int SetDoubleArray(double* parameter_value, int element_count);
 
     /// add new record - detector parameter value as Int+Int Array (e.g. "noise" - Slot:Channel)
     static UniDbRunParameter* CreateRunParameter(int run_number, TString detector_name, TString parameter_name, IIStructure* parameter_value, int element_count);

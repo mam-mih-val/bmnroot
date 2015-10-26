@@ -429,71 +429,32 @@ UniDbRunParameter* UniDbRunParameter::GetRunParameter(int run_number, TString de
     return new UniDbRunParameter(connUniDb, tmp_run_number, tmp_detector_name, tmp_parameter_id, tmp_parameter_value, tmp_sz_parameter_value);
 }
 
-// create boolean detector parameter
-UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString detector_name, TString parameter_name, bool parameter_value)
+// common function for creating parameter
+UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString detector_name, TString parameter_name, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
 {
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00) return 0x00;
 
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
-    // get parameter object from 'parameter_' table
+    int parameter_id = -1;
+    bool res_code = UniDbParameter::CheckAndGetParameterID(uni_db, parameter_name, enum_parameter_type, parameter_id);
+    if (!res_code)
+    {
+        delete connUniDb;
+        return 0x00;
+    }
+
     TString sql = TString::Format(
-        "select parameter_id, parameter_name, parameter_type "
-        "from parameter_ "
-        "where lower(parameter_name) = lower('%s')", parameter_name.Data());
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    // get table record from DB
-    if (!stmt->Process())
-    {
-        cout<<"Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
-
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
-    }
-
-    stmt->StoreResult();
-
-    // extract row with parameter
-    if (!stmt->NextResultRow())
-    {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' wasn't found"<<endl;
-
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
-    }
-
-    int parameter_id = stmt->GetInt(0);
-    int parameter_type = stmt->GetInt(2);
-
-    delete stmt;
-
-    // if parameter - not boolean type
-    if (parameter_type != BoolType)
-    {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' isn't boolean type"<<endl;
-
-        delete connUniDb;
-        return 0x00;
-    }
-
-    bool* p_parameter_value = new bool[1];
-    p_parameter_value[0] = parameter_value;
-    Long_t size_parameter_value = sizeof(bool);
-
-    sql = TString::Format(
         "insert into run_parameter(run_number, detector_name, parameter_id, parameter_value) "
         "values ($1, $2, $3, $4)");
-    stmt = uni_db->Statement(sql);
+    TSQLStatement* stmt = uni_db->Statement(sql);
 
     stmt->NextIteration();
     stmt->SetInt(0, run_number);
     stmt->SetString(1, detector_name);
     stmt->SetInt(2, parameter_id);
-    stmt->SetLargeObject(3, p_parameter_value, size_parameter_value);
+    stmt->SetLargeObject(3, (void*)p_parameter_value, size_parameter_value);
     //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
 
     // inserting new record to DB
@@ -502,15 +463,30 @@ UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString
         cout<<"Error: inserting new parameter value to DB has been failed"<<endl;
         delete stmt;
         delete connUniDb;
-        delete [] p_parameter_value;
         return 0x00;
     }
 
     delete stmt;
 
-    return new UniDbRunParameter(connUniDb, run_number, detector_name, parameter_id, (unsigned char*)p_parameter_value, size_parameter_value);
+    return new UniDbRunParameter(connUniDb, run_number, detector_name, parameter_id, p_parameter_value, size_parameter_value);
 }
 
+// create boolean detector parameter
+UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString detector_name, TString parameter_name, bool parameter_value)
+{
+    Long_t size_parameter_value = sizeof(bool);
+    bool* p_parameter_value = new bool[1];
+    p_parameter_value[0] = parameter_value;
+
+    UniDbRunParameter* pRunParameter = UniDbRunParameter::CreateRunParameter(run_number, detector_name, parameter_name, (unsigned char*) p_parameter_value, size_parameter_value, BoolType);
+
+    if (pRunParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pRunParameter;
+}
+
+// create boolean detector parameter for run range (from start_run_number to end_run_number)
 bool UniDbRunParameter::CreateRunParameters(int start_run_number, int end_run_number, TString detector_name, TString parameter_name, bool parameter_value)
 {
     if (end_run_number < start_run_number)
@@ -533,547 +509,103 @@ bool UniDbRunParameter::CreateRunParameters(int start_run_number, int end_run_nu
     return (!is_errors);
 }
 
-// get boolean value of detector parameter (for current run, detector and parameter)
-bool UniDbRunParameter::GetBool()
-{
-    if (!connectionUniDb)
-    {
-        cout<<"Critical Error: Connection object is null"<<endl;
-        return false;
-    }
-
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
-    // get parameter object from 'parameter_' table
-    TString sql = TString::Format(
-        "select parameter_name, parameter_type "
-        "from parameter_ "
-        "where parameter_id = %d", i_parameter_id);
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    // get table record from DB
-    if (!stmt->Process())
-    {
-        cout<<"Critical Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
-        delete stmt;
-        return false;
-    }
-
-    stmt->StoreResult();
-
-    // extract row with parameter
-    if (!stmt->NextResultRow())
-    {
-        cout<<"Critical Error: the parameter with id '"<<i_parameter_id<<"' wasn't found"<<endl;
-        delete stmt;
-        return false;
-    }
-
-    TString parameter_name = stmt->GetString(0);
-    int parameter_type = stmt->GetInt(1);
-    delete stmt;
-
-    // if parameter - not boolean type
-    if (parameter_type != BoolType)
-    {
-        cout<<"Critical Error: the parameter with name '"<<parameter_name<<"' isn't boolean type"<<endl;
-        return false;
-    }
-
-    return *((bool*)blob_parameter_value);
-}
-
-// set boolean value to detector parameter
-int UniDbRunParameter::SetBool(bool parameter_value)
-{
-    if (!connectionUniDb)
-    {
-        cout<<"Connection object is null"<<endl;
-        return -1;
-    }
-
-    bool* p_parameter_value = new bool[1];
-    p_parameter_value[0] = parameter_value;
-    Long_t size_parameter_value = sizeof(bool);
-
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
-    TString sql = TString::Format(
-        "update run_parameter "
-        "set parameter_value = $1 "
-        "where run_number = $2 and detector_name = $3 and parameter_id = $4");
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    stmt->NextIteration();
-    stmt->SetLargeObject(0, p_parameter_value, size_parameter_value);
-    stmt->SetInt(1, i_run_number);
-    stmt->SetString(2, str_detector_name);
-    stmt->SetInt(3, i_parameter_id);
-
-    // write new value to database
-    if (!stmt->Process())
-    {
-        cout<<"Error: updating the detector parameter has been failed"<<endl;
-
-        delete stmt;
-        delete [] p_parameter_value;
-        return -2;
-    }
-
-
-    if (blob_parameter_value) delete [] blob_parameter_value;
-    blob_parameter_value = (unsigned char*)p_parameter_value;
-    sz_parameter_value = size_parameter_value;
-
-    delete stmt;
-    return 0;
-}
-
 // create integer detector parameter
 UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString detector_name, TString parameter_name, int parameter_value)
 {
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00) return 0x00;
-
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
-
-    // get parameter object from 'parameter_' table
-    TString sql = TString::Format(
-        "select parameter_id, parameter_name, parameter_type "
-        "from parameter_ "
-        "where lower(parameter_name) = lower('%s')", parameter_name.Data());
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    // get table record from DB
-    if (!stmt->Process())
-    {
-        cout<<"Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
-
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
-    }
-
-    stmt->StoreResult();
-
-    // extract row with parameter
-    if (!stmt->NextResultRow())
-    {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' wasn't found"<<endl;
-
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
-    }
-
-    int parameter_id = stmt->GetInt(0);
-    int parameter_type = stmt->GetInt(2);
-
-    delete stmt;
-
-    // if parameter - not integer type
-    if (parameter_type != IntType)
-    {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' isn't integer type"<<endl;
-
-        delete connUniDb;
-        return 0x00;
-    }
-
+    Long_t size_parameter_value = sizeof(Int_t);
     Int_t* p_parameter_value = new Int_t[1];
     p_parameter_value[0] = parameter_value;
-    Long_t size_parameter_value = sizeof(Int_t);
 
-    sql = TString::Format(
-        "insert into run_parameter(run_number, detector_name, parameter_id, parameter_value) "
-        "values ($1, $2, $3, $4)");
-    stmt = uni_db->Statement(sql);
+    UniDbRunParameter* pRunParameter = UniDbRunParameter::CreateRunParameter(run_number, detector_name, parameter_name, (unsigned char*) p_parameter_value, size_parameter_value, IntType);
 
-    stmt->NextIteration();
-    stmt->SetInt(0, run_number);
-    stmt->SetString(1, detector_name);
-    stmt->SetInt(2, parameter_id);
-    stmt->SetLargeObject(3, p_parameter_value, size_parameter_value);
-    //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
-
-    // inserting new record to DB
-    if (!stmt->Process())
-    {
-        cout<<"Error: inserting new parameter value to DB has been failed"<<endl;
-        delete stmt;
-        delete connUniDb;
+    if (pRunParameter == 0x00)
         delete [] p_parameter_value;
-        return 0x00;
-    }
 
-    delete stmt;
-
-    return new UniDbRunParameter(connUniDb, run_number, detector_name, parameter_id, (unsigned char*)p_parameter_value, size_parameter_value);
-}
-
-// get integer value of detector parameter (for current run, detector and parameter)
-int UniDbRunParameter::GetInt()
-{
-    if (!connectionUniDb)
-    {
-        cout<<"Critical Error: Connection object is null"<<endl;
-        return -1;
-    }
-
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
-    // get parameter object from 'parameter_' table
-    TString sql = TString::Format(
-        "select parameter_name, parameter_type "
-        "from parameter_ "
-        "where parameter_id = %d", i_parameter_id);
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    // get table record from DB
-    if (!stmt->Process())
-    {
-        cout<<"Critical Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
-        delete stmt;
-        return -1;
-    }
-
-    stmt->StoreResult();
-
-    // extract row with parameter
-    if (!stmt->NextResultRow())
-    {
-        cout<<"Critical Error: the parameter with id '"<<i_parameter_id<<"' wasn't found"<<endl;
-        delete stmt;
-        return -1;
-    }
-
-    TString parameter_name = stmt->GetString(0);
-    int parameter_type = stmt->GetInt(1);
-    delete stmt;
-
-    // if parameter - not integer type
-    if (parameter_type != IntType)
-    {
-        cout<<"Critical Error: the parameter with name '"<<parameter_name<<"' isn't integer type"<<endl;
-        return -1;
-    }
-
-    return *((int*)blob_parameter_value);
-}
-
-// set integer value to detector parameter
-int UniDbRunParameter::SetInt(int parameter_value)
-{
-    if (!connectionUniDb)
-    {
-        cout<<"Connection object is null"<<endl;
-        return -1;
-    }
-
-    Int_t* p_parameter_value = new Int_t[1];
-    p_parameter_value[0] = parameter_value;
-    Long_t size_parameter_value = sizeof(Int_t);
-
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
-    TString sql = TString::Format(
-        "update run_parameter "
-        "set parameter_value = $1 "
-        "where run_number = $2 and detector_name = $3 and parameter_id = $4");
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    stmt->NextIteration();
-    stmt->SetLargeObject(0, p_parameter_value, size_parameter_value);
-    stmt->SetInt(1, i_run_number);
-    stmt->SetString(2, str_detector_name);
-    stmt->SetInt(3, i_parameter_id);
-
-    // write new value to database
-    if (!stmt->Process())
-    {
-        cout<<"Error: updating the detector parameter has been failed"<<endl;
-
-        delete stmt;
-        delete [] p_parameter_value;
-        return -2;
-    }
-
-
-    if (blob_parameter_value) delete [] blob_parameter_value;
-    blob_parameter_value = (unsigned char*)p_parameter_value;
-    sz_parameter_value = size_parameter_value;
-
-    delete stmt;
-    return 0;
+    return pRunParameter;
 }
 
 // create double detector parameter
 UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString detector_name, TString parameter_name, double parameter_value)
 {
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00) return 0x00;
-
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
-
-    // get parameter object from 'parameter_' table
-    TString sql = TString::Format(
-        "select parameter_id, parameter_name, parameter_type "
-        "from parameter_ "
-        "where lower(parameter_name) = lower('%s')", parameter_name.Data());
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    // get table record from DB
-    if (!stmt->Process())
-    {
-        cout<<"Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
-
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
-    }
-
-    stmt->StoreResult();
-
-    // extract row with parameter
-    if (!stmt->NextResultRow())
-    {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' wasn't found"<<endl;
-
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
-    }
-
-    int parameter_id = stmt->GetInt(0);
-    int parameter_type = stmt->GetInt(2);
-
-    delete stmt;
-
-    // if parameter - not double type
-    if (parameter_type != DoubleType)
-    {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' isn't double type"<<endl;
-
-        delete connUniDb;
-        return 0x00;
-    }
-
+    Long_t size_parameter_value = sizeof(Double_t);
     Double_t* p_parameter_value = new Double_t[1];
     p_parameter_value[0] = parameter_value;
-    Long_t size_parameter_value = sizeof(Double_t);
 
-    sql = TString::Format(
-        "insert into run_parameter(run_number, detector_name, parameter_id, parameter_value) "
-        "values ($1, $2, $3, $4)");
-    stmt = uni_db->Statement(sql);
+    UniDbRunParameter* pRunParameter = UniDbRunParameter::CreateRunParameter(run_number, detector_name, parameter_name, (unsigned char*) p_parameter_value, size_parameter_value, DoubleType);
 
-    stmt->NextIteration();
-    stmt->SetInt(0, run_number);
-    stmt->SetString(1, detector_name);
-    stmt->SetInt(2, parameter_id);
-    stmt->SetLargeObject(3, p_parameter_value, size_parameter_value);
-    //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
-
-    // inserting new record to DB
-    if (!stmt->Process())
-    {
-        cout<<"Error: inserting new parameter value to DB has been failed"<<endl;
-        delete stmt;
-        delete connUniDb;
+    if (pRunParameter == 0x00)
         delete [] p_parameter_value;
-        return 0x00;
-    }
 
-    delete stmt;
-
-    return new UniDbRunParameter(connUniDb, run_number, detector_name, parameter_id, (unsigned char*)p_parameter_value, size_parameter_value);
-}
-
-// get double value of detector parameter (for current run, detector and parameter)
-double UniDbRunParameter::GetDouble()
-{
-    if (!connectionUniDb)
-    {
-        cout<<"Critical Error: Connection object is null"<<endl;
-        return -1;
-    }
-
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
-    // get parameter object from 'parameter_' table
-    TString sql = TString::Format(
-        "select parameter_name, parameter_type "
-        "from parameter_ "
-        "where parameter_id = %d", i_parameter_id);
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    // get table record from DB
-    if (!stmt->Process())
-    {
-        cout<<"Critical Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
-        delete stmt;
-        return -1;
-    }
-
-    stmt->StoreResult();
-
-    // extract row with parameter
-    if (!stmt->NextResultRow())
-    {
-        cout<<"Critical Error: the parameter with id '"<<i_parameter_id<<"' wasn't found"<<endl;
-        delete stmt;
-        return -1;
-    }
-
-    TString parameter_name = stmt->GetString(0);
-    int parameter_type = stmt->GetInt(1);
-    delete stmt;
-
-    // if parameter - not double type
-    if (parameter_type != DoubleType)
-    {
-        cout<<"Critical Error: the parameter with name '"<<parameter_name<<"' isn't double type"<<endl;
-        return -1;
-    }
-
-    return *((double*)blob_parameter_value);
-}
-
-// set double value to detector parameter
-int UniDbRunParameter::SetDouble(double parameter_value)
-{
-    if (!connectionUniDb)
-    {
-        cout<<"Connection object is null"<<endl;
-        return -1;
-    }
-
-    Double_t* p_parameter_value = new Double_t[1];
-    p_parameter_value[0] = parameter_value;
-    Long_t size_parameter_value = sizeof(Double_t);
-
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
-    TString sql = TString::Format(
-        "update run_parameter "
-        "set parameter_value = $1 "
-        "where run_number = $2 and detector_name = $3 and parameter_id = $4");
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    stmt->NextIteration();
-    stmt->SetLargeObject(0, p_parameter_value, size_parameter_value);
-    stmt->SetInt(1, i_run_number);
-    stmt->SetString(2, str_detector_name);
-    stmt->SetInt(3, i_parameter_id);
-
-    // write new value to database
-    if (!stmt->Process())
-    {
-        cout<<"Error: updating the detector parameter has been failed"<<endl;
-
-        delete stmt;
-        delete [] p_parameter_value;
-        return -2;
-    }
-
-
-    if (blob_parameter_value) delete [] blob_parameter_value;
-    blob_parameter_value = (unsigned char*)p_parameter_value;
-    sz_parameter_value = size_parameter_value;
-
-    delete stmt;
-    return 0;
+    return pRunParameter;
 }
 
 // create string detector parameter
 UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString detector_name, TString parameter_name, TString parameter_value)
 {
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00) return 0x00;
-
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
-
-    // get parameter object from 'parameter_' table
-    TString sql = TString::Format(
-        "select parameter_id, parameter_name, parameter_type "
-        "from parameter_ "
-        "where lower(parameter_name) = lower('%s')", parameter_name.Data());
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    // get table record from DB
-    if (!stmt->Process())
-    {
-        cout<<"Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
-
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
-    }
-
-    stmt->StoreResult();
-
-    // extract row with parameter
-    if (!stmt->NextResultRow())
-    {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' wasn't found"<<endl;
-
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
-    }
-
-    int parameter_id = stmt->GetInt(0);
-    int parameter_type = stmt->GetInt(2);
-
-    delete stmt;
-
-    // if parameter - not string type
-    if (parameter_type != StringType)
-    {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' isn't string type"<<endl;
-
-        delete connUniDb;
-        return 0x00;
-    }
-
     Long_t size_parameter_value = parameter_value.Length()+1;
     char* p_parameter_value = new char[size_parameter_value];
     strcpy(p_parameter_value, parameter_value.Data());
 
-    sql = TString::Format(
-        "insert into run_parameter(run_number, detector_name, parameter_id, parameter_value) "
-        "values ($1, $2, $3, $4)");
-    stmt = uni_db->Statement(sql);
+    UniDbRunParameter* pRunParameter = UniDbRunParameter::CreateRunParameter(run_number, detector_name, parameter_name, (unsigned char*) p_parameter_value, size_parameter_value, StringType);
 
-    stmt->NextIteration();
-    stmt->SetInt(0, run_number);
-    stmt->SetString(1, detector_name);
-    stmt->SetInt(2, parameter_id);
-    stmt->SetLargeObject(3, p_parameter_value, size_parameter_value);
-    //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
-
-    // inserting new record to DB
-    if (!stmt->Process())
-    {
-        cout<<"Error: inserting new parameter value to DB has been failed"<<endl;
-        delete stmt;
-        delete connUniDb;
+    if (pRunParameter == 0x00)
         delete [] p_parameter_value;
-        return 0x00;
-    }
 
-    delete stmt;
-
-    return new UniDbRunParameter(connUniDb, run_number, detector_name, parameter_id, (unsigned char*)p_parameter_value, size_parameter_value);
+    return pRunParameter;
 }
 
-// get string value of detector parameter (for current run, detector and parameter)
-TString UniDbRunParameter::GetString()
+// create Integer Array detector parameter
+UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString detector_name, TString parameter_name, int* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(int);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    UniDbRunParameter* pRunParameter = UniDbRunParameter::CreateRunParameter(run_number, detector_name, parameter_name, p_parameter_value, size_parameter_value, IntArrayType);
+
+    if (pRunParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pRunParameter;
+}
+
+// create Double Array detector parameter
+UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString detector_name, TString parameter_name, double* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(double);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    UniDbRunParameter* pRunParameter = UniDbRunParameter::CreateRunParameter(run_number, detector_name, parameter_name, p_parameter_value, size_parameter_value, DoubleArrayType);
+
+    if (pRunParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pRunParameter;
+}
+
+// create Int+Int Array detector parameter
+UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString detector_name, TString parameter_name, IIStructure* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(IIStructure);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    UniDbRunParameter* pRunParameter = UniDbRunParameter::CreateRunParameter(run_number, detector_name, parameter_name, p_parameter_value, size_parameter_value, IIArrayType);
+
+    if (pRunParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pRunParameter;
+}
+
+// common function for getting parameter
+unsigned char* UniDbRunParameter::GetUNC(enumParameterType enum_parameter_type)
 {
     if (!connectionUniDb)
     {
         cout<<"Critical Error: Connection object is null"<<endl;
-        return -1;
+        return NULL;
     }
 
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
@@ -1090,7 +622,7 @@ TString UniDbRunParameter::GetString()
     {
         cout<<"Critical Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
         delete stmt;
-        return -1;
+        return NULL;
     }
 
     stmt->StoreResult();
@@ -1100,35 +632,96 @@ TString UniDbRunParameter::GetString()
     {
         cout<<"Critical Error: the parameter with id '"<<i_parameter_id<<"' wasn't found"<<endl;
         delete stmt;
-        return -1;
+        return NULL;
     }
 
     TString parameter_name = stmt->GetString(0);
     int parameter_type = stmt->GetInt(1);
     delete stmt;
 
-    // if parameter - not string type
-    if (parameter_type != StringType)
+    if (parameter_type != enum_parameter_type)
     {
-        cout<<"Critical Error: the parameter with name '"<<parameter_name<<"' isn't string type"<<endl;
-        return -1;
+        cout<<"Critical Error: the parameter with name '"<<parameter_name<<"' isn't as getting type"<<endl;
+        return NULL;
     }
 
-    return (char*)blob_parameter_value;
+    return blob_parameter_value;
 }
 
-// set string value to detector parameter
-int UniDbRunParameter::SetString(TString parameter_value)
+// get boolean value of detector parameter (for current run, detector and parameter)
+bool UniDbRunParameter::GetBool()
+{
+    return *((bool*) GetUNC(BoolType));
+}
+
+// get integer value of detector parameter (for current run, detector and parameter)
+int UniDbRunParameter::GetInt()
+{
+    return *((int*) GetUNC(IntType));
+}
+
+// get double value of detector parameter (for current run, detector and parameter)
+double UniDbRunParameter::GetDouble()
+{
+    return *((double*) GetUNC(DoubleType));
+}
+
+// get string value of detector parameter (for current run, detector and parameter)
+TString UniDbRunParameter::GetString()
+{
+    return (char*) GetUNC(StringType);
+}
+
+// get Integer array for detector parameter (for current run, detector and parameter)
+int UniDbRunParameter::GetIntArray(int*& parameter_value, int& element_count)
+{
+    unsigned char* p_parameter_value = GetUNC(IntArrayType);
+    if (p_parameter_value == NULL)
+        return - 1;
+
+    element_count = sz_parameter_value / sizeof(int);
+    parameter_value = new int[element_count];
+    memcpy(parameter_value, p_parameter_value, sz_parameter_value);
+
+    return 0;
+}
+
+// get Double array for detector parameter (for current run, detector and parameter)
+int UniDbRunParameter::GetDoubleArray(double*& parameter_value, int& element_count)
+{
+    unsigned char* p_parameter_value = GetUNC(DoubleArrayType);
+    if (p_parameter_value == NULL)
+        return - 1;
+
+    element_count = sz_parameter_value / sizeof(double);
+    parameter_value = new double[element_count];
+    memcpy(parameter_value, p_parameter_value, sz_parameter_value);
+
+    return 0;
+}
+
+// get Int+Int array for detector parameter (for current run, detector and parameter)
+int UniDbRunParameter::GetIIArray(IIStructure*& parameter_value, int& element_count)
+{
+    unsigned char* p_parameter_value = GetUNC(IIArrayType);
+    if (p_parameter_value == NULL)
+        return - 1;
+
+    element_count = sz_parameter_value / sizeof(IIStructure);
+    parameter_value = new IIStructure[element_count];
+    memcpy(parameter_value, p_parameter_value, sz_parameter_value);
+
+    return 0;
+}
+
+// common function for setting parameter
+int UniDbRunParameter::SetUNC(unsigned char* p_parameter_value, Long_t size_parameter_value)
 {
     if (!connectionUniDb)
     {
         cout<<"Connection object is null"<<endl;
         return -1;
     }
-
-    Long_t size_parameter_value = parameter_value.Length()+1;
-    char* p_parameter_value = new char[size_parameter_value];
-    strcpy(p_parameter_value, parameter_value.Data());
 
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
@@ -1139,7 +732,7 @@ int UniDbRunParameter::SetString(TString parameter_value)
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     stmt->NextIteration();
-    stmt->SetLargeObject(0, p_parameter_value, size_parameter_value);
+    stmt->SetLargeObject(0, (void*)p_parameter_value, size_parameter_value);
     stmt->SetInt(1, i_run_number);
     stmt->SetString(2, str_detector_name);
     stmt->SetInt(3, i_parameter_id);
@@ -1148,153 +741,116 @@ int UniDbRunParameter::SetString(TString parameter_value)
     if (!stmt->Process())
     {
         cout<<"Error: updating the detector parameter has been failed"<<endl;
-
         delete stmt;
-        delete [] p_parameter_value;
         return -2;
     }
 
-
     if (blob_parameter_value) delete [] blob_parameter_value;
-    blob_parameter_value = (unsigned char*)p_parameter_value;
+    blob_parameter_value = p_parameter_value;
     sz_parameter_value = size_parameter_value;
 
     delete stmt;
     return 0;
 }
 
-// create Int+Int Array detector parameter
-UniDbRunParameter* UniDbRunParameter::CreateRunParameter(int run_number, TString detector_name, TString parameter_name, IIStructure* parameter_value, int element_count)
+// set boolean value to detector parameter
+int UniDbRunParameter::SetBool(bool parameter_value)
 {
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00) return 0x00;
+    Long_t size_parameter_value = sizeof(bool);
+    bool* p_parameter_value = new bool[1];
+    p_parameter_value[0] = parameter_value;
 
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
-
-    // get parameter object from 'parameter_' table
-    TString sql = TString::Format(
-        "select parameter_id, parameter_name, parameter_type "
-        "from parameter_ "
-        "where lower(parameter_name) = lower('%s')", parameter_name.Data());
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    // get table record from DB
-    if (!stmt->Process())
+    int res_code = SetUNC((unsigned char*)p_parameter_value, size_parameter_value);
+    if (res_code != 0)
     {
-        cout<<"Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
-
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
+        delete [] p_parameter_value;
+        return res_code;
     }
 
-    stmt->StoreResult();
+    return 0;
+}
 
-    // extract row with parameter
-    if (!stmt->NextResultRow())
+// set integer value to detector parameter
+int UniDbRunParameter::SetInt(int parameter_value)
+{
+    Long_t size_parameter_value = sizeof(Int_t);
+    Int_t* p_parameter_value = new Int_t[1];
+    p_parameter_value[0] = parameter_value;
+
+    int res_code = SetUNC((unsigned char*)p_parameter_value, size_parameter_value);
+    if (res_code != 0)
     {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' wasn't found"<<endl;
-
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
+        delete [] p_parameter_value;
+        return res_code;
     }
 
-    int parameter_id = stmt->GetInt(0);
-    int parameter_type = stmt->GetInt(2);
+    return 0;
+}
 
-    delete stmt;
+// set double value to detector parameter
+int UniDbRunParameter::SetDouble(double parameter_value)
+{
+    Long_t size_parameter_value = sizeof(Double_t);
+    Double_t* p_parameter_value = new Double_t[1];
+    p_parameter_value[0] = parameter_value;
 
-    // if parameter - not IIArray type
-    if (parameter_type != IIArrayType)
+    int res_code = SetUNC((unsigned char*)p_parameter_value, size_parameter_value);
+    if (res_code != 0)
     {
-        cout<<"Error: the parameter with name '"<<parameter_name<<"' isn't IntIntArray type"<<endl;
-
-        delete connUniDb;
-        return 0x00;
+        delete [] p_parameter_value;
+        return res_code;
     }
 
-    Long_t size_parameter_value = element_count * sizeof(IIStructure);
+    return 0;
+}
+
+// set string value to detector parameter
+int UniDbRunParameter::SetString(TString parameter_value)
+{
+    Long_t size_parameter_value = parameter_value.Length()+1;
+    char* p_parameter_value = new char[size_parameter_value];
+    strcpy(p_parameter_value, parameter_value.Data());
+
+    int res_code = SetUNC((unsigned char*)p_parameter_value, size_parameter_value);
+    if (res_code != 0)
+    {
+        delete [] p_parameter_value;
+        return res_code;
+    }
+
+    return 0;
+}
+
+// set Integer array for detector parameter
+int UniDbRunParameter::SetIntArray(int* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(int);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
-    sql = TString::Format(
-        "insert into run_parameter(run_number, detector_name, parameter_id, parameter_value) "
-        "values ($1, $2, $3, $4)");
-    stmt = uni_db->Statement(sql);
-
-    stmt->NextIteration();
-    stmt->SetInt(0, run_number);
-    stmt->SetString(1, detector_name);
-    stmt->SetInt(2, parameter_id);
-    stmt->SetLargeObject(3, p_parameter_value, size_parameter_value);
-    //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
-
-    // inserting new record to DB
-    if (!stmt->Process())
+    int res_code = SetUNC(p_parameter_value, size_parameter_value);
+    if (res_code != 0)
     {
-        cout<<"Error: inserting new parameter value to DB has been failed"<<endl;
-        delete stmt;
-        delete connUniDb;
         delete [] p_parameter_value;
-        return 0x00;
+        return res_code;
     }
 
-    delete stmt;
-
-    return new UniDbRunParameter(connUniDb, run_number, detector_name, parameter_id, p_parameter_value, size_parameter_value);
+    return 0;
 }
 
-// get Int+Int array for detector parameter (for current run, detector and parameter)
-int UniDbRunParameter::GetIIArray(IIStructure*& parameter_value, int& element_count)
+// set Double array for detector parameter
+int UniDbRunParameter::SetDoubleArray(double* parameter_value, int element_count)
 {
-    if (!connectionUniDb)
+    Long_t size_parameter_value = element_count * sizeof(double);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    int res_code = SetUNC(p_parameter_value, size_parameter_value);
+    if (res_code != 0)
     {
-        cout<<"Critical Error: Connection object is null"<<endl;
-        return -1;
+        delete [] p_parameter_value;
+        return res_code;
     }
-
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
-    // get parameter object from 'parameter_' table
-    TString sql = TString::Format(
-        "select parameter_name, parameter_type "
-        "from parameter_ "
-        "where parameter_id = %d", i_parameter_id);
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    // get table record from DB
-    if (!stmt->Process())
-    {
-        cout<<"Critical Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
-        delete stmt;
-        return -2;
-    }
-
-    stmt->StoreResult();
-
-    // extract row with parameter
-    if (!stmt->NextResultRow())
-    {
-        cout<<"Critical Error: the parameter with id '"<<i_parameter_id<<"' wasn't found"<<endl;
-        delete stmt;
-        return -3;
-    }
-
-    TString parameter_name = stmt->GetString(0);
-    int parameter_type = stmt->GetInt(1);
-    delete stmt;
-
-    // if parameter - not IIArray type
-    if (parameter_type != IIArrayType)
-    {
-        cout<<"Critical Error: the parameter with name '"<<parameter_name<<"' isn't IntIntArray type"<<endl;
-        return -4;
-    }
-
-    element_count = sz_parameter_value / sizeof(IIStructure);
-    parameter_value = new IIStructure[element_count];
-    memcpy(parameter_value, blob_parameter_value, sz_parameter_value);
 
     return 0;
 }
@@ -1302,46 +858,17 @@ int UniDbRunParameter::GetIIArray(IIStructure*& parameter_value, int& element_co
 // set Int+Int array for detector parameter
 int UniDbRunParameter::SetIIArray(IIStructure* parameter_value, int element_count)
 {
-    if (!connectionUniDb)
-    {
-        cout<<"Connection object is null"<<endl;
-        return -1;
-    }
-
     Long_t size_parameter_value = element_count * sizeof(IIStructure);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
-    TString sql = TString::Format(
-        "update run_parameter "
-        "set parameter_value = $1 "
-        "where run_number = $2 and detector_name = $3 and parameter_id = $4");
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    stmt->NextIteration();
-    stmt->SetLargeObject(0, p_parameter_value, size_parameter_value);
-    stmt->SetInt(1, i_run_number);
-    stmt->SetString(2, str_detector_name);
-    stmt->SetInt(3, i_parameter_id);
-
-    // write new value to database
-    if (!stmt->Process())
+    int res_code = SetUNC(p_parameter_value, size_parameter_value);
+    if (res_code != 0)
     {
-        cout<<"Error: updating the detector parameter has been failed"<<endl;
-
-        delete stmt;
         delete [] p_parameter_value;
-        return -2;
+        return res_code;
     }
 
-
-    if (blob_parameter_value) delete [] blob_parameter_value;
-    blob_parameter_value = (unsigned char*)p_parameter_value;
-    sz_parameter_value = size_parameter_value;
-
-    delete stmt;
     return 0;
 }
 

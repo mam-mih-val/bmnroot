@@ -84,7 +84,7 @@ create table detector_
 
 -- COMPONENT PARAMETERS
 -- lifetime_type: 0 - run parameter, 1 - session_parameter
--- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array
+-- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 -double array
 create table parameter_
 (
  parameter_id serial primary key,
@@ -95,20 +95,33 @@ create table parameter_
 
 create table run_parameter
 (
- detector_name varchar(10) not null references detector_(detector_name),
  run_number int not null references run_(run_number),
+ detector_name varchar(10) not null references detector_(detector_name),
  parameter_id int not null references parameter_(parameter_id),
  parameter_value bytea not null,
  primary key (run_number, detector_name, parameter_id)
 );
 
+-- drop table session_parameter
 create table session_parameter
 (
- detector_name varchar(10) not null references detector_(detector_name),
  session_number int not null references session_(session_number),
+ detector_name varchar(10) not null references detector_(detector_name),
  parameter_id int not null references parameter_(parameter_id),
  parameter_value bytea not null,
  primary key (session_number, detector_name, parameter_id)
+);
+
+-- drop table session_dc_parameter
+create table session_dc_parameter
+(
+ session_number int not null references session_(session_number),
+ detector_name varchar(10) not null references detector_(detector_name),
+ parameter_id int not null references parameter_(parameter_id),
+ dc_serial int not null,
+ channel int not null,
+ parameter_value bytea not null,
+ primary key (session_number, detector_name, parameter_id, dc_serial, channel)
 );
 
 /*-- DETECTORS' MAPPING (special tables)
@@ -290,6 +303,7 @@ create table geometry_parameter
 create index det_name_lower_idx on detector_((lower(detector_name)));
 create index det_name_rpar_lower_idx on run_parameter((lower(detector_name)));
 create index det_name_spar_lower_idx on session_parameter((lower(detector_name)));
+create index det_name_dc_spar_lower_idx on session_dc_parameter((lower(detector_name)));
 create unique index parameter_name_lower_idx on parameter_((lower(parameter_name)));
 
 -- trigger to remove large_object by OID
@@ -306,6 +320,8 @@ CREATE TRIGGER unlink_large_object_rparameter
 AFTER UPDATE OR DELETE ON run_parameter FOR EACH ROW EXECUTE PROCEDURE unlink_lo_parameter();
 CREATE TRIGGER unlink_large_object_sparameter
 AFTER UPDATE OR DELETE ON session_parameter FOR EACH ROW EXECUTE PROCEDURE unlink_lo_parameter();
+CREATE TRIGGER unlink_large_object_dc_sparameter
+AFTER UPDATE OR DELETE ON session_dc_parameter FOR EACH ROW EXECUTE PROCEDURE unlink_lo_parameter();
 
 -- DROP TRIGGER unlink_large_object_geometry ON run_geometry;
 CREATE OR REPLACE FUNCTION unlink_lo_geometry() RETURNS TRIGGER AS $$

@@ -20,8 +20,8 @@
 using namespace std;
 
 // enumeration 'enumParameterType' is corresponding parameter_type member UniDbParameter
-// 0 - boolean, 1 - integer, 2 - double, 3 - string, 4 - int+int array
-enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType};
+// 0 - boolean, 1 - integer, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array
+enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType};
 
 class UniDbParameter
 {
@@ -83,6 +83,8 @@ class UniDbParameter
 	/// print information about current parameter
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+
+    static bool CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumParameterType enum_parameter_type, int& parameter_id);
 
  ClassDef(UniDbParameter,1);
 };

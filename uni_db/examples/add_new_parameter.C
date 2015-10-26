@@ -1,5 +1,5 @@
 // macro for adding new parameter (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
-// parameter type: 0 - bool, 1 - int, 2 - double, 3 - string, 4 - int+int array
+// parameter type: 0 - bool, 1 - int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array
 // lifetime type: 0 - store it for every run, 1 - store it for every session
 void add_new_parameter()
 {

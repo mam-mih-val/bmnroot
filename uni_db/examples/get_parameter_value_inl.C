@@ -16,7 +16,14 @@ void get_parameter_value_inl()
     // get 'INL' parameter value (int array) for 72 channels
     bool is_error = false;
     int TDC_SERIAL = (int)0x0168fdca;
-    for (int i = 1; i <= 72; i++)
+
+    int channel_count = UniDbSessionDcParameter::GetChannelCount(1, "TOF2", "inl", TDC_SERIAL); //(session_number, detector_name, parameter_name, dc_serial)
+    if (channel_count == 0)
+        cout<<"The detector parameter wasn't found"<<endl;
+    else
+        cout<<"Channel number is equal "<<channel_count<<endl;
+
+    for (int i = 1; i <= channel_count; i++)
     {
         UniDbSessionDcParameter* pSessionDcParameter = UniDbSessionDcParameter::GetSessionDcParameter(1, "TOF1", "inl", TDC_SERIAL, i); //(session_number, detector_name, parameter_name, dc_serial, channel)
         if (pSessionDcParameter == NULL)

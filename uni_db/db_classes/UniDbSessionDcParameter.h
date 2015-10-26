@@ -91,6 +91,8 @@ class UniDbSessionDcParameter
 
     /// get detector parameter by session number, detector name, parameter name, TDC/ADC serial and channel number
     static UniDbSessionDcParameter* GetSessionDcParameter(int session_number, TString detector_name, TString parameter_name, int dc_serial, int channel);
+    /// get channel count for detector parameter
+    static int GetChannelCount(int session_number, TString detector_name, TString parameter_name, int dc_serial);
 
     // common function for creating parameter
     static UniDbSessionDcParameter* CreateSessionDcParameter(int session_number, TString detector_name, TString parameter_name, int dc_serial, int channel, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type);

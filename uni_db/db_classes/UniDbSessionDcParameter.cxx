@@ -538,6 +538,50 @@ UniDbSessionDcParameter* UniDbSessionDcParameter::GetSessionDcParameter(int sess
     return new UniDbSessionDcParameter(connUniDb, tmp_session_number, tmp_detector_name, tmp_parameter_id, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value);
 }
 
+// get channel count for detector parameter
+int UniDbSessionDcParameter::GetChannelCount(int session_number, TString detector_name, TString parameter_name, int dc_serial)
+{
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00) return 0x00;
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "select count(*) "
+        "from session_dc_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id "
+        "where session_number = %d and lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s') and dc_serial = %d", session_number, detector_name.Data(), parameter_name.Data(), dc_serial);
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: getting channel count fror detector parameter has been failed"<<endl;
+
+        delete stmt;
+        delete connUniDb;
+        return 0x00;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    // extract row
+    if (!stmt->NextResultRow())
+    {
+        cout<<"Error: table record wasn't found"<<endl;
+
+        delete stmt;
+        delete connUniDb;
+        return 0x00;
+    }
+
+    int channel_count = stmt->GetInt(0);
+
+    delete stmt;
+
+    return channel_count;
+}
+
 // common function for creating parameter
 UniDbSessionDcParameter* UniDbSessionDcParameter::CreateSessionDcParameter(int session_number, TString detector_name, TString parameter_name, int dc_serial, int channel, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
 {

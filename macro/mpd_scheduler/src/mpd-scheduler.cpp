@@ -726,7 +726,7 @@ int main(int argc, char** argv){
                         			}//while(getline(ss, token, ','))
 
                         			//READ PATH FROM DATABASE
-                        			TString strConnection = "mysql://" + server_name + "/data4mpd";
+                        			TString strConnection = "mysql://" + (TString)server_name.c_str() + "/data4mpd";
                         			TSQLServer* pSQLServer = TSQLServer::Connect(strConnection, "data4mpd", "MixedPhase");
                         			if (pSQLServer == 0x00)
                         			{

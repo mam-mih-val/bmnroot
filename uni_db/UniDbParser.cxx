@@ -329,45 +329,55 @@ int write_string_to_db(string &write_string, TSQLStatement* stmt, structParseSch
         }
         else
         {
-            if (row.strStatementType == "double")
+            if (row.strStatementType == "hex")
             {
-                // replace ',' by '.' if present
-                replace_string_in_text(token, ",", ".");
 
-                stmt->SetDouble(count, atof(token.c_str()));
-                cout<<"SetDouble: "<<token<<endl;
+                stmt->SetInt(count, hex_string_to_int(token.c_str()));
+                cout<<"SetHex: "<<token<<endl;
                 count++;
             }
             else
             {
-                if (row.strStatementType == "string")
+                if (row.strStatementType == "double")
                 {
-                    stmt->SetString(count, token.c_str());
-                    cout<<"SetString: "<<token<<endl;
+                    // replace ',' by '.' if present
+                    replace_string_in_text(token, ",", ".");
+
+                    stmt->SetDouble(count, atof(token.c_str()));
+                    cout<<"SetDouble: "<<token<<endl;
                     count++;
                 }
                 else
                 {
-                    if (row.strStatementType == "datetime")
+                    if (row.strStatementType == "string")
                     {
-                        TDatime d(token.c_str());
-                        stmt->SetDatime(count, d);
-                        cout<<"SetDatime: "<<token<<endl;
+                        stmt->SetString(count, token.c_str());
+                        cout<<"SetString: "<<token<<endl;
                         count++;
                     }
                     else
                     {
-                        if (row.strStatementType == "binary")
+                        if (row.strStatementType == "datetime")
                         {
-                            cout<<"SetBinary: "<<(void*)pArray<<" with size: "<<size_array<<endl;
-                            stmt->SetLargeObject(count, (void*)pArray, size_array);
+                            TDatime d(token.c_str());
+                            stmt->SetDatime(count, d);
+                            cout<<"SetDatime: "<<token<<endl;
                             count++;
-                            delete [] pArray;
                         }
-                    }
-                }
-            }
-        }
+                        else
+                        {
+                            if (row.strStatementType == "binary")
+                            {
+                                cout<<"SetBinary: "<<(void*)pArray<<" with size: "<<size_array<<endl;
+                                stmt->SetLargeObject(count, (void*)pArray, size_array);
+                                count++;
+                                delete [] pArray;
+                            }// "binary"
+                        }// "datetime"
+                    }// "string"
+                }// "double"
+            }// "hex"
+        }// "int"
     }// // cycle by schema rows because it can consist multiple writing
 
     if (schema.isUpdate)

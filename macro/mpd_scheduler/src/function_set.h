@@ -31,6 +31,7 @@ string get_app_name_linux();
 string get_app_dir_linux();
 string convert_integer_to_string(int number);
 string int_to_hex_string(int int_number);
+int hex_string_to_int(string hex_string);
 bool is_string_number(const string& s);
 char* convert_pchar_to_lowercase_new(char* input_char_array);
 void replace_string_in_text(string &text, string s, string d);
@@ -263,6 +264,16 @@ string int_to_hex_string(int int_number)
     stringstream stream;
     stream<<std::hex<<int_number;
     return stream.str();
+}
+
+// convert string with hexadecimal presentation without "0x" to integer
+int hex_string_to_int(string hex_string)
+{
+    int x;
+    stringstream stream;
+    stream<<std::hex<<hex_string;
+    stream>>x;
+    return x;
 }
 
 // is string a integer number?

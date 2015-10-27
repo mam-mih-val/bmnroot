@@ -11,7 +11,7 @@ void parse_data_to_db()
 
     UniDbParser pars;
     //(TString fileName, TString schemaPath, bool isUpdate = false)
-    pars.ParseTxt2Db("parse_schemes/0168fdca_PRPC20g_A.dat", "parse_schemes/tdc_inl_txt_m.xslt");
+    pars.ParseTxt2Db("parse_schemes/0168fdca_PRPC20g_A.dat", "parse_schemes/tdc_inl_txt.xslt");
     //pars.ParseTxt2Db("parse_schemes/zdc_map.txt", "parse_schemes/mapping_zdc_txt.xslt");
     //pars.ParseXml2Db("parse_schemes/run_info.xml", "parse_schemes/run_info_xml.xslt");
     //pars.ParseCsv2Db("parse_schemes/run3_log.csv", "parse_schemes/run_info_csv.xslt", true);

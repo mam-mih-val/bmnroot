@@ -158,7 +158,7 @@ string GenerateOutputFilePath(string path, int counter)
 	size_t last_point_idx = path.find_last_of(".");
 
 	string add_string = "__";
-	add_string += convert_integer_to_string(counter);
+	add_string += convert_int_to_string(counter);
 
 	if (string::npos != last_point_idx)
 		return path.insert(last_point_idx, add_string);
@@ -481,9 +481,11 @@ int main(int argc, char** argv){
 
                 // PARSING TAGS of the JOB
                 while (sub_node){
-                	if (sub_node->type == XML_ELEMENT_NODE){
+                	if (sub_node->type == XML_ELEMENT_NODE)
+                	{
                 		// COMMAND LINE TAG
-                		if (strcmp((char*)sub_node->name, "command") == 0){
+                		if (strcmp((char*)sub_node->name, "command") == 0)
+                		{
                 			if (command_line != NULL)
                 				cout<<"mpd-scheduler$ WARNING: command line is reassigned"<<endl;
 
@@ -494,7 +496,8 @@ int main(int argc, char** argv){
                 		    continue;
                 		}
                 		// MACRO NAME TAG
-                        if (strcmp((char*)sub_node->name, "macro") == 0){
+                        if (strcmp((char*)sub_node->name, "macro") == 0)
+                        {
                         	if (macro_name != NULL)
                         		cout<<"mpd-scheduler$ WARNING: macro's name is reassigned"<<endl;
 
@@ -1054,10 +1057,10 @@ int main(int argc, char** argv){
                     	                }
 
                     	                fwrite(" ", 1, sizeof(char), pFile);
-                    	                string strInt = convert_integer_to_string(start);
+                    	                string strInt = convert_int_to_string(start);
                     	                fwrite(strInt.c_str(), strInt.length(), sizeof(char), pFile);
                     	                fwrite(" ", 1, sizeof(char), pFile);
-                    	                strInt = convert_integer_to_string(event_per_proc);
+                    	                strInt = convert_int_to_string(event_per_proc);
                     	                fwrite(strInt.c_str(), strInt.length(), sizeof(char), pFile);
 
                     	                if (add_args != NULL){
@@ -1095,10 +1098,10 @@ int main(int argc, char** argv){
 
                     	        if (cur_start_event != NULL){
                     	        	fwrite(" ", 1, sizeof(char), pFile);
-                    	            string strInt = convert_integer_to_string(*cur_start_event);
+                    	            string strInt = convert_int_to_string(*cur_start_event);
                     	            fwrite(strInt.c_str(), strInt.length(), sizeof(char), pFile);
                     	            fwrite(" ", 1, sizeof(char), pFile);
-                    	            strInt = convert_integer_to_string(*cur_count_event);
+                    	            strInt = convert_int_to_string(*cur_count_event);
                     	            fwrite(strInt.c_str(), strInt.length(), sizeof(char), pFile);
                     	        }
 

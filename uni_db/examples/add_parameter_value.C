@@ -6,15 +6,15 @@ void add_parameter_value()
     gSystem->Load("libUniDb");
 
     // add 'on' parameter value (boolean value)
-    UniDbRunParameter* pRunParameter = UniDbRunParameter::CreateRunParameter(77, "DCH1", "on", true); //(run_number, detector_name, parameter_name, parameter_value)
-    if (pRunParameter == NULL)
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "on", 77, 77, true); //(detector_name, parameter_name, start_run_number, end_run_number, parameter_value)
+    if (pDetectorParameter == NULL)
     {
         cout << "\nMacro finished with errors" << endl;
         return;
     }
 
     // clean memory after work
-    delete pRunParameter;
+    delete pDetectorParameter;
 
     cout << "\nMacro finished successfully" << endl;
 }

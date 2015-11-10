@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------
 //                    UniDbRun header file 
-//                      Generated 20-10-2015 
+//                      Generated 05-11-2015 
 // ----------------------------------------------------------------------
 
 /** db_classes/UniDbRun.h 
@@ -24,8 +24,8 @@ class UniDbRun
 
 	/// run number
 	int i_run_number;
-	/// session number
-	int* i_session_number;
+	/// period number
+	int* i_period_number;
 	/// file path
 	TString str_file_path;
 	/// beam particle
@@ -48,7 +48,7 @@ class UniDbRun
 	int* i_geometry_id;
 
 	//Constructor
-	UniDbRun(UniDbConnection* connUniDb, int run_number, int* session_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id);
+	UniDbRun(UniDbConnection* connUniDb, int run_number, int* period_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -57,7 +57,7 @@ class UniDbRun
 
 	// static class functions
 	/// add new run to the database
-	static UniDbRun* CreateRun(int run_number, int* session_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id);
+	static UniDbRun* CreateRun(int run_number, int* period_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id);
 	/// get run from the database
 	static UniDbRun* GetRun(int run_number);
 	/// get run from the database
@@ -72,8 +72,8 @@ class UniDbRun
 	// Getters
 	/// get run number of the current run
 	int GetRunNumber() {return i_run_number;}
-	/// get session number of the current run
-	int* GetSessionNumber() {if (i_session_number == NULL) return NULL; else return new int(*i_session_number);}
+	/// get period number of the current run
+	int* GetPeriodNumber() {if (i_period_number == NULL) return NULL; else return new int(*i_period_number);}
 	/// get file path of the current run
 	TString GetFilePath() {return str_file_path;}
 	/// get beam particle of the current run
@@ -98,8 +98,8 @@ class UniDbRun
 	// Setters
 	/// set run number of the current run
 	int SetRunNumber(int run_number);
-	/// set session number of the current run
-	int SetSessionNumber(int* session_number);
+	/// set period number of the current run
+	int SetPeriodNumber(int* period_number);
 	/// set file path of the current run
 	int SetFilePath(TString file_path);
 	/// set beam particle of the current run
@@ -124,15 +124,15 @@ class UniDbRun
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
-    // static class functions (added by user request)
-    /// set geometry binary data (geometry file's data) for runs from start_run_number to end_run_number
-    static int SetRootGeometry(int start_run_number, int end_run_number, unsigned char* root_geometry, Long_t size_root_geometry);
-    /// get geometry binary data (geometry file's data) for selected run number
-    static int GetRootGeometry(int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry);
-    /// write geometry file for runs from start_run_number to end_run_number to the database
-    static int WriteGeometryFile(int start_run_number, int end_run_number, char* geo_file_path);
-    /// read geometry file for selected run number from the database
-    static int ReadGeometryFile(int run_number, char* geo_file_path);
+        // static class functions (added by user request)
+        /// set geometry binary data (geometry file's data) for runs from start_run_number to end_run_number
+        static int SetRootGeometry(int start_run_number, int end_run_number, unsigned char* root_geometry, Long_t size_root_geometry);
+        /// get geometry binary data (geometry file's data) for selected run number
+        static int GetRootGeometry(int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry);
+        /// write geometry file for runs from start_run_number to end_run_number to the database
+        static int WriteGeometryFile(int start_run_number, int end_run_number, char* geo_file_path);
+        /// read geometry file for selected run number from the database
+        static int ReadGeometryFile(int run_number, char* geo_file_path);
 
  ClassDef(UniDbRun,1);
 };

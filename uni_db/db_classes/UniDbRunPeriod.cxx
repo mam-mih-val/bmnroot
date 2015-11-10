@@ -1,38 +1,41 @@
 // ----------------------------------------------------------------------
-//                    UniDbSession cxx file 
-//                      Generated 20-10-2015 
+//                    UniDbRunPeriod cxx file 
+//                      Generated 05-11-2015 
 // ----------------------------------------------------------------------
 
 #include "TSQLServer.h"
 #include "TSQLStatement.h"
 
-#include "UniDbSession.h"
+#include "UniDbRunPeriod.h"
 
 #include <iostream>
 using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbSession::UniDbSession(UniDbConnection* connUniDb, int session_number, TDatime start_datetime, TDatime* end_datetime)
+UniDbRunPeriod::UniDbRunPeriod(UniDbConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime, TString* contact_person)
 {
 	connectionUniDb = connUniDb;
 
-	i_session_number = session_number;
+	i_period_number = period_number;
 	dt_start_datetime = start_datetime;
 	dt_end_datetime = end_datetime;
+	str_contact_person = contact_person;
 }
 
 // -----   Destructor   -------------------------------------------------
-UniDbSession::~UniDbSession()
+UniDbRunPeriod::~UniDbRunPeriod()
 {
 	if (connectionUniDb)
 		delete connectionUniDb;
 	if (dt_end_datetime)
 		delete dt_end_datetime;
+	if (str_contact_person)
+		delete str_contact_person;
 }
 
 // -----   Creating new record in class table ---------------------------
-UniDbSession* UniDbSession::CreateSession(int session_number, TDatime start_datetime, TDatime* end_datetime)
+UniDbRunPeriod* UniDbRunPeriod::CreateRunPeriod(int period_number, TDatime start_datetime, TDatime* end_datetime, TString* contact_person)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -40,17 +43,21 @@ UniDbSession* UniDbSession::CreateSession(int session_number, TDatime start_date
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"insert into session_(session_number, start_datetime, end_datetime) "
-		"values ($1, $2, $3)");
+		"insert into run_period(period_number, start_datetime, end_datetime, contact_person) "
+		"values ($1, $2, $3, $4)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	stmt->SetInt(0, session_number);
+	stmt->SetInt(0, period_number);
 	stmt->SetDatime(1, start_datetime);
 	if (end_datetime == NULL)
 		stmt->SetNull(2);
 	else
 		stmt->SetDatime(2, *end_datetime);
+	if (contact_person == NULL)
+		stmt->SetNull(3);
+	else
+		stmt->SetString(3, *contact_person);
 
 	// inserting new record to DB
 	if (!stmt->Process())
@@ -63,20 +70,24 @@ UniDbSession* UniDbSession::CreateSession(int session_number, TDatime start_date
 
 	delete stmt;
 
-	int tmp_session_number;
-	tmp_session_number = session_number;
+	int tmp_period_number;
+	tmp_period_number = period_number;
 	TDatime tmp_start_datetime;
 	tmp_start_datetime = start_datetime;
 	TDatime* tmp_end_datetime;
 	if (end_datetime == NULL) tmp_end_datetime = NULL;
 	else
 		tmp_end_datetime = new TDatime(*end_datetime);
+	TString* tmp_contact_person;
+	if (contact_person == NULL) tmp_contact_person = NULL;
+	else
+		tmp_contact_person = new TString(*contact_person);
 
-	return new UniDbSession(connUniDb, tmp_session_number, tmp_start_datetime, tmp_end_datetime);
+	return new UniDbRunPeriod(connUniDb, tmp_period_number, tmp_start_datetime, tmp_end_datetime, tmp_contact_person);
 }
 
 // -----   Get table record from database ---------------------------
-UniDbSession* UniDbSession::GetSession(int session_number)
+UniDbRunPeriod* UniDbRunPeriod::GetRunPeriod(int period_number)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -84,9 +95,9 @@ UniDbSession* UniDbSession::GetSession(int session_number)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select session_number, start_datetime, end_datetime "
-		"from session_ "
-		"where session_number = %d", session_number);
+		"select period_number, start_datetime, end_datetime, contact_person "
+		"from run_period "
+		"where period_number = %d", period_number);
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	// get table record from DB
@@ -112,22 +123,26 @@ UniDbSession* UniDbSession::GetSession(int session_number)
 		return 0x00;
 	}
 
-	int tmp_session_number;
-	tmp_session_number = stmt->GetInt(0);
+	int tmp_period_number;
+	tmp_period_number = stmt->GetInt(0);
 	TDatime tmp_start_datetime;
 	tmp_start_datetime = stmt->GetDatime(1);
 	TDatime* tmp_end_datetime;
 	if (stmt->IsNull(2)) tmp_end_datetime = NULL;
 	else
 		tmp_end_datetime = new TDatime(stmt->GetDatime(2));
+	TString* tmp_contact_person;
+	if (stmt->IsNull(3)) tmp_contact_person = NULL;
+	else
+		tmp_contact_person = new TString(stmt->GetString(3));
 
 	delete stmt;
 
-	return new UniDbSession(connUniDb, tmp_session_number, tmp_start_datetime, tmp_end_datetime);
+	return new UniDbRunPeriod(connUniDb, tmp_period_number, tmp_start_datetime, tmp_end_datetime, tmp_contact_person);
 }
 
 // -----   Delete record from class table ---------------------------
-int UniDbSession::DeleteSession(int session_number)
+int UniDbRunPeriod::DeleteRunPeriod(int period_number)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -135,12 +150,12 @@ int UniDbSession::DeleteSession(int session_number)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"delete from session_ "
-		"where session_number = $1");
+		"delete from run_period "
+		"where period_number = $1");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	stmt->SetInt(0, session_number);
+	stmt->SetInt(0, period_number);
 
 	// delete table record from DB
 	if (!stmt->Process())
@@ -158,7 +173,7 @@ int UniDbSession::DeleteSession(int session_number)
 }
 
 // -----   Print all table records ---------------------------------
-int UniDbSession::PrintAll()
+int UniDbRunPeriod::PrintAll()
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -166,8 +181,8 @@ int UniDbSession::PrintAll()
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select session_number, start_datetime, end_datetime "
-		"from session_");
+		"select period_number, start_datetime, end_datetime, contact_person "
+		"from run_period");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	// get table record from DB
@@ -184,10 +199,10 @@ int UniDbSession::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'session_'"<<endl;
+	cout<<"Table 'run_period'"<<endl;
 	while (stmt->NextResultRow())
 	{
-		cout<<". session_number: ";
+		cout<<". period_number: ";
 		cout<<(stmt->GetInt(0));
 		cout<<". start_datetime: ";
 		cout<<(stmt->GetDatime(1)).AsSQLString();
@@ -195,6 +210,10 @@ int UniDbSession::PrintAll()
 		if (stmt->IsNull(2)) cout<<"NULL";
 		else
 			cout<<stmt->GetDatime(2).AsSQLString();
+		cout<<". contact_person: ";
+		if (stmt->IsNull(3)) cout<<"NULL";
+		else
+			cout<<stmt->GetString(3);
 		cout<<endl;
 	}
 
@@ -206,7 +225,7 @@ int UniDbSession::PrintAll()
 
 
 // Setters functions
-int UniDbSession::SetSessionNumber(int session_number)
+int UniDbRunPeriod::SetPeriodNumber(int period_number)
 {
 	if (!connectionUniDb)
 	{
@@ -217,14 +236,14 @@ int UniDbSession::SetSessionNumber(int session_number)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update session_ "
-		"set session_number = $1 "
-		"where session_number = $2");
+		"update run_period "
+		"set period_number = $1 "
+		"where period_number = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	stmt->SetInt(0, session_number);
-	stmt->SetInt(1, i_session_number);
+	stmt->SetInt(0, period_number);
+	stmt->SetInt(1, i_period_number);
 
 	// write new value to database
 	if (!stmt->Process())
@@ -235,13 +254,13 @@ int UniDbSession::SetSessionNumber(int session_number)
 		return -2;
 	}
 
-	i_session_number = session_number;
+	i_period_number = period_number;
 
 	delete stmt;
 	return 0;
 }
 
-int UniDbSession::SetStartDatetime(TDatime start_datetime)
+int UniDbRunPeriod::SetStartDatetime(TDatime start_datetime)
 {
 	if (!connectionUniDb)
 	{
@@ -252,14 +271,14 @@ int UniDbSession::SetStartDatetime(TDatime start_datetime)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update session_ "
+		"update run_period "
 		"set start_datetime = $1 "
-		"where session_number = $2");
+		"where period_number = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetDatime(0, start_datetime);
-	stmt->SetInt(1, i_session_number);
+	stmt->SetInt(1, i_period_number);
 
 	// write new value to database
 	if (!stmt->Process())
@@ -276,7 +295,7 @@ int UniDbSession::SetStartDatetime(TDatime start_datetime)
 	return 0;
 }
 
-int UniDbSession::SetEndDatetime(TDatime* end_datetime)
+int UniDbRunPeriod::SetEndDatetime(TDatime* end_datetime)
 {
 	if (!connectionUniDb)
 	{
@@ -287,9 +306,9 @@ int UniDbSession::SetEndDatetime(TDatime* end_datetime)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update session_ "
+		"update run_period "
 		"set end_datetime = $1 "
-		"where session_number = $2");
+		"where period_number = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
@@ -297,7 +316,7 @@ int UniDbSession::SetEndDatetime(TDatime* end_datetime)
 		stmt->SetNull(0);
 	else
 		stmt->SetDatime(0, *end_datetime);
-	stmt->SetInt(1, i_session_number);
+	stmt->SetInt(1, i_period_number);
 
 	// write new value to database
 	if (!stmt->Process())
@@ -318,15 +337,57 @@ int UniDbSession::SetEndDatetime(TDatime* end_datetime)
 	return 0;
 }
 
-// -----   Print current record ---------------------------------------
-void UniDbSession::Print()
+int UniDbRunPeriod::SetContactPerson(TString* contact_person)
 {
-	cout<<"Table 'session_'";
-	cout<<". session_number: "<<i_session_number<<". start_datetime: "<<dt_start_datetime.AsSQLString()<<". end_datetime: "<<(dt_end_datetime == NULL? "NULL": (*dt_end_datetime).AsSQLString())<<endl;
+	if (!connectionUniDb)
+	{
+		cout<<"Connection object is null"<<endl;
+		return -1;
+	}
+
+	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"update run_period "
+		"set contact_person = $1 "
+		"where period_number = $2");
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	stmt->NextIteration();
+	if (contact_person == NULL)
+		stmt->SetNull(0);
+	else
+		stmt->SetString(0, *contact_person);
+	stmt->SetInt(1, i_period_number);
+
+	// write new value to database
+	if (!stmt->Process())
+	{
+		cout<<"Error: updating the record has been failed"<<endl;
+
+		delete stmt;
+		return -2;
+	}
+
+	if (str_contact_person)
+		delete str_contact_person;
+	if (contact_person == NULL) str_contact_person = NULL;
+	else
+		str_contact_person = new TString(*contact_person);
+
+	delete stmt;
+	return 0;
+}
+
+// -----   Print current record ---------------------------------------
+void UniDbRunPeriod::Print()
+{
+	cout<<"Table 'run_period'";
+	cout<<". period_number: "<<i_period_number<<". start_datetime: "<<dt_start_datetime.AsSQLString()<<". end_datetime: "<<(dt_end_datetime == NULL? "NULL": (*dt_end_datetime).AsSQLString())<<". contact_person: "<<(str_contact_person == NULL? "NULL": *str_contact_person)<<endl;
 
 	return;
 }
 /* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
 
 // -------------------------------------------------------------------
-ClassImp(UniDbSession);
+ClassImp(UniDbRunPeriod);

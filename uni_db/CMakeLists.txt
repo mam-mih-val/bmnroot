@@ -4,6 +4,7 @@
 
 set(INCLUDE_DIRECTORIES
 ${ROOT_INCLUDE_DIR}
+/usr/include/libxml2
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
@@ -21,16 +22,14 @@ UniDbConnection.cxx
 UniDbGeoConverter.cxx
 UniDbGenerateClasses.cxx
 UniDbTangoData.cxx
-#UniDbParser.cxx
+UniDbParser.cxx
 
-db_classes/UniDbSession.cxx
-db_classes/UniDbDetector.cxx
+db_classes/UniDbRunPeriod.cxx
 db_classes/UniDbRun.cxx
 db_classes/UniDbRunGeometry.cxx
-db_classes/UniDbRunParameter.cxx
-db_classes/UniDbSessionParameter.cxx
-db_classes/UniDbSessionDcParameter.cxx
+db_classes/UniDbDetector.cxx
 db_classes/UniDbParameter.cxx
+db_classes/UniDbDetectorParameter.cxx
 db_classes/UniDbShift.cxx
 db_classes/UniDbSimulationFile.cxx
 )
@@ -49,7 +48,7 @@ set(UNIDB_SRCS ${UNIDB_SRCS} ${UNIDB_DICTIONARY})
 
 
 add_library(UniDb SHARED ${UNIDB_SRCS})
-target_link_libraries(UniDb ${ROOT_LIBRARIES})# -lpugixml)
+target_link_libraries(UniDb ${ROOT_LIBRARIES} xml2)
 set_target_properties(UniDb PROPERTIES VERSION 0.0.1 SOVERSION 0)
 
 add_executable (get_mpd_prod get_mpd_prod.cxx)

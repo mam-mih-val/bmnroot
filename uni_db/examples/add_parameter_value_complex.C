@@ -33,14 +33,14 @@ void add_parameter_value_complex()
     AssignIIStructure(pValues, 0, 15, 33, 48); // slot: 15, channel: 33-48
     AssignIIStructure(pValues, 16, 16, 49, 64); // slot: 16, channel: 49-64
 
-    UniDbRunParameter* pRunParameter = UniDbRunParameter::CreateRunParameter(77, "DCH1", "noise", pValues, 32); //(run_number, detector_name, parameter_name, IIStructure_value, element_count)
-    if (pRunParameter == NULL)
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", 77, 77, pValues, 32); //(detector_name, parameter_name, start_run_number, end_run_number, IIStructure*, element_count)
+    if (pDetectorParameter == NULL)
         return_error = true;
 
     // clean memory after work
     delete [] pValues;
-    if (pRunParameter)
-        delete pRunParameter;
+    if (pDetectorParameter)
+        delete pDetectorParameter;
 
     if (return_error)
         cout << "\nMacro finished with errors" << endl;

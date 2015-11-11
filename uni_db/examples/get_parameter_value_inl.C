@@ -17,7 +17,7 @@ void get_parameter_value_inl()
     bool is_error = false;
     int TDC_SERIAL = (int)0x0168fdca;
 
-    int channel_count = UniDbSessionDcParameter::GetChannelCount(1, "TOF2", "inl", TDC_SERIAL); //(session_number, detector_name, parameter_name, dc_serial)
+    int channel_count = UniDbDetectorParameter::GetChannelCount("TOF1", "inl", 12, TDC_SERIAL); //(detector_name, parameter_name, run_number, dc_serial)
     if (channel_count == 0)
         cout<<"The detector parameter wasn't found"<<endl;
     else
@@ -25,8 +25,8 @@ void get_parameter_value_inl()
 
     for (int i = 1; i <= channel_count; i++)
     {
-        UniDbSessionDcParameter* pSessionDcParameter = UniDbSessionDcParameter::GetSessionDcParameter(1, "TOF1", "inl", TDC_SERIAL, i); //(session_number, detector_name, parameter_name, dc_serial, channel)
-        if (pSessionDcParameter == NULL)
+        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF1", "inl", 12, TDC_SERIAL, i); //(detector_name, parameter_name, run_number, dc_serial, channel)
+        if (pDetectorParameter == NULL)
         {
             is_error = true;
             continue;
@@ -34,7 +34,7 @@ void get_parameter_value_inl()
 
         int inl_size = -1;
         double* inl_for_channel = NULL;
-        int res_code = pSessionDcParameter->GetDoubleArray(inl_for_channel, inl_size);
+        int res_code = pDetectorParameter->GetDoubleArray(inl_for_channel, inl_size);
         if (res_code != 0)
         {
             is_error = true;
@@ -49,7 +49,7 @@ void get_parameter_value_inl()
         cout<<endl<<endl;
 
         // clean memory after work
-        delete pSessionDcParameter;
+        delete pDetectorParameter;
         delete [] inl_for_channel;
     }
 

@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------
 //                    UniDbShift cxx file 
-//                      Generated 20-10-2015 
+//                      Generated 05-11-2015 
 // ----------------------------------------------------------------------
 
 #include "TSQLServer.h"
@@ -13,15 +13,15 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbShift::UniDbShift(UniDbConnection* connUniDb, int shift_id, int session_number, TString fio, TDatime start_datetime, TDatime end_datetime, TString* responsibility)
+UniDbShift::UniDbShift(UniDbConnection* connUniDb, int shift_id, int period_number, TDatime start_datetime, TDatime end_datetime, TString fio, TString* responsibility)
 {
 	connectionUniDb = connUniDb;
 
 	i_shift_id = shift_id;
-	i_session_number = session_number;
-	str_fio = fio;
+	i_period_number = period_number;
 	dt_start_datetime = start_datetime;
 	dt_end_datetime = end_datetime;
+	str_fio = fio;
 	str_responsibility = responsibility;
 }
 
@@ -35,7 +35,7 @@ UniDbShift::~UniDbShift()
 }
 
 // -----   Creating new record in class table ---------------------------
-UniDbShift* UniDbShift::CreateShift(int session_number, TString fio, TDatime start_datetime, TDatime end_datetime, TString* responsibility)
+UniDbShift* UniDbShift::CreateShift(int period_number, TDatime start_datetime, TDatime end_datetime, TString fio, TString* responsibility)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -43,15 +43,15 @@ UniDbShift* UniDbShift::CreateShift(int session_number, TString fio, TDatime sta
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"insert into shift_(session_number, fio, start_datetime, end_datetime, responsibility) "
+		"insert into shift_(period_number, start_datetime, end_datetime, fio, responsibility) "
 		"values ($1, $2, $3, $4, $5)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	stmt->SetInt(0, session_number);
-	stmt->SetString(1, fio);
-	stmt->SetDatime(2, start_datetime);
-	stmt->SetDatime(3, end_datetime);
+	stmt->SetInt(0, period_number);
+	stmt->SetDatime(1, start_datetime);
+	stmt->SetDatime(2, end_datetime);
+	stmt->SetString(3, fio);
 	if (responsibility == NULL)
 		stmt->SetNull(4);
 	else
@@ -100,20 +100,20 @@ UniDbShift* UniDbShift::CreateShift(int session_number, TString fio, TDatime sta
 
 	int tmp_shift_id;
 	tmp_shift_id = shift_id;
-	int tmp_session_number;
-	tmp_session_number = session_number;
-	TString tmp_fio;
-	tmp_fio = fio;
+	int tmp_period_number;
+	tmp_period_number = period_number;
 	TDatime tmp_start_datetime;
 	tmp_start_datetime = start_datetime;
 	TDatime tmp_end_datetime;
 	tmp_end_datetime = end_datetime;
+	TString tmp_fio;
+	tmp_fio = fio;
 	TString* tmp_responsibility;
 	if (responsibility == NULL) tmp_responsibility = NULL;
 	else
 		tmp_responsibility = new TString(*responsibility);
 
-	return new UniDbShift(connUniDb, tmp_shift_id, tmp_session_number, tmp_fio, tmp_start_datetime, tmp_end_datetime, tmp_responsibility);
+	return new UniDbShift(connUniDb, tmp_shift_id, tmp_period_number, tmp_start_datetime, tmp_end_datetime, tmp_fio, tmp_responsibility);
 }
 
 // -----   Get table record from database ---------------------------
@@ -125,7 +125,7 @@ UniDbShift* UniDbShift::GetShift(int shift_id)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select shift_id, session_number, fio, start_datetime, end_datetime, responsibility "
+		"select shift_id, period_number, start_datetime, end_datetime, fio, responsibility "
 		"from shift_ "
 		"where shift_id = %d", shift_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -155,14 +155,14 @@ UniDbShift* UniDbShift::GetShift(int shift_id)
 
 	int tmp_shift_id;
 	tmp_shift_id = stmt->GetInt(0);
-	int tmp_session_number;
-	tmp_session_number = stmt->GetInt(1);
-	TString tmp_fio;
-	tmp_fio = stmt->GetString(2);
+	int tmp_period_number;
+	tmp_period_number = stmt->GetInt(1);
 	TDatime tmp_start_datetime;
-	tmp_start_datetime = stmt->GetDatime(3);
+	tmp_start_datetime = stmt->GetDatime(2);
 	TDatime tmp_end_datetime;
-	tmp_end_datetime = stmt->GetDatime(4);
+	tmp_end_datetime = stmt->GetDatime(3);
+	TString tmp_fio;
+	tmp_fio = stmt->GetString(4);
 	TString* tmp_responsibility;
 	if (stmt->IsNull(5)) tmp_responsibility = NULL;
 	else
@@ -170,7 +170,7 @@ UniDbShift* UniDbShift::GetShift(int shift_id)
 
 	delete stmt;
 
-	return new UniDbShift(connUniDb, tmp_shift_id, tmp_session_number, tmp_fio, tmp_start_datetime, tmp_end_datetime, tmp_responsibility);
+	return new UniDbShift(connUniDb, tmp_shift_id, tmp_period_number, tmp_start_datetime, tmp_end_datetime, tmp_fio, tmp_responsibility);
 }
 
 // -----   Delete record from class table ---------------------------
@@ -213,7 +213,7 @@ int UniDbShift::PrintAll()
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select shift_id, session_number, fio, start_datetime, end_datetime, responsibility "
+		"select shift_id, period_number, start_datetime, end_datetime, fio, responsibility "
 		"from shift_");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -236,14 +236,14 @@ int UniDbShift::PrintAll()
 	{
 		cout<<". shift_id: ";
 		cout<<(stmt->GetInt(0));
-		cout<<". session_number: ";
+		cout<<". period_number: ";
 		cout<<(stmt->GetInt(1));
-		cout<<". fio: ";
-		cout<<(stmt->GetString(2));
 		cout<<". start_datetime: ";
-		cout<<(stmt->GetDatime(3)).AsSQLString();
+		cout<<(stmt->GetDatime(2)).AsSQLString();
 		cout<<". end_datetime: ";
-		cout<<(stmt->GetDatime(4)).AsSQLString();
+		cout<<(stmt->GetDatime(3)).AsSQLString();
+		cout<<". fio: ";
+		cout<<(stmt->GetString(4));
 		cout<<". responsibility: ";
 		if (stmt->IsNull(5)) cout<<"NULL";
 		else
@@ -259,7 +259,7 @@ int UniDbShift::PrintAll()
 
 
 // Setters functions
-int UniDbShift::SetSessionNumber(int session_number)
+int UniDbShift::SetPeriodNumber(int period_number)
 {
 	if (!connectionUniDb)
 	{
@@ -271,12 +271,12 @@ int UniDbShift::SetSessionNumber(int session_number)
 
 	TString sql = TString::Format(
 		"update shift_ "
-		"set session_number = $1 "
+		"set period_number = $1 "
 		"where shift_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	stmt->SetInt(0, session_number);
+	stmt->SetInt(0, period_number);
 	stmt->SetInt(1, i_shift_id);
 
 	// write new value to database
@@ -288,42 +288,7 @@ int UniDbShift::SetSessionNumber(int session_number)
 		return -2;
 	}
 
-	i_session_number = session_number;
-
-	delete stmt;
-	return 0;
-}
-
-int UniDbShift::SetFio(TString fio)
-{
-	if (!connectionUniDb)
-	{
-		cout<<"Connection object is null"<<endl;
-		return -1;
-	}
-
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
-	TString sql = TString::Format(
-		"update shift_ "
-		"set fio = $1 "
-		"where shift_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
-
-	stmt->NextIteration();
-	stmt->SetString(0, fio);
-	stmt->SetInt(1, i_shift_id);
-
-	// write new value to database
-	if (!stmt->Process())
-	{
-		cout<<"Error: updating the record has been failed"<<endl;
-
-		delete stmt;
-		return -2;
-	}
-
-	str_fio = fio;
+	i_period_number = period_number;
 
 	delete stmt;
 	return 0;
@@ -399,6 +364,41 @@ int UniDbShift::SetEndDatetime(TDatime end_datetime)
 	return 0;
 }
 
+int UniDbShift::SetFio(TString fio)
+{
+	if (!connectionUniDb)
+	{
+		cout<<"Connection object is null"<<endl;
+		return -1;
+	}
+
+	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"update shift_ "
+		"set fio = $1 "
+		"where shift_id = $2");
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	stmt->NextIteration();
+	stmt->SetString(0, fio);
+	stmt->SetInt(1, i_shift_id);
+
+	// write new value to database
+	if (!stmt->Process())
+	{
+		cout<<"Error: updating the record has been failed"<<endl;
+
+		delete stmt;
+		return -2;
+	}
+
+	str_fio = fio;
+
+	delete stmt;
+	return 0;
+}
+
 int UniDbShift::SetResponsibility(TString* responsibility)
 {
 	if (!connectionUniDb)
@@ -445,7 +445,7 @@ int UniDbShift::SetResponsibility(TString* responsibility)
 void UniDbShift::Print()
 {
 	cout<<"Table 'shift_'";
-	cout<<". shift_id: "<<i_shift_id<<". session_number: "<<i_session_number<<". fio: "<<str_fio<<". start_datetime: "<<dt_start_datetime.AsSQLString()<<". end_datetime: "<<dt_end_datetime.AsSQLString()<<". responsibility: "<<(str_responsibility == NULL? "NULL": *str_responsibility)<<endl;
+	cout<<". shift_id: "<<i_shift_id<<". period_number: "<<i_period_number<<". start_datetime: "<<dt_start_datetime.AsSQLString()<<". end_datetime: "<<dt_end_datetime.AsSQLString()<<". fio: "<<str_fio<<". responsibility: "<<(str_responsibility == NULL? "NULL": *str_responsibility)<<endl;
 
 	return;
 }

@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------
 //                    UniDbRun cxx file 
-//                      Generated 20-10-2015 
+//                      Generated 05-11-2015 
 // ----------------------------------------------------------------------
 
 #include "TSQLServer.h"
@@ -14,12 +14,12 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbRun::UniDbRun(UniDbConnection* connUniDb, int run_number, int* session_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id)
+UniDbRun::UniDbRun(UniDbConnection* connUniDb, int run_number, int* period_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id)
 {
 	connectionUniDb = connUniDb;
 
 	i_run_number = run_number;
-	i_session_number = session_number;
+	i_period_number = period_number;
 	str_file_path = file_path;
 	str_beam_particle = beam_particle;
 	str_target_particle = target_particle;
@@ -37,8 +37,8 @@ UniDbRun::~UniDbRun()
 {
 	if (connectionUniDb)
 		delete connectionUniDb;
-	if (i_session_number)
-		delete i_session_number;
+	if (i_period_number)
+		delete i_period_number;
 	if (str_target_particle)
 		delete str_target_particle;
 	if (d_energy)
@@ -56,7 +56,7 @@ UniDbRun::~UniDbRun()
 }
 
 // -----   Creating new record in class table ---------------------------
-UniDbRun* UniDbRun::CreateRun(int run_number, int* session_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id)
+UniDbRun* UniDbRun::CreateRun(int run_number, int* period_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -64,16 +64,16 @@ UniDbRun* UniDbRun::CreateRun(int run_number, int* session_number, TString file_
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"insert into run_(run_number, session_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id) "
+		"insert into run_(run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id) "
 		"values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, run_number);
-	if (session_number == NULL)
+	if (period_number == NULL)
 		stmt->SetNull(1);
 	else
-		stmt->SetInt(1, *session_number);
+		stmt->SetInt(1, *period_number);
 	stmt->SetString(2, file_path);
 	stmt->SetString(3, beam_particle);
 	if (target_particle == NULL)
@@ -119,10 +119,10 @@ UniDbRun* UniDbRun::CreateRun(int run_number, int* session_number, TString file_
 
 	int tmp_run_number;
 	tmp_run_number = run_number;
-	int* tmp_session_number;
-	if (session_number == NULL) tmp_session_number = NULL;
+	int* tmp_period_number;
+	if (period_number == NULL) tmp_period_number = NULL;
 	else
-		tmp_session_number = new int(*session_number);
+		tmp_period_number = new int(*period_number);
 	TString tmp_file_path;
 	tmp_file_path = file_path;
 	TString tmp_beam_particle;
@@ -158,7 +158,7 @@ UniDbRun* UniDbRun::CreateRun(int run_number, int* session_number, TString file_
 	else
 		tmp_geometry_id = new int(*geometry_id);
 
-	return new UniDbRun(connUniDb, tmp_run_number, tmp_session_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
+	return new UniDbRun(connUniDb, tmp_run_number, tmp_period_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
 }
 
 // -----   Get table record from database ---------------------------
@@ -170,7 +170,7 @@ UniDbRun* UniDbRun::GetRun(int run_number)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select run_number, session_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id "
+		"select run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id "
 		"from run_ "
 		"where run_number = %d", run_number);
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -200,10 +200,10 @@ UniDbRun* UniDbRun::GetRun(int run_number)
 
 	int tmp_run_number;
 	tmp_run_number = stmt->GetInt(0);
-	int* tmp_session_number;
-	if (stmt->IsNull(1)) tmp_session_number = NULL;
+	int* tmp_period_number;
+	if (stmt->IsNull(1)) tmp_period_number = NULL;
 	else
-		tmp_session_number = new int(stmt->GetInt(1));
+		tmp_period_number = new int(stmt->GetInt(1));
 	TString tmp_file_path;
 	tmp_file_path = stmt->GetString(2);
 	TString tmp_beam_particle;
@@ -241,7 +241,7 @@ UniDbRun* UniDbRun::GetRun(int run_number)
 
 	delete stmt;
 
-	return new UniDbRun(connUniDb, tmp_run_number, tmp_session_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
+	return new UniDbRun(connUniDb, tmp_run_number, tmp_period_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
 }
 
 // -----   Get table record from database for unique key--------------
@@ -253,7 +253,7 @@ UniDbRun* UniDbRun::GetRun(TString file_path)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select run_number, session_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id "
+		"select run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id "
 		"from run_ "
 		"where lower(file_path) = lower('%s')", file_path.Data());
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -283,10 +283,10 @@ UniDbRun* UniDbRun::GetRun(TString file_path)
 
 	int tmp_run_number;
 	tmp_run_number = stmt->GetInt(0);
-	int* tmp_session_number;
-	if (stmt->IsNull(1)) tmp_session_number = NULL;
+	int* tmp_period_number;
+	if (stmt->IsNull(1)) tmp_period_number = NULL;
 	else
-		tmp_session_number = new int(stmt->GetInt(1));
+		tmp_period_number = new int(stmt->GetInt(1));
 	TString tmp_file_path;
 	tmp_file_path = stmt->GetString(2);
 	TString tmp_beam_particle;
@@ -324,7 +324,7 @@ UniDbRun* UniDbRun::GetRun(TString file_path)
 
 	delete stmt;
 
-	return new UniDbRun(connUniDb, tmp_run_number, tmp_session_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
+	return new UniDbRun(connUniDb, tmp_run_number, tmp_period_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
 }
 
 // -----   Delete record from class table ---------------------------
@@ -398,7 +398,7 @@ int UniDbRun::PrintAll()
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select run_number, session_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id "
+		"select run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id "
 		"from run_");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -421,7 +421,7 @@ int UniDbRun::PrintAll()
 	{
 		cout<<". run_number: ";
 		cout<<(stmt->GetInt(0));
-		cout<<". session_number: ";
+		cout<<". period_number: ";
 		if (stmt->IsNull(1)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(1);
@@ -505,7 +505,7 @@ int UniDbRun::SetRunNumber(int run_number)
 	return 0;
 }
 
-int UniDbRun::SetSessionNumber(int* session_number)
+int UniDbRun::SetPeriodNumber(int* period_number)
 {
 	if (!connectionUniDb)
 	{
@@ -517,15 +517,15 @@ int UniDbRun::SetSessionNumber(int* session_number)
 
 	TString sql = TString::Format(
 		"update run_ "
-		"set session_number = $1 "
+		"set period_number = $1 "
 		"where run_number = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	if (session_number == NULL)
+	if (period_number == NULL)
 		stmt->SetNull(0);
 	else
-		stmt->SetInt(0, *session_number);
+		stmt->SetInt(0, *period_number);
 	stmt->SetInt(1, i_run_number);
 
 	// write new value to database
@@ -537,11 +537,11 @@ int UniDbRun::SetSessionNumber(int* session_number)
 		return -2;
 	}
 
-	if (i_session_number)
-		delete i_session_number;
-	if (session_number == NULL) i_session_number = NULL;
+	if (i_period_number)
+		delete i_period_number;
+	if (period_number == NULL) i_period_number = NULL;
 	else
-		i_session_number = new int(*session_number);
+		i_period_number = new int(*period_number);
 
 	delete stmt;
 	return 0;
@@ -950,7 +950,7 @@ int UniDbRun::SetGeometryId(int* geometry_id)
 void UniDbRun::Print()
 {
 	cout<<"Table 'run_'";
-	cout<<". run_number: "<<i_run_number<<". session_number: "<<(i_session_number == NULL? "NULL": TString::Format("%d", *i_session_number))<<". file_path: "<<str_file_path<<". beam_particle: "<<str_beam_particle<<". target_particle: "<<(str_target_particle == NULL? "NULL": *str_target_particle)<<". energy: "<<(d_energy == NULL? "NULL": TString::Format("%f", *d_energy))<<". start_datetime: "<<dt_start_datetime.AsSQLString()<<". end_datetime: "<<(dt_end_datetime == NULL? "NULL": (*dt_end_datetime).AsSQLString())<<". event_count: "<<(i_event_count == NULL? "NULL": TString::Format("%d", *i_event_count))<<". field_current: "<<(i_field_current == NULL? "NULL": TString::Format("%d", *i_field_current))<<". file_size: "<<(d_file_size == NULL? "NULL": TString::Format("%f", *d_file_size))<<". geometry_id: "<<(i_geometry_id == NULL? "NULL": TString::Format("%d", *i_geometry_id))<<endl;
+	cout<<". run_number: "<<i_run_number<<". period_number: "<<(i_period_number == NULL? "NULL": TString::Format("%d", *i_period_number))<<". file_path: "<<str_file_path<<". beam_particle: "<<str_beam_particle<<". target_particle: "<<(str_target_particle == NULL? "NULL": *str_target_particle)<<". energy: "<<(d_energy == NULL? "NULL": TString::Format("%f", *d_energy))<<". start_datetime: "<<dt_start_datetime.AsSQLString()<<". end_datetime: "<<(dt_end_datetime == NULL? "NULL": (*dt_end_datetime).AsSQLString())<<". event_count: "<<(i_event_count == NULL? "NULL": TString::Format("%d", *i_event_count))<<". field_current: "<<(i_field_current == NULL? "NULL": TString::Format("%d", *i_field_current))<<". file_size: "<<(d_file_size == NULL? "NULL": TString::Format("%f", *d_file_size))<<". geometry_id: "<<(i_geometry_id == NULL? "NULL": TString::Format("%d", *i_geometry_id))<<endl;
 
 	return;
 }

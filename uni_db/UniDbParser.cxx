@@ -1,7 +1,7 @@
 #include "UniDbParser.h"
 #include "UniDbConnection.h"
 #include "db_classes/UniDbParameter.h"
-#include "db_classes/UniDbRunParameter.h"
+#include "db_classes/UniDbDetectorParameter.h"
 #define ONLY_DECLARATIONS
 #include "../macro/mpd_scheduler/src/function_set.h"
 
@@ -11,7 +11,9 @@
 #include "TSQLStatement.h"
 #include "TDatime.h"
 
-#include "pugixml.hpp"
+// XML
+#include <libxml/parser.h>
+#include <libxml/tree.h>
 
 #include <string>
 #include <sstream>
@@ -19,37 +21,19 @@
 #include <iostream>
 using namespace std;
 
-struct search_walker : pugi::xml_tree_walker
-{
-    search_walker(string searchName){search_name = searchName;}
 
-    string search_name;
-    pugi::xml_node found_node;
-
-    virtual bool for_each(pugi::xml_node& node)
-    {
-        if (node.name() == search_name)
-        {
-            found_node = node;
-            return false;
-        }
-
-        return true; // continue traversal
-    }
-};
-
-int parse_cycle_statement(pugi::xml_node &cur_schema_node, vector<structParseSchema> &vecElements, int &skip_count, char &delimiter_char, int &column_count)
+int parse_cycle_statement(xmlNodePtr &cur_schema_node, vector<structParseSchema> &vecElements, int &skip_count, char &delimiter_char, int &column_count)
 {
     // define count of the elements to skip
     skip_count = 0;
-    if (strcmp(cur_schema_node.attribute("skip").value(), "") != 0)
-        skip_count = atoi(cur_schema_node.attribute("skip").value());
+    if ((char*)xmlGetProp(cur_schema_node, (unsigned char*)"skip") != 0)
+        skip_count = atoi((char*)xmlGetProp(cur_schema_node, (unsigned char*)"skip"));
 
     // define delimiter char
     delimiter_char = ';';
-    if (strcmp(cur_schema_node.attribute("delimiter").value(), "") != 0)
+    if ((char*)xmlGetProp(cur_schema_node, (unsigned char*)"delimiter") != 0)
     {
-        string delimiter_string = cur_schema_node.attribute("delimiter").value();
+        string delimiter_string = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"delimiter");
         if (delimiter_string[0] == '\\')
         {
             switch (delimiter_string[1])
@@ -67,11 +51,11 @@ int parse_cycle_statement(pugi::xml_node &cur_schema_node, vector<structParseSch
 
     // write cycle structure to array vecElements
     column_count = 0;
-    for (pugi::xml_node cycle_child = cur_schema_node.first_child(); cycle_child; cycle_child = cycle_child.next_sibling())
+    for (xmlNodePtr cycle_child = cur_schema_node->children; cycle_child; cycle_child = cycle_child->next)
     {
-        string strAction = cycle_child.attribute("action").value();
-        TString column_name = cycle_child.attribute("column_name").value();
-        TString statement_type = cycle_child.attribute("type").value();
+        TString strAction = (char*)xmlGetProp(cycle_child, (unsigned char*)"action");
+        TString column_name = (char*)xmlGetProp(cycle_child, (unsigned char*)"column_name");
+        TString statement_type = (char*)xmlGetProp(cycle_child, (unsigned char*)"type");
 
         if (strAction == "skip")
         {
@@ -99,9 +83,11 @@ int parse_cycle_statement(pugi::xml_node &cur_schema_node, vector<structParseSch
             structParseSchema par;
             par.isSkip = false;
 
-            int start_index = atoi(cycle_child.attribute("start_index").value());
-            TString parse_type = cycle_child.attribute("parse_type").value();
-            TString delimiter = cycle_child.attribute("delimiter").value();
+            int start_index = 0;
+            if ((char*)xmlGetProp(cycle_child, (unsigned char*)"start_index") != 0)
+                start_index = atoi((char*)xmlGetProp(cycle_child, (unsigned char*)"start_index"));
+            TString parse_type = (char*)xmlGetProp(cycle_child, (unsigned char*)"parse_type");
+            TString delimiter = (char*)xmlGetProp(cycle_child, (unsigned char*)"delimiter");
             structParseRow row(column_name, statement_type, true, start_index, parse_type, delimiter);
             par.vecRows.push_back(row);
 
@@ -113,11 +99,11 @@ int parse_cycle_statement(pugi::xml_node &cur_schema_node, vector<structParseSch
             structParseSchema par;
             par.isSkip = false;
 
-            for (pugi::xml_node cycle_sub_child = cycle_child.first_child(); cycle_sub_child; cycle_sub_child = cycle_sub_child.next_sibling())
+            for (xmlNodePtr cycle_sub_child = cycle_child->children; cycle_sub_child; cycle_sub_child = cycle_sub_child->next)
             {
-                strAction = cycle_sub_child.attribute("action").value();
-                column_name = cycle_sub_child.attribute("column_name").value();
-                statement_type = cycle_sub_child.attribute("type").value();
+                strAction = (char*)xmlGetProp(cycle_sub_child, (unsigned char*)"action");
+                column_name = (char*)xmlGetProp(cycle_sub_child, (unsigned char*)"column_name");
+                statement_type = (char*)xmlGetProp(cycle_sub_child, (unsigned char*)"type");
 
                 if (strAction == "write")
                 {
@@ -126,9 +112,11 @@ int parse_cycle_statement(pugi::xml_node &cur_schema_node, vector<structParseSch
                 }
                 else if (strAction == "parse")
                 {
-                    int start_index = atoi(cycle_sub_child.attribute("start_index").value());
-                    TString parse_type = cycle_sub_child.attribute("parse_type").value();
-                    TString delimiter = cycle_sub_child.attribute("delimiter").value();
+                    int start_index = 0;
+                    if ((char*)xmlGetProp(cycle_sub_child, (unsigned char*)"start_index") != 0)
+                        start_index = atoi((char*)xmlGetProp(cycle_sub_child, (unsigned char*)"start_index"));
+                    TString parse_type = (char*)xmlGetProp(cycle_sub_child, (unsigned char*)"parse_type");
+                    TString delimiter = (char*)xmlGetProp(cycle_sub_child, (unsigned char*)"delimiter");
                     structParseRow row(column_name, statement_type, true, start_index, parse_type, delimiter);
                     par.vecRows.push_back(row);
                 }
@@ -248,7 +236,7 @@ int write_string_to_db(string &write_string, TSQLStatement* stmt, structParseSch
             if (row.strParseType != "")
             {
                 if (row.strParseType == "counter")
-                    token = convert_integer_to_string(cycle_counter);
+                    token = convert_int_to_string(cycle_counter);
                 if (row.strParseType(0,5) == "value")
                     token = row.strParseType(6,row.strParseType.Length()-6).Data();
 
@@ -388,77 +376,113 @@ int write_string_to_db(string &write_string, TSQLStatement* stmt, structParseSch
     return 0;
 }
 
+xmlNodePtr findNodeByName(xmlNodePtr rootnode, const char* nodename)
+{
+    xmlNodePtr node = rootnode;
+    if(node == NULL)
+    {
+        cout<<"XML document is empty!"<<endl;
+        return NULL;
+    }
+
+    while (node != NULL)
+    {
+        if (strcmp((char*)node->name, nodename) == 0)
+            return node;
+        else
+        {
+            if (node->children != NULL)
+            {
+                xmlNodePtr intNode = findNodeByName(node->children, nodename);
+                if (intNode != NULL)
+                    return intNode;
+            }
+        }
+
+        node = node->next;
+    }
+
+    return NULL;
+}
+
 int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
 {
-    pugi::xml_document docXML;
-    pugi::xml_parse_result resultXML = docXML.load_file(xmlName);
-
-    if (!resultXML)
+    // pointer to XML document
+    xmlDocPtr docXML = xmlReadFile(xmlName, NULL, 0);
+    if (!docXML)
     {
         cout<<"Error: reading XML file '"<<xmlName<<"' was failed"<<endl;
         return -1;
     }
 
     // read schema
-    pugi::xml_document docSchema;
-    pugi::xml_parse_result resultSchema = docSchema.load_file(schemaPath);
-
-    if (!resultSchema)
+    xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
+    if (!docSchema)
     {
         cout<<"Error: reading schema file '"<<schemaPath<<"' was failed"<<endl;
+        xmlFreeDoc(docXML);
         return - 2;
     }
 
     // open connection to database
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
+    {
+        xmlFreeDoc(docXML);
+        xmlFreeDoc(docSchema);
         return -3;
+    }
 
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
-    pugi::xml_node cur_xml_node = docXML;
+    xmlNodePtr cur_xml_node = xmlDocGetRootElement(docXML);
+    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
     string strTableName = "";
     // parse SCHEMA file
-    for (pugi::xml_node_iterator it = docSchema.begin(); it != docSchema.end(); ++it)
+    while (cur_schema_node)
     {
-        pugi::xml_node cur_schema_node = *it;
-
-        //cout<<"Current schema node: "<<cur_schema_node.name()<<endl;
+        //cout<<"Current schema node: "<<(char*)cur_schema_node->name<<endl;
 
         // parse table name if exists
-        if (strcmp(cur_schema_node.attribute("table_name").value(), "") != 0)
+        if ((char*)xmlGetProp(cur_schema_node, (unsigned char*)"table_name") != 0)
         {
-            strTableName = cur_schema_node.attribute("table_name").value();
+            strTableName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"table_name");
             cout<<"Current database table: "<<strTableName<<endl;
         }
 
-        if (strcmp(cur_schema_node.name(), "search") == 0)
+        if (strcmp((char*)cur_schema_node->name, "search") == 0)
         {
-            string strSearchName = cur_schema_node.attribute("name").value();
-            search_walker my_walker(strSearchName);
-            cur_xml_node.traverse(my_walker);
-            cur_xml_node = my_walker.found_node;
+            string strSearchName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"name");
+            // go the XML node with given name
+            cur_xml_node = findNodeByName(cur_xml_node, strSearchName.c_str());
 
-            cout<<"Current node after search: "<<cur_xml_node.name()<<endl;
+            cout<<"Current node after search: "<<(char*)cur_xml_node->name<<endl;
         }
-        else if (strcmp(cur_schema_node.name(), "move") == 0)
+        else if (strcmp((char*)cur_schema_node->name, "move") == 0)
         {
-            for (pugi::xml_attribute_iterator ait = cur_schema_node.attributes_begin(); ait != it->attributes_end(); ++ait)
+            xmlAttr* attribute = cur_schema_node->properties;
+            while (attribute && attribute->name && attribute->children)
             {
-                if (strcmp(ait->name(), "down") == 0)
+                if (strcmp((char*)attribute->name, "down") == 0)
                 {
-                    int count = atoi(ait->value());
+                    xmlChar* value = xmlNodeListGetString(cur_schema_node->doc, attribute->children, 1);
+
+                    int count = atoi((char*)value);
                     for (int i = 0; i < count; i++)
-                        cur_xml_node = cur_xml_node.first_child();
+                        cur_xml_node = cur_xml_node->children;
+
+                    xmlFree(value);
                 }// if attribute name is "down"
+
+                attribute = attribute->next;
             }
 
-            cout<<"Current node after move: "<<cur_xml_node.name()<<endl;
+            cout<<"Current node after move: "<<(char*)cur_xml_node->name<<endl;
         }
         // PARSE CYCLE
-        else if (strcmp(cur_schema_node.name(), "cycle") == 0)
+        else if (strcmp((char*)cur_schema_node->name, "cycle") == 0)
         {
-            string strChildName = cur_schema_node.attribute("child").value();
+            TString strChildName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"child");
 
             int skip_count, column_count; char delimiter_char;
             vector<structParseSchema> vecElements;
@@ -474,8 +498,11 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
 
             // run XML file cycle and write the fields to DB
             int cycle_counter = 0;
-            for (cur_xml_node = cur_xml_node.child(strChildName.c_str()); cur_xml_node; cur_xml_node = cur_xml_node.next_sibling(strChildName.c_str()))
+            for (cur_xml_node = cur_xml_node->children; cur_xml_node; cur_xml_node = cur_xml_node->next)
             {
+                if (strcmp((char*)cur_xml_node->name, strChildName.Data()))
+                    continue;
+
                 if (skip_count > 0)
                 {
                     skip_count--;
@@ -493,13 +520,13 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
 
                 int i = 0;
                 // cycle for XML child elements
-                for (pugi::xml_node cycle_child = cur_xml_node.first_child(); cycle_child; cycle_child = cycle_child.next_sibling(), i++)
+                for (xmlNodePtr cycle_child = cur_xml_node->children; cycle_child; cycle_child = cycle_child->next, i++)
                 {
                     structParseSchema schema = vecElements[i];
                     if (schema.isSkip)
                         continue;
 
-                    TString xml_child_value = cycle_child.first_child().value();
+                    TString xml_child_value = (char*)cycle_child->children->content;
                     string token = xml_child_value.Data();
 
                     write_string_to_db(token, stmt, schema, count, cycle_counter);
@@ -509,9 +536,13 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
             stmt->Process();
             delete stmt;
         }// CYCLE PROCESSING
+
+        cur_schema_node = cur_schema_node->next;
     }// for docSchema level 0
 
     delete connUniDb;
+    xmlFreeDoc(docXML);
+    xmlFreeDoc(docSchema);
 
     return 0;
 }
@@ -528,10 +559,8 @@ int UniDbParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
     string cur_line;
 
     // read schema
-    pugi::xml_document docSchema;
-    pugi::xml_parse_result resultSchema = docSchema.load_file(schemaPath);
-
-    if (!resultSchema)
+    xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
+    if (!docSchema)
     {
         cout<<"Error: reading schema file '"<<schemaPath<<"' was failed"<<endl;
         return - 2;
@@ -546,25 +575,24 @@ int UniDbParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
 
     string strTableName = "";
     // parse SCHEMA file
-    for (pugi::xml_node_iterator it = docSchema.begin(); it != docSchema.end(); ++it)
+    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
+    while (cur_schema_node)
     {
-        pugi::xml_node cur_schema_node = *it;
-
-        //cout<<"Current schema node: "<<cur_schema_node.name()<<endl;
+        //cout<<"Current schema node: "<<cur_schema_node->name<<endl;
 
         // parse table name if exists
-        if (strcmp(cur_schema_node.attribute("table_name").value(), "") != 0)
+        if ((char*)xmlGetProp(cur_schema_node, (unsigned char*)"table_name") != 0)
         {
-            strTableName = cur_schema_node.attribute("table_name").value();
+            strTableName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"table_name");
             cout<<"Current database table: "<<strTableName<<endl;
         }
 
-        if (strcmp(cur_schema_node.name(), "search") == 0)
+        if (strcmp((char*)cur_schema_node->name, "search") == 0)
         {
-            string strSearchName = cur_schema_node.attribute("name").value();
+            string strSearchName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"name");
         }
         // PARSE CYCLE
-        else if (strcmp(cur_schema_node.name(), "cycle") == 0)
+        else if (strcmp((char*)cur_schema_node->name, "cycle") == 0)
         {
             int skip_count, column_count; char delimiter_char;
             vector<structParseSchema> vecElements;
@@ -623,10 +651,13 @@ int UniDbParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
             stmt->Process();
             delete stmt;
         }// CYCLE PROCESSING
+
+        cur_schema_node = cur_schema_node->next;
     }// for docSchema level 0
 
     delete connUniDb;
     csvFile.close();
+    xmlFreeDoc(docSchema);
 
     return 0;
 }
@@ -642,10 +673,8 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
     }
 
     // read schema
-    pugi::xml_document docSchema;
-    pugi::xml_parse_result resultSchema = docSchema.load_file(schemaPath);
-
-    if (!resultSchema)
+    xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
+    if (!docSchema)
     {
         cout<<"Error: reading schema file '"<<schemaPath<<"' was failed"<<endl;
         return - 2;
@@ -660,21 +689,22 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
 
     // parse SCHEMA file
     string strTableName = "", cur_line;
-    for (pugi::xml_node_iterator it = docSchema.begin(); it != docSchema.end(); ++it)
+    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
+    while (cur_schema_node)
     {
-        pugi::xml_node cur_schema_node = *it;
+        cout<<"Current schema node: "<<cur_schema_node->name<<endl;
 
         // parse table name if exists
-        if (strcmp(cur_schema_node.attribute("table_name").value(), "") != 0)
+        if ((char*)xmlGetProp(cur_schema_node, (unsigned char*)"table_name") != 0)
         {
-            strTableName = cur_schema_node.attribute("table_name").value();
+            strTableName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"table_name");
             cout<<"Current database table: "<<strTableName<<endl;
         }
 
-        if (strcmp(cur_schema_node.name(), "skip") == 0)
+        if (strcmp((char*)cur_schema_node->name, "skip") == 0)
         {
             int skip_line_count = 0;
-            string strLineCount = cur_schema_node.attribute("line_count").value();
+            string strLineCount = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"line_count");
             if (strLineCount != "")
                 skip_line_count = atoi(strLineCount.c_str());
 
@@ -682,12 +712,12 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
                 getline(txtFile, cur_line);
         }
 
-        if (strcmp(cur_schema_node.name(), "search") == 0)
+        if (strcmp((char*)cur_schema_node->name, "search") == 0)
         {
-            string strSearchName = cur_schema_node.attribute("name").value();
+            string strSearchName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"name");
         }
         // PARSE CYCLE
-        else if (strcmp(cur_schema_node.name(), "cycle") == 0)
+        else if (strcmp((char*)cur_schema_node->name, "cycle") == 0)
         {
             int skip_count, column_count; char delimiter_char;
             vector<structParseSchema> vecElements;
@@ -746,10 +776,13 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
             stmt->Process();
             delete stmt;
         }// CYCLE PROCESSING
+
+        cur_schema_node = cur_schema_node->next;
     }// parse SCHEMA file
 
-    txtFile.close();
     delete connUniDb;
+    txtFile.close();
+    xmlFreeDoc(docSchema);
 
     return 0;
 }
@@ -766,10 +799,8 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
     }
 
     // read schema
-    pugi::xml_document docSchema;
-    pugi::xml_parse_result resultSchema = docSchema.load_file(schemaPath);
-
-    if (!resultSchema)
+    xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
+    if (!docSchema)
     {
         cout<<"Error: reading schema file '"<<schemaPath<<"' was failed"<<endl;
         return - 2;
@@ -785,23 +816,24 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
     // parse SCHEMA file
     string strTableName = "";
     int skip_line_count = 0;
-    for (pugi::xml_node_iterator it = docSchema.begin(); it != docSchema.end(); ++it)
+    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
+    while (cur_schema_node)
     {
-        pugi::xml_node cur_schema_node = *it;
-
         // parse table name if exists
-        if (strcmp(cur_schema_node.attribute("table_name").value(), "") != 0)
+        if ((char*)xmlGetProp(cur_schema_node, (unsigned char*)"table_name") != 0)
         {
-            strTableName = cur_schema_node.attribute("table_name").value();
+            strTableName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"table_name");
             cout<<"Current database table: "<<strTableName<<endl;
         }
 
-        if (strcmp(cur_schema_node.name(), "skip") == 0)
+        if (strcmp((char*)cur_schema_node->name, "skip") == 0)
         {
-            string strLineCount = cur_schema_node.attribute("line_count").value();
+            string strLineCount = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"line_count");
             if (strLineCount != "")
                 skip_line_count = atoi(strLineCount.c_str());
         }
+
+        cur_schema_node = cur_schema_node->next;
     }
 
     string cur_line;
@@ -913,14 +945,14 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
         cout<<endl;
         */
 
-        UniDbRunParameter* pRunParameter = UniDbRunParameter::CreateRunParameter(run_number, "DCH1", "noise", pValues, 32); //(run_number, detector_name, parameter_name, IIStructure_value, element_count)
-        if (pRunParameter == NULL)
+        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", run_number, run_number, pValues, 32); //(detector_name, parameter_name, start_run, end_run, parameter_value, size_parameter_value)
+        if (pDetectorParameter == NULL)
             continue;
 
         // clean memory after work
         delete [] pValues;
-        if (pRunParameter)
-            delete pRunParameter;
+        if (pDetectorParameter)
+            delete pDetectorParameter;
     }
 
     txtFile.close();

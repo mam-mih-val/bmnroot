@@ -1,6 +1,11 @@
-﻿-- Unified experiment database
--- drop schema public cascade; create schema public;
--- create database bmn_db;
+﻿-- drop schema public cascade; create schema public;
+-- SHOW search_path;
+-- SET search_path TO "$user",new_schema;
+-- SET search_path TO "$user",public;
+
+-- Unified experiment database
+-- createdb bmn_db;
+-- createlang -d bmn_db plpgsql;
 
 -- MS SQL Server convertion
 -- replace serial : int identity
@@ -14,23 +19,23 @@
 -- replace true : 1
 -- replace bytea : blob
 
--- EXPERIMENT SESSIONS
-create table session_
+-- EXPERIMENT RUN PERIODS (SESSIONS)
+create table run_period
 (
- session_number int primary key,
+ period_number int primary key,
  start_datetime timestamp not null,
- end_datetime timestamp null
+ end_datetime timestamp null,
+ contact_person varchar(40) null
 );
 
 -- SHIFTS
--- drop table shift
 create table shift_
 (
  shift_id serial primary key,
- session_number int not null references session_(session_number) on update cascade,
- FIO varchar(40) not null,
+ period_number int not null references run_period(period_number) on update cascade,
  start_datetime timestamp not null,
  end_datetime timestamp not null,
+ FIO varchar(40) not null,
  responsibility varchar(20) null
 );
 
@@ -45,7 +50,7 @@ create table run_geometry
 create table run_
 (
  run_number int primary key,
- session_number int references session_(session_number) on update cascade,
+ period_number int references run_period(period_number) on update cascade,
  file_path varchar(200) not null unique,
  beam_particle varchar(10) not null default ('d'),
  target_particle varchar(10) null,
@@ -78,50 +83,32 @@ create table detector_
 (
  detector_name varchar(10) primary key,
  manufacturer_name varchar(30) null,
- responsible_person varchar(40) null,
+ contact_person varchar(40) null,
  description varchar(30) null
 );
 
 -- COMPONENT PARAMETERS
--- lifetime_type: 0 - run parameter, 1 - session_parameter
--- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 -double array
+-- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array
+-- drop table parameter_
 create table parameter_
 (
  parameter_id serial primary key,
  parameter_name varchar(20) not null unique,
- parameter_type int not null,
- lifetime_type int not null default (0)
+ parameter_type int not null
 );
 
-create table run_parameter
+-- PARAMETERS' VALUES
+-- drop table detector_parameter
+create table detector_parameter
 (
- run_number int not null references run_(run_number),
+ value_id serial primary key,
  detector_name varchar(10) not null references detector_(detector_name),
  parameter_id int not null references parameter_(parameter_id),
- parameter_value bytea not null,
- primary key (run_number, detector_name, parameter_id)
-);
-
--- drop table session_parameter
-create table session_parameter
-(
- session_number int not null references session_(session_number),
- detector_name varchar(10) not null references detector_(detector_name),
- parameter_id int not null references parameter_(parameter_id),
- parameter_value bytea not null,
- primary key (session_number, detector_name, parameter_id)
-);
-
--- drop table session_dc_parameter
-create table session_dc_parameter
-(
- session_number int not null references session_(session_number),
- detector_name varchar(10) not null references detector_(detector_name),
- parameter_id int not null references parameter_(parameter_id),
- dc_serial int not null,
- channel int not null,
- parameter_value bytea not null,
- primary key (session_number, detector_name, parameter_id, dc_serial, channel)
+ start_run int not null references run_(run_number),
+ end_run int not null references run_(run_number),
+ dc_serial int null,
+ channel int null,
+ parameter_value bytea not null
 );
 
 /*-- DETECTORS' MAPPING (special tables)
@@ -301,27 +288,24 @@ create table geometry_parameter
 -- ORDER BY a.attnum;
 
 create index det_name_lower_idx on detector_((lower(detector_name)));
-create index det_name_rpar_lower_idx on run_parameter((lower(detector_name)));
-create index det_name_spar_lower_idx on session_parameter((lower(detector_name)));
-create index det_name_dc_spar_lower_idx on session_dc_parameter((lower(detector_name)));
-create unique index parameter_name_lower_idx on parameter_((lower(parameter_name)));
+create index par_name_lower_idx on parameter_((lower(parameter_name)));
+create index det_name_par_lower_idx on detector_parameter((lower(detector_name)));
 
 -- trigger to remove large_object by OID
+-- ALTER TABLE public.run_parameter DISABLE TRIGGER USER
 CREATE OR REPLACE FUNCTION unlink_lo_parameter() RETURNS TRIGGER AS $$
 DECLARE
   objID integer;
 BEGIN
   objID = OLD.parameter_value;
-  PERFORM lo_unlink(objID);
+  IF EXISTS(SELECT 1 FROM pg_catalog.pg_largeobject WHERE loid = objID)
+    THEN PERFORM lo_unlink(objID);
+  END IF;
   RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
-CREATE TRIGGER unlink_large_object_rparameter
-AFTER UPDATE OR DELETE ON run_parameter FOR EACH ROW EXECUTE PROCEDURE unlink_lo_parameter();
-CREATE TRIGGER unlink_large_object_sparameter
-AFTER UPDATE OR DELETE ON session_parameter FOR EACH ROW EXECUTE PROCEDURE unlink_lo_parameter();
-CREATE TRIGGER unlink_large_object_dc_sparameter
-AFTER UPDATE OR DELETE ON session_dc_parameter FOR EACH ROW EXECUTE PROCEDURE unlink_lo_parameter();
+CREATE TRIGGER unlink_lo_parameter_value
+AFTER UPDATE OR DELETE ON detector_parameter FOR EACH ROW EXECUTE PROCEDURE unlink_lo_parameter();
 
 -- DROP TRIGGER unlink_large_object_geometry ON run_geometry;
 CREATE OR REPLACE FUNCTION unlink_lo_geometry() RETURNS TRIGGER AS $$
@@ -329,12 +313,36 @@ DECLARE
   objID integer;
 BEGIN
   objID = OLD.root_geometry;
-  PERFORM lo_unlink(objID);
+  IF EXISTS(SELECT 1 FROM pg_catalog.pg_largeobject WHERE loid = objID)
+    THEN PERFORM lo_unlink(objID);
+  END IF;
   RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER unlink_large_object_geometry
 AFTER UPDATE OR DELETE ON run_geometry FOR EACH ROW EXECUTE PROCEDURE unlink_lo_geometry();
+
+-- trigger to check correctness of the valid period for detector parameter
+CREATE OR REPLACE FUNCTION check_valid_period() RETURNS TRIGGER AS $$
+DECLARE
+  objID integer;
+BEGIN
+  IF NEW.dc_serial is NULL THEN
+    IF EXISTS(SELECT 1 FROM detector_parameter dp WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and 
+	(not ((NEW.end_run < dp.start_run) or (NEW.start_run > dp.end_run)))) THEN
+      RAISE EXCEPTION 'Valid period of the detector parameter is crossed with existing values';
+    END IF;
+  ELSE
+    IF EXISTS(SELECT 1 FROM detector_parameter dp WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and 
+	NEW.dc_serial = dp.dc_serial and NEW.channel = dp.channel (not ((NEW.end_run < dp.start_run) or (NEW.start_run > dp.end_run)))) THEN
+      RAISE EXCEPTION 'Valid period of the detector parameter is crossed with existing values';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER check_par_period
+BEFORE INSERT ON detector_parameter FOR EACH ROW EXECUTE PROCEDURE check_valid_period();
 
 -- output bytea as string
 CREATE OR REPLACE FUNCTION ConvertBytea2String(par_value bytea, par_type integer, is_little_endian boolean) RETURNS text AS $$

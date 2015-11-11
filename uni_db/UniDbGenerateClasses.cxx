@@ -113,6 +113,16 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             return -3;
         }
 
+        // set classes directory and create if not exists
+        TString strClassDir = "db_classes";
+        int res_code = create_directory(strClassDir.Data());
+        if (res_code < 0)
+        {
+            cout<<"Critical error: creating of the directory '"<<strClassDir<<"' was failed"<<endl;
+            return -11;
+        }
+        strClassDir += "/";
+
         // parse all columns in current table in cycle
         TSQLRow* row;
         while (row = res->Next())
@@ -301,7 +311,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             strTableNameSpace = strTableNameSpace.Replace(char_under, 1, ' ');
 
         // CREATING OR CHANGING HEADER FILE
-        TString strFileName = "db_classes/" + strClassName + ".h"; // set header file name
+        TString strFileName = strClassDir + strClassName + ".h"; // set header file name
         // open and write to file
         ifstream oldFile;
         TString strTempFileName;
@@ -599,7 +609,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         }
 
         // CREATING OR CHANGING CXX FILE
-        strFileName = "db_classes/" + strClassName + ".cxx";
+        strFileName = strClassDir + strClassName + ".cxx";
         // open and write to file
         ofstream cxxFile;
         if (isOnlyUpdate)

@@ -17,37 +17,77 @@
 #include <stdio.h>
 #include <sstream>
 #include <ctime>
+//#include <sys/types.h>
+#include <sys/stat.h>
 
 using namespace std;
 
 /* declarations */
+
+/* OS FUNCTIONS */
+// execute system command in shell (bash)
 int system_command_linux(string aCommand, string& result);
+// change tilda symbol on HOME in linux path
 string replace_home_symbol_linux(string path);
+// change $VMCWORKDIR symbol in linux path
 string replace_vmc_path_linux(string path);
+// get processor core count on this machine
 int get_linux_processor_count();
+// get maximum available processor count on Sun Grid Engine system
 int get_sge_processor_count();
+// get maximum available processor count on Torque batch system
 int get_torque_processor_count();
+
+/* GLOBAL APPLICATION FUNCTIONS */
+// get application name in linux
 string get_app_name_linux();
+// get aplication directory (path without file name) in linux
 string get_app_dir_linux();
-string convert_integer_to_string(int number);
+
+/* NUMBER FUNCTIONS */
+// check bit in 'variable' at 'position'
+#define CHECK_BIT(variable,position) ((variable) & (1ULL<<(position)))
+
+/* STRING FUNCTIONS */
+// convert integer number to string
+string convert_int_to_string(int number);
+// convert integer (hexadecimal value) to string with hexadecimal presentation without "0x"
 string int_to_hex_string(int int_number);
+// convert string with hexadecimal presentation without "0x" to integer
 int hex_string_to_int(string hex_string);
+// is string an integer number?
 bool is_string_number(const string& s);
+// convert array of chars to the new lowercase array
 char* convert_pchar_to_lowercase_new(char* input_char_array);
+// replace string 's' by string 'd' in text
 void replace_string_in_text(string &text, string s, string d);
+// return string without leading and trailing spaces and tabs
 string trim(const string& str, const string& whitespace = " \t\r");
+// return string changing whitespaces and tabs by single whitespace
 string reduce(const string& str, const string& fill = " ", const string& whitespace = " \t\r");
+
+/*   DIR & FILE FUNCTIONS   */
+// check directory exists: 0 - not exists, 1 - exists, -2 - cannot access
+int check_directory_exist(const char* path);
+// check and create directory if not exists: 0 - not existed before, 1 - existed, -1 - errno error, -2 - cannot access
+int create_directory(const char* path);
+// get file name without extension from a path
 string get_file_name(string path);
+// get file name with extension from path
 string get_file_name_with_ext(string path);
+
+/*  TIME FUNCTIONS  */
+// get current date as string
 string get_current_date();
+
 
 #ifndef ONLY_DECLARATIONS
 
 
 /*              */
-/*				*/
+/*              */
 /* OS FUNCTIONS */
-/*				*/
+/*              */
 /*              */
 
 // execute system command in shell (bash)
@@ -127,46 +167,46 @@ string replace_vmc_path_linux(string path)
 // get processor core count on this machine
 int get_linux_processor_count()
 {
-	return sysconf(_SC_NPROCESSORS_ONLN);
+    return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 // get maximum available processor count on Sun Grid Engine system
 int get_sge_processor_count()
 {
-	int proc_count = 0;
+    int proc_count = 0;
 
     const int MAX_BUFFER = 255;
     char buffer[MAX_BUFFER];
 
     // define count of processors for all.q queue
-	string data, strDiff;
-	FILE* stream = popen("export SGE_SINGLE_LINE=1; qconf -sq all.q | grep slots", "r");
+    string data, strDiff;
+    FILE* stream = popen("export SGE_SINGLE_LINE=1; qconf -sq all.q | grep slots", "r");
     while (fgets(buffer, MAX_BUFFER, stream) != NULL)
         data.append(buffer);
-	pclose(stream);
+    pclose(stream);
 
-	size_t found = data.find("="), found2 = string::npos;
-	while (found != string::npos)
-	{
-		found2 = data.find("]", found);
-		strDiff = data.substr(found+1, found2 - found - 1);
-		proc_count += atoi(strDiff.c_str());
-		strDiff.clear();
+    size_t found = data.find("="), found2 = string::npos;
+    while (found != string::npos)
+    {
+        found2 = data.find("]", found);
+        strDiff = data.substr(found+1, found2 - found - 1);
+        proc_count += atoi(strDiff.c_str());
+        strDiff.clear();
 
-		found = data.find("=", found2);
-	}
+        found = data.find("=", found2);
+    }
 
-	data.clear();
+    data.clear();
 
-	cout<<"SGE processor count: "<<proc_count<<endl;
+    cout<<"SGE processor count: "<<proc_count<<endl;
 
-	return proc_count;
+    return proc_count;
 }
 
 // get maximum available processor count on Torque batch system
 int get_torque_processor_count()
 {
-	int proc_count = 0;
+    int proc_count = 0;
 
     const int MAX_BUFFER = 255;
     char buffer[MAX_BUFFER];
@@ -196,9 +236,9 @@ int get_torque_processor_count()
 
 
 /*                              */
-/*								*/
+/*				*/
 /* GLOBAL APPLICATION FUNCTIONS */
-/*								*/
+/*				*/
 /*                              */
 
 // get application name in linux
@@ -210,9 +250,9 @@ string get_app_name_linux()
     string fRes="";
     system_command_linux(toCom.str(), fRes);
     size_t last_pos = fRes.find_last_not_of(" \n\r\t") + 1;
-    if (last_pos != string::npos) {
+    if (last_pos != string::npos)
         fRes.erase(last_pos);
-    }
+
     return fRes;
 }
 
@@ -235,23 +275,21 @@ string get_app_dir_linux()
 
 
 /*                  */
-/*					*/
+/*                  */
 /* NUMBER FUNCTIONS */
-/*					*/
+/*                  */
 /*                  */
 
-// check bit in 'variable' at 'position'
-#define CHECK_BIT(variable,position) ((variable) & (1ULL<<(position)))
 
 
 /*                  */
-/*					*/
+/*                  */
 /* STRING FUNCTIONS */
-/*					*/
+/*                  */
 /*                  */
 
 // convert integer number to string
-string convert_integer_to_string(int number)
+string convert_int_to_string(int number)
 {
     stringstream ss;
     ss<<number;
@@ -276,7 +314,7 @@ int hex_string_to_int(string hex_string)
     return x;
 }
 
-// is string a integer number?
+// is string an integer number?
 bool is_string_number(const string& s)
 {
     string::const_iterator it = s.begin();
@@ -287,32 +325,32 @@ bool is_string_number(const string& s)
 // convert array of chars to the new lowercase array
 char* convert_pchar_to_lowercase_new(char* input_char_array)
 {
-	if (input_char_array == NULL)
-		return NULL;
+    if (input_char_array == NULL)
+        return NULL;
 
-	const int length = strlen(input_char_array);	// get the length of the text
-	char* lower = new char[length + 1];		// allocate 'length' bytes + 1 (for null terminator) and cast to char*
-	lower[length] = 0;						// set the last byte to a null terminator
+    const int length = strlen(input_char_array);	// get the length of the text
+    char* lower = new char[length + 1];		// allocate 'length' bytes + 1 (for null terminator) and cast to char*
+    lower[length] = 0;						// set the last byte to a null terminator
 
-	// copy all character bytes to the new buffer using tolower
-	for( int i = 0; i < length; i++ )
-	{
-	    lower[i] = tolower(input_char_array[i]);
-	}
+    // copy all character bytes to the new buffer using tolower
+    for( int i = 0; i < length; i++ )
+        lower[i] = tolower(input_char_array[i]);
 
-	return lower;
+
+    return lower;
 }
 
 // replace string 's' by string 'd' in text
 void replace_string_in_text(string &text, string old_substring, string new_substring)
 {
-	int start = -1;
-	do
-	{
+    int start = -1;
+
+    do
+    {
         start = text.find(old_substring, start + 1);
         if (start > -1)
             text.replace(start, old_substring.length(), new_substring.c_str());
-	}
+    }
     while (start > -1);
 }
 
@@ -352,39 +390,67 @@ string reduce(const string& str, const string& fill, const string& whitespace)
 }
 
 
-/*                  */
-/*                  */
-/*  FILE FUNCTIONS  */
-/*                  */
-/*                  */
+/*                          */
+/*                          */
+/*   DIR & FILE FUNCTIONS   */
+/*                          */
+/*                          */
+
+// check directory exists: 0 - not exists, 1 - exists, -2 - cannot access
+int check_directory_exist(const char* path)
+{
+    struct stat info;
+
+    if (stat(path, &info) != 0)
+        return -2;
+    else if (info.st_mode & S_IFDIR)
+        return 1;
+    else
+        return 0;
+}
+
+// check and create directory if not exists: 0 - not existed before, 1 - existed, -1 - errno error, -2 - cannot access
+int create_directory(const char* path)
+{
+    struct stat info;
+
+    if (stat(path, &info) != 0)
+        return -2;
+    else if (info.st_mode & S_IFDIR)
+        return 1;
+    else
+    {
+        //system("mkdir -p "+path)
+        int status = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        return status;
+    }
+}
 
 // get file name without extension from a path
 string get_file_name(string path)
 {
-	// Remove directory if present.
-	size_t last_slash_idx = path.find_last_of("/");
-	if (string::npos != last_slash_idx)
-	    path.erase(0, last_slash_idx + 1);
+    // Remove directory if present.
+    size_t last_slash_idx = path.find_last_of("/");
+    if (string::npos != last_slash_idx)
+        path.erase(0, last_slash_idx + 1);
 
-	// Remove extension if present.
-	size_t period_idx = path.rfind('.');
+    // Remove extension if present.
+    size_t period_idx = path.rfind('.');
     if (string::npos != period_idx)
-	    path.erase(period_idx);
+        path.erase(period_idx);
 
-	return path;
+    return path;
 }
 
 // get file name with extension from path
 string get_file_name_with_ext(string path)
 {
-	// Remove directory if present.
-	size_t last_slash_idx = path.find_last_of("/");
-	if (string::npos != last_slash_idx)
-	{
-	    path.erase(0, last_slash_idx + 1);
-	}
+    // Remove directory if present.
+    size_t last_slash_idx = path.find_last_of("/");
+    if (string::npos != last_slash_idx)
+        path.erase(0, last_slash_idx + 1);
 
-	return path;
+    return path;
 }
 
 

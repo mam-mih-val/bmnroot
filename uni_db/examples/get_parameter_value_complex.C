@@ -10,12 +10,12 @@ void get_parameter_value_complex()
     bool return_error = false;
 
     // get noise parameter values presented by IIStructure: Int+Int (slot:channel)
-    UniDbRunParameter* pRunParameter = UniDbRunParameter::GetRunParameter(77, "DCH1", "noise"); //(run_number, detector_name, parameter_name)
-    if (pRunParameter != NULL)
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "noise", 77); //(detector_name, parameter_name, run_number)
+    if (pDetectorParameter != NULL)
     {
         IIStructure* pValues;
         int element_count = 0;
-        pRunParameter->GetIIArray(pValues, element_count);
+        pDetectorParameter->GetIIArray(pValues, element_count);
 
         // YOUR CODE (e.g print values)
         for (int i = 0; i < element_count; i++)
@@ -23,8 +23,8 @@ void get_parameter_value_complex()
 
         // clean memory after work
         delete pValues;
-        if (pRunParameter)
-            delete pRunParameter;
+        if (pDetectorParameter)
+            delete pDetectorParameter;
     }
     else
         return_error = true;

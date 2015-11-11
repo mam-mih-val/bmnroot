@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------
 //                    UniDbDetector cxx file 
-//                      Generated 20-10-2015 
+//                      Generated 05-11-2015 
 // ----------------------------------------------------------------------
 
 #include "TSQLServer.h"
@@ -13,13 +13,13 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbDetector::UniDbDetector(UniDbConnection* connUniDb, TString detector_name, TString* manufacturer_name, TString* responsible_person, TString* description)
+UniDbDetector::UniDbDetector(UniDbConnection* connUniDb, TString detector_name, TString* manufacturer_name, TString* contact_person, TString* description)
 {
 	connectionUniDb = connUniDb;
 
 	str_detector_name = detector_name;
 	str_manufacturer_name = manufacturer_name;
-	str_responsible_person = responsible_person;
+	str_contact_person = contact_person;
 	str_description = description;
 }
 
@@ -30,14 +30,14 @@ UniDbDetector::~UniDbDetector()
 		delete connectionUniDb;
 	if (str_manufacturer_name)
 		delete str_manufacturer_name;
-	if (str_responsible_person)
-		delete str_responsible_person;
+	if (str_contact_person)
+		delete str_contact_person;
 	if (str_description)
 		delete str_description;
 }
 
 // -----   Creating new record in class table ---------------------------
-UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* manufacturer_name, TString* responsible_person, TString* description)
+UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* manufacturer_name, TString* contact_person, TString* description)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -45,7 +45,7 @@ UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* man
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"insert into detector_(detector_name, manufacturer_name, responsible_person, description) "
+		"insert into detector_(detector_name, manufacturer_name, contact_person, description) "
 		"values ($1, $2, $3, $4)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -55,10 +55,10 @@ UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* man
 		stmt->SetNull(1);
 	else
 		stmt->SetString(1, *manufacturer_name);
-	if (responsible_person == NULL)
+	if (contact_person == NULL)
 		stmt->SetNull(2);
 	else
-		stmt->SetString(2, *responsible_person);
+		stmt->SetString(2, *contact_person);
 	if (description == NULL)
 		stmt->SetNull(3);
 	else
@@ -81,16 +81,16 @@ UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* man
 	if (manufacturer_name == NULL) tmp_manufacturer_name = NULL;
 	else
 		tmp_manufacturer_name = new TString(*manufacturer_name);
-	TString* tmp_responsible_person;
-	if (responsible_person == NULL) tmp_responsible_person = NULL;
+	TString* tmp_contact_person;
+	if (contact_person == NULL) tmp_contact_person = NULL;
 	else
-		tmp_responsible_person = new TString(*responsible_person);
+		tmp_contact_person = new TString(*contact_person);
 	TString* tmp_description;
 	if (description == NULL) tmp_description = NULL;
 	else
 		tmp_description = new TString(*description);
 
-	return new UniDbDetector(connUniDb, tmp_detector_name, tmp_manufacturer_name, tmp_responsible_person, tmp_description);
+	return new UniDbDetector(connUniDb, tmp_detector_name, tmp_manufacturer_name, tmp_contact_person, tmp_description);
 }
 
 // -----   Get table record from database ---------------------------
@@ -102,7 +102,7 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select detector_name, manufacturer_name, responsible_person, description "
+		"select detector_name, manufacturer_name, contact_person, description "
 		"from detector_ "
 		"where lower(detector_name) = lower('%s')", detector_name.Data());
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -136,10 +136,10 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 	if (stmt->IsNull(1)) tmp_manufacturer_name = NULL;
 	else
 		tmp_manufacturer_name = new TString(stmt->GetString(1));
-	TString* tmp_responsible_person;
-	if (stmt->IsNull(2)) tmp_responsible_person = NULL;
+	TString* tmp_contact_person;
+	if (stmt->IsNull(2)) tmp_contact_person = NULL;
 	else
-		tmp_responsible_person = new TString(stmt->GetString(2));
+		tmp_contact_person = new TString(stmt->GetString(2));
 	TString* tmp_description;
 	if (stmt->IsNull(3)) tmp_description = NULL;
 	else
@@ -147,7 +147,7 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 
 	delete stmt;
 
-	return new UniDbDetector(connUniDb, tmp_detector_name, tmp_manufacturer_name, tmp_responsible_person, tmp_description);
+	return new UniDbDetector(connUniDb, tmp_detector_name, tmp_manufacturer_name, tmp_contact_person, tmp_description);
 }
 
 // -----   Delete record from class table ---------------------------
@@ -190,7 +190,7 @@ int UniDbDetector::PrintAll()
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select detector_name, manufacturer_name, responsible_person, description "
+		"select detector_name, manufacturer_name, contact_person, description "
 		"from detector_");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -217,7 +217,7 @@ int UniDbDetector::PrintAll()
 		if (stmt->IsNull(1)) cout<<"NULL";
 		else
 			cout<<stmt->GetString(1);
-		cout<<". responsible_person: ";
+		cout<<". contact_person: ";
 		if (stmt->IsNull(2)) cout<<"NULL";
 		else
 			cout<<stmt->GetString(2);
@@ -313,7 +313,7 @@ int UniDbDetector::SetManufacturerName(TString* manufacturer_name)
 	return 0;
 }
 
-int UniDbDetector::SetResponsiblePerson(TString* responsible_person)
+int UniDbDetector::SetContactPerson(TString* contact_person)
 {
 	if (!connectionUniDb)
 	{
@@ -325,15 +325,15 @@ int UniDbDetector::SetResponsiblePerson(TString* responsible_person)
 
 	TString sql = TString::Format(
 		"update detector_ "
-		"set responsible_person = $1 "
+		"set contact_person = $1 "
 		"where detector_name = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	if (responsible_person == NULL)
+	if (contact_person == NULL)
 		stmt->SetNull(0);
 	else
-		stmt->SetString(0, *responsible_person);
+		stmt->SetString(0, *contact_person);
 	stmt->SetString(1, str_detector_name);
 
 	// write new value to database
@@ -345,11 +345,11 @@ int UniDbDetector::SetResponsiblePerson(TString* responsible_person)
 		return -2;
 	}
 
-	if (str_responsible_person)
-		delete str_responsible_person;
-	if (responsible_person == NULL) str_responsible_person = NULL;
+	if (str_contact_person)
+		delete str_contact_person;
+	if (contact_person == NULL) str_contact_person = NULL;
 	else
-		str_responsible_person = new TString(*responsible_person);
+		str_contact_person = new TString(*contact_person);
 
 	delete stmt;
 	return 0;
@@ -401,7 +401,7 @@ int UniDbDetector::SetDescription(TString* description)
 void UniDbDetector::Print()
 {
 	cout<<"Table 'detector_'";
-	cout<<". detector_name: "<<str_detector_name<<". manufacturer_name: "<<(str_manufacturer_name == NULL? "NULL": *str_manufacturer_name)<<". responsible_person: "<<(str_responsible_person == NULL? "NULL": *str_responsible_person)<<". description: "<<(str_description == NULL? "NULL": *str_description)<<endl;
+	cout<<". detector_name: "<<str_detector_name<<". manufacturer_name: "<<(str_manufacturer_name == NULL? "NULL": *str_manufacturer_name)<<". contact_person: "<<(str_contact_person == NULL? "NULL": *str_contact_person)<<". description: "<<(str_description == NULL? "NULL": *str_description)<<endl;
 
 	return;
 }

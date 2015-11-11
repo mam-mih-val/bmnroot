@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------
 //                    UniDbParameter header file 
-//                      Generated 20-10-2015 
+//                      Generated 05-11-2015 
 // ----------------------------------------------------------------------
 
 /** db_classes/UniDbParameter.h 
@@ -19,10 +19,6 @@
 #include <iostream>
 using namespace std;
 
-// enumeration 'enumParameterType' is corresponding parameter_type member UniDbParameter
-// 0 - boolean, 1 - integer, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array
-enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType};
-
 class UniDbParameter
 {
  private:
@@ -36,11 +32,9 @@ class UniDbParameter
 	TString str_parameter_name;
 	/// parameter type
 	int i_parameter_type;
-	/// lifetime type
-	int i_lifetime_type;
 
 	//Constructor
-	UniDbParameter(UniDbConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type, int lifetime_type);
+	UniDbParameter(UniDbConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -49,7 +43,7 @@ class UniDbParameter
 
 	// static class functions
 	/// add new parameter to the database
-	static UniDbParameter* CreateParameter(TString parameter_name, int parameter_type, int lifetime_type);
+	static UniDbParameter* CreateParameter(TString parameter_name, int parameter_type);
 	/// get parameter from the database
 	static UniDbParameter* GetParameter(int parameter_id);
 	/// get parameter from the database
@@ -68,8 +62,6 @@ class UniDbParameter
 	TString GetParameterName() {return str_parameter_name;}
 	/// get parameter type of the current parameter
 	int GetParameterType() {return i_parameter_type;}
-	/// get lifetime type of the current parameter
-	int GetLifetimeType() {return i_lifetime_type;}
 
 	// Setters
 	/// set parameter id of the current parameter
@@ -78,12 +70,12 @@ class UniDbParameter
 	int SetParameterName(TString parameter_name);
 	/// set parameter type of the current parameter
 	int SetParameterType(int parameter_type);
-	/// set lifetime type of the current parameter
-	int SetLifetimeType(int lifetime_type);
 	/// print information about current parameter
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
+    // enumeration 'enumParameterType' is corresponding parameter_type member UniDbParameter, you can see it in db_structures
+    // enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType, ErrorType}
     static bool CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumParameterType enum_parameter_type, int& parameter_id);
 
  ClassDef(UniDbParameter,1);

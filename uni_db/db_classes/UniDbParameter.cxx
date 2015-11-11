@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------
 //                    UniDbParameter cxx file 
-//                      Generated 20-10-2015 
+//                      Generated 05-11-2015 
 // ----------------------------------------------------------------------
 
 #include "TSQLServer.h"
@@ -8,16 +8,18 @@
 
 #include "UniDbParameter.h"
 
+#include <iostream>
+using namespace std;
+
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbParameter::UniDbParameter(UniDbConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type, int lifetime_type)
+UniDbParameter::UniDbParameter(UniDbConnection* connUniDb, int parameter_id, TString parameter_name, int parameter_type)
 {
 	connectionUniDb = connUniDb;
 
 	i_parameter_id = parameter_id;
 	str_parameter_name = parameter_name;
 	i_parameter_type = parameter_type;
-	i_lifetime_type = lifetime_type;
 }
 
 // -----   Destructor   -------------------------------------------------
@@ -28,7 +30,7 @@ UniDbParameter::~UniDbParameter()
 }
 
 // -----   Creating new record in class table ---------------------------
-UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int parameter_type, int lifetime_type)
+UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int parameter_type)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -36,14 +38,13 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"insert into parameter_(parameter_name, parameter_type, lifetime_type) "
-		"values ($1, $2, $3)");
+		"insert into parameter_(parameter_name, parameter_type) "
+		"values ($1, $2)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, parameter_name);
 	stmt->SetInt(1, parameter_type);
-	stmt->SetInt(2, lifetime_type);
 
 	// inserting new record to DB
 	if (!stmt->Process())
@@ -92,10 +93,8 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 	tmp_parameter_name = parameter_name;
 	int tmp_parameter_type;
 	tmp_parameter_type = parameter_type;
-	int tmp_lifetime_type;
-	tmp_lifetime_type = lifetime_type;
 
-	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type, tmp_lifetime_type);
+	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type);
 }
 
 // -----   Get table record from database ---------------------------
@@ -107,7 +106,7 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select parameter_id, parameter_name, parameter_type, lifetime_type "
+		"select parameter_id, parameter_name, parameter_type "
 		"from parameter_ "
 		"where parameter_id = %d", parameter_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -141,12 +140,10 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 	tmp_parameter_name = stmt->GetString(1);
 	int tmp_parameter_type;
 	tmp_parameter_type = stmt->GetInt(2);
-	int tmp_lifetime_type;
-	tmp_lifetime_type = stmt->GetInt(3);
 
 	delete stmt;
 
-	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type, tmp_lifetime_type);
+	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type);
 }
 
 // -----   Get table record from database for unique key--------------
@@ -158,7 +155,7 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select parameter_id, parameter_name, parameter_type, lifetime_type "
+		"select parameter_id, parameter_name, parameter_type "
 		"from parameter_ "
 		"where lower(parameter_name) = lower('%s')", parameter_name.Data());
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -192,12 +189,10 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 	tmp_parameter_name = stmt->GetString(1);
 	int tmp_parameter_type;
 	tmp_parameter_type = stmt->GetInt(2);
-	int tmp_lifetime_type;
-	tmp_lifetime_type = stmt->GetInt(3);
 
 	delete stmt;
 
-	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type, tmp_lifetime_type);
+	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type);
 }
 
 // -----   Delete record from class table ---------------------------
@@ -271,7 +266,7 @@ int UniDbParameter::PrintAll()
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select parameter_id, parameter_name, parameter_type, lifetime_type "
+		"select parameter_id, parameter_name, parameter_type "
 		"from parameter_");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -298,8 +293,6 @@ int UniDbParameter::PrintAll()
 		cout<<(stmt->GetString(1));
 		cout<<". parameter_type: ";
 		cout<<(stmt->GetInt(2));
-		cout<<". lifetime_type: ";
-		cout<<(stmt->GetInt(3));
 		cout<<endl;
 	}
 
@@ -381,46 +374,11 @@ int UniDbParameter::SetParameterType(int parameter_type)
 	return 0;
 }
 
-int UniDbParameter::SetLifetimeType(int lifetime_type)
-{
-	if (!connectionUniDb)
-	{
-		cout<<"Connection object is null"<<endl;
-		return -1;
-	}
-
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
-	TString sql = TString::Format(
-		"update parameter_ "
-		"set lifetime_type = $1 "
-		"where parameter_id = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
-
-	stmt->NextIteration();
-	stmt->SetInt(0, lifetime_type);
-	stmt->SetInt(1, i_parameter_id);
-
-	// write new value to database
-	if (!stmt->Process())
-	{
-		cout<<"Error: updating the record has been failed"<<endl;
-
-		delete stmt;
-		return -2;
-	}
-
-	i_lifetime_type = lifetime_type;
-
-	delete stmt;
-	return 0;
-}
-
 // -----   Print current record ---------------------------------------
 void UniDbParameter::Print()
 {
 	cout<<"Table 'parameter_'";
-	cout<<". parameter_id: "<<i_parameter_id<<". parameter_name: "<<str_parameter_name<<". parameter_type: "<<i_parameter_type<<". lifetime_type: "<<i_lifetime_type<<endl;
+	cout<<". parameter_id: "<<i_parameter_id<<". parameter_name: "<<str_parameter_name<<". parameter_type: "<<i_parameter_type<<endl;
 
 	return;
 }

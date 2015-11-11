@@ -19,12 +19,12 @@ void histo_noise()
     for (int i = 12; i < 688; i++)
     {
         // get noise parameter values presented by IIStructure: Int+Int (slot:channel)
-        UniDbRunParameter* pRunParameter = UniDbRunParameter::GetRunParameter(i, "DCH1", "noise"); //(run_number, detector_name, parameter_name)
-        if (pRunParameter != NULL)
+        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "noise", i); //(detector_name, parameter_name, run_number)
+        if (pDetectorParameter != NULL)
         {
             IIStructure* pValues;
             int element_count = 0;
-            pRunParameter->GetIIArray(pValues, element_count);
+            pDetectorParameter->GetIIArray(pValues, element_count);
 
             cout<<"Element count: "<<element_count<<" for run number: "<<i<<endl;
             for (int j = 0; j < element_count; j++)
@@ -34,7 +34,7 @@ void histo_noise()
 
             // clean memory after work
             delete pValues;
-            delete pRunParameter;
+            delete pDetectorParameter;
         }
     }
 

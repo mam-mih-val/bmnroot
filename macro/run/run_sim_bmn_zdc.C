@@ -95,8 +95,9 @@ void run_sim_bmn_zdc(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", T
 #ifdef ION
     // ------- Ion Generator
     FairIonGenerator *fIongen =
-            new FairIonGenerator(79, 197, 79, 1, 0., 0., 25, 0., 0., -1.);
+                  new FairIonGenerator(79, 197, 79, 1, 0., 0., 25, 0., 0., -1.);
     primGen->AddGenerator(fIongen);
+    fIongen = new FairIonGenerator(79, 197, 79, 5, 0., 0., 35, 0., 0., -1.);
 
 #else
 #ifdef BOX

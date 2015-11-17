@@ -103,7 +103,7 @@ Bool_t BmnZdc::ProcessHits(FairVolume* vol) {
   Int_t      ivol    = vol->getMCid();
   TLorentzVector tPos1, tMom1;
 
-  //#define EDEBUG
+#define EDEBUG
 #ifdef EDEBUG
   static Int_t lEDEBUGcounter=0;
   if (lEDEBUGcounter<1)
@@ -150,27 +150,33 @@ Bool_t BmnZdc::ProcessHits(FairVolume* vol) {
       Int_t copyNo;
       Int_t ivol1 = gMC->CurrentVolID(copyNo);
       //      ivol1 = vol->getVolumeId();
-      Int_t iCell ;
+      Int_t iCell, iCell2 ;
       gMC->CurrentVolOffID(1, iCell); 
+      gMC->CurrentVolOffID(2, iCell2); 
  	
 
 #ifdef EDEBUG
       static Bool_t already=0;
-      if (lEDEBUGcounter<100) {
+      if (lEDEBUGcounter<200) {
 	std::cout << "EDEBUG-- BmnZdc::ProcessHits: TrackID:" << fTrackID << 
 	  //	  " ELoss: " << fELoss << 
-	  //	  "   particle: " << (part->GetName()) << 
-	  "   " << gMC->CurrentVolPath() << " " << tPos.Z() << 
+	  //	  	  "   particle: " << (part->GetName()) << 
+	  "   " << gMC->CurrentVolPath() << " " << tPos.X()<< " " << tPos.Y() << " " << tPos.Z() << "  " << part->GetPDG()->PdgCode()<<
 	  //          "   " << (gMC->GetStack()->GetCurrentTrack()->GetMother(1)) << 
-	   	  "   "  << ivol << "=="<< gMC->CurrentVolID(copyNo) << ","<< copyNo <<
-	   	  "   "  << gMC->CurrentVolOffID(1,iCell) << " " << iCell << 
-	  " " <<  gMC->CurrentVolOffName(1) << " " << gMC->CurrentVolOffName(0) <<
-	  //	  "   " << vol->getRealName() << "  " << gMC->CurrentVolPath() <<
-	  //	  "   ivol,iCell,copyNo= " << ivol << ","<< iCell << ","<< copyNo << 
-	  //	  "   " << vol->getRealName() << "  "<< gMC->CurrentVolName() << "  "<< gMC->CurrentVolPath() <<
-	  //	  "   "  << ivol << ","<< vol->getVolumeId() << " : "<< gMC->CurrentVolID(copyNo) << ","<< copyNo <<
-	  //          "  "<< gMC->CurrentVolOffName(2) << "  "<< gMC->CurrentVolOffName(3) <<
+	  //	   	  "   "  << ivol << "=="<< gMC->CurrentVolID(copyNo) << ","<< copyNo <<
+	  "   "  << ivol << "  " << vol->getRealName() << "   " <<
+	  "   "  << gMC->CurrentVolOffID(1,iCell) << " " <<  gMC->CurrentVolOffName(1) << 
+	  "   " << iCell << " " << iCell2 << "  "<< gMC->CurrentVolOffName(2) << 
+	  "   " << vol->getModId()<< " " << 
+	  //	  " " <<  gMC->CurrentVolOffName(2) << " " <<  gMC->CurrentVolOffName(1) << " " << gMC->CurrentVolOffName(0) << " " 
+ 	  	  // "   " << vol->getRealName() << "  " << gMC->CurrentVolPath() <<
+	  	  // "   ivol,iCell,copyNo= " << ivol << ","<< iCell << ","<< copyNo << 
+	  	  // "   " << vol->getRealName() << "  "<< gMC->CurrentVolName() << "  "<< gMC->CurrentVolPath() <<
+	  	  // "   "  << ivol << ","<< vol->getVolumeId() << " : "<< gMC->CurrentVolID(copyNo) << ","<< copyNo <<
+	          //  "  "<< gMC->CurrentVolOffName(2) << "  " <<
+	  //	           "  "<< gMC->CurrentVolOffName(2) << "  "<< gMC->CurrentVolOffName(3) <<
 	  std::endl;
+	//	vol->getGeoNode()->getMotherNode()->getMotherNode()->getCenterPosition().print();
 	lEDEBUGcounter++;
       } 
       if ((iCell==2)&&(lEDEBUGcounter>=100)&&(!already)) {
@@ -189,7 +195,7 @@ Bool_t BmnZdc::ProcessHits(FairVolume* vol) {
 // 	       time, length, fELoss);
 //       else 
 
-	AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+	AddHit(fTrackID, ivol, copyNo, iCell2, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
 	       TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
 	       time, length, fELoss);
 #else

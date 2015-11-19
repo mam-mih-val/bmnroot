@@ -45,7 +45,7 @@ void testZdcScheme ()
 
   fDigiScheme->Print();
 
-  fDigiScheme->PrintVolume (11,9,1,1);	
+  fDigiScheme->PrintVolume (33,33);	
  	
   timer.Stop();
   Double_t rtime = timer.RealTime();

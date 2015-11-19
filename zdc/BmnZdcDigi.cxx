@@ -38,7 +38,7 @@ BmnZdcDigi::BmnZdcDigi(Int_t pfGroupID, Int_t pfModuleID, Int_t pfChannelID, Dou
   fELoss = pfELoss;
   fELossDigi = pfELossDigi;
 
-  InitStatic();
+  //  InitStatic();
 }
 
 // -------------------------------------------------------------------------
@@ -65,7 +65,7 @@ BmnZdcDigi::BmnZdcDigi(BmnZdcPoint *p)
     fELoss = p->GetEnergyLoss();
   }
 
-  InitStatic();
+  //  InitStatic();
 }
 
 

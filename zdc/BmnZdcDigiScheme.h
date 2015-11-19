@@ -57,7 +57,7 @@ class BmnZdcDigiScheme: public TObject
   BmnZdcVolInfo_t* GetVolInfo (BmnZdcVolId_t* pVolId);
 
   void Print();
-  void PrintVolume (Int_t volID, Int_t copyNo, Int_t copyNoMother, Int_t copyNoMotherMother=1);
+  void PrintVolume (Int_t volID, Int_t copyNoMotherMother=1);
 
   void GetZdcDimensions (Int_t &nx, Int_t &ny, Int_t &nz);
  

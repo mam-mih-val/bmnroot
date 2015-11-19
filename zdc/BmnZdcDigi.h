@@ -19,7 +19,7 @@ class BmnZdcDigi: public TObject
  public:
 
   BmnZdcDigi();
-  BmnZdcDigi(Int_t pfGroupID, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss=0, Double_t   pfELossDigi=0 );
+  BmnZdcDigi(Int_t pfGroupID, Int_t pfModuleID, Int_t pfChannelID, Double_t   pfELoss, Double_t   pfELossDigi=0 );
   BmnZdcDigi(BmnZdcPoint *p);
 
   virtual ~BmnZdcDigi();
@@ -32,7 +32,7 @@ class BmnZdcDigi: public TObject
   inline Int_t  GetGroupID() { return fGroupID; } 
   inline Int_t  GetModuleID() { return fModuleID; } 
   inline Int_t  GetChannelID()  { return fChannelID; } 
-  inline UInt_t GetELossDigi()  { return fELossDigi; } 
+  inline Double_t GetELossDigi()  { return fELossDigi; } 
   inline Double_t  GetELoss()               { return fELoss; }
 
   inline Int_t    SetGroupID(UInt_t pfGroupID)         { fGroupID=pfGroupID;       return fGroupID; } 

@@ -445,14 +445,14 @@ BmnZdcVolInfo_t* BmnZdcDigiScheme::GetVolInfo(BmnZdcVolId_t* pVolId)
 
 // -------------------------------------------------------------------------
 
-void BmnZdcDigiScheme::PrintVolume (Int_t volID, Int_t copyNo, Int_t copyNoMother, Int_t copyNoMotherMother)
+void BmnZdcDigiScheme::PrintVolume (Int_t volID, Int_t copyNoMotherMother)
 {
-  Int_t content[]={copyNoMotherMother,copyNoMother,volID,copyNo};
+  Int_t content[]={volID,copyNoMotherMother};
   BmnZdcVolId_t pVolId (content,content+sizeof(content)/sizeof(Int_t));
 
   BmnZdcDigiId_t pDigiID = GetDigiId(&pVolId);
 
-  cout << " BmnZdc Volume: "  << copyNoMotherMother << "," << copyNoMother<< "," << volID<< "," << copyNo << 
+  cout << " BmnZdc Volume: "  <<   volID<< "," << copyNoMotherMother << 
     "   DigiID: " << pDigiID[0] << "," << pDigiID[1]<< "," << pDigiID[2] ;
 
 if (IsVolumeExist(&pVolId))
@@ -463,6 +463,8 @@ if (IsVolumeExist(&pVolId))
   if (pVolInfo)
     cout << "    X,Y,Z [cm]: " <<  (*pVolInfo)[0]<< "," << (*pVolInfo)[1]<< "," << (*pVolInfo)[2]<< 
       "    Dx,Dy,Dz [cm]: " <<  (*pVolInfo)[3]<< "," << (*pVolInfo)[4]<< "," << (*pVolInfo)[5] ;
+  else
+    cout << " (no VolInfo) ";
 
   cout << endl;
 }
@@ -582,7 +584,7 @@ void BmnZdcDigiScheme::Print()
   std::map<BmnZdcVolId_t,BmnZdcDigiId_t>::iterator it;
 
   for ( it=fVolToDigiIdMap.begin() ; it != fVolToDigiIdMap.end(); ++it)
-    PrintVolume((*it).first[2],(*it).first[3], (*it).first[1], (*it).first[0]);
+    PrintVolume((*it).first[0],(*it).first[1]);
 
   cout << "*********************************************" << endl;
 }

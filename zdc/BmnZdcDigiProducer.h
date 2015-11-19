@@ -55,18 +55,15 @@ class BmnZdcDigiProducer : public FairTask
   /** Output array of BmnZdcDigi **/
   TClonesArray* fDigiArray; 
 
-  TClonesArray* fELossZdc1Value;
-  TClonesArray* fELossZdc2Value;
+  TClonesArray* fELossZdcValue;
 
-  TClonesArray* fELossZdc1Histo;
-  TClonesArray* fELossZdc2Histo;
+  TClonesArray* fELossZdcHisto;
 
   /** Input geometry parameters container**/
   BmnZdcGeoPar* fGeoPar;
 
   /** Output Histograms of X-Y energy map **/
-  TH2F *fHistZdc1En;
-  TH2F *fHistZdc2En;
+  TH2F *fHistZdcEn;
 
   
   ClassDef(BmnZdcDigiProducer,1);

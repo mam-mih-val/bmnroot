@@ -32,9 +32,9 @@ BmnZdcDigiProducer::BmnZdcDigiProducer(const char* name) :
   fPointArray=0;
   fDigiArray=0;
   fGeoPar=0;
-  fHistZdc1En=0;
-  fHistZdc2En=0;
-  fELossZdc1Value = NULL, fELossZdc2Value = NULL, fELossZdc1Histo = NULL, fELossZdc2Histo = NULL;
+  fHistZdcEn=0;
+  fELossZdcValue = NULL;
+  fELossZdcHisto = NULL;
 }
 // -------------------------------------------------------------------------
 
@@ -91,18 +91,11 @@ InitStatus BmnZdcDigiProducer::Init() {
   fDigiArray = new TClonesArray("BmnZdcDigi");  
   ioman->Register("ZdcDigi","Zdc",fDigiArray,kTRUE);
 
+  fELossZdcValue = new TClonesArray("TParameter<double>");
+  ioman->Register("ELossZdcValue","Zdc",fELossZdcValue,kTRUE);
 
-  fELossZdc1Value = new TClonesArray("TParameter<double>");
-  ioman->Register("ELossZdc1Value","Zdc",fELossZdc1Value,kTRUE);
-
-  fELossZdc2Value = new TClonesArray("TParameter<double>");
-  ioman->Register("ELossZdc2Value","Zdc",fELossZdc2Value,kTRUE);
-
-  fELossZdc1Histo = new TClonesArray("TVectorT<float>");
-  ioman->Register("ELossZdc1Histo","Zdc",fELossZdc1Histo,kTRUE);
-
-  fELossZdc2Histo = new TClonesArray("TVectorT<float>");
-  ioman->Register("ELossZdc2Histo","Zdc",fELossZdc2Histo,kTRUE);  
+  fELossZdcHisto = new TClonesArray("TVectorT<float>");
+  ioman->Register("ELossZdcHisto","Zdc",fELossZdcHisto,kTRUE);
 
   BmnZdcDigiScheme *fDigiScheme  = BmnZdcDigiScheme::Instance();
   fDigiScheme->Init(fGeoPar,0,2);
@@ -119,25 +112,23 @@ void BmnZdcDigiProducer::CreateHistograms ( BmnZdcDigiId_t *pDigiID)
   Double_t dx, dy, dz;
 
   BmnZdcDigiScheme *fDigiScheme  = BmnZdcDigiScheme::Instance();
-  fDigiScheme->GetZdcDimensions (nx,ny,nz);
-  fDigiScheme->GetVolDxDyDz (pDigiID,dx, dy, dz);
+  // fDigiScheme->GetZdcDimensions (nx,ny,nz);
+  // fDigiScheme->GetVolDxDyDz (pDigiID,dx, dy, dz);
+  nx = 4 ; ny = 4 ; dx = 75; dy = 75; dz=1010;  // mm
   
   Int_t Nx=nx+2;
   Double_t Dx=dx*Nx; 
   Int_t Ny=ny+2;
   Double_t Dy=dy*Ny; 
 
-  fHistZdc1En = new TH2F ("HistZdc1En","HistZdc1Energy",Nx,-Dx,Dx,Ny,-Dy,Dy);
-  fHistZdc2En = new TH2F ("HistZdc2En","HistZdc2Energy",Nx,-Dx,Dx,Ny,-Dy,Dy);
+  fHistZdcEn = new TH2F ("HistZdcEn","HistZdcEnergy",Nx,-Dx,Dx,Ny,-Dy,Dy);
 
-  if ((!fHistZdc1En)||(!fHistZdc2En)) 
-    cout << "-E- BmnZdcDigiProducer: HistZdc1En or HistZdc2En Histograms not created !!" << endl;
+  if (!fHistZdcEn) 
+    cout << "-E- BmnZdcDigiProducer: HistZdcEn Histogram not created !!" << endl;
   else {
     FairRootManager* ioman = FairRootManager::Instance();
-    fHistZdc1En->SetDirectory((TFile*)ioman->GetOutFile());
-    fHistZdc2En->SetDirectory((TFile*)ioman->GetOutFile());
-    fHistZdc1En->Write();
-    fHistZdc2En->Write();
+    fHistZdcEn->SetDirectory((TFile*)ioman->GetOutFile());
+    fHistZdcEn->Write();
 }
 
 }
@@ -171,14 +162,12 @@ void BmnZdcDigiProducer::Exec(Option_t* opt) {
   map<BmnZdcDigiId_t, Float_t>::const_iterator p;
   
   Int_t nPoints = fPointArray->GetEntriesFast();
-  Double_t e1=0, e2=0;
+  Double_t e1=0;
 
-  if (fHistZdc1En) {
-    fHistZdc1En->Reset();
-    fHistZdc2En->Reset();
+  if (fHistZdcEn) {
+    fHistZdcEn->Reset();
   }
-  TH2F* hist1=fHistZdc1En;
-  TH2F* hist2=fHistZdc2En;
+  TH2F* hist1=fHistZdcEn;
 
   Bool_t flag_of_not_created=1;
 
@@ -192,12 +181,11 @@ void BmnZdcDigiProducer::Exec(Option_t* opt) {
     if ((digiID[0]!=-1)&&(digiID[1]!=-1)) {
 
 
-      if (!fHistZdc1En) {
+      if (!fHistZdcEn) {
 
 	CreateHistograms(&digiID);
 
-	hist1=fHistZdc1En;
-	hist2=fHistZdc2En;
+	hist1=fHistZdcEn;
       }
 
       if (fDigiIdEnergy.find(digiID)==fDigiIdEnergy.end())
@@ -205,15 +193,9 @@ void BmnZdcDigiProducer::Exec(Option_t* opt) {
       else
 	fDigiIdEnergy[digiID] += point->GetEnergyLoss();
 
-      if (pMMcopy==1) {
-	e1 += point->GetEnergyLoss();
-        hist1->Fill(point->GetX(),point->GetY(),point->GetEnergyLoss());
-      }
-      else {
-	e2 += point->GetEnergyLoss();
-        hist2->Fill(point->GetX(),point->GetY(),point->GetEnergyLoss());
-      }
-
+      e1 += point->GetEnergyLoss();
+      hist1->Fill(point->GetX(),point->GetY(),point->GetEnergyLoss());
+ 
     }
 #ifdef EDEBUG
     else {
@@ -225,20 +207,15 @@ void BmnZdcDigiProducer::Exec(Option_t* opt) {
 #endif
   }
 
-  TClonesArray& clref1 = *fELossZdc1Value;
-  new(clref1[0]) TParameter<double>("ELossZdc1",e1);
-  TClonesArray& clref2 = *fELossZdc2Value;
-  new(clref2[0]) TParameter<double>("ELossZdc2",e2); 
+  TClonesArray& clref1 = *fELossZdcValue;
+  new(clref1[0]) TParameter<double>("ELossZdc",e1);
 
-  if (fHistZdc1En) {
-    TClonesArray& clref1e = *fELossZdc1Histo;
-    new(clref1e[0]) TVectorT<float>(fHistZdc1En->GetSize(),fHistZdc1En->GetArray());
+  if (fHistZdcEn) {
+    TClonesArray& clref1e = *fELossZdcHisto;
+    new(clref1e[0]) TVectorT<float>(fHistZdcEn->GetSize(),fHistZdcEn->GetArray());
   }
 
-  if (fHistZdc2En) {
-    TClonesArray& clref2e = *fELossZdc2Histo;
-    new(clref2e[0]) TVectorT<float>(fHistZdc2En->GetSize(),fHistZdc2En->GetArray());
-  }
+  Float_t eloss=0;
   
   for(p=fDigiIdEnergy.begin(); p!=fDigiIdEnergy.end(); ++p) {
 
@@ -246,7 +223,8 @@ void BmnZdcDigiProducer::Exec(Option_t* opt) {
 
 
     if ((module_groupID!=-1)&&(chanID!=-1)) {
-      BmnZdcDigi* digi = AddHit(module_groupID, modID, chanID, (*p).second); 
+      eloss = (*p).second;
+      BmnZdcDigi* digi = AddHit(module_groupID, modID, chanID, eloss); 
 #ifdef EDEBUG
       if (lEDEBUGcounter<20) {
 	cout << "EDEBUG-- BmnZdcDigiProducer::Exec: "<< module_groupID<< " " << chanID << "   " << 
@@ -269,7 +247,8 @@ BmnZdcDigi* BmnZdcDigiProducer::AddHit(Int_t module_groupID, Int_t modID, Int_t 
 {
   TClonesArray& clref = *fDigiArray;
   Int_t size = clref.GetEntriesFast();
-  BmnZdcDigi* result = new(clref[size]) BmnZdcDigi(module_groupID,modID,chanID,energy);
+  BmnZdcDigi* result = new(clref[size]) BmnZdcDigi(module_groupID,modID,chanID,(Double_t)energy);
+  //  result->Print();
   return result;
 }
 // ----

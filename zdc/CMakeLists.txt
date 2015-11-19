@@ -28,6 +28,10 @@ BmnZdcPoint.cxx
 BmnZdcContFact.cxx  
 BmnZdcGeo.cxx 
 BmnZdcGeoPar.cxx
+BmnZdcDigi.cxx
+BmnZdcDigiPar.cxx
+BmnZdcDigiScheme.cxx
+BmnZdcDigiProducer.cxx
 )
 
 # fill list of header files from list of source files

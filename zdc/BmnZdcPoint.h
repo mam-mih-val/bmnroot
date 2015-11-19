@@ -25,7 +25,7 @@ class BmnZdcPoint : public FairMCPoint
 
   /** Constructor with arguments
    *@param trackID  Index of MCTrack
-   *@param detID    Detector ID (at present, volume MC number)
+   *@param module_groupID    Detector ID (at present, volume MC number)
    *@param copyNo         Number of active layer inside ZDC module
    *@param copyNoMother   ZDC module number
    *@param pos      Coordinates  [cm]
@@ -35,7 +35,7 @@ class BmnZdcPoint : public FairMCPoint
    *@param eLoss    Energy deposit [GeV]
    **/
   
-  BmnZdcPoint(Int_t trackID, Int_t detID, 
+  BmnZdcPoint(Int_t trackID, Int_t module_groupID, 
 	      Int_t copyNo, Int_t copyNoMother, 
 	      TVector3 pos, TVector3 mom,
 	      Double_t tof, Double_t length, 
@@ -63,8 +63,8 @@ class BmnZdcPoint : public FairMCPoint
 
  protected:
 
-  Short_t nCopy;                // Copy number
-  Short_t nCopyMother;          // Copy number of mother volume
+  Short_t nCopy;                // Copy number (for scintillator layer)
+  Short_t nCopyMother;          // Copy number of mother volume (for Module inside its Group)
     
   ClassDef(BmnZdcPoint,1)
 

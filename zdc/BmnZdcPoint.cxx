@@ -14,7 +14,7 @@
 // -----   Default constructor   -------------------------------------------
 BmnZdcPoint::BmnZdcPoint() : FairMCPoint() {
 //   fTrackID    = -1;
-//   fDetectorID = -1;
+//   fGroupID = -1;
 //   //  fEventID    = -1;
 //   fX          = fY  = fZ =  0.;
 //   fPx         = fPy = fPz = 0.;
@@ -30,14 +30,14 @@ BmnZdcPoint::BmnZdcPoint() : FairMCPoint() {
 
 
 // -----   Standard constructor   ------------------------------------------
-BmnZdcPoint::BmnZdcPoint(Int_t trackID, Int_t detID, Int_t copyNo, Int_t copyNoMother, TVector3 pos,
+BmnZdcPoint::BmnZdcPoint(Int_t trackID, Int_t module_groupID, Int_t copyNo, Int_t copyNoMother, TVector3 pos,
                         TVector3 mom, Double_t tof, Double_t length,
 			 Double_t eLoss, UInt_t EventId) 
-  : FairMCPoint(trackID, detID, pos, mom, tof, length, eLoss, EventId) {
+  : FairMCPoint(trackID, module_groupID, pos, mom, tof, length, eLoss, EventId) {
   nCopy = copyNo;
   nCopyMother =  copyNoMother;
   //  fTrackID    = trackID;
-  //  fDetectorID = detID; 
+  //  fGroupID = module_groupID; 
   
   //  fX          = pos.X();
   //  fY          = pos.Y();
@@ -59,7 +59,7 @@ BmnZdcPoint::~BmnZdcPoint() { }
 // -----   Public method Print   -------------------------------------------
 void BmnZdcPoint::Print(const Option_t* opt) const {
   cout << "-I- BmnZdcPoint: MUO Point for track " << fTrackID 
-       << " in detector " << fDetectorID << endl;
+       << " in detector " << GetDetectorID() << endl;
   cout << "    Position (" << fX << ", " << fY << ", " << fZ
        << ") cm" << endl;
   cout << "    Momentum (" << fPx << ", " << fPy << ", " << fPz

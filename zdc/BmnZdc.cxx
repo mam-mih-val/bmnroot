@@ -333,12 +333,12 @@ void BmnZdc::ConstructGeometry() {
  
 
 // -----   Private method AddHit   --------------------------------------------
-BmnZdcPoint* BmnZdc::AddHit(Int_t trackID, Int_t detID, Int_t copyNo, Int_t copyNoMother,
+BmnZdcPoint* BmnZdc::AddHit(Int_t trackID, Int_t module_groupID, Int_t copyNo, Int_t copyNoMother,
 			    TVector3 pos, TVector3 mom, Double_t time, 
 			    Double_t length, Double_t eLoss) {
   TClonesArray& clref = *fZdcCollection;
   Int_t size = clref.GetEntriesFast();
-  return new(clref[size]) BmnZdcPoint(trackID, detID, copyNo, copyNoMother,pos, mom, 
+  return new(clref[size]) BmnZdcPoint(trackID, module_groupID, copyNo, copyNoMother,pos, mom, 
 				      time, length, eLoss);
  }
 

@@ -56,7 +56,10 @@ BmnZdcDigi::BmnZdcDigi(BmnZdcPoint *p)
   if ((pDigiScheme)&&(p)) { 
 
     Int_t module_groupID, modID, chanID;
-    pDigiScheme->SplitDigiID(pDigiScheme->GetDigiIdFromCoords(p->GetX(),p->GetY(),p->GetZ()),module_groupID, modID, chanID);
+    //    pDigiScheme->SplitDigiID(pDigiScheme->GetDigiIdFromCoords(p->GetX(),p->GetY(),p->GetZ()),module_groupID, modID, chanID);
+
+    pDigiScheme->SplitDigiID(pDigiScheme->GetDigiIdFromVolumeData(p->GetDetectorID(),p->GetCopyMother() ),module_groupID, modID, chanID);
+
 
     fGroupID = module_groupID;
     fModuleID = modID;
@@ -122,7 +125,8 @@ UInt_t BmnZdcDigi::AddZdcPoint (BmnZdcPoint *p)
   if ((pDigiScheme)&&(p)) { 
 
     Int_t module_groupID, modID, chanID;
-    pDigiScheme->SplitDigiID(pDigiScheme->GetDigiIdFromCoords(p->GetX(),p->GetY(),p->GetZ()),module_groupID, modID, chanID);
+    //    pDigiScheme->SplitDigiID(pDigiScheme->GetDigiIdFromCoords(p->GetX(),p->GetY(),p->GetZ()),module_groupID, modID, chanID);
+    pDigiScheme->SplitDigiID(pDigiScheme->GetDigiIdFromVolumeData(p->GetDetectorID(),p->GetCopyMother() ),module_groupID, modID, chanID);
 
     if ((fGroupID == module_groupID)&&(fModuleID == modID)&&(fChannelID == chanID))
       fELoss += p->GetEnergyLoss();

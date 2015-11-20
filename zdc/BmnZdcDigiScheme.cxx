@@ -171,8 +171,12 @@ BmnZdcVolId_t* BmnZdcDigiScheme::CreateVolElement (FairGeoNode* nod, Int_t nodeN
   if (1)
   {
 
-    (*right).push_back(nod->getRootVolume()->GetNumber()); // GroupID(now=box volume ID)
-    (*right).push_back(nod->getCopyNo());                  // ModuleID inside group
+    //   (*right).push_back(nod->getRootVolume()->GetNumber()); // GroupID(now=box volume ID)
+    if (nod_name.Contains("boxs"))
+      (*right).push_back(1);                               //  GroupID ("size" of small ZDC module)
+    else
+      (*right).push_back(2);                               //  GroupID ("size" of big ZDC module)
+   (*right).push_back(nod->getCopyNo());                  // ModuleID inside group
     (*right).push_back(nodeNumber);                        // ChannelID
 
     BmnZdcVolId_t* left = new BmnZdcVolId_t;

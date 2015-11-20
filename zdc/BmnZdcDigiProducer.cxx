@@ -114,12 +114,12 @@ void BmnZdcDigiProducer::CreateHistograms ( BmnZdcDigiId_t *pDigiID)
   BmnZdcDigiScheme *fDigiScheme  = BmnZdcDigiScheme::Instance();
   // fDigiScheme->GetZdcDimensions (nx,ny,nz);
   // fDigiScheme->GetVolDxDyDz (pDigiID,dx, dy, dz);
-  nx = 4 ; ny = 4 ; dx = 75; dy = 75; dz=1010;  // mm
+  nx = 10 ; ny = 10 ; dx = 75; dy = 75; dz=1010;  // mm
   
   Int_t Nx=nx+2;
-  Double_t Dx=dx*Nx; 
+  Double_t Dx=dx*Nx/2; 
   Int_t Ny=ny+2;
-  Double_t Dy=dy*Ny; 
+  Double_t Dy=dy*Ny/2; 
 
   fHistZdcEn = new TH2F ("HistZdcEn","HistZdcEnergy",Nx,-Dx,Dx,Ny,-Dy,Dy);
 
@@ -194,8 +194,14 @@ void BmnZdcDigiProducer::Exec(Option_t* opt) {
 	fDigiIdEnergy[digiID] += point->GetEnergyLoss();
 
       e1 += point->GetEnergyLoss();
-      hist1->Fill(point->GetX(),point->GetY(),point->GetEnergyLoss());
- 
+      hist1->Fill(point->GetX()*10,point->GetY()*10,point->GetEnergyLoss()); // in mm
+#ifdef EDEBUG
+      if (lEDEBUGcounter<20) {
+	cout << "EDEBUG-- BmnZdcDigiProducer::Exec:  point : "; point->Print("");
+	lEDEBUGcounter++;
+      }
+#endif
+
     }
 #ifdef EDEBUG
     else {
@@ -226,7 +232,7 @@ void BmnZdcDigiProducer::Exec(Option_t* opt) {
       eloss = (*p).second;
       BmnZdcDigi* digi = AddHit(module_groupID, modID, chanID, eloss); 
 #ifdef EDEBUG
-      if (lEDEBUGcounter<20) {
+      if (lEDEBUGcounter<50) {
 	cout << "EDEBUG-- BmnZdcDigiProducer::Exec: "<< module_groupID<< " " << chanID << "   " << 
 	  (*p).second << "     " << lEDEBUGcounter << endl;
 	lEDEBUGcounter++;

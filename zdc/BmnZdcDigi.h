@@ -45,7 +45,7 @@ class BmnZdcDigi: public TObject
  protected:
 
 
-  Int_t    fGroupID;         // Module Group number (0: central small, 1 - periferal big, can be 2 - hardware summators)
+  Int_t    fGroupID;         // Module Group number = "size" (1: central small, 2 - periferal big, can be also 0 - for hardware summators)
   Int_t    fModuleID;        // Module number inside module group (36 central small modules, up to 58 periferal big modules)
   Int_t    fChannelID;       // Hardware ZDC channel number (corresponds to the ascii map file)
   Double_t   fELossDigi;     // Digital response of the ZDC channel (taken from experimental data)

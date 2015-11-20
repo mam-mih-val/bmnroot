@@ -103,7 +103,7 @@ Bool_t BmnZdc::ProcessHits(FairVolume* vol) {
   Int_t      ivol    = vol->getMCid();
   TLorentzVector tPos1, tMom1;
 
-#define EDEBUG
+  //#define EDEBUG
 #ifdef EDEBUG
   static Int_t lEDEBUGcounter=0;
   if (lEDEBUGcounter<1)

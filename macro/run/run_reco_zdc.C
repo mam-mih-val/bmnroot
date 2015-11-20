@@ -5,7 +5,7 @@
 // --------------------------------------------------------------------------
 #include <TGDMLParse.h>
 
-void run_reco_zdc(TString mcFile = "evetest.root", Int_t nEvents = 2) {
+void run_reco_zdc(TString mcFile = "evetest.root", Int_t nEvents = 1) {
 
   // ========================================================================
   //          Adjust this part according to your requirements

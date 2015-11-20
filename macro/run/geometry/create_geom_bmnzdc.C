@@ -113,10 +113,10 @@ void create_geom_bmnzdc (const char* filename = "", const char *detector_name="z
     xy_fullwidth_big_box  =  150.,      // XY size for small module box (for 36 small central modules)
     xy_fullwidth_small_box = 75.,       // XY size for small module box (for 36 small central modules)
 
-    x_fullwidth_big_plate=146,      // x size of scintillator plate for big modules
-    y_fullwidth_big_plate=142,      // y size of scintillator plate for big modules
-    x_fullwidth_small_plate=146/2,  // x size of scintillator plate for small modules
-    y_fullwidth_small_plate=142/2,  // y size of scintillator plate for small modules
+    x_fullwidth_big_plate=xy_fullwidth_big_box-2*thickness_box,      // =146: x size of scintillator plate for big modules
+    y_fullwidth_big_plate=x_fullwidth_big_plate-4,                   // =142: y size of scintillator plate for big modules
+    x_fullwidth_small_plate=xy_fullwidth_small_box-2*thickness_box,  // =71:  x size of scintillator plate for small modules
+    y_fullwidth_small_plate=x_fullwidth_small_plate-4,               // =67:  y size of scintillator plate for small modules
 
     zWidthS = 5.0,           // z - FULL-size of scintillator layer (scintillator plate), mm    
     zWidthA = 10.0;          // z - FULL-size of absorber layer, mm 

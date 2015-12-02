@@ -8,7 +8,6 @@ void test_db()
     bmnloadlibs(); // load main libraries
 
     UniDbConnection* connectionUniDb = UniDbConnection::Open(0);
-
     if (connectionUniDb == 0x00)
     {
         cout<<"Error: connection to the database can't be established"<<endl;
@@ -33,20 +32,17 @@ void test_db()
     if (!stmt->NextResultRow())
     {
         cout<<"Error: parameter with number 1 wasn't found!"<<endl;
-
         delete stmt;
         return;
     }
 
-
     TString parameter_name = stmt->GetString(0);
-
     delete stmt;
     delete connectionUniDb;
-
-    cout<<"Parameter name: "<<parameter_name<<endl;
 
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
+
+    cout<<"Test was successfull"<<endl;
 }

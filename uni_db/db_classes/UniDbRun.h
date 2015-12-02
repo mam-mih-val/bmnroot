@@ -125,6 +125,16 @@ class UniDbRun
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
         // static class functions (added by user request)
+        /// get numbers of runs existing in the Database for a selected range
+        /// \param[in] start_run start run number for selected numbers' range
+        /// \param[in] end_run end run number for selected numbers' range
+        /// \param[out] run_numbers numbers of the really existing runs for a selected range (from start to end)
+        /// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
+        static int GetRunNumbers(int start_run, int end_run, int*& run_numbers);
+        /// get numbers of existing runs in the Database
+        /// \param[out] run_numbers numbers of the really existing runs for a selected range (from start to end)
+        /// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
+        static int GetRunNumbers(int*& run_numbers);
         /// set geometry binary data (geometry file's data) for runs from start_run_number to end_run_number
         static int SetRootGeometry(int start_run_number, int end_run_number, unsigned char* root_geometry, Long_t size_root_geometry);
         /// get geometry binary data (geometry file's data) for selected run number

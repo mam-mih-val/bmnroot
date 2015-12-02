@@ -771,6 +771,8 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
 
                     i++;
                 }// parse TXT line by tokens separated by symbols
+
+                cout<<endl;
             }// run TXT file cycle and write the fields to DB
 
             stmt->Process();
@@ -929,6 +931,7 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
 
         // copy vector to dynamic array
         int size_arr = arr.size();
+        //cout<<"Size array: "<<size_arr<<endl;
         IIStructure* pValues = new IIStructure[size_arr];
         for (int i = 0; i < size_arr; i++)
         {
@@ -945,7 +948,7 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
         cout<<endl;
         */
 
-        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", run_number, run_number, pValues, 32); //(detector_name, parameter_name, start_run, end_run, parameter_value, size_parameter_value)
+        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", run_number, run_number, pValues, size_arr); //(detector_name, parameter_name, start_run, end_run, parameter_value, size_parameter_value)
         if (pDetectorParameter == NULL)
             continue;
 

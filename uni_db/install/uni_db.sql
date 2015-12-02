@@ -334,7 +334,7 @@ BEGIN
     END IF;
   ELSE
     IF EXISTS(SELECT 1 FROM detector_parameter dp WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and 
-	NEW.dc_serial = dp.dc_serial and NEW.channel = dp.channel (not ((NEW.end_run < dp.start_run) or (NEW.start_run > dp.end_run)))) THEN
+	NEW.dc_serial = dp.dc_serial and NEW.channel = dp.channel and (not ((NEW.end_run < dp.start_run) or (NEW.start_run > dp.end_run)))) THEN
       RAISE EXCEPTION 'Valid period of the detector parameter is crossed with existing values';
     END IF;
   END IF;
@@ -344,13 +344,124 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER check_par_period
 BEFORE INSERT ON detector_parameter FOR EACH ROW EXECUTE PROCEDURE check_valid_period();
 
--- output bytea as string
-CREATE OR REPLACE FUNCTION ConvertBytea2String(par_value bytea, par_type integer, is_little_endian boolean) RETURNS text AS $$
+-- get double value from 4 or 8 bytes
+CREATE OR REPLACE FUNCTION GetDouble4Bytea(d bytea, is_little_endian boolean, isFourBytes boolean) RETURNS text AS $$
 DECLARE
-  objID integer; lObjFD integer;
-  d bytea;
-  bool_value boolean; int_value integer; double_value float = 0.0;
-  binary_value text; sign text; exponent text; exp int; mantissa text; mantissa_index int = 0;
+  binary_value text; double_value float = 0.0;
+  sign text; exponent text; exp int; mantissa text; mantissa_index int = 0;
+BEGIN
+  -- 4 bytes
+  IF isFourBytes THEN
+    RAISE INFO 'd: %', d;
+    IF is_little_endian THEN
+      binary_value = get_byte(d, 0)::bit(8) || get_byte(d, 1)::bit(8) || get_byte(d, 2)::bit(8) || get_byte(d, 3)::bit(8);
+    ELSE
+      binary_value = get_byte(d, 3)::bit(8) || get_byte(d, 2)::bit(8) || get_byte(d, 1)::bit(8) || get_byte(d, 0)::bit(8); 
+    END IF;
+    RAISE INFO 'binary_value: %', binary_value;
+
+    IF binary_value = '00000000000000000000000000000000' OR binary_value = '10000000000000000000000000000000' THEN -- IEEE754-1985 Zero
+      double_value = 0.0;
+      RETURN double_value;
+    END IF;
+    sign = substring(binary_value from 1 for 1);
+    exponent = substring(binary_value from 2 for 8);
+    mantissa = substring(binary_value from 10 for 23); 
+
+    IF exponent = '11111111' THEN
+      IF mantissa = '00000000000000000000000' THEN   -- IEEE754-1985 negative and positive infinity
+        IF sign = '1' THEN                    
+          RETURN '-Infinity';                    
+        ELSE                    
+          RETURN 'Infinity';  
+        END IF;              
+      ELSE
+        RETURN 'NaN'; -- IEEE754-1985 Not a number
+      END IF; 
+    END IF;
+
+    exp = exponent::int;
+    IF exp > 126 THEN
+      exp = exp - 127;
+    ELSE
+      exp = -exp;
+    END IF;
+
+    WHILE mantissa_index < 24 LOOP
+      IF substring(mantissa from mantissa_index for 1) = '1' THEN
+        double_value = double_value + power(2, -(mantissa_index));
+      END IF;
+      mantissa_index = mantissa_index + 1;
+    END LOOP;
+
+    RAISE INFO 'dvalue: %, exp: %', double_value, exp;
+    double_value = double_value * power(2, exp);
+    IF (sign = '1') THEN
+      double_value = -double_value;
+    END IF;
+  -- 8 bytes
+  ELSE
+    IF is_little_endian THEN
+      binary_value = get_byte(d, 0)::bit(8) || get_byte(d, 1)::bit(8) || get_byte(d, 2)::bit(8) || get_byte(d, 3)::bit(8) 
+        || get_byte(d, 4)::bit(8) || get_byte(d, 5)::bit(8)  || get_byte(d, 6)::bit(8)  || get_byte(d, 7)::bit(8);
+    ELSE
+      binary_value = get_byte(d, 7)::bit(8) || get_byte(d, 6)::bit(8) || get_byte(d, 5)::bit(8) || get_byte(d, 4)::bit(8)
+        || get_byte(d, 3)::bit(8) || get_byte(d, 2)::bit(8) || get_byte(d, 1)::bit(8) || get_byte(d, 0)::bit(8); 
+    END IF;
+
+    IF binary_value = '0000000000000000000000000000000000000000000000000000000000000000' OR binary_value = '1000000000000000000000000000000000000000000000000000000000000000' THEN -- IEEE754-1985 Zero
+      double_value = 0.0;
+      RETURN double_value;
+    END IF;
+
+    sign = substring(binary_value from 1 for 1);
+    exponent = substring(binary_value from 2 for 11);
+    mantissa = substring(binary_value from 13 for 52);
+
+    IF exponent = '11111111111' THEN
+      IF mantissa = '0000000000000000000000000000000000000000000000000000' THEN   -- IEEE754-1985 negative and positive infinity
+        IF sign = '1' THEN
+          RETURN '-Infinity';
+        ELSE
+          RETURN 'Infinity';
+        END IF;
+      ELSE
+        RETURN 'NaN'; -- IEEE754-1985 Not a number
+      END IF;
+    END IF;
+
+    exp = exponent::bit(11)::int;
+    exp = exp - 1023;
+    --IF exp > 1022 THEN
+    --  exp = exp - 1023;
+    --ELSE
+    --  exp = -exp;
+    --END IF;
+    
+    WHILE mantissa_index < 53 LOOP
+      IF substring(mantissa from mantissa_index for 1) = '1' THEN
+        double_value = double_value + power(2, -(mantissa_index));
+      END IF;
+      mantissa_index = mantissa_index + 1;
+    END LOOP;
+
+    double_value = (1+double_value) * power(2, exp);
+    IF (sign = '1') THEN
+      double_value = -double_value;
+    END IF;
+  END IF;
+  
+  RETURN double_value;
+END;
+$$ LANGUAGE plpgsql;
+  
+-- output bytea as string
+-- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array
+CREATE OR REPLACE FUNCTION ConvertBytea2String(par_value bytea, par_type integer, number_limit integer DEFAULT 0, is_little_endian boolean DEFAULT false) RETURNS text AS $$
+DECLARE
+  objID integer; lObjFD integer; lsize integer; i integer;
+  d bytea; r record;
+  bool_value boolean; int_value integer; double_value double precision = 0.0; text_value text = '';
 BEGIN
   CASE par_type
   -- convert bytea -> boolean -> text
@@ -359,74 +470,146 @@ BEGIN
     lObjFD = lo_open(objID, x'40000'::int);
     d = loread(lObjFD, 1);
     bool_value = get_byte(d, 0);
-    RETURN bool_value;
+    IF bool_value THEN
+      RETURN 'true';
+    ELSE
+      RETURN 'false';
+    END IF;
   -- convert bytea -> integer -> text
   WHEN 1 THEN
     objID = par_value;
     lObjFD = lo_open(objID, x'40000'::int);
     d = loread(lObjFD, 4);
-    int_value = (get_byte(d, 3) << 24) + (get_byte(d, 2) << 16) + (get_byte(a, 1) << 8) + get_byte(a, 0);
+    int_value = (get_byte(d, 3) << 24) + (get_byte(d, 2) << 16) + (get_byte(d, 1) << 8) + get_byte(d, 0);
     RETURN int_value;
   -- convert bytea -> float -> text
   WHEN 2 THEN
     objID = par_value;
     lObjFD = lo_open(objID, x'40000'::int);
-    d = loread(lObjFD, 4);
+    d = loread(lObjFD, 8);
 
-    IF is_little_endian THEN
-      binary_value = get_byte(d, 0)::bit(8) || get_byte(d, 1)::bit(8) || get_byte(d, 2)::bit(8) || get_byte(d, 3)::bit(8);
-    ELSE
-      binary_value:= get_byte(d, 3)::bit(8) || get_byte(d, 2)::bit(8) || get_byte(d, 1)::bit(8) || get_byte(d, 0)::bit(8); 
-    END IF;
-
-    IF binary_value = '00000000000000000000000000000000' OR binary_value = '10000000000000000000000000000000' THEN -- IEEE754-1985 Zero
-	double_value = 0.0;
-        RETURN double_value;
-    END IF;
-    sign = substring(binary_value from 1 for 1);
-    exponent = substring(binary_value from 2 for 8);
-    mantissa = substring(binary_value from 10 for 23); 
-    IF exponent = '11111111' THEN
-      IF mantissa = '00000000000000000000000' THEN   -- IEEE754-1985 negative and positive infinity
-        IF sign = '1' THEN                    
-          RETURN '-Infinity';                    
-         ELSE                    
-           RETURN 'Infinity';  
-         END IF;              
-      ELSE
-        RETURN 'NaN'; -- IEEE754-1985 Not a number
-      END IF; 
-    END IF;
-
-    exp = exponent::int;
-    IF exp > 126 THEN
-     exp = exp - 127;
-    ELSE
-     exp = -exp;
-    END IF;
-    WHILE mantissa_index < 24 LOOP
-        IF substring(mantissa from mantissa_index for 1) = '1' THEN
-            double_value = double_value + power(2, -(mantissa_index));
-        END IF;
-        mantissa_index = mantissa_index + 1;
-    END LOOP;
-    double_value = double_value * power(2, exp);
-    IF (sign = '1') THEN
-        double_value = -double_value;
-    END IF;
-
-    RETURN double_value;
+    text_value = GetDouble4Bytea(d, is_little_endian, false);
+    RETURN text_value;
   -- convert bytea -> text
   WHEN 3 THEN
     objID = par_value;
     lObjFD = lo_open(objID, x'40000'::int);
     d = loread(lObjFD, 1);
     RETURN encode(d, 'escape');
+  -- convert bytea -> int+int -> text
+  WHEN 4 THEN
+    objID = par_value;
+    lObjFD = lo_open(objID, x'40000'::int);
+    perform lo_lseek(lObjFD, 0, 2);
+    lsize = lo_tell(lObjFD);
+    --RAISE INFO 'lsize: %', lsize;
+    perform lo_lseek(lObjFD, 0, 0);
+    i = 0;
+    LOOP
+      d = loread(lObjFD, 8);
+      
+      IF i > 0 THEN
+        text_value = text_value || ', ';
+      END IF;
+      int_value = (get_byte(d, 3) << 24) + (get_byte(d, 2) << 16) + (get_byte(d, 1) << 8) + get_byte(d, 0);
+      text_value = text_value || int_value || ' ';
+      int_value = (get_byte(d, 7) << 24) + (get_byte(d, 6) << 16) + (get_byte(d, 5) << 8) + get_byte(d, 4);
+      text_value = text_value || int_value;
+
+      i = i + 8;
+      IF i >= lsize THEN
+        EXIT;
+      END IF;
+    END LOOP;
+    RETURN text_value;
+  -- convert bytea -> int[] -> text
+  WHEN 5 THEN
+    objID = par_value;
+    lObjFD = lo_open(objID, x'40000'::int);
+    perform lo_lseek(lObjFD, 0, 2);
+    lsize = lo_tell(lObjFD);
+    perform lo_lseek(lObjFD, 0, 0);
+    i = 0;
+    LOOP
+      d = loread(lObjFD, 4);
+      
+      IF i > 0 THEN
+        text_value = text_value || ' ';
+      END IF;
+      int_value = (get_byte(d, 3) << 24) + (get_byte(d, 2) << 16) + (get_byte(d, 1) << 8) + get_byte(d, 0);
+      text_value = text_value || int_value;
+
+      i = i + 4;
+      IF i >= lsize THEN
+        EXIT;
+      END IF;
+    END LOOP;
+    RETURN text_value;
+  -- convert bytea -> double[] -> text
+  WHEN 6 THEN
+    objID = par_value;
+    lObjFD = lo_open(objID, x'40000'::int);
+    perform lo_lseek(lObjFD, 0, 2);
+    lsize = lo_tell(lObjFD);
+    --RAISE INFO 'lsize: %', lsize;
+    perform lo_lseek(lObjFD, 0, 0);
+    i = 0;
+    LOOP
+      IF number_limit <> 0 THEN
+        IF i >= number_limit*8 THEN
+          text_value = text_value || ' ...';
+          EXIT;
+        END IF;
+      END IF;
+      
+      d = loread(lObjFD, 8);
+
+      IF i > 0 THEN
+        text_value = text_value || ' ';
+      END IF;
+      text_value = text_value || GetDouble4Bytea(d, is_little_endian, false);
+
+      i = i + 8;
+      IF i >= lsize THEN
+        EXIT;
+      END IF;
+    END LOOP;
+    RETURN text_value;
   ELSE
     RETURN 'data array';
   END CASE;
 END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION clean_large_object() RETURNS integer AS $$
+DECLARE
+  geo run_geometry%rowtype;
+  par detector_parameter%rowtype;
+  objID integer;
+BEGIN
+  EXECUTE 'CREATE TABLE lo_current_list (lo_id int)';
+  FOR geo IN SELECT * FROM run_geometry LOOP
+    objID = geo.root_geometry;
+    insert into lo_current_list(lo_id) values (objID);
+  END LOOP;
+  FOR par IN SELECT * FROM detector_parameter LOOP
+    objID = par.parameter_value;
+    insert into lo_current_list(lo_id) values (objID);
+  END LOOP;
+  
+  FOR objID IN SELECT distinct loid FROM pg_largeobject LOOP
+    IF NOT EXISTS (SELECT 1 FROM lo_current_list WHERE lo_id = objID) THEN
+      RAISE INFO 'Unused: %', objID;
+      PERFORM lo_unlink(objID);
+    END IF;
+  END LOOP;
+
+  EXECUTE 'drop table lo_current_list'; 
+  RETURN 0;
+END;
+$$ LANGUAGE plpgsql;
+--select "clean_large_object"();
 
 
 -- DEFAULT INSERTION

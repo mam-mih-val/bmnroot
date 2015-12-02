@@ -3,7 +3,6 @@
 // -----                  Created 28/01/13 by K. Gertsenberger         -----
 // -------------------------------------------------------------------------
 #include "UniDbConnection.h"
-#include "db_settings.h"
 
 #include <iostream>
 using namespace std;

@@ -9,12 +9,13 @@ void parse_data_to_db()
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load main libraries
 
-    UniDbParser pars;
     //(TString fileName, TString schemaPath, bool isUpdate = false)
+    UniDbParser pars;
     pars.ParseTxt2Db("parse_schemes/0168fdca_PRPC20g_A.dat", "parse_schemes/tdc_inl_txt.xslt");
     //pars.ParseTxt2Db("parse_schemes/zdc_map.txt", "parse_schemes/mapping_zdc_txt.xslt");
     //pars.ParseXml2Db("parse_schemes/run_info.xml", "parse_schemes/run_info_xml.xslt");
     //pars.ParseCsv2Db("parse_schemes/run3_log.csv", "parse_schemes/run_info_csv.xslt", true);
+    //pars.ParseTxtNoise2Db("parse_schemes/noise_run1_2.txt", "parse_schemes/noise_txt.xslt");
 
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();

@@ -956,6 +956,97 @@ void UniDbRun::Print()
 }
 /* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
 
+// get numbers of runs existing in the Database for a selected range
+int UniDbRun::GetRunNumbers(int start_run, int end_run, int*& run_numbers)
+{
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+    {
+        cout<<"Error: connection to DB was failed"<<endl;
+        return -1;
+    }
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "select run_number "
+        "from run_ "
+        "where run_number >= %d and run_number <= %d "
+        "order by run_number", start_run, end_run);
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: getting run numbers from DB has been failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+        return -2;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    vector<int> vecNumbers;
+    while (stmt->NextResultRow())
+        vecNumbers.push_back(stmt->GetInt(0));
+
+    delete stmt;
+    delete connUniDb;
+
+    int run_count = vecNumbers.size();
+    run_numbers = new int[run_count];
+    for (int i = 0; i < run_count; i++)
+        run_numbers[i] = vecNumbers[i];
+
+    return run_count;
+}
+
+// get numbers of existing runs in the Database
+int UniDbRun::GetRunNumbers(int*& run_numbers)
+{
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+    {
+        cout<<"Error: connection to DB was failed"<<endl;
+        return -1;
+    }
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "select run_number "
+        "from run_ "
+        "order by run_number");
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: getting run numbers from DB has been failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+        return -2;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    vector<int> vecNumbers;
+    while (stmt->NextResultRow())
+        vecNumbers.push_back(stmt->GetInt(0));
+
+    delete stmt;
+    delete connUniDb;
+
+    int run_count = vecNumbers.size();
+    run_numbers = new int[run_count];
+    for (int i = 0; i < run_count; i++)
+        run_numbers[i] = vecNumbers[i];
+
+    return run_count;
+}
+
 int UniDbRun::SetRootGeometry(int start_run_number, int end_run_number, unsigned char* root_geometry, Long_t size_root_geometry)
 {
     int run_count = end_run_number - start_run_number;

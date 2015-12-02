@@ -13,6 +13,7 @@
 #define UNIDBCONNECTION_H 1
 
 #include <TSQLServer.h>
+#include "db_settings.h"
 
 enum UniConnectionType{UNIFIED_DB};
 
@@ -30,7 +31,7 @@ class UniDbConnection
     virtual ~UniDbConnection(); // Destructor
 
     static UniDbConnection *Open(UniConnectionType database_type);
-    static UniDbConnection* Open(TString strDBName, TString strUID, TString strPassword);
+    static UniDbConnection* Open(TString strDBName = "pgsql://nc13.jinr.ru/bmn_db", TString strUID = BMN_DB_USERNAME, TString strPassword = BMN_DB_PASSWORD);
 
     TSQLServer* GetSQLServer(){return uni_db;}
 

@@ -170,7 +170,7 @@ void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
         fMan->AddTask(MWPCDigit);
     }
 
-    // root files with digits from raw format
+    // root files with experimental hits and tracks
     if (data_source == 2)
     {
         Style_t pointMarker = kFullDotSmall;

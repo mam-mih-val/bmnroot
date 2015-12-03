@@ -15,7 +15,7 @@
 
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"
-#include "BmnGemStripStationSet.h"
+#include "BmnGemStripStationSet_v3.h"
 
 using namespace std;
 

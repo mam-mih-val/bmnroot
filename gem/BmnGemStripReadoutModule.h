@@ -27,7 +27,8 @@ struct DeadStripZone {
     DeadStripZone(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax) : Xmin(xmin), Xmax(xmax), Ymin(ymin), Ymax(ymax) {}
 
     Bool_t IsInside(Double_t x, Double_t y) {
-        if(x>Xmin && x<Xmax && y>Ymin && y<Ymax) return true;
+        if(Xmin == Xmax || Ymin == Ymax) return false; //incorrect dead zone
+        if(x>=Xmin && x<=Xmax && y>=Ymin && y<=Ymax) return true;
         else return false;
     }
 };

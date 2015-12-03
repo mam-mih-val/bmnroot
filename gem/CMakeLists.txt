@@ -46,8 +46,10 @@ set(SRCS
   BmnGemTrackFinderQA.cxx
   BmnGemTrackFinder.cxx
   BmnGemStripReadoutModule.cxx
-  BmnGemStripStation.cxx
-  BmnGemStripStationSet.cxx
+  #BmnGemStripStation.cxx
+  #BmnGemStripStationSet.cxx
+  BmnGemStripStation_v3.cxx
+  BmnGemStripStationSet_v3.cxx
   BmnGemStripDigit.cxx
   BmnGemStripDigitizer.cxx
   BmnGemStripHit.cxx
@@ -69,8 +71,10 @@ set(HEADERS
   BmnGemTrackFinderQA.h
   BmnGemTrackFinder.h
   BmnGemStripReadoutModule.h
-  BmnGemStripStation.h
-  BmnGemStripStationSet.h
+  #BmnGemStripStation.h
+  #BmnGemStripStationSet.h
+  BmnGemStripStation_v3.h
+  BmnGemStripStationSet_v3.h
   BmnGemStripDigit.h
   BmnGemStripDigitizer.h
   BmnGemStripHit.h

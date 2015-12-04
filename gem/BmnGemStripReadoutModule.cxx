@@ -432,7 +432,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
     }
 }
 
-ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t x, Double_t y,  Double_t signal) {
+ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t xcoord, Double_t ycoord,  Double_t signal) {
     //#define DRAW_REAL_LOWER_CLUSTER_HISTOGRAMS
 
     ClusterParameters cluster(0, 0);
@@ -454,7 +454,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t x, Double_
 
 //Make cluster on lower strips -------------------------------------------------
 
-    Double_t LowerZonePos = CalculateLowerStripZonePosition(x, y);
+    Double_t LowerZonePos = CalculateLowerStripZonePosition(xcoord, ycoord);
     Double_t LowerStripFill = LowerStripWidth/Pitch; //fill position of a lower strip
 
     gausF.SetParameter(1, LowerZonePos);
@@ -463,6 +463,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t x, Double_
 
     //Processing left radius
     Double_t LeftLowerZonePos = LowerZonePos - RadiusInZones;
+    if(LeftLowerZonePos < 0) LeftLowerZonePos = 0.0;
     Double_t dist = 0;
     Double_t firstPosInZoneLower = LeftLowerZonePos - (Int_t)LeftLowerZonePos;
     Double_t lastPosInZoneLower = 1.0;
@@ -477,6 +478,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t x, Double_
             if( lastPosInZoneLower > LowerStripFill ) lastPosInZoneLower = LowerStripFill;
 
             h = lastPosInZoneLower - firstPosInZoneLower;
+            //h = fabs(lastPosInZoneLower) - fabs(firstPosInZoneLower);
             Double_t x = LeftLowerZonePos + dist;
             //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
             Double_t S = gausF.Integral(x, x+h); //more exactly
@@ -485,7 +487,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t x, Double_
             Energy += rand.Gaus(0, var_level*Energy);
             if(Energy < 0) Energy = 0;
 
-        if(NumCurrentZone >=0 && NumCurrentZone < ReadoutLowerPlane.size()) {
+            if(NumCurrentZone >=0 && NumCurrentZone < ReadoutLowerPlane.size()) {
                 ReadoutLowerPlane.at(NumCurrentZone) += Energy;
                 total_signal += Energy;
                 cluster.Strips.push_back(NumCurrentZone);
@@ -523,6 +525,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t x, Double_
             if( lastPosInZoneLower > LowerStripFill ) lastPosInZoneLower = LowerStripFill;
 
             h = lastPosInZoneLower - firstPosInZoneLower;
+            //h = fabs(lastPosInZoneLower) - fabs(firstPosInZoneLower);
             Double_t x = LowerZonePos + dist;
             //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
             Double_t S = gausF.Integral(x, x+h); //more exactly
@@ -613,7 +616,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t x, Double_
     hist.SetFillColor(TColor::GetColor("#ffc0cb"));
     TCanvas canv_fit("canv_fit","canv_fit", 0, 0, 1200, 600);
     hist.Draw();
-    TString file_name = "/home/diman/Software/pics/real_low_cluster_";
+    TString file_name = "/home/diman/Software/pics_w/test/real_low_cluster_";
     file_name += mean_fit_pos; file_name += ".png";
     gPad->GetCanvas()->SaveAs(file_name);
 #endif
@@ -621,7 +624,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t x, Double_
     return cluster;
 }
 
-ClusterParameters BmnGemStripReadoutModule::MakeUpperCluster(Double_t x, Double_t y,  Double_t signal) {
+ClusterParameters BmnGemStripReadoutModule::MakeUpperCluster(Double_t xcoord, Double_t ycoord,  Double_t signal) {
     //#define DRAW_REAL_UPPER_CLUSTER_HISTOGRAMS
 
     ClusterParameters cluster(0, 0);
@@ -643,7 +646,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeUpperCluster(Double_t x, Double_
 
     //Make cluster on upper strips -------------------------------------------------
 
-    Double_t UpperZonePos = CalculateUpperStripZonePosition(x, y);
+    Double_t UpperZonePos = CalculateUpperStripZonePosition(xcoord, ycoord);
     Double_t UpperStripFill = UpperStripWidth/Pitch; //fill position of a upper strip
 
     gausF.SetParameter(1, UpperZonePos);
@@ -652,6 +655,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeUpperCluster(Double_t x, Double_
 
     //Processing left radius
     Double_t LeftUpperZonePos = UpperZonePos - RadiusInZones;
+    if(LeftUpperZonePos < 0) LeftUpperZonePos = 0.0;
     Double_t dist = 0;
     Double_t firstPosInZoneUpper = LeftUpperZonePos - (Int_t)LeftUpperZonePos;
     Double_t lastPosInZoneUpper = 1.0;
@@ -666,6 +670,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeUpperCluster(Double_t x, Double_
             if( lastPosInZoneUpper > UpperStripFill ) lastPosInZoneUpper = UpperStripFill;
 
             h = lastPosInZoneUpper - firstPosInZoneUpper;
+            //h = fabs(lastPosInZoneUpper) - fabs(firstPosInZoneUpper);
             Double_t x = LeftUpperZonePos + dist;
             //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
             Double_t S = gausF.Integral(x, x+h); //more exactly
@@ -712,6 +717,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeUpperCluster(Double_t x, Double_
             if( lastPosInZoneUpper > UpperStripFill ) lastPosInZoneUpper = UpperStripFill;
 
             h = lastPosInZoneUpper - firstPosInZoneUpper;
+            //h = fabs(lastPosInZoneUpper) - fabs(firstPosInZoneUpper);
             Double_t x = UpperZonePos + dist;
             //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
             Double_t S = gausF.Integral(x, x+h); //more exactly

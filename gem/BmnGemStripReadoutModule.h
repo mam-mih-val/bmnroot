@@ -159,8 +159,8 @@ public:
 public: //private (public - for test)
 
     //Make cluster from a single point (spread)
-    ClusterParameters MakeLowerCluster(Double_t x, Double_t y,  Double_t signal); // on lower layer
-    ClusterParameters MakeUpperCluster(Double_t x, Double_t y,  Double_t signal); // on upper layer
+    ClusterParameters MakeLowerCluster(Double_t xcoord, Double_t ycoord,  Double_t signal); // on lower layer
+    ClusterParameters MakeUpperCluster(Double_t xcoord, Double_t ycoord,  Double_t signal); // on upper layer
 
     //Find clusters and hits
     void FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors);

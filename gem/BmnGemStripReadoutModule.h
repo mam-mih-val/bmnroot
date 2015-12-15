@@ -62,6 +62,7 @@ public:
     void SetAngleDeg(Double_t deg); //minis - clockwise, plus - anticlockwise
     void SetZPosition(Double_t zpos_module) { ZReadoutModulePosition = zpos_module; }
     void SetAvalancheRadius(Double_t aval_radius) { AvalancheRadius = aval_radius; }
+    void SetSmearingSigma(Double_t smear_sigma) { SmearingSigma = smear_sigma; }
     void SetMeanCollisionDistance(Double_t mcd) { MCD = mcd; }
     void SetDriftGap(Double_t drift_gap) { DriftGap = drift_gap; }
     void SetGain(Double_t gain) { Gain = gain; }
@@ -85,6 +86,7 @@ public:
     Double_t GetYMaxDeadZone() { return DeadZone.Ymax; }
     Double_t GetZPositionReadout() { return ZReadoutModulePosition; }
     Double_t GetAvalancheRadius() { return AvalancheRadius; }
+    Double_t GetSmearingSigma() { return SmearingSigma; }
     Double_t GetMeanCollisionDistance() { return MCD; }
     Double_t GetDriftGap() { return DriftGap; }
     Double_t GetGain() { return Gain; }
@@ -208,6 +210,7 @@ private:
     Double_t ZReadoutModulePosition;
 
     Double_t AvalancheRadius;
+    Double_t SmearingSigma;
     Double_t MCD; //Mean collision distance
     Double_t DriftGap;
     Double_t InductionGap;

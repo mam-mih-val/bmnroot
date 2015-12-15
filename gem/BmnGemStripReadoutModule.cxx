@@ -24,6 +24,7 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
     ZReadoutModulePosition = 0.0;
 
     AvalancheRadius = 0.1; //cm
+    SmearingSigma = 0.05;
     MCD = 0.0264; //cm
     Gain = 1.0; //gain level
     DriftGap = 0.3; //cm
@@ -54,6 +55,7 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule(Double_t xsize, Double_t ysiz
     ZReadoutModulePosition = zpos_module;
 
     AvalancheRadius = 0.1; //cm
+    SmearingSigma = 0.05;
     MCD = 0.0264; //cm
     Gain = 1.0; //gain level
     DriftGap = 0.3; //cm
@@ -339,6 +341,18 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
     if( x >= XMinReadout && x <= XMaxReadout &&
         y >= YMinReadout && y <= YMaxReadout &&
         !DeadZone.IsInside(x, y) ) {
+
+        if(SmearingSigma > 0.0) {
+            Double_t x_smeared = gRandom->Gaus(x, SmearingSigma);
+            Double_t y_smeared = gRandom->Gaus(y, SmearingSigma);
+
+            if( x_smeared >= XMinReadout && x_smeared <= XMaxReadout &&
+                y_smeared >= YMinReadout && y_smeared <= YMaxReadout &&
+                !DeadZone.IsInside(x_smeared, y_smeared) ) {
+                x = x_smeared;
+                y = y_smeared;
+            }
+        }
 
         if(signal <= 0.0) signal = 1e-16;
 

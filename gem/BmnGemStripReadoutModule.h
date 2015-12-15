@@ -159,6 +159,7 @@ public:
 public: //private (public - for test)
 
     //Make cluster from a single point (spread)
+    ClusterParameters MakeCluster(TString layer, Double_t xcoord, Double_t ycoord, Double_t signal, Double_t radius);
     ClusterParameters MakeLowerCluster(Double_t xcoord, Double_t ycoord,  Double_t signal); // on lower layer
     ClusterParameters MakeUpperCluster(Double_t xcoord, Double_t ycoord,  Double_t signal); // on upper layer
 
@@ -194,8 +195,6 @@ private:
     Double_t Pitch;
     Double_t LowerStripWidth;
     Double_t UpperStripWidth;
-    Double_t LowerStripWidthRatio;
-    Double_t UpperStripWidthRatio;
     Double_t AngleDeg; //Angle between two sets of parellel strip
     Double_t AngleRad;
 
@@ -254,15 +253,21 @@ private:
 //------------------------------------------------------------------------------
 
 struct ClusterParameters {
-    Double_t MeanPosition;
-    Double_t TotalSignal;
+    Double_t OriginPosition; //origin position of the center point
+    Double_t MeanPosition; //position of the cluster (after fitting)
+    Double_t TotalSignal; //total signal of the cluster
+    Double_t PositionResidual; // residual from origin position
+    Bool_t IsCorrect; //correct or incorrect cluster
 
     vector<Int_t> Strips;
     vector<Double_t> Signals;
 
-    ClusterParameters(Double_t mean_position, Double_t total_signal) : MeanPosition(mean_position), TotalSignal(total_signal) {
+    ClusterParameters(Double_t orig_position, Double_t mean_position, Double_t total_signal) : OriginPosition(orig_position), MeanPosition(mean_position), TotalSignal(total_signal) {
         Strips.clear();
         Signals.clear();
+
+        PositionResidual = 0.0;
+        IsCorrect = kFALSE;
     }
 };
 

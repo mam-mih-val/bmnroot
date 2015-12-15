@@ -1,6 +1,8 @@
 #include "BmnGemStripDigitizer.h"
 #include "CbmMCTrack.h"
 
+int entrys = 0;
+
 BmnGemStripDigitizer::BmnGemStripDigitizer()
 : fOnlyPrimary(kFALSE) {
 
@@ -39,11 +41,15 @@ void BmnGemStripDigitizer::Exec(Option_t* opt) {
         return;
     }
 
-    if(fVerbose) cout << " BmnGemStripDigitizer::Exec(), Number of BmnGemStripPoints = " << fBmnGemStripPointsArray->GetEntriesFast() << "\n";
+    if(fVerbose) {
+        cout << " BmnGemStripDigitizer::Exec(), event = " << entrys << "\n";
+        cout << " BmnGemStripDigitizer::Exec(), Number of BmnGemStripPoints = " << fBmnGemStripPointsArray->GetEntriesFast() << "\n";
+    }
 
     ProcessMCPoints();
 
-    if(fVerbose) cout << " BmnGemStripDigitizer::Exec() finished\n";
+    if(fVerbose) cout << " BmnGemStripDigitizer::Exec() finished\n\n";
+    entrys++;
 }
 
 void BmnGemStripDigitizer::ProcessMCPoints() {

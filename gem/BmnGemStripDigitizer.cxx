@@ -10,6 +10,8 @@ BmnGemStripDigitizer::BmnGemStripDigitizer()
     fOutputDigitsBranchName = "BmnGemStripDigit";
 
     fVerbose = 1;
+
+    fSmearingSigma = 0.0; //cm
 }
 
 BmnGemStripDigitizer::~BmnGemStripDigitizer() {
@@ -75,6 +77,12 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
         Double_t y = GemStripPoint->GetY();
         Double_t z = GemStripPoint->GetZ();
         Double_t dEloss = GemStripPoint->GetEnergyLoss()*1e6; // in keV
+
+        //smearing
+        if(fSmearingSigma > 0.0) {
+            x = gRandom->Gaus(x, fSmearingSigma);
+            y = gRandom->Gaus(y, fSmearingSigma);
+        }
 
         StationSet.AddPointToDetector(x, y, z, dEloss);
     }

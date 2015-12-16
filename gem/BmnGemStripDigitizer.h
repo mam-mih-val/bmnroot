@@ -53,6 +53,8 @@ private:
 
     Bool_t fOnlyPrimary;
 
+    Double_t fSmearingSigma; //cm
+
     ClassDef(BmnGemStripDigitizer,1);
 };
 

@@ -44,7 +44,7 @@ void BmnGemStripDigitizer::Exec(Option_t* opt) {
     }
 
     if(fVerbose) {
-        cout << " BmnGemStripDigitizer::Exec(), event = " << entrys << "\n";
+        cout << "\n BmnGemStripDigitizer::Exec(), event = " << entrys << "\n";
         cout << " BmnGemStripDigitizer::Exec(), Number of BmnGemStripPoints = " << fBmnGemStripPointsArray->GetEntriesFast() << "\n";
     }
 

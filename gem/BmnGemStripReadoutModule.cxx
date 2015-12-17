@@ -23,7 +23,7 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
 
     ZReadoutModulePosition = 0.0;
 
-    AvalancheRadius = 0.1; //cm
+    AvalancheRadius = 0.2; //cm
     MCD = 0.0264; //cm
     Gain = 1.0; //gain level
     DriftGap = 0.3; //cm
@@ -53,7 +53,7 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule(Double_t xsize, Double_t ysiz
 
     ZReadoutModulePosition = zpos_module;
 
-    AvalancheRadius = 0.1; //cm
+    AvalancheRadius = 0.2; //cm
     MCD = 0.0264; //cm
     Gain = 1.0; //gain level
     DriftGap = 0.3; //cm
@@ -347,7 +347,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
 
         Int_t cycle_cnt = 0;
         while(true) {
-            radius = gRandom->Gaus(AvalancheRadius, AvalancheRadius/6.66);
+            radius = gRandom->Gaus(AvalancheRadius, 0.02);
             if(radius > AvalancheRadius/2.0  && radius < AvalancheRadius*2.0 && radius > 0.0) break;
             cycle_cnt++;
 
@@ -725,7 +725,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t 
         fit_params = "WQ";
     #endif
 
-    if(nstrips > 2) {
+    if(nstrips > 1) {
         hist.Fit("gaus", fit_params); //Q - quit mode (without information on the screen); 0 - not draw
         gausFitFunction = hist.GetFunction("gaus");
         if(gausFitFunction) {
@@ -764,445 +764,6 @@ ClusterParameters BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t 
 #endif
 
     cluster.IsCorrect = true; // set correct status of the cluster
-    return cluster;
-}
-
-ClusterParameters BmnGemStripReadoutModule::MakeLowerCluster(Double_t xcoord, Double_t ycoord,  Double_t signal) {
-    //#define DRAW_REAL_LOWER_CLUSTER_HISTOGRAMS
-    cout << "====lower\n";
-    ClusterParameters cluster(0, 0, 0);
-
-    if( AvalancheRadius <= 0.0 ) AvalancheRadius = 1e-8;
-
-    //Double_t radius = AvalancheRadius;
-    Double_t radius = 0.0;
-    while(true) {
-        radius = gRandom->Gaus(AvalancheRadius, AvalancheRadius/3.0);
-        if(radius > AvalancheRadius/2.0 && radius < AvalancheRadius*2.0 && radius > 0.0) break;
-    }
-
-    Double_t RadiusInZones = radius/Pitch; //radius in zone units
-    Double_t Sigma = RadiusInZones/3.33;
-
-    TF1 gausF("gausF", "gaus", -4*Sigma, 4*Sigma);
-    gausF.SetParameter(0, 1.0); // constant (altitude)
-    gausF.SetParameter(1, 0.0); // mean (center position)
-    gausF.SetParameter(2, Sigma); //sigma
-
-    //Double_t SRadius = gausF(0.0)*RadiusInZones/2; ///rough square of the one side distribution
-    Double_t SRadius = gausF.Integral(0.0, 4*Sigma); //square of the one side distribution (more exactly)
-
-    TRandom rand(0);
-    Double_t var_level = SignalDistortion; //signal variation (0.1 is 10%)
-
-//Make cluster on lower strips -------------------------------------------------
-
-    Double_t LowerZonePos = CalculateLowerStripZonePosition(xcoord, ycoord);
-    Double_t LowerStripFill = LowerStripWidth/Pitch; //fill position of a lower strip
-
-    gausF.SetParameter(1, LowerZonePos);
-
-    Double_t total_signal = 0.0;
-
-    //Processing left radius
-    cout << "  left\n";
-    Double_t LeftLowerZonePos = LowerZonePos - RadiusInZones;
-    if(LeftLowerZonePos < 0) LeftLowerZonePos = 0.0;
-    Double_t dist = 0;
-    Double_t firstPosInZoneLower = LeftLowerZonePos - (Int_t)LeftLowerZonePos;
-    Double_t lastPosInZoneLower = 1.0;
-
-    if((firstPosInZoneLower + RadiusInZones) < 1.0 ) lastPosInZoneLower = firstPosInZoneLower + RadiusInZones;
-
-    while(1) {
-        Int_t NumCurrentZone = (Int_t)(LeftLowerZonePos + dist);
-        Double_t h = 0; // height of the trap
-
-        if(firstPosInZoneLower <= LowerStripFill) {
-            if( lastPosInZoneLower > LowerStripFill ) lastPosInZoneLower = LowerStripFill;
-
-            h = lastPosInZoneLower - firstPosInZoneLower;
-            //h = fabs(lastPosInZoneLower) - fabs(firstPosInZoneLower);
-            Double_t x = LeftLowerZonePos + dist;
-            //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
-            Double_t S = gausF.Integral(x, x+h); //more exactly
-
-            Double_t Energy = (signal*Gain/2)*(S/SRadius); // energy in the segment
-            Energy += rand.Gaus(0, var_level*Energy);
-            if(Energy < 0) Energy = 0;
-
-            if(NumCurrentZone >=0 && NumCurrentZone < ReadoutLowerPlane.size()) {
-                ReadoutLowerPlane.at(NumCurrentZone) += Energy;
-                total_signal += Energy;
-                cluster.Strips.push_back(NumCurrentZone);
-                cluster.Signals.push_back(Energy);
-            }
-        }
-        else {
-            lastPosInZoneLower = firstPosInZoneLower;
-        }
-
-        dist += h;
-        dist += 1.0 - lastPosInZoneLower;
-
-        firstPosInZoneLower = 0.0;
-        lastPosInZoneLower = 1.0;
-
-        if((RadiusInZones - dist) < 1.0 ) {
-            lastPosInZoneLower = RadiusInZones - dist;
-        }
-
-        if(dist >= RadiusInZones) break;
-    }
-
-    //Processing right radius
-    cout << "  right\n";
-    dist = 0;
-    firstPosInZoneLower = LowerZonePos - (Int_t)LowerZonePos;
-    lastPosInZoneLower = 1.0;
-    if((firstPosInZoneLower + RadiusInZones) < 1.0 ) lastPosInZoneLower = firstPosInZoneLower + RadiusInZones;
-
-    while(1) {
-        Int_t NumCurrentZone = (Int_t)(LowerZonePos + dist);
-        Double_t h = 0;
-
-        if(firstPosInZoneLower <= LowerStripFill) {
-            if( lastPosInZoneLower > LowerStripFill ) lastPosInZoneLower = LowerStripFill;
-
-            h = lastPosInZoneLower - firstPosInZoneLower;
-            //h = fabs(lastPosInZoneLower) - fabs(firstPosInZoneLower);
-            Double_t x = LowerZonePos + dist;
-            //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
-            Double_t S = gausF.Integral(x, x+h); //more exactly
-
-            Double_t Energy = (signal*Gain/2)*(S/SRadius);
-            Energy += rand.Gaus(0, var_level*Energy);
-            if(Energy < 0) Energy = 0;
-
-           if(NumCurrentZone >=0 && NumCurrentZone < ReadoutUpperPlane.size()) {
-                cout << "bNumCurrentZone = " << NumCurrentZone << "\n";
-                ReadoutUpperPlane.at(NumCurrentZone) += Energy;
-                cout << "aNumCurrentZone = " << NumCurrentZone << "\n";
-                total_signal += Energy;
-                cout << "hui\n";
-                if(cluster.Strips.size() > 0) {
-                    cout << "pizda\n";
-                    if(NumCurrentZone != cluster.Strips.at(cluster.Strips.size()-1)) {
-                        cluster.Strips.push_back(NumCurrentZone);
-                        cluster.Signals.push_back(Energy);
-                        cout << "pizda2\n";
-                    }
-                    else {
-                        cluster.Signals.at(cluster.Strips.size()-1) += Energy;
-                        cout << "pizda3\n";
-                    }
-                }
-                else {
-                    cluster.Strips.push_back(NumCurrentZone);
-                    cluster.Signals.push_back(Energy);
-                    cout << "pizda4\n";
-                }
-                cout << "hui2\n";
-            }
-        }
-        else {
-            lastPosInZoneLower = firstPosInZoneLower;
-        }
-        cout << "hui3\n";
-        dist += h;
-        dist += 1.0 - lastPosInZoneLower;
-
-        firstPosInZoneLower = 0.0;
-        lastPosInZoneLower = 1.0;
-
-        if((RadiusInZones - dist) < 1.0 ) {
-            lastPosInZoneLower = RadiusInZones - dist;
-        }
-
-        if(dist >= RadiusInZones) break;
-    }
-
-//find mean value of avalanche position (fitting by gaus function)
-    Double_t mean_fit_pos = 0.0;
-
-    if ( cluster.Strips.size() <= 0 ) return cluster;
-    cout << "hui4\n";
-    Int_t begin_strip_num = cluster.Strips.at(0);
-    Int_t last_strip_num = cluster.Strips.at(cluster.Strips.size()-1);
-    Int_t nstrips = last_strip_num - begin_strip_num + 1;
-    cout << "hui5\n";
-    cout << "begin_strip_num = " << begin_strip_num << "\n";
-    cout << "last_strip_num = " << last_strip_num << "\n";
-    cout << "nstrips = " << nstrips << "\n";
-
-    TH1F hist("hist_for_fit", "hist_for_fit", nstrips, begin_strip_num, last_strip_num+1);
-    Int_t hist_index = 0;
-
-    for(Int_t i = 0; i < cluster.Strips.size(); ++i) {
-        Double_t value = cluster.Signals.at(i);
-        hist.SetBinContent(hist_index+1, value);
-        cout << "  hist_index = " << hist_index << "\n";
-        hist_index++;
-    }
-
-    TF1* gausFitFunction = 0;
-        TString fit_params = "WQ0";
-
-    #ifdef DRAW_REAL_UPPER_CLUSTER_HISTOGRAMS
-                fit_params = "WQ";
-    #endif
-
-    if(nstrips > 2) {
-        hist.Fit("gaus", fit_params); //Q - quit mode (without information on the screen); 0 - not draw
-        gausFitFunction = hist.GetFunction("gaus");
-        if(gausFitFunction) {
-            mean_fit_pos = gausFitFunction->GetParameter(1);
-        }
-        else {
-            mean_fit_pos = hist.GetMean();
-        }
-    }
-    else {
-        mean_fit_pos = hist.GetMean();
-    }
-    cout << "hui6\n";
-    cluster.MeanPosition = mean_fit_pos;
-    cluster.TotalSignal = total_signal;
-
-#ifdef DRAW_REAL_LOWER_CLUSTER_HISTOGRAMS
-    //drawing cluster histograms
-    TString hist_fit_title = "";
-    hist_fit_title += "sz: "; hist_fit_title += nstrips;
-    hist_fit_title += ", mean_fit_pos: "; hist_fit_title += mean_fit_pos;
-    hist_fit_title += ", sigma_fit: "; if(gausFitFunction) { hist_fit_title += gausFitFunction->GetParameter(2); } else {  hist_fit_title += "---"; }
-    hist_fit_title += ", mean_h "; hist_fit_title += hist.GetMean();
-    if(gausFitFunction) { hist_fit_title += ", mean_g:"; hist_fit_title += gausFitFunction->GetParameter(1); }
-    hist.SetTitle(hist_fit_title);
-    hist.SetMinimum(0);
-    hist.SetFillColor(TColor::GetColor("#ffc0cb"));
-    TCanvas canv_fit("canv_fit","canv_fit", 0, 0, 1200, 600);
-    hist.Draw();
-    TString file_name = "/home/diman/Software/pics_w/test/real_low_cluster_";
-    file_name += mean_fit_pos; file_name += ".png";
-    gPad->GetCanvas()->SaveAs(file_name);
-#endif
-
-    cluster.IsCorrect = true;
-    cout << "hui7\n";
-    return cluster;
-}
-
-ClusterParameters BmnGemStripReadoutModule::MakeUpperCluster(Double_t xcoord, Double_t ycoord,  Double_t signal) {
-    //#define DRAW_REAL_UPPER_CLUSTER_HISTOGRAMS
-    cout << "====upper\n";
-    ClusterParameters cluster(0, 0, 0);
-
-    if( AvalancheRadius <= 0.0 ) AvalancheRadius = 1e-8;
-
-    //Double_t radius = AvalancheRadius;
-    Double_t radius = 0.0;
-    while(true) {
-        radius = gRandom->Gaus(AvalancheRadius, AvalancheRadius/3.0);
-        if(radius > AvalancheRadius/2.0 && radius < AvalancheRadius*2.0 && radius > 0.0) break;
-    }
-
-    Double_t RadiusInZones = radius/Pitch; //radius in zone units
-    Double_t Sigma = RadiusInZones/3.33;
-
-    TF1 gausF("gausF", "gaus", -4*Sigma, 4*Sigma);
-    gausF.SetParameter(0, 1.0); // constant (altitude)
-    gausF.SetParameter(1, 0.0); // mean (center position)
-    gausF.SetParameter(2, Sigma); //sigma
-
-    //Double_t SRadius = gausF(0.0)*RadiusInZones/2; ///rough square of the one side distribution
-    Double_t SRadius = gausF.Integral(0.0, 4*Sigma); //square of the one side distribution (more exactly)
-
-    TRandom rand(0);
-    Double_t var_level = SignalDistortion; //signal variation (0.1 is 10%)
-
-    //Make cluster on upper strips -------------------------------------------------
-
-    Double_t UpperZonePos = CalculateUpperStripZonePosition(xcoord, ycoord);
-    Double_t UpperStripFill = UpperStripWidth/Pitch; //fill position of a upper strip
-
-    gausF.SetParameter(1, UpperZonePos);
-
-    Double_t total_signal = 0.0;
-
-    //Processing left radius
-    cout << "  left\n";
-    Double_t LeftUpperZonePos = UpperZonePos - RadiusInZones;
-    if(LeftUpperZonePos < 0) LeftUpperZonePos = 0.0;
-    Double_t dist = 0;
-    Double_t firstPosInZoneUpper = LeftUpperZonePos - (Int_t)LeftUpperZonePos;
-    Double_t lastPosInZoneUpper = 1.0;
-
-    if((firstPosInZoneUpper + RadiusInZones) < 1.0 ) lastPosInZoneUpper = firstPosInZoneUpper + RadiusInZones;
-
-    while(1) {
-        Int_t NumCurrentZone = (Int_t)(LeftUpperZonePos + dist);
-        Double_t h = 0; // height of the trap
-
-        if(firstPosInZoneUpper <= UpperStripFill) {
-            if( lastPosInZoneUpper > UpperStripFill ) lastPosInZoneUpper = UpperStripFill;
-
-            h = lastPosInZoneUpper - firstPosInZoneUpper;
-            //h = fabs(lastPosInZoneUpper) - fabs(firstPosInZoneUpper);
-            Double_t x = LeftUpperZonePos + dist;
-            //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
-            Double_t S = gausF.Integral(x, x+h); //more exactly
-
-            Double_t Energy = (signal*Gain/2)*(S/SRadius); // energy in the segment
-            Energy += rand.Gaus(0, var_level*Energy);
-            if(Energy < 0) Energy = 0;
-
-        if(NumCurrentZone >=0 && NumCurrentZone < ReadoutUpperPlane.size()) {
-                ReadoutUpperPlane.at(NumCurrentZone) += Energy;
-                total_signal += Energy;
-                cluster.Strips.push_back(NumCurrentZone);
-                cluster.Signals.push_back(Energy);
-            }
-        }
-        else {
-            lastPosInZoneUpper = firstPosInZoneUpper;
-        }
-
-        dist += h;
-        dist += 1.0 - lastPosInZoneUpper;
-
-        firstPosInZoneUpper = 0.0;
-        lastPosInZoneUpper = 1.0;
-
-        if((RadiusInZones - dist) < 1.0 ) {
-            lastPosInZoneUpper = RadiusInZones - dist;
-        }
-
-        if(dist >= RadiusInZones) break;
-    }
-
-    //Processing right radius
-    cout << "  right\n";
-    dist = 0;
-    firstPosInZoneUpper = UpperZonePos - (Int_t)UpperZonePos;
-    lastPosInZoneUpper = 1.0;
-    if((firstPosInZoneUpper + RadiusInZones) < 1.0 ) lastPosInZoneUpper = firstPosInZoneUpper + RadiusInZones;
-
-    while(1) {
-        Int_t NumCurrentZone = (Int_t)(UpperZonePos + dist);
-        Double_t h = 0;
-
-        if(firstPosInZoneUpper <= UpperStripFill) {
-            if( lastPosInZoneUpper > UpperStripFill ) lastPosInZoneUpper = UpperStripFill;
-
-            h = lastPosInZoneUpper - firstPosInZoneUpper;
-            //h = fabs(lastPosInZoneUpper) - fabs(firstPosInZoneUpper);
-            Double_t x = UpperZonePos + dist;
-            //Double_t S = (gausF(x) + gausF(x+h))*h/2.0; //rough
-            Double_t S = gausF.Integral(x, x+h); //more exactly
-
-            Double_t Energy = (signal*Gain/2)*(S/SRadius);
-            Energy += rand.Gaus(0, var_level*Energy);
-            if(Energy < 0) Energy = 0;
-
-            if(NumCurrentZone >=0 && NumCurrentZone < ReadoutUpperPlane.size()) {
-                cout << "bNumCurrentZone = " << NumCurrentZone << "\n";
-                ReadoutUpperPlane.at(NumCurrentZone) += Energy;
-                cout << "aNumCurrentZone = " << NumCurrentZone << "\n";
-                total_signal += Energy;
-                if(cluster.Strips.size() > 0) {
-                    if(NumCurrentZone != cluster.Strips.at(cluster.Strips.size()-1)) {
-                        cluster.Strips.push_back(NumCurrentZone);
-                        cluster.Signals.push_back(Energy);
-                    }
-                    else {
-                        cluster.Signals.at(cluster.Strips.size()-1) += Energy;
-                    }
-                }
-                else {
-                    cluster.Strips.push_back(NumCurrentZone);
-                    cluster.Signals.push_back(Energy);
-                }
-            }
-        }
-        else {
-            lastPosInZoneUpper = firstPosInZoneUpper;
-        }
-
-        dist += h;
-        dist += 1.0 - lastPosInZoneUpper;
-
-        firstPosInZoneUpper = 0.0;
-        lastPosInZoneUpper = 1.0;
-
-        if((RadiusInZones - dist) < 1.0 ) {
-            lastPosInZoneUpper = RadiusInZones - dist;
-        }
-
-        if(dist >= RadiusInZones) break;
-    }
-
-//find mean value of avalanche position (fitting by gaus function)
-    Double_t mean_fit_pos = 0.0;
-
-    if ( cluster.Strips.size() <= 0 ) return cluster;
-
-    Int_t begin_strip_num = cluster.Strips.at(0);
-    Int_t last_strip_num = cluster.Strips.at(cluster.Strips.size()-1);
-    Int_t nstrips = last_strip_num - begin_strip_num + 1;
-
-    TH1F hist("hist_for_fit", "hist_for_fit", nstrips, begin_strip_num, last_strip_num+1);
-    Int_t hist_index = 0;
-
-    for(Int_t i = 0; i < cluster.Strips.size(); ++i) {
-        Double_t value = cluster.Signals.at(i);
-        hist.SetBinContent(hist_index+1, value);
-        hist_index++;
-    }
-
-    TF1* gausFitFunction = 0;
-    TString fit_params = "WQ0";
-
-#ifdef DRAW_REAL_UPPER_CLUSTER_HISTOGRAMS
-            fit_params = "WQ";
-#endif
-
-    if(nstrips > 2) {
-        hist.Fit("gaus", fit_params); //Q - quit mode (without information on the screen); 0 - not draw
-        gausFitFunction = hist.GetFunction("gaus");
-        if(gausFitFunction) {
-            mean_fit_pos = gausFitFunction->GetParameter(1);
-        }
-        else {
-            mean_fit_pos = hist.GetMean();
-        }
-    }
-    else {
-        mean_fit_pos = hist.GetMean();
-    }
-
-    cluster.MeanPosition = mean_fit_pos;
-    cluster.TotalSignal = total_signal;
-
-#ifdef DRAW_REAL_UPPER_CLUSTER_HISTOGRAMS
-    //drawing cluster histograms
-    TString hist_fit_title = "";
-    hist_fit_title += "sz: "; hist_fit_title += nstrips;
-    hist_fit_title += ", mean_fit_pos: "; hist_fit_title += mean_fit_pos;
-    hist_fit_title += ", sigma_fit: "; if(gausFitFunction) { hist_fit_title += gausFitFunction->GetParameter(2); } else {  hist_fit_title += "---"; }
-    hist_fit_title += ", mean_h "; hist_fit_title += hist.GetMean();
-    if(gausFitFunction) { hist_fit_title += ", mean_g:"; hist_fit_title += gausFitFunction->GetParameter(1); }
-    hist.SetTitle(hist_fit_title);
-    hist.SetMinimum(0);
-    hist.SetFillColor(TColor::GetColor("#b6e1fc"));
-    TCanvas canv_fit("canv_fit","canv_fit", 0, 0, 1200, 600);
-    hist.Draw();
-    TString file_name = "/home/diman/Software/pics_w/test/real_up_cluster_";
-    file_name += mean_fit_pos; file_name += ".png";
-    gPad->GetCanvas()->SaveAs(file_name);
-#endif
-
-    cluster.IsCorrect = true;
-
     return cluster;
 }
 
@@ -1326,11 +887,11 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
     TF1* gausFitFunction = 0;
         TString fit_params = "WQ0";
 
-    #ifdef DRAW_REAL_UPPER_CLUSTER_HISTOGRAMS
-                fit_params = "WQ";
+    #ifdef DRAW_FOUND_CLUSTER_HISTOGRAMS
+        fit_params = "WQ";
     #endif
 
-    if(nstrips > 2) {
+    if(nstrips > 1) {
         hist.Fit("gaus", fit_params); //Q - quit mode (without information on the screen); 0 - not draw
         gausFitFunction = hist.GetFunction("gaus");
         if(gausFitFunction) {

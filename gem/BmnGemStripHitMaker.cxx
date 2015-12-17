@@ -81,7 +81,9 @@ void BmnGemStripHitMaker::ProcessDigits() {
     Int_t NCalculatedPoints = StationSet.CountNProcessedPointsInDetector();
     if(fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
 
-    Int_t match_cnt = 0;
+    Int_t NMCPoints = fBmnGemStripPointsArray->GetEntriesFast();
+    Int_t matched_points_cnt = 0;
+
     for(Int_t iStation = 0; iStation < StationSet.GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet.GetGemStation(iStation);
 
@@ -89,38 +91,35 @@ void BmnGemStripHitMaker::ProcessDigits() {
             BmnGemStripReadoutModule *module = station->GetReadoutModule(iModule);
             Double_t z = module->GetZPositionReadout();
 
-//Find hits and fakes-----------------------------------------------------------
-            Int_t *PointTypeArray = new Int_t[module->GetNIntersectionPoints()];
-            Double_t *PointSignalDiffArray = new Double_t[module->GetNIntersectionPoints()];
-            for(Int_t i = 0; i < module->GetNIntersectionPoints(); ++i) {
+            Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
+
+//Find hits and fakes ----------------------------------------------------------
+            Int_t *PointTypeArray = new Int_t[NIntersectionPointsInModule]; // -1 - undefined, 0 - fake, 1 - hit
+            Double_t *PointSignalDiffArray = new Double_t[NIntersectionPointsInModule];
+            for(Int_t i = 0; i < NIntersectionPointsInModule; ++i) {
                 PointTypeArray[i] = -1; //set undef feature
                 PointSignalDiffArray[i] = -1; //set unknown signal diff
             }
             FindHitsAndFakes(PointTypeArray, PointSignalDiffArray, station, module);
 //------------------------------------------------------------------------------
 
-            for(Int_t iPoint = 0; iPoint < module->GetNIntersectionPoints(); ++iPoint) {
+//Matching intersection points with MC-points (finding RefMCIndex) -------------
+            Double_t max_distance = module->GetPitch()*5; //cm  +- 5 strips residual
+
+            Int_t *RefIndex = new Int_t[NIntersectionPointsInModule];
+
+            for(Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
+                RefIndex[iPoint] = -1; // -1 is undefined status
+            }
+
+            for(Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
+
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
 
-                Double_t low_pos_intersec = module->GetIntersectionPointLowerStripPos(iPoint);
-                Double_t up_pos_intersec = module->GetIntersectionPointUpperStripPos(iPoint);
-
-                Double_t x_err = module->GetIntersectionPointXError(iPoint);
-                Double_t y_err = module->GetIntersectionPointYError(iPoint);
-                Double_t z_err = 0.0;
-
-                //match intersection points with MC-points (find RefMCIndex)
-                Int_t RefMCIndex = -1;
                 Double_t min_distance = 1E10;
-                Int_t *MCPointsStatArray = new Int_t[fBmnGemStripPointsArray->GetEntriesFast()]; // 0 - not used MC point, 1 - used
-                for(Int_t i = 0; i < fBmnGemStripPointsArray->GetEntriesFast(); ++i) {
-                    MCPointsStatArray[i] = 0; //unused status
-                }
 
-                for(Int_t iMCPoint = 0; iMCPoint < fBmnGemStripPointsArray->GetEntriesFast(); iMCPoint++) {
-                    if(MCPointsStatArray[iMCPoint] == 1) continue;
-
+                for(Int_t iMCPoint = 0; iMCPoint < NMCPoints; iMCPoint++) {
                     MCPoint = (FairMCPoint*) fBmnGemStripPointsArray->At(iMCPoint);
                     Double_t xmc = -MCPoint->GetX();
                     Double_t ymc = MCPoint->GetY();
@@ -129,29 +128,81 @@ void BmnGemStripHitMaker::ProcessDigits() {
                     Int_t ModuleNum = station->GetPointModuleOwhership(xmc, ymc);
 
                     if((StationNum == iStation) && (ModuleNum == iModule)) {
-                        Double_t low_pos_mc = module->CalculateLowerStripZonePosition(xmc, ymc);
-                        Double_t up_pos_mc = module->CalculateUpperStripZonePosition(xmc, ymc);
+                        //Double_t distance = sqrt((x-xmc)*(x-xmc) + (y-ymc)*(y-ymc));
+                        Double_t distance = (x-xmc)*(x-xmc) + (y-ymc)*(y-ymc);
 
-                        Double_t low_diff_pos = Abs(low_pos_intersec - low_pos_mc);
-                        Double_t up_diff_pos = Abs(up_pos_intersec - up_pos_mc);
+                        if(distance > max_distance*max_distance) continue;
 
-                        if( low_diff_pos <= 1.5 && up_diff_pos <= 1.5 ) {
-                            Double_t cur_distance = low_diff_pos + up_diff_pos;
-                            if(cur_distance < min_distance) {
-                                min_distance = cur_distance;
-                                RefMCIndex = iMCPoint;
+                        if(distance < min_distance) {
+                            min_distance = distance;
+                            RefIndex[iPoint] = iMCPoint;
+                        }
+                    }
+                }
+            }
+
+            for(Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
+                Int_t ref_index = RefIndex[iPoint];
+
+                for(Int_t iPoint_check = 0; iPoint_check < NIntersectionPointsInModule; ++iPoint_check) {
+                    Int_t ref_index_check = RefIndex[iPoint_check];
+
+                    if(ref_index != -1 && ref_index == ref_index_check) {
+                        Double_t x = module->GetIntersectionPointX(iPoint);
+                        Double_t y = module->GetIntersectionPointY(iPoint);
+
+                        Double_t x_check = module->GetIntersectionPointX(iPoint_check);
+                        Double_t y_check = module->GetIntersectionPointY(iPoint_check);
+
+                        MCPoint = (FairMCPoint*) fBmnGemStripPointsArray->At(ref_index);
+                        Double_t xmc = -MCPoint->GetX();
+                        Double_t ymc = MCPoint->GetY();
+
+                        //Double_t distance = sqrt((x-xmc)*(x-xmc) + (y-ymc)*(y-ymc));
+                        //Double_t distance_check = sqrt((x_check-xmc)*(x_check-xmc) + (y_check-ymc)*(y_check-ymc));
+                        Double_t distance = (x-xmc)*(x-xmc) + (y-ymc)*(y-ymc); // fix it (put off sqrt func)
+                        Double_t distance_check = (x_check-xmc)*(x_check-xmc) + (y_check-ymc)*(y_check-ymc);
+
+                        Bool_t use_point_status = true; //use additional information from FindHitsAndFakes algorithm
+
+                        if(use_point_status) {
+                            Int_t point_status = PointTypeArray[iPoint];
+                            Int_t point_check_status = PointTypeArray[iPoint_check];
+
+                            if(distance > distance_check) {
+                                if(point_status == 1 && point_check_status == 0) {
+                                    RefIndex[iPoint_check] = -1;
+                                }
+                                else {
+                                    RefIndex[iPoint] = -1;
+                                }
+                            }
+                        }
+                        else {
+                            if(distance > distance_check) {
+                                RefIndex[iPoint] = -1;
                             }
                         }
                     }
                 }
-                if(RefMCIndex != -1)  {
-                    MCPointsStatArray[RefMCIndex] = 1;
-                    match_cnt++;
-                }
-                delete [] MCPointsStatArray;
+            }
 //------------------------------------------------------------------------------
 
-                //Add hit
+            for(Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
+                Double_t x = module->GetIntersectionPointX(iPoint);
+                Double_t y = module->GetIntersectionPointY(iPoint);
+
+                Double_t x_err = module->GetIntersectionPointXError(iPoint);
+                Double_t y_err = module->GetIntersectionPointYError(iPoint);
+                Double_t z_err = 0.0;
+
+                Int_t RefMCIndex = RefIndex[iPoint];
+
+                if(RefMCIndex != -1)  {
+                    matched_points_cnt++;
+                }
+
+                //Add hit ------------------------------------------------------
                 x *= -1; // invert to global X
 
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
@@ -170,11 +221,13 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 hit->SetSignalDiff(PointSignalDiffArray[iPoint]);
                 //--------------------------------------------------------------
             }
+
             delete [] PointTypeArray;
             delete [] PointSignalDiffArray;
+            delete [] RefIndex;
         }
     }
-    if(fVerbose) cout << "   N matches with MC-points = " << match_cnt << "\n";
+    if(fVerbose) cout << "   N matches with MC-points = " << matched_points_cnt << "\n";
 //------------------------------------------------------------------------------
 }
 

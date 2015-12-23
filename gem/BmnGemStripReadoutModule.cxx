@@ -5,6 +5,8 @@
 #include "TCanvas.h"
 #include "TGraph.h"
 #include "TStyle.h"
+#include "TLine.h"
+#include "TLegend.h"
 
 BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
     Verbosity = kTRUE;
@@ -23,12 +25,18 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
 
     ZReadoutModulePosition = 0.0;
 
-    AvalancheRadius = 0.2; //cm
+    AvalancheRadius = 0.15; //cm
     MCD = 0.0264; //cm
     Gain = 1.0; //gain level
     DriftGap = 0.3; //cm
     InductionGap = 0.15; //cm
-    SignalDistortion = 0.0;
+    ClusterDistortion = 0.0;
+    LandauMPV = 1.6; //keV (default)
+    BackgroundNoiseLevel = 0.0;
+    MinSignalCutThreshold = 0.0;
+    MaxSignalCutThreshold = 0.0;
+
+    NGoodHits = 0.0;
 
     CreateReadoutPlanes();
 }
@@ -53,12 +61,18 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule(Double_t xsize, Double_t ysiz
 
     ZReadoutModulePosition = zpos_module;
 
-    AvalancheRadius = 0.2; //cm
+    AvalancheRadius = 0.15; //cm
     MCD = 0.0264; //cm
     Gain = 1.0; //gain level
     DriftGap = 0.3; //cm
     InductionGap = 0.2; //cm
-    SignalDistortion = 0.0;
+    ClusterDistortion = 0.0;
+    LandauMPV = 1.6; //keV (default)
+    BackgroundNoiseLevel = 0.0;
+    MinSignalCutThreshold = 0.0;
+    MaxSignalCutThreshold = 0.0;
+
+    NGoodHits = 0.0;
 
     CreateReadoutPlanes();
 }
@@ -71,24 +85,16 @@ void BmnGemStripReadoutModule::CreateReadoutPlanes() {
     Int_t NLowerStrips = CountLowerStrips();
     Int_t NUpperStrips = CountUpperStrips();
 
-    Bool_t CalcTheoreticalAtFirst = kFALSE;
-    if( CalcTheoreticalAtFirst ) {
-       //Calculation NMaxValidTheoriticalIntersections
-       ReadoutLowerPlane.clear();
-       ReadoutUpperPlane.clear();
-       ReadoutLowerPlane.resize(NLowerStrips, 1);
-       ReadoutUpperPlane.resize(NUpperStrips, 1);
-       CalculateBorderIntersectionPoints();
-       NMaxValidTheoreticalIntersections = GetNIntersectionPoints();
-    }
-    else {
-        NMaxValidTheoreticalIntersections = 0;
-    }
-
     ReadoutLowerPlane.clear();
     ReadoutUpperPlane.clear();
     ReadoutLowerPlane.resize(NLowerStrips, 0.0);
     ReadoutUpperPlane.resize(NUpperStrips, 0.0);
+
+    if(BackgroundNoiseLevel > 0.0) {
+        AddBackgroundNoise();
+    }
+
+    NGoodHits = 0.0;
 
     ResetIntersectionPoints();
     ResetRealPoints();
@@ -124,7 +130,6 @@ void BmnGemStripReadoutModule::ResetRealPoints() {
     RealPointsLowerTotalSignal.clear();
     RealPointsUpperTotalSignal.clear();
 
-    //NDubbedPoints = 0;
 }
 
 void BmnGemStripReadoutModule::ResetStripHits() {
@@ -182,9 +187,49 @@ void BmnGemStripReadoutModule::SetAngleDeg(Double_t deg) {
     RebuildReadoutPlanes();
 }
 
-void BmnGemStripReadoutModule::SetDistortion(Double_t distortion) {
-    if( distortion >= 0.0 && distortion <= 1.0 ) SignalDistortion = distortion;
-    else SignalDistortion = 0.0;
+void BmnGemStripReadoutModule::SetClusterDistortion(Double_t cluster_distortion) {
+    if( cluster_distortion >= 0.0 && cluster_distortion <= 1.0 ) ClusterDistortion = cluster_distortion;
+    else ClusterDistortion = 0.0;
+}
+
+void BmnGemStripReadoutModule::SetLandauMPV(Double_t mpv) {
+    if( mpv > 0.0 ) LandauMPV = mpv;
+}
+
+void BmnGemStripReadoutModule::SetBackgroundNoiseLevel(Double_t background_noise_level) {
+    if( background_noise_level >= 0.0 && background_noise_level <= 1.0 ) BackgroundNoiseLevel = background_noise_level;
+    else BackgroundNoiseLevel = 0.0;
+}
+
+void BmnGemStripReadoutModule::SetMinSignalCutThreshold(Double_t min_cut_threshold) {
+    if( min_cut_threshold >= 0.0 ) MinSignalCutThreshold = min_cut_threshold;
+    else MinSignalCutThreshold = 0.0;
+ }
+
+void BmnGemStripReadoutModule::SetMaxSignalCutThreshold(Double_t max_cut_threshold) {
+    if( max_cut_threshold >= 0.0 ) MaxSignalCutThreshold = max_cut_threshold;
+    else MaxSignalCutThreshold = 0.0;
+ }
+
+void BmnGemStripReadoutModule::AddBackgroundNoise() {
+    if(BackgroundNoiseLevel > 0.0) {
+
+        Double_t sigma = LandauMPV*BackgroundNoiseLevel/3.333;
+        sigma *= Gain;
+
+        for(Int_t i = 0; i < ReadoutLowerPlane.size(); ++i) {
+            Double_t low_layer_noise_val = gRandom->Gaus(0, sigma);
+            if(low_layer_noise_val < 0.0) low_layer_noise_val *= -1;
+            if(low_layer_noise_val > LandauMPV*BackgroundNoiseLevel*Gain) low_layer_noise_val = LandauMPV*BackgroundNoiseLevel*Gain;
+            ReadoutLowerPlane.at(i) += low_layer_noise_val;
+        }
+        for(Int_t i = 0; i < ReadoutUpperPlane.size(); ++i) {
+            Double_t up_layer_noise_val = gRandom->Gaus(0, sigma);
+            if(up_layer_noise_val < 0.0) up_layer_noise_val *= -1;
+            if(up_layer_noise_val > LandauMPV*BackgroundNoiseLevel*Gain) up_layer_noise_val = LandauMPV*BackgroundNoiseLevel*Gain;
+            ReadoutUpperPlane.at(i) += up_layer_noise_val;
+        }
+    }
 }
 
 Double_t BmnGemStripReadoutModule::GetXStripsIntersectionSize() {
@@ -333,8 +378,6 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
 }
 
 Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z, Double_t signal) {
-//#define ALIGN_SUM_SIGNAL
-#define EQUAL_SIGNAL
 
     if( x >= XMinReadout && x <= XMaxReadout &&
         y >= YMinReadout && y <= YMaxReadout &&
@@ -364,10 +407,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
             }
             return false;
         }
-
-        Double_t remained_signal = signal - upper_cluster.TotalSignal/Gain;
-        //Double_t remained_signal = signal;
-        ClusterParameters lower_cluster = MakeCluster("lower", x, y, remained_signal, radius);
+        ClusterParameters lower_cluster = MakeCluster("lower", x, y, signal, radius);
         if(!lower_cluster.IsCorrect) {
             if(Verbosity)  {
                 cout << "WARNING: Incorrect lower cluster for the point (" << x << " : " << y << ")\n";
@@ -375,13 +415,41 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
             return false;
         }
 
-        //add the correct clusters on the readout layers -----------------------
+        //Align upper and lower cluster signals to each other ------------------
+        if(upper_cluster.TotalSignal != lower_cluster.TotalSignal) {
+            Double_t shrink_coeff = lower_cluster.TotalSignal/upper_cluster.TotalSignal;
+
+            if(upper_cluster.TotalSignal > lower_cluster.TotalSignal) {
+                for(Int_t istrip = 0; istrip < upper_cluster.Strips.size(); ++istrip) {
+                    upper_cluster.Signals.at(istrip) *= shrink_coeff;
+                }
+                upper_cluster.TotalSignal = lower_cluster.TotalSignal;
+            }
+            else {
+                for(Int_t istrip = 0; istrip < lower_cluster.Strips.size(); ++istrip) {
+                    lower_cluster.Signals.at(istrip) /= shrink_coeff;
+                }
+                lower_cluster.TotalSignal = upper_cluster.TotalSignal;
+            }
+        }
+        //----------------------------------------------------------------------
+
+        //Add the correct clusters on the readout layers -----------------------
+
+        Double_t max_signal_level = LandauMPV*MaxSignalCutThreshold*Gain; //max signal value of the strip
+
         //upper cluster
         for(Int_t ielement; ielement < upper_cluster.Strips.size(); ++ielement) {
             Int_t strip_num = upper_cluster.Strips.at(ielement);
             Double_t strip_signal = upper_cluster.Signals.at(ielement);
             if(strip_num >= 0 && strip_num < ReadoutUpperPlane.size()) {
                 ReadoutUpperPlane.at(strip_num) += strip_signal;
+                //cut the signal
+                if(MaxSignalCutThreshold > 0.0) {
+                    if(ReadoutUpperPlane.at(strip_num) > max_signal_level) {
+                        ReadoutUpperPlane.at(strip_num) = max_signal_level;
+                    }
+                }
             }
         }
         //lower cluster
@@ -390,92 +458,25 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
             Double_t strip_signal = lower_cluster.Signals.at(ielement);
             if(strip_num >= 0 && strip_num < ReadoutLowerPlane.size()) {
                 ReadoutLowerPlane.at(strip_num) += strip_signal;
+                //cut the signal
+                if(MaxSignalCutThreshold > 0.0) {
+                    if(ReadoutLowerPlane.at(strip_num) > max_signal_level) {
+                        ReadoutLowerPlane.at(strip_num) = max_signal_level;
+                    }
+                }
             }
         }
         //----------------------------------------------------------------------
 
-//Signal transformation
-
-        Double_t mean_pos_low_cluster = lower_cluster.MeanPosition;
-        Double_t mean_pos_up_cluster = upper_cluster.MeanPosition;
-        Double_t total_signal_low_cluster = lower_cluster.TotalSignal;
-        Double_t total_signal_up_cluster = upper_cluster.TotalSignal;
-        Double_t gained_signal = signal*Gain;
-
-#ifdef ALIGN_SUM_SIGNAL
-//Align sum of lower and upper cluster signal with signal*Gain
-        Double_t signal_sum = total_signal_low_cluster + total_signal_up_cluster;
-        Double_t signal_diff = gained_signal - signal_sum;
-        Double_t low_compensated_signal = signal_diff*(total_signal_low_cluster/signal_sum);
-        Double_t up_compensated_signal = signal_diff*(total_signal_up_cluster/signal_sum);
-        Double_t align_low_coef = low_compensated_signal/total_signal_low_cluster;
-        Double_t align_up_coef = up_compensated_signal/total_signal_up_cluster;
-
-        for(Int_t istrip = 0; istrip < lower_cluster.Strips.size(); ++istrip) {
-            Int_t strip_num = lower_cluster.Strips.at(istrip);
-            Double_t strip_signal = lower_cluster.Signals.at(istrip);
-            ReadoutLowerPlane.at(strip_num) -= strip_signal;
-            strip_signal += strip_signal*align_low_coef;
-            ReadoutLowerPlane.at(strip_num) += strip_signal;
-            lower_cluster.Signals.at(istrip) = strip_signal;
-            if(ReadoutLowerPlane.at(strip_num) < 0.0) ReadoutLowerPlane.at(strip_num) = 0.0;
-        }
-        total_signal_low_cluster += low_compensated_signal;
-        lower_cluster.TotalSignal = total_signal_low_cluster;
-
-        for(Int_t istrip = 0; istrip < upper_cluster.Strips.size(); ++istrip) {
-            Int_t strip_num = upper_cluster.Strips.at(istrip);
-            Double_t strip_signal = upper_cluster.Signals.at(istrip);
-            ReadoutUpperPlane.at(strip_num) -= strip_signal;
-            strip_signal += strip_signal*align_up_coef;
-            ReadoutUpperPlane.at(strip_num) += strip_signal;
-            upper_cluster.Signals.at(istrip) = strip_signal;
-            if(ReadoutUpperPlane.at(strip_num) < 0.0) ReadoutUpperPlane.at(strip_num) = 0.0;
-        }
-        total_signal_up_cluster += up_compensated_signal;
-        upper_cluster.TotalSignal = total_signal_up_cluster;
-//------------------------------------------------------------------------------
-#endif
-
-#ifdef EQUAL_SIGNAL
-//Equalize lower and upper signals
-        Double_t equal_low_coef = (gained_signal/2.0)/total_signal_low_cluster;
-        Double_t equal_up_coef = (gained_signal/2.0)/total_signal_up_cluster;
-
-        for(Int_t istrip = 0; istrip < lower_cluster.Strips.size(); ++istrip) {
-            Int_t strip_num = lower_cluster.Strips.at(istrip);
-            Double_t strip_signal = lower_cluster.Signals.at(istrip);
-            ReadoutLowerPlane.at(strip_num) -= strip_signal;
-            strip_signal *= equal_low_coef;
-            ReadoutLowerPlane.at(strip_num) += strip_signal;
-            lower_cluster.Signals.at(istrip) = strip_signal;
-            if(ReadoutLowerPlane.at(strip_num) < 0.0) ReadoutLowerPlane.at(strip_num) = 0.0;
-        }
-        total_signal_low_cluster *= equal_low_coef;
-        lower_cluster.TotalSignal = total_signal_low_cluster;
-
-        for(Int_t istrip = 0; istrip < upper_cluster.Strips.size(); ++istrip) {
-            Int_t strip_num = upper_cluster.Strips.at(istrip);
-            Double_t strip_signal = upper_cluster.Signals.at(istrip);
-            ReadoutUpperPlane.at(strip_num) -= strip_signal;
-            strip_signal *= equal_up_coef;
-            ReadoutUpperPlane.at(strip_num) += strip_signal;
-            upper_cluster.Signals.at(istrip) = strip_signal;
-            if(ReadoutUpperPlane.at(strip_num) < 0.0) ReadoutUpperPlane.at(strip_num) = 0.0;
-        }
-        total_signal_up_cluster *= equal_up_coef;
-        upper_cluster.TotalSignal = total_signal_up_cluster;
-//------------------------------------------------------------------------------
-#endif
 
         RealPointsX.push_back(x);
         RealPointsY.push_back(y);
 
-        RealPointsLowerStripPos.push_back(mean_pos_low_cluster);
-        RealPointsUpperStripPos.push_back(mean_pos_up_cluster);
+        RealPointsLowerStripPos.push_back(lower_cluster.MeanPosition);
+        RealPointsUpperStripPos.push_back(upper_cluster.MeanPosition);
 
-        RealPointsLowerTotalSignal.push_back(total_signal_low_cluster);
-        RealPointsUpperTotalSignal.push_back(total_signal_up_cluster);
+        RealPointsLowerTotalSignal.push_back(lower_cluster.TotalSignal);
+        RealPointsUpperTotalSignal.push_back(upper_cluster.TotalSignal);
 
         return true;
     }
@@ -503,7 +504,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t 
     Double_t SCluster = gausF.Integral(-4*Sigma, 4*Sigma); //square of the one side distribution (more exactly)
 
     TRandom rand(0);
-    Double_t var_level = SignalDistortion; //signal variation (0.1 is 10%)
+    Double_t var_level = ClusterDistortion; //signal variation (0.1 is 10%)
 
     Double_t CenterZonePos;
     Int_t NStripsInLayer = 0;
@@ -769,7 +770,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t 
 
 void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors) {
 
-    Double_t threshold = 0.0;
+    Double_t threshold = LandauMPV*MinSignalCutThreshold*Gain;
 
     vector<Int_t> clusterDigits;
     vector<Double_t> clusterValues;
@@ -1173,6 +1174,8 @@ Double_t BmnGemStripReadoutModule::FindYHitIntersectionPoint(Double_t LowerStrip
 }
 
 void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
+    //#define DRAW_STRIP_LAYERS_HISTOGRAMS
+
     ResetIntersectionPoints();
     ResetStripHits();
 
@@ -1212,200 +1215,122 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
             }
         }
     }
-}
 
-void BmnGemStripReadoutModule::CalculateMiddleIntersectionPoints() {
-    ResetIntersectionPoints();
-    for(UInt_t i = 0; i < ReadoutLowerPlane.size(); i++) {
-        if(ReadoutLowerPlane.at(i)) {
-            for(UInt_t j = 0; j < ReadoutUpperPlane.size(); j++) {
-                if(ReadoutUpperPlane.at(j)) {
-                    Double_t xcoord = FindXMiddleIntersectionPoint(i,j);
-                    Double_t ycoord = FindYMiddleIntersectionPoint(i,j);
+    //number of recognized clusters in the layers
+    Int_t N_low_hits = LowerStripHits.size();
+    Int_t N_up_hits = UpperStripHits.size();
+    if(N_low_hits > N_up_hits) NGoodHits = N_low_hits;
+    else NGoodHits = N_up_hits;
 
-                    if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) && !DeadZone.IsInside(xcoord, ycoord) )
-                    {
-                        IntersectionPointsX.push_back(xcoord);
-                        IntersectionPointsY.push_back(ycoord);
 
-                        IntersectionPointsLowerStripPos.push_back(i);
-                        IntersectionPointsUpperStripPos.push_back(j);
+    #ifdef DRAW_STRIP_LAYERS_HISTOGRAMS
+    //upper layer --------------------------------------------------------------
+        TString upper_layer_name = "upper_layer_";
+            upper_layer_name += "z"; upper_layer_name += GetZPositionReadout();
+            upper_layer_name += "_xmin"; upper_layer_name += GetXMinReadout();
+            upper_layer_name += "_xmax"; upper_layer_name += GetXMaxReadout();
+            upper_layer_name += "_ymin"; upper_layer_name += GetYMinReadout();
+            upper_layer_name += "_ymax"; upper_layer_name += GetYMaxReadout();
 
-                        IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
-                        IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
+        TCanvas upper_layer_canv("upper_layer_canv", "upper_layer_canv", 10, 10, 1200, 800);
+        upper_layer_canv.SetGrid();
 
-                        IntersectionPointsXErrors.push_back(0); //FIX IT
-                        IntersectionPointsYErrors.push_back(0); //FIX IT
-                    }
-                }
-            }
+        TH1F upper_layer_hist("upper_layer_hist", "upper_layer_hist", ReadoutUpperPlane.size()+1, 0.0, ReadoutUpperPlane.size()+1);
+        upper_layer_hist.SetMaximum(15.0*Gain);
+
+        for(int i = 0; i < ReadoutUpperPlane.size(); i++) {
+            upper_layer_hist.SetBinContent(i+1, ReadoutUpperPlane.at(i));
         }
-    }
-}
+        upper_layer_hist.SetFillColor(TColor::GetColor("#e3f3ff"));
+        upper_layer_hist.SetTitle(upper_layer_name);
+        upper_layer_hist.Draw();
 
-void BmnGemStripReadoutModule::CalculateLeftIntersectionPoints() {
-    ResetIntersectionPoints();
-    for(UInt_t i = 0; i < ReadoutLowerPlane.size(); i++) {
-        if(ReadoutLowerPlane.at(i)) {
-            for(UInt_t j = 0; j < ReadoutUpperPlane.size(); j++) {
-                if(ReadoutUpperPlane.at(j)) {
-                    Double_t xcoord;
-                    Double_t ycoord;
-                    if(AngleDeg <= 0 && AngleDeg >=-90.0) {
-                        xcoord = FindXLeftIntersectionPoint(i,j);
-                        ycoord = FindYLowIntersectionPoint(i,j);
-                    }
-                    if(AngleDeg > 0 && AngleDeg <= 90.0) {
-                        xcoord = FindXLeftIntersectionPoint(i,j);
-                        ycoord = FindYHighIntersectionPoint(i,j);
-                    }
+        TLegend upper_layer_leg(0.75, 0.7, 0.98, 0.95);
+        upper_layer_leg.AddEntry("", TString("nstrips = ")+=(ReadoutUpperPlane.size()) , "p");
+        upper_layer_leg.AddEntry("", TString("pitch = ")+=(GetPitch()) , "p");
+        upper_layer_leg.AddEntry("", TString("dangle = ")+=(GetAngleDeg()) , "p");
+        upper_layer_leg.AddEntry("", TString("LandauMPV = ")+=(GetLandauMPV()) , "p");
+        upper_layer_leg.AddEntry("", TString("noise   (%)   = ")+=(GetBackgroundNoiseLevel()) , "p");
+        upper_layer_leg.AddEntry("", TString("noise   (val) = ")+=(GetBackgroundNoiseLevel()*GetLandauMPV()*GetGain()) , "p");
+        upper_layer_leg.AddEntry("", TString("lthresh (%)   = ")+=(GetMinSignalCutThreshold()) , "p");
+        upper_layer_leg.AddEntry("", TString("lthresh (val) = ")+=(GetMinSignalCutThreshold()*GetLandauMPV()*GetGain()) , "p");
+        upper_layer_leg.AddEntry("", TString("uthresh (%)   = ")+=(GetMaxSignalCutThreshold()) , "p");
+        upper_layer_leg.AddEntry("", TString("uthresh (val) = ")+=(GetMaxSignalCutThreshold()*GetLandauMPV()*GetGain()) , "p");
+        upper_layer_leg.AddEntry("", TString("gain = ")+=(GetGain()) , "p");
+        upper_layer_leg.AddEntry("", TString("N recognized hits = ")+=(N_up_hits) , "p");
+        upper_layer_leg.Draw();
 
-                    if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) && !DeadZone.IsInside(xcoord, ycoord) )
-                    {
-                        IntersectionPointsX.push_back(xcoord);
-                        IntersectionPointsY.push_back(ycoord);
+        TLine upper_layer_noise_line(0, LandauMPV*BackgroundNoiseLevel*Gain, ReadoutUpperPlane.size(), LandauMPV*BackgroundNoiseLevel*Gain);
+        upper_layer_noise_line.SetLineColor(TColor::GetColor("#00ff00"));
+        upper_layer_noise_line.Draw();
 
-                        IntersectionPointsLowerStripPos.push_back(i);
-                        IntersectionPointsUpperStripPos.push_back(j);
+        TLine upper_layer_min_thresh_line(0, LandauMPV*MinSignalCutThreshold*Gain, ReadoutUpperPlane.size(), LandauMPV*MinSignalCutThreshold*Gain);
+        upper_layer_min_thresh_line.SetLineColor(TColor::GetColor("#ff0000"));
+        upper_layer_min_thresh_line.Draw();
 
-                        IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
-                        IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
+        TLine upper_layer_max_thresh_line(0, LandauMPV*MaxSignalCutThreshold*Gain, ReadoutUpperPlane.size(), LandauMPV*MaxSignalCutThreshold*Gain);
+        upper_layer_max_thresh_line.SetLineColor(TColor::GetColor("#ccaa00"));
+        upper_layer_max_thresh_line.Draw();
 
-                        IntersectionPointsXErrors.push_back(0); //FIX IT
-                        IntersectionPointsYErrors.push_back(0); //FIX IT
-                    }
-                }
-            }
+        TString file_upper_layer_name = "/home/diman/Software/pics_w/test/";
+            file_upper_layer_name += upper_layer_name;
+        upper_layer_canv.SaveAs(file_upper_layer_name+".root");
+        upper_layer_canv.SaveAs(file_upper_layer_name+".png");
+    //--------------------------------------------------------------------------
+
+    //lower layer --------------------------------------------------------------
+        TString lower_layer_name = "lower_layer_";
+            lower_layer_name += "z"; lower_layer_name += GetZPositionReadout();
+            lower_layer_name += "_xmin"; lower_layer_name += GetXMinReadout();
+            lower_layer_name += "_xmax"; lower_layer_name += GetXMaxReadout();
+            lower_layer_name += "_ymin"; lower_layer_name += GetYMinReadout();
+            lower_layer_name += "_ymax"; lower_layer_name += GetYMaxReadout();
+
+        TCanvas lower_layer_canv("lower_layer_canv", "lower_layer_canv", 10, 10, 1200, 800);
+        lower_layer_canv.SetGrid();
+        TH1F lower_layer_hist("lower_layer_hist", "lower_layer_hist", ReadoutLowerPlane.size()+1, 0.0, ReadoutLowerPlane.size()+1);
+        lower_layer_hist.SetMaximum(15.0*Gain);
+        for(int i = 0; i < ReadoutLowerPlane.size(); i++) {
+            lower_layer_hist.SetBinContent(i+1, ReadoutLowerPlane.at(i));
         }
-    }
-}
+        lower_layer_hist.SetFillColor(TColor::GetColor("#e3f3ff"));
+        lower_layer_hist.SetTitle(lower_layer_name);
+        lower_layer_hist.Draw();
 
-void BmnGemStripReadoutModule::CalculateRightIntersectionPoints() {
-    ResetIntersectionPoints();
-    for(UInt_t i = 0; i < ReadoutLowerPlane.size(); i++) {
-        if(ReadoutLowerPlane.at(i)) {
-            for(UInt_t j = 0; j < ReadoutUpperPlane.size(); j++) {
-                if(ReadoutUpperPlane.at(j)) {
-                    Double_t xcoord;
-                    Double_t ycoord;
-                    if(AngleDeg <= 0 && AngleDeg >=-90.0) {
-                        xcoord = FindXRightIntersectionPoint(i,j);
-                        ycoord = FindYHighIntersectionPoint(i,j);
-                    }
-                    if(AngleDeg > 0 && AngleDeg <= 90.0) {
-                        xcoord = FindXRightIntersectionPoint(i,j);
-                        ycoord = FindYLowIntersectionPoint(i,j);
-                    }
+        TLegend lower_layer_leg(0.75, 0.7, 0.98, 0.95);
+        lower_layer_leg.AddEntry("", TString("nstrips = ")+=(ReadoutLowerPlane.size()) , "p");
+        lower_layer_leg.AddEntry("", TString("pitch = ")+=(GetPitch()) , "p");
+        lower_layer_leg.AddEntry("", TString("dangle = ")+=(GetAngleDeg()) , "p");
+        lower_layer_leg.AddEntry("", TString("LandauMPV = ")+=(GetLandauMPV()) , "p");
+        lower_layer_leg.AddEntry("", TString("noise   (%)   = ")+=(GetBackgroundNoiseLevel()) , "p");
+        lower_layer_leg.AddEntry("", TString("noise   (val) = ")+=(GetBackgroundNoiseLevel()*GetLandauMPV()*GetGain()) , "p");
+        lower_layer_leg.AddEntry("", TString("lthresh (%)   = ")+=(GetMinSignalCutThreshold()) , "p");
+        lower_layer_leg.AddEntry("", TString("lthresh (val) = ")+=(GetMinSignalCutThreshold()*GetLandauMPV()*GetGain()) , "p");
+        lower_layer_leg.AddEntry("", TString("uthresh (%)   = ")+=(GetMaxSignalCutThreshold()) , "p");
+        lower_layer_leg.AddEntry("", TString("uthresh (val) = ")+=(GetMaxSignalCutThreshold()*GetLandauMPV()*GetGain()) , "p");
+        lower_layer_leg.AddEntry("", TString("gain = ")+=(GetGain()) , "p");
+        lower_layer_leg.AddEntry("", TString("N recognized hits = ")+=(N_low_hits) , "p");
+        lower_layer_leg.Draw();
 
-                    if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) && !DeadZone.IsInside(xcoord, ycoord) )
-                    {
-                        IntersectionPointsX.push_back(xcoord);
-                        IntersectionPointsY.push_back(ycoord);
+        TLine lower_layer_noise_line(0, LandauMPV*BackgroundNoiseLevel*Gain, ReadoutLowerPlane.size(), LandauMPV*BackgroundNoiseLevel*Gain);
+        lower_layer_noise_line.SetLineColor(TColor::GetColor("#00ff00"));
+        lower_layer_noise_line.Draw();
 
-                        IntersectionPointsLowerStripPos.push_back(i);
-                        IntersectionPointsUpperStripPos.push_back(j);
+        TLine lower_layer_min_thresh_line(0, LandauMPV*MinSignalCutThreshold*Gain, ReadoutLowerPlane.size(), LandauMPV*MinSignalCutThreshold*Gain);
+        lower_layer_min_thresh_line.SetLineColor(TColor::GetColor("#ff0000"));
+        lower_layer_min_thresh_line.Draw();
 
-                        IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
-                        IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
+        TLine lower_layer_max_thresh_line(0, LandauMPV*MaxSignalCutThreshold*Gain, ReadoutLowerPlane.size(), LandauMPV*MaxSignalCutThreshold*Gain);
+        lower_layer_max_thresh_line.SetLineColor(TColor::GetColor("#ccaa00"));
+        lower_layer_max_thresh_line.Draw();
 
-                        IntersectionPointsXErrors.push_back(0); //FIX IT
-                        IntersectionPointsYErrors.push_back(0); //FIX IT
-                    }
-                }
-            }
-        }
-    }
-}
+        TString file_lower_layer_name = "/home/diman/Software/pics_w/test/";
+            file_lower_layer_name += lower_layer_name;
+        lower_layer_canv.SaveAs(file_lower_layer_name+".root");
+        lower_layer_canv.SaveAs(file_lower_layer_name+".png");
 
-void BmnGemStripReadoutModule::CalculateBorderIntersectionPoints() {
-    ResetIntersectionPoints();
-    for(UInt_t i = 0; i < ReadoutLowerPlane.size(); i++) {
-        if(ReadoutLowerPlane.at(i)) {
-            for(UInt_t j = 0; j < ReadoutUpperPlane.size(); j++) {
-                if(ReadoutUpperPlane.at(j)) {
-                    Double_t xcoord_min;
-                    Double_t ycoord_min;
-
-                    Double_t xcoord_max;
-                    Double_t ycoord_max;
-
-                    if(AngleDeg <= 0 && AngleDeg >=-90.0) {
-                        xcoord_min = FindXLeftIntersectionPoint(i,j);
-                        ycoord_min = FindYLowIntersectionPoint(i,j);
-                        xcoord_max = FindXRightIntersectionPoint(i,j);
-                        ycoord_max = FindYHighIntersectionPoint(i,j);
-                    }
-                    if(AngleDeg > 0 && AngleDeg <= 90.0) {
-                        xcoord_min = FindXLeftIntersectionPoint(i,j);
-                        ycoord_min = FindYLowIntersectionPoint(i,j);
-                        xcoord_max = FindXRightIntersectionPoint(i,j);
-                        ycoord_max = FindYHighIntersectionPoint(i,j);
-                    }
-                    Bool_t InYMinBound = false;
-                    Bool_t InYMaxBound = false;
-                    if( (ycoord_min <= YMaxReadout) && (ycoord_min >= YMinReadout) && (ycoord_min < DeadZone.Ymax) && (ycoord_min > DeadZone.Ymin) ) InYMinBound = true;
-                    if( (ycoord_max <= YMaxReadout) && (ycoord_max >= YMinReadout) && (ycoord_max < DeadZone.Ymax) && (ycoord_max > DeadZone.Ymin) ) InYMaxBound = true;
-
-                    if( InYMinBound && InYMaxBound ) {
-                        Double_t xcoord_point = (xcoord_min+xcoord_max)/2;
-                        Double_t ycoord_point = (ycoord_min+ycoord_max)/2;
-
-                        if( ycoord_point >= YMinReadout && ycoord_point <= YMaxReadout ) {
-                            IntersectionPointsX.push_back(xcoord_point);
-                            IntersectionPointsY.push_back(ycoord_point);
-
-                            IntersectionPointsLowerStripPos.push_back(i);
-                            IntersectionPointsUpperStripPos.push_back(j);
-
-                            IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
-                            IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
-
-                            IntersectionPointsXErrors.push_back(0); //FIX IT
-                            IntersectionPointsYErrors.push_back(0); //FIX IT
-                        }
-                    }
-                    else {
-                        if( InYMinBound ) {
-                            Double_t xcoord_point = (xcoord_min+xcoord_max)/2;
-                            Double_t ycoord_point = (ycoord_min+ycoord_max)/2;
-
-                            if( ycoord_point >= YMinReadout && ycoord_point <= YMaxReadout ) {
-                                IntersectionPointsX.push_back((xcoord_min+xcoord_max)/2);
-                                IntersectionPointsY.push_back((ycoord_min+ycoord_max)/2);
-
-                                IntersectionPointsLowerStripPos.push_back(i);
-                                IntersectionPointsUpperStripPos.push_back(j);
-
-                                IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
-                                IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
-
-                                IntersectionPointsXErrors.push_back(0); //FIX IT
-                                IntersectionPointsYErrors.push_back(0); //FIX IT
-                            }
-                        }
-                        if( InYMaxBound ) {
-                            Double_t xcoord_point = (xcoord_min+xcoord_max)/2;
-                            Double_t ycoord_point = (ycoord_min+ycoord_max)/2;
-
-                            if( ycoord_point >= YMinReadout && ycoord_point <= YMaxReadout ) {
-                                IntersectionPointsX.push_back((xcoord_min+xcoord_max)/2);
-                                IntersectionPointsY.push_back((ycoord_min+ycoord_max)/2);
-
-                                IntersectionPointsLowerStripPos.push_back(i);
-                                IntersectionPointsUpperStripPos.push_back(j);
-
-                                IntersectionPointsLowerTotalSignal.push_back(ReadoutLowerPlane.at(i));
-                                IntersectionPointsUpperTotalSignal.push_back(ReadoutUpperPlane.at(j));
-
-                                IntersectionPointsXErrors.push_back(0); //FIX IT
-                                IntersectionPointsYErrors.push_back(0); //FIX IT
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    //--------------------------------------------------------------------------
+    #endif
 }
 
 ClassImp(BmnGemStripReadoutModule)

@@ -65,7 +65,14 @@ public:
     void SetMeanCollisionDistance(Double_t mcd) { MCD = mcd; }
     void SetDriftGap(Double_t drift_gap) { DriftGap = drift_gap; }
     void SetGain(Double_t gain) { Gain = gain; }
-    void SetDistortion(Double_t distortion);  //example: 0.1 is equal 10%
+    
+    void SetClusterDistortion(Double_t cluster_distortion);  //example: 0.1 is equal 10%
+    void SetLandauMPV(Double_t mpv); // setter: MPV (most probably value) of Landau distribution (distribution of energy losses) in keV
+    void SetBackgroundNoiseLevel(Double_t background_noise_level); //example: 0.1 is equal 10%
+    void SetMinSignalCutThreshold(Double_t min_cut_threshold); //example: 0.1 is equal 10%
+    void SetMaxSignalCutThreshold(Double_t max_cut_threshold); //example: 0.1 is equal 10%; value 0 - is not active
+
+    void AddBackgroundNoise(); //Add background noise to strip layers
 
 //Parameter getters
     Bool_t GetVerbosity() { return Verbosity; }
@@ -88,12 +95,15 @@ public:
     Double_t GetMeanCollisionDistance() { return MCD; }
     Double_t GetDriftGap() { return DriftGap; }
     Double_t GetGain() { return Gain; }
-    Double_t GetDistortion() { return SignalDistortion; }
+    Double_t GetClusterDistortion() { return ClusterDistortion; }
+    Double_t GetLandauMPV() { return LandauMPV; }
+    Double_t GetBackgroundNoiseLevel() { return BackgroundNoiseLevel; }
+    Double_t GetMinSignalCutThreshold() { return MinSignalCutThreshold; }
+    Double_t GetMaxSignalCutThreshold() { return MaxSignalCutThreshold; }
     Double_t GetXStripsIntersectionSize();
     Double_t GetYStripsIntersectionSize();
     Double_t GetXErrorIntersection();
     Double_t GetYErrorIntersection();
-    Int_t GetMaxValidTheoreticalIntersections() { return NMaxValidTheoreticalIntersections; }
 
 //Interface methods for adding points
     Bool_t AddRealPoint(Double_t x, Double_t y, Double_t z, Double_t signal); //old
@@ -104,10 +114,6 @@ public:
 
 //Interface methods for calculating intersections points
     void CalculateStripHitIntersectionPoints();
-    void CalculateMiddleIntersectionPoints();
-    void CalculateLeftIntersectionPoints();
-    void CalculateRightIntersectionPoints();
-    void CalculateBorderIntersectionPoints();
 
 //Value setters
     //Strips
@@ -153,6 +159,8 @@ public:
     Double_t GetUpperStripHitPos(Int_t num); //hit position at the upper layer
     Double_t GetLowerStripHitTotalSignal(Int_t num); //sum signal of lower hit
     Double_t GetUpperStripHitTotalSignal(Int_t num); //sum signal of upper hit
+
+    Int_t GetNGoodHits() { return NGoodHits; }
 
 
 //Inner methods
@@ -210,7 +218,14 @@ private:
     Double_t DriftGap;
     Double_t InductionGap;
     Double_t Gain;
-    Double_t SignalDistortion;
+
+    Double_t ClusterDistortion; //signal noise of maked clusters (%)
+    Double_t LandauMPV; //MPV (most probably value) of Landau distribution (distribution of energy losses) in keV
+    Double_t BackgroundNoiseLevel; // % of Landau MPV
+    Double_t MinSignalCutThreshold; // % of Landau MPV
+    Double_t MaxSignalCutThreshold; // % of Landau MPV
+
+    Int_t NGoodHits;
 
     vector<Double_t> ReadoutLowerPlane;
     vector<Double_t> ReadoutUpperPlane;
@@ -230,9 +245,6 @@ private:
     vector<Double_t> IntersectionPointsUpperTotalSignal;
     vector<Double_t> IntersectionPointsXErrors;
     vector<Double_t> IntersectionPointsYErrors;
-
-    //Int_t NDubbedPoints;
-    Int_t NMaxValidTheoreticalIntersections;
 
     //for hits
     vector<Double_t> LowerStripHits;

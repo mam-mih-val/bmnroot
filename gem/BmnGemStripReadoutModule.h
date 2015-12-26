@@ -65,7 +65,7 @@ public:
     void SetMeanCollisionDistance(Double_t mcd) { MCD = mcd; }
     void SetDriftGap(Double_t drift_gap) { DriftGap = drift_gap; }
     void SetGain(Double_t gain) { Gain = gain; }
-    
+
     void SetClusterDistortion(Double_t cluster_distortion);  //example: 0.1 is equal 10%
     void SetLandauMPV(Double_t mpv); // setter: MPV (most probably value) of Landau distribution (distribution of energy losses) in keV
     void SetBackgroundNoiseLevel(Double_t background_noise_level); //example: 0.1 is equal 10%
@@ -137,7 +137,6 @@ public:
     Double_t GetRealPointUpperStripPos(Int_t indx) { return RealPointsUpperStripPos.at(indx); } //upper strip position of i-added point
     Double_t GetRealPointsLowerTotalSignal(Int_t indx) { return RealPointsLowerTotalSignal.at(indx); } //sum signal of all lower strips actived by i-added point
     Double_t GetRealPointsUpperTotalSignal(Int_t indx) { return RealPointsUpperTotalSignal.at(indx); } //sum signal of all upper strips actived by i-added point
-    //Int_t GetNDubbedPoints() { return NDubbedPoints; }
 
     //Intersection points
     Int_t GetNIntersectionPoints() {return IntersectionPointsX.size();} //quantity of intersections
@@ -176,20 +175,8 @@ public: //private (public - for test)
     Double_t ConvertRealPointToUpperX(Double_t xcoord, Double_t ycoord);
     Double_t ConvertRealPointToUpperY(Double_t xcoord, Double_t ycoord);
 
-    Int_t ConvertRealPointToLowerStripNum(Double_t xcoord, Double_t ycoord);
-    Int_t ConvertRealPointToUpperStripNum(Double_t xcoord, Double_t ycoord);
-
     Double_t CalculateLowerStripZonePosition(Double_t xcoord, Double_t ycoord);
     Double_t CalculateUpperStripZonePosition(Double_t xcoord, Double_t ycoord);
-
-    Double_t FindXMiddleIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip=0);
-    Double_t FindYMiddleIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip);
-
-    Double_t FindXLeftIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip=0);
-    Double_t FindXRightIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip=0);
-
-    Double_t FindYLowIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip);
-    Double_t FindYHighIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip);
 
     Double_t FindXHitIntersectionPoint(Double_t LowerStripZonePos, Double_t UpperStripZonePos=0);
     Double_t FindYHitIntersectionPoint(Double_t LowerStripZonePos, Double_t UpperStripZonePos);
@@ -246,7 +233,7 @@ private:
     vector<Double_t> IntersectionPointsXErrors;
     vector<Double_t> IntersectionPointsYErrors;
 
-    //for hits
+    //for hits on the strip layers
     vector<Double_t> LowerStripHits;
     vector<Double_t> UpperStripHits;
     vector<Double_t> LowerStripHitsTotalSignal;

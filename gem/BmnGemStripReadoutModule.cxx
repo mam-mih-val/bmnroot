@@ -25,7 +25,7 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
 
     ZReadoutModulePosition = 0.0;
 
-    AvalancheRadius = 0.15; //cm
+    AvalancheRadius = 0.10; //cm
     MCD = 0.0264; //cm
     Gain = 1.0; //gain level
     DriftGap = 0.3; //cm
@@ -61,16 +61,16 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule(Double_t xsize, Double_t ysiz
 
     ZReadoutModulePosition = zpos_module;
 
-    AvalancheRadius = 0.15; //cm
+    AvalancheRadius = 0.10; //cm
     MCD = 0.0264; //cm
     Gain = 1.0; //gain level
     DriftGap = 0.3; //cm
     InductionGap = 0.2; //cm
     ClusterDistortion = 0.0;
     LandauMPV = 1.6; //keV (default)
-    BackgroundNoiseLevel = 0.0;
-    MinSignalCutThreshold = 0.0;
-    MaxSignalCutThreshold = 0.0;
+    BackgroundNoiseLevel = 0.03;
+    MinSignalCutThreshold = 0.05;
+    MaxSignalCutThreshold = 6.25;
 
     NGoodHits = 0.0;
 
@@ -129,7 +129,6 @@ void BmnGemStripReadoutModule::ResetRealPoints() {
 
     RealPointsLowerTotalSignal.clear();
     RealPointsUpperTotalSignal.clear();
-
 }
 
 void BmnGemStripReadoutModule::ResetStripHits() {
@@ -265,8 +264,8 @@ Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z
         y >= YMinReadout && y <= YMaxReadout &&
         !DeadZone.IsInside(x, y) ) {
 
-        Int_t numLowStrip = ConvertRealPointToLowerStripNum(x, y);
-        Int_t numUpStrip = ConvertRealPointToUpperStripNum(x, y);
+        Int_t numLowStrip = (Int_t)CalculateLowerStripZonePosition(x, y);
+        Int_t numUpStrip = (Int_t)CalculateUpperStripZonePosition(x, y);
 
         if(numLowStrip < ReadoutLowerPlane.size() && numUpStrip < ReadoutUpperPlane.size()) {
             ReadoutLowerPlane.at(numLowStrip)++;
@@ -1004,14 +1003,6 @@ Double_t BmnGemStripReadoutModule::ConvertRealPointToUpperY(Double_t xcoord, Dou
     return UpperY;
 }
 
-Int_t BmnGemStripReadoutModule::ConvertRealPointToLowerStripNum(Double_t xcoord, Double_t ycoord) {
-    return (int)((xcoord-XMinReadout)/Pitch);
-}
-
-Int_t BmnGemStripReadoutModule::ConvertRealPointToUpperStripNum(Double_t xcoord, Double_t ycoord) {
-    return (int)((ConvertRealPointToUpperX(xcoord, ycoord)-XMinReadout)/Pitch);
-}
-
 Double_t BmnGemStripReadoutModule::CalculateLowerStripZonePosition(Double_t xcoord, Double_t ycoord) {
     //This function returns real(double) value,
     //where integer part - number of zone (lower strip), fractional part - position in this zone (as ratio from begin)
@@ -1079,67 +1070,6 @@ Double_t BmnGemStripReadoutModule::GetValueOfUpperStrip(Int_t indx) {
         return ReadoutUpperPlane.at(indx);
     }
     else return -1;
-}
-
-Double_t BmnGemStripReadoutModule::FindXMiddleIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip) {
-    return (numLowerStrip*Pitch + Pitch/2) + XMinReadout;
-}
-
-Double_t BmnGemStripReadoutModule::FindYMiddleIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip) {
-    Double_t xcoord = FindXMiddleIntersectionPoint(numLowerStrip);
-    Double_t hypoten = Pitch/Sin(Abs(AngleRad));
-    Double_t ycoord;
-
-    if(AngleDeg <= 0 && AngleDeg >=-90.0) {
-        ycoord = Tan(AngleRad+PiOver2())*(xcoord-XMinReadout) +  (YMaxReadout - (numUpperStrip*hypoten + hypoten/2));
-    }
-    if (AngleDeg > 0 && AngleDeg <= 90.0) {
-        ycoord = Tan(AngleRad+PiOver2())*(xcoord-XMinReadout) + (YMinReadout + (numUpperStrip*hypoten + hypoten/2));
-    }
-
-    return ycoord;
-}
-
-Double_t BmnGemStripReadoutModule::FindXLeftIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip) {
-    return (numLowerStrip*Pitch) + XMinReadout;
-}
-
-Double_t BmnGemStripReadoutModule::FindXRightIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip) {
-    return (numLowerStrip*Pitch + Pitch) + XMinReadout;
-}
-
-Double_t BmnGemStripReadoutModule::FindYLowIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip) {
-    Double_t xcoord;
-    Double_t hypoten = Pitch/Sin(Abs(AngleRad));
-    Double_t ycoord;
-
-    if(AngleDeg <= 0 && AngleDeg >=-90.0) {
-        xcoord = FindXLeftIntersectionPoint(numLowerStrip);
-        ycoord = Tan(AngleRad+PiOver2())*(xcoord-XMinReadout) +  (YMaxReadout - (numUpperStrip*hypoten + hypoten));
-    }
-    if (AngleDeg > 0 && AngleDeg <= 90.0) {
-        xcoord = FindXRightIntersectionPoint(numLowerStrip);
-        ycoord = Tan(AngleRad+PiOver2())*(xcoord-XMinReadout) + (YMinReadout +  numUpperStrip*hypoten);
-    }
-
-    return ycoord;
-}
-
-Double_t BmnGemStripReadoutModule::FindYHighIntersectionPoint(Int_t numLowerStrip, Int_t numUpperStrip) {
-    Double_t xcoord;
-    Double_t hypoten = Pitch/Sin(Abs(AngleRad));
-    Double_t ycoord;
-
-    if(AngleDeg <= 0 && AngleDeg >=-90.0) {
-        xcoord = FindXRightIntersectionPoint(numLowerStrip);
-        ycoord = Tan(AngleRad+PiOver2())*(xcoord-XMinReadout) +  (YMaxReadout - numUpperStrip*hypoten);
-    }
-    if (AngleDeg > 0 && AngleDeg <= 90.0) {
-        xcoord = FindXLeftIntersectionPoint(numLowerStrip);
-        ycoord = Tan(AngleRad+PiOver2())*(xcoord-XMinReadout) + (YMinReadout + (numUpperStrip*hypoten + hypoten));
-    }
-
-    return ycoord;
 }
 
 Double_t BmnGemStripReadoutModule::FindXHitIntersectionPoint(Double_t LowerStripZonePos, Double_t UpperStripZonePos) {

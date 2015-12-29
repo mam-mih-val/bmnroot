@@ -4,6 +4,8 @@ BmnGemStripHitMaker::BmnGemStripHitMaker() {
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = "BmnGemStripDigit";
+    fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
+
     fOutputHitsBranchName = "BmnGemStripHit";
 
     fVerbose = 1;
@@ -15,15 +17,21 @@ BmnGemStripHitMaker::~BmnGemStripHitMaker() {
 
 InitStatus BmnGemStripHitMaker::Init() {
 
-    if(fVerbose) cout << " BmnGemStripHitMaker::Init()\n ";
+    if(fVerbose) cout << "\nBmnGemStripHitMaker::Init()\n ";
 
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnGemStripPointsArray = (TClonesArray*) ioman->GetObject(fInputPointsBranchName);
     fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
+    fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
+
+    if(fVerbose && fBmnGemStripDigitMatchesArray) cout << "  Strip matching information exists!\n";
+    else cout << "  Strip matching information doesn`t exists!\n";
 
     fBmnGemStripHitsArray = new TClonesArray(fOutputHitsBranchName);
     ioman->Register(fOutputHitsBranchName, "GEM", fBmnGemStripHitsArray, kTRUE);
+
+    if(fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n\n ";
 
     return kSUCCESS;
 }
@@ -33,11 +41,11 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     fBmnGemStripHitsArray->Clear();
 
     if (!fBmnGemStripPointsArray) {
-        Error("BmnGemStripHitMaker::Init()", " !!! Unknown branch name !!! ");
+        Error("BmnGemStripHitMaker::Exec()", " !!! Unknown branch name !!! ");
         return;
     }
     if (!fBmnGemStripDigitsArray) {
-        Error("BmnGemStripHitMaker::Init()", " !!! Unknown branch name !!! ");
+        Error("BmnGemStripHitMaker::Exec()", " !!! Unknown branch name !!! ");
         return;
     }
 
@@ -52,27 +60,43 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
     FairMCPoint* MCPoint;
     BmnGemStripDigit* digit;
+    BmnMatch *strip_match;
 
     BmnGemStripStationSet StationSet;
 
     BmnGemStripStation* station;
     BmnGemStripReadoutModule* module;
 
-//Loading digits
+//Loading digits ---------------------------------------------------------------
     Int_t AddedDigits = 0;
+    Int_t AddedStripDigitMatches = 0;
+
     for(UInt_t idigit = 0; idigit < fBmnGemStripDigitsArray->GetEntriesFast(); idigit++) {
         digit = (BmnGemStripDigit*)fBmnGemStripDigitsArray->At(idigit);
         station = StationSet.GetGemStation(digit->GetStation());
         module = station->GetReadoutModule(digit->GetModule());
 
         if(digit->GetStripLayer() == 0) {
-            if(module->SetValueOfLowerStrip(digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
+            if( module->SetValueOfLowerStrip(digit->GetStripNumber(), digit->GetStripSignal()) ) AddedDigits++;
         }
         if(digit->GetStripLayer() == 1) {
-            if(module->SetValueOfUpperStrip(digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
+            if( module->SetValueOfUpperStrip(digit->GetStripNumber(), digit->GetStripSignal()) ) AddedDigits++;
         }
-    }
-    if(fVerbose) cout << "   Processed strip digits  : " << AddedDigits << "\n";
+
+        if(fBmnGemStripDigitMatchesArray) {
+            strip_match = (BmnMatch*)fBmnGemStripDigitMatchesArray->At(idigit);
+
+            if(digit->GetStripLayer() == 0) {
+                if( module->SetMatchOfLowerStrip(digit->GetStripNumber(), *strip_match) ) AddedStripDigitMatches++;
+            }
+            if(digit->GetStripLayer() == 1) {
+                if( module->SetMatchOfUpperStrip(digit->GetStripNumber(), *strip_match) ) AddedStripDigitMatches++;
+            }
+        }
+   }
+    
+   if(fVerbose) cout << "   Processed strip digits  : " << AddedDigits << "\n";
+   if(fVerbose && fBmnGemStripDigitMatchesArray) cout << "   Added strip digit matches  : " << AddedStripDigitMatches << "\n";
 //------------------------------------------------------------------------------
 
 //Processing digits

@@ -193,10 +193,10 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-
     if (gemCF) {
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
         gemDigit->SetOnlyPrimary(isPrimary);
+		  gemDigit->SetStripMatching(kTRUE);
         fRun->AddTask(gemDigit);
         BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
         fRun->AddTask(gemHM);

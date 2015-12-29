@@ -1,6 +1,8 @@
 #ifndef BMNGEMSTRIPREADOUTMODULE_H
 #define	BMNGEMSTRIPREADOUTMODULE_H
 
+#include "BmnMatch.h"
+
 #include "Rtypes.h"
 #include "TMath.h"
 #include "TRandom.h"
@@ -100,17 +102,13 @@ public:
     Double_t GetBackgroundNoiseLevel() { return BackgroundNoiseLevel; }
     Double_t GetMinSignalCutThreshold() { return MinSignalCutThreshold; }
     Double_t GetMaxSignalCutThreshold() { return MaxSignalCutThreshold; }
-    Double_t GetXStripsIntersectionSize();
-    Double_t GetYStripsIntersectionSize();
-    Double_t GetXErrorIntersection();
-    Double_t GetYErrorIntersection();
 
 //Interface methods for adding points
-    Bool_t AddRealPoint(Double_t x, Double_t y, Double_t z, Double_t signal); //old
+    Bool_t AddRealPoint(Double_t x, Double_t y, Double_t z, Double_t signal, Int_t refID); //old
     Bool_t AddRealPointFull(Double_t x, Double_t y, Double_t z,
-                            Double_t px, Double_t py, Double_t pz, Double_t signal);
+                            Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID);
 
-    Bool_t AddRealPointFullOne(Double_t x, Double_t y, Double_t z, Double_t signal);
+    Bool_t AddRealPointFullOne(Double_t x, Double_t y, Double_t z, Double_t signal, Int_t refID);
 
 //Interface methods for calculating intersections points
     void CalculateStripHitIntersectionPoints();
@@ -120,12 +118,18 @@ public:
     Bool_t SetValueOfLowerStrip(Int_t indx, Double_t val);
     Bool_t SetValueOfUpperStrip(Int_t indx, Double_t val);
 
+    Bool_t SetMatchOfLowerStrip(Int_t indx, BmnMatch strip_match);
+    Bool_t SetMatchOfUpperStrip(Int_t indx, BmnMatch strip_match);
+
 //Value getters
     //Strips
     Int_t CountLowerStrips(); //strip quantity in the lower layer
     Int_t CountUpperStrips(); //strip quantity in the upper layer
     Double_t GetValueOfLowerStrip(Int_t indx); //signal value of i-strips in lower layer
     Double_t GetValueOfUpperStrip(Int_t indx); //signal value of i-strips in upper layer
+
+    BmnMatch GetMatchOfLowerStrip(Int_t indx); //match of i-strips in lower layer
+    BmnMatch GetMatchOfUpperStrip(Int_t indx); //match of i-strips in upper layer
 
     //Added (real) points
     Int_t GetNRealPoints() {return RealPointsX.size();} //quantity of added points
@@ -216,6 +220,9 @@ private:
 
     vector<Double_t> ReadoutLowerPlane;
     vector<Double_t> ReadoutUpperPlane;
+
+    vector<BmnMatch> LowerStripMatches;  //ID-point matches for all lower strips
+    vector<BmnMatch> UpperStripMatches; // ID-point matches for all upper strips
 
     vector<Double_t> RealPointsX;
     vector<Double_t> RealPointsY;

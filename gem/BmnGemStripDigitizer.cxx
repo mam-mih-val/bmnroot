@@ -4,10 +4,11 @@
 int entrys = 0;
 
 BmnGemStripDigitizer::BmnGemStripDigitizer()
-: fOnlyPrimary(kFALSE) {
+: fOnlyPrimary(kFALSE), fStripMatching(kTRUE) {
 
     fInputBranchName = "StsPoint";
     fOutputDigitsBranchName = "BmnGemStripDigit";
+    fOutputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
     fVerbose = 1;
 
@@ -20,8 +21,12 @@ BmnGemStripDigitizer::~BmnGemStripDigitizer() {
 
 InitStatus BmnGemStripDigitizer::Init() {
 
-    if(fVerbose) cout << " BmnGemStripDigitizer::Init()\n ";
-    if(fVerbose && fOnlyPrimary) cout << " Only primary particles are processed!!! " << endl;
+    if(fVerbose) cout << "\nBmnGemStripDigitizer::Init()\n ";
+
+    if(fVerbose && fOnlyPrimary) cout << "  Only primary particles are processed!!! " << endl;
+
+    if(fVerbose && fStripMatching) cout << "  Strip Matching is activated!!! " << endl;
+    else cout << "  Strip Matching is deactivated!!! " << endl;
 
     FairRootManager* ioman = FairRootManager::Instance();
 
@@ -31,6 +36,12 @@ InitStatus BmnGemStripDigitizer::Init() {
     fBmnGemStripDigitsArray = new TClonesArray(fOutputDigitsBranchName);
     ioman->Register(fOutputDigitsBranchName, "GEM", fBmnGemStripDigitsArray, kTRUE);
 
+    if(fStripMatching) {
+        fBmnGemStripDigitMatchesArray = new TClonesArray("BmnMatch");
+        ioman->Register(fOutputDigitMatchesBranchName, "GEM", fBmnGemStripDigitMatchesArray, kTRUE);
+    }
+
+    if(fVerbose) cout << "BmnGemStripDigitizer::Init() finished\n\n";
     return kSUCCESS;
 }
 
@@ -38,8 +49,12 @@ void BmnGemStripDigitizer::Exec(Option_t* opt) {
 
     fBmnGemStripDigitsArray->Clear();
 
+    if(fStripMatching) {
+        fBmnGemStripDigitMatchesArray->Clear();
+    }
+
     if (!fBmnGemStripPointsArray) {
-        Error("BmnGemStripDigitizer::Init()", " !!! Unknown branch name !!! ");
+        Error("BmnGemStripDigitizer::Exec()", " !!! Unknown branch name !!! ");
         return;
     }
 
@@ -77,6 +92,7 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
         Double_t y = GemStripPoint->GetY();
         Double_t z = GemStripPoint->GetZ();
         Double_t dEloss = GemStripPoint->GetEnergyLoss()*1e6; // in keV
+        Int_t refId = ipoint;
 
         //smearing
         if(fSmearingSigma > 0.0) {
@@ -84,7 +100,7 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
             y = gRandom->Gaus(y, fSmearingSigma);
         }
 
-        StationSet.AddPointToDetector(x, y, z, dEloss);
+        StationSet.AddPointToDetector(x, y, z, dEloss, refId);
     }
 
     Int_t NAddedPoints = StationSet.CountNAddedToDetectorPoints();
@@ -100,10 +116,20 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
             for(Int_t iLowerStrip = 0; iLowerStrip < module->CountLowerStrips(); ++iLowerStrip) {
                 new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
                     BmnGemStripDigit(iStation, iModule, 0, iLowerStrip, module->GetValueOfLowerStrip(iLowerStrip));
+
+                if(fStripMatching) {
+                    new ((*fBmnGemStripDigitMatchesArray)[fBmnGemStripDigitMatchesArray->GetEntriesFast()])
+                        BmnMatch(module->GetMatchOfLowerStrip(iLowerStrip));
+                }
             }
             for(Int_t iUpperStrip = 0; iUpperStrip < module->CountUpperStrips(); ++iUpperStrip) {
                 new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
                     BmnGemStripDigit(iStation, iModule, 1, iUpperStrip, module->GetValueOfUpperStrip(iUpperStrip));
+
+                if(fStripMatching) {
+                    new ((*fBmnGemStripDigitMatchesArray)[fBmnGemStripDigitMatchesArray->GetEntriesFast()])
+                        BmnMatch(module->GetMatchOfUpperStrip(iUpperStrip));
+                }
             }
         }
     }

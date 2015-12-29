@@ -47,12 +47,12 @@ Int_t BmnGemStripStationSet::GetPointStationOwnership(Double_t zcoord) {
     return -1;
 }
 
-Bool_t BmnGemStripStationSet::AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss) {
+Bool_t BmnGemStripStationSet::AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss, Int_t refID) {
 
     Int_t station = GetPointStationOwnership(zcoord);
 
     if(station != -1) {
-        if( GemStations[station]->AddPointToStation(xcoord, ycoord, zcoord, dEloss) != -1 ) return true;
+        if( GemStations[station]->AddPointToStation(xcoord, ycoord, zcoord, dEloss, refID) != -1 ) return true;
         else return false;
     }
 

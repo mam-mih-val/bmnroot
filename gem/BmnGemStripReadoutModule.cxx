@@ -29,12 +29,12 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
     MCD = 0.0264; //cm
     Gain = 1.0; //gain level
     DriftGap = 0.3; //cm
-    InductionGap = 0.15; //cm
+    InductionGap = 0.2; //cm
     ClusterDistortion = 0.0;
     LandauMPV = 1.6; //keV (default)
-    BackgroundNoiseLevel = 0.0;
-    MinSignalCutThreshold = 0.0;
-    MaxSignalCutThreshold = 0.0;
+    BackgroundNoiseLevel = 0.03;
+    MinSignalCutThreshold = 0.05;
+    MaxSignalCutThreshold = 6.25;
 
     NGoodHits = 0.0;
 
@@ -89,6 +89,12 @@ void BmnGemStripReadoutModule::CreateReadoutPlanes() {
     ReadoutUpperPlane.clear();
     ReadoutLowerPlane.resize(NLowerStrips, 0.0);
     ReadoutUpperPlane.resize(NUpperStrips, 0.0);
+
+    //strip match
+    LowerStripMatches.clear();
+    UpperStripMatches.clear();
+    LowerStripMatches.resize(NLowerStrips, BmnMatch());
+    UpperStripMatches.resize(NUpperStrips, BmnMatch());
 
     if(BackgroundNoiseLevel > 0.0) {
         AddBackgroundNoise();
@@ -231,35 +237,7 @@ void BmnGemStripReadoutModule::AddBackgroundNoise() {
     }
 }
 
-Double_t BmnGemStripReadoutModule::GetXStripsIntersectionSize() {
-    return LowerStripWidth;
-}
-
-Double_t BmnGemStripReadoutModule::GetYStripsIntersectionSize() {
-
-    Double_t rw = LowerStripWidth*Tan(PiOver2()-Abs(AngleRad));
-    Double_t lw = (Sin(Abs(AngleRad)));
-    if(lw == 0) lw = 1E-10;
-    lw = UpperStripWidth/lw;
-    return rw + lw;
-
-}
-
-Double_t BmnGemStripReadoutModule::GetXErrorIntersection() {
-    return LowerStripWidth/2;
-}
-
-Double_t BmnGemStripReadoutModule::GetYErrorIntersection() {
-/*  //if X coord had been concrete value Y coord would has been:
-    Double_t lw = (Sin(Abs(AngleRad)));
-    if(lw == 0) lw = 1E-10;
-    return (UpperStripWidth/lw)/2;
- */
-   //As X coord has value with error thus Y coord is:
-   return GetYStripsIntersectionSize()/2;
-}
-
-Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z, Double_t signal) {
+Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z, Double_t signal, Int_t refID) {
     if( x >= XMinReadout && x <= XMaxReadout &&
         y >= YMinReadout && y <= YMaxReadout &&
         !DeadZone.IsInside(x, y) ) {
@@ -290,7 +268,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z
 }
 
 Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
-                                                  Double_t px, Double_t py, Double_t pz, Double_t signal) {
+                                                  Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
     if( x >= XMinReadout && x <= XMaxReadout &&
         y >= YMinReadout && y <= YMaxReadout &&
         !DeadZone.IsInside(x, y) ) {
@@ -376,7 +354,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
     return false;
 }
 
-Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z, Double_t signal) {
+Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z, Double_t signal, Int_t refID) {
 
     if( x >= XMinReadout && x <= XMaxReadout &&
         y >= YMinReadout && y <= YMaxReadout &&
@@ -429,6 +407,26 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
                     lower_cluster.Signals.at(istrip) /= shrink_coeff;
                 }
                 lower_cluster.TotalSignal = upper_cluster.TotalSignal;
+            }
+        }
+        //----------------------------------------------------------------------
+
+        //Fill strip matches ---------------------------------------------------
+
+        //upper layer
+        for(Int_t ielement; ielement < upper_cluster.Strips.size(); ++ielement) {
+            Int_t strip_num = upper_cluster.Strips.at(ielement);
+            Double_t strip_signal = upper_cluster.Signals.at(ielement);
+            if(strip_num >= 0 && strip_num < ReadoutUpperPlane.size()) {
+                UpperStripMatches.at(strip_num).AddLink(strip_signal/upper_cluster.TotalSignal, refID);
+            }
+        }
+        //lower layer
+        for(Int_t ielement; ielement < lower_cluster.Strips.size(); ++ielement) {
+            Int_t strip_num = lower_cluster.Strips.at(ielement);
+            Double_t strip_signal = lower_cluster.Signals.at(ielement);
+            if(strip_num >= 0 && strip_num < ReadoutLowerPlane.size()) {
+                LowerStripMatches.at(strip_num).AddLink(strip_signal/lower_cluster.TotalSignal, refID);
             }
         }
         //----------------------------------------------------------------------
@@ -716,7 +714,6 @@ ClusterParameters BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t 
         Double_t value = Energy;
         hist.SetBinContent(hist_index+NOutRightBins, value);
     }
-
 
     TF1* gausFitFunction = 0;
         TString fit_params = "WQ0";
@@ -1031,6 +1028,22 @@ Bool_t BmnGemStripReadoutModule::SetValueOfUpperStrip(Int_t indx, Double_t val) 
     else return false;
 }
 
+Bool_t BmnGemStripReadoutModule::SetMatchOfLowerStrip(Int_t indx, BmnMatch strip_match) {
+    if(indx >= 0 && indx < LowerStripMatches.size()) {
+        LowerStripMatches.at(indx) = strip_match;
+        return true;
+    }
+    else return false;
+}
+
+Bool_t BmnGemStripReadoutModule::SetMatchOfUpperStrip(Int_t indx, BmnMatch strip_match) {
+    if(indx >= 0 && indx < UpperStripMatches.size()) {
+        UpperStripMatches.at(indx) = strip_match;
+        return true;
+    }
+    else return false;
+}
+
 Int_t BmnGemStripReadoutModule::CountLowerStrips(){
     Double_t ratio = (XMaxReadout-XMinReadout)/Pitch;
     if((Abs(ratio) - Abs((int)ratio)) < 1E-10) {
@@ -1070,6 +1083,20 @@ Double_t BmnGemStripReadoutModule::GetValueOfUpperStrip(Int_t indx) {
         return ReadoutUpperPlane.at(indx);
     }
     else return -1;
+}
+
+BmnMatch BmnGemStripReadoutModule::GetMatchOfLowerStrip(Int_t indx) {
+    if(indx >= 0 && indx < LowerStripMatches.size()) {
+        return LowerStripMatches.at(indx);
+    }
+    else return BmnMatch(); //return an empty match
+}
+
+BmnMatch BmnGemStripReadoutModule::GetMatchOfUpperStrip(Int_t indx) {
+    if(indx >= 0 && indx < UpperStripMatches.size()) {
+        return UpperStripMatches.at(indx);
+    }
+    else return BmnMatch(); //return an empty match
 }
 
 Double_t BmnGemStripReadoutModule::FindXHitIntersectionPoint(Double_t LowerStripZonePos, Double_t UpperStripZonePos) {

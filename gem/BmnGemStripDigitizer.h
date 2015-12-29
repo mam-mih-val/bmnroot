@@ -37,10 +37,15 @@ public:
         fOnlyPrimary = opt;
     }
 
+    void SetStripMatching(Bool_t opt = kTRUE) {
+        fStripMatching = opt;
+    }
+
 private:
 
     TString fInputBranchName;
     TString fOutputDigitsBranchName;
+    TString fOutputDigitMatchesBranchName;
 
     /** Input array of Gem Points **/
     TClonesArray* fBmnGemStripPointsArray;
@@ -51,7 +56,11 @@ private:
     /** Output array of Gem Digits **/
     TClonesArray* fBmnGemStripDigitsArray;
 
+    /** Output array of GEM Digit Matches **/
+    TClonesArray* fBmnGemStripDigitMatchesArray;
+
     Bool_t fOnlyPrimary;
+    Bool_t fStripMatching;
 
     Double_t fSmearingSigma; //cm
 

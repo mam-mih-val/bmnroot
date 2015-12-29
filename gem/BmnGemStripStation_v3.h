@@ -76,7 +76,7 @@ public:
     virtual ~BmnGemStripStation();
 
     Int_t GetPointModuleOwhership(Double_t xcoord, Double_t ycoord);
-    Int_t AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss);
+    Int_t AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss, Int_t refID);
 
     Int_t CountNAddedToStationPoints();
 

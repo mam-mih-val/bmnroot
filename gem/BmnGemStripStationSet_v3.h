@@ -14,7 +14,7 @@ private:
     Int_t NStations;
 
     Double_t *ZStantionPositions;
-    
+
     Double_t BeamPipeMinRadius; // radius of the hole in the first GEM-station
     Double_t BeamPipeMaxRadius; // radius of the hole in the last GEM-station
     Double_t *BeamPipeRadiuses;
@@ -29,7 +29,7 @@ public:
 
     Int_t GetPointStationOwnership(Double_t zcoord);
 
-    Bool_t AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss);
+    Bool_t AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss, Int_t refID);
 
     Int_t CountNAddedToDetectorPoints();
 

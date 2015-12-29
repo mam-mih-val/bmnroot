@@ -42,11 +42,13 @@ private:
 
     TString fInputPointsBranchName;
     TString fInputDigitsBranchName;
+    TString fInputDigitMatchesBranchName;
     TString fOutputHitsBranchName;
 
     /** Input array of Gem Points **/
     TClonesArray* fBmnGemStripPointsArray;
     TClonesArray* fBmnGemStripDigitsArray;
+    TClonesArray* fBmnGemStripDigitMatchesArray;
 
     /** Output array of Gem Hits **/
     TClonesArray* fBmnGemStripHitsArray;

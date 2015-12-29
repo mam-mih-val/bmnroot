@@ -496,12 +496,12 @@ Int_t BmnGemStripStation::GetPointModuleOwhership(Double_t xcoord, Double_t ycoo
     return -1;
 }
 
-Int_t BmnGemStripStation::AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss) {
+Int_t BmnGemStripStation::AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss, Int_t refID) {
 
     Int_t module = GetPointModuleOwhership(xcoord, ycoord);
 
     if(module >= 0) {
-        if(ReadoutModules[module]->AddRealPointFullOne(xcoord, ycoord, zcoord, dEloss)) {
+        if(ReadoutModules[module]->AddRealPointFullOne(xcoord, ycoord, zcoord, dEloss, refID)) {
             return module;
         }
         else {

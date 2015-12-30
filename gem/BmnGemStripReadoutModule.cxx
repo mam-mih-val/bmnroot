@@ -124,6 +124,8 @@ void BmnGemStripReadoutModule::ResetIntersectionPoints() {
 
     IntersectionPointsXErrors.clear();
     IntersectionPointsYErrors.clear();
+
+    IntersectionPointMatches.clear();
 }
 
 void BmnGemStripReadoutModule::ResetRealPoints() {
@@ -377,14 +379,14 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
             }
         }
 
-        ClusterParameters upper_cluster = MakeCluster("upper", x, y, signal, radius);
+        StripCluster upper_cluster = MakeCluster("upper", x, y, signal, radius);
         if(!upper_cluster.IsCorrect) {
             if(Verbosity)  {
                 cout << "WARNING: Incorrect upper cluster for the point (" << x << " : " << y << ")\n";
             }
             return false;
         }
-        ClusterParameters lower_cluster = MakeCluster("lower", x, y, signal, radius);
+        StripCluster lower_cluster = MakeCluster("lower", x, y, signal, radius);
         if(!lower_cluster.IsCorrect) {
             if(Verbosity)  {
                 cout << "WARNING: Incorrect lower cluster for the point (" << x << " : " << y << ")\n";
@@ -483,10 +485,10 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
     }
 }
 
-ClusterParameters BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t xcoord, Double_t ycoord, Double_t signal, Double_t radius) {
+StripCluster BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t xcoord, Double_t ycoord, Double_t signal, Double_t radius) {
     //#define DRAW_REAL_CLUSTER_HISTOGRAMS
 
-    ClusterParameters cluster(0.0, 0.0, 0.0);
+    StripCluster cluster;
 
     if(radius <= 0.0) return cluster;
 
@@ -563,8 +565,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t 
         if(Energy < 0.0) Energy = 0.0;
 
         if(NumCurrentZone >=0 && NumCurrentZone < NStripsInLayer && Energy > 0.0) {
-            cluster.Strips.push_back(NumCurrentZone);
-            cluster.Signals.push_back(Energy);
+            cluster.AddStrip(NumCurrentZone, Energy);
             total_signal += Energy;
         }
 
@@ -585,8 +586,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t 
         if(Energy < 0.0) Energy = 0.0;
 
         if(NumCurrentZone >=0 && NumCurrentZone < NStripsInLayer && Energy > 0.0) {
-            cluster.Strips.push_back(NumCurrentZone);
-            cluster.Signals.push_back(Energy);
+            cluster.AddStrip(NumCurrentZone, Energy);
             total_signal += Energy;
         }
 
@@ -606,8 +606,7 @@ ClusterParameters BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t 
             if(Energy < 0.0) Energy = 0.0;
 
             if(NumCurrentZone >=0 && NumCurrentZone < NStripsInLayer && Energy > 0.0) {
-                cluster.Strips.push_back(NumCurrentZone);
-                cluster.Signals.push_back(Energy);
+                cluster.AddStrip(NumCurrentZone, Energy);
                 total_signal += Energy;
             }
 
@@ -626,15 +625,14 @@ ClusterParameters BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t 
         if(Energy < 0.0) Energy = 0.0;
 
         if(NumCurrentZone >=0 && NumCurrentZone < NStripsInLayer && Energy > 0.0) {
-            cluster.Strips.push_back(NumCurrentZone);
-            cluster.Signals.push_back(Energy);
+            cluster.AddStrip(NumCurrentZone, Energy);
             total_signal += Energy;
         }
 
         dist += h;
     }
 
-    if (cluster.Strips.size() <= 0) {
+    if (cluster.GetClusterSize() <= 0) {
         return cluster;
     }
 
@@ -651,13 +649,13 @@ ClusterParameters BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t 
     }
 
     Int_t begin_strip_num = cluster.Strips.at(0);
-    Int_t last_strip_num = cluster.Strips.at(cluster.Strips.size()-1);
+    Int_t last_strip_num = cluster.Strips.at(cluster.GetClusterSize()-1);
     Int_t nstrips = last_strip_num - begin_strip_num + 1;
 
     TH1F hist("hist_for_fit", "hist_for_fit", nstrips+NOutLeftBins+NOutRightBins, begin_strip_num-NOutLeftBins, last_strip_num+1+NOutRightBins);
     Int_t hist_index = 0;
 
-    for(Int_t i = 0; i < cluster.Strips.size(); ++i) {
+    for(Int_t i = 0; i < cluster.GetClusterSize(); ++i) {
         Double_t value = cluster.Signals.at(i);
         hist.SetBinContent(hist_index+1+NOutLeftBins, value);
         hist_index++;
@@ -768,8 +766,7 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
 
     Double_t threshold = LandauMPV*MinSignalCutThreshold*Gain;
 
-    vector<Int_t> clusterDigits;
-    vector<Double_t> clusterValues;
+    StripCluster cluster;
 
     Bool_t ascent = false;
     Bool_t descent = false;
@@ -784,18 +781,18 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
                 descent = false;
                 ascent = false;
                 //make strip hit
-                MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsTotalSignal, StripHitsErrors, is);
+                MakeStripHit(cluster, Strips, StripHits, StripHitsTotalSignal, StripHitsErrors, is);
             }
             continue;
         }
 
-        if( clusterDigits.size() > 0 ) {
-            if( Strips.at(is) >= (clusterValues.at(clusterValues.size()-1)) ) {
+        if( cluster.GetClusterSize() > 0 ) {
+            if( Strips.at(is) >= (cluster.Signals.at(cluster.GetClusterSize()-1)) ) {
                 if(descent) {
                     ascent = false;
                     descent = false;
                     //make strip hit
-                    MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsTotalSignal, StripHitsErrors, is);
+                    MakeStripHit(cluster, Strips, StripHits, StripHitsTotalSignal, StripHitsErrors, is);
                     //continue;
                 }
                 ascent = true;
@@ -811,18 +808,17 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
             descent = false;
         }
 
-        clusterDigits.push_back(is);
-        clusterValues.push_back(Strips.at(is));
+        cluster.AddStrip(is, Strips.at(is));
     }
 
-    if(clusterDigits.size() != 0) {
+    if(cluster.GetClusterSize() != 0) {
         //make strip hit
         Int_t lastnum = Strips.size()-1;
-        MakeStripHit(clusterDigits, clusterValues, Strips, StripHits, StripHitsTotalSignal, StripHitsErrors, lastnum);
+        MakeStripHit(cluster, Strips, StripHits, StripHitsTotalSignal, StripHitsErrors, lastnum);
     }
 }
 
-void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector<Double_t> &clusterValues, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors, Int_t &curcnt) {
+void BmnGemStripReadoutModule::MakeStripHit(StripCluster &cluster, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors, Int_t &curcnt) {
     //#define DRAW_FOUND_CLUSTER_HISTOGRAMS
 
     Double_t total_signal = 0.0;
@@ -830,8 +826,9 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
     //find max strip
     Double_t maxval = 0.0;
     Int_t maxdig = 0;
-    for(Int_t i = 0; i < clusterDigits.size(); i++) {
-        Double_t signal = clusterValues.at(i);
+
+    for(Int_t i = 0; i < cluster.GetClusterSize(); i++) {
+        Double_t signal = cluster.Signals.at(i);
         if(signal > maxval) {
             maxval = signal;
             maxdig = i;
@@ -839,10 +836,9 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
         total_signal += signal;
     }
 
-    //subtraction from the last bin if the next bin is not zero
-    Int_t nextStripNum = clusterDigits.at(clusterDigits.size()-1)+1;
+    Int_t nextStripNum = cluster.Strips.at(cluster.GetClusterSize()-1)+1;
     if(nextStripNum < Strips.size()) {
-        if(Strips.at(nextStripNum) > 0.0) {
+        //if(Strips.at(nextStripNum) > 0.0) {
             /*Double_t diff = 0.0;
             Int_t numObr = 2*maxdig - (clusterValues.size()-1);
             if( numObr >= 0 ) {
@@ -858,7 +854,7 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
             clusterValues.at(clusterValues.size()-1) -= last_value/2.0;
             Strips.at(clusterDigits.at(clusterDigits.size()-1)) = last_value/2.0;
             total_signal -= last_value/2.0;*/
-        }
+        //}
     }
 
     curcnt--;
@@ -868,18 +864,29 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
     Double_t sigma_fit = 0.0;
     Double_t sigma_fit_err = 0.0;
 
-    Int_t begin_strip_num = (Int_t)(clusterDigits.at(0));
-    Int_t last_strip_num = (Int_t)(clusterDigits.at(clusterDigits.size()-1));
+    Int_t begin_strip_num = (Int_t)(cluster.Strips.at(0));
+    Int_t last_strip_num = (Int_t)(cluster.Strips.at(cluster.GetClusterSize()-1));
     Int_t nstrips = last_strip_num - begin_strip_num + 1;
 
     TH1F hist("hist_for_fit", "hist_for_fit", nstrips, begin_strip_num, last_strip_num+1);
     Int_t hist_index = 0;
 
-    for(Int_t i = 0; i < clusterDigits.size(); ++i) {
-        Double_t value = clusterValues.at(i);
+    Double_t cluster_signal_sum = 0.0;
+    Double_t mean_mass_center_pos = 0.0;
+
+    for(Int_t i = 0; i < cluster.GetClusterSize(); ++i) {
+        Double_t value = cluster.Signals.at(i);
         hist.SetBinContent(hist_index+1, value);
         hist_index++;
+        cluster_signal_sum += value;
     }
+
+    for(Int_t i = 0; i < cluster.GetClusterSize(); ++i) {
+        Double_t strip_num = cluster.Strips.at(i);
+        Double_t value = cluster.Signals.at(i);
+        mean_mass_center_pos += (strip_num+0.5)*value;
+    }
+    mean_mass_center_pos /= cluster_signal_sum;
 
     TF1* gausFitFunction = 0;
         TString fit_params = "WQ0";
@@ -911,12 +918,17 @@ void BmnGemStripReadoutModule::MakeStripHit(vector<Int_t> &clusterDigits, vector
         sigma_fit_err = 0.001;
     }
 
-    StripHits.push_back(mean_fit_pos);
+    //Double_t mean_pos =  mean_fit_pos;
+    Double_t mean_pos =  mean_mass_center_pos;
+
+    if(mean_pos < 0.0) mean_pos = 0.0;
+    if(mean_pos >= Strips.size()) mean_pos = Strips.size() - 0.001;
+
+    StripHits.push_back(mean_pos);
     StripHitsTotalSignal.push_back(total_signal);
     StripHitsErrors.push_back(sigma_fit_err);
 
-    clusterDigits.clear();
-    clusterValues.clear();
+    cluster.Clear();
 
 #ifdef DRAW_FOUND_CLUSTER_HISTOGRAMS
     //drawing cluster histograms
@@ -1139,20 +1151,20 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
     FindClustersInLayer(ReadoutLowerPlane, LowerStripHits, LowerStripHitsTotalSignal, LowerStripHitsErrors);
     FindClustersInLayer(ReadoutUpperPlane, UpperStripHits, UpperStripHitsTotalSignal, UpperStripHitsErrors);
 
-    for(UInt_t i = 0; i < LowerStripHits.size(); ++i) {
-        for(UInt_t j = 0; j < UpperStripHits.size(); ++j) {
-            Double_t xcoord = FindXHitIntersectionPoint(LowerStripHits.at(i),UpperStripHits.at(j));
-            Double_t ycoord = FindYHitIntersectionPoint(LowerStripHits.at(i),UpperStripHits.at(j));
+    for(UInt_t istrip_low = 0; istrip_low < LowerStripHits.size(); ++istrip_low) {
+        for(UInt_t istrip_up = 0; istrip_up < UpperStripHits.size(); ++istrip_up) {
+            Double_t xcoord = FindXHitIntersectionPoint(LowerStripHits.at(istrip_low),UpperStripHits.at(istrip_up));
+            Double_t ycoord = FindYHitIntersectionPoint(LowerStripHits.at(istrip_low),UpperStripHits.at(istrip_up));
 
             if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) && !DeadZone.IsInside(xcoord, ycoord) ) {
                 IntersectionPointsX.push_back(xcoord);
                 IntersectionPointsY.push_back(ycoord);
 
-                IntersectionPointsLowerStripPos.push_back(LowerStripHits.at(i));
-                IntersectionPointsUpperStripPos.push_back(UpperStripHits.at(j));
+                IntersectionPointsLowerStripPos.push_back(LowerStripHits.at(istrip_low));
+                IntersectionPointsUpperStripPos.push_back(UpperStripHits.at(istrip_up));
 
-                IntersectionPointsLowerTotalSignal.push_back(LowerStripHitsTotalSignal.at(i));
-                IntersectionPointsUpperTotalSignal.push_back(UpperStripHitsTotalSignal.at(j));
+                IntersectionPointsLowerTotalSignal.push_back(LowerStripHitsTotalSignal.at(istrip_low));
+                IntersectionPointsUpperTotalSignal.push_back(UpperStripHitsTotalSignal.at(istrip_up));
 
                 //error correction coefficient to pull sigma ~ 1.0
                 Double_t xerr_correct_coef = 1.0;
@@ -1167,8 +1179,19 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
                     yerr_correct_coef = 0.028;
                 }
 */
-                IntersectionPointsXErrors.push_back(LowerStripHitsErrors.at(i)*Pitch/xerr_correct_coef);
-                IntersectionPointsYErrors.push_back(UpperStripHitsErrors.at(j)*(Pitch/Sin(Abs(AngleRad)))/yerr_correct_coef); //FIX IT
+                IntersectionPointsXErrors.push_back(LowerStripHitsErrors.at(istrip_low)*Pitch/xerr_correct_coef);
+                IntersectionPointsYErrors.push_back(UpperStripHitsErrors.at(istrip_up)*(Pitch/Sin(Abs(AngleRad)))/yerr_correct_coef); //FIX IT
+
+                //intersection matching ----------------------------------------
+                BmnMatch strip_match_lower_layer = LowerStripMatches.at((Int_t)LowerStripHits.at(istrip_low));
+                BmnMatch strip_match_upper_layer = UpperStripMatches.at((Int_t)UpperStripHits.at(istrip_up));
+
+                BmnMatch intersection_match;
+                intersection_match.AddLink(strip_match_lower_layer);
+                intersection_match.AddLink(strip_match_upper_layer);
+
+                IntersectionPointMatches.push_back(intersection_match);
+                //--------------------------------------------------------------
             }
         }
     }

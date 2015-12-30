@@ -199,6 +199,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 		  gemDigit->SetStripMatching(kTRUE);
         fRun->AddTask(gemDigit);
         BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
+		  gemHM->SetHitMatching(kTRUE);
         fRun->AddTask(gemHM);
     } else {
         BmnGemHitProducer* gemHP = new BmnGemHitProducer();

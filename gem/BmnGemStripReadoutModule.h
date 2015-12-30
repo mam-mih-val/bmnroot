@@ -17,7 +17,7 @@
 using namespace TMath;
 using namespace std;
 
-struct ClusterParameters;
+class StripCluster;
 
 struct DeadStripZone {
     Double_t Xmin;
@@ -154,6 +154,7 @@ public:
     Double_t GetIntersectionPointsUpperTotalSignal(Int_t indx) { return IntersectionPointsUpperTotalSignal.at(indx); } //sum signal of all upper strips for i-intersection point
     Double_t GetIntersectionPointXError(Int_t indx) { return IntersectionPointsXErrors.at(indx); } //X-coord error of i-intersection point
     Double_t GetIntersectionPointYError(Int_t indx) { return IntersectionPointsYErrors.at(indx); } //Y-coord error of i-intersection point
+    BmnMatch GetIntersectionPointMatch(Int_t indx) { return IntersectionPointMatches.at(indx); } //Intersection point matches
 
     //Strip hits
     Int_t GetNLowerStripHits() { return LowerStripHits.size(); } //quatity of hits at the lower layer
@@ -170,11 +171,11 @@ public:
 public: //private (public - for test)
 
     //Make cluster from a single point (spread)
-    ClusterParameters MakeCluster(TString layer, Double_t xcoord, Double_t ycoord, Double_t signal, Double_t radius);
+    StripCluster MakeCluster(TString layer, Double_t xcoord, Double_t ycoord, Double_t signal, Double_t radius);
 
     //Find clusters and hits
     void FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors);
-    void MakeStripHit(vector<Int_t> &clusterDigits, vector<Double_t> &clusterValues, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors, Int_t &curcnt);
+    void MakeStripHit(StripCluster &cluster, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors, Int_t &curcnt);
 
     Double_t ConvertRealPointToUpperX(Double_t xcoord, Double_t ycoord);
     Double_t ConvertRealPointToUpperY(Double_t xcoord, Double_t ycoord);
@@ -240,6 +241,8 @@ private:
     vector<Double_t> IntersectionPointsXErrors;
     vector<Double_t> IntersectionPointsYErrors;
 
+    vector<BmnMatch> IntersectionPointMatches;
+
     //for hits on the strip layers
     vector<Double_t> LowerStripHits;
     vector<Double_t> UpperStripHits;
@@ -256,7 +259,8 @@ private:
 };
 //------------------------------------------------------------------------------
 
-struct ClusterParameters {
+class StripCluster {
+public:
     Double_t OriginPosition; //origin position of the center point
     Double_t MeanPosition; //position of the cluster (after fitting)
     Double_t TotalSignal; //total signal of the cluster
@@ -266,13 +270,37 @@ struct ClusterParameters {
     vector<Int_t> Strips;
     vector<Double_t> Signals;
 
-    ClusterParameters(Double_t orig_position, Double_t mean_position, Double_t total_signal) : OriginPosition(orig_position), MeanPosition(mean_position), TotalSignal(total_signal) {
+    StripCluster() {
+        Strips.clear();
+        Signals.clear();
+        OriginPosition = 0.0;
+        MeanPosition = 0.0;
+        TotalSignal = 0.0;
+        PositionResidual = 0.0;
+        IsCorrect = kFALSE;
+    }
+
+    StripCluster(Double_t orig_position, Double_t mean_position, Double_t total_signal) : OriginPosition(orig_position), MeanPosition(mean_position), TotalSignal(total_signal) {
         Strips.clear();
         Signals.clear();
 
         PositionResidual = 0.0;
         IsCorrect = kFALSE;
     }
+    void AddStrip(Int_t strip_num, Double_t strip_signal) {
+        Strips.push_back(strip_num);
+        Signals.push_back(strip_signal);
+    }
+    void Clear() {
+        Strips.clear();
+        Signals.clear();
+        OriginPosition = 0.0;
+        MeanPosition = 0.0;
+        TotalSignal = 0.0;
+        PositionResidual = 0.0;
+        IsCorrect = kFALSE;
+    }
+    Int_t GetClusterSize() { return Strips.size(); }
 };
 
 #endif	/* BMNGEMSTRIPREADOUTMODULE_H */

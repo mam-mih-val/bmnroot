@@ -1,12 +1,14 @@
 #include "BmnGemStripHitMaker.h"
 
-BmnGemStripHitMaker::BmnGemStripHitMaker() {
+BmnGemStripHitMaker::BmnGemStripHitMaker()
+: fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = "BmnGemStripDigit";
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
     fOutputHitsBranchName = "BmnGemStripHit";
+    fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
 
     fVerbose = 1;
 }
@@ -26,10 +28,18 @@ InitStatus BmnGemStripHitMaker::Init() {
     fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
 
     if(fVerbose && fBmnGemStripDigitMatchesArray) cout << "  Strip matching information exists!\n";
-    else cout << "  Strip matching information doesn`t exists!\n";
+    else cout << "  Strip matching information doesn`t exist!\n";
 
     fBmnGemStripHitsArray = new TClonesArray(fOutputHitsBranchName);
     ioman->Register(fOutputHitsBranchName, "GEM", fBmnGemStripHitsArray, kTRUE);
+
+    if(fHitMatching && fBmnGemStripDigitMatchesArray) {
+        fBmnGemStripHitMatchesArray = new TClonesArray("BmnMatch");
+        ioman->Register(fOutputHitMatchesBranchName, "GEM", fBmnGemStripHitMatchesArray, kTRUE);
+    }
+    else {
+        fBmnGemStripHitMatchesArray = 0;
+    }
 
     if(fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n\n ";
 
@@ -39,6 +49,10 @@ InitStatus BmnGemStripHitMaker::Init() {
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
 
     fBmnGemStripHitsArray->Clear();
+
+    if(fHitMatching && fBmnGemStripHitMatchesArray) {
+        fBmnGemStripHitMatchesArray->Clear();
+    }
 
     if (!fBmnGemStripPointsArray) {
         Error("BmnGemStripHitMaker::Exec()", " !!! Unknown branch name !!! ");
@@ -94,7 +108,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
             }
         }
    }
-    
+
    if(fVerbose) cout << "   Processed strip digits  : " << AddedDigits << "\n";
    if(fVerbose && fBmnGemStripDigitMatchesArray) cout << "   Added strip digit matches  : " << AddedStripDigitMatches << "\n";
 //------------------------------------------------------------------------------
@@ -243,6 +257,13 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 hit->SetType(PointTypeArray[iPoint]);
                 hit->SetSignalDiff(PointSignalDiffArray[iPoint]);
+                //--------------------------------------------------------------
+
+                //hit matching -------------------------------------------------
+                if(fHitMatching && fBmnGemStripHitMatchesArray) {
+                    new ((*fBmnGemStripHitMatchesArray)[fBmnGemStripHitMatchesArray->GetEntriesFast()])
+                        BmnMatch(module->GetIntersectionPointMatch(iPoint));
+                }
                 //--------------------------------------------------------------
             }
 

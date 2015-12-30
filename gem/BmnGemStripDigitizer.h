@@ -5,7 +5,6 @@
 
 #include "Rtypes.h"
 #include "TClonesArray.h"
-//#include "TVector3.h"
 
 #include "FairTask.h"
 #include "FairMCPoint.h"

@@ -1,0 +1,31 @@
+**************** bmn_run0633 Chamber 2 Peak 2 Time-Width area autoselection *******************************
+
+Chamber 2 slewing selected area Width-Time:      1500 4800 0 50000
+ Time(Width) = -1972.390115 + 5.939874*Width + -0.00440334*Width**2
+Chamber #1 channel offsets (average is -nan)
+   strip 16 time shift (left+right)/2 = 1439245824.000000
+   strip 15 time shift (left+right)/2 = 1453162880.000000
+   strip 14 time shift (left+right)/2 = 1427449344.000000
+   strip 13 time shift (left+right)/2 = 1448884864.000000
+   strip 12 time shift (left+right)/2 = 1417115648.000000
+   strip 11 time shift (left+right)/2 = 1443711616.000000
+   strip 10 time shift (left+right)/2 = 1422746496.000000
+   strip 9 time shift (left+right)/2 = 1427112064.000000
+   strip 8 time shift (left+right)/2 = 1422393088.000000
+   strip 7 time shift (left+right)/2 = 1433856384.000000
+   strip 6 time shift (left+right)/2 = 1426545664.000000
+   strip 5 time shift (left+right)/2 = 1434149632.000000
+   strip 4 time shift (left+right)/2 = 1445197440.000000
+   strip 16 time shift (left+right)/2 = -nan
+   strip 15 time shift (left+right)/2 = -nan
+   strip 14 time shift (left+right)/2 = -nan
+   strip 13 time shift (left+right)/2 = -nan
+   strip 12 time shift (left+right)/2 = -nan
+   strip 11 time shift (left+right)/2 = -nan
+   strip 10 time shift (left+right)/2 = -nan
+   strip 9 time shift (left+right)/2 = -nan
+   strip 8 time shift (left+right)/2 = -nan
+   strip 7 time shift (left+right)/2 = -nan
+   strip 6 time shift (left+right)/2 = -nan
+   strip 5 time shift (left+right)/2 = -nan
+   strip 4 time shift (left+right)/2 = -nan

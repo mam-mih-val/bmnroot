@@ -1,0 +1,3 @@
+**************** bmn_run0633 Chamber 3 Peak 1 Time-Width area autoselection *******************************
+
+ Chamber 3 slewing - too few nonzero bins = 0

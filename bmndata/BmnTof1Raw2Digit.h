@@ -30,14 +30,14 @@ public:
     BmnTof1Raw2Digit();
     void print();
     char *getPlaneName(int i);
-    void getEventInfo(unsigned long *ev,unsigned long *t1,unsigned long *t2);
+    void getEventInfo(long long *ev,long long *t1,long long *t2);
     void fillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0, TClonesArray *tof2digit);
 
 private:
     int n_rec;
     Bmn_Tof1_map_element map[TOF1_MAX_CHANNEL];
     char Bmn_Tof1_names[10][4];
-    unsigned long EVENT,TIME_SEC,TIME_NS;
+    long long EVENT,TIME_SEC,TIME_NS;
     float T0;
     ClassDef(BmnTof1Raw2Digit, 1);
 };

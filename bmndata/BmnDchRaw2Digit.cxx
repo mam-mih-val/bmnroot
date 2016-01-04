@@ -39,7 +39,7 @@ char *BmnDchRaw2Digit::getPlaneName(int i) {
     return (char *)Bmn_DCH_names[i & 0xF];
 }
 
-void BmnDchRaw2Digit::getEventInfo(unsigned long *ev,unsigned long *t1,unsigned long *t2){
+void BmnDchRaw2Digit::getEventInfo(long long *ev,long long *t1,long long *t2){
     *ev=EVENT;
     *t1=TIME_SEC;
     *t2=TIME_NS;
@@ -91,7 +91,7 @@ void BmnDchRaw2Digit::fillEvent(TClonesArray *data) {
 
 void BmnDchRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0) {
     unsigned int t0id = 0;
-    unsigned int t0time = 0, digittime = 0;
+    long long t0time = 0, digittime = 0;
     clear();
     for (int i = 0; i < t0->GetEntriesFast(); i++) {
         BmnTDCDigit *digit = (BmnTDCDigit*) t0->At(i);
@@ -106,19 +106,19 @@ void BmnDchRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClonesA
         for (int j = 0; j < sync->GetEntriesFast(); j++) {
             BmnSyncDigit *rec = (BmnSyncDigit*) sync->At(j);
             if (rec->GetSerial() == t0id){
-               t0time   = rec->GetTime_ns();
                EVENT    = rec->GetEvent();
                TIME_SEC = rec->GetTime_sec();
                TIME_NS  = rec->GetTime_ns();
+               t0time   = TIME_SEC*1000000000LL+TIME_NS;
             }
-            if (rec->GetSerial() == digit->GetSerial()) digittime = rec->GetTime_ns();
+            if (rec->GetSerial() == digit->GetSerial()) digittime = rec->GetTime_sec()*1000000000LL+rec->GetTime_ns();
         }
         set(digit->GetSerial(), digit->GetSlot(), digit->GetChannel(), digit->GetValue() / 10.0 - (T0 + (t0time - digittime)));
     }
 }
 void BmnDchRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0, TClonesArray *dhcdigit) {
     unsigned int t0id = 0;
-    unsigned int t0time = 0, digittime = 0;
+    long long t0time = 0, digittime = 0;
     clear();
     for (int i = 0; i < t0->GetEntriesFast(); i++) {
         BmnTDCDigit *digit = (BmnTDCDigit*) t0->At(i);
@@ -133,12 +133,12 @@ void BmnDchRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClonesA
         for (int j = 0; j < sync->GetEntriesFast(); j++) {
             BmnSyncDigit *rec = (BmnSyncDigit*) sync->At(j);
             if (rec->GetSerial() == t0id){
-               t0time   = rec->GetTime_ns();
                EVENT    = rec->GetEvent();
                TIME_SEC = rec->GetTime_sec();
                TIME_NS  = rec->GetTime_ns();
+               t0time   = TIME_SEC*1000000000LL+TIME_NS;
             }
-            if (rec->GetSerial() == digit->GetSerial()) digittime = rec->GetTime_ns();
+            if (rec->GetSerial() == digit->GetSerial()) digittime = rec->GetTime_sec()*1000000000LL+rec->GetTime_ns();
         }
         int plane = (rel[digit->GetSlot()][digit->GetChannel()] >> 8)&0xF;
         int group = (rel[digit->GetSlot()][digit->GetChannel()] >> 4)&0xF;

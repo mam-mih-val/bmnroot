@@ -22,6 +22,11 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile) {
     TString path = dir + "/input/";
     strcpy(filname_base, gSystem->BaseName(RunFile.Data()));
     if ((delim = strrchr(filname_base, (int)'.'))) *delim = '\0';
+
+    int RUN;
+    const char *fname = RunFile.Data();
+    sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
+
     in.open((path + mappingFile).Data());
     in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     MaxPlane = 0;
@@ -81,6 +86,35 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile) {
     LeadMax[1] = -150;
     LeadMax[2] = -50;
     LeadMax[3] = +120;
+/*
+    if (RUN < 470)
+    {
+	SetWcut(1700);
+	SetWmax(3700);
+	SetWT0min(260);
+	SetWT0max(560);
+	SetLeadMinMax(1,-400, -250);
+	SetLeadMinMax(2,-300, -150);
+	SetLeadMinMax(3,-400, -50);
+	SetLeadMinMax(4,-120, +120);
+    }
+    else
+    {
+	SetWcut(1700);
+	SetWmax(3700);
+	SetWT0min(640);
+	SetWT0max(710);
+	SetLeadMinMax(1,-350, -150);
+	SetLeadMinMax(2,-350, -150);
+	SetLeadMinMax(3,-350, +50);
+	SetLeadMinMax(4,-200, +200);
+//	SetLeadMinMax(1,-1350, +1350);
+//	SetLeadMinMax(2,-1350, +1350);
+//	SetLeadMinMax(3,-1350, +1350);
+//	SetLeadMinMax(4,-1350, +1350);
+    }
+*/
+
     T0shift = 0.;
 
 //    numstrip[0] = 28;
@@ -138,6 +172,35 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile) {
     }
 }
 
+void BmnTof2Raw2Digit::ReBook(int i)
+{
+    char name[128], title[128];
+    delete TvsW[i][0];
+	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_1",i+1);
+	sprintf(title, "Time vs Width Chamber %d Peak 1",i+1);
+	TvsW[i][0] = new TProfile(name,title,Wcut,0,Wcut,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
+    delete TvsWt0[i][0];
+	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_1",i+1);
+	sprintf(title, "Time vs T0 Width Chamber %d Peak 1",i+1);
+	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
+    delete TvsWall[i];
+	sprintf(name, "Time_vs_T0_Width_Chamber_%d_all",i+1);
+	sprintf(title, "Time vs T0 Width Chamber %d all",i+1);
+	TvsWall[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
+    delete TvsWallmax[i];
+	sprintf(name, "Time_vs_T0_Width_Chamber_%d_all_max",i+1);
+	sprintf(title, "Time vs T0 Width Chamber %d all, max strip",i+1);
+	TvsWallmax[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
+    delete TvsW[i][1];
+	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_2",i+1);
+	sprintf(title, "Time vs Width Chamber %d Peak 2",i+1);
+	TvsW[i][1] = new TProfile(name,title,(Wmax-Wcut),Wcut,Wmax,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
+    delete TvsWt0[i][1];
+	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_2",i+1);
+	sprintf(title, "Time vs T0 Width Chamber %d Peak 2",i+1);
+	TvsWt0[i][1] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
+}
+
 void BmnTof2Raw2Digit::getEventInfo(long long *ev,long long *t1,long long *t2){
     *ev=EVENT;
     *t1=TIME_SEC;
@@ -146,7 +209,7 @@ void BmnTof2Raw2Digit::getEventInfo(long long *ev,long long *t1,long long *t2){
 
 void BmnTof2Raw2Digit::print(){
      printf("Number of chambers %d\n", MaxPlane);
-     printf("#\tcrate\t\tslot\ttdc\tchannel\tplane\tstrip\tpair\tside\n=================================================\n");
+     printf("#\tcrate\t\tslot\ttdc\tchannel\tplane\tstrip\tpair\tside\n===========================================================================\n");
      for(int i=0;i<n_rec;i++){
        printf("%3d\t0x%X\t%d\t%d\t%d\t%d\t%d\t%d\t%c\n",i,map[i].id,map[i].slot,map[i].tdc,map[i].chan,map[i].plane,map[i].strip,map[i].pair,map[i].side);
      }   

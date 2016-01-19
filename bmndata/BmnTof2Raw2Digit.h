@@ -46,25 +46,25 @@ public:
 
     int  get_t0() { return T0; }
 
-    void SetWcut(int wcut) { Wcut = wcut; }
+    void SetWcut(int wcut) { Wcut = wcut; for (int c=0; c<TOF2_MAX_CHAMBERS; c++) ReBook(c); }
     int  GetWcut() { return Wcut; }
 
-    void SetWmax(int wm) { Wmax = wm; }
+    void SetWmax(int wm) { Wmax = wm; for (int c=0; c<TOF2_MAX_CHAMBERS; c++) ReBook(c); }
     int  GetWmax() { return Wmax; }
 
-    void SetWT0max(int wt0m) { WT0max = wt0m; }
+    void SetWT0max(int wt0m) { WT0max = wt0m; for (int c=0; c<TOF2_MAX_CHAMBERS; c++) ReBook(c); }
     int  GetWT0max() { return WT0max; }
 
-    void SetWT0min(int wt0m) { WT0min = wt0m; }
+    void SetWT0min(int wt0m) { WT0min = wt0m; for (int c=0; c<TOF2_MAX_CHAMBERS; c++) ReBook(c); }
     int  GetWT0min() { return WT0min; }
 
-    void SetLeadMin(int c, int leadmin) { if (c>0&&c<TOF2_MAX_CHAMBERS) LeadMin[c-1] = leadmin; }
+    void SetLeadMin(int c, int leadmin) { if (c>0&&c<=TOF2_MAX_CHAMBERS) {LeadMin[c-1] = leadmin; ReBook(c-1);} }
     int  GetLeadMin(int c) { return LeadMin[c]; }
 
-    void SetLeadMax(int c, int leadmax) { if (c>0&&c<TOF2_MAX_CHAMBERS) LeadMax[c-1] = leadmax; }
+    void SetLeadMax(int c, int leadmax) { if (c>0&&c<=TOF2_MAX_CHAMBERS) {LeadMax[c-1] = leadmax; ReBook(c-1);} }
     int  GetLeadMax(int c) { return LeadMax[c]; }
 
-    void SetLeadMinMax(int c, int leadmin, int leadmax) { if (c>0&&c<TOF2_MAX_CHAMBERS) {LeadMin[c-1] = leadmin; LeadMax[c-1] = leadmax;}; }
+    void SetLeadMinMax(int c, int leadmin, int leadmax) { if (c>0&&c<=TOF2_MAX_CHAMBERS) {LeadMin[c-1] = leadmin; LeadMax[c-1] = leadmax; ReBook(c-1);}; }
 
     void fillPreparation(TClonesArray *data, TClonesArray *sync, TClonesArray *t0);
     void fillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0, TClonesArray *tof2digit);
@@ -85,6 +85,7 @@ public:
     int get_strip_xyz(int chamber, int strip, float *x, float *y, float *z);
     int get_chamber_z(int chamber, float *z);
     int get_track_hits(float *xyz, float *cxyy, int *nhits, int *chamb, int *strip);
+    void ReBook(int i);
 
 private:
     char filname_base[256];

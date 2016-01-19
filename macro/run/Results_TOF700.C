@@ -154,7 +154,7 @@ double FitIn2Sigma(TH1F *h)
 
   if ((total = h->GetEntries()) < 5.)
     {
-      if (Debug) printf("Number of histogram entries is too few!\n");
+      printf("Number of histogram '%s' entries is too few!\n", h->GetTitle());
       return 0.;
     }
   int nonzero = 0;
@@ -164,7 +164,7 @@ double FitIn2Sigma(TH1F *h)
     {
       if (nonzero < 2)
       {
-        if (Debug) printf("Number of non-empty bins is too few!\n");
+        printf("Number of non-empty bins is too few in histogram '%s'!\n", h->GetTitle());
         return 0.;
       }
       lev1 = 5.;

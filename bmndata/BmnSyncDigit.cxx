@@ -2,7 +2,7 @@
 
 BmnSyncDigit::BmnSyncDigit() {}
 
-BmnSyncDigit::BmnSyncDigit(UInt_t iSerial,UInt_t iEvent,ULong_t t_sec,ULong_t t_ns){
+BmnSyncDigit::BmnSyncDigit(UInt_t iSerial,UInt_t iEvent,long long t_sec,long long t_ns){
   fSerial = iSerial; 
   fEvent  = iEvent;
   fT_sec  = t_sec;

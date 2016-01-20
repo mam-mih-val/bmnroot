@@ -13,12 +13,12 @@ public:
     BmnSyncDigit();
 
     /** Constructor to use **/
-    BmnSyncDigit(UInt_t iSerial,UInt_t iEvent,ULong_t t_sec,ULong_t t_ns);
+    BmnSyncDigit(UInt_t iSerial,UInt_t iEvent,long long t_sec,long long t_ns);
 
     UInt_t  GetSerial()  const {return fSerial;}
     UInt_t  GetEvent()   const {return fEvent;}
-    ULong_t GetTime_sec()const {return fT_sec;}
-    ULong_t GetTime_ns() const {return fT_ns;}
+    long long GetTime_sec()const {return fT_sec;}
+    long long GetTime_ns() const {return fT_ns;}
 
     /** Destructor **/
     virtual ~BmnSyncDigit();
@@ -26,8 +26,8 @@ public:
 //private:
     UInt_t  fSerial; 
     UInt_t  fEvent;
-    ULong_t fT_sec; 
-    ULong_t fT_ns; 
+    long long fT_sec; 
+    long long fT_ns; 
     ClassDef(BmnSyncDigit, 1);
 };
 

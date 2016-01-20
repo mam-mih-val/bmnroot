@@ -34,7 +34,7 @@ static const char *tmp[2]= {"1","2"};
 char *BmnTof1Raw2Digit::getPlaneName(int i) {
     return (char *)Bmn_Tof1_names[i & 0x1];
 }
-void BmnTof1Raw2Digit::getEventInfo(unsigned long *ev,unsigned long *t1,unsigned long *t2){
+void BmnTof1Raw2Digit::getEventInfo(long long *ev,long long *t1,long long *t2){
     *ev=EVENT;
     *t1=TIME_SEC;
     *t2=TIME_NS;

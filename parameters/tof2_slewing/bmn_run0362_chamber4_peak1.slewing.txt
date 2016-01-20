@@ -1,0 +1,13 @@
+**************** bmn_run0362 Chamber 4 Peak 1 Time-Width area slewing *******************************
+
+Chamber 4 slewing selected area Width-Time:      0 1700 -120 120
+ Time(Width) = 14.630302 + 0.051116*Width + -3.50141e-05*Width**2
+Chamber #4 channel offsets (average is 16.509174)
+   strip 9 time shift (left+right)/2 = -16.386017
+   strip 10 time shift (left+right)/2 = 5.286390
+   strip 11 time shift (left+right)/2 = 11.146742
+   strip 12 time shift (left+right)/2 = 11.850290
+   strip 13 time shift (left+right)/2 = 0.000000
+   strip 14 time shift (left+right)/2 = -9.198889
+   strip 15 time shift (left+right)/2 = -8.029403
+   strip 16 time shift (left+right)/2 = 5.330881

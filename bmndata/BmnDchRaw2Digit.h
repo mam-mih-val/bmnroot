@@ -70,7 +70,7 @@ public:
     int  set(unsigned long id, unsigned char slot, unsigned char ch, int val);
     void print();
     char *getPlaneName(int i);
-    void getEventInfo(unsigned long *ev,unsigned long *t1,unsigned long *t2);
+    void getEventInfo(long long *ev,long long *t1,long long *t2);
     int  getdata(int p, int ch, unsigned short **d);
     int  getndigit(int plane);
     void fillEvent(TClonesArray *data);
@@ -86,7 +86,7 @@ private:
     int digits[16];
     int rel[21][64];
     float T0;
-    unsigned long EVENT,TIME_SEC,TIME_NS;
+    long long EVENT,TIME_SEC,TIME_NS;
 
     ClassDef(BmnDchRaw2Digit, 1);
 };

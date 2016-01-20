@@ -34,7 +34,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile) {
 void BmnZDCRaw2Digit::print() {
      printf("id#\tchan\t\tf_chan\tsize\tix\tiy\\tx\ty\tused\n");
      for(int i=0;i<n_rec;i++)
-     printf("0x%06X\t%d\t%d\t%d\t%d\t%d\t%g\t%g\t%d\n",
+     printf("0x%06lX\t%d\t%d\t%d\t%d\t%d\t%d\t%g\t%g\n",
          zdc_map_element[i].id,zdc_map_element[i].chan,zdc_map_element[i].front_chan,zdc_map_element[i].size,
          zdc_map_element[i].ix,zdc_map_element[i].iy,zdc_map_element[i].used,zdc_map_element[i].x,zdc_map_element[i].y); 
    

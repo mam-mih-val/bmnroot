@@ -62,11 +62,11 @@ InitStatus BmnExpTrackDraw::Init()
         cout<<"BmnExpTrackDraw::Init() get instance of FairEventManager"<<endl;
 
     bmn_data_tree = new TChain("cbmsim");
-    bmn_data_tree->Add(fEventManager->source_file_name);
+    bmn_data_tree->Add(fEventManager->strExperimentFile);
 
     if (bmn_data_tree->GetFile() == NULL)
     {
-      cout<<"BmnExpTrackDraw::Init() file with 'cbmsim' tree \""<<fEventManager->source_file_name<<"\" not found! Task will be deactivated "<<endl;
+      cout<<"BmnExpTrackDraw::Init() file with 'cbmsim' tree \""<<fEventManager->strExperimentFile<<"\" not found! Task will be deactivated "<<endl;
       SetActive(kFALSE);
       return kERROR;
     }
@@ -74,18 +74,18 @@ InitStatus BmnExpTrackDraw::Init()
     bmn_data_tree->SetBranchAddress(GetName(), &fTrackList);
     if (!bmn_data_tree->GetBranchStatus(GetName()))
     {
-      cout<<"BmnExpTrackDraw::Init() branch \""<<GetName()<<"\" not found in file ("<<fEventManager->source_file_name<<")! Task will be deactivated "<<endl;
+      cout<<"BmnExpTrackDraw::Init() branch \""<<GetName()<<"\" not found in file ("<<fEventManager->strExperimentFile<<")! Task will be deactivated "<<endl;
       SetActive(kFALSE);
       return kERROR;
     }
 
     if (fVerbose > 2)
-        cout<<"BmnExpTrackDraw::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
+        cout<<"BmnExpTrackDraw::Init() get track list " <<fTrackList<<" ("<<fTrackList->GetEntriesFast()<<") from branch '"<<GetName()<<"'"<<endl;
 
     bmn_data_tree->SetBranchAddress(fHitsBranchName, &fHitList);
     if (!bmn_data_tree->GetBranchStatus(fHitsBranchName))
     {
-      cout<<"BmnExpTrackDraw::Init() branch '"<<fHitsBranchName<<"' not found in file ("<<fEventManager->source_file_name<<")! Task will be deactivated "<<endl;
+      cout<<"BmnExpTrackDraw::Init() branch '"<<fHitsBranchName<<"' not found in file ("<<fEventManager->strExperimentFile<<")! Task will be deactivated "<<endl;
       SetActive(kFALSE);
       return kERROR;
     }
@@ -93,7 +93,6 @@ InitStatus BmnExpTrackDraw::Init()
     if (fVerbose > 2)
         cout<<"BmnExpTrackDraw::Init() get list of hits "<<fHitList<<" from branch '"<<fHitsBranchName<<"'"<<endl;
 
-    //cout<<endl<<"fEntryCount "<<fEventManager->fEntryCount<<" Event Count "<<bmn_data_tree->GetEntries()<<endl;
     if (fEventManager->fEntryCount == 0)
         fEventManager->fEntryCount = bmn_data_tree->GetEntries();
     else
@@ -123,13 +122,14 @@ void BmnExpTrackDraw::Exec(Option_t* option)
     bmn_data_tree->GetEntry(event_number);
 
     CbmTrack* current_track;
-    //cout<<"Tracks: "<<fTrackList->GetEntriesFast()<<endl;
+    if (fVerbose > 1)
+        cout<<" BmnExpTrackDraw::Exec: the number of tracks is "<<fTrackList->GetEntriesFast()<<endl;
     for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
     {
         if (fVerbose > 2)
             cout<<"BmnExpTrackDraw::Exec "<<i<<endl;
 
-        current_track = (CbmTrack*)fTrackList->At(i);
+        current_track = (CbmTrack*) fTrackList->At(i);
         const FairTrackParam* pParamFirst = current_track->GetParamFirst();
 
         // define whether track is primary
@@ -194,6 +194,13 @@ void BmnExpTrackDraw::Exec(Option_t* option)
             cout<<"track added "<<track->GetName()<<endl;
     }
 
+    if (fEventManager->EveRecoTracks == NULL)
+    {
+        fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
+        gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
+        fEventManager->EveRecoTracks->SetRnrState(kFALSE);
+    }
+
     // redraw EVE scenes
     gEve->Redraw3D(kFALSE);
 }
@@ -246,14 +253,6 @@ TEveTrackList* BmnExpTrackDraw::GetTrGroup(TParticle* P)
         fTrList = new  TEveTrackList(P->GetName(), fTrPr);
         fTrList->SetMainColor(fEventManager->Color(P->GetPdgCode()));
         fEveTrList->Add(fTrList);
-
-        if (fEventManager->EveRecoTracks == NULL)
-        {
-            fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
-            gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
-            fEventManager->EveRecoTracks->SetRnrState(kFALSE);
-        }
-
         gEve->AddElement(fTrList, fEventManager->EveRecoTracks);
         fTrList->SetRnrLine(kTRUE);
     }

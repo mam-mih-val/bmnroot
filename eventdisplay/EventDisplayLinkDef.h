@@ -26,6 +26,8 @@
 #pragma link C++ class BmnHitDraw;
 #pragma link C++ class BmnTrackDraw;
 #pragma link C++ class BmnExpTrackDraw;
+#pragma link C++ class CbmTrackDraw;
+#pragma link C++ class FairWebScreenshots;
 
 #endif
 

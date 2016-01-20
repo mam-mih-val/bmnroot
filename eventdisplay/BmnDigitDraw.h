@@ -36,7 +36,6 @@ class BmnDigitDraw : public FairTask
     void Reset();
 
   protected:
-    virtual TVector3 GetVector(TObject* obj);
     virtual TObject* GetValue(TObject* obj,Int_t i);
 
     //  Verbosity level

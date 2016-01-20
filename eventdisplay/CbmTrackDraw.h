@@ -1,46 +1,36 @@
 // -------------------------------------------------------------------------
-// -----                      FairMCStack header file                 -----
-// -----                Created 09/10/08  by M. Al-Turany              -----
+// -----                     CbmTrackDraw header file                  -----
+// -----                Created 02/12/15  by K. Gertsenberger          -----
 // -------------------------------------------------------------------------
 
 
-/** FairMCStack
- * @author M. Al-Turany, Denis Bertini
- * @since 10.12.07
- *   MVD event display object
- **
- **/
-
-#ifndef FairMCStack_H
-#define FairMCStack_H
-
+#ifndef CBMTRACKDRAW_H
+#define CBMTRACKDRAW_H
 
 #include "FairTask.h"
-#include "TEveTrackPropagator.h"
+#include "FairEventManager.h"
+#include "FairGeanePro.h"
+#include "TEveTrack.h"
+#include "FairTrajFilter.h"
+
 #include "TString.h"
 #include "TParticle.h"
-class FairGeanePro;
-class TGeant3;
-class TEveTrackList;
-class FairEventManager;
-class TObjArray;
-class FairTrajFilter;
+#include "TObjArray.h"
 
-//class TEveElementList;
-class FairMCStack : public FairTask
+class CbmTrackDraw : public FairTask
 {
   public:
     /** Default constructor **/
-    FairMCStack();
+    CbmTrackDraw();
 
     /** Standard constructor
     *@param name        Name of task
     *@param iVerbose    Verbosity level
     **/
-    FairMCStack(const char* name, Int_t iVerbose = 1);
+    CbmTrackDraw(const char* name, Int_t iVerbose = 1);
 
     /** Destructor **/
-    virtual ~FairMCStack();
+    virtual ~CbmTrackDraw();
 
     /** Set verbosity level. For this task and all of the subtasks. **/
     void SetVerbose(Int_t iVerbose);
@@ -54,26 +44,30 @@ class FairMCStack : public FairTask
     void Reset();
     TEveTrackList* GetTrGroup(TParticle* P);
 
+    void InitGeant3();
+
   protected:
-    TClonesArray*  fTrackList;  //!
-    TEveTrackPropagator* fTrPr;
-    FairEventManager* fEventManager;  //!
+    TChain* bmn_data_tree;          //!
+    TClonesArray*  fTrackList;      //!
+    FairEventManager* fEventManager;//!
+    TEveTrackList* fTrList;         //!
+    FairGeanePro* fPro;             //!
+
+    TEveTrackPropagator* fTrPr;     //!
     TObjArray* fEveTrList;
-    TString fEvent; //!
-    TEveTrackList* fTrList;  //!
-    //TEveElementList *fTrackCont;
+    FairTrajFilter* fTrajFilter;    //!
+    TString fEvent;                 //!
+    TGeant3* gMC3;                  //!
+
     Float_t x1[3];
     Float_t p1[3];
-    Float_t ein[15];
     Float_t x2[3];
     Float_t p2[3];
-    TGeant3* gMC3; //!
     Double_t MinEnergyLimit;
     Double_t MaxEnergyLimit;
     Double_t PEnergy;
-    FairGeanePro* fPro;//!
-    FairTrajFilter* fTrajFilter;//!
-    ClassDef(FairMCStack,1);
+
+    ClassDef(CbmTrackDraw,1);
 };
 
 #endif

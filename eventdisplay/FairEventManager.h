@@ -121,16 +121,14 @@ class FairEventManager : public TEveEventManager
     int background_color;
     // whether background color is dark
     bool isDarkColor;
-    // file name with data source
-    char* source_file_name; //!
-    // file name with data source
-    char* geo_file_name; //!
+    // name of a file with experimental data
+    TString strExperimentFile;
     // event count
     Long64_t fEntryCount; //!
     // whether Online of Offline mode
     bool isOnline;
     // data source: 0 - simulation data; 1 - raw detector data
-    int fDataSource;
+    int iDataSource;
 
     // Event Elements of Event Scene
     TEveElementList* EveMCPoints, *EveMCTracks, *EveRecoPoints, *EveRecoTracks;

@@ -45,11 +45,11 @@ InitStatus BmnHitDraw::Init()
       cout<<"BmnHitDraw::Init() get instance of FairEventManager"<<endl;
 
   bmn_hit_tree = new TChain("cbmsim");
-  bmn_hit_tree->Add(fEventManager->source_file_name);
+  bmn_hit_tree->Add(fEventManager->strExperimentFile);
 
   if (bmn_hit_tree->GetFile() == NULL)
   {
-    cout<<"BmnHitDraw::Init() file with 'cbmsim' tree \""<<fEventManager->source_file_name<<"\" not found! Task will be deactivated "<<endl;
+    cout<<"BmnHitDraw::Init() file with 'cbmsim' tree \""<<fEventManager->strExperimentFile<<"\" not found! Task will be deactivated "<<endl;
     SetActive(kFALSE);
     return kERROR;
   }
@@ -57,7 +57,7 @@ InitStatus BmnHitDraw::Init()
   bmn_hit_tree->SetBranchAddress(GetName(), &fHitList);
   if (!bmn_hit_tree->GetBranchStatus(GetName()))
   {
-    cout<<"BmnHitDraw::Init() branch \""<<GetName()<<"\" not found in file ("<<fEventManager->source_file_name<<")! Task will be deactivated "<<endl;
+    cout<<"BmnHitDraw::Init() branch \""<<GetName()<<"\" not found in file ("<<fEventManager->strExperimentFile<<")! Task will be deactivated "<<endl;
     SetActive(kFALSE);
     return kERROR;
   }
@@ -78,7 +78,8 @@ InitStatus BmnHitDraw::Init()
 
 void BmnHitDraw::Exec(Option_t* option)
 {
-    if (!IsActive()) return;
+    if (!IsActive())
+        return;
 
     Reset();
 
@@ -97,8 +98,8 @@ void BmnHitDraw::Exec(Option_t* option)
 
     for (Int_t i = 0; i < npoints; i++)
     {
-      TObject* p = (TObject*)fHitList->At(i);
-      if(p != 0)
+      TObject* p = (TObject*) fHitList->At(i);
+      if (p != 0)
       {
           TVector3 vec(GetVector(p));
           q->SetNextPoint(vec.X(),vec.Y(), vec.Z());

@@ -18,7 +18,7 @@ struct ThreadParam_ReadFile
 {
     vector<EventData*>* fEventReadData;
     vector<EventData*>* fEventDrawData;
-    char* raw_file_name_begin;
+    TString raw_file_name_begin;
     TSemaphore* semEventData;
 };
 
@@ -34,6 +34,7 @@ struct ThreadParam_RunTask
 {
     FairEventManager* fEventManager;
     FairEventManagerEditor* fManagerEditor;
+    int iCurrentEvent;
     bool isZDCRedraw;
     bool isRootManagerReadEvent;
 };
@@ -59,6 +60,7 @@ class FairEventManagerEditor : public TGedFrame
     vector<EventData*>* fEventReadData;
     vector<EventData*>* fEventDrawData;
     TSemaphore* semEventData;
+
     // current event number
     int iEventNumber;
 
@@ -71,6 +73,7 @@ class FairEventManagerEditor : public TGedFrame
 
     void SetModel(TObject* obj);
     virtual void SelectEvent();
+    virtual void UpdateEvent();
     virtual void SelectPDG();
     void DoVizPri();
     virtual void MaxEnergy();
@@ -85,6 +88,11 @@ class FairEventManagerEditor : public TGedFrame
     virtual void ShowRecoPoints(Bool_t is_show);
     virtual void ShowRecoTracks(Bool_t is_show);
 
+    bool RedrawZDC(bool isRedraw = true);
+    void RestoreZDC();
+    void BlockUI();
+    void UnblockUI();
+
     // event count
     int iEventCount;
     // 'Update' button
@@ -94,10 +102,7 @@ class FairEventManagerEditor : public TGedFrame
     // 'Show Geometry' checkbox
     TGCheckButton* fGeometry;
 
-    void RedrawZDC();
-    void RestoreZDC();
-    void BlockUI();
-    void UnblockUI();
+    int iThreadState;
 
     ClassDef(FairEventManagerEditor, 0); // Specialization of TGedEditor for proper update propagation to TEveManager
 };

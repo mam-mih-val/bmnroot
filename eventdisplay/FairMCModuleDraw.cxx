@@ -74,15 +74,16 @@ void FairMCModuleDraw::Exec(Option_t* option)
     Int_t npoints = fPointList->GetEntriesFast();
     for (int i = 0; i < npoints; i++)
     {
-        CbmPsdPoint* p = (CbmPsdPoint*)fPointList->At(i);
+        CbmPsdPoint* p = (CbmPsdPoint*) fPointList->At(i);
 
-        // filter only forward points
         CbmMCTrack* pMCTrack = (CbmMCTrack*) fMCTracks->At(p->GetTrackID());
         if (!pMCTrack)
         {
             cout<<"MCTrack is NULL for selected index"<<endl;
             continue;
         }
+
+        // filter only forward points
         Double32_t start_z = pMCTrack->GetStartZ();
         //cout<<"StartZ: "<<start_z<<cout<<endl;
         if (start_z < 1000.0)

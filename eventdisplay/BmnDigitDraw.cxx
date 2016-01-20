@@ -58,11 +58,11 @@ InitStatus BmnDigitDraw::Init()
       cout<<"BmnDigitDraw::Init() get instance of FairEventManager"<<endl;
 
   bmn_digit_tree = new TChain("BMN_DIGIT");
-  bmn_digit_tree->Add(fEventManager->source_file_name);
+  bmn_digit_tree->Add(fEventManager->strExperimentFile);
 
   if (bmn_digit_tree->GetFile() == NULL)
   {
-    cout<<"BmnDigitDraw::Init() file with 'BMN_DIGIT' tree \""<<fEventManager->source_file_name<<"\" not found! Task will be deactivated "<<endl;
+    cout<<"BmnDigitDraw::Init() file with 'BMN_DIGIT' tree \""<<fEventManager->strExperimentFile<<"\" not found! Task will be deactivated "<<endl;
     SetActive(kFALSE);
     return kERROR;
   }
@@ -70,7 +70,7 @@ InitStatus BmnDigitDraw::Init()
   bmn_digit_tree->SetBranchAddress(GetName(), &fDigitList);
   if (!bmn_digit_tree->GetBranchStatus(GetName()))
   {
-    cout<<"BmnDigitDraw::Init() branch \""<<GetName()<<"\" not found in file ("<<fEventManager->source_file_name<<")! Task will be deactivated "<<endl;
+    cout<<"BmnDigitDraw::Init() branch \""<<GetName()<<"\" not found in file ("<<fEventManager->strExperimentFile<<")! Task will be deactivated "<<endl;
     SetActive(kFALSE);
     return kERROR;
   }
@@ -147,14 +147,14 @@ void BmnDigitDraw::Exec(Option_t* option)
 
     for (Int_t i = 0; i < npoints; i++)
     {
-      TObject* p = (TObject*)fHitList->At(i);
-      if(p != 0)
-      {
-          TVector3 vec(GetVector(p));
-          q->SetNextPoint(vec.X(),vec.Y(), vec.Z());
-          q->SetPointId(GetValue(p, i));
-          //cout<<"VEC X: "<<vec.X()<<" Y:"<<vec.Y()<<" Z:"<<vec.Z()<<endl;
-      }
+        FairHit* p = (FairHit*) fHitList->At(i);
+        if (p != 0)
+        {
+            TVector3 vec(p->GetX(), p->GetY(), p->GetZ());
+            q->SetNextPoint(vec.X(),vec.Y(), vec.Z());
+            q->SetPointId(GetValue(p, i));
+            //cout<<"VEC X: "<<vec.X()<<" Y:"<<vec.Y()<<" Z:"<<vec.Z()<<endl;
+        }
     }
 
     if (fEventManager->EveRecoPoints == NULL)
@@ -175,12 +175,6 @@ void BmnDigitDraw::Exec(Option_t* option)
 TObject* BmnDigitDraw::GetValue(TObject* obj,Int_t i)
 {
   return new TNamed(Form("Point %d", i),"");
-}
-
-TVector3 BmnDigitDraw::GetVector(TObject* obj)
-{
-  FairHit* p = (FairHit*)obj;
-  return TVector3(p->GetX(), p->GetY(), p->GetZ());
 }
 
 // -----   Destructor   ----------------------------------------------------

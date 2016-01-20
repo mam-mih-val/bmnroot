@@ -17,13 +17,14 @@ ${CMAKE_SOURCE_DIR}/kalman
 ${CMAKE_SOURCE_DIR}/globaltracking
 ${CMAKE_SOURCE_DIR}/tpc
 ${CMAKE_SOURCE_DIR}/lhetrack
-${CMAKE_SOURCE_DIR}/eventdisplay
 ${CMAKE_SOURCE_DIR}/mwpc
 ${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/src
 ${CMAKE_SOURCE_DIR}/gem
+${CMAKE_SOURCE_DIR}/eventdisplay
+${CMAKE_SOURCE_DIR}/eventdisplay/raw
 )
 
-include_directories( ${INCLUDE_DIRECTORIES})
+include_directories(${INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
@@ -46,16 +47,18 @@ FairHitDraw.cxx
 FairHitPointSetDraw.cxx
 FairTimeStampPointDraw.cxx
 FairMCModuleDraw.cxx
-RawDataParser.cxx
-RawDataConverter.cxx
-RawMWPCDigitDraw.cxx
 BmnDigitDraw.cxx
 BmnHitDraw.cxx
 BmnTrackDraw.cxx
 BmnExpTrackDraw.cxx
+CbmTrackDraw.cxx
+FairWebScreenshots.cxx
+raw/RawDataParser.cxx
+raw/RawDataConverter.cxx
+raw/RawMWPCDigitDraw.cxx
 )
 
-Set(HEADERS )
+Set(HEADERS)
 Set(LINKDEF EventDisplayLinkDef.h)
 Set(LIBRARY_NAME EventDisplay)
 Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core)

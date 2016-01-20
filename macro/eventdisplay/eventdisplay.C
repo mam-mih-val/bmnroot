@@ -1,189 +1,208 @@
-// is_online: true - use Online Mode for EventManager (multithreads), false - use Offline Mode for EventManager (fair tasks)
-// data source: 0 - root files with simulation and reconstructed data, 1 - raw file with detector STREAM data (+geometry), 2 - root files with experimental data (+geometry)
-// exp_reco_file - file name with data source: experimental (raw or root) or reconstructed data
-// sim_geo_file - file with detector geometry and MC data (if simulation)
-// out_file - output file
-void eventdisplay(char* exp_reco_file = "$VMCWORKDIR/macro/run/bmndst.root", char* geo_sim_file = "$VMCWORKDIR/macro/run/evetest.root", char* out_file = "tmp.root", bool is_online = false, int data_source = 0)
+// sim_geo_file - file with MC data and/or detector geometry
+// reco_file - file with reconstructed data for simulation or experimental events
+// data source: 0 - event display for simulatated data, event display for experimental data
+// is_online: true - use Online Mode (continious view events), false - use Offline Mode (manual switching of events)
+void eventdisplay(char* sim_geo_file = "$VMCWORKDIR/macro/run/evetest.root", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
 {
-  TStopwatch timer;
-  timer.Start();
-  gDebug = 0;
+    TStopwatch timer;
+    timer.Start();
+    gDebug = 0;
 
-  // load main and detectors libraries
-  gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-  bmnloadlibs();
+    // load main and detectors libraries
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+    bmnloadlibs();
 
-  // load TEve libraries
-  gSystem->Load("libEve");
-  gSystem->Load("libEventDisplay");
+    // load TEve libraries
+    gSystem->Load("libEve");
+    gSystem->Load("libEventDisplay");
 
+    // CREATE FairRunAna
+    FairRunAna* fRun = new FairRunAna();
 
-  // define input file
-  TString ExpRecoFile = exp_reco_file;
-  // define geometry file
-  TString GeoSimFile = geo_sim_file;
-  // define output file
-  TString outFile = out_file;
-
-
-  // Create FairRunAna
-  FairRunAna* fRun = new FairRunAna();
-
-  // Create event manager
-  FairEventManager* fMan= new FairEventManager();
-  fMan->isOnline = is_online;
-  fMan->fDataSource = data_source;
+    // Create event manager
+    FairEventManager* fMan= new FairEventManager();
+    fMan->isOnline = is_online;
+    fMan->iDataSource = data_source;
 
 
-  // simulated and reconstructed data for simulation
-  if (data_source == 0)
-  {
-    if (CheckFileExist(GeoSimFile))
-        fRun->SetInputFile(GeoSimFile);
+    // FOR SIMULATION
+    if (data_source == 0)
+    {
+        if (!CheckFileExist(sim_geo_file))
+        {
+            cout<<endl<<"ERROR: Simulation file with detector geometry wasn't found!"<<endl;
+            return;
+        }
+
+        fRun->SetInputFile(sim_geo_file);
+
+        // set parameter file with simulation data and detector geometry
+        FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
+        FairParRootFileIo* parIo1 = new FairParRootFileIo();
+        parIo1->open(sim_geo_file);
+        rtdb->setFirstInput(parIo1);
+        rtdb->setOutput(parIo1);
+        rtdb->saveOutput();
+
+        // add file with reconstructed data as friend
+        if (CheckFileExist(reco_file))
+            fRun->AddFriend(reco_file);
+        else
+            cout<<endl<<"Warning: File with reconstructed data wasn't found!"<<endl;
+    }
+    // for experimental data
     else
     {
-        cout<<endl<<"ERROR: Simulation file with detector geometry wasn't found!"<<endl;
-        return;
+        // check file existence with detector geometry
+        if (!CheckFileExist(sim_geo_file))
+        {
+            cout<<endl<<"ERROR: File with detector geometry wasn't found!"<<endl;
+            return;
+        }
+
+        fRun->SetInputFile(sim_geo_file);
+
+        // set parameter file with simulation data and detector geometry
+        FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
+        FairParRootFileIo* parIo1 = new FairParRootFileIo();
+        parIo1->open(sim_geo_file);
+        rtdb->setFirstInput(parIo1);
+        rtdb->setOutput(parIo1);
+        rtdb->saveOutput();
+
+        // get gGeoManager from geometry file
+        if (!gGeoManager)
+        {
+            TFile* geoFile = new TFile(sim_geo_file, "READ");
+            if (!geoFile->IsOpen())
+            {
+                cout<<"Error: could not open ROOT file with geometry!"<<endl;
+                return;
+            }
+
+            TObject* pObj = geoFile->Get("FairBaseParSet");
+            if (pObj == NULL)
+            {
+                TList* keyList = geoFile->GetListOfKeys();
+                TIter next(keyList);
+                TKey* key = (TKey*)next();
+                TString className(key->GetClassName());
+                if (className.BeginsWith("TGeoManager"))
+                    key->ReadObj();
+                else
+                {
+                    cout<<"Error: TGeoManager isn't top element in given file "<<root_file_path<<endl;
+                    return;
+                }
+            }
+        }
+
+        fMan->strExperimentFile = reco_file;
+
+        // set field for Geane (e.g. constant inside the magnet)
+        BmnFieldConst* magField = new BmnFieldConst();
+        magField->SetFieldRegion(-300., 300., -300., 300., -300., 300);
+        magField->SetField(0., -9. * 0.44, 0.);
+        fRun->SetField(magField);
     }
 
-    // set parameter file with simulation data and detector geometry
-    FairRuntimeDb *rtdb = fRun->GetRuntimeDb();
-    FairParRootFileIo *parIo1 = new FairParRootFileIo();
-    parIo1->open(GeoSimFile.Data());
-    rtdb->setFirstInput(parIo1);
-    rtdb->setOutput(parIo1);
-    rtdb->saveOutput();
+    // set output file
+    fRun->SetOutputFile("ed_out.root");
 
-    // add file with reconstruction data as friend
-    if (CheckFileExist(ExpRecoFile))
-        fRun->AddFriend(ExpRecoFile);
-    else
-        cout<<endl<<"Warning: File with reconstructed data wasn't found!"<<endl;
-  }
-  // experimental data
-  else
-  {
-    // add file with detector geometry
-    if (!CheckFileExist(GeoSimFile))
-    {
-        cout<<endl<<"ERROR: File with detector geometry wasn't found!"<<endl;
-        return;
-    }
-    else
-        fRun->SetInputFile(GeoSimFile);
+    // set tasks to draw
+    SetTasks(fMan, data_source);
 
-    fMan->source_file_name = ExpRecoFile;
-    fMan->geo_file_name = GeoSimFile;
-  }
+    fMan->background_color = 17;
+    fMan->isDarkColor = false;
 
-  // set output file
-  fRun->SetOutputFile(outFile);
-
-  // set FairTasks for initialization and Run/Draw
-  SetDataSource(fMan, is_online, data_source);
-
-
-  // visualization parameters
-  if (gGeoManager)
-      gGeoManager->SetVisLevel(3);
-
-  fMan->background_color = 17;
-  fMan->isDarkColor = false;
-
-  //FairEventManager::Init(Int_t visopt = 1, Int_t vislvl = 3, Int_t maxvisnds = 10000);
-  fMan->Init();
+    // FairEventManager::Init(Int_t visopt = 1, Int_t vislvl = 3, Int_t maxvisnds = 10000)
+    fMan->Init();
 }
 
 
 // set FairRunAna tasks depending from data source and on/offline mode
 class FairEventManager;
-void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
+void SetTasks(FairEventManager* fMan, int data_source)
 {
     // root files with simulation and reconstructed data
     if (data_source == 0)
     {
         Style_t pointMarker = kFullDotSmall;
-        Color_t pointColor = kRed;
+        Color_t mcPointColor = kRed, recoPointColor = kBlack;
 
         // draw MC points
-        FairMCPointDraw *TofPoint = new FairMCPointDraw("TofPoint", pointColor, pointMarker);
-        fMan->AddTask(TofPoint);
-        FairMCModuleDraw *PsdPoint = new FairMCModuleDraw("PsdPoint", pointColor, pointMarker);
-        fMan->AddTask(PsdPoint);
-        FairMCPointDraw *StsPoint = new FairMCPointDraw("StsPoint", pointColor, pointMarker);
-        fMan->AddTask(StsPoint);
-        FairMCPointDraw *RecoilPoint = new FairMCPointDraw("RecoilPoint", pointColor, pointMarker);
+        FairMCPointDraw* RecoilPoint = new FairMCPointDraw("RecoilPoint", mcPointColor, pointMarker);
         fMan->AddTask(RecoilPoint);
-        FairMCPointDraw *TOF1Point = new FairMCPointDraw("TOF1Point", pointColor, pointMarker);
+        //FairMCPointDraw* MWPC1Point = new FairMCPointDraw("MWPC1Point", mcPointColor, pointMarker);
+        //fMan->AddTask(MWPC1Point);
+        //FairMCPointDraw* MWPC2Point = new FairMCPointDraw("MWPC2Point", mcPointColor, pointMarker);
+        //fMan->AddTask(MWPC2Point);
+        //FairMCPointDraw* MWPC3Point = new FairMCPointDraw("MWPC3Point", mcPointColor, pointMarker);
+        //fMan->AddTask(MWPC3Point);
+        FairMCPointDraw* TOF1Point = new FairMCPointDraw("TOF1Point", mcPointColor, pointMarker);
         fMan->AddTask(TOF1Point);
-        FairMCPointDraw *DCH1Point = new FairMCPointDraw("DCH1Point", pointColor, pointMarker);
+        FairMCPointDraw* DCH1Point = new FairMCPointDraw("DCH1Point", mcPointColor, pointMarker);
         fMan->AddTask(DCH1Point);
-        FairMCPointDraw *DCH2Point = new FairMCPointDraw("DCH2Point", pointColor, pointMarker);
+        FairMCPointDraw* DCH2Point = new FairMCPointDraw("DCH2Point", mcPointColor, pointMarker);
         fMan->AddTask(DCH2Point);
-        FairMCPointDraw *MWPC1Point = new FairMCPointDraw("MWPC1Point", pointColor, pointMarker);
-        fMan->AddTask(MWPC1Point);
-        FairMCPointDraw *MWPC2Point = new FairMCPointDraw("MWPC2Point", pointColor, pointMarker);
-        fMan->AddTask(MWPC2Point);
-        FairMCPointDraw *MWPC3Point = new FairMCPointDraw("MWPC3Point", pointColor, pointMarker);
-        fMan->AddTask(MWPC3Point);
+        FairMCPointDraw* TofPoint = new FairMCPointDraw("TofPoint", mcPointColor, pointMarker);
+        fMan->AddTask(TofPoint);
+        FairMCModuleDraw* PsdPoint = new FairMCModuleDraw("PsdPoint", mcPointColor, pointMarker);
+        fMan->AddTask(PsdPoint);
+        FairMCPointDraw* StsPoint = new FairMCPointDraw("StsPoint", mcPointColor, pointMarker);
+        fMan->AddTask(StsPoint);
 
         // draw MC geometry tracks
         FairMCTracks* GeoTrack = new FairMCTracks("GeoTracks");
         fMan->AddTask(GeoTrack);
 
-        // draw MC tracks
+        // or draw MC tracks by Geane - not implemented yet
         //FairMCStack* MCTrack = new FairMCStack("MCTrack");
         //fMan->AddTask(MCTrack);
 
         // DST hits
-        FairHitPointSetDraw *BmnGemHit = new FairHitPointSetDraw("BmnGemStripHit", kBlack, pointMarker);
+        FairHitPointSetDraw* BmnGemHit = new FairHitPointSetDraw("BmnGemStripHit", recoPointColor, pointMarker);
         fMan->AddTask(BmnGemHit);
-        FairHitPointSetDraw *TOF1Hit = new FairHitPointSetDraw("TOF1Hit", kBlack, pointMarker);
+        FairHitPointSetDraw* TOF1Hit = new FairHitPointSetDraw("TOF1Hit", recoPointColor, pointMarker);
         fMan->AddTask(TOF1Hit);
-        FairHitPointSetDraw *BmnDch1Hit = new FairHitPointSetDraw("BmnDch1Hit0", kBlack, pointMarker);
+        FairHitPointSetDraw* BmnDch1Hit = new FairHitPointSetDraw("BmnDch1Hit0", recoPointColor, pointMarker);
         fMan->AddTask(BmnDch1Hit);
-        FairHitPointSetDraw *BmnDch2Hit = new FairHitPointSetDraw("BmnDch2Hit0", kBlack, pointMarker);
+        FairHitPointSetDraw* BmnDch2Hit = new FairHitPointSetDraw("BmnDch2Hit0", recoPointColor, pointMarker);
         fMan->AddTask(BmnDch2Hit);
-        FairHitPointSetDraw *BmnTof2Hit = new FairHitPointSetDraw("BmnTof2Hit", kBlack, pointMarker);
+        FairHitPointSetDraw* BmnTof2Hit = new FairHitPointSetDraw("BmnTof2Hit", recoPointColor, pointMarker);
         fMan->AddTask(BmnTof2Hit);
 
-        // DST hits (box view)
-        //FairHitDraw *MpdTpcHit = new FairHitDraw("TpcHit", 1);
-        //fMan->AddTask(MpdTpcHit);
+        // or DST hits in box view
+        //FairHitDraw* TpcHit = new FairHitDraw("TpcHit", 1);
+        //fMan->AddTask(TpcHit);
 
         // DST tracks from simulation data
         BmnTrackDraw* BmnGlobalTrack = new BmnTrackDraw("GlobalTrack");
         fMan->AddTask(BmnGlobalTrack);
 
+        // save EventDisplay Screenshot
+        //FairWebScreenshots* WebScreenshots = new FairWebScreenshots("WebScreenshots","output32434535");
+        //fMan->AddTask(WebScreenshots);
+
         return;
     }
 
-    // raw files with detector stream data
-    if ((data_source == 1) && (!is_online))
-    {
-        Style_t pointMarker = kFullDotSmall;
-        Color_t pointColor = kRed;
-
-        // draw MWPC Digits
-        RawMWPCDigitDraw* MWPCDigit = new RawMWPCDigitDraw("MWPCDigit", pointColor, pointMarker);
-        MWPCDigit->source_file_name = fMan->source_file_name;
-        fMan->AddTask(MWPCDigit);
-    }
-
     // root files with experimental hits and tracks
-    if (data_source == 2)
+    if (data_source == 1)
     {
         Style_t pointMarker = kFullDotSmall;
         Color_t pointColor = kRed;
 
+        /** raw data in ROOT file
         // draw MWPC digits
-        //BmnDigitDraw* MwpcDigit = new BmnDigitDraw("bmn_mwpc_digit", 1, pointColor, pointMarker);
-        //fMan->AddTask(MwpcDigit);
+        BmnDigitDraw* MwpcDigit = new BmnDigitDraw("bmn_mwpc_digit", 1, pointColor, pointMarker);
+        fMan->AddTask(MwpcDigit);
 
         // draw DCH digits
-        //BmnDigitDraw* DchDigit = new BmnDigitDraw("bmn_dch_digit", 2, pointColor, pointMarker);
-        //fMan->AddTask(DchDigit);
+        BmnDigitDraw* DchDigit = new BmnDigitDraw("bmn_dch_digit", 2, pointColor, pointMarker);
+        fMan->AddTask(DchDigit);**/
 
+        /*  tracks with points in ROOT files
         // draw MWPC hits
         BmnHitDraw* MwpcHit = new BmnHitDraw("BmnMwpcHit", pointColor, pointMarker);
         fMan->AddTask(MwpcHit);
@@ -198,6 +217,12 @@ void SetDataSource(FairEventManager* fMan, bool is_online, int data_source)
         
         // draw DCH tracks
         BmnExpTrackDraw* DchTrack = new BmnExpTrackDraw("DchTracks", "BmnDchHit");
-        fMan->AddTask(DchTrack);
+        fMan->AddTask(DchTrack);*/
+
+        FairGeane* Geane = new FairGeane();
+        fMan->AddTask(Geane);
+
+        CbmTrackDraw* MwpcTrack = new CbmTrackDraw("MwpcMatchedTracks");
+        fMan->AddTask(MwpcTrack);
     }
 }

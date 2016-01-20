@@ -173,7 +173,7 @@ void FairMCTracks::Exec(Option_t* option)
 
     fEventManager->SetEvtMaxEnergy(MaxEnergyLimit);
     fEventManager->SetEvtMinEnergy(MinEnergyLimit);
-    gEve->Redraw3D(kFALSE);
+    //gEve->Redraw3D(kFALSE);
   }
 }
 // -----   Destructor   ----------------------------------------------------

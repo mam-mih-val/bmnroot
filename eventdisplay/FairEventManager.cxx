@@ -63,8 +63,7 @@ FairEventManager::FairEventManager()
    arrLevelColoring(NULL),
    background_color(1),
    isDarkColor(true),
-   source_file_name(NULL),
-   geo_file_name(NULL),
+   strExperimentFile(""),
    fEntryCount(0),
    isZDCModule(NULL)
 {
@@ -338,201 +337,194 @@ void FairEventManager::InitColorStructure()
 //______________________________________________________________________________
 void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
 {
-  TEveManager::Create();
-  fRunAna->Init();
+    TEveManager::Create();
+    fRunAna->Init();
 
-  // for raw and digit root files - get gGeoManager from additional file
-  if ((!gGeoManager) && (geo_file_name))
-  {
-      TFile* f = new TFile(geo_file_name);
-      f->Get("FairBaseParSet");
-  }
+    TGeoNode* N = gGeoManager->GetTopNode();
+    TEveGeoTopNode* TNod = new TEveGeoTopNode(gGeoManager, N, visopt, vislvl, maxvisnds);
 
-  TGeoNode* N = gGeoManager->GetTopNode();
-  TEveGeoTopNode* TNod = new TEveGeoTopNode(gGeoManager, N, visopt, vislvl, maxvisnds);
+    // change color and visibility of geometry nodes
+    if (gVisualizationColoring != defaultColoring)
+    {
+        if (gVisualizationColoring == selectedColoring)
+            SelectedGeometryColoring();
+        else
+            LevelChangeNodeProperty(N, 0);
+    }
 
-  // change color and visibility of geometry nodes
-  if (gVisualizationColoring != defaultColoring)
-  {
-    if (gVisualizationColoring == selectedColoring)
-        SelectedGeometryColoring();
-    else
-        LevelChangeNodeProperty(N, 0);
-  }
+    gEve->AddGlobalElement(TNod);
+    gEve->FullRedraw3D(kTRUE);
+    fEvent = gEve->AddEvent(this);
 
-  gEve->AddGlobalElement(TNod);
-  gEve->FullRedraw3D(kTRUE);
-  fEvent = gEve->AddEvent(this);
+    // first 3D viewer
+    gEve->GetDefaultViewer()->SetElementName("3D View");
+    // switch off left and right light sources for first window
+    gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+    gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+    if (!isDarkColor)
+        gEve->GetDefaultViewer()->GetGLViewer()->UseLightColorSet();
+    gEve->GetDefaultViewer()->GetGLViewer()->SetClearColor(background_color);
 
-  // first 3D viewer
-  gEve->GetDefaultViewer()->SetElementName("3D View");
-  // switch off left and right light sources for first window
-  gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  if (!isDarkColor)
-      gEve->GetDefaultViewer()->GetGLViewer()->UseLightColorSet();
-  gEve->GetDefaultViewer()->GetGLViewer()->SetClearColor(background_color);
+    // many views for Offline mode
+    if (!isOnline)
+    {
+        // create projection managers
+        fRPhiMng = new TEveProjectionManager();
+        fRPhiMng->SetProjection(TEveProjection::kPT_RPhi);
+        gEve->AddToListTree(fRPhiMng, kFALSE);
 
-  // many views for Offline mode
-  if (!isOnline)
-  {
-  // create projection managers
-  fRPhiMng = new TEveProjectionManager();
-  fRPhiMng->SetProjection(TEveProjection::kPT_RPhi);
-  gEve->AddToListTree(fRPhiMng, kFALSE);
+        fRhoZMng = new TEveProjectionManager();
+        fRhoZMng->SetProjection(TEveProjection::kPT_RhoZ);
+        gEve->AddToListTree(fRhoZMng, kFALSE);
 
-  fRhoZMng = new TEveProjectionManager();
-  fRhoZMng->SetProjection(TEveProjection::kPT_RhoZ);
-  gEve->AddToListTree(fRhoZMng, kFALSE);
+        // create axes for viewers
+        TEveProjectionAxes* axes = new TEveProjectionAxes(fRPhiMng);
+        axes->SetMainColor(kRed);
 
-  // create axes for viewers
-  TEveProjectionAxes* axes = new TEveProjectionAxes(fRPhiMng);
-  axes->SetMainColor(kRed);
+        // add window in EventDisplay for RPhi projection
+        TEveWindowSlot *RPhiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
+        TEveWindowPack *RPhiPack = RPhiSlot->MakePack();
+        RPhiPack->SetElementName("RPhi View");
+        RPhiPack->SetShowTitleBar(kFALSE);
+        RPhiPack->NewSlot()->MakeCurrent();
+        fRPhiView = gEve->SpawnNewViewer("RPhi View", "");
+        fRPhiView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoXOY);
+        Double_t eqRPhi[4] = {0.0, 0.0, 1.0, 0.0};
+        // set clip plane and camera parameters
+        fRPhiView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
+        fRPhiView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRPhi);
+        fRPhiView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
+        fRPhiView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
+        // switch off left, right, top and bottom light sources
+        fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+        fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+        fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
+        fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
+        if (!isDarkColor)
+            fRPhiView->GetGLViewer()->UseLightColorSet();
+        fRPhiView->GetGLViewer()->SetClearColor(background_color);
+        // create scene holding projected geometry for the RPhi view
+        fRPhiGeomScene  = gEve->SpawnNewScene("RPhi Geometry", "Scene holding projected geometry for the RPhi view.");
+        // add axes for scene of RPhi view
+        fRPhiGeomScene->AddElement(axes);
+        // create scene holding projected event-data for the RPhi view
+        fRPhiEventScene = gEve->SpawnNewScene("RPhi Event Data", "Scene holding projected event-data for the RPhi view.");
+        // add both scenes to RPhi View
+        fRPhiView->AddScene(fRPhiGeomScene);
+        fRPhiView->AddScene(fRPhiEventScene);
 
-  // add window in EventDisplay for RPhi projection
-  TEveWindowSlot *RPhiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
-  TEveWindowPack *RPhiPack = RPhiSlot->MakePack();
-  RPhiPack->SetElementName("RPhi View");
-  RPhiPack->SetShowTitleBar(kFALSE);
-  RPhiPack->NewSlot()->MakeCurrent();
-  fRPhiView = gEve->SpawnNewViewer("RPhi View", "");
-  fRPhiView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoXOY);
-  Double_t eqRPhi[4] = {0.0, 0.0, 1.0, 0.0};
-  // set clip plane and camera parameters
-  fRPhiView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-  fRPhiView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRPhi);
-  fRPhiView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
-  fRPhiView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
-  // switch off left, right, top and bottom light sources
-  fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
-  fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
-  if (!isDarkColor)
-      fRPhiView->GetGLViewer()->UseLightColorSet();
-  fRPhiView->GetGLViewer()->SetClearColor(background_color);
-  // create scene holding projected geometry for the RPhi view
-  fRPhiGeomScene  = gEve->SpawnNewScene("RPhi Geometry", "Scene holding projected geometry for the RPhi view.");
-  // add axes for scene of RPhi view
-  fRPhiGeomScene->AddElement(axes);
-  // create scene holding projected event-data for the RPhi view
-  fRPhiEventScene = gEve->SpawnNewScene("RPhi Event Data", "Scene holding projected event-data for the RPhi view.");
-  // add both scenes to RPhi View
-  fRPhiView->AddScene(fRPhiGeomScene);
-  fRPhiView->AddScene(fRPhiEventScene);
+        // add window in EvenDisplay for RhoZ projection
+        TEveWindowSlot *RhoZSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
+        TEveWindowPack *RhoZPack = RhoZSlot->MakePack();
+        RhoZPack->SetElementName("RhoZ View");
+        RhoZPack->SetShowTitleBar(kFALSE);
+        RhoZPack->NewSlot()->MakeCurrent();
+        fRhoZView = gEve->SpawnNewViewer("RhoZ View", "");
+        fRhoZView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
+        Double_t eqRhoZ[4] = {-1.0, 0.0, 0.0, 0.0};
+        // set clip plane and camera parameters
+        fRhoZView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
+        fRhoZView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRhoZ);
+        fRhoZView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
+        fRhoZView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
+        // switch off left, right and front light sources
+        fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+        fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+        fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
+        if (!isDarkColor)
+            fRhoZView->GetGLViewer()->UseLightColorSet();
+        fRhoZView->GetGLViewer()->SetClearColor(background_color);
+        // create scene holding projected geometry for the RhoZ view.
+        fRhoZGeomScene  = gEve->SpawnNewScene("RhoZ Geometry", "Scene holding projected geometry for the RhoZ view.");
+        // add axes for scene of RPhoZ view
+        fRhoZGeomScene->AddElement(axes);
+        // create scene holding projected event-data for the RhoZ view
+        fRhoZEventScene = gEve->SpawnNewScene("RhoZ Event Data", "Scene holding projected event-data for the RhoZ view.");
+        // add both scenes to RhoZView
+        fRhoZView->AddScene(fRhoZGeomScene);
+        fRhoZView->AddScene(fRhoZEventScene);
 
-  // add window in EvenDisplay for RhoZ projection
-  TEveWindowSlot *RhoZSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
-  TEveWindowPack *RhoZPack = RhoZSlot->MakePack();
-  RhoZPack->SetElementName("RhoZ View");
-  RhoZPack->SetShowTitleBar(kFALSE);
-  RhoZPack->NewSlot()->MakeCurrent();
-  fRhoZView = gEve->SpawnNewViewer("RhoZ View", "");
-  fRhoZView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
-  Double_t eqRhoZ[4] = {-1.0, 0.0, 0.0, 0.0};
-  // set clip plane and camera parameters
-  fRhoZView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-  fRhoZView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRhoZ);
-  fRhoZView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
-  fRhoZView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
-  // switch off left, right and front light sources
-  fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
-  if (!isDarkColor)
-      fRhoZView->GetGLViewer()->UseLightColorSet();
-  fRhoZView->GetGLViewer()->SetClearColor(background_color);
-  // create scene holding projected geometry for the RhoZ view.
-  fRhoZGeomScene  = gEve->SpawnNewScene("RhoZ Geometry", "Scene holding projected geometry for the RhoZ view.");
-  // add axes for scene of RPhoZ view
-  fRhoZGeomScene->AddElement(axes);
-  // create scene holding projected event-data for the RhoZ view
-  fRhoZEventScene = gEve->SpawnNewScene("RhoZ Event Data", "Scene holding projected event-data for the RhoZ view.");
-  // add both scenes to RhoZView
-  fRhoZView->AddScene(fRhoZGeomScene);
-  fRhoZView->AddScene(fRhoZEventScene);
+        // add window in EvenDisplay for MultiView
+        TEveWindowSlot *MultiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
+        TEveWindowPack *MultiPack = MultiSlot->MakePack();
+        MultiPack->SetElementName("Multi View");
+        MultiPack->SetHorizontal();
+        MultiPack->SetShowTitleBar(kFALSE);
+        MultiPack->NewSlot()->MakeCurrent();
+        fMulti3DView = gEve->SpawnNewViewer("3D View (multi)", "");
+        // switch off left and right light sources for 3D MultiView
+        fMulti3DView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+        fMulti3DView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+        if (!isDarkColor)
+            fMulti3DView->GetGLViewer()->UseLightColorSet();
+        fMulti3DView->GetGLViewer()->SetClearColor(background_color);
+        // add 3D scenes (first tab) to 3D MultiView
+        fMulti3DView->AddScene(gEve->GetGlobalScene());
+        fMulti3DView->AddScene(gEve->GetEventScene());
 
-  // add window in EvenDisplay for MultiView
-  TEveWindowSlot *MultiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
-  TEveWindowPack *MultiPack = MultiSlot->MakePack();
-  MultiPack->SetElementName("Multi View");
-  MultiPack->SetHorizontal();
-  MultiPack->SetShowTitleBar(kFALSE);
-  MultiPack->NewSlot()->MakeCurrent();
-  fMulti3DView = gEve->SpawnNewViewer("3D View (multi)", "");
-  // switch off left and right light sources for 3D MultiView
-  fMulti3DView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  fMulti3DView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  if (!isDarkColor)
-      fMulti3DView->GetGLViewer()->UseLightColorSet();
-  fMulti3DView->GetGLViewer()->SetClearColor(background_color);
-  // add 3D scenes (first tab) to 3D MultiView
-  fMulti3DView->AddScene(gEve->GetGlobalScene());
-  fMulti3DView->AddScene(gEve->GetEventScene());
+        // add slot for RPhi projection on Multi View tab
+        MultiPack = MultiPack->NewSlot()->MakePack();
+        MultiPack->SetShowTitleBar(kFALSE);
+        MultiPack->NewSlot()->MakeCurrent();
+        fMultiRPhiView = gEve->SpawnNewViewer("RPhi View (multi)", "");
+        fMultiRPhiView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoXOY);
+        // set clip plane and camera parameters
+        fMultiRPhiView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
+        fMultiRPhiView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRPhi);
+        fMultiRPhiView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
+        fMultiRPhiView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
+        // switch off left, right, top and bottom light sources
+        fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+        fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+        fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
+        fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
+        if (!isDarkColor)
+            fMultiRPhiView->GetGLViewer()->UseLightColorSet();
+        fMultiRPhiView->GetGLViewer()->SetClearColor(background_color);
+        // add RPhi scenes (second tab) to RPhi MultiView
+        fMultiRPhiView->AddScene(fRPhiGeomScene);
+        fMultiRPhiView->AddScene(fRPhiEventScene);
 
-  // add slot for RPhi projection on Multi View tab
-  MultiPack = MultiPack->NewSlot()->MakePack();
-  MultiPack->SetShowTitleBar(kFALSE);
-  MultiPack->NewSlot()->MakeCurrent();
-  fMultiRPhiView = gEve->SpawnNewViewer("RPhi View (multi)", "");
-  fMultiRPhiView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoXOY);
-  // set clip plane and camera parameters
-  fMultiRPhiView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-  fMultiRPhiView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRPhi);
-  fMultiRPhiView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
-  fMultiRPhiView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
-  // switch off left, right, top and bottom light sources
-  fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
-  fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
-  if (!isDarkColor)
-      fMultiRPhiView->GetGLViewer()->UseLightColorSet();
-  fMultiRPhiView->GetGLViewer()->SetClearColor(background_color);
-  // add RPhi scenes (second tab) to RPhi MultiView
-  fMultiRPhiView->AddScene(fRPhiGeomScene);
-  fMultiRPhiView->AddScene(fRPhiEventScene);
+        // add slot for RhoZ projection on Multi View tab
+        MultiPack->NewSlot()->MakeCurrent();
+        fMultiRhoZView = gEve->SpawnNewViewer("RhoZ View (multi)", "");
+        fMultiRhoZView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
+        // set clip plane and camera parameters
+        fMultiRhoZView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
+        fMultiRhoZView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRhoZ);
+        fMultiRhoZView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
+        fMultiRhoZView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
+        // switch off left, right and front light sources
+        fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+        fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+        fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
+        if (!isDarkColor)
+            fMultiRhoZView->GetGLViewer()->UseLightColorSet();
+        fMultiRhoZView->GetGLViewer()->SetClearColor(background_color);
+        // add RhoZ scenes (second tab) to RhoZ MultiView
+        fMultiRhoZView->AddScene(fRhoZGeomScene);
+        fMultiRhoZView->AddScene(fRhoZEventScene);
 
-  // add slot for RhoZ projection on Multi View tab
-  MultiPack->NewSlot()->MakeCurrent();
-  fMultiRhoZView = gEve->SpawnNewViewer("RhoZ View (multi)", "");
-  fMultiRhoZView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
-  // set clip plane and camera parameters
-  fMultiRhoZView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-  fMultiRhoZView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRhoZ);
-  fMultiRhoZView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
-  fMultiRhoZView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
-  // switch off left, right and front light sources
-  fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
-  if (!isDarkColor)
-      fMultiRhoZView->GetGLViewer()->UseLightColorSet();
-  fMultiRhoZView->GetGLViewer()->SetClearColor(background_color);
-  // add RhoZ scenes (second tab) to RhoZ MultiView
-  fMultiRhoZView->AddScene(fRhoZGeomScene);
-  fMultiRhoZView->AddScene(fRhoZEventScene);
+        // copy geometry and event scene for RPhi and RhoZ views from global scene (3D)
+        fRPhiGeomScene->AddElement(gEve->GetGlobalScene());
+        fRPhiEventScene->AddElement(gEve->GetEventScene());
+        fRhoZGeomScene->AddElement(gEve->GetGlobalScene());
+        fRhoZEventScene->AddElement(gEve->GetEventScene());
 
-  // copy geometry and event scene for RPhi and RhoZ views from global scene (3D)
-  fRPhiGeomScene->AddElement(gEve->GetGlobalScene());
-  fRPhiEventScene->AddElement(gEve->GetEventScene());
-  fRhoZGeomScene->AddElement(gEve->GetGlobalScene());
-  fRhoZEventScene->AddElement(gEve->GetEventScene());
+        // update all scenes
+        fRPhiView->GetGLViewer()->UpdateScene(kTRUE);
+        fRhoZView->GetGLViewer()->UpdateScene(kTRUE);
+        fMulti3DView->GetGLViewer()->UpdateScene(kTRUE);
+        fMultiRPhiView->GetGLViewer()->UpdateScene(kTRUE);
+        fMultiRhoZView->GetGLViewer()->UpdateScene(kTRUE);
 
-  // update all scenes
-  fRPhiView->GetGLViewer()->UpdateScene(kTRUE);
-  fRhoZView->GetGLViewer()->UpdateScene(kTRUE);
-  fMulti3DView->GetGLViewer()->UpdateScene(kTRUE);
-  fMultiRPhiView->GetGLViewer()->UpdateScene(kTRUE);
-  fMultiRhoZView->GetGLViewer()->UpdateScene(kTRUE);
-
-  // don't change reposition camera on each update
-  fRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
-  fRhoZView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
-  fMulti3DView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
-  fMultiRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
-  fMultiRhoZView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
-  }//if (!isOnline)
+        // don't change reposition camera on each update
+        fRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
+        fRhoZView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
+        fMulti3DView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
+        fMultiRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
+        fMultiRhoZView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
+    }//if (!isOnline)
 }//FairEventManager::Init
 
 // changing of geometry color
@@ -773,161 +765,153 @@ void FairEventManager::GotoEvent(Int_t event)
 // go to next FairRunAna event for scene data getting
 void FairEventManager::NextEvent()
 {
-    fEntry += 1;
-    fRunAna->Run((Long64_t)fEntry);
+    fRunAna->Run((Long64_t)++fEntry);
 }
 
 // go to previous FairRunAna event for scene data getting
 void FairEventManager::PrevEvent()
 {
-    fEntry -= 1;
-    fRunAna->Run((Long64_t)fEntry);
+    fRunAna->Run((Long64_t)--fEntry);
 }
 
 // return integer value of color for track by particle pdg (default, white)
 Int_t FairEventManager::Color(int pdg)
 {
-  switch (pdg)
-  {
-  case   22     :
-    return  623;    // photon
-  case   -2112  :
-    return  2 ;   // anti-neutron
-  case   -11    :
-    return  3;    // e+
-  case   -3122  :
-    return  4;   // anti-Lambda
-  case   11     :
-    return  5;    // e-
-  case   -3222  :
-    return  6;   // Sigma-
-  case   12     :
-    return  7;    // e-neutrino (NB: flavour undefined by Geant)
-  case   -3212  :
-    return  8;   // Sigma0
-  case   -13    :
-    return  9;    // mu+
-  case   -3112  :
-    return  10;   // Sigma+ (PB)*/
-  case   13     :
-    return  11;    // mu-
-  case   -3322  :
-    return  12;   // Xi0MWPCDigit
-  case   111    :
-    return  13;    // pi0
-  case   -3312  :
-    return  14;   // Xi+
-  case   211    :
-    return  15;    // pi+
-  case   -3334  :
-    return  16;   // Omega+ (PB)
-  case   -211   :
-    return  17;    // pi-
-  case   -15    :
-    return  18;   // tau+
-  case   130    :
-    return  19;   // K long
-  case   15     :
-    return  20;   // tau-
-  case   321    :
-    return  21;   // K+
-  case   411    :
-    return  22;   // D+
-  case   -321   :
-    return  23;   // K-
-  case   -411   :
-    return  24;   // D-
-  case   2112   :
-    return  25;   // n
-  case   421    :
-    return  26;   // D0
-  case   2212   :
-    return  27;   // p
-  case   -421   :
-    return  28;   // D0
-  case   -2212  :
-    return  29;   // anti-proton
-  case   431    :
-    return  30;   // Ds+
-  case   310    :
-    return  31;   // K short
-  case   -431   :
-    return  32;   // anti Ds-
-  case   221    :
-    return  33;   // eta
-  case   4122   :
-    return  34;   // Lamba_c+
-  case   3122   :
-    return  35;   // Lambda
-  case   24     :
-    return  36;   // W+
-  case   3222   :
-    return  37;   // Sigma+
-  case   -24    :
-    return  38;   // W-
-  case   3212   :
-    return  39;   // Sigma0
-  case   23     :
-    return  40;   // Z
-  case   3112   :
-    return  41;   // Sigma-
-  case   3322   :
-    return  42;   // Xi0
-  case   3312   :
-    return  43;   // Xi-
-  case   3334   :
-    return  44;   // Omega- (PB)
-  case   50000050   :
-    return  801;   // Cerenkov
-  case   1000010020  :
-    return  45;
-  case   1000010030  :
-    return  48;
-  case   1000020040   :
-    return  50;
-  case   1000020030   :
-    return  55;
-  case   0:
-    return  27;    // Rootino
-  default  :
-    return 0;
-  }//switch
+    switch (pdg)
+    {
+    case   22     :
+        return  623;    // photon
+    case   -2112  :
+        return  2 ;   // anti-neutron
+    case   -11    :
+        return  3;    // e+
+    case   -3122  :
+        return  4;   // anti-Lambda
+    case   11     :
+        return  5;    // e-
+    case   -3222  :
+        return  6;   // Sigma-
+    case   12     :
+        return  7;    // e-neutrino (NB: flavour undefined by Geant)
+    case   -3212  :
+        return  8;   // Sigma0
+    case   -13    :
+        return  9;    // mu+
+    case   -3112  :
+        return  10;   // Sigma+ (PB)*/
+    case   13     :
+        return  11;    // mu-
+    case   -3322  :
+        return  12;   // Xi0MWPCDigit
+    case   111    :
+        return  13;    // pi0
+    case   -3312  :
+        return  14;   // Xi+
+    case   211    :
+        return  15;    // pi+
+    case   -3334  :
+        return  16;   // Omega+ (PB)
+    case   -211   :
+        return  17;    // pi-
+    case   -15    :
+        return  18;   // tau+
+    case   130    :
+        return  19;   // K long
+    case   15     :
+        return  20;   // tau-
+    case   321    :
+        return  21;   // K+
+    case   411    :
+        return  22;   // D+
+    case   -321   :
+        return  23;   // K-
+    case   -411   :
+        return  24;   // D-
+    case   2112   :
+        return  25;   // n
+    case   421    :
+        return  26;   // D0
+    case   2212   :
+        return  27;   // p
+    case   -421   :
+        return  28;   // D0
+    case   -2212  :
+        return  29;   // anti-proton
+    case   431    :
+        return  30;   // Ds+
+    case   310    :
+        return  31;   // K short
+    case   -431   :
+        return  32;   // anti Ds-
+    case   221    :
+        return  33;   // eta
+    case   4122   :
+        return  34;   // Lamba_c+
+    case   3122   :
+        return  35;   // Lambda
+    case   24     :
+        return  36;   // W+
+    case   3222   :
+        return  37;   // Sigma+
+    case   -24    :
+        return  38;   // W-
+    case   3212   :
+        return  39;   // Sigma0
+    case   23     :
+        return  40;   // Z
+    case   3112   :
+        return  41;   // Sigma-
+    case   3322   :
+        return  42;   // Xi0
+    case   3312   :
+        return  43;   // Xi-
+    case   3334   :
+        return  44;   // Omega- (PB)
+    case   50000050   :
+        return  801;   // Cerenkov
+    case   1000010020  :
+        return  45;
+    case   1000010030  :
+        return  48;
+    case   1000020040   :
+        return  50;
+    case   1000020030   :
+        return  55;
+    case   0:
+        return  27;    // Rootino
+    default  :
+        return 0;
+    }//switch
 }
 
 // add particles to the PDG data base: Deuteron, Triton, Alpha, HE3; Cherenkov, FeedbackPhoton
 void FairEventManager::AddParticlesToPdgDataBase(Int_t pdg)
 {
-  TDatabasePDG* pdgDB = TDatabasePDG::Instance();
+    TDatabasePDG* pdgDB = TDatabasePDG::Instance();
 
-  const Double_t kAu2Gev=0.9314943228;
-  const Double_t khSlash = 1.0545726663e-27;
-  const Double_t kErg2Gev = 1/1.6021773349e-3;
-  const Double_t khShGev = khSlash*kErg2Gev;
-  const Double_t kYear2Sec = 3600*24*365.25;
+    const Double_t kAu2Gev = 0.9314943228;
+    const Double_t khSlash = 1.0545726663e-27;
+    const Double_t kErg2Gev = 1/1.6021773349e-3;
+    const Double_t khShGev = khSlash*kErg2Gev;
+    const Double_t kYear2Sec = 3600*24*365.25;
 
-  // Ions
-  if ( !pdgDB->GetParticle(1000010020) )
-    pdgDB->AddParticle("Deuteron","Deuteron",2*kAu2Gev+8.071e-3,kTRUE,
-                       0,3,"Ion",1000010020);
+    // Ions
+    if (!pdgDB->GetParticle(1000010020))
+        pdgDB->AddParticle("Deuteron","Deuteron", 2*kAu2Gev+8.071e-3,kTRUE, 0, 3, "Ion", 1000010020);
 
-  if ( !pdgDB->GetParticle(1000010030) )
-    pdgDB->AddParticle("Triton","Triton",3*kAu2Gev+14.931e-3,kFALSE,
-                       khShGev/(12.33*kYear2Sec),3,"Ion",1000010030);
+    if (!pdgDB->GetParticle(1000010030))
+        pdgDB->AddParticle("Triton","Triton", 3*kAu2Gev+14.931e-3, kFALSE, khShGev/(12.33*kYear2Sec), 3, "Ion", 1000010030);
 
-  if ( !pdgDB->GetParticle(1000020040) )
-    pdgDB->AddParticle("Alpha","Alpha",4*kAu2Gev+2.424e-3,kTRUE,
-                       khShGev/(12.33*kYear2Sec),6,"Ion",1000020040);
+    if (!pdgDB->GetParticle(1000020040))
+        pdgDB->AddParticle("Alpha","Alpha", 4*kAu2Gev+2.424e-3, kTRUE, khShGev/(12.33*kYear2Sec), 6, "Ion", 1000020040);
 
-  if ( !pdgDB->GetParticle(1000020030) )
-    pdgDB->AddParticle("HE3","HE3",3*kAu2Gev+14.931e-3,kFALSE,
-                       0,6,"Ion",1000020030);
+    if (!pdgDB->GetParticle(1000020030))
+        pdgDB->AddParticle("HE3","HE3", 3*kAu2Gev+14.931e-3, kFALSE, 0, 6, "Ion", 1000020030);
 
-   // Special particles
-  if ( !pdgDB->GetParticle(50000050) )
-    pdgDB->AddParticle("Cherenkov","Cherenkov",0,kFALSE,
-                       0,0,"Special",50000050);
+    // Special particles
+    if (!pdgDB->GetParticle(50000050))
+        pdgDB->AddParticle("Cherenkov","Cherenkov", 0, kFALSE, 0, 0, "Special", 50000050);
 
-  if ( !pdgDB->GetParticle(50000051) )
-    pdgDB->AddParticle("FeedbackPhoton","FeedbackPhoton",0,kFALSE,
-                       0,0,"Special",50000051);
+    if (!pdgDB->GetParticle(50000051))
+        pdgDB->AddParticle("FeedbackPhoton","FeedbackPhoton", 0, kFALSE, 0, 0, "Special", 50000051);
 }

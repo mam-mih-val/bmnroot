@@ -59,9 +59,10 @@ InitStatus BmnTrackDraw::Init()
     {
         cout<<"BmnTrackDraw::Init()  branch GlobalTrack not found! Task will be deactivated"<<endl;
         SetActive(kFALSE);
+        return kERROR;
     }
 
-    if(fVerbose > 2)
+    if (fVerbose > 2)
         cout<<"BmnTrackDraw::Init() get track list "<<fTrackList<<endl;
 
     fGemTrackList = (TClonesArray*) fManager->GetObject("BmnGemTracks");
@@ -73,7 +74,7 @@ InitStatus BmnTrackDraw::Init()
     fDch2HitList = (TClonesArray*) fManager->GetObject("BmnDch2Hit0");
 
     fEventManager = FairEventManager::Instance();
-    if(fVerbose > 2)
+    if (fVerbose > 2)
         cout<<"BmnTrackDraw::Init() get instance of FairEventManager "<<endl;
 
     fEvent = "Current Event";
@@ -81,26 +82,25 @@ InitStatus BmnTrackDraw::Init()
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
     PEnergy = 0;
 
-    if (IsActive())
-        return kSUCCESS;
-    else
-        return kERROR;
+    return kSUCCESS;
 }
 // -------------------------------------------------------------------------
 void BmnTrackDraw::Exec(Option_t* option)
 {
-    if (!IsActive()) return;
+    if (!IsActive())
+        return;
+
     if (fVerbose > 1)
         cout<<" BmnTrackDraw::Exec "<<endl;
 
     Reset();
 
     BmnGlobalTrack* tr;
-
+    //cout<<"fTrackList->GetEntriesFast(): "<<fTrackList->GetEntriesFast()<<". fTrackList->GetEntries(): "<<fTrackList->GetEntries()<<endl;
     for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
     {
         if (fVerbose > 2)
-            cout<<"FairMCTracks::Exec "<<i<<endl;
+            cout<<"BmnTrackDraw::Exec "<<i<<endl;
 
         tr = (BmnGlobalTrack*)fTrackList->At(i);
         const FairTrackParam* pParamFirst = tr->GetParamFirst();

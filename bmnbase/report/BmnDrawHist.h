@@ -26,38 +26,37 @@ using std::vector;
  * \author Andrey Lebedev <andrey.lebedev@gsi.de>
  * \date 2012
  */
-class BmnDrawingOptions
-{
+class BmnDrawingOptions {
 public:
 
-   static Int_t Color(Int_t colorIndex) {
-      static const Int_t nofColors = 6;
-      static Int_t colors[nofColors] = {kRed, kBlue + 1, kGreen + 3, kMagenta + 4, kYellow + 2, kViolet};
-      return (colorIndex < nofColors) ? colors[colorIndex] : colorIndex;
-   }
+    static Int_t Color(Int_t colorIndex) {
+        static const Int_t nofColors = 6;
+        static Int_t colors[nofColors] = {kRed, kBlue + 1, kGreen + 3, kMagenta + 4, kYellow + 2, kViolet};
+        return (colorIndex < nofColors) ? colors[colorIndex] : colorIndex;
+    }
 
-   static Int_t LineWidth() {
-      return 2;
-   }
+    static Int_t LineWidth() {
+        return 2;
+    }
 
-   static Int_t LineStyle(Int_t lineStyleIndex) {
-      return lineStyleIndex + 1;
-   }
+    static Int_t LineStyle(Int_t lineStyleIndex) {
+        return lineStyleIndex + 1;
+    }
 
-   static Int_t MarkerSize() {
-      return 1;
-   }
+    static Float_t MarkerSize() {
+        return 0.8;
+    }
 
-   static Int_t MarkerStyle(Int_t markerIndex) {
-      static const Int_t nofMarkers = 8;
-      static Int_t markers[nofMarkers] = {kOpenCircle, kOpenSquare, kOpenTriangleUp, kOpenDiamond,
-                                          kFullCircle, kFullSquare, kFullTriangleUp};
-      return (markerIndex < nofMarkers) ? markers[markerIndex] : markerIndex;
-   }
+    static Int_t MarkerStyle(Int_t markerIndex) {
+        static const Int_t nofMarkers = 8;
+        static Int_t markers[nofMarkers] = {kOpenCircle, kOpenSquare, kOpenTriangleUp, kOpenDiamond,
+            kFullCircle, kFullSquare, kFullTriangleUp};
+        return (markerIndex < nofMarkers) ? markers[markerIndex] : markerIndex;
+    }
 
-   static Double_t TextSize() {
-      return 0.06;
-   }
+    static Double_t TextSize() {
+        return 0.06;
+    }
 };
 
 /**
@@ -65,8 +64,8 @@ public:
  * \brief Define linear or logarithmic scale for drawing.
  */
 enum HistScale {
-   kLog = 0, /**> Linear scale. */
-   kLinear = 1 /**> Logarithmic scale */
+    kLog = 0, /**> Linear scale. */
+    kLinear = 1 /**> Logarithmic scale */
 };
 
 
@@ -90,15 +89,16 @@ void SetDefaultDrawStyle();
  * \param[in] markerStyle Marker style (see ROOT documentation for details).
  */
 void DrawH1(
-   TH1* hist,
-   HistScale logx = kLinear,
-   HistScale logy = kLinear,
-   const string& drawOpt = "",
-   Int_t color = BmnDrawingOptions::Color(0),
-   Int_t lineWidth = BmnDrawingOptions::LineWidth(),
-   Int_t lineStyle = BmnDrawingOptions::LineStyle(0),
-   Int_t markerSize = BmnDrawingOptions::MarkerSize(),
-   Int_t markerStyle = BmnDrawingOptions::MarkerStyle(0));
+        TH1* hist,
+        HistScale logx = kLinear,
+        HistScale logy = kLinear,
+        const string& drawOpt = "",
+        Int_t color = BmnDrawingOptions::Color(0),
+        Int_t lineWidth = BmnDrawingOptions::LineWidth(),
+        Int_t lineStyle = BmnDrawingOptions::LineStyle(0),
+        Float_t markerSize = BmnDrawingOptions::MarkerSize(),
+        Int_t markerStyle = BmnDrawingOptions::MarkerStyle(0),
+        Int_t fillColor = -1);
 
 
 /**
@@ -110,11 +110,11 @@ void DrawH1(
  * \param[in] drawOpt Other drawing options (see ROOT documentation for details).
  */
 void DrawH2(
-   TH2* hist,
-   HistScale logx = kLinear,
-   HistScale logy = kLinear,
-   HistScale logz = kLinear,
-   const string& drawOpt = "COLZ");
+        TH2* hist,
+        HistScale logx = kLinear,
+        HistScale logy = kLinear,
+        HistScale logz = kLinear,
+        const string& drawOpt = "COLZ");
 
 
 /**
@@ -132,16 +132,16 @@ void DrawH2(
  * \param[in] drawOpt Draw options for TH1->Draw method.
  */
 void DrawH1(
-   const vector<TH1*>& histos,
-   const vector<string>& histLabels,
-   HistScale logx = kLinear,
-   HistScale logy = kLinear,
-   Bool_t drawLegend = true,
-   Double_t x1 = 0.25,
-   Double_t y1 = 0.99,
-   Double_t x2 = 0.55,
-   Double_t y2 = 0.75,
-   const string& drawOpt = "", Bool_t drawMeanLine = kTRUE);
+        const vector<TH1*>& histos,
+        const vector<string>& histLabels,
+        HistScale logx = kLinear,
+        HistScale logy = kLinear,
+        Bool_t drawLegend = true,
+        Double_t x1 = 0.25,
+        Double_t y1 = 0.99,
+        Double_t x2 = 0.55,
+        Double_t y2 = 0.75,
+        const string& drawOpt = "", Bool_t drawMeanLine = kTRUE);
 
 /**
  * \fn DrawGraph
@@ -157,15 +157,15 @@ void DrawH1(
  * \param[in] markerStyle Marker style (see ROOT documentation for details).
  */
 void DrawGraph(
-   TGraph* graph,
-   HistScale logx = kLinear,
-   HistScale logy = kLinear,
-   const string& drawOpt = "AC",
-   Int_t color = BmnDrawingOptions::Color(0),
-   Int_t lineWidth = BmnDrawingOptions::LineWidth(),
-   Int_t lineStyle = BmnDrawingOptions::LineStyle(0),
-   Int_t markerSize = BmnDrawingOptions::MarkerSize(),
-   Int_t markerStyle = BmnDrawingOptions::MarkerStyle(0));
+        TGraph* graph,
+        HistScale logx = kLinear,
+        HistScale logy = kLinear,
+        const string& drawOpt = "AC",
+        Int_t color = BmnDrawingOptions::Color(0),
+        Int_t lineWidth = BmnDrawingOptions::LineWidth(),
+        Int_t lineStyle = BmnDrawingOptions::LineStyle(0),
+        Int_t markerSize = BmnDrawingOptions::MarkerSize(),
+        Int_t markerStyle = BmnDrawingOptions::MarkerStyle(0));
 
 /**
  * \fn DrawGraph.
@@ -181,15 +181,15 @@ void DrawGraph(
  * \param[in] y2 Y coordinate of legend in current pad.
  */
 void DrawGraph(
-   const vector<TGraph*>& graphs,
-   const vector<string>& graphLabels,
-   HistScale logx = kLinear,
-   HistScale logy = kLinear,
-   Bool_t drawLegend = true,
-   Double_t x1 = 0.25,
-   Double_t y1 = 0.99,
-   Double_t x2 = 0.55,
-   Double_t y2 = 0.75);
+        const vector<TGraph*>& graphs,
+        const vector<string>& graphLabels,
+        HistScale logx = kLinear,
+        HistScale logy = kLinear,
+        Bool_t drawLegend = true,
+        Double_t x1 = 0.25,
+        Double_t y1 = 0.99,
+        Double_t x2 = 0.55,
+        Double_t y2 = 0.75);
 
 /**
  * \fn DrawGraph2D
@@ -201,11 +201,11 @@ void DrawGraph(
  * \param[in] drawOpt Other drawing options (see ROOT documentation for details).
  */
 void DrawGraph2D(
-   TGraph2D* graph,
-   HistScale logx = kLinear,
-   HistScale logy = kLinear,
-   HistScale logz = kLinear,
-   const string& drawOpt = "colz");
+        TGraph2D* graph,
+        HistScale logx = kLinear,
+        HistScale logy = kLinear,
+        HistScale logz = kLinear,
+        const string& drawOpt = "colz");
 
 void DrawMeanLine(TH1* hist);
 

@@ -89,15 +89,18 @@ protected:
             string(*labelFormatter)(const string&, Float_t));
 
     void DrawMomResGlob(const string& canvasName);
-    void DrawMomResGem(const string& canvasName);
+    void DrawMomResGem(const string& canvasName, TString name2d, TString name1d);
 
     void DrawEtaP(const string& canvasName);
 
     void DrawEffGhostSeed(const string& canvasName);
     void DrawEffGhostGem(const string& canvasName);
     void DrawEffGem(const string& canvasName);
+    void DrawEffEtaGem(const string& canvasName);
+    void DrawEffThetaGem(const string& canvasName);
     void DrawEffGlob(const string& canvasName);
     void DrawNhitsGem(const string& canvasName);
+    void DrawNhitsEtaGem(const string& canvasName);
     void DrawNhitsGlob(const string& canvasName);
     void DrawEffGhostGlob(const string& canvasName);
     void DrawPsimPrec(const string& canvasName);

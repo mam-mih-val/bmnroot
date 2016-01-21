@@ -13,6 +13,7 @@
 #include "map"
 #include "TCanvas.h"
 #include "TLine.h"
+#include "BmnTrackingQa.h"
 #include <boost/assign/list_of.hpp>
 #include <vector>
 #include <set>
@@ -70,19 +71,23 @@ void BmnTrackingQaReport::Create() {
     //Out() << PrintNofGhosts();
     Out().precision(3);
     Out() << PrintTrackingEfficiency(false);
-    Out() << "<hr>" << endl;
     PrintCanvases();
-
     Out() << R()->DocumentEnd();
 }
 
 string BmnTrackingQaReport::PrintEventInfo() {
-    Out() << "<h2>Event generator: UrQMD</h2>" << endl;
+    Out() << "<h2>Event generator: QGSM</h2>" << endl;
     Out() << "<h2>Energy: 4 GeV/n</h2>" << endl;
     if (GetOnlyPrimes()) Out() << "<h2>Results only for primaries presented</h2>" << endl;
     Out() << "<h2>Number of events: " << HM()->H1("hen_EventNo_TrackingQa")->GetEntries() << "</h2>" << endl;
     Out() << "<h2>Mean impact parameter: " << HM()->H1("Impact parameter")->GetMean() << "</h2>" << endl;
     Out() << "<h2>Mean multiplicity: " << HM()->H1("Multiplicity")->GetMean() << "</h2>" << endl;
+    Out() << "<hr>" << endl;
+    Out() << "<h3><font color=\"red\">Reconstructable</font> MC-track:</h3>" << "Monte Carlo track with at least <font color=\"red\">4</font> Monte Carlo points in GEM" << endl;
+    Out() << "<h3><font color=\"red\">Good</font> track:</h3>" << "Reconstructed track with at least <font color=\"red\">4</font> hits in GEM and <font color=\"red\">60%</font> of them corresponded the same MC-track" << endl;
+    Out() << "<h3><font color=\"red\">Clone</font> tracks:</h3>";
+    Out() << "Two or more reconstructed tracks with reference to the same MC-track." << endl;
+    Out() << "The number of clones is subtracted from number of good tracks before efficiency calculation." << endl;
     return "<hr>";
 }
 
@@ -192,13 +197,16 @@ void BmnTrackingQaReport::Draw() {
     SetDefaultDrawStyle();
     //    DrawEfficiencyHistos();
     DrawEffGem("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS");
-    DrawEffGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS");
+    DrawEffEtaGem("Distribution of MC-, reco- and fake-tracks vs Pseudorapidity per event for GEM TRACKS");
+    DrawEffThetaGem("Distribution of MC-, reco- and fake-tracks vs theta per event for GEM TRACKS");
+    //DrawEffGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS");
+    DrawNhitsEtaGem("Distribution of GEM reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Pseudorapidity");
     DrawNhitsGem("Distribution of GEM RECO-tracks vs number of hits per track");
-    DrawNhitsGlob("Distribution of GLOBAL RECO-tracks vs number of hits per track");
+    //DrawNhitsGlob("Distribution of GLOBAL RECO-tracks vs number of hits per track");
     //    DrawEffGhostSeed("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for SEEDS only");
     //    DrawEffGhostGem("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS");
     //    DrawEffGhostGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS");
-    DrawYPtHistos();
+    // DrawYPtHistos();
     DrawEtaP("Distribution of MC-tracks, GEM-tracks and Global tracks in Pseudorapidity and Momentum");
     DrawPsimPrec("Reco vs MC for GEM-tracks and Global tracks");
     DrawPtSimPtRec("Pt Reco vs MC for GEM-tracks and Global tracks");
@@ -206,9 +214,11 @@ void BmnTrackingQaReport::Draw() {
     DrawTxSimTxRec("Tx Reco vs MC for GEM-tracks and Global tracks");
     DrawTySimTyRec("Ty Reco vs MC for GEM-tracks and Global tracks");
     DrawPsimPrecComponentsGem("Reco vs MC for X-, Y- and Z-component of Momentum for GEM-tracks");
-    DrawPsimPrecComponentsGlob("Reco vs MC for X-, Y- and Z-component of Momentum for Global-tracks");
-    DrawMomResGem("Momentum resolution for GEM-tracks");
-    DrawMomResGlob("Momentum resolution for Global-tracks");
+    //DrawPsimPrecComponentsGlob("Reco vs MC for X-, Y- and Z-component of Momentum for Global-tracks");
+    DrawMomResGem("Momentum resolution for GEM-tracks", "momRes_2D_gem", "momRes_1D_gem");
+    DrawMomResGem("Momentum resolution for GEM-tracks Mod", "momRes_2D_mod_gem", "momRes_1D_mod_gem");
+//        DrawMomResGem("Momentum resolution for GEM-tracks");
+    //DrawMomResGlob("Momentum resolution for Global-tracks");
     //    DrawHitsHistos();
 }
 
@@ -413,37 +423,234 @@ void BmnTrackingQaReport::DrawEffGem(const string& canvasName) {
     HM()->H1("Well_vs_P_gem")->Scale(1. / nofEvents);
     HM()->H1("Ghost_vs_P_gem")->Sumw2();
     HM()->H1("Ghost_vs_P_gem")->Scale(1. / nofEvents);
+    HM()->H1("Split_vs_P_gem")->Sumw2();
+    HM()->H1("Split_vs_P_gem")->Scale(1. / nofEvents);
     vector<TH1*> histos1;
     histos1.push_back(HM()->H1("Sim_vs_P_gem"));
     histos1.push_back(HM()->H1("Well_vs_P_gem"));
     histos1.push_back(HM()->H1("Ghost_vs_P_gem"));
+    histos1.push_back(HM()->H1("Split_vs_P_gem"));
     vector<string> labels1;
     labels1.push_back("MC tracks");
-    labels1.push_back("Reco tracks");
+    labels1.push_back("Good tracks");
     labels1.push_back("Ghost tracks");
+    labels1.push_back("Clones");
     DrawH1(histos1, labels1, kLinear, kLinear, true, 0.5, 0.8, 1.0, 0.99, "PE1", kFALSE);
 
     canvas->cd(2);
     vector<string> labels2;
     labels2.push_back("Efficiency");
     labels2.push_back("Percent of ghosts");
+    labels2.push_back("Percent of clones");
 
     //    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
     HM()->H1("Eff_vs_P_gem")->Divide(HM()->H1("Well_vs_P_gem"), HM()->H1("Sim_vs_P_gem"), 1., 1., "B");
     HM()->H1("Eff_vs_P_gem")->Scale(100.0);
     HM()->H1("Fake_vs_P_gem")->Divide(HM()->H1("Ghost_vs_P_gem"), HM()->H1("Rec_vs_P_gem"), 1., 1., "B");
     HM()->H1("Fake_vs_P_gem")->Scale(100.0);
+    HM()->H1("SplitEff_vs_P_gem")->Divide(HM()->H1("Split_vs_P_gem"), HM()->H1("Rec_vs_P_gem"), 1., 1., "B");
+    HM()->H1("SplitEff_vs_P_gem")->Scale(100.0);
+
+    // Boundary checking.
+    // These cases shouldn't happen, but they happen sometimes...
     for (Int_t i = 0; i < HM()->H1("Eff_vs_P_gem")->GetNbinsX(); ++i) {
-        if (HM()->H1("Eff_vs_P_gem")->GetBinContent(i) > 100.0)
+        if (HM()->H1("Eff_vs_P_gem")->GetBinContent(i) > 100.0) {
             HM()->H1("Eff_vs_P_gem")->SetBinContent(i, 100.0);
-        if (HM()->H1("Fake_vs_P_gem")->GetBinContent(i) > 100.0)
+            HM()->H1("Eff_vs_P_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("Fake_vs_P_gem")->GetBinContent(i) > 100.0) {
             HM()->H1("Fake_vs_P_gem")->SetBinContent(i, 100.0);
+            HM()->H1("Fake_vs_P_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("SplitEff_vs_P_gem")->GetBinContent(i) > 100.0) {
+            HM()->H1("SplitEff_vs_P_gem")->SetBinContent(i, 100.0);
+            HM()->H1("SplitEff_vs_P_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("Eff_vs_P_gem")->GetBinContent(i) < 0.0) {
+            HM()->H1("Eff_vs_P_gem")->SetBinContent(i, 0.0);
+            HM()->H1("Eff_vs_P_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("Fake_vs_P_gem")->GetBinContent(i) < 0.0) {
+            HM()->H1("Fake_vs_P_gem")->SetBinContent(i, 0.0);
+            HM()->H1("Fake_vs_P_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("SplitEff_vs_P_gem")->GetBinContent(i) < 0.0) {
+            HM()->H1("SplitEff_vs_P_gem")->SetBinContent(i, 0.0);
+            HM()->H1("SplitEff_vs_P_gem")->SetBinError(i, 0.0);
+        }
     }
 
     vector<TH1*> histos2;
     histos2.push_back(HM()->H1("Eff_vs_P_gem"));
     histos2.push_back(HM()->H1("Fake_vs_P_gem"));
+    histos2.push_back(HM()->H1("SplitEff_vs_P_gem"));
     DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.9, 1.0, 0.99, "PE1");
+}
+
+void BmnTrackingQaReport::DrawEffEtaGem(const string& canvasName) {
+    Int_t nofEvents = HM()->H1("hen_EventNo_TrackingQa")->GetEntries();
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1200, 600);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    HM()->H1("Sim_vs_Eta_gem")->Sumw2();
+    HM()->H1("Sim_vs_Eta_gem")->Scale(1. / nofEvents);
+    HM()->H1("Rec_vs_Eta_gem")->Sumw2();
+    HM()->H1("Rec_vs_Eta_gem")->Scale(1. / nofEvents);
+    HM()->H1("Well_vs_Eta_gem")->Sumw2();
+    HM()->H1("Well_vs_Eta_gem")->Scale(1. / nofEvents);
+    HM()->H1("Ghost_vs_Eta_gem")->Sumw2();
+    HM()->H1("Ghost_vs_Eta_gem")->Scale(1. / nofEvents);
+    HM()->H1("Split_vs_Eta_gem")->Sumw2();
+    HM()->H1("Split_vs_Eta_gem")->Scale(1. / nofEvents);
+    vector<TH1*> histos1;
+    histos1.push_back(HM()->H1("Sim_vs_Eta_gem"));
+    histos1.push_back(HM()->H1("Well_vs_Eta_gem"));
+    histos1.push_back(HM()->H1("Ghost_vs_Eta_gem"));
+    histos1.push_back(HM()->H1("Split_vs_Eta_gem"));
+    vector<string> labels1;
+    labels1.push_back("MC tracks");
+    labels1.push_back("Reco tracks");
+    labels1.push_back("Ghosts");
+    labels1.push_back("Clones");
+    DrawH1(histos1, labels1, kLinear, kLinear, true, 0.5, 0.8, 1.0, 0.99, "PE1", kFALSE);
+
+    canvas->cd(2);
+    vector<string> labels2;
+    labels2.push_back("Efficiency");
+    labels2.push_back("Percent of ghosts");
+    labels2.push_back("Percent of clones");
+
+    //    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
+    HM()->H1("Eff_vs_Eta_gem")->Divide(HM()->H1("Well_vs_Eta_gem"), HM()->H1("Sim_vs_Eta_gem"), 1., 1., "B");
+    HM()->H1("Eff_vs_Eta_gem")->Scale(100.0);
+    HM()->H1("Fake_vs_Eta_gem")->Divide(HM()->H1("Ghost_vs_Eta_gem"), HM()->H1("Rec_vs_Eta_gem"), 1., 1., "B");
+    HM()->H1("Fake_vs_Eta_gem")->Scale(100.0);
+    HM()->H1("SplitEff_vs_Eta_gem")->Divide(HM()->H1("Split_vs_Eta_gem"), HM()->H1("Rec_vs_Eta_gem"), 1., 1., "B");
+    HM()->H1("SplitEff_vs_Eta_gem")->Scale(100.0);
+    
+    // Boundary checking.
+    // These cases shouldn't happen, but they happen sometimes...
+    for (Int_t i = 0; i < HM()->H1("Eff_vs_Eta_gem")->GetNbinsX(); ++i) {
+        if (HM()->H1("Eff_vs_Eta_gem")->GetBinContent(i) > 100.0) {
+            HM()->H1("Eff_vs_Eta_gem")->SetBinContent(i, 100.0);
+            HM()->H1("Eff_vs_Eta_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("Fake_vs_Eta_gem")->GetBinContent(i) > 100.0) {
+            HM()->H1("Fake_vs_Eta_gem")->SetBinContent(i, 100.0);
+            HM()->H1("Fake_vs_Eta_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("SplitEff_vs_Eta_gem")->GetBinContent(i) > 100.0) {
+            HM()->H1("SplitEff_vs_Eta_gem")->SetBinContent(i, 100.0);
+            HM()->H1("SplitEff_vs_Eta_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("Eff_vs_Eta_gem")->GetBinContent(i) < 0.0) {
+            HM()->H1("Eff_vs_Eta_gem")->SetBinContent(i, 0.0);
+            HM()->H1("Eff_vs_Eta_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("Fake_vs_Eta_gem")->GetBinContent(i) < 0.0) {
+            HM()->H1("Fake_vs_Eta_gem")->SetBinContent(i, 0.0);
+            HM()->H1("Fake_vs_Eta_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("SplitEff_vs_Eta_gem")->GetBinContent(i) < 0.0) {
+            HM()->H1("SplitEff_vs_Eta_gem")->SetBinContent(i, 0.0);
+            HM()->H1("SplitEff_vs_Eta_gem")->SetBinError(i, 0.0);
+        }
+    }
+
+    vector<TH1*> histos2;
+    histos2.push_back(HM()->H1("Eff_vs_Eta_gem"));
+    histos2.push_back(HM()->H1("Fake_vs_Eta_gem"));
+    histos2.push_back(HM()->H1("SplitEff_vs_Eta_gem"));
+    DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.9, 1.0, 0.99, "PE1");
+}
+
+void BmnTrackingQaReport::DrawEffThetaGem(const string& canvasName) {
+    Int_t nofEvents = HM()->H1("hen_EventNo_TrackingQa")->GetEntries();
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1200, 600);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    HM()->H1("Sim_vs_Theta_gem")->Sumw2();
+    HM()->H1("Sim_vs_Theta_gem")->Scale(1. / nofEvents);
+    HM()->H1("Rec_vs_Theta_gem")->Sumw2();
+    HM()->H1("Rec_vs_Theta_gem")->Scale(1. / nofEvents);
+    HM()->H1("Well_vs_Theta_gem")->Sumw2();
+    HM()->H1("Well_vs_Theta_gem")->Scale(1. / nofEvents);
+    HM()->H1("Ghost_vs_Theta_gem")->Sumw2();
+    HM()->H1("Ghost_vs_Theta_gem")->Scale(1. / nofEvents);
+    HM()->H1("Split_vs_Theta_gem")->Sumw2();
+    HM()->H1("Split_vs_Theta_gem")->Scale(1. / nofEvents);
+    vector<TH1*> histos1;
+    histos1.push_back(HM()->H1("Sim_vs_Theta_gem"));
+    histos1.push_back(HM()->H1("Well_vs_Theta_gem"));
+    histos1.push_back(HM()->H1("Ghost_vs_Theta_gem"));
+    histos1.push_back(HM()->H1("Split_vs_Theta_gem"));
+    vector<string> labels1;
+    labels1.push_back("MC tracks");
+    labels1.push_back("Reco tracks");
+    labels1.push_back("Ghosts");
+    labels1.push_back("Clones");
+    DrawH1(histos1, labels1, kLinear, kLinear, true, 0.5, 0.8, 1.0, 0.99, "PE1", kFALSE);
+
+    canvas->cd(2);
+    vector<string> labels2;
+    labels2.push_back("Efficiency");
+    labels2.push_back("Percent of ghosts");
+    labels2.push_back("Percent of clones");
+
+    //    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
+    HM()->H1("Eff_vs_Theta_gem")->Divide(HM()->H1("Well_vs_Theta_gem"), HM()->H1("Sim_vs_Theta_gem"), 1., 1., "B");
+    HM()->H1("Eff_vs_Theta_gem")->Scale(100.0);
+    HM()->H1("Fake_vs_Theta_gem")->Divide(HM()->H1("Ghost_vs_Theta_gem"), HM()->H1("Rec_vs_Theta_gem"), 1., 1., "B");
+    HM()->H1("Fake_vs_Theta_gem")->Scale(100.0);
+    HM()->H1("SplitEff_vs_Theta_gem")->Divide(HM()->H1("Split_vs_Theta_gem"), HM()->H1("Rec_vs_Theta_gem"), 1., 1., "B");
+    HM()->H1("SplitEff_vs_Theta_gem")->Scale(100.0);
+
+    // Boundary checking.
+    // These cases shouldn't happen, but they happen sometimes...
+    for (Int_t i = 0; i < HM()->H1("Eff_vs_Theta_gem")->GetNbinsX(); ++i) {
+        if (HM()->H1("Eff_vs_Theta_gem")->GetBinContent(i) > 100.0) {
+            HM()->H1("Eff_vs_Theta_gem")->SetBinContent(i, 100.0);
+            HM()->H1("Eff_vs_Theta_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("Fake_vs_Theta_gem")->GetBinContent(i) > 100.0) {
+            HM()->H1("Fake_vs_Theta_gem")->SetBinContent(i, 100.0);
+            HM()->H1("Fake_vs_Theta_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("SplitEff_vs_Theta_gem")->GetBinContent(i) > 100.0) {
+            HM()->H1("SplitEff_vs_Theta_gem")->SetBinContent(i, 100.0);
+            HM()->H1("SplitEff_vs_Theta_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("Eff_vs_Theta_gem")->GetBinContent(i) < 0.0) {
+            HM()->H1("Eff_vs_Theta_gem")->SetBinContent(i, 0.0);
+            HM()->H1("Eff_vs_Theta_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("Fake_vs_Theta_gem")->GetBinContent(i) < 0.0) {
+            HM()->H1("Fake_vs_Theta_gem")->SetBinContent(i, 0.0);
+            HM()->H1("Fake_vs_Theta_gem")->SetBinError(i, 0.0);
+        }
+        if (HM()->H1("SplitEff_vs_Theta_gem")->GetBinContent(i) < 0.0) {
+            HM()->H1("SplitEff_vs_Theta_gem")->SetBinContent(i, 0.0);
+            HM()->H1("SplitEff_vs_Theta_gem")->SetBinError(i, 0.0);
+        }
+    }
+
+    vector<TH1*> histos2;
+    histos2.push_back(HM()->H1("Eff_vs_Theta_gem"));
+    histos2.push_back(HM()->H1("Fake_vs_Theta_gem"));
+    histos2.push_back(HM()->H1("SplitEff_vs_Theta_gem"));
+    DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.9, 1.0, 0.99, "PE1");
+}
+
+void BmnTrackingQaReport::DrawNhitsEtaGem(const string& canvasName) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1200, 600);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    DrawH2(HM()->H2("Nh_sim_Eta_sim_gem"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(2);
+    DrawH2(HM()->H2("Nh_rec_Eta_rec_gem"), kLinear, kLinear, kLinear, "colz");
 }
 
 void BmnTrackingQaReport::DrawNhitsGem(const string& canvasName) {
@@ -459,7 +666,7 @@ void BmnTrackingQaReport::DrawNhitsGem(const string& canvasName) {
     histos1.push_back(HM()->H1("Ghost_vs_Nh_gem"));
     vector<string> labels1;
     labels1.push_back("Good tracks");
-    labels1.push_back("Ghost tracks");
+    labels1.push_back("Ghosts");
     DrawH1(histos1, labels1, kLinear, kLinear, true, 0.5, 0.9, 1.0, 0.99, "PE1", kFALSE);
 }
 
@@ -476,7 +683,7 @@ void BmnTrackingQaReport::DrawNhitsGlob(const string& canvasName) {
     histos1.push_back(HM()->H1("Ghost_vs_Nh_glob"));
     vector<string> labels1;
     labels1.push_back("Good tracks");
-    labels1.push_back("Ghost tracks");
+    labels1.push_back("Ghosts");
     DrawH1(histos1, labels1, kLinear, kLinear, true, 0.5, 0.9, 1.0, 0.99, "PE1", kFALSE);
 }
 
@@ -498,8 +705,8 @@ void BmnTrackingQaReport::DrawEffGhostGlob(const string& canvasName) {
     histos1.push_back(HM()->H1("ghostGlobDistr"));
     vector<string> labels1;
     labels1.push_back("MC tracks");
-    labels1.push_back("Reco tracks");
-    labels1.push_back("Ghost tracks");
+    labels1.push_back("Good tracks");
+    labels1.push_back("Ghosts");
     DrawH1(histos1, labels1, kLinear, kLinear, true, 0.7, 0.75, 1.0, 0.99, "PE1");
 
     canvas->cd(2);
@@ -595,9 +802,9 @@ void BmnTrackingQaReport::DrawEventsInfo(const string& canvasName) {
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
-    DrawH1(HM()->H1("Impact parameter"), kLinear, kLinear, "", kRed, 0.7, 0.75, 1.1, 20);
+    DrawH1(HM()->H1("Impact parameter"), kLinear, kLinear, "", kRed, 2, 1, 1.1, 20, 33);
     canvas->cd(2);
-    DrawH1(HM()->H1("Multiplicity"), kLinear, kLinear, "", kRed, 0.7, 0.75, 1.1, 20);
+    DrawH1(HM()->H1("Multiplicity"), kLinear, kLinear, "", kRed, 2, 1, 1.1, 20, 33);
 }
 
 void BmnTrackingQaReport::DrawMomResGlob(const string& canvasName) {
@@ -612,16 +819,16 @@ void BmnTrackingQaReport::DrawMomResGlob(const string& canvasName) {
     DrawH1(HM()->H1("momRes_1D_glob"), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
 }
 
-void BmnTrackingQaReport::DrawMomResGem(const string& canvasName) {
+void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d, TString name1d) {
     TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
-    DrawH2(HM()->H2("momRes_2D_gem"), kLinear, kLinear, kLinear, "colz");
+    DrawH2(HM()->H2(name2d.Data()), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
     //    HM()->H1("momRes_1D_gem")->SetMaximum(50.0);
-    HM()->H1("momRes_1D_gem")->SetMinimum(0.0);
-    DrawH1(HM()->H1("momRes_1D_gem"), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+    HM()->H1(name1d.Data())->SetMinimum(0.0);
+    DrawH1(HM()->H1(name1d.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
 }
 
 void BmnTrackingQaReport::DrawEtaP(const string& canvasName) {

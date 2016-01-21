@@ -32,20 +32,19 @@ public:
     UInt_t SearchTrackCandidates(Int_t startStation, Int_t gate, Bool_t isIdeal, Bool_t isLeft);
     void SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal);
     Bool_t CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar, TVector3 linePar);
+    Bool_t CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 spirPar, TVector3 linePar);
     BmnStatus DoSeeding();
     TVector3 CircleFit(BmnGemTrack* track);
     TVector3 LineFit(BmnGemTrack* track);
     TVector3 CircleBy3Hit(BmnGemTrack* track);
+    TVector3 SpiralFit(BmnGemTrack* track);
     
     Bool_t IsParCorrect(const FairTrackParam* par);
     
     Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
     
     void FillAddr();
-    void FillAddrWithLorentz(Float_t sigma_x);
-	
-    void FillHitsForSeedingArray();
-
+    void FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float_t trs);
     
     void SetUseLorentz(Bool_t use) {
         fUseLorentz = use;

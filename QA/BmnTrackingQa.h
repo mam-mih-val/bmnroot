@@ -89,13 +89,13 @@ public:
         fPtRangeMax = max;
     }
 
-    void SetAngleRange(
+    void SetThetaRange(
             Double_t min,
             Double_t max,
             Int_t nofBins) {
-        fAngleRangeMin = min;
-        fAngleRangeMax = max;
-        fAngleRangeBins = nofBins;
+        fThetaRangeMin = min;
+        fThetaRangeMax = max;
+        fThetaRangeBins = nofBins;
     }
 
     void SetTrackCategories(const vector<string>& trackCategories) {
@@ -180,12 +180,12 @@ private:
 
     void CreateHistograms();
 
-//    /**
-//     * \brief Loop over the reconstructed global tracks.
-//     * Check if track is correct and fill
-//     * multimap <MC track index, reconstructed track index>.
-//     */
-//    void ProcessGlobalTracks();
+    //    /**
+    //     * \brief Loop over the reconstructed global tracks.
+    //     * Check if track is correct and fill
+    //     * multimap <MC track index, reconstructed track index>.
+    //     */
+    //    void ProcessGlobalTracks();
 
     void ProcessGem();
     void ProcessGlobal();
@@ -238,6 +238,8 @@ private:
     Int_t fMinNofPointsDch; // Minimal number of MCPoints in TOF
 
     Double_t fQuota; // True/all hits for track to be considered correctly reconstructed
+    Double_t fEtaCut; // threshold for pseudorapidity (cat for spectators)
+    Double_t fPCut; // threshold for momentum
 
     Bool_t fUseConsecutivePointsInGem; // Use consecutive MC points for STS normalization
     Bool_t fPrimes; //calculate efficiency only for primaries or for all particles
@@ -263,9 +265,9 @@ private:
     Double_t fEtaRangeMin; // Minimum pseudorapidity for tracks for efficiency calculation
     Double_t fEtaRangeMax; // Maximum pseudorapidity for tracks for efficiency calculation    
     Int_t fEtaRangeBins; // Number of bins for efficiency vs. pseudorapidity histogram
-    Double_t fAngleRangeMin; // Minimum polar angle [grad]
-    Double_t fAngleRangeMax; // Maximum polar angle [grad]
-    Int_t fAngleRangeBins; // Number of bins for efficiency vs. polar angle histogram
+    Double_t fThetaRangeMin; // Minimum polar angle [grad]
+    Double_t fThetaRangeMax; // Maximum polar angle [grad]
+    Int_t fThetaRangeBins; // Number of bins for efficiency vs. polar angle histogram
 
     // Pointers to data arrays
     TClonesArray* fMCTracks; // CbmMCTrack array

@@ -22,7 +22,7 @@
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 // outFile - output file with reconstructed data, default: mpddst.root
 
-void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 100, Bool_t isPrimary = kTRUE, Bool_t gemCF = kFALSE) {
+void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 100, Bool_t isPrimary = kTRUE, Bool_t gemCF = kTRUE) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
@@ -256,7 +256,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     } else {
 
         BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
-        gemSF->SetUseLorentz(kTRUE);
+        if (gemCF) gemSF->SetUseLorentz(kTRUE);
         fRun->AddTask(gemSF);
 
         BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();

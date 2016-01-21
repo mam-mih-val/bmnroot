@@ -45,16 +45,17 @@ void DrawH1(
         HistScale logx,
         HistScale logy,
         const string& drawOpt,
-        Int_t color,
+        Int_t lineColor,
         Int_t lineWidth,
         Int_t lineStyle,
-        Int_t markerSize,
-        Int_t markerStyle) {
+        Float_t markerSize,
+        Int_t markerStyle,
+        Int_t fillColor) {
     Double_t textSize = BmnDrawingOptions::TextSize();
-    hist->SetLineColor(color);
+    hist->SetLineColor(lineColor);
     hist->SetLineWidth(lineWidth);
     hist->SetLineStyle(lineStyle);
-    hist->SetMarkerColor(color);
+    hist->SetMarkerColor(lineColor);
     hist->SetMarkerSize(markerSize);
     hist->SetMarkerStyle(markerStyle);
     if (logx == kLog) {
@@ -73,6 +74,7 @@ void DrawH1(
     gPad->SetLeftMargin(0.17);
     gPad->SetBottomMargin(0.15);
     gPad->SetTicks(1, 1);
+    if (fillColor > 0) hist->SetFillColor(fillColor);
     hist->Draw(drawOpt.c_str());
     gPad->SetGrid(true, true);
     hist->SetStats(false);
@@ -148,7 +150,7 @@ void DrawH1(
         if (drawMeanLine) DrawMeanLine(hist);
     }
     histos[0]->SetMaximum(max * 1.10);
-    
+
     if (drawLegend) {
         legend->Draw();
     }

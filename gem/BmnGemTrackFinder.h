@@ -48,6 +48,7 @@ public:
 
     BmnStatus CheckSplitting();
     BmnStatus ConnectNearestSeed(BmnGemTrack* seed);
+    TVector3  SpiralFit(BmnGemTrack* track);
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);

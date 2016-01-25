@@ -28,12 +28,12 @@ public:
     virtual ~BmnGemSeedFinder();
 
     void FindXYRSeeds(TH1F* h);
-    void FindSeeds(Int_t station, Int_t gate, Bool_t isIdeal);
-    UInt_t SearchTrackCandidates(Int_t startStation, Int_t gate, Bool_t isIdeal, Bool_t isLeft);
+    void FindSeeds(Int_t station, Int_t gate, Bool_t isIdeal, TClonesArray* arr);
+    UInt_t SearchTrackCandidates(Int_t startStation, Int_t gate, Bool_t isIdeal, Bool_t isLeft, TClonesArray* arr);
     void SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal);
     Bool_t CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar, TVector3 linePar);
     Bool_t CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 spirPar, TVector3 linePar);
-    BmnStatus DoSeeding();
+    BmnStatus DoSeeding(Int_t min, Int_t max, TClonesArray* arr);
     TVector3 CircleFit(BmnGemTrack* track);
     TVector3 LineFit(BmnGemTrack* track);
     TVector3 CircleBy3Hit(BmnGemTrack* track);
@@ -54,6 +54,10 @@ public:
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
     Float_t Sqr(Float_t x);
     BmnGemStripHit* GetHit(Int_t i);
+    
+    void SetTrs(Float_t trs) {kTRS = trs;}
+    void SetYstep(Float_t stp) {kY_STEP = stp;}
+    void SetSigX(Float_t sig) {kSIG_X = sig;}
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
@@ -67,6 +71,11 @@ private:
 
     Bool_t fUseLorentz; //flag for using Lorentz filtration
     
+    Float_t kSIG_X;
+    Float_t kY_STEP;
+    Float_t kTRS;
+    Float_t kNHITSFORFIT;
+    
     Int_t fNBins; // number of bins in histogram  
     Float_t fMin;
     Float_t fMax;
@@ -76,6 +85,9 @@ private:
 
     TClonesArray* fGemHitsArray;
     TClonesArray* fGemSeedsArray;
+    TClonesArray* fGemSeedsArrayLow;
+    TClonesArray* fGemSeedsArrayMid;
+    TClonesArray* fGemSeedsArrayBig;
     TClonesArray* fMCTracksArray;
     TClonesArray* fMCPointsArray;
 

@@ -28,15 +28,6 @@ CbmTofMerger.cxx
 CbmTrackMerger.cxx
 CbmPrimaryVertexFinder.cxx
 CbmFindPrimaryVertex.cxx
-report/BmnSimulationReport.cxx
-report/BmnStudyReport.cxx
-report/BmnTextReportElement.cxx
-report/BmnLatexReportElement.cxx
-report/BmnHtmlReportElement.cxx
-report/BmnReport.cxx
-report/BmnDrawHist.cxx
-report/BmnHistManager.cxx
-BmnMatchRecoToMC.cxx
 )
 
 EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE} 

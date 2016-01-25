@@ -155,8 +155,6 @@ add_subdirectory (QA)
 add_subdirectory (KF)
 add_subdirectory (cat)
 
-add_subdirectory (BmnKalmanFilter)
-
 add_subdirectory (eventdisplay)
 add_subdirectory (uni_db)
 

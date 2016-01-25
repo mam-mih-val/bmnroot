@@ -34,6 +34,15 @@ BmnClusteringQaReport.cxx
 BmnMCTrack.cxx
 BmnMCTrackCreator.cxx
 BmnAcceptanceFunction.h
+report/BmnSimulationReport.cxx
+report/BmnStudyReport.cxx
+report/BmnTextReportElement.cxx
+report/BmnLatexReportElement.cxx
+report/BmnHtmlReportElement.cxx
+report/BmnReport.cxx
+report/BmnDrawHist.cxx
+report/BmnHistManager.cxx
+BmnMatchRecoToMC.cxx
 )
 
 EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE} 

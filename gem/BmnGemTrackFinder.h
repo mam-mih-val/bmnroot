@@ -46,8 +46,8 @@ public:
     Float_t Sqr(Float_t x);
     BmnHit* GetHit(Int_t i);
 
-    BmnStatus CheckSplitting();
-    BmnStatus ConnectNearestSeed(BmnGemTrack* seed);
+    BmnStatus CheckSplitting(TClonesArray* arr);
+    BmnStatus ConnectNearestSeed(BmnGemTrack* seed, TClonesArray* arr);
     TVector3  SpiralFit(BmnGemTrack* track);
 
     virtual InitStatus Init();
@@ -63,6 +63,9 @@ private:
 
     TClonesArray* fGemHitArray;
     TClonesArray* fGemSeedsArray;
+    TClonesArray* fGemSeedsArrayLow;
+    TClonesArray* fGemSeedsArrayMid;
+    TClonesArray* fGemSeedsArrayBig;
     TClonesArray* fGemTracksArray;
     TClonesArray* fMCTracksArray;
     TClonesArray* fMCPointsArray;

@@ -18,6 +18,9 @@ BmnGemSeedFinder::BmnGemSeedFinder() : fEventNo(0) {
     fUseLorentz = kFALSE;
     fGemHitsArray = NULL;
     fGemSeedsArray = NULL;
+    fGemSeedsArrayLow = NULL;
+    fGemSeedsArrayMid = NULL;
+    fGemSeedsArrayBig = NULL;
     fHitsBranchName = "BmnGemStripHit";
     fSeedsBranchName = "BmnGemTrack";
 }
@@ -42,6 +45,12 @@ InitStatus BmnGemSeedFinder::Init() {
     }
     fGemSeedsArray = new TClonesArray(fSeedsBranchName, 100); //out
     ioman->Register("BmnGemSeeds", "GEM", fGemSeedsArray, kTRUE);
+    fGemSeedsArrayLow = new TClonesArray(fSeedsBranchName, 100); //out
+    ioman->Register("BmnGemSeedsLow", "GEM", fGemSeedsArrayLow, kTRUE);
+    fGemSeedsArrayMid = new TClonesArray(fSeedsBranchName, 100); //out
+    ioman->Register("BmnGemSeedsMid", "GEM", fGemSeedsArrayMid, kTRUE);
+    fGemSeedsArrayBig = new TClonesArray(fSeedsBranchName, 100); //out
+    ioman->Register("BmnGemSeedsBig", "GEM", fGemSeedsArrayBig, kTRUE);
 
 
     fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
@@ -62,19 +71,62 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 
     clock_t tStart = clock();
     fGemSeedsArray->Clear();
-    addresses.clear();
+    fGemSeedsArrayLow->Clear();
+    fGemSeedsArrayMid->Clear();
+    fGemSeedsArrayBig->Clear();
 
+    //FOR HIGH MOMENTUM
+    addresses.clear();
+    kSIG_X = 0.006;
+    kY_STEP = 6.0;
+    kTRS = 1.05;
+    kNHITSFORFIT = 5;
     if (fUseLorentz) {
-        FillAddrWithLorentz(0.006, 6.0, 1.05);
+        //FillAddrWithLorentz(0.006, 6.0, 1.05); //best parameters
+        FillAddrWithLorentz(kSIG_X, kY_STEP, kTRS);
     } else {
         FillAddr();
     }
 
-    DoSeeding();
+    DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArrayBig);
+    cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArrayBig->GetEntriesFast() << endl;
+
+
+    //FOR MID MOMENTUM
+    addresses.clear();
+    kSIG_X = 0.006;
+    kY_STEP = 6.0;
+    kTRS = 1.05;
+    kNHITSFORFIT = 4;
+    if (fUseLorentz) {
+        //FillAddrWithLorentz(0.006, 6.0, 1.05); //best parameters
+        FillAddrWithLorentz(kSIG_X, kY_STEP, kTRS);
+    } else {
+        FillAddr();
+    }
+
+    DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArrayMid);
+    cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArrayMid->GetEntriesFast() << endl;
+
+//    //FOR LOW MOMENTUM
+//    addresses.clear();
+//    kSIG_X = 0.006;
+//    kY_STEP = 6.0;
+//    kTRS = 1.05;
+//    kNHITSFORFIT = 3;
+//    if (fUseLorentz) {
+//        //FillAddrWithLorentz(0.006, 6.0, 1.05); //best parameters
+//        FillAddrWithLorentz(kSIG_X, kY_STEP, kTRS);
+//    } else {
+//        FillAddr();
+//    }
+//
+//    DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArrayLow);
+//    cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArrayLow->GetEntriesFast() << endl;
+
+
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit)
         GetHit(iHit)->SetUsing(kFALSE);
-    cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
-
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 
@@ -82,13 +134,13 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 
 }
 
-BmnStatus BmnGemSeedFinder::DoSeeding() {
+BmnStatus BmnGemSeedFinder::DoSeeding(Int_t min, Int_t max, TClonesArray* arr) {
 
     for (Int_t i = 0; i < kMAXSTATIONFORSEED; ++i) {
-        for (Int_t j = 5; j < 6; ++j)
-            FindSeeds(i, j, kTRUE); // from station #i, in gate = 2 * j + 1, only hits presented in every station 
-        for (Int_t j = 5; j < 6; ++j)
-            FindSeeds(i, j, kFALSE); // from station #i, in gate = 2 * j + 1
+        for (Int_t j = min; j < max; ++j)
+            FindSeeds(i, j, kTRUE, arr); // from station #i, in gate = 2 * j + 1, only hits presented in every station 
+        for (Int_t j = min; j < max; ++j)
+            FindSeeds(i, j, kFALSE, arr); // from station #i, in gate = 2 * j + 1
     }
     return kBMNSUCCESS;
 }
@@ -105,19 +157,19 @@ void BmnGemSeedFinder::Finish() {
 //                                                            //
 // ========================================================== //
 
-void BmnGemSeedFinder::FindSeeds(Int_t startStation, Int_t gate, Bool_t isIdeal) {
+void BmnGemSeedFinder::FindSeeds(Int_t startStation, Int_t gate, Bool_t isIdeal, TClonesArray* arr) {
 
     //search only kNHITSFORSEED first hits of track
     //search in left and right directions
 
     Int_t trCntr = 0;
-    trCntr += SearchTrackCandidates(startStation, gate, isIdeal, kTRUE);
-    trCntr += SearchTrackCandidates(startStation, gate, isIdeal, kFALSE);
+    trCntr += SearchTrackCandidates(startStation, gate, isIdeal, kTRUE, arr);
+    trCntr += SearchTrackCandidates(startStation, gate, isIdeal, kFALSE, arr);
 
     //    cout << "GEM_SEEDING: Number of candidates ( Stat = " << startStation << ", gate = " << gate * 2 + 1 << ", isIdeal = " << isIdeal << "): " << trCntr << endl;
 }
 
-UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, Bool_t isIdeal, Bool_t isLeft) {
+UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, Bool_t isIdeal, Bool_t isLeft, TClonesArray* arr) {
     UInt_t trCntr = 0;
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
 
@@ -136,7 +188,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         Int_t hitCntr = 0;
         Int_t startBin = 0;
         Int_t prevStation = startStation - 1; //number of starting station
-        Int_t nSteps = 2;
+        Int_t nSteps = 4;
         if (isLeft) { //search track-candidate in left direction
             for (Int_t i = xAddr; i > 0; i--) {
                 SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, gate, isIdeal);
@@ -152,7 +204,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         }
 
         trackCand.SortHits();
-        const Int_t minNHitsForFit = 4; //kNHITSFORSEED;
+        const Int_t minNHitsForFit = kNHITSFORFIT;
         if (trackCand.GetNHits() < minNHitsForFit) { // don't fit track by circle with less then 4 hits
             for (Int_t i = 0; i < trackCand.GetNHits(); ++i)
                 GetHit(trackCand.GetHitIndex(i))->SetUsing(kFALSE);
@@ -160,16 +212,17 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         }
         TVector3 circPar = CircleFit(&trackCand);
         TVector3 spirPar = SpiralFit(&trackCand);
-//        cout << circPar.Z() << " " << spirPar.Z() << endl;
+        //        cout << circPar.Z() << " " << spirPar.Z() << endl;
         //        TVector3 circPar = CircleBy3Hit(&trackCand);
         TVector3 linePar = LineFit(&trackCand);
         if (circPar.Z() < 0.00001) continue;
         trCntr++;
         trackCand.SortHits();
 
-//        if (CalculateTrackParams(&trackCand, circPar, linePar)) {
+        //        if (CalculateTrackParams(&trackCand, circPar, linePar)) {
         if (CalculateTrackParamsSpiral(&trackCand, spirPar, linePar)) {
-            new((*fGemSeedsArray)[fGemSeedsArray->GetEntriesFast()]) BmnGemTrack(trackCand);
+//            new((*fGemSeedsArray)[fGemSeedsArray->GetEntriesFast()]) BmnGemTrack(trackCand);
+            new((*arr)[arr->GetEntriesFast()]) BmnGemTrack(trackCand);
         }
     }
     return trCntr;
@@ -216,7 +269,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar,
     fField = FairRunAna::Instance()->GetField();
     const Int_t nHits = tr->GetNHits();
     BmnGemStripHit* lastHit = GetHit(tr->GetHitIndex(nHits - 1));
-    BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0)); 
+    BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0));
     if (!firstHit || !lastHit) return kFALSE;
 
     const Float_t B = linePar.X(); //angle coefficient for helicoid
@@ -336,7 +389,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar,
     Float_t fY = firstHit->GetY();
     Float_t fZ = firstHit->GetZ();
 
-//    Float_t h = (fX < Xc) ? -1.0 : 1.0;
+    //    Float_t h = (fX < Xc) ? -1.0 : 1.0;
     Float_t h = -1.0;
 
     Float_t Tx_first = h * (fZ - Zc) / (fX - Xc);
@@ -390,7 +443,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 sp
     BmnGemStripHit* preLastHit = GetHit(tr->GetHitIndex(nHits - 2));
     BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0));
     BmnGemStripHit* secondHit = GetHit(tr->GetHitIndex(1));
-    
+
     if (!firstHit || !lastHit) return kFALSE;
 
     const Float_t B = linePar.X(); //angle coefficient for helicoid 
@@ -409,8 +462,8 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 sp
     Float_t lR = Sqrt(lZ * lZ + lX * lX);
     Float_t Tx_first = (secondHit->GetX() - fX) / (secondHit->GetZ() - fZ);
     Float_t Tx_last = (preLastHit->GetX() - lX) / (preLastHit->GetZ() - lZ);
-//    Float_t Tx_first = (b * fX + fZ * fR) / (b * fZ - fX * fR);
-//    Float_t Tx_last = (b * lX + lZ * lR) / (b * lZ - lX * lR);
+    //    Float_t Tx_first = (b * fX + fZ * fR) / (b * fZ - fX * fR);
+    //    Float_t Tx_last = (b * lX + lZ * lR) / (b * lZ - lX * lR);
     Float_t Ty_last = B; // / (lX - Xc);
     Float_t Ty_first = B; // / (fX - Xc);
 
@@ -479,9 +532,9 @@ TVector3 BmnGemSeedFinder::CircleBy3Hit(BmnGemTrack* track) {
 }
 
 TVector3 BmnGemSeedFinder::SpiralFit(BmnGemTrack* track) {
-    
+
     const Float_t kN = track->GetNHits();
-    
+
     Float_t sumRTheta = 0.0;
     Float_t sumTheta = 0.0;
     Float_t sumTheta2 = 0.0;
@@ -493,7 +546,7 @@ TVector3 BmnGemSeedFinder::SpiralFit(BmnGemTrack* track) {
         Float_t z = hit->GetZ();
         Float_t r = Sqrt(x * x + z * z);
         Float_t Theta = ATan2(x, z);
-//        cout << Theta << " " << r << endl;
+        //        cout << Theta << " " << r << endl;
         sumTheta += Theta;
         sumR += r;
         sumTheta2 += Theta * Theta;
@@ -501,15 +554,15 @@ TVector3 BmnGemSeedFinder::SpiralFit(BmnGemTrack* track) {
     }
     Float_t b = (kN * sumRTheta - sumTheta * sumR) / (kN * sumTheta2 - sumTheta * sumTheta);
     Float_t a = (sumR - b * sumTheta) / kN;
-    
+
     //calculate curvature at first point
     Float_t z0 = GetHit(track->GetHitIndex(0))->GetZ();
     Float_t x0 = GetHit(track->GetHitIndex(0))->GetX();
     Float_t theta0 = ATan2(x0, z0);
     Float_t tmp2 = (a + b * theta0) * (a + b * theta0);
     Float_t k = (tmp2 + 2 * b * b) / Sqrt(Power((tmp2 + b * b), 3));
-//    cout << a << " " << b << " " << theta0 << " " << tmp2 << " " << Power((tmp2 - b * b), 3) << " " << Sqrt(Power((tmp2 - b * b), 3)) << " " << k << endl;
-    
+    //    cout << a << " " << b << " " << theta0 << " " << tmp2 << " " << Power((tmp2 - b * b), 3) << " " << Sqrt(Power((tmp2 - b * b), 3)) << " " << k << endl;
+
     return TVector3(a, b, 1 / k);
 }
 

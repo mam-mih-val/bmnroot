@@ -19,7 +19,7 @@
 #include "BmnFitNode.h"
 #include "BmnGemHit.h"
 #include "BmnGemTrackFinderQA.h"
-#include "BmnKalmanFilter_tmp.h"
+//#include "BmnKalmanFilter_tmp.h"
 #include "BmnTrackFitter.h"
 
 using namespace std;
@@ -78,7 +78,7 @@ private:
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
 
     FairField* fField;
-    BmnKalmanFilter_tmp* fKalman;
+//    BmnKalmanFilter_tmp* fKalman;
     Int_t fEventNo; // event counter
 
     ClassDef(BmnGemTrackFinder, 1);

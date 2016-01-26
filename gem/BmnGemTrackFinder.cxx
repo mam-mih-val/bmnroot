@@ -23,7 +23,7 @@ BmnGemTrackFinder::BmnGemTrackFinder() :
 fPDG(211),
 fEventNo(0),
 fChiSqCut(250.) {
-    fKalman = NULL;
+//    fKalman = NULL;
     fGemHitArray = NULL;
     fGemTracksArray = NULL;
     fMCTracksArray = NULL;
@@ -78,7 +78,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
     CheckSplitting(fGemSeedsArrayBig);
     for (Int_t i = 0; i < fGemSeedsArrayBig->GetEntriesFast(); ++i) {
-        fKalman = new BmnKalmanFilter_tmp();
+//        fKalman = new BmnKalmanFilter_tmp();
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArrayBig->At(i);
         if (track->GetChi2() < 0.0) continue; //split param
 
@@ -121,12 +121,12 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         //        tr.SetParamFirst(smoothPar);
 
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
-        delete fKalman;
+//        delete fKalman;
     }
     
     CheckSplitting(fGemSeedsArrayMid);
     for (Int_t i = 0; i < fGemSeedsArrayMid->GetEntriesFast(); ++i) {
-        fKalman = new BmnKalmanFilter_tmp();
+//        fKalman = new BmnKalmanFilter_tmp();
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArrayMid->At(i);
         if (track->GetChi2() < 0.0) continue; //split param
 
@@ -169,12 +169,12 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         //        tr.SetParamFirst(smoothPar);
 
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
-        delete fKalman;
+//        delete fKalman;
     }
     
     CheckSplitting(fGemSeedsArrayLow);
     for (Int_t i = 0; i < fGemSeedsArrayLow->GetEntriesFast(); ++i) {
-        fKalman = new BmnKalmanFilter_tmp();
+//        fKalman = new BmnKalmanFilter_tmp();
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArrayLow->At(i);
         if (track->GetChi2() < 0.0) continue; //split param
 
@@ -217,7 +217,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         //        tr.SetParamFirst(smoothPar);
 
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
-        delete fKalman;
+//        delete fKalman;
     }
 
     clock_t tFinish = clock();
@@ -472,12 +472,12 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge1(UInt_t station, BmnGemTrack* tr) {
         if (hit->GetType() == 0) continue; //don't use fakes
         Float_t chi = 0.0;
         //        if (fKalman->Prediction(&par, hit->GetZ(), node) != kBMNSUCCESS) continue;
-        if (fKalman->Prediction(&par, hit->GetZ(), node) != kBMNSUCCESS) break;
+//        if (fKalman->Prediction(&par, hit->GetZ(), node) != kBMNSUCCESS) break;
         //        cout << "HIT INFO: x = " << hit->GetX() << " y = " << hit->GetY() << " z = " << hit->GetZ() << endl;
         //        par.Print();
         //        cout << "BEFORE: HIT ID = " << hitIdx << " Hx = " << hit->GetX() << " " << par.GetX() << " " << par.GetY() << " " << par.GetZ() << " " << par.GetTx() << endl;
         //        if (fKalman->Correction(&par, hit, chi, node) != kBMNSUCCESS) continue;
-        if (fKalman->Correction(&par, hit, chi, node) != kBMNSUCCESS) break;
+//        if (fKalman->Correction(&par, hit, chi, node) != kBMNSUCCESS) break;
         //        par.Print();
         //        cout << "AFTER:                            " << par.GetX() << " " << par.GetY() << " " << par.GetZ() << " " << par.GetTx() << " chi = " << chi << endl;
         //        if (chi < fChiSqCut && chi < minChiSq) { // Check if hit is inside validation gate and closer to the track.
@@ -503,7 +503,7 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge1(UInt_t station, BmnGemTrack* tr) {
         minHit->SetUsing(kTRUE);
         tr->AddHit(minIdx, minHit);
         tr->SortHits();
-        fKalman->AddFitNode(minNode);
+//        fKalman->AddFitNode(minNode);
     }
 
     return kBMNSUCCESS;

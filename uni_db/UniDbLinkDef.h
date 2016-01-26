@@ -11,6 +11,7 @@
 #pragma link C++ class UniDbGenerateClasses+;
 #pragma link C++ class UniDbTangoData+;
 #pragma link C++ class UniDbParser+;
+#pragma link C++ class UniDbSearchCondition+;
 
 #pragma link C++ class UniDbRunPeriod+;
 #pragma link C++ class UniDbRun+;

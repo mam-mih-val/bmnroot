@@ -4,23 +4,25 @@
 // ----------------------------------------------------------------------
 
 /** db_classes/UniDbRun.h 
- ** Class for the table: run_ 
- **/ 
+ ** Class for the table: run_
+ **/
 
 #ifndef UNIDBRUN_H 
 #define UNIDBRUN_H 1 
 
 #include "TString.h"
 #include "TDatime.h"
+#include "TObjArray.h"
 
 #include "UniDbConnection.h"
+#include "UniDbSearchCondition.h"
 
 class UniDbRun
 {
  private:
-	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
-	/// connection to the database
-	UniDbConnection* connectionUniDb;
+    /* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+    /// connection to the database
+    UniDbConnection* connectionUniDb;
 
 	/// run number
 	int i_run_number;
@@ -52,8 +54,8 @@ class UniDbRun
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
-	/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
-	virtual ~UniDbRun(); // Destructor
+    /* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+    virtual ~UniDbRun(); // Destructor
 
 	// static class functions
 	/// add new run to the database
@@ -124,27 +126,31 @@ class UniDbRun
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
-        // static class functions (added by user request)
-        /// get numbers of runs existing in the Database for a selected range
-        /// \param[in] start_run start run number for selected numbers' range
-        /// \param[in] end_run end run number for selected numbers' range
-        /// \param[out] run_numbers numbers of the really existing runs for a selected range (from start to end)
-        /// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
-        static int GetRunNumbers(int start_run, int end_run, int*& run_numbers);
-        /// get numbers of existing runs in the Database
-        /// \param[out] run_numbers numbers of the really existing runs for a selected range (from start to end)
-        /// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
-        static int GetRunNumbers(int*& run_numbers);
-        /// set geometry binary data (geometry file's data) for runs from start_run_number to end_run_number
-        static int SetRootGeometry(int start_run_number, int end_run_number, unsigned char* root_geometry, Long_t size_root_geometry);
-        /// get geometry binary data (geometry file's data) for selected run number
-        static int GetRootGeometry(int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry);
-        /// write geometry file for runs from start_run_number to end_run_number to the database
-        static int WriteGeometryFile(int start_run_number, int end_run_number, char* geo_file_path);
-        /// read geometry file for selected run number from the database
-        static int ReadGeometryFile(int run_number, char* geo_file_path);
+	// static class functions (added by user request)
+	/// get numbers of runs existing in the Database for a selected range
+	/// \param[in] start_run start run number for selected numbers' range
+	/// \param[in] end_run end run number for selected numbers' range
+	/// \param[out] run_numbers numbers of the really existing runs for a selected range (from start to end)
+	/// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
+	static int GetRunNumbers(int start_run, int end_run, int*& run_numbers);
+	/// get numbers of existing runs in the Database
+	/// \param[out] run_numbers numbers of the really existing runs for a selected range (from start to end)
+	/// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
+	static int GetRunNumbers(int*& run_numbers);
+	/// set geometry binary data (geometry file's data) for runs from start_run_number to end_run_number
+	static int SetRootGeometry(int start_run_number, int end_run_number, unsigned char* root_geometry, Long_t size_root_geometry);
+	/// get geometry binary data (geometry file's data) for selected run number
+	static int GetRootGeometry(int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry);
+	/// write geometry file for runs from start_run_number to end_run_number to the database
+	static int WriteGeometryFile(int start_run_number, int end_run_number, char* geo_file_path);
+	/// read geometry file for selected run number from the database
+	static int ReadGeometryFile(int run_number, char* geo_file_path);
+	/// get runs corresponding to the specified single condition
+	static TObjArray* Search(const UniDbSearchCondition& search_condition);
+	/// get runs corresponding to the specified (vector) conditions
+	static TObjArray* Search(const TObjArray& search_conditions);
 
- ClassDef(UniDbRun,1);
+	ClassDef(UniDbRun,1);
 };
 
 #endif

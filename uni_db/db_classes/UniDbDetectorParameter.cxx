@@ -1413,5 +1413,138 @@ int UniDbDetectorParameter::SetIIArray(IIStructure* parameter_value, int element
 
     return 0;
 }
+
+TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
+{
+    TObjArray* arrayResult = NULL;
+
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+    {
+        cout<<"Error: connection to DB was failed"<<endl;
+        return arrayResult;
+    }
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+                "select value_id, detector_name, p.parameter_id, start_run, end_run, dc_serial, channel, parameter_value "
+                "from detector_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id");
+
+    TString strCondition;
+    bool isFirst = true;
+    TIter next(&search_conditions);
+    UniDbSearchCondition* curCondition;
+    while (curCondition = (UniDbSearchCondition*) next())
+    {
+        strCondition = "";
+
+        switch (curCondition->GetColumn())
+        {
+            case columnDetectorName:    strCondition += "lower(detector_name) "; break;
+            case columnParameterName:   strCondition += "lower(parameter_name) "; break;
+            case columnStartRun:        strCondition += "start_run "; break;
+            case columnEndRun:          strCondition += "end_run "; break;
+            case columnDCSerial:        strCondition += "dc_serial "; break;
+            case columnChannel:         strCondition += "channel "; break;
+            default:
+                cout<<"Error: column in the search condition wasn't defined, condition is skipped"<<endl;
+                continue;
+        }
+
+        switch (curCondition->GetCondition())
+        {
+            case conditionLess:             strCondition += "< "; break;
+            case conditionLessOrEqual:      strCondition += "<= "; break;
+            case conditionEqual:            strCondition += "= "; break;
+            case conditionNotEqual:         strCondition += "<> "; break;
+            case conditionGreater:          strCondition += "> "; break;
+            case conditionGreaterOrEqual:   strCondition += ">= "; break;
+            case conditionLike:             strCondition += "like "; break;
+            default:
+                cout<<"Error: comparison operator in the search condition wasn't defined, condition is skipped"<<endl;
+                continue;
+        }
+
+        switch (curCondition->GetValueType())
+        {
+            case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
+            case 2: strCondition += Form("%f", curCondition->GetDoubleValue()); break;
+            case 3: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
+            case 4: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
+            default:
+                cout<<"Error: value type in the search condition wasn't found, condition is skipped"<<endl;
+                continue;
+        }
+
+        if (isFirst)
+            sql += " where ";
+        else
+        {
+            sql += " and ";
+            isFirst = false;
+        }
+
+        sql += strCondition;
+    }
+
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: getting runs from DB has been failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+
+        return arrayResult;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    // extract rows one after another
+    arrayResult = new TObjArray();
+    while (stmt->NextResultRow())
+    {
+        int tmp_value_id;
+        tmp_value_id = stmt->GetInt(0);
+        TString tmp_detector_name;
+        tmp_detector_name = stmt->GetString(1);
+        int tmp_parameter_id;
+        tmp_parameter_id = stmt->GetInt(2);
+        int tmp_start_run;
+        tmp_start_run = stmt->GetInt(3);
+        int tmp_end_run;
+        tmp_end_run = stmt->GetInt(4);
+        int* tmp_dc_serial;
+        if (stmt->IsNull(5)) tmp_dc_serial = NULL;
+        else
+            tmp_dc_serial = new int(stmt->GetInt(5));
+        int* tmp_channel;
+        if (stmt->IsNull(6)) tmp_channel = NULL;
+        else
+            tmp_channel = new int(stmt->GetInt(6));
+        unsigned char* tmp_parameter_value;
+        tmp_parameter_value = NULL;
+        Long_t tmp_sz_parameter_value = 0;
+        stmt->GetLargeObject(7, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
+
+        arrayResult->Add((TObject*) new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_run, tmp_end_run, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value));
+    }
+
+    delete stmt;
+
+    return arrayResult;
+}
+
+TObjArray* UniDbDetectorParameter::Search(const UniDbSearchCondition& search_condition)
+{
+    TObjArray search_conditions;
+    search_conditions.Add((TObject*)&search_condition);
+
+    return Search(search_conditions);
+}
+
 // -------------------------------------------------------------------
 ClassImp(UniDbDetectorParameter);

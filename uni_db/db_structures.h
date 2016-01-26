@@ -11,4 +11,12 @@ struct IIStructure
     int int_2;
 };//__attribute__((packed));
 
+// enumeration of table columns for Search Conditions (UniDbRun::Search, UniDbDetectorParameters::Search function). *Begin and *End show the column range
+enum enumColumns{columnRunNumber, columnPeriodNumber, columnFilePath, columnBeamParticle, columnTargetParticle, columnEnergy,   // UniDbRun
+                    columnStartDatetime, columnEndDateTime, columnEventCount, columnFieldCurrent, columnFileSize,               // UniDbRun
+                 columnDetectorName, columnParameterName, columnStartRun, columnEndRun, columnDCSerial, columnChannel};         // UniDbDetectorParameter
+// enumeration of comparison operators for Search Conditions
+enum enumConditions{conditionLess, conditionLessOrEqual, conditionEqual, conditionNotEqual, conditionGreater, conditionGreaterOrEqual, conditionLike};
+
+
 #endif // DB_STRUCTURES_H

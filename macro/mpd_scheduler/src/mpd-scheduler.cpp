@@ -19,6 +19,8 @@
 #include "libxml/tree.h"
 #include <fstream>
 #include <algorithm>
+#include <map>
+#include <glob.h>
 
 enum enumSchedulerName {Torque};
 enumSchedulerName scheduler_name;
@@ -150,6 +152,19 @@ string form_file_name(string outName, string inName, string strCounter){
 	replace_string_in_text(outName, "${counter}", strCounter);
 
 	return outName;
+}
+
+inline vector<string> glob(const string& path)
+{
+    glob_t glob_result;
+    glob(path.c_str(), GLOB_TILDE, NULL, &glob_result);
+
+    vector<string> ret;
+    for (unsigned int i = 0; i < glob_result.gl_pathc; i++)
+        ret.push_back(string(glob_result.gl_pathv[i]));
+
+    globfree(&glob_result);
+    return ret;
 }
 
 // generate output file name with counter (for partial result)
@@ -437,15 +452,19 @@ void* ThreadProcessFile(void* thread_parameter)
 	return NULL;
 }
 
+void ParseDatabaseParameters(string input, TString& strConnection, TString& sql);
+
 int main(int argc, char** argv){
-	if (argc < 2){
+	if (argc < 2)
+	{
 		cout << "mpd-scheduler$ ERROR: first parameter (XML file name) wasn't set" << endl;
         return 1;
 	}
 
     // pointer to XML document
 	xmlDocPtr doc = xmlReadFile(argv[1], NULL, 0);
-	if(doc == NULL){
+	if(doc == NULL)
+	{
 		cout<<"mpd-scheduler$ ERROR: open XML file: "<<argv[1]<<endl;
 		return 2;
 	}
@@ -457,11 +476,13 @@ int main(int argc, char** argv){
 	char* pcSUB;
 	string data;
 	int command_length;
+	//map with Job name -> ID
+	multimap<string,string> mapNameID;
 
 	// path to executable's directory ('/' - last char)
 	string exe_dir = get_app_dir_linux();
 
-    // cycle for all jobs
+	// cycle for all jobs
 	xmlNodePtr cur_node = root;
 	while (cur_node)
 	{
@@ -471,16 +492,30 @@ int main(int argc, char** argv){
         	if (strcmp((char*)cur_node->name, "job") == 0)
         	{
         		bool isLocal = true, isCommand = false, isError = false;
-        		char* macro_name=NULL, *outFile=NULL, *inFile=NULL, *inDB=NULL, *pcStart_event=NULL, *pcCount_event=NULL,
+        		char *job_name=NULL, *dependency_name=NULL, *macro_name=NULL, *outFile=NULL, *inFile=NULL, *inDB=NULL, *pcStart_event=NULL, *pcCount_event=NULL,
                     *mode=NULL, *sproc_count=NULL, *pcConfig=NULL, *merge=NULL, *parallel_mode=NULL, *add_args=NULL, *command_line=NULL,
                     *lcStart_event=NULL, *lcCount_event=NULL, *pcLogs=NULL;
         		int* start_event = NULL, *count_event = NULL, *lc_start_event = NULL, *lc_count_event = NULL;
         		vector<structFilePar*> vecFiles;
 
-                xmlNodePtr sub_node = cur_node->children;
+                string strJobName = "mpd_task", strDependency = "";
+                job_name = (char*) xmlGetProp(cur_node, (unsigned char*)"name");
+                if (job_name != NULL)
+                	strJobName = job_name;
+                dependency_name = (char*) xmlGetProp(cur_node, (unsigned char*)"dependency");
+                if (dependency_name != NULL)
+                {
+                	multimap<string,string>::iterator it = mapNameID.find(dependency_name);
+                	if (it == mapNameID.end())
+                		cout<<"mpd-scheduler$ WARNING: dependency was not found: "<<dependency_name<<endl;
+                	else
+                		strDependency = "-hold_jid_ad " + it->second;
+                }
 
                 // PARSING TAGS of the JOB
-                while (sub_node){
+                xmlNodePtr sub_node = cur_node->children;
+                while (sub_node)
+                {
                 	if (sub_node->type == XML_ELEMENT_NODE)
                 	{
                 		// COMMAND LINE TAG
@@ -507,14 +542,13 @@ int main(int argc, char** argv){
                         	pcCount_event = (char*) xmlGetProp(sub_node, (unsigned char*)"count_event");
 
                         	// check global start parameter
-                        	if (pcStart_event != NULL){
+                        	if (pcStart_event != NULL)
+                        	{
                         		start_event = new int;
                         	    *start_event = atoi(pcStart_event);
                         	}
                         	else
-                        	{
                         		start_event = NULL;
-                        	}
                         	// check global count parameter
                         	if (pcCount_event != NULL)
                         	{
@@ -536,9 +570,8 @@ int main(int argc, char** argv){
                         	         break;
                         	     }
                         	}
-                        	else{
+                        	else
                         		count_event = NULL;
-                        	}
 
                         	add_args = (char*) xmlGetProp(sub_node, (unsigned char*)"add_args");
 
@@ -546,7 +579,8 @@ int main(int argc, char** argv){
                             continue;
                         }
                         // FILE TAG
-                        if (strcmp((char*)sub_node->name, "file") == 0){
+                        if (strcmp((char*)sub_node->name, "file") == 0)
+                        {
                         	inFile = (char*) xmlGetProp(sub_node, (unsigned char*)"input");
                         	outFile = (char*) xmlGetProp(sub_node, (unsigned char*)"output");
 
@@ -610,126 +644,63 @@ int main(int argc, char** argv){
 
                         	if (inFile != NULL)
                         	{
-                        		structFilePar* filePar = new structFilePar();
+                        		// check whether file contains wildcards (?,*)
+                        		if ((strchr(inFile, '?') != NULL) || (strchr(inFile, '*') != NULL))
+                        		{
+                        			vector<string> globFiles = glob(inFile);
+                        			for (unsigned int i = 0; i < globFiles.size(); i++)
+                        			{
+                        				structFilePar* filePar = new structFilePar();
+                        				// add input file
+                        				filePar->strFileIn = globFiles[i];
+                        				// add output
+                        				if (outFile != NULL)
+                        				{
+                        					char buf_int [9];
+                        				    sprintf (buf_int, "%d", i+1);
 
-                        		// add input file
-                        		filePar->strFileIn = inFile;
-                        		// add output
-                        		if (outFile != NULL) filePar->strFileOut = form_file_name(outFile, filePar->strFileIn, "1");
-                        		else filePar->strFileOut = "";
-                        		filePar->start_event = lc_start_event;
-                        		filePar->count_event = lc_count_event;
-                        		if (parallel_mode != NULL) filePar->strParallelMode = parallel_mode;
-                        		else filePar->strParallelMode = "";
-                        		filePar->iMerge = iMerge;
+                        				    filePar->strFileOut = form_file_name(outFile, filePar->strFileIn, buf_int);
+                        				}
+                        				else
+                        					filePar->strFileOut = "";
 
-                        	    vecFiles.push_back(filePar);
+                        				filePar->start_event = lc_start_event;
+                        				filePar->count_event = lc_count_event;
+                        				if (parallel_mode != NULL) filePar->strParallelMode = parallel_mode;
+                        				else filePar->strParallelMode = "";
+                        				filePar->iMerge = iMerge;
+
+                        				vecFiles.push_back(filePar);
+                        			}
+                        		}
+                        		else
+                        		{
+									structFilePar* filePar = new structFilePar();
+									// add input file
+									filePar->strFileIn = inFile;
+									// add output
+									if (outFile != NULL)
+										filePar->strFileOut = form_file_name(outFile, filePar->strFileIn, "1");
+									else
+										filePar->strFileOut = "";
+									filePar->start_event = lc_start_event;
+									filePar->count_event = lc_count_event;
+									if (parallel_mode != NULL)
+										filePar->strParallelMode = parallel_mode;
+									else
+										filePar->strParallelMode = "";
+									filePar->iMerge = iMerge;
+
+									vecFiles.push_back(filePar);
+                        		}
                         	}
                         	else
                         	{
                         		if (inDB != NULL)
                         		{
-                        			// PARSE DATABASE PARAMETERS
-                        			string input = inDB;
-                        			istringstream ss(input);
-                        			string token;
+                        			TString strConnection, sql;
+                        			ParseDatabaseParameters(inDB, strConnection, sql);
 
-                        			// variables for DB
-                        			bool isFirst = true, isGen = false, isEnergy = false, isMinEnergy = false, isMaxEnergy = false, isParts = false, isDesc = false, isType = false;
-                        			string server_name, strGen, strParts, strDesc, strType;
-                        			double fEnergy, fMaxEnergy;
-                        			// parse tokens by comma separated
-                        			while(getline(ss, token, ','))
-                        			{
-                        				if (isFirst)
-                        				{
-                        					server_name = token;
-                        					isFirst = false;
-
-                        					continue;
-                        				}
-
-                        				// to lowercase
-                        				transform(token.begin(), token.end(),token.begin(), ::tolower);
-
-                        				// generator name parsing
-                        				if ((token.length() > 4) && (token.substr(0,4) == "gen="))
-                        				{
-                        			    	isGen = true;
-                        			        strGen = token.substr(4);
-                        			    }
-                        			    else
-                        			    {
-                        			    	// energy parsing
-                        			    	if ((token.length() > 7) && (token.substr(0,7) == "energy="))
-                        			    	{
-                        			    		token = token.substr(7);
-
-                        			    		size_t indDash = token.find_first_of('-');
-                        			    		if (indDash != string::npos)
-                        			    		{
-                        			    			stringstream stream;
-                        			    		    stream << token.substr(0, indDash);
-                        			    		    double dVal;
-                        			    		    if (stream >> dVal)
-                        			    		    {
-                        			    		    	isEnergy = true;
-                        			    		        isMinEnergy = true;
-                        			    		        fEnergy = dVal;
-                        			    		    }
-                        			    		    if (token.length() > indDash)
-                        			    		    {
-                        			    		    	stringstream stream2;
-                        			    		        stream2 << token.substr(indDash+1);
-                        			    		        if (stream2 >> dVal)
-                        			    		        {
-                        			    		        	isEnergy = true;
-                        			    		            isMaxEnergy = true;
-                        			    		            fMaxEnergy = dVal;
-                        			    		        }
-                        			    		    }
-                        			    		}//if (indDash > -1)
-                        			    		// if exact energy value
-                        			    		else
-                        			    		{
-                        			    			stringstream stream;
-                        			    		    stream << token;
-                        			    		    double dVal;
-                        			    		    if (stream >> dVal)
-                        			    		    {
-                        			    		    	isEnergy = true;
-                        			    		        fEnergy = dVal;
-                        			    		    }
-                        			    		 }//else
-                        			    	}//if ((token.length() > 7) && (token.substr(0,7) == "energy="))
-                        			    	// particles' names in collision parsing
-                        			    	else{
-                        			        	if ((token.length() > 9) && (token.substr(0,9) == "particle=")){
-                        			        		isParts = true;
-                        			                strParts = token.substr(9);
-                        			            }
-                        			            else
-                        			            {
-                        			            	// search text in description string
-                        			            	if ((token.length() > 5) && (token.substr(0,5) == "desc=")){
-                        			            		isDesc = true;
-                        			            		strDesc = token.substr(5);
-                        			            	}
-                        			            	else
-                        			            	{
-                        			            		// type of data parsing
-                        			            		if ((token.length() > 5) && (token.substr(0,5) == "type=")){
-                        			            			isType = true;
-                        			            			strType = token.substr(5);
-                        			            		}
-                        			            	}//else DESC
-                        			            }//else PARTICLE
-                        			        }//else ENERGY
-                        			    }//else GEN
-                        			}//while(getline(ss, token, ','))
-
-                        			//READ PATH FROM DATABASE
-                        			TString strConnection = "mysql://" + (TString)server_name.c_str() + "/data4mpd";
                         			TSQLServer* pSQLServer = TSQLServer::Connect(strConnection, "data4mpd", "MixedPhase");
                         			if (pSQLServer == 0x00)
                         			{
@@ -739,83 +710,6 @@ int main(int argc, char** argv){
                         				//cur_node = cur_node->next;
                         				//continue;
                         				break;
-                        			}
-
-                        			TString sql = "select data4mpd_path "
-                        			              "from events";
-
-                        			bool isWhere = false;
-                        			// if event generator selection
-                        			if (isGen == true)
-                        			{
-                        				if (isWhere){
-                        					sql += TString::Format(" AND data4mpd_generator = '%s'", strGen.data());
-                        			    }
-                        			    else{
-                        			    	isWhere = true;
-                        			        sql += TString::Format(" "
-                        			                               "where data4mpd_generator = '%s'", strGen.data());
-                        			    }
-                        			}
-                        			// if energy selection
-                        			if (isEnergy == true)
-                        			{
-                        				if (isWhere)
-                        					sql += " AND ";
-                        				else
-                        				{
-                        					isWhere = true;
-                        				    sql += " "
-                        				           "where ";
-                        				}
-
-                        				if (isMinEnergy)
-                        				{
-                        					sql += TString::Format("data4mpd_energy >= %f", fEnergy);
-                        				    if (isMaxEnergy)
-                        				    	sql += TString::Format(" AND data4mpd_energy <= %f", fMaxEnergy);
-                        				}
-                        				else
-                        				{
-                        					if (isMaxEnergy)
-                        						sql += TString::Format("data4mpd_energy <= %f", fMaxEnergy);
-                        				    else
-                        				        sql += TString::Format("data4mpd_energy = %f", fEnergy);
-                        				}
-                        			}
-                        			// if 'particles in collision' selection
-                        			if (isParts == true)
-                        			{
-                        				if (isWhere)
-                        			            sql += TString::Format(" AND data4mpd_collision = '%s'", strParts.data());
-                        			    else
-                        			    {
-                        			    	isWhere = true;
-                        			        sql += TString::Format(" "
-                        			                               "where data4mpd_collision = '%s'", strParts.data());
-                        			    }
-                        			}
-                        			if (isDesc == true)
-                        			{
-                        				if (isWhere)
-                        					sql += TString::Format(" AND data4mpd_description like '%%%s%%'", strDesc.data());
-                        			    else
-                        			    {
-                        			    	isWhere = true;
-                        			        sql += TString::Format(" "
-                        			                               "where data4mpd_description like '%%%s%%'", strDesc.data());
-                        			    }
-                        			}
-                        			if (isType == true)
-                        			{
-                        				if (isWhere)
-                        					sql += TString::Format(" AND data4mpd_datatype = '%s'", strType.data());
-                        			    else
-                        			    {
-                        			    	isWhere = true;
-                        			        sql += TString::Format(" "
-                        			                               "where data4mpd_datatype = '%s'", strType.data());
-                        			    }
                         			}
 
                         			TSQLResult* res = pSQLServer->Query(sql);
@@ -834,7 +728,8 @@ int main(int argc, char** argv){
                         			    	// add input file
                         			    	filePar->strFileIn = (char*)row->GetField(0);
                         			    	// add output
-                        			    	if (outFile != NULL){
+                        			    	if (outFile != NULL)
+                        			    	{
                         			    		char buf_int [9];
                         			    		sprintf (buf_int, "%d", counter);
 
@@ -945,7 +840,7 @@ int main(int argc, char** argv){
                 string strDiff;
                 FILE *stream = NULL;
                 // GLOBAL SCHEDULING
-                if (isLocal == false)
+                if (!isLocal)
                 {
                 	// define process count for job
                 	int proc_count = 1;
@@ -1039,7 +934,8 @@ int main(int argc, char** argv){
 
                     	        int start = *cur_start_event;
                     	        int counter = 1;
-                    	        for (int i = 0; i < parallel_mode; i++){
+                    	        for (int i = 0; i < parallel_mode; i++)
+                    	        {
                     	        	string sOutFile = filePar->strFileOut;
                     	            int event_per_proc = (*cur_count_event+i)/proc_count;
 
@@ -1120,22 +1016,19 @@ int main(int argc, char** argv){
 
                     // RUN JOB in SGE
                     string MPDqsub_path = exe_dir + "mpd.qsub";
-                    command_length = 100 + sConfig.length() + MPDqsub_path.length() + fileName.length();
+                    command_length = 100 + strJobName.length() + strDependency.length() + sConfig.length() + MPDqsub_path.length() + fileName.length();
                     if (command_line != NULL)
                     	command_length += strlen(command_line);
                     if (macro_name != NULL)
                     	command_length += strlen(macro_name);
                     pcSUB = new char[command_length];
+
                     if (isCommand)
-                    {
-                    	sprintf (pcSUB, "qsub -t 1-%d -tc %d -v config=\"%s\",sched_command_line=\"%s\" %s",
-                    			iParallelCount, proc_count, sConfig.c_str(), command_line, MPDqsub_path.c_str());
-                    }
+                    	sprintf (pcSUB, "qsub -N %s %s -t 1-%d -tc %d -v config=\"%s\",sched_command_line=\"%s\" %s",
+                    			strJobName.c_str(), strDependency.c_str(), iParallelCount, proc_count, sConfig.c_str(), command_line, MPDqsub_path.c_str());
                     else
-                    {
-                    	sprintf (pcSUB, "qsub -t 1-%d -tc %d -v macro=\"%s\",files=\"%s\",config=\"%s\" %s",
-                    			iParallelCount, proc_count, macro_name, fileName.c_str(), sConfig.c_str(), MPDqsub_path.c_str());
-                    }
+                    	sprintf (pcSUB, "qsub -N %s %s -t 1-%d -tc %d -v macro=\"%s\",files=\"%s\",config=\"%s\" %s",
+                    			strJobName.c_str(), strDependency.c_str(), iParallelCount, proc_count, macro_name, fileName.c_str(), sConfig.c_str(), MPDqsub_path.c_str());
 
                     // main command
                     //cout<<"Command length: "<<command_length<<". COMMAND: "<<pcSUB<<endl;
@@ -1165,6 +1058,7 @@ int main(int argc, char** argv){
                     ID = ID.substr(15,indSymbol-15);
 
                     cout<<"mpd-scheduler$ Job has been started with ID: "<<ID<<". Enter 'qstat' command to check status"<<endl;
+                    mapNameID.insert(pair<string,string>(strJobName, ID));
 
                     // merge files if required
                     if (!vecParallelOutputs.empty())
@@ -1253,7 +1147,8 @@ int main(int argc, char** argv){
                 	pthread_mutexattr_destroy(&mAttr);
 
                 	// console command - non-macro ROOT
-                	if (isCommand){
+                	if (isCommand)
+                	{
                 		// generate task string
                 		int lenSUB = 100+strlen(command_line)+sConfig.length();
                 		char* pcSUB = new char[lenSUB];
@@ -1364,5 +1259,192 @@ int main(int argc, char** argv){
         cur_node = cur_node->next;
 	}// while - cycle for all jobs
 
+	mapNameID.clear();
     xmlFreeDoc(doc);
+}
+
+// PARSE DATABASE PARAMETERS
+void ParseDatabaseParameters(string input, TString& strConnection, TString& sql)
+{
+	istringstream ss(input);
+	string token;
+
+	// variables for DB
+	bool isFirst = true, isGen = false, isEnergy = false, isMinEnergy = false, isMaxEnergy = false, isParts = false, isDesc = false, isType = false;
+	string server_name, strGen, strParts, strDesc, strType;
+	double fEnergy, fMaxEnergy;
+	// parse tokens by comma separated
+	while(getline(ss, token, ','))
+	{
+		if (isFirst)
+	    {
+			server_name = token;
+	        isFirst = false;
+
+	        continue;
+	    }
+
+	    // to lowercase
+	    transform(token.begin(), token.end(),token.begin(), ::tolower);
+
+	    // generator name parsing
+	    if ((token.length() > 4) && (token.substr(0,4) == "gen="))
+	    {
+	    	isGen = true;
+	        strGen = token.substr(4);
+	    }
+	    else
+	    {
+	    	// energy parsing
+	        if ((token.length() > 7) && (token.substr(0,7) == "energy="))
+	        {
+	        	token = token.substr(7);
+
+	            size_t indDash = token.find_first_of('-');
+	            if (indDash != string::npos)
+	            {
+	            	stringstream stream;
+	                stream << token.substr(0, indDash);
+	                double dVal;
+	                if (stream >> dVal)
+	                {
+	                	isEnergy = true;
+	                    isMinEnergy = true;
+	                    fEnergy = dVal;
+	                }
+	                if (token.length() > indDash)
+	                {
+	                	stringstream stream2;
+	                    stream2 << token.substr(indDash+1);
+	                    if (stream2 >> dVal)
+	                    {
+	                    	isEnergy = true;
+	                        isMaxEnergy = true;
+	                        fMaxEnergy = dVal;
+	                    }
+	                }
+	            }//if (indDash > -1)
+	            // if exact energy value
+	            else
+	            {
+	            	stringstream stream;
+	                stream << token;
+	                double dVal;
+	                if (stream >> dVal)
+	                {
+	                	isEnergy = true;
+	                    fEnergy = dVal;
+	                }
+	            }//else
+	        }//if ((token.length() > 7) && (token.substr(0,7) == "energy="))
+	        // particles' names in collision parsing
+	        else
+	        {
+	        	if ((token.length() > 9) && (token.substr(0,9) == "particle="))
+	        	{
+	        		isParts = true;
+	                strParts = token.substr(9);
+	            }
+	            else
+	            {
+	            	// search text in description string
+	                if ((token.length() > 5) && (token.substr(0,5) == "desc="))
+	                {
+	                	isDesc = true;
+	                    strDesc = token.substr(5);
+	                }
+	                else
+	                {
+	                	// type of data parsing
+	                    if ((token.length() > 5) && (token.substr(0,5) == "type="))
+	                    {
+	                    	isType = true;
+	                        strType = token.substr(5);
+	                    }
+	                }//else DESC
+	            }//else PARTICLE
+	        }//else ENERGY
+	    }//else GEN
+	}//while(getline(ss, token, ','))
+
+	//READ PATH FROM DATABASE
+	strConnection = "mysql://" + (TString)server_name.c_str() + "/data4mpd";
+	sql = "select data4mpd_path "
+		  "from events";
+
+	bool isWhere = false;
+	// if event generator selection
+	if (isGen == true)
+	{
+		if (isWhere)
+			sql += TString::Format(" AND data4mpd_generator = '%s'", strGen.data());
+	    else
+	    {
+	    	isWhere = true;
+	        sql += TString::Format(" "
+	                        	   "where data4mpd_generator = '%s'", strGen.data());
+	    }
+	}
+	// if energy selection
+	if (isEnergy == true)
+	{
+		if (isWhere)
+			sql += " AND ";
+	    else
+	    {
+			isWhere = true;
+			sql += " "
+					"where ";
+		}
+
+		if (isMinEnergy)
+		{
+			sql += TString::Format("data4mpd_energy >= %f", fEnergy);
+			if (isMaxEnergy)
+				sql += TString::Format(" AND data4mpd_energy <= %f", fMaxEnergy);
+		}
+		else
+		{
+			if (isMaxEnergy)
+				sql += TString::Format("data4mpd_energy <= %f", fMaxEnergy);
+			else
+				sql += TString::Format("data4mpd_energy = %f", fEnergy);
+		}
+	}
+	// if 'particles in collision' selection
+	if (isParts == true)
+	{
+		if (isWhere)
+			sql += TString::Format(" AND data4mpd_collision = '%s'", strParts.data());
+		else
+		{
+			isWhere = true;
+			sql += TString::Format(" "
+					"where data4mpd_collision = '%s'", strParts.data());
+		}
+	}
+	if (isDesc == true)
+	{
+		if (isWhere)
+			sql += TString::Format(" AND data4mpd_description like '%%%s%%'", strDesc.data());
+		else
+		{
+			isWhere = true;
+			sql += TString::Format(" "
+					"where data4mpd_description like '%%%s%%'", strDesc.data());
+		}
+	}
+	if (isType == true)
+	{
+		if (isWhere)
+			sql += TString::Format(" AND data4mpd_datatype = '%s'", strType.data());
+		else
+		{
+			isWhere = true;
+			sql += TString::Format(" "
+					"where data4mpd_datatype = '%s'", strType.data());
+		}
+	}
+
+	return;
 }

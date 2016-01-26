@@ -1205,5 +1205,160 @@ int UniDbRun::ReadGeometryFile(int run_number, char* geo_file_path)
     return 0;
 }
 
+TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
+{
+    TObjArray* arrayResult = NULL;
+
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+    {
+        cout<<"Error: connection to DB was failed"<<endl;
+        return arrayResult;
+    }
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+                "select run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id "
+                "from run_");
+
+    TString strCondition;
+    bool isFirst = true;
+    TIter next(&search_conditions);
+    UniDbSearchCondition* curCondition;
+    while (curCondition = (UniDbSearchCondition*) next())
+    {
+        strCondition = "";
+
+        switch (curCondition->GetColumn())
+        {
+            case columnRunNumber:       strCondition += "run_number "; break;
+            case columnPeriodNumber:    strCondition += "period_number "; break;
+            case columnFilePath:        strCondition += "lower(file_path) "; break;
+            case columnBeamParticle:    strCondition += "lower(beam_particle) "; break;
+            case columnTargetParticle:  strCondition += "lower(target_particle) "; break;
+            case columnEnergy:          strCondition += "energy "; break;
+            case columnStartDatetime:   strCondition += "start_datetime "; break;
+            case columnEndDateTime:     strCondition += "end_datetime "; break;
+            case columnEventCount:      strCondition += "event_count "; break;
+            case columnFieldCurrent:    strCondition += "field_current "; break;
+            case columnFileSize:        strCondition += "file_size "; break;
+            default:
+                cout<<"Error: column in the search condition wasn't defined, condition is skipped"<<endl;
+                continue;
+        }
+
+        switch (curCondition->GetCondition())
+        {
+            case conditionLess:             strCondition += "< "; break;
+            case conditionLessOrEqual:      strCondition += "<= "; break;
+            case conditionEqual:            strCondition += "= "; break;
+            case conditionNotEqual:         strCondition += "<> "; break;
+            case conditionGreater:          strCondition += "> "; break;
+            case conditionGreaterOrEqual:   strCondition += ">= "; break;
+            case conditionLike:             strCondition += "like "; break;
+            default:
+                cout<<"Error: comparison operator in the search condition wasn't defined, condition is skipped"<<endl;
+                continue;
+        }
+
+        switch (curCondition->GetValueType())
+        {
+            case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
+            case 2: strCondition += Form("%f", curCondition->GetDoubleValue()); break;
+            case 3: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
+            case 4: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
+            default:
+                cout<<"Error: value type in the search condition wasn't found, condition is skipped"<<endl;
+                continue;
+        }
+
+        if (isFirst)
+            sql += " where ";
+        else
+        {
+            sql += " and ";
+            isFirst = false;
+        }
+
+        sql += strCondition;
+    }
+
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: getting runs from DB has been failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+
+        return arrayResult;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    // extract rows one after another
+    arrayResult = new TObjArray();
+    while (stmt->NextResultRow())
+    {
+        int tmp_run_number;
+        tmp_run_number = stmt->GetInt(0);
+        int* tmp_period_number;
+        if (stmt->IsNull(1)) tmp_period_number = NULL;
+        else
+            tmp_period_number = new int(stmt->GetInt(1));
+        TString tmp_file_path;
+        tmp_file_path = stmt->GetString(2);
+        TString tmp_beam_particle;
+        tmp_beam_particle = stmt->GetString(3);
+        TString* tmp_target_particle;
+        if (stmt->IsNull(4)) tmp_target_particle = NULL;
+        else
+            tmp_target_particle = new TString(stmt->GetString(4));
+        double* tmp_energy;
+        if (stmt->IsNull(5)) tmp_energy = NULL;
+        else
+            tmp_energy = new double(stmt->GetDouble(5));
+        TDatime tmp_start_datetime;
+        tmp_start_datetime = stmt->GetDatime(6);
+        TDatime* tmp_end_datetime;
+        if (stmt->IsNull(7)) tmp_end_datetime = NULL;
+        else
+            tmp_end_datetime = new TDatime(stmt->GetDatime(7));
+        int* tmp_event_count;
+        if (stmt->IsNull(8)) tmp_event_count = NULL;
+        else
+            tmp_event_count = new int(stmt->GetInt(8));
+        int* tmp_field_current;
+        if (stmt->IsNull(9)) tmp_field_current = NULL;
+        else
+            tmp_field_current = new int(stmt->GetInt(9));
+        double* tmp_file_size;
+        if (stmt->IsNull(10)) tmp_file_size = NULL;
+        else
+            tmp_file_size = new double(stmt->GetDouble(10));
+        int* tmp_geometry_id;
+        if (stmt->IsNull(11)) tmp_geometry_id = NULL;
+        else
+            tmp_geometry_id = new int(stmt->GetInt(11));
+
+        arrayResult->Add((TObject*) new UniDbRun(connUniDb, tmp_run_number, tmp_period_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id));
+    }
+
+    delete stmt;
+
+    return arrayResult;
+}
+
+TObjArray* UniDbRun::Search(const UniDbSearchCondition& search_condition)
+{
+    TObjArray search_conditions;
+    search_conditions.Add((TObject*)&search_condition);
+
+    return Search(search_conditions);
+}
+
 // -------------------------------------------------------------------
 ClassImp(UniDbRun);

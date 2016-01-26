@@ -420,7 +420,6 @@ int create_directory(const char* path)
         return 1;
     else
     {
-        //system("mkdir -p "+path)
         int status = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         return status;
     }

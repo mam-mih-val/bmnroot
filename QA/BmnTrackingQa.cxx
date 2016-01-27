@@ -457,13 +457,11 @@ void BmnTrackingQa::CreateHistograms() {
     // Physics
     CreateH2("momRes_2D_glob", "P_{sim}, GeV/c", "#Delta P / P, %", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, -50.0, 50.0);
     CreateH2("momRes_2D_gem", "P_{sim}, GeV/c", "#Delta P / P, %", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, -50.0, 50.0);
-    CreateH2("momRes_2D_mod_gem", "P_{sim}, GeV/c", "|#Delta P| / P, %", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, 0.0, 50.0);
     CreateH2("EtaP_rec_gem", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_rec_glob", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("momRes_1D_glob", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("momRes_1D_gem", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("momRes_1D_mod_gem", "P_{sim}, GeV/c", "#LT|#Delta P| / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim_gem", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim_glob", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("Px_rec_Px_sim_gem", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax, 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax);
@@ -553,9 +551,17 @@ void BmnTrackingQa::ProcessGem() {
         Int_t gemMCId = gemTrackMatch->GetMatchedLink().GetIndex();
         vector<Int_t>::iterator it = find(refs.begin(), refs.end(), gemMCId);
 
-        if (it != refs.end() && gemMCId != -1)
+        if (it != refs.end() && gemMCId != -1) {
             splits.push_back(gemMCId);
-        else
+//            cout << "gemMCId =  " << gemMCId << " Nhits = " << track->GetNHits() << " ";
+//            track->GetParamFirst()->Print();
+//            for (Int_t iPnt = 0; iPnt < fGemPoints->GetEntriesFast(); ++iPnt) {
+//                FairMCPoint* pnt = (FairMCPoint*) fGemPoints->GAt(iPnt);
+//                if (pnt->GetTrackID() == gemMCId) {
+//                    
+//                }
+//            }
+        } else
             refs.push_back(gemMCId);
 
         CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(gemMCId));
@@ -598,7 +604,6 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("Well_vs_Nh_gem")->Fill(track->GetNHits());
 
             fHM->H2("momRes_2D_gem")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
-            fHM->H2("momRes_2D_mod_gem")->Fill(P_sim, Abs(P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec);
             fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec);
             fHM->H2("Px_rec_Px_sim_gem")->Fill(Px_sim, Px_rec);
@@ -611,28 +616,19 @@ void BmnTrackingQa::ProcessGem() {
         }
     }
 
-    Int_t momResStep = 4;
+    Int_t momResStep = 20;
     for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D_gem")->GetNbinsX(); iBin += momResStep) {
         TH1D* proj = fHM->H2("momRes_2D_gem")->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
         proj->Fit("gaus", "SQRww", "", -10.0, 10.0);
         TF1 *fit = proj->GetFunction("gaus");
         Float_t mean = (fit->GetParameter(1) < 20.0) ? fit->GetParameter(1) : 0.0;
-        Float_t sigma = fit->GetParameter(2); //(fit->GetParameter(2) < 100.0) ? fit->GetParameter(1) : 0.0;
-        fHM->H1("momRes_1D_gem")->SetBinContent(iBin, mean);
-//        fHM->H1("momRes_1D_gem")->SetBinError(iBin, sigma);
-        fHM->H1("momRes_1D_gem")->SetBinError(iBin, 0.0);
-        //                fHM->H1("momRes_1D_gem")->SetBinContent(iBin, proj->GetBinCenter(proj->GetMaximumBin()));
-    }
-
-    for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D_mod_gem")->GetNbinsX(); iBin += momResStep) {
-        TH1D* proj = fHM->H2("momRes_2D_mod_gem")->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
-        proj->Fit("gaus", "SQww", "", 0.0, 10.0);
-        TF1 *fit = proj->GetFunction("gaus");
-        Float_t mean = (fit->GetParameter(1) < 20.0) ? fit->GetParameter(1) : 0.0;
-        Float_t sigma = fit->GetParameter(2); //(fit->GetParameter(2) < 100.0) ? fit->GetParameter(1) : 0.0;
-        fHM->H1("momRes_1D_mod_gem")->SetBinContent(iBin, mean);
-        fHM->H1("momRes_1D_mod_gem")->SetBinError(iBin, sigma);
-        //                fHM->H1("momRes_1D_gem")->SetBinContent(iBin, proj->GetBinCenter(proj->GetMaximumBin()));
+        Float_t sigma = fit->GetParameter(2);
+        Float_t mom = fHM->H2("momRes_2D_gem")->GetXaxis()->GetBinCenter(iBin);
+        Int_t nBins = fHM->H1("momRes_1D_gem")->GetXaxis()->GetNbins();
+        Int_t bin = (mom - fPRangeMin) / (fPRangeMax - fPRangeMin) * nBins;
+        fHM->H1("momRes_1D_gem")->SetBinContent(bin, mean);
+        fHM->H1("momRes_1D_gem")->SetBinError(bin, sigma);
+//        fHM->H1("momRes_1D_gem")->SetBinError(bin, 0.0);
     }
 
     for (Int_t i = 0; i < splits.size(); ++i) {

@@ -37,10 +37,7 @@ public:
     TVector3 CircleFit(BmnGemTrack* track);
     TVector3 LineFit(BmnGemTrack* track);
     TVector3 CircleBy3Hit(BmnGemTrack* track);
-    TVector3 SpiralFit(BmnGemTrack* track);
-    
-    Bool_t IsParCorrect(const FairTrackParam* par);
-    
+        
     Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
     
     void FillAddr();

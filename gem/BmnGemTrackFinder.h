@@ -21,6 +21,7 @@
 #include "BmnGemTrackFinderQA.h"
 //#include "BmnKalmanFilter_tmp.h"
 #include "BmnTrackFitter.h"
+#include "BmnMath.h"
 
 using namespace std;
 
@@ -36,9 +37,7 @@ public:
     
     BmnStatus FitSmooth(BmnGemTrack* track);
     void Smooth(BmnFitNode* thisNode, const BmnFitNode* prevNode);
-    
-    Bool_t IsParCorrect(const FairTrackParam* par);
-    
+        
     Float_t ChiSq(const FairTrackParam* par, const BmnHit* hit);
 
     //some useful functions
@@ -48,7 +47,6 @@ public:
 
     BmnStatus CheckSplitting(TClonesArray* arr);
     BmnStatus ConnectNearestSeed(BmnGemTrack* seed, TClonesArray* arr);
-    TVector3  SpiralFit(BmnGemTrack* track);
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);

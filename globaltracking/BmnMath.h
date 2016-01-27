@@ -2,6 +2,7 @@
 #define BMNMATH_H_
 
 #include "FairTrackParam.h"
+#include "BmnGemTrack.h"
 
 class CbmHit;
 class CbmStripHit;
@@ -34,4 +35,8 @@ Float_t ChiSq(const FairTrackParam* par, const CbmPixelHit* hit);
 Int_t NDF(const CbmGlobalTrack* track);
 
 }
+
+TVector3 SpiralFit(const BmnGemTrack* tr, const TClonesArray* arr);
+Bool_t IsParCorrect(const FairTrackParam* par);
+
 #endif /*BMNMATH_H_*/

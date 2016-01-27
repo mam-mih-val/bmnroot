@@ -5,9 +5,13 @@
 #include "CbmStripHit.h"
 #include "CbmPixelHit.h"
 #include "CbmGlobalTrack.h"
+#include "BmnGemStripHit.h"
+#include "TMath.h"
 
 #include <iostream>
 #include <cmath>
+
+using namespace TMath;
 
 namespace lit
 {
@@ -77,3 +81,48 @@ Int_t NDF(const CbmGlobalTrack* track) {
 
 }
 
+TVector3 SpiralFit(const BmnGemTrack* tr, const TClonesArray* arr) {
+    
+    const Float_t kN = tr->GetNHits();
+
+    Float_t sumRTheta = 0.0;
+    Float_t sumTheta = 0.0;
+    Float_t sumTheta2 = 0.0;
+    Float_t sumR = 0.0;
+    for (Int_t i = 0; i < kN; ++i) {
+        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(tr->GetHitIndex(i));
+        if (hit == NULL) continue;
+        Float_t x = hit->GetX();
+        Float_t z = hit->GetZ();
+        Float_t r = Sqrt(x * x + z * z);
+        Float_t Theta = ATan2(x, z);
+        //        cout << Theta << " " << r << endl;
+        sumTheta += Theta;
+        sumR += r;
+        sumTheta2 += Theta * Theta;
+        sumRTheta += r * Theta;
+    }
+    Float_t b = (kN * sumRTheta - sumTheta * sumR) / (kN * sumTheta2 - sumTheta * sumTheta);
+    Float_t a = (sumR - b * sumTheta) / kN;
+
+    //calculate curvature at first point
+    Float_t z0 = ((BmnGemStripHit*) arr->At(tr->GetHitIndex(0)))->GetZ();
+    Float_t x0 = ((BmnGemStripHit*) arr->At(tr->GetHitIndex(0)))->GetX();
+    Float_t theta0 = ATan2(x0, z0);
+    Float_t tmp2 = (a + b * theta0) * (a + b * theta0);
+    Float_t k = (tmp2 + 2 * b * b) / Sqrt(Power((tmp2 + b * b), 3));
+    //    cout << a << " " << b << " " << theta0 << " " << tmp2 << " " << Power((tmp2 - b * b), 3) << " " << Sqrt(Power((tmp2 - b * b), 3)) << " " << k << endl;
+
+    return TVector3(a, b, 1 / k);
+}
+
+Bool_t IsParCorrect(const FairTrackParam* par) {
+    const Float_t maxSlope = 5.;
+    const Float_t minSlope = 1e-10;
+    const Float_t maxQp = 1000.; // p = 10 MeV
+
+    if (abs(par->GetTx()) > maxSlope || abs(par->GetTy()) > maxSlope || abs(par->GetTx()) < minSlope || abs(par->GetTy()) < minSlope || abs(par->GetQp()) > maxQp) return kFALSE;
+    if (isnan(par->GetX()) || isnan(par->GetY()) || isnan(par->GetTx()) || isnan(par->GetTy()) || isnan(par->GetQp())) return kFALSE;
+
+    return kTRUE;
+}

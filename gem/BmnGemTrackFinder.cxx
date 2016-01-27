@@ -23,7 +23,7 @@ BmnGemTrackFinder::BmnGemTrackFinder() :
 fPDG(211),
 fEventNo(0),
 fChiSqCut(250.) {
-//    fKalman = NULL;
+    //    fKalman = NULL;
     fGemHitArray = NULL;
     fGemTracksArray = NULL;
     fMCTracksArray = NULL;
@@ -78,7 +78,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
     CheckSplitting(fGemSeedsArrayBig);
     for (Int_t i = 0; i < fGemSeedsArrayBig->GetEntriesFast(); ++i) {
-//        fKalman = new BmnKalmanFilter_tmp();
+        //        fKalman = new BmnKalmanFilter_tmp();
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArrayBig->At(i);
         if (track->GetChi2() < 0.0) continue; //split param
 
@@ -89,9 +89,10 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         if (tr.GetNHits() < 4) continue;
 
-        TVector3 spirPar = SpiralFit(&tr);
+        TVector3 spirPar = SpiralFit(&tr, fGemHitArray);
         Float_t R = spirPar.Z();
-//        Float_t b = spirPar.Y();
+        Float_t b = spirPar.Y();
+        Float_t a = spirPar.X();
         BmnGemStripHit* hit0 = (BmnGemStripHit*) GetHit(tr.GetHitIndex(0));
         BmnGemStripHit* hit1 = (BmnGemStripHit*) GetHit(tr.GetHitIndex(1));
         Float_t x0 = hit0->GetX();
@@ -100,8 +101,15 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         Float_t x1 = hit1->GetX();
         Float_t y1 = hit1->GetY();
         Float_t z1 = hit1->GetZ();
-        Float_t Tx = (x1 - x0) / (z1 - z0);
-//        Float_t Tx = (b * x + z * R) / (b * z - x * R);
+        Float_t theta = ATan2(x0, z0);
+        Float_t r = a + b * theta;
+        if (r < 0.0) {
+            r = Abs(r);
+            theta += Pi();
+        }
+        Float_t Tx = (b * Sin(theta) + r * Cos(theta)) / (b * Cos(theta) - r * Sin(theta));
+        //        Float_t Tx = (x1 - x0) / (z1 - z0);
+        //        Float_t Tx = (b * x + z * R) / (b * z - x * R);
         Float_t Ty = tr.GetParamFirst()->GetTy();
         const Float_t Pxz = 0.0003 * Abs(fField->GetBy(x0, y0, z0)) * R; // Pt
         if (Abs(Pxz) < 0.00001) continue;
@@ -109,9 +117,9 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         const Float_t Px = Pz * Tx;
         const Float_t Py = Pz * Ty;
         Float_t QP = 1.0 / Sqrt(Px * Px + Py * Py + Pz * Pz);
-        
+
         FairTrackParam par;
-        //par.SetPosition(TVector3(p1->GetX(), p1->GetY(), p1->GetZ()));
+        par.SetPosition(TVector3(x0, y0, z0));
         par.SetQp(QP);
         par.SetTx(Tx);
         par.SetTy(Ty);
@@ -121,12 +129,12 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         //        tr.SetParamFirst(smoothPar);
 
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
-//        delete fKalman;
+        //        delete fKalman;
     }
-    
+
     CheckSplitting(fGemSeedsArrayMid);
     for (Int_t i = 0; i < fGemSeedsArrayMid->GetEntriesFast(); ++i) {
-//        fKalman = new BmnKalmanFilter_tmp();
+        //        fKalman = new BmnKalmanFilter_tmp();
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArrayMid->At(i);
         if (track->GetChi2() < 0.0) continue; //split param
 
@@ -137,9 +145,10 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         if (tr.GetNHits() < 4) continue;
 
-        TVector3 spirPar = SpiralFit(&tr);
+        TVector3 spirPar = SpiralFit(&tr, fGemHitArray);
         Float_t R = spirPar.Z();
-//        Float_t b = spirPar.Y();
+        Float_t b = spirPar.Y();
+        Float_t a = spirPar.X();
         BmnGemStripHit* hit0 = (BmnGemStripHit*) GetHit(tr.GetHitIndex(0));
         BmnGemStripHit* hit1 = (BmnGemStripHit*) GetHit(tr.GetHitIndex(1));
         Float_t x0 = hit0->GetX();
@@ -148,8 +157,15 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         Float_t x1 = hit1->GetX();
         Float_t y1 = hit1->GetY();
         Float_t z1 = hit1->GetZ();
-        Float_t Tx = (x1 - x0) / (z1 - z0);
-//        Float_t Tx = (b * x + z * R) / (b * z - x * R);
+        Float_t theta = ATan2(x0, z0);
+        Float_t r = a + b * theta;
+        if (r < 0.0) {
+            r = Abs(r);
+            theta += Pi();
+        }
+        Float_t Tx = (b * Sin(theta) + r * Cos(theta)) / (b * Cos(theta) - r * Sin(theta));
+        //        Float_t Tx = (x1 - x0) / (z1 - z0);
+        //        Float_t Tx = (b * x + z * R) / (b * z - x * R);
         Float_t Ty = tr.GetParamFirst()->GetTy();
         const Float_t Pxz = 0.0003 * Abs(fField->GetBy(x0, y0, z0)) * R; // Pt
         if (Abs(Pxz) < 0.00001) continue;
@@ -157,9 +173,9 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         const Float_t Px = Pz * Tx;
         const Float_t Py = Pz * Ty;
         Float_t QP = 1.0 / Sqrt(Px * Px + Py * Py + Pz * Pz);
-        
+
         FairTrackParam par;
-        //par.SetPosition(TVector3(p1->GetX(), p1->GetY(), p1->GetZ()));
+        par.SetPosition(TVector3(x0, y0, z0));
         par.SetQp(QP);
         par.SetTx(Tx);
         par.SetTy(Ty);
@@ -169,12 +185,12 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         //        tr.SetParamFirst(smoothPar);
 
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
-//        delete fKalman;
+        //        delete fKalman;
     }
-    
+
     CheckSplitting(fGemSeedsArrayLow);
     for (Int_t i = 0; i < fGemSeedsArrayLow->GetEntriesFast(); ++i) {
-//        fKalman = new BmnKalmanFilter_tmp();
+        //        fKalman = new BmnKalmanFilter_tmp();
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArrayLow->At(i);
         if (track->GetChi2() < 0.0) continue; //split param
 
@@ -185,9 +201,10 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         if (tr.GetNHits() < 4) continue;
 
-        TVector3 spirPar = SpiralFit(&tr);
+        TVector3 spirPar = SpiralFit(&tr, fGemHitArray);
         Float_t R = spirPar.Z();
-//        Float_t b = spirPar.Y();
+        Float_t b = spirPar.Y();
+        Float_t a = spirPar.X();
         BmnGemStripHit* hit0 = (BmnGemStripHit*) GetHit(tr.GetHitIndex(0));
         BmnGemStripHit* hit1 = (BmnGemStripHit*) GetHit(tr.GetHitIndex(1));
         Float_t x0 = hit0->GetX();
@@ -196,8 +213,15 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         Float_t x1 = hit1->GetX();
         Float_t y1 = hit1->GetY();
         Float_t z1 = hit1->GetZ();
-        Float_t Tx = (x1 - x0) / (z1 - z0);
-//        Float_t Tx = (b * x + z * R) / (b * z - x * R);
+        Float_t theta = ATan2(x0, z0);
+        Float_t r = a + b * theta;
+        if (r < 0.0) {
+            r = Abs(r);
+            theta += Pi();
+        }
+        Float_t Tx = (b * Sin(theta) + r * Cos(theta)) / (b * Cos(theta) - r * Sin(theta));
+        //        Float_t Tx = (x1 - x0) / (z1 - z0);
+        //        Float_t Tx = (b * x + z * R) / (b * z - x * R);
         Float_t Ty = tr.GetParamFirst()->GetTy();
         const Float_t Pxz = 0.0003 * Abs(fField->GetBy(x0, y0, z0)) * R; // Pt
         if (Abs(Pxz) < 0.00001) continue;
@@ -205,9 +229,9 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         const Float_t Px = Pz * Tx;
         const Float_t Py = Pz * Ty;
         Float_t QP = 1.0 / Sqrt(Px * Px + Py * Py + Pz * Pz);
-        
+
         FairTrackParam par;
-        //par.SetPosition(TVector3(p1->GetX(), p1->GetY(), p1->GetZ()));
+        par.SetPosition(TVector3(x0, y0, z0));
         par.SetQp(QP);
         par.SetTx(Tx);
         par.SetTy(Ty);
@@ -217,7 +241,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         //        tr.SetParamFirst(smoothPar);
 
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
-//        delete fKalman;
+        //        delete fKalman;
     }
 
     clock_t tFinish = clock();
@@ -245,8 +269,10 @@ BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesAr
     Float_t tyI = baseSeedLastPar->GetTy();
     Float_t txI = baseSeedLastPar->GetTx();
 
+    TVector3 baseSpirPar = SpiralFit(baseSeed, fGemHitArray);
+
     //needed to get nearest track
-    Float_t minDeltaR = 0.5;
+    Float_t minDeltaR = 10.0;
     Float_t minZ = 10000.0;
     BmnGemTrack* minTrackRight = NULL;
     for (Int_t j = 0; j < arr->GetEntriesFast(); ++j) {
@@ -277,6 +303,10 @@ BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesAr
     }
 
     if (minTrackRight != NULL) {
+
+        //        cout << "BASE : "; baseSpirPar.Print();
+        //        cout << "RIGHT: "; SpiralFit(minTrackRight, fGemHitArray).Print();
+
         minTrackRight->SetUsing(kTRUE);
         ConnectNearestSeed(minTrackRight, arr);
         for (Int_t iHit = 0; iHit < minTrackRight->GetNHits(); ++iHit) {
@@ -311,40 +341,6 @@ BmnStatus BmnGemTrackFinder::CheckSplitting(TClonesArray* arr) {
         }
     }
 }
-
-TVector3 BmnGemTrackFinder::SpiralFit(BmnGemTrack* track) {
-
-    const Float_t kN = track->GetNHits();
-
-    Float_t sumRTheta = 0.0;
-    Float_t sumTheta = 0.0;
-    Float_t sumTheta2 = 0.0;
-    Float_t sumR = 0.0;
-    for (Int_t i = 0; i < kN; ++i) {
-        BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(track->GetHitIndex(i));
-        Float_t x = hit->GetX();
-        Float_t z = hit->GetZ();
-        Float_t r = Sqrt(x * x + z * z);
-        Float_t Theta = ATan2(x, z);
-        sumTheta += Theta;
-        sumR += r;
-        sumTheta2 += Theta * Theta;
-        sumRTheta += r * Theta;
-    }
-    Float_t b = (kN * sumRTheta - sumTheta * sumR) / (kN * sumTheta2 - sumTheta * sumTheta);
-    Float_t a = (sumR - b * sumTheta) / kN;
-
-    //calculate curvature at first point
-    Float_t z0 = GetHit(track->GetHitIndex(0))->GetZ();
-    Float_t x0 = GetHit(track->GetHitIndex(0))->GetX();
-    Float_t theta0 = ATan2(x0, z0);
-    Float_t tmp2 = (a + b * theta0) * (a + b * theta0);
-    Float_t k = (tmp2 + 2 * b * b) / Sqrt(Power((tmp2 + b * b), 3));
-    //    cout << a << " " << b << " " << theta0 << " " << tmp2 << " " << Power((tmp2 - b * b), 3) << " " << Sqrt(Power((tmp2 - b * b), 3)) << " " << k << endl;
-
-    return TVector3(a, b, 1 / k);
-}
-
 
 //**************Implementation of Lebedev's algorithm for merging*************//
 
@@ -472,12 +468,12 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge1(UInt_t station, BmnGemTrack* tr) {
         if (hit->GetType() == 0) continue; //don't use fakes
         Float_t chi = 0.0;
         //        if (fKalman->Prediction(&par, hit->GetZ(), node) != kBMNSUCCESS) continue;
-//        if (fKalman->Prediction(&par, hit->GetZ(), node) != kBMNSUCCESS) break;
+        //        if (fKalman->Prediction(&par, hit->GetZ(), node) != kBMNSUCCESS) break;
         //        cout << "HIT INFO: x = " << hit->GetX() << " y = " << hit->GetY() << " z = " << hit->GetZ() << endl;
         //        par.Print();
         //        cout << "BEFORE: HIT ID = " << hitIdx << " Hx = " << hit->GetX() << " " << par.GetX() << " " << par.GetY() << " " << par.GetZ() << " " << par.GetTx() << endl;
         //        if (fKalman->Correction(&par, hit, chi, node) != kBMNSUCCESS) continue;
-//        if (fKalman->Correction(&par, hit, chi, node) != kBMNSUCCESS) break;
+        //        if (fKalman->Correction(&par, hit, chi, node) != kBMNSUCCESS) break;
         //        par.Print();
         //        cout << "AFTER:                            " << par.GetX() << " " << par.GetY() << " " << par.GetZ() << " " << par.GetTx() << " chi = " << chi << endl;
         //        if (chi < fChiSqCut && chi < minChiSq) { // Check if hit is inside validation gate and closer to the track.
@@ -503,7 +499,7 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge1(UInt_t station, BmnGemTrack* tr) {
         minHit->SetUsing(kTRUE);
         tr->AddHit(minIdx, minHit);
         tr->SortHits();
-//        fKalman->AddFitNode(minNode);
+        //        fKalman->AddFitNode(minNode);
     }
 
     return kBMNSUCCESS;
@@ -522,15 +518,4 @@ Float_t BmnGemTrackFinder::ChiSq(const FairTrackParam* par, const BmnHit* hit) {
     if (norm == 0.) norm = 1e-10;
     return ((xmx * (dyy - C5) + ymy * C1) * xmx + (xmx * C1 + ymy * (dxx - C0)) * ymy) / norm;
     return 0;
-}
-
-Bool_t BmnGemTrackFinder::IsParCorrect(const FairTrackParam* par) {
-    const Float_t maxSlope = 5.;
-    const Float_t minSlope = 1e-10;
-    const Float_t maxQp = 1000.; // p = 10 MeV
-
-    if (abs(par->GetTx()) > maxSlope || abs(par->GetTy()) > maxSlope || abs(par->GetTx()) < minSlope || abs(par->GetTy()) < minSlope || abs(par->GetQp()) > maxQp) return kFALSE;
-    if (isnan(par->GetX()) || isnan(par->GetY()) || isnan(par->GetTx()) || isnan(par->GetTy()) || isnan(par->GetQp())) return kFALSE;
-
-    return kTRUE;
 }

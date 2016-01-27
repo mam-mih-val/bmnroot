@@ -17,6 +17,7 @@
 #include <boost/assign/list_of.hpp>
 #include <vector>
 #include <set>
+#include "TString.h"
 
 using lit::NumberToString;
 using lit::FindAndReplace;
@@ -216,7 +217,6 @@ void BmnTrackingQaReport::Draw() {
     DrawPsimPrecComponentsGem("Reco vs MC for X-, Y- and Z-component of Momentum for GEM-tracks");
     //DrawPsimPrecComponentsGlob("Reco vs MC for X-, Y- and Z-component of Momentum for Global-tracks");
     DrawMomResGem("Momentum resolution for GEM-tracks", "momRes_2D_gem", "momRes_1D_gem");
-    DrawMomResGem("Momentum resolution for GEM-tracks Mod", "momRes_2D_mod_gem", "momRes_1D_mod_gem");
 //        DrawMomResGem("Momentum resolution for GEM-tracks");
     //DrawMomResGlob("Momentum resolution for Global-tracks");
     //    DrawHitsHistos();

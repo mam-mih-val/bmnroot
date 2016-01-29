@@ -200,7 +200,7 @@ Bool_t BmnZdc::ProcessHits(FairVolume* vol) {
 	       time, length, fELoss);
 #else
 
-      AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+      AddHit(fTrackID, ivol, copyNo, iCell2, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
 	     TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
 	     time, length, fELoss);
 #endif

@@ -164,6 +164,8 @@ BmnZdcVolId_t* BmnZdcDigiScheme::CreateVolElement (FairGeoNode* nod, Int_t nodeN
   FairGeoNode *nod0, *nod1;
   TString mother_name, tmp;
 
+  //  FairGeoTransform *center;
+
   TString nod_name=nod->GetName();
   mother_name = nod->getMother();
 
@@ -177,6 +179,7 @@ BmnZdcVolId_t* BmnZdcDigiScheme::CreateVolElement (FairGeoNode* nod, Int_t nodeN
     else
       (*right).push_back(2);                               //  GroupID ("size" of big ZDC module)
    (*right).push_back(nod->getCopyNo());                  // ModuleID inside group
+   //   center = nod->getLabTransform(); 
     (*right).push_back(nodeNumber);                        // ChannelID
 
     BmnZdcVolId_t* left = new BmnZdcVolId_t;

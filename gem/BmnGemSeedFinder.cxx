@@ -109,21 +109,21 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArrayMid);
     cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArrayMid->GetEntriesFast() << endl;
 
-        //FOR LOW MOMENTUM
-        addresses.clear();
-        kSIG_X = 0.006;
-        kY_STEP = 6.0;
-        kTRS = 1.05;
-        kNHITSFORFIT = 4;
-        if (fUseLorentz) {
-            //FillAddrWithLorentz(0.006, 6.0, 1.05); //best parameters
-            FillAddrWithLorentz(kSIG_X, kY_STEP, kTRS);
-        } else {
-            FillAddr();
-        }
-    
-        DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArrayLow);
-        cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArrayLow->GetEntriesFast() << endl;
+    //FOR LOW MOMENTUM
+    addresses.clear();
+    kSIG_X = 0.006;
+    kY_STEP = 6.0;
+    kTRS = 1.05;
+    kNHITSFORFIT = 4;
+    if (fUseLorentz) {
+        //FillAddrWithLorentz(0.006, 6.0, 1.05); //best parameters
+        FillAddrWithLorentz(kSIG_X, kY_STEP, kTRS);
+    } else {
+        FillAddr();
+    }
+
+    DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArrayLow);
+    cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArrayLow->GetEntriesFast() << endl;
 
 
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit)
@@ -140,8 +140,8 @@ BmnStatus BmnGemSeedFinder::DoSeeding(Int_t min, Int_t max, TClonesArray* arr) {
     for (Int_t i = 0; i < kMAXSTATIONFORSEED; ++i) {
         for (Int_t j = min; j < max; ++j)
             FindSeeds(i, j, kTRUE, arr); // from station #i, in gate = 2 * j + 1, only hits presented in every station 
-        for (Int_t j = min; j < max; ++j)
-            FindSeeds(i, j, kFALSE, arr); // from station #i, in gate = 2 * j + 1
+        //        for (Int_t j = min; j < max; ++j)
+        //            FindSeeds(i, j, kFALSE, arr); // from station #i, in gate = 2 * j + 1
     }
     return kBMNSUCCESS;
 }
@@ -189,7 +189,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         Int_t hitCntr = 0;
         Int_t startBin = 0;
         Int_t prevStation = startStation - 1; //number of starting station
-        Int_t nSteps = 4;
+        Int_t nSteps = 2;
         if (isLeft) { //search track-candidate in left direction
             for (Int_t i = xAddr; i > 0; i--) {
                 SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, gate, isIdeal);
@@ -469,9 +469,9 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 sp
         theta += Pi();
     }
     Float_t Tx_first = (b * Sin(theta) + r * Cos(theta)) / (b * Cos(theta) - r * Sin(theta));
-//    cout << "Tx_spir = " << Tx_first << " " << b << " " << a << endl;
+    //    cout << "Tx_spir = " << Tx_first << " " << b << " " << a << endl;
     Float_t Tx_first_ = (secondHit->GetX() - fX) / (secondHit->GetZ() - fZ);
-//    cout << "Tx_base = " << Tx_first_ << endl;
+    //    cout << "Tx_base = " << Tx_first_ << endl;
     Float_t Tx_last = (preLastHit->GetX() - lX) / (preLastHit->GetZ() - lZ);
     //    Float_t Tx_first = (b * fX + fZ * fR) / (b * fZ - fX * fR);
     //    Float_t Tx_last = (b * lX + lZ * lR) / (b * lZ - lX * lR);

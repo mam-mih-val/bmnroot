@@ -260,7 +260,6 @@ void BmnGemTrackFinder::Finish() {
 BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesArray* arr) {
 
     if (baseSeed->GetChi2() < 0.0) return kBMNERROR;
-    FairTrackParam* baseSeedFirstPar = baseSeed->GetParamFirst();
     FairTrackParam* baseSeedLastPar = baseSeed->GetParamLast();
 
     Float_t yI = baseSeedLastPar->GetY();
@@ -269,11 +268,9 @@ BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesAr
     Float_t tyI = baseSeedLastPar->GetTy();
     Float_t txI = baseSeedLastPar->GetTx();
 
-    TVector3 baseSpirPar = SpiralFit(baseSeed, fGemHitArray);
-
     //needed to get nearest track
-    Float_t minDeltaR = 10.0;
-    Float_t minZ = 10000.0;
+    Float_t minDeltaR = 1.2; //best by QA
+
     BmnGemTrack* minTrackRight = NULL;
     for (Int_t j = 0; j < arr->GetEntriesFast(); ++j) {
         BmnGemTrack* trackJ = (BmnGemTrack*) arr->At(j);
@@ -298,14 +295,10 @@ BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesAr
         if (r < minDeltaR) {
             minTrackRight = trackJ;
             minDeltaR = r;
-            minZ = zJ;
         }
     }
 
     if (minTrackRight != NULL) {
-
-        //        cout << "BASE : "; baseSpirPar.Print();
-        //        cout << "RIGHT: "; SpiralFit(minTrackRight, fGemHitArray).Print();
 
         minTrackRight->SetUsing(kTRUE);
         ConnectNearestSeed(minTrackRight, arr);

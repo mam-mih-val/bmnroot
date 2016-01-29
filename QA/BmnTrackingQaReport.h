@@ -101,6 +101,7 @@ protected:
     void DrawEffGlob(const string& canvasName);
     void DrawNhitsGem(const string& canvasName);
     void DrawNhitsEtaGem(const string& canvasName);
+    void DrawNhitsPGem(const string& canvasName);
     void DrawNhitsGlob(const string& canvasName);
     void DrawEffGhostGlob(const string& canvasName);
     void DrawPsimPrec(const string& canvasName);

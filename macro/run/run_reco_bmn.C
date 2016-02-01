@@ -62,6 +62,8 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ------------------------------------------------------------------------
 
     // -----   Reconstruction run   -------------------------------------------
+    if (!CheckFileExist(inFile)) return;
+
     FairRunAna *fRun = new FairRunAna();
     fRun->SetInputFile(inFile);
     fRun->SetOutputFile(outFile);

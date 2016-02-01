@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 
 /*
  * FairLogger.h
@@ -9,6 +16,15 @@
 #ifndef BASE_FAIRLOGGER_H_
 #define BASE_FAIRLOGGER_H_
 
+#include "Rtypes.h"                     // for Bool_t, FairLogger::Class, etc
+
+#include <stdarg.h>                     // for va_list
+#include <fstream>                      // for ostream, operator<<, etc
+#include <string>                       // for operator<<
+#include <vector>                       // for vector
+
+class FairLogger;
+
 #define IMP_CONVERTTOSTRING(s)  # s
 #define CONVERTTOSTRING(s)      IMP_CONVERTTOSTRING(s)
 #define MESSAGE_ORIGIN          __FILE__, CONVERTTOSTRING(__LINE__), __FUNCTION__
@@ -18,11 +34,6 @@
 
 #define LOG_IF(level, condition) \
   !(condition) ? gLogger->GetNullStream(level) : LOG(level)
-
-#include "Rtypes.h"
-
-#include <ostream>
-#include <fstream>
 
 // Definiton of the different log levels
 // TODO(F.U): Find bettter names for DEBUG1..4
@@ -212,7 +223,8 @@ class FairLogger : public std::ostream
     std::ostream* fFileStream;
     std::ostream* fNullStream;
     Bool_t fLogFileOpen;
-    ClassDef(FairLogger, 2)
+    Bool_t fIsNewLine;
+    ClassDef(FairLogger, 3)
 };
 
 extern FairLogger* gLogger;

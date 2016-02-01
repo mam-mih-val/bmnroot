@@ -1,4 +1,4 @@
-void testZdcScheme ()
+void testZdcScheme (const char *input_file="evetest.root")
 {
   TStopwatch timer;
   timer.Start();
@@ -12,8 +12,8 @@ void testZdcScheme ()
   Int_t iVerbose = 2;
   Int_t nEvents = 1;
 
-  TString inFile = "evetest.root";             
-  TString parFile = "evetest.root";
+  TString inFile = input_file;             
+  TString parFile = input_file;
   TString outFile = "tmp.root";
 
 
@@ -38,6 +38,7 @@ void testZdcScheme ()
   fDigiScheme->Print();
 
   fDigiScheme->PrintVolume (33,33);	
+  fDigiScheme->PrintVolume (29,1);	
  	
   timer.Stop();
   Double_t rtime = timer.RealTime();

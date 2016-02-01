@@ -539,6 +539,8 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Fake_vs_P_glob", "P_{sim}, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Ghost_vs_Nh_glob", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
     CreateH1("Well_vs_Nh_glob", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
+    
+    CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 100, 400, 0, 100);
 
     //    cout << fHM->ToString();
 }
@@ -549,6 +551,7 @@ void BmnTrackingQa::ProcessGem() {
 
     for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
         BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
+        if (track->GetFlag() == kBMNBAD) continue;
         BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
         if (!track || !gemTrackMatch) continue;
         if (gemTrackMatch->GetNofLinks() == 0) continue;
@@ -609,6 +612,7 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("Well_vs_Nh_gem")->Fill(track->GetNHits());
 
             fHM->H2("momRes_2D_gem")->Fill(P_sim, Abs(P_sim - P_rec) / P_sim * 100.0);
+            fHM->H2("MomRes_vs_Chi2_gem")->Fill(track->GetChi2(), Abs(P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec);
             fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec);
             fHM->H2("Px_rec_Px_sim_gem")->Fill(Px_sim, Px_rec);

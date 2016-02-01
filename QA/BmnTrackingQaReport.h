@@ -90,6 +90,7 @@ protected:
 
     void DrawMomResGlob(const string& canvasName);
     void DrawMomResGem(const string& canvasName, TString name2d, TString name1d);
+    void DrawMomResChi2Gem(const string& canvasName);
 
     void DrawEtaP(const string& canvasName);
 

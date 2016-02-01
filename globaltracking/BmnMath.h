@@ -36,6 +36,7 @@ Int_t NDF(const CbmGlobalTrack* track);
 
 }
 
+Float_t ChiSq(const TVector3 par, const BmnGemTrack* tr, const TClonesArray* arr);
 TVector3 SpiralFit(const BmnGemTrack* tr, const TClonesArray* arr);
 Bool_t IsParCorrect(const FairTrackParam* par);
 

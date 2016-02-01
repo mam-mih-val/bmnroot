@@ -81,7 +81,7 @@ string BmnTrackingQaReport::PrintEventInfo() {
     Out() << "<h2>Energy: 4 GeV/n</h2>" << endl;
     if (GetOnlyPrimes()) Out() << "<h2>Results only for primaries presented</h2>" << endl;
     Out() << "<h2>Number of events: " << HM()->H1("hen_EventNo_TrackingQa")->GetEntries() << "</h2>" << endl;
-//    Out() << "<h2>Mean impact parameter: " << HM()->H1("Impact parameter")->GetMean() << "</h2>" << endl;
+    //    Out() << "<h2>Mean impact parameter: " << HM()->H1("Impact parameter")->GetMean() << "</h2>" << endl;
     Out() << "<h2>Mean multiplicity: " << HM()->H1("Multiplicity")->GetMean() << "</h2>" << endl;
     Out() << "<hr>" << endl;
     Out() << "<h3><font color=\"red\">Reconstructable</font> MC-track:</h3>" << "Monte Carlo track with at least <font color=\"red\">4</font> Monte Carlo points in GEM" << endl;
@@ -193,8 +193,8 @@ string BmnTrackingQaReport::PrintTrackingEfficiency(Bool_t isPidEfficiency) cons
 
 void BmnTrackingQaReport::Draw() {
     DrawEventsInfo("Distribution of impact parameter and multiplicity");
-//    CalculateEfficiencyHistos();
-//    FillGlobalTrackVariants();
+    //    CalculateEfficiencyHistos();
+    //    FillGlobalTrackVariants();
     SetDefaultDrawStyle();
     //    DrawEfficiencyHistos();
     DrawEffGem("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS");
@@ -218,7 +218,8 @@ void BmnTrackingQaReport::Draw() {
     DrawPsimPrecComponentsGem("Reco vs MC for X-, Y- and Z-component of Momentum for GEM-tracks");
     //DrawPsimPrecComponentsGlob("Reco vs MC for X-, Y- and Z-component of Momentum for Global-tracks");
     DrawMomResGem("Momentum resolution for GEM-tracks", "momRes_2D_gem", "momRes_1D_gem");
-//        DrawMomResGem("Momentum resolution for GEM-tracks");
+    DrawMomResChi2Gem("Momentum resolution vs Chi2");
+    //        DrawMomResGem("Momentum resolution for GEM-tracks");
     //DrawMomResGlob("Momentum resolution for Global-tracks");
     //    DrawHitsHistos();
 }
@@ -489,7 +490,7 @@ void BmnTrackingQaReport::DrawEffGem(const string& canvasName) {
     histos2.push_back(HM()->H1("Eff_vs_P_gem"));
     histos2.push_back(HM()->H1("Fake_vs_P_gem"));
     histos2.push_back(HM()->H1("SplitEff_vs_P_gem"));
-    DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.9, 1.0, 0.99, "PE1", kFALSE);
+    DrawH1(histos2, labels2, kLinear, kLinear, true, 0.5, 0.9, 1.0, 0.99, "PE1X0", kFALSE);
 }
 
 void BmnTrackingQaReport::DrawEffEtaGem(const string& canvasName) {
@@ -533,7 +534,7 @@ void BmnTrackingQaReport::DrawEffEtaGem(const string& canvasName) {
     HM()->H1("Fake_vs_Eta_gem")->Scale(100.0);
     HM()->H1("SplitEff_vs_Eta_gem")->Divide(HM()->H1("Split_vs_Eta_gem"), HM()->H1("Rec_vs_Eta_gem"), 1., 1., "B");
     HM()->H1("SplitEff_vs_Eta_gem")->Scale(100.0);
-    
+
     // Boundary checking.
     // These cases shouldn't happen, but they happen sometimes...
     for (Int_t i = 0; i < HM()->H1("Eff_vs_Eta_gem")->GetNbinsX(); ++i) {
@@ -846,6 +847,12 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
     //    HM()->H1("momRes_1D_gem")->SetMaximum(50.0);
     HM()->H1(name1d.Data())->SetMinimum(0.0);
     DrawH1(HM()->H1(name1d.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+}
+
+void BmnTrackingQaReport::DrawMomResChi2Gem(const string& canvasName) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 500);
+    canvas->SetGrid();
+    DrawH2(HM()->H2("MomRes_vs_Chi2_gem"), kLinear, kLinear, kLinear, "colz");
 }
 
 void BmnTrackingQaReport::DrawEtaP(const string& canvasName) {

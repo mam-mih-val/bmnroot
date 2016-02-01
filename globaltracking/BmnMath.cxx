@@ -2,6 +2,7 @@
 
 #include "FairTrackParam.h"
 #include "CbmHit.h"
+#include "BmnHit.h"
 #include "CbmStripHit.h"
 #include "CbmPixelHit.h"
 #include "CbmGlobalTrack.h"
@@ -125,4 +126,20 @@ Bool_t IsParCorrect(const FairTrackParam* par) {
     if (isnan(par->GetX()) || isnan(par->GetY()) || isnan(par->GetTx()) || isnan(par->GetTy()) || isnan(par->GetQp())) return kFALSE;
 
     return kTRUE;
+}
+
+Float_t ChiSq(const TVector3 par, const BmnGemTrack* tr, const TClonesArray* arr) {
+    Float_t a = par.X();
+    Float_t b = par.Y();
+    Float_t sum = 0.0;
+    for (Int_t i = 0; i < tr->GetNHits(); ++i) {
+        BmnHit* hit = (BmnHit*) arr->At(tr->GetHitIndex(i));
+        Float_t x = hit->GetX();
+        Float_t z = hit->GetZ();
+        Float_t r_hit = Sqrt(x * x + z * z);
+        Float_t theta = ATan2(x, z);
+        Float_t r_fit = a + b * theta;
+        sum += (r_hit - r_fit) * (r_hit - r_fit) / r_hit;
+    }
+    return sum;
 }

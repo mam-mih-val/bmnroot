@@ -68,7 +68,11 @@ fFileName(fileName) {
 MpdUrqmdGenerator::~MpdUrqmdGenerator() {
     //  cout<<"Enter Destructor of MpdUrqmdGenerator"<<endl;
     if (fInputFile) {
+#ifdef GZIP_SUPPORT
         gzclose(fInputFile);
+#else
+        fclose(fInputFile);
+#endif
         fInputFile = NULL;
     }
     fParticleTable.clear();
@@ -104,13 +108,23 @@ Bool_t MpdUrqmdGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
 
     // ---> Read and check first event header line from input file
     char read[200];
+#ifdef GZIP_SUPPORT
     gzgets(fInputFile, read, 200); // line 1
+#else
+    fgets(read, 200, fInputFile);
+#endif
     Int_t urqmdVersion = 0;
     sscanf(read, "UQMD   version:       %d   1000  %d  output_file  14", &urqmdVersion, &urqmdVersion);
     cout << "URQMD VERSION USED = " << urqmdVersion << endl;
+#ifdef GZIP_SUPPORT
     if (gzeof(fInputFile)) {
         cout << "-I MpdUrqmdGenerator : End of input file reached." << endl;
         gzclose(fInputFile);
+#else
+    if ( feof(fInputFile) ) {
+        cout << "-I MpdUrqmdGenerator : End of input file reached." << endl;
+        fclose(fInputFile);
+#endif
         fInputFile = NULL;
         return kFALSE;
     }
@@ -120,6 +134,7 @@ Bool_t MpdUrqmdGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
     }
 
     // ---> Read rest of event header
+#ifdef GZIP_SUPPORT
     gzgets(fInputFile, read, 200); // line 2
     sscanf(read, "projectile:  (mass, char) %d %d target:  (mass, char) %d %d",
             &aProj, &zProj, &aTarg, &zTarg); // line 2
@@ -140,6 +155,29 @@ Bool_t MpdUrqmdGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
     gzgets(fInputFile, read, 200); // line 18
     sscanf(read, "%d", &ntracks); // line 18
     gzgets(fInputFile, read, 200); // line 19
+#else
+    fgets(read, 26, fInputFile);
+    fscanf(fInputFile, "%d", &aProj);
+    fscanf(fInputFile, "%d", &zProj);
+    fgets(read, 25, fInputFile);
+    fscanf(fInputFile, "%d", &aTarg);
+    fscanf(fInputFile, "%d", &zTarg);
+    fgets(read, 200, fInputFile);
+    fgets(read, 200, fInputFile);
+    fgets(read, 36, fInputFile);
+    fscanf(fInputFile, "%f", &b);
+    fgets(read, 200, fInputFile);
+    fgets(read, 39, fInputFile);
+    fscanf(fInputFile, "%e", &ekin);
+    fgets(read, 200, fInputFile);
+    fgets(read, 7, fInputFile);
+    fscanf(fInputFile, "%d", &evnr);
+    fgets(read, 200, fInputFile);
+    for (int iline=0; iline<8; iline++)  { fgets(read, 200,fInputFile); }
+    fscanf(fInputFile, "%d", &ntracks);
+    fgets(read, 200, fInputFile);
+    fgets(read, 200, fInputFile);
+#endif
 
     // ---> Calculate beta and gamma for Lorentztransformation
     TDatabasePDG* pdgDB = TDatabasePDG::Instance();
@@ -167,9 +205,21 @@ Bool_t MpdUrqmdGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
     for (int itrack = 0; itrack < ntracks; itrack++) {
 
         // Read momentum and PID from file
+#ifdef GZIP_SUPPORT
         gzgets(fInputFile, read, 81);
         gzgets(fInputFile, read, 200);
         sscanf(read, "%e %e %e %e %d %d %d", &ppx, &ppy, &ppz, &m, &ityp, &i3, &ichg);
+#else
+        fgets(read, 81, fInputFile);
+        fscanf(fInputFile, "%e", &ppx);
+        fscanf(fInputFile, "%e", &ppy);
+        fscanf(fInputFile, "%e", &ppz);
+        fscanf(fInputFile, "%e", &m);
+        fscanf(fInputFile, "%d", &ityp);
+        fscanf(fInputFile, "%d", &i3);
+        fscanf(fInputFile, "%d", &ichg);
+        fgets(read, 200, fInputFile);
+#endif
 
         // Convert UrQMD type and charge to unique pid identifier
         if (ityp >= 0) {
@@ -233,14 +283,24 @@ Bool_t MpdUrqmdGenerator::SkipEvents(Int_t count) {
 
         // ---> Read and check first event header line from input file
         char read[200];
+#ifdef GZIP_SUPPORT
         gzgets(fInputFile, read, 200); // line 1
+#else
+        fgets(read, 200, fInputFile);
+#endif
         Int_t urqmdVersion = 0;
         sscanf(read, "UQMD   version:       %d   1000  %d  output_file  14", &urqmdVersion, &urqmdVersion);
         cout << "URQMD VERSION USED = " << urqmdVersion << endl;
 
+#ifdef GZIP_SUPPORT
         if (gzeof(fInputFile)) {
             cout << "-I MpdUrqmdGenerator : End of input file reached." << endl;
             gzclose(fInputFile);
+#else
+        if ( feof(fInputFile) ) {
+            cout << "-I MpdUrqmdGenerator : End of input file reached." << endl;
+            fclose(fInputFile);
+#endif
             fInputFile = NULL;
             return kFALSE;
         }
@@ -250,6 +310,7 @@ Bool_t MpdUrqmdGenerator::SkipEvents(Int_t count) {
         }
 
         // ---> Read rest of event header
+#ifdef GZIP_SUPPORT
         gzgets(fInputFile, read, 200); // line 2
         sscanf(read, "projectile:  (mass, char) %d %d target:  (mass, char) %d %d",
                 &aProj, &zProj, &aTarg, &zTarg); // line 2
@@ -270,6 +331,29 @@ Bool_t MpdUrqmdGenerator::SkipEvents(Int_t count) {
         gzgets(fInputFile, read, 200); // line 15
         sscanf(read, "%d", &ntracks); // line 15
         gzgets(fInputFile, read, 200); // line 16
+#else
+        fgets(read, 26, fInputFile);
+        fscanf(fInputFile, "%d", &aProj);
+        fscanf(fInputFile, "%d", &zProj);
+        fgets(read, 25, fInputFile);
+        fscanf(fInputFile, "%d", &aTarg);
+        fscanf(fInputFile, "%d", &zTarg);
+        fgets(read, 200, fInputFile);
+        fgets(read, 200, fInputFile);
+        fgets(read, 36, fInputFile);
+        fscanf(fInputFile, "%f", &b);
+        fgets(read, 200, fInputFile);
+        fgets(read, 39, fInputFile);
+        fscanf(fInputFile, "%e", &ekin);
+        fgets(read, 200, fInputFile);
+        fgets(read, 7, fInputFile);
+        fscanf(fInputFile, "%d", &evnr);
+        fgets(read, 200, fInputFile);
+        for (int iline=0; iline<8; iline++)  { fgets(read, 200,fInputFile); }
+        fscanf(fInputFile, "%d", &ntracks);
+        fgets(read, 200, fInputFile);
+        fgets(read, 200, fInputFile);
+#endif
 
         cout << "-I MpdUrqmdGenerator: Event " << evnr << " skipped!" << endl;
 
@@ -277,7 +361,12 @@ Bool_t MpdUrqmdGenerator::SkipEvents(Int_t count) {
         for (int itrack = 0; itrack < ntracks; itrack++) {
 
             // Read momentum and PID from file
+#ifdef GZIP_SUPPORT
             gzgets(fInputFile, read, 200);
+#else
+            fgets(read, 81, fInputFile);
+            fgets(read, 200, fInputFile);
+#endif
         }
     }
     return kTRUE;

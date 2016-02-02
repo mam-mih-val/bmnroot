@@ -13,7 +13,7 @@
  transformation into the lab is performed by this class.
  Derived from FairGenerator.
 **/
-
+#define GZIP_SUPPORT // version with gz support
 
 #ifndef MPDURQMDGENERATOR_H
 #define MPDURQMDGENERATOR_H
@@ -23,7 +23,9 @@
 #include <fstream>
 #include <map>
 
+#ifdef GZIP_SUPPORT
 #include <zlib.h>
+#endif
 
 class TVirtualMCStack;
 class FairPrimaryGenerator;
@@ -59,7 +61,11 @@ class MpdUrqmdGenerator : public FairGenerator
 
   private:
 
-    gzFile fInputFile;                     //!  Input file
+#ifdef GZIP_SUPPORT
+    gzFile fInputFile;                    //!  Input file
+#else
+    FILE* fInputFile;                     //!  Input file
+#endif
 
     std::map<Int_t,Int_t> fParticleTable;      //!  Map from UrQMD PID to PDGPID
 

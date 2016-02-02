@@ -95,14 +95,11 @@ void MpdLAQGSMGenerator::Init (const char *light_particles_filename)
   TString fname, dd;
   if (!light_particles_filename) {
     dd = getenv("VMCWORKDIR");
-    if (gSystem->OpenDirectory(dd+"/mpdgenerators"))
-      dd += "/mpdgenerators";
-    else {
-      if (gSystem->OpenDirectory(dd+"/cbmgenerators"))
-	dd += "/cbmgenerators";
-      else
-	dd = gSystem->WorkingDirectory();
-    }
+    if (gSystem->OpenDirectory(dd+"/generators"))
+      dd += "/generators";
+    else
+      dd = gSystem->WorkingDirectory();
+
     fname = dd+ "/MpdLAQGSM_light_particles.dat";
    }
   else

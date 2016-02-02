@@ -90,7 +90,6 @@ gRandom->SetSeed(1);
   //gSystem->Load("libCbmData");
   gSystem->Load("libBmnData");
   //gSystem->Load("libCbmGenerators");
-  gSystem->Load("libMpdgenerators");
   //gSystem->Load("libField");
   gSystem->Load("libBmnField");
   gSystem->Load("libGen");

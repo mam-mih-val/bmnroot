@@ -540,7 +540,7 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Ghost_vs_Nh_glob", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
     CreateH1("Well_vs_Nh_glob", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
     
-    CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 100, 400, 0, 100);
+    CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 1, 400, 0, 100);
 
     //    cout << fHM->ToString();
 }
@@ -592,7 +592,14 @@ void BmnTrackingQa::ProcessGem() {
         Float_t Pz_rec = P_rec / Sqrt(Tx * Tx + Ty * Ty + 1);
         Float_t Px_rec = Pz_rec * Tx;
         Float_t Py_rec = Pz_rec * Ty;
+        Float_t Pt_rec = Sqrt(Px_rec * Px_rec + Pz_rec * Pz_rec);
+        Float_t Pxy_rec = Sqrt(Px_rec * Px_rec + Py_rec * Py_rec);
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
+        Float_t Theta_rec = ATan2(Pxy_rec, Pz_rec) * RadToDeg();
+        
+//        cout << Px_sim << " " << Py_sim << " " << Pz_sim << " " << P_sim << " " << Pt_sim << " " << Pxy_sim << " " << Eta_sim << " " << Theta_sim << endl;
+//        cout << Px_rec << " " << Py_rec << " " << Pz_rec << " " << P_rec << " " << Pt_rec << " " << Pxy_rec << " " << Eta_rec << " " << Theta_rec << endl;
+        
 
         fHM->H1("Rec_vs_P_gem")->Fill(P_sim);
         fHM->H1("Rec_vs_Eta_gem")->Fill(Eta_sim);

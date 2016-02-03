@@ -197,9 +197,9 @@ void BmnTrackingQaReport::Draw() {
     //    FillGlobalTrackVariants();
     SetDefaultDrawStyle();
     //    DrawEfficiencyHistos();
-    DrawEffGem("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS");
-    DrawEffEtaGem("Distribution of MC-, reco- and fake-tracks vs Pseudorapidity per event for GEM TRACKS");
-    DrawEffThetaGem("Distribution of MC-, reco- and fake-tracks vs theta per event for GEM TRACKS");
+    DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for GEM TRACKS");
+    DrawEffEtaGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs Pseudorapidity per event for GEM TRACKS");
+    DrawEffThetaGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs theta per event for GEM TRACKS");
     //DrawEffGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS");
     DrawNhitsEtaGem("Distribution of GEM reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Pseudorapidity");
     DrawNhitsPGem("Distribution of GEM reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Momentum");
@@ -209,12 +209,12 @@ void BmnTrackingQaReport::Draw() {
     //    DrawEffGhostGem("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GEM TRACKS");
     //    DrawEffGhostGlob("Distribution of MC-, reco- and fake-tracks vs P_{sim} per event for GLOBAL TRACKS");
     // DrawYPtHistos();
-    DrawEtaP("Distribution of MC-tracks, GEM-tracks and Global tracks in Pseudorapidity and Momentum");
-    DrawPsimPrec("Reco vs MC for GEM-tracks and Global tracks");
-    DrawPtSimPtRec("Pt Reco vs MC for GEM-tracks and Global tracks");
-    DrawEtaSimEtaRec("Reco vs MC for Pseudorapidity and Momentum");
-    DrawTxSimTxRec("Tx Reco vs MC for GEM-tracks and Global tracks");
-    DrawTySimTyRec("Ty Reco vs MC for GEM-tracks and Global tracks");
+    DrawEtaP("Distribution of MC-tracks and GEM-tracks in Pseudorapidity and Momentum");
+    DrawPsimPrec("P_reco vs P_mc for GEM-tracks");
+//    DrawPtSimPtRec("Pt Reco vs MC for GEM-tracks and Global tracks");
+    DrawEtaSimEtaRec("Pseudorapidity_reco vs Pseudorapidity_mc for GEM-tracks");
+    DrawTxSimTxRec("Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GEM-tracks");
+//    DrawTySimTyRec("Ty Reco vs MC for GEM-tracks and Global tracks");
     DrawPsimPrecComponentsGem("Reco vs MC for X-, Y- and Z-component of Momentum for GEM-tracks");
     //DrawPsimPrecComponentsGlob("Reco vs MC for X-, Y- and Z-component of Momentum for Global-tracks");
     DrawMomResGem("Momentum resolution for GEM-tracks", "momRes_2D_gem", "momRes_1D_gem");
@@ -485,6 +485,9 @@ void BmnTrackingQaReport::DrawEffGem(const string& canvasName) {
     HM()->H1("Eff_vs_P_gem")->SetMaximum(105.0);
     HM()->H1("Fake_vs_P_gem")->SetMaximum(105.0);
     HM()->H1("SplitEff_vs_P_gem")->SetMaximum(105.0);
+    HM()->H1("Eff_vs_P_gem")->SetMinimum(0.0);
+    HM()->H1("Fake_vs_P_gem")->SetMinimum(0.0);
+    HM()->H1("SplitEff_vs_P_gem")->SetMinimum(0.0);
 
     vector<TH1*> histos2;
     histos2.push_back(HM()->H1("Eff_vs_P_gem"));
@@ -745,8 +748,8 @@ void BmnTrackingQaReport::DrawPsimPrec(const string& canvasName) {
     canvas->Divide(2, 1);
     canvas->cd(1);
     DrawH2(HM()->H2("P_rec_P_sim_gem"), kLinear, kLinear, kLinear, "colz");
-    //canvas->cd(2);
-    //DrawH2(HM()->H2("P_rec_P_sim_glob"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(2);
+    DrawH2(HM()->H2("Pt_rec_Pt_sim_gem"), kLinear, kLinear, kLinear, "colz");
 }
 
 void BmnTrackingQaReport::DrawPtSimPtRec(const string& canvasName) {
@@ -765,8 +768,8 @@ void BmnTrackingQaReport::DrawTxSimTxRec(const string& canvasName) {
     canvas->Divide(2, 1);
     canvas->cd(1);
     DrawH2(HM()->H2("Tx_rec_Tx_sim_gem"), kLinear, kLinear, kLinear, "colz");
-    //canvas->cd(2);
-    //DrawH2(HM()->H2("Tx_rec_Tx_sim_glob"), kLinear, kLinear, kLinear, "colz");
+    canvas->cd(2);
+    DrawH2(HM()->H2("Ty_rec_Ty_sim_gem"), kLinear, kLinear, kLinear, "colz");
 }
 
 void BmnTrackingQaReport::DrawTySimTyRec(const string& canvasName) {

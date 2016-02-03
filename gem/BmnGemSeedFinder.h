@@ -37,6 +37,8 @@ public:
     TVector3 CircleFit(BmnGemTrack* track);
     TVector3 LineFit(BmnGemTrack* track);
     TVector3 CircleBy3Hit(BmnGemTrack* track);
+    
+    void SetHitsUnused(const BmnGemTrack tr);
         
     Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
     
@@ -83,7 +85,8 @@ private:
     TClonesArray* fGemHitsArray;
     TClonesArray* fGemSeedsArray;
     TClonesArray* fGemSeedsArrayLow;
-    TClonesArray* fGemSeedsArrayMid;
+    TClonesArray* fGemSeedsArrayMid1;
+    TClonesArray* fGemSeedsArrayMid2;
     TClonesArray* fGemSeedsArrayBig;
     TClonesArray* fMCTracksArray;
     TClonesArray* fMCPointsArray;

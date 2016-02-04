@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // Class for the interface to propagate track parameters with GEANE
 //
 // Authors: M. Al-Turany, A. Fontana, L. Lavezzi and A. Rotondi
@@ -5,18 +12,18 @@
 #ifndef FAIRGEANEPRO_H
 #define FAIRGEANEPRO_H 1
 
-#include "TNamed.h"
-#include "TVector3.h"
-#include "TGeant3.h"
+#include "TNamed.h"                     // for TNamed
 
-//class TGeant3;
-class TDatabasePDG;
-class TArrayD;
+#include "Rtypes.h"                     // for Int_t, Bool_t, Double_t, etc
+#include "TGeant3.h"                    // for Ertrio_t, etc
+#include "TString.h"                    // for TString
+#include "TVector3.h"                   // for TVector3
+
 class FairTrackPar;
 class FairTrackParP;
 class FairTrackParH;
-class FairField;
 class FairGeaneApplication;
+class TDatabasePDG;
 
 class FairGeanePro : public TNamed
 {
@@ -70,6 +77,7 @@ class FairGeanePro : public TNamed
     // transport matrix
     void GetTransportMatrix(Double_t trm[5][5]);
 
+    void SetPrintErrors(bool printError = kTRUE) { fPrintErrors = printError; }
 
   private:
 
@@ -108,6 +116,9 @@ class FairGeanePro : public TNamed
     Int_t flag;
     FairGeaneApplication* fApp;
     Double_t trpmat[5][5];
+
+    // if kFALSE --> do not print the ABORT messages
+    Bool_t fPrintErrors;
 
     FairGeanePro(const FairGeanePro&);
     FairGeanePro& operator=(const FairGeanePro&);

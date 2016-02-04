@@ -1,0 +1,81 @@
+#
+# config script for mpdroot
+#
+# 11.01.2012, Gertsenberger Konstantin
+
+// Leading path for the installed distribution
+set LocalPath=/home/xrootd/
+
+set ManagerName=se63-30.local
+
+
+	#				#
+	#Extended Request Daemon Section#
+	#				#
+
+#xrd.protocol xrootd * 
+
+# Specify the data server port number. This is only relevant to
+# managers, so we qualify the specific port number using the “if”.
+if $ManagerName
+xrd.port 1094
+else
+xrd.port any
+fi
+
+
+	#				#
+	#	  Xrootd Section	#
+	#				#
+
+# Using a cmsd requires the enhanced file system. We must specify the
+# location of the shared library that implements the file system.
+#xrootd.fslib /home/xrootd/xrootd/lib64/libXrdOfs.so
+
+
+	#				#
+	#    	General section		#
+	#				#
+
+# Specify which paths are to be exported (default is r/w)
+all.export /data r/w
+
+if $ManagerName
+all.role manager
+else
+all.role server
+fi
+
+all.manager $(ManagerName):1213
+
+all.adminpath $LocalPath
+
+
+	#				#
+	#    	OFS and OSS Section	#
+	#        Open File System	#
+	#       Open Storage System	#
+
+
+oss.localroot $LocalPath
+#oss.remoteroot /home/xrootd
+
+#oss.alloc * * 80
+#oss.cache public /kanga/cache*
+
+
+	#				#
+	#	  CMSD Section		#
+	#   Cluster Management Service	#
+
+# Indicate which hosts are allowed to connect to the cmsd (even if localhost)
+#cms.allow se63-*.jinr.ru
+
+#cms.delay servers 1 startup 10
+# To use load based scheduling, specify a load formula using sched
+#cms.sched cpu 10 io 90
+# To effect load based scheduling, start a performance monitor
+#cms.perf int 180 pgm $(MyXrootdPath)/etc/XrdOlbMonPerf 120
+# Specify how server are selected for file creation
+#olb.space linger 0 recalc 10 min 1g 2g
+

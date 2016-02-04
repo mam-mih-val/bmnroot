@@ -8,6 +8,7 @@ static Float_t workTime = 0.0;
 //-----------------------------------------
 
 map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
+vector<Bool_t> hitPresence;
 const UInt_t kNHITSFORSEED = 12; // we use for seeds only kNHITSFORSEED hits
 const UInt_t kMAXSTATIONFORSEED = 12; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
 const Float_t kCHI2CUT = 1.0;
@@ -20,10 +21,6 @@ BmnGemSeedFinder::BmnGemSeedFinder() : fEventNo(0) {
     fUseLorentz = kFALSE;
     fGemHitsArray = NULL;
     fGemSeedsArray = NULL;
-    fGemSeedsArrayLow = NULL;
-    fGemSeedsArrayMid1 = NULL;
-    fGemSeedsArrayMid2 = NULL;
-    fGemSeedsArrayBig = NULL;
     fHitsBranchName = "BmnGemStripHit";
     fSeedsBranchName = "BmnGemTrack";
 }
@@ -48,20 +45,12 @@ InitStatus BmnGemSeedFinder::Init() {
     }
     fGemSeedsArray = new TClonesArray(fSeedsBranchName, 100); //out
     ioman->Register("BmnGemSeeds", "GEM", fGemSeedsArray, kTRUE);
-    fGemSeedsArrayLow = new TClonesArray(fSeedsBranchName, 100); //out
-    ioman->Register("BmnGemSeedsLow", "GEM", fGemSeedsArrayLow, kTRUE);
-    fGemSeedsArrayMid1 = new TClonesArray(fSeedsBranchName, 100); //out
-    ioman->Register("BmnGemSeedsMid1", "GEM", fGemSeedsArrayMid1, kTRUE);
-    fGemSeedsArrayMid2 = new TClonesArray(fSeedsBranchName, 100); //out
-    ioman->Register("BmnGemSeedsMid2", "GEM", fGemSeedsArrayMid2, kTRUE);
-    fGemSeedsArrayBig = new TClonesArray(fSeedsBranchName, 100); //out
-    ioman->Register("BmnGemSeedsBig", "GEM", fGemSeedsArrayBig, kTRUE);
 
 
     fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
     fMCPointsArray = (TClonesArray*) ioman->GetObject("StsPoint");
 
-    fNBins = 3000;
+    fNBins = 600; //1500;//3000;
     fMin = -0.5;
     fMax = -fMin;
     fWidth = (fMax - fMin) / fNBins;
@@ -76,21 +65,18 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 
     clock_t tStart = clock();
     fGemSeedsArray->Clear();
-    fGemSeedsArrayLow->Clear();
-    fGemSeedsArrayMid1->Clear();
-    fGemSeedsArrayMid2->Clear();
-    fGemSeedsArrayBig->Clear();
 
     const Int_t nIter = 4;
     //(0.006, 6.0, 1.05); //best parameters
     const Float_t sigX[nIter] = {0.006, 0.006, 0.006, 0.06};
-    const Float_t stpY[nIter] = {10.0, 10.0, 10.0, 20.0}; // {6, 6, 8, 8} -- best //{8, 8, 10, 20}
+    const Float_t stpY[nIter] = {2.0, 2.0, 2.0, 6.0}; //{5.0, 5.0, 5.0, 15.0};//{10.0, 10.0, 10.0, 30.0}; // {6, 6, 8, 8} -- best //{8, 8, 10, 20}
     const Float_t thrs[nIter] = {1.05, 1.05, 1.05, 1.01};
-    const Int_t length[nIter] = {10, 8, 6, 4}; 
-    TClonesArray* arr[nIter] = {fGemSeedsArrayBig, fGemSeedsArrayMid1, fGemSeedsArrayMid2, fGemSeedsArrayLow};
+    const Int_t length[nIter] = {10, 8, 4, 4};
 
     for (Int_t i = 0; i < nIter; ++i) {
         addresses.clear();
+        hitPresence.clear();
+        hitPresence.resize(fNBins);
         kSIG_X = sigX[i];
         kY_STEP = stpY[i];
         kTRS = thrs[i];
@@ -101,10 +87,10 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
             FillAddr();
         }
 
-        DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), arr[i]);
-        cout << "\nGEM_SEEDING: Number of found seeds: " << arr[i]->GetEntriesFast() << endl;
+        DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArray);
     }
 
+    cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit)
         GetHit(iHit)->SetUsing(kFALSE);
     clock_t tFinish = clock();
@@ -127,6 +113,7 @@ BmnStatus BmnGemSeedFinder::DoSeeding(Int_t min, Int_t max, TClonesArray* arr) {
 
 void BmnGemSeedFinder::Finish() {
     addresses.clear();
+    hitPresence.clear();
 }
 
 // ========================================================== //
@@ -217,33 +204,38 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
 
 void BmnGemSeedFinder::SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal) {
 
-    BmnGemStripHit* hit = NULL;
-
     for (Int_t j = y - gate; j <= y + gate; ++j) {
+        if (j < 0 || j >= fNBins) continue;
+        //        cout << j << endl;
+        if (hitPresence.at(j) == kFALSE) continue;
         ULong_t addr = j * fNBins + i;
         if (addresses.find(addr) == addresses.end()) continue;
-        hit = GetHit(addresses.find(addr)->second);
+        //        hit = GetHit(addresses.find(addr)->second);
+        Int_t id = addresses.find(addr)->second;
+        BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(id);
 
         if (hit->IsUsed()) continue;
+        Short_t st = hit->GetStation();
         if (isIdeal) {
-            if (hit->GetStation() != (*prevStation) + 1) {
+            if (st != (*prevStation) + 1) {
                 continue;
             }
         } else {
-            if (hit->GetStation() <= (*prevStation)) {
+            if (st <= (*prevStation)) {
                 continue;
             }
         }
+
+        Int_t xAddr = hit->GetXaddr();
         (*hitCntr)++;
-        (*prevStation) = hit->GetStation();
+        (*prevStation) = st;
         if ((*hitCntr) != 1) {
-            (*dist) = Abs(hit->GetXaddr() - (*startBin));
+            (*dist) = Abs(xAddr - (*startBin));
             if ((*dist) > (*maxDist)) (*maxDist) = (*dist);
         }
-        (*startBin) = hit->GetXaddr();
+        (*startBin) = xAddr;
         hit->SetUsing(kTRUE);
-        //hit->SetChange(kTRUE);
-        tr->AddHit(addresses.find(addr)->second, hit);
+        tr->AddHit(id, hit);
     }
 }
 
@@ -427,9 +419,9 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 sp
     fField = FairRunAna::Instance()->GetField();
     const Int_t nHits = tr->GetNHits();
     BmnGemStripHit* lastHit = GetHit(tr->GetHitIndex(nHits - 1));
-//    BmnGemStripHit* preLastHit = GetHit(tr->GetHitIndex(nHits - 2));
+    //    BmnGemStripHit* preLastHit = GetHit(tr->GetHitIndex(nHits - 2));
     BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0));
-//    BmnGemStripHit* secondHit = GetHit(tr->GetHitIndex(1));
+    //    BmnGemStripHit* secondHit = GetHit(tr->GetHitIndex(1));
 
     if (!firstHit || !lastHit) return kFALSE;
 
@@ -868,6 +860,8 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
         if (hit->GetType() == 0) continue; //Don't use fakes
 
         Int_t yAddr = hit->GetYaddr();
+        Int_t xAddr = hit->GetXaddr();
+        if (yAddr < 0 || yAddr >= fNBins || xAddr < 0 || xAddr >= fNBins) continue;
 
         const Float_t oneOverR = 1.0 / Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         const Float_t newX = hit->GetX() * oneOverR;
@@ -879,8 +873,11 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
             if (hit0->IsUsed()) continue; //Don't use used hits
             if (hit0->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
             if (hit0->GetType() == 0) continue; //Don't use fakes
+            Int_t yAddr0 = hit0->GetYaddr();
+            Int_t xAddr0 = hit0->GetXaddr();
+            if (yAddr0 < 0 || yAddr0 >= fNBins || xAddr0 < 0 || xAddr0 >= fNBins) continue;
 
-            if (Abs(hit0->GetYaddr() - yAddr) > yStep) continue; //hits should be in a the same Y-coridor
+            if (Abs(yAddr0 - yAddr) > yStep) continue; //hits should be in a the same Y-coridor
 
             const Float_t newX0 = hit0->GetX() / Sqrt(Sqr(hit0->GetX()) + Sqr(hit0->GetY()) + Sqr(hit0->GetZ()));
 
@@ -889,6 +886,7 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
         }
         if (potSum > trs) {
             addresses.insert(pair<ULong_t, Int_t > (hit->GetAddr(), hitIdx));
+            hitPresence.at(yAddr) = kTRUE;
         }
     }
 

@@ -84,10 +84,6 @@ private:
 
     TClonesArray* fGemHitsArray;
     TClonesArray* fGemSeedsArray;
-    TClonesArray* fGemSeedsArrayLow;
-    TClonesArray* fGemSeedsArrayMid1;
-    TClonesArray* fGemSeedsArrayMid2;
-    TClonesArray* fGemSeedsArrayBig;
     TClonesArray* fMCTracksArray;
     TClonesArray* fMCPointsArray;
 

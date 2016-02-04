@@ -486,9 +486,14 @@ int main(int argc, char** argv){
 	xmlNodePtr cur_node = root;
 	while (cur_node)
 	{
-        // if tag means JOB
+        // if tag is XML_ELEMENT_NODE then continue
         if (cur_node->type == XML_ELEMENT_NODE)
         {
+        	// if tag means JOBS (array of jobs) then step down and continue
+        	if (strcmp((char*)cur_node->name, "jobs") == 0)
+        		cur_node = cur_node->children;
+
+        	// if tag means JOB
         	if (strcmp((char*)cur_node->name, "job") == 0)
         	{
         		bool isLocal = true, isCommand = false, isError = false;

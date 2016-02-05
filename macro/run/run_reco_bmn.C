@@ -265,9 +265,9 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
         fRun->AddTask(gemTF);
     }
 
-    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
-    glFinder->SetRun1(kRUN1);
-    fRun->AddTask(glFinder);
+//    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
+//    glFinder->SetRun1(kRUN1);
+//    fRun->AddTask(glFinder);
 
     // <--- SM
 

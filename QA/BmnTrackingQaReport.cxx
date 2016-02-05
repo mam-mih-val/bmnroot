@@ -211,10 +211,10 @@ void BmnTrackingQaReport::Draw() {
     // DrawYPtHistos();
     DrawEtaP("Distribution of MC-tracks and GEM-tracks in Pseudorapidity and Momentum");
     DrawPsimPrec("P_reco vs P_mc for GEM-tracks");
-//    DrawPtSimPtRec("Pt Reco vs MC for GEM-tracks and Global tracks");
+    //    DrawPtSimPtRec("Pt Reco vs MC for GEM-tracks and Global tracks");
     DrawEtaSimEtaRec("Pseudorapidity_reco vs Pseudorapidity_mc for GEM-tracks");
     DrawTxSimTxRec("Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GEM-tracks");
-//    DrawTySimTyRec("Ty Reco vs MC for GEM-tracks and Global tracks");
+    //    DrawTySimTyRec("Ty Reco vs MC for GEM-tracks and Global tracks");
     DrawPsimPrecComponentsGem("Reco vs MC for X-, Y- and Z-component of Momentum for GEM-tracks");
     //DrawPsimPrecComponentsGlob("Reco vs MC for X-, Y- and Z-component of Momentum for Global-tracks");
     DrawMomResGem("Momentum resolution for GEM-tracks", "momRes_2D_gem", "momRes_1D_gem");
@@ -427,6 +427,12 @@ void BmnTrackingQaReport::DrawEffGem(const string& canvasName) {
     HM()->H1("Ghost_vs_P_gem")->Scale(1. / nofEvents);
     HM()->H1("Split_vs_P_gem")->Sumw2();
     HM()->H1("Split_vs_P_gem")->Scale(1. / nofEvents);
+
+    HM()->H1("Sim_vs_P_gem")->SetMinimum(0.0);
+    HM()->H1("Well_vs_P_gem")->SetMinimum(0.0);
+    HM()->H1("Ghost_vs_P_gem")->SetMinimum(0.0);
+    HM()->H1("Split_vs_P_gem")->SetMinimum(0.0);
+
     vector<TH1*> histos1;
     histos1.push_back(HM()->H1("Sim_vs_P_gem"));
     histos1.push_back(HM()->H1("Well_vs_P_gem"));
@@ -482,9 +488,9 @@ void BmnTrackingQaReport::DrawEffGem(const string& canvasName) {
         }
     }
 
-    HM()->H1("Eff_vs_P_gem")->SetMaximum(105.0);
-    HM()->H1("Fake_vs_P_gem")->SetMaximum(105.0);
-    HM()->H1("SplitEff_vs_P_gem")->SetMaximum(105.0);
+    HM()->H1("Eff_vs_P_gem")->SetMaximum(100.0);
+    HM()->H1("Fake_vs_P_gem")->SetMaximum(100.0);
+    HM()->H1("SplitEff_vs_P_gem")->SetMaximum(100.0);
     HM()->H1("Eff_vs_P_gem")->SetMinimum(0.0);
     HM()->H1("Fake_vs_P_gem")->SetMinimum(0.0);
     HM()->H1("SplitEff_vs_P_gem")->SetMinimum(0.0);
@@ -847,7 +853,7 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
     canvas->cd(1);
     DrawH2(HM()->H2(name2d.Data()), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
-    //    HM()->H1("momRes_1D_gem")->SetMaximum(50.0);
+    HM()->H1("momRes_1D_gem")->SetMaximum(10.0);
     HM()->H1(name1d.Data())->SetMinimum(0.0);
     DrawH1(HM()->H1(name1d.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
 }

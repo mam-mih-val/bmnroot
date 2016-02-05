@@ -1,5 +1,5 @@
 #include "TProfile.h"
-#include <TMath.h>
+#include "TMath.h"
 #include "TCanvas.h"
 #include "BmnGemSeedFinder.h"
 #include "BmnMath.h"
@@ -150,6 +150,8 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         Int_t xAddr = hit->GetXaddr();
         Int_t yAddr = hit->GetYaddr();
 
+        if ((yAddr - gate) < 0 || (yAddr + gate) > fNBins) continue;
+
         Int_t dist = 0;
         Int_t maxDist = 0;
         Int_t hitCntr = 0;
@@ -205,14 +207,13 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
 void BmnGemSeedFinder::SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal) {
 
     for (Int_t j = y - gate; j <= y + gate; ++j) {
-        if (j < 0 || j >= fNBins) continue;
-        //        cout << j << endl;
-        if (hitPresence.at(j) == kFALSE) continue;
+
+//        if (!hitPresence.at(j)) continue;
         ULong_t addr = j * fNBins + i;
         if (addresses.find(addr) == addresses.end()) continue;
-        //        hit = GetHit(addresses.find(addr)->second);
+        
         Int_t id = addresses.find(addr)->second;
-        BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(id);
+        BmnGemStripHit* hit = GetHit(id);
 
         if (hit->IsUsed()) continue;
         Short_t st = hit->GetStation();

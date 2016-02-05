@@ -14,7 +14,7 @@
 
 //-----------------------------------------
 static Float_t workTime = 0.0;
-const Float_t kCHI2CUT = 1000.0;
+const Float_t kCHI2CUT = 10.0;
 //-----------------------------------------
 
 using namespace std;

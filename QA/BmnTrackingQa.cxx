@@ -111,7 +111,7 @@ void BmnTrackingQa::Exec(Option_t* opt) {
     ReadEventHeader();
     fMCTrackCreator->Create();
     ProcessGem();
-    ProcessGlobal();
+//    ProcessGlobal();
     //    ProcessGlobalTracks();
     ProcessMcTracks();
     IncreaseCounters();
@@ -136,12 +136,12 @@ void BmnTrackingQa::ReadDataBranches() {
         Fatal("Init", "No MCTrack array!");
     }
 
-    fGlobalTracks = (TClonesArray*) ioman->GetObject("GlobalTrack");
-    fGlobalTrackMatches = (TClonesArray*) ioman->GetObject("GlobalTrackMatch");
-
-    if (NULL == fGlobalTracks) {
-        Fatal("Init", "No GlobalTrack array!");
-    }
+//    fGlobalTracks = (TClonesArray*) ioman->GetObject("GlobalTrack");
+//    fGlobalTrackMatches = (TClonesArray*) ioman->GetObject("GlobalTrackMatch");
+//
+//    if (NULL == fGlobalTracks) {
+//        Fatal("Init", "No GlobalTrack array!");
+//    }
 
     if (fDet.GetDet(kGEM)) {
         fGemSeeds = (TClonesArray*) ioman->GetObject("BmnGemSeeds");
@@ -632,7 +632,7 @@ void BmnTrackingQa::ProcessGem() {
         }
     }
 
-    Int_t momResStep = 40;
+    Int_t momResStep = 20;
     for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D_gem")->GetNbinsX(); iBin += momResStep) {
         TH1D* proj = fHM->H2("momRes_2D_gem")->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
         proj->Fit("gaus", "SQRww", "", 0.0, 100.0);
@@ -1056,7 +1056,7 @@ void BmnTrackingQa::FillGlobalReconstructionHistos(Int_t mcId, const multimap<In
 
 void BmnTrackingQa::IncreaseCounters() {
 
-    fHM->H1("hno_NofObjects_GlobalTracks")->Fill(fGlobalTracks->GetEntriesFast());
+    //fHM->H1("hno_NofObjects_GlobalTracks")->Fill(fGlobalTracks->GetEntriesFast());
     if (fDet.GetDet(kGEM)) {
         fHM->H1("hno_NofObjects_GemTracks")->Fill(fGemTracks->GetEntriesFast());
         fHM->H1("hno_NofObjects_GemHits")->Fill(fGemHits->GetEntriesFast());

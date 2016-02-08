@@ -1,5 +1,0 @@
-<job>
- <macro name="~/mpdroot/macro/mpd/reco.C"/>
- <file input="~/mpdroot/macro/mpd/evetest.root" output="~/mpdroot/macro/mpd/mpddst.root" start_event="0" count_event="15"/>
- <run mode="global" count="1" config="~/mpdroot/build/config.sh"/>
-</job>

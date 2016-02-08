@@ -1,5 +1,0 @@
-<job>
- <macro name="$VMCWORKDIR/macro/mpd/runMC.C"/>
- <file input="auau.09gev.mbias.98k.ftn14" output="$VMCWORKDIR/macro/mpd/evetest.root" start_event="0" count_event="10"/>
- <run mode="local" count="1" config="$VMCWORKDIR/build/config.sh"/>
-</job>

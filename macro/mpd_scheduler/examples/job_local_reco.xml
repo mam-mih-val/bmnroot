@@ -1,5 +1,0 @@
-<job>
- <macro name="$VMCWORKDIR/macro/mpd/reco.C" start_event="0" count_event="8"/>
- <file input="$VMCWORKDIR/macro/mpd/evetest.root" output="$VMCWORKDIR/macro/mpd/mpddst.root"/>
- <run mode="local" count="1" config="$VMCWORKDIR/build/config.sh"/>
-</job>

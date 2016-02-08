@@ -1,4 +1,0 @@
-<job>
- <command line="$VMCWORKDIR/build/bin/get_mpd_prod energy=5-9"/>
- <run mode="global" config="~/mpdroot/build/config.sh" logs="mpd_prod_energy5-9.log"/>
-</job>

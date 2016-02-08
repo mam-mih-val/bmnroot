@@ -1,5 +1,0 @@
-<job>
- <macro name="~/mpdroot/macro/mpd/runMC.C" start_event="0" count_event="10"/>
- <file db_input="mpd.jinr.ru,energy=3,gen=urqmd" output="~/mpdroot/macro/mpd/evetest_db_${counter}.root"/>
- <run mode="local" count="4" config="~/mpdroot/build/config.sh" logs="processing.log"/>
-</job>

@@ -157,7 +157,9 @@ add_subdirectory (cat)
 add_subdirectory (eventdisplay)
 add_subdirectory (uni_db)
 
-add_subdirectory (macro/mpd_scheduler)
+if(EXISTS "${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/CMakeLists.txt")
+ add_subdirectory (macro/mpd_scheduler)
+endif()
 
 Option(BUILD_DOXYGEN "Build Doxygen" OFF)
 if(BUILD_DOXYGEN)

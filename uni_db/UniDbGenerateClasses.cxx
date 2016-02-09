@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------
 #include "UniDbGenerateClasses.h"
 #include "UniDbConnection.h"
-#include "../macro/mpd_scheduler/src/function_set.h"
+#include "function_set.h"
 
 #include "TSQLServer.h"
 #include "TSQLResult.h"

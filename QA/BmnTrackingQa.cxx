@@ -367,8 +367,8 @@ void BmnTrackingQa::CreateHistograms() {
     fDet.DetermineSetup();
 
     // Number of points distributions
-    const Float_t minNofPoints = 0.;
-    const Float_t maxNofPoints = 15.;
+    const Float_t minNofPoints = -0.5;
+    const Float_t maxNofPoints = 14.5;
     const Int_t nofBinsPoints = 15;
 
     // Reconstruction efficiency histograms
@@ -632,12 +632,12 @@ void BmnTrackingQa::ProcessGem() {
         }
     }
 
-    Int_t momResStep = 20;
+    Int_t momResStep = 10;
     for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D_gem")->GetNbinsX(); iBin += momResStep) {
         TH1D* proj = fHM->H2("momRes_2D_gem")->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
         proj->Fit("gaus", "SQRww", "", 0.0, 100.0);
         TF1 *fit = proj->GetFunction("gaus");
-        Float_t mean = (fit->GetParameter(1) < 20.0) ? fit->GetParameter(1) : 0.0;
+        Float_t mean = (fit->GetParameter(1) < 50.0) ? fit->GetParameter(1) : 0.0;
         Float_t sigma = fit->GetParameter(2);
         Float_t mom = fHM->H2("momRes_2D_gem")->GetXaxis()->GetBinCenter(iBin);
         Int_t nBins = fHM->H1("momRes_1D_gem")->GetXaxis()->GetNbins();

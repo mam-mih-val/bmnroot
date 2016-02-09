@@ -115,7 +115,7 @@ TVector3 SpiralFit(const BmnGemTrack* tr, const TClonesArray* arr) {
     //Float_t k = (tmp2 + 2 * b * b) / Sqrt(Power((tmp2 + b * b), 3));
 
     Float_t k = Abs(2 / b); //curvature for r == 0
-//    cout << a << " " << b << " " << 1 / k << endl;
+    //    cout << a << " " << b << " " << 1 / k << endl;
     return TVector3(a, b, 1 / k);
 }
 
@@ -144,4 +144,33 @@ Float_t ChiSq(const TVector3 par, const BmnGemTrack* tr, const TClonesArray* arr
         sum += (r_hit - r_fit) * (r_hit - r_fit) / r_hit;
     }
     return sum;
+}
+
+Int_t stationNumber(const string& detName, const Float_t z) {
+    Int_t station = -1;
+    if (detName == "Gem") {
+        const Float_t delta = 6.;
+        if (Abs(30 - z) < delta) station = 0;
+        else if (Abs(45 - z) < delta) station = 1;
+        else if (Abs(60 - z) < delta) station = 2;
+        else if (Abs(80 - z) < delta) station = 3;
+        else if (Abs(100 - z) < delta) station = 4;
+        else if (Abs(130 - z) < delta) station = 5;
+        else if (Abs(160 - z) < delta) station = 6;
+        else if (Abs(190 - z) < delta) station = 7;
+        else if (Abs(230 - z) < delta) station = 8;
+        else if (Abs(270 - z) < delta) station = 9;
+        else if (Abs(315 - z) < delta) station = 10;
+        else if (Abs(360 - z) < delta) station = 11;
+        else station = -1;
+    } else if (detName == "Tof1") {
+        station = 12;
+    } else if (detName == "Dch1") {
+        station = 13;
+    } else if (detName == "Dch2") {
+        station = 14;
+    } else if (detName == "Tof2") {
+        station = 15;
+    }
+    return station;
 }

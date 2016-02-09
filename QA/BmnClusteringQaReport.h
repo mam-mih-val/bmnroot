@@ -51,12 +51,16 @@ private:
      */
     string PrintNofObjects() const;
 
-    void DrawNofObjectsHistograms(
-            const string& detName,
-            const string& parameter);
+    void DrawNofObjectsHistograms(const string& detName, const string& parameter);
 
     void DrawResidualsAndPulls(
             const string& detName);
+    
+    void DrawResXbyStation(const string& canvasName);
+    void DrawResYbyStation(const string& canvasName);
+    void DrawSimXRecXbyStation(const string& canvasName);
+    void DrawSimYRecYbyStation(const string& canvasName);
+    void DrawOccupancyByStation(const string& canvasName);
 
     //   void DrawAccAndRec(
     //         const string& canvasName,
@@ -66,6 +70,11 @@ private:
     //         const string& canvasName,
     //         const string& histNamePattern,
     //         string (*labelFormatter)(const string&, const CbmHistManager*));
+    
+    
+    void DrawEventsInfo(const string& canvasName);
+    
+    string PrintEventInfo();
 
     void ScaleAndShrinkHistograms();
 

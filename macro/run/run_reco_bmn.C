@@ -22,7 +22,7 @@
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 // outFile - output file with reconstructed data, default: mpddst.root
 
-void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 100, Bool_t isPrimary = kTRUE, Bool_t gemCF = kTRUE) {
+void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 1000, Bool_t isPrimary = kTRUE, Bool_t gemCF = kTRUE) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
@@ -196,8 +196,8 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
     if (gemCF) {
-		  BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Full; // 12 stations (GEM_v3.root)
-        //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::First; // first config (GEM_1stConfig.root)
+//		  BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Full; // 12 stations (GEM_v3.root)
+        BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::First; // first config (GEM_1stConfig.root)
         //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::FirstShort; // first config (short version) (GEM_1stConfigShort.root))
         //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Second; // second config (GEM_2ndConfig.root))
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();

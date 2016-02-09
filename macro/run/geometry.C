@@ -33,8 +33,8 @@ geometry(FairRunSim *fRun)
     fRun->AddModule(psd);
 
     FairDetector* sts = new CbmSts("STS", kTRUE);
-	 sts->SetGeometryFileName("GEMS_v3.root");
-    //sts->SetGeometryFileName("GEMS_1stConfig.root");
+//	 sts->SetGeometryFileName("GEMS_v3.root");
+    sts->SetGeometryFileName("GEMS_1stConfig.root");
     //sts->SetGeometryFileName("GEMS_1stConfigShort.root");
     //sts->SetGeometryFileName("GEMS_2ndConfig.root");
     fRun->AddModule(sts);

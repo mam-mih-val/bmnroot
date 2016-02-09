@@ -64,14 +64,14 @@ BmnTrackingQaReport::~BmnTrackingQaReport() {
 }
 
 void BmnTrackingQaReport::Create() {
+    Out().precision(3);
     Out() << R()->DocumentBegin();
     Out() << R()->Title(0, GetTitle());
     Out() << PrintEventInfo();
     //Out() << PrintNofObjects();
     //Out() << PrintTrackHits();
     //Out() << PrintNofGhosts();
-    Out().precision(3);
-    Out() << PrintTrackingEfficiency(false);
+    //Out() << PrintTrackingEfficiency(false);
     PrintCanvases();
     Out() << R()->DocumentEnd();
 }
@@ -81,7 +81,6 @@ string BmnTrackingQaReport::PrintEventInfo() {
     Out() << "<h2>Energy: 4 GeV/n</h2>" << endl;
     if (GetOnlyPrimes()) Out() << "<h2>Results only for primaries presented</h2>" << endl;
     Out() << "<h2>Number of events: " << HM()->H1("hen_EventNo_TrackingQa")->GetEntries() << "</h2>" << endl;
-    //    Out() << "<h2>Mean impact parameter: " << HM()->H1("Impact parameter")->GetMean() << "</h2>" << endl;
     Out() << "<h2>Mean multiplicity: " << HM()->H1("Multiplicity")->GetMean() << "</h2>" << endl;
     Out() << "<hr>" << endl;
     Out() << "<h3><font color=\"red\">Reconstructable</font> MC-track:</h3>" << "Monte Carlo track with at least <font color=\"red\">4</font> Monte Carlo points in GEM" << endl;

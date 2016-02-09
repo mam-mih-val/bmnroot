@@ -196,11 +196,17 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
     if (gemCF) {
+		  BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Full; // 12 stations (GEM_v3.root)
+        //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::First; // first config (GEM_1stConfig.root)
+        //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::FirstShort; // first config (short version) (GEM_1stConfigShort.root))
+        //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Second; // second config (GEM_2ndConfig.root))
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
+		  gemDigit->SetCurrentConfig(gem_config);
         gemDigit->SetOnlyPrimary(isPrimary);
 		  gemDigit->SetStripMatching(kTRUE);
         fRun->AddTask(gemDigit);
         BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
+		  gemHM->SetCurrentConfig(gem_config);
 		  gemHM->SetHitMatching(kTRUE);
         fRun->AddTask(gemHM);
     } else {

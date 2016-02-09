@@ -15,6 +15,8 @@ TGeoManager* gGeoMan = NULL;
 const Int_t nStations = 12;
 
 //Stantion Parameters
+const Double_t XStantionPosition[nStations] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+const Double_t YStantionPosition[nStations] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
 const Double_t ZStantionPosition[nStations] = {30., 45., 60., 80., 100., 130., 160., 190., 230., 270., 315., 360.};
 
 //Beam Pipe Hole Parameters
@@ -174,21 +176,21 @@ void create_rootgeom_GEMS_v3() {
     GEMS->SetMedium(pMedAir);
 
     //station creating
-    CreateStation_Type4Zones(GEMS, "station0", ZStantionPosition[0], XZoneSizes_Station0, YZoneSizes_Station0, BeamPipeRadius[0]+dXInnerFrame);
-    CreateStation_Type4Zones(GEMS, "station1", ZStantionPosition[1], XZoneSizes_Station0, YZoneSizes_Station0, BeamPipeRadius[1]+dXInnerFrame);
-    CreateStation_Type4Zones(GEMS, "station2", ZStantionPosition[2], XZoneSizes_Station2, YZoneSizes_Station2, BeamPipeRadius[2]+dXInnerFrame);
-    CreateStation_Type4Zones(GEMS, "station3", ZStantionPosition[3], XZoneSizes_Station2, YZoneSizes_Station2, BeamPipeRadius[3]+dXInnerFrame);
+    CreateStation_Type4Zones(GEMS, "station0", XStantionPosition[0], YStantionPosition[0], ZStantionPosition[0], XZoneSizes_Station0, YZoneSizes_Station0, BeamPipeRadius[0]+dXInnerFrame);
+    CreateStation_Type4Zones(GEMS, "station1", XStantionPosition[1], YStantionPosition[1], ZStantionPosition[1], XZoneSizes_Station0, YZoneSizes_Station0, BeamPipeRadius[1]+dXInnerFrame);
+    CreateStation_Type4Zones(GEMS, "station2", XStantionPosition[2], YStantionPosition[2], ZStantionPosition[2], XZoneSizes_Station2, YZoneSizes_Station2, BeamPipeRadius[2]+dXInnerFrame);
+    CreateStation_Type4Zones(GEMS, "station3", XStantionPosition[3], YStantionPosition[3], ZStantionPosition[3], XZoneSizes_Station2, YZoneSizes_Station2, BeamPipeRadius[3]+dXInnerFrame);
 
-    CreateStationTypePrototype(GEMS, "station4", ZStantionPosition[4], BeamPipeRadius[4]);
+    CreateStationTypePrototype(GEMS, "station4", XStantionPosition[4], YStantionPosition[4], ZStantionPosition[4], BeamPipeRadius[4]);
 
-    CreateStation_TypeTwoModules(GEMS, "station5", ZStantionPosition[5], BeamPipeRadius[5]+dXInnerFrame, kFALSE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
-    CreateStation_TypeTwoModules(GEMS, "station6", ZStantionPosition[6], BeamPipeRadius[6]+dXInnerFrame, kTRUE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
-    CreateStation_TypeTwoModules(GEMS, "station7", ZStantionPosition[7], BeamPipeRadius[7]+dXInnerFrame, kFALSE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
+    CreateStation_TypeTwoModules(GEMS, "station5", XStantionPosition[5], YStantionPosition[5], ZStantionPosition[5], BeamPipeRadius[5]+dXInnerFrame, kFALSE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
+    CreateStation_TypeTwoModules(GEMS, "station6", XStantionPosition[6], YStantionPosition[6], ZStantionPosition[6], BeamPipeRadius[6]+dXInnerFrame, kTRUE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
+    CreateStation_TypeTwoModules(GEMS, "station7", XStantionPosition[7], YStantionPosition[7], ZStantionPosition[7], BeamPipeRadius[7]+dXInnerFrame, kFALSE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
 
-    CreateStation_TypeTwoModules(GEMS, "station8", ZStantionPosition[8], BeamPipeRadius[8]+dXInnerFrame, kTRUE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
-    CreateStation_TypeTwoModules(GEMS, "station9", ZStantionPosition[9], BeamPipeRadius[9]+dXInnerFrame, kFALSE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
-    CreateStation_TypeTwoModules(GEMS, "station10", ZStantionPosition[10], BeamPipeRadius[10]+dXInnerFrame, kTRUE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
-    CreateStation_TypeTwoModules(GEMS, "station11", ZStantionPosition[11], BeamPipeRadius[11]+dXInnerFrame, kFALSE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
+    CreateStation_TypeTwoModules(GEMS, "station8", XStantionPosition[8], YStantionPosition[8], ZStantionPosition[8], BeamPipeRadius[8]+dXInnerFrame, kTRUE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
+    CreateStation_TypeTwoModules(GEMS, "station9", XStantionPosition[9], YStantionPosition[9], ZStantionPosition[9], BeamPipeRadius[9]+dXInnerFrame, kFALSE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
+    CreateStation_TypeTwoModules(GEMS, "station10", XStantionPosition[10], YStantionPosition[10], ZStantionPosition[10], BeamPipeRadius[10]+dXInnerFrame, kTRUE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
+    CreateStation_TypeTwoModules(GEMS, "station11", XStantionPosition[11], YStantionPosition[11], ZStantionPosition[11], BeamPipeRadius[11]+dXInnerFrame, kFALSE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
 
 
 
@@ -208,7 +210,7 @@ void create_rootgeom_GEMS_v3() {
 }
 
 //------------------------------------------------------------------------------
-void CreateStation_Type4Zones(TGeoVolume* mother_volume, TString station_name, Double_t z_position, Double_t *x_zone_sizes, Double_t *y_zone_sizes, Double_t hole_radius) {
+void CreateStation_Type4Zones(TGeoVolume* mother_volume, TString station_name, Double_t x_position, Double_t y_position, Double_t z_position, Double_t *x_zone_sizes, Double_t *y_zone_sizes, Double_t hole_radius) {
 
     TGeoVolume *stationA = new TGeoVolumeAssembly(station_name);
     stationA->SetMedium(pMedAir);
@@ -411,12 +413,12 @@ void CreateStation_Type4Zones(TGeoVolume* mother_volume, TString station_name, D
     //Station position
     Double_t station_shift = 0.0;
     if(!StationCenterPosition) station_shift = dZSensitiveVolume/2 + (ZModuleSize-dZSensitiveVolume);
-    TGeoTranslation *station_pos = new TGeoTranslation(0, 0, z_position+station_shift);
+    TGeoTranslation *station_pos = new TGeoTranslation(x_position, y_position, z_position+station_shift);
 
     mother_volume->AddNode(stationA, 0, station_pos);
 }
 
-void CreateStationTypePrototype(TGeoVolume* mother_volume, TString station_name, Double_t z_position, Double_t hole_radius) {
+void CreateStationTypePrototype(TGeoVolume* mother_volume, TString station_name, Double_t x_position, Double_t y_position, Double_t z_position, Double_t hole_radius) {
     TGeoVolume *stationA = new TGeoVolumeAssembly(station_name);
     stationA->SetMedium(pMedAir);
 
@@ -548,13 +550,13 @@ void CreateStationTypePrototype(TGeoVolume* mother_volume, TString station_name,
     //Station position
     Double_t station_shift = 0.0;
     if(!StationCenterPosition) station_shift = (ZModuleSize*2)/2;
-    TGeoTranslation *station_pos = new TGeoTranslation(0, 0, z_position+station_shift);
+    TGeoTranslation *station_pos = new TGeoTranslation(x_position, y_position, z_position+station_shift);
 
     mother_volume->AddNode(stationA, 0, station_pos);
 
 }
 
-void CreateStation_TypeTwoModules(TGeoVolume* mother_volume, TString station_name, Double_t z_position, Double_t hole_radius, Bool_t start_positive_angle, Double_t *outer_zone_sizes, Double_t *hot_zone_sizes_rect, Double_t *hot_zone_sizes_slope) {
+void CreateStation_TypeTwoModules(TGeoVolume* mother_volume, TString station_name, Double_t x_position, Double_t y_position, Double_t z_position, Double_t hole_radius, Bool_t start_positive_angle, Double_t *outer_zone_sizes, Double_t *hot_zone_sizes_rect, Double_t *hot_zone_sizes_slope) {
     TGeoVolume *stationA = new TGeoVolumeAssembly(station_name);
     stationA->SetMedium(pMedAir);
 
@@ -732,7 +734,7 @@ void CreateStation_TypeTwoModules(TGeoVolume* mother_volume, TString station_nam
     //Station position
     Double_t station_shift = 0.0;
     if(!StationCenterPosition) station_shift = (ZModuleSize*2)/2;
-    TGeoTranslation *station_pos = new TGeoTranslation(0, 0, z_position+station_shift);
+    TGeoTranslation *station_pos = new TGeoTranslation(x_position, y_position, z_position+station_shift);
 
     mother_volume->AddNode(stationA, 0, station_pos);
 }

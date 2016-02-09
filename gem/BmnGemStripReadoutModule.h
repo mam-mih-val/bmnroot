@@ -61,7 +61,7 @@ public:
     void SetStripWidths(Double_t low_strip_width, Double_t up_strip_width);
     void SetReadoutSizes(Double_t xsize, Double_t ysize, Double_t xorig=0.0, Double_t yorig=0.0);
     Bool_t SetDeadZone(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax);
-    void SetAngleDeg(Double_t deg); //minis - clockwise, plus - anticlockwise
+    void SetAngleDeg(Double_t deg); // plus - clockwise from vertical
     void SetZPosition(Double_t zpos_module) { ZReadoutModulePosition = zpos_module; }
     void SetAvalancheRadius(Double_t aval_radius) { AvalancheRadius = aval_radius; }
     void SetMeanCollisionDistance(Double_t mcd) { MCD = mcd; }
@@ -193,7 +193,7 @@ private:
     Double_t Pitch;
     Double_t LowerStripWidth;
     Double_t UpperStripWidth;
-    Double_t AngleDeg; //Angle between two sets of parellel strip
+    Double_t AngleDeg; //Angle between two sets of parellel strips: angle from vertical
     Double_t AngleRad;
 
     Double_t XMinReadout;
@@ -264,8 +264,8 @@ public:
     Double_t OriginPosition; //origin position of the center point
     Double_t MeanPosition; //position of the cluster (after fitting)
     Double_t TotalSignal; //total signal of the cluster
-    Double_t PositionResidual; // residual from origin position
-    Bool_t IsCorrect; //correct or incorrect cluster
+    Double_t PositionResidual; // residual from the origin position
+    Bool_t IsCorrect; //correct or incorrect cluster (status)
 
     vector<Int_t> Strips;
     vector<Double_t> Signals;

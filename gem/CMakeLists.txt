@@ -12,6 +12,7 @@ ${BMNROOT_SOURCE_DIR}/globaltracking
 ${BMNROOT_SOURCE_DIR}/gem
 ${BMNROOT_SOURCE_DIR}/bmnfield
 ${BMNROOT_SOURCE_DIR}/bmnbase
+${BMNROOT_SOURCE_DIR}/BmnKalmanFilter
 
 ${BMNROOT_SOURCE_DIR}/bmndata
 #${BMNROOT_SOURCE_DIR}/sts
@@ -45,10 +46,16 @@ set(SRCS
   BmnGemTrackFinderQA.cxx
   BmnGemTrackFinder.cxx
   BmnGemStripReadoutModule.cxx
-  #BmnGemStripStation.cxx
-  #BmnGemStripStationSet.cxx
-  BmnGemStripStation_v3.cxx
-  BmnGemStripStationSet_v3.cxx
+  BmnGemStripStation.cxx
+  BmnGemStripStationSet.cxx
+  BmnGemStripStation_FullConfig.cxx
+  BmnGemStripStationSet_FullConfig.cxx
+  BmnGemStripStation_1stConfig.cxx
+  BmnGemStripStationSet_1stConfig.cxx
+  BmnGemStripStation_1stConfigShort.cxx
+  BmnGemStripStationSet_1stConfigShort.cxx
+  BmnGemStripStation_2ndConfig.cxx
+  BmnGemStripStationSet_2ndConfig.cxx
   BmnGemStripDigit.cxx
   BmnGemStripDigitizer.cxx
   BmnGemStripHit.cxx
@@ -70,10 +77,16 @@ set(HEADERS
   BmnGemTrackFinderQA.h
   BmnGemTrackFinder.h
   BmnGemStripReadoutModule.h
-  #BmnGemStripStation.h
-  #BmnGemStripStationSet.h
-  BmnGemStripStation_v3.h
-  BmnGemStripStationSet_v3.h
+  BmnGemStripStation.h
+  BmnGemStripStationSet.h
+  BmnGemStripStation_FullConfig.h
+  BmnGemStripStationSet_FullConfig.h
+  BmnGemStripStation_1stConfig.h
+  BmnGemStripStationSet_1stConfig.h
+  BmnGemStripStation_1stConfigShort.h
+  BmnGemStripStationSet_1stConfigShort.h
+  BmnGemStripStation_2ndConfig.h
+  BmnGemStripStationSet_2ndConfig.h
   BmnGemStripDigit.h
   BmnGemStripDigitizer.h
   BmnGemStripHit.h

@@ -1,4 +1,8 @@
 #include "BmnGemStripHitMaker.h"
+#include "BmnGemStripStationSet_FullConfig.h"
+#include "BmnGemStripStationSet_1stConfig.h"
+#include "BmnGemStripStationSet_1stConfigShort.h"
+#include "BmnGemStripStationSet_2ndConfig.h"
 
 BmnGemStripHitMaker::BmnGemStripHitMaker()
 : fHitMatching(kTRUE) {
@@ -11,6 +15,8 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
 
     fVerbose = 1;
+
+    fCurrentConfig = BmnGemStripConfiguration::None;
 }
 
 BmnGemStripHitMaker::~BmnGemStripHitMaker() {
@@ -20,6 +26,9 @@ BmnGemStripHitMaker::~BmnGemStripHitMaker() {
 InitStatus BmnGemStripHitMaker::Init() {
 
     if(fVerbose) cout << "\nBmnGemStripHitMaker::Init()\n ";
+
+    //if GEM configuration is not set -> return a fatal error
+    if(!fCurrentConfig) Fatal("BmnGemStripHitMaker::Init()", " !!! Current GEM config is not set !!! ");
 
     FairRootManager* ioman = FairRootManager::Instance();
 
@@ -76,7 +85,27 @@ void BmnGemStripHitMaker::ProcessDigits() {
     BmnGemStripDigit* digit;
     BmnMatch *strip_match;
 
-    BmnGemStripStationSet StationSet;
+    BmnGemStripStationSet *StationSet = 0;
+    switch (fCurrentConfig) {
+        case BmnGemStripConfiguration::Full:
+            StationSet = new BmnGemStripStationSet_FullConfig();
+            if(fVerbose) cout << "   Current Configuration : FullConfig" << "\n";
+            break;
+        case BmnGemStripConfiguration::First:
+            StationSet = new BmnGemStripStationSet_1stConfig();
+            if(fVerbose) cout << "   Current Configuration : FirstConfig" << "\n";
+            break;
+        case BmnGemStripConfiguration::FirstShort:
+            StationSet = new BmnGemStripStationSet_1stConfigShort();
+            if(fVerbose) cout << "   Current Configuration : FirstConfig (short version)" << "\n";
+            break;
+        case BmnGemStripConfiguration::Second:
+            StationSet = new BmnGemStripStationSet_2ndConfig();
+            if(fVerbose) cout << "   Current Configuration : SecondConfig" << "\n";
+            break;
+        default:
+            StationSet = 0;
+    }
 
     BmnGemStripStation* station;
     BmnGemStripReadoutModule* module;
@@ -87,7 +116,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
     for(UInt_t idigit = 0; idigit < fBmnGemStripDigitsArray->GetEntriesFast(); idigit++) {
         digit = (BmnGemStripDigit*)fBmnGemStripDigitsArray->At(idigit);
-        station = StationSet.GetGemStation(digit->GetStation());
+        station = StationSet->GetGemStation(digit->GetStation());
         module = station->GetReadoutModule(digit->GetModule());
 
         if(digit->GetStripLayer() == 0) {
@@ -114,16 +143,16 @@ void BmnGemStripHitMaker::ProcessDigits() {
 //------------------------------------------------------------------------------
 
 //Processing digits
-    StationSet.ProcessPointsInDetector();
+    StationSet->ProcessPointsInDetector();
 
-    Int_t NCalculatedPoints = StationSet.CountNProcessedPointsInDetector();
+    Int_t NCalculatedPoints = StationSet->CountNProcessedPointsInDetector();
     if(fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
 
     Int_t NMCPoints = fBmnGemStripPointsArray->GetEntriesFast();
     Int_t matched_points_cnt = 0;
 
-    for(Int_t iStation = 0; iStation < StationSet.GetNStations(); ++iStation) {
-        BmnGemStripStation *station = StationSet.GetGemStation(iStation);
+    for(Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
+        BmnGemStripStation *station = StationSet->GetGemStation(iStation);
 
         for(Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripReadoutModule *module = station->GetReadoutModule(iModule);
@@ -162,8 +191,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
                     Double_t xmc = -MCPoint->GetX();
                     Double_t ymc = MCPoint->GetY();
                     Double_t zmc = MCPoint->GetZ();
-                    Int_t StationNum = StationSet.GetPointStationOwnership(zmc);
-                    Int_t ModuleNum = station->GetPointModuleOwhership(xmc, ymc);
+                    Int_t StationNum = StationSet->GetPointStationOwnership(zmc);
+                    Int_t ModuleNum = station->GetPointModuleOwnership(xmc, ymc, zmc);
 
                     if((StationNum == iStation) && (ModuleNum == iModule)) {
                         //Double_t distance = sqrt((x-xmc)*(x-xmc) + (y-ymc)*(y-ymc));
@@ -274,6 +303,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
     }
     if(fVerbose) cout << "   N matches with MC-points = " << matched_points_cnt << "\n";
 //------------------------------------------------------------------------------
+    if(StationSet) delete StationSet;
 }
 
 void BmnGemStripHitMaker::FindHitsAndFakes(Int_t *PointTypeArray, Double_t *PointSignalDiffArray, BmnGemStripStation* station, BmnGemStripReadoutModule* module) {

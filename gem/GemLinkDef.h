@@ -19,9 +19,19 @@
 #pragma link C++ class BmnGemStripReadoutModule+;
 #pragma link C++ class BmnGemStripStation+;
 #pragma link C++ class BmnGemStripStationSet+;
+#pragma link C++ class BmnGemStripStation_FullConfig+;
+#pragma link C++ class BmnGemStripStationSet_FullConfig+;
+#pragma link C++ class BmnGemStripStation_1stConfig+;
+#pragma link C++ class BmnGemStripStationSet_1stConfig+;
+#pragma link C++ class BmnGemStripStation_1stConfigShort+;
+#pragma link C++ class BmnGemStripStationSet_1stConfigShort+;
+#pragma link C++ class BmnGemStripStation_2ndConfig+;
+#pragma link C++ class BmnGemStripStationSet_2ndConfig+;
 #pragma link C++ class BmnGemStripDigit+;
 #pragma link C++ class BmnGemStripDigitizer+;
 #pragma link C++ class BmnGemStripHit+;
 #pragma link C++ class BmnGemStripHitMaker+;
+
+#pragma link C++ namespace BmnGemStripConfiguration;
 
 #endif

@@ -11,7 +11,7 @@ geometry(FairRunSim *fRun)
 
     FairModule* pipe = new FairPipe("PIPE");
     pipe->SetGeometryFileName("pipe_Be_kompozit_gap75cm_3.geo");
-    fRun->AddModule(pipe);
+    //fRun->AddModule(pipe);
 
     FairModule* target = new FairTarget("Target");
     target->SetGeometryFileName("target_au_250mu.geo");
@@ -33,8 +33,10 @@ geometry(FairRunSim *fRun)
     fRun->AddModule(psd);
 
     FairDetector* sts = new CbmSts("STS", kTRUE);
-    //sts->SetGeometryFileName("GEMS_v2.root");
 	 sts->SetGeometryFileName("GEMS_v3.root");
+    //sts->SetGeometryFileName("GEMS_1stConfig.root");
+    //sts->SetGeometryFileName("GEMS_1stConfigShort.root");
+    //sts->SetGeometryFileName("GEMS_2ndConfig.root");
     fRun->AddModule(sts);
 
     FairDetector* recoil = new BmnRecoil("RECOIL", kTRUE);

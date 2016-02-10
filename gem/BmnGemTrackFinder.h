@@ -37,8 +37,6 @@ public:
     
     BmnStatus FitSmooth(BmnGemTrack* track);
     void Smooth(BmnFitNode* thisNode, const BmnFitNode* prevNode);
-        
-    Float_t ChiSq(const FairTrackParam* par, const BmnHit* hit);
 
     //some useful functions
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
@@ -61,9 +59,6 @@ private:
 
     TClonesArray* fGemHitArray;
     TClonesArray* fGemSeedsArray;
-    TClonesArray* fGemSeedsArrayLow;
-    TClonesArray* fGemSeedsArrayMid;
-    TClonesArray* fGemSeedsArrayBig;
     TClonesArray* fGemTracksArray;
     TClonesArray* fMCTracksArray;
     TClonesArray* fMCPointsArray;

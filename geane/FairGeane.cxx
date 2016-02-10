@@ -1,17 +1,28 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // Class for the GEANE initialization
 //
 // Author: M. Al-Turany
 //
 #include "FairGeane.h"
-#include "FairGeaneApplication.h"
-#include "FairField.h"
-#include "FairRunAna.h"
-#include "TGeoManager.h"
-#include "TString.h"
-#include "TGeoManager.h"
-#include "TVirtualMC.h"
-#include "TROOT.h"
-#include "TSystem.h"
+
+#include "FairField.h"                  // for FairField
+#include "FairGeaneApplication.h"       // for FairGeaneApplication
+#include "FairRunAna.h"                 // for FairRunAna
+
+#include "Riosfwd.h"                    // for ostream
+#include "TGeoManager.h"                // for TGeoManager
+#include "TROOT.h"                      // for TROOT, gROOT
+#include "TString.h"                    // for TString, operator!=, etc
+#include "TSystem.h"                    // for TSystem, gSystem
+
+#include <stdlib.h>                     // for getenv
+#include <iostream>                     // for operator<<, basic_ostream, etc
 
 using std::cout;
 using std::endl;
@@ -66,7 +77,10 @@ InitStatus FairGeane::Init()
 
   TString work = getenv("VMCWORKDIR");
   TString work_config=work+"/gconfig/";
+  work_config.ReplaceAll("//","/");
   TString config_dir= getenv("CONFIG_DIR");
+  config_dir.ReplaceAll("//","/");
+   
   Bool_t AbsPath=kFALSE;
   if (!config_dir.EndsWith("/")) { config_dir+="/"; }
 
@@ -116,6 +130,7 @@ InitStatus FairGeane::Init()
   field->Print();
   fApp->SetField(field);
 
+  cout<<"ConfigMacro.Data(): "<<ConfigMacro.Data()<<endl;
   fApp->InitMC(ConfigMacro.Data(), "");
 
   cout <<"I- FairGeane::FairGeane:  Geane is Initialized " << endl;

@@ -15,8 +15,8 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
     LowerStripWidth = Pitch;  //cm
     UpperStripWidth = Pitch;   //cm
 
-    AngleDeg = -15.0;               //in degrees (clockwise is minus)
-    AngleRad = AngleDeg*Pi()/180;   //in radians
+    AngleDeg = 15.0;               //in degrees from a vertical line where a plus value is clockwise
+    AngleRad = AngleDeg*Pi()/180;  //in radians
 
     XMinReadout = 0.0;
     XMaxReadout = 4.0;
@@ -480,7 +480,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
         return true;
     }
     else {
-        if(Verbosity) cout << "WARNING: Point (" << x << " : " << y << ") is out of the readout plane or inside a dead zone\n";
+        if(Verbosity) cout << "WARNING: Point (" << x << " : " << y << " : " << z << ") is out of the readout plane or inside a dead zone\n";
         return false;
     }
 }
@@ -981,17 +981,17 @@ Double_t BmnGemStripReadoutModule::GetUpperStripHitTotalSignal(Int_t num) {
 Double_t BmnGemStripReadoutModule::ConvertRealPointToUpperX(Double_t xcoord, Double_t ycoord) {
     Double_t XRotationCenter;
     Double_t YRotationCenter;
-    if(AngleDeg <= 0 && AngleDeg >= -90) {
+    if(AngleDeg <= 0.0 && AngleDeg >= -90) {
         XRotationCenter = XMinReadout;
-        YRotationCenter = YMaxReadout;
+        YRotationCenter = YMinReadout;
     }
     else {
-        if(AngleDeg > 0 && AngleDeg <= 90.0) {
+        if(AngleDeg > 0.0 && AngleDeg <= 90.0) {
             XRotationCenter = XMinReadout;
-            YRotationCenter = YMinReadout;
+            YRotationCenter = YMaxReadout;
         }
     }
-    Double_t UpperX = (xcoord - XRotationCenter)*Cos(AngleRad) + (ycoord - YRotationCenter)*Sin(AngleRad) + XRotationCenter;//see
+    Double_t UpperX = (xcoord - XRotationCenter)*Cos(-AngleRad) + (ycoord - YRotationCenter)*Sin(-AngleRad) + XRotationCenter;//see
     return UpperX;
 }
 
@@ -1000,15 +1000,15 @@ Double_t BmnGemStripReadoutModule::ConvertRealPointToUpperY(Double_t xcoord, Dou
     Double_t YRotationCenter;
     if(AngleDeg <= 0 && AngleDeg >= -90) {
         XRotationCenter = XMinReadout;
-        YRotationCenter = YMaxReadout;
+        YRotationCenter = YMinReadout;
     }
     else {
         if(AngleDeg > 0 && AngleDeg <= 90.0) {
             XRotationCenter = XMinReadout;
-            YRotationCenter = YMinReadout;
+            YRotationCenter = YMaxReadout;
         }
     }
-    Double_t UpperY = -(xcoord - XRotationCenter)*Sin(AngleRad) + (ycoord - YRotationCenter)*Cos(AngleRad) + YRotationCenter;//see
+    Double_t UpperY = -(xcoord - XRotationCenter)*Sin(-AngleRad) + (ycoord - YRotationCenter)*Cos(-AngleRad) + YRotationCenter;//see
     return UpperY;
 }
 
@@ -1069,11 +1069,11 @@ Int_t BmnGemStripReadoutModule::CountLowerStrips(){
 Int_t BmnGemStripReadoutModule::CountUpperStrips(){
     Double_t ratio;
     if (AngleDeg <= 0 && AngleDeg >=-90.0) {
-        ratio = (ConvertRealPointToUpperX(XMaxReadout, YMinReadout) - XMinReadout)/Pitch;
+        ratio = (ConvertRealPointToUpperX(XMaxReadout, YMaxReadout) - XMinReadout)/Pitch;;
 
     }
     if (AngleDeg > 0 && AngleDeg <= 90.0){
-        ratio = (ConvertRealPointToUpperX(XMaxReadout, YMaxReadout) - XMinReadout)/Pitch;
+        ratio = (ConvertRealPointToUpperX(XMaxReadout, YMinReadout) - XMinReadout)/Pitch;
     }
 
     if((Abs(ratio) - Abs((int)ratio)) < 1E-10) {
@@ -1131,12 +1131,11 @@ Double_t BmnGemStripReadoutModule::FindYHitIntersectionPoint(Double_t LowerStrip
     UpperStripZonePos = up_strip_num + up_strip_pos;
 
     if(AngleDeg <= 0 && AngleDeg >=-90.0) {
-        ycoord = Tan(AngleRad+PiOver2())*(xcoord-XMinReadout) +  (YMaxReadout - UpperStripZonePos*hypoten);
-        //ycoord = Tan(AngleRad+PiOver2())*(xcoord-XMinReadout) + (YMaxReadout - UpperStripZonePos*Pitch/Sin(Abs(AngleRad))); //or this
+        ycoord = Tan(PiOver2()-AngleRad)*(xcoord-XMinReadout) + (YMinReadout + (UpperStripZonePos*hypoten));
 
     }
     if (AngleDeg > 0 && AngleDeg <= 90.0) {
-        ycoord = Tan(AngleRad+PiOver2())*(xcoord-XMinReadout) + (YMinReadout + (UpperStripZonePos*hypoten));
+        ycoord = Tan(PiOver2()-AngleRad)*(xcoord-XMinReadout) +  (YMaxReadout - UpperStripZonePos*hypoten);
     }
 
     return ycoord;

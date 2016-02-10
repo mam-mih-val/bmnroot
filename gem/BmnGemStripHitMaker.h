@@ -14,7 +14,8 @@
 
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"
-#include "BmnGemStripStationSet_v3.h"
+#include "BmnGemStripStationSet.h"
+#include "BmnGemStripConfiguration.h"
 
 using namespace std;
 
@@ -25,7 +26,7 @@ public:
 
     virtual ~BmnGemStripHitMaker();
 
-    void SetVerbosity(Bool_t verbose);
+    //void SetVerbosity(Bool_t verbose);
 
     virtual InitStatus Init();
 
@@ -39,6 +40,10 @@ public:
 
     void SetHitMatching(Bool_t opt = kTRUE) {
         fHitMatching = opt;
+    }
+
+    void SetCurrentConfig(BmnGemStripConfiguration::GEM_CONFIG config) {
+        fCurrentConfig = config;
     }
 
 private:
@@ -62,6 +67,8 @@ private:
     TClonesArray* fBmnGemStripHitMatchesArray;
 
     Bool_t fHitMatching;
+
+    BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 
     ClassDef(BmnGemStripHitMaker,1);
 };

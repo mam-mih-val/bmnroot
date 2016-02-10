@@ -1,5 +1,9 @@
 #include "BmnGemStripDigitizer.h"
 #include "CbmMCTrack.h"
+#include "BmnGemStripStationSet_FullConfig.h"
+#include "BmnGemStripStationSet_1stConfig.h"
+#include "BmnGemStripStationSet_1stConfigShort.h"
+#include "BmnGemStripStationSet_2ndConfig.h"
 
 int entrys = 0;
 
@@ -13,6 +17,8 @@ BmnGemStripDigitizer::BmnGemStripDigitizer()
     fVerbose = 1;
 
     fSmearingSigma = 0.0; //cm
+
+    fCurrentConfig = BmnGemStripConfiguration::None;
 }
 
 BmnGemStripDigitizer::~BmnGemStripDigitizer() {
@@ -22,6 +28,9 @@ BmnGemStripDigitizer::~BmnGemStripDigitizer() {
 InitStatus BmnGemStripDigitizer::Init() {
 
     if(fVerbose) cout << "\nBmnGemStripDigitizer::Init()\n ";
+
+    //if GEM configuration is not set -> return a fatal error
+    if(!fCurrentConfig) Fatal("BmnGemStripDigitizer::Init()", " !!! Current GEM config is not set !!! ");
 
     if(fVerbose && fOnlyPrimary) cout << "  Only primary particles are processed!!! " << endl;
 
@@ -74,7 +83,27 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
     FairMCPoint* GemStripPoint;
     Int_t NNotPrimaries = 0;
 
-    BmnGemStripStationSet StationSet;
+    BmnGemStripStationSet *StationSet = 0;
+    switch (fCurrentConfig) {
+        case BmnGemStripConfiguration::Full:
+            StationSet = new BmnGemStripStationSet_FullConfig();
+            if(fVerbose) cout << "   Current Configuration : FullConfig" << "\n";
+            break;
+        case BmnGemStripConfiguration::First:
+            StationSet = new BmnGemStripStationSet_1stConfig();
+            if(fVerbose) cout << "   Current Configuration : FirstConfig" << "\n";
+            break;
+        case BmnGemStripConfiguration::FirstShort:
+            StationSet = new BmnGemStripStationSet_1stConfigShort();
+            if(fVerbose) cout << "   Current Configuration : FirstConfig (short version)" << "\n";
+            break;
+        case BmnGemStripConfiguration::Second:
+            StationSet = new BmnGemStripStationSet_2ndConfig();
+            if(fVerbose) cout << "   Current Configuration : SecondConfig" << "\n";
+            break;
+        default:
+            StationSet = 0;
+    }
 
     for(UInt_t ipoint = 0; ipoint < fBmnGemStripPointsArray->GetEntriesFast(); ipoint++) {
         GemStripPoint = (FairMCPoint*) fBmnGemStripPointsArray->At(ipoint);
@@ -100,15 +129,15 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
             y = gRandom->Gaus(y, fSmearingSigma);
         }
 
-        StationSet.AddPointToDetector(x, y, z, dEloss, refId);
+        StationSet->AddPointToDetector(x, y, z, dEloss, refId);
     }
 
-    Int_t NAddedPoints = StationSet.CountNAddedToDetectorPoints();
+    Int_t NAddedPoints = StationSet->CountNAddedToDetectorPoints();
     if(fVerbose && fOnlyPrimary) cout << "   Number of not primaries points : " << NNotPrimaries << "\n";
     if(fVerbose) cout << "   Processed MC points  : " << NAddedPoints << "\n";
 
-    for(Int_t iStation = 0; iStation < StationSet.GetNStations(); ++iStation) {
-        BmnGemStripStation *station = StationSet.GetGemStation(iStation);
+    for(Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
+        BmnGemStripStation *station = StationSet->GetGemStation(iStation);
 
         for(Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripReadoutModule *module = station->GetReadoutModule(iModule);
@@ -133,6 +162,7 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
             }
         }
     }
+    if(StationSet) delete StationSet;
 }
 
 void BmnGemStripDigitizer::Finish() {

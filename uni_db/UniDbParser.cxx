@@ -3,7 +3,7 @@
 #include "db_classes/UniDbParameter.h"
 #include "db_classes/UniDbDetectorParameter.h"
 #define ONLY_DECLARATIONS
-#include "../macro/mpd_scheduler/src/function_set.h"
+#include "function_set.h"
 
 #include "TSQLServer.h"
 #include "TSQLResult.h"

@@ -90,6 +90,7 @@ protected:
 
     void DrawMomResGlob(const string& canvasName);
     void DrawMomResGem(const string& canvasName, TString name2d, TString name1d);
+    void DrawMomResChi2Gem(const string& canvasName);
 
     void DrawEtaP(const string& canvasName);
 
@@ -101,6 +102,7 @@ protected:
     void DrawEffGlob(const string& canvasName);
     void DrawNhitsGem(const string& canvasName);
     void DrawNhitsEtaGem(const string& canvasName);
+    void DrawNhitsPGem(const string& canvasName);
     void DrawNhitsGlob(const string& canvasName);
     void DrawEffGhostGlob(const string& canvasName);
     void DrawPsimPrec(const string& canvasName);

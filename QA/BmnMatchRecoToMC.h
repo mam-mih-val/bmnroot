@@ -96,8 +96,8 @@ private:
             const TClonesArray* hits,
             TClonesArray* hitMatches);
 
-    void MatchGemHitsToPoints(
-            const TClonesArray* points,
+    void MatchGemHitsToDigits(
+            const TClonesArray* digitMatches,
             const TClonesArray* hits,
             TClonesArray* hitMatches);
 
@@ -132,11 +132,11 @@ private:
 
     // GEM
     TClonesArray* fGemPoints; // BmnStsPoint array
-    TClonesArray* fGemDigis; // BmnStsDigi array
+    TClonesArray* fGemDigits; // BmnStsDigi array
     TClonesArray* fGemClusters; // BmnStsCluster array
     TClonesArray* fGemHits; // BmnStsHit array
     TClonesArray* fGemTracks; // BmnStsTrack array
-    TClonesArray* fGemDigiMatches; // Output BmnMatch array
+    TClonesArray* fGemDigitMatches; // Output BmnMatch array
     TClonesArray* fGemClusterMatches; // Output BmnMatch array
     TClonesArray* fGemHitMatches; // Output BmnMatch array
     TClonesArray* fGemTrackMatches; // Output BmnTrackMatchNew array

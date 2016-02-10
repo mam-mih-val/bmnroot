@@ -1,58 +1,61 @@
 #ifndef BMNGEMSTRIPSTATIONSET_H
 #define	BMNGEMSTRIPSTATIONSET_H
 
-#include "Rtypes.h"
-#include "TMath.h"
-
 #include "BmnGemStripStation.h"
 
-using namespace TMath;
-
 class BmnGemStripStationSet {
-private:
 
-    Int_t NStations;
+protected:
 
-    Double_t *ZStantionPositions;
-    Double_t *XModulesSizes;
-    Double_t *YModulesSizes;
+    /* station set parameters*/
+    Int_t NStations; //number of stations in the GEM detector
 
-    Double_t BeamPipeMinRadius; // radius of the hole in the first GEM-station
-    Double_t BeamPipeMaxRadius; // radius of the hole in the last GEM-station
-    Double_t *BeamPipeRadiuses;
+    Double_t *XStationPositions; //x-position of each station [array]
+    Double_t *YStationPositions; //y-position of each station [array]
+    Double_t *ZStationPositions; //z-position of each station [array]
 
-    BmnGemStripStation *GemStations[12];
+    Double_t *BeamHoleRadiuses; //beam hole radius of each station [array]
+
+    BmnGemStripStation **GemStations; //GEM stations [array]
 
 public:
 
+    /* Constructor */
     BmnGemStripStationSet();
 
-    virtual ~BmnGemStripStationSet();
+    /* Destructor */
+    virtual ~BmnGemStripStationSet() { }
 
-    Int_t GetPointStationOwnership(Double_t zcoord);
+    /* Getters */
+    Int_t GetNStations() { return NStations; };
+    Double_t GetXStationPosition(Int_t station_num);
+    Double_t GetYStationPosition(Int_t station_num);
+    Double_t GetZStationPosition(Int_t station_num);
+    Double_t GetBeamHoleRadius(Int_t station_num);
+    BmnGemStripStation* GetGemStation(Int_t station_num);
 
-    Bool_t AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss);
 
-    Int_t CountNAddedToDetectorPoints();
+    /* Pure virtual methods (must be defined in derived classes) */
 
-    void ProcessPointsInDetector();
+    //to which station in the GEM detector a point belong?
+    virtual Int_t GetPointStationOwnership(Double_t zcoord) = 0;
 
-    Int_t CountNProcessedPointsInDetector();
+    virtual Bool_t AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss, Int_t refID) = 0;
+    virtual Int_t CountNAddedToDetectorPoints() = 0;
 
-    BmnGemStripStation* GetGemStation(Int_t index);
-    Int_t GetNStations() { return NStations; }
-
-private:
-    BmnGemStripStationSet(const BmnGemStripStationSet&);
-    BmnGemStripStationSet& operator=(const BmnGemStripStationSet&);
-
-    void CalculateBeamPipeRadiuses();
-    void BuildStations();
-
+    virtual void ProcessPointsInDetector() = 0;
+    virtual Int_t CountNProcessedPointsInDetector() = 0;
 
     ClassDef(BmnGemStripStationSet, 1);
 };
 
-
+//Exeptions --------------------------------------------------------------------
+class StationSet_Exeption {
+public:
+    StationSet_Exeption(TString message) {
+        std::cout << "StationSet_Exeption::" << message << "\n";
+    }
+};
+//------------------------------------------------------------------------------
 
 #endif

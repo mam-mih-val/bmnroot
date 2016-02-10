@@ -11,7 +11,8 @@
 
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"
-#include "BmnGemStripStationSet_v3.h"
+#include "BmnGemStripStationSet.h"
+#include "BmnGemStripConfiguration.h"
 
 using namespace std;
 
@@ -40,6 +41,10 @@ public:
         fStripMatching = opt;
     }
 
+    void SetCurrentConfig(BmnGemStripConfiguration::GEM_CONFIG config) {
+        fCurrentConfig = config;
+    }
+
 private:
 
     TString fInputBranchName;
@@ -62,6 +67,8 @@ private:
     Bool_t fStripMatching;
 
     Double_t fSmearingSigma; //cm
+
+    BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 
     ClassDef(BmnGemStripDigitizer,1);
 };

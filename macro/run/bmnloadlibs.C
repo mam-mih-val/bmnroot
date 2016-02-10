@@ -31,7 +31,6 @@ void bmnloadlibs()
   gSystem->Load("libMWPC3");
   gSystem->Load("libBmnQa");
 
-  gSystem->Load("libMpdgenerators");
   gSystem->Load("libGeane");
   gSystem->Load("libKF");
   gSystem->Load("libCat");

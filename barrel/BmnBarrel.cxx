@@ -6,7 +6,6 @@
  *  Adopted for BMN by:   Elena Litvinenko (EL)
  *  e-mail:   litvin@nf.jinr.ru
  *  Version:  10-02-2016
- *  Last update:  10-02-2016 (EL)  
  *
  ************************************************************************************/
 

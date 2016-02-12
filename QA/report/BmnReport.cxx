@@ -40,13 +40,13 @@ void BmnReport::CreateReportElement(
    if (NULL != fOut && fReportType != kCoutReport) delete fOut;
    if (reportType == kLatexReport) {
 	   fR = new BmnLatexReportElement();
-	   fOut = new ofstream(string(GetOutputDir() + fReportName + ".tex").c_str());
+	   fOut = new ofstream(TString(GetOutputDir() + fReportName + ".tex").Data());
    } else if (reportType == kHtmlReport) {
 	   fR = new BmnHtmlReportElement();
-	   fOut = new ofstream(string(GetOutputDir() + fReportName + ".html").c_str());
+	   fOut = new ofstream(TString(GetOutputDir() + fReportName + ".html").Data());
    } else if (reportType == kTextReport) {
 	   fR = new BmnTextReportElement();
-	   fOut = new ofstream(string(GetOutputDir() + fReportName + ".txt").c_str());
+	   fOut = new ofstream(TString(GetOutputDir() + fReportName + ".txt").Data());
    } else if (reportType == kCoutReport) {
 	   fR = new BmnTextReportElement();
 	   fOut = &std::cout;
@@ -96,7 +96,7 @@ void BmnReport::SaveCanvasesAsImages() const
 	for (Int_t i = 0; i < nofCanvases; i++) {
 		TCanvas* canvas = fCanvases[i];
 		//canvas->SaveAs(string(GetOutputDir() + string(canvas->GetTitle()) + ".eps").c_str());
-		canvas->SaveAs(string(GetOutputDir() + string(canvas->GetTitle()) + ".png").c_str());
+		canvas->SaveAs(TString(GetOutputDir() + string(canvas->GetTitle()) + ".png").Data());
 //		canvas->SaveAs(string(GetOutputDir() + string(canvas->GetTitle()) + ".gif").c_str());
 	}
 }

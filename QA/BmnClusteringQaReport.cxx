@@ -132,7 +132,7 @@ void BmnClusteringQaReport::DrawOccupancyByStation(const string& canvasName) {
         canvas->cd(i + 1);
         TString occupname = Form("Occupancy_%dst_gem", i);
         HM()->H2(occupname.Data())->Sumw2();
-        HM()->H2(occupname.Data())->Scale(1. / nofEvents / square * 100.0);
+        HM()->H2(occupname.Data())->Scale(1. / nofEvents / square);
         //const Float_t I = HM()->H2(occupname.Data())->Integral();
 //        HM()->H2(occupname.Data())->Scale(1. / I * 100.0);
         DrawH2(HM()->H2(occupname.Data()), kLinear, kLinear, kLinear, "colz");

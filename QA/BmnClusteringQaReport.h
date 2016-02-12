@@ -53,8 +53,7 @@ private:
 
     void DrawNofObjectsHistograms(const string& detName, const string& parameter);
 
-    void DrawResidualsAndPulls(
-            const string& detName);
+    void DrawResidualsAndPulls(const string& detName);
     
     void DrawResXbyStation(const string& canvasName);
     void DrawResYbyStation(const string& canvasName);

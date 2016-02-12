@@ -21,7 +21,9 @@ enum DetectorId {kREF,  // Reference plane
          kRECOIL,       // Recoil
          kMWPC1,       // MWPC1         
          kMWPC2,       // MWPC2         
-         kMWPC3,       // MWPC3         
+         kMWPC3,       // MWPC3 
+         kBARREL,      // Barrel
+         kECAL,         // ECAL        
          kNOFDETS}; // Number of elements (e.g. for loops)
 
 

@@ -5,10 +5,10 @@
 // nEvents - number of events to transport, default: 1
 // outFile - output file with MC data, default: evetest.root
 // flag_store_FairRadLenPoint
-void run_sim_bmn_zdc(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TString outFile = "evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
+void run_sim_bmn_zdc(TString inFile = "/nica/data4mpd1/QGSM/AuAu4mb_mer.r12.gz", TString outFile = "evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
-#define ION
+#define LAQGSM
   //#define URQMD
 
     TStopwatch timer;
@@ -24,8 +24,8 @@ void run_sim_bmn_zdc(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", T
     FairRunSim *fRun = new FairRunSim();
 
     // Choose the Geant Navigation System
-    fRun->SetName("TGeant3");
-    // fRun->SetName("TGeant4");
+    //   fRun->SetName("TGeant3");
+     fRun->SetName("TGeant4");
     // fRun->SetGeoModel("G3Native");
 
     //    geometry_run1(fRun); // load bmn geometry

@@ -94,6 +94,12 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         Float_t Tx = Tan(-a / b);
         Float_t Ty = tr.GetParamFirst()->GetTy();
         const Float_t Pxz = 0.0003 * Abs(fField->GetBy(x0, y0, z0)) * R; // Pt
+
+        //        Float_t R1 = Abs (b /2);
+        //        const Float_t Pxz1 = 0.0003 * Abs(fField->GetBy(0, 0, 0)) * R1; // Pt
+        //        cout << "R = " << R << " | R1 = " << R1 << endl;
+        //        cout << "B = " << Abs(fField->GetBy(x0, y0, z0)) << " | B1 = " << Abs(fField->GetBy(0, 0, 0)) << endl;
+        //        cout << "Pxz = " << Pxz << " | Pxz1 = " << Pxz1 << endl;
         if (Abs(Pxz) < 0.00001) continue;
         const Float_t Pz = Pxz / Sqrt(1 + Sqr(Tx));
         const Float_t Px = Pz * Tx;
@@ -136,9 +142,15 @@ BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesAr
     Float_t xI = baseSeedLastPar->GetX();
     Float_t tyI = baseSeedLastPar->GetTy();
     Float_t txI = baseSeedLastPar->GetTx();
+    TVector3 spirParI = SpiralFit(baseSeed, fGemHitArray);
+    Float_t aI = spirParI.X();
+    Float_t bI = spirParI.Y();
 
     //needed to get nearest track
-    Float_t minDeltaR = 1.2; //best by QA
+//    Float_t minDeltaR = 1.2; //best by QA
+    Float_t minDeltaR = 4.0;
+    Float_t minDeltaA = 1000.0;
+    Float_t minDeltaB = 1000.0;
 
     BmnGemTrack* minTrackRight = NULL;
     for (Int_t j = 0; j < arr->GetEntriesFast(); ++j) {
@@ -154,21 +166,41 @@ BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesAr
         Float_t tyJ = firstJ->GetTy();
         Float_t txJ = firstJ->GetTx();
         if (zI > zJ) continue;
+        TVector3 spirParJ = SpiralFit(trackJ, fGemHitArray);
+        Float_t aJ = spirParJ.X();
+        Float_t bJ = spirParJ.Y();
+
         const Float_t zMid = zI + (zJ - zI) / 2.0;
         const Float_t yI_zMid = tyI * (zMid - zI) + yI;
         const Float_t yJ_zMid = tyJ * (zMid - zJ) + yJ;
         const Float_t xI_zMid = txI / 2 / zI * (zMid * zMid - zI * zI) + xI;
         const Float_t xJ_zMid = txJ / 2 / zJ * (zMid * zMid - zJ * zJ) + xJ;
         const Float_t r = Sqrt((xI_zMid - xJ_zMid) * (xI_zMid - xJ_zMid) + (yI_zMid - yJ_zMid) * (yI_zMid - yJ_zMid));
-
-        if (r < minDeltaR) {
+        const Float_t dirA = Abs((aI - aJ));
+        const Float_t dirB = Abs((bI - bJ));
+        
+        if (dirB < minDeltaB && dirA < minDeltaA && r < minDeltaR) {
             minTrackRight = trackJ;
+            minDeltaB = dirB;
+            minDeltaA = dirA;
             minDeltaR = r;
+//            cout << "minDeltaB = " << minDeltaB << endl;
+//            cout << "minDeltaA = " << minDeltaA << endl;
+//            cout << "tyI = " << tyI << " | tyJ = " << tyJ << endl;
+//            cout << "r = " << r << endl; 
+//            trackJ->Print();
+//            baseSeed->Print();
         }
+
+        //        if (r < minDeltaR) {
+        //            minTrackRight = trackJ;
+        //            minDeltaR = r;
+        //        }
     }
 
     if (minTrackRight != NULL) {
 
+        
         minTrackRight->SetUsing(kTRUE);
         ConnectNearestSeed(minTrackRight, arr);
         for (Int_t iHit = 0; iHit < minTrackRight->GetNHits(); ++iHit) {

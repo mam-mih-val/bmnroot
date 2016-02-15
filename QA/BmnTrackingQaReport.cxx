@@ -100,7 +100,6 @@ void BmnTrackingQaReport::Draw() {
 
     DrawTwoH2("Distribution of MC-tracks and GEM-tracks in Pseudorapidity and Momentum", "EtaP_sim", "EtaP_rec_gem");
     DrawTwoH2("Distribution of MC-tracks and GEM-tracks in theta and Momentum", "ThetaP_sim", "ThetaP_rec_gem");
-    DrawTwoH2("Distribution of MC-tracks and GEM-tracks in theta and Pseudorapidity", "ThetaEta_sim", "ThetaEta_rec_gem");
     DrawTwoH2("P_reco vs P_mc for GEM-tracks", "P_rec_P_sim_gem", "Pt_rec_Pt_sim_gem");
     
     DrawOneH2("Pseudorapidity_reco vs Pseudorapidity_mc for GEM-tracks", "Eta_rec_Eta_sim_gem");

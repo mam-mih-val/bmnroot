@@ -333,7 +333,7 @@ void BmnClusteringQa::CreateHistograms() {
         CreateH2(pntXhitXname.Data(), "X_{MC}, cm", "X_{reco}, cm", "", 400, -100, 100, 400, -100, 100);
         CreateH2(pntYhitYname.Data(), "Y_{MC}, cm", "Y_{reco}, cm", "", 400, -100, 100, 400, -100, 100);
         
-        CreateH2(occupname.Data(), "Y_{MC}, cm", "Y_{reco}, cm", "Occupancy, %", 50, -100, 100, 50, -50, 50);
+        CreateH2(occupname.Data(), "Y_{MC}, cm", "Y_{reco}, cm", "Occupancy, #frac{part}{event * cm^{2}}", 50, -100, 100, 50, -50, 50);
     }
 
     CreateNofObjectsHistograms(kGEM, "Gem", "Station", "Station number");

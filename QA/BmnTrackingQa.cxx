@@ -464,8 +464,6 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("ThetaP_sim", "#theta_{sim}", "P_{sim}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("ThetaP_rec_gem", "#theta_{rec}", "P_{rec}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
-    CreateH2("ThetaEta_sim", "#theta_{sim}", "#eta_{sim}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
-    CreateH2("ThetaEta_rec_gem", "#theta_{rec}", "#eta_{rec}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH1("momRes_1D_glob", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("momRes_1D_gem", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim_gem", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 400, fPRangeMin, fPRangeMax, 400, fPRangeMin, fPRangeMax);
@@ -637,7 +635,6 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H2("Pz_rec_Pz_sim_gem")->Fill(Pz_sim, Pz_rec);
             fHM->H2("EtaP_rec_gem")->Fill(Eta_rec, P_rec);
             fHM->H2("ThetaP_rec_gem")->Fill(Theta_rec, P_rec);
-            fHM->H2("ThetaEta_rec_gem")->Fill(Theta_rec, Eta_rec);
         }
     }
 
@@ -692,7 +689,6 @@ void BmnTrackingQa::ProcessGem() {
 
         fHM->H2("EtaP_sim")->Fill(eta, P);
         fHM->H2("ThetaP_sim")->Fill(theta, P);
-        fHM->H2("ThetaEta_sim")->Fill(theta, eta);
         fHM->H1("Sim_vs_P_gem")->Fill(P);
         fHM->H1("Sim_vs_Eta_gem")->Fill(eta);
         fHM->H1("Sim_vs_Theta_gem")->Fill(theta);

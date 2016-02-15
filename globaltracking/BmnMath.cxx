@@ -108,13 +108,17 @@ TVector3 SpiralFit(const BmnGemTrack* tr, const TClonesArray* arr) {
     Float_t a = (sumR - b * sumTheta) / kN;
 
     //calculate curvature at first point
-    //    Float_t z0 = ((BmnGemStripHit*) arr->At(tr->GetHitIndex(0)))->GetZ();
-    //    Float_t x0 = ((BmnGemStripHit*) arr->At(tr->GetHitIndex(0)))->GetX();
-    //    Float_t theta0 = ATan2(x0, z0);
-    //    Float_t tmp2 = (a + b * theta0) * (a + b * theta0);
-    //Float_t k = (tmp2 + 2 * b * b) / Sqrt(Power((tmp2 + b * b), 3));
+    Float_t z0 = ((BmnGemStripHit*) arr->At(tr->GetHitIndex(0)))->GetZ();
+    Float_t x0 = ((BmnGemStripHit*) arr->At(tr->GetHitIndex(0)))->GetX();
+    Float_t theta0 = ATan2(x0, z0);
+    Float_t tmp2 = (a + b * theta0) * (a + b * theta0);
+    Float_t k = (tmp2 + 2 * b * b) / Sqrt(Power((tmp2 + b * b), 3));
+    
+//    cout << "kN = " << kN << endl;
+//    cout << 1 / k << " | " << Abs(b / 2) << endl;
+//    cout << theta0 << " | " << -a / b <<  endl;
 
-    Float_t k = Abs(2 / b); //curvature for r == 0
+    //    Float_t k = Abs(2 / b); //curvature for r == 0
     //    cout << a << " " << b << " " << 1 / k << endl;
     return TVector3(a, b, 1 / k);
 }

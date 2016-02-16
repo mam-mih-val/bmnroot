@@ -4,7 +4,7 @@
 
 /** MpdLAQGSMGenerator
  *@author Elena Litvinenko  <litvin@nf.jinr.ru>
- *@version 11.02.2016
+ *@version 15.02.2016
  *
  ** The MpdLAQGSMGenerator uses the ASCII input 
  ** provided by K.Gudima LAQGSM event generator.
@@ -65,6 +65,7 @@ struct la_tab_t {
   Bool_t SkipEvents(Int_t nSkip); //AZ
 
   Bool_t general_fgets (char *ss, Int_t nn=250, FILE* p=0);
+  Bool_t general_feof (void *p);
 
  private:
 

@@ -4,7 +4,7 @@
 
 /** MpdLAQGSMGenerator
  *@author Elena Litvinenko  <litvin@nf.jinr.ru>
- *@version 11.02.2016
+ *@version 15.02.2016
 *
  ** The MpdLAQGSMGenerator uses the ASCII input 
  ** provided by K.Gudima LAQGSM event generator.
@@ -76,7 +76,8 @@ MpdLAQGSMGenerator::MpdLAQGSMGenerator(const char* fileName, const Bool_t use_co
   Init(); //AZ
   cout << "-I- MpdLAQGSMGenerator: Looking for ions..." << endl;
   //AZ Int_t nIons = RegisterIons();
-  Int_t nIons = RegisterIons1();
+  //  Int_t nIons = RegisterIons1();
+  Int_t nIons = RegisterIons();    // MG
   cout << "-I- MpdLAQGSMGenerator: " << nIons << " ions registered." 
        << endl;
 
@@ -112,11 +113,11 @@ void MpdLAQGSMGenerator::Init (const char *light_particles_filename)
   TString fname, dd;
   if (!light_particles_filename) {
     dd = getenv("VMCWORKDIR");
-    if (gSystem->OpenDirectory(dd+"/generators"))
-      dd += "/generators";
+    if (gSystem->OpenDirectory(dd+"/mpdgenerators"))
+      dd += "/mpdgenerators";
     else {
-      if (gSystem->OpenDirectory(dd+"/mpdgenerators"))
-	dd += "/mpdgenerators";
+      if (gSystem->OpenDirectory(dd+"/generators"))
+	dd += "/generators";
       else
 	dd = gSystem->WorkingDirectory();
     }
@@ -397,11 +398,15 @@ Bool_t MpdLAQGSMGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
     cout << "-I- MpdLAQGSMGenerator::ReadEvent: Event " << eventId 
 	 << ",  b = " << b << " fm, multiplicity " << nTracks << endl;
 
+    TVector2 bb;       // MG
+    bb.Set(bx,by);     // MG
+
   // Set event id and impact parameter in MCEvent if not yet done
   FairMCEventHeader* event = primGen->GetEvent();
   if ( event && (! event->IsSet()) ) {
     event->SetEventID(eventId-1);
     event->SetB(b);
+    //    event->SetPhi(bb.Phi());    // MG
     event->MarkSet(kTRUE);
   }
 
@@ -526,6 +531,16 @@ Int_t MpdLAQGSMGenerator::CreatePdgCode(Int_t Z, Int_t A, Int_t Strange,Int_t us
   }
 }
 
+Bool_t MpdLAQGSMGenerator::general_feof (void *p)
+{
+  Bool_t finished=0;
+  if (fGZ_input) 
+    finished = (gzeof(fGZInputFile));
+  else 
+    finished = ( feof(fInputFile) );
+  return finished;
+}
+
 // -----   Private method RegisterIons   ----------------------------------
 Int_t MpdLAQGSMGenerator::RegisterIons() {
 
@@ -571,15 +586,15 @@ Int_t MpdLAQGSMGenerator::RegisterIons() {
   Int_t PDG;
   TString ionName;
 
-  while ( ! feof(fInputFile)) {
+  while ( ! general_feof(fInputFile)) {
 
     sscanf(ss," %d %d", &eventId, &nTracks); 
 
-    if ( feof(fInputFile) ) continue;
+    if ( general_feof(fInputFile) ) continue;
 
     for (Int_t iTrack=0; iTrack<nTracks; iTrack++) {
 
-      fgets(ss,250,fInputFile);
+      general_fgets(ss,250,fInputFile);
 
       sscanf(ss," %d %d %d %d %d", &iCharge,&iLeptonic,&iStrange,&iBarionic,&iCode);
  
@@ -616,12 +631,14 @@ Int_t MpdLAQGSMGenerator::RegisterIons() {
 	  ionName = buf_ionName;
 
 	  if (!iStrange) {    // normal ion
+	    if(Z>2 || (Z==2 && A>4)) {    // MG
 
-	    if ( fIonMap.find(ionName) == fIonMap.end() ) { // new ion
-	      excEnergy = fabs(mass - kProtonMass*Z -kNeutronMass*(iBarionic-Z)); 
-	      FairIon* ion = new FairIon(ionName, Z, A, Q, excEnergy,mass);
-	      fIonMap[ionName] = ion;
-	      nIons++;
+	      if ( fIonMap.find(ionName) == fIonMap.end() ) { // new ion
+		//	      excEnergy = fabs(mass - kProtonMass*Z -kNeutronMass*(iBarionic-Z)); 
+		FairIon* ion = new FairIon(ionName, Z, A, Q) ; // , excEnergy,mass);  // from MG
+		fIonMap[ionName] = ion;
+		nIons++;
+	      }
 	    }
 	  }  
 
@@ -868,7 +885,7 @@ Bool_t MpdLAQGSMGenerator::FindParticle (Int_t Z, Int_t strange, Int_t lepton, I
   else {          // must be ion
 
     if (A>1) {
-      PDG = CreatePdgCode(Z,A,strange,1); 
+      PDG = CreatePdgCode(Z,A,strange,0 ); //  1);   // MG 
       sprintf(name,"Ion_%d_%d", A,Z);
       result=1;
     }

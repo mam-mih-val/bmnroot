@@ -4,7 +4,7 @@
 
 /** MpdLAQGSMGenerator
  *@author Elena Litvinenko  <litvin@nf.jinr.ru>
- *@version 11.02.2016
+ *@version 15.02.2016
  *
  ** The MpdLAQGSMGenerator uses the ASCII input 
  ** provided by K.Gudima LAQGSM event generator.
@@ -45,7 +45,7 @@ struct la_tab_t {
   /** Standard constructor. 
    ** @param fileName The input file name
    **/
-  MpdLAQGSMGenerator(const char* fileName, const Bool_t use_collider_system=kTRUE, Int_t QGSM_format_ID=0);
+  MpdLAQGSMGenerator(const char* fileName, const Bool_t use_collider_system=kTRUE, Int_t QGSM_format_ID=0,Int_t Max_Event_Number=0);
 
   /** Destructor. **/
   virtual ~MpdLAQGSMGenerator();
@@ -65,6 +65,7 @@ struct la_tab_t {
   Bool_t SkipEvents(Int_t nSkip); //AZ
 
   Bool_t general_fgets (char *ss, Int_t nn=250, FILE* p=0);
+  Bool_t general_feof (void *p);
 
  private:
 
@@ -84,7 +85,7 @@ struct la_tab_t {
 
   /** Private method RegisterIons. Goes through the input file and registers
    ** any ion needed. **/
-  Int_t RegisterIons();
+  Int_t RegisterIons(Int_t Max_Event_Number=0);
   Int_t RegisterIons1(); //AZ
 
   Int_t CreatePdgCode(Int_t Z, Int_t A, Int_t Strange,Int_t user=0);

@@ -102,6 +102,7 @@ Bool_t BmnEcal::ProcessHits(FairVolume* vol) {
 
   Int_t      ivol    = vol->getMCid();
   TLorentzVector tPos1, tMom1;
+  TLorentzVector tPos, tMom;
 
   //#define EDEBUG
 #ifdef EDEBUG
@@ -128,13 +129,13 @@ Bool_t BmnEcal::ProcessHits(FairVolume* vol) {
 	 gMC->IsTrackStop()       ||
 	 gMC->IsTrackDisappeared()   ) {
 
-#ifndef EDEBUG
-      if (fELoss == 0. ) return kFALSE;
-#else
-      if ((fELoss == 0. ) && 
-	  (!((gMC->GetStack()->GetCurrentTrack()->GetPdgCode()==2112)&&(gMC->GetStack()->GetCurrentTrack()->GetMother(0)==-1)))
-) return kFALSE;
-#endif
+// #ifndef EDEBUG
+//       if (fELoss == 0. ) return kFALSE;
+// #else
+//       if ((fELoss == 0. ) && 
+// 	  (!((gMC->GetStack()->GetCurrentTrack()->GetPdgCode()==2112)&&(gMC->GetStack()->GetCurrentTrack()->GetMother(0)==-1)))
+// ) return kFALSE;
+// #endif
 
       TParticle* part    = gMC->GetStack()->GetCurrentTrack();
       Double_t charge = part->GetPDG()->Charge() / 3. ;
@@ -143,7 +144,6 @@ Bool_t BmnEcal::ProcessHits(FairVolume* vol) {
       fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
       Double_t time    = gMC->TrackTime() * 1.0e09;
       Double_t length  = gMC->TrackLength();
-      TLorentzVector tPos, tMom;
       gMC->TrackPosition(tPos);
       gMC->TrackMomentum(tMom);
 
@@ -199,13 +199,14 @@ Bool_t BmnEcal::ProcessHits(FairVolume* vol) {
 	     time, length, fELoss);
 #endif
 
-      Int_t points = gMC->GetStack()->GetCurrentTrack()->GetMother(1);
+      //// Int_t points = gMC->GetStack()->GetCurrentTrack()->GetMother(1);
 //       Int_t nEcalPoints = (points & (1<<30)) >> 30;
 //       nEcalPoints ++;
 //       if (nEcalPoints > 1) nEcalPoints = 1;
 //      points = ( points & ( ~ (1<<30) ) ) | (nEcalPoints << 30);
-      points = ( points & ( ~ (1<<30) ) ) | (1 << 30);
-      gMC->GetStack()->GetCurrentTrack()->SetMother(1,points);
+
+      //// points = ( points & ( ~ (1<<30) ) ) | (1 << 30);
+      //// gMC->GetStack()->GetCurrentTrack()->SetMother(1,points);
 
       ((CbmStack*)gMC->GetStack())->AddPoint(kECAL);
 

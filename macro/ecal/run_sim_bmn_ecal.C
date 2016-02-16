@@ -144,7 +144,7 @@ void run_sim_bmn_ecal(TString inFile = "/nica/data4mpd1/QGSM/AuAu4mb_mer.r12.gz"
 
     if (!CheckFileExist(dataFile)) return;
 
-    MpdLAQGSMGenerator* guGen = new MpdLAQGSMGenerator(dataFile.Data(), kFALSE,0,2);
+    MpdLAQGSMGenerator* guGen = new MpdLAQGSMGenerator(dataFile.Data(), kFALSE,0, 1 + nStartEvent + nEvents);
     primGen->AddGenerator(guGen);
     if (nStartEvent > 0) guGen->SkipEvents(nStartEvent);
 

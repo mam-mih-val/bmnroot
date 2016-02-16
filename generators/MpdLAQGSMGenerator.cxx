@@ -41,7 +41,7 @@ MpdLAQGSMGenerator::MpdLAQGSMGenerator() {}
 
 
 // -----   Standard constructor   -----------------------------------------
-MpdLAQGSMGenerator::MpdLAQGSMGenerator(const char* fileName, const Bool_t use_collider_system, Int_t QGSM_format_ID) : 
+MpdLAQGSMGenerator::MpdLAQGSMGenerator(const char* fileName, const Bool_t use_collider_system, Int_t QGSM_format_ID,Int_t Max_Event_Number ) : 
    FairGenerator(),
    fIonMap()
 {
@@ -77,7 +77,8 @@ MpdLAQGSMGenerator::MpdLAQGSMGenerator(const char* fileName, const Bool_t use_co
   cout << "-I- MpdLAQGSMGenerator: Looking for ions..." << endl;
   //AZ Int_t nIons = RegisterIons();
   //  Int_t nIons = RegisterIons1();
-  Int_t nIons = RegisterIons();    // MG
+  //  Int_t nIons = RegisterIons();    // MG
+  Int_t nIons = RegisterIons(Max_Event_Number);    // EL
   cout << "-I- MpdLAQGSMGenerator: " << nIons << " ions registered." 
        << endl;
 
@@ -542,7 +543,7 @@ Bool_t MpdLAQGSMGenerator::general_feof (void *p)
 }
 
 // -----   Private method RegisterIons   ----------------------------------
-Int_t MpdLAQGSMGenerator::RegisterIons() {
+Int_t MpdLAQGSMGenerator::RegisterIons(Int_t Max_Event_Number) {
 
   Int_t nIons = 0;
   //  Int_t eventId, nTracks, iPid, iMass, iCharge;
@@ -586,7 +587,7 @@ Int_t MpdLAQGSMGenerator::RegisterIons() {
   Int_t PDG;
   TString ionName;
 
-  while ( ! general_feof(fInputFile)) {
+  while ( (!general_feof(fInputFile)) && ((!Max_Event_Number)||(eventId<Max_Event_Number)) ) {
 
     sscanf(ss," %d %d", &eventId, &nTracks); 
 

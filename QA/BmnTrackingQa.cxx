@@ -564,6 +564,8 @@ void BmnTrackingQa::ProcessGem() {
 
         if (it != refs.end() && gemMCId != -1) {
             splits.push_back(gemMCId);
+//            CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(gemMCId));
+//            cout << "N_points = " << mcTrack->GetNPoints(kGEM) << endl;
 //            cout << "gemMCId =  " << gemMCId << " Nhits = " << track->GetNHits() << " ";
 //            track->GetParamFirst()->Print();
 //            for (Int_t iPnt = 0; iPnt < fGemPoints->GetEntriesFast(); ++iPnt) {
@@ -600,6 +602,17 @@ void BmnTrackingQa::ProcessGem() {
         Float_t Pxy_rec = Sqrt(Px_rec * Px_rec + Py_rec * Py_rec);
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
         Float_t Theta_rec = ATan2(Pxy_rec, Pz_rec) * RadToDeg();
+        Int_t N_rec = track->GetNHits();
+        
+//        if (N_sim < 4) {
+//            cout << "N_sim = " << N_sim << endl;
+//            cout << "N_rec = " << N_rec << endl;
+//            cout << "Chi2 = " << track->GetChi2() << endl;
+//            cout << "Tx_sim = " << Px_sim / Pz_sim << endl;
+//            cout << "Ty_sim = " << Py_sim / Pz_sim << endl;
+//            cout << "Tx_rec = " << Tx << endl;
+//            cout << "Ty_rec = " << Ty << endl;
+//        }
         
 //        cout << Px_sim << " " << Py_sim << " " << Pz_sim << " " << P_sim << " " << Pt_sim << " " << Pxy_sim << " " << Eta_sim << " " << Theta_sim << endl;
 //        cout << Px_rec << " " << Py_rec << " " << Pz_rec << " " << P_rec << " " << Pt_rec << " " << Pxy_rec << " " << Eta_rec << " " << Theta_rec << endl;
@@ -616,12 +629,12 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("Ghost_vs_P_gem")->Fill(P_sim);
             fHM->H1("Ghost_vs_Eta_gem")->Fill(Eta_sim);
             fHM->H1("Ghost_vs_Theta_gem")->Fill(Theta_sim);
-            fHM->H1("Ghost_vs_Nh_gem")->Fill(track->GetNHits());
+            fHM->H1("Ghost_vs_Nh_gem")->Fill(N_rec);
         } else {
             fHM->H1("Well_vs_P_gem")->Fill(P_sim);
             fHM->H1("Well_vs_Eta_gem")->Fill(Eta_sim);
             fHM->H1("Well_vs_Theta_gem")->Fill(Theta_sim);
-            fHM->H1("Well_vs_Nh_gem")->Fill(track->GetNHits());
+            fHM->H1("Well_vs_Nh_gem")->Fill(N_rec);
 
             fHM->H2("momRes_2D_gem")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Chi2_gem")->Fill(track->GetChi2(), (P_sim - P_rec) / P_sim * 100.0);

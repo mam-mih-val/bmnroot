@@ -147,8 +147,10 @@ BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesAr
     Float_t bI = spirParI.Y();
 
     //needed to get nearest track
-//    Float_t minDeltaR = 1.2; //best by QA
-    Float_t minDeltaR = 4.0;
+    //    Float_t minDeltaR = 1.2; //best by QA
+    Float_t minDeltaR = 15.0;
+    Float_t minDeltaY = 1.2;
+    Float_t minDeltaX = 1.2;
     Float_t minDeltaA = 1000.0;
     Float_t minDeltaB = 1000.0;
 
@@ -173,34 +175,57 @@ BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesAr
         const Float_t zMid = zI + (zJ - zI) / 2.0;
         const Float_t yI_zMid = tyI * (zMid - zI) + yI;
         const Float_t yJ_zMid = tyJ * (zMid - zJ) + yJ;
-        const Float_t xI_zMid = txI / 2 / zI * (zMid * zMid - zI * zI) + xI;
-        const Float_t xJ_zMid = txJ / 2 / zJ * (zMid * zMid - zJ * zJ) + xJ;
-        const Float_t r = Sqrt((xI_zMid - xJ_zMid) * (xI_zMid - xJ_zMid) + (yI_zMid - yJ_zMid) * (yI_zMid - yJ_zMid));
-        const Float_t dirA = Abs((aI - aJ));
-        const Float_t dirB = Abs((bI - bJ));
-        
-        if (dirB < minDeltaB && dirA < minDeltaA && r < minDeltaR) {
+
+        TF1 fI("SpiralI", "sqrt(x^2 + [2]^2) - [0] - [1] * atan(x / [2])", -100, 100);
+        fI.SetParameter(0, aI);
+        fI.SetParameter(1, bI);
+        fI.SetParameter(2, zMid);
+        const Float_t xI_zMid = NumericalRootFinder(fI, -100, 100);
+        TF1 fJ("SpiralJ", "sqrt(x^2 + [2]^2) - [0] - [1] * atan(x / [2])", -100, 100);
+        fJ.SetParameter(0, aJ);
+        fJ.SetParameter(1, bJ);
+        fJ.SetParameter(2, zMid);
+        const Float_t xJ_zMid = NumericalRootFinder(fJ, -100, 100);
+
+        //        const Float_t xI_zMid = txI / 2 / zI * (zMid * zMid - zI * zI) + xI;
+        //        const Float_t xJ_zMid = txJ / 2 / zJ * (zMid * zMid - zJ * zJ) + xJ;
+        const Float_t dX = Abs(xI_zMid - xJ_zMid);
+        const Float_t dY = Abs(yI_zMid - yJ_zMid);
+        //const Float_t r = Sqrt(dX * dX + dY * dY);
+        //        const Float_t dirA = Abs((aI - aJ));
+        //        const Float_t dirB = Abs((bI - bJ));
+
+        //        if (dirB < minDeltaB && dirA < minDeltaA && r < minDeltaR) {
+        //            minTrackRight = trackJ;
+        //            minDeltaB = dirB;
+        //            minDeltaA = dirA;
+        //            minDeltaR = r;
+        //            cout << "xI_zMid - xJ_zMid = " << xI_zMid - xJ_zMid << endl;
+        ////            cout << "minDeltaB = " << minDeltaB << endl;
+        ////            cout << "minDeltaA = " << minDeltaA << endl;
+        ////            cout << "tyI = " << tyI << " | tyJ = " << tyJ << endl;
+        ////            cout << "r = " << r << endl; 
+        ////            trackJ->Print();
+        ////            baseSeed->Print();
+        //        }
+        if (dX < minDeltaX && dY < minDeltaY) {
             minTrackRight = trackJ;
-            minDeltaB = dirB;
-            minDeltaA = dirA;
-            minDeltaR = r;
-//            cout << "minDeltaB = " << minDeltaB << endl;
-//            cout << "minDeltaA = " << minDeltaA << endl;
-//            cout << "tyI = " << tyI << " | tyJ = " << tyJ << endl;
-//            cout << "r = " << r << endl; 
-//            trackJ->Print();
-//            baseSeed->Print();
+            minDeltaX = dX;
+            minDeltaY = dY;
+//            cout << "r = " << r << " | dX = " << dX << " | dY = " << dY << " | TyI = " << tyI << " | TyJ = " << tyJ << endl;
         }
 
-        //        if (r < minDeltaR) {
-        //            minTrackRight = trackJ;
-        //            minDeltaR = r;
-        //        }
+//        if (r < minDeltaR) {
+//            minTrackRight = trackJ;
+//            minDeltaR = r;
+//            cout << "r = " << r << " | dX = " << dX << " | dY = " << dY << " | TyI = " << tyI << " | TyJ = " << tyJ << endl;
+//        }
     }
 
     if (minTrackRight != NULL) {
 
-        
+        //        cout << " | TyI = " << baseSeed->GetParamLast()->GetTy() << " | TyJ = " << minTrackRight->GetParamFirst()->GetTy() << endl;
+
         minTrackRight->SetUsing(kTRUE);
         ConnectNearestSeed(minTrackRight, arr);
         for (Int_t iHit = 0; iHit < minTrackRight->GetNHits(); ++iHit) {

@@ -9,7 +9,8 @@
 #include "BmnGemStripHit.h"
 #include "TMath.h"
 #include "TF1.h"
-
+#include "Math/WrappedTF1.h"
+#include "Math/BrentRootFinder.h"
 #include <iostream>
 #include <cmath>
 
@@ -177,4 +178,21 @@ Int_t stationNumber(const string& detName, const Float_t z) {
         station = 15;
     }
     return station;
+}
+
+Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right) {
+ 
+   // Create the wrapper for function
+   ROOT::Math::WrappedTF1 wf1(f);
+ 
+   // Create the Integrator
+   ROOT::Math::BrentRootFinder brf;
+ 
+   // Set parameters of the method
+   brf.SetFunction(wf1, left, right);
+   brf.Solve();
+ 
+//   cout << brf.Root() << endl;
+ 
+   return brf.Root();
 }

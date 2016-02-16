@@ -66,12 +66,12 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fGemSeedsArray->Clear();
 
-    const Int_t nIter = 4;
+    const Int_t nIter = 5;
     //(0.006, 6.0, 1.05); //best parameters
-    const Float_t sigX[nIter] = {0.006, 0.006, 0.006, 0.06};
-    const Float_t stpY[nIter] = {2.0, 2.0, 2.0, 6.0}; //{5.0, 5.0, 5.0, 15.0};//{10.0, 10.0, 10.0, 30.0}; // {6, 6, 8, 8} -- best //{8, 8, 10, 20}
-    const Float_t thrs[nIter] = {1.05, 1.05, 1.05, 1.01};
-    const Int_t length[nIter] = {10, 8, 4, 4};
+    const Float_t sigX[nIter] = {0.3, 0.3, 0.3, 0.3, 0.6};
+    const Float_t stpY[nIter] = {2.0, 2.0, 2.0, 2.0, 10.0};
+    const Float_t thrs[nIter] = {1.05, 1.05, 1.05, 1.05, 1.01};
+    const Int_t length[nIter] = {10, 8, 6, 4, 4};
 
     for (Int_t i = 0; i < nIter; ++i) {
         addresses.clear();
@@ -88,6 +88,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
         }
 
         DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArray);
+                cout << "fGemSeedsArray->GetEntriesFast() = " << fGemSeedsArray->GetEntriesFast() << endl;
     }
 
     cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
@@ -208,10 +209,10 @@ void BmnGemSeedFinder::SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGe
 
     for (Int_t j = y - gate; j <= y + gate; ++j) {
 
-//        if (!hitPresence.at(j)) continue;
+        //        if (!hitPresence.at(j)) continue;
         ULong_t addr = j * fNBins + i;
         if (addresses.find(addr) == addresses.end()) continue;
-        
+
         Int_t id = addresses.find(addr)->second;
         BmnGemStripHit* hit = GetHit(id);
 

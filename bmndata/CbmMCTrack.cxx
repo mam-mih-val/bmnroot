@@ -152,7 +152,7 @@ Int_t CbmMCTrack::GetNPoints(DetectorId detId) const
   else if ( detId == kTOF  ) return ( (fNPoints & (  1  << 17) ) >> 17);
   else if ( detId == kZDC  ) return ( (fNPoints & ( 15  << 18) ) >> 18);
   else if ( detId == kECAL  ) return ( (fNPoints & ( 3  << 22) ) >> 22);
-  else if ( detId == kBARREL  ) return ( (fNPoints & ( 1  << 24) ) >> 24);
+  else if ( detId == kBD  ) return ( (fNPoints & ( 1  << 24) ) >> 24);
   else if ( detId == kRECOIL) return ((fNPoints & ( 63  << 25) ) >> 25);
   else {
     LOG(ERROR) << "GetNPoints: Unknown detector ID "
@@ -220,7 +220,7 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Int_t nPoints) {
     fNPoints = ( fNPoints & ( ~ (3 << 22 ) ) )  |  ( nPoints << 22 );
   }
 
-  else if ( iDet == kBARREL ) {
+  else if ( iDet == kBD ) {
     if      ( nPoints <  0 ) nPoints = 0;
     else if ( nPoints > 1) nPoints = 1;
     fNPoints = ( fNPoints & ( ~ (1 << 24 ) ) )  |  ( nPoints << 24 );

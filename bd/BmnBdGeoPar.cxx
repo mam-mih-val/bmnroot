@@ -1,6 +1,6 @@
 /*************************************************************************************
  *
- *         Class BmnBarrelGeoPar
+ *         Class BmnBdGeoPar
  *         
  *  Adopted for BMN by:   Elena Litvinenko
  *  e-mail:   litvin@nf.jinr.ru
@@ -9,14 +9,14 @@
  ************************************************************************************/
 
 using namespace std;
-#include "BmnBarrelGeoPar.h"
+#include "BmnBdGeoPar.h"
 #include "FairParamList.h"
 #include <iostream>
 #include <iomanip>
 
-ClassImp(BmnBarrelGeoPar)
+ClassImp(BmnBdGeoPar)
 
-BmnBarrelGeoPar::BmnBarrelGeoPar(const char* name,const char* title,const char* context)
+BmnBdGeoPar::BmnBdGeoPar(const char* name,const char* title,const char* context)
            : FairParGenericSet(name,title,context) {
 
                fGeoSensNodes = new TObjArray();
@@ -24,23 +24,23 @@ BmnBarrelGeoPar::BmnBarrelGeoPar(const char* name,const char* title,const char* 
 
 }
 
-BmnBarrelGeoPar::~BmnBarrelGeoPar(void) {
+BmnBdGeoPar::~BmnBdGeoPar(void) {
 }
 
 // probably the next funtions can be deleted
 
-void BmnBarrelGeoPar::clear(void) {
+void BmnBdGeoPar::clear(void) {
     if(fGeoSensNodes) delete fGeoSensNodes;
     if(fGeoPassNodes) delete fGeoPassNodes;
 }
 
-void BmnBarrelGeoPar::putParams(FairParamList* l) {
+void BmnBdGeoPar::putParams(FairParamList* l) {
   if (!l) return;
    l->addObject("FairGeoNodes Sensitive List", fGeoSensNodes);
    l->addObject("FairGeoNodes Passive List", fGeoPassNodes);
 }
 
-Bool_t BmnBarrelGeoPar::getParams(FairParamList* l) {
+Bool_t BmnBdGeoPar::getParams(FairParamList* l) {
     if (!l) return kFALSE;
     if (!l->fillObject("FairGeoNodes Sensitive List", fGeoSensNodes)) return kFALSE;
     if (!l->fillObject("FairGeoNodes Passive List", fGeoPassNodes)) return kFALSE;

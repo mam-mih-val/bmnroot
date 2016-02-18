@@ -1,7 +1,7 @@
 
 /*************************************************************************************
  *
- *         Class BmnBarrel
+ *         Class BmnBd
  *         
  *  Adopted for BMN by:   Elena Litvinenko (EL)
  *  e-mail:   litvin@nf.jinr.ru
@@ -22,11 +22,11 @@
 #include "FairGeoInterface.h"
 #include "FairGeoLoader.h"
 #include "FairGeoNode.h"
-#include "BmnBarrelGeo.h"
+#include "BmnBdGeo.h"
 #include "FairGeoRootBuilder.h"
 #include "CbmStack.h"
-#include "BmnBarrel.h"
-#include "BmnBarrelPoint.h"
+#include "BmnBd.h"
+#include "BmnBdPoint.h"
 
 #include "FairRootManager.h"
 #include "FairVolume.h"
@@ -39,8 +39,8 @@
 #include "TParticlePDG.h"
 
 // -----   Default constructor   -------------------------------------------
-BmnBarrel::BmnBarrel() {
-  fBarrelCollection        = new TClonesArray("BmnBarrelPoint");
+BmnBd::BmnBd() {
+  fBdCollection        = new TClonesArray("BmnBdPoint");
   volDetector = 0;
   fPosIndex   = 0; 
   // fpreflag = 0;  
@@ -52,9 +52,9 @@ BmnBarrel::BmnBarrel() {
 // -------------------------------------------------------------------------
 
 // -----   Standard constructor   ------------------------------------------
-BmnBarrel::BmnBarrel(const char* name, Bool_t active)
+BmnBd::BmnBd(const char* name, Bool_t active)
   : FairDetector(name, active) {
-    fBarrelCollection        = new TClonesArray("BmnBarrelPoint");
+    fBdCollection        = new TClonesArray("BmnBdPoint");
     fPosIndex   = 0;
     volDetector = 0;
     //fpreflag = 0;  
@@ -67,10 +67,10 @@ BmnBarrel::BmnBarrel(const char* name, Bool_t active)
 
 
 // -----   Destructor   ----------------------------------------------------
-BmnBarrel::~BmnBarrel() {
-  if (fBarrelCollection) {
-    fBarrelCollection->Delete();
-    delete fBarrelCollection;
+BmnBd::~BmnBd() {
+  if (fBdCollection) {
+    fBdCollection->Delete();
+    delete fBdCollection;
   }
   
 }
@@ -79,7 +79,7 @@ BmnBarrel::~BmnBarrel() {
 
 
 // -----   Public method Intialize   ---------------------------------------
-void BmnBarrel::Initialize() {
+void BmnBd::Initialize() {
   // Init function
   
   FairDetector::Initialize();
@@ -87,7 +87,7 @@ void BmnBarrel::Initialize() {
   FairRuntimeDb* rtdb=sim->GetRuntimeDb();
 }
 // -------------------------------------------------------------------------
-void BmnBarrel::BeginEvent(){
+void BmnBd::BeginEvent(){
   // Begin of the event
   
 }
@@ -95,18 +95,19 @@ void BmnBarrel::BeginEvent(){
 
 
 // -----   Public method ProcessHits  --------------------------------------
-Bool_t BmnBarrel::ProcessHits(FairVolume* vol) {
+Bool_t BmnBd::ProcessHits(FairVolume* vol) {
 
   // if (TMath::Abs(gMC->TrackCharge()) <= 0) return kFALSE;
 
   Int_t      ivol    = vol->getMCid();
   TLorentzVector tPos1, tMom1;
+      TLorentzVector tPos, tMom;
 
   //#define EDEBUG
 #ifdef EDEBUG
   static Int_t lEDEBUGcounter=0;
   if (lEDEBUGcounter<1)
-    std::cout << "EDEBUG-- BmnBarrel::ProcessHits: entered" << gMC->CurrentVolPath() << endl;
+    std::cout << "EDEBUG-- BmnBd::ProcessHits: entered" << gMC->CurrentVolPath() << endl;
 #endif
 
     if (gMC->IsTrackEntering()) {
@@ -129,20 +130,15 @@ Bool_t BmnBarrel::ProcessHits(FairVolume* vol) {
 
 #ifndef EDEBUG
       if (fELoss == 0. ) return kFALSE;
-#else
-      if ((fELoss == 0. ) && 
-	  (!((gMC->GetStack()->GetCurrentTrack()->GetPdgCode()==2112)&&(gMC->GetStack()->GetCurrentTrack()->GetMother(0)==-1)))
-) return kFALSE;
 #endif
 
       TParticle* part    = gMC->GetStack()->GetCurrentTrack();
       Double_t charge = part->GetPDG()->Charge() / 3. ;
 
-      // Create BmnBarrelPoint
+      // Create BmnBdPoint
       fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
       Double_t time    = gMC->TrackTime() * 1.0e09;
       Double_t length  = gMC->TrackLength();
-      TLorentzVector tPos, tMom;
       gMC->TrackPosition(tPos);
       gMC->TrackMomentum(tMom);
 
@@ -154,9 +150,8 @@ Bool_t BmnBarrel::ProcessHits(FairVolume* vol) {
  	
 
 #ifdef EDEBUG
-      static Bool_t already=0;
       if (lEDEBUGcounter<100) {
-	std::cout << "EDEBUG-- BmnBarrel::ProcessHits: TrackID:" << fTrackID << 
+	std::cout << "EDEBUG-- BmnBd::ProcessHits: TrackID:" << fTrackID << 
 	  //	  " ELoss: " << fELoss << 
 	  //	  "   particle: " << (part->GetName()) << 
 	  "   " << gMC->CurrentVolPath() << " " << tPos.Z() << 
@@ -172,49 +167,30 @@ Bool_t BmnBarrel::ProcessHits(FairVolume* vol) {
 	  std::endl;
 	lEDEBUGcounter++;
       } 
-      if ((iCell==2)&&(lEDEBUGcounter>=100)&&(!already)) {
-	already=1;
-	lEDEBUGcounter=0;
-      }
-//       if ((part->GetPdgCode())==321) {
-// 	std::cout << "EDEBUG-- BmnBarrel::ProcessHits(..)  K+:  " << fTrackID << "   " << (  gMC->IsTrackExiting()) << "  " <<
-// 	  (gMC->IsTrackStop()) << "  " << (gMC->IsTrackDisappeared()) << "   " << fELoss << "  " << time << std::endl;
-//       }
-//#endif
 
-//       if(copyNo==1)
-// 	AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos1.X(), tPos1.Y(), tPos1.Z()),
-// 	       TVector3(tMom1.Px(), tMom1.Py(), tMom1.Pz()),
-// 	       time, length, fELoss);
-//       else 
-
-	AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+      //	AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+	AddHit(fTrackID, ivol, copyNo, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
 	       TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
 	       time, length, fELoss);
 #else
 
-      AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+	//      AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+      AddHit(fTrackID, ivol, copyNo, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
 	     TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
 	     time, length, fELoss);
 #endif
 
-      Int_t points = gMC->GetStack()->GetCurrentTrack()->GetMother(1);
-//       Int_t nBarrelPoints = (points & (1<<30)) >> 30;
-//       nBarrelPoints ++;
-//       if (nBarrelPoints > 1) nBarrelPoints = 1;
-//      points = ( points & ( ~ (1<<30) ) ) | (nBarrelPoints << 30);
-      points = ( points & ( ~ (1<<30) ) ) | (1 << 30);
-      gMC->GetStack()->GetCurrentTrack()->SetMother(1,points);
+////      Int_t points = gMC->GetStack()->GetCurrentTrack()->GetMother(1);
+//       Int_t nBdPoints = (points & (1<<30)) >> 30;
+//       nBdPoints ++;
+//       if (nBdPoints > 1) nBdPoints = 1;
+//      points = ( points & ( ~ (1<<30) ) ) | (nBdPoints << 30);
+////       points = ( points & ( ~ (1<<30) ) ) | (1 << 30);
+////       gMC->GetStack()->GetCurrentTrack()->SetMother(1,points);
 
-      ((CbmStack*)gMC->GetStack())->AddPoint(kBARREL);
+      ((CbmStack*)gMC->GetStack())->AddPoint(kBD);
 
     }
-   
-//     Int_t copyNo;  
-//     gMC->CurrentVolID(copyNo);
-//     TString nam = gMC->GetMC()->GetName();
-    //    cout<<"name "<<gMC->GetMC()->GetName()<<endl;
-    //    ResetParameters();
   
     return kTRUE;
   
@@ -225,42 +201,42 @@ Bool_t BmnBarrel::ProcessHits(FairVolume* vol) {
 // ----------------------------------------------------------------------------
 
 // -----   Public method EndOfEvent   -----------------------------------------
-void BmnBarrel::EndOfEvent() {
+void BmnBd::EndOfEvent() {
   if (fVerboseLevel)  Print();
   Reset();
 }
 
 
 // -----   Public method Register   -------------------------------------------
-void BmnBarrel::Register() {
-  FairRootManager::Instance()->Register("BarrelPoint","Barrel", fBarrelCollection, kTRUE);
+void BmnBd::Register() {
+  FairRootManager::Instance()->Register("BdPoint","Bd", fBdCollection, kTRUE);
 }
 
 
 // -----   Public method GetCollection   --------------------------------------
-TClonesArray* BmnBarrel::GetCollection(Int_t iColl) const {
-   if (iColl == 0) return fBarrelCollection;
+TClonesArray* BmnBd::GetCollection(Int_t iColl) const {
+   if (iColl == 0) return fBdCollection;
 
   return NULL;
 }
 
 
 // -----   Public method Print   ----------------------------------------------
-void BmnBarrel::Print() const {
-    Int_t nHits = fBarrelCollection->GetEntriesFast();
-    cout << "-I- BmnBarrel: " << nHits << " points registered in this event."
+void BmnBd::Print() const {
+    Int_t nHits = fBdCollection->GetEntriesFast();
+    cout << "-I- BmnBd: " << nHits << " points registered in this event."
  	<< endl;
 
     if (fVerboseLevel>1)
-      for (Int_t i=0; i<nHits; i++) (*fBarrelCollection)[i]->Print();
+      for (Int_t i=0; i<nHits; i++) (*fBdCollection)[i]->Print();
 }
 
 
 
 
 // -----   Public method Reset   ----------------------------------------------
-void BmnBarrel::Reset() {
-   fBarrelCollection->Delete();
+void BmnBd::Reset() {
+   fBdCollection->Delete();
  
   fPosIndex = 0;
 }
@@ -268,38 +244,38 @@ void BmnBarrel::Reset() {
 
 // guarda in FairRootManager::CopyClones
 // -----   Public method CopyClones   -----------------------------------------
-void BmnBarrel::CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset ) {
+void BmnBd::CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset ) {
   Int_t nEntries = cl1->GetEntriesFast();
-  //cout << "-I- BmnBarrel: " << nEntries << " entries to add." << endl;
+  //cout << "-I- BmnBd: " << nEntries << " entries to add." << endl;
   TClonesArray& clref = *cl2;
-  BmnBarrelPoint* oldpoint = NULL;
+  BmnBdPoint* oldpoint = NULL;
   for (Int_t i=0; i<nEntries; i++) {
-    oldpoint = (BmnBarrelPoint*) cl1->At(i);
+    oldpoint = (BmnBdPoint*) cl1->At(i);
     Int_t index = oldpoint->GetTrackID() + offset;
     oldpoint->SetTrackID(index);
-    new (clref[fPosIndex]) BmnBarrelPoint(*oldpoint);
+    new (clref[fPosIndex]) BmnBdPoint(*oldpoint);
     fPosIndex++;
   }
-  cout << " -I- BmnBarrel: " << cl2->GetEntriesFast() << " merged entries."
+  cout << " -I- BmnBd: " << cl2->GetEntriesFast() << " merged entries."
        << endl;
 }
 
  // -----   Public method ConstructGeometry   ----------------------------------
-void BmnBarrel::ConstructGeometry() {
+void BmnBd::ConstructGeometry() {
  FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
   FairGeoInterface* geoFace = geoLoad->getGeoInterface();
-  BmnBarrelGeo*      barrelGeo = new BmnBarrelGeo();
-  barrelGeo->setGeomFile(GetGeometryFileName());
-  geoFace->addGeoModule(barrelGeo);
+  BmnBdGeo*      bdGeo = new BmnBdGeo();
+  bdGeo->setGeomFile(GetGeometryFileName());
+  geoFace->addGeoModule(bdGeo);
 
-  Bool_t rc = geoFace->readSet(barrelGeo);
-  if (rc) barrelGeo->create(geoLoad->getGeoBuilder());
-  TList* volList = barrelGeo->getListOfVolumes();
+  Bool_t rc = geoFace->readSet(bdGeo);
+  if (rc) bdGeo->create(geoLoad->getGeoBuilder());
+  TList* volList = bdGeo->getListOfVolumes();
 
   // store geo parameter
   FairRun *fRun = FairRun::Instance();
   FairRuntimeDb *rtdb= FairRun::Instance()->GetRuntimeDb();
-  BmnBarrelGeoPar* par=(BmnBarrelGeoPar*)(rtdb->getContainer("BmnBarrelGeoPar"));
+  BmnBdGeoPar* par=(BmnBdGeoPar*)(rtdb->getContainer("BmnBdGeoPar"));
   TObjArray *fSensNodes = par->GetGeoSensitiveNodes();
   TObjArray *fPassNodes = par->GetGeoPassiveNodes();
 
@@ -326,12 +302,12 @@ void BmnBarrel::ConstructGeometry() {
  
 
 // -----   Private method AddHit   --------------------------------------------
-BmnBarrelPoint* BmnBarrel::AddHit(Int_t trackID, Int_t detID, Int_t copyNo, Int_t copyNoMother,
+BmnBdPoint* BmnBd::AddHit(Int_t trackID, Int_t detID, Int_t copyNo,
 			    TVector3 pos, TVector3 mom, Double_t time, 
 			    Double_t length, Double_t eLoss) {
-  TClonesArray& clref = *fBarrelCollection;
+  TClonesArray& clref = *fBdCollection;
   Int_t size = clref.GetEntriesFast();
-  return new(clref[size]) BmnBarrelPoint(trackID, detID, copyNo, copyNoMother,pos, mom, 
+  return new(clref[size]) BmnBdPoint(trackID, detID, copyNo, pos, mom, 
 				      time, length, eLoss);
  }
 
@@ -340,4 +316,4 @@ BmnBarrelPoint* BmnBarrel::AddHit(Int_t trackID, Int_t detID, Int_t copyNo, Int_
 // ----
 
 
-ClassImp(BmnBarrel)
+ClassImp(BmnBd)

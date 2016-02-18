@@ -1,6 +1,6 @@
 /*************************************************************************************
  *
- *         Class BmnBarrel
+ *         Class BmnBd
  *         
  *  Adopted for BMN by:   Elena Litvinenko
  *  e-mail:   litvin@nf.jinr.ru
@@ -8,41 +8,41 @@
  *
  ************************************************************************************/
 
-#ifndef BMNBARREL_H
-#define BMNBARREL_H
+#ifndef BMNBD_H
+#define BMNBD_H
 
 
 #include "TClonesArray.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
 #include "FairDetector.h"
-#include "BmnBarrelGeoPar.h"
+#include "BmnBdGeoPar.h"
 
 using namespace std;
 
 
 class TClonesArray;
-class BmnBarrelPoint;
+class BmnBdPoint;
 class FairVolume;
 
-class BmnBarrel : public FairDetector
+class BmnBd : public FairDetector
 {
 
  public:
 
   /** Default constructor **/
-  BmnBarrel();
+  BmnBd();
 
 
   /** Standard constructor.
    *@param name    detetcor name
    *@param active  sensitivity flag
    **/
-  BmnBarrel(const char* name, Bool_t active);
+  BmnBd(const char* name, Bool_t active);
 
 
   /** Destructor **/
-  virtual ~BmnBarrel();
+  virtual ~BmnBd();
 
 
   /** Virtual method Initialize
@@ -54,7 +54,7 @@ class BmnBarrel : public FairDetector
   /** Virtual method ProcessHits
    **
    ** Defines the action to be taken when a step is inside the
-   ** active volume. Creates BmnBarrelPoints and BmnBarrelMirrorPoints and adds 
+   ** active volume. Creates BmnBdPoints and BmnBdMirrorPoints and adds 
    ** them to the collections.
    *@param vol  Pointer to the active volume
    **/
@@ -111,7 +111,7 @@ class BmnBarrel : public FairDetector
    **/
   virtual void ConstructGeometry();
 
-  BmnBarrelPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo, Int_t copyNoMother,
+  BmnBdPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo, 
 		      TVector3 pos, TVector3 mom,
 		      Double_t tof, Double_t length, Double_t eLoss);
 
@@ -127,18 +127,18 @@ class BmnBarrel : public FairDetector
   Int_t fPosIndex;      //! 
   Int_t volDetector;     //!  MC volume ID of MUO
   
-  TClonesArray* fBarrelCollection;        //! Hit collection
+  TClonesArray* fBdCollection;        //! Hit collection
   
   // reset all parameters   
   void ResetParameters();
 
-  ClassDef(BmnBarrel,2)
+  ClassDef(BmnBd,2)
 
 }; 
 
 
 //------------------------------------------------------------------------------------------------------------------------
-inline void BmnBarrel::ResetParameters() 
+inline void BmnBd::ResetParameters() 
 {
 	fTrackID = fVolumeID = 0;
 	fPos.SetXYZM(0.0, 0.0, 0.0, 0.0);

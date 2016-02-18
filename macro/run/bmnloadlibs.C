@@ -22,7 +22,7 @@ void bmnloadlibs()
   gSystem->Load("libRecoil");
   gSystem->Load("libZdc");
   gSystem->Load("libEcal");
-  gSystem->Load("libBarrel");
+  gSystem->Load("libBd");
   gSystem->Load("libGem");
   gSystem->Load("libGlobalTracking");
   gSystem->Load("libTOF1");

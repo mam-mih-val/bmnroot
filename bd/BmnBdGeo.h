@@ -1,6 +1,6 @@
 /*************************************************************************************
  *
- *         Class BmnBarrelGeo
+ *         Class BmnBdGeo
  *         
  *  Adopted for BMN by:   Elena Litvinenko
  *  e-mail:   litvin@nf.jinr.ru
@@ -8,26 +8,26 @@
  *
  ************************************************************************************/
 
-#ifndef BMNGEOBARREL_H
-#define BMNGEOBARREL_H
+#ifndef BMNGEOBD_H
+#define BMNGEOBD_H
 
 #include "FairGeoSet.h"
 
-class  BmnBarrelGeo : public FairGeoSet {
+class  BmnBdGeo : public FairGeoSet {
 protected:
   char modName[20];  // name of module
   char eleName[20];  // substring for elements in module
   
 public:
-  BmnBarrelGeo();
-  ~BmnBarrelGeo() {}
+  BmnBdGeo();
+  ~BmnBdGeo() {}
   const char* getModuleName(Int_t);
   const char* getEleName(Int_t);
   
-  ClassDef(BmnBarrelGeo,0) // Class for Hyp
+  ClassDef(BmnBdGeo,0) // Class for Hyp
 };
 
-#endif  /* !BMNGEOBARREL_H */
+#endif  /* !BMNGEOBD_H */
 
 
 

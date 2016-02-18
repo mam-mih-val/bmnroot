@@ -111,7 +111,7 @@ class BmnBd : public FairDetector
    **/
   virtual void ConstructGeometry();
 
-  BmnBdPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo, Int_t copyNoMother,
+  BmnBdPoint* AddHit(Int_t trackID, Int_t detID,  Int_t copyNo, 
 		      TVector3 pos, TVector3 mom,
 		      Double_t tof, Double_t length, Double_t eLoss);
 

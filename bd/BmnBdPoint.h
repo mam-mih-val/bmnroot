@@ -36,7 +36,7 @@ class BmnBdPoint : public FairMCPoint
    **/
   
   BmnBdPoint(Int_t trackID, Int_t detID, 
-	      Int_t copyNo, Int_t copyNoMother, 
+	      Int_t copyNo, 
 	      TVector3 pos, TVector3 mom,
 	      Double_t tof, Double_t length, 
 	      Double_t eLoss, UInt_t EventId=0 );
@@ -51,11 +51,11 @@ class BmnBdPoint : public FairMCPoint
 
   /** Accessors **/
   Short_t GetCopy()        const {return nCopy; };
-  Short_t GetCopyMother()  const {return nCopyMother; };
+  //  Short_t GetCopyMother()  const {return nCopyMother; };
 
   /** Modifiers **/
   void SetCopy(Short_t i)          { nCopy    = i; }; 
-  void SetCopyMother(Short_t i)    { nCopyMother  = i; }; 
+  //  void SetCopyMother(Short_t i)    { nCopyMother  = i; }; 
    
   /** Output to screen **/
   virtual void Print(const Option_t* opt) const;
@@ -64,7 +64,7 @@ class BmnBdPoint : public FairMCPoint
  protected:
 
   Short_t nCopy;                // Copy number
-  Short_t nCopyMother;          // Copy number of mother volume
+  //  Short_t nCopyMother;          // Copy number of mother volume
     
   ClassDef(BmnBdPoint,4)
 

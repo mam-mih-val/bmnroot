@@ -101,6 +101,7 @@ Bool_t BmnBd::ProcessHits(FairVolume* vol) {
 
   Int_t      ivol    = vol->getMCid();
   TLorentzVector tPos1, tMom1;
+      TLorentzVector tPos, tMom;
 
   //#define EDEBUG
 #ifdef EDEBUG
@@ -129,10 +130,6 @@ Bool_t BmnBd::ProcessHits(FairVolume* vol) {
 
 #ifndef EDEBUG
       if (fELoss == 0. ) return kFALSE;
-#else
-      if ((fELoss == 0. ) && 
-	  (!((gMC->GetStack()->GetCurrentTrack()->GetPdgCode()==2112)&&(gMC->GetStack()->GetCurrentTrack()->GetMother(0)==-1)))
-) return kFALSE;
 #endif
 
       TParticle* part    = gMC->GetStack()->GetCurrentTrack();
@@ -142,7 +139,6 @@ Bool_t BmnBd::ProcessHits(FairVolume* vol) {
       fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
       Double_t time    = gMC->TrackTime() * 1.0e09;
       Double_t length  = gMC->TrackLength();
-      TLorentzVector tPos, tMom;
       gMC->TrackPosition(tPos);
       gMC->TrackMomentum(tMom);
 
@@ -154,7 +150,6 @@ Bool_t BmnBd::ProcessHits(FairVolume* vol) {
  	
 
 #ifdef EDEBUG
-      static Bool_t already=0;
       if (lEDEBUGcounter<100) {
 	std::cout << "EDEBUG-- BmnBd::ProcessHits: TrackID:" << fTrackID << 
 	  //	  " ELoss: " << fELoss << 
@@ -172,49 +167,30 @@ Bool_t BmnBd::ProcessHits(FairVolume* vol) {
 	  std::endl;
 	lEDEBUGcounter++;
       } 
-      if ((iCell==2)&&(lEDEBUGcounter>=100)&&(!already)) {
-	already=1;
-	lEDEBUGcounter=0;
-      }
-//       if ((part->GetPdgCode())==321) {
-// 	std::cout << "EDEBUG-- BmnBd::ProcessHits(..)  K+:  " << fTrackID << "   " << (  gMC->IsTrackExiting()) << "  " <<
-// 	  (gMC->IsTrackStop()) << "  " << (gMC->IsTrackDisappeared()) << "   " << fELoss << "  " << time << std::endl;
-//       }
-//#endif
 
-//       if(copyNo==1)
-// 	AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos1.X(), tPos1.Y(), tPos1.Z()),
-// 	       TVector3(tMom1.Px(), tMom1.Py(), tMom1.Pz()),
-// 	       time, length, fELoss);
-//       else 
-
-	AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+      //	AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+	AddHit(fTrackID, ivol, copyNo, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
 	       TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
 	       time, length, fELoss);
 #else
 
-      AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+	//      AddHit(fTrackID, ivol, copyNo, iCell, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
+      AddHit(fTrackID, ivol, copyNo, TVector3(tPos.X(), tPos.Y(), tPos.Z()),
 	     TVector3(tMom.Px(), tMom.Py(), tMom.Pz()),
 	     time, length, fELoss);
 #endif
 
-      Int_t points = gMC->GetStack()->GetCurrentTrack()->GetMother(1);
+////      Int_t points = gMC->GetStack()->GetCurrentTrack()->GetMother(1);
 //       Int_t nBdPoints = (points & (1<<30)) >> 30;
 //       nBdPoints ++;
 //       if (nBdPoints > 1) nBdPoints = 1;
 //      points = ( points & ( ~ (1<<30) ) ) | (nBdPoints << 30);
-      points = ( points & ( ~ (1<<30) ) ) | (1 << 30);
-      gMC->GetStack()->GetCurrentTrack()->SetMother(1,points);
+////       points = ( points & ( ~ (1<<30) ) ) | (1 << 30);
+////       gMC->GetStack()->GetCurrentTrack()->SetMother(1,points);
 
       ((CbmStack*)gMC->GetStack())->AddPoint(kBD);
 
     }
-   
-//     Int_t copyNo;  
-//     gMC->CurrentVolID(copyNo);
-//     TString nam = gMC->GetMC()->GetName();
-    //    cout<<"name "<<gMC->GetMC()->GetName()<<endl;
-    //    ResetParameters();
   
     return kTRUE;
   
@@ -326,12 +302,12 @@ void BmnBd::ConstructGeometry() {
  
 
 // -----   Private method AddHit   --------------------------------------------
-BmnBdPoint* BmnBd::AddHit(Int_t trackID, Int_t detID, Int_t copyNo, Int_t copyNoMother,
+BmnBdPoint* BmnBd::AddHit(Int_t trackID, Int_t detID, Int_t copyNo,
 			    TVector3 pos, TVector3 mom, Double_t time, 
 			    Double_t length, Double_t eLoss) {
   TClonesArray& clref = *fBdCollection;
   Int_t size = clref.GetEntriesFast();
-  return new(clref[size]) BmnBdPoint(trackID, detID, copyNo, copyNoMother,pos, mom, 
+  return new(clref[size]) BmnBdPoint(trackID, detID, copyNo, pos, mom, 
 				      time, length, eLoss);
  }
 

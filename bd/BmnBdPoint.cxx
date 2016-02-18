@@ -23,31 +23,17 @@ BmnBdPoint::BmnBdPoint() : FairMCPoint() {
 //   fELoss      =  0.;
  
   nCopy = -1;
-  nCopyMother=-1;
 }
 // -------------------------------------------------------------------------
 
 
 
 // -----   Standard constructor   ------------------------------------------
-BmnBdPoint::BmnBdPoint(Int_t trackID, Int_t detID, Int_t copyNo, Int_t copyNoMother, TVector3 pos,
+BmnBdPoint::BmnBdPoint(Int_t trackID, Int_t detID, Int_t copyNo, TVector3 pos,
                         TVector3 mom, Double_t tof, Double_t length,
 			 Double_t eLoss, UInt_t EventId) 
   : FairMCPoint(trackID, detID, pos, mom, tof, length, eLoss, EventId) {
   nCopy = copyNo;
-  nCopyMother =  copyNoMother;
-  //  fTrackID    = trackID;
-  //  fDetectorID = detID; 
-  
-  //  fX          = pos.X();
-  //  fY          = pos.Y();
-  //  fZ          = pos.Z();
-  //  fPx         = mom.Px();
-  //  fPy         = mom.Py();
-  //  fPz         = mom.Pz();
-  //  fTime       = tof;
-  //  fLength     = length;
-  //  fELoss      = eLoss;
  
 }
 

@@ -16,6 +16,8 @@
 #include "FairRunAna.h"
 #include "FairField.h"
 #include "TMath.h"
+#include "BmnMatrixMath.h"
+#include "BmnMath.h"
 #include "TClonesArray.h"
 #include "BmnGemTrack.h"
 
@@ -33,11 +35,20 @@ public:
     TMatrixD Transport(FairTrackParam* par, Float_t zOut, TString type); //transport matrix generation
     BmnStatus AddFitNode(BmnFitNode node);
     vector<BmnFitNode> GetFitNodes() const {return fFitNodes;};
-    Bool_t IsParCorrect(const FairTrackParam* par);
     TMatrixD FillVecFromPar(const FairTrackParam* par);
     TMatrixD FillCovFromPar(const FairTrackParam* par);
     BmnStatus FillParFromVecAndCov(TMatrixD x, TMatrixD c, FairTrackParam* par);
     Int_t GetNnodes() const {return fFitNodes.size();};
+    
+    void RK4Order(const vector<Double_t>& xIn, Float_t zIn, vector<Double_t>& xOut, Float_t zOut, vector<Double_t>& derivs);
+    BmnStatus RK4TrackExtrapolate(FairTrackParam* par, Float_t zOut, vector<Double_t>* F);
+    Float_t CalcOut(Float_t in, const Float_t k[4]);
+    void TransportC(const vector<Double_t>& cIn, const vector<Double_t>& F, vector<Double_t>& cOut);
+    BmnStatus Update(FairTrackParam* par, const BmnHit* hit, Float_t& chiSq);
+    void UpdateF(vector<Double_t>& F, const vector<Double_t>& newF);
+    
+    BmnStatus FitSmooth(BmnGemTrack* track, TClonesArray* hits);
+    BmnStatus Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode);
     
 private:
     vector<BmnFitNode> fFitNodes;

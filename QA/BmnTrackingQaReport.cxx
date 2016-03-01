@@ -248,7 +248,7 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
     DrawH2(HM()->H2(name2d.Data()), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
     HM()->H1("momRes_1D_gem")->SetMaximum(10.0);
-    //HM()->H1(name1d.Data())->SetMinimum(0.0);
+    HM()->H1("momRes_1D_gem")->SetMinimum(0.0);
     DrawH1(HM()->H1("momRes_1D_gem"), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
 }
 

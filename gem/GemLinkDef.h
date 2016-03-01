@@ -31,6 +31,7 @@
 #pragma link C++ class BmnGemStripDigitizer+;
 #pragma link C++ class BmnGemStripHit+;
 #pragma link C++ class BmnGemStripHitMaker+;
+#pragma link C++ class BmnKalmanFilter_tmp+;
 
 #pragma link C++ namespace BmnGemStripConfiguration;
 

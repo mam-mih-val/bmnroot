@@ -44,8 +44,8 @@ public:
    const vector<Double_t>& GetF() const { return fF; }
    const TMatrixD GetF_matr() const { return fF_matr; }
    const FairTrackParam* GetPredictedParam() const { return &fPredictedParam; }
-   const FairTrackParam* GetUpdatedParam() const { return &fUpdatedParam; }
-   const FairTrackParam* GetSmoothedParam() const { return &fSmoothedParam; }
+   FairTrackParam* GetUpdatedParam() { return &fUpdatedParam; }
+   FairTrackParam* GetSmoothedParam() { return &fSmoothedParam; }
    Float_t GetChiSqFiltered() const { return fChiSqFiltered; }
    Float_t GetChiSqSmoothed() const { return fChiSqSmoothed; }
 

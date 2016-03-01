@@ -1257,6 +1257,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
             case conditionGreater:          strCondition += "> "; break;
             case conditionGreaterOrEqual:   strCondition += ">= "; break;
             case conditionLike:             strCondition += "like "; break;
+            case conditionNull:             strCondition += "is null "; break;
             default:
                 cout<<"Error: comparison operator in the search condition wasn't defined, condition is skipped"<<endl;
                 continue;
@@ -1264,6 +1265,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
 
         switch (curCondition->GetValueType())
         {
+            case 0: if (curCondition->GetCondition() != conditionNull) continue; break;
             case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
             case 2: strCondition += Form("%f", curCondition->GetDoubleValue()); break;
             case 3: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
@@ -1274,17 +1276,19 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
         }
 
         if (isFirst)
-            sql += " where ";
-        else
         {
-            sql += " and ";
+            sql += " where ";
             isFirst = false;
         }
+        else
+            sql += " and ";
 
         sql += strCondition;
     }
+    sql += " order by run_number";
 
     TSQLStatement* stmt = uni_db->Statement(sql);
+    //cout<<"SQL code: "<<sql<<endl;
 
     // get table record from DB
     if (!stmt->Process())
@@ -1303,6 +1307,13 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
     arrayResult = new TObjArray();
     while (stmt->NextResultRow())
     {
+        UniDbConnection* connRun = UniDbConnection::Open(UNIFIED_DB);
+        if (connRun == 0x00)
+        {
+            cout<<"Error: connection to DB for single run was failed"<<endl;
+            return arrayResult;
+        }
+
         int tmp_run_number;
         tmp_run_number = stmt->GetInt(0);
         int* tmp_period_number;
@@ -1344,7 +1355,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
         else
             tmp_geometry_id = new int(stmt->GetInt(11));
 
-        arrayResult->Add((TObject*) new UniDbRun(connUniDb, tmp_run_number, tmp_period_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id));
+        arrayResult->Add((TObject*) new UniDbRun(connRun, tmp_run_number, tmp_period_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id));
     }
 
     delete stmt;

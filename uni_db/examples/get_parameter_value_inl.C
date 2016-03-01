@@ -43,9 +43,7 @@ void get_parameter_value_inl()
 
         cout<<"TDC: "<<int_to_hex_string(TDC_SERIAL)<<". Channel: "<<i<<endl<<"INL:";
         for (int j = 0; j < inl_size; j++)
-        {
             cout<<" "<<inl_for_channel[j];
-        }
         cout<<endl<<endl;
 
         // clean memory after work

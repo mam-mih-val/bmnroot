@@ -1461,6 +1461,7 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
             case conditionGreater:          strCondition += "> "; break;
             case conditionGreaterOrEqual:   strCondition += ">= "; break;
             case conditionLike:             strCondition += "like "; break;
+            case conditionNull:             strCondition += "is null "; break;
             default:
                 cout<<"Error: comparison operator in the search condition wasn't defined, condition is skipped"<<endl;
                 continue;
@@ -1468,6 +1469,7 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
 
         switch (curCondition->GetValueType())
         {
+            case 0: if (curCondition->GetCondition() != conditionNull) continue; break;
             case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
             case 2: strCondition += Form("%f", curCondition->GetDoubleValue()); break;
             case 3: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
@@ -1478,12 +1480,12 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
         }
 
         if (isFirst)
-            sql += " where ";
-        else
         {
-            sql += " and ";
+            sql += " where ";
             isFirst = false;
         }
+        else
+            sql += " and ";
 
         sql += strCondition;
     }
@@ -1507,6 +1509,13 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
     arrayResult = new TObjArray();
     while (stmt->NextResultRow())
     {
+        UniDbConnection* connPar = UniDbConnection::Open(UNIFIED_DB);
+        if (connPar == 0x00)
+        {
+            cout<<"Error: connection to DB for single run was failed"<<endl;
+            return arrayResult;
+        }
+
         int tmp_value_id;
         tmp_value_id = stmt->GetInt(0);
         TString tmp_detector_name;
@@ -1530,7 +1539,7 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
         Long_t tmp_sz_parameter_value = 0;
         stmt->GetLargeObject(7, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 
-        arrayResult->Add((TObject*) new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_run, tmp_end_run, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value));
+        arrayResult->Add((TObject*) new UniDbDetectorParameter(connPar, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_run, tmp_end_run, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value));
     }
 
     delete stmt;

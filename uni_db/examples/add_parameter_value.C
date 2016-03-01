@@ -5,7 +5,7 @@ void add_parameter_value()
     basiclibs();
     gSystem->Load("libUniDb");
 
-    // add 'on' parameter value (boolean value)
+    // set 'on' parameter value (boolean value)
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "on", 77, 77, true); //(detector_name, parameter_name, start_run_number, end_run_number, parameter_value)
     if (pDetectorParameter == NULL)
     {

@@ -12,9 +12,9 @@ void histo_noise()
     //TGraph2D* gr2 = new TGraph2D();
     TH3I* histo =  new TH3I("h3","Noise channels",20,1,20,70,1,70,689,0,688);
     histo->SetMarkerColor(kBlue);
-    //histo->GetXaxis()->SetTitle("Slot");
-    //histo->GetYaxis()->SetTitle("Channel");
-    //histo->GetZaxis()->SetTitle("Run №");
+    histo->GetXaxis()->SetTitle("Slot");
+    histo->GetYaxis()->SetTitle("Channel");
+    histo->GetZaxis()->SetTitle("Run №");
 
     int* run_numbers;
     int run_count = UniDbRun::GetRunNumbers(12, 688, run_numbers);
@@ -34,9 +34,7 @@ void histo_noise()
 
             cout<<"Element count: "<<element_count<<" for run number: "<<run_number<<endl;
             for (int j = 0; j < element_count; j++)
-            {
                 histo->Fill(pValues[j].int_1, pValues[j].int_2, run_number);
-            }
 
             // clean memory after work
             delete pValues;

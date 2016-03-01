@@ -1,0 +1,10 @@
+digraph "C:/Users/SoulKeeper/Downloads" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_2c12105386bcc5c3935feab96f296a41 {
+    graph [ bgcolor="#eeeeff", pencolor="black", label="" URL="dir_2c12105386bcc5c3935feab96f296a41.html"];
+    dir_2c12105386bcc5c3935feab96f296a41 [shape=plaintext label="Downloads"];
+    dir_d204a798ac949d64b5ecd6c5493ee8c5 [shape=box label="db_classes" color="black" fillcolor="white" style="filled" URL="dir_d204a798ac949d64b5ecd6c5493ee8c5.html"];
+  }
+}

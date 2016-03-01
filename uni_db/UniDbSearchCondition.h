@@ -12,6 +12,7 @@ using namespace std;
 class UniDbSearchCondition
 {
  public:
+    UniDbSearchCondition(enumColumns column, enumConditions condition);
     UniDbSearchCondition(enumColumns column, enumConditions condition, int value);
     UniDbSearchCondition(enumColumns column, enumConditions condition, double value);
     UniDbSearchCondition(enumColumns column, enumConditions condition, TString value);

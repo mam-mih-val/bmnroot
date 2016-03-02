@@ -10,6 +10,7 @@
 #include "report/BmnDrawHist.h"
 #include "BmnUtils.h"
 #include "TH1.h"
+#include "TF1.h"
 #include "map"
 #include "TCanvas.h"
 #include "TLine.h"
@@ -245,11 +246,29 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
     canvas->SetGrid();
     canvas->Divide(2, 1);
     canvas->cd(1);
+    
     DrawH2(HM()->H2(name2d.Data()), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
-    HM()->H1("momRes_1D_gem")->SetMaximum(10.0);
-    HM()->H1("momRes_1D_gem")->SetMinimum(0.0);
-    DrawH1(HM()->H1("momRes_1D_gem"), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+    
+    Int_t momResStep = 10;
+    for (Int_t iBin = 0; iBin < HM()->H2(name2d.Data())->GetNbinsX(); iBin += momResStep) {
+        TH1D* proj = HM()->H2(name2d.Data())->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
+        proj->Fit("gaus", "SQRww", "", -10.0, 10.0);
+        TF1 *fit = proj->GetFunction("gaus");
+        Float_t mean = TMath::Abs(fit->GetParameter(1));//(fit->GetParameter(1) < 50.0) ? fit->GetParameter(1) : 0.0;
+        Float_t sigma = fit->GetParameter(2);
+        Float_t mom = HM()->H2(name2d.Data())->GetXaxis()->GetBinCenter(iBin);
+        Int_t nBins = HM()->H1(name1d.Data())->GetXaxis()->GetNbins();
+        Int_t bin = (mom - 0.0) / (5.0 - 0.0) * nBins;
+        HM()->H1(name1d.Data())->SetBinContent(bin, mean);
+//        fHM->H1("momRes_1D_gem")->SetBinContent(bin, projMax);
+//        HM()->H1("momRes_1D_gem")->SetBinError(bin, sigma);
+        HM()->H1(name1d.Data())->SetBinError(bin, 0.0);
+    }
+    
+    HM()->H1(name1d.Data())->SetMaximum(10.0);
+    HM()->H1(name1d.Data())->SetMinimum(0.0);
+    DrawH1(HM()->H1(name1d.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
 }
 
 void BmnTrackingQaReport::DrawOneH2(const TString canvasName, const TString name1) {

@@ -100,12 +100,12 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             (*F)[18] = 1.;
             (*F)[24] = 1.;
         }
-        
+
         for (Int_t iHit = 0; iHit < tr.GetNHits(); ++iHit) {
             BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(tr.GetHitIndex(iHit));
             Float_t z = hit->GetZ();
             BmnFitNode node;
-            
+
             vector<Double_t>* Fnew = new vector<Double_t> (25, 0.);
 
             fKalman->RK4TrackExtrapolate(parF, z, Fnew);
@@ -118,18 +118,11 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             node.SetF(*F);
 
             nodes.push_back(node);
-            if (iHit == tr.GetNHits() - 1) {
-                parL = parF;
-            }
-            if (iHit == 0) {
-                tr.SetParamFirst(*parF);
-            }
         }
         delete F;
         tr.SetFitNodes(nodes);
-
-        tr.SetParamLast(*parL);
-
+        tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
+        tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
 
         //        TVector3 spirPar = SpiralFit(&tr, fGemHitArray);
         //        Float_t R = spirPar.Z();
@@ -157,12 +150,21 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
         tr.SetChi2(chi2);
+        
+//        cout << "VERTEX-start" << endl;
+        vector<Double_t>* Fnew = new vector<Double_t> (25, 0.);
+        FairTrackParam parZero = *tr.GetParamFirst();
+        fKalman->RK4TrackExtrapolate(&parZero, 0.0, Fnew);
+        if (Fnew != NULL) delete Fnew;
+        tr.SetParamFirst(parZero);
+//        cout << "VERTEX-finish" << endl;
+        
         if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
         else tr.SetFlag(kBMNGOOD);
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
         delete fKalman;
     }
-    
+
     clock_t tFinish = clock();
     cout << "GEM_TRACKING: Number of found tracks: " << fGemTracksArray->GetEntriesFast() << endl;
 
@@ -578,6 +580,6 @@ Bool_t BmnGemTrackFinder::CalculateParamsByCircle(BmnGemTrack* tr) {
     par.SetTy(Ty_first);
     if (!IsParCorrect(&par)) return kFALSE;
     tr->SetParamFirst(par);
-    
+
     return kTRUE;
 }

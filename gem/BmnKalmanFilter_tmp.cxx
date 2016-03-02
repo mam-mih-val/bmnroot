@@ -332,8 +332,8 @@ BmnStatus BmnKalmanFilter_tmp::FillParFromVecAndCov(TMatrixD x, TMatrixD c, Fair
 BmnStatus BmnKalmanFilter_tmp::RK4TrackExtrapolate(FairTrackParam* par, Float_t zOut, vector<Double_t>* F) {
 
     Float_t zIn = par->GetZ();
-    fField = FairRunAna::Instance()->GetField();
-
+    fField = FairRunAna::Instance()->GetField(); 
+    
     vector<Double_t> xIn;
     xIn.resize(5);
     xIn[0] = par->GetX();

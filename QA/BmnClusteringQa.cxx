@@ -13,6 +13,8 @@
 #include "FairMCPoint.h"
 #include "CbmMCTrack.h"
 #include "BmnMatch.h"
+#include "FairMCEventHeader.h"
+#include "BmnMath.h"
 //#include "CbmStsAddress.h"
 
 #include "TSystem.h"
@@ -41,24 +43,26 @@ fOutputDir("./"),
 fDet(),
 fMCTracks(NULL),
 fGemPoints(NULL),
-//fGemDigis(NULL),
+fGemDigits(NULL),
 //fGemClusters(NULL),
 fGemHits(NULL),
-//fGemDigiMatches(NULL),
+fGemDigitMatches(NULL),
 //fGemClusterMatches(NULL),
 fGemHitMatches(NULL),
-fTof1Points(NULL),
-fTof1Hits(NULL),
-fTof1HitMatches(NULL),
-fTof2Points(NULL),
-fTof2Hits(NULL),
-fTof2HitMatches(NULL),
-fDch1Points(NULL),
-fDch1Hits(NULL),
-fDch1HitMatches(NULL),
-fDch2Points(NULL),
-fDch2Hits(NULL),
-fDch2HitMatches(NULL) {
+fPrimes(kFALSE)
+//fTof1Points(NULL),
+//fTof1Hits(NULL),
+//fTof1HitMatches(NULL),
+//fTof2Points(NULL),
+//fTof2Hits(NULL),
+//fTof2HitMatches(NULL),
+//fDch1Points(NULL),
+//fDch1Hits(NULL),
+//fDch1HitMatches(NULL),
+//fDch2Points(NULL),
+//fDch2Hits(NULL),
+//fDch2HitMatches(NULL) 
+{
 }
 
 BmnClusteringQa::~BmnClusteringQa() {
@@ -77,44 +81,53 @@ InitStatus BmnClusteringQa::Init() {
 }
 
 void BmnClusteringQa::Exec(Option_t* opt) {
-    FillEventCounterHistograms();
+    //    FillEventCounterHistograms();
+    fHM->H1("hen_EventNo_ClusteringQa")->Fill(0.5);
+    ReadEventHeader();
 
     ProcessPoints(fGemPoints, "Gem", kGEM);
-    ProcessPoints(fTof1Points, "Tof1", kTOF1);
-    ProcessPoints(fDch1Points, "Dch1", kDCH1);
-    ProcessPoints(fDch2Points, "Dch2", kDCH2);
-    ProcessPoints(fTof2Points, "Tof2", kTOF);
+    //    ProcessPoints(fTof1Points, "Tof1", kTOF1);
+    //    ProcessPoints(fDch1Points, "Dch1", kDCH1);
+    //    ProcessPoints(fDch2Points, "Dch2", kDCH2);
+    //    ProcessPoints(fTof2Points, "Tof2", kTOF);
 
     //    ProcessDigis(fGemDigis, fGemDigiMatches, "Gem", kGEM);
     //    ProcessClusters(fGemClusters, fGemClusterMatches, "Gem", kGEM);
 
     ProcessHits(fGemHits, fGemHitMatches, "Gem", kGEM);
-    ProcessHits(fTof1Hits, fTof1HitMatches, "Tof1", kTOF1);
-    ProcessHits(fDch1Hits, fDch1HitMatches, "Dch1", kDCH1);
-    ProcessHits(fDch2Hits, fDch2HitMatches, "Dch2", kDCH2);
-    ProcessHits(fTof2Hits, fTof2HitMatches, "Tof2", kTOF);
+    //    ProcessHits(fTof1Hits, fTof1HitMatches, "Tof1", kTOF1);
+    //    ProcessHits(fDch1Hits, fDch1HitMatches, "Dch1", kDCH1);
+    //    ProcessHits(fDch2Hits, fDch2HitMatches, "Dch2", kDCH2);
+    //    ProcessHits(fTof2Hits, fTof2HitMatches, "Tof2", kTOF);
 
     FillResidualAndPullHistograms(fGemPoints, fGemHits, fGemHitMatches, "Gem", kGEM);
-    FillResidualAndPullHistograms(fTof1Points, fTof1Hits, fTof1HitMatches, "Tof1", kTOF1);
-    FillResidualAndPullHistograms(fDch1Points, fDch1Hits, fDch1HitMatches, "Dch1", kDCH1);
-    FillResidualAndPullHistograms(fDch2Points, fDch2Hits, fDch2HitMatches, "Dch2", kDCH2);
-    FillResidualAndPullHistograms(fTof2Points, fTof2Hits, fTof2HitMatches, "Tof2", kTOF);
+    //    FillResidualAndPullHistograms(fTof1Points, fTof1Hits, fTof1HitMatches, "Tof1", kTOF1);
+    //    FillResidualAndPullHistograms(fDch1Points, fDch1Hits, fDch1HitMatches, "Dch1", kDCH1);
+    //    FillResidualAndPullHistograms(fDch2Points, fDch2Hits, fDch2HitMatches, "Dch2", kDCH2);
+    //    FillResidualAndPullHistograms(fTof2Points, fTof2Hits, fTof2HitMatches, "Tof2", kTOF);
 
     FillHitEfficiencyHistograms(fGemPoints, fGemHits, fGemHitMatches, "Gem", kGEM);
-    FillHitEfficiencyHistograms(fTof1Points, fTof1Hits, fTof1HitMatches, "Tof1", kTOF1);
-    FillHitEfficiencyHistograms(fDch1Points, fDch1Hits, fDch1HitMatches, "Dch1", kDCH1);
-    FillHitEfficiencyHistograms(fDch2Points, fDch2Hits, fDch2HitMatches, "Dch2", kDCH2);
-    FillHitEfficiencyHistograms(fTof2Points, fTof2Hits, fTof2HitMatches, "Tof2", kTOF);
+    //    FillHitEfficiencyHistograms(fTof1Points, fTof1Hits, fTof1HitMatches, "Tof1", kTOF1);
+    //    FillHitEfficiencyHistograms(fDch1Points, fDch1Hits, fDch1HitMatches, "Dch1", kDCH1);
+    //    FillHitEfficiencyHistograms(fDch2Points, fDch2Hits, fDch2HitMatches, "Dch2", kDCH2);
+    //    FillHitEfficiencyHistograms(fTof2Points, fTof2Hits, fTof2HitMatches, "Tof2", kTOF);
 
-    fHM->H1("_hen_EventNo_ClusteringQa")->Fill(0.5);
     //    std::cout << "BmnClusteringQa::Exec: event=" << fHM->H1("hen_EventNo_ClusteringQa")->GetEntries() << std::endl;
 }
 
 void BmnClusteringQa::Finish() {
     fHM->WriteToFile();
     BmnSimulationReport* report = new BmnClusteringQaReport();
+    report->SetOnlyPrimes(fPrimes);
     report->Create(fHM, fOutputDir);
     delete report;
+}
+
+void BmnClusteringQa::ReadEventHeader() {
+    FairMCEventHeader* evHead = (FairMCEventHeader*) FairRootManager::Instance()->GetObject("MCEventHeader.");
+    fHM->H1("Impact parameter")->Fill(evHead->GetB());
+    fHM->H1("Multiplicity")->Fill(evHead->GetNPrim());
+    fHM->H2("Impact_Mult")->Fill(evHead->GetB(), evHead->GetNPrim());
 }
 
 void BmnClusteringQa::ReadDataBranches() {
@@ -123,22 +136,22 @@ void BmnClusteringQa::ReadDataBranches() {
     fMCTracks = (TClonesArray*) ioman->GetObject("MCTrack");
 
     fGemPoints = (TClonesArray*) ioman->GetObject("StsPoint");
-    fTof1Points = (TClonesArray*) ioman->GetObject("TOF1Point");
-    fTof2Points = (TClonesArray*) ioman->GetObject("TofPoint");
-    fDch1Points = (TClonesArray*) ioman->GetObject("DCH1Point");
-    fDch2Points = (TClonesArray*) ioman->GetObject("DCH2Point");
+    //    fTof1Points = (TClonesArray*) ioman->GetObject("TOF1Point");
+    //    fTof2Points = (TClonesArray*) ioman->GetObject("TofPoint");
+    //    fDch1Points = (TClonesArray*) ioman->GetObject("DCH1Point");
+    //    fDch2Points = (TClonesArray*) ioman->GetObject("DCH2Point");
 
     fGemHits = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
-    fTof1Hits = (TClonesArray*) ioman->GetObject("TOF1Hit");
-    fTof2Hits = (TClonesArray*) ioman->GetObject("BmnTof2Hit");
-    fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit0");
-    fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit0");
+    //    fTof1Hits = (TClonesArray*) ioman->GetObject("TOF1Hit");
+    //    fTof2Hits = (TClonesArray*) ioman->GetObject("BmnTof2Hit");
+    //    fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit0");
+    //    fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit0");
 
-    fGemHitMatches = (TClonesArray*) ioman->GetObject("GemHitMatch");
-    fTof1HitMatches = (TClonesArray*) ioman->GetObject("Tof1HitMatch");
-    fTof2HitMatches = (TClonesArray*) ioman->GetObject("Tof2HitMatch");
-    fDch1HitMatches = (TClonesArray*) ioman->GetObject("Dch1HitMatch");
-    fDch2HitMatches = (TClonesArray*) ioman->GetObject("Dch2HitMatch");
+    fGemHitMatches = (TClonesArray*) ioman->GetObject("BmnGemStripHitMatch");
+    //    fTof1HitMatches = (TClonesArray*) ioman->GetObject("Tof1HitMatch");
+    //    fTof2HitMatches = (TClonesArray*) ioman->GetObject("Tof2HitMatch");
+    //    fDch1HitMatches = (TClonesArray*) ioman->GetObject("Dch1HitMatch");
+    //    fDch2HitMatches = (TClonesArray*) ioman->GetObject("Dch2HitMatch");
 }
 
 Int_t BmnClusteringQa::GetStationId(Int_t address, DetectorId detId) {
@@ -151,32 +164,7 @@ void BmnClusteringQa::ProcessPoints(const TClonesArray* points, const string& de
     if (NULL == points || !fHM->Exists(histName)) return;
     for (Int_t i = 0; i < points->GetEntriesFast(); i++) {
         const FairMCPoint* point = (const FairMCPoint*) (points->At(i));
-        Int_t station = -1;
-        if (detName == "Gem") {
-            const Float_t delta = 6.;
-            const Float_t z = point->GetZ();
-            if (Abs(30 - z) < delta) station = 0;
-            else if (Abs(50 - z) < delta) station = 1;
-            else if (Abs(70 - z) < delta) station = 2;
-            else if (Abs(90 - z) < delta) station = 3;
-            else if (Abs(110 - z) < delta) station = 4;
-            else if (Abs(140 - z) < delta) station = 5;
-            else if (Abs(170 - z) < delta) station = 6;
-            else if (Abs(200 - z) < delta) station = 7;
-            else if (Abs(240 - z) < delta) station = 8;
-            else if (Abs(280 - z) < delta) station = 9;
-            else if (Abs(320 - z) < delta) station = 10;
-            else if (Abs(360 - z) < delta) station = 11;
-            else station = -1;
-        } else if (detName == "Tof1") {
-            station = 12;
-        } else if (detName == "Dch1") {
-            station = 13;
-        } else if (detName == "Dch2") {
-            station = 14;
-        } else if (detName == "Tof2") {
-            station = 15;
-        }
+        Int_t station = stationNumber("Gem", point->GetZ());
         fHM->H1(histName)->Fill(station); //FIXME! Get Station ID from point!
     }
 }
@@ -231,6 +219,35 @@ void BmnClusteringQa::ProcessHits(const TClonesArray* hits, const TClonesArray* 
             fHM->H1("_hpa_" + detName + "Hit_NofPointsInHit_H2")->Fill(stationId, hitMatch->GetNofLinks());
         }
     }
+
+    for (Int_t iSt = 0; iSt < 12; ++iSt) {
+        TString resXname = Form("ResX_%dst_gem", iSt);
+        TString resYname = Form("ResY_%dst_gem", iSt);
+        TString pntXhitXname = Form("PntX_vs_HitX_%dst_gem", iSt);
+        TString pntYhitYname = Form("PntY_vs_HitY_%dst_gem", iSt);
+        TString occupname = Form("Occupancy_%dst_gem", iSt);
+        
+        for (Int_t i = 0; i < fGemPoints->GetEntriesFast(); ++i) {
+            const FairMCPoint* pnt = (const FairMCPoint*) (fGemPoints->At(i));
+            Int_t station = stationNumber("Gem", pnt->GetZ());
+            if (station != iSt) continue; 
+            fHM->H2(occupname.Data())->Fill(pnt->GetX(), pnt->GetY());
+        }
+
+        for (Int_t i = 0; i < fGemHits->GetEntriesFast(); ++i) {
+            const BmnHit* hit = (const BmnHit*) (fGemHits->At(i));
+            if (hit->GetStation() != iSt) continue; 
+            const BmnMatch* hitMatch = (const BmnMatch*) (fGemHitMatches->At(i));
+            const FairMCPoint* pnt = (const FairMCPoint*) (fGemPoints->At(hitMatch->GetMatchedLink().GetIndex()));
+            const Float_t resX = pnt->GetX() - hit->GetX();
+            const Float_t resY = pnt->GetY() - hit->GetY();
+            fHM->H1(resXname.Data())->Fill(resX);
+            fHM->H1(resYname.Data())->Fill(resY);
+            fHM->H2(pntXhitXname.Data())->Fill(pnt->GetX(), hit->GetX());
+            fHM->H2(pntYhitYname.Data())->Fill(pnt->GetY(), hit->GetY());
+        }
+    }
+
 }
 
 void BmnClusteringQa::FillEventCounterHistograms() {
@@ -240,19 +257,19 @@ void BmnClusteringQa::FillEventCounterHistograms() {
     //    if (NULL != fMvdHits && fHM->Exists("hno_NofObjects_MvdHits_Event")) fHM->H1("hno_NofObjects_MvdHits_Event")->Fill(fMvdHits->GetEntriesFast());
 
     if (NULL != fGemPoints && fHM->Exists("_hno_NofObjects_GemPoints_Event")) fHM->H1("_hno_NofObjects_GemPoints_Event")->Fill(fGemPoints->GetEntriesFast());
-    //    if (NULL != fGemDigis && fHM->Exists("hno_NofObjects_StsDigis_Event")) fHM->H1("hno_NofObjects_StsDigis_Event")->Fill(fGemDigis->GetEntriesFast());
+    if (NULL != fGemDigits && fHM->Exists("hno_NofObjects_StsDigis_Event")) fHM->H1("hno_NofObjects_StsDigis_Event")->Fill(fGemDigits->GetEntriesFast());
     //    if (NULL != fGemClusters && fHM->Exists("hno_NofObjects_StsClusters_Event")) fHM->H1("hno_NofObjects_StsClusters_Event")->Fill(fGemClusters->GetEntriesFast());
     if (NULL != fGemHits && fHM->Exists("_hno_NofObjects_GemHits_Event")) fHM->H1("_hno_NofObjects_GemHits_Event")->Fill(fGemHits->GetEntriesFast());
 
-    if (NULL != fTof1Points && fHM->Exists("_hno_NofObjects_Tof1Points_Event")) fHM->H1("_hno_NofObjects_Tof1Points_Event")->Fill(fTof1Points->GetEntriesFast());
-    if (NULL != fTof2Points && fHM->Exists("_hno_NofObjects_Tof2Points_Event")) fHM->H1("_hno_NofObjects_Tof2Points_Event")->Fill(fTof2Points->GetEntriesFast());
-    if (NULL != fDch1Points && fHM->Exists("_hno_NofObjects_Dch1Points_Event")) fHM->H1("_hno_NofObjects_Dch1Points_Event")->Fill(fDch1Points->GetEntriesFast());
-    if (NULL != fDch2Points && fHM->Exists("_hno_NofObjects_Dch2Points_Event")) fHM->H1("_hno_NofObjects_Dch2Points_Event")->Fill(fDch2Points->GetEntriesFast());
-
-    if (NULL != fTof1Hits && fHM->Exists("_hno_NofObjects_Tof1Hits_Event")) fHM->H1("_hno_NofObjects_Tof1Hits_Event")->Fill(fTof1Hits->GetEntriesFast());
-    if (NULL != fTof2Hits && fHM->Exists("_hno_NofObjects_Tof2Hits_Event")) fHM->H1("_hno_NofObjects_Tof2Hits_Event")->Fill(fTof2Hits->GetEntriesFast());
-    if (NULL != fDch1Hits && fHM->Exists("_hno_NofObjects_Dch1Hits_Event")) fHM->H1("_hno_NofObjects_Dch1Hits_Event")->Fill(fDch1Hits->GetEntriesFast());
-    if (NULL != fDch2Hits && fHM->Exists("_hno_NofObjects_Dch2Hits_Event")) fHM->H1("_hno_NofObjects_Dch2Hits_Event")->Fill(fDch2Hits->GetEntriesFast());
+    //    if (NULL != fTof1Points && fHM->Exists("_hno_NofObjects_Tof1Points_Event")) fHM->H1("_hno_NofObjects_Tof1Points_Event")->Fill(fTof1Points->GetEntriesFast());
+    //    if (NULL != fTof2Points && fHM->Exists("_hno_NofObjects_Tof2Points_Event")) fHM->H1("_hno_NofObjects_Tof2Points_Event")->Fill(fTof2Points->GetEntriesFast());
+    //    if (NULL != fDch1Points && fHM->Exists("_hno_NofObjects_Dch1Points_Event")) fHM->H1("_hno_NofObjects_Dch1Points_Event")->Fill(fDch1Points->GetEntriesFast());
+    //    if (NULL != fDch2Points && fHM->Exists("_hno_NofObjects_Dch2Points_Event")) fHM->H1("_hno_NofObjects_Dch2Points_Event")->Fill(fDch2Points->GetEntriesFast());
+    //
+    //    if (NULL != fTof1Hits && fHM->Exists("_hno_NofObjects_Tof1Hits_Event")) fHM->H1("_hno_NofObjects_Tof1Hits_Event")->Fill(fTof1Hits->GetEntriesFast());
+    //    if (NULL != fTof2Hits && fHM->Exists("_hno_NofObjects_Tof2Hits_Event")) fHM->H1("_hno_NofObjects_Tof2Hits_Event")->Fill(fTof2Hits->GetEntriesFast());
+    //    if (NULL != fDch1Hits && fHM->Exists("_hno_NofObjects_Dch1Hits_Event")) fHM->H1("_hno_NofObjects_Dch1Hits_Event")->Fill(fDch1Hits->GetEntriesFast());
+    //    if (NULL != fDch2Hits && fHM->Exists("_hno_NofObjects_Dch2Hits_Event")) fHM->H1("_hno_NofObjects_Dch2Hits_Event")->Fill(fDch2Hits->GetEntriesFast());
 }
 
 void BmnClusteringQa::FillResidualAndPullHistograms(const TClonesArray* points, const TClonesArray* hits, const TClonesArray* hitMatches, const string& detName, DetectorId detId) {
@@ -268,8 +285,6 @@ void BmnClusteringQa::FillResidualAndPullHistograms(const TClonesArray* points, 
         const FairMCPoint* point = (const FairMCPoint*) (points->At(match->GetMatchedLink().GetIndex()));
         if (point == NULL) continue;
         const BmnHit* hit = (const BmnHit*) (hits->At(iHit));
-        //Float_t xPoint = (muchPoint->GetXIn() + muchPoint->GetXOut()) / 2;
-        //Float_t yPoint = (muchPoint->GetYIn() + muchPoint->GetYOut()) / 2;
         Float_t residualX = point->GetX() - hit->GetX();
         Float_t residualY = point->GetY() - hit->GetY();
         Int_t stationId = hit->GetStation();
@@ -306,33 +321,70 @@ void BmnClusteringQa::FillHitEfficiencyHistograms(const TClonesArray* points, co
 }
 
 void BmnClusteringQa::CreateHistograms() {
-    
+
+    for (Int_t iSt = 0; iSt < 12; ++iSt) {
+        TString pntXhitXname = Form("PntX_vs_HitX_%dst_gem", iSt);
+        TString pntYhitYname = Form("PntY_vs_HitY_%dst_gem", iSt);
+        TString resXname = Form("ResX_%dst_gem", iSt);
+        TString resYname = Form("ResY_%dst_gem", iSt);
+        TString occupname = Form("Occupancy_%dst_gem", iSt);
+        CreateH1(resXname.Data(), "ResX, cm", "Counter", 200, -5, 5);
+        CreateH1(resYname.Data(), "ResY, cm", "Counter", 200, -10, 10);
+        CreateH2(pntXhitXname.Data(), "X_{MC}, cm", "X_{reco}, cm", "", 400, -100, 100, 400, -100, 100);
+        CreateH2(pntYhitYname.Data(), "Y_{MC}, cm", "Y_{reco}, cm", "", 400, -100, 100, 400, -100, 100);
+        
+        CreateH2(occupname.Data(), "Y_{MC}, cm", "Y_{reco}, cm", "Occupancy, #frac{part}{event * cm^{2}}", 50, -100, 100, 50, -50, 50);
+    }
+
     CreateNofObjectsHistograms(kGEM, "Gem", "Station", "Station number");
-    CreateNofObjectsHistograms(kDCH1, "Dch1", "Station", "Station number");
-    CreateNofObjectsHistograms(kDCH2, "Dch2", "Station", "Station number");
-    CreateNofObjectsHistograms(kTOF1, "Tof1", "Station", "Station number");
-    CreateNofObjectsHistograms(kTOF, "Tof2", "Station", "Station number");
+    //    CreateNofObjectsHistograms(kDCH1, "Dch1", "Station", "Station number");
+    //    CreateNofObjectsHistograms(kDCH2, "Dch2", "Station", "Station number");
+    //    CreateNofObjectsHistograms(kTOF1, "Tof1", "Station", "Station number");
+    //    CreateNofObjectsHistograms(kTOF, "Tof2", "Station", "Station number");
 
     CreateNofObjectsHistograms(kGEM, "Gem");
-    CreateNofObjectsHistograms(kDCH1, "Dch1");
-    CreateNofObjectsHistograms(kDCH2, "Dch2");
-    CreateNofObjectsHistograms(kTOF1, "Tof1");
-    CreateNofObjectsHistograms(kTOF, "Tof2");
+    //    CreateNofObjectsHistograms(kDCH1, "Dch1");
+    //    CreateNofObjectsHistograms(kDCH2, "Dch2");
+    //    CreateNofObjectsHistograms(kTOF1, "Tof1");
+    //    CreateNofObjectsHistograms(kTOF, "Tof2");
 
     CreateClusterParametersHistograms(kGEM, "Gem");
-    CreateClusterParametersHistograms(kDCH1, "Dch1");
-    CreateClusterParametersHistograms(kDCH2, "Dch2");
-    CreateClusterParametersHistograms(kTOF1, "Tof1");
-    CreateClusterParametersHistograms(kTOF, "Tof2");
+    //    CreateClusterParametersHistograms(kDCH1, "Dch1");
+    //    CreateClusterParametersHistograms(kDCH2, "Dch2");
+    //    CreateClusterParametersHistograms(kTOF1, "Tof1");
+    //    CreateClusterParametersHistograms(kTOF, "Tof2");
 
     CreateHitEfficiencyHistograms(kGEM, "Gem", "Station", "Station number", 17, 0, 17);
-    CreateHitEfficiencyHistograms(kDCH1, "Dch1", "Station", "Station number", 17, 0, 17);
-    CreateHitEfficiencyHistograms(kDCH2, "Dch2", "Station", "Station number", 17, 0, 17);
-    CreateHitEfficiencyHistograms(kTOF1, "Tof1", "Station", "Station number", 17, 0, 17);
-    CreateHitEfficiencyHistograms(kTOF, "Tof2", "Station", "Station number", 17, 0, 17);
+    //    CreateHitEfficiencyHistograms(kDCH1, "Dch1", "Station", "Station number", 17, 0, 17);
+    //    CreateHitEfficiencyHistograms(kDCH2, "Dch2", "Station", "Station number", 17, 0, 17);
+    //    CreateHitEfficiencyHistograms(kTOF1, "Tof1", "Station", "Station number", 17, 0, 17);
+    //    CreateHitEfficiencyHistograms(kTOF, "Tof2", "Station", "Station number", 17, 0, 17);
 
     // Histogram stores number of events
-    fHM->Create1<TH1F > ("_hen_EventNo_ClusteringQa", "_hen_EventNo_ClusteringQa", 1, 0, 1.);
+    CreateH1("hen_EventNo_ClusteringQa", "", "", 1, 0, 1.);
+    CreateH1("Impact parameter", "b, fm", "Counter", 50, 0.0, 0.0);
+    CreateH1("Multiplicity", "N_{prim}", "Counter", 50, 0.0, 0.0);
+    CreateH2("Impact_Mult", "b, fm", "N_{prim}", "", 400, 0.0, 0.0, 400, 0.0, 0.0);
+}
+
+void BmnClusteringQa::CreateH1(const string& name, const string& xTitle, const string& yTitle, Int_t nofBins, Double_t minBin, Double_t maxBin) {
+    TH1F* h = new TH1F(name.c_str(), string(name + ";" + xTitle + ";" + yTitle).c_str(), nofBins, minBin, maxBin);
+    fHM->Add(name, h);
+}
+
+void BmnClusteringQa::CreateH2(
+        const string& name,
+        const string& xTitle,
+        const string& yTitle,
+        const string& zTitle,
+        Int_t nofBinsX,
+        Double_t minBinX,
+        Double_t maxBinX,
+        Int_t nofBinsY,
+        Double_t minBinY,
+        Double_t maxBinY) {
+    TH2F* h = new TH2F(name.c_str(), (name + ";" + xTitle + ";" + yTitle + ";" + zTitle).c_str(), nofBinsX, minBinX, maxBinX, nofBinsY, minBinY, maxBinY);
+    fHM->Add(name, h);
 }
 
 void BmnClusteringQa::CreateNofObjectsHistograms(DetectorId detId, const string& detName) {
@@ -350,12 +402,12 @@ void BmnClusteringQa::CreateNofObjectsHistograms(DetectorId detId, const string&
 
 void BmnClusteringQa::CreateNofObjectsHistograms(DetectorId detId, const string& detName, const string& parameter, const string& xTitle) {
     if (!fDet.GetDet(detId)) return;
-    Int_t nofBins = 100;
+    Int_t nofBins = 15;
     Double_t minX = -0.5;
-    Double_t maxX = 99.5;
+    Double_t maxX = 14.5;
     string name = "_hno_NofObjects_" + detName;
     fHM->Create1<TH1F > (name + "Points_" + parameter, name + "Points_" + parameter + ";" + xTitle + ";Points per event", nofBins, minX, maxX);
-    //    fHM->Create1<TH1F > (name + "Digis_" + parameter, name + "Digis_" + parameter + ";" + xTitle + ";Digis per event", nofBins, minX, maxX);
+    fHM->Create1<TH1F > (name + "Digis_" + parameter, name + "Digis_" + parameter + ";" + xTitle + ";Digis per event", nofBins, minX, maxX);
     //    fHM->Create1<TH1F > (name + "Clusters_" + parameter, name + "Clusters_" + parameter + ";" + xTitle + ";Clusters per event", nofBins, minX, maxX);
     fHM->Create1<TH1F > (name + "Hits_" + parameter, name + "Hits_" + parameter + ";" + xTitle + ";Hits per event", nofBins, minX, maxX);
 }

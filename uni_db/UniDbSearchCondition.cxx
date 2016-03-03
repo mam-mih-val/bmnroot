@@ -1,5 +1,13 @@
 #include "UniDbSearchCondition.h"
 
+UniDbSearchCondition::UniDbSearchCondition(enumColumns column, enumConditions condition)
+{
+    eColumn = column;
+    eCondition = condition;
+
+    iValueType = 0;
+}
+
 UniDbSearchCondition::UniDbSearchCondition(enumColumns column, enumConditions condition, int value)
 {
     eColumn = column;

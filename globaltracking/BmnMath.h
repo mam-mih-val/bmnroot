@@ -3,6 +3,7 @@
 
 #include "FairTrackParam.h"
 #include "BmnGemTrack.h"
+#include "TF1.h"
 
 class CbmHit;
 class CbmStripHit;
@@ -24,20 +25,19 @@ Float_t ChiSq(const FairTrackParam* par, const CbmHit* hit);
  * @return chi square contribution for this strip hit */
 Float_t ChiSq(const FairTrackParam* par, const CbmStripHit* hit);
 
-/* Calculates chi square for pixel hits
- * @param par Pointer to the updated or smoothed track parameter
- * @param hit Pointer to the pixel hit
- * @return chi square contribution for this pixel hit */
-Float_t ChiSq(const FairTrackParam* par, const CbmPixelHit* hit);
+Float_t ChiSq(const FairTrackParam* par, const BmnGemHit* hit);
 
-/* Calculates number of degrees of freedom
- * @param track Pointer to the track */
-Int_t NDF(const CbmGlobalTrack* track);
+Int_t NDF(const BmnGemTrack* track);
 
 }
 
 Float_t ChiSq(const TVector3 par, const BmnGemTrack* tr, const TClonesArray* arr);
 TVector3 SpiralFit(const BmnGemTrack* tr, const TClonesArray* arr);
 Bool_t IsParCorrect(const FairTrackParam* par);
+Int_t stationNumber(const string& detName, const Float_t z);
+Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right);
+TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr);
+TVector3 CircleBy3Hit(BmnGemTrack* track, const TClonesArray* arr);
+Float_t Sqr(Float_t x);
 
 #endif /*BMNMATH_H_*/

@@ -60,6 +60,7 @@ set(SRCS
   BmnGemStripDigitizer.cxx
   BmnGemStripHit.cxx
   BmnGemStripHitMaker.cxx
+  BmnKalmanFilter_tmp.cxx
 )
 
 set(HEADERS
@@ -91,6 +92,7 @@ set(HEADERS
   BmnGemStripDigitizer.h
   BmnGemStripHit.h
   BmnGemStripHitMaker.h
+  BmnKalmanFilter_tmp.h
 )
 
 IF (SSE_FOUND)

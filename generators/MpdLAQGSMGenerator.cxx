@@ -4,7 +4,7 @@
 
 /** MpdLAQGSMGenerator
  *@author Elena Litvinenko  <litvin@nf.jinr.ru>
- *@version 16.11.2011
+ *@version 15.02.2016
 *
  ** The MpdLAQGSMGenerator uses the ASCII input 
  ** provided by K.Gudima LAQGSM event generator.
@@ -41,7 +41,7 @@ MpdLAQGSMGenerator::MpdLAQGSMGenerator() {}
 
 
 // -----   Standard constructor   -----------------------------------------
-MpdLAQGSMGenerator::MpdLAQGSMGenerator(const char* fileName, const Bool_t use_collider_system, Int_t QGSM_format_ID) : 
+MpdLAQGSMGenerator::MpdLAQGSMGenerator(const char* fileName, const Bool_t use_collider_system, Int_t QGSM_format_ID,Int_t Max_Event_Number ) : 
    FairGenerator(),
    fIonMap()
 {
@@ -52,8 +52,22 @@ MpdLAQGSMGenerator::MpdLAQGSMGenerator(const char* fileName, const Bool_t use_co
 
   fFileName  = fileName;
   cout << "-I- MpdLAQGSMGenerator: Opening input file " << fileName << endl;
-  fInputFile = fopen(fFileName, "r");
-  if ( ! fInputFile ) 
+
+  fInputFile=NULL;
+  fGZInputFile = NULL;
+
+  TString sFileName = fileName;
+  if (sFileName.Contains(".gz"))
+    fGZ_input=1;
+  else
+    fGZ_input=0;
+
+  if (fGZ_input)
+    fGZInputFile = gzopen(fFileName, "rb");
+  else 
+    fInputFile = fopen(fFileName, "r");
+
+  if (( ! fInputFile ) && ( ! fGZInputFile ))
     Fatal("MpdLAQGSMGenerator","Cannot open input file.");
 
   fUseColliderSystem = use_collider_system;
@@ -62,14 +76,19 @@ MpdLAQGSMGenerator::MpdLAQGSMGenerator(const char* fileName, const Bool_t use_co
   Init(); //AZ
   cout << "-I- MpdLAQGSMGenerator: Looking for ions..." << endl;
   //AZ Int_t nIons = RegisterIons();
-  Int_t nIons = RegisterIons1();
+  //  Int_t nIons = RegisterIons1();
+  //  Int_t nIons = RegisterIons();    // MG
+  Int_t nIons = RegisterIons(Max_Event_Number);    // EL
   cout << "-I- MpdLAQGSMGenerator: " << nIons << " ions registered." 
        << endl;
 
   CloseInput();
   cout << "-I- MpdLAQGSMGenerator: Reopening input file " << fileName 
        << endl;
-  fInputFile = fopen(fFileName, "r");
+  if (fGZ_input)
+    fGZInputFile= gzopen(fFileName, "rb");
+  else 
+    fInputFile = fopen(fFileName, "r");
    
 }
 // ------------------------------------------------------------------------
@@ -95,10 +114,14 @@ void MpdLAQGSMGenerator::Init (const char *light_particles_filename)
   TString fname, dd;
   if (!light_particles_filename) {
     dd = getenv("VMCWORKDIR");
-    if (gSystem->OpenDirectory(dd+"/generators"))
-      dd += "/generators";
-    else
-      dd = gSystem->WorkingDirectory();
+    if (gSystem->OpenDirectory(dd+"/mpdgenerators"))
+      dd += "/mpdgenerators";
+    else {
+      if (gSystem->OpenDirectory(dd+"/generators"))
+	dd += "/generators";
+      else
+	dd = gSystem->WorkingDirectory();
+    }
 
     fname = dd+ "/MpdLAQGSM_light_particles.dat";
    }
@@ -137,14 +160,37 @@ void MpdLAQGSMGenerator::Init (const char *light_particles_filename)
 }
 // ------------------------------------------------------------------------
 
+Bool_t MpdLAQGSMGenerator::general_fgets (char *ss, Int_t nn, FILE* p)
+{
+  Bool_t finished=0;
+
+  if (fGZ_input) {
+    gzgets(fGZInputFile,ss,nn); 
+    finished = (gzeof(fGZInputFile));
+  }
+  else {
+    fgets(ss,nn,fInputFile); 
+    finished = ( feof(fInputFile) );
+  }
+  return finished;
+}
 
 Bool_t MpdLAQGSMGenerator::GetEventHeader(char *ss)
 {
+  Bool_t finished=0;
 
-  fgets(ss,250,fInputFile); 
+  // if (fGZ_input) {
+  //   gzgets(fGZInputFile,ss,250); 
+  //   finished = (gzeof(fGZInputFile));
+  // }
+  // else {
+  //   fgets(ss,250,fInputFile); 
+  //   finished = ( feof(fInputFile) );
+  // }
+   finished = general_fgets (ss,250,fInputFile);
 
   // If end of input file is reached : close it and abort run
-  if ( feof(fInputFile) ) {
+  if ( finished ) {
     cout << "-I- MpdLAQGSMGenerator: End of input file reached " << endl;
     CloseInput();
     return kFALSE;
@@ -155,7 +201,7 @@ Bool_t MpdLAQGSMGenerator::GetEventHeader(char *ss)
   TString tss(ss);
   if (tss.Contains("QGSM")) {      // 0
 
-    fgets(ss,250,fInputFile);   
+    general_fgets(ss,250,fInputFile);   
     tss=ss;
     Int_t lines=0;
     while (!(tss.Contains("particles, b,bx,by"))) {
@@ -165,16 +211,23 @@ Bool_t MpdLAQGSMGenerator::GetEventHeader(char *ss)
 
         if (fQGSM_format_ID==2) {    // correction of incorrect format_ID in some data files
 	  fpos_t file_loc;
-	  fgetpos(fInputFile, &file_loc);
-	  for (int k=0;k<5;k++) fgets(ss,250,fInputFile);
+	  z_off_t gz_file_loc;
+	  if (fGZ_input)
+	    gz_file_loc = gztell(fGZInputFile);
+	  else
+	    fgetpos(fInputFile, &file_loc);
+	  for (int k=0;k<5;k++) general_fgets(ss,250,fInputFile);
           if (strlen(ss)>90)
 	    fQGSM_format_ID=3;
 	  cout << "QGSM format ID now " << fQGSM_format_ID << endl;
-	  fsetpos(fInputFile, &file_loc);
+	  if (fGZ_input)
+	    gzseek(fGZInputFile,gz_file_loc,SEEK_SET);
+	  else
+	    fsetpos(fInputFile, &file_loc);
 	}
 
       }
-      fgets(ss,250,fInputFile);
+      general_fgets(ss,250,fInputFile);
       tss=ss;
       lines++;
       if ((fQGSM_format_ID>=2)&&(lines>=4)) 
@@ -189,7 +242,7 @@ Bool_t MpdLAQGSMGenerator::GetEventHeader(char *ss)
     if (fQGSM_format_ID>=2) 
       return kTRUE;    
     if (!tss.Contains("particles, b,bx,by")) {
-      fgets(ss,250,fInputFile); 
+      general_fgets(ss,250,fInputFile); 
       tss=ss;
     }
   }
@@ -215,12 +268,12 @@ Bool_t MpdLAQGSMGenerator::GetEventHeader(char *ss)
   switch (fQGSM_format_ID) {
   case 0:
   case 1:
-      fgets(tmp,250,fInputFile); 
+      general_fgets(tmp,250,fInputFile); 
     break;
   case 2:
   case 3:
-      fgets(ss,250,fInputFile); 
-      fgets(ss,250,fInputFile); 
+      general_fgets(ss,250,fInputFile); 
+      general_fgets(ss,250,fInputFile); 
     break;
   default:
     break;
@@ -237,9 +290,17 @@ Bool_t MpdLAQGSMGenerator::SkipEvents(Int_t count) {
   if (count<=0) return kTRUE;
 
   // Check for input file
-  if ( ! fInputFile ) {
-    cout << "-E- MpdLAQGSMGenerator: Input file not open!" << endl;
-    return kFALSE;
+  if (fGZ_input) {
+    if ( ! fGZInputFile ) {
+      cout << "-E- MpdLAQGSMGenerator: Input file not open!" << endl;
+      return kFALSE;
+    }
+  }
+  else {
+    if ( ! fInputFile ) {
+      cout << "-E- MpdLAQGSMGenerator: Input file not open!" << endl;
+      return kFALSE;
+    }
   }
 
   Int_t    eventId = 0, nTracks = 0;
@@ -254,7 +315,7 @@ Bool_t MpdLAQGSMGenerator::SkipEvents(Int_t count) {
     //cout << ii << " " << eventId << endl;
 
     for (Int_t itrack=0; itrack<nTracks; itrack++) {
-      fgets(ss,250,fInputFile);
+      general_fgets(ss,250,fInputFile);
     }
   }
   return kTRUE;
@@ -267,9 +328,17 @@ Bool_t MpdLAQGSMGenerator::SkipEvents(Int_t count) {
 Bool_t MpdLAQGSMGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
 
   // Check for input file
-  if ( ! fInputFile ) {
-    cout << "-E- MpdLAQGSMGenerator: Input file not open!" << endl;
-    return kFALSE;
+  if (fGZ_input) {
+    if ( ! fGZInputFile ) {
+      cout << "-E- MpdLAQGSMGenerator: Input file not open!" << endl;
+      return kFALSE;
+    }
+  }
+  else {
+    if ( ! fInputFile ) {
+      cout << "-E- MpdLAQGSMGenerator: Input file not open!" << endl;
+      return kFALSE;
+    }
   }
 
   // ---> Check for primary generator
@@ -330,11 +399,15 @@ Bool_t MpdLAQGSMGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
     cout << "-I- MpdLAQGSMGenerator::ReadEvent: Event " << eventId 
 	 << ",  b = " << b << " fm, multiplicity " << nTracks << endl;
 
+    TVector2 bb;       // MG
+    bb.Set(bx,by);     // MG
+
   // Set event id and impact parameter in MCEvent if not yet done
   FairMCEventHeader* event = primGen->GetEvent();
   if ( event && (! event->IsSet()) ) {
     event->SetEventID(eventId-1);
     event->SetB(b);
+    //    event->SetPhi(bb.Phi());    // MG
     event->MarkSet(kTRUE);
   }
 
@@ -382,7 +455,7 @@ Bool_t MpdLAQGSMGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
   // Loop over tracks in the current event
   for (Int_t itrack=0; itrack<nTracks; itrack++) {
 
-    fgets(ss,250,fInputFile);
+    general_fgets(ss,250,fInputFile);
 
     if (fQGSM_format_ID<3)
       sscanf(ss," %d %d %d %d %d", &iCharge,&iLeptonic,&iStrange,&iBarionic, &iCode); 
@@ -424,8 +497,14 @@ Bool_t MpdLAQGSMGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
 // -----   Private method CloseInput   ------------------------------------
 void MpdLAQGSMGenerator::CloseInput() {
   if ( fInputFile ) {
-    fclose(fInputFile);
+    if (!fGZ_input)
+      fclose(fInputFile);
     fInputFile = NULL; 
+  }
+  if ( fGZInputFile ) {
+    if (fGZ_input)
+      gzclose(fGZInputFile);
+    fGZInputFile = NULL; 
   }
 }
 // ------------------------------------------------------------------------
@@ -453,8 +532,18 @@ Int_t MpdLAQGSMGenerator::CreatePdgCode(Int_t Z, Int_t A, Int_t Strange,Int_t us
   }
 }
 
+Bool_t MpdLAQGSMGenerator::general_feof (void *p)
+{
+  Bool_t finished=0;
+  if (fGZ_input) 
+    finished = (gzeof(fGZInputFile));
+  else 
+    finished = ( feof(fInputFile) );
+  return finished;
+}
+
 // -----   Private method RegisterIons   ----------------------------------
-Int_t MpdLAQGSMGenerator::RegisterIons() {
+Int_t MpdLAQGSMGenerator::RegisterIons(Int_t Max_Event_Number) {
 
   Int_t nIons = 0;
   //  Int_t eventId, nTracks, iPid, iMass, iCharge;
@@ -498,15 +587,15 @@ Int_t MpdLAQGSMGenerator::RegisterIons() {
   Int_t PDG;
   TString ionName;
 
-  while ( ! feof(fInputFile)) {
+  while ( (!general_feof(fInputFile)) && ((!Max_Event_Number)||(eventId<Max_Event_Number)) ) {
 
     sscanf(ss," %d %d", &eventId, &nTracks); 
 
-    if ( feof(fInputFile) ) continue;
+    if ( general_feof(fInputFile) ) continue;
 
     for (Int_t iTrack=0; iTrack<nTracks; iTrack++) {
 
-      fgets(ss,250,fInputFile);
+      general_fgets(ss,250,fInputFile);
 
       sscanf(ss," %d %d %d %d %d", &iCharge,&iLeptonic,&iStrange,&iBarionic,&iCode);
  
@@ -543,12 +632,14 @@ Int_t MpdLAQGSMGenerator::RegisterIons() {
 	  ionName = buf_ionName;
 
 	  if (!iStrange) {    // normal ion
+	    if(Z>2 || (Z==2 && A>4)) {    // MG
 
-	    if ( fIonMap.find(ionName) == fIonMap.end() ) { // new ion
-	      excEnergy = fabs(mass - kProtonMass*Z -kNeutronMass*(iBarionic-Z)); 
-	      FairIon* ion = new FairIon(ionName, Z, A, Q, excEnergy,mass);
-	      fIonMap[ionName] = ion;
-	      nIons++;
+	      if ( fIonMap.find(ionName) == fIonMap.end() ) { // new ion
+		//	      excEnergy = fabs(mass - kProtonMass*Z -kNeutronMass*(iBarionic-Z)); 
+		FairIon* ion = new FairIon(ionName, Z, A, Q) ; // , excEnergy,mass);  // from MG
+		fIonMap[ionName] = ion;
+		nIons++;
+	      }
 	    }
 	  }  
 
@@ -795,7 +886,7 @@ Bool_t MpdLAQGSMGenerator::FindParticle (Int_t Z, Int_t strange, Int_t lepton, I
   else {          // must be ion
 
     if (A>1) {
-      PDG = CreatePdgCode(Z,A,strange,1); 
+      PDG = CreatePdgCode(Z,A,strange,0 ); //  1);   // MG 
       sprintf(name,"Ion_%d_%d", A,Z);
       result=1;
     }

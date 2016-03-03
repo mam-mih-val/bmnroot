@@ -5,6 +5,7 @@
 #include "TMath.h"
 #include "TGeoShape.h"
 #include "TGeoBBox.h"
+#include "../../gem/BmnGemStripConfiguration.h"
 
 using namespace TMath;
 
@@ -14,10 +15,39 @@ TGeoManager* gGeoMan = NULL;
 //Set Parameters of GEMS
 const Int_t nStations = 7;
 
-//Stantion Parameters
-const Double_t XStantionPosition[nStations] = {-2.2, 0.5, 0.7, 1.0, 1.4, 2.1, 2.9};
-const Double_t YStantionPosition[nStations] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-const Double_t ZStantionPosition[nStations] = {30.0, 45.0, 60.0, 80.0, 100.0, 130.0, 160.0}; // z pos is the first surface of the first sens. volume in module !!!
+//Station Parameters
+/*
+const Double_t XStationPositions[nStations] = {-2.2, 0.5, 0.7, 1.0, 1.4, 2.1, 2.9};
+const Double_t YStationPositions[nStations] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+const Double_t ZStationPositions[nStations] = {30.0, 45.0, 60.0, 80.0, 100.0, 130.0, 160.0}; // z pos is the first surface of the first sens. volume in module !!!
+*/
+
+Double_t XStationPositions[nStations];
+    XStationPositions[0] = BmnGemStripPositions_SecondConfig::XStationPositions[0];
+    XStationPositions[1] = BmnGemStripPositions_SecondConfig::XStationPositions[1];
+    XStationPositions[2] = BmnGemStripPositions_SecondConfig::XStationPositions[2];
+    XStationPositions[3] = BmnGemStripPositions_SecondConfig::XStationPositions[3];
+    XStationPositions[4] = BmnGemStripPositions_SecondConfig::XStationPositions[4];
+    XStationPositions[5] = BmnGemStripPositions_SecondConfig::XStationPositions[5];
+    XStationPositions[6] = BmnGemStripPositions_SecondConfig::XStationPositions[6];
+
+Double_t YStationPositions[nStations];
+    YStationPositions[0] = BmnGemStripPositions_SecondConfig::YStationPositions[0];
+    YStationPositions[1] = BmnGemStripPositions_SecondConfig::YStationPositions[1];
+    YStationPositions[2] = BmnGemStripPositions_SecondConfig::YStationPositions[2];
+    YStationPositions[3] = BmnGemStripPositions_SecondConfig::YStationPositions[3];
+    YStationPositions[4] = BmnGemStripPositions_SecondConfig::YStationPositions[4];
+    YStationPositions[5] = BmnGemStripPositions_SecondConfig::YStationPositions[5];
+    YStationPositions[6] = BmnGemStripPositions_SecondConfig::YStationPositions[6];
+
+Double_t ZStationPositions[nStations];
+    ZStationPositions[0] = BmnGemStripPositions_SecondConfig::ZStationPositions[0];
+    ZStationPositions[1] = BmnGemStripPositions_SecondConfig::ZStationPositions[1];
+    ZStationPositions[2] = BmnGemStripPositions_SecondConfig::ZStationPositions[2];
+    ZStationPositions[3] = BmnGemStripPositions_SecondConfig::ZStationPositions[3];
+    ZStationPositions[4] = BmnGemStripPositions_SecondConfig::ZStationPositions[4];
+    ZStationPositions[5] = BmnGemStripPositions_SecondConfig::ZStationPositions[5];
+    ZStationPositions[6] = BmnGemStripPositions_SecondConfig::ZStationPositions[6];
 
 //GEM plane sizes (66x41 type)
 const Double_t XModuleSize_StationPrototype = 66.0;
@@ -127,15 +157,15 @@ void create_rootgeom_GEMS_2ndConfig() {
 
     //station creating
 
-    CreateStation_One66x41Plane(GEMS, "station0", XStantionPosition[0], YStantionPosition[0], ZStantionPosition[0], kFALSE);
+    CreateStation_One66x41Plane(GEMS, "station0", XStationPositions[0], YStationPositions[0], ZStationPositions[0], kFALSE);
 
-    CreateStation_Two66x41Plane_Intersec(GEMS, "station1", XStantionPosition[1], YStantionPosition[1], ZStantionPosition[1], kFALSE);
-    CreateStation_Two66x41Plane_Intersec(GEMS, "station2", XStantionPosition[2], YStantionPosition[2], ZStantionPosition[2], kTRUE);
+    CreateStation_Two66x41Plane_Intersec(GEMS, "station1", XStationPositions[1], YStationPositions[1], ZStationPositions[1], kFALSE);
+    CreateStation_Two66x41Plane_Intersec(GEMS, "station2", XStationPositions[2], YStationPositions[2], ZStationPositions[2], kTRUE);
 
-    CreateStation_One163x45Plane(GEMS, "station3", XStantionPosition[3], YStantionPosition[3], ZStantionPosition[3], HoleRadius_Station163x45+dXInnerFrame, kFALSE);
-    CreateStation_One163x45Plane(GEMS, "station4", XStantionPosition[4], YStantionPosition[4], ZStantionPosition[4], HoleRadius_Station163x45+dXInnerFrame, kTRUE);
-    CreateStation_One163x45Plane(GEMS, "station5", XStantionPosition[5], YStantionPosition[5], ZStantionPosition[5], HoleRadius_Station163x45+dXInnerFrame, kFALSE);
-    CreateStation_One163x45Plane(GEMS, "station6", XStantionPosition[6], YStantionPosition[6], ZStantionPosition[6], HoleRadius_Station163x45+dXInnerFrame, kTRUE);
+    CreateStation_One163x45Plane(GEMS, "station3", XStationPositions[3], YStationPositions[3], ZStationPositions[3], HoleRadius_Station163x45+dXInnerFrame, kFALSE);
+    CreateStation_One163x45Plane(GEMS, "station4", XStationPositions[4], YStationPositions[4], ZStationPositions[4], HoleRadius_Station163x45+dXInnerFrame, kTRUE);
+    CreateStation_One163x45Plane(GEMS, "station5", XStationPositions[5], YStationPositions[5], ZStationPositions[5], HoleRadius_Station163x45+dXInnerFrame, kFALSE);
+    CreateStation_One163x45Plane(GEMS, "station6", XStationPositions[6], YStationPositions[6], ZStationPositions[6], HoleRadius_Station163x45+dXInnerFrame, kTRUE);
 
 
 

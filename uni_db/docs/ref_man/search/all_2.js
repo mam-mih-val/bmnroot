@@ -42,7 +42,7 @@ var searchData=
   ['getrun',['GetRun',['../class_uni_db_run.html#a8a18536d132dc917b628fbcaffba671c',1,'UniDbRun::GetRun(int run_number)'],['../class_uni_db_run.html#a8c3f820ea6aebe670c5242b91d43bcd2',1,'UniDbRun::GetRun(TString file_path)']]],
   ['getrungeometry',['GetRunGeometry',['../class_uni_db_run_geometry.html#a4cf3ff1519e6411db8ed981357b850db',1,'UniDbRunGeometry']]],
   ['getrunnumber',['GetRunNumber',['../class_uni_db_run.html#ad9b778ed27d0c4b690cbbb632465a276',1,'UniDbRun']]],
-  ['getrunnumbers',['GetRunNumbers',['../class_uni_db_run.html#aeafb45df1fd9af6ee85b155711e2561a',1,'UniDbRun']]],
+  ['getrunnumbers',['GetRunNumbers',['../class_uni_db_run.html#aeafb45df1fd9af6ee85b155711e2561a',1,'UniDbRun::GetRunNumbers(int start_run, int end_run, int *&amp;run_numbers)'],['../class_uni_db_run.html#a443d92a84c5a9d00d465e2352f254628',1,'UniDbRun::GetRunNumbers(int *&amp;run_numbers)']]],
   ['getrunperiod',['GetRunPeriod',['../class_uni_db_run_period.html#aa026c89f5c2e288863c112455e752525',1,'UniDbRunPeriod']]],
   ['getshift',['GetShift',['../class_uni_db_shift.html#a972c189d1fc247f68fc144cd9d881128',1,'UniDbShift']]],
   ['getshiftid',['GetShiftId',['../class_uni_db_shift.html#a042c9f8446a27f8071cf7700e1eb501b',1,'UniDbShift']]],

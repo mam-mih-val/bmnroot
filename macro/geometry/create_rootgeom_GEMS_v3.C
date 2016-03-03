@@ -5,6 +5,7 @@
 #include "TMath.h"
 #include "TGeoShape.h"
 #include "TGeoBBox.h"
+#include "../../gem/BmnGemStripConfiguration.h"
 
 using namespace TMath;
 
@@ -14,10 +15,54 @@ TGeoManager* gGeoMan = NULL;
 //Set Parameters of GEMS
 const Int_t nStations = 12;
 
-//Stantion Parameters
-const Double_t XStantionPosition[nStations] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
-const Double_t YStantionPosition[nStations] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
-const Double_t ZStantionPosition[nStations] = {30., 45., 60., 80., 100., 130., 160., 190., 230., 270., 315., 360.};
+//Station Parameters
+/*
+const Double_t XStationPositions[nStations] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+const Double_t YStationPositions[nStations] = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+const Double_t ZStationPositions[nStations] = {30., 45., 60., 80., 100., 130., 160., 190., 230., 270., 315., 360.};
+*/
+
+Double_t XStationPositions[nStations];
+    XStationPositions[0] = BmnGemStripPositions_FullConfig::XStationPositions[0];
+    XStationPositions[1] = BmnGemStripPositions_FullConfig::XStationPositions[1];
+    XStationPositions[2] = BmnGemStripPositions_FullConfig::XStationPositions[2];
+    XStationPositions[3] = BmnGemStripPositions_FullConfig::XStationPositions[3];
+    XStationPositions[4] = BmnGemStripPositions_FullConfig::XStationPositions[4];
+    XStationPositions[5] = BmnGemStripPositions_FullConfig::XStationPositions[5];
+    XStationPositions[6] = BmnGemStripPositions_FullConfig::XStationPositions[6];
+    XStationPositions[7] = BmnGemStripPositions_FullConfig::XStationPositions[7];
+    XStationPositions[8] = BmnGemStripPositions_FullConfig::XStationPositions[8];
+    XStationPositions[9] = BmnGemStripPositions_FullConfig::XStationPositions[9];
+    XStationPositions[10] = BmnGemStripPositions_FullConfig::XStationPositions[10];
+    XStationPositions[11] = BmnGemStripPositions_FullConfig::XStationPositions[11];
+
+Double_t YStationPositions[nStations];
+    YStationPositions[0] = BmnGemStripPositions_FullConfig::YStationPositions[0];
+    YStationPositions[1] = BmnGemStripPositions_FullConfig::YStationPositions[1];
+    YStationPositions[2] = BmnGemStripPositions_FullConfig::YStationPositions[2];
+    YStationPositions[3] = BmnGemStripPositions_FullConfig::YStationPositions[3];
+    YStationPositions[4] = BmnGemStripPositions_FullConfig::YStationPositions[4];
+    YStationPositions[5] = BmnGemStripPositions_FullConfig::YStationPositions[5];
+    YStationPositions[6] = BmnGemStripPositions_FullConfig::YStationPositions[6];
+    YStationPositions[7] = BmnGemStripPositions_FullConfig::YStationPositions[7];
+    YStationPositions[8] = BmnGemStripPositions_FullConfig::YStationPositions[8];
+    YStationPositions[9] = BmnGemStripPositions_FullConfig::YStationPositions[9];
+    YStationPositions[10] = BmnGemStripPositions_FullConfig::YStationPositions[10];
+    YStationPositions[11] = BmnGemStripPositions_FullConfig::YStationPositions[11];
+
+Double_t ZStationPositions[nStations];
+    ZStationPositions[0] = BmnGemStripPositions_FullConfig::ZStationPositions[0];
+    ZStationPositions[1] = BmnGemStripPositions_FullConfig::ZStationPositions[1];
+    ZStationPositions[2] = BmnGemStripPositions_FullConfig::ZStationPositions[2];
+    ZStationPositions[3] = BmnGemStripPositions_FullConfig::ZStationPositions[3];
+    ZStationPositions[4] = BmnGemStripPositions_FullConfig::ZStationPositions[4];
+    ZStationPositions[5] = BmnGemStripPositions_FullConfig::ZStationPositions[5];
+    ZStationPositions[6] = BmnGemStripPositions_FullConfig::ZStationPositions[6];
+    ZStationPositions[7] = BmnGemStripPositions_FullConfig::ZStationPositions[7];
+    ZStationPositions[8] = BmnGemStripPositions_FullConfig::ZStationPositions[8];
+    ZStationPositions[9] = BmnGemStripPositions_FullConfig::ZStationPositions[9];
+    ZStationPositions[10] = BmnGemStripPositions_FullConfig::ZStationPositions[10];
+    ZStationPositions[11] = BmnGemStripPositions_FullConfig::ZStationPositions[11];
 
 //Beam Pipe Hole Parameters
 const Double_t BeamPipeMinRadius = 2.5; // radius of the hole in first GEM-station
@@ -116,12 +161,12 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
 
 void CalculateParameters() {
     //Calculate the Beam Pipe Radius for each GEM-stations
-    Double_t BeamPipeAngle = (ATan((BeamPipeMaxRadius-BeamPipeMinRadius) / (ZStantionPosition[nStations-1] - ZStantionPosition[0])))*180/Pi();
+    Double_t BeamPipeAngle = (ATan((BeamPipeMaxRadius-BeamPipeMinRadius) / (ZStationPositions[nStations-1] - ZStationPositions[0])))*180/Pi();
     BeamPipeRadius[0] = BeamPipeMinRadius;
     BeamPipeRadius[nStations-1] = BeamPipeMaxRadius;
     Double_t delta_const = BeamPipeMaxRadius - BeamPipeMinRadius;
     for(UInt_t iStation = 1; iStation < nStations-1; iStation++) {
-        BeamPipeRadius[iStation] = delta_const + (ZStantionPosition[iStation] - ZStantionPosition[0])*Tan((BeamPipeAngle*Pi()/180));
+        BeamPipeRadius[iStation] = delta_const + (ZStationPositions[iStation] - ZStationPositions[0])*Tan((BeamPipeAngle*Pi()/180));
     }
     cout << "Beam Pipe Angle = " <<  BeamPipeAngle << " deg" << "\n";
     cout << "Beam Pipe Radiuses:" << "\n";
@@ -176,21 +221,21 @@ void create_rootgeom_GEMS_v3() {
     GEMS->SetMedium(pMedAir);
 
     //station creating
-    CreateStation_Type4Zones(GEMS, "station0", XStantionPosition[0], YStantionPosition[0], ZStantionPosition[0], XZoneSizes_Station0, YZoneSizes_Station0, BeamPipeRadius[0]+dXInnerFrame);
-    CreateStation_Type4Zones(GEMS, "station1", XStantionPosition[1], YStantionPosition[1], ZStantionPosition[1], XZoneSizes_Station0, YZoneSizes_Station0, BeamPipeRadius[1]+dXInnerFrame);
-    CreateStation_Type4Zones(GEMS, "station2", XStantionPosition[2], YStantionPosition[2], ZStantionPosition[2], XZoneSizes_Station2, YZoneSizes_Station2, BeamPipeRadius[2]+dXInnerFrame);
-    CreateStation_Type4Zones(GEMS, "station3", XStantionPosition[3], YStantionPosition[3], ZStantionPosition[3], XZoneSizes_Station2, YZoneSizes_Station2, BeamPipeRadius[3]+dXInnerFrame);
+    CreateStation_Type4Zones(GEMS, "station0", XStationPositions[0], YStationPositions[0], ZStationPositions[0], XZoneSizes_Station0, YZoneSizes_Station0, BeamPipeRadius[0]+dXInnerFrame);
+    CreateStation_Type4Zones(GEMS, "station1", XStationPositions[1], YStationPositions[1], ZStationPositions[1], XZoneSizes_Station0, YZoneSizes_Station0, BeamPipeRadius[1]+dXInnerFrame);
+    CreateStation_Type4Zones(GEMS, "station2", XStationPositions[2], YStationPositions[2], ZStationPositions[2], XZoneSizes_Station2, YZoneSizes_Station2, BeamPipeRadius[2]+dXInnerFrame);
+    CreateStation_Type4Zones(GEMS, "station3", XStationPositions[3], YStationPositions[3], ZStationPositions[3], XZoneSizes_Station2, YZoneSizes_Station2, BeamPipeRadius[3]+dXInnerFrame);
 
-    CreateStationTypePrototype(GEMS, "station4", XStantionPosition[4], YStantionPosition[4], ZStantionPosition[4], BeamPipeRadius[4]);
+    CreateStationTypePrototype(GEMS, "station4", XStationPositions[4], YStationPositions[4], ZStationPositions[4], BeamPipeRadius[4]);
 
-    CreateStation_TypeTwoModules(GEMS, "station5", XStantionPosition[5], YStantionPosition[5], ZStantionPosition[5], BeamPipeRadius[5]+dXInnerFrame, kFALSE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
-    CreateStation_TypeTwoModules(GEMS, "station6", XStantionPosition[6], YStantionPosition[6], ZStantionPosition[6], BeamPipeRadius[6]+dXInnerFrame, kTRUE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
-    CreateStation_TypeTwoModules(GEMS, "station7", XStantionPosition[7], YStantionPosition[7], ZStantionPosition[7], BeamPipeRadius[7]+dXInnerFrame, kFALSE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
+    CreateStation_TypeTwoModules(GEMS, "station5", XStationPositions[5], YStationPositions[5], ZStationPositions[5], BeamPipeRadius[5]+dXInnerFrame, kFALSE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
+    CreateStation_TypeTwoModules(GEMS, "station6", XStationPositions[6], YStationPositions[6], ZStationPositions[6], BeamPipeRadius[6]+dXInnerFrame, kTRUE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
+    CreateStation_TypeTwoModules(GEMS, "station7", XStationPositions[7], YStationPositions[7], ZStationPositions[7], BeamPipeRadius[7]+dXInnerFrame, kFALSE, OuterZoneSizes_Station5, HotZoneSizes_rectangle_Station5, HotZoneSizes_slope_Station5);
 
-    CreateStation_TypeTwoModules(GEMS, "station8", XStantionPosition[8], YStantionPosition[8], ZStantionPosition[8], BeamPipeRadius[8]+dXInnerFrame, kTRUE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
-    CreateStation_TypeTwoModules(GEMS, "station9", XStantionPosition[9], YStantionPosition[9], ZStantionPosition[9], BeamPipeRadius[9]+dXInnerFrame, kFALSE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
-    CreateStation_TypeTwoModules(GEMS, "station10", XStantionPosition[10], YStantionPosition[10], ZStantionPosition[10], BeamPipeRadius[10]+dXInnerFrame, kTRUE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
-    CreateStation_TypeTwoModules(GEMS, "station11", XStantionPosition[11], YStantionPosition[11], ZStantionPosition[11], BeamPipeRadius[11]+dXInnerFrame, kFALSE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
+    CreateStation_TypeTwoModules(GEMS, "station8", XStationPositions[8], YStationPositions[8], ZStationPositions[8], BeamPipeRadius[8]+dXInnerFrame, kTRUE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
+    CreateStation_TypeTwoModules(GEMS, "station9", XStationPositions[9], YStationPositions[9], ZStationPositions[9], BeamPipeRadius[9]+dXInnerFrame, kFALSE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
+    CreateStation_TypeTwoModules(GEMS, "station10", XStationPositions[10], YStationPositions[10], ZStationPositions[10], BeamPipeRadius[10]+dXInnerFrame, kTRUE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
+    CreateStation_TypeTwoModules(GEMS, "station11", XStationPositions[11], YStationPositions[11], ZStationPositions[11], BeamPipeRadius[11]+dXInnerFrame, kFALSE, OuterZoneSizes_Station8, HotZoneSizes_rectangle_Station8, HotZoneSizes_slope_Station8);
 
 
 

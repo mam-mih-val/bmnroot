@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.10"/>
-<title>Unified Database Interface: UniDbRun Class Reference</title>
+<title>The Unified Database Interface: UniDbRun Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -23,7 +23,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">Unified Database Interface
+   <div id="projectname">The Unified Database Interface
    </div>
    <div id="projectbrief">C++ interface of the databases for physics experiments</div>
   </td>
@@ -197,6 +197,8 @@ Static Public Member Functions</h2></td></tr>
 <tr class="separator:a31cb9b042e51f5df0159bdc631d64ff5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeafb45df1fd9af6ee85b155711e2561a"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run.html#aeafb45df1fd9af6ee85b155711e2561a">GetRunNumbers</a> (int start_run, int end_run, int *&amp;run_numbers)</td></tr>
 <tr class="separator:aeafb45df1fd9af6ee85b155711e2561a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a443d92a84c5a9d00d465e2352f254628"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run.html#a443d92a84c5a9d00d465e2352f254628">GetRunNumbers</a> (int *&amp;run_numbers)</td></tr>
+<tr class="separator:a443d92a84c5a9d00d465e2352f254628"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16c1a48ca4289527a3cf9b061a469581"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run.html#a16c1a48ca4289527a3cf9b061a469581">SetRootGeometry</a> (int start_run_number, int end_run_number, unsigned char *root_geometry, Long_t size_root_geometry)</td></tr>
 <tr class="memdesc:a16c1a48ca4289527a3cf9b061a469581"><td class="mdescLeft">&#160;</td><td class="mdescRight">set geometry binary data (geometry file's data) for runs from start_run_number to end_run_number  <a href="#a16c1a48ca4289527a3cf9b061a469581">More...</a><br /></td></tr>
 <tr class="separator:a16c1a48ca4289527a3cf9b061a469581"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -209,6 +211,12 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a14152772dd08b8053fea529f3194ba84"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run.html#a14152772dd08b8053fea529f3194ba84">ReadGeometryFile</a> (int run_number, char *geo_file_path)</td></tr>
 <tr class="memdesc:a14152772dd08b8053fea529f3194ba84"><td class="mdescLeft">&#160;</td><td class="mdescRight">read geometry file for selected run number from the database  <a href="#a14152772dd08b8053fea529f3194ba84">More...</a><br /></td></tr>
 <tr class="separator:a14152772dd08b8053fea529f3194ba84"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86ade25e5df8d153ced8059602bc7c40"><td class="memItemLeft" align="right" valign="top">static TObjArray *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run.html#a86ade25e5df8d153ced8059602bc7c40">Search</a> (const UniDbSearchCondition &amp;search_condition)</td></tr>
+<tr class="memdesc:a86ade25e5df8d153ced8059602bc7c40"><td class="mdescLeft">&#160;</td><td class="mdescRight">get runs corresponding to the specified single condition  <a href="#a86ade25e5df8d153ced8059602bc7c40">More...</a><br /></td></tr>
+<tr class="separator:a86ade25e5df8d153ced8059602bc7c40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b03a5e9e3526312bc8c7c42aeabc99a"><td class="memItemLeft" align="right" valign="top">static TObjArray *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run.html#a2b03a5e9e3526312bc8c7c42aeabc99a">Search</a> (const TObjArray &amp;search_conditions)</td></tr>
+<tr class="memdesc:a2b03a5e9e3526312bc8c7c42aeabc99a"><td class="mdescLeft">&#160;</td><td class="mdescRight">get runs corresponding to the specified (vector) conditions  <a href="#a2b03a5e9e3526312bc8c7c42aeabc99a">More...</a><br /></td></tr>
+<tr class="separator:a2b03a5e9e3526312bc8c7c42aeabc99a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="_uni_db_run_8h.html">db_classes/UniDbRun.h</a> Class for the table: run_ </p>
@@ -792,10 +800,41 @@ Static Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>get numbers of runs existing in the Database for selected range (0-10000 as default for all runs) </p><dl class="params"><dt>Parameters</dt><dd>
+<p>get numbers of runs existing in the Database for a selected range </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">start_run</td><td>start run number for selected numbers' range </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">end_run</td><td>end run number for selected numbers' range </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">run_numbers</td><td>numbers of the really existing runs for a selected range (from start to end) </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>size of 'run_numbers' array. if size &lt; 0, return value corresponds to error number </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a443d92a84c5a9d00d465e2352f254628"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int UniDbRun::GetRunNumbers </td>
+          <td>(</td>
+          <td class="paramtype">int *&amp;&#160;</td>
+          <td class="paramname"><em>run_numbers</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>get numbers of existing runs in the Database </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">run_numbers</td><td>numbers of the really existing runs for a selected range (from start to end) </td></tr>
   </table>
   </dd>
@@ -929,6 +968,58 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>read geometry file for selected run number from the database </p>
+
+</div>
+</div>
+<a class="anchor" id="a86ade25e5df8d153ced8059602bc7c40"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TObjArray * UniDbRun::Search </td>
+          <td>(</td>
+          <td class="paramtype">const UniDbSearchCondition &amp;&#160;</td>
+          <td class="paramname"><em>search_condition</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>get runs corresponding to the specified single condition </p>
+
+</div>
+</div>
+<a class="anchor" id="a2b03a5e9e3526312bc8c7c42aeabc99a"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TObjArray * UniDbRun::Search </td>
+          <td>(</td>
+          <td class="paramtype">const TObjArray &amp;&#160;</td>
+          <td class="paramname"><em>search_conditions</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>get runs corresponding to the specified (vector) conditions </p>
 
 </div>
 </div>
@@ -1239,8 +1330,8 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>db_classes/<a class="el" href="_uni_db_run_8h_source.html">UniDbRun.h</a></li>
-<li>db_classes/<a class="el" href="_uni_db_run_8cxx.html">UniDbRun.cxx</a></li>
+<li>C:/Users/SoulKeeper/Downloads/db_classes/<a class="el" href="_uni_db_run_8h_source.html">UniDbRun.h</a></li>
+<li>C:/Users/SoulKeeper/Downloads/db_classes/<a class="el" href="_uni_db_run_8cxx.html">UniDbRun.cxx</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

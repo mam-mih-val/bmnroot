@@ -157,6 +157,9 @@ add_subdirectory (cat)
 add_subdirectory (eventdisplay)
 add_subdirectory (uni_db)
 
+add_subdirectory (bd)
+add_subdirectory (ecal)
+
 if(EXISTS "${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/CMakeLists.txt")
  add_subdirectory (macro/mpd_scheduler)
 endif()

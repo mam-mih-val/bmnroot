@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.10"/>
-<title>Unified Database Interface: UniDbDetectorParameter Class Reference</title>
+<title>The Unified Database Interface: UniDbDetectorParameter Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -23,7 +23,7 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">Unified Database Interface
+   <div id="projectname">The Unified Database Interface
    </div>
    <div id="projectbrief">C++ interface of the databases for physics experiments</div>
   </td>
@@ -269,6 +269,12 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:ae09f5671a480d1da9fa724d8da9af8b1"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_uni_db_detector_parameter.html">UniDbDetectorParameter</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_detector_parameter.html#ae09f5671a480d1da9fa724d8da9af8b1">CreateDetectorParameter</a> (TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, IIStructure *parameter_value, int element_count)</td></tr>
 <tr class="memdesc:ae09f5671a480d1da9fa724d8da9af8b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">add new record - detector parameter value as Int+Int Array  <a href="#ae09f5671a480d1da9fa724d8da9af8b1">More...</a><br /></td></tr>
 <tr class="separator:ae09f5671a480d1da9fa724d8da9af8b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab31a542265ce5556c8f9f610a3dc0d35"><td class="memItemLeft" align="right" valign="top">static TObjArray *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_detector_parameter.html#ab31a542265ce5556c8f9f610a3dc0d35">Search</a> (const UniDbSearchCondition &amp;search_condition)</td></tr>
+<tr class="memdesc:ab31a542265ce5556c8f9f610a3dc0d35"><td class="mdescLeft">&#160;</td><td class="mdescRight">get parameters' values corresponding to the specified single condition  <a href="#ab31a542265ce5556c8f9f610a3dc0d35">More...</a><br /></td></tr>
+<tr class="separator:ab31a542265ce5556c8f9f610a3dc0d35"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a058c6f929937a57309d324e4b4f34788"><td class="memItemLeft" align="right" valign="top">static TObjArray *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_detector_parameter.html#a058c6f929937a57309d324e4b4f34788">Search</a> (const TObjArray &amp;search_conditions)</td></tr>
+<tr class="memdesc:a058c6f929937a57309d324e4b4f34788"><td class="mdescLeft">&#160;</td><td class="mdescRight">get parameters' values corresponding to the specified (vector) conditions  <a href="#a058c6f929937a57309d324e4b4f34788">More...</a><br /></td></tr>
+<tr class="separator:a058c6f929937a57309d324e4b4f34788"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="ab6b8fa099300bd026a22c02bb04c630b"></a>
@@ -2040,6 +2046,58 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ab31a542265ce5556c8f9f610a3dc0d35"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TObjArray * UniDbDetectorParameter::Search </td>
+          <td>(</td>
+          <td class="paramtype">const UniDbSearchCondition &amp;&#160;</td>
+          <td class="paramname"><em>search_condition</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>get parameters' values corresponding to the specified single condition </p>
+
+</div>
+</div>
+<a class="anchor" id="a058c6f929937a57309d324e4b4f34788"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">TObjArray * UniDbDetectorParameter::Search </td>
+          <td>(</td>
+          <td class="paramtype">const TObjArray &amp;&#160;</td>
+          <td class="paramname"><em>search_conditions</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>get parameters' values corresponding to the specified (vector) conditions </p>
+
+</div>
+</div>
 <a class="anchor" id="a6c0a96530a08a4f10e7ec2c7936193c4"></a>
 <div class="memitem">
 <div class="memproto">
@@ -2377,8 +2435,8 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>db_classes/<a class="el" href="_uni_db_detector_parameter_8h_source.html">UniDbDetectorParameter.h</a></li>
-<li>db_classes/<a class="el" href="_uni_db_detector_parameter_8cxx.html">UniDbDetectorParameter.cxx</a></li>
+<li>C:/Users/SoulKeeper/Downloads/db_classes/<a class="el" href="_uni_db_detector_parameter_8h_source.html">UniDbDetectorParameter.h</a></li>
+<li>C:/Users/SoulKeeper/Downloads/db_classes/<a class="el" href="_uni_db_detector_parameter_8cxx.html">UniDbDetectorParameter.cxx</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

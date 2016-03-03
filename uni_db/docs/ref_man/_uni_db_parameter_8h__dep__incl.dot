@@ -1,12 +1,12 @@
-digraph "db_classes/UniDbParameter.h"
+digraph "C:/Users/SoulKeeper/Downloads/db_classes/UniDbParameter.h"
 {
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
-  Node1 [label="db_classes/UniDbParameter.h",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 [label="C:/Users/SoulKeeper\l/Downloads/db_classes\l/UniDbParameter.h",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
   Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node2 [label="db_classes/UniDbDetector\lParameter.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$_uni_db_detector_parameter_8h.html"];
+  Node2 [label="C:/Users/SoulKeeper\l/Downloads/db_classes\l/UniDbDetectorParameter.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$_uni_db_detector_parameter_8h.html"];
   Node2 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node3 [label="db_classes/UniDbDetector\lParameter.cxx",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$_uni_db_detector_parameter_8cxx.html"];
+  Node3 [label="C:/Users/SoulKeeper\l/Downloads/db_classes\l/UniDbDetectorParameter.cxx",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$_uni_db_detector_parameter_8cxx.html"];
   Node1 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node4 [label="db_classes/UniDbParameter.cxx",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$_uni_db_parameter_8cxx.html"];
+  Node4 [label="C:/Users/SoulKeeper\l/Downloads/db_classes\l/UniDbParameter.cxx",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$_uni_db_parameter_8cxx.html"];
 }

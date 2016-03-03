@@ -16,7 +16,7 @@ enum enumColumns{columnRunNumber, columnPeriodNumber, columnFilePath, columnBeam
                     columnStartDatetime, columnEndDateTime, columnEventCount, columnFieldCurrent, columnFileSize,               // UniDbRun
                  columnDetectorName, columnParameterName, columnStartRun, columnEndRun, columnDCSerial, columnChannel};         // UniDbDetectorParameter
 // enumeration of comparison operators for Search Conditions
-enum enumConditions{conditionLess, conditionLessOrEqual, conditionEqual, conditionNotEqual, conditionGreater, conditionGreaterOrEqual, conditionLike};
+enum enumConditions{conditionLess, conditionLessOrEqual, conditionEqual, conditionNotEqual, conditionGreater, conditionGreaterOrEqual, conditionLike, conditionNull};
 
 
 #endif // DB_STRUCTURES_H

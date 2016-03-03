@@ -35,8 +35,8 @@ public:
     Bool_t CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 spirPar, TVector3 linePar);
     BmnStatus DoSeeding(Int_t min, Int_t max, TClonesArray* arr);
     TVector3 CircleFit(BmnGemTrack* track);
-    TVector3 LineFit(BmnGemTrack* track);
-    TVector3 CircleBy3Hit(BmnGemTrack* track);
+//    TVector3 LineFit(BmnGemTrack* track);
+//    TVector3 CircleBy3Hit(BmnGemTrack* track);
     
     void SetHitsUnused(const BmnGemTrack tr);
         

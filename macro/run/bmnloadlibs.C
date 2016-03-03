@@ -21,6 +21,8 @@ void bmnloadlibs()
   gSystem->Load("libSts");
   gSystem->Load("libRecoil");
   gSystem->Load("libZdc");
+  gSystem->Load("libEcal");
+  gSystem->Load("libBd");
   gSystem->Load("libGem");
   gSystem->Load("libGlobalTracking");
   gSystem->Load("libTOF1");

@@ -133,7 +133,7 @@ class UniDbRun
 	/// \param[out] run_numbers numbers of the really existing runs for a selected range (from start to end)
 	/// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
 	static int GetRunNumbers(int start_run, int end_run, int*& run_numbers);
-	/// get numbers of existing runs in the Database
+	/// get all numbers of existing runs in the Database
 	/// \param[out] run_numbers numbers of the really existing runs for a selected range (from start to end)
 	/// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
 	static int GetRunNumbers(int*& run_numbers);

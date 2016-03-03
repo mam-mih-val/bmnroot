@@ -66,12 +66,12 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fGemSeedsArray->Clear();
 
-    const Int_t nIter = 4;
+    const Int_t nIter = 5;
     //(0.006, 6.0, 1.05); //best parameters
-    const Float_t sigX[nIter] = {0.006, 0.006, 0.006, 0.06};
-    const Float_t stpY[nIter] = {2.0, 2.0, 2.0, 6.0}; //{5.0, 5.0, 5.0, 15.0};//{10.0, 10.0, 10.0, 30.0}; // {6, 6, 8, 8} -- best //{8, 8, 10, 20}
-    const Float_t thrs[nIter] = {1.05, 1.05, 1.05, 1.01};
-    const Int_t length[nIter] = {10, 8, 4, 4};
+    const Float_t sigX[nIter] = {0.3, 0.3, 0.3, 0.3, 0.6};
+    const Float_t stpY[nIter] = {2.0, 2.0, 2.0, 2.0, 10.0};
+    const Float_t thrs[nIter] = {1.05, 1.05, 1.05, 1.05, 1.01};
+    const Int_t length[nIter] = {10, 8, 6, 4, 4};
 
     for (Int_t i = 0; i < nIter; ++i) {
         addresses.clear();
@@ -88,6 +88,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
         }
 
         DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArray);
+//                cout << "fGemSeedsArray->GetEntriesFast() = " << fGemSeedsArray->GetEntriesFast() << endl;
     }
 
     cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
@@ -187,7 +188,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         }
         //        cout << circPar.Z() << " " << spirPar.Z() << endl;
         //        TVector3 circPar = CircleBy3Hit(&trackCand);
-        TVector3 linePar = LineFit(&trackCand);
+        TVector3 linePar = LineFit(&trackCand, fGemHitsArray);
         //if (circPar.Z() < 0.00001) continue;
         trCntr++;
         trackCand.SortHits();
@@ -208,10 +209,10 @@ void BmnGemSeedFinder::SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGe
 
     for (Int_t j = y - gate; j <= y + gate; ++j) {
 
-//        if (!hitPresence.at(j)) continue;
+        //        if (!hitPresence.at(j)) continue;
         ULong_t addr = j * fNBins + i;
         if (addresses.find(addr) == addresses.end()) continue;
-        
+
         Int_t id = addresses.find(addr)->second;
         BmnGemStripHit* hit = GetHit(id);
 
@@ -484,35 +485,35 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 sp
     return kTRUE;
 }
 
-TVector3 BmnGemSeedFinder::CircleBy3Hit(BmnGemTrack* track) {
-    const Float_t nHits = track->GetNHits();
-    if (nHits != 3) return TVector3(0.0, 0.0, 0.0);
-
-    Float_t x1 = GetHit(track->GetHitIndex(0))->GetX();
-    Float_t z1 = GetHit(track->GetHitIndex(0))->GetZ();
-    Float_t x2 = GetHit(track->GetHitIndex(1))->GetX();
-    Float_t z2 = GetHit(track->GetHitIndex(1))->GetZ();
-    Float_t x3 = GetHit(track->GetHitIndex(2))->GetX();
-    Float_t z3 = GetHit(track->GetHitIndex(2))->GetZ();
-
-    Float_t x1_2 = x1 * x1;
-    Float_t z1_2 = z1 * z1;
-    Float_t x2_2 = x2 * x2;
-    Float_t z2_2 = z2 * z2;
-    Float_t x3_2 = x3 * x3;
-    Float_t z3_2 = z3 * z3;
-
-    Float_t B = ((x1 - x3) * (x2_2 + z2_2) + (x2 - x1) * (x3_2 + z3_2) + (x3 - x2) * (x1_2 + z1_2)) / (x1 * (z3 - z2) + x2 * (z1 - z3) + x3 * (z2 - z1));
-    Float_t A = ((x2_2 + z2_2) - (x1_2 + z1_2) - B * (z1 - z2)) / (x1 - x2);
-    Float_t C = -x1_2 - z1_2 - A * x1 - B * z1;
-
-    Float_t Xc = -A / 2;
-    Float_t Zc = -B / 2;
-    Float_t R = Sqrt(A * A + B * B - 4 * C) / 2;
-
-    return TVector3(Xc, Zc, R);
-
-}
+//TVector3 BmnGemSeedFinder::CircleBy3Hit(BmnGemTrack* track) {
+//    const Float_t nHits = track->GetNHits();
+//    if (nHits != 3) return TVector3(0.0, 0.0, 0.0);
+//
+//    Float_t x1 = GetHit(track->GetHitIndex(0))->GetX();
+//    Float_t z1 = GetHit(track->GetHitIndex(0))->GetZ();
+//    Float_t x2 = GetHit(track->GetHitIndex(1))->GetX();
+//    Float_t z2 = GetHit(track->GetHitIndex(1))->GetZ();
+//    Float_t x3 = GetHit(track->GetHitIndex(2))->GetX();
+//    Float_t z3 = GetHit(track->GetHitIndex(2))->GetZ();
+//
+//    Float_t x1_2 = x1 * x1;
+//    Float_t z1_2 = z1 * z1;
+//    Float_t x2_2 = x2 * x2;
+//    Float_t z2_2 = z2 * z2;
+//    Float_t x3_2 = x3 * x3;
+//    Float_t z3_2 = z3 * z3;
+//
+//    Float_t B = ((x1 - x3) * (x2_2 + z2_2) + (x2 - x1) * (x3_2 + z3_2) + (x3 - x2) * (x1_2 + z1_2)) / (x1 * (z3 - z2) + x2 * (z1 - z3) + x3 * (z2 - z1));
+//    Float_t A = ((x2_2 + z2_2) - (x1_2 + z1_2) - B * (z1 - z2)) / (x1 - x2);
+//    Float_t C = -x1_2 - z1_2 - A * x1 - B * z1;
+//
+//    Float_t Xc = -A / 2;
+//    Float_t Zc = -B / 2;
+//    Float_t R = Sqrt(A * A + B * B - 4 * C) / 2;
+//
+//    return TVector3(Xc, Zc, R);
+//
+//}
 
 TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack* track) {
 
@@ -732,29 +733,29 @@ TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack* track) {
     }
 }
 
-TVector3 BmnGemSeedFinder::LineFit(BmnGemTrack* track) {
-
-    //Least Square Method//
-    Float_t Zi = 0.0, Yi = 0.0; // coordinates of current track point
-    Float_t a = 0.0, b = 0.0; // parameters of line: y = a * z + b
-    Float_t SumZ = 0.0, SumY = 0.0, SumZY = 0.0, SumZ2 = 0.0;
-    const Float_t nHits = track->GetNHits();
-    for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        Zi = hit->GetZ();
-        Yi = hit->GetY();
-        SumZ += Zi;
-        SumY += Yi;
-        SumZY += Zi * Yi;
-        SumZ2 += Sqr(Zi);
-    }
-
-    a = (nHits * SumZY - SumZ * SumY) / (nHits * SumZ2 - Sqr(SumZ));
-    b = (SumY - a * SumZ) / nHits;
-
-    return TVector3(a, b, 0.0);
-
-}
+//TVector3 BmnGemSeedFinder::LineFit(BmnGemTrack* track) {
+//
+//    //Least Square Method//
+//    Float_t Zi = 0.0, Yi = 0.0; // coordinates of current track point
+//    Float_t a = 0.0, b = 0.0; // parameters of line: y = a * z + b
+//    Float_t SumZ = 0.0, SumY = 0.0, SumZY = 0.0, SumZ2 = 0.0;
+//    const Float_t nHits = track->GetNHits();
+//    for (Int_t i = 0; i < nHits; ++i) {
+//        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
+//        Zi = hit->GetZ();
+//        Yi = hit->GetY();
+//        SumZ += Zi;
+//        SumY += Yi;
+//        SumZY += Zi * Yi;
+//        SumZ2 += Sqr(Zi);
+//    }
+//
+//    a = (nHits * SumZY - SumZ * SumY) / (nHits * SumZ2 - Sqr(SumZ));
+//    b = (SumY - a * SumZ) / nHits;
+//
+//    return TVector3(a, b, 0.0);
+//
+//}
 
 Float_t BmnGemSeedFinder::Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
     if (Sqr(x1 - x2) + Sqr(y1 - y2) <= 0.0) {

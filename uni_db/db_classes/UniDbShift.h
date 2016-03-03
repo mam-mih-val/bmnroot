@@ -84,6 +84,9 @@ class UniDbShift
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
+	/// get shift from the database
+	static UniDbShift* GetShift(TDatime shift_datetime);
+
  ClassDef(UniDbShift,1);
 };
 

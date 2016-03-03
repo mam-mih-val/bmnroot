@@ -1,33 +1,35 @@
 #include "BmnGemStripStationSet_1stConfig.h"
 #include "BmnGemStripStation_1stConfig.h"
+#include "BmnGemStripConfiguration.h"
 
 BmnGemStripStationSet_1stConfig::BmnGemStripStationSet_1stConfig() {
 
     NStations = 6;
 
+    // !!! Classical coordinate system is used !!!
     XStationPositions = new Double_t[NStations];
-        XStationPositions[0] = 2.2;
-        XStationPositions[1] = -3.0;
-        XStationPositions[2] = 1.8;
-        XStationPositions[3] = -1.0;
-        XStationPositions[4] = -1.4;
-        XStationPositions[5] = -2.1;
+        XStationPositions[0] = -BmnGemStripPositions_FirstConfig::XStationPositions[0]; //inverted : (bm@n x-coord -> classical x-coord)
+        XStationPositions[1] = -BmnGemStripPositions_FirstConfig::XStationPositions[1];
+        XStationPositions[2] = -BmnGemStripPositions_FirstConfig::XStationPositions[2];
+        XStationPositions[3] = -BmnGemStripPositions_FirstConfig::XStationPositions[3];
+        XStationPositions[4] = -BmnGemStripPositions_FirstConfig::XStationPositions[4];
+        XStationPositions[5] = -BmnGemStripPositions_FirstConfig::XStationPositions[5];
 
     YStationPositions = new Double_t[NStations];
-        YStationPositions[0] = 0.0;
-        YStationPositions[1] = 0.0;
-        YStationPositions[2] = 0.0;
-        YStationPositions[3] = 0.0;
-        YStationPositions[4] = 0.0;
-        YStationPositions[5] = 0.0;
+        YStationPositions[0] = BmnGemStripPositions_FirstConfig::YStationPositions[0];
+        YStationPositions[1] = BmnGemStripPositions_FirstConfig::YStationPositions[1];
+        YStationPositions[2] = BmnGemStripPositions_FirstConfig::YStationPositions[2];
+        YStationPositions[3] = BmnGemStripPositions_FirstConfig::YStationPositions[3];
+        YStationPositions[4] = BmnGemStripPositions_FirstConfig::YStationPositions[4];
+        YStationPositions[5] = BmnGemStripPositions_FirstConfig::YStationPositions[5];
 
     ZStationPositions = new Double_t[NStations];
-        ZStationPositions[0] = 30.0;
-        ZStationPositions[1] = 45.0;
-        ZStationPositions[2] = 60.0;
-        ZStationPositions[3] = 80.0;
-        ZStationPositions[4] = 100.0;
-        ZStationPositions[5] = 130.0;
+        ZStationPositions[0] = BmnGemStripPositions_FirstConfig::ZStationPositions[0];
+        ZStationPositions[1] = BmnGemStripPositions_FirstConfig::ZStationPositions[1];
+        ZStationPositions[2] = BmnGemStripPositions_FirstConfig::ZStationPositions[2];
+        ZStationPositions[3] = BmnGemStripPositions_FirstConfig::ZStationPositions[3];
+        ZStationPositions[4] = BmnGemStripPositions_FirstConfig::ZStationPositions[4];
+        ZStationPositions[5] = BmnGemStripPositions_FirstConfig::ZStationPositions[5];
 
     BeamHoleRadiuses = new Double_t[NStations];
 

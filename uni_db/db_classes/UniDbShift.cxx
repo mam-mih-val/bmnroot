@@ -451,5 +451,62 @@ void UniDbShift::Print()
 }
 /* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
 
+// -----   Get table record from database ---------------------------
+UniDbShift* UniDbShift::GetShift(TDatime shift_datetime)
+{
+	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	if (connUniDb == 0x00) return 0x00;
+
+	TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"select shift_id, period_number, start_datetime, end_datetime, fio, responsibility "
+		"from shift_ "
+		"where '%s' >= start_datetime AND '%s' < end_datetime", shift_datetime.AsSQLString(), shift_datetime.AsSQLString());
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	// get table record from DB
+	if (!stmt->Process())
+	{
+		cout<<"Error: getting record from DB has been failed"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return 0x00;
+	}
+
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	// extract row
+	if (!stmt->NextResultRow())
+	{
+		cout<<"Error: shift with given time wasn't found"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return 0x00;
+	}
+
+	int tmp_shift_id;
+	tmp_shift_id = stmt->GetInt(0);
+	int tmp_period_number;
+	tmp_period_number = stmt->GetInt(1);
+	TDatime tmp_start_datetime;
+	tmp_start_datetime = stmt->GetDatime(2);
+	TDatime tmp_end_datetime;
+	tmp_end_datetime = stmt->GetDatime(3);
+	TString tmp_fio;
+	tmp_fio = stmt->GetString(4);
+	TString* tmp_responsibility;
+	if (stmt->IsNull(5)) tmp_responsibility = NULL;
+	else
+		tmp_responsibility = new TString(stmt->GetString(5));
+
+	delete stmt;
+
+	return new UniDbShift(connUniDb, tmp_shift_id, tmp_period_number, tmp_start_datetime, tmp_end_datetime, tmp_fio, tmp_responsibility);
+}
+
 // -------------------------------------------------------------------
 ClassImp(UniDbShift);

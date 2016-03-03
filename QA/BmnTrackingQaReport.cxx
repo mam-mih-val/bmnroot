@@ -46,6 +46,7 @@ void BmnTrackingQaReport::Create() {
     Out() << R()->Title(0, GetTitle());
     Out() << PrintEventInfo();
     Out() << PrintNofObjects();
+    Out() << "<hr>" << endl;
     PrintCanvases();
     Out() << R()->DocumentEnd();
 }
@@ -107,7 +108,11 @@ void BmnTrackingQaReport::Draw() {
     DrawTwoH2("Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GEM-tracks", "Tx_rec_Tx_sim_gem", "Ty_rec_Ty_sim_gem");
     DrawThreeH2("Reco vs MC for X-, Y- and Z-component of Momentum for GEM-tracks", "Px_rec_Px_sim_gem", "Py_rec_Py_sim_gem", "Pz_rec_Pz_sim_gem");
     DrawMomResGem("Momentum resolution for GEM-tracks", "momRes_2D_gem", "momRes_1D_gem");
-    DrawOneH2("Momentum resolution vs Chi2", "MomRes_vs_Chi2_gem");
+    DrawTwoH2("Tracks quality distributions", "MomRes_vs_Chi2_gem", "Mom_vs_Chi2_gem");
+    DrawTwoH2("1", "MomRes_vs_Length_gem", "Mom_vs_Length_gem");
+    DrawTwoH1("2", "Chi2_gem", "Length_gem", "");
+    
+    DrawVertResGem("Vertex resolution", "VertX_vs_Mom_gem", "VertResX_gem", "VertY_vs_Mom_gem", "VertResY_gem");
 }
 
 void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames, TString* outNames) {
@@ -269,6 +274,71 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
     HM()->H1(name1d.Data())->SetMaximum(10.0);
     HM()->H1(name1d.Data())->SetMinimum(0.0);
     DrawH1(HM()->H1(name1d.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+}
+
+void BmnTrackingQaReport::DrawVertResGem(const string& canvasName, TString name2dX, TString name1dX, TString name2dY, TString name1dY) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 1000);
+    canvas->SetGrid();
+    canvas->Divide(2, 2);
+    
+    canvas->cd(1);
+    DrawH2(HM()->H2(name2dX.Data()), kLinear, kLinear, kLinear, "col");
+    
+    canvas->cd(2);
+    DrawH2(HM()->H2(name2dY.Data()), kLinear, kLinear, kLinear, "col");
+    
+    canvas->cd(3);    
+    Int_t vertResStep = 10;
+    for (Int_t iBin = 0; iBin < HM()->H2(name2dX.Data())->GetNbinsX(); iBin += vertResStep) {
+        TH1D* proj = HM()->H2(name2dX.Data())->ProjectionY("tmp", iBin, iBin + (vertResStep - 1));
+        proj->Fit("gaus", "SQRww", "", -10.0, 10.0);
+        TF1 *fit = proj->GetFunction("gaus");
+        Float_t mean = TMath::Abs(fit->GetParameter(1));//(fit->GetParameter(1) < 50.0) ? fit->GetParameter(1) : 0.0;
+        Float_t sigma = fit->GetParameter(2);
+        Float_t mom = HM()->H2(name2dX.Data())->GetXaxis()->GetBinCenter(iBin);
+        Int_t nBins = HM()->H1(name1dX.Data())->GetXaxis()->GetNbins();
+        Int_t bin = (mom - 0.0) / (5.0 - 0.0) * nBins;
+        HM()->H1(name1dX.Data())->SetBinContent(bin, sigma);
+        HM()->H1(name1dX.Data())->SetBinError(bin, 0.0);
+    }
+    
+    HM()->H1(name1dX.Data())->SetMaximum(1.0);
+    HM()->H1(name1dX.Data())->SetMinimum(0.0);
+    DrawH1(HM()->H1(name1dX.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+    
+    canvas->cd(4);
+    for (Int_t iBin = 0; iBin < HM()->H2(name2dY.Data())->GetNbinsX(); iBin += vertResStep) {
+        TH1D* proj = HM()->H2(name2dY.Data())->ProjectionY("tmp", iBin, iBin + (vertResStep - 1));
+        proj->Fit("gaus", "SQRww", "", -10.0, 10.0);
+        TF1 *fit = proj->GetFunction("gaus");
+        Float_t mean = TMath::Abs(fit->GetParameter(1));//(fit->GetParameter(1) < 50.0) ? fit->GetParameter(1) : 0.0;
+        Float_t sigma = fit->GetParameter(2);
+        Float_t mom = HM()->H2(name2dY.Data())->GetXaxis()->GetBinCenter(iBin);
+        Int_t nBins = HM()->H1(name1dY.Data())->GetXaxis()->GetNbins();
+        Int_t bin = (mom - 0.0) / (5.0 - 0.0) * nBins;
+        HM()->H1(name1dY.Data())->SetBinContent(bin, sigma);
+        HM()->H1(name1dY.Data())->SetBinError(bin, 0.0);
+    }
+    
+    HM()->H1(name1dY.Data())->SetMaximum(1.0);
+    HM()->H1(name1dY.Data())->SetMinimum(0.0);
+    DrawH1(HM()->H1(name1dY.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+}
+
+void BmnTrackingQaReport::DrawOneH1(const TString canvasName, const TString name1, const TString drawOpt) {
+    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 500, 500);
+    canvas->SetGrid();
+    DrawH1(HM()->H1(name1.Data()), kLinear, kLog, drawOpt.Data(), kRed, 0.7, 0.75, 1.1, 20);
+}
+
+void BmnTrackingQaReport::DrawTwoH1(const TString canvasName, const TString name1, const TString name2, const TString drawOpt) {
+    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1000, 500);
+    canvas->SetGrid();
+    canvas->Divide(2, 1);
+    canvas->cd(1);
+    DrawH1(HM()->H1(name1.Data()), kLinear, kLog, drawOpt.Data(), kRed, 0.7, 0.75, 1.1, 20);
+    canvas->cd(2);
+    DrawH1(HM()->H1(name2.Data()), kLinear, kLinear, drawOpt.Data(), kRed, 0.7, 0.75, 1.1, 20);
 }
 
 void BmnTrackingQaReport::DrawOneH2(const TString canvasName, const TString name1) {

@@ -55,7 +55,10 @@ protected:
     string PrintNofObjects() const;
 
     void DrawMomResGem(const string& canvasName, TString name2d, TString name1d);
+    void DrawVertResGem(const string& canvasName, TString name2dX, TString name1dX, TString name2dY, TString name1dY);
    
+    void DrawOneH1(const TString canvasName, const TString name1, const TString drawOpt);
+    void DrawTwoH1(const TString canvasName, const TString name1, const TString name2, const TString drawOpt);
     void DrawOneH2(const TString canvasName, const TString name1);
     void DrawTwoH2(const TString canvasName, const TString name1, const TString name2);
     void DrawThreeH2(const TString canvasName, const TString name1, const TString name2, const TString name3);

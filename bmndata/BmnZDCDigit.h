@@ -11,40 +11,37 @@ class BmnZDCDigit : public TNamed
     BmnZDCDigit();
 
     /** Main constructor **/
-    BmnZDCDigit(Char_t ix,Char_t iy,Float_t x,Float_t y,Char_t size,Char_t ch,Short_t samples,UShort_t *data);
+    BmnZDCDigit(UChar_t ix,UChar_t iy,Float_t x,Float_t y,UChar_t size,UChar_t ch,Float_t amp);
 
+    void SetIX(UChar_t ix)        { fIX = ix;        }
+    void SetIY(UChar_t iy)        { fIY = iy;        }
+    void SetX(Float_t x)        { fX = x;        }
+    void SetY(Float_t y)        { fY = y;        }
+    void SetSize(UChar_t size)  { fSize = size;  }
+    void SetChannel(UChar_t ch) { fChannel = ch; }
+    void SetAmp(Float_t amp) { fAmp = amp; }
 
-    void SetX(Char_t x)        { fX = x;        }
-    void SetY(Char_t y)        { fY = y;        }
-    void SetSize(Char_t size)  { fSize = size;  }
-    void SetChannel(Char_t ch) { fChannel = ch; }
-    void SetSamples(Short_t samples);
-    void SetWaveform(Short_t sample,Float_t val);
-
-    Char_t GetIX()         const  { return fIX;}
-    Char_t GetIY()         const  { return fIY;}
+    UChar_t GetIX()         const  { return fIX;}
+    UChar_t GetIY()         const  { return fIY;}
     Float_t GetX()        const  { return fX;}
     Float_t GetY()        const  { return fY;}
-    Char_t GetSize()      const  { return fSize;}
-    Char_t GetChannel()   const  { return fChannel;}
-    Short_t GetSamples()  const  { return fSamples;}
-    unsigned short *GetWaveform();
-
+    UChar_t GetSize()      const  { return fSize;}
+    UChar_t GetChannel()   const  { return fChannel;}
+    Float_t GetAmp()  const  { return fAmp;}
 
     /** Destructor **/
     virtual ~BmnZDCDigit();
 
 private:
-    Char_t  fIX;
-    Char_t  fIY;
-    Float_t fX;
-    Float_t fY;
-    Char_t  fSize;
-    Char_t  fChannel;
-    Short_t  fSamples;
-    TArrayS fWaveform;
+    UChar_t  fIX;
+    UChar_t  fIY;
+    Float_t  fX;
+    Float_t  fY;
+    UChar_t  fSize;
+    UChar_t  fChannel;
+    Float_t  fAmp;
 
-    ClassDef(BmnZDCDigit, 2);
+    ClassDef(BmnZDCDigit, 3);
 };
 
 #endif	/* BMNZDCDIGIT_H */

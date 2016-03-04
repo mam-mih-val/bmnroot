@@ -29,7 +29,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
         in >>std::hex >> id >>std::dec >> chan >> front_chan>>size>>ix>>iy>>x>>y>>used;
         if (!in.good()) break;
 //	printf("%0x %d %d %d %d %d %f %f\n",id,chan,front_chan,size,ix,iy,x,y);
-	if (size > 2) continue;
+	if (size > 2 || size < 0) continue;
 	if (chan <= 0) continue;
 	if (front_chan <= 0) continue;
         zdc_map_element[n_rec].id=id;
@@ -129,10 +129,10 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
 	fscanf(fin, "%s %s %s\n", tit1, tit2, tit3);
 	while (fscanf(fin, "%d %f %f\n", &ch, &ca, &cae) == 3)
 	{
-	    if (ch < maxchan)
+	    if (ch > 0 && ch <= maxchan)
 	    {
-		cal[ch] = ca;
-		cale[ch] = cae;
+		cal[ch-1] = ca;
+		cale[ch-1] = cae;
 	    }
 	};
 	fclose(fin);
@@ -191,7 +191,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
 
 
 void BmnZDCRaw2Digit::print() {
-     printf("id#\tchan\t\tf_chan\tsize\tix\tiy\tx\ty\tused\n");
+     printf("id#\tZDC chan\tADC_chan\tsize\tix\tiy\tx\ty\tused\n");
      for(int i=0;i<n_rec;i++)
      printf("0x%06lX\t%d\t%d\t%d\t%d\t%d\t%d\t%g\t%g\n",
          zdc_map_element[i].id,zdc_map_element[i].chan+1,zdc_map_element[i].adc_chan+1,zdc_map_element[i].size+1,
@@ -346,6 +346,7 @@ void BmnZDCRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *zdcdigit) {
        TClonesArray &ar_zdc = *zdcdigit;
        if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
        {
+	   amp *= cal[zdc_map_element[ind].chan];
            new(ar_zdc[zdcdigit->GetEntriesFast()]) BmnZDCDigit(zdc_map_element[ind].ix,zdc_map_element[ind].iy,zdc_map_element[ind].x,zdc_map_element[ind].y,zdc_map_element[ind].size+1,
            zdc_map_element[ind].chan+1,amp);  
        }

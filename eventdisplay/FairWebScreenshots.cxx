@@ -3,86 +3,87 @@
 // -------------------------------------------------------------------------
 #include "FairWebScreenshots.h"
 
-#include "FairEventManager.h"           // for FairEventManager
-#include "FairRootManager.h"            // for FairRootManager
-
-#include "TClonesArray.h"               // for TClonesArray
 #include "TEveManager.h"                // for TEveManager, gEve
-#include "TEvePathMark.h"               // for TEvePathMark
-#include "TEveTrack.h"                  // for TEveTrackList, TEveTrack
-#include "TEveTrackPropagator.h"        // for TEveTrackPropagator
-#include "TEveVector.h"                 // for TEveVector, TEveVectorT
-#include "TGeoTrack.h"                  // for TGeoTrack
-#include "TMathBase.h"                  // for Max, Min
-#include "TObjArray.h"                  // for TObjArray
-#include "TParticle.h"                  // for TParticle
+#include "TGLViewer.h"
 
-#include <string.h>
-#include <iostream>
-
-#include <TGLViewer.h>
-#include <stdlib.h>
 #include <iostream>
 #include <fstream>
-
+#include <unistd.h>
+#include <sys/wait.h>
+#include <pwd.h>
 #include <TThread.h>
 
-using std::cout;
-using std::endl;
+using namespace std;
 
-FairWebScreenshots::Status* FairWebScreenshots::Status::obj=NULL;
-
-// -----   Default constructor   -------------------------------------------
+// -----   Default constructor (private)  ----------------------------------
 FairWebScreenshots::FairWebScreenshots()
-  : FairTask("FairWebScreenshots", 0)
-{
-	Status::getStatus()->log_file = NULL;
-	Status::getStatus()->isNeedToStart = true;
-}
+    : FairTask("FairWebScreenshots", 0)
+{}
+
+// -----   Destructor   ----------------------------------------------------
+FairWebScreenshots::~FairWebScreenshots()
+{}
 
 // -----   Standard constructor   ------------------------------------------
-FairWebScreenshots::FairWebScreenshots(const char* name, const char* outputDir, Int_t iVerbose)
-  : FairTask(name, iVerbose)
+FairWebScreenshots::FairWebScreenshots(const char* name, char* output_dir, bool isWebServer, Int_t iVerbose)
+    : FairTask(name, iVerbose)
 {
-	Status::getStatus()->log_file = NULL;
-	Status::getStatus()->isNeedToStart = false;
+    outputDir = output_dir;
+    outputDir += "/";
 
-	char buffer[100];
-	strcpy(buffer,outputDir);
-	int len = strlen(buffer);
+    isWebStarted = false;
+    isWeb = isWebServer;
+    if (isWebServer) return;
 
-	if ((len > 0) && (buffer[len-1] == '/')) buffer[len-1] == '\0';
+    if (strlen(outputDir) > 0)
+    {
+        struct stat st = {0};
+        if (stat(outputDir, &st) == -1) mkdir(outputDir, 0700);
 
-	Status::getStatus()->outputDir = new TString(buffer);
-	if (len > 0)
-	{
-		char buf2[100];
-		strcpy(buf2,"mkdir \"");
-		strcat(buf2,buffer);
-		strcat(buf2,"\"");
-		printf("\n\ncmd:%s\n\n",buf2);
-		system(buf2);
-	}
+        cout<<"Images of the event display will be saved in directory: "<<outputDir<<endl;
+    }
+}
+
+//--------------------------------------------------------------------------
+void FairWebScreenshots::SetFormatFiles(int formatFiles)
+{
+    formatFiles = formatFiles;
+}
+//--------------------------------------------------------------------------
+void FairWebScreenshots::SetPort(int NumberPort)
+{
+    web_port = NumberPort;
+}
+//--------------------------------------------------------------------------
+void FairWebScreenshots::SetMultiFiles(int quantityFiles)
+{
+    quantityFiles = quantityFiles;
 }
 
 // -------------------------------------------------------------------------
 InitStatus FairWebScreenshots::Init()
 {
-    if ((Status::getStatus()->isNeedToStart) && (!Status::getStatus()->isStarted))
-    {
-        initConfiguration();
-
-        TThread* threadWebServ = new TThread((TThread::VoidFunc_t)&start_server,NULL,TThread::kNormalPriority);
-        threadWebServ->Run();
-
-        Status::getStatus()->isStarted = true;
-    }
-
     if (fVerbose > 1)
         cout<<"FairWebScreenshots::Init()"<<endl;
 
     if (!IsActive())
         return kERROR;
+
+    fMan = FairEventManager::Instance();
+
+    // start web server if required
+    if (isWeb && (!isWebStarted))
+    {
+        log_file = ".log";
+        mime_file = "mime.types";
+
+        // Set daemon to FALSE
+        daemon = 0;
+
+        TThread* threadWebServ = new TThread((TThread::VoidFunc_t)&start_server, NULL, TThread::kNormalPriority);
+        threadWebServ->Run();
+        isWebStarted = true;
+    }
 
     return kSUCCESS;
 }
@@ -90,101 +91,78 @@ InitStatus FairWebScreenshots::Init()
 // -------------------------------------------------------------------------
 void FairWebScreenshots::Exec(Option_t* option)
 {
-	if(Status::getStatus()->isNeedToStart)
-	{
-		TString fileName = *(Status::getStatus()->wwwRoot) + "event" + ".jpg";
-		gEve->GetDefaultGLViewer()->SavePicture(fileName.Data());
+    // redraw event display to capture current event
+    gEve->Redraw3D();
+    gSystem->ProcessEvents();
 
-        fileName = *(Status::getStatus()->wwwRoot) + "event" + ".png";
+    TString fileName = outputDir;
+    if (quantityFiles == 1)
+        fileName += "event_" + TString::Format("%d", fMan->GetCurrentEvent());
+    else
+        fileName += "event";
+
+    if ((formatFiles == 0) || (formatFiles == 2))
+    {
+        fileName += ".png";
         gEve->GetDefaultGLViewer()->SavePicture(fileName.Data());
     }
-    else
+
+    if (formatFiles > 0)
     {
-        TString fileName = *(Status::getStatus()->outputDir) + "/event" + ".jpg";
+        fileName += ".jpg";
         gEve->GetDefaultGLViewer()->SavePicture(fileName.Data());
+    }
 
-		fileName = *(Status::getStatus()->outputDir) + "/event" + ".png";
-		gEve->GetDefaultGLViewer()->SavePicture(fileName.Data());
-	}
-
-	return;
-}
-
-// -----   Destructor   ----------------------------------------------------
-FairWebScreenshots::~FairWebScreenshots()
-{
+    return;
 }
 
 // -------------------------------------------------------------------------
 void FairWebScreenshots::SetParContainers()
-{
-}
+{}
 
 // -------------------------------------------------------------------------
 void FairWebScreenshots::Finish()
-{
-}
+{}
 
-void FairWebScreenshots::daemonize()
+// -------------------------------------------------------------------------
+int FairWebScreenshots::daemonize()
 {
-	pid_t pid, sid;
-
-	// already a daemon 
+	pid_t pid;
+	// already a daemon
 	if (getppid() == 1)
-		return;
+		return -1;
 
-	// Fork off the parent process 
+	// Fork off the parent process
 	pid = fork();
 	if (pid < 0)
-		exit(EXIT_FAILURE);
+		return -2;
 
-	// If we got a good PID, then we can exit the parent process. 
+	// If we got a good PID, then we can exit the parent process.
 	if (pid > 0)
-		exit(EXIT_SUCCESS);
+		return 0;
 
-	// At this point we are executing as the child process 
+	// At this point we are executing as the child process
 
-	// Change the file mode mask 
+	// Change the file mode mask
 	umask(0);
 
-	// Create a new SID for the child process 
-	sid = setsid();
-	if (sid < 0)
-		exit(EXIT_FAILURE);
+	// Create a new SID for the child process
+	if (setsid() < 0)
+		return -3;
 
-	// Change the current working directory.  This prevents the current
-	//directory from being locked; hence not being able to remove it. 
+	// Change the current working directory. This prevents the current directory from being locked; hence not being able to remove it.
 	if ((chdir("/")) < 0)
-		exit(EXIT_FAILURE);
+		return -4;
 
-	return;
+	return 0;
 }
 
 int FairWebScreenshots::sendString(const char *message, int socket)
 {
-	int length = strlen(message);
-
-	int bytes_sent = send(socket, message, length, 0);
-
-	return bytes_sent;
+	return send(socket, message, strlen(message), 0);
 }
 
-int FairWebScreenshots::sendBinary(int *byte, int length)
-{
-	int bytes_sent = send(Status::getStatus()->connecting_socket, byte, length, 0);
-
-	return bytes_sent;
-}
-
-void FairWebScreenshots::sendHTML(char *statusCode, char *contentType, char *content, int size, int socket)
-{
-	sendHeader(statusCode, contentType, size, socket);
-	sendString(content, socket);
-
-	return;
-}
-
-void FairWebScreenshots::sendHeader(const char *Status_code, char *Content_Type, int TotalSize, int socket)
+void FairWebScreenshots::sendHeader(const char* Status_code, char* Content_Type, int TotalSize, int socket)
 {
 	char *head = (char*)"\r\nHTTP/1.1 ";
 	char *content_head = (char*)"\r\nContent-Type: ";
@@ -194,23 +172,23 @@ void FairWebScreenshots::sendHeader(const char *Status_code, char *Content_Type,
 	char *newline = (char*)"\r\n";
 
 	time_t rawtime;
-	time (&rawtime);
+	time(&rawtime);
 
 	char contentLength[100];
 	sprintf(contentLength, "%i", TotalSize);
 
-	char *message = (char*)malloc((
-		strlen(head) +
-		strlen(content_head) +
-		strlen(server_head) +
-		strlen(length_head) +
-		strlen(date_head) +
-		strlen(newline) +
-		strlen(Status_code) +
-		strlen(Content_Type) +
-		strlen(contentLength) +
-		28 +
-		sizeof(char)) * 2);
+	char* message = (char*)malloc((
+									  strlen(head) +
+									  strlen(content_head) +
+									  strlen(server_head) +
+									  strlen(length_head) +
+									  strlen(date_head) +
+									  strlen(newline) +
+									  strlen(Status_code) +
+									  strlen(Content_Type) +
+									  strlen(contentLength) +
+									  28 +
+									  sizeof(char)) * 2);
 
 	if (message != NULL)
 	{
@@ -231,15 +209,17 @@ void FairWebScreenshots::sendHeader(const char *Status_code, char *Content_Type,
 	}
 }
 
-void FairWebScreenshots::sendFile(FILE *fp, int file_size)
+// send file
+void FairWebScreenshots::sendFile(FILE* fp)
 {
 	int current_char = 0;
-
-	do{
+	do
+	{
 		current_char = fgetc(fp);
-		sendBinary(&current_char, sizeof(char));
+		// send binary data
+		int bytes_sent = send(connecting_socket, &current_char, sizeof(char), 0);
 	}
-	while(current_char != EOF);
+	while (current_char != EOF);
 }
 
 int FairWebScreenshots::scan(char *input, char *output, int start, int max)
@@ -248,9 +228,9 @@ int FairWebScreenshots::scan(char *input, char *output, int start, int max)
 		return -1;
 
 	int appending_char_count = 0;
-	int i = start;
 	int count = 0;
 
+	int i = start;
 	for (; i < strlen(input); i++)
 	{
 		if ( *(input + i) != '\t' && *(input + i) != ' ' && *(input + i) != '\n' && *(input + i) != '\r')
@@ -259,14 +239,13 @@ int FairWebScreenshots::scan(char *input, char *output, int start, int max)
 			{
 				*(output + appending_char_count) = *(input + i ) ;
 				appending_char_count += 1;
-
 				count++;
-			}		
-		}	
+			}
+		}
 		else
 			break;
 	}
-	*(output + appending_char_count) = '\0';	
+	*(output + appending_char_count) = '\0';
 
 	// Find next word start
 	i += 1;
@@ -287,15 +266,14 @@ int FairWebScreenshots::checkMime(char *extension, char *mime_type)
 	char *line = (char*)malloc(200);
 	int startline = 0;
 
-	FILE *mimeFile = fopen(Status::getStatus()->mime_file->Data(), "r");
+	FILE* mimeFile = fopen(mime_file.Data(), "r");
 
 	free(mime_type);
-
 	mime_type = (char*)malloc(200);
 
 	memset(mime_type,'\0',200);
 
-	while(fgets(line, 200, mimeFile) != NULL)
+	while (fgets(line, 200, mimeFile) != NULL)
 	{
 		if (line[0] != '#')
 		{
@@ -311,7 +289,7 @@ int FairWebScreenshots::checkMime(char *extension, char *mime_type)
 						free(current_word);
 						free(word_holder);
 						free(line);
-						return 1;	
+						return 1;
 					}
 				}
 				else
@@ -360,14 +338,13 @@ int FairWebScreenshots::GetExtension(char *input, char *output, int max)
 {
 	int in_position = 0;
 	int appended_position = 0;
-	int i = 0;
-	int count = 0;
 
+	int i = 0, count = 0;
 	for (; i < strlen(input); i++)
-	{		
-		if ( in_position == 1 )
+	{
+		if (in_position == 1)
 		{
-			if(count < max)
+			if (count < max)
 			{
 				output[appended_position] = input[i];
 				appended_position +=1;
@@ -419,24 +396,22 @@ int FairWebScreenshots::handleHttpGET(char *input)
 	while (filename[i]!='\0' && filename[i]!='?')
 		i++;
 
-	if (filename[i]=='?')
-		filename[i]='\0';
+	if (filename[i] == '?')
+		filename[i] = '\0';
 	
 	if (fileNameLength <= 0)
 		return -1;
 
 	if (getHttpVersion(input, httpVersion) == -1)
 	{
-		sendString("501 Not Implemented\n", Status::getStatus()->connecting_socket);
+		sendString("501 Not Implemented\n", connecting_socket);
 		return -1;
 	}
 
 	if (GetExtension(filename, extension, 10) == -1)
 	{
 		printf("File extension not existing");
-
-		sendString("400 Bad Request\n", Status::getStatus()->connecting_socket);
-
+		sendString("400 Bad Request\n", connecting_socket);
 		free(filename);
 		free(mime);
 		free(path);
@@ -449,9 +424,7 @@ int FairWebScreenshots::handleHttpGET(char *input)
 	if (mimeSupported != 1)
 	{
 		printf("Mime not supported");
-
-		sendString("400 Bad Request\n", Status::getStatus()->connecting_socket);
-
+		sendString("400 Bad Request\n", connecting_socket);
 		free(filename);
 		free(mime);
 		free(path);
@@ -461,15 +434,15 @@ int FairWebScreenshots::handleHttpGET(char *input)
 	}
 
 	// Open the requesting file as binary
-	strcpy(path, Status::getStatus()->wwwRoot->Data());
+	strcpy(path, outputDir.Data());
 	strcat(path, filename);
 
 	FILE* fp = fopen(path, "rb");
 	if (fp == NULL)
 	{
-		printf("\nUnable to open file%s\n",path);
+		printf("\nUnable to open file %s\n",path);
 
-		sendString("404 Not Found\n", Status::getStatus()->connecting_socket);
+		sendString("404 Not Found\n", connecting_socket);
 
 		free(filename);
 		free(mime);
@@ -481,7 +454,7 @@ int FairWebScreenshots::handleHttpGET(char *input)
 
 	// Calculate Content Length
 	contentLength = Content_Lenght(fp);
-	if (contentLength  < 0 )
+	if (contentLength < 0)
 	{
 		printf("File size is zero");
 
@@ -496,9 +469,9 @@ int FairWebScreenshots::handleHttpGET(char *input)
 	}
 
 	// Send File Content
-	sendHeader("200 OK", mime,contentLength, Status::getStatus()->connecting_socket);
+	sendHeader("200 OK", mime, contentLength, connecting_socket);
 
-	sendFile(fp, contentLength);
+	sendFile(fp);
 
 	free(filename);
 	free(mime);
@@ -536,12 +509,10 @@ int FairWebScreenshots::getRequestType(char *input)
 
 int FairWebScreenshots::receive(int socket)
 {
-	int msgLen = 0;
 	char buffer[BUFFER_SIZE];
-
 	memset(buffer,'\0', BUFFER_SIZE);
 
-	if ((msgLen = recv(socket, buffer, BUFFER_SIZE, 0)) == -1)
+	if ((recv(socket, buffer, BUFFER_SIZE, 0)) == -1)
 	{
 		printf("Error handling incoming request");
 		return -1;
@@ -552,135 +523,78 @@ int FairWebScreenshots::receive(int socket)
 		handleHttpGET(buffer);
 	else
 		if (request == 2)			// HEAD
-			1;//SendHeader();
+			1; //SendHeader();
 		else
 			if (request == 0)		// POST
-				sendString("501 Not Implemented\n", Status::getStatus()->connecting_socket);
+				sendString("501 Not Implemented\n", connecting_socket);
 			else					// GARBAGE
-				sendString("400 Bad Request\n", Status::getStatus()->connecting_socket);
+				sendString("400 Bad Request\n", connecting_socket);
 
 	return 1;
 }
 
-void FairWebScreenshots::handle(int socket)
+int FairWebScreenshots::acceptConnection()
 {
+	sockaddr_storage connectorSocket;
+	socklen_t addressSize = sizeof(connectorSocket);
+
+	connecting_socket = accept(currentSocket, (struct sockaddr *)&(connectorSocket), &addressSize);
+	if (connecting_socket < 0)
+	{
+		perror("Accepting sockets");
+		return -1;
+	}
+
 	// --- Workflow --- //
 	// 1. Receive ( recv() ) the GET / HEAD
 	// 2. Process the request and see if the file exists
 	// 3. Read the file content
 	// 4. Send out with correct mine and http 1.1
-
-	if (receive((int)socket) < 0)
+	if (receive(connecting_socket) < 0)
 	{
 		perror("Receive");
-		exit(-1);
-	}
-}
-
-void FairWebScreenshots::acceptConnection()
-{
-	sockaddr_storage connectorSocket;
-
-	socklen_t addressSize = sizeof(connectorSocket);
-
-	Status::getStatus()->connecting_socket = accept(Status::getStatus()->currentSocket, (struct sockaddr *)&(connectorSocket), &addressSize);
-	if ( Status::getStatus()->connecting_socket < 0 )
-	{
-		perror("Accepting sockets");
-		exit(-1);
+		return -1;
 	}
 
-	handle(Status::getStatus()->connecting_socket);
-
-	close(Status::getStatus()->connecting_socket);
+	close(connecting_socket);
 
 	while (-1 != waitpid(-1, NULL, WNOHANG));
 }
 
-void FairWebScreenshots::start()
+int FairWebScreenshots::start()
 {
 	// Create a socket and assign currentSocket to the descriptor
-	Status::getStatus()->currentSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (Status::getStatus()->currentSocket == -1)
+	currentSocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (currentSocket == -1)
 	{
 		perror("Create socket");
-		exit(-1);
+		return -1;
 	}
 
 	// Bind to the currentSocket descriptor and listen to the port in PORT
 	struct sockaddr_in address;
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(Status::getStatus()->port);
+	address.sin_port = htons(web_port);
 
-	if (bind(Status::getStatus()->currentSocket, (struct sockaddr *)&address, sizeof(address)) < 0)
+	if (bind(currentSocket, (struct sockaddr *)&address, sizeof(address)) < 0)
 	{
 		perror("Bind to port");
-		exit(-1);
+		return -2;
 	}
 
 	// Start listening for connections and accept no more than MAX_CONNECTIONS in the Quee
-	if (listen(Status::getStatus()->currentSocket, MAX_CONNECTIONS) < 0)
+	if (listen(currentSocket, MAX_CONNECTIONS) < 0)
 	{
 		perror("Listen on port");
-		exit(-1);
+		return -3;
 	}
 
 	while (1)
 		acceptConnection();
 }
 
-void FairWebScreenshots::initConfiguration()
-{
-    char* currentLine = (char*)malloc(100);
-	char* cwwwRoot = (char*)malloc(100);
-	char* cconfFile = (char*)malloc(100);
-	char* clog_file = (char*)malloc(100);
-	char* cmime_file = (char*)malloc(600);
-
-	// Setting default values
-	cconfFile = (char*)"httpd.conf";
-	clog_file = (char*)".log";
-	Status::getStatus()->log_file = new TString(clog_file);
-	strcpy(cmime_file, "mime.types");
-	Status::getStatus()->mime_file = new TString(cmime_file);
-	// Set  daemon to FALSE
-	Status::getStatus()-> daemon = 0;
-
-	FILE* filePointer = fopen(cconfFile, "r");
-	// Ensure that the configuration file is open
-	if (filePointer == NULL)
-	{
-		fprintf(stderr, "Can't open configuration file!\n");
-		exit(1);
-	}
-
-	// Get server root directory from configuration file
-	if (fscanf(filePointer, "%s %s", currentLine, cwwwRoot) != 2)
-	{
-		fprintf(stderr, "Error in configuration file on line 1!\n");
-		exit(1);
-	}
-	
-	//add '/' if it needs
-	int len = strlen(cwwwRoot);
-	if ((len > 0) && (cwwwRoot[len-1] != '/'))
-		strcat(cwwwRoot,"/");
-	
-	Status::getStatus()->wwwRoot = new TString(cwwwRoot);
-	
-	// Get default port from configuration file
-	if (fscanf(filePointer, "%s %i", currentLine, &(Status::getStatus()->port)) != 2)
-	{
-		fprintf(stderr, "Error in configuration file on line 2!\n");
-		exit(1);
-	}
-
-	fclose(filePointer);
-	free(currentLine);
-}
-
-int FairWebScreenshots::start_server(void * ptr)
+int FairWebScreenshots::start_server(void* ptr)
 {
 	int argc = 0;
 	char** argv = NULL;
@@ -693,7 +607,7 @@ int FairWebScreenshots::start_server(void * ptr)
 			// Indicate that we want to jump over the next parameter
 			parameterCount++;
 			printf("Setting port to %i\n", atoi(argv[parameterCount]));
-			Status::getStatus()->port = atoi(argv[parameterCount]);
+			web_port = atoi(argv[parameterCount]);
 		}
 		// If flag -d is used, set daemon to TRUE;
 		else
@@ -701,7 +615,7 @@ int FairWebScreenshots::start_server(void * ptr)
 			if (strcmp(argv[parameterCount], "-d") == 0)
 			{
 				printf("Setting daemon = TRUE");
-				Status::getStatus()-> daemon = 1;
+				daemon = 1;
 			}
 			else
 			{
@@ -710,7 +624,7 @@ int FairWebScreenshots::start_server(void * ptr)
 					// Indicate that we want to jump over the next parameter
 					parameterCount++;
 					printf("Setting logfile = %s\n", argv[parameterCount]);
-					Status::getStatus()->log_file = new TString((char*)argv[parameterCount]);
+					log_file = (TString) (char*) argv[parameterCount];
 				}
 				else
 				{
@@ -725,12 +639,12 @@ int FairWebScreenshots::start_server(void * ptr)
 	}
 
 	printf("Settings:\n");
-	printf("Port:\t\t\t%i\n", Status::getStatus()->port);
-	printf("Server root:\t\t%s\n", Status::getStatus()->wwwRoot->Data());
-	printf("Logfile:\t\t%s\n", Status::getStatus()->log_file->Data());
-	printf(" daemon:\t\t\t%i\n", Status::getStatus()-> daemon);
+	printf("Port:\t\t\t%i\n", web_port);
+	printf("Server root:\t\t%s\n", outputDir.Data());
+	printf("Logfile:\t\t%s\n", log_file.Data());
+	printf("daemon:\t\t\t%i\n", daemon);
 
-	if (Status::getStatus()-> daemon == 1)
+	if (daemon == 1)
 		daemonize();
 
 	start();

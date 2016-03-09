@@ -181,7 +181,11 @@ void SetTasks(FairEventManager* fMan, int data_source)
         fMan->AddTask(BmnGlobalTrack);
 
         // save EventDisplay Screenshot
-        //FairWebScreenshots* WebScreenshots = new FairWebScreenshots("WebScreenshots","output32434535");
+        //FairWebScreenshots* WebScreenshots = new FairWebScreenshots("WebScreenshots", "/var/www/html/events");
+        //FairWebScreenshots* WebScreenshots = new FairWebScreenshots("WebScreenshots","screenshots");
+        //WebScreenshots->SetFormatFiles(0); // 0 -.png, 1 -.jpg, 2 -.jpg and .png
+        //WebScreenshots->SetMultiFiles(0); //0 - the same file (event.png), 1 - multiple files (event_nnn.png)
+        //WebScreenshots->SetPort(8016); // 8016 by default
         //fMan->AddTask(WebScreenshots);
 
         return;

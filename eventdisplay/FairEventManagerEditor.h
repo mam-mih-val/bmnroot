@@ -11,6 +11,7 @@
 #include "TGLabel.h"
 #include "TMutex.h"
 #include "TSemaphore.h"
+#include "TGFileDialog.h"
 
 #include <vector>
 
@@ -93,10 +94,14 @@ class FairEventManagerEditor : public TGedFrame
     void BlockUI();
     void UnblockUI();
 
+    // save screenshot of the eve display
+    virtual void SaveImage();
+
     // event count
     int iEventCount;
     // 'Update' button
     TGTextButton* fUpdate;
+    TGPictureButton* fSave;
     // 'Current Event Number' textbox with spin buttons
     TGNumberEntry* fCurrentEvent;
     // 'Show Geometry' checkbox

@@ -20,7 +20,7 @@
 #include <iostream>
 using namespace std;
 
-#define MAXE 12
+#define MAX_ENERGY 12
 
 //______________________________________________________________________________
 // FairEventManagerEditor
@@ -51,7 +51,7 @@ FairEventManagerEditor::FairEventManagerEditor(const TGWindow* p, Int_t width, I
 
 void FairEventManagerEditor::Init()
 {
-    // get input file and event count
+    // get input file and event countMAXE
     FairRootManager* fRootManager = FairRootManager::Instance();
     TChain* chain = fRootManager->GetInChain();
 
@@ -103,9 +103,14 @@ void FairEventManagerEditor::Init()
                         TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative, TGNumberFormat::kNELLimitMinMax, 0, iEventCount-1);
     f->AddFrame(fCurrentEvent, new TGLayoutHints(kLHintsLeft, 1, 1, 1, 1));
     fCurrentEvent->Connect("ValueSet(Long_t)","FairEventManagerEditor", this, "SelectEvent()");
-    title1->AddFrame(f);
     if (iEventCount< 1)
         fCurrentEvent->SetState(kFALSE);
+
+    //Button for save image (EVE screenshot)
+    fSave = new TGPictureButton(f, gClient->GetPicture("save.xpm"), 5);
+    f->AddFrame(fSave, new TGLayoutHints(kLHintsLeft| kLHintsCenterY, 1, 2, 1, 1));
+    fSave->Connect("Clicked()", "FairEventManagerEditor", this, "SaveImage()");
+    title1->AddFrame(f);
 
     // textbox for time cutting
     TGHorizontalFrame* f2 = new TGHorizontalFrame(title1);
@@ -136,7 +141,7 @@ void FairEventManagerEditor::Init()
     fMinEnergy->SetNELength(5);
     fMinEnergy->SetLabelWidth(80);
     fMinEnergy->Build();
-    fMinEnergy->SetLimits(0, MAXE, 2501, TGNumberFormat::kNESRealOne);
+    fMinEnergy->SetLimits(0, MAX_ENERGY, 2501, TGNumberFormat::kNESRealOne);
     fMinEnergy->SetToolTip("Minimum energy of displayed tracks");
     fMinEnergy->SetValue(0);
     fMinEnergy->Connect("ValueSet(Double_t)", "FairEventManagerEditor", this, "MinEnergy()");
@@ -148,12 +153,12 @@ void FairEventManagerEditor::Init()
     fMaxEnergy->SetNELength(5);
     fMaxEnergy->SetLabelWidth(80);
     fMaxEnergy->Build();
-    fMaxEnergy->SetLimits(0, MAXE, 2501, TGNumberFormat::kNESRealOne);
+    fMaxEnergy->SetLimits(0, MAX_ENERGY, 2501, TGNumberFormat::kNESRealOne);
     fMaxEnergy->SetToolTip("Maximum energy of displayed tracks");
-    fMaxEnergy->SetValue(MAXE);
+    fMaxEnergy->SetValue(MAX_ENERGY);
     fMaxEnergy->Connect("ValueSet(Double_t)", "FairEventManagerEditor", this, "MaxEnergy()");
     title1->AddFrame(fMaxEnergy, new TGLayoutHints(kLHintsTop, 1, 1, 1, 0));
-    fManager->SetMaxEnergy(MAXE);
+    fManager->SetMaxEnergy(MAX_ENERGY);
 
     // button: whether show detector geometry or not
     fGeometry = new TGCheckButton(title1, "show geometry");
@@ -196,6 +201,7 @@ void FairEventManagerEditor::Init()
 
     TGHorizontalFrame* frameTracksInfo = new TGHorizontalFrame(groupData);
     // button for show|hide MC tracks
+
     fShowMCTracks = new TGCheckButton(frameTracksInfo, "MC tracks");
     frameTracksInfo->AddFrame(fShowMCTracks, new TGLayoutHints(kLHintsNormal, 0,0,0,0));
     fShowMCTracks->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMCTracks(Bool_t)");
@@ -206,8 +212,8 @@ void FairEventManagerEditor::Init()
     frameTracksInfo->AddFrame(fShowRecoTracks, new TGLayoutHints(kLHintsRight, 0,0,1,0));
     fShowRecoTracks->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowRecoTracks(Bool_t)");
     //fShowRecoTracks->SetDisabledAndSelected(kFALSE);
-    groupData->AddFrame(frameTracksInfo, new TGLayoutHints(kLHintsNormal | kLHintsExpandX, 1,1,5,0));
 
+    groupData->AddFrame(frameTracksInfo, new TGLayoutHints(kLHintsNormal | kLHintsExpandX, 1,1,5,0));
     title1->AddFrame(groupData, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 3,15,1,1));
 
     // button for update of event visualization
@@ -664,6 +670,20 @@ void FairEventManagerEditor::UpdateEvent()
     }
 }
 
+void FairEventManagerEditor::SaveImage()
+{
+    const char* filetypes[] = {"PNG", "*.png", "JPG", "*.jpg", 0, 0};
+    TGFileInfo fi;
+    fi.fFileTypes = filetypes;
+    fi.fIniDir    = StrDup(".");
+    new TGFileDialog(gClient->GetRoot(), gEve->GetMainWindow(), kFDSave, &fi);
+
+    printf("Saving file: %s (dir: %s)\n", fi.fFilename, fi.fIniDir);
+    gEve->GetDefaultGLViewer()-> SavePicture(fi.fFilename);
+
+    return;
+}
+
 // thread function for execution of FairRunAna tasks
 void* RunTasks(void* ptr)
 {
@@ -718,7 +738,8 @@ void* RunTasks(void* ptr)
 
         // redraw points
         gEve->Redraw3D();
-        TThread::Sleep(0, 400000000);
+        //TThread::Sleep(0, 400000000);
+        gSystem->ProcessEvents();
     }
 
     fEditor->UnblockUI();

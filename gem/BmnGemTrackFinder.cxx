@@ -103,7 +103,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         }
 
         Float_t length = 0.0;
-        
+
         for (Int_t iHit = 0; iHit < tr.GetNHits(); ++iHit) {
             BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(tr.GetHitIndex(iHit));
             Float_t z = hit->GetZ();
@@ -121,7 +121,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             node.SetF(*F);
 
             nodes.push_back(node);
-            
+
             if (iHit != 0) {
                 BmnGemStripHit* prevHit = (BmnGemStripHit*) GetHit(tr.GetHitIndex(iHit - 1));
                 TVector3 prevCoord(prevHit->GetX(), prevHit->GetY(), prevHit->GetZ());
@@ -129,9 +129,9 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
                 length += (curCoord - prevCoord).Mag();
             }
         }
-        
+
         tr.SetLength(length);
-        
+
         delete F;
         tr.SetFitNodes(nodes);
         tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
@@ -162,16 +162,16 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         //
 
         if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
-        tr.SetChi2(chi2);        
-        
-//        cout << "VERTEX-start" << endl;
+        tr.SetChi2(chi2);
+
+        //        cout << "VERTEX-start" << endl;
         vector<Double_t>* Fnew = new vector<Double_t> (25, 0.);
         FairTrackParam parZero = *tr.GetParamFirst();
         fKalman->RK4TrackExtrapolate(&parZero, 0.0, Fnew);
         if (Fnew != NULL) delete Fnew;
         tr.SetParamFirst(parZero);
-//        cout << "VERTEX-finish" << endl;
-        
+        //        cout << "VERTEX-finish" << endl;
+
         if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
         else tr.SetFlag(kBMNGOOD);
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);

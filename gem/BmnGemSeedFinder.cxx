@@ -11,7 +11,8 @@ map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histo
 vector<Bool_t> hitPresence;
 const UInt_t kNHITSFORSEED = 12; // we use for seeds only kNHITSFORSEED hits
 const UInt_t kMAXSTATIONFORSEED = 12; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
-const Float_t kCHI2CUT = 1.0;
+const Float_t kCHI2CUT = 0.7;
+const Float_t kSIGMACUT = 0.5;
 
 using std::cout;
 using namespace TMath;
@@ -88,9 +89,9 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
         }
 
         DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArray);
-//                cout << "fGemSeedsArray->GetEntriesFast() = " << fGemSeedsArray->GetEntriesFast() << endl;
+        //                cout << "fGemSeedsArray->GetEntriesFast() = " << fGemSeedsArray->GetEntriesFast() << endl;
     }
-
+    
     cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit)
         GetHit(iHit)->SetUsing(kFALSE);
@@ -179,17 +180,19 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
             SetHitsUnused(trackCand);
             continue;
         }
-        //        TVector3 circPar = CircleFit(&trackCand);
-        TVector3 spirPar = SpiralFit(&trackCand, fGemHitsArray);
 
+        TVector3 linePar = LineFit(&trackCand, fGemHitsArray);
+        if (linePar.Z() > kSIGMACUT) {
+            SetHitsUnused(trackCand);
+            continue;
+        }
+
+        TVector3 spirPar = SpiralFit(&trackCand, fGemHitsArray);
         if (ChiSq(spirPar, &trackCand, fGemHitsArray) > kCHI2CUT) {
             SetHitsUnused(trackCand);
             continue;
         }
-        //        cout << circPar.Z() << " " << spirPar.Z() << endl;
-        //        TVector3 circPar = CircleBy3Hit(&trackCand);
-        TVector3 linePar = LineFit(&trackCand, fGemHitsArray);
-        //if (circPar.Z() < 0.00001) continue;
+        
         trCntr++;
         trackCand.SortHits();
 

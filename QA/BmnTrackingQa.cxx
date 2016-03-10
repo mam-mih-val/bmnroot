@@ -20,12 +20,14 @@
 #include "CbmStsTrack.h"
 #include "BmnGemTrack.h"
 #include "BmnTrackMatch.h"
+#include "BmnMatch.h"
 #include "CbmTofHit.h"
 #include "BmnDchHit.h"
 #include "FairRunAna.h"
 #include "FairMCEventHeader.h"
 #include "TFitResult.h"
-
+#include "BmnMath.h"
+#include "BmnGemStripHit.h"
 #include "TH1.h"
 #include "TF1.h"
 #include "TH2F.h"
@@ -167,6 +169,10 @@ void BmnTrackingQa::ReadDataBranches() {
         fGemPoints = (TClonesArray*) ioman->GetObject("StsPoint");
         if (NULL == fGemPoints) {
             cout << "BmnTrackingQA::Init: No GemPoint array!" << endl;
+        }
+        fGemHitMatches = (TClonesArray*) ioman->GetObject("BmnGemStripHitMatch");
+        if (NULL == fGemHitMatches) {
+            cout << "BmnTrackingQA::Init: No BmnGemStripHitMatch array!" << endl;
         }
     }
     if (fDet.GetDet(kTOF1)) {
@@ -458,14 +464,14 @@ void BmnTrackingQa::CreateHistograms() {
 
     // Physics
     CreateH2("momRes_2D_glob", "P_{sim}, GeV/c", "#Delta P / P, %", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, -50.0, 50.0);
-    CreateH2("momRes_2D_gem", "P_{sim}, GeV/c", "#Delta P / P, %", "", 400, fPRangeMin, fPRangeMax, 400, -100.0, 100.0);
+    CreateH2("momRes_2D_gem", "P_{sim}, GeV/c", "|#Delta P| / P, %", "", 400, fPRangeMin, fPRangeMax, 400, 0.0, 50.0);
     CreateH2("EtaP_rec_gem", "#eta_{rec}", "P_{rec}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_rec_glob", "#eta_{rec}", "P_{rec}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("ThetaP_sim", "#theta_{sim}", "P_{sim}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("ThetaP_rec_gem", "#theta_{rec}", "P_{rec}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH1("momRes_1D_glob", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("momRes_1D_gem", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("momRes_1D_gem", "P_{sim}, GeV/c", "#LT|#Delta P| / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim_gem", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 400, fPRangeMin, fPRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim_glob", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 400, fPRangeMin, fPRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("Px_rec_Px_sim_gem", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 400, -fPtRangeMax, fPtRangeMax, 400, -fPtRangeMax, fPtRangeMax);
@@ -571,6 +577,21 @@ void BmnTrackingQa::ProcessGem() {
         if (gemTrackMatch->GetNofLinks() == 0) continue;
         Int_t gemMCId = gemTrackMatch->GetMatchedLink().GetIndex();
         vector<Int_t>::iterator it = find(refs.begin(), refs.end(), gemMCId);
+        
+        TVector3 linePar = LineFit(track, fGemHits);
+        if (linePar.Z() > 1.0) {
+//            cout << "========= " << linePar.Z() << " ===========" << endl;
+//            for (Int_t i = 0; i < track->GetNHits(); ++i) {
+//                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetHitIndex(i));
+//                BmnMatch* hitMatch = (BmnMatch*) fGemHitMatches->At(track->GetHitIndex(i));
+//                Int_t gemPointId = hitMatch->GetMatchedLink().GetIndex();
+//                FairMCPoint* mcPoint = (FairMCPoint*) (fGemPoints->At(gemPointId));
+//                if (!mcPoint) continue;
+//                cout << "trackId = " << mcPoint->GetTrackID() << endl;
+//                cout << " x = " << hit->GetX() << " | y = " << hit->GetY() << " | z = " << hit->GetZ() << endl;
+//            }
+            continue;
+        }
 
         if (it != refs.end() && gemMCId != -1) {
             splits.push_back(gemMCId);
@@ -646,7 +667,7 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("Well_vs_Theta_gem")->Fill(Theta_sim);
             fHM->H1("Well_vs_Nh_gem")->Fill(N_rec);
 
-            fHM->H2("momRes_2D_gem")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
+            fHM->H2("momRes_2D_gem")->Fill(P_sim, Abs(P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Chi2_gem")->Fill(track->GetChi2() / track->GetNDF(), (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Length_gem")->Fill(track->GetLength(), (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("Mom_vs_Chi2_gem")->Fill(track->GetChi2() / track->GetNDF(), P_rec);

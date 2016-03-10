@@ -277,6 +277,7 @@ private:
     TClonesArray* fGemMatches; // BmnGemTrackMatch array
     TClonesArray* fGemSeeds; // BmnGemTrack array
     TClonesArray* fGemSeedMatches; // BmnGemTrackMatch array
+    TClonesArray* fGemHitMatches;
 
     TClonesArray* fGemPoints;
     TClonesArray* fGemHits;

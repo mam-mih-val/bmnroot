@@ -258,7 +258,7 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
     Int_t momResStep = 10;
     for (Int_t iBin = 0; iBin < HM()->H2(name2d.Data())->GetNbinsX(); iBin += momResStep) {
         TH1D* proj = HM()->H2(name2d.Data())->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
-        proj->Fit("gaus", "SQRww", "", -10.0, 10.0);
+        proj->Fit("gaus", "SQRww", "", 0.0, 50.0);
         TF1 *fit = proj->GetFunction("gaus");
         Float_t mean = TMath::Abs(fit->GetParameter(1));//(fit->GetParameter(1) < 50.0) ? fit->GetParameter(1) : 0.0;
         Float_t sigma = fit->GetParameter(2);

@@ -207,8 +207,18 @@ TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr) {
 
     a = (nHits * SumZY - SumZ * SumY) / (nHits * SumZ2 - Sqr(SumZ));
     b = (SumY - a * SumZ) / nHits;
-
-    return TVector3(a, b, 0.0);
+    
+    Float_t sig = 0.0;
+    
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+        Zi = hit->GetZ();
+        Yi = hit->GetY();
+        sig += Sqr(Yi - a * Zi - b);
+    }
+    sig = Sqrt(sig / nHits);
+    
+    return TVector3(a, b, sig);
 
 }
 

@@ -115,11 +115,15 @@ TVector3 SpiralFit(const BmnGemTrack* tr, const TClonesArray* arr) {
 }
 
 Bool_t IsParCorrect(const FairTrackParam* par) {
-    const Float_t maxSlope = 5.;
+    const Float_t maxSlopeX = 5.;
+    const Float_t maxSlopeY = 0.5;
+    const Float_t maxX = 150.0;
+    const Float_t maxY = 100.0;
     const Float_t minSlope = 1e-10;
     const Float_t maxQp = 1000.; // p = 10 MeV
 
-    if (abs(par->GetTx()) > maxSlope || abs(par->GetTy()) > maxSlope || abs(par->GetTx()) < minSlope || abs(par->GetTy()) < minSlope || abs(par->GetQp()) > maxQp) return kFALSE;
+    if (abs(par->GetTx()) > maxSlopeX || abs(par->GetTy()) > maxSlopeY || abs(par->GetTx()) < minSlope || abs(par->GetTy()) < minSlope || abs(par->GetQp()) > maxQp) return kFALSE;
+    if (abs(par->GetX()) > maxX || abs(par->GetY()) > maxY) return kFALSE;
     if (isnan(par->GetX()) || isnan(par->GetY()) || isnan(par->GetTx()) || isnan(par->GetTy()) || isnan(par->GetQp())) return kFALSE;
 
     return kTRUE;

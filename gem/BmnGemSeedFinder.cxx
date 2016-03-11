@@ -488,36 +488,6 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 sp
     return kTRUE;
 }
 
-//TVector3 BmnGemSeedFinder::CircleBy3Hit(BmnGemTrack* track) {
-//    const Float_t nHits = track->GetNHits();
-//    if (nHits != 3) return TVector3(0.0, 0.0, 0.0);
-//
-//    Float_t x1 = GetHit(track->GetHitIndex(0))->GetX();
-//    Float_t z1 = GetHit(track->GetHitIndex(0))->GetZ();
-//    Float_t x2 = GetHit(track->GetHitIndex(1))->GetX();
-//    Float_t z2 = GetHit(track->GetHitIndex(1))->GetZ();
-//    Float_t x3 = GetHit(track->GetHitIndex(2))->GetX();
-//    Float_t z3 = GetHit(track->GetHitIndex(2))->GetZ();
-//
-//    Float_t x1_2 = x1 * x1;
-//    Float_t z1_2 = z1 * z1;
-//    Float_t x2_2 = x2 * x2;
-//    Float_t z2_2 = z2 * z2;
-//    Float_t x3_2 = x3 * x3;
-//    Float_t z3_2 = z3 * z3;
-//
-//    Float_t B = ((x1 - x3) * (x2_2 + z2_2) + (x2 - x1) * (x3_2 + z3_2) + (x3 - x2) * (x1_2 + z1_2)) / (x1 * (z3 - z2) + x2 * (z1 - z3) + x3 * (z2 - z1));
-//    Float_t A = ((x2_2 + z2_2) - (x1_2 + z1_2) - B * (z1 - z2)) / (x1 - x2);
-//    Float_t C = -x1_2 - z1_2 - A * x1 - B * z1;
-//
-//    Float_t Xc = -A / 2;
-//    Float_t Zc = -B / 2;
-//    Float_t R = Sqrt(A * A + B * B - 4 * C) / 2;
-//
-//    return TVector3(Xc, Zc, R);
-//
-//}
-
 TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack* track) {
 
     Float_t Xi, Yi; //centered coordinates

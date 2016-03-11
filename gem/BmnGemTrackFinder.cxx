@@ -160,8 +160,8 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         //        const Float_t Py = Pz * Ty;
         //        Float_t QP = 1.0 / Sqrt(Px * Px + Py * Py + Pz * Pz);
         //
-
-        if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
+        if (!IsParCorrect(tr.GetParamFirst())) continue;
+        //if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
         tr.SetChi2(chi2);
 
         //        cout << "VERTEX-start" << endl;
@@ -172,8 +172,8 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         tr.SetParamFirst(parZero);
         //        cout << "VERTEX-finish" << endl;
 
-        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
-        else tr.SetFlag(kBMNGOOD);
+//        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
+//        else tr.SetFlag(kBMNGOOD);
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
         delete fKalman;
     }

@@ -129,9 +129,9 @@ Bool_t IsParCorrect(const FairTrackParam* par) {
     return kTRUE;
 }
 
-Float_t ChiSq(const TVector3 par, const BmnGemTrack* tr, const TClonesArray* arr) {
-    Float_t a = par.X();
-    Float_t b = par.Y();
+Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* arr) {
+    Float_t a = par->X();
+    Float_t b = par->Y();
     Float_t sum = 0.0;
     for (Int_t i = 0; i < tr->GetNHits(); ++i) {
         BmnHit* hit = (BmnHit*) arr->At(tr->GetHitIndex(i));

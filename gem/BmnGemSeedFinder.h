@@ -32,13 +32,13 @@ public:
     UInt_t SearchTrackCandidates(Int_t startStation, Int_t gate, Bool_t isIdeal, Bool_t isLeft, TClonesArray* arr);
     void SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal);
     Bool_t CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar, TVector3 linePar);
-    Bool_t CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 spirPar, TVector3 linePar);
+    Bool_t CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* spirPar, TVector3* linePar);
     BmnStatus DoSeeding(Int_t min, Int_t max, TClonesArray* arr);
     TVector3 CircleFit(BmnGemTrack* track);
 //    TVector3 LineFit(BmnGemTrack* track);
 //    TVector3 CircleBy3Hit(BmnGemTrack* track);
     
-    void SetHitsUnused(const BmnGemTrack tr);
+    void SetHitsUnused(BmnGemTrack* tr);
         
     Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
     

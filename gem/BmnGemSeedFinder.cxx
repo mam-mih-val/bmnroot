@@ -55,6 +55,8 @@ InitStatus BmnGemSeedFinder::Init() {
     fMin = -0.5;
     fMax = -fMin;
     fWidth = (fMax - fMin) / fNBins;
+    
+    fField = FairRunAna::Instance()->GetField();
 
     cout << "======================== Seed finder init finished ========================" << endl;
 }
@@ -91,7 +93,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
         DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArray);
         //                cout << "fGemSeedsArray->GetEntriesFast() = " << fGemSeedsArray->GetEntriesFast() << endl;
     }
-    
+
     cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit)
         GetHit(iHit)->SetUsing(kFALSE);
@@ -146,13 +148,13 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
 
         if (hit->IsUsed()) continue;
         if (startStation != hit->GetStation()) continue;
-
-        BmnGemTrack trackCand;
-
-        Int_t xAddr = hit->GetXaddr();
+        
         Int_t yAddr = hit->GetYaddr();
 
         if ((yAddr - gate) < 0 || (yAddr + gate) > fNBins) continue;
+        
+        Int_t xAddr = hit->GetXaddr();
+                BmnGemTrack trackCand;
 
         Int_t dist = 0;
         Int_t maxDist = 0;
@@ -177,31 +179,31 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         trackCand.SortHits();
         const Int_t minNHitsForFit = kNHITSFORFIT;
         if (trackCand.GetNHits() < minNHitsForFit) { // don't fit track by circle with less then 4 hits
-            SetHitsUnused(trackCand);
+            SetHitsUnused(&trackCand);
             continue;
         }
 
         TVector3 linePar = LineFit(&trackCand, fGemHitsArray);
         if (linePar.Z() > kSIGMACUT) {
-            SetHitsUnused(trackCand);
+            SetHitsUnused(&trackCand);
             continue;
         }
 
         TVector3 spirPar = SpiralFit(&trackCand, fGemHitsArray);
-        if (ChiSq(spirPar, &trackCand, fGemHitsArray) > kCHI2CUT) {
-            SetHitsUnused(trackCand);
+        if (ChiSq(&spirPar, &trackCand, fGemHitsArray) > kCHI2CUT) {
+            SetHitsUnused(&trackCand);
             continue;
         }
-        
+
         trCntr++;
         trackCand.SortHits();
 
         //        if (CalculateTrackParams(&trackCand, circPar, linePar)) {
-        if (CalculateTrackParamsSpiral(&trackCand, spirPar, linePar)) {
+        if (CalculateTrackParamsSpiral(&trackCand, &spirPar, &linePar)) {
             //            new((*fGemSeedsArray)[fGemSeedsArray->GetEntriesFast()]) BmnGemTrack(trackCand);
             new((*arr)[arr->GetEntriesFast()]) BmnGemTrack(trackCand);
         } else {
-            SetHitsUnused(trackCand);
+            SetHitsUnused(&trackCand);
             continue;
         }
     }
@@ -415,13 +417,9 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar,
     return kTRUE;
 }
 
-Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 spirPar, TVector3 linePar) {
+Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* spirPar, TVector3* linePar) {
     //Needed for start approximation of track parameters
 
-    Float_t R = spirPar.Z();
-    Float_t a = spirPar.X();
-    Float_t b = spirPar.Y();
-    fField = FairRunAna::Instance()->GetField();
     const Int_t nHits = tr->GetNHits();
     BmnGemStripHit* lastHit = GetHit(tr->GetHitIndex(nHits - 1));
     //    BmnGemStripHit* preLastHit = GetHit(tr->GetHitIndex(nHits - 2));
@@ -430,7 +428,11 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3 sp
 
     if (!firstHit || !lastHit) return kFALSE;
 
-    const Float_t B = linePar.X(); //angle coefficient for helix
+    Float_t R = spirPar->Z();
+    Float_t a = spirPar->X();
+    Float_t b = spirPar->Y();
+
+    const Float_t B = linePar->X(); //angle coefficient for helix
 
     FairTrackParam par;
 
@@ -868,7 +870,7 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
     //cout << "addresses.size = " << addresses.size() << endl;
 }
 
-void BmnGemSeedFinder::SetHitsUnused(const BmnGemTrack tr) {
-    for (Int_t i = 0; i < tr.GetNHits(); ++i)
-        GetHit(tr.GetHitIndex(i))->SetUsing(kFALSE);
+void BmnGemSeedFinder::SetHitsUnused(BmnGemTrack* tr) {
+    for (Int_t i = 0; i < tr->GetNHits(); ++i)
+        GetHit(tr->GetHitIndex(i))->SetUsing(kFALSE);
 }

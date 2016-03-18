@@ -58,6 +58,8 @@ InitStatus BmnGemTrackFinder::Init() {
     fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
     fMCPointsArray = (TClonesArray*) ioman->GetObject("StsPoint");
 
+    fField = FairRunAna::Instance()->GetField();
+
     fPropagator = new BmnTrackPropagator();
 
     cout << "======================== GEM track finder init finished ===================" << endl;
@@ -71,14 +73,13 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fGemTracksArray->Clear();
 
-    fField = FairRunAna::Instance()->GetField();
-
     CheckSplitting(fGemSeedsArray);
     for (Int_t iTr = 0; iTr < fGemSeedsArray->GetEntriesFast(); ++iTr) {
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArray->At(iTr);
         if (track->GetChi2() < 0.0) continue; //split param
 
         BmnGemTrack tr = *track;
+        if (tr.GetNHits() < 4) continue;
 
         if (!CalculateParamsByCircle(&tr)) continue;
 
@@ -87,9 +88,9 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         if (!IsParCorrect(parF)) continue;
         if (!IsParCorrect(parL)) continue;
-
-        if (tr.GetNHits() < 4) continue;
+        
         vector<BmnFitNode> nodes;
+        nodes.reserve(tr.GetNHits());
         Float_t chi2 = 0.0;
         fKalman = new BmnKalmanFilter_tmp();
         vector<Double_t>* F = new vector<Double_t> (25, 0.);
@@ -172,8 +173,8 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         tr.SetParamFirst(parZero);
         //        cout << "VERTEX-finish" << endl;
 
-//        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
-//        else tr.SetFlag(kBMNGOOD);
+        //        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
+        //        else tr.SetFlag(kBMNGOOD);
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
         delete fKalman;
     }
@@ -218,8 +219,9 @@ BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesAr
 
         Float_t zJ = firstJ->GetZ();
         Float_t yJ = firstJ->GetY();
-        Float_t tyJ = firstJ->GetTy();
         if (zI > zJ) continue;
+        Float_t tyJ = firstJ->GetTy();
+        
         TVector3 spirParJ = SpiralFit(trackJ, fGemHitArray);
         Float_t aJ = spirParJ.X();
         Float_t bJ = spirParJ.Y();
@@ -449,19 +451,18 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge1(UInt_t station, BmnGemTrack* tr) {
 
 Bool_t BmnGemTrackFinder::CalculateParamsByCircle(BmnGemTrack* tr) {
     //Needed for start approximation of track parameters
-
-    TVector3 circPar = CircleBy3Hit(tr, fGemHitArray);
+    
+    BmnGemStripHit* firstHit = (BmnGemStripHit*) fGemHitArray->At(tr->GetHitIndex(0));
+    if (!firstHit) return kFALSE;
+    
     TVector3 linePar = LineFit(tr, fGemHitArray);
+    TVector3 circPar = CircleBy3Hit(tr, fGemHitArray);
 
     Float_t R = circPar.Z(); // radius of fit-circle
     Float_t Xc = circPar.X(); // x-coordinate of fit-circle center
     Float_t Zc = circPar.Y(); // z-coordinate of fit-circle center
-    fField = FairRunAna::Instance()->GetField();
-    const Int_t nHits = tr->GetNHits();
-    BmnGemStripHit* firstHit = (BmnGemStripHit*) fGemHitArray->At(tr->GetHitIndex(0));
-    if (!firstHit) return kFALSE;
-
     const Float_t B = linePar.X(); //angle coefficient for helicoid
+    const Int_t nHits = tr->GetNHits();
 
     Float_t Xmean(0.0), Ymean(0.0), Zmean(0.0); // <Xi> , <Yi> , <Zi>
     Float_t ZXmean(0.0); // <(Zi-Zc)/(Xi-Xc)>

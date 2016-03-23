@@ -74,13 +74,15 @@ InitStatus FairWebScreenshots::Init()
     // start web server if required
     if (isWeb && (!isWebStarted))
     {
-        log_file = ".log";
-        mime_file = "mime.types";
-
         // Set daemon to FALSE
         daemon = 0;
 
-        TThread* threadWebServ = new TThread((TThread::VoidFunc_t)&start_server, NULL, TThread::kNormalPriority);
+        www_thread_par* pPar = new www_thread_par();
+        pPar->web_port = web_port;
+        pPar->outputDir = outputDir;
+        pPar->daemon = daemon;
+
+        TThread* threadWebServ = new TThread((TThread::VoidFunc_t)&start_server, (void*)pPar, TThread::kNormalPriority);
         threadWebServ->Run();
         isWebStarted = true;
     }
@@ -210,7 +212,7 @@ void FairWebScreenshots::sendHeader(const char* Status_code, char* Content_Type,
 }
 
 // send file
-void FairWebScreenshots::sendFile(FILE* fp)
+void FairWebScreenshots::sendFile(FILE* fp, int connecting_socket)
 {
 	int current_char = 0;
 	do
@@ -266,6 +268,7 @@ int FairWebScreenshots::checkMime(char *extension, char *mime_type)
 	char *line = (char*)malloc(200);
 	int startline = 0;
 
+	TString mime_file = "mime.types";
 	FILE* mimeFile = fopen(mime_file.Data(), "r");
 
 	free(mime_type);
@@ -373,7 +376,7 @@ int FairWebScreenshots::Content_Lenght(FILE *fp)
 }
 
 // IF NOT EXISTS - RETURN -1. IF EXISTS - RETURN 1
-int FairWebScreenshots::handleHttpGET(char *input)
+int FairWebScreenshots::handleHttpGET(char *input, TString output_dir, int connecting_socket)
 {
 	char *filename = (char*)malloc(200 * sizeof(char));
 	char *path = (char*)malloc(1000 * sizeof(char));
@@ -434,7 +437,7 @@ int FairWebScreenshots::handleHttpGET(char *input)
 	}
 
 	// Open the requesting file as binary
-	strcpy(path, outputDir.Data());
+	strcpy(path, output_dir.Data());
 	strcat(path, filename);
 
 	FILE* fp = fopen(path, "rb");
@@ -471,7 +474,7 @@ int FairWebScreenshots::handleHttpGET(char *input)
 	// Send File Content
 	sendHeader("200 OK", mime, contentLength, connecting_socket);
 
-	sendFile(fp);
+	sendFile(fp, connecting_socket);
 
 	free(filename);
 	free(mime);
@@ -507,12 +510,12 @@ int FairWebScreenshots::getRequestType(char *input)
 	return type;
 }
 
-int FairWebScreenshots::receive(int socket)
+int FairWebScreenshots::receive(int connecting_socket, TString output_dir)
 {
 	char buffer[BUFFER_SIZE];
 	memset(buffer,'\0', BUFFER_SIZE);
 
-	if ((recv(socket, buffer, BUFFER_SIZE, 0)) == -1)
+	if ((recv(connecting_socket, buffer, BUFFER_SIZE, 0)) == -1)
 	{
 		printf("Error handling incoming request");
 		return -1;
@@ -520,7 +523,7 @@ int FairWebScreenshots::receive(int socket)
 
 	int request = getRequestType(buffer);
 	if (request == 1)				// GET
-		handleHttpGET(buffer);
+		handleHttpGET(buffer, output_dir, connecting_socket);
 	else
 		if (request == 2)			// HEAD
 			1; //SendHeader();
@@ -533,12 +536,12 @@ int FairWebScreenshots::receive(int socket)
 	return 1;
 }
 
-int FairWebScreenshots::acceptConnection()
+int FairWebScreenshots::acceptConnection(int currentSocket, TString output_dir)
 {
 	sockaddr_storage connectorSocket;
 	socklen_t addressSize = sizeof(connectorSocket);
 
-	connecting_socket = accept(currentSocket, (struct sockaddr *)&(connectorSocket), &addressSize);
+	int connecting_socket = accept(currentSocket, (struct sockaddr *)&(connectorSocket), &addressSize);
 	if (connecting_socket < 0)
 	{
 		perror("Accepting sockets");
@@ -550,7 +553,7 @@ int FairWebScreenshots::acceptConnection()
 	// 2. Process the request and see if the file exists
 	// 3. Read the file content
 	// 4. Send out with correct mine and http 1.1
-	if (receive(connecting_socket) < 0)
+	if (receive(connecting_socket, output_dir) < 0)
 	{
 		perror("Receive");
 		return -1;
@@ -561,10 +564,10 @@ int FairWebScreenshots::acceptConnection()
 	while (-1 != waitpid(-1, NULL, WNOHANG));
 }
 
-int FairWebScreenshots::start()
+int FairWebScreenshots::start(int webPort, TString output_dir)
 {
 	// Create a socket and assign currentSocket to the descriptor
-	currentSocket = socket(AF_INET, SOCK_STREAM, 0);
+	int currentSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (currentSocket == -1)
 	{
 		perror("Create socket");
@@ -575,7 +578,7 @@ int FairWebScreenshots::start()
 	struct sockaddr_in address;
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(web_port);
+	address.sin_port = htons(webPort);
 
 	if (bind(currentSocket, (struct sockaddr *)&address, sizeof(address)) < 0)
 	{
@@ -591,14 +594,20 @@ int FairWebScreenshots::start()
 	}
 
 	while (1)
-		acceptConnection();
+		acceptConnection(currentSocket, output_dir);
 }
 
 int FairWebScreenshots::start_server(void* ptr)
 {
+	www_thread_par* pPar = (www_thread_par*)ptr;
+	int webPort = pPar->web_port;
+	TString output_dir = pPar->outputDir;
+	int daemon = pPar->daemon;
+
 	int argc = 0;
 	char** argv = NULL;
 
+	TString log_file;
 	for (int parameterCount = 1; parameterCount < argc; parameterCount++)
 	{
 		// If flag -p is used, set port
@@ -607,7 +616,7 @@ int FairWebScreenshots::start_server(void* ptr)
 			// Indicate that we want to jump over the next parameter
 			parameterCount++;
 			printf("Setting port to %i\n", atoi(argv[parameterCount]));
-			web_port = atoi(argv[parameterCount]);
+			webPort = atoi(argv[parameterCount]);
 		}
 		// If flag -d is used, set daemon to TRUE;
 		else
@@ -639,15 +648,15 @@ int FairWebScreenshots::start_server(void* ptr)
 	}
 
 	printf("Settings:\n");
-	printf("Port:\t\t\t%i\n", web_port);
-	printf("Server root:\t\t%s\n", outputDir.Data());
+	printf("Port:\t\t\t%i\n", webPort);
+	printf("Server root:\t\t%s\n", output_dir.Data());
 	printf("Logfile:\t\t%s\n", log_file.Data());
 	printf("daemon:\t\t\t%i\n", daemon);
 
 	if (daemon == 1)
 		daemonize();
 
-	start();
+	start(webPort, output_dir);
 
 	return 0;
 }

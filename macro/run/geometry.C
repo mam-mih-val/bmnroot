@@ -1,6 +1,6 @@
 // construct detector geometry
-geometry(FairRunSim *fRun)
-{    
+
+geometry(FairRunSim *fRun) {
     // Set Material file Name
     fRun->SetMaterials("media.geo");
 
@@ -20,7 +20,7 @@ geometry(FairRunSim *fRun)
     FairModule* magnet = new FairMagnet("MAGNET");
     magnet->SetGeometryFileName("magnet_modified.root");
     fRun->AddModule(magnet);
-    
+
     // -----   Create detectors        -------------------------
     FairDetector* tof = new CbmTof("TOF", kTRUE);
     tof->SetGeometryFileName("tof_v07a.geo");
@@ -33,8 +33,8 @@ geometry(FairRunSim *fRun)
     fRun->AddModule(psd);
 
     FairDetector* sts = new CbmSts("STS", kTRUE);
-	 sts->SetGeometryFileName("GEMS_v3.root");
-//    sts->SetGeometryFileName("GEMS_1stConfig.root");
+//    sts->SetGeometryFileName("GEMS_v3.root");
+        sts->SetGeometryFileName("GEMS_1stConfig.root");
     //sts->SetGeometryFileName("GEMS_1stConfigShort.root");
     //sts->SetGeometryFileName("GEMS_2ndConfig.root");
     fRun->AddModule(sts);
@@ -42,17 +42,25 @@ geometry(FairRunSim *fRun)
     FairDetector* recoil = new BmnRecoil("RECOIL", kTRUE);
     recoil->SetGeometryFileName("recoil_modules_70x12_v1.geo");
     fRun->AddModule(recoil);
-    
+
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
-//  tof1->SetGeometryFileName("tof1_W400_v1.geo");
+    //  tof1->SetGeometryFileName("tof1_W400_v1.geo");
     tof1->SetGeometryFileName("TOFB1_v2.root");
     fRun->AddModule(tof1);
-    
+
     FairDetector* dch1 = new BmnDch1("DCH1", kTRUE);
     dch1->SetGeometryFileName("dch1_v1.root");
     fRun->AddModule(dch1);
-    
+
     FairDetector* dch2 = new BmnDch2("DCH2", kTRUE);
     dch2->SetGeometryFileName("dch2_v1.root");
     fRun->AddModule(dch2);
+
+    FairDetector* bd = new BmnBd("BD", kTRUE);
+    bd->SetGeometryFileName("bd_v1_0.geo");
+    fRun->AddModule(bd);
+
+    FairDetector* emc = new BmnEcal("EMC", kTRUE);
+    emc->SetGeometryFileName("ecal_v1_0.geo");
+    fRun->AddModule(emc);
 }

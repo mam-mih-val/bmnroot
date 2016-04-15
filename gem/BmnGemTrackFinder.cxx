@@ -79,7 +79,8 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         if (track->GetChi2() < 0.0) continue; //split param
 
         BmnGemTrack tr = *track;
-        if (tr.GetNHits() < 4) continue;
+        const Short_t nHits = tr.GetNHits();
+        if (nHits < 4) continue;
 
         if (!CalculateParamsByCircle(&tr)) continue;
 
@@ -88,9 +89,9 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         if (!IsParCorrect(parF)) continue;
         if (!IsParCorrect(parL)) continue;
-        
+
         vector<BmnFitNode> nodes;
-        nodes.reserve(tr.GetNHits());
+        nodes.reserve(nHits);
         Float_t chi2 = 0.0;
         fKalman = new BmnKalmanFilter_tmp();
         vector<Double_t>* F = new vector<Double_t> (25, 0.);
@@ -105,7 +106,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         Float_t length = 0.0;
 
-        for (Int_t iHit = 0; iHit < tr.GetNHits(); ++iHit) {
+        for (Int_t iHit = 0; iHit < nHits; ++iHit) {
             BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(tr.GetHitIndex(iHit));
             Float_t z = hit->GetZ();
             BmnFitNode node;
@@ -138,40 +139,9 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
         tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
 
-        //        TVector3 spirPar = SpiralFit(&tr, fGemHitArray);
-        //        Float_t R = spirPar.Z();
-        //        Float_t b = spirPar.Y();
-        //        Float_t a = spirPar.X();
-        //        BmnGemStripHit* hit0 = (BmnGemStripHit*) GetHit(tr.GetHitIndex(0));
-        //        Float_t x0 = hit0->GetX();
-        //        Float_t y0 = hit0->GetY();
-        //        Float_t z0 = hit0->GetZ();
-        //        Float_t Tx = Tan(-a / b);
-        //        Float_t Ty = tr.GetParamFirst()->GetTy();
-        //        const Float_t Pxz = 0.0003 * Abs(fField->GetBy(x0, y0, z0)) * R; // Pt
-        //
-        //        //        Float_t R1 = Abs (b /2);
-        //        //        const Float_t Pxz1 = 0.0003 * Abs(fField->GetBy(0, 0, 0)) * R1; // Pt
-        //        //        cout << "R = " << R << " | R1 = " << R1 << endl;
-        //        //        cout << "B = " << Abs(fField->GetBy(x0, y0, z0)) << " | B1 = " << Abs(fField->GetBy(0, 0, 0)) << endl;
-        //        //        cout << "Pxz = " << Pxz << " | Pxz1 = " << Pxz1 << endl;
-        //        if (Abs(Pxz) < 0.00001) continue;
-        //        const Float_t Pz = Pxz / Sqrt(1 + Sqr(Tx));
-        //        const Float_t Px = Pz * Tx;
-        //        const Float_t Py = Pz * Ty;
-        //        Float_t QP = 1.0 / Sqrt(Px * Px + Py * Py + Pz * Pz);
-        //
         if (!IsParCorrect(tr.GetParamFirst())) continue;
         //if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
         tr.SetChi2(chi2);
-
-        //        cout << "VERTEX-start" << endl;
-        vector<Double_t>* Fnew = new vector<Double_t> (25, 0.);
-        FairTrackParam parZero = *tr.GetParamFirst();
-        fKalman->RK4TrackExtrapolate(&parZero, 0.0, Fnew);
-        if (Fnew != NULL) delete Fnew;
-        tr.SetParamFirst(parZero);
-        //        cout << "VERTEX-finish" << endl;
 
         //        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
         //        else tr.SetFlag(kBMNGOOD);
@@ -221,7 +191,7 @@ BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesAr
         Float_t yJ = firstJ->GetY();
         if (zI > zJ) continue;
         Float_t tyJ = firstJ->GetTy();
-        
+
         TVector3 spirParJ = SpiralFit(trackJ, fGemHitArray);
         Float_t aJ = spirParJ.X();
         Float_t bJ = spirParJ.Y();
@@ -451,10 +421,10 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge1(UInt_t station, BmnGemTrack* tr) {
 
 Bool_t BmnGemTrackFinder::CalculateParamsByCircle(BmnGemTrack* tr) {
     //Needed for start approximation of track parameters
-    
+
     BmnGemStripHit* firstHit = (BmnGemStripHit*) fGemHitArray->At(tr->GetHitIndex(0));
     if (!firstHit) return kFALSE;
-    
+
     TVector3 linePar = LineFit(tr, fGemHitArray);
     TVector3 circPar = CircleBy3Hit(tr, fGemHitArray);
 

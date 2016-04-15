@@ -683,7 +683,6 @@ BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits)
     vector<BmnFitNode> nodes = track->GetFitNodes();
     nodes[n - 1].SetSmoothedParam(nodes[n - 1].GetUpdatedParam());
 
-    //        start with the before the last detector plane
     for (int i = n - 1; i > 0; i--) {
 //        cout << "i = " << i << endl;
 //        nodes[i].GetSmoothedParam()->Print();

@@ -5,10 +5,10 @@
 // nEvents - number of events to transport, default: 1
 // outFile - output file with MC data, default: evetest.root
 // flag_store_FairRadLenPoint
-void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
+void run_sim_bmn(TString inFile = "dc4mb.r12", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10000,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
-#define URQMD
+#define LAQGSM
 
     TStopwatch timer;
     timer.Start();
@@ -100,8 +100,8 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
 #ifdef BOX
     gRandom->SetSeed(0);
     // ------- Box Generator 
-    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 50); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(0.2, 5.05); // GeV/c //setPRange vs setPtRange
+    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
+    boxGen->SetPRange(0.2, 5.0); // GeV/c //setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // mm o cm ??
@@ -138,7 +138,7 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
         dataFile = inFile;
     else {
         dataFile = find_path_to_URQMD_files();
-        dataFile += "/../../QGSM/"; //  nc-farm
+        if (!dataFile.Contains("/home")) dataFile += "/../../QGSM/"; //  nc-farm
         dataFile += inFile;
     }
 

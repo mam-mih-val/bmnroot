@@ -464,7 +464,7 @@ void BmnTrackingQa::CreateHistograms() {
 
     // Physics
     CreateH2("momRes_2D_glob", "P_{sim}, GeV/c", "#Delta P / P, %", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, -50.0, 50.0);
-    CreateH2("momRes_2D_gem", "P_{sim}, GeV/c", "|#Delta P| / P, %", "", 400, fPRangeMin, fPRangeMax, 400, 0.0, 50.0);
+    CreateH2("momRes_2D_gem", "P_{sim}, GeV/c", "|#Delta P| / P, %", "", 400, fPRangeMin, fPRangeMax, 400, -10.0, 10.0);
     CreateH2("EtaP_rec_gem", "#eta_{rec}", "P_{rec}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_rec_glob", "#eta_{rec}", "P_{rec}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
@@ -576,47 +576,44 @@ void BmnTrackingQa::ProcessGem() {
         if (!track || !gemTrackMatch) continue;
         if (gemTrackMatch->GetNofLinks() == 0) continue;
         Int_t gemMCId = gemTrackMatch->GetMatchedLink().GetIndex();
-        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), gemMCId);
-        
-        TVector3 linePar = LineFit(track, fGemHits);
-        if (linePar.Z() > 1.0) {
-//            cout << "========= " << linePar.Z() << " ===========" << endl;
-//            for (Int_t i = 0; i < track->GetNHits(); ++i) {
-//                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetHitIndex(i));
-//                BmnMatch* hitMatch = (BmnMatch*) fGemHitMatches->At(track->GetHitIndex(i));
-//                Int_t gemPointId = hitMatch->GetMatchedLink().GetIndex();
-//                FairMCPoint* mcPoint = (FairMCPoint*) (fGemPoints->At(gemPointId));
-//                if (!mcPoint) continue;
-//                cout << "trackId = " << mcPoint->GetTrackID() << endl;
-//                cout << " x = " << hit->GetX() << " | y = " << hit->GetY() << " | z = " << hit->GetZ() << endl;
-//            }
-            continue;
-        }
-
-        if (it != refs.end() && gemMCId != -1) {
-            splits.push_back(gemMCId);
-            //            CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(gemMCId));
-            //            cout << "N_points = " << mcTrack->GetNPoints(kGEM) << endl;
-            //            cout << "gemMCId =  " << gemMCId << " Nhits = " << track->GetNHits() << " ";
-            //            track->GetParamFirst()->Print();
-            //            for (Int_t iPnt = 0; iPnt < fGemPoints->GetEntriesFast(); ++iPnt) {
-            //                FairMCPoint* pnt = (FairMCPoint*) fGemPoints->GAt(iPnt);
-            //                if (pnt->GetTrackID() == gemMCId) {
-            //                    
-            //                }
-            //            }
-        } else
-            refs.push_back(gemMCId);
 
         CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(gemMCId));
         if (!mcTrack) continue;
+        if (fPrimes && mcTrack->GetMotherId() != -1) continue;
 
+        //        TVector3 linePar = LineFit(track, fGemHits);
+        //        if (linePar.Z() > 1.0) {
+        ////            cout << "========= " << linePar.Z() << " ===========" << endl;
+        ////            for (Int_t i = 0; i < track->GetNHits(); ++i) {
+        ////                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetHitIndex(i));
+        ////                BmnMatch* hitMatch = (BmnMatch*) fGemHitMatches->At(track->GetHitIndex(i));
+        ////                Int_t gemPointId = hitMatch->GetMatchedLink().GetIndex();
+        ////                FairMCPoint* mcPoint = (FairMCPoint*) (fGemPoints->At(gemPointId));
+        ////                if (!mcPoint) continue;
+        ////                cout << "trackId = " << mcPoint->GetTrackID() << endl;
+        ////                cout << " x = " << hit->GetX() << " | y = " << hit->GetY() << " | z = " << hit->GetZ() << endl;
+        ////            }
+        //            continue;
+        //        }        
+        
+        BmnMatch* hitMatch = (BmnMatch*) fGemHitMatches->At(track->GetHitIndex(0));
+        Int_t gemPointId = hitMatch->GetMatchedLink().GetIndex();
+        FairMCPoint* mcPoint = (FairMCPoint*) (fGemPoints->At(gemPointId));
+
+        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), gemMCId);
+        if (it != refs.end() && gemMCId != -1) {
+            //splits.push_back(gemMCId);
+            //put into splits-array id of McPoint corresponded to the first hit of the reco-track
+            splits.push_back(gemPointId); 
+        } else
+            refs.push_back(gemMCId);
+        
         Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota && track->GetNHits() >= fMinNofPointsGem;
 
-        Float_t Px_sim = mcTrack->GetPx();
-        Float_t Py_sim = mcTrack->GetPy();
-        Float_t Pz_sim = mcTrack->GetPz();
-        Float_t P_sim = mcTrack->GetP();
+        Float_t Px_sim = mcPoint->GetPx(); //mcTrack->GetPx();
+        Float_t Py_sim = mcPoint->GetPy(); //mcTrack->GetPy();
+        Float_t Pz_sim = mcPoint->GetPz(); //mcTrack->GetPz();
+        Float_t P_sim = Sqrt(Px_sim * Px_sim + Py_sim * Py_sim + Pz_sim * Pz_sim); //mcTrack->GetP();
         Float_t Pt_sim = Sqrt(Px_sim * Px_sim + Pz_sim * Pz_sim);
         Float_t Pxy_sim = Sqrt(Px_sim * Px_sim + Py_sim * Py_sim);
         Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
@@ -667,7 +664,7 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("Well_vs_Theta_gem")->Fill(Theta_sim);
             fHM->H1("Well_vs_Nh_gem")->Fill(N_rec);
 
-            fHM->H2("momRes_2D_gem")->Fill(P_sim, Abs(P_sim - P_rec) / P_sim * 100.0);
+            fHM->H2("momRes_2D_gem")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Chi2_gem")->Fill(track->GetChi2() / track->GetNDF(), (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Length_gem")->Fill(track->GetLength(), (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("Mom_vs_Chi2_gem")->Fill(track->GetChi2() / track->GetNDF(), P_rec);
@@ -691,14 +688,18 @@ void BmnTrackingQa::ProcessGem() {
     }
 
     for (Int_t i = 0; i < splits.size(); ++i) {
-        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(splits.at(i)));
-        if (mcTrack->GetNPoints(kGEM) < fMinNofPointsGem) continue;
-        if (fPrimes && mcTrack->GetMotherId() != -1) continue;
+        FairMCPoint* mcPoint = (FairMCPoint*) (fGemPoints->At(splits[i]));
+        //const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(splits.at(i)));
+        //BmnMatch* hitMatch = (BmnMatch*) fGemHitMatches->At(track->GetHitIndex(0));
+        //Int_t gemPointId = hitMatch->GetMatchedLink().GetIndex();
+        //FairMCPoint* mcPoint = (FairMCPoint*) (fGemPoints->At(gemPointId));
+        //if (mcTrack->GetNPoints(kGEM) < fMinNofPointsGem) continue;
+        //if (fPrimes && mcTrack->GetMotherId() != -1) continue;
 
-        Float_t Px = mcTrack->GetPx();
-        Float_t Py = mcTrack->GetPy();
-        Float_t Pz = mcTrack->GetPz();
-        Float_t P = mcTrack->GetP();
+        Float_t Px = mcPoint->GetPx(); //mcTrack->GetPx();
+        Float_t Py = mcPoint->GetPy(); //mcTrack->GetPy();
+        Float_t Pz = mcPoint->GetPz(); //mcTrack->GetPz();
+        Float_t P = Sqrt(Px * Px + Py * Py + Pz * Pz); //mcTrack->GetP();
         Float_t Pxy = Sqrt(Px * Px + Py * Py);
         Float_t eta = 0.5 * Log((P + Pz) / (P - Pz));
         Float_t theta = ATan2(Pxy, Pz) * RadToDeg();

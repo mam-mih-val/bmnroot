@@ -11,7 +11,7 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(){
     n_rec=0;
 }
 
-BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile) {
+BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile, UInt_t SlewingRun, UInt_t SlewingChamber) {
 
     char *delim = 0, name[128], title[128];
     n_rec=0;
@@ -25,7 +25,13 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile) {
 
     int RUN;
     const char *fname = RunFile.Data();
-    sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
+    sscanf(&fname[strlen(fname) - 9], "%d", &RUN);
+
+    fSlewCham = SlewingChamber;
+    if (SlewingRun != 0)
+    {
+	sprintf((char *)&fname[strlen(filname_base) - 4], "%04d", SlewingRun);
+    }
 
     in.open((path + mappingFile).Data());
     in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
@@ -580,7 +586,10 @@ void BmnTof2Raw2Digit::readSlewingT0()
   {
   printf("\nread for chamber %d maxchambers %d peak %d\n", p+1, MaxPlane, pk+1);
   sprintf(filn, "%s", filname_base);
-  sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, p+1, pk+1);
+  if (fSlewCham > 0)
+   sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, fSlewCham, pk+1);
+  else 
+   sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, p+1, pk+1);
   strcat(filn, ".slewing.t0.txt");
   FILE *fin = fopen(filn,"r");
   if (fin == NULL)
@@ -856,7 +865,10 @@ void BmnTof2Raw2Digit::readSlewing()
   for (int pk = 0; pk < 2; pk++)
   {
   sprintf(filn, "%s", filname_base);
-  sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, p+1, pk+1);
+  if (fSlewCham > 0)
+   sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, fSlewCham, pk+1);
+  else
+   sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, p+1, pk+1);
   strcat(filn, ".slewing.txt");
   FILE *fin = fopen(filn,"r");
   if (fin == NULL)

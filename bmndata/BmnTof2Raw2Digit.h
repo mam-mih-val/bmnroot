@@ -35,7 +35,7 @@ public:
 class BmnTof2Raw2Digit{
 
 public:
-    BmnTof2Raw2Digit(TString mappingFile, TString RunFile = "empty");
+    BmnTof2Raw2Digit(TString mappingFile, TString RunFile = "empty", UInt_t SlewingRun = 0, UInt_t SlewingChamber = 0);
     BmnTof2Raw2Digit();
     void print();
     void getEventInfo(long long *ev,long long *t1,long long *t2);
@@ -89,6 +89,7 @@ public:
 
 private:
     char filname_base[256];
+    int fSlewCham;
     int n_rec;
     Bmn_Tof2_map_element map[TOF2_MAX_CHANNEL];
     long long EVENT,TIME_SEC,TIME_NS;

@@ -82,14 +82,12 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         const Short_t nHits = tr.GetNHits();
         if (nHits < 4) continue;
 
-        if (!CalculateParamsByCircle(&tr)) continue;
-
         FairTrackParam* parF = tr.GetParamFirst();
         FairTrackParam* parL = tr.GetParamLast();
 
         if (!IsParCorrect(parF)) continue;
         if (!IsParCorrect(parL)) continue;
-
+        
         vector<BmnFitNode> nodes;
         nodes.reserve(nHits);
         Float_t chi2 = 0.0;
@@ -140,7 +138,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
 
         if (!IsParCorrect(tr.GetParamFirst())) continue;
-        //if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
+//        if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
         tr.SetChi2(chi2);
 
         //        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
@@ -454,7 +452,7 @@ Bool_t BmnGemTrackFinder::CalculateParamsByCircle(BmnGemTrack* tr) {
     Float_t Cov_Tx_Tx(0.0), Cov_Tx_Ty(0.0), Cov_Tx_Qp(0.0);
     Float_t Cov_Ty_Ty(0.0), Cov_Ty_Qp(0.0);
     Float_t Cov_Qp_Qp(0.0);
-    Float_t Q = 1.0;
+    Float_t Q = (tr->GetParamFirst()->GetQp() > 0.0) ? +1.0 : -1.0;
     Float_t S = 0.0003 * Abs(fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
     Float_t QP = Q / S / Sqrt(R * R + B * B);
 
@@ -557,7 +555,7 @@ Bool_t BmnGemTrackFinder::CalculateParamsByCircle(BmnGemTrack* tr) {
     const Float_t PzFirst = PxzFirst / Sqrt(1 + Sqr(Tx_first));
     const Float_t PxFirst = PzFirst * Tx_first;
     const Float_t PyFirst = PzFirst * Ty_first;
-    Float_t QPFirst = 1.0 / Sqrt(PxFirst * PxFirst + PyFirst * PyFirst + PzFirst * PzFirst);
+    Float_t QPFirst = Q / Sqrt(PxFirst * PxFirst + PyFirst * PyFirst + PzFirst * PzFirst);
     par.SetPosition(TVector3(fX, fY, fZ));
     par.SetQp(QPFirst);
     par.SetTx(Tx_first);

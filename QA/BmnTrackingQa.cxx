@@ -564,27 +564,38 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("VertResY_gem", "P_{sim}, GeV/c", "#sigma_{y}, cm", fPRangeBins, fPRangeMin, fPRangeMax);
 
     //for first parameters
-    CreateH1("ResX_f_gem", "Residual X", "", 100, -20, 20);
-    CreateH1("ResY_f_gem", "Residual Y", "", 100, -20, 20);
-    CreateH1("ResTx_f_gem", "Residual Tx", "", 100, -0.5, 0.5);
-    CreateH1("ResTy_f_gem", "Residual Ty", "", 100, -0.5, 0.5);
-    CreateH1("ResQp_f_gem", "Residual Qp", "", 100, -10.0, 10.0);
-    CreateH1("PullX_f_gem", "Pull X", "", 100, -20, 20);
-    CreateH1("PullY_f_gem", "Pull Y", "", 100, -20, 20);
-    CreateH1("PullTx_f_gem", "Pull Tx", "", 100, -0.5, 0.5);
-    CreateH1("PullTy_f_gem", "Pull Ty", "", 100, -0.5, 0.5);
-    CreateH1("PullQp_f_gem", "Pull Qp", "", 100, -10.0, 10.0);
+    CreateH1("ResX_f_gem", "Residual X, cm", "", 100, -20, 20);
+    CreateH1("ResY_f_gem", "Residual Y, cm", "", 100, -20, 20);
+    CreateH1("ResTx_f_gem", "Residual t_{x}", "", 100, -0.5, 0.5);
+    CreateH1("ResTy_f_gem", "Residual t_{y}", "", 100, -0.5, 0.5);
+    CreateH1("ResQp_f_gem", "Residual q/p, (GeV/c)^{-1}", "", 100, -10.0, 10.0);
+    CreateH1("PullX_f_gem", "Pull X", "", 100, 0.0, 0.0);
+    CreateH1("PullY_f_gem", "Pull Y", "", 100, 0.0, 0.0);
+    CreateH1("PullTx_f_gem", "Pull t_{x}", "", 100, 0.0, 0.0);
+    CreateH1("PullTy_f_gem", "Pull t_{y}", "", 100, 0.0, 0.0);
+    CreateH1("PullQp_f_gem", "Pull q/p", "", 100, 0.0, 0.0);
     //for last parameters
-    CreateH1("ResX_l_gem", "Residual X", "", 100, -20, 20);
-    CreateH1("ResY_l_gem", "Residual Y", "", 100, -20, 20);
-    CreateH1("ResTx_l_gem", "Residual Tx", "", 100, -0.5, 0.5);
-    CreateH1("ResTy_l_gem", "Residual Ty", "", 100, -0.5, 0.5);
-    CreateH1("ResQp_l_gem", "Residual Qp", "", 100, -10.0, 10.0);
-    CreateH1("PullX_l_gem", "Pull X", "", 100, -20, 20);
-    CreateH1("PullY_l_gem", "Pull Y", "", 100, -20, 20);
-    CreateH1("PullTx_l_gem", "Pull Tx", "", 100, -0.5, 0.5);
-    CreateH1("PullTy_l_gem", "Pull Ty", "", 100, -0.5, 0.5);
-    CreateH1("PullQp_l_gem", "Pull Qp", "", 100, -10.0, 10.0);
+    CreateH1("ResX_l_gem", "Residual X, cm", "", 100, -20, 20);
+    CreateH1("ResY_l_gem", "Residual Y, cm", "", 100, -20, 20);
+    CreateH1("ResTx_l_gem", "Residual t_{x}", "", 100, -0.5, 0.5);
+    CreateH1("ResTy_l_gem", "Residual t_{y}", "", 100, -0.5, 0.5);
+    CreateH1("ResQp_l_gem", "Residual q/p, (GeV/c)^{-1}", "", 100, -10.0, 10.0);
+    CreateH1("PullX_l_gem", "Pull X", "", 100, 0.0, 0.0);
+    CreateH1("PullY_l_gem", "Pull Y", "", 100, 0.0, 0.0);
+    CreateH1("PullTx_l_gem", "Pull t_{x}", "", 100, 0.0, 0.0);
+    CreateH1("PullTy_l_gem", "Pull t_{y}", "", 100, 0.0, 0.0);
+    CreateH1("PullQp_l_gem", "Pull q/p", "", 100, 0.0, 0.0);
+
+    CreateH1("X_f_gem", "X, cm", "", 100, -100, 100);
+    CreateH1("Y_f_gem", "Y, cm", "", 100, -100, 100);
+    CreateH1("Tx_f_gem", "t_{x}", "", 100, -1.0, 1.0);
+    CreateH1("Ty_f_gem", "t_{y}", "", 100, -1.0, 1.0);
+    CreateH1("Qp_f_gem", "q/p, (GeV/c)^{-1}", "", 100, -20.0, 20.0);
+    CreateH1("X_l_gem", "X, cm", "", 100, -100, 100);
+    CreateH1("Y_l_gem", "Y, cm", "", 100, -100, 100);
+    CreateH1("Tx_l_gem", "t_{x}", "", 100, -1.0, 1.0);
+    CreateH1("Ty_l_gem", "t_{y}", "", 100, -1.0, 1.0);
+    CreateH1("Qp_l_gem", "q/p, (GeV/c)^{-1}", "", 100, -20.0, 20.0);
 }
 
 void BmnTrackingQa::ProcessGem() {
@@ -606,25 +617,6 @@ void BmnTrackingQa::ProcessGem() {
         const BmnMCPoint pnt = mcTrack.GetPoint(kGEM, 0);
         const BmnMCPoint pntLast = mcTrack.GetPoint(kGEM, mcTrack.GetNofPoints(kGEM) - 1);
         if (fPrimes && ((CbmMCTrack*) (fMCTracks->At(gemMCId)))->GetMotherId() != -1) continue;
-
-        //        TVector3 linePar = LineFit(track, fGemHits);
-        //        if (linePar.Z() > 1.0) {
-        ////            cout << "========= " << linePar.Z() << " ===========" << endl;
-        ////            for (Int_t i = 0; i < track->GetNHits(); ++i) {
-        ////                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetHitIndex(i));
-        ////                BmnMatch* hitMatch = (BmnMatch*) fGemHitMatches->At(track->GetHitIndex(i));
-        ////                Int_t gemPointId = hitMatch->GetMatchedLink().GetIndex();
-        ////                FairMCPoint* mcPoint = (FairMCPoint*) (fGemPoints->At(gemPointId));
-        ////                if (!mcPoint) continue;
-        ////                cout << "trackId = " << mcPoint->GetTrackID() << endl;
-        ////                cout << " x = " << hit->GetX() << " | y = " << hit->GetY() << " | z = " << hit->GetZ() << endl;
-        ////            }
-        //            continue;
-        //        }        
-
-        //        BmnMatch* hitMatch = (BmnMatch*) fGemHitMatches->At(track->GetHitIndex(0));
-        //        Int_t gemPointId = hitMatch->GetMatchedLink().GetIndex();
-        //        FairMCPoint* mcPoint = (FairMCPoint*) (fGemPoints->At(gemPointId));
 
         vector<Int_t>::iterator it = find(refs.begin(), refs.end(), gemMCId);
         if (it != refs.end() && gemMCId != -1) {
@@ -658,20 +650,6 @@ void BmnTrackingQa::ProcessGem() {
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
         Float_t Theta_rec = ATan2(Pxy_rec, Pz_rec) * RadToDeg();
         Int_t N_rec = track->GetNHits();
-
-        //        if (N_sim < 4) {
-        //            cout << "N_sim = " << N_sim << endl;
-        //            cout << "N_rec = " << N_rec << endl;
-        //            cout << "Chi2 = " << track->GetChi2() << endl;
-        //            cout << "Tx_sim = " << Px_sim / Pz_sim << endl;
-        //            cout << "Ty_sim = " << Py_sim / Pz_sim << endl;
-        //            cout << "Tx_rec = " << Tx << endl;
-        //            cout << "Ty_rec = " << Ty << endl;
-        //        }
-
-        //        cout << Px_sim << " " << Py_sim << " " << Pz_sim << " " << P_sim << " " << Pt_sim << " " << Pxy_sim << " " << Eta_sim << " " << Theta_sim << endl;
-        //        cout << Px_rec << " " << Py_rec << " " << Pz_rec << " " << P_rec << " " << Pt_rec << " " << Pxy_rec << " " << Eta_rec << " " << Theta_rec << endl;
-
 
         fHM->H1("Rec_vs_P_gem")->Fill(P_sim);
         fHM->H1("Rec_vs_Eta_gem")->Fill(Eta_sim);
@@ -711,35 +689,51 @@ void BmnTrackingQa::ProcessGem() {
 
             FairTrackParam* pf = track->GetParamFirst();
             FairTrackParam* pl = track->GetParamLast();
-            
+
             fHM->H2("VertX_vs_Mom_gem")->Fill(P_sim, pf->GetX());
             fHM->H2("VertY_vs_Mom_gem")->Fill(P_sim, pf->GetY());
 
             Double_t cov[15];
+            
             pf->CovMatrix(cov);
-
-            //firs parameters
+            //cout << "PF: " << cov[0] << " " << cov[5] << " " << cov[9] << " " << cov[12] << " " << cov[14] << " " << endl;
+            //first parameters
             fHM->H1("ResX_f_gem")->Fill(pnt.GetX() - pf->GetX());
             fHM->H1("ResY_f_gem")->Fill(pnt.GetY() - pf->GetY());
             fHM->H1("ResTx_f_gem")->Fill(pnt.GetTx() - pf->GetTx());
             fHM->H1("ResTy_f_gem")->Fill(pnt.GetTy() - pf->GetTy());
-            fHM->H1("ResQp_f_gem")->Fill(pnt.GetQp() - pf->GetQp());            
+            fHM->H1("ResQp_f_gem")->Fill(pnt.GetQp() - pf->GetQp());
             fHM->H1("PullX_f_gem")->Fill((pnt.GetX() - pf->GetX()) / Sqrt(cov[0]));
             fHM->H1("PullY_f_gem")->Fill((pnt.GetY() - pf->GetY()) / Sqrt(cov[5]));
             fHM->H1("PullTx_f_gem")->Fill((pnt.GetTx() - pf->GetTx()) / Sqrt(cov[9]));
             fHM->H1("PullTy_f_gem")->Fill((pnt.GetTy() - pf->GetTy()) / Sqrt(cov[12]));
             fHM->H1("PullQp_f_gem")->Fill((pnt.GetQp() - pf->GetQp()) / Sqrt(cov[14]));
+            
+            pl->CovMatrix(cov);
+            //cout << "PL: " << cov[0] << " " << cov[5] << " " << cov[9] << " " << cov[12] << " " << cov[14] << " " << endl;
             //last parameters
             fHM->H1("ResX_l_gem")->Fill(pntLast.GetX() - pl->GetX());
             fHM->H1("ResY_l_gem")->Fill(pntLast.GetY() - pl->GetY());
             fHM->H1("ResTx_l_gem")->Fill(pntLast.GetTx() - pl->GetTx());
             fHM->H1("ResTy_l_gem")->Fill(pntLast.GetTy() - pl->GetTy());
-            fHM->H1("ResQp_l_gem")->Fill(pntLast.GetQp() - pl->GetQp());            
+            fHM->H1("ResQp_l_gem")->Fill(pntLast.GetQp() - pl->GetQp());
             fHM->H1("PullX_l_gem")->Fill((pntLast.GetX() - pl->GetX()) / Sqrt(cov[0]));
             fHM->H1("PullY_l_gem")->Fill((pntLast.GetY() - pl->GetY()) / Sqrt(cov[5]));
             fHM->H1("PullTx_l_gem")->Fill((pntLast.GetTx() - pl->GetTx()) / Sqrt(cov[9]));
             fHM->H1("PullTy_l_gem")->Fill((pntLast.GetTy() - pl->GetTy()) / Sqrt(cov[12]));
             fHM->H1("PullQp_l_gem")->Fill((pntLast.GetQp() - pl->GetQp()) / Sqrt(cov[14]));
+
+            fHM->H1("X_f_gem")->Fill(pf->GetX());
+            fHM->H1("Y_f_gem")->Fill(pf->GetY());
+            fHM->H1("Tx_f_gem")->Fill(pf->GetTx());
+            fHM->H1("Ty_f_gem")->Fill(pf->GetTy());
+            fHM->H1("Qp_f_gem")->Fill(pf->GetQp());
+
+            fHM->H1("X_l_gem")->Fill(pl->GetX());
+            fHM->H1("Y_l_gem")->Fill(pl->GetY());
+            fHM->H1("Tx_l_gem")->Fill(pl->GetTx());
+            fHM->H1("Ty_l_gem")->Fill(pl->GetTy());
+            fHM->H1("Qp_l_gem")->Fill(pl->GetQp());
         }
     }
 

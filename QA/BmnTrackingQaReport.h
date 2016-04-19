@@ -56,6 +56,7 @@ protected:
 
     void DrawMomResGem(const string& canvasName, TString name2d, TString nameSigma, TString nameMean);
     void DrawResAndPull(const TString canvasName, TString* inNames);
+    void DrawPar(const TString canvasName, TString* inNames);
     void DrawVertResGem(const string& canvasName, TString name2dX, TString name1dX, TString name2dY, TString name1dY);
    
     void DrawOneH1(const TString canvasName, const TString name1, const TString drawOpt);

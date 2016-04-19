@@ -20,6 +20,8 @@
 #include <set>
 #include "TString.h"
 
+const Float_t pMax = 5.0;
+
 using namespace std;
 using namespace lit;
 using boost::assign::list_of;
@@ -139,6 +141,11 @@ void BmnTrackingQaReport::Draw() {
     
     DrawResAndPull("Residuals and Pulls for first parameters", namesResPullsF);    
     DrawResAndPull("Residuals and Pulls for last parameters", namesResPullsL);
+    
+    TString namesParF[5] = {"X_f_gem", "Y_f_gem", "Tx_f_gem", "Ty_f_gem", "Qp_f_gem"};
+    TString namesParL[5] = {"X_l_gem", "Y_l_gem", "Tx_l_gem", "Ty_l_gem", "Qp_l_gem"};
+    DrawPar("First parameters", namesParF);    
+    DrawPar("Last parameters", namesParL);
 
     //DrawVertResGem("Vertex resolution", "VertX_vs_Mom_gem", "VertResX_gem", "VertY_vs_Mom_gem", "VertResY_gem");
 }
@@ -291,7 +298,7 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
         Float_t sigmaError = fit->GetParError(2);
         Float_t mom = HM()->H2(name2d.Data())->GetXaxis()->GetBinCenter(iBin);
         Int_t nBins = HM()->H1(nameSigma.Data())->GetXaxis()->GetNbins();
-        Int_t bin = (mom - 0.0) / (5.0 - 0.0) * nBins;
+        Int_t bin = (mom - 0.0) / (pMax - 0.0) * nBins;
         HM()->H1(nameSigma.Data())->SetBinContent(bin, sigma);
         HM()->H1(nameSigma.Data())->SetBinError(bin, sigmaError);
     }
@@ -318,6 +325,17 @@ void BmnTrackingQaReport::DrawResAndPull(const TString canvasName, TString* inNa
     for (Int_t i = 0; i < 10; ++i) {
         canvas->cd(i + 1);
         HM()->H1(inNames[i].Data())->Fit("gaus");
+        DrawH1(HM()->H1(inNames[i].Data()), kLinear, kLog, "", kBlue, 0.7, 0.75, 1.1, 20);
+    }
+}
+
+void BmnTrackingQaReport::DrawPar(const TString canvasName, TString* inNames) {
+    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 300);
+    canvas->SetGrid();
+    canvas->Divide(5, 1);
+
+    for (Int_t i = 0; i < 5; ++i) {
+        canvas->cd(i + 1);
         DrawH1(HM()->H1(inNames[i].Data()), kLinear, kLog, "", kRed, 0.7, 0.75, 1.1, 20);
     }
 }

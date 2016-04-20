@@ -20,6 +20,8 @@
 #include "BmnMath.h"
 #include "TClonesArray.h"
 #include "BmnGemTrack.h"
+#include "BmnGeoNavigator.h"
+#include "BmnMaterialEffects.h"
 
 class BmnKalmanFilter_tmp {
 public:
@@ -50,9 +52,13 @@ public:
     BmnStatus FitSmooth(BmnGemTrack* track, TClonesArray* hits);
     BmnStatus Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode);
     
+    BmnStatus TGeoTrackPropagate(FairTrackParam* par, Float_t zOut, Int_t pdg, vector<Double_t>* F, Float_t* length, TString type);
+    
 private:
     vector<BmnFitNode> fFitNodes;
     FairField* fField;
+    BmnGeoNavigator* fNavigator;
+    BmnMaterialEffects* fMaterial;
 
 };
 

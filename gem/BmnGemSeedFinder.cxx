@@ -164,14 +164,14 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         Int_t nSteps = 2;
         Short_t q = 0; // charge of particle
         if (isLeft) { //search track-candidate in left direction
-            q = 1;
+            q = -1;
             for (Int_t i = xAddr; i > 0; i--) {
                 SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, gate, isIdeal);
                 if ((hitCntr > 1) && Abs(i - startBin) > nSteps * maxDist) break; //condition to finish search is dist < 2 * MaxDist
                 if (hitCntr >= kNHITSFORSEED) break;
             }
         } else { //search track-candidate in right direction
-            q = -1;
+            q = +1;
             for (Int_t i = xAddr; i < fNBins; ++i) {
                 SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, gate, isIdeal);
                 if ((hitCntr > 1) && Abs(i - startBin) > nSteps * maxDist) break; //condition to finish search is dist < 2 * MaxDist
@@ -197,7 +197,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
             SetHitsUnused(&trackCand);
             continue;
         }
-
+        
         trCntr++;
         trackCand.SortHits();
 
@@ -430,7 +430,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* s
     //    BmnGemStripHit* secondHit = GetHit(tr->GetHitIndex(1));
 
     if (!firstHit || !lastHit) return kFALSE;
-    
+
     Float_t x0 = firstHit->GetX();
     Float_t z0 = firstHit->GetZ();
     Float_t z0_2 = z0 * z0;
@@ -444,8 +444,8 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* s
     Float_t D = z0_2 + 4 * tmp;
     if (D < 0) return kFALSE;
     Float_t Zc = 0.5 * (Sqrt(D) - z0);
-    Float_t Xc = Sqrt(R2 - z0_2);    
-    
+    Float_t Xc = Sqrt(R2 - z0_2);
+
     const Float_t B = linePar->X(); //angle coefficient for helix
 
     Float_t Xmean(0.0), Ymean(0.0), Zmean(0.0); // <Xi> , <Yi> , <Zi>
@@ -477,7 +477,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* s
         Float_t Zi = hit->GetZ();
         S = 0.0003 * Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
         Float_t QPi = q / S / Sqrt(R2 + B * B);
-        
+
         QPmean += QPi;
         Xmean += Xi;
         Ymean += Yi;
@@ -554,7 +554,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* s
     par.SetCovariance(3, 4, Cov_Ty_Qp);
     //    par.SetCovariance(3, 4, cov_const);
     par.SetCovariance(4, 4, Cov_Qp_Qp);
-//        par.SetCovariance(4, 4, cov_const);
+    //        par.SetCovariance(4, 4, cov_const);
 
     Float_t lX = lastHit->GetX();
     Float_t lY = lastHit->GetY();
@@ -598,6 +598,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* s
     const Float_t PzFirst = PxzFirst / Sqrt(1 + Sqr(Tx_first));
     const Float_t PxFirst = PzFirst * Tx_first;
     const Float_t PyFirst = PzFirst * Ty_first;
+    cout << "P = " << Sqrt(PxFirst * PxFirst + PyFirst * PyFirst + PzFirst * PzFirst) << endl;
     Float_t QPFirst = q / Sqrt(PxFirst * PxFirst + PyFirst * PyFirst + PzFirst * PzFirst);
     par.SetPosition(TVector3(fX, fY, fZ));
     par.SetQp(QPFirst);

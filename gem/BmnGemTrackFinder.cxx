@@ -23,7 +23,7 @@ using namespace std;
 using namespace TMath;
 
 BmnGemTrackFinder::BmnGemTrackFinder() :
-fPDG(211),
+fPDG(11),
 fEventNo(0),
 fChiSqCut(250.) {
     fKalman = NULL;
@@ -87,11 +87,13 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         if (!IsParCorrect(parF)) continue;
         if (!IsParCorrect(parL)) continue;
-        
+
         vector<BmnFitNode> nodes;
         nodes.reserve(nHits);
         Float_t chi2 = 0.0;
         fKalman = new BmnKalmanFilter_tmp();
+
+
         vector<Double_t>* F = new vector<Double_t> (25, 0.);
         if (F != NULL) {
             F->assign(25, 0.);
@@ -109,33 +111,58 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             Float_t z = hit->GetZ();
             BmnFitNode node;
 
-            vector<Double_t>* Fnew = new vector<Double_t> (25, 0.);
+//            vector<Double_t>* Fnew = new vector<Double_t> (25, 0.);
 
-            fKalman->RK4TrackExtrapolate(parF, z, Fnew);
+            fKalman->TGeoTrackPropagate(parF, z, fPDG, F, &length, "field");
             node.SetPredictedParam(parF);
             fKalman->Update(parF, hit, chi2);
             node.SetUpdatedParam(parF);
             node.SetChiSqFiltered(chi2);
-            if (F != NULL) fKalman->UpdateF(*F, *Fnew);
-            if (Fnew != NULL) delete Fnew;
+            //            if (F != NULL) fKalman->UpdateF(*F, *Fnew);
+            //            if (Fnew != NULL) delete Fnew;
             node.SetF(*F);
 
             nodes.push_back(node);
-
-            if (iHit != 0) {
-                BmnGemStripHit* prevHit = (BmnGemStripHit*) GetHit(tr.GetHitIndex(iHit - 1));
-                TVector3 prevCoord(prevHit->GetX(), prevHit->GetY(), prevHit->GetZ());
-                TVector3 curCoord(hit->GetX(), hit->GetY(), hit->GetZ());
-                length += (curCoord - prevCoord).Mag();
-            }
         }
-
-        tr.SetLength(length);
 
         delete F;
         tr.SetFitNodes(nodes);
         tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
         tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
+
+        //
+        //        for (Int_t iHit = 0; iHit < nHits; ++iHit) {
+        //            BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(tr.GetHitIndex(iHit));
+        //            Float_t z = hit->GetZ();
+        //            BmnFitNode node;
+        //
+        //            vector<Double_t>* Fnew = new vector<Double_t> (25, 0.);
+        //
+        //            fKalman->RK4TrackExtrapolate(parF, z, Fnew);
+        //            node.SetPredictedParam(parF);
+        //            fKalman->Update(parF, hit, chi2);
+        //            node.SetUpdatedParam(parF);
+        //            node.SetChiSqFiltered(chi2);
+        //            if (F != NULL) fKalman->UpdateF(*F, *Fnew);
+        //            if (Fnew != NULL) delete Fnew;
+        //            node.SetF(*F);
+        //
+        //            nodes.push_back(node);
+        //
+        //            if (iHit != 0) {
+        //                BmnGemStripHit* prevHit = (BmnGemStripHit*) GetHit(tr.GetHitIndex(iHit - 1));
+        //                TVector3 prevCoord(prevHit->GetX(), prevHit->GetY(), prevHit->GetZ());
+        //                TVector3 curCoord(hit->GetX(), hit->GetY(), hit->GetZ());
+        //                length += (curCoord - prevCoord).Mag();
+        //            }
+        //        }
+        //
+        tr.SetLength(length);
+        //
+        //        delete F;
+        //        tr.SetFitNodes(nodes);
+        //        tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
+        //        tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
 
         if (!IsParCorrect(tr.GetParamFirst())) continue;
 //        if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;

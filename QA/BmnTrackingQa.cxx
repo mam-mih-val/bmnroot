@@ -569,22 +569,22 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("ResTx_f_gem", "Residual t_{x}", "", 100, -0.5, 0.5);
     CreateH1("ResTy_f_gem", "Residual t_{y}", "", 100, -0.5, 0.5);
     CreateH1("ResQp_f_gem", "Residual q/p, (GeV/c)^{-1}", "", 100, -10.0, 10.0);
-    CreateH1("PullX_f_gem", "Pull X", "", 100, 0.0, 0.0);
-    CreateH1("PullY_f_gem", "Pull Y", "", 100, 0.0, 0.0);
-    CreateH1("PullTx_f_gem", "Pull t_{x}", "", 100, 0.0, 0.0);
-    CreateH1("PullTy_f_gem", "Pull t_{y}", "", 100, 0.0, 0.0);
-    CreateH1("PullQp_f_gem", "Pull q/p", "", 100, 0.0, 0.0);
+    CreateH1("PullX_f_gem", "Pull X", "", 100, -4.0, 4.0);
+    CreateH1("PullY_f_gem", "Pull Y", "", 100, -4.0, 4.0);
+    CreateH1("PullTx_f_gem", "Pull t_{x}", "", 100, -4.0, 4.0);
+    CreateH1("PullTy_f_gem", "Pull t_{y}", "", 100, -4.0, 4.0);
+    CreateH1("PullQp_f_gem", "Pull q/p", "", 100, -4.0, 4.0);
     //for last parameters
     CreateH1("ResX_l_gem", "Residual X, cm", "", 100, -20, 20);
     CreateH1("ResY_l_gem", "Residual Y, cm", "", 100, -20, 20);
     CreateH1("ResTx_l_gem", "Residual t_{x}", "", 100, -0.5, 0.5);
     CreateH1("ResTy_l_gem", "Residual t_{y}", "", 100, -0.5, 0.5);
     CreateH1("ResQp_l_gem", "Residual q/p, (GeV/c)^{-1}", "", 100, -10.0, 10.0);
-    CreateH1("PullX_l_gem", "Pull X", "", 100, 0.0, 0.0);
-    CreateH1("PullY_l_gem", "Pull Y", "", 100, 0.0, 0.0);
-    CreateH1("PullTx_l_gem", "Pull t_{x}", "", 100, 0.0, 0.0);
-    CreateH1("PullTy_l_gem", "Pull t_{y}", "", 100, 0.0, 0.0);
-    CreateH1("PullQp_l_gem", "Pull q/p", "", 100, 0.0, 0.0);
+    CreateH1("PullX_l_gem", "Pull X", "", 100, -4.0, 4.0);
+    CreateH1("PullY_l_gem", "Pull Y", "", 100, -4.0, 4.0);
+    CreateH1("PullTx_l_gem", "Pull t_{x}", "", 100, -4.0, 4.0);
+    CreateH1("PullTy_l_gem", "Pull t_{y}", "", 100, -4.0, 4.0);
+    CreateH1("PullQp_l_gem", "Pull q/p", "", 100, -4.0, 4.0);
 
     CreateH1("X_f_gem", "X, cm", "", 100, -100, 100);
     CreateH1("Y_f_gem", "Y, cm", "", 100, -100, 100);

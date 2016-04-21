@@ -197,7 +197,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
             SetHitsUnused(&trackCand);
             continue;
         }
-        
+
         trCntr++;
         trackCand.SortHits();
 
@@ -598,7 +598,6 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* s
     const Float_t PzFirst = PxzFirst / Sqrt(1 + Sqr(Tx_first));
     const Float_t PxFirst = PzFirst * Tx_first;
     const Float_t PyFirst = PzFirst * Ty_first;
-    cout << "P = " << Sqrt(PxFirst * PxFirst + PyFirst * PyFirst + PzFirst * PzFirst) << endl;
     Float_t QPFirst = q / Sqrt(PxFirst * PxFirst + PyFirst * PyFirst + PzFirst * PzFirst);
     par.SetPosition(TVector3(fX, fY, fZ));
     par.SetQp(QPFirst);
@@ -926,6 +925,8 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
         hit->SetXaddr(xAddr);
         hit->SetYaddr(yAddr);
         hit->SetIndex(hitIdx);
+        
+        hit->SetDxyz(0.05, 0.05, 0.05);
     }
 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {

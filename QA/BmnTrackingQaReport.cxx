@@ -19,6 +19,9 @@
 #include <vector>
 #include <set>
 #include "TString.h"
+#include "TStyle.h"
+#include "TPaveStats.h"
+#include "TLatex.h"
 
 const Float_t pMax = 5.0;
 
@@ -116,35 +119,35 @@ void BmnTrackingQaReport::Draw() {
 
     TString namesResPullsF[10] = {"ResX_f_gem", "ResY_f_gem", "ResTx_f_gem", "ResTy_f_gem", "ResQp_f_gem", "PullX_f_gem", "PullY_f_gem", "PullTx_f_gem", "PullTy_f_gem", "PullQp_f_gem"};
     TString namesResPullsL[10] = {"ResX_l_gem", "ResY_l_gem", "ResTx_l_gem", "ResTy_l_gem", "ResQp_l_gem", "PullX_l_gem", "PullY_l_gem", "PullTx_l_gem", "PullTy_l_gem", "PullQp_l_gem"};
-    
-//    string str = R()->TableBegin("Residuals and Pulls, Mean", list_of("")("X")("Y")("Tx")("Ty")("q/p")("X")("Y")("Tx")("Ty")("q/p"));
-//    
-//    vector<string> strMeanF;
-//    vector<string> strMeanL;
-//    vector<string> strStdDevF;
-//    vector<string> strStdDevL;
-//    strMeanF.push_back("First");
-//    strMeanL.push_back("Last");
-//    strStdDevF.push_back("First");
-//    strStdDevL.push_back("Last");
-//    for (Int_t i = 0; i < 10; ++i) {
-//        strMeanF.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsF[i].Data())->GetMean()));
-//        strMeanL.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsL[i].Data())->GetMean()));
-//        strStdDevF.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsF[i].Data())->GetStdDev()));
-//        strStdDevL.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsL[i].Data())->GetStdDev()));
-//    }
-//    str += R()->TableRow(strMeanF);
-//    str += R()->TableRow(strMeanF);
-//    str += R()->TableRow(strMeanF);
-//    str += R()->TableRow(strMeanF);
-//    str += R()->TableEnd();
-    
-    DrawResAndPull("Residuals and Pulls for first parameters", namesResPullsF);    
+
+    //    string str = R()->TableBegin("Residuals and Pulls, Mean", list_of("")("X")("Y")("Tx")("Ty")("q/p")("X")("Y")("Tx")("Ty")("q/p"));
+    //    
+    //    vector<string> strMeanF;
+    //    vector<string> strMeanL;
+    //    vector<string> strStdDevF;
+    //    vector<string> strStdDevL;
+    //    strMeanF.push_back("First");
+    //    strMeanL.push_back("Last");
+    //    strStdDevF.push_back("First");
+    //    strStdDevL.push_back("Last");
+    //    for (Int_t i = 0; i < 10; ++i) {
+    //        strMeanF.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsF[i].Data())->GetMean()));
+    //        strMeanL.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsL[i].Data())->GetMean()));
+    //        strStdDevF.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsF[i].Data())->GetStdDev()));
+    //        strStdDevL.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsL[i].Data())->GetStdDev()));
+    //    }
+    //    str += R()->TableRow(strMeanF);
+    //    str += R()->TableRow(strMeanF);
+    //    str += R()->TableRow(strMeanF);
+    //    str += R()->TableRow(strMeanF);
+    //    str += R()->TableEnd();
+
+    DrawResAndPull("Residuals and Pulls for first parameters", namesResPullsF);
     DrawResAndPull("Residuals and Pulls for last parameters", namesResPullsL);
-    
+
     TString namesParF[5] = {"X_f_gem", "Y_f_gem", "Tx_f_gem", "Ty_f_gem", "Qp_f_gem"};
     TString namesParL[5] = {"X_l_gem", "Y_l_gem", "Tx_l_gem", "Ty_l_gem", "Qp_l_gem"};
-    DrawPar("First parameters", namesParF);    
+    DrawPar("First parameters", namesParF);
     DrawPar("Last parameters", namesParL);
 
     //DrawVertResGem("Vertex resolution", "VertX_vs_Mom_gem", "VertResX_gem", "VertY_vs_Mom_gem", "VertResY_gem");
@@ -312,9 +315,16 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
         HM()->H1(nameMean.Data())->SetBinContent(iBin, projY->GetBinContent(iBin));
     }
 
-    DrawH1(HM()->H1(nameMean.Data()), kLinear, kLinear);
-    HM()->H1(nameMean.Data())->Fit("gaus", "RQ");
+    DrawH1(HM()->H1(nameMean.Data()), kLinear, kLinear, "", kBlue, 0.7, 0.75, 1.1, 20);
+    HM()->H1(nameMean.Data())->Fit("gaus", "RQWW", "", -10, 10);
     HM()->H1(nameMean.Data())->SetMaximum(HM()->H1(nameMean.Data())->GetMaximum() * 1.05);
+    TF1 *fit = HM()->H1(nameMean.Data())->GetFunction("gaus");
+    TPaveStats* ps = new TPaveStats(-7.0, 1.5, 0.0, 2.);
+    ps->SetFillColor(0);
+    ps->SetShadowColor(0);
+    ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
+    ps->AddText(Form("#sigma = %2.2f", fit->GetParameter(2)));
+    ps->Draw();
 }
 
 void BmnTrackingQaReport::DrawResAndPull(const TString canvasName, TString* inNames) {
@@ -324,8 +334,17 @@ void BmnTrackingQaReport::DrawResAndPull(const TString canvasName, TString* inNa
 
     for (Int_t i = 0; i < 10; ++i) {
         canvas->cd(i + 1);
-        HM()->H1(inNames[i].Data())->Fit("gaus");
+        HM()->H1(inNames[i].Data())->Fit("gaus", "RQWW", "", -4, 4);
         DrawH1(HM()->H1(inNames[i].Data()), kLinear, kLog, "", kBlue, 0.7, 0.75, 1.1, 20);
+        if (i > 4) {
+            TF1 *fit = HM()->H1(inNames[i].Data())->GetFunction("gaus");
+            TPaveStats* ps = new TPaveStats(-3.0, HM()->H1(inNames[i].Data())->GetMaximum() / 2, -1.0, HM()->H1(inNames[i].Data())->GetMaximum());
+            ps->SetFillColor(0);
+            ps->SetShadowColor(0);
+            ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
+            ps->AddText(Form("#sigma = %2.2f", fit->GetParameter(2)));
+            ps->Draw();
+        }
     }
 }
 

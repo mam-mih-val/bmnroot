@@ -551,8 +551,8 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Ghost_vs_Nh_glob", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
     CreateH1("Well_vs_Nh_glob", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
 
-    CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 50, 400, -100, 100);
-    CreateH2("MomRes_vs_Length_gem", "Length, cm", "#Delta P / P, %", "", 400, 0, 400, 400, -100, 100);
+    CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 50, 400, -10, 10);
+    CreateH2("MomRes_vs_Length_gem", "Length, cm", "#Delta P / P, %", "", 400, 0, 400, 400, -10, 10);
     CreateH2("Mom_vs_Chi2_gem", "#chi^{2}", "P_{rec}, GeV/c", "", 400, 0, 50, 400, fPRangeMin, fPRangeMax);
     CreateH2("Mom_vs_Length_gem", "Length, cm", "P_{rec}, GeV/c", "", 400, 0, 400, 400, fPRangeMin, fPRangeMax);
     CreateH1("Chi2_gem", "#chi^{2} / NDF", "Counter", 400, 0, 100);
@@ -627,7 +627,6 @@ void BmnTrackingQa::ProcessGem() {
             refs.push_back(gemMCId);
 
         Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota && track->GetNHits() >= fMinNofPointsGem;
-
         Float_t Px_sim = pnt.GetPx(); //mcTrack->GetPx();
         Float_t Py_sim = pnt.GetPy(); //mcTrack->GetPy();
         Float_t Pz_sim = pnt.GetPz(); //mcTrack->GetPz();
@@ -645,7 +644,6 @@ void BmnTrackingQa::ProcessGem() {
         Float_t Pz_rec = P_rec / Sqrt(Tx * Tx + Ty * Ty + 1);
         Float_t Px_rec = Pz_rec * Tx;
         Float_t Py_rec = Pz_rec * Ty;
-        Float_t Pt_rec = Sqrt(Px_rec * Px_rec + Pz_rec * Pz_rec);
         Float_t Pxy_rec = Sqrt(Px_rec * Px_rec + Py_rec * Py_rec);
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
         Float_t Theta_rec = ATan2(Pxy_rec, Pz_rec) * RadToDeg();
@@ -669,12 +667,14 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("Well_vs_Theta_gem")->Fill(Theta_sim);
             fHM->H1("Well_vs_Nh_gem")->Fill(N_rec);
 
+            Float_t chi2 = track->GetChi2() / track->GetNDF();
+//            if (chi2 > 5) continue;
             fHM->H2("momRes_2D_gem")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
-            fHM->H2("MomRes_vs_Chi2_gem")->Fill(track->GetChi2() / track->GetNDF(), (P_sim - P_rec) / P_sim * 100.0);
+            fHM->H2("MomRes_vs_Chi2_gem")->Fill(chi2, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Length_gem")->Fill(track->GetLength(), (P_sim - P_rec) / P_sim * 100.0);
-            fHM->H2("Mom_vs_Chi2_gem")->Fill(track->GetChi2() / track->GetNDF(), P_rec);
+            fHM->H2("Mom_vs_Chi2_gem")->Fill(chi2, P_rec);
             fHM->H2("Mom_vs_Length_gem")->Fill(track->GetLength(), P_rec);
-            fHM->H1("Chi2_gem")->Fill(track->GetChi2() / track->GetNDF());
+            fHM->H1("Chi2_gem")->Fill(chi2);
             fHM->H1("Length_gem")->Fill(track->GetLength());
             fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec);
             fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec);
@@ -694,9 +694,8 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H2("VertY_vs_Mom_gem")->Fill(P_sim, pf->GetY());
 
             Double_t cov[15];
-            
+
             pf->CovMatrix(cov);
-            //cout << "PF: " << cov[0] << " " << cov[5] << " " << cov[9] << " " << cov[12] << " " << cov[14] << " " << endl;
             //first parameters
             fHM->H1("ResX_f_gem")->Fill(pnt.GetX() - pf->GetX());
             fHM->H1("ResY_f_gem")->Fill(pnt.GetY() - pf->GetY());
@@ -708,9 +707,8 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("PullTx_f_gem")->Fill((pnt.GetTx() - pf->GetTx()) / Sqrt(cov[9]));
             fHM->H1("PullTy_f_gem")->Fill((pnt.GetTy() - pf->GetTy()) / Sqrt(cov[12]));
             fHM->H1("PullQp_f_gem")->Fill((pnt.GetQp() - pf->GetQp()) / Sqrt(cov[14]));
-            
+
             pl->CovMatrix(cov);
-            //cout << "PL: " << cov[0] << " " << cov[5] << " " << cov[9] << " " << cov[12] << " " << cov[14] << " " << endl;
             //last parameters
             fHM->H1("ResX_l_gem")->Fill(pntLast.GetX() - pl->GetX());
             fHM->H1("ResY_l_gem")->Fill(pntLast.GetY() - pl->GetY());

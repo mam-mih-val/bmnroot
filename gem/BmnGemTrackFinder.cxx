@@ -23,7 +23,7 @@ using namespace std;
 using namespace TMath;
 
 BmnGemTrackFinder::BmnGemTrackFinder() :
-fPDG(2212),
+fPDG(211),
 fEventNo(0),
 fChiSqCut(250.) {
     fKalman = NULL;
@@ -76,33 +76,17 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
     CheckSplitting(fGemSeedsArray);
     for (Int_t iTr = 0; iTr < fGemSeedsArray->GetEntriesFast(); ++iTr) {
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArray->At(iTr);
-//
-//        cout << "NEXT SEED\n";
-//        for (Int_t i = 0; i < track->GetNHits(); ++i) {
-//            BmnHit* hit = GetHit(track->GetHitIndex(i));
-//            Float_t X = hit->GetX();
-//            Float_t Y = hit->GetY();
-//            Float_t Z = hit->GetZ();
-//            Float_t r = Sqrt(X * X + Y * Y + Z * Z);
-//            cout << X << " " << Y << " " << Z << endl;
-//        }
-
 
         if (track->GetChi2() < 0.0) continue; //split param
 
         BmnGemTrack tr = *track;
         const Short_t nHits = tr.GetNHits();
-        if (nHits < 4) continue;
-
         FairTrackParam par = *(tr.GetParamFirst());
-
-        if (!IsParCorrect(&par)) continue;
 
         vector<BmnFitNode> nodes;
         nodes.reserve(nHits);
         Float_t chi2 = 0.0;
         fKalman = new BmnKalmanFilter_tmp();
-
 
         vector<Double_t>* F = new vector<Double_t> (25, 0.);
         if (F != NULL) {
@@ -121,68 +105,28 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             Float_t z = hit->GetZ();
             BmnFitNode node;
 
-            //            vector<Double_t>* Fnew = new vector<Double_t> (25, 0.);
-
             fKalman->TGeoTrackPropagate(&par, z, fPDG, F, &length, "field");
             node.SetPredictedParam(&par);
             fKalman->Update(&par, hit, chi2);
             node.SetUpdatedParam(&par);
             node.SetChiSqFiltered(chi2);
-            //            if (F != NULL) fKalman->UpdateF(*F, *Fnew);
-            //            if (Fnew != NULL) delete Fnew;
             node.SetF(*F);
 
             nodes.push_back(node);
         }
+
+        tr.SetLength(length);
 
         delete F;
         tr.SetFitNodes(nodes);
         tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
         tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
 
-        //
-        //        for (Int_t iHit = 0; iHit < nHits; ++iHit) {
-        //            BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(tr.GetHitIndex(iHit));
-        //            Float_t z = hit->GetZ();
-        //            BmnFitNode node;
-        //
-        //            vector<Double_t>* Fnew = new vector<Double_t> (25, 0.);
-        //
-        //            fKalman->RK4TrackExtrapolate(parF, z, Fnew);
-        //            node.SetPredictedParam(parF);
-        //            fKalman->Update(parF, hit, chi2);
-        //            node.SetUpdatedParam(parF);
-        //            node.SetChiSqFiltered(chi2);
-        //            if (F != NULL) fKalman->UpdateF(*F, *Fnew);
-        //            if (Fnew != NULL) delete Fnew;
-        //            node.SetF(*F);
-        //
-        //            nodes.push_back(node);
-        //
-        //            if (iHit != 0) {
-        //                BmnGemStripHit* prevHit = (BmnGemStripHit*) GetHit(tr.GetHitIndex(iHit - 1));
-        //                TVector3 prevCoord(prevHit->GetX(), prevHit->GetY(), prevHit->GetZ());
-        //                TVector3 curCoord(hit->GetX(), hit->GetY(), hit->GetZ());
-        //                length += (curCoord - prevCoord).Mag();
-        //            }
-        //        }
-        //
-        tr.SetLength(length);
-        //
-        //        delete F;
-        //        tr.SetFitNodes(nodes);
-        //        tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
-        //        tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
-
-//        cout << "BEFORE:\n";
-//        tr.GetParamFirst()->Print();
         if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
-//        cout << "AFTER :\n";
-//        tr.GetParamFirst()->Print();
         tr.SetChi2(chi2);
 
-        //        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
-        //        else tr.SetFlag(kBMNGOOD);
+//        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
+//        else tr.SetFlag(kBMNGOOD);
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
         delete fKalman;
     }
@@ -493,7 +437,7 @@ Bool_t BmnGemTrackFinder::CalculateParamsByCircle(BmnGemTrack* tr) {
     Float_t Cov_Ty_Ty(0.0), Cov_Ty_Qp(0.0);
     Float_t Cov_Qp_Qp(0.0);
     Float_t Q = (tr->GetParamFirst()->GetQp() > 0.0) ? +1.0 : -1.0;
-    Float_t S = 0.0003 * Abs(fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
+    Float_t S = 0.0003 * (fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
     Float_t QP = Q / S / Sqrt(R * R + B * B);
 
     for (Int_t i = 0; i < nHits; ++i) {
@@ -590,7 +534,7 @@ Bool_t BmnGemTrackFinder::CalculateParamsByCircle(BmnGemTrack* tr) {
     Float_t Ty_first = B;
 
     //update for firstParam
-    const Float_t PxzFirst = 0.0003 * Abs(fField->GetBy(fX, fY, fZ)) * R; // Pt
+    const Float_t PxzFirst = 0.0003 * (fField->GetBy(fX, fY, fZ)) * R; // Pt
     if (Abs(PxzFirst) < 0.00001) return kFALSE;
     const Float_t PzFirst = PxzFirst / Sqrt(1 + Sqr(Tx_first));
     const Float_t PxFirst = PzFirst * Tx_first;

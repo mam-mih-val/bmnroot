@@ -114,8 +114,8 @@ void BmnTrackingQaReport::Draw() {
     DrawThreeH2("Reco vs MC for X-, Y- and Z-component of Momentum for GEM-tracks", "Px_rec_Px_sim_gem", "Py_rec_Py_sim_gem", "Pz_rec_Pz_sim_gem");
     DrawMomResGem("Momentum resolution for GEM-tracks", "momRes_2D_gem", "momRes_1D_gem", "momRes_Mean_gem");
     DrawTwoH2("Tracks quality distributions", "MomRes_vs_Chi2_gem", "Mom_vs_Chi2_gem");
-    DrawTwoH2("1", "MomRes_vs_Length_gem", "Mom_vs_Length_gem");
-    DrawTwoH1("2", "Chi2_gem", "Length_gem", "");
+    DrawTwoH2("Momentum resolution and momentum vs. length of tracks", "MomRes_vs_Length_gem", "Mom_vs_Length_gem");
+    DrawTwoH1("Chi-square and length distributions", "Chi2_gem", "Length_gem", "");
 
     TString namesResPullsF[10] = {"ResX_f_gem", "ResY_f_gem", "ResTx_f_gem", "ResTy_f_gem", "ResQp_f_gem", "PullX_f_gem", "PullY_f_gem", "PullTx_f_gem", "PullTy_f_gem", "PullQp_f_gem"};
     TString namesResPullsL[10] = {"ResX_l_gem", "ResY_l_gem", "ResTx_l_gem", "ResTy_l_gem", "ResQp_l_gem", "PullX_l_gem", "PullY_l_gem", "PullTx_l_gem", "PullTy_l_gem", "PullQp_l_gem"};
@@ -292,18 +292,18 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
     DrawH2(HM()->H2(name2d.Data()), kLinear, kLinear, kLinear, "colz");
 
     canvas->cd(2);
-    Int_t momResStep = 20;
+    Int_t nBins = HM()->H1(nameSigma.Data())->GetXaxis()->GetNbins();
+    Int_t momResStep = HM()->H2(name2d.Data())->GetNbinsX() / nBins;
+    Int_t bin = 0;
     for (Int_t iBin = 0; iBin < HM()->H2(name2d.Data())->GetNbinsX(); iBin += momResStep) {
         TH1D* proj = HM()->H2(name2d.Data())->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
-        proj->Fit("gaus", "SQRww", "", -10.0, 10.0);
+        proj->Fit("gaus", "SQRww", "", -5.0, 5.0);
         TF1 *fit = proj->GetFunction("gaus");
         Float_t sigma = fit->GetParameter(2);
         Float_t sigmaError = fit->GetParError(2);
-        Float_t mom = HM()->H2(name2d.Data())->GetXaxis()->GetBinCenter(iBin);
-        Int_t nBins = HM()->H1(nameSigma.Data())->GetXaxis()->GetNbins();
-        Int_t bin = (mom - 0.0) / (pMax - 0.0) * nBins;
         HM()->H1(nameSigma.Data())->SetBinContent(bin, sigma);
         HM()->H1(nameSigma.Data())->SetBinError(bin, sigmaError);
+        bin++;
     }
     HM()->H1(nameSigma.Data())->SetMaximum(10.0);
     HM()->H1(nameSigma.Data())->SetMinimum(0.0);
@@ -319,7 +319,7 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
     HM()->H1(nameMean.Data())->Fit("gaus", "RQWW", "", -10, 10);
     HM()->H1(nameMean.Data())->SetMaximum(HM()->H1(nameMean.Data())->GetMaximum() * 1.05);
     TF1 *fit = HM()->H1(nameMean.Data())->GetFunction("gaus");
-    TPaveStats* ps = new TPaveStats(-7.0, 1.5, 0.0, 2.);
+    TPaveStats* ps = new TPaveStats(3.0, HM()->H1(nameMean.Data())->GetMaximum() / 1.5, 10.0, HM()->H1(nameMean.Data())->GetMaximum());
     ps->SetFillColor(0);
     ps->SetShadowColor(0);
     ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
@@ -336,15 +336,17 @@ void BmnTrackingQaReport::DrawResAndPull(const TString canvasName, TString* inNa
         canvas->cd(i + 1);
         HM()->H1(inNames[i].Data())->Fit("gaus", "RQWW", "", -4, 4);
         DrawH1(HM()->H1(inNames[i].Data()), kLinear, kLog, "", kBlue, 0.7, 0.75, 1.1, 20);
-        if (i > 4) {
+        //if (i > 4) {
             TF1 *fit = HM()->H1(inNames[i].Data())->GetFunction("gaus");
-            TPaveStats* ps = new TPaveStats(-3.0, HM()->H1(inNames[i].Data())->GetMaximum() / 2, -1.0, HM()->H1(inNames[i].Data())->GetMaximum());
+            Float_t xMax = HM()->H1(inNames[i].Data())->GetXaxis()->GetXmax();
+            Float_t yMax = HM()->H1(inNames[i].Data())->GetMaximum();
+            TPaveStats* ps = new TPaveStats(xMax / 2, yMax / 10, xMax, yMax);
             ps->SetFillColor(0);
             ps->SetShadowColor(0);
             ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
             ps->AddText(Form("#sigma = %2.2f", fit->GetParameter(2)));
             ps->Draw();
-        }
+        //}
     }
 }
 

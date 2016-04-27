@@ -31,8 +31,9 @@ public:
     void FindSeeds(Int_t station, Int_t gate, Bool_t isIdeal, TClonesArray* arr);
     UInt_t SearchTrackCandidates(Int_t startStation, Int_t gate, Bool_t isIdeal, Bool_t isLeft, TClonesArray* arr);
     void SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal);
-    Bool_t CalculateTrackParams(BmnGemTrack* tr, TVector3 circPar, TVector3 linePar);
+    Bool_t CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar, TVector3* linePar, Short_t q);
     Bool_t CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* spirPar, TVector3* linePar, Short_t q);
+    Bool_t CalculateTrackParamsParabolicSpiral(BmnGemTrack* tr, TLorentzVector* spirPar, TVector3* linePar, Short_t q);
     BmnStatus DoSeeding(Int_t min, Int_t max, TClonesArray* arr);
     TVector3 CircleFit(BmnGemTrack* track);
 //    TVector3 LineFit(BmnGemTrack* track);

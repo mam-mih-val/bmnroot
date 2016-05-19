@@ -8,7 +8,7 @@
 void run_sim_bmn(TString inFile = "dc4mb.r12", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10000,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
-#define LAQGSM
+#define BOX
 
     TStopwatch timer;
     timer.Start();
@@ -106,7 +106,7 @@ void run_sim_bmn(TString inFile = "dc4mb.r12", TString outFile = "$VMCWORKDIR/ma
     boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // mm o cm ??
     primGen->AddGenerator(boxGen);
-
+    
 #else
 #ifdef HSD
     // ------- HSD/PHSD Generator

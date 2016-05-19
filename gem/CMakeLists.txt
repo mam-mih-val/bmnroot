@@ -61,6 +61,7 @@ set(SRCS
   BmnGemStripHit.cxx
   BmnGemStripHitMaker.cxx
   BmnKalmanFilter_tmp.cxx
+  BmnGemVertexFinder.cxx
 )
 
 set(HEADERS
@@ -93,6 +94,7 @@ set(HEADERS
   BmnGemStripHit.h
   BmnGemStripHitMaker.h
   BmnKalmanFilter_tmp.h
+  BmnGemVertexFinder.h
 )
 
 IF (SSE_FOUND)

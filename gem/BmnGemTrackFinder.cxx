@@ -125,8 +125,8 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
         tr.SetChi2(chi2);
 
-//        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
-//        else tr.SetFlag(kBMNGOOD);
+        //        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
+        //        else tr.SetFlag(kBMNGOOD);
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
         delete fKalman;
     }
@@ -233,6 +233,10 @@ BmnStatus BmnGemTrackFinder::CheckSplitting(TClonesArray* arr) {
         }
         if (minStation <= 2) {
             seed->SetUsing(kTRUE);
+            for (Int_t iHit = 0; iHit < seed->GetNHits(); ++iHit) {
+                BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(seed->GetHitIndex(iHit));
+                hit->SetUsing(kTRUE);
+            }
             ConnectNearestSeed(seed, arr);
         }
     }

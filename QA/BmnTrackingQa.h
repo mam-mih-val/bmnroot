@@ -289,6 +289,8 @@ private:
     TClonesArray* fDch1Hits;
     TClonesArray* fDch2Points;
     TClonesArray* fDch2Hits;
+    
+    TClonesArray* fVertex;
 
     // Global track segment name maps to multimap <MC track index, reconstructed track index>
     map<string, multimap<Int_t, Int_t> > fMcToRecoMap;

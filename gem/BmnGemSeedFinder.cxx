@@ -382,7 +382,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar
     par.SetPosition(TVector3(lX, lY, lZ));
     par.SetTx(Tx_last);
     par.SetTy(Ty_last); //par.SetTy(-B / (lX - Xc));
-    const Float_t PxzLast = 0.0003 * Abs(fField->GetBy(lX, lY, lZ)) * R; // Pt
+    const Float_t PxzLast = 0.0003 * fField->GetBy(lX, lY, lZ) * R; // Pt
     //        const Float_t PxzLast = 0.0003 * fField->GetBy(lX, lY, lZ) * R; // Pt
     if (Abs(PxzLast) < 0.00001) return kFALSE;
     const Float_t PzLast = PxzLast / Sqrt(1 + Sqr(Tx_last));
@@ -395,7 +395,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar
     //    par.Print();
 
     //update for firstParam
-    const Float_t PxzFirst = 0.0003 * Abs(fField->GetBy(fX, fY, fZ)) * R; // Pt
+    const Float_t PxzFirst = 0.0003 * fField->GetBy(fX, fY, fZ) * R; // Pt
     if (Abs(PxzFirst) < 0.00001) return kFALSE;
     const Float_t PzFirst = PxzFirst / Sqrt(1 + Sqr(Tx_first));
     const Float_t PxFirst = PzFirst * Tx_first;
@@ -468,8 +468,11 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* s
         Float_t Xi = hit->GetX();
         Float_t Yi = hit->GetY();
         Float_t Zi = hit->GetZ();
-        S = 0.0003 * Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
+        S = 0.0003 * fField->GetBy(Xi, Yi, Zi);
         Float_t QPi = q / S / Sqrt(R2 + B * B);
+//        cout << "Bx(" << Xi << ", " << Yi << ", " << Zi << ") = " << fField->GetBx(Xi, Yi, Zi) << endl;
+//        cout << "By(" << Xi << ", " << Yi << ", " << Zi << ") = " << fField->GetBy(Xi, Yi, Zi) << endl;
+//        cout << "Bz(" << Xi << ", " << Yi << ", " << Zi << ") = " << fField->GetBz(Xi, Yi, Zi) << endl;
 
         QPmean += QPi;
         Xmean += Xi;
@@ -560,6 +563,8 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* s
     Float_t fR = Sqrt(fZ * fZ + fX * fX);
     Float_t lR = Sqrt(lZ * lZ + lX * lX);
     Float_t tgThetaF = Tan((fR - a) / b);
+    Float_t sinThetaF = Sin((fR - a) / b);
+    Float_t cosThetaF = Cos((fR - a) / b);
     Float_t tgThetaL = Tan((lR - a) / b);
 
     Float_t Tx_first = (b * tgThetaF + fR) / (b - fR * tgThetaF);
@@ -591,7 +596,18 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* s
     const Float_t PzFirst = PxzFirst / Sqrt(1 + Sqr(Tx_first));
     const Float_t PxFirst = PzFirst * Tx_first;
     const Float_t PyFirst = PzFirst * Ty_first;
+    
+//    Float_t Ax = Sqrt(1 + Sqr(Tx_first) + Sqr(Ty_first)) * (Tx_first * Ty_first * fField->GetBx(fX, fY, fZ) - (1 + Sqr(Tx_first)) * fField->GetBy(fX, fY, fZ) + Ty_first * fField->GetBz(fX, fY, fZ));
+//    Float_t Ay = Sqrt(1 + Sqr(Tx_first) + Sqr(Ty_first)) * ((1 + Sqr(Ty_first)) * fField->GetBx(fX, fY, fZ) - Tx_first * Ty_first * fField->GetBy(fX, fY, fZ) - Tx_first * fField->GetBz(fX, fY, fZ));
+//    cout << "Ax = " << Ax << " | Ay = " << Ay << endl;
+//    const Float_t k = 2.99792458 * 10e-4;
+//    Float_t dTxdz = (-1.0 / fR / sinThetaF) * (b * b + fR * fR) / Sqr(b * cosThetaF - fR * sinThetaF);
+//    
+//    Float_t qpTmp = dTxdz / k / Ax;   
     Float_t QPFirst = q / Sqrt(PxFirst * PxFirst + PyFirst * PyFirst + PzFirst * PzFirst);
+    
+//    cout << QPFirst << " " << qpTmp << endl;
+    
     par.SetPosition(TVector3(fX, fY, fZ));
     par.SetQp(QPFirst);
     par.SetTx(Tx_first);
@@ -658,7 +674,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsParabolicSpiral(BmnGemTrack* tr, TL
         Float_t Xi = hit->GetX();
         Float_t Yi = hit->GetY();
         Float_t Zi = hit->GetZ();
-        S = 0.0003 * Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
+        S = 0.0003 * fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ());
         Float_t QPi = q / S / Sqrt(R2 + B * B);
 
         QPmean += QPi;

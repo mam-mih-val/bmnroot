@@ -278,6 +278,8 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // <--- SM
 
     // -----   Primary vertex finding   ---------------------------------------
+    BmnGemVertexFinder* vf = new BmnGemVertexFinder();
+    fRun->AddTask(vf);
     CbmPrimaryVertexFinder* pvFinder = new CbmPVFinderKF();
     CbmFindPrimaryVertex* findVertex = new CbmFindPrimaryVertex(pvFinder);
     //  fRun->AddTask(findVertex);

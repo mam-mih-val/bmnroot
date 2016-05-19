@@ -26,6 +26,7 @@
 #include "FairRunAna.h"
 #include "FairMCEventHeader.h"
 #include "TFitResult.h"
+#include "CbmVertex.h"
 #include "BmnMath.h"
 #include "BmnGemStripHit.h"
 #include "TH1.h"
@@ -173,6 +174,10 @@ void BmnTrackingQa::ReadDataBranches() {
         fGemHitMatches = (TClonesArray*) ioman->GetObject("BmnGemStripHitMatch");
         if (NULL == fGemHitMatches) {
             cout << "BmnTrackingQA::Init: No BmnGemStripHitMatch array!" << endl;
+        }
+        fVertex = (TClonesArray*) ioman->GetObject("BmnVertex");
+        if (NULL == fVertex) {
+            cout << "BmnTrackingQA::Init: No fVertex array!" << endl;
         }
     }
     if (fDet.GetDet(kTOF1)) {
@@ -558,10 +563,12 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Chi2_gem", "#chi^{2} / NDF", "Counter", 400, 0, 100);
     CreateH1("Length_gem", "length, cm", "Counter", 400, 0, 400);
 
-    CreateH2("VertX_vs_Mom_gem", "P_{sim}, GeV/c", "X|_{z = 0}, cm", "", 400, fPRangeMin, fPRangeMax, 400, -2, 2);
-    CreateH2("VertY_vs_Mom_gem", "P_{sim}, GeV/c", "Y|_{z = 0}, cm", "", 400, fPRangeMin, fPRangeMax, 400, -2, 2);
-    CreateH1("VertResX_gem", "P_{sim}, GeV/c", "#sigma_{x}, cm", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("VertResY_gem", "P_{sim}, GeV/c", "#sigma_{y}, cm", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH2("VertX_vs_Mom_gem", "P_{sim}, GeV/c", "V_{x}, cm", "", 400, fPRangeMin, fPRangeMax, 400, -2, 2);
+    CreateH2("VertY_vs_Mom_gem", "P_{sim}, GeV/c", "V_{y}, cm", "", 400, fPRangeMin, fPRangeMax, 400, -2, 2);
+    CreateH2("VertZ_vs_Mom_gem", "P_{sim}, GeV/c", "V_{z}, cm", "", 400, fPRangeMin, fPRangeMax, 400, -2, 2);
+    CreateH1("VertResX_gem", "P_{sim}, GeV/c", "#sigma(V_{x}), cm", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("VertResY_gem", "P_{sim}, GeV/c", "#sigma(V_{y}), cm", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("VertResZ_gem", "P_{sim}, GeV/c", "#sigma(V_{z}), cm", fPRangeBins, fPRangeMin, fPRangeMax);
 
     //for first parameters
     CreateH1("ResX_f_gem", "Residual X, cm", "", 100, -20, 20);
@@ -668,7 +675,7 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("Well_vs_Nh_gem")->Fill(N_rec);
 
             Float_t chi2 = track->GetChi2() / track->GetNDF();
-//            if (chi2 > 5) continue;
+            //            if (chi2 > 5) continue;
             fHM->H2("momRes_2D_gem")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Chi2_gem")->Fill(chi2, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Length_gem")->Fill(track->GetLength(), (P_sim - P_rec) / P_sim * 100.0);
@@ -690,9 +697,13 @@ void BmnTrackingQa::ProcessGem() {
             FairTrackParam* pf = track->GetParamFirst();
             FairTrackParam* pl = track->GetParamLast();
 
-            fHM->H2("VertX_vs_Mom_gem")->Fill(P_sim, pf->GetX());
-            fHM->H2("VertY_vs_Mom_gem")->Fill(P_sim, pf->GetY());
+            CbmVertex* vrt = (CbmVertex*) fVertex->At(0);
 
+            if (vrt != NULL) {
+                fHM->H2("VertX_vs_Mom_gem")->Fill(P_sim, vrt->GetX());
+                fHM->H2("VertY_vs_Mom_gem")->Fill(P_sim, vrt->GetY());
+                fHM->H2("VertZ_vs_Mom_gem")->Fill(P_sim, vrt->GetZ());
+            }
             Double_t cov[15];
 
             pf->CovMatrix(cov);
@@ -737,6 +748,7 @@ void BmnTrackingQa::ProcessGem() {
 
     for (Int_t i = 0; i < splits.size(); ++i) { //FIXME!!!
         FairMCPoint* mcPoint = (FairMCPoint*) (fGemPoints->At(splits[i]));
+        if (!mcPoint) continue;
         //const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(splits.at(i)));
         //BmnMatch* hitMatch = (BmnMatch*) fGemHitMatches->At(track->GetHitIndex(0));
         //Int_t gemPointId = hitMatch->GetMatchedLink().GetIndex();

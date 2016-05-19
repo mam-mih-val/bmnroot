@@ -150,7 +150,7 @@ void BmnTrackingQaReport::Draw() {
     DrawPar("First parameters", namesParF);
     DrawPar("Last parameters", namesParL);
 
-    //DrawVertResGem("Vertex resolution", "VertX_vs_Mom_gem", "VertResX_gem", "VertY_vs_Mom_gem", "VertResY_gem");
+    DrawVertResGem("Vertex resolution", "VertX_vs_Mom_gem", "VertY_vs_Mom_gem", "VertZ_vs_Mom_gem", "VertResX_gem", "VertResY_gem", "VertResZ_gem");
 }
 
 void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames, TString* outNames) {
@@ -292,19 +292,7 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
     DrawH2(HM()->H2(name2d.Data()), kLinear, kLinear, kLinear, "colz");
 
     canvas->cd(2);
-    Int_t nBins = HM()->H1(nameSigma.Data())->GetXaxis()->GetNbins();
-    Int_t momResStep = HM()->H2(name2d.Data())->GetNbinsX() / nBins;
-    Int_t bin = 0;
-    for (Int_t iBin = 0; iBin < HM()->H2(name2d.Data())->GetNbinsX(); iBin += momResStep) {
-        TH1D* proj = HM()->H2(name2d.Data())->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
-        proj->Fit("gaus", "SQRww", "", -5.0, 5.0);
-        TF1 *fit = proj->GetFunction("gaus");
-        Float_t sigma = fit->GetParameter(2);
-        Float_t sigmaError = fit->GetParError(2);
-        HM()->H1(nameSigma.Data())->SetBinContent(bin, sigma);
-        HM()->H1(nameSigma.Data())->SetBinError(bin, sigmaError);
-        bin++;
-    }
+    FillAndFitSlice(nameSigma, name2d);
     HM()->H1(nameSigma.Data())->SetMaximum(10.0);
     HM()->H1(nameSigma.Data())->SetMinimum(0.0);
     DrawH1(HM()->H1(nameSigma.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
@@ -361,53 +349,52 @@ void BmnTrackingQaReport::DrawPar(const TString canvasName, TString* inNames) {
     }
 }
 
-void BmnTrackingQaReport::DrawVertResGem(const string& canvasName, TString name2dX, TString name1dX, TString name2dY, TString name1dY) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1000, 1000);
+void BmnTrackingQaReport::FillAndFitSlice(TString name1d, TString name2d) {
+    Int_t nBins = HM()->H1(name1d.Data())->GetXaxis()->GetNbins();
+    Int_t momResStep = HM()->H2(name2d.Data())->GetNbinsX() / nBins;
+    Int_t bin = 0;
+    for (Int_t iBin = 0; iBin < HM()->H2(name2d.Data())->GetNbinsX(); iBin += momResStep) {
+        TH1D* proj = HM()->H2(name2d.Data())->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
+        proj->Fit("gaus", "SQRww", "", -5.0, 5.0);
+        TF1 *fit = proj->GetFunction("gaus");
+        Float_t sigma = fit->GetParameter(2);
+        Float_t sigmaError = fit->GetParError(2);
+        HM()->H1(name1d.Data())->SetBinContent(bin, sigma);
+        HM()->H1(name1d.Data())->SetBinError(bin, sigmaError);
+        bin++;
+    }
+}
+
+void BmnTrackingQaReport::DrawVertResGem(const string& canvasName, TString name2dX, TString name2dY, TString name2dZ, TString name1dX, TString name1dY, TString name1dZ) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1500, 1000);
     canvas->SetGrid();
-    canvas->Divide(2, 2);
+    canvas->Divide(3, 2);
 
     canvas->cd(1);
-    DrawH2(HM()->H2(name2dX.Data()), kLinear, kLinear, kLinear, "col");
-
+    DrawH2(HM()->H2(name2dX.Data()), kLinear, kLinear, kLinear, "colz");
     canvas->cd(2);
-    DrawH2(HM()->H2(name2dY.Data()), kLinear, kLinear, kLinear, "col");
-
+    DrawH2(HM()->H2(name2dY.Data()), kLinear, kLinear, kLinear, "colz");
     canvas->cd(3);
-    Int_t vertResStep = 10;
-    for (Int_t iBin = 0; iBin < HM()->H2(name2dX.Data())->GetNbinsX(); iBin += vertResStep) {
-        TH1D* proj = HM()->H2(name2dX.Data())->ProjectionY("tmp", iBin, iBin + (vertResStep - 1));
-        proj->Fit("gaus", "SQRww", "", -10.0, 10.0);
-        TF1 *fit = proj->GetFunction("gaus");
-        Float_t mean = TMath::Abs(fit->GetParameter(1)); //(fit->GetParameter(1) < 50.0) ? fit->GetParameter(1) : 0.0;
-        Float_t sigma = fit->GetParameter(2);
-        Float_t mom = HM()->H2(name2dX.Data())->GetXaxis()->GetBinCenter(iBin);
-        Int_t nBins = HM()->H1(name1dX.Data())->GetXaxis()->GetNbins();
-        Int_t bin = (mom - 0.0) / (5.0 - 0.0) * nBins;
-        HM()->H1(name1dX.Data())->SetBinContent(bin, sigma);
-        HM()->H1(name1dX.Data())->SetBinError(bin, 0.0);
-    }
-
-    HM()->H1(name1dX.Data())->SetMaximum(1.0);
+    DrawH2(HM()->H2(name2dZ.Data()), kLinear, kLinear, kLinear, "colz");
+    
+    canvas->cd(4);
+    FillAndFitSlice(name1dX, name2dX);
+    HM()->H1(name1dX.Data())->SetMaximum(2.0);
     HM()->H1(name1dX.Data())->SetMinimum(0.0);
     DrawH1(HM()->H1(name1dX.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
 
-    canvas->cd(4);
-    for (Int_t iBin = 0; iBin < HM()->H2(name2dY.Data())->GetNbinsX(); iBin += vertResStep) {
-        TH1D* proj = HM()->H2(name2dY.Data())->ProjectionY("tmp", iBin, iBin + (vertResStep - 1));
-        proj->Fit("gaus", "SQRww", "", -10.0, 10.0);
-        TF1 *fit = proj->GetFunction("gaus");
-        Float_t mean = TMath::Abs(fit->GetParameter(1)); //(fit->GetParameter(1) < 50.0) ? fit->GetParameter(1) : 0.0;
-        Float_t sigma = fit->GetParameter(2);
-        Float_t mom = HM()->H2(name2dY.Data())->GetXaxis()->GetBinCenter(iBin);
-        Int_t nBins = HM()->H1(name1dY.Data())->GetXaxis()->GetNbins();
-        Int_t bin = (mom - 0.0) / (5.0 - 0.0) * nBins;
-        HM()->H1(name1dY.Data())->SetBinContent(bin, sigma);
-        HM()->H1(name1dY.Data())->SetBinError(bin, 0.0);
-    }
-
-    HM()->H1(name1dY.Data())->SetMaximum(1.0);
+    canvas->cd(5);
+    FillAndFitSlice(name1dY, name2dY);
+    HM()->H1(name1dY.Data())->SetMaximum(2.0);
     HM()->H1(name1dY.Data())->SetMinimum(0.0);
     DrawH1(HM()->H1(name1dY.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+
+    canvas->cd(6);
+    FillAndFitSlice(name1dZ, name2dZ);
+    HM()->H1(name1dZ.Data())->SetMaximum(2.0);
+    HM()->H1(name1dZ.Data())->SetMinimum(0.0);
+    DrawH1(HM()->H1(name1dZ.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+    
 }
 
 void BmnTrackingQaReport::DrawOneH1(const TString canvasName, const TString name1, const TString drawOpt) {

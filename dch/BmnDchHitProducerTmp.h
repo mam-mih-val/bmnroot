@@ -9,12 +9,11 @@
 #include "TString.h"
 #include "FairTask.h"
 #include "CbmTofPoint.h"
+#include "TClonesArray.h"
 
 #include "CbmTofHit.h"
 
 using namespace std;
-
-class TClonesArray;
 
 class BmnDchHitProducerTmp : public FairTask {
 public:

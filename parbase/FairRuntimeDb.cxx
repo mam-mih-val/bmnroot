@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 20/10/2004
 
@@ -6,29 +13,43 @@
 //
 //  Administration class for parameter input/output
 /////////////////////////////////////////////////////////////
-
 #include "FairRuntimeDb.h"
 
-#include "FairContFact.h"
-#include "FairParSet.h"
-#include "FairRtdbRun.h"
-#include "FairParIo.h"
-#include "FairParRootFileIo.h"
-#include "FairParAsciiFileIo.h"
-#include "FairGenericParRootFileIo.h"
-#include "FairGenericParAsciiFileIo.h"
+#include "FairContFact.h"               // for FairContFact
+#include "FairDetParAsciiFileIo.h"      // for FairDetParAsciiFileIo
+#include "FairDetParRootFileIo.h"       // for FairDetParRootFileIo
+//#include "FairDetParTSQLIo.h"           // for FairDetParTSQLIo
+#include "FairGenericParAsciiFileIo.h"  // for FairGenericParAsciiFileIo
+#include "FairGenericParRootFileIo.h"   // for FairGenericParRootFileIo
+//#include "FairGenericParTSQLIo.h"       // for FairGenericParTSQLIo
+#include "FairLogger.h"                 // for FairLogger, MESSAGE_ORIGIN
+#include "FairParAsciiFileIo.h"         // for FairParAsciiFileIo
+#include "FairParIo.h"                  // for FairParIo
+#include "FairParRootFileIo.h"          // for FairParRootFileIo
+#include "FairParSet.h"                 // for FairParSet
+#include "FairRtdbRun.h"                // for FairRtdbRun, FairParVersion
 
-//#include "TKey.h"
-#include "TClass.h"
+#include "Riosfwd.h"                    // for ostream
+#include "TClass.h"                     // for TClass
+#include "TCollection.h"                // for TIter
+#include "TFile.h"                      // for TFile, gFile
 
+#include <stdio.h>                      // for sprintf
+#include <string.h>                     // for strcmp, NULL, strlen
+#include <iomanip>                      // for setw, operator<<
+#include <iostream>                     // for operator<<, basic_ostream, etc
 
-#include <iostream>
-#include <iomanip>
+class FairDetParIo;
 
 using std::cout;
 using std::endl;
 using std::ios;
 using std::setw;
+
+/// DEBUG DEBUG Temporary define
+// 0 = use original code; 1 = use new code
+#define USE_DB_METHOD 1
+/////////////////////////////////
 
 ClassImp(FairRuntimeDb)
 
@@ -52,7 +73,8 @@ FairRuntimeDb::FairRuntimeDb(void)
    currentFileName(""),
    versionsChanged(kFALSE),
    isRootFileOutput(kFALSE),
-   fLogger(FairLogger::GetLogger())
+   fLogger(FairLogger::GetLogger()),
+   ioType(UNKNOWN_Type)
 {
   gRtdb=this;
 }
@@ -65,16 +87,12 @@ FairRuntimeDb::~FairRuntimeDb()
   closeSecondInput();
   closeOutput();
   if (containerList) {
-    /*
-        TIter next(containerList);
-        FairParSet* cont;
-        while ((cont=(FairParSet*)next())) {
-          Text_t* name=(char*)cont->GetName();
-          cout<<"Remove Container: "<<name<<endl;
-          removeContainer(name);
-        }
-    */
-    containerList->Delete();
+    TIter next(containerList);
+    FairParSet* cont;
+    while ((cont=(FairParSet*)next())) {
+      Text_t* name=(char*)cont->GetName();
+      if (!cont->isOwned()) { removeContainer(name); }
+    }
     delete containerList;
   }
   if (runs) {
@@ -123,8 +141,11 @@ void FairRuntimeDb::printParamContexts()
 
 Bool_t FairRuntimeDb::addContainer(FairParSet* container)
 {
+
   // adds a container to the list of containers
+  //cout << "-I- name parset # " << container->GetName()<< endl;
   Text_t* name=(char*)container->GetName();
+
   if (!containerList->FindObject(name)) {
     containerList->Add(container);
     TIter next(runs);
@@ -136,8 +157,15 @@ Bool_t FairRuntimeDb::addContainer(FairParSet* container)
         run->addParVersion(vers);
       }
     }
+    //cout << "-I- RTDB entries in list# " <<  containerList->GetEntries() <<"\n" ;
+
+
     return kTRUE;
   }
+
+
+
+
   Warning("addContainer(FairParSet*)","Container %s already exists!",name);
   return kFALSE;
 }
@@ -246,7 +274,7 @@ void FairRuntimeDb::writeVersions()
   if (getOutput() && output->check()) {
     if (versionsChanged && isRootFileOutput) {
       output->cd();
-      if (gFile->IsWritable()) { runs->Write(); }
+      if (gFile->IsWritable()) { runs->Write();}
       versionsChanged=kFALSE;
     }
   }
@@ -299,7 +327,7 @@ Int_t FairRuntimeDb::findOutputVersion(FairParSet* cont)
   }
   if ((firstInput==output) && (in1>0 && in2==-1)) { return in1; }
   TIter next(runs);
-  v=0;
+ // v=0;
   while ((run=(FairRtdbRun*)next())) {
     vers=run->getParVersion(name);
     if (vers->getInputVersion(1)==in1 && vers->getInputVersion(2)==in2) {
@@ -309,6 +337,8 @@ Int_t FairRuntimeDb::findOutputVersion(FairParSet* cont)
   return 0;
 }
 
+//////// Original version ////////
+#if (USE_DB_METHOD == 0)
 Bool_t FairRuntimeDb::writeContainer(FairParSet* cont, FairRtdbRun* run, FairRtdbRun* refRun)
 {
   // writes a container to the output if the containers has changed
@@ -320,6 +350,7 @@ Bool_t FairRuntimeDb::writeContainer(FairParSet* cont, FairRtdbRun* run, FairRtd
   Bool_t rc=kTRUE;
   Int_t cv=0;
   if (getOutput() && output->check() && output->isAutoWritable()) {
+    cout << " CHECK OUTPUT DONE " << endl;
     if (isRootFileOutput) {
       if (cont->hasChanged()) {
         cv=findOutputVersion(cont);
@@ -346,6 +377,7 @@ Bool_t FairRuntimeDb::writeContainer(FairParSet* cont, FairRtdbRun* run, FairRtd
         vers->setRootVersion(cv);
       }
     }
+
   }
   vers->setInputVersion(cont->getInputVersion(1),1);
   vers->setInputVersion(cont->getInputVersion(2),2);
@@ -360,6 +392,86 @@ Bool_t FairRuntimeDb::writeContainer(FairParSet* cont, FairRtdbRun* run, FairRtd
   }
   return rc;
 }
+#endif
+
+//////////// With DB modification (FIXME FIXME) //////
+#if (USE_DB_METHOD > 0)
+Bool_t FairRuntimeDb::writeContainer(FairParSet* cont, FairRtdbRun* run, FairRtdbRun* refRun)
+{
+  // std::cout << "\n -I FairRuntimeDB Using DB mode \n";
+  // writes a container to the output if the containers has changed
+  // The output might be suppressed if the changes is due an initialisation from a
+  //   ROOT file which serves also as output or if it was already written
+  Text_t* c = (char*)cont->GetName();
+  fLogger->Debug( MESSAGE_ORIGIN,"RuntimeDb: write container : %s ", cont->GetName());
+  FairParVersion* vers = run->getParVersion(c);
+  Bool_t rc = kTRUE;
+  Int_t cv = 0;
+  if (getOutput() && output->check() && output->isAutoWritable()) {
+    switch (ioType) {
+    case RootFileOutput: // RootFile
+      if (cont->hasChanged()) {
+        cv = findOutputVersion(cont);
+        if (cv == 0) {
+          cv = cont->write(output);
+          if (cv>0) {
+            fLogger->Info(MESSAGE_ORIGIN,"***  %s written to ROOT file   version: %i ", c, cv);
+          } else if (cv==-1) {
+            return kFALSE;
+          }
+          // -1 indicates and error during write
+          // 0 is allowed for all containers which have no write function
+        }
+        vers->setRootVersion(cv);
+      } else {
+        if (vers->getRootVersion() == 0) {
+          cv = findOutputVersion(cont);
+          vers->setRootVersion(cv);
+        }
+      }
+      break;// End of rootfile IO
+    case RootTSQLOutput://TSQL
+      if (cont->hasChanged()) {
+        cv = findOutputVersion(cont);
+        if(cv == 0) {
+          //std::cout << "-I- FairRuntimeDB: SQL write() called 1 = "<< cont->GetName() << "\n";
+          cont->print();
+          /*Int_t test = */
+          cont->write(output);
+          //std::cout << "-I- FairRuntimeDB: SQL write() called 2 =  \n";
+        }
+      }
+      break;//End of TSQL IO
+    case AsciiFileOutput:// might be Ascii I/O
+      if(cont->hasChanged()) {
+        cv = cont->write(output);
+        if(cv <0) {
+          return kFALSE;
+        }
+        cout << "***  " << c << " written to output" << '\n';
+        vers->setRootVersion(cv);
+      }
+      break;// End of Ascii IO
+    default: // Unknown IO
+      Error("writeContainer()","Unknown output file type.");
+      break;
+    }
+  }
+  vers->setInputVersion(cont->getInputVersion(1),1);
+  vers->setInputVersion(cont->getInputVersion(2),2);
+  cont->setChanged(kFALSE);
+  if (refRun) {
+    FairParVersion* refVers=refRun->getParVersion(c);
+    if (refVers) {
+      refVers->setInputVersion(cont->getInputVersion(1),1);
+      refVers->setInputVersion(cont->getInputVersion(2),2);
+      refVers->setRootVersion(cv);
+    }
+  }
+  return rc;
+}
+#endif
+////////////////////////////////////////
 
 Bool_t FairRuntimeDb::initContainers(Int_t runId,Int_t refId,
                                      const Text_t* fileName)
@@ -417,7 +529,7 @@ Bool_t FairRuntimeDb::initContainers(void)
   TIter next(containerList);
   FairParSet* cont;
   Bool_t rc=kTRUE;
-  cout<<'\n'<<"*************************************************************"<<'\n';
+  cout<<'\n'<<"************************************************************* "<<'\n';
   if (currentFileName.IsNull()) {
     cout<<"     initialisation for run id "<<currentRun->GetName();
   } else {
@@ -425,8 +537,9 @@ Bool_t FairRuntimeDb::initContainers(void)
     cout<<"     run id "<<currentRun->GetName();
   }
   if (len>0) { cout << " --> " << refRunName; }
-  cout<<'\n'<<"*************************************************************"<<'\n';
+  cout<<'\n'<<"************************************************************* "<<'\n';
   while ((cont=(FairParSet*)next())) {
+    cout << "-I- FairRunTimeDB::InitContainer() " << cont->GetName() << endl;
     if (!cont->isStatic()) { rc=cont->init() && rc; }
   }
   if (!rc) { Error("initContainers()","Error occured during initialization"); }
@@ -580,7 +693,8 @@ Bool_t FairRuntimeDb::setSecondInput(FairParIo* inp2)
   } else { Error("setSecondInput(FairParIo*)","no connection to input"); }
   return kFALSE;
 }
-
+//////// Original version ////////
+#if (USE_DB_METHOD  == 0)
 Bool_t FairRuntimeDb::setOutput(FairParIo* op)
 {
   // sets the output pointer
@@ -594,7 +708,29 @@ Bool_t FairRuntimeDb::setOutput(FairParIo* op)
   } else { Error("setOutput(FairParIo*)","no connection to output"); }
   return kFALSE;
 }
-
+#endif
+////// With DB modifications (FIXME FIXME)/////
+#if (USE_DB_METHOD > 0)
+Bool_t FairRuntimeDb::setOutput(FairParIo* op)
+{
+  // sets the output pointer
+  output = op;
+  if (output->check() == kTRUE) {
+    resetOutputVersions();
+    if (strcmp(output->IsA()->GetName(), "FairParRootFileIo") == 0) {
+      ioType = RootFileOutput;
+      isRootFileOutput=kTRUE;
+    } else if (strcmp(output->IsA()->GetName(), "FairParTSQLIo") == 0) {
+      ioType = RootTSQLOutput;
+    } else { //ASCII
+      ioType = AsciiFileOutput;
+    }
+    return kTRUE;
+  } else { Error("setOutput(FairParIo*)","no connection to output"); }
+  return kFALSE;
+}
+#endif
+/////////////////////////////////
 FairParIo* FairRuntimeDb::getFirstInput()
 {
   // return a pointer to the first input
@@ -671,6 +807,11 @@ void FairRuntimeDb::activateParIo(FairParIo* io)
         new FairGenericParAsciiFileIo(((FairParAsciiFileIo*)io)->getFile());
       io->setDetParIo(pn);
     }
+    // else if(strcmp(ioName,"FairParTSQLIo") == 0) {
+    //  std::cout << "\n\n\n\t TSQL versie is called en nu de rest \n\n";
+    //  FairDetParTSQLIo* pn = new FairGenericParTSQLIo();
+    //  io->setDetParIo(pn);
+    //}
   }
   TIter next(&contFactories);
   FairContFact* fact;

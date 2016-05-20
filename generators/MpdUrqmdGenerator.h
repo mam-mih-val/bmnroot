@@ -24,7 +24,9 @@
 #include <map>
 
 #ifdef GZIP_SUPPORT
+#ifndef __CINT__
 #include <zlib.h>
+#endif
 #endif
 
 class TVirtualMCStack;
@@ -62,7 +64,9 @@ class MpdUrqmdGenerator : public FairGenerator
   private:
 
 #ifdef GZIP_SUPPORT
+    #ifndef __CINT__
     gzFile fInputFile;                    //!  Input file
+    #endif
 #else
     FILE* fInputFile;                     //!  Input file
 #endif

@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 20/10/2004
 
@@ -11,7 +18,12 @@
 
 #include "FairParIo.h"
 
-#include "FairDetParIo.h"
+#include "FairDetParIo.h"               // for FairDetParIo
+
+#include "TCollection.h"                // for TIter
+#include "TList.h"                      // for TList
+
+using namespace std;
 
 ClassImp(FairParIo)
 
@@ -57,6 +69,7 @@ void FairParIo::setInputNumber(Int_t num)
 FairDetParIo* FairParIo::getDetParIo(const Text_t* detName)
 {
   // returns pointer to input/output class for a detector
+  //std::cout << " DetParIO # " << detName << detParIoList->GetEntries()  <<  std::endl;
   return ((FairDetParIo*)detParIoList->FindObject(detName));
 }
 

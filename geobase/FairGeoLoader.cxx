@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 /***************************************************************************
                           FairGeoLoader.cxx  -  description
                              -------------------
@@ -5,17 +12,17 @@
     copyright            : (C) 2004 by ilse koenig , M. Al-turany
     email                : m.al-turany@gsi.de
  ***************************************************************************/
-
 #include "FairGeoLoader.h"
 
-#include "FairGeoInterface.h"
-#include "FairGeoRootBuilder.h"
-//#include "FairGeoG3Builder.h"
+#include "FairGeoInterface.h"           // for FairGeoInterface
+#include "FairGeoRootBuilder.h"         // for FairGeoRootBuilder
 
-#include "TGeoManager.h"
+#include "Riosfwd.h"                    // for ostream
+#include "TGeoManager.h"                // for TGeoManager
 
-#include <iostream>
-#include <cstdlib>
+#include <string.h>                     // for strncmp
+#include <cstdlib>                      // for NULL, exit
+#include <iostream>                     // for cout, endl, operator<<, etc
 
 using std::cout;
 using std::endl;

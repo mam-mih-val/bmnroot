@@ -1,13 +1,24 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRRTDBRUN_H
 #define FAIRRTDBRUN_H
 
-#include "TNamed.h"
-#include "TList.h"
-#include "TString.h"
+#include "TNamed.h"                     // for TNamed
 
-//#include <iostream>
-//#include <iomanip>
-#include <fstream>
+#include "Riosfwd.h"                    // for fstream
+#include "Rtypes.h"                     // for Int_t, Text_t, UInt_t, etc
+#include "TString.h"                    // for TString
+
+#include <stdio.h>                      // for sprintf, sscanf
+#include <fstream>                      // for fstream
+
+class TList;
+using std::fstream;
 
 class FairParVersion : public TNamed
 {
@@ -44,7 +55,7 @@ class FairRtdbRun : public TNamed
     FairRtdbRun(Int_t r,Int_t rr=-1);
     FairRtdbRun(FairRtdbRun& run);
     ~FairRtdbRun();
-    inline Int_t getRunId(void);
+    inline UInt_t getRunId(void);
     void addParVersion(FairParVersion* pv);
     FairParVersion* getParVersion(const Text_t* name);
     TList* getParVersions() {return parVersions;}
@@ -54,7 +65,7 @@ class FairRtdbRun : public TNamed
     void resetInputVersions();
     void resetOutputVersions();
     void print();
-    void write(fstream&);
+    void write(std::fstream&);
 
   private:
     FairRtdbRun& operator=(const FairRtdbRun&);
@@ -64,9 +75,9 @@ class FairRtdbRun : public TNamed
 
 // -------------------- inlines ---------------------------
 
-inline Int_t FairRtdbRun::getRunId(void)
+inline UInt_t FairRtdbRun::getRunId(void)
 {
-  Int_t r;
+  UInt_t r;
   sscanf(GetName(),"%i",&r);
   return r;
 }

@@ -70,6 +70,7 @@ void CbmKF::SetParContainers()
   FairRunAna* ana = FairRunAna::Instance();
   FairRuntimeDb* rtdb=ana->GetRuntimeDb();
   rtdb->getContainer("FairBaseParSet");
+  rtdb->getContainer("FairGeoParSet");
   rtdb->getContainer("FairGeoPassivePar");
   rtdb->getContainer("CbmMvdGeoPar");
   rtdb->getContainer("CbmGeoStsPar");

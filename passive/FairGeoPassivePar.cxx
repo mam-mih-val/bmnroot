@@ -1,12 +1,20 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Denis Bertini
 //*-- Created : 21/06/2005
 
-using namespace std;
 #include "FairGeoPassivePar.h"
-#include "FairParamList.h"
-#include <iostream>
-#include <iomanip>
-#include "TObjArray.h"
+
+#include "FairParamList.h"              // for FairParamList
+
+#include "TObjArray.h"                  // for TObjArray
+
+using namespace std;
 
 ClassImp(FairGeoPassivePar)
 

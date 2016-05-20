@@ -1,11 +1,22 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEOVECTOR_H
 #define FAIRGEOVECTOR_H
 
-#include "TObject.h"
-#include "TMath.h"
+#include "TObject.h"                    // for TObject
 
-#include <iostream>
+#include "Riosfwd.h"                    // for ostream, istream
+#include "Rtypes.h"                     // for Double_t, Bool_t, Int_t, etc
+#include "TMath.h"                      // for pow, floor, sqrt
+#include "TMathBase.h"                  // for Abs
 
+#include <stdio.h>                      // for printf
+#include <iostream>                     // for operator<<, ostream, etc
 
 class FairGeoVector : public TObject
 {
@@ -71,8 +82,8 @@ class FairGeoVector : public TObject
     void clear() {x=y=z=0.;}
     void print() const {printf("%10.3f%10.3f%10.3f\n",x,y,z);}
     inline void round(Int_t n);
-    inline friend ostream& operator << (ostream& put,const FairGeoVector& v);
-    inline friend istream& operator >> (istream& get,FairGeoVector& v);
+    inline friend std::ostream& operator << (std::ostream& put,const FairGeoVector& v);
+    inline friend std::istream& operator >> (std::istream& get,FairGeoVector& v);
     ClassDef(FairGeoVector,1) // vector with 3 components
 };
 
@@ -246,12 +257,12 @@ inline void FairGeoVector::round(Int_t n)
   round(z,n);
 }
 
-inline ostream& operator << (ostream& put,const FairGeoVector& v)
+inline std::ostream& operator << (std::ostream& put,const FairGeoVector& v)
 {
   return put<<v(0)<<"  "<<v(1)<<"  "<<v(2)<<'\n';
 }
 
-inline istream& operator >> (istream& get,FairGeoVector& v)
+inline std::istream& operator >> (std::istream& get,FairGeoVector& v)
 {
   Double_t x[3];
   get>>x[0]>>x[1]>>x[2];

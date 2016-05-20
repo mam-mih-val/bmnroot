@@ -1,14 +1,19 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEOBASICSHAPE_H
 #define FAIRGEOBASICSHAPE_H
 
-//#include "FairGeoTransform.h"
+#include "TNamed.h"                     // for TNamed
 
-#include "TNamed.h"
-//#include "TString.h"
-//#include "TArrayD.h"
-//#include "TShape.h"
+#include "Riosfwd.h"                    // for fstream
+#include "Rtypes.h"                     // for Int_t, etc
 
-#include <fstream>
+#include <fstream>                      // for fstream
 
 class FairGeoTransform;
 class FairGeoVolume;
@@ -33,8 +38,8 @@ class FairGeoBasicShape : public TNamed
     TArrayD* getParam() {return param;}
     FairGeoTransform* getCenterPosition() {return center;}
     FairGeoTransform* getVoluPosition() {return position;}
-    virtual Int_t readPoints(fstream*,FairGeoVolume*);
-    virtual Bool_t writePoints(fstream*,FairGeoVolume*);
+    virtual Int_t readPoints(std::fstream*,FairGeoVolume*);
+    virtual Bool_t writePoints(std::fstream*,FairGeoVolume*);
     virtual void printPoints(FairGeoVolume* volu);
     virtual TArrayD* calcVoluParam(FairGeoVolume*) {return 0;}
     virtual void calcVoluPosition(FairGeoVolume*,const FairGeoTransform&);

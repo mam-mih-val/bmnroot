@@ -1,14 +1,23 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEOROTATION_H
 #define FAIRGEOROTATION_H
 
-#include "TObject.h"
+#include "TObject.h"                    // for TObject
 
-#include "FairGeoVector.h"
+#include "FairGeoVector.h"              // for FairGeoVector
 
-#include "TRotMatrix.h"
+#include "Riosfwd.h"                    // for ostream
+#include "Rtypes.h"                     // for Double_t, Int_t, Bool_t, etc
 
-#include <iostream>
+#include <iostream>                     // for operator<<, cout, ostream, etc
 
+class TRotMatrix;
 
 /**
  * rotation matrix

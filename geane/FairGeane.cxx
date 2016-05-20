@@ -130,7 +130,6 @@ InitStatus FairGeane::Init()
   field->Print();
   fApp->SetField(field);
 
-  cout<<"ConfigMacro.Data(): "<<ConfigMacro.Data()<<endl;
   fApp->InitMC(ConfigMacro.Data(), "");
 
   cout <<"I- FairGeane::FairGeane:  Geane is Initialized " << endl;

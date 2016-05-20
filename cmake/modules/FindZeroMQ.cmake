@@ -1,23 +1,35 @@
-message(STATUS "Looking for ZeroMQ...")
+ ################################################################################
+ #    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    #
+ #                                                                              #
+ #              This software is distributed under the terms of the             # 
+ #         GNU Lesser General Public Licence version 3 (LGPL) version 3,        #  
+ #                  copied verbatim in the file "LICENSE"                       #
+ ################################################################################
 
-set(ZMQ_H zmq.h)
-set(ZMQ_UTILS_H zmq_utils.h)
-set(LIBZMQ_SHARED libzmq.so)
-set(LIBZMQ_STATIC libzmq.a)
+MESSAGE(STATUS "Looking for ZeroMQ...")
 
-find_path(ZMQ_INCLUDE_DIR NAMES ${ZMQ_H} ${ZMQ_UTILS_H}
+find_path(ZMQ_INCLUDE_DIR NAMES zmq.hpp zmq_utils.h
+  PATHS ${ZMQ_DIR}/include
+  PATHS ${AlFa_DIR}/include
   PATHS ${SIMPATH}/include
+  NO_DEFAULT_PATH
   DOC   "Path to ZeroMQ include header files."
 )
 
-find_library(ZMQ_LIBRARY_SHARED NAMES ${LIBZMQ_SHARED}
+find_library(ZMQ_LIBRARY_SHARED NAMES libzmq.dylib libzmq.so
+  PATHS ${ZMQ_DIR}/lib
+  PATHS ${AlFa_DIR}/lib
   PATHS ${SIMPATH}/lib
-  DOC   "Path to ${LIBZMQ_SHARED}."
+  NO_DEFAULT_PATH
+  DOC   "Path to libzmq.dylib libzmq.so."
 )
 
-find_library(ZMQ_LIBRARY_STATIC NAMES ${LIBZMQ_STATIC}
+find_library(ZMQ_LIBRARY_STATIC NAMES libzmq.a
+  PATHS ${ZMQ_DIR}/lib
+  PATHS ${AlFa_DIR}/lib
   PATHS ${SIMPATH}/lib
-  DOC   "Path to ${LIBZMQ_STATIC}."
+  NO_DEFAULT_PATH
+  DOC   "Path to libzmq.a."
 )
 
 IF(ZMQ_INCLUDE_DIR AND ZMQ_LIBRARY_SHARED AND ZMQ_LIBRARY_STATIC)

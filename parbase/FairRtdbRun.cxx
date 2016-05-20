@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 20/10/2004
 
@@ -16,11 +23,13 @@
 //  The input versions are used during the initialisation
 //  used during the initialisation of the containers.
 ///////////////////////////////////////////////////////////////////
-
 #include "FairRtdbRun.h"
 
-#include <iostream>
-#include <iomanip>
+#include "TCollection.h"                // for TIter
+#include "TList.h"                      // for TList
+
+#include <iomanip>                      // for setw, operator<<
+#include <iostream>                     // for cout
 
 using std::cout;
 using std::ios;
@@ -141,7 +150,7 @@ void FairRtdbRun::print()
   }
 }
 
-void FairRtdbRun::write(fstream& fout)
+void FairRtdbRun::write(std::fstream& fout)
 {
   // writes the list of container versions for this run to fstream
   fout<<"run: "<<GetName()<<'\n';

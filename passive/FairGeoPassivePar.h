@@ -1,8 +1,19 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef PNDGEOPASSIVEPAR_H
 #define PNDGEOPASSIVEPAR_H
 
-#include "FairParGenericSet.h"
-#include "TH1F.h"
+#include "FairParGenericSet.h"          // for FairParGenericSet
+
+#include "Rtypes.h"                     // for FairGeoPassivePar::Class, etc
+
+class FairParamList;
+class TObjArray;
 
 class FairGeoPassivePar : public FairParGenericSet
 {

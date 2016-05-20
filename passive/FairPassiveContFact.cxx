@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Denis Bertini
 //*-- Created : 21/06/2005
 
@@ -8,13 +15,19 @@
 //  Factory for the parameter containers in libPassive
 //
 /////////////////////////////////////////////////////////////
+#include "FairPassiveContFact.h"
+
+#include "FairGeoPassivePar.h"          // for FairGeoPassivePar
+#include "FairRuntimeDb.h"              // for FairRuntimeDb
+
+#include "TList.h"                      // for TList
+#include "TString.h"                    // for TString
+
+#include <string.h>                     // for strcmp, NULL
+
+class FairParSet;
 
 using namespace std;
-#include "FairPassiveContFact.h"
-#include "FairRuntimeDb.h"
-#include "FairGeoPassivePar.h"
-#include <iostream>
-#include <iomanip>
 
 ClassImp(FairPassiveContFact)
 

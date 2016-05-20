@@ -11,6 +11,11 @@
 
 #include "TString.h"
 
+#ifndef __BEGIN_DECLS
+#define __BEGIN_DECLS  extern "C" {
+#define __END_DECLS }
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -54,9 +59,9 @@ class FairWebScreenshots : public FairTask
     virtual void Finish();
 
     //Set format of saved files
-    void SetFormatFiles(int formatFiles); 
+    void SetFormatFiles(int i_format_files);
     //Set quantity of files
-    void SetMultiFiles(int quantityFiles);
+    void SetMultiFiles(bool is_multi_files);
     //Set Number port
     void SetPort(int NumberPort);
     
@@ -86,9 +91,9 @@ class FairWebScreenshots : public FairTask
    FairEventManager* fMan;
 
    // 0 - PNG, 1 -JPG, 2 - both types
-   int formatFiles;
+   int iFormatFiles;
    // 0 - one (the same) file event.png; 1 - multiple files event_nnn.png (event1.png and etc.)
-   bool quantityFiles;
+   bool isMultiFiles;
 
    TString outputDir;
    int web_port;

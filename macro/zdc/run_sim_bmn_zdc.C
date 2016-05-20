@@ -231,7 +231,6 @@ void run_sim_bmn_zdc(TString inFile = "/nica/data4mpd1/QGSM/AuAu4mb_mer.r12.gz",
     (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
 #endif
 
-    Bool_t file = fRun->GetWriteRunInfoFile();
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);

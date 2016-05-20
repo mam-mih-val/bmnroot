@@ -15,10 +15,9 @@
 #include "TVector3.h"
 #include "TLorentzVector.h"
 #include "TH2F.h"
+#include "TClonesArray.h"
 
 using namespace std;
-
-class TClonesArray;
 
 class BmnMwpcHitFinder : public FairTask {
 public:

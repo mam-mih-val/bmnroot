@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                        FairBoxSetDraw source file                  -----
 // -----                  Created 03/01/08  by M. Al-Turany            -----
@@ -34,9 +41,9 @@ FairBoxSetDraw::FairBoxSetDraw()
     fEventManager(NULL),
     fManager(NULL),
     fq(NULL),
-    fX(1.),
-    fY(1.),
-    fZ(1.),
+    fX(0.3),
+    fY(0.3),
+    fZ(0.3),
     fTimeWindowPlus(0.),
     fTimeWindowMinus(0.),
     fStartTime(0.),
@@ -57,9 +64,9 @@ FairBoxSetDraw::FairBoxSetDraw(const char* name, Int_t iVerbose)
     fEventManager(NULL),
     fManager(NULL),
     fq(NULL),
-    fX(1.),
-    fY(1.),
-    fZ(1.),
+    fX(0.3),
+    fY(0.3),
+    fZ(0.3),
     fTimeWindowPlus(0.),
     fTimeWindowMinus(0.),
     fStartTime(0.),
@@ -151,10 +158,10 @@ Int_t FairBoxSetDraw::GetValue(TObject* obj, Int_t i)
 FairBoxSet* FairBoxSetDraw::CreateBoxSet()
 {
   FairBoxSet* aBoxSet = new FairBoxSet(this, GetName());
-  aBoxSet->Reset(FairBoxSet::kBT_AABoxFixedDim, kFALSE, 32);
-  aBoxSet->SetDefWidth(0.3);
-  aBoxSet->SetDefHeight(0.3);
-  aBoxSet->SetDefDepth(0.3);
+  aBoxSet->Reset(FairBoxSet::kBT_AABoxFixedDim, kFALSE, 64);
+  aBoxSet->SetDefWidth(fX);
+  aBoxSet->SetDefHeight(fY);
+  aBoxSet->SetDefDepth(fZ);
   fq = aBoxSet;
 
   return aBoxSet;

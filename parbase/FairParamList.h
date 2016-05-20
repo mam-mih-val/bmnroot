@@ -1,17 +1,28 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRPARAMLIST_H
 #define FAIRPARAMLIST_H
 
-#include "TNamed.h"
-#include "TString.h"
-#include "TArrayI.h"
-#include "TArrayC.h"
-#include "TArrayF.h"
-#include "TArrayD.h"
-#include "TList.h"
-#include "TFile.h"
-#include "TROOT.h"
+#include "TNamed.h"                     // for TNamed
+
+#include "Rtypes.h"                     // for Text_t, Int_t, Bool_t, etc
+#include "TArrayC.h"                    // for TArrayC
+#include "TFile.h"                      // for TFile
+#include "TList.h"                      // for TList
+#include "TObject.h"                    // for TObject
+#include "TROOT.h"                      // for TROOT, gROOT
+#include "TSeqCollection.h"             // for TSeqCollection
+#include "TString.h"                    // for TString
 
 class FairLogger;
+class TArrayD;
+class TArrayF;
+class TArrayI;
 
 class FairParamObj : public TNamed
 {

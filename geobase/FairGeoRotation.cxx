@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Modified : 16/06/99
 
@@ -65,8 +72,10 @@
 //   2. angle:  rotation around y1-axis  --> x2, y2=y1, z2
 //   3. angle:  rotation around z2-axis  --> x3, y3, z3=z2
 ///////////////////////////////////////////////////////////////////////////////
-
 #include "FairGeoRotation.h"
+
+#include "TMath.h"                      // for Cos, Sin
+#include "TRotMatrix.h"                 // for TRotMatrix
 
 ClassImp(FairGeoRotation)
 

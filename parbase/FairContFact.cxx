@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #//*-- AUTHOR : Ilse Koenig
 //*-- Created : 21/10/2004
 
@@ -10,12 +17,16 @@
 /////////////////////////////////////////////////////////////
 
 #include "FairContFact.h"
-#include "FairRuntimeDb.h"
 
-#include "TObjString.h"
+#include "FairLogger.h"                 // for FairLogger
+#include "FairRuntimeDb.h"              // for FairRuntimeDb
 
+#include "Riosfwd.h"                    // for ostream
+#include "TCollection.h"                // for TIter
+#include "TObjString.h"                 // for TObjString
 
-#include <iostream>
+#include <string.h>                     // for strlen, NULL
+#include <iostream>                     // for operator<<, ostream, cout, etc
 
 using std::cout;
 

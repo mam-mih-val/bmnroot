@@ -8,7 +8,9 @@
 #ifndef Mpd_PHSDGENERATOR_H
 #define Mpd_PHSDGENERATOR_H
 
+#ifndef __CINT__
 #include <zlib.h>
+#endif
 
 #include <TRandom2.h>
 
@@ -34,7 +36,9 @@ class MpdPHSDGenerator : public FairGenerator
  private:
   Int_t fntr; //! number of tracks in given event
   Float_t fb; //! impact parameter in given event
+  #ifndef __CINT__
   gzFile    fgzFile; //! file
+  #endif
   char fbuffer[256]; //! reading buffer
 
   TRandom2 *frandom; //!

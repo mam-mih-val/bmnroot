@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 /*
  * FairHitDraw.cpp
  *
@@ -21,8 +28,7 @@ FairHitDraw::FairHitDraw(const char* name, Int_t iVerbose):FairBoxSetDraw(name, 
 
 TVector3 FairHitDraw::GetVector(TObject* obj)
 {
-  FairHit* hit = (FairHit*) obj;
-
+  FairHit* hit =(FairHit*)obj;
   return TVector3(hit->GetX(), hit->GetY(), hit->GetZ());
 }
 

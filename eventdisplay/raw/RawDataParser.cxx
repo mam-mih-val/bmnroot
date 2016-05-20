@@ -194,7 +194,7 @@ int RawDataParser::ParseHRB1Buffer(unsigned int* buffer, long size, vector<Event
             return -4;
         }
         int time_bin = 1;   // starting from 1
-        for (unsigned int i = 16; i < fragment_length; i += 16, time_bin++)
+        for (unsigned int ui = 16; ui < fragment_length; ui += 16, time_bin++)
         {
             // 96 bit for every wire and 32 bit is empty (zero)
             for (int j = 0; j < 3; j++)
@@ -383,7 +383,7 @@ int RawDataParser::ParseHRB2Buffer(unsigned int* buffer, long size, vector<Event
         }
         int time_bin = 1;   // starting from 1
         int pos_bits = sizeof(unsigned int)*8 - 1, pos;
-        for (unsigned int i = start_data; i < fragment_length; i += 16, time_bin++)
+        for (unsigned int ui = start_data; ui < fragment_length; ui += 16, time_bin++)
         {
             // 96 bit for every wire and 32 bit is empty (zero)
             for (int j = 0; j < 3; j++)

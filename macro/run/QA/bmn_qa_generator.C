@@ -25,7 +25,7 @@ void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TStr
 //  fRun->AddFriend("$VMCWORKDIR/macro/run/evetest100urqmd.root");
   fRun->SetOutputFile(outFile);
   fRun->SetGeomFile("$VMCWORKDIR/macro/run/geofile_full.root");
-  fRun->SetWriteRunInfoFile(false);
+  fRun->SetGenerateRunInfo(false);
 
   // ============ TASKS ============= //
   

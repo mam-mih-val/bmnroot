@@ -1,3 +1,10 @@
+ ################################################################################
+ #    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    #
+ #                                                                              #
+ #              This software is distributed under the terms of the             # 
+ #         GNU Lesser General Public Licence version 3 (LGPL) version 3,        #  
+ #                  copied verbatim in the file "LICENSE"                       #
+ ################################################################################
 # Create a library called "libBase" which includes the source files given in
 # the array .
 # The extension is already found.  Any number of sources could be listed here.
@@ -9,7 +16,12 @@ ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/geobase 
 ${CMAKE_SOURCE_DIR}/parbase 
 ${CMAKE_SOURCE_DIR}/base 
-${CMAKE_SOURCE_DIR}/trackbase 
+${CMAKE_SOURCE_DIR}/base/steer
+${CMAKE_SOURCE_DIR}/base/event
+${CMAKE_SOURCE_DIR}/base/field
+${CMAKE_SOURCE_DIR}/base/sim
+${CMAKE_SOURCE_DIR}/trackbase
+${CMAKE_SOURCE_DIR}/base/source 
 ${CMAKE_SOURCE_DIR}/geane
 )
 

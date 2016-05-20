@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             *
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #include "FairEventManagerEditor.h"
 #include "RawDataConverter.h"
 #include "FairRootManager.h"
@@ -167,12 +174,12 @@ void FairEventManagerEditor::Init()
     fGeometry->SetOn();
 
     // button for switching from black to white background
-    TGCheckButton* fBackground = new TGCheckButton(title1, "light background");
-    title1->AddFrame(fBackground, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 5,5,1,1));
-    fBackground->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "SwitchBackground(Bool_t)");
+    TGCheckButton* backgroundButton = new TGCheckButton(title1, "light background");
+    title1->AddFrame(backgroundButton, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 5,5,1,1));
+    backgroundButton->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "SwitchBackground(Bool_t)");
     if (!fManager->isDarkColor)
     {
-        fBackground->SetOn();
+        backgroundButton->SetOn();
         gEve->GetViewers()->SwitchColorSet();
     }
 

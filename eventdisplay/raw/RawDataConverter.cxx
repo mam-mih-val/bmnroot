@@ -168,18 +168,14 @@ vector<TVector3*> RawDataConverter::SearchHits(vector<BmnMwpcDigit*> x1, vector<
     vector<TVector3*> u2v2 = CreateHitsByTwoPlanes(u2, v2);
     vector<TVector3*> v2x1 = CreateHitsByTwoPlanes(v2, x1);
 
-    TVector3* pos1 = NULL;
-    TVector3* pos2 = NULL;
     TVector3* pos3 = NULL;
-
     vector<TVector3*> hits;
 
-
     for (Int_t i1 = 0; i1 < x1u1.size(); ++i1) {
-        pos1 = x1u1.at(i1);
+        TVector3* pos1 = x1u1.at(i1);
         if (pos1->z() < 0) continue;
         for (Int_t i2 = 0; i2 < v1x2.size(); ++i2) {
-            pos2 = v1x2.at(i2);
+            TVector3* pos2 = v1x2.at(i2);
             if (pos2->z() < 0 || pos1->z() < 0) continue;
             if (Sqrt((pos1->x() - pos2->x()) * (pos1->x() - pos2->x()) + (pos1->y() - pos2->y()) * (pos1->y() - pos2->y())) > delta) continue;
             for (Int_t i3 = 0; i3 < u2v2.size(); ++i3) {

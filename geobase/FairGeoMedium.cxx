@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- ö : Ilse Koenig
 //*-- Modified : 10/11/2003 by Ilse Koenig
 
@@ -8,9 +15,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "FairGeoMedium.h"
 
-#include <iostream>
-#include <cmath>
-#include "stdlib.h"
+#include "TString.h"                    // for TString
+
+#include <stddef.h>                     // for NULL
+#include <cmath>                        // for pow, log
+// IWYU pragma: no_include <architecture/i386/math.h>
+#include <iostream>                     // for cout
+#include <stdlib.h>                     // for abs
+
 using std::cout;
 using std::log;
 using std::pow;
@@ -188,7 +200,7 @@ void FairGeoMedium::getMediumPar(Double_t* params)
   params[9]=0.;
 }
 
-void FairGeoMedium::read(fstream& fin, Int_t aflag )
+void FairGeoMedium::read(std::fstream& fin, Int_t aflag )
 {
   // Reads the parameters from file
   autoflag=aflag;
@@ -254,7 +266,7 @@ void FairGeoMedium::print()
   cout<<'\n';
 }
 
-void FairGeoMedium::write (fstream& fout)
+void FairGeoMedium::write (std::fstream& fout)
 {
   // Writes the medium definition into stream
   const char* bl="  ";

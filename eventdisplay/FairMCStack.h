@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             *
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                      FairMCStack header file                 -----
 // -----                Created 09/10/08  by M. Al-Turany              -----
@@ -18,10 +25,9 @@
 #include "FairTask.h"
 #include "TEveTrackPropagator.h"
 #include "TString.h"
-#include "TParticle.h"
+#include "TEveTrack.h"
 class FairGeanePro;
 class TGeant3;
-class TEveTrackList;
 class FairEventManager;
 class TObjArray;
 class FairTrajFilter;
@@ -29,9 +35,13 @@ class FairTrajFilter;
 //class TEveElementList;
 class FairMCStack : public FairTask
 {
+
   public:
+
     /** Default constructor **/
     FairMCStack();
+
+
 
     /** Standard constructor
     *@param name        Name of task
@@ -55,6 +65,8 @@ class FairMCStack : public FairTask
     TEveTrackList* GetTrGroup(TParticle* P);
 
   protected:
+
+
     TClonesArray*  fTrackList;  //!
     TEveTrackPropagator* fTrPr;
     FairEventManager* fEventManager;  //!
@@ -74,6 +86,8 @@ class FairMCStack : public FairTask
     FairGeanePro* fPro;//!
     FairTrajFilter* fTrajFilter;//!
     ClassDef(FairMCStack,1);
+
 };
+
 
 #endif

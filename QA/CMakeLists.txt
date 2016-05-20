@@ -4,9 +4,14 @@
 
 set(INCLUDE_DIRECTORIES
 ${ROOT_INCLUDE_DIR}
-${Boost_INCLUDE_DIR}
+${Boost_INCLUDE_DIRS}
 ${CMAKE_SOURCE_DIR}/fairtools
-${CMAKE_SOURCE_DIR}/base 
+${CMAKE_SOURCE_DIR}/base
+${CMAKE_SOURCE_DIR}/base/field
+${CMAKE_SOURCE_DIR}/base/steer
+${CMAKE_SOURCE_DIR}/base/sim
+${CMAKE_SOURCE_DIR}/base/event
+${CMAKE_SOURCE_DIR}/base/source
 ${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/geobase

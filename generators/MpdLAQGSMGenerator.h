@@ -18,7 +18,10 @@
 #include <fstream>
 #include <map>
 #include <vector>
+
+#ifndef __CINT__
 #include <zlib.h>
+#endif
 
 class TDatabasePDG;
 class FairPrimaryGenerator;
@@ -70,7 +73,9 @@ struct la_tab_t {
  private:
 
   FILE* fInputFile;                    //!  Input file
+  #ifndef __CINT__
   gzFile fGZInputFile;                 //!  GZ Input file
+  #endif
   const Char_t*  fFileName;           //! Input file Name
   TDatabasePDG*  fPDG;                //!  PDG database
   Int_t fQGSM_format_ID;              //   Reflect format changes

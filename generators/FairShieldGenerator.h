@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                FairShieldGenerator header file                 -----
 // -----                Created 15/09/06 by V. Friese                  -----
@@ -22,11 +29,14 @@
 #ifndef FAIRSHIELDGENERATOR_H
 #define FAIRSHIELDGENERATOR_H 1
 
+#include "FairGenerator.h"              // for FairGenerator
 
-#include "FairGenerator.h"
+#include "Riosfwd.h"                    // for ifstream
+#include "Rtypes.h"                     // for FairShieldGenerator::Class, etc
+#include "TString.h"                    // for TString
 
-#include <fstream>
-#include <map>
+#include <fstream>                      // for ifstream
+#include <map>                          // for map
 
 class TDatabasePDG;
 class FairPrimaryGenerator;
@@ -61,7 +71,7 @@ class FairShieldGenerator : public FairGenerator
 
   private:
 
-    ifstream*      fInputFile;          //! Input file stream
+    std::ifstream*      fInputFile;          //! Input file stream
     const Char_t*  fFileName;           //! Input file Name
     TDatabasePDG*  fPDG;                //!  PDG database
 

@@ -1,7 +1,18 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef PNDGEOPIPE_H
 #define PNDGEOPIPE_H
 
-#include "FairGeoSet.h"
+#include "FairGeoSet.h"                 // for FairGeoSet
+
+#include "Rtypes.h"                     // for FairGeoPipe::Class, Int_t, etc
+
+class FairGeoBuilder;
 
 class  FairGeoPipe : public FairGeoSet
 {

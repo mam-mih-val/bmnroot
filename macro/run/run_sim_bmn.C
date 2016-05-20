@@ -1,11 +1,11 @@
 #include <Rtypes.h>
 
-// inFile - input file with generator data, default: auau.09gev.mbias.98k.ftn14
+// inFile - input file with generator data, default: dc4mb.r12 for LAQGSM event generator (deuteron - carbon target, mbias, 4 GeV)
+// outFile - output file with MC data, default: evetest.root
 // nStartEvent - for compatibility, any number
 // nEvents - number of events to transport, default: 1
-// outFile - output file with MC data, default: evetest.root
 // flag_store_FairRadLenPoint
-void run_sim_bmn(TString inFile = "dc4mb.r12", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10000,
+void run_sim_bmn(TString inFile = "dc4mb.r12", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
 #define BOX
@@ -41,14 +41,6 @@ void run_sim_bmn(TString inFile = "dc4mb.r12", TString outFile = "$VMCWORKDIR/ma
 
     // Create and Set Event Generator
     //-------------------------------
-
-    // Use the CbmUrqmdGenrator which calculates a reaction plane and
-    // rotate all particles accordingly
-    //CbmUrqmdGenerator*  urqmdGen = new CbmUrqmdGenerator(inFile);
-    //urqmdGen->SetEventPlane(0. , 360.);
-    //primGen->AddGenerator(urqmdGen);
-    //fRun->SetGenerator(primGen);
-
     FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
     fRun->SetGenerator(primGen);
 
@@ -75,6 +67,7 @@ void run_sim_bmn(TString inFile = "dc4mb.r12", TString outFile = "$VMCWORKDIR/ma
     if (!CheckFileExist(dataFile)) return;
 
     MpdUrqmdGenerator* urqmdGen = new MpdUrqmdGenerator(dataFile);
+    //urqmdGen->SetEventPlane(0. , 360.);
     primGen->AddGenerator(urqmdGen);
     if (nStartEvent > 0) urqmdGen->SkipEvents(nStartEvent);
 
@@ -106,7 +99,7 @@ void run_sim_bmn(TString inFile = "dc4mb.r12", TString outFile = "$VMCWORKDIR/ma
     boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // mm o cm ??
     primGen->AddGenerator(boxGen);
-    
+
 #else
 #ifdef HSD
     // ------- HSD/PHSD Generator
@@ -231,7 +224,6 @@ void run_sim_bmn(TString inFile = "dc4mb.r12", TString outFile = "$VMCWORKDIR/ma
     (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
 #endif
 
-    Bool_t file = fRun->GetWriteRunInfoFile();
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);

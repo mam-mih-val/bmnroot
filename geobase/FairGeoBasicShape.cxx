@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Modified : 11/11/2003 by Ilse Koenig
 //*-- Modified : 29/06/99 by Ilse Koenig
@@ -9,15 +16,17 @@
 // Base class of the all shapes
 //
 ///////////////////////////////////////////////////////////////////////////////
-
 #include "FairGeoBasicShape.h"
 
-#include "FairGeoVolume.h"
-#include "FairGeoVector.h"
+#include "FairGeoTransform.h"           // for FairGeoTransform
+#include "FairGeoVector.h"              // for FairGeoVector
+#include "FairGeoVolume.h"              // for FairGeoVolume
 
-#include "TArrayD.h"
+#include "TArrayD.h"                    // for TArrayD
 
-#include <iostream>
+#include <stdio.h>                      // for printf, sprintf, sscanf
+#include <string.h>                     // for strlen
+#include <iostream>                     // for cout
 
 using std::cout;
 
@@ -53,7 +62,7 @@ FairGeoBasicShape::~FairGeoBasicShape()
 }
 
 
-Int_t FairGeoBasicShape::readPoints(fstream* pFile,FairGeoVolume* volu)
+Int_t FairGeoBasicShape::readPoints(std::fstream* pFile,FairGeoVolume* volu)
 {
   // reads nPoints with 3 components from Ascii file
   // if the array of points is not existing in the volume it is created and
@@ -73,7 +82,7 @@ Int_t FairGeoBasicShape::readPoints(fstream* pFile,FairGeoVolume* volu)
 }
 
 
-Bool_t FairGeoBasicShape::writePoints(fstream* pFile,FairGeoVolume* volu)
+Bool_t FairGeoBasicShape::writePoints(std::fstream* pFile,FairGeoVolume* volu)
 {
   // writes nPoints with 3 components to Ascii file
   if (!pFile) { return kFALSE; }

@@ -111,8 +111,8 @@ CSVData* UniDbTangoData::GetCSVData(string filename)
                 temp = "";
                 ttemp = "";
                 temp = elements.at(1);
-                int n = temp.Length();
-                ttemp = temp(1, n-2);
+                int n_in = temp.Length();
+                ttemp = temp(1, n_in-2);
                 zdcXY->dataArray[count].runTime = StringToDatime(ttemp);
                 temp = "";
                 temp = elements.at(2);
@@ -125,8 +125,8 @@ CSVData* UniDbTangoData::GetCSVData(string filename)
                 temp = "";
                 ttemp = "";
                 temp = elements.at(1);
-                int n = temp.Length();
-                ttemp = temp(1, n-2);
+                int n_in = temp.Length();
+                ttemp = temp(1, n_in-2);
                 zdcXY->dataArray[count].runTime = StringToDatime(ttemp);
                 temp = "";
                 temp = elements.at(2);

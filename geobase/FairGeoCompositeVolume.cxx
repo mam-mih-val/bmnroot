@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Modified : 20/04/99
 
@@ -6,8 +13,11 @@
 //
 //
 /////////////////////////////////////////////////////////////
-
 #include "FairGeoCompositeVolume.h"
+
+#include "TObjArray.h"                  // for TObjArray
+
+#include <stddef.h>                     // for NULL
 
 ClassImp(FairGeoCompositeVolume)
 
@@ -41,7 +51,11 @@ FairGeoVolume* FairGeoCompositeVolume::getComponent(const Int_t n)
 
 void FairGeoCompositeVolume::createComponents(const Int_t n)
 {
-  if (components) { components->Delete(); }
+  if (components) { 
+    components->Delete(); 
+  } else {
+    components=new TObjArray();
+  }
   components->Expand(n);
 }
 

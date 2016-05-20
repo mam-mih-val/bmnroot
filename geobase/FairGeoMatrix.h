@@ -1,9 +1,18 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEOMATRIX_H
 #define FAIRGEOMATRIX_H
 
-#include "FairGeoVector.h"
+#include "TObject.h"                    // for TObject
 
-#include "TObject.h"
+#include "FairGeoVector.h"              // for FairGeoVector
+
+#include "Rtypes.h"                     // for Double_t, etc
 
 /**
  * @author Ilse koenig

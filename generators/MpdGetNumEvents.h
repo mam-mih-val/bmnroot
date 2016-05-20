@@ -1,6 +1,8 @@
 #include "TROOT.h"
 
+#ifndef __CINT__
 #include <zlib.h>
+#endif
 
 class MpdLibZ
 {
@@ -11,16 +13,22 @@ class MpdLibZ
     int open(const char* mode);
     int eof();
     int close();
+    #ifndef __CINT__
     int write(voidpc buf, unsigned len);
     int read(voidp buf, unsigned len);
+    #endif
     char* gets(char* buf, int len);
     int puts(char* s);
+    #ifndef __CINT__
     off_t tell ();
     off_t seek (off_t pos, int whence);
+    #endif
 
   private:
     char* fileName;
+    #ifndef __CINT__
     gzFile file;
+    #endif
 
     ClassDef(MpdLibZ, 1);
 };

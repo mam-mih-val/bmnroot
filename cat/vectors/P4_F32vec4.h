@@ -28,10 +28,10 @@ const union
     __m128 m;
 } 
   __f32vec4_abs_mask_cheat = {{0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff}},
-  __f32vec4_sgn_mask_cheat = {{0x80000000, 0x80000000, 0x80000000, 0x80000000}},
+  __f32vec4_sgn_mask_cheat = {{static_cast<int>(0x80000000), static_cast<int>(0x80000000), static_cast<int>(0x80000000), static_cast<int>(0x80000000)}},
   __f32vec4_zero_cheat     = {{         0,          0,          0,          0}},
   __f32vec4_one_cheat      = {{__f_one.i , __f_one.i , __f_one.i , __f_one.i }},
-  __f32vec4_true_cheat     = {{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF}},
+  __f32vec4_true_cheat     = {{static_cast<int>(0xFFFFFFFF), static_cast<int>(0xFFFFFFFF), static_cast<int>(0xFFFFFFFF), static_cast<int>(0xFFFFFFFF)}},
   __f32vec4_false_cheat    = {{0x00000000, 0x00000000, 0x00000000, 0x00000000}};
 
 #define _f32vec4_abs_mask (static_cast<F32vec4>(__f32vec4_abs_mask_cheat.m))

@@ -1,6 +1,7 @@
 #include "BmnMath.h"
 
 #include "FairTrackParam.h"
+#include "TClonesArray.h"
 #include "CbmHit.h"
 #include "BmnHit.h"
 #include "CbmStripHit.h"

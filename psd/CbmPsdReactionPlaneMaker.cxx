@@ -4,6 +4,7 @@
 // -----                  Created 15/05/12  by     Alla &Marina                -----
 // -------------------------------------------------------------------------
 #include <iostream>
+#include <fstream>
 
 #include "TClonesArray.h"
 #include "TMath.h"

@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             *
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                      FairPointSetDraw header file                    -----
 // -----          Created 10/12/07  by M. Al-Turany                    -----
@@ -13,7 +20,6 @@
 
 #ifndef FAIRPOINTSETDRAW_H
 #define FAIRPOINTSETDRAW_H
-
 #include "FairTask.h"
 #include "FairEventManager.h"
 

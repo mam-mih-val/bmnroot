@@ -1,27 +1,10 @@
 // --------------------------------------------------------------------------
-// Macro for reconstruction of simulated events with standard settings
+// Macro for reconstruction of simulated events
 //
-// HitProducers in MVD, RICH, TRD, TOF, ECAL
-// Digitizer and HitFinder in STS
-// FAST MC for ECAL
-// STS track finding and fitting (L1 / KF)
-// TRD track finding and fitting (L1 / KF)
-// RICH ring finding (ideal) and fitting
-// Global track finding (ideal), rich assignment
-// Primary vertex finding (ideal)
-// Matching of reconstructed and MC tracks in STS, RICH and TRD
-//
-// V. Friese   24/02/2006
-// Version     24/04/2007 (V. Friese)
-//
-// --------------------------------------------------------------------------
-
-
 // inFile - input file with MC data, default: evetest.root
+// outFile - output file with reconstructed data, default: mpddst.root
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
-// outFile - output file with reconstructed data, default: mpddst.root
-
 void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 100, Bool_t isPrimary = kTRUE, Bool_t gemCF = kTRUE) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
@@ -67,7 +50,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     FairRunAna *fRun = new FairRunAna();
     fRun->SetInputFile(inFile);
     fRun->SetOutputFile(outFile);
-    fRun->SetWriteRunInfoFile(false);
+    fRun->SetGenerateRunInfo(false);
     // ------------------------------------------------------------------------
 
     // =========================================================================

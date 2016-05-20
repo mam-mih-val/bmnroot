@@ -12,10 +12,9 @@
 #include "FairTask.h"
 #include "FairMCPoint.h"
 #include "BmnMwpcDigit.h"
+#include "TClonesArray.h"
 
 using namespace std;
-
-class TClonesArray;
 
 class BmnMwpcDigitizer : public FairTask {
 public:

@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 10/11/2003
 
@@ -7,26 +14,27 @@
 // Base class for geometry of detector parts
 //
 /////////////////////////////////////////////////////////////
-
 #include "FairGeoSet.h"
 
-#include "FairGeoNode.h"
-#include "FairGeoShapes.h"
-#include "FairGeoBasicShape.h"
-#include "FairGeoMedium.h"
-#include "FairGeoBuilder.h"
-#include "FairGeoMedia.h"
+#include "FairGeoBasicShape.h"          // for FairGeoBasicShape
+#include "FairGeoBuilder.h"             // for FairGeoBuilder
+#include "FairGeoMedia.h"               // for FairGeoMedia
+#include "FairGeoNode.h"                // for FairGeoNode, etc
+#include "FairGeoShapes.h"              // for FairGeoShapes
+#include "FairGeoTransform.h"           // for FairGeoTransform
 
-#include "TString.h"
-#include "TArrayI.h"
+#include "TArrayI.h"                    // for TArrayI
+#include "TString.h"                    // for TString, operator<<
 
-//#include "ctype.h"
+#include <ctype.h>                      // for isalpha
+#include <string.h>                     // for NULL, strcmp
+#include <iostream>                     // for cout
+
+class FairGeoMedium;
+
 using std::cout;
 using std::endl;
 using std::ios;
-
-
-class FairGeoTransform;
 
 ClassImp(FairGeoSet)
 
@@ -94,7 +102,7 @@ Int_t FairGeoSet::getModule(Int_t s,Int_t m)
   return 0;
 }
 
-Bool_t FairGeoSet::read(fstream& fin,FairGeoMedia* media)
+Bool_t FairGeoSet::read(std::fstream& fin,FairGeoMedia* media)
 {
   // Reads the geometry from file
   Int_t s1=-1,s2=0;
@@ -121,21 +129,21 @@ Bool_t FairGeoSet::read(fstream& fin,FairGeoMedia* media)
   return rc;
 }
 
-void FairGeoSet::readInout(fstream& fin)
+void FairGeoSet::readInout(std::fstream& fin)
 {
   // Reads the inout flag (in old files)
   char c=' ';
   do {
-    c=fin.get();
+    fin.get(c);
   } while (c==' ' || c=='\n');
   if (c!='0'&&c!='1') { fin.putback(c); }
   else do {
-      c=fin.get();
+      fin.get(c);
     } while (c!='\n');
   return;
 }
 
-void FairGeoSet::readTransform(fstream& fin,FairGeoTransform& tf)
+void FairGeoSet::readTransform(std::fstream& fin,FairGeoTransform& tf)
 {
   // Reads the transformation from file
   Double_t r[9], t[3];
@@ -145,7 +153,7 @@ void FairGeoSet::readTransform(fstream& fin,FairGeoTransform& tf)
   tf.setTransVector(t);
 }
 
-Bool_t FairGeoSet::readVolumeParams(fstream& fin,FairGeoMedia* media,
+Bool_t FairGeoSet::readVolumeParams(std::fstream& fin,FairGeoMedia* media,
                                     FairGeoNode* volu,TList* refVolumes)
 {
   // Reads the volume definition from file
@@ -178,9 +186,9 @@ Bool_t FairGeoSet::readVolumeParams(fstream& fin,FairGeoMedia* media,
     //  cout << " read copies in Hades format " << endl;
 
     if (nameLength>4) {
-      char c;
+      char c=' ';
       do {
-        c=fin.get();
+        fin.get(c);
       } while (c==' ' || c=='\n');
       Int_t i=(Int_t)c ;
       fin.putback(c);
@@ -208,7 +216,7 @@ Bool_t FairGeoSet::readVolumeParams(fstream& fin,FairGeoMedia* media,
     if (l>0) {
       char c;
       do {
-        c=fin.get();
+        fin.get(c);
       } while (c==' ' || c=='\n');
       Int_t i=(Int_t)c;
       fin.putback(c);
@@ -252,7 +260,7 @@ Bool_t FairGeoSet::readVolumeParams(fstream& fin,FairGeoMedia* media,
   return kTRUE;
 }
 
-Bool_t FairGeoSet::readKeepIn(fstream& fin,FairGeoMedia* media,TString& name)
+Bool_t FairGeoSet::readKeepIn(std::fstream& fin,FairGeoMedia* media,TString& name)
 {
   // Reads the keepin volume from file
   fin.clear();
@@ -288,7 +296,7 @@ Bool_t FairGeoSet::readKeepIn(fstream& fin,FairGeoMedia* media,TString& name)
   return rc;
 }
 
-Bool_t FairGeoSet::readModule(fstream& fin,FairGeoMedia* media,TString& modName,
+Bool_t FairGeoSet::readModule(std::fstream& fin,FairGeoMedia* media,TString& modName,
                               TString& eleName,Bool_t containsActiveMod)
 {
   // Reads the whole geometry of a module from file
@@ -352,27 +360,29 @@ void FairGeoSet::print()
   if (!description.IsNull()) {
     cout<<"//----------------------------------------------------------\n";
   }
-  cout.setf(ios::fixed,ios::floatfield);
+  std::ios_base::fmtflags tmp = cout.setf(ios::fixed,ios::floatfield);
   TListIter iter(volumes);
   FairGeoNode* volu;
   while((volu=(FairGeoNode*)iter.Next())) {
     volu->print();
   }
+  cout.setf(tmp);
 }
 
-void FairGeoSet::write(fstream& fout)
+void FairGeoSet::write(std::fstream& fout)
 {
   // Writes the volumes to file
   if (!author.IsNull()) { fout<<"//Author:      "<<author<<'\n'; }
   if (!description.IsNull()) { fout<<"//Description: "<<description<<'\n'; }
   fout<<"//----------------------------------------------------------\n";
-  fout.setf(ios::fixed,ios::floatfield);
+  std::ios_base::fmtflags tmp = fout.setf(ios::fixed,ios::floatfield);
   TListIter iter(volumes);
   FairGeoNode* volu;
   Bool_t rc=kTRUE;
   while((volu=(FairGeoNode*)iter.Next())&&rc) {
     rc=volu->write(fout);
   }
+  fout.setf(tmp);
 }
 
 Bool_t FairGeoSet::create(FairGeoBuilder* builder)

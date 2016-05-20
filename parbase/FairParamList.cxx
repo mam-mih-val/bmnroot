@@ -1,21 +1,30 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Last modified : 28/01/2009 by Ilse Koenig
 
 #include "FairParamList.h"
-#include "FairLogger.h"
 
-#include "TClass.h"
-#include "TStreamerInfo.h"
-#include "RVersion.h"
-#include "TBuffer.h"
+#include "FairLogger.h"                 // for FairLogger, MESSAGE_ORIGIN
 
-#if ROOT_VERSION_CODE  > ROOT_VERSION(4,4,2)
-#include "TBufferFile.h"
-#endif
+#include "Riosfwd.h"                    // for ostream
+#include "TArrayD.h"                    // for TArrayD
+#include "TArrayF.h"                    // for TArrayF
+#include "TArrayI.h"                    // for TArrayI
+#include "TBuffer.h"                    // for TBuffer, etc
+#include "TBufferFile.h"                // for TBufferFile
+#include "TClass.h"                     // for TClass
+#include "TCollection.h"                // for TIter
+#include "TStreamerInfo.h"              // for TStreamerInfo
 
-#include <iostream>
-#include <iomanip>
-#include <stdlib.h>
+#include <stdlib.h>                     // for NULL
+#include <string.h>                     // for memcpy, strcmp, strlen
+#include <iostream>                     // for operator<<, ostream, cout, etc
 
 //_HADES_CLASS_DESCRIPTION
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -114,6 +123,7 @@ FairParamObj::FairParamObj(FairParamObj& o)
   paramValue=new UChar_t[arraySize];
   memcpy(paramValue,o.getParamValue(),arraySize);
   if (streamerInfoSize>0) {
+    streamerInfo = new UChar_t[streamerInfoSize];
     memcpy(streamerInfo,o.getStreamerInfo(),streamerInfoSize);
   }
 }
@@ -227,7 +237,7 @@ FairParamObj::FairParamObj(const Text_t* name,const Text_t* value)
    streamerInfoSize(0)
 {
   // Constructor for a string value
-  paramValue=new UChar_t[arraySize];
+  paramValue=new UChar_t[arraySize+1];
   memcpy(paramValue,value,arraySize);
 }
 
@@ -535,11 +545,7 @@ void FairParamList::addObject(const Text_t* name,TObject* obj)
   gFile=paramFile;
   const Int_t bufsize=10000;
 
-#if ROOT_VERSION_CODE  > ROOT_VERSION(4,4,2)
   TBufferFile* buffer=new TBufferFile(TBuffer::kWrite,bufsize);
-#else
-  TBuffer* buffer=new TBuffer(TBuffer::kWrite,bufsize);
-#endif
 
   buffer->SetParent(paramFile);
   buffer->MapObject(obj);
@@ -561,11 +567,7 @@ void FairParamList::addObject(const Text_t* name,TObject* obj)
       list.Sort();
       fClassIndex->fArray[0]=2; //to prevent adding classes in TStreamerInfo::TagFile
 
-#if ROOT_VERSION_CODE  > ROOT_VERSION(4,4,2)
       TBufferFile* infoBuffer=new TBufferFile(TBuffer::kWrite,bufsize);
-#else
-      TBuffer* infoBuffer=new TBuffer(TBuffer::kWrite,bufsize);
-#endif
 
       infoBuffer->MapObject(&list);
       list.Streamer(*infoBuffer);
@@ -867,19 +869,11 @@ Bool_t FairParamList::fillObject(const Text_t* name,TObject* obj)
     //              o->getClassVersion(),obj->IsA()->GetClassVersion());
     TFile* filesave=gFile;
     gFile=0;
-#if ROOT_VERSION_CODE  > ROOT_VERSION(4,4,2)
     TBufferFile* buf=0;
-#else
-    TBuffer* buf=0;
-#endif
 
     Int_t len=o->getStreamerInfoSize();
     if (len>0&&o->getStreamerInfo()!=0) {
-#if ROOT_VERSION_CODE  > ROOT_VERSION(4,4,2)
       buf=new TBufferFile(TBuffer::kRead,len);
-#else
-      buf=new TBuffer(TBuffer::kRead,len);
-#endif
       memcpy(buf->Buffer(),(Char_t*)o->getStreamerInfo(),len);
       buf->SetBufferOffset(0);
       TList list;
@@ -899,11 +893,7 @@ Bool_t FairParamList::fillObject(const Text_t* name,TObject* obj)
       list.Clear();  //this will delete all TStreamerInfo objects with kCanDelete
     }
     len=o->getLength();
-#if ROOT_VERSION_CODE  > ROOT_VERSION(4,4,2)
     buf=new TBufferFile(TBuffer::kRead,len);
-#else
-    buf=new TBuffer(TBuffer::kRead,len);
-#endif
     memcpy(buf->Buffer(),(Char_t*)o->getParamValue(),len);
     buf->SetBufferOffset(0);
     buf->MapObject(obj);

@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 /*
  * FairHitDraw.h
  *
@@ -12,7 +19,10 @@
 
 #include "FairBoxSetDraw.h"             // for FairBoxSetDraw
 
+#include "Rtypes.h"                     // for FairHitDraw::Class, etc
 #include "TVector3.h"                   // for TVector3
+
+class TObject;
 
 class FairHitDraw: public FairBoxSetDraw
 {
@@ -26,6 +36,7 @@ class FairHitDraw: public FairBoxSetDraw
     FairHitDraw(const char* name, Int_t iVerbose = 1);
 
   protected:
+
     TVector3 GetVector(TObject* obj);
 
     ClassDef(FairHitDraw,1);

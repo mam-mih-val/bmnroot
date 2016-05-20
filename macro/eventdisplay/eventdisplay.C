@@ -80,7 +80,7 @@ void eventdisplay(char* sim_geo_file = "$VMCWORKDIR/macro/run/evetest.root", cha
                 return;
             }
 
-            TObject* pObj = geoFile->Get("FairBaseParSet");
+            TObject* pObj = geoFile->Get("FairGeoParSet");
             if (pObj == NULL)
             {
                 TList* keyList = geoFile->GetListOfKeys();

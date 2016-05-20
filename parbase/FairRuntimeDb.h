@@ -1,13 +1,24 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRRUNTIMEDB_H
 #define FAIRRUNTIMEDB_H
 
-#include "TObject.h"
-#include "TList.h"
-#include "FairLogger.h"
+#include "TObject.h"                    // for TObject
+
+#include "Rtypes.h"                     // for Bool_t, Int_t, Text_t, etc
+#include "TList.h"                      // for TList
+#include "TString.h"                    // for TString
+
+class FairContFact;
+class FairLogger;
 class FairParIo;
 class FairParSet;
 class FairRtdbRun;
-class FairContFact;
 
 static TList contFactories;    //! list of container factories
 
@@ -15,6 +26,7 @@ class FairRuntimeDb : public TObject
 {
   private:
     static FairRuntimeDb* gRtdb; //!
+
   protected:
     FairRuntimeDb(void);
     TList* containerList;    // list of parameter containers
@@ -28,6 +40,18 @@ class FairRuntimeDb : public TObject
     Bool_t isRootFileOutput; // flag indicating that the output is a ROOT file
     /** Fair Logger */
     FairLogger*  fLogger;  //!
+
+    /**
+     * Select which IO type to use.
+     */
+    typedef enum {
+      UNKNOWN_Type    = 0,
+      AsciiFileOutput = 1, // Ascii in-out-put
+      RootFileOutput  = 2, // Root Files
+      RootTSQLOutput  = 3  // Use a TSQL db
+    } ParamIOType;
+    ParamIOType ioType;//IO Type
+
   public:
     static FairRuntimeDb* instance(void);
     ~FairRuntimeDb(void);

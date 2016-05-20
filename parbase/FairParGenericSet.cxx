@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 28/01/2009
 
@@ -19,16 +26,18 @@
 //                                   not in the list.
 //
 ///////////////////////////////////////////////////////////////////////////
-
 #include "FairParGenericSet.h"
-#include "FairParamList.h"
-#include <iostream>
-#include <iomanip>
-#include "FairDetParIo.h"
-#include "FairParIo.h"
+
+#include "FairDetParIo.h"               // for FairDetParIo
+#include "FairParIo.h"                  // for FairParIo
+#include "FairParamList.h"              // for FairParamList
+
+#include "Riosfwd.h"                    // for ostream
+#include "TString.h"                    // for operator<<, TString
+
+#include <iostream>                     // for operator<<, ostream, cout, etc
+
 ClassImp(FairParGenericSet)
-
-
 
 Bool_t FairParGenericSet::init(FairParIo* inp)
 {
@@ -46,6 +55,7 @@ Int_t FairParGenericSet::write(FairParIo* output)
   return -1;
 }
 
+
 void FairParGenericSet::printParams()
 {
   // prints information about the container
@@ -61,4 +71,7 @@ void FairParGenericSet::printParams()
   std::cout<<"---------------------------------------------\n\n";
   delete condList;
 }
+
+
+
 

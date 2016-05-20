@@ -1,22 +1,28 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEOSET_H
 #define FAIRGEOSET_H
 
+#include "TNamed.h"                     // for TNamed
 
-#include "FairGeoTransform.h"
+#include "Riosfwd.h"                    // for fstream
+#include "Rtypes.h"                     // for Int_t, Bool_t, etc
+#include "TList.h"                      // for TList
+#include "TString.h"                    // for TString
 
-#include "TNamed.h"
-//#include "TArrayI.h"
-#include "TList.h"
-
-#include <fstream>
-//#include <iomanip>
+#include <fstream>                      // for fstream
 
 class FairGeoNode;
 class FairGeoShapes;
 class FairGeoMedia;
 class FairGeoBuilder;
+class FairGeoTransform;
 class TArrayI;
-//class TList;
 
 /**
  * Base class for geometry of detector parts
@@ -55,11 +61,11 @@ class  FairGeoSet : public TNamed
     TString description;    /** description of the version*/
 
     FairGeoSet();
-    void readInout(fstream&);
-    void readTransform(fstream&,FairGeoTransform&);
-    Bool_t readVolumeParams(fstream&,FairGeoMedia*,FairGeoNode*,TList* l=0);
-    Bool_t readKeepIn(fstream&,FairGeoMedia*,TString&);
-    Bool_t readModule(fstream&,FairGeoMedia*,TString&,TString&,Bool_t a=kFALSE);
+    void readInout(std::fstream&);
+    void readTransform(std::fstream&,FairGeoTransform&);
+    Bool_t readVolumeParams(std::fstream&,FairGeoMedia*,FairGeoNode*,TList* l=0);
+    Bool_t readKeepIn(std::fstream&,FairGeoMedia*,TString&);
+    Bool_t readModule(std::fstream&,FairGeoMedia*,TString&,TString&,Bool_t a=kFALSE);
   public :
     virtual ~FairGeoSet();
     void setShapes(FairGeoShapes* s) {pShapes=s;}
@@ -85,9 +91,9 @@ class  FairGeoSet : public TNamed
     virtual const char* getEleName(Int_t) {return 0;}
     virtual Int_t getSecNumInMod(const TString&) {return -1;}
     virtual Int_t getModNumInMod(const TString&) {return 0;}
-    virtual Bool_t read(fstream&,FairGeoMedia*);
+    virtual Bool_t read(std::fstream&,FairGeoMedia*);
     virtual void addRefNodes() {}
-    virtual void write(fstream&);
+    virtual void write(std::fstream&);
     virtual void print();
     virtual Bool_t create(FairGeoBuilder*);
     void compare(FairGeoSet&);

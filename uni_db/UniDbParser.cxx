@@ -221,10 +221,10 @@ int write_string_to_db(string &write_string, TSQLStatement* stmt, structParseSch
 
     // cycle for schema
     string token;
-    for (int j = 0; j < schema.vecRows.size(); j++)
+    for (int i = 0; i < schema.vecRows.size(); i++)
     {
         token = write_string;
-        structParseRow row = schema.vecRows[j];
+        structParseRow row = schema.vecRows[i];
 
         unsigned char* pArray = NULL;
         Long_t size_array = -1;
@@ -871,7 +871,7 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
             cout<<"Current run: "<<run_number<<", row: "<<i<<", line: "<<cur_line<<endl;
             reduce_line = reduce(cur_line);
 
-            istringstream line_stream(reduce_line);
+            line_stream.str(reduce_line);
             num = 1;
             int slot_number;
             // parse tokens by space separated
@@ -918,7 +918,7 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
         }// for (int i = 0; i < row_count; i++)
 
         // skip empty line
-        if (getline(txtFile, cur_line) != NULL)
+        if (getline(txtFile, cur_line))
         {
             reduce_line = trim(cur_line, " \t\r");
             if (reduce_line != "")

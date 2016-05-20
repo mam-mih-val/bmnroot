@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Last modified : 10/11/03 by Ilse Koenig
 
@@ -10,6 +17,7 @@
 
 #include "FairGeoMedia.h"
 #include "FairGeoMedium.h"
+#include "FairLogger.h"
 
 #include "TList.h"
 
@@ -90,10 +98,10 @@ void FairGeoMedia::print()
   }
 }
 
-void FairGeoMedia::read(fstream& fin)
+void FairGeoMedia::read(std::fstream& fin)
 {
   // Reads the media from file
-  cout<<"-I- FairGeoMedia  Read media"<<endl;
+  LOG(INFO) << "FairGeoMedia: Read media " << FairLogger::endl;
   const Int_t maxBuf=256;
   char buf[maxBuf];
   Int_t autoflag=1;
@@ -112,7 +120,7 @@ void FairGeoMedia::read(fstream& fin)
   }
 }
 
-void FairGeoMedia::write(fstream& fout)
+void FairGeoMedia::write(std::fstream& fout)
 {
   // Writes the media to file
   if (!author.IsNull()) { fout<<"//Author:      "<<author<<'\n'; }

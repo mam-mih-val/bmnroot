@@ -45,9 +45,9 @@ FairWebScreenshots::FairWebScreenshots(const char* name, char* output_dir, bool 
 }
 
 //--------------------------------------------------------------------------
-void FairWebScreenshots::SetFormatFiles(int formatFiles)
+void FairWebScreenshots::SetFormatFiles(int i_format_files)
 {
-    formatFiles = formatFiles;
+    iFormatFiles = i_format_files;
 }
 //--------------------------------------------------------------------------
 void FairWebScreenshots::SetPort(int NumberPort)
@@ -55,9 +55,9 @@ void FairWebScreenshots::SetPort(int NumberPort)
     web_port = NumberPort;
 }
 //--------------------------------------------------------------------------
-void FairWebScreenshots::SetMultiFiles(int quantityFiles)
+void FairWebScreenshots::SetMultiFiles(bool is_multi_files)
 {
-    quantityFiles = quantityFiles;
+    isMultiFiles = is_multi_files;
 }
 
 // -------------------------------------------------------------------------
@@ -98,18 +98,18 @@ void FairWebScreenshots::Exec(Option_t* option)
     gSystem->ProcessEvents();
 
     TString fileName = outputDir;
-    if (quantityFiles == 1)
+    if (isMultiFiles == 1)
         fileName += "event_" + TString::Format("%d", fMan->GetCurrentEvent());
     else
         fileName += "event";
 
-    if ((formatFiles == 0) || (formatFiles == 2))
+    if ((iFormatFiles == 0) || (iFormatFiles == 2))
     {
         fileName += ".png";
         gEve->GetDefaultGLViewer()->SavePicture(fileName.Data());
     }
 
-    if (formatFiles > 0)
+    if (iFormatFiles > 0)
     {
         fileName += ".jpg";
         gEve->GetDefaultGLViewer()->SavePicture(fileName.Data());

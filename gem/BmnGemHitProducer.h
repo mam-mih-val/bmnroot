@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include "TString.h"
+#include "TClonesArray.h"
 #include "FairTask.h"
 
 #include "CbmStsPoint.h"
@@ -15,8 +16,6 @@
 #include "BmnHit.h"
 
 using namespace std;
-
-class TClonesArray;
 
 class BmnGemHitProducer : public FairTask {
 public:

@@ -53,7 +53,7 @@ Set(SRCS
     BmnTrackSelector.cxx
     BmnGlobalTracking.cxx
     BmnHitMatchingQA.cxx
-    BmnSeedFinder.cxx
+    #BmnSeedFinder.cxx
 )
 
 Set(HEADERS
@@ -78,7 +78,7 @@ Set(HEADERS
     BmnTrackSelector.h
     BmnGlobalTracking.h
     BmnHitMatchingQA.h
-    BmnSeedFinder.h
+    #BmnSeedFinder.h
     BmnHitFinderRun1.h
     BmnTrackFinderRun1.h
 )

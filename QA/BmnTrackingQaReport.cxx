@@ -106,6 +106,37 @@ void BmnTrackingQaReport::Draw() {
     DrawTwoH2("Distribution of GEM reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Theta", "Nh_sim_Theta_sim_gem", "Nh_rec_Theta_rec_gem");
 
     DrawTwoH2("Distribution of MC-tracks and GEM-tracks in Pseudorapidity and Momentum", "EtaP_sim", "EtaP_rec_gem");
+
+    for (Int_t i = 0; i < HM()->H2("EtaP_sim")->GetXaxis()->GetNbins(); ++i) {
+        for (Int_t j = 0; j < HM()->H2("EtaP_sim")->GetYaxis()->GetNbins(); ++j) {
+            Float_t nom = HM()->H2("EtaP_rec_gem")->GetBinContent(i, j);
+            Float_t denom = HM()->H2("EtaP_sim")->GetBinContent(i, j);
+            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
+            if (content > 100.0) content = 100.0;
+            HM()->H2("Eff_vs_EtaP_gem")->SetBinContent(i, j, content);
+        }
+    }
+    for (Int_t i = 0; i < HM()->H2("EtaP_rec_gem")->GetXaxis()->GetNbins(); ++i) {
+        for (Int_t j = 0; j < HM()->H2("EtaP_rec_gem")->GetYaxis()->GetNbins(); ++j) {
+            Float_t nom = HM()->H2("Clones_vs_EtaP_gem")->GetBinContent(i, j);
+            Float_t denom = HM()->H2("EtaP_rec_gem")->GetBinContent(i, j);
+            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
+            if (content > 100.0) content = 100.0;
+            HM()->H2("Clones_vs_EtaP_gem")->SetBinContent(i, j, content);
+        }
+    }
+    for (Int_t i = 0; i < HM()->H2("EtaP_rec_gem")->GetXaxis()->GetNbins(); ++i) {
+        for (Int_t j = 0; j < HM()->H2("EtaP_rec_gem")->GetYaxis()->GetNbins(); ++j) {
+            Float_t nom = HM()->H2("Fakes_vs_EtaP_gem")->GetBinContent(i, j);
+            Float_t denom = HM()->H2("EtaP_rec_gem")->GetBinContent(i, j);
+            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
+            if (content > 100.0) content = 100.0;
+            HM()->H2("Fakes_vs_EtaP_gem")->SetBinContent(i, j, content);
+        }
+    }
+    
+    DrawThreeH2("Distribution of Efficiency, Ghosts and Clones in Pseudorapidity and Momentum", "Eff_vs_EtaP_gem", "Clones_vs_EtaP_gem", "Fakes_vs_EtaP_gem");
+    
     DrawTwoH2("Distribution of MC-tracks and GEM-tracks in theta and Momentum", "ThetaP_sim", "ThetaP_rec_gem");
     DrawTwoH2("P_reco vs P_mc for GEM-tracks", "P_rec_P_sim_gem", "Pt_rec_Pt_sim_gem");
 
@@ -150,7 +181,7 @@ void BmnTrackingQaReport::Draw() {
     DrawPar("First parameters", namesParF);
     DrawPar("Last parameters", namesParL);
 
-    DrawVertResGem("Vertex resolution", "VertX_vs_Mom_gem", "VertY_vs_Mom_gem", "VertZ_vs_Mom_gem", "VertResX_gem", "VertResY_gem", "VertResZ_gem");
+    DrawVertResGem("Vertex resolution", "VertResX_gem", "VertResY_gem", "VertResZ_gem");
 }
 
 void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames, TString* outNames) {
@@ -325,15 +356,15 @@ void BmnTrackingQaReport::DrawResAndPull(const TString canvasName, TString* inNa
         HM()->H1(inNames[i].Data())->Fit("gaus", "RQWW", "", -4, 4);
         DrawH1(HM()->H1(inNames[i].Data()), kLinear, kLog, "", kBlue, 0.7, 0.75, 1.1, 20);
         //if (i > 4) {
-            TF1 *fit = HM()->H1(inNames[i].Data())->GetFunction("gaus");
-            Float_t xMax = HM()->H1(inNames[i].Data())->GetXaxis()->GetXmax();
-            Float_t yMax = HM()->H1(inNames[i].Data())->GetMaximum();
-            TPaveStats* ps = new TPaveStats(xMax / 2, yMax / 10, xMax, yMax);
-            ps->SetFillColor(0);
-            ps->SetShadowColor(0);
-            ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
-            ps->AddText(Form("#sigma = %2.2f", fit->GetParameter(2)));
-            ps->Draw();
+        TF1 *fit = HM()->H1(inNames[i].Data())->GetFunction("gaus");
+        Float_t xMax = HM()->H1(inNames[i].Data())->GetXaxis()->GetXmax();
+        Float_t yMax = HM()->H1(inNames[i].Data())->GetMaximum();
+        TPaveStats* ps = new TPaveStats(xMax / 2, yMax / 10, xMax, yMax);
+        ps->SetFillColor(0);
+        ps->SetShadowColor(0);
+        ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
+        ps->AddText(Form("#sigma = %2.2f", fit->GetParameter(2)));
+        ps->Draw();
         //}
     }
 }
@@ -365,36 +396,36 @@ void BmnTrackingQaReport::FillAndFitSlice(TString name1d, TString name2d) {
     }
 }
 
-void BmnTrackingQaReport::DrawVertResGem(const string& canvasName, TString name2dX, TString name2dY, TString name2dZ, TString name1dX, TString name1dY, TString name1dZ) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1500, 1000);
+void BmnTrackingQaReport::DrawVertResGem(const string& canvasName, TString name1dX, TString name1dY, TString name1dZ) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1500, 500);
     canvas->SetGrid();
-    canvas->Divide(3, 2);
+    canvas->Divide(3, 1);
 
     canvas->cd(1);
-    DrawH2(HM()->H2(name2dX.Data()), kLinear, kLinear, kLinear, "colz");
+    HM()->H1(name1dX.Data())->Fit("gaus", "RQWW", "", -1, 1);
+    DrawH1(HM()->H1(name1dX.Data()), kLinear, kLinear, "", kBlue, 0.7, 0.75, 1.1, 20);
+    DrawMuSigma(canvas->cd(1), HM()->H1(name1dX.Data()));
     canvas->cd(2);
-    DrawH2(HM()->H2(name2dY.Data()), kLinear, kLinear, kLinear, "colz");
+    HM()->H1(name1dY.Data())->Fit("gaus", "RQWW", "", -1, 1);
+    DrawH1(HM()->H1(name1dY.Data()), kLinear, kLinear, "", kBlue, 0.7, 0.75, 1.1, 20);
+    DrawMuSigma(canvas->cd(2), HM()->H1(name1dY.Data()));
     canvas->cd(3);
-    DrawH2(HM()->H2(name2dZ.Data()), kLinear, kLinear, kLinear, "colz");
-    
-    canvas->cd(4);
-    FillAndFitSlice(name1dX, name2dX);
-    HM()->H1(name1dX.Data())->SetMaximum(2.0);
-    HM()->H1(name1dX.Data())->SetMinimum(0.0);
-    DrawH1(HM()->H1(name1dX.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+    HM()->H1(name1dZ.Data())->Fit("gaus", "RQWW", "", -1, 1);
+    DrawH1(HM()->H1(name1dZ.Data()), kLinear, kLinear, "", kBlue, 0.7, 0.75, 1.1, 20);
+    DrawMuSigma(canvas->cd(3), HM()->H1(name1dZ.Data()));
+}
 
-    canvas->cd(5);
-    FillAndFitSlice(name1dY, name2dY);
-    HM()->H1(name1dY.Data())->SetMaximum(2.0);
-    HM()->H1(name1dY.Data())->SetMinimum(0.0);
-    DrawH1(HM()->H1(name1dY.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
-
-    canvas->cd(6);
-    FillAndFitSlice(name1dZ, name2dZ);
-    HM()->H1(name1dZ.Data())->SetMaximum(2.0);
-    HM()->H1(name1dZ.Data())->SetMinimum(0.0);
-    DrawH1(HM()->H1(name1dZ.Data()), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
-    
+void BmnTrackingQaReport::DrawMuSigma(TVirtualPad* pad, TH1* h) {
+    pad->cd();
+    TF1 *fit = h->GetFunction("gaus");
+    Float_t xMax = h->GetXaxis()->GetXmax();
+    Float_t yMax = h->GetMaximum();
+    TPaveStats* ps = new TPaveStats(xMax / 2, yMax / 2, xMax, yMax);
+    ps->SetFillColor(0);
+    ps->SetShadowColor(0);
+    ps->AddText(Form("#mu = %2.3f", fit->GetParameter(1)));
+    ps->AddText(Form("#sigma = %2.3f", fit->GetParameter(2)));
+    ps->Draw();
 }
 
 void BmnTrackingQaReport::DrawOneH1(const TString canvasName, const TString name1, const TString drawOpt) {

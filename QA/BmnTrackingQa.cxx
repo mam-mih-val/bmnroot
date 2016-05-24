@@ -470,9 +470,11 @@ void BmnTrackingQa::CreateHistograms() {
     // Physics
     CreateH2("momRes_2D_glob", "P_{sim}, GeV/c", "#Delta P / P, %", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, -50.0, 50.0);
     CreateH2("momRes_2D_gem", "P_{sim}, GeV/c", "#Delta P / P, %", "", 400, fPRangeMin, fPRangeMax, 400, -10.0, 10.0);
-    CreateH2("EtaP_rec_gem", "#eta_{rec}", "P_{rec}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
+    CreateH2("EtaP_rec_gem", "#eta_{rec}", "P_{rec}, GeV/c", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_rec_glob", "#eta_{rec}", "P_{rec}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
-    CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
+    CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
+    CreateH2("EtaP_fakes_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
+    CreateH2("EtaP_clones_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
     CreateH2("ThetaP_sim", "#theta_{sim}", "P_{sim}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("ThetaP_rec_gem", "#theta_{rec}", "P_{rec}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH1("momRes_1D_glob", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
@@ -563,12 +565,13 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Chi2_gem", "#chi^{2} / NDF", "Counter", 400, 0, 100);
     CreateH1("Length_gem", "length, cm", "Counter", 400, 0, 400);
 
-    CreateH2("VertX_vs_Mom_gem", "P_{sim}, GeV/c", "V_{x}, cm", "", 400, fPRangeMin, fPRangeMax, 400, -2, 2);
-    CreateH2("VertY_vs_Mom_gem", "P_{sim}, GeV/c", "V_{y}, cm", "", 400, fPRangeMin, fPRangeMax, 400, -2, 2);
-    CreateH2("VertZ_vs_Mom_gem", "P_{sim}, GeV/c", "V_{z}, cm", "", 400, fPRangeMin, fPRangeMax, 400, -2, 2);
-    CreateH1("VertResX_gem", "P_{sim}, GeV/c", "#sigma(V_{x}), cm", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("VertResY_gem", "P_{sim}, GeV/c", "#sigma(V_{y}), cm", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("VertResZ_gem", "P_{sim}, GeV/c", "#sigma(V_{z}), cm", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("VertResX_gem", "#DeltaV^{0}_{x}, cm", "Counter", 100, -0.5, 0.5);
+    CreateH1("VertResY_gem", "#DeltaV^{0}_{y}, cm", "Counter", 100, -0.5, 0.5);
+    CreateH1("VertResZ_gem", "#DeltaV^{0}_{z}, cm", "Counter", 100, -2, 2);
+    
+    CreateH2("Eff_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
+    CreateH2("Clones_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
+    CreateH2("Fakes_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
 
     //for first parameters
     CreateH1("ResX_f_gem", "Residual X, cm", "", 100, -20, 20);
@@ -668,6 +671,7 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("Ghost_vs_Eta_gem")->Fill(Eta_sim);
             fHM->H1("Ghost_vs_Theta_gem")->Fill(Theta_sim);
             fHM->H1("Ghost_vs_Nh_gem")->Fill(N_rec);
+            fHM->H1("Fakes_vs_EtaP_gem")->Fill(Eta_sim, P_sim);
         } else {
             fHM->H1("Well_vs_P_gem")->Fill(P_sim);
             fHM->H1("Well_vs_Eta_gem")->Fill(Eta_sim);
@@ -700,9 +704,10 @@ void BmnTrackingQa::ProcessGem() {
             CbmVertex* vrt = (CbmVertex*) fVertex->At(0);
 
             if (vrt != NULL) {
-                fHM->H2("VertX_vs_Mom_gem")->Fill(P_sim, vrt->GetX());
-                fHM->H2("VertY_vs_Mom_gem")->Fill(P_sim, vrt->GetY());
-                fHM->H2("VertZ_vs_Mom_gem")->Fill(P_sim, vrt->GetZ());
+                FairMCEventHeader* evHead = (FairMCEventHeader*) FairRootManager::Instance()->GetObject("MCEventHeader.");
+                fHM->H1("VertResX_gem")->Fill(vrt->GetX() - evHead->GetX());
+                fHM->H1("VertResY_gem")->Fill(vrt->GetY() - evHead->GetY());
+                fHM->H1("VertResZ_gem")->Fill(vrt->GetZ() - evHead->GetZ());
             }
             Double_t cov[15];
 
@@ -770,6 +775,8 @@ void BmnTrackingQa::ProcessGem() {
         fHM->H1("Well_vs_P_gem")->Fill(P, -1); //remove splitted tracks from efficiency
         fHM->H1("Well_vs_Eta_gem")->Fill(eta, -1); //remove splitted tracks from efficiency
         fHM->H1("Well_vs_Theta_gem")->Fill(theta, -1); //remove splitted tracks from efficiency
+        fHM->H2("Eff_vs_EtaP_gem")->Fill(eta, P, -1);
+        fHM->H2("Clones_vs_EtaP_gem")->Fill(eta, P);
     }
 
     for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
@@ -1117,8 +1124,8 @@ void BmnTrackingQa::ProcessMcTracks() {
 
             vector<Double_t> par = list_of(0);
             if (parName == "Np") {
-                vector<Double_t> tmp = list_of((effName == "Gem") ? nofPointsGem : (effName == "Tof1") ? nofPointsTof1 : (effName == "Tof2") ? nofPointsTof2 : (effName == "Dch1") ? nofPointsDch1 : (effName == "Dch2") ? nofPointsDch2 : 0);
-                par = tmp;
+                vector<Double_t> tmp11 = list_of((effName == "Gem") ? nofPointsGem : (effName == "Tof1") ? nofPointsTof1 : (effName == "Tof2") ? nofPointsTof2 : (effName == "Dch1") ? nofPointsDch1 : (effName == "Dch2") ? nofPointsDch2 : 0);
+                par = tmp11;
             } else {
                 par = parMap[parName];
             }

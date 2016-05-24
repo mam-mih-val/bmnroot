@@ -72,16 +72,16 @@ private:
     Bool_t fUseLorentz; //flag for using Lorentz filtration
     
     Float_t kSIG_X;
-    Float_t kY_STEP;
+    UInt_t kY_STEP;
     Float_t kTRS;
-    Float_t kNHITSFORFIT;
+    UInt_t kNHITSFORFIT;
     
-    Int_t fNBins; // number of bins in histogram  
+    UInt_t fNBins; // number of bins in histogram  
     Float_t fMin;
     Float_t fMax;
     Float_t fWidth;
 
-    Int_t fEventNo; // event counter
+    UInt_t fEventNo; // event counter
 
     TClonesArray* fGemHitsArray;
     TClonesArray* fGemSeedsArray;

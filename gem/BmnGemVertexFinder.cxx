@@ -2,6 +2,8 @@
 #include "BmnGemVertexFinder.h"
 #include "BmnMath.h"
 
+static Float_t workTime = 0.0;
+
 using namespace std;
 using namespace TMath;
 
@@ -39,6 +41,7 @@ InitStatus BmnGemVertexFinder::Init() {
 }
 
 void BmnGemVertexFinder::Exec(Option_t* opt) {
+    clock_t tStart = clock();
 
     cout << "\n======================== Vertex finder exec started =====================\n" << endl;
     cout << "Event number: " << fEventNo++ << endl;
@@ -181,7 +184,13 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
 
     cout << "\n======================== Vertex finder exec finished ========================" << endl;
 
+    clock_t tFinish = clock();
+    workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
 
 void BmnGemVertexFinder::Finish() {
+    ofstream outFile;
+    outFile.open("QA/timing.txt", ofstream::app);
+    outFile << "Vertex Finder Time: " << workTime;
+    cout << "Work time of the GEM vertex finder: " << workTime << endl;
 }

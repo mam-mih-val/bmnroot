@@ -1,4 +1,5 @@
 #include "TProfile.h"
+#include "TRandom.h"
 #include "TMath.h"
 #include "TCanvas.h"
 #include "BmnGemSeedFinder.h"
@@ -8,11 +9,10 @@ static Float_t workTime = 0.0;
 //-----------------------------------------
 
 map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
-vector<Bool_t> hitPresence;
 const UInt_t kNHITSFORSEED = 12; // we use for seeds only kNHITSFORSEED hits
 const UInt_t kMAXSTATIONFORSEED = 12; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
 const Float_t kCHI2CUT = 0.7;
-const Float_t kSIGMACUT = 0.5;
+const Float_t kSIGMACUT = 0.1;
 
 using std::cout;
 using namespace TMath;
@@ -62,12 +62,20 @@ InitStatus BmnGemSeedFinder::Init() {
 }
 
 void BmnGemSeedFinder::Exec(Option_t* opt) {
-
+    clock_t tStart = clock();
     cout << "\n======================== GEM seed finder exec started =====================\n" << endl;
     cout << "Event number: " << fEventNo++ << endl;
 
-    clock_t tStart = clock();
+    
     fGemSeedsArray->Clear();
+    
+    const Float_t eff = 1.00;
+    for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
+        BmnGemStripHit* hit = GetHit(hitIdx);
+        if (gRandom->Uniform(1.0) > eff) {
+            hit->SetUsing(kTRUE);
+        }
+    }
 
     const Int_t nIter = 5;
     //(0.006, 6.0, 1.05); //best parameters
@@ -78,8 +86,6 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 
     for (Int_t i = 0; i < nIter; ++i) {
         addresses.clear();
-        hitPresence.clear();
-        hitPresence.resize(fNBins);
         kSIG_X = sigX[i];
         kY_STEP = stpY[i];
         kTRS = thrs[i];
@@ -113,8 +119,11 @@ BmnStatus BmnGemSeedFinder::DoSeeding(Int_t min, Int_t max, TClonesArray* arr) {
 }
 
 void BmnGemSeedFinder::Finish() {
+    ofstream outFile;
+    outFile.open("QA/timing.txt");
+    outFile << "Seed Finder Time: " << workTime << endl;
+    cout << "Work time of the GEM seed finder: " << workTime << endl;
     addresses.clear();
-    hitPresence.clear();
 }
 
 // ========================================================== //
@@ -206,7 +215,6 @@ void BmnGemSeedFinder::SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGe
 
     for (Int_t j = y - gate; j <= y + gate; ++j) {
 
-        //        if (!hitPresence.at(j)) continue;
         ULong_t addr = j * fNBins + i;
         if (addresses.find(addr) == addresses.end()) continue;
 
@@ -1147,7 +1155,6 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
         }
         if (potSum > trs) {
             addresses.insert(pair<ULong_t, Int_t > (hit->GetAddr(), hitIdx));
-            hitPresence.at(yAddr) = kTRUE;
         }
     }
 

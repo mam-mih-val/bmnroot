@@ -5,6 +5,7 @@
 #include "BmnGemStripStationSet_1stConfigShort.h"
 #include "BmnGemStripStationSet_2ndConfig.h"
 
+static Float_t workTime = 0.0;
 int entrys = 0;
 
 BmnGemStripDigitizer::BmnGemStripDigitizer()
@@ -55,7 +56,7 @@ InitStatus BmnGemStripDigitizer::Init() {
 }
 
 void BmnGemStripDigitizer::Exec(Option_t* opt) {
-
+    clock_t tStart = clock();
     fBmnGemStripDigitsArray->Clear();
 
     if(fStripMatching) {
@@ -76,6 +77,8 @@ void BmnGemStripDigitizer::Exec(Option_t* opt) {
 
     if(fVerbose) cout << " BmnGemStripDigitizer::Exec() finished\n\n";
     entrys++;
+    clock_t tFinish = clock();
+    workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
 
 void BmnGemStripDigitizer::ProcessMCPoints() {
@@ -166,7 +169,7 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
 }
 
 void BmnGemStripDigitizer::Finish() {
-
+    cout << "Work time of the GEM digitizer: " << workTime << endl;
 }
 
 ClassImp(BmnGemStripDigitizer)

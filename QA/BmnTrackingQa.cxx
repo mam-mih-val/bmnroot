@@ -465,7 +465,7 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("hen_EventNo_TrackingQa", "", "", 1, 0, 1.);
     CreateH1("Impact parameter", "b, fm", "Counter", 50, 0.0, 0.0);
     CreateH1("Multiplicity", "N_{prim}", "Counter", 50, 0.0, 0.0);
-    CreateH2("Impact_Mult", "b, fm", "N_{prim}", "", 400, 0.0, 0.0, 400, 0.0, 0.0);
+    CreateH2("Impact_Mult", "b, fm", "N_{prim}", "", 50, 0.0, 0.0, 50, 0.0, 0.0);
 
     // Physics
     CreateH2("momRes_2D_glob", "P_{sim}, GeV/c", "#Delta P / P, %", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, -50.0, 50.0);

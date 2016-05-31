@@ -22,6 +22,7 @@
 #include "TStyle.h"
 #include "TPaveStats.h"
 #include "TLatex.h"
+#include <fstream>
 
 const Float_t pMax = 5.0;
 
@@ -68,6 +69,18 @@ string BmnTrackingQaReport::PrintEventInfo() {
     Out() << "<h3><font color=\"red\">Clone</font> tracks:</h3>";
     Out() << "Two or more reconstructed tracks with reference to the same MC-track." << endl;
     Out() << "The number of clones is subtracted from number of good tracks before efficiency calculation." << endl;
+    Out() << "<hr>" << endl;
+    ifstream inTiming;
+    inTiming.open("timing.txt");
+    if (inTiming.is_open()) {
+        TString a1, a2, a3;
+        Float_t workTime;
+        while (!inTiming.eof()) {
+            inTiming >> a1 >> a2 >> a3 >> workTime;
+            Out() << "<h3>" << "Average time of " << a1 << " " << a2 << ": " << workTime / HM()->H1("hen_EventNo_TrackingQa")->GetEntries() * 1000.0 << " ms/event " << "</h3>" << endl;
+        }
+    }
+    inTiming.close();
     return "<hr>";
 }
 
@@ -134,9 +147,9 @@ void BmnTrackingQaReport::Draw() {
             HM()->H2("Fakes_vs_EtaP_gem")->SetBinContent(i, j, content);
         }
     }
-    
+
     DrawThreeH2("Distribution of Efficiency, Ghosts and Clones in Pseudorapidity and Momentum", "Eff_vs_EtaP_gem", "Clones_vs_EtaP_gem", "Fakes_vs_EtaP_gem");
-    
+
     DrawTwoH2("Distribution of MC-tracks and GEM-tracks in theta and Momentum", "ThetaP_sim", "ThetaP_rec_gem");
     DrawTwoH2("P_reco vs P_mc for GEM-tracks", "P_rec_P_sim_gem", "Pt_rec_Pt_sim_gem");
 
@@ -410,7 +423,7 @@ void BmnTrackingQaReport::DrawVertResGem(const string& canvasName, TString name1
     DrawH1(HM()->H1(name1dY.Data()), kLinear, kLinear, "", kBlue, 0.7, 0.75, 1.1, 20);
     DrawMuSigma(canvas->cd(2), HM()->H1(name1dY.Data()));
     canvas->cd(3);
-    HM()->H1(name1dZ.Data())->Fit("gaus", "RQWW", "", -1, 1);
+    HM()->H1(name1dZ.Data())->Fit("gaus", "RQWW", "", -2, 2);
     DrawH1(HM()->H1(name1dZ.Data()), kLinear, kLinear, "", kBlue, 0.7, 0.75, 1.1, 20);
     DrawMuSigma(canvas->cd(3), HM()->H1(name1dZ.Data()));
 }

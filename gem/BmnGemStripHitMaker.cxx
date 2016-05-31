@@ -4,6 +4,8 @@
 #include "BmnGemStripStationSet_1stConfigShort.h"
 #include "BmnGemStripStationSet_2ndConfig.h"
 
+static Float_t workTime = 0.0;
+
 BmnGemStripHitMaker::BmnGemStripHitMaker()
 : fHitMatching(kTRUE) {
 
@@ -56,7 +58,7 @@ InitStatus BmnGemStripHitMaker::Init() {
 }
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
-
+    clock_t tStart = clock();
     fBmnGemStripHitsArray->Clear();
 
     if(fHitMatching && fBmnGemStripHitMatchesArray) {
@@ -77,6 +79,8 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     ProcessDigits();
 
     if(fVerbose) cout << " BmnGemStripHitMaker::Exec() finished\n";
+    clock_t tFinish = clock();
+    workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
 
 void BmnGemStripHitMaker::ProcessDigits() {
@@ -346,7 +350,7 @@ void BmnGemStripHitMaker::FindHitsAndFakes(Int_t *PointTypeArray, Double_t *Poin
 }
 
 void BmnGemStripHitMaker::Finish() {
-
+    cout << "Work time of the GEM hit maker: " << workTime << endl;
 }
 
 ClassImp(BmnGemStripHitMaker)

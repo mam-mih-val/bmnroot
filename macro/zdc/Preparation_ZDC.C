@@ -33,7 +33,8 @@ void Preparation_ZDC(char *fname="bmn_run0543.root") {
 
         _t_in->GetEntry(ev);
 
-        ZDC.fillSampleProfiles(zdc_raw, 0., 0., 48., 3);
+//        ZDC.fillSampleProfiles(zdc_raw, 0., 0., 48., 3);
+        ZDC.fillSampleProfilesAll(zdc_raw, 0., 0., 48.);
 
     }
     /////////////////////////////////////////////////////////////////////////////////////

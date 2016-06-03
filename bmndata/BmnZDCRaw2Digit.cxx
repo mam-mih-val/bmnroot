@@ -124,15 +124,15 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
     }
     else
     {
-	Int_t ch;
+	Int_t ch1;
 	Float_t ca = 1., cae = 0.;
 	fscanf(fin, "%s %s %s\n", tit1, tit2, tit3);
-	while (fscanf(fin, "%d %f %f\n", &ch, &ca, &cae) == 3)
+	while (fscanf(fin, "%d %f %f\n", &ch1, &ca, &cae) == 3)
 	{
-	    if (ch > 0 && ch <= maxchan)
+	    if (ch1 > 0 && ch1 <= maxchan)
 	    {
-		cal[ch-1] = ca;
-		cale[ch-1] = cae;
+		cal[ch1-1] = ca;
+		cale[ch1-1] = cae;
 	    }
 	};
 	fclose(fin);
@@ -178,15 +178,13 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
     hxmean   = new TH1F("hxmean","Shower mean X", 1000, -500., +500.);
     hymean   = new TH1F("hymean","Shower mean Y", 1000, -500., +500.);
 
-    SampleProf[0]   = new TProfile("samprof0","Average sampling wave, module 0", 200, 0., 200., -100000., +100000.,"s");
-    SampleProf[1]   = new TProfile("samprof1","Average sampling wave, module 1", 200, 0., 200., -100000., +100000.,"s");
-    SampleProf[2]   = new TProfile("samprof2","Average sampling wave, module 2", 200, 0., 200., -100000., +100000.,"s");
-    SampleProf[3]   = new TProfile("samprof3","Average sampling wave, module 3", 200, 0., 200., -100000., +100000.,"s");
-    SampleProf[4]   = new TProfile("samprof4","Average sampling wave, module 4", 200, 0., 200., -100000., +100000.,"s");
-    SampleProf[5]   = new TProfile("samprof5","Average sampling wave, module 5", 200, 0., 200., -100000., +100000.,"s");
-    SampleProf[6]   = new TProfile("samprof6","Average sampling wave, module 6", 200, 0., 200., -100000., +100000.,"s");
-    SampleProf[7]   = new TProfile("samprof7","Average sampling wave, module 7", 200, 0., 200., -100000., +100000.,"s");
-    SampleProf[8]   = new TProfile("samprof8","Average sampling wave, module 8", 200, 0., 200., -100000., +100000.,"s");
+    char tit[128], nam[128];
+    for (int i=0; i<n_rec; i++)
+    {
+	sprintf(tit, "samprof%d", i);
+	sprintf(nam, "Average sampling wave, module %d", i);
+	SampleProf[i]   = new TProfile(tit, nam, 200, 0., 200., -100000., +100000.,"s");
+    }
 }
 
 
@@ -320,6 +318,75 @@ void BmnZDCRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t 
        for (int j = 0;j<digit->GetSamples(); j++)
        {
 	    if (SampleProf[num]) SampleProf[num]->Fill(j,sam[j]>>4);
+       }
+       if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+       {
+//	    printf("chan %d amp %f coef %f\n", zdc_map_element[ind].chan, amp, cal[zdc_map_element[ind].chan]);
+	    xm += amp*cal[zdc_map_element[ind].chan]*zdc_map_element[ind].x;
+	    ym += amp*cal[zdc_map_element[ind].chan]*zdc_map_element[ind].y;
+	    s += amp*cal[zdc_map_element[ind].chan];
+       }
+     }
+    }
+    if (s > 0.) hxmean->Fill(xm/s);
+    if (s > 0.) hymean->Fill(ym/s);
+    nevents++;
+}
+
+
+void BmnZDCRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Float_t y, Float_t e) {
+    Float_t amp = 0;
+    Int_t j = 0;
+    if (nevents >= MAX_EVENTS) return;
+    if (nevents == 0)
+    {
+	x_beam = x;
+	y_beam = y;
+	int i0 = -1;
+        for(int ind=0;ind<n_rec;ind++)
+	{
+	    if (x >= zdc_map_element[ind].x - cell_size[zdc_map_element[ind].size]/2. && \
+	        x <  zdc_map_element[ind].x + cell_size[zdc_map_element[ind].size]/2. && \
+	        y >= zdc_map_element[ind].y - cell_size[zdc_map_element[ind].size]/2. && \
+	        y <  zdc_map_element[ind].y + cell_size[zdc_map_element[ind].size]/2 )
+	    {
+		i0 = ind;
+		break;
+	    }
+	}
+	if (i0 == -1)
+	{
+	    printf("Warninig: Beam entry point (%f,%f) outside any ZDC module!\n", x, y);
+//	    return;
+	}
+	ncells = n_rec;
+	shower_energy = e;
+        for(int i=0;i<n_rec;i++)
+	{
+	    channel1[i] = -1;
+	}
+        for(int ind=0;ind<n_rec;ind++)
+	{
+		    number[ind] = j;
+		    channel0[ind] = zdc_map_element[ind].chan;
+		    channel1[j] = zdc_map_element[ind].chan;
+		    j++;
+	}
+    }
+    float ped = 0., xm = 0., ym = 0., s = 0.;
+    if (data != NULL)
+    {
+     for (int i = 0; i < data->GetEntriesFast(); i++) {
+       BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
+       int ind, num; 
+       for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
+       if(ind==n_rec) continue; 
+       if(zdc_map_element[ind].used==0) continue;
+       if((num=number[ind])<0) continue;
+       UShort_t *sam = digit->GetValue();
+       for (int j1 = 0;j1<digit->GetSamples(); j1++)
+       {
+	    if (SampleProf[num]) SampleProf[num]->Fill(j1,sam[j1]>>4);
        }
        if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
        {
@@ -557,8 +624,8 @@ int BmnZDCRaw2Digit::fillCalibrateNumbers(TClonesArray *data, Float_t x, Float_t
 	{
 	    if (x<x_min || x>x_max || y<y_min || y>y_max)
 	    {
-		printf("Beam entry point (%f,%f) outside ZDC area!\n", x, y);
-		return 1;
+		printf("Warning: Beam entry point (%f,%f) outside ZDC area!\n", x, y);
+//		return 1;
 	    }
 	}
 	shower_energy = e;
@@ -645,8 +712,8 @@ int BmnZDCRaw2Digit::fillCalibrateAll(TClonesArray *data, Float_t x, Float_t y, 
 	}
 	if (i0 == -1)
 	{
-	    printf("Beam entry point (%f,%f) outside ZDC area!\n", x, y);
-	    return 1;
+	    printf("Warning: Beam entry point (%f,%f) outside any ZDC module!\n", x, y);
+//	    return 1;
 	}
 	ncells = n_rec;
 	shower_energy = e;
@@ -661,13 +728,13 @@ int BmnZDCRaw2Digit::fillCalibrateAll(TClonesArray *data, Float_t x, Float_t y, 
 		    channel1[j] = zdc_map_element[ind].chan;
 		    j++;
 	}
-	for(int j=0; j<MAX_EVENTS; j++)
+	for(int j1=0; j1<MAX_EVENTS; j1++)
 	{
     	    for(int i=0;i<n_rec; i++)
 	    {
-		amp_array[j][i] = 0.;
-		profile_amp[j][i] = 0.;
-		profile_err[j][i] = 1.;
+		amp_array[j1][i] = 0.;
+		profile_amp[j1][i] = 0.;
+		profile_err[j1][i] = 1.;
 	    }
 	}
     }
@@ -725,14 +792,14 @@ void BmnZDCRaw2Digit::calibrate() {
    Double_t vstart[MAX_CHANNELS], step[MAX_CHANNELS], vmin = 0.00001, vmax = 100000.;
 
 //   printf(" ncells = %d\n", ncells);
-   TMinuit *gMinuit = new TMinuit(ncells+1);  
-   gMinuit->SetFCN(fcn1);
+   TMinuit *gMinuit1 = new TMinuit(ncells+1);  
+   gMinuit1->SetFCN(fcn1);
  
    Double_t arglist[MAX_CHANNELS];
    Int_t ierflg = 0;
  
    arglist[0] = 1;
-   gMinuit->mnexcm("SET ERR", arglist ,1,ierflg);
+   gMinuit1->mnexcm("SET ERR", arglist ,1,ierflg);
  
 // Set starting values and step sizes for parameters
    char name[32] = {""};
@@ -742,19 +809,19 @@ void BmnZDCRaw2Digit::calibrate() {
     vstart[i] = pstart;
     step[i] = pstep;
     sprintf(name, "Coeff_%03d", channel1[i]+1);
-    gMinuit->mnparm(i, name, vstart[i], step[i], vmin, vmax, ierflg);
+    gMinuit1->mnparm(i, name, vstart[i], step[i], vmin, vmax, ierflg);
 //    printf("%d name %s min %f max %f start %f step %f\n",i,name,vmin,vmax,vstart[i],step[i]);
    } 
 // Now ready for minimization step
    arglist[0] = 50000;
    arglist[1] = 0.1;
-   gMinuit->mnexcm("MIGRAD", arglist ,2, ierflg);
+   gMinuit1->mnexcm("MIGRAD", arglist ,2, ierflg);
  
 // Print results
    Double_t amin,edm,errdef;
    Int_t nvpar,nparx,icstat;
-   gMinuit->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
-   gMinuit->mnprin(3,amin);
+   gMinuit1->mnstat(amin,edm,errdef,nvpar,nparx,icstat);
+   gMinuit1->mnprin(3,amin);
 
 //----- write results
 
@@ -766,7 +833,7 @@ void BmnZDCRaw2Digit::calibrate() {
     Double_t par[MAX_CHANNELS], epar[MAX_CHANNELS];
     for (int i=0; i<ncells; i++)
     {
-	gMinuit->GetParameter(i,par[i],epar[i]);
+	gMinuit1->GetParameter(i,par[i],epar[i]);
 	cal_out[channel1[i]] = cal[channel1[i]]*par[i];
 	cale_out[channel1[i]] = cal[channel1[i]]*epar[i];
 //	printf("   %d par %f epar %f\n",i,par[i],epar[i]);
@@ -1020,8 +1087,13 @@ void BmnZDCRaw2Digit::drawprof()
   csampro->cd();
   if (ncells <= 4) csampro->Divide(2,2);
   else if (ncells <= 9) csampro->Divide(3,3);
-  else csampro->Divide(3,3);
-  for (int i=0; i<(ncells<9?ncells:9); i++)
+  else  if (ncells <= 16) csampro->Divide(4,4);
+  else  if (ncells <= 25) csampro->Divide(5,5);
+  else  if (ncells <= 36) csampro->Divide(6,6);
+  else  if (ncells <= 49) csampro->Divide(7,7);
+  else  if (ncells <= 49) csampro->Divide(7,7);
+  else  csampro->Divide(8,7);
+  for (int i=0; i<ncells; i++)
   {
     csampro->cd(i+1);
     if (SampleProf[i]) SampleProf[i]->Draw();

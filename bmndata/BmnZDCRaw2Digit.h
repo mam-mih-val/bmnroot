@@ -15,7 +15,7 @@
 #include <cstdlib> 
 
 #define MAX_EVENTS 10000
-#define MAX_CHANNELS 110
+#define MAX_CHANNELS 52
 
 static int nevents;
 static float amp_array[MAX_EVENTS][MAX_CHANNELS];
@@ -90,6 +90,8 @@ public:
     int fillCalibrateAll(TClonesArray *data, Float_t x, Float_t y, Float_t e);
 
     void fillSampleProfiles(TClonesArray *data, Float_t x, Float_t y, Float_t e, Int_t clsize);
+
+    void fillSampleProfilesAll(TClonesArray *data, Float_t x, Float_t y, Float_t e);
 
     void calibrate();
 

@@ -47,12 +47,11 @@ const Float_t SideLengthOfOctagon = 120.0;
 const Float_t InnerRadiusOfOctagon = (2.414 * SideLengthOfOctagon) / 2.0;
 
 const UInt_t nWires = 240; // 0 - 255
-const UInt_t nPlanes = 16; // 0 - 15
-const Float_t WireStep = 2.0 * InnerRadiusOfOctagon / nWires;
-const Float_t HalfStep = WireStep / 2.0;
-
-const Float_t MaxRadiusOfActiveVolume = 120.0;
+const UInt_t nPlanes = 16; // 0 - 15const 
+Float_t MaxRadiusOfActiveVolume = 120.0;
 const Float_t MinRadiusOfActiveVolume = 12.0;
+const Float_t WireStep = 2.0 * MaxRadiusOfActiveVolume / nWires;
+const Float_t HalfStep = WireStep / 2.0;
 
 void CheckHits(vector<TVector3> &vec1, vector<TVector3> &vec2) {
 
@@ -138,7 +137,8 @@ vector<Float_t> MergeSubPlanes(vector<BmnDchDigit*> vec1, vector<BmnDchDigit*> v
             BmnDchDigit* d2 = (BmnDchDigit*) vec2.at(j);
             if (Abs(d1->GetWireNumber() - d2->GetWireNumber()) > 1) continue;
             Float_t n = (d1->GetWireNumber() + d2->GetWireNumber()) / 2.0;
-            Float_t coord = (InnerRadiusOfOctagon - WireStep) * (2.0 * n / (nWires - 1) - 1);
+//            Float_t coord = (InnerRadiusOfOctagon - WireStep) * (2.0 * n / (nWires - 1) - 1);
+            Float_t coord = (MaxRadiusOfActiveVolume - WireStep) * (2.0 * n / (nWires - 1) - 1);
             v.push_back(coord);
         }
     }

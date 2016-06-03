@@ -641,6 +641,7 @@ void BmnTrackingQa::ProcessGem() {
         Float_t Py_sim = pnt.GetPy(); //mcTrack->GetPy();
         Float_t Pz_sim = pnt.GetPz(); //mcTrack->GetPz();
         Float_t P_sim = pnt.GetP(); //Sqrt(Px_sim * Px_sim + Py_sim * Py_sim + Pz_sim * Pz_sim); //mcTrack->GetP();
+        if (P_sim > 5.0) continue;
         Float_t Pt_sim = Sqrt(Px_sim * Px_sim + Pz_sim * Pz_sim);
         Float_t Pxy_sim = Sqrt(Px_sim * Px_sim + Py_sim * Py_sim);
         Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
@@ -649,6 +650,7 @@ void BmnTrackingQa::ProcessGem() {
         Int_t N_sim = mcTrack.GetNofPoints(kGEM);
 
         Float_t P_rec = Abs(1.0 / track->GetParamFirst()->GetQp());
+        if (P_rec > 5.0) continue;
         Float_t Tx = track->GetParamFirst()->GetTx();
         Float_t Ty = track->GetParamFirst()->GetTy();
         Float_t Pz_rec = P_rec / Sqrt(Tx * Tx + Ty * Ty + 1);
@@ -765,6 +767,7 @@ void BmnTrackingQa::ProcessGem() {
         Float_t Py = mcPoint->GetPy(); //mcTrack->GetPy();
         Float_t Pz = mcPoint->GetPz(); //mcTrack->GetPz();
         Float_t P = Sqrt(Px * Px + Py * Py + Pz * Pz); //mcTrack->GetP();
+        if (P > 5.0) continue;
         Float_t Pxy = Sqrt(Px * Px + Py * Py);
         Float_t eta = 0.5 * Log((P + Pz) / (P - Pz));
         Float_t theta = ATan2(Pxy, Pz) * RadToDeg();
@@ -795,6 +798,7 @@ void BmnTrackingQa::ProcessGem() {
         Float_t Py = pnt.GetPy();
         Float_t Pz = pnt.GetPz();
         Float_t P = pnt.GetP();
+        if (P > 5.0) continue;
         Float_t Pxy = Sqrt(Px * Px + Py * Py);
         Float_t eta = 0.5 * Log((P + Pz) / (P - Pz));
         Float_t theta = ATan2(Pxy, Pz) * RadToDeg();

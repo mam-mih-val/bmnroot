@@ -66,9 +66,9 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     cout << "\n======================== GEM seed finder exec started =====================\n" << endl;
     cout << "Event number: " << fEventNo++ << endl;
 
-    
     fGemSeedsArray->Clear();
     
+    //GEM inefficiency ===>
     const Float_t eff = 1.00;
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
@@ -76,6 +76,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
             hit->SetUsing(kTRUE);
         }
     }
+    // <=== GEM ineficiency
 
     const Int_t nIter = 5;
     //(0.006, 6.0, 1.05); //best parameters

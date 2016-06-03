@@ -122,7 +122,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
         tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
 
-        //if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
+        if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
         tr.SetChi2(chi2);
 
         //        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);

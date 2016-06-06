@@ -255,6 +255,10 @@ private:
     BmnGemStripReadoutModule(const BmnGemStripReadoutModule&);
     BmnGemStripReadoutModule& operator=(const BmnGemStripReadoutModule&);
 
+//testing functions
+public:
+    void GenerateAvalanche_Test();
+
     ClassDef(BmnGemStripReadoutModule, 1);
 };
 //------------------------------------------------------------------------------

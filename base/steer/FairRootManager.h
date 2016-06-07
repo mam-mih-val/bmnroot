@@ -221,6 +221,10 @@ class FairRootManager : public TObject
 
     void SetFinishRun(Bool_t val = kTRUE){ fFinishRun = val;}
     Bool_t FinishRun() {return fFinishRun;}
+
+    /**Add a branch to memory, it will not be written to the output files*/
+    void                AddMemoryBranch(const char*, TObject* );
+
   private:
     /**private methods*/
     FairRootManager(const FairRootManager&);
@@ -229,8 +233,6 @@ class FairRootManager : public TObject
         a TObject pointer, the user have to cast this pointer to the right type.*/
     TObject*            ActivateBranch(const char* BrName);
     void                AddFriends( );
-    /**Add a branch to memory, it will not be written to the output files*/
-    void                AddMemoryBranch(const char*, TObject* );
     /** Internal Check if Branch persistence or not (Memory branch)
     return value:
     1 : Branch is Persistance

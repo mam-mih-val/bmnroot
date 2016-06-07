@@ -16,5 +16,4 @@
 #pragma link C++ class  ScalarI+;
 #pragma link C++ class  ScalarUI+;
 #pragma link C++ class  DchHitPlane+;
-#pragma link C++ class  BmnDchRaw2Digit+;
 #endif

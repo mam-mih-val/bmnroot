@@ -10,5 +10,7 @@
 #pragma link C++ class CbmTrackMerger+;
 #pragma link C++ class CbmPrimaryVertexFinder+;
 #pragma link C++ class CbmFindPrimaryVertex+;
+#pragma link C++ class BmnFileSource+;
+
 #endif
 

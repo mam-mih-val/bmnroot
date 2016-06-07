@@ -43,7 +43,6 @@ ScalarD.cxx
 ScalarI.cxx
 ScalarUI.cxx
 DchHitPlane.cxx
-${CMAKE_SOURCE_DIR}/bmndata/BmnDchRaw2Digit.cxx
 )
 
 set(Dch2_SRCS

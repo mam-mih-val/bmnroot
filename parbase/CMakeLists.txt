@@ -50,7 +50,7 @@ FairRtdbRun.cxx
 FairRuntimeDb.cxx
 )
 
-Set(HEADERS )
+Set(HEADERS)
 Set(LINKDEF ParBaseLinkDef.h)
 Set(LIBRARY_NAME ParBase)
 

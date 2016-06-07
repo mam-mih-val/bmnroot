@@ -1,7 +1,7 @@
 // --------------------------------------------------------------------------
 // Macro for reconstruction of simulated events
 //
-// inFile - input file with MC data, default: evetest.root
+// inFile - input file with MC data, default: evetest.root. To process experimental data, you can use 'runNNN:' prefix.  The geometry is obtained from the Unified Database.
 // outFile - output file with reconstructed data, default: mpddst.root
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
@@ -9,6 +9,69 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
+
+    // ----    Debug option   -------------------------------------------------
+    gDebug = 0;
+    // ------------------------------------------------------------------------
+
+    // ----  Load libraries   -------------------------------------------------
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+    bmnloadlibs(); // load BmnRoot libraries
+    // ------------------------------------------------------------------------
+
+    // -----   Timer   --------------------------------------------------------
+    TStopwatch timer;
+    timer.Start();
+
+    // Set input source as simulation file or experimental data (if 'runN:' prefix)
+    FairSource* fFileSource;
+    Ssiz_t indColon = inFile.First(':');
+    // for experimental datasource
+    if ((indColon >= 0) && (inFile.BeginsWith("run")))
+    {
+        // get run number
+        TString number_string(inFile(3, indColon-3));
+        Int_t run_number = number_string.Atoi();
+        inFile.Remove(0, indColon+1);
+
+        if (!CheckFileExist(inFile)) return;
+        fFileSource = new BmnFileSource(inFile);
+
+        // get geometry for run
+        TString root_file_path = "current_geo_file.root";
+        int res_code = UniDbRun::ReadGeometryFile(run_number, root_file_path.Data());
+        if (res_code != 0)
+        {
+            cout << "\nGeometry file can't be read from the database" << endl;
+            exit(-1);
+        }
+
+        // get gGeoManager from ROOT file (if required)
+        TFile* geoFile = new TFile(root_file_path, "READ");
+        if (!geoFile->IsOpen())
+        {
+            cout<<"Error: could not open ROOT file with geometry!"<<endl;
+            exit(-2);
+        }
+
+        TList* keyList = geoFile->GetListOfKeys();
+        TIter next(keyList);
+        TKey* key = (TKey*)next();
+        TString className(key->GetClassName());
+        if (className.BeginsWith("TGeoManager"))
+            key->ReadObj();
+        else
+        {
+            cout<<"Error: TGeoManager isn't top element in geometry file "<<root_file_path<<endl;
+            exit(-3);
+        }
+    }
+    // for simulated files
+    else
+    {
+        if (!CheckFileExist(inFile)) return;
+        fFileSource = new FairFileSource(inFile);
+    }
 
     // Parameter file
     TString parFile = inFile;
@@ -26,29 +89,9 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
     parFileList->Add(&tofDigiFile);
 
-
-    // In general, the following parts need not be touched
-    // ========================================================================
-
-    // ----    Debug option   -------------------------------------------------
-    gDebug = 0;
-    // ------------------------------------------------------------------------
-
-    // ----  Load libraries   -------------------------------------------------
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-    bmnloadlibs(); // load bmn libraries
-    // ------------------------------------------------------------------------
-
-    // -----   Timer   --------------------------------------------------------
-    TStopwatch timer;
-    timer.Start();
-    // ------------------------------------------------------------------------
-
     // -----   Reconstruction run   -------------------------------------------
-    if (!CheckFileExist(inFile)) return;
-
     FairRunAna *fRun = new FairRunAna();
-    fRun->SetInputFile(inFile);
+    fRun->SetSource(fFileSource);
     fRun->SetOutputFile(outFile);
     fRun->SetGenerateRunInfo(false);
     // ------------------------------------------------------------------------
@@ -59,7 +102,6 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // =========================================================================
 
     /*
-
         // -----   STS digitizer   -------------------------------------------------
         Double_t threshold = 4;
         Double_t noiseWidth = 0.01;

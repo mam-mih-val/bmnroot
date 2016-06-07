@@ -1,4 +1,6 @@
 #include <fstream>
+#include <chrono>
+#include <iomanip>
 
 #include "BmnGemStripReadoutModule.h"
 
@@ -7,6 +9,8 @@
 #include "TStyle.h"
 #include "TLine.h"
 #include "TLegend.h"
+#include "TMarker.h"
+#include "TH2F.h"
 
 BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
     Verbosity = kTRUE;
@@ -1310,6 +1314,261 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
 
     //--------------------------------------------------------------------------
     #endif
+}
+//------------------------------------------------------------------------------
+
+void BmnGemStripReadoutModule::GenerateAvalanche_Test() {
+
+    gRandom->SetSeed(0);
+    cout << "seed = " << gRandom->GetSeed() << "\n";
+
+    double const mean_free_path = 0.0333;
+
+    double x_in = 5.0, y_in = 5.0, z_in = 0.0;
+    double x_out = 5.0, y_out = 5.5, z_out = 0.9;
+
+    double px = x_out - x_in;
+    double py = y_out - y_in;
+    double pz = z_out - z_in;
+
+    double length = std::sqrt( (x_out-x_in)*(x_out-x_in) + (y_out-y_in)*(y_out-y_in) + (z_out-z_in)*(z_out-z_in) );
+
+    std::streamsize old_precision(cout.precision());
+    cout << setprecision(2) << setiosflags(ios::fixed);
+    cout << "start point  = ( " << x_in << " : " << y_in << " : " << z_in << " )\n";
+    cout << "end point    = ( " << x_out << " : " << y_out << " : " << z_out << " )\n";
+    cout << "direction    = ( " << px << " : " << py << " : " << pz << " )\n";
+    cout << "track length = " << length << "\n";
+    cout.unsetf(ios::fixed);
+    cout.precision(old_precision);
+
+//------------------------------------------------------------------------------
+    TCanvas *mean_free_path_distr_canv = new TCanvas("mean_free_path_distr_canv", "mean_free_path_distr_canv", 10, 10, 1000, 800);
+    mean_free_path_distr_canv->SetGrid();
+    TH1F *mean_free_path_distr_hist = new TH1F("mean_free_path_distr_hist", "mean_free_path_distr_hist", 100, 0.0, 0.5);
+
+    for(int i = 0; i < 10000; ++i) {
+        double rand_val = gRandom->Exp(mean_free_path);
+        mean_free_path_distr_hist->Fill(rand_val);
+    }
+
+    mean_free_path_distr_canv->cd();
+    mean_free_path_distr_hist->Draw();
+//------------------------------------------------------------------------------
+
+    TCanvas *eletrons_per_cluster_distr_canv = new TCanvas("eletrons_per_cluster_distr_canv", "eletrons_per_cluster_distr_canv", 10, 10, 1000, 800);
+    eletrons_per_cluster_distr_canv->SetGrid();
+    TH1F *eletrons_per_cluster_distr_hist = new TH1F("eletrons_per_cluster_distr_hist", "eletrons_per_cluster_distr_hist", 100, 0.0, 100.0);
+
+    for(int i = 0; i < 10000; ++i) {
+        double rand_val = gRandom->Landau(1.027, 0.11);
+        if(rand_val < 1.0) {
+            rand_val = 1.0;
+        }
+        eletrons_per_cluster_distr_hist->Fill(rand_val);
+    }
+
+    eletrons_per_cluster_distr_canv->cd();
+    eletrons_per_cluster_distr_hist->Draw();
+
+//------------------------------------------------------------------------------
+
+    double current_length = 0.0;
+    double current_length_ratio = 0.0;
+    int collisions_cnt = 0;
+    double current_step = 0.0;
+
+    struct CollPoint {
+        CollPoint(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
+        double x;
+        double y;
+        double z;
+    };
+
+    std::vector<CollPoint> collision_points;
+
+    while(current_length < length) {
+        current_step = gRandom->Exp(mean_free_path);
+        current_length += current_step;
+
+        if(current_length > length) break;
+
+        current_length_ratio = current_length/length;
+
+        double current_x = x_in + current_length_ratio*px;
+        double current_y = y_in + current_length_ratio*py;
+        double current_z = z_in + current_length_ratio*pz;
+
+        collision_points.push_back(CollPoint(current_x, current_y, current_z));
+
+        cout << "  collision[" << collisions_cnt << "]: " << " current_step = " << current_step << ", current_length = " << current_length << ", ratio = " << current_length_ratio << "\n";
+        cout << "     coordinates(x:y:z) = ( " << current_x << " : " << current_y << " : " << current_z << " )\n";
+
+        collisions_cnt++;
+    }
+    cout << "N collisions at the track = " << collisions_cnt << "\n";
+
+//------------------------------------------------------------------------------
+    double x_min_visible_area = XMinReadout;
+    double y_min_visible_area = YMinReadout;
+    double x_max_visible_area = XMaxReadout;
+    double y_max_visible_area = YMaxReadout;
+    double z_min_visible_area = 0.0;
+    double z_max_visible_area = 0.9;
+
+    x_min_visible_area = 4.5;
+    y_min_visible_area = 4.5;
+    x_max_visible_area = 5.5;
+    y_max_visible_area = 5.5;
+    z_min_visible_area = 0.0;
+    z_max_visible_area = 1.0;
+
+    //xy track projection ------------------------------------------------------
+    TCanvas *xy_track_slice_canv = new TCanvas("xy_track_slice_canv", "xy_track_slice_canv", 10, 10, 1000, 800);
+    xy_track_slice_canv->Range(x_min_visible_area, y_min_visible_area, x_max_visible_area, y_max_visible_area);
+
+    TLine *xy_track_line = new TLine(x_in, y_in, x_out, y_out);
+    xy_track_line->SetLineColor(TColor::GetColor("#33ff33"));
+    xy_track_line->Draw();
+
+    for(int ipoint = 0; ipoint < collision_points.size(); ++ipoint) {
+        TMarker *xy_point_mark = new TMarker(collision_points[ipoint].x, collision_points[ipoint].y, 20);
+        xy_point_mark->SetMarkerSize(0.5);
+        xy_point_mark->SetMarkerColor(TColor::GetColor("#33ff33"));
+        xy_point_mark->Draw();
+    }
+    //--------------------------------------------------------------------------
+
+    //xz track projection ------------------------------------------------------
+    TCanvas *xz_track_slice_canv = new TCanvas("xz_track_slice_canv", "xz_track_slice_canv", 10, 10, 1000, 800);
+    xz_track_slice_canv->Range(x_min_visible_area, z_min_visible_area, x_max_visible_area, z_max_visible_area);
+
+
+    TLine *xz_track_line = new TLine(x_in, z_in, x_out, z_out);
+    xz_track_line->SetLineColor(TColor::GetColor("#33ff33"));
+    xz_track_line->Draw();
+
+    for(int ipoint = 0; ipoint < collision_points.size(); ++ipoint) {
+        TMarker *xz_point_mark = new TMarker(collision_points[ipoint].x, collision_points[ipoint].z, 20);
+        xz_point_mark->SetMarkerSize(0.5);
+        xz_point_mark->SetMarkerColor(TColor::GetColor("#33ff33"));
+        xz_point_mark->Draw();
+    }
+    //--------------------------------------------------------------------------
+
+    //xz track projection ------------------------------------------------------
+    TCanvas *yz_track_slice_canv = new TCanvas("yz_track_slice_canv", "yz_track_slice_canv", 10, 10, 1000, 800);
+    yz_track_slice_canv->Range(y_min_visible_area, z_min_visible_area, y_max_visible_area, z_max_visible_area);
+
+
+    TLine *yz_track_line = new TLine(y_in, z_in, y_out, z_out);
+    yz_track_line->SetLineColor(TColor::GetColor("#33ff33"));
+    yz_track_line->Draw();
+
+    for(int ipoint = 0; ipoint < collision_points.size(); ++ipoint) {
+        TMarker *yz_point_mark = new TMarker(collision_points[ipoint].y, collision_points[ipoint].z, 20);
+        yz_point_mark->SetMarkerSize(0.5);
+        yz_point_mark->SetMarkerColor(TColor::GetColor("#33ff33"));
+        yz_point_mark->Draw();
+    }
+    //--------------------------------------------------------------------------
+
+
+    TCanvas *xy_readout_canv = new TCanvas("xy_readout_canv", "xy_readout_canv", 10, 10, 900, 900);
+    xy_readout_canv->SetGrid();
+
+    Double_t bin_size = 0.005; // cm
+    Int_t xbins = fabs(x_max_visible_area -x_min_visible_area)/bin_size;
+    Int_t ybins = fabs(y_max_visible_area -y_min_visible_area)/bin_size;
+    cout << " >>> Histogram bins: "<< "xbins = " << xbins << ",  ybins = " << ybins << " ( one bin size = " << bin_size << " cm )"<< "\n";
+
+    TH2F *xy_readout_hist = new TH2F("xy_readout_hist", "xy_readout_hist", xbins, x_min_visible_area, x_max_visible_area,     ybins, y_min_visible_area, y_max_visible_area);
+    xy_readout_hist->GetXaxis()->SetTitle("x [cm]"); xy_readout_hist->GetXaxis()->CenterTitle();
+    xy_readout_hist->GetYaxis()->SetTitle("y [cm]"); xy_readout_hist->GetYaxis()->CenterTitle();
+
+    for(int ipoint = 0; ipoint < collision_points.size(); ++ipoint) {
+        double x = collision_points[ipoint].x;
+        double y = collision_points[ipoint].y;
+        double z = collision_points[ipoint].z;
+
+        double rdist = fabs(z_out - z); //distance to readout
+
+        //x_displacement
+        double x_displacement = 0.000227984 + 0.0614758*rdist + 0.157119*rdist*rdist + (-0.0799265)*rdist*rdist*rdist;
+
+        //smear
+        double sigma = 0.0;
+        if(rdist < 0.1) {
+            sigma = std::sqrt(0.000663416*rdist);
+        }
+
+        if(rdist >= 0.1 && rdist < 0.3) {
+            sigma = 0.003897 + 0.045375*rdist + (-0.03355)*rdist*rdist;
+        }
+
+        if(rdist >= 0.3 && rdist < 0.6) {
+            sigma = 0.004095 + 0.0424*rdist + (-0.026)*rdist*rdist;
+        }
+
+        if(rdist >= 0.6) {
+            sigma = 0.0118343 + 0.0200945*rdist + (-0.010325)*rdist*rdist;
+        }
+
+        cout << "  point[" << ipoint << "]: dist_to_readout = " << rdist << ",  xdispl = " << x_displacement << ",  sigma = " << sigma << "\n";
+
+        int n_electrons_cluster = gRandom->Landau(1.027, 0.11);
+        if(n_electrons_cluster < 1) n_electrons_cluster = 1;
+        if(n_electrons_cluster > 6) n_electrons_cluster = 6;
+
+        cout << "    electrons in cluster = " << n_electrons_cluster << "\n";
+
+        for(int ielectron = 0; ielectron < n_electrons_cluster; ++ielectron) {
+
+            cout << "       electron[" << ielectron << "]:\n";
+
+            int gain_gem1 = gRandom->Exp(25);
+            int gain_gem2 = gRandom->Exp(25);
+            int gain_gem3 = gRandom->Exp(25);
+
+            int total_gain = 0;
+
+            if(rdist < 0.15) {
+                total_gain = 1;
+            }
+
+            if(rdist >= 0.15 && rdist < 0.35) {
+                total_gain = gain_gem3;
+            }
+
+            if(rdist >= 0.35 && rdist < 0.6) {
+                total_gain = gain_gem3*gain_gem2;
+            }
+
+            if(rdist >= 0.6) {
+                total_gain = gain_gem3*gain_gem2*gain_gem1;
+            }
+
+            cout << "        total gain for electron = " << total_gain << "\n";
+
+
+
+            double x_readout, y_readout;
+            for(int igen = 0; igen < total_gain; ++igen) {
+                x_readout = gRandom->Gaus(x-x_displacement, sigma);
+                y_readout = gRandom->Gaus(y, sigma);
+
+                xy_readout_hist->Fill(x_readout, y_readout);
+            }
+        }
+
+    }
+
+    xy_readout_canv->cd();
+    xy_readout_hist->Draw("colz");
+
+
+
+    return;
 }
 
 ClassImp(BmnGemStripReadoutModule)

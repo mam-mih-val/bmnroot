@@ -98,6 +98,7 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
     for (Int_t iTr = 0; iTr < nTracks; ++iTr) {
         BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(iTr);
         if (Abs(track->GetChi2()) > 50) continue;
+//        if (Abs(track->GetLength()) < 100) continue;
         FairTrackParam par0 = *(track->GetParamFirst());
         FairTrackParam par1 = *(track->GetParamFirst());
         fKalman = new BmnKalmanFilter_tmp();

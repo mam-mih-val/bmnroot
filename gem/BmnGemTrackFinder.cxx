@@ -79,7 +79,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         if (track->GetChi2() < 0.0) continue; //split param
 
-        BmnGemTrack tr = *track;
+        BmnGemTrack tr = *track;        
         const Short_t nHits = tr.GetNHits();
         FairTrackParam par = *(tr.GetParamFirst());
 
@@ -125,8 +125,8 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
         tr.SetChi2(chi2);
 
-        //        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
-        //        else tr.SetFlag(kBMNGOOD);
+        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
+        else tr.SetFlag(kBMNGOOD);
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
         delete fKalman;
     }
@@ -144,7 +144,7 @@ void BmnGemTrackFinder::Finish() {
     ofstream outFile;
     outFile.open("QA/timing.txt", ofstream::app);
     outFile << "Track Finder Time: " << workTime << endl;
-    cout << "Work time of the GEM track finder: " << workTime << endl;    
+    cout << "Work time of the GEM track finder: " << workTime << endl;
 }
 
 BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesArray* arr) {
@@ -227,6 +227,7 @@ BmnStatus BmnGemTrackFinder::CheckSplitting(TClonesArray* arr) {
 
     for (Int_t i = 0; i < arr->GetEntriesFast(); ++i) {
         BmnGemTrack* seed = (BmnGemTrack*) arr->At(i);
+        if (seed->GetNHits() > 8) continue;
         if (seed->GetChi2() < 0.0) continue;
         if (seed->IsUsed()) continue;
         Short_t minStation = 100;

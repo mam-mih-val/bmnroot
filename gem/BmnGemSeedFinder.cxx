@@ -11,8 +11,8 @@ static Float_t workTime = 0.0;
 map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
 const UInt_t kNHITSFORSEED = 12; // we use for seeds only kNHITSFORSEED hits
 const UInt_t kMAXSTATIONFORSEED = 12; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
-const Float_t kCHI2CUT = 0.7;
-const Float_t kSIGMACUT = 0.1;
+Float_t kCHI2CUT = 1.0;//0.7;
+const Float_t kSIGMACUT = 0.5;
 
 using std::cout;
 using namespace TMath;
@@ -67,15 +67,15 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     cout << "Event number: " << fEventNo++ << endl;
 
     fGemSeedsArray->Clear();
-    
+
     //GEM inefficiency ===>
-    const Float_t eff = 1.00;
-    for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
-        BmnGemStripHit* hit = GetHit(hitIdx);
-        if (gRandom->Uniform(1.0) > eff) {
-            hit->SetUsing(kTRUE);
-        }
-    }
+    //    const Float_t eff = 1.00;
+    //    for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
+    //        BmnGemStripHit* hit = GetHit(hitIdx);
+    //        if (gRandom->Uniform(1.0) > eff) {
+    //            hit->SetUsing(kTRUE);
+    //        }
+    //    }
     // <=== GEM ineficiency
 
     const Int_t nIter = 5;
@@ -84,6 +84,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     const Float_t stpY[nIter] = {2.0, 2.0, 2.0, 2.0, 10.0};
     const Float_t thrs[nIter] = {1.05, 1.05, 1.05, 1.05, 1.01};
     const Int_t length[nIter] = {10, 8, 6, 4, 4};
+    const Int_t chi2cut[nIter] = {5.0, 4.0, 3.0, 2.0, 2.0};
 
     for (Int_t i = 0; i < nIter; ++i) {
         addresses.clear();
@@ -91,6 +92,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
         kY_STEP = stpY[i];
         kTRS = thrs[i];
         kNHITSFORFIT = length[i];
+        kCHI2CUT = chi2cut[i];
         if (fUseLorentz) {
             FillAddrWithLorentz(kSIG_X, kY_STEP, kTRS);
         } else {
@@ -115,7 +117,7 @@ BmnStatus BmnGemSeedFinder::DoSeeding(Int_t min, Int_t max, TClonesArray* arr) {
 
     for (Int_t i = 0; i < kMAXSTATIONFORSEED; ++i)
         for (Int_t j = min; j < max; ++j)
-            FindSeeds(i, j, kFALSE, arr); // from station #i, in gate = 2 * j + 1, only hits presented in every station 
+            FindSeeds(i, j, kTRUE, arr); // from station #i, in gate = 2 * j + 1, only hits presented in every station
     return kBMNSUCCESS;
 }
 
@@ -199,6 +201,10 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         }
 
         TVector3 spirPar = SpiralFit(&trackCand, fGemHitsArray);
+        if (ChiSq(&spirPar, &trackCand, fGemHitsArray) > kCHI2CUT) {
+            SetHitsUnused(&trackCand);
+            continue;
+        }
         trCntr++;
         trackCand.SortHits();
 

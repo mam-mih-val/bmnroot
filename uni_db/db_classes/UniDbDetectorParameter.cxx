@@ -762,6 +762,23 @@ int UniDbDetectorParameter::GetChannelCount(TString detector_name, TString param
     return channel_count;
 }
 
+// get parameter name of the current detector parameter
+TString UniDbDetectorParameter::GetParameterName()
+{
+    UniDbParameter* pCurParameter = UniDbParameter::GetParameter(i_parameter_id);
+    if (pCurParameter == NULL)
+    {
+        cout<<"Error: parameter with current ID wasn't found"<<endl;
+        return "ERROR!!!";
+    }
+
+    TString par_name = pCurParameter->GetParameterName();
+
+    delete pCurParameter;
+
+    return par_name;
+}
+
 // common function for adding common parameter value
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
 {

@@ -122,6 +122,9 @@ class UniDbDetectorParameter
 	/// get channel count for TDC/ADC parameter value
 	static int GetChannelCount(TString detector_name, TString parameter_name, int run_number, int dc_serial);
 
+        /// get parameter name of the current detector parameter
+        TString GetParameterName();
+
 	// common function for adding common parameter value
 	static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, unsigned char* parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type);
 	// common function for adding TDC/ADC parameter value

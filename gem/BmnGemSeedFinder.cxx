@@ -84,7 +84,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     const Float_t stpY[nIter] = {2.0, 2.0, 2.0, 2.0, 10.0};
     const Float_t thrs[nIter] = {1.05, 1.05, 1.05, 1.05, 1.01};
     const Int_t length[nIter] = {10, 8, 6, 4, 4};
-    const Int_t chi2cut[nIter] = {5.0, 4.0, 3.0, 2.0, 2.0};
+    const Float_t chi2cut[nIter] = {5.0, 4.0, 3.0, 2.0, 2.0};
 
     for (Int_t i = 0; i < nIter; ++i) {
         addresses.clear();
@@ -189,7 +189,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
         }
 
         trackCand.SortHits();
-        if (trackCand.GetNHits() < kNHITSFORFIT) { // don't fit track with less then 4 hits
+        if (trackCand.GetNHits() < kNHITSFORFIT) {
             SetHitsUnused(&trackCand);
             continue;
         }

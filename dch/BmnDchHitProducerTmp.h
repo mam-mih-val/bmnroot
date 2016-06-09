@@ -10,6 +10,8 @@
 #include "FairTask.h"
 #include "CbmTofPoint.h"
 #include "TClonesArray.h"
+#include "BmnEnums.h"
+#include "BmnDchDigit.h"
 
 #include "CbmTofHit.h"
 
@@ -38,23 +40,29 @@ public:
     void SetOnlyPrimary(Bool_t opt = kFALSE) {
         fOnlyPrimary = opt;
     }
+    
+    BmnStatus ProcessPoints();
+    BmnStatus ProcessDigits();
 
 
 private:
 
-    TString fInputBranchName;
-    TString fOutputHitsBranchName;
+    TString fInputMCBranchName;
+    TString fInputDigiBranchName;
 
-    /** Input array of Gem Points **/
+    /** Input array of DCH Points **/
     TClonesArray* fBmnDchPointsArray;
+    /** Input array of DCH Digits **/
+    TClonesArray* fBmnDchDigitsArray;
 
     /** Input array of MC Tracks **/
     TClonesArray* fMCTracksArray;
 
-    /** Output array of Gem Hits **/
+    /** Output array of DCH Hits **/
     TClonesArray* fBmnDchHitsArray;
 
     Bool_t fOnlyPrimary;
+    TString fRunType; //"points" or "digits"
     Int_t fDchNum;
 
     ClassDef(BmnDchHitProducerTmp, 1);

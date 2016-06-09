@@ -14,10 +14,11 @@ using namespace TMath;
 BmnDchHitProducerTmp::BmnDchHitProducerTmp(Int_t num = 1) :
 fOnlyPrimary(kFALSE) {
     fDchNum = num;
+    fRunType = "points";
     TString str;
     str.Form("%d", fDchNum);
-    fInputBranchName = TString("DCH") + str + TString("Point");
-    fOutputHitsBranchName = "BmnHit";
+    fInputMCBranchName = TString("DCH") + str + TString("Point");
+    fInputDigiBranchName = TString("bmn_dch_digit");
 }
 
 BmnDchHitProducerTmp::~BmnDchHitProducerTmp() {
@@ -32,32 +33,48 @@ InitStatus BmnDchHitProducerTmp::Init() {
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
 
-    fBmnDchPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
+    fBmnDchPointsArray = (TClonesArray*) ioman->GetObject(fInputMCBranchName);
+    if (fBmnDchPointsArray == NULL) { // if there is no MC-points array, try to get experimental digits
+        fRunType = "digits";
+        fBmnDchDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigiBranchName);
+        if (fBmnDchDigitsArray == NULL) {
+            cout << "[WARNING] BmnDchHitProducerTmp: No input arrays!" << endl;
+        }
+    }
+
     fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
-    fBmnDchHitsArray = new TClonesArray(fOutputHitsBranchName, 100);
-    TString str;
-    str.Form("%d", fDchNum);
-    TString name = TString("BmnDch") + str + TString("Hit0");
-    TString folder = TString("DCH") + str;
+    fBmnDchHitsArray = new TClonesArray("BmnHit", 100);
+    TString name = "BmnDchHit";
+    TString folder = "DCH";
     ioman->Register(name.Data(), folder.Data(), fBmnDchHitsArray, kTRUE);
 
     return kSUCCESS;
 }
 
 void BmnDchHitProducerTmp::Exec(Option_t* opt) {
-
-    FairMCPoint* dchPoint;
+    cout << "BmnDchHitProducerTmp::Exec() started!" << endl;
 
     fBmnDchHitsArray->Clear();
 
-    if (!fBmnDchPointsArray) {
-        Error("BmnDchHitProducerTmp::Init()", " !!! Unknown branch name !!! ");
+    if (fBmnDchPointsArray == NULL && fBmnDchDigitsArray == NULL) {
+        cout << "NO INPUT ARRAY!" << endl;
         return;
     }
 
-    cout << " BmnDchHitProducerTmp::Exec(), Number of BmnDchPoints = " << fBmnDchPointsArray->GetEntriesFast() << endl;
+    if (fRunType == "points") {
+        cout << "BmnDchHitProducerTmp: Monte Carlo points!" << endl;
+        cout << "Number of points = " << fBmnDchPointsArray->GetEntriesFast() << endl;
+        ProcessPoints();
+    } else if (fRunType == "digits") {
+        cout << "BmnDchHitProducerTmp: Experimental digits!" << endl;
+        cout << "Number of digits = " << fBmnDchDigitsArray->GetEntriesFast() << endl;
+        ProcessDigits();
+    }
+    cout << "BmnDchHitProducerTmp::Exec() finished!" << endl;
+}
 
-    Float_t err[3] = {0.25 / Sqrt(12), 0.25 / Sqrt(12), 0.25 / Sqrt(12)}; // Uncertainties of coordinates
+BmnStatus BmnDchHitProducerTmp::ProcessPoints() {
+    Double_t err[3] = {0.25 / Sqrt(12.0), 0.25 / Sqrt(12.0), 0.25 / Sqrt(12.0)}; // Uncertainties of coordinates
     map<Int_t, vector<FairMCPoint*> > sameTrack; // needed for storing points corresponded same track
     map<Int_t, Int_t > trackPoint; // corresponding of trackId and first point on this track. Needed for storing MC-reference
 
@@ -119,16 +136,18 @@ void BmnDchHitProducerTmp::Exec(Option_t* opt) {
         hit->SetIndex(fBmnDchHitsArray->GetEntriesFast() - 1);
         if (fDchNum == 1) {
             hit->SetDetId(kDCH1);
-            hit->SetStation(13);
         } else if (fDchNum == 2) {
             hit->SetDetId(kDCH2);
-            hit->SetStation(14);
         }
         hit->SetType(1);
 
         delete rand_gen;
     }
-    cout << "BmnDchHitProducerTmp::Exec() finished!" << endl;
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnDchHitProducerTmp::ProcessDigits() {    
+    return kBMNSUCCESS;
 }
 
 void BmnDchHitProducerTmp::Finish() {

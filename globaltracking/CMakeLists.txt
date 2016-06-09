@@ -69,7 +69,6 @@ Set(HEADERS
     #BmnTrackFitter.h
     BmnMath.h
     BmnMatrixMath.h
-    BmnEnums.h
     BmnDefaultSettings.h
     BmnTrackingGeometryConstructor.h
     BmnGeoNavigator.h

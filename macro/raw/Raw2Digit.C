@@ -1,7 +1,7 @@
 
 using namespace std;
 
-void Raw2Digit(char *fname="bmn_run0362.root") {
+void Raw2Digit(char *fname="bmn_run0258.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ void Raw2Digit(char *fname="bmn_run0362.root") {
     char str[100]; sprintf(str,"bmn_run%04d_digit.root",RUN); 
     TFile *_f_out = new TFile(str, "RECREATE");
     _f_out->SetCompressionLevel(1);
-    TTree *_t_out = new TTree("BMN_DIGIT","test_bmn");
+    TTree *_t_out = new TTree("cbmsim","bmn_digit");
     TClonesArray * dch_digit   = new TClonesArray("BmnDchDigit");
     TClonesArray * zdc_digit   = new TClonesArray("BmnZDCDigit");
     TClonesArray * tof2_digit  = new TClonesArray("BmnTof2Digit");

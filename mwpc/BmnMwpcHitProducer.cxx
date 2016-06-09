@@ -14,10 +14,11 @@ using namespace TMath;
 BmnMwpcHitProducer::BmnMwpcHitProducer(Int_t num = 1) :
 fOnlyPrimary(kFALSE) {
     fMwpcNum = num;
+    fRunType = "points";
     TString str;
     str.Form("%d", fMwpcNum);
-    fInputBranchName = TString("MWPC") + str + TString("Point");
-    fOutputHitsBranchName = "BmnHit";
+    fInputMCBranchName = TString("MWPC") + str + TString("Point");
+    fInputDigiBranchName = TString("bmn_mwpc_digit");
 }
 
 BmnMwpcHitProducer::~BmnMwpcHitProducer() {
@@ -32,13 +33,19 @@ InitStatus BmnMwpcHitProducer::Init() {
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
 
-    fBmnMwpcPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
+    fBmnMwpcPointsArray = (TClonesArray*) ioman->GetObject(fInputMCBranchName);
+    if (fBmnMwpcPointsArray == NULL) { // if there is no MC-points array, try to get experimental digits
+        fRunType = "digits";
+        fBmnMwpcDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigiBranchName);
+        if (fBmnMwpcDigitsArray == NULL) {
+            cout << "[WARNING] BmnMwpcHitProducerTmp: No input arrays!" << endl;
+        }
+    }
+
     fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
-    fBmnMwpcHitsArray = new TClonesArray(fOutputHitsBranchName, 100);
-    TString str;
-    str.Form("%d", fMwpcNum);
-    TString name = TString("BmnMwpc") + str + TString("Hit");
-    TString folder = TString("MWPC") + str;
+    fBmnMwpcHitsArray = new TClonesArray("BmnHit", 100);
+    TString name = "BmnMwpcHit";
+    TString folder = "MWPC";
     ioman->Register(name.Data(), folder.Data(), fBmnMwpcHitsArray, kTRUE);
 
     return kSUCCESS;
@@ -46,17 +53,31 @@ InitStatus BmnMwpcHitProducer::Init() {
 
 void BmnMwpcHitProducer::Exec(Option_t* opt) {
 
-    Int_t idx = 0;
+    cout << "BmnMwpcHitProducer::Exec() started!" << endl;
+
     fBmnMwpcHitsArray->Clear();
 
-    if (!fBmnMwpcPointsArray) {
-        Error("BmnMwpcHitProducer::Init()", " !!! Unknown branch name !!! ");
+    if (fBmnMwpcPointsArray == NULL && fBmnMwpcDigitsArray == NULL) {
+        cout << "NO INPUT ARRAY!" << endl;
         return;
     }
 
-    cout << " BmnMwpcHitProducer::Exec(), Number of BmnMwpcPoints = " << fBmnMwpcPointsArray->GetEntriesFast() << endl;
+    if (fRunType == "points") {
+        cout << "BmnMwpcHitProducer: Monte Carlo points!" << endl;
+        cout << "Number of points = " << fBmnMwpcPointsArray->GetEntriesFast() << endl;
+        ProcessPoints();
+    } else if (fRunType == "digits") {
+        cout << "BmnMwpcHitProducer: Experimental digits!" << endl;
+        cout << "Number of digits = " << fBmnMwpcDigitsArray->GetEntriesFast() << endl;
+        ProcessDigits();
+    }
+    cout << "BmnMwpcHitProducer::Exec() finished!" << endl;
+}
 
-    Float_t err[3] = {0.25 / Sqrt(12), 0.25 / Sqrt(12), 0.25 / Sqrt(12)}; // Uncertainties of coordinates
+BmnStatus BmnMwpcHitProducer::ProcessPoints() {
+    Int_t idx = 0;
+
+    Double_t err[3] = {0.25 / Sqrt(12), 0.25 / Sqrt(12), 0.25 / Sqrt(12)}; // Uncertainties of coordinates
     map<Int_t, vector<FairMCPoint*> > sameTrack;
 
     for (Int_t i = 0; i < fBmnMwpcPointsArray->GetEntriesFast(); i++) {
@@ -124,7 +145,12 @@ void BmnMwpcHitProducer::Exec(Option_t* opt) {
 
         delete rand_gen;
     }
-    cout << "BmnMwpcHitProducer::Exec() finished!" << endl;
+    
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnMwpcHitProducer::ProcessDigits() {
+    return kBMNSUCCESS;
 }
 
 void BmnMwpcHitProducer::Finish() {

@@ -85,6 +85,7 @@ BmnZDCRaw2Digit.cxx
 BmnZDCDigit.cxx
 BmnTof2Raw2Digit.cxx
 BmnTof1Raw2Digit.cxx
+BmnEnums.h
 )
 
 # fill list of header files from list of source files

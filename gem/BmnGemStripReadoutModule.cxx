@@ -1318,7 +1318,8 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
 //------------------------------------------------------------------------------
 
 void BmnGemStripReadoutModule::GenerateAvalanche_Test() {
-
+ //NO c++11 - no new code!
+/*
     gRandom->SetSeed(0);
     cout << "seed = " << gRandom->GetSeed() << "\n";
 
@@ -1569,6 +1570,7 @@ void BmnGemStripReadoutModule::GenerateAvalanche_Test() {
 
 
     return;
+*/
 }
 
 ClassImp(BmnGemStripReadoutModule)

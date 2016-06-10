@@ -39,6 +39,7 @@ CbmTrackMerger.cxx
 CbmPrimaryVertexFinder.cxx
 CbmFindPrimaryVertex.cxx
 BmnFileSource.cxx
+BmnMath.cxx
 )
 
 Set(HEADERS)

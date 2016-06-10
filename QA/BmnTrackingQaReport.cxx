@@ -15,7 +15,6 @@
 #include "TCanvas.h"
 #include "TLine.h"
 #include "BmnTrackingQa.h"
-#include <boost/assign/list_of.hpp>
 #include <vector>
 #include <set>
 #include "TString.h"
@@ -28,7 +27,6 @@ const Float_t pMax = 5.0;
 
 using namespace std;
 using namespace lit;
-using boost::assign::list_of;
 
 BmnTrackingQaReport::BmnTrackingQaReport() :
 BmnSimulationReport(),
@@ -85,15 +83,15 @@ string BmnTrackingQaReport::PrintEventInfo() {
 }
 
 string BmnTrackingQaReport::PrintNofObjects() const {
-    vector<TH1*> histos = HM()->H1Vector("hno_NofObjects_.+");
-    Int_t nofHistos = histos.size();
-    string str = R()->TableBegin("Average number of objects per event", list_of("Name")("Value"));
-    for (Int_t iHist = 0; iHist < nofHistos; iHist++) {
-        string cellName = Split(histos[iHist]->GetName(), '_')[2];
-        str += R()->TableRow(list_of(cellName)(NumberToString<Int_t > (histos[iHist]->GetMean())));
-    }
-    str += R()->TableEnd();
-    return str;
+//    vector<TH1*> histos = HM()->H1Vector("hno_NofObjects_.+");
+//    Int_t nofHistos = histos.size();
+//    string str = R()->TableBegin("Average number of objects per event", list_of("Name")("Value"));
+//    for (Int_t iHist = 0; iHist < nofHistos; iHist++) {
+//        string cellName = Split(histos[iHist]->GetName(), '_')[2];
+//        str += R()->TableRow(list_of(cellName)(NumberToString<Int_t > (histos[iHist]->GetMean())));
+//    }
+//    str += R()->TableEnd();
+//    return str;
 }
 
 void BmnTrackingQaReport::Draw() {

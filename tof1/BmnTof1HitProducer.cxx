@@ -157,13 +157,13 @@ assert(track != nullptr);
 void		BmnTof1HitProducer::FindNeighborStrips()
 {
 	const LStrip *strip2; double  distance;
-	for(MStripIT it = mStrips.begin(), itEnd = mStrips.end(); it != itEnd ; it++) // cycle1 by strips
+	for(MStripIT it1 = mStrips.begin(), itEnd1 = mStrips.end(); it1 != itEnd1 ; it1++) // cycle1 by strips
 	{
-		LStrip *strip1 = &(it->second);
+		LStrip *strip1 = &(it1->second);
 		
-		for(MStripCIT it = mStrips.begin(), itEnd = mStrips.end(); it != itEnd ; it++) // cycle2 by strips
+		for(MStripCIT it2 = mStrips.begin(), itEnd2 = mStrips.end(); it2 != itEnd2 ; it2++) // cycle2 by strips
 		{
-			strip2 = &(it->second);
+			strip2 = &(it2->second);
 			
 			// CATION: Ckeck  only left and right sides(one row strips NOW) 
 			distance = strip1->Distance(LStrip::kRight, *strip2); if(fDoTest)  h1TestDistance->Fill(distance);

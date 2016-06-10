@@ -242,7 +242,7 @@ void BmnDchHitProducer_exp::FitHistsAngleCorr(){
 } 
 //------------------------------------------------------------------------------------------------------------------------
 //InitStatus 		BmnDchHitProducer_exp::Init() 
-void	BmnDchHitProducer_exp::InitDch(TChain *bmnTree,TClonesArray *dchDigits,TTree* tReco ) 
+void	BmnDchHitProducer_exp::InitDch(TChain *bmnTree,TClonesArray *dchDigitsArr,TTree* tReco ) 
 {
 
         //cout << " BmnDchHitProducer_exp::Init() " << endl;
@@ -260,7 +260,7 @@ void	BmnDchHitProducer_exp::InitDch(TChain *bmnTree,TClonesArray *dchDigits,TTre
 	minDriftTime[fDchNum-1] = new TH1D(minDriftTimeName,"minimal drift times",900, 300.,1200.); 
         //if(fAngleCorrectionFill)BookHistsAngleCorr(); 
         //if(fAngleCorrectionFill==false)FitHistsAngleCorr();
-        rtCalibration(bmnTree,dchDigits);
+        rtCalibration(bmnTree,dchDigitsArr);
         cout << " RT calibration done. " << endl;
         
         //if (fOnlyPrimary) cout << " Only primary particles are processed!!! " << endl;
@@ -445,7 +445,7 @@ return dca;
 }
 //---------------------------------------------------------------------------
 
-void BmnDchHitProducer_exp::rtCalibration(TChain *bmnTree, TClonesArray *dchDigits){
+void BmnDchHitProducer_exp::rtCalibration(TChain *bmnTree, TClonesArray *dchDigitsArr){
 
 /*TFile *fdstread; 
 if(fDchNum==1){
@@ -467,10 +467,10 @@ if(fDchNum==1){
     for (Int_t iev = 0; iev < nevents; iev++) {
         bmnTree->GetEntry(iev);
         //if(iev%1000==0)cout << "event number = " << iev << endl;
-        Int_t nhits=dchDigits->GetEntriesFast();
+        Int_t nhits=dchDigitsArr->GetEntriesFast();
         //cout<<"nhits in Dch = "<<nhits<<endl;
       for (Int_t ihit = 0; ihit < nhits; ihit++) {
-        digit = (BmnDchDigit*) dchDigits->At(ihit);
+        digit = (BmnDchDigit*) dchDigitsArr->At(ihit);
         //cout<<"time = "<<digit->GetTime()<<endl;
         minDriftTime[fDchNum-1]->Fill(digit->GetTime());
       }
@@ -733,7 +733,7 @@ return (int)(wirePos + 1000.*uid);  // one wire
 }
 //------------------------------------------------------------------------------------------------------------------------
 //void 			BmnDchHitProducer_exp::ExecDch(Int_t iev, TClonesArray *dchDigits, TClonesArray* &dchHits) 
-void 			BmnDchHitProducer_exp::ExecDch(Int_t iev, TClonesArray *dchDigits) 
+void 			BmnDchHitProducer_exp::ExecDch(Int_t iev, TClonesArray *dchDigitsArr) 
 {
   	pHitCollection->Delete();
         
@@ -775,13 +775,13 @@ void 			BmnDchHitProducer_exp::ExecDch(Int_t iev, TClonesArray *dchDigits)
 
 	BmnDchHit 	*dchHit = NULL;
         BmnDchDigit* digit = NULL;
-        Int_t nDchHit=dchDigits->GetEntriesFast();
+        Int_t nDchHit=dchDigitsArr->GetEntriesFast();
         if(checkDch)cout<<"Number of digits = "<<nDchHit<<endl;
         if(nDchHit>0)neventsUsed++;
 
 	for(Int_t i = 0; i < nDchHit; i++ )  // <---Loop over the DCH hits
 	{
-                digit = (BmnDchDigit*) dchDigits->At(i);
+                digit = (BmnDchDigit*) dchDigitsArr->At(i);
                 uid=UShort_t(digit->GetPlane());
                 if(fDchNum==1&&uid>=numLayers)continue;
                 if(fDchNum==2&&uid<numLayers)continue;
@@ -1334,22 +1334,22 @@ return topol;
 
 }
 //-------------------------------------------------------------------------------------------------------------------------
-UShort_t BmnDchHitProducer_exp::RunTypeToNumber(const TString runType){
+UShort_t BmnDchHitProducer_exp::RunTypeToNumber(const TString runtype){
 
 UShort_t j;
 
-           if(runType=="run1"){j=0;}
-           else if(runType=="run2"){j=1;}
-           else if(runType=="run3"){j=2;}
+           if(runtype=="run1"){j=0;}
+           else if(runtype=="run2"){j=1;}
+           else if(runtype=="run3"){j=2;}
            else{cout<<"run type not in the list!"<<endl; 
-                cout<<" run type = "<<runType<<endl;}
+                cout<<" run type = "<<runtype<<endl;}
 return j;
 
 }
 //-------------------------------------------------------------------------------------------------------------------------
-void BmnDchHitProducer_exp::ExtrapToDch(const Double_t x[],const Double_t y[],const Double_t zLayer[],const UShort_t ijk[],Int_t &jjgr2){
+void BmnDchHitProducer_exp::ExtrapToDch(const Double_t x[],const Double_t y[],const Double_t zlayer[],const UShort_t ijk[],Int_t &jjgr2){
 
-Double_t delZ=zLayer[ijk[1]]-zLayer[ijk[0]],delZ2;
+Double_t delZ=zlayer[ijk[1]]-zlayer[ijk[0]],delZ2;
 //Double_t delXshift=detXshift[1]-detXshift[0];
 Double_t tgx=(x[1]-x[0])/delZ;
 Double_t tgy=(y[1]-y[0])/delZ;
@@ -1361,7 +1361,7 @@ tgy=-tgy;
 Double_t xExtrap[numLayers],yExtrap[numLayers];
 
      for(UShort_t i = 0; i < numLayers; i++) {
-       delZ2=(zLayerExtrap[i]-zLayer[ijk[0]]);
+       delZ2=(zLayerExtrap[i]-zlayer[ijk[0]]);
        //xExtrap[i]=x[0]+tgx*delZ2+delXshift;
        xExtrap[i]=x[0]+detXshift[fDchNum-1]+tgx*delZ2;
        if(checkDch)cout<<"xExtrap[i] = "<<xExtrap[i]<<", x[i] = "<<x[i/2]<<", detXshift[fDchNum-1] = "<<detXshift[fDchNum-1]<<", x[i] + detXshift[fDchNum-1] = "<<x[i/2] + detXshift[fDchNum-1]<<", tgx*delZ2 = "<<tgx*delZ2<<endl;

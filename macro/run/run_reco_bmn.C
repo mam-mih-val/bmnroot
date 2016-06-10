@@ -27,48 +27,42 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     FairSource* fFileSource;
     Ssiz_t indColon = inFile.First(':');
     // for experimental datasource
-    if ((indColon >= 0) && (inFile.BeginsWith("run")))
-    {
+    if ((indColon >= 0) && (inFile.BeginsWith("run"))) {
         // get run number
-        TString number_string(inFile(3, indColon-3));
+        TString number_string(inFile(3, indColon - 3));
         Int_t run_number = number_string.Atoi();
-        inFile.Remove(0, indColon+1);
+        inFile.Remove(0, indColon + 1);
 
         if (!CheckFileExist(inFile)) return;
         fFileSource = new BmnFileSource(inFile);
 
         // get geometry for run
         TString root_file_path = "current_geo_file.root";
-        int res_code = UniDbRun::ReadGeometryFile(run_number, root_file_path.Data());
-        if (res_code != 0)
-        {
+        Int_t res_code = UniDbRun::ReadGeometryFile(run_number, root_file_path.Data());
+        if (res_code != 0) {
             cout << "\nGeometry file can't be read from the database" << endl;
             exit(-1);
         }
 
         // get gGeoManager from ROOT file (if required)
         TFile* geoFile = new TFile(root_file_path, "READ");
-        if (!geoFile->IsOpen())
-        {
-            cout<<"Error: could not open ROOT file with geometry!"<<endl;
+        if (!geoFile->IsOpen()) {
+            cout << "Error: could not open ROOT file with geometry!" << endl;
             exit(-2);
         }
 
         TList* keyList = geoFile->GetListOfKeys();
         TIter next(keyList);
-        TKey* key = (TKey*)next();
+        TKey* key = (TKey*) next();
         TString className(key->GetClassName());
         if (className.BeginsWith("TGeoManager"))
             key->ReadObj();
-        else
-        {
-            cout<<"Error: TGeoManager isn't top element in geometry file "<<root_file_path<<endl;
+        else {
+            cout << "Error: TGeoManager isn't top element in geometry file " << root_file_path << endl;
             exit(-3);
         }
-    }
-    // for simulated files
-    else
-    {
+    }// for simulated files
+    else {
         if (!CheckFileExist(inFile)) return;
         fFileSource = new FairFileSource(inFile);
     }
@@ -96,133 +90,23 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     fRun->SetGenerateRunInfo(false);
     // ------------------------------------------------------------------------
 
-    // =========================================================================
-    // ===             Detector Response Simulation (Digitiser)              ===
-    // ===                          (where available)                        ===
-    // =========================================================================
-
-    /*
-        // -----   STS digitizer   -------------------------------------------------
-        Double_t threshold = 4;
-        Double_t noiseWidth = 0.01;
-        Int_t nofBits = 12;
-        Double_t electronsPerAdc = 10;
-        Double_t StripDeadTime = 0.1;
-        CbmStsDigitize* stsDigitize = new CbmStsDigitize("STS Digitiser", iVerbose);
-        stsDigitize->SetRealisticResponse();
-        stsDigitize->SetFrontThreshold(threshold);
-        stsDigitize->SetBackThreshold(threshold);
-        stsDigitize->SetFrontNoiseWidth(noiseWidth);
-        stsDigitize->SetBackNoiseWidth(noiseWidth);
-        stsDigitize->SetFrontNofBits(nofBits);
-        stsDigitize->SetBackNofBits(nofBits);
-        stsDigitize->SetFrontNofElPerAdc(electronsPerAdc);
-        stsDigitize->SetBackNofElPerAdc(electronsPerAdc);
-        stsDigitize->SetStripDeadTime(StripDeadTime);
-        //   fRun->AddTask(stsDigitize);
-        // -------------------------------------------------------------------------
-
-        // =========================================================================
-        // ===                      STS local reconstruction                     ===
-        // =========================================================================
-
-
-        // -----   STS Cluster Finder   --------------------------------------------
-        FairTask* stsClusterFinder = new CbmStsClusterFinder("STS Cluster Finder", iVerbose);
-        //   fRun->AddTask(stsClusterFinder);
-        // -------------------------------------------------------------------------
-
-
-        // -----   STS hit finder   ------------------------------------------------
-        FairTask* stsFindHits = new CbmStsFindHits("STS Hit Finder", iVerbose);
-        //   fRun->AddTask(stsFindHits);
-        // -------------------------------------------------------------------------
-
-
-        // -----  STS hit matching   -----------------------------------------------
-        FairTask* stsMatchHits = new CbmStsMatchHits("STS Hit Matcher", iVerbose);
-        //   fRun->AddTask(stsMatchHits);
-        // -------------------------------------------------------------------------
-
-
-        // ---  STS track finding   ------------------------------------------------
-        CbmKF* kalman = new CbmKF();
-        //   fRun->AddTask(kalman);
-        CbmL1* l1 = new CbmL1();
-        //   fRun->AddTask(l1);
-        CbmStsTrackFinder* stsTrackFinder = new CbmL1StsTrackFinder();
-        FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, stsTrackFinder);
-        //   fRun->AddTask(stsFindTracks);
-        // -------------------------------------------------------------------------
-
-
-        // ---   STS track matching   ----------------------------------------------
-        FairTask* stsMatchTracks = new CbmStsMatchTracks(iVerbose);
-        //   fRun->AddTask(stsMatchTracks);
-        // -------------------------------------------------------------------------
-
-
-        // ---   STS track fitting   -----------------------------------------------
-        CbmStsTrackFitter* stsTrackFitter = new CbmStsKFTrackFitter();
-        FairTask* stsFitTracks = new CbmStsFitTracks(stsTrackFitter, iVerbose);
-        //   fRun->AddTask(stsFitTracks);
-        // -------------------------------------------------------------------------
-
-        // ===                 End of STS local reconstruction                   ===
-        // =========================================================================
-
-
-        // =========================================================================
-        // ===                     PSD Digitization                      ===
-        // =========================================================================
-
-        CbmPsdIdealDigitizer *psddigi = new CbmPsdIdealDigitizer();
-        //   fRun->AddTask(psddigi);
-
-        CbmPsdHitProducer *psdhit = new CbmPsdHitProducer();
-        //   fRun->AddTask(psdhit);
-        CbmPsdReactionPlaneMaker *psdrp = new CbmPsdReactionPlaneMaker();
-        //   fRun->AddTask(psdrp);
-
-     */
-    //SM --->
-
-    //Temporary flag to change reconstruction chain between standard and RUN-1
-    const Bool_t kRUN1 = kFALSE;
-
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
 
-    if (kRUN1) {
-        BmnMwpcDigitizer* mwpcDigit1 = new BmnMwpcDigitizer(1);
-        fRun->AddTask(mwpcDigit1);
-        BmnMwpcDigitizer* mwpcDigit2 = new BmnMwpcDigitizer(2);
-        fRun->AddTask(mwpcDigit2);
-        BmnMwpcDigitizer* mwpcDigit3 = new BmnMwpcDigitizer(3);
-        fRun->AddTask(mwpcDigit3);
-
-        //    BmnMwpcHitFinder* mwpcHF1 = new BmnMwpcHitFinder(1);
-        //    fRun->AddTask(mwpcHF1);
-        //    BmnMwpcHitFinder* mwpcHF2 = new BmnMwpcHitFinder(2);
-        //    fRun->AddTask(mwpcHF2);
-        //    BmnMwpcHitFinder* mwpcHF3 = new BmnMwpcHitFinder(3);
-        //    fRun->AddTask(mwpcHF3);
-
-        BmnMwpcHitProducer* mwpcHP1 = new BmnMwpcHitProducer(1);
-        fRun->AddTask(mwpcHP1);
-        BmnMwpcHitProducer* mwpcHP2 = new BmnMwpcHitProducer(2);
-        fRun->AddTask(mwpcHP2);
-        BmnMwpcHitProducer* mwpcHP3 = new BmnMwpcHitProducer(3);
-        fRun->AddTask(mwpcHP3);
-    }
+    BmnMwpcHitProducer* mwpcHP1 = new BmnMwpcHitProducer(1);
+    fRun->AddTask(mwpcHP1);
+    BmnMwpcHitProducer* mwpcHP2 = new BmnMwpcHitProducer(2);
+    fRun->AddTask(mwpcHP2);
+    BmnMwpcHitProducer* mwpcHP3 = new BmnMwpcHitProducer(3);
+    fRun->AddTask(mwpcHP3);
 
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
     if (gemCF) {
 //        BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Full; // 12 stations (GEM_v3.root)
-//        BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::First; // first config (GEM_1stConfig.root)
+        //        BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::First; // first config (GEM_1stConfig.root)
         BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::FirstShort; // first config (short version) (GEM_1stConfigShort.root))
         //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::Second; // second config (GEM_2ndConfig.root))
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
@@ -278,42 +162,25 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                           Tracking                             === //
     // ====================================================================== //
 
-    if (kRUN1) {
+    BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
+    if (gemCF) gemSF->SetUseLorentz(kTRUE);
+    fRun->AddTask(gemSF);
 
-        //TODO: fix this branch!!!
-        BmnSeedFinder* SF = new BmnSeedFinder();
-        SF->SetMakeQA(kFALSE);
-        SF->SetRun1(kRUN1);
-        fRun->AddTask(SF);
+    BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
+    fRun->AddTask(gemTF);
 
-    } else {
-
-        BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
-        if (gemCF) gemSF->SetUseLorentz(kTRUE);
-        fRun->AddTask(gemSF);
-
-        BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
-        fRun->AddTask(gemTF);
-    }
-
-//    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
-//    glFinder->SetRun1(kRUN1);
-//    fRun->AddTask(glFinder);
-
-    // <--- SM
+    //    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
+    //    glFinder->SetRun1(kRUN1);
+    //    fRun->AddTask(glFinder);
 
     // -----   Primary vertex finding   ---------------------------------------
     BmnGemVertexFinder* vf = new BmnGemVertexFinder();
     fRun->AddTask(vf);
-    CbmPrimaryVertexFinder* pvFinder = new CbmPVFinderKF();
-    CbmFindPrimaryVertex* findVertex = new CbmFindPrimaryVertex(pvFinder);
-    //  fRun->AddTask(findVertex);
     // ------------------------------------------------------------------------
 
     // ====================================================================== //
     // ===                         End of tracking                        === //
     // ====================================================================== //
-
 
     // -----  Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
@@ -327,7 +194,6 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     rtdb->saveOutput();
     // ------------------------------------------------------------------------
 
-
     // -----   Initialize and run   --------------------------------------------
     fRun->Init();
     cout << "Starting run" << endl;
@@ -335,7 +201,6 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ------------------------------------------------------------------------
 
     // -----   Finish   -------------------------------------------------------
-    //  delete fRun;
 
     timer.Stop();
     Double_t rtime = timer.RealTime();

@@ -45,9 +45,8 @@ Set(SRCS
     BmnTrackExtrapolator.cxx
     BmnTrackPropagator.cxx
     #BmnTrackFitter.cxx
-    BmnMath.cxx
     BmnMatrixMath.cxx
-    BmnTrackingGeometryConstructor.cxx
+#    BmnTrackingGeometryConstructor.cxx
     BmnGeoNavigator.cxx
     BmnMaterialEffects.cxx
     BmnTrackSelector.cxx
@@ -67,10 +66,9 @@ Set(HEADERS
     BmnTrackExtrapolator.h
     BmnTrackPropagator.h
     #BmnTrackFitter.h
-    BmnMath.h
     BmnMatrixMath.h
     BmnDefaultSettings.h
-    BmnTrackingGeometryConstructor.h
+#    BmnTrackingGeometryConstructor.h
     BmnGeoNavigator.h
     BmnMaterialInfo.h
     BmnMaterialEffects.h

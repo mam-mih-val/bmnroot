@@ -279,7 +279,7 @@ void BmnTof2Raw2Digit::fillPreparation(TClonesArray *data, TClonesArray *sync, T
 //       printf("%d %d %d %d %d\n", i, map[ind].slot, map[ind].chan, digit->GetValue(), T0raw);
     }
 
-    float wmax[TOF2_MAX_CHAMBERS] = {0.}, tmax[TOF2_MAX_CHAMBERS] = {-1000.};
+    float wMax[TOF2_MAX_CHAMBERS] = {0.}, tMax[TOF2_MAX_CHAMBERS] = {-1000.};
     int smax[TOF2_MAX_CHAMBERS] = {-1};
     for(int ind=0;ind<n_rec;ind++){
        int ind1 = map[ind].pair;
@@ -296,10 +296,10 @@ void BmnTof2Raw2Digit::fillPreparation(TClonesArray *data, TClonesArray *sync, T
 	    WvsS[map[ind].plane]->Fill(map[ind].strip, W);
 	    TvsWall[map[ind].plane]->Fill(W, L);
 	}
-	if (W > wmax[map[ind].plane] && ((W1 < Wcut && W2 < Wcut)||(W1 >= Wcut && W2 >= Wcut)))
+	if (W > wMax[map[ind].plane] && ((W1 < Wcut && W2 < Wcut)||(W1 >= Wcut && W2 >= Wcut)))
 	{
-		wmax[map[ind].plane] = W;
-		tmax[map[ind].plane] = L;
+		wMax[map[ind].plane] = W;
+		tMax[map[ind].plane] = L;
 		smax[map[ind].plane] = map[ind].strip;
 	}
        }
@@ -308,7 +308,7 @@ void BmnTof2Raw2Digit::fillPreparation(TClonesArray *data, TClonesArray *sync, T
     {
 	    if (smax[i] > -1)
 	    {
-		TvsWallmax[i]->Fill(wmax[i], tmax[i]);
+		TvsWallmax[i]->Fill(wMax[i], tMax[i]);
 	    }
     }
 

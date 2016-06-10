@@ -35,14 +35,11 @@
 #include "TClonesArray.h"
 #include "BmnEnums.h"
 
-#include <boost/assign/list_of.hpp>
-
 #include <fstream>
 #include <iostream>
 
 using namespace std;
 using namespace TMath;
-using boost::assign::list_of;
 using lit::Split;
 using lit::FindAndReplace;
 
@@ -92,7 +89,7 @@ InitStatus BmnTrackingQa::Init() {
 
     fDet.DetermineSetup();
     cout << fDet.ToString();
-    if (fTrackCategories.empty()) FillDefaultTrackCategories();
+//    if (fTrackCategories.empty()) FillDefaultTrackCategories();
 
     CreateHistograms();
 
@@ -114,9 +111,6 @@ void BmnTrackingQa::Exec(Option_t* opt) {
     ReadEventHeader();
     fMCTrackCreator->Create();
     ProcessGem();
-    //    ProcessGlobal();
-    //    ProcessGlobalTracks();
-    ProcessMcTracks();
     IncreaseCounters();
 }
 
@@ -231,55 +225,6 @@ void BmnTrackingQa::ReadEventHeader() {
     fHM->H2("Impact_Mult")->Fill(evHead->GetB(), evHead->GetNPrim());
 }
 
-void BmnTrackingQa::FillDefaultTrackCategories() {
-    //   vector<string> tmp = list_of("All")("Primary")("Secondary")("Reference")
-    //         ("Electron")("Proton")("PionPlus")
-    //         ("PionMinus")("KaonPlus")("KaonMinus");
-    vector<string> tmp = list_of("All"); //("Primary")("Secondary")("Reference");
-    fTrackCategories = tmp;
-}
-
-void BmnTrackingQa::CreateH1Efficiency(const string& name, const string& parameter, const string& xTitle, Int_t nofBins, Double_t minBin, Double_t maxBin, const string& opt) {
-    assert(opt == "track" || opt == "track_pid");
-    vector<string> types = list_of("Acc")("Rec")("Eff");
-    vector<string> cat = fTrackCategories;
-
-    for (Int_t iCat = 0; iCat < cat.size(); iCat++) {
-        for (Int_t iType = 0; iType < 3; iType++) {
-            string yTitle = (types[iType] == "Eff") ? "Efficiency [%]" : "Counter";
-            string histName = name + "_" + cat[iCat] + "_" + types[iType] + "_" + parameter;
-            string histTitle = histName + ";" + xTitle + ";" + yTitle;
-            fHM->Add(histName, new TH1F(histName.c_str(), histTitle.c_str(), nofBins, minBin, maxBin));
-        }
-    }
-}
-
-void BmnTrackingQa::CreateH2Efficiency(
-        const string& name,
-        const string& parameter,
-        const string& xTitle,
-        const string& yTitle,
-        Int_t nofBinsX,
-        Double_t minBinX,
-        Double_t maxBinX,
-        Int_t nofBinsY,
-        Double_t minBinY,
-        Double_t maxBinY,
-        const string& opt) {
-    assert(opt == "track" || opt == "track_pid");
-    vector<string> types = list_of("Acc")("Rec")("Eff");
-    vector<string> cat = fTrackCategories;
-
-    for (Int_t iCat = 0; iCat < cat.size(); iCat++) {
-        for (Int_t iType = 0; iType < 3; iType++) {
-            string zTitle = (types[iType] == "Eff") ? "Efficiency [%]" : "Counter";
-            string histName = name + "_" + cat[iCat] + "_" + types[iType] + "_" + parameter;
-            string histTitle = histName + ";" + xTitle + ";" + yTitle + ";" + zTitle;
-            fHM->Add(histName, new TH2F(histName.c_str(), histTitle.c_str(), nofBinsX, minBinX, maxBinX, nofBinsY, minBinY, maxBinY));
-        }
-    }
-}
-
 void BmnTrackingQa::CreateH1(const string& name, const string& xTitle, const string& yTitle, Int_t nofBins, Double_t minBin, Double_t maxBin) {
     TH1F* h = new TH1F(name.c_str(), string(name + ";" + xTitle + ";" + yTitle).c_str(), nofBins, minBin, maxBin);
     fHM->Add(name, h);
@@ -362,18 +307,6 @@ vector<string> BmnTrackingQa::GlobalTrackVariants() {
     return trackVariantsVector;
 }
 
-string BmnTrackingQa::LocalEfficiencyNormalization(const string& detName) {
-    set<string> trackVariants;
-    vector<string> detectors;
-    if (fDet.GetDet(kGEM)) detectors.push_back("Gem");
-    string name("");
-    for (Int_t i = 0; i < detectors.size(); i++) {
-        name += detectors[i];
-        if (detectors[i] == detName) break;
-    }
-    return name;
-}
-
 void BmnTrackingQa::CreateHistograms() {
     fDet.DetermineSetup();
 
@@ -384,63 +317,6 @@ void BmnTrackingQa::CreateHistograms() {
 
     // Reconstruction efficiency histograms
     // Local efficiency histograms
-
-    // GEM
-    CreateH1Efficiency("hte_Gem_Gem", "Np", "Number of points", nofBinsPoints, minNofPoints, maxNofPoints, "track");
-    //CreateH1Efficiency("hte_Gem_Gem", "Angle", "Polar angle [deg]", fAngleRangeBins, fAngleRangeMin, fAngleRangeMax, "track");
-
-    //    if (fDet.GetDet(kTOF1)) {
-    //        string norm = LocalEfficiencyNormalization("Tof1");
-    //        string histName = "hte_Tof1_" + norm;
-    //        CreateH1Efficiency(histName, "p", "P [GeV/c]", fPRangeBins, fPRangeMin, fPRangeMax, "track");
-    //        CreateH1Efficiency(histName, "y", "Rapidity", fYRangeBins, fYRangeMin, fYRangeMax, "track");
-    //        CreateH1Efficiency(histName, "pt", "P_{t} [GeV/c]", fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //        //    CreateEfficiencyHistogram(histName, "Np", "Number of points", nofBinsPoints, minNofPoints, maxNofPoints, "track");
-    //        CreateH1Efficiency(histName, "Angle", "Polar angle [deg]", fAngleRangeBins, fAngleRangeMin, fAngleRangeMax, "track");
-    //        CreateH2Efficiency(histName, "YPt", "Rapidity_{sim}", "Pt_{sim} [GeV/c]", 4 * fYRangeBins, fYRangeMin, fYRangeMax, 4 * fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //    }
-    //    if (fDet.GetDet(kTOF)) {
-    //        string norm = LocalEfficiencyNormalization("Tof2");
-    //        string histName = "hte_Tof2_" + norm;
-    //        CreateH1Efficiency(histName, "p", "P [GeV/c]", fPRangeBins, fPRangeMin, fPRangeMax, "track");
-    //        CreateH1Efficiency(histName, "y", "Rapidity", fYRangeBins, fYRangeMin, fYRangeMax, "track");
-    //        CreateH1Efficiency(histName, "pt", "P_{t} [GeV/c]", fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //        //    CreateEfficiencyHistogram(histName, "Np", "Number of points", nofBinsPoints, minNofPoints, maxNofPoints, "track");
-    //        CreateH1Efficiency(histName, "Angle", "Polar angle [deg]", fAngleRangeBins, fAngleRangeMin, fAngleRangeMax, "track");
-    //        CreateH2Efficiency(histName, "YPt", "Rapidity", "P_{t} [GeV/c]", fYRangeBins, fYRangeMin, fYRangeMax, fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //    }
-    //    if (fDet.GetDet(kDCH1)) {
-    //        string norm = LocalEfficiencyNormalization("Dch1");
-    //        string histName = "hte_Dch1_" + norm;
-    //        CreateH1Efficiency(histName, "p", "P [GeV/c]", fPRangeBins, fPRangeMin, fPRangeMax, "track");
-    //        CreateH1Efficiency(histName, "y", "Rapidity", fYRangeBins, fYRangeMin, fYRangeMax, "track");
-    //        CreateH1Efficiency(histName, "pt", "P_{t} [GeV/c]", fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //        //    CreateEfficiencyHistogram(histName, "Np", "Number of points", nofBinsPoints, minNofPoints, maxNofPoints, "track");
-    //        CreateH1Efficiency(histName, "Angle", "Polar angle [deg]", fAngleRangeBins, fAngleRangeMin, fAngleRangeMax, "track");
-    //        CreateH2Efficiency(histName, "YPt", "Rapidity", "P_{t} [GeV/c]", fYRangeBins, fYRangeMin, fYRangeMax, fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //    }
-    //    if (fDet.GetDet(kDCH2)) {
-    //        string norm = LocalEfficiencyNormalization("Dch2");
-    //        string histName = "hte_Dch2_" + norm;
-    //        CreateH1Efficiency(histName, "p", "P [GeV/c]", fPRangeBins, fPRangeMin, fPRangeMax, "track");
-    //        CreateH1Efficiency(histName, "y", "Rapidity", fYRangeBins, fYRangeMin, fYRangeMax, "track");
-    //        CreateH1Efficiency(histName, "pt", "P_{t} [GeV/c]", fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //        //    CreateEfficiencyHistogram(histName, "Np", "Number of points", nofBinsPoints, minNofPoints, maxNofPoints, "track");
-    //        CreateH1Efficiency(histName, "Angle", "Polar angle [deg]", fAngleRangeBins, fAngleRangeMin, fAngleRangeMax, "track");
-    //        CreateH2Efficiency(histName, "YPt", "Rapidity", "P_{t} [GeV/c]", fYRangeBins, fYRangeMin, fYRangeMax, fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //    }
-
-    // Global efficiency histograms
-    vector<string> histoNames = CreateGlobalTrackingHistogramNames();
-    for (Int_t iHist = 0; iHist < histoNames.size(); iHist++) {
-        string name = histoNames[iHist];
-        string opt = "track";
-        // Tracking efficiency
-        CreateH1Efficiency(name, "p", "P [GeV/c]", fPRangeBins, fPRangeMin, fPRangeMax, opt);
-        CreateH1Efficiency(name, "y", "Rapidity", fYRangeBins, fYRangeMin, fYRangeMax, opt);
-        CreateH1Efficiency(name, "pt", "P_{t} [GeV/c]", fPtRangeBins, fPtRangeMin, fPtRangeMax, opt);
-        CreateH2Efficiency(name, "YPt", "Rapidity_{sim}", "Pt_{sim} [GeV/c]", fYRangeBins, fYRangeMin, fYRangeMax, fPtRangeBins, fPtRangeMin, fPtRangeMax, opt);
-    }
 
     // Create histograms for ghost tracks
     if (fDet.GetDet(kGEM)) CreateH1("hng_NofGhosts_Gem_Nh", "Number of hits", "Yield", nofBinsPoints, minNofPoints, maxNofPoints);
@@ -757,7 +633,6 @@ void BmnTrackingQa::ProcessGem() {
         Float_t Py = mcPoint.GetPy(); //mcTrack->GetPy();
         Float_t Pz = mcPoint.GetPz(); //mcTrack->GetPz();
         Float_t P =  mcPoint.GetP(); //mcTrack->GetP();
-        //        if (P > 5.0) continue;
         Float_t Pxy = Sqrt(Px * Px + Py * Py);
         Float_t eta = 0.5 * Log((P + Pz) / (P - Pz));
         Float_t theta = ATan2(Pxy, Pz) * RadToDeg();
@@ -867,165 +742,6 @@ void BmnTrackingQa::ProcessGlobal() {
     }
 }
 
-//void BmnTrackingQa::ProcessGlobalTracks() {
-//    // Clear all maps for MC to reco matching
-//    map<string, multimap<Int_t, Int_t> >::iterator it;
-//    for (it = fMcToRecoMap.begin(); it != fMcToRecoMap.end(); it++) {
-//        multimap<Int_t, Int_t>& mcRecoMap = (*it).second;
-//        mcRecoMap.clear();
-//        //(*it).second.clear();
-//    }
-//
-//    for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); iTrack++) {
-//        const BmnGlobalTrack* globalTrack = (const BmnGlobalTrack*) (fGlobalTracks->At(iTrack));
-//        if (globalTrack->GetFlag() == kBMNBAD) continue;
-//
-//        // get track segments indices
-//        Int_t gemId = globalTrack->GetGemTrackIndex();
-//        Int_t tof1Id = globalTrack->GetTof1HitIndex();
-//        Int_t tof2Id = globalTrack->GetTof2HitIndex();
-//        Int_t dch1Id = globalTrack->GetDch1HitIndex();
-//        Int_t dch2Id = globalTrack->GetDch2HitIndex();
-//
-//        // check track segments
-//        Bool_t isGemOk = gemId > -1 && fDet.GetDet(kGEM);
-//        Bool_t isSeedOk = gemId > -1 && fDet.GetDet(kGEM);
-//        Bool_t isTof1Ok = tof1Id > -1 && fDet.GetDet(kTOF1) && fTof1Hits;
-//        Bool_t isTof2Ok = tof2Id > -1 && fDet.GetDet(kTOF) && fTof2Hits;
-//        Bool_t isDch1Ok = dch1Id > -1 && fDet.GetDet(kDCH1) && fDch1Hits;
-//        Bool_t isDch2Ok = dch2Id > -1 && fDet.GetDet(kDCH2) && fDch2Hits;
-//
-//        Float_t P_rec_glob = Abs(1.0 / globalTrack->GetParamFirst()->GetQp());
-//        Float_t Tx_glob = globalTrack->GetParamFirst()->GetTx();
-//        Float_t Ty_glob = globalTrack->GetParamFirst()->GetTy();
-//        Float_t Pz_rec_glob = P_rec_glob / Sqrt(Tx_glob * Tx_glob + Ty_glob * Ty_glob + 1);
-//        Float_t Px_rec_glob = Pz_rec_glob * Tx_glob;
-//        Float_t Py_rec_glob = Pz_rec_glob * Ty_glob;
-//        Float_t Eta_rec_glob = 0.5 * Log((P_rec_glob + Pz_rec_glob) / (P_rec_glob - Pz_rec_glob));
-//
-//        Int_t refId = globalTrack->GetRefId();
-//        if (refId < 0) continue;
-//        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(refId));
-//        Float_t P_sim = mcTrack->GetP();
-//        Float_t Px_sim = mcTrack->GetPx();
-//        Float_t Py_sim = mcTrack->GetPy();
-//        Float_t Pz_sim = mcTrack->GetPz();
-//        Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
-//
-//        Float_t Eta_rec_seed, Eta_rec_gem;
-//        Float_t P_rec_seed, P_rec_gem;
-//        if (isGemOk) {
-//            BmnGemTrack* gemTrack = (BmnGemTrack*) (fGemTracks->At(gemId));
-//            P_rec_gem = Abs(1.0 / gemTrack->GetParamFirst()->GetQp());
-//            Float_t Tx_gem = gemTrack->GetParamFirst()->GetTx();
-//            Float_t Ty_gem = gemTrack->GetParamFirst()->GetTy();
-//            Float_t Pz_rec_gem = P_rec_gem / Sqrt(Tx_gem * Tx_gem + Ty_gem * Ty_gem + 1);
-//            Float_t Px_rec_gem = Pz_rec_gem * Tx_gem;
-//            Eta_rec_gem = 0.5 * Log((P_rec_gem + Pz_rec_gem) / (P_rec_gem - Pz_rec_gem));
-//            fHM->H2("EtaP_rec_gem")->Fill(Eta_rec_gem, P_rec_gem);
-//            fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec_gem);
-//            fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec_gem);
-//        }
-//
-//        if (isSeedOk) {
-//            BmnGemTrack* gemSeed = (BmnGemTrack*) (fGemSeeds->At(gemId));
-//            P_rec_seed = Abs(1.0 / gemSeed->GetParamFirst()->GetQp());
-//            Float_t Tx_seed = gemSeed->GetParamFirst()->GetTx();
-//            Float_t Ty_seed = gemSeed->GetParamFirst()->GetTy();
-//            Float_t Pz_rec_seed = P_rec_seed / Sqrt(Tx_seed * Tx_seed + Ty_seed * Ty_seed + 1);
-//            Float_t Py_rec_seed = Pz_rec_seed * Ty_seed;
-//            Eta_rec_seed = 0.5 * Log((P_rec_seed + Pz_rec_seed) / (P_rec_seed - Pz_rec_seed));
-//            fHM->H2("EtaP_rec_seed")->Fill(Eta_rec_seed, P_rec_seed);
-//            fHM->H2("P_rec_P_sim_seed")->Fill(P_sim, P_rec_seed);
-//            fHM->H2("Eta_rec_Eta_sim_seed")->Fill(Eta_sim, Eta_rec_seed);
-//        }
-//
-//        //        fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec_glob) / P_sim * 100.0);
-//        //        fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec_glob);
-//        //        fHM->H2("Eta_rec_Eta_sim_glob")->Fill(Eta_sim, Eta_rec_glob);
-//        //        fHM->H2("Px_rec_Px_sim")->Fill(Px_sim, Px_rec_glob);
-//        //        fHM->H2("Py_rec_Py_sim")->Fill(Py_sim, Py_rec_glob);
-//        //        fHM->H2("Pz_rec_Pz_sim")->Fill(Pz_sim, Pz_rec_glob);
-//        //        fHM->H2("EtaP_rec_glob")->Fill(Eta_rec_glob, P_rec_glob);
-//        //        fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
-//        //        for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += 1) {
-//        //            fHM->H2("momRes_1D")->SetBinContent(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetMean());
-//        //            fHM->H2("momRes_1D")->SetBinError(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetStdDev(1));
-//        //            //            fHM->H2("momRes_1D")->SetBinError(iBin, 0.0); //FIXME! MAKE CORRECT CALCULATION OF ERRORS! 
-//        //        }
-//
-//        // check the quality of global track ---->
-//        const BmnTrackMatch* glTrackMatch = (const BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
-//        if (!glTrackMatch) continue;
-//        Bool_t isTrackOk = glTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
-//        if (!isTrackOk) { // ghost track
-//            fHM->H1("ghostGlobDistr")->Fill(P_sim);
-//        }
-//        fHM->H1("recoGlobDistr")->Fill(P_sim);
-//        // <---- check the quality of global track
-//
-//        //check the quality of track segments
-//        const BmnTrackMatch* gemTrackMatch;
-//        const BmnTrackMatch* gemSeedMatch;
-//        if (isGemOk) {
-//            //            cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
-//            gemTrackMatch = (const BmnTrackMatch*) (fGemMatches->At(gemId));
-//            isGemOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota; //CheckTrackQuality(stsTrackMatch, kGEM);
-//            FillTrackQualityHistograms(gemTrackMatch, kGEM);
-//            if (!isGemOk) { // ghost track
-//                Int_t nofHits = gemTrackMatch->GetNofHits();
-//                fHM->H1("hng_NofGhosts_Gem_Nh")->Fill(nofHits);
-//                fHM->H1("ghostGemDistr")->Fill(P_sim);
-//            } else {
-//                fHM->H1("wellGemDistr")->Fill(P_sim);
-//            }
-//            fHM->H1("recoGemDistr")->Fill(P_sim);
-//        }
-//
-//        // Get MC indices of track segments
-//        Int_t gemMCId = -1, tof1MCId = -1, tof2MCId = -1, dch1MCId = -1, dch2MCId = -1;
-//        if (isGemOk) {
-//            gemMCId = gemTrackMatch->GetMatchedLink().GetIndex();
-//        }
-//        if (isTof1Ok) {
-//            const BmnHit* tofHit = (const BmnHit*) (fTof1Hits->At(tof1Id));
-//            const FairMCPoint* tofPoint = (const FairMCPoint*) (fTof1Points->At(tofHit->GetRefIndex()));
-//            if (tofPoint != NULL) tof1MCId = tofPoint->GetTrackID();
-//        }
-//        if (isTof2Ok) {
-//            const BmnHit* tofHit = (const BmnHit*) (fTof2Hits->At(tof2Id));
-//            const FairMCPoint* tofPoint = (const FairMCPoint*) (fTof2Points->At(tofHit->GetRefIndex()));
-//            if (tofPoint != NULL) tof2MCId = tofPoint->GetTrackID();
-//        }
-//        if (isDch1Ok) {
-//            const BmnHit* dchHit = (const BmnHit*) (fDch1Hits->At(dch1Id));
-//            const FairMCPoint* dchPoint = (const FairMCPoint*) (fDch1Points->At(dchHit->GetRefIndex()));
-//            if (dchPoint != NULL) dch1MCId = dchPoint->GetTrackID();
-//        }
-//        if (isDch2Ok) {
-//            const BmnHit* dchHit = (const BmnHit*) (fDch2Hits->At(dch2Id));
-//            const FairMCPoint* dchPoint = (const FairMCPoint*) (fDch2Points->At(dchHit->GetRefIndex()));
-//            if (dchPoint != NULL) dch2MCId = dchPoint->GetTrackID();
-//        }
-//
-//        map<string, multimap<Int_t, Int_t> >::iterator it;
-//        for (it = fMcToRecoMap.begin(); it != fMcToRecoMap.end(); it++) {
-//            string name = (*it).first;
-//            multimap<Int_t, Int_t>& mcRecoMap = (*it).second;
-//            Bool_t gem = (name.find("Gem") != string::npos) ? isGemOk && gemMCId != -1 : kTRUE;
-//            Bool_t tof1 = (name.find("Tof1") != string::npos) ? isTof1Ok && gemMCId == tof1MCId : kTRUE;
-//            Bool_t tof2 = (name.find("Tof2") != string::npos) ? isTof2Ok && gemMCId == tof2MCId : kTRUE;
-//            Bool_t dch1 = (name.find("Dch1") != string::npos) ? isDch1Ok && gemMCId == dch1MCId : kTRUE;
-//            Bool_t dch2 = (name.find("Dch2") != string::npos) ? isDch2Ok && gemMCId == dch2MCId : kTRUE;
-//
-//            if (gem && tof1 && tof2 && dch1 && dch2) {
-//                pair<Int_t, Int_t> tmp = make_pair(gemMCId, iTrack);
-//                mcRecoMap.insert(tmp);
-//            }
-//        }
-//    }
-//}
-
 void BmnTrackingQa::FillTrackQualityHistograms(const BmnTrackMatch* trackMatch, DetectorId detId) {
     string detName = (detId == kGEM) ? "Gem" : (detId == kTOF1) ? "Tof1" : (detId == kDCH1) ? "Dch1" : (detId == kDCH2) ? "Dch2" : (detId == kTOF) ? "Tof2" : "";
     assert(detName != "");
@@ -1035,103 +751,6 @@ void BmnTrackingQa::FillTrackQualityHistograms(const BmnTrackMatch* trackMatch, 
     fHM->H1(histName + "_Fake")->Fill(trackMatch->GetNofWrongHits());
     fHM->H1(histName + "_TrueOverAll")->Fill(trackMatch->GetTrueOverAllHitsRatio());
     fHM->H1(histName + "_FakeOverAll")->Fill(trackMatch->GetWrongOverAllHitsRatio());
-}
-
-void BmnTrackingQa::ProcessMcTracks() {
-    vector<TH1*> effHistos = fHM->H1Vector("(hte|hpe)_.*_Eff_.*");
-    Int_t nofEffHistos = effHistos.size();
-
-    Int_t nofMcTracks = fMCTracks->GetEntriesFast();
-    for (Int_t iMCTrack = 0; iMCTrack < nofMcTracks; iMCTrack++) {
-        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(iMCTrack));
-
-        // Check accepted tracks cutting on minimal number of MC points
-        if (!fMCTrackCreator->TrackExists(iMCTrack)) continue;
-
-        const BmnMCTrack& bmnMCTrack = fMCTrackCreator->GetTrack(iMCTrack);
-        //        Int_t nofPointsGem = bmnMCTrack.GetNofPointsInDifferentStations(kGEM);
-        Int_t nofPointsGem = bmnMCTrack.GetNofPoints(kGEM);
-        Int_t nofPointsTof1 = bmnMCTrack.GetNofPoints(kTOF1);
-        Int_t nofPointsTof2 = bmnMCTrack.GetNofPoints(kTOF);
-        Int_t nofPointsDch1 = bmnMCTrack.GetNofPoints(kDCH1);
-        Int_t nofPointsDch2 = bmnMCTrack.GetNofPoints(kDCH2);
-
-        //        cout << "nofPointsGem = " << nofPointsGem << " nofPointsTof1 = " << nofPointsTof1 << " nofPointsTof2 = " << nofPointsTof2 << " nofPointsDch1 = " << nofPointsDch1 << " nofPointsDch2 = " << nofPointsDch2 << endl;
-
-        // Check local tracks
-        //Bool_t gemConsecutive = (fUseConsecutivePointsInGem) ? bmnMCTrack.GetNofConsecutivePoints(kGEM) >= fMinNofPointsGem : kTRUE;
-
-        Bool_t isGemOk = nofPointsGem >= fMinNofPointsGem && fDet.GetDet(kGEM); // && gemConsecutive;
-        Bool_t isTof1Ok = nofPointsTof1 >= fMinNofPointsTof && fDet.GetDet(kTOF1);
-        Bool_t isTof2Ok = nofPointsTof2 >= fMinNofPointsTof && fDet.GetDet(kTOF);
-        Bool_t isDch1Ok = nofPointsDch1 >= fMinNofPointsDch && fDet.GetDet(kDCH1);
-        Bool_t isDch2Ok = nofPointsDch2 >= fMinNofPointsDch && fDet.GetDet(kDCH2);
-
-        // calculate polar angle
-        TVector3 mom;
-        mcTrack->GetMomentum(mom);
-        Double_t angle = abs(mom.Theta() * 180 / TMath::Pi());
-        Double_t mcP = mcTrack->GetP();
-        Double_t mcY = mcTrack->GetRapidity();
-        Double_t mcPt = mcTrack->GetPt();
-
-        // Fill parameter name to value map
-        map<string, vector<Double_t> > parMap;
-
-        vector<Double_t> tmp = list_of(mcP);
-        parMap["p"] = tmp;
-
-        vector<Double_t> tmp1 = list_of(mcY);
-        parMap["y"] = tmp1;
-
-        vector<Double_t> tmp2 = list_of(mcPt);
-        parMap["pt"] = tmp2;
-
-        vector<Double_t> tmp3 = list_of(angle);
-        parMap["Angle"] = tmp3;
-
-        vector<Double_t> tmp4 = list_of(0);
-        parMap["Np"] = tmp4; // FIXME : correct to number of points in concrete detector!
-        // Currently as a  temporary solution it is reassigned later
-
-        vector<Double_t> tmp5 = list_of(mcY)(mcPt);
-        parMap["YPt"] = tmp5;
-
-        if (isGemOk) {
-            fHM->H1("allGemDistr")->Fill(mcP);
-            fHM->H1("allGlobDistr")->Fill(mcP);
-        }
-
-        for (Int_t iHist = 0; iHist < nofEffHistos; iHist++) {
-            TH1* hist = effHistos[iHist];
-            string histName = hist->GetName();
-            vector<string> split = Split(histName, '_');
-            string effName = split[1];
-            string normName = split[2];
-            string catName = split[3];
-            string histTypeName = split[0];
-            string parName = split[5];
-            assert(parMap.count(parName) != 0);
-
-            vector<Double_t> par = list_of(0);
-            if (parName == "Np") {
-                vector<Double_t> tmp11 = list_of((effName == "Gem") ? nofPointsGem : (effName == "Tof1") ? nofPointsTof1 : (effName == "Tof2") ? nofPointsTof2 : (effName == "Dch1") ? nofPointsDch1 : (effName == "Dch2") ? nofPointsDch2 : 0);
-                par = tmp11;
-            } else {
-                par = parMap[parName];
-            }
-
-            Bool_t gem = (normName.find("Gem") != string::npos) ? isGemOk : kTRUE;
-            Bool_t tof1 = (normName.find("Tof1") != string::npos) ? isTof1Ok : kTRUE;
-            Bool_t tof2 = (normName.find("Tof2") != string::npos) ? isTof2Ok : kTRUE;
-            Bool_t dch1 = (normName.find("Dch1") != string::npos) ? isDch1Ok : kTRUE;
-            Bool_t dch2 = (normName.find("Dch2") != string::npos) ? isDch2Ok : kTRUE;
-
-            //            Bool_t accOk = gem && tof1 && tof2 && dch1 && dch2;
-            Bool_t accOk = gem;
-            if (accOk) FillGlobalReconstructionHistos(iMCTrack, fMcToRecoMap[effName], histName, histTypeName, effName, catName, par);
-        } // Loop over efficiency histograms
-    } // Loop over MCTracks
 }
 
 void BmnTrackingQa::FillGlobalReconstructionHistos(Int_t mcId, const multimap<Int_t, Int_t>& mcMap, const string& histName, const string& histTypeName, const string& effName, const string& catName, const vector<Double_t>& par) {

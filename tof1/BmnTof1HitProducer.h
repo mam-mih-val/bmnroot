@@ -47,10 +47,10 @@ enum Side_t { kUp=0, kRight=1, kDown=2, kLeft=3, kInvalid= -1 };
 		case kLeft: 	p1 = &point[3]; p2 = &point[0]; break;				
 		};
 		
-		for(Int_t side = kUp; side <= kLeft; side++)
+		for(Int_t iSide = kUp; iSide <= kLeft; iSide++)
 		{
-			double value 	= fabs((*p1 - strip.point[side]).Mag());	if(value < min1) min1 = value;	 
-			value 		= fabs((*p2 - strip.point[side]).Mag());	if(value < min2) min2 = value;
+			double value 	= fabs((*p1 - strip.point[iSide]).Mag());	if(value < min1) min1 = value;	 
+			value 		= fabs((*p2 - strip.point[iSide]).Mag());	if(value < min2) min2 = value;
 		}
 		
 	return min1 + min2;	

@@ -134,9 +134,9 @@ TLorentzVector SpiralParabolicFit(BmnGemTrack* tr, const TClonesArray* arr) {
 
 TVector3 SpiralFit(BmnGemTrack* tr, const TClonesArray* arr) {
 
-    BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(tr->GetHitIndex(0));
-    Float_t xv = hit->GetX();
-    Float_t zv = hit->GetZ();
+    BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(0));
+    Float_t xv = hit0->GetX();
+    Float_t zv = hit0->GetZ();
     Float_t Thetav = ATan2(xv, zv) * RadToDeg();
     const Float_t kN = (Abs(Thetav) < 90) ? 3 : tr->GetNHits();
 
@@ -180,7 +180,7 @@ Bool_t IsParCorrect(const FairTrackParam* par) {
 
     if (abs(par->GetTx()) > maxSlopeX || abs(par->GetTy()) > maxSlopeY || abs(par->GetTx()) < minSlope || abs(par->GetTy()) < minSlope || abs(par->GetQp()) > maxQp) return kFALSE;
     if (abs(par->GetX()) > maxX || abs(par->GetY()) > maxY) return kFALSE;
-    if (isnan(par->GetX()) || isnan(par->GetY()) || isnan(par->GetTx()) || isnan(par->GetTy()) || isnan(par->GetQp())) return kFALSE;
+    if (IsNaN(par->GetX()) || IsNaN(par->GetY()) || IsNaN(par->GetTx()) || IsNaN(par->GetTy()) || IsNaN(par->GetQp())) return kFALSE;
 
     return kTRUE;
 }

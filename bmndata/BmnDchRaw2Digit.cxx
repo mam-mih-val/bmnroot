@@ -81,15 +81,15 @@ float BmnDchRaw2Digit::get_t0() {
     return T0;
 }
 
-void BmnDchRaw2Digit::fillEvent(TClonesArray *data) {
+void BmnDchRaw2Digit::fillEvent(TClonesArray *dataArray) {
     clear();
-    for (int i = 0; i < data->GetEntriesFast(); i++) {
-        BmnTDCDigit *digit = (BmnTDCDigit*) data->At(i);
+    for (int i = 0; i < dataArray->GetEntriesFast(); i++) {
+        BmnTDCDigit *digit = (BmnTDCDigit*) dataArray->At(i);
         set(digit->GetSerial(), digit->GetSlot(), digit->GetChannel(), digit->GetValue() / 10.0);
     }
 }
 
-void BmnDchRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0) {
+void BmnDchRaw2Digit::fillEvent(TClonesArray *dataArray, TClonesArray *sync, TClonesArray *t0) {
     unsigned int t0id = 0;
     long long t0time = 0, digittime = 0;
     clear();
@@ -101,8 +101,8 @@ void BmnDchRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClonesA
             break;
         }
     }
-    for (int i = 0; i < data->GetEntriesFast(); i++) {
-        BmnTDCDigit *digit = (BmnTDCDigit*) data->At(i);
+    for (int i = 0; i < dataArray->GetEntriesFast(); i++) {
+        BmnTDCDigit *digit = (BmnTDCDigit*) dataArray->At(i);
         for (int j = 0; j < sync->GetEntriesFast(); j++) {
             BmnSyncDigit *rec = (BmnSyncDigit*) sync->At(j);
             if (rec->GetSerial() == t0id){
@@ -116,7 +116,7 @@ void BmnDchRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClonesA
         set(digit->GetSerial(), digit->GetSlot(), digit->GetChannel(), digit->GetValue() / 10.0 - (T0 + (t0time - digittime)));
     }
 }
-void BmnDchRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0, TClonesArray *dhcdigit) {
+void BmnDchRaw2Digit::fillEvent(TClonesArray *dataArray, TClonesArray *sync, TClonesArray *t0, TClonesArray *dhcdigit) {
     unsigned int t0id = 0;
     long long t0time = 0, digittime = 0;
     clear();
@@ -128,8 +128,8 @@ void BmnDchRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClonesA
             break;
         }
     }
-    for (int i = 0; i < data->GetEntriesFast(); i++) {
-        BmnTDCDigit *digit = (BmnTDCDigit*) data->At(i);
+    for (int i = 0; i < dataArray->GetEntriesFast(); i++) {
+        BmnTDCDigit *digit = (BmnTDCDigit*) dataArray->At(i);
         for (int j = 0; j < sync->GetEntriesFast(); j++) {
             BmnSyncDigit *rec = (BmnSyncDigit*) sync->At(j);
             if (rec->GetSerial() == t0id){

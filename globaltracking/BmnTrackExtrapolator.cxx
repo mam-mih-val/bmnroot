@@ -76,7 +76,7 @@ void BmnTrackExtrapolator::RK4Order(const vector<Double_t>& xIn, Float_t zIn, ve
     Float_t hCqp = h * fC * xIn[4];
     Float_t x0[4];
 
-    Float_t x[4] = {xIn[0], xIn[1], xIn[2], xIn[3]};
+    Double_t x[4] = {xIn[0], xIn[1], xIn[2], xIn[3]};
 
     for (UInt_t iStep = 0; iStep < 4; iStep++) { // 1
         if (iStep > 0) {
@@ -268,7 +268,7 @@ void BmnTrackExtrapolator::TransportC(
 
 BmnStatus BmnTrackExtrapolator::LineTrackExtrapolate(FairTrackParam* par, Float_t zOut, vector<Double_t>* F) {
 
-    Float_t X[5] = {par->GetX(), par->GetY(), par->GetTx(), par->GetTy(), par->GetQp()};
+    Double_t X[5] = {par->GetX(), par->GetY(), par->GetTx(), par->GetTy(), par->GetQp()};
 
     Float_t dz = zOut - par->GetZ();
 

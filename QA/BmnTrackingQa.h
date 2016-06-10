@@ -116,35 +116,6 @@ private:
      */
     void ReadDataBranches();
 
-    /**
-     * \brief Fill array of track categories with default values.
-     */
-    void FillDefaultTrackCategories();
-    void FillDefaultTrackPIDCategories();
-
-
-    void CreateH1Efficiency(
-            const string& name,
-            const string& parameter,
-            const string& xTitle,
-            Int_t nofBins,
-            Double_t minBin,
-            Double_t maxBin,
-            const string& opt);
-
-    void CreateH2Efficiency(
-            const string& name,
-            const string& parameter,
-            const string& xTitle,
-            const string& yTitle,
-            Int_t nofBinsX,
-            Double_t minBinX,
-            Double_t maxBinX,
-            Int_t nofBinsY,
-            Double_t minBinY,
-            Double_t maxBinY,
-            const string& opt);
-
     void CreateH1(
             const string& name,
             const string& xTitle,
@@ -173,8 +144,6 @@ private:
 
     void ReadEventHeader();
 
-    string LocalEfficiencyNormalization(const string& detName);
-
     vector<string> GlobalTrackVariants();
 
 
@@ -191,17 +160,6 @@ private:
     void ProcessGlobal();
 
     void FillTrackQualityHistograms(const BmnTrackMatch* trackMatch, DetectorId detId);
-
-    /**
-     * \brief Loop over the MC tracks. Check track acceptance for different cases.
-     * Fill histograms of accepted and reconstructed tracks.
-     */
-    void ProcessMcTracks();
-
-    //   /**
-    //    * \brief Calculate efficiency histograms.
-    //    */
-    //   void CalculateEfficiencyHistos();
 
     /**
      * \brief Fill histograms of accepted and reconstructed tracks.

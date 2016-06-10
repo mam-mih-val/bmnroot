@@ -123,14 +123,3 @@ void BmnTrackPropagator::UpdateF(vector<Double_t>& F, const vector<Double_t>& ne
     Mult25(newF, F, A);
     F.assign(A.begin(), A.end());
 }
-
-Bool_t BmnTrackPropagator::IsParCorrect(const FairTrackParam* par) {
-    const Float_t maxSlope = 5.;
-    const Float_t minSlope = 1e-10;
-    const Float_t maxQp = 1000.; // p = 10 MeV
-
-    if (abs(par->GetTx()) > maxSlope || abs(par->GetTy()) > maxSlope || abs(par->GetTx()) < minSlope || abs(par->GetTy()) < minSlope || abs(par->GetQp()) > maxQp) return kFALSE;
-    if (isnan(par->GetX()) || isnan(par->GetY()) || isnan(par->GetTx()) || isnan(par->GetTy()) || isnan(par->GetQp())) return kFALSE;
-
-    return kTRUE;
-}

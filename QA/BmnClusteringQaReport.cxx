@@ -13,10 +13,8 @@
 #include "TF1.h"
 #include "TProfile.h"
 #include "TCanvas.h"
-#include <boost/assign/list_of.hpp>
 #include <vector>
 using namespace std;
-using boost::assign::list_of;
 using lit::NumberToString;
 using lit::Split;
 using lit::FindAndReplace;
@@ -140,15 +138,15 @@ void BmnClusteringQaReport::DrawOccupancyByStation(const string& canvasName) {
 }
 
 string BmnClusteringQaReport::PrintNofObjects() const {
-    vector<TH1*> histos = HM()->H1Vector("_hno_NofObjects_.+_Event");
-    Int_t nofHistos = histos.size();
-    string str = R()->TableBegin("Average number of objects per event", list_of("Name")("Value"));
-    for (Int_t iHist = 0; iHist < nofHistos; iHist++) {
-        string cellName = Split(histos[iHist]->GetName(), '_')[3];
-        str += R()->TableRow(list_of(cellName)(NumberToString<Int_t > (histos[iHist]->GetMean())));
-    }
-    str += R()->TableEnd();
-    return str;
+//    vector<TH1*> histos = HM()->H1Vector("_hno_NofObjects_.+_Event");
+//    Int_t nofHistos = histos.size();
+//    string str = R()->TableBegin("Average number of objects per event", list_of("Name")("Value"));
+//    for (Int_t iHist = 0; iHist < nofHistos; iHist++) {
+//        string cellName = Split(histos[iHist]->GetName(), '_')[3];
+//        str += R()->TableRow(list_of(cellName)(NumberToString<Int_t > (histos[iHist]->GetMean())));
+//    }
+//    str += R()->TableEnd();
+//    return str;
 }
 
 void BmnClusteringQaReport::Draw() {
@@ -196,52 +194,52 @@ void BmnClusteringQaReport::Draw() {
 }
 
 void BmnClusteringQaReport::DrawNofObjectsHistograms(const string& detName, const string& parameter) {
-    if (!HM()->Exists("_hno_NofObjects_" + detName + "Points_" + parameter)) return;
-    string canvasName = GetReportName() + "_NofObjects_" + detName + "_" + parameter;
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 800, 500);
-    canvas->SetGrid();
-    canvas->cd();
-    vector<string> labels = list_of("Points")/*("Digis")("Clusters")*/("Hits");
-    vector<TH1*> histos = list_of(HM()->H1("_hno_NofObjects_" + detName + "Points_" + parameter))(HM()->H1("_hno_NofObjects_" + detName + "Hits_" + parameter)); //(HM()->H1("hno_NofObjects_" + detName + "Digis_" + parameter))(HM()->H1("hno_NofObjects_" + detName + "Clusters_" + parameter));
-    //    if (HM()->Exists("hno_NofObjects_" + detName + "PixelHits_" + parameter)) histos.push_back(HM()->H1("hno_NofObjects_" + detName + "PixelHits_" + parameter));
-    //    else if (HM()->Exists("hno_NofObjects_" + detName + "StrawHits_" + parameter)) histos.push_back(HM()->H1("hno_NofObjects_" + detName + "StrawHits_" + parameter));
-    //    else if (HM()->Exists("hno_NofObjects_" + detName + "Hits_" + parameter)) histos.push_back(HM()->H1("hno_NofObjects_" + detName + "Hits_" + parameter));
-    DrawH1(histos, labels, kLinear, kLinear, true, 0.65, 0.75, 0.95, 0.99, "PE1X0", kFALSE);
+//    if (!HM()->Exists("_hno_NofObjects_" + detName + "Points_" + parameter)) return;
+//    string canvasName = GetReportName() + "_NofObjects_" + detName + "_" + parameter;
+//    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 800, 500);
+//    canvas->SetGrid();
+//    canvas->cd();
+//    vector<string> labels = list_of("Points")/*("Digis")("Clusters")*/("Hits");
+//    vector<TH1*> histos = list_of(HM()->H1("_hno_NofObjects_" + detName + "Points_" + parameter))(HM()->H1("_hno_NofObjects_" + detName + "Hits_" + parameter)); //(HM()->H1("hno_NofObjects_" + detName + "Digis_" + parameter))(HM()->H1("hno_NofObjects_" + detName + "Clusters_" + parameter));
+//    //    if (HM()->Exists("hno_NofObjects_" + detName + "PixelHits_" + parameter)) histos.push_back(HM()->H1("hno_NofObjects_" + detName + "PixelHits_" + parameter));
+//    //    else if (HM()->Exists("hno_NofObjects_" + detName + "StrawHits_" + parameter)) histos.push_back(HM()->H1("hno_NofObjects_" + detName + "StrawHits_" + parameter));
+//    //    else if (HM()->Exists("hno_NofObjects_" + detName + "Hits_" + parameter)) histos.push_back(HM()->H1("hno_NofObjects_" + detName + "Hits_" + parameter));
+//    DrawH1(histos, labels, kLinear, kLinear, true, 0.65, 0.75, 0.95, 0.99, "PE1X0", kFALSE);
 }
 
 void BmnClusteringQaReport::DrawResidualsAndPulls(const string& detName) {
-    if (!(HM()->Exists("_hrp_" + detName + "_ResidualX_H2") && HM()->Exists("_hrp_" + detName + "_ResidualY_H2")
-            && HM()->Exists("_hrp_" + detName + "_PullX_H2") && HM()->Exists("_hrp_" + detName + "_ResidualX_H2"))) return;
-    vector<string> par = list_of("ResidualX")("ResidualY")("PullX")("PullY");
-    Int_t nofCanvases = par.size();
-    for (Int_t iCanvas = 0; iCanvas < nofCanvases; iCanvas++) {
-        string histName = "_hrp_" + detName + "_" + par[iCanvas] + "_H2";
-        TH2* hist = HM()->H2(histName);
-        string canvasName = GetReportName() + "_" + histName + "_station";
-        TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 900);
-
-        Int_t nofBins, nofColumns, nofRows;
-        if (detName == "Gem") {
-            nofBins = 12;
-            nofColumns = 4;
-            nofRows = (nofBins / nofColumns) + ((nofBins % 4 == 0) ? 0 : 1);
-            canvas->Divide(nofColumns, nofRows);
-        } else {
-            nofBins = 1;
-        }
-        for (Int_t iBin = 1; iBin <= nofBins; iBin++) {
-            stringstream ss;
-            ss << histName << "_" << iBin << "_py";
-            TH1* projY = hist->ProjectionY(ss.str().c_str(), iBin, iBin);
-            projY->SetNameTitle(ss.str().c_str(), ss.str().c_str());
-            projY->SetXTitle(par[iCanvas].c_str());
-            projY->SetYTitle("Yield");
-            canvas->cd(iBin);
-            DrawH1(projY, kLinear, kLinear);
-            projY->Fit("gaus", "SQ");
-        }
-    }
-    DrawH2ByPattern("_hrp_" + detName + "_.*_H2", kLinear, kLinear, kLinear, "colz");
+//    if (!(HM()->Exists("_hrp_" + detName + "_ResidualX_H2") && HM()->Exists("_hrp_" + detName + "_ResidualY_H2")
+//            && HM()->Exists("_hrp_" + detName + "_PullX_H2") && HM()->Exists("_hrp_" + detName + "_ResidualX_H2"))) return;
+//    vector<string> par = list_of("ResidualX")("ResidualY")("PullX")("PullY");
+//    Int_t nofCanvases = par.size();
+//    for (Int_t iCanvas = 0; iCanvas < nofCanvases; iCanvas++) {
+//        string histName = "_hrp_" + detName + "_" + par[iCanvas] + "_H2";
+//        TH2* hist = HM()->H2(histName);
+//        string canvasName = GetReportName() + "_" + histName + "_station";
+//        TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 900);
+//
+//        Int_t nofBins, nofColumns, nofRows;
+//        if (detName == "Gem") {
+//            nofBins = 12;
+//            nofColumns = 4;
+//            nofRows = (nofBins / nofColumns) + ((nofBins % 4 == 0) ? 0 : 1);
+//            canvas->Divide(nofColumns, nofRows);
+//        } else {
+//            nofBins = 1;
+//        }
+//        for (Int_t iBin = 1; iBin <= nofBins; iBin++) {
+//            stringstream ss;
+//            ss << histName << "_" << iBin << "_py";
+//            TH1* projY = hist->ProjectionY(ss.str().c_str(), iBin, iBin);
+//            projY->SetNameTitle(ss.str().c_str(), ss.str().c_str());
+//            projY->SetXTitle(par[iCanvas].c_str());
+//            projY->SetYTitle("Yield");
+//            canvas->cd(iBin);
+//            DrawH1(projY, kLinear, kLinear);
+//            projY->Fit("gaus", "SQ");
+//        }
+//    }
+//    DrawH2ByPattern("_hrp_" + detName + "_.*_H2", kLinear, kLinear, kLinear, "colz");
 }
 
 Double_t BmnClusteringQaReport::CalcEfficiency(const TH1* histRec, const TH1* histAcc, Double_t scale) {
@@ -252,29 +250,7 @@ Double_t BmnClusteringQaReport::CalcEfficiency(const TH1* histRec, const TH1* hi
     }
 }
 
-void BmnClusteringQaReport::ScaleAndShrinkHistograms() {
-    Int_t nofEvents = HM()->H1("hen_EventNo_ClusteringQa")->GetEntries();
-
-    HM()->ScaleByPattern("_hhe_.+_.+_(Acc|Rec|Clone)_Station", 1. / nofEvents);
-
-    HM()->ScaleByPattern("_hno_NofObjects_.*_Station", 1. / nofEvents);
-    HM()->ShrinkEmptyBinsH1ByPattern("_hno_NofObjects_.*_Station");
-
-    //    HM()->NormalizeToIntegralByPattern("hpa_.*Cluster_NofDigisInCluster_.*");
-    //    HM()->ShrinkEmptyBinsH1ByPattern("hpa_.*Cluster_NofDigisInCluster_H1");
-    //    HM()->ShrinkEmptyBinsH2ByPattern("hpa_.*Cluster_NofDigisInCluster_H2");
-
-    HM()->NormalizeToIntegralByPattern("_hpa_.*(Digi|Cluster|Hit)_NofPointsIn(Digi|Cluster|Hit)_.*");
-    HM()->ShrinkEmptyBinsH1ByPattern("_hpa_.*(Digi|Cluster|Hit)_NofPointsIn(Digi|Cluster|Hit)_H1");
-    HM()->ShrinkEmptyBinsH2ByPattern("_hpa_.*(Digi|Cluster|Hit)_NofPointsIn(Digi|Cluster|Hit)_H2");
-
-    HM()->NormalizeToIntegralByPattern("_hrp_.*_.*_H2");
-    HM()->ShrinkEmptyBinsH2ByPattern("_hrp_.*_.*_H2");
-
-    HM()->NormalizeToIntegralByPattern("_hpa_.*Hit_Sigma.*_.*");
-    HM()->ShrinkEmptyBinsH1ByPattern("_hpa_.*Hit_Sigma.*_H1");
-    HM()->ShrinkEmptyBinsH2ByPattern("_hpa_.*Hit_Sigma.*_H2");
-}
+void BmnClusteringQaReport::ScaleAndShrinkHistograms() {}
 
 void BmnClusteringQaReport::DivideHistos(TH1* histo1, TH1* histo2, TH1* histo3, Double_t scale) {
     histo1->Sumw2();
@@ -284,19 +260,7 @@ void BmnClusteringQaReport::DivideHistos(TH1* histo1, TH1* histo2, TH1* histo3, 
     histo3->Scale(scale);
 }
 
-void BmnClusteringQaReport::CalculateEfficiencyHistos(const string& acc, const string& rec, const string& eff) {
-    vector<TH1*> effHistos = HM()->H1Vector("_hhe_.+_" + eff + "_.+");
-    Int_t nofEffHistos = effHistos.size();
-    for (Int_t iHist = 0; iHist < nofEffHistos; iHist++) {
-        TH1* effHist = effHistos[iHist];
-        string effHistName = effHist->GetName();
-        string accHistName = FindAndReplace(effHistName, "_" + eff + "_", "_" + acc + "_");
-        string recHistName = FindAndReplace(effHistName, "_" + eff + "_", "_" + rec + "_");
-        DivideHistos(HM()->H1(recHistName), HM()->H1(accHistName), effHist, 100.);
-        effHist->SetMinimum(0.);
-        effHist->SetMaximum(100.);
-    }
-}
+void BmnClusteringQaReport::CalculateEfficiencyHistos(const string& acc, const string& rec, const string& eff) {}
 
 
 

@@ -13,7 +13,7 @@
 #pragma link C++ class BmnTrackExtrapolator+;
 #pragma link C++ class BmnHitToTrackMerger+;
 #pragma link C++ class BmnKalmanFilter+;
-#pragma link C++ class BmnTrackingGeometryConstructor+;
+//#pragma link C++ class BmnTrackingGeometryConstructor+;
 #pragma link C++ class BmnGeoNavigator+;
 #pragma link C++ class BmnMaterialEffects+;
 #pragma link C++ class BmnMaterialInfo+;

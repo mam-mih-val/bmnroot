@@ -17,7 +17,6 @@
 #include "TDirectory.h"
 #include "TKey.h"
 #include "TClass.h"
-#include <boost/regex.hpp>
 #include <vector>
 #include <map>
 #include <string>
@@ -40,7 +39,7 @@ class CompareTNamedMore:
 {
 public:
    Bool_t operator()(const TNamed* object1, const TNamed* object2) const {
-      return string(object1->GetName()) > string(object2->GetName());
+      return TString(object1->GetName()) > TString(object2->GetName());
    }
 };
 
@@ -48,70 +47,14 @@ BmnHistManager::BmnHistManager(): fMap() {}
 
 BmnHistManager::~BmnHistManager() {}
 
-template<class T> vector<T> BmnHistManager::ObjectVector(const string& pattern) const {
-  vector<T> objects;
-
-  try {
-	const boost::regex e(pattern);
-	map<string, TNamed*>::const_iterator it;
-	for (it = fMap.begin(); it != fMap.end(); it++) {
-		if (boost::regex_match(it->first, e)) objects.push_back((T)it->second);
-	}
-  } catch (exception& ex) {
-    cout << "Exception in BmnHistManager::ObjectVector: " << ex.what() << endl;
-  }
-
-  sort(objects.begin(), objects.end(), CompareTNamedMore());
-  return objects;
-}
-
-vector<TH1*> BmnHistManager::H1Vector(
-      const string& pattern) const
-{
-	return ObjectVector<TH1*>(pattern);
-}
-
-vector<TH2*> BmnHistManager::H2Vector(
-      const string& pattern) const
-{
-	return ObjectVector<TH2*>(pattern);
-}
-
-vector<TGraph*> BmnHistManager::G1Vector(
-      const string& pattern) const
-{
-	return ObjectVector<TGraph*>(pattern);
-}
-
-vector<TGraph2D*> BmnHistManager::G2Vector(
-      const string& pattern) const
-{
-	return ObjectVector<TGraph2D*>(pattern);
-}
-
-vector<TProfile*> BmnHistManager::P1Vector(
-      const string& pattern) const
-{
-   return ObjectVector<TProfile*>(pattern);
-}
-
-vector<TProfile2D*> BmnHistManager::P2Vector(
-      const string& pattern) const
-{
-   return ObjectVector<TProfile2D*>(pattern);
-}
-
-void BmnHistManager::WriteToFile()
-{
-   map<string, TNamed*>::iterator it;
+void BmnHistManager::WriteToFile() {
+   map<TString, TNamed*>::iterator it;
    for (it = fMap.begin(); it != fMap.end(); it++){
       it->second->Write();
    }
 }
 
-void BmnHistManager::ReadFromFile(
-      TFile* file)
-{
+void BmnHistManager::ReadFromFile(TFile* file) {
    assert(file != NULL);
    cout << "-I- BmnHistManager::ReadFromFile" << endl;
    TDirectory* dir = gDirectory;
@@ -123,28 +66,25 @@ void BmnHistManager::ReadFromFile(
       if (obj->IsA()->InheritsFrom (TH1::Class()) || obj->IsA()->InheritsFrom (TGraph::Class()) || obj->IsA()->InheritsFrom (TGraph2D::Class())) {
          TNamed* h = (TNamed*) obj;
          TNamed* h1 = (TNamed*)file->Get(h->GetName());
-         Add(string(h->GetName()), h1);
-         //cout << c++ << " " << h->GetName()<< endl;
+         Add(TString(h->GetName()), h1);
       }
    }
 }
 
-void BmnHistManager::Clear()
-{
-   map<string, TNamed*>::iterator it;
+void BmnHistManager::Clear() {
+   map<TString, TNamed*>::iterator it;
    for (it = fMap.begin(); it != fMap.end(); it++) {
       delete (*it).second;
    }
    fMap.clear();
 }
 
-void BmnHistManager::ShrinkEmptyBinsH1(
-      const string& histName)
+void BmnHistManager::ShrinkEmptyBinsH1(const TString& histName)
 {
    TH1* hist = H1(histName);
    Int_t nofBins = hist->GetNbinsX();
-   Int_t minShrinkBin = std::numeric_limits<Double_t>::max();
-   Int_t maxShrinkBin = std::numeric_limits<Double_t>::min();
+   Int_t minShrinkBin = std::numeric_limits<Int_t>::max();
+   Int_t maxShrinkBin = std::numeric_limits<Int_t>::min();
    Bool_t isSet = false;
    for (Int_t iBin = 1; iBin <= nofBins; iBin++) {
       Double_t content = hist->GetBinContent(iBin);
@@ -160,26 +100,14 @@ void BmnHistManager::ShrinkEmptyBinsH1(
    }
 }
 
-void BmnHistManager::ShrinkEmptyBinsH1ByPattern(
-      const string& pattern)
-{
-	vector<TH1*> effHistos = H1Vector(pattern);
-	Int_t nofEffHistos = effHistos.size();
-	for (Int_t iHist = 0; iHist < nofEffHistos; iHist++) {
-		ShrinkEmptyBinsH1(effHistos[iHist]->GetName());
-	}
-}
-
-void BmnHistManager::ShrinkEmptyBinsH2(
-      const string& histName)
-{
+void BmnHistManager::ShrinkEmptyBinsH2(const TString& histName) {
    TH1* hist = H2(histName);
    Int_t nofBinsX = hist->GetNbinsX();
    Int_t nofBinsY = hist->GetNbinsY();
-   Int_t minShrinkBinX = std::numeric_limits<Double_t>::max();
-   Int_t maxShrinkBinX = std::numeric_limits<Double_t>::min();
-   Int_t minShrinkBinY = std::numeric_limits<Double_t>::max();
-   Int_t maxShrinkBinY = std::numeric_limits<Double_t>::min();
+   Int_t minShrinkBinX = std::numeric_limits<Int_t>::max();
+   Int_t maxShrinkBinX = std::numeric_limits<Int_t>::min();
+   Int_t minShrinkBinY = std::numeric_limits<Int_t>::max();
+   Int_t maxShrinkBinY = std::numeric_limits<Int_t>::min();
    Bool_t isSet = false;
    for (Int_t iBinX = 1; iBinX <= nofBinsX; iBinX++) {
       for (Int_t iBinY = 1; iBinY <= nofBinsY; iBinY++) {
@@ -199,55 +127,16 @@ void BmnHistManager::ShrinkEmptyBinsH2(
    }
 }
 
-void BmnHistManager::ShrinkEmptyBinsH2ByPattern(
-      const string& pattern)
-{
-   vector<TH1*> effHistos = H1Vector(pattern);
-   Int_t nofEffHistos = effHistos.size();
-   for (Int_t iHist = 0; iHist < nofEffHistos; iHist++) {
-      ShrinkEmptyBinsH2(effHistos[iHist]->GetName());
-   }
-}
-
-void BmnHistManager::Scale(
-      const string& histName,
-      Double_t scale)
-{
+void BmnHistManager::Scale(const TString& histName, Double_t scale) {
 	H1(histName)->Scale(scale);
 }
 
-void BmnHistManager::ScaleByPattern(
-      const string& pattern,
-      Double_t scale)
-{
-	vector<TH1*> effHistos = H1Vector(pattern);
-	Int_t nofEffHistos = effHistos.size();
-	for (Int_t iHist = 0; iHist < nofEffHistos; iHist++) {
-		Scale(effHistos[iHist]->GetName(), scale);
-	}
-}
-
-void BmnHistManager::NormalizeToIntegral(
-      const string& histName)
-{
+void BmnHistManager::NormalizeToIntegral(const TString& histName) {
    TH1* hist = H1(histName);
    hist->Scale(1. / hist->Integral());
 }
 
-void BmnHistManager::NormalizeToIntegralByPattern(
-      const string& pattern)
-{
-   vector<TH1*> effHistos = H1Vector(pattern);
-   Int_t nofEffHistos = effHistos.size();
-   for (Int_t iHist = 0; iHist < nofEffHistos; iHist++) {
-      NormalizeToIntegral(effHistos[iHist]->GetName());
-   }
-}
-
-void BmnHistManager::Rebin(
-      const string& histName,
-      Int_t ngroup)
-{
+void BmnHistManager::Rebin(const TString& histName, Int_t ngroup) {
 	TH1* hist = H1(histName);
 	if (ngroup > 1) {
 		hist->Rebin(ngroup);
@@ -255,21 +144,10 @@ void BmnHistManager::Rebin(
 	}
 }
 
-void BmnHistManager::RebinByPattern(
-      const string& pattern,
-      Int_t ngroup)
+TString BmnHistManager::ToString() const
 {
-	vector<TH1*> effHistos = H1Vector(pattern);
-	Int_t nofEffHistos = effHistos.size();
-	for (Int_t iHist = 0; iHist < nofEffHistos; iHist++) {
-		Rebin(effHistos[iHist]->GetName(), ngroup);
-	}
-}
-
-string BmnHistManager::ToString() const
-{
-	string str = "BmnHistManager list of histograms:\n";
-	map<string, TNamed*>::const_iterator it;
+	TString str = "BmnHistManager list of histograms:\n";
+	map<TString, TNamed*>::const_iterator it;
 	for (it = fMap.begin(); it != fMap.end(); it++){
 		str += it->first + "\n";
 	}

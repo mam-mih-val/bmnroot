@@ -12,7 +12,7 @@ BmnKalmanFilter_tmp::BmnKalmanFilter_tmp() {
 BmnKalmanFilter_tmp::~BmnKalmanFilter_tmp() {
 }
 
-BmnStatus BmnKalmanFilter_tmp::Prediction(FairTrackParam* par, Float_t zOut, BmnFitNode& node) {
+BmnStatus BmnKalmanFilter_tmp::Prediction(FairTrackParam* par, Double_t zOut, BmnFitNode& node) {
 
     //        cout << "Pred\n";
 
@@ -62,7 +62,7 @@ BmnStatus BmnKalmanFilter_tmp::Prediction(FairTrackParam* par, Float_t zOut, Bmn
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnKalmanFilter_tmp::Correction(FairTrackParam* par, BmnHit* hit, Float_t &chi2, BmnFitNode& node) {
+BmnStatus BmnKalmanFilter_tmp::Correction(FairTrackParam* par, BmnHit* hit, Double_t &chi2, BmnFitNode& node) {
 
 
     if (!IsParCorrect(par)) {
@@ -243,7 +243,7 @@ FairTrackParam BmnKalmanFilter_tmp::Filtration(BmnGemTrack* tr, TClonesArray* hi
         R[0][0] = hit->GetDx() * hit->GetDx();
         R[1][1] = hit->GetDy() * hit->GetDy();
 
-        Float_t chi2 = ((Xmeas - H * currSmoothX).T() * (R + H * currSmoothC * Ht).Invert() * (Xmeas - H * currSmoothX)).Determinant();
+        Double_t chi2 = ((Xmeas - H * currSmoothX).T() * (R + H * currSmoothC * Ht).Invert() * (Xmeas - H * currSmoothX)).Determinant();
         //                cout << "i = " << i << " | chi2 = " << chi2 << endl;
 
         //write smoothed state vector and covariance matrix into track parameter 
@@ -261,27 +261,27 @@ FairTrackParam BmnKalmanFilter_tmp::Filtration(BmnGemTrack* tr, TClonesArray* hi
 
 }
 
-TMatrixD BmnKalmanFilter_tmp::Transport(FairTrackParam* par, Float_t zOut, TString type) {
+TMatrixD BmnKalmanFilter_tmp::Transport(FairTrackParam* par, Double_t zOut, TString type) {
     TMatrixD F(5, 5); //transport matrix
     F.UnitMatrix();
-    Float_t z0 = par->GetZ();
-    Float_t tx = par->GetTx();
-    Float_t ty = par->GetTy();
-    Float_t x0 = par->GetX();
-    Float_t y = par->GetY();
+    Double_t z0 = par->GetZ();
+    Double_t tx = par->GetTx();
+    Double_t ty = par->GetTy();
+    Double_t x0 = par->GetX();
+    Double_t y = par->GetY();
     fField = FairRunAna::Instance()->GetField();
 
-    Float_t Bx = fField->GetBx(x0, y, z0);
-    Float_t By = fField->GetBy(x0, y, z0);
-    Float_t Bz = fField->GetBz(x0, y, z0);
+    Double_t Bx = fField->GetBx(x0, y, z0);
+    Double_t By = fField->GetBy(x0, y, z0);
+    Double_t Bz = fField->GetBz(x0, y, z0);
 
-    Float_t s = zOut - z0;
+    Double_t s = zOut - z0;
     F[1][3] = s;
     F[0][2] = s;
 
-    Float_t Ax = Sqrt(1 + tx * tx + ty * ty) * (tx * ty * Bx - (1 + tx * tx) * By + ty * Bz);
-    Float_t Ay = Sqrt(1 + tx * tx + ty * ty) * ((1 + ty * ty) * Bx - tx * ty * By - tx * Bz);
-    const Float_t k = 2.99792458e-4;
+    Double_t Ax = Sqrt(1 + tx * tx + ty * ty) * (tx * ty * Bx - (1 + tx * tx) * By + ty * Bz);
+    Double_t Ay = Sqrt(1 + tx * tx + ty * ty) * ((1 + ty * ty) * Bx - tx * ty * By - tx * Bz);
+    const Double_t k = 2.99792458e-4;
 
     if (type.Contains("line")) {
 
@@ -331,9 +331,9 @@ BmnStatus BmnKalmanFilter_tmp::FillParFromVecAndCov(TMatrixD x, TMatrixD c, Fair
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnKalmanFilter_tmp::RK4TrackExtrapolate(FairTrackParam* par, Float_t zOut, vector<Double_t>* F) {
+BmnStatus BmnKalmanFilter_tmp::RK4TrackExtrapolate(FairTrackParam* par, Double_t zOut, vector<Double_t>* F) {
 
-    Float_t zIn = par->GetZ();
+    Double_t zIn = par->GetZ();
     fField = FairRunAna::Instance()->GetField(); 
     
     vector<Double_t> xIn;
@@ -374,21 +374,21 @@ BmnStatus BmnKalmanFilter_tmp::RK4TrackExtrapolate(FairTrackParam* par, Float_t 
     return kBMNSUCCESS;
 }
 
-void BmnKalmanFilter_tmp::RK4Order(const vector<Double_t>& xIn, Float_t zIn, vector<Double_t>& xOut, Float_t zOut, vector<Double_t>& derivs) {
-    const Float_t fC = 0.000299792458;
+void BmnKalmanFilter_tmp::RK4Order(const vector<Double_t>& xIn, Double_t zIn, vector<Double_t>& xOut, Double_t zOut, vector<Double_t>& derivs) {
+    const Double_t fC = 0.000299792458;
 
-    Float_t coef[4] = {0.0, 0.5, 0.5, 1.0};
+    Double_t coef[4] = {0.0, 0.5, 0.5, 1.0};
 
-    Float_t Ax[4], Ay[4];
-    Float_t dAx_dtx[4], dAy_dtx[4], dAx_dty[4], dAy_dty[4];
-    Float_t k[4][4];
+    Double_t Ax[4], Ay[4];
+    Double_t dAx_dtx[4], dAy_dtx[4], dAx_dty[4], dAy_dty[4];
+    Double_t k[4][4];
 
-    Float_t h = zOut - zIn;
-    Float_t hC = h * fC;
-    Float_t hCqp = h * fC * xIn[4];
-    Float_t x0[4];
+    Double_t h = zOut - zIn;
+    Double_t hC = h * fC;
+    Double_t hCqp = h * fC * xIn[4];
+    Double_t x0[4];
 
-    Float_t x[4] = {xIn[0], xIn[1], xIn[2], xIn[3]};
+    Double_t x[4] = {xIn[0], xIn[1], xIn[2], xIn[3]};
 
     for (UInt_t iStep = 0; iStep < 4; iStep++) { // 1
         if (iStep > 0) {
@@ -397,18 +397,18 @@ void BmnKalmanFilter_tmp::RK4Order(const vector<Double_t>& xIn, Float_t zIn, vec
             }
         }
 
-        Float_t Bx = fField->GetBx(x[0], x[1], zIn + coef[iStep] * h);
-        Float_t By = fField->GetBy(x[0], x[1], zIn + coef[iStep] * h);
-        Float_t Bz = fField->GetBz(x[0], x[1], zIn + coef[iStep] * h);
+        Double_t Bx = fField->GetBx(x[0], x[1], zIn + coef[iStep] * h);
+        Double_t By = fField->GetBy(x[0], x[1], zIn + coef[iStep] * h);
+        Double_t Bz = fField->GetBz(x[0], x[1], zIn + coef[iStep] * h);
 
-        Float_t tx = x[2];
-        Float_t ty = x[3];
-        Float_t txtx = tx * tx;
-        Float_t tyty = ty * ty;
-        Float_t txty = tx * ty;
-        Float_t txtxtyty1 = 1.0 + txtx + tyty;
-        Float_t t1 = Sqrt(txtxtyty1);
-        Float_t t2 = 1.0 / txtxtyty1;
+        Double_t tx = x[2];
+        Double_t ty = x[3];
+        Double_t txtx = tx * tx;
+        Double_t tyty = ty * ty;
+        Double_t txty = tx * ty;
+        Double_t txtxtyty1 = 1.0 + txtx + tyty;
+        Double_t t1 = Sqrt(txtxtyty1);
+        Double_t t2 = 1.0 / txtxtyty1;
 
         Ax[iStep] = (txty * Bx + ty * Bz - (1.0 + txtx) * By) * t1;
         Ay[iStep] = (-txty * By - tx * Bz + (1.0 + tyty) * Bx) * t1;
@@ -533,19 +533,19 @@ void BmnKalmanFilter_tmp::RK4Order(const vector<Double_t>& xIn, Float_t zIn, vec
 
 void BmnKalmanFilter_tmp::TransportC(const vector<Double_t>& cIn, const vector<Double_t>& F, vector<Double_t>& cOut) {
     // F*C*Ft
-    Float_t A = cIn[2] + F[2] * cIn[9] + F[3] * cIn[10] + F[4] * cIn[11];
-    Float_t B = cIn[3] + F[2] * cIn[10] + F[3] * cIn[12] + F[4] * cIn[13];
-    Float_t C = cIn[4] + F[2] * cIn[11] + F[3] * cIn[13] + F[4] * cIn[14];
+    Double_t A = cIn[2] + F[2] * cIn[9] + F[3] * cIn[10] + F[4] * cIn[11];
+    Double_t B = cIn[3] + F[2] * cIn[10] + F[3] * cIn[12] + F[4] * cIn[13];
+    Double_t C = cIn[4] + F[2] * cIn[11] + F[3] * cIn[13] + F[4] * cIn[14];
 
-    Float_t D = cIn[6] + F[7] * cIn[9] + F[8] * cIn[10] + F[9] * cIn[11];
-    Float_t E = cIn[7] + F[7] * cIn[10] + F[8] * cIn[12] + F[9] * cIn[13];
-    Float_t G = cIn[8] + F[7] * cIn[11] + F[8] * cIn[13] + F[9] * cIn[14];
+    Double_t D = cIn[6] + F[7] * cIn[9] + F[8] * cIn[10] + F[9] * cIn[11];
+    Double_t E = cIn[7] + F[7] * cIn[10] + F[8] * cIn[12] + F[9] * cIn[13];
+    Double_t G = cIn[8] + F[7] * cIn[11] + F[8] * cIn[13] + F[9] * cIn[14];
 
-    Float_t H = cIn[9] + F[13] * cIn[10] + F[14] * cIn[11];
-    Float_t I = cIn[10] + F[13] * cIn[12] + F[14] * cIn[13];
-    Float_t J = cIn[11] + F[13] * cIn[13] + F[14] * cIn[14];
+    Double_t H = cIn[9] + F[13] * cIn[10] + F[14] * cIn[11];
+    Double_t I = cIn[10] + F[13] * cIn[12] + F[14] * cIn[13];
+    Double_t J = cIn[11] + F[13] * cIn[13] + F[14] * cIn[14];
 
-    Float_t K = cIn[13] + F[17] * cIn[11] + F[19] * cIn[14];
+    Double_t K = cIn[13] + F[17] * cIn[11] + F[19] * cIn[14];
 
     cOut[0] = cIn[0] + F[2] * cIn[2] + F[3] * cIn[3] + F[4] * cIn[4] + A * F[2] + B * F[3] + C * F[4];
     cOut[1] = cIn[1] + F[2] * cIn[6] + F[3] * cIn[7] + F[4] * cIn[8] + A * F[7] + B * F[8] + C * F[9];
@@ -568,17 +568,17 @@ void BmnKalmanFilter_tmp::TransportC(const vector<Double_t>& cIn, const vector<D
     cOut[14] = cIn[14];
 }
 
-Float_t BmnKalmanFilter_tmp::CalcOut(Float_t in, const Float_t k[4]) {
+Double_t BmnKalmanFilter_tmp::CalcOut(Double_t in, const Double_t k[4]) {
     return in + k[0] / 6. + k[1] / 3. + k[2] / 3. + k[3] / 6.;
 }
 
-BmnStatus BmnKalmanFilter_tmp::Update(FairTrackParam* par, const BmnHit* hit, Float_t& chiSq) {
+BmnStatus BmnKalmanFilter_tmp::Update(FairTrackParam* par, const BmnHit* hit, Double_t& chiSq) {
 
-    //   vector<Float_t> cIn = par->GetCovMatrix();
+    //   vector<Double_t> cIn = par->GetCovMatrix();
     Double_t cIn[15];
     par->CovMatrix(cIn);
 
-    static const Float_t ONE = 1., TWO = 2.;
+    static const Double_t ONE = 1., TWO = 2.;
 
     Double_t dxx = hit->GetDx() * hit->GetDx();
     Double_t dxy = 0.0;
@@ -695,7 +695,7 @@ BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits)
     track->SetChi2(0.);
     for (int i = 0; i < n; i++) {
         BmnGemHit* hit = (BmnGemHit*) hits->At(track->GetHitIndex(i));
-        Float_t chi2Hit = lit::ChiSq(nodes[i].GetSmoothedParam(), hit);
+        Double_t chi2Hit = lit::ChiSq(nodes[i].GetSmoothedParam(), hit);
         nodes[i].SetChiSqSmoothed(chi2Hit);
         track->SetChi2(track->GetChi2() + chi2Hit);
     }
@@ -810,11 +810,11 @@ BmnStatus BmnKalmanFilter_tmp::Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Float_t zOut, Int_t pdg, vector<Double_t>* F, Float_t* length, TString type) {
+BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, TString type) {
 
     if (!IsParCorrect(par)) return kBMNERROR;
-    Float_t zIn = par->GetZ();
-    Float_t dz = zOut - zIn;
+    Double_t zIn = par->GetZ();
+    Double_t dz = zOut - zIn;
 
     if (fabs(dz) < 1e-6) {
         return kBMNSUCCESS;
@@ -833,13 +833,13 @@ BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Float_t z
     }
 
     Int_t nofSteps = Int_t(abs(dz) / 10);
-    Float_t stepSize;
+    Double_t stepSize;
     if (nofSteps == 0) {
         stepSize = abs(dz);
     } else {
         stepSize = 10;
     }
-    Float_t z = zIn;
+    Double_t z = zIn;
 
 //    cout << "Z = " << zIn << " Par q/p = " << par->GetQp() << endl;
     //if (length) *length = 0;

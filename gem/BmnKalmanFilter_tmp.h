@@ -31,10 +31,10 @@ public:
     /* Destructor */
     virtual ~BmnKalmanFilter_tmp();
 
-    BmnStatus Prediction(FairTrackParam* par, Float_t dZ, BmnFitNode& node);
-    BmnStatus Correction(FairTrackParam* par, BmnHit* hit, Float_t &chi2, BmnFitNode& node);
+    BmnStatus Prediction(FairTrackParam* par, Double_t dZ, BmnFitNode& node);
+    BmnStatus Correction(FairTrackParam* par, BmnHit* hit, Double_t &chi2, BmnFitNode& node);
     FairTrackParam Filtration(BmnGemTrack* tr, TClonesArray* hits);
-    TMatrixD Transport(FairTrackParam* par, Float_t zOut, TString type); //transport matrix generation
+    TMatrixD Transport(FairTrackParam* par, Double_t zOut, TString type); //transport matrix generation
     BmnStatus AddFitNode(BmnFitNode node);
     vector<BmnFitNode> GetFitNodes() const {return fFitNodes;};
     TMatrixD FillVecFromPar(const FairTrackParam* par);
@@ -42,17 +42,17 @@ public:
     BmnStatus FillParFromVecAndCov(TMatrixD x, TMatrixD c, FairTrackParam* par);
     Int_t GetNnodes() const {return fFitNodes.size();};
     
-    void RK4Order(const vector<Double_t>& xIn, Float_t zIn, vector<Double_t>& xOut, Float_t zOut, vector<Double_t>& derivs);
-    BmnStatus RK4TrackExtrapolate(FairTrackParam* par, Float_t zOut, vector<Double_t>* F);
-    Float_t CalcOut(Float_t in, const Float_t k[4]);
+    void RK4Order(const vector<Double_t>& xIn, Double_t zIn, vector<Double_t>& xOut, Double_t zOut, vector<Double_t>& derivs);
+    BmnStatus RK4TrackExtrapolate(FairTrackParam* par, Double_t zOut, vector<Double_t>* F);
+    Double_t CalcOut(Double_t in, const Double_t k[4]);
     void TransportC(const vector<Double_t>& cIn, const vector<Double_t>& F, vector<Double_t>& cOut);
-    BmnStatus Update(FairTrackParam* par, const BmnHit* hit, Float_t& chiSq);
+    BmnStatus Update(FairTrackParam* par, const BmnHit* hit, Double_t& chiSq);
     void UpdateF(vector<Double_t>& F, const vector<Double_t>& newF);
     
     BmnStatus FitSmooth(BmnGemTrack* track, TClonesArray* hits);
     BmnStatus Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode);
     
-    BmnStatus TGeoTrackPropagate(FairTrackParam* par, Float_t zOut, Int_t pdg, vector<Double_t>* F, Float_t* length, TString type);
+    BmnStatus TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, TString type);
     
 private:
     vector<BmnFitNode> fFitNodes;

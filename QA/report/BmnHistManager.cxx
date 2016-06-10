@@ -23,13 +23,9 @@
 #include <cassert>
 #include <iostream>
 #include <algorithm>
-using std::string;
-using std::map;
-using std::cout;
-using std::endl;
-using std::vector;
-using std::exception;
-using std::sort;
+#include <limits>
+
+using namespace std;
 
 class CompareTNamedMore:
    public std::binary_function<

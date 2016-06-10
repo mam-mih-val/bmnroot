@@ -85,7 +85,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         vector<BmnFitNode> nodes;
         nodes.reserve(nHits);
-        Float_t chi2 = 0.0;
+        Double_t chi2 = 0.0;
         fKalman = new BmnKalmanFilter_tmp();
 
         vector<Double_t>* F = new vector<Double_t> (25, 0.);
@@ -98,11 +98,11 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             (*F)[24] = 1.;
         }
 
-        Float_t length = 0.0;
+        Double_t length = 0.0;
 
         for (Int_t iHit = 0; iHit < nHits; ++iHit) {
             BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(tr.GetHitIndex(iHit));
-            Float_t z = hit->GetZ();
+            Double_t z = hit->GetZ();
             BmnFitNode node;
 
             fKalman->TGeoTrackPropagate(&par, z, fPDG, F, &length, "field");

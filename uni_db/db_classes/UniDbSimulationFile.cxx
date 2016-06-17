@@ -395,40 +395,40 @@ int UniDbSimulationFile::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'simulation_file'"<<endl;
+	cout<<"Table 'simulation_file':"<<endl;
 	while (stmt->NextResultRow())
 	{
-		cout<<". file_id: ";
+		cout<<"file_id: ";
 		cout<<(stmt->GetInt(0));
-		cout<<". file_path: ";
+		cout<<", file_path: ";
 		cout<<(stmt->GetString(1));
-		cout<<". generator_name: ";
+		cout<<", generator_name: ";
 		cout<<(stmt->GetString(2));
-		cout<<". beam_particle: ";
+		cout<<", beam_particle: ";
 		cout<<(stmt->GetString(3));
-		cout<<". target_particle: ";
+		cout<<", target_particle: ";
 		if (stmt->IsNull(4)) cout<<"NULL";
 		else
 			cout<<stmt->GetString(4);
-		cout<<". energy: ";
+		cout<<", energy: ";
 		if (stmt->IsNull(5)) cout<<"NULL";
 		else
 			cout<<stmt->GetDouble(5);
-		cout<<". centrality: ";
+		cout<<", centrality: ";
 		cout<<(stmt->GetString(6));
-		cout<<". event_count: ";
+		cout<<", event_count: ";
 		if (stmt->IsNull(7)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(7);
-		cout<<". file_desc: ";
+		cout<<", file_desc: ";
 		if (stmt->IsNull(8)) cout<<"NULL";
 		else
 			cout<<stmt->GetString(8);
-		cout<<". file_size: ";
+		cout<<", file_size: ";
 		if (stmt->IsNull(9)) cout<<"NULL";
 		else
 			cout<<stmt->GetDouble(9);
-		cout<<endl;
+		cout<<"."<<endl;
 	}
 
 	delete stmt;

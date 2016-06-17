@@ -29,9 +29,9 @@ using namespace std;
 class UniDbDetectorParameter
 {
  private:
-    /* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
-    /// connection to the database
-    UniDbConnection* connectionUniDb;
+	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/// connection to the database
+	UniDbConnection* connectionUniDb;
 
 	/// value id
 	int i_value_id;
@@ -60,8 +60,8 @@ class UniDbDetectorParameter
 	enumParameterType GetParameterTypeByString(string type_name, bool is_array);
 
  public:
-    /* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
-    virtual ~UniDbDetectorParameter(); // Destructor
+	/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	virtual ~UniDbDetectorParameter(); // Destructor
 
 	// static class functions
 	/// add new detector parameter to the database
@@ -94,8 +94,6 @@ class UniDbDetectorParameter
 	Long_t GetParameterValueSize() {return sz_parameter_value;}
 
 	// Setters
-	/// set value id of the current detector parameter
-	int SetValueId(int value_id);
 	/// set detector name of the current detector parameter
 	int SetDetectorName(TString detector_name);
 	/// set parameter id of the current detector parameter

@@ -256,33 +256,33 @@ int UniDbDetectorParameter::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'detector_parameter'"<<endl;
+	cout<<"Table 'detector_parameter':"<<endl;
 	while (stmt->NextResultRow())
 	{
-		cout<<". value_id: ";
+		cout<<"value_id: ";
 		cout<<(stmt->GetInt(0));
-		cout<<". detector_name: ";
+		cout<<", detector_name: ";
 		cout<<(stmt->GetString(1));
-		cout<<". parameter_id: ";
+		cout<<", parameter_id: ";
 		cout<<(stmt->GetInt(2));
-		cout<<". start_run: ";
+		cout<<", start_run: ";
 		cout<<(stmt->GetInt(3));
-		cout<<". end_run: ";
+		cout<<", end_run: ";
 		cout<<(stmt->GetInt(4));
-		cout<<". dc_serial: ";
+		cout<<", dc_serial: ";
 		if (stmt->IsNull(5)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(5);
-		cout<<". channel: ";
+		cout<<", channel: ";
 		if (stmt->IsNull(6)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(6);
-		cout<<". parameter_value: ";
+		cout<<", parameter_value: ";
 		unsigned char* tmp_parameter_value = NULL;
 		Long_t tmp_sz_parameter_value=0;
 		stmt->GetLargeObject(7, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 		cout<<(void*)tmp_parameter_value<<", binary size: "<<tmp_sz_parameter_value;
-		cout<<endl;
+		cout<<"."<<endl;
 	}
 
 	delete stmt;

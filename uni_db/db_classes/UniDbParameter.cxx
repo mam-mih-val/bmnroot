@@ -284,16 +284,16 @@ int UniDbParameter::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'parameter_'"<<endl;
+	cout<<"Table 'parameter_':"<<endl;
 	while (stmt->NextResultRow())
 	{
-		cout<<". parameter_id: ";
+		cout<<"parameter_id: ";
 		cout<<(stmt->GetInt(0));
-		cout<<". parameter_name: ";
+		cout<<", parameter_name: ";
 		cout<<(stmt->GetString(1));
-		cout<<". parameter_type: ";
+		cout<<", parameter_type: ";
 		cout<<(stmt->GetInt(2));
-		cout<<endl;
+		cout<<"."<<endl;
 	}
 
 	delete stmt;

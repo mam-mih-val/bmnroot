@@ -28,17 +28,6 @@ create table run_period
  contact_person varchar(40) null
 );
 
--- SHIFTS
-create table shift_
-(
- shift_id serial primary key,
- period_number int not null references run_period(period_number) on update cascade,
- start_datetime timestamp not null,
- end_datetime timestamp not null,
- FIO varchar(40) not null,
- responsibility varchar(20) null
-);
-
 -- GEOMETRY PART
 create table run_geometry
 (

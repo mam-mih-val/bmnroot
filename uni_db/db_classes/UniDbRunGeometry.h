@@ -56,8 +56,6 @@ class UniDbRunGeometry
 	Long_t GetRootGeometrySize() {return sz_root_geometry;}
 
 	// Setters
-	/// set geometry id of the current run geometry
-	int SetGeometryId(int geometry_id);
 	/// set root geometry of the current run geometry
 	int SetRootGeometry(unsigned char* root_geometry, Long_t size_root_geometry);
 	/// print information about current run geometry

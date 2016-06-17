@@ -205,17 +205,17 @@ int UniDbRunGeometry::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'run_geometry'"<<endl;
+	cout<<"Table 'run_geometry':"<<endl;
 	while (stmt->NextResultRow())
 	{
-		cout<<". geometry_id: ";
+		cout<<"geometry_id: ";
 		cout<<(stmt->GetInt(0));
-		cout<<". root_geometry: ";
+		cout<<", root_geometry: ";
 		unsigned char* tmp_root_geometry = NULL;
 		Long_t tmp_sz_root_geometry=0;
 		stmt->GetLargeObject(1, (void*&)tmp_root_geometry, tmp_sz_root_geometry);
 		cout<<(void*)tmp_root_geometry<<", binary size: "<<tmp_sz_root_geometry;
-		cout<<endl;
+		cout<<"."<<endl;
 	}
 
 	delete stmt;

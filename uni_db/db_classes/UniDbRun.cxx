@@ -416,50 +416,50 @@ int UniDbRun::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'run_'"<<endl;
+	cout<<"Table 'run_':"<<endl;
 	while (stmt->NextResultRow())
 	{
-		cout<<". run_number: ";
+		cout<<"run_number: ";
 		cout<<(stmt->GetInt(0));
-		cout<<". period_number: ";
+		cout<<", period_number: ";
 		if (stmt->IsNull(1)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(1);
-		cout<<". file_path: ";
+		cout<<", file_path: ";
 		cout<<(stmt->GetString(2));
-		cout<<". beam_particle: ";
+		cout<<", beam_particle: ";
 		cout<<(stmt->GetString(3));
-		cout<<". target_particle: ";
+		cout<<", target_particle: ";
 		if (stmt->IsNull(4)) cout<<"NULL";
 		else
 			cout<<stmt->GetString(4);
-		cout<<". energy: ";
+		cout<<", energy: ";
 		if (stmt->IsNull(5)) cout<<"NULL";
 		else
 			cout<<stmt->GetDouble(5);
-		cout<<". start_datetime: ";
+		cout<<", start_datetime: ";
 		cout<<(stmt->GetDatime(6)).AsSQLString();
-		cout<<". end_datetime: ";
+		cout<<", end_datetime: ";
 		if (stmt->IsNull(7)) cout<<"NULL";
 		else
 			cout<<stmt->GetDatime(7).AsSQLString();
-		cout<<". event_count: ";
+		cout<<", event_count: ";
 		if (stmt->IsNull(8)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(8);
-		cout<<". field_current: ";
+		cout<<", field_current: ";
 		if (stmt->IsNull(9)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(9);
-		cout<<". file_size: ";
+		cout<<", file_size: ";
 		if (stmt->IsNull(10)) cout<<"NULL";
 		else
 			cout<<stmt->GetDouble(10);
-		cout<<". geometry_id: ";
+		cout<<", geometry_id: ";
 		if (stmt->IsNull(11)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(11);
-		cout<<endl;
+		cout<<"."<<endl;
 	}
 
 	delete stmt;

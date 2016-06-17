@@ -31,7 +31,6 @@ db_classes/UniDbRunGeometry.cxx
 db_classes/UniDbDetector.cxx
 db_classes/UniDbParameter.cxx
 db_classes/UniDbDetectorParameter.cxx
-db_classes/UniDbShift.cxx
 db_classes/UniDbSimulationFile.cxx
 )
 

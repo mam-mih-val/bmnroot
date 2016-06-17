@@ -88,8 +88,6 @@ class UniDbSimulationFile
 	double* GetFileSize() {if (d_file_size == NULL) return NULL; else return new double(*d_file_size);}
 
 	// Setters
-	/// set file id of the current simulation file
-	int SetFileId(int file_id);
 	/// set file path of the current simulation file
 	int SetFilePath(TString file_path);
 	/// set generator name of the current simulation file

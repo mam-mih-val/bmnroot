@@ -20,9 +20,9 @@
 class UniDbRun
 {
  private:
-    /* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
-    /// connection to the database
-    UniDbConnection* connectionUniDb;
+	/* GENERATED PRIVATE MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	/// connection to the database
+	UniDbConnection* connectionUniDb;
 
 	/// run number
 	int i_run_number;
@@ -54,8 +54,8 @@ class UniDbRun
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
-    /* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
-    virtual ~UniDbRun(); // Destructor
+	/* GENERATED PUBLIC MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
+	virtual ~UniDbRun(); // Destructor
 
 	// static class functions
 	/// add new run to the database

@@ -553,10 +553,14 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             hFile<<"}\n";
         }
 
-        hFile<<"\n\t// Setters\n";
+	// SETTERS FUNCTIONS - DECLARATIONS        
+	hFile<<"\n\t// Setters\n";
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
             structColumnInfo* cur_col= *it;
+	    if (cur_col->isIdentity)
+                continue;
+
             if (!cur_col->isBinary)
             {
                 hFile<<(TString::Format("\t/// set %s of the current %s\n", cur_col->strColumnNameSpace.Data(), strTableNameSpace.Data())).Data();
@@ -1309,7 +1313,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         cxxFile<<"\tstmt->StoreResult();\n\n";
 
         cxxFile<<"\t// print rows\n";
-        cxxFile<<(TString::Format("\tcout<<\"Table '%s'\"<<endl;\n", strTableName.Data())).Data();
+        cxxFile<<(TString::Format("\tcout<<\"Table '%s':\"<<endl;\n", strTableName.Data())).Data();
         cxxFile<<"\twhile (stmt->NextResultRow())\n\t{\n";
 
         count = 0;
@@ -1317,8 +1321,11 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         {
             structColumnInfo* cur_col= *it;
 
+            cxxFile<<"\t\tcout<<\"";
+            if (count > 0) cxxFile<<", ";
+
             TString StatementType = cur_col->strStatementType, TempVar = cur_col->strTempVariableName;
-            cxxFile<<(TString::Format("\t\tcout<<\". %s: \";\n", cur_col->strColumnName.Data())).Data();
+            cxxFile<<(TString::Format("%s: \";\n", cur_col->strColumnName.Data())).Data();
 
             if (cur_col->isNullable)
             {
@@ -1366,7 +1373,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             count++;
         }
 
-        cxxFile<<"\t\tcout<<endl;\n\t}\n\n";
+        cxxFile<<"\t\tcout<<\".\"<<endl;\n\t}\n\n";
 
         cxxFile<<"\tdelete stmt;\n";
         cxxFile<<"\tdelete connUniDb;\n\n";

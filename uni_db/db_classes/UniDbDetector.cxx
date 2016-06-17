@@ -208,24 +208,24 @@ int UniDbDetector::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'detector_'"<<endl;
+	cout<<"Table 'detector_':"<<endl;
 	while (stmt->NextResultRow())
 	{
-		cout<<". detector_name: ";
+		cout<<"detector_name: ";
 		cout<<(stmt->GetString(0));
-		cout<<". manufacturer_name: ";
+		cout<<", manufacturer_name: ";
 		if (stmt->IsNull(1)) cout<<"NULL";
 		else
 			cout<<stmt->GetString(1);
-		cout<<". contact_person: ";
+		cout<<", contact_person: ";
 		if (stmt->IsNull(2)) cout<<"NULL";
 		else
 			cout<<stmt->GetString(2);
-		cout<<". description: ";
+		cout<<", description: ";
 		if (stmt->IsNull(3)) cout<<"NULL";
 		else
 			cout<<stmt->GetString(3);
-		cout<<endl;
+		cout<<"."<<endl;
 	}
 
 	delete stmt;

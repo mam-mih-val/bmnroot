@@ -64,8 +64,6 @@ class UniDbParameter
 	int GetParameterType() {return i_parameter_type;}
 
 	// Setters
-	/// set parameter id of the current parameter
-	int SetParameterId(int parameter_id);
 	/// set parameter name of the current parameter
 	int SetParameterName(TString parameter_name);
 	/// set parameter type of the current parameter

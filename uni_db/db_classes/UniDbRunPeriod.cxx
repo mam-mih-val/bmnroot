@@ -199,22 +199,22 @@ int UniDbRunPeriod::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'run_period'"<<endl;
+	cout<<"Table 'run_period':"<<endl;
 	while (stmt->NextResultRow())
 	{
-		cout<<". period_number: ";
+		cout<<"period_number: ";
 		cout<<(stmt->GetInt(0));
-		cout<<". start_datetime: ";
+		cout<<", start_datetime: ";
 		cout<<(stmt->GetDatime(1)).AsSQLString();
-		cout<<". end_datetime: ";
+		cout<<", end_datetime: ";
 		if (stmt->IsNull(2)) cout<<"NULL";
 		else
 			cout<<stmt->GetDatime(2).AsSQLString();
-		cout<<". contact_person: ";
+		cout<<", contact_person: ";
 		if (stmt->IsNull(3)) cout<<"NULL";
 		else
 			cout<<stmt->GetString(3);
-		cout<<endl;
+		cout<<"."<<endl;
 	}
 
 	delete stmt;

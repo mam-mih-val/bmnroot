@@ -19,7 +19,6 @@
 #pragma link C++ class UniDbDetector+;
 #pragma link C++ class UniDbParameter+;
 #pragma link C++ class UniDbDetectorParameter+;
-#pragma link C++ class UniDbShift+;
 #pragma link C++ class UniDbSimulationFile+;
 
 #endif

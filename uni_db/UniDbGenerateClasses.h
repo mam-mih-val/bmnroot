@@ -50,7 +50,7 @@ class UniDbGenerateClasses
     virtual ~UniDbGenerateClasses();    // Destructor
 
     // generate C++ classess - wrappers for DB tables
-    int GenerateClasses(TString connection_string = "", TString class_prefix = "UniDb", bool isOnlyUpdate = false);
+    int GenerateClasses(TString connection_string = "", TString class_prefix = "UniDb", bool isOnlyUpdate = true);
 
   ClassDef(UniDbGenerateClasses,1);
 };

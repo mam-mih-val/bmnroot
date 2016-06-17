@@ -123,7 +123,7 @@ void BmnMatchRecoToMC::Exec(Option_t* opt) {
     cout << "Event #" << eventNo++ << endl;
 
     if (fGemClusterMatches != NULL) fGemClusterMatches->Delete();
-//    if (fGemHitMatches != NULL) fGemHitMatches->Delete();
+    //    if (fGemHitMatches != NULL) fGemHitMatches->Delete();
     if (fGemTrackMatches != NULL) fGemTrackMatches->Delete();
     if (fGemSeedMatches != NULL) fGemSeedMatches->Delete();
 
@@ -231,10 +231,10 @@ void BmnMatchRecoToMC::ReadAndCreateDataBranches() {
     //        fGemClusterMatches = new TClonesArray("BmnMatch", 100);
     //        ioman->Register("GemClusterMatch", "GEM", fGemClusterMatches, kTRUE);
     //    }
-//    if (fGemHits != NULL) {
-//        fGemHitMatches = new TClonesArray("BmnMatch", 100);
-//        ioman->Register("GemHitMatch", "GEM", fGemHitMatches, kTRUE);
-//    }
+    //    if (fGemHits != NULL) {
+    //        fGemHitMatches = new TClonesArray("BmnMatch", 100);
+    //        ioman->Register("GemHitMatch", "GEM", fGemHitMatches, kTRUE);
+    //    }
     if (fGemTracks != NULL) {
         fGemTrackMatches = new TClonesArray("BmnTrackMatch", 100);
         ioman->Register("BmnGemTrackMatch", "GEM", fGemTrackMatches, kTRUE);
@@ -319,7 +319,7 @@ void BmnMatchRecoToMC::MatchHitsToPoints(const TClonesArray* points, const TClon
     }
 }
 
-void BmnMatchRecoToMC::MatchGemHitsToDigits(const TClonesArray* digitMatches,const TClonesArray* hits, TClonesArray* hitMatches) {
+void BmnMatchRecoToMC::MatchGemHitsToDigits(const TClonesArray* digitMatches, const TClonesArray* hits, TClonesArray* hitMatches) {
     if (!(hits && hitMatches && digitMatches)) return;
     for (Int_t iHit = 0; iHit < hits->GetEntriesFast(); ++iHit) {
         const BmnHit* hit = (const BmnHit*) (hits->At(iHit));
@@ -344,36 +344,19 @@ void BmnMatchRecoToMC::MatchGemTracks(
         BmnTrackMatch* trackMatch = (editMode) ? (BmnTrackMatch*) (trackMatches->At(iTrack)) : new ((*trackMatches)[iTrack]) BmnTrackMatch();
         Int_t nofHits = track->GetNHits();
         for (Int_t iHit = 0; iHit < nofHits; ++iHit) {
-//            const BmnMatch* hitMatch = (BmnMatch*) (hitMatches->At(track->GetHitIndex(iHit)));
             const BmnMatch* hitMatch = (BmnMatch*) (hitMatches->At(track->GetHitIndex(iHit)));
-            Int_t nofLinks = hitMatch->GetNofLinks();
-            for (Int_t iLink = 0; iLink < nofLinks; ++iLink) {
-                const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetLink(iLink).GetIndex()));
-                if (NULL == point) continue;
-                //cout << point->GetTrackID() << " ";
-                trackMatch->AddLink(BmnLink(1., point->GetTrackID()));
-            }
+            const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetMatchedLink().GetIndex()));
+            trackMatch->AddLink(BmnLink(1., point->GetTrackID()));
         }
-        //cout << endl;
-        // Calculate number of true and wrong hits
         Int_t trueCounter = trackMatch->GetNofTrueHits();
         Int_t wrongCounter = trackMatch->GetNofWrongHits();
+        if (trackMatch->GetMatchedIndex() < 0) continue;
         for (Int_t iHit = 0; iHit < nofHits; ++iHit) {
             const BmnMatch* hitMatch = (BmnMatch*) (hitMatches->At(track->GetHitIndex(iHit)));
-            Int_t nofLinks = hitMatch->GetNofLinks();
-            Bool_t hasTrue = false;
-            for (Int_t iLink = 0; iLink < nofLinks; ++iLink) {
-                const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetLink(iLink).GetIndex()));
-                if (NULL == point) continue;
-                if (trackMatch->GetMatchedIndex() < 0) continue;
-                if (point->GetTrackID() == trackMatch->GetMatchedLink().GetIndex()) {
-                    hasTrue = true;
-                    break;
-                }
-            }
-            if (hasTrue)
+            const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetMatchedLink().GetIndex()));
+            if (point->GetTrackID() == trackMatch->GetMatchedLink().GetIndex()) 
                 trueCounter++;
-            else
+            else 
                 wrongCounter++;
         }
         trackMatch->SetNofTrueHits(trueCounter);

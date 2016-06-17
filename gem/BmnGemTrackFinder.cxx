@@ -16,7 +16,7 @@
 
 //-----------------------------------------
 static Float_t workTime = 0.0;
-const Float_t kCHI2CUT = 1000000.0;
+const Float_t kCHI2CUT = 100.0;
 //-----------------------------------------
 
 using namespace std;
@@ -25,7 +25,7 @@ using namespace TMath;
 BmnGemTrackFinder::BmnGemTrackFinder() :
 fPDG(211),
 fEventNo(0),
-fChiSqCut(250.) {
+fChiSqCut(25.) {
     fKalman = NULL;
     fGemHitArray = NULL;
     fGemTracksArray = NULL;
@@ -79,7 +79,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
         if (track->GetChi2() < 0.0) continue; //split param
 
-        BmnGemTrack tr = *track;        
+        BmnGemTrack tr = *track;
         const Short_t nHits = tr.GetNHits();
         FairTrackParam par = *(tr.GetParamFirst());
 
@@ -125,8 +125,11 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
         tr.SetChi2(chi2);
 
-        if (tr.GetChi2() / tr.GetNDF() > kCHI2CUT) tr.SetFlag(kBMNBAD);
-        else tr.SetFlag(kBMNGOOD);
+        if (tr.GetChi2() / tr.GetNDF() > fChiSqCut) {
+            tr.SetFlag(kBMNBAD);
+            for (Int_t iHit = 0; iHit < tr.GetNHits(); ++iHit)
+                GetHit(tr.GetHitIndex(iHit))->SetUsing(kFALSE);
+        } else tr.SetFlag(kBMNGOOD);
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
         delete fKalman;
     }

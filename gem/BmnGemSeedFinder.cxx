@@ -11,14 +11,13 @@ static Float_t workTime = 0.0;
 map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
 const UInt_t kNHITSFORSEED = 12; // we use for seeds only kNHITSFORSEED hits
 const UInt_t kMAXSTATIONFORSEED = 12; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
-Float_t kCHI2CUT = 1.0;//0.7;
+Float_t kCHI2CUT = 1.0; //0.7;
 const Float_t kSIGMACUT = 0.5;
 
 using std::cout;
 using namespace TMath;
 
 BmnGemSeedFinder::BmnGemSeedFinder() : fEventNo(0) {
-
     fUseLorentz = kFALSE;
     fGemHitsArray = NULL;
     fGemSeedsArray = NULL;
@@ -51,11 +50,6 @@ InitStatus BmnGemSeedFinder::Init() {
     fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
     fMCPointsArray = (TClonesArray*) ioman->GetObject("StsPoint");
 
-    fNBins = 600; //1500;//3000;
-    fMin = -0.5;
-    fMax = -fMin;
-    fWidth = (fMax - fMin) / fNBins;
-
     fField = FairRunAna::Instance()->GetField();
 
     cout << "======================== Seed finder init finished ========================" << endl;
@@ -80,14 +74,21 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 
     const Int_t nIter = 5;
     //(0.006, 6.0, 1.05); //best parameters
-    const Float_t sigX[nIter] = {0.3, 0.3, 0.3, 0.3, 0.6};
-    const Float_t stpY[nIter] = {2.0, 2.0, 2.0, 2.0, 10.0};
-    const Float_t thrs[nIter] = {1.05, 1.05, 1.05, 1.05, 1.01};
-    const Int_t length[nIter] = {10, 8, 6, 4, 4};
+    const Int_t nBins[nIter] = {2000, 2000, 2000, 1000, 1000};
+    const Float_t sigX[nIter] = {0.005, 0.01, 0.05, 0.1, 0.5};
+    const Float_t stpY[nIter] = {1.0, 1.0, 2.0, 2.0, 9.0};
+    const Float_t thrs[nIter] = {2.5, 1.1, 1.1, 1.1, 1.1};
+    const Int_t length[nIter] = {4, 4, 4, 4, 4};
     const Float_t chi2cut[nIter] = {5.0, 4.0, 3.0, 2.0, 2.0};
-
+    
     for (Int_t i = 0; i < nIter; ++i) {
         addresses.clear();
+        
+        fNBins = nBins[i]; //1500;//3000;
+        fMin = -0.5;
+        fMax = -fMin;
+        fWidth = (fMax - fMin) / fNBins;
+
         kSIG_X = sigX[i];
         kY_STEP = stpY[i];
         kTRS = thrs[i];
@@ -1083,12 +1084,9 @@ void BmnGemSeedFinder::FillAddr() {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (hit->IsUsed()) continue; //Don't use used hits
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-        if (hit->GetType() == 0) continue; //Don't use fakes
         const Float_t R = Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
-        //const Float_t R = hit->GetZ(); //Test for different type of transformation
         const Float_t newX = hit->GetX() / R;
         const Float_t newY = hit->GetY() / R;
-        //        xRyR->Fill(newX, newY);
         Int_t xAddr = ceil((newX - fMin) / fWidth);
         Int_t yAddr = ceil((newY - fMin) / fWidth);
         ULong_t addr = yAddr * fNBins + xAddr;
@@ -1110,7 +1108,6 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
 
         if (hit->IsUsed()) continue; //Don't use used hits
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-        if (hit->GetType() == 0) continue; //Don't use fakes
 
         hit->SetFlag(kFALSE); // by default hits are not filtered 
 
@@ -1133,7 +1130,6 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (hit->IsUsed()) continue; //Don't use used hits
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-        if (hit->GetType() == 0) continue; //Don't use fakes
 
         Int_t yAddr = hit->GetYaddr();
         Int_t xAddr = hit->GetXaddr();
@@ -1143,12 +1139,10 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
         const Float_t newX = hit->GetX() * oneOverR;
 
         Float_t potSum = 0.0; //sum of all potentials
-
         for (Int_t hitIdx0 = 0; hitIdx0 < fGemHitsArray->GetEntriesFast(); ++hitIdx0) {
             BmnGemStripHit* hit0 = GetHit(hitIdx0);
             if (hit0->IsUsed()) continue; //Don't use used hits
             if (hit0->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
-            if (hit0->GetType() == 0) continue; //Don't use fakes
             Int_t yAddr0 = hit0->GetYaddr();
             Int_t xAddr0 = hit0->GetXaddr();
             if (yAddr0 < 0 || yAddr0 >= fNBins || xAddr0 < 0 || xAddr0 >= fNBins) continue;
@@ -1156,7 +1150,6 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
             if (Abs(yAddr0 - yAddr) > yStep) continue; //hits should be in a the same Y-coridor
 
             const Float_t newX0 = hit0->GetX() / Sqrt(Sqr(hit0->GetX()) + Sqr(hit0->GetY()) + Sqr(hit0->GetZ()));
-
             Float_t pot = sigma_x2 / (sigma_x2 + Sqr(newX0 - newX));
             potSum += pot;
         }
@@ -1164,7 +1157,7 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
             addresses.insert(pair<ULong_t, Int_t > (hit->GetAddr(), hitIdx));
         }
     }
-
+    
     //cout << "addresses.size = " << addresses.size() << endl;
 }
 

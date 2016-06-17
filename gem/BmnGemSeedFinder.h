@@ -58,6 +58,7 @@ public:
     void SetTrs(Float_t trs) {kTRS = trs;}
     void SetYstep(Float_t stp) {kY_STEP = stp;}
     void SetSigX(Float_t sig) {kSIG_X = sig;}
+    void SetNbins(Int_t n) {fNBins = n;}
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);

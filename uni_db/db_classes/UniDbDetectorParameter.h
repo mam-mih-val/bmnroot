@@ -244,6 +244,15 @@ class UniDbDetectorParameter
 	/// set Double Array array for parameter
 	int SetDoubleArray(double* parameter_value, int element_count);
 
+        /// add new record - detector parameter value as Binary Array
+        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, void* parameter_value, int byte_count);
+        /// add new record - detector parameter value as Binary Array
+        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, void* parameter_value, int byte_count);
+        /// get Binary Array for parameter
+        int GetBinaryArray(void*& parameter_value, int& byte_count);
+        /// set Binary Array array for parameter
+        int SetBinaryArray(void* parameter_value, int byte_count);
+
 	/// add new record - detector parameter value as Int+Int Array
 	static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, IIStructure* parameter_value, int element_count);
 	/// add new record - detector parameter value as Int+Int Array

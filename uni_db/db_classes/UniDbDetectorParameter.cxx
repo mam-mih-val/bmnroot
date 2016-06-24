@@ -598,6 +598,14 @@ enumParameterType UniDbDetectorParameter::GetParameterTypeByString(string type_n
                     if (is_array)
                         return IIArrayType;
                 }
+                else
+                {
+                    if ((type_name == "void") || (type_name == "binary"))
+                    {
+                        if (is_array)
+                            return BinaryArrayType;
+                    }
+                }
             }
         }
     }
@@ -1361,6 +1369,64 @@ int UniDbDetectorParameter::SetDoubleArray(double* parameter_value, int element_
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
     int res_code = SetUNC(p_parameter_value, size_parameter_value);
+    if (res_code != 0)
+    {
+        delete [] p_parameter_value;
+        return res_code;
+    }
+
+    return 0;
+}
+
+// create detector parameter value as binary array
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, void* parameter_value, int byte_count)
+{
+    unsigned char* p_parameter_value = new unsigned char[byte_count];
+    memcpy(p_parameter_value, parameter_value, byte_count);
+
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run,
+                                                                                                 (unsigned char*)p_parameter_value, byte_count, BinaryArrayType);
+    if (pDetectorParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pDetectorParameter;
+}
+
+// create TDC/ADC parameter value as binary array
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, void* parameter_value, int byte_count)
+{
+    unsigned char* p_parameter_value = new unsigned char[byte_count];
+    memcpy(p_parameter_value, parameter_value, byte_count);
+
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run, dc_serial, channel,
+                                                                                                 (unsigned char*)p_parameter_value, byte_count, BinaryArrayType);
+    if (pDetectorParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pDetectorParameter;
+}
+
+// get value of detector parameter as binary array
+int UniDbDetectorParameter::GetBinaryArray(void*& parameter_value, int& element_count)
+{
+    unsigned char* p_parameter_value = GetUNC(BinaryArrayType);
+    if (p_parameter_value == NULL)
+        return - 1;
+
+    element_count = sz_parameter_value;
+    parameter_value = new unsigned char[element_count];
+    memcpy(parameter_value, p_parameter_value, sz_parameter_value);
+
+    return 0;
+}
+
+// set value to detector parameter as binary array
+int UniDbDetectorParameter::SetBinaryArray(void* parameter_value, int element_count)
+{
+    unsigned char* p_parameter_value = new unsigned char[element_count];
+    memcpy(p_parameter_value, parameter_value, element_count);
+
+    int res_code = SetUNC(p_parameter_value, element_count);
     if (res_code != 0)
     {
         delete [] p_parameter_value;

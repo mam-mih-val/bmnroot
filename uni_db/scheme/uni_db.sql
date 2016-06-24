@@ -77,7 +77,7 @@ create table detector_
 );
 
 -- COMPONENT PARAMETERS
--- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array
+-- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array, 7 - binary array
 -- drop table parameter_
 create table parameter_
 (

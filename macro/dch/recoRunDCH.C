@@ -1,4 +1,3 @@
-
 #include "TSpectrum.h"
 
 using namespace TMath;
@@ -32,7 +31,10 @@ void recoRunDCH() {
       runtype="run2"; 
     }else if (runNumber>=403&&runNumber<=688){
       runtype="run3"; 
+    }else if (runNumber>=689){
+      runtype="run4";
     }
+
 
     cout<<"Run type = "<<runtype<<", run number = "<<runNumber<<endl;
 

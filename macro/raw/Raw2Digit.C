@@ -1,4 +1,3 @@
-
 using namespace std;
 
 void Raw2Digit(char *fname="bmn_run0258.root") {
@@ -10,7 +9,8 @@ void Raw2Digit(char *fname="bmn_run0258.root") {
 
     if (RUN < 189) mapping = "DCH_map_Feb20_Feb25.txt";
     else if (RUN >= 189 && RUN < 470) mapping = "DCH_map_Mar4.txt";
-    else  mapping = "DCH_map_Mar11.txt";
+    else if (RUN >= 470 && RUN < 689) mapping = "DCH_map_Mar11.txt";
+    else  mapping = "DCH_map_Run4.txt";
     BmnDchRaw2Digit  DCH(mapping); DCH.print();
 
     BmnZDCRaw2Digit  ZDC("ZDC_map_Mar08.txt", fname); ZDC.print();

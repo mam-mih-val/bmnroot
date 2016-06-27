@@ -1,4 +1,3 @@
-
 using namespace std;
 
 void testRaw2DigitMwpc(char *fname="/nica/data4mpd1/dataBMN/bmnroot/EB+HRB/bmn_run0607_eb+hrb.root") {
@@ -9,7 +8,8 @@ void testRaw2DigitMwpc(char *fname="/nica/data4mpd1/dataBMN/bmnroot/EB+HRB/bmn_r
     const char *mapping;
     if (RUN < 189) mapping = "DCH_map_Feb20_Feb25.txt";
     else if (RUN >= 189 && RUN < 470) mapping = "DCH_map_Mar4.txt";
-    else  mapping = "DCH_map_Mar11.txt";
+     else if (RUN >= 470 && RUN < 689) mapping = "DCH_map_Mar11.txt";
+    else  mapping = "DCH_map_Run4.txt";
     BmnDchRaw2Digit  DCH(mapping); DCH.print();
 
     BmnZDCRaw2Digit  ZDC("ZDC_map_Feb20.txt"); ZDC.print();

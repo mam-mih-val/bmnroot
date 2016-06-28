@@ -40,7 +40,7 @@ class UniDbConnection
     virtual ~UniDbConnection(); // Destructor
 
     static UniDbConnection* Open(UniConnectionType database_type);
-    static UniDbConnection* Open(TString strDBName = "pgsql://nc13.jinr.ru/bmn_db", TString strUID = BMN_DB_USERNAME, TString strPassword = BMN_DB_PASSWORD);
+    static UniDbConnection* Open(TString strDBConn = "pgsql://nc13.jinr.ru/", TString strDBName = UNI_DB_NAME, TString strUID = UNI_DB_USERNAME, TString strPassword = UNI_DB_PASSWORD);
 
     TSQLServer* GetSQLServer(){return uni_db;}
 

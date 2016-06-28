@@ -155,6 +155,7 @@ EndIf()
 
 # Set some useful variables
 SetBasicVariables()
+SET(PATH ${EXECUTABLE_OUTPUT_PATH} ${PATH})
 
 # Recurse into the given subdirectories.  This does not actually
 # cause another cmake executable to run.  The same process will walk through

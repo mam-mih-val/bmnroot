@@ -5,6 +5,9 @@
 // Description : Get list of production files
 //============================================================================
 
+// own headers
+#include "db_settings.h"
+
 // ROOT includes
 #include "TString.h"
 #include "TSQLServer.h"
@@ -34,8 +37,8 @@ int main(int argc, char** argv)
     }
 
     // parse parameter for DB searching
-    bool isGen = false, isEnergy = false, isMinEnergy = false, isMaxEnergy = false, isParts = false, isDesc = false, isType = false;
-    string strGen, strParts, strDesc, strType;
+    bool isGen = false, isEnergy = false, isMinEnergy = false, isMaxEnergy = false, isBeam = false, isDesc = false, isTarget = false, isPath = false;
+    string strGen, strBeam, strDesc, strTarget, strPath;
     double fEnergy, fMaxEnergy;
     for (int i = 1; i < argc; i++){
         //TString strParameter(argv[i]);
@@ -52,10 +55,10 @@ int main(int argc, char** argv)
             transform(token.begin(), token.end(), token.begin(), ::tolower);
 
             // generator name parsing
-            if ((token.length() > 4) && (token.substr(0,4) == "gen=")){
+            if ((token.length() > 4) && (token.substr(0,4) == "gen="))
+            {
                 isGen = true;
                 strGen = token.substr(4);
-                //cout<<strGen<<endl;
             }
             else
             {
@@ -75,7 +78,6 @@ int main(int argc, char** argv)
                             isEnergy = true;
                             isMinEnergy = true;
                             fEnergy = dVal;
-                            //cout<<dVal<<endl;
                         }
                         if (token.length() > indDash)
                         {
@@ -86,7 +88,6 @@ int main(int argc, char** argv)
                                 isEnergy = true;
                                 isMaxEnergy = true;
                                 fMaxEnergy = dVal;
-                                //cout<<dVal<<endl;
                             }
                         }
                     }//if (indDash > -1)
@@ -100,63 +101,72 @@ int main(int argc, char** argv)
                         {
                             isEnergy = true;
                             fEnergy = dVal;
-                            //cout<<dVal<<endl;
                         }
                     }//else
                 }//if ((token.length() > 7) && (token.substr(0,7) == "energy="))
+                // particles' names in collision parsing
                 else
                 {
-                    // particles' names in collision parsing
-                    if ((token.length() > 9) && (token.substr(0,9) == "particle=")){
-                        isParts = true;
-                        strParts = token.substr(9);
-                        //cout<<strParts<<endl;
+                    if ((token.length() > 5) && (token.substr(0,5) == "beam="))
+                    {
+                        isBeam = true;
+                        strBeam = token.substr(5);
                     }
                     else
                     {
                         // search text in description string
-                        if ((token.length() > 5) && (token.substr(0,5) == "desc=")){
+                        if ((token.length() > 5) && (token.substr(0,5) == "desc="))
+                        {
                             isDesc = true;
                             strDesc = token.substr(5);
-                            //cout<<strDesc<<endl;
                         }
                         else
                         {
                             // type of data parsing
-                            if ((token.length() > 5) && (token.substr(0,5) == "type=")){
-                                isType = true;
-                                strType = token.substr(5);
-                                //cout<<strType<<endl;
+                            if ((token.length() > 7) && (token.substr(0,7) == "target="))
+                            {
+                                isTarget = true;
+                                strTarget = token.substr(7);
                             }
+                            else
+                            {
+                                // path parsing
+                                if ((token.length() > 5) && (token.substr(0,5) == "path="))
+                                {
+                                    isPath = true;
+                                    strPath = token.substr(5);
+                                }
+                            }//else TYPE of data
                         }//else DESC
                     }//else PARTICLE
                 }//else ENERGY
             }//else GEN
-        }
+        }//while(getline(ss, token, ','))
     }//for (int i = 1; i < argc; i++)
 
     // generate query
-    TSQLServer* pSQLServer = TSQLServer::Connect("mysql://mpd.jinr.ru/data4mpd", "data4mpd", "MixedPhase");
-    if (pSQLServer == 0x00){
+    TString strConn = "pgsql://nc13.jinr.ru/" + (TString)UNI_DB_NAME;
+    TSQLServer* pSQLServer = TSQLServer::Connect(strConn, UNI_DB_USERNAME, UNI_DB_PASSWORD);
+    if (pSQLServer == 0x00)
+    {
         cout<<"Connection to database wasn't established"<<endl;
         return 0x00;
     }
 
-    TString sql = "select data4mpd_path "
-                  "from events";
+    TString sql = "select file_path "
+                  "from simulation_file";
 
     bool isWhere = false;
     // if event generator selection
     if (isGen == true)
     {
-        if (isWhere){
-            sql += TString::Format(" AND data4mpd_generator = '%s'", strGen.data());
-        }
+        if (isWhere)
+            sql += TString::Format(" AND lower(generator_name) = '%s'", strGen.data());
         else
         {
             isWhere = true;
             sql += TString::Format(" "
-                                   "where data4mpd_generator = '%s'", strGen.data());
+                                   "where lower(generator_name) = '%s'", strGen.data());
         }
     }
     // if energy selection
@@ -173,50 +183,62 @@ int main(int argc, char** argv)
 
         if (isMinEnergy)
         {
-            sql += TString::Format("data4mpd_energy >= %f", fEnergy);
+            sql += TString::Format("energy >= %f", fEnergy);
             if (isMaxEnergy)
-                sql += TString::Format(" AND data4mpd_energy <= %f", fMaxEnergy);
+                sql += TString::Format(" AND energy <= %f", fMaxEnergy);
         }
         else
         {
             if (isMaxEnergy)
-                sql += TString::Format("data4mpd_energy <= %f", fMaxEnergy);
+                sql += TString::Format("energy <= %f", fMaxEnergy);
             else
-                sql += TString::Format("data4mpd_energy = %f", fEnergy);
+                sql += TString::Format("energy = %f", fEnergy);
         }
     }
-    // if 'particles in collision' selection
-    if (isParts == true)
+    // if beam particle was selected
+    if (isBeam == true)
     {
         if (isWhere)
-            sql += TString::Format(" AND data4mpd_collision = '%s'", strParts.data());
+            sql += TString::Format(" AND lower(beam_particle) = '%s'", strBeam.data());
         else
         {
             isWhere = true;
             sql += TString::Format(" "
-                                   "where data4mpd_collision = '%s'", strParts.data());
+                                   "where lower(beam_particle) = '%s'", strBeam.data());
+        }
+    }
+    // if beam particle was selected
+    if (isTarget == true)
+    {
+        if (isWhere)
+            sql += TString::Format(" AND lower(target_particle) = '%s'", strTarget.data());
+        else
+        {
+            isWhere = true;
+            sql += TString::Format(" "
+                                   "where lower(target_particle) = '%s'", strTarget.data());
         }
     }
     if (isDesc == true)
     {
         if (isWhere)
-            sql += TString::Format(" AND data4mpd_description like '%%%s%%'", strDesc.data());
+            sql += TString::Format(" AND lower(file_desc) like '%%%s%%'", strDesc.data());
         else
         {
             isWhere = true;
             sql += TString::Format(" "
-                                   "where data4mpd_description like '%%%s%%'", strDesc.data());
+                                   "where lower(file_desc) like '%%%s%%'", strDesc.data());
         }
     }
-    if (isType == true)
+    if (isPath == true)
     {
         if (isWhere)
-            sql += TString::Format(" AND data4mpd_datatype = '%s'", strType.data());
+            sql += TString::Format(" AND lower(file_path) like '%%%s%%'", strPath.data());
         else
         {
             isWhere = true;
             sql += TString::Format(" "
-                                   "where data4mpd_datatype = '%s'", strType.data());
+                                   "where lower(file_path) like '%%%s%%'", strPath.data());
         }
     }
 

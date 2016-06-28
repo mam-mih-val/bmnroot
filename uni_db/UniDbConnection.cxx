@@ -19,7 +19,7 @@ UniDbConnection* UniDbConnection::Open(UniConnectionType database_type)
     switch (database_type)
     {
         case UNIFIED_DB:
-            conString = "pgsql://nc13.jinr.ru/bmn_db";
+            conString = "pgsql://nc13.jinr.ru/" + (TString)UNI_DB_NAME;
             break;
         default:
             {
@@ -39,7 +39,7 @@ UniDbConnection* UniDbConnection::Open(UniConnectionType database_type)
     }
     else
     {
-        pSQLServer = TSQLServer::Connect(conString, BMN_DB_USERNAME, BMN_DB_PASSWORD);
+        pSQLServer = TSQLServer::Connect(conString, UNI_DB_USERNAME, UNI_DB_PASSWORD);
         if (pSQLServer == 0x00)
         {
             cout<<"Error: connection wasn't established"<<endl;
@@ -54,9 +54,9 @@ UniDbConnection* UniDbConnection::Open(UniConnectionType database_type)
 }
 
 // -------------------------------------------------------------------
-UniDbConnection* UniDbConnection::Open(TString strDBName, TString strUID, TString strPassword)
+UniDbConnection* UniDbConnection::Open(TString strDBConn, TString strDBName, TString strUID, TString strPassword)
 {
-    TString conString = strDBName;
+    TString conString = strDBConn + strDBName;
 
     if (UniDbConnection::mapConnection == NULL)
         UniDbConnection::mapConnection = new mapSQLServer();
@@ -69,7 +69,7 @@ UniDbConnection* UniDbConnection::Open(TString strDBName, TString strUID, TStrin
     }
     else
     {
-        pSQLServer = TSQLServer::Connect(conString, BMN_DB_USERNAME, BMN_DB_PASSWORD);
+        pSQLServer = TSQLServer::Connect(conString, strUID, strPassword);
         if (pSQLServer == 0x00)
         {
             cout<<"Error: connection wasn't established"<<endl;

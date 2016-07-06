@@ -64,13 +64,17 @@
 #pragma link C++ class BmnZDCDigit+;
 
 #pragma link C++ class BmnADCDigit+;
+#pragma link C++ class BmnADC32Digit+;
 #pragma link C++ class BmnTDCDigit+;
 #pragma link C++ class BmnSyncDigit+;
 #pragma link C++ class BmnTTBDigit+;
+#pragma link C++ class BmnMSCDigit+;
 
 #pragma link C++ class BmnDchRaw2Digit+;
 #pragma link C++ class BmnZDCRaw2Digit+;
 #pragma link C++ class BmnTof2Raw2Digit+;
 #pragma link C++ class BmnTof1Raw2Digit+;
+
+#pragma link C++ class BmnRawDataDecoder+;
 
 #endif

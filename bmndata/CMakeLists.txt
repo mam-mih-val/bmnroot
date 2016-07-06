@@ -77,14 +77,17 @@ BmnTof2Digit.cxx
 BmnDchDigit.cxx
 BmnEcalDigit.cxx
 BmnADCDigit.cxx
+BmnADC32Digit.cxx
 BmnTDCDigit.cxx
 BmnSyncDigit.cxx
 BmnTTBDigit.cxx
+BmnMSCDigit.cxx
 BmnDchRaw2Digit.cxx
 BmnZDCRaw2Digit.cxx
 BmnZDCDigit.cxx
 BmnTof2Raw2Digit.cxx
 BmnTof1Raw2Digit.cxx
+BmnRawDataDecoder.cxx
 BmnEnums.h
 )
 

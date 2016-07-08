@@ -27,16 +27,25 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
     YMinReadout = 0.0;
     YMaxReadout = 2.0;
 
-    ZReadoutModulePosition = 0.0;
+    ZStartModulePosition = 0.0;
+
+    DriftGapThickness = 0.3; //cm
+    FirstTransferGapThickness = 0.25; //cm
+    SecondTransferGapThickness = 0.2; //cm
+    InductionGapThickness = 0.15; //cm
+    ModuleThickness = DriftGapThickness + FirstTransferGapThickness + SecondTransferGapThickness + InductionGapThickness; //cm
+
+    ElectronDriftDirection = ForwardZAxisEDrift;
+
+    MCD = 0.0333; //mean collision distance (mean free flight path) [cm]
 
     AvalancheRadius = 0.10; //cm
-    MCD = 0.0264; //cm
-    Gain = 1.0; //gain level
-    DriftGap = 0.3; //cm
-    InductionGap = 0.2; //cm
+    Gain = 1.0; //gain level (for each electron signal - in RealPointFull or for strip signal - in RealPointFullOne)
+
+    //возможно в дальнейшем придется избавиться от этого дерьма!
     ClusterDistortion = 0.0;
     LandauMPV = 1.6; //keV (default)
-    BackgroundNoiseLevel = 0.03;
+    BackgroundNoiseLevel = 0.0; //was 0.03
     MinSignalCutThreshold = 0.05;
     MaxSignalCutThreshold = 6.25;
 
@@ -49,7 +58,8 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule(Double_t xsize, Double_t ysiz
                                        Double_t xorig, Double_t yorig,
                                        Double_t pitch, Double_t adeg,
                                        Double_t low_strip_width, Double_t up_strip_width,
-                                       Double_t zpos_module) {
+                                       Double_t zpos_module,
+                                       ElectronDriftDirectionInModule edrift_direction) {
     Verbosity = kTRUE;
 
     XMinReadout = xorig;
@@ -63,16 +73,25 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule(Double_t xsize, Double_t ysiz
     AngleDeg = adeg;
     AngleRad = AngleDeg*Pi()/180;
 
-    ZReadoutModulePosition = zpos_module;
+    ZStartModulePosition = zpos_module;
+
+    DriftGapThickness = 0.3; //cm
+    FirstTransferGapThickness = 0.25; //cm
+    SecondTransferGapThickness = 0.2; //cm
+    InductionGapThickness = 0.15; //cm
+    ModuleThickness = DriftGapThickness + FirstTransferGapThickness + SecondTransferGapThickness + InductionGapThickness; //cm
+
+    ElectronDriftDirection = edrift_direction;
+
+    MCD = 0.0333; //mean collision distance (mean free flight path) [cm]
 
     AvalancheRadius = 0.10; //cm
-    MCD = 0.0264; //cm
-    Gain = 1.0; //gain level
-    DriftGap = 0.3; //cm
-    InductionGap = 0.2; //cm
+    Gain = 1.0; //gain level (for each electron signal - in RealPointFull or for strip signal - in RealPointFullOne)
+
+    //возможно в дальнейшем придется избавиться от этого дерьма!
     ClusterDistortion = 0.0;
     LandauMPV = 1.6; //keV (default)
-    BackgroundNoiseLevel = 0.03;
+    BackgroundNoiseLevel = 0.0; //was 0.03
     MinSignalCutThreshold = 0.05;
     MaxSignalCutThreshold = 6.25;
 
@@ -110,6 +129,8 @@ void BmnGemStripReadoutModule::CreateReadoutPlanes() {
     ResetRealPoints();
 
     ResetStripHits();
+
+    ResetElectronPointsAndClusters(); //test
 }
 
 void BmnGemStripReadoutModule::RebuildReadoutPlanes() {
@@ -175,7 +196,7 @@ void BmnGemStripReadoutModule::SetReadoutSizes(Double_t xsize, Double_t ysize, D
 }
 
 Bool_t BmnGemStripReadoutModule::SetDeadZone(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax) {
-    if((xmax - xmin) >= 0 && (ymax - ymin) >=0) {
+    if((xmax - xmin) >= 0 && (ymax - ymin) >= 0) {
         DeadZone.Xmin = xmin;
         DeadZone.Xmax = xmax;
         DeadZone.Ymin = ymin;
@@ -243,7 +264,10 @@ void BmnGemStripReadoutModule::AddBackgroundNoise() {
     }
 }
 
-Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z, Double_t signal, Int_t refID) {
+//Add single point without smearing and avalanch effects
+Bool_t BmnGemStripReadoutModule::AddRealPointSimple(Double_t x, Double_t y, Double_t z,
+                                                    Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
+
     if( x >= XMinReadout && x <= XMaxReadout &&
         y >= YMinReadout && y <= YMaxReadout &&
         !DeadZone.IsInside(x, y) ) {
@@ -273,94 +297,373 @@ Bool_t BmnGemStripReadoutModule::AddRealPoint(Double_t x, Double_t y, Double_t z
     }
 }
 
+//Add point with full realistic behaviour (tracking through the module, avalanche effects)
 Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
                                                   Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
+    //Condition: a start point is inside the module and outside its dead zone
     if( x >= XMinReadout && x <= XMaxReadout &&
         y >= YMinReadout && y <= YMaxReadout &&
         !DeadZone.IsInside(x, y) ) {
 
-        if(pz == 0) return false;
-        if(px == 0 && py == 0) px = 1e-8;
+        gRandom->SetSeed(0);
 
-        Double_t zdist = DriftGap - Abs(z-ZReadoutModulePosition);
-        if(zdist < 0) {
-            if(Verbosity) cout << "WARNING: Point (" << x << " : " << y << " : " << z << ") is out of a drift zone\n";
+        //Distance from entry point (x,y,z) to exit point (along z-axis)
+        Double_t z_distance_from_in_to_out;
+
+        //Condition: track direction along z-axis
+        if(pz > 0.0) {
+            z_distance_from_in_to_out = ModuleThickness - (z-ZStartModulePosition);
+        }
+        else {
+            z_distance_from_in_to_out = z - ZStartModulePosition;
+        }
+
+        //Condition: track distance along z-axis must be not zero
+        if(z_distance_from_in_to_out <= 0.0) {
+            if(Verbosity) cout << "WARNING: Point (" << x << " : " << y << " : " << z << ") has a track with incorrect length\n";
             return false;
         }
 
-        //Particle direction at the current point
-        Double_t dirx = px/Abs(pz);
-        Double_t diry = py/Abs(pz);
-        Double_t dirz = pz/Abs(pz);
+        //Scale coefficient of the track vector (the path from entry point to exit point)
+        Double_t vector_coeff = fabs(z_distance_from_in_to_out/pz);
 
-        if(Verbosity) cout << "x = " << x << "\n";
-        if(Verbosity) cout << "y = " << y << "\n";
-        if(Verbosity) cout << "z = " << z << "\n";
+        //Components of the track vector
+        Double_t x_vec_from_in_to_out = vector_coeff*px;
+        Double_t y_vec_from_in_to_out= vector_coeff*py;
+        Double_t z_vec_from_in_to_out = vector_coeff*pz;
 
-        if(Verbosity) cout << "px = " << px << "\n";
-        if(Verbosity) cout << "py = " << py << "\n";
-        if(Verbosity) cout << "pz = " << pz << "\n";
+        //Exit point coordinates (x_out, y_out, z_out)
+        Double_t x_out = x + x_vec_from_in_to_out;
+        Double_t y_out = y + y_vec_from_in_to_out;
+        Double_t z_out = z + z_vec_from_in_to_out;
 
-        if(Verbosity) cout << "dirx = " << dirx << "\n";
-        if(Verbosity) cout << "diry = " << diry << "\n";
-        if(Verbosity) cout << "dirz = " << dirz << "\n";
+//Visual testing ---------------------------------------------------------------
+        /*//need for GemTrackVisualisation!!!
+        double x_out_old = x_out;
+        double y_out_old = y_out;
+        double z_out_old = z_out;
+        //need for ReadoutPlaneVisualisation!!!
+        vector<Double_t> x_readout_points;
+        vector<Double_t> y_readout_points;*/
+//------------------------------------------------------------------------------
 
-        if(Verbosity) cout << "zdist = " << zdist << "\n";
+        //Check if the exit point is outside the module then calculate new x_out, y_out, z_out values
+        //Condition: x-coordinate of the exit point is inside the module
+        if(x_out < XMinReadout || x_out > XMaxReadout) {
+            if(x_out < XMinReadout) x_out = XMinReadout;
+            if(x_out > XMaxReadout) x_out = XMaxReadout;
 
-        Double_t x_out = dirx*zdist + x;
-        Double_t y_out = diry*zdist + y;
+            x_vec_from_in_to_out = x_out - x;
+            vector_coeff = x_vec_from_in_to_out/px;
 
-        //if(x_out < XMinReadout) { x_out = XMinReadout; }
-        //if(x_out > XMaxReadout) { x_out = XMaxReadout; }
-        //if(y_out < YMinReadout) { y_out = YMinReadout; }
-        //if(y_out > YMaxReadout) { y_out = YMaxReadout; }
+            y_vec_from_in_to_out= vector_coeff*py;
+            z_vec_from_in_to_out = vector_coeff*pz;
 
-        if(Verbosity) cout << "x_out = " << x_out << "\n";
-        if(Verbosity) cout << "y_out = " << y_out << "\n";
-        if(Verbosity) cout << "z_out = " << DriftGap << "\n";
-
-        Double_t dist_track = Sqrt((x_out-x)*(x_out-x) + (y_out-y)*(y_out-y) + zdist*zdist);
-        Double_t dist_projXY = Sqrt((x_out-x)*(x_out-x) + (y_out-y)*(y_out-y));
-
-        Double_t dist_projX = Abs(x_out-x);
-        Double_t dist_projY = Abs(y_out-y);
-
-        if(Verbosity) cout << "dist_track = " << dist_track << "\n";
-        if(Verbosity) cout << "dist_XY = " << dist_projXY << "\n";
-        if(Verbosity) cout << "dist_projX = " << dist_projX << "\n";
-        if(Verbosity) cout << "dist_projY = " << dist_projY << "\n";
-
-        Int_t NCollisions = (int)(dist_track/MCD);
-
-        if(Verbosity) cout << "NCollisions = " << NCollisions << "\n";
-
-        Double_t xstep = MCD*(dist_projXY/dist_track)*(dist_projX/dist_projXY);
-        Double_t ystep = MCD*(dist_projXY/dist_track)*(dist_projY/dist_projXY);
-
-        if(dirx < 0) xstep *= -1.0;
-        if(diry < 0) ystep *= -1.0;
-
-        if(Verbosity) cout << "xstep = " << xstep << " (" << MCD << ")" << "\n";
-        if(Verbosity) cout << "ystep = " << ystep << " (" << MCD << ")" << "\n";
-
-        Int_t rcoll = 0;
-        for(Int_t iColl = 0; iColl < NCollisions+1; iColl++) {
-            Double_t xs = x + iColl*xstep;
-            Double_t ys = y + iColl*ystep;
-
-            if( (xs < XMinReadout) || (xs > XMaxReadout) || (ys < YMinReadout) || (ys > YMaxReadout) ) break;
-
-            //MakeLowerCluster(xs, ys, signal);
-            //MakeUpperCluster(xs, ys, signal);
-
-            if(Verbosity) cout << iColl << ") xys = " << xs << " : " << ys << "\n";
+            y_out = y + y_vec_from_in_to_out;
+            z_out = z + z_vec_from_in_to_out;
         }
+        //Condition: y-coordinate of the exit point is inside the module
+        if(y_out < YMinReadout || y_out > YMaxReadout) {
+            if(y_out < YMinReadout) y_out = YMinReadout;
+            if(y_out > YMaxReadout) y_out = YMaxReadout;
+
+            y_vec_from_in_to_out = y_out - y;
+            vector_coeff = y_vec_from_in_to_out/py;
+
+            x_vec_from_in_to_out= vector_coeff*px;
+            z_vec_from_in_to_out = vector_coeff*pz;
+
+            x_out = x + x_vec_from_in_to_out;
+            z_out = z + z_vec_from_in_to_out;
+        }
+        //----------------------------------------------------------------------
+
+        //Common track length (Fix: a square root!)
+        Double_t track_length = std::sqrt( (x_vec_from_in_to_out)*(x_vec_from_in_to_out) + (y_vec_from_in_to_out)*(y_vec_from_in_to_out) + (z_vec_from_in_to_out)*(z_vec_from_in_to_out) );
+
+        Double_t current_length = 0.0;  //traversed length (counter)
+        Double_t current_length_ratio = 0.0; //ratio of the traversed length to common track length (counter)
+
+        Int_t collisions_cnt = 0; //total collision counter
+        Double_t current_step = 0.0; //current distance between two collision points
+
+        //Collection of collision points
+        std::vector<CollPoint> collision_points;
+
+        while(current_length < track_length) {
+
+            current_step = gRandom->Exp(MCD);
+            current_length += current_step;
+
+            if(current_length > track_length) break;
+
+            current_length_ratio = current_length/track_length;
+
+            Double_t current_x = x + current_length_ratio*x_vec_from_in_to_out;
+            Double_t current_y = y + current_length_ratio*y_vec_from_in_to_out;
+            Double_t current_z = z + current_length_ratio*z_vec_from_in_to_out;
+
+            collision_points.push_back(CollPoint(current_x, current_y, current_z));
+
+            collisions_cnt++;
+        }
+
+
+        //Each level - distance to the readout plane
+        Double_t level1 = InductionGapThickness;
+        Double_t level2 = InductionGapThickness+SecondTransferGapThickness;
+        Double_t level3 = InductionGapThickness+SecondTransferGapThickness+FirstTransferGapThickness;
+        //Double_t level4 = InductionGapThickness+SecondTransferGapThickness+FirstTransferGapThickness+DriftGapThickness; // not used yet
+
+        //Mean electron shift along x-axis (under the influence of the Lorentz force)
+        Double_t xmean; // the dependence fitted by polynomial: f(x) = (p0 + p1*x + p2*x^2 + p3*x^3)
+            Double_t p0_xmean = +0.000118365;
+            Double_t p1_xmean = +0.0551321;
+            Double_t p2_xmean = +0.110804;
+            Double_t p3_xmean = -0.0530758;
+
+        //Sigma electron smearing
+        Double_t sigma; //depends on the distance from current z-position to the readout plane
+
+        //GEM clusters on the lower and upper planes of the readout
+        StripCluster lower_cluster;
+        StripCluster upper_cluster;
+
+        //Electron avalanche producing for each collision point at the track
+        for(Int_t icoll = 0; icoll < collision_points.size(); ++icoll) {
+
+            Double_t xcoll = collision_points[icoll].x;
+            Double_t ycoll = collision_points[icoll].y;
+            Double_t zcoll = collision_points[icoll].z;
+
+            Double_t zdist; // current z-distance to the readout
+
+            //Find z-distance to the readout depending on the electron drift direction
+            if(ElectronDriftDirection == ForwardZAxisEDrift) {
+                zdist = (ModuleThickness + ZStartModulePosition) - zcoll;
+            }
+            else {
+                zdist = zcoll - ZStartModulePosition;
+            }
+            //------------------------------------------------------------------
+
+            xmean = p0_xmean + p1_xmean*zdist + p2_xmean*zdist*zdist + p3_xmean*zdist*zdist*zdist;
+            //xmean = 0; // no xmean - no shift effect
+
+            //Condition: beacause we have piecewise fitting function (different polynomials on each gap)
+            if(zdist < 0.1) {
+                sigma = std::sqrt(0.000663416*zdist);
+            }
+            if(zdist >= 0.1 && zdist < 0.3) {
+                sigma = 0.003897 + 0.045375*zdist + (-0.03355)*zdist*zdist;
+            }
+            if(zdist >= 0.3 && zdist < 0.6) {
+                sigma = 0.004095 + 0.0424*zdist + (-0.026)*zdist*zdist;
+            }
+            if(zdist >= 0.6) {
+                sigma = 0.0118343 + 0.0200945*zdist + (-0.010325)*zdist*zdist;
+            }
+
+
+            //Number of electrons in the current collision
+            Int_t n_electrons_cluster = gRandom->Landau(1.027, 0.11);
+            if(n_electrons_cluster < 1) n_electrons_cluster = 1; //min
+            if(n_electrons_cluster > 6) n_electrons_cluster = 6; //max
+
+            for(Int_t ielectron = 0; ielectron < n_electrons_cluster; ++ielectron) {
+
+                //Electron gain in each GEM cascade
+                //Polya distribution is better, but Exponential is good too in our case
+                Double_t gain_gem1 = gRandom->Exp(15); //...->Exp(V), where V is the mean value of the exponential distribution
+                Double_t gain_gem2 = gRandom->Exp(15);
+                Double_t gain_gem3 = gRandom->Exp(15);
+
+                if(gain_gem1 < 1.0) gain_gem1 = 1.0;
+                if(gain_gem2 < 1.0) gain_gem2 = 1.0;
+                if(gain_gem3 < 1.0) gain_gem3 = 1.0;
+
+                int total_gain = 0;
+
+                if(zdist < level1) {
+                    total_gain = 1.0;
+                }
+                if(zdist >= level1 && zdist < level2) {
+                    total_gain = gain_gem3;
+                }
+                if(zdist >= level2 && zdist < level3) {
+                    total_gain = gain_gem3*gain_gem2;
+                }
+                if(zdist >= level3) {
+                    total_gain = gain_gem3*gain_gem2*gain_gem1;
+                }
+
+                //Projection of the current electron on the readout (x,y-coordinates)
+                double x_readout, y_readout;
+
+                for(int igain = 0; igain < total_gain; ++igain) {
+
+                    //x-shift of the electon depends on the electron drift direction
+                    if(ElectronDriftDirection == ForwardZAxisEDrift) {
+                        x_readout = gRandom->Gaus(xcoll-xmean, sigma);
+                    }
+                    else {
+                        x_readout = gRandom->Gaus(xcoll+xmean, sigma);
+                    }
+
+                    y_readout = gRandom->Gaus(ycoll, sigma);
+
+                    //Condition: end electron position must be inside the module
+                    if(DeadZone.IsInside(x_readout, y_readout)) continue;
+
+                    //Convert a coordinate position to a strip position
+                    Double_t lower_strip_pos = CalculateLowerStripZonePosition(x_readout, y_readout);
+                    Double_t upper_strip_pos = CalculateUpperStripZonePosition(x_readout, y_readout);
+
+                    //Add strips with signals to lower and upper clusters
+                    lower_cluster.AddStrip((Int_t)lower_strip_pos, 1.0); //Instead of 1.0 we can use Gain in future
+                    upper_cluster.AddStrip((Int_t)upper_strip_pos, 1.0);
+
+//Visual testing ---------------------------------------------------------------
+                    /*//need for ReadoutPlaneVisualisation!!!
+                    x_readout_points.push_back(x_readout);
+                    y_readout_points.push_back(y_readout);*/
+
+                    XElectronPos.push_back(x_readout);
+                    YElectronPos.push_back(y_readout);
+                    ElectronSignal.push_back(1.0);
+//------------------------------------------------------------------------------
+
+                }
+            }
+        }
+
+//Visual testing ---------------------------------------------------------------
+        /*//Track visualisation test (x_out_old, y_out_old, z_out_old - see above)
+        GemTrackVisualisation(x, y, z, x_out, y_out, z_out, x_out_old, y_out_old, z_out_old, collision_points);
+
+        //Cluster visualisation test
+        ReadoutPlaneVisualisation(x, y, z, x_out, y_out, z_out, x_readout_points, y_readout_points);*/
+//------------------------------------------------------------------------------
+
+        //Condition: both clusters have to be not empty!
+        if(lower_cluster.GetClusterSize() == 0 || upper_cluster.GetClusterSize() == 0) {
+            if(Verbosity) cout << "WARNING: Point (" << x << " : " << y << " : " << z << ") produced an empty cluster\n";
+            return false;
+        }
+
+        //Calculate cluster parameters -----------------------------------------
+        Double_t lower_cluster_mean_position = 0.0;
+        Double_t upper_cluster_mean_position = 0.0;
+
+        Double_t lower_cluster_total_signal = 0.0;
+        Double_t upper_cluster_total_signal = 0.0;
+
+        for(int i = 0; i < lower_cluster.GetClusterSize(); ++i) {
+            lower_cluster_mean_position += (lower_cluster.Strips[i]+0.5)*lower_cluster.Signals[i]; //as sum of all positions
+            lower_cluster_total_signal += lower_cluster.Signals[i];
+        }
+        for(int i = 0; i < upper_cluster.GetClusterSize(); ++i) {
+            upper_cluster_mean_position += (upper_cluster.Strips[i]+0.5)*upper_cluster.Signals[i]; //as sum of all positions
+            upper_cluster_total_signal += upper_cluster.Signals[i];
+        }
+
+        lower_cluster_mean_position /= lower_cluster_total_signal;
+        upper_cluster_mean_position /= upper_cluster_total_signal;
+
+        lower_cluster.MeanPosition = lower_cluster_mean_position; //mean lower cluster position
+        upper_cluster.MeanPosition = upper_cluster_mean_position; //mean upper cluster position
+
+        lower_cluster.TotalSignal = lower_cluster_total_signal; //total signal of the lower cluster
+        upper_cluster.TotalSignal = upper_cluster_total_signal; //total signal of the upper cluster
+
+        if(ElectronDriftDirection == ForwardZAxisEDrift) {
+            if(pz > 0.0) {
+                lower_cluster.OriginPosition = CalculateLowerStripZonePosition(x, y); //position of the real(entry) point on the lower cluster
+                upper_cluster.OriginPosition = CalculateUpperStripZonePosition(x, y); //position of the real(entry) point on the upper cluster
+            }
+            else {
+                lower_cluster.OriginPosition = CalculateLowerStripZonePosition(x_out, y_out);
+                upper_cluster.OriginPosition = CalculateUpperStripZonePosition(x_out, y_out);
+            }
+        }
+        else {
+            if(pz > 0.0) {
+                lower_cluster.OriginPosition = CalculateLowerStripZonePosition(x_out, y_out);
+                upper_cluster.OriginPosition = CalculateUpperStripZonePosition(x_out, y_out);
+            }
+            else {
+                lower_cluster.OriginPosition = CalculateLowerStripZonePosition(x, y);
+                upper_cluster.OriginPosition = CalculateUpperStripZonePosition(x, y);
+            }
+        }
+
+        lower_cluster.PositionResidual = lower_cluster.MeanPosition - lower_cluster.OriginPosition; //residual between mean and origin positions (lower cluster): x-residual = x_finded(current) - x_orig(average)
+        upper_cluster.PositionResidual = upper_cluster.MeanPosition - upper_cluster.OriginPosition; //residual between mean and origin positions (upper cluster): y-residual = y_finded(current) - y_orig(average)
+        //----------------------------------------------------------------------
+
+//Testing ----------------------------------------------------------------------
+        LowerAddedClusters.push_back(lower_cluster);
+        UpperAddedClusters.push_back(upper_cluster);
+//------------------------------------------------------------------------------
+
+        //Add the correct clusters to the readout layers -----------------------
+        //lower cluster
+        for(Int_t ielement; ielement < lower_cluster.Strips.size(); ++ielement) {
+            Int_t strip_num = lower_cluster.Strips.at(ielement);
+            Double_t strip_signal = lower_cluster.Signals.at(ielement);
+            if(strip_num >= 0 && strip_num < ReadoutLowerPlane.size()) {
+                ReadoutLowerPlane.at(strip_num) += strip_signal;
+            }
+        }
+        //upper cluster
+        for(Int_t ielement; ielement < upper_cluster.Strips.size(); ++ielement) {
+            Int_t strip_num = upper_cluster.Strips.at(ielement);
+            Double_t strip_signal = upper_cluster.Signals.at(ielement);
+            if(strip_num >= 0 && strip_num < ReadoutUpperPlane.size()) {
+                ReadoutUpperPlane.at(strip_num) += strip_signal;
+            }
+        }
+        //----------------------------------------------------------------------
+
+        //Fill strip matches ---------------------------------------------------
+        //lower layer
+        for(Int_t ielement; ielement < lower_cluster.Strips.size(); ++ielement) {
+            Int_t strip_num = lower_cluster.Strips.at(ielement);
+            Double_t strip_signal = lower_cluster.Signals.at(ielement);
+            if(strip_num >= 0 && strip_num < ReadoutLowerPlane.size()) {
+                LowerStripMatches.at(strip_num).AddLink(strip_signal/lower_cluster.TotalSignal, refID);
+            }
+        }
+        //upper layer
+        for(Int_t ielement; ielement < upper_cluster.Strips.size(); ++ielement) {
+            Int_t strip_num = upper_cluster.Strips.at(ielement);
+            Double_t strip_signal = upper_cluster.Signals.at(ielement);
+            if(strip_num >= 0 && strip_num < ReadoutUpperPlane.size()) {
+                UpperStripMatches.at(strip_num).AddLink(strip_signal/upper_cluster.TotalSignal, refID);
+            }
+        }
+        //----------------------------------------------------------------------
+
+        RealPointsX.push_back(x);
+        RealPointsY.push_back(y);
+
+        RealPointsLowerStripPos.push_back(lower_cluster.OriginPosition);
+        RealPointsUpperStripPos.push_back(upper_cluster.OriginPosition);
+
+        RealPointsLowerTotalSignal.push_back(lower_cluster.TotalSignal);
+        RealPointsUpperTotalSignal.push_back(upper_cluster.TotalSignal);
+
         return true;
     }
-    return false;
+    else {
+        if(Verbosity) cout << "WARNING: Point (" << x << " : " << y << " : " << z << ") is out of the readout plane or inside a dead zone\n";
+        return false;
+    }
 }
 
-Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z, Double_t signal, Int_t refID) {
+//Add single point with Gaussian smearing
+Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
+                                                     Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
 
     if( x >= XMinReadout && x <= XMaxReadout &&
         y >= YMinReadout && y <= YMaxReadout &&
@@ -740,7 +1043,7 @@ StripCluster BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t xcoor
 
     cluster.MeanPosition = mean_fit_pos;
     cluster.TotalSignal = total_signal;
-    cluster.PositionResidual = CenterZonePos - mean_fit_pos;
+    cluster.PositionResidual = mean_fit_pos - CenterZonePos; //residual between mean and origin positions (lower cluster): residual = finded(current) - orig(average)
 
     #ifdef DRAW_REAL_CLUSTER_HISTOGRAMS
     //drawing cluster histograms
@@ -768,15 +1071,20 @@ StripCluster BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t xcoor
 
 void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors) {
 
-    Double_t threshold = LandauMPV*MinSignalCutThreshold*Gain;
+    //Double_t threshold = LandauMPV*MinSignalCutThreshold*Gain;
+    Double_t threshold = 1000.0; //temporary for test
 
     StripCluster cluster;
 
     Bool_t ascent = false;
     Bool_t descent = false;
 
-//Processing strips
+    //Processing strips
     vector<Double_t> Strips = StripLayer;
+
+    //Smooth strip signal
+    if(Pitch > 0.079) SmoothStripSignal(Strips, 1, 1, 1.0);
+    else SmoothStripSignal(Strips, 2, 1, 1.0);
 
     for(Int_t is = 0; is < Strips.size(); is++) {
 
@@ -952,6 +1260,36 @@ void BmnGemStripReadoutModule::MakeStripHit(StripCluster &cluster, vector<Double
     file_name += mean_fit_pos; file_name += "_"; file_name += rnd; file_name += ".png";
     gPad->GetCanvas()->SaveAs(file_name);
 #endif
+}
+
+void BmnGemStripReadoutModule::SmoothStripSignal(vector<Double_t>& Strips, Int_t NIterations, Int_t SmoothWindow, Int_t Weight) {
+
+    //It's Simple Moving Average method (SMA)
+    //Strips - analyzable strip layer (ref)
+    //NIterations - number of smooth iterations (usually 1)
+    //SmoothWindow - number of strips on the left-right of the current strip (usually 1)
+    //Weight - weight of the current strip (usually 1.0 - for simplicity, greater - for weighted value))
+
+    vector<Double_t> SmoothStrips;
+    Int_t NStrips = Strips.size();
+
+    for(Int_t iteration = 0; iteration < NIterations; ++iteration) {
+        SmoothStrips.clear();
+        for(Int_t istrip = 0; istrip < NStrips; ++istrip) {
+            Double_t mean_value = 0.0;
+            for(Int_t iw = istrip-SmoothWindow; iw <= istrip+SmoothWindow; ++iw) {
+                if(iw >= 0 && iw < NStrips) {
+                    if(iw == istrip) mean_value += Strips[iw]*Weight;
+                    else mean_value += Strips[iw];
+                }
+            } --------------------------------------------------------
+            mean_value /= 2.0*SmoothWindow + Weight;
+            SmoothStrips.push_back(mean_value);
+        }
+        Strips = SmoothStrips;
+    }
+
+    return;
 }
 
 Double_t BmnGemStripReadoutModule::GetLowerStripHitPos(Int_t num) {
@@ -1317,99 +1655,12 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
 }
 //------------------------------------------------------------------------------
 
-void BmnGemStripReadoutModule::GenerateAvalanche_Test() {
- //NO c++11 - no new code!
-/*
-    gRandom->SetSeed(0);
-    cout << "seed = " << gRandom->GetSeed() << "\n";
+void BmnGemStripReadoutModule::GemTrackVisualisation(Double_t x_in, Double_t y_in, Double_t z_in,
+                                                     Double_t x_out, Double_t y_out, Double_t z_out,
+                                                     Double_t x_out_old, Double_t y_out_old, Double_t z_out_old,
+                                                     const vector<CollPoint>& collision_points) {
 
-    double const mean_free_path = 0.0333;
-
-    double x_in = 5.0, y_in = 5.0, z_in = 0.0;
-    double x_out = 5.0, y_out = 5.5, z_out = 0.9;
-
-    double px = x_out - x_in;
-    double py = y_out - y_in;
-    double pz = z_out - z_in;
-
-    double length = std::sqrt( (x_out-x_in)*(x_out-x_in) + (y_out-y_in)*(y_out-y_in) + (z_out-z_in)*(z_out-z_in) );
-
-    std::streamsize old_precision(cout.precision());
-    cout << setprecision(2) << setiosflags(ios::fixed);
-    cout << "start point  = ( " << x_in << " : " << y_in << " : " << z_in << " )\n";
-    cout << "end point    = ( " << x_out << " : " << y_out << " : " << z_out << " )\n";
-    cout << "direction    = ( " << px << " : " << py << " : " << pz << " )\n";
-    cout << "track length = " << length << "\n";
-    cout.unsetf(ios::fixed);
-    cout.precision(old_precision);
-
-//------------------------------------------------------------------------------
-    TCanvas *mean_free_path_distr_canv = new TCanvas("mean_free_path_distr_canv", "mean_free_path_distr_canv", 10, 10, 1000, 800);
-    mean_free_path_distr_canv->SetGrid();
-    TH1F *mean_free_path_distr_hist = new TH1F("mean_free_path_distr_hist", "mean_free_path_distr_hist", 100, 0.0, 0.5);
-
-    for(int i = 0; i < 10000; ++i) {
-        double rand_val = gRandom->Exp(mean_free_path);
-        mean_free_path_distr_hist->Fill(rand_val);
-    }
-
-    mean_free_path_distr_canv->cd();
-    mean_free_path_distr_hist->Draw();
-//------------------------------------------------------------------------------
-
-    TCanvas *eletrons_per_cluster_distr_canv = new TCanvas("eletrons_per_cluster_distr_canv", "eletrons_per_cluster_distr_canv", 10, 10, 1000, 800);
-    eletrons_per_cluster_distr_canv->SetGrid();
-    TH1F *eletrons_per_cluster_distr_hist = new TH1F("eletrons_per_cluster_distr_hist", "eletrons_per_cluster_distr_hist", 100, 0.0, 100.0);
-
-    for(int i = 0; i < 10000; ++i) {
-        double rand_val = gRandom->Landau(1.027, 0.11);
-        if(rand_val < 1.0) {
-            rand_val = 1.0;
-        }
-        eletrons_per_cluster_distr_hist->Fill(rand_val);
-    }
-
-    eletrons_per_cluster_distr_canv->cd();
-    eletrons_per_cluster_distr_hist->Draw();
-
-//------------------------------------------------------------------------------
-
-    double current_length = 0.0;
-    double current_length_ratio = 0.0;
-    int collisions_cnt = 0;
-    double current_step = 0.0;
-
-    struct CollPoint {
-        CollPoint(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
-        double x;
-        double y;
-        double z;
-    };
-
-    std::vector<CollPoint> collision_points;
-
-    while(current_length < length) {
-        current_step = gRandom->Exp(mean_free_path);
-        current_length += current_step;
-
-        if(current_length > length) break;
-
-        current_length_ratio = current_length/length;
-
-        double current_x = x_in + current_length_ratio*px;
-        double current_y = y_in + current_length_ratio*py;
-        double current_z = z_in + current_length_ratio*pz;
-
-        collision_points.push_back(CollPoint(current_x, current_y, current_z));
-
-        cout << "  collision[" << collisions_cnt << "]: " << " current_step = " << current_step << ", current_length = " << current_length << ", ratio = " << current_length_ratio << "\n";
-        cout << "     coordinates(x:y:z) = ( " << current_x << " : " << current_y << " : " << current_z << " )\n";
-
-        collisions_cnt++;
-    }
-    cout << "N collisions at the track = " << collisions_cnt << "\n";
-
-//------------------------------------------------------------------------------
+    //Visualisation of the track -------------------------------------------
     double x_min_visible_area = XMinReadout;
     double y_min_visible_area = YMinReadout;
     double x_max_visible_area = XMaxReadout;
@@ -1417,66 +1668,143 @@ void BmnGemStripReadoutModule::GenerateAvalanche_Test() {
     double z_min_visible_area = 0.0;
     double z_max_visible_area = 0.9;
 
-    x_min_visible_area = 4.5;
-    y_min_visible_area = 4.5;
-    x_max_visible_area = 5.5;
-    y_max_visible_area = 5.5;
-    z_min_visible_area = 0.0;
-    z_max_visible_area = 1.0;
+    if(x_in < x_out_old) {
+        x_min_visible_area = x_in - 0.1;
+        x_max_visible_area = x_out_old + 0.1;
+    }
+    else {
+        x_min_visible_area = x_out_old - 0.1;
+        x_max_visible_area = x_in + 0.1;
+    }
+    if(y_in < y_out_old) {
+        y_min_visible_area = y_in - 0.1;
+        y_max_visible_area = y_out_old + 0.1;
+    }
+    else {
+        y_min_visible_area = y_out_old - 0.1;
+        y_max_visible_area = y_in + 0.1;
+    }
+    if(z_in < z_out_old) {
+        z_min_visible_area = z_in - 0.1;
+        z_max_visible_area = z_out_old + 0.1;
+    }
+    else {
+        z_min_visible_area = z_out_old - 0.1;
+        z_max_visible_area = z_in + 0.1;
+    }
 
-    //xy track projection ------------------------------------------------------
+
+    cout << "x_visible_area = " << x_min_visible_area << " : " << x_max_visible_area << "\n";
+    cout << "y_visible_area = " << y_min_visible_area << " : " << y_max_visible_area << "\n";
+    cout << "z_visible_area = " << z_min_visible_area << " : " << z_max_visible_area << "\n";
+
     TCanvas *xy_track_slice_canv = new TCanvas("xy_track_slice_canv", "xy_track_slice_canv", 10, 10, 1000, 800);
     xy_track_slice_canv->Range(x_min_visible_area, y_min_visible_area, x_max_visible_area, y_max_visible_area);
 
+    TLine *xy_track_line_old = new TLine(x_in, y_in, x_out_old, y_out_old);
+    xy_track_line_old->SetLineColor(TColor::GetColor("#33ff33"));
+    xy_track_line_old->Draw();
+
     TLine *xy_track_line = new TLine(x_in, y_in, x_out, y_out);
-    xy_track_line->SetLineColor(TColor::GetColor("#33ff33"));
+    xy_track_line->SetLineColor(TColor::GetColor("#ff3333"));
     xy_track_line->Draw();
 
     for(int ipoint = 0; ipoint < collision_points.size(); ++ipoint) {
         TMarker *xy_point_mark = new TMarker(collision_points[ipoint].x, collision_points[ipoint].y, 20);
         xy_point_mark->SetMarkerSize(0.5);
-        xy_point_mark->SetMarkerColor(TColor::GetColor("#33ff33"));
+        xy_point_mark->SetMarkerColor(TColor::GetColor("#ff3333"));
         xy_point_mark->Draw();
     }
-    //--------------------------------------------------------------------------
 
-    //xz track projection ------------------------------------------------------
+
     TCanvas *xz_track_slice_canv = new TCanvas("xz_track_slice_canv", "xz_track_slice_canv", 10, 10, 1000, 800);
     xz_track_slice_canv->Range(x_min_visible_area, z_min_visible_area, x_max_visible_area, z_max_visible_area);
 
+    TLine *xz_track_line_old = new TLine(x_in, z_in, x_out_old, z_out_old);
+    xz_track_line_old->SetLineColor(TColor::GetColor("#33ff33"));
+    xz_track_line_old->Draw();
 
     TLine *xz_track_line = new TLine(x_in, z_in, x_out, z_out);
-    xz_track_line->SetLineColor(TColor::GetColor("#33ff33"));
+    xz_track_line->SetLineColor(TColor::GetColor("#ff3333"));
     xz_track_line->Draw();
 
     for(int ipoint = 0; ipoint < collision_points.size(); ++ipoint) {
         TMarker *xz_point_mark = new TMarker(collision_points[ipoint].x, collision_points[ipoint].z, 20);
         xz_point_mark->SetMarkerSize(0.5);
-        xz_point_mark->SetMarkerColor(TColor::GetColor("#33ff33"));
+        xz_point_mark->SetMarkerColor(TColor::GetColor("#ff3333"));
         xz_point_mark->Draw();
     }
-    //--------------------------------------------------------------------------
 
-    //xz track projection ------------------------------------------------------
     TCanvas *yz_track_slice_canv = new TCanvas("yz_track_slice_canv", "yz_track_slice_canv", 10, 10, 1000, 800);
     yz_track_slice_canv->Range(y_min_visible_area, z_min_visible_area, y_max_visible_area, z_max_visible_area);
 
+    TLine *yz_track_line_old = new TLine(y_in, z_in, y_out_old, z_out_old);
+    yz_track_line_old->SetLineColor(TColor::GetColor("#33ff33"));
+    yz_track_line_old->Draw();
 
     TLine *yz_track_line = new TLine(y_in, z_in, y_out, z_out);
-    yz_track_line->SetLineColor(TColor::GetColor("#33ff33"));
+    yz_track_line->SetLineColor(TColor::GetColor("#ff3333"));
     yz_track_line->Draw();
 
     for(int ipoint = 0; ipoint < collision_points.size(); ++ipoint) {
         TMarker *yz_point_mark = new TMarker(collision_points[ipoint].y, collision_points[ipoint].z, 20);
         yz_point_mark->SetMarkerSize(0.5);
-        yz_point_mark->SetMarkerColor(TColor::GetColor("#33ff33"));
+        yz_point_mark->SetMarkerColor(TColor::GetColor("#ff3333"));
         yz_point_mark->Draw();
     }
-    //--------------------------------------------------------------------------
+
+    //----------------------------------------------------------------------
+}
+
+
+
+void BmnGemStripReadoutModule::ReadoutPlaneVisualisation(Double_t x_in, Double_t y_in, Double_t z_in,
+                                                         Double_t x_out, Double_t y_out, Double_t z_out,
+                                                         const vector<Double_t>& x_readout_points,
+                                                         const vector<Double_t>& y_readout_points) {
+
+    double x_min_visible_area = XMinReadout;
+    double y_min_visible_area = YMinReadout;
+    double x_max_visible_area = XMaxReadout;
+    double y_max_visible_area = YMaxReadout;
+    double z_min_visible_area = 0.0;
+    double z_max_visible_area = 0.9;
+
+    if(x_in < x_out) {
+        x_min_visible_area = x_in - 0.1;
+        x_max_visible_area = x_out + 0.1;
+    }
+    else {
+        x_min_visible_area = x_out - 0.1;
+        x_max_visible_area = x_in + 0.1;
+    }
+    if(y_in < y_out) {
+        y_min_visible_area = y_in - 0.1;
+        y_max_visible_area = y_out + 0.1;
+    }
+    else {
+        y_min_visible_area = y_out - 0.1;
+        y_max_visible_area = y_in + 0.1;
+    }
+    if(z_in < z_out) {
+        z_min_visible_area = z_in - 0.1;
+        z_max_visible_area = z_out + 0.1;
+    }
+    else {
+        z_min_visible_area = z_out - 0.1;
+        z_max_visible_area = z_in + 0.1;
+    }
+
+    x_min_visible_area -= 1.0;
+    x_max_visible_area += 1.0;
+    y_min_visible_area -= 1.0;
+    y_max_visible_area += 1.0;
 
 
     TCanvas *xy_readout_canv = new TCanvas("xy_readout_canv", "xy_readout_canv", 10, 10, 900, 900);
     xy_readout_canv->SetGrid();
+
+
 
     Double_t bin_size = 0.005; // cm
     Int_t xbins = fabs(x_max_visible_area -x_min_visible_area)/bin_size;
@@ -1487,90 +1815,13 @@ void BmnGemStripReadoutModule::GenerateAvalanche_Test() {
     xy_readout_hist->GetXaxis()->SetTitle("x [cm]"); xy_readout_hist->GetXaxis()->CenterTitle();
     xy_readout_hist->GetYaxis()->SetTitle("y [cm]"); xy_readout_hist->GetYaxis()->CenterTitle();
 
-    for(int ipoint = 0; ipoint < collision_points.size(); ++ipoint) {
-        double x = collision_points[ipoint].x;
-        double y = collision_points[ipoint].y;
-        double z = collision_points[ipoint].z;
 
-        double rdist = fabs(z_out - z); //distance to readout
-
-        //x_displacement
-        double x_displacement = 0.000227984 + 0.0614758*rdist + 0.157119*rdist*rdist + (-0.0799265)*rdist*rdist*rdist;
-
-        //smear
-        double sigma = 0.0;
-        if(rdist < 0.1) {
-            sigma = std::sqrt(0.000663416*rdist);
-        }
-
-        if(rdist >= 0.1 && rdist < 0.3) {
-            sigma = 0.003897 + 0.045375*rdist + (-0.03355)*rdist*rdist;
-        }
-
-        if(rdist >= 0.3 && rdist < 0.6) {
-            sigma = 0.004095 + 0.0424*rdist + (-0.026)*rdist*rdist;
-        }
-
-        if(rdist >= 0.6) {
-            sigma = 0.0118343 + 0.0200945*rdist + (-0.010325)*rdist*rdist;
-        }
-
-        cout << "  point[" << ipoint << "]: dist_to_readout = " << rdist << ",  xdispl = " << x_displacement << ",  sigma = " << sigma << "\n";
-
-        int n_electrons_cluster = gRandom->Landau(1.027, 0.11);
-        if(n_electrons_cluster < 1) n_electrons_cluster = 1;
-        if(n_electrons_cluster > 6) n_electrons_cluster = 6;
-
-        cout << "    electrons in cluster = " << n_electrons_cluster << "\n";
-
-        for(int ielectron = 0; ielectron < n_electrons_cluster; ++ielectron) {
-
-            cout << "       electron[" << ielectron << "]:\n";
-
-            int gain_gem1 = gRandom->Exp(25);
-            int gain_gem2 = gRandom->Exp(25);
-            int gain_gem3 = gRandom->Exp(25);
-
-            int total_gain = 0;
-
-            if(rdist < 0.15) {
-                total_gain = 1;
-            }
-
-            if(rdist >= 0.15 && rdist < 0.35) {
-                total_gain = gain_gem3;
-            }
-
-            if(rdist >= 0.35 && rdist < 0.6) {
-                total_gain = gain_gem3*gain_gem2;
-            }
-
-            if(rdist >= 0.6) {
-                total_gain = gain_gem3*gain_gem2*gain_gem1;
-            }
-
-            cout << "        total gain for electron = " << total_gain << "\n";
-
-
-
-            double x_readout, y_readout;
-            for(int igen = 0; igen < total_gain; ++igen) {
-                x_readout = gRandom->Gaus(x-x_displacement, sigma);
-                y_readout = gRandom->Gaus(y, sigma);
-
-                xy_readout_hist->Fill(x_readout, y_readout);
-            }
-        }
-
+    for(int ipoints = 0; ipoints < x_readout_points.size(); ++ipoints) {
+        xy_readout_hist->Fill(x_readout_points[ipoints], y_readout_points[ipoints]);
     }
 
     xy_readout_canv->cd();
     xy_readout_hist->Draw("colz");
-
-
-
-    return;
-*/
 }
 
 ClassImp(BmnGemStripReadoutModule)

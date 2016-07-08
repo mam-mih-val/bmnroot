@@ -18,6 +18,7 @@ using namespace TMath;
 using namespace std;
 
 class StripCluster;
+struct CollPoint;
 
 struct DeadStripZone {
     Double_t Xmin;
@@ -35,6 +36,8 @@ struct DeadStripZone {
     }
 };
 
+enum ElectronDriftDirectionInModule {ForwardZAxisEDrift, BackwardZAxisEDrift};
+
 class BmnGemStripReadoutModule {
 
 public:
@@ -44,7 +47,8 @@ public:
                         Double_t xorig, Double_t yorig,
                         Double_t pitch, Double_t adeg,
                         Double_t low_strip_width, Double_t up_strip_width,
-                        Double_t zpos_module);
+                        Double_t zpos_module,
+                        ElectronDriftDirectionInModule edrift_direction);
 //Destructor
     virtual ~BmnGemStripReadoutModule();
 
@@ -62,11 +66,8 @@ public:
     void SetReadoutSizes(Double_t xsize, Double_t ysize, Double_t xorig=0.0, Double_t yorig=0.0);
     Bool_t SetDeadZone(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax);
     void SetAngleDeg(Double_t deg); // plus - clockwise from vertical
-    void SetZPosition(Double_t zpos_module) { ZReadoutModulePosition = zpos_module; }
-    void SetAvalancheRadius(Double_t aval_radius) { AvalancheRadius = aval_radius; }
-    void SetMeanCollisionDistance(Double_t mcd) { MCD = mcd; }
-    void SetDriftGap(Double_t drift_gap) { DriftGap = drift_gap; }
-    void SetGain(Double_t gain) { Gain = gain; }
+    void SetZStartModulePosition(Double_t zpos_module) { ZStartModulePosition = zpos_module; }
+    void SetElectronDriftDirection(ElectronDriftDirectionInModule direction) { ElectronDriftDirection = direction; }
 
     void SetClusterDistortion(Double_t cluster_distortion);  //example: 0.1 is equal 10%
     void SetLandauMPV(Double_t mpv); // setter: MPV (most probably value) of Landau distribution (distribution of energy losses) in keV
@@ -92,11 +93,12 @@ public:
     Double_t GetXMaxDeadZone() { return DeadZone.Xmax; }
     Double_t GetYMinDeadZone() { return DeadZone.Ymin; }
     Double_t GetYMaxDeadZone() { return DeadZone.Ymax; }
-    Double_t GetZPositionReadout() { return ZReadoutModulePosition; }
-    Double_t GetAvalancheRadius() { return AvalancheRadius; }
-    Double_t GetMeanCollisionDistance() { return MCD; }
-    Double_t GetDriftGap() { return DriftGap; }
-    Double_t GetGain() { return Gain; }
+    Double_t GetZStartModulePosition() { return ZStartModulePosition; }
+    Double_t GetZPositionRegistered() { if(ElectronDriftDirection == ForwardZAxisEDrift) return ZStartModulePosition; else return (ZStartModulePosition+ModuleThickness); } //position for all registered point (hits)
+    ElectronDriftDirectionInModule GetElectronDriftDirection() { return ElectronDriftDirection; }
+    Double_t GetModuleThickness() { return ModuleThickness; }
+
+    //возможно в дальнейшем придется избавиться от этого дерьма!
     Double_t GetClusterDistortion() { return ClusterDistortion; }
     Double_t GetLandauMPV() { return LandauMPV; }
     Double_t GetBackgroundNoiseLevel() { return BackgroundNoiseLevel; }
@@ -104,11 +106,14 @@ public:
     Double_t GetMaxSignalCutThreshold() { return MaxSignalCutThreshold; }
 
 //Interface methods for adding points
-    Bool_t AddRealPoint(Double_t x, Double_t y, Double_t z, Double_t signal, Int_t refID); //old
+    Bool_t AddRealPointSimple(Double_t x, Double_t y, Double_t z,
+                              Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID); //old
+
     Bool_t AddRealPointFull(Double_t x, Double_t y, Double_t z,
                             Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID);
 
-    Bool_t AddRealPointFullOne(Double_t x, Double_t y, Double_t z, Double_t signal, Int_t refID);
+    Bool_t AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
+                               Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID);
 
 //Interface methods for calculating intersections points
     void CalculateStripHitIntersectionPoints();
@@ -170,12 +175,13 @@ public:
 //Inner methods
 public: //private (public - for test)
 
-    //Make cluster from a single point (spread)
+    //Make cluster from a single point (with smearing)
     StripCluster MakeCluster(TString layer, Double_t xcoord, Double_t ycoord, Double_t signal, Double_t radius);
 
     //Find clusters and hits
     void FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors);
     void MakeStripHit(StripCluster &cluster, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors, Int_t &curcnt);
+    void SmoothStripSignal(vector<Double_t>& Strips, Int_t NIterations, Int_t SmoothWindow, Int_t Weight);
 
     Double_t ConvertRealPointToUpperX(Double_t xcoord, Double_t ycoord);
     Double_t ConvertRealPointToUpperY(Double_t xcoord, Double_t ycoord);
@@ -203,12 +209,18 @@ private:
 
     DeadStripZone DeadZone;
 
-    Double_t ZReadoutModulePosition;
+    Double_t ZStartModulePosition;
+
+    Double_t DriftGapThickness;
+    Double_t FirstTransferGapThickness;
+    Double_t SecondTransferGapThickness;
+    Double_t InductionGapThickness;
+    Double_t ModuleThickness;
+
+    ElectronDriftDirectionInModule ElectronDriftDirection;
 
     Double_t AvalancheRadius;
     Double_t MCD; //Mean collision distance
-    Double_t DriftGap;
-    Double_t InductionGap;
     Double_t Gain;
 
     Double_t ClusterDistortion; //signal noise of maked clusters (%)
@@ -255,15 +267,39 @@ private:
     BmnGemStripReadoutModule(const BmnGemStripReadoutModule&);
     BmnGemStripReadoutModule& operator=(const BmnGemStripReadoutModule&);
 
-//testing functions
+//testing part
 public:
-    void GenerateAvalanche_Test();
+    void GemTrackVisualisation(Double_t x_in, Double_t y_in, Double_t z_in,
+                               Double_t x_out, Double_t y_out, Double_t z_out,
+                               Double_t x_out_old, Double_t y_out_old, Double_t z_out_old,
+                               const vector<CollPoint>& collision_points);
+
+    void ReadoutPlaneVisualisation(Double_t x_in, Double_t y_in, Double_t z_in,
+                                   Double_t x_out, Double_t y_out, Double_t z_out,
+                                   const vector<Double_t>& x_readout_points,
+                                   const vector<Double_t>& y_readout_points);
+
+    vector<Double_t> XElectronPos;
+    vector<Double_t> YElectronPos;
+    vector<Double_t> ElectronSignal;
+
+    vector<StripCluster> LowerAddedClusters; //test
+    vector<StripCluster> UpperAddedClusters; //test
+
+    void ResetElectronPointsAndClusters() {
+        XElectronPos.clear();
+        YElectronPos.clear();
+        ElectronSignal.clear();
+        LowerAddedClusters.clear();
+        UpperAddedClusters.clear();
+    }
 
     ClassDef(BmnGemStripReadoutModule, 1);
 };
 //------------------------------------------------------------------------------
 
 class StripCluster {
+
 public:
     Double_t OriginPosition; //origin position of the center point
     Double_t MeanPosition; //position of the cluster (after fitting)
@@ -291,10 +327,37 @@ public:
         PositionResidual = 0.0;
         IsCorrect = kFALSE;
     }
+    //Add new strip in ascending order of strip number (if cluster has strip with such number - add signal to that strip)
     void AddStrip(Int_t strip_num, Double_t strip_signal) {
+        Bool_t StripNumExists = false;
+        Int_t index;
+        for(index = 0; index < Strips.size(); ++index) {
+            if(Strips[index] == strip_num) {
+                StripNumExists = true;
+                break;
+            }
+        }
+        if(StripNumExists) Signals[index] += strip_signal;
+        else {
+            vector<Int_t>::iterator strip_iter = Strips.end();
+            vector<Double_t>::iterator signal_iter = Signals.end();
+            for(Int_t i = 0; i < Strips.size(); ++i) {
+                if( strip_num < Strips[i] ) {
+                    strip_iter = Strips.begin() + i;
+                    signal_iter = Signals.begin() + i;
+                    break;
+                }
+            }
+            Strips.insert(strip_iter, strip_num);
+            Signals.insert(signal_iter, strip_signal);
+        }
+    }
+    /*
+        //old govnetso
+        void AddStrip(Int_t strip_num, Double_t strip_signal) {
         Strips.push_back(strip_num);
         Signals.push_back(strip_signal);
-    }
+    }*/
     void Clear() {
         Strips.clear();
         Signals.clear();
@@ -305,6 +368,14 @@ public:
         IsCorrect = kFALSE;
     }
     Int_t GetClusterSize() { return Strips.size(); }
+};
+
+//Struct: a collision point position (an ionizing cluster position)
+struct CollPoint {
+    CollPoint(Double_t _x, Double_t _y, Double_t _z) : x(_x), y(_y), z(_z) {}
+    Double_t x;
+    Double_t y;
+    Double_t z;
 };
 
 #endif	/* BMNGEMSTRIPREADOUTMODULE_H */

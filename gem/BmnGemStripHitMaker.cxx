@@ -160,7 +160,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
         for(Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripReadoutModule *module = station->GetReadoutModule(iModule);
-            Double_t z = module->GetZPositionReadout();
+            Double_t z = module->GetZPositionRegistered();
 
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 

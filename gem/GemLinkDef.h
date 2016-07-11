@@ -35,5 +35,8 @@
 #pragma link C++ class BmnGemVertexFinder+;
 
 #pragma link C++ namespace BmnGemStripConfiguration;
+#pragma link C++ enum ElectronDriftDirectionInModule;
+#pragma link C++ class vector<StripCluster>; //need for test
+#pragma link C++ class StripCluster; //need for test
 
 #endif

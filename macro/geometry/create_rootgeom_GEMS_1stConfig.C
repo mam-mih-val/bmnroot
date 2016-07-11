@@ -68,7 +68,7 @@ const Double_t dXOuterFrame = 5.0;
 const Double_t dXInnerFrame = 1.7;
 const Double_t dYOuterFrame = 3.75;
 const Double_t dYInnerFrame = 1.7;
-const Double_t dZSensitiveVolume = 1.0;
+const Double_t dZSensitiveVolume = 0.9;
 const Double_t ZModuleSize = 2.5;
 
 //media

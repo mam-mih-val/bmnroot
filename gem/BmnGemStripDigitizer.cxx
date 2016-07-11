@@ -1,3 +1,4 @@
+
 #include "BmnGemStripDigitizer.h"
 #include "CbmMCTrack.h"
 #include "BmnGemStripStationSet_FullConfig.h"
@@ -123,6 +124,11 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
         Double_t x = -GemStripPoint->GetX(); // invert because in current geometry +x -left, -x - right
         Double_t y = GemStripPoint->GetY();
         Double_t z = GemStripPoint->GetZ();
+
+        Double_t px = -GemStripPoint->GetPx(); // invert because in current geometry +x -left, -x - right
+        Double_t py = GemStripPoint->GetPy();
+        Double_t pz = GemStripPoint->GetPz();
+
         Double_t dEloss = GemStripPoint->GetEnergyLoss()*1e6; // in keV
         Int_t refId = ipoint;
 
@@ -132,7 +138,7 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
             y = gRandom->Gaus(y, fSmearingSigma);
         }
 
-        StationSet->AddPointToDetector(x, y, z, dEloss, refId);
+        StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);
     }
 
     Int_t NAddedPoints = StationSet->CountNAddedToDetectorPoints();

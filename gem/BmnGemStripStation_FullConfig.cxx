@@ -25,7 +25,7 @@ BmnGemStripStation_FullConfig::BmnGemStripStation_FullConfig(Int_t iStation,
     dYOuterFrame = 3.75;
 
     ZSizeGemModule = 2.5;
-    ZSizeReadoutModule = 1.0;
+    ZSizeReadoutModule = 0.9;
 
     XSize = 0.0;
     YSize = 0.0;
@@ -229,12 +229,15 @@ Int_t BmnGemStripStation_FullConfig::GetPointModuleOwnership(Double_t xcoord, Do
     return -1;
 }
 
-Int_t BmnGemStripStation_FullConfig::AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss, Int_t refID) {
+Int_t BmnGemStripStation_FullConfig::AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord,
+                                                       Double_t px, Double_t py, Double_t pz,
+                                                       Double_t dEloss, Int_t refID) {
 
     Int_t module = GetPointModuleOwnership(xcoord, ycoord, zcoord);
 
     if(module >= 0) {
-        if(ReadoutModules[module]->AddRealPointFullOne(xcoord, ycoord, zcoord, dEloss, refID)) {
+        //if(ReadoutModules[module]->AddRealPointFullOne(xcoord, ycoord, zcoord, dEloss, refID)) {
+        if(ReadoutModules[module]->AddRealPointFull(xcoord, ycoord, zcoord, px, py, pz, dEloss, refID)) {
             return module;
         }
         else {
@@ -280,88 +283,88 @@ void BmnGemStripStation_FullConfig::BuildModules_4ZoneType() {
     //zone 1 ---------------------------------------------------------------
     //left-top quadrant
     ReadoutModules[0] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][0], YZoneSizes_Station[StationNumber][0], XPosition-XZoneSizes_Station[StationNumber][0], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][0], YZoneSizes_Station[StationNumber][0], XPosition-XZoneSizes_Station[StationNumber][0], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[0]->SetDeadZone(XPosition-XZoneSizes_Station[StationNumber][1], XPosition+0, YPosition+0, YPosition+YZoneSizes_Station[StationNumber][1]);
 
     //right-top quadrant
     ReadoutModules[1] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][0], YZoneSizes_Station[StationNumber][0], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][0], YZoneSizes_Station[StationNumber][0], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[1]->SetDeadZone(XPosition+0, XPosition+XZoneSizes_Station[StationNumber][1], YPosition+0, YPosition+YZoneSizes_Station[StationNumber][1]);
 
     //right-bottom quadrant
     ReadoutModules[2] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][0], YZoneSizes_Station[StationNumber][0], XPosition+0, YPosition-YZoneSizes_Station[StationNumber][0], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][0], YZoneSizes_Station[StationNumber][0], XPosition+0, YPosition-YZoneSizes_Station[StationNumber][0], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[2]->SetDeadZone(XPosition+0, XPosition+XZoneSizes_Station[StationNumber][1], YPosition-YZoneSizes_Station[StationNumber][1], YPosition+0);
 
     //left-bottom quadrant
     ReadoutModules[3] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][0], YZoneSizes_Station[StationNumber][0], XPosition-XZoneSizes_Station[StationNumber][0], YPosition-YZoneSizes_Station[StationNumber][0], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][0], YZoneSizes_Station[StationNumber][0], XPosition-XZoneSizes_Station[StationNumber][0], YPosition-YZoneSizes_Station[StationNumber][0], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[3]->SetDeadZone(XPosition-XZoneSizes_Station[StationNumber][1], XPosition+0, YPosition-YZoneSizes_Station[StationNumber][1], YPosition+0);
     //----------------------------------------------------------------------
 
     //zone 2 ---------------------------------------------------------------
     //left-top quadrant
     ReadoutModules[4] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][1], YZoneSizes_Station[StationNumber][1], XPosition-XZoneSizes_Station[StationNumber][1], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][1], YZoneSizes_Station[StationNumber][1], XPosition-XZoneSizes_Station[StationNumber][1], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[4]->SetDeadZone(XPosition-XZoneSizes_Station[StationNumber][2], XPosition+0, YPosition+0, YPosition+YZoneSizes_Station[StationNumber][2]);
 
     //right-top quadrant
     ReadoutModules[5] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][1], YZoneSizes_Station[StationNumber][1], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][1], YZoneSizes_Station[StationNumber][1], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[5]->SetDeadZone(XPosition+0, XPosition+XZoneSizes_Station[StationNumber][2], YPosition+0, YPosition+YZoneSizes_Station[StationNumber][2]);
 
     //right-bottom quadrant
     ReadoutModules[6] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][1], YZoneSizes_Station[StationNumber][1], XPosition+0, YPosition-YZoneSizes_Station[StationNumber][1], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][1], YZoneSizes_Station[StationNumber][1], XPosition+0, YPosition-YZoneSizes_Station[StationNumber][1], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[6]->SetDeadZone(XPosition+0, XPosition+XZoneSizes_Station[StationNumber][2], YPosition-YZoneSizes_Station[StationNumber][2], YPosition+0);
 
     //left-bottom quadrant
     ReadoutModules[7] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][1], YZoneSizes_Station[StationNumber][1], XPosition-XZoneSizes_Station[StationNumber][1], YPosition-YZoneSizes_Station[StationNumber][1], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][1], YZoneSizes_Station[StationNumber][1], XPosition-XZoneSizes_Station[StationNumber][1], YPosition-YZoneSizes_Station[StationNumber][1], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[7]->SetDeadZone(XPosition-XZoneSizes_Station[StationNumber][2], XPosition+0, YPosition-YZoneSizes_Station[StationNumber][2], YPosition+0);
     //----------------------------------------------------------------------
 
     //zone 3 ---------------------------------------------------------------
     //left-top quadrant
     ReadoutModules[8] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][2], YZoneSizes_Station[StationNumber][2], XPosition-XZoneSizes_Station[StationNumber][2], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][2], YZoneSizes_Station[StationNumber][2], XPosition-XZoneSizes_Station[StationNumber][2], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[8]->SetDeadZone(XPosition-XZoneSizes_Station[StationNumber][3], XPosition+0, YPosition+0, YPosition+YZoneSizes_Station[StationNumber][3]);
 
     //right-top quadrant
     ReadoutModules[9] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][2], YZoneSizes_Station[StationNumber][2], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][2], YZoneSizes_Station[StationNumber][2], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[9]->SetDeadZone(XPosition+0, XPosition+XZoneSizes_Station[StationNumber][3], YPosition+0, YPosition+YZoneSizes_Station[StationNumber][3]);
 
     //right-bottom quadrant
     ReadoutModules[10] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][2], YZoneSizes_Station[StationNumber][2], XPosition+0, YPosition-YZoneSizes_Station[StationNumber][2], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][2], YZoneSizes_Station[StationNumber][2], XPosition+0, YPosition-YZoneSizes_Station[StationNumber][2], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[10]->SetDeadZone(XPosition+0, XPosition+XZoneSizes_Station[StationNumber][3], YPosition-YZoneSizes_Station[StationNumber][3], YPosition+0);
 
     //left-bottom quadrant
     ReadoutModules[11] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][2], YZoneSizes_Station[StationNumber][2], XPosition-XZoneSizes_Station[StationNumber][2], YPosition-YZoneSizes_Station[StationNumber][2], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][2], YZoneSizes_Station[StationNumber][2], XPosition-XZoneSizes_Station[StationNumber][2], YPosition-YZoneSizes_Station[StationNumber][2], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[11]->SetDeadZone(XPosition-XZoneSizes_Station[StationNumber][3], XPosition+0, YPosition-YZoneSizes_Station[StationNumber][3], YPosition+0);
     //----------------------------------------------------------------------
 
     //zone 4---------------------------------------------------------------
     //left-top quadrant
     ReadoutModules[12] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][3], YZoneSizes_Station[StationNumber][3], XPosition-XZoneSizes_Station[StationNumber][3], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][3], YZoneSizes_Station[StationNumber][3], XPosition-XZoneSizes_Station[StationNumber][3], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[12]->SetDeadZone(XPosition-BeamHoleRadius, XPosition+0, YPosition+0, YPosition+BeamHoleRadius);
 
     //right-top quadrant
     ReadoutModules[13] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][3], YZoneSizes_Station[StationNumber][3], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][3], YZoneSizes_Station[StationNumber][3], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[13]->SetDeadZone(XPosition+0, XPosition+BeamHoleRadius, YPosition+0, YPosition+BeamHoleRadius);
 
     //right-bottom quadrant
     ReadoutModules[14] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][3], YZoneSizes_Station[StationNumber][3], XPosition+0, YPosition-YZoneSizes_Station[StationNumber][3], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][3], YZoneSizes_Station[StationNumber][3], XPosition+0, YPosition-YZoneSizes_Station[StationNumber][3], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[14]->SetDeadZone(XPosition+0, XPosition+BeamHoleRadius, YPosition-BeamHoleRadius, YPosition+0);
 
     //left-bottom quadrant
     ReadoutModules[15] =
-        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][3], YZoneSizes_Station[StationNumber][3], XPosition-XZoneSizes_Station[StationNumber][3], YPosition-YZoneSizes_Station[StationNumber][3], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XZoneSizes_Station[StationNumber][3], YZoneSizes_Station[StationNumber][3], XPosition-XZoneSizes_Station[StationNumber][3], YPosition-YZoneSizes_Station[StationNumber][3], PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[15]->SetDeadZone(XPosition-BeamHoleRadius, XPosition+0, YPosition-BeamHoleRadius, YPosition+0);
     //----------------------------------------------------------------------
 }
@@ -372,33 +375,33 @@ void BmnGemStripStation_FullConfig::BuildModules_Prototype() {
 
     //big modules
     ReadoutModules[0] =
-        new BmnGemStripReadoutModule(XModuleSize_StationPrototype, YModuleSize_StationPrototype, XPosition-XModuleSize_StationPrototype+BeamHoleRadius+dXInnerFrame, YPosition+0+BeamHoleRadius+dYInnerFrame, PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule);
+        new BmnGemStripReadoutModule(XModuleSize_StationPrototype, YModuleSize_StationPrototype, XPosition-XModuleSize_StationPrototype+BeamHoleRadius+dXInnerFrame, YPosition+0+BeamHoleRadius+dYInnerFrame, PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule, ForwardZAxisEDrift);
     ReadoutModules[0]->SetDeadZone(XPosition-XHotZoneSize_StationPrototype+BeamHoleRadius+dXInnerFrame, XPosition+0+BeamHoleRadius+dXInnerFrame, YPosition+0+BeamHoleRadius+dYInnerFrame, YPosition+YHotZoneSize_StationPrototype+BeamHoleRadius+dYInnerFrame);
 
     ReadoutModules[1] =
-        new BmnGemStripReadoutModule(XModuleSize_StationPrototype, YModuleSize_StationPrototype, XPosition+0+BeamHoleRadius+dXInnerFrame, YPosition+0-BeamHoleRadius-dYInnerFrame, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XModuleSize_StationPrototype, YModuleSize_StationPrototype, XPosition+0+BeamHoleRadius+dXInnerFrame, YPosition+0-BeamHoleRadius-dYInnerFrame, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[1]->SetDeadZone(XPosition+0+BeamHoleRadius+dXInnerFrame, XPosition+XHotZoneSize_StationPrototype+BeamHoleRadius+dXInnerFrame, YPosition+0-BeamHoleRadius-dYInnerFrame, YPosition+YHotZoneSize_StationPrototype-BeamHoleRadius-dYInnerFrame);
 
     ReadoutModules[2] =
-        new BmnGemStripReadoutModule(XModuleSize_StationPrototype, YModuleSize_StationPrototype, XPosition+0-BeamHoleRadius-dXInnerFrame, YPosition-YModuleSize_StationPrototype-BeamHoleRadius-dYInnerFrame, PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule);
+        new BmnGemStripReadoutModule(XModuleSize_StationPrototype, YModuleSize_StationPrototype, XPosition+0-BeamHoleRadius-dXInnerFrame, YPosition-YModuleSize_StationPrototype-BeamHoleRadius-dYInnerFrame, PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule, ForwardZAxisEDrift);
     ReadoutModules[2]->SetDeadZone(XPosition+0-BeamHoleRadius-dXInnerFrame, XPosition+XHotZoneSize_StationPrototype-BeamHoleRadius-dXInnerFrame, YPosition-YHotZoneSize_StationPrototype-BeamHoleRadius-dYInnerFrame, YPosition+0-BeamHoleRadius-dYInnerFrame);
 
     ReadoutModules[3] =
-        new BmnGemStripReadoutModule(XModuleSize_StationPrototype, YModuleSize_StationPrototype, XPosition-XModuleSize_StationPrototype-BeamHoleRadius-dXInnerFrame, YPosition-YModuleSize_StationPrototype+BeamHoleRadius+dYInnerFrame, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XModuleSize_StationPrototype, YModuleSize_StationPrototype, XPosition-XModuleSize_StationPrototype-BeamHoleRadius-dXInnerFrame, YPosition-YModuleSize_StationPrototype+BeamHoleRadius+dYInnerFrame, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     ReadoutModules[3]->SetDeadZone(XPosition-XHotZoneSize_StationPrototype-BeamHoleRadius-dXInnerFrame, XPosition+0-BeamHoleRadius-dXInnerFrame, YPosition-YHotZoneSize_StationPrototype+BeamHoleRadius+dYInnerFrame, YPosition+0+BeamHoleRadius+dYInnerFrame);
 
     //hot zones
     ReadoutModules[4] =
-        new BmnGemStripReadoutModule(XHotZoneSize_StationPrototype, YHotZoneSize_StationPrototype, XPosition-XHotZoneSize_StationPrototype+BeamHoleRadius+dXInnerFrame, YPosition+0+BeamHoleRadius+dYInnerFrame, PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule);
+        new BmnGemStripReadoutModule(XHotZoneSize_StationPrototype, YHotZoneSize_StationPrototype, XPosition-XHotZoneSize_StationPrototype+BeamHoleRadius+dXInnerFrame, YPosition+0+BeamHoleRadius+dYInnerFrame, PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule, ForwardZAxisEDrift);
 
     ReadoutModules[5] =
-        new BmnGemStripReadoutModule(XHotZoneSize_StationPrototype, YHotZoneSize_StationPrototype, XPosition+0+BeamHoleRadius+dXInnerFrame, YPosition+0-BeamHoleRadius-dYInnerFrame, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XHotZoneSize_StationPrototype, YHotZoneSize_StationPrototype, XPosition+0+BeamHoleRadius+dXInnerFrame, YPosition+0-BeamHoleRadius-dYInnerFrame, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
 
     ReadoutModules[6] =
-        new BmnGemStripReadoutModule(XHotZoneSize_StationPrototype, YHotZoneSize_StationPrototype, XPosition+0-BeamHoleRadius-dXInnerFrame, YPosition-YHotZoneSize_StationPrototype-BeamHoleRadius-dYInnerFrame, PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule);
+        new BmnGemStripReadoutModule(XHotZoneSize_StationPrototype, YHotZoneSize_StationPrototype, XPosition+0-BeamHoleRadius-dXInnerFrame, YPosition-YHotZoneSize_StationPrototype-BeamHoleRadius-dYInnerFrame, PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule, ForwardZAxisEDrift);
 
     ReadoutModules[7] =
-        new BmnGemStripReadoutModule(XHotZoneSize_StationPrototype, YHotZoneSize_StationPrototype, XPosition-XHotZoneSize_StationPrototype-BeamHoleRadius-dXInnerFrame, YPosition-YHotZoneSize_StationPrototype+BeamHoleRadius+dYInnerFrame, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XHotZoneSize_StationPrototype, YHotZoneSize_StationPrototype, XPosition-XHotZoneSize_StationPrototype-BeamHoleRadius-dXInnerFrame, YPosition-YHotZoneSize_StationPrototype+BeamHoleRadius+dYInnerFrame, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
 }
 
 void BmnGemStripStation_FullConfig::BuildModules_2PartType() {
@@ -407,28 +410,28 @@ void BmnGemStripStation_FullConfig::BuildModules_2PartType() {
 
     //big modules
     ReadoutModules[0] =
-        new BmnGemStripReadoutModule(XModuleSize_Station[StationNumber], YModuleSize_Station[StationNumber], XPosition-XModuleSize_Station[StationNumber], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule);
+        new BmnGemStripReadoutModule(XModuleSize_Station[StationNumber], YModuleSize_Station[StationNumber], XPosition-XModuleSize_Station[StationNumber], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule, ForwardZAxisEDrift);
     if(StationNumber%2 == 1)
         ReadoutModules[0]->SetDeadZone(XPosition-XRectHotZoneSize_Station[StationNumber], XPosition+0, YPosition+0, YPosition+YRectHotZoneSize_Station[StationNumber]);
     else
         ReadoutModules[0]->SetDeadZone(XPosition-XSlopeHotZoneSize_Station[StationNumber][1], XPosition+0, YPosition+0, YPosition+YSlopeHotZoneSize_Station[StationNumber]);
 
     ReadoutModules[1] =
-        new BmnGemStripReadoutModule(XModuleSize_Station[StationNumber], YModuleSize_Station[StationNumber], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule);
+        new BmnGemStripReadoutModule(XModuleSize_Station[StationNumber], YModuleSize_Station[StationNumber], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule, ForwardZAxisEDrift);
     if(StationNumber%2 == 1)
         ReadoutModules[1]->SetDeadZone(XPosition+0, XPosition+XSlopeHotZoneSize_Station[StationNumber][1], YPosition+0, YPosition+YSlopeHotZoneSize_Station[StationNumber]);
     else
         ReadoutModules[1]->SetDeadZone(XPosition+0, XPosition+XRectHotZoneSize_Station[StationNumber], YPosition+0, YPosition+YRectHotZoneSize_Station[StationNumber]);
 
     ReadoutModules[2] =
-        new BmnGemStripReadoutModule(XModuleSize_Station[StationNumber], YModuleSize_Station[StationNumber], XPosition+0, YPosition-YModuleSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XModuleSize_Station[StationNumber], YModuleSize_Station[StationNumber], XPosition+0, YPosition-YModuleSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     if(StationNumber%2 == 1)
         ReadoutModules[2]->SetDeadZone(XPosition+0, XPosition+XSlopeHotZoneSize_Station[StationNumber][1], YPosition-YSlopeHotZoneSize_Station[StationNumber], YPosition+0);
     else
         ReadoutModules[2]->SetDeadZone(XPosition+0, XPosition+XRectHotZoneSize_Station[StationNumber], YPosition-YRectHotZoneSize_Station[StationNumber], YPosition+0);
 
     ReadoutModules[3] =
-        new BmnGemStripReadoutModule(XModuleSize_Station[StationNumber], YModuleSize_Station[StationNumber], XPosition-XModuleSize_Station[StationNumber], YPosition-YModuleSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+        new BmnGemStripReadoutModule(XModuleSize_Station[StationNumber], YModuleSize_Station[StationNumber], XPosition-XModuleSize_Station[StationNumber], YPosition-YModuleSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     if(StationNumber%2 == 1)
         ReadoutModules[3]->SetDeadZone(XPosition-XRectHotZoneSize_Station[StationNumber], XPosition+0, YPosition-YRectHotZoneSize_Station[StationNumber], YPosition+0);
     else
@@ -437,41 +440,41 @@ void BmnGemStripStation_FullConfig::BuildModules_2PartType() {
     //hot zones
     if(StationNumber%2 == 1) {
         ReadoutModules[4] =
-            new BmnGemStripReadoutModule(XRectHotZoneSize_Station[StationNumber], YRectHotZoneSize_Station[StationNumber], XPosition-XRectHotZoneSize_Station[StationNumber], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule);
+            new BmnGemStripReadoutModule(XRectHotZoneSize_Station[StationNumber], YRectHotZoneSize_Station[StationNumber], XPosition-XRectHotZoneSize_Station[StationNumber], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule, ForwardZAxisEDrift);
     }
     else {
         ReadoutModules[4] =
-            new BmnGemStripReadoutModule(XSlopeHotZoneSize_Station[StationNumber][1], YSlopeHotZoneSize_Station[StationNumber], XPosition-XSlopeHotZoneSize_Station[StationNumber][1], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule);
+            new BmnGemStripReadoutModule(XSlopeHotZoneSize_Station[StationNumber][1], YSlopeHotZoneSize_Station[StationNumber], XPosition-XSlopeHotZoneSize_Station[StationNumber][1], YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule, ForwardZAxisEDrift);
     }
     ReadoutModules[4]->SetDeadZone(XPosition-BeamHoleRadius, XPosition+0, YPosition+0, YPosition+BeamHoleRadius);
 
     if(StationNumber%2 == 1) {
         ReadoutModules[5] =
-            new BmnGemStripReadoutModule(XSlopeHotZoneSize_Station[StationNumber][1], YSlopeHotZoneSize_Station[StationNumber], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule);
+            new BmnGemStripReadoutModule(XSlopeHotZoneSize_Station[StationNumber][1], YSlopeHotZoneSize_Station[StationNumber], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule, ForwardZAxisEDrift);
     }
     else {
         ReadoutModules[5] =
-            new BmnGemStripReadoutModule(XRectHotZoneSize_Station[StationNumber], YRectHotZoneSize_Station[StationNumber], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule);
+            new BmnGemStripReadoutModule(XRectHotZoneSize_Station[StationNumber], YRectHotZoneSize_Station[StationNumber], XPosition+0, YPosition+0, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+ZSizeGemModule, ForwardZAxisEDrift);
     }
     ReadoutModules[5]->SetDeadZone(XPosition+0, XPosition+BeamHoleRadius, YPosition+0, YPosition+BeamHoleRadius);
 
     if(StationNumber%2 == 1) {
         ReadoutModules[6] =
-            new BmnGemStripReadoutModule(XSlopeHotZoneSize_Station[StationNumber][1], YSlopeHotZoneSize_Station[StationNumber], XPosition+0, YPosition-YSlopeHotZoneSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+            new BmnGemStripReadoutModule(XSlopeHotZoneSize_Station[StationNumber][1], YSlopeHotZoneSize_Station[StationNumber], XPosition+0, YPosition-YSlopeHotZoneSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     }
     else {
         ReadoutModules[6] =
-            new BmnGemStripReadoutModule(XRectHotZoneSize_Station[StationNumber], YRectHotZoneSize_Station[StationNumber], XPosition+0, YPosition-YRectHotZoneSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+            new BmnGemStripReadoutModule(XRectHotZoneSize_Station[StationNumber], YRectHotZoneSize_Station[StationNumber], XPosition+0, YPosition-YRectHotZoneSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     }
     ReadoutModules[6]->SetDeadZone(XPosition+0, XPosition+BeamHoleRadius, YPosition-BeamHoleRadius, YPosition+0);
 
     if(StationNumber%2 == 1) {
         ReadoutModules[7] =
-            new BmnGemStripReadoutModule(XRectHotZoneSize_Station[StationNumber], YRectHotZoneSize_Station[StationNumber], XPosition-XRectHotZoneSize_Station[StationNumber], YPosition-YRectHotZoneSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+            new BmnGemStripReadoutModule(XRectHotZoneSize_Station[StationNumber], YRectHotZoneSize_Station[StationNumber], XPosition-XRectHotZoneSize_Station[StationNumber], YPosition-YRectHotZoneSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     }
     else {
         ReadoutModules[7] =
-            new BmnGemStripReadoutModule(XSlopeHotZoneSize_Station[StationNumber][1], YSlopeHotZoneSize_Station[StationNumber], XPosition-XSlopeHotZoneSize_Station[StationNumber][1], YPosition-YSlopeHotZoneSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule));
+            new BmnGemStripReadoutModule(XSlopeHotZoneSize_Station[StationNumber][1], YSlopeHotZoneSize_Station[StationNumber], XPosition-XSlopeHotZoneSize_Station[StationNumber][1], YPosition-YSlopeHotZoneSize_Station[StationNumber], PitchValueModule, -StripAngle, LowerStripWidth, UpperStripWidth, ZPosition+(ZSizeGemModule-ZSizeReadoutModule), ForwardZAxisEDrift);
     }
     ReadoutModules[7]->SetDeadZone(XPosition-BeamHoleRadius, XPosition+0, YPosition-BeamHoleRadius, YPosition+0);
 }

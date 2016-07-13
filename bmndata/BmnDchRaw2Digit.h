@@ -1,5 +1,5 @@
 #ifndef BMNDCHRAW2DIGIT_H
-#define	BMNDCHRAW2DIGIT_H 
+#define BMNDCHRAW2DIGIT_H 
 
 #include "TString.h"
 #include "TClonesArray.h"
@@ -10,6 +10,7 @@
 #include "Riostream.h"
 #include "BmnDchDigit.h"
 #include <cstdlib>
+#include <bitset>
 
 enum {
     VA_1 = 0, VB_1 = 1, UA_1 = 2, UB_1 = 3, XA_1 = 4, XB_1 = 5, YA_1 = 6, YB_1 = 7,
@@ -27,19 +28,19 @@ public:
         ndigit = 0;
     };
 
-    void set(unsigned short v) {
+    void set(UShort_t v) {
         if (ndigit < 20) {
             data[ndigit++] = v;
         }
     }
 
-    int get(unsigned short **d) {
+    int get(UShort_t **d) {
         *d = data;
         return ndigit;
     }
 private:
-    unsigned char ndigit;
-    unsigned short data[20];
+    UChar_t ndigit;
+    UShort_t data[20];
 };
 
 class Bmn_DCH_map_element {
@@ -49,47 +50,59 @@ public:
         id = slot = chan = 0;
     };
 
-    void set(unsigned long v1, unsigned char v2, unsigned char v3) {
+    void set(UInt_t v1, UChar_t v2, UChar_t v3) {
         id = v1;
         slot = v2;
         chan = v3;
     };
-    unsigned long id;
-    unsigned char slot;
-    unsigned char chan;
+    UInt_t id;
+    UChar_t slot;
+    UChar_t chan;
 };
 
-class BmnDchRaw2Digit{
-
+class BmnDchRaw2Digit {
 public:
     BmnDchRaw2Digit(TString mappingFile);
 
     BmnDchRaw2Digit() {};
 
-    void clear();
-    int  set(unsigned long id, unsigned char slot, unsigned char ch, int val);
-    void print();
-    char *getPlaneName(int i);
-    void getEventInfo(long long *ev,long long *t1,long long *t2);
-    int  getdata(int p, int ch, unsigned short **d);
-    int  getndigit(int plane);
-    void fillEvent(TClonesArray *data);
-    void fillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0);
-    void fillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0, TClonesArray *dhcdigit);
-    float get_t0();
+    Int_t GetNDigit(Int_t plane) {
+        return digits[plane & 0xF];
+    }
+
+    Int_t GetData(Int_t p, Int_t ch, UShort_t **d) {
+        return data[p & 0xF][(ch / 16) & 0xF][ch % 16].get(d);
+    }
+
+    Float_t Get_t0() {
+        return T0;
+    }
+
+    void Clear();
+    Int_t Set(ULong_t id, UChar_t slot, UChar_t ch, Int_t val);
+    void Print();
+    Char_t *GetPlaneName(Int_t i);
+    void GetEventInfo(Long64_t *ev, Long64_t *t1, Long64_t *t2);
+//    void FillEvent(TClonesArray *data);
+//    void FillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0);
+//    void FillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0, TClonesArray *dhcdigit);
+    void FillEvent(TClonesArray *tdc, TClonesArray *sync, TClonesArray *dch);
 
 private:
 
-    char Bmn_DCH_names[16][5];
+    Char_t Bmn_DCH_names[16][5];
     Bmn_DCH_map_element dhc_map_element[16][16][16];
     Bmn_DCH_data data[16][16][16];
-    int digits[16];
-    int rel[21][64];
-    float T0;
-    long long EVENT,TIME_SEC,TIME_NS;
+    Int_t digits[16];
+    Int_t rel[2][21][64]; 
+    Float_t T0;
+    Long64_t EVENT, TIME_SEC, TIME_NS;
+    TString fMapFileName;
+    ifstream fMapFile;
+    UInt_t fType;
 
     ClassDef(BmnDchRaw2Digit, 1);
 };
-#endif	/* BMNDCHRAW2DIGIT_H */
+#endif /* BMNDCHRAW2DIGIT_H */
 
 

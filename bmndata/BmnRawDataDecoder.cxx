@@ -1,5 +1,4 @@
 #include "BmnRawDataDecoder.h"
-#include <bitset>
 
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
@@ -258,6 +257,7 @@ BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt
             UInt_t tdcId = (d[idx] >> 24) & 0xF;
             UInt_t time = (modId == kTDC64V) ? (d[idx] & 0x7FFFF) : ((d[idx] & 0x7FFFF) << 2) | ((d[idx] & 0x180000) >> 19);
             UInt_t channel = (modId == kTDC64V) ? (d[idx] >> 19) & 0x1F : (d[idx] >> 21) & 0x7;
+            //if (modId == kTDC64V && tdcId == 2) channel += 32;
             TClonesArray &ar_tdc = *tdc;
             new(ar_tdc[tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), tdcId, channel, time);
         }
@@ -315,8 +315,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fDigiTree->Branch("time_sec", &fTime_s, "bmn_time_sec/I");
     fDigiTree->Branch("time_ns", &fTime_ns, "bmn_time_ns/I");
     //fDigiTree->Branch("t0_digit", &t0);
-    fDigiTree->Branch("dch_digit", &dch);
-    fDigiTree->Branch("gem_digit", &gem);
+    fDigiTree->Branch("BmnDchDigit", &dch);
+    fDigiTree->Branch("BmnGemStripDigit", &gem);
     fDigiTree->Branch("tof400_digit", &tof400);
     fDigiTree->Branch("tof700_digit", &tof700);
 
@@ -328,6 +328,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fNevents = fRawTree->GetEntries();
 
     BmnGemRaw2Digit *gemMapper = new BmnGemRaw2Digit(fGemMapFileName);
+    BmnDchRaw2Digit *dchMapper = new BmnDchRaw2Digit(fDchMapFileName);
+    //    BmnTof1Raw2Digit *tof400Mapper = new BmnDchRaw2Digit(fTof400MapFileName);
+    //    BmnTof2Raw2Digit *tof700Mapper = new BmnDchRaw2Digit(fTof700MapFileName);
 
     if (fPedestalRan) {
         CalcGemPedestals();
@@ -339,9 +342,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             gem->Clear();
             tof400->Clear();
             tof700->Clear();
+
             fRawTree->GetEntry(iEv);
 
             gemMapper->FillEvent(adc, gem);
+            dchMapper->FillEvent(tdc, sync, dch);
 
             fDigiTree->Fill();
         }

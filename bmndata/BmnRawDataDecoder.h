@@ -13,6 +13,9 @@
 #include <fstream>
 #include "BmnGemRaw2Digit.h"
 #include "BmnGemStripDigit.h"
+#include "BmnDchRaw2Digit.h"
+#include "BmnTof1Raw2Digit.h"
+#include <bitset>
 
 class BmnRawDataDecoder {
 public:

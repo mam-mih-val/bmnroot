@@ -155,25 +155,25 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                 UInt_t realChannel = ch2048;
                 if (gemM->gemChHi - gemM->gemChLo < 128) realChannel += 2048;
                 if (SearchInMap(&X1_mid, strip, realChannel) == kBMNSUCCESS) {
-                    mod = 1;
+                    mod = 0;
                     lay = 0;
                     ped = SearchPed(ch2048, gemM->serial);
                     break;
                 }
                 if (SearchInMap(&Y1_mid, strip, realChannel) == kBMNSUCCESS) {
-                    mod = 1;
+                    mod = 0;
                     lay = 1;
                     ped = SearchPed(ch2048, gemM->serial);
                     break;
                 }
                 if (SearchInMap(&X0_mid, strip, realChannel) == kBMNSUCCESS) {
-                    mod = 0;
+                    mod = 1;
                     lay = 0;
                     ped = SearchPed(ch2048, gemM->serial);
                     break;
                 }
                 if (SearchInMap(&Y0_mid, strip, realChannel) == kBMNSUCCESS) {
-                    mod = 0;
+                    mod = 1;
                     lay = 1;
                     ped = SearchPed(ch2048, gemM->serial);
                     break;

@@ -9,7 +9,7 @@ void Preparation_TOF700(char *fname="bmn_run0362.root") {
     sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
 
     const char *mapping;
-    if(RUN < 470) mapping="TOF700_map_Feb20_Mar11.txt";
+    if(RUN < 470) mapping="map_march_2015.txt";
     else mapping="TOF700_map_Mar11.txt";
 
     BmnTof2Raw2Digit TOF2(mapping, fname);

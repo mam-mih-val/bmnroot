@@ -40,8 +40,10 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fTime_s = 0;
     fRawTree = NULL;
     fDigiTree = NULL;
-    fRootFile = NULL;
-    fRawFile = NULL;
+    fRootFileIn = NULL;
+    fRootFileOut = NULL;
+    fRawFileIn = NULL;
+    fDigiFileOut = NULL;
     sync = NULL;
     tdc = NULL;
     adc = NULL;
@@ -67,8 +69,10 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
     fTime_s = 0;
     fRawTree = NULL;
     fDigiTree = NULL;
-    fRootFile = NULL;
-    fRawFile = NULL;
+    fRootFileIn = NULL;
+    fRootFileOut = NULL;
+    fRawFileIn = NULL;
+    fDigiFileOut = NULL;
     sync = NULL;
     tdc = NULL;
     adc = NULL;
@@ -97,8 +101,8 @@ BmnRawDataDecoder::~BmnRawDataDecoder() {
 BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
 
     fRawTree = new TTree("BMN_RAW", "BMN_RAW");
-    fRawFile = fopen(fRawFileName, "rb");
-    fRootFile = new TFile(fRootFileName, "recreate");
+    fRawFileIn = fopen(fRawFileName, "rb");
+    fRootFileOut = new TFile(fRootFileName, "recreate");
 
     sync = new TClonesArray("BmnSyncDigit");
     adc = new TClonesArray("BmnADC32Digit");
@@ -113,11 +117,11 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     UInt_t dat = 0;
     for (;;) {
         if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
-        if (fread(&dat, kWORDSIZE, 1, fRawFile) != 1) return kBMNERROR;
+        if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
         if (dat == kSYNC1) { //search for start of event
 
             // read number of bytes in event
-            if (fread(&dat, kWORDSIZE, 1, fRawFile) != 1) return kBMNERROR;
+            if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
             dat = dat / kNBYTESINWORD + 1; // bytes --> words
             if (dat >= 100000) { // what the constant?
                 printf("Wrong data size: %d\n", dat);
@@ -125,7 +129,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
             }
 
             //read array of current event data and process them
-            if (fread(data, kWORDSIZE, dat, fRawFile) != dat) return kBMNERROR;
+            if (fread(data, kWORDSIZE, dat, fRawFileIn) != dat) return kBMNERROR;
             fEventId = data[0];
             if (fEventId <= 0) continue; // skip bad events (it is possible, but what about 0?) 
             ProcessEvent(data, dat);
@@ -135,15 +139,13 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     }
 
     fRawTree->Write();
-    fRootFile->Close();
-    fclose(fRawFile);
+    fRootFileOut->Close();
+    fclose(fRawFileIn);
 
     delete sync;
     delete adc;
     delete tdc;
     delete msc;
-    delete fRawTree;
-    delete fRootFile;
 
     return kBMNSUCCESS;
 }
@@ -292,8 +294,8 @@ BmnStatus BmnRawDataDecoder::FillTRIG(UInt_t *d, UInt_t serial, UInt_t &idx) {
 
 BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
-    fRootFile = new TFile(fRootFileName, "READ");
-    fRawTree = (TTree *) fRootFile->Get("BMN_RAW");
+    fRootFileIn = new TFile(fRootFileName, "READ");
+    fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
     tdc = new TClonesArray("BmnTDCDigit");
     sync = new TClonesArray("BmnSyncDigit");
     adc = new TClonesArray("BmnADC32Digit");
@@ -301,7 +303,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fRawTree->SetBranchAddress("SYNC", &sync);
     fRawTree->SetBranchAddress("ADC", &adc);
 
-    fDigiFile = new TFile(fDigiFileName, "recreate");
+    fDigiFileOut = new TFile(fDigiFileName, "recreate");
     fDigiTree = new TTree("cbmsim", "bmn_digit");
 
     gem = new TClonesArray("BmnGemStripDigit");
@@ -353,18 +355,17 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     }
 
     fDigiTree->Write();
-    fDigiFile->Close();
+    fDigiFileOut->Close();
+    fRootFileIn->Close();
 
-    //    delete sync;
-    //    delete adc;
-    //    delete tdc;
-    //    delete gem;
-    //    delete dch;
+    delete sync;
+    delete adc;
+    delete tdc;
+    delete gem;
+    delete dch;
     //    delete t0;
-    //    delete tof400;
-    //    delete tof700;
-    //    delete fDigiTree;
-    //    delete fDigiFile;
+    delete tof400;
+    delete tof700;
 
     return kBMNSUCCESS;
 }

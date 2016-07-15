@@ -21,12 +21,13 @@ BmnStatus BmnGemRaw2Digit::FillMaps() {
 
     TString dummy;
     UInt_t ser, ch_l, ch_h, gId, adc_l, adc_h;
+    Bool_t hotZ = 0;
 
     fMapFile >> dummy;
-    fMapFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
+    fMapFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     fMapFile >> dummy;
     while (!fMapFile.eof()) {
-        fMapFile >> hex >> ser >> dec >> ch_l >> ch_h >> gId >> adc_l >> adc_h;
+        fMapFile >> hex >> ser >> dec >> ch_l >> ch_h >> gId >> adc_l >> adc_h >> hotZ;
         if (!fMapFile.good()) break;
         BmnGemMapping record;
         record.serial = ser;
@@ -35,6 +36,7 @@ BmnStatus BmnGemRaw2Digit::FillMaps() {
         record.adcChHi = adc_h;
         record.gemChLo = ch_l;
         record.gemChHi = ch_h;
+        record.hotZone = hotZ;
         fMap.push_back(record);
     }
     fMapFile.close();
@@ -74,6 +76,14 @@ BmnStatus BmnGemRaw2Digit::FillMaps() {
     ReadAndPut(path + TString("GEM_Y0_middle.txt"), Y0_mid);
     ReadAndPut(path + TString("GEM_X1_middle.txt"), X1_mid);
     ReadAndPut(path + TString("GEM_Y1_middle.txt"), Y1_mid);
+    ReadAndPut(path + TString("GEM_X0_Big_Left.txt"), X0_big_l);
+    ReadAndPut(path + TString("GEM_X0_Big_Right.txt"), X0_big_r);
+    ReadAndPut(path + TString("GEM_X1_Big_Left.txt"), X1_big_l);
+    ReadAndPut(path + TString("GEM_X1_Big_Right.txt"), X1_big_r);
+    ReadAndPut(path + TString("GEM_Y0_Big_Left.txt"), Y0_big_l);
+    ReadAndPut(path + TString("GEM_Y0_Big_Right.txt"), Y0_big_r);
+    ReadAndPut(path + TString("GEM_Y1_Big_Left.txt"), Y1_big_l);
+    ReadAndPut(path + TString("GEM_Y1_Big_Right.txt"), Y1_big_r);
     //==================================================//
 
     return kBMNSUCCESS;
@@ -141,8 +151,81 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                     break;
                 }
             }
-            case 6: //big gem
-                break;
+            case 6: //left big gem
+            {
+                UInt_t ch2048 = ch * nSmpl + iSmpl;
+                //in one GEM we have 2176 channels, but in adc only 2048
+                //so we use additional slot and we have to check is it an additional slot or not...
+                //if additional, then channel number will be more than 2048
+                UInt_t realChannel = ch2048;
+                if (gemM->gemChHi - gemM->gemChLo < 128) realChannel += 2048;
+                if (gemM->hotZone) {
+                    if (SearchInMap(&X0_big_l, strip, realChannel) == kBMNSUCCESS) {
+                        mod = 2;
+                        lay = 0;
+                        ped = SearchPed(ch2048, gemM->serial);
+                        break;
+                    }
+                    if (SearchInMap(&Y0_big_l, strip, realChannel) == kBMNSUCCESS) {
+                        mod = 2;
+                        lay = 1;
+                        ped = SearchPed(ch2048, gemM->serial);
+                        break;
+                    }
+                } else {
+                    if (SearchInMap(&X1_big_l, strip, realChannel) == kBMNSUCCESS) {
+                        mod = 0;
+                        lay = 0;
+                        ped = SearchPed(ch2048, gemM->serial);
+                        break;
+                    }
+
+                    if (SearchInMap(&Y1_big_l, strip, realChannel) == kBMNSUCCESS) {
+                        mod = 0;
+                        lay = 1;
+                        ped = SearchPed(ch2048, gemM->serial);
+                        break;
+                    }
+                    break;
+                }
+            }
+            case 7: //right big gem
+            {
+                UInt_t ch2048 = ch * nSmpl + iSmpl;
+                //in one GEM we have 2176 channels, but in adc only 2048
+                //so we use additional slot and we have to check is it an additional slot or not...
+                //if additional, then channel number will be more than 2048
+                UInt_t realChannel = ch2048;
+                if (gemM->gemChHi - gemM->gemChLo < 128) realChannel += 2048;
+                if (gemM->hotZone) {
+                    if (SearchInMap(&X0_big_r, strip, realChannel) == kBMNSUCCESS) {
+                        mod = 3;
+                        lay = 0;
+                        ped = SearchPed(ch2048, gemM->serial);
+                        break;
+                    }
+                    if (SearchInMap(&Y0_big_r, strip, realChannel) == kBMNSUCCESS) {
+                        mod = 3;
+                        lay = 1;
+                        ped = SearchPed(ch2048, gemM->serial);
+                        break;
+                    }
+                } else {
+                    if (SearchInMap(&X1_big_r, strip, realChannel) == kBMNSUCCESS) {
+                        mod = 1;
+                        lay = 0;
+                        ped = SearchPed(ch2048, gemM->serial);
+                        break;
+                    }
+                    if (SearchInMap(&Y1_big_r, strip, realChannel) == kBMNSUCCESS) {
+                        mod = 1;
+                        lay = 1;
+                        ped = SearchPed(ch2048, gemM->serial);
+                        break;
+                    }
+                    break;
+                }
+            }
             default://middle gem's
             {
                 //in ADC we have 64 channels with 32 samples, in FEE we have 2048 channels 
@@ -196,6 +279,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
     comModEv /= nSmpl;
 
     UInt_t nOk = 0;
+    UInt_t gain = 5; // if signal > 5 * ComMod skip this strip
     Double_t noise = 0.0;
     Double_t updSignal[nSmpl];
 

@@ -77,9 +77,10 @@ private:
     ifstream fGemMapFile;
     ifstream fTof400MapFile;
     ifstream fTof700MapFile;
-    TFile *fRootFile;
-    TFile *fDigiFile;
-    FILE *fRawFile;
+    TFile *fRootFileIn;
+    TFile *fRootFileOut;
+    TFile *fDigiFileOut;
+    FILE *fRawFileIn;
 
     //DAQ arrays
     TClonesArray *sync;

@@ -25,6 +25,7 @@ struct BmnGemMapping {
     UInt_t adcChHi;
     UInt_t gemChLo;
     UInt_t gemChHi;
+    Bool_t hotZone;
 };
 //
 //struct BmnGemPedestal {
@@ -50,6 +51,14 @@ public:
 private:
     
     // maps for storing <channel, strip> accordance  
+    map<UInt_t, UInt_t> X0_big_l;
+    map<UInt_t, UInt_t> X0_big_r;
+    map<UInt_t, UInt_t> X1_big_l;
+    map<UInt_t, UInt_t> X1_big_r;
+    map<UInt_t, UInt_t> Y0_big_l;
+    map<UInt_t, UInt_t> Y0_big_r;
+    map<UInt_t, UInt_t> Y1_big_l;
+    map<UInt_t, UInt_t> Y1_big_r;
     map<UInt_t, UInt_t> X0_mid;
     map<UInt_t, UInt_t> Y0_mid;
     map<UInt_t, UInt_t> X1_mid;

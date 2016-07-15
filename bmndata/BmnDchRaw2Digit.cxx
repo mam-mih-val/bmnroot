@@ -7,8 +7,8 @@ BmnDchRaw2Digit::BmnDchRaw2Digit(TString mappingFile) {
     fType = 0x10; //modId of TDC64V (for DCH)
     fMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + mappingFile;
     static const Char_t * tmp[16] = {
-        "VA_1", "VB_1", "UA_1", "UB_1", "XA_1", "XB_1", "YA_1", "YB_1",
-        "VA_2", "VB_2", "UA_2", "UB_2", "XA_2", "XB_2", "YA_2", "YB_2"
+        "VA_1", "VB_1", "UA_1", "UB_1", "YA_1", "YB_1", "XA_1", "XB_1",
+        "VA_2", "VB_2", "UA_2", "UB_2", "YA_2", "YB_2", "XA_2", "XB_2"
     };
     for (Int_t i = 0; i < 16; i++)
         sprintf(Bmn_DCH_names[i], "%s", tmp[i]);

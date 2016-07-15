@@ -1,13 +1,18 @@
 #ifndef BMNTOF2RAW2DIGIT_H
 #define BMNTOF2RAW2DIGIT_H
 
-#define TOF2_MAX_MODULES 4
-#define TOF2_MAX_CHAMBERS 4
-#define TOF2_MAX_STRIPS 32
-#define TOF2_MAX_CHANNEL 112
 #define SLFIT "pol2"
 #define HPTIMEBIN 0.02344
 #define INVHPTIMEBIN 42.6666
+
+#define TOF2_MAX_STRIPS_IN_CHAMBER 32
+#define TOF2_MAX_CHANNELS_IN_SLOT 32
+//#define TOF2_MAX_CHANNELS_IN_MODULE TOF2_MAX_CHANNELS_IN_SLOT
+#define TOF2_MAX_CHANNELS_IN_MODULE 32
+#define TOF2_MAX_CRATES 5
+#define TOF2_MAX_SLOTS_IN_CRATE 20
+#define TOF2_MAX_CHAMBERS 15
+#define TOF2_MAX_CHANNEL 1100
 
 #include "TString.h"
 #include "TProfile.h"
@@ -24,12 +29,13 @@
 class Bmn_Tof2_map_element{
 public:
    Bmn_Tof2_map_element(){
-     plane=side=id,slot,tdc,chan,strip=0;
+     plane=side=id=slot=tdc=chan=crate=strip=0;
    } 
+   int crate;
    int pair;
    int plane;
-   char side;            
    int id,slot,tdc,chan,strip;   
+   char side;            
 };
 
 class BmnTof2Raw2Digit{
@@ -40,31 +46,29 @@ public:
     void print();
     void getEventInfo(long long *ev,long long *t1,long long *t2);
 
-    void INL_read25();
-    void INL_read25_gol();
-    void INL_read25_ffd();
+    void DNL_read();
 
     int  get_t0() { return T0; }
 
-    void SetWcut(int wcut) { Wcut = wcut; for (int c=0; c<TOF2_MAX_CHAMBERS; c++) ReBook(c); }
+    void SetWcut(int wcut) { Wcut = wcut; for (int c=0; c<MaxPlane; c++) ReBook(c); }
     int  GetWcut() { return Wcut; }
 
-    void SetWmax(int wm) { Wmax = wm; for (int c=0; c<TOF2_MAX_CHAMBERS; c++) ReBook(c); }
+    void SetWmax(int wm) { Wmax = wm; for (int c=0; c<MaxPlane; c++) ReBook(c); }
     int  GetWmax() { return Wmax; }
 
-    void SetWT0max(int wt0m) { WT0max = wt0m; for (int c=0; c<TOF2_MAX_CHAMBERS; c++) ReBook(c); }
+    void SetWT0max(int wt0m) { WT0max = wt0m; for (int c=0; c<MaxPlane; c++) ReBook(c); }
     int  GetWT0max() { return WT0max; }
 
-    void SetWT0min(int wt0m) { WT0min = wt0m; for (int c=0; c<TOF2_MAX_CHAMBERS; c++) ReBook(c); }
+    void SetWT0min(int wt0m) { WT0min = wt0m; for (int c=0; c<MaxPlane; c++) ReBook(c); }
     int  GetWT0min() { return WT0min; }
 
-    void SetLeadMin(int c, int leadmin) { if (c>0&&c<=TOF2_MAX_CHAMBERS) {LeadMin[c-1] = leadmin; ReBook(c-1);} }
+    void SetLeadMin(int c, int leadmin) { if (c>0&&c<=MaxPlane) {LeadMin[c-1] = leadmin; ReBook(c-1);} }
     int  GetLeadMin(int c) { return LeadMin[c]; }
 
-    void SetLeadMax(int c, int leadmax) { if (c>0&&c<=TOF2_MAX_CHAMBERS) {LeadMax[c-1] = leadmax; ReBook(c-1);} }
+    void SetLeadMax(int c, int leadmax) { if (c>0&&c<=MaxPlane) {LeadMax[c-1] = leadmax; ReBook(c-1);} }
     int  GetLeadMax(int c) { return LeadMax[c]; }
 
-    void SetLeadMinMax(int c, int leadmin, int leadmax) { if (c>0&&c<=TOF2_MAX_CHAMBERS) {LeadMin[c-1] = leadmin; LeadMax[c-1] = leadmax; ReBook(c-1);}; }
+    void SetLeadMinMax(int c, int leadmin, int leadmax) { if (c>0&&c<=MaxPlane) {LeadMin[c-1] = leadmin; LeadMax[c-1] = leadmax; ReBook(c-1);}; }
 
     void fillPreparation(TClonesArray *data, TClonesArray *sync, TClonesArray *t0);
     void fillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0, TClonesArray *tof2digit);
@@ -103,12 +107,19 @@ private:
     int LeadMax[TOF2_MAX_CHAMBERS];
     int MaxPlane;
     int numstrip[TOF2_MAX_CHAMBERS];
+    int numcr[TOF2_MAX_CRATES*TOF2_MAX_SLOTS_IN_CRATE], numcha[TOF2_MAX_CHAMBERS];
+    int nslots, ncrates, nchambers;
+    int idchambers[TOF2_MAX_CHAMBERS]; 
+    int numslots[TOF2_MAX_CRATES*TOF2_MAX_SLOTS_IN_CRATE]; 
+    int idcrates[TOF2_MAX_CRATES], numcrates[TOF2_MAX_CRATES]; 
 
     float tmean[2][TOF2_MAX_CHANNEL];
     int ntmean[2][TOF2_MAX_CHANNEL];
     float tmean_average[2][TOF2_MAX_CHAMBERS];
 
-    float INL_Table25[TOF2_MAX_MODULES+1][32][1024];
+    double DNL_Table[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE][72][1024];
+    int dnltype[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE];
+    char dnlname[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE][128];
 
     int wmint0[TOF2_MAX_CHAMBERS][2];
     int wmaxt0[TOF2_MAX_CHAMBERS][2];
@@ -139,12 +150,12 @@ private:
 
     int nstrips[TOF2_MAX_CHAMBERS];
     float zchamb[TOF2_MAX_CHAMBERS];
-    float xcens[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS];
-    float ycens[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS];
-    float xmins[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS];
-    float xmaxs[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS];
-    float ymins[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS];
-    float ymaxs[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS];
+    float xcens[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+    float ycens[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+    float xmins[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+    float xmaxs[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+    float ymins[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
+    float ymaxs[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];
 
 ClassDef(BmnTof2Raw2Digit, 1);
 };

@@ -16,7 +16,6 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile, UInt_t 
     char *delim = 0, name[128], title[128];
     n_rec=0;
     TString dummy;
-    ifstream in;
 
     TString dir = getenv("VMCWORKDIR");
     TString path = dir + "/input/";
@@ -33,31 +32,106 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile, UInt_t 
 	sprintf((char *)&fname[strlen(filname_base) - 4], "%04d", SlewingRun);
     }
 
+
+    ifstream in;
     in.open((path + mappingFile).Data());
-    in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     MaxPlane = 0;
+    TString dnlfile;
+//    char dnlfile[128];
+    int crate, slot, chan, plane, strip, side, filetype, cham, idcham;
+    int id_crate;
+
+    for (int c=0; c<TOF2_MAX_CRATES; c++)
+	for (int i=0; i<TOF2_MAX_SLOTS_IN_CRATE; i++)
+	    dnltype[c][i] = -1;
+
+
+    in >> dummy;
+    in >> ncrates;
+    in >> dummy >> dummy;
+    for (int i = 0; i < ncrates; i++)
+    {
+    	    in >> crate >> std::hex >> id_crate;
+    	    if (!in.good()) break;
+	    if (crate >= TOF2_MAX_CRATES) break;
+	    numcrates[i] = crate;
+	    idcrates[crate] = id_crate;
+	    if (in.eof()) break;
+    }
+    in >> dummy;
+    in >> nslots;
+//    printf("%d\n",nslots);
+    in >> dummy >> dummy >> dummy >> dummy;
+//    printf("%s\n",dummy.Data());
+//        for (int i = 0; i < TOF2_MAX_SLOTS_IN_CRATE; i++)
+    for (int i = 0; i < (nslots+1); i++)
+    {
+    	    in >> crate >> slot >> filetype >> dnlfile;
+//	    printf("%d %d %d %s\n",crate,slot,filetype,dnlfile.Data());
+    	    if (!in.good()) break;
+	    if (crate >= TOF2_MAX_CRATES) break;
+	    if (slot >= TOF2_MAX_SLOTS_IN_CRATE) break;
+	    numcr[i] = crate;
+	    numslots[i] = slot;
+	    dnltype[crate][slot] = filetype;
+	    strcpy(&dnlname[crate][slot][0], path.Data());
+	    strcat(&dnlname[crate][slot][0], dnlfile.Data());
+	    if (in.eof()) break;
+    }
+
+    in >> dummy;
+    in >> nchambers;
+//    printf("%d\n",nchambers);
+    in >> dummy >> dummy;
+//    printf("%s\n",dummy.Data());
+    for (int i = 0; i < nchambers; i++)
+    {
+    	    in >> cham >> idcham;
+//	    printf("%d %d %d %s\n",crate,slot,filetype,dnlfile.Data());
+    	    if (!in.good()) break;
+	    if (cham >= TOF2_MAX_CHAMBERS) break;
+	    numcha[i] = cham;
+	    idchambers[cham] = idcham;
+	    if (in.eof()) break;
+    }
+
+    if (!in.eof()) in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
+//    printf("%s\n",dummy.Data());
+    char line[256] = {""};
+	in.getline(line,128);
+//	printf("line %d %s\n", strlen(line),line);
     while (!in.eof()) {
-        TString side;
-        int id,slot,tdc,chan,plane,strip; 
-        in >> std::hex >> id >> std::dec >> slot >> tdc >> chan >> plane >> strip >> side;
+//	in.getline(line,128);
+//	printf("line %d %s\n", strlen(line),line);
+	in.getline(line,128);
+//	printf("line %d %s\n", strlen(line),line);
+	sscanf(line,"%d\t%d\t%d\t%d\t%d\t%d\n",&crate,&slot,&chan,&plane,&strip,&side);
+//        in >> crate >> slot >> chan >> plane >> strip >> side;
+//	printf("%d %d %d %d %d %d\n",crate, slot,chan,plane,strip,side);
         if (!in.good()) break;
-	if (chan >= 32) break;
-	if (plane > TOF2_MAX_CHAMBERS) break;
-        map[n_rec].id=id;
+	if (crate >= TOF2_MAX_CRATES) break;
+	if (slot >= TOF2_MAX_SLOTS_IN_CRATE) break;
+	if (chan >= TOF2_MAX_CHANNELS_IN_SLOT) break;
+	if (plane >= TOF2_MAX_CHAMBERS) break;
+	if (strip > TOF2_MAX_STRIPS_IN_CHAMBER) break;
+//	printf(" a %d %d %d %d %d %d\n",crate, slot,chan,plane,strip,side);
+        map[n_rec].id=idcrates[crate];
+        map[n_rec].crate=crate;
         map[n_rec].slot=slot;
-        map[n_rec].plane=plane-1;
-        map[n_rec].tdc=tdc;
         map[n_rec].chan=chan;
-        map[n_rec].strip=strip;
+        map[n_rec].plane=plane;
+        map[n_rec].strip=strip-1;
+        map[n_rec].side=side; 
 	map[n_rec].pair=-2;
 	ntmean[0][n_rec] = 0;
 	ntmean[1][n_rec] = 0;
 	tmean[0][n_rec] = 0.;
 	tmean[1][n_rec] = 0.;
-        map[n_rec++].side=side.Data()[0]; 
+	n_rec++;
 	if (n_rec >= TOF2_MAX_CHANNEL) break;
 	if (plane > MaxPlane) MaxPlane = plane;
     }
+    if (n_rec) MaxPlane++;
     in.close();
 
 //    int numgeom[TOF2_MAX_CHAMBERS] = {1,2,3,4};
@@ -74,10 +148,15 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile, UInt_t 
      }
     }
 //  read INL/DNL correction files
-    for (int i=0; i<TOF2_MAX_MODULES; i++) for (int j=0; j<32; j++) for (int k=0; k<1024; k++) INL_Table25[i][j][k] = 0.;
-    INL_read25();
-    INL_read25_gol();
-    INL_read25_ffd();
+    for (int c=0; c<TOF2_MAX_CRATES; c++)
+	for (int i=0; i<TOF2_MAX_SLOTS_IN_CRATE; i++)
+	{
+/*	    for (int j=0; j<TOF2_MAX_CHANNELS_IN_SLOT; j++) */
+	    for (int j=0; j<72; j++)
+		for (int k=0; k<1024; k++)
+		    DNL_Table[c][i][j][k] = 0.;
+	}
+    DNL_read();
 
     Wcut = 1650;
     Wmax = 4000;
@@ -143,16 +222,16 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile, UInt_t 
     sprintf(title, "TS difference");
     Wts = new TH1F(name,title,200,-100,100);
 
-    for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
+    for (int i=0; i<MaxPlane; i++)
     {
 	sprintf(name, "Time_vs_Strip_Chamber_%d",i+1);
 	sprintf(title, "Time vs Strip Chamber %d",i+1);
-	TvsS[i] = new TH2F(name,title,32,0,32,20000, -10000., +10000.);
+	TvsS[i] = new TH2F(name,title,TOF2_MAX_CHANNELS_IN_MODULE,0,TOF2_MAX_CHANNELS_IN_MODULE,20000, -10000., +10000.);
 	sprintf(name, "Width_vs_Strip_Chamber_%d",i+1);
 	sprintf(title, "Width vs Strip Chamber %d",i+1);
-	WvsS[i] = new TH2F(name,title,32,0,32,20000, -10000., +10000.);
+	WvsS[i] = new TH2F(name,title,TOF2_MAX_CHANNELS_IN_MODULE,0,TOF2_MAX_CHANNELS_IN_MODULE,20000, -10000., +10000.);
     }
-    for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
+    for (int i=0; i<MaxPlane; i++)
     {
 	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_1",i+1);
 	sprintf(title, "Time vs Width Chamber %d Peak 1",i+1);
@@ -167,7 +246,7 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile, UInt_t 
 	sprintf(title, "Time vs T0 Width Chamber %d all, max strip",i+1);
 	TvsWallmax[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
     }
-    for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
+    for (int i=0; i<MaxPlane; i++)
     {
 	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_2",i+1);
 	sprintf(title, "Time vs Width Chamber %d Peak 2",i+1);
@@ -214,11 +293,28 @@ void BmnTof2Raw2Digit::getEventInfo(long long *ev,long long *t1,long long *t2){
 }
 
 void BmnTof2Raw2Digit::print(){
-     printf("Number of chambers %d\n", MaxPlane);
-     printf("#\tcrate\t\tslot\ttdc\tchannel\tplane\tstrip\tpair\tside\n===========================================================================\n");
-     for(int i=0;i<n_rec;i++){
-       printf("%3d\t0x%X\t%d\t%d\t%d\t%d\t%d\t%d\t%c\n",i,map[i].id,map[i].slot,map[i].tdc,map[i].chan,map[i].plane,map[i].strip,map[i].pair,map[i].side);
+     printf("\n===========================================================================\n");
+     printf("Number of chambers %d, crates %d, slots %d, TDC channels %d\n\n", MaxPlane, ncrates, nslots, n_rec);
+     printf("  #\tcrate\tcrateID\n===========================================================================\n");
+     for(int i=0;i<ncrates;i++){
+       printf("%3d\t%d\t0x%0x\n",i,numcrates[i],idcrates[numcrates[i]]);
      }   
+     printf("===========================================================================\n");
+     printf("  #\tchamber\tchamberID\n===========================================================================\n");
+     for(int i=0;i<nchambers;i++){
+       printf("%3d\t%d\t%d\n",i,numcha[i],idchambers[numcha[i]]);
+     }   
+     printf("===========================================================================\n");
+     printf("  #\tslot\tfiletype\tfile\n===========================================================================\n");
+     for(int i=0;i<nslots+1;i++){
+       printf("%3d\t%d\t%d\t%s\n",i,numslots[i],dnltype[numcr[i]][numslots[i]],dnlname[numcr[i]][numslots[i]]);
+     }   
+     printf("===========================================================================\n");
+     printf("   #\tcrate\tslot\tchannel\tplane\tstrip\tside\n===========================================================================\n");
+     for(int i=0;i<n_rec;i++){
+       printf("%4d\t%d\t%d\t%d\t%d\t%d\t%d\n",i,map[i].crate,map[i].slot,map[i].chan,map[i].plane,map[i].strip,map[i].side);
+     }   
+     printf("===========================================================================\n");
 }
 
 void BmnTof2Raw2Digit::fillPreparation(TClonesArray *data, TClonesArray *sync, TClonesArray *t0) {
@@ -232,7 +328,7 @@ void BmnTof2Raw2Digit::fillPreparation(TClonesArray *data, TClonesArray *sync, T
         int dnl = digit->GetValue() & 0x3FF;
         if (digit->GetLeading()) {
             chan = digit->GetChannel();
-            T0raw = digit->GetValue()+INL_Table25[4][chan][dnl]+0.5;
+            T0raw = digit->GetValue()+DNL_Table[0][0][chan][dnl]+0.5;
             t0id = digit->GetSerial();
 //	    printf("T0 slot %d channel %d Leading %d\n", digit->GetSlot(), digit->GetChannel(), T0raw);
 	    n_t0_l++;
@@ -271,15 +367,16 @@ void BmnTof2Raw2Digit::fillPreparation(TClonesArray *data, TClonesArray *sync, T
        if(ind==n_rec) continue; 
 //       int tdcnum = map[ind].tdc;
        Wts->Fill(digittime - t0time);
+       int crate = map[ind].crate;
        int slot = map[ind].slot;
        int dnl = digit->GetValue() & 0x3FF;
        chan = digit->GetChannel();
-       float tm =  (digit->GetValue()+INL_Table25[slot-3][chan][dnl]) - (T0raw - ts_diff + T0shift);
+       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - (T0raw - ts_diff + T0shift);
        if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
 //       printf("%d %d %d %d %d\n", i, map[ind].slot, map[ind].chan, digit->GetValue(), T0raw);
     }
 
-    float wMax[TOF2_MAX_CHAMBERS] = {0.}, tMax[TOF2_MAX_CHAMBERS] = {-1000.};
+    float wmaxs[TOF2_MAX_CHAMBERS] = {0.}, tmaxs[TOF2_MAX_CHAMBERS] = {-1000.};
     int smax[TOF2_MAX_CHAMBERS] = {-1};
     for(int ind=0;ind<n_rec;ind++){
        int ind1 = map[ind].pair;
@@ -296,19 +393,19 @@ void BmnTof2Raw2Digit::fillPreparation(TClonesArray *data, TClonesArray *sync, T
 	    WvsS[map[ind].plane]->Fill(map[ind].strip, W);
 	    TvsWall[map[ind].plane]->Fill(W, L);
 	}
-	if (W > wMax[map[ind].plane] && ((W1 < Wcut && W2 < Wcut)||(W1 >= Wcut && W2 >= Wcut)))
+	if (W > wmaxs[map[ind].plane] && ((W1 < Wcut && W2 < Wcut)||(W1 >= Wcut && W2 >= Wcut)))
 	{
-		wMax[map[ind].plane] = W;
-		tMax[map[ind].plane] = L;
+		wmaxs[map[ind].plane] = W;
+		tmaxs[map[ind].plane] = L;
 		smax[map[ind].plane] = map[ind].strip;
 	}
        }
     }
-    for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
+    for (int i=0; i<MaxPlane; i++)
     {
 	    if (smax[i] > -1)
 	    {
-		TvsWallmax[i]->Fill(wMax[i], tMax[i]);
+		TvsWallmax[i]->Fill(wmaxs[i], tmaxs[i]);
 	    }
     }
 
@@ -325,7 +422,7 @@ void BmnTof2Raw2Digit::fillSlewingT0(TClonesArray *data, TClonesArray *sync, TCl
         int dnl = digit->GetValue() & 0x3FF;
         if (digit->GetLeading()) {
             chan = digit->GetChannel();
-            T0raw = digit->GetValue()+INL_Table25[4][chan][dnl]+0.5;
+            T0raw = digit->GetValue()+DNL_Table[0][0][chan][dnl]+0.5;
             t0id = digit->GetSerial();
 //	    printf("T0 slot %d channel %d Leading %d\n", digit->GetSlot(), digit->GetChannel(), T0raw);
 	    n_t0_l++;
@@ -364,12 +461,13 @@ void BmnTof2Raw2Digit::fillSlewingT0(TClonesArray *data, TClonesArray *sync, TCl
          if(digit->GetSerial()==map[ind].id && digit->GetSlot()==map[ind].slot && digit->GetChannel()==map[ind].chan) break;
        if(ind==n_rec) continue; 
 //       int tdcnum = map[ind].tdc;
+       int crate = map[ind].crate;
        int slot = map[ind].slot;
        int dnl = digit->GetValue() & 0x3FF;
        chan = digit->GetChannel();
-       float tm =  (digit->GetValue()+INL_Table25[slot-3][chan][dnl]) - (T0raw - ts_diff + T0shift);
+       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - (T0raw - ts_diff + T0shift);
        if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
-//       if (tm > 100000.) printf("%d %d %d %d %f %d %d %f\n", i, map[ind].slot, map[ind].chan, digit->GetValue(),INL_Table25[slot-3][chan][dnl], T0raw, ts_diff, tm);
+//       if (tm > 100000.) printf("%d %d %d %d %f %d %d %f\n", i, map[ind].slot, map[ind].chan, digit->GetValue(),DNL_Table[crate][slot][chan][dnl], T0raw, ts_diff, tm);
     }
     for(int ind=0;ind<n_rec;ind++){
        int ind1 = map[ind].pair;
@@ -648,7 +746,7 @@ void BmnTof2Raw2Digit::fillSlewing(TClonesArray *data, TClonesArray *sync, TClon
         int dnl = digit->GetValue() & 0x3FF;
         if (digit->GetLeading()) {
             chan = digit->GetChannel();
-            T0raw = digit->GetValue()+INL_Table25[4][chan][dnl]+0.5;
+            T0raw = digit->GetValue()+DNL_Table[0][0][chan][dnl]+0.5;
             t0id = digit->GetSerial();
 	    n_t0_l++;
         }
@@ -685,10 +783,11 @@ void BmnTof2Raw2Digit::fillSlewing(TClonesArray *data, TClonesArray *sync, TClon
          if(digit->GetSerial()==map[ind].id && digit->GetSlot()==map[ind].slot && digit->GetChannel()==map[ind].chan) break;
        if(ind==n_rec) continue; 
 //       int tdcnum = map[ind].tdc;
+       int crate = map[ind].crate;
        int slot = map[ind].slot;
        int dnl = digit->GetValue() & 0x3FF;
        chan = digit->GetChannel();
-       float tm =  (digit->GetValue()+INL_Table25[slot-3][chan][dnl]) - (T0raw - ts_diff + T0shift);
+       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - (T0raw - ts_diff + T0shift);
        if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
     }
     for(int ind=0;ind<n_rec;ind++){
@@ -928,7 +1027,7 @@ void BmnTof2Raw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClones
         int dnl = digit->GetValue() & 0x3FF;
         if (digit->GetLeading()) {
             chan = digit->GetChannel();
-            T0raw = digit->GetValue()+INL_Table25[4][chan][dnl]+0.5;
+            T0raw = digit->GetValue()+DNL_Table[0][0][chan][dnl]+0.5;
             t0id = digit->GetSerial();
 	    T0 = T0raw;
 	    n_t0_l++;
@@ -966,17 +1065,20 @@ void BmnTof2Raw2Digit::fillEvent(TClonesArray *data, TClonesArray *sync, TClones
          if(digit->GetSerial()==map[ind].id && digit->GetSlot()==map[ind].slot && digit->GetChannel()==map[ind].chan) break;
        if(ind==n_rec) continue; 
 //       int tdcnum = map[ind].tdc;
+       int crate = map[ind].crate;
        int slot = map[ind].slot;
        int dnl = digit->GetValue() & 0x3FF;
        chan = digit->GetChannel();
-       float tm =  (digit->GetValue()+INL_Table25[slot-3][chan][dnl]) - (T0raw - ts_diff + T0shift);
+       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - (T0raw - ts_diff + T0shift);
        if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
     }
+//    printf("Ok!\n");
     for(int ind=0;ind<n_rec;ind++){ 
        int ind1 = map[ind].pair;
        if (ind1 < 0) continue;
        if(lead[ind1]==0 || trail[ind1]==0) continue;
        if(lead[ind]!=0 && trail[ind]!=0){
+//    printf("Ok!\n");
 	float L = (lead[ind1]+lead[ind])/2.;
 	float D = (lead[ind1]-lead[ind])/2.;
 	float W1 = trail[ind]-lead[ind];
@@ -1084,132 +1186,139 @@ float BmnTof2Raw2Digit::slewing_correction(int chamber, float width, int peak)
     return cor;
 }
 
-void BmnTof2Raw2Digit::INL_read25()
+void BmnTof2Raw2Digit::DNL_read()
 {
+ for (int c=0; c<TOF2_MAX_CRATES; c++)
+ {
+ for (int s=0; s<TOF2_MAX_SLOTS_IN_CRATE; s++)
+ {
+ if (dnltype[c][s] == 1)
+ {
   float tcor, ecor;
   int n, pos;
   char atext[50];
-  TString dir = getenv("VMCWORKDIR");
-  TString path = dir + "/input/TDC2_INL.dat";
-  ifstream fi(path.Data());
+  ifstream fi(dnlname[c][s]);
   if(fi.is_open())
   {
-   for (n=0; n<32; n++)
+   for (n=0; n<TOF2_MAX_CHANNELS_IN_SLOT; n++)
       {
       for (int i=0; i<1024; i++)
          {
          fi.getline(atext,50);
          sscanf(atext,"%d %f %f\n", &pos,&tcor,&ecor);
-         INL_Table25[0][n][i] = tcor;
+         DNL_Table[c][s][n][i] = tcor;
          }
       }
    fi.close();
   }
-
-  path = dir + "/input/TDC3_INL.dat";
-  ifstream fi1(path.Data());
-  if(fi1.is_open())
+ }
+ else if(dnltype[c][s] == 0)
+ {
+   float tcor;
+   int n, pos, post;
+   char atext[25600];
+   ifstream fi(dnlname[c][s]);
+   if(fi.is_open())
+   {
+    n = 0;
+    while (!fi.eof())
+    {
+     fi.getline(atext,25600);
+     post = 0;
+     pos = 0;
+     for (int i=0; i<1024; i++)
+     {
+        sscanf(&atext[post],"%f %n", &tcor, &pos);
+	post += pos;
+        DNL_Table[c][s][n][i] = tcor;
+     }
+     fi.getline(atext,25600);
+     n++;
+     if (n==72) break;
+    }
+   fi.close();
+   }
+ }
+ else if(dnltype[c][s] == 2)
+ {
+   float tcor;
+   int n, pos, post;
+   char atext[25600];
+   ifstream fi(dnlname[c][s]);
+   if(fi.is_open())
+   {
+    n = 0;
+    while (!fi.eof())
+    {
+     fi.getline(atext,25600);
+     post = 0;
+     pos = 0;
+     for (int i=0; i<1024; i++)
+     {
+        sscanf(&atext[post],"%f %n", &tcor, &pos);
+	post += pos;
+        DNL_Table[c][s][n][i] = tcor;
+     }
+     fi.getline(atext,25600);
+     n++;
+     if (n==TOF2_MAX_CHANNELS_IN_SLOT) break;
+    }
+   fi.close();
+   }
+ }
+ else if(dnltype[c][s] == 3)
+ {
+   float tcor;
+   int n, pos, post, ch;
+   char atext[25600];
+   ifstream fi(dnlname[c][s]);
+   if(fi.is_open())
+   {
+    n = 0;
+    fi.getline(atext,25600);
+    while (!fi.eof())
+    {
+     fi.getline(atext,25600);
+     post = 0;
+     pos = 0;
+     sscanf(&atext[post],"%d=%n", &ch, &pos);
+     post += pos;
+     if (ch != n) printf("Wrong line in %s file!\n", dnlname[c][s]);
+     for (int i=0; i<1024; i++)
+     {
+        sscanf(&atext[post],"%f %n", &tcor, &pos);
+	post += pos;
+        DNL_Table[c][s][n][i] = tcor;
+     }
+     fi.getline(atext,25600);
+     n++;
+     if (n==TOF2_MAX_CHANNELS_IN_SLOT) break;
+    }
+   fi.close();
+   }
+ }
+ else if (dnltype[c][s] == 4) // fake
+ {
+  float tcor, ecor;
+  int n, pos;
+  char atext[50];
+  ifstream fi(dnlname[c][s]);
+  if(fi.is_open())
   {
-   for (n=0; n<32; n++)
-     {
-     for (int i=0; i<1024; i++)
-        {
-        fi1.getline(atext,50);
-        sscanf(atext,"%d %f %f\n", &pos,&tcor,&ecor);
-        INL_Table25[1][n][i] = tcor;
-        }
+   for (n=0; n<TOF2_MAX_CHANNELS_IN_SLOT; n++)
+      {
+      for (int i=0; i<1024; i++)
+         {
+         fi.getline(atext,50);
+         sscanf(atext,"%f\n", &tcor);
+         DNL_Table[c][s][n][i] = tcor;
+         }
       }
-   fi1.close();
+   fi.close();
   }
-}
-
-void BmnTof2Raw2Digit::INL_read25_gol()
-{
-   float tcor;
-   int n, pos, post;
-   char atext[25600];
-   TString dir = getenv("VMCWORKDIR");
-   TString path = dir + "/input/TDC1_INL.dat";
-   ifstream fi(path.Data());
-   if(fi.is_open())
-   {
-    n = 0;
-    while (!fi.eof())
-    {
-     fi.getline(atext,25600);
-     post = 0;
-     pos = 0;
-     for (int i=0; i<1024; i++)
-     {
-        sscanf(&atext[post],"%f %n", &tcor, &pos);
-	post += pos;
-        INL_Table25[3][n][i] = tcor;
-//        cout << " Channel " << n << " bin " << i << "   Time correction :" << tcor << " pos " << pos << endl ;
-     }
-     fi.getline(atext,25600);
-     n++;
-     if (n==32) break;
-    }
-   fi.close();
-   }
-
-   path = dir + "/input/TDC4_INL.dat";
-   ifstream fi1(path.Data());
-   if(fi1.is_open())
-   {
-    n = 0;
-    while (!fi1.eof())
-    {
-     fi1.getline(atext,25600);
-     post = 0;
-     pos = 0;
-     for (int i=0; i<1024; i++)
-     {
-        sscanf(&atext[post],"%f %n", &tcor, &pos);
-	post += pos;
-        INL_Table25[2][n][i] = tcor;
-//        cout << " Channel " << n << " bin " << i << "   Time correction :" << tcor << " pos " << pos << endl ;
-     }
-     fi1.getline(atext,25600);
-     n++;
-     if (n==32) break;
-    }
-   fi1.close();
-   }
-
-}
-
-
-void BmnTof2Raw2Digit::INL_read25_ffd()
-{
-   float tcor;
-   int n, pos, post;
-   char atext[25600];
-   TString dir = getenv("VMCWORKDIR");
-   TString path = dir + "/input/TDC_FFD_INL.dat";
-   ifstream fi(path.Data());
-   if(fi.is_open())
-   {
-    n = 0;
-    while (!fi.eof())
-    {
-     fi.getline(atext,25600);
-     post = 0;
-     pos = 0;
-     for (int i=0; i<1024; i++)
-     {
-        sscanf(&atext[post],"%f %n", &tcor, &pos);
-	post += pos;
-        INL_Table25[4][n][i] = tcor;
-//        cout << " Channel " << n << " bin " << i << "   Time correction :" << tcor << " pos " << pos << endl ;
-     }
-     fi.getline(atext,25600);
-     n++;
-     if (n==32) break;
-    }
-   fi.close();
-   }
-
+ }
+ }
+ }
 }
 
 void BmnTof2Raw2Digit::drawprep()
@@ -1308,7 +1417,7 @@ int BmnTof2Raw2Digit::readGeom(int *numgeom)
 	int nf = 0, ic, ns;
 	float x,y,z;
 	TString dir = getenv("VMCWORKDIR");
-	for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
+	for (int i=0; i<MaxPlane; i++)
 	{
 	    ic = numgeom[i];
 	    if (ic < 1) continue;

@@ -1,8 +1,8 @@
-void RawToRoot(char *fname="mpd_run0362.data")
+void RawToRoot(char *fname="mpd_run362.data")
 {
-gROOT->ProcessLine(".L BmnData.C");
 gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
 bmnloadlibs();
-gSystem->Load("libBmnData");
+gSystem->SetIncludePath(" -Wno-ignored-qualifiers -Wno-overloaded-virtual -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-result -Wno-deprecated -I/usr/local/fairsoft/include/root -I/home/petukhov/bmnroot/bmndata");
+gROOT->ProcessLine(".L BmnData.C++");
 BmnData(fname);
 }

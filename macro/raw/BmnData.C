@@ -1,98 +1,25 @@
 #define _DEBUG_ 0
+#include "TClonesArray.h"
+#include "TFile.h"
+#include "TTree.h"
+#include "BmnTDCDigit.h"
+#include "BmnADCDigit.h"
+#include "BmnSyncDigit.h"
+#include "BmnTTBDigit.h"
+#include <cstdlib>
 
-class BmnDataToRoot{
-public:
-  BmnDataToRoot(char *file){
-     char str[100];
-     EVENT=0;
-     sscanf(&file[strlen(file)-8],"%d",&RUN); printf("Processing run: %d\n",RUN);
-     sprintf(str,"bmn_run%04d.root",RUN);
-     File=new TFile(str,"recreate");
-     File->SetCompressionLevel(1); //try level 2 also
-     Tree=new TTree("BMN_RAW","test_bmn");
-  
-     sync    = new TClonesArray("BmnSyncDigit");
-     ttb     = new TClonesArray("BmnTTBDigit");
-     dch     = new TClonesArray("BmnTDCDigit");
-     t0      = new TClonesArray("BmnTDCDigit");
-     tof700  = new TClonesArray("BmnTDCDigit");
-     tof400  = new TClonesArray("BmnTDCDigit");
-     trigger = new TClonesArray("BmnTDCDigit");
-     counters= new TClonesArray("BmnTDCDigit");
-     ecal    = new TClonesArray("BmnADCDigit");
-     zdc     = new TClonesArray("BmnADCDigit");
-     Tree->Branch("bmn_sync",        &sync);   
-     Tree->Branch("bmn_ttb",         &ttb);   
-     Tree->Branch("bmn_dch",         &dch);    
-     Tree->Branch("bmn_t0",          &t0);     
-     Tree->Branch("bmn_tof700",      &tof700); 
-     Tree->Branch("bmn_tof400",      &tof400); 
-     Tree->Branch("bmn_trigger",     &trigger);
-     Tree->Branch("bmn_beamcounters",&counters);
-     Tree->Branch("bmn_ecal",        &ecal);   
-     Tree->Branch("bmn_zdc",         &zdc);    
-     
-     in=fopen(file,"rb");
-  }
-  ~BmnDataToRoot(){
-     Tree->Print();
-     Tree->Write(); 
-     File->Close();
-     fclose(in); 
-  }
-  int process_event(){
-    sync->Clear();   
-    ttb->Clear();   
-    dch->Clear();    
-    t0->Clear();     
-    tof700->Clear(); 
-    tof400->Clear(); 
-    ecal->Clear();  
-    zdc->Clear();    
-    trigger->Clear();
-    counters->Clear();
-    EVENT=0;
-    unsigned int dat,ret;
-    for(;;){ if((ret=fread(&dat,sizeof(unsigned int),1,in))!=1) return -1; if(dat==0x2A502A50 || dat==0x4A624A62 ) break;} 
-    if((ret=fread(&dat,sizeof(unsigned int),1,in))!=1) return -1;
-    dat=dat/4+1;
-    if(dat>=100000){ printf("Wrong data size: %d\n",dat); return 0; } 
-    if((ret=fread(data,sizeof(unsigned int),dat,in))!=(dat)) return -1;
-    if(data[0]>0){  
-      fill(data,dat);
-      Tree->Fill();
-    }
-    return EVENT; 
-  };
-  int fill(unsigned int *d,unsigned int len){
-     if(_DEBUG_>0)printf("Event %d (%d)\n",d[0],len);
-     EVENT=d[0];
-     unsigned int ind=1;
-     for(;ind<len;){
-       unsigned int serial=d[ind++];
-       unsigned int id=(d[ind]>>24)&0xFF;
-       if(RUN<189){
-          if(id==0xCA) serial=(serial&0xFFFFFF);
-          if(id==0xD1) serial=(serial&0xFFFFFF00)>>8;
-       }else{
-          serial=(serial&0xFFFFFF);
-       }      
-       unsigned int payload=(d[ind++]&0xFFFFFF)/4;
-       if(_DEBUG_>1) printf("serial: 0x%06X id: %X payload: %d\n",serial&0xFFFFFFFF,id,payload);
-       if(payload >20000){ printf("Event %d !!!!!!!!!!! serial: 0x%06X id: %X payload: %d !!!!!!!!!!!\n",EVENT,serial&0xFFFFFFFF,id,payload); EVENT=0; break;} 
-       if(id==0xCA) process_ADC(&data[ind],payload,serial);       
-       if(id==0xD1) process_FVME(&d[ind],payload,serial);         
-       ind+=payload;
-     } 
-     return EVENT; 
-   }; 	
+class BmnDataToRoot {
+
 private:
+
+  unsigned int data[1000000];
+
+  FILE *in;
   int RUN;
   unsigned int EVENT; 
 
   TFile *File;
   TTree *Tree;
-  FILE  *in;
   TClonesArray *sync;
   TClonesArray *ttb;
   TClonesArray *dch;
@@ -104,8 +31,6 @@ private:
   TClonesArray *trigger;
   TClonesArray *counters;
   
-  unsigned int data[1000000];
-
   void process_ADC(unsigned int *d,unsigned int len,unsigned int serial){
      if(_DEBUG_>1){
         char str[100];	
@@ -157,7 +82,7 @@ private:
                  time_t t=ts_t0_s;
                  struct tm * timeinfo=localtime (&t);
                  strftime(str,100,"%F %T",timeinfo);
-	         printf("\t\tSERIAL: 0x%06X TYPE: 0x%02X SLOT: %02d %X %s %d\n",serial,TYPE,SLOT,GlobalEvent,str,ts_t0_ns);
+	         printf("\t\tSERIAL: 0x%06X TYPE: 0x%02X SLOT: %02d %llX %s %lld\n",serial,TYPE,SLOT,GlobalEvent,str,ts_t0_ns);
 	      }
 	      TClonesArray &ar_sync = *sync;
               new(ar_sync[sync->GetEntriesFast()]) BmnSyncDigit(serial,GlobalEvent,ts_t0_s,ts_t0_ns);
@@ -184,6 +109,19 @@ private:
 	         TClonesArray &ar_tof700 = *tof700;
                  new(ar_tof700[tof700->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kTRUE,get_ch_tdc32vl(TDCID,CH*4),VAL);
 	      }     
+           }
+           if(TYPE==0x53){
+              TDCID=(d[i]>>24)&0xF;
+              CH=(d[i]>>21)&0x7;
+              VAL= ((d[i] & 0x7FFFF )<<2)|((d[i] & 0x180000)>>19); 
+              if(_DEBUG_>1) printf("\t\tSERIAL: 0x%06X TYPE: 0x%02X SLOT: %d TDC: %d CH: %d fp: %d VAL: %d\n",serial,TYPE,SLOT,TDCID,CH,get_ch_tdc32vl(TDCID,CH*4),VAL);    
+//	      if(SLOT==3 && get_ch_tdc64vhle(TDCID,CH*4)<13){
+//	         TClonesArray &ar_trigger = *trigger;
+//                 new(ar_trigger[trigger->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kTRUE,get_ch_tdc64vhle(TDCID,CH*4),VAL);
+//	      }else{     
+	         TClonesArray &ar_tof700 = *tof700;
+                 new(ar_tof700[tof700->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kTRUE,get_ch_tdc64vhle(TDCID,CH*4),VAL);
+//	      }     
            }
            if(TYPE==0x12){
               TDCID=(d[i]>>24)&0xF;
@@ -228,6 +166,19 @@ private:
                  new(ar_tof700[tof700->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kFALSE,get_ch_tdc32vl(TDCID,CH*4),VAL);
 	      }     
            }
+           if(TYPE==0x53){
+              TDCID=(d[i]>>24)&0xF;
+              CH=(d[i]>>21)&0x7;
+              VAL= ((d[i] & 0x7FFFF )<<2)|((d[i] & 0x180000)>>19); 
+              if(_DEBUG_>1) printf("\t\tSERIAL: 0x%06X TYPE: 0x%02X SLOT: %d TDC: %d CH: %d fp: %d VAL: %d\n",serial,TYPE,SLOT,TDCID,CH,get_ch_tdc32vl(TDCID,CH*4),VAL);    
+//	      if(SLOT==3 && get_ch_tdc64vhle(TDCID,CH*4)<13){
+//	         TClonesArray &ar_trigger = *trigger;
+//                 new(ar_trigger[trigger->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kFALSE,get_ch_tdc64vhle(TDCID,CH*4),VAL);
+//	      }else{     
+	         TClonesArray &ar_tof700 = *tof700;
+                 new(ar_tof700[tof700->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kFALSE,get_ch_tdc64vhle(TDCID,CH*4),VAL);
+//	      }     
+           }
            if(TYPE==0x12){
               TDCID=(d[i]>>24)&0xF;
               CH=(d[i]>>21)&0x7;
@@ -266,6 +217,11 @@ private:
      const  int tdc32vl_tdcch2ch[32] = {7,7,7,7, 6,6,6,6, 5,5,5,5, 4,4,4,4, 3,3,3,3, 2,2,2,2, 1,1,1,1, 0,0,0,0};
      return tdc32vl_tdcid2tdcnum[tdc]*8+tdc32vl_tdcch2ch[ch];
    };
+   int get_ch_tdc64vhle(unsigned int tdc,unsigned int ch){
+     const  int tdc64vhle_tdcid2tdcnum[16] = { 0, 1, 2, 3, 4, 5, 6, 7, -1, -1, -1, -1, -1, -1, -1, -1};
+     const  int tdc64vhle_tdcch2ch[32] = {7,7,7,7, 6,6,6,6, 5,5,5,5, 4,4,4,4, 3,3,3,3, 2,2,2,2, 1,1,1,1, 0,0,0,0};
+     return tdc64vhle_tdcid2tdcnum[tdc]*8+tdc64vhle_tdcch2ch[ch];
+   };
    int get_ch_tdc72vhl(unsigned int tdc,unsigned int ch){
      const int tdc72vhl_tdcid2tdcnum[16] = {  2, 1, 0, 5, 4, 3, 8, 7, 6, -1, -1, -1, -1, -1, -1, -1 };
      const int tdc72vhl_tdcch2ch[32] = { 7,7,7,7, 6,6,6,6, 5,5,5,5, 4,4,4,4, 3,3,3,3, 2,2,2,2, 1,1,1,1, 0,0,0,0};
@@ -275,7 +231,7 @@ private:
       ts_t0_ns=d1&0x0FFFFFFF,ts_t0_s;
       ts_t0_ns=ts_t0_ns|((d2&0x3)<<28);
       if(((d2>>2)& 0x3)!=2){
-          if(_DEBUG_>1) printf("Flag invalid for time stamp (%d) in T0 crate!\n", ts_t0_ns);
+          if(_DEBUG_>1) printf("Flag invalid for time stamp (%lld) in T0 crate!\n", ts_t0_ns);
           ts_t0_ns = 0;
       } else ts_t0_s=((d2>>4)&0xFFFFFF);
       ts_t0_s=ts_t0_s|((d3&0xFFFF)<<24);
@@ -286,6 +242,91 @@ private:
          ts_t0_ns += (48LL-yts);
       }
    };   
+public:
+  BmnDataToRoot(char *file){
+     char str[200];
+     EVENT=0;
+     sscanf(&file[strlen(file)-8],"%d",&RUN); printf("Processing run: %d\n",RUN);
+     sprintf(str,"bmn_run%04d.root",RUN);
+     File=new TFile(str,"recreate");
+     File->SetCompressionLevel(1); //try level 2 also
+     Tree=new TTree("BMN_RAW","test_bmn");
+  
+     sync    = new TClonesArray("BmnSyncDigit");
+     ttb     = new TClonesArray("BmnTTBDigit");
+     dch     = new TClonesArray("BmnTDCDigit");
+     t0      = new TClonesArray("BmnTDCDigit");
+     tof700  = new TClonesArray("BmnTDCDigit");
+     tof400  = new TClonesArray("BmnTDCDigit");
+     trigger = new TClonesArray("BmnTDCDigit");
+     counters= new TClonesArray("BmnTDCDigit");
+     ecal    = new TClonesArray("BmnADCDigit");
+     zdc     = new TClonesArray("BmnADCDigit");
+     Tree->Branch("bmn_sync",        &sync);   
+     Tree->Branch("bmn_ttb",         &ttb);   
+     Tree->Branch("bmn_dch",         &dch);    
+     Tree->Branch("bmn_t0",          &t0);     
+     Tree->Branch("bmn_tof700",      &tof700); 
+     Tree->Branch("bmn_tof400",      &tof400); 
+     Tree->Branch("bmn_trigger",     &trigger);
+     Tree->Branch("bmn_beamcounters",&counters);
+     Tree->Branch("bmn_ecal",        &ecal);   
+     Tree->Branch("bmn_zdc",         &zdc);    
+     
+     in=fopen(file,"rb");
+  };
+  ~BmnDataToRoot(){
+     Tree->Print();
+     Tree->Write(); 
+     File->Close();
+     fclose(in); 
+  };
+  int process_event(){
+    sync->Clear();   
+    ttb->Clear();   
+    dch->Clear();    
+    t0->Clear();     
+    tof700->Clear(); 
+    tof400->Clear(); 
+    ecal->Clear();  
+    zdc->Clear();    
+    trigger->Clear();
+    counters->Clear();
+    EVENT=0;
+    unsigned int dat,ret;
+    for(;;){ if((ret=fread(&dat,sizeof(unsigned int),1,in))!=1) return -1; if(dat==0x2A502A50 || dat==0x4A624A62 ) break;} 
+    if((ret=fread(&dat,sizeof(unsigned int),1,in))!=1) return -1;
+    dat=dat/4+1;
+    if(dat>=100000){ printf("Wrong data size: %d\n",dat); return 0; } 
+    if((ret=fread(data,sizeof(unsigned int),dat,in))!=(dat)) return -1;
+    if(data[0]>0){  
+      fill(data,dat);
+      Tree->Fill();
+    }
+    return EVENT; 
+  };
+  int fill(unsigned int *d,unsigned int len){
+     if(_DEBUG_>0)printf("Event %d (%d)\n",d[0],len);
+     EVENT=d[0];
+     unsigned int ind=1;
+     for(;ind<len;){
+       unsigned int serial=d[ind++];
+       unsigned int id=(d[ind]>>24)&0xFF;
+       if(RUN<189){
+          if(id==0xCA) serial=(serial&0xFFFFFF);
+          if(id==0xD1) serial=(serial&0xFFFFFF00)>>8;
+       }else{
+          serial=(serial&0xFFFFFF);
+       }      
+       unsigned int payload=(d[ind++]&0xFFFFFF)/4;
+       if(_DEBUG_>1) printf("serial: 0x%06X id: %X payload: %d\n",serial&0xFFFFFFFF,id,payload);
+       if(payload >20000){ printf("Event %d !!!!!!!!!!! serial: 0x%06X id: %X payload: %d !!!!!!!!!!!\n",EVENT,serial&0xFFFFFFFF,id,payload); EVENT=0; break;} 
+       if(id==0xCA) process_ADC(&data[ind],payload,serial);       
+       if(id==0xD1) process_FVME(&d[ind],payload,serial);         
+       ind+=payload;
+     } 
+     return EVENT; 
+   }; 	
 };
 
 void BmnData(char *file){

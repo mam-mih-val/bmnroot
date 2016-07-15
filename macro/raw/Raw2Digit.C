@@ -1,6 +1,6 @@
 using namespace std;
 
-void Raw2Digit(char *fname="bmn_run0258.root") {
+void Raw2Digit(char *fname="bmn_run0362.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
@@ -11,11 +11,11 @@ void Raw2Digit(char *fname="bmn_run0258.root") {
     else if (RUN >= 189 && RUN < 470) mapping = "DCH_map_Mar4.txt";
     else if (RUN >= 470 && RUN < 689) mapping = "DCH_map_Mar11.txt";
     else  mapping = "DCH_map_Run4.txt";
-    BmnDchRaw2Digit  DCH(mapping); DCH.print();
+    BmnDchRaw2Digit  DCH(mapping); // DCH.print();
 
-    BmnZDCRaw2Digit  ZDC("ZDC_map_Mar08.txt", fname); ZDC.print();
+    BmnZDCRaw2Digit  ZDC("ZDC_map_Mar08.txt", fname); // ZDC.print();
 
-    if(RUN < 470) mapping="TOF700_map_Feb20_Mar11.txt";
+    if(RUN < 470) mapping="map_march_2015.txt";
     else mapping="TOF700_map_Mar11.txt";
     BmnTof2Raw2Digit TOF2(mapping, fname); TOF2.print();
     TOF2.readSlewingT0();
@@ -73,7 +73,7 @@ void Raw2Digit(char *fname="bmn_run0258.root") {
     char str[100]; sprintf(str,"bmn_run%04d_digit.root",RUN); 
     TFile *_f_out = new TFile(str, "RECREATE");
     _f_out->SetCompressionLevel(1);
-    TTree *_t_out = new TTree("cbmsim","bmn_digit");
+    TTree *_t_out = new TTree("BMN_DIGIT","test_bmn");
     TClonesArray * dch_digit   = new TClonesArray("BmnDchDigit");
     TClonesArray * zdc_digit   = new TClonesArray("BmnZDCDigit");
     TClonesArray * tof2_digit  = new TClonesArray("BmnTof2Digit");
@@ -106,24 +106,25 @@ void Raw2Digit(char *fname="bmn_run0258.root") {
  
         _t_in->GetEntry(ev);
 
-        DCH.fillEvent(dch_raw, sync_raw, t0_raw, dch_digit);
+//        DCH.fillEvent(dch_raw, sync_raw, t0_raw, dch_digit);
         TOF2.fillEvent(tof2_raw, sync_raw, t0_raw, tof2_digit);
         TOF2.getEventInfo(&EVENT,&TIME_SEC,&TIME_NS);
         TOF1.fillEvent(tof1_raw, sync_raw, t0_raw, tof1_digit);
         ZDC.fillEvent(zdc_raw, zdc_digit);
         T0 = TOF2.get_t0();
-        if ((ev % 10000) == 0) printf("Digits producing, event %d\n", ev);
+        if ((ev % 1000) == 0) printf("Digits producing, event %d, tof2_raw hits %d, tof2 digits %d\n", ev, tof2_raw->GetEntries(), tof2_digit->GetEntries());
         if (T0 == 0) continue;
         _t_out->Fill();
     }
     /////////////////////////////////////////////////////////////////////////////////////
-   
-    TOF2.SlewingResults();
-    TOF2.drawprof();
     _f_in->Close();
     _t_out->Print();
     _t_out->Write(); 
+    _f_out->Write(); 
     _f_out->Close();
+return;   
+    TOF2.SlewingResults();
+    TOF2.drawprof();
 }
 
 void select_hist()

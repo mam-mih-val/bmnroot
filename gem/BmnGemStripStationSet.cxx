@@ -13,7 +13,7 @@ Double_t BmnGemStripStationSet::GetXStationPosition(Int_t station_num) {
         return XStationPositions[station_num];
     }
     else {
-        throw(StationSet_Exeption("Error in the function GetXStationPosition()"));
+        throw(StationSet_Exception("Error in the function GetXStationPosition()"));
     }
 }
 
@@ -22,7 +22,7 @@ Double_t BmnGemStripStationSet::GetYStationPosition(Int_t station_num) {
         return YStationPositions[station_num];
     }
     else {
-        throw(StationSet_Exeption("Error in the function GetYStationPosition()"));
+        throw(StationSet_Exception("Error in the function GetYStationPosition()"));
     }
 }
 
@@ -31,7 +31,7 @@ Double_t BmnGemStripStationSet::GetZStationPosition(Int_t station_num) {
         return ZStationPositions[station_num];
     }
     else {
-        throw(StationSet_Exeption("Error in the function GetZStationPosition()"));
+        throw(StationSet_Exception("Error in the function GetZStationPosition()"));
     }
 }
 
@@ -40,7 +40,7 @@ Double_t BmnGemStripStationSet::GetBeamHoleRadius(Int_t station_num) {
         return BeamHoleRadiuses[station_num];
     }
     else {
-        throw(StationSet_Exeption("Error in the function GetBeamHoleRadius()"));
+        throw(StationSet_Exception("Error in the function GetBeamHoleRadius()"));
     }
 }
 
@@ -49,7 +49,7 @@ BmnGemStripStation* BmnGemStripStationSet::GetGemStation(Int_t station_num) {
         return GemStations[station_num];
     }
     else {
-        throw(StationSet_Exeption("Error in the function GetGemStation()"));
+        throw(StationSet_Exception("Error in the function GetGemStation()"));
     }
 }
 

@@ -27,6 +27,8 @@
 #pragma link C++ class BmnGemStripStationSet_1stConfigShort+;
 #pragma link C++ class BmnGemStripStation_2ndConfig+;
 #pragma link C++ class BmnGemStripStationSet_2ndConfig+;
+#pragma link C++ class BmnGemStripStation_RunSummer2016+;
+#pragma link C++ class BmnGemStripStationSet_RunSummer2016+;
 #pragma link C++ class BmnGemStripDigit+;
 #pragma link C++ class BmnGemStripDigitizer+;
 #pragma link C++ class BmnGemStripHit+;
@@ -36,6 +38,11 @@
 
 #pragma link C++ namespace BmnGemStripConfiguration;
 #pragma link C++ enum ElectronDriftDirectionInModule;
+#pragma link C++ enum StripNumberingDirection;
+#pragma link C++ enum StripBorderPoint;
+
+#pragma link C++ class vector<DeadZoneOfReadoutModule>;
+#pragma link C++ class DeadZoneOfReadoutModule;
 #pragma link C++ class vector<StripCluster>; //need for test
 #pragma link C++ class StripCluster; //need for test
 

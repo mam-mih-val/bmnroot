@@ -109,7 +109,7 @@ const Double_t HotZoneSizes_rectangle_Station163x45[2] = {40.0, 15.0}; // {xsize
 const Double_t HotZoneSizes_slope_Station163x45[3] = {37.99, 42.01, 15.0}; // {xmin_size, xmax_size, ysize}
 const Double_t HoleRadius_Station163x45 = 4.0; //cm (real hole without the circle frame)
 
-    //Module Parameters (66x41 type)
+    //Module Parameters (163x45 type)
     const Double_t dXOuterFrame_Station163x45 = 5.0;
     const Double_t dXInnerFrame_Station163x45 = 1.7;
     const Double_t dYOuterFrame_Station163x45 = 3.75;

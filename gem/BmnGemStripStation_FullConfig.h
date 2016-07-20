@@ -56,7 +56,7 @@ public:
     Int_t AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord,
                             Double_t px, Double_t py, Double_t pz,
                             Double_t dEloss, Int_t refID);
-    
+
     Int_t CountNAddedToStationPoints();
 
     void ProcessPointsInStation();
@@ -71,9 +71,6 @@ private:
     void BuildModules_4ZoneType();
     void BuildModules_Prototype();
     void BuildModules_2PartType();
-
-    //visual test
-    void DrawCreatedStation();
 
     ClassDef(BmnGemStripStation_FullConfig, 1)
 };

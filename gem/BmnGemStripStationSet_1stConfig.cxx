@@ -118,7 +118,7 @@ Int_t BmnGemStripStationSet_1stConfig::CountNProcessedPointsInDetector() {
 }
 
 void BmnGemStripStationSet_1stConfig::DefineBeamHoleRadiuses() {
-    for(UInt_t iStation = 1; iStation < NStations; iStation++) {
+    for(UInt_t iStation = 0; iStation < NStations; iStation++) {
         BeamHoleRadiuses[iStation] = 0.0;
     }
     BeamHoleRadiuses[4] = 4.0; // real hole (without a frame) in the plane (163x45)

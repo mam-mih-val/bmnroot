@@ -49,7 +49,17 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
     MinSignalCutThreshold = 0.05;
     MaxSignalCutThreshold = 6.25;
 
-    NGoodHits = 0.0;
+    LowerStripOrder = LeftToRight;
+    UpperStripOrder = LeftToRight;
+
+    if(AngleDeg <= 0.0 && AngleDeg >= -90.0) {
+        SetStripNumberingBorders(LeftBottom, RightTop);
+    }
+    else {
+        if(AngleDeg > 0.0 && AngleDeg <= 90.0) {
+            SetStripNumberingBorders(LeftTop, RightBottom);
+        }
+    }
 
     CreateReadoutPlanes();
 }
@@ -95,7 +105,17 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule(Double_t xsize, Double_t ysiz
     MinSignalCutThreshold = 0.05;
     MaxSignalCutThreshold = 6.25;
 
-    NGoodHits = 0.0;
+    LowerStripOrder = LeftToRight;
+    UpperStripOrder = LeftToRight;
+
+    if(AngleDeg <= 0.0 && AngleDeg >= -90.0) {
+        SetStripNumberingBorders(LeftBottom, RightTop);
+    }
+    else {
+        if(AngleDeg > 0.0 && AngleDeg <= 90.0) {
+            SetStripNumberingBorders(LeftTop, RightBottom);
+        }
+    }
 
     CreateReadoutPlanes();
 }
@@ -122,8 +142,6 @@ void BmnGemStripReadoutModule::CreateReadoutPlanes() {
     if(BackgroundNoiseLevel > 0.0) {
         AddBackgroundNoise();
     }
-
-    NGoodHits = 0.0;
 
     ResetIntersectionPoints();
     ResetRealPoints();
@@ -195,17 +213,6 @@ void BmnGemStripReadoutModule::SetReadoutSizes(Double_t xsize, Double_t ysize, D
     RebuildReadoutPlanes();
 }
 
-Bool_t BmnGemStripReadoutModule::SetDeadZone(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax) {
-    if((xmax - xmin) >= 0 && (ymax - ymin) >= 0) {
-        DeadZone.Xmin = xmin;
-        DeadZone.Xmax = xmax;
-        DeadZone.Ymin = ymin;
-        DeadZone.Ymax = ymax;
-        return true;
-    }
-    else return false;
-}
-
 void BmnGemStripReadoutModule::SetAngleDeg(Double_t deg) {
     if(Abs(deg) <= 90.0) {
          AngleDeg = deg;
@@ -264,22 +271,112 @@ void BmnGemStripReadoutModule::AddBackgroundNoise() {
     }
 }
 
+Bool_t BmnGemStripReadoutModule::AddDeadZone(Int_t n_points, Double_t *x_points, Double_t *y_points) {
+    DeadZoneOfReadoutModule dead_zone;
+    Bool_t status = dead_zone.SetDeadZone(n_points, x_points, y_points);
+    if(status == true) {
+        DeadZones.push_back(dead_zone);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+Bool_t BmnGemStripReadoutModule::IsPointInsideDeadZones(Double_t x, Double_t y) {
+    for(Int_t izone = 0; izone < DeadZones.size(); ++izone) {
+        if(DeadZones[izone].IsInside(x,y)) return true;
+    }
+
+    return false;
+}
+
+Bool_t BmnGemStripReadoutModule::IsPointInsideReadoutModule(Double_t x, Double_t y) {
+    if( x >= XMinReadout && x <= XMaxReadout &&
+        y >= YMinReadout && y <= YMaxReadout &&
+        !IsPointInsideDeadZones(x, y) ) return true;
+    else
+        return false;
+}
+
+Bool_t BmnGemStripReadoutModule::SetStripNumberingBorders(Double_t x_left, Double_t y_left, Double_t x_right, Double_t y_right) {
+    if(x_right < x_left) return false;
+
+    XLeftPointOfStripNumbering = x_left;
+    YLeftPointOfStripNumbering = y_left;
+    XRightPointOfStripNumbering = x_right;
+    YRightPointOfStripNumbering = y_right;
+
+    RebuildReadoutPlanes();
+
+    return true;
+}
+
+Bool_t BmnGemStripReadoutModule::SetStripNumberingBorders(StripBorderPoint left, StripBorderPoint right) {
+
+    if( left != LeftTop && left != LeftBottom )  {
+        if(Verbosity) cout << "WARNING: SetStripNumberingBorders: left strip border point is incorrect\n";
+        return false;
+    }
+    if( right != RightTop && right != RightBottom ) {
+        if(Verbosity) cout << "WARNING: SetStripNumberingBorders: right strip border point is incorrect\n";
+        return false;
+    }
+
+    XLeftPointOfStripNumbering = XMinReadout;
+    XRightPointOfStripNumbering = XMaxReadout;
+
+    switch (left) {
+        case LeftTop:
+            YLeftPointOfStripNumbering = YMaxReadout;
+            break;
+        case LeftBottom:
+            YLeftPointOfStripNumbering = YMinReadout;
+            break;
+        default:
+            return false;
+    }
+
+    switch (right) {
+        case RightTop:
+            YRightPointOfStripNumbering = YMaxReadout;
+            break;
+        case RightBottom:
+            YRightPointOfStripNumbering = YMinReadout;
+            break;
+        default:
+            return false;
+    }
+
+    RebuildReadoutPlanes();
+
+    return true;
+}
+
+Bool_t BmnGemStripReadoutModule::SetStripNumberingOrder(StripNumberingDirection lower_strip_direction, StripNumberingDirection upper_strip_direction) {
+    LowerStripOrder = lower_strip_direction;
+    UpperStripOrder = upper_strip_direction;
+
+    RebuildReadoutPlanes();
+
+    return true;
+}
+
 //Add single point without smearing and avalanch effects
 Bool_t BmnGemStripReadoutModule::AddRealPointSimple(Double_t x, Double_t y, Double_t z,
                                                     Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
 
-    if( x >= XMinReadout && x <= XMaxReadout &&
-        y >= YMinReadout && y <= YMaxReadout &&
-        !DeadZone.IsInside(x, y) ) {
+    if( IsPointInsideReadoutModule(x, y) ) {
 
         Int_t numLowStrip = (Int_t)CalculateLowerStripZonePosition(x, y);
         Int_t numUpStrip = (Int_t)CalculateUpperStripZonePosition(x, y);
 
-        if(numLowStrip < ReadoutLowerPlane.size() && numUpStrip < ReadoutUpperPlane.size()) {
+        if( (numLowStrip >= 0 && numLowStrip < ReadoutLowerPlane.size())
+         && (numUpStrip  >= 0 && numUpStrip  < ReadoutUpperPlane.size()) ) {
             ReadoutLowerPlane.at(numLowStrip)++;
             ReadoutUpperPlane.at(numUpStrip)++;
 
-            RealPointsX.push_back(x);
+           RealPointsX.push_back(x);
             RealPointsY.push_back(y);
 
             RealPointsLowerStripPos.push_back(numLowStrip);
@@ -301,9 +398,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointSimple(Double_t x, Double_t y, Doub
 Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
                                                   Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
     //Condition: a start point is inside the module and outside its dead zone
-    if( x >= XMinReadout && x <= XMaxReadout &&
-        y >= YMinReadout && y <= YMaxReadout &&
-        !DeadZone.IsInside(x, y) ) {
+    if( IsPointInsideReadoutModule(x, y) ) {
 
         gRandom->SetSeed(0);
 
@@ -336,16 +431,6 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
         Double_t x_out = x + x_vec_from_in_to_out;
         Double_t y_out = y + y_vec_from_in_to_out;
         Double_t z_out = z + z_vec_from_in_to_out;
-
-//Visual testing ---------------------------------------------------------------
-        /*//need for GemTrackVisualisation!!!
-        double x_out_old = x_out;
-        double y_out_old = y_out;
-        double z_out_old = z_out;
-        //need for ReadoutPlaneVisualisation!!!
-        vector<Double_t> x_readout_points;
-        vector<Double_t> y_readout_points;*/
-//------------------------------------------------------------------------------
 
         //Check if the exit point is outside the module then calculate new x_out, y_out, z_out values
         //Condition: x-coordinate of the exit point is inside the module
@@ -448,7 +533,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
             //------------------------------------------------------------------
 
             xmean = p0_xmean + p1_xmean*zdist + p2_xmean*zdist*zdist + p3_xmean*zdist*zdist*zdist;
-            //xmean = 0; // no xmean - no shift effect
+            xmean = 0; // no xmean - no shift effect //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             //Condition: beacause we have piecewise fitting function (different polynomials on each gap)
             if(zdist < 0.1) {
@@ -513,21 +598,21 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
                     y_readout = gRandom->Gaus(ycoll, sigma);
 
                     //Condition: end electron position must be inside the module
-                    if(DeadZone.IsInside(x_readout, y_readout)) continue;
+                    if( IsPointInsideDeadZones(x_readout, y_readout) ) continue;
 
                     //Convert a coordinate position to a strip position
                     Double_t lower_strip_pos = CalculateLowerStripZonePosition(x_readout, y_readout);
                     Double_t upper_strip_pos = CalculateUpperStripZonePosition(x_readout, y_readout);
 
                     //Add strips with signals to lower and upper clusters
-                    lower_cluster.AddStrip((Int_t)lower_strip_pos, 1.0); //Instead of 1.0 we can use Gain in future
-                    upper_cluster.AddStrip((Int_t)upper_strip_pos, 1.0);
+                    if( lower_strip_pos >= 0 && lower_strip_pos < ReadoutLowerPlane.size() ) {
+                        lower_cluster.AddStrip((Int_t)lower_strip_pos, 1.0); //Instead of 1.0 we can use Gain in future
+                    }
+                    if( upper_strip_pos >= 0 && upper_strip_pos < ReadoutUpperPlane.size() ) {
+                        upper_cluster.AddStrip((Int_t)upper_strip_pos, 1.0);
+                    }
 
-//Visual testing ---------------------------------------------------------------
-                    /*//need for ReadoutPlaneVisualisation!!!
-                    x_readout_points.push_back(x_readout);
-                    y_readout_points.push_back(y_readout);*/
-
+//Electron points on the readout (testing) -------------------------------------
                     XElectronPos.push_back(x_readout);
                     YElectronPos.push_back(y_readout);
                     ElectronSignal.push_back(1.0);
@@ -536,14 +621,6 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
                 }
             }
         }
-
-//Visual testing ---------------------------------------------------------------
-        /*//Track visualisation test (x_out_old, y_out_old, z_out_old - see above)
-        GemTrackVisualisation(x, y, z, x_out, y_out, z_out, x_out_old, y_out_old, z_out_old, collision_points);
-
-        //Cluster visualisation test
-        ReadoutPlaneVisualisation(x, y, z, x_out, y_out, z_out, x_readout_points, y_readout_points);*/
-//------------------------------------------------------------------------------
 
         //Condition: both clusters have to be not empty!
         if(lower_cluster.GetClusterSize() == 0 || upper_cluster.GetClusterSize() == 0) {
@@ -608,7 +685,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
 
         //Add the correct clusters to the readout layers -----------------------
         //lower cluster
-        for(Int_t ielement; ielement < lower_cluster.Strips.size(); ++ielement) {
+        for(Int_t ielement = 0; ielement < lower_cluster.Strips.size(); ++ielement) {
             Int_t strip_num = lower_cluster.Strips.at(ielement);
             Double_t strip_signal = lower_cluster.Signals.at(ielement);
             if(strip_num >= 0 && strip_num < ReadoutLowerPlane.size()) {
@@ -616,7 +693,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
             }
         }
         //upper cluster
-        for(Int_t ielement; ielement < upper_cluster.Strips.size(); ++ielement) {
+        for(Int_t ielement = 0; ielement < upper_cluster.Strips.size(); ++ielement) {
             Int_t strip_num = upper_cluster.Strips.at(ielement);
             Double_t strip_signal = upper_cluster.Signals.at(ielement);
             if(strip_num >= 0 && strip_num < ReadoutUpperPlane.size()) {
@@ -627,7 +704,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
 
         //Fill strip matches ---------------------------------------------------
         //lower layer
-        for(Int_t ielement; ielement < lower_cluster.Strips.size(); ++ielement) {
+        for(Int_t ielement = 0; ielement < lower_cluster.Strips.size(); ++ielement) {
             Int_t strip_num = lower_cluster.Strips.at(ielement);
             Double_t strip_signal = lower_cluster.Signals.at(ielement);
             if(strip_num >= 0 && strip_num < ReadoutLowerPlane.size()) {
@@ -635,7 +712,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
             }
         }
         //upper layer
-        for(Int_t ielement; ielement < upper_cluster.Strips.size(); ++ielement) {
+        for(Int_t ielement = 0; ielement < upper_cluster.Strips.size(); ++ielement) {
             Int_t strip_num = upper_cluster.Strips.at(ielement);
             Double_t strip_signal = upper_cluster.Signals.at(ielement);
             if(strip_num >= 0 && strip_num < ReadoutUpperPlane.size()) {
@@ -665,9 +742,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFull(Double_t x, Double_t y, Double
 Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
                                                      Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
 
-    if( x >= XMinReadout && x <= XMaxReadout &&
-        y >= YMinReadout && y <= YMaxReadout &&
-        !DeadZone.IsInside(x, y) ) {
+    if( IsPointInsideReadoutModule(x, y) ) {
 
         if(signal <= 0.0) signal = 1e-16;
 
@@ -723,7 +798,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
         //Fill strip matches ---------------------------------------------------
 
         //upper layer
-        for(Int_t ielement; ielement < upper_cluster.Strips.size(); ++ielement) {
+        for(Int_t ielement = 0; ielement < upper_cluster.Strips.size(); ++ielement) {
             Int_t strip_num = upper_cluster.Strips.at(ielement);
             Double_t strip_signal = upper_cluster.Signals.at(ielement);
             if(strip_num >= 0 && strip_num < ReadoutUpperPlane.size()) {
@@ -731,7 +806,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
             }
         }
         //lower layer
-        for(Int_t ielement; ielement < lower_cluster.Strips.size(); ++ielement) {
+        for(Int_t ielement = 0; ielement < lower_cluster.Strips.size(); ++ielement) {
             Int_t strip_num = lower_cluster.Strips.at(ielement);
             Double_t strip_signal = lower_cluster.Signals.at(ielement);
             if(strip_num >= 0 && strip_num < ReadoutLowerPlane.size()) {
@@ -745,7 +820,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
         Double_t max_signal_level = LandauMPV*MaxSignalCutThreshold*Gain; //max signal value of the strip
 
         //upper cluster
-        for(Int_t ielement; ielement < upper_cluster.Strips.size(); ++ielement) {
+        for(Int_t ielement = 0; ielement < upper_cluster.Strips.size(); ++ielement) {
             Int_t strip_num = upper_cluster.Strips.at(ielement);
             Double_t strip_signal = upper_cluster.Signals.at(ielement);
             if(strip_num >= 0 && strip_num < ReadoutUpperPlane.size()) {
@@ -759,7 +834,7 @@ Bool_t BmnGemStripReadoutModule::AddRealPointFullOne(Double_t x, Double_t y, Dou
             }
         }
         //lower cluster
-        for(Int_t ielement; ielement < lower_cluster.Strips.size(); ++ielement) {
+        for(Int_t ielement = 0; ielement < lower_cluster.Strips.size(); ++ielement) {
             Int_t strip_num = lower_cluster.Strips.at(ielement);
             Double_t strip_signal = lower_cluster.Signals.at(ielement);
             if(strip_num >= 0 && strip_num < ReadoutLowerPlane.size()) {
@@ -817,11 +892,13 @@ StripCluster BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t xcoor
 
     if(layer == "lower") {
         CenterZonePos = CalculateLowerStripZonePosition(xcoord, ycoord);
+        if( CenterZonePos < 0.0 || CenterZonePos >= ReadoutLowerPlane.size() ) return cluster;
         NStripsInLayer = ReadoutLowerPlane.size();
     }
 
     if(layer == "upper") {
         CenterZonePos = CalculateUpperStripZonePosition(xcoord, ycoord);
+        if( CenterZonePos < 0.0 || CenterZonePos >= ReadoutUpperPlane.size() ) return cluster;
         NStripsInLayer = ReadoutUpperPlane.size();
     }
 
@@ -892,7 +969,7 @@ StripCluster BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t xcoor
         Energy += rand.Gaus(0.0, var_level*Energy);
         if(Energy < 0.0) Energy = 0.0;
 
-        if(NumCurrentZone >=0 && NumCurrentZone < NStripsInLayer && Energy > 0.0) {
+        if(NumCurrentZone >= 0 && NumCurrentZone < NStripsInLayer && Energy > 0.0) {
             cluster.AddStrip(NumCurrentZone, Energy);
             total_signal += Energy;
         }
@@ -1072,7 +1149,7 @@ StripCluster BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t xcoor
 void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors) {
 
     //Double_t threshold = LandauMPV*MinSignalCutThreshold*Gain;
-    Double_t threshold = 1000.0; //temporary for test
+    Double_t threshold = 0.0; //temporary for test
 
     StripCluster cluster;
 
@@ -1083,8 +1160,8 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
     vector<Double_t> Strips = StripLayer;
 
     //Smooth strip signal
-    if(Pitch > 0.079) SmoothStripSignal(Strips, 1, 1, 1.0);
-    else SmoothStripSignal(Strips, 2, 1, 1.0);
+    //if(Pitch > 0.079) SmoothStripSignal(Strips, 1, 1, 1.0);
+    //else SmoothStripSignal(Strips, 2, 1, 1.0);
 
     for(Int_t is = 0; is < Strips.size(); is++) {
 
@@ -1262,7 +1339,7 @@ void BmnGemStripReadoutModule::MakeStripHit(StripCluster &cluster, vector<Double
 #endif
 }
 
-void BmnGemStripReadoutModule::SmoothStripSignal(vector<Double_t>& Strips, Int_t NIterations, Int_t SmoothWindow, Int_t Weight) {
+void BmnGemStripReadoutModule::SmoothStripSignal(vector<Double_t>& Strips, Int_t NIterations, Int_t SmoothWindow, Double_t Weight) {
 
     //It's Simple Moving Average method (SMA)
     //Strips - analyzable strip layer (ref)
@@ -1282,7 +1359,7 @@ void BmnGemStripReadoutModule::SmoothStripSignal(vector<Double_t>& Strips, Int_t
                     if(iw == istrip) mean_value += Strips[iw]*Weight;
                     else mean_value += Strips[iw];
                 }
-            } --------------------------------------------------------
+            }
             mean_value /= 2.0*SmoothWindow + Weight;
             SmoothStrips.push_back(mean_value);
         }
@@ -1323,14 +1400,15 @@ Double_t BmnGemStripReadoutModule::GetUpperStripHitTotalSignal(Int_t num) {
 Double_t BmnGemStripReadoutModule::ConvertRealPointToUpperX(Double_t xcoord, Double_t ycoord) {
     Double_t XRotationCenter;
     Double_t YRotationCenter;
-    if(AngleDeg <= 0.0 && AngleDeg >= -90) {
-        XRotationCenter = XMinReadout;
-        YRotationCenter = YMinReadout;
+
+    if(UpperStripOrder == LeftToRight) {
+        XRotationCenter =  XLeftPointOfStripNumbering;
+        YRotationCenter =  YLeftPointOfStripNumbering;
     }
     else {
-        if(AngleDeg > 0.0 && AngleDeg <= 90.0) {
-            XRotationCenter = XMinReadout;
-            YRotationCenter = YMaxReadout;
+        if(UpperStripOrder == RightToLeft) {
+            XRotationCenter =  XRightPointOfStripNumbering;
+            YRotationCenter =  YRightPointOfStripNumbering;
         }
     }
     Double_t UpperX = (xcoord - XRotationCenter)*Cos(-AngleRad) + (ycoord - YRotationCenter)*Sin(-AngleRad) + XRotationCenter;//see
@@ -1340,14 +1418,15 @@ Double_t BmnGemStripReadoutModule::ConvertRealPointToUpperX(Double_t xcoord, Dou
 Double_t BmnGemStripReadoutModule::ConvertRealPointToUpperY(Double_t xcoord, Double_t ycoord) {
     Double_t XRotationCenter;
     Double_t YRotationCenter;
-    if(AngleDeg <= 0 && AngleDeg >= -90) {
-        XRotationCenter = XMinReadout;
-        YRotationCenter = YMinReadout;
+
+    if(UpperStripOrder == LeftToRight) {
+        XRotationCenter =  XLeftPointOfStripNumbering;
+        YRotationCenter =  YLeftPointOfStripNumbering;
     }
     else {
-        if(AngleDeg > 0 && AngleDeg <= 90.0) {
-            XRotationCenter = XMinReadout;
-            YRotationCenter = YMaxReadout;
+        if(UpperStripOrder == RightToLeft) {
+            XRotationCenter =  XRightPointOfStripNumbering;
+            YRotationCenter =  YRightPointOfStripNumbering;
         }
     }
     Double_t UpperY = -(xcoord - XRotationCenter)*Sin(-AngleRad) + (ycoord - YRotationCenter)*Cos(-AngleRad) + YRotationCenter;//see
@@ -1357,13 +1436,29 @@ Double_t BmnGemStripReadoutModule::ConvertRealPointToUpperY(Double_t xcoord, Dou
 Double_t BmnGemStripReadoutModule::CalculateLowerStripZonePosition(Double_t xcoord, Double_t ycoord) {
     //This function returns real(double) value,
     //where integer part - number of zone (lower strip), fractional part - position in this zone (as ratio from begin)
-    return (xcoord-XMinReadout)/Pitch;
+
+    if(LowerStripOrder == LeftToRight) {
+        return (xcoord-XLeftPointOfStripNumbering)/Pitch;
+    }
+    else {
+        if(LowerStripOrder == RightToLeft) {
+            return (XRightPointOfStripNumbering-xcoord)/Pitch;
+        }
+    }
 }
 
 Double_t BmnGemStripReadoutModule::CalculateUpperStripZonePosition(Double_t xcoord, Double_t ycoord) {
     //This function returns real(double) value,
     //where integer part - number of zone (upper strip), fractional part - position in this zone (as ratio from begin)
-    return (ConvertRealPointToUpperX(xcoord, ycoord)-XMinReadout)/Pitch;
+
+    if(UpperStripOrder == LeftToRight) {
+        return (ConvertRealPointToUpperX(xcoord, ycoord)-XLeftPointOfStripNumbering)/Pitch;
+    }
+    else {
+        if(UpperStripOrder == RightToLeft) {
+            return (XRightPointOfStripNumbering-ConvertRealPointToUpperX(xcoord, ycoord))/Pitch;
+        }
+    }
 }
 
 Bool_t BmnGemStripReadoutModule::SetValueOfLowerStrip(Int_t indx, Double_t val) {
@@ -1399,30 +1494,25 @@ Bool_t BmnGemStripReadoutModule::SetMatchOfUpperStrip(Int_t indx, BmnMatch strip
 }
 
 Int_t BmnGemStripReadoutModule::CountLowerStrips(){
-    Double_t ratio = (XMaxReadout-XMinReadout)/Pitch;
-    if((Abs(ratio) - Abs((int)ratio)) < 1E-10) {
-        return ratio;
+    Double_t n_strips = (XRightPointOfStripNumbering - XLeftPointOfStripNumbering)/Pitch;
+    if( (n_strips - (Int_t)n_strips) < 1E-10 ) {
+        return (Int_t)n_strips;
     }
     else {
-        return ratio+1;
+        return (Int_t)(n_strips+1);
     }
 }
 
 Int_t BmnGemStripReadoutModule::CountUpperStrips(){
-    Double_t ratio;
-    if (AngleDeg <= 0 && AngleDeg >=-90.0) {
-        ratio = (ConvertRealPointToUpperX(XMaxReadout, YMaxReadout) - XMinReadout)/Pitch;;
+    Double_t xleft_on_upper_layer = ConvertRealPointToUpperX(XLeftPointOfStripNumbering, YLeftPointOfStripNumbering);
+    Double_t xright_on_upper_layer = ConvertRealPointToUpperX(XRightPointOfStripNumbering, YRightPointOfStripNumbering);
+    Double_t n_strips = (xright_on_upper_layer - xleft_on_upper_layer)/Pitch;
 
-    }
-    if (AngleDeg > 0 && AngleDeg <= 90.0){
-        ratio = (ConvertRealPointToUpperX(XMaxReadout, YMinReadout) - XMinReadout)/Pitch;
-    }
-
-    if((Abs(ratio) - Abs((int)ratio)) < 1E-10) {
-        return ratio;
+    if( (n_strips - (Int_t)n_strips) < 1E-10 ) {
+        return (Int_t)n_strips;
     }
     else {
-        return ratio+1;
+        return (Int_t)(n_strips+1);
     }
 }
 
@@ -1454,30 +1544,42 @@ BmnMatch BmnGemStripReadoutModule::GetMatchOfUpperStrip(Int_t indx) {
 }
 
 Double_t BmnGemStripReadoutModule::FindXHitIntersectionPoint(Double_t LowerStripZonePos, Double_t UpperStripZonePos) {
-    //find real posision on lower strip
-    Int_t low_strip_num = (Int_t)LowerStripZonePos;
-    Double_t low_strip_pos = LowerStripZonePos - low_strip_num;
-    LowerStripZonePos = low_strip_num + low_strip_pos;
-
-    return (LowerStripZonePos*Pitch) + XMinReadout;
+    if(LowerStripOrder == LeftToRight) {
+        return (LowerStripZonePos*Pitch) + XLeftPointOfStripNumbering;
+    }
+    else {
+        if(LowerStripOrder == RightToLeft) {
+            return XRightPointOfStripNumbering - (LowerStripZonePos*Pitch);
+        }
+    }
 }
 
 Double_t BmnGemStripReadoutModule::FindYHitIntersectionPoint(Double_t LowerStripZonePos, Double_t UpperStripZonePos) {
     Double_t xcoord = FindXHitIntersectionPoint(LowerStripZonePos);
-    Double_t hypoten = Pitch/Sin(Abs(AngleRad));
+    Double_t hypoten = UpperStripZonePos*Pitch/Sin(fabs(AngleRad));
     Double_t ycoord;
 
-    //find real posision on upper strip
-    Int_t up_strip_num = (Int_t)UpperStripZonePos;
-    Double_t up_strip_pos = UpperStripZonePos - up_strip_num;
-    UpperStripZonePos = up_strip_num + up_strip_pos;
+    if(UpperStripOrder == LeftToRight) {
 
-    if(AngleDeg <= 0 && AngleDeg >=-90.0) {
-        ycoord = Tan(PiOver2()-AngleRad)*(xcoord-XMinReadout) + (YMinReadout + (UpperStripZonePos*hypoten));
+        if(AngleDeg > 0 && AngleDeg <= 90.0) {
+            ycoord = Tan(PiOver2()-AngleRad)*(xcoord-XLeftPointOfStripNumbering) + (YLeftPointOfStripNumbering - hypoten);
+        }
 
+        if(AngleDeg <= 0 && AngleDeg >=-90.0) {
+            ycoord = Tan(PiOver2()-AngleRad)*(xcoord-XLeftPointOfStripNumbering) + (YLeftPointOfStripNumbering + hypoten);
+        }
     }
-    if (AngleDeg > 0 && AngleDeg <= 90.0) {
-        ycoord = Tan(PiOver2()-AngleRad)*(xcoord-XMinReadout) +  (YMaxReadout - UpperStripZonePos*hypoten);
+    else {
+        if(UpperStripOrder == RightToLeft) {
+
+            if(AngleDeg > 0 && AngleDeg <= 90.0) {
+                ycoord = Tan(PiOver2()-AngleRad)*(xcoord-XRightPointOfStripNumbering) + (YRightPointOfStripNumbering + hypoten);
+            }
+
+            if(AngleDeg <= 0 && AngleDeg >=-90.0) {
+                ycoord = Tan(PiOver2()-AngleRad)*(xcoord-XRightPointOfStripNumbering) + (YRightPointOfStripNumbering - hypoten);
+            }
+        }
     }
 
     return ycoord;
@@ -1497,7 +1599,8 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
             Double_t xcoord = FindXHitIntersectionPoint(LowerStripHits.at(istrip_low),UpperStripHits.at(istrip_up));
             Double_t ycoord = FindYHitIntersectionPoint(LowerStripHits.at(istrip_low),UpperStripHits.at(istrip_up));
 
-            if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) && !DeadZone.IsInside(xcoord, ycoord) ) {
+            //if( (ycoord <= YMaxReadout) && (ycoord >= YMinReadout) && !DeadZone.IsInside(xcoord, ycoord) ) {
+            if( IsPointInsideReadoutModule(xcoord, ycoord) ) {
                 IntersectionPointsX.push_back(xcoord);
                 IntersectionPointsY.push_back(ycoord);
 
@@ -1536,13 +1639,6 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
             }
         }
     }
-
-    //number of recognized clusters in the layers
-    Int_t N_low_hits = LowerStripHits.size();
-    Int_t N_up_hits = UpperStripHits.size();
-    if(N_low_hits > N_up_hits) NGoodHits = N_low_hits;
-    else NGoodHits = N_up_hits;
-
 
     #ifdef DRAW_STRIP_LAYERS_HISTOGRAMS
     //upper layer --------------------------------------------------------------
@@ -1654,174 +1750,5 @@ void BmnGemStripReadoutModule::CalculateStripHitIntersectionPoints() {
     #endif
 }
 //------------------------------------------------------------------------------
-
-void BmnGemStripReadoutModule::GemTrackVisualisation(Double_t x_in, Double_t y_in, Double_t z_in,
-                                                     Double_t x_out, Double_t y_out, Double_t z_out,
-                                                     Double_t x_out_old, Double_t y_out_old, Double_t z_out_old,
-                                                     const vector<CollPoint>& collision_points) {
-
-    //Visualisation of the track -------------------------------------------
-    double x_min_visible_area = XMinReadout;
-    double y_min_visible_area = YMinReadout;
-    double x_max_visible_area = XMaxReadout;
-    double y_max_visible_area = YMaxReadout;
-    double z_min_visible_area = 0.0;
-    double z_max_visible_area = 0.9;
-
-    if(x_in < x_out_old) {
-        x_min_visible_area = x_in - 0.1;
-        x_max_visible_area = x_out_old + 0.1;
-    }
-    else {
-        x_min_visible_area = x_out_old - 0.1;
-        x_max_visible_area = x_in + 0.1;
-    }
-    if(y_in < y_out_old) {
-        y_min_visible_area = y_in - 0.1;
-        y_max_visible_area = y_out_old + 0.1;
-    }
-    else {
-        y_min_visible_area = y_out_old - 0.1;
-        y_max_visible_area = y_in + 0.1;
-    }
-    if(z_in < z_out_old) {
-        z_min_visible_area = z_in - 0.1;
-        z_max_visible_area = z_out_old + 0.1;
-    }
-    else {
-        z_min_visible_area = z_out_old - 0.1;
-        z_max_visible_area = z_in + 0.1;
-    }
-
-
-    cout << "x_visible_area = " << x_min_visible_area << " : " << x_max_visible_area << "\n";
-    cout << "y_visible_area = " << y_min_visible_area << " : " << y_max_visible_area << "\n";
-    cout << "z_visible_area = " << z_min_visible_area << " : " << z_max_visible_area << "\n";
-
-    TCanvas *xy_track_slice_canv = new TCanvas("xy_track_slice_canv", "xy_track_slice_canv", 10, 10, 1000, 800);
-    xy_track_slice_canv->Range(x_min_visible_area, y_min_visible_area, x_max_visible_area, y_max_visible_area);
-
-    TLine *xy_track_line_old = new TLine(x_in, y_in, x_out_old, y_out_old);
-    xy_track_line_old->SetLineColor(TColor::GetColor("#33ff33"));
-    xy_track_line_old->Draw();
-
-    TLine *xy_track_line = new TLine(x_in, y_in, x_out, y_out);
-    xy_track_line->SetLineColor(TColor::GetColor("#ff3333"));
-    xy_track_line->Draw();
-
-    for(int ipoint = 0; ipoint < collision_points.size(); ++ipoint) {
-        TMarker *xy_point_mark = new TMarker(collision_points[ipoint].x, collision_points[ipoint].y, 20);
-        xy_point_mark->SetMarkerSize(0.5);
-        xy_point_mark->SetMarkerColor(TColor::GetColor("#ff3333"));
-        xy_point_mark->Draw();
-    }
-
-
-    TCanvas *xz_track_slice_canv = new TCanvas("xz_track_slice_canv", "xz_track_slice_canv", 10, 10, 1000, 800);
-    xz_track_slice_canv->Range(x_min_visible_area, z_min_visible_area, x_max_visible_area, z_max_visible_area);
-
-    TLine *xz_track_line_old = new TLine(x_in, z_in, x_out_old, z_out_old);
-    xz_track_line_old->SetLineColor(TColor::GetColor("#33ff33"));
-    xz_track_line_old->Draw();
-
-    TLine *xz_track_line = new TLine(x_in, z_in, x_out, z_out);
-    xz_track_line->SetLineColor(TColor::GetColor("#ff3333"));
-    xz_track_line->Draw();
-
-    for(int ipoint = 0; ipoint < collision_points.size(); ++ipoint) {
-        TMarker *xz_point_mark = new TMarker(collision_points[ipoint].x, collision_points[ipoint].z, 20);
-        xz_point_mark->SetMarkerSize(0.5);
-        xz_point_mark->SetMarkerColor(TColor::GetColor("#ff3333"));
-        xz_point_mark->Draw();
-    }
-
-    TCanvas *yz_track_slice_canv = new TCanvas("yz_track_slice_canv", "yz_track_slice_canv", 10, 10, 1000, 800);
-    yz_track_slice_canv->Range(y_min_visible_area, z_min_visible_area, y_max_visible_area, z_max_visible_area);
-
-    TLine *yz_track_line_old = new TLine(y_in, z_in, y_out_old, z_out_old);
-    yz_track_line_old->SetLineColor(TColor::GetColor("#33ff33"));
-    yz_track_line_old->Draw();
-
-    TLine *yz_track_line = new TLine(y_in, z_in, y_out, z_out);
-    yz_track_line->SetLineColor(TColor::GetColor("#ff3333"));
-    yz_track_line->Draw();
-
-    for(int ipoint = 0; ipoint < collision_points.size(); ++ipoint) {
-        TMarker *yz_point_mark = new TMarker(collision_points[ipoint].y, collision_points[ipoint].z, 20);
-        yz_point_mark->SetMarkerSize(0.5);
-        yz_point_mark->SetMarkerColor(TColor::GetColor("#ff3333"));
-        yz_point_mark->Draw();
-    }
-
-    //----------------------------------------------------------------------
-}
-
-
-
-void BmnGemStripReadoutModule::ReadoutPlaneVisualisation(Double_t x_in, Double_t y_in, Double_t z_in,
-                                                         Double_t x_out, Double_t y_out, Double_t z_out,
-                                                         const vector<Double_t>& x_readout_points,
-                                                         const vector<Double_t>& y_readout_points) {
-
-    double x_min_visible_area = XMinReadout;
-    double y_min_visible_area = YMinReadout;
-    double x_max_visible_area = XMaxReadout;
-    double y_max_visible_area = YMaxReadout;
-    double z_min_visible_area = 0.0;
-    double z_max_visible_area = 0.9;
-
-    if(x_in < x_out) {
-        x_min_visible_area = x_in - 0.1;
-        x_max_visible_area = x_out + 0.1;
-    }
-    else {
-        x_min_visible_area = x_out - 0.1;
-        x_max_visible_area = x_in + 0.1;
-    }
-    if(y_in < y_out) {
-        y_min_visible_area = y_in - 0.1;
-        y_max_visible_area = y_out + 0.1;
-    }
-    else {
-        y_min_visible_area = y_out - 0.1;
-        y_max_visible_area = y_in + 0.1;
-    }
-    if(z_in < z_out) {
-        z_min_visible_area = z_in - 0.1;
-        z_max_visible_area = z_out + 0.1;
-    }
-    else {
-        z_min_visible_area = z_out - 0.1;
-        z_max_visible_area = z_in + 0.1;
-    }
-
-    x_min_visible_area -= 1.0;
-    x_max_visible_area += 1.0;
-    y_min_visible_area -= 1.0;
-    y_max_visible_area += 1.0;
-
-
-    TCanvas *xy_readout_canv = new TCanvas("xy_readout_canv", "xy_readout_canv", 10, 10, 900, 900);
-    xy_readout_canv->SetGrid();
-
-
-
-    Double_t bin_size = 0.005; // cm
-    Int_t xbins = fabs(x_max_visible_area -x_min_visible_area)/bin_size;
-    Int_t ybins = fabs(y_max_visible_area -y_min_visible_area)/bin_size;
-    cout << " >>> Histogram bins: "<< "xbins = " << xbins << ",  ybins = " << ybins << " ( one bin size = " << bin_size << " cm )"<< "\n";
-
-    TH2F *xy_readout_hist = new TH2F("xy_readout_hist", "xy_readout_hist", xbins, x_min_visible_area, x_max_visible_area,     ybins, y_min_visible_area, y_max_visible_area);
-    xy_readout_hist->GetXaxis()->SetTitle("x [cm]"); xy_readout_hist->GetXaxis()->CenterTitle();
-    xy_readout_hist->GetYaxis()->SetTitle("y [cm]"); xy_readout_hist->GetYaxis()->CenterTitle();
-
-
-    for(int ipoints = 0; ipoints < x_readout_points.size(); ++ipoints) {
-        xy_readout_hist->Fill(x_readout_points[ipoints], y_readout_points[ipoints]);
-    }
-
-    xy_readout_canv->cd();
-    xy_readout_hist->Draw("colz");
-}
 
 ClassImp(BmnGemStripReadoutModule)

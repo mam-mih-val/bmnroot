@@ -115,7 +115,7 @@ Int_t BmnGemStripStationSet_1stConfigShort::CountNProcessedPointsInDetector() {
 }
 
 void BmnGemStripStationSet_1stConfigShort::DefineBeamHoleRadiuses() {
-    for(UInt_t iStation = 1; iStation < NStations; iStation++) {
+    for(UInt_t iStation = 0; iStation < NStations; iStation++) {
         BeamHoleRadiuses[iStation] = 0.0;
     }
     //All stations in the configuration have not beam holes!

@@ -14,7 +14,7 @@ BmnGemStripReadoutModule* BmnGemStripStation::GetReadoutModule(Int_t module_num)
         return ReadoutModules[module_num];
     }
     else {
-        throw(Station_Exeption("Error in the function GetReadoutModule()"));
+        throw(Station_Exception("Error in the function GetReadoutModule()"));
     }
 }
 

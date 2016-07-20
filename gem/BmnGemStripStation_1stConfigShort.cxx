@@ -1,10 +1,5 @@
 #include "BmnGemStripStation_1stConfigShort.h"
 
-#include "TWbox.h"
-#include "TLine.h"
-#include "TGaxis.h"
-#include "TSystem.h"
-
 BmnGemStripStation_1stConfigShort::BmnGemStripStation_1stConfigShort(Int_t iStation,
                        Double_t xpos_station, Double_t ypos_station, Double_t zpos_station,
                        Double_t beamradius) {
@@ -70,9 +65,6 @@ BmnGemStripStation_1stConfigShort::BmnGemStripStation_1stConfigShort(Int_t iStat
         BuildModules_One66x41Plane();
     }
     //end assembling the station -----------------------------------------------
-
-    //visual test
-    //DrawCreatedStation();
 }
 
 BmnGemStripStation_1stConfigShort::~BmnGemStripStation_1stConfigShort() {
@@ -155,113 +147,59 @@ void BmnGemStripStation_1stConfigShort::BuildModules_One66x41Plane() {
 
         //big module
         ReadoutModules[0] =
-            new BmnGemStripReadoutModule(XModuleSize_Plane66x41, YModuleSize_Plane66x41, XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition, ForwardZAxisEDrift);
-        ReadoutModules[0]->SetDeadZone(XPosition-XModuleSize_Plane66x41*0.5, XPosition-XModuleSize_Plane66x41*0.5+XHotZoneSize_Plane66x41, YPosition-YModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5+YHotZoneSize_Plane66x41);
+            new BmnGemStripReadoutModule(XModuleSize_Plane66x41, YModuleSize_Plane66x41,
+                                         XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
+                                         PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
+                                         ZPosition, ForwardZAxisEDrift);
+
+        const Int_t NPointsDeadZone = 4;
+        Double_t XPointsDeadZone[NPointsDeadZone];
+            XPointsDeadZone[0] = XPosition-XModuleSize_Plane66x41*0.5;
+            XPointsDeadZone[1] = XPosition-XModuleSize_Plane66x41*0.5;
+            XPointsDeadZone[2] = XPosition-XModuleSize_Plane66x41*0.5+XHotZoneSize_Plane66x41;
+            XPointsDeadZone[3] = XPosition-XModuleSize_Plane66x41*0.5+XHotZoneSize_Plane66x41;
+        Double_t YPointsDeadZone[NPointsDeadZone];
+            YPointsDeadZone[0] = YPosition-YModuleSize_Plane66x41*0.5;
+            YPointsDeadZone[1] = YPosition-YModuleSize_Plane66x41*0.5+YHotZoneSize_Plane66x41;
+            YPointsDeadZone[2] = YPosition-YModuleSize_Plane66x41*0.5+YHotZoneSize_Plane66x41;
+            YPointsDeadZone[3] = YPosition-YModuleSize_Plane66x41*0.5;
+        ReadoutModules[0]->AddDeadZone(NPointsDeadZone, XPointsDeadZone, YPointsDeadZone);
 
         //hot zone
         ReadoutModules[1] =
-            new BmnGemStripReadoutModule(XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41, XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition, ForwardZAxisEDrift);
+            new BmnGemStripReadoutModule(XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
+                                         XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
+                                         PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
+                                         ZPosition, ForwardZAxisEDrift);
     }
     else {
         //big module
         ReadoutModules[0] =
-            new BmnGemStripReadoutModule(XModuleSize_Plane66x41, YModuleSize_Plane66x41, XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition, BackwardZAxisEDrift);
-        ReadoutModules[0]->SetDeadZone(XPosition-XModuleSize_Plane66x41*0.5, XPosition-XModuleSize_Plane66x41*0.5+XHotZoneSize_Plane66x41, YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41, YPosition+YModuleSize_Plane66x41*0.5);
+            new BmnGemStripReadoutModule(XModuleSize_Plane66x41, YModuleSize_Plane66x41,
+                                         XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
+                                         PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
+                                         ZPosition, BackwardZAxisEDrift);
+
+        const Int_t NPointsDeadZone = 4;
+        Double_t XPointsDeadZone[NPointsDeadZone];
+            XPointsDeadZone[0] = XPosition-XModuleSize_Plane66x41*0.5;
+            XPointsDeadZone[1] = XPosition-XModuleSize_Plane66x41*0.5;
+            XPointsDeadZone[2] = XPosition-XModuleSize_Plane66x41*0.5+XHotZoneSize_Plane66x41;
+            XPointsDeadZone[3] = XPosition-XModuleSize_Plane66x41*0.5+XHotZoneSize_Plane66x41;
+        Double_t YPointsDeadZone[NPointsDeadZone];
+            YPointsDeadZone[0] = YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41;
+            YPointsDeadZone[1] = YPosition+YModuleSize_Plane66x41*0.5;
+            YPointsDeadZone[2] = YPosition+YModuleSize_Plane66x41*0.5;
+            YPointsDeadZone[3] = YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41;
+        ReadoutModules[0]->AddDeadZone(NPointsDeadZone, XPointsDeadZone, YPointsDeadZone);
 
         //hot zone
         ReadoutModules[1] =
-            new BmnGemStripReadoutModule(XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41, XPosition-XModuleSize_Plane66x41*0.5, YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41, PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth, ZPosition, BackwardZAxisEDrift);
+            new BmnGemStripReadoutModule(XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
+                                         XPosition-XModuleSize_Plane66x41*0.5, YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41,
+                                         PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
+                                         ZPosition, BackwardZAxisEDrift);
     }
-}
-
-//------------------------------------------------------------------------------
-
-//visual test
-void BmnGemStripStation_1stConfigShort::DrawCreatedStation() {
-
-    if(StationNumber != 0) return;
-
-    TString rand_num = gRandom->Uniform(0,10);
-    TCanvas *station_canv = new TCanvas("station_canv_"+rand_num, "station_canv", 10, 10, 1000, 1000);
-
-    Double_t range_size = 0.0;
-    if( XSize > YSize ) range_size = XSize ;
-    else range_size = YSize;
-    range_size *= 0.5 + 0.05;
-    if( abs(XPosition) > abs(YPosition) ) range_size+= abs(XPosition);
-    else range_size+= abs(YPosition);
-
-    station_canv->Range(-range_size, -range_size, range_size, range_size);
-
-    TWbox **modules = new TWbox*[NModules];
-    TWbox **deadzones = new TWbox*[NModules];
-
-    for(Int_t im = 0; im < NModules; im++) {
-        Double_t xmin = ReadoutModules[im]->GetXMinReadout();
-        Double_t xmax = ReadoutModules[im]->GetXMaxReadout();
-        Double_t ymin = ReadoutModules[im]->GetYMinReadout();
-        Double_t ymax = ReadoutModules[im]->GetYMaxReadout();
-
-        Double_t xmin_deadzone = ReadoutModules[im]->GetXMinDeadZone();
-        Double_t xmax_deadzone = ReadoutModules[im]->GetXMaxDeadZone();
-        Double_t ymin_deadzone = ReadoutModules[im]->GetYMinDeadZone();
-        Double_t ymax_deadzone = ReadoutModules[im]->GetYMaxDeadZone();
-
-        modules[im] = new TWbox(xmin, ymin, xmax, ymax, 18, 1, 1);
-        modules[im]->Draw();
-
-        deadzones[im] = new TWbox(xmin_deadzone, ymin_deadzone, xmax_deadzone, ymax_deadzone, TColor::GetColor("#800000"), 1, 1);
-        deadzones[im]->Draw();
-    }
-    //center axes
-    Double_t xmin_range = station_canv->GetUxmin();
-    Double_t xmax_range = station_canv->GetUxmax();
-    Double_t ymin_range = station_canv->GetUymin();
-    Double_t ymax_range = station_canv->GetUymax();
-
-    TLine *x_center_axis = new TLine(xmin_range, 0.0, xmax_range, 0.0);
-    x_center_axis->SetLineColor(TColor::GetColor("#ee0000"));
-    x_center_axis->Draw();
-    TLine *y_center_axis = new TLine(0.0, ymin_range, 0.0, ymax_range);
-    y_center_axis->SetLineColor(TColor::GetColor("#ee0000"));
-    y_center_axis->Draw();
-
-    //Draw xy axes
-    TGaxis *xaxis = new TGaxis(xmin_range, ymin_range-0.06*ymin_range, xmax_range, ymin_range-0.06*ymin_range, xmin_range, ymax_range);
-    xaxis->SetNdivisions(525);
-    xaxis->SetLabelSize(0.015);
-    xaxis->SetTitleSize(0.015);
-    xaxis->SetTitle("x [cm]"); xaxis->CenterTitle();
-    xaxis->Draw();
-
-    TGaxis *yaxis = new TGaxis(xmin_range-0.06*xmin_range, ymin_range, xmin_range-0.06*xmin_range, ymax_range, ymin_range, ymax_range);
-    yaxis->SetNdivisions(525);
-    yaxis->SetLabelSize(0.015);
-    yaxis->SetTitleSize(0.015);
-    yaxis->SetTitle("y [cm]"); yaxis->CenterTitle();
-    yaxis->Draw();
-
-    TString file_name = "/home/diman/Software/test/tmp/station_";
-        file_name += StationNumber;
-        file_name += "_pos_";
-        file_name += "x"; file_name += XPosition; file_name += "_";
-        file_name += "y"; file_name += YPosition; file_name += "_";
-        file_name += "z"; file_name += ZPosition;
-        file_name += ".png";
-    station_canv->SaveAs(file_name);
-
-    delete station_canv;
-    for(int i = 0; i < NModules; i++) {
-        delete modules[i];
-        delete deadzones[i];
-    }
-    delete [] modules;
-    delete [] deadzones;
-    delete x_center_axis;
-    delete y_center_axis;
-    delete xaxis;
-    delete yaxis;
-
 }
 
 ClassImp(BmnGemStripStation_1stConfigShort)

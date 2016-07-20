@@ -56,9 +56,6 @@ private:
 
     void BuildModules_One66x41Plane();
 
-    //visual test
-    void DrawCreatedStation();
-
     ClassDef(BmnGemStripStation_1stConfigShort, 1)
 };
 

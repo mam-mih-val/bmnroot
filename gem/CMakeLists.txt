@@ -61,6 +61,8 @@ set(SRCS
   BmnGemStripStationSet_1stConfigShort.cxx
   BmnGemStripStation_2ndConfig.cxx
   BmnGemStripStationSet_2ndConfig.cxx
+  BmnGemStripStation_RunSummer2016.cxx
+  BmnGemStripStationSet_RunSummer2016.cxx
   BmnGemStripDigit.cxx
   BmnGemStripDigitizer.cxx
   BmnGemStripHit.cxx
@@ -94,6 +96,8 @@ set(HEADERS
   BmnGemStripStationSet_1stConfigShort.h
   BmnGemStripStation_2ndConfig.h
   BmnGemStripStationSet_2ndConfig.h
+  BmnGemStripStation_RunSummer2016.h
+  BmnGemStripStationSet_RunSummer2016.h
   BmnGemStripDigit.h
   BmnGemStripDigitizer.h
   BmnGemStripHit.h

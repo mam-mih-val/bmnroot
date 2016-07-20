@@ -51,7 +51,7 @@ public:
     virtual Int_t AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord,
                                     Double_t px, Double_t py, Double_t pz,
                                     Double_t dEloss, Int_t refID) = 0;
-    
+
     virtual Int_t CountNAddedToStationPoints() = 0;
 
     virtual void ProcessPointsInStation() = 0;
@@ -63,10 +63,10 @@ public:
 };
 
 //Exeptions --------------------------------------------------------------------
-class Station_Exeption {
+class Station_Exception {
 public:
-    Station_Exeption(TString message) {
-        std::cout << "Station_Exeption::" << message << "\n";
+    Station_Exception(TString message) {
+        std::cout << "Station_Exception::" << message << "\n";
     }
 };
 //------------------------------------------------------------------------------

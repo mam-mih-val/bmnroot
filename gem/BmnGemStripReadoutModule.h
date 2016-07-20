@@ -19,24 +19,11 @@ using namespace std;
 
 class StripCluster;
 struct CollPoint;
-
-struct DeadStripZone {
-    Double_t Xmin;
-    Double_t Xmax;
-    Double_t Ymin;
-    Double_t Ymax;
-
-    DeadStripZone() : Xmin(0), Xmax(0), Ymin(0), Ymax(0) {}
-    DeadStripZone(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax) : Xmin(xmin), Xmax(xmax), Ymin(ymin), Ymax(ymax) {}
-
-    Bool_t IsInside(Double_t x, Double_t y) {
-        if(Xmin == Xmax || Ymin == Ymax) return false; //incorrect dead zone
-        if(x>=Xmin && x<=Xmax && y>=Ymin && y<=Ymax) return true;
-        else return false;
-    }
-};
+class DeadZoneOfReadoutModule;
 
 enum ElectronDriftDirectionInModule {ForwardZAxisEDrift, BackwardZAxisEDrift};
+enum StripNumberingDirection {LeftToRight, RightToLeft};
+enum StripBorderPoint {LeftTop, LeftBottom, RightTop, RightBottom};
 
 class BmnGemStripReadoutModule {
 
@@ -54,7 +41,7 @@ public:
 
 //Resetters
     void CreateReadoutPlanes();
-    void RebuildReadoutPlanes();
+    void RebuildReadoutPlanes(); //clear all data and rebuild the module in accordance with new parameters
     void ResetIntersectionPoints();
     void ResetRealPoints();
     void ResetStripHits();
@@ -64,7 +51,6 @@ public:
     void SetPitch(Double_t pitch); //cm
     void SetStripWidths(Double_t low_strip_width, Double_t up_strip_width);
     void SetReadoutSizes(Double_t xsize, Double_t ysize, Double_t xorig=0.0, Double_t yorig=0.0);
-    Bool_t SetDeadZone(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax);
     void SetAngleDeg(Double_t deg); // plus - clockwise from vertical
     void SetZStartModulePosition(Double_t zpos_module) { ZStartModulePosition = zpos_module; }
     void SetElectronDriftDirection(ElectronDriftDirectionInModule direction) { ElectronDriftDirection = direction; }
@@ -76,6 +62,24 @@ public:
     void SetMaxSignalCutThreshold(Double_t max_cut_threshold); //example: 0.1 is equal 10%; value 0 - is not active
 
     void AddBackgroundNoise(); //Add background noise to strip layers
+
+    //Dead zones methods
+    Bool_t AddDeadZone(Int_t n_points, Double_t *x_points, Double_t *y_points);
+    Bool_t IsPointInsideDeadZones(Double_t x, Double_t y);
+    Bool_t IsPointInsideReadoutModule(Double_t x, Double_t y);
+    vector<DeadZoneOfReadoutModule> GetDeadZones() { return DeadZones; }
+    void ResetAllDeadZones() { DeadZones.clear(); }
+
+    //Strip numbering methods
+    Bool_t SetStripNumberingBorders(Double_t x_left, Double_t y_left, Double_t x_right, Double_t y_right); //or method below
+    Bool_t SetStripNumberingBorders(StripBorderPoint left, StripBorderPoint right);
+    Bool_t SetStripNumberingOrder(StripNumberingDirection lower_strip_direction, StripNumberingDirection upper_strip_direction);
+    StripNumberingDirection GetLowerStripNumberingOrder() { return  LowerStripOrder; }
+    StripNumberingDirection GetUpperStripNumberingOrder() { return  UpperStripOrder; }
+    Double_t GetXLeftStripBorderPoint() { return XLeftPointOfStripNumbering; }
+    Double_t GetYLeftStripBorderPoint() { return YLeftPointOfStripNumbering; }
+    Double_t GetXRightStripBorderPoint() { return XRightPointOfStripNumbering; }
+    Double_t GetYRightStripBorderPoint() { return YRightPointOfStripNumbering; }
 
 //Parameter getters
     Bool_t GetVerbosity() { return Verbosity; }
@@ -89,10 +93,6 @@ public:
     Double_t GetXMaxReadout() { return XMaxReadout; }
     Double_t GetYMinReadout() { return YMinReadout; }
     Double_t GetYMaxReadout() { return YMaxReadout; }
-    Double_t GetXMinDeadZone() { return DeadZone.Xmin; }
-    Double_t GetXMaxDeadZone() { return DeadZone.Xmax; }
-    Double_t GetYMinDeadZone() { return DeadZone.Ymin; }
-    Double_t GetYMaxDeadZone() { return DeadZone.Ymax; }
     Double_t GetZStartModulePosition() { return ZStartModulePosition; }
     Double_t GetZPositionRegistered() { if(ElectronDriftDirection == ForwardZAxisEDrift) return ZStartModulePosition; else return (ZStartModulePosition+ModuleThickness); } //position for all registered point (hits)
     ElectronDriftDirectionInModule GetElectronDriftDirection() { return ElectronDriftDirection; }
@@ -169,8 +169,6 @@ public:
     Double_t GetLowerStripHitTotalSignal(Int_t num); //sum signal of lower hit
     Double_t GetUpperStripHitTotalSignal(Int_t num); //sum signal of upper hit
 
-    Int_t GetNGoodHits() { return NGoodHits; }
-
 
 //Inner methods
 public: //private (public - for test)
@@ -181,7 +179,7 @@ public: //private (public - for test)
     //Find clusters and hits
     void FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors);
     void MakeStripHit(StripCluster &cluster, vector<Double_t> &Strips, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors, Int_t &curcnt);
-    void SmoothStripSignal(vector<Double_t>& Strips, Int_t NIterations, Int_t SmoothWindow, Int_t Weight);
+    void SmoothStripSignal(vector<Double_t>& Strips, Int_t NIterations, Int_t SmoothWindow, Double_t Weight);
 
     Double_t ConvertRealPointToUpperX(Double_t xcoord, Double_t ycoord);
     Double_t ConvertRealPointToUpperY(Double_t xcoord, Double_t ycoord);
@@ -207,7 +205,7 @@ private:
     Double_t YMinReadout;
     Double_t YMaxReadout;
 
-    DeadStripZone DeadZone;
+    vector<DeadZoneOfReadoutModule> DeadZones;
 
     Double_t ZStartModulePosition;
 
@@ -229,13 +227,20 @@ private:
     Double_t MinSignalCutThreshold; // % of Landau MPV
     Double_t MaxSignalCutThreshold; // % of Landau MPV
 
-    Int_t NGoodHits;
+    //Strip arrangement
+    StripNumberingDirection LowerStripOrder; //strip numbering order (LeftToRight or RightToLeft)
+    StripNumberingDirection UpperStripOrder; //strip numbering order (LeftToRight or RightToLeft)
+    Double_t XLeftPointOfStripNumbering;
+    Double_t XRightPointOfStripNumbering;
+    Double_t YLeftPointOfStripNumbering;
+    Double_t YRightPointOfStripNumbering;
 
+    //Strip layers
     vector<Double_t> ReadoutLowerPlane;
     vector<Double_t> ReadoutUpperPlane;
 
-    vector<BmnMatch> LowerStripMatches;  //ID-point matches for all lower strips
-    vector<BmnMatch> UpperStripMatches; // ID-point matches for all upper strips
+    vector<BmnMatch> LowerStripMatches; //ID-point matches for all lower strips
+    vector<BmnMatch> UpperStripMatches; //ID-point matches for all upper strips
 
     vector<Double_t> RealPointsX;
     vector<Double_t> RealPointsY;
@@ -269,16 +274,6 @@ private:
 
 //testing part
 public:
-    void GemTrackVisualisation(Double_t x_in, Double_t y_in, Double_t z_in,
-                               Double_t x_out, Double_t y_out, Double_t z_out,
-                               Double_t x_out_old, Double_t y_out_old, Double_t z_out_old,
-                               const vector<CollPoint>& collision_points);
-
-    void ReadoutPlaneVisualisation(Double_t x_in, Double_t y_in, Double_t z_in,
-                                   Double_t x_out, Double_t y_out, Double_t z_out,
-                                   const vector<Double_t>& x_readout_points,
-                                   const vector<Double_t>& y_readout_points);
-
     vector<Double_t> XElectronPos;
     vector<Double_t> YElectronPos;
     vector<Double_t> ElectronSignal;
@@ -377,6 +372,123 @@ struct CollPoint {
     Double_t y;
     Double_t z;
 };
+
+//Class: dead zone -------------------------------------------------------------
+class DeadZoneOfReadoutModule {
+private:
+
+    Int_t NPoints;
+    Double_t *XPoints;
+    Double_t *YPoints;
+
+public:
+    DeadZoneOfReadoutModule() : NPoints(0), XPoints(0), YPoints(0) { }
+
+    DeadZoneOfReadoutModule(Int_t n_points, Double_t *xpoints, Double_t *ypoints)
+        : NPoints(0), XPoints(0), YPoints(0) {
+        if(n_points > 2) {
+            NPoints = n_points;
+            XPoints = new Double_t[NPoints];
+            YPoints = new Double_t[NPoints];
+            for(Int_t i = 0; i < NPoints; ++i) {
+                XPoints[i] = xpoints[i];
+                YPoints[i] = ypoints[i];
+            }
+        }
+    }
+
+    DeadZoneOfReadoutModule(const DeadZoneOfReadoutModule& obj) {
+        NPoints = obj.NPoints;
+        XPoints = new Double_t[NPoints];
+        YPoints = new Double_t[NPoints];
+        for(Int_t i = 0; i < NPoints; ++i) {
+            XPoints[i] = obj.XPoints[i];
+            YPoints[i] = obj.YPoints[i];
+        }
+    }
+
+    DeadZoneOfReadoutModule& operator=(const DeadZoneOfReadoutModule& obj) {
+        if(XPoints) delete [] XPoints;
+        if(YPoints) delete [] YPoints;
+        NPoints = obj.NPoints;
+        XPoints = new Double_t[NPoints];
+        YPoints = new Double_t[NPoints];
+        for(Int_t i = 0; i < NPoints; ++i) {
+            XPoints[i] = obj.XPoints[i];
+            YPoints[i] = obj.YPoints[i];
+        }
+        return *this;
+    }
+
+    ~DeadZoneOfReadoutModule() {
+        if(XPoints) delete [] XPoints;
+        if(YPoints) delete [] YPoints;
+    }
+
+    //Set a new dead zone, the previous zone will be deleted
+    Bool_t SetDeadZone(Int_t n_points, Double_t *xpoints, Double_t *ypoints) {
+        NPoints = 0;
+        if(XPoints) {
+            delete [] XPoints;
+            XPoints = 0;
+        }
+        if(YPoints) {
+            delete [] YPoints;
+            YPoints = 0;
+        }
+        if(n_points > 2) {
+            NPoints = n_points;
+            XPoints = new Double_t[NPoints];
+            YPoints = new Double_t[NPoints];
+            for(Int_t i = 0; i < NPoints; ++i) {
+                XPoints[i] = xpoints[i];
+                YPoints[i] = ypoints[i];
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    Bool_t IsInside(Double_t x, Double_t y) {
+        //crossing number (count) algorithm
+        if(NPoints == 0) return false;
+        Bool_t check_flag = false;
+        for (int i = 0, j = NPoints-1; i < NPoints; j = i++) {
+
+          if ( (((YPoints[i] <= y) && (y < YPoints[j])) || ((YPoints[j] <= y) && (y < YPoints[i]))) &&
+               (x > (XPoints[j] - XPoints[i]) * (y - YPoints[i]) / (YPoints[j] - YPoints[i]) + XPoints[i]) )
+              check_flag = !check_flag;
+        }
+        return check_flag;
+    }
+
+    Int_t GetNPoints() { return NPoints; }
+
+    Double_t GetXPoint(Int_t index) {
+        if(index >= 0 && index < NPoints) {
+            return XPoints[index];
+        }
+        else {
+            return 0.0;
+            //cerr << "\nWARNING:DeadZoneOfReadoutModule: out of range (x)\n";
+            //throw;
+        }
+    }
+
+    Double_t GetYPoint(Int_t index) {
+        if(index >= 0 && index < NPoints) {
+            return YPoints[index];
+        }
+        else {
+            return 0.0;
+            //cerr << "\nWARNING:DeadZoneOfReadoutModule: out of range (y)\n";
+            //throw;
+        }
+    }
+};
+//------------------------------------------------------------------------------
 
 #endif	/* BMNGEMSTRIPREADOUTMODULE_H */
 

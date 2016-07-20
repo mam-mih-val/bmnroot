@@ -5,6 +5,7 @@
 #include "BmnGemStripStationSet_1stConfig.h"
 #include "BmnGemStripStationSet_1stConfigShort.h"
 #include "BmnGemStripStationSet_2ndConfig.h"
+#include "BmnGemStripStationSet_RunSummer2016.h"
 
 static Float_t workTime = 0.0;
 int entrys = 0;
@@ -17,8 +18,6 @@ BmnGemStripDigitizer::BmnGemStripDigitizer()
     fOutputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
     fVerbose = 1;
-
-    fSmearingSigma = 0.0; //cm
 
     fCurrentConfig = BmnGemStripConfiguration::None;
 }
@@ -105,6 +104,10 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
             StationSet = new BmnGemStripStationSet_2ndConfig();
             if(fVerbose) cout << "   Current Configuration : SecondConfig" << "\n";
             break;
+        case BmnGemStripConfiguration::RunSummer2016:
+            StationSet = new BmnGemStripStationSet_RunSummer2016();
+            if(fVerbose) cout << "   Current Configuration : RunSummer2016" << "\n";
+            break;
         default:
             StationSet = 0;
     }
@@ -131,12 +134,6 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
 
         Double_t dEloss = GemStripPoint->GetEnergyLoss()*1e6; // in keV
         Int_t refId = ipoint;
-
-        //smearing
-        if(fSmearingSigma > 0.0) {
-            x = gRandom->Gaus(x, fSmearingSigma);
-            y = gRandom->Gaus(y, fSmearingSigma);
-        }
 
         StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);
     }

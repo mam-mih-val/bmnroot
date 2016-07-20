@@ -49,6 +49,8 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule() {
     MinSignalCutThreshold = 0.05;
     MaxSignalCutThreshold = 6.25;
 
+    StripSignalThreshold = 0.0;
+
     LowerStripOrder = LeftToRight;
     UpperStripOrder = LeftToRight;
 
@@ -104,6 +106,8 @@ BmnGemStripReadoutModule::BmnGemStripReadoutModule(Double_t xsize, Double_t ysiz
     BackgroundNoiseLevel = 0.0; //was 0.03
     MinSignalCutThreshold = 0.05;
     MaxSignalCutThreshold = 6.25;
+
+    StripSignalThreshold = 0.0;
 
     LowerStripOrder = LeftToRight;
     UpperStripOrder = LeftToRight;
@@ -1149,7 +1153,8 @@ StripCluster BmnGemStripReadoutModule::MakeCluster(TString layer, Double_t xcoor
 void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer, vector<Double_t> &StripHits, vector<Double_t> &StripHitsTotalSignal, vector<Double_t> &StripHitsErrors) {
 
     //Double_t threshold = LandauMPV*MinSignalCutThreshold*Gain;
-    Double_t threshold = 0.0; //temporary for test
+    //Double_t threshold = 0.0; //temporary for test
+    Double_t threshold = StripSignalThreshold;
 
     StripCluster cluster;
 

@@ -63,6 +63,8 @@ public:
 
     void AddBackgroundNoise(); //Add background noise to strip layers
 
+    void SetStripSignalThreshold(Double_t signal_threshold) { StripSignalThreshold = signal_threshold; }
+
     //Dead zones methods
     Bool_t AddDeadZone(Int_t n_points, Double_t *x_points, Double_t *y_points);
     Bool_t IsPointInsideDeadZones(Double_t x, Double_t y);
@@ -104,6 +106,8 @@ public:
     Double_t GetBackgroundNoiseLevel() { return BackgroundNoiseLevel; }
     Double_t GetMinSignalCutThreshold() { return MinSignalCutThreshold; }
     Double_t GetMaxSignalCutThreshold() { return MaxSignalCutThreshold; }
+
+    Double_t GetStripSignalThreshold() { return StripSignalThreshold; }
 
 //Interface methods for adding points
     Bool_t AddRealPointSimple(Double_t x, Double_t y, Double_t z,
@@ -226,6 +230,9 @@ private:
     Double_t BackgroundNoiseLevel; // % of Landau MPV
     Double_t MinSignalCutThreshold; // % of Landau MPV
     Double_t MaxSignalCutThreshold; // % of Landau MPV
+
+    //Strip signal threshold (for finding strip clusters)
+    Double_t StripSignalThreshold;
 
     //Strip arrangement
     StripNumberingDirection LowerStripOrder; //strip numbering order (LeftToRight or RightToLeft)

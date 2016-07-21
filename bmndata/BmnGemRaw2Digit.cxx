@@ -20,18 +20,19 @@ BmnStatus BmnGemRaw2Digit::FillMaps() {
     }
 
     TString dummy;
-    UInt_t ser, ch_l, ch_h, gId, adc_l, adc_h;
+    UInt_t ser, ch_l, ch_h, gId, stId, adc_l, adc_h;
     Bool_t hotZ = 0;
 
     fMapFile >> dummy;
-    fMapFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
+    fMapFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     fMapFile >> dummy;
     while (!fMapFile.eof()) {
-        fMapFile >> hex >> ser >> dec >> ch_l >> ch_h >> gId >> adc_l >> adc_h >> hotZ;
+        fMapFile >> hex >> ser >> dec >> ch_l >> ch_h >> gId >> stId >> adc_l >> adc_h >> hotZ;
         if (!fMapFile.good()) break;
         BmnGemMapping record;
         record.serial = ser;
         record.gemId = gId;
+        record.station = stId;
         record.adcChLo = adc_l;
         record.adcChHi = adc_h;
         record.gemChLo = ch_l;
@@ -121,10 +122,6 @@ BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *gem) {
 void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, TClonesArray *gem) {
     const UInt_t nSmpl = 32;
     UInt_t ch = adcDig->GetChannel();
-
-    Double_t comModEv = 0.0;
-    Double_t comModEvErr = 0.0;
-    Double_t comMod = -1.0;
 
     BmnGemStripDigit candDig[nSmpl];
 
@@ -265,9 +262,8 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
         }
         if (strip != -1) {
             Double_t sig = Abs(Double_t((adcDig->GetValue())[iSmpl] / 16 - ped));
-            comModEv += sig;
             BmnGemStripDigit dig;
-            dig.SetStation(gemM->gemId);
+            dig.SetStation(gemM->station);
             dig.SetModule(mod);
             dig.SetStripLayer(lay);
             dig.SetStripNumber(strip);
@@ -276,49 +272,43 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
         }
     }
 
-    comModEv /= nSmpl;
+    const UShort_t kNITER = 4;
 
-    UInt_t nOk = 0;
-    UInt_t gain = 5; // if signal > 5 * ComMod skip this strip
-    Double_t noise = 0.0;
-    Double_t updSignal[nSmpl];
+    UInt_t nStr = nSmpl;
+    Double_t CMS = 0.0; //common mode shift
 
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-        if ((candDig[iSmpl]).GetStation() == -1) continue;
-        Double_t sig = (candDig[iSmpl]).GetStripSignal();
-        updSignal[iSmpl] = sig;
-        noise += ((sig - comModEv) * (sig - comModEv));
-        sig = Abs(sig - comModEv);
-        (candDig[iSmpl]).SetStripSignal(sig);
-    }
-
-    comModEvErr = Sqrt(noise / nSmpl);
-
-    Double_t newComModEv = 0.0;
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-        if ((candDig[iSmpl]).GetStation() == -1) continue;
-        BmnGemStripDigit* dig = &candDig[iSmpl];
-        if (dig->GetStripSignal() < 3 * comModEvErr) {
-            nOk++;
-            newComModEv += updSignal[iSmpl];
-        }
-    }
-    newComModEv /= nOk;
-
-    noise = 0.0;
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-        if ((candDig[iSmpl]).GetStation() == -1) continue;
-        Double_t sig = updSignal[iSmpl];
-        noise += ((sig - newComModEv) * (sig - newComModEv));
-        (candDig[iSmpl]).SetStripSignal(Abs(sig - newComModEv));
+    BmnGemStripDigit updDig[nSmpl];
+    for (Int_t iSmpl = 0; iSmpl < nStr; ++iSmpl)
+        updDig[iSmpl] = candDig[iSmpl];
+        
+    for (Int_t itr = 0; itr < kNITER; ++itr) {
+        Double_t cms = 0.0; //common mode shift
+        for (Int_t iSmpl = 0; iSmpl < nStr; ++iSmpl)
+            cms += Abs(Double_t((updDig[iSmpl]).GetStripSignal()));
+        if (nStr == 0) continue;
+        cms /= nStr;
+        Float_t chNoise = 0.0; //chip noise
+        for (Int_t iSmpl = 0; iSmpl < nStr; ++iSmpl)
+            chNoise += ((Abs(Double_t((updDig[iSmpl]).GetStripSignal())) - cms) * (Abs(Double_t((updDig[iSmpl]).GetStripSignal())) - cms));
+        chNoise = Sqrt(chNoise / nStr);
+        UInt_t nOk = 0;
+        for (Int_t iSmpl = 0; iSmpl < nStr; ++iSmpl)
+            if (Abs(Double_t((updDig[iSmpl]).GetStripSignal())) < 3 * chNoise) {
+                updDig[nOk] = updDig[iSmpl];
+                nOk++;
+            }
+        nStr = nOk;
+        CMS = cms;
     }
 
     const Double_t kTHRESH = 15.0;
-
+    
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         BmnGemStripDigit* dig = &candDig[iSmpl];
-        if (dig->GetStripSignal() < kTHRESH) continue;
+        Double_t sig = Abs(dig->GetStripSignal()) - CMS;
+        if (sig < kTHRESH) continue;
+        //        if (sig > 4 * CMSiSmpl) continue; //check it!!!
         TClonesArray& ar_gem = *gem;
         new(ar_gem[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), dig->GetStripSignal());
     }

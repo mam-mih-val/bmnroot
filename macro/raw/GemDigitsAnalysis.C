@@ -1,4 +1,5 @@
 #include "TH1F.h"
+#include "TH2F.h"
 #include "TCanvas.h"
 #include "TChain.h"
 
@@ -19,17 +20,25 @@ void GemDigitsAnalysis(UInt_t runId = 0) {
     cout << nEvents << endl;
 
     const UInt_t kNST = 8;
+    const UInt_t nStrips[kNST] = {256, 825, 825, 825, 825, 825, 1019, 1019};
+
     TString name;
     TH1F * h_X[kNST];
+    TH2F * h_X_2d[kNST];
     TH1F * h_X0[kNST];
+    TH2F * h_X0_2d[kNST];
     TH1F * h_Amp[kNST];
     TH1F * h_XAmp[kNST];
 
     for (Int_t i = 0; i < kNST; ++i) {
         name = Form("X_%d", i);
-        h_X[i] = new TH1F(name, name, 1019, 1, 1019);
+        h_X[i] = new TH1F(name, name, nStrips[i], 0, nStrips[i]);
+        name = Form("X_color_%d", i);
+        h_X_2d[i] = new TH2F(name, name, nStrips[i], 0, nStrips[i], 1, 0, 1);
         name = Form("X0_%d", i);
         h_X0[i] = new TH1F(name, name, 500, 1, 500);
+        name = Form("X0_color_%d", i);
+        h_X0_2d[i] = new TH2F(name, name, 500, 1, 500, 1, 0, 1);
         name = Form("Amp_%d", i);
         h_Amp[i] = new TH1F(name, name, 100, 0, 500);
         name = Form("XAmp_%d", i);
@@ -44,16 +53,20 @@ void GemDigitsAnalysis(UInt_t runId = 0) {
             Int_t lay = digX->GetStripLayer();
             if (lay != 0) continue; //use only X
             Int_t st = digX->GetStation();
+            if (st == 0) continue; //skip small GEM
             Int_t str = digX->GetStripNumber();
             Int_t sig = digX->GetStripSignal();
 
             Int_t mod = digX->GetModule();
-            if ((mod == 0 && st != 7 && st != 0) || (mod == 1 && st == 7)) {
+            if (mod == 0) {
                 h_X[st]->Fill(str);
-            } else if ((mod == 3 && st == 7) || (mod == 2 && st == 6)) {
+                h_X_2d[st]->Fill(str, 0);
+            } else if (mod == 1 && st == 6) {
+                h_X[st + 1]->Fill(str);
+                h_X_2d[st + 1]->Fill(str, 0);
+            } else {
                 h_X0[st]->Fill(str);
-            } else if (mod == 1 && st != 7 && st != 6 && st != 0) {
-                h_X0[st]->Fill(str);
+                h_X0_2d[st]->Fill(str, 0);
             }
         }
     }
@@ -63,21 +76,25 @@ void GemDigitsAnalysis(UInt_t runId = 0) {
         h_X[i]->SetTitle("");
         h_X0[i]->Scale(1.0 / nEvents);
         h_X0[i]->SetTitle("");
-    }
-    for (Int_t i = 0; i < kNST; ++i) {
-        for (Int_t j = 0; j < h_X[i]->GetNbinsX(); ++j) {
-            if (h_X[i]->GetBinContent(j) > 0.2) h_X[i]->SetBinContent(j, 0.0);
-            if (h_X0[i]->GetBinContent(j) > 0.2) h_X0[i]->SetBinContent(j, 0.0);
-        }
+        h_X_2d[i]->Scale(1.0 / nEvents);
+        h_X_2d[i]->SetTitle("");
+        h_X0_2d[i]->Scale(1.0 / nEvents);
+        h_X0_2d[i]->SetTitle("");
     }
 
+    const Float_t kThresh = 0.12; //remove signals above threshold (guess it is noisy channels)
+
+    for (Int_t i = 0; i < kNST; ++i)
+        for (Int_t j = 1; j <= h_X[i]->GetNbinsX(); ++j) {
+            if (h_X[i]->GetBinContent(j) > kThresh) h_X[i]->SetBinContent(j, 0.0);
+            for (Int_t k = 1; k <= h_X_2d[i]->GetNbinsY(); ++k)
+                if (h_X_2d[i]->GetBinContent(j, k) > kThresh) h_X_2d[i]->SetBinContent(j, k, 0.0);
+        }
+
+
     TCanvas* SuperCave = new TCanvas("SuperCave", "SuperCave", 66 * 100, 41 * 100);
-    TString pdfName = Form("gem_run%04d.pdf", runId);
     for (Int_t i = 1; i < kNST; ++i) {
-        Bool_t right = kFALSE;
-        if (i == (kNST - 2))
-            right = kTRUE;
-        DrawGemDigits(h_X0[i], h_X[i], SuperCave, right);
+        DrawGemDigitsColz(h_X_2d[i], h_X[i], SuperCave);
         if (i == 1) {
             SuperCave->Print(Form("gem_run%04d.pdf(", runId), "");
         } else if (i == (kNST - 1)) {
@@ -85,7 +102,6 @@ void GemDigitsAnalysis(UInt_t runId = 0) {
         } else {
             SuperCave->Print(Form("gem_run%04d.pdf", runId), "");
         }
-
     }
     delete SuperCave;
 
@@ -106,7 +122,6 @@ void DrawGemDigits(TH1F* x0, TH1F* x1, TCanvas* cave, Bool_t right = kFALSE) {
     pad1->SetMargin(bigLeftMarg, bigRightMarg, bigBottMarg, bigTopMarg);
     pad1->Draw();
     pad1->cd();
-    //        x1->SetFillStyle(3001);
     x1->SetFillColor(kBlue - 10);
     x1->SetLineColor(kBlue);
     x1->GetXaxis()->SetLabelColor(kBlue);
@@ -128,7 +143,6 @@ void DrawGemDigits(TH1F* x0, TH1F* x1, TCanvas* cave, Bool_t right = kFALSE) {
     pad2->SetFrameLineWidth(2);
     pad2->Draw();
     pad2->cd();
-    //    x0->SetFillStyle(3002);
     x0->SetFillColor(kRed - 10);
     x0->SetLineColor(kRed);
     x0->GetXaxis()->SetLabelColor(kRed);
@@ -140,5 +154,55 @@ void DrawGemDigits(TH1F* x0, TH1F* x1, TCanvas* cave, Bool_t right = kFALSE) {
     } else {
         x0->Draw("X+");
     }
+}
 
+void DrawGemDigitsColz(TH2F* h_2d, TH1F* h, TCanvas* cave) {
+    const Float_t xBig = 66.0;
+    const Float_t yBig = 41.0;
+    const Float_t xSmall = 15.0;
+    const Float_t ySmall = 10.0;
+    const Float_t bigBottMarg = 0.1;
+    const Float_t bigTopMarg = 0.1;
+    const Float_t bigLeftMarg = 0.1;
+    const Float_t bigRightMarg = 0.1;
+    cave->cd();
+    TPad *pad1 = new TPad(h_2d->GetTitle(), h_2d->GetTitle(), 0, 0, 1.0, 0.5);
+    pad1->SetFrameLineWidth(2);
+    pad1->SetTopMargin(0.0);
+    pad1->Draw();
+    pad1->cd();
+    h_2d->GetXaxis()->SetLabelColor(kWhite);
+    h_2d->GetYaxis()->SetLabelColor(kWhite);
+    h_2d->GetXaxis()->SetTickLength(0);
+    h_2d->GetYaxis()->SetTickLength(0);
+    h_2d->Draw("col");
+    //DrawStrips(h_2d);
+
+    cave->cd();
+    TPad *pad2 = new TPad("", "", 0, 0.5, 1.0, 1.0);
+    pad2->SetBottomMargin(0.0);
+    pad2->SetFrameLineWidth(2);
+    pad2->Draw();
+    pad2->cd();
+    h->SetFillColor(kBlue - 10);
+    h->SetLineColor(kBlue);
+    h->Draw("X+");
+
+
+}
+
+void DrawStrips(TH2* h) {
+    Int_t nx = h->GetNbinsX();
+    Double_t x1 = h->GetXaxis()->GetXmin();
+    Double_t y1 = h->GetYaxis()->GetXmin();
+    Double_t y2 = h->GetYaxis()->GetXmax();
+    Double_t x = x1;
+
+    TLine l;
+    l.SetLineColor(16);
+
+    for (Int_t i = 0; i < nx; i++) {
+        l.DrawLine(x, y1, x, y2);
+        x = x + h->GetXaxis()->GetBinWidth(i);
+    }
 }

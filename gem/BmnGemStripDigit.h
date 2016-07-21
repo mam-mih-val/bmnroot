@@ -21,12 +21,14 @@ public:
     Int_t GetStripLayer() { return fStripLayer; }
     Int_t GetStripNumber() { return fStripNumber; }
     Double_t GetStripSignal() { return fStripSignal; }
+    Double_t GetStripSignalNoise() { return fStripSignalNoise; }
 
     void SetStation(Int_t station) { fStation = station; }
     void SetModule(Int_t module) { fModule = module; }
     void SetStripLayer(Int_t layer) { fStripLayer = layer; }
     void SetStripNumber(Int_t num) { fStripNumber = num; }
     void SetStripSignal(Double_t signal) { fStripSignal = signal; }
+    void SetStripSignalNoise(Double_t signalNoise) { fStripSignalNoise = signalNoise; }
 
 private:
     Int_t fStation;
@@ -34,6 +36,7 @@ private:
     Int_t fStripLayer; // 0 - lower layer, 1 - upper layer
     Int_t fStripNumber;
     Double_t fStripSignal;
+    Double_t fStripSignalNoise;
 
     ClassDef(BmnGemStripDigit,1);
 };

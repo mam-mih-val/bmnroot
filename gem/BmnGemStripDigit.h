@@ -13,6 +13,7 @@ public:
     BmnGemStripDigit();
     BmnGemStripDigit(BmnGemStripDigit* digit);
     BmnGemStripDigit(Int_t iStation, Int_t iModule, Int_t iStripLayer, Int_t iStripNumber, Double_t iStripSignal);
+    BmnGemStripDigit(Int_t iStation, Int_t iModule, Int_t iStripLayer, Int_t iStripNumber, Double_t iStripSignal, Double_t iStripSignalNoise);
 
     virtual ~BmnGemStripDigit();
 

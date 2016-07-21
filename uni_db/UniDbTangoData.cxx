@@ -11,6 +11,9 @@
 #include <TLegend.h>
 #include <TStyle.h>
 #include <TH2D.h>
+#include "TRandom.h"
+#include "TColor.h"
+#include "TROOT.h"
 
 #include <fstream>
 #include <iostream>
@@ -336,27 +339,29 @@ Tango_Double_Data* UniDbTangoData::GetTangoParameter(char* detector_name, char* 
     return TD;
 }
 
-void UniDbTangoData::PrintTangoData(Tango_Double_Data* TD, bool isGraphicPresentation)
+void UniDbTangoData::PrintTangoDataConsole(Tango_Double_Data* TD)
 {
-    if (!isGraphicPresentation)
+    int def_precision = cout.precision();
+    cout.precision(17);
+    for (int i = 0; i < TD->dataCount; i++)
     {
-        int def_precision = cout.precision();
-        cout.precision(17);
-        for (int i = 0; i < TD->dataCount; i++)
-        {
-            cout<<TD->dataArray[i].parameter_time.AsSQLString()<<endl;
-            //cout<<TD->dataArray[i].parameter_length<<endl;
-            for (int j = 0; j < TD->dataArray[i].parameter_length; j++)
-                cout<<TD->dataArray[i].parameter_value[j]<<"  ";
-            cout<<""<<endl<<endl;
-        }
-        cout.precision(def_precision);
-
-        return;
+        cout<<TD->dataArray[i].parameter_time.AsSQLString()<<endl;
+        //cout<<TD->dataArray[i].parameter_length<<endl;
+        for (int j = 0; j < TD->dataArray[i].parameter_length; j++)
+            cout<<TD->dataArray[i].parameter_value[j]<<"  ";
+        cout<<""<<endl<<endl;
     }
+    cout.precision(def_precision);
+
+    return;
+}
+
+void UniDbTangoData::PrintTangoDataSurface(Tango_Double_Data* TD)
+{
+    TCanvas* c1 = new TCanvas("c1", "Tango Data", 800, 600);
 
     TGraph2D* gr2 = new TGraph2D();
-    gr2->SetTitle("2D Tango Data");
+    gr2->SetTitle("Tango Data (surface)");
 
     int par_length;
     for (int i = 0; i < TD->dataCount; i++)
@@ -370,8 +375,6 @@ void UniDbTangoData::PrintTangoData(Tango_Double_Data* TD, bool isGraphicPresent
             gr2->SetPoint(i*par_length+j, cur_time, j+1, value);
         }
     }
-
-    TCanvas* c = new TCanvas("c", "2D Tango Data", 800, 600);
 
     gr2->Draw("SURF1");
     gPad->Update();
@@ -398,8 +401,47 @@ void UniDbTangoData::PrintTangoData(Tango_Double_Data* TD, bool isGraphicPresent
     gr2->GetXaxis()->SetTimeFormat("%Y.%m.%d %H:%M");
     gr2->GetXaxis()->SetTimeOffset(0,"local");
 
-    c->Modified();
+    c1->Modified();
 
+    return;
+}
+
+void UniDbTangoData::PrintTangoDataMulti3D(Tango_Double_Data* TD)
+{
+    TCanvas* c1 = new TCanvas("c1", "Tango Data", 800, 600);
+
+    int par_length = TD->dataArray[0].parameter_length;
+    TGraph* gr = new TGraph[par_length]();
+    gRandom->SetSeed();
+    for (int j = 0; j < par_length; j++)
+    {
+        Int_t color = gRandom->Integer(50);
+        if ((color == 0) || (color == 10) || ((color > 16) && (color < 20))) color += 20;
+        gr[j].SetLineColor(color);
+        gr[j].SetTitle(TString::Format("%d", j));
+        gr[j].SetLineWidth(3);
+    }
+
+    for (int i = 0; i < TD->dataCount; i++)
+    {
+        par_length = TD->dataArray[i].parameter_length;
+        for (int j = 0; j < par_length; j++)
+        {
+            //int cur_time = TD->dataArray[i].parameter_time.Convert();
+            double value = TD->dataArray[i].parameter_value[j];
+            gr[j].SetPoint(i, i, value);
+        }
+    }
+
+    TMultiGraph* mg = new TMultiGraph();
+    mg->SetTitle("Tango Data (multigraph)");
+    for (int j = 0; j < par_length; j++)
+        mg->Add(&gr[j]);
+
+    mg->Draw("AL3D");
+    gPad->Update();
+
+    c1->Modified();
     return;
 }
 

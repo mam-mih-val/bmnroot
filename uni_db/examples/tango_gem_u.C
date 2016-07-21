@@ -21,10 +21,10 @@ void tango_gem_u()
     }
 
     // console output
-    db_tango.PrintTangoData(TD, false);
+    db_tango.PrintTangoDataConsole(TD);
 
     // surface graph output
-    db_tango.PrintTangoData(TD, true);
+    db_tango.PrintTangoDataSurface(TD);
 
     cout<<"Macro finished successfully"<<endl;
 }

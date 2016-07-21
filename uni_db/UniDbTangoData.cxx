@@ -9,6 +9,8 @@
 #include <TMultiGraph.h>
 #include <TAxis.h>
 #include <TLegend.h>
+#include <TStyle.h>
+#include <TH2D.h>
 
 #include <fstream>
 #include <iostream>
@@ -223,99 +225,180 @@ void UniDbTangoData::PrintCSVData(CSVData* zdcXY, bool isGraphicPresentation, bo
     return;
 }
 
-HV_Data* UniDbTangoData::GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end)
+Tango_Double_Data* UniDbTangoData::GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end)
 {
     //подключение к базе данных
-    TSQLServer* db = TSQLServer::Connect("mysql://159.93.120.66","user","scs-db");
-    db->GetTables("hdb");
+    TSQLServer* db = TSQLServer::Connect("mysql://159.93.120.43","tango","tangompd");
+    db->GetTables("hdbpp");
 
-    //запрос на поиск таблицы, с учётом заданных параметров
-    TString query_one = TString::Format("SELECT id FROM adt WHERE family=\"%s\" and att_name=\"%s\" ", detector_name, parameter_name);
-    TSQLResult* res = db->Query(query_one.Data());
-    TSQLRow* row = res->Next();
-    TString att = TString::Format("att_%s", (char*)(row->GetField(0)));
-    cout<<"Название таблицы - "<<att<<endl;
-
-    //запрос к таблице, найденной по номеру атрибута
-    TString query_two = TString::Format("SELECT * FROM %s WHERE time>=\"%s\" and time<=\"%s\" ",att.Data(), date_start, date_end);
-    res = db->Query(query_two.Data());
+    //запрос на поиск в базовых таблицах, с учётом заданных параметров
+    TString query_info = TString::Format(
+                "SELECT att_conf_id,data_type FROM att_conf ac join att_conf_data_type acdt on ac.att_conf_data_type_id = acdt.att_conf_data_type_id WHERE family=\"%s\" and name=\"%s\" ",
+                detector_name, parameter_name);
+    TSQLResult* res = db->Query(query_info.Data());
     int nrows = res->GetRowCount();
-    cout<<"Количество строк в таблице - "<<nrows<<endl;
+    if (nrows < 1)
+    {
+        cout<<"Error: There is no parameter '"<<parameter_name<<"' for "<<detector_name<<" detector"<<endl;
+        return NULL;
+    }
 
-    HV_Data* VC = new HV_Data(nrows);
+    TSQLRow* row = res->Next();
+    TString data_id((char*) row->GetField(0));
+    TString table_name = TString::Format("att_%s", (char*)(row->GetField(1)));
+    //cout<<"Data table name - "<<table_name<<endl;
 
+    //запрос к таблице с данными, найденной по типу атрибута
+    TString query_data = TString::Format("SELECT data_time, dim_x_r, dim_x_w, idx, value_r FROM %s WHERE att_conf_id=\"%s\" and data_time>=\"%s\" and data_time<=\"%s\" ORDER BY data_time,idx",
+                                        table_name.Data(), data_id.Data(), date_start, date_end);
+    //cout<<"Query data: "<<query_data<<endl;
+    res = db->Query(query_data.Data());
+
+    nrows = res->GetRowCount();
+    if (nrows == 0)
+    {
+        cout<<"Warning: There are no parameters for the given conditions"<<endl;
+        return NULL;
+    }
+
+    Tango_Double_Data* TD = NULL;
     TDatime datetime;
     int yy, mm, dd, hour, min, sec;
 
     //запись данных в структуру
+    int data_ind = 0;
     for (int i = 0; i < nrows; i++)
     {
         row = res->Next();
-        char* str = (char *)(row->GetField(0));
-        sscanf(str, "%d-%d-%d %d:%d:%d", &yy, &mm, &dd, &hour, &min, &sec);
+
+        char* data_time = (char*) (row->GetField(0));
+        sscanf(data_time, "%d-%d-%d %d:%d:%d", &yy, &mm, &dd, &hour, &min, &sec);
         datetime.Set(yy, mm, dd, hour, min, sec);
-        VC->hvArray[i].time_run = datetime;
-        //cout<<VC[i].time_run.AsString()<<endl;
 
-        char* t = (char *)(row->GetField(1));
-        int tow = atoi(t);
-        VC->hvArray[i].tower_count = tow;
-        VC->hvArray[i].tower_hv = new double[tow];
-        //cout<<VC[i].towers<<endl;
-
-        char* sp = (char *)(row->GetField(2));
-        char* split = strtok(sp,",");
-        double m;
-        int k = 0;
-        while (split != NULL)
+        char* par_len = (char*) row->GetField(1);
+        int i_par_len = atoi(par_len);
+        if (i_par_len == 0)
         {
-            m = atof(split);
-            VC->hvArray[i].tower_hv[k++] = m;
-            //cout<<VC[i].voltage_tower[k]<<endl;
-            split = strtok(NULL,", ");
-            if (k > tow)
+            cout<<"Critical error: Parameter length can't be equal 0"<<endl;
+            if (TD != NULL) delete TD;
+            return NULL;
+        }
+
+        char* real_par_len = (char*) row->GetField(2);
+        int i_real_par_len = atoi(real_par_len);
+        if (i_real_par_len == 0)
+        {
+            cout<<"Critical error: Real parameter length can't be equal 0"<<endl;
+            if (TD != NULL) delete TD;
+            return NULL;
+        }
+
+        if (i == 0)
+        {
+            cout<<"Parameter length: "<<i_par_len<<" (real: "<<i_real_par_len<<"). Number of parameter values: "<<nrows/i_par_len<<"."<<endl;
+            TD = new Tango_Double_Data(nrows/i_par_len);
+        }
+
+        TD->dataArray[data_ind].parameter_time = datetime;
+        //cout<<TD[i].parameter_time.AsString()<<endl;
+
+        TD->dataArray[data_ind].parameter_length = i_par_len;
+        TD->dataArray[data_ind].parameter_value = new double[i_par_len];
+        //cout<<TD[i].parameter_length<<endl;
+
+        for (int ind = 0; ind < i_par_len; ind++)
+        {
+            if (ind > 0)
             {
-                cout<<"Critical error: HV string includes more than tower count values"<<endl;
+                row = res->Next();
+                i++;
+            }
+
+            char* idx = (char*) row->GetField(3);
+            int i_idx = atoi(idx);
+            //cout<<"idx:ind - "<<idx<<":"<<ind<<endl;
+            if (i_idx != ind)
+            {
+                cout<<"Critical error: idx should be equal index of the parameter array"<<endl;
+                if (TD != NULL) delete TD;
                 return NULL;
             }
+
+            char* val = (char*) row->GetField(4);
+            double d_val = atof(val);
+            TD->dataArray[data_ind].parameter_value[ind] = d_val;
+            //cout<<TD[i].parameter_value[ind]<<endl;
         }
+
+        data_ind++;
     }
 
-    return VC;
+    return TD;
 }
 
-void UniDbTangoData::PrintHV(HV_Data* VC, bool isGraphicPresentation)
+void UniDbTangoData::PrintTangoData(Tango_Double_Data* TD, bool isGraphicPresentation)
 {
     if (!isGraphicPresentation)
     {
-        for (int i = 0; i < VC->rowCount; i++)
+        int def_precision = cout.precision();
+        cout.precision(17);
+        for (int i = 0; i < TD->dataCount; i++)
         {
-            cout<<VC->hvArray[i].time_run.AsSQLString()<<endl;
-            cout<<VC->hvArray[i].tower_count<<endl;
-            for (int j = 0; j < VC->hvArray[i].tower_count; j++)
-                cout<<VC->hvArray[i].tower_hv[j]<<"  ";
-            cout<<""<<endl;
+            cout<<TD->dataArray[i].parameter_time.AsSQLString()<<endl;
+            //cout<<TD->dataArray[i].parameter_length<<endl;
+            for (int j = 0; j < TD->dataArray[i].parameter_length; j++)
+                cout<<TD->dataArray[i].parameter_value[j]<<"  ";
+            cout<<""<<endl<<endl;
         }
+        cout.precision(def_precision);
 
         return;
     }
 
-    TCanvas* c = new TCanvas("c", "Graph2D example", 0, 0, 600, 400);
     TGraph2D* gr2 = new TGraph2D();
+    gr2->SetTitle("2D Tango Data");
 
-    int tower_count;
-    for (int i = 1; i <= VC->rowCount; i++)
+    int par_length;
+    for (int i = 0; i < TD->dataCount; i++)
     {
-        tower_count = VC->hvArray[i-1].tower_count;
-        for (int j = 1; j <= tower_count; j++)
+        par_length = TD->dataArray[i].parameter_length;
+        for (int j = 0; j < par_length; j++)
         {
-            double value = VC->hvArray[i-1].tower_hv[j-1];
+            int cur_time = TD->dataArray[i].parameter_time.Convert();
+            double value = TD->dataArray[i].parameter_value[j];
             //cout<<x<<" "<<y<<" "<<z<<endl;
-            gr2->SetPoint((i-1)*tower_count+j-1, i, j, value);
+            gr2->SetPoint(i*par_length+j, cur_time, j+1, value);
         }
     }
 
-    gr2->Draw("surf1");
+    TCanvas* c = new TCanvas("c", "2D Tango Data", 800, 600);
+
+    gr2->Draw("SURF1");
+    gPad->Update();
+
+    gr2->GetXaxis()->SetTitle("time");
+    gr2->GetXaxis()->CenterTitle();
+    gr2->GetXaxis()->SetTitleOffset(1.9);
+    gr2->GetXaxis()->SetLabelSize(0.025);
+    gr2->GetXaxis()->SetLabelOffset(0.009);
+    gr2->GetXaxis()->SetNdivisions(-503);
+
+    gr2->GetYaxis()->SetTitle("index");
+    gr2->GetYaxis()->CenterTitle();
+    gr2->GetYaxis()->SetTitleOffset(1.9);
+    gr2->GetYaxis()->SetLabelSize(0.025);
+    gr2->GetYaxis()->SetLabelOffset(0.001);
+    gr2->GetYaxis()->CenterLabels();
+    gr2->GetYaxis()->SetNdivisions(par_length+1, 0, 0);
+
+    gr2->GetZaxis()->SetLabelSize(0.025);
+
+    // form X-axis with time ticks
+    gr2->GetXaxis()->SetTimeDisplay(1);
+    gr2->GetXaxis()->SetTimeFormat("%Y.%m.%d %H:%M");
+    gr2->GetXaxis()->SetTimeOffset(0,"local");
+
+    c->Modified();
 
     return;
 }

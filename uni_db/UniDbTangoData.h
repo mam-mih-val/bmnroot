@@ -36,34 +36,34 @@ struct CSVData
     }
 };
 
-struct HV_Parameter
+struct Tango_Double_Parameter
 {
-    //время запуска
-    TDatime time_run;
-    //количество башен
-    int tower_count;
-    //напряжение на башнях
-    double* tower_hv;
+    //время
+    TDatime parameter_time;
+    //длина аттрибута (количество каналов)
+    int parameter_length;
+    //значения всех каналов одного аттрибута в один момент времени
+    double* parameter_value;
 };
 
-struct HV_Data
+struct Tango_Double_Data
 {
-    int rowCount;
-    HV_Parameter* hvArray;
+    int dataCount;
+    Tango_Double_Parameter* dataArray;
 
-    HV_Data(int count)
+    Tango_Double_Data(int data_count)
     {
-        rowCount = count;
-        hvArray = new HV_Parameter[count];
+        dataCount = data_count;
+        dataArray = new Tango_Double_Parameter[data_count];
     }
-    ~HV_Data()
+    ~Tango_Double_Data()
     {
-        if (hvArray)
+        if (dataArray)
         {
-            for (int i = 0; i < rowCount; i++)
-                delete [] hvArray[i].tower_hv;
+            for (int i = 0; i < dataCount; i++)
+                delete [] dataArray[i].parameter_value;
 
-            delete [] hvArray;
+            delete [] dataArray;
         }
     }
 };
@@ -97,20 +97,19 @@ class UniDbTangoData
     //	TDatime* end_time - конец выборки по времени (например "2015-03-12 22:28:36" (строка 6881))
     void PrintCSVData(CSVData* zdcXY, bool isGraphicPresentation=false, bool isTimeCut=false, TDatime* start_time=NULL, TDatime* end_time=NULL);
 
-    // функция GetParameter получает доступ к базе Tango, совершает выбор, сделанный на основе заданных параметров, необходимой строки из таблицы hdb,
-    // учитывая полученную строку, извлекает название таблицы, в которой хранятся данные по напряжению питания калориметра,
-    // затем обращается к данной таблице и делает выборку по заданному временному периоду, результат заносит в структуру Voltage_Calorimeter.
-    // Данный класс расчитан на построение графиков со 128 башнями.
-    // Данная функция возвращает указатель на структуру. Необходимые параметры для данной функции:
-    //	detector_name - название детектора (например "zdc")
-    //	parameter_name - это название физического параметра из БД Tango (например, "Vset")
-    //	date_start- время, с которого начать считывать параметр (например, "2015-03-13 23:00:00")
+    // Функция GetParameter получает доступ к базе Tango, совершает выбор, сделанный на основе заданных параметров.
+    // Учитывая полученную информацию из базовой таблицы, извлекает название таблицы, в которой хранятся необходимые данные по параметру,
+    // затем обращается к найденной таблице с данными и делает выборку по заданному временному периоду, результат заносит в структуру Tango_Double_Data.
+    // Данная функция возвращает указатель на структуру с данными. Необходимые параметры для данной функции:
+    //	detector_name - название детектора (например "zdc" или "gem")
+    //	parameter_name - это название физического параметра из БД Tango (например, "uset" для ZDC или "u" для GEM)
+    //	date_start - время, с которого начать считывать параметр (например, "2015-03-13 23:00:00")
     //	date_end - время окончания считавания параметра (например, "2015-03-13 24:00:00")
-    HV_Data* GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end);
+    Tango_Double_Data* GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end);
 
-    // функция PrintZDCHV выполняет вывод данных из заполненной ранее структуры в консоль, а также вывод графиков, посредством класса TCanvas,
-    // на которых показано, как изменяется напряжение на башнях в течении заданного периода.
-    void PrintHV(HV_Data* hv_parameter, bool isGraphicPresentation=false);
+    // функция PrintTangoData выполняет вывод данных из заполненной ранее структуры в консоль, а также вывод графиков, посредством класса TCanvas,
+    // на которых показано, как изменяется данные, например, напряжение на башнях ZDC в течении заданного периода.
+    void PrintTangoData(Tango_Double_Data* tango_data, bool isGraphicPresentation=false);
 
  ClassDef(UniDbTangoData,1)
 };

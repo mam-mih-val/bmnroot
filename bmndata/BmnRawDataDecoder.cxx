@@ -57,6 +57,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fRawFileName = "";
     fDigiFileName = "";
     fDchMapFileName = "";
+    fT0MapFileName = "";
     fGemMapFileName = "";
     fTof400MapFileName = "";
     fTof700MapFileName = "";
@@ -90,6 +91,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
     fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     fDchMapFileName = "";
+    fT0MapFileName = "";
     fGemMapFileName = "";
     fTof400MapFileName = "";
     fTof700MapFileName = "";
@@ -310,13 +312,13 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     tof400 = new TClonesArray("BmnTof1Digit");
     tof700 = new TClonesArray("BmnTof2Digit");
     dch = new TClonesArray("BmnDchDigit");
-    //t0 = new TClonesArray("");
+    t0 = new TClonesArray("BmnT0Digit");
 
     fDigiTree->Branch("run", &fRunId, "bmn_run/I");
     fDigiTree->Branch("event", &fEventId, "bmn_event/I");
     fDigiTree->Branch("time_sec", &fTime_s, "bmn_time_sec/I");
     fDigiTree->Branch("time_ns", &fTime_ns, "bmn_time_ns/I");
-    //fDigiTree->Branch("t0_digit", &t0);
+    fDigiTree->Branch("BmnT0Digit", &t0);
     fDigiTree->Branch("BmnDchDigit", &dch);
     fDigiTree->Branch("BmnGemStripDigit", &gem);
     fDigiTree->Branch("tof400_digit", &tof400);
@@ -331,6 +333,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
     BmnGemRaw2Digit *gemMapper = new BmnGemRaw2Digit(fGemMapFileName);
     BmnDchRaw2Digit *dchMapper = new BmnDchRaw2Digit(fDchMapFileName);
+    BmnT0Raw2Digit *t0Mapper = new BmnT0Raw2Digit(fT0MapFileName);
     //    BmnTof1Raw2Digit *tof400Mapper = new BmnDchRaw2Digit(fTof400MapFileName);
     //    BmnTof2Raw2Digit *tof700Mapper = new BmnDchRaw2Digit(fTof700MapFileName);
 
@@ -344,9 +347,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             gem->Clear();
             tof400->Clear();
             tof700->Clear();
+            t0->Clear();
 
             fRawTree->GetEntry(iEv);
 
+            t0Mapper->FillEvent(tdc, t0);
             gemMapper->FillEvent(adc, gem);
             dchMapper->FillEvent(tdc, sync, dch);
 
@@ -363,7 +368,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     delete tdc;
     delete gem;
     delete dch;
-    //    delete t0;
+    delete t0;
     delete tof400;
     delete tof700;
 

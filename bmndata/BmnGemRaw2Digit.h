@@ -21,6 +21,7 @@ using namespace TMath;
 struct BmnGemMapping {
     UInt_t serial;
     Short_t gemId;
+    Short_t station;
     UInt_t adcChLo;
     UInt_t adcChHi;
     UInt_t gemChLo;

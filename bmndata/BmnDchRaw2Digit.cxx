@@ -169,7 +169,7 @@ void BmnDchRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *sync, TClonesAr
     for (Int_t i = 0; i < tdc->GetEntriesFast(); i++) {
         BmnTDCDigit *digit = (BmnTDCDigit*) tdc->At(i);
         if (digit->GetType() != fType) continue;
-    
+
         UInt_t idx = 0;
         for (idx = 0; idx < kNSERIALS; ++idx)
             if (kSERIALS[idx] == digit->GetSerial()) break;
@@ -188,8 +188,7 @@ void BmnDchRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *sync, TClonesAr
         //        cout << (Int_t)digit->GetChannel() << endl;
         //cout << bitset<32>(rel[digit->GetSlot()][digit->GetChannel()]) << endl;
         UChar_t sl = digit->GetSlot();
-        UChar_t ch = digit->GetChannel();
-        if (digit->GetHptdcId() == 2) ch += 32;
+        UInt_t ch = GetChTDC64v(digit->GetHptdcId(), digit->GetChannel());
         UInt_t code = rel[idx][sl][ch];
         Int_t plane = (code >> 8) & 0xF;
         Int_t group = (code >> 4) & 0xF;
@@ -199,6 +198,18 @@ void BmnDchRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *sync, TClonesAr
         new(ar_dch[dch->GetEntriesFast()]) BmnDchDigit(plane, group * 16 + chan, tm, 0);
     }
 }
+
+Int_t BmnDchRaw2Digit::GetChTDC64v(UInt_t tdc, UInt_t ch) {
+    //this is some Vishnevsky's magic!
+    //FIXME! What is going here?!
+    const Int_t tdc64v_tdcch2ch[2][32] = {
+        { 31, 15, 30, 14, 13, 29, 28, 12, 11, 27, 26, 10, 25, 9, 24, 8, 23, 7, 22, 6, 21, 5, 20, 4, 19, 3, 18, 2, 17, 1, 16, 0},
+        { 31, 15, 30, 14, 29, 13, 28, 12, 27, 11, 26, 10, 25, 9, 24, 8, 23, 7, 22, 6, 21, 5, 20, 4, 19, 3, 18, 2, 17, 1, 16, 0}
+    };
+    Int_t val = tdc64v_tdcch2ch[tdc - 1][ch];
+    if (tdc == 2) val += 32;
+    return val;
+};
 
 ClassImp(BmnDchRaw2Digit)
 

@@ -100,6 +100,8 @@ private:
     TString fMapFileName;
     ifstream fMapFile;
     UInt_t fType;
+    
+    Int_t GetChTDC64v(UInt_t tdc, UInt_t ch);
 
     ClassDef(BmnDchRaw2Digit, 1);
 };

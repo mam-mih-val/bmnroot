@@ -263,7 +263,7 @@ BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt
             UInt_t channel = (modId == kTDC64V) ? (d[idx] >> 19) & 0x1F : (d[idx] >> 21) & 0x7;
             //if (modId == kTDC64V && tdcId == 2) channel += 32;
             TClonesArray &ar_tdc = *tdc;
-            new(ar_tdc[tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), tdcId, channel, time);
+            new(ar_tdc[tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, tdcId, time);
         }
         idx++; //go to the next DATA-word
         type = d[idx] >> 28;

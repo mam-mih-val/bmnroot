@@ -107,9 +107,12 @@ class UniDbTangoData
     //	date_end - время окончания считавания параметра (например, "2015-03-13 24:00:00")
     Tango_Double_Data* GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end);
 
-    // функция PrintTangoData выполняет вывод данных из заполненной ранее структуры в консоль, а также вывод графиков, посредством класса TCanvas,
-    // на которых показано, как изменяется данные, например, напряжение на башнях ZDC в течении заданного периода.
-    void PrintTangoData(Tango_Double_Data* tango_data, bool isGraphicPresentation=false);
+    // Функции PrintTangoData[Console,Surface,MultiGraph] выполняет вывод данных из заполненной ранее структуры
+    // в консоль, графически как поверхность или графически в виде набора графиков,
+    // на которых показано, как изменяются данные, например, напряжение на башнях ZDC в течении заданного периода.
+    void PrintTangoDataConsole(Tango_Double_Data* tango_data);
+    void PrintTangoDataSurface(Tango_Double_Data* tango_data);
+    void PrintTangoDataMulti3D(Tango_Double_Data* tango_data);
 
  ClassDef(UniDbTangoData,1)
 };

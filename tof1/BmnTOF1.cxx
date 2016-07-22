@@ -85,12 +85,11 @@ Bool_t BmnTOF1::ProcessHits(FairVolume* vol)
 		Int_t fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
 assert(fTrackID>=0);
 
-		Int_t  region, module, strip; 	
-		gMC->CurrentVolOffID(1, strip);
-		gMC->CurrentVolOffID(2, module);
-		gMC->CurrentVolOffID(3, region);
-		
-		Int_t fVolumeID = BmnTOF1Point::GetVolumeUID(region, module, strip);
+		Int_t  region=0, detector, strip; 	
+		gMC->CurrentVolOffID(0, strip);
+		gMC->CurrentVolOffID(1, detector);
+			
+		Int_t fVolumeID = BmnTOF1Point::GetVolumeUID(region, detector, strip);
 
 		AddPoint(fTrackID, fVolumeID, TVector3(fPos.X(),  fPos.Y(),  fPos.Z()), TVector3(fMom.Px(), fMom.Py(), fMom.Pz()), fTime, fLength, fELoss);
 		((CbmStack*)gMC->GetStack())->AddPoint(kTOF1);
@@ -219,5 +218,5 @@ BmnTOF1Point* 		BmnTOF1::AddPoint(Int_t trackID, Int_t detID, TVector3 pos, TVec
 {
 return new( (*fTofCollection)[fTofCollection->GetEntriesFast()] ) BmnTOF1Point(trackID, detID, pos, mom, time, length, eLoss);
 }
-//--------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
 

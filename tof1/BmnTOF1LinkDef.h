@@ -11,4 +11,10 @@
 #pragma link C++ class  BmnTOF1GeoPar+;
 #pragma link C++ class  BmnTOF1ContFact+;
 #pragma link C++ class  BmnTof1HitProducer+;
+#pragma link C++ class  BmnTof1HitProducerIdeal+;
+#pragma link C++ class  BmnTof1TDC;
+#pragma link C++ class  BmnTof1Configure;
+#pragma link C++ class  BmnTof1TDCMapping;
+#pragma link C++ class  BmnTof1DigitConvertor;
+
 #endif

@@ -22,7 +22,6 @@ UniDbConnection.cxx
 UniDbGeoConverter.cxx
 UniDbGenerateClasses.cxx
 UniDbTangoData.cxx
-UniDbParser.cxx
 UniDbSearchCondition.cxx
 
 db_classes/UniDbRunPeriod.cxx

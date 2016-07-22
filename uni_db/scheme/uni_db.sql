@@ -1,4 +1,6 @@
-﻿-- drop schema public cascade; create schema public;
+﻿-- ALTER TABLE public.detector_parameter DISABLE TRIGGER USER
+-- ALTER TABLE public.run_geometry DISABLE TRIGGER USER
+-- drop schema public cascade; create schema public;
 -- SHOW search_path;
 -- SET search_path TO "$user",new_schema;
 -- SET search_path TO "$user",public;
@@ -24,8 +26,7 @@ create table run_period
 (
  period_number int primary key,
  start_datetime timestamp not null,
- end_datetime timestamp null,
- contact_person varchar(40) null
+ end_datetime timestamp null
 );
 
 -- GEOMETRY PART
@@ -38,8 +39,8 @@ create table run_geometry
 -- RUN INFO
 create table run_
 (
- run_number int primary key,
  period_number int references run_period(period_number) on update cascade,
+ run_number int,
  file_path varchar(200) not null unique,
  beam_particle varchar(10) not null default ('d'),
  target_particle varchar(10) null,
@@ -49,7 +50,8 @@ create table run_
  event_count int null check (event_count >= 0),
  field_current int null check (field_current >= 0),
  file_size float null check (file_size > 0),
- geometry_id int null references run_geometry(geometry_id) on update cascade
+ geometry_id int null references run_geometry(geometry_id) on update cascade,
+ primary key (period_number, run_number)
 );
 
 -- FILES WiTH GENERATOR DATA
@@ -71,8 +73,6 @@ create table simulation_file
 create table detector_
 (
  detector_name varchar(10) primary key,
- manufacturer_name varchar(30) null,
- contact_person varchar(40) null,
  description varchar(30) null
 );
 
@@ -93,11 +93,15 @@ create table detector_parameter
  value_id serial primary key,
  detector_name varchar(10) not null references detector_(detector_name),
  parameter_id int not null references parameter_(parameter_id),
- start_run int not null references run_(run_number),
- end_run int not null references run_(run_number),
+ start_period int not null,
+ start_run int not null,
+ end_period int not null,
+ end_run int not null,
  dc_serial int null,
  channel int null,
- parameter_value bytea not null
+ parameter_value bytea not null,
+ foreign key (start_period, start_run) references run_(period_number, run_number),
+ foreign key (end_period, end_run) references run_(period_number, run_number)
 );
 
 /*-- DETECTORS' MAPPING (special tables)
@@ -146,7 +150,8 @@ create table session_detector
  detector_name varchar(10) not null references detector_(detector_name),
  map_id int null references mapping_(map_id) on update cascade on delete cascade,
  primary key (session_number, detector_name)
-);*/
+);
+--DETECTORS' MAPPING*/
 
 /*-- GEOMETRY PART (decomposition)
 create table geometry_media
@@ -243,7 +248,7 @@ create table geometry_parameter
  parameter_value float not null,
  primary key (parameter_type, node_id)
 );
-*/
+-- GEOMETRY PART*/
 
 -- !!! GET INFORMATION ABOUT TABLES ---
 --
@@ -281,7 +286,6 @@ create index par_name_lower_idx on parameter_((lower(parameter_name)));
 create index det_name_par_lower_idx on detector_parameter((lower(detector_name)));
 
 -- trigger to remove large_object by OID
--- ALTER TABLE public.run_parameter DISABLE TRIGGER USER
 CREATE OR REPLACE FUNCTION unlink_lo_parameter() RETURNS TRIGGER AS $$
 DECLARE
   objID integer;
@@ -317,13 +321,18 @@ DECLARE
   objID integer;
 BEGIN
   IF NEW.dc_serial is NULL THEN
-    IF EXISTS(SELECT 1 FROM detector_parameter dp WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and 
-	(not ((NEW.end_run < dp.start_run) or (NEW.start_run > dp.end_run)))) THEN
+    IF EXISTS(SELECT 1 FROM detector_parameter dp WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and (not (
+    ((NEW.end_period < dp.start_period) or ((NEW.end_period = dp.start_period) and (NEW.end_run < dp.start_run))) or 
+    ((NEW.start_period > dp.end_period) or ((NEW.start_period = dp.end_period) and (NEW.start_run > dp.end_run))))))
+    THEN
       RAISE EXCEPTION 'Valid period of the detector parameter is crossed with existing values';
     END IF;
   ELSE
     IF EXISTS(SELECT 1 FROM detector_parameter dp WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and 
-	NEW.dc_serial = dp.dc_serial and NEW.channel = dp.channel and (not ((NEW.end_run < dp.start_run) or (NEW.start_run > dp.end_run)))) THEN
+	NEW.dc_serial = dp.dc_serial and NEW.channel = dp.channel and (not (
+    ((NEW.end_period < dp.start_period) or ((NEW.end_period = dp.start_period) and (NEW.end_run < dp.start_run))) or 
+    ((NEW.start_period > dp.end_period) or ((NEW.start_period = dp.end_period) and (NEW.start_run > dp.end_run))))))
+    THEN
       RAISE EXCEPTION 'Valid period of the detector parameter is crossed with existing values';
     END IF;
   END IF;

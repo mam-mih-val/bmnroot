@@ -16,23 +16,22 @@ void histo_noise()
     histo->GetYaxis()->SetTitle("Channel");
     histo->GetZaxis()->SetTitle("Run №");
 
-    int* run_numbers;
-    int run_count = UniDbRun::GetRunNumbers(12, 688, run_numbers);
+    UniqueRunNumber* run_numbers;
+    int run_count = UniDbRun::GetRunNumbers(1, 12, 3, 688, run_numbers);
     if (run_count <= 0)
         return;
 
     for (int i = 0; i < run_count; i++)
     {
-        int run_number = run_numbers[i];
         // get noise parameter values presented by IIStructure: Int+Int (slot:channel)
-        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "noise", run_number); //(detector_name, parameter_name, run_number)
+        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "noise", run_numbers[i].period_number, run_numbers[i].run_number); //(detector_name, parameter_name, period_number, run_number)
         if (pDetectorParameter != NULL)
         {
             IIStructure* pValues;
             int element_count = 0;
             pDetectorParameter->GetIIArray(pValues, element_count);
 
-            cout<<"Element count: "<<element_count<<" for run number: "<<run_number<<endl;
+            cout<<"Element count: "<<element_count<<" for run "<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<" (period:run)"<<endl;
             for (int j = 0; j < element_count; j++)
                 histo->Fill(pValues[j].int_1, pValues[j].int_2, run_number);
 

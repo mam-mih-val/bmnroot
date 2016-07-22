@@ -68,7 +68,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             continue;
 
         cout<<"Parsing table: "<<strTableName<<endl;
-        TSQLTableInfo* pTableInfo = uni_db->GetTableInfo(strTableName);
+        TSQLTableInfo* pTableInfo = uni_db->GetTableInfo(strTableName.Data());
 
         // GET LIST OF COLUMNS FOR THE CURRENT TABLE
         vector<structColumnInfo*> vecColumns;
@@ -109,7 +109,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         int nrows = res->GetRowCount();
         if (nrows == 0)
         {
-            cout<<"Critical error: table with no rows was found: "<<strTableName<<endl;
+            cout<<"Critical error: table with no attributes (columns) was found: "<<strTableName<<endl;
             return -3;
         }
 

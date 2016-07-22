@@ -33,7 +33,7 @@ void add_parameter_value_complex()
     AssignIIStructure(pValues, 0, 15, 33, 48); // slot: 15, channel: 33-48
     AssignIIStructure(pValues, 16, 16, 49, 64); // slot: 16, channel: 49-64
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", 77, 77, pValues, 32); //(detector_name, parameter_name, start_run_number, end_run_number, IIStructure*, element_count)
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", 1, 77, 1, 77, pValues, 32);
     if (pDetectorParameter == NULL)
         return_error = true;
 

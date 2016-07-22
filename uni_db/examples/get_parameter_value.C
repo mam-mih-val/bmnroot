@@ -6,7 +6,7 @@ void get_parameter_value()
     gSystem->Load("libUniDb");
 
     // get 'on' parameter value (boolean value)
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "on", 77); //(detector_name, parameter_name, run_number)
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "on", 1, 77); //(detector_name, parameter_name, period_number, run_number)
     if (pDetectorParameter == NULL)
     {
         cout << "\nMacro finished with errors" << endl;

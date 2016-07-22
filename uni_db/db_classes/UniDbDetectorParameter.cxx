@@ -10,14 +10,16 @@
 
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbDetectorParameter::UniDbDetectorParameter(UniDbConnection* connUniDb, int value_id, TString detector_name, int parameter_id, int start_run, int end_run, int* dc_serial, int* channel, unsigned char* parameter_value, Long_t size_parameter_value)
+UniDbDetectorParameter::UniDbDetectorParameter(UniDbConnection* connUniDb, int value_id, TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int* dc_serial, int* channel, unsigned char* parameter_value, Long_t size_parameter_value)
 {
 	connectionUniDb = connUniDb;
 
 	i_value_id = value_id;
 	str_detector_name = detector_name;
 	i_parameter_id = parameter_id;
+	i_start_period = start_period;
 	i_start_run = start_run;
+	i_end_period = end_period;
 	i_end_run = end_run;
 	i_dc_serial = dc_serial;
 	i_channel = channel;
@@ -39,7 +41,7 @@ UniDbDetectorParameter::~UniDbDetectorParameter()
 }
 
 // -----   Creating new record in class table ---------------------------
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, int parameter_id, int start_run, int end_run, int* dc_serial, int* channel, unsigned char* parameter_value, Long_t size_parameter_value)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, int* dc_serial, int* channel, unsigned char* parameter_value, Long_t size_parameter_value)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -47,24 +49,26 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"insert into detector_parameter(detector_name, parameter_id, start_run, end_run, dc_serial, channel, parameter_value) "
-		"values ($1, $2, $3, $4, $5, $6, $7)");
+		"insert into detector_parameter(detector_name, parameter_id, start_period, start_run, end_period, end_run, dc_serial, channel, parameter_value) "
+		"values ($1, $2, $3, $4, $5, $6, $7, $8, $9)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, detector_name);
 	stmt->SetInt(1, parameter_id);
-	stmt->SetInt(2, start_run);
-	stmt->SetInt(3, end_run);
+	stmt->SetInt(2, start_period);
+	stmt->SetInt(3, start_run);
+	stmt->SetInt(4, end_period);
+	stmt->SetInt(5, end_run);
 	if (dc_serial == NULL)
-		stmt->SetNull(4);
+		stmt->SetNull(6);
 	else
-		stmt->SetInt(4, *dc_serial);
+		stmt->SetInt(6, *dc_serial);
 	if (channel == NULL)
-		stmt->SetNull(5);
+		stmt->SetNull(7);
 	else
-		stmt->SetInt(5, *channel);
-	stmt->SetLargeObject(6, parameter_value, size_parameter_value, 0x4000000);
+		stmt->SetInt(7, *channel);
+	stmt->SetLargeObject(8, parameter_value, size_parameter_value, 0x4000000);
 
 	// inserting new record to DB
 	if (!stmt->Process())
@@ -113,8 +117,12 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 	tmp_detector_name = detector_name;
 	int tmp_parameter_id;
 	tmp_parameter_id = parameter_id;
+	int tmp_start_period;
+	tmp_start_period = start_period;
 	int tmp_start_run;
 	tmp_start_run = start_run;
+	int tmp_end_period;
+	tmp_end_period = end_period;
 	int tmp_end_run;
 	tmp_end_run = end_run;
 	int* tmp_dc_serial;
@@ -130,7 +138,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 	tmp_parameter_value = new unsigned char[tmp_sz_parameter_value];
 	memcpy(tmp_parameter_value, parameter_value, tmp_sz_parameter_value);
 
-	return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_run, tmp_end_run, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value);
+	return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_period, tmp_start_run, tmp_end_period, tmp_end_run, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value);
 }
 
 // -----   Get table record from database ---------------------------
@@ -142,7 +150,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(int value_i
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select value_id, detector_name, parameter_id, start_run, end_run, dc_serial, channel, parameter_value "
+		"select value_id, detector_name, parameter_id, start_period, start_run, end_period, end_run, dc_serial, channel, parameter_value "
 		"from detector_parameter "
 		"where value_id = %d", value_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -176,26 +184,30 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(int value_i
 	tmp_detector_name = stmt->GetString(1);
 	int tmp_parameter_id;
 	tmp_parameter_id = stmt->GetInt(2);
+	int tmp_start_period;
+	tmp_start_period = stmt->GetInt(3);
 	int tmp_start_run;
-	tmp_start_run = stmt->GetInt(3);
+	tmp_start_run = stmt->GetInt(4);
+	int tmp_end_period;
+	tmp_end_period = stmt->GetInt(5);
 	int tmp_end_run;
-	tmp_end_run = stmt->GetInt(4);
+	tmp_end_run = stmt->GetInt(6);
 	int* tmp_dc_serial;
-	if (stmt->IsNull(5)) tmp_dc_serial = NULL;
+	if (stmt->IsNull(7)) tmp_dc_serial = NULL;
 	else
-		tmp_dc_serial = new int(stmt->GetInt(5));
+		tmp_dc_serial = new int(stmt->GetInt(7));
 	int* tmp_channel;
-	if (stmt->IsNull(6)) tmp_channel = NULL;
+	if (stmt->IsNull(8)) tmp_channel = NULL;
 	else
-		tmp_channel = new int(stmt->GetInt(6));
+		tmp_channel = new int(stmt->GetInt(8));
 	unsigned char* tmp_parameter_value;
 	tmp_parameter_value = NULL;
 	Long_t tmp_sz_parameter_value = 0;
-	stmt->GetLargeObject(7, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
+	stmt->GetLargeObject(9, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 
 	delete stmt;
 
-	return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_run, tmp_end_run, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value);
+	return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_period, tmp_start_run, tmp_end_period, tmp_end_run, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value);
 }
 
 // -----   Delete record from class table ---------------------------
@@ -238,7 +250,7 @@ int UniDbDetectorParameter::PrintAll()
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select value_id, detector_name, parameter_id, start_run, end_run, dc_serial, channel, parameter_value "
+		"select value_id, detector_name, parameter_id, start_period, start_run, end_period, end_run, dc_serial, channel, parameter_value "
 		"from detector_parameter");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -265,22 +277,26 @@ int UniDbDetectorParameter::PrintAll()
 		cout<<(stmt->GetString(1));
 		cout<<", parameter_id: ";
 		cout<<(stmt->GetInt(2));
-		cout<<", start_run: ";
+		cout<<", start_period: ";
 		cout<<(stmt->GetInt(3));
-		cout<<", end_run: ";
+		cout<<", start_run: ";
 		cout<<(stmt->GetInt(4));
+		cout<<", end_period: ";
+		cout<<(stmt->GetInt(5));
+		cout<<", end_run: ";
+		cout<<(stmt->GetInt(6));
 		cout<<", dc_serial: ";
-		if (stmt->IsNull(5)) cout<<"NULL";
+		if (stmt->IsNull(7)) cout<<"NULL";
 		else
-			cout<<stmt->GetInt(5);
+			cout<<stmt->GetInt(7);
 		cout<<", channel: ";
-		if (stmt->IsNull(6)) cout<<"NULL";
+		if (stmt->IsNull(8)) cout<<"NULL";
 		else
-			cout<<stmt->GetInt(6);
+			cout<<stmt->GetInt(8);
 		cout<<", parameter_value: ";
 		unsigned char* tmp_parameter_value = NULL;
 		Long_t tmp_sz_parameter_value=0;
-		stmt->GetLargeObject(7, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
+		stmt->GetLargeObject(9, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 		cout<<(void*)tmp_parameter_value<<", binary size: "<<tmp_sz_parameter_value;
 		cout<<"."<<endl;
 	}
@@ -363,6 +379,41 @@ int UniDbDetectorParameter::SetParameterId(int parameter_id)
 	return 0;
 }
 
+int UniDbDetectorParameter::SetStartPeriod(int start_period)
+{
+	if (!connectionUniDb)
+	{
+		cout<<"Connection object is null"<<endl;
+		return -1;
+	}
+
+	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"update detector_parameter "
+		"set start_period = $1 "
+		"where value_id = $2");
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	stmt->NextIteration();
+	stmt->SetInt(0, start_period);
+	stmt->SetInt(1, i_value_id);
+
+	// write new value to database
+	if (!stmt->Process())
+	{
+		cout<<"Error: updating the record has been failed"<<endl;
+
+		delete stmt;
+		return -2;
+	}
+
+	i_start_period = start_period;
+
+	delete stmt;
+	return 0;
+}
+
 int UniDbDetectorParameter::SetStartRun(int start_run)
 {
 	if (!connectionUniDb)
@@ -393,6 +444,41 @@ int UniDbDetectorParameter::SetStartRun(int start_run)
 	}
 
 	i_start_run = start_run;
+
+	delete stmt;
+	return 0;
+}
+
+int UniDbDetectorParameter::SetEndPeriod(int end_period)
+{
+	if (!connectionUniDb)
+	{
+		cout<<"Connection object is null"<<endl;
+		return -1;
+	}
+
+	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"update detector_parameter "
+		"set end_period = $1 "
+		"where value_id = $2");
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	stmt->NextIteration();
+	stmt->SetInt(0, end_period);
+	stmt->SetInt(1, i_value_id);
+
+	// write new value to database
+	if (!stmt->Process())
+	{
+		cout<<"Error: updating the record has been failed"<<endl;
+
+		delete stmt;
+		return -2;
+	}
+
+	i_end_period = end_period;
 
 	delete stmt;
 	return 0;
@@ -560,7 +646,7 @@ int UniDbDetectorParameter::SetParameterValue(unsigned char* parameter_value, Lo
 void UniDbDetectorParameter::Print()
 {
 	cout<<"Table 'detector_parameter'";
-	cout<<". value_id: "<<i_value_id<<". detector_name: "<<str_detector_name<<". parameter_id: "<<i_parameter_id<<". start_run: "<<i_start_run<<". end_run: "<<i_end_run<<". dc_serial: "<<(i_dc_serial == NULL? "NULL": TString::Format("%d", *i_dc_serial))<<". channel: "<<(i_channel == NULL? "NULL": TString::Format("%d", *i_channel))<<". parameter_value: "<<(void*)blob_parameter_value<<", binary size: "<<sz_parameter_value<<endl;
+	cout<<". value_id: "<<i_value_id<<". detector_name: "<<str_detector_name<<". parameter_id: "<<i_parameter_id<<". start_period: "<<i_start_period<<". start_run: "<<i_start_run<<". end_period: "<<i_end_period<<". end_run: "<<i_end_run<<". dc_serial: "<<(i_dc_serial == NULL? "NULL": TString::Format("%d", *i_dc_serial))<<". channel: "<<(i_channel == NULL? "NULL": TString::Format("%d", *i_channel))<<". parameter_value: "<<(void*)blob_parameter_value<<", binary size: "<<sz_parameter_value<<endl;
 
 	return;
 }
@@ -614,7 +700,7 @@ enumParameterType UniDbDetectorParameter::GetParameterTypeByString(string type_n
 }
 
 // get common detector parameter
-UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(TString detector_name, TString parameter_name, int run_number)
+UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(TString detector_name, TString parameter_name, int period_number, int run_number)
 {
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
@@ -623,10 +709,12 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(TString det
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "select value_id, detector_name, p.parameter_id, start_run, end_run, parameter_value "
+        "select value_id, detector_name, p.parameter_id, start_period, start_run, end_period, end_run, parameter_value "
         "from detector_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id "
-        "where lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s') and start_run <= %d and end_run >= %d and dc_serial is null and channel is null",
-                detector_name.Data(), parameter_name.Data(), run_number, run_number);
+        "where lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s') and "
+        "(not (((%d < start_period) or ((%d = start_period) and (%d < start_run))) or ((%d > end_period) or ((%d = end_period) and (%d > end_run))))) and"
+        "dc_serial is null and channel is null",
+                detector_name.Data(), parameter_name.Data(), period_number, period_number, run_number, period_number, period_number, run_number);
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     // get table record from DB
@@ -656,79 +744,91 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(TString det
     tmp_detector_name = stmt->GetString(1);
     int tmp_parameter_id;
     tmp_parameter_id = stmt->GetInt(2);
+    int tmp_start_period;
+    tmp_start_period = stmt->GetInt(3);
     int tmp_start_run;
-    tmp_start_run = stmt->GetInt(3);
+    tmp_start_run = stmt->GetInt(4);
+    int tmp_end_period;
+    tmp_end_period = stmt->GetInt(5);
     int tmp_end_run;
-    tmp_end_run = stmt->GetInt(4);
-    unsigned char* tmp_parameter_value = NULL;
-    Long_t tmp_sz_parameter_value = 0;
-    stmt->GetLargeObject(5, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
-
-    delete stmt;
-
-    return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_run, tmp_end_run, NULL, NULL, tmp_parameter_value, tmp_sz_parameter_value);
-}
-
-// get TDC/ADC parameter value
-UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(TString detector_name, TString parameter_name, int run_number, int dc_serial, int channel)
-{
-    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
-    if (connUniDb == 0x00)
-        return 0x00;
-
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
-
-    TString sql = TString::Format(
-        "select value_id, detector_name, p.parameter_id, start_run, end_run, dc_serial, channel, parameter_value "
-        "from detector_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id "
-        "where lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s') and start_run <= %d and end_run >= %d and dc_serial = %d and channel = %d",
-                detector_name.Data(), parameter_name.Data(), run_number, run_number, dc_serial, channel);
-    TSQLStatement* stmt = uni_db->Statement(sql);
-
-    // get table record from DB
-    if (!stmt->Process())
-    {
-        cout<<"Error: getting record from DB has been failed"<<endl;
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
-    }
-
-    // store result of statement in buffer
-    stmt->StoreResult();
-
-    // extract row
-    if (!stmt->NextResultRow())
-    {
-        cout<<"Error: table record wasn't found"<<endl;
-        delete stmt;
-        delete connUniDb;
-        return 0x00;
-    }
-
-    int tmp_value_id;
-    tmp_value_id = stmt->GetInt(0);
-    TString tmp_detector_name;
-    tmp_detector_name = stmt->GetString(1);
-    int tmp_parameter_id;
-    tmp_parameter_id = stmt->GetInt(2);
-    int tmp_start_run;
-    tmp_start_run = stmt->GetInt(3);
-    int tmp_end_run;
-    tmp_end_run = stmt->GetInt(4);
-    int* tmp_dc_serial = new int(stmt->GetInt(5));
-    int* tmp_channel = new int(stmt->GetInt(6));
+    tmp_end_run = stmt->GetInt(6);
     unsigned char* tmp_parameter_value = NULL;
     Long_t tmp_sz_parameter_value = 0;
     stmt->GetLargeObject(7, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 
     delete stmt;
 
-    return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_run, tmp_end_run, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value);
+    return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_period, tmp_start_run, tmp_end_period, tmp_end_run,
+                                      NULL, NULL, tmp_parameter_value, tmp_sz_parameter_value);
+}
+
+// get TDC/ADC parameter value
+UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(TString detector_name, TString parameter_name, int period_number, int run_number, int dc_serial, int channel)
+{
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+        return 0x00;
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "select value_id, detector_name, p.parameter_id, start_period, start_run, end_period, end_run, dc_serial, channel, parameter_value "
+        "from detector_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id "
+        "where lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s') and "
+        "(not (((%d < start_period) or ((%d = start_period) and (%d < start_run))) or ((%d > end_period) or ((%d = end_period) and (%d > end_run))))) and"
+        "dc_serial = %d and channel = %d",
+                detector_name.Data(), parameter_name.Data(), period_number, period_number, run_number, period_number, period_number, run_number, dc_serial, channel);
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: getting record from DB has been failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+        return 0x00;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    // extract row
+    if (!stmt->NextResultRow())
+    {
+        cout<<"Error: table record wasn't found"<<endl;
+        delete stmt;
+        delete connUniDb;
+        return 0x00;
+    }
+
+    int tmp_value_id;
+    tmp_value_id = stmt->GetInt(0);
+    TString tmp_detector_name;
+    tmp_detector_name = stmt->GetString(1);
+    int tmp_parameter_id;
+    tmp_parameter_id = stmt->GetInt(2);
+    int tmp_start_period;
+    tmp_start_period = stmt->GetInt(3);
+    int tmp_start_run;
+    tmp_start_run = stmt->GetInt(4);
+    int tmp_end_period;
+    tmp_end_period = stmt->GetInt(5);
+    int tmp_end_run;
+    tmp_end_run = stmt->GetInt(6);
+    int* tmp_dc_serial = new int(stmt->GetInt(7));
+    int* tmp_channel = new int(stmt->GetInt(8));
+    unsigned char* tmp_parameter_value = NULL;
+    Long_t tmp_sz_parameter_value = 0;
+    stmt->GetLargeObject(9, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
+
+    delete stmt;
+
+    return new UniDbDetectorParameter(connUniDb, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_period, tmp_start_run, tmp_end_period, tmp_end_run,
+                                      tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value);
 }
 
 // get channel count for TDC/ADC parameter value
-int UniDbDetectorParameter::GetChannelCount(TString detector_name, TString parameter_name, int run_number, int dc_serial)
+int UniDbDetectorParameter::GetChannelCount(TString detector_name, TString parameter_name, int period_number, int run_number, int dc_serial)
 {
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
@@ -739,7 +839,9 @@ int UniDbDetectorParameter::GetChannelCount(TString detector_name, TString param
     TString sql = TString::Format(
         "select count(*) "
         "from detector_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id "
-        "where lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s') and start_run <= %d and end_run >= %d and dc_serial = %d", detector_name.Data(), parameter_name.Data(), run_number, run_number, dc_serial);
+        "where lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s') and "
+        "(not (((%d < start_period) or ((%d = start_period) and (%d < start_run))) or ((%d > end_period) or ((%d = end_period) and (%d > end_run))))) and"
+        "dc_serial = %d", detector_name.Data(), parameter_name.Data(), period_number, period_number, run_number, period_number, period_number, run_number, dc_serial);
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     // get table record from DB
@@ -788,11 +890,11 @@ TString UniDbDetectorParameter::GetParameterName()
 }
 
 // common function for adding common parameter value
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
 {
-    if (end_run < start_run)
+    if (((end_period < start_period) or ((end_period = start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period = end_period) and (start_run > end_run))))
     {
-        cout<<"Error: end run number should be greater than start number"<<endl;
+        cout<<"Error: end run should be after or the same as start run"<<endl;
         return 0x00;
     }
 
@@ -811,16 +913,18 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
     }
 
     TString sql = TString::Format(
-        "insert into detector_parameter(detector_name, parameter_id, start_run, end_run, parameter_value) "
-        "values ($1, $2, $3, $4, $5)");
+        "insert into detector_parameter(detector_name, parameter_id, start_period, start_run, end_period, end_run, parameter_value) "
+        "values ($1, $2, $3, $4, $5, $6, $7)");
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     stmt->NextIteration();
     stmt->SetString(0, detector_name);
     stmt->SetInt(1, parameter_id);
-    stmt->SetInt(2, start_run);
-    stmt->SetInt(3, end_run);
-    stmt->SetLargeObject(4, (void*)p_parameter_value, size_parameter_value);
+    stmt->SetInt(2, start_period);
+    stmt->SetInt(3, start_run);
+    stmt->SetInt(4, end_period);
+    stmt->SetInt(5, end_run);
+    stmt->SetLargeObject(6, (void*)p_parameter_value, size_parameter_value);
     //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
 
     // inserting new record to DB
@@ -864,15 +968,15 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
         return 0x00;
     }
 
-    return new UniDbDetectorParameter(connUniDb, last_id, detector_name, parameter_id, start_run, end_run, NULL, NULL, p_parameter_value, size_parameter_value);
+    return new UniDbDetectorParameter(connUniDb, last_id, detector_name, parameter_id, start_period, start_run, end_period, end_run, NULL, NULL, p_parameter_value, size_parameter_value);
 }
 
 // common function for adding TDC/ADC parameter value
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int dc_serial, int channel, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
 {
-    if (end_run < start_run)
+    if (((end_period < start_period) or ((end_period = start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period = end_period) and (start_run > end_run))))
     {
-        cout<<"Error: end run number should be greater than start number"<<endl;
+        cout<<"Error: end run should be after or the same as start run"<<endl;
         return 0x00;
     }
 
@@ -891,16 +995,18 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
     }
 
     TString sql = TString::Format(
-        "insert into detector_parameter(detector_name, parameter_id, start_run, end_run, parameter_value) "
-        "values ($1, $2, $3, $4, $5)");
+        "insert into detector_parameter(detector_name, parameter_id, start_period, start_run, end_period, end_run, parameter_value) "
+        "values ($1, $2, $3, $4, $5, $6, $7)");
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     stmt->NextIteration();
     stmt->SetString(0, detector_name);
     stmt->SetInt(1, parameter_id);
-    stmt->SetInt(2, start_run);
-    stmt->SetInt(3, end_run);
-    stmt->SetLargeObject(4, (void*)p_parameter_value, size_parameter_value);
+    stmt->SetInt(2, start_period);
+    stmt->SetInt(3, start_run);
+    stmt->SetInt(4, end_period);
+    stmt->SetInt(5, end_run);
+    stmt->SetLargeObject(6, (void*)p_parameter_value, size_parameter_value);
     //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
 
     // inserting new record to DB
@@ -944,7 +1050,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
         return 0x00;
     }
 
-    return new UniDbDetectorParameter(connUniDb, last_id, detector_name, parameter_id, start_run, end_run, new int(dc_serial), new int(channel), p_parameter_value, size_parameter_value);
+    return new UniDbDetectorParameter(connUniDb, last_id, detector_name, parameter_id, start_period, start_run, end_period, end_run, new int(dc_serial), new int(channel), p_parameter_value, size_parameter_value);
 }
 
 // common function for getting parameter value
@@ -1010,7 +1116,7 @@ int UniDbDetectorParameter::SetUNC(unsigned char* p_parameter_value, Long_t size
     TString sql = TString::Format(
         "update detector_parameter "
         "set parameter_value = $1 "
-        "where detector_name = $2 and parameter_id = $3 and start_run = $4 and end_run = $5");
+        "where detector_name = $2 and parameter_id = $3 and start_period = $4 and start_run = $5 and end_period = $6 and end_run = $7");
     if (i_dc_serial != NULL)
         sql += " and dc_serial = $6 and channel = $7";
 
@@ -1020,12 +1126,14 @@ int UniDbDetectorParameter::SetUNC(unsigned char* p_parameter_value, Long_t size
     stmt->SetLargeObject(0, (void*)p_parameter_value, size_parameter_value);
     stmt->SetString(1, str_detector_name);
     stmt->SetInt(2, i_parameter_id);
-    stmt->SetInt(3, i_start_run);
-    stmt->SetInt(4, i_end_run);
+    stmt->SetInt(3, i_start_period);
+    stmt->SetInt(4, i_start_run);
+    stmt->SetInt(5, i_end_period);
+    stmt->SetInt(6, i_end_run);
     if (i_dc_serial != NULL)
     {
-        stmt->SetInt(5, *i_dc_serial);
-        stmt->SetInt(6, *i_channel);
+        stmt->SetInt(7, *i_dc_serial);
+        stmt->SetInt(8, *i_channel);
     }
 
     // write new value to database
@@ -1045,13 +1153,13 @@ int UniDbDetectorParameter::SetUNC(unsigned char* p_parameter_value, Long_t size
 }
 
 // create bool detector parameter value
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, bool parameter_value)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, bool parameter_value)
 {
     Long_t size_parameter_value = sizeof(bool);
     bool* p_parameter_value = new bool[1];
     p_parameter_value[0] = parameter_value;
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, BoolType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1060,13 +1168,13 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // create bool TDC/ADC parameter value
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, bool parameter_value)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int dc_serial, int channel, bool parameter_value)
 {
     Long_t size_parameter_value = sizeof(bool);
     bool* p_parameter_value = new bool[1];
     p_parameter_value[0] = parameter_value;
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run, dc_serial, channel,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, BoolType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1098,13 +1206,13 @@ int UniDbDetectorParameter::SetBool(bool parameter_value)
 }
 
 // create integer detector parameter value
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int parameter_value)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int parameter_value)
 {
     Long_t size_parameter_value = sizeof(int);
     int* p_parameter_value = new int[1];
     p_parameter_value[0] = parameter_value;
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, IntType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1113,13 +1221,13 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // create integer TDC/ADC parameter value
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, int parameter_value)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int dc_serial, int channel, int parameter_value)
 {
     Long_t size_parameter_value = sizeof(int);
     int* p_parameter_value = new int[1];
     p_parameter_value[0] = parameter_value;
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run, dc_serial, channel,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, IntType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1151,13 +1259,13 @@ int UniDbDetectorParameter::SetInt(int parameter_value)
 }
 
 // create double detector parameter value
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, double parameter_value)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, double parameter_value)
 {
     Long_t size_parameter_value = sizeof(double);
     double* p_parameter_value = new double[1];
     p_parameter_value[0] = parameter_value;
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, DoubleType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1166,13 +1274,13 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // create double TDC/ADC parameter value
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, double parameter_value)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int dc_serial, int channel, double parameter_value)
 {
     Long_t size_parameter_value = sizeof(double);
     double* p_parameter_value = new double[1];
     p_parameter_value[0] = parameter_value;
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run, dc_serial, channel,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, DoubleType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1204,13 +1312,13 @@ int UniDbDetectorParameter::SetDouble(double parameter_value)
 }
 
 // create string detector parameter value
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, TString parameter_value)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, TString parameter_value)
 {
     Long_t size_parameter_value = parameter_value.Length()+1;
     char* p_parameter_value = new char[size_parameter_value];
     strcpy(p_parameter_value, parameter_value.Data());
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, StringType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1219,13 +1327,13 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // create string TDC/ADC parameter value
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, TString parameter_value)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int dc_serial, int channel, TString parameter_value)
 {
     Long_t size_parameter_value = parameter_value.Length()+1;
     char* p_parameter_value = new char[size_parameter_value];
     strcpy(p_parameter_value, parameter_value.Data());
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run, dc_serial, channel,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, StringType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1257,13 +1365,13 @@ int UniDbDetectorParameter::SetString(TString parameter_value)
 }
 
 // create detector parameter value as integer array
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int* parameter_value, int element_count)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(int);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, IntArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1272,13 +1380,13 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // create TDC/ADC parameter value as integer array
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, int* parameter_value, int element_count)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int dc_serial, int channel, int* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(int);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run, dc_serial, channel,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, IntArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1318,13 +1426,13 @@ int UniDbDetectorParameter::SetIntArray(int* parameter_value, int element_count)
 }
 
 // create detector parameter value as double array
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, double* parameter_value, int element_count)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, double* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(double);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, DoubleArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1333,13 +1441,13 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // create TDC/ADC parameter value as double array
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, double* parameter_value, int element_count)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int dc_serial, int channel, double* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(double);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run, dc_serial, channel,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, DoubleArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1379,12 +1487,12 @@ int UniDbDetectorParameter::SetDoubleArray(double* parameter_value, int element_
 }
 
 // create detector parameter value as binary array
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, void* parameter_value, int byte_count)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, void* parameter_value, int byte_count)
 {
     unsigned char* p_parameter_value = new unsigned char[byte_count];
     memcpy(p_parameter_value, parameter_value, byte_count);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
                                                                                                  (unsigned char*)p_parameter_value, byte_count, BinaryArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1393,12 +1501,12 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // create TDC/ADC parameter value as binary array
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, void* parameter_value, int byte_count)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int dc_serial, int channel, void* parameter_value, int byte_count)
 {
     unsigned char* p_parameter_value = new unsigned char[byte_count];
     memcpy(p_parameter_value, parameter_value, byte_count);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run, dc_serial, channel,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
                                                                                                  (unsigned char*)p_parameter_value, byte_count, BinaryArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1437,13 +1545,13 @@ int UniDbDetectorParameter::SetBinaryArray(void* parameter_value, int element_co
 }
 
 // create detector parameter value as Int+Int array
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, IIStructure* parameter_value, int element_count)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, IIStructure* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(IIStructure);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, IIArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1452,13 +1560,13 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // create TDC/ADC parameter value as Int+Int array
-UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_run, int end_run, int dc_serial, int channel, IIStructure* parameter_value, int element_count)
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, int dc_serial, int channel, IIStructure* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(IIStructure);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_run, end_run, dc_serial, channel,
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
                                                                                                  (unsigned char*)p_parameter_value, size_parameter_value, IIArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
@@ -1511,7 +1619,7 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-                "select value_id, detector_name, p.parameter_id, start_run, end_run, dc_serial, channel, parameter_value "
+                "select value_id, detector_name, p.parameter_id, start_period, start_run, end_period, end_run, dc_serial, channel, parameter_value "
                 "from detector_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id");
 
     TString strCondition;
@@ -1605,24 +1713,29 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
         tmp_detector_name = stmt->GetString(1);
         int tmp_parameter_id;
         tmp_parameter_id = stmt->GetInt(2);
+        int tmp_start_period;
+        tmp_start_period = stmt->GetInt(3);
         int tmp_start_run;
-        tmp_start_run = stmt->GetInt(3);
+        tmp_start_run = stmt->GetInt(4);
+        int tmp_end_period;
+        tmp_end_period = stmt->GetInt(5);
         int tmp_end_run;
-        tmp_end_run = stmt->GetInt(4);
+        tmp_end_run = stmt->GetInt(6);
         int* tmp_dc_serial;
-        if (stmt->IsNull(5)) tmp_dc_serial = NULL;
+        if (stmt->IsNull(7)) tmp_dc_serial = NULL;
         else
             tmp_dc_serial = new int(stmt->GetInt(5));
         int* tmp_channel;
-        if (stmt->IsNull(6)) tmp_channel = NULL;
+        if (stmt->IsNull(8)) tmp_channel = NULL;
         else
             tmp_channel = new int(stmt->GetInt(6));
         unsigned char* tmp_parameter_value;
         tmp_parameter_value = NULL;
         Long_t tmp_sz_parameter_value = 0;
-        stmt->GetLargeObject(7, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
+        stmt->GetLargeObject(9, (void*&)tmp_parameter_value, tmp_sz_parameter_value);
 
-        arrayResult->Add((TObject*) new UniDbDetectorParameter(connPar, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_run, tmp_end_run, tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value));
+        arrayResult->Add((TObject*) new UniDbDetectorParameter(connPar, tmp_value_id, tmp_detector_name, tmp_parameter_id, tmp_start_period, tmp_start_run, tmp_end_period, tmp_end_run,
+                                                               tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value));
     }
 
     delete stmt;

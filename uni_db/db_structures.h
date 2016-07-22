@@ -19,4 +19,10 @@ enum enumColumns{columnRunNumber, columnPeriodNumber, columnFilePath, columnBeam
 enum enumConditions{conditionLess, conditionLessOrEqual, conditionEqual, conditionNotEqual, conditionGreater, conditionGreaterOrEqual, conditionLike, conditionNull};
 
 
+struct UniqueRunNumber
+{
+    int period_number;
+    int run_number;
+};
+
 #endif // DB_STRUCTURES_H

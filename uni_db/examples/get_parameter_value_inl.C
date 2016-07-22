@@ -17,7 +17,7 @@ void get_parameter_value_inl()
     bool is_error = false;
     int TDC_SERIAL = (int)0x0168fdca;
 
-    int channel_count = UniDbDetectorParameter::GetChannelCount("TOF1", "inl", 12, TDC_SERIAL); //(detector_name, parameter_name, run_number, dc_serial)
+    int channel_count = UniDbDetectorParameter::GetChannelCount("TOF1", "inl", 1, 12, TDC_SERIAL);
     if (channel_count == 0)
         cout<<"The detector parameter wasn't found"<<endl;
     else
@@ -25,7 +25,7 @@ void get_parameter_value_inl()
 
     for (int i = 1; i <= channel_count; i++)
     {
-        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF1", "inl", 12, TDC_SERIAL, i); //(detector_name, parameter_name, run_number, dc_serial, channel)
+        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("TOF1", "inl", 1, 12, TDC_SERIAL, i); //(detector_name, parameter_name, period_number, run_number, dc_serial, channel)
         if (pDetectorParameter == NULL)
         {
             is_error = true;

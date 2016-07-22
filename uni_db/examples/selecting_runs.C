@@ -25,7 +25,7 @@ void selecting_runs()
     for (int i = 0; i < pRunArray->GetEntriesFast(); i++)
     {
         UniDbRun* pRun = (UniDbRun*) pRunArray->At(i);
-        cout<<"Run (d-Cu): number - "<<pRun->GetRunNumber()<<", file path - "<<pRun->GetFilePath()<<endl;
+        cout<<"Run (d-Cu): period - "<<pRun->GetPeriodNumber()<<", run - "<<pRun->GetRunNumber()<<", file path - "<<pRun->GetFilePath()<<endl;
     }
 
     // clean memory after work

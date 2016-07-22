@@ -1,10 +1,12 @@
 // Macro for changing single detector in facility geometry for a given run range in the database
 //
-// start_run_number - start number of the run range to change single detector geometry in full geometry
-// end_run_number - end number of the run range to change single detector geometry in full geometry
+// start_period - start number of the period to change single detector geometry in full geometry
+// start_run - start number of the run range to change single detector geometry in full geometry
+// end_period - end number of the period to change single detector geometry in full geometry
+// end_run - end number of the run range to change single detector geometry in full geometry
 // detector_name - volume name of the detector geoemtry to replace it with new geometry
 // detector_file_path - path to the file with new subdetector geometry
-void change_1detector_geometry(int start_run_number, int end_run_number, char* detector_name="TOFB1", char* detector_file_path = "$VMCWORKDIR/geometry/TOFB1_v3.root")
+void change_1detector_geometry(int start_period, int start_run, int end_period, int end_run, char* detector_name="TOFB1", char* detector_file_path = "$VMCWORKDIR/geometry/TOFB1_v3.root")
 {
     // load libraries
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -30,7 +32,7 @@ void change_1detector_geometry(int start_run_number, int end_run_number, char* d
                           //    rand(), rand(), rand());        // Generates a 96-bit Hex number
 
     // get full geometry from database for a given run
-    int res_code = UniDbRun::ReadGeometryFile(start_run_number, strFullGeoFileName.Data());
+    int res_code = UniDbRun::ReadGeometryFile(start_period, start_run, strFullGeoFileName.Data());
     if (res_code != 0)
     {
         cout<<"\nMacro finished with errors"<<endl;
@@ -154,7 +156,7 @@ void change_1detector_geometry(int start_run_number, int end_run_number, char* d
     newGeoManager->Export(strNewGeoFile);
 
     // write ROOT file with detector geometry for run range and then delete it
-    res_code = UniDbRun::WriteGeometryFile(start_run_number, end_run_number, strNewGeoFile.Data());
+    res_code = UniDbRun::WriteGeometryFile(start_period, start_run, end_period, end_run, strNewGeoFile.Data());
     gSystem->Unlink(strNewGeoFile);
     if (res_code != 0)
     {

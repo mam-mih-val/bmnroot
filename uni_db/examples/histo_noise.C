@@ -33,7 +33,7 @@ void histo_noise()
 
             cout<<"Element count: "<<element_count<<" for run "<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<" (period:run)"<<endl;
             for (int j = 0; j < element_count; j++)
-                histo->Fill(pValues[j].int_1, pValues[j].int_2, run_number);
+                histo->Fill(pValues[j].int_1, pValues[j].int_2, run_numbers[i].run_number);
 
             // clean memory after work
             delete pValues;
@@ -41,7 +41,7 @@ void histo_noise()
         }
     }
 
-    delete [] run_numbers;
+    delete run_numbers;
 
     histo->Draw();
 }

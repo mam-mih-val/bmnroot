@@ -964,8 +964,8 @@ int UniDbRun::GetRunNumbers(int start_period, int start_run, int end_period, int
     TString sql = TString::Format(
         "select period_number, run_number "
         "from run_ "
-        "where (not (((%d < start_period) or ((%d = start_period) and (%d < start_run))) or ((%d > end_period) or ((%d = end_period) and (%d > end_run))))) "
-        "order by run_period, run_number", end_period, end_period, end_run, start_period, start_period, start_run);
+        "where (not (((%d < period_number) or ((%d = period_number) and (%d < run_number))) or ((%d > period_number) or ((%d = period_number) and (%d > run_number))))) "
+        "order by period_number, run_number", end_period, end_period, end_run, start_period, start_period, start_run);
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     // get table record from DB

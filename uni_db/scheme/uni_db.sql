@@ -21,6 +21,8 @@
 -- replace true : 1
 -- replace bytea : blob
 
+CREATE DOMAIN uint AS int;
+
 -- EXPERIMENT RUN PERIODS (SESSIONS)
 create table run_period
 (
@@ -97,7 +99,7 @@ create table detector_parameter
  start_run int not null,
  end_period int not null,
  end_run int not null,
- dc_serial int null,
+ dc_serial uint null,
  channel int null,
  parameter_value bytea not null,
  foreign key (start_period, start_run) references run_(period_number, run_number),

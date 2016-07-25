@@ -49,18 +49,7 @@ public:
 
     virtual ~BmnGemStripStation_1stConfig();
 
-    Int_t GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord);
-
-    Int_t AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord,
-                            Double_t px, Double_t py, Double_t pz,
-                            Double_t dEloss, Int_t refID);
-
-    Int_t CountNAddedToStationPoints();
-
-    void ProcessPointsInStation();
-    Int_t CountNProcessedPointInStation();
-
-    BmnGemStripReadoutModule* GetReadoutModule(Int_t index);
+    virtual Int_t GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord);
 
 private:
     BmnGemStripStation_1stConfig(const BmnGemStripStation&);

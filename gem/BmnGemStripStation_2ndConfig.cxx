@@ -189,53 +189,6 @@ Int_t BmnGemStripStation_2ndConfig::GetPointModuleOwnership(Double_t xcoord, Dou
     return -1;
 }
 
-Int_t BmnGemStripStation_2ndConfig::AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord,
-                                                      Double_t px, Double_t py, Double_t pz,
-                                                      Double_t dEloss, Int_t refID) {
-
-    Int_t module = GetPointModuleOwnership(xcoord, ycoord, zcoord);
-
-    if(module >= 0) {
-        //if(ReadoutModules[module]->AddRealPointFullOne(xcoord, ycoord, zcoord, dEloss, refID)) {
-        if(ReadoutModules[module]->AddRealPointFull(xcoord, ycoord, zcoord, px, py, pz, dEloss, refID)) {
-            return module;
-        }
-        else {
-            return -1;
-        }
-    }
-    return -1;
-}
-
-Int_t BmnGemStripStation_2ndConfig::CountNAddedToStationPoints() {
-    Int_t points_sum = 0;
-    for(Int_t iModule = 0; iModule < NModules; iModule++) {
-        points_sum += ReadoutModules[iModule]->GetNRealPoints();
-    }
-    return points_sum;
-}
-
-void BmnGemStripStation_2ndConfig::ProcessPointsInStation() {
-    for(Int_t iModule = 0; iModule < NModules; iModule++) {
-        ReadoutModules[iModule]->CalculateStripHitIntersectionPoints();
-    }
-}
-
-Int_t BmnGemStripStation_2ndConfig::CountNProcessedPointInStation() {
-    Int_t points_sum = 0;
-    for(Int_t iModule = 0; iModule < NModules; iModule++) {
-        points_sum += ReadoutModules[iModule]->GetNIntersectionPoints();
-    }
-    return points_sum;
-}
-
-BmnGemStripReadoutModule* BmnGemStripStation_2ndConfig::GetReadoutModule(Int_t index) {
-    if(index >= 0 && index < NModules) {
-        return ReadoutModules[index];
-    }
-    return 0;
-}
-
 void BmnGemStripStation_2ndConfig::BuildModules_One66x41Plane() {
     ReadoutModules = new BmnGemStripReadoutModule* [NModules];
 

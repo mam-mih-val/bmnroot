@@ -345,7 +345,10 @@ void BmnMatchRecoToMC::MatchGemTracks(
         Int_t nofHits = track->GetNHits();
         for (Int_t iHit = 0; iHit < nofHits; ++iHit) {
             const BmnMatch* hitMatch = (BmnMatch*) (hitMatches->At(track->GetHitIndex(iHit)));
+            if (hitMatch == NULL) continue;
+            if (hitMatch->GetNofLinks() == 0) continue;
             const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetMatchedLink().GetIndex()));
+            if (point == NULL) continue;
             trackMatch->AddLink(BmnLink(1., point->GetTrackID()));
         }
         Int_t trueCounter = trackMatch->GetNofTrueHits();
@@ -353,7 +356,10 @@ void BmnMatchRecoToMC::MatchGemTracks(
         if (trackMatch->GetMatchedIndex() < 0) continue;
         for (Int_t iHit = 0; iHit < nofHits; ++iHit) {
             const BmnMatch* hitMatch = (BmnMatch*) (hitMatches->At(track->GetHitIndex(iHit)));
+            if (hitMatch == NULL) continue;
+            if (hitMatch->GetNofLinks() == 0) continue;
             const FairMCPoint* point = (const FairMCPoint*) (points->At(hitMatch->GetMatchedLink().GetIndex()));
+            if (point == NULL) continue;
             if (point->GetTrackID() == trackMatch->GetMatchedLink().GetIndex()) 
                 trueCounter++;
             else 

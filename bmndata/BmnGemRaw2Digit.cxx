@@ -49,22 +49,28 @@ BmnStatus BmnGemRaw2Digit::FillMaps() {
         cout << "Error opening pedestal-file!" << endl;
         return kBMNERROR;
     }
-    UInt_t ped, com, chan;
+    UInt_t ped, com, chan, noise;
     fPedMap = new UInt_t* [kNSER];
-    for (Int_t i = 0; i < kNSER; ++i)
+    fCMMap = new UInt_t* [kNSER];
+    fNoiseMap = new UInt_t* [kNSER];
+    for (Int_t i = 0; i < kNSER; ++i) {
         fPedMap[i] = new UInt_t[kNCH];
+        fCMMap[i] = new UInt_t[kNCH];
+        fNoiseMap[i] = new UInt_t[kNCH];
+    }
 
 
-    pedFile >> dummy >> dummy >> dummy >> dummy;
+    pedFile >> dummy >> dummy >> dummy >> dummy >> dummy;
     pedFile >> dummy;
     while (!pedFile.eof()) {
-        pedFile >> hex >> ser >> dec >> chan >> ped >> com;
+        pedFile >> hex >> ser >> dec >> chan >> ped >> com >> noise;
         if (!pedFile.good()) break;
         Int_t i = 0;
         for (i = 0; i < kNSER; ++i)
             if (ser == kSERIALS[i]) break;
         fPedMap[i][chan] = ped;
-
+        fCMMap[i][chan] = com;
+        fNoiseMap[i][chan] = noise;
     }
     pedFile.close();
     //==================================================//    
@@ -130,6 +136,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
         Int_t lay = -1;
         Int_t mod = -1;
         Int_t ped = -1;
+        Int_t noise = -1;
 
         switch (gemM->gemId) {
             case 0: //small gem
@@ -139,12 +146,14 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                     mod = 0;
                     lay = 0;
                     ped = SearchPed(ch * nSmpl + iSmpl, gemM->serial);
+                    noise = SearchNoise(ch * nSmpl + iSmpl, gemM->serial);
                     break;
                 }
                 if (SearchInMap(&Y_small, strip, realChannel) == kBMNSUCCESS) {
                     mod = 0;
                     lay = 1;
                     ped = SearchPed(ch * nSmpl + iSmpl, gemM->serial);
+                    noise = SearchNoise(ch * nSmpl + iSmpl, gemM->serial);
                     break;
                 }
             }
@@ -161,12 +170,14 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                         mod = 2;
                         lay = 0;
                         ped = SearchPed(ch2048, gemM->serial);
+                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     if (SearchInMap(&Y0_big_l, strip, realChannel) == kBMNSUCCESS) {
                         mod = 2;
                         lay = 1;
                         ped = SearchPed(ch2048, gemM->serial);
+                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                 } else {
@@ -174,6 +185,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                         mod = 0;
                         lay = 0;
                         ped = SearchPed(ch2048, gemM->serial);
+                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
 
@@ -181,6 +193,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                         mod = 0;
                         lay = 1;
                         ped = SearchPed(ch2048, gemM->serial);
+                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     break;
@@ -199,12 +212,14 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                         mod = 3;
                         lay = 0;
                         ped = SearchPed(ch2048, gemM->serial);
+                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     if (SearchInMap(&Y0_big_r, strip, realChannel) == kBMNSUCCESS) {
                         mod = 3;
                         lay = 1;
                         ped = SearchPed(ch2048, gemM->serial);
+                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                 } else {
@@ -212,12 +227,14 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                         mod = 1;
                         lay = 0;
                         ped = SearchPed(ch2048, gemM->serial);
+                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     if (SearchInMap(&Y1_big_r, strip, realChannel) == kBMNSUCCESS) {
                         mod = 1;
                         lay = 1;
                         ped = SearchPed(ch2048, gemM->serial);
+                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     break;
@@ -238,24 +255,28 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                     mod = 0;
                     lay = 0;
                     ped = SearchPed(ch2048, gemM->serial);
+                    noise = SearchNoise(ch2048, gemM->serial);
                     break;
                 }
                 if (SearchInMap(&Y1_mid, strip, realChannel) == kBMNSUCCESS) {
                     mod = 0;
                     lay = 1;
                     ped = SearchPed(ch2048, gemM->serial);
+                    noise = SearchNoise(ch2048, gemM->serial);
                     break;
                 }
                 if (SearchInMap(&X0_mid, strip, realChannel) == kBMNSUCCESS) {
                     mod = 1;
                     lay = 0;
                     ped = SearchPed(ch2048, gemM->serial);
+                    noise = SearchNoise(ch2048, gemM->serial);
                     break;
                 }
                 if (SearchInMap(&Y0_mid, strip, realChannel) == kBMNSUCCESS) {
                     mod = 1;
                     lay = 1;
                     ped = SearchPed(ch2048, gemM->serial);
+                    noise = SearchNoise(ch2048, gemM->serial);
                     break;
                 }
             }
@@ -268,6 +289,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
             dig.SetStripLayer(lay);
             dig.SetStripNumber(strip);
             dig.SetStripSignal(sig);
+            dig.SetStripSignalNoise(noise);
             candDig[iSmpl] = dig;
         }
     }
@@ -280,7 +302,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
     BmnGemStripDigit updDig[nSmpl];
     for (Int_t iSmpl = 0; iSmpl < nStr; ++iSmpl)
         updDig[iSmpl] = candDig[iSmpl];
-        
+
     for (Int_t itr = 0; itr < kNITER; ++itr) {
         Double_t cms = 0.0; //common mode shift
         for (Int_t iSmpl = 0; iSmpl < nStr; ++iSmpl)
@@ -302,7 +324,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
     }
 
     const Double_t kTHRESH = 15.0;
-    
+
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         BmnGemStripDigit* dig = &candDig[iSmpl];
@@ -310,7 +332,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
         if (sig < kTHRESH) continue;
         //        if (sig > 4 * CMSiSmpl) continue; //check it!!!
         TClonesArray& ar_gem = *gem;
-        new(ar_gem[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), dig->GetStripSignal());
+        new(ar_gem[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), dig->GetStripSignal(), dig->GetStripSignalNoise());
     }
 
 }
@@ -329,6 +351,66 @@ UInt_t BmnGemRaw2Digit::SearchPed(UInt_t chn, UInt_t ser) {
     for (i = 0; i < kNSER; ++i)
         if (ser == kSERIALS[i]) break;
     return fPedMap[i][chn];
+}
+
+UInt_t BmnGemRaw2Digit::SearchNoise(UInt_t chn, UInt_t ser) {
+    Int_t i = 0;
+    for (i = 0; i < kNSER; ++i)
+        if (ser == kSERIALS[i]) break;
+    return fNoiseMap[i][chn];
+}
+
+BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree *tree) {
+    ofstream pedFile(Form("%s/input/GEM_pedestals.txt", getenv("VMCWORKDIR")));
+    pedFile << "Serial\tCh_id\tPed\tComMode\tNoise" << endl;
+    pedFile << "=====================================" << endl;
+    const UShort_t nSmpl = 32;
+    const UInt_t nDigs = kNSER * 64; // 10 ADC x 64 ch
+    Double_t pedestals[nDigs][nSmpl] = {};
+    Double_t noises[nDigs][nSmpl] = {};
+    Double_t comModes[nDigs] = {};
+
+    UInt_t nEv = tree->GetEntries();
+    for (Int_t iEv = 0; iEv < nEv; ++iEv) {
+        if (iEv % 10 == 0) cout << "Read event, the first loop #" << iEv << endl;
+        tree->GetEntry(iEv);
+        for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
+            BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+                pedestals[iAdc][iSmpl] += ((adcDig->GetValue())[iSmpl] / 16);
+        }
+    }
+
+    UInt_t comMode = 0;
+    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
+        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+            pedestals[iAdc][iSmpl] /= nEv;
+            comMode += pedestals[iAdc][iSmpl];
+        }
+        comMode /= nSmpl;
+        comModes[iAdc] = comMode;
+    }
+
+    for (Int_t iEv = 0; iEv < nEv; ++iEv) {
+        if (iEv % 10 == 0) cout << "Read event, the second loop #" << iEv << endl;
+        tree->GetEntry(iEv);
+        for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
+            BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                noises[iAdc][iSmpl] += (((adcDig->GetValue())[iSmpl] / 16) - comModes[iAdc]) * (((adcDig->GetValue())[iSmpl] / 16) - comModes[iAdc]);
+            }
+        }
+    }
+
+    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
+        BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+            noises[iAdc][iSmpl] = Sqrt(noises[iAdc][iSmpl] / nEv);
+            pedFile << hex << adcDig->GetSerial() << dec << "\t" << adcDig->GetChannel() * nSmpl + iSmpl << "\t" << Int_t(pedestals[iAdc][iSmpl]) << "\t" << Int_t(comModes[iAdc]) << "\t" << Int_t(noises[iAdc][iSmpl]) << endl;
+        }
+    }
+
+    pedFile.close();
 }
 
 ClassImp(BmnGemRaw2Digit)

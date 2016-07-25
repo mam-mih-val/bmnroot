@@ -338,7 +338,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     //    BmnTof2Raw2Digit *tof700Mapper = new BmnDchRaw2Digit(fTof700MapFileName);
 
     if (fPedestalRan) {
-        CalcGemPedestals();
+        gemMapper->CalcGemPedestals(adc, fRawTree);
     } else {
         for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
 
@@ -375,36 +375,36 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::CalcGemPedestals() {
-    ofstream pedFile(Form("%s/input/GEM_pedestals.txt", getenv("VMCWORKDIR")));
-    pedFile << "Serial\tCh_id\tPed\tComMode" << endl;
-    pedFile << "===============================" << endl;
-    const UShort_t nSmpl = 32;
-    const UInt_t nDigs = 640; // 10 ADC x 64 ch
-    ULong_t pedestals[nDigs][nSmpl];
-    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc)
-        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-            pedestals[iAdc][iSmpl] = 0;
-
-    for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
-        if (iEv % 1 == 0) cout << "Decoding event #" << iEv << endl;
-        fRawTree->GetEntry(iEv);
-        for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
-            BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
-            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-                pedestals[iAdc][iSmpl] += ((adcDig->GetValue())[iSmpl] / 16);
-        }
-    }
-    UInt_t comMode = 0;
-    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
-        BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
-        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-            pedestals[iAdc][iSmpl] /= fNevents;
-            comMode += pedestals[iAdc][iSmpl];
-        }
-        comMode /= nSmpl;
-        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-            pedFile << hex << adcDig->GetSerial() << dec << "\t" << adcDig->GetChannel() * nSmpl + iSmpl << "\t" << pedestals[iAdc][iSmpl] << "\t" << comMode << endl;
-    }
-    pedFile.close();
-}
+//BmnStatus BmnRawDataDecoder::CalcGemPedestals() {
+//    ofstream pedFile(Form("%s/input/GEM_pedestals.txt", getenv("VMCWORKDIR")));
+//    pedFile << "Serial\tCh_id\tPed\tComMode" << endl;
+//    pedFile << "===============================" << endl;
+//    const UShort_t nSmpl = 32;
+//    const UInt_t nDigs = 640; // 10 ADC x 64 ch
+//    ULong_t pedestals[nDigs][nSmpl];
+//    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc)
+//        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+//            pedestals[iAdc][iSmpl] = 0;
+//
+//    for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
+//        if (iEv % 1 == 0) cout << "Decoding event #" << iEv << endl;
+//        fRawTree->GetEntry(iEv);
+//        for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
+//            BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+//            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+//                pedestals[iAdc][iSmpl] += ((adcDig->GetValue())[iSmpl] / 16);
+//        }
+//    }
+//    UInt_t comMode = 0;
+//    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
+//        BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+//        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+//            pedestals[iAdc][iSmpl] /= fNevents;
+//            comMode += pedestals[iAdc][iSmpl];
+//        }
+//        comMode /= nSmpl;
+//        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+//            pedFile << hex << adcDig->GetSerial() << dec << "\t" << adcDig->GetChannel() * nSmpl + iSmpl << "\t" << pedestals[iAdc][iSmpl] << "\t" << comMode << endl;
+//    }
+//    pedFile.close();
+//}

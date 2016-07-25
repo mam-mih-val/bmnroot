@@ -3,6 +3,7 @@
 
 #include "BmnEnums.h"
 #include "TString.h"
+#include "TTree.h"
 #include "TClonesArray.h"
 #include "BmnADCDigit.h"
 #include <iostream>
@@ -48,6 +49,7 @@ public:
     }
     
     BmnStatus FillEvent(TClonesArray *adc, TClonesArray *gem);
+    BmnStatus CalcGemPedestals(TClonesArray *adc, TTree *tree);
     
 private:
     
@@ -70,11 +72,13 @@ private:
     vector<BmnGemMapping> fMap;
     UInt_t** fPedMap; // pedestals
     UInt_t** fCMMap;  // common mode shift
+    UInt_t** fNoiseMap;  // channel noises
     BmnStatus FillMaps();
     void ReadAndPut(TString fName, map<UInt_t, UInt_t>& chMap);
     void ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, TClonesArray *gem);
     BmnStatus SearchInMap(map<UInt_t, UInt_t>* m, Int_t& strip, UInt_t ch);
     UInt_t SearchPed(UInt_t ch, UInt_t ser);
+    UInt_t SearchNoise(UInt_t chn, UInt_t ser);
         
     ifstream fMapFile;
     TString fMapFileName;

@@ -995,9 +995,8 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
         return 0x00;
     }
 
-    TString sql = TString::Format(
-        "insert into detector_parameter(detector_name, parameter_id, start_period, start_run, end_period, end_run, parameter_value) "
-        "values ($1, $2, $3, $4, $5, $6, $7)");
+    TString sql = TString::Format("insert into detector_parameter(detector_name, parameter_id, start_period, start_run, end_period, end_run, dc_serial, channel, parameter_value) "
+                                  "values ($1, $2, $3, $4, $5, $6, $7, $8, $9)");
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     stmt->NextIteration();
@@ -1007,7 +1006,9 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
     stmt->SetInt(3, start_run);
     stmt->SetInt(4, end_period);
     stmt->SetInt(5, end_run);
-    stmt->SetLargeObject(6, (void*)p_parameter_value, size_parameter_value);
+    stmt->SetUInt(6, dc_serial);
+    stmt->SetInt(7, channel);
+    stmt->SetLargeObject(8, (void*)p_parameter_value, size_parameter_value);
     //cout<<p_parameter_value<<" "<<p_parameter_value[0]<<" "<<size_parameter_value<<endl;
 
     // inserting new record to DB

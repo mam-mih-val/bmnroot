@@ -79,6 +79,7 @@ private:
     BmnStatus SearchInMap(map<UInt_t, UInt_t>* m, Int_t& strip, UInt_t ch);
     UInt_t SearchPed(UInt_t ch, UInt_t ser);
     UInt_t SearchNoise(UInt_t chn, UInt_t ser);
+    UInt_t SearchComMod(UInt_t chn, UInt_t ser);
         
     ifstream fMapFile;
     TString fMapFileName;

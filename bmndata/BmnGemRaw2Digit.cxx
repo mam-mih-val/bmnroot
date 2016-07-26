@@ -360,6 +360,13 @@ UInt_t BmnGemRaw2Digit::SearchNoise(UInt_t chn, UInt_t ser) {
     return fNoiseMap[i][chn];
 }
 
+UInt_t BmnGemRaw2Digit::SearchComMod(UInt_t chn, UInt_t ser) {
+    Int_t i = 0;
+    for (i = 0; i < kNSER; ++i)
+        if (ser == kSERIALS[i]) break;
+    return fCMMap[i][chn];
+}
+
 BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree *tree) {
     ofstream pedFile(Form("%s/input/GEM_pedestals.txt", getenv("VMCWORKDIR")));
     pedFile << "Serial\tCh_id\tPed\tComMode\tNoise" << endl;

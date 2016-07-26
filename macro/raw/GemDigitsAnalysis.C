@@ -53,12 +53,12 @@ void GemDigitsAnalysis(UInt_t runId = 0) {
             Int_t lay = digX->GetStripLayer();
             if (lay != 0) continue; //use only X
             Int_t st = digX->GetStation();
-            if (st == 0) continue; //skip small GEM
+            //if (st == 0) continue; //skip small GEM
             Int_t str = digX->GetStripNumber();
             Int_t sig = digX->GetStripSignal();
             Int_t noise = digX->GetStripSignalNoise();
 
-            if (sig * 1.0 / noise < 2.0) continue;
+            if (sig * 1.0 / noise < 3.0) continue;
             Int_t mod = digX->GetModule();
             if (mod == 0) {
                 h_X[st]->Fill(str);
@@ -74,9 +74,9 @@ void GemDigitsAnalysis(UInt_t runId = 0) {
     }
 
     TCanvas* SuperCave = new TCanvas("SuperCave", "SuperCave", 66 * 100, 41 * 100);
-    for (Int_t i = 1; i < kNST; ++i) {
+    for (Int_t i = 0; i < kNST; ++i) {
         DrawGemDigitsColz(h_X_2d[i], h_X[i], SuperCave);
-        if (i == 1) {
+        if (i == 0) {
             SuperCave->Print(Form("gem_run%04d.pdf(", runId), "");
         } else if (i == (kNST - 1)) {
             SuperCave->Print(Form("gem_run%04d.pdf)", runId), "");

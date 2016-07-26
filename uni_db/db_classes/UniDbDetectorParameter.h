@@ -292,6 +292,17 @@ class UniDbDetectorParameter
 	/// set Int+Int array for parameter
 	int SetIIArray(IIStructure* parameter_value, int element_count);
 
+        /// add new record - detector parameter value as Unsigned Integer Array
+        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                               unsigned int* parameter_value, int element_count);
+        /// add new record - detector parameter value as Unsigned Integer Array
+        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                               unsigned int dc_serial, int channel, unsigned int* parameter_value, int element_count);
+        /// get Unsigned Integer Array for parameter
+        int GetUIntArray(unsigned int*& parameter_value, int& element_count);
+        /// set Unsigned Integer Array array for parameter
+        int SetUIntArray(unsigned int* parameter_value, int element_count);
+
 	/// get parameters' values corresponding to the specified single condition
 	static TObjArray* Search(const UniDbSearchCondition& search_condition);
 	/// get parameters' values corresponding to the specified (vector) conditions

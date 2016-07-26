@@ -1621,6 +1621,69 @@ int UniDbDetectorParameter::SetIIArray(IIStructure* parameter_value, int element
     return 0;
 }
 
+// create detector parameter value as unsigned integer array
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                                        unsigned int* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(unsigned int);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
+                                                                                                 p_parameter_value, size_parameter_value, UIntArrayType);
+    if (pDetectorParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pDetectorParameter;
+}
+
+// create TDC/ADC parameter value as unsigned integer array
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                                        unsigned int dc_serial, int channel, unsigned int* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(unsigned int);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
+                                                                                                 p_parameter_value, size_parameter_value, UIntArrayType);
+    if (pDetectorParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pDetectorParameter;
+}
+
+// get value of detector parameter as unsigned integer array
+int UniDbDetectorParameter::GetUIntArray(unsigned int*& parameter_value, int& element_count)
+{
+    unsigned char* p_parameter_value = GetUNC(UIntArrayType);
+    if (p_parameter_value == NULL)
+        return - 1;
+
+    element_count = sz_parameter_value / sizeof(unsigned int);
+    parameter_value = new unsigned int[element_count];
+    memcpy(parameter_value, p_parameter_value, sz_parameter_value);
+
+    return 0;
+}
+
+// set value to detector parameter as unsigned integer array
+int UniDbDetectorParameter::SetUIntArray(unsigned int* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(unsigned int);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    int res_code = SetUNC(p_parameter_value, size_parameter_value);
+    if (res_code != 0)
+    {
+        delete [] p_parameter_value;
+        return res_code;
+    }
+
+    return 0;
+}
+
 TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
 {
     TObjArray* arrayResult = NULL;

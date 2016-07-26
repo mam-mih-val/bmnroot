@@ -43,21 +43,24 @@ public:
     Double_t GetBeamHoleRadius() { return BeamHoleRadius; }
     BmnGemStripReadoutModule* GetReadoutModule(Int_t module_num);
 
-    /* Pure virtual methods (must be defined in derived classes) */
+    //Reset all data in modules of the station
+    void Reset();
+
+    Int_t AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord,
+                                    Double_t px, Double_t py, Double_t pz,
+                                    Double_t dEloss, Int_t refID);
+
+    Int_t CountNAddedToStationPoints();
+
+    void ProcessPointsInStation();
+    Int_t CountNProcessedPointInStation();
+
+    //Pure virtual methods (must be defined in derived classes) ---------------
 
     //to which module in the station a point belong?
     virtual Int_t GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord) = 0;
-
-    virtual Int_t AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord,
-                                    Double_t px, Double_t py, Double_t pz,
-                                    Double_t dEloss, Int_t refID) = 0;
-
-    virtual Int_t CountNAddedToStationPoints() = 0;
-
-    virtual void ProcessPointsInStation() = 0;
-    virtual Int_t CountNProcessedPointInStation()= 0;
-
-
+    
+    //--------------------------------------------------------------------------
 
     ClassDef(BmnGemStripStation, 1)
 };

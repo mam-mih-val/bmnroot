@@ -161,10 +161,21 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                 }
                 case TSQLServer::kSQL_INTEGER:
                 {
-                    sColumnInfo->strVariableType = "int";
-                    sColumnInfo->strStatementType = "Int";
-                    sColumnInfo->strPrintfType = "d";
-                    sColumnInfo->strVariableName = "i_"+strColumnNameWO;
+                    TString strDataType = row->GetField(2);
+                    if (strDataType == "uint")
+                    {
+                        sColumnInfo->strVariableType = "unsigned int";
+                        sColumnInfo->strStatementType = "UInt";
+                        sColumnInfo->strPrintfType = "d";
+                        sColumnInfo->strVariableName = "ui_"+strColumnNameWO;
+                    }
+                    else
+                    {
+                        sColumnInfo->strVariableType = "int";
+                        sColumnInfo->strStatementType = "Int";
+                        sColumnInfo->strPrintfType = "d";
+                        sColumnInfo->strVariableName = "i_"+strColumnNameWO;
+                    }
 
                     break;
                 }
@@ -216,18 +227,21 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                         sColumnInfo->strPrintfType = "d";
                         sColumnInfo->strVariableName = "b_"+strColumnNameWO;
                     }
-                    else if (strDataType == "datetime")
-                    {
-                        sColumnInfo->strVariableType = "TDatime";
-                        sColumnInfo->strStatementType = "Datime";
-                        sColumnInfo->strPrintfType = "s";
-                        sColumnInfo->strVariableName = "dt_"+strColumnNameWO;
-                        sColumnInfo->isDateTime = true;
-                    }
                     else
                     {
-                        cout<<"Error: no corresponding column type: "<<row->GetField(2)<<". SQLType: "<<pColumnInfo->GetSQLType()<<endl;
-                        return -4;
+                        if (strDataType == "datetime")
+                        {
+                            sColumnInfo->strVariableType = "TDatime";
+                            sColumnInfo->strStatementType = "Datime";
+                            sColumnInfo->strPrintfType = "s";
+                            sColumnInfo->strVariableName = "dt_"+strColumnNameWO;
+                            sColumnInfo->isDateTime = true;
+                        }
+                        else
+                        {
+                            cout<<"Error: no corresponding column type: "<<row->GetField(2)<<". SQLType: "<<pColumnInfo->GetSQLType()<<endl;
+                            return -4;
+                        }
                     }
                 }
             }// switch (pColumnInfo->GetSQLType())

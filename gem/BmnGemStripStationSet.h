@@ -34,20 +34,20 @@ public:
     Double_t GetBeamHoleRadius(Int_t station_num);
     BmnGemStripStation* GetGemStation(Int_t station_num);
 
+    //Reset all data in stations of the station set
+    void Reset();
 
-    /* Pure virtual methods (must be defined in derived classes) */
+    Bool_t AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord,
+                                      Double_t px, Double_t py, Double_t pz,
+                                      Double_t dEloss, Int_t refID);
+
+    Int_t CountNAddedToDetectorPoints();
+
+    void ProcessPointsInDetector();
+    Int_t CountNProcessedPointsInDetector();
 
     //to which station in the GEM detector a point belong?
-    virtual Int_t GetPointStationOwnership(Double_t zcoord) = 0;
-
-    virtual Bool_t AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord,
-                                      Double_t px, Double_t py, Double_t pz,
-                                      Double_t dEloss, Int_t refID) = 0;
-
-    virtual Int_t CountNAddedToDetectorPoints() = 0;
-
-    virtual void ProcessPointsInDetector() = 0;
-    virtual Int_t CountNProcessedPointsInDetector() = 0;
+    Int_t GetPointStationOwnership(Double_t zcoord);
 
     ClassDef(BmnGemStripStationSet, 1);
 };

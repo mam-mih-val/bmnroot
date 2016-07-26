@@ -73,53 +73,6 @@ BmnGemStripStationSet_RunSummer2016::~BmnGemStripStationSet_RunSummer2016() {
 
 }
 
-Int_t BmnGemStripStationSet_RunSummer2016::GetPointStationOwnership(Double_t zcoord) {
-
-    for(Int_t iStation = 0; iStation < NStations; iStation++) {
-        if( (zcoord >= ZStationPositions[iStation]) && (zcoord <= (ZStationPositions[iStation]+GemStations[iStation]->GetZSize())) ) {
-            return iStation;
-        }
-    }
-
-    return -1;
-}
-
-Bool_t BmnGemStripStationSet_RunSummer2016::AddPointToDetector(Double_t xcoord, Double_t ycoord, Double_t zcoord,
-                                                           Double_t px, Double_t py, Double_t pz,
-                                                           Double_t dEloss, Int_t refID) {
-
-    Int_t station = GetPointStationOwnership(zcoord);
-
-    if(station != -1) {
-        if( GemStations[station]->AddPointToStation(xcoord, ycoord, zcoord, px, py, pz, dEloss, refID) != -1 ) return true;
-        else return false;
-    }
-
-    return false;
-}
-
-Int_t BmnGemStripStationSet_RunSummer2016::CountNAddedToDetectorPoints() {
-    Int_t points_sum = 0;
-    for(Int_t iStation = 0; iStation < NStations; iStation++) {
-        points_sum += GemStations[iStation]->CountNAddedToStationPoints();
-    }
-    return points_sum;
-}
-
-void BmnGemStripStationSet_RunSummer2016::ProcessPointsInDetector() {
-    for(Int_t iStation = 0; iStation < NStations; iStation++) {
-        GemStations[iStation]->ProcessPointsInStation();
-    }
-}
-
-Int_t BmnGemStripStationSet_RunSummer2016::CountNProcessedPointsInDetector() {
-    Int_t points_sum = 0;
-    for(Int_t iStation = 0; iStation < NStations; iStation++) {
-        points_sum += GemStations[iStation]->CountNProcessedPointInStation();
-    }
-    return points_sum;
-}
-
 void BmnGemStripStationSet_RunSummer2016::DefineBeamHoleRadiuses() {
     for(UInt_t iStation = 0; iStation < NStations; iStation++) {
         BeamHoleRadiuses[iStation] = 0.0;

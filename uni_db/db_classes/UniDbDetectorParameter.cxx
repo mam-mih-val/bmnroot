@@ -1500,13 +1500,13 @@ int UniDbDetectorParameter::SetDoubleArray(double* parameter_value, int element_
 
 // create detector parameter value as binary array
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                                        void* parameter_value, int byte_count)
+                                                                        unsigned char* parameter_value, int byte_count)
 {
     unsigned char* p_parameter_value = new unsigned char[byte_count];
     memcpy(p_parameter_value, parameter_value, byte_count);
 
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
-                                                                                                 (unsigned char*)p_parameter_value, byte_count, BinaryArrayType);
+                                                                                                 p_parameter_value, byte_count, BinaryArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
 
@@ -1515,13 +1515,13 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 
 // create TDC/ADC parameter value as binary array
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                                        unsigned int dc_serial, int channel, void* parameter_value, int byte_count)
+                                                                        unsigned int dc_serial, int channel, unsigned char* parameter_value, int byte_count)
 {
     unsigned char* p_parameter_value = new unsigned char[byte_count];
     memcpy(p_parameter_value, parameter_value, byte_count);
 
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
-                                                                                                 (unsigned char*)p_parameter_value, byte_count, BinaryArrayType);
+                                                                                                 p_parameter_value, byte_count, BinaryArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
 
@@ -1529,26 +1529,26 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // get value of detector parameter as binary array
-int UniDbDetectorParameter::GetBinaryArray(void*& parameter_value, int& element_count)
+int UniDbDetectorParameter::GetBinaryArray(unsigned char*& parameter_value, int& byte_count)
 {
     unsigned char* p_parameter_value = GetUNC(BinaryArrayType);
     if (p_parameter_value == NULL)
         return - 1;
 
-    element_count = sz_parameter_value;
-    parameter_value = new unsigned char[element_count];
+    byte_count = sz_parameter_value;
+    parameter_value = new unsigned char[byte_count];
     memcpy(parameter_value, p_parameter_value, sz_parameter_value);
 
     return 0;
 }
 
 // set value to detector parameter as binary array
-int UniDbDetectorParameter::SetBinaryArray(void* parameter_value, int element_count)
+int UniDbDetectorParameter::SetBinaryArray(unsigned char* parameter_value, int byte_count)
 {
-    unsigned char* p_parameter_value = new unsigned char[element_count];
-    memcpy(p_parameter_value, parameter_value, element_count);
+    unsigned char* p_parameter_value = new unsigned char[byte_count];
+    memcpy(p_parameter_value, parameter_value, byte_count);
 
-    int res_code = SetUNC(p_parameter_value, element_count);
+    int res_code = SetUNC(p_parameter_value, byte_count);
     if (res_code != 0)
     {
         delete [] p_parameter_value;

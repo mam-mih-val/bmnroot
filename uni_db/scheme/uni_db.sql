@@ -21,7 +21,7 @@
 -- replace true : 1
 -- replace bytea : blob
 
-CREATE DOMAIN uint AS int;
+CREATE DOMAIN uint AS bigint;
 
 -- EXPERIMENT RUN PERIODS (SESSIONS)
 create table run_period

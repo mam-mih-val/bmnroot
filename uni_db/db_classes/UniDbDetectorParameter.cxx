@@ -1744,9 +1744,10 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
         {
             case 0: if (curCondition->GetCondition() != conditionNull) continue; break;
             case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
-            case 2: strCondition += Form("%f", curCondition->GetDoubleValue()); break;
-            case 3: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
-            case 4: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
+            case 2: strCondition += Form("%u", curCondition->GetUIntValue()); break;
+            case 3: strCondition += Form("%f", curCondition->GetDoubleValue()); break;
+            case 4: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
+            case 5: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
             default:
                 cout<<"Error: value type in the search condition wasn't found, condition is skipped"<<endl;
                 continue;
@@ -1806,11 +1807,11 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
         unsigned int* tmp_dc_serial;
         if (stmt->IsNull(7)) tmp_dc_serial = NULL;
         else
-            tmp_dc_serial = new unsigned int(stmt->GetUInt(5));
+            tmp_dc_serial = new unsigned int(stmt->GetUInt(7));
         int* tmp_channel;
         if (stmt->IsNull(8)) tmp_channel = NULL;
         else
-            tmp_channel = new int(stmt->GetInt(6));
+            tmp_channel = new int(stmt->GetInt(8));
         unsigned char* tmp_parameter_value;
         tmp_parameter_value = NULL;
         Long_t tmp_sz_parameter_value = 0;

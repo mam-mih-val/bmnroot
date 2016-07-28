@@ -22,7 +22,7 @@ const TString names[kNPLANES] = {
     "VA_2", "VB_2", "UA_2", "UB_2", "YA_2", "YB_2", "XA_2", "XB_2"
 };
 
-void DchDigitsAnalysis(UInt_t runId = 0) {
+void DchDigitsAnalysis(UInt_t runId = 0, TString type = "pdf") {
     gStyle->SetOptStat(0);
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -33,7 +33,7 @@ void DchDigitsAnalysis(UInt_t runId = 0) {
     eveTree->Add(inName);
 
     TClonesArray *DchDigits;
-    eveTree->SetBranchAddress("BmnDchDigit", &DchDigits);
+    eveTree->SetBranchAddress("DCH", &DchDigits);
 
     Long64_t nEvents = eveTree->GetEntries();
     cout << nEvents << endl;
@@ -84,36 +84,61 @@ void DchDigitsAnalysis(UInt_t runId = 0) {
         myPalette[i] = FI + i;
     }
 
-    TCanvas* SuperCave = new TCanvas("SuperCave", "SuperCave", 1000, 1500);
-    for (Int_t i = 0; i < kNPLANES; ++i) {
+    if (type == "pdf") {
+        TCanvas* SuperCave = new TCanvas("SuperCave", "SuperCave", 1000, 1500);
+        for (Int_t i = 0; i < kNPLANES; ++i) {
 
-        SuperCave->cd();
-        TPad *pad1 = new TPad("", "", 0, 0, 1.0, 2.0 / 3.0);
-        //pad1->SetMargin(0.16, 0.16, 0.01, 0.0);
-        DrawWires(pad1, myPalette, v_wires[i], angles[i]);
-        SuperCave->cd();
-        TPad *pad2 = new TPad("", "", 0, 2.0 / 3.0, 1.0, 1.0);
-        //pad2->SetMargin(0.16, 0.16, 0.0, 0.2);
-        pad2->SetBottomMargin(0.0);
-        pad2->Draw();
-        pad2->cd();
-        h_wires[i]->SetLineWidth(2);
-        h_wires[i]->SetFillColor(kBlue - 10);
-        h_wires[i]->SetLineColor(kBlue);
-        h_wires[i]->GetXaxis()->SetLabelSize(0.05);
-        h_wires[i]->GetYaxis()->SetLabelSize(0.05);
-        h_wires[i]->Draw("X+");
+            SuperCave->cd();
+            TPad *pad1 = new TPad("", "", 0, 0, 1.0, 2.0 / 3.0);
+            //pad1->SetMargin(0.16, 0.16, 0.01, 0.0);
+            DrawWires(pad1, myPalette, v_wires[i], angles[i]);
+            SuperCave->cd();
+            TPad *pad2 = new TPad("", "", 0, 2.0 / 3.0, 1.0, 1.0);
+            //pad2->SetMargin(0.16, 0.16, 0.0, 0.2);
+            pad2->SetBottomMargin(0.0);
+            pad2->Draw();
+            pad2->cd();
+            h_wires[i]->SetLineWidth(2);
+            h_wires[i]->SetFillColor(kBlue - 10);
+            h_wires[i]->SetLineColor(kBlue);
+            h_wires[i]->GetXaxis()->SetLabelSize(0.05);
+            h_wires[i]->GetYaxis()->SetLabelSize(0.05);
+            h_wires[i]->Draw("X+");
 
-        //        DrawGemDigitsColz(h_wires_2d[i], h_wires[i], SuperCave);
-        if (i == 0) {
-            SuperCave->Print(Form("dch_run%04d.pdf(", runId), "");
-        } else if (i == (kNPLANES - 1)) {
-            SuperCave->Print(Form("dch_run%04d.pdf)", runId), "");
-        } else {
-            SuperCave->Print(Form("dch_run%04d.pdf", runId), "");
+            //        DrawGemDigitsColz(h_wires_2d[i], h_wires[i], SuperCave);
+            if (i == 0) {
+                SuperCave->Print(Form("dch_run%04d.pdf(", runId), "");
+            } else if (i == (kNPLANES - 1)) {
+                SuperCave->Print(Form("dch_run%04d.pdf)", runId), "");
+            } else {
+                SuperCave->Print(Form("dch_run%04d.pdf", runId), "");
+            }
         }
+        delete SuperCave;
+    } else if (type == "png") {
+        TCanvas* SuperCave = new TCanvas("SuperCave", "SuperCave", 1000, 1500);
+        for (Int_t i = 0; i < kNPLANES; ++i) {
+
+            SuperCave->cd();
+            TPad *pad1 = new TPad("", "", 0, 0, 1.0, 2.0 / 3.0);
+            pad1->SetMargin(0.16, 0.16, 0.01, 0.0);
+            DrawWires(pad1, myPalette, v_wires[i], angles[i]);
+            SuperCave->cd();
+            TPad *pad2 = new TPad("", "", 0, 2.0 / 3.0, 1.0, 1.0);
+            pad2->SetMargin(0.16, 0.16, 0.0, 0.2);
+//            pad2->SetBottomMargin(0.0);
+            pad2->Draw();
+            pad2->cd();
+            h_wires[i]->SetLineWidth(2);
+            h_wires[i]->SetFillColor(kBlue - 10);
+            h_wires[i]->SetLineColor(kBlue);
+            h_wires[i]->GetXaxis()->SetLabelSize(0.05);
+            h_wires[i]->GetYaxis()->SetLabelSize(0.05);
+            h_wires[i]->Draw("X+");
+            SuperCave->SaveAs(Form("dch_run%04d_plane%d.png", runId, i));
+        }
+        delete SuperCave;
     }
-    delete SuperCave;
 
     TCanvas* chmb1 = new TCanvas("DCH-1", "DCH-1", 1000, 1000);
     chmb1->cd();
@@ -146,7 +171,7 @@ void DrawAllWires(TCanvas* c, Int_t* palette, Float_t * wires, Float_t ang, Shor
     gr->GetYaxis()->SetLabelColor(0);
     gr->GetYaxis()->SetTickLength(0);
     gr->SetFillStyle(4000);
-//    gr->Draw("la");
+    //    gr->Draw("la");
     Float_t w = l / kNREALWIRES;
     Float_t x0 = 0.0;
     Float_t x1 = 0.0;
@@ -185,7 +210,7 @@ void DrawAllWires(TCanvas* c, Int_t* palette, Float_t * wires, Float_t ang, Shor
         Int_t colorId = Int_t(wires[j] * (nb - 1));
         line.SetLineColor(palette[colorId]);
         line.SetLineColorAlpha(palette[colorId], 0.9 - 0.9 / 7 * planeId); //transparency
-        if (colorId == 0)  {
+        if (colorId == 0) {
             line.SetLineColor(kWhite);
             line.SetLineColorAlpha(kWhite, planeId * 0.1);
         }

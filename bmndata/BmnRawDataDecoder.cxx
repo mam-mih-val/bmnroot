@@ -334,7 +334,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     BmnGemRaw2Digit *gemMapper = new BmnGemRaw2Digit(fGemMapFileName);
     BmnDchRaw2Digit *dchMapper = new BmnDchRaw2Digit(fDchMapFileName);
     BmnT0Raw2Digit *t0Mapper = new BmnT0Raw2Digit(fT0MapFileName);
-    //    BmnTof1Raw2Digit *tof400Mapper = new BmnDchRaw2Digit(fTof400MapFileName);
+    BmnTof1Raw2Digit *tof400Mapper = new BmnTof1Raw2Digit(4, 83); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     //    BmnTof2Raw2Digit *tof700Mapper = new BmnDchRaw2Digit(fTof700MapFileName);
 
     if (fPedestalRan) {
@@ -351,9 +351,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
             fRawTree->GetEntry(iEv);
 
-            t0Mapper->FillEvent(tdc, t0);
-            gemMapper->FillEvent(adc, gem);
-            dchMapper->FillEvent(tdc, sync, dch);
+            //t0Mapper->FillEvent(tdc, t0);
+            //gemMapper->FillEvent(adc, gem);
+            //dchMapper->FillEvent(tdc, sync, dch);
+            tof400Mapper->FillEvent(tdc, tof400);
 
             fDigiTree->Fill();
         }

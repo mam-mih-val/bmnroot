@@ -46,8 +46,9 @@ void add_Tof1_INL(string filename, int sP = 4, int sR = 61, int eP = 4, int eR =
 		istringstream ns;
 		
 		//Read the channel id
-		ss >> channel_id;
-		cout << '\r' << std::setw(30) << ' ' << "\rLoading channel " << channel_id << std::flush;
+		char dummy;
+		ss >> channel_id >> dummy; //"dummy" is needed to read the "=" character
+		cout << "Loading channel " << channel_id << "..." << std::flush;
 		
 		//Read until the end of sstream (line)
 		int i_bin = 0;
@@ -59,11 +60,11 @@ void add_Tof1_INL(string filename, int sP = 4, int sR = 61, int eP = 4, int eR =
 			
 			//Read until the ',' character or the end of line
 			std::getline(ss, number, ',');
-			
-			ns.str(number);
+			ns.str(number); ns.clear();
 			ns >> INL[channel_id][i_bin];
 			i_bin++;
 		}
+		cout << " loaded " << i_bin << " bins" << endl;
 		lines_num++;
 	}
 	

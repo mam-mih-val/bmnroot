@@ -17,9 +17,8 @@ void selecting_runs()
     TObjArray* pRunArray = UniDbRun::Search(arrayConditions);
 
     // clean memory for conditions after search
-    for (int i = 0; i < arrayConditions.GetEntriesFast(); i++)
-        delete (UniDbSearchCondition*) arrayConditions[i];
-    arrayConditions.Clear();
+    arrayConditions.SetOwner(kTRUE);
+    arrayConditions.Delete();
 
     // print run numbers and file path with raw data
     for (int i = 0; i < pRunArray->GetEntriesFast(); i++)
@@ -28,9 +27,7 @@ void selecting_runs()
         cout<<"Run (d-Cu): period - "<<pRun->GetPeriodNumber()<<", run - "<<pRun->GetRunNumber()<<", file path - "<<pRun->GetFilePath()<<endl;
     }
 
-    // clean memory after work
-    for (int i = 0; i < pRunArray->GetEntriesFast(); i++)
-        delete (UniDbRun*)pRunArray->At(i);
+    // clean memory after work - deleting the array of runs
     delete pRunArray;
 
     cout << "\nMacro finished successfully" << endl;

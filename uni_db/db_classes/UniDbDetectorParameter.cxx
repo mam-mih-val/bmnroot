@@ -195,7 +195,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(int value_i
 	unsigned int* tmp_dc_serial;
 	if (stmt->IsNull(7)) tmp_dc_serial = NULL;
 	else
-            tmp_dc_serial = new unsigned int(stmt->GetUInt(7));
+		tmp_dc_serial = new unsigned int(stmt->GetUInt(7));
 	int* tmp_channel;
 	if (stmt->IsNull(8)) tmp_channel = NULL;
 	else
@@ -646,7 +646,7 @@ int UniDbDetectorParameter::SetParameterValue(unsigned char* parameter_value, Lo
 void UniDbDetectorParameter::Print()
 {
 	cout<<"Table 'detector_parameter'";
-	cout<<". value_id: "<<i_value_id<<". detector_name: "<<str_detector_name<<". parameter_id: "<<i_parameter_id<<". start_period: "<<i_start_period<<". start_run: "<<i_start_run<<". end_period: "<<i_end_period<<". end_run: "<<i_end_run<<". dc_serial: "<<(ui_dc_serial == NULL? "NULL": TString::Format("%d", *ui_dc_serial))<<". channel: "<<(i_channel == NULL? "NULL": TString::Format("%d", *i_channel))<<". parameter_value: "<<(void*)blob_parameter_value<<", binary size: "<<sz_parameter_value<<endl;
+	cout<<". value_id: "<<i_value_id<<". detector_name: "<<str_detector_name<<". parameter_id: "<<i_parameter_id<<". start_period: "<<i_start_period<<". start_run: "<<i_start_run<<". end_period: "<<i_end_period<<". end_run: "<<i_end_run<<". dc_serial: "<<(ui_dc_serial == NULL? "NULL": TString::Format("%u", *ui_dc_serial))<<". channel: "<<(i_channel == NULL? "NULL": TString::Format("%d", *i_channel))<<". parameter_value: "<<(void*)blob_parameter_value<<", binary size: "<<sz_parameter_value<<endl;
 
 	return;
 }
@@ -841,7 +841,7 @@ int UniDbDetectorParameter::GetChannelCount(TString detector_name, TString param
         "from detector_parameter dp join parameter_ p on dp.parameter_id = p.parameter_id "
         "where lower(detector_name) = lower('%s') and lower(parameter_name) = lower('%s') and "
         "(not (((%d < start_period) or ((%d = start_period) and (%d < start_run))) or ((%d > end_period) or ((%d = end_period) and (%d > end_run))))) and "
-        "dc_serial = %d", detector_name.Data(), parameter_name.Data(), period_number, period_number, run_number, period_number, period_number, run_number, dc_serial);
+        "dc_serial = %u", detector_name.Data(), parameter_name.Data(), period_number, period_number, run_number, period_number, period_number, run_number, dc_serial);
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     // get table record from DB
@@ -1823,6 +1823,7 @@ TObjArray* UniDbDetectorParameter::Search(const TObjArray& search_conditions)
 
     delete stmt;
 
+    arrayResult->SetOwner(kTRUE);
     return arrayResult;
 }
 

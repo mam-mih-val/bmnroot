@@ -171,6 +171,7 @@ void BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
 					//If the array is too small, we'll just assume there is no INL (== 0) on the "unfilled" bins
 					//Memcpy is much faster than a loop over all TDC bins (1024)
 					memcpy(INLelem, inl, inl_elem_count * sizeof(double));
+					
 					delete[] inl;
 				break;
 				
@@ -268,6 +269,93 @@ void BmnTof1Raw2Digit::saveMapToFile(string placementMapFile, string mapFile) {
 	}
 }
 
+//Save INL to file
+void BmnTof1Raw2Digit::setINLFromFile(string INLFile) {
+	fstream ff(INLFile.c_str(), std::fstream::in);
+	if(ff.fail()) {cerr << "Failed to open " << INLFile << endl; return;}
+	unsigned int TDCSerial;
+	
+	//Read the header from the file
+	//The format of the header seems to be [TDC-THESERIAL-inl_corr]
+	ff.ignore(10, '-');
+	ff >> std::hex >> TDCSerial >> std::dec;
+	ff.ignore(1000, '\n');
+	
+	//Find the TDC
+	Tof1TDCMapIter TDCPair = TDCMap.find(TDCSerial);
+	if(TDCPair == TDCMap.end()) {
+		cerr << "Tof400: TDC " << std::setfill('0') << std::setw(8) << std::hex << TDCSerial << std::setfill(' ') << std::dec;
+		cerr << " isn't in the placement map." << endl;
+		ff.close(); return;
+	}
+	
+	unsigned int chan_id = 0;
+	unsigned int lines_num = 0;
+	
+	while(!ff.eof()) {
+		string line; char dummy;
+		
+		std::getline(ff, line, '\n');
+		if(ff.eof()) {break;}
+		if(line == "") {continue;}
+		istringstream ss(line);
+		
+		ss >> chan_id >> dummy;
+		if(dummy != '=') {cerr << "Tof400: Wrong INL file format." << endl; ff.close(); return;}
+		if(chan_id > TOF1_CHANNEL_NUMBER) {cerr << "Tof400: Wrong channel in in the INL file" << endl; ff.close(); return;}
+		
+		double* INLelem = (TDCPair->second).INL[chan_id];
+		
+		unsigned int i_bin = 0;
+		while(ss.tellg() != -1) {
+			if(i_bin > TOF1_BIN_NUMBER) {
+				cerr << "Tof400: INL File contains too many bins in channel." << endl;
+				ff.close(); return;
+			}
+			if(ss.peek()==',') {ss.ignore();}
+			ss >> INLelem[i_bin]; i_bin++;
+		}
+		if(i_bin != TOF1_BIN_NUMBER) {
+			cout << "Warning: wrong number of bins in the INL file for channel " << chan_id << " (" << i_bin << ")" << endl;
+		}
+		lines_num++;
+	}
+	
+	if(lines_num != TOF1_CHANNEL_NUMBER) {
+		cout << "Warning: wrong number of lines in the INL file (" << lines_num << endl;
+	}
+	cout << "Tof400: INL for TDC " << std::setfill('0') << std::setw(8) << std::hex << TDCSerial << std::setfill(' ') << std::dec << " loaded succesfully from INL file." << endl;
+}
+
+//Load INL from file
+void BmnTof1Raw2Digit::saveINLToFile(string INLFile, unsigned int TDCSerial) {
+	//Find the TDC
+	Tof1TDCMapIter TDCPair = TDCMap.find(TDCSerial);
+	if(TDCPair == TDCMap.end()) {
+		cerr << "Tof400: TDC " << std::setfill('0') << std::setw(8) << std::hex << TDCSerial << std::setfill(' ') << std::dec;
+		cerr << " isn't in the placement map." << endl;
+		return;
+	}
+	
+	fstream ff(INLFile, std::fstream::out);
+	ff << "[TDC-" << std::setfill('0') << std::setw(8) << std::hex << TDCSerial << std::dec << std::setfill(' ') << "-inl_corr]" << endl;
+	
+	
+	for(int chan = 0; chan<TOF1_CHANNEL_NUMBER; chan++) {
+		ff << chan << "=";
+		double* INLelem = (TDCPair->second).INL[chan];
+		for(int bin = 0; bin<TOF1_BIN_NUMBER; bin++) {
+			ff << INLelem[bin];
+			if(bin!=TOF1_BIN_NUMBER-1) {
+				ff << ", ";
+			}
+		}
+		if(chan!=TOF1_CHANNEL_NUMBER - 1) {ff << endl;}
+	}
+	
+	ff.close();
+}
+
 //Main function. "Converts" the TObjArray *data of BmnTDCDigit to the TObjArray *output of BmnTof1Digit
 void BmnTof1Raw2Digit::FillEvent(TClonesArray *data, TClonesArray *output) {
 	//0. Initialize: clear all the tempory times in the BmnTof1TDCParameters
@@ -336,6 +424,11 @@ void BmnTof1Raw2Digit::FillEvent(TClonesArray *data, TClonesArray *output) {
 		//Get the time from the TDC value
 		//t = (val + INL[channel][val % 1024]) * (24ns / 1024)
 		//See TOF1_BIN_NUMBER and TOF1_MAX_TIME defines in the .h file
+		/*
+		if(par->INL[rchan][(si->GetValue()) % TOF1_BIN_NUMBER] == 0) {
+			cout << std::hex << TDC_Serial << std::dec << rchan << ":" << ((si->GetValue()) % TOF1_BIN_NUMBER) << " - " << par->INL[rchan][(si->GetValue()) % TOF1_BIN_NUMBER] << endl;
+		}
+		*/
 		double t = (si->GetValue() + par->INL[rchan][(si->GetValue()) % TOF1_BIN_NUMBER])* TOF1_MAX_TIME / double(TOF1_BIN_NUMBER);
 		
 		if(si->GetLeading()) {

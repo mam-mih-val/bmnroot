@@ -14,6 +14,7 @@
 #include <set>
 #include <utility>
 #include <fstream>
+#include <sstream>
 
 //Side of the strip is stored as a bool variable
 #define TOF1_LEFT true
@@ -52,9 +53,12 @@ class BmnTof1Raw2Digit {
 		BmnTof1Raw2Digit(int nPeriod, int nRun); //Calls setRun(...)
 		~BmnTof1Raw2Digit(); //Destructor
 		
-		void setRun(int nPerion, int nRun); //Load mapping from the DB for run #nRun in period #nPeriod
-		void setMapFromFile(string placementMapFile, string mapFile); //Load mapping from two files
-		void saveMapToFile(string placementMapFile, string mapFile); //Save the mapping to two files
+		void setRun(int nPerion, int nRun); //Load mapping and INL from the DB for run #nRun in period #nPeriod
+		void setMapFromFile(std::string placementMapFile, std::string mapFile); //Load mapping from two files
+		void saveMapToFile(std::string placementMapFile, std::string mapFile); //Save the mapping to two files
+		
+		void setINLFromFile(std::string INLFile);	//Load INL from an INI file
+		void saveINLToFile(std::string INLFile, unsigned int TDCSerial); //Save INL for TDCSerial to an INI file
 		
 		void print(); //Prints some info
 		

@@ -167,14 +167,14 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                 if (gemM->gemChHi - gemM->gemChLo < 128) realChannel += 2048;
                 if (gemM->hotZone) {
                     if (SearchInMap(&X0_big_l, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 2;
+                        mod = 3;
                         lay = 0;
                         ped = SearchPed(ch2048, gemM->serial);
                         noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     if (SearchInMap(&Y0_big_l, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 2;
+                        mod = 3;
                         lay = 1;
                         ped = SearchPed(ch2048, gemM->serial);
                         noise = SearchNoise(ch2048, gemM->serial);
@@ -182,7 +182,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                     }
                 } else {
                     if (SearchInMap(&X1_big_l, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 0;
+                        mod = 1;
                         lay = 0;
                         ped = SearchPed(ch2048, gemM->serial);
                         noise = SearchNoise(ch2048, gemM->serial);
@@ -190,7 +190,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                     }
 
                     if (SearchInMap(&Y1_big_l, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 0;
+                        mod = 1;
                         lay = 1;
                         ped = SearchPed(ch2048, gemM->serial);
                         noise = SearchNoise(ch2048, gemM->serial);
@@ -209,14 +209,14 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                 if (gemM->gemChHi - gemM->gemChLo < 128) realChannel += 2048;
                 if (gemM->hotZone) {
                     if (SearchInMap(&X0_big_r, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 3;
+                        mod = 2;
                         lay = 0;
                         ped = SearchPed(ch2048, gemM->serial);
                         noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     if (SearchInMap(&Y0_big_r, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 3;
+                        mod = 2;
                         lay = 1;
                         ped = SearchPed(ch2048, gemM->serial);
                         noise = SearchNoise(ch2048, gemM->serial);
@@ -224,14 +224,14 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                     }
                 } else {
                     if (SearchInMap(&X1_big_r, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 1;
+                        mod = 0;
                         lay = 0;
                         ped = SearchPed(ch2048, gemM->serial);
                         noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     if (SearchInMap(&Y1_big_r, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 1;
+                        mod = 0;
                         lay = 1;
                         ped = SearchPed(ch2048, gemM->serial);
                         noise = SearchNoise(ch2048, gemM->serial);

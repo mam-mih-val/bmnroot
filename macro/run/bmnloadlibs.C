@@ -38,6 +38,7 @@ void bmnloadlibs()
   gSystem->Load("libCat");
 
   gSystem->Load("libUniDb");
+  gSystem->Load("libBmnAlignment");
 }
 
 TString find_path_to_URQMD_files ()

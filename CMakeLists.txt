@@ -194,6 +194,8 @@ add_subdirectory (QA)
 add_subdirectory (KF)
 add_subdirectory (cat)
 add_subdirectory (uni_db)
+add_subdirectory (alignment)
+
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/CMakeLists.txt")
  add_subdirectory (macro/mpd_scheduler)

@@ -9,6 +9,7 @@
 
 #include "TArrayI.h"
 #include "TObject.h"
+#include "BmnGemStripHit.h"
 
 #include <map>
 
@@ -89,6 +90,10 @@ public:
     const vector<BmnFitNode>& GetFitNodes() const {
         return fFitNodes;
     }
+    
+    const vector <BmnGemStripHit*> GetHits() {
+        return fHitsPertainingToTrack;
+    }
 
     /** Modifiers  **/
     void SetParamFirst(FairTrackParam& par) {
@@ -131,6 +136,10 @@ public:
         fLength = length;
     }
 
+    void SetHits(vector <BmnGemStripHit*> hits) {
+        fHitsPertainingToTrack = hits;
+    }
+
 
 
 private:
@@ -166,6 +175,8 @@ private:
     std::map<Float_t, Int_t> fHitMap; //! 
 
     Bool_t fUsed; //needed to check seeds splitting
+    
+    vector<BmnGemStripHit*> fHitsPertainingToTrack;
 
     ClassDef(BmnGemTrack, 1);
 

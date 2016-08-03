@@ -1155,7 +1155,7 @@ void BmnGemStripReadoutModule::FindClustersInLayer(vector<Double_t> &StripLayer,
     //Double_t threshold = LandauMPV*MinSignalCutThreshold*Gain;
     //Double_t threshold = 0.0; //temporary for test
     Double_t threshold = StripSignalThreshold;
-
+    
     StripCluster cluster;
 
     Bool_t ascent = false;

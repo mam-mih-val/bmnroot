@@ -36,6 +36,9 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fNevents = 0;
     fMaxEvent = 0;
     t0 = NULL;
+    bc1 = NULL;
+    bc2 = NULL;
+    veto = NULL;
     fTime_ns = 0;
     fTime_s = 0;
     fRawTree = NULL;
@@ -57,7 +60,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fRawFileName = "";
     fDigiFileName = "";
     fDchMapFileName = "";
-    fT0MapFileName = "";
+    fTrigMapFileName = "";
     fGemMapFileName = "";
     fTof400MapFileName = "";
     fTof700MapFileName = "";
@@ -66,6 +69,9 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
 
     t0 = NULL;
+    bc2 = NULL;
+    bc1 = NULL;
+    veto = NULL;
     fTime_ns = 0;
     fTime_s = 0;
     fRawTree = NULL;
@@ -91,7 +97,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
     fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     fDchMapFileName = "";
-    fT0MapFileName = "";
+    fTrigMapFileName = "";
     fGemMapFileName = "";
     fTof400MapFileName = "";
     fTof700MapFileName = "";
@@ -312,17 +318,23 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     tof400 = new TClonesArray("BmnTof1Digit");
     tof700 = new TClonesArray("BmnTof2Digit");
     dch = new TClonesArray("BmnDchDigit");
-    t0 = new TClonesArray("BmnT0Digit");
+    t0 = new TClonesArray("BmnTrigDigit");
+    bc1 = new TClonesArray("BmnTrigDigit");
+    bc2 = new TClonesArray("BmnTrigDigit");
+    veto = new TClonesArray("BmnTrigDigit");
 
     fDigiTree->Branch("run", &fRunId, "bmn_run/I");
     fDigiTree->Branch("event", &fEventId, "bmn_event/I");
     fDigiTree->Branch("time_sec", &fTime_s, "bmn_time_sec/I");
     fDigiTree->Branch("time_ns", &fTime_ns, "bmn_time_ns/I");
-    fDigiTree->Branch("BmnT0Digit", &t0);
-    fDigiTree->Branch("BmnDchDigit", &dch);
-    fDigiTree->Branch("BmnGemStripDigit", &gem);
-    fDigiTree->Branch("tof400_digit", &tof400);
-    fDigiTree->Branch("tof700_digit", &tof700);
+    fDigiTree->Branch("T0", &t0);
+    fDigiTree->Branch("BC1", &bc1);
+    fDigiTree->Branch("BC2", &bc2);
+    fDigiTree->Branch("VETO", &veto);
+    fDigiTree->Branch("DCH", &dch);
+    fDigiTree->Branch("GEM", &gem);
+    fDigiTree->Branch("TOF400", &tof400);
+    fDigiTree->Branch("TOF700", &tof700);
 
     //    fDchMapFile.open(fDchMapFileName.Data(), ifstream::in);
     //    fDchMapFile.open(fGemMapFileName.Data(), ifstream::in);
@@ -333,9 +345,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
     BmnGemRaw2Digit *gemMapper = new BmnGemRaw2Digit(fGemMapFileName);
     BmnDchRaw2Digit *dchMapper = new BmnDchRaw2Digit(fDchMapFileName);
-    BmnT0Raw2Digit *t0Mapper = new BmnT0Raw2Digit(fT0MapFileName);
-    //    BmnTof1Raw2Digit *tof400Mapper = new BmnDchRaw2Digit(fTof400MapFileName);
-    //    BmnTof2Raw2Digit *tof700Mapper = new BmnDchRaw2Digit(fTof700MapFileName);
+    BmnTrigRaw2Digit *trigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
+    BmnTof1Raw2Digit *tof400Mapper = new BmnTof1Raw2Digit(4, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+    //    BmnTof2Raw2Digit *tof700Mapper = new BmnTof2Raw2Digit(fTof700MapFileName);
 
     if (fPedestalRan) {
         gemMapper->CalcGemPedestals(adc, fRawTree);
@@ -348,12 +360,16 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             tof400->Clear();
             tof700->Clear();
             t0->Clear();
+            bc1->Clear();
+            bc2->Clear();
+            veto->Clear();
 
             fRawTree->GetEntry(iEv);
 
-            t0Mapper->FillEvent(tdc, t0);
+            trigMapper->FillEvent(tdc, t0, bc1, bc2, veto);
             gemMapper->FillEvent(adc, gem);
             dchMapper->FillEvent(tdc, sync, dch);
+            tof400Mapper->FillEvent(tdc, tof400);
 
             fDigiTree->Fill();
         }
@@ -369,42 +385,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     delete gem;
     delete dch;
     delete t0;
+    delete bc1;
+    delete bc2;
+    delete veto;
     delete tof400;
     delete tof700;
 
     return kBMNSUCCESS;
 }
-
-//BmnStatus BmnRawDataDecoder::CalcGemPedestals() {
-//    ofstream pedFile(Form("%s/input/GEM_pedestals.txt", getenv("VMCWORKDIR")));
-//    pedFile << "Serial\tCh_id\tPed\tComMode" << endl;
-//    pedFile << "===============================" << endl;
-//    const UShort_t nSmpl = 32;
-//    const UInt_t nDigs = 640; // 10 ADC x 64 ch
-//    ULong_t pedestals[nDigs][nSmpl];
-//    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc)
-//        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-//            pedestals[iAdc][iSmpl] = 0;
-//
-//    for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
-//        if (iEv % 1 == 0) cout << "Decoding event #" << iEv << endl;
-//        fRawTree->GetEntry(iEv);
-//        for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
-//            BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
-//            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-//                pedestals[iAdc][iSmpl] += ((adcDig->GetValue())[iSmpl] / 16);
-//        }
-//    }
-//    UInt_t comMode = 0;
-//    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
-//        BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
-//        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-//            pedestals[iAdc][iSmpl] /= fNevents;
-//            comMode += pedestals[iAdc][iSmpl];
-//        }
-//        comMode /= nSmpl;
-//        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-//            pedFile << hex << adcDig->GetSerial() << dec << "\t" << adcDig->GetChannel() * nSmpl + iSmpl << "\t" << pedestals[iAdc][iSmpl] << "\t" << comMode << endl;
-//    }
-//    pedFile.close();
-//}

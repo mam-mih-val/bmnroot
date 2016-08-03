@@ -14,6 +14,7 @@ class UniDbSearchCondition
  public:
     UniDbSearchCondition(enumColumns column, enumConditions condition);
     UniDbSearchCondition(enumColumns column, enumConditions condition, int value);
+    UniDbSearchCondition(enumColumns column, enumConditions condition, unsigned int value);
     UniDbSearchCondition(enumColumns column, enumConditions condition, double value);
     UniDbSearchCondition(enumColumns column, enumConditions condition, TString value);
     UniDbSearchCondition(enumColumns column, enumConditions condition, TDatime value);
@@ -24,6 +25,7 @@ class UniDbSearchCondition
     enumConditions GetCondition() {return eCondition;}
     int GetValueType() {return iValueType;}
     int GetIntValue() {return iValue;}
+    unsigned int GetUIntValue() {return uiValue;}
     double GetDoubleValue() {return dValue;}
     TString GetStringValue() {return tstrValue;}
     TDatime GetDatimeValue() {return dtValue;}
@@ -34,9 +36,10 @@ class UniDbSearchCondition
     enumColumns eColumn;
     enumConditions eCondition;
 
-    // 1 - int, 2 - double, 3 - TString, 4- TDatime
+    // 1 - int, 2 - unsigned int, 3 - double, 4 - TString, 5 - TDatime
     int iValueType;
     int iValue;
+    unsigned int uiValue;
     double dValue;
     TString tstrValue;
     TDatime dtValue;

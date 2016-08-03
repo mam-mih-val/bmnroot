@@ -204,22 +204,22 @@ class UniDbDetectorParameter
 	int SetUNC(unsigned char* p_parameter_value, Long_t size_parameter_value);
 
 	// function set with different types
-	/// add new record - detector parameter value as BOOL
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    /// add new record - detector parameter value as BOOL
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                bool parameter_value);
-	/// add new record - TDC/ADC parameter value as BOOL
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    /// add new record - TDC/ADC parameter value as BOOL
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                unsigned int dc_serial, int channel, bool parameter_value);
 	/// get boolean value of parameter
 	bool GetBool();
 	/// set boolean value to parameter
 	int SetBool(bool parameter_value);
 
-	/// add new record - detector parameter value as INTEGER
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    /// add new record - detector parameter value as INTEGER
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                int parameter_value);
-	/// add new record - TDC/ADC parameter value as INTEGER
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    /// add new record - TDC/ADC parameter value as INTEGER
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                unsigned int dc_serial, int channel, int parameter_value);
 	/// get integer value of parameter
 	int GetInt();
@@ -227,10 +227,10 @@ class UniDbDetectorParameter
 	int SetInt(int parameter_value);
 
 	/// add new record - detector parameter value as DOUBLE
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                double parameter_value);
 	/// add new record - TDC/ADC parameter value as DOUBLE
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                unsigned int dc_serial, int channel, double parameter_value);
 	/// get double value of parameter
 	double GetDouble();
@@ -238,10 +238,10 @@ class UniDbDetectorParameter
 	int SetDouble(double parameter_value);
 
 	/// add new record - detector parameter value as STRING
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                TString parameter_value);
 	/// add new record - detector parameter value as STRING
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                unsigned int dc_serial, int channel, TString parameter_value);
 	/// get string value of parameter
 	TString GetString();
@@ -249,10 +249,10 @@ class UniDbDetectorParameter
 	int SetString(TString parameter_value);
 
 	/// add new record - detector parameter value as Integer Array
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                int* parameter_value, int element_count);
 	/// add new record - detector parameter value as Integer Array
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                unsigned int dc_serial, int channel, int* parameter_value, int element_count);
 	/// get Integer Array for parameter
 	int GetIntArray(int*& parameter_value, int& element_count);
@@ -260,37 +260,48 @@ class UniDbDetectorParameter
 	int SetIntArray(int* parameter_value, int element_count);
 
 	/// add new record - detector parameter value as Double Array
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                double* parameter_value, int element_count);
 	/// add new record - detector parameter value as Double Array
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                unsigned int dc_serial, int channel, double* parameter_value, int element_count);
 	/// get Double Array for parameter
 	int GetDoubleArray(double*& parameter_value, int& element_count);
 	/// set Double Array array for parameter
 	int SetDoubleArray(double* parameter_value, int element_count);
 
-        /// add new record - detector parameter value as Binary Array
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                               void* parameter_value, int byte_count);
-        /// add new record - detector parameter value as Binary Array
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                               unsigned int dc_serial, int channel, void* parameter_value, int byte_count);
-        /// get Binary Array for parameter
-        int GetBinaryArray(void*& parameter_value, int& byte_count);
-        /// set Binary Array array for parameter
-        int SetBinaryArray(void* parameter_value, int byte_count);
+    /// add new record - detector parameter value as Binary Array
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                               unsigned char* parameter_value, int byte_count);
+    /// add new record - detector parameter value as Binary Array
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                               unsigned int dc_serial, int channel, unsigned char* parameter_value, int byte_count);
+    /// get Binary Array for parameter
+    int GetBinaryArray(unsigned char*& parameter_value, int& byte_count);
+    /// set Binary Array array for parameter
+    int SetBinaryArray(unsigned char* parameter_value, int byte_count);
 
 	/// add new record - detector parameter value as Int+Int Array
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                IIStructure* parameter_value, int element_count);
 	/// add new record - detector parameter value as Int+Int Array
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                unsigned int dc_serial, int channel, IIStructure* parameter_value, int element_count);
 	/// get Int+Int array for parameter
 	int GetIIArray(IIStructure*& parameter_value, int& element_count);
 	/// set Int+Int array for parameter
 	int SetIIArray(IIStructure* parameter_value, int element_count);
+
+    /// add new record - detector parameter value as Unsigned Integer Array
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                               unsigned int* parameter_value, int element_count);
+    /// add new record - detector parameter value as Unsigned Integer Array
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                               unsigned int dc_serial, int channel, unsigned int* parameter_value, int element_count);
+    /// get Unsigned Integer Array for parameter
+    int GetUIntArray(unsigned int*& parameter_value, int& element_count);
+    /// set Unsigned Integer Array array for parameter
+    int SetUIntArray(unsigned int* parameter_value, int element_count);
 
 	/// get parameters' values corresponding to the specified single condition
 	static TObjArray* Search(const UniDbSearchCondition& search_condition);
@@ -301,6 +312,13 @@ class UniDbDetectorParameter
 };
 
 /*// for template
+//template<class T>
+//static void template_example(T a)
+//{
+//    std::cout<<a<<std::endl;
+//    return;
+//}
+
 #ifdef __CINT__
   #pragma link C++ function UniDbDetectorParameter::CreateDetectorParameter(TString, TString, int, int, bool);
 #else

@@ -1,18 +1,18 @@
-#ifndef BMNT0DIGIT_H
-#define BMNT0DIGIT_H
+#ifndef BMNTRIGDIGIT_H
+#define BMNTRIGDIGIT_H
 
 #include "TNamed.h"
 
 using namespace std;
 
-class BmnT0Digit : public TNamed {
+class BmnTrigDigit : public TNamed {
 public:
 
     /** Default constructor **/
-    BmnT0Digit();
+    BmnTrigDigit();
 
     /** Constructor to use **/
-    BmnT0Digit(Short_t iDet, Short_t iMod, Float_t iTime, Float_t iAmp);
+    BmnTrigDigit(Short_t iDet, Short_t iMod, Float_t iTime, Float_t iAmp);
 
     Short_t GetDet() const {
         return fDet;
@@ -47,7 +47,7 @@ public:
     }
 
     /** Destructor **/
-    virtual ~BmnT0Digit();
+    virtual ~BmnTrigDigit();
 
 private:
 
@@ -56,10 +56,10 @@ private:
     Float_t fTime;
     Float_t fAmp;
 
-    ClassDef(BmnT0Digit, 1);
+    ClassDef(BmnTrigDigit, 1);
 
 };
 
 
-#endif /* BMNT0DIGIT_H */
+#endif /* BMNTRIGDIGIT_H */
 

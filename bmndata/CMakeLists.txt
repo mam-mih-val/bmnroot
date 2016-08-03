@@ -17,6 +17,8 @@ ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/globaltracking
 ${CMAKE_SOURCE_DIR}/gem
+${CMAKE_SOURCE_DIR}/uni_db
+${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -75,7 +77,7 @@ BmnHit.cxx
 BmnMwpcDigit.cxx
 BmnTof1Digit.cxx
 BmnTof2Digit.cxx
-BmnT0Digit.cxx
+BmnTrigDigit.cxx
 BmnDchDigit.cxx
 BmnEcalDigit.cxx
 BmnADCDigit.cxx
@@ -87,7 +89,7 @@ BmnMSCDigit.cxx
 BmnDchRaw2Digit.cxx
 BmnZDCRaw2Digit.cxx
 BmnGemRaw2Digit.cxx
-BmnT0Raw2Digit.cxx
+BmnTrigRaw2Digit.cxx
 BmnZDCDigit.cxx
 BmnTof2Raw2Digit.cxx
 BmnTof1Raw2Digit.cxx

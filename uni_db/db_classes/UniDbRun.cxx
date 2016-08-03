@@ -1280,9 +1280,10 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
         {
             case 0: if (curCondition->GetCondition() != conditionNull) continue; break;
             case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
-            case 2: strCondition += Form("%f", curCondition->GetDoubleValue()); break;
-            case 3: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
-            case 4: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
+            case 2: strCondition += Form("%u", curCondition->GetUIntValue()); break;
+            case 3: strCondition += Form("%f", curCondition->GetDoubleValue()); break;
+            case 4: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
+            case 5: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
             default:
                 cout<<"Error: value type in the search condition wasn't found, condition is skipped"<<endl;
                 continue;

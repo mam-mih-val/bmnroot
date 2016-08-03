@@ -1,45 +1,81 @@
 #ifndef BMNTOF1RAW2DIGIT_H
 #define	BMNTOF1RAW2DIGIT_H 
 
-#define TOF1_MAX_CHANNEL 96
-
 #include "TString.h"
 #include "TClonesArray.h"
 #include "BmnTDCDigit.h"
-#include "BmnADCDigit.h"
-#include "BmnSyncDigit.h"
+#include "BmnTof1Digit.h"
 #include <iostream>
 #include "Riostream.h"
-#include "BmnTof1Digit.h"
 #include <cstdlib>
+#include <UniDbDetectorParameter.h>
+#include <string>
+#include <map>
+#include <set>
+#include <utility>
+#include <fstream>
+#include <sstream>
 
-class Bmn_Tof1_map_element{
-public:
-   Bmn_Tof1_map_element(){
-     plane=side=id,slot,chan,strip=0;
-   } 
-   int plane;
-   char side;            
-   int id,slot,chan,strip;   
+//Side of the strip is stored as a bool variable
+#define TOF1_LEFT true
+#define TOF1_RIGHT false
+
+#define TOF1_CHANNEL_NUMBER 72
+#define TOF1_BIN_NUMBER 1024
+#define TOF1_MAX_TIME (24.) //In ns?
+#define TOF1_TDC_TYPE (0x12) //TDC72VHL
+
+//A simple class to compare the TDCDigits. See .cxx code
+struct _Tof1TDCCompare {
+	bool operator()(const BmnTDCDigit& a, const BmnTDCDigit& b);
 };
 
-class BmnTof1Raw2Digit{
+//Map element
+struct BmnTof1Map2 {
+	Short_t plane;
+	Short_t strip;
+	Bool_t side;
+	BmnTof1Map2(Short_t, Short_t, Bool_t);
+	BmnTof1Map2();
+};
 
-public:
-    BmnTof1Raw2Digit(TString mappingFile);
-    BmnTof1Raw2Digit();
-    void print();
-    char *getPlaneName(int i);
-    void getEventInfo(long long *ev,long long *t1,long long *t2);
-    void fillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0, TClonesArray *tof2digit);
+//TDC parameters
+struct BmnTof1TDCParameters {
+	double INL[TOF1_CHANNEL_NUMBER][TOF1_BIN_NUMBER]; //INL
+	BmnTof1Map2 ChannelMap[TOF1_CHANNEL_NUMBER]; //A BmnTof1Map2 for every channel
+	double t[TOF1_CHANNEL_NUMBER]; //To store the value temporarily. See .cxx code
+	BmnTof1TDCParameters(); //Simple constructor
+};
 
-private:
-    int n_rec;
-    Bmn_Tof1_map_element map[TOF1_MAX_CHANNEL];
-    char Bmn_Tof1_names[10][4];
-    long long EVENT,TIME_SEC,TIME_NS;
-    float T0;
-    ClassDef(BmnTof1Raw2Digit, 1);
+class BmnTof1Raw2Digit {
+	public:		
+		BmnTof1Raw2Digit(); //BmnTof1Raw2Digit main constructor
+		BmnTof1Raw2Digit(int nPeriod, int nRun); //Calls setRun(...)
+		~BmnTof1Raw2Digit(); //Destructor
+		
+		void setRun(int nPerion, int nRun); //Load mapping and INL from the DB for run #nRun in period #nPeriod
+		void setMapFromFile(std::string placementMapFile, std::string mapFile); //Load mapping from two files
+		void saveMapToFile(std::string placementMapFile, std::string mapFile); //Save the mapping to two files
+		
+		void setINLFromFile(std::string INLFile);	//Load INL from an INI file
+		void saveINLToFile(std::string INLFile, unsigned int TDCSerial); //Save INL for TDCSerial to an INI file
+		
+		void print(); //Prints some info
+		
+		void FillEvent(TClonesArray *data, TClonesArray *tof1digit); //
+		
+		static UShort_t ToGlobalChannel(UChar_t HptdcId, UChar_t channel);
+	private:
+		ClassDef(BmnTof1Raw2Digit, 1);
+		void init(); //BmnTof1Raw2Digit init function (called in BmnTof1Raw2Digit constructors)
+		int RunIndex, PeriodIndex; //To store the RunIndex and PeriodIndex
+		std::map<std::pair<UInt_t, UChar_t>, UInt_t> PlacementMap;	//Stores the placement map
+		std::map<UInt_t, BmnTof1TDCParameters> TDCMap;			//Stores the loaded main mapping
+		void plmap_insert(UInt_t Serial, UChar_t Slot, UInt_t TDCSerial); //See .cxx code
+		
+		//std::map provides a way to find TDC by Serial and Slot really fast (O(logN))
+		//BmnTof1Parameters could also be found so fast (O(logN))
+		//All other operations (extracting the INL, for example) are already fast because of the structure - O(1)
 };
 #endif	/* BMNTOF1RAW2DIGIT_H */
 

@@ -166,7 +166,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                     {
                         sColumnInfo->strVariableType = "unsigned int";
                         sColumnInfo->strStatementType = "UInt";
-                        sColumnInfo->strPrintfType = "d";
+                        sColumnInfo->strPrintfType = "u";
                         sColumnInfo->strVariableName = "ui_"+strColumnNameWO;
                     }
                     else
@@ -567,12 +567,12 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             hFile<<"}\n";
         }
 
-	// SETTERS FUNCTIONS - DECLARATIONS        
-	hFile<<"\n\t// Setters\n";
+        // SETTERS FUNCTIONS - DECLARATIONS
+        hFile<<"\n\t// Setters\n";
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         {
             structColumnInfo* cur_col= *it;
-	    if (cur_col->isIdentity)
+            if (cur_col->isIdentity)
                 continue;
 
             if (!cur_col->isBinary)

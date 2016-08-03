@@ -8,7 +8,7 @@ void BmnDataToRoot(char *file, Long_t nEvents = 0) {
   
   BmnRawDataDecoder* decoder = new BmnRawDataDecoder(pathToRun4 + TString(file), nEvents);
   decoder->SetPedestalRun(kFALSE);
-  decoder->SetT0Mapping("T0_map_Run4.txt");
+  decoder->SetTrigMapping("Trig_map_Run4.txt");
   decoder->SetDchMapping("DCH_map_Run4.txt");
   decoder->SetGemMapping("GEM_map_run4.txt");
   decoder->SetTof400Mapping("");

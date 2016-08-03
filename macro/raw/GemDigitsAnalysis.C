@@ -3,7 +3,7 @@
 #include "TCanvas.h"
 #include "TChain.h"
 
-void GemDigitsAnalysis(UInt_t runId = 0) {
+void GemDigitsAnalysis(UInt_t runId = 0, TString type = "pdf") {
     gStyle->SetOptStat(0);
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -14,7 +14,7 @@ void GemDigitsAnalysis(UInt_t runId = 0) {
     eveTree->Add(inName);
 
     TClonesArray *GemDigits;
-    eveTree->SetBranchAddress("BmnGemStripDigit", &GemDigits);
+    eveTree->SetBranchAddress("GEM", &GemDigits);
 
     Long64_t nEvents = eveTree->GetEntries();
     cout << nEvents << endl;
@@ -53,12 +53,12 @@ void GemDigitsAnalysis(UInt_t runId = 0) {
             Int_t lay = digX->GetStripLayer();
             if (lay != 0) continue; //use only X
             Int_t st = digX->GetStation();
-            if (st == 0) continue; //skip small GEM
+            //if (st == 0) continue; //skip small GEM
             Int_t str = digX->GetStripNumber();
             Int_t sig = digX->GetStripSignal();
             Int_t noise = digX->GetStripSignalNoise();
 
-            if (sig * 1.0 / noise < 2.0) continue;
+//            if (sig * 1.0 / noise < 1.0) continue;
             Int_t mod = digX->GetModule();
             if (mod == 0) {
                 h_X[st]->Fill(str);
@@ -73,18 +73,27 @@ void GemDigitsAnalysis(UInt_t runId = 0) {
         }
     }
 
-    TCanvas* SuperCave = new TCanvas("SuperCave", "SuperCave", 66 * 100, 41 * 100);
-    for (Int_t i = 1; i < kNST; ++i) {
-        DrawGemDigitsColz(h_X_2d[i], h_X[i], SuperCave);
-        if (i == 1) {
-            SuperCave->Print(Form("gem_run%04d.pdf(", runId), "");
-        } else if (i == (kNST - 1)) {
-            SuperCave->Print(Form("gem_run%04d.pdf)", runId), "");
-        } else {
-            SuperCave->Print(Form("gem_run%04d.pdf", runId), "");
+    if (type == "pdf") {
+        TCanvas* SuperCave = new TCanvas("SuperCave", "SuperCave", 66 * 100, 41 * 100);
+        for (Int_t i = 0; i < kNST; ++i) {
+            DrawGemDigitsColz(h_X_2d[i], h_X[i], SuperCave);
+            if (i == 0) {
+                SuperCave->Print(Form("gem_run%04d.pdf(", runId), "");
+            } else if (i == (kNST - 1)) {
+                SuperCave->Print(Form("gem_run%04d.pdf)", runId), "");
+            } else {
+                SuperCave->Print(Form("gem_run%04d.pdf", runId), "");
+            }
         }
+        delete SuperCave;
+    } else if (type == "png") {
+        TCanvas* SuperCave = new TCanvas("SuperCave", "SuperCave", 66 * 100, 41 * 100);
+        for (Int_t i = 0; i < kNST; ++i) {
+            DrawGemDigitsColz(h_X_2d[i], h_X[i], SuperCave);
+            SuperCave->SaveAs(Form("gem_run%04d_st%d.png", runId, i));
+        }
+        delete SuperCave;
     }
-    delete SuperCave;
 
 }
 

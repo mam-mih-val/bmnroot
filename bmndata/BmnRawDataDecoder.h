@@ -15,7 +15,7 @@
 #include "BmnGemStripDigit.h"
 #include "BmnDchRaw2Digit.h"
 #include "BmnTof1Raw2Digit.h"
-#include "BmnT0Raw2Digit.h"
+#include "BmnTrigRaw2Digit.h"
 #include <bitset>
 
 class BmnRawDataDecoder {
@@ -36,8 +36,8 @@ public:
         return fNevents;
     }
 
-    void SetT0Mapping(TString map) {
-        fT0MapFileName = map;
+    void SetTrigMapping(TString map) {
+        fTrigMapFileName = map;
     }
     
     void SetDchMapping(TString map) {
@@ -78,13 +78,13 @@ private:
     TString fGemMapFileName;
     TString fTof400MapFileName;
     TString fTof700MapFileName;
-    TString fT0MapFileName;
+    TString fTrigMapFileName;
     
     ifstream fDchMapFile;
     ifstream fGemMapFile;
     ifstream fTof400MapFile;
     ifstream fTof700MapFile;
-    ifstream fT0MapFile;
+    ifstream fTrigMapFile;
     
     TFile *fRootFileIn;
     TFile *fRootFileOut;
@@ -103,6 +103,9 @@ private:
     TClonesArray *tof700;
     TClonesArray *dch;
     TClonesArray *t0;
+    TClonesArray *bc1;
+    TClonesArray *bc2;
+    TClonesArray *veto;
 
     UInt_t data[1000000];
     ULong_t fMaxEvent;

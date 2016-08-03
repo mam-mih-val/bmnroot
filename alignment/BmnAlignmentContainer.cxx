@@ -10,7 +10,8 @@ fX0(0.),
 fY0(0.),
 fZ0(0.),
 fTx(0.),
-fTy(0.) 
+fTy(0.),
+fTrackHits(NULL)
 {
 
 

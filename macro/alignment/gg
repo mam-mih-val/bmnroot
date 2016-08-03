@@ -1,0 +1,1673 @@
+
+Processing test_alignment.C...
+#events: 4766
+Event# = 0
+Event# = 1
+Event# = 2
+Event# = 3
+Event# = 4
+Event# = 5
+Event# = 6
+Event# = 7
+Event# = 8
+Event# = 9
+Event# = 10
+Event# = 11
+Event# = 12
+Event# = 13
+Event# = 14
+Event# = 15
+Event# = 16
+Event# = 17
+Event# = 18
+Event# = 19
+Event# = 20
+Event# = 21
+Event# = 22
+Event# = 23
+Event# = 24
+Event# = 25
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(-0.162789,-3.944585,5.100000) (rho,theta,phi)=(6.449515,37.743681,-92.363191)
+TVector3 A 3D physics vector (x,y,z)=(3.895237,4.778016,101.300003) (rho,theta,phi)=(101.487403,3.482434,50.811647)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 0
+Check filling after 1
+Event# = 26
+Event# = 27
+Event# = 28
+Event# = 29
+Event# = 30
+Event# = 31
+Event# = 32
+Event# = 33
+Event# = 34
+Event# = 35
+Event# = 36
+Event# = 37
+Event# = 38
+Event# = 39
+Event# = 40
+Event# = 41
+Event# = 42
+Event# = 43
+Event# = 44
+Event# = 45
+Event# = 46
+Event# = 47
+Event# = 48
+Event# = 49
+Event# = 50
+Event# = 51
+Event# = 52
+Event# = 53
+Event# = 54
+Event# = 55
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(5.253949,-7.314485,5.100000) (rho,theta,phi)=(10.349670,60.477234,-54.310548)
+TVector3 A 3D physics vector (x,y,z)=(-28.163412,20.064669,144.099991) (rho,theta,phi)=(148.191012,13.494188,144.532506)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 0
+Check filling after 1
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(5.285617,-7.432670,5.100000) (rho,theta,phi)=(10.449513,60.786783,-54.582111)
+TVector3 A 3D physics vector (x,y,z)=(-28.360128,20.798822,144.099991) (rho,theta,phi)=(148.329684,13.715621,143.744330)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 1
+Check filling after 2
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(5.253949,-6.800054,5.100000) (rho,theta,phi)=(9.992733,59.311463,-52.309128)
+TVector3 A 3D physics vector (x,y,z)=(-28.163412,20.767805,144.099991) (rho,theta,phi)=(148.287851,13.649237,143.594798)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 2
+Check filling after 3
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(5.285617,-6.918241,5.100000) (rho,theta,phi)=(10.090084,59.638989,-52.619748)
+TVector3 A 3D physics vector (x,y,z)=(-28.360128,21.501961,144.099991) (rho,theta,phi)=(148.429911,13.873253,142.831479)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 3
+Check filling after 4
+Event# = 56
+Event# = 57
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(-0.022203,-3.443174,5.100000) (rho,theta,phi)=(6.153531,34.025107,-90.369470)
+TVector3 A 3D physics vector (x,y,z)=(21.600655,11.835714,121.400002) (rho,theta,phi)=(123.873455,11.469003,28.719795)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 0
+Check filling after 1
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(-0.022203,-3.954904,5.100000) (rho,theta,phi)=(6.453817,37.792992,-90.321665)
+TVector3 A 3D physics vector (x,y,z)=(21.600655,12.389122,121.400002) (rho,theta,phi)=(123.927555,11.591638,29.836560)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 1
+Check filling after 2
+Event# = 58
+Event# = 59
+Event# = 60
+Event# = 61
+Event# = 62
+Event# = 63
+Event# = 64
+Event# = 65
+Event# = 66
+Event# = 67
+Event# = 68
+Event# = 69
+Event# = 70
+Event# = 71
+Event# = 72
+Event# = 73
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.971340,-3.039529,5.100000) (rho,theta,phi)=(6.015999,32.033345,-72.277726)
+TVector3 A 3D physics vector (x,y,z)=(-0.979736,5.705975,144.099991) (rho,theta,phi)=(144.216245,2.300723,99.742884)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 0
+Check filling after 1
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.971340,-3.092381,5.100000) (rho,theta,phi)=(6.042873,32.438324,-72.562111)
+TVector3 A 3D physics vector (x,y,z)=(-0.979736,5.768342,144.099991) (rho,theta,phi)=(144.218726,2.325128,99.639531)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 1
+Check filling after 2
+Event# = 74
+Event# = 75
+Event# = 76
+Event# = 77
+Event# = 78
+Event# = 79
+Event# = 80
+Event# = 81
+Event# = 82
+Event# = 83
+Event# = 84
+Event# = 85
+Event# = 86
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.383150,-0.073243,5.100000) (rho,theta,phi)=(8.973643,55.366074,-0.568374)
+TVector3 A 3D physics vector (x,y,z)=(5.053617,-2.806249,121.400002) (rho,theta,phi)=(121.537543,2.726094,-29.043201)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 0
+Check filling after 1
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.383150,0.095481,5.100000) (rho,theta,phi)=(8.973852,55.366996,0.740924)
+TVector3 A 3D physics vector (x,y,z)=(5.053617,-3.698328,121.400002) (rho,theta,phi)=(121.561413,2.952939,-36.197335)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 1
+Check filling after 2
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.361316,-0.154730,5.100000) (rho,theta,phi)=(8.956725,55.291285,-1.204145)
+TVector3 A 3D physics vector (x,y,z)=(5.169062,-2.375408,121.400002) (rho,theta,phi)=(121.533214,2.682888,-24.680832)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 2
+Check filling after 3
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.361316,0.013993,5.100000) (rho,theta,phi)=(8.955399,55.285410,0.108913)
+TVector3 A 3D physics vector (x,y,z)=(5.169062,-3.267486,121.400002) (rho,theta,phi)=(121.553922,2.883684,-32.297944)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 3
+Check filling after 4
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.323688,-0.295161,5.100000) (rho,theta,phi)=(8.929363,55.169588,-2.307895)
+TVector3 A 3D physics vector (x,y,z)=(5.368011,-1.632928,121.400002) (rho,theta,phi)=(121.529595,2.646221,-16.919561)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 4
+Check filling after 5
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.323688,-0.126437,5.100000) (rho,theta,phi)=(8.925379,55.151791,-0.989060)
+TVector3 A 3D physics vector (x,y,z)=(5.368011,-2.525006,121.400002) (rho,theta,phi)=(121.544854,2.797536,-25.191368)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 5
+Check filling after 6
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.309866,-0.346748,5.100000) (rho,theta,phi)=(8.919886,55.127222,-2.715822)
+TVector3 A 3D physics vector (x,y,z)=(5.441092,-1.360177,121.400002) (rho,theta,phi)=(121.529486,2.645111,-14.035294)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 6
+Check filling after 7
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.309866,-0.178023,5.100000) (rho,theta,phi)=(8.914922,55.104982,-1.395095)
+TVector3 A 3D physics vector (x,y,z)=(5.441092,-2.252255,121.400002) (rho,theta,phi)=(121.542744,2.777100,-22.486351)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 7
+Check filling after 8
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.383150,-3.412909,5.100000) (rho,theta,phi)=(9.600461,57.911775,-24.809048)
+TVector3 A 3D physics vector (x,y,z)=(5.053617,1.188452,121.400002) (rho,theta,phi)=(121.510954,2.448672,13.233702)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 8
+Check filling after 9
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.383150,-3.244186,5.100000) (rho,theta,phi)=(9.541784,57.690586,-23.720879)
+TVector3 A 3D physics vector (x,y,z)=(5.053617,0.296374,121.400002) (rho,theta,phi)=(121.505503,2.387813,3.356324)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 9
+Check filling after 10
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.361316,-3.494397,5.100000) (rho,theta,phi)=(9.613001,57.958625,-25.393564)
+TVector3 A 3D physics vector (x,y,z)=(5.169062,1.619293,121.400002) (rho,theta,phi)=(121.520787,2.554793,17.394020)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 10
+Check filling after 11
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.361316,-3.325674,5.100000) (rho,theta,phi)=(9.552962,57.732973,-24.312360)
+TVector3 A 3D physics vector (x,y,z)=(5.169062,0.727215,121.400002) (rho,theta,phi)=(121.512174,2.462091,8.008163)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 11
+Check filling after 12
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.323688,-3.634827,5.100000) (rho,theta,phi)=(9.636305,58.045307,-26.395712)
+TVector3 A 3D physics vector (x,y,z)=(5.368011,2.361773,121.400002) (rho,theta,phi)=(121.541573,2.765698,23.748143)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 12
+Check filling after 13
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.323688,-3.466102,5.100000) (rho,theta,phi)=(9.573937,57.812192,-25.326919)
+TVector3 A 3D physics vector (x,y,z)=(5.368011,1.469694,121.400002) (rho,theta,phi)=(121.527511,2.624880,15.311646)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 13
+Check filling after 14
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.309866,-3.686413,5.100000) (rho,theta,phi)=(9.645402,58.079009,-26.762109)
+TVector3 A 3D physics vector (x,y,z)=(5.441092,2.634524,121.400002) (rho,theta,phi)=(121.550428,2.850798,25.835819)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 14
+Check filling after 15
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.309866,-3.517690,5.100000) (rho,theta,phi)=(9.582186,57.843231,-25.698019)
+TVector3 A 3D physics vector (x,y,z)=(5.441092,1.742446,121.400002) (rho,theta,phi)=(121.534365,2.694445,17.757061)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 15
+Check filling after 16
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.077013,-0.073243,5.100000) (rho,theta,phi)=(8.723501,54.223312,-0.592959)
+TVector3 A 3D physics vector (x,y,z)=(5.419802,-2.806249,121.400002) (rho,theta,phi)=(121.553320,2.878044,-27.374084)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 16
+Check filling after 17
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.077013,0.095481,5.100000) (rho,theta,phi)=(8.723716,54.224330,0.772971)
+TVector3 A 3D physics vector (x,y,z)=(5.419802,-3.698328,121.400002) (rho,theta,phi)=(121.577186,3.093696,-34.308581)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 17
+Check filling after 18
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.055179,-0.154730,5.100000) (rho,theta,phi)=(8.706865,54.144382,-1.256379)
+TVector3 A 3D physics vector (x,y,z)=(5.535244,-2.375408,121.400002) (rho,theta,phi)=(121.549339,2.840472,-23.226227)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 18
+Check filling after 19
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.055179,0.013993,5.100000) (rho,theta,phi)=(8.705501,54.137896,0.113639)
+TVector3 A 3D physics vector (x,y,z)=(5.535244,-3.267486,121.400002) (rho,theta,phi)=(121.570045,3.030781,-30.553596)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 19
+Check filling after 20
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.017548,-0.295161,5.100000) (rho,theta,phi)=(8.680040,54.016315,-2.408461)
+TVector3 A 3D physics vector (x,y,z)=(5.734192,-1.632928,121.400002) (rho,theta,phi)=(121.546320,2.811636,-15.895385)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 20
+Check filling after 21
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.017548,-0.126437,5.100000) (rho,theta,phi)=(8.675942,53.996659,-1.032199)
+TVector3 A 3D physics vector (x,y,z)=(5.734192,-2.525006,121.400002) (rho,theta,phi)=(121.561577,2.954440,-23.765914)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 21
+Check filling after 22
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.003729,-0.346748,5.100000) (rho,theta,phi)=(8.670781,53.971878,-2.834343)
+TVector3 A 3D physics vector (x,y,z)=(5.807273,-1.360177,121.400002) (rho,theta,phi)=(121.546431,2.812706,-13.182168)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 22
+Check filling after 23
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.003729,-0.178023,5.100000) (rho,theta,phi)=(8.665674,53.947315,-1.456050)
+TVector3 A 3D physics vector (x,y,z)=(5.807273,-2.252255,121.400002) (rho,theta,phi)=(121.559687,2.937128,-21.197964)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 23
+Check filling after 24
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.077013,-3.412909,5.100000) (rho,theta,phi)=(9.367073,57.012207,-25.745819)
+TVector3 A 3D physics vector (x,y,z)=(5.419802,1.188452,121.400002) (rho,theta,phi)=(121.526734,2.616876,12.368040)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 24
+Check filling after 25
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.077013,-3.244186,5.100000) (rho,theta,phi)=(9.306925,56.771523,-24.627276)
+TVector3 A 3D physics vector (x,y,z)=(5.419802,0.296374,121.400002) (rho,theta,phi)=(121.521284,2.560039,3.130024)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 25
+Check filling after 26
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.055179,-3.494397,5.100000) (rho,theta,phi)=(9.380637,57.065968,-26.348996)
+TVector3 A 3D physics vector (x,y,z)=(5.535244,1.619293,121.400002) (rho,theta,phi)=(121.536914,2.719853,16.306436)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 26
+Check filling after 27
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.055179,-3.325674,5.100000) (rho,theta,phi)=(9.319102,56.820552,-25.238274)
+TVector3 A 3D physics vector (x,y,z)=(5.535244,0.727215,121.400002) (rho,theta,phi)=(121.528302,2.633000,7.484602)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 27
+Check filling after 28
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.017548,-3.634827,5.100000) (rho,theta,phi)=(9.405740,57.164967,-27.382465)
+TVector3 A 3D physics vector (x,y,z)=(5.734192,2.361773,121.400002) (rho,theta,phi)=(121.558296,2.924322,22.385564)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 28
+Check filling after 29
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.017548,-3.466102,5.100000) (rho,theta,phi)=(9.341833,56.911665,-26.285653)
+TVector3 A 3D physics vector (x,y,z)=(5.734192,1.469694,121.400002) (rho,theta,phi)=(121.544236,2.791567,14.375663)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 29
+Check filling after 30
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.003729,-3.686413,5.100000) (rho,theta,phi)=(9.415512,57.203331,-27.760079)
+TVector3 A 3D physics vector (x,y,z)=(5.807273,2.634524,121.400002) (rho,theta,phi)=(121.567370,3.006880,24.401866)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 30
+Check filling after 31
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.003729,-3.517690,5.100000) (rho,theta,phi)=(9.350741,56.947224,-26.668528)
+TVector3 A 3D physics vector (x,y,z)=(5.807273,1.742446,121.400002) (rho,theta,phi)=(121.551310,2.859132,16.701637)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 31
+Check filling after 32
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.021355,-0.073243,5.100000) (rho,theta,phi)=(8.678409,54.008495,-0.597659)
+TVector3 A 3D physics vector (x,y,z)=(5.486378,-2.806249,121.400002) (rho,theta,phi)=(121.556307,2.905911,-27.089468)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 32
+Check filling after 33
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.021355,0.095481,5.100000) (rho,theta,phi)=(8.678625,54.009531,0.779097)
+TVector3 A 3D physics vector (x,y,z)=(5.486378,-3.698328,121.400002) (rho,theta,phi)=(121.580172,3.119624,-33.983625)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 33
+Check filling after 34
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.999521,-0.154730,5.100000) (rho,theta,phi)=(8.661826,53.928783,-1.266366)
+TVector3 A 3D physics vector (x,y,z)=(5.601822,-2.375408,121.400002) (rho,theta,phi)=(121.552389,2.869303,-22.978986)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 34
+Check filling after 35
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.999521,0.013993,5.100000) (rho,theta,phi)=(8.660455,53.922177,0.114543)
+TVector3 A 3D physics vector (x,y,z)=(5.601822,-3.267486,121.400002) (rho,theta,phi)=(121.573094,3.057805,-30.254576)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 35
+Check filling after 36
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.961893,-0.295161,5.100000) (rho,theta,phi)=(8.635107,53.799532,-2.427692)
+TVector3 A 3D physics vector (x,y,z)=(5.800766,-1.632928,121.400002) (rho,theta,phi)=(121.549478,2.841794,-15.722029)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 36
+Check filling after 37
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.961893,-0.126437,5.100000) (rho,theta,phi)=(8.630987,53.779512,-1.040449)
+TVector3 A 3D physics vector (x,y,z)=(5.800766,-2.525006,121.400002) (rho,theta,phi)=(121.564735,2.983145,-23.522937)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 37
+Check filling after 38
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.948068,-0.346748,5.100000) (rho,theta,phi)=(8.625884,53.754683,-2.857012)
+TVector3 A 3D physics vector (x,y,z)=(5.873849,-1.360177,121.400002) (rho,theta,phi)=(121.549630,2.843234,-13.037890)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 38
+Check filling after 39
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.948068,-0.178023,5.100000) (rho,theta,phi)=(8.620750,53.729665,-1.467709)
+TVector3 A 3D physics vector (x,y,z)=(5.873849,-2.252255,121.400002) (rho,theta,phi)=(121.562886,2.966367,-20.978708)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 39
+Check filling after 40
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.021355,-3.412909,5.100000) (rho,theta,phi)=(9.325094,56.844622,-25.923256)
+TVector3 A 3D physics vector (x,y,z)=(5.486378,1.188452,121.400002) (rho,theta,phi)=(121.529721,2.647512,12.222495)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 40
+Check filling after 41
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(7.021355,-3.244186,5.100000) (rho,theta,phi)=(9.264673,56.600178,-24.799088)
+TVector3 A 3D physics vector (x,y,z)=(5.486378,0.296374,121.400002) (rho,theta,phi)=(121.524271,2.591350,3.092116)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 41
+Check filling after 42
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.999521,-3.494397,5.100000) (rho,theta,phi)=(9.338849,56.899735,-26.529916)
+TVector3 A 3D physics vector (x,y,z)=(5.601822,1.619293,121.400002) (rho,theta,phi)=(121.539964,2.749957,16.122756)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 42
+Check filling after 43
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.999521,-3.325674,5.100000) (rho,theta,phi)=(9.277036,56.650510,-25.413737)
+TVector3 A 3D physics vector (x,y,z)=(5.601822,0.727215,121.400002) (rho,theta,phi)=(121.531352,2.664092,7.396637)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 43
+Check filling after 44
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.961893,-3.634827,5.100000) (rho,theta,phi)=(9.364289,57.001150,-27.569210)
+TVector3 A 3D physics vector (x,y,z)=(5.800766,2.361773,121.400002) (rho,theta,phi)=(121.561455,2.953322,22.153626)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 44
+Check filling after 45
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.961893,-3.466102,5.100000) (rho,theta,phi)=(9.300097,56.743963,-26.467235)
+TVector3 A 3D physics vector (x,y,z)=(5.800766,1.469694,121.400002) (rho,theta,phi)=(121.547395,2.821941,14.217405)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 45
+Check filling after 46
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.948068,-3.686413,5.100000) (rho,theta,phi)=(9.374182,57.040405,-27.948932)
+TVector3 A 3D physics vector (x,y,z)=(5.873849,2.634524,121.400002) (rho,theta,phi)=(121.570569,3.035443,24.157068)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 46
+Check filling after 47
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.948068,-3.517690,5.100000) (rho,theta,phi)=(9.309124,56.780387,-26.852326)
+TVector3 A 3D physics vector (x,y,z)=(5.873849,1.742446,121.400002) (rho,theta,phi)=(121.554509,2.889166,16.522712)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 47
+Check filling after 48
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.882201,-0.073243,5.100000) (rho,theta,phi)=(8.566216,53.461554,-0.609743)
+TVector3 A 3D physics vector (x,y,z)=(5.652825,-2.806249,121.400002) (rho,theta,phi)=(121.563933,2.975880,-26.401318)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 48
+Check filling after 49
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.882201,0.095481,5.100000) (rho,theta,phi)=(8.566435,53.462639,0.794848)
+TVector3 A 3D physics vector (x,y,z)=(5.652825,-3.698328,121.400002) (rho,theta,phi)=(121.587797,3.184867,-33.194480)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 49
+Check filling after 50
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.860364,-0.154730,5.100000) (rho,theta,phi)=(8.549768,53.379836,-1.292044)
+TVector3 A 3D physics vector (x,y,z)=(5.768267,-2.375408,121.400002) (rho,theta,phi)=(121.560174,2.941598,-22.382168)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 50
+Check filling after 51
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.860364,0.013993,5.100000) (rho,theta,phi)=(8.548380,53.372918,0.116866)
+TVector3 A 3D physics vector (x,y,z)=(5.768267,-3.267486,121.400002) (rho,theta,phi)=(121.580877,3.125713,-29.529768)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 51
+Check filling after 52
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.822736,-0.295161,5.100000) (rho,theta,phi)=(8.523312,53.247545,-2.477146)
+TVector3 A 3D physics vector (x,y,z)=(5.967216,-1.632928,121.400002) (rho,theta,phi)=(121.557536,2.917300,-15.304313)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 52
+Check filling after 53
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.822736,-0.126437,5.100000) (rho,theta,phi)=(8.519138,53.226578,-1.061665)
+TVector3 A 3D physics vector (x,y,z)=(5.967216,-2.525006,121.400002) (rho,theta,phi)=(121.572792,3.055135,-22.935479)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 53
+Check filling after 54
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.808914,-0.346748,5.100000) (rho,theta,phi)=(8.514197,53.201721,-2.915301)
+TVector3 A 3D physics vector (x,y,z)=(6.040297,-1.360177,121.400002) (rho,theta,phi)=(121.557787,2.919625,-12.690407)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 54
+Check filling after 55
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.808914,-0.178023,5.100000) (rho,theta,phi)=(8.508995,53.175518,-1.497691)
+TVector3 A 3D physics vector (x,y,z)=(6.040297,-2.252255,121.400002) (rho,theta,phi)=(121.571042,3.039644,-20.449059)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 55
+Check filling after 56
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.882201,-3.412909,5.100000) (rho,theta,phi)=(9.220772,56.420122,-26.376985)
+TVector3 A 3D physics vector (x,y,z)=(5.652825,1.188452,121.400002) (rho,theta,phi)=(121.537349,2.724170,11.872966)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 56
+Check filling after 57
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.882201,-3.244186,5.100000) (rho,theta,phi)=(9.159663,56.165974,-25.238618)
+TVector3 A 3D physics vector (x,y,z)=(5.652825,0.296374,121.400002) (rho,theta,phi)=(121.531900,2.669630,3.001238)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 57
+Check filling after 58
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.860364,-3.494397,5.100000) (rho,theta,phi)=(9.235010,56.478746,-26.992483)
+TVector3 A 3D physics vector (x,y,z)=(5.768267,1.619293,121.400002) (rho,theta,phi)=(121.547749,2.825328,15.680728)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 58
+Check filling after 59
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.860364,-3.325674,5.100000) (rho,theta,phi)=(9.172497,56.219692,-25.862545)
+TVector3 A 3D physics vector (x,y,z)=(5.768267,0.727215,121.400002) (rho,theta,phi)=(121.539138,2.741838,7.185469)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 59
+Check filling after 60
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.822736,-3.634827,5.100000) (rho,theta,phi)=(9.261301,56.586423,-28.046554)
+TVector3 A 3D physics vector (x,y,z)=(5.967216,2.361773,121.400002) (rho,theta,phi)=(121.569511,3.026027,21.593239)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 60
+Check filling after 61
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.822736,-3.466102,5.100000) (rho,theta,phi)=(9.196390,56.319214,-26.931585)
+TVector3 A 3D physics vector (x,y,z)=(5.967216,1.469694,121.400002) (rho,theta,phi)=(121.555453,2.897967,13.836266)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 61
+Check filling after 62
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.808914,-3.686413,5.100000) (rho,theta,phi)=(9.271513,56.628046,-28.431551)
+TVector3 A 3D physics vector (x,y,z)=(6.040297,2.634524,121.400002) (rho,theta,phi)=(121.578725,3.107080,23.564810)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 62
+Check filling after 63
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.808914,-3.517690,5.100000) (rho,theta,phi)=(9.205729,56.357942,-27.322236)
+TVector3 A 3D physics vector (x,y,z)=(6.040297,1.742446,121.400002) (rho,theta,phi)=(121.562666,2.964366,16.091281)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 63
+Check filling after 64
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.826540,-0.073243,5.100000) (rho,theta,phi)=(8.521562,53.238755,-0.614714)
+TVector3 A 3D physics vector (x,y,z)=(5.719401,-2.806249,121.400002) (rho,theta,phi)=(121.567047,3.003980,-26.135077)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 64
+Check filling after 65
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.826540,0.095481,5.100000) (rho,theta,phi)=(8.521782,53.239861,0.801328)
+TVector3 A 3D physics vector (x,y,z)=(5.719401,-3.698328,121.400002) (rho,theta,phi)=(121.590911,3.211125,-32.887858)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 65
+Check filling after 66
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.804706,-0.154730,5.100000) (rho,theta,phi)=(8.505173,53.156234,-1.302609)
+TVector3 A 3D physics vector (x,y,z)=(5.834843,-2.375408,121.400002) (rho,theta,phi)=(121.563351,2.970598,-22.151605)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 66
+Check filling after 67
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.804706,0.013993,5.100000) (rho,theta,phi)=(8.503777,53.149186,0.117822)
+TVector3 A 3D physics vector (x,y,z)=(5.834843,-3.267486,121.400002) (rho,theta,phi)=(121.584054,3.153009,-29.248630)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 67
+Check filling after 68
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.767078,-0.295161,5.100000) (rho,theta,phi)=(8.478824,53.022707,-2.497495)
+TVector3 A 3D physics vector (x,y,z)=(6.033789,-1.632928,121.400002) (rho,theta,phi)=(121.560822,2.947537,-15.143250)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 68
+Check filling after 69
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.767078,-0.126437,5.100000) (rho,theta,phi)=(8.474629,53.001345,-1.070395)
+TVector3 A 3D physics vector (x,y,z)=(6.033789,-2.525006,121.400002) (rho,theta,phi)=(121.576078,3.084012,-22.708225)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 69
+Check filling after 70
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.753256,-0.346748,5.100000) (rho,theta,phi)=(8.469752,52.976483,-2.939286)
+TVector3 A 3D physics vector (x,y,z)=(6.106873,-1.360177,121.400002) (rho,theta,phi)=(121.561114,2.950206,-12.556468)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 70
+Check filling after 71
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.753256,-0.178023,5.100000) (rho,theta,phi)=(8.464523,52.949786,-1.510029)
+TVector3 A 3D physics vector (x,y,z)=(6.106873,-2.252255,121.400002) (rho,theta,phi)=(121.574368,3.069021,-20.244310)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 71
+Check filling after 72
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.826540,-3.412909,5.100000) (rho,theta,phi)=(9.179303,56.248104,-26.562629)
+TVector3 A 3D physics vector (x,y,z)=(5.719401,1.188452,121.400002) (rho,theta,phi)=(121.540464,2.754856,11.738617)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 72
+Check filling after 73
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.826540,-3.244186,5.100000) (rho,theta,phi)=(9.117916,55.989948,-25.418531)
+TVector3 A 3D physics vector (x,y,z)=(5.719401,0.296374,121.400002) (rho,theta,phi)=(121.535015,2.700940,2.966365)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 73
+Check filling after 74
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.804706,-3.494397,5.100000) (rho,theta,phi)=(9.193739,56.308201,-27.181698)
+TVector3 A 3D physics vector (x,y,z)=(5.834843,1.619293,121.400002) (rho,theta,phi)=(121.550927,2.855518,15.510469)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 74
+Check filling after 75
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.804706,-3.325674,5.100000) (rho,theta,phi)=(9.130943,56.045090,-26.046212)
+TVector3 A 3D physics vector (x,y,z)=(5.834843,0.727215,121.400002) (rho,theta,phi)=(121.542316,2.772943,7.104324)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 75
+Check filling after 76
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.767078,-3.634827,5.100000) (rho,theta,phi)=(9.220375,56.418482,-28.241754)
+TVector3 A 3D physics vector (x,y,z)=(6.033789,2.361773,121.400002) (rho,theta,phi)=(121.572797,3.055181,21.376598)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 76
+Check filling after 77
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.767078,-3.466102,5.100000) (rho,theta,phi)=(9.155174,56.147138,-27.121557)
+TVector3 A 3D physics vector (x,y,z)=(6.033789,1.469694,121.400002) (rho,theta,phi)=(121.558739,2.928406,13.689380)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 77
+Check filling after 78
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.753256,-3.686413,5.100000) (rho,theta,phi)=(9.230715,56.461086,-28.628890)
+TVector3 A 3D physics vector (x,y,z)=(6.106873,2.634524,121.400002) (rho,theta,phi)=(121.582050,3.135820,23.335518)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 78
+Check filling after 79
+Nhits = 4
+TVector3 A 3D physics vector (x,y,z)=(6.753256,-3.517690,5.100000) (rho,theta,phi)=(9.164639,56.186822,-27.514465)
+TVector3 A 3D physics vector (x,y,z)=(6.106873,1.742446,121.400002) (rho,theta,phi)=(121.565992,2.994487,15.924798)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 79
+Check filling after 80
+Event# = 87
+Event# = 88
+Event# = 89
+Event# = 90
+Event# = 91
+Event# = 92
+Event# = 93
+Event# = 94
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.319420,-3.085865,5.100000) (rho,theta,phi)=(5.969472,31.312338,-84.090318)
+TVector3 A 3D physics vector (x,y,z)=(1.653875,4.689068,121.400002) (rho,theta,phi)=(121.501782,2.345356,70.571813)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 0
+Check filling after 1
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.319420,-2.950015,5.100000) (rho,theta,phi)=(5.900391,30.191497,-83.820233)
+TVector3 A 3D physics vector (x,y,z)=(1.653875,3.867261,121.400002) (rho,theta,phi)=(121.472842,1.984296,66.845516)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 1
+Check filling after 2
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.319420,-2.547908,5.100000) (rho,theta,phi)=(5.709979,26.725272,-82.854355)
+TVector3 A 3D physics vector (x,y,z)=(1.653875,1.434775,121.400002) (rho,theta,phi)=(121.419744,1.033238,40.942409)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 2
+Check filling after 3
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.319420,-2.443836,5.100000) (rho,theta,phi)=(5.664306,25.792592,-82.553403)
+TVector3 A 3D physics vector (x,y,z)=(1.653875,0.805212,121.400002) (rho,theta,phi)=(121.413937,0.868090,25.959788)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 3
+Check filling after 4
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.319420,-2.335085,5.100000) (rho,theta,phi)=(5.618242,24.802774,-82.210757)
+TVector3 A 3D physics vector (x,y,z)=(1.653875,0.147334,121.400002) (rho,theta,phi)=(121.411356,0.783603,5.090722)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 4
+Check filling after 5
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.285400,-3.212831,5.100000) (rho,theta,phi)=(6.034379,32.311204,-84.923663)
+TVector3 A 3D physics vector (x,y,z)=(1.859675,5.457125,121.400002) (rho,theta,phi)=(121.536821,2.718937,71.181954)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 5
+Check filling after 6
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.285400,-3.076980,5.100000) (rho,theta,phi)=(5.963158,31.212475,-84.700789)
+TVector3 A 3D physics vector (x,y,z)=(1.859675,4.635317,121.400002) (rho,theta,phi)=(121.502695,2.355846,68.139495)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 6
+Check filling after 7
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.285400,-2.674873,5.100000) (rho,theta,phi)=(5.765969,27.809941,-83.909772)
+TVector3 A 3D physics vector (x,y,z)=(1.859675,2.202833,121.400002) (rho,theta,phi)=(121.434226,1.360334,49.828284)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 7
+Check filling after 8
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.285400,-2.570802,5.100000) (rho,theta,phi)=(5.718433,26.893011,-83.665193)
+TVector3 A 3D physics vector (x,y,z)=(1.859675,1.573269,121.400002) (rho,theta,phi)=(121.424437,1.149486,40.230928)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 8
+Check filling after 9
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.285400,-2.462050,5.100000) (rho,theta,phi)=(5.670374,25.919173,-83.387801)
+TVector3 A 3D physics vector (x,y,z)=(1.859675,0.915391,121.400002) (rho,theta,phi)=(121.417695,0.978162,26.207869)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 9
+Check filling after 10
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.252801,-3.334492,5.100000) (rho,theta,phi)=(6.098586,33.252790,-85.664482)
+TVector3 A 3D physics vector (x,y,z)=(2.056879,6.193098,121.400002) (rho,theta,phi)=(121.575267,3.076916,71.627415)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 10
+Check filling after 11
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.252801,-3.198642,5.100000) (rho,theta,phi)=(6.025381,32.175656,-85.481094)
+TVector3 A 3D physics vector (x,y,z)=(2.056879,5.371291,121.400002) (rho,theta,phi)=(121.536175,2.712514,69.046188)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 11
+Check filling after 12
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.252801,-2.796535,5.100000) (rho,theta,phi)=(5.821900,28.836130,-84.834628)
+TVector3 A 3D physics vector (x,y,z)=(2.056879,2.938807,121.400002) (rho,theta,phi)=(121.452986,1.692474,55.011719)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 12
+Check filling after 13
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.252801,-2.692464,5.100000) (rho,theta,phi)=(5.772631,27.935040,-84.636114)
+TVector3 A 3D physics vector (x,y,z)=(2.056879,2.309243,121.400002) (rho,theta,phi)=(121.439383,1.459201,48.308043)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 13
+Check filling after 14
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.252801,-2.583712,5.100000) (rho,theta,phi)=(5.722716,26.977430,-84.411742)
+TVector3 A 3D physics vector (x,y,z)=(2.056879,1.651365,121.400002) (rho,theta,phi)=(121.428654,1.244716,38.759243)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 14
+Check filling after 15
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.178600,-3.611414,5.100000) (rho,theta,phi)=(6.251736,35.336099,-87.168785)
+TVector3 A 3D physics vector (x,y,z)=(2.505745,7.868293,121.400002) (rho,theta,phi)=(121.680521,3.891276,72.335347)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 15
+Check filling after 16
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.178600,-3.475564,5.100000) (rho,theta,phi)=(6.174256,34.308933,-87.058311)
+TVector3 A 3D physics vector (x,y,z)=(2.505745,7.046486,121.400002) (rho,theta,phi)=(121.630145,3.525206,70.424507)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 16
+Check filling after 17
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.178600,-3.073457,5.100000) (rho,theta,phi)=(5.957183,31.117499,-86.674258)
+TVector3 A 3D physics vector (x,y,z)=(2.505745,4.614001,121.400002) (rho,theta,phi)=(121.513490,2.476476,61.494755)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 17
+Check filling after 18
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.178600,-2.969385,5.100000) (rho,theta,phi)=(5.904163,30.254354,-86.557972)
+TVector3 A 3D physics vector (x,y,z)=(2.505745,3.984438,121.400002) (rho,theta,phi)=(121.491213,2.220330,57.834910)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 18
+Check filling after 19
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.178600,-2.860633,5.100000) (rho,theta,phi)=(5.850224,29.336015,-86.427451)
+TVector3 A 3D physics vector (x,y,z)=(2.505745,3.326560,121.400002) (rho,theta,phi)=(121.471417,1.964798,53.010963)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 19
+Check filling after 20
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.148684,-3.723062,5.100000) (rho,theta,phi)=(6.316114,36.151645,-87.713062)
+TVector3 A 3D physics vector (x,y,z)=(2.686719,8.543694,121.400002) (rho,theta,phi)=(121.729920,4.219303,72.543302)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 20
+Check filling after 21
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.148684,-3.587212,5.100000) (rho,theta,phi)=(6.237002,35.144734,-87.626551)
+TVector3 A 3D physics vector (x,y,z)=(2.686719,7.721886,121.400002) (rho,theta,phi)=(121.675003,3.852887,70.815396)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 21
+Check filling after 22
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.148684,-3.185105,5.100000) (rho,theta,phi)=(6.014732,32.014054,-87.327322)
+TVector3 A 3D physics vector (x,y,z)=(2.686719,5.289402,121.400002) (rho,theta,phi)=(121.544875,2.797736,63.071990)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 22
+Check filling after 23
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.148684,-3.081033,5.100000) (rho,theta,phi)=(5.960275,31.166692,-87.237182)
+TVector3 A 3D physics vector (x,y,z)=(2.686719,4.659838,121.400002) (rho,theta,phi)=(121.519105,2.536958,60.033578)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 23
+Check filling after 24
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.148684,-2.972282,5.100000) (rho,theta,phi)=(5.904792,30.264804,-87.136259)
+TVector3 A 3D physics vector (x,y,z)=(2.686719,4.001960,121.400002) (rho,theta,phi)=(121.495656,2.273732,56.124535)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 24
+Check filling after 25
+Event# = 95
+Event# = 96
+Event# = 97
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.548546,-4.307702,5.100000) (rho,theta,phi)=(6.698298,40.413338,-82.742969)
+TVector3 A 3D physics vector (x,y,z)=(-0.234738,5.031651,144.099991) (rho,theta,phi)=(144.188002,2.002002,92.671039)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 0
+Check filling after 1
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.548546,-4.155291,5.100000) (rho,theta,phi)=(6.601314,39.414452,-82.479784)
+TVector3 A 3D physics vector (x,y,z)=(-0.234738,4.138990,144.099991) (rho,theta,phi)=(144.159612,1.647899,93.245983)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 1
+Check filling after 2
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.548546,-3.799665,5.100000) (rho,theta,phi)=(6.383444,36.970837,-81.785141)
+TVector3 A 3D physics vector (x,y,z)=(-0.234738,2.056116,144.099991) (rho,theta,phi)=(144.114850,0.822789,96.513011)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 2
+Check filling after 3
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.548546,-3.647254,5.100000) (rho,theta,phi)=(6.293915,35.874116,-81.446836)
+TVector3 A 3D physics vector (x,y,z)=(-0.234738,1.163455,144.099991) (rho,theta,phi)=(144.104879,0.471914,101.406815)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 3
+Check filling after 4
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.620137,-4.040523,5.100000) (rho,theta,phi)=(6.536084,38.713438,-81.274370)
+TVector3 A 3D physics vector (x,y,z)=(-0.218472,5.092355,144.099991) (rho,theta,phi)=(144.190108,2.025796,92.456596)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 4
+Check filling after 5
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.620137,-3.888111,5.100000) (rho,theta,phi)=(6.442979,37.668527,-80.937902)
+TVector3 A 3D physics vector (x,y,z)=(-0.218472,4.199694,144.099991) (rho,theta,phi)=(144.161342,1.671629,92.977897)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 5
+Check filling after 6
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.620137,-3.532485,5.100000) (rho,theta,phi)=(6.234823,35.116278,-80.043039)
+TVector3 A 3D physics vector (x,y,z)=(-0.218472,2.116819,144.099991) (rho,theta,phi)=(144.115704,0.846081,95.892505)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 6
+Check filling after 7
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(0.620137,-3.380075,5.100000) (rho,theta,phi)=(6.149754,33.972953,-79.603658)
+TVector3 A 3D physics vector (x,y,z)=(-0.218472,1.224159,144.099991) (rho,theta,phi)=(144.105356,0.494418,100.118876)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 7
+Check filling after 8
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(1.861042,0.590597,5.100000) (rho,theta,phi)=(5.460978,20.949066,17.606710)
+TVector3 A 3D physics vector (x,y,z)=(0.063465,6.144558,144.099991) (rho,theta,phi)=(144.230950,2.441797,89.408235)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 8
+Check filling after 9
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(1.861042,0.743008,5.100000) (rho,theta,phi)=(5.479556,21.450747,21.764011)
+TVector3 A 3D physics vector (x,y,z)=(0.063465,5.251898,144.099991) (rho,theta,phi)=(144.195679,2.087442,89.307662)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 9
+Check filling after 10
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(1.861042,1.098634,5.100000) (rho,theta,phi)=(5.538996,22.964830,30.554745)
+TVector3 A 3D physics vector (x,y,z)=(0.063465,3.169023,144.099991) (rho,theta,phi)=(144.134847,1.260089,88.852713)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 10
+Check filling after 11
+Nhits = 3
+TVector3 A 3D physics vector (x,y,z)=(1.861042,1.251045,5.100000) (rho,theta,phi)=(5.571229,23.734920,33.910100)
+TVector3 A 3D physics vector (x,y,z)=(0.063465,2.276363,144.099991) (rho,theta,phi)=(144.117984,0.905384,88.403013)
+[INFO   ] Position : (0, 0, 0)
+[INFO   ] Slopes : dx/dz = 0, dy/dz = 0
+[INFO   ] q/p = 0
+Check filling before 11
+Check filling after 12
+Event# = 98
+Event# = 99
+#recorded tracks = 100
+0
+3
+0
+0
+hits -0.26 -4
+hits 5 5.3
+hits 5.2 4.4
+1
+2
+0
+0
+hits -0.26 -4
+hits 3.5 0.44
+2
+2
+0
+0
+hits -0.26 -4
+hits -19 18
+3
+4
+0
+0
+hits -0.26 -2.7
+hits -0.26 -3.8
+hits -0.26 -3.9
+hits -0.26 -4
+4
+4
+0
+0
+hits -0.26 -3.5
+hits -0.26 -3.8
+hits -0.26 -3.9
+hits -0.26 -4
+5
+2
+0
+0
+hits -0.26 -4
+hits -2.4 -20
+6
+1
+0
+0
+hits -0.26 -4
+7
+6
+0
+0
+hits -0.14 -3.9
+hits -0.14 -4
+hits -0.26 -3.9
+hits -0.26 -4
+hits -0.94 15
+hits -0.94 14
+8
+1
+0
+0
+hits -0.26 -4
+9
+1
+0
+0
+hits -0.26 -4
+10
+1
+0
+0
+hits -0.26 -4
+11
+1
+0
+0
+hits -0.26 -4
+12
+4
+0
+0
+hits -0.26 -3.5
+hits -0.26 -3.9
+hits -0.26 -4
+hits 3.9 0.32
+13
+2
+0
+0
+hits -0.26 -3.9
+hits -0.26 -4
+14
+3
+0
+0
+hits -0.26 -3.8
+hits -0.26 -3.9
+hits -0.26 -4
+15
+1
+0
+0
+hits -0.26 -4
+16
+34
+0
+0
+hits -0.26 -3.8
+hits -0.26 -4
+hits -4.6 -9.2
+hits -4.6 -10
+hits -4.6 -12
+hits -4.6 -12
+hits -4.6 -13
+hits -4.6 -17
+hits -4.5 -8.6
+hits -4.5 -9.7
+hits -4.5 -11
+hits -4.5 -11
+hits -4.5 -12
+hits -4.5 -17
+hits -4.3 -7.9
+hits -4.3 -8.9
+hits -4.3 -10
+hits -4.3 -11
+hits -4.3 -12
+hits -4.3 -16
+hits 25 -1.8
+hits 25 -3.3
+hits 25 -0.54
+hits 25 -2.1
+hits -12 -3.8
+hits -12 -4.7
+hits -12 -2.9
+hits -12 -3.9
+hits 46 1.3
+hits 46 0.063
+hits 46 2
+hits 46 0.73
+hits 46 2.6
+hits 46 1.3
+17
+2
+0
+0
+hits -0.26 -4
+hits 3.1 0.015
+18
+1
+0
+0
+hits -0.26 -4
+19
+3
+0
+0
+hits -0.26 -3.5
+hits -0.26 -3.9
+hits -0.26 -4
+20
+1
+0
+0
+hits -0.26 -4
+21
+2
+0
+0
+hits -0.26 -4
+hits 3.8 0.18
+22
+2
+0
+0
+hits -0.26 -3.5
+hits -0.26 -4
+23
+6
+0
+0
+hits -0.26 -3.9
+hits -0.26 -4
+hits -0.6 1.4
+hits -0.6 0.48
+hits -0.81 2.1
+hits -0.81 1.3
+24
+3
+0
+0
+hits -0.26 -4
+hits -0.44 2
+hits -0.68 2.9
+25
+3
+1
+0
+hits -0.26 -4
+hits 3.3 0.15
+hits 3.4 0.56
+tracks 0
+26
+3
+0
+0
+hits -0.26 -3.8
+hits -0.26 -3.9
+hits -0.26 -4
+27
+3
+0
+0
+hits -0.26 -3.5
+hits -0.26 -3.9
+hits -0.26 -4
+28
+3
+0
+0
+hits -0.26 -3.9
+hits -0.26 -4
+hits -0.33 2.6
+29
+2
+0
+0
+hits -0.26 -3.9
+hits -0.26 -4
+30
+1
+0
+0
+hits -0.26 -4
+31
+1
+0
+0
+hits -0.26 -4
+32
+3
+0
+0
+hits -0.26 -4
+hits 2 -6
+hits 2 -5.1
+33
+1
+0
+0
+hits -0.26 -4
+34
+1
+0
+0
+hits -0.26 -4
+35
+5
+0
+0
+hits -0.26 -3.8
+hits -0.26 -3.9
+hits -0.26 -4
+hits -0.28 2.1
+hits -0.52 3
+36
+1
+0
+0
+hits -0.26 -4
+37
+2
+0
+0
+hits -0.26 -4
+hits -0.44 2.4
+38
+1
+0
+0
+hits -0.26 -4
+39
+1
+0
+0
+hits -0.26 -4
+40
+1
+0
+0
+hits -0.26 -4
+41
+2
+0
+0
+hits -0.26 -3.9
+hits -0.26 -4
+42
+9
+0
+0
+hits -0.1 -0.06
+hits -0.1 -4
+hits -0.26 -0.06
+hits -0.26 -4
+hits -1.7 -0.06
+hits -1.7 -4
+hits -1.9 -0.06
+hits -1.9 -4
+hits 1 -0.16
+43
+1
+0
+0
+hits -0.26 -4
+44
+1
+0
+0
+hits -0.26 -4
+45
+2
+0
+0
+hits -0.26 -4
+hits 4.1 0.65
+46
+1
+0
+0
+hits -0.26 -4
+47
+2
+0
+0
+hits -0.26 -4
+hits -0.6 2.9
+48
+13
+0
+0
+hits -0.26 -4
+hits 2.9 -0.097
+hits 2.9 -0.95
+hits 2.9 -1.6
+hits 3.1 0.64
+hits 3.1 -0.21
+hits 3.1 -0.82
+hits 3.2 1.2
+hits 3.2 0.32
+hits 3.2 -0.29
+hits 3.4 1.9
+hits 3.4 1.1
+hits 3.4 0.45
+49
+5
+0
+0
+hits -0.26 -3.5
+hits -0.26 -4
+hits -2 8
+hits -2 5.9
+hits -2 2.5
+50
+7
+0
+0
+hits 0.5 -3.9
+hits 0.5 -4
+hits -0.26 -3.9
+hits -0.26 -4
+hits -0.06 -5.1
+hits -0.06 -4.2
+hits -0.06 15
+51
+3
+0
+0
+hits -0.26 -2.7
+hits -0.26 -3.9
+hits -0.26 -4
+52
+1
+0
+0
+hits -0.26 -4
+53
+2
+0
+0
+hits -0.26 -4
+hits -2.9 -10
+54
+3
+0
+0
+hits -0.26 -3.9
+hits -0.26 -4
+hits 2.8 0.84
+55
+5
+4
+0
+hits -0.26 -4
+hits 4 -4.3
+hits 4 -1.6
+hits -36 21
+hits -36 21
+tracks 0
+tracks 0
+tracks 0
+tracks 0
+56
+2
+0
+0
+hits -0.26 -4
+hits -0.6 3.3
+57
+4
+2
+0
+hits -0.26 -3.5
+hits -0.26 -4
+hits 19 6.8
+hits 20 8.1
+tracks 0
+tracks 0
+58
+4
+0
+0
+hits 0.02 -3.9
+hits 0.02 -4
+hits -0.26 -3.9
+hits -0.26 -4
+59
+1
+0
+0
+hits -0.26 -4
+60
+3
+0
+0
+hits 0.1 -4
+hits -0.14 -4
+hits -0.26 -4
+61
+2
+0
+0
+hits -0.26 -4
+hits 2.7 -0.46
+62
+2
+0
+0
+hits -0.26 -4
+hits -0.28 1.8
+63
+35
+0
+0
+hits -0.26 -4
+hits 3.2 0.55
+hits 3.2 -0.35
+hits 3.4 1.3
+hits 3.4 0.39
+hits 2.7 17
+hits -18 17
+hits -0.44 4.5
+hits -0.44 3.7
+hits -0.44 2.7
+hits -0.44 1.8
+hits -0.44 1.2
+hits -0.74 5.6
+hits -0.74 4.8
+hits -0.74 3.8
+hits -0.74 2.9
+hits -0.74 2.3
+hits -0.97 6.5
+hits -0.97 5.6
+hits -0.97 4.7
+hits -0.97 3.7
+hits -0.97 3.2
+hits -1.2 7.2
+hits -1.2 6.3
+hits -1.2 5.4
+hits -1.2 4.5
+hits -1.2 3.9
+hits -41 22
+hits -41 20
+hits -41 19
+hits -41 22
+hits -41 20
+hits -41 19
+hits -42 22
+hits -42 21
+64
+3
+0
+0
+hits -0.26 -4
+hits 2.5 -0.36
+hits 2.8 0.53
+65
+1
+0
+0
+hits -0.26 -4
+66
+7
+0
+0
+hits -0.26 -3.8
+hits -0.26 -3.9
+hits -0.26 -4
+hits 2.2 0.61
+hits 2.2 -0.22
+hits 2.5 1.5
+hits 2.5 0.68
+67
+2
+0
+0
+hits -0.26 -3.9
+hits -0.26 -4
+68
+8
+0
+0
+hits 0.58 1.4
+hits 0.58 1.1
+hits 0.58 -3.9
+hits 0.58 -4
+hits -0.26 1.4
+hits -0.26 1.1
+hits -0.26 -3.9
+hits -0.26 -4
+69
+1
+0
+0
+hits -0.26 -4
+70
+3
+0
+0
+hits -0.26 0.5
+hits -0.26 0.22
+hits -0.26 -4
+71
+1
+0
+0
+hits -0.26 -4
+72
+1
+0
+0
+hits -0.26 -4
+73

@@ -10,22 +10,31 @@
 #include "TArrayI.h"
 #include "TObject.h"
 #include "BmnGemStripHit.h"
+#include <TClonesArray.h>
 
 #include <map>
 
 //class FairHit;
+class FairMultiLinkedData;
 
 class BmnGemTrack : public TObject {
 public:
 
     /** Default constructor **/
     BmnGemTrack();
+    
+    /** Copy Constructor **/
+    // BmnGemTrack(const BmnGemTrack&);
+    
+    /** Assignment Operator **/
+    // BmnGemTrack& operator=(const BmnGemTrack&);
 
     /** Destructor **/
     virtual ~BmnGemTrack();
 
     /** Associate a BmnGemHit to the track **/
     void AddHit(Int_t hitIndex, FairHit* Hit);
+    void AddHit(BmnGemStripHit*);
 
     /** Public method Print
      ** Output to screen 
@@ -90,9 +99,9 @@ public:
     const vector<BmnFitNode>& GetFitNodes() const {
         return fFitNodes;
     }
-    
-    const vector <BmnGemStripHit*> GetHits() {
-        return fHitsPertainingToTrack;
+       
+    TClonesArray* GetHits() {
+        return fTrHits;
     }
 
     /** Modifiers  **/
@@ -136,8 +145,8 @@ public:
         fLength = length;
     }
 
-    void SetHits(vector <BmnGemStripHit*> hits) {
-        fHitsPertainingToTrack = hits;
+    void SetHits() {
+       
     }
 
 
@@ -176,8 +185,8 @@ private:
 
     Bool_t fUsed; //needed to check seeds splitting
     
-    vector<BmnGemStripHit*> fHitsPertainingToTrack;
-
+    TClonesArray* fTrHits;
+    
     ClassDef(BmnGemTrack, 1);
 
 };

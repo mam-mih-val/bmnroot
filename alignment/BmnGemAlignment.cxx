@@ -4,9 +4,9 @@
 #include "BmnGemAlignment.h"
 
 BmnGemAlignment::BmnGemAlignment(Char_t* filename, Char_t* outname) :
-fGemDigits(NULL),        
+fGemDigits(NULL),
 fRecoFileName(NULL),
-fRecoTree(NULL),       
+fRecoTree(NULL),
 fGemHits(NULL),
 fDebugInfo(kFALSE),
 fContainer(NULL),
@@ -22,37 +22,40 @@ fXhitMax(LDBL_MAX),
 fYhitMin(-LDBL_MAX),
 fYhitMax(LDBL_MAX),
 fChainIn(NULL),
-fChainOut(NULL) {
+fChainOut(NULL),
+fTrHits(NULL) {
     fDigiFilename = filename;
 
     fChainIn = new TChain("cbmsim");
     fChainIn->Add(fDigiFilename);
-    
-   // fChainOut = new TChain("cbmsim");
-  
+
+    // fChainOut = new TChain("cbmsim");
+
     cout << "#events: " << fChainIn->GetEntries() << endl;
     fNumEvents = fChainIn->GetEntries();
     fChainIn->SetBranchAddress("BmnGemStripDigit", &fGemDigits);
 
     fRecoFileName = outname;
-    
+
     fRecoFile = new TFile(fRecoFileName, "recreate");
     fRecoTree = new TTree("cbmsim", "cbmsim");
-    
-    fGemHits =   new TClonesArray("BmnGemStripHit");  
+
+    fGemHits = new TClonesArray("BmnGemStripHit");
     fGemTracks = new TClonesArray("BmnGemTrack");
     fContainer = new TClonesArray("BmnAlignmentContainer");
-    
+
     fRecoTree->Branch("BmnGemStripHit", &fGemHits);
     fRecoTree->Branch("BmnGemTrack", &fGemTracks);
     fRecoTree->Branch("BmnAlignmentContainer", &fContainer);
+
+    fTrHits = new TClonesArray("BmnGemStripHit");
 }
 
 void BmnGemAlignment::PrepareData() {
     for (Int_t iEv = 0; iEv < fNumEvents; iEv++) {
         fChainIn->GetEntry(iEv);
-      //  if (iEv % 1000 == 0)
-      //   cout << "Event# = " << iEv << endl;
+        if (iEv % 1000 == 0)
+            cout << "Event# = " << iEv << endl;
 
         fGemHits->Delete();
         fGemTracks->Delete();
@@ -120,9 +123,10 @@ void BmnGemAlignment::PrepareData() {
 
         // Checking for maximal number of hits
         if (fGemHits->GetEntriesFast() == 0 || fGemHits->GetEntriesFast() > fMaxNofHits) {
-            // cout << iEv << endl;
-//            new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
-//            new ((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
+            // new((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
+            // new((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
+
+            //    fRecoTree->Fill();
             delete fDetector;
             continue;
         }
@@ -144,33 +148,33 @@ void BmnGemAlignment::PrepareData() {
                 nonEmptyStatNumber.push_back(iStat);
         }
 
-        // Checking for (nStat - 1) empty stations 
+        // Checking for (nStat - 1) empty stations
         if (emptyStat == fNstat - 1) {
-            // cout << iEv << endl;
-//            new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
-//            new ((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
+            // new((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
+            // new((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
+            //    fRecoTree->Fill();
             delete fDetector;
             continue;
         }
 
         // Checking for minimal number of hits per track
         if (nonEmptyStatNumber.size() < fMinHitsAccepted) {
-            // cout << iEv << endl;
-//            new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
-//            new ((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
+            // new((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
+            // new((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
+            //   fRecoTree->Fill();
             delete fDetector;
             continue;
         }
 
-        //                cout << "Event # =  " << iEv << endl;
-        //                for (Int_t iStat = 0; iStat < fNstat; iStat++)
-        //                    cout << stat[iStat].size() << " ";
-        //                cout << endl;
+        //                        cout << "Event # =  " << iEv << endl;
+        //                        for (Int_t iStat = 0; iStat < fNstat; iStat++)
+        //                            cout << stat[iStat].size() << " ";
+        //                        cout << endl;
 
 
         vector <BmnGemStripHit*> hits;
-        goToStations(fGemTracks, hits, stat, 0);
-     
+        goToStations(hits, stat, 0);
+
         // Searching for one track with min. value of chi2 and putting its params. to align. container
         vector <Float_t> chi2;
         for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
@@ -191,79 +195,77 @@ void BmnGemAlignment::PrepareData() {
                 break;
             }
         }
-       
+
         fRecoTree->Fill();
         delete fDetector;
-        cout << iEv << endl;
-    } 
+    }
     fRecoTree->Write();
-    fRecoFile->Close(); 
+    fRecoFile->Close();
     // delete fRecoFile;
 }
 
 void BmnGemAlignment::StartMille() {
-//    fRecoFile = new TFile(fRecoFileName, "read");
     fChainOut = new TChain("cbmsim");
     fChainOut->Add(fRecoFileName);
-//    cout << fRecoFile->GetName() << endl; 
-    
-//   fContainer = NULL;
-//    TFile file(fRecoFileName);
-//    TTree* tree = (TTree*)file.Get("BmnAlignmentContainer");
-//    tree->SetBranchAddress("BmnAlignmentContainer", &fContainer);
-//    
- //   cout << fContainer->GetEntriesFast() << endl;
-
     cout << "#recorded tracks = " << fChainOut->GetEntries() << endl;
+
     TClonesArray* hits = NULL;
     TClonesArray* tracks = NULL;
     TClonesArray* align = NULL;
-    
+
     fChainOut->SetBranchAddress("BmnGemStripHit", &hits);
     fChainOut->SetBranchAddress("BmnGemTrack", &tracks);
     fChainOut->SetBranchAddress("BmnAlignmentContainer", &align);
-//    
+    //
     for (Int_t iEv = 0; iEv < fChainOut->GetEntries(); iEv++) {
-        cout << iEv << endl;
+        // cout << iEv << endl;
+
         fChainOut->GetEntry(iEv);
-//      
-//       for (Int_t iHit = 0; iHit = hits->GetEntriesFast(); iHit++) {
-//           BmnGemStripHit* hit = (BmnGemStripHit*)hits->UncheckedAt(iHit);
-//           cout << hit->GetX() << " " << hit->GetY() << endl;
-//       }
-//       
-//        for (Int_t iTrack = 0; iTrack = tracks->GetEntriesFast(); iTrack++) {
-//           BmnGemTrack* track = (BmnGemTrack*)tracks->UncheckedAt(iTrack);
-//           cout << track->GetChi2() << endl;
-//        }
-//        
-//        for (Int_t iAlign = 0; iAlign = align->GetEntriesFast(); iAlign++) {
-//           BmnAlignmentContainer* cont = (BmnAlignmentContainer*)align->UncheckedAt(iAlign);
-//           cout << cont->GetTx() << endl;
-//       }
+
+        // cout << hits->GetEntriesFast() << endl;
+        // cout << tracks->GetEntriesFast() << endl;
+        // cout << align->GetEntriesFast() << endl;
+        //
+        for (Int_t iHit = 0; iHit < hits->GetEntriesFast(); iHit++) {
+            BmnGemStripHit* hit = (BmnGemStripHit*) hits->UncheckedAt(iHit);
+            // cout << "hits " << hit->GetX() << " " << hit->GetY() << endl;
+        }
+
+        for (Int_t iTrack = 0; iTrack < tracks->GetEntriesFast(); iTrack++) {
+            BmnGemTrack* track = (BmnGemTrack*) tracks->UncheckedAt(iTrack);
+            // cout << "tracks " << track->GetChi2() << endl;
+        }
+        //
+        for (Int_t iAlign = 0; iAlign < align->GetEntriesFast(); iAlign++) {
+            BmnAlignmentContainer* cont = (BmnAlignmentContainer*) align->UncheckedAt(iAlign);
+            // cout << "cont " << cont->GetTx() << endl;
+        }
     }
 }
 
-void BmnGemAlignment::goToStations(TClonesArray* tracks, vector<BmnGemStripHit*>& hits, vector<BmnGemStripHit*> *hitsOnStation, Int_t stat) {
+void BmnGemAlignment::goToStations(vector<BmnGemStripHit*>& hits, vector<BmnGemStripHit*> *hitsOnStation, Int_t stat) {
     Int_t nextStat = stat + 1;
 
     if (hitsOnStation[stat].size() < 1) {
         if (stat == fNstat - 1) {
+            // cout << "Nstat == 6" << endl;
             DeriveFoundTrackParams(hits);
             return;
         }
-        goToStations(tracks, hits, hitsOnStation, nextStat);
+        // cout << "Мы тут!" << endl;
+        goToStations(hits, hitsOnStation, nextStat);
     } else {
         for (Int_t iSize = 0; iSize < hitsOnStation[stat].size(); iSize++) {
             BmnGemStripHit* hit = (BmnGemStripHit*) hitsOnStation[stat].at(iSize);
             hits.push_back(hit);
 
             if (nextStat == fNstat) {
+                // cout << "Nstat != 6" << endl;
                 DeriveFoundTrackParams(hits);
                 hits.pop_back();
                 continue;
             }
-            goToStations(tracks, hits, hitsOnStation, nextStat);
+            goToStations(hits, hitsOnStation, nextStat);
             hits.pop_back();
         }
     }
@@ -274,18 +276,36 @@ void BmnGemAlignment::DeriveFoundTrackParams(vector<BmnGemStripHit*> hits) {
     TVector3 vertex, direction;
     Float_t chi2 = LineFit3D(hits, vertex, direction);
     if (chi2 > 0 && chi2 < fChi2Max) {
-        BmnGemTrack track;
-        FairTrackParam par;
-        CreateTrack(direction, vertex, track, par, chi2, hits.size());
-        track.SetHits(hits);
-        new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack(track);
+        BmnGemTrack* track = new BmnGemTrack();
+        FairTrackParam* par = new FairTrackParam();
+        CreateTrack(direction, vertex, *track, *par, chi2, hits.size());
+        // track->SetHits(hits);
+        // cout << "Nhits = " << hits.size() << endl;
+        // vertex.Print();
+        // direction.Print();
+        // par->Print();
+        // cout << "Check filling before " << fGemTracks->GetEntriesFast() << endl;
+        BmnGemTrack* newTrack = new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
+
+        for (Int_t iHit = 0; iHit < hits.size(); iHit++) {
+            BmnGemStripHit* trHit = ((BmnGemStripHit*) hits.at(iHit));
+            newTrack->AddHit(trHit);
+        }
+
+        newTrack->SetParamFirst(*par);
+        newTrack->SetChi2(chi2);
+        newTrack->SetNDF(hits.size());
+        delete par;
+        delete track;
+
+        // cout << "Check filling after " << fGemTracks->GetEntriesFast() << endl;
     }
 }
 
 BmnGemAlignment::~BmnGemAlignment() {
-//    fRecoTree->Write();
-//    fRecoFile->Close();
-//    delete fContainer;
+    //    fRecoTree->Write();
+    //    fRecoFile->Close();
+    //    delete fContainer;
     delete fChainIn;
     delete fChainOut;
 }
@@ -300,7 +320,7 @@ Float_t BmnGemAlignment::LineFit3D(vector<BmnGemStripHit*> hits, TVector3& verte
     Float_t SumXWC = 0.0, SumYWC = 0.0;
     Float_t SumW = 0.0;
     Float_t SumC = 0.0, SumC2 = 0.0;
-    Float_t Wi = 1.0 / nHits; // weight    
+    Float_t Wi = 1.0 / nHits; // weight
     Float_t ZV = ((BmnGemStripHit*) hits.at(0))->GetZ(); //Z-coordinate of vertex
     Float_t ZN = ((BmnGemStripHit*) hits.at(nHits - 1))->GetZ();
     Float_t Az = (ZN - ZV);

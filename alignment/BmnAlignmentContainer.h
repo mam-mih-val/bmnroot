@@ -36,9 +36,9 @@ public:
         return fZ0;
     }
     
-    const vector <BmnGemStripHit*> GetTrackHits() {
-        return fTrackHits;
-    } 
+//    const vector <BmnGemStripHit*> GetTrackHits() {
+//        return fTrackHits;
+//    } 
         
     // Setters   
     void SetX0(Float_t x0) {
@@ -61,7 +61,7 @@ public:
         fTy = ty;
     }
     
-    void SetTrackHits(vector <BmnGemStripHit*> hits) {
+    void SetTrackHits(TClonesArray* hits) {
         fTrackHits = hits;
     }
    
@@ -69,7 +69,7 @@ public:
 private:
 
 //    Int_t fEventNumber;
-    vector <BmnGemStripHit*> fTrackHits;
+    TClonesArray* fTrackHits;
     
 //    Int_t fStation;
 //    Int_t fModule;

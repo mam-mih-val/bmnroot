@@ -92,7 +92,7 @@ private:
     void CreateTrack(TVector3, TVector3, BmnGemTrack&, FairTrackParam&, Float_t, Int_t);
     Bool_t isOneTrack(TClonesArray*);
     
-    void goToStations(TClonesArray*, vector<BmnGemStripHit*>&, vector<BmnGemStripHit*>*, Int_t);
+    void goToStations(vector<BmnGemStripHit*>&, vector<BmnGemStripHit*>*, Int_t);
     void DeriveFoundTrackParams(vector<BmnGemStripHit*>);
     
     Char_t* fDigiFilename;
@@ -121,6 +121,8 @@ private:
     TClonesArray* fGemHits;
     TClonesArray* fGemTracks;
     TClonesArray* fContainer;
+    
+    TClonesArray* fTrHits;
     
     Bool_t fDebugInfo;
     ClassDef(BmnGemAlignment, 1)

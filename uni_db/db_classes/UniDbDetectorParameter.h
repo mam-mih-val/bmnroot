@@ -198,7 +198,7 @@ class UniDbDetectorParameter
 		}*/
 
 	// common function for getting parameter value
-	unsigned char* GetUNC(enumParameterType enum_parameter_type);
+    unsigned char* GetUNC(enumParameterType enum_parameter_type, bool isCheckType = false);
 
 	// common function for setting parameter value
 	int SetUNC(unsigned char* p_parameter_value, Long_t size_parameter_value);

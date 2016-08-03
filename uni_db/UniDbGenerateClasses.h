@@ -13,6 +13,7 @@
 #define UNIDBGENERATECLASSES_H 1
 
 #include "TString.h"
+#include "TObjArray.h"
 
 struct structColumnInfo
 {
@@ -33,6 +34,7 @@ struct structColumnInfo
     TString strVariableName;
     // temp variable name for tempopary copy this variable
     TString strTempVariableName;
+    // short variable name (e.g. ComponentName for 'component_name' column
     TString strShortVariableName;
     bool isIdentity;
     bool isPrimary;
@@ -43,6 +45,18 @@ struct structColumnInfo
     bool isDateTime;
 };
 
+// structure to join another table's fields (for read-only) - NOT IMPLEMENTED YET
+struct structTableJoin
+{
+    TString strSourceTableName;
+    TString strJoinTableName;
+    structColumnInfo strJoinField;
+    TObjArray* arrManualFieldNames;
+
+    structTableJoin() { arrManualFieldNames = NULL; }
+    ~structTableJoin() { if (arrManualFieldNames) delete arrManualFieldNames; }
+};
+
 class UniDbGenerateClasses
 {
  public:
@@ -51,6 +65,8 @@ class UniDbGenerateClasses
 
     // generate C++ classess - wrappers for DB tables
     int GenerateClasses(TString connection_string = "", TString class_prefix = "UniDb", bool isOnlyUpdate = true);
+
+    TObjArray* arrTableJoin;
 
   ClassDef(UniDbGenerateClasses,1);
 };

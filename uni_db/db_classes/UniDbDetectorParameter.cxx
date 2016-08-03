@@ -1056,49 +1056,52 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // common function for getting parameter value
-unsigned char* UniDbDetectorParameter::GetUNC(enumParameterType enum_parameter_type)
+unsigned char* UniDbDetectorParameter::GetUNC(enumParameterType enum_parameter_type, bool isCheckType)
 {
-    if (!connectionUniDb)
+    if (isCheckType)
     {
-        cout<<"Critical Error: Connection object is null"<<endl;
-        return NULL;
-    }
+        if (!connectionUniDb)
+        {
+            cout<<"Critical Error: Connection object is null"<<endl;
+            return NULL;
+        }
 
-    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+        TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
-    // get parameter object from 'parameter_' table
-    TString sql = TString::Format(
-        "select parameter_name, parameter_type "
-        "from parameter_ "
-        "where parameter_id = %d", i_parameter_id);
-    TSQLStatement* stmt = uni_db->Statement(sql);
+        // get parameter object from 'parameter_' table
+        TString sql = TString::Format(
+                    "select parameter_name, parameter_type "
+                    "from parameter_ "
+                    "where parameter_id = %d", i_parameter_id);
+        TSQLStatement* stmt = uni_db->Statement(sql);
 
-    // get table record from DB
-    if (!stmt->Process())
-    {
-        cout<<"Critical Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
+        // get table record from DB
+        if (!stmt->Process())
+        {
+            cout<<"Critical Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
+            delete stmt;
+            return NULL;
+        }
+
+        stmt->StoreResult();
+
+        // extract row with parameter
+        if (!stmt->NextResultRow())
+        {
+            cout<<"Critical Error: the parameter with id '"<<i_parameter_id<<"' wasn't found"<<endl;
+            delete stmt;
+            return NULL;
+        }
+
+        TString parameter_name = stmt->GetString(0);
+        int parameter_type = stmt->GetInt(1);
         delete stmt;
-        return NULL;
-    }
 
-    stmt->StoreResult();
-
-    // extract row with parameter
-    if (!stmt->NextResultRow())
-    {
-        cout<<"Critical Error: the parameter with id '"<<i_parameter_id<<"' wasn't found"<<endl;
-        delete stmt;
-        return NULL;
-    }
-
-    TString parameter_name = stmt->GetString(0);
-    int parameter_type = stmt->GetInt(1);
-    delete stmt;
-
-    if (parameter_type != enum_parameter_type)
-    {
-        cout<<"Critical Error: the parameter with name '"<<parameter_name<<"' isn't corresponding the given type"<<endl;
-        return NULL;
+        if (parameter_type != enum_parameter_type)
+        {
+            cout<<"Critical Error: the parameter with name '"<<parameter_name<<"' isn't corresponding the given type"<<endl;
+            return NULL;
+        }
     }
 
     return blob_parameter_value;

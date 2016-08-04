@@ -23,12 +23,6 @@ public:
     /** Default constructor **/
     BmnGemTrack();
     
-    /** Copy Constructor **/
-    // BmnGemTrack(const BmnGemTrack&);
-    
-    /** Assignment Operator **/
-    // BmnGemTrack& operator=(const BmnGemTrack&);
-
     /** Destructor **/
     virtual ~BmnGemTrack();
 
@@ -185,7 +179,7 @@ private:
 
     Bool_t fUsed; //needed to check seeds splitting
     
-    TClonesArray* fTrHits;
+    TClonesArray* fTrHits; // Array to store track hits
     
     ClassDef(BmnGemTrack, 1);
 

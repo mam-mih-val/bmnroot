@@ -28,54 +28,6 @@ fTrHits(NULL) {
 }
 // -------------------------------------------------------------------------
 
-//BmnGemTrack::BmnGemTrack(const BmnGemTrack& rhs)
-//: TObject(rhs),
-//fHits(rhs.fHits),
-//fParamFirst(rhs.fParamFirst),
-//fParamLast(rhs.fParamLast),
-//fFlag(rhs.fFlag),
-//fChi2(rhs.fChi2),
-//fNDF(rhs.fNDF),
-//fB(rhs.fB),
-//fRef(rhs.fRef),
-//fUsed(rhs.fUsed),
-//fHitMap(rhs.fHitMap),
-//fLinks(NULL) {
-//    if (NULL != rhs.fLinks) {
-//        fLinks = new FairMultiLinkedData(*(rhs.fLinks));
-//    }
-//}
-//
-//BmnGemTrack& BmnGemTrack::operator=(const BmnGemTrack& rhs) {
-//
-//    if (this != &rhs) {
-//
-//        TObject::operator=(rhs);
-//        fHits = rhs.fHits;
-//        fParamFirst = rhs.fParamFirst;
-//        fParamLast = rhs.fParamLast;
-//        fFlag = rhs.fFlag;
-//        fChi2 = rhs.fChi2;
-//        fNDF = rhs.fNDF;
-//        fB = rhs.fB;
-//        fRef = rhs.fRef;
-//        fUsed = rhs.fUsed;
-//        fHitMap = rhs.fHitMap;
-//
-//
-//        if (NULL != rhs.fLinks) {
-//            std::auto_ptr<FairMultiLinkedData> tmp(new FairMultiLinkedData(*rhs.fLinks));
-//            delete fLinks;
-//            fLinks = tmp.release();
-//        } else {
-//            fLinks = NULL;
-//        }
-//    }
-//    return *this;
-//}
-//
-//
-//
 //// -----   Destructor   ----------------------------------------------------
 
 BmnGemTrack::~BmnGemTrack() {

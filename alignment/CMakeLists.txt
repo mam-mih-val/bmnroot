@@ -34,6 +34,7 @@ BmnGemAlignment.cxx
 BmnDchAlignment.cxx
 BmnGlobalAlignment.cxx
 BmnAlignmentContainer.cxx
+BmnMille.cxx
 )
 
 # fill list of header files from list of source files

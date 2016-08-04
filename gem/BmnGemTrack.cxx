@@ -45,11 +45,9 @@ void BmnGemTrack::AddHit(Int_t hitIndex, FairHit* hit) {
     fHitMap[hit->GetZ()] = hitIndex;
 }
 
-void BmnGemTrack::AddHit(BmnGemStripHit*) {
-    new ((*fTrHits)[fTrHits->GetEntriesFast()]) BmnGemStripHit();
+void BmnGemTrack::AddHit(BmnGemStripHit* hit) {
+    new ((*fTrHits)[fTrHits->GetEntriesFast()]) BmnGemStripHit(*hit);  
 }
-
-
 
 // -------------------------------------------------------------------------
 

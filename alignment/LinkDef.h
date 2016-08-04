@@ -8,6 +8,7 @@
 #pragma link C++ class BmnGemAlignment++;
 #pragma link C++ class BmnGlobalAlignment++;
 #pragma link C++ class BmnAlignmentContainer++;
+#pragma link C++ class BmnMille++;
 
 #endif
 

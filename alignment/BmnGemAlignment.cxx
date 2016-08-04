@@ -1,6 +1,3 @@
-#include <TSystem.h>
-#include <TFile.h>
-
 #include "BmnGemAlignment.h"
 
 BmnGemAlignment::BmnGemAlignment(Char_t* filename, Char_t* outname) :
@@ -199,25 +196,68 @@ void BmnGemAlignment::StartMille() {
     fChainOut->SetBranchAddress("BmnGemStripHit", &hits);
     fChainOut->SetBranchAddress("BmnGemTrack", &tracks);
     fChainOut->SetBranchAddress("BmnAlignmentContainer", &align);
-    //
+    
+    Int_t nSelectedTracks = 0; 
     for (Int_t iEv = 0; iEv < fChainOut->GetEntries(); iEv++) {
        fChainOut->GetEntry(iEv);
-
-//        for (Int_t iHit = 0; iHit < hits->GetEntriesFast(); iHit++) {
-//            BmnGemStripHit* hit = (BmnGemStripHit*) hits->UncheckedAt(iHit);
-//           
-//        }
-//
-//        for (Int_t iTrack = 0; iTrack < tracks->GetEntriesFast(); iTrack++) {
-//            BmnGemTrack* track = (BmnGemTrack*) tracks->UncheckedAt(iTrack);
-//          
-//        }
-       
+       if (align->GetEntriesFast() > 0) 
+           nSelectedTracks++;    
+     }
+      
+    TString name = "alignment";
+    FILE* fin_txt = fopen(TString(name + ".txt").Data(), "w");
+    fprintf(fin_txt, "%d\n", nSelectedTracks);
+    
+    for (Int_t iEv = 0; iEv < fChainOut->GetEntries(); iEv++) {
+       fChainOut->GetEntry(iEv);
+              
         for (Int_t iAlign = 0; iAlign < align->GetEntriesFast(); iAlign++) {
             BmnAlignmentContainer* cont = (BmnAlignmentContainer*) align->UncheckedAt(iAlign);
-           
+            TClonesArray* trHits = cont->GetTrackHits();
+
+            for (Int_t iHit = 0; iHit < trHits->GetEntriesFast(); iHit++) {
+                BmnGemStripHit* hit = (BmnGemStripHit*) trHits->UncheckedAt(iHit);
+
+                if (fAlignmentType == "xy") {
+                    Double_t Z = hit->GetZ();
+                    Short_t stat = hit->GetStation();
+
+                    Char_t* locDerX = Form("%d 1. %f 0. 0. ", stat, Z);
+                    Char_t* locDerY = Form("%d 0. 0. 1. %f ", stat, Z);
+
+                    Char_t* globDerX = Form("1. 0. ");
+                    Char_t* globDerY = Form("0. 1. ");
+
+                    Char_t* measX = Form("%f %f ", hit->GetX(), hit->GetDx());
+                    Char_t* measY = Form("%f %f ", hit->GetY(), hit->GetDy());
+
+                    Int_t N_zeros_beg = stat;
+                    Int_t N_zeros_end = (fNstat - 1) - N_zeros_beg;
+
+                    TString zeroEnd = "";
+                    TString zeroBeg = "";
+                    for (Int_t i = 0; i < N_zeros_beg; i++)
+                        zeroBeg += "0 0 ";
+
+                    for (Int_t i = 0; i < N_zeros_end; i++)
+                        zeroEnd += "0 0 ";
+                    
+                    fprintf(fin_txt, "%s%s %s %s%s\n", locDerX, zeroBeg.Data(), globDerX, zeroEnd.Data(), measX);
+                    fprintf(fin_txt, "%s%s %s %s%s\n", locDerY, zeroBeg.Data(), globDerY, zeroEnd.Data(), measY);
+                }
+            }
         }
     }
+    fclose(fin_txt);
+    
+    BmnMille* Align = new BmnMille(TString(name + ".bin").Data(), kTRUE, kFALSE);
+    
+  // Align->kill();
+   
+   
+   
+   delete Align;
+    
 }
 
 void BmnGemAlignment::goToStations(vector<BmnGemStripHit*>& hits, vector<BmnGemStripHit*> *hitsOnStation, Int_t stat) {
@@ -257,7 +297,7 @@ void BmnGemAlignment::DeriveFoundTrackParams(vector<BmnGemStripHit*> hits) {
 
         for (Int_t iHit = 0; iHit < hits.size(); iHit++) {
             BmnGemStripHit* trHit = ((BmnGemStripHit*) hits.at(iHit));
-            newTrack->AddHit(trHit);
+            newTrack->AddHit(trHit);   
         }
 
         newTrack->SetParamFirst(*par);

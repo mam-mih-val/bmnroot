@@ -36,9 +36,9 @@ public:
         return fZ0;
     }
     
-//    const vector <BmnGemStripHit*> GetTrackHits() {
-//        return fTrackHits;
-//    } 
+    TClonesArray* GetTrackHits() {
+        return fTrackHits;
+    } 
         
     // Setters   
     void SetX0(Float_t x0) {

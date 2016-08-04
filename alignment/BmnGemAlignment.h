@@ -18,6 +18,9 @@
 #include <TH2.h>
 #include <limits.h>
 #include <TString.h>
+#include <TSystem.h>
+#include <TFile.h>
+#include "BmnMille.h"
 
 using namespace std;
 using namespace TMath;
@@ -79,6 +82,18 @@ public:
         fYhitMin = min;
         fYhitMax = max;  
     }
+    void SetAlignmentDim(TString dim) {
+        if (dim == "xy" || dim == "xyz") {
+            fAlignmentType = dim;
+         cout << "Type " << fAlignmentType << " established" << endl;   
+        }
+        else {
+            cout << "Specify a correct type of alignment" << endl;
+            //Fatal("Хуйло ты проклятое!", "Хуйло ты проклятое!");
+            throw;
+          
+        }
+    }
     
     void PrepareData();
     void StartMille();
@@ -125,6 +140,8 @@ private:
     TClonesArray* fTrHits;
     
     Bool_t fDebugInfo;
+    
+    TString fAlignmentType;
     ClassDef(BmnGemAlignment, 1)
 };
 

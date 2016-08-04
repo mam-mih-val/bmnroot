@@ -58,7 +58,7 @@ public:
         fSignalToNoise = val;
     }
     
-    void SetChi2Max(Float_t val) {
+    void SetChi2Max(Double_t val) {
         fChi2Max = val;
     }
     
@@ -70,12 +70,12 @@ public:
         fMinHitsAccepted = val;
     }
     
-    void SetXhitMinMax(Float_t min, Float_t max) {
+    void SetXhitMinMax(Double_t min, Double_t max) {
         fXhitMin = min;
         fXhitMax = max;  
     }
     
-    void SetYhitMinMax(Float_t min, Float_t max) {
+    void SetYhitMinMax(Double_t min, Double_t max) {
         fYhitMin = min;
         fYhitMax = max;  
     }
@@ -88,8 +88,8 @@ public:
 private:
 
     void LineFit3D(TLorentzVector*, TLorentzVector*, TVector3&, TVector3&, TClonesArray*, TClonesArray*) {};
-    Float_t LineFit3D(vector <BmnGemStripHit*>, TVector3&, TVector3&);
-    void CreateTrack(TVector3, TVector3, BmnGemTrack&, FairTrackParam&, Float_t, Int_t);
+    Double_t LineFit3D(vector <BmnGemStripHit*>, TVector3&, TVector3&);
+    void CreateTrack(TVector3, TVector3, BmnGemTrack&, FairTrackParam&, Double_t, Int_t);
     Bool_t isOneTrack(TClonesArray*);
     
     void goToStations(vector<BmnGemStripHit*>&, vector<BmnGemStripHit*>*, Int_t);
@@ -109,13 +109,13 @@ private:
     
     Double_t fSignalToNoise;
     Double_t fThreshold;
-    Float_t fChi2Max;
+    Double_t fChi2Max;
     Int_t fMinHitsAccepted;
     
-    Float_t fXhitMin;
-    Float_t fXhitMax;
-    Float_t fYhitMin;
-    Float_t fYhitMax;
+    Double_t fXhitMin;
+    Double_t fXhitMax;
+    Double_t fYhitMin;
+    Double_t fYhitMax;
     
     TClonesArray* fGemDigits;
     TClonesArray* fGemHits;

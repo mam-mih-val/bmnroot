@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <Rtypes.h>
+#include <math.h>
 
 using namespace std;
 
@@ -31,7 +32,7 @@ private:
         myBufferSize = 5000
     }; ///< buffer size for ints and floats
     Int_t myBufferInt[myBufferSize]; ///< to collect labels etc.
-    Double_t myBufferFloat[myBufferSize]; ///< to collect derivatives etc.
+    Float_t myBufferFloat[myBufferSize]; ///< to collect derivatives etc.
     Int_t myBufferPos; ///< position in buffer
     Bool_t myHasSpecial; ///< if true, special(..) already called for this record
     /// largest label allowed: 2^31 - 1

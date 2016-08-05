@@ -237,9 +237,11 @@ void BmnGemAlignment::StartMille() {
                 if (fAlignmentType == "xy") {
                     Char_t* locDerX = Form("%d 1. %f 0. 0. ", stat, Z);
                     Char_t* locDerY = Form("%d 0. 0. 1. %f ", stat, Z);
+                    //                    Char_t* locDer = Form("%d 1. %f 1. %f ", stat, Z, Z);
 
                     Char_t* globDerX = Form("1. 0. ");
                     Char_t* globDerY = Form("0. 1. ");
+                    //                    Char_t* globDer = Form("1. 1. ");
 
                     Char_t* measX = Form("%f %f ", hit->GetX(), hit->GetDx());
                     Char_t* measY = Form("%f %f ", hit->GetY(), hit->GetDy());
@@ -260,6 +262,7 @@ void BmnGemAlignment::StartMille() {
 
                     fprintf(fin_txt, "%s%s %s %s%s\n", locDerX, zeroBeg.Data(), globDerX, zeroEnd.Data(), measX);
                     fprintf(fin_txt, "%s%s %s %s%s\n", locDerY, zeroBeg.Data(), globDerY, zeroEnd.Data(), measY);
+                    //                      fprintf(fin_txt, "%s%s %s %s%s%s\n", locDer, zeroBeg.Data(), globDer, zeroEnd.Data(), measX, measY);
                 }
 
                 prevStat = stat;
@@ -272,14 +275,63 @@ void BmnGemAlignment::StartMille() {
     }
     fclose(fin_txt);
 
-    BmnMille* Align = new BmnMille(TString(name + ".bin").Data(), kTRUE, kFALSE);
+    ifstream fout_txt;
+    fout_txt.open(TString(name + ".txt").Data(), ios::in);
+    Int_t nTracks, nGem, NLC, NGL;
+       
+    if (fAlignmentType == "xy") {
+        NLC = 4;
+        NGL = 2 * fNstat;
+    }
+    
+    const Int_t dim = NGL;
+    Int_t Labels[dim] = {11, 12,
+        21, 22,
+        31, 32,
+        41, 42,
+        51, 52,
+        61, 62,
+        71, 72};
+    Double_t rMeasure, dMeasure;
+    fout_txt >> nTracks;
+    Double_t DerGl[NGL], DerLc[NLC];
 
-    // Align->kill();
+    BmnMille* Mille = new BmnMille(TString(name + ".bin").Data(), kTRUE, kFALSE);
 
+    for (Int_t iTrack = 0; iTrack < nTracks; iTrack++) {
+        for (Int_t iPlane = 0; iPlane < 2 * fNstat; iPlane++) {
+            fout_txt >> nGem;
+            if (nGem < 0) continue;
 
+            for (Int_t iVar = 0; iVar < NLC; iVar++) fout_txt >> DerLc[iVar];
+            for (Int_t iVar = 0; iVar < NGL; iVar++) fout_txt >> DerGl[iVar];
+            fout_txt >> rMeasure;
 
-    delete Align;
+            fout_txt >> dMeasure;
 
+            if (fDebugInfo) {
+                cout << "-" << nGem << " n DerLc[ ] = ";
+                for (Int_t icVar = 0; icVar < NLC; icVar++) cout << DerLc[icVar] << " ";
+                cout << endl;
+
+                cout << "-" << nGem << " n DerGl[ ] = ";
+                for (Int_t icVar = 0; icVar < NGL; icVar++) cout << DerGl[icVar] << " ";
+                cout << endl;
+
+                cout << "-" << nGem << " rMeasure  = " << rMeasure << endl;
+            }
+            Mille->mille(NLC, DerLc, NGL, DerGl, Labels, rMeasure, dMeasure);
+        }
+        Mille->end();
+        if (fDebugInfo) 
+            cout << "========================> Another one RECORD = " << iTrack + 1 << " --> " << endl;
+    }
+
+    delete Mille;
+    fout_txt.close();
+    
+    TString commandToExec = "pede " + TString(GetSteerFileName());
+    system(commandToExec.Data());
 }
 
 void BmnGemAlignment::goToStations(vector<BmnGemStripHit*>& hits, vector<BmnGemStripHit*> *hitsOnStation, Int_t stat) {

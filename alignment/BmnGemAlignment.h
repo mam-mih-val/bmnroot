@@ -22,6 +22,8 @@
 #include <TFile.h>
 #include "BmnMille.h"
 
+#include <iomanip>
+
 using namespace std;
 using namespace TMath;
 
@@ -89,10 +91,14 @@ public:
         }
         else {
             cout << "Specify a correct type of alignment" << endl;
-            //Fatal("Хуйло ты проклятое!", "Хуйло ты проклятое!");
             throw;
           
         }
+    }
+    
+    void SetSteerFile(const Char_t* file) {
+        fSteerFileName = file;
+    
     }
     
     void PrepareData();
@@ -101,6 +107,9 @@ public:
    
    
 private:
+    const Char_t* GetSteerFileName() {
+        return fSteerFileName;
+    }
 
     void LineFit3D(TLorentzVector*, TLorentzVector*, TVector3&, TVector3&, TClonesArray*, TClonesArray*) {};
     Double_t LineFit3D(vector <BmnGemStripHit*>, TVector3&, TVector3&);
@@ -140,6 +149,7 @@ private:
     TClonesArray* fTrHits;
     
     Bool_t fDebugInfo;
+    const Char_t* fSteerFileName;
     
     TString fAlignmentType;
     ClassDef(BmnGemAlignment, 1)

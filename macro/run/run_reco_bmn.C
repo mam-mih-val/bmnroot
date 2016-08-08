@@ -1,7 +1,8 @@
 // --------------------------------------------------------------------------
 // Macro for reconstruction of simulated events
 //
-// inFile - input file with MC data, default: evetest.root. To process experimental data, you can use 'runNNN:' prefix.  The geometry is obtained from the Unified Database.
+// inFile - input file with MC data, default: evetest.root. To process experimental data, you can
+// use 'runN-NN:' prefix, e.g. "run3-642:raw_file_path" then the geometry is obtained from the Unified Database.
 // outFile - output file with reconstructed data, default: mpddst.root
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
@@ -26,10 +27,15 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // Set input source as simulation file or experimental data (if 'runN:' prefix)
     FairSource* fFileSource;
     Ssiz_t indColon = inFile.First(':');
+    Ssiz_t indDash = inFile.First('-');
     // for experimental datasource
-    if ((indColon >= 0) && (inFile.BeginsWith("run"))) {
+    if ((indColon >= 0) && (indDash < indColon) && (inFile.BeginsWith("run")))
+    {
+        // get run period
+        TString number_string(inFile(3, indDash - 3));
+        Int_t run_period = number_string.Atoi();
+        number_string = inFile(indDash+1, indColon - indDash-1);
         // get run number
-        TString number_string(inFile(3, indColon - 3));
         Int_t run_number = number_string.Atoi();
         inFile.Remove(0, indColon + 1);
 
@@ -38,7 +44,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 
         // get geometry for run
         TString root_file_path = "current_geo_file.root";
-        Int_t res_code = UniDbRun::ReadGeometryFile(run_number, root_file_path.Data());
+        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, root_file_path.Data());
         if (res_code != 0) {
             cout << "\nGeometry file can't be read from the database" << endl;
             exit(-1);

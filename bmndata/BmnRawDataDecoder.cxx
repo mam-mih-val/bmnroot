@@ -28,6 +28,8 @@ const UInt_t kADC64VE = 0xD4;
 const UInt_t kFVME = 0xD1;
 /********************************************************/
 
+const Int_t kPERIOD = 4; 
+
 using namespace std;
 
 BmnRawDataDecoder::BmnRawDataDecoder() {
@@ -344,9 +346,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fNevents = fRawTree->GetEntries();
 
     BmnGemRaw2Digit *gemMapper = new BmnGemRaw2Digit(fGemMapFileName);
-    BmnDchRaw2Digit *dchMapper = new BmnDchRaw2Digit(fDchMapFileName);
+    BmnDchRaw2Digit *dchMapper = new BmnDchRaw2Digit(kPERIOD, fRunId);
     BmnTrigRaw2Digit *trigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
-    BmnTof1Raw2Digit *tof400Mapper = new BmnTof1Raw2Digit(4, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+    BmnTof1Raw2Digit *tof400Mapper = new BmnTof1Raw2Digit(kPERIOD, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     //    BmnTof2Raw2Digit *tof700Mapper = new BmnTof2Raw2Digit(fTof700MapFileName);
 
     if (fPedestalRan) {

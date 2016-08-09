@@ -9,7 +9,7 @@ void add_new_parameter()
     gSystem->Load("libUniDb");
 
     // add 'voltage' parameter, for example (double value)
-    UniDbParameter* pParameter = UniDbParameter::CreateParameter("voltage", DoubleType); //(TString parameter_name, int parameter_type)
+    UniDbParameter* pParameter = UniDbParameter::CreateParameter("DCH_mapping", DCHMapArrayType); //(TString parameter_name, int parameter_type)
     if (pParameter == NULL)
     {
         cout << "\nMacro finished with errors" << endl;

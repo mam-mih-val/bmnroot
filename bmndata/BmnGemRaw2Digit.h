@@ -41,7 +41,7 @@ class BmnGemRaw2Digit {
 
 public:
     BmnGemRaw2Digit(TString mappingFile);
-    BmnGemRaw2Digit();;
+    BmnGemRaw2Digit();
     ~BmnGemRaw2Digit() {};
 
     vector<BmnGemMapping> GetMap() const {

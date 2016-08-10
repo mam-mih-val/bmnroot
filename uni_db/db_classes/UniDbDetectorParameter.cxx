@@ -1690,14 +1690,14 @@ int UniDbDetectorParameter::SetUIntArray(unsigned int* parameter_value, int elem
 
 // create detector parameter value as DCH mapping Array
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                                        DCHMapStructure* parameter_value, int element_count)
+                                                                        DchMapStructure* parameter_value, int element_count)
 {
-    Long_t size_parameter_value = element_count * sizeof(DCHMapStructure);
+    Long_t size_parameter_value = element_count * sizeof(DchMapStructure);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
-                                                                                                 (unsigned char*)p_parameter_value, size_parameter_value, DCHMapArrayType);
+                                                                                                 (unsigned char*)p_parameter_value, size_parameter_value, DchMapArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
 
@@ -1706,14 +1706,14 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 
 // create TDC/ADC parameter value as DCH mapping Array
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                                        unsigned int dc_serial, int channel, DCHMapStructure* parameter_value, int element_count)
+                                                                        unsigned int dc_serial, int channel, DchMapStructure* parameter_value, int element_count)
 {
-    Long_t size_parameter_value = element_count * sizeof(DCHMapStructure);
+    Long_t size_parameter_value = element_count * sizeof(DchMapStructure);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
-                                                                                                 (unsigned char*)p_parameter_value, size_parameter_value, DCHMapArrayType);
+                                                                                                 (unsigned char*)p_parameter_value, size_parameter_value, DchMapArrayType);
     if (pDetectorParameter == 0x00)
         delete [] p_parameter_value;
 
@@ -1721,23 +1721,86 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // get value of detector parameter as DCH mapping Array
-int UniDbDetectorParameter::GetDCHMapArray(DCHMapStructure*& parameter_value, int& element_count)
+int UniDbDetectorParameter::GetDchMapArray(DchMapStructure*& parameter_value, int& element_count)
 {
-    unsigned char* p_parameter_value = GetUNC(DCHMapArrayType);
+    unsigned char* p_parameter_value = GetUNC(DchMapArrayType);
     if (p_parameter_value == NULL)
         return - 1;
 
-    element_count = sz_parameter_value / sizeof(DCHMapStructure);
-    parameter_value = new DCHMapStructure[element_count];
+    element_count = sz_parameter_value / sizeof(DchMapStructure);
+    parameter_value = new DchMapStructure[element_count];
     memcpy(parameter_value, p_parameter_value, sz_parameter_value);
 
     return 0;
 }
 
 // set value to detector parameter as DCH mapping Array
-int UniDbDetectorParameter::SetDCHMapArray(DCHMapStructure* parameter_value, int element_count)
+int UniDbDetectorParameter::SetDchMapArray(DchMapStructure* parameter_value, int element_count)
 {
-    Long_t size_parameter_value = element_count * sizeof(DCHMapStructure);
+    Long_t size_parameter_value = element_count * sizeof(DchMapStructure);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    int res_code = SetUNC(p_parameter_value, size_parameter_value);
+    if (res_code != 0)
+    {
+        delete [] p_parameter_value;
+        return res_code;
+    }
+
+    return 0;
+}
+
+// create detector parameter value as GEM mapping Array
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                                        GemMapStructure* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(GemMapStructure);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
+                                                                                                 (unsigned char*)p_parameter_value, size_parameter_value, GemMapArrayType);
+    if (pDetectorParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pDetectorParameter;
+}
+
+// create TDC/ADC parameter value as GEM mapping Array
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                                        unsigned int dc_serial, int channel, GemMapStructure* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(GemMapStructure);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
+                                                                                                 (unsigned char*)p_parameter_value, size_parameter_value, GemMapArrayType);
+    if (pDetectorParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pDetectorParameter;
+}
+
+// get value of detector parameter as GEM mapping Array
+int UniDbDetectorParameter::GetGemMapArray(GemMapStructure*& parameter_value, int& element_count)
+{
+    unsigned char* p_parameter_value = GetUNC(GemMapArrayType);
+    if (p_parameter_value == NULL)
+        return - 1;
+
+    element_count = sz_parameter_value / sizeof(GemMapStructure);
+    parameter_value = new GemMapStructure[element_count];
+    memcpy(parameter_value, p_parameter_value, sz_parameter_value);
+
+    return 0;
+}
+
+// set value to detector parameter as GEM mapping Array
+int UniDbDetectorParameter::SetGemMapArray(GemMapStructure* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(GemMapStructure);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 

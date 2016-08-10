@@ -3,7 +3,7 @@
 
 // enumeration 'enumParameterType' is corresponding parameter_type member UniDbParameter
 // 0 - boolean, 1 - integer, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array
-enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType, BinaryArrayType, UIntArrayType, DCHMapArrayType, ErrorType = 999};
+enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType, BinaryArrayType, UIntArrayType, DchMapArrayType, GemMapArrayType, ErrorType = 999};
 
 struct IIStructure
 {
@@ -11,7 +11,7 @@ struct IIStructure
     int int_2;
 };//__attribute__((packed));
 
-struct DCHMapStructure
+struct DchMapStructure
 {
     int plane;
     int group;
@@ -20,6 +20,17 @@ struct DCHMapStructure
     int channel_low;
     int channel_high;
 };//__attribute__((packed));
+
+struct GemMapStructure
+{
+    unsigned int serial;
+    short int id;
+    short int station;
+    unsigned int channel_low;
+    unsigned int channel_high;
+    bool hotZone;
+};//__attribute__((packed));
+
 
 // enumeration of table columns for Search Conditions (UniDbRun::Search, UniDbDetectorParameters::Search function). *Begin and *End show the column range
 enum enumColumns{columnPeriodNumber, columnRunNumber, columnFilePath, columnBeamParticle, columnTargetParticle, columnEnergy,   // UniDbRun

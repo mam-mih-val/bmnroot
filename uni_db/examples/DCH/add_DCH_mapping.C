@@ -1,6 +1,6 @@
 #include "../db_structures.h"
 
-int AssignMapStructure(DCHMapStructure* pArray, int id, int pl, int gr, unsigned int cr, int sl, int ch_l, int ch_h) {
+int AssignMapStructure(DchMapStructure* pArray, int id, int pl, int gr, unsigned int cr, int sl, int ch_l, int ch_h) {
     pArray[id].plane = pl;
     pArray[id].group = gr;
     pArray[id].crate = cr;
@@ -21,7 +21,7 @@ void add_DCH_mapping() {
 
     const int kNitems = 72;
 
-    DCHMapStructure* pValues = new DCHMapStructure[kNitems];
+    DchMapStructure* pValues = new DchMapStructure[kNitems];
 //
 //    //VA_1
 //    AssignMapStructure(pValues, 0, 0, 1, 0x46f1f79, 1, 0, 15);

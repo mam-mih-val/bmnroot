@@ -24,7 +24,10 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     TStopwatch timer;
     timer.Start();
 
-    // Set input source as simulation file or experimental data (if 'runN:' prefix)
+    // -----   Reconstruction run   -------------------------------------------
+    FairRunAna *fRun = new FairRunAna();
+
+    // Set input source as simulation file or experimental data
     FairSource* fFileSource;
     Ssiz_t indColon = inFile.First(':');
     Ssiz_t indDash = inFile.First('-');
@@ -34,11 +37,12 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
         // get run period
         TString number_string(inFile(3, indDash - 3));
         Int_t run_period = number_string.Atoi();
-        number_string = inFile(indDash+1, indColon - indDash-1);
         // get run number
+        number_string = inFile(indDash+1, indColon - indDash-1);
         Int_t run_number = number_string.Atoi();
         inFile.Remove(0, indColon + 1);
 
+        // set source as raw data file
         if (!CheckFileExist(inFile)) return;
         fFileSource = new BmnFileSource(inFile);
 
@@ -56,22 +60,43 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
             cout << "Error: could not open ROOT file with geometry!" << endl;
             exit(-2);
         }
-
         TList* keyList = geoFile->GetListOfKeys();
         TIter next(keyList);
         TKey* key = (TKey*) next();
         TString className(key->GetClassName());
         if (className.BeginsWith("TGeoManager"))
             key->ReadObj();
-        else {
+        else
+        {
             cout << "Error: TGeoManager isn't top element in geometry file " << root_file_path << endl;
             exit(-3);
         }
+
+        // set magnet field with factor corresponding the given run
+        UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
+        if (pCurrentRun == 0) {
+            exit(-2);
+        }
+        Double_t fieldScale = 0;
+        double map_current = 900.0;
+        int* current_current = pCurrentRun->GetFieldCurrent();
+        if (current_current == NULL)
+            fieldScale = 0;
+        else
+            fieldScale = (*current_current) / map_current;
+        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v3_ascii_Extrap.dat");
+        magField->SetScale(fieldScale);
+        fRun->SetField(magField);
     }// for simulated files
-    else {
+    else
+    {
         if (!CheckFileExist(inFile)) return;
         fFileSource = new FairFileSource(inFile);
     }
+
+    fRun->SetSource(fFileSource);
+    fRun->SetOutputFile(outFile);
+    fRun->SetGenerateRunInfo(false);
 
     // Parameter file
     TString parFile = inFile;
@@ -88,13 +113,6 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 
     TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
     parFileList->Add(&tofDigiFile);
-
-    // -----   Reconstruction run   -------------------------------------------
-    FairRunAna *fRun = new FairRunAna();
-    fRun->SetSource(fFileSource);
-    fRun->SetOutputFile(outFile);
-    fRun->SetGenerateRunInfo(false);
-    // ------------------------------------------------------------------------
 
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //

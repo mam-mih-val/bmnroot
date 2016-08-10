@@ -305,14 +305,25 @@ class UniDbDetectorParameter
 
     /// add new record - detector parameter value as DCH mapping Array
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                               DCHMapStructure* parameter_value, int element_count);
+                                                               DchMapStructure* parameter_value, int element_count);
     /// add new record - detector parameter value as DCH mapping Array
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                               unsigned int dc_serial, int channel, DCHMapStructure* parameter_value, int element_count);
+                                                               unsigned int dc_serial, int channel, DchMapStructure* parameter_value, int element_count);
     /// get DCH mapping Array for parameter
-    int GetDCHMapArray(DCHMapStructure*& parameter_value, int& element_count);
+    int GetDchMapArray(DchMapStructure*& parameter_value, int& element_count);
     /// set DCH mapping Array for parameter
-    int SetDCHMapArray(DCHMapStructure* parameter_value, int element_count);
+    int SetDchMapArray(DchMapStructure* parameter_value, int element_count);
+
+    /// add new record - detector parameter value as GEM mapping Array
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                               GemMapStructure* parameter_value, int element_count);
+    /// add new record - detector parameter value as GEM mapping Array
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                               unsigned int dc_serial, int channel, GemMapStructure* parameter_value, int element_count);
+    /// get GEM mapping Array for parameter
+    int GetGemMapArray(GemMapStructure*& parameter_value, int& element_count);
+    /// set GEM mapping Array for parameter
+    int SetGemMapArray(GemMapStructure* parameter_value, int element_count);
 
 	/// get parameters' values corresponding to the specified single condition
 	static TObjArray* Search(const UniDbSearchCondition& search_condition);

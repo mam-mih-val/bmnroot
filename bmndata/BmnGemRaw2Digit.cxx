@@ -1,12 +1,21 @@
 #include "BmnGemRaw2Digit.h"
 
 //list of GEM's serial id
+//Int_t kNentries = 17; //number of entries in mapping
 const UChar_t kNSER = 10;
 const UInt_t kNCH = 2048;
 const UInt_t kSERIALS[kNSER] = {0x76CBA8B, 0x76CD410, 0x76C8320, 0x76CB9C0, 0x76CA266, 0x76D08B9, 0x76C8321, 0x76CE3EE, 0x76CE3E5, 0x4E983C1};
 
-BmnGemRaw2Digit::BmnGemRaw2Digit(TString mappingFile) {
+BmnGemRaw2Digit::BmnGemRaw2Digit(TString mappingFile, Int_t period, Int_t run) {
+
+    fEntriesInMap = 17;
+    
+//    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", period, run);
+//    if (pDetectorParameter != NULL)
+//        pDetectorParameter->GetDCHMapArray(fMap, fEntriesInMap);
+
     fMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + mappingFile;
+    
     FillMaps();
 }
 
@@ -20,25 +29,24 @@ BmnStatus BmnGemRaw2Digit::FillMaps() {
     }
 
     TString dummy;
-    UInt_t ser, ch_l, ch_h, gId, stId, adc_l, adc_h;
+    UInt_t ser, ch_l, ch_h, gId, stId;
     Bool_t hotZ = 0;
 
+    Int_t item = 0;
     fMapFile >> dummy;
-    fMapFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
+    fMapFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     fMapFile >> dummy;
     while (!fMapFile.eof()) {
-        fMapFile >> hex >> ser >> dec >> ch_l >> ch_h >> gId >> stId >> adc_l >> adc_h >> hotZ;
+        fMapFile >> hex >> ser >> dec >> ch_l >> ch_h >> gId >> stId >> hotZ;
         if (!fMapFile.good()) break;
         BmnGemMapping record;
         record.serial = ser;
         record.gemId = gId;
         record.station = stId;
-        record.adcChLo = adc_l;
-        record.adcChHi = adc_h;
         record.gemChLo = ch_l;
         record.gemChHi = ch_h;
         record.hotZone = hotZ;
-        fMap.push_back(record);
+        fMap[item++] = record;
     }
     fMapFile.close();
     //==================================================//
@@ -100,9 +108,8 @@ void BmnGemRaw2Digit::ReadAndPut(TString fName, map<UInt_t, UInt_t>& chMap) {
     UInt_t ch = 0;
     UInt_t strip = 0;
     ifstream inFile(fName.Data());
-    if (!inFile.is_open()) {
+    if (!inFile.is_open())
         cout << "Error opening map-file (" << fName << ")!" << endl;
-    }
     while (!inFile.eof()) {
         inFile >> ch;
         if (!inFile.good()) break;
@@ -115,18 +122,17 @@ BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *gem) {
 
     for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
         BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
-        for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
+        for (Int_t iMap = 0; iMap < fEntriesInMap; ++iMap) {
             BmnGemMapping gemM = fMap[iMap];
             UInt_t ch = adcDig->GetChannel();
-            if (adcDig->GetSerial() == gemM.serial && ch <= gemM.adcChHi && ch >= gemM.adcChLo) {
+            if (adcDig->GetSerial() == gemM.serial && ch <= (gemM.gemChHi / ADC_N_SAMPLES) && ch >= (gemM.gemChLo / ADC_N_SAMPLES))
                 ProcessDigit(adcDig, &gemM, gem);
-            }
         }
     }
 }
 
 void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, TClonesArray *gem) {
-    const UInt_t nSmpl = 32;
+    const UInt_t nSmpl = ADC_N_SAMPLES;
     UInt_t ch = adcDig->GetChannel();
 
     BmnGemStripDigit candDig[nSmpl];
@@ -142,18 +148,15 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
             case 0: //small gem
             {
                 UInt_t realChannel = ch * nSmpl + iSmpl - gemM->gemChLo;
+                ped = SearchPed(ch * nSmpl + iSmpl, gemM->serial);
+                noise = SearchNoise(ch * nSmpl + iSmpl, gemM->serial);
+                mod = 0;
                 if (SearchInMap(&X_small, strip, realChannel) == kBMNSUCCESS) {
-                    mod = 0;
                     lay = 0;
-                    ped = SearchPed(ch * nSmpl + iSmpl, gemM->serial);
-                    noise = SearchNoise(ch * nSmpl + iSmpl, gemM->serial);
                     break;
                 }
                 if (SearchInMap(&Y_small, strip, realChannel) == kBMNSUCCESS) {
-                    mod = 0;
                     lay = 1;
-                    ped = SearchPed(ch * nSmpl + iSmpl, gemM->serial);
-                    noise = SearchNoise(ch * nSmpl + iSmpl, gemM->serial);
                     break;
                 }
             }
@@ -165,35 +168,29 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                 //if additional, then channel number will be more than 2048
                 UInt_t realChannel = ch2048;
                 if (gemM->gemChHi - gemM->gemChLo < 128) realChannel += 2048;
+                ped = SearchPed(ch2048, gemM->serial);
+                noise = SearchNoise(ch2048, gemM->serial);
                 if (gemM->hotZone) {
                     if (SearchInMap(&X0_big_l, strip, realChannel) == kBMNSUCCESS) {
                         mod = 3;
                         lay = 0;
-                        ped = SearchPed(ch2048, gemM->serial);
-                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     if (SearchInMap(&Y0_big_l, strip, realChannel) == kBMNSUCCESS) {
                         mod = 3;
                         lay = 1;
-                        ped = SearchPed(ch2048, gemM->serial);
-                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                 } else {
                     if (SearchInMap(&X1_big_l, strip, realChannel) == kBMNSUCCESS) {
                         mod = 1;
                         lay = 0;
-                        ped = SearchPed(ch2048, gemM->serial);
-                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
 
                     if (SearchInMap(&Y1_big_l, strip, realChannel) == kBMNSUCCESS) {
                         mod = 1;
                         lay = 1;
-                        ped = SearchPed(ch2048, gemM->serial);
-                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     break;
@@ -207,34 +204,28 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                 //if additional, then channel number will be more than 2048
                 UInt_t realChannel = ch2048;
                 if (gemM->gemChHi - gemM->gemChLo < 128) realChannel += 2048;
+                ped = SearchPed(ch2048, gemM->serial);
+                noise = SearchNoise(ch2048, gemM->serial);
                 if (gemM->hotZone) {
                     if (SearchInMap(&X0_big_r, strip, realChannel) == kBMNSUCCESS) {
                         mod = 2;
                         lay = 0;
-                        ped = SearchPed(ch2048, gemM->serial);
-                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     if (SearchInMap(&Y0_big_r, strip, realChannel) == kBMNSUCCESS) {
                         mod = 2;
                         lay = 1;
-                        ped = SearchPed(ch2048, gemM->serial);
-                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                 } else {
                     if (SearchInMap(&X1_big_r, strip, realChannel) == kBMNSUCCESS) {
                         mod = 0;
                         lay = 0;
-                        ped = SearchPed(ch2048, gemM->serial);
-                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     if (SearchInMap(&Y1_big_r, strip, realChannel) == kBMNSUCCESS) {
                         mod = 0;
                         lay = 1;
-                        ped = SearchPed(ch2048, gemM->serial);
-                        noise = SearchNoise(ch2048, gemM->serial);
                         break;
                     }
                     break;
@@ -251,32 +242,26 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                 //if additional, then channel number will be more than 2048
                 UInt_t realChannel = ch2048;
                 if (gemM->gemChHi - gemM->gemChLo < 128) realChannel += 2048;
+                ped = SearchPed(ch2048, gemM->serial);
+                noise = SearchNoise(ch2048, gemM->serial);
                 if (SearchInMap(&X1_mid, strip, realChannel) == kBMNSUCCESS) {
                     mod = 0;
                     lay = 0;
-                    ped = SearchPed(ch2048, gemM->serial);
-                    noise = SearchNoise(ch2048, gemM->serial);
                     break;
                 }
                 if (SearchInMap(&Y1_mid, strip, realChannel) == kBMNSUCCESS) {
                     mod = 0;
                     lay = 1;
-                    ped = SearchPed(ch2048, gemM->serial);
-                    noise = SearchNoise(ch2048, gemM->serial);
                     break;
                 }
                 if (SearchInMap(&X0_mid, strip, realChannel) == kBMNSUCCESS) {
                     mod = 1;
                     lay = 0;
-                    ped = SearchPed(ch2048, gemM->serial);
-                    noise = SearchNoise(ch2048, gemM->serial);
                     break;
                 }
                 if (SearchInMap(&Y0_mid, strip, realChannel) == kBMNSUCCESS) {
                     mod = 1;
                     lay = 1;
-                    ped = SearchPed(ch2048, gemM->serial);
-                    noise = SearchNoise(ch2048, gemM->serial);
                     break;
                 }
             }

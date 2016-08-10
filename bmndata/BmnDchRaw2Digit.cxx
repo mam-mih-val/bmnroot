@@ -1,15 +1,15 @@
 #include "BmnDchRaw2Digit.h"
 
-Int_t kNentries = 72; //number of entries in mapping
-
 BmnDchRaw2Digit::BmnDchRaw2Digit(Int_t period, Int_t run) {
 
+    fEntriesInMap = 72;
+    
     UniDbDetectorParameter* pDetectorParameter1 = UniDbDetectorParameter::GetDetectorParameter("DCH1", "DCH_mapping", period, run);
     if (pDetectorParameter1 != NULL)
-        pDetectorParameter1->GetDCHMapArray(fMap1, kNentries);
+        pDetectorParameter1->GetDchMapArray(fMap1, fEntriesInMap);
     UniDbDetectorParameter* pDetectorParameter2 = UniDbDetectorParameter::GetDetectorParameter("DCH2", "DCH_mapping", period, run);
     if (pDetectorParameter2 != NULL)
-        pDetectorParameter2->GetDCHMapArray(fMap2, kNentries);
+        pDetectorParameter2->GetDchMapArray(fMap2, fEntriesInMap);
 
 }
 
@@ -35,9 +35,9 @@ Int_t BmnDchRaw2Digit::GetChTDC64v(UInt_t tdc, UInt_t ch) {
     return val;
 };
 
-BmnStatus BmnDchRaw2Digit::FindInMap(DCHMapStructure* mapArr, BmnTDCDigit* dig, TClonesArray* arr) {
-    for (Int_t iMap = 0; iMap < kNentries; ++iMap) {
-        DCHMapStructure map = mapArr[iMap];
+BmnStatus BmnDchRaw2Digit::FindInMap(DchMapStructure* mapArr, BmnTDCDigit* dig, TClonesArray* arr) {
+    for (Int_t iMap = 0; iMap < fEntriesInMap; ++iMap) {
+        DchMapStructure map = mapArr[iMap];
         if (dig->GetSerial() != map.crate || dig->GetSlot() != map.slot) continue;
         UInt_t ch = GetChTDC64v(dig->GetHptdcId(), dig->GetChannel());
         if (ch > map.channel_high || ch < map.channel_low) continue;

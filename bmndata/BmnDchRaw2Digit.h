@@ -25,11 +25,13 @@ public:
 
 private:
     
-    DCHMapStructure* fMap1;
-    DCHMapStructure* fMap2;
+    DchMapStructure* fMap1;
+    DchMapStructure* fMap2;
+    
+    Int_t fEntriesInMap; // member of entries in BD table
     
     Int_t GetChTDC64v(UInt_t tdc, UInt_t ch);
-    BmnStatus FindInMap(DCHMapStructure* map, BmnTDCDigit* dig, TClonesArray* arr);
+    BmnStatus FindInMap(DchMapStructure* map, BmnTDCDigit* dig, TClonesArray* arr);
 
     ClassDef(BmnDchRaw2Digit, 1);
 };

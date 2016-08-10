@@ -345,7 +345,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
     fNevents = fRawTree->GetEntries();
 
-    BmnGemRaw2Digit *gemMapper = new BmnGemRaw2Digit(fGemMapFileName);
+    BmnGemRaw2Digit *gemMapper = new BmnGemRaw2Digit(fGemMapFileName, kPERIOD, fRunId);
     BmnDchRaw2Digit *dchMapper = new BmnDchRaw2Digit(kPERIOD, fRunId);
     BmnTrigRaw2Digit *trigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
     BmnTof1Raw2Digit *tof400Mapper = new BmnTof1Raw2Digit(kPERIOD, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)

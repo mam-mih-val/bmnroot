@@ -15,6 +15,9 @@
 #include "BmnEnums.h"
 #include "BmnADC32Digit.h"
 #include "TMath.h"
+#include <UniDbDetectorParameter.h>
+
+#define ADC_N_SAMPLES 32 //number of samples in one ADC digit
 
 using namespace std;
 using namespace TMath;
@@ -23,8 +26,6 @@ struct BmnGemMapping {
     UInt_t serial;
     Short_t gemId;
     Short_t station;
-    UInt_t adcChLo;
-    UInt_t adcChHi;
     UInt_t gemChLo;
     UInt_t gemChHi;
     Bool_t hotZone;
@@ -40,13 +41,9 @@ struct BmnGemMapping {
 class BmnGemRaw2Digit {
 
 public:
-    BmnGemRaw2Digit(TString mappingFile);
+    BmnGemRaw2Digit(TString mappingFile, Int_t period, Int_t run);
     BmnGemRaw2Digit();
     ~BmnGemRaw2Digit() {};
-
-    vector<BmnGemMapping> GetMap() const {
-        return fMap;
-    }
     
     BmnStatus FillEvent(TClonesArray *adc, TClonesArray *gem);
     BmnStatus CalcGemPedestals(TClonesArray *adc, TTree *tree);
@@ -69,7 +66,7 @@ private:
     map<UInt_t, UInt_t> X_small;
     map<UInt_t, UInt_t> Y_small;
     
-    vector<BmnGemMapping> fMap;
+    BmnGemMapping* fMap;
     UInt_t** fPedMap; // pedestals
     UInt_t** fCMMap;  // common mode shift
     UInt_t** fNoiseMap;  // channel noises
@@ -80,6 +77,7 @@ private:
     UInt_t SearchPed(UInt_t ch, UInt_t ser);
     UInt_t SearchNoise(UInt_t chn, UInt_t ser);
     UInt_t SearchComMod(UInt_t chn, UInt_t ser);
+    Int_t fEntriesInMap; // member of entries in BD table
         
     ifstream fMapFile;
     TString fMapFileName;

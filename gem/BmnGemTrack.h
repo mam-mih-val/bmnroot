@@ -139,12 +139,6 @@ public:
         fLength = length;
     }
 
-    void SetHits() {
-       
-    }
-
-
-
 private:
 
     /** Array containing the indices of the STS hits attached to the track **/
@@ -170,6 +164,8 @@ private:
 
     /** Track length **/
     Float_t fLength;
+    
+    Bool_t fStoreHits;
 
     /** Maps from hit z position to hit index. STL map is used because it
      ** is automatically sorted. Temporary only; not for storage.

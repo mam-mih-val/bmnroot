@@ -64,11 +64,15 @@ public:
     void SetTrackHits(TClonesArray* hits) {
         fTrackHits = hits;
     }
+    
+    void SetEventNum(Int_t ev) {
+        fEventNumber = ev;
+    }
    
     
 private:
 
-//    Int_t fEventNumber;
+    Int_t fEventNumber;
     TClonesArray* fTrackHits;
     
 //    Int_t fStation;

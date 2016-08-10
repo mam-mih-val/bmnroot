@@ -8,9 +8,10 @@ fGemHits(NULL),
 fDebugInfo(kFALSE),
 fContainer(NULL),
 fNstat(7),
+fStatUsed(0),
 fMaxNofHits(fNstat),
 fGemTracks(NULL),
-fSignalToNoise(2.),
+fSignalToNoise(1.),
 fChi2Max(LDBL_MAX),
 fThreshold(0.0),
 fMinHitsAccepted(1),
@@ -18,6 +19,10 @@ fXhitMin(-LDBL_MAX),
 fXhitMax(LDBL_MAX),
 fYhitMin(-LDBL_MAX),
 fYhitMax(LDBL_MAX),
+fTxMin(-LDBL_MAX),
+fTxMax(LDBL_MAX),
+fTyMin(-LDBL_MAX),
+fTyMax(LDBL_MAX),
 fChainIn(NULL),
 fChainOut(NULL),
 fTrHits(NULL) {
@@ -49,10 +54,30 @@ fTrHits(NULL) {
 }
 
 void BmnGemAlignment::PrepareData() {
+    // Calculate total number of stations not to be used (they are marked by 1000 in the SetSignalToNoise() method)
+    Int_t nStatNotUsed = 0;
+
+    for (Int_t iStat = 0; iStat < fNstat; iStat++) {
+        if (Abs((fThresh[iStat] - 1000.)) < 0.1)
+            nStatNotUsed++;
+        else
+            fNumStatUsed.push_back(iStat);
+    }
+
+    fStatUsed = fNstat - nStatNotUsed;
+
+    TCanvas* c = new TCanvas("superCave", "superCave", 1200, 800);
+    c->Divide(1, 2);
+    TH2F* h1 = new TH2F("_hYZ", "_hYZ", 150, 0., 150., 100, -50., 50.);
+    TH2F* h2 = new TH2F("_hXZ", "_hXZ", 150, 0., 150., 100, -50., 50.);
+
     for (Int_t iEv = 0; iEv < fNumEvents; iEv++) {
         fChainIn->GetEntry(iEv);
         if (iEv % 1000 == 0)
             cout << "Event# = " << iEv << endl;
+
+        h1->Reset();
+        h2->Reset();
 
         fGemHits->Delete();
         fGemTracks->Delete();
@@ -71,7 +96,8 @@ void BmnGemAlignment::PrepareData() {
         // Loop over digits and put a signal to strips
         for (Int_t iDigit = 0; iDigit < fGemDigits->GetEntriesFast(); iDigit++) {
             BmnGemStripDigit* dig = (BmnGemStripDigit*) fGemDigits->UncheckedAt(iDigit);
-            if (dig->GetStripSignal() / dig->GetStripSignalNoise() < fSignalToNoise)
+
+            if (dig->GetStripSignal() / dig->GetStripSignalNoise() < fThresh[dig->GetStation()])
                 continue;
 
             BmnGemStripStation* station = fDetector->GetGemStation(dig->GetStation());
@@ -108,6 +134,9 @@ void BmnGemAlignment::PrepareData() {
                     Double_t y_err = module->GetIntersectionPointYError(iPoint);
                     Double_t z_err = 0.0;
 
+                    h1->Fill(z, y);
+                    h2->Fill(z, x);
+
                     BmnGemStripHit* hit = new((*fGemHits)[fGemHits->GetEntriesFast()]) BmnGemStripHit(iStation, TVector3(x, y, z), TVector3(x_err, y_err, 0.), iPoint);
                     hit->SetDx(x_err);
                     hit->SetDy(y_err);
@@ -118,6 +147,21 @@ void BmnGemAlignment::PrepareData() {
             }
         }
 
+        h1->SetTitle(Form("Ev# %d", iEv));
+        h1->SetMarkerStyle(20);
+        h2->SetTitle(Form("Ev# %d", iEv));
+        h2->SetMarkerStyle(20);
+
+        //        if (h1->GetEntries() > 4 && h2->GetEntries() > 4) {
+        //            c->cd(1);
+        //            h1->Draw("P");
+        //            c->cd(2);
+        //            h2->Draw("P");
+        //            c->Update();
+        //            // gSystem->Sleep(1000);
+        //            gSystem->Sleep(1000 * 3600);
+        //            gSystem->ProcessEvents();
+        //        }
         // Checking for maximal number of hits
         if (fGemHits->GetEntriesFast() == 0 || fGemHits->GetEntriesFast() > fMaxNofHits) {
             delete fDetector;
@@ -167,6 +211,7 @@ void BmnGemAlignment::PrepareData() {
             BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
             if (Abs(track->GetChi2() - *it_min) < 0.1) {
                 BmnAlignmentContainer* cont = new ((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
+                cont->SetEventNum(iEv);
                 cont->SetTx(track->GetParamFirst()->GetTx());
                 cont->SetTy(track->GetParamFirst()->GetTy());
                 cont->SetX0(track->GetParamFirst()->GetX());
@@ -176,7 +221,6 @@ void BmnGemAlignment::PrepareData() {
                 break;
             }
         }
-
         fRecoTree->Fill();
         delete fDetector;
     }
@@ -237,11 +281,9 @@ void BmnGemAlignment::StartMille() {
                 if (fAlignmentType == "xy") {
                     Char_t* locDerX = Form("%d 1. %f 0. 0. ", stat, Z);
                     Char_t* locDerY = Form("%d 0. 0. 1. %f ", stat, Z);
-                    //                    Char_t* locDer = Form("%d 1. %f 1. %f ", stat, Z, Z);
 
                     Char_t* globDerX = Form("1. 0. ");
                     Char_t* globDerY = Form("0. 1. ");
-                    //                    Char_t* globDer = Form("1. 1. ");
 
                     Char_t* measX = Form("%f %f ", hit->GetX(), hit->GetDx());
                     Char_t* measY = Form("%f %f ", hit->GetY(), hit->GetDy());
@@ -256,21 +298,22 @@ void BmnGemAlignment::StartMille() {
 
                     for (Int_t i = 0; i < N_zeros_end; i++)
                         zeroEnd += "0 0 ";
-
-                    for (Int_t i = 0; i < nOfMinusOne; i++)
-                        fprintf(fin_txt, "-1\n");
+        
+                    for (Int_t iStat = prevStat; iStat < stat; iStat++)
+                        for (Int_t iFill = 0; iFill < 2; iFill++)
+                            fprintf(fin_txt, "%d -1\n", iStat);
 
                     fprintf(fin_txt, "%s%s %s %s%s\n", locDerX, zeroBeg.Data(), globDerX, zeroEnd.Data(), measX);
                     fprintf(fin_txt, "%s%s %s %s%s\n", locDerY, zeroBeg.Data(), globDerY, zeroEnd.Data(), measY);
-                    //                      fprintf(fin_txt, "%s%s %s %s%s%s\n", locDer, zeroBeg.Data(), globDer, zeroEnd.Data(), measX, measY);
                 }
 
                 prevStat = stat;
             }
             // We have to complement the file ...
-            nOfMinusOne = 2 * ((fNstat - 1) - prevStat);
-            for (Int_t i = 0; i < nOfMinusOne; i++)
-                fprintf(fin_txt, "-1\n");
+            //           nOfMinusOne = 2 * ((fNstat - 1) - prevStat);
+            for (Int_t iStat = prevStat + 1; iStat < fNstat; iStat++)
+                for (Int_t iFill = 0; iFill < 2; iFill++)
+                    fprintf(fin_txt, "%d -1\n", iStat);
         }
     }
     fclose(fin_txt);
@@ -278,20 +321,21 @@ void BmnGemAlignment::StartMille() {
     ifstream fout_txt;
     fout_txt.open(TString(name + ".txt").Data(), ios::in);
     Int_t nTracks, nGem, NLC, NGL;
-       
+
     if (fAlignmentType == "xy") {
         NLC = 4;
-        NGL = 2 * fNstat;
+        NGL = 2 * fStatUsed;
     }
-    
+
     const Int_t dim = NGL;
-    Int_t Labels[dim] = {11, 12,
-        21, 22,
-        31, 32,
-        41, 42,
-        51, 52,
-        61, 62,
-        71, 72};
+    Int_t* Labels = new Int_t[dim];
+    for (Int_t iEle = 0; iEle < dim; iEle++)
+        Labels[iEle] = 1 + iEle;
+
+    // for (Int_t iEle = 0; iEle < dim; iEle++) cout << Labels[iEle] << endl;
+    for (Int_t iSize = 0; iSize < fNumStatUsed.size(); iSize++)
+        cout << fNumStatUsed[iSize] << endl;
+
     Double_t rMeasure, dMeasure;
     fout_txt >> nTracks;
     Double_t DerGl[NGL], DerLc[NLC];
@@ -301,12 +345,11 @@ void BmnGemAlignment::StartMille() {
     for (Int_t iTrack = 0; iTrack < nTracks; iTrack++) {
         for (Int_t iPlane = 0; iPlane < 2 * fNstat; iPlane++) {
             fout_txt >> nGem;
-            if (nGem < 0) continue;
 
             for (Int_t iVar = 0; iVar < NLC; iVar++) fout_txt >> DerLc[iVar];
             for (Int_t iVar = 0; iVar < NGL; iVar++) fout_txt >> DerGl[iVar];
-            fout_txt >> rMeasure;
 
+            fout_txt >> rMeasure;
             fout_txt >> dMeasure;
 
             if (fDebugInfo) {
@@ -323,15 +366,16 @@ void BmnGemAlignment::StartMille() {
             Mille->mille(NLC, DerLc, NGL, DerGl, Labels, rMeasure, dMeasure);
         }
         Mille->end();
-        if (fDebugInfo) 
+        if (fDebugInfo)
             cout << "========================> Another one RECORD = " << iTrack + 1 << " --> " << endl;
     }
 
     delete Mille;
+    delete Labels;
     fout_txt.close();
-    
+
     TString commandToExec = "pede " + TString(GetSteerFileName());
-    system(commandToExec.Data());
+    fCommandToRunPede = commandToExec;
 }
 
 void BmnGemAlignment::goToStations(vector<BmnGemStripHit*>& hits, vector<BmnGemStripHit*> *hitsOnStation, Int_t stat) {
@@ -367,16 +411,20 @@ void BmnGemAlignment::DeriveFoundTrackParams(vector<BmnGemStripHit*> hits) {
         BmnGemTrack* track = new BmnGemTrack();
         FairTrackParam* par = new FairTrackParam();
         CreateTrack(direction, vertex, *track, *par, chi2, hits.size());
-        BmnGemTrack* newTrack = new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
+        Double_t Tx = par->GetTx();
+        Double_t Ty = par->GetTy();
+        if (Tx > fTxMin && Tx < fTxMax && Ty > fTyMin && Ty < fTyMax) {
+            BmnGemTrack* newTrack = new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
 
-        for (Int_t iHit = 0; iHit < hits.size(); iHit++) {
-            BmnGemStripHit* trHit = ((BmnGemStripHit*) hits.at(iHit));
-            newTrack->AddHit(trHit);
+            for (Int_t iHit = 0; iHit < hits.size(); iHit++) {
+                BmnGemStripHit* trHit = ((BmnGemStripHit*) hits.at(iHit));
+                newTrack->AddHit(trHit);
+            }
+
+            newTrack->SetParamFirst(*par);
+            newTrack->SetChi2(chi2);
+            newTrack->SetNDF(hits.size());
         }
-
-        newTrack->SetParamFirst(*par);
-        newTrack->SetChi2(chi2);
-        newTrack->SetNDF(hits.size());
         delete par;
         delete track;
     }

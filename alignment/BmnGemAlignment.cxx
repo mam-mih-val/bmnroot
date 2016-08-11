@@ -66,18 +66,18 @@ void BmnGemAlignment::PrepareData() {
 
     fStatUsed = fNstat - nStatNotUsed;
 
-    TCanvas* c = new TCanvas("superCave", "superCave", 1200, 800);
-    c->Divide(1, 2);
-    TH2F* h1 = new TH2F("_hYZ", "_hYZ", 150, 0., 150., 100, -50., 50.);
-    TH2F* h2 = new TH2F("_hXZ", "_hXZ", 150, 0., 150., 100, -50., 50.);
+    //    TCanvas* c = new TCanvas("superCave", "superCave", 1200, 800);
+    //    c->Divide(1, 2);
+    //    TH2F* h1 = new TH2F("_hYZ", "_hYZ", 150, 0., 150., 100, -50., 50.);
+    //    TH2F* h2 = new TH2F("_hXZ", "_hXZ", 150, 0., 150., 100, -50., 50.);
 
     for (Int_t iEv = 0; iEv < fNumEvents; iEv++) {
         fChainIn->GetEntry(iEv);
         if (iEv % 1000 == 0)
             cout << "Event# = " << iEv << endl;
-
-        h1->Reset();
-        h2->Reset();
+//
+//        h1->Reset();
+//        h2->Reset();
 
         fGemHits->Delete();
         fGemTracks->Delete();
@@ -134,8 +134,8 @@ void BmnGemAlignment::PrepareData() {
                     Double_t y_err = module->GetIntersectionPointYError(iPoint);
                     Double_t z_err = 0.0;
 
-                    h1->Fill(z, y);
-                    h2->Fill(z, x);
+//                    h1->Fill(z, y);
+//                    h2->Fill(z, x);
 
                     BmnGemStripHit* hit = new((*fGemHits)[fGemHits->GetEntriesFast()]) BmnGemStripHit(iStation, TVector3(x, y, z), TVector3(x_err, y_err, 0.), iPoint);
                     hit->SetDx(x_err);
@@ -147,10 +147,10 @@ void BmnGemAlignment::PrepareData() {
             }
         }
 
-        h1->SetTitle(Form("Ev# %d", iEv));
-        h1->SetMarkerStyle(20);
-        h2->SetTitle(Form("Ev# %d", iEv));
-        h2->SetMarkerStyle(20);
+        //        h1->SetTitle(Form("Ev# %d", iEv));
+        //        h1->SetMarkerStyle(20);
+        //        h2->SetTitle(Form("Ev# %d", iEv));
+        //        h2->SetMarkerStyle(20);
 
         //        if (h1->GetEntries() > 4 && h2->GetEntries() > 4) {
         //            c->cd(1);
@@ -322,11 +322,6 @@ void BmnGemAlignment::StartMille() {
     for (Int_t iEle = 0; iEle < dim; iEle++)
         Labels[iEle] = 1 + iEle;
 
-    // for (Int_t iEle = 0; iEle < dim; iEle++) cout << Labels[iEle] << endl;
-    // for (Int_t iSize = 0; iSize < fNumStatUsed.size(); iSize++)
-    //    cout << fNumStatUsed[iSize] << endl;
-
-
     Double_t rMeasure, dMeasure;
     fout_txt >> nTracks;
     Double_t DerGl[NGL], DerLc[NLC];
@@ -334,31 +329,51 @@ void BmnGemAlignment::StartMille() {
     BmnMille* Mille = new BmnMille(TString(name + ".bin").Data(), kTRUE, kFALSE);
 
     for (Int_t iTrack = 0; iTrack < nTracks; iTrack++) {
+        Int_t cntr = 0;
         for (Int_t iPlane = 0; iPlane < 2 * fNstat; iPlane++) {
             fout_txt >> nGem;
 
-            //            if (find(fNumStatUsed.begin(), fNumStatUsed.end(), nGem) != fNumStatUsed.end()) {
-            //                cout << nGem << endl;
-            //
-            //            }
-            cout << nGem << endl;
-            for (Int_t iVar = 0; iVar < NLC; iVar++) fout_txt >> DerLc[iVar];
-            for (Int_t iVar = 0; iVar < NGL; iVar++) fout_txt >> DerGl[iVar];
+            if (find(fNumStatUsed.begin(), fNumStatUsed.end(), nGem) != fNumStatUsed.end()) {
+                Double_t sum = 0.;
 
-            fout_txt >> rMeasure;
-            fout_txt >> dMeasure;
+                for (Int_t iVar = 0; iVar < NLC; iVar++) {
+                    fout_txt >> DerLc[iVar];
+                    sum += DerLc[iVar];
+                }
 
-            if (fDebugInfo) {
-                cout << "-" << nGem << " n DerLc[ ] = ";
-                for (Int_t icVar = 0; icVar < NLC; icVar++) cout << DerLc[icVar] << " ";
-                cout << endl;
+                Double_t tmp;
+                // Go to end of the string
+                for (Int_t iPos = 0; iPos < 2 * fNstat; iPos++)
+                    fout_txt >> tmp;
 
-                cout << "-" << nGem << " n DerGl[ ] = ";
-                for (Int_t icVar = 0; icVar < NGL; icVar++) cout << DerGl[icVar] << " ";
-                cout << endl;
+                if (sum < 1e-1) {
+                    for (Int_t iVar = 0; iVar < 2 * fStatUsed; iVar++)
+                        DerGl[iVar] = 0.0;
+                } else {
+                    for (Int_t iVar = 0; iVar < 2 * fStatUsed; iVar++) {
+                        if (iVar == cntr)
+                            DerGl[iVar] = 1.0;
+                        else
+                            DerGl[iVar] = 0.;
+                    }
+                }
+                fout_txt >> rMeasure >> dMeasure;
+                cntr++;
 
-                cout << "-" << nGem << " rMeasure  = " << rMeasure << endl;
-            }
+                if (fDebugInfo) {
+                    cout << "-" << nGem << " n DerLc[ ] = ";
+                    for (Int_t icVar = 0; icVar < NLC; icVar++) cout << DerLc[icVar] << " ";
+                    cout << endl;
+
+                    cout << "-" << nGem << " n DerGl[ ] = ";
+                    for (Int_t icVar = 0; icVar < 2 * fStatUsed; icVar++) cout << DerGl[icVar] << " ";
+                    cout << endl;
+
+                    cout << "-" << nGem << " rMeasure  = " << rMeasure << " dMeasure = " << dMeasure << endl;
+                }
+            } else
+                fout_txt.ignore(numeric_limits<streamsize>::max(), '\n');
+
             Mille->mille(NLC, DerLc, NGL, DerGl, Labels, rMeasure, dMeasure);
         }
         Mille->end();

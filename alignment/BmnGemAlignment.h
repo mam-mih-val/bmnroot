@@ -23,6 +23,7 @@
 #include "BmnMille.h"
 
 #include <iomanip>
+#include <algorithm>
 
 using namespace std;
 using namespace TMath;

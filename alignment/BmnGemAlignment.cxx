@@ -260,23 +260,12 @@ void BmnGemAlignment::StartMille() {
             TClonesArray* trHits = cont->GetTrackHits();
 
             // Expecting empty stations ...
-            Short_t prevStat;
-            Int_t nOfMinusOne;
+            Short_t prevStat = 0;
 
             for (Int_t iHit = 0; iHit < trHits->GetEntriesFast(); iHit++) {
                 BmnGemStripHit* hit = (BmnGemStripHit*) trHits->UncheckedAt(iHit);
                 Double_t Z = hit->GetZ();
                 Short_t stat = hit->GetStation();
-
-                if (stat == 0)
-                    nOfMinusOne = 0;
-
-                else {
-                    if (iHit == 0)
-                        nOfMinusOne = 2 * stat;
-                    else
-                        nOfMinusOne = 2 * ((stat - prevStat) - 1);
-                }
 
                 if (fAlignmentType == "xy") {
                     Char_t* locDerX = Form("%d 1. %f 0. 0. ", stat, Z);
@@ -298,10 +287,12 @@ void BmnGemAlignment::StartMille() {
 
                     for (Int_t i = 0; i < N_zeros_end; i++)
                         zeroEnd += "0 0 ";
-        
-                    for (Int_t iStat = prevStat; iStat < stat; iStat++)
+
+                    Int_t statStart = (prevStat == 0) ? prevStat : (prevStat + 1);
+
+                    for (Int_t iStat = statStart; iStat < stat; iStat++)
                         for (Int_t iFill = 0; iFill < 2; iFill++)
-                            fprintf(fin_txt, "%d -1\n", iStat);
+                            fprintf(fin_txt, "%d 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n", iStat);
 
                     fprintf(fin_txt, "%s%s %s %s%s\n", locDerX, zeroBeg.Data(), globDerX, zeroEnd.Data(), measX);
                     fprintf(fin_txt, "%s%s %s %s%s\n", locDerY, zeroBeg.Data(), globDerY, zeroEnd.Data(), measY);
@@ -310,10 +301,9 @@ void BmnGemAlignment::StartMille() {
                 prevStat = stat;
             }
             // We have to complement the file ...
-            //           nOfMinusOne = 2 * ((fNstat - 1) - prevStat);
             for (Int_t iStat = prevStat + 1; iStat < fNstat; iStat++)
                 for (Int_t iFill = 0; iFill < 2; iFill++)
-                    fprintf(fin_txt, "%d -1\n", iStat);
+                    fprintf(fin_txt, "%d 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n", iStat);
         }
     }
     fclose(fin_txt);
@@ -333,8 +323,9 @@ void BmnGemAlignment::StartMille() {
         Labels[iEle] = 1 + iEle;
 
     // for (Int_t iEle = 0; iEle < dim; iEle++) cout << Labels[iEle] << endl;
-    for (Int_t iSize = 0; iSize < fNumStatUsed.size(); iSize++)
-        cout << fNumStatUsed[iSize] << endl;
+    // for (Int_t iSize = 0; iSize < fNumStatUsed.size(); iSize++)
+    //    cout << fNumStatUsed[iSize] << endl;
+
 
     Double_t rMeasure, dMeasure;
     fout_txt >> nTracks;
@@ -346,6 +337,11 @@ void BmnGemAlignment::StartMille() {
         for (Int_t iPlane = 0; iPlane < 2 * fNstat; iPlane++) {
             fout_txt >> nGem;
 
+            //            if (find(fNumStatUsed.begin(), fNumStatUsed.end(), nGem) != fNumStatUsed.end()) {
+            //                cout << nGem << endl;
+            //
+            //            }
+            cout << nGem << endl;
             for (Int_t iVar = 0; iVar < NLC; iVar++) fout_txt >> DerLc[iVar];
             for (Int_t iVar = 0; iVar < NGL; iVar++) fout_txt >> DerGl[iVar];
 

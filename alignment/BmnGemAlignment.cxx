@@ -259,51 +259,45 @@ void BmnGemAlignment::StartMille() {
             BmnAlignmentContainer* cont = (BmnAlignmentContainer*) align->UncheckedAt(iAlign);
             TClonesArray* trHits = cont->GetTrackHits();
 
-            // Expecting empty stations ...
-            Short_t prevStat = 0;
+            for (Int_t iStat = 0; iStat < fNstat; iStat++) {
+                Int_t iHit = 0;
+                for (iHit = 0; iHit < trHits->GetEntriesFast(); iHit++) {
+                    BmnGemStripHit* hit = (BmnGemStripHit*) trHits->UncheckedAt(iHit);
+                    Double_t Z = hit->GetZ();
+                    Short_t stat = hit->GetStation();
 
-            for (Int_t iHit = 0; iHit < trHits->GetEntriesFast(); iHit++) {
-                BmnGemStripHit* hit = (BmnGemStripHit*) trHits->UncheckedAt(iHit);
-                Double_t Z = hit->GetZ();
-                Short_t stat = hit->GetStation();
+                    if (stat == iStat) {
+                        if (fAlignmentType == "xy") {
+                            Char_t* locDerX = Form("%d 1. %f 0. 0. ", stat, Z);
+                            Char_t* locDerY = Form("%d 0. 0. 1. %f ", stat, Z);
 
-                if (fAlignmentType == "xy") {
-                    Char_t* locDerX = Form("%d 1. %f 0. 0. ", stat, Z);
-                    Char_t* locDerY = Form("%d 0. 0. 1. %f ", stat, Z);
+                            Char_t* globDerX = Form("1. 0. ");
+                            Char_t* globDerY = Form("0. 1. ");
 
-                    Char_t* globDerX = Form("1. 0. ");
-                    Char_t* globDerY = Form("0. 1. ");
+                            Char_t* measX = Form("%f %f ", hit->GetX(), hit->GetDx());
+                            Char_t* measY = Form("%f %f ", hit->GetY(), hit->GetDy());
 
-                    Char_t* measX = Form("%f %f ", hit->GetX(), hit->GetDx());
-                    Char_t* measY = Form("%f %f ", hit->GetY(), hit->GetDy());
+                            Int_t N_zeros_beg = stat;
+                            Int_t N_zeros_end = (fNstat - 1) - N_zeros_beg;
 
-                    Int_t N_zeros_beg = stat;
-                    Int_t N_zeros_end = (fNstat - 1) - N_zeros_beg;
+                            TString zeroEnd = "";
+                            TString zeroBeg = "";
+                            for (Int_t i = 0; i < N_zeros_beg; i++)
+                                zeroBeg += "0 0 ";
 
-                    TString zeroEnd = "";
-                    TString zeroBeg = "";
-                    for (Int_t i = 0; i < N_zeros_beg; i++)
-                        zeroBeg += "0 0 ";
+                            for (Int_t i = 0; i < N_zeros_end; i++)
+                                zeroEnd += "0 0 ";
 
-                    for (Int_t i = 0; i < N_zeros_end; i++)
-                        zeroEnd += "0 0 ";
-
-                    Int_t statStart = (prevStat == 0) ? prevStat : (prevStat + 1);
-
-                    for (Int_t iStat = statStart; iStat < stat; iStat++)
-                        for (Int_t iFill = 0; iFill < 2; iFill++)
-                            fprintf(fin_txt, "%d 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n", iStat);
-
-                    fprintf(fin_txt, "%s%s %s %s%s\n", locDerX, zeroBeg.Data(), globDerX, zeroEnd.Data(), measX);
-                    fprintf(fin_txt, "%s%s %s %s%s\n", locDerY, zeroBeg.Data(), globDerY, zeroEnd.Data(), measY);
+                            fprintf(fin_txt, "%s%s %s %s%s\n", locDerX, zeroBeg.Data(), globDerX, zeroEnd.Data(), measX);
+                            fprintf(fin_txt, "%s%s %s %s%s\n", locDerY, zeroBeg.Data(), globDerY, zeroEnd.Data(), measY);
+                            break;
+                        }
+                    }
                 }
-
-                prevStat = stat;
+                if (iHit == trHits->GetEntriesFast())
+                    for (Int_t iFill = 0; iFill < 2; iFill++)
+                        fprintf(fin_txt, "%d 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n", iStat);
             }
-            // We have to complement the file ...
-            for (Int_t iStat = prevStat + 1; iStat < fNstat; iStat++)
-                for (Int_t iFill = 0; iFill < 2; iFill++)
-                    fprintf(fin_txt, "%d 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n", iStat);
         }
     }
     fclose(fin_txt);
@@ -366,6 +360,7 @@ void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGe
                     }
                 }
                 fout_txt >> rMeasure >> dMeasure;
+                Mille->mille(NLC, DerLc, NGL, DerGl, Labels, rMeasure, dMeasure);
                 cntr++;
 
                 if (fDebugInfo)
@@ -373,7 +368,7 @@ void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGe
             } else
                 fout_txt.ignore(numeric_limits<streamsize>::max(), '\n');
 
-            Mille->mille(NLC, DerLc, NGL, DerGl, Labels, rMeasure, dMeasure);
+            // Mille->mille(NLC, DerLc, NGL, DerGl, Labels, rMeasure, dMeasure);
         }
         Mille->end();
         if (fDebugInfo)

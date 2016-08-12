@@ -75,9 +75,9 @@ void BmnGemAlignment::PrepareData() {
         fChainIn->GetEntry(iEv);
         if (iEv % 1000 == 0)
             cout << "Event# = " << iEv << endl;
-//
-//        h1->Reset();
-//        h2->Reset();
+        //
+        //        h1->Reset();
+        //        h2->Reset();
 
         fGemHits->Delete();
         fGemTracks->Delete();
@@ -134,8 +134,8 @@ void BmnGemAlignment::PrepareData() {
                     Double_t y_err = module->GetIntersectionPointYError(iPoint);
                     Double_t z_err = 0.0;
 
-//                    h1->Fill(z, y);
-//                    h2->Fill(z, x);
+                    //                    h1->Fill(z, y);
+                    //                    h2->Fill(z, x);
 
                     BmnGemStripHit* hit = new((*fGemHits)[fGemHits->GetEntriesFast()]) BmnGemStripHit(iStation, TVector3(x, y, z), TVector3(x_err, y_err, 0.), iPoint);
                     hit->SetDx(x_err);
@@ -312,10 +312,18 @@ void BmnGemAlignment::StartMille() {
     fout_txt.open(TString(name + ".txt").Data(), ios::in);
     Int_t nTracks, nGem, NLC, NGL;
 
-    if (fAlignmentType == "xy") {
-        NLC = 4;
-        NGL = 2 * fStatUsed;
-    }
+    if (fAlignmentType == "xy")
+        AlignmentdXdY(fout_txt, nTracks, nGem, NLC, NGL, name);
+
+    fout_txt.close();
+
+    TString commandToExec = "pede " + TString(GetSteerFileName());
+    fCommandToRunPede = commandToExec;
+}
+
+void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGem, Int_t NLC, Int_t NGL, TString name) {
+    NLC = 4;
+    NGL = 2 * fStatUsed;
 
     const Int_t dim = NGL;
     Int_t* Labels = new Int_t[dim];
@@ -360,17 +368,8 @@ void BmnGemAlignment::StartMille() {
                 fout_txt >> rMeasure >> dMeasure;
                 cntr++;
 
-                if (fDebugInfo) {
-                    cout << "-" << nGem << " n DerLc[ ] = ";
-                    for (Int_t icVar = 0; icVar < NLC; icVar++) cout << DerLc[icVar] << " ";
-                    cout << endl;
-
-                    cout << "-" << nGem << " n DerGl[ ] = ";
-                    for (Int_t icVar = 0; icVar < 2 * fStatUsed; icVar++) cout << DerGl[icVar] << " ";
-                    cout << endl;
-
-                    cout << "-" << nGem << " rMeasure  = " << rMeasure << " dMeasure = " << dMeasure << endl;
-                }
+                if (fDebugInfo)
+                    DebugInfo(nGem, NLC, NGL, DerLc, DerGl, rMeasure, dMeasure);
             } else
                 fout_txt.ignore(numeric_limits<streamsize>::max(), '\n');
 
@@ -380,13 +379,18 @@ void BmnGemAlignment::StartMille() {
         if (fDebugInfo)
             cout << "========================> Another one RECORD = " << iTrack + 1 << " --> " << endl;
     }
-
     delete Mille;
     delete Labels;
-    fout_txt.close();
+}
 
-    TString commandToExec = "pede " + TString(GetSteerFileName());
-    fCommandToRunPede = commandToExec;
+void BmnGemAlignment::DebugInfo(Int_t nGem, Int_t NLC, Int_t NGL, Double_t* DerLc, Double_t* DerGl, Double_t rMeasure, Double_t dMeasure) {
+    cout << "-" << nGem << " n DerLc[ ] = ";
+    for (Int_t icVar = 0; icVar < NLC; icVar++) cout << DerLc[icVar] << " ";
+    cout << endl;
+    cout << "-" << nGem << " n DerGl[ ] = ";
+    for (Int_t icVar = 0; icVar < NGL; icVar++) cout << DerGl[icVar] << " ";
+    cout << endl;
+    cout << "-" << nGem << " rMeasure  = " << rMeasure << " dMeasure = " << dMeasure << endl;
 }
 
 void BmnGemAlignment::goToStations(vector<BmnGemStripHit*>& hits, vector<BmnGemStripHit*> *hitsOnStation, Int_t stat) {

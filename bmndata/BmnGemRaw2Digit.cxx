@@ -6,50 +6,65 @@ const UChar_t kNSER = 10;
 const UInt_t kNCH = 2048;
 const UInt_t kSERIALS[kNSER] = {0x76CBA8B, 0x76CD410, 0x76C8320, 0x76CB9C0, 0x76CA266, 0x76D08B9, 0x76C8321, 0x76CE3EE, 0x76CE3E5, 0x4E983C1};
 
-BmnGemRaw2Digit::BmnGemRaw2Digit(TString mappingFile, Int_t period, Int_t run) {
+BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
 
-    fEntriesInMap = 17;
-    
-//    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", period, run);
-//    if (pDetectorParameter != NULL)
-//        pDetectorParameter->GetDCHMapArray(fMap, fEntriesInMap);
+    fEntriesInGlobMap = 17;
+    fNchXsmall = 256;
+    fNchYsmall = 256;
+    fNchX0mid = 190;
+    fNchY0mid = 215;
+    fNchX1mid = 825;
+    fNchY1mid = 930;
+    fNchX0big_l = 500;
+    fNchX0big_r = 500;
+    fNchX1big_l = 1019;
+    fNchX1big_r = 1019;
+    fNchY0big_l = 488;
+    fNchY0big_r = 506;
+    fNchY1big_l = 1081;
+    fNchY1big_r = 1130;
 
-    fMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + mappingFile;
-    
+    cout << "Loading the GEM Map from DB: Period " << period << ", Run " << run << "..." << endl;
+
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", period, run);
+    if (pDetectorParameter != NULL) pDetectorParameter->GetGemMapArray(fMap, fEntriesInGlobMap);
+
+    UniDbDetectorParameter* pX_small = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_X_small", period, run);
+    if (pX_small != NULL) pX_small->GetIIArray(fX_small, fNchXsmall);
+    UniDbDetectorParameter* pY_small = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_Y_small", period, run);
+    if (pY_small != NULL) pY_small->GetIIArray(fY_small, fNchYsmall);
+    UniDbDetectorParameter* pX0_mid = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_X0_middle", period, run);
+    if (pX0_mid != NULL) pX0_mid->GetIIArray(fX0_mid, fNchX0mid);
+    UniDbDetectorParameter* pY0_mid = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_Y0_middle", period, run);
+    if (pY0_mid != NULL) pY0_mid->GetIIArray(fY0_mid, fNchY0mid);
+    UniDbDetectorParameter* pX1_mid = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_X1_middle", period, run);
+    if (pX1_mid != NULL) pX1_mid->GetIIArray(fX1_mid, fNchX1mid);
+    UniDbDetectorParameter* pY1_mid = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_Y1_middle", period, run);
+    if (pY1_mid != NULL) pY1_mid->GetIIArray(fY1_mid, fNchY1mid);
+    UniDbDetectorParameter* pX0_big_l = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_X0_Big_Left", period, run);
+    if (pX0_big_l != NULL) pX0_big_l->GetIIArray(fX0_big_l, fNchX0big_l);
+    UniDbDetectorParameter* pX0_big_r = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_X0_Big_Right", period, run);
+    if (pX0_big_r != NULL) pX0_big_r->GetIIArray(fX0_big_r, fNchX0big_r);
+    UniDbDetectorParameter* pX1_big_l = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_X1_Big_Left", period, run);
+    if (pX1_big_l != NULL) pX1_big_l->GetIIArray(fX1_big_l, fNchX1big_l);
+    UniDbDetectorParameter* pX1_big_r = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_X1_Big_Right", period, run);
+    if (pX1_big_r != NULL) pX1_big_r->GetIIArray(fX1_big_r, fNchX1big_r);
+    UniDbDetectorParameter* pY0_big_l = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_Y0_Big_Left", period, run);
+    if (pY0_big_l != NULL) pY0_big_l->GetIIArray(fY0_big_l, fNchY0big_l);
+    UniDbDetectorParameter* pY0_big_r = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_Y0_Big_Right", period, run);
+    if (pY0_big_r != NULL) pY0_big_r->GetIIArray(fY0_big_r, fNchY0big_r);
+    UniDbDetectorParameter* pY1_big_l = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_Y1_Big_Left", period, run);
+    if (pY1_big_l != NULL) pY1_big_l->GetIIArray(fY1_big_l, fNchY1big_l);
+    UniDbDetectorParameter* pY1_big_r = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_Y1_Big_Right", period, run);
+    if (pY1_big_r != NULL) pY1_big_r->GetIIArray(fY1_big_r, fNchY1big_r);
+
     FillMaps();
 }
 
 BmnStatus BmnGemRaw2Digit::FillMaps() {
 
-    //========== read mapping file into vector ==========//
-    fMapFile.open((fMapFileName).Data());
-    if (!fMapFile.is_open()) {
-        cout << "Error opening map-file (" << fMapFileName << ")!" << endl;
-        return kBMNERROR;
-    }
-
     TString dummy;
-    UInt_t ser, ch_l, ch_h, gId, stId;
-    Bool_t hotZ = 0;
-
-    Int_t item = 0;
-    fMapFile >> dummy;
-    fMapFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-    fMapFile >> dummy;
-    while (!fMapFile.eof()) {
-        fMapFile >> hex >> ser >> dec >> ch_l >> ch_h >> gId >> stId >> hotZ;
-        if (!fMapFile.good()) break;
-        BmnGemMapping record;
-        record.serial = ser;
-        record.gemId = gId;
-        record.station = stId;
-        record.gemChLo = ch_l;
-        record.gemChHi = ch_h;
-        record.hotZone = hotZ;
-        fMap[item++] = record;
-    }
-    fMapFile.close();
-    //==================================================//
+    UInt_t ser;
 
     //========= read pedestal file into vector =========//
     ifstream pedFile(Form("%s/input/GEM_pedestals.txt", getenv("VMCWORKDIR")));
@@ -81,57 +96,24 @@ BmnStatus BmnGemRaw2Digit::FillMaps() {
         fNoiseMap[i][chan] = noise;
     }
     pedFile.close();
-    //==================================================//    
-
-    //====== read strip-channel maps into vector =======//
-    TString path = TString(getenv("VMCWORKDIR")) + TString("/input/");
-    ReadAndPut(path + TString("GEM_X_small.txt"), X_small);
-    ReadAndPut(path + TString("GEM_Y_small.txt"), Y_small);
-    ReadAndPut(path + TString("GEM_X0_middle.txt"), X0_mid);
-    ReadAndPut(path + TString("GEM_Y0_middle.txt"), Y0_mid);
-    ReadAndPut(path + TString("GEM_X1_middle.txt"), X1_mid);
-    ReadAndPut(path + TString("GEM_Y1_middle.txt"), Y1_mid);
-    ReadAndPut(path + TString("GEM_X0_Big_Left.txt"), X0_big_l);
-    ReadAndPut(path + TString("GEM_X0_Big_Right.txt"), X0_big_r);
-    ReadAndPut(path + TString("GEM_X1_Big_Left.txt"), X1_big_l);
-    ReadAndPut(path + TString("GEM_X1_Big_Right.txt"), X1_big_r);
-    ReadAndPut(path + TString("GEM_Y0_Big_Left.txt"), Y0_big_l);
-    ReadAndPut(path + TString("GEM_Y0_Big_Right.txt"), Y0_big_r);
-    ReadAndPut(path + TString("GEM_Y1_Big_Left.txt"), Y1_big_l);
-    ReadAndPut(path + TString("GEM_Y1_Big_Right.txt"), Y1_big_r);
-    //==================================================//
 
     return kBMNSUCCESS;
-}
-
-void BmnGemRaw2Digit::ReadAndPut(TString fName, map<UInt_t, UInt_t>& chMap) {
-    UInt_t ch = 0;
-    UInt_t strip = 0;
-    ifstream inFile(fName.Data());
-    if (!inFile.is_open())
-        cout << "Error opening map-file (" << fName << ")!" << endl;
-    while (!inFile.eof()) {
-        inFile >> ch;
-        if (!inFile.good()) break;
-        strip++;
-        chMap.insert(pair<UInt_t, UInt_t>(ch, strip));
-    }
 }
 
 BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *gem) {
 
     for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
         BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
-        for (Int_t iMap = 0; iMap < fEntriesInMap; ++iMap) {
-            BmnGemMapping gemM = fMap[iMap];
+        for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
+            GemMapStructure gemM = fMap[iMap];
             UInt_t ch = adcDig->GetChannel();
-            if (adcDig->GetSerial() == gemM.serial && ch <= (gemM.gemChHi / ADC_N_SAMPLES) && ch >= (gemM.gemChLo / ADC_N_SAMPLES))
+            if (adcDig->GetSerial() == gemM.serial && ch <= (gemM.channel_high / ADC_N_SAMPLES) && ch >= (gemM.channel_low / ADC_N_SAMPLES))
                 ProcessDigit(adcDig, &gemM, gem);
         }
     }
 }
 
-void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, TClonesArray *gem) {
+void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray *gem) {
     const UInt_t nSmpl = ADC_N_SAMPLES;
     UInt_t ch = adcDig->GetChannel();
 
@@ -144,18 +126,20 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
         Int_t ped = -1;
         Int_t noise = -1;
 
-        switch (gemM->gemId) {
+        switch (gemM->id) {
             case 0: //small gem
             {
-                UInt_t realChannel = ch * nSmpl + iSmpl - gemM->gemChLo;
+                UInt_t realChannel = ch * nSmpl + iSmpl - gemM->channel_low;
                 ped = SearchPed(ch * nSmpl + iSmpl, gemM->serial);
                 noise = SearchNoise(ch * nSmpl + iSmpl, gemM->serial);
                 mod = 0;
-                if (SearchInMap(&X_small, strip, realChannel) == kBMNSUCCESS) {
+                strip = SearchInMap(fX_small, fNchXsmall, realChannel);
+                if (strip != -1) {
                     lay = 0;
                     break;
                 }
-                if (SearchInMap(&Y_small, strip, realChannel) == kBMNSUCCESS) {
+                strip = SearchInMap(fY_small, fNchYsmall, realChannel);
+                if (strip != -1) {
                     lay = 1;
                     break;
                 }
@@ -167,33 +151,33 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                 //so we use additional slot and we have to check is it an additional slot or not...
                 //if additional, then channel number will be more than 2048
                 UInt_t realChannel = ch2048;
-                if (gemM->gemChHi - gemM->gemChLo < 128) realChannel += 2048;
+                if (gemM->channel_high - gemM->channel_low < 128) realChannel += 2048;
                 ped = SearchPed(ch2048, gemM->serial);
                 noise = SearchNoise(ch2048, gemM->serial);
                 if (gemM->hotZone) {
-                    if (SearchInMap(&X0_big_l, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 3;
+                    mod = 3;
+                    strip = SearchInMap(fX0_big_l, fNchX0big_l, realChannel);
+                    if (strip != -1) {
                         lay = 0;
                         break;
                     }
-                    if (SearchInMap(&Y0_big_l, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 3;
+                    strip = SearchInMap(fY0_big_l, fNchY0big_l, realChannel);
+                    if (strip != -1) {
                         lay = 1;
                         break;
                     }
                 } else {
-                    if (SearchInMap(&X1_big_l, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 1;
+                    mod = 1;
+                    strip = SearchInMap(fX1_big_l, fNchX1big_l, realChannel);
+                    if (strip != -1) {
                         lay = 0;
                         break;
                     }
-
-                    if (SearchInMap(&Y1_big_l, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 1;
+                    strip = SearchInMap(fY1_big_l, fNchY1big_l, realChannel);
+                    if (strip != -1) {
                         lay = 1;
                         break;
                     }
-                    break;
                 }
             }
             case 7: //right big gem
@@ -203,32 +187,33 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                 //so we use additional slot and we have to check is it an additional slot or not...
                 //if additional, then channel number will be more than 2048
                 UInt_t realChannel = ch2048;
-                if (gemM->gemChHi - gemM->gemChLo < 128) realChannel += 2048;
+                if (gemM->channel_high - gemM->channel_low < 128) realChannel += 2048;
                 ped = SearchPed(ch2048, gemM->serial);
                 noise = SearchNoise(ch2048, gemM->serial);
                 if (gemM->hotZone) {
-                    if (SearchInMap(&X0_big_r, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 2;
+                    mod = 2;
+                    strip = SearchInMap(fX0_big_r, fNchX0big_r, realChannel);
+                    if (strip != -1) {
                         lay = 0;
                         break;
                     }
-                    if (SearchInMap(&Y0_big_r, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 2;
+                    strip = SearchInMap(fY0_big_r, fNchY0big_r, realChannel);
+                    if (strip != -1) {
                         lay = 1;
                         break;
                     }
                 } else {
-                    if (SearchInMap(&X1_big_r, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 0;
+                    mod = 0;
+                    strip = SearchInMap(fX1_big_r, fNchX1big_r, realChannel);
+                    if (strip != -1) {
                         lay = 0;
                         break;
                     }
-                    if (SearchInMap(&Y1_big_r, strip, realChannel) == kBMNSUCCESS) {
-                        mod = 0;
+                    strip = SearchInMap(fY1_big_r, fNchY1big_r, realChannel);
+                    if (strip != -1) {
                         lay = 1;
                         break;
                     }
-                    break;
                 }
             }
             default://middle gem's
@@ -241,25 +226,29 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
                 //so we use additional slot and we have to check is it an additional slot or not...
                 //if additional, then channel number will be more than 2048
                 UInt_t realChannel = ch2048;
-                if (gemM->gemChHi - gemM->gemChLo < 128) realChannel += 2048;
+                if (gemM->channel_high - gemM->channel_low < 128) realChannel += 2048;
                 ped = SearchPed(ch2048, gemM->serial);
                 noise = SearchNoise(ch2048, gemM->serial);
-                if (SearchInMap(&X1_mid, strip, realChannel) == kBMNSUCCESS) {
+		strip = SearchInMap(fX1_mid, fNchX1mid, realChannel);
+                if (strip != -1) {
                     mod = 0;
                     lay = 0;
                     break;
                 }
-                if (SearchInMap(&Y1_mid, strip, realChannel) == kBMNSUCCESS) {
+                strip = SearchInMap(fY1_mid, fNchY1mid, realChannel);
+                if (strip != -1) {
                     mod = 0;
                     lay = 1;
                     break;
                 }
-                if (SearchInMap(&X0_mid, strip, realChannel) == kBMNSUCCESS) {
+                strip = SearchInMap(fX0_mid, fNchX0mid, realChannel);
+                if (strip != -1) {
                     mod = 1;
                     lay = 0;
                     break;
                 }
-                if (SearchInMap(&Y0_mid, strip, realChannel) == kBMNSUCCESS) {
+                strip = SearchInMap(fY0_mid, fNchY0mid, realChannel);
+                if (strip != -1) {
                     mod = 1;
                     lay = 1;
                     break;
@@ -322,13 +311,11 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, T
 
 }
 
-BmnStatus BmnGemRaw2Digit::SearchInMap(map<UInt_t, UInt_t>* m, Int_t& strip, UInt_t ch) {
-    map<UInt_t, UInt_t>::iterator it = m->find(ch);
-    if (it != m->end()) {
-        strip = it->second;
-        return kBMNSUCCESS;
-    }
-    return kBMNERROR;
+Int_t BmnGemRaw2Digit::SearchInMap(IIStructure* m, Int_t size, UInt_t ch) {
+    for (Int_t i = 0; i < size; ++i)
+        if (m[i].int_2 == ch)
+            return m[i].int_1;
+    return -1;
 }
 
 UInt_t BmnGemRaw2Digit::SearchPed(UInt_t chn, UInt_t ser) {
@@ -406,4 +393,3 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree *tree) {
 }
 
 ClassImp(BmnGemRaw2Digit)
-

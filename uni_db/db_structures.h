@@ -24,11 +24,11 @@ struct DchMapStructure
 struct GemMapStructure
 {
     unsigned int serial;
-    short int id;
-    short int station;
-    unsigned int channel_low;
-    unsigned int channel_high;
-    bool hotZone;
+    int id;
+    int station;
+    int channel_low;
+    int channel_high;
+    int hotZone;
 };//__attribute__((packed));
 
 

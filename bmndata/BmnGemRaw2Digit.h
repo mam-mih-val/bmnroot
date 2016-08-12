@@ -22,15 +22,6 @@
 using namespace std;
 using namespace TMath;
 
-struct BmnGemMapping {
-    UInt_t serial;
-    Short_t gemId;
-    Short_t station;
-    UInt_t gemChLo;
-    UInt_t gemChHi;
-    Bool_t hotZone;
-};
-//
 //struct BmnGemPedestal {
 //    UInt_t serial;
 //    UInt_t ch;
@@ -39,48 +30,58 @@ struct BmnGemMapping {
 //};
 
 class BmnGemRaw2Digit {
-
 public:
-    BmnGemRaw2Digit(TString mappingFile, Int_t period, Int_t run);
+    BmnGemRaw2Digit(Int_t period, Int_t run);
     BmnGemRaw2Digit();
-    ~BmnGemRaw2Digit() {};
-    
+
+    ~BmnGemRaw2Digit() {
+    };
+
     BmnStatus FillEvent(TClonesArray *adc, TClonesArray *gem);
     BmnStatus CalcGemPedestals(TClonesArray *adc, TTree *tree);
-    
+
 private:
-    
-    // maps for storing <channel, strip> accordance  
-    map<UInt_t, UInt_t> X0_big_l;
-    map<UInt_t, UInt_t> X0_big_r;
-    map<UInt_t, UInt_t> X1_big_l;
-    map<UInt_t, UInt_t> X1_big_r;
-    map<UInt_t, UInt_t> Y0_big_l;
-    map<UInt_t, UInt_t> Y0_big_r;
-    map<UInt_t, UInt_t> Y1_big_l;
-    map<UInt_t, UInt_t> Y1_big_r;
-    map<UInt_t, UInt_t> X0_mid;
-    map<UInt_t, UInt_t> Y0_mid;
-    map<UInt_t, UInt_t> X1_mid;
-    map<UInt_t, UInt_t> Y1_mid;
-    map<UInt_t, UInt_t> X_small;
-    map<UInt_t, UInt_t> Y_small;
-    
-    BmnGemMapping* fMap;
+
+    IIStructure* fX0_big_l;
+    IIStructure* fX0_big_r;
+    IIStructure* fX1_big_l;
+    IIStructure* fX1_big_r;
+    IIStructure* fY0_big_l;
+    IIStructure* fY0_big_r;
+    IIStructure* fY1_big_l;
+    IIStructure* fY1_big_r;
+    IIStructure* fX0_mid;
+    IIStructure* fY0_mid;
+    IIStructure* fX1_mid;
+    IIStructure* fY1_mid;
+    IIStructure* fX_small;
+    IIStructure* fY_small;
+
+    GemMapStructure* fMap;
     UInt_t** fPedMap; // pedestals
-    UInt_t** fCMMap;  // common mode shift
-    UInt_t** fNoiseMap;  // channel noises
+    UInt_t** fCMMap; // common mode shift
+    UInt_t** fNoiseMap; // channel noises
     BmnStatus FillMaps();
-    void ReadAndPut(TString fName, map<UInt_t, UInt_t>& chMap);
-    void ProcessDigit(BmnADC32Digit* adcDig, BmnGemMapping* gemM, TClonesArray *gem);
-    BmnStatus SearchInMap(map<UInt_t, UInt_t>* m, Int_t& strip, UInt_t ch);
+    void ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
+    Int_t SearchInMap(IIStructure* m, Int_t size, UInt_t ch);
     UInt_t SearchPed(UInt_t ch, UInt_t ser);
     UInt_t SearchNoise(UInt_t chn, UInt_t ser);
     UInt_t SearchComMod(UInt_t chn, UInt_t ser);
-    Int_t fEntriesInMap; // member of entries in BD table
-        
-    ifstream fMapFile;
-    TString fMapFileName;
+    Int_t fEntriesInGlobMap; // member of entries in BD table
+    Int_t fNchXsmall;
+    Int_t fNchYsmall;
+    Int_t fNchX0mid;
+    Int_t fNchY0mid;
+    Int_t fNchX1mid;
+    Int_t fNchY1mid;
+    Int_t fNchX0big_l;
+    Int_t fNchX0big_r;
+    Int_t fNchX1big_l;
+    Int_t fNchX1big_r;
+    Int_t fNchY0big_l;
+    Int_t fNchY0big_r;
+    Int_t fNchY1big_l;
+    Int_t fNchY1big_r;
 
     ClassDef(BmnGemRaw2Digit, 1);
 };

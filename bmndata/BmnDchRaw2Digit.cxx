@@ -4,6 +4,8 @@ BmnDchRaw2Digit::BmnDchRaw2Digit(Int_t period, Int_t run) {
 
     fEntriesInMap = 72;
     
+    cout << "Loading the DCH Map from DB: Period " << period << ", Run " << run << "..." << endl;
+    
     UniDbDetectorParameter* pDetectorParameter1 = UniDbDetectorParameter::GetDetectorParameter("DCH1", "DCH_mapping", period, run);
     if (pDetectorParameter1 != NULL)
         pDetectorParameter1->GetDchMapArray(fMap1, fEntriesInMap);

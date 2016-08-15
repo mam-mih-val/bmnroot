@@ -203,7 +203,7 @@ void BmnTof1Raw2Digit::setMapFromFile(string placementMapFile, string mapFile) {
 	
 	//1. Placement map
 	fstream ff;
-	ff.open(placementMapFile, std::fstream::in);
+	ff.open(placementMapFile.c_str(), std::fstream::in);
 	if(ff.fail()) {cerr << "Cannot open the file " << placementMapFile << endl; return;}
 	while(!ff.eof()) {
 		ff >> std::hex >> fcrate >> std::dec >> fslot >> std::hex >> fserial >> std::dec;
@@ -214,7 +214,7 @@ void BmnTof1Raw2Digit::setMapFromFile(string placementMapFile, string mapFile) {
 	ff.close();	
 	
 	//2. Main map
-	ff.open(mapFile, std::fstream::in);
+	ff.open(mapFile.c_str(), std::fstream::in);
 	if(ff.fail()) {cerr << "Cannot open the file " << mapFile << endl; return;}
 	while(!ff.eof()) {
 		ff >> std::hex >> fserial >> std::dec >> fchan >> fplane >> fstrip >> side_c;
@@ -236,7 +236,7 @@ void BmnTof1Raw2Digit::saveMapToFile(string placementMapFile, string mapFile) {
 	fstream ff;
 	
 	//1.Placement map
-	ff.open(placementMapFile, std::fstream::out);
+	ff.open(placementMapFile.c_str(), std::fstream::out);
 	if(ff.fail()) {cerr << "Cannot open the file " << placementMapFile << endl; return;}
 	
 	Tof1PlMapIter plit = PlacementMap.begin();
@@ -249,7 +249,7 @@ void BmnTof1Raw2Digit::saveMapToFile(string placementMapFile, string mapFile) {
 	ff.close();
 	
 	//2. Main map
-	ff.open(mapFile, std::fstream::out);
+	ff.open(mapFile.c_str(), std::fstream::out);
 	if(ff.fail()) {cerr << "Cannot open the file " << mapFile << endl; return;}
 	
 	Tof1TDCMapIter mapit = TDCMap.begin();
@@ -337,7 +337,7 @@ void BmnTof1Raw2Digit::saveINLToFile(string INLFile, unsigned int TDCSerial) {
 		return;
 	}
 	
-	fstream ff(INLFile, std::fstream::out);
+	fstream ff(INLFile.c_str(), std::fstream::out);
 	ff << "[TDC-" << std::setfill('0') << std::setw(8) << std::hex << TDCSerial << std::dec << std::setfill(' ') << "-inl_corr]" << endl;
 	
 	

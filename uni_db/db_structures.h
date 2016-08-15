@@ -1,9 +1,24 @@
 #ifndef DB_STRUCTURES_H
 #define DB_STRUCTURES_H
 
+struct UniqueRunNumber
+{
+    int period_number;
+    int run_number;
+};
+
+// enumeration of table columns for Search Conditions (UniDbRun::Search, UniDbDetectorParameters::Search function). *Begin and *End show the column range
+enum enumColumns{columnPeriodNumber, columnRunNumber, columnFilePath, columnBeamParticle, columnTargetParticle, columnEnergy,   // UniDbRun
+                 columnStartDatetime, columnEndDateTime, columnEventCount, columnFieldCurrent, columnFileSize,                  // UniDbRun
+                 columnDetectorName, columnParameterName, columnStartPeriod, columnStartRun, columnEndPeriod, columnEndRun, columnDCSerial, columnChannel}; // UniDbDetectorParameter
+// enumeration of comparison operators for Search Conditions
+enum enumConditions{conditionLess, conditionLessOrEqual, conditionEqual, conditionNotEqual, conditionGreater, conditionGreaterOrEqual, conditionLike, conditionNull};
+
 // enumeration 'enumParameterType' is corresponding parameter_type member UniDbParameter
-// 0 - boolean, 1 - integer, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array
-enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType, BinaryArrayType, UIntArrayType, DchMapArrayType, GemMapArrayType, ErrorType = 999};
+// 0 - boolean, 1 - integer, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array, 7 - any binary array, 8 - unsigned int array
+// 9 - array with DCH mapping, 10 - array with GEM mapping, 11 - array with GEM pedestal map
+enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType, BinaryArrayType, UIntArrayType,   // base types
+                       DchMapArrayType, GemMapArrayType, GemPedestalArrayType, ErrorType = 999};                                                // detector-dependent types
 
 struct IIStructure
 {
@@ -31,19 +46,16 @@ struct GemMapStructure
     int hotZone;
 };//__attribute__((packed));
 
-
-// enumeration of table columns for Search Conditions (UniDbRun::Search, UniDbDetectorParameters::Search function). *Begin and *End show the column range
-enum enumColumns{columnPeriodNumber, columnRunNumber, columnFilePath, columnBeamParticle, columnTargetParticle, columnEnergy,   // UniDbRun
-                 columnStartDatetime, columnEndDateTime, columnEventCount, columnFieldCurrent, columnFileSize,                  // UniDbRun
-                 columnDetectorName, columnParameterName, columnStartPeriod, columnStartRun, columnEndPeriod, columnEndRun, columnDCSerial, columnChannel}; // UniDbDetectorParameter
-// enumeration of comparison operators for Search Conditions
-enum enumConditions{conditionLess, conditionLessOrEqual, conditionEqual, conditionNotEqual, conditionGreater, conditionGreaterOrEqual, conditionLike, conditionNull};
-
-
-struct UniqueRunNumber
+struct GemPedestalStructure
 {
-    int period_number;
-    int run_number;
-};
+    unsigned int serial;
+    int channel;
+    int pedestal;
+    int common_mode;
+    int noise;
+};//__attribute__((packed));
+
+
+
 
 #endif // DB_STRUCTURES_H

@@ -827,6 +827,96 @@ UniDbDetectorParameter* UniDbDetectorParameter::GetDetectorParameter(TString det
                                       tmp_dc_serial, tmp_channel, tmp_parameter_value, tmp_sz_parameter_value);
 }
 
+// ----- Delete common detector parameter value ------------------------
+int UniDbDetectorParameter::DeleteDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run)
+{
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00) return 0x00;
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "delete from detector_parameter "
+        "where detector_name = $1 and parameter_name = $2 and start_period = $3 and start_run = $4 and end_period = $5 and end_run = $6");
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    stmt->NextIteration();
+    stmt->SetString(0, detector_name);
+    stmt->SetString(1, parameter_name);
+    stmt->SetInt(2, start_period);
+    stmt->SetInt(3, start_run);
+    stmt->SetInt(4, end_period);
+    stmt->SetInt(5, end_run);
+
+    // delete table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: deleting record from DB has been failed"<<endl;
+
+        delete stmt;
+        delete connUniDb;
+        return -1;
+    }
+
+    if (stmt->GetNumAffectedRows() == 0)
+    {
+        cout<<"Warning: parameter value was not found for deleting"<<endl;
+        delete stmt;
+        delete connUniDb;
+        return -2;
+    }
+
+    delete stmt;
+    delete connUniDb;
+    return 0;
+}
+
+// ----- Delete TDC/ADC parameter value -----------------------------
+int UniDbDetectorParameter::DeleteDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, unsigned int dc_serial, int channel)
+{
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00) return 0x00;
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "delete from detector_parameter "
+        "where detector_name = $1 and parameter_name = $2 and start_period = $3 and start_run = $4 and end_period = $5 and end_run = $6 and dc_serial = $7 and channel = $8");
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    stmt->NextIteration();
+    stmt->SetString(0, detector_name);
+    stmt->SetString(1, parameter_name);
+    stmt->SetInt(2, start_period);
+    stmt->SetInt(3, start_run);
+    stmt->SetInt(4, end_period);
+    stmt->SetInt(5, end_run);
+    stmt->SetUInt(6, dc_serial);
+    stmt->SetInt(7, channel);
+
+    // delete table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: deleting record from DB has been failed"<<endl;
+
+        delete stmt;
+        delete connUniDb;
+        return -1;
+    }
+
+    if (stmt->GetNumAffectedRows() == 0)
+    {
+        cout<<"Warning: parameter value was not found for deleting"<<endl;
+        delete stmt;
+        delete connUniDb;
+        return -2;
+    }
+
+    delete stmt;
+    delete connUniDb;
+    return 0;
+}
+
 // get channel count for TDC/ADC parameter value
 int UniDbDetectorParameter::GetChannelCount(TString detector_name, TString parameter_name, int period_number, int run_number, unsigned int dc_serial)
 {
@@ -1801,6 +1891,69 @@ int UniDbDetectorParameter::GetGemMapArray(GemMapStructure*& parameter_value, in
 int UniDbDetectorParameter::SetGemMapArray(GemMapStructure* parameter_value, int element_count)
 {
     Long_t size_parameter_value = element_count * sizeof(GemMapStructure);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    int res_code = SetUNC(p_parameter_value, size_parameter_value);
+    if (res_code != 0)
+    {
+        delete [] p_parameter_value;
+        return res_code;
+    }
+
+    return 0;
+}
+
+// create detector parameter value as GEM pedestal map Array
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                                        GemPedestalStructure* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(GemPedestalStructure);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run,
+                                                                                                 (unsigned char*)p_parameter_value, size_parameter_value, GemPedestalArrayType);
+    if (pDetectorParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pDetectorParameter;
+}
+
+// create TDC/ADC parameter value as GEM pedestal map Array
+UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                                        unsigned int dc_serial, int channel, GemPedestalStructure* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(GemPedestalStructure);
+    unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
+    memcpy(p_parameter_value, parameter_value, size_parameter_value);
+
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, dc_serial, channel,
+                                                                                                 (unsigned char*)p_parameter_value, size_parameter_value, GemPedestalArrayType);
+    if (pDetectorParameter == 0x00)
+        delete [] p_parameter_value;
+
+    return pDetectorParameter;
+}
+
+// get value of detector parameter as GEM pedestal map Array
+int UniDbDetectorParameter::GetGemPedestalArray(GemPedestalStructure*& parameter_value, int& element_count)
+{
+    unsigned char* p_parameter_value = GetUNC(GemPedestalArrayType);
+    if (p_parameter_value == NULL)
+        return - 1;
+
+    element_count = sz_parameter_value / sizeof(GemPedestalStructure);
+    parameter_value = new GemPedestalStructure[element_count];
+    memcpy(parameter_value, p_parameter_value, sz_parameter_value);
+
+    return 0;
+}
+
+// set value to detector parameter as GEM pedestal map Array
+int UniDbDetectorParameter::SetGemPedestalArray(GemPedestalStructure* parameter_value, int element_count)
+{
+    Long_t size_parameter_value = element_count * sizeof(GemPedestalStructure);
     unsigned char* p_parameter_value = new unsigned char[size_parameter_value];
     memcpy(p_parameter_value, parameter_value, size_parameter_value);
 

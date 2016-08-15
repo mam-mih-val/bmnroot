@@ -79,8 +79,8 @@ create table detector_
 );
 
 -- COMPONENT PARAMETERS
--- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array, 7 - binary array,
---				   8 - DCH mapping array
+-- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array, 7 - binary array, 8 - unsigned int array,
+--				   9 - DCH mapping array, 10 - GEM mapping array, 11 - GEM pedestal map
 -- drop table parameter_
 create table parameter_
 (
@@ -318,17 +318,26 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER unlink_large_object_geometry
 AFTER UPDATE OR DELETE ON run_geometry FOR EACH ROW EXECUTE PROCEDURE unlink_lo_geometry();
 
--- trigger to check correctness of the valid period for detector parameter
+-- trigger to check correctness of the valid period for detector parameter and delete row if exist
 CREATE OR REPLACE FUNCTION check_valid_period() RETURNS TRIGGER AS $$
 DECLARE
-  objID integer;
+  objID integer; valueID integer;
 BEGIN
   IF NEW.dc_serial is NULL THEN
     IF EXISTS(SELECT 1 FROM detector_parameter dp WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and (not (
     ((NEW.end_period < dp.start_period) or ((NEW.end_period = dp.start_period) and (NEW.end_run < dp.start_run))) or 
     ((NEW.start_period > dp.end_period) or ((NEW.start_period = dp.end_period) and (NEW.start_run > dp.end_run))))))
     THEN
-      RAISE EXCEPTION 'Valid period of the detector parameter is crossed with existing values';
+      SELECT value_id INTO valueID
+      FROM detector_parameter dp
+      WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and 
+        (NEW.start_period = dp.start_period) and (NEW.end_period = dp.end_period) and (NEW.start_run = dp.start_run) and (NEW.end_run = dp.end_run);
+    
+      IF NOT FOUND THEN
+        RAISE EXCEPTION 'The period of new detector parameter overlaps with existing value (id: %)', value_id;
+      ELSE
+        EXECUTE 'DELETE FROM detector_parameter WHERE value_id = $1' USING valueID;
+      END IF;  
     END IF;
   ELSE
     IF EXISTS(SELECT 1 FROM detector_parameter dp WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and 
@@ -336,7 +345,16 @@ BEGIN
     ((NEW.end_period < dp.start_period) or ((NEW.end_period = dp.start_period) and (NEW.end_run < dp.start_run))) or 
     ((NEW.start_period > dp.end_period) or ((NEW.start_period = dp.end_period) and (NEW.start_run > dp.end_run))))))
     THEN
-      RAISE EXCEPTION 'Valid period of the detector parameter is crossed with existing values';
+      SELECT value_id INTO valueID
+      FROM detector_parameter dp
+      WHERE NEW.detector_name = dp.detector_name and NEW.parameter_id = dp.parameter_id and NEW.dc_serial = dp.dc_serial and NEW.channel = dp.channel and 
+        (NEW.start_period = dp.start_period) and (NEW.end_period = dp.end_period) and (NEW.start_run = dp.start_run) and (NEW.end_run = dp.end_run);
+    
+      IF NOT FOUND THEN
+        RAISE EXCEPTION 'The period of new detector parameter overlaps with existing value (id: %)', value_id;
+      ELSE
+        EXECUTE 'DELETE FROM detector_parameter WHERE value_id = $1' USING valueID;
+      END IF;  
     END IF;
   END IF;
   RETURN NEW;

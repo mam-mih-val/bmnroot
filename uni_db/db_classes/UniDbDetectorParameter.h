@@ -125,21 +125,26 @@ class UniDbDetectorParameter
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
 	/// get common detector parameter value
-        static UniDbDetectorParameter* GetDetectorParameter(TString detector_name, TString parameter_name, int period_number, int run_number);
+    static UniDbDetectorParameter* GetDetectorParameter(TString detector_name, TString parameter_name, int period_number, int run_number);
 	/// get TDC/ADC parameter value
-        static UniDbDetectorParameter* GetDetectorParameter(TString detector_name, TString parameter_name, int period_number, int run_number, unsigned int dc_serial, int channel);
+    static UniDbDetectorParameter* GetDetectorParameter(TString detector_name, TString parameter_name, int period_number, int run_number, unsigned int dc_serial, int channel);
+
+    /// delete common detector parameter value
+    static int DeleteDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run);
+    /// delete TDC/ADC parameter value
+    static int DeleteDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, unsigned int dc_serial, int channel);
 
 	/// get channel count for TDC/ADC parameter value
-        static int GetChannelCount(TString detector_name, TString parameter_name, int period_number, int run_number, unsigned int dc_serial);
+    static int GetChannelCount(TString detector_name, TString parameter_name, int period_number, int run_number, unsigned int dc_serial);
 
-        /// get parameter name of the current detector parameter
-        TString GetParameterName();
+    /// get parameter name of the current detector parameter
+    TString GetParameterName();
 
 	// common function for adding common parameter value
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                unsigned char* parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type);
 	// common function for adding TDC/ADC parameter value
-        static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                unsigned int dc_serial, int channel, unsigned char* parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type);
 
 	/* template function for adding common parameter value as single value
@@ -324,6 +329,17 @@ class UniDbDetectorParameter
     int GetGemMapArray(GemMapStructure*& parameter_value, int& element_count);
     /// set GEM mapping Array for parameter
     int SetGemMapArray(GemMapStructure* parameter_value, int element_count);
+
+    /// add new record - detector parameter value as GEM pedestal map Array
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                               GemPedestalStructure* parameter_value, int element_count);
+    /// add new record - detector parameter value as GEM pedestal map Array
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                               unsigned int dc_serial, int channel, GemPedestalStructure* parameter_value, int element_count);
+    /// get GEM pedestal map Array for parameter
+    int GetGemPedestalArray(GemPedestalStructure*& parameter_value, int& element_count);
+    /// set GEM pedestal map Array for parameter
+    int SetGemPedestalArray(GemPedestalStructure* parameter_value, int element_count);
 
 	/// get parameters' values corresponding to the specified single condition
 	static TObjArray* Search(const UniDbSearchCondition& search_condition);

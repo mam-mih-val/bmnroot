@@ -51,7 +51,6 @@ struct GemPedestalStructure
     unsigned int serial;
     int channel;
     int pedestal;
-    int common_mode;
     int noise;
 };//__attribute__((packed));
 

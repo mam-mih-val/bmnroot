@@ -52,11 +52,13 @@ void GemDigitsAnalysis(UInt_t runId = 0, TString type = "pdf") {
             BmnGemStripDigit* digX = (BmnGemStripDigit*) GemDigits->At(iDig);
             Int_t lay = digX->GetStripLayer();
             if (lay != 0) continue; //use only X
+//            if (lay != 1) continue; //use only Y
             Int_t st = digX->GetStation();
             //if (st == 0) continue; //skip small GEM
             Int_t str = digX->GetStripNumber();
             Int_t sig = digX->GetStripSignal();
             Int_t noise = digX->GetStripSignalNoise();
+	    //if (sig * 1.0 / noise < 2) continue;
 
 //            if (sig * 1.0 / noise < 1.0) continue;
             Int_t mod = digX->GetModule();

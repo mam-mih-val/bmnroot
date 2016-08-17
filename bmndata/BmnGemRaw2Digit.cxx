@@ -6,22 +6,6 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     fRun = run;
 
     fEntriesInGlobMap = 17;
-    fEntriesInPedMap = 20482;
-
-    fNchXsmall = 256;
-    fNchYsmall = 256;
-    fNchX0mid = 190;
-    fNchY0mid = 215;
-    fNchX1mid = 825;
-    fNchY1mid = 930;
-    fNchX0big_l = 500;
-    fNchX0big_r = 500;
-    fNchX1big_l = 1019;
-    fNchX1big_r = 1019;
-    fNchY0big_l = 488;
-    fNchY0big_r = 506;
-    fNchY1big_l = 1081;
-    fNchY1big_r = 1130;
 
     cout << "Loading the GEM Map from DB: Period " << period << ", Run " << run << "..." << endl;
 
@@ -51,49 +35,57 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
         }
     }
 
-    ReadMap("GEM_X_small", fSmall, fNchXsmall, 0, 0);
-    ReadMap("GEM_Y_small", fSmall, fNchYsmall, 1, 0);
+    ReadMap("GEM_X_small", "GEM_N_ch_X_small", fSmall, 0, 0);
+    ReadMap("GEM_Y_small", "GEM_N_ch_Y_small", fSmall, 1, 0);
 
-    ReadMap("GEM_X0_middle", fMid, fNchX0mid, 0, 1);
-    ReadMap("GEM_Y0_middle", fMid, fNchY0mid, 1, 1);
-    ReadMap("GEM_X1_middle", fMid, fNchX1mid, 0, 0);
-    ReadMap("GEM_Y1_middle", fMid, fNchY1mid, 1, 0);
+    ReadMap("GEM_X0_middle", "GEM_N_ch_X0_middle", fMid, 0, 1);
+    ReadMap("GEM_Y0_middle", "GEM_N_ch_Y0_middle", fMid, 1, 1);
+    ReadMap("GEM_X1_middle", "GEM_N_ch_X1_middle", fMid, 0, 0);
+    ReadMap("GEM_Y1_middle", "GEM_N_ch_Y1_middle", fMid, 1, 0);
 
-    ReadMap("GEM_X0_Big_Left", fBigL, fNchX0big_l, 0, 3);
-    ReadMap("GEM_Y0_Big_Left", fBigL, fNchY0big_l, 1, 3);
-    ReadMap("GEM_X1_Big_Left", fBigL, fNchX1big_l, 0, 1);
-    ReadMap("GEM_Y1_Big_Left", fBigL, fNchY1big_l, 1, 1);
+    ReadMap("GEM_X0_Big_Left", "GEM_N_ch_X0_big_l", fBigL, 0, 3);
+    ReadMap("GEM_Y0_Big_Left", "GEM_N_ch_Y0_big_l", fBigL, 1, 3);
+    ReadMap("GEM_X1_Big_Left", "GEM_N_ch_X1_big_l", fBigL, 0, 1);
+    ReadMap("GEM_Y1_Big_Left", "GEM_N_ch_Y1_big_l", fBigL, 1, 1);
 
-    ReadMap("GEM_X0_Big_Right", fBigR, fNchX0big_r, 0, 2);
-    ReadMap("GEM_Y0_Big_Right", fBigR, fNchY0big_r, 1, 2);
-    ReadMap("GEM_X1_Big_Right", fBigR, fNchX1big_r, 0, 0);
-    ReadMap("GEM_Y1_Big_Right", fBigR, fNchY1big_r, 1, 0);
+    ReadMap("GEM_X0_Big_Right", "GEM_N_ch_X0_big_r", fBigR, 0, 2);
+    ReadMap("GEM_Y0_Big_Right", "GEM_N_ch_Y0_big_r", fBigR, 1, 2);
+    ReadMap("GEM_X1_Big_Right", "GEM_N_ch_X1_big_r", fBigR, 0, 0);
+    ReadMap("GEM_Y1_Big_Right", "GEM_N_ch_Y1_big_r", fBigR, 1, 0);
 
     fPedArr = new BmnGemPed* [fNCrates];
     for (Int_t i = 0; i < fNCrates; ++i)
         fPedArr[i] = new BmnGemPed[N_CH_IN_CRATE];
 
-    UniDbDetectorParameter* pedPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_pedestal", fPeriod, fRun);
-    if (pedPar != NULL) pedPar->GetGemPedestalArray(fPed, fEntriesInPedMap);
+    GemPedestalStructure* pedMap;
+    UniDbDetectorParameter* pedSizePar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_size_ped_map", fPeriod, fRun);
+    Int_t sizePedMap = (pedSizePar != NULL) ? pedSizePar->GetInt() : 0;
 
-    for (Int_t i = 0; i < fEntriesInPedMap; ++i)
+    UniDbDetectorParameter* pedPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_pedestal", fPeriod, fRun);
+    if (pedPar != NULL) pedPar->GetGemPedestalArray(pedMap, sizePedMap);
+
+    for (Int_t i = 0; i < sizePedMap; ++i)
         for (Int_t iCr = 0; iCr < fNCrates; ++iCr)
-            if (fPed[i].serial == fCrates[iCr])
-                fPedArr[iCr][fPed[i].channel] = BmnGemPed(fPed[i].pedestal, fPed[i].noise);
+            if (pedMap[i].serial == fCrates[iCr])
+                fPedArr[iCr][pedMap[i].channel] = BmnGemPed(pedMap[i].pedestal, pedMap[i].noise);
 }
 
-BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t size, Int_t lay, Int_t mod) {
+BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, TString parNameSize, BmnGemMap* m, Int_t lay, Int_t mod) {
+
+    UniDbDetectorParameter* cPar = UniDbDetectorParameter::GetDetectorParameter("GEM", parNameSize, fPeriod, fRun);
+    Int_t size = (cPar != NULL) ? cPar->GetInt() : 0;
+    if (size == 0) return kBMNERROR;
     UniDbDetectorParameter* par = UniDbDetectorParameter::GetDetectorParameter("GEM", parName, fPeriod, fRun);
     IIStructure* iiArr;
     if (par != NULL) par->GetIIArray(iiArr, size);
-
     for (Int_t i = 0; i < size; ++i)
         m[iiArr[i].int_2] = BmnGemMap(iiArr[i].int_1, lay, mod);
     delete iiArr;
 }
 
 BmnGemRaw2Digit::~BmnGemRaw2Digit() {
-
+    delete [] fPedArr;
+    delete fCrates;
     delete fMid;
     delete fBigR;
     delete fBigL;
@@ -246,9 +238,14 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree *tree) {
     pedFile << "=====================================" << endl;
     const UShort_t nSmpl = 32;
     const UInt_t nDigs = fNCrates * 64; // 10 ADC x 64 ch
-    Double_t pedestals[nDigs][nSmpl] = {};
-    Double_t noises[nDigs][nSmpl] = {};
-    Double_t comModes[nDigs] = {};
+    
+    Double_t** pedestals = new Double_t* [nDigs];
+    Double_t** noises = new Double_t* [nDigs];
+    Double_t* comModes = new Double_t[nDigs];
+    for (Int_t i = 0; i < nDigs; ++i) {
+	pedestals[i] = new Double_t[nSmpl];
+	noises[i] = new Double_t[nSmpl];
+    }
 
     UInt_t nEv = tree->GetEntries();
     for (Int_t iEv = 0; iEv < nEv; ++iEv) {

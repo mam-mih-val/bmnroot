@@ -61,31 +61,14 @@ private:
     BmnGemMap* fBigR;
 
     GemMapStructure* fMap;
-    GemPedestalStructure* fPed;
-    
+
     UInt_t* fCrates;
     BmnGemPed** fPedArr;
-    
+
     void ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
-    BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t size, Int_t lay, Int_t mod);
-    Int_t fEntriesInGlobMap; // number of entries in BD table for Globl Mapping
-    Int_t fEntriesInPedMap; // number of entries in BD table for Pedestal Mapping
-    
-    Int_t fNchXsmall;
-    Int_t fNchYsmall;
-    Int_t fNchX0mid;
-    Int_t fNchY0mid;
-    Int_t fNchX1mid;
-    Int_t fNchY1mid;
-    Int_t fNchX0big_l;
-    Int_t fNchX0big_r;
-    Int_t fNchX1big_l;
-    Int_t fNchX1big_r;
-    Int_t fNchY0big_l;
-    Int_t fNchY0big_r;
-    Int_t fNchY1big_l;
-    Int_t fNchY1big_r;
-    
+    BmnStatus ReadMap(TString parName, TString parNameSize, BmnGemMap* m, Int_t lay, Int_t mod);
+    Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
+
     Int_t fPeriod;
     Int_t fRun;
     Int_t fNCrates;

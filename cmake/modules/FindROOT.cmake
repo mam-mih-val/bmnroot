@@ -24,7 +24,7 @@
 #
 #   ROOT_INCLUDES            Same as above,
 #
-#   ROOT_LIBRARIESS          Link to these to use the ROOT libraries, not cached
+#   ROOT_LIBRARIES           Link to these to use the ROOT libraries, not cached
 #
 #   ROOT_LIBRARY_DIR         The path to where the ROOT library files are.
 #
@@ -45,6 +45,7 @@
 Message(STATUS "Looking for Root...")
 
 Set(ROOT_CONFIG_SEARCHPATH
+  ${ROOT_DIR}/bin
   ${SIMPATH}/bin
   ${SIMPATH}/tools/root/bin
   $ENV{ROOTSYS}/bin
@@ -86,7 +87,7 @@ If(ROOT_CONFIG_EXECUTABLE)
   String(REGEX REPLACE "^[0-9]+\\.[0-9][0-9]+\\/([0-9][0-9]+).*" "\\1" ROOT_VERSION_PATCH "${ROOT_VERSION_STRING}")
 
   # compute overall version numbers which can be compared at once
-  Math(EXPR req_vers "${ROOT_VERSION_MAJOR}*10000 + ${ROOT_VERSION_MINOR}*100 + ${ROOT_VERSION_PATCH}")
+  Math(EXPR req_vers "${ROOT_FIND_VERSION_MAJOR}*10000 + ${ROOT_FIND_VERSION_MINOR}*100 + ${ROOT_FIND_VERSION_PATCH}")
   Math(EXPR found_vers "${ROOT_VERSION_MAJOR}*10000 + ${ROOT_VERSION_MINOR}*100 + ${ROOT_VERSION_PATCH}")
   Math(EXPR ROOT_FOUND_VERSION "${ROOT_VERSION_MAJOR}*10000 + ${ROOT_VERSION_MINOR}*100 + ${ROOT_VERSION_PATCH}")
 

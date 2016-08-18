@@ -27,6 +27,7 @@ BmnFileSource::BmnFileSource(TFile *f, const char* Title, UInt_t identifier)
   ,fFriendTypeList()
   ,fCheckInputBranches()
   ,fInputLevel()
+  ,fRunIdInfoAll()
   ,fInChain(0)
   ,fInTree(0)
   ,fListFolder(new TObjArray(16))
@@ -48,6 +49,7 @@ BmnFileSource::BmnFileSource(TFile *f, const char* Title, UInt_t identifier)
   ,fGapTime(-1.)
   ,fEventMeanTime(0.)
   ,fTimeProb(0)
+  ,fCheckFileLayout(kTRUE)
 {
     if (fRootFile->IsZombie())
         LOG(FATAL)<<"Error opening the Input file"<<FairLogger::endl;
@@ -66,6 +68,7 @@ BmnFileSource::BmnFileSource(const TString* RootFileName, const char* Title, UIn
   ,fFriendTypeList()
   ,fCheckInputBranches()
   ,fInputLevel()
+  ,fRunIdInfoAll()
   ,fInChain(0)
   ,fInTree(0)
   ,fListFolder(new TObjArray(16))
@@ -87,6 +90,7 @@ BmnFileSource::BmnFileSource(const TString* RootFileName, const char* Title, UIn
   ,fGapTime(-1.)
   ,fEventMeanTime(0.)
   ,fTimeProb(0)
+  ,fCheckFileLayout(kTRUE)
 {
     fRootFile = new TFile(RootFileName->Data());
     if (fRootFile->IsZombie())
@@ -106,6 +110,7 @@ BmnFileSource::BmnFileSource(const TString RootFileName, const char* Title, UInt
   ,fFriendTypeList()
   ,fCheckInputBranches()
   ,fInputLevel()
+  ,fRunIdInfoAll()
   ,fInChain(0)
   ,fInTree(0)
   ,fListFolder(new TObjArray(16))
@@ -127,6 +132,7 @@ BmnFileSource::BmnFileSource(const TString RootFileName, const char* Title, UInt
   ,fGapTime(-1.)
   ,fEventMeanTime(0.)
   ,fTimeProb(0)
+  ,fCheckFileLayout(kTRUE)
 {
     fRootFile = new TFile(RootFileName.Data());
     if (fRootFile->IsZombie())
@@ -151,7 +157,7 @@ Bool_t BmnFileSource::Init()
 
     if (!fInChain)
     {
-        fInChain = new TChain("cbmsim");
+        fInChain = new TChain(FairRootManager::GetTreeName(), "/cbmroot");
         LOG(DEBUG)<<"BmnFileSource::Init() chain created"<<FairLogger::endl;
 
         FairRootManager::Instance()->SetInChain(fInChain);
@@ -173,16 +179,7 @@ Bool_t BmnFileSource::Init()
     TString chainName = fInputTitle;
     fInputLevel.push_back(chainName);
     fCheckInputBranches[chainName] = new list<TString>;
-    
-    // FairFileSource case - get tree object from folder structure
-    //fCbmroot= gROOT->GetRootFolder()->AddFolder("cbmroot", "Main Folder");
-    //TFolder* folder = fCbmroot->AddFolder(folderName,folderName);
-    //TObject* obj = new TObject();
-    //obj->SetName(name);
-    //folder->Add(obj);
-    //gROOT->GetListOfBrowsables()->Add(fCbmroot);
-    //fListFolder->Add(fCbmroot);
-    //FairRootManager::Instance()->SetListOfFolders(fListFolder);
+
 
     TObjArray* fBranchList = fInChain->GetListOfBranches();
     LOG(DEBUG)<<"Entries in the chain "<<fBranchList->GetEntries()<<FairLogger::endl;
@@ -198,8 +195,12 @@ Bool_t BmnFileSource::Init()
         FairRootManager::Instance()->AddBranchToList(ObjName.Data());
 
         ppObj[i] = NULL;
-        ActivateObject(&(ppObj[i]), ObjName);
-        FairRootManager::Instance()->AddMemoryBranch(ObjName, ppObj[i]);
+        //fInChain->SetBranchAddress(ObjName, &ppObj[i]);
+        FairRootManager::Instance()->RegisterInputObject(ObjName, ppObj[i]);
+        // or
+        //ppObj[i] = NULL;
+        //ActivateObject(&(ppObj[i]), ObjName);
+        //FairRootManager::Instance()->AddMemoryBranch(ObjName, ppObj[i]);
     }
     
     // Add all additional input files to the input chain and do a
@@ -267,8 +268,7 @@ Int_t BmnFileSource::ReadEvent(UInt_t i)
 //_____________________________________________________________________________
 void BmnFileSource::Close()
 {
-   if (fRootFile)
-       fRootFile->Close();
+    CloseInFile();
 }
 //_____________________________________________________________________________
 void BmnFileSource::Reset()
@@ -346,8 +346,8 @@ void BmnFileSource::AddFriendsToChain()
             friendType++;
         }
         
-        TChain* chain = (TChain*) fFriendTypeList[inputLevel];
-        chain->AddFile(*iter1, 1234567890, "cbmsim");
+        TChain* chain = static_cast<TChain*>(fFriendTypeList[inputLevel]);
+        chain->AddFile((*iter1), 1234567890, FairRootManager::GetTreeName());
     }
     gFile=temp;
     
@@ -356,7 +356,7 @@ void BmnFileSource::AddFriendsToChain()
     map< TString, TChain* >::iterator mapIterator;
     for (mapIterator = fFriendTypeList.begin(); mapIterator != fFriendTypeList.end(); mapIterator++)
     {
-        TChain* chain = (TChain*)mapIterator->second;
+        TChain* chain = static_cast<TChain*>(mapIterator->second);
         fInChain->AddFriend(chain);
     }
     
@@ -388,6 +388,93 @@ void BmnFileSource::PrintFriendList()
         while (chEl = (TChainElement*)next1())
             LOG(INFO)<<"    - "<<chEl->GetTitle()<<FairLogger::endl;
     }    
+}
+
+//_____________________________________________________________________________
+void BmnFileSource::CheckFriendChains()
+{
+    multimap< TString, multimap<TString,TArrayI> >::iterator it1;
+    multimap<TString,TArrayI> map1;
+
+    // Get the structure from the input chain
+    it1 = fRunIdInfoAll.find("InputChain");
+    map1 = it1->second;
+    vector<Int_t> runid;
+    vector<Int_t> events;
+    multimap<TString,TArrayI>::iterator it;
+    for (it=map1.begin(); it != map1.end(); it++)
+    {
+        TArrayI bla = (*it).second;
+        runid.push_back(bla[0]);
+        events.push_back(bla[1]);
+    }
+
+    // Now loop over all chains except the input chain and comapare the
+    // runids and event numbers.
+    // If there is a mismatch stop the execution.
+    Int_t errorFlag = 0;
+    TString inputLevel;
+    list<TString>::iterator listit;
+    for (listit=fInputLevel.begin(); listit != fInputLevel.end(); listit++)
+    {
+        inputLevel = (*listit);
+        if (!inputLevel.Contains("InputChain"))
+        {
+            it1 = fRunIdInfoAll.find(inputLevel);
+            map1 = it1->second;
+            if (runid.size() != map1.size())
+            {
+                errorFlag = 1;
+                //        goto error_label;
+                break;
+            }
+            Int_t counter = 0;
+            for (it=map1.begin(); it != map1.end(); it++)
+            {
+                TArrayI bla = (*it).second;
+                if ((bla[0] != runid[counter]) || (bla[1] != events[counter]))
+                {
+                    errorFlag = 2;
+                    //          goto error_label;
+                    break;
+                }
+                counter++;
+            }
+            if (errorFlag>0)
+                break;
+        }
+    }
+
+    // Use goto to leave double loop at once in case of error
+    // error_label:
+    if (errorFlag>0)
+    {
+        LOG(ERROR)<<"The input chain and the friend chain "<<inputLevel.Data()<<" have a different structure:"<<FairLogger::endl;
+        if (errorFlag == 1)
+        {
+            LOG(ERROR)<<"The input chain has the following runids and event numbers:"<<FairLogger::endl;
+            for (UInt_t i=0; i < runid.size(); i++)
+                LOG(ERROR)<<" - Runid " << runid[i]<<" with "<<events[i]<<" events"<<FairLogger::endl;
+            LOG(ERROR)<<"The "<<inputLevel.Data()<<" chain has the following runids and event numbers:"<<FairLogger::endl;
+            for (it=map1.begin(); it != map1.end(); it++)
+            {
+                TArrayI bla = (*it).second;
+                LOG(ERROR)<<" - Runid "<<bla[0]<<" with "<<bla[1]<<" events"<<FairLogger::endl;
+            }
+        }
+        if (errorFlag == 2)
+        {
+            Int_t counter = 0;
+            for (it=map1.begin(); it != map1.end(); it++)
+            {
+                TArrayI bla = (*it).second;
+                LOG(ERROR)<<"Runid Input Chain, "<<inputLevel.Data()<<" chain: "<<bla[0]<<", "<<runid[counter]<<FairLogger::endl;
+                LOG(ERROR)<<"Event number Input Chain, "<<inputLevel.Data()<<" chain: "<<bla[1]<<", "<<events[counter]<<FairLogger::endl;
+                counter++;
+            }
+        }
+        LOG(FATAL)<<"Event structure mismatch"<<FairLogger::endl;
+    }
 }
 
 //_____________________________________________________________________________
@@ -436,7 +523,7 @@ Bool_t BmnFileSource::CompareBranchList(TFile* fileHandle, TString inputLevel)
     // If a branch with the same name is found, this branch is removed from
     // the list. If in the end no branch is left in the list everything is fine
     set<TString>::iterator iter1;
-    TChain* fileTree = new TChain("cbmsim", "/cbmroot");
+    TChain* fileTree = new TChain(FairRootManager::GetTreeName(), "/cbmroot");
     fileTree->Add(fileHandle->GetName());
     TObjArray* fBranchList = fileTree->GetListOfBranches();
     for (int i = 0; i < fBranchList->GetEntries(); i++)

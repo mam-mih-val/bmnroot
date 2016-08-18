@@ -43,6 +43,14 @@ public:
     void                Close();
     void                Reset();
 
+    virtual Source_Type GetSourceType() { return kFILE; }
+
+    virtual void SetParUnpackers() {}
+
+    virtual Bool_t InitUnpackers() { return kTRUE; }
+
+    virtual Bool_t ReInitUnpackers() { return kTRUE; }
+
     /**Check the maximum event number we can run to*/
     virtual Int_t  CheckMaxEventNo(Int_t EvtEnd=0);
     /**Read the tree entry on one branch**/
@@ -97,6 +105,10 @@ public:
      */
     void                SetEvtHeaderNew(Bool_t Status) {fEvtHeaderIsNew = Status;}
     Bool_t              IsEvtHeaderNew() {return fEvtHeaderIsNew;}
+
+    /** Allow to disable the testing the file layout when adding files to a chain.
+     */
+    void                SetCheckFileLayout(Bool_t enable) {fCheckFileLayout = enable;}
 
 private:
     /** Title of input source, could be input, background or signal*/
@@ -170,8 +182,12 @@ private:
     Double_t                                fEventMeanTime; //!
     /** used to generate random numbers for event time; */
     TF1*                                    fTimeProb;      //!
+    /** True if the file layout should be checked when adding files to a chain.
+     *  Default value is true.
+     */
+     Bool_t                                 fCheckFileLayout; //!
 
-    ClassDef(FairFileSource, 2)
+    ClassDef(FairFileSource, 3)
 };
 
 

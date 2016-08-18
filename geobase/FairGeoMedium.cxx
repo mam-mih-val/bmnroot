@@ -22,6 +22,7 @@
 // IWYU pragma: no_include <architecture/i386/math.h>
 #include <iostream>                     // for cout
 #include <stdlib.h>                     // for abs
+#include <climits>                      // for INT_MAX
 
 using std::cout;
 using std::log;
@@ -100,7 +101,7 @@ void FairGeoMedium::setNComponents(Int_t n)
     cz=new Double_t[k];
     cw=new Double_t[k];
   }
-  weightFac=(Int_t)(n/nComponents);
+  weightFac=static_cast<Int_t>(n/nComponents);
 }
 
 Bool_t FairGeoMedium::setComponent (Int_t i,Double_t a,Double_t z,Double_t weight)
@@ -234,8 +235,9 @@ void FairGeoMedium::read(std::fstream& fin, Int_t aflag )
     minstep=-1;
   }
   fin>>n;
-  setNpckov(n);
-  if (n>0) {
+  if (n>0 && n<(INT_MAX-1)) {
+    setNpckov(n);
+//  if (n>0) {
     for(Int_t i=0; i<n; i++) {
       fin>>ppckov[i]>>absco[i]>>effic[i]>>rindex[i];
     }
@@ -322,7 +324,7 @@ Bool_t FairGeoMedium::calcRadiationLength()
     fc=az2 * (1./(1.+az2) + 0.20206 - 0.0369*az2 + 0.0083*az2*az2
               - .002F*az2*az2*az2);
     y=log(183./pow(z,1./3.)) - fc;
-    xi=(float)(log(1440./pow(z,2./3.)) / y);
+    xi=static_cast<float>(log(1440./pow(z,2./3.)) / y);
     x0i=fac*alpha/a*z*(z+xi)*y;
     x0itot+=(x0i*w);
   }

@@ -63,17 +63,17 @@ class FairRun : public TNamed
     /**
      * Set the output file name for analysis or simulation
     */
-    void        SetOutputFile(const char* fname);
+    virtual void    SetOutputFile(const char* fname);
     /**
      * Set the output file for analysis or simulation
     */
-    void        SetOutputFile(TFile* f);
+    virtual void    SetOutputFile(TFile* f);
     /**
      *       Set the experiment dependent run header
      *       for each run
      */
     void        SetEventHeader(FairEventHeader* EvHeader)  {
-      fEvHead=EvHeader;
+      fEvtHeader=EvHeader;
     }
     /**
      * return a pointer to the RuntimeDB
@@ -91,7 +91,7 @@ class FairRun : public TNamed
      * return the run ID for the actul run
      */
     Int_t  GetRunId() {
-      return ((Int_t) fRunId);
+      return (static_cast<Int_t>(fRunId));
     }
 
 	/** 
@@ -149,6 +149,9 @@ class FairRun : public TNamed
     //** Get info if run on master */
     Bool_t GetIsMaster() const { return fIsMaster;}
 
+    //** Mark/Unmark event to be filled into output. Default is TRUE. */
+    void MarkFill(Bool_t flag) { fMarkFill = flag; }
+
 
   private:
     FairRun(const FairRun& M);
@@ -180,7 +183,7 @@ class FairRun : public TNamed
     /** true for Anaylsis session*/
     Bool_t                   fAna;  //!
     /** MC Event Header */
-    FairEventHeader*         fEvHead; //!
+    FairEventHeader*         fEvtHeader; //!
     /** File  Header */
     FairFileHeader*          fFileHeader;
     /** true if RunInfo file should be written*/
@@ -188,6 +191,8 @@ class FairRun : public TNamed
     /** true if on master*/
     Bool_t                   fIsMaster;  //!
 
-    ClassDef(FairRun ,2)
+    Bool_t                   fMarkFill; //!
+
+    ClassDef(FairRun ,4)
 };
 #endif //FAIRRUN_H

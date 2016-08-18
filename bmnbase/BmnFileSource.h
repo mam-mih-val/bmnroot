@@ -35,6 +35,11 @@ public:
     void Close();
     void Reset();
 
+    virtual Source_Type GetSourceType() {return kBMNFILE;}
+    virtual void SetParUnpackers() {}
+    virtual Bool_t InitUnpackers() {return kTRUE;}
+    virtual Bool_t ReInitUnpackers() {return kTRUE;}
+
     /**Check the maximum event number we can run to*/
     virtual Int_t CheckMaxEventNo(Int_t EvtEnd = 0);
     /**Read the tree entry on one branch**/
@@ -51,10 +56,12 @@ public:
     void AddFriendsToChain();
     void PrintFriendList();
     Bool_t CompareBranchList(TFile* fileHandle, TString inputLevel);
+    void CheckFriendChains();
     void CreateNewFriendChain(TString inputFile, TString inputLevel);
     TTree* GetInTree() {return fInChain->GetTree();}
     TChain* GetInChain() {return fInChain;}
     TFile* GetInFile() {return fRootFile;}
+    void CloseInFile() {if (fRootFile) fRootFile->Close();}
     /**Set the input tree when running on PROOF worker*/
     void SetInTree(TTree* tempTree);
     TObjArray* GetListOfFolders() {return fListFolder;}
@@ -96,6 +103,7 @@ private:
     map<TString, TChain*> fFriendTypeList;//!
     map<TString, list<TString>* > fCheckInputBranches; //!
     list<TString> fInputLevel; //!
+    map<TString, std::multimap<TString, TArrayI> > fRunIdInfoAll; //!
     /**Input Chain */
     TChain* fInChain;
     /**Input Tree */
@@ -149,6 +157,10 @@ private:
     Double_t fEventMeanTime; //!
     /** used to generate random numbers for event time; */
     TF1* fTimeProb;      //!
+    /** True if the file layout should be checked when adding files to a chain.
+     *  Default value is true.
+     */
+    Bool_t fCheckFileLayout; //!
 
     ClassDef(BmnFileSource, 0)
 };

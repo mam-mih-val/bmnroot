@@ -23,6 +23,7 @@
 #include <queue>                        // for queue
 #include "FairSource.h"
 class BinaryFunctor;
+class FairEventHeader;
 class FairFileHeader;
 class FairGeoNode;
 class FairLink;
@@ -145,6 +146,8 @@ class FairRootManager : public TObject
     *@param toFile          if kTRUE, branch will be saved to the tree*/
     void                Register(const char* name,const char* Foldername ,TCollection* obj, Bool_t toFile);
 
+    void                RegisterInputObject(const char* name, TObject* obj);
+
     TClonesArray*       Register(TString branchName, TString className, TString folderName, Bool_t toFile);
     /** Register a new FairWriteoutBuffer to the map. If a Buffer with the same map key already exists the given buffer will be deleted and the old will be returned!*/
     FairWriteoutBuffer* RegisterWriteoutBuffer(TString branchName, FairWriteoutBuffer* buffer);
@@ -222,9 +225,7 @@ class FairRootManager : public TObject
     void SetFinishRun(Bool_t val = kTRUE){ fFinishRun = val;}
     Bool_t FinishRun() {return fFinishRun;}
 
-    /**Add a branch to memory, it will not be written to the output files*/
-    void                AddMemoryBranch(const char*, TObject* );
-
+    static char* GetTreeName();
   private:
     /**private methods*/
     FairRootManager(const FairRootManager&);
@@ -233,6 +234,8 @@ class FairRootManager : public TObject
         a TObject pointer, the user have to cast this pointer to the right type.*/
     TObject*            ActivateBranch(const char* BrName);
     void                AddFriends( );
+    /**Add a branch to memory, it will not be written to the output files*/
+    void                AddMemoryBranch(const char*, TObject* );
     /** Internal Check if Branch persistence or not (Memory branch)
     return value:
     1 : Branch is Persistance
@@ -311,6 +314,8 @@ class FairRootManager : public TObject
 
     TChain                              *fSourceChain;
     std::map<UInt_t, TChain*>            fSignalChainList;//!
+
+    FairEventHeader                     *fEventHeader;
     
     Bool_t fUseFairLinks; //!
     Bool_t fFinishRun; //!

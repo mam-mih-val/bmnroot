@@ -60,7 +60,7 @@ using std::list;
 Bool_t gFRAIsInterrupted;
 
 //_____________________________________________________________________________
-void FRA_handler_ctrlc(int s)
+void FRA_handler_ctrlc(int)
 {
   LOG(INFO) << "*********** CTRL C PRESSED *************" << FairLogger::endl;
   gFRAIsInterrupted = kTRUE;
@@ -82,7 +82,6 @@ FairRunAna::FairRunAna()
    fIsInitialized(kFALSE),
    fInputGeoFile(0),
    fLoadGeo( kFALSE),
-   fEvtHeader(0),
    fStatic(kFALSE),
    fField(0),
    fTimeStamps(kFALSE),
@@ -228,7 +227,8 @@ void FairRunAna::Init()
     LOG(INFO) << "Parameter and input file are available, Assure that basic info is there for the run!" << FairLogger::endl;
     fRootManager->ReadEvent(0);
 
-    fEvtHeader = GetEventHeader();
+//    fEvtHeader = GetEventHeader();
+    GetEventHeader();
     
     fRootManager->FillEventHeader(fEvtHeader);
     
@@ -284,7 +284,7 @@ void FairRunAna::Init()
   
   // create the output tree after tasks initialisation
   fOutFile->cd();
-  TTree* outTree =new TTree("cbmsim", "/cbmout", 99);
+  TTree* outTree =new TTree(FairRootManager::GetTreeName(), "/cbmout", 99);
   fRootManager->TruncateBranchNames(outTree, "cbmout");
   fRootManager->SetOutTree(outTree);
   fRootManager->WriteFolder();
@@ -886,6 +886,22 @@ void FairRunAna::SetBeamTime(Double_t beamTime, Double_t gapTime)
   LOG(ERROR) << "SetBeamTime only by input source!" << FairLogger::endl; 
 }
 //_____________________________________________________________________________
+
+
+//_____________________________________________________________________________
+void FairRunAna::Fill()
+{
+  if(fMarkFill)
+  {
+    fRootManager->Fill();
+  }
+  else
+  {
+    fMarkFill = kTRUE;
+  }
+}
+//_____________________________________________________________________________
+
 
 // void  FairRunAna::SetMixAllInputs(Bool_t Status)
 // {

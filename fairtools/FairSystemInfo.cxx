@@ -22,6 +22,7 @@
 
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
 #include <stdio.h>
+#include <limits>
 
 #else
 #error "Unknown OS."
@@ -54,13 +55,15 @@ size_t FairSystemInfo::GetCurrentMemory( )
     struct mach_task_basic_info info;
     mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
     if ( task_info( mach_task_self( ), MACH_TASK_BASIC_INFO,
-        (task_info_t)&info, &infoCount ) != KERN_SUCCESS )
-        return (size_t)0L;      /* Can't access? */
-    return (size_t)info.resident_size;
+        reinterpret_cast<task_info_t>(&info), &infoCount ) != KERN_SUCCESS )
+//        (task_info_t)&info, &infoCount ) != KERN_SUCCESS )
+        return static_cast<size_t>(0L);      /* Can't access? */
+    return static_cast<size_t>(info.resident_size);
 
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
     /* Linux ---------------------------------------------------- */
     long rss = 0L;
+    long pagesize = sysconf(_SC_PAGESIZE);
     FILE* fp = NULL;
     if ( (fp = fopen( "/proc/self/statm", "r" )) == NULL )
         return (size_t)0L;      /* Can't open? */
@@ -70,7 +73,11 @@ size_t FairSystemInfo::GetCurrentMemory( )
         return (size_t)0L;      /* Can't read? */
     }
     fclose( fp );
-    return (size_t)rss * (size_t)sysconf( _SC_PAGESIZE);
+    if (rss > 0 && rss < std::numeric_limits<std::size_t>::max()/pagesize) {
+      return (size_t)rss * (size_t)sysconf(_SC_PAGESIZE); 
+    } else {
+       return (size_t)0L;
+    }
 
 #else
     /* AIX, BSD, Solaris, and Unknown OS ------------------------ */

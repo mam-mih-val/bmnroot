@@ -14,7 +14,7 @@ Set(INCLUDE_DIRECTORIES
   ${CMAKE_SOURCE_DIR}/passive
 )
 
-Include_Directories(${INCLUDE_DIRECTORIES})
+Include_Directories( ${INCLUDE_DIRECTORIES})
 Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 Set(LINK_DIRECTORIES
@@ -36,7 +36,7 @@ Set(SRCS
   FairTarget.cxx 
 )
 
-Set(HEADERS)
+Set(HEADERS )
 Set(LINKDEF PassiveLinkDef.h)
 Set(LIBRARY_NAME Passive)
 Set(DEPENDENCIES Base GeoBase ParBase Geom Core)

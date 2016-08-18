@@ -35,7 +35,7 @@ using std::set;
 
 //_____________________________________________________________________________
 
-FairFileSource::FairFileSource(TFile *f, const char* Title, UInt_t identifier)
+FairFileSource::FairFileSource(TFile *f, const char* Title, UInt_t)
   :FairSource()
   , fInputTitle(Title)
   , fRootFile(f)
@@ -69,6 +69,7 @@ FairFileSource::FairFileSource(TFile *f, const char* Title, UInt_t identifier)
   , fGapTime(-1.)
   , fEventMeanTime(0.)
   , fTimeProb(0)
+  , fCheckFileLayout(kTRUE)
 {
     if (fRootFile->IsZombie()) {
      LOG(FATAL) << "Error opening the Input file" << FairLogger::endl;
@@ -78,7 +79,7 @@ FairFileSource::FairFileSource(TFile *f, const char* Title, UInt_t identifier)
 //_____________________________________________________________________________
 
 //_____________________________________________________________________________
-FairFileSource::FairFileSource(const TString* RootFileName, const char* Title, UInt_t identifier)
+FairFileSource::FairFileSource(const TString* RootFileName, const char* Title, UInt_t)
   :FairSource()
   , fInputTitle(Title)
   , fRootFile(0)
@@ -112,6 +113,7 @@ FairFileSource::FairFileSource(const TString* RootFileName, const char* Title, U
   , fGapTime(-1.)
   , fEventMeanTime(0.)
   , fTimeProb(0)
+  , fCheckFileLayout(kTRUE)
 {
   fRootFile = new TFile(RootFileName->Data());
   if (fRootFile->IsZombie()) {
@@ -122,7 +124,7 @@ FairFileSource::FairFileSource(const TString* RootFileName, const char* Title, U
 //_____________________________________________________________________________
 
 //_____________________________________________________________________________
-FairFileSource::FairFileSource(const TString RootFileName, const char* Title, UInt_t identifier)
+FairFileSource::FairFileSource(const TString RootFileName, const char* Title, UInt_t)
   :FairSource()
   , fInputTitle(Title)
   , fRootFile(0)
@@ -156,6 +158,7 @@ FairFileSource::FairFileSource(const TString RootFileName, const char* Title, UI
   , fGapTime(-1.)
   , fEventMeanTime(0.)
   , fTimeProb(0)
+  , fCheckFileLayout(kTRUE)
 {
     fRootFile = new TFile(RootFileName.Data());
     if (fRootFile->IsZombie()) {
@@ -179,7 +182,7 @@ Bool_t FairFileSource::Init()
        return kTRUE;
     }
     if (!fInChain ) {
-        fInChain = new TChain("cbmsim", "/cbmroot");
+        fInChain = new TChain(FairRootManager::GetTreeName(), "/cbmroot");
         LOG(DEBUG) << "FairFileSource::Init() chain created"
 		   << FairLogger::endl;
 	FairRootManager::Instance()->SetInChain(fInChain);
@@ -258,14 +261,16 @@ Bool_t FairFileSource::Init()
         if (inputFile->IsZombie()) {
 	  LOG(FATAL) << "Error opening the file " << (*iter).Data() << " which should be added to the input chain or as friend chain" << FairLogger::endl;
         }
-        
-        // Check if the branchlist is the same as for the first input file.
-        Bool_t isOk = CompareBranchList(inputFile, chainName);
-        if ( !isOk ) {
-	  LOG(FATAL) << "Branch structure of the input file " << fRootFile->GetName() << " and the file to be added " << (*iter).Data() << " are different." << FairLogger::endl;
+
+        if (fCheckFileLayout) {
+          // Check if the branchlist is the same as for the first input file.
+          Bool_t isOk = CompareBranchList(inputFile, chainName);
+          if ( !isOk ) {
+            LOG(FATAL) << "Branch structure of the input file " << fRootFile->GetName() << " and the file to be added " << (*iter).Data() << " are different." << FairLogger::endl;
             return kFALSE;
+          }
         }
-        
+
         // Add the runid information for all files in the chain.
         //GetRunIdInfo(inputFile->GetName(), chainName);
         // Add the file to the input chain
@@ -281,14 +286,14 @@ Bool_t FairFileSource::Init()
     LOG(DEBUG) << "Entries in this Source " << fNoOfEntries << FairLogger::endl;
     
     for(Int_t i=0; i<fListFolder->GetEntriesFast(); i++) {
-       TFolder* fold = (TFolder*) fListFolder->At(i);
-       fEvtHeader = (FairEventHeader*)   fold->FindObjectAny("EventHeader.");
-       fMCHeader  = (FairMCEventHeader*) fold->FindObjectAny("MCEventHeader.");
+       TFolder* fold = static_cast<TFolder*>(fListFolder->At(i));
+       fEvtHeader = static_cast<FairEventHeader*>(fold->FindObjectAny("EventHeader."));
+       fMCHeader  = static_cast<FairMCEventHeader*>(fold->FindObjectAny("MCEventHeader."));
        if ( fEvtHeader ) {
-	  ActivateObject((TObject**)&fEvtHeader,"EventHeader.");
+	  ActivateObject(reinterpret_cast<TObject**>(&fEvtHeader),"EventHeader.");
        }
        if ( fMCHeader  ) {
-	  ActivateObject((TObject**)&fMCHeader ,"MCEventHeader.");
+	  ActivateObject(reinterpret_cast<TObject**>(&fMCHeader),"MCEventHeader.");
        }
     }
 
@@ -312,7 +317,7 @@ Bool_t FairFileSource::Init()
 void FairFileSource::SetInTree(TTree*  tempTree)  {
   fInTree = NULL; 
   fInTree  = tempTree; 
-  fRootFile=(TFile*)tempTree->GetCurrentFile();
+  fRootFile=static_cast<TFile*>(tempTree->GetCurrentFile());
   fInChain->Reset();
   IsInitialized=kFALSE;
   Init();
@@ -425,9 +430,9 @@ void FairFileSource::AddFriendsToChain()
             CreateNewFriendChain((*iter1), inputLevel);
             friendType++;
         }
-        
-        TChain* chain = (TChain*) fFriendTypeList[inputLevel];
-        chain->AddFile((*iter1), 1234567890, "cbmsim");
+
+        TChain* chain = static_cast<TChain*>(fFriendTypeList[inputLevel]);
+        chain->AddFile((*iter1), 1234567890, FairRootManager::GetTreeName());
     }
     gFile=temp;
     
@@ -441,7 +446,7 @@ void FairFileSource::AddFriendsToChain()
     for (mapIterator = fFriendTypeList.begin();
          mapIterator != fFriendTypeList.end(); mapIterator++ ) {
         
-        TChain* chain = (TChain*)mapIterator->second;
+        TChain* chain = static_cast<TChain*>(mapIterator->second);
         fInChain->AddFriend(chain);
     }
     
@@ -464,19 +469,19 @@ void FairFileSource::PrintFriendList( )
     TObjArray* fileElements=fInChain->GetListOfFiles();
     TIter next(fileElements);
     TChainElement* chEl=0;
-    while (( chEl=(TChainElement*)next() )) {
+    while (( chEl=static_cast<TChainElement*>(next()) )) {
       LOG(INFO) << "    - " << chEl->GetTitle() << FairLogger::endl;
     }
     
     map< TString, TChain* >::iterator mapIterator;
     for (mapIterator = fFriendTypeList.begin();
          mapIterator != fFriendTypeList.end(); mapIterator++ ) {
-        TChain* chain = (TChain*) mapIterator->second;
+        TChain* chain = static_cast<TChain*>(mapIterator->second);
         LOG(INFO) << " - " << chain->GetName() << FairLogger::endl;
         fileElements=chain->GetListOfFiles();
         TIter next1(fileElements);
         chEl=0;
-        while (( chEl=(TChainElement*)next1() )) {
+        while (( chEl=static_cast<TChainElement*>(next1()) )) {
 	  LOG(INFO) << "    - " << chEl->GetTitle() << FairLogger::endl;
         }
     }
@@ -541,7 +546,7 @@ void FairFileSource::CheckFriendChains()
 		 << " have a different structure:" << FairLogger::endl;
         if (errorFlag == 1) {
 	  LOG(ERROR) << "The input chain has the following runids and event numbers:" << FairLogger::endl;
-            for ( Int_t i=0; i<runid.size(); i++) {
+            for ( UInt_t i=0; i<runid.size(); i++) {
 	      LOG(ERROR) << " - Runid " << runid[i] << " with " << events[i] 
 			 << " events" << FairLogger::endl;
             }
@@ -706,7 +711,9 @@ Int_t  FairFileSource::CheckMaxEventNo(Int_t EvtEnd)
   if(EvtEnd!=0) {
     MaxEventNo=EvtEnd;
   }
-  MaxEventNo=fInChain->GetEntries();
+  else {
+    MaxEventNo=fInChain->GetEntries();
+  }
   return MaxEventNo;
 }
 //_____________________________________________________________________________
@@ -751,6 +758,8 @@ void FairFileSource::SetBeamTime(Double_t beamTime, Double_t gapTime)
 //_____________________________________________________________________________
 void FairFileSource::SetEventTime()
 {
+  //Check if the time for the current entry is already set
+  if(fTimeforEntryNo==fCurrentEntryNo) return;
   LOG(DEBUG) << "Set event time for Entry = "
 	     << fTimeforEntryNo << " , where the current entry is "
 	     << fCurrentEntryNo << " and eventTime is "

@@ -24,6 +24,7 @@
 #include "FairParIo.h"
 #include "FairField.h"
 //#include "FairSource.h"
+#include "FairMbsSource.h"
 
 #include "FairGeoInterface.h"
 #include "FairGeoLoader.h"
@@ -69,7 +70,6 @@ FairRunOnline::FairRunOnline()
   :FairRun(),
    fAutomaticFinish(kTRUE),
    fIsInitialized(kFALSE),
-   fEvtHeader(0),
    fStatic(kFALSE),
    fField(0),
    fFolder(new TFolder("HISTO", "HISTO")),
@@ -89,7 +89,6 @@ FairRunOnline::FairRunOnline(FairSource* source)
   :FairRun(),
    fAutomaticFinish(kTRUE),
    fIsInitialized(kFALSE),
-   fEvtHeader(0),
    fStatic(kFALSE),
    fField(0),
    fFolder(new TFolder("HISTO", "HISTO")),
@@ -132,7 +131,7 @@ FairRunOnline::~FairRunOnline()
 
 Bool_t gIsInterrupted;
 
-void handler_ctrlc(int s)
+void handler_ctrlc(int)
 {
   gIsInterrupted = kTRUE;
 }
@@ -158,15 +157,39 @@ void FairRunOnline::Init()
   //  GeoInterFace->setMediaFile(MatFname.Data());
   //  GeoInterFace->readMedia();
 
-  // Add a Generated run ID to the FairRunTimeDb
-  fRootManager->ReadEvent(0);
-  
+  // Add a Generated run ID to the FairRunTimeDb for input data which contain a FairMCEventHeader
+  // The call doesn't make sense for online sources which doesn't contain a  FairMCEventHeader
+
+  if(kONLINE != fRootManager->GetSource()->GetSourceType())
+  {
+    fRootManager->ReadEvent(0);
+  }
+
   GetEventHeader();
   
   fRootManager->FillEventHeader(fEvtHeader);
 
-  fRunId = fEvtHeader->GetRunId();
-  
+  if(0 == fRunId) // Run ID was not set in run manager
+  {
+    if(0 == fEvtHeader->GetRunId()) // Run ID was not set in source
+    {
+      // Generate unique Run ID
+      FairRunIdGenerator genid;
+      fRunId = genid.generateId();
+      fRootManager->GetSource()->SetRunId(fRunId);
+    }
+    else
+    {
+      // Use Run ID from source
+      fRunId = fEvtHeader->GetRunId();
+    }
+  }
+  else
+  {
+    // Run ID was set in the run manager - propagate to source
+    fRootManager->GetSource()->SetRunId(fRunId);
+  }
+
   fRtdb->addRun(fRunId);
   fFileHeader->SetRunId(fRunId);
   FairBaseParSet* par = dynamic_cast<FairBaseParSet*>(fRtdb->getContainer("FairBaseParSet"));
@@ -195,8 +218,9 @@ void FairRunOnline::Init()
     geopar->setInputVersion(fRunId,1);
   }
   
-fRootManager->WriteFileHeader(fFileHeader);
+  fRootManager->WriteFileHeader(fFileHeader);
 
+  fRootManager->GetSource()->SetParUnpackers();
   fTask->SetParTask();
   fRtdb->initContainers(fRunId);
 
@@ -210,12 +234,14 @@ fRootManager->WriteFileHeader(fFileHeader);
   fRootManager->Register("EventHeader.", "Event", fEvtHeader, kTRUE);
   fEvtHeader->SetRunId(fRunId);
 
+  fRootManager->GetSource()->InitUnpackers();
+
   // Now call the User initialize for Tasks
   fTask->InitTask();
 
   // create the output tree after tasks initialisation
   fOutFile->cd();
-  TTree* outTree =new TTree("cbmsim", "/cbmout", 99);
+  TTree* outTree =new TTree(FairRootManager::GetTreeName(), "/cbmout", 99);
   fRootManager->TruncateBranchNames(outTree, "cbmout");
   fRootManager->SetOutTree(outTree);
   fRootManager->WriteFolder();
@@ -228,14 +254,14 @@ void FairRunOnline::InitContainers()
 {
 
   fRtdb = GetRuntimeDb();
-  FairBaseParSet* par=(FairBaseParSet*)
+  FairBaseParSet* par=static_cast<FairBaseParSet*>
                       (fRtdb->getContainer("FairBaseParSet"));
   LOG(INFO) << "FairRunOnline::InitContainers: par = " << par << FairLogger::endl;
   if (NULL == par)
     LOG(WARNING)<<"FairRunOnline::InitContainers: no  'FairBaseParSet' container !"<<FairLogger::endl;
 
   if (par) {
-    fEvtHeader = (FairEventHeader*)fRootManager->GetObject("EventHeader.");
+    fEvtHeader = static_cast<FairEventHeader*>(fRootManager->GetObject("EventHeader."));
 
     fRunId = fEvtHeader->GetRunId();
 
@@ -269,19 +295,21 @@ Int_t FairRunOnline::EventLoop()
   gSystem->IgnoreInterrupt();
   signal(SIGINT, handler_ctrlc);
 
-  Int_t tmpId = fRootManager->GetRunId();
+  fRootManager->FillEventHeader(fEvtHeader);
+  Int_t tmpId = fEvtHeader->GetRunId();
 
   if ( tmpId != -1 && tmpId != fRunId ) {
     LOG(INFO) << "FairRunOnline::EventLoop() Call Reinit due to changed RunID (from " << fRunId << " to " << tmpId << FairLogger::endl;
     fRunId = tmpId;
     Reinit( fRunId );
+    fRootManager->GetSource()->ReInitUnpackers();
     fTask->ReInitTask();
   }
 
   fRootManager->StoreWriteoutBufferData(fRootManager->GetEventTime());
   fTask->ExecuteTask("");
   fRootManager->FillEventHeader(fEvtHeader);
-  fRootManager->Fill();
+  Fill();
   fRootManager->DeleteOldWriteoutBufferData();
   fTask->FinishEvent();
   fNevents += 1;
@@ -386,6 +414,7 @@ void FairRunOnline::Finish()
   fTask->FinishTask();
   fRootManager->LastFill();
   fRootManager->Write();
+  fRootManager->GetSource()->Close();
 
   if(fGenerateHtml) {
     WriteObjects();
@@ -493,19 +522,19 @@ void FairRunOnline::WriteObjects()
     // Recognise objects
     if(0 == className.CompareTo("TH1F")) {
       // If a histogram - plot it and save canvas
-      h1 = (TH1F*) object;
+      h1 = static_cast<TH1F*>(object);
       h1->Write();
     } else if(0 == className.CompareTo("TH2F")) {
       // If a histogram - plot it and save canvas
-      h2 = (TH2F*) object;
+      h2 = static_cast<TH2F*>(object);
       h2->Write();
     } else if(0 == className.CompareTo("TH1D")) {
       // If a histogram - plot it and save canvas
-      h1 = (TH1D*) object;
+      h1 = static_cast<TH1D*>(object);
       h1->Write();
     } else if(0 == className.CompareTo("TH2D")) {
       // If a histogram - plot it and save canvas
-      h2 = (TH2D*) object;
+      h2 = static_cast<TH2D*>(object);
       h2->Write();
     }
   }
@@ -516,15 +545,6 @@ void FairRunOnline::WriteObjects()
 }
 //_____________________________________________________________________________
 
-//_____________________________________________________________________________
-FairEventHeader* FairRunOnline::GetEventHeader()
-{
-  //  fEvtHeader = fRootManager->GetEventHeader();
-  if ( NULL == fEvtHeader ) {
-    fEvtHeader = new FairEventHeader();
-  }
-  return fEvtHeader;
-}
 //_____________________________________________________________________________
 
 
@@ -557,11 +577,47 @@ void  FairRunOnline::SetContainerStatic(Bool_t tempBool)
 //_____________________________________________________________________________
 void FairRunOnline::AddObject(TObject* object)
 {
-  if(fFolder) {
-    fFolder->Add(object);
+    if(NULL == object)
+    {
+        return;
+    }
+    if(fFolder) {
+        fFolder->Add(object);
+    }
+    if(fServer) {
+        TString classname = TString(object->ClassName());
+        if(classname.EqualTo("TCanvas"))
+        {
+            fServer->Register("CANVAS", object);
+        }
+        else if(classname.EqualTo("TFolder"))
+        {
+            fServer->Register("/", object);
+        }
+        else if(classname.Contains("TH1") || classname.Contains("TH2"))
+        {
+            fServer->Register("HISTO", object);
+        }
+        else
+        {
+            LOG(WARNING) << "FairRunOnline::AddObject : unrecognized object type : " << classname << FairLogger::endl;
+        }
+    }
+}
+//_____________________________________________________________________________
+
+
+
+//_____________________________________________________________________________
+void FairRunOnline::Fill()
+{
+  if(fMarkFill)
+  {
+    fRootManager->Fill();
   }
-  if(fServer) {
-    fServer->Register("HISTO", object);
+  else
+  {
+    fMarkFill = kTRUE;
   }
 }
 //_____________________________________________________________________________

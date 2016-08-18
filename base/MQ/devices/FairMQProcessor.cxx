@@ -37,8 +37,7 @@ void FairMQProcessor::InitTask()
 {
     fProcessorTask->InitTask();
 
-    fProcessorTask->SetSendPart(boost::bind(&FairMQProcessor::SendPart, this));
-    fProcessorTask->SetReceivePart(boost::bind(&FairMQProcessor::ReceivePart, this));
+    fProcessorTask->SetTransport(fTransportFactory);
 }
 
 void FairMQProcessor::Run()
@@ -46,46 +45,25 @@ void FairMQProcessor::Run()
     int receivedMsgs = 0;
     int sentMsgs = 0;
 
-    // store the channel references to avoid traversing the map on every loop iteration
-    FairMQChannel& dataInChannel = fChannels.at("data-in").at(0);
-    FairMQChannel& dataOutChannel = fChannels.at("data-out").at(0);
+    // channel references to avoid traversing the map on every loop iteration
+    FairMQChannel& dataInChannel = fChannels.at("data1").at(0);
+    FairMQChannel& dataOutChannel = fChannels.at("data2").at(0);
 
     while (CheckCurrentState(RUNNING))
     {
         fProcessorTask->SetPayload(fTransportFactory->CreateMessage());
 
-        ++receivedMsgs;
-
         if (dataInChannel.Receive(fProcessorTask->GetPayload()) > 0)
         {
+            ++receivedMsgs;
             fProcessorTask->Exec();
 
             dataOutChannel.Send(fProcessorTask->GetPayload());
             sentMsgs++;
         }
 
-        fProcessorTask->GetPayload()->CloseMessage();
+        fProcessorTask->ClearPayload();
     }
 
     LOG(INFO) << "Received " << receivedMsgs << " and sent " << sentMsgs << " messages!";
-}
-
-void FairMQProcessor::SendPart()
-{
-      fChannels.at("data-out").at(0).Send(fProcessorTask->GetPayload(), "snd-more");
-      fProcessorTask->GetPayload()->CloseMessage();
-}
-
-bool FairMQProcessor::ReceivePart()
-{
-    if (fChannels.at("data-in").at(0).ExpectsAnotherPart())
-    {
-        fProcessorTask->GetPayload()->CloseMessage();
-        fProcessorTask->SetPayload(fTransportFactory->CreateMessage());
-        return fChannels.at("data-in").at(0).Receive(fProcessorTask->GetPayload());
-    }
-    else
-    {
-        return false;
-    }
 }

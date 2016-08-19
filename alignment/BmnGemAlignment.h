@@ -35,7 +35,7 @@ public:
     };
 
     // Constructor to be used in case of digits
-    BmnGemAlignment(Char_t*, Char_t*);
+    BmnGemAlignment(Char_t*, Char_t*, Bool_t);
 
 
     virtual ~BmnGemAlignment();
@@ -86,6 +86,10 @@ public:
     void SetMinHitsAccepted(Int_t val) {
         fMinHitsAccepted = val;
     }
+    
+    void SetMaxHitsAccepted(Int_t val) {
+        fMaxHitsAccepted = val;
+    }
 
     void SetXhitMinMax(Double_t min, Double_t max) {
         fXhitMin = min;
@@ -129,16 +133,13 @@ public:
         else
             return;
     }
-
-
+    
 private:
-
+ 
     const Char_t* GetSteerFileName() {
         return fSteerFileName;
     }
-
-    void LineFit3D(TLorentzVector*, TLorentzVector*, TVector3&, TVector3&, TClonesArray*, TClonesArray*) {
-    };
+    
     Double_t LineFit3D(vector <BmnGemStripHit*>, TVector3&, TVector3&);
     void CreateTrack(TVector3, TVector3, BmnGemTrack&, FairTrackParam&, Double_t, Int_t);
     Bool_t isOneTrack(TClonesArray*);
@@ -172,6 +173,7 @@ private:
 
     Double_t fChi2Max;
     Int_t fMinHitsAccepted;
+    Int_t fMaxHitsAccepted;
 
     Double_t fXhitMin;
     Double_t fXhitMax;
@@ -190,6 +192,7 @@ private:
     TClonesArray* fTrHits;
 
     Bool_t fDebugInfo;
+    Bool_t fOnlyMille;
     const Char_t* fSteerFileName;
 
     TString fAlignmentType;

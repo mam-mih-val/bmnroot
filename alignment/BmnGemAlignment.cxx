@@ -1,6 +1,6 @@
 #include "BmnGemAlignment.h"
 
-BmnGemAlignment::BmnGemAlignment(Char_t* filename, Char_t* outname) :
+BmnGemAlignment::BmnGemAlignment(Char_t* filename, Char_t* outname, Bool_t onlyMille) :
 fGemDigits(NULL),
 fRecoFileName(NULL),
 fRecoTree(NULL),
@@ -15,6 +15,7 @@ fSignalToNoise(1.),
 fChi2Max(LDBL_MAX),
 fThreshold(0.0),
 fMinHitsAccepted(1),
+fMaxHitsAccepted(fNstat),
 fXhitMin(-LDBL_MAX),
 fXhitMax(LDBL_MAX),
 fYhitMin(-LDBL_MAX),
@@ -25,35 +26,37 @@ fTyMin(-LDBL_MAX),
 fTyMax(LDBL_MAX),
 fChainIn(NULL),
 fChainOut(NULL),
-fTrHits(NULL) {
-    fDigiFilename = filename;
-
-    fChainIn = new TChain("cbmsim");
-    fChainIn->Add(fDigiFilename);
-
-    // fChainOut = new TChain("cbmsim");
-
-    cout << "#events: " << fChainIn->GetEntries() << endl;
-    fNumEvents = fChainIn->GetEntries();
-    fChainIn->SetBranchAddress("BmnGemStripDigit", &fGemDigits);
-
+fTrHits(NULL),
+fOnlyMille(onlyMille) {
     fRecoFileName = outname;
+    if (fOnlyMille == kFALSE) {
+        fDigiFilename = filename;
 
-    fRecoFile = new TFile(fRecoFileName, "recreate");
-    fRecoTree = new TTree("cbmsim", "cbmsim");
+        fChainIn = new TChain("cbmsim");
+        fChainIn->Add(fDigiFilename);
 
-    fGemHits = new TClonesArray("BmnGemStripHit");
-    fGemTracks = new TClonesArray("BmnGemTrack");
-    fContainer = new TClonesArray("BmnAlignmentContainer");
+        cout << "#events: " << fChainIn->GetEntries() << endl;
+        fNumEvents = fChainIn->GetEntries();
+        fChainIn->SetBranchAddress("GEM", &fGemDigits);
 
-    fRecoTree->Branch("BmnGemStripHit", &fGemHits);
-    fRecoTree->Branch("BmnGemTrack", &fGemTracks);
-    fRecoTree->Branch("BmnAlignmentContainer", &fContainer);
+        fRecoFile = new TFile(fRecoFileName, "recreate");
+        fRecoTree = new TTree("cbmsim", "cbmsim");
 
-    fTrHits = new TClonesArray("BmnGemStripHit");
+        fGemHits = new TClonesArray("BmnGemStripHit");
+        fGemTracks = new TClonesArray("BmnGemTrack");
+        fContainer = new TClonesArray("BmnAlignmentContainer");
+
+        fRecoTree->Branch("BmnGemStripHit", &fGemHits);
+        fRecoTree->Branch("BmnGemTrack", &fGemTracks);
+        fRecoTree->Branch("BmnAlignmentContainer", &fContainer);
+
+        fTrHits = new TClonesArray("BmnGemStripHit");
+    }
 }
 
 void BmnGemAlignment::PrepareData() {
+   
+    
     // Calculate total number of stations not to be used (they are marked by 1000 in the SetSignalToNoise() method)
     Int_t nStatNotUsed = 0;
 
@@ -66,18 +69,21 @@ void BmnGemAlignment::PrepareData() {
 
     fStatUsed = fNstat - nStatNotUsed;
 
-    //    TCanvas* c = new TCanvas("superCave", "superCave", 1200, 800);
-    //    c->Divide(1, 2);
-    //    TH2F* h1 = new TH2F("_hYZ", "_hYZ", 150, 0., 150., 100, -50., 50.);
-    //    TH2F* h2 = new TH2F("_hXZ", "_hXZ", 150, 0., 150., 100, -50., 50.);
+    TCanvas* c = new TCanvas("superCave", "superCave", 1200, 800);
+    c->Divide(1, 2);
+    TH2F* h1 = new TH2F("_hYZ", "_hYZ", 150, 0., 150., 100, -50., 50.);
+    TH2F* h2 = new TH2F("_hXZ", "_hXZ", 150, 0., 150., 100, -50., 50.);
+    
+    if (fOnlyMille == kTRUE)
+        return;
 
     for (Int_t iEv = 0; iEv < fNumEvents; iEv++) {
         fChainIn->GetEntry(iEv);
         if (iEv % 1000 == 0)
             cout << "Event# = " << iEv << endl;
         //
-        //        h1->Reset();
-        //        h2->Reset();
+        h1->Reset();
+        h2->Reset();
 
         fGemHits->Delete();
         fGemTracks->Delete();
@@ -134,8 +140,8 @@ void BmnGemAlignment::PrepareData() {
                     Double_t y_err = module->GetIntersectionPointYError(iPoint);
                     Double_t z_err = 0.0;
 
-                    //                    h1->Fill(z, y);
-                    //                    h2->Fill(z, x);
+                    h1->Fill(z, y);
+                    h2->Fill(z, x);
 
                     BmnGemStripHit* hit = new((*fGemHits)[fGemHits->GetEntriesFast()]) BmnGemStripHit(iStation, TVector3(x, y, z), TVector3(x_err, y_err, 0.), iPoint);
                     hit->SetDx(x_err);
@@ -147,21 +153,21 @@ void BmnGemAlignment::PrepareData() {
             }
         }
 
-        //        h1->SetTitle(Form("Ev# %d", iEv));
-        //        h1->SetMarkerStyle(20);
-        //        h2->SetTitle(Form("Ev# %d", iEv));
-        //        h2->SetMarkerStyle(20);
-
-        //        if (h1->GetEntries() > 4 && h2->GetEntries() > 4) {
-        //            c->cd(1);
-        //            h1->Draw("P");
-        //            c->cd(2);
-        //            h2->Draw("P");
-        //            c->Update();
-        //            // gSystem->Sleep(1000);
-        //            gSystem->Sleep(1000 * 3600);
-        //            gSystem->ProcessEvents();
-        //        }
+        //                h1->SetTitle(Form("Ev# %d", iEv));
+        //                h1->SetMarkerStyle(20);
+        //                h2->SetTitle(Form("Ev# %d", iEv));
+        //                h2->SetMarkerStyle(20);
+        //
+        //                if (h1->GetEntries() > 4 && h2->GetEntries() > 4) {
+        //                    c->cd(1);
+        //                    h1->Draw("P");
+        //                    c->cd(2);
+        //                    h2->Draw("P");
+        //                    c->Update();
+        //                     gSystem->Sleep(1000 * 3);
+        //                    //gSystem->Sleep(1000 * 3600);
+        //                    gSystem->ProcessEvents();
+        //                }
         // Checking for maximal number of hits
         if (fGemHits->GetEntriesFast() == 0 || fGemHits->GetEntriesFast() > fMaxNofHits) {
             delete fDetector;
@@ -192,7 +198,7 @@ void BmnGemAlignment::PrepareData() {
         }
 
         // Checking for minimal number of hits per track
-        if (nonEmptyStatNumber.size() < fMinHitsAccepted) {
+        if (nonEmptyStatNumber.size() <= fMinHitsAccepted || nonEmptyStatNumber.size() >= fMaxHitsAccepted) {
             delete fDetector;
             continue;
         }
@@ -283,10 +289,10 @@ void BmnGemAlignment::StartMille() {
                             TString zeroEnd = "";
                             TString zeroBeg = "";
                             for (Int_t i = 0; i < N_zeros_beg; i++)
-                                zeroBeg += "0 0 ";
+                                zeroBeg += "0. 0. ";
 
                             for (Int_t i = 0; i < N_zeros_end; i++)
-                                zeroEnd += "0 0 ";
+                                zeroEnd += "0. 0. ";
 
                             fprintf(fin_txt, "%s%s %s %s%s\n", locDerX, zeroBeg.Data(), globDerX, zeroEnd.Data(), measX);
                             fprintf(fin_txt, "%s%s %s %s%s\n", locDerY, zeroBeg.Data(), globDerY, zeroEnd.Data(), measY);
@@ -296,7 +302,7 @@ void BmnGemAlignment::StartMille() {
                 }
                 if (iHit == trHits->GetEntriesFast())
                     for (Int_t iFill = 0; iFill < 2; iFill++)
-                        fprintf(fin_txt, "%d 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n", iStat);
+                        fprintf(fin_txt, "%d 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n", iStat);
             }
         }
     }
@@ -324,10 +330,14 @@ void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGe
     for (Int_t iEle = 0; iEle < dim; iEle++)
         Labels[iEle] = 1 + iEle;
 
+    for (Int_t iEle = 0; iEle < dim; iEle++)
+        cout << Labels[iEle] << endl;
+
     Double_t rMeasure, dMeasure;
     fout_txt >> nTracks;
     Double_t DerGl[NGL], DerLc[NLC];
 
+    //    BmnMille* Mille = new BmnMille(TString(name + ".bin").Data(), kFALSE, kTRUE);
     BmnMille* Mille = new BmnMille(TString(name + ".bin").Data(), kTRUE, kFALSE);
 
     for (Int_t iTrack = 0; iTrack < nTracks; iTrack++) {
@@ -365,7 +375,8 @@ void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGe
 
                 if (fDebugInfo)
                     DebugInfo(nGem, NLC, NGL, DerLc, DerGl, rMeasure, dMeasure);
-            } else
+            }
+            else
                 fout_txt.ignore(numeric_limits<streamsize>::max(), '\n');
 
             // Mille->mille(NLC, DerLc, NGL, DerGl, Labels, rMeasure, dMeasure);

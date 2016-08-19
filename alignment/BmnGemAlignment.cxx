@@ -16,10 +16,10 @@ fChi2Max(LDBL_MAX),
 fThreshold(0.0),
 fMinHitsAccepted(1),
 fMaxHitsAccepted(fNstat),
-fXhitMin(-LDBL_MAX),
-fXhitMax(LDBL_MAX),
-fYhitMin(-LDBL_MAX),
-fYhitMax(LDBL_MAX),
+fXMin(-LDBL_MAX),
+fXMax(LDBL_MAX),
+fYMin(-LDBL_MAX),
+fYMax(LDBL_MAX),
 fTxMin(-LDBL_MAX),
 fTxMax(LDBL_MAX),
 fTyMin(-LDBL_MAX),
@@ -133,8 +133,8 @@ void BmnGemAlignment::PrepareData() {
                     Double_t x = module->GetIntersectionPointX(iPoint);
                     Double_t y = module->GetIntersectionPointY(iPoint);
 
-                    if (x < fXhitMin || x > fXhitMax || y < fYhitMin || y > fYhitMax)
-                        continue;
+//                    if (x < fXhitMin || x > fXhitMax || y < fYhitMin || y > fYhitMax)
+//                        continue;
 
                     Double_t x_err = module->GetIntersectionPointXError(iPoint);
                     Double_t y_err = module->GetIntersectionPointYError(iPoint);
@@ -434,7 +434,10 @@ void BmnGemAlignment::DeriveFoundTrackParams(vector<BmnGemStripHit*> hits) {
         CreateTrack(direction, vertex, *track, *par, chi2, hits.size());
         Double_t Tx = par->GetTx();
         Double_t Ty = par->GetTy();
-        if (Tx > fTxMin && Tx < fTxMax && Ty > fTyMin && Ty < fTyMax) {
+        Double_t X0 = par->GetX();
+        Double_t Y0 = par->GetY();
+        
+        if (Tx > fTxMin && Tx < fTxMax && Ty > fTyMin && Ty < fTyMax && X0 > fXMin && X0 < fXMax && Y0 > fYMin && Y0 < fYMax) {
             BmnGemTrack* newTrack = new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
 
             for (Int_t iHit = 0; iHit < hits.size(); iHit++) {

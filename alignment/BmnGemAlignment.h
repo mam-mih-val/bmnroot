@@ -91,14 +91,14 @@ public:
         fMaxHitsAccepted = val;
     }
 
-    void SetXhitMinMax(Double_t min, Double_t max) {
-        fXhitMin = min;
-        fXhitMax = max;
+    void SetXMinMax(Double_t min, Double_t max) {
+        fXMin = min;
+        fXMax = max;
     }
 
-    void SetYhitMinMax(Double_t min, Double_t max) {
-        fYhitMin = min;
-        fYhitMax = max;
+    void SetYMinMax(Double_t min, Double_t max) {
+        fYMin = min;
+        fYMax = max;
     }
 
     void SetAlignmentDim(TString dim) {
@@ -175,10 +175,10 @@ private:
     Int_t fMinHitsAccepted;
     Int_t fMaxHitsAccepted;
 
-    Double_t fXhitMin;
-    Double_t fXhitMax;
-    Double_t fYhitMin;
-    Double_t fYhitMax;
+    Double_t fXMin;
+    Double_t fXMax;
+    Double_t fYMin;
+    Double_t fYMax;
     Double_t fTxMin;
     Double_t fTxMax;
     Double_t fTyMin;

@@ -55,8 +55,6 @@ fOnlyMille(onlyMille) {
 }
 
 void BmnGemAlignment::PrepareData() {
-   
-    
     // Calculate total number of stations not to be used (they are marked by 1000 in the SetSignalToNoise() method)
     Int_t nStatNotUsed = 0;
 
@@ -216,8 +214,37 @@ void BmnGemAlignment::PrepareData() {
         for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
             BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
             if (Abs(track->GetChi2() - *it_min) < 0.1) {
+                TClonesArray* hitsPerTrack = track->GetHits();
+                Double_t tx = track->GetParamFirst()->GetTx();
+                Double_t ty = track->GetParamFirst()->GetTy();
+                Double_t x0 = track->GetParamFirst()->GetX();
+                Double_t y0 = track->GetParamFirst()->GetY();
+                Double_t z0 = track->GetParamFirst()->GetZ();
+                
+                // Checking residuals...
+                Double_t xResMax = -1.;
+                Double_t yResMax = -1.;
+                
+                for (Int_t iHit = 0; iHit < hitsPerTrack->GetEntriesFast(); iHit++) {
+                    BmnGemStripHit* hit = (BmnGemStripHit*)hitsPerTrack->UncheckedAt(iHit);
+                    Double_t x = hit->GetX();
+                    Double_t y = hit->GetY();
+                    Double_t z = hit->GetZ();
+                    
+                    Double_t xRes = Abs(x - (tx * (z - z0) + x0)); 
+                    Double_t yRes = Abs(y - (ty * (z - z0) + y0)); 
+                    
+                    if (xRes > xResMax)
+                        xResMax = xRes;
+                    
+                    if (yRes > yResMax)
+                        yResMax = yRes;
+                }
+                                
                 BmnAlignmentContainer* cont = new ((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
                 cont->SetEventNum(iEv);
+                cont->SetXresMax(xResMax);
+                cont->SetYresMax(yResMax);
                 cont->SetTx(track->GetParamFirst()->GetTx());
                 cont->SetTy(track->GetParamFirst()->GetTy());
                 cont->SetX0(track->GetParamFirst()->GetX());

@@ -39,6 +39,14 @@ public:
     TClonesArray* GetTrackHits() {
         return fTrackHits;
     } 
+    
+    Double_t GetXresMax() {
+        return fXresMax;
+    }
+    
+    Double_t GetYresMax() {
+        return fYresMax;
+    }
         
     // Setters   
     void SetX0(Float_t x0) {
@@ -68,29 +76,28 @@ public:
     void SetEventNum(Int_t ev) {
         fEventNumber = ev;
     }
-   
     
+    void SetXresMax(Double_t val) {
+        fXresMax = val;
+    }
+    
+    void SetYresMax(Double_t val) {
+        fYresMax = val;
+    }
+     
 private:
 
     Int_t fEventNumber;
     TClonesArray* fTrackHits;
-    
-//    Int_t fStation;
-//    Int_t fModule;
-//    Int_t fLayer;
-    
-//    Float_t fX;
-//    Float_t fY;
-//    Float_t fZ;
-//    Float_t fdX;
-//    Float_t fdY;
-//    Float_t fdZ;
-   
+      
     Float_t fX0;
     Float_t fY0;
     Float_t fZ0;
     Float_t fTx;
     Float_t fTy;
+    
+    Double_t fXresMax;
+    Double_t fYresMax;
 
     ClassDef(BmnAlignmentContainer, 1)
 };

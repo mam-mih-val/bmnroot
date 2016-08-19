@@ -124,6 +124,14 @@ public:
         fTyMin = min;
         fTyMax = max;
     }
+    
+    void SetXresMax(Double_t val) {
+        fAlignCont->SetXresMax(val);
+    }
+    
+    void SetYresMax(Double_t val) {
+        fAlignCont->SetYresMax(val);
+    }
 
     void PrepareData();
     void StartMille();
@@ -151,6 +159,8 @@ private:
     
     void AlignmentdXdY(ifstream&, Int_t, Int_t, Int_t, Int_t, TString);
     void DebugInfo(Int_t, Int_t, Int_t, Double_t*, Double_t*, Double_t, Double_t);
+    
+    BmnAlignmentContainer* fAlignCont;
 
     Char_t* fDigiFilename;
     TChain* fChainIn;

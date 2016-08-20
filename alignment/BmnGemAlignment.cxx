@@ -24,6 +24,8 @@ fTxMin(-LDBL_MAX),
 fTxMax(LDBL_MAX),
 fTyMin(-LDBL_MAX),
 fTyMax(LDBL_MAX),
+fXresMax(LDBL_MAX),
+fYresMax(LDBL_MAX),
 fChainIn(NULL),
 fChainOut(NULL),
 fTrHits(NULL),
@@ -71,7 +73,7 @@ void BmnGemAlignment::PrepareData() {
     c->Divide(1, 2);
     TH2F* h1 = new TH2F("_hYZ", "_hYZ", 150, 0., 150., 100, -50., 50.);
     TH2F* h2 = new TH2F("_hXZ", "_hXZ", 150, 0., 150., 100, -50., 50.);
-    
+
     if (fOnlyMille == kTRUE)
         return;
 
@@ -131,8 +133,8 @@ void BmnGemAlignment::PrepareData() {
                     Double_t x = module->GetIntersectionPointX(iPoint);
                     Double_t y = module->GetIntersectionPointY(iPoint);
 
-//                    if (x < fXhitMin || x > fXhitMax || y < fYhitMin || y > fYhitMax)
-//                        continue;
+                    //                    if (x < fXhitMin || x > fXhitMax || y < fYhitMin || y > fYhitMax)
+                    //                        continue;
 
                     Double_t x_err = module->GetIntersectionPointXError(iPoint);
                     Double_t y_err = module->GetIntersectionPointYError(iPoint);
@@ -220,27 +222,30 @@ void BmnGemAlignment::PrepareData() {
                 Double_t x0 = track->GetParamFirst()->GetX();
                 Double_t y0 = track->GetParamFirst()->GetY();
                 Double_t z0 = track->GetParamFirst()->GetZ();
-                
+
                 // Checking residuals...
                 Double_t xResMax = -1.;
                 Double_t yResMax = -1.;
-                
+
                 for (Int_t iHit = 0; iHit < hitsPerTrack->GetEntriesFast(); iHit++) {
-                    BmnGemStripHit* hit = (BmnGemStripHit*)hitsPerTrack->UncheckedAt(iHit);
+                    BmnGemStripHit* hit = (BmnGemStripHit*) hitsPerTrack->UncheckedAt(iHit);
                     Double_t x = hit->GetX();
                     Double_t y = hit->GetY();
                     Double_t z = hit->GetZ();
-                    
-                    Double_t xRes = Abs(x - (tx * (z - z0) + x0)); 
-                    Double_t yRes = Abs(y - (ty * (z - z0) + y0)); 
-                    
+
+                    Double_t xRes = Abs(x - (tx * (z - z0) + x0));
+                    Double_t yRes = Abs(y - (ty * (z - z0) + y0));
+
                     if (xRes > xResMax)
                         xResMax = xRes;
-                    
+
                     if (yRes > yResMax)
                         yResMax = yRes;
                 }
-                                
+
+                if (xResMax > fXresMax || yResMax > fYresMax)
+                    break;
+
                 BmnAlignmentContainer* cont = new ((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
                 cont->SetEventNum(iEv);
                 cont->SetXresMax(xResMax);
@@ -402,8 +407,7 @@ void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGe
 
                 if (fDebugInfo)
                     DebugInfo(nGem, NLC, NGL, DerLc, DerGl, rMeasure, dMeasure);
-            }
-            else
+            } else
                 fout_txt.ignore(numeric_limits<streamsize>::max(), '\n');
 
             // Mille->mille(NLC, DerLc, NGL, DerGl, Labels, rMeasure, dMeasure);
@@ -463,7 +467,7 @@ void BmnGemAlignment::DeriveFoundTrackParams(vector<BmnGemStripHit*> hits) {
         Double_t Ty = par->GetTy();
         Double_t X0 = par->GetX();
         Double_t Y0 = par->GetY();
-        
+
         if (Tx > fTxMin && Tx < fTxMax && Ty > fTyMin && Ty < fTyMax && X0 > fXMin && X0 < fXMax && Y0 > fYMin && Y0 < fYMax) {
             BmnGemTrack* newTrack = new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
 

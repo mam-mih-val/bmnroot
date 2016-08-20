@@ -9,7 +9,7 @@ void test_alignment(TString fileNumber = "All") {
  
  // Restrictions on output of the C.F.
  gemAlign->SetMaxNofHitsPerEvent(30);
- gemAlign->SetSignalToNoise(1000., -2., -3., -2., -3., -2., 1000.); // 1000 is an artificial threshold not to use a station
+ gemAlign->SetSignalToNoise(1000., -2., -2., -2., -2., -2., 1000.); // 1000 is an artificial threshold not to use a station
  gemAlign->SetThreshold(0.);
   
  // Restrictions on track params.
@@ -19,6 +19,8 @@ void test_alignment(TString fileNumber = "All") {
  gemAlign->SetTyMinMax(-0.05, 0.05);
  gemAlign->SetXMinMax(0.0, 6.0);
  // gemAlign->SetYMinMax(min, max);
+ gemAlign->SetXresMax(0.1);
+ gemAlign->SetYresMax(0.1);
  gemAlign->SetChi2Max(0.1);
  
  // Alignment params.

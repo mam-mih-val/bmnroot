@@ -126,11 +126,13 @@ public:
     }
     
     void SetXresMax(Double_t val) {
-        fAlignCont->SetXresMax(val);
+        //fAlignCont->SetXresMax(val);
+        fXresMax = val;
     }
     
     void SetYresMax(Double_t val) {
-        fAlignCont->SetYresMax(val);
+        // fAlignCont->SetYresMax(val);
+        fYresMax = val;
     }
 
     void PrepareData();
@@ -193,6 +195,8 @@ private:
     Double_t fTxMax;
     Double_t fTyMin;
     Double_t fTyMax;
+    Double_t fXresMax;
+    Double_t fYresMax;
 
     TClonesArray* fGemDigits;
     TClonesArray* fGemHits;

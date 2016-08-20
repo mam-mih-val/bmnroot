@@ -210,53 +210,65 @@ void BmnGemAlignment::PrepareData() {
         vector <Double_t> chi2;
         for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
             BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
-            chi2.push_back(track->GetChi2());
+            chi2.push_back(track->GetChi2()); 
         }
         vector <Double_t>::const_iterator it_min = min_element(chi2.begin(), chi2.end());
         for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
             BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
-            if (Abs(track->GetChi2() - *it_min) < 0.1) {
-                TClonesArray* hitsPerTrack = track->GetHits();
-                Double_t tx = track->GetParamFirst()->GetTx();
-                Double_t ty = track->GetParamFirst()->GetTy();
-                Double_t x0 = track->GetParamFirst()->GetX();
-                Double_t y0 = track->GetParamFirst()->GetY();
-                Double_t z0 = track->GetParamFirst()->GetZ();
+            Double_t tx = track->GetParamFirst()->GetTx();
+            Double_t ty = track->GetParamFirst()->GetTy();
+            Double_t x0 = track->GetParamFirst()->GetX();
+            Double_t y0 = track->GetParamFirst()->GetY();
+            Double_t z0 = track->GetParamFirst()->GetZ();
 
-                // Checking residuals...
-                Double_t xResMax = -1.;
-                Double_t yResMax = -1.;
+            if (tx < fTxMin || tx > fTxMax || ty < fTyMin || ty > fTyMax ||
+                    x0 < fXMin || x0 > fXMax || y0 < fYMin || y0 > fYMax ||
+                    Abs(track->GetChi2() - Float_t(*it_min)) > FLT_EPSILON)
+                continue;
 
-                for (Int_t iHit = 0; iHit < hitsPerTrack->GetEntriesFast(); iHit++) {
-                    BmnGemStripHit* hit = (BmnGemStripHit*) hitsPerTrack->UncheckedAt(iHit);
-                    Double_t x = hit->GetX();
-                    Double_t y = hit->GetY();
-                    Double_t z = hit->GetZ();
+            // Checking residuals...
+            Double_t xResMax = -1.;
+            Double_t yResMax = -1.;
 
-                    Double_t xRes = Abs(x - (tx * (z - z0) + x0));
-                    Double_t yRes = Abs(y - (ty * (z - z0) + y0));
+            TClonesArray* hitsPerTrack = track->GetHits();
+            for (Int_t iHit = 0; iHit < hitsPerTrack->GetEntriesFast(); iHit++) {
+                BmnGemStripHit* hit = (BmnGemStripHit*) hitsPerTrack->UncheckedAt(iHit);
+                Double_t x = hit->GetX();
+                Double_t y = hit->GetY();
+                Double_t z = hit->GetZ();
 
-                    if (xRes > xResMax)
-                        xResMax = xRes;
+                Double_t xRes = Abs(x - (tx * (z - z0) + x0));
+                Double_t yRes = Abs(y - (ty * (z - z0) + y0));
 
-                    if (yRes > yResMax)
-                        yResMax = yRes;
-                }
+                if (xRes > xResMax)
+                    xResMax = xRes;
 
-                if (xResMax > fXresMax || yResMax > fYresMax)
-                    break;
+                if (yRes > yResMax)
+                    yResMax = yRes;
+            }
 
-                BmnAlignmentContainer* cont = new ((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
-                cont->SetEventNum(iEv);
-                cont->SetXresMax(xResMax);
-                cont->SetYresMax(yResMax);
-                cont->SetTx(track->GetParamFirst()->GetTx());
-                cont->SetTy(track->GetParamFirst()->GetTy());
-                cont->SetX0(track->GetParamFirst()->GetX());
-                cont->SetY0(track->GetParamFirst()->GetY());
-                cont->SetZ0(track->GetParamFirst()->GetZ());
-                cont->SetTrackHits(track->GetHits());
+            if (xResMax > fXresMax || yResMax > fYresMax)
                 break;
+
+            BmnAlignmentContainer* cont = new ((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
+            cont->SetEventNum(iEv);
+            cont->SetXresMax(xResMax);
+            cont->SetYresMax(yResMax);
+            cont->SetTx(tx);
+            cont->SetTy(ty);
+            cont->SetX0(x0);
+            cont->SetY0(y0);
+            cont->SetZ0(z0);
+            cont->SetTrackHits(hitsPerTrack);
+            
+            if (fDebugInfo) {
+                cout << "Track Info: " << endl;
+                cout << "Event# " << iEv << endl;
+                cout << "Nhits = " << track->GetHits()->GetEntriesFast() << endl;
+                cout << "Chi2 = " << track->GetChi2() << endl;
+                cout << "Tx = " << tx << " Ty = " << ty << endl;
+                cout << "X0 = " << x0 << " Y0 = " << y0 << " Z0 = " << z0 << endl;
+                cout << endl;
             }
         }
         fRecoTree->Fill();
@@ -463,23 +475,16 @@ void BmnGemAlignment::DeriveFoundTrackParams(vector<BmnGemStripHit*> hits) {
         BmnGemTrack* track = new BmnGemTrack();
         FairTrackParam* par = new FairTrackParam();
         CreateTrack(direction, vertex, *track, *par, chi2, hits.size());
-        Double_t Tx = par->GetTx();
-        Double_t Ty = par->GetTy();
-        Double_t X0 = par->GetX();
-        Double_t Y0 = par->GetY();
+        BmnGemTrack* newTrack = new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
 
-        if (Tx > fTxMin && Tx < fTxMax && Ty > fTyMin && Ty < fTyMax && X0 > fXMin && X0 < fXMax && Y0 > fYMin && Y0 < fYMax) {
-            BmnGemTrack* newTrack = new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
-
-            for (Int_t iHit = 0; iHit < hits.size(); iHit++) {
-                BmnGemStripHit* trHit = ((BmnGemStripHit*) hits.at(iHit));
-                newTrack->AddHit(trHit);
-            }
-
-            newTrack->SetParamFirst(*par);
-            newTrack->SetChi2(chi2);
-            newTrack->SetNDF(hits.size());
+        for (Int_t iHit = 0; iHit < hits.size(); iHit++) {
+            BmnGemStripHit* trHit = ((BmnGemStripHit*) hits.at(iHit));
+            newTrack->AddHit(trHit);
         }
+
+        newTrack->SetParamFirst(*par);
+        newTrack->SetChi2(chi2);
+        newTrack->SetNDF(hits.size());
         delete par;
         delete track;
     }

@@ -29,7 +29,8 @@ fYresMax(LDBL_MAX),
 fChainIn(NULL),
 fChainOut(NULL),
 fTrHits(NULL),
-fOnlyMille(onlyMille) {
+fOnlyMille(onlyMille),
+fRunType("") {
     fRecoFileName = outname;
     if (fOnlyMille == kFALSE) {
         fDigiFilename = filename;
@@ -57,6 +58,10 @@ fOnlyMille(onlyMille) {
 }
 
 void BmnGemAlignment::PrepareData() {
+    if (GetRunType() == "") {
+        cout << "Specify a run type" << endl;
+        return;
+    }
     // Calculate total number of stations not to be used (they are marked by 1000 in the SetSignalToNoise() method)
     Int_t nStatNotUsed = 0;
 
@@ -69,11 +74,6 @@ void BmnGemAlignment::PrepareData() {
 
     fStatUsed = fNstat - nStatNotUsed;
 
-    TCanvas* c = new TCanvas("superCave", "superCave", 1200, 800);
-    c->Divide(1, 2);
-    TH2F* h1 = new TH2F("_hYZ", "_hYZ", 150, 0., 150., 100, -50., 50.);
-    TH2F* h2 = new TH2F("_hXZ", "_hXZ", 150, 0., 150., 100, -50., 50.);
-
     if (fOnlyMille == kTRUE)
         return;
 
@@ -81,9 +81,6 @@ void BmnGemAlignment::PrepareData() {
         fChainIn->GetEntry(iEv);
         if (iEv % 1000 == 0)
             cout << "Event# = " << iEv << endl;
-        //
-        h1->Reset();
-        h2->Reset();
 
         fGemHits->Delete();
         fGemTracks->Delete();
@@ -140,9 +137,6 @@ void BmnGemAlignment::PrepareData() {
                     Double_t y_err = module->GetIntersectionPointYError(iPoint);
                     Double_t z_err = 0.0;
 
-                    h1->Fill(z, y);
-                    h2->Fill(z, x);
-
                     BmnGemStripHit* hit = new((*fGemHits)[fGemHits->GetEntriesFast()]) BmnGemStripHit(iStation, TVector3(x, y, z), TVector3(x_err, y_err, 0.), iPoint);
                     hit->SetDx(x_err);
                     hit->SetDy(y_err);
@@ -154,21 +148,6 @@ void BmnGemAlignment::PrepareData() {
             }
         }
 
-        //                h1->SetTitle(Form("Ev# %d", iEv));
-        //                h1->SetMarkerStyle(20);
-        //                h2->SetTitle(Form("Ev# %d", iEv));
-        //                h2->SetMarkerStyle(20);
-        //
-        //                if (h1->GetEntries() > 4 && h2->GetEntries() > 4) {
-        //                    c->cd(1);
-        //                    h1->Draw("P");
-        //                    c->cd(2);
-        //                    h2->Draw("P");
-        //                    c->Update();
-        //                     gSystem->Sleep(1000 * 3);
-        //                    //gSystem->Sleep(1000 * 3600);
-        //                    gSystem->ProcessEvents();
-        //                }
         // Checking for maximal number of hits
         if (fGemHits->GetEntriesFast() == 0 || fGemHits->GetEntriesFast() > fMaxNofHits) {
             delete fDetector;
@@ -209,10 +188,11 @@ void BmnGemAlignment::PrepareData() {
 
         // Searching for one track with min. value of chi2 and putting its params. to align. container
         vector <Double_t> chi2;
-        for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
-            BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
-            chi2.push_back(track->GetChi2());
-        }
+        if (fBeamRun)
+            for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
+                BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
+                chi2.push_back(track->GetChi2());
+            }
         vector <Double_t>::const_iterator it_min = min_element(chi2.begin(), chi2.end());
         for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
             BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
@@ -222,10 +202,11 @@ void BmnGemAlignment::PrepareData() {
             Double_t y0 = track->GetParamFirst()->GetY();
             Double_t z0 = track->GetParamFirst()->GetZ();
 
-            if (tx < fTxMin || tx > fTxMax || ty < fTyMin || ty > fTyMax ||
-                    x0 < fXMin || x0 > fXMax || y0 < fYMin || y0 > fYMax ||
-                    Abs(track->GetChi2() - Float_t(*it_min)) > FLT_EPSILON)
-                continue;
+            if (fBeamRun)
+                if (tx < fTxMin || tx > fTxMax || ty < fTyMin || ty > fTyMax ||
+                        x0 < fXMin || x0 > fXMax || y0 < fYMin || y0 > fYMax ||
+                        Abs(track->GetChi2() - Float_t(*it_min)) > FLT_EPSILON)
+                    continue;
 
             // Checking residuals...
             Double_t xResMax = -1.;
@@ -247,9 +228,14 @@ void BmnGemAlignment::PrepareData() {
                     yResMax = yRes;
             }
 
-            if (xResMax > fXresMax || yResMax > fYresMax)
-                break;
-
+            Bool_t resFlag = (xResMax > fXresMax || yResMax > fYresMax) ? kTRUE : kFALSE;
+            if (resFlag) {
+                if (fBeamRun)
+                    break;
+                else 
+                    continue;
+            }
+   
             BmnAlignmentContainer* cont = new ((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
             cont->SetEventNum(iEv);
             cont->SetXresMax(xResMax);
@@ -272,6 +258,7 @@ void BmnGemAlignment::PrepareData() {
                 cout << endl;
             }
         }
+        //       }
         fRecoTree->Fill();
         delete fDetector;
     }
@@ -280,6 +267,10 @@ void BmnGemAlignment::PrepareData() {
 }
 
 void BmnGemAlignment::StartMille() {
+    if (GetRunType() == "") {
+        cout << "Specify a run type" << endl;
+        return;
+    }
     fChainOut = new TChain("cbmsim");
     fChainOut->Add(fRecoFileName);
     cout << "#recorded entries = " << fChainOut->GetEntries() << endl;
@@ -309,7 +300,7 @@ void BmnGemAlignment::StartMille() {
         for (Int_t iAlign = 0; iAlign < align->GetEntriesFast(); iAlign++) {
             BmnAlignmentContainer* cont = (BmnAlignmentContainer*) align->UncheckedAt(iAlign);
             BmnGemTrack* track = (BmnGemTrack*) tracks->UncheckedAt(cont->GetTrackIndex());
-          
+
             for (Int_t iStat = 0; iStat < fNstat; iStat++) {
                 Int_t iHit = 0;
                 for (iHit = 0; iHit < track->GetNHits(); iHit++) {
@@ -474,7 +465,6 @@ void BmnGemAlignment::DeriveFoundTrackParams(vector<BmnGemStripHit*> hits) {
         FairTrackParam* par = new FairTrackParam();
         CreateTrack(direction, vertex, *track, *par, chi2, hits.size());
         BmnGemTrack* newTrack = new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack();
-
         for (Int_t iHit = 0; iHit < hits.size(); iHit++) {
             BmnGemStripHit* trHit = ((BmnGemStripHit*) hits.at(iHit));
             newTrack->AddHit(trHit->GetIndex(), trHit);

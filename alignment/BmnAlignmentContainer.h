@@ -36,10 +36,6 @@ public:
         return fZ0;
     }
     
-    TClonesArray* GetTrackHits() {
-        return fTrackHits;
-    } 
-    
     Double_t GetXresMax() {
         return fXresMax;
     }
@@ -72,11 +68,7 @@ public:
     void SetTy(Float_t ty) {
         fTy = ty;
     }
-    
-    void SetTrackHits(TClonesArray* hits) {
-        fTrackHits = hits;
-    }
-    
+        
     void SetEventNum(Int_t ev) {
         fEventNumber = ev;
     }
@@ -96,7 +88,6 @@ public:
 private:
 
     Int_t fEventNumber;
-    TClonesArray* fTrackHits;
       
     Float_t fX0;
     Float_t fY0;

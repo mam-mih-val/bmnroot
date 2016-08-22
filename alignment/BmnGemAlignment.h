@@ -45,6 +45,10 @@ public:
     void SetDebugInfo(Bool_t val) {
         fDebugInfo = val;
     }
+    
+    TString GetRunType() {
+        return fRunType;
+    }
 
     // Setters
 
@@ -86,7 +90,7 @@ public:
     void SetMinHitsAccepted(Int_t val) {
         fMinHitsAccepted = val;
     }
-    
+
     void SetMaxHitsAccepted(Int_t val) {
         fMaxHitsAccepted = val;
     }
@@ -114,42 +118,55 @@ public:
     void SetSteerFile(const Char_t* file) {
         fSteerFileName = file;
     }
-    
+
     void SetTxMinMax(Double_t min, Double_t max) {
         fTxMin = min;
         fTxMax = max;
     }
-    
+
     void SetTyMinMax(Double_t min, Double_t max) {
         fTyMin = min;
         fTyMax = max;
     }
-    
+
     void SetXresMax(Double_t val) {
         //fAlignCont->SetXresMax(val);
         fXresMax = val;
     }
-    
+
     void SetYresMax(Double_t val) {
         // fAlignCont->SetYresMax(val);
         fYresMax = val;
     }
 
+    void SetRunType(TString type) {
+        fRunType = type;  
+        if (type == "beam")
+            fBeamRun = kTRUE;
+        else if (type == "target")
+            fBeamRun = kFALSE;
+        else {
+            cout << "Specify a run type" << endl;
+            throw;
+        }
+    }
+
     void PrepareData();
     void StartMille();
+
     void StartPede(Bool_t flag) {
         if (flag)
             system(fCommandToRunPede);
         else
             return;
     }
-    
+
 private:
- 
+
     const Char_t* GetSteerFileName() {
         return fSteerFileName;
     }
-    
+
     Double_t LineFit3D(vector <BmnGemStripHit*>, TVector3&, TVector3&);
     void CreateTrack(TVector3, TVector3, BmnGemTrack&, FairTrackParam&, Double_t, Int_t);
     Bool_t isOneTrack(TClonesArray*);
@@ -157,11 +174,12 @@ private:
     void goToStations(vector<BmnGemStripHit*>&, vector<BmnGemStripHit*>*, Int_t);
     void DeriveFoundTrackParams(vector<BmnGemStripHit*>);
 
-    Bool_t CheckSignalToNoizeRatio(BmnGemStripDigit*) {};
-    
+    Bool_t CheckSignalToNoizeRatio(BmnGemStripDigit*) {
+    };
+
     void AlignmentdXdY(ifstream&, Int_t, Int_t, Int_t, Int_t, TString);
     void DebugInfo(Int_t, Int_t, Int_t, Double_t*, Double_t*, Double_t, Double_t);
-    
+
     BmnAlignmentContainer* fAlignCont;
 
     Char_t* fDigiFilename;
@@ -171,7 +189,7 @@ private:
     TFile* fRecoFile;
     TTree* fRecoTree;
     Char_t* fRecoFileName;
- 
+
     Int_t fNumEvents;
     Int_t fNstat;
     Int_t fStatUsed;
@@ -207,6 +225,8 @@ private:
 
     Bool_t fDebugInfo;
     Bool_t fOnlyMille;
+    Bool_t fBeamRun; // if true then it corresponds to 61 - 65 files 
+    TString fRunType; 
     const Char_t* fSteerFileName;
 
     TString fAlignmentType;

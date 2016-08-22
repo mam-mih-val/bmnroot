@@ -28,7 +28,6 @@ public:
 
     /** Associate a BmnGemHit to the track **/
     void AddHit(Int_t hitIndex, FairHit* Hit);
-    void AddHit(BmnGemStripHit*);
 
     /** Public method Print
      ** Output to screen 
@@ -94,10 +93,6 @@ public:
         return fFitNodes;
     }
        
-    TClonesArray* GetHits() {
-        return fTrHits;
-    }
-
     /** Modifiers  **/
     void SetParamFirst(FairTrackParam& par) {
         fParamFirst = par;
@@ -175,8 +170,7 @@ private:
 
     Bool_t fUsed; //needed to check seeds splitting
     
-    TClonesArray* fTrHits; // Array to store track hits
-    
+     
     ClassDef(BmnGemTrack, 1);
 
 };

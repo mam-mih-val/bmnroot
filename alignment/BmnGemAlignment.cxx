@@ -149,6 +149,7 @@ void BmnGemAlignment::PrepareData() {
                     hit->SetDz(z_err);
                     hit->SetStation(iStation);
                     hit->SetModule(iMod);
+                    hit->SetIndex(fGemHits->GetEntriesFast() - 1);
                 }
             }
         }
@@ -210,7 +211,7 @@ void BmnGemAlignment::PrepareData() {
         vector <Double_t> chi2;
         for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
             BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
-            chi2.push_back(track->GetChi2()); 
+            chi2.push_back(track->GetChi2());
         }
         vector <Double_t>::const_iterator it_min = min_element(chi2.begin(), chi2.end());
         for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
@@ -230,9 +231,8 @@ void BmnGemAlignment::PrepareData() {
             Double_t xResMax = -1.;
             Double_t yResMax = -1.;
 
-            TClonesArray* hitsPerTrack = track->GetHits();
-            for (Int_t iHit = 0; iHit < hitsPerTrack->GetEntriesFast(); iHit++) {
-                BmnGemStripHit* hit = (BmnGemStripHit*) hitsPerTrack->UncheckedAt(iHit);
+            for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
+                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetHitIndex(iHit));
                 Double_t x = hit->GetX();
                 Double_t y = hit->GetY();
                 Double_t z = hit->GetZ();
@@ -259,15 +259,16 @@ void BmnGemAlignment::PrepareData() {
             cont->SetX0(x0);
             cont->SetY0(y0);
             cont->SetZ0(z0);
-            cont->SetTrackHits(hitsPerTrack);
-            
+            cont->SetTrackIndex(iTrack);
+
             if (fDebugInfo) {
                 cout << "Track Info: " << endl;
                 cout << "Event# " << iEv << endl;
-                cout << "Nhits = " << track->GetHits()->GetEntriesFast() << endl;
+                cout << "Nhits = " << track->GetNHits() << endl;
                 cout << "Chi2 = " << track->GetChi2() << endl;
                 cout << "Tx = " << tx << " Ty = " << ty << endl;
                 cout << "X0 = " << x0 << " Y0 = " << y0 << " Z0 = " << z0 << endl;
+                cout << "xResMax = " << xResMax << " yResMax = " << yResMax << endl;
                 cout << endl;
             }
         }
@@ -307,12 +308,12 @@ void BmnGemAlignment::StartMille() {
 
         for (Int_t iAlign = 0; iAlign < align->GetEntriesFast(); iAlign++) {
             BmnAlignmentContainer* cont = (BmnAlignmentContainer*) align->UncheckedAt(iAlign);
-            TClonesArray* trHits = cont->GetTrackHits();
-
+            BmnGemTrack* track = (BmnGemTrack*) tracks->UncheckedAt(cont->GetTrackIndex());
+          
             for (Int_t iStat = 0; iStat < fNstat; iStat++) {
                 Int_t iHit = 0;
-                for (iHit = 0; iHit < trHits->GetEntriesFast(); iHit++) {
-                    BmnGemStripHit* hit = (BmnGemStripHit*) trHits->UncheckedAt(iHit);
+                for (iHit = 0; iHit < track->GetNHits(); iHit++) {
+                    BmnGemStripHit* hit = (BmnGemStripHit*) hits->UncheckedAt(track->GetHitIndex(iHit));
                     Double_t Z = hit->GetZ();
                     Short_t stat = hit->GetStation();
 
@@ -344,7 +345,7 @@ void BmnGemAlignment::StartMille() {
                         }
                     }
                 }
-                if (iHit == trHits->GetEntriesFast())
+                if (iHit == track->GetNHits())
                     for (Int_t iFill = 0; iFill < 2; iFill++)
                         fprintf(fin_txt, "%d 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n", iStat);
             }
@@ -373,9 +374,6 @@ void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGe
     Int_t* Labels = new Int_t[dim];
     for (Int_t iEle = 0; iEle < dim; iEle++)
         Labels[iEle] = 1 + iEle;
-
-    for (Int_t iEle = 0; iEle < dim; iEle++)
-        cout << Labels[iEle] << endl;
 
     Double_t rMeasure, dMeasure;
     fout_txt >> nTracks;
@@ -479,9 +477,9 @@ void BmnGemAlignment::DeriveFoundTrackParams(vector<BmnGemStripHit*> hits) {
 
         for (Int_t iHit = 0; iHit < hits.size(); iHit++) {
             BmnGemStripHit* trHit = ((BmnGemStripHit*) hits.at(iHit));
-            newTrack->AddHit(trHit);
+            newTrack->AddHit(trHit->GetIndex(), trHit);
         }
-
+        newTrack->SortHits();
         newTrack->SetParamFirst(*par);
         newTrack->SetChi2(chi2);
         newTrack->SetNDF(hits.size());

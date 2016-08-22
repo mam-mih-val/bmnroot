@@ -21,11 +21,8 @@ fNDF(0),
 fB(0.),
 fRef(-1),
 fUsed(kFALSE),
-fHitMap(),
-fStoreHits(kFALSE),
-fTrHits(NULL) {
+fHitMap() {
 
-    fTrHits = new TClonesArray("BmnGemStripHit");
 }
 // -------------------------------------------------------------------------
 
@@ -33,8 +30,7 @@ fTrHits(NULL) {
 
 BmnGemTrack::~BmnGemTrack() {
     fHitMap.clear();
-    if (fStoreHits)
-        delete fTrHits;
+   
 }
 
 // -------------------------------------------------------------------------
@@ -45,11 +41,6 @@ BmnGemTrack::~BmnGemTrack() {
 
 void BmnGemTrack::AddHit(Int_t hitIndex, FairHit* hit) {
     fHitMap[hit->GetZ()] = hitIndex;
-}
-
-void BmnGemTrack::AddHit(BmnGemStripHit* hit) {
-    fStoreHits = kTRUE;
-    new ((*fTrHits)[fTrHits->GetEntriesFast()]) BmnGemStripHit(*hit);
 }
 
 // -------------------------------------------------------------------------

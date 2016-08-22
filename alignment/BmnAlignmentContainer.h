@@ -47,6 +47,10 @@ public:
     Double_t GetYresMax() {
         return fYresMax;
     }
+    
+    Int_t GetTrackIndex() {
+        return fIndex;
+    }
         
     // Setters   
     void SetX0(Float_t x0) {
@@ -84,6 +88,10 @@ public:
     void SetYresMax(Double_t val) {
         fYresMax = val;
     }
+    
+    void SetTrackIndex(Int_t idx) {
+        fIndex = idx;
+    }
      
 private:
 
@@ -98,6 +106,8 @@ private:
     
     Double_t fXresMax;
     Double_t fYresMax;
+    
+    Int_t fIndex; // track index
 
     ClassDef(BmnAlignmentContainer, 1)
 };

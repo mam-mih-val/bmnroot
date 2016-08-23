@@ -23,7 +23,11 @@
 #include "BmnMille.h"
 
 #include <iomanip>
+#include <stdio.h>
 #include <algorithm>
+#include <sstream> 
+#include <TRandom1.h>
+#include <TGraphErrors.h>
 
 using namespace std;
 using namespace TMath;
@@ -45,7 +49,7 @@ public:
     void SetDebugInfo(Bool_t val) {
         fDebugInfo = val;
     }
-    
+
     TString GetRunType() {
         return fRunType;
     }
@@ -114,6 +118,10 @@ public:
             throw;
         }
     }
+    
+    TString GetAlignmentDim() {
+        return fAlignmentType;
+    }
 
     void SetSteerFile(const Char_t* file) {
         fSteerFileName = file;
@@ -140,7 +148,7 @@ public:
     }
 
     void SetRunType(TString type) {
-        fRunType = type;  
+        fRunType = type;
         if (type == "beam")
             fBeamRun = kTRUE;
         else if (type == "target")
@@ -153,13 +161,7 @@ public:
 
     void PrepareData();
     void StartMille();
-
-    void StartPede(Bool_t flag) {
-        if (flag)
-            system(fCommandToRunPede);
-        else
-            return;
-    }
+    void StartPede();
 
 private:
 
@@ -184,7 +186,7 @@ private:
 
     Char_t* fDigiFilename;
     TChain* fChainIn;
-    TChain* fChainOut;
+    // TChain* fChainOut;
 
     TFile* fRecoFile;
     TTree* fRecoTree;
@@ -220,17 +222,22 @@ private:
     TClonesArray* fGemHits;
     TClonesArray* fGemTracks;
     TClonesArray* fContainer;
-
     TClonesArray* fTrHits;
+
+    Double_t fSigmaX;
+    Double_t fSigmaY;
+    Int_t fNumLabels;
 
     Bool_t fDebugInfo;
     Bool_t fOnlyMille;
     Bool_t fBeamRun; // if true then it corresponds to 61 - 65 files 
-    TString fRunType; 
+    TString fRunType;
     const Char_t* fSteerFileName;
 
     TString fAlignmentType;
     TString fCommandToRunPede;
+    
+    TGraphErrors* outGraph;
     ClassDef(BmnGemAlignment, 1)
 };
 

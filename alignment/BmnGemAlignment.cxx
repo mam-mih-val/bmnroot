@@ -27,11 +27,14 @@ fTyMax(LDBL_MAX),
 fXresMax(LDBL_MAX),
 fYresMax(LDBL_MAX),
 fChainIn(NULL),
-fChainOut(NULL),
-fTrHits(NULL),
+fNumLabels(0),
 fOnlyMille(onlyMille),
-fRunType("") {
+fRunType(""),
+fSigmaX(1.),
+fSigmaY(1.),
+fTrHits(NULL) {
     fRecoFileName = outname;
+    outGraph = new TGraphErrors();
     if (fOnlyMille == kFALSE) {
         fDigiFilename = filename;
 
@@ -53,7 +56,7 @@ fRunType("") {
         fRecoTree->Branch("BmnGemTrack", &fGemTracks);
         fRecoTree->Branch("BmnAlignmentContainer", &fContainer);
 
-        fTrHits = new TClonesArray("BmnGemStripHit");
+        fTrHits = new TClonesArray("BmnGemStripHit");  
     }
 }
 
@@ -232,10 +235,10 @@ void BmnGemAlignment::PrepareData() {
             if (resFlag) {
                 if (fBeamRun)
                     break;
-                else 
+                else
                     continue;
             }
-   
+
             BmnAlignmentContainer* cont = new ((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
             cont->SetEventNum(iEv);
             cont->SetXresMax(xResMax);
@@ -271,31 +274,31 @@ void BmnGemAlignment::StartMille() {
         cout << "Specify a run type" << endl;
         return;
     }
-    fChainOut = new TChain("cbmsim");
-    fChainOut->Add(fRecoFileName);
-    cout << "#recorded entries = " << fChainOut->GetEntries() << endl;
+    TChain* out = new TChain("cbmsim");
+    out->Add(fRecoFileName);
+    cout << "#recorded entries = " << out->GetEntries() << endl;
 
     TClonesArray* hits = NULL;
     TClonesArray* tracks = NULL;
     TClonesArray* align = NULL;
 
-    fChainOut->SetBranchAddress("BmnGemStripHit", &hits);
-    fChainOut->SetBranchAddress("BmnGemTrack", &tracks);
-    fChainOut->SetBranchAddress("BmnAlignmentContainer", &align);
+    out->SetBranchAddress("BmnGemStripHit", &hits);
+    out->SetBranchAddress("BmnGemTrack", &tracks);
+    out->SetBranchAddress("BmnAlignmentContainer", &align);
 
     Int_t nSelectedTracks = 0;
-    for (Int_t iEv = 0; iEv < fChainOut->GetEntries(); iEv++) {
-        fChainOut->GetEntry(iEv);
+    for (Int_t iEv = 0; iEv < out->GetEntries(); iEv++) {
+        out->GetEntry(iEv);
         if (align->GetEntriesFast() > 0)
-            nSelectedTracks++;
+            nSelectedTracks += align->GetEntriesFast();
     }
 
     TString name = "alignment";
     FILE* fin_txt = fopen(TString(name + ".txt").Data(), "w");
     fprintf(fin_txt, "%d\n", nSelectedTracks);
 
-    for (Int_t iEv = 0; iEv < fChainOut->GetEntries(); iEv++) {
-        fChainOut->GetEntry(iEv);
+    for (Int_t iEv = 0; iEv < out->GetEntries(); iEv++) {
+        out->GetEntry(iEv);
 
         for (Int_t iAlign = 0; iAlign < align->GetEntriesFast(); iAlign++) {
             BmnAlignmentContainer* cont = (BmnAlignmentContainer*) align->UncheckedAt(iAlign);
@@ -316,8 +319,8 @@ void BmnGemAlignment::StartMille() {
                             Char_t* globDerX = Form("1. 0. ");
                             Char_t* globDerY = Form("0. 1. ");
 
-                            Char_t* measX = Form("%f %f ", hit->GetX(), hit->GetDx());
-                            Char_t* measY = Form("%f %f ", hit->GetY(), hit->GetDy());
+                            Char_t* measX = Form("%f %f ", hit->GetX(), 1. * fSigmaX);
+                            Char_t* measY = Form("%f %f ", hit->GetY(), 1. * fSigmaY);
 
                             Int_t N_zeros_beg = stat;
                             Int_t N_zeros_end = (fNstat - 1) - N_zeros_beg;
@@ -342,6 +345,7 @@ void BmnGemAlignment::StartMille() {
             }
         }
     }
+    delete out;
     fclose(fin_txt);
 
     ifstream fout_txt;
@@ -361,6 +365,7 @@ void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGe
     NLC = 4;
     NGL = 2 * fStatUsed;
 
+    fNumLabels = NGL;
     const Int_t dim = NGL;
     Int_t* Labels = new Int_t[dim];
     for (Int_t iEle = 0; iEle < dim; iEle++)
@@ -370,7 +375,6 @@ void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGe
     fout_txt >> nTracks;
     Double_t DerGl[NGL], DerLc[NLC];
 
-    //    BmnMille* Mille = new BmnMille(TString(name + ".bin").Data(), kFALSE, kTRUE);
     BmnMille* Mille = new BmnMille(TString(name + ".bin").Data(), kTRUE, kFALSE);
 
     for (Int_t iTrack = 0; iTrack < nTracks; iTrack++) {
@@ -410,8 +414,6 @@ void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGe
                     DebugInfo(nGem, NLC, NGL, DerLc, DerGl, rMeasure, dMeasure);
             } else
                 fout_txt.ignore(numeric_limits<streamsize>::max(), '\n');
-
-            // Mille->mille(NLC, DerLc, NGL, DerGl, Labels, rMeasure, dMeasure);
         }
         Mille->end();
         if (fDebugInfo)
@@ -482,7 +484,7 @@ BmnGemAlignment::~BmnGemAlignment() {
     delete fContainer;
     delete fTrHits;
     delete fChainIn;
-    delete fChainOut;
+    //     delete fChainOut;
     delete fGemDigits;
     delete fGemTracks;
     delete fGemHits;
@@ -584,6 +586,76 @@ Bool_t BmnGemAlignment::isOneTrack(TClonesArray* hits) {
         }
     }
     return oneTrack;
+}
+
+void BmnGemAlignment::StartPede() {
+    TString random = "";
+    gRandom->SetSeed(0);
+    random += (Int_t) (gRandom->Rndm(0) * 1000);
+    system(TString(fCommandToRunPede + " >> " + random).Data());
+
+    FILE* file = popen(TString("cat " + random + " | grep -e 'by factor' | awk '{print $9}'").Data(), "r");
+    if (!file)
+        return;
+
+    Char_t buffer[100];
+    fgets(buffer, sizeof (buffer), file);
+    fSigmaX = atof(buffer);
+    fSigmaY = fSigmaX;
+    pclose(file);
+
+    StartMille();
+    system(TString(fCommandToRunPede + " && rm " + random).Data());
+
+    ifstream resFile;
+    resFile.open("millepede.res", ios::in);
+    if (!resFile)
+        return;
+
+    resFile.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    TString buff1 = "";
+    TString buff2 = "";
+    TString buff3 = "";
+    TString buff4 = "";
+    TString buff5 = "";
+
+    outGraph->Set(fNumLabels);
+    string line;
+    Int_t point = 0;
+    while (getline(resFile, line)) {
+        stringstream ss(line);
+        Int_t size = ss.str().length();
+        // 40 and 68 symbols are fixed in the Pede-output
+        if (size == 40) {
+            ss >> buff1 >> buff2 >> buff3;
+            outGraph->SetPoint(point, buff1.Atof(), buff2.Atof());
+            outGraph->SetPointError(point, 0., 0.);
+        } 
+        else if (size == 68) {
+            ss >> buff1 >> buff2 >> buff3 >> buff4 >> buff5;
+            outGraph->SetPoint(point, buff1.Atof(), buff2.Atof());
+            outGraph->SetPointError(point, 0., buff5.Atof());
+        } else
+            cout << "Unsupported format observed!";
+        point++;
+    }
+    
+    TCanvas* c = new TCanvas("alignParams", "alignParams", 1200, 800);
+    c->SetGridx();
+    c->SetGridy();
+    c->cd();
+    outGraph->Draw("AP");
+    outGraph->SetMarkerStyle(22);
+    outGraph->SetMarkerSize(1.5);
+    outGraph->GetXaxis()->SetTitle("Param. number");
+    outGraph->GetYaxis()->SetTitle("Param. value");
+    outGraph->SetTitle(Form("%s-type of alignment", GetAlignmentDim().Data()));
+    c->SaveAs("alignParams.png");
+    delete c;
+    
+    system("rm millepede.*");
+    resFile.close();
 }
 
 ClassImp(BmnGemAlignment)

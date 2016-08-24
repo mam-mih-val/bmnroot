@@ -195,7 +195,7 @@ Bool_t BmnFileSource::Init()
         FairRootManager::Instance()->AddBranchToList(ObjName.Data());
 
         ppObj[i] = NULL;
-        //fInChain->SetBranchAddress(ObjName, &ppObj[i]);
+        fInChain->SetBranchAddress(ObjName, &ppObj[i]);
         FairRootManager::Instance()->RegisterInputObject(ObjName, ppObj[i]);
         // or
         //ppObj[i] = NULL;

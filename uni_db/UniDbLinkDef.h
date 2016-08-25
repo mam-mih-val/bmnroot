@@ -20,5 +20,16 @@
 #pragma link C++ class UniDbDetectorParameter+;
 #pragma link C++ class UniDbSimulationFile+;
 
+// the database structures
+#pragma link C++ struct UniqueRunNumber++;
+#pragma link C++ struct IIStructure++;
+#pragma link C++ struct DchMapStructure++;
+#pragma link C++ struct GemMapStructure++;
+#pragma link C++ struct GemPedestalStructure++;
+// the database enums
+#pragma link C++ struct enumColumns;
+#pragma link C++ struct enumConditions;
+#pragma link C++ struct enumParameterType;
+
 #endif
 

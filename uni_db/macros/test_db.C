@@ -1,5 +1,3 @@
-#include "../db_structures.h"
-
 void test_db()
 {
     TStopwatch timer;

@@ -1,6 +1,4 @@
 // macro for printing parameter values for selected detector
-#include "../db_structures.h"
-
 void print_parameter_values(char* pcDetectorName="")
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");

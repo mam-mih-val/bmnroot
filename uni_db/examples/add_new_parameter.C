@@ -1,5 +1,3 @@
-#include "../db_structures.h"
-
 // macro for adding new parameter (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
 void add_new_parameter()
 {

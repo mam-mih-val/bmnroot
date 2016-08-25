@@ -37,6 +37,12 @@ db_classes/UniDbSimulationFile.cxx
 # by exchanging the file extension
 CHANGE_FILE_EXTENSION(*.cxx *.h UNIDB_HEADERS "${UNIDB_SRCS}")
 
+# add definitions of the possible database structures and enums
+set(UNIDB_HEADERS
+${UNIDB_HEADERS}
+db_structures.h
+)
+
 set(UNIDB_LINKDEF UniDbLinkDef.h)
 set(UNIDB_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/UniDbDict.cxx) 
 

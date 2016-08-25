@@ -1,6 +1,4 @@
 // macro for run selection by specified conditions
-#include "../db_structures.h"
-
 void selecting_runs()
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");

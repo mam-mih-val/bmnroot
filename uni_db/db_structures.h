@@ -34,7 +34,7 @@ struct DchMapStructure
     int slot;
     int channel_low;
     int channel_high;
-};//__attribute__((packed));
+};
 
 struct GemMapStructure
 {
@@ -44,7 +44,7 @@ struct GemMapStructure
     int channel_low;
     int channel_high;
     int hotZone;
-};//__attribute__((packed));
+};
 
 struct GemPedestalStructure
 {
@@ -52,9 +52,7 @@ struct GemPedestalStructure
     int channel;
     int pedestal;
     int noise;
-};//__attribute__((packed));
-
-
+};
 
 
 #endif // DB_STRUCTURES_H

@@ -1,5 +1,3 @@
-#include "../db_structures.h"
-
 // macro for getting parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
 void get_parameter_value_complex()
 {

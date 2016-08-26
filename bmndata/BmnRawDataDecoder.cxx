@@ -28,7 +28,7 @@ const UInt_t kADC64VE = 0xD4;
 const UInt_t kFVME = 0xD1;
 /********************************************************/
 
-const Int_t kPERIOD = 4; 
+const Int_t kPERIOD = 4;
 
 using namespace std;
 
@@ -338,22 +338,24 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fDigiTree->Branch("TOF400", &tof400);
     fDigiTree->Branch("TOF700", &tof700);
 
-    //    fDchMapFile.open(fDchMapFileName.Data(), ifstream::in);
-    //    fDchMapFile.open(fGemMapFileName.Data(), ifstream::in);
-    //    fTof400MapFile.open(fTof400MapFileName.Data(), ifstream::in);
-    //    fTof700MapFile.open(fTof700MapFileName.Data(), ifstream::in);
+//    fDchMapFile.open(fDchMapFileName.Data(), ifstream::in);
+//    fDchMapFile.open(fGemMapFileName.Data(), ifstream::in);
+//    fTof400MapFile.open(fTof400MapFileName.Data(), ifstream::in);
+//    fTof700MapFile.open(fTof700MapFileName.Data(), ifstream::in);
 
     fNevents = fRawTree->GetEntries();
 
-    BmnGemRaw2Digit *gemMapper = new BmnGemRaw2Digit(kPERIOD, fRunId);
+    BmnGemRaw2Digit *gemMapper = NULL;
     BmnDchRaw2Digit *dchMapper = new BmnDchRaw2Digit(kPERIOD, fRunId);
     BmnTrigRaw2Digit *trigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
     BmnTof1Raw2Digit *tof400Mapper = new BmnTof1Raw2Digit(kPERIOD, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     //    BmnTof2Raw2Digit *tof700Mapper = new BmnTof2Raw2Digit(fTof700MapFileName);
 
     if (fPedestalRan) {
+        gemMapper = new BmnGemRaw2Digit();
         gemMapper->CalcGemPedestals(adc, fRawTree);
     } else {
+        gemMapper = new BmnGemRaw2Digit(kPERIOD, fRunId);
         for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
 
             if (iEv % 100 == 0) cout << "Decoding event #" << iEv << endl;
@@ -380,7 +382,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fDigiTree->Write();
     fDigiFileOut->Close();
     fRootFileIn->Close();
-    
+
     delete gemMapper;
     delete dchMapper;
     delete trigMapper;

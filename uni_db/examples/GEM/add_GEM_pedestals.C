@@ -1,11 +1,10 @@
 #include "../../db_structures.h"
 #include "TString.h"
 
-int AssignMapStructure(GemPedestalStructure* pArray, int id, unsigned int ser, int ch, int ped, int cm, int noise) {
+int AssignMapStructure(GemPedestalStructure* pArray, int id, unsigned int ser, int ch, double ped, double noise) {
     pArray[id].serial = ser;
     pArray[id].channel = ch;
     pArray[id].pedestal = ped;
-    //pArray[id].common_mode = cm;
     pArray[id].noise = noise;
     return 0;
 }
@@ -44,11 +43,11 @@ Int_t CalcSize(TString fName) {
     ifstream inFile(fName.Data());
     if (!inFile.is_open())
         cout << "Error opening map-file (" << fName << ")!" << endl;
-    inFile >> dummy >> dummy >> dummy >> dummy >> dummy;
+    inFile >> dummy >> dummy >> dummy >> dummy;
     inFile >> dummy;
     Int_t i = 0;
     while (!inFile.eof()) {
-        inFile >> dummy >> dummy >> dummy >> dummy >> dummy;
+        inFile >> dummy >> dummy >> dummy >> dummy;
         if (!inFile.good()) break;
         i++;
     }
@@ -59,19 +58,18 @@ Int_t CalcSize(TString fName) {
 void ReadAndPut(TString fName, GemPedestalStructure* pValues) {
     UInt_t ser = 0;
     Int_t ch = 0;
-    Int_t p = 0;
-    Int_t cm = 0;
-    Int_t n = 0;
+    double ped = 0;
+    double rms = 0;
     TString dummy;
     ifstream inFile(fName.Data());
     if (!inFile.is_open())
         cout << "Error opening map-file (" << fName << ")!" << endl;
-    inFile >> dummy >> dummy >> dummy >> dummy >> dummy;
+    inFile >> dummy >> dummy >> dummy >> dummy;
     inFile >> dummy;
     Int_t i = 0;
     while (!inFile.eof()) {
-        inFile >> std::hex >> ser >> std::dec >> ch >> p >> cm >> n;
+        inFile >> std::hex >> ser >> std::dec >> ch >> ped >> rms;
         if (!inFile.good()) break;
-        AssignMapStructure(pValues, i++, ser, ch, p, cm, n);
+        AssignMapStructure(pValues, i++, ser, ch, ped, rms);
     }
 }

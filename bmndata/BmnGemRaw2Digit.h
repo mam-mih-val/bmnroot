@@ -16,7 +16,7 @@
 #define N_CH_IN_CRATE 2048 //number of channels in one crate (64ch x 32smpl))
 #define N_CH_IN_SMALL_GEM 512 //number of channels in small GEM stations (sum of all redout channels)
 #define N_CH_IN_MID_GEM 2176 //number of channels in middle GEM stations (sum of all redout channels)
-#define N_CH_IN_BIG_GEM 3200 //number of channels in big one part of GEM stations (sum of all redout channels)
+#define N_CH_IN_BIG_GEM 3200 //number of channels in one part of big GEM stations (sum of all redout channels)
 
 using namespace std;
 using namespace TMath;
@@ -34,10 +34,10 @@ struct BmnGemMap {
 };
 
 struct BmnGemPed {
-    Int_t ped;
-    Int_t noise;
+    Double_t ped;
+    Double_t noise;
 
-    BmnGemPed(Int_t p, Int_t n) : ped(p), noise(n) {
+    BmnGemPed(Double_t p, Double_t n) : ped(p), noise(n) {
     }
 
     BmnGemPed() : ped(0), noise(0) {
@@ -67,6 +67,7 @@ private:
 
     void ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
     BmnStatus ReadMap(TString parName, TString parNameSize, BmnGemMap* m, Int_t lay, Int_t mod);
+    Double_t CalcCMS(Double_t* samples, Int_t size);
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
 
     Int_t fPeriod;

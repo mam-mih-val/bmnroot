@@ -34,7 +34,6 @@ fSigmaX(1.),
 fSigmaY(1.),
 fTrHits(NULL) {
     fRecoFileName = outname;
-    outGraph = new TGraphErrors();
     if (fOnlyMille == kFALSE) {
         fDigiFilename = filename;
 
@@ -370,9 +369,6 @@ void BmnGemAlignment::StartMille() {
         AlignmentdXdY(fout_txt, nTracks, nGem, NLC, NGL, name);
 
     fout_txt.close();
-
-    TString commandToExec = "pede " + TString(GetSteerFileName());
-    fCommandToRunPede = commandToExec;
 }
 
 void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGem, Int_t NLC, Int_t NGL, TString name) {
@@ -603,74 +599,114 @@ Bool_t BmnGemAlignment::isOneTrack(TClonesArray* hits) {
 }
 
 void BmnGemAlignment::StartPede() {
-    TString random = "";
-    gRandom->SetSeed(0);
-    random += (Int_t) (gRandom->Rndm(0) * 1000);
-    system(TString(fCommandToRunPede + " >> " + random).Data());
-
-    FILE* file = popen(TString("cat " + random + " | grep -e 'by factor' | awk '{print $9}'").Data(), "r");
-    if (!file)
-        return;
-
-    Char_t buffer[100];
-    fgets(buffer, sizeof (buffer), file);
-    fSigmaX = atof(buffer);
-    fSigmaY = fSigmaX;
-    pclose(file);
-
-    StartMille();
-    system(TString(fCommandToRunPede + " && rm " + random).Data());
-
-    ifstream resFile;
-    resFile.open("millepede.res", ios::in);
-    if (!resFile)
-        return;
-
-    resFile.ignore(numeric_limits<streamsize>::max(), '\n');
-
-    TString buff1 = "";
-    TString buff2 = "";
-    TString buff3 = "";
-    TString buff4 = "";
-    TString buff5 = "";
-
-    outGraph->Set(fNumLabels);
-    string line;
-    Int_t point = 0;
-    while (getline(resFile, line)) {
-        stringstream ss(line);
-        Int_t size = ss.str().length();
-        // 40 and 68 symbols are fixed in the Pede-output
-        if (size == 40) {
-            ss >> buff1 >> buff2 >> buff3;
-            outGraph->SetPoint(point, buff1.Atof(), buff2.Atof());
-            outGraph->SetPointError(point, 0., 0.);
-        } else if (size == 68) {
-            ss >> buff1 >> buff2 >> buff3 >> buff4 >> buff5;
-            outGraph->SetPoint(point, buff1.Atof(), buff2.Atof());
-            outGraph->SetPointError(point, 0., buff5.Atof());
-        } else
-            cout << "Unsupported format observed!";
-        point++;
-    }
-
-    TCanvas* c = new TCanvas("alignParams", "alignParams", 1200, 800);
-    c->SetGridx();
-    c->SetGridy();
-    c->cd();
-    outGraph->Draw("AP");
-    outGraph->SetMarkerStyle(22);
-    outGraph->SetMarkerSize(1.5);
-    outGraph->GetXaxis()->SetTitle("Param. number");
-    outGraph->GetYaxis()->SetTitle("Param. value, cm");
-    outGraph->SetTitle(Form("%s-type of alignment", GetAlignmentDim().Data()));
+    TCanvas* c = new TCanvas("alignParams", "alignParams", 1000, 1000);
+    vector <TString> steerFileNames = GetSteerFileNames();
+    const Int_t dim = steerFileNames.size();
+    c->Divide(2, dim);
+    TGraphErrors * outGraphX[dim];
+    TGraphErrors * outGraphY[dim];
     TString tmp = fRecoFileName;
+
+    for (Int_t iSize = 0; iSize < dim; iSize++) {
+        outGraphX[iSize] = new TGraphErrors();
+        outGraphY[iSize] = new TGraphErrors();
+        TString commandToExec = "pede " + steerFileNames.at(iSize);
+        fCommandToRunPede = commandToExec;
+
+        TString random = "";
+        gRandom->SetSeed(0);
+        random += (Int_t) (gRandom->Rndm(0) * 1000);
+        system(TString(fCommandToRunPede + " >> " + random).Data());
+
+        FILE* file = popen(TString("cat " + random + " | grep -e 'by factor' | awk '{print $9}'").Data(), "r");
+        if (!file)
+            return;
+
+        Char_t buffer[100];
+        fgets(buffer, sizeof (buffer), file);
+        fSigmaX = atof(buffer);
+        fSigmaY = fSigmaX;
+        pclose(file);
+
+        StartMille();
+        system(TString(fCommandToRunPede + " && rm " + random).Data());
+
+        ifstream resFile;
+        resFile.open("millepede.res", ios::in);
+        if (!resFile)
+            return;
+
+        resFile.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        TString buff1 = "";
+        TString buff2 = "";
+        TString buff3 = "";
+        TString buff4 = "";
+        TString buff5 = "";
+
+        string line;
+        Int_t pointX = 0;
+        Int_t pointY = 0;
+        while (getline(resFile, line)) {
+            stringstream ss(line);
+            Int_t size = ss.str().length();
+            // 40 and 68 symbols are fixed in the Pede-output
+            if (size == 40) {
+                ss >> buff1 >> buff2 >> buff3;
+                if (buff1.Atoi() % 2 == 0) {
+                    outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), buff2.Atof());
+                    outGraphY[iSize]->SetPointError(pointY, 0., 0.);
+                    pointY++;
+                } else {
+                    outGraphX[iSize]->SetPoint(pointX, buff1.Atoi(), buff2.Atof());
+                    outGraphX[iSize]->SetPointError(pointX, 0., 0.);
+                    pointX++;
+                }
+            } else if (size == 68) {
+                ss >> buff1 >> buff2 >> buff3 >> buff4 >> buff5;
+                if (buff1.Atoi() % 2 == 0) {
+                    outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), buff2.Atof());
+                    outGraphY[iSize]->SetPointError(pointY, 0., buff5.Atof());
+                    pointY++;
+                } else {
+                    outGraphX[iSize]->SetPoint(pointX, buff1.Atoi(), buff2.Atof());
+                    outGraphX[iSize]->SetPointError(pointX, 0., buff5.Atof());
+                    pointX++;
+                }
+            } else
+                cout << "Unsupported format observed!";
+        }
+
+        c->cd(2 * iSize + 1)->SetGrid();
+        GraphDrawAttibuteSetter(outGraphX[iSize], steerFileNames[iSize]);
+
+        c->cd(2 * iSize + 2)->SetGrid();
+        GraphDrawAttibuteSetter(outGraphY[iSize], steerFileNames[iSize]);
+
+        system(Form("cp millepede.res Millepede_%s_%s.res", tmp.Data(), TString(steerFileNames.at(iSize)).Data()));
+        system("rm millepede.*");
+        resFile.close();
+    }
     c->SaveAs(Form("alignParams_%s.png", tmp.Data()));
     delete c;
-
-    system(Form("cp millepede.res Millepede_%s.res", tmp.Data()));
-    system("rm millepede.*");
-    resFile.close();
 }
+
+void BmnGemAlignment::GraphDrawAttibuteSetter(TGraphErrors* gr, TString steerFileName) {
+    gr->Draw("AP");
+    gr->SetMarkerStyle(22);
+    gr->SetMarkerSize(1.5);
+    gr->GetXaxis()->SetTitle("Param. number");
+    gr->GetXaxis()->SetTitleOffset(-0.35);
+    gr->GetXaxis()->SetLabelSize(0.09);
+    gr->GetXaxis()->SetTitleSize(0.09);
+    gr->GetXaxis()->CenterTitle();
+    gr->GetYaxis()->SetTitle("Param. value, cm");
+    gr->GetYaxis()->SetTitleOffset(-0.3);
+    gr->GetYaxis()->CenterTitle();
+    gr->GetYaxis()->SetTitleSize(0.09);
+    gr->GetYaxis()->SetLabelSize(0.09);
+    gr->SetTitle(Form("%s-type of alignment (%s)", GetAlignmentDim().Data(), steerFileName.Data()));
+}
+
 
 ClassImp(BmnGemAlignment)

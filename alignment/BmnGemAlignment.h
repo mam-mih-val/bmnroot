@@ -123,8 +123,8 @@ public:
         return fAlignmentType;
     }
 
-    void SetSteerFile(const Char_t* file) {
-        fSteerFileName = file;
+    void SetSteerFile(vector <TString> fileNames) {
+        fSteerFileNames = fileNames;
     }
 
     void SetTxMinMax(Double_t min, Double_t max) {
@@ -138,12 +138,10 @@ public:
     }
 
     void SetXresMax(Double_t val) {
-        //fAlignCont->SetXresMax(val);
-        fXresMax = val;
+         fXresMax = val;
     }
 
     void SetYresMax(Double_t val) {
-        // fAlignCont->SetYresMax(val);
         fYresMax = val;
     }
 
@@ -165,8 +163,8 @@ public:
 
 private:
 
-    const Char_t* GetSteerFileName() {
-        return fSteerFileName;
+    vector <TString> GetSteerFileNames() {
+        return fSteerFileNames;
     }
 
     Double_t LineFit3D(vector <BmnGemStripHit*>, TVector3&, TVector3&);
@@ -181,6 +179,8 @@ private:
 
     void AlignmentdXdY(ifstream&, Int_t, Int_t, Int_t, Int_t, TString);
     void DebugInfo(Int_t, Int_t, Int_t, Double_t*, Double_t*, Double_t, Double_t);
+    
+    void GraphDrawAttibuteSetter(TGraphErrors*, TString);
 
     BmnAlignmentContainer* fAlignCont;
 
@@ -232,12 +232,11 @@ private:
     Bool_t fOnlyMille;
     Bool_t fBeamRun; // if true then it corresponds to 61 - 65 files 
     TString fRunType;
-    const Char_t* fSteerFileName;
+    vector <TString> fSteerFileNames;
 
     TString fAlignmentType;
     TString fCommandToRunPede;
     
-    TGraphErrors* outGraph;
     ClassDef(BmnGemAlignment, 1)
 };
 

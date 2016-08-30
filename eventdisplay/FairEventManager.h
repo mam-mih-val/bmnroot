@@ -132,8 +132,6 @@ class FairEventManager : public TEveEventManager
     int background_color;
     // whether background color is dark
     bool isDarkColor;
-    // name of a file with experimental data
-    TString strExperimentFile;
     // event count
     Long64_t fEntryCount; //!
     // whether Online of Offline mode

@@ -58,27 +58,16 @@ FairEventManagerEditor::FairEventManagerEditor(const TGWindow* p, Int_t width, I
 
 void FairEventManagerEditor::Init()
 {
-    // get input file and event countMAXE
-    FairRootManager* fRootManager = FairRootManager::Instance();
-    TChain* chain = fRootManager->GetInChain();
-
-    if (fManager->strExperimentFile != "")
-        iEventCount = fManager->fEntryCount;
-    else
-        iEventCount = chain->GetEntriesFast();
+    TChain* chain = FairRootManager::Instance()->GetInChain();
 
     // create tab for event visualization
     MakeTitle("FairEventManager  Editor");
     TGVerticalFrame* fInfoFrame = CreateEditorTabSubFrame("Event Info");
-    title1 = new TGCompositeFrame(fInfoFrame, 250, 10,
-        kVerticalFrame | kLHintsExpandX | kFixedWidth | kOwnBackground);
+    title1 = new TGCompositeFrame(fInfoFrame, 250, 10, kVerticalFrame | kLHintsExpandX | kFixedWidth | kOwnBackground);
 
     // display file name
-    TString Infile= "File : ";
-    if (fManager->strExperimentFile != "")
-        Infile += fManager->strExperimentFile;
-    else
-        Infile += chain->GetFile()->GetName();
+    TString Infile = "File : ";
+    Infile += chain->GetFile()->GetName();
     TGLabel* TFName = new TGLabel(title1, Infile.Data());
     title1->AddFrame(TFName);
 
@@ -91,6 +80,7 @@ void FairEventManagerEditor::Init()
 
     // display event count
     TString nevent = "No of events : ";
+    iEventCount = chain->GetEntriesFast();
     nevent += iEventCount;
     TGLabel* TEvent = new TGLabel(title1, nevent.Data());
     title1->AddFrame(TEvent);
@@ -208,7 +198,6 @@ void FairEventManagerEditor::Init()
 
     TGHorizontalFrame* frameTracksInfo = new TGHorizontalFrame(groupData);
     // button for show|hide MC tracks
-
     fShowMCTracks = new TGCheckButton(frameTracksInfo, "MC tracks");
     frameTracksInfo->AddFrame(fShowMCTracks, new TGLayoutHints(kLHintsNormal, 0,0,0,0));
     fShowMCTracks->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMCTracks(Bool_t)");
@@ -241,7 +230,8 @@ void FairEventManagerEditor::Init()
     }
 
     // read first event
-    fManager->GotoEvent(0);
+    iEventNumber = 0;
+    fManager->GotoEvent(iEventNumber);
 
     // first time checking for active buttons
     if (fManager->EveMCPoints == NULL)
@@ -260,8 +250,6 @@ void FairEventManagerEditor::Init()
         fShowRecoTracks->SetDisabledAndSelected(kFALSE);
     else
         fShowRecoTracks->SetEnabled(kTRUE);
-
-    iEventNumber = 0;
 
     // display event time
     TString time;
@@ -318,7 +306,8 @@ void FairEventManagerEditor::SelectPDG()
 void FairEventManagerEditor::ShowGeometry(Bool_t is_show)
 {
     gEve->GetGlobalScene()->SetRnrState(is_show);
-    if (!fManager->isOnline){
+    if (!fManager->isOnline)
+    {
         fManager->fRPhiGeomScene->SetRnrState(is_show);
         fManager->fRhoZGeomScene->SetRnrState(is_show);
     }
@@ -641,7 +630,7 @@ void FairEventManagerEditor::UpdateEvent()
             ThreadParam_ReadFile* par_read_file = new ThreadParam_ReadFile();
             par_read_file->fEventReadData = fEventReadData;
             par_read_file->fEventDrawData = fEventDrawData;
-            par_read_file->raw_file_name_begin = fManager->strExperimentFile;
+            //par_read_file->raw_file_name_begin = fManager->strRecoFile;
             par_read_file->semEventData = semEventData;
 
             TThread* thread_read_file = new TThread(ReadMWPCFiles, (void*)par_read_file);
@@ -659,19 +648,19 @@ void FairEventManagerEditor::UpdateEvent()
             return;
         }
 
-        // run thread for online display of root files
-        ThreadParam_RunTask* par_run_task = new ThreadParam_RunTask();
-        par_run_task->fEventManager = fManager;
-        par_run_task->fManagerEditor = this;
-        par_run_task->isZDCRedraw = false;
+        // Run separate thread for Online Display
+        ThreadParam_OnlineDisplay* par_online_display = new ThreadParam_OnlineDisplay();
+        par_online_display->fEventManager = fManager;
+        par_online_display->fManagerEditor = this;
+        par_online_display->fRootManager = FairRootManager::Instance();
+        par_online_display->isZDCRedraw = false;
         if ((fManager->isZDCModule) && (fShowMCPoints->IsOn()))
-            par_run_task->isZDCRedraw = true;
-        par_run_task->isRootManagerReadEvent = (fManager->strExperimentFile == "");
-        par_run_task->iCurrentEvent = fCurrentEvent->GetIntNumber();
+            par_online_display->isZDCRedraw = true;
+        par_online_display->iCurrentEvent = fCurrentEvent->GetIntNumber();
 
-        TThread* thread_run_task = new TThread(RunTasks, (void*)par_run_task);
+        TThread* thread_run_online = new TThread(RunOnlineDisplay, (void*)par_online_display);
         iThreadState = 1;
-        thread_run_task->Run();
+        thread_run_online->Run();
 
         return;
     }
@@ -691,39 +680,33 @@ void FairEventManagerEditor::SaveImage()
     return;
 }
 
-// thread function for execution of FairRunAna tasks
-void* RunTasks(void* ptr)
+// thread function for Online Display
+void* RunOnlineDisplay(void* ptr)
 {
-    ThreadParam_RunTask* thread_par = (ThreadParam_RunTask*) ptr;
+    ThreadParam_OnlineDisplay* thread_par = (ThreadParam_OnlineDisplay*) ptr;
     FairEventManager* fManager = thread_par->fEventManager;
     FairEventManagerEditor* fEditor = thread_par->fManagerEditor;
+    FairRootManager* fRootManager = thread_par->fRootManager;
     int current_event = thread_par->iCurrentEvent;
     bool isZDCRedraw = thread_par->isZDCRedraw;
-    bool isRootManagerReadEvent = thread_par->isRootManagerReadEvent;
 
     // get all tasks from FairRunAna
     FairRunAna* pRun = fManager->fRunAna;
     FairTask* pMainTask = pRun->GetMainTask();
     TList* taskList = pMainTask->GetListOfTasks();
 
-    FairRootManager* fRootManager = FairRootManager::Instance();
     int i;
     for (i = current_event+1; i < fEditor->iEventCount; i++)
     {
         if (fEditor->iThreadState == 0)
             break;
-        /*do
+        do
         {
-            TThread::Sleep(0, 300000000);
-        } while ((gEve->GetGlobalScene()->GetGLScene()->IsLocked()) || (gEve->GetEventScene()->GetGLScene()->IsLocked()));*/
+            TThread::Sleep(0, 200000000);
+        } while ((gEve->GetGlobalScene()->GetGLScene()->IsLocked()) || (gEve->GetEventScene()->GetGLScene()->IsLocked()));
 
-        if (isRootManagerReadEvent)
-        {
-            fRootManager->ReadEvent(i);
-            fManager->SetCurrentEvent(i);
-        }
-        else
-            fManager->SetCurrentEvent(i);
+        fRootManager->ReadEvent(i);
+        fManager->SetCurrentEvent(i);
 
         cout<<"Current event: "<<i<<endl;
 
@@ -745,11 +728,12 @@ void* RunTasks(void* ptr)
 
         // redraw points
         gEve->Redraw3D();
-        //TThread::Sleep(0, 400000000);
-        gSystem->ProcessEvents();
+        //TThread::Sleep(1,0);
+        //gSystem->ProcessEvents();
     }
 
     fEditor->UnblockUI();
+    fEditor->iThreadState = 0;
 }
 
 // RAW DISPLAY below

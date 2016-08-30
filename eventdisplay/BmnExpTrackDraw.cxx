@@ -59,49 +59,30 @@ InitStatus BmnExpTrackDraw::Init()
 
     fEventManager = FairEventManager::Instance();
     if (fVerbose > 2)
-        cout<<"BmnExpTrackDraw::Init() get instance of FairEventManager"<<endl;
+        cout<<"BmnExpTrackDraw::Init() get instance of EventManager: "<<fEventManager<<endl;
 
-    bmn_data_tree = new TChain("cbmsim");
-    bmn_data_tree->Add(fEventManager->strExperimentFile);
-
-    if (bmn_data_tree->GetFile() == NULL)
-    {
-      cout<<"BmnExpTrackDraw::Init() file with 'cbmsim' tree \""<<fEventManager->strExperimentFile<<"\" not found! Task will be deactivated "<<endl;
-      SetActive(kFALSE);
-      return kERROR;
-    }
-
-    bmn_data_tree->SetBranchAddress(GetName(), &fTrackList);
-    if (!bmn_data_tree->GetBranchStatus(GetName()))
-    {
-      cout<<"BmnExpTrackDraw::Init() branch \""<<GetName()<<"\" not found in file ("<<fEventManager->strExperimentFile<<")! Task will be deactivated "<<endl;
-      SetActive(kFALSE);
-      return kERROR;
-    }
-
+    FairRootManager* fManager = FairRootManager::Instance();
     if (fVerbose > 2)
-        cout<<"BmnExpTrackDraw::Init() get track list " <<fTrackList<<" ("<<fTrackList->GetEntriesFast()<<") from branch '"<<GetName()<<"'"<<endl;
+        cout<<"BmnExpTrackDraw::Init() get instance of FairRootManager: "<<fManager<<endl;
 
-    bmn_data_tree->SetBranchAddress(fHitsBranchName, &fHitList);
-    if (!bmn_data_tree->GetBranchStatus(fHitsBranchName))
+    fTrackList = (TClonesArray*)fManager->GetObject(GetName());
+    if(fTrackList == 0)
     {
-      cout<<"BmnExpTrackDraw::Init() branch '"<<fHitsBranchName<<"' not found in file ("<<fEventManager->strExperimentFile<<")! Task will be deactivated "<<endl;
+      cout<<"BmnExpTrackDraw::Init()  branch "<<GetName()<<" Not found! Task will be deactivated "<<endl;
       SetActive(kFALSE);
-      return kERROR;
     }
+    if (fVerbose > 2)
+        cout<<"BmnExpTrackDraw::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
 
+    fHitList = (TClonesArray*)fManager->GetObject(fHitsBranchName);
+    if(fHitList == 0)
+    {
+      cout<<"BmnExpTrackDraw::Init()  branch "<<fHitsBranchName<<" Not found! Task will be deactivated "<<endl;
+      SetActive(kFALSE);
+    }
     if (fVerbose > 2)
         cout<<"BmnExpTrackDraw::Init() get list of hits "<<fHitList<<" from branch '"<<fHitsBranchName<<"'"<<endl;
 
-    if (fEventManager->fEntryCount == 0)
-        fEventManager->fEntryCount = bmn_data_tree->GetEntries();
-    else
-        fEventManager->fEntryCount = TMath::Min(fEventManager->fEntryCount, bmn_data_tree->GetEntries());
-
-    if (fVerbose > 2)
-        cout<<"BmnExpTrackDraw::Init() event count: "<<fEventManager->fEntryCount<<endl;
-
-    fEvent = "Current Event";
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
     PEnergy = 0;
@@ -117,9 +98,6 @@ void BmnExpTrackDraw::Exec(Option_t* option)
         cout<<" BmnExpTrackDraw::Exec "<<endl;
 
     Reset();
-
-    Int_t event_number = fEventManager->GetCurrentEvent();
-    bmn_data_tree->GetEntry(event_number);
 
     CbmTrack* current_track;
     if (fVerbose > 1)

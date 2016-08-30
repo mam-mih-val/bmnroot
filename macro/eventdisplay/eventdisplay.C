@@ -1,11 +1,14 @@
-// sim_geo_file - file with MC data and/or detector geometry
-// reco_file - file with reconstructed data for simulation or experimental events
-// data source: 0 - event display for simulatated data, event display for experimental data
-// is_online: true - use Online Mode (continious view events), false - use Offline Mode (manual switching of events)
-void eventdisplay(char* sim_geo_file = "$VMCWORKDIR/macro/run/evetest.root", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
+// EVENT DISPLAY macro for simulated and experimental data
+//
+// data source: 0 - event display for simulatated data:
+//      sim_run_info - path to the file with MC data and detector geometry
+// data source: 1 - event display for experimental data:
+//      sim_run_info - run number in 'runN-NN' format, e.g. "run3-642" (the geometry is obtained from the Unified Database)
+// reco_file - file with reconstructed data for simulated or experimental events
+// is_online: false - use Offline Mode (manual switching of events), default; true - use Online Mode (continious view events)
+//void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
+void eventdisplay(char* sim_run_info = "run3-ll642xx", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 1, bool is_online = false)
 {
-    TStopwatch timer;
-    timer.Start();
     gDebug = 0;
 
     // load main and detectors libraries
@@ -19,92 +22,107 @@ void eventdisplay(char* sim_geo_file = "$VMCWORKDIR/macro/run/evetest.root", cha
     // CREATE FairRunAna
     FairRunAna* fRun = new FairRunAna();
 
-    // Create event manager
-    FairEventManager* fMan= new FairEventManager();
-    fMan->isOnline = is_online;
-    fMan->iDataSource = data_source;
-
-
-    // FOR SIMULATION
+    FairSource* fFileSource = NULL;
+    // FOR SIMULATION : set source of events to display and addtiional parameters
     if (data_source == 0)
     {
-        if (!CheckFileExist(sim_geo_file))
+        // check file existence with MC data and detector geometry
+        if (!CheckFileExist(sim_run_info))
         {
             cout<<endl<<"ERROR: Simulation file with detector geometry wasn't found!"<<endl;
             return;
         }
 
-        fRun->SetInputFile(sim_geo_file);
+        fFileSource = new FairFileSource(sim_run_info);
 
-        // set parameter file with simulation data and detector geometry
+        // set parameter file with MC data and detector geometry
         FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
         FairParRootFileIo* parIo1 = new FairParRootFileIo();
-        parIo1->open(sim_geo_file);
+        parIo1->open(sim_run_info);
         rtdb->setFirstInput(parIo1);
         rtdb->setOutput(parIo1);
         rtdb->saveOutput();
 
-        // add file with reconstructed data as friend
+        // add file with reconstructed data as a friend
         if (CheckFileExist(reco_file))
-            fRun->AddFriend(reco_file);
+            ((FairFileSource*)fFileSource)->AddFriend(reco_file);
         else
             cout<<endl<<"Warning: File with reconstructed data wasn't found!"<<endl;
     }
-    // for experimental data
+    // FOR EXPERIMENTAL DATA : set source of events to display and addtiional parameters
     else
     {
-        // check file existence with detector geometry
-        if (!CheckFileExist(sim_geo_file))
+        TString strRunInfo(sim_run_info);
+        Ssiz_t indDash = strRunInfo.First('-');
+        if ((indDash > 0) && (strRunInfo.BeginsWith("run")))
         {
-            cout<<endl<<"ERROR: File with detector geometry wasn't found!"<<endl;
-            return;
-        }
+            // get run period
+            TString number_string(strRunInfo(3, indDash - 3));
+            Int_t run_period = number_string.Atoi();
+            // get run number
+            number_string = strRunInfo(indDash+1, strRunInfo.Length() - indDash-1);
+            Int_t run_number = number_string.Atoi();
 
-        fRun->SetInputFile(sim_geo_file);
-
-        // set parameter file with simulation data and detector geometry
-        FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
-        FairParRootFileIo* parIo1 = new FairParRootFileIo();
-        parIo1->open(sim_geo_file);
-        rtdb->setFirstInput(parIo1);
-        rtdb->setOutput(parIo1);
-        rtdb->saveOutput();
-
-        // get gGeoManager from geometry file
-        if (!gGeoManager)
-        {
-            TFile* geoFile = new TFile(sim_geo_file, "READ");
-            if (!geoFile->IsOpen())
+            // get geometry for run
+            TString root_file_path = "current_geo_file.root";
+            Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, root_file_path.Data());
+            if (res_code != 0)
             {
-                cout<<"Error: could not open ROOT file with geometry!"<<endl;
+                cout << "\nGeometry couldn't' be read from the database" << endl;
                 return;
             }
 
-            TObject* pObj = geoFile->Get("FairGeoParSet");
-            if (pObj == NULL)
+            // get gGeoManager from ROOT file (if required)
+            TFile* geoFile = new TFile(root_file_path, "READ");
+            if (!geoFile->IsOpen())
             {
-                TList* keyList = geoFile->GetListOfKeys();
-                TIter next(keyList);
-                TKey* key = (TKey*)next();
-                TString className(key->GetClassName());
-                if (className.BeginsWith("TGeoManager"))
-                    key->ReadObj();
-                else
-                {
-                    cout<<"Error: TGeoManager isn't top element in given file "<<root_file_path<<endl;
-                    return;
-                }
+                cout << "Error: could not open ROOT file with geometry!" << endl;
+                return;
             }
+            TList* keyList = geoFile->GetListOfKeys();
+            TIter next(keyList);
+            TKey* key = (TKey*) next();
+            TString className(key->GetClassName());
+            if (className.BeginsWith("TGeoManager"))
+                key->ReadObj();
+            else
+            {
+                cout << "Error: TGeoManager isn't top element in geometry file " << root_file_path << endl;
+                return;
+            }
+
+            // set magnet field with factor corresponding the given run (for GEANE)
+            UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
+            if (pCurrentRun == 0) return;
+            Double_t fieldScale = 0;
+            double map_current = 900.0;
+            int* current_current = pCurrentRun->GetFieldCurrent();
+            if (current_current == NULL)
+                fieldScale = 0;
+            else
+                fieldScale = (*current_current) / map_current;
+            BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v3_ascii_Extrap.dat");
+            magField->SetScale(fieldScale);
+            magField->Init();
+            fRun->SetField(magField);
+        }
+        else
+        {
+            cout << "Error: run info wasn't found!" << endl;
+            return;
         }
 
-        fMan->strExperimentFile = reco_file;
-
-        // set field for Geane (e.g. constant inside the magnet)
-        BmnFieldConst* magField = new BmnFieldConst();
-        magField->SetFieldRegion(-300., 300., -300., 300., -300., 300);
-        magField->SetField(0., -9. * 0.44, 0.);
-        fRun->SetField(magField);
+        // set source as raw data file
+        if (!CheckFileExist(reco_file)) return;
+        fFileSource = new BmnFileSource(reco_file);
     }
+
+    fRun->SetSource(fFileSource);
+
+    // Create Event Manager
+    FairEventManager* fMan = new FairEventManager();
+    fMan->isOnline = is_online;
+    fMan->iDataSource = data_source;
 
     // set output file
     fRun->SetOutputFile("ed_out.root");
@@ -112,6 +130,7 @@ void eventdisplay(char* sim_geo_file = "$VMCWORKDIR/macro/run/evetest.root", cha
     // set tasks to draw
     SetTasks(fMan, data_source);
 
+    // light background color by default
     fMan->background_color = 17;
     fMan->isDarkColor = false;
 
@@ -119,17 +138,16 @@ void eventdisplay(char* sim_geo_file = "$VMCWORKDIR/macro/run/evetest.root", cha
     fMan->Init();
 }
 
-
 // set FairRunAna tasks depending from data source and on/offline mode
 class FairEventManager;
 void SetTasks(FairEventManager* fMan, int data_source)
 {
-    // root files with simulation and reconstructed data
+    Style_t pointMarker = kFullDotSmall;
+    Color_t mcPointColor = kRed, recoPointColor = kBlack, expPointColor = kRed;
+
+    // FOR SIMULATION : set drawing tasks
     if (data_source == 0)
     {
-        Style_t pointMarker = kFullDotSmall;
-        Color_t mcPointColor = kRed, recoPointColor = kBlack;
-
         // draw MC points
         FairMCPointDraw* RecoilPoint = new FairMCPointDraw("RecoilPoint", mcPointColor, pointMarker);
         fMan->AddTask(RecoilPoint);
@@ -161,28 +179,24 @@ void SetTasks(FairEventManager* fMan, int data_source)
         //fMan->AddTask(MCTrack);
 
         // DST hits
-        FairHitPointSetDraw* BmnGemHit = new FairHitPointSetDraw("BmnGemStripHit", recoPointColor, pointMarker);
+        FairHitPointSetDraw* BmnGemHit = new FairHitPointSetDraw("BmnGemStripHit", recoPointColor, pointMarker); // new FairHitDraw("BmnGemStripHit", 1); //in box view
         fMan->AddTask(BmnGemHit);
         FairHitPointSetDraw* TOF1Hit = new FairHitPointSetDraw("TOF1Hit", recoPointColor, pointMarker);
         fMan->AddTask(TOF1Hit);
-        FairHitPointSetDraw* BmnDch1Hit = new FairHitPointSetDraw("BmnDch1Hit0", recoPointColor, pointMarker);
+        FairHitPointSetDraw* BmnDch1Hit = new FairHitPointSetDraw("BmnDchHit_1", recoPointColor, pointMarker);
         fMan->AddTask(BmnDch1Hit);
-        FairHitPointSetDraw* BmnDch2Hit = new FairHitPointSetDraw("BmnDch2Hit0", recoPointColor, pointMarker);
+        FairHitPointSetDraw* BmnDch2Hit = new FairHitPointSetDraw("BmnDchHit_2", recoPointColor, pointMarker);
         fMan->AddTask(BmnDch2Hit);
         FairHitPointSetDraw* BmnTof2Hit = new FairHitPointSetDraw("BmnTof2Hit", recoPointColor, pointMarker);
         fMan->AddTask(BmnTof2Hit);
 
-        // or DST hits in box view
-        //FairHitDraw* TpcHit = new FairHitDraw("TpcHit", 1);
-        //fMan->AddTask(TpcHit);
-
-        // DST tracks from simulation data
+        // DST tracks
         BmnTrackDraw* BmnGlobalTrack = new BmnTrackDraw("GlobalTrack");
-        fMan->AddTask(BmnGlobalTrack);
+        //fMan->AddTask(BmnGlobalTrack);
 
         // save EventDisplay Screenshot
-        //FairWebScreenshots* WebScreenshots = new FairWebScreenshots("WebScreenshots", "/var/www/html/events");
-        //FairWebScreenshots* WebScreenshots = new FairWebScreenshots("WebScreenshots","screenshots");
+        //FairWebScreenshots* WebScreenshots = new FairWebScreenshots("WebScreenshots", "/var/www/html/events"); // for WEB-page
+        //FairWebScreenshots* WebScreenshots = new FairWebScreenshots("WebScreenshots","screenshots"); // folder to save the screenshots
         //WebScreenshots->SetFormatFiles(0); // 0 -.png, 1 -.jpg, 2 -.jpg and .png
         //WebScreenshots->SetMultiFiles(0); //0 - the same file (event.png), 1 - multiple files (event_nnn.png)
         //WebScreenshots->SetPort(8016); // 8016 by default
@@ -191,42 +205,39 @@ void SetTasks(FairEventManager* fMan, int data_source)
         return;
     }
 
-    // root files with experimental hits and tracks
+    // FOR EXPERIMENTAL DATA : set drawing tasks
     if (data_source == 1)
     {
-        Style_t pointMarker = kFullDotSmall;
-        Color_t pointColor = kRed;
-
-        /** raw data in ROOT file
+        /** experimental digits
         // draw MWPC digits
-        BmnDigitDraw* MwpcDigit = new BmnDigitDraw("bmn_mwpc_digit", 1, pointColor, pointMarker);
+        BmnDigitDraw* MwpcDigit = new BmnDigitDraw("bmn_mwpc_digit", 1, expPointColor, pointMarker);
         fMan->AddTask(MwpcDigit);
 
         // draw DCH digits
-        BmnDigitDraw* DchDigit = new BmnDigitDraw("bmn_dch_digit", 2, pointColor, pointMarker);
+        BmnDigitDraw* DchDigit = new BmnDigitDraw("bmn_dch_digit", 2, expPointColor, pointMarker);
         fMan->AddTask(DchDigit);**/
 
-        /*  tracks with points in ROOT files
+        // experimental reconstructed data
         // draw MWPC hits
-        BmnHitDraw* MwpcHit = new BmnHitDraw("BmnMwpcHit", pointColor, pointMarker);
+        FairHitPointSetDraw* MwpcHit = new FairHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
         fMan->AddTask(MwpcHit);
 
         // draw DCH hits
-        BmnHitDraw* DchHit = new BmnHitDraw("BmnDchHit", pointColor, pointMarker);
+        FairHitPointSetDraw* DchHit = new FairHitPointSetDraw("BmnDchHit", expPointColor, pointMarker);
         fMan->AddTask(DchHit);
 
         // draw MWPC tracks
         BmnExpTrackDraw* MwpcTrack = new BmnExpTrackDraw("MwpcMatchedTracks", "BmnMwpcHit");
-        fMan->AddTask(MwpcTrack);
+        //fMan->AddTask(MwpcTrack);
         
         // draw DCH tracks
         BmnExpTrackDraw* DchTrack = new BmnExpTrackDraw("DchTracks", "BmnDchHit");
-        fMan->AddTask(DchTrack);*/
+        //fMan->AddTask(DchTrack);
 
-        FairGeane* Geane = new FairGeane();
+        /*FairGeane* Geane = new FairGeane();
         fMan->AddTask(Geane);
 
         CbmTrackDraw* MwpcTrack = new CbmTrackDraw("MwpcMatchedTracks");
-        fMan->AddTask(MwpcTrack);
+        fMan->AddTask(MwpcTrack);*/
     }
 }

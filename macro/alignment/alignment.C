@@ -3,7 +3,7 @@
 
 using namespace std;
 
-void alignment(TString fileNumber = "65") {
+void alignment(TString fileNumber = "All") {
     TString type; 
     if (fileNumber.Atoi() < 66 || fileNumber == "All")
         type = "beam";
@@ -13,13 +13,13 @@ void alignment(TString fileNumber = "65") {
  gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
  bmnloadlibs(); // load BmnRoot libraries
 
- Bool_t useMilleOnly = true; // true corresponds to the Mille usage only
+ Bool_t useMilleOnly = false; // true corresponds to the Mille usage only
  TString addInfo = "";
  BmnGemAlignment* gemAlign = new BmnGemAlignment(TString("/nfs/digits_run4/bmn_run00" + fileNumber + "_digi.root").Data(), TString("reco_" + fileNumber + addInfo + ".root").Data(), useMilleOnly);
- gemAlign->SetDebugInfo(kTRUE);
+ // gemAlign->SetDebugInfo(kTRUE);
  gemAlign->SetRunType(type);
  if (useMilleOnly == kFALSE)
-     gemAlign->SetNofEvents(10000); // 0 corresponds to all data set
+     gemAlign->SetNofEvents(0); // 0 corresponds to all data set
  
  // Restrictions on output of the C.F.
  gemAlign->SetMaxNofHitsPerEvent(30);
@@ -40,8 +40,8 @@ void alignment(TString fileNumber = "65") {
  // Alignment params.
  gemAlign->SetAlignmentDim("xy");
  
- const Int_t nSteerFiles = 4;
- TString steerFiles[nSteerFiles] = {"steer1.txt", "steer2.txt", "steer3.txt", "steer4.txt"}; // Pass different steer-files
+ const Int_t nSteerFiles = 5;
+ TString steerFiles[nSteerFiles] = {"steer1.txt", "steer2.txt", "steer3.txt", "steer4.txt", "steer5.txt"}; // Pass different steer-files
  vector <TString> steerFileNames;
  for (Int_t iSize = 0; iSize < nSteerFiles; iSize++)
      steerFileNames.push_back(steerFiles[iSize]);

@@ -1,0 +1,24 @@
+constraints.txt
+
+Cfiles
+alignment.bin
+
+Parameter
+
+1 0 0.005
+2 0 0.005
+
+3 0 0.005
+4 0 0.005
+
+5 0 0.005
+6 0 0.005
+
+7 0 0.005
+8 0 0.005
+
+9 0 0.005
+10 0 0.005
+
+method inversion 500 1E-7    !Gauss matrix inversion
+

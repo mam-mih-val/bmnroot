@@ -16,6 +16,7 @@
 #include "BmnDchRaw2Digit.h"
 #include "BmnTof1Raw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
+#include "BmnEventHeader.h"
 #include <bitset>
 
 class BmnRawDataDecoder {
@@ -57,7 +58,7 @@ public:
     }
     
     void SetPedestalRun(Bool_t ped) {
-        fPedestalRan = ped;
+        fPedestalRun = ped;
     }
 
 
@@ -106,11 +107,13 @@ private:
     TClonesArray *bc1;
     TClonesArray *bc2;
     TClonesArray *veto;
+    //header array
+    TClonesArray *header;
 
     UInt_t data[1000000];
     ULong_t fMaxEvent;
     
-    Bool_t fPedestalRan;
+    Bool_t fPedestalRun;
 
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
 

@@ -94,6 +94,7 @@ BmnZDCDigit.cxx
 BmnTof2Raw2Digit.cxx
 BmnTof1Raw2Digit.cxx
 BmnRawDataDecoder.cxx
+BmnEventHeader.cxx
 BmnEnums.h
 )
 

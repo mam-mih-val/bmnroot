@@ -56,7 +56,7 @@ fTrHits(NULL) {
         fRecoTree->Branch("BmnGemTrack", &fGemTracks);
         fRecoTree->Branch("BmnAlignmentContainer", &fContainer);
 
-        fTrHits = new TClonesArray("BmnGemStripHit");  
+        fTrHits = new TClonesArray("BmnGemStripHit");
     }
 }
 
@@ -140,7 +140,8 @@ void BmnGemAlignment::PrepareData() {
                     Double_t y_err = module->GetIntersectionPointYError(iPoint);
                     Double_t z_err = 0.0;
 
-                    BmnGemStripHit* hit = new((*fGemHits)[fGemHits->GetEntriesFast()]) BmnGemStripHit(iStation, TVector3(x, y, z), TVector3(x_err, y_err, 0.), iPoint);
+                    // x --> -x in order to go to the BM@N reference frame
+                    BmnGemStripHit* hit = new((*fGemHits)[fGemHits->GetEntriesFast()]) BmnGemStripHit(iStation, TVector3(-x, y, z), TVector3(x_err, y_err, 0.), iPoint);
                     hit->SetDx(x_err);
                     hit->SetDy(y_err);
                     hit->SetDz(z_err);
@@ -239,6 +240,20 @@ void BmnGemAlignment::PrepareData() {
                     continue;
             }
 
+            // Use tracks without common hits
+            Bool_t isUsed = kFALSE;
+            for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
+                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetHitIndex(iHit));
+                if (hit->IsUsed()) {
+                    isUsed = kTRUE;
+                    break;
+                }
+                hit->SetUsing(kTRUE);
+            }
+
+            if (isUsed)
+                continue;
+
             BmnAlignmentContainer* cont = new ((*fContainer)[fContainer->GetEntriesFast()]) BmnAlignmentContainer();
             cont->SetEventNum(iEv);
             cont->SetXresMax(xResMax);
@@ -261,7 +276,6 @@ void BmnGemAlignment::PrepareData() {
                 cout << endl;
             }
         }
-        //       }
         fRecoTree->Fill();
         delete fDetector;
     }
@@ -631,8 +645,7 @@ void BmnGemAlignment::StartPede() {
             ss >> buff1 >> buff2 >> buff3;
             outGraph->SetPoint(point, buff1.Atof(), buff2.Atof());
             outGraph->SetPointError(point, 0., 0.);
-        } 
-        else if (size == 68) {
+        } else if (size == 68) {
             ss >> buff1 >> buff2 >> buff3 >> buff4 >> buff5;
             outGraph->SetPoint(point, buff1.Atof(), buff2.Atof());
             outGraph->SetPointError(point, 0., buff5.Atof());
@@ -640,7 +653,7 @@ void BmnGemAlignment::StartPede() {
             cout << "Unsupported format observed!";
         point++;
     }
-    
+
     TCanvas* c = new TCanvas("alignParams", "alignParams", 1200, 800);
     c->SetGridx();
     c->SetGridy();
@@ -649,11 +662,13 @@ void BmnGemAlignment::StartPede() {
     outGraph->SetMarkerStyle(22);
     outGraph->SetMarkerSize(1.5);
     outGraph->GetXaxis()->SetTitle("Param. number");
-    outGraph->GetYaxis()->SetTitle("Param. value");
+    outGraph->GetYaxis()->SetTitle("Param. value, cm");
     outGraph->SetTitle(Form("%s-type of alignment", GetAlignmentDim().Data()));
-    c->SaveAs("alignParams.png");
+    TString tmp = fRecoFileName;
+    c->SaveAs(Form("alignParams_%s.png", tmp.Data()));
     delete c;
-    
+
+    system(Form("cp millepede.res Millepede_%s.res", tmp.Data()));
     system("rm millepede.*");
     resFile.close();
 }

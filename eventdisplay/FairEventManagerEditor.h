@@ -42,19 +42,19 @@ struct ThreadParam_Draw
 };
 
 class FairEventManagerEditor;
-struct ThreadParam_RunTask
+struct ThreadParam_OnlineDisplay
 {
     FairEventManager* fEventManager;
     FairEventManagerEditor* fManagerEditor;
+    FairRootManager* fRootManager;
     int iCurrentEvent;
     bool isZDCRedraw;
-    bool isRootManagerReadEvent;
 };
 
 // multithread functions
 void* ReadMWPCFiles(void* ptr);
 void* DrawEvent(void* ptr);
-void* RunTasks(void* ptr);
+void* RunOnlineDisplay(void* ptr);
 
 class FairEventManagerEditor : public TGedFrame
 {

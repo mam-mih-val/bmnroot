@@ -45,7 +45,7 @@ FairEventManager* FairEventManager::Instance()
 
 //______________________________________________________________________________
 FairEventManager::FairEventManager()
-  :TEveEventManager("FairEventManager", ""),
+  :TEveEventManager("EventManager", ""),
    fRootManager(FairRootManager::Instance()),
    fEntry(0),
    fRunAna(FairRunAna::Instance()),
@@ -75,7 +75,6 @@ FairEventManager::FairEventManager()
    arrLevelColoring(NULL),
    background_color(1),
    isDarkColor(true),
-   strExperimentFile(""),
    fEntryCount(0),
    isZDCModule(NULL)
 {
@@ -377,7 +376,7 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
         gEve->GetDefaultViewer()->GetGLViewer()->UseLightColorSet();
     gEve->GetDefaultViewer()->GetGLViewer()->SetClearColor(background_color);
 
-    // many views for Offline mode
+    // different views and projections for Offline mode
     if (!isOnline)
     {
         // create projection managers

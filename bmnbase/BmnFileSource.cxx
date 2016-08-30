@@ -195,12 +195,9 @@ Bool_t BmnFileSource::Init()
         FairRootManager::Instance()->AddBranchToList(ObjName.Data());
 
         ppObj[i] = NULL;
+        //ActivateObject(&(ppObj[i]), ObjName);
         fInChain->SetBranchAddress(ObjName, &ppObj[i]);
         FairRootManager::Instance()->RegisterInputObject(ObjName, ppObj[i]);
-        // or
-        //ppObj[i] = NULL;
-        //ActivateObject(&(ppObj[i]), ObjName);
-        //FairRootManager::Instance()->AddMemoryBranch(ObjName, ppObj[i]);
     }
     
     // Add all additional input files to the input chain and do a

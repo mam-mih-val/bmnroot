@@ -58,7 +58,6 @@ FairHitPointSetDraw.cxx
 FairTimeStampPointDraw.cxx
 FairMCModuleDraw.cxx
 BmnDigitDraw.cxx
-BmnHitDraw.cxx
 BmnTrackDraw.cxx
 BmnExpTrackDraw.cxx
 CbmTrackDraw.cxx

@@ -58,39 +58,16 @@ InitStatus CbmTrackDraw::Init()
 
     fEventManager = FairEventManager::Instance();
     if (fVerbose > 2)
-        cout<<"CbmTrackDraw::Init() get instance of Event Manager"<<endl;
+        cout<<"CbmTrackDraw::Init() get instance of EventManager"<<endl;
 
-    bmn_data_tree = new TChain("cbmsim");
-    bmn_data_tree->Add(fEventManager->strExperimentFile);
+    FairRootManager* fManager = FairRootManager::Instance();
+    if (fVerbose > 2)
+        cout<<"BmnExpTrackDraw::Init() get instance of FairRootManager: "<<fManager<<endl;
 
-    if (bmn_data_tree->GetFile() == NULL)
-    {
-      cout<<"CbmTrackDraw::Init() file with 'cbmsim' tree \""<<fEventManager->strExperimentFile<<"\" not found! Task will be deactivated "<<endl;
-      SetActive(kFALSE);
-      return kERROR;
-    }
-
-    bmn_data_tree->SetBranchAddress(GetName(), &fTrackList);
-    if (!bmn_data_tree->GetBranchStatus(GetName()))
-    {
-      cout<<"CbmTrackDraw::Init() branch \""<<GetName()<<"\" not found in file ("<<fEventManager->strExperimentFile<<")! Task will be deactivated "<<endl;
-      SetActive(kFALSE);
-      return kERROR;
-    }
-
+    fTrackList = (TClonesArray*)fManager->GetObject(GetName());
     if (fVerbose > 2)
         cout<<"CbmTrackDraw::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
 
-    //cout<<endl<<"fEntryCount "<<fEventManager->fEntryCount<<" Event Count "<<bmn_data_tree->GetEntries()<<endl;
-    if (fEventManager->fEntryCount == 0)
-        fEventManager->fEntryCount = bmn_data_tree->GetEntries();
-    else
-        fEventManager->fEntryCount = TMath::Min(fEventManager->fEntryCount, bmn_data_tree->GetEntries());
-
-    if (fVerbose > 2)
-        cout<<"CbmTrackDraw::Init() event count: "<<fEventManager->fEntryCount<<endl;
-
-    fEvent = "Current Event";
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
     PEnergy = 0;
@@ -160,9 +137,6 @@ void CbmTrackDraw::Exec(Option_t* option)
         cout<<"CbmTrackDraw::Exec"<< endl;
 
     Reset();
-
-    Int_t event_number = fEventManager->GetCurrentEvent();
-    bmn_data_tree->GetEntry(event_number);
 
     CbmTrack* current_track;
     cout<<"Tracks: "<<fTrackList->GetEntriesFast()<<endl;

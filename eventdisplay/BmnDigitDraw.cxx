@@ -43,138 +43,121 @@ BmnDigitDraw::BmnDigitDraw(const char* name, Int_t det_id, Color_t color ,Style_
 // -------------------------------------------------------------------------
 InitStatus BmnDigitDraw::Init()
 {
-  if (fVerbose > 1)
-      cout<<  "BmnDigitDraw::Init()" << endl;
+    if (fVerbose > 1)
+        cout<<"BmnDigitDraw::Init()"<<endl;
 
-  if (fDetectorID == 0)
-  {
-    cout<<"BmnDigitDraw::Init() detector ID hasn't been set! Task will be deactivated"<<endl;
-    SetActive(kFALSE);
-    return kERROR;
-  }
+    if (fDetectorID == 0)
+    {
+        cout<<"BmnDigitDraw::Init() detector ID hasn't been set! Task will be deactivated"<<endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
 
-  fEventManager = FairEventManager::Instance();
-  if (fVerbose > 2)
-      cout<<"BmnDigitDraw::Init() get instance of FairEventManager"<<endl;
+    fEventManager = FairEventManager::Instance();
+    if (fVerbose > 2)
+        cout<<"BmnDigitDraw::Init() get instance of EventManager: "<<fEventManager<<endl;
 
-  bmn_digit_tree = new TChain("BMN_DIGIT");
-  bmn_digit_tree->Add(fEventManager->strExperimentFile);
+    FairRootManager* fManager = FairRootManager::Instance();
+    if (fVerbose > 2)
+        cout<<"BmnDigitDraw::Init() get instance of FairRootManager: "<<fManager<<endl;
 
-  if (bmn_digit_tree->GetFile() == NULL)
-  {
-    cout<<"BmnDigitDraw::Init() file with 'BMN_DIGIT' tree \""<<fEventManager->strExperimentFile<<"\" not found! Task will be deactivated "<<endl;
-    SetActive(kFALSE);
-    return kERROR;
-  }
+    fDigitList = (TClonesArray*)fManager->GetObject(GetName());
+    if (fVerbose > 2)
+        cout<<"BmnDigitDraw::Init() get digit list: "<<fDigitList<<endl;
 
-  bmn_digit_tree->SetBranchAddress(GetName(), &fDigitList);
-  if (!bmn_digit_tree->GetBranchStatus(GetName()))
-  {
-    cout<<"BmnDigitDraw::Init() branch \""<<GetName()<<"\" not found in file ("<<fEventManager->strExperimentFile<<")! Task will be deactivated "<<endl;
-    SetActive(kFALSE);
-    return kERROR;
-  }
+    //if (fEventManager->fEntryCount == 0)
+    //    fEventManager->fEntryCount = bmn_digit_tree->GetEntries();
+    //else
+    //    fEventManager->fEntryCount = TMath::Min(fEventManager->fEntryCount, bmn_digit_tree->GetEntries());
 
-  if (fVerbose > 2)
-      cout<<"BmnDigitDraw::Init() get digit list" <<fDigitList<<endl;
+    fq = 0;
+    fHitList = new TClonesArray("BmnDchHit");
 
-  //cout<<endl<<"fEntryCount "<<fEventManager->fEntryCount<<" Event Count "<<bmn_digit_tree->GetEntries()<<endl;
-  if (fEventManager->fEntryCount == 0)
-      fEventManager->fEntryCount = bmn_digit_tree->GetEntries();
-  else
-      fEventManager->fEntryCount = TMath::Min(fEventManager->fEntryCount, bmn_digit_tree->GetEntries());
-
-  fq = 0;
-  fHitList = new TClonesArray("BmnDchHit");
-
-  return kSUCCESS;
+    return kSUCCESS;
 }
 
 void BmnDigitDraw::Exec(Option_t* option)
 {
-  if (IsActive())
-  {
-    Reset();
-
-    Int_t event_number = fEventManager->GetCurrentEvent();
-    bmn_digit_tree->GetEntry(event_number);
-
-    switch (fDetectorID)
+    if (IsActive())
     {
-        // MWPC digits
-        case 1:
+        Reset();
+
+        switch (fDetectorID)
         {
-            RawDataConverter raw_converter;
-            for (int i = 1; i < 4; i++)
+            // MWPC digits
+            case 1:
             {
-                // get MWPC position
-                TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
-                if (pVolume != NULL)
+                RawDataConverter raw_converter;
+                for (int i = 1; i < 4; i++)
                 {
-                    TString node_name = TString::Format("mwpc%d_0", i);
-                    TGeoNode* pFirstNode = pVolume->FindNode(node_name);
-                    if (pFirstNode != NULL)
+                    // get MWPC position
+                    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
+                    if (pVolume != NULL)
                     {
-                        TGeoMatrix* pMatrix = pFirstNode->GetMatrix();
-                        //cout<<"mwpc_name: "<<node_name<<" X:"<<pMatrix->GetTranslation()[0]<<" Y:"<<pMatrix->GetTranslation()[1]<<" Z:"<<pMatrix->GetTranslation()[2]<<endl;
-                        raw_converter.SetMwpcPosition(i, TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]));
+                        TString node_name = TString::Format("mwpc%d_0", i);
+                        TGeoNode* pFirstNode = pVolume->FindNode(node_name);
+                        if (pFirstNode != NULL)
+                        {
+                            TGeoMatrix* pMatrix = pFirstNode->GetMatrix();
+                            //cout<<"mwpc_name: "<<node_name<<" X:"<<pMatrix->GetTranslation()[0]<<" Y:"<<pMatrix->GetTranslation()[1]<<" Z:"<<pMatrix->GetTranslation()[2]<<endl;
+                            raw_converter.SetMwpcPosition(i, TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]));
+                        }
+                        else
+                            cout<<"MWPC detector ("<<node_name<<") wasn't found. Default MWPC position is used for visual hits"<<endl;
                     }
                     else
-                        cout<<"MWPC detector ("<<node_name<<") wasn't found. Default MWPC position is used for visual hits"<<endl;
+                        cout<<"Cave volume wasn't found. Default MWPC position is used for visual hits"<<endl;
                 }
-                else
-                    cout<<"Cave volume wasn't found. Default MWPC position is used for visual hits"<<endl;
+
+                raw_converter.MwpcDigits2MwpcHits(fDigitList, fHitList);
+                break;
             }
-
-            raw_converter.MwpcDigits2MwpcHits(fDigitList, fHitList);
-            break;
+            // DCH digits
+            case 2:
+                ProcessDchDigits(fDigitList, fHitList);
+                break;
         }
-        // DCH digits
-        case 2:
-            ProcessDchDigits(fDigitList, fHitList);
-            break;
-    }
 
-    cout<<"Event number: "<<event_number<<". "<<GetName()<<" count: "<<fDigitList->GetEntries()<<". hit count: "<<fHitList->GetEntries()<<"."<<endl;
+        cout<<GetName()<<" count: "<<fDigitList->GetEntries()<<". hit count: "<<fHitList->GetEntries()<<"."<<endl;
 
-    Int_t npoints = fHitList->GetEntriesFast();
-    TEvePointSet* q = new TEvePointSet(GetName(), npoints, TEvePointSelectorConsumer::kTVT_XYZ);
+        Int_t npoints = fHitList->GetEntriesFast();
+        TEvePointSet* q = new TEvePointSet(GetName(), npoints, TEvePointSelectorConsumer::kTVT_XYZ);
 
-    q->SetOwnIds(kTRUE);
-    q->SetMarkerColor(fColor);
-    q->SetMarkerSize(1.5);
-    q->SetMarkerStyle(fStyle);
+        q->SetOwnIds(kTRUE);
+        q->SetMarkerColor(fColor);
+        q->SetMarkerSize(1.5);
+        q->SetMarkerStyle(fStyle);
 
-    for (Int_t i = 0; i < npoints; i++)
-    {
-        FairHit* p = (FairHit*) fHitList->At(i);
-        if (p != 0)
+        for (Int_t i = 0; i < npoints; i++)
         {
-            TVector3 vec(p->GetX(), p->GetY(), p->GetZ());
-            q->SetNextPoint(vec.X(),vec.Y(), vec.Z());
-            q->SetPointId(GetValue(p, i));
-            //cout<<"VEC X: "<<vec.X()<<" Y:"<<vec.Y()<<" Z:"<<vec.Z()<<endl;
+            FairHit* p = (FairHit*) fHitList->At(i);
+            if (p != 0)
+            {
+                TVector3 vec(p->GetX(), p->GetY(), p->GetZ());
+                q->SetNextPoint(vec.X(),vec.Y(), vec.Z());
+                q->SetPointId(GetValue(p, i));
+                //cout<<"VEC X: "<<vec.X()<<" Y:"<<vec.Y()<<" Z:"<<vec.Z()<<endl;
+            }
         }
-    }
 
-    if (fEventManager->EveRecoPoints == NULL)
-    {
-        fEventManager->EveRecoPoints = new TEveElementList("Reco points");
-        gEve->AddElement(fEventManager->EveRecoPoints, fEventManager);
-        fEventManager->EveRecoPoints->SetRnrState(kFALSE);
-    }
+        if (fEventManager->EveRecoPoints == NULL)
+        {
+            fEventManager->EveRecoPoints = new TEveElementList("Reco points");
+            gEve->AddElement(fEventManager->EveRecoPoints, fEventManager);
+            fEventManager->EveRecoPoints->SetRnrState(kFALSE);
+        }
 
-    gEve->AddElement(q, fEventManager->EveRecoPoints);
+        gEve->AddElement(q, fEventManager->EveRecoPoints);
 
-    gEve->Redraw3D(kFALSE);
+        gEve->Redraw3D(kFALSE);
 
-    fq = q;
-  }
+        fq = q;
+    }//if (IsActive())
 }
 
 TObject* BmnDigitDraw::GetValue(TObject* obj,Int_t i)
 {
-  return new TNamed(Form("Point %d", i),"");
+    return new TNamed(Form("Point %d", i),"");
 }
 
 // -----   Destructor   ----------------------------------------------------
@@ -195,14 +178,14 @@ void BmnDigitDraw::Finish()
 // -------------------------------------------------------------------------
 void BmnDigitDraw::Reset()
 {
-  fHitList->Delete();
+    fHitList->Delete();
 
-  if (fq != 0)
-  {
-    fq->Reset();
+    if (fq != 0)
+    {
+        fq->Reset();
 
-    gEve->RemoveElement(fq, fEventManager->EveRecoPoints);
-  }
+        gEve->RemoveElement(fq, fEventManager->EveRecoPoints);
+    }
 }
 
 ClassImp(BmnDigitDraw);

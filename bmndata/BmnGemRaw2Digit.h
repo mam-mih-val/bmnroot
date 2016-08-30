@@ -68,6 +68,7 @@ private:
     void ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
     BmnStatus ReadMap(TString parName, TString parNameSize, BmnGemMap* m, Int_t lay, Int_t mod);
     Double_t CalcCMS(Double_t* samples, Int_t size);
+    Bool_t IsStripNoisy(Int_t station, Int_t lay, Int_t mod, Int_t strip);
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
 
     Int_t fPeriod;

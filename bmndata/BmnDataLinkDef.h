@@ -80,4 +80,6 @@
 
 #pragma link C++ class BmnRawDataDecoder+;
 
+#pragma link C++ class BmnEventHeader+;
+
 #endif

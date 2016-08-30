@@ -41,6 +41,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     bc1 = NULL;
     bc2 = NULL;
     veto = NULL;
+    header = NULL;
     fTime_ns = 0;
     fTime_s = 0;
     fRawTree = NULL;
@@ -57,7 +58,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     tof400 = NULL;
     tof700 = NULL;
     gem = NULL;
-    fPedestalRan = kFALSE;
+    fPedestalRun = kFALSE;
     fRootFileName = "";
     fRawFileName = "";
     fDigiFileName = "";
@@ -71,6 +72,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
 
     t0 = NULL;
+    header = NULL;
     bc2 = NULL;
     bc1 = NULL;
     veto = NULL;
@@ -94,7 +96,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
     fEventId = 0;
     fNevents = 0;
     fMaxEvent = nEvents;
-    fPedestalRan = kFALSE;
+    fPedestalRun = kFALSE;
     fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
     fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
@@ -324,11 +326,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     bc1 = new TClonesArray("BmnTrigDigit");
     bc2 = new TClonesArray("BmnTrigDigit");
     veto = new TClonesArray("BmnTrigDigit");
+    header = new TClonesArray("BmnEventHeader");
 
-    fDigiTree->Branch("run", &fRunId, "bmn_run/I");
-    fDigiTree->Branch("event", &fEventId, "bmn_event/I");
-    fDigiTree->Branch("time_sec", &fTime_s, "bmn_time_sec/I");
-    fDigiTree->Branch("time_ns", &fTime_ns, "bmn_time_ns/I");
+    fDigiTree->Branch("EventHeader", &header);
     fDigiTree->Branch("T0", &t0);
     fDigiTree->Branch("BC1", &bc1);
     fDigiTree->Branch("BC2", &bc2);
@@ -351,7 +351,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     BmnTof1Raw2Digit *tof400Mapper = new BmnTof1Raw2Digit(kPERIOD, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     //    BmnTof2Raw2Digit *tof700Mapper = new BmnTof2Raw2Digit(fTof700MapFileName);
 
-    if (fPedestalRan) {
+    if (fPedestalRun) {
         gemMapper = new BmnGemRaw2Digit();
         gemMapper->CalcGemPedestals(adc, fRawTree);
     } else {
@@ -367,9 +367,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             bc1->Clear();
             bc2->Clear();
             veto->Clear();
+            header->Clear();
 
             fRawTree->GetEntry(iEv);
-
+            
+            new((*header)[header->GetEntriesFast()]) BmnEventHeader(fRunId, iEv, fTime_s, fTime_ns);
             trigMapper->FillEvent(tdc, t0, bc1, bc2, veto);
             gemMapper->FillEvent(adc, gem);
             dchMapper->FillEvent(tdc, sync, dch);
@@ -399,6 +401,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     delete veto;
     delete tof400;
     delete tof700;
+    delete header;
 
     return kBMNSUCCESS;
 }

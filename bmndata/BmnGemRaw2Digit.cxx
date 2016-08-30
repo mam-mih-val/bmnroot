@@ -40,6 +40,11 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
 
     ReadMap("GEM_X_small", "GEM_N_ch_X_small", fSmall, 0, 0);
     ReadMap("GEM_Y_small", "GEM_N_ch_Y_small", fSmall, 1, 0);
+    //    UniDbDetectorParameter* cPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_N_ch_X_small", fPeriod, fRun);
+    //    Int_t size = (cPar != NULL) ? cPar->GetInt() : 0;
+    //    for (Int_t i = 0; i < size; ++i)
+    //        cout << fSmall[i].strip << " " << i << endl;
+
 
     ReadMap("GEM_X0_middle", "GEM_N_ch_X0_middle", fMid, 0, 1);
     ReadMap("GEM_Y0_middle", "GEM_N_ch_Y0_middle", fMid, 1, 1);
@@ -157,7 +162,10 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
         switch (gemM->id) {
             case 0: //small gem
             {
-//                realChannel = ch2048 - gemM->channel_low;
+                realChannel = ch2048 - gemM->channel_low;
+                mod = fSmall[realChannel].mod;
+                lay = fSmall[realChannel].lay;
+                strip = fSmall[realChannel].strip;
                 break;
             }
             case 6: //left big gem
@@ -189,14 +197,12 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
             {
                 realChannel = ch2048;
                 if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
+                mod = fMid[realChannel].mod;
+                lay = fMid[realChannel].lay;
+                strip = fMid[realChannel].strip;
                 break;
             }
         }
-
-        mod = fMid[realChannel].mod;
-        lay = fMid[realChannel].lay;
-        strip = fMid[realChannel].strip;
-
         if (strip > 0) {
             Double_t sig = Double_t((adcDig->GetValue())[iSmpl] / 16);
             BmnGemStripDigit dig;
@@ -219,7 +225,8 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         BmnGemStripDigit * dig = &candDig[iSmpl];
         Double_t sig = dig->GetStripSignal() - CMS - pedestals[iSmpl];
-        if (Abs(sig) < 3.5 * pedNoises[iSmpl]) continue;
+        if (sig < 4.0 * pedNoises[iSmpl]) continue;
+        if (IsStripNoisy(dig->GetStation(), dig->GetStripLayer(), dig->GetModule(), dig->GetStripNumber())) continue;
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig, dig->GetStripSignalNoise());
     }
 
@@ -277,7 +284,8 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree *tree) {
         BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
         for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
             noises[iAdc][iSmpl] = Sqrt(noises[iAdc][iSmpl] / nEv);
-            pedFile << hex << adcDig->GetSerial() << dec << "\t" << adcDig->GetChannel() * nSmpl + iSmpl << "\t" << pedestals[iAdc][iSmpl] << "\t" << noises[iAdc][iSmpl] << endl;
+            if (noises[iAdc][iSmpl])
+                pedFile << hex << adcDig->GetSerial() << dec << "\t" << adcDig->GetChannel() * nSmpl + iSmpl << "\t" << pedestals[iAdc][iSmpl] << "\t" << noises[iAdc][iSmpl] << endl;
         }
     }
 
@@ -312,6 +320,52 @@ Double_t BmnGemRaw2Digit::CalcCMS(Double_t* samples, Int_t size) {
         CMS = cms;
     }
     return CMS;
+}
+
+Bool_t BmnGemRaw2Digit::IsStripNoisy(Int_t station, Int_t lay, Int_t mod, Int_t strip) {
+    //killing noisy strips...
+    if (station == 1 && mod == 0 && lay == 0)
+        if (strip == 398 || strip == 487 || strip == 488 || strip == 825)
+            return kTRUE;
+
+    if (station == 1 && mod == 0 && lay == 1)
+        if (strip == 523 || strip == 525 || strip == 651 || strip == 653 || strip == 693 || strip == 698)
+            return kTRUE;
+
+    if (station == 2 && mod == 0 && lay == 0)
+        if (strip == 6 || strip == 16 || strip == 183 || strip == 238 || strip == 240 || strip == 509 || strip == 647 || strip == 662 || strip == 666 || strip == 693 || strip == 695 || strip == 696 || strip == 698 || strip == 744 || strip == 745 || strip == 746 || strip == 747 || strip == 751 || strip == 825)
+            return kTRUE;
+
+    if (station == 2 && mod == 0 && lay == 1)
+        if (strip == 354 || strip == 517 || strip == 643 || strip == 648 || strip == 652 || strip == 653 || strip == 695 || strip == 698)
+            return kTRUE;
+
+    if (station == 3 && mod == 0 && lay == 0)
+        if (strip == 825)
+            return kTRUE;
+
+    if (station == 3 && mod == 0 && lay == 1)
+        if (strip == 750)
+            return kTRUE;
+
+    if (station == 4 && mod == 0 && lay == 0)
+        if (strip == 124 || strip == 311 || strip == 395 || strip == 401 || (strip >= 737 && strip <= 769) || strip == 825)
+            return kTRUE;
+
+    if (station == 4 && mod == 0 && lay == 1)
+        if (strip == 384 || strip == 389)
+            return kTRUE;
+
+    if (station == 5 && mod == 0 && lay == 1)
+        if (strip == 523 || strip == 532 || strip == 654 || strip == 705 || strip == 723 || strip == 825)
+            return kTRUE;
+
+    if (mod == 0 && lay == 1)
+        if ((strip >= 808 && strip <= 823))
+            return kTRUE;
+    //killing noisy strips...
+    
+    return kFALSE;
 }
 
 ClassImp(BmnGemRaw2Digit)

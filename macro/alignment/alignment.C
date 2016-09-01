@@ -14,12 +14,13 @@ void alignment(TString fileNumber = "All") {
  bmnloadlibs(); // load BmnRoot libraries
 
  Bool_t useMilleOnly = false; // true corresponds to the Mille usage only
+ Bool_t preAlign = true; // make a rough preAlignment in X-direction
  TString addInfo = "";
- BmnGemAlignment* gemAlign = new BmnGemAlignment(TString("/nfs/digits_run4/bmn_run00" + fileNumber + "_digi.root").Data(), TString("reco_" + fileNumber + addInfo + ".root").Data(), useMilleOnly);
+ BmnGemAlignment* gemAlign = new BmnGemAlignment(TString("/nfs/digits_run4/bmn_run00" + fileNumber + "_digi.root").Data(), TString("reco_" + fileNumber + addInfo + ".root").Data(), useMilleOnly, preAlign);
  // gemAlign->SetDebugInfo(kTRUE);
  gemAlign->SetRunType(type);
  if (useMilleOnly == kFALSE)
-     gemAlign->SetNofEvents(0); // 0 corresponds to all data set
+     gemAlign->SetNofEvents(50000); // 0 corresponds to all data set
  
  // Restrictions on output of the C.F.
  gemAlign->SetMaxNofHitsPerEvent(30);

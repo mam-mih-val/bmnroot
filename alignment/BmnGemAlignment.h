@@ -39,7 +39,7 @@ public:
     };
 
     // Constructor to be used in case of digits
-    BmnGemAlignment(Char_t*, Char_t*, Bool_t);
+    BmnGemAlignment(Char_t*, Char_t*, Bool_t, Bool_t);
 
 
     virtual ~BmnGemAlignment();
@@ -162,6 +162,8 @@ public:
     void StartPede();
 
 private:
+    
+    void DoPreAlignmentXY();
 
     vector <TString> GetSteerFileNames() {
         return fSteerFileNames;
@@ -233,6 +235,9 @@ private:
     Bool_t fBeamRun; // if true then it corresponds to 61 - 65 files 
     TString fRunType;
     vector <TString> fSteerFileNames;
+    Bool_t fPreAlignXY;
+    Double_t* fCorrX;
+    Double_t* fCorrY;
 
     TString fAlignmentType;
     TString fCommandToRunPede;

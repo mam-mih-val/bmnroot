@@ -1,17 +1,10 @@
-#include <float.h>
-
 #include "BmnAlignmentContainer.h"
 
-BmnAlignmentContainer::BmnAlignmentContainer() :
-fX0(0.),
-fY0(0.),
-fZ0(0.),
-fTx(0.),
-fTy(0.),
-fXresMax(LDBL_MAX),
-fYresMax(LDBL_MAX) {
-
-
+BmnAlignmentContainer::BmnAlignmentContainer() : BmnGemTrack() {
+    fEventNumber = 0;
+    fIndex = 0;
+    fXresMax = LDBL_MAX;
+    fYresMax = LDBL_MAX;
 }
 
 BmnAlignmentContainer::~BmnAlignmentContainer() {

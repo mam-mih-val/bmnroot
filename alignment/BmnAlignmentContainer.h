@@ -4,38 +4,17 @@
 #include <iostream>
 #include <TNamed.h>
 #include <TVector3.h>
-#include "BmnGemStripHit.h"
+#include <BmnGemTrack.h>
+#include <float.h>
 
 using namespace std;
 
-class BmnAlignmentContainer : public TNamed {
+class BmnAlignmentContainer : public BmnGemTrack {
 public:
     BmnAlignmentContainer();
-    //BmnAlignmentContainer();
     
     virtual ~BmnAlignmentContainer();
 
-    // Getters 
-    Float_t GetTx() {
-        return fTx;
-    }
-    
-    Float_t GetTy() {
-        return fTy;
-    }
-    
-    Float_t GetX0() {
-        return fX0;
-    }
-    
-    Float_t GetY0() {
-        return fY0;
-    }
-   
-    Float_t GetZ0() {
-        return fZ0;
-    }
-    
     Double_t GetXresMax() {
         return fXresMax;
     }
@@ -48,27 +27,7 @@ public:
         return fIndex;
     }
         
-    // Setters   
-    void SetX0(Float_t x0) {
-        fX0 = x0;
-    }
-    
-    void SetY0(Float_t y0) {
-        fY0 = y0;
-    }
-    
-    void SetZ0(Float_t z0) {
-        fZ0 = z0;
-    }
-    
-    void SetTx(Float_t tx) {
-        fTx = tx;
-    }
-    
-    void SetTy(Float_t ty) {
-        fTy = ty;
-    }
-        
+    // Setters         
     void SetEventNum(Int_t ev) {
         fEventNumber = ev;
     }
@@ -89,12 +48,6 @@ private:
 
     Int_t fEventNumber;
       
-    Float_t fX0;
-    Float_t fY0;
-    Float_t fZ0;
-    Float_t fTx;
-    Float_t fTy;
-    
     Double_t fXresMax;
     Double_t fYresMax;
     

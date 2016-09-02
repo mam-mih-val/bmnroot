@@ -180,6 +180,7 @@ private:
     };
 
     void AlignmentdXdY(ifstream&, Int_t, Int_t, Int_t, Int_t, TString);
+    void AlignmentdXdYdZ(ifstream&, Int_t, Int_t, Int_t, Int_t, TString);
     void DebugInfo(Int_t, Int_t, Int_t, Double_t*, Double_t*, Double_t, Double_t);
     
     void GraphDrawAttibuteSetter(TGraphErrors*, TString);

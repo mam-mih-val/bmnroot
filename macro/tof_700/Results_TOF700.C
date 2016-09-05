@@ -12,7 +12,7 @@
 
 using namespace TMath;
 
-void Results_TOF700(char *fname = "bmn_run0362_digit.root", int RunPeriod = 1) {
+void Results_TOF700(char *fname = "bmn_run0362_digit.root", int RunPeriod = 2) {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -21,7 +21,7 @@ void Results_TOF700(char *fname = "bmn_run0362_digit.root", int RunPeriod = 1) {
     char mapping[256];
     if(RunPeriod >= 1 && RunPeriod <= 4)
     {
-	sprintf(mapping, "TOF700_map_period_%d.txt";
+	sprintf(mapping, "TOF700_map_period_%d.txt", RunPeriod);
     }
     else
     {

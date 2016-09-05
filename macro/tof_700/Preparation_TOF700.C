@@ -1,7 +1,7 @@
 
 using namespace std;
 
-void Preparation_TOF700(char *fname="bmn_run0633.root", int RunPeriod = 2) {
+void Preparation_TOF700(char *fname="bmn_run0362.root", int RunPeriod = 2) {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
@@ -9,7 +9,7 @@ void Preparation_TOF700(char *fname="bmn_run0633.root", int RunPeriod = 2) {
     char mapping[256];
     if(RunPeriod >= 1 && RunPeriod <= 4)
     {
-	sprintf(mapping, "TOF700_map_period_%d.txt";
+	sprintf(mapping, "TOF700_map_period_%d.txt", RunPeriod);
     }
     else
     {

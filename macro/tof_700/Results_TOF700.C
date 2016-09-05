@@ -12,23 +12,27 @@
 
 using namespace TMath;
 
-void Results_TOF700(char *fname = "bmn_run0362_digit.root") {
+void Results_TOF700(char *fname = "bmn_run0362_digit.root", int RunPeriod = 1) {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
 
-    int RUN;
-    sscanf(&fname[strlen(fname) - 14], "%d", &RUN);
-
-    const char *mapping;
-    if(RUN < 470) mapping="map_march_2015.txt";
-    else mapping="TOF700_map_Mar11.txt";
+    char mapping[256];
+    if(RunPeriod >= 1 && RunPeriod <= 4)
+    {
+	sprintf(mapping, "TOF700_map_period_%d.txt";
+    }
+    else
+    {
+	printf("Non-existing run period number %d!", RunPeriod);
+	return;
+    }
 
     BmnTof2Raw2Digit TOF2(mapping);
     TOF2.print();
 
-    if (RUN < 470)
+    if (RunPeriod <= 2)
     {
 	int numgeom[4] = {1,5,3,6};
 	TOF2.readGeom(numgeom);

@@ -1,25 +1,29 @@
 
 using namespace std;
 
-void Preparation_TOF700(char *fname="bmn_run0362.root") {
+void Preparation_TOF700(char *fname="bmn_run0633.root", int RunPeriod = 2) {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
-    int RUN;
-    sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
 
-    const char *mapping;
-    if(RUN < 470) mapping="map_march_2015.txt";
-    else mapping="TOF700_map_Mar11.txt";
+    char mapping[256];
+    if(RunPeriod >= 1 && RunPeriod <= 4)
+    {
+	sprintf(mapping, "TOF700_map_period_%d.txt";
+    }
+    else
+    {
+	printf("Non-existing run period number %d!", RunPeriod);
+	return;
+    }
 
     BmnTof2Raw2Digit TOF2(mapping, fname);
     TOF2.print();
-    if (RUN < 470)
+
+    if (RunPeriod <= 2)
     {
-	TOF2.SetWcut(1700);
-	TOF2.SetWmax(3700);
-	TOF2.SetWT0min(260);
-	TOF2.SetWT0max(560);
+	TOF2.SetW(1700,3700);
+	TOF2.SetWT0(260,560);
 	TOF2.SetLeadMinMax(1,-400, -250);
 	TOF2.SetLeadMinMax(2,-300, -150);
 	TOF2.SetLeadMinMax(3,-400, -50);
@@ -27,16 +31,14 @@ void Preparation_TOF700(char *fname="bmn_run0362.root") {
     }
     else
     {
-	TOF2.SetWcut(1700);
-	TOF2.SetWmax(3700);
-	TOF2.SetWT0min(640);
-	TOF2.SetWT0max(710);
+	TOF2.SetW(1700,3700);
+	TOF2.SetWT0(640,710);
 	TOF2.SetLeadMinMax(1,-350, -150);
 	TOF2.SetLeadMinMax(2,-350, -150);
 	TOF2.SetLeadMinMax(3,-350, +50);
 	TOF2.SetLeadMinMax(4,-200, +200);
     }
-    cout << "Process RUN:  " << RUN << endl;
+    cout << "Process RUN file: " << fname << endl;
 
     /////////////////////////////////////////////////////////////////////////////////////
     TFile *_f_in = new TFile(fname, "READ");

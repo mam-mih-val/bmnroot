@@ -274,6 +274,7 @@ public:
      Tree->Branch("bmn_zdc",         &zdc);    
      
      in=fopen(file,"rb");
+     if (in == NULL) perror(file);
   };
   ~BmnDataToRoot(){
      Tree->Print();

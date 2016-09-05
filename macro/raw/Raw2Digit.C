@@ -1,22 +1,35 @@
 using namespace std;
 
-void Raw2Digit(char *fname="bmn_run0362.root") {
+void Raw2Digit(char *fname="bmn_run0362.root", int RunPeriod = 2) {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
     int RUN; sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
-    const char *mapping;
+    char mapping[256];
 
-    if (RUN < 189) mapping = "DCH_map_Feb20_Feb25.txt";
-    else if (RUN >= 189 && RUN < 470) mapping = "DCH_map_Mar4.txt";
-    else if (RUN >= 470 && RUN < 689) mapping = "DCH_map_Mar11.txt";
-    else  mapping = "DCH_map_Run4.txt";
+    if (RUN < 189 && RunPeriod == 1) mapping = "DCH_map_Feb20_Feb25.txt";
+    else if (Runperiod == 1 || RunPeriod == 2) mapping = "DCH_map_Mar4.txt";
+    else if (Runperiod == 3) mapping = "DCH_map_Mar11.txt";
+    else if (RunPeriod == 4) mapping = "DCH_map_Run4.txt";
+    else
+    {
+	printf("Non-existing run period number %d!", RunPeriod);
+	return;
+    }
+
     BmnDchRaw2Digit  DCH(mapping); // DCH.print();
 
     BmnZDCRaw2Digit  ZDC("ZDC_map_Mar08.txt", fname); // ZDC.print();
 
-    if(RUN < 470) mapping="map_march_2015.txt";
-    else mapping="TOF700_map_Mar11.txt";
+    if(RunPeriod >= 1 && RunPeriod <= 4)
+    {
+	sprintf(mapping, "TOF700_map_period_%d.txt";
+    }
+    else
+    {
+	printf("Non-existing run period number %d!", RunPeriod);
+	return;
+    }
     BmnTof2Raw2Digit TOF2(mapping, fname); TOF2.print();
     TOF2.readSlewingT0();
     TOF2.readSlewing();
@@ -25,12 +38,10 @@ void Raw2Digit(char *fname="bmn_run0362.root") {
     else mapping="TOF400_map_Mar11.txt";
     BmnTof1Raw2Digit TOF1(mapping); TOF1.print();
 
-    if (RUN < 470)
+    if (RunPeriod <= 2)
     {
-	TOF2.SetWcut(1700);
-	TOF2.SetWmax(3700);
-	TOF2.SetWT0min(260);
-	TOF2.SetWT0max(560);
+	TOF2.SetW(1700,3700);
+	TOF2.SetWT0(260,560);
 	TOF2.SetLeadMinMax(1,-400, -250);
 	TOF2.SetLeadMinMax(2,-300, -150);
 	TOF2.SetLeadMinMax(3,-400, -50);
@@ -38,10 +49,8 @@ void Raw2Digit(char *fname="bmn_run0362.root") {
     }
     else
     {
-	TOF2.SetWcut(1700);
-	TOF2.SetWmax(3700);
-	TOF2.SetWT0min(640);
-	TOF2.SetWT0max(710);
+	TOF2.SetW(1700,3700);
+	TOF2.SetWT0(640,710);
 	TOF2.SetLeadMinMax(1,-350, -150);
 	TOF2.SetLeadMinMax(2,-350, -150);
 	TOF2.SetLeadMinMax(3,-350, +50);

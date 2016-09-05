@@ -239,11 +239,11 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile, UInt_t 
 	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_1",i+1);
 	sprintf(title, "Time vs T0 Width Chamber %d Peak 1",i+1);
 	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
-	sprintf(name, "Time_vs_T0_Width_Chamber_%d_all",i+1);
-	sprintf(title, "Time vs T0 Width Chamber %d all",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%d_all",i+1);
+	sprintf(title, "Time vs Width Chamber %d all",i+1);
 	TvsWall[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
-	sprintf(name, "Time_vs_T0_Width_Chamber_%d_all_max",i+1);
-	sprintf(title, "Time vs T0 Width Chamber %d all, max strip",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%d_all_max",i+1);
+	sprintf(title, "Time vs Width Chamber %d all, max strip",i+1);
 	TvsWallmax[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
     }
     for (int i=0; i<MaxPlane; i++)
@@ -269,12 +269,12 @@ void BmnTof2Raw2Digit::ReBook(int i)
 	sprintf(title, "Time vs T0 Width Chamber %d Peak 1",i+1);
 	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
     delete TvsWall[i];
-	sprintf(name, "Time_vs_T0_Width_Chamber_%d_all",i+1);
-	sprintf(title, "Time vs T0 Width Chamber %d all",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%d_all",i+1);
+	sprintf(title, "Time vs Width Chamber %d all",i+1);
 	TvsWall[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
     delete TvsWallmax[i];
-	sprintf(name, "Time_vs_T0_Width_Chamber_%d_all_max",i+1);
-	sprintf(title, "Time vs T0 Width Chamber %d all, max strip",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%d_all_max",i+1);
+	sprintf(title, "Time vs Width Chamber %d all, max strip",i+1);
 	TvsWallmax[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
     delete TvsW[i][1];
 	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_2",i+1);
@@ -284,6 +284,7 @@ void BmnTof2Raw2Digit::ReBook(int i)
 	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_2",i+1);
 	sprintf(title, "Time vs T0 Width Chamber %d Peak 2",i+1);
 	TvsWt0[i][1] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
+//    printf("c %d wc %d wm %d wt1 %d wt2 %d lmi %d lma %d\n", i, Wcut, Wmax, WT0min, WT0max, LeadMin[i], LeadMax[i]);
 }
 
 void BmnTof2Raw2Digit::getEventInfo(long long *ev,long long *t1,long long *t2){

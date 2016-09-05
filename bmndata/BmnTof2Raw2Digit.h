@@ -56,11 +56,15 @@ public:
     void SetWmax(int wm) { Wmax = wm; for (int c=0; c<MaxPlane; c++) ReBook(c); }
     int  GetWmax() { return Wmax; }
 
+    void SetW(int wcut, int wm) { Wcut = wcut;  Wmax = wm; for (int c=0; c<MaxPlane; c++) ReBook(c); }
+
     void SetWT0max(int wt0m) { WT0max = wt0m; for (int c=0; c<MaxPlane; c++) ReBook(c); }
     int  GetWT0max() { return WT0max; }
 
     void SetWT0min(int wt0m) { WT0min = wt0m; for (int c=0; c<MaxPlane; c++) ReBook(c); }
     int  GetWT0min() { return WT0min; }
+
+    void SetWT0(int wt1, int wt2) { WT0min = wt1;  WT0max = wt2; for (int c=0; c<MaxPlane; c++) ReBook(c); }
 
     void SetLeadMin(int c, int leadmin) { if (c>0&&c<=MaxPlane) {LeadMin[c-1] = leadmin; ReBook(c-1);} }
     int  GetLeadMin(int c) { return LeadMin[c]; }

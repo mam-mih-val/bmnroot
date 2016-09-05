@@ -6,11 +6,11 @@ void Raw2Digit(char *fname="bmn_run0362.root", int RunPeriod = 2) {
     /////////////////////////////////////////////////////////////////////////////////////
     int RUN; sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
     char mapping[256];
-
-    if (RUN < 189 && RunPeriod == 1) mapping = "DCH_map_Feb20_Feb25.txt";
-    else if (Runperiod == 1 || RunPeriod == 2) mapping = "DCH_map_Mar4.txt";
-    else if (Runperiod == 3) mapping = "DCH_map_Mar11.txt";
-    else if (RunPeriod == 4) mapping = "DCH_map_Run4.txt";
+/*
+    if (RUN < 189 && RunPeriod == 1) strcpy(mapping, "DCH_map_Feb20_Feb25.txt");
+    else if (RunPeriod == 1 || RunPeriod == 2) strcpy(mapping, "DCH_map_Mar4.txt");
+    else if (RunPeriod == 3) strcpy(mapping, "DCH_map_Mar11.txt");
+    else if (RunPeriod == 4) strcpy(mapping, "DCH_map_Run4.txt");
     else
     {
 	printf("Non-existing run period number %d!", RunPeriod);
@@ -18,12 +18,12 @@ void Raw2Digit(char *fname="bmn_run0362.root", int RunPeriod = 2) {
     }
 
     BmnDchRaw2Digit  DCH(mapping); // DCH.print();
-
+*/
     BmnZDCRaw2Digit  ZDC("ZDC_map_Mar08.txt", fname); // ZDC.print();
 
     if(RunPeriod >= 1 && RunPeriod <= 4)
     {
-	sprintf(mapping, "TOF700_map_period_%d.txt";
+	sprintf(mapping, "TOF700_map_period_%d.txt", RunPeriod);
     }
     else
     {
@@ -33,11 +33,11 @@ void Raw2Digit(char *fname="bmn_run0362.root", int RunPeriod = 2) {
     BmnTof2Raw2Digit TOF2(mapping, fname); TOF2.print();
     TOF2.readSlewingT0();
     TOF2.readSlewing();
-
+/*
     if(RUN < 470) mapping="TOF400_map_Mar4.txt";
     else mapping="TOF400_map_Mar11.txt";
     BmnTof1Raw2Digit TOF1(mapping); TOF1.print();
-
+*/
     if (RunPeriod <= 2)
     {
 	TOF2.SetW(1700,3700);
@@ -64,15 +64,15 @@ void Raw2Digit(char *fname="bmn_run0362.root", int RunPeriod = 2) {
     TTree *_t_in = (TTree *) _f_in->Get("BMN_RAW");
     TClonesArray *t0_raw   = new TClonesArray("BmnTDCDigit");
     TClonesArray *sync_raw = new TClonesArray("BmnSyncDigit");
-    TClonesArray *dch_raw  = new TClonesArray("BmnTDCDigit");
-    TClonesArray *tof1_raw = new TClonesArray("BmnTDCDigit");
+//    TClonesArray *dch_raw  = new TClonesArray("BmnTDCDigit");
+//    TClonesArray *tof1_raw = new TClonesArray("BmnTDCDigit");
     TClonesArray *tof2_raw = new TClonesArray("BmnTDCDigit");
     TClonesArray *zdc_raw  = new TClonesArray("BmnADCDigit");
     TClonesArray *ecal_raw = new TClonesArray("BmnADCDigit");
     _t_in->SetBranchAddress("bmn_t0",    &t0_raw);
     _t_in->SetBranchAddress("bmn_sync",  &sync_raw);
-    _t_in->SetBranchAddress("bmn_dch",   &dch_raw);
-    _t_in->SetBranchAddress("bmn_tof400",&tof1_raw);
+//    _t_in->SetBranchAddress("bmn_dch",   &dch_raw);
+//    _t_in->SetBranchAddress("bmn_tof400",&tof1_raw);
     _t_in->SetBranchAddress("bmn_tof700",&tof2_raw);
     _t_in->SetBranchAddress("bmn_zdc",   &zdc_raw);
     _t_in->SetBranchAddress("bmn_ecal",  &ecal_raw);
@@ -83,42 +83,42 @@ void Raw2Digit(char *fname="bmn_run0362.root", int RunPeriod = 2) {
     TFile *_f_out = new TFile(str, "RECREATE");
     _f_out->SetCompressionLevel(1);
     TTree *_t_out = new TTree("BMN_DIGIT","test_bmn");
-    TClonesArray * dch_digit   = new TClonesArray("BmnDchDigit");
+//    TClonesArray * dch_digit   = new TClonesArray("BmnDchDigit");
     TClonesArray * zdc_digit   = new TClonesArray("BmnZDCDigit");
     TClonesArray * tof2_digit  = new TClonesArray("BmnTof2Digit");
-    TClonesArray * tof1_digit  = new TClonesArray("BmnTof1Digit");
+//    TClonesArray * tof1_digit  = new TClonesArray("BmnTof1Digit");
     _t_out->Branch("bmn_run",         &RUN,     "bmn_run/I");   
     _t_out->Branch("bmn_event",       &EVENT,   "bmn_event/I");   
     _t_out->Branch("bmn_time_sec",    &TIME_SEC,"bmn_time_sec/I");   
     _t_out->Branch("bmn_time_ns",     &TIME_NS, "bmn_time_ns/I");   
     _t_out->Branch("bmn_t0",          &T0,      "bmn_t0/F");   
-    _t_out->Branch("bmn_dch_digit",   &dch_digit);   
+//    _t_out->Branch("bmn_dch_digit",   &dch_digit);   
     _t_out->Branch("bmn_zdc_digit",   &zdc_digit);   
     _t_out->Branch("bmn_tof2_digit",  &tof2_digit);   
-    _t_out->Branch("bmn_tof1_digit",  &tof1_digit);   
+//    _t_out->Branch("bmn_tof1_digit",  &tof1_digit);   
     /////////////////////////////////////////////////////////////////////////////////////
 
     for (int ev = 0; ev < _t_in->GetEntries(); ev++) {
 
         sync_raw->Clear();
 	t0_raw->Clear();
-	dch_raw->Clear();
-        tof1_raw->Clear();
+//	dch_raw->Clear();
+//        tof1_raw->Clear();
 	tof2_raw->Clear();
 	zdc_raw->Clear();
 	ecal_raw->Clear();
 
-        dch_digit->Clear();
+//        dch_digit->Clear();
         zdc_digit->Clear();  
         tof2_digit->Clear();  
-        tof1_digit->Clear(); 
+//        tof1_digit->Clear(); 
  
         _t_in->GetEntry(ev);
 
 //        DCH.fillEvent(dch_raw, sync_raw, t0_raw, dch_digit);
         TOF2.fillEvent(tof2_raw, sync_raw, t0_raw, tof2_digit);
         TOF2.getEventInfo(&EVENT,&TIME_SEC,&TIME_NS);
-        TOF1.fillEvent(tof1_raw, sync_raw, t0_raw, tof1_digit);
+//        TOF1.fillEvent(tof1_raw, sync_raw, t0_raw, tof1_digit);
         ZDC.fillEvent(zdc_raw, zdc_digit);
         T0 = TOF2.get_t0();
         if ((ev % 1000) == 0) printf("Digits producing, event %d, tof2_raw hits %d, tof2 digits %d\n", ev, tof2_raw->GetEntries(), tof2_digit->GetEntries());

@@ -123,8 +123,10 @@ void BmnGemAlignment::PrepareData() {
         for (Int_t iStation = 0; iStation < fDetector->GetNStations(); ++iStation) {
             BmnGemStripStation* station = fDetector->GetGemStation(iStation);
             for (Int_t iMod = 0; iMod < station->GetNModules(); iMod++) {
-                BmnGemStripReadoutModule* module = station->GetReadoutModule(iMod);
-                module->SetStripSignalThreshold(fThreshold);
+                BmnGemStripModule* module = station->GetModule(iMod);
+                for(Int_t iLayer = 0; iLayer < module->GetNStripLayers(); ++iLayer) {
+                    module->GetStripLayer(iLayer).SetClusterFindingThreshold(fThreshold);
+                }
             }
         }
 
@@ -136,15 +138,11 @@ void BmnGemAlignment::PrepareData() {
                 continue;
 
             BmnGemStripStation* station = fDetector->GetGemStation(dig->GetStation());
-            BmnGemStripReadoutModule* module = station->GetReadoutModule(dig->GetModule());
+            BmnGemStripModule* module = station->GetModule(dig->GetModule());
 
             Int_t layer = dig->GetStripLayer();
 
-            if (layer == 0)
-                module->SetValueOfLowerStrip(dig->GetStripNumber(), dig->GetStripSignal());
-
-            else
-                module->SetValueOfUpperStrip(dig->GetStripNumber(), dig->GetStripSignal());
+            module->SetStripSignalInLayer(layer, dig->GetStripNumber(), dig->GetStripSignal());
         }
 
         for (Int_t iStation = 0; iStation < fDetector->GetNStations(); ++iStation) {
@@ -152,7 +150,7 @@ void BmnGemAlignment::PrepareData() {
             station->ProcessPointsInStation();
 
             for (Int_t iMod = 0; iMod < station->GetNModules(); iMod++) {
-                BmnGemStripReadoutModule* module = station->GetReadoutModule(iMod);
+                BmnGemStripModule* module = station->GetModule(iMod);
 
                 Double_t z = module->GetZPositionRegistered();
 
@@ -165,10 +163,10 @@ void BmnGemAlignment::PrepareData() {
                     Double_t x_err = module->GetIntersectionPointXError(iPoint);
                     Double_t y_err = module->GetIntersectionPointYError(iPoint);
                     Double_t z_err = 0.0;
-                    
+
                     Double_t xCorr = -x - fCorrX[iStation];
-                    Double_t yCorr = y - fCorrY[iStation];                 
-                    
+                    Double_t yCorr = y - fCorrY[iStation];
+
                     if (xCorr < fXMin || xCorr > fXMax || yCorr < fYMin || yCorr > fYMax)
                         continue;
 
@@ -298,7 +296,7 @@ void BmnGemAlignment::PrepareData() {
             cont->SetTrackIndex(iTrack);
             cont->SetNDF(track->GetNHits());
             cont->SetChi2(track->GetChi2());
-            
+
             if (fDebugInfo) {
                 cout << "Track Info: " << endl;
                 cout << "Event# " << iEv << endl;
@@ -386,9 +384,9 @@ void BmnGemAlignment::StartMille() {
                             break;
                         }
                         if (fAlignmentType == "xyz") {
-                        
-                        
-                        
+
+
+
                         }
                     }
                 }
@@ -413,9 +411,9 @@ void BmnGemAlignment::StartMille() {
 
 void BmnGemAlignment::AlignmentdXdYdZ(ifstream& fout_txt, Int_t nTracks, Int_t nGem, Int_t NLC, Int_t NGL, TString name) {
 
-    
-    
-    
+
+
+
 }
 
 void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGem, Int_t NLC, Int_t NGL, TString name) {

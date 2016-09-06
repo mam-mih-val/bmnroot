@@ -15,116 +15,83 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
 
     BeamHoleRadius = beamradius;
 
-    //frames (if we have need for it)
-    dXInnerFrame = 1.7;
-    dYInnerFrame = 1.7;
-    dXOuterFrame = 5.0;
-    dYOuterFrame = 3.75;
 
     //Parameters for each station
-        //ZSizeGemModule : GEM thickness (frames+sensitive)
-        //ZSizeReadoutModule : sensitive volume thickness
+        //ZSizeModuleWithFrames : GEM thickness (frames+sensitive)
+        //ZSizeModule : sensitive volume thickness
         //XSize : x-size of the station
         //YSize : y-size of the station
         //ZSize : z-size of the station
 
     switch (iStation) {
         case 0: //one plane 10x10
-            StripAngle = +90.0;
-            PitchValueModule = 0.04;
-            LowerStripWidth = PitchValueModule;
-            UpperStripWidth = PitchValueModule;
-            ZSizeGemModule = 1.3;
-            ZSizeReadoutModule = 0.9;
+            LowerLayerStripAngle = 0.0;
+            UpperLayerStripAngle = +90.0;
+            LowerLayerPitch = 0.04;
+            UpperLayerPitch = 0.04;
+            ZSizeModuleWithFrames = 1.3;
+            ZSizeModule = 0.9;
             EDriftDirection = ForwardZAxisEDrift;
-            LowerStripDirection = RightToLeft;
-            UpperStripDirection = LeftToRight;
-            LeftStripBorder = LeftTop;
-            RightStripBorder = RightBottom;
             break;
 
         case 1: //one plane 66x41
-            StripAngle = +15.0;
-            PitchValueModule = 0.08;
-            LowerStripWidth = PitchValueModule;
-            UpperStripWidth = PitchValueModule;
-            ZSizeGemModule = 2.3;
-            ZSizeReadoutModule = 0.9;
+            LowerLayerStripAngle = 0.0;
+            UpperLayerStripAngle = +15.0;
+            LowerLayerPitch = 0.08;
+            UpperLayerPitch = 0.08;
+            ZSizeModuleWithFrames = 2.3;
+            ZSizeModule = 0.9;
             EDriftDirection = ForwardZAxisEDrift;
-            LowerStripDirection = LeftToRight;
-            UpperStripDirection = LeftToRight;
-            LeftStripBorder = LeftTop;
-            RightStripBorder = RightBottom;
             break;
 
         case 2: //one plane 66x41
-            StripAngle = -15.0;
-            PitchValueModule = 0.08;
-            LowerStripWidth = PitchValueModule;
-            UpperStripWidth = PitchValueModule;
-            ZSizeGemModule = 2.3;
-            ZSizeReadoutModule = 0.9;
+            LowerLayerStripAngle = 0.0;
+            UpperLayerStripAngle = -15.0;
+            LowerLayerPitch = 0.08;
+            UpperLayerPitch = 0.08;
+            ZSizeModuleWithFrames = 2.3;
+            ZSizeModule = 0.9;
             EDriftDirection = BackwardZAxisEDrift;
-            LowerStripDirection = LeftToRight;
-            UpperStripDirection = LeftToRight;
-            LeftStripBorder = LeftBottom;
-            RightStripBorder = RightTop;
             break;
 
         case 3: //one plane 66x41
-            StripAngle = +15.0;
-            PitchValueModule = 0.08;
-            LowerStripWidth = PitchValueModule;
-            UpperStripWidth = PitchValueModule;
-            ZSizeGemModule = 2.3;
-            ZSizeReadoutModule = 0.9;
+            LowerLayerStripAngle = 0.0;
+            UpperLayerStripAngle = +15.0;
+            LowerLayerPitch = 0.08;
+            UpperLayerPitch = 0.08;
+            ZSizeModuleWithFrames = 2.3;
+            ZSizeModule = 0.9;
             EDriftDirection = ForwardZAxisEDrift;
-            LowerStripDirection = LeftToRight;
-            UpperStripDirection = LeftToRight;
-            LeftStripBorder = LeftTop;
-            RightStripBorder = RightBottom;
             break;
 
         case 4: //one plane 66x41
-            StripAngle = -15.0;
-            PitchValueModule = 0.08;
-            LowerStripWidth = PitchValueModule;
-            UpperStripWidth = PitchValueModule;
-            ZSizeGemModule = 2.3;
-            ZSizeReadoutModule = 0.9;
+            LowerLayerStripAngle = 0.0;
+            UpperLayerStripAngle = -15.0;
+            LowerLayerPitch = 0.08;
+            UpperLayerPitch = 0.08;
+            ZSizeModuleWithFrames = 2.3;
+            ZSizeModule = 0.9;
             EDriftDirection = BackwardZAxisEDrift;
-            LowerStripDirection = LeftToRight;
-            UpperStripDirection = LeftToRight;
-            LeftStripBorder = LeftBottom;
-            RightStripBorder = RightTop;
             break;
 
         case 5: //one plane 66x41
-            StripAngle = +15.0;
-            PitchValueModule = 0.08;
-            LowerStripWidth = PitchValueModule;
-            UpperStripWidth = PitchValueModule;
-            ZSizeGemModule = 2.3;
-            ZSizeReadoutModule = 0.9;
+            LowerLayerStripAngle = 0.0;
+            UpperLayerStripAngle = +15.0;
+            LowerLayerPitch = 0.08;
+            UpperLayerPitch = 0.08;
+            ZSizeModuleWithFrames = 2.3;
+            ZSizeModule = 0.9;
             EDriftDirection = ForwardZAxisEDrift;
-            LowerStripDirection = LeftToRight;
-            UpperStripDirection = LeftToRight;
-            LeftStripBorder = LeftTop;
-            RightStripBorder = RightBottom;
             break;
 
         case 6: //one plane 163x45
-            StripAngle = -15.0;
-            PitchValueModule = 0.08;
-            LowerStripWidth = PitchValueModule;
-            UpperStripWidth = PitchValueModule;
-            ZSizeGemModule = 3.9;
-            ZSizeReadoutModule = 0.9;
+            LowerLayerStripAngle = 0.0;
+            UpperLayerStripAngle = -15.0;
+            LowerLayerPitch = 0.08;
+            UpperLayerPitch = 0.08;
+            ZSizeModuleWithFrames = 3.9;
+            ZSizeModule = 0.9;
             EDriftDirection = BackwardZAxisEDrift;
-            LowerStripDirection = RightToLeft;
-            UpperStripDirection = RightToLeft;
-            LeftStripBorder = LeftBottom;
-            RightStripBorder = RightTop;
             break;
     }
 
@@ -159,23 +126,23 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
         NModules = 1; //1 modules in the station
         XSize = XModuleSize_Plane10x10;
         YSize = YModuleSize_Plane10x10;
-        ZSize = ZSizeGemModule;
+        ZSize = ZSizeModuleWithFrames;
         BuildModules_One10x10Plane();
     }
 
     if(StationNumber >= 1 && StationNumber <= 5) {
-        NModules = 2; //1 modules in the station (1 plane + 1 hot zone)
+        NModules = 1; //1 modules in the station
         XSize = XModuleSize_Plane66x41;
         YSize = YModuleSize_Plane66x41;
-        ZSize = ZSizeGemModule;
+        ZSize = ZSizeModuleWithFrames;
         BuildModules_One66x41Plane();
     }
 
     if(StationNumber == 6) {
-        NModules = 4; //2 modules in the station (2 plane + 2 hot zone)
+        NModules = 2; //2 modules in the station (left+right)
         XSize = 2*XModuleSize_Plane163x45;
         YSize = YModuleSize_Plane163x45;
-        ZSize = ZSizeGemModule;
+        ZSize = ZSizeModuleWithFrames;
         BuildModules_One163x45Plane();
     }
     //end assembling the station -----------------------------------------------
@@ -183,42 +150,21 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
 
 BmnGemStripStation_RunSummer2016::~BmnGemStripStation_RunSummer2016() {
     for(Int_t i = 0; i < NModules; ++i) {
-        if(ReadoutModules[i]) {
-            delete ReadoutModules[i];
-            ReadoutModules[i] = NULL;
+        if(Modules[i]) {
+            delete Modules[i];
+            Modules[i] = NULL;
         }
     }
-    if(ReadoutModules) {
-        delete [] ReadoutModules;
-        ReadoutModules = NULL;
+    if(Modules) {
+        delete [] Modules;
+        Modules = NULL;
     }
 }
 
 Int_t BmnGemStripStation_RunSummer2016::GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord) {
 
-    if(StationNumber == 0) {
-        Int_t mod = 0;
-        if((xcoord >= ReadoutModules[mod]->GetXMinReadout() && xcoord <= ReadoutModules[mod]->GetXMaxReadout())
-        && (ycoord >= ReadoutModules[mod]->GetYMinReadout() && ycoord <= ReadoutModules[mod]->GetYMaxReadout()))
-            return mod;
-    }
-
-    if(StationNumber >= 1 && StationNumber <= 5) {
-        for(Int_t i = 1; i >= 0; --i) {
-            if((xcoord >= ReadoutModules[i]->GetXMinReadout() && xcoord <= ReadoutModules[i]->GetXMaxReadout())
-            && (ycoord >= ReadoutModules[i]->GetYMinReadout() && ycoord <= ReadoutModules[i]->GetYMaxReadout()))
-                return i;
-        }
-    }
-
-    if(StationNumber == 6) {
-        for(Int_t i = 3; i >= 0; --i) {
-            if((xcoord >= ReadoutModules[i]->GetXMinReadout() && xcoord <= ReadoutModules[i]->GetXMaxReadout())
-            && (ycoord >= ReadoutModules[i]->GetYMinReadout() && ycoord <= ReadoutModules[i]->GetYMaxReadout())) {
-                if(ReadoutModules[i]->IsPointInsideDeadZones(xcoord, ycoord)) continue;
-                    return i;
-            }
-        }
+    for(Int_t imodule = 0; imodule < NModules; ++imodule) {
+        if( Modules[imodule]->IsPointInsideModule(xcoord, ycoord) ) return imodule;
     }
 
     return -1;
@@ -226,244 +172,449 @@ Int_t BmnGemStripStation_RunSummer2016::GetPointModuleOwnership(Double_t xcoord,
 //------------------------------------------------------------------------------
 
 void BmnGemStripStation_RunSummer2016::BuildModules_One10x10Plane() {
-    ReadoutModules = new BmnGemStripReadoutModule* [NModules];
+
+    Modules = new BmnGemStripModule* [NModules];
 
     //module
-    ReadoutModules[0] =
-            new BmnGemStripReadoutModule(XModuleSize_Plane10x10, YModuleSize_Plane10x10,
-                                         XPosition-XModuleSize_Plane10x10*0.5, YPosition-YModuleSize_Plane10x10*0.5,
-                                         PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
-                                         ZPosition, EDriftDirection);
+    Modules[0] = new BmnGemStripModule(ZPosition, EDriftDirection);
 
-    //strip numbering direction
-    ReadoutModules[0]->SetStripNumberingOrder(LowerStripDirection, UpperStripDirection);
+        //lower strip layer --------------------------------------------------------
+        BmnGemStripLayer lower_layer(0, LowerStripLayer,
+                                     XModuleSize_Plane10x10, YModuleSize_Plane10x10,
+                                     XPosition-XModuleSize_Plane10x10*0.5, YPosition-YModuleSize_Plane10x10*0.5,
+                                     LowerLayerPitch, LowerLayerStripAngle);
 
-    //strip numbering borders
-    ReadoutModules[0]->SetStripNumberingBorders(LeftStripBorder, RightStripBorder);
+        lower_layer.SetStripNumberingOrder(RightToLeft);
+        lower_layer.SetStripNumberingBorders(LeftTop, RightBottom);
+        //--------------------------------------------------------------------------
+
+        //upper strip layer --------------------------------------------------------
+        BmnGemStripLayer upper_layer(0, UpperStripLayer,
+                                     XModuleSize_Plane10x10, YModuleSize_Plane10x10,
+                                     XPosition-XModuleSize_Plane10x10*0.5, YPosition-YModuleSize_Plane10x10*0.5,
+                                     UpperLayerPitch, UpperLayerStripAngle);
+
+        upper_layer.SetStripNumberingOrder(LeftToRight);
+        upper_layer.SetStripNumberingBorders(LeftTop, RightBottom);
+        //--------------------------------------------------------------------------
+
+    Modules[0]->AddStripLayer(lower_layer);
+    Modules[0]->AddStripLayer(upper_layer);
 
     return;
 }
 
 void BmnGemStripStation_RunSummer2016::BuildModules_One66x41Plane() {
-    ReadoutModules = new BmnGemStripReadoutModule* [NModules];
 
-    if(StripAngle >= 0.0) {
+    Modules = new BmnGemStripModule* [NModules];
 
-        //big module
-        ReadoutModules[0] =
-            new BmnGemStripReadoutModule(XModuleSize_Plane66x41, YModuleSize_Plane66x41,
-                                         XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
-                                         PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
-                                         ZPosition, EDriftDirection);
+    //module
+    Modules[0] = new BmnGemStripModule(ZPosition, EDriftDirection);
 
-        //dead zone
-        const Int_t NPointsDeadZone = 4;
-        Double_t XPointsDeadZone[NPointsDeadZone];
-            XPointsDeadZone[0] = XPosition-XModuleSize_Plane66x41*0.5;
-            XPointsDeadZone[1] = XPosition-XModuleSize_Plane66x41*0.5;
-            XPointsDeadZone[2] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
-            XPointsDeadZone[3] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
-        Double_t YPointsDeadZone[NPointsDeadZone];
-            YPointsDeadZone[0] = YPosition-YModuleSize_Plane66x41*0.5;
-            YPointsDeadZone[1] = YPosition-YModuleSize_Plane66x41*0.5 + YHotZoneSize_Plane66x41;
-            YPointsDeadZone[2] = YPosition-YModuleSize_Plane66x41*0.5 + YHotZoneSize_Plane66x41;
-            YPointsDeadZone[3] = YPosition-YModuleSize_Plane66x41*0.5;
-        ReadoutModules[0]->AddDeadZone(NPointsDeadZone, XPointsDeadZone, YPointsDeadZone);
+    //zone 0 (big) -------------------------------------------------------------
 
-        //strip numbering direction
-        ReadoutModules[0]->SetStripNumberingOrder(LowerStripDirection, UpperStripDirection);
+        //lower strip layer (zone 0) -------------------------------------------
+        BmnGemStripLayer lower_layer_zone0(0, LowerStripLayer,
+                                           XModuleSize_Plane66x41, YModuleSize_Plane66x41,
+                                           XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
+                                           LowerLayerPitch, LowerLayerStripAngle);
 
-        //strip numbering borders
-        ReadoutModules[0]->SetStripNumberingBorders(LeftStripBorder, RightStripBorder);
+        if(UpperLayerStripAngle >= 0.0) {
+            lower_layer_zone0.SetStripNumberingOrder(LeftToRight);
+            lower_layer_zone0.SetStripNumberingBorders(LeftTop, RightBottom);
+        }
+        else {
+            lower_layer_zone0.SetStripNumberingOrder(LeftToRight);
+            lower_layer_zone0.SetStripNumberingBorders(LeftBottom, RightTop);
+        }
 
+        //dead zone for layers in zone 0
+        const Int_t NPoints_DeadZone_zone0 = 4;
+        Double_t XPoints_DeadZone_zone0[NPoints_DeadZone_zone0];
+        Double_t YPoints_DeadZone_zone0[NPoints_DeadZone_zone0];
 
-        //hot zone
-        ReadoutModules[1] =
-            new BmnGemStripReadoutModule(XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
-                                         XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
-                                         PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
-                                         ZPosition, EDriftDirection);
-        //strip numbering direction
-        ReadoutModules[1]->SetStripNumberingOrder(LowerStripDirection, UpperStripDirection);
+        if(UpperLayerStripAngle >= 0.0) {
+            XPoints_DeadZone_zone0[0] = XPosition-XModuleSize_Plane66x41*0.5;
+            XPoints_DeadZone_zone0[1] = XPosition-XModuleSize_Plane66x41*0.5;
+            XPoints_DeadZone_zone0[2] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
+            XPoints_DeadZone_zone0[3] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
 
-        //strip numbering borders
-        ReadoutModules[1]->SetStripNumberingBorders(LeftStripBorder, RightStripBorder);
-    }
-    else {
-        //big module
-        ReadoutModules[0] =
-            new BmnGemStripReadoutModule(XModuleSize_Plane66x41, YModuleSize_Plane66x41,
-                                         XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
-                                         PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
-                                         ZPosition, EDriftDirection);
+            YPoints_DeadZone_zone0[0] = YPosition-YModuleSize_Plane66x41*0.5;
+            YPoints_DeadZone_zone0[1] = YPosition-YModuleSize_Plane66x41*0.5 + YHotZoneSize_Plane66x41;
+            YPoints_DeadZone_zone0[2] = YPosition-YModuleSize_Plane66x41*0.5 + YHotZoneSize_Plane66x41;
+            YPoints_DeadZone_zone0[3] = YPosition-YModuleSize_Plane66x41*0.5;
+        }
+        else {
+            XPoints_DeadZone_zone0[0] = XPosition-XModuleSize_Plane66x41*0.5;
+            XPoints_DeadZone_zone0[1] = XPosition-XModuleSize_Plane66x41*0.5;
+            XPoints_DeadZone_zone0[2] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
+            XPoints_DeadZone_zone0[3] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
 
-        const Int_t NPointsDeadZone = 4;
-        Double_t XPointsDeadZone[NPointsDeadZone];
-            XPointsDeadZone[0] = XPosition-XModuleSize_Plane66x41*0.5;
-            XPointsDeadZone[1] = XPosition-XModuleSize_Plane66x41*0.5;
-            XPointsDeadZone[2] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
-            XPointsDeadZone[3] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
-        Double_t YPointsDeadZone[NPointsDeadZone];
-            YPointsDeadZone[0] = YPosition+YModuleSize_Plane66x41*0.5 - YHotZoneSize_Plane66x41;
-            YPointsDeadZone[1] = YPosition+YModuleSize_Plane66x41*0.5;
-            YPointsDeadZone[2] = YPosition+YModuleSize_Plane66x41*0.5;
-            YPointsDeadZone[3] = YPosition+YModuleSize_Plane66x41*0.5 - YHotZoneSize_Plane66x41;
-        ReadoutModules[0]->AddDeadZone(NPointsDeadZone, XPointsDeadZone, YPointsDeadZone);
+            YPoints_DeadZone_zone0[0] = YPosition+YModuleSize_Plane66x41*0.5 - YHotZoneSize_Plane66x41;
+            YPoints_DeadZone_zone0[1] = YPosition+YModuleSize_Plane66x41*0.5;
+            YPoints_DeadZone_zone0[2] = YPosition+YModuleSize_Plane66x41*0.5;
+            YPoints_DeadZone_zone0[3] = YPosition+YModuleSize_Plane66x41*0.5 - YHotZoneSize_Plane66x41;
+        }
 
-        //strip numbering direction
-        ReadoutModules[0]->SetStripNumberingOrder(LowerStripDirection, UpperStripDirection);
+        lower_layer_zone0.AddDeadZone(NPoints_DeadZone_zone0, XPoints_DeadZone_zone0, YPoints_DeadZone_zone0);
+        //----------------------------------------------------------------------
 
-        //strip numbering borders
-        ReadoutModules[0]->SetStripNumberingBorders(LeftStripBorder, RightStripBorder);
+        //upper strip layer (zone 0) -------------------------------------------
+        BmnGemStripLayer upper_layer_zone0(0, UpperStripLayer,
+                                           XModuleSize_Plane66x41, YModuleSize_Plane66x41,
+                                           XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
+                                           UpperLayerPitch, UpperLayerStripAngle);
 
+        if(UpperLayerStripAngle >= 0.0) {
+            upper_layer_zone0.SetStripNumberingOrder(LeftToRight);
+            upper_layer_zone0.SetStripNumberingBorders(LeftTop, RightBottom);
+        }
+        else {
+            upper_layer_zone0.SetStripNumberingOrder(LeftToRight);
+            upper_layer_zone0.SetStripNumberingBorders(LeftBottom, RightTop);
+        }
 
-        //hot zone
-        ReadoutModules[1] =
-            new BmnGemStripReadoutModule(XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
-                                         XPosition-XModuleSize_Plane66x41*0.5, YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41,
-                                         PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
-                                         ZPosition, EDriftDirection);
+        upper_layer_zone0.AddDeadZone(NPoints_DeadZone_zone0, XPoints_DeadZone_zone0, YPoints_DeadZone_zone0);
+        //----------------------------------------------------------------------
 
-        //strip numbering direction
-        ReadoutModules[1]->SetStripNumberingOrder(LowerStripDirection, UpperStripDirection);
+    //--------------------------------------------------------------------------
 
-        //strip numbering borders
-        ReadoutModules[1]->SetStripNumberingBorders(LeftStripBorder, RightStripBorder);
-    }
+    //zone 1 (hot) -------------------------------------------------------------
+
+        BmnGemStripLayer lower_layer_zone1;
+        BmnGemStripLayer upper_layer_zone1;
+
+        if(UpperLayerStripAngle >= 0.0) {
+            //lower strip layer (zone 1) -------------------------------------------
+            lower_layer_zone1 = BmnGemStripLayer(1, LowerStripLayer,
+                                               XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
+                                               XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
+                                               LowerLayerPitch, LowerLayerStripAngle);
+
+            lower_layer_zone1.SetStripNumberingOrder(LeftToRight);
+            lower_layer_zone1.SetStripNumberingBorders(LeftTop, RightBottom);
+            //----------------------------------------------------------------------
+
+            //upper strip layer (zone 1) -------------------------------------------
+            upper_layer_zone1 = BmnGemStripLayer(1, UpperStripLayer,
+                                               XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
+                                               XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
+                                               UpperLayerPitch, UpperLayerStripAngle);
+
+            upper_layer_zone1.SetStripNumberingOrder(LeftToRight);
+            upper_layer_zone1.SetStripNumberingBorders(LeftTop, RightBottom);
+            //----------------------------------------------------------------------
+        }
+        else {
+            //lower strip layer (zone 1) -------------------------------------------
+            lower_layer_zone1 = BmnGemStripLayer(1, LowerStripLayer,
+                                               XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
+                                               XPosition-XModuleSize_Plane66x41*0.5, YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41,
+                                               LowerLayerPitch, LowerLayerStripAngle);
+
+            lower_layer_zone1.SetStripNumberingOrder(LeftToRight);
+            lower_layer_zone1.SetStripNumberingBorders(LeftTop, RightBottom);
+            //----------------------------------------------------------------------
+
+            //upper strip layer (zone 1) -------------------------------------------
+            upper_layer_zone1 = BmnGemStripLayer(1, UpperStripLayer,
+                                               XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
+                                               XPosition-XModuleSize_Plane66x41*0.5, YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41,
+                                               UpperLayerPitch, UpperLayerStripAngle);
+
+            upper_layer_zone1.SetStripNumberingOrder(LeftToRight);
+            upper_layer_zone1.SetStripNumberingBorders(LeftBottom, RightTop);
+            //----------------------------------------------------------------------
+        }
+    //--------------------------------------------------------------------------
+
+    Modules[0]->AddStripLayer(lower_layer_zone0);
+    Modules[0]->AddStripLayer(upper_layer_zone0);
+    Modules[0]->AddStripLayer(lower_layer_zone1);
+    Modules[0]->AddStripLayer(upper_layer_zone1);
 
     return;
 }
 
 void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
-    ReadoutModules = new BmnGemStripReadoutModule* [NModules];
-
-    //big modules --------------------------------------------------------------
-    //left module
-    ReadoutModules[0] =
-        new BmnGemStripReadoutModule(XModuleSize_Plane163x45, YModuleSize_Plane163x45,
-                                     XPosition-XModuleSize_Plane163x45, YPosition-YModuleSize_Plane163x45*0.5,
-                                     PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
-                                     ZPosition, EDriftDirection);
-
-    //dead zone as the hot zone rectangle --------------------------------------
-    const Int_t NPointsDeadZone = 4;
-    Double_t XPointsDeadZone[NPointsDeadZone];
-        XPointsDeadZone[0] = XPosition-XRectHotZoneSize_Plane163x45;
-        XPointsDeadZone[1] = XPosition-XRectHotZoneSize_Plane163x45;
-        XPointsDeadZone[2] = XPosition+0.0;
-        XPointsDeadZone[3] = XPosition+0.0;
-    Double_t YPointsDeadZone[NPointsDeadZone];
-        YPointsDeadZone[0] = YPosition-YModuleSize_Plane163x45*0.5;
-        YPointsDeadZone[1] = YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
-        YPointsDeadZone[2] = YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
-        YPointsDeadZone[3] = YPosition-YModuleSize_Plane163x45*0.5;
-    ReadoutModules[0]->AddDeadZone(NPointsDeadZone, XPointsDeadZone, YPointsDeadZone);
-    //--------------------------------------------------------------------------
+    Modules = new BmnGemStripModule* [NModules];
 
 
-    //strip numbering direction
-    ReadoutModules[0]->SetStripNumberingOrder(LowerStripDirection, UpperStripDirection);
+//module 0 (left) --------------------------------------------------------------
+    {
+        Modules[0] = new BmnGemStripModule(ZPosition, EDriftDirection);
 
-    //strip numbering borders
-    ReadoutModules[0]->SetStripNumberingBorders(LeftStripBorder, RightStripBorder);
+            //zone 0 (big) ---------------------------------------------------------
 
-    //right module
-    ReadoutModules[1] =
-        new BmnGemStripReadoutModule(XModuleSize_Plane163x45, YModuleSize_Plane163x45,
-                                     XPosition+0.0, YPosition-YModuleSize_Plane163x45*0.5,
-                                     PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
-                                     ZPosition, EDriftDirection);
+            //lower strip layer (zone 0) -------------------------------------------
+            BmnGemStripLayer lower_layer_zone0(0, LowerStripLayer,
+                                               XModuleSize_Plane163x45, YModuleSize_Plane163x45,
+                                               XPosition-XModuleSize_Plane163x45, YPosition-YModuleSize_Plane163x45*0.5,
+                                               LowerLayerPitch, LowerLayerStripAngle);
 
-    //dead zone as the hot zone rectangle --------------------------------------
-    XPointsDeadZone[0] = XPosition+0.0;
-    XPointsDeadZone[1] = XPosition+0.0;
-    XPointsDeadZone[2] = XPosition+XSlopeHotZoneSize_Plane163x45[0];
-    XPointsDeadZone[3] = XPosition+XSlopeHotZoneSize_Plane163x45[1];
+            lower_layer_zone0.SetStripNumberingOrder(RightToLeft);
+            lower_layer_zone0.SetStripNumberingBorders(LeftBottom, RightTop);
 
-    YPointsDeadZone[0] = YPosition-YModuleSize_Plane163x45*0.5;
-    YPointsDeadZone[1] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
-    YPointsDeadZone[2] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
-    YPointsDeadZone[3] = YPosition-YModuleSize_Plane163x45*0.5;
+            //dead zone for lower layer in zone 0
+            const Int_t NPoints_DeadZone_lower_zone0 = 4;
+            Double_t XPoints_DeadZone_lower_zone0[NPoints_DeadZone_lower_zone0];
+            Double_t YPoints_DeadZone_lower_zone0[NPoints_DeadZone_lower_zone0];
 
-    ReadoutModules[1]->AddDeadZone(NPointsDeadZone, XPointsDeadZone, YPointsDeadZone);
-    //--------------------------------------------------------------------------
+            XPoints_DeadZone_lower_zone0[0] = XPosition-XRectHotZoneSize_Plane163x45;
+            XPoints_DeadZone_lower_zone0[1] = XPosition-XRectHotZoneSize_Plane163x45;
+            XPoints_DeadZone_lower_zone0[2] = XPosition+0.0;
+            XPoints_DeadZone_lower_zone0[3] = XPosition+0.0;
 
-    //strip numbering direction
-    ReadoutModules[1]->SetStripNumberingOrder(LowerStripDirection, UpperStripDirection);
+            YPoints_DeadZone_lower_zone0[0] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone0[1] = YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
+            YPoints_DeadZone_lower_zone0[2] = YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
+            YPoints_DeadZone_lower_zone0[3] = YPosition-YModuleSize_Plane163x45*0.5;
 
-    //strip numbering borders
-    ReadoutModules[1]->SetStripNumberingBorders(LeftStripBorder, RightStripBorder);
-    //--------------------------------------------------------------------------
+            lower_layer_zone0.AddDeadZone(NPoints_DeadZone_lower_zone0, XPoints_DeadZone_lower_zone0, YPoints_DeadZone_lower_zone0);
+            //----------------------------------------------------------------------
 
-    //hot zones ----------------------------------------------------------------
-    //left hot zone
-    ReadoutModules[2] =
-        new BmnGemStripReadoutModule(XRectHotZoneSize_Plane163x45, YRectHotZoneSize_Plane163x45,
-                                     XPosition-XRectHotZoneSize_Plane163x45, YPosition-YModuleSize_Plane163x45*0.5,
-                                     PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
-                                     ZPosition, EDriftDirection);
+            //upper strip layer (zone 0) -------------------------------------------
+            BmnGemStripLayer upper_layer_zone0(0, UpperStripLayer,
+                                               XModuleSize_Plane163x45, YModuleSize_Plane163x45,
+                                               XPosition-XModuleSize_Plane163x45, YPosition-YModuleSize_Plane163x45*0.5,
+                                               UpperLayerPitch, UpperLayerStripAngle);
 
-    //dead zone as the hole ----------------------------------------------------
-    XPointsDeadZone[0] = XPosition-BeamHoleRadius;
-    XPointsDeadZone[1] = XPosition-BeamHoleRadius;
-    XPointsDeadZone[2] = XPosition+0.0;
-    XPointsDeadZone[3] = XPosition+0.0;
+            upper_layer_zone0.SetStripNumberingOrder(RightToLeft);
+            upper_layer_zone0.SetStripNumberingBorders(LeftBottom, RightTop);
 
-    YPointsDeadZone[0] = YPosition-YModuleSize_Plane163x45*0.5;
-    YPointsDeadZone[1] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-    YPointsDeadZone[2] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-    YPointsDeadZone[3] = YPosition-YModuleSize_Plane163x45*0.5;
+            //dead zone for upper layer in zone 0
+            const Int_t NPoints_DeadZone_upper_zone0 = 4;
+            Double_t XPoints_DeadZone_upper_zone0[NPoints_DeadZone_upper_zone0];
+            Double_t YPoints_DeadZone_upper_zone0[NPoints_DeadZone_upper_zone0];
 
-    ReadoutModules[2]->AddDeadZone(NPointsDeadZone, XPointsDeadZone, YPointsDeadZone);
-    //--------------------------------------------------------------------------
+            XPoints_DeadZone_upper_zone0[0] = XPosition-XSlopeHotZoneSize_Plane163x45[0];
+            XPoints_DeadZone_upper_zone0[1] = XPosition-XSlopeHotZoneSize_Plane163x45[1];
+            XPoints_DeadZone_upper_zone0[2] = XPosition+0.0;
+            XPoints_DeadZone_upper_zone0[3] = XPosition+0.0;
 
-    //strip numbering direction
-    ReadoutModules[2]->SetStripNumberingOrder(LowerStripDirection, UpperStripDirection);
+            YPoints_DeadZone_upper_zone0[0] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone0[1] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone0[2] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone0[3] = YPosition-YModuleSize_Plane163x45*0.5;
 
-    //strip numbering borders
-    ReadoutModules[2]->SetStripNumberingBorders(LeftStripBorder, RightStripBorder);
+            upper_layer_zone0.AddDeadZone(NPoints_DeadZone_upper_zone0, XPoints_DeadZone_upper_zone0, YPoints_DeadZone_upper_zone0);
+            //----------------------------------------------------------------------
 
+            //lower strip layer (zone 1) -------------------------------------------
+            BmnGemStripLayer lower_layer_zone1(1, LowerStripLayer,
+                                               XRectHotZoneSize_Plane163x45, YRectHotZoneSize_Plane163x45,
+                                               XPosition-XRectHotZoneSize_Plane163x45, YPosition-YModuleSize_Plane163x45*0.5,
+                                               LowerLayerPitch, LowerLayerStripAngle);
 
-    //right hot zone
-    ReadoutModules[3] =
-        new BmnGemStripReadoutModule(XSlopeHotZoneSize_Plane163x45[1], YSlopeHotZoneSize_Plane163x45,
-                                     XPosition+0.0, YPosition-YModuleSize_Plane163x45*0.5,
-                                     PitchValueModule, StripAngle, LowerStripWidth, UpperStripWidth,
-                                     ZPosition, EDriftDirection);
+            lower_layer_zone1.SetStripNumberingOrder(RightToLeft);
+            lower_layer_zone1.SetStripNumberingBorders(LeftBottom, RightTop);
 
-    //dead zone as the hole ----------------------------------------------------
-    XPointsDeadZone[0] = XPosition+0.0;
-    XPointsDeadZone[1] = XPosition+0.0;
-    XPointsDeadZone[2] = XPosition+BeamHoleRadius;
-    XPointsDeadZone[3] = XPosition+BeamHoleRadius;
+            //dead zone for lower layer in zone 1 (hole)
+            const Int_t NPoints_DeadZone_lower_zone1 = 4;
+            Double_t XPoints_DeadZone_lower_zone1[NPoints_DeadZone_lower_zone1];
+            Double_t YPoints_DeadZone_lower_zone1[NPoints_DeadZone_lower_zone1];
 
-    YPointsDeadZone[0] = YPosition-YModuleSize_Plane163x45*0.5;
-    YPointsDeadZone[1] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-    YPointsDeadZone[2] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-    YPointsDeadZone[3] = YPosition-YModuleSize_Plane163x45*0.5;
+            XPoints_DeadZone_lower_zone1[0] = XPosition-BeamHoleRadius;
+            XPoints_DeadZone_lower_zone1[1] = XPosition-BeamHoleRadius;
+            XPoints_DeadZone_lower_zone1[2] = XPosition+0.0;
+            XPoints_DeadZone_lower_zone1[3] = XPosition+0.0;
 
-    ReadoutModules[3]->AddDeadZone(NPointsDeadZone, XPointsDeadZone, YPointsDeadZone);
-    //--------------------------------------------------------------------------
+            YPoints_DeadZone_lower_zone1[0] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone1[1] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_lower_zone1[2] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_lower_zone1[3] = YPosition-YModuleSize_Plane163x45*0.5;
 
-    //dead zone as the triangle ------------------------------------------------
-    XPointsDeadZone[0] = XPosition+XSlopeHotZoneSize_Plane163x45[1];
-    XPointsDeadZone[1] = XPosition+XSlopeHotZoneSize_Plane163x45[0];
-    XPointsDeadZone[2] = XPosition+XSlopeHotZoneSize_Plane163x45[1];
+            lower_layer_zone1.AddDeadZone(NPoints_DeadZone_lower_zone1, XPoints_DeadZone_lower_zone1, YPoints_DeadZone_lower_zone1);
+            //----------------------------------------------------------------------
 
-    YPointsDeadZone[0] = YPosition-YModuleSize_Plane163x45*0.5;
-    YPointsDeadZone[1] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
-    YPointsDeadZone[2] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            //upper strip layer (zone 1) -------------------------------------------
+            BmnGemStripLayer upper_layer_zone1(1, UpperStripLayer,
+                                               XSlopeHotZoneSize_Plane163x45[1], YSlopeHotZoneSize_Plane163x45,
+                                               XPosition-XSlopeHotZoneSize_Plane163x45[1], YPosition-YModuleSize_Plane163x45*0.5,
+                                               UpperLayerPitch, UpperLayerStripAngle);
 
-    ReadoutModules[3]->AddDeadZone(3, XPointsDeadZone, YPointsDeadZone);
-    //--------------------------------------------------------------------------
+            upper_layer_zone1.SetStripNumberingOrder(RightToLeft);
+            upper_layer_zone1.SetStripNumberingBorders(LeftTop, RightTop);
 
-    //strip numbering direction
-    ReadoutModules[3]->SetStripNumberingOrder(LowerStripDirection, UpperStripDirection);
+            //dead zone for upper layer in zone 1 (hole)
+            const Int_t NPoints_DeadZone_upper_zone1_hole = 4;
+            Double_t XPoints_DeadZone_upper_zone1_hole[NPoints_DeadZone_upper_zone1_hole];
+            Double_t YPoints_DeadZone_upper_zone1_hole[NPoints_DeadZone_upper_zone1_hole];
 
-    //strip numbering borders
-    //ReadoutModules[3]->SetStripNumberingBorders(LeftStripBorder, RightStripBorder);
-    ReadoutModules[3]->SetStripNumberingBorders(LeftBottom, RightBottom); //slope zone
-    //--------------------------------------------------------------------------
+            XPoints_DeadZone_upper_zone1_hole[0] = XPosition-BeamHoleRadius;
+            XPoints_DeadZone_upper_zone1_hole[1] = XPosition-BeamHoleRadius;
+            XPoints_DeadZone_upper_zone1_hole[2] = XPosition+0.0;
+            XPoints_DeadZone_upper_zone1_hole[3] = XPosition+0.0;
+
+            YPoints_DeadZone_upper_zone1_hole[0] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone1_hole[1] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_upper_zone1_hole[2] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_upper_zone1_hole[3] = YPosition-YModuleSize_Plane163x45*0.5;
+
+            upper_layer_zone1.AddDeadZone(NPoints_DeadZone_upper_zone1_hole, XPoints_DeadZone_upper_zone1_hole, YPoints_DeadZone_upper_zone1_hole);
+
+            //dead zone for upper layer in zone 1 (triangle)
+            const Int_t NPoints_DeadZone_upper_zone1_triang = 3;
+            Double_t XPoints_DeadZone_upper_zone1_triang[NPoints_DeadZone_upper_zone1_triang];
+            Double_t YPoints_DeadZone_upper_zone1_triang[NPoints_DeadZone_upper_zone1_triang];
+
+            XPoints_DeadZone_upper_zone1_triang[0] = XPosition-XSlopeHotZoneSize_Plane163x45[1];
+            XPoints_DeadZone_upper_zone1_triang[1] = XPosition-XSlopeHotZoneSize_Plane163x45[1];
+            XPoints_DeadZone_upper_zone1_triang[2] = XPosition-XSlopeHotZoneSize_Plane163x45[0];
+
+            YPoints_DeadZone_upper_zone1_triang[0] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone1_triang[1] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone1_triang[2] = YPosition-YModuleSize_Plane163x45*0.5;
+
+            upper_layer_zone1.AddDeadZone(NPoints_DeadZone_upper_zone1_triang, XPoints_DeadZone_upper_zone1_triang, YPoints_DeadZone_upper_zone1_triang);
+
+            //----------------------------------------------------------------------
+
+            Modules[0]->AddStripLayer(lower_layer_zone0);
+            Modules[0]->AddStripLayer(upper_layer_zone0);
+            Modules[0]->AddStripLayer(lower_layer_zone1);
+            Modules[0]->AddStripLayer(upper_layer_zone1);
+
+    }
+//--------------------------------------------------------------------------
+
+//module 1 (right) --------------------------------------------------------------
+    {
+        Modules[1] = new BmnGemStripModule(ZPosition, EDriftDirection);
+
+            //zone 0 (big) ---------------------------------------------------------
+
+            //lower strip layer (zone 0) -------------------------------------------
+            BmnGemStripLayer lower_layer_zone0(0, LowerStripLayer,
+                                               XModuleSize_Plane163x45, YModuleSize_Plane163x45,
+                                               XPosition+0.0, YPosition-YModuleSize_Plane163x45*0.5,
+                                               LowerLayerPitch, LowerLayerStripAngle);
+
+            lower_layer_zone0.SetStripNumberingOrder(RightToLeft);
+            lower_layer_zone0.SetStripNumberingBorders(LeftBottom, RightTop);
+
+            //dead zone for lower layer in zone 0
+            const Int_t NPoints_DeadZone_lower_zone0 = 4;
+            Double_t XPoints_DeadZone_lower_zone0[NPoints_DeadZone_lower_zone0];
+            Double_t YPoints_DeadZone_lower_zone0[NPoints_DeadZone_lower_zone0];
+
+            XPoints_DeadZone_lower_zone0[0] = XPosition+0.0;
+            XPoints_DeadZone_lower_zone0[1] = XPosition+0.0;
+            XPoints_DeadZone_lower_zone0[2] = XPosition+XRectHotZoneSize_Plane163x45;
+            XPoints_DeadZone_lower_zone0[3] = XPosition+XRectHotZoneSize_Plane163x45;
+
+            YPoints_DeadZone_lower_zone0[0] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone0[1] = YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
+            YPoints_DeadZone_lower_zone0[2] = YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
+            YPoints_DeadZone_lower_zone0[3] = YPosition-YModuleSize_Plane163x45*0.5;
+
+            lower_layer_zone0.AddDeadZone(NPoints_DeadZone_lower_zone0, XPoints_DeadZone_lower_zone0, YPoints_DeadZone_lower_zone0);
+            //----------------------------------------------------------------------
+
+            //upper strip layer (zone 0) -------------------------------------------
+            BmnGemStripLayer upper_layer_zone0(0, UpperStripLayer,
+                                               XModuleSize_Plane163x45, YModuleSize_Plane163x45,
+                                               XPosition+0.0, YPosition-YModuleSize_Plane163x45*0.5,
+                                               UpperLayerPitch, UpperLayerStripAngle);
+
+            upper_layer_zone0.SetStripNumberingOrder(RightToLeft);
+            upper_layer_zone0.SetStripNumberingBorders(LeftBottom, RightTop);
+
+            //dead zone for upper layer in zone 0
+            const Int_t NPoints_DeadZone_upper_zone0 = 4;
+            Double_t XPoints_DeadZone_upper_zone0[NPoints_DeadZone_upper_zone0];
+            Double_t YPoints_DeadZone_upper_zone0[NPoints_DeadZone_upper_zone0];
+
+            XPoints_DeadZone_upper_zone0[0] = XPosition+0.0;
+            XPoints_DeadZone_upper_zone0[1] = XPosition+0.0;
+            XPoints_DeadZone_upper_zone0[2] = XPosition+XSlopeHotZoneSize_Plane163x45[0];
+            XPoints_DeadZone_upper_zone0[3] = XPosition+XSlopeHotZoneSize_Plane163x45[1];
+
+            YPoints_DeadZone_upper_zone0[0] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone0[1] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone0[2] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone0[3] = YPosition-YModuleSize_Plane163x45*0.5;
+
+            upper_layer_zone0.AddDeadZone(NPoints_DeadZone_upper_zone0, XPoints_DeadZone_upper_zone0, YPoints_DeadZone_upper_zone0);
+            //----------------------------------------------------------------------
+
+            //lower strip layer (zone 1) -------------------------------------------
+            BmnGemStripLayer lower_layer_zone1(1, LowerStripLayer,
+                                               XRectHotZoneSize_Plane163x45, YRectHotZoneSize_Plane163x45,
+                                               XPosition+0.0, YPosition-YModuleSize_Plane163x45*0.5,
+                                               LowerLayerPitch, LowerLayerStripAngle);
+
+            lower_layer_zone1.SetStripNumberingOrder(RightToLeft);
+            lower_layer_zone1.SetStripNumberingBorders(LeftBottom, RightTop);
+
+            //dead zone for lower layer in zone 1 (hole)
+            const Int_t NPoints_DeadZone_lower_zone1 = 4;
+            Double_t XPoints_DeadZone_lower_zone1[NPoints_DeadZone_lower_zone1];
+            Double_t YPoints_DeadZone_lower_zone1[NPoints_DeadZone_lower_zone1];
+
+            XPoints_DeadZone_lower_zone1[0] = XPosition+0.0;
+            XPoints_DeadZone_lower_zone1[1] = XPosition+0.0;
+            XPoints_DeadZone_lower_zone1[2] = XPosition+BeamHoleRadius;
+            XPoints_DeadZone_lower_zone1[3] = XPosition+BeamHoleRadius;
+
+            YPoints_DeadZone_lower_zone1[0] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone1[1] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_lower_zone1[2] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_lower_zone1[3] = YPosition-YModuleSize_Plane163x45*0.5;
+
+            lower_layer_zone1.AddDeadZone(NPoints_DeadZone_lower_zone1, XPoints_DeadZone_lower_zone1, YPoints_DeadZone_lower_zone1);
+            //----------------------------------------------------------------------
+
+            //upper strip layer (zone 1) -------------------------------------------
+            BmnGemStripLayer upper_layer_zone1(1, UpperStripLayer,
+                                               XSlopeHotZoneSize_Plane163x45[1], YSlopeHotZoneSize_Plane163x45,
+                                               XPosition+0.0, YPosition-YModuleSize_Plane163x45*0.5,
+                                               UpperLayerPitch, UpperLayerStripAngle);
+
+            upper_layer_zone1.SetStripNumberingOrder(RightToLeft);
+            upper_layer_zone1.SetStripNumberingBorders(LeftBottom, RightBottom);
+
+            //dead zone for upper layer in zone 1 (hole)
+            const Int_t NPoints_DeadZone_upper_zone1_hole = 4;
+            Double_t XPoints_DeadZone_upper_zone1_hole[NPoints_DeadZone_upper_zone1_hole];
+            Double_t YPoints_DeadZone_upper_zone1_hole[NPoints_DeadZone_upper_zone1_hole];
+
+            XPoints_DeadZone_upper_zone1_hole[0] = XPosition+0.0;
+            XPoints_DeadZone_upper_zone1_hole[1] = XPosition+0.0;
+            XPoints_DeadZone_upper_zone1_hole[2] = XPosition+BeamHoleRadius;
+            XPoints_DeadZone_upper_zone1_hole[3] = XPosition+BeamHoleRadius;
+
+            YPoints_DeadZone_upper_zone1_hole[0] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone1_hole[1] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_upper_zone1_hole[2] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_upper_zone1_hole[3] = YPosition-YModuleSize_Plane163x45*0.5;
+
+            upper_layer_zone1.AddDeadZone(NPoints_DeadZone_upper_zone1_hole, XPoints_DeadZone_upper_zone1_hole, YPoints_DeadZone_upper_zone1_hole);
+
+            //dead zone for upper layer in zone 1 (triangle)
+            const Int_t NPoints_DeadZone_upper_zone1_triang = 3;
+            Double_t XPoints_DeadZone_upper_zone1_triang[NPoints_DeadZone_upper_zone1_triang];
+            Double_t YPoints_DeadZone_upper_zone1_triang[NPoints_DeadZone_upper_zone1_triang];
+
+            XPoints_DeadZone_upper_zone1_triang[0] = XPosition+XSlopeHotZoneSize_Plane163x45[1];
+            XPoints_DeadZone_upper_zone1_triang[1] = XPosition+XSlopeHotZoneSize_Plane163x45[0];
+            XPoints_DeadZone_upper_zone1_triang[2] = XPosition+XSlopeHotZoneSize_Plane163x45[1];
+
+            YPoints_DeadZone_upper_zone1_triang[0] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone1_triang[1] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone1_triang[2] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+
+            upper_layer_zone1.AddDeadZone(NPoints_DeadZone_upper_zone1_triang, XPoints_DeadZone_upper_zone1_triang, YPoints_DeadZone_upper_zone1_triang);
+
+            //----------------------------------------------------------------------
+
+            Modules[1]->AddStripLayer(lower_layer_zone0);
+            Modules[1]->AddStripLayer(upper_layer_zone0);
+            Modules[1]->AddStripLayer(lower_layer_zone1);
+            Modules[1]->AddStripLayer(upper_layer_zone1);
+
+    }
+//--------------------------------------------------------------------------
 
     return;
 }

@@ -1,14 +1,10 @@
-
 #include "BmnGemStripDigitizer.h"
 #include "CbmMCTrack.h"
-#include "BmnGemStripStationSet_FullConfig.h"
-#include "BmnGemStripStationSet_1stConfig.h"
-#include "BmnGemStripStationSet_1stConfigShort.h"
-#include "BmnGemStripStationSet_2ndConfig.h"
+
 #include "BmnGemStripStationSet_RunSummer2016.h"
 
 static Float_t workTime = 0.0;
-int entrys = 0;
+static int entrys = 0;
 
 BmnGemStripDigitizer::BmnGemStripDigitizer()
 : fOnlyPrimary(kFALSE), fStripMatching(kTRUE) {
@@ -88,22 +84,6 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
 
     BmnGemStripStationSet *StationSet = 0;
     switch (fCurrentConfig) {
-        case BmnGemStripConfiguration::Full:
-            StationSet = new BmnGemStripStationSet_FullConfig();
-            if(fVerbose) cout << "   Current Configuration : FullConfig" << "\n";
-            break;
-        case BmnGemStripConfiguration::First:
-            StationSet = new BmnGemStripStationSet_1stConfig();
-            if(fVerbose) cout << "   Current Configuration : FirstConfig" << "\n";
-            break;
-        case BmnGemStripConfiguration::FirstShort:
-            StationSet = new BmnGemStripStationSet_1stConfigShort();
-            if(fVerbose) cout << "   Current Configuration : FirstConfig (short version)" << "\n";
-            break;
-        case BmnGemStripConfiguration::Second:
-            StationSet = new BmnGemStripStationSet_2ndConfig();
-            if(fVerbose) cout << "   Current Configuration : SecondConfig" << "\n";
-            break;
         case BmnGemStripConfiguration::RunSummer2016:
             StationSet = new BmnGemStripStationSet_RunSummer2016();
             if(fVerbose) cout << "   Current Configuration : RunSummer2016" << "\n";
@@ -146,24 +126,19 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
         BmnGemStripStation *station = StationSet->GetGemStation(iStation);
 
         for(Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
-            BmnGemStripReadoutModule *module = station->GetReadoutModule(iModule);
+            BmnGemStripModule *module = station->GetModule(iModule);
 
-            for(Int_t iLowerStrip = 0; iLowerStrip < module->CountLowerStrips(); ++iLowerStrip) {
-                new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
-                    BmnGemStripDigit(iStation, iModule, 0, iLowerStrip, module->GetValueOfLowerStrip(iLowerStrip));
+            for(Int_t iLayer = 0; iLayer < module->GetNStripLayers(); ++iLayer) {
+                BmnGemStripLayer layer = module->GetStripLayer(iLayer);
 
-                if(fStripMatching) {
-                    new ((*fBmnGemStripDigitMatchesArray)[fBmnGemStripDigitMatchesArray->GetEntriesFast()])
-                        BmnMatch(module->GetMatchOfLowerStrip(iLowerStrip));
-                }
-            }
-            for(Int_t iUpperStrip = 0; iUpperStrip < module->CountUpperStrips(); ++iUpperStrip) {
-                new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
-                    BmnGemStripDigit(iStation, iModule, 1, iUpperStrip, module->GetValueOfUpperStrip(iUpperStrip));
+                for(Int_t iStrip = 0; iStrip < layer.GetNStrips(); ++iStrip) {
+                    new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
+                    BmnGemStripDigit(iStation, iModule, iLayer, iStrip, layer.GetStripSignal(iStrip));
 
-                if(fStripMatching) {
-                    new ((*fBmnGemStripDigitMatchesArray)[fBmnGemStripDigitMatchesArray->GetEntriesFast()])
-                        BmnMatch(module->GetMatchOfUpperStrip(iUpperStrip));
+                    if(fStripMatching) {
+                        new ((*fBmnGemStripDigitMatchesArray)[fBmnGemStripDigitMatchesArray->GetEntriesFast()])
+                            BmnMatch(layer.GetStripMatch(iStrip));
+                    }
                 }
             }
         }

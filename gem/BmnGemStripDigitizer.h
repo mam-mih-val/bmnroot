@@ -66,8 +66,6 @@ private:
     Bool_t fOnlyPrimary;
     Bool_t fStripMatching;
 
-    Double_t fSmearingSigma; //cm
-
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 
     ClassDef(BmnGemStripDigitizer,1);

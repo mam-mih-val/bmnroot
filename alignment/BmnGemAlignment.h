@@ -3,7 +3,9 @@
 
 #include <TMath.h>
 #include <TNamed.h>
-#include "BmnGemStripReadoutModule.h"
+//#include "BmnGemStripReadoutModule.h" //delete it
+#include "BmnGemStripModule.h"
+#include "BmnGemStripLayer.h"
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"
 #include <TChain.h>
@@ -25,9 +27,10 @@
 #include <iomanip>
 #include <stdio.h>
 #include <algorithm>
-#include <sstream> 
+#include <sstream>
 #include <TRandom1.h>
 #include <TGraphErrors.h>
+#include <TCanvas.h>
 
 using namespace std;
 using namespace TMath;
@@ -118,7 +121,7 @@ public:
             throw;
         }
     }
-    
+
     TString GetAlignmentDim() {
         return fAlignmentType;
     }
@@ -162,7 +165,7 @@ public:
     void StartPede();
 
 private:
-    
+
     void DoPreAlignmentXY();
 
     vector <TString> GetSteerFileNames() {
@@ -182,7 +185,7 @@ private:
     void AlignmentdXdY(ifstream&, Int_t, Int_t, Int_t, Int_t, TString);
     void AlignmentdXdYdZ(ifstream&, Int_t, Int_t, Int_t, Int_t, TString);
     void DebugInfo(Int_t, Int_t, Int_t, Double_t*, Double_t*, Double_t, Double_t);
-    
+
     void GraphDrawAttibuteSetter(TGraphErrors*, TString);
 
     BmnAlignmentContainer* fAlignCont;
@@ -233,7 +236,7 @@ private:
 
     Bool_t fDebugInfo;
     Bool_t fOnlyMille;
-    Bool_t fBeamRun; // if true then it corresponds to 61 - 65 files 
+    Bool_t fBeamRun; // if true then it corresponds to 61 - 65 files
     TString fRunType;
     vector <TString> fSteerFileNames;
     Bool_t fPreAlignXY;
@@ -242,7 +245,7 @@ private:
 
     TString fAlignmentType;
     TString fCommandToRunPede;
-    
+
     ClassDef(BmnGemAlignment, 1)
 };
 

@@ -1,7 +1,10 @@
 #ifndef BMNGEMSTRIPSTATION_H
 #define	BMNGEMSTRIPSTATION_H
 
-#include "BmnGemStripReadoutModule.h"
+//#include "BmnGemStripReadoutModule.h"
+#include "BmnGemStripModule.h"
+
+#include "TString.h"
 
 class BmnGemStripStation {
 
@@ -21,7 +24,7 @@ protected:
 
     Double_t BeamHoleRadius;
 
-    BmnGemStripReadoutModule **ReadoutModules; //modules in the station [array]
+    BmnGemStripModule **Modules; //modules in the station [array]
 
 public:
 
@@ -41,7 +44,7 @@ public:
     Double_t GetYPosition() { return YPosition; }
     Double_t GetZPosition() { return ZPosition; }
     Double_t GetBeamHoleRadius() { return BeamHoleRadius; }
-    BmnGemStripReadoutModule* GetReadoutModule(Int_t module_num);
+    BmnGemStripModule* GetModule(Int_t module_num);
 
     //Reset all data in modules of the station
     void Reset();
@@ -58,8 +61,9 @@ public:
     //Pure virtual methods (must be defined in derived classes) ---------------
 
     //to which module in the station a point belong?
+        //zcoord - is unused usually, but if modules in the station are (x,y)-overlapped then zcoord is important
     virtual Int_t GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord) = 0;
-    
+
     //--------------------------------------------------------------------------
 
     ClassDef(BmnGemStripStation, 1)

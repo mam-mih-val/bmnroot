@@ -50,17 +50,10 @@ set(SRCS
   BmnGemSeedFinderQA.cxx
   BmnGemTrackFinderQA.cxx
   BmnGemTrackFinder.cxx
-  BmnGemStripReadoutModule.cxx
+  BmnGemStripLayer.cxx
+  BmnGemStripModule.cxx
   BmnGemStripStation.cxx
   BmnGemStripStationSet.cxx
-  BmnGemStripStation_FullConfig.cxx
-  BmnGemStripStationSet_FullConfig.cxx
-  BmnGemStripStation_1stConfig.cxx
-  BmnGemStripStationSet_1stConfig.cxx
-  BmnGemStripStation_1stConfigShort.cxx
-  BmnGemStripStationSet_1stConfigShort.cxx
-  BmnGemStripStation_2ndConfig.cxx
-  BmnGemStripStationSet_2ndConfig.cxx
   BmnGemStripStation_RunSummer2016.cxx
   BmnGemStripStationSet_RunSummer2016.cxx
   BmnGemStripDigit.cxx
@@ -85,17 +78,10 @@ set(HEADERS
   BmnGemSeedFinderQA.h
   BmnGemTrackFinderQA.h
   BmnGemTrackFinder.h
-  BmnGemStripReadoutModule.h
+  BmnGemStripLayer.h
+  BmnGemStripModule.h
   BmnGemStripStation.h
   BmnGemStripStationSet.h
-  BmnGemStripStation_FullConfig.h
-  BmnGemStripStationSet_FullConfig.h
-  BmnGemStripStation_1stConfig.h
-  BmnGemStripStationSet_1stConfig.h
-  BmnGemStripStation_1stConfigShort.h
-  BmnGemStripStationSet_1stConfigShort.h
-  BmnGemStripStation_2ndConfig.h
-  BmnGemStripStationSet_2ndConfig.h
   BmnGemStripStation_RunSummer2016.h
   BmnGemStripStationSet_RunSummer2016.h
   BmnGemStripDigit.h

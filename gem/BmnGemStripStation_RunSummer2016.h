@@ -7,25 +7,16 @@ class BmnGemStripStation_RunSummer2016 : public BmnGemStripStation {
 
 private:
 
-/* GEM module parameters (GEM module comprises readout module + inactive frames) */
-    Double_t dXInnerFrame;
-    Double_t dYInnerFrame;
-    Double_t dXOuterFrame;
-    Double_t dYOuterFrame;
-
 /* Readout module parameters */
-    Double_t ZSizeGemModule;
-    Double_t ZSizeReadoutModule;
+    Double_t ZSizeModuleWithFrames;
+    Double_t ZSizeModule;
 
-    Double_t PitchValueModule; //cm
-    Double_t LowerStripWidth; //cm
-    Double_t UpperStripWidth; //cm
-    Double_t StripAngle; // angle from a vertical line where a plus value - clockwise
+    Double_t LowerLayerStripAngle; //angle from a vertical line where a plus value - clockwise
+    Double_t UpperLayerStripAngle; //angle from a vertical line where a plus value - clockwise
+    Double_t LowerLayerPitch; //cm
+    Double_t UpperLayerPitch; //cm
+    
     ElectronDriftDirectionInModule EDriftDirection;
-    StripNumberingDirection LowerStripDirection;
-    StripNumberingDirection UpperStripDirection;
-    StripBorderPoint LeftStripBorder;
-    StripBorderPoint RightStripBorder;
 
 /* Station 0 : plane 10x10  */
     Double_t XModuleSize_Plane10x10;

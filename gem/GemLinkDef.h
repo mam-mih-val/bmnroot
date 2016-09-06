@@ -16,17 +16,10 @@
 #pragma link C++ class BmnGemSeedFinderQA+;
 #pragma link C++ class BmnGemTrackFinderQA+;
 #pragma link C++ class BmnGemTrackFinder+;
-#pragma link C++ class BmnGemStripReadoutModule+;
+#pragma link C++ class BmnGemStripLayer+;
+#pragma link C++ class BmnGemStripModule+;
 #pragma link C++ class BmnGemStripStation+;
 #pragma link C++ class BmnGemStripStationSet+;
-#pragma link C++ class BmnGemStripStation_FullConfig+;
-#pragma link C++ class BmnGemStripStationSet_FullConfig+;
-#pragma link C++ class BmnGemStripStation_1stConfig+;
-#pragma link C++ class BmnGemStripStationSet_1stConfig+;
-#pragma link C++ class BmnGemStripStation_1stConfigShort+;
-#pragma link C++ class BmnGemStripStationSet_1stConfigShort+;
-#pragma link C++ class BmnGemStripStation_2ndConfig+;
-#pragma link C++ class BmnGemStripStationSet_2ndConfig+;
 #pragma link C++ class BmnGemStripStation_RunSummer2016+;
 #pragma link C++ class BmnGemStripStationSet_RunSummer2016+;
 #pragma link C++ class BmnGemStripDigit+;
@@ -40,10 +33,13 @@
 #pragma link C++ enum ElectronDriftDirectionInModule;
 #pragma link C++ enum StripNumberingDirection;
 #pragma link C++ enum StripBorderPoint;
+#pragma link C++ enum StripLayerType;
 
-#pragma link C++ class vector<DeadZoneOfReadoutModule>;
-#pragma link C++ class DeadZoneOfReadoutModule;
-#pragma link C++ class vector<StripCluster>; //need for test
-#pragma link C++ class StripCluster; //need for test
+#pragma link C++ class DeadZoneOfStripLayer;
+#pragma link C++ class vector<DeadZoneOfStripLayer>;
+#pragma link C++ class vector<StripCluster>; //test
+#pragma link C++ class vector<vector<StripCluster> >; //test
+#pragma link C++ class vector<BmnGemStripLayer>; //test
+#pragma link C++ class StripCluster; //test
 
 #endif

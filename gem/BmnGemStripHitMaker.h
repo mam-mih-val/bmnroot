@@ -1,9 +1,6 @@
 #ifndef BMNGEMSTRIPHITMAKER_H
 #define BMNGEMSTRIPHITMAKER_H 1
 
-//BmnGemStripHitMaker (for geometry GEMS.root)
-//makes digits and find hits from MC-points
-
 #include <iostream>
 
 #include "Rtypes.h"
@@ -35,8 +32,6 @@ public:
     virtual void Finish();
 
     void ProcessDigits();
-
-    void FindHitsAndFakes(Int_t *PointTypeArray, Double_t *PointSignalDiffArray, BmnGemStripStation* station, BmnGemStripReadoutModule* module);
 
     void SetHitMatching(Bool_t opt = kTRUE) {
         fHitMatching = opt;

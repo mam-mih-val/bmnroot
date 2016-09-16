@@ -42,7 +42,7 @@ geometry(FairRunSim *fRun) {
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
     //  tof1->SetGeometryFileName("tof1_W400_v1.geo");
-    tof1->SetGeometryFileName("TOFB1_v2.root");
+    tof1->SetGeometryFileName("TOFB1_v3.root");
     fRun->AddModule(tof1);
 
     FairDetector* dch1 = new BmnDch1("DCH1", kTRUE);

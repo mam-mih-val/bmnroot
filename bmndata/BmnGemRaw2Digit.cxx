@@ -46,20 +46,20 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     //        cout << fSmall[i].strip << " " << i << endl;
 
 
-    ReadMap("GEM_X0_middle", "GEM_N_ch_X0_middle", fMid, 0, 1);
-    ReadMap("GEM_Y0_middle", "GEM_N_ch_Y0_middle", fMid, 1, 1);
+    ReadMap("GEM_X0_middle", "GEM_N_ch_X0_middle", fMid, 2, 0);
+    ReadMap("GEM_Y0_middle", "GEM_N_ch_Y0_middle", fMid, 3, 0);
     ReadMap("GEM_X1_middle", "GEM_N_ch_X1_middle", fMid, 0, 0);
     ReadMap("GEM_Y1_middle", "GEM_N_ch_Y1_middle", fMid, 1, 0);
 
-    ReadMap("GEM_X0_Big_Left", "GEM_N_ch_X0_big_l", fBigL, 0, 3);
-    ReadMap("GEM_Y0_Big_Left", "GEM_N_ch_Y0_big_l", fBigL, 1, 3);
-    ReadMap("GEM_X1_Big_Left", "GEM_N_ch_X1_big_l", fBigL, 0, 1);
-    ReadMap("GEM_Y1_Big_Left", "GEM_N_ch_Y1_big_l", fBigL, 1, 1);
+    ReadMap("GEM_X0_Big_Left", "GEM_N_ch_X0_big_l", fBigL, 2, 0);
+    ReadMap("GEM_Y0_Big_Left", "GEM_N_ch_Y0_big_l", fBigL, 3, 0);
+    ReadMap("GEM_X1_Big_Left", "GEM_N_ch_X1_big_l", fBigL, 0, 0);
+    ReadMap("GEM_Y1_Big_Left", "GEM_N_ch_Y1_big_l", fBigL, 1, 0);
 
-    ReadMap("GEM_X0_Big_Right", "GEM_N_ch_X0_big_r", fBigR, 0, 2);
-    ReadMap("GEM_Y0_Big_Right", "GEM_N_ch_Y0_big_r", fBigR, 1, 2);
-    ReadMap("GEM_X1_Big_Right", "GEM_N_ch_X1_big_r", fBigR, 0, 0);
-    ReadMap("GEM_Y1_Big_Right", "GEM_N_ch_Y1_big_r", fBigR, 1, 0);
+    ReadMap("GEM_X0_Big_Right", "GEM_N_ch_X0_big_r", fBigR, 2, 1);
+    ReadMap("GEM_Y0_Big_Right", "GEM_N_ch_Y0_big_r", fBigR, 3, 1);
+    ReadMap("GEM_X1_Big_Right", "GEM_N_ch_X1_big_r", fBigR, 0, 1);
+    ReadMap("GEM_Y1_Big_Right", "GEM_N_ch_Y1_big_r", fBigR, 1, 1);
 
     fPedArr = new BmnGemPed* [fNCrates];
     for (Int_t i = 0; i < fNCrates; ++i)
@@ -333,7 +333,7 @@ Bool_t BmnGemRaw2Digit::IsStripNoisy(Int_t station, Int_t lay, Int_t mod, Int_t 
             return kTRUE;
 
     if (station == 2 && mod == 0 && lay == 0)
-        if (strip == 6 || strip == 16 || strip == 183 || strip == 238 || strip == 240 || strip == 509 || strip == 647 || strip == 662 || strip == 666 || strip == 693 || strip == 695 || strip == 696 || strip == 698 || strip == 744 || strip == 745 || strip == 746 || strip == 747 || strip == 751 || strip == 825)
+        if (strip == 6 || strip == 16 || strip == 183 || strip == 238 || strip == 240 || strip == 509 || strip == 647 || strip == 662 || strip == 666 || strip == 691 || strip == 693 || strip == 695 || strip == 696 || strip == 698 || strip == 744 || strip == 745 || strip == 746 || strip == 747 || strip == 751 || strip == 777 || strip == 825)
             return kTRUE;
 
     if (station == 2 && mod == 0 && lay == 1)

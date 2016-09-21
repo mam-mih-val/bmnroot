@@ -86,6 +86,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
             fieldScale = (*current_current) / map_current;
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v3_ascii_Extrap.dat");
         magField->SetScale(fieldScale);
+        magField->Init();
         fRun->SetField(magField);
     }// for simulated files
     else

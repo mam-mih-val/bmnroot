@@ -6,8 +6,8 @@
 //      sim_run_info - run number in 'runN-NN' format, e.g. "run3-642" (the geometry is obtained from the Unified Database)
 // reco_file - file with reconstructed data for simulated or experimental events
 // is_online: false - use Offline Mode (manual switching of events), default; true - use Online Mode (continious view events)
-//void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
-void eventdisplay(char* sim_run_info = "run3-ll642xx", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 1, bool is_online = false)
+//void eventdisplay(char* sim_run_info = "run3-642", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 1, bool is_online = false)
+void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
 {
     gDebug = 0;
 

@@ -225,7 +225,8 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         BmnGemStripDigit * dig = &candDig[iSmpl];
         Double_t sig = dig->GetStripSignal() - CMS - pedestals[iSmpl];
-        if (sig < 4.0 * pedNoises[iSmpl]) continue;
+        Float_t threshold = (dig->GetStation() == 0) ? 50 : 7.0 * pedNoises[iSmpl];
+        if (sig < threshold) continue;
         if (IsStripNoisy(dig->GetStation(), dig->GetStripLayer(), dig->GetModule(), dig->GetStripNumber())) continue;
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig, dig->GetStripSignalNoise());
     }
@@ -364,7 +365,7 @@ Bool_t BmnGemRaw2Digit::IsStripNoisy(Int_t station, Int_t lay, Int_t mod, Int_t 
         if ((strip >= 808 && strip <= 823))
             return kTRUE;
     //killing noisy strips...
-    
+
     return kFALSE;
 }
 

@@ -18,6 +18,10 @@
 #include "BmnTrigRaw2Digit.h"
 #include "BmnEventHeader.h"
 #include <bitset>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstdlib>
+#include <cstdio>
 
 class BmnRawDataDecoder {
 public:
@@ -69,6 +73,9 @@ private:
     UInt_t fNevents;
     UInt_t fTime_s;
     UInt_t fTime_ns;
+    
+    Long64_t fLengthRawFile;
+    Long64_t fCurentPositionRawFile;
 
     TTree *fRawTree;
     TTree *fDigiTree;

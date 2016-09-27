@@ -37,6 +37,8 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fEventId = 0;
     fNevents = 0;
     fMaxEvent = 0;
+    fLengthRawFile = 0;
+    fCurentPositionRawFile = 0;
     t0 = NULL;
     bc1 = NULL;
     bc2 = NULL;
@@ -114,7 +116,17 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
 
     fRawTree = new TTree("BMN_RAW", "BMN_RAW");
     fRawFileIn = fopen(fRawFileName, "rb");
+    if (fRawFileIn == NULL) {
+        printf("\n!!!!!\ncannot open file %s\nConvertRawToRoot are stopped\n!!!!!\n\n", fRawFileName.Data());
+        return kBMNERROR;
+    }
     fRootFileOut = new TFile(fRootFileName, "recreate");
+
+    fseeko64(fRawFileIn, 0, SEEK_END);
+    fLengthRawFile = ftello64(fRawFileIn);
+    rewind(fRawFileIn);
+    printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
+    printf("RawRoot File %s\n\n", fRootFileName.Data());
 
     sync = new TClonesArray("BmnSyncDigit");
     adc = new TClonesArray("BmnADC32Digit");
@@ -129,26 +141,35 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     UInt_t dat = 0;
     for (;;) {
         if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
-        if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
+        //if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
+        fread(&dat, kWORDSIZE, 1, fRawFileIn);
+        fCurentPositionRawFile = ftello64(fRawFileIn);
+        if (fCurentPositionRawFile >= fLengthRawFile) break;
         if (dat == kSYNC1) { //search for start of event
 
             // read number of bytes in event
             if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
             dat = dat / kNBYTESINWORD + 1; // bytes --> words
             if (dat >= 100000) { // what the constant?
-                printf("Wrong data size: %d\n", dat);
-                return kBMNERROR;
-            }
+                //printf("Wrong data size: %d\n", dat);
+                //return kBMNERROR; // Why do you stop to convert in this case??
+                printf("Wrong data size: %d:  skip this event\n", dat);
+                fread(data, kWORDSIZE, dat, fRawFileIn);
+            } else {
 
-            //read array of current event data and process them
-            if (fread(data, kWORDSIZE, dat, fRawFileIn) != dat) return kBMNERROR;
-            fEventId = data[0];
-            if (fEventId <= 0) continue; // skip bad events (it is possible, but what about 0?) 
-            ProcessEvent(data, dat);
-            fNevents++;
-            fRawTree->Fill();
+                //read array of current event data and process them
+                if (fread(data, kWORDSIZE, dat, fRawFileIn) != dat) return kBMNERROR;
+                fEventId = data[0];
+                if (fEventId <= 0) continue; // skip bad events (it is possible, but what about 0?) 
+                ProcessEvent(data, dat);
+                fNevents++;
+                fRawTree->Fill();
+            }
         }
     }
+
+    fCurentPositionRawFile = ftello64(fRawFileIn);
+    printf("Readed %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
 
     fRawTree->Write();
     fRootFileOut->Close();
@@ -169,7 +190,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     adc->Clear();
     msc->Clear();
 
-    if (fEventId % 100 == 0) cout << "Converting event #" << d[0] << endl;
+    if (fEventId % 1000 == 0) cout << "Converting event #" << d[0] << endl;
 
     UInt_t idx = 1;
     while (idx < len) {
@@ -307,6 +328,10 @@ BmnStatus BmnRawDataDecoder::FillTRIG(UInt_t *d, UInt_t serial, UInt_t &idx) {
 BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
     fRootFileIn = new TFile(fRootFileName, "READ");
+    if (fRootFileIn->IsOpen() == false) {
+        printf("\n!!!!\ncannot open file %s \nDecodeDataToDigi are stopped\n!!!!\n", fRootFileName.Data());
+        return kBMNERROR;
+    }
     fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
     tdc = new TClonesArray("BmnTDCDigit");
     sync = new TClonesArray("BmnSyncDigit");
@@ -338,10 +363,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fDigiTree->Branch("TOF400", &tof400);
     fDigiTree->Branch("TOF700", &tof700);
 
-//    fDchMapFile.open(fDchMapFileName.Data(), ifstream::in);
-//    fDchMapFile.open(fGemMapFileName.Data(), ifstream::in);
-//    fTof400MapFile.open(fTof400MapFileName.Data(), ifstream::in);
-//    fTof700MapFile.open(fTof700MapFileName.Data(), ifstream::in);
+    //    fDchMapFile.open(fDchMapFileName.Data(), ifstream::in);
+    //    fDchMapFile.open(fGemMapFileName.Data(), ifstream::in);
+    //    fTof400MapFile.open(fTof400MapFileName.Data(), ifstream::in);
+    //    fTof700MapFile.open(fTof700MapFileName.Data(), ifstream::in);
 
     fNevents = fRawTree->GetEntries();
 
@@ -358,7 +383,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         gemMapper = new BmnGemRaw2Digit(kPERIOD, fRunId);
         for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
 
-            if (iEv % 100 == 0) cout << "Decoding event #" << iEv << endl;
+            if (iEv % 1000 == 0) cout << "Decoding event #" << iEv << endl;
             dch->Clear();
             gem->Clear();
             tof400->Clear();
@@ -370,7 +395,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             header->Clear();
 
             fRawTree->GetEntry(iEv);
-            
+
             new((*header)[header->GetEntriesFast()]) BmnEventHeader(fRunId, iEv, fTime_s, fTime_ns);
             trigMapper->FillEvent(tdc, t0, bc1, bc2, veto);
             gemMapper->FillEvent(adc, gem);

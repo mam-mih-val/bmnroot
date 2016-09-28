@@ -39,7 +39,7 @@ class MpdGetNumEvents
     MpdGetNumEvents(){}
     ~MpdGetNumEvents(){}
 
-    static bool GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t* fQGSM_format_ID);
+    static bool GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_format_ID);
 
   public:
     static Int_t GetNumROOTEvents(char* filename);

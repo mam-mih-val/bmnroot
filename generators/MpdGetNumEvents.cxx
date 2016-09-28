@@ -1,4 +1,5 @@
 #include "MpdGetNumEvents.h"
+#include "FairRootManager.h"
 
 #include "TChain.h"
 #include "TString.h"
@@ -117,14 +118,13 @@ off_t MpdLibZ::tell(){return gztell(file);}
 ClassImp(MpdLibZ);
 
 
-bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t* fQGSM_format_ID)
+bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_format_ID)
 {
     libz->gets(ss, 250);
 
     // If end of input file is reached : close it and abort run
     if (libz->eof())
     {
-        cout<<"End of input file reached "<<endl;
         libz->close();
         return false;
     }
@@ -140,20 +140,18 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t* fQGSM_f
         {
             if (tss.Contains("QGSM format ID"))
             {
-                sscanf(ss,"QGSM format ID=%d", fQGSM_format_ID);
-                cout<<"QGSM format ID "<<*fQGSM_format_ID<<endl;
+                sscanf(ss,"QGSM format ID=%d", &fQGSM_format_ID);
 
                 // correction of incorrect format_ID in some data files
-                if (*fQGSM_format_ID == 2)
+                if (fQGSM_format_ID == 2)
                 {
                     off_t file_pos = libz->tell();
                     for (int k = 0; k < 5; k++)
                         libz->gets(ss,250);
 
                     if (strlen(ss) > 90)
-                        *fQGSM_format_ID = 3;
+                        fQGSM_format_ID = 3;
 
-                    cout<<"QGSM format ID now"<<*fQGSM_format_ID<<endl;
                     libz->seek(file_pos, 0);
                 }
             }
@@ -162,7 +160,7 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t* fQGSM_f
             tss = ss;
             lines++;
 
-            if ((*fQGSM_format_ID >= 2) && (lines >= 4)) return  true;
+            if ((fQGSM_format_ID >= 2) && (lines >= 4)) return  true;
 
             if (lines > 25)
             {
@@ -173,7 +171,7 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t* fQGSM_f
     }
     else
     {
-        if (*fQGSM_format_ID >= 2) return true;
+        if (fQGSM_format_ID >= 2) return true;
 
         if (!tss.Contains("particles, b,bx,by"))
         {
@@ -192,11 +190,11 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t* fQGSM_f
     // 3
     if (!tss.Contains("event"))
     {
-        if (*fQGSM_format_ID >= 2) return true;
+        if (fQGSM_format_ID >= 2) return true;
         else
         {
             cout<<"Wrong event header! 2 "<<endl;
-            printf("Format id:%d \n %s \n", *fQGSM_format_ID, ss);
+            printf("Format id:%d \n %s \n", fQGSM_format_ID, ss);
             libz->close();
             return false;
         }//else
@@ -204,7 +202,7 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t* fQGSM_f
 
     char tmp[250];
 
-    switch (*fQGSM_format_ID)
+    switch (fQGSM_format_ID)
     {
         case 0:
         case 1:
@@ -269,13 +267,15 @@ Int_t MpdGetNumEvents::GetNumPHSDEvents(char* filename)
     libz->close();
     delete libz;
 
+    cout<<"The total number of events in the PHSD file will be processed - "<<num<<endl;
+
     return num;
 }
 
 Int_t MpdGetNumEvents::GetNumQGSMEvents(char* fileName)
 {
-    Int_t* fQGSM_format_ID;
-    MpdLibZ *libz = new MpdLibZ(fileName);
+    Int_t fQGSM_format_ID = 0;
+    MpdLibZ* libz = new MpdLibZ(fileName);
     libz->open("rb");
 
     char ss[252];
@@ -297,6 +297,7 @@ Int_t MpdGetNumEvents::GetNumQGSMEvents(char* fileName)
     libz->close();
     delete libz;
 
+    cout<<"The total number of events in the QGSM file will be processed - "<<num<<endl;
     return num;
 }
 
@@ -340,18 +341,20 @@ Int_t MpdGetNumEvents::GetNumURQMDEvents(char* fileName)
     libz->close();
     delete libz;
 
+    cout<<"The total number of events in the UrQMD file will be processed - "<<num<<endl;
     return num;
 }
 
 Int_t MpdGetNumEvents::GetNumROOTEvents(char* filename)
 {
-    TChain* fileTree = new TChain("cbmsim");
+    TChain* fileTree = new TChain(FairRootManager::GetTreeName());
     fileTree->Add(filename);
 
     Int_t num = fileTree->GetEntries();
 
     delete fileTree;
 
+    cout<<"The total number of events in the ROOT file will be processed - "<<num<<endl;
     return num;
 }
 

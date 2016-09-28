@@ -17,6 +17,10 @@
 #define N_CH_IN_SMALL_GEM 512 //number of channels in small GEM stations (sum of all redout channels)
 #define N_CH_IN_MID_GEM 2176 //number of channels in middle GEM stations (sum of all redout channels)
 #define N_CH_IN_BIG_GEM 3200 //number of channels in one part of big GEM stations (sum of all redout channels)
+#define N_CH_IN_BIG_GEM_0 988 //number of channels in hot zone of one part of big GEM stations (sum of redout channels from X0 and Y0)
+#define N_CH_IN_BIG_GEM_1 2100 //number of channels in big zone of one part of big GEM stations (sum of redout channels from X1 and Y1)
+#define N_MODULES 2 
+#define N_LAYERS 4  
 
 using namespace std;
 using namespace TMath;
@@ -57,8 +61,10 @@ private:
 
     BmnGemMap* fSmall;
     BmnGemMap* fMid;
-    BmnGemMap* fBigL;
-    BmnGemMap* fBigR;
+    BmnGemMap* fBigL0;
+    BmnGemMap* fBigL1;
+    BmnGemMap* fBigR0;
+    BmnGemMap* fBigR1;
 
     GemMapStructure* fMap;
 

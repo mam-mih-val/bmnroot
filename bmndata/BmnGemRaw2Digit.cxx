@@ -14,8 +14,10 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
 
     fSmall = new BmnGemMap[N_CH_IN_SMALL_GEM];
     fMid = new BmnGemMap[N_CH_IN_MID_GEM];
-    fBigL = new BmnGemMap[N_CH_IN_BIG_GEM];
-    fBigR = new BmnGemMap[N_CH_IN_BIG_GEM];
+    fBigL0 = new BmnGemMap[N_CH_IN_BIG_GEM_0];
+    fBigL1 = new BmnGemMap[N_CH_IN_BIG_GEM_1];
+    fBigR0 = new BmnGemMap[N_CH_IN_BIG_GEM_0];
+    fBigR1 = new BmnGemMap[N_CH_IN_BIG_GEM_1];
     fCrates = new UInt_t[fEntriesInGlobMap];
     for (Int_t iCr = 0; iCr < fEntriesInGlobMap; ++iCr) {
         fCrates[iCr] = 0;
@@ -51,15 +53,17 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     ReadMap("GEM_X1_middle", "GEM_N_ch_X1_middle", fMid, 0, 0);
     ReadMap("GEM_Y1_middle", "GEM_N_ch_Y1_middle", fMid, 1, 0);
 
-    ReadMap("GEM_X0_Big_Left", "GEM_N_ch_X0_big_l", fBigL, 2, 0);
-    ReadMap("GEM_Y0_Big_Left", "GEM_N_ch_Y0_big_l", fBigL, 3, 0);
-    ReadMap("GEM_X1_Big_Left", "GEM_N_ch_X1_big_l", fBigL, 0, 0);
-    ReadMap("GEM_Y1_Big_Left", "GEM_N_ch_Y1_big_l", fBigL, 1, 0);
+    ReadMap("GEM_X0_Big_Left", "GEM_N_ch_X0_big_l", fBigL0, 2, 0);
+    ReadMap("GEM_Y0_Big_Left", "GEM_N_ch_Y0_big_l", fBigL0, 3, 0);
 
-    ReadMap("GEM_X0_Big_Right", "GEM_N_ch_X0_big_r", fBigR, 2, 1);
-    ReadMap("GEM_Y0_Big_Right", "GEM_N_ch_Y0_big_r", fBigR, 3, 1);
-    ReadMap("GEM_X1_Big_Right", "GEM_N_ch_X1_big_r", fBigR, 0, 1);
-    ReadMap("GEM_Y1_Big_Right", "GEM_N_ch_Y1_big_r", fBigR, 1, 1);
+    ReadMap("GEM_X1_Big_Left", "GEM_N_ch_X1_big_l", fBigL1, 0, 0);
+    ReadMap("GEM_Y1_Big_Left", "GEM_N_ch_Y1_big_l", fBigL1, 1, 0);
+
+    ReadMap("GEM_X0_Big_Right", "GEM_N_ch_X0_big_r", fBigR0, 2, 1);
+    ReadMap("GEM_Y0_Big_Right", "GEM_N_ch_Y0_big_r", fBigR0, 3, 1);
+
+    ReadMap("GEM_X1_Big_Right", "GEM_N_ch_X1_big_r", fBigR1, 0, 1);
+    ReadMap("GEM_Y1_Big_Right", "GEM_N_ch_Y1_big_r", fBigR1, 1, 1);
 
     fPedArr = new BmnGemPed* [fNCrates];
     for (Int_t i = 0; i < fNCrates; ++i)
@@ -110,7 +114,6 @@ BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, TString parNameSize, BmnGemM
     if (par != NULL) par->GetIIArray(iiArr, size);
     for (Int_t i = 0; i < size; ++i)
         m[iiArr[i].int_2] = BmnGemMap(iiArr[i].int_1, lay, mod);
-    delete iiArr;
 }
 
 BmnGemRaw2Digit::~BmnGemRaw2Digit() {
@@ -168,29 +171,34 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
                 strip = fSmall[realChannel].strip;
                 break;
             }
-            case 6: //left big gem
+            case 7: //left big gem
             {
-                //                //in one GEM we have 2176 channels, but in adc only 2048
-                //                //so we use additional slot and we have to check is it an additional slot or not...
-                //                //if additional, then channel number will be more than 2048
-                //                UInt_t realChannel = ch2048;
-                ////                if (gemM->channel_high - gemM->channel_low < 1024) realChannel = (2048 + ch2048 - gemM->channel_low);
-                //                if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-                //                mod = fBigL[realChannel].mod;
-                //                lay = fBigL[realChannel].lay;
-                //                strip = fBigL[realChannel].strip;
+                realChannel = ch2048;
+                if (gemM->hotZone == 1) {
+                    mod = fBigL0[realChannel].mod;
+                    lay = fBigL0[realChannel].lay;
+                    strip = fBigL0[realChannel].strip;
+                } else {
+                    if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
+                    mod = fBigL1[realChannel].mod;
+                    lay = fBigL1[realChannel].lay;
+                    strip = fBigL1[realChannel].strip;
+                }
                 break;
             }
-            case 7: //right big gem
+            case 6: //right big gem
             {
-                //                //in one GEM we have 2176 channels, but in adc only 2048
-                //                //so we use additional slot and we have to check is it an additional slot or not...
-                //                //if additional, then channel number will be more than 2048
-                //                UInt_t realChannel = ch2048;
-                //                if (gemM->channel_high - gemM->channel_low < 128) realChannel += 2048;
-                //                mod = fBigR[realChannel].mod;
-                //                lay = fBigR[realChannel].lay;
-                //                strip = fBigR[realChannel].strip;
+                realChannel = ch2048;
+                if (gemM->hotZone == 1) {
+                    mod = fBigR0[realChannel].mod;
+                    lay = fBigR0[realChannel].lay;
+                    strip = fBigR0[realChannel].strip;
+                } else {
+                    if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
+                    mod = fBigR1[realChannel].mod;
+                    lay = fBigR1[realChannel].lay;
+                    strip = fBigR1[realChannel].strip;
+                }
                 break;
             }
             default://middle gem's
@@ -204,32 +212,38 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
             }
         }
         if (strip > 0) {
-            Double_t sig = Double_t((adcDig->GetValue())[iSmpl] / 16);
             BmnGemStripDigit dig;
             dig.SetStation(gemM->station);
             dig.SetModule(mod);
             dig.SetStripLayer(lay);
             dig.SetStripNumber(strip);
-            dig.SetStripSignal(sig);
+            dig.SetStripSignal(Double_t((adcDig->GetValue())[iSmpl] / 16));
             dig.SetStripSignalNoise(pedNoises[iSmpl]);
             candDig[iSmpl] = dig;
         }
     }
 
     Double_t signals[nSmpl];
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+    Int_t nOk = 0;
+    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+        if ((candDig[iSmpl]).GetStripSignal() == 0) continue;
         signals[iSmpl] = (candDig[iSmpl]).GetStripSignal();
-    Double_t CMS = CalcCMS(signals, nSmpl);
+        nOk++;
+    }
+    Double_t CMS = CalcCMS(signals, nOk);
 
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         BmnGemStripDigit * dig = &candDig[iSmpl];
         Double_t sig = dig->GetStripSignal() - CMS - pedestals[iSmpl];
-        Float_t threshold = (dig->GetStation() == 0) ? 50 : 7.0 * pedNoises[iSmpl];
+        Float_t threshold = (dig->GetStation() == 0) ? 70 : 7.0 * pedNoises[iSmpl];
         if (sig < threshold) continue;
         if (IsStripNoisy(dig->GetStation(), dig->GetStripLayer(), dig->GetModule(), dig->GetStripNumber())) continue;
+        if (dig->GetModule() < 0 || dig->GetModule() >= N_MODULES) continue;
+        if (dig->GetStripLayer() < 0 || dig->GetStripLayer() >= N_LAYERS) continue;
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig, dig->GetStripSignalNoise());
     }
+    //    }
 
 }
 
@@ -254,9 +268,13 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree *tree) {
         for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
             BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
             Double_t signals[nSmpl];
-            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+            Int_t nOk = 0;
+            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                if ((adcDig->GetValue())[iSmpl] / 16 == 0) continue;
                 signals[iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
-            Double_t CMS = CalcCMS(signals, nSmpl);
+                nOk++;
+            }
+            Double_t CMS = CalcCMS(signals, nOk);
             for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
                 pedestals[iAdc][iSmpl] += (signals[iSmpl] - CMS);
         }
@@ -273,8 +291,12 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree *tree) {
         for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
             BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
             Double_t signals[nSmpl];
-            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+            Int_t nOk = 0;
+            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                if ((adcDig->GetValue())[iSmpl] / 16 == 0) continue;
                 signals[iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
+                nOk++;
+            }
             Double_t CMS = CalcCMS(signals, nSmpl);
             for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
                 noises[iAdc][iSmpl] += (((signals[iSmpl] - CMS) - pedestals[iAdc][iSmpl]) * ((signals[iSmpl] - CMS) - pedestals[iAdc][iSmpl]));
@@ -359,10 +381,6 @@ Bool_t BmnGemRaw2Digit::IsStripNoisy(Int_t station, Int_t lay, Int_t mod, Int_t 
 
     if (station == 5 && mod == 0 && lay == 1)
         if (strip == 523 || strip == 532 || strip == 654 || strip == 705 || strip == 723 || strip == 825)
-            return kTRUE;
-
-    if (mod == 0 && lay == 1)
-        if ((strip >= 808 && strip <= 823))
             return kTRUE;
     //killing noisy strips...
 

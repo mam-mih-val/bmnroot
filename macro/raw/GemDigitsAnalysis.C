@@ -52,15 +52,8 @@ void GemDigitsAnalysis(UInt_t runId = 0, TString type = "pdf") {
             BmnGemStripDigit* digX = (BmnGemStripDigit*) GemDigits->At(iDig);
             Int_t lay = digX->GetStripLayer();
             if (lay != 0) continue; //use only X
-//            if (lay != 1) continue; //use only Y
             Int_t st = digX->GetStation();
-            //if (st == 0) continue; //skip small GEM
             Int_t str = digX->GetStripNumber();
-            Int_t sig = digX->GetStripSignal();
-            Int_t noise = digX->GetStripSignalNoise();
-	    //if (sig * 1.0 / noise < 2) continue;
-
-//            if (sig * 1.0 / noise < 1.0) continue;
             Int_t mod = digX->GetModule();
             if (mod == 0) {
                 h_X[st]->Fill(str);
@@ -68,12 +61,18 @@ void GemDigitsAnalysis(UInt_t runId = 0, TString type = "pdf") {
             } else if (mod == 1 && st == 6) {
                 h_X[st + 1]->Fill(str);
                 h_X_2d[st + 1]->Fill(str, 0);
-            } else {
-                h_X0[st]->Fill(str);
-                h_X0_2d[st]->Fill(str, 0);
             }
         }
     }
+
+    const Float_t kThresh = 0.15 * nEvents; //remove signals above threshold (guess it is noisy channels)
+
+    for (Int_t i = 0; i < kNST; ++i)
+        for (Int_t j = 1; j <= h_X[i]->GetNbinsX(); ++j) {
+            if (h_X[i]->GetBinContent(j) > kThresh) h_X[i]->SetBinContent(j, 0.0);
+            for (Int_t k = 1; k <= h_X_2d[i]->GetNbinsY(); ++k)
+                if (h_X_2d[i]->GetBinContent(j, k) > kThresh) h_X_2d[i]->SetBinContent(j, k, 0.0);
+        }
 
     if (type == "pdf") {
         TCanvas* SuperCave = new TCanvas("SuperCave", "SuperCave", 66 * 100, 41 * 100);

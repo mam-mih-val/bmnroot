@@ -33,14 +33,14 @@ Int_t NDF(const BmnGemTrack* track);
 
 }
 
-Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* arr);
+Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* arr, const TString type);
 TVector3 SpiralFit(BmnGemTrack* tr, const TClonesArray* arr);
 TLorentzVector SpiralParabolicFit(BmnGemTrack* tr, const TClonesArray* arr);
 TVector3 SpiralFitByTwoPoints(const BmnGemTrack* tr, const TClonesArray* arr);
 Bool_t IsParCorrect(const FairTrackParam* par);
 Int_t stationNumber(const string& detName, const Float_t z);
 Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right);
-TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr);
+TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type);
 TVector3 CircleBy3Hit(BmnGemTrack* track, const TClonesArray* arr);
 TVector3 CircleBy3Hit(BmnGemTrack* track, const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2);
 Float_t Sqr(Float_t x);

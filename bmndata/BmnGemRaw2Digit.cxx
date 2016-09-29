@@ -131,7 +131,7 @@ BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *gem) {
         UInt_t ch = adcDig->GetChannel() * ADC_N_SAMPLES;
         for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
             GemMapStructure gemM = fMap[iMap];
-
+//            if (gemM.station != 0) continue;
             if (adcDig->GetSerial() == gemM.serial && ch <= gemM.channel_high && ch >= gemM.channel_low) {
                 ProcessDigit(adcDig, &gemM, gem);
                 break;
@@ -236,14 +236,13 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         BmnGemStripDigit * dig = &candDig[iSmpl];
         Double_t sig = dig->GetStripSignal() - CMS - pedestals[iSmpl];
-        Float_t threshold = (dig->GetStation() == 0) ? 70 : 7.0 * pedNoises[iSmpl];
+        Float_t threshold = (dig->GetStation() == 0) ? 100 : 5.0 * pedNoises[iSmpl];
         if (sig < threshold) continue;
         if (IsStripNoisy(dig->GetStation(), dig->GetStripLayer(), dig->GetModule(), dig->GetStripNumber())) continue;
         if (dig->GetModule() < 0 || dig->GetModule() >= N_MODULES) continue;
         if (dig->GetStripLayer() < 0 || dig->GetStripLayer() >= N_LAYERS) continue;
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig, dig->GetStripSignalNoise());
     }
-    //    }
 
 }
 

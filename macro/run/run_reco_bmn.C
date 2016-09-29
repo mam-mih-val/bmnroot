@@ -6,7 +6,8 @@
 // outFile - output file with reconstructed data, default: mpddst.root
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
-void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 100, Bool_t isPrimary = kTRUE, Bool_t gemCF = kTRUE) {
+
+void run_reco_bmn(TString inFile = "run4-65:$VMCWORKDIR/macro/raw/bmn_run0065_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE, Bool_t gemCF = kTRUE) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
@@ -27,18 +28,19 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // -----   Reconstruction run   -------------------------------------------
     FairRunAna *fRun = new FairRunAna();
 
+    Bool_t isField = kTRUE;
+
     // Set input source as simulation file or experimental data
     FairSource* fFileSource;
     Ssiz_t indColon = inFile.First(':');
     Ssiz_t indDash = inFile.First('-');
     // for experimental datasource
-    if ((indColon >= 0) && (indDash < indColon) && (inFile.BeginsWith("run")))
-    {
+    if ((indColon >= 0) && (indDash < indColon) && (inFile.BeginsWith("run"))) {
         // get run period
         TString number_string(inFile(3, indDash - 3));
         Int_t run_period = number_string.Atoi();
         // get run number
-        number_string = inFile(indDash+1, indColon - indDash-1);
+        number_string = inFile(indDash + 1, indColon - indDash - 1);
         Int_t run_number = number_string.Atoi();
         inFile.Remove(0, indColon + 1);
 
@@ -66,8 +68,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
         TString className(key->GetClassName());
         if (className.BeginsWith("TGeoManager"))
             key->ReadObj();
-        else
-        {
+        else {
             cout << "Error: TGeoManager isn't top element in geometry file " << root_file_path << endl;
             exit(-3);
         }
@@ -80,17 +81,17 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
         Double_t fieldScale = 0;
         double map_current = 900.0;
         int* current_current = pCurrentRun->GetFieldCurrent();
-        if (current_current == NULL)
+        if (current_current == NULL) {
             fieldScale = 0;
-        else
+            isField = kFALSE;
+        } else
             fieldScale = (*current_current) / map_current;
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v3_ascii_Extrap.dat");
         magField->SetScale(fieldScale);
         magField->Init();
         fRun->SetField(magField);
     }// for simulated files
-    else
-    {
+    else {
         if (!CheckFileExist(inFile)) return;
         fFileSource = new FairFileSource(inFile);
     }
@@ -119,12 +120,12 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
 
-    BmnMwpcHitProducer* mwpcHP1 = new BmnMwpcHitProducer(1);
-    fRun->AddTask(mwpcHP1);
-    BmnMwpcHitProducer* mwpcHP2 = new BmnMwpcHitProducer(2);
-    fRun->AddTask(mwpcHP2);
-    BmnMwpcHitProducer* mwpcHP3 = new BmnMwpcHitProducer(3);
-    fRun->AddTask(mwpcHP3);
+    //    BmnMwpcHitProducer* mwpcHP1 = new BmnMwpcHitProducer(1);
+    //    fRun->AddTask(mwpcHP1);
+    //    BmnMwpcHitProducer* mwpcHP2 = new BmnMwpcHitProducer(2);
+    //    fRun->AddTask(mwpcHP2);
+    //    BmnMwpcHitProducer* mwpcHP3 = new BmnMwpcHitProducer(3);
+    //    fRun->AddTask(mwpcHP3);
 
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
@@ -135,7 +136,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
         gemDigit->SetCurrentConfig(gem_config);
         gemDigit->SetOnlyPrimary(isPrimary);
         gemDigit->SetStripMatching(kTRUE);
-        fRun->AddTask(gemDigit);
+        //        fRun->AddTask(gemDigit);
         BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
         gemHM->SetCurrentConfig(gem_config);
         gemHM->SetHitMatching(kTRUE);
@@ -152,7 +153,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer();
     //tof1HP->SetOnlyPrimary(kTRUE);
-    fRun->AddTask(tof1HP);
+    //    fRun->AddTask(tof1HP);
     // ====================================================================== //
     // ===                           DCH1 hit finder                      === //
     // ====================================================================== //
@@ -160,7 +161,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     //    BmnDchHitProducer* dch1HP = new BmnDchHitProducer(1,0,false);
     BmnDchHitProducerTmp* dch1HP = new BmnDchHitProducerTmp(1);
     //dch1HP->SetOnlyPrimary(kTRUE);
-    fRun->AddTask(dch1HP);
+    //    fRun->AddTask(dch1HP);
 
     // ====================================================================== //
     // ===                          DCH2 hit finder                       === //
@@ -169,7 +170,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     //    BmnDchHitProducer* dch2HP = new BmnDchHitProducer(2,0,false);
     BmnDchHitProducerTmp* dch2HP = new BmnDchHitProducerTmp(2);
     //dch2HP->SetOnlyPrimary(kTRUE);
-    fRun->AddTask(dch2HP);
+    //    fRun->AddTask(dch2HP);
 
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
@@ -178,7 +179,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     CbmTofHitProducer* tof2HP = new CbmTofHitProducer("TOF HitProducer", iVerbose);
     tof2HP->SetZposition(700.);
     tof2HP->SetXshift(32.);
-    fRun->AddTask(tof2HP);
+    //    fRun->AddTask(tof2HP);
 
     // ====================================================================== //
     // ===                           Tracking                             === //
@@ -186,18 +187,21 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 
     BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
     if (gemCF) gemSF->SetUseLorentz(kTRUE);
+    gemSF->SetField(isField);
     fRun->AddTask(gemSF);
 
-    BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
-    fRun->AddTask(gemTF);
+    if (isField) {
+        BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
+        fRun->AddTask(gemTF);
 
-    //    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
-    //    glFinder->SetRun1(kRUN1);
-    //    fRun->AddTask(glFinder);
+        //    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
+        //    glFinder->SetRun1(kRUN1);
+        //    fRun->AddTask(glFinder);
 
-    // -----   Primary vertex finding   ---------------------------------------
-    BmnGemVertexFinder* vf = new BmnGemVertexFinder();
-    fRun->AddTask(vf);
+        // -----   Primary vertex finding   ---------------------------------------
+        BmnGemVertexFinder* vf = new BmnGemVertexFinder();
+        fRun->AddTask(vf);
+    }
     // ------------------------------------------------------------------------
 
     // ====================================================================== //

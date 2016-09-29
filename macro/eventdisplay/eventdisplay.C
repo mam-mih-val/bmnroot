@@ -212,7 +212,7 @@ void SetTasks(FairEventManager* fMan, int data_source)
         // draw MWPC digits
         BmnDigitDraw* MwpcDigit = new BmnDigitDraw("bmn_mwpc_digit", 1, expPointColor, pointMarker);
         fMan->AddTask(MwpcDigit);
-
+        
         // draw DCH digits
         BmnDigitDraw* DchDigit = new BmnDigitDraw("bmn_dch_digit", 2, expPointColor, pointMarker);
         fMan->AddTask(DchDigit);**/
@@ -221,6 +221,10 @@ void SetTasks(FairEventManager* fMan, int data_source)
         // draw MWPC hits
         FairHitPointSetDraw* MwpcHit = new FairHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
         fMan->AddTask(MwpcHit);
+        
+        // draw GEM hits
+        FairHitPointSetDraw* GemHit = new FairHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
+        fMan->AddTask(GemHit);
 
         // draw DCH hits
         FairHitPointSetDraw* DchHit = new FairHitPointSetDraw("BmnDchHit", expPointColor, pointMarker);
@@ -229,6 +233,10 @@ void SetTasks(FairEventManager* fMan, int data_source)
         // draw MWPC tracks
         BmnExpTrackDraw* MwpcTrack = new BmnExpTrackDraw("MwpcMatchedTracks", "BmnMwpcHit");
         //fMan->AddTask(MwpcTrack);
+        
+        // draw GEM tracks
+        BmnExpTrackDraw* GemTrack = new BmnExpTrackDraw("BmnGemSeeds", "BmnGemStripHit");
+        fMan->AddTask(GemTrack);
         
         // draw DCH tracks
         BmnExpTrackDraw* DchTrack = new BmnExpTrackDraw("DchTracks", "BmnDchHit");

@@ -27,7 +27,9 @@ public:
     BmnGemSeedFinder();
     virtual ~BmnGemSeedFinder();
 
-    void FindXYRSeeds(TH1F* h);
+    BmnStatus FindStrightSeeds(); // for runs w/o magnetic field
+    
+    BmnStatus FindYZSeeds();
     void FindSeeds(Int_t station, Int_t gate, Bool_t isIdeal, TClonesArray* arr);
     UInt_t SearchTrackCandidates(Int_t startStation, Int_t gate, Bool_t isIdeal, Bool_t isLeft, TClonesArray* arr);
     void SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal);
@@ -36,8 +38,10 @@ public:
     Bool_t CalculateTrackParamsParabolicSpiral(BmnGemTrack* tr, TLorentzVector* spirPar, TVector3* linePar, Short_t q);
     BmnStatus DoSeeding(Int_t min, Int_t max, TClonesArray* arr);
     TVector3 CircleFit(BmnGemTrack* track);
-//    TVector3 LineFit(BmnGemTrack* track);
-//    TVector3 CircleBy3Hit(BmnGemTrack* track);
+    BmnStatus FillTgStation(Short_t st, vector<BmnGemTrack>& tg);
+    BmnStatus CombineTg(vector<BmnGemTrack> tg1, vector<BmnGemTrack> tg2, vector<BmnGemTrack>& tg);
+    BmnStatus CollectSeeds(vector<BmnGemTrack>& tg);
+
     
     void SetHitsUnused(BmnGemTrack* tr);
         
@@ -59,6 +63,7 @@ public:
     void SetYstep(Float_t stp) {kY_STEP = stp;}
     void SetSigX(Float_t sig) {kSIG_X = sig;}
     void SetNbins(Int_t n) {fNBins = n;}
+    void SetField(Bool_t f) {fIsField = f;}
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
@@ -90,6 +95,8 @@ private:
     TClonesArray* fMCPointsArray;
 
     FairField* fField;
+    
+    Bool_t fIsField; // is mag. field or not
 
     ClassDef(BmnGemSeedFinder, 1);
 };

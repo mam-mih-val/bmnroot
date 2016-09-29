@@ -8,7 +8,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
 : fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "StsPoint";
-    fInputDigitsBranchName = "BmnGemStripDigit";
+    fInputDigitsBranchName = "GEM";//"BmnGemStripDigit";
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
     fOutputHitsBranchName = "BmnGemStripHit";
@@ -32,7 +32,6 @@ InitStatus BmnGemStripHitMaker::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
 
-    fBmnGemStripPointsArray = (TClonesArray*) ioman->GetObject(fInputPointsBranchName);
     fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
     fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
 
@@ -63,10 +62,6 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
         fBmnGemStripHitMatchesArray->Clear();
     }
 
-    if (!fBmnGemStripPointsArray) {
-        Error("BmnGemStripHitMaker::Exec()", " !!! Unknown branch name !!! ");
-        return;
-    }
     if (!fBmnGemStripDigitsArray) {
         Error("BmnGemStripHitMaker::Exec()", " !!! Unknown branch name !!! ");
         return;
@@ -75,7 +70,7 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     if(fVerbose) cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripDigits = " << fBmnGemStripDigitsArray->GetEntriesFast() << "\n";
 
     ProcessDigits();
-
+    
     if(fVerbose) cout << " BmnGemStripHitMaker::Exec() finished\n";
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
@@ -127,9 +122,13 @@ void BmnGemStripHitMaker::ProcessDigits() {
     Int_t NCalculatedPoints = StationSet->CountNProcessedPointsInDetector();
     if(fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
 
-    Int_t NMCPoints = fBmnGemStripPointsArray->GetEntriesFast();
     Int_t clear_matched_points_cnt = 0; // points with the only one match-index
 
+    //alignment shifts calculated by Andrey Maltsev
+    Int_t nStations = StationSet->GetNStations();
+    const Float_t xShift[nStations] = {-2.78, +0.03, +0.04, -0.02, -0.03, +0.03, -2.83};
+    const Float_t yShift[nStations] = {-0.03, +0.17, -0.12, +0.10, -0.04, +0.04, -2.18};
+    
     for(Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet->GetGemStation(iStation);
 
@@ -171,6 +170,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 //Add hit ------------------------------------------------------
                 x *= -1; // invert to global X
+                x += xShift[iStation];
+                y += yShift[iStation];
 
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
                     BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);

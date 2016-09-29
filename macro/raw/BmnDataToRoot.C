@@ -1,12 +1,10 @@
 
+//file - full path to raw-file
+//nEvents = 0 ---> decoding of all events
 void BmnDataToRoot(TString file, Long_t nEvents = 0) {
   gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
   bmnloadlibs(); // load BmnRoot libraries
-
-  //put here path to raw data
-  TString pathToRun4 = "/home/merz/BMN/dataRun4/";
-  
-  BmnRawDataDecoder* decoder = new BmnRawDataDecoder(pathToRun4 + file, nEvents);
+  BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents);
   decoder->SetPedestalRun(kFALSE);
   decoder->SetTrigMapping("Trig_map_Run4.txt");
   decoder->SetTof700Mapping("");

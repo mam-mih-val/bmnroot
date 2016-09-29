@@ -97,38 +97,38 @@ TVector3 SpiralFitByTwoPoints(const BmnGemTrack* tr, const TClonesArray* arr) {
 }
 
 TLorentzVector SpiralParabolicFit(BmnGemTrack* tr, const TClonesArray* arr) {
-        BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(0));
-        BmnGemStripHit* hit1 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(1));
-        BmnGemStripHit* hit2 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(2));
-        Float_t x0 = hit0->GetX();
-        Float_t x1 = hit1->GetX();
-        Float_t x2 = hit2->GetX();
-        Float_t z0 = hit0->GetZ();
-        Float_t z1 = hit1->GetZ();
-        Float_t z2 = hit2->GetZ();
-        Float_t r0 = Sqrt(x0 * x0 + z0 * z0);
-        Float_t r1 = Sqrt(x1 * x1 + z1 * z1);
-        Float_t r2 = Sqrt(x2 * x2 + z2 * z2);
-        Float_t t0 = ATan2(x0, z0);
-        Float_t t1 = ATan2(x1, z1);
-        Float_t t2 = ATan2(x2, z2);
-        
-        Float_t dt10 = t1 - t0;
-        Float_t dt20 = t2 - t0;
-        Float_t dt21 = t2 - t1;    
-        Float_t dr21 = r2 - r1;
-        Float_t dr10 = r1 - r0;
-    
-        Float_t a = (dr21 / dt21 - dr10 / dt10) / dt20;
-        Float_t b = dr21 / dt21 - a * (t2 + t1);
-        Float_t c = r0 - a * t0 * t0 - b * t0; 
-        
-        Float_t r = r0;//a * t0 * t0 + b * t0 + c;
-        Float_t dr = 2 * a * t0 + b;
-        Float_t ddr = 2 * a;
-        
-        Float_t k = Abs(r * r + 2 * dr * dr - r * ddr) / Sqrt(Power((r * r + dr * dr), 3));
-        return TLorentzVector(a, b, c, 1.0 / k);
+    BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(0));
+    BmnGemStripHit* hit1 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(1));
+    BmnGemStripHit* hit2 = (BmnGemStripHit*) arr->At(tr->GetHitIndex(2));
+    Float_t x0 = hit0->GetX();
+    Float_t x1 = hit1->GetX();
+    Float_t x2 = hit2->GetX();
+    Float_t z0 = hit0->GetZ();
+    Float_t z1 = hit1->GetZ();
+    Float_t z2 = hit2->GetZ();
+    Float_t r0 = Sqrt(x0 * x0 + z0 * z0);
+    Float_t r1 = Sqrt(x1 * x1 + z1 * z1);
+    Float_t r2 = Sqrt(x2 * x2 + z2 * z2);
+    Float_t t0 = ATan2(x0, z0);
+    Float_t t1 = ATan2(x1, z1);
+    Float_t t2 = ATan2(x2, z2);
+
+    Float_t dt10 = t1 - t0;
+    Float_t dt20 = t2 - t0;
+    Float_t dt21 = t2 - t1;
+    Float_t dr21 = r2 - r1;
+    Float_t dr10 = r1 - r0;
+
+    Float_t a = (dr21 / dt21 - dr10 / dt10) / dt20;
+    Float_t b = dr21 / dt21 - a * (t2 + t1);
+    Float_t c = r0 - a * t0 * t0 - b * t0;
+
+    Float_t r = r0; //a * t0 * t0 + b * t0 + c;
+    Float_t dr = 2 * a * t0 + b;
+    Float_t ddr = 2 * a;
+
+    Float_t k = Abs(r * r + 2 * dr * dr - r * ddr) / Sqrt(Power((r * r + dr * dr), 3));
+    return TLorentzVector(a, b, c, 1.0 / k);
 
 }
 
@@ -185,20 +185,35 @@ Bool_t IsParCorrect(const FairTrackParam* par) {
     return kTRUE;
 }
 
-Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* arr) {
-    Float_t a = par->X();
-    Float_t b = par->Y();
-    Float_t sum = 0.0;
-    for (Int_t i = 0; i < tr->GetNHits(); ++i) {
-        BmnHit* hit = (BmnHit*) arr->At(tr->GetHitIndex(i));
-        Float_t x = hit->GetX();
-        Float_t z = hit->GetZ();
-        Float_t r_hit = Sqrt(x * x + z * z);
-        Float_t theta = ATan2(x, z);
-        Float_t r_fit = a + b * theta;
-        sum += (r_hit - r_fit) * (r_hit - r_fit) / r_hit;
+Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* arr, const TString type) {
+    if (type.Contains("spiral")) {
+        Float_t a = par->X();
+        Float_t b = par->Y();
+        Float_t sum = 0.0;
+        for (Int_t i = 0; i < tr->GetNHits(); ++i) {
+            BmnHit* hit = (BmnHit*) arr->At(tr->GetHitIndex(i));
+            Float_t x = hit->GetX();
+            Float_t z = hit->GetZ();
+            Float_t r_hit = Sqrt(x * x + z * z);
+            Float_t theta = ATan2(x, z);
+            Float_t r_fit = a + b * theta;
+            sum += (r_hit - r_fit) * (r_hit - r_fit) / r_hit;
+        }
+        return sum;
+    } else if (type.Contains("circle")) {
+        Float_t Xc = par->X();
+        Float_t Zc = par->Y();
+        Float_t R =  par->Z();
+        Float_t sum = 0.0;
+        for (Int_t i = 0; i < tr->GetNHits(); ++i) {
+            BmnHit* hit = (BmnHit*) arr->At(tr->GetHitIndex(i));
+            Float_t x = hit->GetX();
+            Float_t z = hit->GetZ();
+            Float_t x_fit = Xc + Sqrt(R * R - (z - Zc) * (z - Zc));
+            sum += (x_fit - x) * (x_fit - x) / x / x;
+        }
+        return Sqrt(sum);
     }
-    return sum;
 }
 
 Int_t stationNumber(const string& detName, const Float_t z) {
@@ -247,7 +262,7 @@ Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right) {
     return brf.Root();
 }
 
-TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr) {
+TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type) {
 
     //Least Square Method//
     Float_t Zi = 0.0, Yi = 0.0; // coordinates of current track point
@@ -256,8 +271,16 @@ TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr) {
     const Float_t nHits = track->GetNHits();
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
-        Zi = hit->GetZ();
-        Yi = hit->GetY();
+        if (type.Contains("XY")) {
+            Zi = hit->GetX();
+            Yi = hit->GetY();
+        } else if (type.Contains("ZX")) {
+            Zi = hit->GetZ();
+            Yi = hit->GetX();
+        } else if (type.Contains("ZY")) {
+            Zi = hit->GetZ();
+            Yi = hit->GetY();
+        }
         SumZ += Zi;
         SumY += Yi;
         SumZY += Zi * Yi;
@@ -325,8 +348,8 @@ TVector3 CircleBy3Hit(BmnGemTrack* track, const BmnGemStripHit* h0, const BmnGem
     Float_t z1 = h1->GetZ();
     Float_t x2 = h2->GetX();
     Float_t z2 = h2->GetZ();
-    
-//    cout << x1 << " " << z1 << " " << x2 << " " << z2 << " " << x3 << " " << z3 << " " << endl;
+
+    //    cout << x1 << " " << z1 << " " << x2 << " " << z2 << " " << x3 << " " << z3 << " " << endl;
 
     Float_t x0_2 = x0 * x0;
     Float_t z0_2 = z0 * z0;

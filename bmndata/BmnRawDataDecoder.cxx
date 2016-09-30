@@ -368,7 +368,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     //    fTof400MapFile.open(fTof400MapFileName.Data(), ifstream::in);
     //    fTof700MapFile.open(fTof700MapFileName.Data(), ifstream::in);
 
-    fNevents = fRawTree->GetEntries();
+    fNevents = (fMaxEvent > fRawTree->GetEntries()) ? fRawTree->GetEntries() : fMaxEvent;
 
     BmnGemRaw2Digit *gemMapper = NULL;
     BmnDchRaw2Digit *dchMapper = new BmnDchRaw2Digit(kPERIOD, fRunId);

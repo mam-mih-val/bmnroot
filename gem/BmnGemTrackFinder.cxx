@@ -72,7 +72,6 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
     clock_t tStart = clock();
     fGemTracksArray->Clear();
-
     CheckSplitting(fGemSeedsArray);
     for (Int_t iTr = 0; iTr < fGemSeedsArray->GetEntriesFast(); ++iTr) {
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArray->At(iTr);
@@ -418,7 +417,7 @@ Bool_t BmnGemTrackFinder::CalculateParamsByCircle(BmnGemTrack* tr) {
     BmnGemStripHit* firstHit = (BmnGemStripHit*) fGemHitArray->At(tr->GetHitIndex(0));
     if (!firstHit) return kFALSE;
 
-    TVector3 linePar = LineFit(tr, fGemHitArray);
+    TVector3 linePar = LineFit(tr, fGemHitArray, "ZY");
     TVector3 circPar = CircleBy3Hit(tr, fGemHitArray);
 
     Float_t R = circPar.Z(); // radius of fit-circle

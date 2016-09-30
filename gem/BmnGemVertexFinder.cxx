@@ -52,7 +52,7 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
     Float_t vy = 0.0;
     Float_t vz = 0.0;
     const Int_t nTracks = fGemTracksArray->GetEntriesFast();
-    if (nTracks == 0) return;
+    if (nTracks < 2) return;
     //    const Float_t z0 = 0.0;
     const Int_t pdg = 211;
 

@@ -36,7 +36,6 @@
 #pragma link C++ class CbmTrackMatch+;
 #pragma link C++ class CbmTofTrack+;
 #pragma link C++ class BmnTofHit+;
-#pragma link C++ class CbmTrack+;
 #pragma link C++ class BmnTrack+;
 
 #pragma link C++ class CbmMvdHit+;

@@ -54,7 +54,6 @@ CbmStsHit.cxx
 CbmStsCluster.cxx
 CbmStsTrack.cxx
 CbmTrackMatch.cxx
-CbmTrack.cxx
 BmnTrack.cxx
 CbmMvdHit.cxx
 CbmMvdHitMatch.cxx

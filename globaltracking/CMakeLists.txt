@@ -77,7 +77,7 @@ Set(HEADERS
     BmnHitMatchingQA.h
     #BmnSeedFinder.h
     BmnHitFinderRun1.h
-    BmnTrackFinderRun1.h
+#    BmnTrackFinderRun1.h
 )
 
 If (Boost_FOUND)

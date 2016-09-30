@@ -1,89 +1,132 @@
 // -------------------------------------------------------------------------
-// -----                  BmnTrackDraw source file                     -----
-// -----            created 10/12/13 by K. Gertsenberger               -----
-// ----- class to visualize reconstructed GlobalTracks in EventDisplay -----
+// -----                        BmnTrackDraw source file               -----
+// -----                  Created 02/12/15  by K. Gertsenberger        -----
 // -------------------------------------------------------------------------
 
 #include "BmnTrackDraw.h"
-#include "BmnGlobalTrack.h"
-#include "BmnGemTrack.h"
+#include "BmnTrack.h"
+#include "CbmStack.h"
 
+#include "TROOT.h"
+#include "TGeant3.h"
+#include "TGeant3TGeo.h"
+#include "TEveTrackPropagator.h"
 #include "TEveManager.h"
-#include "TEvePathMark.h"
-#include "TEveVector.h"
 #include "TDatabasePDG.h"
 
 #include <iostream>
 using namespace std;
 
-// default constructor
+// -----   Default constructor   -------------------------------------------
 BmnTrackDraw::BmnTrackDraw()
-  : FairTask("BmnTrackDraw", 0),
-    fTrackList(NULL),
-    fTrPr(NULL),
-    fEventManager(NULL),
-    fEveTrList(NULL),
-    fEvent(""),
-    fTrList(NULL),
-    MinEnergyLimit(-1.),
-    MaxEnergyLimit(-1.),
-    PEnergy(-1.)
+    : FairTask("BmnTrackDraw", 0),
+      fTrackList(NULL),
+      fTrPr(NULL),
+      fEventManager(NULL),
+      fEveTrList(NULL),
+      fEvent(""),
+      fTrList(NULL),
+      MinEnergyLimit(-1.),
+      MaxEnergyLimit(-1.),
+      PEnergy(-1.)
 {
 }
+// -------------------------------------------------------------------------
 
-// standard constructor
+
+// -----   Standard constructor   ------------------------------------------
 BmnTrackDraw::BmnTrackDraw(const char* name, Int_t iVerbose)
-  : FairTask(name, iVerbose),
-    fTrackList(NULL),
-    fTrPr(NULL),
-    fEventManager(NULL),
-    fEveTrList(new TObjArray(16)),
-    fEvent(""),
-    fTrList(NULL),
-    MinEnergyLimit(-1.),
-    MaxEnergyLimit(-1.),
-    PEnergy(-1.)
+    : FairTask(name, iVerbose),
+      fTrackList(NULL),
+      fTrPr(NULL),
+      fEventManager(NULL),
+      fEveTrList(new TObjArray(16)),
+      fEvent(""),
+      fTrList(NULL),
+      MinEnergyLimit(-1.),
+      MaxEnergyLimit(-1.),
+      PEnergy(-1.)
 {
 }
+// -------------------------------------------------------------------------
 
-// initialization of the track drawing task
+
 InitStatus BmnTrackDraw::Init()
 {
     if (fVerbose > 1)
         cout<<"BmnTrackDraw::Init()"<<endl;
 
-    FairRootManager* fManager = FairRootManager::Instance();
-
-    fTrackList = (TClonesArray*)fManager->GetObject("GlobalTrack");
-    if (fTrackList == 0)
-    {
-        cout<<"BmnTrackDraw::Init()  branch GlobalTrack not found! Task will be deactivated"<<endl;
-        SetActive(kFALSE);
-        return kERROR;
-    }
-
-    if (fVerbose > 2)
-        cout<<"BmnTrackDraw::Init() get track list "<<fTrackList<<endl;
-
-    fGemTrackList = (TClonesArray*) fManager->GetObject("BmnGemTracks");
-    fGemHitList = (TClonesArray*) fManager->GetObject("BmnGemStripHit");
-
-    fTof1HitList = (TClonesArray*) fManager->GetObject("TOF1Hit");
-    fTof2HitList = (TClonesArray*) fManager->GetObject("BmnTof2Hit");
-    fDch1HitList = (TClonesArray*) fManager->GetObject("BmnDch1Hit0");
-    fDch2HitList = (TClonesArray*) fManager->GetObject("BmnDch2Hit0");
-
     fEventManager = FairEventManager::Instance();
     if (fVerbose > 2)
-        cout<<"BmnTrackDraw::Init() get instance of FairEventManager "<<endl;
+        cout<<"BmnTrackDraw::Init() get instance of EventManager"<<endl;
 
-    fEvent = "Current Event";
+    FairRootManager* fManager = FairRootManager::Instance();
+    if (fVerbose > 2)
+        cout<<"BmnExpTrackDraw::Init() get instance of FairRootManager: "<<fManager<<endl;
+
+    fTrackList = (TClonesArray*)fManager->GetObject(GetName());
+    if (fVerbose > 2)
+        cout<<"BmnTrackDraw::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
+
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
     PEnergy = 0;
 
+    if (gMC == NULL)
+        InitGeant3();
+
+    fPro = new FairGeanePro();
+
+    fTrajFilter = FairTrajFilter::Instance();
+
     return kSUCCESS;
 }
+
+void BmnTrackDraw::InitGeant3()
+{
+    /** Private method for setting Geane configuration and cuts*/
+    TString work = getenv("VMCWORKDIR");
+    TString work_config = work + "/gconfig/";
+    TString LibMacro =  work_config + "g3libs.C";
+    TString ConfigMacro = work_config + "g3Config.C";
+    TString cuts = work_config + "SetCuts.C";
+
+    // Now load the Config and Cuts
+    gROOT->LoadMacro(LibMacro.Data());
+    gROOT->ProcessLine("g3libs()");
+
+    //gROOT->LoadMacro(ConfigMacro.Data());
+    //gROOT->ProcessLine("Config()");
+
+    TGeant3* geant3 = new TGeant3TGeo("C++ Interface to Geant3");
+    //TGeant3* geant3 = new  TGeant3("C++ Interface to Geant3");
+    // create Cbm Specific Stack
+    CbmStack *st = new CbmStack();
+    // Set minimum number of points to store the track
+    // The default value is one, which means each track
+    // needs at least 1 point in any detector
+    st->SetMinPoints(1);
+    geant3->SetStack(st);
+    // ******* GEANT3  specific configuration for simulated Runs  *******
+    geant3->SetTRIG(1);         //Number of events to be processed
+    geant3->SetSWIT(4, 100);
+    geant3->SetDEBU(0, 0, 1);
+    geant3->SetRAYL(1);
+    geant3->SetSTRA(0); //1);
+    geant3->SetAUTO(0);         //Select automatic STMIN etc... calc. (AUTO 1) or manual (AUTO 0)
+    geant3->SetABAN(0);         //Restore 3.16 behaviour for abandoned tracks
+    geant3->SetOPTI(2);         //Select optimisation level for GEANT geometry searches (0,1,2)
+    geant3->SetERAN(5.e-7);
+    geant3->SetCKOV(1);     // cerenkov photons
+
+    gROOT->LoadMacro(cuts);
+    gROOT->ProcessLine("SetCuts()");
+
+    //gMC->SetMagField(fxField);
+    //gMC->Init();
+    gMC->BuildPhysics();
+}
+
 // -------------------------------------------------------------------------
 void BmnTrackDraw::Exec(Option_t* option)
 {
@@ -91,37 +134,39 @@ void BmnTrackDraw::Exec(Option_t* option)
         return;
 
     if (fVerbose > 1)
-        cout<<" BmnTrackDraw::Exec "<<endl;
+        cout<<"BmnTrackDraw::Exec"<< endl;
 
     Reset();
 
-    BmnGlobalTrack* tr;
-    //cout<<"fTrackList->GetEntriesFast(): "<<fTrackList->GetEntriesFast()<<". fTrackList->GetEntries(): "<<fTrackList->GetEntries()<<endl;
+    BmnTrack* current_track;
+    cout<<"Tracks: "<<fTrackList->GetEntriesFast()<<endl;
     for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
     {
         if (fVerbose > 2)
             cout<<"BmnTrackDraw::Exec "<<i<<endl;
 
-        tr = (BmnGlobalTrack*)fTrackList->At(i);
-        const FairTrackParam* pParamFirst = tr->GetParamFirst();
+        current_track = (BmnTrack*) fTrackList->At(i);
+        FairTrackParam* pParamFirst = (FairTrackParam*) current_track->GetParamFirst();
 
-        // define whether track is primary
+        // define whether track AL-TURAis primary
         bool isPrimary = ( (TMath::Abs(pParamFirst->GetX())<10) && (TMath::Abs(pParamFirst->GetY())<10) && (TMath::Abs(pParamFirst->GetZ())<10) );
 
         // skip secondary tracks if primary flag is set
         if (fEventManager->IsPriOnly() && (!isPrimary))
             continue;
 
-        // get PDG particle code, without identification - Rootino
-        int particlePDG = 0;
+        // set PDG particle code
+        int particlePDG = 2212; // 0; // without identification - Rootino
 
         // get momentum
         TVector3 mom;
+        pParamFirst->SetQp(1);
         pParamFirst->Momentum(mom);
         Double_t px = mom.X(), py = mom.Y(), pz = mom.Z();
 
         // create particle
         TParticlePDG* fParticlePDG = TDatabasePDG::Instance()->GetParticle(particlePDG);
+        //TParticle(Int_t pdg, Int_t status, Int_t mother1, Int_t mother2, Int_t daughter1, Int_t daughter2, Double_t px, Double_t py, Double_t pz, Double_t etot, Double_t vx, Double_t vy, Double_t vz, Double_t time)
         TParticle* P = new TParticle(particlePDG, i, -1, -1, -1, -1, px, py, pz, 0, pParamFirst->GetX(), pParamFirst->GetY(), pParamFirst->GetZ(), 0);
 
         // get EVE track list for this particle
@@ -131,163 +176,100 @@ void BmnTrackDraw::Exec(Option_t* option)
         // set line color corresponding PDG particle code
         track->SetLineColor(fEventManager->Color(particlePDG));
 
-        // get GEM track for global track
-        BmnGemTrack* pGemTrack = (BmnGemTrack*) fGemTrackList->UncheckedAt(tr->GetGemTrackIndex());
-        Int_t Np = pGemTrack->GetNHits();
+        // propagate the tracks by Geane
+        x1[0] = pParamFirst->GetX();
+        x1[1] = pParamFirst->GetY();
+        x1[2] = pParamFirst->GetZ();
+        p1[0] = px;
+        p1[1] = py;
+        p1[2] = pz;
 
+        x2[0] = 0;
+        x2[1] = 0;
+        x2[2] = 0;
+        p2[0] = 0;
+        p2[1] = 0;
+        p2[2] = 0;
+
+        cout<<"Propagate track from ("<<pParamFirst->GetX()<<","<<pParamFirst->GetY()<<","<<pParamFirst->GetZ()<<") with momentum: ("
+           <<px<<","<<py<<","<<pz<<")"<<endl;
+
+        Bool_t isSuccess = fPro->Propagate(x1, p1, x2, p2, particlePDG);
+
+        cout<<"isSuccess: "<<isSuccess<<". Track end point: ("<<x2[0]<<","<<x2[1]<<","<<x2[2]<<") with momentum: ("<<p2[0]<<","<<p2[1]<<","<<p2[2]<<")"<<endl;
+
+        /*FairTrackParH* fTrackParH = new FairTrackParH(tr1.GetPos()*TMath::Cos(tr1.Theta())*TMath::Cos(tr1.Phi()),
+                                                      tr1.GetPos()*TMath::Cos(tr1.Theta())*TMath::Sin(tr1.Phi()), tr1.GetPos()*TMath::Cos(tr1.Theta()),
+                                                      tr1.Theta(), tr1.Phi(), 1/tr1.Momentum(), tr1.GetCovariance());
+        fGeanePro->Init(fTrackParH);
+        fGeanePro->PropagateToVolume("tof1", 1, 0);
+        fGeanePro->Propagate(211);*/
+
+        TGeoTrack* geo_track = fTrajFilter->GetCurrentTrk();
+        Int_t Np = geo_track->GetNpoints();
         // cycle: add hits (points) to EVE path for this track
-        Int_t n;
-        for (n = 0; n < Np; n++)
+        cout<<"Points: "<<Np<<endl;
+        for (Int_t n = 0; n < Np; n++)
         {
-            FairHit* pHit = (FairHit*) fGemHitList->UncheckedAt(pGemTrack->GetHitIndex(n));
+            const Double_t* point = geo_track->GetPoint(n);
 
-            track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
+            track->SetPoint(n, point[0], point[1], point[2]);
 
             TEvePathMark* path = new TEvePathMark();
-            TEveVector pos = TEveVector(pHit->GetX(), pHit->GetY(), pHit->GetZ());
+            TEveVector pos = TEveVector(point[0], point[1],point[2]);
+            //cout<<"Point: X="<<point[0]<<" Y="<<point[1]<<" Z="<<point[2]<<endl;
             path->fV = pos;
-            path->fTime = pHit->GetTimeStamp();
+            path->fTime = point[3];
             if (n == 0)
             {
                 TEveVector Mom = TEveVector(px, py, pz);
                 path->fP = Mom;
             }
 
-            // add path marker for current EVE track
+            if (fVerbose > 3)
+                cout<<"Path marker added "<<path<<endl;
+
+            // add path marker for current EVETChain* bmn_data_tree;  //! track
             track->AddPathMark(*path);
 
             if (fVerbose > 3)
                 cout<<"Path marker added "<<path<<endl;
-        }
+         }
 
-        // add TOF1 hit
-        if (tr->GetTof1HitIndex() > -1)
-        {
-            FairHit* pHit = (FairHit*) fTof1HitList->UncheckedAt(tr->GetTof1HitIndex());
+         // add track to EVE track list
+         fTrList->AddElement(track);
 
-            track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
+         if (fVerbose > 3)
+             cout<<"track added "<<track->GetName()<<endl;
+    }
 
-            TEvePathMark* path = new TEvePathMark();
-            TEveVector pos = TEveVector(pHit->GetX(), pHit->GetY(), pHit->GetZ());
-            path->fV = pos;
-            path->fTime = pHit->GetTimeStamp();
-            if (n == 0)
-            {
-                TEveVector Mom = TEveVector(px, py, pz);
-                path->fP = Mom;
-            }
-
-            // add path marker for current EVE track
-            track->AddPathMark(*path);
-
-            if (fVerbose > 3)
-                cout<<"Path marker added "<<path<<endl;
-
-            n++;
-        }
-
-        // add DCH1 hit
-        if (tr->GetDch1HitIndex() > -1)
-        {
-            FairHit* pHit = (FairHit*) fDch1HitList->UncheckedAt(tr->GetDch1HitIndex());
-
-            track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
-
-            TEvePathMark* path = new TEvePathMark();
-            TEveVector pos = TEveVector(pHit->GetX(), pHit->GetY(), pHit->GetZ());
-            path->fV = pos;
-            path->fTime = pHit->GetTimeStamp();
-            if (n == 0)
-            {
-                TEveVector Mom = TEveVector(px, py, pz);
-                path->fP = Mom;
-            }
-
-            // add path marker for current EVE track
-            track->AddPathMark(*path);
-
-            if (fVerbose > 3)
-                cout<<"Path marker added "<<path<<endl;
-
-            n++;
-        }
-
-        // add DCH2 hit
-        if (tr->GetDch2HitIndex() > -1)
-        {
-            FairHit* pHit = (FairHit*) fDch2HitList->UncheckedAt(tr->GetDch2HitIndex());
-
-            track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
-
-            TEvePathMark* path = new TEvePathMark();
-            TEveVector pos = TEveVector(pHit->GetX(), pHit->GetY(), pHit->GetZ());
-            path->fV = pos;
-            path->fTime = pHit->GetTimeStamp();
-            if (n == 0)
-            {
-                TEveVector Mom = TEveVector(px, py, pz);
-                path->fP = Mom;
-            }
-
-            // add path marker for current EVE track
-            track->AddPathMark(*path);
-
-            if (fVerbose > 3)
-                cout<<"Path marker added "<<path<<endl;
-
-            n++;
-        }
-
-        // add TOF2 hit
-        if (tr->GetTof2HitIndex() > -1)
-        {
-            FairHit* pHit = (FairHit*) fTof2HitList->UncheckedAt(tr->GetTof2HitIndex());
-
-            track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
-
-            TEvePathMark* path = new TEvePathMark();
-            TEveVector pos = TEveVector(pHit->GetX(), pHit->GetY(), pHit->GetZ());
-            path->fV = pos;
-            path->fTime = pHit->GetTimeStamp();
-            if (n == 0)
-            {
-                TEveVector Mom = TEveVector(px, py, pz);
-                path->fP = Mom;
-            }
-
-            // add path marker for current EVE track
-            track->AddPathMark(*path);
-
-            if (fVerbose > 3)
-                cout<<"Path marker added "<<path<<endl;
-
-            n++;
-        }
-
-        // add track to EVE track list
-        fTrList->AddElement(track);
-
-        if (fVerbose > 3)
-            cout<<"track added "<<track->GetName()<<endl;
+    if (fEventManager->EveRecoTracks == NULL)
+    {
+        fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
+        gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
+        fEventManager->EveRecoTracks->SetRnrState(kFALSE);
     }
 
     // redraw EVE scenes
     gEve->Redraw3D(kFALSE);
 }
 
-// destructor
+// -----   Destructor   ----------------------------------------------------
 BmnTrackDraw::~BmnTrackDraw()
 {
 }
 
+// -------------------------------------------------------------------------
 void BmnTrackDraw::SetParContainers()
 {
 }
 
+// -------------------------------------------------------------------------
 void BmnTrackDraw::Finish()
 {
 }
 
+// -------------------------------------------------------------------------
 void BmnTrackDraw::Reset()
 {
     // clear EVE track lists (fEveTrList)
@@ -300,7 +282,6 @@ void BmnTrackDraw::Reset()
     fEveTrList->Clear();
 }
 
-// return pointer to EVE track list for given particle name. if list don't exist then create it
 TEveTrackList* BmnTrackDraw::GetTrGroup(TParticle* P)
 {
     fTrList = 0;
@@ -323,13 +304,6 @@ TEveTrackList* BmnTrackDraw::GetTrGroup(TParticle* P)
         fTrList = new  TEveTrackList(P->GetName(), fTrPr);
         fTrList->SetMainColor(fEventManager->Color(P->GetPdgCode()));
         fEveTrList->Add(fTrList);
-
-        if (fEventManager->EveRecoTracks == NULL)
-        {
-            fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
-            gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
-            fEventManager->EveRecoTracks->SetRnrState(kFALSE);
-        }
 
         gEve->AddElement(fTrList, fEventManager->EveRecoTracks);
         fTrList->SetRnrLine(kTRUE);

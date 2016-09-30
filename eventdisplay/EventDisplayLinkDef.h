@@ -23,9 +23,9 @@
 #pragma link C++ class RawDataConverter;
 #pragma link C++ class RawMWPCDigitDraw;
 #pragma link C++ class BmnDigitDraw;
-#pragma link C++ class BmnTrackDraw;
+#pragma link C++ class BmnGlobalTrackDraw;
 #pragma link C++ class BmnExpTrackDraw;
-#pragma link C++ class CbmTrackDraw;
+#pragma link C++ class BmnTrackDraw;
 #pragma link C++ class FairWebScreenshots;
 
 #endif

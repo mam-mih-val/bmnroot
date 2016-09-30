@@ -58,9 +58,9 @@ FairHitPointSetDraw.cxx
 FairTimeStampPointDraw.cxx
 FairMCModuleDraw.cxx
 BmnDigitDraw.cxx
-BmnTrackDraw.cxx
+BmnGlobalTrackDraw.cxx
 BmnExpTrackDraw.cxx
-CbmTrackDraw.cxx
+BmnTrackDraw.cxx
 FairWebScreenshots.cxx
 raw/RawDataParser.cxx
 raw/RawDataConverter.cxx

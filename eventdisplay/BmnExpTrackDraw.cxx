@@ -5,7 +5,7 @@
 // -------------------------------------------------------------------------
 
 #include "BmnExpTrackDraw.h"
-#include "CbmTrack.h"
+#include "BmnTrack.h"
 #include "FairHit.h"
 #include "BmnMwpcHit.h"
 
@@ -99,7 +99,7 @@ void BmnExpTrackDraw::Exec(Option_t* option)
 
     Reset();
 
-    CbmTrack* current_track;
+    BmnTrack* current_track;
     if (fVerbose > 1)
         cout<<" BmnExpTrackDraw::Exec: the number of tracks is "<<fTrackList->GetEntriesFast()<<endl;
     for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
@@ -107,7 +107,7 @@ void BmnExpTrackDraw::Exec(Option_t* option)
         if (fVerbose > 2)
             cout<<"BmnExpTrackDraw::Exec "<<i<<endl;
 
-        current_track = (CbmTrack*) fTrackList->At(i);
+        current_track = (BmnTrack*) fTrackList->At(i);
         const FairTrackParam* pParamFirst = current_track->GetParamFirst();
 
         // define whether track is primary
@@ -136,7 +136,7 @@ void BmnExpTrackDraw::Exec(Option_t* option)
         // set line color corresponding PDG particle code
         track->SetLineColor(fEventManager->Color(particlePDG));
 
-        Int_t Np = current_track->GetNofHits();
+        Int_t Np = current_track->GetNHits();
 
         // cycle: add hits (points) to EVE path for this track
         cout<<"Points: "<<Np<<endl;

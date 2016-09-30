@@ -2,6 +2,7 @@
 #define BMNMATH_H_
 
 #include "FairTrackParam.h"
+#include "BmnGemHit.h"
 #include "BmnGemTrack.h"
 #include "BmnGemStripHit.h"
 #include "TLorentzVector.h"

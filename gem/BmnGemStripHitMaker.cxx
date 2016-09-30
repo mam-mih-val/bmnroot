@@ -125,9 +125,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
     Int_t clear_matched_points_cnt = 0; // points with the only one match-index
 
     //alignment shifts calculated by Andrey Maltsev
-    Int_t nStations = StationSet->GetNStations();
-    const Float_t xShift[nStations] = {-2.78, +0.03, +0.04, -0.02, -0.03, +0.03, -2.83};
-    const Float_t yShift[nStations] = {-0.03, +0.17, -0.12, +0.10, -0.04, +0.04, -2.18};
+    const Float_t xShift[7] = {-2.78, +0.03, +0.04, -0.02, -0.03, +0.03, -2.83};
+    const Float_t yShift[7] = {-0.03, +0.17, -0.12, +0.10, -0.04, +0.04, -2.18};
     
     for(Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet->GetGemStation(iStation);

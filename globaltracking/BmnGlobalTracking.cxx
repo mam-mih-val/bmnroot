@@ -224,7 +224,6 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             glTr->SetParamLast(seed->GetParamLast());
             //glTr->SetGemTrackIndex(i);
             glTr->SetNofHits(seed->GetNHits());
-            glTr->SetRefId(seed->GetRef());
             //glTr->SetFlag(kBMNGOOD); //kBMNGOOD or kBMNGOODMERGE???
 
             //            if (NearestHitMergeGEM(glTr) == kBMNSUCCESS) {
@@ -251,7 +250,6 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             glTr->SetParamLast(gemTrack->GetParamLast());
             glTr->SetGemTrackIndex(i);
             glTr->SetNofHits(gemTrack->GetNHits());
-            glTr->SetRefId(gemTrack->GetRef());
 
             if (NearestHitMergeTOF(glTr, 1) == kBMNSUCCESS) {
                 /*Refit(glTr);*/            }

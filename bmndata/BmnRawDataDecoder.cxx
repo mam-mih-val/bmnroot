@@ -331,6 +331,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     if (fRootFileIn->IsOpen() == false) {
         printf("\n!!!!\ncannot open file %s \nDecodeDataToDigi are stopped\n!!!!\n", fRootFileName.Data());
         return kBMNERROR;
+    } else {
+        printf("\nInput root file: %s;\nOutput digi file: %s;\n", fRootFileName.Data(), fDigiFileName.Data());
     }
     fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
     tdc = new TClonesArray("BmnTDCDigit");
@@ -363,12 +365,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fDigiTree->Branch("TOF400", &tof400);
     fDigiTree->Branch("TOF700", &tof700);
 
-    //    fDchMapFile.open(fDchMapFileName.Data(), ifstream::in);
-    //    fDchMapFile.open(fGemMapFileName.Data(), ifstream::in);
-    //    fTof400MapFile.open(fTof400MapFileName.Data(), ifstream::in);
-    //    fTof700MapFile.open(fTof700MapFileName.Data(), ifstream::in);
-
-    fNevents = (fMaxEvent > fRawTree->GetEntries()) ? fRawTree->GetEntries() : fMaxEvent;
+    fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
     BmnGemRaw2Digit *gemMapper = NULL;
     BmnDchRaw2Digit *dchMapper = new BmnDchRaw2Digit(kPERIOD, fRunId);

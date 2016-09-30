@@ -28,7 +28,8 @@ void run_reco_bmn(TString inFile = "run4-65:$VMCWORKDIR/macro/raw/bmn_run0065_di
     // -----   Reconstruction run   -------------------------------------------
     FairRunAna *fRun = new FairRunAna();
 
-    Bool_t isField = kTRUE;
+    Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
+    Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Set input source as simulation file or experimental data
     FairSource* fFileSource;
@@ -90,6 +91,7 @@ void run_reco_bmn(TString inFile = "run4-65:$VMCWORKDIR/macro/raw/bmn_run0065_di
         magField->SetScale(fieldScale);
         magField->Init();
         fRun->SetField(magField);
+        isExp = kTRUE;
     }// for simulated files
     else {
         if (!CheckFileExist(inFile)) return;
@@ -132,11 +134,13 @@ void run_reco_bmn(TString inFile = "run4-65:$VMCWORKDIR/macro/raw/bmn_run0065_di
     // ====================================================================== //
     if (gemCF) {
         BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016; // RunSummer2016 config (GEM_RunSummer2016.root))
-        BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
-        gemDigit->SetCurrentConfig(gem_config);
-        gemDigit->SetOnlyPrimary(isPrimary);
-        gemDigit->SetStripMatching(kTRUE);
-        //        fRun->AddTask(gemDigit);
+        if (!isExp) {
+            BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
+            gemDigit->SetCurrentConfig(gem_config);
+            gemDigit->SetOnlyPrimary(isPrimary);
+            gemDigit->SetStripMatching(kTRUE);
+            fRun->AddTask(gemDigit);
+        }
         BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
         gemHM->SetCurrentConfig(gem_config);
         gemHM->SetHitMatching(kTRUE);

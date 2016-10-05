@@ -88,7 +88,7 @@ CHECK_EXTERNAL_PACKAGE_INSTALL_DIR()
 # REQUIRED means that cmake will stop if this packages are not found
 # For example the framework can run without GEANT4, but ROOT is
 # mandatory
-find_package(ROOT 5.32.00 REQUIRED)
+find_package(ROOT 5.34.00 REQUIRED)
 find_package(Pythia6)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules_old" ${CMAKE_MODULE_PATH})
@@ -101,6 +101,7 @@ find_package(RuleChecker)
 find_package(SSE)
 find_package(PLUTO REQUIRED)
 find_package(GENERATORS REQUIRED)
+find_package(XML2 REQUIRED)
 
 #find_package(CUDA)
 #find_package(IWYU)

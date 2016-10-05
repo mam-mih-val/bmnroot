@@ -4,7 +4,7 @@
 
 set(INCLUDE_DIRECTORIES
 ${ROOT_INCLUDE_DIR}
-/usr/include/libxml2
+${XML2_INCLUDE_DIR}
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
@@ -13,6 +13,7 @@ include_directories(${INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
+${XML2_LIBRARY_DIR}
 )
  
 link_directories(${LINK_DIRECTORIES})

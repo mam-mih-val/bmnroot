@@ -1,0 +1,23 @@
+ <!-- // COLOR SET:
+ white, black, gray,
+ blue, azure (темно-синий), cyan (морской волны), teal (бирюзовый),
+ green, spring (светло-зеленый), green+2 (темно-зеленый), spring+2 (темно-зеленый), khaki
+ yellow, orange (желтый с оттенком), orange+2 (оранжевый кор.), orange+1 (светло-оранжевый кор.), orange+7 (выделенно-оранжевый)
+ red, violet, magenta (бардовый), magenta-6 (светло-бардовый), pink (темно-розовый)
+ -->
+<coloring type="detector">
+    <subdetector name="ms01yokebarrel" color="blue" transparency="30" isRecursiveColoring="true"/>
+    <subdetector name="ms01cryostat" color="gray" transparency="15" isRecursiveColoring="true"/>
+    <subdetector name="ms01yokeendeii" color="blue" transparency="30" isRecursiveColoring="true"/>
+    <subdetector name="ms01yokeendeio" color="blue" transparency="30" isRecursiveColoring="true"/>
+    <subdetector name="ms01yokeendeim" color="blue" transparency="30" isRecursiveColoring="true"/>
+    <subdetector name="ms01yokeendeoi" color="blue" transparency="30" isRecursiveColoring="true"/>
+    <subdetector name="ms01yokeendeom" color="blue" transparency="30" isRecursiveColoring="true"/>
+    <subdetector name="ms01yokeendeoo" color="blue" transparency="30" isRecursiveColoring="true"/>
+    <subdetector name="pipe1" color="orange" transparency="0" isRecursiveColoring="true"/>
+    <subdetector name="tpcChamber1" color="cyan" transparency="0" isRecursiveColoring="true"/>
+    <subdetector name="tof1" color="spring" transparency="0" isRecursiveColoring="true"/>
+    <subdetector name="emc1Chamber1" color="violet" transparency="0" isRecursiveColoring="true"/>
+    <subdetector name="zdc01" color="green" transparency="0" isRecursiveColoring="true"/>
+</coloring>
+

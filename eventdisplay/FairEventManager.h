@@ -151,6 +151,11 @@ class FairEventManager : public TEveEventManager
     // FairRunAna to init and to execute visualization tasks
     FairRunAna* fRunAna; //!
 
+    //returns loaded xml if successful of NULL if validation failed
+    bool ValidateXml(const char *XMLFileName, const char *XSDFileName);
+    //coloring method
+    enum VisualizationColoring {selectedColoring, levelColoring, defaultColoring};
+    VisualizationColoring gVisualizationColoring;
   private:
     FairRootManager* fRootManager; //!
     TGListTreeItem* fEvent; //!

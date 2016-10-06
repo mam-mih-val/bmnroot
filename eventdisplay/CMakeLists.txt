@@ -30,6 +30,7 @@ Set(SYSTEM_INCLUDE_DIRECTORIES
   ${ROOT_INCLUDE_DIR} 
   ${Boost_INCLUDE_DIRS}
   ${GEANT3_INCLUDE_DIR}
+  ${XML2_INCLUDE_DIR}
 )
 
 Include_Directories(${INCLUDE_DIRECTORIES})
@@ -38,9 +39,10 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
+${XML2_LIBRARY_DIR}
 )
  
-link_directories( ${LINK_DIRECTORIES})
+link_directories(${LINK_DIRECTORIES})
 
 set(SRCS
 FairEventManager.cxx  
@@ -70,6 +72,6 @@ raw/RawMWPCDigitDraw.cxx
 Set(HEADERS)
 Set(LINKDEF EventDisplayLinkDef.h)
 Set(LIBRARY_NAME EventDisplay)
-Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core)
+Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2)
 
 GENERATE_LIBRARY()

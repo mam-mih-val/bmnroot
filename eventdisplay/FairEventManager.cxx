@@ -30,6 +30,11 @@
 #include <TEveProjectionAxes.h>
 #include <TEveBrowser.h>
 
+// XML
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <libxml/xmlschemastypes.h>
+#include <unistd.h>
 #include <cerrno>
 #include <iostream>
 using namespace std;
@@ -93,255 +98,107 @@ FairEventManager::FairEventManager()
 // red, violet, magenta (бардовый), magenta-6 (светло-бардовый), pink (темно-розовый)
 void FairEventManager::InitColorStructure()
 {
+    TString coloring_xml_path = "$VMCWORKDIR/config/eventdisplay.xml";
+    TString coloring_xsd_path = "$VMCWORKDIR/eventdisplay/coloring.xsd";
+    gSystem->ExpandPathName(coloring_xml_path);
+    gSystem->ExpandPathName(coloring_xsd_path);
+
     cntSelectedColoring = 0;
     cntLevelColoring = 0;
 
-    if (gVisualizationColoring == levelColoring)
+    if(ValidateXml(coloring_xml_path.Data(),coloring_xsd_path.Data())==true)
     {
-        // number of described detector levels
-        cntLevelColoring = 5;
-        arrLevelColoring = new structLevelColoring[cntLevelColoring];
-
-        // if BM@N
-        if (gCoordinateSystem == sysLaboratory)
-        {
-            // LEVEL 1
-            arrLevelColoring[0].fill_color =    "gray"; //yellow for white background
-            arrLevelColoring[0].isFillLine =    true;
-            arrLevelColoring[0].visibility =    true;
-            arrLevelColoring[0].transparency =  30;
-
-            // LEVEL 2
-            arrLevelColoring[1].fill_color =    "yellow"; //magenta for white background
-            arrLevelColoring[1].isFillLine =    true;
-            arrLevelColoring[1].visibility =    true;
-            arrLevelColoring[1].transparency =  30;
-
-            // LEVEL 3
-            arrLevelColoring[2].fill_color =    "cyan"; //green for white background
-            arrLevelColoring[2].isFillLine =    true;
-            arrLevelColoring[2].visibility =    true;
-            arrLevelColoring[2].transparency =  30;
-
-            // LEVEL 4
-            arrLevelColoring[3].fill_color =    "white"; //cyan for white background
-            arrLevelColoring[3].isFillLine =    true;
-            arrLevelColoring[3].visibility =    true;
-            arrLevelColoring[3].transparency =  30;
-
-            // LEVEL 5
-            arrLevelColoring[4].fill_color =    "green"; //blue for white background
-            arrLevelColoring[4].isFillLine =    true;
-            arrLevelColoring[4].visibility =    true;
-            arrLevelColoring[4].transparency =  30;
-        }
-        // MPD
-        else
-        {
-            // LEVEL 1
-            arrLevelColoring[0].fill_color =    "gray"; //yellow for white background
-            arrLevelColoring[0].isFillLine =    true;
-            arrLevelColoring[0].visibility =    true;
-            arrLevelColoring[0].transparency =  30;
-
-            // LEVEL 2
-            arrLevelColoring[1].fill_color =    "cyan"; //magenta for white background
-            arrLevelColoring[1].isFillLine =    true;
-            arrLevelColoring[1].visibility =    true;
-            arrLevelColoring[1].transparency =  30;
-
-            // LEVEL 3
-            arrLevelColoring[2].fill_color =    "violet"; //green for white background
-            arrLevelColoring[2].isFillLine =    true;
-            arrLevelColoring[2].visibility =    true;
-            arrLevelColoring[2].transparency =  30;
-
-            // LEVEL 4
-            arrLevelColoring[3].fill_color =    "azure"; //cyan for white background
-            arrLevelColoring[3].isFillLine =    true;
-            arrLevelColoring[3].visibility =    true;
-            arrLevelColoring[3].transparency =  30;
-
-            // LEVEL 5
-            arrLevelColoring[4].fill_color =    "green"; //blue for white background
-            arrLevelColoring[4].isFillLine =    true;
-            arrLevelColoring[4].visibility =    true;
-            arrLevelColoring[4].transparency =  30;
-        }
-
-        return;
-    }
-
-    // if BM@N selected coloring
-    if (gCoordinateSystem == sysLaboratory)
-    {
-        int i = 0;
-        cntSelectedColoring = 11;
-        arrSelectedColoring = new structSelectedColoring[cntSelectedColoring];
-
-        // MAGNET color
-        arrSelectedColoring[i].detector_name =          "Magnet";
-        arrSelectedColoring[i].detector_color =         "gray";
-        arrSelectedColoring[i].detector_transparency =  67;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-        // coil of magnet
-        arrSelectedColoring[i].detector_name =          "Coil";
-        arrSelectedColoring[i].detector_color =         "red";
-        arrSelectedColoring[i].detector_transparency =  67;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // TARGET color
-        arrSelectedColoring[i].detector_name =          "targ";
-        arrSelectedColoring[i].detector_color =         "yellow";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // PIPE color
-        arrSelectedColoring[i].detector_name =          "pipe1cave";
-        arrSelectedColoring[i].detector_color =         "orange";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // RECOIL color
-        arrSelectedColoring[i].detector_name =          "recoil01";
-        arrSelectedColoring[i].detector_color =         "khaki";
-        arrSelectedColoring[i].detector_transparency =  67;
-        arrSelectedColoring[i].isRecursiveColoring =  true;
-        i++;
-
-        // GEMS color
-        arrSelectedColoring[i].detector_name =          "GEMS";
-        arrSelectedColoring[i].detector_color =         "cyan";
-        arrSelectedColoring[i].detector_transparency =  15;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // TOF1 color
-        arrSelectedColoring[i].detector_name =          "TOFB1";
-        arrSelectedColoring[i].detector_color =         "spring";
-        arrSelectedColoring[i].detector_transparency =  15;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // DCH1 color
-        arrSelectedColoring[i].detector_name =          "dch1";
-        arrSelectedColoring[i].detector_color =         "orange+7";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // DCH2 color
-        arrSelectedColoring[i].detector_name =          "dch2";
-        arrSelectedColoring[i].detector_color =         "orange+7";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // TOF2 color
-        arrSelectedColoring[i].detector_name =          "tof2";
-        arrSelectedColoring[i].detector_color =         "spring";
-        arrSelectedColoring[i].detector_transparency =  15;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-        // inner part of TOF2
-        arrSelectedColoring[i].detector_name =          "t2reg2mod";
-        arrSelectedColoring[i].detector_color =         "spring+2";
-        //arrSelectedColoring[i].detector_transparency =  29;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
+        xmlNode* root_element = NULL;
+        xmlSchemaPtr schema = NULL;
+        xmlSchemaParserCtxtPtr ctxt;
+        xmlDoc* doc = xmlReadFile(coloring_xml_path.Data(), NULL, 0);
+        
         /*
-        // ZDC color
-        arrSelectedColoring[i].detector_name =          "VMDL"; //"VET0";
-        arrSelectedColoring[i].detector_color =         "yellow";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i].isRecursiveColoring =    false;
-        i++;
-        */
+         * Get the root element node
+         */
+        root_element = xmlDocGetRootElement(doc);
+        xmlAttr* root_element_attributes = root_element->properties;
+        xmlChar* value = xmlNodeListGetString(root_element->doc, root_element_attributes->children, 1);
+
+        xmlFree(root_element_attributes);
+        xmlNodePtr cur_node = root_element;
+        if (strcmp((char*)value,"default")==0)
+        {
+            cout<<"using default coloring"<<endl;
+            gVisualizationColoring = defaultColoring;
+        }
+        else
+        {          
+            if (strcmp((char*)value, "detector") == 0)
+            {
+                cntSelectedColoring = (int)xmlChildElementCount(cur_node);
+                arrSelectedColoring = new structSelectedColoring[cntSelectedColoring];
+                gVisualizationColoring = selectedColoring;
+            }
+            else
+            {
+                cntLevelColoring = (int)xmlChildElementCount(cur_node);
+                arrLevelColoring = new structLevelColoring[cntLevelColoring];
+                gVisualizationColoring = levelColoring;
+
+            }
+            cur_node = root_element->children;
+            int i=0;
+            while (cur_node)
+            {
+                if (strcmp((char*)cur_node->name, "text") != 0)//skipping elements with no attributes
+                {
+                    xmlAttr* attribute = cur_node->properties;
+                    while(attribute)
+                    {
+                        xmlChar* attr_value = xmlNodeListGetString(root_element->doc, attribute->children, 1);
+                        if (strcmp((char*)value, "detector") == 0)
+                        {
+                            if (strcmp((char*)attribute->name,"name")==0) 
+                                arrSelectedColoring[i].detector_name=(char*)attr_value;
+                            if (strcmp((char*)attribute->name,"color")==0)
+                                arrSelectedColoring[i].detector_color=(char*)attr_value;
+                            if (strcmp((char*)attribute->name,"isRecursiveColoring")==0)
+                                arrSelectedColoring[i].isRecursiveColoring=(strcmp((char*)attr_value,"true")==0);                            
+                            if (strcmp((char*)attribute->name,"transparency")==0) 
+                                arrSelectedColoring[i].detector_transparency =  atoi((char*)attr_value);
+                        }
+                        else if (strcmp((char*)value, "hierarchy") == 0)
+                        {
+                            if (strcmp((char*)attribute->name,"color")==0) 
+                                arrLevelColoring[i].fill_color=(char*)attr_value;
+                            if (strcmp((char*)attribute->name,"isFillLine")==0) 
+                                arrLevelColoring[i].isFillLine=(strcmp((char*)attr_value,"true")==0);
+                            if (strcmp((char*)attribute->name,"visibility")==0) 
+                                arrLevelColoring[i].visibility=(strcmp((char*)attr_value,"true")==0);
+                            if (strcmp((char*)attribute->name,"transparency")==0) 
+                                arrLevelColoring[i].transparency=atoi((char*)attr_value);
+                        }                    
+                        attribute = attribute->next;
+                        xmlFree(attr_value);
+                    }
+                    xmlFree(attribute);
+                    i++;                
+                }
+                cur_node = cur_node->next;
+            }
+        }
+            
+        xmlFree(value);
+        xmlFree(cur_node);
+        /*
+         * free the document
+         */
+        xmlCleanupParser();
+        xmlFreeDoc(doc);
     }
-    // if MPD
     else
     {
-        int i = 0;
-        cntSelectedColoring = 13;
-        arrSelectedColoring = new structSelectedColoring[cntSelectedColoring];
-
-        // MAGNET color
-        arrSelectedColoring[i].detector_name =          "ms01yokebarrel";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // cryostat
-        arrSelectedColoring[i].detector_name =          "ms01cryostat";
-        arrSelectedColoring[i].detector_color =         "gray";
-        arrSelectedColoring[i].detector_transparency =  15;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeii";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeio";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeim";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeoi";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeom";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeoo";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-
-        // PIPE color
-        arrSelectedColoring[i].detector_name =          "pipe1";
-        arrSelectedColoring[i].detector_color =         "orange";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-
-        // TPC color
-        arrSelectedColoring[i].detector_name =          "tpcChamber1";
-        arrSelectedColoring[i].detector_color =         "cyan";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-
-        // TOF color
-        arrSelectedColoring[i].detector_name =          "tof1";
-        arrSelectedColoring[i].detector_color =         "spring";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-
-        // EMC color
-        arrSelectedColoring[i].detector_name =          "emc1Chamber1";
-        arrSelectedColoring[i].detector_color =         "violet";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-
-        // ZDC color
-        arrSelectedColoring[i].detector_name =          "zdc01";
-        arrSelectedColoring[i].detector_color =         "green";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
+        cout<<"using default coloring"<<endl;
+        gVisualizationColoring = defaultColoring;
     }
-
+    
+    //sleep(20);
     return;
 }
 
@@ -663,6 +520,57 @@ void FairEventManager::LevelChangeNodeProperty(TGeoNode* node, int level)
             }
         }//if (level < arr_size)
     }
+}
+
+//returns true if successful or false if validation failed
+bool FairEventManager::ValidateXml(const char *XMLFileName, const char *XSDFileName)
+{
+    bool ok = false;
+    xmlDoc* doc = NULL;
+    xmlSchemaPtr schema = NULL;
+    xmlSchemaParserCtxtPtr ctxt;
+    
+    ctxt = xmlSchemaNewParserCtxt(XSDFileName);
+
+    xmlSchemaSetParserErrors(ctxt, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
+    schema = xmlSchemaParse(ctxt);
+    xmlSchemaFreeParserCtxt(ctxt);
+    //xmlSchemaDump(stdout, schema); //To print schema dump
+    doc = xmlReadFile(XMLFileName, NULL, 0);
+    if (doc == NULL)
+    {
+        cout<<"error: could not parse file"<<XMLFileName<<endl;
+        ok=false;
+    }
+    else
+    {
+        xmlSchemaValidCtxtPtr cvalid;
+        int ret;
+
+        cvalid = xmlSchemaNewValidCtxt(schema);
+        xmlSchemaSetValidErrors(cvalid, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
+        ret = xmlSchemaValidateDoc(cvalid, doc);
+        if (ret == 0)
+        {
+            //cout<<XMLFileName<<" is validated"<<endl;
+            ok=true;
+        }
+        else if (ret > 0)
+        {
+            cout<<XMLFileName<<" failed to validate"<<endl;
+            ok=false;
+        }
+        else
+        {
+            cout<<XMLFileName<<" validation generated an internal error"<<endl;
+            ok=false;
+        }
+        xmlSchemaFreeValidCtxt(cvalid);
+    }
+    if(schema != NULL)
+        xmlSchemaFree(schema);
+    xmlSchemaCleanupTypes();
+    return ok;
 }
 
 // return integer value of color by color name (default, blue)

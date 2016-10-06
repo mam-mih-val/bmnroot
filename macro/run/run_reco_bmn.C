@@ -29,6 +29,7 @@ void run_reco_bmn(TString inFile = "run4-65:$VMCWORKDIR/macro/raw/bmn_run0065_di
     FairRunAna *fRun = new FairRunAna();
 
     Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
+    Bool_t isTarget = kTRUE; // flag for tracking (run with target or not)
     Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Set input source as simulation file or experimental data
@@ -92,6 +93,24 @@ void run_reco_bmn(TString inFile = "run4-65:$VMCWORKDIR/macro/raw/bmn_run0065_di
         magField->Init();
         fRun->SetField(magField);
         isExp = kTRUE;
+        TString targ;
+        if (pCurrentRun->GetTargetParticle() == NULL) {
+            targ = "-";
+            isTarget = kFALSE;
+        } else {
+            targ = (pCurrentRun->GetTargetParticle())[0];
+            isTarget = kTRUE;
+        }
+        TString beam = pCurrentRun->GetBeamParticle();
+        cout << "\n\n|||||||||||||||| EXPERIMENTAL RUN SUMMARY ||||||||||||||||" << endl;
+        cout << "||\t\t\t\t\t\t\t||" << endl;
+        cout << "||\t\tPeriod:\t\t" << run_period << "\t\t\t||" << endl;
+        cout << "||\t\tNumber:\t\t" << run_number << "\t\t\t||" << endl;
+        cout << "||\t\tBeam:\t\t" << beam << "\t\t\t||" << endl;
+        cout << "||\t\tTarget:\t\t" << targ << "\t\t\t||" << endl;
+        cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
+        cout << "||\t\t\t\t\t\t\t||" << endl;
+        cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
     }// for simulated files
     else {
         if (!CheckFileExist(inFile)) return;
@@ -192,6 +211,7 @@ void run_reco_bmn(TString inFile = "run4-65:$VMCWORKDIR/macro/raw/bmn_run0065_di
     BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
     if (gemCF) gemSF->SetUseLorentz(kTRUE);
     gemSF->SetField(isField);
+    gemSF->SetTarget(isTarget);
     fRun->AddTask(gemSF);
 
     if (isField) {

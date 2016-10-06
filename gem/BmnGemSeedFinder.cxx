@@ -21,6 +21,7 @@ using namespace TMath;
 BmnGemSeedFinder::BmnGemSeedFinder() : fEventNo(0) {
     fUseLorentz = kFALSE;
     fIsField = kFALSE;
+    fIsTarget = kTRUE;
     fGemHitsArray = NULL;
     fGemSeedsArray = NULL;
     fHitsBranchName = "BmnGemStripHit";
@@ -87,38 +88,43 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     if (fGemHitsArray->GetEntriesFast() > 500) return;
 
     if (fIsField) {
-        for (Int_t i = 0; i < nIter; ++i) {
-            addresses.clear();
+        if (fIsTarget) {
+            for (Int_t i = 0; i < nIter; ++i) {
+                addresses.clear();
 
-            fNBins = nBins[i]; //1500;//3000;
-            fMin = -0.5;
-            fMax = -fMin;
-            fWidth = (fMax - fMin) / fNBins;
+                fNBins = nBins[i]; //1500;//3000;
+                fMin = -0.5;
+                fMax = -fMin;
+                fWidth = (fMax - fMin) / fNBins;
 
-            kSIG_X = sigX[i];
-            kY_STEP = stpY[i];
-            kTRS = thrs[i];
-            kNHITSFORFIT = length[i];
-            kCHI2CUT = chi2cut[i];
-            if (fUseLorentz) {
-                FillAddrWithLorentz(kSIG_X, kY_STEP, kTRS);
-            } else {
-                FillAddr();
+                kSIG_X = sigX[i];
+                kY_STEP = stpY[i];
+                kTRS = thrs[i];
+                kNHITSFORFIT = length[i];
+                kCHI2CUT = chi2cut[i];
+                if (fUseLorentz) {
+                    FillAddrWithLorentz(kSIG_X, kY_STEP, kTRS);
+                } else {
+                    FillAddr();
+                }
+
+                DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArray);
+                cout << "ITER: " << i << " | fGemSeedsArray->GetEntriesFast() = " << fGemSeedsArray->GetEntriesFast() << endl;
             }
-
-            DoSeeding(Int_t(kY_STEP - 1), Int_t(kY_STEP), fGemSeedsArray);
-            cout << "ITER: " << i << " | fGemSeedsArray->GetEntriesFast() = " << fGemSeedsArray->GetEntriesFast() << endl;
+        } else {
+            kNHITSFORFIT = 4;
+            kCHI2CUT = 50.0;
+            kSIGMACUT = 1.0;
+            FindYZSeeds();
+            cout << "STRIGHT | fGemSeedsArray->GetEntriesFast() = " << fGemSeedsArray->GetEntriesFast() << endl;
         }
-
-        // for "secondaries"
-        kNHITSFORFIT = 4;
-        kCHI2CUT = 50.0;
-        kSIGMACUT = 1.0;
-        FindYZSeeds();
-        cout << "STRIGHT | fGemSeedsArray->GetEntriesFast() = " << fGemSeedsArray->GetEntriesFast() << endl;
     } else {
         kNHITSFORFIT = 3;
-        FindStrightSeeds();
+        if (fIsTarget) {
+
+        } else {
+            FindStrightSeeds();
+        }
     }
     cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
 
@@ -133,11 +139,12 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 }
 
 BmnStatus BmnGemSeedFinder::FindStrightSeeds() {
-    
-    vector<BmnGemTrack> tgA_06;
-    CollectSeeds(tgA_06);
 
-    Float_t minDr = 1000.0;
+    vector<BmnGemTrack> tgA_06 = CollectSeeds();
+
+    cout << "N candidates = " << tgA_06.size() << endl;
+
+    Float_t minDr = 5.0;
     Int_t minIdx = -1;
     BmnGemTrack minTrack;
 
@@ -175,8 +182,7 @@ BmnStatus BmnGemSeedFinder::FindStrightSeeds() {
 
 BmnStatus BmnGemSeedFinder::FindYZSeeds() {
 
-    vector<BmnGemTrack> tgA_06;
-    CollectSeeds(tgA_06);
+    vector<BmnGemTrack> tgA_06 = CollectSeeds();
 
     Float_t minDr = kSIGMACUT;
     Int_t minIdx = -1;
@@ -213,6 +219,11 @@ BmnStatus BmnGemSeedFinder::FindYZSeeds() {
         if (linePar.Z() > kSIGMACUT) return kBMNERROR;
         TVector3 circPar = CircleBy3Hit(&tr, fGemHitsArray);
         tr.SortHits();
+        cout << "hits X:" << endl;
+        for (Int_t i = 0; i < tr.GetNHits(); ++i) {
+            cout << GetHit(tr.GetHitIndex(i))->GetX() << endl;
+        }
+
         Float_t dX = GetHit(tr.GetHitIndex(1))->GetX() - GetHit(tr.GetHitIndex(0))->GetX();
         Int_t q = (dX > 0.0) ? +1 : -1;
         if (CalculateTrackParams(&tr, &circPar, &linePar, q)) {
@@ -224,32 +235,46 @@ BmnStatus BmnGemSeedFinder::FindYZSeeds() {
 
 }
 
-BmnStatus BmnGemSeedFinder::CollectSeeds(vector<BmnGemTrack>& tg) {
+vector<BmnGemTrack> BmnGemSeedFinder::CollectSeeds() {
     vector<BmnGemTrack> tgA_01;
     vector<BmnGemTrack> tgA_12;
     vector<BmnGemTrack> tgA_23;
     vector<BmnGemTrack> tgA_34;
     vector<BmnGemTrack> tgA_45;
     vector<BmnGemTrack> tgA_56;
-    FillTgStation(0, tgA_01);
+    //FillTgStation(0, tgA_01);
     FillTgStation(1, tgA_12);
     FillTgStation(2, tgA_23);
     FillTgStation(3, tgA_34);
     FillTgStation(4, tgA_45);
     FillTgStation(5, tgA_56);
+    cout << tgA_01.size() << " " << tgA_12.size() << " " << tgA_23.size() << " " << tgA_34.size() << " " << tgA_45.size() << " " << tgA_56.size() << endl;
 
     vector<BmnGemTrack> tgA_13;
     vector<BmnGemTrack> tgA_35;
-    if (CombineTg(tgA_12, tgA_23, tgA_13) == kBMNERROR) return kBMNERROR;
-    if (CombineTg(tgA_34, tgA_45, tgA_35) == kBMNERROR) return kBMNERROR;
+    CombineTg(tgA_12, tgA_23, tgA_13);
+    CombineTg(tgA_34, tgA_45, tgA_35);
+    cout << tgA_13.size() << " " << tgA_35.size() << endl;
 
     vector<BmnGemTrack> tgA_15;
-    if (CombineTg(tgA_13, tgA_35, tgA_15) == kBMNERROR) return kBMNERROR;
-    
-    vector<BmnGemTrack> tgA_16;
-    if (CombineTg(tgA_15, tgA_56, tgA_16) == kBMNERROR) return kBMNERROR;
+    CombineTg(tgA_13, tgA_35, tgA_15);
+    cout << tgA_15.size() << endl;
+    //if (tgA_15.size() == 0) return kBMNERROR;
 
-    if (CombineTg(tgA_01, tgA_16, tg) == kBMNERROR) return kBMNERROR;
+    vector<BmnGemTrack> tgA_16;
+    CombineTg(tgA_15, tgA_56, tgA_16);
+    cout << tgA_16.size() << endl;
+
+    if (tgA_16.size() == 0) {
+        vector<BmnGemTrack> tgA_05;
+        CombineTg(tgA_01, tgA_15, tgA_05);
+        return (tgA_05.size() == 0) ? tgA_15 : tgA_05;
+    } else {
+        vector<BmnGemTrack> tgA_06;
+        CombineTg(tgA_01, tgA_16, tgA_06);
+        return (tgA_06.size() == 0) ? tgA_16 : tgA_06;
+        cout << tgA_06.size() << endl;
+    }
 }
 
 BmnStatus BmnGemSeedFinder::CombineTg(vector<BmnGemTrack> tg1, vector<BmnGemTrack> tg2, vector<BmnGemTrack>& tg) {
@@ -388,7 +413,7 @@ UInt_t BmnGemSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, B
                 if (hitCntr >= kNHITSFORSEED) break;
             }
         }
-        
+
         trackCand.SortHits();
         if (trackCand.GetNHits() < kNHITSFORFIT) {
             SetHitsUnused(&trackCand);
@@ -499,6 +524,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar
     Float_t Q = q;
     Float_t S = 0.0003 * (fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
     Float_t QP = Q / S / Sqrt(R * R + B * B);
+    cout << Q << " " << S << " " << QP << endl;
 
     for (UInt_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = GetHit(tr->GetHitIndex(i));
@@ -596,6 +622,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar
 
     Float_t Tx_first = h * (fZ - Zc) / (fX - Xc);
     Float_t Tx_last = h * (lZ - Zc) / (lX - Xc);
+    cout << Tx_first << " " << Tx_last << endl;
     Float_t Ty_last = B; // / (lX - Xc);
     Float_t Ty_first = B; // / (fX - Xc);
 

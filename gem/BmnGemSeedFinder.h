@@ -28,7 +28,7 @@ public:
     virtual ~BmnGemSeedFinder();
 
     BmnStatus FindStrightSeeds(); // for runs w/o magnetic field
-    
+
     BmnStatus FindYZSeeds();
     void FindSeeds(Int_t station, Int_t gate, Bool_t isIdeal, TClonesArray* arr);
     UInt_t SearchTrackCandidates(Int_t startStation, Int_t gate, Bool_t isIdeal, Bool_t isLeft, TClonesArray* arr);
@@ -40,16 +40,16 @@ public:
     TVector3 CircleFit(BmnGemTrack* track);
     BmnStatus FillTgStation(Short_t st, vector<BmnGemTrack>& tg);
     BmnStatus CombineTg(vector<BmnGemTrack> tg1, vector<BmnGemTrack> tg2, vector<BmnGemTrack>& tg);
-    BmnStatus CollectSeeds(vector<BmnGemTrack>& tg);
+    vector<BmnGemTrack> CollectSeeds();
 
-    
+
     void SetHitsUnused(BmnGemTrack* tr);
-        
+
     Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
-    
+
     void FillAddr();
     void FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float_t trs);
-    
+
     void SetUseLorentz(Bool_t use) {
         fUseLorentz = use;
     }
@@ -58,12 +58,30 @@ public:
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
     Float_t Sqr(Float_t x);
     BmnGemStripHit* GetHit(Int_t i);
-    
-    void SetTrs(Float_t trs) {kTRS = trs;}
-    void SetYstep(Float_t stp) {kY_STEP = stp;}
-    void SetSigX(Float_t sig) {kSIG_X = sig;}
-    void SetNbins(Int_t n) {fNBins = n;}
-    void SetField(Bool_t f) {fIsField = f;}
+
+    void SetTrs(Float_t trs) {
+        kTRS = trs;
+    }
+
+    void SetYstep(Float_t stp) {
+        kY_STEP = stp;
+    }
+
+    void SetSigX(Float_t sig) {
+        kSIG_X = sig;
+    }
+
+    void SetNbins(Int_t n) {
+        fNBins = n;
+    }
+
+    void SetField(Bool_t f) {
+        fIsField = f;
+    }
+
+    void SetTarget(Bool_t f) {
+        fIsTarget = f;
+    }
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
@@ -76,12 +94,14 @@ private:
     TString fSeedsBranchName;
 
     Bool_t fUseLorentz; //flag for using Lorentz filtration
-    
+    Bool_t fIsField; // run with mag.field or not
+    Bool_t fIsTarget; // run with target or not
+
     Float_t kSIG_X;
     UInt_t kY_STEP;
     Float_t kTRS;
     UInt_t kNHITSFORFIT;
-    
+
     UInt_t fNBins; // number of bins in histogram  
     Float_t fMin;
     Float_t fMax;
@@ -95,8 +115,8 @@ private:
     TClonesArray* fMCPointsArray;
 
     FairField* fField;
-    
-    Bool_t fIsField; // is mag. field or not
+
+
 
     ClassDef(BmnGemSeedFinder, 1);
 };

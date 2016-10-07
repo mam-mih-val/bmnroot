@@ -12,6 +12,8 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(){
   n_rec=0;
 }
 BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
+    test_chan1 = -1;
+    test_id1 = -1;
     n_rec=0;
     TString dummy;
     ifstream in;
@@ -29,6 +31,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
         in >>std::hex >> id >>std::dec >> chan >> front_chan>>size>>ix>>iy>>x>>y>>used;
         if (!in.good()) break;
 //	printf("%0x %d %d %d %d %d %f %f\n",id,chan,front_chan,size,ix,iy,x,y);
+	if (size == 200) { test_chan1 = chan; test_id1 = id; };
 	if (size > 2 || size < 0) continue;
 	if (chan <= 0) continue;
 	if (front_chan <= 0) continue;
@@ -171,6 +174,18 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
 	    profile_err[i][j] = 0.;
 	}
     }
+
+    char tit[128], nam[128];
+
+    htest1 = NULL;
+    Test1Prof = NULL;
+    if (test_chan1 >= 0)
+    {
+	sprintf(tit, "Amplitude for adc test channel %d", test_chan1);
+	htest1 = new TH1F("htest1",tit, 10000, 0., 10000.);
+	sprintf(tit, "Average sampling wave for adc test channel %d", test_chan1);
+	Test1Prof   = new TProfile("ptest1", tit, 200, 0., 200., -100000., +100000.,"s");
+    }
     hsum_sim = new TH1F("hsumsim","Sum of theoretical amplitudes", 1000, 0., 100.);
     hsum_raw = new TH1F("hsumraw","Sum of raw amplitudes", 2000, 0., 20000.);
     hsum     = new TH1F("hsumcal","Sum of calibrated amplitudes", 1000, 0., 200.);
@@ -178,7 +193,6 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
     hxmean   = new TH1F("hxmean","Shower mean X", 1000, -500., +500.);
     hymean   = new TH1F("hymean","Shower mean Y", 1000, -500., +500.);
 
-    char tit[128], nam[128];
     for (int i=0; i<n_rec; i++)
     {
 	sprintf(tit, "samprof%d", i);
@@ -309,15 +323,33 @@ void BmnZDCRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t 
     {
      for (int i = 0; i < data->GetEntriesFast(); i++) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
+       if (test_chan1 >= 0)
+       if (digit->GetChannel() == test_chan1 && digit->GetSerial() == test_id1)
+       {
+    	    UShort_t *samt = digit->GetValue();
+	    int j2 = 0;
+    	    for (int j1 = 0;j1<digit->GetSamples(); j1++)
+    	    {
+		j2 = 1 - j1%2 + (j1/2)*2;
+		if (Test1Prof) Test1Prof->Fill(j1,samt[j2]);
+    	    }
+    	    if ((amp = testwave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+	    {
+		if (htest1) htest1->Fill(amp);
+	    }
+	    continue;
+       }
        int ind, num; 
        for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
        UShort_t *sam = digit->GetValue();
+       int j2 = 0;
        for (int j = 0;j<digit->GetSamples(); j++)
        {
-	    if (SampleProf[num]) SampleProf[num]->Fill(j,sam[j]>>4);
+	    j2 = 1 - j%2 + (j/2)*2;
+	    if (SampleProf[num]) SampleProf[num]->Fill(j,sam[j2]>>4);
        }
        if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
        {
@@ -378,15 +410,33 @@ void BmnZDCRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Float
     {
      for (int i = 0; i < data->GetEntriesFast(); i++) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
+       if (test_chan1 >= 0)
+       if (digit->GetChannel() == test_chan1 && digit->GetSerial() == test_id1)
+       {
+    	    UShort_t *samt = digit->GetValue();
+	    int j2 = 0;
+    	    for (int j1 = 0;j1<digit->GetSamples(); j1++)
+    	    {
+		j2 = 1 - j1%2 + (j1/2)*2;
+		if (Test1Prof) Test1Prof->Fill(j1,samt[j2]);
+    	    }
+    	    if ((amp = testwave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+	    {
+		if (htest1) htest1->Fill(amp);
+	    }
+	    continue;
+       }
        int ind, num; 
        for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
        UShort_t *sam = digit->GetValue();
+       int j2 = 0;
        for (int j1 = 0;j1<digit->GetSamples(); j1++)
        {
-	    if (SampleProf[num]) SampleProf[num]->Fill(j1,sam[j1]>>4);
+	    j2 = 1 - j1%2 + (j1/2)*2;
+	    if (SampleProf[num]) SampleProf[num]->Fill(j1,sam[j2]>>4);
        }
        if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
        {
@@ -406,6 +456,22 @@ void BmnZDCRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *zdcdigit) {
     Float_t amp = 0., ped = 0.;
     for (int i = 0; i < data->GetEntriesFast(); i++) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
+       if (test_chan1 >= 0)
+       if (digit->GetChannel() == test_chan1 && digit->GetSerial() == test_id1)
+       {
+    	    UShort_t *samt = digit->GetValue();
+	    int j2 = 0;
+    	    for (int j1 = 0;j1<digit->GetSamples(); j1++)
+    	    {
+		j2 = 1 - j1%2 + (j1/2)*2;
+		if (Test1Prof) Test1Prof->Fill(j1,samt[j2]);
+    	    }
+    	    if ((amp = testwave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+	    {
+		if (htest1) htest1->Fill(amp);
+	    }
+	    continue;
+       }
        int ind; 
        for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
        if(ind==n_rec) continue; 
@@ -955,15 +1021,16 @@ double BmnZDCRaw2Digit::shower(double x, double h){double amp = PP1(x/10.,h/10.)
 float BmnZDCRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 {
 	    float pedest = 0., ampl = 0., signal = 0., signal_max = 0.;
-	    int nsignal = 0, nsignal_max = 0, ismax = -1;
+	    int nsignal = 0, nsignal_max = 0, ismax = -1, m1 = 0;
 	    float ampl_max = 0.;
 	    if (ns > 0)
 	    {
 		for (int m = 0; m < ns; m++)
 		{
+		    m1 = 1 - (m%2) + (m/2)*2;
 		    if (m < ped_samples)
 		    {
-			pedest += (s[m]>>4);
+			pedest += (s[m1]>>4);
 			if (m == (ped_samples-1))
 			{
 			    pedest /= ped_samples;
@@ -972,8 +1039,73 @@ float BmnZDCRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 		    }
 		    else
 		    {
-			ampl = -(float)(s[m]>>4) + pedest;
+			ampl = -(float)(s[m1]>>4) + pedest;
 			if (ampl > thres)
+			{
+			    signal += ampl;
+			    nsignal++;
+			    if (ampl > ampl_max)
+			    {
+				ampl_max = ampl;
+				ismax = m;
+			    }
+			}
+			else
+			{
+			    if (nsignal < min_samples)
+			    {
+				signal = 0.;
+				nsignal = 0;
+			    }
+			    else if (nsignal > nsignal_max)
+			    {
+				signal_max = signal;
+				nsignal_max = nsignal;
+			    }
+			}
+		    }
+		} // loop over samples
+//		printf("Chan %d Amplmax %f Ped %f imax %d nsam %d\n",l,ampl_max,pedest[l],ismax,nsamples[l]);
+		if (nsignal_max > 0 || ampl_max > 0.)
+		{
+		  if (wave2amp_flag) signal_max = ampl_max;
+		}
+		else
+		{
+		  signal_max = 0.;
+		}
+	    } // if samples exist
+	    else
+	    {
+		signal_max = -1.;
+	    }
+	    *pedestal = pedest;
+	    return signal_max;
+}
+
+float BmnZDCRaw2Digit::testwave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
+{
+	    float pedest = 0., ampl = 0., signal = 0., signal_max = 0.;
+	    int nsignal = 0, nsignal_max = 0, ismax = -1, m1 = 0;
+	    float ampl_max = 0.;
+	    if (ns > 0)
+	    {
+		for (int m = 0; m < ns; m++)
+		{
+		    m1 = 1 - (m%2) + (m/2)*2;
+		    if (m < ped_samples)
+		    {
+			pedest += s[m1];
+			if (m == (ped_samples-1))
+			{
+			    pedest /= ped_samples;
+			}
+			continue;
+		    }
+		    else
+		    {
+			ampl = -(float)s[m1] + pedest;
+			if (ampl > 0)
 			{
 			    signal += ampl;
 			    nsignal++;
@@ -1113,6 +1245,18 @@ void BmnZDCRaw2Digit::drawprof()
   return;
 }
 
+void BmnZDCRaw2Digit::drawtest()
+{
+  if (htest1 == NULL) return;
+  TCanvas *ctest = new TCanvas("ctest", "ZDC test channel", 800,800);
+  ctest->cd();
+  ctest->Divide(1,2);
+  ctest->cd(1);
+  htest1->Draw();
+  ctest->cd(2);
+  Test1Prof->Draw();
+  return;
+}
 
 ClassImp(BmnZDCRaw2Digit)
 

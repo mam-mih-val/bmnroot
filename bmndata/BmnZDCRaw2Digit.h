@@ -99,6 +99,8 @@ public:
 
     void drawprof();
 
+    void drawtest();
+
 //    void fcn(Int_t& npar, Double_t *gin, Double_t& f, Double_t *par, Int_t iflag);
 
 private:
@@ -143,6 +145,11 @@ private:
     double PP2(double x, double h);
     double shower(double x, double h);
     float wave2amp(UChar_t ns, UShort_t *s, Float_t *p);
+    float testwave2amp(UChar_t ns, UShort_t *s, Float_t *p);
+    int test_chan1;
+    int test_id1;
+    TH1F *htest1;
+    TProfile *Test1Prof;
     TH1F *hsum_sim;
     TH1F *hsum_raw;
     TH1F *hsum;

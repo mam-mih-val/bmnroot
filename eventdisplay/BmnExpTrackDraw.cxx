@@ -139,7 +139,7 @@ void BmnExpTrackDraw::Exec(Option_t* option)
         Int_t Np = current_track->GetNHits();
 
         // cycle: add hits (points) to EVE path for this track
-        cout<<"Points: "<<Np<<endl;
+        //cout<<"Points: "<<Np<<endl;
         for (Int_t n = 0; n < Np; n++)
         {
             FairHit* pHit = NULL;
@@ -170,13 +170,6 @@ void BmnExpTrackDraw::Exec(Option_t* option)
 
         if (fVerbose > 3)
             cout<<"track added "<<track->GetName()<<endl;
-    }
-
-    if (fEventManager->EveRecoTracks == NULL)
-    {
-        fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
-        gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
-        fEventManager->EveRecoTracks->SetRnrState(kFALSE);
     }
 
     // redraw EVE scenes
@@ -231,6 +224,14 @@ TEveTrackList* BmnExpTrackDraw::GetTrGroup(TParticle* P)
         fTrList = new  TEveTrackList(P->GetName(), fTrPr);
         fTrList->SetMainColor(fEventManager->Color(P->GetPdgCode()));
         fEveTrList->Add(fTrList);
+
+        if (fEventManager->EveRecoTracks == NULL)
+        {
+            fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
+            gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
+            fEventManager->EveRecoTracks->SetRnrState(kFALSE);
+        }
+
         gEve->AddElement(fTrList, fEventManager->EveRecoTracks);
         fTrList->SetRnrLine(kTRUE);
     }

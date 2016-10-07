@@ -95,6 +95,7 @@ class FairEventManagerEditor : public TGedFrame
     virtual void SwitchBackground(Bool_t is_on);
     virtual void SwitchTransparency(Bool_t is_on);
     virtual void ShowGeometry(Bool_t is_show);
+    virtual void ShowMagnet(Bool_t is_show);
     virtual void ShowMCPoints(Bool_t is_show);
     virtual void ShowMCTracks(Bool_t is_show);
     virtual void ShowRecoPoints(Bool_t is_show);

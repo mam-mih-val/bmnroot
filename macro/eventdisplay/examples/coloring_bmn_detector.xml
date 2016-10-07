@@ -14,7 +14,7 @@
     <subdetector name="GEMS" color="cyan" transparency="15" isRecursiveColoring="true"/>
     <subdetector name="TOFB1" color="spring" transparency="15" isRecursiveColoring="true"/>
     <subdetector name="dch1" color="orange+7" transparency="30" isRecursiveColoring="true"/>
-    <subdetector name="dch2" color="gray" transparency="67" isRecursiveColoring="true"/>
+    <subdetector name="dch2" color="orange+7" transparency="67" isRecursiveColoring="true"/>
     <subdetector name="tof2" color="spring" transparency="15" isRecursiveColoring="true"/>
     <subdetector name="t2reg2mod" color="spring+2" transparency="67" isRecursiveColoring="true"/>
 </coloring>

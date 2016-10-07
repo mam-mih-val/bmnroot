@@ -66,31 +66,31 @@ void FairEventManagerEditor::Init()
     title1 = new TGCompositeFrame(fInfoFrame, 250, 10, kVerticalFrame | kLHintsExpandX | kFixedWidth | kOwnBackground);
 
     // display file name
-    TString Infile = "File : ";
+    TString Infile = "File: ";
     Infile += chain->GetFile()->GetName();
     TGLabel* TFName = new TGLabel(title1, Infile.Data());
     title1->AddFrame(TFName);
 
-    // display Run ID
+    // textbox for Run ID and time cutting
+    TGHorizontalFrame* f2 = new TGHorizontalFrame(title1);
+    // Run Id
     UInt_t RunId = FairRunAna::Instance()->getRunId();
-    TString run = "Run Id : ";
-    run += RunId;
-    TGLabel* TRunId = new TGLabel(title1, run.Data());
-    title1->AddFrame(TRunId);
+    TString run = TString::Format("Run Id: %d. ", RunId);
+    TGLabel* TRunId = new TGLabel(f2, run.Data());
+    // time cutting
+    TGLabel* EventTimeLabel = new TGLabel(f2, " Event Time: ");
+    fEventTime = new TGLabel(f2,"");
+    f2->AddFrame(TRunId);
+    f2->AddFrame(EventTimeLabel);
+    f2->AddFrame(fEventTime);
+    title1->AddFrame(f2);
 
-    // display event count
-    TString nevent = "No of events : ";
+    // display event count and count of geometry nodes
     iEventCount = chain->GetEntriesFast();
-    nevent += iEventCount;
+    Int_t nodes = gGeoManager->GetNNodes();
+    TString nevent = TString::Format("No of events: %d. No. of nodes: %d", iEventCount, nodes);
     TGLabel* TEvent = new TGLabel(title1, nevent.Data());
     title1->AddFrame(TEvent);
-
-    // count of geometry nodes
-    Int_t nodes = gGeoManager->GetNNodes();
-    TString NNodes = "No. of Nodes : ";
-    NNodes += nodes;
-    TGLabel* NoNode = new TGLabel(title1, NNodes.Data());
-    title1->AddFrame(NoNode);
 
     // setting textbox for event number
     TGHorizontalFrame* f = new TGHorizontalFrame(title1);
@@ -108,14 +108,6 @@ void FairEventManagerEditor::Init()
     f->AddFrame(fSave, new TGLayoutHints(kLHintsLeft| kLHintsCenterY, 1, 2, 1, 1));
     fSave->Connect("Clicked()", "FairEventManagerEditor", this, "SaveImage()");
     title1->AddFrame(f);
-
-    // textbox for time cutting
-    TGHorizontalFrame* f2 = new TGHorizontalFrame(title1);
-    TGLabel* EventTimeLabel = new TGLabel(f2, "Event Time: ");
-    fEventTime = new TGLabel(f2,"");
-    f2->AddFrame(EventTimeLabel);
-    f2->AddFrame(fEventTime);
-    title1->AddFrame(f2);
 
     // checkbox to display only primary particles in event
     fVizPri = new TGCheckButton(title1, "Primary Only");
@@ -157,11 +149,23 @@ void FairEventManagerEditor::Init()
     title1->AddFrame(fMaxEnergy, new TGLayoutHints(kLHintsTop, 1, 1, 1, 0));
     fManager->SetMaxEnergy(MAX_ENERGY);
 
+    TGHorizontalFrame* fGeometryFrame = new TGHorizontalFrame(title1);
     // button: whether show detector geometry or not
-    fGeometry = new TGCheckButton(title1, "show geometry");
-    title1->AddFrame(fGeometry, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 5,5,1,1));
+    fGeometry = new TGCheckButton(fGeometryFrame, "show geometry");
+    fGeometryFrame->AddFrame(fGeometry, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,1,1));
     fGeometry->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowGeometry(Bool_t)");
     fGeometry->SetOn();
+    // button: whether show magnet or not
+    TGCheckButton* ShowMagnetButton = new TGCheckButton(fGeometryFrame, "show magnet");
+    fGeometryFrame->AddFrame(ShowMagnetButton, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,1,1));
+    ShowMagnetButton->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMagnet(Bool_t)");
+    ShowMagnetButton->SetOn();
+    title1->AddFrame(fGeometryFrame);
+
+    // button for high transparency of detectors' geometry to highlight event objects
+    TGCheckButton* fTransparency = new TGCheckButton(title1, "high transparency");
+    title1->AddFrame(fTransparency, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 5,5,1,1));
+    fTransparency->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "SwitchTransparency(Bool_t)");
 
     // button for switching from black to white background
     TGCheckButton* backgroundButton = new TGCheckButton(title1, "light background");
@@ -172,11 +176,6 @@ void FairEventManagerEditor::Init()
         backgroundButton->SetOn();
         gEve->GetViewers()->SwitchColorSet();
     }
-
-    // button for high transparency of detectors' geometry to highlight event objects
-    TGCheckButton* fTransparency = new TGCheckButton(title1, "high transparency");
-    title1->AddFrame(fTransparency, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 5,5,1,1));
-    fTransparency->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "SwitchTransparency(Bool_t)");
 
     // group for displaying simulation and reconstruction data
     groupData = new TGGroupFrame(title1, "Show MC and reco data");
@@ -310,6 +309,28 @@ void FairEventManagerEditor::ShowGeometry(Bool_t is_show)
     {
         fManager->fRPhiGeomScene->SetRnrState(is_show);
         fManager->fRhoZGeomScene->SetRnrState(is_show);
+    }
+
+    gEve->Redraw3D();
+}
+
+// show or hide magnet
+void FairEventManagerEditor::ShowMagnet(Bool_t is_show)
+{
+    TGeoVolume* magnet = gGeoManager->FindVolumeFast("Magnet");
+    if (!magnet)
+    {
+        cout<<"ERROR: There is no magnet with given name: Magnet"<<endl;
+        return;
+    }
+
+    magnet->SetVisibility(is_show);
+    magnet->VisibleDaughters(is_show);
+
+    if (gEve->GetGlobalScene()->GetRnrState())
+    {
+        gEve->GetGlobalScene()->SetRnrState(kFALSE);
+        gEve->GetGlobalScene()->SetRnrState(kTRUE);
     }
 
     gEve->Redraw3D();

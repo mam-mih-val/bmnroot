@@ -464,8 +464,7 @@ void BmnMatchRecoToMC::MatchGlobalTracks(
         const BmnLink& lnk = trackMatch->GetMatchedLink();
         Float_t weight = lnk.GetWeight();
         trackMatch->SetNofTrueHits(weight);
-        trackMatch->SetNofWrongHits(track->GetNofHits() - weight);
-        track->SetRefId(trackMatch->GetMatchedLink().GetIndex());
+        trackMatch->SetNofWrongHits(track->GetNHits() - weight);
     }
 }
 

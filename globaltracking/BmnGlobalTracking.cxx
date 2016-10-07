@@ -220,10 +220,10 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             BmnGemTrack* seed = (BmnGemTrack*) fSeeds->At(i);
             new((*fGlobalTracks)[i]) BmnGlobalTrack();
             BmnGlobalTrack* glTr = (BmnGlobalTrack*) fGlobalTracks->At(i);
-            glTr->SetParamFirst(seed->GetParamFirst());
-            glTr->SetParamLast(seed->GetParamLast());
+            glTr->SetParamFirst(*seed->GetParamFirst());
+            glTr->SetParamLast(*seed->GetParamLast());
             //glTr->SetGemTrackIndex(i);
-            glTr->SetNofHits(seed->GetNHits());
+            glTr->SetNHits(seed->GetNHits());
             //glTr->SetFlag(kBMNGOOD); //kBMNGOOD or kBMNGOODMERGE???
 
             //            if (NearestHitMergeGEM(glTr) == kBMNSUCCESS) {
@@ -246,10 +246,10 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
             BmnGemTrack* gemTrack = (BmnGemTrack*) fGemTracks->At(i);
             new((*fGlobalTracks)[i]) BmnGlobalTrack();
             BmnGlobalTrack* glTr = (BmnGlobalTrack*) fGlobalTracks->At(i);
-            glTr->SetParamFirst(gemTrack->GetParamFirst());
-            glTr->SetParamLast(gemTrack->GetParamLast());
+            glTr->SetParamFirst(*(gemTrack->GetParamFirst()));
+            glTr->SetParamLast(*(gemTrack->GetParamLast()));
             glTr->SetGemTrackIndex(i);
-            glTr->SetNofHits(gemTrack->GetNHits());
+            glTr->SetNHits(gemTrack->GetNHits());
 
             if (NearestHitMergeTOF(glTr, 1) == kBMNSUCCESS) {
                 /*Refit(glTr);*/            }
@@ -271,7 +271,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         BmnGlobalTrack* globalTrack = (BmnGlobalTrack*) fGlobalTracks->At(i);
 //        if ((globalTrack->GetChi2() / (globalTrack->GetNofHits() - 1)  > fChiSqCut) || (globalTrack->GetNofHits() < 6)) globalTrack->SetFlag(kBMNBAD);
 //        if (globalTrack->GetNofHits() < 5) globalTrack->SetFlag(kBMNBAD);
-        if ((globalTrack->GetChi2() / (globalTrack->GetNofHits() - 1)  > fChiSqCut)) globalTrack->SetFlag(kBMNBAD);
+        if ((globalTrack->GetChi2() / (globalTrack->GetNHits() - 1)  > fChiSqCut)) globalTrack->SetFlag(kBMNBAD);
     }
     
     clock_t tFinish = clock();
@@ -423,14 +423,14 @@ BmnStatus BmnGlobalTracking::NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num) {
 
     if (minHit != NULL) { // Check if hit was added
 //        cout << "z = " << minHit->GetZ() << " TOF" << num << endl;
-        tr->SetParamLast(&minPar);
+        tr->SetParamLast(minPar);
         tr->SetChi2(tr->GetChi2() + minChiSq);
         minHit->SetUsing(kTRUE);
         if (num == 1)
             tr->SetTof1HitIndex(minIdx);
         else
             tr->SetTof2HitIndex(minIdx);
-        tr->SetNofHits(tr->GetNofHits() + 1);
+        tr->SetNHits(tr->GetNHits() + 1);
         return kBMNSUCCESS;
     } else {
         return kBMNERROR;
@@ -503,7 +503,7 @@ BmnStatus BmnGlobalTracking::NearestHitMergeDCH(BmnGlobalTrack* tr, Int_t num) {
     }
 
     if (minHit != NULL) { // Check if hit was added
-        tr->SetParamLast(&minPar);
+        tr->SetParamLast(minPar);
         tr->SetChi2(tr->GetChi2() + minChiSq);
         minHit->SetUsing(kTRUE);
 //        cout << "z = " << minHit->GetZ() << " DCH" << num << endl;
@@ -511,7 +511,7 @@ BmnStatus BmnGlobalTracking::NearestHitMergeDCH(BmnGlobalTrack* tr, Int_t num) {
             tr->SetDch1HitIndex(minIdx);
         else
             tr->SetDch2HitIndex(minIdx);
-        tr->SetNofHits(tr->GetNofHits() + 1);
+        tr->SetNHits(tr->GetNHits() + 1);
         return kBMNSUCCESS;
     } else {
         return kBMNERROR;
@@ -555,8 +555,8 @@ BmnStatus BmnGlobalTracking::RefitToDetector(BmnGlobalTrack* tr, Int_t hitId, TC
 
 BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
 
-    vector<BmnFitNode> nodes(tr->GetNofHits());
-    Int_t nodeIdx = tr->GetNofHits() - 1;
+    vector<BmnFitNode> nodes(tr->GetNHits());
+    Int_t nodeIdx = tr->GetNHits() - 1;
     FairTrackParam par = *(tr->GetParamLast());
     //    FairTrackParam par = *(tr->GetParamFirst());
 
@@ -584,7 +584,7 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
         }
     }
 
-    tr->SetParamFirst(&par);
+    tr->SetParamFirst(par);
     tr->SetFitNodes(nodes);
     return kBMNSUCCESS;
 }

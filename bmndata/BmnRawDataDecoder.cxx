@@ -318,6 +318,9 @@ BmnStatus BmnRawDataDecoder::FillTRIG(UInt_t *d, UInt_t serial, UInt_t &idx) {
         GlobalEvent = ((d3 & 0x0FFFFFFF) << 12) | ((d2 >> 16) & 0xFFF);
     }
 
+    fTime_ns = ts_t0_ns;
+    fTime_s = ts_t0_s;
+    
     TClonesArray &ar_sync = *sync;
     new(ar_sync[sync->GetEntriesFast()]) BmnSyncDigit(serial, GlobalEvent, ts_t0_s, ts_t0_ns);
 

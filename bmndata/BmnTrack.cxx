@@ -6,6 +6,7 @@
 BmnTrack::BmnTrack()
 : TObject(),
 fHits(),
+fNhits(0),
 fParamFirst(),
 fParamLast(),
 fFlag(0),
@@ -65,6 +66,7 @@ void BmnTrack::SortHits() {
         fHits[index] = it->second;
         index++;
     }
+    fNhits = fHits.GetSize();
 }
 // -------------------------------------------------------------------------
 

@@ -41,7 +41,7 @@ public:
     /** Accessors  **/
 
     Int_t GetNHits() const {
-        return fHits.GetSize();
+        return fNhits;
     }
 
     Int_t GetHitIndex(Int_t iHit) const {
@@ -96,6 +96,10 @@ public:
     void SetNDF(Int_t ndf) {
         fNDF = ndf;
     }
+    
+    void SetNHits(Int_t n) {
+        fNhits = n;
+    }
 
     void SetB(Double_t b) {
         fB = b;
@@ -126,6 +130,9 @@ private:
 
     /** Track length **/
     Float_t fLength;
+    
+    /** Track length **/
+    Float_t fNhits;
 
     /** Maps from hit z position to hit index. STL map is used because it
      ** is automatically sorted. Temporary only; not for storage.

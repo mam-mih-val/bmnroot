@@ -6,26 +6,31 @@ TGeoManager* gGeoMan = NULL;
 //TOF2 detector position
 const Double_t TOF2_Xpos = 0.0;
 const Double_t TOF2_Ypos = 0.0;
-const Double_t TOF2_Zpos = 740.0; //cm
+const Double_t TOF2_Zpos = 600.0; //cm
 
 //Number of chambers
 const Int_t TOF2_Nmodules = 15;
 const Int_t TOF2_Nstrips = 32;
 const Int_t TOF2_StripPitch = 1.1;
-const Int_t TOF2_Ngaslayers = 10;
+const Int_t TOF2_Ngaslayers = 12;
 
 //Detector's construct parameters   
-const Double_t GasLayerThickness_TOF2 = 0.05;  
-const Double_t GlassLayerThickness_TOF2 = 0.05;  
+const Double_t GasLayerThickness_TOF2 = 0.025;  
+const Double_t GlassLayerThickness_TOF2 = 0.085;  
 const Double_t XWidthOfModule_TOF2 = 16.0;
 const Double_t YWidthOfModule_TOF2 = 35.1;
 const Double_t ZWidthOfModule_TOF2 = TOF2_Ngaslayers*GasLayerThickness_TOF2 + \
                                      (TOF2_Ngaslayers+1)*GlassLayerThickness_TOF2;
 
+//const Double_t TOF2_X_1st_strip[15] = {\
+//                       -81.4,-65.3,-51.6,-35.2,-21.8,\
+//                       -81.6,-67.5,-51.8,-37.3,-22.0,\
+//                       -81.4,-65.3,-51.6,-35.2,-21.8};
+
 const Double_t TOF2_X_1st_strip[15] = {\
-                       -81.4,-65.3,-51.6,-35.2,-21.8,\
-                       -81.6,-67.5,-51.8,-37.3,-22.0,\
-                       -81.4,-65.3,-51.6,-35.2,-21.8};
+                       81.4,65.3,51.6,35.2,21.8,\
+                       81.6,67.5,51.8,37.3,22.0,\
+                       81.4,65.3,51.6,35.2,21.8};
 
 const Double_t TOF2_Y_1st_strip[15] = {\
                         50.2, 50.2, 50.2, 50.2, 50.2,\
@@ -146,7 +151,7 @@ void create_rootgeom_TOF2() {
     TGeoTranslation *DetPos_trans = new TGeoTranslation("DetPos_trans", TOF2_Xpos, TOF2_Ypos, TOF2_Zpos);
     //DetPos_trans->RegisterYourself();
     TGeoTranslation *ModulePosTOF2_trans[15] = {NULL};
-    TGeoTranslation *LayerPosTOF2_trans[10] = {NULL};
+    TGeoTranslation *LayerPosTOF2_trans[12] = {NULL};
     char name[64];
     for (int i = 0; i < TOF2_Nmodules; i++)
     {

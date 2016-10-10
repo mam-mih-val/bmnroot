@@ -709,10 +709,10 @@ void BmnTrackingQa::ProcessGlobal() {
 
         if (!isTrackOk) {
             fHM->H1("Ghost_vs_P_glob")->Fill(P_sim);
-            fHM->H1("Ghost_vs_Nh_glob")->Fill(track->GetNofHits());
+            fHM->H1("Ghost_vs_Nh_glob")->Fill(track->GetNHits());
         } else {
             fHM->H1("Well_vs_P_glob")->Fill(P_sim);
-            fHM->H1("Well_vs_Nh_glob")->Fill(track->GetNofHits());
+            fHM->H1("Well_vs_Nh_glob")->Fill(track->GetNHits());
 
             fHM->H2("momRes_2D_glob")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec);

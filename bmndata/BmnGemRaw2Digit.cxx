@@ -171,7 +171,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
                 strip = fSmall[realChannel].strip;
                 break;
             }
-            case 7: //left big gem
+            case 6: //left big gem
             {
                 realChannel = ch2048;
                 if (gemM->hotZone == 1) {
@@ -186,7 +186,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
                 }
                 break;
             }
-            case 6: //right big gem
+            case 7: //right big gem
             {
                 realChannel = ch2048;
                 if (gemM->hotZone == 1) {

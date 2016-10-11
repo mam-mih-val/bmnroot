@@ -123,10 +123,6 @@ void BmnGemStripHitMaker::ProcessDigits() {
     if(fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-index
-
-    //alignment shifts calculated by Andrey Maltsev
-    const Float_t xShift[7] = {-2.78, +0.03, +0.04, -0.02, -0.03, +0.03, -2.83};
-    const Float_t yShift[7] = {-0.03, +0.17, -0.12, +0.10, -0.04, +0.04, -2.18};
     
     for(Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet->GetGemStation(iStation);
@@ -169,8 +165,6 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 //Add hit ------------------------------------------------------
                 x *= -1; // invert to global X
-                x += xShift[iStation];
-                y += yShift[iStation];
 
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
                     BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);

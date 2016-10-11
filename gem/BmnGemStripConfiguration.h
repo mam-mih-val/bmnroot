@@ -1,5 +1,5 @@
 #ifndef BMNGEMSTRIPCONFIGURATION_H
-#define	BMNGEMSTRIPCONFIGURATION_H
+#define BMNGEMSTRIPCONFIGURATION_H
 
 namespace BmnGemStripConfiguration {
     enum GEM_CONFIG {
@@ -11,9 +11,9 @@ namespace BmnGemStripConfiguration {
 namespace BmnGemStripPositions_RunSummer2016 {
     //BM@N coordinate system is used
     const Int_t NStations = 7;
-    const Double_t XStationPositions[NStations] = {+0.0, -1.5, +1.5, -1.5, +1.5, -1.5, +0.0};
-    const Double_t YStationPositions[NStations] = {+0.0, +0.0, +0.0, +0.0, +0.0, +0.0, +0.0};
-    const Double_t ZStationPositions[NStations] = {5.0+0.1, 41.8+0.7, 62.8+0.7, 83.8+0.7, 104.8+0.7, 125.8+0.7, 146.8+1.5}; //All z-positions are start pos. of the sensitive vol.
+    const Double_t XStationPositions[NStations] = {+0.0 - 2.78, -1.5 - 0.03, +1.5 - 0.04, -1.5 + 0.02, +1.5 + 0.03, -1.5 - 0.03, +0.0 + 2.82};
+    const Double_t YStationPositions[NStations] = {+0.0 - 0.03, +0.0 - 0.17, +0.0 + 0.12, +0.0 - 0.10, +0.0 + 0.04, +0.0 - 0.04, +0.0 + 2.18};
+    const Double_t ZStationPositions[NStations] = {5.0 + 0.1, 41.8 + 0.7, 62.8 + 0.7, 83.8 + 0.7, 104.8 + 0.7, 125.8 + 0.7, 146.8 + 1.5}; //All z-positions are start pos. of the sensitive vol.
 }
 
 #endif

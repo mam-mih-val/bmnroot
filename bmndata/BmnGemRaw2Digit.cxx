@@ -48,17 +48,17 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     ReadMap("GEM_X1_middle", "GEM_N_ch_X1_middle", fMid, 0, 0);
     ReadMap("GEM_Y1_middle", "GEM_N_ch_Y1_middle", fMid, 1, 0);
 
-    ReadMap("GEM_X0_Big_Left", "GEM_N_ch_X0_big_l", fBigL0, 2, 0);
-    ReadMap("GEM_Y0_Big_Left", "GEM_N_ch_Y0_big_l", fBigL0, 3, 0);
+    ReadMap("GEM_X0_Big_Left", "GEM_N_ch_X0_big_l", fBigL0, 2, 1);
+    ReadMap("GEM_Y0_Big_Left", "GEM_N_ch_Y0_big_l", fBigL0, 3, 1);
 
-    ReadMap("GEM_X1_Big_Left", "GEM_N_ch_X1_big_l", fBigL1, 0, 0);
-    ReadMap("GEM_Y1_Big_Left", "GEM_N_ch_Y1_big_l", fBigL1, 1, 0);
+    ReadMap("GEM_X1_Big_Left", "GEM_N_ch_X1_big_l", fBigL1, 0, 1);
+    ReadMap("GEM_Y1_Big_Left", "GEM_N_ch_Y1_big_l", fBigL1, 1, 1);
 
-    ReadMap("GEM_X0_Big_Right", "GEM_N_ch_X0_big_r", fBigR0, 2, 1);
-    ReadMap("GEM_Y0_Big_Right", "GEM_N_ch_Y0_big_r", fBigR0, 3, 1);
+    ReadMap("GEM_X0_Big_Right", "GEM_N_ch_X0_big_r", fBigR0, 2, 0);
+    ReadMap("GEM_Y0_Big_Right", "GEM_N_ch_Y0_big_r", fBigR0, 3, 0);
 
-    ReadMap("GEM_X1_Big_Right", "GEM_N_ch_X1_big_r", fBigR1, 0, 1);
-    ReadMap("GEM_Y1_Big_Right", "GEM_N_ch_Y1_big_r", fBigR1, 1, 1);
+    ReadMap("GEM_X1_Big_Right", "GEM_N_ch_X1_big_r", fBigR1, 0, 0);
+    ReadMap("GEM_Y1_Big_Right", "GEM_N_ch_Y1_big_r", fBigR1, 1, 0);
 
     fPedArr = new BmnGemPed* [fNCrates];
     for (Int_t i = 0; i < fNCrates; ++i)

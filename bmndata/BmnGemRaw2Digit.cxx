@@ -42,11 +42,6 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
 
     ReadMap("GEM_X_small", "GEM_N_ch_X_small", fSmall, 0, 0);
     ReadMap("GEM_Y_small", "GEM_N_ch_Y_small", fSmall, 1, 0);
-    //    UniDbDetectorParameter* cPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_N_ch_X_small", fPeriod, fRun);
-    //    Int_t size = (cPar != NULL) ? cPar->GetInt() : 0;
-    //    for (Int_t i = 0; i < size; ++i)
-    //        cout << fSmall[i].strip << " " << i << endl;
-
 
     ReadMap("GEM_X0_middle", "GEM_N_ch_X0_middle", fMid, 2, 0);
     ReadMap("GEM_Y0_middle", "GEM_N_ch_Y0_middle", fMid, 3, 0);
@@ -71,8 +66,8 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
 
     GemPedestalStructure* pedMap;
     UniDbDetectorParameter* pedSizePar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_size_ped_map", fPeriod, fRun);
-    Int_t sizePedMap = (pedSizePar != NULL) ? pedSizePar->GetInt() : 0;
 
+    //    Int_t sizePedMap = (pedSizePar != NULL) ? pedSizePar->GetInt() : 0;
     //    UniDbDetectorParameter* pedPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_pedestal", fPeriod, fRun);
     //    if (pedPar != NULL) pedPar->GetGemPedestalArray(pedMap, sizePedMap);
     //
@@ -131,7 +126,6 @@ BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *gem) {
         UInt_t ch = adcDig->GetChannel() * ADC_N_SAMPLES;
         for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
             GemMapStructure gemM = fMap[iMap];
-//            if (gemM.station != 0) continue;
             if (adcDig->GetSerial() == gemM.serial && ch <= gemM.channel_high && ch >= gemM.channel_low) {
                 ProcessDigit(adcDig, &gemM, gem);
                 break;
@@ -239,8 +233,6 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
         Float_t threshold = (dig->GetStation() == 0) ? 100 : 5.0 * pedNoises[iSmpl];
         if (sig < threshold) continue;
         if (IsStripNoisy(dig->GetStation(), dig->GetStripLayer(), dig->GetModule(), dig->GetStripNumber())) continue;
-        if (dig->GetModule() < 0 || dig->GetModule() >= N_MODULES) continue;
-        if (dig->GetStripLayer() < 0 || dig->GetStripLayer() >= N_LAYERS) continue;
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig, dig->GetStripSignalNoise());
     }
 

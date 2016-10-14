@@ -203,7 +203,7 @@ Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* ar
     } else if (type.Contains("circle")) {
         Float_t Xc = par->X();
         Float_t Zc = par->Y();
-        Float_t R =  par->Z();
+        Float_t R = par->Z();
         Float_t sum = 0.0;
         for (Int_t i = 0; i < tr->GetNHits(); ++i) {
             BmnHit* hit = (BmnHit*) arr->At(tr->GetHitIndex(i));
@@ -294,8 +294,16 @@ TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type) {
 
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
-        Zi = hit->GetZ();
-        Yi = hit->GetY();
+        if (type.Contains("XY")) {
+            Zi = hit->GetX();
+            Yi = hit->GetY();
+        } else if (type.Contains("ZX")) {
+            Zi = hit->GetZ();
+            Yi = hit->GetX();
+        } else if (type.Contains("ZY")) {
+            Zi = hit->GetZ();
+            Yi = hit->GetY();
+        }
         sig += Sqr(Yi - a * Zi - b);
     }
     sig = Sqrt(sig / nHits);

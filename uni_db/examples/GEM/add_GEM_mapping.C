@@ -1,4 +1,5 @@
-#include "../../db_structures.h"
+
+class GemMapStructure;
 
 int AssignMapStructure(GemMapStructure* pArray, int id, unsigned int ser, int ch_l, int ch_h, int gemId, int st, int hz) {
     pArray[id].serial = ser;
@@ -33,7 +34,7 @@ void add_GEM_mapping() {
     AssignMapStructure(pValues, 7, 0x76D08B9, 256, 383, 3, 3, 0);
     AssignMapStructure(pValues, 8, 0x76D08B9, 384, 511, 1, 1, 0);
     AssignMapStructure(pValues, 9, 0x76D08B9, 896, 1023, 5, 5, 0);
-    AssignMapStructure(pValues, 10, 0x76D08B9, 1024, 1536, 0, 0, 0);
+    AssignMapStructure(pValues, 10, 0x76D08B9, 1024, 1535, 0, 0, 0);
     AssignMapStructure(pValues, 11, 0x76D08B9, 640, 767, 6, 6, 0);
     AssignMapStructure(pValues, 12, 0x76D08B9, 768, 895, 7, 6, 0);
     AssignMapStructure(pValues, 13, 0x76C8321, 0, 1023, 6, 6, 1);

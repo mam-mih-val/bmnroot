@@ -14,14 +14,6 @@ public:
     BmnAlignmentContainer();
     
     virtual ~BmnAlignmentContainer();
-
-    Double_t GetXresMax() {
-        return fXresMax;
-    }
-    
-    Double_t GetYresMax() {
-        return fYresMax;
-    }
     
     Int_t GetTrackIndex() {
         return fIndex;
@@ -31,15 +23,7 @@ public:
     void SetEventNum(Int_t ev) {
         fEventNumber = ev;
     }
-    
-    void SetXresMax(Double_t val) {
-        fXresMax = val;
-    }
-    
-    void SetYresMax(Double_t val) {
-        fYresMax = val;
-    }
-    
+        
     void SetTrackIndex(Int_t idx) {
         fIndex = idx;
     }
@@ -47,10 +31,6 @@ public:
 private:
 
     Int_t fEventNumber;
-      
-    Double_t fXresMax;
-    Double_t fYresMax;
-    
     Int_t fIndex; // track index
 
     ClassDef(BmnAlignmentContainer, 1)

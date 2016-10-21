@@ -37,14 +37,22 @@ BmnGemStripStationSet_RunSummer2016::BmnGemStripStationSet_RunSummer2016(TString
         for (Int_t iStat = 0; iStat < NStations; iStat++) {
             XStationPositions[iStat] = -BmnGemStationPositions_RunSummer2016_set1::XStationPositions[iStat]; //inverted : (bm@n x-coord -> classical x-coord)      
             YStationPositions[iStat] = BmnGemStationPositions_RunSummer2016_set1::YStationPositions[iStat];
-        }
-    else if (set == "SET2")
+        } else if (set == "SET2")
         for (Int_t iStat = 0; iStat < NStations; iStat++) {
             XStationPositions[iStat] = -BmnGemStationPositions_RunSummer2016_set2::XStationPositions[iStat]; //inverted : (bm@n x-coord -> classical x-coord)      
             YStationPositions[iStat] = BmnGemStationPositions_RunSummer2016_set2::YStationPositions[iStat];
-        }
+        }        // Is used in align-package
+    else if (set == "ALIGNMENT") {
+        XStationPositions[0] = -BmnGemStationPositions_RunSummer2016_set2::XStationPositions[0];
+        XStationPositions[6] = -BmnGemStationPositions_RunSummer2016_set2::XStationPositions[6];
+        YStationPositions[0] = BmnGemStationPositions_RunSummer2016_set2::YStationPositions[0];
+        YStationPositions[6] = BmnGemStationPositions_RunSummer2016_set2::YStationPositions[6];
 
-    else
+        for (Int_t iStat = 1; iStat < 5; iStat++) {
+            XStationPositions[iStat] = -BmnGemStationPositions_RunSummer2016::XStationPositions[iStat];
+            YStationPositions[iStat] = BmnGemStationPositions_RunSummer2016::YStationPositions[iStat];
+        }
+    } else
         BmnGemStripStationSet_RunSummer2016();
 
     BeamHoleRadiuses = new Double_t[NStations];

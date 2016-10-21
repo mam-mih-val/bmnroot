@@ -1,6 +1,6 @@
 #include "BmnGemAlignment.h"
 
-BmnGemAlignment::BmnGemAlignment(Char_t* filename, Char_t* outname, Bool_t onlyMille, Bool_t preAlign) :
+BmnGemAlignment::BmnGemAlignment(Char_t* filename, Char_t* outname, Bool_t onlyMille) :
 fGemDigits(NULL),
 fRecoFileName(NULL),
 fRecoTree(NULL),
@@ -33,12 +33,10 @@ fRunType(""),
 fSigmaX(1.),
 fSigmaY(1.),
 fTrHits(NULL),
-fWriteHitsOnly(kFALSE),
-fPreAlignXY(preAlign) {
+fWriteHitsOnly(kFALSE) {
     fRecoFileName = outname;
     if (fOnlyMille == kFALSE) {
         fDigiFilename = filename;
-
         fChainIn = new TChain("cbmsim");
         fChainIn->Add(fDigiFilename);
 
@@ -58,33 +56,7 @@ fPreAlignXY(preAlign) {
         fRecoTree->Branch("BmnAlignmentContainer", &fContainer);
 
         fTrHits = new TClonesArray("BmnGemStripHit");
-
-        fCorrX = new Double_t[fNstat];
-        fCorrY = new Double_t[fNstat];
-
-        if (preAlign == kFALSE) {
-            for (Int_t iStat = 0; iStat < fNstat; iStat++) {
-                fCorrX[iStat] = 0.;
-                fCorrY[iStat] = 0.;
-            }
-        }
     }
-}
-
-void BmnGemAlignment::DoPreAlignmentXY() {
-    ifstream file;
-    TString dir = getenv("VMCWORKDIR");
-    file.open(TString(dir + "/input/prealignmentXY.txt").Data(), ios::in);
-
-    Int_t stat = 0;
-    Double_t meanX(0.), meanY(0.), sigmaX(0.), sigmaY(0.);
-
-    for (Int_t iStat = 0; iStat < fNstat; iStat++) {
-        file >> stat >> meanX >> sigmaX >> meanY >> sigmaY;
-        fCorrX[iStat] = meanX;
-        fCorrY[iStat] = meanY;
-    }
-    file.close();
 }
 
 void BmnGemAlignment::PrepareData() {
@@ -107,9 +79,6 @@ void BmnGemAlignment::PrepareData() {
     if (fOnlyMille == kTRUE)
         return;
 
-    if (fPreAlignXY)
-        DoPreAlignmentXY();
-
     for (Int_t iEv = 0; iEv < fNumEvents; iEv++) {
         fChainIn->GetEntry(iEv);
         if (iEv % 1000 == 0)
@@ -119,7 +88,7 @@ void BmnGemAlignment::PrepareData() {
         fGemTracks->Delete();
         fContainer->Delete();
 
-        BmnGemStripStationSet* fDetector = new BmnGemStripStationSet_RunSummer2016();
+        BmnGemStripStationSet* fDetector = new BmnGemStripStationSet_RunSummer2016("ALIGNMENT");
 
         for (Int_t iStation = 0; iStation < fDetector->GetNStations(); ++iStation) {
             BmnGemStripStation* station = fDetector->GetGemStation(iStation);
@@ -166,14 +135,13 @@ void BmnGemAlignment::PrepareData() {
                     Double_t y_err = module->GetIntersectionPointYError(iPoint);
                     Double_t z_err = 0.0;
 
-                    Double_t xCorr = -x + fCorrX[iStation];
-                    Double_t yCorr = y + fCorrY[iStation];
-
-                    if (xCorr < fXMin || xCorr > fXMax || yCorr < fYMin || yCorr > fYMax)
+                    x *= -1.;
+                   
+                    if (x < fXMin || x > fXMax || y < fYMin || y > fYMax)
                         continue;
 
                     // x --> -x in order to go to the BM@N reference frame
-                    BmnGemStripHit* hit = new((*fGemHits)[fGemHits->GetEntriesFast()]) BmnGemStripHit(iStation, TVector3(xCorr, yCorr, z), TVector3(x_err, y_err, 0.), iPoint);
+                    BmnGemStripHit* hit = new((*fGemHits)[fGemHits->GetEntriesFast()]) BmnGemStripHit(iStation, TVector3(x, y, z), TVector3(x_err, y_err, 0.), iPoint);
                     hit->SetDx(x_err);
                     hit->SetDy(y_err);
                     hit->SetDz(z_err);
@@ -523,11 +491,6 @@ BmnGemAlignment::~BmnGemAlignment() {
     delete fGemDigits;
     delete fGemTracks;
     delete fGemHits;
-
-    if (fOnlyMille == kFALSE) {
-        delete fCorrX;
-        delete fCorrY;
-    }
 }
 
 void BmnGemAlignment::StartPede() {

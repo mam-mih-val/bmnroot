@@ -7,7 +7,7 @@
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 
-void run_reco_bmn(TString inFile = "run4-65:$VMCWORKDIR/macro/raw/bmn_run0065_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE, Bool_t gemCF = kTRUE) {
+void run_reco_bmn(TString inFile = "run4-61:/nfs/digits_run4/bmn_run0061_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE, Bool_t gemCF = kTRUE) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
@@ -152,7 +152,9 @@ void run_reco_bmn(TString inFile = "run4-65:$VMCWORKDIR/macro/raw/bmn_run0065_di
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
     if (gemCF) {
-        BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016; // RunSummer2016 config (GEM_RunSummer2016.root))
+        // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016;      // RunSummer2016 config (GEM_RunSummer2016.root))
+        // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016_set1; // RunSummer2016 config, geom.corr. from A. Maltsev 
+         BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016_set2;    // RunSummer2016 config, geom.corr. from P. Batyuk
         if (!isExp) {
             BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
             gemDigit->SetCurrentConfig(gem_config);

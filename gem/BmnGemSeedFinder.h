@@ -26,22 +26,15 @@ public:
     // Constructors/Destructors ---------
     BmnGemSeedFinder();
     virtual ~BmnGemSeedFinder();
-
-    BmnStatus FindStrightSeeds(); // for runs w/o magnetic field
-
-    BmnStatus FindYZSeeds();
-    void FindSeeds(Int_t station, Int_t gate, Bool_t isIdeal, TClonesArray* arr);
-    UInt_t SearchTrackCandidates(Int_t startStation, Int_t gate, Bool_t isIdeal, Bool_t isLeft, TClonesArray* arr);
     void SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal);
-    Bool_t CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar, TVector3* linePar, Short_t q);
+    Bool_t CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar, TVector3* linePar);
     Bool_t CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* spirPar, TVector3* linePar, Short_t q);
     Bool_t CalculateTrackParamsParabolicSpiral(BmnGemTrack* tr, TLorentzVector* spirPar, TVector3* linePar, Short_t q);
-    BmnStatus DoSeeding(Int_t min, Int_t max, TClonesArray* arr);
     TVector3 CircleFit(BmnGemTrack* track);
-    BmnStatus FillTgStation(Short_t st, vector<BmnGemTrack>& tg);
-    BmnStatus CombineTg(vector<BmnGemTrack> tg1, vector<BmnGemTrack> tg2, vector<BmnGemTrack>& tg);
-    vector<BmnGemTrack> CollectSeeds();
 
+    BmnStatus FindSeeds(vector<BmnGemTrack>& cand);
+    BmnStatus FitSeeds(vector<BmnGemTrack> cand, TClonesArray* arr);
+    BmnStatus CalculateTrackParamsLine(BmnGemTrack* tr);
 
     void SetHitsUnused(BmnGemTrack* tr);
 
@@ -56,7 +49,6 @@ public:
 
     //some useful functions
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
-    Float_t Sqr(Float_t x);
     BmnGemStripHit* GetHit(Int_t i);
 
     void SetTrs(Float_t trs) {

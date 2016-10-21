@@ -11,7 +11,7 @@ public:
     BmnEventHeader();
     
     /** Constructor */
-    BmnEventHeader(UInt_t run, UInt_t ev, Double_t s, Double_t ns);
+    BmnEventHeader(UInt_t run, UInt_t ev, Long64_t s, Long64_t ns);
 
     /** Get the run ID for this run*/
     UInt_t GetRunId() {
@@ -24,12 +24,12 @@ public:
     }
 
     /** Get the time for this event in s*/
-    Double_t GetEventTimeS() {
+    Long64_t GetEventTimeS() {
         return fEventTimeS;
     }
 
     /** Get the time for this event in ns*/
-    Double_t GetEventTimeNS() {
+    Long64_t GetEventTimeNS() {
         return fEventTimeNS;
     }
 
@@ -50,14 +50,14 @@ public:
     /** Set the time for this event in ns
      * @param time : time in ns
      */
-    void SetEventTimeNS(Double_t time) {
+    void SetEventTimeNS(Long64_t time) {
         fEventTimeNS = time;
     }
 
     /** Set the time for this event in s
      * @param time : time in s
      */
-    void SetEventTimeS(Double_t time) {
+    void SetEventTimeS(Long64_t time) {
         fEventTimeS = time;
     }
 
@@ -72,9 +72,9 @@ protected:
     /** Event Id **/
     UInt_t fEventId;
     /** Event Time in s**/
-    Double_t fEventTimeS;
+    Long64_t fEventTimeS;
     /** Event Time in ns**/
-    Double_t fEventTimeNS;
+    Long64_t fEventTimeNS;
 
     ClassDef(BmnEventHeader, 3)
 

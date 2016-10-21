@@ -174,9 +174,9 @@ void run_reco_bmn(TString inFile = "run4-65:$VMCWORKDIR/macro/raw/bmn_run0065_di
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //
 
-    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer();
+    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", kFALSE, 1, kTRUE);
     //tof1HP->SetOnlyPrimary(kTRUE);
-    //    fRun->AddTask(tof1HP);
+//    fRun->AddTask(tof1HP);
     // ====================================================================== //
     // ===                           DCH1 hit finder                      === //
     // ====================================================================== //

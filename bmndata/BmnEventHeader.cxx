@@ -10,7 +10,7 @@ fEventTimeNS(-1.) {
 
 }
 
-BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, Double_t s, Double_t ns)
+BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, Long64_t s, Long64_t ns)
 : fRunId(run),
 fEventId(ev),
 fEventTimeS(s),

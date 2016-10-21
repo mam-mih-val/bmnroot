@@ -11,6 +11,7 @@ class BmnGemStripStationSet_RunSummer2016 : public BmnGemStripStationSet {
 public:
 
     BmnGemStripStationSet_RunSummer2016();
+    BmnGemStripStationSet_RunSummer2016(TString);
 
     virtual ~BmnGemStripStationSet_RunSummer2016();
 

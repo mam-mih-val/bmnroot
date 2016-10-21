@@ -23,6 +23,7 @@
 #include <TSystem.h>
 #include <TFile.h>
 #include "BmnMille.h"
+#include "BmnMath.h"
 
 #include <iomanip>
 #include <stdio.h>
@@ -42,7 +43,7 @@ public:
     };
 
     // Constructor to be used in case of digits
-    BmnGemAlignment(Char_t*, Char_t*, Bool_t, Bool_t);
+    BmnGemAlignment(Char_t*, Char_t*, Bool_t);
 
 
     virtual ~BmnGemAlignment();
@@ -78,10 +79,10 @@ public:
         fSignalToNoise = val;
     }
 
-    void SetChi2Max(Double_t val) {
-        fChi2Max = val;
+    void SetChi2MaxPerNDF(Double_t val) {
+        fChi2MaxPerNDF = val;
     }
-
+    
     void SetThreshold(Double_t val) {
         fThreshold = val;
     }
@@ -159,28 +160,26 @@ public:
             throw;
         }
     }
-
+    
+    void SetWriteHitsOnly(Bool_t flag) {  
+        fWriteHitsOnly = flag;
+    }
+    
+    Bool_t GetWriteHitsOnly() {
+        return fWriteHitsOnly;
+    }
+    
     void PrepareData();
     void StartMille();
     void StartPede();
 
 private:
-
-    void DoPreAlignmentXY();
-
     vector <TString> GetSteerFileNames() {
         return fSteerFileNames;
     }
 
-    Double_t LineFit3D(vector <BmnGemStripHit*>, TVector3&, TVector3&);
-    void CreateTrack(TVector3, TVector3, BmnGemTrack&, FairTrackParam&, Double_t, Int_t);
-    Bool_t isOneTrack(TClonesArray*);
-
     void goToStations(vector<BmnGemStripHit*>&, vector<BmnGemStripHit*>*, Int_t);
     void DeriveFoundTrackParams(vector<BmnGemStripHit*>);
-
-    Bool_t CheckSignalToNoizeRatio(BmnGemStripDigit*) {
-    };
 
     void AlignmentdXdY(ifstream&, Int_t, Int_t, Int_t, Int_t, TString);
     void AlignmentdXdYdZ(ifstream&, Int_t, Int_t, Int_t, Int_t, TString);
@@ -192,7 +191,6 @@ private:
 
     Char_t* fDigiFilename;
     TChain* fChainIn;
-    // TChain* fChainOut;
 
     TFile* fRecoFile;
     TTree* fRecoTree;
@@ -209,7 +207,7 @@ private:
 
     Double_t fThresh[7];
 
-    Double_t fChi2Max;
+    Double_t fChi2MaxPerNDF;
     Int_t fMinHitsAccepted;
     Int_t fMaxHitsAccepted;
 
@@ -239,9 +237,7 @@ private:
     Bool_t fBeamRun; // if true then it corresponds to 61 - 65 files
     TString fRunType;
     vector <TString> fSteerFileNames;
-    Bool_t fPreAlignXY;
-    Double_t* fCorrX;
-    Double_t* fCorrY;
+    Bool_t fWriteHitsOnly;
 
     TString fAlignmentType;
     TString fCommandToRunPede;

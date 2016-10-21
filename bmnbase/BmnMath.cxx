@@ -264,52 +264,70 @@ Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right) {
 
 TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type) {
 
-    //Least Square Method//
-    Float_t Zi = 0.0, Yi = 0.0; // coordinates of current track point
-    Float_t a = 0.0, b = 0.0; // parameters of line: y = a * z + b
-    Float_t SumZ = 0.0, SumY = 0.0, SumZY = 0.0, SumZ2 = 0.0;
+    //Weighted Least Square Method//
+    Float_t Xi = 0.0, Yi = 0.0; // coordinates of current track point
+    Float_t a = 0.0, b = 0.0; // parameters of line: y = a * x + b
+
+    Float_t Si = 0.0; // sigma
+    Float_t Wi = 0.0; // weight = 1 / sigma^2
+    Float_t SumW = 0.0; // sum of weights
+    Float_t SumWX = 0.0; // sum of (weight * x)
+    Float_t SumWY = 0.0; // sum of (weight * y)
+    Float_t SumWXY = 0.0; // sum of (weight * x * y)
+    Float_t SumWX2 = 0.0; // sum of (weight * x * x)
+
     const Float_t nHits = track->GetNHits();
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
         if (type.Contains("XY")) {
-            Zi = hit->GetX();
+            Xi = hit->GetX();
             Yi = hit->GetY();
+            Si = hit->GetDy();
         } else if (type.Contains("ZX")) {
-            Zi = hit->GetZ();
+            Xi = hit->GetZ();
             Yi = hit->GetX();
+            Si = hit->GetDx();
         } else if (type.Contains("ZY")) {
-            Zi = hit->GetZ();
+            Xi = hit->GetZ();
             Yi = hit->GetY();
+            Si = hit->GetDy();
         }
-        SumZ += Zi;
-        SumY += Yi;
-        SumZY += Zi * Yi;
-        SumZ2 += Sqr(Zi);
+        
+        if (Si == 0.0) return TVector3(0.0, 0.0, 0.0);
+
+        Wi = 1.0 / Si / Si;
+        SumW += Wi;
+        SumWXY += Wi * Xi * Yi;
+        SumWX += Wi * Xi;
+        SumWX2 += Wi * Xi * Xi;
+        SumWY += Wi * Yi;
     }
 
-    a = (nHits * SumZY - SumZ * SumY) / (nHits * SumZ2 - Sqr(SumZ));
-    b = (SumY - a * SumZ) / nHits;
+    a = (SumW * SumWXY - SumWX * SumWY) / (SumW * SumWX2 - SumWX * SumWX);
+    b = (SumWX2 * SumWY - SumWX * SumWXY) / (SumW * SumWX2 - SumWX * SumWX);
 
-    Float_t sig = 0.0;
+    Float_t chi2 = 0.0;
 
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
         if (type.Contains("XY")) {
-            Zi = hit->GetX();
+            Xi = hit->GetX();
             Yi = hit->GetY();
+            Si = hit->GetDy();
         } else if (type.Contains("ZX")) {
-            Zi = hit->GetZ();
+            Xi = hit->GetZ();
             Yi = hit->GetX();
+            Si = hit->GetDx();
         } else if (type.Contains("ZY")) {
-            Zi = hit->GetZ();
+            Xi = hit->GetZ();
             Yi = hit->GetY();
+            Si = hit->GetDy();
         }
-        sig += Sqr(Yi - a * Zi - b);
+
+        chi2 += Sqr((Yi - a * Xi - b) / Si);
     }
-    sig = Sqrt(sig / nHits);
 
-    return TVector3(a, b, sig);
-
+    return TVector3(a, b, chi2);
 }
 
 Float_t Sqr(Float_t x) {

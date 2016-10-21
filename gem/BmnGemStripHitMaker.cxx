@@ -86,8 +86,19 @@ void BmnGemStripHitMaker::ProcessDigits() {
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016 :
             StationSet = new BmnGemStripStationSet_RunSummer2016();
-            if(fVerbose) cout << "   Current Configuration : RunSummer2016" << "\n";
+            cout << "   Current Configuration : RunSummer2016" << "\n";
             break;
+            
+        case BmnGemStripConfiguration::RunSummer2016_set1 :
+            StationSet = new BmnGemStripStationSet_RunSummer2016("SET1");
+            cout << "   Current Configuration : RunSummer2016_set1" << "\n";
+            break;
+            
+        case BmnGemStripConfiguration::RunSummer2016_set2 :  
+            StationSet = new BmnGemStripStationSet_RunSummer2016("SET2");
+            cout << "   Current Configuration : RunSummer2016_set2" << "\n";
+            break;
+            
         default:
             StationSet = 0;
     }

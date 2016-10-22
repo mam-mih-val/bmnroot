@@ -181,8 +181,7 @@ private:
     void goToStations(vector<BmnGemStripHit*>&, vector<BmnGemStripHit*>*, Int_t);
     void DeriveFoundTrackParams(vector<BmnGemStripHit*>);
 
-    void AlignmentdXdY(ifstream&, Int_t, Int_t, Int_t, Int_t, TString);
-    void AlignmentdXdYdZ(ifstream&, Int_t, Int_t, Int_t, Int_t, TString);
+    void BinFilePede(ifstream&, TString);
     void DebugInfo(Int_t, Int_t, Int_t, Double_t*, Double_t*, Double_t, Double_t);
 
     void GraphDrawAttibuteSetter(TGraphErrors*, TString);
@@ -230,7 +229,6 @@ private:
 
     Double_t fSigmaX;
     Double_t fSigmaY;
-    Int_t fNumLabels;
 
     Bool_t fDebugInfo;
     Bool_t fOnlyMille;

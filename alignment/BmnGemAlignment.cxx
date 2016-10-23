@@ -27,11 +27,11 @@ fTyMax(LDBL_MAX),
 fXresMax(LDBL_MAX),
 fYresMax(LDBL_MAX),
 fChainIn(NULL),
-fNumLabels(0),
 fOnlyMille(onlyMille),
 fRunType(""),
 fSigmaX(1.),
 fSigmaY(1.),
+fNGL_PER_STAT(0),
 fTrHits(NULL),
 fWriteHitsOnly(kFALSE) {
     fRecoFileName = outname;
@@ -136,7 +136,7 @@ void BmnGemAlignment::PrepareData() {
                     Double_t z_err = 0.0;
 
                     x *= -1.;
-                   
+
                     if (x < fXMin || x > fXMax || y < fYMin || y > fYMax)
                         continue;
 
@@ -296,45 +296,63 @@ void BmnGemAlignment::StartMille() {
                 Int_t iHit = 0;
                 for (iHit = 0; iHit < track->GetNHits(); iHit++) {
                     BmnGemStripHit* hit = (BmnGemStripHit*) hits->UncheckedAt(track->GetHitIndex(iHit));
+                    Double_t X = hit->GetX();
+                    Double_t Y = hit->GetY();
                     Double_t Z = hit->GetZ();
                     Short_t stat = hit->GetStation();
 
                     if (stat == iStat) {
+                        Char_t* locDerX = Form("%d 1. %f 0. 0. ", stat, Z);
+                        Char_t* locDerY = Form("%d 0. 0. 1. %f ", stat, Z);
+                        TString globDerX = "";
+                        TString globDerY = "";
+                        TString zeroEnd = "";
+                        TString zeroBeg = "";
+
+                        Char_t* measX = Form("%f %f ", X, 1. * fSigmaX);
+                        Char_t* measY = Form("%f %f ", Y, 1. * fSigmaY);
+
+                        Int_t N_zeros_beg = stat;
+                        Int_t N_zeros_end = (fNstat - 1) - N_zeros_beg;
+
                         if (fAlignmentType == "xy") {
-                            Char_t* locDerX = Form("%d 1. %f 0. 0. ", stat, Z);
-                            Char_t* locDerY = Form("%d 0. 0. 1. %f ", stat, Z);
+                            globDerX = "1. 0. ";
+                            globDerY = "0. 1. ";
 
-                            Char_t* globDerX = Form("1. 0. ");
-                            Char_t* globDerY = Form("0. 1. ");
-
-                            Char_t* measX = Form("%f %f ", hit->GetX(), 1. * fSigmaX);
-                            Char_t* measY = Form("%f %f ", hit->GetY(), 1. * fSigmaY);
-
-                            Int_t N_zeros_beg = stat;
-                            Int_t N_zeros_end = (fNstat - 1) - N_zeros_beg;
-
-                            TString zeroEnd = "";
-                            TString zeroBeg = "";
                             for (Int_t i = 0; i < N_zeros_beg; i++)
                                 zeroBeg += "0. 0. ";
 
                             for (Int_t i = 0; i < N_zeros_end; i++)
                                 zeroEnd += "0. 0. ";
+                        } else if (fAlignmentType == "xyz") {
+                            Double_t Tx = track->GetParamFirst()->GetTx();
+                            Double_t Ty = track->GetParamFirst()->GetTy();
 
-                            fprintf(fin_txt, "%s%s %s %s%s\n", locDerX, zeroBeg.Data(), globDerX, zeroEnd.Data(), measX);
-                            fprintf(fin_txt, "%s%s %s %s%s\n", locDerY, zeroBeg.Data(), globDerY, zeroEnd.Data(), measY);
-                            break;
-                        }
-                        if (fAlignmentType == "xyz") {
+                            globDerX = TString(Form("1. 0. %f", Tx));
+                            globDerY = TString(Form("0. 1. %f", Ty));
 
+                            for (Int_t i = 0; i < N_zeros_beg; i++)
+                                zeroBeg += "0. 0. 0. ";
 
+                            for (Int_t i = 0; i < N_zeros_end; i++)
+                                zeroEnd += "0. 0. 0. ";
+                        } else
+                            Fatal("", "");
 
-                        }
+                        fprintf(fin_txt, "%s%s %s %s%s\n", locDerX, zeroBeg.Data(), globDerX.Data(), zeroEnd.Data(), measX);
+                        fprintf(fin_txt, "%s%s %s %s%s\n", locDerY, zeroBeg.Data(), globDerY.Data(), zeroEnd.Data(), measY);
+                        break;
                     }
                 }
                 if (iHit == track->GetNHits())
-                    for (Int_t iFill = 0; iFill < 2; iFill++)
-                        fprintf(fin_txt, "%d 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n", iStat);
+                    if (fAlignmentType == "xy")
+                        for (Int_t iFill = 0; iFill < 2; iFill++)
+                            fprintf(fin_txt, "%d 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n", iStat);
+                    else if (fAlignmentType == "xyz")
+                        for (Int_t iFill = 0; iFill < 2; iFill++)
+                            fprintf(fin_txt, "%d 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n", iStat);
+                    else
+                        Fatal("", "");
             }
         }
     }
@@ -343,69 +361,43 @@ void BmnGemAlignment::StartMille() {
 
     ifstream fout_txt;
     fout_txt.open(TString(name + ".txt").Data(), ios::in);
-    Int_t nTracks, nGem, NLC, NGL;
 
-    if (fAlignmentType == "xy")
-        AlignmentdXdY(fout_txt, nTracks, nGem, NLC, NGL, name);
-
+    BinFilePede(fout_txt, name);
     fout_txt.close();
 }
 
-void BmnGemAlignment::AlignmentdXdYdZ(ifstream& fout_txt, Int_t nTracks, Int_t nGem, Int_t NLC, Int_t NGL, TString name) {
+void BmnGemAlignment::BinFilePede(ifstream& fout_txt, TString name) {
+    Int_t NLC = 4;
+    fNGL_PER_STAT = ((fAlignmentType == "xy") ? 2 : (fAlignmentType == "xyz") ? 3 : 0);
+    Int_t NGL = fNGL_PER_STAT * fStatUsed;
 
-
-
-
-}
-
-void BmnGemAlignment::AlignmentdXdY(ifstream& fout_txt, Int_t nTracks, Int_t nGem, Int_t NLC, Int_t NGL, TString name) {
-    NLC = 4;
-    NGL = 2 * fStatUsed;
-
-    fNumLabels = NGL;
     const Int_t dim = NGL;
     Int_t* Labels = new Int_t[dim];
     for (Int_t iEle = 0; iEle < dim; iEle++)
         Labels[iEle] = 1 + iEle;
 
     Double_t rMeasure, dMeasure;
+    Int_t nTracks;
+    Int_t nGem;
     fout_txt >> nTracks;
     Double_t DerGl[NGL], DerLc[NLC];
 
     BmnMille* Mille = new BmnMille(TString(name + ".bin").Data(), kTRUE, kFALSE);
 
     for (Int_t iTrack = 0; iTrack < nTracks; iTrack++) {
-        Int_t cntr = 0;
         for (Int_t iPlane = 0; iPlane < 2 * fNstat; iPlane++) {
             fout_txt >> nGem;
 
             if (find(fNumStatUsed.begin(), fNumStatUsed.end(), nGem) != fNumStatUsed.end()) {
-                Double_t sum = 0.;
 
-                for (Int_t iVar = 0; iVar < NLC; iVar++) {
+                for (Int_t iVar = 0; iVar < NLC; iVar++)
                     fout_txt >> DerLc[iVar];
-                    sum += DerLc[iVar];
-                }
 
-                Double_t tmp;
-                // Go to end of the string
-                for (Int_t iPos = 0; iPos < 2 * fNstat; iPos++)
-                    fout_txt >> tmp;
+                for (Int_t iVar = 0; iVar < NGL; iVar++)
+                    fout_txt >> DerGl[iVar];
 
-                if (sum < 1e-1) {
-                    for (Int_t iVar = 0; iVar < 2 * fStatUsed; iVar++)
-                        DerGl[iVar] = 0.0;
-                } else {
-                    for (Int_t iVar = 0; iVar < 2 * fStatUsed; iVar++) {
-                        if (iVar == cntr)
-                            DerGl[iVar] = 1.0;
-                        else
-                            DerGl[iVar] = 0.;
-                    }
-                }
                 fout_txt >> rMeasure >> dMeasure;
                 Mille->mille(NLC, DerLc, NGL, DerGl, Labels, rMeasure, dMeasure);
-                cntr++;
 
                 if (fDebugInfo)
                     DebugInfo(nGem, NLC, NGL, DerLc, DerGl, rMeasure, dMeasure);
@@ -494,20 +486,24 @@ BmnGemAlignment::~BmnGemAlignment() {
 }
 
 void BmnGemAlignment::StartPede() {
-    TCanvas* c = new TCanvas("alignParams", "alignParams", 1000, 1000);
+    TCanvas* c = new TCanvas("alignParams", "alignParams", 1500, 800);
     vector <TString> steerFileNames = GetSteerFileNames();
     const Int_t dim = steerFileNames.size();
-    c->Divide(2, dim);
+
+    c->Divide(fNGL_PER_STAT, dim);
     TGraphErrors * outGraphX[dim];
     TGraphErrors * outGraphY[dim];
+    TGraphErrors * outGraphZ[dim];
+
     TString tmp = fRecoFileName;
 
     for (Int_t iSize = 0; iSize < dim; iSize++) {
         outGraphX[iSize] = new TGraphErrors();
         outGraphY[iSize] = new TGraphErrors();
+        outGraphZ[iSize] = new TGraphErrors();
         TString commandToExec = "pede " + steerFileNames.at(iSize);
         fCommandToRunPede = commandToExec;
-
+        
         TString random = "";
         gRandom->SetSeed(0);
         random += (Int_t) (gRandom->Rndm(0) * 1000);
@@ -531,6 +527,7 @@ void BmnGemAlignment::StartPede() {
         if (!resFile)
             return;
 
+        // Go to the second string
         resFile.ignore(numeric_limits<streamsize>::max(), '\n');
 
         TString buff1 = "";
@@ -540,36 +537,57 @@ void BmnGemAlignment::StartPede() {
         TString buff5 = "";
 
         string line;
-        Int_t pointX = 0;
-        Int_t pointY = 0;
+        Int_t pointX = 0, pointY = 0, pointZ = 0;
+
         while (getline(resFile, line)) {
             stringstream ss(line);
             Int_t size = ss.str().length();
-            // 40 and 68 symbols are fixed in the Pede-output
+            // 40 and 68 symbols are fixed in the Pede-output by a given format 
             if (size == 40) {
                 ss >> buff1 >> buff2 >> buff3;
-                if (buff1.Atoi() % 2 == 0) {
-                    outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
-                    outGraphY[iSize]->SetPointError(pointY, 0., 0.);
-                    pointY++;
-                } else {
+                if (buff1.Atoi() % fNGL_PER_STAT == 0) {
+                    if (fAlignmentType == "xy") {
+                        outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
+                        outGraphY[iSize]->SetPointError(pointY, 0., 0.);
+                        pointY++;
+                    } else if (fAlignmentType == "xyz") {
+                        outGraphZ[iSize]->SetPoint(pointZ, buff1.Atoi(), 10. * buff2.Atof());
+                        outGraphZ[iSize]->SetPointError(pointZ, 0., 0.);
+                        pointZ++;
+                    }
+                } else if (buff1.Atoi() % fNGL_PER_STAT == 1) {
                     outGraphX[iSize]->SetPoint(pointX, buff1.Atoi(), 10. * buff2.Atof());
                     outGraphX[iSize]->SetPointError(pointX, 0., 0.);
                     pointX++;
-                }
+                } else if (buff1.Atoi() % fNGL_PER_STAT == 2) {
+                    outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
+                    outGraphY[iSize]->SetPointError(pointY, 0., 0.);
+                    pointY++;
+                } else
+                    Fatal("BmnGemAlignment::StartPede()", "BmnGemAlignment::StartPede()");
             } else if (size == 68) {
                 ss >> buff1 >> buff2 >> buff3 >> buff4 >> buff5;
-                if (buff1.Atoi() % 2 == 0) {
-                    outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
-                    outGraphY[iSize]->SetPointError(pointY, 0., 10. * buff5.Atof());
-                    pointY++;
-                } else {
+                if (buff1.Atoi() % fNGL_PER_STAT == 0) {
+                    if (fAlignmentType == "xy") {
+                        outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
+                        outGraphY[iSize]->SetPointError(pointY, 0., 10. * buff5.Atof());
+                        pointY++;
+                    } else if (fAlignmentType == "xyz") {
+                        outGraphZ[iSize]->SetPoint(pointZ, buff1.Atoi(), 10. * buff2.Atof());
+                        outGraphZ[iSize]->SetPointError(pointZ, 0., 10. * buff5.Atof());
+                        pointZ++;
+                    }
+                } else if (buff1.Atoi() % fNGL_PER_STAT == 1) {
                     outGraphX[iSize]->SetPoint(pointX, buff1.Atoi(), 10. * buff2.Atof());
                     outGraphX[iSize]->SetPointError(pointX, 0., 10. * buff5.Atof());
                     pointX++;
+                } else if (buff1.Atoi() % fNGL_PER_STAT == 2) {
+                    outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
+                    outGraphY[iSize]->SetPointError(pointY, 0., 10. * buff5.Atof());
+                    pointY++;
                 }
             } else
-                cout << "Unsupported format observed!";
+                cout << "Unsupported format given!";
         }
 
         c->cd(2 * iSize + 1)->SetGrid();
@@ -577,6 +595,11 @@ void BmnGemAlignment::StartPede() {
 
         c->cd(2 * iSize + 2)->SetGrid();
         GraphDrawAttibuteSetter(outGraphY[iSize], steerFileNames[iSize]);
+
+        if (fAlignmentType == "xyz") {
+            c->cd(2 * iSize + 3)->SetGrid();
+            GraphDrawAttibuteSetter(outGraphZ[iSize], steerFileNames[iSize]);
+        }
 
         system(Form("cp millepede.res Millepede_%s_%s.res", tmp.Data(), TString(steerFileNames.at(iSize)).Data()));
         system("rm millepede.*");
@@ -592,14 +615,14 @@ void BmnGemAlignment::GraphDrawAttibuteSetter(TGraphErrors* gr, TString steerFil
     gr->SetMarkerSize(1.5);
     gr->GetXaxis()->SetTitle("Param. number");
     gr->GetXaxis()->SetTitleOffset(-0.35);
-    gr->GetXaxis()->SetLabelSize(0.09);
-    gr->GetXaxis()->SetTitleSize(0.09);
+    gr->GetXaxis()->SetLabelSize(0.06);
+    gr->GetXaxis()->SetTitleSize(0.06);
     gr->GetXaxis()->CenterTitle();
     gr->GetYaxis()->SetTitle("Param. value, mm");
     gr->GetYaxis()->SetTitleOffset(-0.3);
     gr->GetYaxis()->CenterTitle();
-    gr->GetYaxis()->SetTitleSize(0.09);
-    gr->GetYaxis()->SetLabelSize(0.09);
+    gr->GetYaxis()->SetTitleSize(0.06);
+    gr->GetYaxis()->SetLabelSize(0.06);
     gr->SetTitle(Form("%s-type of alignment (%s)", GetAlignmentDim().Data(), steerFileName.Data()));
 }
 

@@ -21,11 +21,11 @@ void alignment(TString fileNumber = "65") {
     gemAlign->SetRunType(type);
 
     if (useMilleOnly == kFALSE)
-        gemAlign->SetNofEvents(0); // 0 corresponds to all data set
+        gemAlign->SetNofEvents(10000); //0 corresponds to all data set
 
     // Restrictions on output of the C.F.
     gemAlign->SetMaxNofHitsPerEvent(30);
-    gemAlign->SetSignalToNoise(-2., -2., -2., -2., -2., -2., -2.); // 1000 is an artificial threshold not to use a station
+    gemAlign->SetSignalToNoise(-2., -2., -2., -2., -2., -2., -2.); // 1000 is an artificial threshold not to use a station, to be removed in future
     gemAlign->SetThreshold(0.);
 
     // Restrictions on hit params.
@@ -39,16 +39,21 @@ void alignment(TString fileNumber = "65") {
     gemAlign->SetTyMinMax(-0.002, 0.002); // are meaningful in case of a beam-run only
     gemAlign->SetChi2MaxPerNDF(30.); // Cut on chi2/ndf for found tracks
 
-    // Alignment params.
-    gemAlign->SetAlignmentDim("xy");
+    // Alignment types
+//     gemAlign->SetAlignmentDim("xy");
+    gemAlign->SetAlignmentDim("xyz");
 
+    // steer_xy.txt and steer_xyz.txt are files to be changed in case of two types of alignment 
     const Int_t nSteerFiles = 1;
-    // TString steerFiles[nSteerFiles] = {"steer1.txt", "steer2.txt", "steer3.txt", "steer4.txt", "steer5.txt"}; // Pass different steer-files
-    TString steerFiles[nSteerFiles] = {"steer1.txt"};
+    TString steerFiles[nSteerFiles] = {""};
+    if (gemAlign->GetAlignmentDim() == "xy")
+        steerFiles[0] = "steer_xy.txt";
+    else if (gemAlign->GetAlignmentDim() == "xyz")
+        steerFiles[0] = "steer_xyz.txt";
     vector <TString> steerFileNames;
     for (Int_t iSize = 0; iSize < nSteerFiles; iSize++)
         steerFileNames.push_back(steerFiles[iSize]);
-    gemAlign->SetSteerFile(steerFileNames);
+    gemAlign->SetSteerFile(steerFileNames);  
     gemAlign->PrepareData();
 
     // Mille & Pede execution.

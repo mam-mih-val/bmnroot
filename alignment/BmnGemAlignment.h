@@ -239,6 +239,8 @@ private:
 
     TString fAlignmentType;
     TString fCommandToRunPede;
+    
+    Int_t fNGL_PER_STAT;
 
     ClassDef(BmnGemAlignment, 1)
 };

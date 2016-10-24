@@ -5,7 +5,7 @@ using namespace std;
 // BEAM:   61, 62, 63, 64 and 65 (artificially coded by 60: bmn_run0060_digi.root)
 // TARGET: 66, 67 and 68         (artificially coded by 70: bmn_run0070_digi.root)
 
-void alignment(Int_t fileNumber = 65, Int_t nEvents = 1000, Bool_t isDebug = kFALSE, Bool_t isOnlyHits = kFALSE, Bool_t isUseMilleOnly = kFALSE) {
+void alignment(Int_t fileNumber = 70, Int_t nEvents = 30000, Bool_t isDebug = kFALSE, Bool_t isOnlyHits = kFALSE, Bool_t isUseMilleOnly = kFALSE) {
     TString type = (fileNumber < 66) ? "beam" : "target";
  
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -34,8 +34,8 @@ void alignment(Int_t fileNumber = 65, Int_t nEvents = 1000, Bool_t isDebug = kFA
     }
 
     // Restrictions on track params.
-    gemAlign->SetMinHitsAccepted(3); // >
-    gemAlign->SetMaxHitsAccepted(8); // <
+    gemAlign->SetMinHitsAccepted(3); // >=
+    gemAlign->SetMaxHitsAccepted(7); // <=
     gemAlign->SetTxMinMax(-0.005, 0.005); // --
     gemAlign->SetTyMinMax(-0.005, 0.005); // are meaningful in case of a beam-run only
     gemAlign->SetChi2MaxPerNDF(30.); // Cut on chi2/ndf for found tracks

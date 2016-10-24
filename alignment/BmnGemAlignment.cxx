@@ -15,8 +15,7 @@ fGemTracks(NULL),
 fSignalToNoise(1.),
 fChi2MaxPerNDF(LDBL_MAX),
 fThreshold(0.0),
-fMinHitsAccepted(1),
-fMaxHitsAccepted(fNstat),
+fMinHitsAccepted(3),
 fXMin(-LDBL_MAX),
 fXMax(LDBL_MAX),
 fYMin(-LDBL_MAX),
@@ -182,9 +181,9 @@ void BmnGemAlignment::PrepareData() {
                 delete fDetector;
                 continue;
             }
-
+           
             // Checking for minimal number of hits per track
-            if (nonEmptyStatNumber.size() <= fMinHitsAccepted || nonEmptyStatNumber.size() >= fMaxHitsAccepted) {
+            if (nonEmptyStatNumber.size() == 2) {
                 delete fDetector;
                 continue;
             }
@@ -463,7 +462,7 @@ void BmnGemAlignment::DeriveFoundTrackParams(vector<BmnGemStripHit*> hits) {
     TVector3 zxParams = LineFit(track, fGemHits, "ZX"); // Tx, X0
     TVector3 zyParams = LineFit(track, fGemHits, "ZY"); // Ty, Y0
 
-    if (zxParams.Z() / (track->GetNHits() - 2) < fChi2MaxPerNDF && zyParams.Z() / (track->GetNHits() - 2) < fChi2MaxPerNDF) {
+    if (track->GetNHits() >= fMinHitsAccepted && zxParams.Z() / (track->GetNHits() - 2) < fChi2MaxPerNDF && zyParams.Z() / (track->GetNHits() - 2) < fChi2MaxPerNDF) {
         BmnGemTrack* newTrack = new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack(*track);
         par->SetX(zxParams.Y());
         par->SetY(zyParams.Y());

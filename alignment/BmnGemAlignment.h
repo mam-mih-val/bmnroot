@@ -98,10 +98,6 @@ public:
         fMinHitsAccepted = val;
     }
 
-    void SetMaxHitsAccepted(Int_t val) {
-        fMaxHitsAccepted = val;
-    }
-
     void SetXMinMax(Double_t min, Double_t max) {
         fXMin = min;
         fXMax = max;
@@ -207,7 +203,6 @@ private:
 
     Double_t fChi2MaxPerNDF;
     Int_t fMinHitsAccepted;
-    Int_t fMaxHitsAccepted;
 
     Double_t fXMin;
     Double_t fXMax;

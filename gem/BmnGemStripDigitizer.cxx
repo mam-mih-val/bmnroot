@@ -85,17 +85,17 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
     BmnGemStripStationSet *StationSet = 0;
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016:
-            StationSet = new BmnGemStripStationSet_RunSummer2016();
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
             cout << "   Current Configuration : RunSummer2016" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunSummer2016_set1:
-            StationSet = new BmnGemStripStationSet_RunSummer2016("SET1");
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
             cout << "   Current Configuration : RunSummer2016_set1" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunSummer2016_set2:
-            StationSet = new BmnGemStripStationSet_RunSummer2016("SET2");
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
             cout << "   Current Configuration : RunSummer2016_set2" << "\n";
             break;
 

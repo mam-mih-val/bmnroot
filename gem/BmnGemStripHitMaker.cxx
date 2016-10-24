@@ -22,9 +22,9 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
 BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
 : fHitMatching(kTRUE) {
 
-    fInputPointsBranchName = "StsPoint";   
+    fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
-    
+
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
     fOutputHitsBranchName = "BmnGemStripHit";
@@ -86,7 +86,7 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     if(fVerbose) cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripDigits = " << fBmnGemStripDigitsArray->GetEntriesFast() << "\n";
 
     ProcessDigits();
-    
+
     if(fVerbose) cout << " BmnGemStripHitMaker::Exec() finished\n";
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
@@ -101,20 +101,20 @@ void BmnGemStripHitMaker::ProcessDigits() {
     BmnGemStripStationSet *StationSet = 0;
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016 :
-            StationSet = new BmnGemStripStationSet_RunSummer2016();
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
             cout << "   Current Configuration : RunSummer2016" << "\n";
             break;
-            
+
         case BmnGemStripConfiguration::RunSummer2016_set1 :
-            StationSet = new BmnGemStripStationSet_RunSummer2016("SET1");
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
             cout << "   Current Configuration : RunSummer2016_set1" << "\n";
             break;
-            
-        case BmnGemStripConfiguration::RunSummer2016_set2 :  
-            StationSet = new BmnGemStripStationSet_RunSummer2016("SET2");
+
+        case BmnGemStripConfiguration::RunSummer2016_set2 :
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
             cout << "   Current Configuration : RunSummer2016_set2" << "\n";
             break;
-            
+
         default:
             StationSet = 0;
     }
@@ -150,7 +150,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
     if(fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
 
     Int_t clear_matched_points_cnt = 0; // points with the only one match-index
-    
+
     for(Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet->GetGemStation(iStation);
 

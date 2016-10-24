@@ -1,4 +1,5 @@
 #include "BmnGemAlignment.h"
+#include "../gem/BmnGemStripConfiguration.h"
 
 BmnGemAlignment::BmnGemAlignment(Char_t* filename, Char_t* outname, Bool_t onlyMille) :
 fGemDigits(NULL),
@@ -88,7 +89,7 @@ void BmnGemAlignment::PrepareData() {
         fGemTracks->Delete();
         fContainer->Delete();
 
-        BmnGemStripStationSet* fDetector = new BmnGemStripStationSet_RunSummer2016("ALIGNMENT");
+        BmnGemStripStationSet* fDetector = new BmnGemStripStationSet_RunSummer2016(BmnGemStripConfiguration::RunSummer2016_ALIGNMENT);
 
         for (Int_t iStation = 0; iStation < fDetector->GetNStations(); ++iStation) {
             BmnGemStripStation* station = fDetector->GetGemStation(iStation);
@@ -503,7 +504,7 @@ void BmnGemAlignment::StartPede() {
         outGraphZ[iSize] = new TGraphErrors();
         TString commandToExec = "pede " + steerFileNames.at(iSize);
         fCommandToRunPede = commandToExec;
-        
+
         TString random = "";
         gRandom->SetSeed(0);
         random += (Int_t) (gRandom->Rndm(0) * 1000);
@@ -542,7 +543,7 @@ void BmnGemAlignment::StartPede() {
         while (getline(resFile, line)) {
             stringstream ss(line);
             Int_t size = ss.str().length();
-            // 40 and 68 symbols are fixed in the Pede-output by a given format 
+            // 40 and 68 symbols are fixed in the Pede-output by a given format
             if (size == 40) {
                 ss >> buff1 >> buff2 >> buff3;
                 if (buff1.Atoi() % fNGL_PER_STAT == 0) {

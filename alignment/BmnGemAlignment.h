@@ -3,7 +3,6 @@
 
 #include <TMath.h>
 #include <TNamed.h>
-//#include "BmnGemStripReadoutModule.h" //delete it
 #include "BmnGemStripModule.h"
 #include "BmnGemStripLayer.h"
 #include "BmnGemStripDigit.h"
@@ -82,7 +81,7 @@ public:
     void SetChi2MaxPerNDF(Double_t val) {
         fChi2MaxPerNDF = val;
     }
-    
+
     void SetThreshold(Double_t val) {
         fThreshold = val;
     }
@@ -160,15 +159,15 @@ public:
             throw;
         }
     }
-    
-    void SetWriteHitsOnly(Bool_t flag) {  
+
+    void SetWriteHitsOnly(Bool_t flag) {
         fWriteHitsOnly = flag;
     }
-    
+
     Bool_t GetWriteHitsOnly() {
         return fWriteHitsOnly;
     }
-    
+
     void PrepareData();
     void StartMille();
     void StartPede();
@@ -239,7 +238,7 @@ private:
 
     TString fAlignmentType;
     TString fCommandToRunPede;
-    
+
     Int_t fNGL_PER_STAT;
 
     ClassDef(BmnGemAlignment, 1)

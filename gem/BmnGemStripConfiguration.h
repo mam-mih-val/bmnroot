@@ -7,7 +7,9 @@ namespace BmnGemStripConfiguration {
         None = 0, // empty config
         RunSummer2016, // 7 stations (summer 2016, w/o geometry corrections) - (geometry file: GEMS_RunSummer2016.root)
         RunSummer2016_set1, // 7 stations (summer 2016, geom.corr from A.Maltsev)
-        RunSummer2016_set2 // 7 stations (summer 2016, geom.corr from P.Batyuk) 
+        RunSummer2016_set2, // 7 stations (summer 2016, geom.corr from P.Batyuk)
+
+        RunSummer2016_ALIGNMENT //for technical usage
     };
 }
 
@@ -16,7 +18,7 @@ namespace BmnGemStationPositions_RunSummer2016 {
     const Int_t NStations = 7;
     const Double_t XStationPositions[NStations] = {+0.0, -1.5, +1.5, -1.5, +1.5, -1.5, +0.0};
     const Double_t YStationPositions[NStations] = {+0.0, +0.0, +0.0, +0.0, +0.0, +0.0, +0.0};
-    const Double_t ZStationPositions[NStations] = {5.0 + 0.1, 41.8 + 0.7, 62.8 + 0.7, 83.8 + 0.7, 104.8 + 0.7, 125.8 + 0.7, 146.8 + 1.5}; //All z-positions are start pos. of the sensitive vol.   
+    const Double_t ZStationPositions[NStations] = {5.0 + 0.1, 41.8 + 0.7, 62.8 + 0.7, 83.8 + 0.7, 104.8 + 0.7, 125.8 + 0.7, 146.8 + 1.5}; //All z-positions are start pos. of the sensitive vol.
 }
 
 // Pos. corrections from A. Maltsev
@@ -48,6 +50,7 @@ namespace BmnGemStationPositions_RunSummer2016_set2 {
         0.0 - 0.88833E-01 + 0.10559E-01 + 0.51130E-01,
         0.0 - 0.58074E-01 - 0.32819E-01 + 0.86584E-03,
         0.0 - 2.159};
+    const Double_t ZStationPositions[NStations] = {5.0 + 0.1, 41.8 + 0.7, 62.8 + 0.7, 83.8 + 0.7, 104.8 + 0.7, 125.8 + 0.7, 146.8 + 1.5}; //All z-positions are start pos. of the sensitive vol.
 }
 
 

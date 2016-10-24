@@ -17,6 +17,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     fVerbose = 1;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
+    StationSet = NULL;
 }
 
 BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
@@ -33,6 +34,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
     fVerbose = 1;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
+    StationSet = NULL;
 }
 
 BmnGemStripHitMaker::~BmnGemStripHitMaker() {
@@ -64,6 +66,28 @@ InitStatus BmnGemStripHitMaker::Init() {
     else {
         fBmnGemStripHitMatchesArray = 0;
     }
+
+    //Create GEM detector ------------------------------------------------------
+    switch (fCurrentConfig) {
+        case BmnGemStripConfiguration::RunSummer2016 :
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
+            cout << "   Current Configuration : RunSummer2016" << "\n";
+            break;
+
+        case BmnGemStripConfiguration::RunSummer2016_set1 :
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
+            cout << "   Current Configuration : RunSummer2016_set1" << "\n";
+            break;
+
+        case BmnGemStripConfiguration::RunSummer2016_set2 :
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
+            cout << "   Current Configuration : RunSummer2016_set2" << "\n";
+            break;
+
+        default:
+            StationSet = NULL;
+    }
+    //--------------------------------------------------------------------------
 
     if(fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n\n ";
 
@@ -97,27 +121,6 @@ void BmnGemStripHitMaker::ProcessDigits() {
     FairMCPoint* MCPoint;
     BmnGemStripDigit* digit;
     BmnMatch *strip_match;
-
-    BmnGemStripStationSet *StationSet = 0;
-    switch (fCurrentConfig) {
-        case BmnGemStripConfiguration::RunSummer2016 :
-            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016" << "\n";
-            break;
-
-        case BmnGemStripConfiguration::RunSummer2016_set1 :
-            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016_set1" << "\n";
-            break;
-
-        case BmnGemStripConfiguration::RunSummer2016_set2 :
-            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016_set2" << "\n";
-            break;
-
-        default:
-            StationSet = 0;
-    }
 
     BmnGemStripStation* station;
     BmnGemStripModule* module;
@@ -213,10 +216,14 @@ void BmnGemStripHitMaker::ProcessDigits() {
     }
     if(fVerbose) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
 //------------------------------------------------------------------------------
-    if(StationSet) delete StationSet;
+    StationSet->Reset();
 }
 
 void BmnGemStripHitMaker::Finish() {
+    if(StationSet) {
+        delete StationSet;
+        StationSet = NULL;
+    }
     cout << "Work time of the GEM hit maker: " << workTime << endl;
 }
 

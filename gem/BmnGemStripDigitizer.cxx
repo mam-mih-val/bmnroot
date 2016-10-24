@@ -16,6 +16,7 @@ BmnGemStripDigitizer::BmnGemStripDigitizer()
     fVerbose = 1;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
+    StationSet = NULL;
 }
 
 BmnGemStripDigitizer::~BmnGemStripDigitizer() {
@@ -46,6 +47,28 @@ InitStatus BmnGemStripDigitizer::Init() {
         fBmnGemStripDigitMatchesArray = new TClonesArray("BmnMatch");
         ioman->Register(fOutputDigitMatchesBranchName, "GEM", fBmnGemStripDigitMatchesArray, kTRUE);
     }
+
+    //Create GEM detector ------------------------------------------------------
+    switch (fCurrentConfig) {
+        case BmnGemStripConfiguration::RunSummer2016 :
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
+            cout << "   Current Configuration : RunSummer2016" << "\n";
+            break;
+
+        case BmnGemStripConfiguration::RunSummer2016_set1 :
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
+            cout << "   Current Configuration : RunSummer2016_set1" << "\n";
+            break;
+
+        case BmnGemStripConfiguration::RunSummer2016_set2 :
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
+            cout << "   Current Configuration : RunSummer2016_set2" << "\n";
+            break;
+
+        default:
+            StationSet = NULL;
+    }
+    //--------------------------------------------------------------------------
 
     if (fVerbose) cout << "BmnGemStripDigitizer::Init() finished\n\n";
     return kSUCCESS;
@@ -81,27 +104,6 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
 
     FairMCPoint* GemStripPoint;
     Int_t NNotPrimaries = 0;
-
-    BmnGemStripStationSet *StationSet = 0;
-    switch (fCurrentConfig) {
-        case BmnGemStripConfiguration::RunSummer2016:
-            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016" << "\n";
-            break;
-
-        case BmnGemStripConfiguration::RunSummer2016_set1:
-            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016_set1" << "\n";
-            break;
-
-        case BmnGemStripConfiguration::RunSummer2016_set2:
-            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016_set2" << "\n";
-            break;
-
-        default:
-            StationSet = 0;
-    }
 
     for (UInt_t ipoint = 0; ipoint < fBmnGemStripPointsArray->GetEntriesFast(); ipoint++) {
         GemStripPoint = (FairMCPoint*) fBmnGemStripPointsArray->At(ipoint);
@@ -154,10 +156,15 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
             }
         }
     }
-    if (StationSet) delete StationSet;
+    StationSet->Reset();
 }
 
 void BmnGemStripDigitizer::Finish() {
+    if (StationSet) {
+        delete StationSet;
+        StationSet = NULL;
+    }
+
     cout << "Work time of the GEM digitizer: " << workTime << endl;
 }
 

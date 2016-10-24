@@ -66,6 +66,8 @@ private:
 
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 
+    BmnGemStripStationSet *StationSet; //Entire GEM detector
+
     ClassDef(BmnGemStripHitMaker,1);
 };
 

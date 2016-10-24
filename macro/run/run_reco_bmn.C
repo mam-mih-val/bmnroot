@@ -7,7 +7,7 @@
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 
-void run_reco_bmn(TString inFile = "run4-61:/nfs/digits_run4/bmn_run0061_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE, Bool_t gemCF = kTRUE) {
+void run_reco_bmn(TString inFile = "run4-61:bmn_run0061_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
@@ -151,26 +151,22 @@ void run_reco_bmn(TString inFile = "run4-61:/nfs/digits_run4/bmn_run0061_digi.ro
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    if (gemCF) {
-        // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016;      // RunSummer2016 config (GEM_RunSummer2016.root))
-        // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016_set1; // RunSummer2016 config, geom.corr. from A. Maltsev 
-         BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016_set2;    // RunSummer2016 config, geom.corr. from P. Batyuk
-        if (!isExp) {
-            BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
-            gemDigit->SetCurrentConfig(gem_config);
-            gemDigit->SetOnlyPrimary(isPrimary);
-            gemDigit->SetStripMatching(kTRUE);
-            fRun->AddTask(gemDigit);
-        }
-        BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
-        gemHM->SetCurrentConfig(gem_config);
-        gemHM->SetHitMatching(kTRUE);
-        fRun->AddTask(gemHM);
-    } else {
-        BmnGemHitProducer* gemHP = new BmnGemHitProducer();
-        gemHP->SetOnlyPrimary(isPrimary);
-        fRun->AddTask(gemHP);
+
+    // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016;      // RunSummer2016 config (GEM_RunSummer2016.root))
+    // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016_set1; // RunSummer2016 config, geom.corr. from A. Maltsev 
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016_set2; // RunSummer2016 config, geom.corr. from P. Batyuk
+    if (!isExp) {
+        BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
+        gemDigit->SetCurrentConfig(gem_config);
+        gemDigit->SetOnlyPrimary(isPrimary);
+        gemDigit->SetStripMatching(kTRUE);
+        fRun->AddTask(gemDigit);
     }
+    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
+    gemHM->SetCurrentConfig(gem_config);
+    gemHM->SetHitMatching(kTRUE);
+    fRun->AddTask(gemHM);
+
 
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
@@ -178,7 +174,7 @@ void run_reco_bmn(TString inFile = "run4-61:/nfs/digits_run4/bmn_run0061_digi.ro
 
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", kFALSE, 1, kTRUE);
     //tof1HP->SetOnlyPrimary(kTRUE);
-//    fRun->AddTask(tof1HP);
+    //    fRun->AddTask(tof1HP);
     // ====================================================================== //
     // ===                           DCH1 hit finder                      === //
     // ====================================================================== //
@@ -211,7 +207,7 @@ void run_reco_bmn(TString inFile = "run4-61:/nfs/digits_run4/bmn_run0061_digi.ro
     // ====================================================================== //
 
     BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
-    if (gemCF) gemSF->SetUseLorentz(kTRUE);
+    gemSF->SetUseLorentz(kTRUE);
     gemSF->SetField(isField);
     gemSF->SetTarget(isTarget);
     fRun->AddTask(gemSF);

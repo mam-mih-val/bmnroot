@@ -8,7 +8,23 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
 : fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "StsPoint";
-    fInputDigitsBranchName = "GEM";//"BmnGemStripDigit";
+    fInputDigitsBranchName = "BmnGemStripDigit";
+    fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
+
+    fOutputHitsBranchName = "BmnGemStripHit";
+    fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
+
+    fVerbose = 1;
+
+    fCurrentConfig = BmnGemStripConfiguration::None;
+}
+
+BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
+: fHitMatching(kTRUE) {
+
+    fInputPointsBranchName = "StsPoint";   
+    fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
+    
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
     fOutputHitsBranchName = "BmnGemStripHit";

@@ -1,7 +1,7 @@
 !constraints.txt
 
 Cfiles
-alignment.bin
+alignment_xy.bin
 
 Parameter
 

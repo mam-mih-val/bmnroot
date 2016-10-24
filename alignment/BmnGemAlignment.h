@@ -126,8 +126,8 @@ public:
         return fAlignmentType;
     }
 
-    void SetSteerFile(vector <TString> fileNames) {
-        fSteerFileNames = fileNames;
+    void SetSteerFile(TString fileName) {
+        fSteerFileName = fileName;
     }
 
     void SetTxMinMax(Double_t min, Double_t max) {
@@ -173,8 +173,8 @@ public:
     void StartPede();
 
 private:
-    vector <TString> GetSteerFileNames() {
-        return fSteerFileNames;
+    TString GetSteerFileNames() {
+        return fSteerFileName;
     }
 
     void goToStations(vector<BmnGemStripHit*>&, vector<BmnGemStripHit*>*, Int_t);
@@ -233,7 +233,7 @@ private:
     Bool_t fOnlyMille;
     Bool_t fBeamRun; // if true then it corresponds to 61 - 65 files
     TString fRunType;
-    vector <TString> fSteerFileNames;
+    TString fSteerFileName;
     Bool_t fWriteHitsOnly;
 
     TString fAlignmentType;

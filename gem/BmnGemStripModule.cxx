@@ -127,6 +127,13 @@ Bool_t BmnGemStripModule::IsPointInsideModule(Double_t x, Double_t y, Double_t z
     return false;
 }
 
+Bool_t BmnGemStripModule::IsPointInsideZThickness(Double_t z) {
+    if( z >= ZStartModulePosition && z <= (ZStartModulePosition+ModuleThickness) ) {
+        return true;
+    }
+    return false;
+}
+
 //Add point with full realistic behaviour (tracking through the module, avalanche effects)
 Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
                                                   Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {

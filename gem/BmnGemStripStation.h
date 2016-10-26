@@ -22,6 +22,11 @@ protected:
     Double_t YPosition;
     Double_t ZPosition;
 
+    /*Shifts of modules in each station*/
+    Double_t *XShiftOfModules;
+    Double_t *YShiftOfModules;
+    Double_t *ZShiftOfModules;
+
     Double_t BeamHoleRadius;
 
     BmnGemStripModule **Modules; //modules in the station [array]
@@ -43,6 +48,9 @@ public:
     Double_t GetXPosition() { return XPosition; }
     Double_t GetYPosition() { return YPosition; }
     Double_t GetZPosition() { return ZPosition; }
+    Double_t GetXShiftOfModule(Int_t module_num);
+    Double_t GetYShiftOfModule(Int_t module_num);
+    Double_t GetZShiftOfModule(Int_t module_num);
     Double_t GetBeamHoleRadius() { return BeamHoleRadius; }
     BmnGemStripModule* GetModule(Int_t module_num);
 

@@ -1,7 +1,7 @@
 !constraints.txt
 
 Cfiles
-alignment.bin
+alignment_xyz.bin
 
 Parameter
 
@@ -32,5 +32,5 @@ Parameter
 19 0 -1
 20 0 -1
 21 0 -1
-method inversion 500 1E-4    !Gauss matrix inversion
+method inversion 50000 1E-3    !Gauss matrix inversion
 

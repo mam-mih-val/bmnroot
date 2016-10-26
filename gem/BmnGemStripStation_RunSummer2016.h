@@ -2,10 +2,13 @@
 #define	BMNGEMSTRIPSTATION_RUNSUMMER2016_H
 
 #include "BmnGemStripStation.h"
+#include "BmnGemStripConfiguration.h"
 
 class BmnGemStripStation_RunSummer2016 : public BmnGemStripStation {
 
 private:
+
+    BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 
 /* Readout module parameters */
     Double_t ZSizeModuleWithFrames;
@@ -15,7 +18,7 @@ private:
     Double_t UpperLayerStripAngle; //angle from a vertical line where a plus value - clockwise
     Double_t LowerLayerPitch; //cm
     Double_t UpperLayerPitch; //cm
-    
+
     ElectronDriftDirectionInModule EDriftDirection;
 
 /* Station 0 : plane 10x10  */
@@ -43,7 +46,7 @@ public:
 
     BmnGemStripStation_RunSummer2016(Int_t iStation,
                        Double_t xpos_station, Double_t ypos_station, Double_t zpos_station,
-                       Double_t beamradius);
+                       Double_t beamradius, BmnGemStripConfiguration::GEM_CONFIG config);
 
     virtual ~BmnGemStripStation_RunSummer2016();
 

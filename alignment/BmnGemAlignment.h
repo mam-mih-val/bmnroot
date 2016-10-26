@@ -3,7 +3,6 @@
 
 #include <TMath.h>
 #include <TNamed.h>
-//#include "BmnGemStripReadoutModule.h" //delete it
 #include "BmnGemStripModule.h"
 #include "BmnGemStripLayer.h"
 #include "BmnGemStripDigit.h"
@@ -82,7 +81,7 @@ public:
     void SetChi2MaxPerNDF(Double_t val) {
         fChi2MaxPerNDF = val;
     }
-    
+
     void SetThreshold(Double_t val) {
         fThreshold = val;
     }
@@ -97,10 +96,6 @@ public:
 
     void SetMinHitsAccepted(Int_t val) {
         fMinHitsAccepted = val;
-    }
-
-    void SetMaxHitsAccepted(Int_t val) {
-        fMaxHitsAccepted = val;
     }
 
     void SetXMinMax(Double_t min, Double_t max) {
@@ -127,8 +122,8 @@ public:
         return fAlignmentType;
     }
 
-    void SetSteerFile(vector <TString> fileNames) {
-        fSteerFileNames = fileNames;
+    void SetSteerFile(TString fileName) {
+        fSteerFileName = fileName;
     }
 
     void SetTxMinMax(Double_t min, Double_t max) {
@@ -160,22 +155,22 @@ public:
             throw;
         }
     }
-    
-    void SetWriteHitsOnly(Bool_t flag) {  
+
+    void SetWriteHitsOnly(Bool_t flag) {
         fWriteHitsOnly = flag;
     }
-    
+
     Bool_t GetWriteHitsOnly() {
         return fWriteHitsOnly;
     }
-    
+
     void PrepareData();
     void StartMille();
     void StartPede();
 
 private:
-    vector <TString> GetSteerFileNames() {
-        return fSteerFileNames;
+    TString GetSteerFileNames() {
+        return fSteerFileName;
     }
 
     void goToStations(vector<BmnGemStripHit*>&, vector<BmnGemStripHit*>*, Int_t);
@@ -208,7 +203,6 @@ private:
 
     Double_t fChi2MaxPerNDF;
     Int_t fMinHitsAccepted;
-    Int_t fMaxHitsAccepted;
 
     Double_t fXMin;
     Double_t fXMax;
@@ -234,12 +228,12 @@ private:
     Bool_t fOnlyMille;
     Bool_t fBeamRun; // if true then it corresponds to 61 - 65 files
     TString fRunType;
-    vector <TString> fSteerFileNames;
+    TString fSteerFileName;
     Bool_t fWriteHitsOnly;
 
     TString fAlignmentType;
     TString fCommandToRunPede;
-    
+
     Int_t fNGL_PER_STAT;
 
     ClassDef(BmnGemAlignment, 1)

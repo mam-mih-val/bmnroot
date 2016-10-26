@@ -20,6 +20,7 @@ class BmnGemStripHitMaker : public FairTask {
 public:
 
     BmnGemStripHitMaker();
+    BmnGemStripHitMaker(Bool_t);
 
     virtual ~BmnGemStripHitMaker();
 
@@ -64,6 +65,8 @@ private:
     Bool_t fHitMatching;
 
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
+
+    BmnGemStripStationSet *StationSet; //Entire GEM detector
 
     ClassDef(BmnGemStripHitMaker,1);
 };

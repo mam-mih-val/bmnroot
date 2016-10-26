@@ -71,6 +71,7 @@ public:
     //Point ownership of the module --------------------------------------------
     Bool_t IsPointInsideModule(Double_t x, Double_t y); //plane ownership
     Bool_t IsPointInsideModule(Double_t x, Double_t y, Double_t z); //volume ownership
+    Bool_t IsPointInsideZThickness(Double_t z); // point with z-coord is between z_start and z_end of the module (inside module thickness)?
     //--------------------------------------------------------------------------
 
     //Methods to add a point to the module -------------------------------------

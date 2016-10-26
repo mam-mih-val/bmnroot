@@ -2,9 +2,11 @@
 
 BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStation,
                        Double_t xpos_station, Double_t ypos_station, Double_t zpos_station,
-                       Double_t beamradius) {
+                       Double_t beamradius, BmnGemStripConfiguration::GEM_CONFIG config) {
 
     //All linear values must be entered in units of cm
+
+    fCurrentConfig = config;
 
     StationNumber = iStation;
 
@@ -32,6 +34,7 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
             ZSizeModuleWithFrames = 1.3;
             ZSizeModule = 0.9;
             EDriftDirection = ForwardZAxisEDrift;
+            NModules = 1; //Number of modules in the station
             break;
 
         case 1: //one plane 66x41
@@ -42,6 +45,7 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
             ZSizeModuleWithFrames = 2.3;
             ZSizeModule = 0.9;
             EDriftDirection = ForwardZAxisEDrift;
+            NModules = 1; //Number of modules in the station
             break;
 
         case 2: //one plane 66x41
@@ -52,6 +56,7 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
             ZSizeModuleWithFrames = 2.3;
             ZSizeModule = 0.9;
             EDriftDirection = BackwardZAxisEDrift;
+            NModules = 1; //Number of modules in the station
             break;
 
         case 3: //one plane 66x41
@@ -62,6 +67,7 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
             ZSizeModuleWithFrames = 2.3;
             ZSizeModule = 0.9;
             EDriftDirection = ForwardZAxisEDrift;
+            NModules = 1; //Number of modules in the station
             break;
 
         case 4: //one plane 66x41
@@ -72,6 +78,7 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
             ZSizeModuleWithFrames = 2.3;
             ZSizeModule = 0.9;
             EDriftDirection = BackwardZAxisEDrift;
+            NModules = 1; //Number of modules in the station
             break;
 
         case 5: //one plane 66x41
@@ -82,6 +89,7 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
             ZSizeModuleWithFrames = 2.3;
             ZSizeModule = 0.9;
             EDriftDirection = ForwardZAxisEDrift;
+            NModules = 1; //Number of modules in the station
             break;
 
         case 6: //one plane 163x45
@@ -92,6 +100,7 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
             ZSizeModuleWithFrames = 3.9;
             ZSizeModule = 0.9;
             EDriftDirection = BackwardZAxisEDrift;
+            NModules = 2; //Number of modules in the station
             break;
     }
 
@@ -120,10 +129,64 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
 
     YSlopeHotZoneSize_Plane163x45 = 15.0;
 
+    //Module shifts ------------------------------------------------------------
+    XShiftOfModules = new Double_t[NModules];
+    YShiftOfModules = new Double_t[NModules];
+    ZShiftOfModules = new Double_t[NModules];
+
+    switch(fCurrentConfig) {
+        case BmnGemStripConfiguration::RunSummer2016:
+            for(Int_t iModule = 0; iModule < NModules; ++iModule) {
+                XShiftOfModules[iModule] = -BmnGemStationPositions_RunSummer2016::XModuleShifts[iStation][iModule]; //inverted : (bm@n x-coord -> classical x-coord)
+                YShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016::YModuleShifts[iStation][iModule];
+                ZShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016::ZModuleShifts[iStation][iModule];
+            }
+            break;
+
+        case BmnGemStripConfiguration::RunSummer2016_set1:
+            for(Int_t iModule = 0; iModule < NModules; ++iModule) {
+                XShiftOfModules[iModule] = -BmnGemStationPositions_RunSummer2016_set1::XModuleShifts[iStation][iModule]; //inverted : (bm@n x-coord -> classical x-coord)
+                YShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016_set1::YModuleShifts[iStation][iModule];
+                ZShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016_set1::ZModuleShifts[iStation][iModule];
+            }
+            break;
+
+        case BmnGemStripConfiguration::RunSummer2016_set2:
+            for(Int_t iModule = 0; iModule < NModules; ++iModule) {
+                XShiftOfModules[iModule] = -BmnGemStationPositions_RunSummer2016_set2::XModuleShifts[iStation][iModule]; //inverted : (bm@n x-coord -> classical x-coord)
+                YShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016_set2::YModuleShifts[iStation][iModule];
+                ZShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016_set2::ZModuleShifts[iStation][iModule];
+            }
+            break;
+
+        //for technical usage
+        case BmnGemStripConfiguration::RunSummer2016_ALIGNMENT:
+            for(Int_t iModule = 0; iModule < NModules; ++iModule) {
+                XShiftOfModules[iModule] = -BmnGemStationPositions_RunSummer2016::XModuleShifts[iStation][iModule]; //inverted : (bm@n x-coord -> classical x-coord)
+                YShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016::YModuleShifts[iStation][iModule];
+                ZShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016::ZModuleShifts[iStation][iModule];
+            }
+
+            if(iStation == 0 || iStation == 6) {
+                for(Int_t iModule = 0; iModule < NModules; ++iModule) {
+                    XShiftOfModules[iModule] = -BmnGemStationPositions_RunSummer2016_set2::XModuleShifts[iStation][iModule]; //inverted : (bm@n x-coord -> classical x-coord)
+                    YShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016_set2::YModuleShifts[iStation][iModule];
+                    ZShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016_set2::ZModuleShifts[iStation][iModule];
+                }
+            }
+            break;
+
+        default:
+            for(Int_t iModule = 0; iModule < NModules; ++iModule) {
+                XShiftOfModules[iModule] = -BmnGemStationPositions_RunSummer2016::XModuleShifts[iStation][iModule]; //inverted : (bm@n x-coord -> classical x-coord)
+                YShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016::YModuleShifts[iStation][iModule];
+                ZShiftOfModules[iModule] = BmnGemStationPositions_RunSummer2016::ZModuleShifts[iStation][iModule];
+            }
+    }
+    //--------------------------------------------------------------------------
 
     //Assembling a station -----------------------------------------------------
     if(StationNumber == 0) {
-        NModules = 1; //1 modules in the station
         XSize = XModuleSize_Plane10x10;
         YSize = YModuleSize_Plane10x10;
         ZSize = ZSizeModuleWithFrames;
@@ -131,7 +194,6 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
     }
 
     if(StationNumber >= 1 && StationNumber <= 5) {
-        NModules = 1; //1 modules in the station
         XSize = XModuleSize_Plane66x41;
         YSize = YModuleSize_Plane66x41;
         ZSize = ZSizeModuleWithFrames;
@@ -139,7 +201,6 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
     }
 
     if(StationNumber == 6) {
-        NModules = 2; //2 modules in the station (left+right)
         XSize = 2*XModuleSize_Plane163x45;
         YSize = YModuleSize_Plane163x45;
         ZSize = ZSizeModuleWithFrames;
@@ -159,12 +220,24 @@ BmnGemStripStation_RunSummer2016::~BmnGemStripStation_RunSummer2016() {
         delete [] Modules;
         Modules = NULL;
     }
+    if(XShiftOfModules) {
+        delete [] XShiftOfModules;
+        XShiftOfModules = NULL;
+    }
+    if(YShiftOfModules) {
+        delete [] YShiftOfModules;
+        YShiftOfModules = NULL;
+    }
+    if(ZShiftOfModules) {
+        delete [] ZShiftOfModules;
+        ZShiftOfModules = NULL;
+    }
 }
 
 Int_t BmnGemStripStation_RunSummer2016::GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord) {
 
     for(Int_t imodule = 0; imodule < NModules; ++imodule) {
-        if( Modules[imodule]->IsPointInsideModule(xcoord, ycoord) ) return imodule;
+        if( Modules[imodule]->IsPointInsideModule(xcoord, ycoord, zcoord) ) return imodule;
     }
 
     return -1;
@@ -176,12 +249,12 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One10x10Plane() {
     Modules = new BmnGemStripModule* [NModules];
 
     //module
-    Modules[0] = new BmnGemStripModule(ZPosition, EDriftDirection);
+    Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection);
 
         //lower strip layer --------------------------------------------------------
         BmnGemStripLayer lower_layer(0, LowerStripLayer,
                                      XModuleSize_Plane10x10, YModuleSize_Plane10x10,
-                                     XPosition-XModuleSize_Plane10x10*0.5, YPosition-YModuleSize_Plane10x10*0.5,
+                                     XShiftOfModules[0]+XPosition-XModuleSize_Plane10x10*0.5, YShiftOfModules[0]+YPosition-YModuleSize_Plane10x10*0.5,
                                      LowerLayerPitch, LowerLayerStripAngle);
 
         lower_layer.SetStripNumberingOrder(RightToLeft);
@@ -191,7 +264,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One10x10Plane() {
         //upper strip layer --------------------------------------------------------
         BmnGemStripLayer upper_layer(0, UpperStripLayer,
                                      XModuleSize_Plane10x10, YModuleSize_Plane10x10,
-                                     XPosition-XModuleSize_Plane10x10*0.5, YPosition-YModuleSize_Plane10x10*0.5,
+                                     XShiftOfModules[0]+XPosition-XModuleSize_Plane10x10*0.5, YShiftOfModules[0]+YPosition-YModuleSize_Plane10x10*0.5,
                                      UpperLayerPitch, UpperLayerStripAngle);
 
         upper_layer.SetStripNumberingOrder(LeftToRight);
@@ -209,14 +282,14 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One66x41Plane() {
     Modules = new BmnGemStripModule* [NModules];
 
     //module
-    Modules[0] = new BmnGemStripModule(ZPosition, EDriftDirection);
+    Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection);
 
     //zone 0 (big) -------------------------------------------------------------
 
         //lower strip layer (zone 0) -------------------------------------------
         BmnGemStripLayer lower_layer_zone0(0, LowerStripLayer,
                                            XModuleSize_Plane66x41, YModuleSize_Plane66x41,
-                                           XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
+                                           XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5, YShiftOfModules[0]+YPosition-YModuleSize_Plane66x41*0.5,
                                            LowerLayerPitch, LowerLayerStripAngle);
 
         if(UpperLayerStripAngle >= 0.0) {
@@ -234,26 +307,26 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One66x41Plane() {
         Double_t YPoints_DeadZone_zone0[NPoints_DeadZone_zone0];
 
         if(UpperLayerStripAngle >= 0.0) {
-            XPoints_DeadZone_zone0[0] = XPosition-XModuleSize_Plane66x41*0.5;
-            XPoints_DeadZone_zone0[1] = XPosition-XModuleSize_Plane66x41*0.5;
-            XPoints_DeadZone_zone0[2] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
-            XPoints_DeadZone_zone0[3] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
+            XPoints_DeadZone_zone0[0] = XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5;
+            XPoints_DeadZone_zone0[1] = XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5;
+            XPoints_DeadZone_zone0[2] = XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
+            XPoints_DeadZone_zone0[3] = XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
 
-            YPoints_DeadZone_zone0[0] = YPosition-YModuleSize_Plane66x41*0.5;
-            YPoints_DeadZone_zone0[1] = YPosition-YModuleSize_Plane66x41*0.5 + YHotZoneSize_Plane66x41;
-            YPoints_DeadZone_zone0[2] = YPosition-YModuleSize_Plane66x41*0.5 + YHotZoneSize_Plane66x41;
-            YPoints_DeadZone_zone0[3] = YPosition-YModuleSize_Plane66x41*0.5;
+            YPoints_DeadZone_zone0[0] = YShiftOfModules[0]+YPosition-YModuleSize_Plane66x41*0.5;
+            YPoints_DeadZone_zone0[1] = YShiftOfModules[0]+YPosition-YModuleSize_Plane66x41*0.5 + YHotZoneSize_Plane66x41;
+            YPoints_DeadZone_zone0[2] = YShiftOfModules[0]+YPosition-YModuleSize_Plane66x41*0.5 + YHotZoneSize_Plane66x41;
+            YPoints_DeadZone_zone0[3] = YShiftOfModules[0]+YPosition-YModuleSize_Plane66x41*0.5;
         }
         else {
-            XPoints_DeadZone_zone0[0] = XPosition-XModuleSize_Plane66x41*0.5;
-            XPoints_DeadZone_zone0[1] = XPosition-XModuleSize_Plane66x41*0.5;
-            XPoints_DeadZone_zone0[2] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
-            XPoints_DeadZone_zone0[3] = XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
+            XPoints_DeadZone_zone0[0] = XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5;
+            XPoints_DeadZone_zone0[1] = XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5;
+            XPoints_DeadZone_zone0[2] = XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
+            XPoints_DeadZone_zone0[3] = XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5 + XHotZoneSize_Plane66x41;
 
-            YPoints_DeadZone_zone0[0] = YPosition+YModuleSize_Plane66x41*0.5 - YHotZoneSize_Plane66x41;
-            YPoints_DeadZone_zone0[1] = YPosition+YModuleSize_Plane66x41*0.5;
-            YPoints_DeadZone_zone0[2] = YPosition+YModuleSize_Plane66x41*0.5;
-            YPoints_DeadZone_zone0[3] = YPosition+YModuleSize_Plane66x41*0.5 - YHotZoneSize_Plane66x41;
+            YPoints_DeadZone_zone0[0] = YShiftOfModules[0]+YPosition+YModuleSize_Plane66x41*0.5 - YHotZoneSize_Plane66x41;
+            YPoints_DeadZone_zone0[1] = YShiftOfModules[0]+YPosition+YModuleSize_Plane66x41*0.5;
+            YPoints_DeadZone_zone0[2] = YShiftOfModules[0]+YPosition+YModuleSize_Plane66x41*0.5;
+            YPoints_DeadZone_zone0[3] = YShiftOfModules[0]+YPosition+YModuleSize_Plane66x41*0.5 - YHotZoneSize_Plane66x41;
         }
 
         lower_layer_zone0.AddDeadZone(NPoints_DeadZone_zone0, XPoints_DeadZone_zone0, YPoints_DeadZone_zone0);
@@ -262,7 +335,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One66x41Plane() {
         //upper strip layer (zone 0) -------------------------------------------
         BmnGemStripLayer upper_layer_zone0(0, UpperStripLayer,
                                            XModuleSize_Plane66x41, YModuleSize_Plane66x41,
-                                           XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
+                                           XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5, YShiftOfModules[0]+YPosition-YModuleSize_Plane66x41*0.5,
                                            UpperLayerPitch, UpperLayerStripAngle);
 
         if(UpperLayerStripAngle >= 0.0) {
@@ -288,7 +361,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One66x41Plane() {
             //lower strip layer (zone 1) -------------------------------------------
             lower_layer_zone1 = BmnGemStripLayer(1, LowerStripLayer,
                                                XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
-                                               XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
+                                               XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5, YShiftOfModules[0]+YPosition-YModuleSize_Plane66x41*0.5,
                                                LowerLayerPitch, LowerLayerStripAngle);
 
             lower_layer_zone1.SetStripNumberingOrder(LeftToRight);
@@ -298,7 +371,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One66x41Plane() {
             //upper strip layer (zone 1) -------------------------------------------
             upper_layer_zone1 = BmnGemStripLayer(1, UpperStripLayer,
                                                XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
-                                               XPosition-XModuleSize_Plane66x41*0.5, YPosition-YModuleSize_Plane66x41*0.5,
+                                               XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5, YShiftOfModules[0]+YPosition-YModuleSize_Plane66x41*0.5,
                                                UpperLayerPitch, UpperLayerStripAngle);
 
             upper_layer_zone1.SetStripNumberingOrder(LeftToRight);
@@ -309,7 +382,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One66x41Plane() {
             //lower strip layer (zone 1) -------------------------------------------
             lower_layer_zone1 = BmnGemStripLayer(1, LowerStripLayer,
                                                XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
-                                               XPosition-XModuleSize_Plane66x41*0.5, YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41,
+                                               XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5, YShiftOfModules[0]+YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41,
                                                LowerLayerPitch, LowerLayerStripAngle);
 
             lower_layer_zone1.SetStripNumberingOrder(LeftToRight);
@@ -319,7 +392,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One66x41Plane() {
             //upper strip layer (zone 1) -------------------------------------------
             upper_layer_zone1 = BmnGemStripLayer(1, UpperStripLayer,
                                                XHotZoneSize_Plane66x41, YHotZoneSize_Plane66x41,
-                                               XPosition-XModuleSize_Plane66x41*0.5, YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41,
+                                               XShiftOfModules[0]+XPosition-XModuleSize_Plane66x41*0.5, YShiftOfModules[0]+YPosition+YModuleSize_Plane66x41*0.5-YHotZoneSize_Plane66x41,
                                                UpperLayerPitch, UpperLayerStripAngle);
 
             upper_layer_zone1.SetStripNumberingOrder(LeftToRight);
@@ -342,14 +415,14 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
 
 //module 0 (left) --------------------------------------------------------------
     {
-        Modules[0] = new BmnGemStripModule(ZPosition, EDriftDirection);
+        Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection);
 
             //zone 0 (big) ---------------------------------------------------------
 
             //lower strip layer (zone 0) -------------------------------------------
             BmnGemStripLayer lower_layer_zone0(0, LowerStripLayer,
                                                XModuleSize_Plane163x45, YModuleSize_Plane163x45,
-                                               XPosition-XModuleSize_Plane163x45, YPosition-YModuleSize_Plane163x45*0.5,
+                                               XShiftOfModules[0]+XPosition-XModuleSize_Plane163x45, YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5,
                                                LowerLayerPitch, LowerLayerStripAngle);
 
             lower_layer_zone0.SetStripNumberingOrder(RightToLeft);
@@ -360,15 +433,15 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             Double_t XPoints_DeadZone_lower_zone0[NPoints_DeadZone_lower_zone0];
             Double_t YPoints_DeadZone_lower_zone0[NPoints_DeadZone_lower_zone0];
 
-            XPoints_DeadZone_lower_zone0[0] = XPosition-XRectHotZoneSize_Plane163x45;
-            XPoints_DeadZone_lower_zone0[1] = XPosition-XRectHotZoneSize_Plane163x45;
-            XPoints_DeadZone_lower_zone0[2] = XPosition+0.0;
-            XPoints_DeadZone_lower_zone0[3] = XPosition+0.0;
+            XPoints_DeadZone_lower_zone0[0] = XShiftOfModules[0]+XPosition-XRectHotZoneSize_Plane163x45;
+            XPoints_DeadZone_lower_zone0[1] = XShiftOfModules[0]+XPosition-XRectHotZoneSize_Plane163x45;
+            XPoints_DeadZone_lower_zone0[2] = XShiftOfModules[0]+XPosition+0.0;
+            XPoints_DeadZone_lower_zone0[3] = XShiftOfModules[0]+XPosition+0.0;
 
-            YPoints_DeadZone_lower_zone0[0] = YPosition-YModuleSize_Plane163x45*0.5;
-            YPoints_DeadZone_lower_zone0[1] = YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
-            YPoints_DeadZone_lower_zone0[2] = YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
-            YPoints_DeadZone_lower_zone0[3] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone0[0] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone0[1] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
+            YPoints_DeadZone_lower_zone0[2] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
+            YPoints_DeadZone_lower_zone0[3] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5;
 
             lower_layer_zone0.AddDeadZone(NPoints_DeadZone_lower_zone0, XPoints_DeadZone_lower_zone0, YPoints_DeadZone_lower_zone0);
             //----------------------------------------------------------------------
@@ -376,7 +449,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             //upper strip layer (zone 0) -------------------------------------------
             BmnGemStripLayer upper_layer_zone0(0, UpperStripLayer,
                                                XModuleSize_Plane163x45, YModuleSize_Plane163x45,
-                                               XPosition-XModuleSize_Plane163x45, YPosition-YModuleSize_Plane163x45*0.5,
+                                               XShiftOfModules[0]+XPosition-XModuleSize_Plane163x45, YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5,
                                                UpperLayerPitch, UpperLayerStripAngle);
 
             upper_layer_zone0.SetStripNumberingOrder(RightToLeft);
@@ -387,15 +460,15 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             Double_t XPoints_DeadZone_upper_zone0[NPoints_DeadZone_upper_zone0];
             Double_t YPoints_DeadZone_upper_zone0[NPoints_DeadZone_upper_zone0];
 
-            XPoints_DeadZone_upper_zone0[0] = XPosition-XSlopeHotZoneSize_Plane163x45[0];
-            XPoints_DeadZone_upper_zone0[1] = XPosition-XSlopeHotZoneSize_Plane163x45[1];
-            XPoints_DeadZone_upper_zone0[2] = XPosition+0.0;
-            XPoints_DeadZone_upper_zone0[3] = XPosition+0.0;
+            XPoints_DeadZone_upper_zone0[0] = XShiftOfModules[0]+XPosition-XSlopeHotZoneSize_Plane163x45[0];
+            XPoints_DeadZone_upper_zone0[1] = XShiftOfModules[0]+XPosition-XSlopeHotZoneSize_Plane163x45[1];
+            XPoints_DeadZone_upper_zone0[2] = XShiftOfModules[0]+XPosition+0.0;
+            XPoints_DeadZone_upper_zone0[3] = XShiftOfModules[0]+XPosition+0.0;
 
-            YPoints_DeadZone_upper_zone0[0] = YPosition-YModuleSize_Plane163x45*0.5;
-            YPoints_DeadZone_upper_zone0[1] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
-            YPoints_DeadZone_upper_zone0[2] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
-            YPoints_DeadZone_upper_zone0[3] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone0[0] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone0[1] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone0[2] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone0[3] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5;
 
             upper_layer_zone0.AddDeadZone(NPoints_DeadZone_upper_zone0, XPoints_DeadZone_upper_zone0, YPoints_DeadZone_upper_zone0);
             //----------------------------------------------------------------------
@@ -403,7 +476,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             //lower strip layer (zone 1) -------------------------------------------
             BmnGemStripLayer lower_layer_zone1(1, LowerStripLayer,
                                                XRectHotZoneSize_Plane163x45, YRectHotZoneSize_Plane163x45,
-                                               XPosition-XRectHotZoneSize_Plane163x45, YPosition-YModuleSize_Plane163x45*0.5,
+                                               XShiftOfModules[0]+XPosition-XRectHotZoneSize_Plane163x45, YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5,
                                                LowerLayerPitch, LowerLayerStripAngle);
 
             lower_layer_zone1.SetStripNumberingOrder(RightToLeft);
@@ -414,15 +487,15 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             Double_t XPoints_DeadZone_lower_zone1[NPoints_DeadZone_lower_zone1];
             Double_t YPoints_DeadZone_lower_zone1[NPoints_DeadZone_lower_zone1];
 
-            XPoints_DeadZone_lower_zone1[0] = XPosition-BeamHoleRadius;
-            XPoints_DeadZone_lower_zone1[1] = XPosition-BeamHoleRadius;
-            XPoints_DeadZone_lower_zone1[2] = XPosition+0.0;
-            XPoints_DeadZone_lower_zone1[3] = XPosition+0.0;
+            XPoints_DeadZone_lower_zone1[0] = XShiftOfModules[0]+XPosition-BeamHoleRadius;
+            XPoints_DeadZone_lower_zone1[1] = XShiftOfModules[0]+XPosition-BeamHoleRadius;
+            XPoints_DeadZone_lower_zone1[2] = XShiftOfModules[0]+XPosition+0.0;
+            XPoints_DeadZone_lower_zone1[3] = XShiftOfModules[0]+XPosition+0.0;
 
-            YPoints_DeadZone_lower_zone1[0] = YPosition-YModuleSize_Plane163x45*0.5;
-            YPoints_DeadZone_lower_zone1[1] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-            YPoints_DeadZone_lower_zone1[2] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-            YPoints_DeadZone_lower_zone1[3] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone1[0] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone1[1] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_lower_zone1[2] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_lower_zone1[3] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5;
 
             lower_layer_zone1.AddDeadZone(NPoints_DeadZone_lower_zone1, XPoints_DeadZone_lower_zone1, YPoints_DeadZone_lower_zone1);
             //----------------------------------------------------------------------
@@ -430,7 +503,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             //upper strip layer (zone 1) -------------------------------------------
             BmnGemStripLayer upper_layer_zone1(1, UpperStripLayer,
                                                XSlopeHotZoneSize_Plane163x45[1], YSlopeHotZoneSize_Plane163x45,
-                                               XPosition-XSlopeHotZoneSize_Plane163x45[1], YPosition-YModuleSize_Plane163x45*0.5,
+                                               XShiftOfModules[0]+XPosition-XSlopeHotZoneSize_Plane163x45[1], YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5,
                                                UpperLayerPitch, UpperLayerStripAngle);
 
             upper_layer_zone1.SetStripNumberingOrder(RightToLeft);
@@ -441,15 +514,15 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             Double_t XPoints_DeadZone_upper_zone1_hole[NPoints_DeadZone_upper_zone1_hole];
             Double_t YPoints_DeadZone_upper_zone1_hole[NPoints_DeadZone_upper_zone1_hole];
 
-            XPoints_DeadZone_upper_zone1_hole[0] = XPosition-BeamHoleRadius;
-            XPoints_DeadZone_upper_zone1_hole[1] = XPosition-BeamHoleRadius;
-            XPoints_DeadZone_upper_zone1_hole[2] = XPosition+0.0;
-            XPoints_DeadZone_upper_zone1_hole[3] = XPosition+0.0;
+            XPoints_DeadZone_upper_zone1_hole[0] = XShiftOfModules[0]+XPosition-BeamHoleRadius;
+            XPoints_DeadZone_upper_zone1_hole[1] = XShiftOfModules[0]+XPosition-BeamHoleRadius;
+            XPoints_DeadZone_upper_zone1_hole[2] = XShiftOfModules[0]+XPosition+0.0;
+            XPoints_DeadZone_upper_zone1_hole[3] = XShiftOfModules[0]+XPosition+0.0;
 
-            YPoints_DeadZone_upper_zone1_hole[0] = YPosition-YModuleSize_Plane163x45*0.5;
-            YPoints_DeadZone_upper_zone1_hole[1] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-            YPoints_DeadZone_upper_zone1_hole[2] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-            YPoints_DeadZone_upper_zone1_hole[3] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone1_hole[0] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone1_hole[1] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_upper_zone1_hole[2] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_upper_zone1_hole[3] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5;
 
             upper_layer_zone1.AddDeadZone(NPoints_DeadZone_upper_zone1_hole, XPoints_DeadZone_upper_zone1_hole, YPoints_DeadZone_upper_zone1_hole);
 
@@ -458,13 +531,13 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             Double_t XPoints_DeadZone_upper_zone1_triang[NPoints_DeadZone_upper_zone1_triang];
             Double_t YPoints_DeadZone_upper_zone1_triang[NPoints_DeadZone_upper_zone1_triang];
 
-            XPoints_DeadZone_upper_zone1_triang[0] = XPosition-XSlopeHotZoneSize_Plane163x45[1];
-            XPoints_DeadZone_upper_zone1_triang[1] = XPosition-XSlopeHotZoneSize_Plane163x45[1];
-            XPoints_DeadZone_upper_zone1_triang[2] = XPosition-XSlopeHotZoneSize_Plane163x45[0];
+            XPoints_DeadZone_upper_zone1_triang[0] = XShiftOfModules[0]+XPosition-XSlopeHotZoneSize_Plane163x45[1];
+            XPoints_DeadZone_upper_zone1_triang[1] = XShiftOfModules[0]+XPosition-XSlopeHotZoneSize_Plane163x45[1];
+            XPoints_DeadZone_upper_zone1_triang[2] = XShiftOfModules[0]+XPosition-XSlopeHotZoneSize_Plane163x45[0];
 
-            YPoints_DeadZone_upper_zone1_triang[0] = YPosition-YModuleSize_Plane163x45*0.5;
-            YPoints_DeadZone_upper_zone1_triang[1] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
-            YPoints_DeadZone_upper_zone1_triang[2] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone1_triang[0] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone1_triang[1] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone1_triang[2] = YShiftOfModules[0]+YPosition-YModuleSize_Plane163x45*0.5;
 
             upper_layer_zone1.AddDeadZone(NPoints_DeadZone_upper_zone1_triang, XPoints_DeadZone_upper_zone1_triang, YPoints_DeadZone_upper_zone1_triang);
 
@@ -480,14 +553,14 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
 
 //module 1 (right) --------------------------------------------------------------
     {
-        Modules[1] = new BmnGemStripModule(ZPosition, EDriftDirection);
+        Modules[1] = new BmnGemStripModule(ZPosition+ZShiftOfModules[1], EDriftDirection);
 
             //zone 0 (big) ---------------------------------------------------------
 
             //lower strip layer (zone 0) -------------------------------------------
             BmnGemStripLayer lower_layer_zone0(0, LowerStripLayer,
                                                XModuleSize_Plane163x45, YModuleSize_Plane163x45,
-                                               XPosition+0.0, YPosition-YModuleSize_Plane163x45*0.5,
+                                               XShiftOfModules[1]+XPosition+0.0, YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5,
                                                LowerLayerPitch, LowerLayerStripAngle);
 
             lower_layer_zone0.SetStripNumberingOrder(RightToLeft);
@@ -498,15 +571,15 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             Double_t XPoints_DeadZone_lower_zone0[NPoints_DeadZone_lower_zone0];
             Double_t YPoints_DeadZone_lower_zone0[NPoints_DeadZone_lower_zone0];
 
-            XPoints_DeadZone_lower_zone0[0] = XPosition+0.0;
-            XPoints_DeadZone_lower_zone0[1] = XPosition+0.0;
-            XPoints_DeadZone_lower_zone0[2] = XPosition+XRectHotZoneSize_Plane163x45;
-            XPoints_DeadZone_lower_zone0[3] = XPosition+XRectHotZoneSize_Plane163x45;
+            XPoints_DeadZone_lower_zone0[0] = XShiftOfModules[1]+XPosition+0.0;
+            XPoints_DeadZone_lower_zone0[1] = XShiftOfModules[1]+XPosition+0.0;
+            XPoints_DeadZone_lower_zone0[2] = XShiftOfModules[1]+XPosition+XRectHotZoneSize_Plane163x45;
+            XPoints_DeadZone_lower_zone0[3] = XShiftOfModules[1]+XPosition+XRectHotZoneSize_Plane163x45;
 
-            YPoints_DeadZone_lower_zone0[0] = YPosition-YModuleSize_Plane163x45*0.5;
-            YPoints_DeadZone_lower_zone0[1] = YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
-            YPoints_DeadZone_lower_zone0[2] = YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
-            YPoints_DeadZone_lower_zone0[3] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone0[0] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone0[1] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
+            YPoints_DeadZone_lower_zone0[2] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5 + YRectHotZoneSize_Plane163x45;
+            YPoints_DeadZone_lower_zone0[3] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5;
 
             lower_layer_zone0.AddDeadZone(NPoints_DeadZone_lower_zone0, XPoints_DeadZone_lower_zone0, YPoints_DeadZone_lower_zone0);
             //----------------------------------------------------------------------
@@ -514,7 +587,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             //upper strip layer (zone 0) -------------------------------------------
             BmnGemStripLayer upper_layer_zone0(0, UpperStripLayer,
                                                XModuleSize_Plane163x45, YModuleSize_Plane163x45,
-                                               XPosition+0.0, YPosition-YModuleSize_Plane163x45*0.5,
+                                               XShiftOfModules[1]+XPosition+0.0, YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5,
                                                UpperLayerPitch, UpperLayerStripAngle);
 
             upper_layer_zone0.SetStripNumberingOrder(RightToLeft);
@@ -525,15 +598,15 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             Double_t XPoints_DeadZone_upper_zone0[NPoints_DeadZone_upper_zone0];
             Double_t YPoints_DeadZone_upper_zone0[NPoints_DeadZone_upper_zone0];
 
-            XPoints_DeadZone_upper_zone0[0] = XPosition+0.0;
-            XPoints_DeadZone_upper_zone0[1] = XPosition+0.0;
-            XPoints_DeadZone_upper_zone0[2] = XPosition+XSlopeHotZoneSize_Plane163x45[0];
-            XPoints_DeadZone_upper_zone0[3] = XPosition+XSlopeHotZoneSize_Plane163x45[1];
+            XPoints_DeadZone_upper_zone0[0] = XShiftOfModules[1]+XPosition+0.0;
+            XPoints_DeadZone_upper_zone0[1] = XShiftOfModules[1]+XPosition+0.0;
+            XPoints_DeadZone_upper_zone0[2] = XShiftOfModules[1]+XPosition+XSlopeHotZoneSize_Plane163x45[0];
+            XPoints_DeadZone_upper_zone0[3] = XShiftOfModules[1]+XPosition+XSlopeHotZoneSize_Plane163x45[1];
 
-            YPoints_DeadZone_upper_zone0[0] = YPosition-YModuleSize_Plane163x45*0.5;
-            YPoints_DeadZone_upper_zone0[1] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
-            YPoints_DeadZone_upper_zone0[2] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
-            YPoints_DeadZone_upper_zone0[3] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone0[0] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone0[1] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone0[2] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone0[3] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5;
 
             upper_layer_zone0.AddDeadZone(NPoints_DeadZone_upper_zone0, XPoints_DeadZone_upper_zone0, YPoints_DeadZone_upper_zone0);
             //----------------------------------------------------------------------
@@ -541,7 +614,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             //lower strip layer (zone 1) -------------------------------------------
             BmnGemStripLayer lower_layer_zone1(1, LowerStripLayer,
                                                XRectHotZoneSize_Plane163x45, YRectHotZoneSize_Plane163x45,
-                                               XPosition+0.0, YPosition-YModuleSize_Plane163x45*0.5,
+                                               XShiftOfModules[1]+XPosition+0.0, YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5,
                                                LowerLayerPitch, LowerLayerStripAngle);
 
             lower_layer_zone1.SetStripNumberingOrder(RightToLeft);
@@ -552,15 +625,15 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             Double_t XPoints_DeadZone_lower_zone1[NPoints_DeadZone_lower_zone1];
             Double_t YPoints_DeadZone_lower_zone1[NPoints_DeadZone_lower_zone1];
 
-            XPoints_DeadZone_lower_zone1[0] = XPosition+0.0;
-            XPoints_DeadZone_lower_zone1[1] = XPosition+0.0;
-            XPoints_DeadZone_lower_zone1[2] = XPosition+BeamHoleRadius;
-            XPoints_DeadZone_lower_zone1[3] = XPosition+BeamHoleRadius;
+            XPoints_DeadZone_lower_zone1[0] = XShiftOfModules[1]+XPosition+0.0;
+            XPoints_DeadZone_lower_zone1[1] = XShiftOfModules[1]+XPosition+0.0;
+            XPoints_DeadZone_lower_zone1[2] = XShiftOfModules[1]+XPosition+BeamHoleRadius;
+            XPoints_DeadZone_lower_zone1[3] = XShiftOfModules[1]+XPosition+BeamHoleRadius;
 
-            YPoints_DeadZone_lower_zone1[0] = YPosition-YModuleSize_Plane163x45*0.5;
-            YPoints_DeadZone_lower_zone1[1] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-            YPoints_DeadZone_lower_zone1[2] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-            YPoints_DeadZone_lower_zone1[3] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone1[0] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_lower_zone1[1] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_lower_zone1[2] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_lower_zone1[3] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5;
 
             lower_layer_zone1.AddDeadZone(NPoints_DeadZone_lower_zone1, XPoints_DeadZone_lower_zone1, YPoints_DeadZone_lower_zone1);
             //----------------------------------------------------------------------
@@ -568,7 +641,7 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             //upper strip layer (zone 1) -------------------------------------------
             BmnGemStripLayer upper_layer_zone1(1, UpperStripLayer,
                                                XSlopeHotZoneSize_Plane163x45[1], YSlopeHotZoneSize_Plane163x45,
-                                               XPosition+0.0, YPosition-YModuleSize_Plane163x45*0.5,
+                                               XShiftOfModules[1]+XPosition+0.0, YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5,
                                                UpperLayerPitch, UpperLayerStripAngle);
 
             upper_layer_zone1.SetStripNumberingOrder(RightToLeft);
@@ -579,15 +652,15 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             Double_t XPoints_DeadZone_upper_zone1_hole[NPoints_DeadZone_upper_zone1_hole];
             Double_t YPoints_DeadZone_upper_zone1_hole[NPoints_DeadZone_upper_zone1_hole];
 
-            XPoints_DeadZone_upper_zone1_hole[0] = XPosition+0.0;
-            XPoints_DeadZone_upper_zone1_hole[1] = XPosition+0.0;
-            XPoints_DeadZone_upper_zone1_hole[2] = XPosition+BeamHoleRadius;
-            XPoints_DeadZone_upper_zone1_hole[3] = XPosition+BeamHoleRadius;
+            XPoints_DeadZone_upper_zone1_hole[0] = XShiftOfModules[1]+XPosition+0.0;
+            XPoints_DeadZone_upper_zone1_hole[1] = XShiftOfModules[1]+XPosition+0.0;
+            XPoints_DeadZone_upper_zone1_hole[2] = XShiftOfModules[1]+XPosition+BeamHoleRadius;
+            XPoints_DeadZone_upper_zone1_hole[3] = XShiftOfModules[1]+XPosition+BeamHoleRadius;
 
-            YPoints_DeadZone_upper_zone1_hole[0] = YPosition-YModuleSize_Plane163x45*0.5;
-            YPoints_DeadZone_upper_zone1_hole[1] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-            YPoints_DeadZone_upper_zone1_hole[2] = YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
-            YPoints_DeadZone_upper_zone1_hole[3] = YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone1_hole[0] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone1_hole[1] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_upper_zone1_hole[2] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5 + BeamHoleRadius;
+            YPoints_DeadZone_upper_zone1_hole[3] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5;
 
             upper_layer_zone1.AddDeadZone(NPoints_DeadZone_upper_zone1_hole, XPoints_DeadZone_upper_zone1_hole, YPoints_DeadZone_upper_zone1_hole);
 
@@ -596,13 +669,13 @@ void BmnGemStripStation_RunSummer2016::BuildModules_One163x45Plane() {
             Double_t XPoints_DeadZone_upper_zone1_triang[NPoints_DeadZone_upper_zone1_triang];
             Double_t YPoints_DeadZone_upper_zone1_triang[NPoints_DeadZone_upper_zone1_triang];
 
-            XPoints_DeadZone_upper_zone1_triang[0] = XPosition+XSlopeHotZoneSize_Plane163x45[1];
-            XPoints_DeadZone_upper_zone1_triang[1] = XPosition+XSlopeHotZoneSize_Plane163x45[0];
-            XPoints_DeadZone_upper_zone1_triang[2] = XPosition+XSlopeHotZoneSize_Plane163x45[1];
+            XPoints_DeadZone_upper_zone1_triang[0] = XShiftOfModules[1]+XPosition+XSlopeHotZoneSize_Plane163x45[1];
+            XPoints_DeadZone_upper_zone1_triang[1] = XShiftOfModules[1]+XPosition+XSlopeHotZoneSize_Plane163x45[0];
+            XPoints_DeadZone_upper_zone1_triang[2] = XShiftOfModules[1]+XPosition+XSlopeHotZoneSize_Plane163x45[1];
 
-            YPoints_DeadZone_upper_zone1_triang[0] = YPosition-YModuleSize_Plane163x45*0.5;
-            YPoints_DeadZone_upper_zone1_triang[1] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
-            YPoints_DeadZone_upper_zone1_triang[2] = YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone1_triang[0] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5;
+            YPoints_DeadZone_upper_zone1_triang[1] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
+            YPoints_DeadZone_upper_zone1_triang[2] = YShiftOfModules[1]+YPosition-YModuleSize_Plane163x45*0.5 + YSlopeHotZoneSize_Plane163x45;
 
             upper_layer_zone1.AddDeadZone(NPoints_DeadZone_upper_zone1_triang, XPoints_DeadZone_upper_zone1_triang, YPoints_DeadZone_upper_zone1_triang);
 

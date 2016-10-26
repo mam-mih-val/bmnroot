@@ -1,4 +1,5 @@
 #include "BmnGemAlignment.h"
+#include "../gem/BmnGemStripConfiguration.h"
 
 BmnGemAlignment::BmnGemAlignment(Char_t* filename, Char_t* outname, Bool_t onlyMille) :
 fGemDigits(NULL),
@@ -14,8 +15,7 @@ fGemTracks(NULL),
 fSignalToNoise(1.),
 fChi2MaxPerNDF(LDBL_MAX),
 fThreshold(0.0),
-fMinHitsAccepted(1),
-fMaxHitsAccepted(fNstat),
+fMinHitsAccepted(3),
 fXMin(-LDBL_MAX),
 fXMax(LDBL_MAX),
 fYMin(-LDBL_MAX),
@@ -88,7 +88,7 @@ void BmnGemAlignment::PrepareData() {
         fGemTracks->Delete();
         fContainer->Delete();
 
-        BmnGemStripStationSet* fDetector = new BmnGemStripStationSet_RunSummer2016("ALIGNMENT");
+        BmnGemStripStationSet* fDetector = new BmnGemStripStationSet_RunSummer2016(BmnGemStripConfiguration::RunSummer2016_ALIGNMENT);
 
         for (Int_t iStation = 0; iStation < fDetector->GetNStations(); ++iStation) {
             BmnGemStripStation* station = fDetector->GetGemStation(iStation);
@@ -181,9 +181,9 @@ void BmnGemAlignment::PrepareData() {
                 delete fDetector;
                 continue;
             }
-
+           
             // Checking for minimal number of hits per track
-            if (nonEmptyStatNumber.size() <= fMinHitsAccepted || nonEmptyStatNumber.size() >= fMaxHitsAccepted) {
+            if (nonEmptyStatNumber.size() == 2) {
                 delete fDetector;
                 continue;
             }
@@ -244,6 +244,8 @@ void BmnGemAlignment::PrepareData() {
                     cout << "Event# " << iEv << endl;
                     cout << "Nhits = " << track->GetNHits() << endl;
                     cout << "Chi2 = " << track->GetChi2() << endl;
+                    cout << "NDF = " << track->GetNDF() << endl;
+                    cout << "Chi2 / NDF = " << track->GetChi2() / track->GetNDF() << endl;
                     cout << "Tx = " << tx << " Ty = " << ty << endl;
                     cout << "X0 = " << x0 << " Y0 = " << y0 << " Z0 = " << z0 << endl;
                     cout << endl;
@@ -281,7 +283,7 @@ void BmnGemAlignment::StartMille() {
             nSelectedTracks += align->GetEntriesFast();
     }
 
-    TString name = "alignment";
+    TString name = "alignment_" + fAlignmentType;
     FILE* fin_txt = fopen(TString(name + ".txt").Data(), "w");
     fprintf(fin_txt, "%d\n", nSelectedTracks);
 
@@ -460,7 +462,7 @@ void BmnGemAlignment::DeriveFoundTrackParams(vector<BmnGemStripHit*> hits) {
     TVector3 zxParams = LineFit(track, fGemHits, "ZX"); // Tx, X0
     TVector3 zyParams = LineFit(track, fGemHits, "ZY"); // Ty, Y0
 
-    if (zxParams.Z() / (track->GetNHits() - 2) < fChi2MaxPerNDF && zyParams.Z() / (track->GetNHits() - 2) < fChi2MaxPerNDF) {
+    if (track->GetNHits() >= fMinHitsAccepted && zxParams.Z() / (track->GetNHits() - 2) < fChi2MaxPerNDF && zyParams.Z() / (track->GetNHits() - 2) < fChi2MaxPerNDF) {
         BmnGemTrack* newTrack = new ((*fGemTracks)[fGemTracks->GetEntriesFast()]) BmnGemTrack(*track);
         par->SetX(zxParams.Y());
         par->SetY(zyParams.Y());
@@ -487,126 +489,116 @@ BmnGemAlignment::~BmnGemAlignment() {
 
 void BmnGemAlignment::StartPede() {
     TCanvas* c = new TCanvas("alignParams", "alignParams", 1500, 800);
-    vector <TString> steerFileNames = GetSteerFileNames();
-    const Int_t dim = steerFileNames.size();
+    TString steerFileName = GetSteerFileNames();
 
-    c->Divide(fNGL_PER_STAT, dim);
-    TGraphErrors * outGraphX[dim];
-    TGraphErrors * outGraphY[dim];
-    TGraphErrors * outGraphZ[dim];
+    c->Divide(fNGL_PER_STAT, 1);
+    TGraphErrors* outGraphX = new TGraphErrors();
+    TGraphErrors* outGraphY = new TGraphErrors();
+    TGraphErrors* outGraphZ = new TGraphErrors();
 
     TString tmp = fRecoFileName;
 
-    for (Int_t iSize = 0; iSize < dim; iSize++) {
-        outGraphX[iSize] = new TGraphErrors();
-        outGraphY[iSize] = new TGraphErrors();
-        outGraphZ[iSize] = new TGraphErrors();
-        TString commandToExec = "pede " + steerFileNames.at(iSize);
-        fCommandToRunPede = commandToExec;
-        
-        TString random = "";
-        gRandom->SetSeed(0);
-        random += (Int_t) (gRandom->Rndm(0) * 1000);
-        system(TString(fCommandToRunPede + " >> " + random).Data());
+    TString commandToExec = "pede " + steerFileName;
+    fCommandToRunPede = commandToExec;
 
-        FILE* file = popen(TString("cat " + random + " | grep -e 'by factor' | awk '{print $9}'").Data(), "r");
-        if (!file)
-            return;
+    TString random = "";
+    gRandom->SetSeed(0);
+    random += (Int_t) (gRandom->Rndm(0) * 1000);
+    system(TString(fCommandToRunPede + " >> " + random).Data());
 
-        Char_t buffer[100];
-        fgets(buffer, sizeof (buffer), file);
-        fSigmaX = atof(buffer);
-        fSigmaY = fSigmaX;
-        pclose(file);
+    FILE* file = popen(TString("cat " + random + " | grep -e 'by factor' | awk '{print $9}'").Data(), "r");
+    if (!file)
+        return;
 
-        StartMille();
-        system(TString(fCommandToRunPede + " && rm " + random).Data());
+    Char_t buffer[100];
+    fgets(buffer, sizeof (buffer), file);
+    fSigmaX = atof(buffer);
+    fSigmaY = fSigmaX;
+    pclose(file);
 
-        ifstream resFile;
-        resFile.open("millepede.res", ios::in);
-        if (!resFile)
-            return;
+    StartMille();
+    system(TString(fCommandToRunPede + " && rm " + random).Data());
 
-        // Go to the second string
-        resFile.ignore(numeric_limits<streamsize>::max(), '\n');
+    ifstream resFile;
+    resFile.open("millepede.res", ios::in);
+    if (!resFile)
+        return;
 
-        TString buff1 = "";
-        TString buff2 = "";
-        TString buff3 = "";
-        TString buff4 = "";
-        TString buff5 = "";
+    // Go to the second string
+    resFile.ignore(numeric_limits<streamsize>::max(), '\n');
 
-        string line;
-        Int_t pointX = 0, pointY = 0, pointZ = 0;
+    TString buff1 = "";
+    TString buff2 = "";
+    TString buff3 = "";
+    TString buff4 = "";
+    TString buff5 = "";
 
-        while (getline(resFile, line)) {
-            stringstream ss(line);
-            Int_t size = ss.str().length();
-            // 40 and 68 symbols are fixed in the Pede-output by a given format 
-            if (size == 40) {
-                ss >> buff1 >> buff2 >> buff3;
-                if (buff1.Atoi() % fNGL_PER_STAT == 0) {
-                    if (fAlignmentType == "xy") {
-                        outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
-                        outGraphY[iSize]->SetPointError(pointY, 0., 0.);
-                        pointY++;
-                    } else if (fAlignmentType == "xyz") {
-                        outGraphZ[iSize]->SetPoint(pointZ, buff1.Atoi(), 10. * buff2.Atof());
-                        outGraphZ[iSize]->SetPointError(pointZ, 0., 0.);
-                        pointZ++;
-                    }
-                } else if (buff1.Atoi() % fNGL_PER_STAT == 1) {
-                    outGraphX[iSize]->SetPoint(pointX, buff1.Atoi(), 10. * buff2.Atof());
-                    outGraphX[iSize]->SetPointError(pointX, 0., 0.);
-                    pointX++;
-                } else if (buff1.Atoi() % fNGL_PER_STAT == 2) {
-                    outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
-                    outGraphY[iSize]->SetPointError(pointY, 0., 0.);
-                    pointY++;
-                } else
-                    Fatal("BmnGemAlignment::StartPede()", "BmnGemAlignment::StartPede()");
-            } else if (size == 68) {
-                ss >> buff1 >> buff2 >> buff3 >> buff4 >> buff5;
-                if (buff1.Atoi() % fNGL_PER_STAT == 0) {
-                    if (fAlignmentType == "xy") {
-                        outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
-                        outGraphY[iSize]->SetPointError(pointY, 0., 10. * buff5.Atof());
-                        pointY++;
-                    } else if (fAlignmentType == "xyz") {
-                        outGraphZ[iSize]->SetPoint(pointZ, buff1.Atoi(), 10. * buff2.Atof());
-                        outGraphZ[iSize]->SetPointError(pointZ, 0., 10. * buff5.Atof());
-                        pointZ++;
-                    }
-                } else if (buff1.Atoi() % fNGL_PER_STAT == 1) {
-                    outGraphX[iSize]->SetPoint(pointX, buff1.Atoi(), 10. * buff2.Atof());
-                    outGraphX[iSize]->SetPointError(pointX, 0., 10. * buff5.Atof());
-                    pointX++;
-                } else if (buff1.Atoi() % fNGL_PER_STAT == 2) {
-                    outGraphY[iSize]->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
-                    outGraphY[iSize]->SetPointError(pointY, 0., 10. * buff5.Atof());
-                    pointY++;
+    string line;
+    Int_t pointX = 0, pointY = 0, pointZ = 0;
+
+    while (getline(resFile, line)) {
+        stringstream ss(line);
+        Int_t size = ss.str().length();
+        // 40 and 68 symbols are fixed in the Pede-output by a given format 
+        if (size == 40) {
+            ss >> buff1 >> buff2 >> buff3;
+            if (buff1.Atoi() % fNGL_PER_STAT == 0) {
+                if (fAlignmentType == "xy") {
+                    outGraphY->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
+                    outGraphY->SetPointError(pointY++, 0., 0.);
+                } else if (fAlignmentType == "xyz") {
+                    outGraphZ->SetPoint(pointZ, buff1.Atoi(), 10. * buff2.Atof());
+                    outGraphZ->SetPointError(pointZ++, 0., 0.);
                 }
+            } else if (buff1.Atoi() % fNGL_PER_STAT == 1) {
+                outGraphX->SetPoint(pointX, buff1.Atoi(), 10. * buff2.Atof());
+                outGraphX->SetPointError(pointX++, 0., 0.);
+            } else if (buff1.Atoi() % fNGL_PER_STAT == 2) {
+                outGraphY->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
+                outGraphY->SetPointError(pointY++, 0., 0.);
             } else
-                cout << "Unsupported format given!";
-        }
-
-        c->cd(2 * iSize + 1)->SetGrid();
-        GraphDrawAttibuteSetter(outGraphX[iSize], steerFileNames[iSize]);
-
-        c->cd(2 * iSize + 2)->SetGrid();
-        GraphDrawAttibuteSetter(outGraphY[iSize], steerFileNames[iSize]);
-
-        if (fAlignmentType == "xyz") {
-            c->cd(2 * iSize + 3)->SetGrid();
-            GraphDrawAttibuteSetter(outGraphZ[iSize], steerFileNames[iSize]);
-        }
-
-        system(Form("cp millepede.res Millepede_%s_%s.res", tmp.Data(), TString(steerFileNames.at(iSize)).Data()));
-        system("rm millepede.*");
-        resFile.close();
+                Fatal("BmnGemAlignment::StartPede()", "BmnGemAlignment::StartPede()");
+        } else if (size == 68) {
+            ss >> buff1 >> buff2 >> buff3 >> buff4 >> buff5;
+            if (buff1.Atoi() % fNGL_PER_STAT == 0) {
+                if (fAlignmentType == "xy") {
+                    outGraphY->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
+                    outGraphY->SetPointError(pointY++, 0., 10. * buff5.Atof());
+                } else if (fAlignmentType == "xyz") {
+                    outGraphZ->SetPoint(pointZ, buff1.Atoi(), 10. * buff2.Atof());
+                    outGraphZ->SetPointError(pointZ++, 0., 10. * buff5.Atof());
+                }
+            } else if (buff1.Atoi() % fNGL_PER_STAT == 1) {
+                outGraphX->SetPoint(pointX, buff1.Atoi(), 10. * buff2.Atof());
+                outGraphX->SetPointError(pointX++, 0., 10. * buff5.Atof());
+            } else if (buff1.Atoi() % fNGL_PER_STAT == 2) {
+                outGraphY->SetPoint(pointY, buff1.Atoi(), 10. * buff2.Atof());
+                outGraphY->SetPointError(pointY++, 0., 10. * buff5.Atof());
+            }
+        } else
+            cout << "Unsupported format given!";
     }
-    c->SaveAs(Form("alignParams_%s.png", tmp.Data()));
+
+    c->cd(1)->SetGrid();
+    GraphDrawAttibuteSetter(outGraphX, steerFileName);
+
+    c->cd(2)->SetGrid();
+    GraphDrawAttibuteSetter(outGraphY, steerFileName);
+
+    if (fAlignmentType == "xyz") {
+        c->cd(3)->SetGrid();
+        GraphDrawAttibuteSetter(outGraphZ, steerFileName);
+    }
+
+    system(Form("cp millepede.res Millepede_%s_%s.res", tmp.Data(), steerFileName.Data()));
+    system("rm millepede.*");
+    resFile.close();
+
+    c->SaveAs(Form("alignParams_%s_%s.png", tmp.Data(), steerFileName.Data()));
     delete c;
+    delete outGraphX;
+    delete outGraphY;
+    delete outGraphZ;
 }
 
 void BmnGemAlignment::GraphDrawAttibuteSetter(TGraphErrors* gr, TString steerFileName) {

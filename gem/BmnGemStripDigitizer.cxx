@@ -16,6 +16,7 @@ BmnGemStripDigitizer::BmnGemStripDigitizer()
     fVerbose = 1;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
+    StationSet = NULL;
 }
 
 BmnGemStripDigitizer::~BmnGemStripDigitizer() {
@@ -24,14 +25,14 @@ BmnGemStripDigitizer::~BmnGemStripDigitizer() {
 
 InitStatus BmnGemStripDigitizer::Init() {
 
-    if(fVerbose) cout << "\nBmnGemStripDigitizer::Init()\n ";
+    if (fVerbose) cout << "\nBmnGemStripDigitizer::Init()\n ";
 
     //if GEM configuration is not set -> return a fatal error
-    if(!fCurrentConfig) Fatal("BmnGemStripDigitizer::Init()", " !!! Current GEM config is not set !!! ");
+    if (!fCurrentConfig) Fatal("BmnGemStripDigitizer::Init()", " !!! Current GEM config is not set !!! ");
 
-    if(fVerbose && fOnlyPrimary) cout << "  Only primary particles are processed!!! " << endl;
+    if (fVerbose && fOnlyPrimary) cout << "  Only primary particles are processed!!! " << endl;
 
-    if(fVerbose && fStripMatching) cout << "  Strip Matching is activated!!! " << endl;
+    if (fVerbose && fStripMatching) cout << "  Strip Matching is activated!!! " << endl;
     else cout << "  Strip Matching is deactivated!!! " << endl;
 
     FairRootManager* ioman = FairRootManager::Instance();
@@ -42,12 +43,34 @@ InitStatus BmnGemStripDigitizer::Init() {
     fBmnGemStripDigitsArray = new TClonesArray(fOutputDigitsBranchName);
     ioman->Register(fOutputDigitsBranchName, "GEM", fBmnGemStripDigitsArray, kTRUE);
 
-    if(fStripMatching) {
+    if (fStripMatching) {
         fBmnGemStripDigitMatchesArray = new TClonesArray("BmnMatch");
         ioman->Register(fOutputDigitMatchesBranchName, "GEM", fBmnGemStripDigitMatchesArray, kTRUE);
     }
 
-    if(fVerbose) cout << "BmnGemStripDigitizer::Init() finished\n\n";
+    //Create GEM detector ------------------------------------------------------
+    switch (fCurrentConfig) {
+        case BmnGemStripConfiguration::RunSummer2016 :
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
+            cout << "   Current Configuration : RunSummer2016" << "\n";
+            break;
+
+        case BmnGemStripConfiguration::RunSummer2016_set1 :
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
+            cout << "   Current Configuration : RunSummer2016_set1" << "\n";
+            break;
+
+        case BmnGemStripConfiguration::RunSummer2016_set2 :
+            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
+            cout << "   Current Configuration : RunSummer2016_set2" << "\n";
+            break;
+
+        default:
+            StationSet = NULL;
+    }
+    //--------------------------------------------------------------------------
+
+    if (fVerbose) cout << "BmnGemStripDigitizer::Init() finished\n\n";
     return kSUCCESS;
 }
 
@@ -55,7 +78,7 @@ void BmnGemStripDigitizer::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fBmnGemStripDigitsArray->Clear();
 
-    if(fStripMatching) {
+    if (fStripMatching) {
         fBmnGemStripDigitMatchesArray->Clear();
     }
 
@@ -64,14 +87,14 @@ void BmnGemStripDigitizer::Exec(Option_t* opt) {
         return;
     }
 
-    if(fVerbose) {
+    if (fVerbose) {
         cout << "\n BmnGemStripDigitizer::Exec(), event = " << entrys << "\n";
         cout << " BmnGemStripDigitizer::Exec(), Number of BmnGemStripPoints = " << fBmnGemStripPointsArray->GetEntriesFast() << "\n";
     }
 
     ProcessMCPoints();
 
-    if(fVerbose) cout << " BmnGemStripDigitizer::Exec() finished\n\n";
+    if (fVerbose) cout << " BmnGemStripDigitizer::Exec() finished\n\n";
     entrys++;
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
@@ -82,23 +105,13 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
     FairMCPoint* GemStripPoint;
     Int_t NNotPrimaries = 0;
 
-    BmnGemStripStationSet *StationSet = 0;
-    switch (fCurrentConfig) {
-        case BmnGemStripConfiguration::RunSummer2016:
-            StationSet = new BmnGemStripStationSet_RunSummer2016();
-            if(fVerbose) cout << "   Current Configuration : RunSummer2016" << "\n";
-            break;
-        default:
-            StationSet = 0;
-    }
-
-    for(UInt_t ipoint = 0; ipoint < fBmnGemStripPointsArray->GetEntriesFast(); ipoint++) {
+    for (UInt_t ipoint = 0; ipoint < fBmnGemStripPointsArray->GetEntriesFast(); ipoint++) {
         GemStripPoint = (FairMCPoint*) fBmnGemStripPointsArray->At(ipoint);
 
-        if(fOnlyPrimary) {
-            CbmMCTrack *track = (CbmMCTrack*)fMCTracksArray->UncheckedAt(GemStripPoint->GetTrackID());
-            if(!track) continue;
-            if(track->GetMotherId() != -1)  {
+        if (fOnlyPrimary) {
+            CbmMCTrack *track = (CbmMCTrack*) fMCTracksArray->UncheckedAt(GemStripPoint->GetTrackID());
+            if (!track) continue;
+            if (track->GetMotherId() != -1) {
                 NNotPrimaries++;
                 continue;
             }
@@ -119,34 +132,39 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
     }
 
     Int_t NAddedPoints = StationSet->CountNAddedToDetectorPoints();
-    if(fVerbose && fOnlyPrimary) cout << "   Number of not primaries points : " << NNotPrimaries << "\n";
-    if(fVerbose) cout << "   Processed MC points  : " << NAddedPoints << "\n";
+    if (fVerbose && fOnlyPrimary) cout << "   Number of not primaries points : " << NNotPrimaries << "\n";
+    if (fVerbose) cout << "   Processed MC points  : " << NAddedPoints << "\n";
 
-    for(Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
+    for (Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet->GetGemStation(iStation);
 
-        for(Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
+        for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripModule *module = station->GetModule(iModule);
 
-            for(Int_t iLayer = 0; iLayer < module->GetNStripLayers(); ++iLayer) {
+            for (Int_t iLayer = 0; iLayer < module->GetNStripLayers(); ++iLayer) {
                 BmnGemStripLayer layer = module->GetStripLayer(iLayer);
 
-                for(Int_t iStrip = 0; iStrip < layer.GetNStrips(); ++iStrip) {
+                for (Int_t iStrip = 0; iStrip < layer.GetNStrips(); ++iStrip) {
                     new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
-                    BmnGemStripDigit(iStation, iModule, iLayer, iStrip, layer.GetStripSignal(iStrip));
+                            BmnGemStripDigit(iStation, iModule, iLayer, iStrip, layer.GetStripSignal(iStrip));
 
-                    if(fStripMatching) {
+                    if (fStripMatching) {
                         new ((*fBmnGemStripDigitMatchesArray)[fBmnGemStripDigitMatchesArray->GetEntriesFast()])
-                            BmnMatch(layer.GetStripMatch(iStrip));
+                                BmnMatch(layer.GetStripMatch(iStrip));
                     }
                 }
             }
         }
     }
-    if(StationSet) delete StationSet;
+    StationSet->Reset();
 }
 
 void BmnGemStripDigitizer::Finish() {
+    if (StationSet) {
+        delete StationSet;
+        StationSet = NULL;
+    }
+
     cout << "Work time of the GEM digitizer: " << workTime << endl;
 }
 

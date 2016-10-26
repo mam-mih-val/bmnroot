@@ -32,6 +32,8 @@ public:
     BmnStatus ConvertRawToRoot();
     BmnStatus DecodeDataToDigi();
     BmnStatus CalcGemPedestals();
+    
+    Long64_t GetTimeShift(BmnTDCDigit* dig, Long64_t t0time);
 
     UInt_t GetRunId() const {
         return fRunId;
@@ -71,8 +73,8 @@ private:
     UInt_t fRunId;
     UInt_t fEventId;
     UInt_t fNevents;
-    UInt_t fTime_s;
-    UInt_t fTime_ns;
+    Long64_t fTime_s;
+    Long64_t fTime_ns;
     
     Long64_t fLengthRawFile;
     Long64_t fCurentPositionRawFile;

@@ -95,9 +95,19 @@ Int_t BmnGemStripStationSet::CountNProcessedPointsInDetector() {
 }
 
 Int_t BmnGemStripStationSet::GetPointStationOwnership(Double_t zcoord) {
-    for(Int_t iStation = 0; iStation < NStations; iStation++) {
+    /*for(Int_t iStation = 0; iStation < NStations; iStation++) {
         if( (zcoord >= ZStationPositions[iStation]) && (zcoord <= (ZStationPositions[iStation]+GemStations[iStation]->GetZSize())) ) {
             return iStation;
+        }
+    }*/
+    
+    //for z-positions and z-shifts of all modules in a station
+    for(Int_t iStation = 0; iStation < NStations; iStation++) {
+        Int_t NModules = GemStations[iStation]->GetNModules();
+        for(Int_t iModule = 0; iModule < NModules; ++iModule) {
+            if( GemStations[iStation]->GetModule(iModule)->IsPointInsideZThickness(zcoord) ) {
+                return iStation;
+            }
         }
     }
     return -1;

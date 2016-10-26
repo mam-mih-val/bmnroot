@@ -4,9 +4,35 @@ BmnGemStripStation::BmnGemStripStation()
 : StationNumber(0), NModules(0),
   XSize(0.0), YSize(0.0), ZSize(0.0),
   XPosition(0.0), YPosition(0.0), ZPosition(0.0),
+  XShiftOfModules(NULL), YShiftOfModules(NULL), ZShiftOfModules(NULL),
   BeamHoleRadius(0.0),
-  Modules(NULL) {
+  Modules(NULL) { }
 
+Double_t BmnGemStripStation::GetXShiftOfModule(Int_t module_num) {
+    if(XShiftOfModules && module_num >= 0 && module_num < NModules) {
+        return XShiftOfModules[module_num];
+    }
+    else {
+        throw(Station_Exception("Error in the function GetXShiftOfModule()"));
+    }
+}
+
+Double_t BmnGemStripStation::GetYShiftOfModule(Int_t module_num) {
+    if(YShiftOfModules && module_num >= 0 && module_num < NModules) {
+        return YShiftOfModules[module_num];
+    }
+    else {
+        throw(Station_Exception("Error in the function GetYShiftOfModule()"));
+    }
+}
+
+Double_t BmnGemStripStation::GetZShiftOfModule(Int_t module_num) {
+    if(ZShiftOfModules && module_num >= 0 && module_num < NModules) {
+        return ZShiftOfModules[module_num];
+    }
+    else {
+        throw(Station_Exception("Error in the function GetZShiftOfModule()"));
+    }
 }
 
 BmnGemStripModule* BmnGemStripStation::GetModule(Int_t module_num) {

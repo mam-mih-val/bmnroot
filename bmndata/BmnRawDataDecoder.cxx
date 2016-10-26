@@ -320,7 +320,7 @@ BmnStatus BmnRawDataDecoder::FillTRIG(UInt_t *d, UInt_t serial, UInt_t &idx) {
 
     fTime_ns = ts_t0_ns;
     fTime_s = ts_t0_s;
-    
+
     TClonesArray &ar_sync = *sync;
     new(ar_sync[sync->GetEntriesFast()]) BmnSyncDigit(serial, GlobalEvent, ts_t0_s, ts_t0_ns);
 
@@ -396,7 +396,29 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
             fRawTree->GetEntry(iEv);
 
-            new((*header)[header->GetEntriesFast()]) BmnEventHeader(fRunId, iEv, fTime_s, fTime_ns);
+
+            TriggerMapStructure* map;
+            Int_t nEntries = 1;
+            UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", kPERIOD, fRunId);
+            if (mapPar != NULL) mapPar->GetTriggerMapArray(map, nEntries);
+            Long64_t t0time = 0.0;
+            for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
+                BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
+                if (syncDig->GetSerial() == map->serial) {
+                    t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1e9;
+                    new((*header)[header->GetEntriesFast()]) BmnEventHeader(fRunId, syncDig->GetEvent(), syncDig->GetTime_sec(), syncDig->GetTime_ns());
+                    break;
+                }
+            }
+
+            ////////////////////time correction for TDC-digits//////////////////
+            /////////////////Just example of using GetTimeShift()///////////////            
+            //            for (Int_t i = 0; i < tdc->GetEntriesFast(); ++i) {
+            //                BmnTDCDigit* dig = (BmnTDCDigit*) tdc->At(i);
+            //                Long64_t tdcTimeShift = GetTimeShift(dig, t0time);
+            //            }
+            ////////////////////////////////////////////////////////////////////
+
             trigMapper->FillEvent(tdc, t0, bc1, bc2, veto);
             gemMapper->FillEvent(adc, gem);
             dchMapper->FillEvent(tdc, sync, dch);
@@ -429,4 +451,15 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     delete header;
 
     return kBMNSUCCESS;
+}
+
+Long64_t BmnRawDataDecoder::GetTimeShift(BmnTDCDigit* dig, Long64_t t0time) {
+    UInt_t ser = dig->GetSerial();
+    for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
+        BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
+        if (syncDig->GetSerial() == ser) {
+            Long64_t syncTime = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1e9;
+            return syncTime - t0time;
+        }
+    }
 }

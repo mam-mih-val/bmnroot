@@ -26,6 +26,7 @@
 #pragma link C++ struct DchMapStructure++;
 #pragma link C++ struct GemMapStructure++;
 #pragma link C++ struct GemPedestalStructure++;
+#pragma link C++ struct TriggerMapStructure++;
 // the database enums
 #pragma link C++ struct enumColumns;
 #pragma link C++ struct enumConditions;

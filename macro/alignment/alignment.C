@@ -5,21 +5,23 @@ using namespace std;
 // BEAM:   61, 62, 63, 64 and 65 (artificially coded by 60: bmn_run0060_digi.root)
 // TARGET: 66, 67 and 68         (artificially coded by 70: bmn_run0070_digi.root)
 
-void alignment(Int_t fileNumber = 65, Int_t nEvents = 0, Bool_t isDebug = kFALSE, Bool_t isOnlyHits = kFALSE, Bool_t isUseMilleOnly = kFALSE) {
+void alignment(Int_t fileNumber = 63, Int_t nEvents = 5000, Bool_t isDebug = kFALSE, Bool_t isHitsOnly = kFALSE, Bool_t isMilleOnly = kFALSE) {
     TString type = (fileNumber < 66) ? "beam" : "target";
- 
+
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
 
     TString addInfo = "";
     TString num = "";
     num += fileNumber;
-    BmnGemAlignment* gemAlign = new BmnGemAlignment(TString("bmn_run00" + num + "_digi.root").Data(), TString("reco_" + num + addInfo + ".root").Data(), isUseMilleOnly);
+    BmnGemAlignment* gemAlign = new BmnGemAlignment(TString("bmn_run00" + num + "_digi.root").Data(), TString("reco_" + num + addInfo + ".root").Data(), isMilleOnly);
     gemAlign->SetDebugInfo(isDebug); // Print debug info
-    gemAlign->SetWriteHitsOnly(isOnlyHits); // Write hits only, no alignment and track reconstruction are performed
+    gemAlign->SetWriteHitsOnly(isHitsOnly); // Write hits only, no alignment and track reconstruction are performed
     gemAlign->SetRunType(type);
+    
+    // gemAlign->SetNumIterations(1000); // Experimental option, default number is 1 and is defined in the main constructor
 
-    if (!isUseMilleOnly)
+    if (!isMilleOnly)
         gemAlign->SetNofEvents(nEvents); //0 corresponds to all data set
 
     // Restrictions on output of the C.F.
@@ -35,8 +37,14 @@ void alignment(Int_t fileNumber = 65, Int_t nEvents = 0, Bool_t isDebug = kFALSE
 
     // Restrictions on track params.
     gemAlign->SetMinHitsAccepted(3); // >=
-    gemAlign->SetTxMinMax(-0.005, 0.005); // --
-    gemAlign->SetTyMinMax(-0.005, 0.005); // are meaningful in case of a beam-run only
+    if (type == "beam") {
+        gemAlign->SetTxMinMax(-0.005, 0.005);
+        gemAlign->SetTyMinMax(-0.005, 0.005);
+    } else {
+        gemAlign->SetTxMinMax(-0.28, 0.28);
+        gemAlign->SetTyMinMax(-0.18, 0.18);
+    }
+    
     gemAlign->SetChi2MaxPerNDF(30.); // Cut on chi2/ndf for found tracks
 
     // Probably, no user intervention to the strings below?

@@ -34,7 +34,7 @@ public:
 
     BmnStatus NearestHitMerge(UInt_t station, BmnGemTrack* tr);
     BmnStatus NearestHitMerge1(UInt_t station, BmnGemTrack* tr);
-    
+
     BmnStatus FitSmooth(BmnGemTrack* track);
     void Smooth(BmnFitNode* thisNode, const BmnFitNode* prevNode);
 
@@ -45,12 +45,14 @@ public:
 
     BmnStatus CheckSplitting(TClonesArray* arr);
     BmnStatus ConnectNearestSeed(BmnGemTrack* seed, TClonesArray* arr);
-    
-    Bool_t CalculateParamsByCircle(BmnGemTrack* tr);
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
     virtual void Finish();
+
+    void SetField(Bool_t f) {
+        fIsField = f;
+    }
 
 private:
 
@@ -72,6 +74,7 @@ private:
     Int_t fPDG; // PDG hypothesis
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
 
+    Bool_t fIsField;
     FairField* fField;
     BmnKalmanFilter_tmp* fKalman;
     Int_t fEventNo; // event counter

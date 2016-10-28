@@ -112,7 +112,6 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     vector<BmnGemTrack> seeds;
     FindSeeds(seeds);
     FitSeeds(seeds, fGemSeedsArray);
-    cout << "ITER: " << i << " | fGemSeedsArray->GetEntriesFast() = " << fGemSeedsArray->GetEntriesFast() << endl;
     //}
     //        } else {
     //            kNHITSFORFIT = 4;
@@ -218,33 +217,43 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
 }
 
 BmnStatus BmnGemSeedFinder::FitSeeds(vector<BmnGemTrack> cand, TClonesArray* arr) {
+
+    //Four cases:
+    //  _________________________________
+    // |                |                |
+    // |   Field = 0    |   Field = 1    |
+    // |   Targ  = 0    |   Targ  = 0    |
+    // |________________|________________|
+    // |                |                |
+    // |   Field = 0    |   Field = 1    |
+    // |   Targ  = 1    |   Targ  = 1    |
+    // |________________|________________|
+
     for (Int_t i = 0; i < cand.size(); ++i) {
         BmnGemTrack* trackCand = &(cand.at(i));
-        if (!fIsField) {
-            CalculateTrackParamsLine(trackCand);
-            if (fIsTarget)
-                new((*arr)[arr->GetEntriesFast()]) BmnGemTrack(*trackCand);
-        } else {
-            TVector3 linePar = LineFit(trackCand, fGemHitsArray, "ZY");
-            if (linePar.Z() > kSIGMACUT) {
-                SetHitsUnused(trackCand);
+        if (fIsField) {
+            if (CalculateTrackParamsCircle(trackCand) == kBMNERROR) {
+                trackCand->SetFlag(kBMNBAD);
                 continue;
             }
-            TVector3 circPar = CircleBy3Hit(trackCand, fGemHitsArray);
-            if (CalculateTrackParams(trackCand, &circPar, &linePar))
-                new((*arr)[arr->GetEntriesFast()]) BmnGemTrack(*trackCand);
-        }
+        } else CalculateTrackParamsLine(trackCand);
     }
 
-    if (!fIsTarget) {
-        Float_t delta = 1e9;
+    if (fIsTarget) {
+        for (Int_t i = 0; i < cand.size(); ++i) {
+            BmnGemTrack* trackCand = &(cand.at(i));
+            //ADD check for parameters quality (chi2, length, ...)
+            if (trackCand->GetFlag() == kBMNBAD) continue;
+            new((*arr)[arr->GetEntriesFast()]) BmnGemTrack(*trackCand);
+        }
+    } else {
+        Float_t delta = 1e20;
         BmnGemTrack minTrack;
         for (Int_t i = 0; i < cand.size(); ++i) {
             BmnGemTrack trackCand = cand.at(i);
-            Float_t b = 0;//trackCand.GetB();
             Float_t chi = trackCand.GetChi2() / trackCand.GetNDF();
-            if (Sqrt(b * b + chi * chi) < delta) {
-                delta = Sqrt(b * b + chi * chi);
+            if (chi < delta) {
+                delta = chi;
                 minTrack = trackCand;
             }
         }
@@ -304,46 +313,94 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsLine(BmnGemTrack* tr) {
     Float_t lY = lastHit->GetY();
     Float_t lZ = lastHit->GetZ();
 
-    Float_t fX = lineParZX.Y();
-    Float_t fY = lineParZY.Y();
-    Float_t fZ = 0.0;
+    Float_t fX = firstHit->GetX();
+    Float_t fY = firstHit->GetY();
+    Float_t fZ = firstHit->GetZ();
 
     FairTrackParam parF;
     parF.SetPosition(TVector3(fX, fY, fZ));
     parF.SetQp(0.0);
     parF.SetTx(lineParZX.X());
     parF.SetTy(lineParZY.X());
-    tr->SetParamFirst(parF);
+
+    const Float_t cov_const = 1e-15;
+    parF.SetCovariance(0, 0, cov_const);
+    parF.SetCovariance(0, 1, cov_const);
+    parF.SetCovariance(0, 2, cov_const);
+    parF.SetCovariance(0, 3, cov_const);
+    parF.SetCovariance(0, 4, cov_const);
+    parF.SetCovariance(1, 1, cov_const);
+    parF.SetCovariance(1, 2, cov_const);
+    parF.SetCovariance(1, 3, cov_const);
+    parF.SetCovariance(1, 4, cov_const);
+    parF.SetCovariance(2, 2, cov_const);
+    parF.SetCovariance(2, 3, cov_const);
+    parF.SetCovariance(2, 4, cov_const);
+    parF.SetCovariance(3, 3, cov_const);
+    parF.SetCovariance(3, 4, cov_const);
+    parF.SetCovariance(4, 4, cov_const);
 
     FairTrackParam parL;
     parL.SetPosition(TVector3(lX, lY, lZ));
     parL.SetTx(lineParZX.X());
     parL.SetTy(lineParZY.X());
     parL.SetQp(0.0);
-    tr->SetParamLast(parL);
 
+    parL.SetCovariance(0, 0, cov_const);
+    parL.SetCovariance(0, 1, cov_const);
+    parL.SetCovariance(0, 2, cov_const);
+    parL.SetCovariance(0, 3, cov_const);
+    parL.SetCovariance(0, 4, cov_const);
+    parL.SetCovariance(1, 1, cov_const);
+    parL.SetCovariance(1, 2, cov_const);
+    parL.SetCovariance(1, 3, cov_const);
+    parL.SetCovariance(1, 4, cov_const);
+    parL.SetCovariance(2, 2, cov_const);
+    parL.SetCovariance(2, 3, cov_const);
+    parL.SetCovariance(2, 4, cov_const);
+    parL.SetCovariance(3, 3, cov_const);
+    parL.SetCovariance(3, 4, cov_const);
+    parL.SetCovariance(4, 4, cov_const);
+
+    tr->SetParamLast(parL);
+    tr->SetParamFirst(parF);
     tr->SetB(Sqrt(fX * fX + fY * fY));
-    tr->SetChi2(lineParZY.Z());
     tr->SetLength(Sqrt((fX - lX) * (fX - lX) + (fY - lY) * (fY - lY) + (fZ - lZ) * (fZ - lZ)));
-    tr->SetChi2(Sqrt(lineParZX.Z() * lineParZX.Z() + lineParZY.Z() * lineParZY.Z())); //check it!
+    //    tr->SetChi2(Sqrt(lineParZX.Z() * lineParZX.Z() + lineParZY.Z() * lineParZY.Z())); //FIXME! Is it OK or we should use MAX of two chi2? Or maybe MIN?
+    tr->SetChi2(lineParZY.Z());
     tr->SetNDF(nHits - 2); // -2 because of line fit (2 params)
-    
+
     return kBMNSUCCESS;
 }
 
-Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar, TVector3* linePar) {
-    //Needed for start approximation of track parameters
+BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack* tr) {
 
-    Float_t R = circPar->Z(); // radius of fit-circle
-    Float_t Xc = circPar->X(); // x-coordinate of fit-circle center
-    Float_t Zc = circPar->Y(); // z-coordinate of fit-circle center
-    fField = FairRunAna::Instance()->GetField();
+    //Estimation of track parameters for events with magnetic field
     const UInt_t nHits = tr->GetNHits();
+    if (nHits < kNHITSFORFIT) return kBMNERROR;
     BmnGemStripHit* lastHit = GetHit(tr->GetHitIndex(nHits - 1));
     BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0));
-    if (!firstHit || !lastHit) return kFALSE;
+    if (!firstHit || !lastHit) return kBMNERROR;
 
-    const Float_t B = linePar->X(); //angle coefficient for helicoid
+    Double_t chi2 = 0.0;
+    TVector3 lineParZY = LineFit(tr, fGemHitsArray, "ZY");
+    tr->SetChi2(chi2);
+    tr->SetNDF(nHits - 2); // because of 3 parameters in fit 
+    if (lineParZY.Z() / (nHits - 2) > 50) return kBMNERROR;
+    TVector3 CircParZX = CircleFit(tr, fGemHitsArray, chi2);
+    //    tr->SetChi2(chi2);
+    //    tr->SetNDF(nHits - 3); // because of 3 parameters in fit 
+    //    cout << "\t\t\t\t\tCHI2 = " << chi2 << endl;
+    CircParZX.Print();
+
+    //Needed for start approximation of track parameters
+
+    Float_t R = CircParZX.Z(); // radius of fit-circle
+    Float_t Xc = CircParZX.Y(); // x-coordinate of fit-circle center
+    Float_t Zc = CircParZX.X(); // z-coordinate of fit-circle center
+    fField = FairRunAna::Instance()->GetField();
+
+    const Float_t B = lineParZY.X(); //angle coefficient for helicoid
 
     Float_t Xmean(0.0), Ymean(0.0), Zmean(0.0); // <Xi> , <Yi> , <Zi>
     Float_t ZXmean(0.0); // <(Zi-Zc)/(Xi-Xc)>
@@ -368,7 +425,6 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar
     Float_t Q = (tr->GetParamFirst()->GetQp()) > 0.0 ? +1 : -1;
     Float_t S = 0.0003 * (fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
     Float_t QP = Q / S / Sqrt(R * R + B * B);
-    cout << Q << " " << S << " " << QP << endl;
 
     for (UInt_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = GetHit(tr->GetHitIndex(i));
@@ -431,27 +487,21 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar
     Cov_Ty_Qp = 0.0; //B * OneXQPmean - OneXmean * QPmean;
 
     FairTrackParam par;
-    const Float_t cov_const = 1e-15;
     par.SetCovariance(0, 0, Cov_X_X);
     par.SetCovariance(0, 1, Cov_X_Y);
     par.SetCovariance(0, 2, Cov_X_Tx);
     par.SetCovariance(0, 3, Cov_X_Ty);
     par.SetCovariance(0, 4, Cov_X_Qp);
-    //    par.SetCovariance(0, 4, cov_const);
     par.SetCovariance(1, 1, Cov_Y_Y);
     par.SetCovariance(1, 2, Cov_Y_Tx);
     par.SetCovariance(1, 3, Cov_Y_Ty);
     par.SetCovariance(1, 4, Cov_Y_Qp);
-    //    par.SetCovariance(1, 4, cov_const);
     par.SetCovariance(2, 2, Cov_Tx_Tx);
     par.SetCovariance(2, 3, Cov_Tx_Ty);
     par.SetCovariance(2, 4, Cov_Tx_Qp);
-    //    par.SetCovariance(2, 4, cov_const);
     par.SetCovariance(3, 3, Cov_Ty_Ty);
     par.SetCovariance(3, 4, Cov_Ty_Qp);
-    //    par.SetCovariance(3, 4, cov_const);
     par.SetCovariance(4, 4, Cov_Qp_Qp);
-    //    par.SetCovariance(4, 4, cov_const);
 
     Float_t lX = lastHit->GetX();
     Float_t lY = lastHit->GetY();
@@ -461,7 +511,6 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar
     Float_t fY = firstHit->GetY();
     Float_t fZ = firstHit->GetZ();
 
-    //    Float_t h = (fX < Xc) ? -1.0 : 1.0;
     Float_t h = -1.0;
 
     Float_t Tx_first = h * (fZ - Zc) / (fX - Xc);
@@ -474,20 +523,18 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar
     par.SetTx(Tx_last);
     par.SetTy(Ty_last); //par.SetTy(-B / (lX - Xc));
     const Float_t PxzLast = 0.0003 * fField->GetBy(lX, lY, lZ) * R; // Pt
-    //        const Float_t PxzLast = 0.0003 * fField->GetBy(lX, lY, lZ) * R; // Pt
-    if (Abs(PxzLast) < 0.00001) return kFALSE;
+    if (Abs(PxzLast) < 0.00001) return kBMNERROR;
     const Float_t PzLast = PxzLast / Sqrt(1 + Sqr(Tx_last));
     const Float_t PxLast = PzLast * Tx_last;
     const Float_t PyLast = PzLast * Ty_last;
     Float_t QPLast = Q / Sqrt(PxLast * PxLast + PyLast * PyLast + PzLast * PzLast);
     par.SetQp(QPLast);
     tr->SetParamLast(par);
-    if (!IsParCorrect(&par)) return kFALSE;
-    //    par.Print();
+    if (!IsParCorrect(&par)) return kBMNERROR;
 
     //update for firstParam
     const Float_t PxzFirst = 0.0003 * fField->GetBy(fX, fY, fZ) * R; // Pt
-    if (Abs(PxzFirst) < 0.00001) return kFALSE;
+    if (Abs(PxzFirst) < 0.00001) return kBMNERROR;
     const Float_t PzFirst = PxzFirst / Sqrt(1 + Sqr(Tx_first));
     const Float_t PxFirst = PzFirst * Tx_first;
     const Float_t PyFirst = PzFirst * Ty_first;
@@ -497,11 +544,9 @@ Bool_t BmnGemSeedFinder::CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar
     par.SetTx(Tx_first);
     par.SetTy(Ty_first); //par.SetTy(-B / (firstHit->GetX() - Xc));
     tr->SetParamFirst(par);
-    if (!IsParCorrect(&par)) return kFALSE;
-    //    par.Print();
+    if (!IsParCorrect(&par)) return kBMNERROR;
 
-
-    return kTRUE;
+    return kBMNSUCCESS;
 }
 
 Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* spirPar, TVector3* linePar, Short_t q) {
@@ -893,224 +938,6 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsParabolicSpiral(BmnGemTrack* tr, TL
     return kTRUE;
 }
 
-TVector3 BmnGemSeedFinder::CircleFit(BmnGemTrack * track) {
-
-    Float_t Xi, Yi; //centered coordinates
-    Float_t Mx, My; // 1-st momentum
-    Float_t Ri; // radius
-    Float_t Mr, Mxy, Mxx, Myy, Mxr, Myr, Mrr, Mxr2, Myr2, Cov_xy;
-    const Float_t C = 3; // parameter for robust fitting (3*Sigma rule)
-    Float_t Wi = 1.0; // weight for robust approach // In first approach it's equal 1.0
-    Float_t Di = 0.0; //distance between circle and point
-    Float_t Sig = 1.0;
-    Float_t thresh = C * Sig; // threshold for weights calculating
-    Float_t Sw = 0.0; // sum of weights
-    Float_t Swd = 0.0; // sum of (w * d^2)
-    Float_t A0, A1, A2, A22;
-    Float_t GAM, DET;
-    Float_t Xc, Yc, R;
-    Float_t XcPrev = 1000000.0, YcPrev = 1000000.0; // coordinates of circle center on previous iteration
-    Float_t Rprev = 1000000.0; //radius of circle on previous iteration
-
-    const Float_t nHits = track->GetNHits();
-
-    //=============== first approximation with equal weights ===============//
-    Mx = My = Mxx = Myy = Mxy = Mxr = Myr = Mrr = 0.0;
-
-    for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        if (!(hit->IsUsed())) continue;
-        Mx += Wi * hit->GetX();
-        My += Wi * hit->GetZ();
-        Sw += Wi;
-    }
-    Mx /= Sw;
-    My /= Sw;
-
-    // computing moments
-    for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        if (!(hit->IsUsed())) continue;
-        Xi = hit->GetX() - Mx;
-        Yi = hit->GetZ() - My;
-        Ri = Xi * Xi + Yi * Yi;
-
-        Mxy += Wi * Xi * Yi;
-        Mxx += Wi * Xi * Xi;
-        Myy += Wi * Yi * Yi;
-        Mxr += Wi * Xi * Ri;
-        Myr += Wi * Yi * Ri;
-        Mrr += Wi * Ri * Ri;
-    }
-    Mxx /= Sw;
-    Myy /= Sw;
-    Mxy /= Sw;
-    Mxr /= Sw;
-    Myr /= Sw;
-    Mrr /= Sw;
-
-    // computing the coefficients of the characteristic polynomial
-
-    Mr = Mxx + Myy;
-    Cov_xy = Mxx * Myy - Mxy * Mxy;
-    Mxr2 = Mxr * Mxr;
-    Myr2 = Myr * Myr;
-
-    A2 = 4.0 * Cov_xy - 3.0 * Mr * Mr - Mrr;
-    A1 = Mrr * Mr + 4.0 * Cov_xy * Mr - Mxr2 - Myr2 - Mr * Mr * Mr;
-    A0 = Mxr2 * Myy + Myr2 * Mxx - Mrr * Cov_xy - 2.0 * Mxr * Myr * Mxy + Mr * Mr * Cov_xy;
-    A22 = A2 + A2;
-
-    Float_t x = NewtonSolver(A0, A1, A2, A22);
-
-    // computing the circle parameters (coordinates of center and radius)
-    GAM = -Mr - x - x;
-    DET = x * x - x * Mr + Cov_xy;
-    Xc = (Mxr * (Myy - x) - Myr * Mxy) / DET / 2.;
-    Yc = (Myr * (Mxx - x) - Mxr * Mxy) / DET / 2.;
-    R = sqrt(Xc * Xc + Yc * Yc - GAM);
-
-    Xc += Mx;
-    Yc += My;
-
-    //=============== end of first approx. with equal weights ================//
-
-    for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        if (!(hit->IsUsed())) continue;
-        Xi = hit->GetX();
-        Yi = hit->GetZ();
-        Di = Dist(Xi, Yi, Xc, Yc) - R;
-        Swd += Wi * Sqr(Di);
-    }
-
-    Sig = Sqrt(Swd / Sw);
-    thresh = C * Sig;
-    UInt_t cntr = 0; // tmp counter 
-
-    //================= robust procedure with Tukey weights =================//
-    while ((Abs(Xc - XcPrev) / XcPrev > 0.001 || Abs(Yc - YcPrev) / YcPrev > 0.001 || Abs(R - Rprev) / Rprev > 0.001) && (cntr < 10)) {
-        ++cntr;
-        Mx = My = Mxx = Myy = Mxy = Mxr = Myr = Mrr = 0.0;
-        Sw = Swd = 0.0;
-
-        for (Int_t i = 0; i < nHits; ++i) {
-            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-            if (!(hit->IsUsed())) continue;
-            Di = Dist(hit->GetX(), hit->GetZ(), Xc, Yc) - R;
-            if (Abs(Di) <= thresh) {
-                Wi = Sqr(1 - Sqr(Di / thresh));
-            } else {
-                Wi = 0.0;
-                hit->SetUsing(kFALSE);
-                continue;
-            }
-            Mx += Wi * hit->GetX();
-            My += Wi * hit->GetZ();
-            Sw += Wi;
-        }
-
-        Mx /= Sw;
-        My /= Sw;
-
-        // computing moments (note: all moments are normed, i.e. divided by N)
-
-        for (Int_t i = 0; i < nHits; ++i) {
-            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-            if (!(hit->IsUsed())) continue;
-            Xi = hit->GetX() - Mx;
-            Yi = hit->GetZ() - My;
-            Ri = Xi * Xi + Yi * Yi;
-
-            Mxy += Wi * Xi * Yi;
-            Mxx += Wi * Xi * Xi;
-            Myy += Wi * Yi * Yi;
-            Mxr += Wi * Xi * Ri;
-            Myr += Wi * Yi * Ri;
-            Mrr += Wi * Ri * Ri;
-        }
-        Mxx /= Sw;
-        Myy /= Sw;
-        Mxy /= Sw;
-        Mxr /= Sw;
-        Myr /= Sw;
-        Mrr /= Sw;
-
-        // computing the coefficients of the characteristic polynomial
-
-        Mr = Mxx + Myy;
-        Cov_xy = Mxx * Myy - Mxy * Mxy;
-        Mxr2 = Mxr * Mxr;
-        Myr2 = Myr * Myr;
-
-        A2 = 4.0 * Cov_xy - 3.0 * Mr * Mr - Mrr;
-        A1 = Mrr * Mr + 4.0 * Cov_xy * Mr - Mxr2 - Myr2 - Mr * Mr * Mr;
-        A0 = Mxr2 * Myy + Myr2 * Mxx - Mrr * Cov_xy - 2.0 * Mxr * Myr * Mxy + Mr * Mr * Cov_xy;
-        A22 = A2 + A2;
-
-        Float_t x = NewtonSolver(A0, A1, A2, A22);
-        // computing the circle parameters (coordinates of center and radius)
-        GAM = -Mr - x - x;
-        DET = x * x - x * Mr + Cov_xy;
-        Xc = (Mxr * (Myy - x) - Myr * Mxy) / DET / 2.0;
-        Yc = (Myr * (Mxx - x) - Mxr * Mxy) / DET / 2.0;
-        R = Sqrt(Xc * Xc + Yc * Yc - GAM);
-
-        Xc += Mx;
-        Yc += My;
-
-        for (Int_t i = 0; i < nHits; ++i) {
-            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-            if (!(hit->IsUsed())) continue;
-            Di = Dist(hit->GetX(), hit->GetZ(), Xc, Yc) - R;
-            Swd += Wi * Sqr(Di);
-        }
-
-        Sig = Swd / Sw;
-        thresh = C * Sig;
-        XcPrev = Xc;
-        YcPrev = Yc;
-        Rprev = R;
-    }
-
-    Float_t chi2 = 0.0;
-    Int_t nReal = 0;
-    Float_t dX, dY, dR, sum = 0.0;
-    for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-        if (!(hit->IsUsed())) continue;
-        chi2 += Sqr(R - Dist(hit->GetX(), hit->GetZ(), Xc, Yc)) / R;
-        dX = hit->GetX() - Xc;
-        dY = hit->GetZ() - Yc;
-        dR = Sqrt(dX * dX + dY * dY) - R;
-        sum += dR * dR;
-        nReal++;
-    }
-    Float_t sigma = Sqrt(sum / nReal);
-
-    chi2 *= nReal;
-    track->SetChi2(chi2);
-    track->SetNDF(nReal - 1);
-    //    if (chi2 > ChisquareQuantile(0.95, nReal - 1)) {
-    //        for (Int_t i = 0; i < nHits; ++i) {
-    //            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-    //            hit->SetUsing(kFALSE);
-    //        }
-    //        return TVector3(0.0, 0.0, 0.0);
-    //    }
-
-    //    cout << "sigm = " << sigma << " chi2 = " << chi2 << " nReal = " << nReal << " R = " << R << " arb.error = " << sigma / R * 100.0 << endl;
-    if (sigma / R * 100.0 > 1.0) { //test check. RMS <= 2% of Radius
-        for (Int_t i = 0; i < nHits; ++i) {
-            BmnGemStripHit* hit = GetHit(track->GetHitIndex(i));
-            hit->SetUsing(kFALSE);
-        }
-        return TVector3(0.0, 0.0, 0.0);
-    } else {
-        return TVector3(Xc, Yc, R);
-    }
-}
-
 Float_t BmnGemSeedFinder::Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
     if (Sqr(x1 - x2) + Sqr(y1 - y2) <= 0.0) {
         return 0.0;
@@ -1123,35 +950,6 @@ BmnGemStripHit * BmnGemSeedFinder::GetHit(Int_t i) {
     BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(i);
     if (!hit) cout << "-W- Wrong attempting to get hit number " << i << " from fGemHitsArray, which contains " << fGemHitsArray->GetEntriesFast() << " elements" << endl;
     return hit;
-}
-
-Float_t BmnGemSeedFinder::NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22) {
-
-    Double_t Dy = 0.0;
-    Double_t xnew = 0.0;
-    Double_t ynew = 0.0;
-    Double_t yold = 1e+11;
-    Double_t xold = 0.0;
-    const Double_t eps = 1e-12;
-    Int_t iter = 0;
-    const Int_t iterMax = 20;
-    do {
-        ynew = A0 + xnew * (A1 + xnew * (A2 + 4.0 * xnew * xnew));
-        if (fabs(ynew) > fabs(yold)) {
-            xnew = 0.0;
-            break;
-        }
-        Dy = A1 + xnew * (A22 + 16.0 * xnew * xnew);
-        xold = xnew;
-        xnew = xold - ynew / Dy;
-        iter++;
-    } while (Abs((xnew - xold) / xnew) > eps && iter < iterMax);
-
-    if (iter == iterMax - 1) {
-        xnew = 0.0;
-    }
-
-    return xnew;
 }
 
 void BmnGemSeedFinder::FillAddr() {
@@ -1234,13 +1032,11 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
             potSum += pot;
         }
         if (potSum > trs) {
-            //if (hit->GetStation() == 0) continue;
-//            if (Abs(hit->GetY()) > 0.25) continue;
-//            if (hit->GetX() < -3.5 || hit->GetX() > -2.5) continue;
-//            
-            if (Abs(hit->GetY()) > 0.5) continue;
-            if (Abs(hit->GetX() - roughVertex.X()) > 0.5) continue;
-            
+            //            if (hit->GetStation() == 0) continue;
+            if (!fIsField && !fIsTarget) {
+                if (Abs(hit->GetY()) > 1.) continue;
+                if (Abs(hit->GetX() - roughVertex.X()) > 1.) continue;
+            }
             addresses.insert(pair<ULong_t, Int_t > (hit->GetAddr(), hitIdx));
         }
     }

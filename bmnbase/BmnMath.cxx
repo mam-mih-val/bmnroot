@@ -292,7 +292,7 @@ TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type) {
             Yi = hit->GetY();
             Si = hit->GetDy();
         }
-        
+
         if (Si == 0.0) return TVector3(0.0, 0.0, 0.0);
 
         Wi = 1.0 / Si / Si;
@@ -328,6 +328,99 @@ TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type) {
     }
 
     return TVector3(a, b, chi2);
+}
+
+TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) {
+
+    //Weighted Least Square Method//
+    Double_t Xi = 0.0, Yi = 0.0, Zi = 0.0; // coordinates of current track point
+    Double_t Xc = 0.0, Zc = 0.0, R = 0.0;
+    chi2 = 0.0;
+
+    Double_t Wi = 0.0; // weight = 1 / sigma^2
+
+    Double_t Sx = 0.0; // sum of weights
+    Double_t Sxx = 0.0;
+    Double_t Syy = 0.0;
+    Double_t Sxy = 0.0;
+    Double_t Sy = 0.0;
+    Double_t Sz = 0.0;
+    Double_t Szx = 0.0;
+    Double_t Szy = 0.0;
+
+    const Float_t nHits = track->GetNHits();
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+        //Use Z and X coordinates of hits to fit in ZX plane
+        Yi = hit->GetZ();
+        Xi = hit->GetX();
+        Zi = Xi * Xi + Yi * Yi;
+        Wi = 1.0 / hit->GetDx() / hit->GetDx();
+
+        Sx += Wi * Xi;
+        Sy += Wi * Yi;
+        Sz += Wi * Zi;
+        Sxx += Wi * Xi * Xi;
+        Sxy += Wi * Xi * Yi;
+        Syy += Wi * Yi * Yi;
+        Szx += Wi * Zi * Xi;
+        Szy += Wi * Zi * Yi;
+    }
+
+    Double_t C = ((Sz * Sx - Szx) / (Sxx - Sx * Sx) - (Sz * Sy - Szy) / (Sxy - Sx * Sy)) / ((Sxy - Sx * Sy) / (Sxx - Sx * Sx) - (Syy - Sy * Sy) / (Sxy - Sx * Sy));
+    Double_t B = ((Sz * Sx - Szx) - C * (Sxy - Sx * Sy)) / (Sxx - Sx * Sx);
+    Double_t D = -Sz - B * Sx - C * Sy;
+
+    Xc = -0.5 * B;
+    Zc = -0.5 * C;
+    R = Sqrt(0.25 * B * B + 0.25 * C * C - D);
+
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+        Yi = hit->GetZ();
+        Xi = hit->GetX();
+
+        chi2 += Sqr(((Xi - Xc) * (Xi - Xc) + (Yi - Zc) * (Yi - Zc) - R * R) / hit->GetDx());
+    }
+
+    return TVector3(Zc, Xc, R);
+}
+
+Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
+    if (Sqr(x1 - x2) + Sqr(y1 - y2) <= 0.0) {
+        return 0.0;
+    } else {
+        return Sqrt(Sqr(x1 - x2) + Sqr(y1 - y2));
+    }
+}
+
+Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22) {
+
+    Double_t Dy = 0.0;
+    Double_t xnew = 0.0;
+    Double_t ynew = 0.0;
+    Double_t yold = 1e+11;
+    Double_t xold = 0.0;
+    const Double_t eps = 1e-12;
+    Int_t iter = 0;
+    const Int_t iterMax = 20;
+    do {
+        ynew = A0 + xnew * (A1 + xnew * (A2 + 4.0 * xnew * xnew));
+        if (fabs(ynew) > fabs(yold)) {
+            xnew = 0.0;
+            break;
+        }
+        Dy = A1 + xnew * (A22 + 16.0 * xnew * xnew);
+        xold = xnew;
+        xnew = xold - ynew / Dy;
+        iter++;
+    } while (Abs((xnew - xold) / xnew) > eps && iter < iterMax);
+
+    if (iter == iterMax - 1) {
+        xnew = 0.0;
+    }
+
+    return xnew;
 }
 
 Float_t Sqr(Float_t x) {

@@ -163,6 +163,10 @@ public:
     Bool_t GetWriteHitsOnly() {
         return fWriteHitsOnly;
     }
+    
+    void SetNumIterations(Int_t num) {
+        fIterationsNum = num;
+    }
 
     void PrepareData();
     void StartMille();
@@ -180,6 +184,7 @@ private:
     void DebugInfo(Int_t, Int_t, Int_t, Double_t*, Double_t*, Double_t, Double_t);
 
     void GraphDrawAttibuteSetter(TGraphErrors*, TString);
+    void ReadPedeOutput(ifstream&, Int_t);
 
     BmnAlignmentContainer* fAlignCont;
 
@@ -235,6 +240,7 @@ private:
     TString fCommandToRunPede;
 
     Int_t fNGL_PER_STAT;
+    Int_t fIterationsNum; // Number of iterations for PEDE to update align.params
 
     ClassDef(BmnGemAlignment, 1)
 };

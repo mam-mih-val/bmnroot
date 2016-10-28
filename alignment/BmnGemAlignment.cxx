@@ -32,6 +32,7 @@ fRunType(""),
 fSigmaX(1.),
 fSigmaY(1.),
 fNGL_PER_STAT(0),
+fIterationsNum(1),
 fTrHits(NULL),
 fWriteHitsOnly(kFALSE) {
     fRecoFileName = outname;
@@ -181,7 +182,7 @@ void BmnGemAlignment::PrepareData() {
                 delete fDetector;
                 continue;
             }
-           
+
             // Checking for minimal number of hits per track
             if (nonEmptyStatNumber.size() == 2) {
                 delete fDetector;
@@ -207,11 +208,13 @@ void BmnGemAlignment::PrepareData() {
                 Double_t y0 = track->GetParamFirst()->GetY();
                 Double_t z0 = track->GetParamFirst()->GetZ();
 
-                if (fBeamRun)
-                    if (tx < fTxMin || tx > fTxMax || ty < fTyMin || ty > fTyMax ||
-                            //                        x0 < fXMin || x0 > fXMax || y0 < fYMin || y0 > fYMax ||
-                            Abs(track->GetChi2() - Float_t(*it_min)) > FLT_EPSILON)
+                if (fBeamRun) {
+                    if (tx < fTxMin || tx > fTxMax || ty < fTyMin || ty > fTyMax || Abs(track->GetChi2() - Float_t(*it_min)) > FLT_EPSILON)
                         continue;
+                } else {
+                    if (tx < fTxMin || tx > fTxMax || ty < fTyMin || ty > fTyMax)
+                        continue;
+                }
 
                 // Use tracks without common hits
                 Bool_t isUsed = kFALSE;
@@ -516,8 +519,18 @@ void BmnGemAlignment::StartPede() {
     fSigmaY = fSigmaX;
     pclose(file);
 
-    StartMille();
-    system(TString(fCommandToRunPede + " && rm " + random).Data());
+    StartMille(); // start Mille with normalized sigma to avoid chi2 warning
+    system(TString(fCommandToRunPede + " && rm " + random).Data()); // first necessary Pede execution
+
+    for (Int_t iIter = 1; iIter < fIterationsNum; iIter++) {
+        ifstream resFile;
+        resFile.open("millepede.res", ios::in);
+        ReadPedeOutput(resFile, iIter);
+
+        // StartMille();
+        system(Form("pede steer_%d.txt && rm steer_%d.txt", iIter, iIter));
+        resFile.close();
+    }
 
     ifstream resFile;
     resFile.open("millepede.res", ios::in);
@@ -599,6 +612,49 @@ void BmnGemAlignment::StartPede() {
     delete outGraphX;
     delete outGraphY;
     delete outGraphZ;
+}
+
+void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, Int_t iter) {
+    if (!resFile)
+        Fatal("BmnGemAlignment::ReadPedeOutput", "No input file found!!");
+
+    // Open new steer file with obtained params.
+    FILE* fin = fopen(Form("steer_%d.txt", iter), "w");
+    TString alignType = ((fAlignmentType == "xy") ? "alignment_xy.bin" : (fAlignmentType == "xyz") ? "alignment_xyz.bin" : "");
+    TString methodIter = ((fAlignmentType == "xy") ? "method inversion 500 1E-4" : (fAlignmentType == "xyz") ? "method inversion 50000 1E-4" : "");
+    fprintf(fin, "%s\n", alignType.Data());
+    fprintf(fin, "%s\n", methodIter.Data());
+    fprintf(fin, "Parameter\n");
+
+    TString buff1 = "";
+    TString buff2 = "";
+    TString buff3 = "";
+    TString buff4 = "";
+    TString buff5 = "";
+
+    string line;
+    
+    // Go to the second string of existing millepede.res 
+    resFile.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    while (getline(resFile, line)) {
+        stringstream ss(line);
+        Int_t size = ss.str().length();
+        // 40 and 68 symbols are fixed in the Pede-output by a given format 
+        if (size == 40) {
+            ss >> buff1 >> buff2 >> buff3;
+            fprintf(fin, "%d %f %f\n", buff1.Atoi(), buff2.Atof(), buff3.Atof());
+        }
+
+        else if (size == 68) {
+            ss >> buff1 >> buff2 >> buff3 >> buff4 >> buff5;
+            fprintf(fin, "%d %f %f\n", buff1.Atoi(), buff2.Atof(), buff3.Atof());
+        }
+
+        else
+            cout << "Unsupported format given!";
+    }
+    fclose(fin);
 }
 
 void BmnGemAlignment::GraphDrawAttibuteSetter(TGraphErrors* gr, TString steerFileName) {

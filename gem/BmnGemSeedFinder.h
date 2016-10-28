@@ -27,18 +27,15 @@ public:
     BmnGemSeedFinder();
     virtual ~BmnGemSeedFinder();
     void SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal);
-    Bool_t CalculateTrackParams(BmnGemTrack* tr, TVector3* circPar, TVector3* linePar);
     Bool_t CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* spirPar, TVector3* linePar, Short_t q);
     Bool_t CalculateTrackParamsParabolicSpiral(BmnGemTrack* tr, TLorentzVector* spirPar, TVector3* linePar, Short_t q);
-    TVector3 CircleFit(BmnGemTrack* track);
 
     BmnStatus FindSeeds(vector<BmnGemTrack>& cand);
     BmnStatus FitSeeds(vector<BmnGemTrack> cand, TClonesArray* arr);
     BmnStatus CalculateTrackParamsLine(BmnGemTrack* tr);
+    BmnStatus CalculateTrackParamsCircle(BmnGemTrack* tr);
 
     void SetHitsUnused(BmnGemTrack* tr);
-
-    Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
 
     void FillAddr();
     void FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float_t trs);
@@ -107,8 +104,6 @@ private:
     TClonesArray* fMCPointsArray;
 
     FairField* fField;
-
-
 
     ClassDef(BmnGemSeedFinder, 1);
 };

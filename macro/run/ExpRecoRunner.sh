@@ -34,4 +34,4 @@ if [ "$N_EVENTS" -eq 0 ]
 then 
 N_EVENTS=100000000
 fi
-root -l -q "run_reco_bmn.C(\"run$PERIOD-$RUN:$PATH_TO_RAW/$DIGI_FILE\", \"$PATH_TO_RUN/$DST_FILE\", 0, $N_EVENTS, kTRUE, kTRUE)"
+root -l -q "run_reco_bmn.C(\"run$PERIOD-$RUN:$PATH_TO_RAW/$DIGI_FILE\", \"$PATH_TO_RUN/$DST_FILE\", 0, $N_EVENTS, kTRUE)"

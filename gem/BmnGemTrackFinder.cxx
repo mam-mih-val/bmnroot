@@ -32,6 +32,8 @@ fChiSqCut(25.) {
     fMCTracksArray = NULL;
     fGemSeedsArray = NULL;
     fMCPointsArray = NULL;
+    fField = NULL;
+    fIsField = kTRUE;
     fHitsBranchName = "BmnGemStripHit";
     fSeedsBranchName = "BmnGemSeeds";
     fTracksBranchName = "BmnGemTrack";
@@ -117,18 +119,17 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         tr.SetLength(length);
 
         delete F;
-        tr.SetFitNodes(nodes);
-        tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
-        tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
-
-        if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
-        tr.SetChi2(chi2);
-
-        if (tr.GetChi2() / tr.GetNDF() > fChiSqCut) {
-            tr.SetFlag(kBMNBAD);
-            for (Int_t iHit = 0; iHit < tr.GetNHits(); ++iHit)
-                GetHit(tr.GetHitIndex(iHit))->SetUsing(kFALSE);
-        } else tr.SetFlag(kBMNGOOD);
+//        tr.SetFitNodes(nodes);
+//        tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
+//        tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
+//        if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
+//        tr.SetChi2(chi2);
+//
+//        if (tr.GetChi2() / tr.GetNDF() > fChiSqCut) {
+//            tr.SetFlag(kBMNBAD);
+//            for (Int_t iHit = 0; iHit < tr.GetNHits(); ++iHit)
+//                GetHit(tr.GetHitIndex(iHit))->SetUsing(kFALSE);
+//        } else tr.SetFlag(kBMNGOOD);
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
         delete fKalman;
     }
@@ -409,153 +410,4 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge1(UInt_t station, BmnGemTrack* tr) {
     }
 
     return kBMNSUCCESS;
-}
-
-Bool_t BmnGemTrackFinder::CalculateParamsByCircle(BmnGemTrack* tr) {
-    //Needed for start approximation of track parameters
-
-    BmnGemStripHit* firstHit = (BmnGemStripHit*) fGemHitArray->At(tr->GetHitIndex(0));
-    if (!firstHit) return kFALSE;
-
-    TVector3 linePar = LineFit(tr, fGemHitArray, "ZY");
-    TVector3 circPar = CircleBy3Hit(tr, fGemHitArray);
-
-    Float_t R = circPar.Z(); // radius of fit-circle
-    Float_t Xc = circPar.X(); // x-coordinate of fit-circle center
-    Float_t Zc = circPar.Y(); // z-coordinate of fit-circle center
-    const Float_t B = linePar.X(); //angle coefficient for helicoid
-    const Int_t nHits = tr->GetNHits();
-
-    Float_t Xmean(0.0), Ymean(0.0), Zmean(0.0); // <Xi> , <Yi> , <Zi>
-    Float_t ZXmean(0.0); // <(Zi-Zc)/(Xi-Xc)>
-    Float_t ZX2mean(0.0); // <(Zi-Zc)/(Xi-Xc)^2>
-    Float_t XZXmean(0.0); // <Xi*(Zi-Zc)/(Xi-Xc)>
-    Float_t YZXmean(0.0); // <Yi*(Zi-Zc)/(Xi-Xc)>
-    Float_t OneXmean(0.0); // <1/(Xi-Xc)>
-    Float_t XOneXmean(0.0); // <Xi/(Xi-Xc)>
-    Float_t YOneXmean(0.0); // <Yi/(Xi-Xc)>
-    Float_t QPmean(0.0);
-    Float_t XQPmean(0.0);
-    Float_t YQPmean(0.0);
-    Float_t ZXQPmean(0.0);
-    Float_t OneXQPmean(0.0);
-
-    //Covariance matrix
-    Float_t Cov_X_X(0.0), Cov_X_Y(0.0), Cov_X_Tx(0.0), Cov_X_Ty(0.0), Cov_X_Qp(0.0);
-    Float_t Cov_Y_Y(0.0), Cov_Y_Tx(0.0), Cov_Y_Ty(0.0), Cov_Y_Qp(0.0);
-    Float_t Cov_Tx_Tx(0.0), Cov_Tx_Ty(0.0), Cov_Tx_Qp(0.0);
-    Float_t Cov_Ty_Ty(0.0), Cov_Ty_Qp(0.0);
-    Float_t Cov_Qp_Qp(0.0);
-    Float_t Q = (tr->GetParamFirst()->GetQp() > 0.0) ? +1.0 : -1.0;
-    Float_t S = 0.0003 * (fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
-    Float_t QP = Q / S / Sqrt(R * R + B * B);
-
-    for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitArray->At(tr->GetHitIndex(i));
-        Float_t Xi = hit->GetX();
-        Float_t Yi = hit->GetY();
-        Float_t Zi = hit->GetZ();
-        QPmean += QP;
-        Xmean += Xi;
-        Ymean += Yi;
-        Zmean += Zi;
-        ZXmean += (Zi - Zc) / (Xi - Xc);
-        ZXQPmean += (Zi - Zc) / (Xi - Xc) * QP;
-        ZX2mean += (Zi - Zc) / (Xi - Xc) / (Xi - Xc);
-        XZXmean += (Zi - Zc) / (Xi - Xc) * Xi;
-        YZXmean += (Zi - Zc) / (Xi - Xc) * Yi;
-        OneXmean += 1.0 / (Xi - Xc);
-        OneXQPmean += 1.0 / (Xi - Xc) * QP;
-        XOneXmean += Xi / (Xi - Xc);
-        YOneXmean += Yi / (Xi - Xc);
-        XQPmean += Xi * QP;
-        YQPmean += Yi * QP;
-
-        Cov_X_X += Sqr(Xi);
-        Cov_X_Y += Xi * Yi;
-        Cov_Y_Y += Sqr(Yi);
-        Cov_Tx_Tx += Sqr((Zi - Zc) / (Xi - Xc));
-        Cov_Ty_Ty += Sqr(1.0 / (Xi - Xc));
-        Cov_Qp_Qp += Sqr(QP);
-    }
-    Xmean /= nHits;
-    Ymean /= nHits;
-    Zmean /= nHits;
-    ZXmean /= nHits;
-    ZX2mean /= nHits;
-    XZXmean /= nHits;
-    YZXmean /= nHits;
-    OneXmean /= nHits;
-    XOneXmean /= nHits;
-    YOneXmean /= nHits;
-    XQPmean /= nHits;
-    YQPmean /= nHits;
-    QPmean /= nHits;
-    ZXQPmean /= nHits;
-    OneXQPmean /= nHits;
-
-    Cov_X_X = Cov_X_X / nHits - Sqr(Xmean);
-    Cov_X_Y = Cov_X_Y / nHits - Xmean * Ymean;
-    Cov_X_Tx = Xmean * ZXmean - XZXmean;
-    Cov_X_Ty = 0.0; //B * (Xmean * OneXmean - XOneXmean);
-    Cov_Y_Y = Cov_Y_Y / nHits - Sqr(Ymean);
-    Cov_Y_Tx = Ymean * ZXmean - YZXmean;
-    Cov_Y_Ty = 0.0; //B * (Ymean * OneXmean - YOneXmean);
-    Cov_Tx_Ty = B * (ZX2mean - ZXmean * OneXmean);
-    Cov_Tx_Tx = Cov_Tx_Tx / nHits - Sqr(ZXmean);
-    Cov_Ty_Ty = 0.0; //Sqr(B) * (Cov_Ty_Ty / nHits - OneXmean * OneXmean);
-    Cov_Qp_Qp = Cov_Qp_Qp / nHits - Sqr(QPmean);
-    Cov_X_Qp = XQPmean - Xmean * QPmean;
-    Cov_Y_Qp = YQPmean - Ymean * QPmean;
-    Cov_Tx_Qp = -1.0 * ZXQPmean + ZXmean * QPmean;
-    Cov_Ty_Qp = 0.0; //B * OneXQPmean - OneXmean * QPmean;
-
-    FairTrackParam par;
-    const Float_t cov_const = 1e-15;
-    par.SetCovariance(0, 0, Cov_X_X);
-    par.SetCovariance(0, 1, Cov_X_Y);
-    par.SetCovariance(0, 2, Cov_X_Tx);
-    par.SetCovariance(0, 3, Cov_X_Ty);
-    par.SetCovariance(0, 4, Cov_X_Qp);
-    //    par.SetCovariance(0, 4, cov_const);
-    par.SetCovariance(1, 1, Cov_Y_Y);
-    par.SetCovariance(1, 2, Cov_Y_Tx);
-    par.SetCovariance(1, 3, Cov_Y_Ty);
-    par.SetCovariance(1, 4, Cov_Y_Qp);
-    //    par.SetCovariance(1, 4, cov_const);
-    par.SetCovariance(2, 2, Cov_Tx_Tx);
-    par.SetCovariance(2, 3, Cov_Tx_Ty);
-    par.SetCovariance(2, 4, Cov_Tx_Qp);
-    //    par.SetCovariance(2, 4, cov_const);
-    par.SetCovariance(3, 3, Cov_Ty_Ty);
-    par.SetCovariance(3, 4, Cov_Ty_Qp);
-    //    par.SetCovariance(3, 4, cov_const);
-    par.SetCovariance(4, 4, Cov_Qp_Qp);
-    //    par.SetCovariance(4, 4, cov_const);
-
-    Float_t fX = firstHit->GetX();
-    Float_t fY = firstHit->GetY();
-    Float_t fZ = firstHit->GetZ();
-
-    //    Float_t h = (fX < Xc) ? -1.0 : 1.0;
-    Float_t h = -1.0;
-
-    Float_t Tx_first = h * (fZ - Zc) / (fX - Xc);
-    Float_t Ty_first = B;
-
-    //update for firstParam
-    const Float_t PxzFirst = 0.0003 * (fField->GetBy(fX, fY, fZ)) * R; // Pt
-    if (Abs(PxzFirst) < 0.00001) return kFALSE;
-    const Float_t PzFirst = PxzFirst / Sqrt(1 + Sqr(Tx_first));
-    const Float_t PxFirst = PzFirst * Tx_first;
-    const Float_t PyFirst = PzFirst * Ty_first;
-    Float_t QPFirst = Q / Sqrt(PxFirst * PxFirst + PyFirst * PyFirst + PzFirst * PzFirst);
-    par.SetPosition(TVector3(fX, fY, fZ));
-    par.SetQp(QPFirst);
-    par.SetTx(Tx_first);
-    par.SetTy(Ty_first);
-    if (!IsParCorrect(&par)) return kFALSE;
-    tr->SetParamFirst(par);
-
-    return kTRUE;
 }

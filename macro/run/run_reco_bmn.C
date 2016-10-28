@@ -212,18 +212,18 @@ void run_reco_bmn(TString inFile = "run4-61:bmn_run0061_digi.root", TString outF
     gemSF->SetTarget(isTarget);
     fRun->AddTask(gemSF);
 
-    if (isField) {
-        BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
-        fRun->AddTask(gemTF);
+    BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
+    gemTF->SetField(isField);
+    fRun->AddTask(gemTF);
 
-        //    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
-        //    glFinder->SetRun1(kRUN1);
-        //    fRun->AddTask(glFinder);
+    //    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
+    //    glFinder->SetRun1(kRUN1);
+    //    fRun->AddTask(glFinder);
 
-        // -----   Primary vertex finding   ---------------------------------------
-        BmnGemVertexFinder* vf = new BmnGemVertexFinder();
-        fRun->AddTask(vf);
-    }
+    // -----   Primary vertex finding   ---------------------------------------
+    BmnGemVertexFinder* vf = new BmnGemVertexFinder();
+    vf->SetField(isField);
+    fRun->AddTask(vf);
     // ------------------------------------------------------------------------
 
     // ====================================================================== //

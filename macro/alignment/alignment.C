@@ -44,12 +44,6 @@ void alignment(Int_t fileNumber = 65, Int_t nEvents = 2000, Bool_t isDebug = kFA
     
     gemAlign->SetChi2MaxPerNDF(30.); // Cut on chi2/ndf for found tracks
 
-    // Probably, no user intervention to the strings below?
-//    if (type == "beam")
-//        gemAlign->SetAlignmentDim("xy");
-//    else
-//        gemAlign->SetAlignmentDim("xyz");
-
     gemAlign->PrepareData();
     
     TString fixedStats[7] = {"fixed", "", "", "", "", "", "fixed"}; // Means that st0 and st6 are considered to be fixed 

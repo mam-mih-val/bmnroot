@@ -86,13 +86,14 @@ public:
         fThreshold = val;
     }
 
-    void SetSignalToNoise(Double_t val1, Double_t val2, Double_t val3,
-            Double_t val4, Double_t val5, Double_t val6, Double_t val7) {
-        const Int_t nStat = 7;
-        Double_t ratios[nStat] = {val1, val2, val3, val4, val5, val6, val7};
-        for (Int_t iStat = 0; iStat < nStat; iStat++)
-            fThresh[iStat] = ratios[iStat];
-    }
+    // Probably, to be removed permanently
+    //    void SetSignalToNoise(Double_t val1, Double_t val2, Double_t val3,
+    //            Double_t val4, Double_t val5, Double_t val6, Double_t val7) {
+    //        const Int_t nStat = 7;
+    //        Double_t ratios[nStat] = {-LDBL_MAX, -LDBL_MAX, -LDBL_MAX, -LDBL_MAX, -LDBL_MAX, -LDBL_MAX, -LDBL_MAX};
+    //        for (Int_t iStat = 0; iStat < nStat; iStat++)
+    //            fThresh[iStat] = ratios[iStat];
+    //    }
 
     void SetMinHitsAccepted(Int_t val) {
         fMinHitsAccepted = val;
@@ -106,20 +107,6 @@ public:
     void SetYMinMax(Double_t min, Double_t max) {
         fYMin = min;
         fYMax = max;
-    }
-
-    void SetAlignmentDim(TString dim) {
-        if (dim == "xy" || dim == "xyz") {
-            fAlignmentType = dim;
-            cout << "Type " << fAlignmentType << " established" << endl;
-        } else {
-            cout << "Specify a correct type of alignment" << endl;
-            throw;
-        }
-    }
-
-    TString GetAlignmentDim() {
-        return fAlignmentType;
     }
 
     void SetSteerFile(TString fileName) {
@@ -137,7 +124,7 @@ public:
     }
 
     void SetXresMax(Double_t val) {
-         fXresMax = val;
+        fXresMax = val;
     }
 
     void SetYresMax(Double_t val) {
@@ -146,14 +133,15 @@ public:
 
     void SetRunType(TString type) {
         fRunType = type;
-        if (type == "beam")
+        if (type == "beam") {
             fBeamRun = kTRUE;
-        else if (type == "target")
+            fAlignmentType = "xy";
+        } else if (type == "target") {
             fBeamRun = kFALSE;
-        else {
-            cout << "Specify a run type" << endl;
-            throw;
-        }
+            fAlignmentType = "xyz";
+        } else
+            Fatal("BmnGemAlignment()", "Specify a run type!!!!!!!!!");
+        cout << "Type " << fAlignmentType << " established" << endl;
     }
 
     void SetWriteHitsOnly(Bool_t flag) {
@@ -163,9 +151,30 @@ public:
     Bool_t GetWriteHitsOnly() {
         return fWriteHitsOnly;
     }
-    
+
     void SetNumIterations(Int_t num) {
         fIterationsNum = num;
+    }
+
+    void SetStatNumFixed(TString* st) {
+        cout << "Alignment conditions: " << endl;
+        for (Int_t iStat = 0; iStat < fNstat; iStat++) {
+            cout << iStat << " " << st[iStat] << endl;
+            if (st[iStat] == "fixed")
+                fFixedStats.push_back(iStat);
+        }
+    }
+
+    void SetPreSigma(Double_t presigma) {
+        fPreSigma = presigma;
+    }
+
+    void SetAccuracy(Double_t accuracy) {
+        fAccuracy = accuracy;
+    }
+
+    void SetNumOfIterations(UInt_t num) {
+        fNumOfIterations = num;
     }
 
     void PrepareData();
@@ -173,6 +182,7 @@ public:
     void StartPede();
 
 private:
+
     TString GetSteerFileNames() {
         return fSteerFileName;
     }
@@ -185,6 +195,7 @@ private:
 
     void GraphDrawAttibuteSetter(TGraphErrors*, TString);
     void ReadPedeOutput(ifstream&, Int_t);
+    void MakeSteerFile(Int_t);
 
     BmnAlignmentContainer* fAlignCont;
 
@@ -228,6 +239,10 @@ private:
 
     Double_t fSigmaX;
     Double_t fSigmaY;
+    Double_t fPreSigma;
+    Double_t fAccuracy;
+    UInt_t fNumOfIterations;
+    vector <Int_t> fFixedStats;
 
     Bool_t fDebugInfo;
     Bool_t fOnlyMille;

@@ -31,6 +31,9 @@ fOnlyMille(onlyMille),
 fRunType(""),
 fSigmaX(1.),
 fSigmaY(1.),
+fPreSigma(1.),
+fAccuracy(1e-3),
+fNumOfIterations(50000),       
 fNGL_PER_STAT(0),
 fIterationsNum(1),
 fTrHits(NULL),
@@ -57,6 +60,9 @@ fWriteHitsOnly(kFALSE) {
         fRecoTree->Branch("BmnAlignmentContainer", &fContainer);
 
         fTrHits = new TClonesArray("BmnGemStripHit");
+       
+        for (Int_t iStat = 0; iStat < fNstat; iStat++) 
+            fThresh[iStat] = -LDBL_MAX;
     }
 }
 
@@ -491,17 +497,15 @@ BmnGemAlignment::~BmnGemAlignment() {
 }
 
 void BmnGemAlignment::StartPede() {
-    TCanvas* c = new TCanvas("alignParams", "alignParams", 1500, 800);
-    TString steerFileName = GetSteerFileNames();
 
-    c->Divide(fNGL_PER_STAT, 1);
-    TGraphErrors* outGraphX = new TGraphErrors();
-    TGraphErrors* outGraphY = new TGraphErrors();
-    TGraphErrors* outGraphZ = new TGraphErrors();
+    Int_t firstIter = 0;
+    MakeSteerFile(firstIter); // Create initial steer file
 
-    TString tmp = fRecoFileName;
+    TString steerFileName = fAlignmentType;
+    TString iterNum = "";
+    iterNum += firstIter;   
 
-    TString commandToExec = "pede " + steerFileName;
+    TString commandToExec = "pede steer_" + iterNum + ".txt";
     fCommandToRunPede = commandToExec;
 
     TString random = "";
@@ -548,7 +552,11 @@ void BmnGemAlignment::StartPede() {
 
     string line;
     Int_t pointX = 0, pointY = 0, pointZ = 0;
-
+    
+    TGraphErrors* outGraphX = new TGraphErrors();
+    TGraphErrors* outGraphY = new TGraphErrors();
+    TGraphErrors* outGraphZ = new TGraphErrors();
+    
     while (getline(resFile, line)) {
         stringstream ss(line);
         Int_t size = ss.str().length();
@@ -591,7 +599,10 @@ void BmnGemAlignment::StartPede() {
         } else
             cout << "Unsupported format given!";
     }
-
+ 
+    TCanvas* c = new TCanvas("alignParams", "alignParams", 1500, 800);
+    c->Divide(fNGL_PER_STAT, 1);
+    
     c->cd(1)->SetGrid();
     GraphDrawAttibuteSetter(outGraphX, steerFileName);
 
@@ -603,11 +614,11 @@ void BmnGemAlignment::StartPede() {
         GraphDrawAttibuteSetter(outGraphZ, steerFileName);
     }
 
-    system(Form("cp millepede.res Millepede_%s_%s.res", tmp.Data(), steerFileName.Data()));
+    system(Form("cp millepede.res Millepede_%s_%s.res", fRecoFileName, steerFileName.Data()));
     system("rm millepede.*");
     resFile.close();
 
-    c->SaveAs(Form("alignParams_%s_%s.png", tmp.Data(), steerFileName.Data()));
+    c->SaveAs(Form("alignParams_%s_%s.png", fRecoFileName, steerFileName.Data()));
     delete c;
     delete outGraphX;
     delete outGraphY;
@@ -620,10 +631,9 @@ void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, Int_t iter) {
 
     // Open new steer file with obtained params.
     FILE* fin = fopen(Form("steer_%d.txt", iter), "w");
-    TString alignType = ((fAlignmentType == "xy") ? "alignment_xy.bin" : (fAlignmentType == "xyz") ? "alignment_xyz.bin" : "");
-    TString methodIter = ((fAlignmentType == "xy") ? "method inversion 500 1E-4" : (fAlignmentType == "xyz") ? "method inversion 50000 1E-4" : "");
+    TString alignType = "alignment_" + fAlignmentType + ".bin";
     fprintf(fin, "%s\n", alignType.Data());
-    fprintf(fin, "%s\n", methodIter.Data());
+    fprintf(fin, "method inversion %d %f\n", fNumOfIterations, fAccuracy);
     fprintf(fin, "Parameter\n");
 
     TString buff1 = "";
@@ -633,7 +643,7 @@ void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, Int_t iter) {
     TString buff5 = "";
 
     string line;
-    
+
     // Go to the second string of existing millepede.res 
     resFile.ignore(numeric_limits<streamsize>::max(), '\n');
 
@@ -644,14 +654,10 @@ void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, Int_t iter) {
         if (size == 40) {
             ss >> buff1 >> buff2 >> buff3;
             fprintf(fin, "%d %f %f\n", buff1.Atoi(), buff2.Atof(), buff3.Atof());
-        }
-
-        else if (size == 68) {
+        } else if (size == 68) {
             ss >> buff1 >> buff2 >> buff3 >> buff4 >> buff5;
             fprintf(fin, "%d %f %f\n", buff1.Atoi(), buff2.Atof(), buff3.Atof());
-        }
-
-        else
+        } else
             cout << "Unsupported format given!";
     }
     fclose(fin);
@@ -671,7 +677,29 @@ void BmnGemAlignment::GraphDrawAttibuteSetter(TGraphErrors* gr, TString steerFil
     gr->GetYaxis()->CenterTitle();
     gr->GetYaxis()->SetTitleSize(0.06);
     gr->GetYaxis()->SetLabelSize(0.06);
-    gr->SetTitle(Form("%s-type of alignment (%s)", GetAlignmentDim().Data(), steerFileName.Data()));
+    gr->SetTitle(Form("%s-type of alignment (%s)", fAlignmentType.Data(), steerFileName.Data()));
+}
+
+void BmnGemAlignment::MakeSteerFile(Int_t iter) {
+    FILE* steer = fopen(Form("steer_%d.txt", iter), "w");
+    TString alignType = "alignment_" + fAlignmentType + ".bin";
+    fprintf(steer, "%s\n", alignType.Data());
+    fprintf(steer, "method inversion %d %f\n", fNumOfIterations, fAccuracy);
+    fprintf(steer, "Parameter\n");
+
+    for (Int_t iPar = 0; iPar < fNGL_PER_STAT * fNstat; iPar++) {
+        Int_t currStat = iPar / fNGL_PER_STAT;
+        fprintf(steer, "%d %f ", iPar + 1, 0.);
+
+        for (Int_t iSize = 0; iSize < fFixedStats.size(); iSize++) {
+            if (find(fFixedStats.begin(), fFixedStats.end(), currStat) != fFixedStats.end()) 
+                fprintf(steer, "%f\n", -1.);           
+            else 
+               fprintf(steer, "%f\n", fPreSigma); 
+            break;
+        }
+    }
+    fclose(steer);
 }
 
 ClassImp(BmnGemAlignment)

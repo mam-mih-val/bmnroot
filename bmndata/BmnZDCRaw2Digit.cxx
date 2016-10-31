@@ -199,7 +199,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
       {
 	sprintf(nam, "htest%d", i);
 	sprintf(tit, "Amplitude for adc test channel %d", test_chan[i]);
-	htest[i] = new TH1F(nam, tit, 10000, 0., 20000.);
+	htest[i] = new TH1F(nam, tit, 2000, 0., 16000.);
 	sprintf(nam, "ptest%d", i);
 	sprintf(tit, "Average sampling wave for adc test channel %d", test_chan[i]);
 	TestProf[i]   = new TProfile(nam, tit, 200, 0., 200., -100000., +100000.,"s");
@@ -1166,7 +1166,7 @@ float BmnZDCRaw2Digit::testwave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 		    m1 = 1 - (m%2) + (m/2)*2;
 		    if (m < ped_samples)
 		    {
-			pedest += s[m1];
+			pedest += s[m1]>>4;
 			if (m == (ped_samples-1))
 			{
 			    pedest /= ped_samples;
@@ -1175,7 +1175,7 @@ float BmnZDCRaw2Digit::testwave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 		    }
 		    else
 		    {
-			ampl = -(float)s[m1] + pedest;
+			ampl = -(float)(s[m1]>>4) + pedest;
 			if (ampl > 0)
 			{
 			    signal += ampl;

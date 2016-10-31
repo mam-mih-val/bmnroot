@@ -8,8 +8,10 @@
 #include "TMath.h"
 #include "TImage.h"
 #include <unistd.h>
-#include "../../bmndata/BmnTof2Raw2Digit.h"
+//#include "../../bmndata/BmnTof2Raw2Digit.h"
 
+#define TOF400_PLANE_COUNT 3
+#define TOF400_STRIP_COUNT 48
 
 void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
              TString dstName  = "$VMCWORKDIR/macro/run/bmndst.root"){
@@ -17,8 +19,12 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
     Double_t trackXMax = 40;
     Double_t trackYMax = 40;
     Int_t hitBins    = 100;
-    const Int_t gemCount = 7;
+    // GEM config
+    const UInt_t gemLayers = 4;
+    const UInt_t gemCount = 8;
+    const UInt_t nStrips[gemCount] = {256, 825, 825, 825, 825, 825, 1019, 1019};
     
+    // ToF config
     const UInt_t kNPLANES = 16;
     const UInt_t kNREALWIRES = 240;
     const UInt_t kNWIRES = 256;
@@ -41,69 +47,75 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
     digiTree->Add(digiName);
     TChain *dstTree = new TChain("cbmsim");
     dstTree->Add(dstName);
-    TClonesArray * gemHits;
+    TClonesArray * gemHits = NULL;
     dstTree->SetBranchAddress("BmnGemStripHit", &gemHits);
+    TClonesArray * gemDigits = NULL;
+    digiTree->SetBranchAddress("GEM", &gemDigits);
     Int_t nEvents = dstTree->GetEntries();
+    Int_t layer = 0;
     cout << "Events: " << nEvents << endl;
 
     // ====================================================================== //
     // Create server
     // ====================================================================== //
-    THttpServer* serv = new THttpServer(Form("http:8080/none?top=%s", "qq"));
+    THttpServer* serv = new THttpServer(Form("http:8080/none?top=%s", "BM@N Monitor"));
+    //serv->SetJSROOT("https://root.cern.ch/js/4.7/");
+    //serv->SetJSROOT("http://web-docs.gsi.de/~linev/js/3.5/");
     
     
     // ====================================================================== //
     // GEM histograms 
     // ====================================================================== // 
     TString name;
-    TH2D * histHitXY[gemCount];
-    TH1D * histHitX[gemCount];
-    TH1D * histHitY[gemCount];
+    //TH2D * histStripXY[kNST];
+    //TH1D * histStripX[kNST];
+    TH1F * histStrip[gemCount][gemLayers];
 
     for (Int_t gemIndex = 0; gemIndex < gemCount; gemIndex++){
-        name = Form("XY_hit_distribution_on_%dth_GEM", gemIndex);
-        histHitXY[gemIndex] = new TH2D(name, name, hitBins, -trackXMax, trackXMax,
+        //for (Int_t layer = 0; layer < gemLayers; layer++){
+        /*name = Form("XY_strip_distribution_on_%dth_GEM", gemIndex);
+        histStripXY[gemIndex] = new TH2D(name, name, hitBins, -trackXMax, trackXMax,
                                                    hitBins, -trackYMax, trackYMax);
         name = Form("X_projection on %dth_GEM", gemIndex);
-        histHitX[gemIndex] = new TH1D(name, name, hitBins, -trackXMax, trackXMax);
-        name = Form("Y_projection_on_%dth_GEM", gemIndex);
-        histHitY[gemIndex] = new TH1D(name, name, hitBins, -trackYMax, trackYMax);
+        histStripX[gemIndex] = new TH1D(name, name, hitBins, -trackXMax, trackXMax);*/
+            name = Form("GEM_%d_layer_%d", gemIndex, layer);
+            histStrip[gemIndex][layer] = new TH1F(name, name, hitBins, 0, nStrips[gemIndex]);
     }
     
     Int_t canvasW = 800;
     Int_t canvasH = 200 * gemCount;
-    TCanvas * canvasGemHits = new TCanvas("GEM_hit_distribution", "GEM_hit_distribution", canvasW, canvasH);
-    canvasGemHits->Divide(3, gemCount);
-    for (Int_t gemIndex = 0; gemIndex < gemCount; gemIndex++){
-        canvasGemHits->cd(gemIndex * 3 + 1);
-        histHitX[gemIndex]->Draw();
-        canvasGemHits->cd(gemIndex * 3 + 2);
-        histHitY[gemIndex]->Draw();
-        canvasGemHits->cd(gemIndex * 3 + 3);
-        histHitXY[gemIndex]->Draw("colz");
-    }
+    TCanvas * canvasGemHits = new TCanvas("GEM_Strip_distribution", "GEM_Strip_distribution", canvasW, canvasH);
+    canvasGemHits->Divide(1, gemCount-2);
+    canvasGemHits->SetFixedAspectRatio(kTRUE);
+    for (Int_t gemIndex = 0; gemIndex < gemCount-2; gemIndex++){
+        //for (Int_t layer = 0; layer < gemLayers; layer++){
+            canvasGemHits->cd(gemIndex + 1);// * gemLayers + layer);
+            histStrip[gemIndex][layer]->Draw();
+        }
     
     
-    Int_t stationIndex = 0;
-    Double_t tfX = 0;
-    Double_t tfY = 0;
-    Int_t res;
+    Int_t station = 0;
+    Int_t strip = 0;
     for (Long64_t iEv = 0; iEv < nEvents; iEv++){
-        dstTree->GetEntry(iEv);
-        for (Int_t hitIndex = 0; hitIndex < gemHits->GetEntriesFast(); hitIndex++){            
-            BmnGemStripHit *gh = (BmnGemStripHit *)gemHits->At(hitIndex);
+        digiTree->GetEntry(iEv);
+        for (Int_t hitIndex = 0; hitIndex < gemDigits->GetEntriesFast(); hitIndex++){            
+            /*BmnGemStripHit *gh = (BmnGemStripHit *)gemHits->At(hitIndex);
             stationIndex = gh->GetStation();
             tfX = gh->GetX();
             tfY = gh->GetY();
-            histHitXY[stationIndex]->Fill(tfX, tfY);
-            histHitX[stationIndex]->Fill(tfX);
-            histHitY[stationIndex]->Fill(tfY);
-            canvasGemHits->Modified();
-            canvasGemHits->Update();            
+            histStripXY[stationIndex]->Fill(tfX, tfY);
+            histStripX[stationIndex]->Fill(tfX);
+            histStripY[stationIndex]->Fill(tfY);*/                      
+            BmnGemStripDigit* gs = (BmnGemStripDigit*) gemDigits->At(hitIndex);
+            station = gs->GetStation();
+            strip = gs->GetStripNumber();
+            if (gs->GetStripLayer() != 0) continue;
+            histStrip[station][layer]->Fill(strip);
+            //canvasGemHits->Modified();
+            //canvasGemHits->Update();            
         }
-        if (res=gSystem->ProcessEvents()) break;
-        cout << "Event " << iEv << " processed with result " << res << endl; 
-        usleep(100000);
+        //if (res=gSystem->ProcessEvents()) break;
+        //cout << "Event " << iEv << " processed with result " << res << endl; 
     }
     /*for (Int_t gemIndex = 0; gemIndex < gemCount; gemIndex++){
         name = Form("X_projection_on_%dth_GEM", gemIndex);
@@ -117,7 +129,56 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
     // ToF histograms 
     // ====================================================================== //
     TClonesArray *ToF4Digits;
-    digiTree->SetBranchAddress("TOF400", &ToF4Digits); 
+    digiTree->SetBranchAddress("TOF400", &ToF4Digits);
+    name = "ToF400_Leading_Time";
+    TH1D *histToF400LeadingTime = new TH1D(name, name, 500, 0, 1000);
+    name = "ToF400_Amplitude";
+    TH1D *histToF400Amp = new TH1D(name, name, 4096, 0, 96);
+    name = "ToF400_Strip";
+    TH1I *histToF400Strip = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+    name = "ToF400_StripSimult";
+    TH1I *histToF400StripSimult = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+    name = "ToF400_State";
+    TH2F *histToF400State = new TH2F(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT, 2, 0, 2);
+    
+    Int_t stripIndex = 0;
+    for (Int_t evIndex = 0; evIndex < nEvents; evIndex++){
+        digiTree->GetEntry(evIndex);
+        TH1I *histL = new TH1I("", "", TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+        TH1I *histR = new TH1I("", "", TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+        TH1I histSimultaneous;
+        for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++){
+            BmnTof1Digit *td = (BmnTof1Digit *)ToF4Digits->At(digIndex);
+            stripIndex = td->GetStrip();
+            histToF400LeadingTime->Fill(td->GetTime());
+            histToF400Amp->Fill(td->GetAmplitude());
+            histToF400Strip->Fill(stripIndex);
+            if (td->GetSide() == 0)
+                histL->Fill(stripIndex);
+            else
+                histR->Fill(stripIndex);
+        }
+        histSimultaneous = (*histL) * (*histR);
+        *histToF400Strip = *histToF400Strip + histSimultaneous;
+        for (Int_t binIndex = 0; binIndex < TOF400_STRIP_COUNT; binIndex++)
+            histToF400StripSimult->Fill(histSimultaneous->GetBinContent(binIndex));
+    }
+    Int_t selectedPlane = 2;
+    //if (ToF4Digits->GetEntriesFast() > 0)
+    for (Int_t evIndex = 0; evIndex < 10; evIndex++){
+        digiTree->GetEntry(evIndex);
+    for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++){
+        BmnTof1Digit *td = (BmnTof1Digit *)ToF4Digits->At(digIndex);
+        if (td->GetPlane() == selectedPlane)
+            histToF400State->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
+    }}
+    cout << "hist size " << histToF400State->GetEntries() << endl;
+    name = "ToF400_Now";
+    TCanvas * canvasToF400State = new TCanvas(name, name, TOF400_STRIP_COUNT, 2);
+    canvasToF400State->cd(1);
+    histToF400State->Draw("colz");
+    canvasToF400State->Modified();
+    canvasToF400State->Update();
     /*const Int_t MaxPlane = 
     for (int i=0; i<MaxPlane; i++) // MaxPlane - число камер в системе
     {
@@ -173,7 +234,7 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
         }
     }
 
-    TCanvas* chmb1 = new TCanvas("DCH-1", "DCH-1", 1000, 1000);
+    TCanvas* chmb1 = new TCanvas("DCH_1", "DCH_1", 1000, 1000);
     chmb1->cd();
     for (Int_t i = 0; i < kNPLANES / 2; ++i) {
         DrawAllWires(chmb1, myPalette, v_wires[i], angles[i], i);
@@ -181,19 +242,21 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
     chmb1->Modified();
     chmb1->Update();
     chmb1->SaveAs("DCH1_wires.png");
-    /*TImage *img = TImage::Open("DCH1_wires.png");    
-    TCanvas * png_canvas = new TCanvas("DCH-1_pic", "DCH-1_pic", 1000, 1000);
+    /*TImage * img = TImage::Open("DCH1_wires.png");    
+    TCanvas * png_canvas = new TCanvas("DCH-1_pic", "DCH-1_pic", 100, 100);
     png_canvas->cd();
-    img->Draw("DCH_wires");
+    img->Draw();
     png_canvas->Modified();
-    png_canvas->Update();*/
+    png_canvas->Update();
+    img->SetName("DCH_img");
+   serv->Register("/", img);*/
     //delete img;
     
     //TFile *hfile = new TMemFile("GEM online","RECREATE","Demo ROOT file with histograms");
     //hfile->Write();
     
 }
-void DrawAllWires(TCanvas* c, Int_t* palette, Float_t * wires, Float_t ang, Short_t planeId) {
+inline void DrawAllWires(TCanvas* c, Int_t* palette, Float_t * wires, Float_t ang, Short_t planeId) {
     const UInt_t kNANGLE = 8;
     Double_t l = c->GetAbsWNDC();
     Double_t a = l / (1 + Sqrt2());

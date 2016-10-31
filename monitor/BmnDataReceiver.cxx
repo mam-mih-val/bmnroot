@@ -15,7 +15,14 @@
 #define PNP_DISCOVER_IP_ADDR "239.192.1.2"
 #define INPUT_IFACE "enp3s0"
  // "224.0.1.38"
+#define MAX_BUF_LEN 4096
+
 #include "BmnDataReceiver.h"
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include </usr/include/netdb.h>
 
 BmnDataReceiver::BmnDataReceiver() //:
 //_ctx(1),
@@ -31,15 +38,66 @@ BmnDataReceiver::~BmnDataReceiver() {
     zmq_ctx_destroy(_ctx);
 }
 
+int BmnDataReceiver::ConnectRaw(){
+    socklen_t addrlen = 0;
+    struct ip_mreq mreq;
+    mreq.imr_interface.s_addr = htons(INADDR_ANY);
+    mreq.imr_multiaddr.s_addr = inet_addr(PNP_DISCOVER_IP_ADDR);
+    struct sockaddr_in mcast_addr;
+    mcast_addr.sin_family = AF_INET;
+    mcast_addr.sin_port = htons(PNP_DISCOVER_PORT);
+    mcast_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    memset(&mcast_addr.sin_zero, 0, sizeof(mcast_addr.sin_zero));
+    
+    Int_t sfd = socket(AF_INET , SOCK_DGRAM, 0);
+    if (sfd == -1){
+        fprintf(stderr, "Error: %s\n", strerror (errno));
+        return -1;
+    }
+    uint reusable = 1;
+    if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &reusable, sizeof(reusable))){
+        close(sfd);
+        fprintf(stderr, "Setting reusable error: %s\n", strerror (errno));
+        return -1;
+    }
+    addrlen = sizeof(mcast_addr);
+    if (bind(sfd, (sockaddr*)&mcast_addr, addrlen) == -1){
+        close(sfd);
+        fprintf(stderr, "Bind error: %s\n", strerror (errno));
+        return -1;
+    }
+    if (setsockopt(sfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))){
+        close(sfd);
+        fprintf(stderr, "Adding multicast group error: %s\n", strerror (errno));
+        return -1;
+    }
+    Int_t nbytes;
+    char buf[MAX_BUF_LEN];
+    if ((nbytes = recvfrom(sfd, buf, MAX_BUF_LEN, 0, (sockaddr*)&mcast_addr, &addrlen)) == -1){
+    //if ((nbytes = read(sfd, buf, MAX_BUF_LEN)) == -1){
+        close(sfd);
+        fprintf(stderr, "Receive error: %s\n", strerror (errno));
+        return -1;
+    }
+    buf[nbytes] = '\0';
+    printf("nbytes = %d\n", nbytes);
+    printf("%s\n", buf);
+    
+    close(sfd);
+    return 0;
+}
+
+
 int BmnDataReceiver::Connect(){
     const int maxlen = 255;
     char endpoint_addr[maxlen];
     snprintf(endpoint_addr, maxlen, "epgm://%s;%s:%d", INPUT_IFACE, PNP_DISCOVER_IP_ADDR, PNP_DISCOVER_PORT);
     Int_t rc = 0;
     rc = zmq_connect(_socket_mcast, endpoint_addr);
-    printf("%s\n", endpoint_addr);
     if (rc != 0)
         printf("Error: %s\n", zmq_strerror (errno));
+    else
+        printf("%s\n", endpoint_addr);
     char * buf = (char*)malloc(255);
     Int_t frame_size = 0;
     for (Int_t i = 0; i < 10; i++){

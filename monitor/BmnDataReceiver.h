@@ -13,16 +13,16 @@
 
 #ifndef BMNDATARECEIVER_H
 #define BMNDATARECEIVER_H 1
-#include "/home/ilnur/libzmq/include/zmq.h"
-//#include <zmq.h>
-//#include "${SIMPATH}/include/zmq.h"
+#include <../zmq.h>
 #include <TNamed.h>
+//#include <netinet/udp.h>
 
 class BmnDataReceiver: public TNamed {
 public:
     BmnDataReceiver();
     virtual ~BmnDataReceiver();
     
+    int ConnectRaw();
     int Connect();
     int SendHello();
 private:

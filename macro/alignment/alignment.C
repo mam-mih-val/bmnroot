@@ -5,7 +5,7 @@ using namespace std;
 // BEAM:   61, 62, 63, 64 and 65 (artificially coded by 60: bmn_run0060_digi.root)
 // TARGET: 66, 67 and 68         (artificially coded by 70: bmn_run0070_digi.root)
 
-void alignment(Int_t fileNumber = 63, Int_t nEvents = 5000, Bool_t isDebug = kFALSE, Bool_t isHitsOnly = kFALSE, Bool_t isMilleOnly = kFALSE) {
+void alignment(Int_t fileNumber = 65, Int_t nEvents = 2000, Bool_t isDebug = kFALSE, Bool_t isHitsOnly = kFALSE, Bool_t isMilleOnly = kFALSE) {
     TString type = (fileNumber < 66) ? "beam" : "target";
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -18,15 +18,12 @@ void alignment(Int_t fileNumber = 63, Int_t nEvents = 5000, Bool_t isDebug = kFA
     gemAlign->SetDebugInfo(isDebug); // Print debug info
     gemAlign->SetWriteHitsOnly(isHitsOnly); // Write hits only, no alignment and track reconstruction are performed
     gemAlign->SetRunType(type);
-    
-    // gemAlign->SetNumIterations(1000); // Experimental option, default number is 1 and is defined in the main constructor
 
     if (!isMilleOnly)
         gemAlign->SetNofEvents(nEvents); //0 corresponds to all data set
 
     // Restrictions on output of the C.F.
     gemAlign->SetMaxNofHitsPerEvent(30);
-    gemAlign->SetSignalToNoise(-2., -2., -2., -2., -2., -2., -2.); // 1000 is an artificial threshold not to use a station, to be removed in future
     gemAlign->SetThreshold(0.);
 
     // Restrictions on hit params, beam run only
@@ -47,20 +44,13 @@ void alignment(Int_t fileNumber = 63, Int_t nEvents = 5000, Bool_t isDebug = kFA
     
     gemAlign->SetChi2MaxPerNDF(30.); // Cut on chi2/ndf for found tracks
 
-    // Probably, no user intervention to the strings below?
-    if (type == "beam")
-        gemAlign->SetAlignmentDim("xy");
-    else
-        gemAlign->SetAlignmentDim("xyz");
-
-    // steer_xy.txt and steer_xyz.txt are files to be changed in case of two types of alignment 
-    TString steerFile = "";
-    if (gemAlign->GetAlignmentDim() == "xy")
-        steerFile = "steer_xy.txt";
-    else if (gemAlign->GetAlignmentDim() == "xyz")
-        steerFile = "steer_xyz.txt";
-    gemAlign->SetSteerFile(steerFile);
     gemAlign->PrepareData();
+    
+    TString fixedStats[7] = {"fixed", "", "", "", "", "", "fixed"}; // Means that st0 and st6 are considered to be fixed 
+    gemAlign->SetStatNumFixed(fixedStats);
+    gemAlign->SetPreSigma(0.01);    // Default value is 1
+    // gemAlign->SetAccuracy(1e-2); // Default value is 1e-3
+    gemAlign->SetNumIterations(100); // Experimental option, default value is 1
 
     // Mille & Pede execution.
     if (gemAlign->GetWriteHitsOnly()) {

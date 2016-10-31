@@ -84,6 +84,8 @@ public:
 
     void fillEvent(TClonesArray *data, TClonesArray *zdcdigit);
 
+    void fillAmplitudes(TClonesArray *data);
+
     int fillCalibrateCluster(TClonesArray *data, Float_t x, Float_t y, Float_t e, Int_t clsize);
 
     int fillCalibrateNumbers(TClonesArray *data, Float_t x, Float_t y, Float_t e, Int_t ncells, Int_t *numbers);

@@ -523,6 +523,34 @@ void BmnZDCRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *zdcdigit) {
     }
 }
 
+void BmnZDCRaw2Digit::fillAmplitudes(TClonesArray *data) {
+    for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
+    Float_t amp = 0., ped = 0.;
+    int num_test = 0;
+    for (int i = 0; i < data->GetEntriesFast(); i++) {
+       BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
+       num_test = is_test[digit->GetChannel()];
+       if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
+       if (num_test >= 0 && digit->GetSerial() == test_id[num_test])
+       {
+    	    if ((amp = testwave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+	    {
+		log_amp[num_test] = amp;
+	    }
+	    continue;
+       }
+       int ind; 
+       for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
+       if(ind==n_rec) continue; 
+       if(zdc_map_element[ind].used==0) continue;
+       if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+       {
+	   zdc_amp[zdc_map_element[ind].chan] = amp;
+       }
+    }
+}
+
 int BmnZDCRaw2Digit::fillCalibrateCluster(TClonesArray *data, Float_t x, Float_t y, Float_t e, Int_t clsize) {
     for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
     for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;

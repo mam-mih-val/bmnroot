@@ -10,10 +10,15 @@ static void fcn1(Int_t& npar, Double_t *gin, Double_t& f, Double_t *par, Int_t i
 
 BmnZDCRaw2Digit::BmnZDCRaw2Digit(){
   n_rec=0;
+  n_test=0;
 }
 BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
-    test_chan1 = -1;
-    test_id1 = -1;
+    for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) test_chan[i] = -1;
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) test_id[i] = -1;
+    for (int i=0; i<256; i++) is_test[i] = -1;
+    n_test = 0;
     n_rec=0;
     TString dummy;
     ifstream in;
@@ -31,7 +36,16 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
         in >>std::hex >> id >>std::dec >> chan >> front_chan>>size>>ix>>iy>>x>>y>>used;
         if (!in.good()) break;
 //	printf("%0x %d %d %d %d %d %f %f\n",id,chan,front_chan,size,ix,iy,x,y);
-	if (size == 200) { test_chan1 = chan; test_id1 = id; };
+	if (size >= 200 && size <= 223)
+	{
+	  if (n_test < MAX_LOG_CHANNELS && chan > 0)
+	  {
+	    if (is_test[chan-1] < 0) is_test[chan-1] = n_test;
+	    else		     is_test[128 + chan-1] = n_test;
+	    test_chan[n_test] = chan-1;
+	    test_id[n_test++] = id;
+	  };
+	};
 	if (size > 2 || size < 0) continue;
 	if (chan <= 0) continue;
 	if (front_chan <= 0) continue;
@@ -177,14 +191,19 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
 
     char tit[128], nam[128];
 
-    htest1 = NULL;
-    Test1Prof = NULL;
-    if (test_chan1 >= 0)
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) htest[i] = NULL;
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) TestProf[i] = NULL;
+    for (int i=0; i<n_test; i++)
     {
-	sprintf(tit, "Amplitude for adc test channel %d", test_chan1);
-	htest1 = new TH1F("htest1",tit, 10000, 0., 10000.);
-	sprintf(tit, "Average sampling wave for adc test channel %d", test_chan1);
-	Test1Prof   = new TProfile("ptest1", tit, 200, 0., 200., -100000., +100000.,"s");
+      if (test_chan[i] >= 0)
+      {
+	sprintf(nam, "htest%d", i);
+	sprintf(tit, "Amplitude for adc test channel %d", test_chan[i]);
+	htest[i] = new TH1F(nam, tit, 10000, 0., 20000.);
+	sprintf(nam, "ptest%d", i);
+	sprintf(tit, "Average sampling wave for adc test channel %d", test_chan[i]);
+	TestProf[i]   = new TProfile(nam, tit, 200, 0., 200., -100000., +100000.,"s");
+      }
     }
     hsum_sim = new TH1F("hsumsim","Sum of theoretical amplitudes", 1000, 0., 100.);
     hsum_raw = new TH1F("hsumraw","Sum of raw amplitudes", 2000, 0., 20000.);
@@ -215,6 +234,8 @@ void BmnZDCRaw2Digit::print() {
 void BmnZDCRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t y, Float_t e, Int_t clsize) {
     Float_t amp = 0;
     double r = 0., dx = 0., dy = 0.;
+    for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
     if (nevents == 0)
     {
 	ncells = 0;
@@ -319,23 +340,26 @@ void BmnZDCRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t 
 	}
     }
     float ped = 0., xm = 0., ym = 0., s = 0.;
+    int num_test = 0;
     if (data != NULL)
     {
      for (int i = 0; i < data->GetEntriesFast(); i++) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
-       if (test_chan1 >= 0)
-       if (digit->GetChannel() == test_chan1 && digit->GetSerial() == test_id1)
+       num_test = is_test[digit->GetChannel()];
+       if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
+       if (num_test >= 0 && digit->GetSerial() == test_id[num_test])
        {
     	    UShort_t *samt = digit->GetValue();
 	    int j2 = 0;
     	    for (int j1 = 0;j1<digit->GetSamples(); j1++)
     	    {
 		j2 = 1 - j1%2 + (j1/2)*2;
-		if (Test1Prof) Test1Prof->Fill(j1,samt[j2]);
+		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]);
     	    }
     	    if ((amp = testwave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
 	    {
-		if (htest1) htest1->Fill(amp);
+		if (htest[num_test]) htest[num_test]->Fill(amp);
+		log_amp[num_test] = amp;
 	    }
 	    continue;
        }
@@ -357,6 +381,7 @@ void BmnZDCRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t 
 	    xm += amp*cal[zdc_map_element[ind].chan]*zdc_map_element[ind].x;
 	    ym += amp*cal[zdc_map_element[ind].chan]*zdc_map_element[ind].y;
 	    s += amp*cal[zdc_map_element[ind].chan];
+	    zdc_amp[zdc_map_element[ind].chan] = amp;
        }
      }
     }
@@ -369,6 +394,8 @@ void BmnZDCRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t 
 void BmnZDCRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Float_t y, Float_t e) {
     Float_t amp = 0;
     Int_t j = 0;
+    for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
     if (nevents >= MAX_EVENTS) return;
     if (nevents == 0)
     {
@@ -406,23 +433,26 @@ void BmnZDCRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Float
 	}
     }
     float ped = 0., xm = 0., ym = 0., s = 0.;
+    int num_test = 0;
     if (data != NULL)
     {
      for (int i = 0; i < data->GetEntriesFast(); i++) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
-       if (test_chan1 >= 0)
-       if (digit->GetChannel() == test_chan1 && digit->GetSerial() == test_id1)
+       num_test = is_test[digit->GetChannel()];
+       if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
+       if (num_test >= 0 && digit->GetSerial() == test_id[num_test])
        {
     	    UShort_t *samt = digit->GetValue();
 	    int j2 = 0;
     	    for (int j1 = 0;j1<digit->GetSamples(); j1++)
     	    {
 		j2 = 1 - j1%2 + (j1/2)*2;
-		if (Test1Prof) Test1Prof->Fill(j1,samt[j2]);
+		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]);
     	    }
     	    if ((amp = testwave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
 	    {
-		if (htest1) htest1->Fill(amp);
+		if (htest[num_test]) htest[num_test]->Fill(amp);
+		log_amp[num_test] = amp;
 	    }
 	    continue;
        }
@@ -444,6 +474,7 @@ void BmnZDCRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Float
 	    xm += amp*cal[zdc_map_element[ind].chan]*zdc_map_element[ind].x;
 	    ym += amp*cal[zdc_map_element[ind].chan]*zdc_map_element[ind].y;
 	    s += amp*cal[zdc_map_element[ind].chan];
+	    zdc_amp[zdc_map_element[ind].chan] = amp;
        }
      }
     }
@@ -453,22 +484,27 @@ void BmnZDCRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Float
 }
 
 void BmnZDCRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *zdcdigit) {
+    for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
     Float_t amp = 0., ped = 0.;
+    int num_test = 0;
     for (int i = 0; i < data->GetEntriesFast(); i++) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
-       if (test_chan1 >= 0)
-       if (digit->GetChannel() == test_chan1 && digit->GetSerial() == test_id1)
+       num_test = is_test[digit->GetChannel()];
+       if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
+       if (num_test >= 0 && digit->GetSerial() == test_id[num_test])
        {
     	    UShort_t *samt = digit->GetValue();
 	    int j2 = 0;
     	    for (int j1 = 0;j1<digit->GetSamples(); j1++)
     	    {
 		j2 = 1 - j1%2 + (j1/2)*2;
-		if (Test1Prof) Test1Prof->Fill(j1,samt[j2]);
+		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]);
     	    }
     	    if ((amp = testwave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
 	    {
-		if (htest1) htest1->Fill(amp);
+		if (htest[num_test]) htest[num_test]->Fill(amp);
+		log_amp[num_test] = amp;
 	    }
 	    continue;
        }
@@ -482,11 +518,14 @@ void BmnZDCRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *zdcdigit) {
 	   amp *= cal[zdc_map_element[ind].chan];
            new(ar_zdc[zdcdigit->GetEntriesFast()]) BmnZDCDigit(zdc_map_element[ind].ix,zdc_map_element[ind].iy,zdc_map_element[ind].x,zdc_map_element[ind].y,zdc_map_element[ind].size+1,
            zdc_map_element[ind].chan+1,amp);  
+	   zdc_amp[zdc_map_element[ind].chan] = amp;
        }
     }
 }
 
 int BmnZDCRaw2Digit::fillCalibrateCluster(TClonesArray *data, Float_t x, Float_t y, Float_t e, Int_t clsize) {
+    for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
     Float_t amp = 0;
     double r = 0., dx = 0., dy = 0.;
     static double coef[MAX_CHANNELS] = {1.};
@@ -666,6 +705,8 @@ int BmnZDCRaw2Digit::fillCalibrateCluster(TClonesArray *data, Float_t x, Float_t
 }
 
 int BmnZDCRaw2Digit::fillCalibrateNumbers(TClonesArray *data, Float_t x, Float_t y, Float_t e, Int_t nchan, Int_t *cells) {
+    for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
     Float_t amp = 0;
     double r = 0., dx = 0., dy = 0.;
     if (nevents >= MAX_EVENTS) return 1;
@@ -757,6 +798,8 @@ int BmnZDCRaw2Digit::fillCalibrateNumbers(TClonesArray *data, Float_t x, Float_t
 }
 
 int BmnZDCRaw2Digit::fillCalibrateAll(TClonesArray *data, Float_t x, Float_t y, Float_t e) {
+    for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
+    for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
     Float_t amp = 0;
     Int_t j = 0;
     if (nevents >= MAX_EVENTS) return 1;
@@ -1247,14 +1290,17 @@ void BmnZDCRaw2Digit::drawprof()
 
 void BmnZDCRaw2Digit::drawtest()
 {
-  if (htest1 == NULL) return;
+  if (htest[0] == NULL) return;
   TCanvas *ctest = new TCanvas("ctest", "ZDC test channel", 800,800);
   ctest->cd();
-  ctest->Divide(1,2);
-  ctest->cd(1);
-  htest1->Draw();
-  ctest->cd(2);
-  Test1Prof->Draw();
+  ctest->Divide(2,n_test);
+  for (int i = 0; i<n_test; i++)
+  {
+   ctest->cd(i*2+1);
+   htest[i]->Draw();
+   ctest->cd(i*2+2);
+   TestProf[i]->Draw();
+  }
   return;
 }
 

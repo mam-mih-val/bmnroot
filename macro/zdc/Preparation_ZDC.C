@@ -27,7 +27,6 @@ void Preparation_ZDC(char *fname="bmn_run0543.root") {
 //    for (int ev = 0; ev < _t_in->GetEntries(); ev++) {
     for (int ev = 0; ev < 5000; ev++) {
 
-        if ((ev % 1000) == 0) printf("Calibration ZDC, event %d\n", ev);
 
         zdc_raw->Clear(); 
 
@@ -36,9 +35,14 @@ void Preparation_ZDC(char *fname="bmn_run0543.root") {
 //        ZDC.fillSampleProfiles(zdc_raw, 0., 0., 48., 3);
         ZDC.fillSampleProfilesAll(zdc_raw, 0., 0., 48.);
 
+        if ((ev % 1000) == 0) printf("Preparation ZDC, event %d\n", ev);
+        if ((ev % 1000) == 0 && ZDC.getLogChan(0) >= 0) printf("     Log channel 0 (Id = 0x%0x, Ch = %d) amplitude is %f\n", ZDC.getLogId(0), ZDC.getLogChan(0), ZDC.getLogAmp(0));
+        if ((ev % 1000) == 0 && ZDC.getLogChan(1) >= 0) printf("     Log channel 1 (Id = 0x%0x, Ch = %d) amplitude is %f\n", ZDC.getLogId(1), ZDC.getLogChan(1), ZDC.getLogAmp(1));
+
     }
     /////////////////////////////////////////////////////////////////////////////////////
-    ZDC.drawprof();
+//    ZDC.drawprof();
+    ZDC.drawtest();
     /////////////////////////////////////////////////////////////////////////////////////
    
     _f_in->Close();

@@ -15,7 +15,8 @@
 #include <cstdlib> 
 
 #define MAX_EVENTS 10000
-#define MAX_CHANNELS 52
+#define MAX_CHANNELS 104
+#define MAX_LOG_CHANNELS 24
 
 static int nevents;
 static float amp_array[MAX_EVENTS][MAX_CHANNELS];
@@ -101,6 +102,14 @@ public:
 
     void drawtest();
 
+    float getAmp(int zch) { if (zch < MAX_CHANNELS) return zdc_amp[zch]; else return -1.;};
+
+    float getLogAmp(int lch) { if (lch < MAX_LOG_CHANNELS) return log_amp[lch]; else return -1.;};
+
+    int getLogId(int lch) { if (lch < MAX_LOG_CHANNELS) return test_id[lch]; else return -1;};
+
+    int getLogChan(int lch) { if (lch < MAX_LOG_CHANNELS) return test_chan[lch]; else return -1;};
+
 //    void fcn(Int_t& npar, Double_t *gin, Double_t& f, Double_t *par, Int_t iflag);
 
 private:
@@ -128,6 +137,8 @@ private:
 //    static float amp_array[MAX_EVENTS][MAX_CHANNELS];
 //    static float profile_amp[MAX_EVENTS][MAX_CHANNELS];
 //    static float profile_err[MAX_EVENTS][MAX_CHANNELS];
+    float zdc_amp[MAX_CHANNELS];
+    float log_amp[MAX_LOG_CHANNELS];
     int number[MAX_CHANNELS];
     int index[MAX_CHANNELS];
     int channel0[MAX_CHANNELS];
@@ -146,10 +157,12 @@ private:
     double shower(double x, double h);
     float wave2amp(UChar_t ns, UShort_t *s, Float_t *p);
     float testwave2amp(UChar_t ns, UShort_t *s, Float_t *p);
-    int test_chan1;
-    int test_id1;
-    TH1F *htest1;
-    TProfile *Test1Prof;
+    int n_test;
+    int test_chan[MAX_LOG_CHANNELS];
+    int test_id[MAX_LOG_CHANNELS];
+    int is_test[256];
+    TH1F *htest[MAX_LOG_CHANNELS];
+    TProfile *TestProf[MAX_LOG_CHANNELS];
     TH1F *hsum_sim;
     TH1F *hsum_raw;
     TH1F *hsum;

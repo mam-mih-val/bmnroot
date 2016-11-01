@@ -13,7 +13,6 @@
 
 #ifndef BMNDATARECEIVER_H
 #define BMNDATARECEIVER_H 1
-#include <../zmq.h>
 #include <TNamed.h>
 //#include <netinet/udp.h>
 
@@ -30,7 +29,12 @@ private:
     //zmq::socket_t _socket_mcast;
     void * _ctx;
     void * _socket_mcast;
+    int _sfd;
     
+    bool isListening;
+    //static void HandleSignal(int signal);
+    void InitSocks();
+    void DeinitSocks();
     
     
     ClassDef(BmnDataReceiver, 1)

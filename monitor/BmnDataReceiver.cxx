@@ -18,13 +18,23 @@
 #define MAX_BUF_LEN 4096
 
 #include "BmnDataReceiver.h"
+#include <../zmq.h>
+#include <signal.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include </usr/include/netdb.h>
 
-BmnDataReceiver::BmnDataReceiver() //:
+BmnDataReceiver::BmnDataReceiver(){
+    InitSocks();
+}
+
+BmnDataReceiver::~BmnDataReceiver() {
+    DeinitSocks();
+}
+
+void BmnDataReceiver::InitSocks() //:
 //_ctx(1),
 //_socket_mcast(_ctx, ZMQ_SUB)
 {
@@ -32,11 +42,27 @@ BmnDataReceiver::BmnDataReceiver() //:
     _socket_mcast = zmq_socket(_ctx, ZMQ_XSUB);
 }
 
-BmnDataReceiver::~BmnDataReceiver() {
+void BmnDataReceiver::DeinitSocks() {
     //_socket_mcast.close();
     zmq_close(_socket_mcast);
     zmq_ctx_destroy(_ctx);
 }
+
+/*void BmnDataReceiver::HandleSignal(int signal){
+    switch (signal)
+    {
+        case SIGINT:
+        {
+            isListening = false;
+            printf("SIGINT received\n");
+            break;
+        }
+        default:
+        {
+            
+        }    
+    }
+}*/
 
 int BmnDataReceiver::ConnectRaw(){
     socklen_t addrlen = 0;
@@ -49,41 +75,46 @@ int BmnDataReceiver::ConnectRaw(){
     mcast_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     memset(&mcast_addr.sin_zero, 0, sizeof(mcast_addr.sin_zero));
     
-    Int_t sfd = socket(AF_INET , SOCK_DGRAM, 0);
-    if (sfd == -1){
+    _sfd = socket(AF_INET , SOCK_DGRAM, 0);
+    if (_sfd == -1){
         fprintf(stderr, "Error: %s\n", strerror (errno));
         return -1;
     }
     uint reusable = 1;
-    if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &reusable, sizeof(reusable))){
-        close(sfd);
+    if (setsockopt(_sfd, SOL_SOCKET, SO_REUSEADDR, &reusable, sizeof(reusable))){
+        close(_sfd);
         fprintf(stderr, "Setting reusable error: %s\n", strerror (errno));
         return -1;
     }
     addrlen = sizeof(mcast_addr);
-    if (bind(sfd, (sockaddr*)&mcast_addr, addrlen) == -1){
-        close(sfd);
+    if (bind(_sfd, (sockaddr*)&mcast_addr, addrlen) == -1){
+        close(_sfd);
         fprintf(stderr, "Bind error: %s\n", strerror (errno));
         return -1;
     }
-    if (setsockopt(sfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))){
-        close(sfd);
+    if (setsockopt(_sfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))){
+        close(_sfd);
         fprintf(stderr, "Adding multicast group error: %s\n", strerror (errno));
         return -1;
     }
     Int_t nbytes;
     char buf[MAX_BUF_LEN];
-    if ((nbytes = recvfrom(sfd, buf, MAX_BUF_LEN, 0, (sockaddr*)&mcast_addr, &addrlen)) == -1){
-    //if ((nbytes = read(sfd, buf, MAX_BUF_LEN)) == -1){
-        close(sfd);
-        fprintf(stderr, "Receive error: %s\n", strerror (errno));
-        return -1;
-    }
-    buf[nbytes] = '\0';
-    printf("nbytes = %d\n", nbytes);
-    printf("%s\n", buf);
     
-    close(sfd);
+    //signal(SIGINT, HandleSignal);
+    isListening = true;
+    while (isListening){
+        if ((nbytes = recvfrom(_sfd, buf, MAX_BUF_LEN, 0, (sockaddr*)&mcast_addr, &addrlen)) == -1){
+            //if ((nbytes = read(sfd, buf, MAX_BUF_LEN)) == -1){
+            close(_sfd);
+            fprintf(stderr, "Receive error: %s\n", strerror (errno));
+            return -1;
+        }
+        buf[nbytes] = '\0';
+        printf("nbytes = %d\n", nbytes);
+        printf("%s\n", buf);
+    }
+    
+    close(_sfd);
     return 0;
 }
 

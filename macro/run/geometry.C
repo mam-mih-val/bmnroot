@@ -34,6 +34,7 @@ geometry(FairRunSim *fRun) {
 
     FairDetector* sts = new CbmSts("STS", kTRUE);
     sts->SetGeometryFileName("GEMS_RunSummer2016.root");
+    //sts->SetGeometryFileName("GEMS_RunWinter2016.root");
     fRun->AddModule(sts);
 
     FairDetector* recoil = new BmnRecoil("RECOIL", kTRUE);

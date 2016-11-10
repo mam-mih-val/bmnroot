@@ -153,8 +153,9 @@ void run_reco_bmn(TString inFile = "run4-61:bmn_run0061_digi.root", TString outF
     // ====================================================================== //
 
     // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016;      // RunSummer2016 config (GEM_RunSummer2016.root))
-    // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016_set1; // RunSummer2016 config, geom.corr. from A. Maltsev 
+    // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016_set1; // RunSummer2016 config, geom.corr. from A. Maltsev
     BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016_set2; // RunSummer2016 config, geom.corr. from P. Batyuk
+    // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunWinter2016;      // RunWinter2016 config (GEM_RunWinter2016.root))
     if (!isExp) {
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
         gemDigit->SetCurrentConfig(gem_config);

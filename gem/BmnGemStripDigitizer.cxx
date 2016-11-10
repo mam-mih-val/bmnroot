@@ -2,6 +2,7 @@
 #include "CbmMCTrack.h"
 
 #include "BmnGemStripStationSet_RunSummer2016.h"
+#include "BmnGemStripStationSet_RunWinter2016.h"
 
 static Float_t workTime = 0.0;
 static int entrys = 0;
@@ -63,6 +64,11 @@ InitStatus BmnGemStripDigitizer::Init() {
         case BmnGemStripConfiguration::RunSummer2016_set2 :
             StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
             cout << "   Current Configuration : RunSummer2016_set2" << "\n";
+            break;
+
+        case BmnGemStripConfiguration::RunWinter2016 :
+            StationSet = new BmnGemStripStationSet_RunWinter2016(fCurrentConfig);
+            cout << "   Current Configuration : RunWinter2016" << "\n";
             break;
 
         default:

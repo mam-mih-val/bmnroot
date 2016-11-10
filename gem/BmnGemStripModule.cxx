@@ -929,7 +929,7 @@ void BmnGemStripModule::CalculateStripHitIntersectionPoints() {
 }
 
 //need for a separated test (find x,y intersection coords from strip positions)
-Bool_t BmnGemStripModule::SearchIntersectionPoint(Double_t &x, Double_t &y, Double_t strip_pos_layerA, Double_t strip_pos_layerB, Double_t layerA_index, Double_t layerB_index) {
+Bool_t BmnGemStripModule::SearchIntersectionPoint(Double_t &x, Double_t &y, Double_t strip_pos_layerA, Double_t strip_pos_layerB, Int_t layerA_index, Int_t layerB_index) {
 
     Int_t ilayer = layerA_index;
     Int_t jlayer = layerB_index;

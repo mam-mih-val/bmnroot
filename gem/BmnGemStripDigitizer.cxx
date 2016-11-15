@@ -56,16 +56,6 @@ InitStatus BmnGemStripDigitizer::Init() {
             cout << "   Current Configuration : RunSummer2016" << "\n";
             break;
 
-        case BmnGemStripConfiguration::RunSummer2016_set1 :
-            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016_set1" << "\n";
-            break;
-
-        case BmnGemStripConfiguration::RunSummer2016_set2 :
-            StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016_set2" << "\n";
-            break;
-
         case BmnGemStripConfiguration::RunWinter2016 :
             StationSet = new BmnGemStripStationSet_RunWinter2016(fCurrentConfig);
             cout << "   Current Configuration : RunWinter2016" << "\n";

@@ -4,6 +4,8 @@
 #include "BmnGemStripStation.h"
 #include "BmnGemStripConfiguration.h"
 
+#include <sstream>
+
 class BmnGemStripStation_RunSummer2016 : public BmnGemStripStation {
 
 private:

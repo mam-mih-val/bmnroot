@@ -1,7 +1,7 @@
 #include "BmnGemStripStationSet_RunSummer2016.h"
 #include "BmnGemStripStation_RunSummer2016.h"
 
-BmnGemStripStationSet_RunSummer2016::BmnGemStripStationSet_RunSummer2016(BmnGemStripConfiguration::GEM_CONFIG config) {
+ BmnGemStripStationSet_RunSummer2016::BmnGemStripStationSet_RunSummer2016(BmnGemStripConfiguration::GEM_CONFIG config) {
 
     NStations = 7;
 
@@ -16,43 +16,6 @@ BmnGemStripStationSet_RunSummer2016::BmnGemStripStationSet_RunSummer2016(BmnGemS
         case BmnGemStripConfiguration::RunSummer2016:
             for (Int_t iStat = 0; iStat < NStations; iStat++) {
                 XStationPositions[iStat] = -BmnGemStationPositions_RunSummer2016::XStationPositions[iStat]; //inverted : (bm@n x-coord -> classical x-coord)
-                YStationPositions[iStat] = BmnGemStationPositions_RunSummer2016::YStationPositions[iStat];
-                ZStationPositions[iStat] = BmnGemStationPositions_RunSummer2016::ZStationPositions[iStat];
-            }
-            break;
-
-        case BmnGemStripConfiguration::RunSummer2016_set1:
-            for(Int_t iStat = 0; iStat < NStations; iStat++) {
-                for (Int_t iStat = 0; iStat < NStations; iStat++) {
-                    XStationPositions[iStat] = -BmnGemStationPositions_RunSummer2016_set1::XStationPositions[iStat]; //inverted : (bm@n x-coord -> classical x-coord)
-                    YStationPositions[iStat] = BmnGemStationPositions_RunSummer2016_set1::YStationPositions[iStat];
-                    ZStationPositions[iStat] = BmnGemStationPositions_RunSummer2016_set1::ZStationPositions[iStat];
-                }
-            }
-            break;
-
-        case BmnGemStripConfiguration::RunSummer2016_set2:
-            for(Int_t iStat = 0; iStat < NStations; iStat++) {
-                for (Int_t iStat = 0; iStat < NStations; iStat++) {
-                    XStationPositions[iStat] = -BmnGemStationPositions_RunSummer2016_set2::XStationPositions[iStat]; //inverted : (bm@n x-coord -> classical x-coord)
-                    YStationPositions[iStat] = BmnGemStationPositions_RunSummer2016_set2::YStationPositions[iStat];
-                    ZStationPositions[iStat] = BmnGemStationPositions_RunSummer2016_set2::ZStationPositions[iStat];
-                }
-            }
-            break;
-
-        //for technical usage
-        case BmnGemStripConfiguration::RunSummer2016_ALIGNMENT:
-            XStationPositions[0] = -BmnGemStationPositions_RunSummer2016_set2::XStationPositions[0];
-            YStationPositions[0] = BmnGemStationPositions_RunSummer2016_set2::YStationPositions[0];
-            ZStationPositions[0] = BmnGemStationPositions_RunSummer2016_set2::ZStationPositions[0];
-
-            XStationPositions[6] = -BmnGemStationPositions_RunSummer2016_set2::XStationPositions[6];
-            YStationPositions[6] = BmnGemStationPositions_RunSummer2016_set2::YStationPositions[6];
-            ZStationPositions[6] = BmnGemStationPositions_RunSummer2016_set2::ZStationPositions[6];
-
-            for (Int_t iStat = 1; iStat < 5; iStat++) {
-                XStationPositions[iStat] = -BmnGemStationPositions_RunSummer2016::XStationPositions[iStat];
                 YStationPositions[iStat] = BmnGemStationPositions_RunSummer2016::YStationPositions[iStat];
                 ZStationPositions[iStat] = BmnGemStationPositions_RunSummer2016::ZStationPositions[iStat];
             }

@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "BmnGemAlignment.h"
 #include "../gem/BmnGemStripConfiguration.h"
 
@@ -33,7 +35,7 @@ fSigmaX(1.),
 fSigmaY(1.),
 fPreSigma(1.),
 fAccuracy(1e-3),
-fNumOfIterations(50000),       
+fNumOfIterations(50000),
 fNGL_PER_STAT(0),
 fIterationsNum(1),
 fTrHits(NULL),
@@ -60,8 +62,8 @@ fWriteHitsOnly(kFALSE) {
         fRecoTree->Branch("BmnAlignmentContainer", &fContainer);
 
         fTrHits = new TClonesArray("BmnGemStripHit");
-       
-        for (Int_t iStat = 0; iStat < fNstat; iStat++) 
+
+        for (Int_t iStat = 0; iStat < fNstat; iStat++)
             fThresh[iStat] = -LDBL_MAX;
     }
 }
@@ -86,16 +88,36 @@ void BmnGemAlignment::PrepareData() {
     if (fOnlyMille == kTRUE)
         return;
 
+    // Create current geometry
+    BmnGemStripStationSet* fDetector = new BmnGemStripStationSet_RunSummer2016(BmnGemStripConfiguration::RunSummer2016);
+    const Int_t nStat = fDetector->GetNStations();
+    const Int_t nParams = 3; // x, y, z
+
+    // Read rough corrections from the file
+    corr = new Double_t**[nStat];
+    for (Int_t iStat = 0; iStat < nStat; iStat++) {
+        Int_t nModul = fDetector->GetGemStation(iStat)->GetNModules();
+        corr[iStat] = new Double_t*[nModul];
+        for (Int_t iMod = 0; iMod < nModul; iMod++) {
+            corr[iStat][iMod] = new Double_t[nParams];
+            for (Int_t iPar = 0; iPar < nParams; iPar++) {
+                corr[iStat][iMod][iPar] = 0.;
+            }
+        }
+    }
+
+    ReadFileCorrections(fDetector);
+
     for (Int_t iEv = 0; iEv < fNumEvents; iEv++) {
         fChainIn->GetEntry(iEv);
         if (iEv % 1000 == 0)
             cout << "Event# = " << iEv << endl;
 
+        fDetector->Reset(); // cleaning:)
+
         fGemHits->Delete();
         fGemTracks->Delete();
         fContainer->Delete();
-
-        BmnGemStripStationSet* fDetector = new BmnGemStripStationSet_RunSummer2016(BmnGemStripConfiguration::RunSummer2016_ALIGNMENT);
 
         for (Int_t iStation = 0; iStation < fDetector->GetNStations(); ++iStation) {
             BmnGemStripStation* station = fDetector->GetGemStation(iStation);
@@ -143,11 +165,13 @@ void BmnGemAlignment::PrepareData() {
                     Double_t z_err = 0.0;
 
                     x *= -1.;
+                    x += corr[iStation][iMod][0];
+                    y += corr[iStation][iMod][1];
+                    z += corr[iStation][iMod][2];
 
                     if (x < fXMin || x > fXMax || y < fYMin || y > fYMax)
                         continue;
 
-                    // x --> -x in order to go to the BM@N reference frame
                     BmnGemStripHit* hit = new((*fGemHits)[fGemHits->GetEntriesFast()]) BmnGemStripHit(iStation, TVector3(x, y, z), TVector3(x_err, y_err, 0.), iPoint);
                     hit->SetDx(x_err);
                     hit->SetDy(y_err);
@@ -161,10 +185,8 @@ void BmnGemAlignment::PrepareData() {
 
         if (fWriteHitsOnly == kFALSE) {
             // Checking for maximal number of hits
-            if (fGemHits->GetEntriesFast() == 0 || fGemHits->GetEntriesFast() > fMaxNofHits) {
-                delete fDetector;
+            if (fGemHits->GetEntriesFast() == 0 || fGemHits->GetEntriesFast() > fMaxNofHits)
                 continue;
-            }
 
             // Fill hits over stations
             vector <BmnGemStripHit*> stat[fNstat];
@@ -184,16 +206,12 @@ void BmnGemAlignment::PrepareData() {
             }
 
             // Checking for (nStat - 1) empty stations
-            if (emptyStat == fNstat - 1) {
-                delete fDetector;
+            if (emptyStat == fNstat - 1)
                 continue;
-            }
 
             // Checking for minimal number of hits per track
-            if (nonEmptyStatNumber.size() == 2) {
-                delete fDetector;
+            if (nonEmptyStatNumber.size() == 2)
                 continue;
-            }
 
             vector <BmnGemStripHit*> hits;
             goToStations(hits, stat, 0);
@@ -262,8 +280,20 @@ void BmnGemAlignment::PrepareData() {
             }
         }
         fRecoTree->Fill();
-        delete fDetector;
     }
+
+    // Delete dynamic array
+    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
+        Int_t nModul = fDetector->GetGemStation(iStat)->GetNModules();
+        for (Int_t iMod = 0; iMod < nModul; iMod++) {
+            delete corr[iStat][iMod];
+        }
+        delete[] corr[iStat];
+    }
+    delete[] corr;
+
+    delete fDetector;
+
     fRecoTree->Write();
     fRecoFile->Close();
 }
@@ -503,7 +533,7 @@ void BmnGemAlignment::StartPede() {
 
     TString steerFileName = fAlignmentType;
     TString iterNum = "";
-    iterNum += firstIter;   
+    iterNum += firstIter;
 
     TString commandToExec = "pede steer_" + iterNum + ".txt";
     fCommandToRunPede = commandToExec;
@@ -552,11 +582,11 @@ void BmnGemAlignment::StartPede() {
 
     string line;
     Int_t pointX = 0, pointY = 0, pointZ = 0;
-    
+
     TGraphErrors* outGraphX = new TGraphErrors();
     TGraphErrors* outGraphY = new TGraphErrors();
     TGraphErrors* outGraphZ = new TGraphErrors();
-    
+
     while (getline(resFile, line)) {
         stringstream ss(line);
         Int_t size = ss.str().length();
@@ -599,10 +629,10 @@ void BmnGemAlignment::StartPede() {
         } else
             cout << "Unsupported format given!";
     }
- 
+
     TCanvas* c = new TCanvas("alignParams", "alignParams", 1500, 800);
     c->Divide(fNGL_PER_STAT, 1);
-    
+
     c->cd(1)->SetGrid();
     GraphDrawAttibuteSetter(outGraphX, steerFileName);
 
@@ -692,14 +722,36 @@ void BmnGemAlignment::MakeSteerFile(Int_t iter) {
         fprintf(steer, "%d %f ", iPar + 1, 0.);
 
         for (Int_t iSize = 0; iSize < fFixedStats.size(); iSize++) {
-            if (find(fFixedStats.begin(), fFixedStats.end(), currStat) != fFixedStats.end()) 
-                fprintf(steer, "%f\n", -1.);           
-            else 
-               fprintf(steer, "%f\n", fPreSigma); 
+            if (find(fFixedStats.begin(), fFixedStats.end(), currStat) != fFixedStats.end())
+                fprintf(steer, "%f\n", -1.);
+            else
+                fprintf(steer, "%f\n", fPreSigma);
             break;
         }
     }
     fclose(steer);
+}
+
+void BmnGemAlignment::ReadFileCorrections(BmnGemStripStationSet* StationSet) {
+    TString dir = getenv("VMCWORKDIR");
+    TString pathToFile = dir + "/input/" + "alignCorr_65v2Base.txt";
+    ifstream file(pathToFile.Data(), ios::in);
+
+    string line;
+    TString stat = "", xCorr = "", yCorr = "", zCorr = "";
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+
+        ss >> stat >> xCorr >> yCorr >> zCorr;
+
+        for (Int_t iMod = 0; iMod < StationSet->GetGemStation(stat.Atoi())->GetNModules(); iMod++) {
+            corr[stat.Atoi()][iMod][0] = xCorr.Atof();
+            corr[stat.Atoi()][iMod][1] = yCorr.Atof();
+            corr[stat.Atoi()][iMod][2] = zCorr.Atof();
+        }
+    }
+    file.close();
 }
 
 ClassImp(BmnGemAlignment)

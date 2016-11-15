@@ -8,6 +8,7 @@
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"
 #include <TChain.h>
+#include <TTree.h>
 #include <TClonesArray.h>
 #include <TLorentzVector.h>
 #include <TVector3.h>
@@ -256,6 +257,9 @@ private:
 
     Int_t fNGL_PER_STAT;
     Int_t fIterationsNum; // Number of iterations for PEDE to update align.params
+    
+    void ReadFileCorrections(BmnGemStripStationSet*); // read corrections from the file
+    Double_t*** corr; // array to store the corrections
 
     ClassDef(BmnGemAlignment, 1)
 };

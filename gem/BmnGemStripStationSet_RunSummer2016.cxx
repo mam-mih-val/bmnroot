@@ -1,7 +1,7 @@
 #include "BmnGemStripStationSet_RunSummer2016.h"
 #include "BmnGemStripStation_RunSummer2016.h"
 
- BmnGemStripStationSet_RunSummer2016::BmnGemStripStationSet_RunSummer2016(BmnGemStripConfiguration::GEM_CONFIG config) {
+BmnGemStripStationSet_RunSummer2016::BmnGemStripStationSet_RunSummer2016(BmnGemStripConfiguration::GEM_CONFIG config) {
 
     NStations = 7;
 

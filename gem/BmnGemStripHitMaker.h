@@ -43,8 +43,8 @@ public:
     void SetCurrentConfig(BmnGemStripConfiguration::GEM_CONFIG config) {
         fCurrentConfig = config;
     }
-    
-    void SetAlignmentCorrections(TString fname) {
+
+     void SetAlignmentCorrections(TString fname) {
         TString dir = getenv("VMCWORKDIR");
         fFile = dir + "/input/" + fname;
     }
@@ -74,7 +74,7 @@ private:
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 
     BmnGemStripStationSet *StationSet; //Entire GEM detector
-    
+
     TString fFile; // a file with geometry corrections
     void ReadFileCorrections(TString, Double_t***); // read corrections from the file
     Double_t*** corr; // array to store the corrections

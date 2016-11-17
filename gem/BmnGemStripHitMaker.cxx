@@ -14,7 +14,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
 
     fOutputHitsBranchName = "BmnGemStripHit";
     fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
-
+    
     fVerbose = 1;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
@@ -150,7 +150,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
     BmnGemStripStation* station;
     BmnGemStripModule* module;
 
-    //Loading digits ---------------------------------------------------------------
+//Loading digits ---------------------------------------------------------------
     Int_t AddedDigits = 0;
     Int_t AddedStripDigitMatches = 0;
 
@@ -220,13 +220,13 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 //Add hit ------------------------------------------------------
                 x *= -1; // invert to global X
-                
+
                 x += corr[iStation][iModule][0];
                 y += corr[iStation][iModule][1];
                 z += corr[iStation][iModule][2];
 
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
-                        BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
+                    BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
 
                 BmnGemStripHit* hit = (BmnGemStripHit*) fBmnGemStripHitsArray->At(fBmnGemStripHitsArray->GetEntriesFast() - 1);
                 hit->SetStation(iStation);
@@ -237,19 +237,19 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 //hit matching -------------------------------------------------
                 if (fHitMatching && fBmnGemStripHitMatchesArray) {
                     new ((*fBmnGemStripHitMatchesArray)[fBmnGemStripHitMatchesArray->GetEntriesFast()])
-                            BmnMatch(module->GetIntersectionPointMatch(iPoint));
+                        BmnMatch(module->GetIntersectionPointMatch(iPoint));
                 }
                 //--------------------------------------------------------------
             }
         }
     }
     if (fVerbose) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
-    //------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
     StationSet->Reset();
 }
 
 void BmnGemStripHitMaker::Finish() {
-    if (StationSet) {
+     if (StationSet) {
         for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++) {
             Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
             for (Int_t iMod = 0; iMod < nModul; iMod++) {

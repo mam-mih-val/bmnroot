@@ -65,7 +65,7 @@ namespace BmnGemStationPositions_RunWinter2016 {
         {0.0},          //station 0 (66x41)
         {0.0},          //station 1
         {0.0},          //station 2
-        {-2.0, +2.0},   //station 3 (2 modules of 66x41)  // x-intersection of two modules
+        {-1.5, +1.5},   //station 3 (2 modules of 66x41)  // x-intersection of two modules
         {0.0, 0.0},     //station 4 (163x45): module0 + module1
         {0.0, 0.0}      //station 5 (163x45): module0 + module1
     };

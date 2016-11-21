@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <cstdio>
+#include <list>
+#include <map>
 
 class BmnRawDataDecoder {
 public:
@@ -32,8 +34,6 @@ public:
     BmnStatus ConvertRawToRoot();
     BmnStatus DecodeDataToDigi();
     BmnStatus CalcGemPedestals();
-    
-    Long64_t GetTimeShift(BmnTDCDigit* dig, Long64_t t0time);
 
     UInt_t GetRunId() const {
         return fRunId;
@@ -106,6 +106,8 @@ private:
     TClonesArray *adc;
     TClonesArray *tdc;
     TClonesArray *msc;
+    TClonesArray *headerDAQ;
+    TClonesArray *pedestalAdc;
 
     //Digi arrays
     TClonesArray *gem;
@@ -123,13 +125,15 @@ private:
     ULong_t fMaxEvent;
     
     Bool_t fPedestalRun;
+    
+    //Map to store pairs <Crate serial> - <crate time - T0 time>
+    map<UInt_t, Long64_t> fTimeShifts;
 
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
-
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial);
-    BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial);
-
+    BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnEventType &ped);
     BmnStatus FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
-    BmnStatus FillTRIG(UInt_t *d, UInt_t serial, UInt_t &idx);
-    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx);
+    BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
+    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx);    
+    BmnStatus FillTimeShiftsMap();
 };

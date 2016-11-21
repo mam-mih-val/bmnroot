@@ -133,9 +133,6 @@ void BmnGemAlignment::PrepareData() {
         for (Int_t iDigit = 0; iDigit < fGemDigits->GetEntriesFast(); iDigit++) {
             BmnGemStripDigit* dig = (BmnGemStripDigit*) fGemDigits->UncheckedAt(iDigit);
 
-            if (dig->GetStripSignal() / dig->GetStripSignalNoise() < fThresh[dig->GetStation()])
-                continue;
-
             BmnGemStripStation* station = fDetector->GetGemStation(dig->GetStation());
             BmnGemStripModule* module = station->GetModule(dig->GetModule());
 
@@ -378,7 +375,7 @@ void BmnGemAlignment::StartMille() {
                             for (Int_t i = 0; i < N_zeros_end; i++)
                                 zeroEnd += "0. 0. 0. ";
                         } else
-                            Fatal("", "");
+                            Fatal("BAMBALEO!!!", "BAMBALEO!!!");
 
                         fprintf(fin_txt, "%s%s %s %s%s\n", locDerX, zeroBeg.Data(), globDerX.Data(), zeroEnd.Data(), measX);
                         fprintf(fin_txt, "%s%s %s %s%s\n", locDerY, zeroBeg.Data(), globDerY.Data(), zeroEnd.Data(), measY);
@@ -393,7 +390,7 @@ void BmnGemAlignment::StartMille() {
                         for (Int_t iFill = 0; iFill < 2; iFill++)
                             fprintf(fin_txt, "%d 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n", iStat);
                     else
-                        Fatal("", "");
+                        Fatal("BAMBALEO!!!", "BAMBALEO!!!");
             }
         }
     }

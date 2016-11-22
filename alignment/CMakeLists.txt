@@ -31,6 +31,7 @@ ${ROOT_LIBRARY_DIR}
 link_directories( ${LINK_DIRECTORIES})
 
 set(BMNALIGNMENT_SRCS
+BmnGemReco.cxx
 BmnGemAlignment.cxx
 BmnDchAlignment.cxx
 BmnGlobalAlignment.cxx

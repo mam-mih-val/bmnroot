@@ -19,7 +19,7 @@ const UInt_t kSTATUS = 0xE;
 const UInt_t kPADDING = 0xF;
 
 //module ID
-const UInt_t kTDC64V = 0x10;
+const UInt_t kTDC64V = 0x10;     //DCH
 const UInt_t kTDC64VHLE = 0x53;
 const UInt_t kTDC72VHL = 0x12;
 const UInt_t kTRIG = 0xA;
@@ -49,6 +49,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     headerDAQ = NULL;
     fTime_ns = 0;
     fTime_s = 0;
+    fT0Time = 0.0;
     fRawTree = NULL;
     fDigiTree = NULL;
     fRootFileIn = NULL;
@@ -84,6 +85,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
     veto = NULL;
     fTime_ns = 0;
     fTime_s = 0;
+    fT0Time = 0.0;
     fRawTree = NULL;
     fDigiTree = NULL;
     fRootFileIn = NULL;
@@ -426,12 +428,12 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 cout << "No TimeShiftMap created" << endl;
                 continue;
             }
-
+            
             BmnEventHeader* headDAQ = (BmnEventHeader*) headerDAQ->At(0);
             curEventType = headDAQ->GetType();
             new((*header)[header->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTimeS(), headDAQ->GetEventTimeNS(), curEventType);
 
-            trigMapper->FillEvent(tdc, t0, bc1, bc2, veto);
+            trigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time);
 
             if (curEventType == kBMNPEDESTAL) {
                 pedEvCntr++;
@@ -450,7 +452,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 gemMapper->FillEvent(adc, gem);
             }
 
-            dchMapper->FillEvent(tdc, sync, dch);
+            dchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
             tof400Mapper->FillEvent(tdc, tof400);
             prevEventType = curEventType;
 
@@ -498,7 +500,7 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
         if (syncDig->GetSerial() == map->serial) {
-            t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1e9;
+            t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
             break;
         }
     }
@@ -510,7 +512,7 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
 
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
-        Long64_t syncTime = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1e9;
+        Long64_t syncTime = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
         fTimeShifts.insert(pair<UInt_t, Long64_t>(syncDig->GetSerial(), syncTime - t0time));
     }
 

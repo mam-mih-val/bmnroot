@@ -12,7 +12,7 @@ public:
     BmnTrigDigit();
 
     /** Constructor to use **/
-    BmnTrigDigit(Short_t iDet, Short_t iMod, Float_t iTime, Float_t iAmp);
+    BmnTrigDigit(Short_t iDet, Short_t iMod, Double_t iTime, Double_t iAmp);
 
     Short_t GetDet() const {
         return fDet;
@@ -22,15 +22,15 @@ public:
         return fMod;
     }
 
-    Float_t GetTime() const {
+    Double_t GetTime() const {
         return fTime;
     }
 
-    Float_t GetAmp() const {
+    Double_t GetAmp() const {
         return fAmp;
     }
 
-    void SetAmp(Float_t amp) {
+    void SetAmp(Double_t amp) {
         fAmp = amp;
     }
 
@@ -38,7 +38,7 @@ public:
         fMod = mod;
     }
 
-    void SetTime(Float_t time) {
+    void SetTime(Double_t time) {
         fTime = time;
     }
 
@@ -53,8 +53,8 @@ private:
 
     Short_t fDet;
     Short_t fMod;
-    Float_t fTime;
-    Float_t fAmp;
+    Double_t fTime;
+    Double_t fAmp;
 
     ClassDef(BmnTrigDigit, 1);
 

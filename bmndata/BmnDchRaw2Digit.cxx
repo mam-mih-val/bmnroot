@@ -15,13 +15,16 @@ BmnDchRaw2Digit::BmnDchRaw2Digit(Int_t period, Int_t run) {
 
 }
 
-void BmnDchRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *sync, TClonesArray *dch) {
+void BmnDchRaw2Digit::FillEvent(TClonesArray *tdc, map<UInt_t, Long64_t> *ts, TClonesArray *dch, Double_t t0) {
 
     for (Int_t i = 0; i < tdc->GetEntriesFast(); i++) {
         BmnTDCDigit *digit = (BmnTDCDigit*) tdc->At(i);
         if (digit->GetType() != DCH_TDC_TYPE) continue;
-        if (FindInMap(fMap1, digit, dch) == kBMNERROR)
-            FindInMap(fMap2, digit, dch);
+        map<UInt_t, Long64_t>::iterator it = ts->find(digit->GetSerial());
+        if (it == ts->end()) continue;
+        Long64_t timeShift = it->second;
+        if (FindInMap(fMap1, digit, dch, timeShift, t0) == kBMNERROR)
+            FindInMap(fMap2, digit, dch, timeShift, t0);
     }
 }
 
@@ -37,13 +40,13 @@ Int_t BmnDchRaw2Digit::GetChTDC64v(UInt_t tdc, UInt_t ch) {
     return val;
 };
 
-BmnStatus BmnDchRaw2Digit::FindInMap(DchMapStructure* mapArr, BmnTDCDigit* dig, TClonesArray* arr) {
+BmnStatus BmnDchRaw2Digit::FindInMap(DchMapStructure* mapArr, BmnTDCDigit* dig, TClonesArray* arr, Long64_t ts, Double_t t0) {
     for (Int_t iMap = 0; iMap < fEntriesInMap; ++iMap) {
         DchMapStructure map = mapArr[iMap];
         if (dig->GetSerial() != map.crate || dig->GetSlot() != map.slot) continue;
         UInt_t ch = GetChTDC64v(dig->GetHptdcId(), dig->GetChannel());
         if (ch > map.channel_high || ch < map.channel_low) continue;
-        Float_t tm = dig->GetValue() / 10.0; // - (T0 + (t0time - digittime)); //FIXME!!! Why divide by 10???
+        Double_t tm = dig->GetValue() / 10.0 - t0 + ts; //divide by 10 for conversion (100 ps -> ns)
         TClonesArray &ar_dch = *arr;
         new(ar_dch[arr->GetEntriesFast()]) BmnDchDigit(map.plane, map.group * 16 + ch - map.channel_low, tm, 0);
         return kBMNSUCCESS;

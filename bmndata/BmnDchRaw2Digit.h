@@ -11,6 +11,7 @@
 #include "BmnEnums.h"
 #include <cstdlib>
 #include <bitset>
+#include <map>
 #include <UniDbDetectorParameter.h>
 
 #define DCH_TDC_TYPE (0x10) //TDC64V
@@ -21,7 +22,7 @@ public:
     BmnDchRaw2Digit() {};
     ~BmnDchRaw2Digit() {};
     
-    void FillEvent(TClonesArray *tdc, TClonesArray *sync, TClonesArray *dch);
+    void FillEvent(TClonesArray *tdc, map<UInt_t, Long64_t> *ts, TClonesArray *dch, Double_t t0);
 
 private:
     
@@ -31,7 +32,7 @@ private:
     Int_t fEntriesInMap; // member of entries in BD table
     
     Int_t GetChTDC64v(UInt_t tdc, UInt_t ch);
-    BmnStatus FindInMap(DchMapStructure* map, BmnTDCDigit* dig, TClonesArray* arr);
+    BmnStatus FindInMap(DchMapStructure* map, BmnTDCDigit* dig, TClonesArray* arr, Long64_t ts, Double_t t0);
 
     ClassDef(BmnDchRaw2Digit, 1);
 };

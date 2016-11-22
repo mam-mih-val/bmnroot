@@ -128,6 +128,7 @@ private:
     
     //Map to store pairs <Crate serial> - <crate time - T0 time>
     map<UInt_t, Long64_t> fTimeShifts;
+    Double_t fT0Time; //ns
 
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial);

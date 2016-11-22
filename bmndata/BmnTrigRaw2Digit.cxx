@@ -32,7 +32,7 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile) {
     //==================================================//
 }
 
-BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto) {
+BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, Double_t& t0time) {
     //    cout <<" IN\n";
     for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
         BmnTrigMapping tM = fMap[iMap];
@@ -61,7 +61,10 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClon
             }
 
             if (nearestDig != NULL) {
-                BmnTrigDigit dig(0, rChannel1, tdcDig1->GetValue(), nearestDig->GetValue() - tdcDig1->GetValue());
+                BmnTrigDigit dig(0, rChannel1, tdcDig1->GetValue() * 25.0 / 1024, (nearestDig->GetValue() - tdcDig1->GetValue()) * 25.0 / 1024);
+
+                if (tM.name == "BC2") //in summer run there was no to, we use bc2 instead
+                    t0time = tdcDig1->GetValue() * 25.0 / 1024; //ns
 
                 if (tM.name == "T0") {
                     TClonesArray& ar_t0 = *t0;

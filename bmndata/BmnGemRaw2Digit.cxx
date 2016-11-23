@@ -244,7 +244,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
     if (fEventId < N_EV_FOR_PEDESTALS)
         FillProfile(adcDig, prof);
     else {
-        map<BmnADC32Digit*, vector < Short_t>>::iterator it = fNoiseChannels.find(adcDig);
+        map<BmnADC32Digit*, vector < Short_t> >::iterator it = fNoiseChannels.find(adcDig);
         for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
             if ((candDig[iSmpl]).GetStation() == -1) continue;
             BmnGemStripDigit * dig = &candDig[iSmpl];
@@ -392,7 +392,7 @@ BmnStatus BmnGemRaw2Digit::FindNoisyStrips() {
                 }
             }
         }
-        fNoiseChannels.insert(pair<BmnADC32Digit*, vector < Short_t >> (it->first, vNoisyIdx));
+        fNoiseChannels.insert(pair<BmnADC32Digit*, vector < Short_t > > (it->first, vNoisyIdx));
     }
     return kBMNSUCCESS;
 }

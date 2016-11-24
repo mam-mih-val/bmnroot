@@ -19,6 +19,9 @@
 #include "BmnMille.h"
 #include "BmnMath.h"
 #include "FairTask.h"
+#include "BmnGemAlignmentCorrections.h"
+#include "BmnGemStripStationSet.h"
+#include "BmnGemStripStationSet_RunSummer2016.h"
 
 #include <iomanip>
 #include <stdio.h>
@@ -36,13 +39,16 @@ public:
 
     BmnGemAlignment(); // Default constructor
 
-    virtual ~BmnGemAlignment() {  };
+    virtual ~BmnGemAlignment() {
+        delete fDetector;
+    }
 
     virtual InitStatus Init();
 
     virtual void Exec(Option_t* opt);
 
-    virtual void Finish();
+    virtual void Finish() {
+    }
 
     void SetDebugInfo(Bool_t val) {
         fDebugInfo = val;
@@ -50,14 +56,18 @@ public:
 
     void SetRunType(TString type) {
         fRunType = type;
-        if (type == "beam") {
+        if (fRunType == "")
+            Fatal("BmnGemReco()", "Specify a run type!!!!!!!!!");
+
+        if (fRunType == "beam") {
             fBeamRun = kTRUE;
             fAlignmentType = "xy";
-        } else if (type == "target") {
+        }
+        else {
             fBeamRun = kFALSE;
             fAlignmentType = "xyz";
-        } else
-            Fatal("BmnGemReco()", "Specify a run type!!!!!!!!!");
+        }
+
         cout << "Type " << fAlignmentType << " established" << endl;
     }
 
@@ -65,14 +75,14 @@ public:
         fIterationsNum = num;
     }
 
+    // Strongly depends on current geometry
+
     void SetStatNumFixed(TString* st) {
         cout << "Alignment conditions: " << endl;
-        for (Int_t iStat = 0; iStat < fNstat; iStat++) {
+        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
             cout << iStat << " " << st[iStat] << endl;
             if (st[iStat] == "fixed")
                 fFixedStats.push_back(iStat);
-            else
-                fNumStatUsed.push_back(iStat);
         }
     }
 
@@ -87,6 +97,10 @@ public:
     void SetNumOfIterations(UInt_t num) {
         fNumOfIterations = num;
     }
+    
+    void SetAlignmentTypeByHands(TString type) {
+        fAlignmentType = type;
+    }
 
     void StartMille();
     void StartPede();
@@ -94,15 +108,14 @@ public:
 private:
 
     void BinFilePede();
-    void DebugInfo(Int_t, Int_t, Int_t, Double_t*, Double_t*, Double_t, Double_t);
+    void DebugInfo(Int_t, Int_t, Int_t, Int_t, Double_t*, Double_t*, Double_t, Double_t);
     void ReadPedeOutput(ifstream&, Int_t);
+    void ReadPedeOutput(ifstream&, vector <Double_t>&);
     void MakeSteerFile(Int_t);
 
     TString fRecoFileName;
 
-    Int_t fNstat;
-    Int_t fStatUsed;
-    vector <Int_t> fNumStatUsed;
+    //    vector <Int_t> fNumStatUsed;
 
     TClonesArray* fGemHits;
     TClonesArray* fGemTracks;
@@ -122,18 +135,24 @@ private:
     TString fAlignmentType;
     TString fCommandToRunPede;
 
-    Int_t fNGL_PER_STAT;
+    Int_t fNGL;
     Int_t fIterationsNum; // Number of iterations for PEDE to update align.params
 
     TString hitsBranch;
     TString tracksBranch;
     TString tracksSelectedBranch;
+    TString alignCorrBranch;
     Int_t nSelectedTracks;
 
     static Int_t fCurrentEvent;
     FILE* fin_txt;
 
     TString fName;
+    TChain* fChain;
+
+    TClonesArray* fAlignCorr;
+    BmnGemStripStationSet* fDetector; // Detector geometry
+    // BmnGemAlignmentCorrections* fCorrections;
 
     ClassDef(BmnGemAlignment, 1)
 };

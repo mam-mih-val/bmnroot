@@ -55,10 +55,6 @@ public:
         fDebugInfo = val;
     }
 
-    void SetNstat(Int_t val) {
-        fNstat = val;
-    }
-
     void SetMaxNofHitsPerEvent(Int_t val) {
         fMaxNofHits = val;
     }
@@ -100,7 +96,7 @@ private:
     void ReadFileCorrections(BmnGemStripStationSet*); // read corrections from the file
 
     static Int_t fCurrentEvent;
-    Int_t fNstat;
+    // Int_t fNstat;
     Int_t fMaxNofHits;
 
     Double_t fChi2MaxPerNDF;

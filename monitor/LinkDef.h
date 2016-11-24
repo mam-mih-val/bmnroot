@@ -12,8 +12,10 @@
 
 #pragma link C++ class vector<TH1F>+;
 #pragma link C++ class vector<vector<TH1F> >+;
+#pragma link C++ class vector<vector<vector<TH1F> > >+;
 #pragma link C++ class vector<TH1F*>+;
 #pragma link C++ class vector<vector<TH1F*> >+;
+#pragma link C++ class vector<vector<vector<TH1F*> > >+;
 
 #endif
 

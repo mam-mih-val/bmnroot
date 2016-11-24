@@ -1,4 +1,3 @@
-# Create a library called "libGlobalTracking".
 
 Set(INCLUDE_DIRECTORIES
 ${BASE_INCLUDE_DIRECTORIES}

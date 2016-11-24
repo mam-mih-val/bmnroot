@@ -1,4 +1,6 @@
+#include "TH1I.h"
 #include "TH1F.h"
+#include "TH1D.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TChain.h"
@@ -11,22 +13,26 @@
 #include "/home/ilnur/bmnroot/monitor/BmnMonHists.h"
 #include <unistd.h>
 #include <vector>
+#include "THttpServer.h"
+#include "TSystem.h"
+#include "TFolder.h"
 //#include "../../bmndata/BmnTof2Raw2Digit.h"
 
 #define TOF400_PLANE_COUNT 3
 #define TOF400_STRIP_COUNT 48
+#define MAX_STATIONS 40
+#define MAX_MODULES 8
 
-void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
-             TString dstName  = "$VMCWORKDIR/macro/run/bmndst.root"){
-    
-    Double_t trackXMax = 40;
-    Double_t trackYMax = 40;
-    Int_t hitBins    = 100;
+void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
+
+    Int_t runIndex = 84;
     // GEM config
+    Int_t hitBins = 100;
     const UInt_t gemLayers = 4;
-    const UInt_t gemCount = 8;
-    const UInt_t nStrips[gemCount] = {256, 825, 825, 825, 825, 825, 1019, 1019};
-    
+    const UInt_t stationCount = 7;
+    const UInt_t moduleCount[stationCount] = {1, 1, 1, 1, 1, 1, 2};
+    const UInt_t nStrips[stationCount] = {256, 825, 825, 825, 825, 825, 1019};
+
     // ToF config
     const UInt_t kNPLANES = 16;
     const UInt_t kNREALWIRES = 240;
@@ -44,59 +50,68 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
-    gROOT->LoadMacro("$VMCWORKDIR/macro/raw/DchDigitsAnalysis.C");
-    
+    //gROOT->LoadMacro("$VMCWORKDIR/macro/raw/DchDigitsAnalysis.C");
+
     TChain *digiTree = new TChain("cbmsim");
     digiTree->Add(digiName);
-    TChain *dstTree = new TChain("cbmsim");
-    dstTree->Add(dstName);
-    TClonesArray * gemHits = NULL;
-    dstTree->SetBranchAddress("BmnGemStripHit", &gemHits);
-    TClonesArray * gemDigits = NULL;
-    digiTree->SetBranchAddress("GEM", &gemDigits);
-    Int_t nEvents = dstTree->GetEntries();
-    Int_t layer = 0;
+    Int_t nEvents = digiTree->GetEntries();
+    Int_t layerIndex = 0;
     cout << "Events: " << nEvents << endl;
 
     TString name;
     BmnMonHists bmh = BmnMonHists();
+    bmh.SetName("bmh");
+    bmh.SetTitle("bmh");
     // ====================================================================== //
     // Create server
     // ====================================================================== //
-    THttpServer* serv = new THttpServer(/*Form("http:8080/none?top=%s", "BM@N Monitor")*/);
-    //serv->SetJSROOT("https://root.cern.ch/js/4.7/");
-    //serv->SetJSROOT("http://web-docs.gsi.de/~linev/js/3.5/");
-    
-    
+    THttpServer* serv = new THttpServer(Form("fastcgi:9000", "BM@N Monitor"));
+
+
+    TString outHistName = Form("bmn_run%04d_hist.root", runIndex);
+    TFile *fHistOut = new TFile(outHistName, "recreate");
+
     // ====================================================================== //
     // GEM histograms init
-    // ====================================================================== // 
+    // ====================================================================== //
+    TClonesArray * gemDigits = NULL;
+    digiTree->SetBranchAddress("GEM", &gemDigits);
 
-    for (Int_t gemIndex = 0; gemIndex < gemCount; gemIndex++){
-            name = Form("GEM_%d_layer_%d", gemIndex, layer);
-            vector<TH1F*> rowGEM;
-            TH1F *h = new TH1F(name, name, hitBins, 0, nStrips[gemIndex]);
-            //bmh.pushGemVec(gemIndex, h);
-            rowGEM.push_back(h);
-            bmh.histStrip.push_back(rowGEM);
-    }
-    
-    Int_t canvasW = 800;
-    Int_t canvasH = 400 * gemCount;
-    TCanvas * canvasGemHits = new TCanvas("GEM_Strip_distribution", "GEM_Strip_distribution", canvasW, canvasH);
-    canvasGemHits->Divide(1, gemCount-2);
-    canvasGemHits->SetFixedAspectRatio(kTRUE);
-    for (Int_t gemIndex = 0; gemIndex < gemCount-2; gemIndex++){
-        //for (Int_t layer = 0; layer < gemLayers; layer++){
-            canvasGemHits->cd(gemIndex + 1);// * gemLayers + layer);
-            bmh.histStrip[gemIndex][layer]->Draw();
+    TDirectory *dirGEM = fHistOut->mkdir("GEM_hists");
+    dirGEM->cd();
+    for (Int_t stationIndex = 0; stationIndex < stationCount; stationIndex++) {
+        vector<vector<TH1F*> > rowGEM;
+        for (Int_t moduleIndex = 0; moduleIndex < moduleCount[stationIndex]; moduleIndex++) {
+            vector<TH1F*> colGEM;
+            for (Int_t layerIndex = 0; layerIndex < gemLayers; layerIndex++) {
+                name = Form("GEM_Station_%d_module_%d_layer_%d", stationIndex, moduleIndex, layerIndex);
+                TH1F *h = new TH1F(name, name, hitBins, 0, nStrips[stationIndex]);
+                serv->Register("/GEM/", h);
+                colGEM.push_back(h);
+            }
+            rowGEM.push_back(colGEM);
         }
-    
+        bmh.histGemStrip.push_back(rowGEM);
+    }
+
+    //    Int_t canvasW = 800;
+    //    Int_t canvasH = 400 * gemCount;
+    //    TCanvas * canvasGemHits = new TCanvas("GEM_Strip_distribution", "GEM_Strip_distribution", canvasW, canvasH);
+    //    canvasGemHits->Divide(1, gemCount - 2);
+    //    canvasGemHits->SetFixedAspectRatio(kTRUE);
+    //    for (Int_t gemIndex = 0; gemIndex < gemCount - 2; gemIndex++) {
+    //        //for (Int_t layer = 0; layer < gemLayers; layer++){
+    //        canvasGemHits->cd(gemIndex + 1); // * gemLayers + layer);
+    //        bmh.histStrip[gemIndex][layer]->Draw();
+    //    }
+
     // ====================================================================== //
     // ToF histograms init
     // ====================================================================== //
-    TClonesArray *ToF4Digits;
+    TClonesArray *ToF4Digits = NULL;
     digiTree->SetBranchAddress("TOF400", &ToF4Digits);
+    TDirectory *dirToF400 = fHistOut->mkdir("ToF400_hists");
+    dirToF400->cd();
     name = "ToF400_Leading_Time";
     bmh.histToF400LeadingTime = new TH1D(name, name, 500, 0, 1000);
     name = "ToF400_Amplitude";
@@ -107,16 +122,20 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
     bmh.histToF400StripSimult = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
     name = "ToF400_State";
     bmh.histToF400State = new TH2F(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT, 2, 0, 2);
-    name = "ToF400_Now";
-    TCanvas * canvasToF400State = new TCanvas(name, name, TOF400_STRIP_COUNT, 2);
-    canvasToF400State->cd(1);
-    bmh.histToF400State->Draw("colz");
-    bmh.histToF400State->SetTitleSize(0.05);
+
+    TH1I *histL = new TH1I("", "", TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+    TH1I *histR = new TH1I("", "", TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+    TH1I histSimultaneous;
+    histSimultaneous.SetDirectory(0);
+    histL->SetDirectory(0);
+    histR->SetDirectory(0);
     // ====================================================================== //
     // DCH histograms init
     // ====================================================================== //
-    TClonesArray *DchDigits;
+    TClonesArray *DchDigits = NULL;
     digiTree->SetBranchAddress("DCH", &DchDigits);
+    TDirectory *dirDrift = fHistOut->mkdir("DCH_hists");
+    dirDrift->cd();
     TH1F * h_wires[kNPLANES];
     Float_t v_wires[kNPLANES][kNWIRES] = {};
     Int_t myPalette[nb];
@@ -129,104 +148,213 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
     for (Int_t i = 0; i < nb; ++i) {
         myPalette[i] = FI + i;
     }
-    for (Int_t i = 0; i < kNPLANES; ++i)
+    for (Int_t i = 0; i < kNPLANES; ++i) {
         h_wires[i] = new TH1F(names[i], names[i], kNREALWIRES, 0, kNREALWIRES);
+        serv->Register("/DCH/", h_wires[i]);
+
+    }
     TCanvas* chmb1 = new TCanvas("DCH_1", "DCH_1", 1000, 1000);
-    
+
+    // ====================================================================== //
+    // Triggers histograms init
+    // ====================================================================== //
+    TClonesArray * trigBC1Digits = NULL;
+    digiTree->SetBranchAddress("BC1", &trigBC1Digits);
+    TClonesArray * trigBC2Digits = NULL;
+    digiTree->SetBranchAddress("BC2", &trigBC2Digits);
+    TClonesArray * trigVDDigits = NULL;
+    digiTree->SetBranchAddress("VETO", &trigVDDigits);
+    //    TClonesArray * trigBC1Digits = NULL;
+    //    digiTree->SetBranchAddress("GEM", &trigBC1Digits);
+    //    TClonesArray * trigBC1Digits = NULL;
+    //    digiTree->SetBranchAddress("GEM", &trigBC1Digits);
+    TDirectory *dirTrig = fHistOut->mkdir("Trigger_hists");
+    dirTrig->cd();
+    name = "BC1_Time_Length";
+    bmh.histBC1TimeLen = new TH1D(name, name, 300, 0, 20000);
+    name = "BC2_Time_Length";
+    bmh.histBC2TimeLen = new TH1D(name, name, 300, 0, 2000);
+    name = "FD_Time_Length";
+    bmh.histFDTimeLen = new TH1D(name, name, 300, 0, 2000);
+    name = "SD_Time_Length";
+    bmh.histSDTimeLen = new TH1D(name, name, 300, 0, 2000);
+    name = "VETO_Time_Length";
+    bmh.histVDTimeLen = new TH1D(name, name, 300, 0, 2000);
+    name = "BD_Time_Length";
+    bmh.histBDTimeLen = new TH1D(name, name, 300, 0, 2000);
+    name = "Triggers_Counter";
+    bmh.histTriggers = new TH1I(name, name, 6, 0, 6);
+    TString triggerNames[6] = {"BC1", "SD", "BC2", "VD", "FD", "BD"};
+    TAxis* xa = bmh.histTriggers->GetXaxis();
+    for (Int_t i = 0; i < sizeof (triggerNames) / sizeof (*triggerNames); i++) {
+        xa->SetBinLabel(i + 1, triggerNames[i]);
+    }
+
+    cout << "trigger histograms initialized" << endl;
+
+    serv->AddLocation("img/", "/home/ilnur/bmnroot/monitor/img");
+
+    // Register objects
+    serv->Register("/", &bmh);
+    serv->Register("/Triggers/", bmh.histBC1TimeLen);
+    serv->Register("/Triggers/", bmh.histBC2TimeLen);
+    serv->Register("/Triggers/", bmh.histFDTimeLen);
+    serv->Register("/Triggers/", bmh.histVDTimeLen);
+    serv->Register("/Triggers/", bmh.histSDTimeLen);
+    serv->Register("/Triggers/", bmh.histTriggers);
+    serv->Register("/Triggers/", bmh.histBDTimeLen);
+    serv->Register("/", bmh.histToF400LeadingTime);
+    serv->Register("/", bmh.histToF400Amp);
+    serv->Register("/", bmh.histToF400StripSimult);
+    serv->Register("/", bmh.histToF400State);
+    //   bmh.histBDTimeLen->SetDirectory(0);
+    cout << " histograms registered" << endl;
+
+    serv->SetItemField("/Triggers/", "_monitoring", "2000");
+    serv->SetItemField("/Triggers/", "_layout", "grid2x3");
+    serv->SetItemField("/Triggers/", "_drawitem",
+            "[BC1_Time_Length,BC2_Time_Length,FD_Time_Length,VETO_Time_Length,SD_Time_Length, BD_Time_Length]");
+    serv->SetItemField("/Triggers/", "_drawopt", "colz");
+    // Register commands
+    serv->RegisterCommand("/ResetGEM", "/bmh/->ClearGEM()", "button;img/reset.png");
+    serv->RegisterCommand("/ResetToF400", "/bmh/->ClearToF400()", "button;img/reset.png");
+    serv->RegisterCommand("/ResetToF700", "/bmh/->ClearToF700()", "button;img/reset.png");
+    //    serv->RegisterCommand("/ResetTriggers", "/bmh/->ClearTriggers(%arg1%)", "button;img/reset.png");
+    serv->RegisterCommand("/Triggers/ResetTriggers", "/bmh/->ClearTriggers()", "button;img/reset.png");
+    serv->RegisterCommand("/ResetAll", "/bmh/->Clear()", "button;img/reset.png");
+    //serv->Hide("/ResetAll");
+
     // Start events
     Int_t res = 0;
     Int_t station = 0;
+    Int_t module = 0;
+    Int_t layer = 0;
     Int_t gemStrip = 0;
     Int_t ToF400strip = 0;
     Int_t ToF400selectedPlane = 2;
-    for (Long64_t iEv = 0; iEv < nEvents; iEv++){
-        digiTree->GetEntry(iEv);
-        // ====================================================================== //
-        // GEM histograms fill
-        // ====================================================================== // 
-        for (Int_t hitIndex = 0; hitIndex < gemDigits->GetEntriesFast(); hitIndex++){      
-            BmnGemStripDigit* gs = (BmnGemStripDigit*) gemDigits->At(hitIndex);
-            station = gs->GetStation();
-            gemStrip = gs->GetStripNumber();
-            if (gs->GetStripLayer() != 0) continue;
-            bmh.histStrip[station][layer]->Fill(gemStrip);            
-        }
-        // ====================================================================== //
-        // ToF histograms fill
-        // ====================================================================== //
-        TH1I *histL = new TH1I("", "", TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
-        TH1I *histR = new TH1I("", "", TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
-        TH1I histSimultaneous;
-        bmh.histToF400State->Reset();
-        cout << "Event " << iEv << " found tof digits: " <<  ToF4Digits->GetEntriesFast()<< endl; 
-        for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++){
-            BmnTof1Digit *td = (BmnTof1Digit *)ToF4Digits->At(digIndex);
-            ToF400strip = td->GetStrip();
-            bmh.histToF400LeadingTime->Fill(td->GetTime());
-            bmh.histToF400Amp->Fill(td->GetAmplitude());
-            bmh.histToF400Strip->Fill(ToF400strip);
-            if (td->GetPlane() == ToF400selectedPlane)
-                bmh.histToF400State->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
-            if (td->GetSide() == 0)
-                histL->Fill(ToF400strip);
-            else
-                histR->Fill(ToF400strip);
-        }
-        histSimultaneous = (*histL) * (*histR);
-        cout << "Event " << iEv << " histToF400Strip sizeof: " <<  bmh.histToF400Strip->Sizeof() << endl; 
-        for (Int_t binIndex = 0; binIndex < TOF400_STRIP_COUNT; binIndex++)
-            bmh.histToF400StripSimult->Fill(histSimultaneous->GetBinContent(binIndex));
-        // ====================================================================== //
-        // DCH histograms fill
-        // ====================================================================== //
-        if (iEv%10 == 0){
-            memset(v_wires, (Float_t)0, sizeof(v_wires));    
-            for (Int_t innerEv = 0; innerEv < iEv; innerEv++) {
-                digiTree->GetEntry(innerEv);
-                for (Int_t iDig = 0; iDig < DchDigits->GetEntriesFast(); ++iDig) {
-                    BmnDchDigit* dig = (BmnDchDigit*) DchDigits->At(iDig);
-                    Int_t plane = dig->GetPlane();
-                    Int_t wire = dig->GetWireNumber();
-                    
-                    v_wires[plane][wire] += 1;
-                    if (wire > kNREALWIRES - 1) {
-                        wire -= 128; //8 * 16 last preamplifier setup behind hole, so move signal in correct place
-                    }
-                    h_wires[plane]->Fill(wire);
-                }
+    while (kTRUE) {
+        for (Long64_t iEv = 0; iEv < nEvents; iEv++) {
+            digiTree->GetEntry(iEv);
+            // ====================================================================== //
+            // Triggers histograms fill
+            // ====================================================================== //
+            cout << "Event " << iEv << " found BC1 digits: " << trigBC1Digits->GetEntriesFast() << endl;
+            for (Int_t digIndex = 0; digIndex < trigBC1Digits->GetEntriesFast(); digIndex++) {
+                BmnTrigDigit* td1 = (BmnTrigDigit*) trigBC1Digits->At(digIndex);
+                bmh.histBC1TimeLen->Fill(td1->GetAmp());
+                bmh.histTriggers->Fill(0);
             }
-            for (Int_t i = 0; i < kNPLANES; ++i) {
-                Float_t maxSig = 0.0;
-                for (Int_t j = 0; j < kNWIRES; ++j) {
-                    Float_t sig = v_wires[i][j];
-                    if (sig > maxSig) maxSig = sig;
-                }
-                for (Int_t j = 0; j < kNWIRES; ++j) {
-                    v_wires[i][j] /= maxSig;
-                }
+            for (Int_t digIndex = 0; digIndex < trigBC2Digits->GetEntriesFast(); digIndex++) {
+                BmnTrigDigit* td2 = (BmnTrigDigit*) trigBC2Digits->At(digIndex);
+                bmh.histBC2TimeLen->Fill(td2->GetAmp());
+                bmh.histTriggers->Fill(2);
             }
-            chmb1->Clear();
-            chmb1->cd();
-            cout << "Event " << iEv << " begin to draw wires: " << endl; 
-            for (Int_t i = 0; i < kNPLANES / 2; ++i) {
-                if (res=gSystem->ProcessEvents()) break;
-                DrawAllWires(chmb1, myPalette, v_wires[i], angles[i], i);
+            for (Int_t digIndex = 0; digIndex < trigVDDigits->GetEntriesFast(); digIndex++) {
+                BmnTrigDigit* tv = (BmnTrigDigit*) trigVDDigits->At(digIndex);
+                bmh.histVDTimeLen->Fill(tv->GetAmp());
+                bmh.histTriggers->Fill(3);
             }
+            // ====================================================================== //
+            // GEM histograms fill
+            // ====================================================================== // 
+            for (Int_t digIndex = 0; digIndex < gemDigits->GetEntriesFast(); digIndex++) {
+                BmnGemStripDigit* gs = (BmnGemStripDigit*) gemDigits->At(digIndex);
+                module = gs->GetModule();
+                station = gs->GetStation();
+                layer = gs->GetStripLayer();
+                gemStrip = gs->GetStripNumber();
+                if (gs->GetStripLayer() != 0) continue;
+                bmh.histGemStrip[station][module][layer]->Fill(gemStrip);
+            }
+            // ====================================================================== //
+            // ToF histograms fill
+            // ====================================================================== //
+            histL->Reset();
+            histR->Reset();
+            histSimultaneous.Reset();
+            bmh.histToF400State->Reset();
+            cout << "Event " << iEv << " found tof digits: " << ToF4Digits->GetEntriesFast() << endl;
+            for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++) {
+                BmnTof1Digit *td = (BmnTof1Digit *) ToF4Digits->At(digIndex);
+                ToF400strip = td->GetStrip();
+                bmh.histToF400LeadingTime->Fill(td->GetTime());
+                bmh.histToF400Amp->Fill(td->GetAmplitude());
+                bmh.histToF400Strip->Fill(ToF400strip);
+                if (td->GetPlane() == ToF400selectedPlane)
+                    bmh.histToF400State->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
+                if (td->GetSide() == 0)
+                    histL->Fill(ToF400strip);
+                else
+                    histR->Fill(ToF400strip);
+            }
+            //histSimultaneous = (*histL) * (*histR);
+            Int_t s;
+            for (Int_t binIndex = 1; binIndex < TOF400_STRIP_COUNT; binIndex++) {
+                s = ((histL->GetBinContent(binIndex) * histR->GetBinContent(binIndex)) != 0) ? 1 : 0;
+                bmh.histToF400StripSimult->AddBinContent(s);
+            }
+            // ====================================================================== //
+            // DCH histograms fill
+            // ====================================================================== //
+            for (Int_t iDig = 0; iDig < DchDigits->GetEntriesFast(); ++iDig) {
+                BmnDchDigit* dig = (BmnDchDigit*) DchDigits->At(iDig);
+                Int_t plane = dig->GetPlane();
+                Int_t wire = dig->GetWireNumber();
+
+                v_wires[plane][wire] += 1;
+                if (wire > kNREALWIRES - 1) {
+                    wire -= 128; //8 * 16 last preamplifier setup behind hole, so move signal in correct place
+                }
+                h_wires[plane]->Fill(wire);
+            }
+            //        if (iEv%10 == 0){
+            //            memset(v_wires, (Float_t)0, sizeof(v_wires));
+            //            for (Int_t ih = 0; ih < kNPLANES; ih++)
+            //                h_wires[ih]->Reset();
+            //            for (Int_t innerEv = 0; innerEv < iEv; innerEv++) {
+            //                digiTree->GetEntry(innerEv);
+            //                for (Int_t iDig = 0; iDig < DchDigits->GetEntriesFast(); ++iDig) {
+            //                    BmnDchDigit* dig = (BmnDchDigit*) DchDigits->At(iDig);
+            //                    Int_t plane = dig->GetPlane();
+            //                    Int_t wire = dig->GetWireNumber();
+            //                    
+            //                    v_wires[plane][wire] += 1;
+            //                    if (wire > kNREALWIRES - 1) {
+            //                        wire -= 128; //8 * 16 last preamplifier setup behind hole, so move signal in correct place
+            //                    }
+            //                    h_wires[plane]->Fill(wire);
+            //                }
+            //            }
+            //            for (Int_t i = 0; i < kNPLANES; ++i) {
+            //                Float_t maxSig = 0.0;
+            //                for (Int_t j = 0; j < kNWIRES; ++j) {
+            //                    Float_t sig = v_wires[i][j];
+            //                    if (sig > maxSig) maxSig = sig;
+            //                }
+            //                for (Int_t j = 0; j < kNWIRES; ++j) {
+            //                    v_wires[i][j] /= maxSig;
+            //                }
+            //            }
+            //            chmb1->Clear();
+            //            chmb1->cd();
+            //            cout << "Event " << iEv << " begin to draw wires: " << endl; 
+            //            for (Int_t i = 0; i < kNPLANES / 2; ++i) {
+            //                if (res=gSystem->ProcessEvents()) break;
+            //                DrawAllWires(chmb1, myPalette, v_wires[i], angles[i], i);
+            //            }
+            //        }
+            // ====================================================================== //
+            // Update canvases //
+            // ====================================================================== //
+            //            canvasToF400State->Modified();
+            //            canvasToF400State->Update();
+            chmb1->Modified();
+            chmb1->Update();
+            if (res = gSystem->ProcessEvents()) break;
+            cout << "Event " << iEv << " processed with result " << res << endl;
+            usleep(3e6);
         }
-        // ====================================================================== //
-        // Update canvases //
-        // ====================================================================== //
-        canvasGemHits->Modified();
-        canvasGemHits->Update();
-        canvasToF400State->Modified();
-        canvasToF400State->Update();
-        chmb1->Modified();
-        chmb1->Update();        
-        if (res=gSystem->ProcessEvents()) break;
-        cout << "Event " << iEv << " processed with result " << res << endl; 
-        usleep(4e6);
     }
-    
     /*//if (ToF4Digits->GetEntriesFast() > 0)
     for (Int_t evIndex = 0; evIndex < 10; evIndex++){
         digiTree->GetEntry(evIndex);
@@ -235,19 +363,21 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
         if (td->GetPlane() == ToF400selectedPlane)
             bmh.histToF400State->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
     }}*/
-    
+
     /*const Int_t MaxPlane = 
     for (int i=0; i<MaxPlane; i++) // MaxPlane - число камер в системе
     {
         // гистогаммы срабатывания стрипов для всех камер
         // сработал стрип в событии - в соответствующий бин единичка
-	sprintf(name, "Rate_vs_Strip_Chamber_%d",i+1);
-	sprintf(title, "Rate vs Strip Chamber %d",i+1);
-	RvsS[i] = new TH1F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER);
+        sprintf(name, "Rate_vs_Strip_Chamber_%d",i+1);
+        sprintf(title, "Rate vs Strip Chamber %d",i+1);
+        RvsS[i] = new TH1F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER);
     }
-    */
+     */
 
-    chmb1->SaveAs("DCH1_wires.png");
+    fHistOut->Write();
+    fHistOut->Close();
+    //chmb1->SaveAs("DCH1_wires.png");
     /*TImage * img = TImage::Open("DCH1_wires.png");    
     TCanvas * png_canvas = new TCanvas("DCH-1_pic", "DCH-1_pic", 100, 100);
     png_canvas->cd();
@@ -257,13 +387,14 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root",
     img->SetName("DCH_img");
    serv->Register("/", img);*/
     //delete img;
-    
+
     //TFile *hfile = new TMemFile("GEM online","RECREATE","Demo ROOT file with histograms");
     //hfile->Write();
-    
+
 }
-inline void FillEvent(){
-    
+
+inline void FillEvent() {
+
 }
 
 inline void DrawAllWires(TCanvas* c, Int_t* palette, Float_t * wires, Float_t ang, Short_t planeId) {

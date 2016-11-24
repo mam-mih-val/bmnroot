@@ -66,6 +66,7 @@
 
 #pragma link C++ class BmnADCDigit+;
 #pragma link C++ class BmnADC32Digit+;
+#pragma link C++ class BmnADC128Digit+;
 #pragma link C++ class BmnTDCDigit+;
 #pragma link C++ class BmnSyncDigit+;
 #pragma link C++ class BmnTTBDigit+;

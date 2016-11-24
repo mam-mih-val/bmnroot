@@ -17,6 +17,7 @@ ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/globaltracking
 ${CMAKE_SOURCE_DIR}/gem
+${CMAKE_SOURCE_DIR}/silicon
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
@@ -82,6 +83,7 @@ BmnDchDigit.cxx
 BmnEcalDigit.cxx
 BmnADCDigit.cxx
 BmnADC32Digit.cxx
+BmnADC128Digit.cxx
 BmnTDCDigit.cxx
 BmnSyncDigit.cxx
 BmnTTBDigit.cxx

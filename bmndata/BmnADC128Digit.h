@@ -1,24 +1,24 @@
-#ifndef BMNADC32DIGIT_H
-#define BMNADC32DIGIT_H
+#ifndef BMNADC128DIGIT_H
+#define BMNADC128DIGIT_H
 
 #include "TNamed.h"
 
 using namespace std;
 
-class BmnADC32Digit : public TObject {
+class BmnADC128Digit : public TObject {
 
 private:
     UInt_t fSerial;
     UChar_t fChannel;
-    UShort_t fValue[32]; //[2048]; // 64 channels x 32 16-bit words
+    UShort_t fValue[128];
     
 public:
 
     /** Default constructor **/
-    BmnADC32Digit();
+    BmnADC128Digit();
 
     /** Constructor to use **/
-    BmnADC32Digit(UInt_t iSerial, UChar_t iChannel, UShort_t *iValue);
+    BmnADC128Digit(UInt_t iSerial, UChar_t iChannel, UShort_t *iValue);
 
     UInt_t GetSerial() const {
         return fSerial;
@@ -33,10 +33,10 @@ public:
     }
 
     /** Destructor **/
-    virtual ~BmnADC32Digit();
+    virtual ~BmnADC128Digit();
 
-    ClassDef(BmnADC32Digit, 1);
+    ClassDef(BmnADC128Digit, 1);
 };
 
-#endif /* BMNADC32DIGIT_H */
+#endif /* BMNADC128DIGIT_H */
 

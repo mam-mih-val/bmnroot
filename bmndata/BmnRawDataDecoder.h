@@ -4,6 +4,7 @@
 #include "BmnTDCDigit.h"
 #include "BmnADCDigit.h"
 #include "BmnADC32Digit.h"
+#include "BmnADC128Digit.h"
 #include "BmnSyncDigit.h"
 #include "TFile.h"
 #include "TTree.h"
@@ -14,6 +15,7 @@
 #include "BmnGemRaw2Digit.h"
 #include "BmnGemStripDigit.h"
 #include "BmnDchRaw2Digit.h"
+#include "BmnSiliconRaw2Digit.h"
 #include "BmnTof1Raw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
 #include "BmnEventHeader.h"
@@ -103,13 +105,15 @@ private:
 
     //DAQ arrays
     TClonesArray *sync;
-    TClonesArray *adc;
+    TClonesArray *adc32;  //gem
+    TClonesArray *adc128; //sts
     TClonesArray *tdc;
     TClonesArray *msc;
     TClonesArray *headerDAQ;
     TClonesArray *pedestalAdc;
 
     //Digi arrays
+    TClonesArray *silicon;
     TClonesArray *gem;
     TClonesArray *tof400;
     TClonesArray *tof700;
@@ -131,7 +135,7 @@ private:
     Double_t fT0Time; //ns
 
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
-    BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial);
+    BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr);
     BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnEventType &ped);
     BmnStatus FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);

@@ -1,4 +1,5 @@
 #include "BmnRawDataDecoder.h"
+#include "TH1I.h"
 
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
@@ -6,7 +7,7 @@ const UInt_t kSYNC2 = 0x4A624A62;
 const size_t kWORDSIZE = sizeof (UInt_t);
 const Short_t kNBYTESINWORD = 4;
 
-//VFME data types
+//FVME data types
 const UInt_t kMODDATAMAX = 0x7;
 const UInt_t kMODHEADER = 0x8;
 const UInt_t kMODTRAILER = 0x9;
@@ -18,7 +19,7 @@ const UInt_t kSTATUS = 0xE;
 const UInt_t kPADDING = 0xF;
 
 //module ID
-const UInt_t kTDC64V = 0x10;
+const UInt_t kTDC64V = 0x10;     //DCH
 const UInt_t kTDC64VHLE = 0x53;
 const UInt_t kTDC72VHL = 0x12;
 const UInt_t kTRIG = 0xA;
@@ -26,6 +27,7 @@ const UInt_t kMSC = 0xF;
 const UInt_t kUT24VE = 0x49;
 const UInt_t kADC64VE = 0xD4;
 const UInt_t kFVME = 0xD1;
+const UInt_t kU40VE_RC = 0x4C;
 /********************************************************/
 
 const Int_t kPERIOD = 4;
@@ -44,8 +46,10 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     bc2 = NULL;
     veto = NULL;
     header = NULL;
+    headerDAQ = NULL;
     fTime_ns = 0;
     fTime_s = 0;
+    fT0Time = 0.0;
     fRawTree = NULL;
     fDigiTree = NULL;
     fRootFileIn = NULL;
@@ -75,11 +79,13 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
 
     t0 = NULL;
     header = NULL;
+    headerDAQ = NULL;
     bc2 = NULL;
     bc1 = NULL;
     veto = NULL;
     fTime_ns = 0;
     fTime_s = 0;
+    fT0Time = 0.0;
     fRawTree = NULL;
     fDigiTree = NULL;
     fRootFileIn = NULL;
@@ -132,11 +138,13 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     adc = new TClonesArray("BmnADC32Digit");
     tdc = new TClonesArray("BmnTDCDigit");
     msc = new TClonesArray("BmnMSCDigit");
+    headerDAQ = new TClonesArray("BmnEventHeader");
 
     fRawTree->Branch("SYNC", &sync);
     fRawTree->Branch("ADC", &adc);
     fRawTree->Branch("TDC", &tdc);
     fRawTree->Branch("MSC", &msc);
+    fRawTree->Branch("EventHeader", &headerDAQ);
 
     UInt_t dat = 0;
     for (;;) {
@@ -189,10 +197,13 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     tdc->Clear();
     adc->Clear();
     msc->Clear();
+    headerDAQ->Clear();
 
     if (fEventId % 1000 == 0) cout << "Converting event #" << d[0] << endl;
 
     UInt_t idx = 1;
+    BmnEventType evType = kBMNPAYLOAD;
+
     while (idx < len) {
         UInt_t serial = d[idx++];
         UInt_t id = (d[idx] >> 24);
@@ -207,11 +218,12 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 Process_ADC64VE(&data[idx], payload, serial);
                 break;
             case kFVME:
-                Process_FVME(&data[idx], payload, serial);
+                Process_FVME(&data[idx], payload, serial, evType);
                 break;
         }
         idx += payload;
     }
+    new((*headerDAQ)[headerDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, fTime_s, fTime_ns, evType);
 }
 
 BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t serial) {
@@ -245,7 +257,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial) {
+BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, BmnEventType &evType) {
     UInt_t modId = 0;
     UInt_t slot = 0;
     UInt_t type = 0;
@@ -276,8 +288,13 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial) 
                         FillMSC(d, serial, i); //empty now
                         break;
                     case kTRIG:
-                        FillTRIG(d, serial, i);
+                        FillSYNC(d, serial, i);
                         break;
+                    case kU40VE_RC:
+                        if (type == 3)
+                            //FIXME Make back compatibility!
+                            //evType = ((d[i] & 0xFFFF) == 0xD8) ? kBMNPEDESTAL : kBMNPAYLOAD;
+                            break;
                 }
             }
         }
@@ -285,7 +302,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial) 
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx) {
+BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
     UInt_t type = d[idx] >> 28;
     while (type != kMODTRAILER) { //data will be finished when module trailer appears 
         if (type == 4 || type == 5) { // 4 - leading, 5 - trailing
@@ -302,7 +319,7 @@ BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::FillTRIG(UInt_t *d, UInt_t serial, UInt_t &idx) {
+BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
     UInt_t d0 = d[idx + 0];
     UInt_t d1 = d[idx + 1];
     UInt_t d2 = d[idx + 2];
@@ -341,9 +358,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     tdc = new TClonesArray("BmnTDCDigit");
     sync = new TClonesArray("BmnSyncDigit");
     adc = new TClonesArray("BmnADC32Digit");
+    headerDAQ = new TClonesArray("BmnEventHeader");
     fRawTree->SetBranchAddress("TDC", &tdc);
     fRawTree->SetBranchAddress("SYNC", &sync);
     fRawTree->SetBranchAddress("ADC", &adc);
+    fRawTree->SetBranchAddress("EventHeader", &headerDAQ);
 
     fDigiFileOut = new TFile(fDigiFileName, "recreate");
     fDigiTree = new TTree("cbmsim", "bmn_digit");
@@ -376,13 +395,21 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     BmnTof1Raw2Digit *tof400Mapper = new BmnTof1Raw2Digit(kPERIOD, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     //    BmnTof2Raw2Digit *tof700Mapper = new BmnTof2Raw2Digit(fTof700MapFileName);
 
+    UInt_t pedEvCntr = 0; // counter for pedestal events between two spills
+    UInt_t pedBunchCntr = 0; // counter for bunches of pedestal events between two spills
+    const UInt_t kNBUNCH = 10; // counter for bunches of pedestal events between two spills
+    BmnEventType curEventType = kBMNPAYLOAD;
+    BmnEventType prevEventType = curEventType;
+    list<TClonesArray*> pedListFullSet; //storage for pedestal events from last kNBUNCH bunches
+    list<TClonesArray*> pedListCurrBunch; //storage for pedestal events from one bunch
+    vector<BmnGemPedestal*> pedVec;
+
     if (fPedestalRun) {
         gemMapper = new BmnGemRaw2Digit();
         gemMapper->CalcGemPedestals(adc, fRawTree);
     } else {
         gemMapper = new BmnGemRaw2Digit(kPERIOD, fRunId);
         for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
-
             if (iEv % 1000 == 0) cout << "Decoding event #" << iEv << endl;
             dch->Clear();
             gem->Clear();
@@ -393,36 +420,41 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             bc2->Clear();
             veto->Clear();
             header->Clear();
-
+            fTimeShifts.clear();
+            
             fRawTree->GetEntry(iEv);
 
+            if (FillTimeShiftsMap() == kBMNERROR) {
+                cout << "No TimeShiftMap created" << endl;
+                continue;
+            }
+            
+            BmnEventHeader* headDAQ = (BmnEventHeader*) headerDAQ->At(0);
+            curEventType = headDAQ->GetType();
+            new((*header)[header->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTimeS(), headDAQ->GetEventTimeNS(), curEventType);
 
-            TriggerMapStructure* map;
-            Int_t nEntries = 1;
-            UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", kPERIOD, fRunId);
-            if (mapPar != NULL) mapPar->GetTriggerMapArray(map, nEntries);
-            Long64_t t0time = 0.0;
-            for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
-                BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
-                if (syncDig->GetSerial() == map->serial) {
-                    t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1e9;
-                    new((*header)[header->GetEntriesFast()]) BmnEventHeader(fRunId, syncDig->GetEvent(), syncDig->GetTime_sec(), syncDig->GetTime_ns());
-                    break;
+            trigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time);
+
+            if (curEventType == kBMNPEDESTAL) {
+                pedEvCntr++;
+                pedListCurrBunch.push_back(adc);
+            } else { // payload
+                if (prevEventType == kBMNPEDESTAL) {
+                    for (Int_t i = 0; i < pedEvCntr; ++i) {
+                        pedListFullSet.push_back(pedListCurrBunch.front());
+                        if (pedBunchCntr >= kNBUNCH)
+                            pedListFullSet.pop_front();
+                    }
+                    gemMapper->RecalculatePedestals(pedListFullSet, pedVec);
+                    pedEvCntr = 0;
+                    pedBunchCntr++;
                 }
+                gemMapper->FillEvent(adc, gem);
             }
 
-            ////////////////////time correction for TDC-digits//////////////////
-            /////////////////Just example of using GetTimeShift()///////////////            
-            //            for (Int_t i = 0; i < tdc->GetEntriesFast(); ++i) {
-            //                BmnTDCDigit* dig = (BmnTDCDigit*) tdc->At(i);
-            //                Long64_t tdcTimeShift = GetTimeShift(dig, t0time);
-            //            }
-            ////////////////////////////////////////////////////////////////////
-
-            trigMapper->FillEvent(tdc, t0, bc1, bc2, veto);
-            gemMapper->FillEvent(adc, gem);
-            dchMapper->FillEvent(tdc, sync, dch);
+            dchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
             tof400Mapper->FillEvent(tdc, tof400);
+            prevEventType = curEventType;
 
             fDigiTree->Fill();
         }
@@ -453,13 +485,36 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     return kBMNSUCCESS;
 }
 
-Long64_t BmnRawDataDecoder::GetTimeShift(BmnTDCDigit* dig, Long64_t t0time) {
-    UInt_t ser = dig->GetSerial();
+BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
+
+    TriggerMapStructure* map;
+    Int_t nEntries = 1;
+    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", kPERIOD, fRunId);
+    if (mapPar != NULL)
+        mapPar->GetTriggerMapArray(map, nEntries);
+    else {
+        cerr << "No TO map found in DB" << endl;
+        return kBMNERROR;
+    }
+    Long64_t t0time = -1;
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
-        if (syncDig->GetSerial() == ser) {
-            Long64_t syncTime = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1e9;
-            return syncTime - t0time;
+        if (syncDig->GetSerial() == map->serial) {
+            t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
+            break;
         }
     }
+
+    if (t0time == -1) {
+        cerr << "No TO digit found in tree" << endl;
+        return kBMNERROR;
+    }
+
+    for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
+        BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
+        Long64_t syncTime = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
+        fTimeShifts.insert(pair<UInt_t, Long64_t>(syncDig->GetSerial(), syncTime - t0time));
+    }
+
+    return kBMNSUCCESS;
 }

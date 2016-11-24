@@ -18,31 +18,31 @@ const Int_t nStations = 7;
 //Station Parameters
 
 Double_t XStationPositions[nStations];
-    XStationPositions[0] = BmnGemStripPositions_RunSummer2016::XStationPositions[0];
-    XStationPositions[1] = BmnGemStripPositions_RunSummer2016::XStationPositions[1];
-    XStationPositions[2] = BmnGemStripPositions_RunSummer2016::XStationPositions[2];
-    XStationPositions[3] = BmnGemStripPositions_RunSummer2016::XStationPositions[3];
-    XStationPositions[4] = BmnGemStripPositions_RunSummer2016::XStationPositions[4];
-    XStationPositions[5] = BmnGemStripPositions_RunSummer2016::XStationPositions[5];
-    XStationPositions[6] = BmnGemStripPositions_RunSummer2016::XStationPositions[6];
+    XStationPositions[0] = BmnGemStationPositions_RunSummer2016::XStationPositions[0];
+    XStationPositions[1] = BmnGemStationPositions_RunSummer2016::XStationPositions[1];
+    XStationPositions[2] = BmnGemStationPositions_RunSummer2016::XStationPositions[2];
+    XStationPositions[3] = BmnGemStationPositions_RunSummer2016::XStationPositions[3];
+    XStationPositions[4] = BmnGemStationPositions_RunSummer2016::XStationPositions[4];
+    XStationPositions[5] = BmnGemStationPositions_RunSummer2016::XStationPositions[5];
+    XStationPositions[6] = BmnGemStationPositions_RunSummer2016::XStationPositions[6];
 
 Double_t YStationPositions[nStations];
-    YStationPositions[0] = BmnGemStripPositions_RunSummer2016::YStationPositions[0];
-    YStationPositions[1] = BmnGemStripPositions_RunSummer2016::YStationPositions[1];
-    YStationPositions[2] = BmnGemStripPositions_RunSummer2016::YStationPositions[2];
-    YStationPositions[3] = BmnGemStripPositions_RunSummer2016::YStationPositions[3];
-    YStationPositions[4] = BmnGemStripPositions_RunSummer2016::YStationPositions[4];
-    YStationPositions[5] = BmnGemStripPositions_RunSummer2016::YStationPositions[5];
-    YStationPositions[6] = BmnGemStripPositions_RunSummer2016::YStationPositions[6];
+    YStationPositions[0] = BmnGemStationPositions_RunSummer2016::YStationPositions[0];
+    YStationPositions[1] = BmnGemStationPositions_RunSummer2016::YStationPositions[1];
+    YStationPositions[2] = BmnGemStationPositions_RunSummer2016::YStationPositions[2];
+    YStationPositions[3] = BmnGemStationPositions_RunSummer2016::YStationPositions[3];
+    YStationPositions[4] = BmnGemStationPositions_RunSummer2016::YStationPositions[4];
+    YStationPositions[5] = BmnGemStationPositions_RunSummer2016::YStationPositions[5];
+    YStationPositions[6] = BmnGemStationPositions_RunSummer2016::YStationPositions[6];
 
 Double_t ZStationPositions[nStations];
-    ZStationPositions[0] = BmnGemStripPositions_RunSummer2016::ZStationPositions[0];
-    ZStationPositions[1] = BmnGemStripPositions_RunSummer2016::ZStationPositions[1];
-    ZStationPositions[2] = BmnGemStripPositions_RunSummer2016::ZStationPositions[2];
-    ZStationPositions[3] = BmnGemStripPositions_RunSummer2016::ZStationPositions[3];
-    ZStationPositions[4] = BmnGemStripPositions_RunSummer2016::ZStationPositions[4];
-    ZStationPositions[5] = BmnGemStripPositions_RunSummer2016::ZStationPositions[5];
-    ZStationPositions[6] = BmnGemStripPositions_RunSummer2016::ZStationPositions[6];
+    ZStationPositions[0] = BmnGemStationPositions_RunSummer2016::ZStationPositions[0];
+    ZStationPositions[1] = BmnGemStationPositions_RunSummer2016::ZStationPositions[1];
+    ZStationPositions[2] = BmnGemStationPositions_RunSummer2016::ZStationPositions[2];
+    ZStationPositions[3] = BmnGemStationPositions_RunSummer2016::ZStationPositions[3];
+    ZStationPositions[4] = BmnGemStationPositions_RunSummer2016::ZStationPositions[4];
+    ZStationPositions[5] = BmnGemStationPositions_RunSummer2016::ZStationPositions[5];
+    ZStationPositions[6] = BmnGemStationPositions_RunSummer2016::ZStationPositions[6];
 
 /*
 Double_t XStationPositions[nStations];

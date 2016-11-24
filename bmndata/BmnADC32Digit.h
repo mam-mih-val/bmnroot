@@ -6,6 +6,13 @@
 using namespace std;
 
 class BmnADC32Digit : public TObject {
+
+private:
+    Bool_t fPed; //is pedestal digit or payload
+    UInt_t fSerial;
+    UChar_t fChannel;
+    UShort_t fValue[32]; //[2048]; // 64 channels x 32 16-bit words
+    
 public:
 
     /** Default constructor **/
@@ -21,18 +28,13 @@ public:
     UInt_t GetChannel() const {
         return fChannel;
     }
-
+    
     UShort_t *GetValue() const {
         return (UShort_t *) fValue;
     }
 
     /** Destructor **/
     virtual ~BmnADC32Digit();
-
-private:
-    UInt_t fSerial;
-    UChar_t fChannel;
-    UShort_t fValue[32];//[2048]; // 64 channels x 32 16-bit words
 
     ClassDef(BmnADC32Digit, 1);
 };

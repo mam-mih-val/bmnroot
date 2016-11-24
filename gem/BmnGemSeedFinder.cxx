@@ -173,7 +173,8 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
                 Int_t prevStation = i - 1; //number of starting station
                 Int_t nSteps = 2;
                 for (Int_t i = xAddr; i > 0; i--) {
-                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
+//                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
+                                        SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kFALSE);
                     if ((hitCntr > 1) && Abs(i - startBin) > nSteps * maxDist) break; //condition to finish search is dist < 2 * MaxDist
                     if (hitCntr >= kNHITSFORSEED) break;
                 }
@@ -204,7 +205,8 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
                 Int_t prevStation = i - 1; //number of starting station
                 Int_t nSteps = 2;
                 for (Int_t i = xAddr; i < fNBins; ++i) {
-                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
+//                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
+                                        SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kFALSE);
                     if ((hitCntr > 1) && Abs(i - startBin) > nSteps * maxDist) break; //condition to finish search is dist < 2 * MaxDist
                     if (hitCntr >= kNHITSFORSEED) break;
                 }
@@ -247,14 +249,19 @@ BmnStatus BmnGemSeedFinder::FitSeeds(vector<BmnGemTrack> cand, TClonesArray* arr
             new((*arr)[arr->GetEntriesFast()]) BmnGemTrack(*trackCand);
         }
     } else {
-        Float_t delta = 1e20;
+        Float_t deltaL = -1.0;
+        Float_t deltaC = 1e20;
         BmnGemTrack minTrack;
         for (Int_t i = 0; i < cand.size(); ++i) {
             BmnGemTrack trackCand = cand.at(i);
             Float_t chi = trackCand.GetChi2() / trackCand.GetNDF();
-            if (chi < delta) {
-                delta = chi;
-                minTrack = trackCand;
+            Float_t len = trackCand.GetLength();
+            if (len > deltaL) {
+                if (chi < deltaC) {
+                    deltaC = chi;
+                    deltaL = len;
+                    minTrack = trackCand;
+                }
             }
         }
 
@@ -318,7 +325,7 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsLine(BmnGemTrack* tr) {
     Float_t fZ = firstHit->GetZ();
 
     FairTrackParam parF;
-    parF.SetPosition(TVector3(fX, fY, fZ));
+    parF.SetPosition(TVector3(lineParZX.X() * fZ + lineParZX.Y(), lineParZY.X() * fZ + lineParZY.Y(), fZ));
     parF.SetQp(0.0);
     parF.SetTx(lineParZX.X());
     parF.SetTy(lineParZY.X());
@@ -341,7 +348,8 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsLine(BmnGemTrack* tr) {
     parF.SetCovariance(4, 4, cov_const);
 
     FairTrackParam parL;
-    parL.SetPosition(TVector3(lX, lY, lZ));
+    //parL.SetPosition(TVector3(lX, lY, lZ));
+    parL.SetPosition(TVector3(lineParZX.X() * lZ + lineParZX.Y(), lineParZY.X() * lZ + lineParZY.Y(), fZ));
     parL.SetTx(lineParZX.X());
     parL.SetTy(lineParZY.X());
     parL.SetQp(0.0);

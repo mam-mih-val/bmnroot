@@ -41,6 +41,7 @@ const Double_t YHotZoneSize_Station66x41 = 10.0;
     const Double_t dYInnerFrame_Station66x41 = 1.7;
     const Double_t dZSensitiveVolume_Station66x41 = 0.9;
     const Double_t ZModuleSize_Station66x41 = 2.3;
+
 //------------------------------------------------------------------------------
 
 //GEM plane sizes (163x45 type) ------------------------------------------------
@@ -96,7 +97,6 @@ void SetStationPositionsAndModuleShifts() {
 }
 
 void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
-
 
     //air medium
     FairGeoMedium* mAir = geoMedia->getMedium("air");
@@ -192,15 +192,11 @@ void create_rootgeom_GEMS_RunWinter2016() {
                                 XModuleShifts[3][0], YModuleShifts[3][0], ZModuleShifts[3][0],
                                 XModuleShifts[3][1], YModuleShifts[3][1], ZModuleShifts[3][1]);
 
-
-
     CreateStation_One163x45Plane(GEMS, "station4",
                                  XStationPositions[4], YStationPositions[4], ZStationPositions[4],
                                  XModuleShifts[4][0], YModuleShifts[4][0], ZModuleShifts[4][0],
                                  XModuleShifts[4][1], YModuleShifts[4][1], ZModuleShifts[4][1],
                                  HoleRadius_Station163x45+dXInnerFrame_Station163x45, kFALSE);
-
-
 
     CreateStation_One163x45Plane(GEMS, "station5",
                                  XStationPositions[5], YStationPositions[5], ZStationPositions[5],

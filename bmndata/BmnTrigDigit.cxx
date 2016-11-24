@@ -8,7 +8,7 @@ BmnTrigDigit::BmnTrigDigit() {
     fAmp = -1.0;
 }
 
-BmnTrigDigit::BmnTrigDigit(Short_t iDet, Short_t iMod, Float_t iTime, Float_t iAmp) {
+BmnTrigDigit::BmnTrigDigit(Short_t iDet, Short_t iMod, Double_t iTime, Double_t iAmp) {
     fDet = iDet;
     fMod = iMod;
     fTime = iTime;

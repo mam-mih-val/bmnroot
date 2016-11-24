@@ -5,6 +5,7 @@
 #pragma link off all functions;
 
 #pragma link C++ class BmnDchAlignment++;
+#pragma link C++ class BmnGemReco++;
 #pragma link C++ class BmnGemAlignment++;
 #pragma link C++ class BmnGlobalAlignment++;
 #pragma link C++ class BmnAlignmentContainer++;

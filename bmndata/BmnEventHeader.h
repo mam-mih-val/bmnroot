@@ -3,19 +3,38 @@
 #define BMNEVENTHEADER_H
 
 #include "TNamed.h"
+#include "BmnEnums.h"
 
 class BmnEventHeader : public TNamed {
+private:
+
+    /** Run Id */
+    UInt_t fRunId;
+    /** Event Id **/
+    UInt_t fEventId;
+    /** Event Time in s**/
+    Long64_t fEventTimeS;
+    /** Event Time in ns**/
+    Long64_t fEventTimeNS;
+    /** Event Type (payload = 0 or pedestal = 1)**/
+    BmnEventType fType;
+
 public:
 
     /** Default constructor */
     BmnEventHeader();
-    
+
     /** Constructor */
-    BmnEventHeader(UInt_t run, UInt_t ev, Long64_t s, Long64_t ns);
+    BmnEventHeader(UInt_t run, UInt_t ev, Long64_t s, Long64_t ns, BmnEventType type);
 
     /** Get the run ID for this run*/
     UInt_t GetRunId() {
         return fRunId;
+    }
+    
+    /** Get the type of this event*/
+    BmnEventType GetType() {
+        return fType;
     }
 
     /** Get the run ID for this run*/
@@ -60,21 +79,18 @@ public:
     void SetEventTimeS(Long64_t time) {
         fEventTimeS = time;
     }
+    
+    /** Set the type for this event
+     * @param type : type (0 or 1)
+     */
+    void SetEventTimeS(BmnEventType type) {
+        fType = type;
+    }
 
     /**
      * Destructor
      */
     virtual ~BmnEventHeader();
-protected:
-
-    /** Run Id */
-    UInt_t fRunId;
-    /** Event Id **/
-    UInt_t fEventId;
-    /** Event Time in s**/
-    Long64_t fEventTimeS;
-    /** Event Time in ns**/
-    Long64_t fEventTimeNS;
 
     ClassDef(BmnEventHeader, 3)
 

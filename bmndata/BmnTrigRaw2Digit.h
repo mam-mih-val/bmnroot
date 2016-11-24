@@ -34,7 +34,7 @@ public:
         return fMap;
     }
     
-    BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto);
+    BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, Double_t& t0time);
     
 private:
             

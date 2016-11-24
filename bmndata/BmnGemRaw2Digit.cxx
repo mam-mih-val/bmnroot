@@ -7,6 +7,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
 
     fPeriod = period;
     fRun = run;
+    fEventId = 0;
 
     fEntriesInGlobMap = 17;
 
@@ -64,8 +65,8 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     for (Int_t i = 0; i < fNCrates; ++i)
         fPedArr[i] = new BmnGemPed[N_CH_IN_CRATE];
 
-    GemPedestalStructure* pedMap;
-    UniDbDetectorParameter* pedSizePar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_size_ped_map", fPeriod, fRun);
+    //GemPedestalStructure* pedMap;
+    //UniDbDetectorParameter* pedSizePar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_size_ped_map", fPeriod, fRun);
 
     //    Int_t sizePedMap = (pedSizePar != NULL) ? pedSizePar->GetInt() : 0;
     //    UniDbDetectorParameter* pedPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_pedestal", fPeriod, fRun);
@@ -96,7 +97,6 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
             if (ser == fCrates[iCr])
                 fPedArr[iCr][ch] = BmnGemPed(ped, rms);
     }
-
 }
 
 BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, TString parNameSize, BmnGemMap* m, Int_t lay, Int_t mod) {
@@ -121,8 +121,16 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
 }
 
 BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *gem) {
+    fEventId++;
+    if (fEventId == N_EV_FOR_PEDESTALS)
+        FindNoisyStrips();
     for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
         BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+        if (fAdcProfiles.find(adcDig) == fAdcProfiles.end()) {
+            UInt_t* signals = new UInt_t[ADC_N_SAMPLES];
+            for (Int_t k = 0; k < ADC_N_SAMPLES; ++k) signals[k] = 0;
+            fAdcProfiles.insert(pair < BmnADC32Digit*, UInt_t*>(adcDig, signals));
+        }
         UInt_t ch = adcDig->GetChannel() * ADC_N_SAMPLES;
         for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
             GemMapStructure gemM = fMap[iMap];
@@ -212,12 +220,11 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
             dig.SetStripLayer(lay);
             dig.SetStripNumber(strip);
             dig.SetStripSignal(Double_t((adcDig->GetValue())[iSmpl] / 16));
-            dig.SetStripSignalNoise(pedNoises[iSmpl]);
             candDig[iSmpl] = dig;
         }
     }
 
-    Double_t signals[nSmpl];
+    Double_t signals[ADC_N_SAMPLES];
     Int_t nOk = 0;
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStripSignal() == 0) continue;
@@ -226,16 +233,39 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
     }
     Double_t CMS = CalcCMS(signals, nOk);
 
+    UInt_t prof[nSmpl];
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
         BmnGemStripDigit * dig = &candDig[iSmpl];
-        Double_t sig = dig->GetStripSignal() - CMS - pedestals[iSmpl];
-        Float_t threshold = (dig->GetStation() == 0) ? 100 : 5.0 * pedNoises[iSmpl];
-        if (sig < threshold) continue;
-        if (IsStripNoisy(dig->GetStation(), dig->GetStripLayer(), dig->GetModule(), dig->GetStripNumber())) continue;
-        new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig, dig->GetStripSignalNoise());
+        Float_t threshold = 20; //((dig->GetStation() == 0 || dig->GetStation() == 6) ? 12 : 7.0 * pedNoises[iSmpl]);
+        prof[iSmpl] = (dig->GetStripSignal() - CMS - pedestals[iSmpl] > threshold) ? 1 : 0;
     }
-    
+
+    if (fEventId < N_EV_FOR_PEDESTALS)
+        FillProfile(adcDig, prof);
+    else {
+        map<BmnADC32Digit*, vector < Short_t> >::iterator it = fNoiseChannels.find(adcDig);
+        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+            if ((candDig[iSmpl]).GetStation() == -1) continue;
+            BmnGemStripDigit * dig = &candDig[iSmpl];
+            Double_t sig = dig->GetStripSignal() - CMS - pedestals[iSmpl];
+            Float_t threshold = 20; //((dig->GetStation() == 0 || dig->GetStation() == 6) ? 12 : 3.0 * pedNoises[iSmpl]);
+            if (sig < threshold) continue;
+
+            Bool_t isNoisy = kFALSE;
+            if (it != fNoiseChannels.end()) {
+                vector<Short_t> noiseCh = it->second;
+                for (Int_t i = 0; i < noiseCh.size(); ++i) {
+                    if (iSmpl == noiseCh.at(i)) {
+                        isNoisy = kTRUE;
+                        break;
+                    }
+                }
+            }
+            if (isNoisy) continue;
+            new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
+        }
+    }
 }
 
 BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree *tree) {
@@ -306,6 +336,143 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree *tree) {
     pedFile.close();
 }
 
+BmnStatus BmnGemRaw2Digit::FillProfile(BmnADC32Digit* dig, UInt_t* signal) {
+
+    map<BmnADC32Digit*, UInt_t*>::iterator it = fAdcProfiles.find(dig);
+    if (it == fAdcProfiles.end()) return kBMNERROR;
+    for (Int_t iSmpl = 0; iSmpl < ADC_N_SAMPLES; ++iSmpl) {
+        (it->second)[iSmpl] += signal[iSmpl];
+    }
+
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnGemRaw2Digit::FindNoisyStrips() {
+    const Short_t kNBUNCHES = 2;
+    const Short_t kNSAMPLES = ADC_N_SAMPLES / kNBUNCHES;
+    const Short_t kNITER = 4;
+    const Float_t coeff[kNITER] = {7, 5, 3, 2};
+
+    map<BmnADC32Digit*, UInt_t*>::iterator it;
+
+    for (it = fAdcProfiles.begin(); it != fAdcProfiles.end(); ++it) {
+        Short_t channelOk[ADC_N_SAMPLES];
+        Short_t nOk[kNBUNCHES];
+        vector<Short_t> vNoisyIdx;
+        for (Short_t i = 0; i < kNBUNCHES; ++i) nOk[i] = kNSAMPLES;
+        for (Short_t i = 0; i < ADC_N_SAMPLES; ++i) channelOk[i] = 1;
+
+        for (Short_t itr = 0; itr < kNITER; ++itr) {
+            for (Int_t iBunch = 0; iBunch < kNBUNCHES; ++iBunch) {
+                Double_t mean = 0.0;
+                for (Short_t i = 0; i < kNSAMPLES; ++i) {
+                    Short_t idx = i + iBunch * kNSAMPLES;
+                    if ((it->second)[idx] > 0.80 * N_EV_FOR_PEDESTALS && channelOk[idx] == 1) {
+                        nOk[iBunch]--;
+                        vNoisyIdx.push_back(idx);
+                        channelOk[idx] = 0;
+                        continue;
+                    }
+                    if (channelOk[idx] == 1 && (it->second)[idx] == 0) {
+                        channelOk[idx] = 0;
+                        nOk[iBunch]--;
+                        continue;
+                    }
+                    mean += (channelOk[idx] * (it->second)[idx]);
+                }
+                mean /= nOk[iBunch];
+
+                for (Short_t i = 0; i < kNSAMPLES; ++i) {
+                    Short_t idx = i + iBunch * kNSAMPLES;
+                    if (channelOk[idx] * (it->second)[idx] > coeff[itr] * mean) {
+                        vNoisyIdx.push_back(idx);
+                        channelOk[idx] = 0;
+                        nOk[iBunch]--;
+                    }
+                }
+            }
+        }
+        fNoiseChannels.insert(pair<BmnADC32Digit*, vector < Short_t > > (it->first, vNoisyIdx));
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnGemRaw2Digit::RecalculatePedestals(list<TClonesArray*> pedList, vector<BmnGemPedestal*> &pedOut) {
+
+    //    const UShort_t nSmpl = ADC_N_SAMPLES;
+    //    const UInt_t nDigs = 640; //fNCrates * 64; // 10 ADC x 64 ch
+    //
+    //    Double_t** pedestals = new Double_t* [nDigs];
+    //    Double_t** noises = new Double_t* [nDigs];
+    //    for (Int_t i = 0; i < nDigs; ++i) {
+    //        pedestals[i] = new Double_t[nSmpl];
+    //        noises[i] = new Double_t[nSmpl];
+    //    }
+    //
+    //    UInt_t nEv = pedList.size();
+    //
+    //    vector<TClonesArray*> pedVec;
+    //    for (Int_t i = 0; i < nEv; ++i) {
+    //        pedVec.push_back(pedList.front());
+    //        pedList.pop_front();
+    //    }
+    //
+    //    for (Int_t iEv = 0; iEv < nEv; ++iEv) {
+    //        if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
+    //        TClonesArray* adc = pedVec.at(iEv);
+    //        for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
+    //            BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+    //            Double_t signals[nSmpl];
+    //            Int_t nOk = 0;
+    //            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    //                if ((adcDig->GetValue())[iSmpl] / 16 == 0) continue;
+    //                signals[iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
+    //                nOk++;
+    //            }
+    //            Double_t CMS = CalcCMS(signals, nOk);
+    //            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+    //                pedestals[iAdc][iSmpl] += (signals[iSmpl] - CMS);
+    //        }
+    //    }
+    //
+    //    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc)
+    //        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+    //            pedestals[iAdc][iSmpl] /= nEv;
+    //
+    //
+    //    for (Int_t iEv = 0; iEv < nEv; ++iEv) {
+    //        if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
+    //        TClonesArray* adc = pedVec.at(iEv);
+    //        for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
+    //            BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+    //            Double_t signals[nSmpl];
+    //            Int_t nOk = 0;
+    //            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    //                if ((adcDig->GetValue())[iSmpl] / 16 == 0) continue;
+    //                signals[iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
+    //                nOk++;
+    //            }
+    //            Double_t CMS = CalcCMS(signals, nSmpl);
+    //            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+    //                noises[iAdc][iSmpl] += (((signals[iSmpl] - CMS) - pedestals[iAdc][iSmpl]) * ((signals[iSmpl] - CMS) - pedestals[iAdc][iSmpl]));
+    //        }
+    //    }
+    //
+    //    TClonesArray* adc = pedVec.at(0);
+    //    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
+    //        BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+    //        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    //            noises[iAdc][iSmpl] = Sqrt(noises[iAdc][iSmpl] / nEv);
+    //            if (noises[iAdc][iSmpl]) {
+    //                BmnGemPedestal* pedEntry = new BmnGemPedestal(adcDig->GetSerial(), adcDig->GetChannel() * nSmpl + iSmpl, pedestals[iAdc][iSmpl], noises[iAdc][iSmpl]);
+    //                pedOut.push_back(pedEntry);
+    //            }
+    //        }
+    //    }
+    //
+    //    return kBMNSUCCESS;
+}
+
 Double_t BmnGemRaw2Digit::CalcCMS(Double_t* samples, Int_t size) {
 
     const UShort_t kNITER = 4;
@@ -336,46 +503,11 @@ Double_t BmnGemRaw2Digit::CalcCMS(Double_t* samples, Int_t size) {
     return CMS;
 }
 
-Bool_t BmnGemRaw2Digit::IsStripNoisy(Int_t station, Int_t lay, Int_t mod, Int_t strip) {
-    //killing noisy strips...
-    if (station == 1 && mod == 0 && lay == 0)
-        if (strip == 398 || strip == 487 || strip == 488 || strip == 825)
-            return kTRUE;
-
-    if (station == 1 && mod == 0 && lay == 1)
-        if (strip == 523 || strip == 525 || strip == 651 || strip == 653 || strip == 693 || strip == 698)
-            return kTRUE;
-
-    if (station == 2 && mod == 0 && lay == 0)
-        if (strip == 6 || strip == 16 || strip == 183 || strip == 238 || strip == 240 || strip == 509 || strip == 647 || strip == 662 || strip == 666 || strip == 691 || strip == 693 || strip == 695 || strip == 696 || strip == 698 || strip == 744 || strip == 745 || strip == 746 || strip == 747 || strip == 751 || strip == 777 || strip == 825)
-            return kTRUE;
-
-    if (station == 2 && mod == 0 && lay == 1)
-        if (strip == 354 || strip == 517 || strip == 643 || strip == 648 || strip == 652 || strip == 653 || strip == 695 || strip == 698)
-            return kTRUE;
-
-    if (station == 3 && mod == 0 && lay == 0)
-        if (strip == 825)
-            return kTRUE;
-
-    if (station == 3 && mod == 0 && lay == 1)
-        if (strip == 750)
-            return kTRUE;
-
-    if (station == 4 && mod == 0 && lay == 0)
-        if (strip == 124 || strip == 311 || strip == 395 || strip == 401 || (strip >= 737 && strip <= 769) || strip == 825)
-            return kTRUE;
-
-    if (station == 4 && mod == 0 && lay == 1)
-        if (strip == 384 || strip == 389)
-            return kTRUE;
-
-    if (station == 5 && mod == 0 && lay == 1)
-        if (strip == 523 || strip == 532 || strip == 654 || strip == 705 || strip == 723 || strip == 825)
-            return kTRUE;
-    //killing noisy strips...
-
-    return kFALSE;
+vector<BmnGemStripDigit*> BmnGemRaw2Digit::CheckNoisyStrips(BmnGemStripDigit *chipDigits) {
+    //    for (Int_t iSmpl = 0; iSmpl < ADC_N_SAMPLES; ++iSmpl) {
+    //        BmnGemStripDigit dig = chipDigits[iSmpl];
+    //        cout << dig.GetStripNumber() << endl;
+    //    }
 }
 
 ClassImp(BmnGemRaw2Digit)

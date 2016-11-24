@@ -52,4 +52,12 @@ enum BmnTofHitQA {
    kBMNTOFBAD = 1,  /**< not merged TOF hit. */
 };
 
+/**
+ * \enum Define type of event
+ */
+enum BmnEventType {
+   kBMNPEDESTAL = 0, /**< merged TOF hit. */
+   kBMNPAYLOAD = 1,  /**< not merged TOF hit. */
+};
+
 #endif /* BMNENUMS_H_ */

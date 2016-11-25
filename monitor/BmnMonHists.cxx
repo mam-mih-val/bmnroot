@@ -58,7 +58,8 @@ void BmnMonHists::ClearTriggers() {
     histSDTimeLen->Reset();
     histVDTimeLen->Reset();
     histFDTimeLen->Reset();
-    histBDTimeLen->Reset();
+    histBDChannels->Reset();
+    histBDSpecific->Reset();
     histTriggers->Reset();
 }
 

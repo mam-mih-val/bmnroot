@@ -22,6 +22,7 @@
 #define TOF400_STRIP_COUNT 48
 #define MAX_STATIONS 40
 #define MAX_MODULES 8
+#define BD_CHANNELS 40
 
 void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
 
@@ -94,17 +95,6 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
         bmh.histGemStrip.push_back(rowGEM);
     }
 
-    //    Int_t canvasW = 800;
-    //    Int_t canvasH = 400 * gemCount;
-    //    TCanvas * canvasGemHits = new TCanvas("GEM_Strip_distribution", "GEM_Strip_distribution", canvasW, canvasH);
-    //    canvasGemHits->Divide(1, gemCount - 2);
-    //    canvasGemHits->SetFixedAspectRatio(kTRUE);
-    //    for (Int_t gemIndex = 0; gemIndex < gemCount - 2; gemIndex++) {
-    //        //for (Int_t layer = 0; layer < gemLayers; layer++){
-    //        canvasGemHits->cd(gemIndex + 1); // * gemLayers + layer);
-    //        bmh.histStrip[gemIndex][layer]->Draw();
-    //    }
-
     // ====================================================================== //
     // ToF histograms init
     // ====================================================================== //
@@ -135,6 +125,7 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     TClonesArray *DchDigits = NULL;
     digiTree->SetBranchAddress("DCH", &DchDigits);
     TDirectory *dirDrift = fHistOut->mkdir("DCH_hists");
+    TTree *recoTree = new TTree("BmnMon", "BmnMon");
     dirDrift->cd();
     TH1F * h_wires[kNPLANES];
     Float_t v_wires[kNPLANES][kNWIRES] = {};
@@ -164,12 +155,16 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     digiTree->SetBranchAddress("BC2", &trigBC2Digits);
     TClonesArray * trigVDDigits = NULL;
     digiTree->SetBranchAddress("VETO", &trigVDDigits);
+    TClonesArray * trigBDDigits = NULL;
+   // digiTree->SetBranchAddress("BD", &trigBDDigits);
     //    TClonesArray * trigBC1Digits = NULL;
     //    digiTree->SetBranchAddress("GEM", &trigBC1Digits);
     //    TClonesArray * trigBC1Digits = NULL;
     //    digiTree->SetBranchAddress("GEM", &trigBC1Digits);
     TDirectory *dirTrig = fHistOut->mkdir("Trigger_hists");
     dirTrig->cd();
+    bmh.BDEvents = new TClonesArray("BmnTrigDigit");
+    recoTree->Branch("BmnTrigBD", &(bmh.BDEvents));
     name = "BC1_Time_Length";
     bmh.histBC1TimeLen = new TH1D(name, name, 300, 0, 20000);
     name = "BC2_Time_Length";
@@ -180,11 +175,13 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     bmh.histSDTimeLen = new TH1D(name, name, 300, 0, 2000);
     name = "VETO_Time_Length";
     bmh.histVDTimeLen = new TH1D(name, name, 300, 0, 2000);
-    name = "BD_Time_Length";
-    bmh.histBDTimeLen = new TH1D(name, name, 300, 0, 2000);
+    name = "BD_Channels";
+    bmh.histBDChannels = new TH1I(name, name, BD_CHANNELS, 0, BD_CHANNELS);
+    name = "BD_Specific_Channel";
+    bmh.histBDSpecific = new TH1D(name, name, 300, 0, 2000);
     name = "Triggers_Counter";
-    bmh.histTriggers = new TH1I(name, name, 6, 0, 6);
-    TString triggerNames[6] = {"BC1", "SD", "BC2", "VD", "FD", "BD"};
+    bmh.histTriggers = new TH1I(name, name, 5, 0, 5);
+    TString triggerNames[5] = {"BC1", "SD", "BC2", "VD", "FD"};
     TAxis* xa = bmh.histTriggers->GetXaxis();
     for (Int_t i = 0; i < sizeof (triggerNames) / sizeof (*triggerNames); i++) {
         xa->SetBinLabel(i + 1, triggerNames[i]);
@@ -202,24 +199,26 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     serv->Register("/Triggers/", bmh.histVDTimeLen);
     serv->Register("/Triggers/", bmh.histSDTimeLen);
     serv->Register("/Triggers/", bmh.histTriggers);
-    serv->Register("/Triggers/", bmh.histBDTimeLen);
-    serv->Register("/", bmh.histToF400LeadingTime);
-    serv->Register("/", bmh.histToF400Amp);
-    serv->Register("/", bmh.histToF400StripSimult);
-    serv->Register("/", bmh.histToF400State);
-    //   bmh.histBDTimeLen->SetDirectory(0);
+    serv->Register("/Triggers/", bmh.histBDChannels);
+    bmh.histBDSpecific->SetDirectory(0);
+    serv->Register("/Triggers/", bmh.histBDSpecific);
+    serv->Register("/ToF400/", bmh.histToF400LeadingTime);
+    serv->Register("/ToF400/", bmh.histToF400Amp);
+    serv->Register("/ToF400/", bmh.histToF400Strip);
+    serv->Register("/ToF400/", bmh.histToF400StripSimult);
+    serv->Register("/ToF400/", bmh.histToF400State);
     cout << " histograms registered" << endl;
 
     serv->SetItemField("/Triggers/", "_monitoring", "2000");
-    serv->SetItemField("/Triggers/", "_layout", "grid2x3");
+    serv->SetItemField("/Triggers/", "_layout", "grid3x2");
     serv->SetItemField("/Triggers/", "_drawitem",
-            "[BC1_Time_Length,BC2_Time_Length,FD_Time_Length,VETO_Time_Length,SD_Time_Length, BD_Time_Length]");
+            "[BC1_Time_Length,BC2_Time_Length,FD_Time_Length,VETO_Time_Length,SD_Time_Length,BD_Specific_Channel]");
     serv->SetItemField("/Triggers/", "_drawopt", "colz");
     // Register commands
     serv->RegisterCommand("/ResetGEM", "/bmh/->ClearGEM()", "button;img/reset.png");
     serv->RegisterCommand("/ResetToF400", "/bmh/->ClearToF400()", "button;img/reset.png");
     serv->RegisterCommand("/ResetToF700", "/bmh/->ClearToF700()", "button;img/reset.png");
-    //    serv->RegisterCommand("/ResetTriggers", "/bmh/->ClearTriggers(%arg1%)", "button;img/reset.png");
+    serv->RegisterCommand("//Triggers/ChangeBDChannel", "/bmh/->SetSelBDChannel(%arg1%)", "button;img/reset.png");
     serv->RegisterCommand("/Triggers/ResetTriggers", "/bmh/->ClearTriggers()", "button;img/reset.png");
     serv->RegisterCommand("/ResetAll", "/bmh/->Clear()", "button;img/reset.png");
     //serv->Hide("/ResetAll");
@@ -254,6 +253,15 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
                 bmh.histVDTimeLen->Fill(tv->GetAmp());
                 bmh.histTriggers->Fill(3);
             }
+//            for (Int_t digIndex = 0; digIndex < trigVDDigits->GetEntriesFast(); digIndex++) {
+//                BmnTrigDigit* bd = (BmnTrigDigit*) trigBDDigits->At(digIndex);
+//                bmh.histBDChannels->Fill(bd->GetMod());
+//                BmnTrigDigit *bd1 = new (*(bmh.BDEvents))[bmh.BDEvents->GetEntriesFast()] BmnTrigDigit();
+//                bd1->SetAmp(bd->GetAmp());
+//                bd1->SetDet(bd->GetDet());
+//                bd1->SetMod(bd->GetMod());
+//                bd1->SetTime(bd->GetTime());
+//            }
             // ====================================================================== //
             // GEM histograms fill
             // ====================================================================== // 

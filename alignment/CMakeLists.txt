@@ -33,6 +33,7 @@ link_directories( ${LINK_DIRECTORIES})
 set(BMNALIGNMENT_SRCS
 BmnGemReco.cxx
 BmnGemAlignment.cxx
+BmnGemAlignmentCorrections.cxx
 BmnDchAlignment.cxx
 BmnGlobalAlignment.cxx
 BmnAlignmentContainer.cxx

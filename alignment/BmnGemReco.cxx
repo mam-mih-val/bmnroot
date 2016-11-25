@@ -8,7 +8,7 @@ Int_t BmnGemReco::fCurrentEvent = 0;
 BmnGemReco::BmnGemReco() :
 fGemDigits(NULL),
 fGemHits(NULL), fDebugInfo(kFALSE), fContainer(NULL),
-fNstat(7), fMaxNofHits(fNstat),
+fMaxNofHits(30),
 fGemTracks(NULL), fChi2MaxPerNDF(LDBL_MAX),
 fMinHitsAccepted(3), fXMin(-LDBL_MAX),
 fXMax(LDBL_MAX), fYMin(-LDBL_MAX), fYMax(LDBL_MAX),
@@ -41,7 +41,7 @@ InitStatus BmnGemReco::Init() {
     fDetector = new BmnGemStripStationSet_RunSummer2016(BmnGemStripConfiguration::RunSummer2016);
     const Int_t nStat = fDetector->GetNStations();
     const Int_t nParams = 3; // x, y, z
-
+    
     // Read rough corrections from the file
     corr = new Double_t**[nStat];
     for (Int_t iStat = 0; iStat < nStat; iStat++) {
@@ -55,6 +55,16 @@ InitStatus BmnGemReco::Init() {
     }
 
     ReadFileCorrections(fDetector);
+
+    if (fDebugInfo) {
+        cout << "Rough corrections are: " << endl;
+        for (Int_t iStat = 0; iStat < nStat; iStat++) {
+            Int_t nModul = fDetector->GetGemStation(iStat)->GetNModules();
+            for (Int_t iMod = 0; iMod < nModul; iMod++) 
+                for (Int_t iPar = 0; iPar < nParams; iPar++)
+                    cout << " Stat " << iStat << " Mod " << iMod << " Par " << corr[iStat][iMod][iPar] << endl;
+        }
+    }
 
     return kSUCCESS;
 }
@@ -146,7 +156,7 @@ void BmnGemReco::PrepareData() {
         return;
 
     // Fill hits over stations
-    vector <BmnGemStripHit*> stat[fNstat];
+    vector <BmnGemStripHit*> stat[fDetector->GetNStations()];
     for (Int_t iHit = 0; iHit < fGemHits->GetEntriesFast(); iHit++) {
         BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(iHit);
         stat[hit->GetStation()].push_back(hit);
@@ -155,7 +165,7 @@ void BmnGemReco::PrepareData() {
     // Checking for empty stations
     Int_t emptyStat = 0;
     vector <Int_t> nonEmptyStatNumber;
-    for (Int_t iStat = 0; iStat < fNstat; iStat++) {
+    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
         if (stat[iStat].size() < 1)
             emptyStat++;
         else
@@ -163,7 +173,7 @@ void BmnGemReco::PrepareData() {
     }
 
     // Checking for (nStat - 1) empty stations
-    if (emptyStat == fNstat - 1)
+    if (emptyStat == fDetector->GetNStations() - 1)
         return;
 
     // Checking for minimal number of hits per track
@@ -241,7 +251,7 @@ void BmnGemReco::goToStations(vector<BmnGemStripHit*>& hits, vector<BmnGemStripH
     Int_t nextStat = stat + 1;
 
     if (hitsOnStation[stat].size() < 1) {
-        if (stat == fNstat - 1) {
+        if (stat == fDetector->GetNStations() - 1) {
             DeriveFoundTrackParams(hits);
             return;
         }
@@ -251,7 +261,7 @@ void BmnGemReco::goToStations(vector<BmnGemStripHit*>& hits, vector<BmnGemStripH
             BmnGemStripHit* hit = (BmnGemStripHit*) hitsOnStation[stat].at(iSize);
             hits.push_back(hit);
 
-            if (nextStat == fNstat) {
+            if (nextStat == fDetector->GetNStations()) {
                 DeriveFoundTrackParams(hits);
                 hits.pop_back();
                 continue;
@@ -303,12 +313,22 @@ void BmnGemReco::ReadFileCorrections(BmnGemStripStationSet* StationSet) {
         stringstream ss(line);
 
         ss >> stat >> xCorr >> yCorr >> zCorr;
+        Int_t nMod = StationSet->GetGemStation(stat.Atoi())->GetNModules();
 
-        for (Int_t iMod = 0; iMod < StationSet->GetGemStation(stat.Atoi())->GetNModules(); iMod++) {
-            corr[stat.Atoi()][iMod][0] = xCorr.Atof();
-            corr[stat.Atoi()][iMod][1] = yCorr.Atof();
-            corr[stat.Atoi()][iMod][2] = zCorr.Atof();
+        if (nMod == 1) {
+            corr[stat.Atoi()][0][0] = xCorr.Atof();
+            corr[stat.Atoi()][0][1] = yCorr.Atof();
+            corr[stat.Atoi()][0][2] = zCorr.Atof();
+
+        } else {
+            for (Int_t iMod = 0; iMod < nMod; iMod++) {
+                corr[stat.Atoi()][iMod][0] = xCorr.Atof();
+                corr[stat.Atoi()][iMod][1] = yCorr.Atof();
+                corr[stat.Atoi()][iMod][2] = zCorr.Atof();
+                ss >> xCorr >> yCorr >> zCorr;
+            }
         }
+
     }
     file.close();
 }

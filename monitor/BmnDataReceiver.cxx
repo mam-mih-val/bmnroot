@@ -11,11 +11,6 @@
  * Created on October 18, 2016, 5:22 PM
  */
 
-#define PNP_DISCOVER_PORT  33304
-#define PNP_DISCOVER_IP_ADDR "239.192.1.2"
-#define INPUT_IFACE "enp3s0"
- // "224.0.1.38"
-#define MAX_BUF_LEN 4096
 
 #include "BmnDataReceiver.h"
 #include <../zmq.h>
@@ -25,8 +20,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include </usr/include/netdb.h>
+#include <vector>
+#include <string.h>
+#include <sstream>
+#include "libxml/tree.h"
 
 BmnDataReceiver::BmnDataReceiver(){
+    //gSystem->Load("libxml2");
     InitSocks();
 }
 
@@ -40,11 +40,13 @@ void BmnDataReceiver::InitSocks() //:
 {
     _ctx = zmq_ctx_new();
     _socket_mcast = zmq_socket(_ctx, ZMQ_XSUB);
+    _socket_data = zmq_socket(_ctx, ZMQ_STREAM);
 }
 
 void BmnDataReceiver::DeinitSocks() {
     //_socket_mcast.close();
     zmq_close(_socket_mcast);
+    zmq_close(_socket_data);
     zmq_ctx_destroy(_ctx);
 }
 
@@ -64,6 +66,48 @@ void BmnDataReceiver::DeinitSocks() {
     }
 }*/
 
+int BmnDataReceiver::ParsePNPMsg(Char_t* msgStr, serverInfo* sInfo) {
+    xmlDocPtr doc = xmlParseDoc((UChar_t*)msgStr);
+    xmlNodePtr root = xmlDocGetRootElement(doc);
+    xmlNodePtr cur_node = root;
+    while (cur_node)
+    {
+        if ((cur_node->type == XML_ELEMENT_NODE) || (cur_node->type == XML_TEXT_NODE)){
+            if (strcmp((Char_t*)cur_node->name, "program") == 0){
+                strcpy(_dataServer.hostName,(Char_t*)xmlGetProp(cur_node, (UChar_t*)"hostName"));
+                cur_node = cur_node->children;
+                continue;
+            }
+            if (strcmp((Char_t*)cur_node->name, "interfaces") == 0){
+                _dataServer.interfaces.clear();
+                cur_node = cur_node->children;
+                continue;
+            }
+            if (strcmp((Char_t*)cur_node->name, "interface") == 0){
+                serverIface newPort;
+                strcpy(newPort.type,(Char_t*)xmlGetProp(cur_node, (UChar_t*)"type"));
+                Char_t* portStr = (Char_t*)xmlGetProp(cur_node, (UChar_t*)"port");
+                if (portStr != NULL)
+                    newPort.port = atoi(portStr);
+                newPort.isFree = ((Char_t*)xmlGetProp(cur_node, (UChar_t*)"isFree") == "1")? 1 : 0;
+                newPort.enabled = ((Char_t*)xmlGetProp(cur_node, (UChar_t*)"enabled") == "1")? 1 : 0;
+                //if (newPort.type == "data flow")
+                    _dataServer.interfaces.push_back(newPort);
+                if (cur_node->next == NULL)
+                    cur_node = cur_node->parent->next;
+                else
+                    cur_node = cur_node->next;
+                continue;
+            }
+            cur_node = cur_node->next;
+        }
+    }
+    xmlFreeDoc(doc);
+    return 0;
+
+}
+
+
 int BmnDataReceiver::ConnectRaw(){
     socklen_t addrlen = 0;
     struct ip_mreq mreq;
@@ -80,7 +124,7 @@ int BmnDataReceiver::ConnectRaw(){
         fprintf(stderr, "Error: %s\n", strerror (errno));
         return -1;
     }
-    uint reusable = 1;
+    UInt_t reusable = 1;
     if (setsockopt(_sfd, SOL_SOCKET, SO_REUSEADDR, &reusable, sizeof(reusable))){
         close(_sfd);
         fprintf(stderr, "Setting reusable error: %s\n", strerror (errno));
@@ -98,13 +142,11 @@ int BmnDataReceiver::ConnectRaw(){
         return -1;
     }
     Int_t nbytes;
-    char buf[MAX_BUF_LEN];
-    
+    Char_t buf[MAX_BUF_LEN];
     //signal(SIGINT, HandleSignal);
     isListening = true;
     while (isListening){
         if ((nbytes = recvfrom(_sfd, buf, MAX_BUF_LEN, 0, (sockaddr*)&mcast_addr, &addrlen)) == -1){
-            //if ((nbytes = read(sfd, buf, MAX_BUF_LEN)) == -1){
             close(_sfd);
             fprintf(stderr, "Receive error: %s\n", strerror (errno));
             return -1;
@@ -112,24 +154,127 @@ int BmnDataReceiver::ConnectRaw(){
         buf[nbytes] = '\0';
         printf("nbytes = %d\n", nbytes);
         printf("%s\n", buf);
+        ParsePNPMsg(buf, &_dataServer);
+        if (_dataServer.interfaces.size() > 0)
+        {
+            isAddr = true;
+            
+            break;
+        }
     }
+    RecvData();
     
     close(_sfd);
     return 0;
 }
 
+int BmnDataReceiver::RecvData() {
+    DBG("started")  
+    int isRaw = 1;
+    if (zmq_setsockopt(_socket_data, ZMQ_ROUTER_RAW, &isRaw, sizeof(isRaw)) == -1)
+        DBGERR("zmq_setsockopt of ZMQ_ROUTER_RAW")
+    Char_t endpoint_addr[MAX_ADDR_LEN];
+    struct addrinfo hints;
+    struct addrinfo *info, *p;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+       Int_t g = 0;
+    if (g = getaddrinfo(_dataServer.hostName, NULL, &hints, &info) != 0){
+        printf("getaddrinfo error: %s\n", strerror(errno));
+        return -1;
+    }
+    Char_t *ip = NULL;
+    for (p = info; p != NULL; p = p->ai_next){
+        ip = inet_ntoa(((sockaddr_in*)(p->ai_addr))->sin_addr);
+        printf("found family %d  %s addr: %s\n", p->ai_family, p->ai_canonname, ip);
+        snprintf(endpoint_addr, MAX_ADDR_LEN, "tcp://%s:%d", ip, _dataServer.interfaces[0].port);
+        if (zmq_connect(_socket_data, endpoint_addr) != 0){
+            DBGERR("zmq")
+            continue;
+        }
+        else{
+            printf("%s\n", endpoint_addr);
+            break;
+        }
+    }
+       if (p == NULL){
+           printf("Valid address not found\n");
+           return -1;
+       }
+    Int_t rcvBuf = MAX_BUF_LEN;  
+    size_t vl = sizeof(rcvBuf);
+    if (zmq_setsockopt(_socket_data, ZMQ_RCVBUF, &rcvBuf, sizeof(rcvBuf)) == -1)
+        DBGERR("zmq_setsockopt of ZMQ_RCVBUF")
+    if (zmq_setsockopt(_socket_data, ZMQ_SNDBUF, &rcvBuf, sizeof(rcvBuf)) == -1)
+        DBGERR("zmq_setsockopt of ZMQ_SNDBUF")
+        rcvBuf = 0;
+    if (zmq_getsockopt(_socket_data, ZMQ_RCVBUF, &rcvBuf, &vl) == -1)
+        DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
+        printf("rcvbuf = %d\n", rcvBuf);
+    Char_t id[MAX_ADDR_LEN];
+    Int_t id_size;
+    stringstream dstream;
+    UInt_t *buf = (UInt_t*)malloc(MAX_BUF_LEN);
+    Int_t msg_len = 0;
+    Int_t frame_size;
+    while (1)
+    {
+        id_size = zmq_recv(_socket_data, &id, sizeof(id), 0);
+        if (id_size == -1){
+            printf("Receive error #%s\n", zmq_strerror (errno));
+            return -1;
+        } else {
+            printf("ID size =  %d\n Id:%s\n", id_size, id);
+        }
+        zmq_msg_t msg;
+        zmq_msg_init(&msg);
+        Int_t recv_more = 0;
+        do {
+            frame_size = zmq_msg_recv(&msg, _socket_data, 0);
+            //frame_size = zmq_recv(_socket_data, buf, MAX_BUF_LEN, 0);
+            if (frame_size == -1){
+                printf("Receive error #%s\n", zmq_strerror (errno));
+                return -1;
+            } else {
+                UChar_t *str = (UChar_t*)malloc ((frame_size + 1) * sizeof(UChar_t));
+                memcpy(str, zmq_msg_data(&msg), frame_size);
+                str[frame_size] = '\0';                
+                //memcpy(buf + msg_len, zmq_msg_data(&msg), frame_size);
+                //memcpy(str, buf + msg_len, frame_size);
+                msg_len += frame_size;
+                printf("Frame size =  %d\n Msg:%s\n", frame_size, str);
+                free(str);
+            }
+            size_t opt_size = sizeof(recv_more);
+            if (zmq_getsockopt(_socket_data, ZMQ_RCVMORE, &recv_more, &opt_size) == -1){
+                printf("ZMQ socket options error #%s\n", zmq_strerror (errno));
+                return -1;
+            }
+            printf("ZMQ rcvmore = %d\n", recv_more);
+            
+            
+        } while (recv_more);
+        zmq_msg_close(&msg);
+    }
+    free(buf);
+    freeaddrinfo(info); 
+    DBG("finished")   
+    return 0;
+}
+
+
 
 int BmnDataReceiver::Connect(){
-    const int maxlen = 255;
-    char endpoint_addr[maxlen];
-    snprintf(endpoint_addr, maxlen, "epgm://%s;%s:%d", INPUT_IFACE, PNP_DISCOVER_IP_ADDR, PNP_DISCOVER_PORT);
+    Char_t endpoint_addr[MAX_ADDR_LEN];
+    snprintf(endpoint_addr, MAX_ADDR_LEN, "epgm://%s;%s:%d", INPUT_IFACE, PNP_DISCOVER_IP_ADDR, PNP_DISCOVER_PORT);
     Int_t rc = 0;
     rc = zmq_connect(_socket_mcast, endpoint_addr);
     if (rc != 0)
         printf("Error: %s\n", zmq_strerror (errno));
     else
         printf("%s\n", endpoint_addr);
-    char * buf = (char*)malloc(255);
+    Char_t * buf = (Char_t*)malloc(255);
     Int_t frame_size = 0;
     for (Int_t i = 0; i < 10; i++){
         zmq_msg_t msg;
@@ -142,7 +287,7 @@ int BmnDataReceiver::Connect(){
                 printf("Receive error #%s\n", zmq_strerror (errno));
                 break;
             } else {
-                char *str = (char*)malloc ((frame_size + 1) * sizeof(char));
+                Char_t *str = (Char_t*)malloc ((frame_size + 1) * sizeof(Char_t));
                 memcpy(str, zmq_msg_data(&msg), frame_size);
                 str[frame_size] = '\0';
                 printf("Frame size =  %d\n Msg:%s\n", frame_size, str);
@@ -166,7 +311,7 @@ int BmnDataReceiver::SendHello()
 {
     void * sender = zmq_socket(_ctx, ZMQ_XPUB);
     const int maxlen = 255;
-    char s[maxlen];
+    Char_t s[maxlen];
     snprintf(s, maxlen, "epgm://%s;%s:%d", INPUT_IFACE, PNP_DISCOVER_IP_ADDR, PNP_DISCOVER_PORT);//enp3s0
     Int_t rc = 0;
     //_socket_mcast.connect(s);
@@ -175,7 +320,7 @@ int BmnDataReceiver::SendHello()
     if (rc != 0)
         printf("Error: %s\n", zmq_strerror (errno));
     
-    char text[11] = "Hello port";
+    Char_t text[11] = "Hello port";
     int len = strlen(text);
     text[len] = '\0';
     for (int i = 0; i < 5; i++){

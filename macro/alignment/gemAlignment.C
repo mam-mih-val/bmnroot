@@ -1,4 +1,5 @@
 #include <TString.h>
+#include <TStopwatch.h>
 
 void gemAlignment(Int_t fileNumber = 65, Int_t nEvents = 10000) {
 
@@ -22,14 +23,16 @@ void gemAlignment(Int_t fileNumber = 65, Int_t nEvents = 10000) {
     fRun->SetOutputFile("align.root");
 
     BmnGemAlignment* gemAlign = new BmnGemAlignment();
-     /****DEFINE RECO CONFIG*****/
-    TString fixedStats[7] = {"fixed", "", "", "", "", "", "fixed"}; // Means that st0 and st6 are considered to be fixed 
+    /****DEFINE RECO CONFIG*****/
+    TString fixedStats[7] = {"", "fixed", "fixed", "", "fixed", "fixed", ""}; // St. 6 consists of two separate modules that could be either fixed or not simultaneously
     gemAlign->SetStatNumFixed(fixedStats);
     gemAlign->SetRunType(type);
     gemAlign->SetPreSigma(0.01); // Default value is 1
     gemAlign->SetAccuracy(1e-2); // Default value is 1e-3
     gemAlign->SetNumIterations(10);
     // gemAlign->SetDebugInfo(kTRUE);
+    // gemAlign->SetAlignmentTypeByHands("xy"); // Can be either xy or xyz
+    
     /********************************/
 
     fRun->AddTask(gemAlign);

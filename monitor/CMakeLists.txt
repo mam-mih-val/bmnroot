@@ -1,4 +1,3 @@
-# Create a library called "libGlobalTracking".
 
 Set(INCLUDE_DIRECTORIES
 ${BASE_INCLUDE_DIRECTORIES}
@@ -19,16 +18,15 @@ ${BMNROOT_SOURCE_DIR}/bmnfield
 ${BMNROOT_SOURCE_DIR}/gem
 ${BMNROOT_SOURCE_DIR}/globaltracking
 ${BMNROOT_SOURCE_DIR}/monitor
+/usr/include/libxml2
+${CMAKE_SOURCE_DIR}/uni_db
+${CMAKE_SOURCE_DIR}/uni_db/db_classes
 #${BMNROOT_SOURCE_DIR}/sts
 #${BMNROOT_SOURCE_DIR}/sts/setup
 
 #${BMNROOT_SOURCE_DIR}/KF
 #${BMNROOT_SOURCE_DIR}/KF/Interface
 )
-
-SET( C_NOT_CINT_PREPROCESSOR} " -p" )
-SET( MAKEFLAGS  "${MAKEFLAGS} ${C_NOT_CINT_PREPROCESSOR}" )
-#SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${C_NOT_CINT_PREPROCESSOR}" )
 
 include_directories( ${INCLUDE_DIRECTORIES})
 
@@ -42,12 +40,16 @@ link_directories( ${LINK_DIRECTORIES})
 Set(SRCS
 BmnMonitor.cxx
 BmnDataReceiver.cxx
+BmnOnlineDecoder.cxx
+BmnMonHists.cxx
 
 )
 
 Set(HEADERS
 BmnMonitor.h
 BmnDataReceiver.h
+BmnOnlineDecoder.h
+BmnMonHists.h
 
 )
 

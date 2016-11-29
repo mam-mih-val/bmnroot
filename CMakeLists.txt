@@ -105,7 +105,7 @@ find_package(XML2 REQUIRED)
 
 #find_package(CUDA)
 #find_package(IWYU)
-#find_package(ZeroMQ)
+find_package(ZeroMQ)
 #find_package(Protobuf)
 #find_package(DDS)
 

@@ -23,7 +23,11 @@
 #include <vector>
 #include <string.h>
 #include <sstream>
+#include <deque>
 #include "libxml/tree.h"
+//for old fairsoft
+#define ZMQ_XSUB 10
+#define ZMQ_STREAM 11
 
 BmnDataReceiver::BmnDataReceiver(){
     //gSystem->Load("libxml2");
@@ -214,7 +218,6 @@ int BmnDataReceiver::RecvData() {
         printf("rcvbuf = %d\n", rcvBuf);
     Char_t id[MAX_ADDR_LEN];
     Int_t id_size;
-    stringstream dstream;
     UInt_t *buf = (UInt_t*)malloc(MAX_BUF_LEN);
     Int_t msg_len = 0;
     Int_t frame_size;
@@ -238,6 +241,11 @@ int BmnDataReceiver::RecvData() {
                 return -1;
             } else {
                 UChar_t *str = (UChar_t*)malloc ((frame_size + 1) * sizeof(UChar_t));
+                memcpy(buf, zmq_msg_data(&msg), frame_size);
+                
+                for (Int_t offset = 0; offset < frame_size; offset++)
+                    data_queue.push_back(*(buf + offset));
+                
                 memcpy(str, zmq_msg_data(&msg), frame_size);
                 str[frame_size] = '\0';                
                 //memcpy(buf + msg_len, zmq_msg_data(&msg), frame_size);

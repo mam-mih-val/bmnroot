@@ -39,6 +39,7 @@ public:
     Int_t SendHello();
     Int_t RecvData();
     Bool_t isAddr = kFALSE;
+    deque<UInt_t> data_queue;
 private:
     //zmq::context_t _ctx;
     //zmq::socket_t _socket_mcast;
@@ -61,7 +62,6 @@ private:
     void * _socket_data;
     Int_t _sfd;
     struct serverInfo _dataServer;
-    std::queue<UInt_t> data_queue;
     Bool_t isListening;
     //static void HandleSignal(int signal);
     void InitSocks();

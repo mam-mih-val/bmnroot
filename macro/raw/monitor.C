@@ -10,7 +10,7 @@
 #include "TMath.h"
 #include "TImage.h"
 #include <stdlib.h>
-#include "/home/ilnur/bmnroot/monitor/BmnMonHists.h"
+#include "/home/ilnur/bmnroot/monitor/BmnHistGem.h"
 #include <unistd.h>
 #include <vector>
 #include "THttpServer.h"
@@ -18,15 +18,15 @@
 #include "TFolder.h"
 //#include "../../bmndata/BmnTof2Raw2Digit.h"
 
-#define TOF400_PLANE_COUNT 3
+#define TOF400_PLANE_COUNT 4
 #define TOF400_STRIP_COUNT 48
-#define MAX_STATIONS 40
-#define MAX_MODULES 8
 #define BD_CHANNELS 40
 
 void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
 
     Int_t runIndex = 84;
+    TString imgSavePath = "~/Documents/BmnMonJS/public_html/img/";
+    Int_t itersToUpdate = 10;
     // GEM config
     Int_t hitBins = 100;
     const UInt_t gemLayers = 4;
@@ -34,7 +34,7 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     const UInt_t moduleCount[stationCount] = {1, 1, 1, 1, 1, 1, 2};
     const UInt_t nStrips[stationCount] = {256, 825, 825, 825, 825, 825, 1019};
 
-    // ToF config
+    // DCH config
     const UInt_t kNPLANES = 16;
     const UInt_t kNREALWIRES = 240;
     const UInt_t kNWIRES = 256;
@@ -56,10 +56,12 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     TChain *digiTree = new TChain("cbmsim");
     digiTree->Add(digiName);
     Int_t nEvents = digiTree->GetEntries();
-    Int_t layerIndex = 0;
     cout << "Events: " << nEvents << endl;
 
     TString name;
+    TString outHistName = Form("bmn_run%04d_hist.root", runIndex);
+    TFile *fHistOut = new TFile(outHistName, "recreate");
+    TTree *recoTree = new TTree("BmnMon", "BmnMon");
     BmnMonHists bmh = BmnMonHists();
     bmh.SetName("bmh");
     bmh.SetTitle("bmh");
@@ -69,8 +71,6 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     THttpServer* serv = new THttpServer(Form("fastcgi:9000", "BM@N Monitor"));
 
 
-    TString outHistName = Form("bmn_run%04d_hist.root", runIndex);
-    TFile *fHistOut = new TFile(outHistName, "recreate");
 
     // ====================================================================== //
     // GEM histograms init
@@ -99,13 +99,20 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     // ToF histograms init
     // ====================================================================== //
     TClonesArray *ToF4Digits = NULL;
+    
     digiTree->SetBranchAddress("TOF400", &ToF4Digits);
     TDirectory *dirToF400 = fHistOut->mkdir("ToF400_hists");
     dirToF400->cd();
+    bmh.ToF400Events = new TClonesArray("BmnTof1Digit");
+    recoTree->Branch("BmnToF400", &(bmh.ToF400Events));
     name = "ToF400_Leading_Time";
     bmh.histToF400LeadingTime = new TH1D(name, name, 500, 0, 1000);
+    name = "ToF400_Leading_Time_Specific";
+    bmh.histToF400LeadingTimeSpecific = new TCanvas(name, name, 800, 600);//TH1D(name, name, 500, 0, 1000);
     name = "ToF400_Amplitude";
     bmh.histToF400Amp = new TH1D(name, name, 4096, 0, 96);
+    name = "ToF400_Amplitude_Specific";
+    bmh.histToF400AmpSpecific = new TH1D(name, name, 4096, 0, 96);
     name = "ToF400_Strip";
     bmh.histToF400Strip = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
     name = "ToF400_StripSimult";
@@ -125,7 +132,6 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     TClonesArray *DchDigits = NULL;
     digiTree->SetBranchAddress("DCH", &DchDigits);
     TDirectory *dirDrift = fHistOut->mkdir("DCH_hists");
-    TTree *recoTree = new TTree("BmnMon", "BmnMon");
     dirDrift->cd();
     TH1F * h_wires[kNPLANES];
     Float_t v_wires[kNPLANES][kNWIRES] = {};
@@ -144,7 +150,7 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
         serv->Register("/DCH/", h_wires[i]);
 
     }
-    TCanvas* chmb1 = new TCanvas("DCH_1", "DCH_1", 1000, 1000);
+    //    TCanvas* chmb1 = new TCanvas("DCH_1", "DCH_1", 1000, 1000);
 
     // ====================================================================== //
     // Triggers histograms init
@@ -156,7 +162,7 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     TClonesArray * trigVDDigits = NULL;
     digiTree->SetBranchAddress("VETO", &trigVDDigits);
     TClonesArray * trigBDDigits = NULL;
-   // digiTree->SetBranchAddress("BD", &trigBDDigits);
+    // digiTree->SetBranchAddress("BD", &trigBDDigits);
     //    TClonesArray * trigBC1Digits = NULL;
     //    digiTree->SetBranchAddress("GEM", &trigBC1Digits);
     //    TClonesArray * trigBC1Digits = NULL;
@@ -203,7 +209,13 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     bmh.histBDSpecific->SetDirectory(0);
     serv->Register("/Triggers/", bmh.histBDSpecific);
     serv->Register("/ToF400/", bmh.histToF400LeadingTime);
+    if (bmh.histToF400LeadingTimeSpecific != NULL){
+        serv->Register("/ToF400/", bmh.histToF400LeadingTimeSpecific);
+//        bmh.histToF400LeadingTimeSpecific->SetDirectory(0);
+    }
     serv->Register("/ToF400/", bmh.histToF400Amp);
+    if (bmh.histToF400AmpSpecific != NULL)
+        bmh.histToF400AmpSpecific->SetDirectory(0);
     serv->Register("/ToF400/", bmh.histToF400Strip);
     serv->Register("/ToF400/", bmh.histToF400StripSimult);
     serv->Register("/ToF400/", bmh.histToF400State);
@@ -213,12 +225,16 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     serv->SetItemField("/Triggers/", "_layout", "grid3x2");
     serv->SetItemField("/Triggers/", "_drawitem",
             "[BC1_Time_Length,BC2_Time_Length,FD_Time_Length,VETO_Time_Length,SD_Time_Length,BD_Specific_Channel]");
-    serv->SetItemField("/Triggers/", "_drawopt", "colz");
+
+    serv->SetItemField("/ToF400/", "_monitoring", "2000");
+    serv->SetItemField("/ToF400/", "_layout", "grid3x2");
+    serv->SetItemField("/ToF400/", "_drawitem",
+            "[ToF400_Leading_Time,ToF400_Amplitude]");
     // Register commands
     serv->RegisterCommand("/ResetGEM", "/bmh/->ClearGEM()", "button;img/reset.png");
     serv->RegisterCommand("/ResetToF400", "/bmh/->ClearToF400()", "button;img/reset.png");
     serv->RegisterCommand("/ResetToF700", "/bmh/->ClearToF700()", "button;img/reset.png");
-    serv->RegisterCommand("//Triggers/ChangeBDChannel", "/bmh/->SetSelBDChannel(%arg1%)", "button;img/reset.png");
+    serv->RegisterCommand("/Triggers/ChangeBDChannel", "/bmh/->SetSelBDChannel(%arg1%)", "button;img/reset.png");
     serv->RegisterCommand("/Triggers/ResetTriggers", "/bmh/->ClearTriggers()", "button;img/reset.png");
     serv->RegisterCommand("/ResetAll", "/bmh/->Clear()", "button;img/reset.png");
     //serv->Hide("/ResetAll");
@@ -231,7 +247,7 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     Int_t gemStrip = 0;
     Int_t ToF400strip = 0;
     Int_t ToF400selectedPlane = 2;
-    while (kTRUE) {
+//    while (kTRUE) {
         for (Long64_t iEv = 0; iEv < nEvents; iEv++) {
             digiTree->GetEntry(iEv);
             // ====================================================================== //
@@ -253,15 +269,15 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
                 bmh.histVDTimeLen->Fill(tv->GetAmp());
                 bmh.histTriggers->Fill(3);
             }
-//            for (Int_t digIndex = 0; digIndex < trigVDDigits->GetEntriesFast(); digIndex++) {
-//                BmnTrigDigit* bd = (BmnTrigDigit*) trigBDDigits->At(digIndex);
-//                bmh.histBDChannels->Fill(bd->GetMod());
-//                BmnTrigDigit *bd1 = new (*(bmh.BDEvents))[bmh.BDEvents->GetEntriesFast()] BmnTrigDigit();
-//                bd1->SetAmp(bd->GetAmp());
-//                bd1->SetDet(bd->GetDet());
-//                bd1->SetMod(bd->GetMod());
-//                bd1->SetTime(bd->GetTime());
-//            }
+            //            for (Int_t digIndex = 0; digIndex < trigVDDigits->GetEntriesFast(); digIndex++) {
+            //                BmnTrigDigit* bd = (BmnTrigDigit*) trigBDDigits->At(digIndex);
+            //                bmh.histBDChannels->Fill(bd->GetMod());
+            //                BmnTrigDigit *bd1 = new (*(bmh.BDEvents))[bmh.BDEvents->GetEntriesFast()] BmnTrigDigit();
+            //                bd1->SetAmp(bd->GetAmp());
+            //                bd1->SetDet(bd->GetDet());
+            //                bd1->SetMod(bd->GetMod());
+            //                bd1->SetTime(bd->GetTime());
+            //            }
             // ====================================================================== //
             // GEM histograms fill
             // ====================================================================== // 
@@ -294,6 +310,16 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
                     histL->Fill(ToF400strip);
                 else
                     histR->Fill(ToF400strip);
+		
+		new ((*(bmh.ToF400Events))[bmh.ToF400Events->GetEntriesFast()])
+                BmnTof1Digit(td->GetPlane(), td->GetStrip(),  td->GetSide(), td->GetTime(), td->GetAmplitude());
+			       
+                            // bd1->SetAmplitude(td->GetAmplitude());
+                            // bd1->SetPlane(td->GetPlane());
+                            // bd1->SetSide(td->GetSide());
+                            // bd1->SetStrip(td->GetStrip());
+                            // bd1->SetTime(td->GetTime());
+
             }
             //histSimultaneous = (*histL) * (*histR);
             Int_t s;
@@ -356,13 +382,35 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
             // ====================================================================== //
             //            canvasToF400State->Modified();
             //            canvasToF400State->Update();
-            chmb1->Modified();
-            chmb1->Update();
+            //            chmb1->Modified();
+            //            chmb1->Update();
+//            if (bmh.histToF400LeadingTimeSpecific != NULL)
+//                delete bmh.histToF400LeadingTimeSpecific;
+            recoTree->Fill();
+            bmh.histToF400LeadingTimeSpecific->Clear();
+            bmh.histToF400LeadingTimeSpecific->cd();
+            recoTree->Draw("fAmplitude", "fPlane == 1 ", "");//
+            bmh.histToF400LeadingTimeSpecific->Modified();
+            bmh.histToF400LeadingTimeSpecific->Update();
+            bmh.histToF400LeadingTimeSpecific->SaveAs("lts.png");
+            
+//            bmh.histToF400LeadingTimeSpecific = (TH1D*)gPad->GetPrimitive("htemp");   
+//            printf("hist name  %s\n", bmh.histToF400LeadingTimeSpecific->GetName());
+//            name = "ToF400_Leading_Time_Specific";
+//            bmh.histToF400LeadingTimeSpecific->SetName(name);
+            
+//            bmh.histToF400LeadingTimeSpecific->SetTitle(name);
+////            bmh.histToF400LeadingTimeSpecific->SetTitle(Form("ToF400_Leading_Time_For_%d_Plane", 1));
+//            serv->Register("/ToF400/", bmh.histToF400LeadingTimeSpecific);
+    
+            if (iEv % itersToUpdate == 0) {
+                SaveHist(bmh.histTriggers, imgSavePath);
+            }
             if (res = gSystem->ProcessEvents()) break;
             cout << "Event " << iEv << " processed with result " << res << endl;
             usleep(3e6);
         }
-    }
+//    }
     /*//if (ToF4Digits->GetEntriesFast() > 0)
     for (Int_t evIndex = 0; evIndex < 10; evIndex++){
         digiTree->GetEntry(evIndex);
@@ -383,6 +431,7 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     }
      */
 
+    recoTree->Write();
     fHistOut->Write();
     fHistOut->Close();
     //chmb1->SaveAs("DCH1_wires.png");
@@ -401,8 +450,11 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
 
 }
 
-inline void FillEvent() {
-
+void SaveHist(TH1 *hist, TString imgSavePath) {
+    TCanvas *c0 = new TCanvas("c1", hist->GetTitle());
+    hist->Draw();
+    c0->SaveAs(TString(imgSavePath + TString(hist->GetTitle()) + ".png").Data());
+    delete c0;
 }
 
 inline void DrawAllWires(TCanvas* c, Int_t* palette, Float_t * wires, Float_t ang, Short_t planeId) {

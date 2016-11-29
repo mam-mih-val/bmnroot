@@ -40,16 +40,19 @@ link_directories( ${LINK_DIRECTORIES})
 Set(SRCS
 BmnMonitor.cxx
 BmnDataReceiver.cxx
-BmnOnlineDecoder.cxx
-BmnMonHists.cxx
-
+#BmnOnlineDecoder.cxx
+BmnHistGem.cxx
+BmnHistTrigger.cxx
+BmnHistToF.cxx
 )
 
 Set(HEADERS
 BmnMonitor.h
 BmnDataReceiver.h
-BmnOnlineDecoder.h
-BmnMonHists.h
+#BmnOnlineDecoder.h
+BmnHistGem.h
+BmnHistTrigger.h
+BmnHistToF.h
 
 )
 

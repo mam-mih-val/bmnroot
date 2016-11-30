@@ -9,7 +9,9 @@
 #pragma link C++ class BmnMonitor++;
 //#pragma link C++ class BmnOnlineDecoder++;
 #pragma link C++ class BmnHistGem++;
+#pragma link C++ class BmnHistDch++;
 #pragma link C++ class BmnHistToF++;
+#pragma link C++ class BmnHistToF700++;
 #pragma link C++ class BmnHistTrigger++;
 
 #pragma link C++ class vector<TH1F>+;

@@ -42,8 +42,11 @@ BmnMonitor.cxx
 BmnDataReceiver.cxx
 #BmnOnlineDecoder.cxx
 BmnHistGem.cxx
+BmnHistDch.cxx
 BmnHistTrigger.cxx
 BmnHistToF.cxx
+BmnHistToF700.cxx
+
 )
 
 Set(HEADERS
@@ -51,8 +54,10 @@ BmnMonitor.h
 BmnDataReceiver.h
 #BmnOnlineDecoder.h
 BmnHistGem.h
+BmnHistDch.h
 BmnHistTrigger.h
 BmnHistToF.h
+BmnHistToF700.h
 
 )
 
@@ -63,8 +68,10 @@ EndIf (Boost_FOUND)
 Set(LINKDEF  LinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
 Set(DEPENDENCIES
-    KF Sts BmnBase BmnData Base
+    KF Sts BmnBase BmnData Base 
 )
+
+#target_link_libraries(BmnMonitor ${INCLUDE_DIRECTORIES} zmq)
 
 GENERATE_LIBRARY()
 

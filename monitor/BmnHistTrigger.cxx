@@ -24,6 +24,16 @@ BmnHistTrigger::BmnHistTrigger(const BmnHistTrigger& orig) {
 }
 
 BmnHistTrigger::~BmnHistTrigger() {
+    delete BDEvents;
+    fServer->Unregister(histBC1TimeLen);
+    fServer->Unregister(histBC2TimeLen);
+    fServer->Unregister(histFDTimeLen);
+    fServer->Unregister(histVDTimeLen);
+    fServer->Unregister(histSDTimeLen);
+    fServer->Unregister(histTriggers);
+    fServer->Unregister(histBDChannels);
+    fServer->Unregister(histBDSpecific);
+    fServer->Unregister(this);
 }
 
 void BmnHistTrigger::FillFromDigi(
@@ -79,17 +89,9 @@ void BmnHistTrigger::SetBDChannel(Int_t iSelChannel) {
 
 }
 
-void BmnHistTrigger::Register(THttpServer *serv, TDirectory *dir = NULL, TTree *recoTree = NULL) {
-    frecoTree = recoTree;
+void BmnHistTrigger::Register(THttpServer *serv) {
     fServer = serv;
     fServer->Register("/", this);
-    if (dir != NULL)
-        dir->cd();
-    if (recoTree != NULL)
-        recoTree->Branch(fTitle, &BDEvents);
-        BDEvents = new TClonesArray("BmnTrigDigit");
-        if (recoTree != NULL)
-            recoTree->Branch(fTitle, &(BDEvents));
     TString name;
     name = "BC1_Time_Length";
     histBC1TimeLen = new TH1D(name, name, 300, 0, 20000);
@@ -122,8 +124,33 @@ void BmnHistTrigger::Register(THttpServer *serv, TDirectory *dir = NULL, TTree *
     fServer->Register(path, histBDChannels);
     fServer->Register(path, histBDSpecific);
     fServer->SetItemField(path, "_monitoring", "2000");
+    serv->SetItemField(path, "_layout", "grid3x2");
+    serv->SetItemField(path, "_drawitem",
+            "[BC1_Time_Length,BC2_Time_Length,FD_Time_Length,VETO_Time_Length,SD_Time_Length,BD_Specific_Channel]");
+
     fServer->RegisterCommand(path + "ChangeBDChannel", "/" + fName + "/->SetSelBDChannel(%arg1%)", "button;");
     fServer->RegisterCommand(path + "Reset", "/" + fName + "/->Reset()", "button;");
+}
+
+void BmnHistTrigger::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
+    frecoTree = recoTree;
+    if (outFile != NULL) {
+        TDirectory *dir = outFile->mkdir(fTitle + "_hists");
+        dir->cd();
+        histBC1TimeLen->SetDirectory(dir);
+        histBC2TimeLen->SetDirectory(dir);
+        histFDTimeLen->SetDirectory(dir);
+        histSDTimeLen->SetDirectory(dir);
+        histVDTimeLen->SetDirectory(dir);
+        histBDChannels->SetDirectory(dir);
+        histBDSpecific->SetDirectory(dir);
+        histTriggers->SetDirectory(dir);
+    }
+    if (BDEvents != NULL)
+        delete BDEvents;
+    BDEvents = new TClonesArray("BmnTrigDigit");
+    if (recoTree != NULL)
+        recoTree->Branch(fTitle, &BDEvents);
 }
 
 void BmnHistTrigger::Reset() {

@@ -5,18 +5,20 @@
  */
 
 /* 
- * File:   BmnMonHists.h
+ * File:   BmnHistDch.h
  * Author: ilnur
  *
- * Created on November 15, 2016, 12:57 PM
+ * Created on November 29, 2016, 2:44 PM
  */
-#ifndef BMNMONHISTS_H
-#define BMNMONHISTS_H 1
+
+#ifndef BMNHISTDCH_H
+#define BMNHISTDCH_H 1
 #include <TNamed.h>
 #include <exception>
 #include <stdlib.h>
 #include <vector>
 #include "TChain.h"
+#include "TColor.h"
 #include "TClonesArray.h"
 #include "TH1F.h"
 #include "TH1D.h"
@@ -26,32 +28,37 @@
 #include "TFolder.h"
 #include "TString.h"
 #include "THttpServer.h"
+#include "BmnDchDigit.h"
 
-#include "BmnGemStripDigit.h"
-
-#define GEM_LAYERS_COUNT    4
-#define GEM_STATIONS_COUNT  7
+#define kNPLANES     16
+#define kNREALWIRES 240
+#define kNWIRES     256
+#define Number        4
+#define nb          100
 
 using namespace std;
 
-class BmnHistGem : public TNamed {
+class BmnHistDch : public TNamed {
 public:
-
-    BmnHistGem(TString title);
-    BmnHistGem(const BmnHistGem& orig);
-    virtual ~BmnHistGem();
+    BmnHistDch(TString title);
+    virtual ~BmnHistDch();
     void Reset();
     void Register(THttpServer *serv);
-    void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);
+    void SetDir(TFile *outFile, TTree *recoTree);
     void FillFromDigi(TClonesArray * digits);
-    vector<vector<vector<TH1F*> > > histGemStrip;
+
+    TH1F * h_wires[kNPLANES];
+    Float_t v_wires[kNPLANES][kNWIRES];
 
 private:
     THttpServer *fServer;
     TTree *frecoTree;
 
-    ClassDef(BmnHistGem, 1)
+    Int_t myPalette[nb];
+
+
+    ClassDef(BmnHistDch, 1)
 };
 
-#endif /* BMNMONHISTS_H */
+#endif /* BMNHISTDCH_H */
 

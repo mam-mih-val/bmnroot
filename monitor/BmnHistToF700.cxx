@@ -5,15 +5,15 @@
  */
 
 /* 
- * File:   BmnHistToF.cxx
+ * File:   BmnHistToF700.cxx
  * Author: ilnur
  * 
- * Created on November 27, 2016, 4:24 PM
+ * Created on November 29, 2016, 1:24 PM
  */
 
-#include "BmnHistToF.h"
+#include "BmnHistToF700.h"
 
-BmnHistToF::BmnHistToF(TString title = "ToF") {
+BmnHistToF700::BmnHistToF700(TString title = "ToF700") {
     fTitle = title;
     fName = title + "_cl";
     fSelectedPlane = -1;
@@ -21,7 +21,8 @@ BmnHistToF::BmnHistToF(TString title = "ToF") {
     fSelectedSide = -1;
 }
 
-BmnHistToF::~BmnHistToF() {
+
+BmnHistToF700::~BmnHistToF700() {
     delete histL;
     delete histR;
     delete Events;
@@ -35,49 +36,49 @@ BmnHistToF::~BmnHistToF() {
     fServer->Unregister(this);
 }
 
-void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
+void BmnHistToF700::FillFromDigi(TClonesArray * ToF4Digits) {
     histL->Reset();
     histR->Reset();
     histSimultaneous.Reset();
     histState->Reset();
     for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++) {
-        BmnTof1Digit *td = (BmnTof1Digit *) ToF4Digits->At(digIndex);
+        BmnTof2Digit *td = (BmnTof2Digit *) ToF4Digits->At(digIndex);
         Int_t strip = td->GetStrip();
         histLeadingTime->Fill(td->GetTime());
         histAmp->Fill(td->GetAmplitude());
         histStrip->Fill(strip);
-        if ((td->GetPlane() == fSelectedPlane) && (fSelectedPlane != -1))
-            histState->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
-        if (td->GetSide() == 0)
-            histL->Fill(strip);
-        else
-            histR->Fill(strip);
-        if ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane == -1) &&
-                (td->GetStrip() == fSelectedStrip) || (fSelectedStrip == -1) &&
-                (td->GetSide() == fSelectedSide) || (fSelectedSide == -1)) {
+//        if ((td->GetPlane() == fSelectedPlane) && (fSelectedPlane != -1))
+//            histState->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
+//        if (td->GetSide() == 0)
+//            histL->Fill(strip);
+//        else
+//            histR->Fill(strip);
+        if (    (td->GetPlane() == fSelectedPlane) || (fSelectedPlane == -1) &&
+                (td->GetStrip() == fSelectedStrip) || (fSelectedStrip == -1)) {
             histAmpSpecific->Fill(td->GetAmplitude());
             histLeadingTimeSpecific->Fill(td->GetTime());
         }
 
         new ((*Events)[Events->GetEntriesFast()])
-                BmnTof1Digit(td->GetPlane(), td->GetStrip(), td->GetSide(), td->GetTime(), td->GetAmplitude());
+                BmnTof2Digit(td->GetPlane(), td->GetStrip(), td->GetTime(), td->GetAmplitude(), td->GetDiff());
     }
     //histSimultaneous = (*histL) * (*histR);
     Int_t s;
     histStripSimult->ResetStats();
-    for (Int_t binIndex = 1; binIndex < TOF400_STRIP_COUNT; binIndex++) {
+    for (Int_t binIndex = 1; binIndex < TOF2_MAX_STRIPS_IN_CHAMBER; binIndex++) {
         s = ((histL->GetBinContent(binIndex) * histR->GetBinContent(binIndex)) != 0) ? 1 : 0;
         histStripSimult->AddBinContent(s);
     }
     fEventsBranch->Fill();
 }
 
-void BmnHistToF::SaveHists() {
+void BmnHistToF700::SaveHists() {
     SaveHist(histAmpSpecific, pathToImg);
     histLeadingTimeSpecific->SaveAs(pathToImg + histLeadingTimeSpecific->GetTitle() + ".png");
 }
 
-void BmnHistToF::Register(THttpServer *serv) {
+
+void BmnHistToF700::Register(THttpServer *serv) {
     fServer = serv;
     fServer->Register("/", this);
     TString name;
@@ -90,11 +91,11 @@ void BmnHistToF::Register(THttpServer *serv) {
     name = fTitle + "_Amplitude_Specific";
     histAmpSpecific = new TH1D(name, name, 4096, 0, 96);
     name = fTitle + "_Strip";
-    histStrip = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+    histStrip = new TH1I(name, name, TOF2_MAX_STRIPS_IN_CHAMBER ,0, TOF2_MAX_STRIPS_IN_CHAMBER);
     name = fTitle + "_StripSimult";
-    histStripSimult = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+    histStripSimult = new TH1I(name, name, TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_STRIPS_IN_CHAMBER);
     name = fTitle + "_State";
-    histState = new TH2F(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT, 2, 0, 2);
+    histState = new TH2F(name, name, TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_STRIPS_IN_CHAMBER, 2, 0, 2);
 
     histSimultaneous.SetDirectory(0);
     histL->SetDirectory(0);
@@ -113,7 +114,7 @@ void BmnHistToF::Register(THttpServer *serv) {
     fServer->RegisterCommand(path + TString("Reset"), TString("/") + fName.Data() + "/->Reset()", "button;");
 }
 
-void BmnHistToF::SetDir(TFile* outFile, TTree* recoTree) {
+void BmnHistToF700::SetDir(TFile* outFile, TTree* recoTree) {
     frecoTree = recoTree;
     if (outFile != NULL) {
         TDirectory *dir = outFile->mkdir(fTitle + "_hists");
@@ -133,7 +134,7 @@ void BmnHistToF::SetDir(TFile* outFile, TTree* recoTree) {
         fEventsBranch = frecoTree->Branch(fTitle.Data(), &Events);
 }
 
-void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
+void BmnHistToF700::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
     SetPlane(Plane);
     SetStrip(Strip);
     SetSide(Side);
@@ -159,7 +160,7 @@ void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
 
 }
 
-void BmnHistToF::Reset() {
+void BmnHistToF700::Reset() {
     histLeadingTime->Reset();
     histLeadingTimeSpecific->Reset();
     histAmp->Reset();
@@ -169,4 +170,5 @@ void BmnHistToF::Reset() {
     histState->Reset();
 }
 
-ClassImp(BmnHistToF);
+ClassImp(BmnHistToF700);
+

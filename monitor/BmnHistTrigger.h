@@ -35,7 +35,8 @@ public:
     BmnHistTrigger(const BmnHistTrigger& orig);
     virtual ~BmnHistTrigger();
 
-    void Register(THttpServer *serv, TDirectory *dir, TTree *recoTree);
+    void Register(THttpServer *serv);
+    void SetDir(TFile *outFile, TTree *recoTree);
     void FillFromDigi(
             TClonesArray * BC1digits,
             TClonesArray * SDdigits,

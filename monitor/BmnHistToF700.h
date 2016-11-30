@@ -5,14 +5,14 @@
  */
 
 /* 
- * File:   BmnHistToF.h
+ * File:   BmnHistToF700.h
  * Author: ilnur
  *
- * Created on November 27, 2016, 4:24 PM
+ * Created on November 29, 2016, 1:24 PM
  */
 
-#ifndef BMNHISTTOF_H
-#define BMNHISTTOF_H 1
+#ifndef BMNHISTTOF700_H
+#define BMNHISTTOF700_H 1
 #include <TNamed.h>
 #include <exception>
 #include <stdlib.h>
@@ -27,15 +27,13 @@
 #include "TFolder.h"
 #include "THttpServer.h"
 
-#include "BmnTof1Digit.h"
-#define TOF400_PLANE_COUNT  4
-#define TOF400_STRIP_COUNT 48
+#include "BmnTof2Digit.h"
+#include "BmnTof2Raw2Digit.h"
 
-class BmnHistToF : public TNamed {
+class BmnHistToF700 : public TNamed {
 public:
-    BmnHistToF(TString title);
-    virtual ~BmnHistToF();
-    
+    BmnHistToF700(TString title);
+    virtual ~BmnHistToF700();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);
     void Reset();
@@ -58,7 +56,7 @@ public:
     void  SetStrip(Int_t v){ fSelectedStrip = v;}
     Int_t GetPlane() { return fSelectedPlane;}
     Int_t GetSide () { return fSelectedSide ;}
-    Int_t GetStrip() { return fSelectedStrip;}
+    Int_t GetStrip() { return fSelectedStrip;}    
 private:
     THttpServer *fServer;
     TBranch * fEventsBranch;
@@ -66,8 +64,8 @@ private:
     Int_t fSelectedStrip;
     Int_t fSelectedSide;
     TTree *frecoTree;
-    TH1I *histL = new TH1I("", "", TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
-    TH1I *histR = new TH1I("", "", TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+    TH1I *histL = new TH1I("", "", TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_STRIPS_IN_CHAMBER);
+    TH1I *histR = new TH1I("", "", TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_STRIPS_IN_CHAMBER);
     TH1I histSimultaneous;
     TString pathToImg = "/home/ilnur/Documents/BmnMonJS/public_html/img/";
     
@@ -78,8 +76,7 @@ void SaveHist(TH1 *hist, TString path) {
     delete c0;
 }
     
-    ClassDef(BmnHistToF, 1)
+    ClassDef(BmnHistToF700, 1)
 };
-
-#endif /* BMNHISTTOF_H */
+#endif /* BMNHISTTOF700_H */
 

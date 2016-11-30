@@ -11,18 +11,6 @@
 
 #include "TString.h"
 
-#ifndef __BEGIN_DECLS
-#define __BEGIN_DECLS  extern "C" {
-#define __END_DECLS }
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-
 ///////////////////////////////////////////////////////////////////////////////
 #define BUFFER_SIZE 512
 #define MAX_FILE_SIZE 1024*1024

@@ -6,7 +6,6 @@
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
 #include "FairEventManagerEditor.h"
-#include "RawDataConverter.h"
 #include "FairRootManager.h"
 #include "FairRunAna.h"
 
@@ -51,9 +50,6 @@ FairEventManagerEditor::FairEventManagerEditor(const TGWindow* p, Int_t width, I
    iThreadState(0)
 {
     Init();
-
-    fEventReadData = new vector<EventData*>();
-    fEventDrawData = new vector<EventData*>();
 }
 
 void FairEventManagerEditor::Init()
@@ -511,6 +507,11 @@ void FairEventManagerEditor::ShowRecoPoints(Bool_t is_show)
         return;
     }
 
+    fManager->fgShowRecoPointsIsShow = is_show;
+    // exec event visualization of selected event
+    if (fManager->fgRedrawRecoPointsReqired)
+        fManager->GotoEvent(fCurrentEvent->GetIntNumber());
+
     points->SetRnrState(is_show);
     gEve->Redraw3D();
 }
@@ -642,33 +643,6 @@ void FairEventManagerEditor::UpdateEvent()
         // block user interface to exclude sharing of Redraw access
         BlockUI();
 
-        // for raw data online stream - separate read and draw threads
-        if (fManager->iDataSource == 2)
-        {
-            semEventData = new TSemaphore(0);
-
-            // run thread for data files reading
-            ThreadParam_ReadFile* par_read_file = new ThreadParam_ReadFile();
-            par_read_file->fEventReadData = fEventReadData;
-            par_read_file->fEventDrawData = fEventDrawData;
-            //par_read_file->raw_file_name_begin = fManager->strRecoFile;
-            par_read_file->semEventData = semEventData;
-
-            TThread* thread_read_file = new TThread(ReadMWPCFiles, (void*)par_read_file);
-            thread_read_file->Run();
-
-            // run thread to draw hit arrays if ready
-            ThreadParam_Draw* par_draw = new ThreadParam_Draw();
-            par_draw->fEventDrawData = fEventDrawData;
-            par_draw->fEventManager = fManager;
-            par_draw->semEventData = semEventData;
-
-            TThread* thread_draw = new TThread(DrawEvent, (void*)par_draw);
-            thread_draw->Run();
-
-            return;
-        }
-
         // Run separate thread for Online Display
         ThreadParam_OnlineDisplay* par_online_display = new ThreadParam_OnlineDisplay();
         par_online_display->fEventManager = fManager;
@@ -755,101 +729,4 @@ void* RunOnlineDisplay(void* ptr)
 
     fEditor->UnblockUI();
     fEditor->iThreadState = 0;
-}
-
-// RAW DISPLAY below
-// thread function for reading of raw MWPC files
-void* ReadMWPCFiles(void* ptr)
-{
-     ThreadParam_ReadFile* thread_par = (ThreadParam_ReadFile*) ptr;
-     char* raw_file_name_begin = (char*)thread_par->raw_file_name_begin.Data();
-     vector<EventData*>* fEventReadData = thread_par->fEventReadData;
-     vector<EventData*>* fEventDrawData = thread_par->fEventDrawData;
-
-     // read source files and generate vector of EventData objects
-     RawDataParser raw_parser;
-
-     TString* mwpc_names = new TString[12];
-     raw_parser.GenerateMWPCFileNames(raw_file_name_begin, &raw_parser.device_serial1, mwpc_names);
-     raw_parser.GenerateMWPCFileNames(raw_file_name_begin, &raw_parser.device_serial2, &mwpc_names[6]);
-
-     long lStart[12] = { 0 };
-     int processed_events = 0;
-     while (1)
-     {
-         raw_parser.ParseHRBFiles(fEventReadData, mwpc_names, lStart);
-
-         // copy complete events to another draw vector to exclude time-consuming sharing
-         for (int i = processed_events; i < fEventReadData->size(); i++)
-         {
-             EventData* pCurEvent = (*fEventReadData)[i];
-             EventData* pDrawEvent = new EventData(*pCurEvent);
-             fEventDrawData->push_back(pDrawEvent);
-             thread_par->semEventData->Post();
-         }
-         processed_events = fEventReadData->size();
-     }// while (1)
-
-     delete [] mwpc_names;
-     return 0;
-}
-
-// thread function for event drawing with raw data
-void* DrawEvent(void* ptr)
-{
-    ThreadParam_Draw* thread_par = (ThreadParam_Draw*) ptr;
-    vector<EventData*>* fEventDrawData = thread_par->fEventDrawData;
-    FairEventManager* fEventManager = thread_par->fEventManager;
-    TSemaphore* semEventData = thread_par->semEventData;
-
-    int i = 0;
-    TEvePointSet* fq = NULL;
-    while (1)
-    {
-        semEventData->Wait();
-
-        if (i >= fEventDrawData->size())
-        {
-            cout<<"Programming Error: index >= size : "<<i<<" >= "<<fEventDrawData->size()<<endl;
-            continue;
-        }
-
-        EventData* curEvent = (*fEventDrawData)[i];
-
-        RawDataConverter raw_converter;
-        vector<TVector3*> event_hits = raw_converter.MWPCEventToGeoVector(curEvent);
-
-        cout<<"Event processing: "<<i<<". Point vector size: "<<event_hits.size()<<endl;
-
-        if (fq)
-        {
-            fq->Reset();
-            gEve->RemoveElement(fq, fEventManager->EveRecoPoints);
-        }
-
-        TEvePointSet* q = RawDataConverter::Vector2EvePoints(&event_hits, "MWPC points", kRed, kFullDotMedium, 1, true);
-
-        if (fEventManager->EveRecoPoints == NULL)
-        {
-            fEventManager->EveRecoPoints = new TEveElementList("MWPC points");
-            gEve->AddElement(fEventManager->EveRecoPoints, fEventManager);
-            fEventManager->EveRecoPoints->SetRnrState(kTRUE);
-        }
-
-        gEve->AddElement(q, fEventManager->EveRecoPoints);
-
-        gEve->Redraw3D(kFALSE);
-
-        fq = q;
-
-        /*if (q->Size() == 2)
-        {
-            cout<<"sleep 20..."<<endl;
-            sleep(20);
-        }*/
-
-        cout<<"Event hits were drawn for event "<<i<<endl;
-        sleep(1);
-        i++;
-    }
 }

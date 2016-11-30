@@ -1,13 +1,12 @@
 // -------------------------------------------------------------------------
-// -----                  BmnExpTrackDraw source file                  -----
+// -----                  BmnTrackDrawH source file                  -----
 // -----            created 05/10/15 by K. Gertsenberger               -----
 // ----- class to visualize GlobalTracks from *.root in EventDisplay   -----
 // -------------------------------------------------------------------------
 
-#include "BmnExpTrackDraw.h"
+#include "BmnTrackDrawH.h"
 #include "BmnTrack.h"
 #include "FairHit.h"
-#include "BmnMwpcHit.h"
 
 #include "TEveManager.h"
 #include "TEvePathMark.h"
@@ -18,15 +17,14 @@
 using namespace std;
 
 // default constructor
-BmnExpTrackDraw::BmnExpTrackDraw()
-  : FairTask("BmnExpTrackDraw", 0),
+BmnTrackDrawH::BmnTrackDrawH()
+  : FairTask("BmnTrackDrawH", 0),
     fTrackList(NULL),
     fHitsBranchName(""),
     fHitList(NULL),
     fTrPr(NULL),
     fEventManager(NULL),
     fEveTrList(NULL),
-    fEvent(""),
     fTrList(NULL),
     MinEnergyLimit(-1.),
     MaxEnergyLimit(-1.),
@@ -35,7 +33,7 @@ BmnExpTrackDraw::BmnExpTrackDraw()
 }
 
 // standard constructor
-BmnExpTrackDraw::BmnExpTrackDraw(const char* name, TString hitsBranchName, Int_t iVerbose)
+BmnTrackDrawH::BmnTrackDrawH(const char* name, TString hitsBranchName, Int_t iVerbose)
   : FairTask(name, iVerbose),
     fTrackList(NULL),
     fHitsBranchName(hitsBranchName),
@@ -43,7 +41,6 @@ BmnExpTrackDraw::BmnExpTrackDraw(const char* name, TString hitsBranchName, Int_t
     fTrPr(NULL),
     fEventManager(NULL),
     fEveTrList(new TObjArray(16)),
-    fEvent(""),
     fTrList(NULL),
     MinEnergyLimit(-1.),
     MaxEnergyLimit(-1.),
@@ -52,36 +49,36 @@ BmnExpTrackDraw::BmnExpTrackDraw(const char* name, TString hitsBranchName, Int_t
 }
 
 // initialization of the track drawing task
-InitStatus BmnExpTrackDraw::Init()
+InitStatus BmnTrackDrawH::Init()
 {
     if (fVerbose > 1)
-        cout<<"BmnExpTrackDraw::Init()"<<endl;
+        cout<<"BmnTrackDrawH::Init()"<<endl;
 
     fEventManager = FairEventManager::Instance();
     if (fVerbose > 2)
-        cout<<"BmnExpTrackDraw::Init() get instance of EventManager: "<<fEventManager<<endl;
+        cout<<"BmnTrackDrawH::Init() get instance of EventManager: "<<fEventManager<<endl;
 
     FairRootManager* fManager = FairRootManager::Instance();
     if (fVerbose > 2)
-        cout<<"BmnExpTrackDraw::Init() get instance of FairRootManager: "<<fManager<<endl;
+        cout<<"BmnTrackDrawH::Init() get instance of FairRootManager: "<<fManager<<endl;
 
     fTrackList = (TClonesArray*)fManager->GetObject(GetName());
     if(fTrackList == 0)
     {
-      cout<<"BmnExpTrackDraw::Init()  branch "<<GetName()<<" Not found! Task will be deactivated "<<endl;
+      cout<<"BmnTrackDrawH::Init()  branch "<<GetName()<<" Not found! Task will be deactivated "<<endl;
       SetActive(kFALSE);
     }
     if (fVerbose > 2)
-        cout<<"BmnExpTrackDraw::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
+        cout<<"BmnTrackDrawH::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
 
     fHitList = (TClonesArray*)fManager->GetObject(fHitsBranchName);
     if(fHitList == 0)
     {
-      cout<<"BmnExpTrackDraw::Init()  branch "<<fHitsBranchName<<" Not found! Task will be deactivated "<<endl;
+      cout<<"BmnTrackDrawH::Init()  branch "<<fHitsBranchName<<" Not found! Task will be deactivated "<<endl;
       SetActive(kFALSE);
     }
     if (fVerbose > 2)
-        cout<<"BmnExpTrackDraw::Init() get list of hits "<<fHitList<<" from branch '"<<fHitsBranchName<<"'"<<endl;
+        cout<<"BmnTrackDrawH::Init() get list of hits "<<fHitList<<" from branch '"<<fHitsBranchName<<"'"<<endl;
 
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
@@ -91,21 +88,21 @@ InitStatus BmnExpTrackDraw::Init()
 }
 
 // -------------------------------------------------------------------------
-void BmnExpTrackDraw::Exec(Option_t* option)
+void BmnTrackDrawH::Exec(Option_t* option)
 {
     if (!IsActive()) return;
     if (fVerbose > 1)
-        cout<<" BmnExpTrackDraw::Exec "<<endl;
+        cout<<" BmnTrackDrawH::Exec "<<endl;
 
     Reset();
 
     BmnTrack* current_track;
     if (fVerbose > 1)
-        cout<<" BmnExpTrackDraw::Exec: the number of tracks is "<<fTrackList->GetEntriesFast()<<endl;
+        cout<<" BmnTrackDrawH::Exec: the number of tracks is "<<fTrackList->GetEntriesFast()<<endl;
     for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
     {
         if (fVerbose > 2)
-            cout<<"BmnExpTrackDraw::Exec "<<i<<endl;
+            cout<<"BmnTrackDrawH::Exec "<<i<<endl;
 
         current_track = (BmnTrack*) fTrackList->At(i);
         const FairTrackParam* pParamFirst = current_track->GetParamFirst();
@@ -177,19 +174,19 @@ void BmnExpTrackDraw::Exec(Option_t* option)
 }
 
 // destructor
-BmnExpTrackDraw::~BmnExpTrackDraw()
+BmnTrackDrawH::~BmnTrackDrawH()
 {
 }
 
-void BmnExpTrackDraw::SetParContainers()
+void BmnTrackDrawH::SetParContainers()
 {
 }
 
-void BmnExpTrackDraw::Finish()
+void BmnTrackDrawH::Finish()
 {
 }
 
-void BmnExpTrackDraw::Reset()
+void BmnTrackDrawH::Reset()
 {
     // clear EVE track lists (fEveTrList)
     for (Int_t i = 0; i < fEveTrList->GetEntriesFast(); i++)
@@ -202,7 +199,7 @@ void BmnExpTrackDraw::Reset()
 }
 
 // return pointer to EVE track list for given particle name. if list don't exist then create it
-TEveTrackList* BmnExpTrackDraw::GetTrGroup(TParticle* P)
+TEveTrackList* BmnTrackDrawH::GetTrGroup(TParticle* P)
 {
     fTrList = 0;
 
@@ -239,4 +236,4 @@ TEveTrackList* BmnExpTrackDraw::GetTrGroup(TParticle* P)
     return fTrList;
 }
 
-ClassImp(BmnExpTrackDraw)
+ClassImp(BmnTrackDrawH)

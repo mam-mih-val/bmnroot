@@ -191,7 +191,7 @@ void SetTasks(FairEventManager* fMan, int data_source)
         fMan->AddTask(BmnTof2Hit);
 
         // DST tracks
-        BmnTrackDraw* BmnGlobalTrack = new BmnTrackDraw("GlobalTrack");
+        BmnGlobalTrackDraw* BmnGlobalTrack = new BmnGlobalTrackDraw("GlobalTrack");
         //fMan->AddTask(BmnGlobalTrack);
 
         // save EventDisplay Screenshot

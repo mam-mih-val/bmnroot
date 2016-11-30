@@ -1,9 +1,9 @@
 // -------------------------------------------------------------------------
-// -----                        BmnTrackDraw source file               -----
+// -----                        BmnTrackDrawP source file               -----
 // -----                  Created 02/12/15  by K. Gertsenberger        -----
 // -------------------------------------------------------------------------
 
-#include "BmnTrackDraw.h"
+#include "BmnTrackDrawP.h"
 #include "BmnTrack.h"
 #include "CbmStack.h"
 
@@ -18,13 +18,12 @@
 using namespace std;
 
 // -----   Default constructor   -------------------------------------------
-BmnTrackDraw::BmnTrackDraw()
-    : FairTask("BmnTrackDraw", 0),
+BmnTrackDrawP::BmnTrackDrawP()
+    : FairTask("BmnTrackDrawP", 0),
       fTrackList(NULL),
       fTrPr(NULL),
       fEventManager(NULL),
       fEveTrList(NULL),
-      fEvent(""),
       fTrList(NULL),
       MinEnergyLimit(-1.),
       MaxEnergyLimit(-1.),
@@ -33,15 +32,13 @@ BmnTrackDraw::BmnTrackDraw()
 }
 // -------------------------------------------------------------------------
 
-
 // -----   Standard constructor   ------------------------------------------
-BmnTrackDraw::BmnTrackDraw(const char* name, Int_t iVerbose)
+BmnTrackDrawP::BmnTrackDrawP(const char* name, Int_t iVerbose)
     : FairTask(name, iVerbose),
       fTrackList(NULL),
       fTrPr(NULL),
       fEventManager(NULL),
       fEveTrList(new TObjArray(16)),
-      fEvent(""),
       fTrList(NULL),
       MinEnergyLimit(-1.),
       MaxEnergyLimit(-1.),
@@ -51,14 +48,14 @@ BmnTrackDraw::BmnTrackDraw(const char* name, Int_t iVerbose)
 // -------------------------------------------------------------------------
 
 
-InitStatus BmnTrackDraw::Init()
+InitStatus BmnTrackDrawP::Init()
 {
     if (fVerbose > 1)
-        cout<<"BmnTrackDraw::Init()"<<endl;
+        cout<<"BmnTrackDrawP::Init()"<<endl;
 
     fEventManager = FairEventManager::Instance();
     if (fVerbose > 2)
-        cout<<"BmnTrackDraw::Init() get instance of EventManager"<<endl;
+        cout<<"BmnTrackDrawP::Init() get instance of EventManager"<<endl;
 
     FairRootManager* fManager = FairRootManager::Instance();
     if (fVerbose > 2)
@@ -66,7 +63,7 @@ InitStatus BmnTrackDraw::Init()
 
     fTrackList = (TClonesArray*)fManager->GetObject(GetName());
     if (fVerbose > 2)
-        cout<<"BmnTrackDraw::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
+        cout<<"BmnTrackDrawP::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
 
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
@@ -82,7 +79,7 @@ InitStatus BmnTrackDraw::Init()
     return kSUCCESS;
 }
 
-void BmnTrackDraw::InitGeant3()
+void BmnTrackDrawP::InitGeant3()
 {
     /** Private method for setting Geane configuration and cuts*/
     TString work = getenv("VMCWORKDIR");
@@ -128,13 +125,13 @@ void BmnTrackDraw::InitGeant3()
 }
 
 // -------------------------------------------------------------------------
-void BmnTrackDraw::Exec(Option_t* option)
+void BmnTrackDrawP::Exec(Option_t* option)
 {
     if (!IsActive())
         return;
 
     if (fVerbose > 1)
-        cout<<"BmnTrackDraw::Exec"<< endl;
+        cout<<"BmnTrackDrawP::Exec"<< endl;
 
     Reset();
 
@@ -143,7 +140,7 @@ void BmnTrackDraw::Exec(Option_t* option)
     for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
     {
         if (fVerbose > 2)
-            cout<<"BmnTrackDraw::Exec "<<i<<endl;
+            cout<<"BmnTrackDrawP::Exec "<<i<<endl;
 
         current_track = (BmnTrack*) fTrackList->At(i);
         FairTrackParam* pParamFirst = (FairTrackParam*) current_track->GetParamFirst();
@@ -255,22 +252,22 @@ void BmnTrackDraw::Exec(Option_t* option)
 }
 
 // -----   Destructor   ----------------------------------------------------
-BmnTrackDraw::~BmnTrackDraw()
+BmnTrackDrawP::~BmnTrackDrawP()
 {
 }
 
 // -------------------------------------------------------------------------
-void BmnTrackDraw::SetParContainers()
+void BmnTrackDrawP::SetParContainers()
 {
 }
 
 // -------------------------------------------------------------------------
-void BmnTrackDraw::Finish()
+void BmnTrackDrawP::Finish()
 {
 }
 
 // -------------------------------------------------------------------------
-void BmnTrackDraw::Reset()
+void BmnTrackDrawP::Reset()
 {
     // clear EVE track lists (fEveTrList)
     for (Int_t i = 0; i < fEveTrList->GetEntriesFast(); i++)
@@ -282,7 +279,7 @@ void BmnTrackDraw::Reset()
     fEveTrList->Clear();
 }
 
-TEveTrackList* BmnTrackDraw::GetTrGroup(TParticle* P)
+TEveTrackList* BmnTrackDrawP::GetTrGroup(TParticle* P)
 {
     fTrList = 0;
 
@@ -312,4 +309,4 @@ TEveTrackList* BmnTrackDraw::GetTrGroup(TParticle* P)
     return fTrList;
 }
 
-ClassImp(BmnTrackDraw)
+ClassImp(BmnTrackDrawP)

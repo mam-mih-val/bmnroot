@@ -25,8 +25,8 @@
 
 #include <stdio.h>
 
-using std::cout;
-using std::endl;
+using namespace std;
+using namespace TMath;
 
 //const Double_t kProtonMass = 0.938271998;
 
@@ -37,7 +37,10 @@ MpdUrqmdGenerator::MpdUrqmdGenerator()
 : FairGenerator(),
 fInputFile(NULL),
 fParticleTable(),
-fFileName(NULL) {
+fFileName(NULL),
+fPhiMin(0.),
+fPhiMax(0.),
+fEventPlaneSet(kFALSE) {
 }
 // ------------------------------------------------------------------------
 
@@ -192,12 +195,21 @@ Bool_t MpdUrqmdGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
     cout << "-I MpdUrqmdGenerator: Event " << evnr << ",  b = " << b
             << " fm,  multiplicity " << ntracks << ", ekin: " << ekin << endl;
 
+
+    Double_t phi = 0.;
+    // ---> Generate rotation angle
+    if (fEventPlaneSet) {
+        gRandom->SetSeed(0);
+        phi = gRandom->Uniform(fPhiMin, fPhiMax);
+    }
+
     // Set event id and impact parameter in MCEvent if not yet done
     FairMCEventHeader* event = primGen->GetEvent();
     if (event && (!event->IsSet())) {
         event->SetEventID(evnr);
         event->SetB(b);
         event->MarkSet(kTRUE);
+        event->SetRotZ(phi);
     }
 
 
@@ -246,7 +258,14 @@ Bool_t MpdUrqmdGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
             pz = gammaCM * (pz + betaCM * e);
         Double_t ee = sqrt(mass * mass + px * px + py * py + pz * pz);
 
-        TVector3 aa(px, py, pz);
+        if (fEventPlaneSet) {
+            Double_t pt = Sqrt(px * px + py * py);
+            Double_t azim = ATan2(py, px);
+            azim += phi;
+            px = pt * Cos(azim);
+            py = pt * Sin(azim);
+        }
+
         TLorentzVector pp;
         pp.SetPx(px);
         pp.SetPy(py);
@@ -398,6 +417,12 @@ void MpdUrqmdGenerator::ReadConversionTable() {
 
 }
 // ------------------------------------------------------------------------
+
+void MpdUrqmdGenerator::SetEventPlane(Double_t phiMin, Double_t phiMax) {
+    fPhiMin = phiMin;
+    fPhiMax = phiMax;
+    fEventPlaneSet = kTRUE;
+}
 
 
 

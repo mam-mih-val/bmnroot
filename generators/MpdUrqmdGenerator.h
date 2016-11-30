@@ -34,7 +34,6 @@ class FairPrimaryGenerator;
 
 class MpdUrqmdGenerator : public FairGenerator
 {
-
   public:
 
     /** Default constructor without arguments should not be used. **/
@@ -61,6 +60,8 @@ class MpdUrqmdGenerator : public FairGenerator
     //Skip some events in file
     Bool_t SkipEvents(Int_t count);
 
+    void SetEventPlane(Double_t phiMin, Double_t phiMax);
+
   private:
 
 #ifdef GZIP_SUPPORT
@@ -72,6 +73,9 @@ class MpdUrqmdGenerator : public FairGenerator
 #endif
 
     std::map<Int_t,Int_t> fParticleTable;      //!  Map from UrQMD PID to PDGPID
+
+    Double32_t fPhiMin, fPhiMax; // Limits of event plane angle
+    Bool_t fEventPlaneSet; // Flag whether event plane angle is used
 
     const Char_t* fFileName;              //!  Input file name
 

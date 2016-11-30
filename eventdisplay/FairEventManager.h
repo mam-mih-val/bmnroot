@@ -143,6 +143,10 @@ class FairEventManager : public TEveEventManager
     TEveElementList* EveMCPoints, *EveMCTracks, *EveRecoPoints, *EveRecoTracks;
     // ZDC module visibility flags. NULL if there are no ZDC modules to show
     bool* isZDCModule; //!
+    // require event redraw after "reco points" checkbox value is changed
+    bool fgRedrawRecoPointsReqired;
+    // current value of "reco points" checkbox
+    bool fgShowRecoPointsIsShow;
 
     // set high (80) transparency for detector geometry
     void SelectedGeometryTransparent(bool is_on);

@@ -53,8 +53,8 @@ void BmnHistToF700::FillFromDigi(TClonesArray * ToF4Digits) {
 //            histL->Fill(strip);
 //        else
 //            histR->Fill(strip);
-        if (    (td->GetPlane() == fSelectedPlane) || (fSelectedPlane == -1) &&
-                (td->GetStrip() == fSelectedStrip) || (fSelectedStrip == -1)) {
+        if (    (td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0) &&
+                (td->GetStrip() == fSelectedStrip) || (fSelectedStrip < 0)) {
             histAmpSpecific->Fill(td->GetAmplitude());
             histLeadingTimeSpecific->Fill(td->GetTime());
         }

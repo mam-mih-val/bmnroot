@@ -79,7 +79,6 @@ void BmnHistGem::FillFromDigi(TClonesArray * gemDigits) {
         Int_t station = gs->GetStation();
         Int_t layer = gs->GetStripLayer();
         Int_t gemStrip = gs->GetStripNumber();
-        if (gs->GetStripLayer() != 0) continue;
         histGemStrip[station][module][layer]->Fill(gemStrip);
     }
 }

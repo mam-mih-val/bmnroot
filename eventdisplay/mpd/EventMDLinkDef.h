@@ -20,6 +20,7 @@
 #pragma link C++ class FairWebScreenshots;
 
 // MpdRoot
+#pragma link C++ class MpdGlobalTrackDraw;
 #pragma link C++ class MpdEmcTowerDraw;
 #pragma link C++ class MpdZdcTowerDraw;
 

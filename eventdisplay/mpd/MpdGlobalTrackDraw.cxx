@@ -62,11 +62,21 @@ InitStatus MpdGlobalTrackDraw::Init()
     fTrackList = fDstEvent->GetGlobalTracks();
     if (fTrackList == 0)
     {
-        cout<<"MpdGlobalTrackDraw::Init()  branch "<<GetName()<<" not found! Task will be deactivated"<<endl;
+        cout<<"MpdGlobalTrackDraw::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<endl;
         SetActive(kFALSE);
     }
     fKalmanTrackList = (TClonesArray*)fManager->GetObject("TpcKalmanTrack");
+    if (fKalmanTrackList == 0)
+    {
+        cout<<"MpdGlobalTrackDraw::Init() branch TpcKalmanTrack not found! Task will be deactivated"<<endl;
+        SetActive(kFALSE);
+    }
     fTpcHitList = (TClonesArray*)fManager->GetObject("TpcHit");
+    if (fTpcHitList == 0)
+    {
+        cout<<"MpdGlobalTrackDraw::Init() branch TpcHit not found! Task will be deactivated"<<endl;
+        SetActive(kFALSE);
+    }
 
     if(fVerbose > 2)
         cout<<"MpdGlobalTrackDraw::Init() get track list "<<fTrackList<<endl;

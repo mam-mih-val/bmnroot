@@ -217,6 +217,6 @@ private:
     BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnEventType &ped);
     BmnStatus FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
-    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx) { return BMNSUCCESS; };
+    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx) { return kBMNSUCCESS; };
     BmnStatus FillTimeShiftsMap();
 };

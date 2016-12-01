@@ -25,6 +25,7 @@ const UInt_t kPADDING = 0xF;
 const UInt_t kTDC64V = 0x10; //DCH
 const UInt_t kTDC64VHLE = 0x53;
 const UInt_t kTDC72VHL = 0x12;
+const UInt_t kTDC32VL = 0x11;
 const UInt_t kTRIG = 0xA;
 const UInt_t kMSC = 0xF;
 const UInt_t kUT24VE = 0x49;
@@ -433,6 +434,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                     case kTDC64V:
                     case kTDC64VHLE:
                     case kTDC72VHL:
+                    case kTDC32VL:
                         FillTDC(d, serial, slot, modId, i);
                         break;
                     case kMSC:

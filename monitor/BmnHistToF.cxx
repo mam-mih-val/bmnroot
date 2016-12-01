@@ -46,7 +46,7 @@ void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
         histLeadingTime->Fill(td->GetTime());
         histAmp->Fill(td->GetAmplitude());
         histStrip->Fill(strip);
-        if ((td->GetPlane() == fSelectedPlane) && (fSelectedPlane != -1))
+        if ((td->GetPlane() == fSelectedPlane))
             histState->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
         if (td->GetSide() == 0)
             histL->Fill(strip);

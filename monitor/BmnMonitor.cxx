@@ -31,121 +31,6 @@ BmnMonitor::~BmnMonitor() {
     delete rawDataDecoder;
 }
 
-//void BmnMonitor::ProcessRun(TString digiName) {
-//
-//    TChain *digiTree = new TChain("cbmsim");
-//    digiTree->Add(digiName);
-//    Int_t nEvents = digiTree->GetEntries();
-//    cout << "Events: " << nEvents << endl;
-//    TString name;
-//    TString outHistName = Form("bmn_run%04d_hist.root", runIndex);
-//    fHistOut = new TFile(outHistName, "recreate");
-//    TTree *recoTree = new TTree("BmnMon", "BmnMon");
-//    // ====================================================================== //
-//    // Create server
-//    // ====================================================================== //
-//    fServer = new THttpServer("fastcgi:9000");
-//
-//    // ====================================================================== //
-//    // GEM histograms init
-//    // ====================================================================== //
-//    TClonesArray * gemDigits = NULL;
-//    digiTree->SetBranchAddress("GEM", &gemDigits);
-//    //    TDirectory *dirGEM = fHistOut->mkdir("GEM_hists");
-//    BmnHistGem *bhGem = new BmnHistGem("GEM");
-//    bhGem->Register(fServer, fHistOut, recoTree);
-//
-//    // ====================================================================== //
-//    // ToF histograms init
-//    // ====================================================================== //
-//    TClonesArray *ToF4Digits = NULL;
-//    digiTree->SetBranchAddress("TOF400", &ToF4Digits);
-//    BmnHistToF *bhToF400 = new BmnHistToF("ToF400");
-//    bhToF400->Register(fServer, fHistOut, recoTree);
-//
-//    TClonesArray *ToF7Digits = NULL;
-//    digiTree->SetBranchAddress("TOF700", &ToF7Digits);
-//    BmnHistToF700 *bhToF700 = new BmnHistToF700("ToF700");
-//    bhToF700->Register(fServer, fHistOut, recoTree);
-//    // ====================================================================== //
-//    // DCH histograms init
-//    // ====================================================================== //
-//    TClonesArray *DchDigits = NULL;
-//    digiTree->SetBranchAddress("DCH", &DchDigits);
-//    BmnHistDch *bhDCH1 = new BmnHistDch("DCH1");
-//    bhDCH1->Register(fServer, fHistOut, recoTree);
-//
-//    // ====================================================================== //
-//    // Triggers histograms init
-//    // ====================================================================== //
-//    TClonesArray * trigBC1Digits = NULL;
-//    digiTree->SetBranchAddress("BC1", &trigBC1Digits);
-//    TClonesArray * trigBC2Digits = NULL;
-//    digiTree->SetBranchAddress("BC2", &trigBC2Digits);
-//    TClonesArray * trigVDDigits = NULL;
-//    digiTree->SetBranchAddress("VETO", &trigVDDigits);
-//    TClonesArray * trigBDDigits = NULL;
-//    // digiTree->SetBranchAddress("BD", &trigBDDigits);
-//    //    TClonesArray * trigBC1Digits = NULL;
-//    //    digiTree->SetBranchAddress("GEM", &trigBC1Digits);
-//    //    TClonesArray * trigBC1Digits = NULL;
-//    //    digiTree->SetBranchAddress("GEM", &trigBC1Digits);
-//    //    TDirectory *dirTrig = fHistOut->mkdir("Trigger_hists");
-//    BmnHistTrigger *bhTrig = new BmnHistTrigger("Triggers");
-//    bhTrig->Register(fServer, fHistOut, recoTree);
-//
-//    // Register objects
-//    cout << " histograms registered" << endl;
-//    //
-//    //    serv->SetItemField("/ToF400/", "_layout", "grid3x2");
-//    //    serv->SetItemField("/ToF400/", "_drawitem",
-//    //            "[ToF400_Leading_Time,ToF400_Amplitude]");
-//
-//    // Start events
-//    Int_t res = 0;
-//    //    while (kTRUE) {
-//    for (Long64_t iEv = 0; iEv < nEvents; iEv++) {
-//        digiTree->GetEntry(iEv);
-//        // ====================================================================== //
-//        // Triggers histograms fill
-//        // ====================================================================== //
-//        bhTrig->FillFromDigi(
-//                trigBC1Digits,
-//                NULL,
-//                trigBC2Digits,
-//                trigVDDigits,
-//                NULL,
-//                trigBDDigits);
-//        // ====================================================================== //
-//        // GEM histograms fill
-//        // ====================================================================== // 
-//        bhGem->FillFromDigi(gemDigits);
-//        // ====================================================================== //
-//        // ToF histograms fill
-//        // ====================================================================== //
-//        bhToF400->FillFromDigi(ToF4Digits);
-//        // ====================================================================== //
-//        // DCH histograms fill
-//        // ====================================================================== //
-//        bhDCH1->FillFromDigi(DchDigits);
-//        // Fill data Tree //
-//        recoTree->Fill();
-//        if (iEv % itersToUpdate == 0) {
-//            //                bhTrig->SaveHists(imgSavePath);
-//        }
-//        if (res = gSystem->ProcessEvents()) break;
-//        cout << "Event " << iEv << " processed with result " << res << endl;
-//        //            usleep(1e5);
-//    }
-//    //    }
-//
-//    recoTree->Write();
-//    fHistOut->Write();
-//    delete fServer;
-//    fHistOut->Close();
-//    delete recoTree;
-//    delete fHistOut;
-//}
 
 struct BmnRunInfo {
     TString Name;
@@ -173,11 +58,11 @@ void BmnMonitor::Monitor() {
     for (auto f : FileList) {
         stat(f.Name, &(f.attr));
     }
-    for (Int_t i = 0; i < 10; i++) {
+//    for (Int_t i = 0; i < 10; i++) {
         for (auto f : FileList) {
             ProcessFileRun(f.Name);
         }
-    }
+//    }
 
 }
 

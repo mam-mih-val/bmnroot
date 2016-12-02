@@ -198,12 +198,12 @@ private:
     UInt_t data[1000000];
     ULong_t fMaxEvent;
 
-    UInt_t dat = 0;
-    BmnGemRaw2Digit *gemMapper = NULL;
-    BmnDchRaw2Digit *dchMapper = NULL;
-    BmnTrigRaw2Digit *trigMapper = NULL;
-    BmnTof1Raw2Digit *tof400Mapper = NULL;
-    deque<UInt_t> *fDataQueue = NULL;
+    UInt_t dat;
+    BmnGemRaw2Digit *gemMapper;
+    BmnDchRaw2Digit *dchMapper;
+    BmnTrigRaw2Digit *trigMapper;
+    BmnTof1Raw2Digit *tof400Mapper;
+    deque<UInt_t> *fDataQueue;
     void *fDataMutex; // actually std::mutex
 
     Bool_t fPedestalRun;

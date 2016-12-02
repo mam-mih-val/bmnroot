@@ -76,6 +76,12 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fGemMapFileName = "";
     fTof400MapFileName = "";
     fTof700MapFileName = "";
+    dat = 0;
+    gemMapper = NULL;
+    dchMapper = NULL;
+    trigMapper = NULL;
+    tof400Mapper = NULL;
+    fDataQueue = NULL;
 }
 
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {

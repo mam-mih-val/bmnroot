@@ -11,12 +11,9 @@
 *  M. Al-Turany 06.12.2007
 **/
 #include "FairEventManager.h"
-#include "RawMWPCDigitDraw.h"
-#include "BmnDigitDraw.h"
 #include "constants.h"
 
 #include "FairMCPointDraw.h"
-#include "FairMCModuleDraw.h"
 #include "FairMCTracks.h"
 #include "FairHitPointSetDraw.h"
 
@@ -81,7 +78,9 @@ FairEventManager::FairEventManager()
    background_color(1),
    isDarkColor(true),
    fEntryCount(0),
-   isZDCModule(NULL)
+   isZDCModule(NULL),
+   fgShowRecoPointsIsShow(false),
+   fgRedrawRecoPointsReqired(false)
 {
     fgRinstance = this;
 
@@ -226,6 +225,8 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
 
     // first 3D viewer
     gEve->GetDefaultViewer()->SetElementName("3D View");
+    // display axes
+    //gEve->GetDefaultViewer()->GetGLViewer()->SetGuideState(TGLUtil::kAxesEdge, kTRUE, kFALSE, 0);
     // switch off left and right light sources for first window
     gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
     gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);

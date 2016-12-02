@@ -1,12 +1,12 @@
 // -------------------------------------------------------------------------
-// -----                    BmnExpTrackDraw header file                -----
-// -----              created 05/10/15 by K. Gertsenberger             -----
-// ----- class to visualize GlobalTracks from *.root in EventDisplay   -----
+// -----                    MpdGlobalTrackDraw header file                   -----
+// -----              created 10/12/13 by K. Gertsenberger             -----
+// ----- class to visualize reconstructed GlobalTracks in EventDisplay -----
 // -------------------------------------------------------------------------
 
 
-#ifndef BMNEXPTRACKDRAW_H
-#define BMNEXPTRACKDRAW_H
+#ifndef MPDGLOBALTRACKDRAW_H
+#define MPDGLOBALTRACKDRAW_H
 
 #include "FairTask.h"
 #include "FairEventManager.h"
@@ -19,17 +19,17 @@
 #include "TParticle.h"
 
 
-class BmnExpTrackDraw : public FairTask
+class MpdGlobalTrackDraw : public FairTask
 {
   public:
     // default constructor
-    BmnExpTrackDraw();
+    MpdGlobalTrackDraw();
 
-    // constructor: @name - name of task, @iVerbose - verbosity level
-    BmnExpTrackDraw(const char* name, TString hitsBranchName, Int_t iVerbose = 1);
+    // constructor: @name - name of task, @iVerbose- verbosity level
+    MpdGlobalTrackDraw(const char* name, Int_t iVerbose = 1);
 
     // destructor
-    virtual ~BmnExpTrackDraw();
+    virtual ~MpdGlobalTrackDraw();
 
     // set verbosity level for this task and all of the subtasks
     void SetVerbose(Int_t iVerbose) {fVerbose = iVerbose;}
@@ -47,27 +47,27 @@ class BmnExpTrackDraw : public FairTask
     TEveTrackList* GetTrGroup(TParticle* P);
 
   protected:
-    TChain* bmn_data_tree;  //!
-    // tracks collection
-    TClonesArray*  fTrackList;      //!
-    // MWPC hits collection corresponding 'tracks collection'
-    TClonesArray*  fHitList;     //!
+    // global tracks collection
+    TClonesArray*  fTrackList;          //!
+    // kalman tracks collection
+    TClonesArray*  fKalmanTrackList;    //!
+    // MpdTpcHits collection
+    TClonesArray*  fTpcHitList;         //!
     // EVE track propagator
     TEveTrackPropagator* fTrPr;
     FairEventManager* fEventManager;    //!
     TObjArray* fEveTrList;
     TString fEvent;                     //!
     TEveTrackList* fTrList;             //!
+
     Double_t MinEnergyLimit;
     Double_t MaxEnergyLimit;
     Double_t PEnergy;
-    TString fHitsBranchName;
-    
 
   private:
-    BmnExpTrackDraw(const BmnExpTrackDraw&);
-    BmnExpTrackDraw& operator=(const BmnExpTrackDraw&);
+    MpdGlobalTrackDraw(const MpdGlobalTrackDraw&);
+    MpdGlobalTrackDraw& operator=(const MpdGlobalTrackDraw&);
 
-    ClassDef(BmnExpTrackDraw,1);
+    ClassDef(MpdGlobalTrackDraw,1);
 };
 #endif

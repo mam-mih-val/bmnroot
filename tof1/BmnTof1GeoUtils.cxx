@@ -66,7 +66,8 @@ assert(gGeoManager);
 
 	mStrips.clear();
 	
-	TString stripName, pathTOF = "/cave_1/TOFB1_0";
+//	TString stripName, pathTOF = "/cave_1/TOFB1_0";
+	TString stripName, pathTOF = "/cave_1/TOF400_0";
 	gGeoManager->cd(pathTOF);
 	
 	Double_t *X0Y0Z0 = new Double_t[3]; X0Y0Z0[0] = X0Y0Z0[1] = X0Y0Z0[2] = 0.; // center of sensetive detector

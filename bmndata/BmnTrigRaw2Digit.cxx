@@ -33,7 +33,6 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile) {
 }
 
 BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, Double_t& t0time) {
-    //    cout <<" IN\n";
     for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
         BmnTrigMapping tM = fMap[iMap];
         for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {

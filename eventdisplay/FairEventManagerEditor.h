@@ -1,10 +1,3 @@
-/********************************************************************************
- *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
- *                                                                              *
- *              This software is distributed under the terms of the             *
- *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
- *                  copied verbatim in the file "LICENSE"                       *
- ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                       FairEventManagerEditor                  -----
 // -----                  Created 16/12/07  by M. Al-Turany            -----
@@ -13,7 +6,6 @@
 #define ROOT_FAIREVENTMANAGEREDITOR
 
 #include "FairEventManager.h"
-#include "RawDataParser.h"
 
 #include "TGedFrame.h"
 #include "TGNumberEntry.h"
@@ -26,21 +18,6 @@
 
 #include <vector>
 
-struct ThreadParam_ReadFile
-{
-    vector<EventData*>* fEventReadData;
-    vector<EventData*>* fEventDrawData;
-    TString raw_file_name_begin;
-    TSemaphore* semEventData;
-};
-
-struct ThreadParam_Draw
-{
-    vector<EventData*>* fEventDrawData;
-    FairEventManager* fEventManager;
-    TSemaphore* semEventData;
-};
-
 class FairEventManagerEditor;
 struct ThreadParam_OnlineDisplay
 {
@@ -52,8 +29,6 @@ struct ThreadParam_OnlineDisplay
 };
 
 // multithread functions
-void* ReadMWPCFiles(void* ptr);
-void* DrawEvent(void* ptr);
 void* RunOnlineDisplay(void* ptr);
 
 class FairEventManagerEditor : public TGedFrame
@@ -69,10 +44,6 @@ class FairEventManagerEditor : public TGedFrame
     TGGroupFrame* groupData;
     TGCheckButton* fShowMCPoints, *fShowMCTracks, *fShowRecoPoints, *fShowRecoTracks;
 
-    vector<EventData*>* fEventReadData;
-    vector<EventData*>* fEventDrawData;
-    TSemaphore* semEventData;
-
     // current event number
     int iEventNumber;
 
@@ -81,7 +52,7 @@ class FairEventManagerEditor : public TGedFrame
                            UInt_t options = kChildFrame, Pixel_t back=GetDefaultFrameBackground());
     FairEventManagerEditor(const FairEventManagerEditor&);
     FairEventManagerEditor& operator=(const FairEventManagerEditor&);
-    virtual ~FairEventManagerEditor() { delete semEventData; }
+    virtual ~FairEventManagerEditor() { }
 
     void SetModel(TObject* obj);
     virtual void SelectEvent();

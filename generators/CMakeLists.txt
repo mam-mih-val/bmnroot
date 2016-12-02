@@ -19,16 +19,14 @@ set(INCLUDE_DIRECTORIES
 ${ROOT_INCLUDE_DIR}
 ${PLUTO_INCLUDE_DIR} 
 ${CMAKE_SOURCE_DIR}/fairtools
-${CMAKE_SOURCE_DIR}/geobase 
-${CMAKE_SOURCE_DIR}/field 
-${CMAKE_SOURCE_DIR}/base 
+${CMAKE_SOURCE_DIR}/geobase
 ${CMAKE_SOURCE_DIR}/base/steer
 ${CMAKE_SOURCE_DIR}/base/event
 ${CMAKE_SOURCE_DIR}/base/field
 ${CMAKE_SOURCE_DIR}/base/sim
 ${CMAKE_SOURCE_DIR}/generators 
 ${CMAKE_SOURCE_DIR}/base/source
-${CMAKE_SOURCE_DIR}/gconfig
+${CMAKE_SOURCE_DIR}/config
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -59,6 +57,8 @@ MpdPHSDGenerator.cxx
 MpdUrqmdGenerator.cxx
 MpdGetNumEvents.cxx
 MpdHistoGenerator.cxx
+Mpd3fdGenerator.cxx
+MpdVHLLEGenerator.cxx
 )
 
 Set(HEADERS )

@@ -7,7 +7,7 @@
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 
-void run_reco_bmn(TString inFile = "run4-61:bmn_run0061_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE) {
+void run_reco_bmn(TString inFile = "run4-65:../raw/bmn_run0065_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 1000, Int_t nEvents = 40000000, Bool_t isPrimary = kTRUE) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;

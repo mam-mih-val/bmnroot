@@ -479,7 +479,7 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
         cluster_rms = TMath::Sqrt(cluster_rms);
     }
     else {
-        cluster_rms = Pitch/TMath::Sqrt(12.0);
+        cluster_rms = 1.0/TMath::Sqrt(12.0);
     }
     //--------------------------------------------------------------------------
 

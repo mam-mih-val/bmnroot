@@ -1,4 +1,3 @@
-#include "../../db_structures.h"
 
 int AssignMapStructure(DchMapStructure* pArray, int id, int pl, int gr, unsigned int cr, int sl, int ch_l, int ch_h) {
     pArray[id].plane = pl;

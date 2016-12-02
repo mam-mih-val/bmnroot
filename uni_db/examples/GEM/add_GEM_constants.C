@@ -1,4 +1,3 @@
-#include "../../db_structures.h"
 #include "TString.h"
 
 // macro for adding parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)

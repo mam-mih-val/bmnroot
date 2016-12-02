@@ -1,4 +1,3 @@
-#include "../../db_structures.h"
 #include "TString.h"
 
 int AssignMapStructure(GemPedestalStructure* pArray, int id, unsigned int ser, int ch, double ped, double noise) {

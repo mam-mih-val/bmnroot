@@ -19,7 +19,6 @@ class BmnOnlineDecoder: public BmnRawDataDecoder {
 public:
     BmnOnlineDecoder();
     BmnOnlineDecoder(TString file, ULong_t nEvents = 0);
-    BmnOnlineDecoder(const BmnOnlineDecoder& orig);
     BmnStatus ConvertRawToRootOnline();
     virtual ~BmnOnlineDecoder();
 private:

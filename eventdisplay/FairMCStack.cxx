@@ -13,7 +13,11 @@
 #include "TObjArray.h"
 #include "TEveManager.h"
 #include "FairEventManager.h"
+#ifdef BMNROOT
 #include "CbmMCTrack.h"
+#else
+#include "FairMCTrack.h"
+#endif
 #include "TGeant3.h"
 #include "FairGeanePro.h"
 #include "FairTrajFilter.h"
@@ -91,14 +95,18 @@ void FairMCStack::Exec(Option_t* option)
   if (IsActive())
   {
     if(fVerbose>1) { cout << " FairMCStack::Exec "<< endl; }
-    CbmMCTrack* tr;
     const Double_t* point;
 
     Reset();
 
     for (Int_t i=0; i<fTrackList->GetEntriesFast(); i++)  {
       if(fVerbose>2) { cout << "FairMCStack::Exec "<< i << endl; }
-      tr=(CbmMCTrack*)fTrackList->At(i);
+
+      #ifdef BMNROOT
+        CbmMCTrack* tr = (CbmMCTrack*) fTrackList->At(i);
+      #else
+        FairMCTrack* tr = (FairMCTrack*) fTrackList->At(i);
+      #endif
 
       TVector3 Ptot;
       tr->GetMomentum(Ptot);

@@ -23,7 +23,9 @@ enum BmnHitType {
  */
 enum BmnStatus {
    kBMNSUCCESS = 0, /**< Success. */
-   kBMNERROR = 1 /**< Error. */
+   kBMNERROR = 1, /**< Error. */
+   kBMNTIMEOUT = 2,
+   kBMNFINISH = 3
 };
 
 /**

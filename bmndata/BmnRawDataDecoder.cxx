@@ -1,5 +1,8 @@
 #include "BmnRawDataDecoder.h"
 
+//#include <pthread.h>
+#include <mutex>
+
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
 const UInt_t kSYNC2 = 0x4A624A62;
@@ -21,6 +24,7 @@ const UInt_t kPADDING = 0xF;
 const UInt_t kTDC64V = 0x10; //DCH
 const UInt_t kTDC64VHLE = 0x53;
 const UInt_t kTDC72VHL = 0x12;
+const UInt_t kTDC32VL = 0x11;
 const UInt_t kTRIG = 0xA;
 const UInt_t kMSC = 0xF;
 const UInt_t kUT24VE = 0x49;
@@ -78,6 +82,12 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fGemMapFileName = "";
     fTof400MapFileName = "";
     fTof700MapFileName = "";
+    fDat = 0;
+    fGemMapper = NULL;
+    fDchMapper = NULL;
+    fTrigMapper = NULL;
+    fTof400Mapper = NULL;
+    fDataQueue = NULL;
 }
 
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
@@ -120,6 +130,12 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
     fGemMapFileName = "";
     fTof400MapFileName = "";
     fTof700MapFileName = "";
+    fDat = 0;
+    fGemMapper = NULL;
+    fDchMapper = NULL;
+    fTrigMapper = NULL;
+    fTof400Mapper = NULL;
+    fDataQueue = NULL;
 }
 
 BmnRawDataDecoder::~BmnRawDataDecoder() {
@@ -155,30 +171,29 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     fRawTree->Branch("MSC", &msc);
     fRawTree->Branch("EventHeader", &headerDAQ);
 
-    UInt_t dat = 0;
     for (;;) {
         if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
         //if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
-        fread(&dat, kWORDSIZE, 1, fRawFileIn);
+        fread(&fDat, kWORDSIZE, 1, fRawFileIn);
         fCurentPositionRawFile = ftello64(fRawFileIn);
         if (fCurentPositionRawFile >= fLengthRawFile) break;
-        if (dat == kSYNC1) { //search for start of event
+        if (fDat == kSYNC1) { //search for start of event
 
             // read number of bytes in event
-            if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
-            dat = dat / kNBYTESINWORD + 1; // bytes --> words
-            if (dat >= 100000) { // what the constant?
+            if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
+            fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
+            if (fDat >= 100000) { // what the constant?
                 //printf("Wrong data size: %d\n", dat);
                 //return kBMNERROR; // Why do you stop to convert in this case??
-                printf("Wrong data size: %d:  skip this event\n", dat);
-                fread(data, kWORDSIZE, dat, fRawFileIn);
+                printf("Wrong data size: %d:  skip this event\n", fDat);
+                fread(data, kWORDSIZE, fDat, fRawFileIn);
             } else {
 
                 //read array of current event data and process them
-                if (fread(data, kWORDSIZE, dat, fRawFileIn) != dat) return kBMNERROR;
+                if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
                 fEventId = data[0];
                 if (fEventId <= 0) continue; // skip bad events (it is possible, but what about 0?) 
-                ProcessEvent(data, dat);
+                ProcessEvent(data, fDat);
                 fNevents++;
                 fRawTree->Fill();
             }
@@ -201,6 +216,154 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     return kBMNSUCCESS;
 }
 
+BmnStatus BmnRawDataDecoder::InitConverter(deque<UInt_t> *dq) {
+    fDataQueue = dq;
+    fRawTree = new TTree("BMN_RAW", "BMN_RAW");
+    //    fRawFileIn = fopen(fRawFileName, "rb");
+    if (fDataQueue == NULL) {
+        printf("\n!!!!!\ncannot open stream\nConvertRawToRoot are stopped\n!!!!!\n\n");
+        return kBMNERROR;
+    }
+    //    fRootFileOut = new TFile(fRootFileName, "recreate");
+    //    fseeko64(fRawFileIn, 0, SEEK_END);
+    //    fLengthRawFile = ftello64(fRawFileIn);
+    //    rewind(fRawFileIn);
+    fLengthRawFile = fDataQueue->size();
+    //    printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
+    //    printf("RawRoot File %s\n\n", fRootFileName.Data());
+
+    //    fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
+    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+
+    sync = new TClonesArray("BmnSyncDigit");
+    adc32 = new TClonesArray("BmnADC32Digit");
+    tdc = new TClonesArray("BmnTDCDigit");
+    msc = new TClonesArray("BmnMSCDigit");
+    headerDAQ = new TClonesArray("BmnEventHeader");
+
+    fRawTree->Branch("SYNC", &sync);
+    fRawTree->Branch("ADC", &adc32);
+    fRawTree->Branch("TDC", &tdc);
+    fRawTree->Branch("MSC", &msc);
+    fRawTree->Branch("EventHeader", &headerDAQ);
+    return kBMNSUCCESS;
+
+}
+
+BmnStatus BmnRawDataDecoder::InitConverter() {
+    fRawTree = new TTree("BMN_RAW", "BMN_RAW");
+    sync = new TClonesArray("BmnSyncDigit");
+    adc32 = new TClonesArray("BmnADC32Digit");
+    tdc = new TClonesArray("BmnTDCDigit");
+    msc = new TClonesArray("BmnMSCDigit");
+    headerDAQ = new TClonesArray("BmnEventHeader");
+
+    fRawTree->Branch("SYNC", &sync);
+    fRawTree->Branch("ADC", &adc32);
+    fRawTree->Branch("TDC", &tdc);
+    fRawTree->Branch("MSC", &msc);
+    fRawTree->Branch("EventHeader", &headerDAQ);
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::wait_stream(deque<UInt_t> *que, Int_t len) {
+    Int_t t;
+    Int_t dt = 10000;
+    while (que->size() < len) {
+        usleep(dt);
+        t += dt;
+        if (t >= WAIT_LIMIT)
+            return kBMNERROR;
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
+    fRawTree->Clear();
+    if (wait_stream(fDataQueue, 2) == kBMNERROR)
+        return kBMNTIMEOUT;
+    fDat = fDataQueue->front();
+    ((mutex*) fDataMutex)->lock();
+    fDataQueue->pop_front();
+    ((mutex*) fDataMutex)->unlock();
+    if (fDat == kSYNC1) { //search for start of event
+        // read number of bytes in event
+        fDat = fDataQueue->front();
+        ((mutex*) fDataMutex)->lock();
+        fDataQueue->pop_front();
+        ((mutex*) fDataMutex)->unlock();
+        if (wait_stream(fDataQueue, fDat) == kBMNERROR)
+            return kBMNTIMEOUT;
+        fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
+        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
+            printf("Wrong data size: %d:  skip this event\n", fDat);
+            //                fread(data, kWORDSIZE, dat, fRawFileIn);
+            ((mutex*) fDataMutex)->lock();
+            fDataQueue->erase(fDataQueue->begin(), fDataQueue->begin() + fDat * kNBYTESINWORD);
+            ((mutex*) fDataMutex)->unlock();
+            return kBMNERROR;
+        } else {
+            //read array of current event data and process them
+            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
+            ((mutex*) fDataMutex)->lock();
+            for (Int_t iByte = 0; iByte < fDat * kNBYTESINWORD; iByte++) {
+                data[iByte] = fDataQueue->front();
+                fDataQueue->pop_front();
+            }
+            ((mutex*) fDataMutex)->unlock();
+            fEventId = data[0];
+            if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+            ProcessEvent(data, fDat);
+            fNevents++;
+            fRawTree->Fill();
+        }
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
+    //        if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
+    fread(&fDat, kWORDSIZE, 1, fRawFileIn);
+    fCurentPositionRawFile = ftello64(fRawFileIn);
+    if (fCurentPositionRawFile >= fLengthRawFile)
+        return kBMNFINISH;
+    //            break;
+    if (fDat == kSYNC1) { //search for start of event
+        // read number of bytes in event
+        if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
+        fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
+        if (fDat >= 100000 * kNBYTESINWORD) { // what the constant?
+            printf("Wrong data size: %d:  skip this event\n", fDat);
+            fread(data, kWORDSIZE, fDat, fRawFileIn);
+        } else {
+            //read array of current event data and process them
+            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
+            fEventId = data[0];
+            if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+            ProcessEvent(data, fDat);
+            fNevents++;
+            fRawTree->Fill();
+        }
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::DisposeConverter() {
+    fCurentPositionRawFile = ftello64(fRawFileIn);
+    printf("Readed %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
+
+    //    fRawTree->Write();
+    //    fRootFileOut->Close();
+    //    fclose(fRawFileIn);
+
+    //    delete sync;
+    //    delete adc;
+    //    delete tdc;
+    //    delete msc;
+
+    return kBMNSUCCESS;
+}
+
 BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
 
     sync->Clear();
@@ -210,7 +373,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     msc->Clear();
     headerDAQ->Clear();
 
-    if (fEventId % 1 == 0) cout << "Converting event #" << d[0] << endl;
+    if (fEventId % 100 == 0) cout << "Converting event #" << d[0] << endl;
 
     UInt_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;
@@ -224,7 +387,6 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
             break;
         }
-        cout << "id = " << hex << id << dec << endl;
         switch (id) {
             case kADC64VE:
                 Process_ADC64VE(&data[idx], payload, serial, 32, adc32);
@@ -302,6 +464,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                     case kTDC64V:
                     case kTDC64VHLE:
                     case kTDC72VHL:
+                    case kTDC32VL:
                         FillTDC(d, serial, slot, modId, i);
                         break;
                     case kMSC:
@@ -420,27 +583,22 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
-    BmnGemRaw2Digit *gemMapper = NULL;
-    BmnSiliconRaw2Digit *siliconMapper = NULL;
-    BmnDchRaw2Digit *dchMapper = new BmnDchRaw2Digit(kPERIOD, fRunId);
-    BmnTrigRaw2Digit *trigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
-    BmnTof1Raw2Digit *tof400Mapper = new BmnTof1Raw2Digit(kPERIOD, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+    fDchMapper = new BmnDchRaw2Digit(kPERIOD, fRunId);
+    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
+    fTof400Mapper = new BmnTof1Raw2Digit(kPERIOD, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     //    BmnTof2Raw2Digit *tof700Mapper = new BmnTof2Raw2Digit(fTof700MapFileName);
 
     UInt_t pedEvCntr = 0; // counter for pedestal events between two spills
     BmnEventType curEventType = kBMNPAYLOAD;
     BmnEventType prevEventType = curEventType;
 
-    UInt_t**** pedData = NULL;
-
     if (fPedestalRun) {
-        gemMapper = new BmnGemRaw2Digit();
-        gemMapper->CalcGemPedestals(adc32, fRawTree);
+        fGemMapper = new BmnGemRaw2Digit();
+        fGemMapper->CalcGemPedestals(adc32, fRawTree);
     } else {
-        gemMapper = new BmnGemRaw2Digit(kPERIOD, fRunId);
-        pedData = gemMapper->GetPedData();
+        fGemMapper = new BmnGemRaw2Digit(kPERIOD, fRunId);
 
-        siliconMapper = new BmnSiliconRaw2Digit(kPERIOD, fRunId);
+        fSiliconMapper = new BmnSiliconRaw2Digit(kPERIOD, fRunId);
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
             if (iEv % 1000 == 0) cout << "Decoding event #" << iEv << endl;
             dch->Clear();
@@ -466,39 +624,38 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             curEventType = headDAQ->GetType();
             new((*header)[header->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTimeS(), headDAQ->GetEventTimeNS(), curEventType);
 
-            trigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time);
+            fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time);
 
             if (curEventType == kBMNPEDESTAL) {
                 if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
-                CopyDataToPedMap(adc32, pedData, pedEvCntr);
+                CopyDataToPedMap(adc32, pedEvCntr);
                 pedEvCntr++;
             } else { // payload
                 if (prevEventType == kBMNPEDESTAL) {
                     if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) {
-                        gemMapper->RecalculatePedestals();
+                        fGemMapper->RecalculatePedestals();
                         pedEvCntr = 0;
                     }
                 }
-                gemMapper->FillEvent(adc32, gem);
-                siliconMapper->FillEvent(adc128, silicon);
-                dchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
-                tof400Mapper->FillEvent(tdc, tof400);
+                fGemMapper->FillEvent(adc32, gem);
+                fSiliconMapper->FillEvent(adc128, silicon);
+                fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
+                fTof400Mapper->FillEvent(tdc, tof400);
                 fDigiTree->Fill();
             }
             prevEventType = curEventType;
         }
     }
 
-
     fDigiTree->Write();
     fDigiFileOut->Close();
     fRootFileIn->Close();
 
-    delete gemMapper;
-    delete siliconMapper;
-    delete dchMapper;
-    delete trigMapper;
-    delete tof400Mapper;
+    delete fGemMapper;
+    delete fSiliconMapper;
+    delete fDchMapper;
+    delete fTrigMapper;
+    delete fTof400Mapper;
 
     delete sync;
     delete adc32;
@@ -514,6 +671,163 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     delete tof700;
     delete header;
 
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::InitDecoder() {
+    //    fRootFileIn = new TFile(fRootFileName, "READ");
+    //    if (fRootFileIn->IsOpen() == false) {
+    //        printf("\n!!!!\ncannot open file %s \nDecodeDataToDigi are stopped\n!!!!\n", fRootFileName.Data());
+    //        return kBMNERROR;
+    //    } else {
+    //        printf("\nInput root file: %s;\nOutput digi file: %s;\n", fRootFileName.Data(), fDigiFileName.Data());
+    //    }
+    //    fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
+    //    tdc = new TClonesArray("BmnTDCDigit");
+    //    sync = new TClonesArray("BmnSyncDigit");
+    //    adc = new TClonesArray("BmnADC32Digit");
+    //    headerDAQ = new TClonesArray("BmnEventHeader");
+    //    fRawTree->SetBranchAddress("TDC", &tdc);
+    //    fRawTree->SetBranchAddress("SYNC", &sync);
+    //    fRawTree->SetBranchAddress("ADC", &adc);
+    //    fRawTree->SetBranchAddress("EventHeader", &headerDAQ);
+
+    //    fDigiFileOut = new TFile(fDigiFileName, "recreate");
+    fDigiTree = new TTree("cbmsim", "bmn_digit");
+
+    gem = new TClonesArray("BmnGemStripDigit");
+    tof400 = new TClonesArray("BmnTof1Digit");
+    tof700 = new TClonesArray("BmnTof2Digit");
+    dch = new TClonesArray("BmnDchDigit");
+    t0 = new TClonesArray("BmnTrigDigit");
+    bc1 = new TClonesArray("BmnTrigDigit");
+    bc2 = new TClonesArray("BmnTrigDigit");
+    veto = new TClonesArray("BmnTrigDigit");
+    header = new TClonesArray("BmnEventHeader");
+
+    fDigiTree->Branch("EventHeader", &header);
+    fDigiTree->Branch("T0", &t0);
+    fDigiTree->Branch("BC1", &bc1);
+    fDigiTree->Branch("BC2", &bc2);
+    fDigiTree->Branch("VETO", &veto);
+    fDigiTree->Branch("DCH", &dch);
+    fDigiTree->Branch("GEM", &gem);
+    fDigiTree->Branch("TOF400", &tof400);
+    fDigiTree->Branch("TOF700", &tof700);
+
+    fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
+
+    fGemMapper = new BmnGemRaw2Digit(kPERIOD, fRunId);
+    fDchMapper = new BmnDchRaw2Digit(kPERIOD, fRunId);
+    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
+    fTof400Mapper = new BmnTof1Raw2Digit(kPERIOD, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+    //    BmnTof2Raw2Digit *tof700Mapper = new BmnTof2Raw2Digit(fTof700MapFileName);
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
+    UInt_t pedEvCntr = 0; // counter for pedestal events between two spills
+    BmnEventType curEventType = kBMNPAYLOAD;
+    BmnEventType prevEventType = curEventType;
+
+    dch->Clear();
+    gem->Clear();
+    tof400->Clear();
+    tof700->Clear();
+    t0->Clear();
+    bc1->Clear();
+    bc2->Clear();
+    veto->Clear();
+    header->Clear();
+    fTimeShifts.clear();
+    //            Int_t iEv = fRawTree->GetEntries();
+    //            fRawTree->GetEntry(iEv);
+
+    if (FillTimeShiftsMap() == kBMNERROR) {
+        cout << "No TimeShiftMap created" << endl;
+        //                continue;
+        //FIX maybe add return?
+    }
+
+    BmnEventHeader* headDAQ = (BmnEventHeader*) headerDAQ->At(0);
+    curEventType = headDAQ->GetType();
+    new((*header)[header->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTimeS(), headDAQ->GetEventTimeNS(), curEventType);
+
+    fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time);
+
+    if (curEventType == kBMNPEDESTAL) {
+        if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) return kBMNERROR; //FIX return!
+        CopyDataToPedMap(adc32, pedEvCntr);
+        pedEvCntr++;
+    } else { // payload
+        if (prevEventType == kBMNPEDESTAL) {
+            if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) {
+                fGemMapper->RecalculatePedestals();
+                pedEvCntr = 0;
+            }
+        }
+        fGemMapper->FillEvent(adc32, gem);
+        fSiliconMapper->FillEvent(adc128, silicon);
+        fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
+        fTof400Mapper->FillEvent(tdc, tof400);
+        fDigiTree->Fill();
+    }
+    prevEventType = curEventType;
+
+    return kBMNSUCCESS;
+}
+
+void BmnRawDataDecoder::ResetDecoder(TString file) {
+    fNevents = 0;
+    fRawFileName = file;
+    fRawFileIn = fopen(fRawFileName, "rb");
+    if (fRawFileIn == NULL) {
+        printf("\n!!!!!\ncannot open file %s\nConvertRawToRoot are stopped\n!!!!!\n\n", fRawFileName.Data());
+        return;
+    }
+    //    fRootFileOut = new TFile(fRootFileName, "recreate");
+    fseeko64(fRawFileIn, 0, SEEK_END);
+    fLengthRawFile = ftello64(fRawFileIn);
+    rewind(fRawFileIn);
+    printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
+    printf("RawRoot File %s\n\n", fRootFileName.Data());
+    fDigiTree->Reset();
+    fDigiTree->Branch("EventHeader", &header);
+    fDigiTree->Branch("T0", &t0);
+    fDigiTree->Branch("BC1", &bc1);
+    fDigiTree->Branch("BC2", &bc2);
+    fDigiTree->Branch("VETO", &veto);
+    fDigiTree->Branch("DCH", &dch);
+    fDigiTree->Branch("GEM", &gem);
+    fDigiTree->Branch("TOF400", &tof400);
+    fDigiTree->Branch("TOF700", &tof700);
+    fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
+    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
+    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+}
+
+BmnStatus BmnRawDataDecoder::DisposeDecoder() {
+    //    fDigiTree->Write();
+    //    fDigiFileOut->Close();
+
+    delete fGemMapper;
+    delete fDchMapper;
+    delete fTrigMapper;
+    delete fTof400Mapper;
+
+    delete sync;
+    delete adc32;
+    delete tdc;
+    delete gem;
+    delete dch;
+    delete t0;
+    delete bc1;
+    delete bc2;
+    delete veto;
+    delete tof400;
+    delete tof700;
+    delete header;
+    delete fDigiTree;
     return kBMNSUCCESS;
 }
 
@@ -551,7 +865,8 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adc, UInt_t**** pedData, UInt_t ev) {
+BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adc, UInt_t ev) {
+    UInt_t**** pedData = fGemMapper->GetPedData();
     for (UInt_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
         BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
 

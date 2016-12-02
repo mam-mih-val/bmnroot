@@ -3,15 +3,16 @@
 // -------------------------------------------------------------------------
 #include "FairWebScreenshots.h"
 
-#include "TEveManager.h"                // for TEveManager, gEve
+#include "TEveManager.h"
 #include "TGLViewer.h"
+#include <TThread.h>
+
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <netinet/in.h>
 
 #include <iostream>
-#include <fstream>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <pwd.h>
-#include <TThread.h>
 
 using namespace std;
 
@@ -179,18 +180,21 @@ void FairWebScreenshots::sendHeader(const char* Status_code, char* Content_Type,
 	char contentLength[100];
 	sprintf(contentLength, "%i", TotalSize);
 
-	char* message = (char*)malloc((
-									  strlen(head) +
-									  strlen(content_head) +
-									  strlen(server_head) +
-									  strlen(length_head) +
-									  strlen(date_head) +
-									  strlen(newline) +
-									  strlen(Status_code) +
-									  strlen(Content_Type) +
-									  strlen(contentLength) +
-									  28 +
-									  sizeof(char)) * 2);
+    char* message = (char*)malloc(
+        (strlen(head) +
+         strlen(content_head) +
+         strlen(server_head) +
+         strlen(length_head) +
+         strlen(date_head) +
+         strlen(newline) +
+         strlen(Status_code) +
+         strlen(Content_Type) +
+         strlen(contentLength) +
+         28 +
+         sizeof(char)
+         )
+         * 2
+    );
 
 	if (message != NULL)
 	{

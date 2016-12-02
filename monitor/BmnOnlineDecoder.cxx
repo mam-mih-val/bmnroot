@@ -19,11 +19,8 @@ BmnOnlineDecoder::BmnOnlineDecoder() : BmnRawDataDecoder() {
 BmnOnlineDecoder::BmnOnlineDecoder(TString file, ULong_t nEvents) : BmnRawDataDecoder(file, nEvents) {
 }
 
-BmnOnlineDecoder::BmnOnlineDecoder(const BmnOnlineDecoder& orig) {
-}
-
 BmnStatus BmnOnlineDecoder::ConvertRawToRootOnline(){
-    
+        
 }
 
 BmnOnlineDecoder::~BmnOnlineDecoder() {

@@ -21,12 +21,17 @@
 #include <sys/socket.h>
 #include </usr/include/netdb.h>
 #include <vector>
-#include <string.h>
-#include <sstream>
+#include <thread>
+#include <mutex>
+#include <string>
 #include "libxml/tree.h"
+//for old fairsoft
+#define ZMQ_XSUB 10
+#define ZMQ_STREAM 11
 
 BmnDataReceiver::BmnDataReceiver(){
     //gSystem->Load("libxml2");
+//    gSystem->Load("libzmq");
     InitSocks();
 }
 
@@ -74,12 +79,12 @@ int BmnDataReceiver::ParsePNPMsg(Char_t* msgStr, serverInfo* sInfo) {
     {
         if ((cur_node->type == XML_ELEMENT_NODE) || (cur_node->type == XML_TEXT_NODE)){
             if (strcmp((Char_t*)cur_node->name, "program") == 0){
-                strcpy(_dataServer.hostName,(Char_t*)xmlGetProp(cur_node, (UChar_t*)"hostName"));
+                strcpy(sInfo->hostName,(Char_t*)xmlGetProp(cur_node, (UChar_t*)"hostName"));
                 cur_node = cur_node->children;
                 continue;
             }
             if (strcmp((Char_t*)cur_node->name, "interfaces") == 0){
-                _dataServer.interfaces.clear();
+                sInfo->interfaces.clear();
                 cur_node = cur_node->children;
                 continue;
             }
@@ -92,7 +97,7 @@ int BmnDataReceiver::ParsePNPMsg(Char_t* msgStr, serverInfo* sInfo) {
                 newPort.isFree = ((Char_t*)xmlGetProp(cur_node, (UChar_t*)"isFree") == "1")? 1 : 0;
                 newPort.enabled = ((Char_t*)xmlGetProp(cur_node, (UChar_t*)"enabled") == "1")? 1 : 0;
                 //if (newPort.type == "data flow")
-                    _dataServer.interfaces.push_back(newPort);
+                    sInfo->interfaces.push_back(newPort);
                 if (cur_node->next == NULL)
                     cur_node = cur_node->parent->next;
                 else
@@ -214,16 +219,18 @@ int BmnDataReceiver::RecvData() {
         printf("rcvbuf = %d\n", rcvBuf);
     Char_t id[MAX_ADDR_LEN];
     Int_t id_size;
-    stringstream dstream;
     UInt_t *buf = (UInt_t*)malloc(MAX_BUF_LEN);
     Int_t msg_len = 0;
     Int_t frame_size;
     while (1)
     {
-        id_size = zmq_recv(_socket_data, &id, sizeof(id), 0);
+        id_size = zmq_recv(_socket_data, &id, sizeof(id), ZMQ_DONTWAIT);
         if (id_size == -1){
             printf("Receive error #%s\n", zmq_strerror (errno));
-            return -1;
+            if (errno == EAGAIN)
+                usleep(MSG_TIMEOUT);
+            else
+                return -1;
         } else {
             printf("ID size =  %d\n Id:%s\n", id_size, id);
         }
@@ -231,17 +238,23 @@ int BmnDataReceiver::RecvData() {
         zmq_msg_init(&msg);
         Int_t recv_more = 0;
         do {
-            frame_size = zmq_msg_recv(&msg, _socket_data, 0);
+            frame_size = zmq_msg_recv(&msg, _socket_data, ZMQ_DONTWAIT);
             //frame_size = zmq_recv(_socket_data, buf, MAX_BUF_LEN, 0);
             if (frame_size == -1){
                 printf("Receive error #%s\n", zmq_strerror (errno));
-                return -1;
+                if (errno == EAGAIN)
+                    usleep(MSG_TIMEOUT);
+                else
+                    return -1;
             } else {
                 UChar_t *str = (UChar_t*)malloc ((frame_size + 1) * sizeof(UChar_t));
+                memcpy(buf, zmq_msg_data(&msg), frame_size);
+                ((mutex*)_deque_mutex)->lock();
+                for (Int_t offset = 0; offset < frame_size; offset++)
+                    data_queue.push_back(*(buf + offset));
+                ((mutex*)_deque_mutex)->unlock();
                 memcpy(str, zmq_msg_data(&msg), frame_size);
                 str[frame_size] = '\0';                
-                //memcpy(buf + msg_len, zmq_msg_data(&msg), frame_size);
-                //memcpy(str, buf + msg_len, frame_size);
                 msg_len += frame_size;
                 printf("Frame size =  %d\n Msg:%s\n", frame_size, str);
                 free(str);

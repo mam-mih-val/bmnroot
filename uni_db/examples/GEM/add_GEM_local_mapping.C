@@ -1,5 +1,5 @@
-#include "../../db_structures.h"
-#include "TString.h"
+
+class IIStructure;
 
 int AssignMapStructure(IIStructure* pArray, int id, int i1, int i2) {
     pArray[id].int_1 = i1;

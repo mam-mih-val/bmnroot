@@ -49,7 +49,7 @@ Check_Compiler()
 set(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/lib")
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 
-Option(USE_PATH_INFO "Information from PATH and LD_LIBRARY_PATH are used." OFF)
+Option(USE_PATH_INFO "Information from PATH and LD_LIBRARY_PATH are used." ON)
 
 If(USE_PATH_INFO)
   Set(PATH $ENV{PATH})
@@ -88,7 +88,7 @@ CHECK_EXTERNAL_PACKAGE_INSTALL_DIR()
 # REQUIRED means that cmake will stop if this packages are not found
 # For example the framework can run without GEANT4, but ROOT is
 # mandatory
-find_package(ROOT 5.34.00 REQUIRED)
+find_package(ROOT 5.34.28 REQUIRED)
 find_package(Pythia6)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules_old" ${CMAKE_MODULE_PATH})
@@ -102,10 +102,11 @@ find_package(SSE)
 find_package(PLUTO REQUIRED)
 find_package(GENERATORS REQUIRED)
 find_package(XML2 REQUIRED)
+find_package(TDAQ)
 
 #find_package(CUDA)
 #find_package(IWYU)
-#find_package(ZeroMQ)
+find_package(ZeroMQ)
 #find_package(Protobuf)
 #find_package(DDS)
 
@@ -157,6 +158,8 @@ EndIf()
 # Set some useful variables
 SetBasicVariables()
 SET(PATH ${EXECUTABLE_OUTPUT_PATH} ${PATH})
+set(BMNROOT TRUE)
+add_definitions(-DBMNROOT)
 
 # Recurse into the given subdirectories.  This does not actually
 # cause another cmake executable to run.  The same process will walk through
@@ -195,8 +198,8 @@ add_subdirectory (KF)
 add_subdirectory (cat)
 add_subdirectory (uni_db)
 add_subdirectory (alignment)
-add_subdirectory (monitor)
 add_subdirectory (silicon)
+#add_subdirectory (monitor)
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/CMakeLists.txt")
  add_subdirectory (macro/mpd_scheduler)
@@ -209,11 +212,9 @@ if(BUILD_DOXYGEN)
 endif(BUILD_DOXYGEN)
 
 if(RULE_CHECKER_FOUND)
-
   ADD_CUSTOM_TARGET(RULES 
      COMMAND ${RULE_CHECKER_SCRIPT1} ${CMAKE_BINARY_DIR} viol > violations.html
      DEPENDS $ENV{ALL_RULES})
-
 endif(RULE_CHECKER_FOUND)
 
 WRITE_CONFIG_FILE(config.sh)

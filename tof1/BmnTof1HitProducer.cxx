@@ -74,7 +74,7 @@ assert(aMcTracks);
 	}
 	else
 	{
-    		aExpDigits = (TClonesArray*) FairRootManager::Instance()->GetObject("bmn_tof400");
+    		aExpDigits = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF400");
 assert(aExpDigits);	
 	}
 	

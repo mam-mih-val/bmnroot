@@ -1,11 +1,12 @@
 // -------------------------------------------------------------------------
-// -----                     BmnTrackDraw header file                  -----
-// -----                Created 02/12/15  by K. Gertsenberger          -----
+// -----                     BmnTrackDrawP header file
+// -----                Created 02/12/15  by K. Gertsenberger
+// -----       class to draw BmnTrack* collection by Geane propagation
 // -------------------------------------------------------------------------
 
 
-#ifndef BmnTrackDraw_H
-#define BmnTrackDraw_H
+#ifndef BMNTRACKDRAWP_H
+#define BMNTRACKDRAWP_H
 
 #include "FairTask.h"
 #include "FairEventManager.h"
@@ -13,61 +14,59 @@
 #include "TEveTrack.h"
 #include "FairTrajFilter.h"
 
-#include "TString.h"
 #include "TParticle.h"
 #include "TObjArray.h"
 
-class BmnTrackDraw : public FairTask
+class BmnTrackDrawP : public FairTask
 {
   public:
     /** Default constructor **/
-    BmnTrackDraw();
+    BmnTrackDrawP();
 
     /** Standard constructor
-    *@param name        Name of task
+    *@param name        Name of task and branch with BmnTrack* collection
     *@param iVerbose    Verbosity level
     **/
-    BmnTrackDraw(const char* name, Int_t iVerbose = 1);
+    BmnTrackDrawP(const char* name, Int_t iVerbose = 1);
 
     /** Destructor **/
-    virtual ~BmnTrackDraw();
+    virtual ~BmnTrackDrawP();
 
     /** Set verbosity level. For this task and all of the subtasks. **/
     void SetVerbose(Int_t iVerbose);
     /** Executed task **/
     virtual void Exec(Option_t* option);
+
     virtual InitStatus Init();
     virtual void SetParContainers();
-
-    /** Action after each event**/
-    virtual void Finish();
     void Reset();
+    virtual void Finish();
+
+    // return pointer to EVE track list for given particle name. if list don't exist then create it
     TEveTrackList* GetTrGroup(TParticle* P);
 
     void InitGeant3();
 
   protected:
-    TChain* bmn_data_tree;          //!
-    TClonesArray*  fTrackList;      //!
     FairEventManager* fEventManager;//!
+    TClonesArray*  fTrackList;      //!
     TEveTrackList* fTrList;         //!
-    FairGeanePro* fPro;             //!
 
+    FairGeanePro* fPro;             //!
     TEveTrackPropagator* fTrPr;     //!
     TObjArray* fEveTrList;
     FairTrajFilter* fTrajFilter;    //!
-    TString fEvent;                 //!
-    TGeant3* gMC3;                  //!
 
     Float_t x1[3];
     Float_t p1[3];
     Float_t x2[3];
     Float_t p2[3];
+
     Double_t MinEnergyLimit;
     Double_t MaxEnergyLimit;
     Double_t PEnergy;
 
-    ClassDef(BmnTrackDraw,1);
+    ClassDef(BmnTrackDrawP,1);
 };
 
 #endif

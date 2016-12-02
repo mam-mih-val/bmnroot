@@ -1,8 +1,8 @@
 #include <TString.h>
 #include <TStopwatch.h>
 
-void gemAlignment(Int_t fileNumber = 65, Int_t nEvents = 10000) {
-
+//void gemAlignment(Int_t fileNumber = 65, Int_t nEvents = 10000) {
+void gemAlignment(Int_t fileNumber = 65, Int_t nEvents = 10000, TString addInfo = "") {
     TString type = (fileNumber < 66) ? "beam" : "target";
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -17,8 +17,8 @@ void gemAlignment(Int_t fileNumber = 65, Int_t nEvents = 10000) {
     TString num = "";
     // TString addInfo = "";
     num += fileNumber;
-    fFileSource = new BmnFileSource(TString("reco_" + num + ".root").Data());
-
+  //fFileSource = new BmnFileSource(TString("reco_" + num + ".root").Data());
+    fFileSource = new BmnFileSource(TString("bmn_run00"+num+addInfo+"_reco.root").Data());
     fRun->SetSource(fFileSource);
     fRun->SetOutputFile("align.root");
 
@@ -32,7 +32,7 @@ void gemAlignment(Int_t fileNumber = 65, Int_t nEvents = 10000) {
     gemAlign->SetNumIterations(10);
     // gemAlign->SetDebugInfo(kTRUE);
     // gemAlign->SetAlignmentTypeByHands("xy"); // Can be either xy or xyz
-    
+
     /********************************/
 
     fRun->AddTask(gemAlign);

@@ -9,8 +9,8 @@ class BmnADC32Digit : public TObject {
 
 private:
     UInt_t fSerial;
-    UChar_t fChannel;
-    UShort_t fValue[32]; //[2048]; // 64 channels x 32 16-bit words
+    UInt_t fChannel;
+    UInt_t fValue[32]; //[2048]; // 64 channels x 32 16-bit words
     
 public:
 
@@ -18,7 +18,7 @@ public:
     BmnADC32Digit();
 
     /** Constructor to use **/
-    BmnADC32Digit(UInt_t iSerial, UChar_t iChannel, UShort_t *iValue);
+    BmnADC32Digit(UInt_t iSerial, UInt_t iChannel, UInt_t *iValue);
 
     UInt_t GetSerial() const {
         return fSerial;
@@ -28,14 +28,14 @@ public:
         return fChannel;
     }
     
-    UShort_t *GetValue() const {
-        return (UShort_t *) fValue;
+    UInt_t *GetValue() const {
+        return (UInt_t *) fValue;
     }
 
     /** Destructor **/
     virtual ~BmnADC32Digit();
 
-    ClassDef(BmnADC32Digit, 1);
+    ClassDef(BmnADC32Digit, 2);
 };
 
 #endif /* BMNADC32DIGIT_H */

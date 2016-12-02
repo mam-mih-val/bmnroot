@@ -16,7 +16,7 @@
 #include <UniDbDetectorParameter.h>
 
 #define ADC_N_CHANNELS 64 //number of ADC channels
-#define ADC_N_SAMPLES 32 //number of samples in one ADC digit
+#define ADC32_N_SAMPLES 32 //number of samples in one ADC digit
 #define N_CH_IN_CRATE 2048 //number of channels in one crate (64ch x 32smpl))
 #define N_CH_IN_SMALL_GEM 512 //number of channels in small GEM stations (sum of all redout channels)
 #define N_CH_IN_MID_GEM 2176 //number of channels in middle GEM stations (sum of all redout channels)
@@ -25,7 +25,8 @@
 #define N_CH_IN_BIG_GEM_1 2176//2100 //number of channels in big zone of one part of big GEM stations (sum of redout channels from X1 and Y1)
 #define N_MODULES 2
 #define N_LAYERS 4
-#define N_EV_FOR_PEDESTALS 1000
+#define N_EV_FOR_PEDESTALS 200
+#define N_GEM_SERIALS 14//10
 
 using namespace std;
 using namespace TMath;
@@ -74,7 +75,11 @@ public:
 
     BmnStatus FillEvent(TClonesArray *adc, TClonesArray *gem);
     BmnStatus CalcGemPedestals(TClonesArray *adc, TTree *tree);
-    BmnStatus RecalculatePedestals(list<TClonesArray*> pedList, vector<BmnGemPedestal*> &pedArr);
+    BmnStatus RecalculatePedestals();
+
+    UInt_t**** GetPedData() {
+        return fPedDat;
+    }
 
 private:
 
@@ -91,11 +96,9 @@ private:
     BmnGemPed** fPedArr;
 
     void ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
-    vector<BmnGemStripDigit*> CheckNoisyStrips(BmnGemStripDigit *chipDigits);
     BmnStatus ReadMap(TString parName, TString parNameSize, BmnGemMap* m, Int_t lay, Int_t mod);
     Double_t CalcCMS(Double_t* samples, Int_t size);
     BmnStatus FindNoisyStrips();
-    BmnStatus FillProfile(BmnADC32Digit* dig, UInt_t* signal);
 
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
 
@@ -104,8 +107,11 @@ private:
     Int_t fNCrates;
     Int_t fEventId;
 
-    map<BmnADC32Digit*, UInt_t*> fAdcProfiles;
-    map<BmnADC32Digit*, vector<Short_t> > fNoiseChannels;
+    UInt_t**** fPedDat; //data set to calculate pedestals
+    Float_t*** fPedVal; //set of calculated pedestals
+    Float_t*** fPedRms; // set of calculated pedestal errors
+    UInt_t*** fAdcProfiles;
+    Bool_t*** fNoiseChannels; //false = good channel, true = noisy channel
 
     ClassDef(BmnGemRaw2Digit, 1);
 };

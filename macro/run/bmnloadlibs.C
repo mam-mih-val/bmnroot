@@ -24,6 +24,7 @@ void bmnloadlibs()
   gSystem->Load("libEcal");
   gSystem->Load("libBd");
   gSystem->Load("libGem");
+  gSystem->Load("libSilicon");
   gSystem->Load("libGlobalTracking");
   gSystem->Load("libTOF1");
   gSystem->Load("libDch1");

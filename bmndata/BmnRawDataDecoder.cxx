@@ -25,9 +25,13 @@ const UInt_t kTRIG = 0xA;
 const UInt_t kMSC = 0xF;
 const UInt_t kUT24VE = 0x49;
 const UInt_t kADC64VE = 0xD4;
+const UInt_t kHRB = 0xC2;
 const UInt_t kFVME = 0xD1;
 const UInt_t kU40VE_RC = 0x4C;
 /********************************************************/
+
+//KOSTYL!!!
+UInt_t kSERIALS[N_GEM_SERIALS] = {0x76CBA8B, 0x76CD410, 0x76C8320, 0x76CB9C0, 0x76CA266, 0x76D08B9, 0x76C8321, 0x76CE3EE, 0x76CE3E5, 0x4E983C1, 0x76C8321, 0x76C82BE, 0x76CD411, 0x4E983C1};
 
 const Int_t kPERIOD = 4;
 
@@ -223,10 +227,14 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         cout << "id = " << hex << id << dec << endl;
         switch (id) {
             case kADC64VE:
-                Process_ADC64VE(&data[idx], payload, serial, 128, adc128);
+                Process_ADC64VE(&data[idx], payload, serial, 32, adc32);
+                //                Process_ADC64VE(&data[idx], payload, serial, 128, adc128);
                 break;
             case kFVME:
                 Process_FVME(&data[idx], payload, serial, evType);
+                break;
+            case kHRB:
+                Process_HRB(&data[idx], payload, serial);
                 break;
         }
         idx += payload;
@@ -238,7 +246,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
     const UChar_t kNCH = 64;
     const UChar_t kNSTAMPS = nSmpl;
 
-    UShort_t val[kNSTAMPS];
+    UInt_t val[kNSTAMPS];
     for (Int_t i = 0; i < kNSTAMPS; ++i) val[i] = 0;
 
     UInt_t i = 0;
@@ -256,7 +264,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
                 }
 
                 TClonesArray& ar_adc = *arr;
-                if (iCh > 0 && iCh < kNCH) {
+                if (iCh >= 0 && iCh < kNCH) {
                     if (kNSTAMPS == 128)
                         new(ar_adc[arr->GetEntriesFast()]) BmnADC128Digit(serial, iCh, val);
                     else if (kNSTAMPS == 32)
@@ -310,6 +318,13 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                 }
             }
         }
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::Process_HRB(UInt_t *d, UInt_t len, UInt_t serial) {
+    for (UInt_t i = 0; i < len; i++) {
+        //cout << bitset<32>(d[i]) << endl;
     }
     return kBMNSUCCESS;
 }
@@ -413,21 +428,20 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     //    BmnTof2Raw2Digit *tof700Mapper = new BmnTof2Raw2Digit(fTof700MapFileName);
 
     UInt_t pedEvCntr = 0; // counter for pedestal events between two spills
-    UInt_t pedBunchCntr = 0; // counter for bunches of pedestal events between two spills
-    const UInt_t kNBUNCH = 10; // counter for bunches of pedestal events between two spills
     BmnEventType curEventType = kBMNPAYLOAD;
     BmnEventType prevEventType = curEventType;
-    list<TClonesArray*> pedListFullSet; //storage for pedestal events from last kNBUNCH bunches
-    list<TClonesArray*> pedListCurrBunch; //storage for pedestal events from one bunch
-    vector<BmnGemPedestal*> pedVec;
+
+    UInt_t**** pedData = NULL;
 
     if (fPedestalRun) {
         gemMapper = new BmnGemRaw2Digit();
         gemMapper->CalcGemPedestals(adc32, fRawTree);
     } else {
         gemMapper = new BmnGemRaw2Digit(kPERIOD, fRunId);
+        pedData = gemMapper->GetPedData();
+
         siliconMapper = new BmnSiliconRaw2Digit(kPERIOD, fRunId);
-        for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
+        for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
             if (iEv % 1000 == 0) cout << "Decoding event #" << iEv << endl;
             dch->Clear();
             gem->Clear();
@@ -455,30 +469,26 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             trigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time);
 
             if (curEventType == kBMNPEDESTAL) {
+                if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
+                CopyDataToPedMap(adc32, pedData, pedEvCntr);
                 pedEvCntr++;
-                pedListCurrBunch.push_back(adc32);
             } else { // payload
                 if (prevEventType == kBMNPEDESTAL) {
-                    for (Int_t i = 0; i < pedEvCntr; ++i) {
-                        pedListFullSet.push_back(pedListCurrBunch.front());
-                        if (pedBunchCntr >= kNBUNCH)
-                            pedListFullSet.pop_front();
+                    if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) {
+                        gemMapper->RecalculatePedestals();
+                        pedEvCntr = 0;
                     }
-                    gemMapper->RecalculatePedestals(pedListFullSet, pedVec);
-                    pedEvCntr = 0;
-                    pedBunchCntr++;
                 }
                 gemMapper->FillEvent(adc32, gem);
                 siliconMapper->FillEvent(adc128, silicon);
+                dchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
+                tof400Mapper->FillEvent(tdc, tof400);
+                fDigiTree->Fill();
             }
-
-            dchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
-            tof400Mapper->FillEvent(tdc, tof400);
             prevEventType = curEventType;
-
-            fDigiTree->Fill();
         }
     }
+
 
     fDigiTree->Write();
     fDigiFileOut->Close();
@@ -536,6 +546,22 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
         Long64_t syncTime = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
         fTimeShifts.insert(pair<UInt_t, Long64_t>(syncDig->GetSerial(), syncTime - t0time));
+    }
+
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adc, UInt_t**** pedData, UInt_t ev) {
+    for (UInt_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+        BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+
+        Int_t iSer = -1;
+        for (iSer = 0; iSer < N_GEM_SERIALS; ++iSer)
+            if (adcDig->GetSerial() == kSERIALS[iSer]) break;
+        if (iSer == -1) return kBMNERROR;
+
+        for (UInt_t iSmpl = 0; iSmpl < ADC32_N_SAMPLES; ++iSmpl)
+            pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
     }
 
     return kBMNSUCCESS;

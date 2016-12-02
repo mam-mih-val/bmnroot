@@ -16,6 +16,7 @@ ${BMNROOT_SOURCE_DIR}/bmnbase
 ${BMNROOT_SOURCE_DIR}/bmndata
 ${BMNROOT_SOURCE_DIR}/bmnfield
 ${BMNROOT_SOURCE_DIR}/gem
+${BMNROOT_SOURCE_DIR}/silicon
 ${BMNROOT_SOURCE_DIR}/globaltracking
 ${BMNROOT_SOURCE_DIR}/monitor
 /usr/include/libxml2

@@ -10,7 +10,7 @@ class BmnADC128Digit : public TObject {
 private:
     UInt_t fSerial;
     UChar_t fChannel;
-    UShort_t fValue[128];
+    UInt_t fValue[128];
     
 public:
 
@@ -18,18 +18,18 @@ public:
     BmnADC128Digit();
 
     /** Constructor to use **/
-    BmnADC128Digit(UInt_t iSerial, UChar_t iChannel, UShort_t *iValue);
+    BmnADC128Digit(UInt_t iSerial, UChar_t iChannel, UInt_t *iValue);
 
     UInt_t GetSerial() const {
         return fSerial;
     }
 
-    UInt_t GetChannel() const {
+    UChar_t GetChannel() const {
         return fChannel;
     }
     
-    UShort_t *GetValue() const {
-        return (UShort_t *) fValue;
+    UInt_t *GetValue() const {
+        return (UInt_t *) fValue;
     }
 
     /** Destructor **/

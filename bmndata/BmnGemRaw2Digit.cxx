@@ -1,5 +1,8 @@
 #include "BmnGemRaw2Digit.h"
 
+//KOSTYL!!!
+UInt_t serials[N_GEM_SERIALS] = {0x76CBA8B, 0x76CD410, 0x76C8320, 0x76CB9C0, 0x76CA266, 0x76D08B9, 0x76C8321, 0x76CE3EE, 0x76CE3E5, 0x4E983C1, 0x76C8321, 0x76C82BE, 0x76CD411, 0x4E983C1};
+
 BmnGemRaw2Digit::BmnGemRaw2Digit() {
 }
 
@@ -97,6 +100,43 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
             if (ser == fCrates[iCr])
                 fPedArr[iCr][ch] = BmnGemPed(ped, rms);
     }
+
+    fPedVal = new Float_t**[N_GEM_SERIALS];
+    fPedRms = new Float_t**[N_GEM_SERIALS];
+    fAdcProfiles = new UInt_t**[N_GEM_SERIALS];
+    fNoiseChannels = new Bool_t**[N_GEM_SERIALS];
+    for (Int_t iCr = 0; iCr < N_GEM_SERIALS; ++iCr) {
+        fPedVal[iCr] = new Float_t*[ADC_N_CHANNELS];
+        fPedRms[iCr] = new Float_t*[ADC_N_CHANNELS];
+        fAdcProfiles[iCr] = new UInt_t*[ADC_N_CHANNELS];
+        fNoiseChannels[iCr] = new Bool_t*[ADC_N_CHANNELS];
+        for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
+            fPedVal[iCr][iCh] = new Float_t[ADC32_N_SAMPLES];
+            fPedRms[iCr][iCh] = new Float_t[ADC32_N_SAMPLES];
+            fAdcProfiles[iCr][iCh] = new UInt_t[ADC32_N_SAMPLES];
+            fNoiseChannels[iCr][iCh] = new Bool_t[ADC32_N_SAMPLES];
+            for (Int_t iSmpl = 0; iSmpl < ADC32_N_SAMPLES; ++iSmpl) {
+                fPedVal[iCr][iCh][iSmpl] = 0.0;
+                fPedRms[iCr][iCh][iSmpl] = 0.0;
+                fAdcProfiles[iCr][iCh][iSmpl] = 0;
+                fNoiseChannels[iCr][iCh][iSmpl] = kFALSE;
+            }
+        }
+    }
+
+    fPedDat = new UInt_t***[N_GEM_SERIALS];
+    for (Int_t iCr = 0; iCr < N_GEM_SERIALS; ++iCr) {
+        fPedDat[iCr] = new UInt_t**[N_EV_FOR_PEDESTALS];
+        for (UInt_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
+            fPedDat[iCr][iEv] = new UInt_t*[ADC_N_CHANNELS];
+            for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
+                fPedDat[iCr][iEv][iCh] = new UInt_t[ADC32_N_SAMPLES];
+                for (Int_t iSmpl = 0; iSmpl < ADC32_N_SAMPLES; ++iSmpl) {
+                    fPedDat[iCr][iEv][iCh][iSmpl] = 0;
+                }
+            }
+        }
+    }
 }
 
 BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, TString parNameSize, BmnGemMap* m, Int_t lay, Int_t mod) {
@@ -120,18 +160,11 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     //    delete fSmall;
 }
 
-BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *gem) {
+BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
     fEventId++;
-    if (fEventId == N_EV_FOR_PEDESTALS)
-        FindNoisyStrips();
     for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
         BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
-        if (fAdcProfiles.find(adcDig) == fAdcProfiles.end()) {
-            UInt_t* signals = new UInt_t[ADC_N_SAMPLES];
-            for (Int_t k = 0; k < ADC_N_SAMPLES; ++k) signals[k] = 0;
-            fAdcProfiles.insert(pair < BmnADC32Digit*, UInt_t*>(adcDig, signals));
-        }
-        UInt_t ch = adcDig->GetChannel() * ADC_N_SAMPLES;
+        UInt_t ch = adcDig->GetChannel() * ADC32_N_SAMPLES;
         for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
             GemMapStructure gemM = fMap[iMap];
             if (adcDig->GetSerial() == gemM.serial && ch <= gemM.channel_high && ch >= gemM.channel_low) {
@@ -142,13 +175,17 @@ BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *gem) {
     }
 }
 
-void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray *gem) {
-    const UInt_t nSmpl = ADC_N_SAMPLES;
+void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray * gem) {
+    const UInt_t nSmpl = ADC32_N_SAMPLES;
     UInt_t ch = adcDig->GetChannel();
+    UInt_t ser = adcDig->GetSerial();
+
+    Int_t iSer = -1;
+    for (iSer = 0; iSer < N_GEM_SERIALS; ++iSer)
+        if (ser == fCrates[iSer]) break;
+    if (iSer == -1) return;
 
     BmnGemStripDigit candDig[nSmpl];
-    Double_t pedestals[nSmpl];
-    Double_t pedNoises[nSmpl];
 
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         Int_t strip = -1;
@@ -156,13 +193,6 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
         Int_t mod = -1;
         Int_t ch2048 = ch * nSmpl + iSmpl;
         UInt_t realChannel = 0;
-        for (Int_t i = 0; i < fNCrates; ++i) {
-            if (fCrates[i] == gemM->serial) {
-                pedestals[iSmpl] = fPedArr[i][ch2048].ped;
-                pedNoises[iSmpl] = fPedArr[i][ch2048].noise;
-                break;
-            }
-        }
 
         switch (gemM->id) {
             case 0: //small gem
@@ -219,12 +249,12 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
             dig.SetModule(mod);
             dig.SetStripLayer(lay);
             dig.SetStripNumber(strip);
-            dig.SetStripSignal(Double_t((adcDig->GetValue())[iSmpl] / 16));
+            dig.SetStripSignal((adcDig->GetValue())[iSmpl] / 16);
             candDig[iSmpl] = dig;
         }
     }
 
-    Double_t signals[ADC_N_SAMPLES];
+    Double_t signals[ADC32_N_SAMPLES];
     Int_t nOk = 0;
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStripSignal() == 0) continue;
@@ -233,46 +263,23 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
     }
     Double_t CMS = CalcCMS(signals, nOk);
 
-    UInt_t prof[nSmpl];
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
+
+        if (fNoiseChannels[iSer][ch][iSmpl]) continue;
         BmnGemStripDigit * dig = &candDig[iSmpl];
-        Float_t threshold = 20; //((dig->GetStation() == 0 || dig->GetStation() == 6) ? 12 : 7.0 * pedNoises[iSmpl]);
-        prof[iSmpl] = (dig->GetStripSignal() - CMS - pedestals[iSmpl] > threshold) ? 1 : 0;
-    }
-
-    if (fEventId < N_EV_FOR_PEDESTALS)
-        FillProfile(adcDig, prof);
-    else {
-        map<BmnADC32Digit*, vector < Short_t> >::iterator it = fNoiseChannels.find(adcDig);
-        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-            if ((candDig[iSmpl]).GetStation() == -1) continue;
-            BmnGemStripDigit * dig = &candDig[iSmpl];
-            Double_t sig = dig->GetStripSignal() - CMS - pedestals[iSmpl];
-            Float_t threshold = 20; //((dig->GetStation() == 0 || dig->GetStation() == 6) ? 12 : 3.0 * pedNoises[iSmpl]);
-            if (sig < threshold) continue;
-
-            Bool_t isNoisy = kFALSE;
-            if (it != fNoiseChannels.end()) {
-                vector<Short_t> noiseCh = it->second;
-                for (Int_t i = 0; i < noiseCh.size(); ++i) {
-                    if (iSmpl == noiseCh.at(i)) {
-                        isNoisy = kTRUE;
-                        break;
-                    }
-                }
-            }
-            if (isNoisy) continue;
-            new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
-        }
+        Double_t sig = dig->GetStripSignal() - CMS - fPedVal[iSer][ch][iSmpl];
+        Float_t threshold = ((dig->GetStation() == 0 || dig->GetStation() == 6) ? 50 : 7.0 * fPedRms[iSer][ch][iSmpl]);
+        if (sig < threshold) continue;
+        new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }
 }
 
-BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree *tree) {
+BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree * tree) {
     ofstream pedFile(Form("%s/input/GEM_pedestals.txt", getenv("VMCWORKDIR")));
     pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
     pedFile << "============================================" << endl;
-    const UShort_t nSmpl = ADC_N_SAMPLES;
+    const UShort_t nSmpl = ADC32_N_SAMPLES;
     const UInt_t nDigs = 640; //fNCrates * 64; // 10 ADC x 64 ch
 
     Double_t** pedestals = new Double_t* [nDigs];
@@ -336,141 +343,140 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree *tree) {
     pedFile.close();
 }
 
-BmnStatus BmnGemRaw2Digit::FillProfile(BmnADC32Digit* dig, UInt_t* signal) {
-
-    map<BmnADC32Digit*, UInt_t*>::iterator it = fAdcProfiles.find(dig);
-    if (it == fAdcProfiles.end()) return kBMNERROR;
-    for (Int_t iSmpl = 0; iSmpl < ADC_N_SAMPLES; ++iSmpl) {
-        (it->second)[iSmpl] += signal[iSmpl];
-    }
-
-    return kBMNSUCCESS;
-}
-
 BmnStatus BmnGemRaw2Digit::FindNoisyStrips() {
     const Short_t kNBUNCHES = 2;
-    const Short_t kNSAMPLES = ADC_N_SAMPLES / kNBUNCHES;
+    const Short_t kNSAMPLES = ADC32_N_SAMPLES / kNBUNCHES;
     const Short_t kNITER = 4;
-    const Float_t coeff[kNITER] = {7, 5, 3, 2};
+    const Float_t coeff[kNITER] = {7, 5, 4, 4};
 
-    map<BmnADC32Digit*, UInt_t*>::iterator it;
+    for (Int_t iCr = 0; iCr < N_GEM_SERIALS; ++iCr) {
+        for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
+            Bool_t channelOk[ADC32_N_SAMPLES];
+            Short_t nOk[kNBUNCHES];
+            for (Short_t i = 0; i < kNBUNCHES; ++i) nOk[i] = kNSAMPLES;
+            for (Short_t i = 0; i < ADC32_N_SAMPLES; ++i) channelOk[i] = kTRUE;
 
-    for (it = fAdcProfiles.begin(); it != fAdcProfiles.end(); ++it) {
-        Short_t channelOk[ADC_N_SAMPLES];
-        Short_t nOk[kNBUNCHES];
-        vector<Short_t> vNoisyIdx;
-        for (Short_t i = 0; i < kNBUNCHES; ++i) nOk[i] = kNSAMPLES;
-        for (Short_t i = 0; i < ADC_N_SAMPLES; ++i) channelOk[i] = 1;
-
-        for (Short_t itr = 0; itr < kNITER; ++itr) {
-            for (Int_t iBunch = 0; iBunch < kNBUNCHES; ++iBunch) {
-                Double_t mean = 0.0;
-                for (Short_t i = 0; i < kNSAMPLES; ++i) {
-                    Short_t idx = i + iBunch * kNSAMPLES;
-                    if ((it->second)[idx] > 0.80 * N_EV_FOR_PEDESTALS && channelOk[idx] == 1) {
-                        nOk[iBunch]--;
-                        vNoisyIdx.push_back(idx);
-                        channelOk[idx] = 0;
-                        continue;
+            for (Short_t itr = 0; itr < kNITER; ++itr) {
+                for (Int_t iBunch = 0; iBunch < kNBUNCHES; ++iBunch) {
+                    Double_t mean = 0.0;
+                    for (Short_t i = 0; i < kNSAMPLES; ++i) {
+                        Short_t idx = i + iBunch * kNSAMPLES;
+                        //cout << fAdcProfiles[iCr][iCh][idx] << " ";
+                        if (fAdcProfiles[iCr][iCh][idx] > 0.90 * N_EV_FOR_PEDESTALS && channelOk[idx] == kTRUE) {
+                            nOk[iBunch]--;
+                            channelOk[idx] = kFALSE;
+                            continue;
+                        }
+                        if (channelOk[idx] == kTRUE && fAdcProfiles[iCr][iCh][idx] == 0) {
+                            channelOk[idx] = kFALSE;
+                            nOk[iBunch]--;
+                            continue;
+                        }
+                        mean += (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx]);
                     }
-                    if (channelOk[idx] == 1 && (it->second)[idx] == 0) {
-                        channelOk[idx] = 0;
-                        nOk[iBunch]--;
-                        continue;
-                    }
-                    mean += (channelOk[idx] * (it->second)[idx]);
-                }
-                mean /= nOk[iBunch];
-
-                for (Short_t i = 0; i < kNSAMPLES; ++i) {
-                    Short_t idx = i + iBunch * kNSAMPLES;
-                    if (channelOk[idx] * (it->second)[idx] > coeff[itr] * mean) {
-                        vNoisyIdx.push_back(idx);
-                        channelOk[idx] = 0;
-                        nOk[iBunch]--;
+                    if (nOk[iBunch] == 0) continue;
+                    mean /= nOk[iBunch];
+                    for (Short_t i = 0; i < kNSAMPLES; ++i) {
+                        Short_t idx = i + iBunch * kNSAMPLES;
+                        if (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx] > coeff[itr] * mean) {
+                            channelOk[idx] = kFALSE;
+                            nOk[iBunch]--;
+                        }
                     }
                 }
             }
+            for (Short_t i = 0; i < ADC32_N_SAMPLES; ++i)
+                fNoiseChannels[iCr][iCh][i] = !(channelOk[i]);
         }
-        fNoiseChannels.insert(pair<BmnADC32Digit*, vector < Short_t > > (it->first, vNoisyIdx));
     }
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnGemRaw2Digit::RecalculatePedestals(list<TClonesArray*> pedList, vector<BmnGemPedestal*> &pedOut) {
+BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
+    const UShort_t nSmpl = ADC32_N_SAMPLES;
 
-    //    const UShort_t nSmpl = ADC_N_SAMPLES;
-    //    const UInt_t nDigs = 640; //fNCrates * 64; // 10 ADC x 64 ch
-    //
-    //    Double_t** pedestals = new Double_t* [nDigs];
-    //    Double_t** noises = new Double_t* [nDigs];
-    //    for (Int_t i = 0; i < nDigs; ++i) {
-    //        pedestals[i] = new Double_t[nSmpl];
-    //        noises[i] = new Double_t[nSmpl];
-    //    }
-    //
-    //    UInt_t nEv = pedList.size();
-    //
-    //    vector<TClonesArray*> pedVec;
-    //    for (Int_t i = 0; i < nEv; ++i) {
-    //        pedVec.push_back(pedList.front());
-    //        pedList.pop_front();
-    //    }
-    //
-    //    for (Int_t iEv = 0; iEv < nEv; ++iEv) {
-    //        if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
-    //        TClonesArray* adc = pedVec.at(iEv);
-    //        for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
-    //            BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
-    //            Double_t signals[nSmpl];
-    //            Int_t nOk = 0;
-    //            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-    //                if ((adcDig->GetValue())[iSmpl] / 16 == 0) continue;
-    //                signals[iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
-    //                nOk++;
-    //            }
-    //            Double_t CMS = CalcCMS(signals, nOk);
-    //            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-    //                pedestals[iAdc][iSmpl] += (signals[iSmpl] - CMS);
-    //        }
-    //    }
-    //
-    //    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc)
-    //        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-    //            pedestals[iAdc][iSmpl] /= nEv;
-    //
-    //
-    //    for (Int_t iEv = 0; iEv < nEv; ++iEv) {
-    //        if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
-    //        TClonesArray* adc = pedVec.at(iEv);
-    //        for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
-    //            BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
-    //            Double_t signals[nSmpl];
-    //            Int_t nOk = 0;
-    //            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-    //                if ((adcDig->GetValue())[iSmpl] / 16 == 0) continue;
-    //                signals[iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
-    //                nOk++;
-    //            }
-    //            Double_t CMS = CalcCMS(signals, nSmpl);
-    //            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-    //                noises[iAdc][iSmpl] += (((signals[iSmpl] - CMS) - pedestals[iAdc][iSmpl]) * ((signals[iSmpl] - CMS) - pedestals[iAdc][iSmpl]));
-    //        }
-    //    }
-    //
-    //    TClonesArray* adc = pedVec.at(0);
-    //    for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
-    //        BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
-    //        for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-    //            noises[iAdc][iSmpl] = Sqrt(noises[iAdc][iSmpl] / nEv);
-    //            if (noises[iAdc][iSmpl]) {
-    //                BmnGemPedestal* pedEntry = new BmnGemPedestal(adcDig->GetSerial(), adcDig->GetChannel() * nSmpl + iSmpl, pedestals[iAdc][iSmpl], noises[iAdc][iSmpl]);
-    //                pedOut.push_back(pedEntry);
-    //            }
-    //        }
-    //    }
-    //
-    //    return kBMNSUCCESS;
+    for (Int_t iCr = 0; iCr < N_GEM_SERIALS; ++iCr)
+        for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
+            for (Int_t iSmpl = 0; iSmpl < ADC32_N_SAMPLES; ++iSmpl) {
+                fNoiseChannels[iCr][iCh][iSmpl] = kFALSE;
+                fPedVal[iCr][iCh][iSmpl] = 0.0;
+                fPedRms[iCr][iCh][iSmpl] = 0.0;
+                fAdcProfiles[iCr][iCh][iSmpl] = 0;
+            }
+        }
+
+    for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
+        if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
+        for (Int_t iCr = 0; iCr < N_GEM_SERIALS; ++iCr)
+            for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
+                Double_t signals[nSmpl];
+                for (Int_t i = 0; i < nSmpl; ++i) signals[i] = 0.0;
+                Int_t nOk = 0;
+                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
+                    signals[iSmpl] = fPedDat[iCr][iEv][iCh][iSmpl];
+                    nOk++;
+                }
+                Double_t CMS = CalcCMS(signals, nOk);
+                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                    fPedVal[iCr][iCh][iSmpl] += ((signals[iSmpl] - CMS) / N_EV_FOR_PEDESTALS);
+                }
+            }
+    }
+
+    for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
+        if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
+        for (Int_t iCr = 0; iCr < N_GEM_SERIALS; ++iCr)
+            for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
+                Double_t signals[nSmpl];
+                for (Int_t i = 0; i < nSmpl; ++i) signals[i] = 0.0;
+                Int_t nOk = 0;
+                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
+                    signals[iSmpl] = fPedDat[iCr][iEv][iCh][iSmpl];
+                    nOk++;
+                }
+                Double_t CMS = CalcCMS(signals, nOk);
+                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                    Float_t ped = fPedVal[iCr][iCh][iSmpl];
+                    fPedRms[iCr][iCh][iSmpl] += ((signals[iSmpl] - CMS - ped) * (signals[iSmpl] - CMS - ped));
+                }
+            }
+    }
+
+    for (Int_t iCr = 0; iCr < N_GEM_SERIALS; ++iCr)
+        for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh)
+            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                fPedRms[iCr][iCh][iSmpl] = Sqrt(fPedRms[iCr][iCh][iSmpl] / N_EV_FOR_PEDESTALS);
+
+            }
+
+    for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
+        if (iEv % 100 == 0) cout << "Profile filling: read event #" << iEv << endl;
+        for (Int_t iCr = 0; iCr < N_GEM_SERIALS; ++iCr)
+            for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
+                Double_t signals[nSmpl];
+                Int_t nOk = 0;
+                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
+                    signals[iSmpl] = fPedDat[iCr][iEv][iCh][iSmpl];
+                    nOk++;
+                }
+                Double_t CMS = CalcCMS(signals, nOk);
+                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+
+                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
+                   
+                    if (fPedDat[iCr][iEv][iCh][iSmpl] - CMS - fPedVal[iCr][iCh][iSmpl] > 3/*3 * fPedRms[iCr][iCh][iSmpl]*/) {
+                        fAdcProfiles[iCr][iCh][iSmpl]++;
+                    }
+                }
+            }
+    }
+
+    FindNoisyStrips();
+
+    return kBMNSUCCESS;
 }
 
 Double_t BmnGemRaw2Digit::CalcCMS(Double_t* samples, Int_t size) {
@@ -503,11 +509,5 @@ Double_t BmnGemRaw2Digit::CalcCMS(Double_t* samples, Int_t size) {
     return CMS;
 }
 
-vector<BmnGemStripDigit*> BmnGemRaw2Digit::CheckNoisyStrips(BmnGemStripDigit *chipDigits) {
-    //    for (Int_t iSmpl = 0; iSmpl < ADC_N_SAMPLES; ++iSmpl) {
-    //        BmnGemStripDigit dig = chipDigits[iSmpl];
-    //        cout << dig.GetStripNumber() << endl;
-    //    }
-}
-
 ClassImp(BmnGemRaw2Digit)
+

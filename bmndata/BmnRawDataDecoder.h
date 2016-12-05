@@ -47,7 +47,7 @@ struct DigiArrays {
 
 class BmnRawDataDecoder {
 public:
-    BmnRawDataDecoder(TString file, ULong_t nEvents = 0);
+    BmnRawDataDecoder(TString file, ULong_t nEvents = 0, ULong_t period = 4);
     BmnRawDataDecoder();
     virtual ~BmnRawDataDecoder();
 
@@ -143,6 +143,7 @@ public:
 private:
 
     UInt_t fRunId;
+    UInt_t fPeriodId;
     UInt_t fEventId;
     UInt_t fNevents;
     Long64_t fTime_s;

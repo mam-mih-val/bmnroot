@@ -14,6 +14,8 @@
 #include <vector>
 #include <UniDbDetectorParameter.h>
 
+#define ADC128_N_SAMPLES 128 //number of samples in one ADC digit
+
 using namespace std;
 using namespace TMath;
 

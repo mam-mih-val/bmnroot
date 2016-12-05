@@ -37,12 +37,11 @@ const UInt_t kU40VE_RC = 0x4C;
 //KOSTYL!!!
 UInt_t kSERIALS[N_GEM_SERIALS] = {0x76CBA8B, 0x76CD410, 0x76C8320, 0x76CB9C0, 0x76CA266, 0x76D08B9, 0x76C8321, 0x76CE3EE, 0x76CE3E5, 0x4E983C1, 0x76C8321, 0x76C82BE, 0x76CD411, 0x4E983C1};
 
-const Int_t kPERIOD = 4;
-
 using namespace std;
 
 BmnRawDataDecoder::BmnRawDataDecoder() {
     fRunId = 0;
+    fPeriodId = 0;
     fEventId = 0;
     fNevents = 0;
     fMaxEvent = 0;
@@ -90,7 +89,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fDataQueue = NULL;
 }
 
-BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
+BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
 
     t0 = NULL;
     header = NULL;
@@ -123,6 +122,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents) {
     fMaxEvent = nEvents;
     fPedestalRun = kFALSE;
     fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
+    fPeriodId = period;
     fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     fDchMapFileName = "";
@@ -389,9 +389,19 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         }
         switch (id) {
             case kADC64VE:
-                Process_ADC64VE(&data[idx], payload, serial, 32, adc32);
-                //                Process_ADC64VE(&data[idx], payload, serial, 128, adc128);
+            {
+                Bool_t isGem = kFALSE;
+                for (Int_t iSer = 0; iSer < N_GEM_SERIALS; ++iSer)
+                    if (serial == kSERIALS[iSer]) {
+                        isGem = kTRUE;
+                        break;
+                    }
+                if (isGem)
+                    Process_ADC64VE(&data[idx], payload, serial, 32, adc32);
+                else
+                    Process_ADC64VE(&data[idx], payload, serial, 128, adc128);
                 break;
+            }
             case kFVME:
                 Process_FVME(&data[idx], payload, serial, evType);
                 break;
@@ -427,9 +437,9 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
 
                 TClonesArray& ar_adc = *arr;
                 if (iCh >= 0 && iCh < kNCH) {
-                    if (kNSTAMPS == 128)
+                    if (kNSTAMPS == ADC128_N_SAMPLES)
                         new(ar_adc[arr->GetEntriesFast()]) BmnADC128Digit(serial, iCh, val);
-                    else if (kNSTAMPS == 32)
+                    else if (kNSTAMPS == ADC32_N_SAMPLES)
                         new(ar_adc[arr->GetEntriesFast()]) BmnADC32Digit(serial, iCh, val);
                 }
                 i += (kNSTAMPS / 2); //skip words (we've processed them)
@@ -474,7 +484,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                         FillSYNC(d, serial, i);
                         break;
                     case kU40VE_RC:
-                        if (kPERIOD > 4 && type == 3) evType = ((d[i] & 0xFFFF) == 0xD8) ? kBMNPEDESTAL : kBMNPAYLOAD;
+                        if (fPeriodId > 4 && type == 3) evType = ((d[i] & 0xFFFF) == 0xD8) ? kBMNPEDESTAL : kBMNPAYLOAD;
                         break;
                 }
             }
@@ -582,9 +592,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
-    fDchMapper = new BmnDchRaw2Digit(kPERIOD, fRunId);
+    fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
-    fTof400Mapper = new BmnTof1Raw2Digit(kPERIOD, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+    fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     //    BmnTof2Raw2Digit *tof700Mapper = new BmnTof2Raw2Digit(fTof700MapFileName);
 
     UInt_t pedEvCntr = 0; // counter for pedestal events between two spills
@@ -595,9 +605,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         fGemMapper = new BmnGemRaw2Digit();
         fGemMapper->CalcGemPedestals(adc32, fRawTree);
     } else {
-        fGemMapper = new BmnGemRaw2Digit(kPERIOD, fRunId);
+        fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
 
-        fSiliconMapper = new BmnSiliconRaw2Digit(kPERIOD, fRunId);
+        fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
             if (iEv % 1000 == 0) cout << "Decoding event #" << iEv << endl;
             dch->Clear();
@@ -716,10 +726,10 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
-    fGemMapper = new BmnGemRaw2Digit(kPERIOD, fRunId);
-    fDchMapper = new BmnDchRaw2Digit(kPERIOD, fRunId);
+    fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
+    fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
-    fTof400Mapper = new BmnTof1Raw2Digit(kPERIOD, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+    fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     //    BmnTof2Raw2Digit *tof700Mapper = new BmnTof2Raw2Digit(fTof700MapFileName);
     return kBMNSUCCESS;
 }
@@ -834,7 +844,7 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
 
     TriggerMapStructure* map;
     Int_t nEntries = 1;
-    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", kPERIOD, fRunId);
+    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
     if (mapPar != NULL)
         mapPar->GetTriggerMapArray(map, nEntries);
     else {

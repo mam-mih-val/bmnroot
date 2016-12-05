@@ -1,7 +1,7 @@
 #include "BmnRawDataDecoder.h"
 
 //#include <pthread.h>
-#include <mutex>
+//#include <mutex>
 
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
@@ -279,45 +279,45 @@ BmnStatus BmnRawDataDecoder::wait_stream(deque<UInt_t> *que, Int_t len) {
 }
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
-    fRawTree->Clear();
-    if (wait_stream(fDataQueue, 2) == kBMNERROR)
-        return kBMNTIMEOUT;
-    fDat = fDataQueue->front();
-    ((mutex*) fDataMutex)->lock();
-    fDataQueue->pop_front();
-    ((mutex*) fDataMutex)->unlock();
-    if (fDat == kSYNC1) { //search for start of event
-        // read number of bytes in event
-        fDat = fDataQueue->front();
-        ((mutex*) fDataMutex)->lock();
-        fDataQueue->pop_front();
-        ((mutex*) fDataMutex)->unlock();
-        if (wait_stream(fDataQueue, fDat) == kBMNERROR)
-            return kBMNTIMEOUT;
-        fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
-        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
-            printf("Wrong data size: %d:  skip this event\n", fDat);
-            //                fread(data, kWORDSIZE, dat, fRawFileIn);
-            ((mutex*) fDataMutex)->lock();
-            fDataQueue->erase(fDataQueue->begin(), fDataQueue->begin() + fDat * kNBYTESINWORD);
-            ((mutex*) fDataMutex)->unlock();
-            return kBMNERROR;
-        } else {
-            //read array of current event data and process them
-            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
-            ((mutex*) fDataMutex)->lock();
-            for (Int_t iByte = 0; iByte < fDat * kNBYTESINWORD; iByte++) {
-                data[iByte] = fDataQueue->front();
-                fDataQueue->pop_front();
-            }
-            ((mutex*) fDataMutex)->unlock();
-            fEventId = data[0];
-            if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
-            ProcessEvent(data, fDat);
-            fNevents++;
-            fRawTree->Fill();
-        }
-    }
+    //    fRawTree->Clear();
+    //    if (wait_stream(fDataQueue, 2) == kBMNERROR)
+    //        return kBMNTIMEOUT;
+    //    fDat = fDataQueue->front();
+    //    ((mutex*) fDataMutex)->lock();
+    //    fDataQueue->pop_front();
+    //    ((mutex*) fDataMutex)->unlock();
+    //    if (fDat == kSYNC1) { //search for start of event
+    //        // read number of bytes in event
+    //        fDat = fDataQueue->front();
+    //        ((mutex*) fDataMutex)->lock();
+    //        fDataQueue->pop_front();
+    //        ((mutex*) fDataMutex)->unlock();
+    //        if (wait_stream(fDataQueue, fDat) == kBMNERROR)
+    //            return kBMNTIMEOUT;
+    //        fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
+    //        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
+    //            printf("Wrong data size: %d:  skip this event\n", fDat);
+    //            //                fread(data, kWORDSIZE, dat, fRawFileIn);
+    //            ((mutex*) fDataMutex)->lock();
+    //            fDataQueue->erase(fDataQueue->begin(), fDataQueue->begin() + fDat * kNBYTESINWORD);
+    //            ((mutex*) fDataMutex)->unlock();
+    //            return kBMNERROR;
+    //        } else {
+    //            //read array of current event data and process them
+    //            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
+    //            ((mutex*) fDataMutex)->lock();
+    //            for (Int_t iByte = 0; iByte < fDat * kNBYTESINWORD; iByte++) {
+    //                data[iByte] = fDataQueue->front();
+    //                fDataQueue->pop_front();
+    //            }
+    //            ((mutex*) fDataMutex)->unlock();
+    //            fEventId = data[0];
+    //            if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+    //            ProcessEvent(data, fDat);
+    //            fNevents++;
+    //            fRawTree->Fill();
+    //        }
+    //    }
     return kBMNSUCCESS;
 }
 
@@ -474,10 +474,8 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                         FillSYNC(d, serial, i);
                         break;
                     case kU40VE_RC:
-                        if (type == 3)
-                            //FIXME Make back compatibility!
-                            //evType = ((d[i] & 0xFFFF) == 0xD8) ? kBMNPEDESTAL : kBMNPAYLOAD;
-                            break;
+                        if (kPERIOD > 4 && type == 3) evType = ((d[i] & 0xFFFF) == 0xD8) ? kBMNPEDESTAL : kBMNPAYLOAD;
+                        break;
                 }
             }
         }
@@ -487,7 +485,8 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
 
 BmnStatus BmnRawDataDecoder::Process_HRB(UInt_t *d, UInt_t len, UInt_t serial) {
     for (UInt_t i = 0; i < len; i++) {
-        //cout << bitset<32>(d[i]) << endl;
+        cout << bitset<32>(d[i]) << "  <===>  " << hex << d[i] << dec << endl;
+        if (i == 150) getchar();
     }
     return kBMNSUCCESS;
 }

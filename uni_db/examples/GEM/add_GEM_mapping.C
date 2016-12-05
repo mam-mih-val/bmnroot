@@ -20,7 +20,7 @@ void add_GEM_mapping() {
 
     bool return_error = false;
 
-    const int kNitems = 17;
+    const int kNitems = 23;
 
     GemMapStructure* pValues = new GemMapStructure[kNitems];
 
@@ -37,12 +37,18 @@ void add_GEM_mapping() {
     AssignMapStructure(pValues, 10, 0x76D08B9, 1024, 1535, 0, 0, 0);
     AssignMapStructure(pValues, 11, 0x76D08B9, 640, 767, 6, 6, 0);
     AssignMapStructure(pValues, 12, 0x76D08B9, 768, 895, 7, 6, 0);
-    AssignMapStructure(pValues, 13, 0x76C8321, 0, 1023, 6, 6, 1);
-    AssignMapStructure(pValues, 14, 0x76CE3EE, 0, 2047, 6, 6, 0);
-    AssignMapStructure(pValues, 15, 0x76CE3E5, 0, 2047, 7, 6, 0);
-    AssignMapStructure(pValues, 16, 0x4E983C1, 0, 1023, 7, 6, 1);
+    AssignMapStructure(pValues, 13, 0x76D08B9, 1792, 1919, 8, 7, 0);
+    AssignMapStructure(pValues, 14, 0x76D08B9, 1920, 2047, 9, 7, 0);
+    AssignMapStructure(pValues, 15, 0x76CA26F, 0, 1023, 6, 6, 1);
+    AssignMapStructure(pValues, 16, 0x76CE3EE, 0, 2047, 6, 6, 0);
+    AssignMapStructure(pValues, 17, 0x76CE3E5, 0, 2047, 7, 6, 0);
+    AssignMapStructure(pValues, 18, 0x30DCF31, 0, 1023, 7, 6, 1);
+    AssignMapStructure(pValues, 19, 0x76CA26F, 1024, 2047, 8, 7, 1);
+    AssignMapStructure(pValues, 20, 0x76C82BE, 0, 2047, 8, 7, 0);
+    AssignMapStructure(pValues, 21, 0x76CD411, 0, 2047, 9, 7, 0);
+    AssignMapStructure(pValues, 22, 0x30DCF31, 1024, 2047, 9, 7, 1);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_global_mapping", 4, 61, 4, 84, pValues, kNitems);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_global_mapping", 5, 1, 5, 1e4, pValues, kNitems);
     if (pDetectorParameter == NULL)
         return_error = true;
 

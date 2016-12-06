@@ -34,9 +34,6 @@ const UInt_t kFVME = 0xD1;
 const UInt_t kU40VE_RC = 0x4C;
 /********************************************************/
 
-//KOSTYL!!!
-UInt_t kSERIALS[N_GEM_SERIALS] = {0x76CBA8B, 0x76CD410, 0x76C8320, 0x76CB9C0, 0x76CA266, 0x76D08B9, 0x76C8321, 0x76CE3EE, 0x76CE3E5, 0x4E983C1, 0x76C8321, 0x76C82BE, 0x76CD411, 0x4E983C1};
-
 using namespace std;
 
 BmnRawDataDecoder::BmnRawDataDecoder() {
@@ -64,6 +61,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fDigiFileOut = NULL;
     sync = NULL;
     tdc = NULL;
+    hrb = NULL;
     adc32 = NULL;
     adc128 = NULL;
     msc = NULL;
@@ -107,6 +105,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fRawFileIn = NULL;
     fDigiFileOut = NULL;
     sync = NULL;
+    hrb = NULL;
     tdc = NULL;
     adc32 = NULL;
     adc128 = NULL;
@@ -136,6 +135,18 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fTrigMapper = NULL;
     fTof400Mapper = NULL;
     fDataQueue = NULL;
+
+    GemMapStructure* map;
+    UniDbDetectorParameter* mapParSize = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_map_size", fPeriodId, fRunId);
+    Int_t fEntriesInGlobMap = (mapParSize != NULL) ? mapParSize->GetInt() : 0;
+
+    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
+    if (mapPar != NULL) mapPar->GetGemMapArray(map, fEntriesInGlobMap);
+
+    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
+        if (find(fGemSerials.begin(), fGemSerials.end(), map[i].serial) == fGemSerials.end())
+            fGemSerials.push_back(map[i].serial);
+    fNGemSerials = fGemSerials.size();
 }
 
 BmnRawDataDecoder::~BmnRawDataDecoder() {
@@ -161,6 +172,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     adc32 = new TClonesArray("BmnADC32Digit");
     adc128 = new TClonesArray("BmnADC128Digit");
     tdc = new TClonesArray("BmnTDCDigit");
+    hrb = new TClonesArray("BmnHRBDigit");
     msc = new TClonesArray("BmnMSCDigit");
     headerDAQ = new TClonesArray("BmnEventHeader");
 
@@ -168,6 +180,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     fRawTree->Branch("ADC32", &adc32);
     fRawTree->Branch("ADC128", &adc128);
     fRawTree->Branch("TDC", &tdc);
+    fRawTree->Branch("HRB", &hrb);
     fRawTree->Branch("MSC", &msc);
     fRawTree->Branch("EventHeader", &headerDAQ);
 
@@ -210,6 +223,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     delete sync;
     delete adc32;
     delete adc128;
+    delete hrb;
     delete tdc;
     delete msc;
 
@@ -368,6 +382,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
 
     sync->Clear();
     tdc->Clear();
+    hrb->Clear();
     adc32->Clear();
     adc128->Clear();
     msc->Clear();
@@ -391,8 +406,8 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             case kADC64VE:
             {
                 Bool_t isGem = kFALSE;
-                for (Int_t iSer = 0; iSer < N_GEM_SERIALS; ++iSer)
-                    if (serial == kSERIALS[iSer]) {
+                for (Int_t iSer = 0; iSer < fNGemSerials; ++iSer)
+                    if (serial == fGemSerials[iSer]) {
                         isGem = kTRUE;
                         break;
                     }
@@ -494,10 +509,24 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
 }
 
 BmnStatus BmnRawDataDecoder::Process_HRB(UInt_t *d, UInt_t len, UInt_t serial) {
-    for (UInt_t i = 0; i < len; i++) {
-        cout << bitset<32>(d[i]) << "  <===>  " << hex << d[i] << dec << endl;
-        if (i == 150) getchar();
+    UInt_t evId = d[0];
+    UInt_t tH = d[1];
+    UInt_t tL = d[2];
+    UInt_t nWords = 4; //4 words per plane (per 96 channels, why 4 words - 3 is enough???)
+    UInt_t nSmpl = (len - 3) / nWords; //3 words are read now. Why divide by 4 (To ask Vadim)
+
+    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+        for (Int_t iWord = 0; iWord < nWords; ++iWord) {
+            UInt_t word32 = d[3 + iWord + iSmpl * nWords];
+            for (Int_t iCh = 0; iCh < 32; ++iCh) {
+                if ((bitset<32>(word32))[iCh]) {
+                    TClonesArray &ar_hrb = *hrb;
+                    new(ar_hrb[hrb->GetEntriesFast()]) BmnHRBDigit(serial, iCh + 32 * iWord, iSmpl);
+                }
+            }
+        }
     }
+
     return kBMNSUCCESS;
 }
 
@@ -880,8 +909,8 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adc, UInt_t ev) {
         BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
 
         Int_t iSer = -1;
-        for (iSer = 0; iSer < N_GEM_SERIALS; ++iSer)
-            if (adcDig->GetSerial() == kSERIALS[iSer]) break;
+        for (iSer = 0; iSer < fNGemSerials; ++iSer)
+            if (adcDig->GetSerial() == fGemSerials[iSer]) break;
         if (iSer == -1) return kBMNERROR;
 
         for (UInt_t iSmpl = 0; iSmpl < ADC32_N_SAMPLES; ++iSmpl)

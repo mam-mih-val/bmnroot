@@ -2,6 +2,7 @@
 #include "BmnEnums.h"
 #include "BmnTTBDigit.h"
 #include "BmnTDCDigit.h"
+#include "BmnHRBDigit.h"
 #include "BmnADCDigit.h"
 #include "BmnADC32Digit.h"
 #include "BmnADC128Digit.h"
@@ -27,6 +28,7 @@
 #include <list>
 #include <map>
 #include <deque>
+#include <UniDbDetectorParameter.h>
 
 // wait limit for input data
 #define WAIT_LIMIT 3000000
@@ -141,6 +143,9 @@ public:
 
 
 private:
+    
+    vector<UInt_t> fGemSerials; //list of serial id for GEM
+    UInt_t fNGemSerials;
 
     UInt_t fRunId;
     UInt_t fPeriodId;
@@ -178,6 +183,7 @@ private:
     TClonesArray *sync;
     TClonesArray *adc32;  //gem
     TClonesArray *adc128; //sts
+    TClonesArray *hrb;
     TClonesArray *tdc;
     TClonesArray *msc;
     TClonesArray *headerDAQ;

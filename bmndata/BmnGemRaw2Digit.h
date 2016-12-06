@@ -26,7 +26,6 @@
 #define N_MODULES 2
 #define N_LAYERS 4
 #define N_EV_FOR_PEDESTALS 200
-#define N_GEM_SERIALS 14//10
 
 using namespace std;
 using namespace TMath;
@@ -92,7 +91,7 @@ private:
 
     GemMapStructure* fMap;
 
-    UInt_t* fCrates;
+    vector<UInt_t> fSerials; //list of serial id for GEM
     BmnGemPed** fPedArr;
 
     void ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
@@ -104,7 +103,7 @@ private:
 
     Int_t fPeriod;
     Int_t fRun;
-    Int_t fNCrates;
+    Int_t fNSerials;
     Int_t fEventId;
 
     UInt_t**** fPedDat; //data set to calculate pedestals

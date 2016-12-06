@@ -3,6 +3,7 @@
 #define BMNEVENTHEADER_H
 
 #include "TNamed.h"
+#include "TTimeStamp.h"
 #include "BmnEnums.h"
 
 class BmnEventHeader : public TNamed {
@@ -12,10 +13,8 @@ private:
     UInt_t fRunId;
     /** Event Id **/
     UInt_t fEventId;
-    /** Event Time in s**/
-    Long64_t fEventTimeS;
-    /** Event Time in ns**/
-    Long64_t fEventTimeNS;
+    /** Event Time**/
+    TTimeStamp fEventTime;
     /** Event Type (payload = 0 or pedestal = 1)**/
     BmnEventType fType;
 
@@ -25,7 +24,7 @@ public:
     BmnEventHeader();
 
     /** Constructor */
-    BmnEventHeader(UInt_t run, UInt_t ev, Long64_t s, Long64_t ns, BmnEventType type);
+    BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type);
 
     /** Get the run ID for this run*/
     UInt_t GetRunId() {
@@ -42,14 +41,10 @@ public:
         return fEventId;
     }
 
-    /** Get the time for this event in s*/
-    Long64_t GetEventTimeS() {
-        return fEventTimeS;
-    }
-
-    /** Get the time for this event in ns*/
-    Long64_t GetEventTimeNS() {
-        return fEventTimeNS;
+    
+    /** Get the time for this event*/
+    TTimeStamp GetEventTime() {
+        return fEventTime;
     }
 
     /** Set the run ID for this run
@@ -65,19 +60,10 @@ public:
     void SetEventId(UInt_t evid) {
         fEventId = evid;
     }
-
-    /** Set the time for this event in ns
-     * @param time : time in ns
-     */
-    void SetEventTimeNS(Long64_t time) {
-        fEventTimeNS = time;
-    }
-
-    /** Set the time for this event in s
-     * @param time : time in s
-     */
-    void SetEventTimeS(Long64_t time) {
-        fEventTimeS = time;
+   
+    /** Set the time for this event in */
+    void SetEventTime(TTimeStamp time) {
+        fEventTime = time;
     }
     
     /** Set the type for this event

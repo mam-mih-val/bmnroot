@@ -426,7 +426,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         }
         idx += payload;
     }
-    new((*headerDAQ)[headerDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, fTime_s, fTime_ns, evType);
+    new((*headerDAQ)[headerDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TTimeStamp(time_t(fTime_s), fTime_ns), evType);
 }
 
 BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr) {
@@ -660,7 +660,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
             BmnEventHeader* headDAQ = (BmnEventHeader*) headerDAQ->At(0);
             curEventType = headDAQ->GetType();
-            new((*header)[header->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTimeS(), headDAQ->GetEventTimeNS(), curEventType);
+            new((*header)[header->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType);
 
             fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time);
 
@@ -789,7 +789,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
 
     BmnEventHeader* headDAQ = (BmnEventHeader*) headerDAQ->At(0);
     curEventType = headDAQ->GetType();
-    new((*header)[header->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTimeS(), headDAQ->GetEventTimeNS(), curEventType);
+    new((*header)[header->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType);
 
     fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time);
 

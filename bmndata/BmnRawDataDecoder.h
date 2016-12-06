@@ -140,7 +140,10 @@ public:
     void SetPedestalRun(Bool_t ped) {
         fPedestalRun = ped;
     }
-
+    
+    TString GetRootFileName() {
+        return fRootFileName;
+    }
 
 private:
     

@@ -20,10 +20,8 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
 
     UniDbDetectorParameter* mapParSize = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_map_size", fPeriod, fRun);
     fEntriesInGlobMap = (mapParSize != NULL) ? mapParSize->GetInt() : 0;
-
     UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriod, fRun);
     if (mapPar != NULL) mapPar->GetGemMapArray(fMap, fEntriesInGlobMap);
-
     for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
         if (find(fSerials.begin(), fSerials.end(), fMap[i].serial) == fSerials.end())
             fSerials.push_back(fMap[i].serial);
@@ -123,7 +121,6 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
 }
 
 BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, TString parNameSize, BmnGemMap* m, Int_t lay, Int_t mod) {
-
     UniDbDetectorParameter* cPar = UniDbDetectorParameter::GetDetectorParameter("GEM", parNameSize, fPeriod, fRun);
     Int_t size = (cPar != NULL) ? cPar->GetInt() : 0;
     if (size == 0) return kBMNERROR;

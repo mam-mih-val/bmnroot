@@ -11,6 +11,9 @@ private:
     UInt_t fSerial;
     UInt_t fChannel;
     UInt_t fSample; //sample per 8 ns
+    UInt_t fTimeHigh;
+    UInt_t fTimeLow;
+    
     
 public:
 
@@ -18,7 +21,7 @@ public:
     BmnHRBDigit();
 
     /** Constructor to use **/
-    BmnHRBDigit(UInt_t iSerial, UInt_t iChannel, UInt_t iSample);
+    BmnHRBDigit(UInt_t iSerial, UInt_t iChannel, UInt_t iSample, UInt_t iTH, UInt_t iTL);
 
     UInt_t GetSerial() const {
         return fSerial;
@@ -30,6 +33,14 @@ public:
     
     UInt_t GetSample() const {
         return fSample;
+    }
+
+    UInt_t GetTimeHigh() const {
+        return fTimeHigh;
+    }
+    
+    UInt_t GetTimeLow() const {
+        return fTimeLow;
     }
 
     /** Destructor **/

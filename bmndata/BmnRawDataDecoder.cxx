@@ -127,11 +127,11 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fMaxEvent = nEvents;
     fPeriodId = period;
     fRunId = 0;
-    if (period == 4) {
-        fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
-        fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-        fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
-    }
+    //if (period == 4) {
+    fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
+    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
+    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+    //}
     fDchMapFileName = "";
     fTrigMapFileName = "";
     fGemMapFileName = "";
@@ -214,7 +214,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
 
     fRootFileOut = new TFile(fRootFileName, "recreate");
     printf("RawRoot File %s\n\n", fRootFileName.Data());
-    
+
     fRawTree->Branch("RunHeader", &runHeaderDAQ);
     runHeaderDAQ->SetRunId(fRunId);
     runHeaderDAQ->SetStartTime(TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns));
@@ -524,7 +524,7 @@ BmnStatus BmnRawDataDecoder::Process_HRB(UInt_t *d, UInt_t len, UInt_t serial) {
             for (Int_t iCh = 0; iCh < 32; ++iCh) {
                 if ((bitset<32>(word32))[iCh]) {
                     TClonesArray &ar_hrb = *hrb;
-                    new(ar_hrb[hrb->GetEntriesFast()]) BmnHRBDigit(serial, iCh + 32 * iWord, iSmpl);
+                    new(ar_hrb[hrb->GetEntriesFast()]) BmnHRBDigit(serial, iCh + 32 * iWord, iSmpl, tH, tL);
                 }
             }
         }
@@ -619,7 +619,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
         if (FillTimeShiftsMap() == kBMNERROR) {
             cout << "No TimeShiftMap created" << endl;
-            continue;
         }
 
         BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);

@@ -5,6 +5,7 @@
 BmnEventHeader::BmnEventHeader()
 : fRunId(0),
 fEventId(0),
+fEventTime(0),
 fType(kBMNPAYLOAD) {
 
 }

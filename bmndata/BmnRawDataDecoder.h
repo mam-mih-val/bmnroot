@@ -20,6 +20,7 @@
 #include "BmnTof1Raw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
 #include "BmnEventHeader.h"
+#include "BmnRunHeader.h"
 #include <bitset>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,6 +57,7 @@ public:
     BmnStatus ConvertRawToRoot();
     BmnStatus ConvertRawToRootIterate();
     BmnStatus ConvertRawToRootIterateFile();
+    BmnStatus ClearArrays();
     BmnStatus DecodeDataToDigi();
     BmnStatus DecodeDataToDigiIterate();
     BmnStatus CalcGemPedestals();
@@ -85,7 +87,7 @@ public:
         d.bc1 = bc1;
         d.bc2 = bc2;
         d.veto = veto;
-        d.header = header;
+        d.header = eventHeader;
         return d;
     }
 
@@ -136,10 +138,6 @@ public:
     void SetTof700Mapping(TString map) {
         fTof700MapFileName = map;
     }
-
-    void SetPedestalRun(Bool_t ped) {
-        fPedestalRun = ped;
-    }
     
     TString GetRootFileName() {
         return fRootFileName;
@@ -154,8 +152,14 @@ private:
     UInt_t fPeriodId;
     UInt_t fEventId;
     UInt_t fNevents;
-    Long64_t fTime_s;
+    //for event
+    Long64_t fTime_s; 
     Long64_t fTime_ns;
+    //for run
+    Long64_t fTimeStart_s;
+    Long64_t fTimeStart_ns;
+    Long64_t fTimeFinish_s;
+    Long64_t fTimeFinish_ns;
 
     Long64_t fLengthRawFile;
     Long64_t fCurentPositionRawFile;
@@ -189,7 +193,9 @@ private:
     TClonesArray *hrb;
     TClonesArray *tdc;
     TClonesArray *msc;
-    TClonesArray *headerDAQ;
+    TClonesArray *eventHeaderDAQ;
+    BmnRunHeader *runHeaderDAQ;
+//    TClonesArray *runHeaderDAQ;
     TClonesArray *pedestalAdc;
 
     //Digi arrays
@@ -203,7 +209,9 @@ private:
     TClonesArray *bc2;
     TClonesArray *veto;
     //header array
-    TClonesArray *header;
+    TClonesArray *eventHeader;
+    BmnRunHeader *runHeader;
+//    TClonesArray *runHeader;
 
     UInt_t data[1000000];
     ULong_t fMaxEvent;
@@ -216,8 +224,6 @@ private:
     BmnTof1Raw2Digit *fTof400Mapper;
     deque<UInt_t> *fDataQueue;
     void *fDataMutex; // actually std::mutex
-
-    Bool_t fPedestalRun;
 
     //Map to store pairs <Crate serial> - <crate time - T0 time>
     map<UInt_t, Long64_t> fTimeShifts;

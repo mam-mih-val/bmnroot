@@ -194,7 +194,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         fCurentPositionRawFile = ftello64(fRawFileIn);
         if (fCurentPositionRawFile >= fLengthRawFile) break;
         if (fDat == kSYNC1) { //search for start of event
-
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
             fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
@@ -632,7 +631,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         curEventType = headDAQ->GetType();
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType);
 
-        fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time);
+        fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time, &fT0Width, dnlcor);
 
         if (curEventType == kBMNPEDESTAL) {
             if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;

@@ -12,7 +12,7 @@
 
 using namespace TMath;
 
-void Results_TOF700(char *fname = "bmn_run0362_digit.root", int RunPeriod = 2) {
+void Results_TOF700(char *fname = "bmn_run0253_digi.root", int RunPeriod = 2) {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -44,11 +44,11 @@ void Results_TOF700(char *fname = "bmn_run0362_digit.root", int RunPeriod = 2) {
     }
     TOF2.printGeom();
 
-    TChain *bmnTree = new TChain("BMN_DIGIT");
+    TChain *bmnTree = new TChain("cbmsim");
     bmnTree->Add(fname);
 
     TClonesArray *tof700Digits;
-    bmnTree->SetBranchAddress("bmn_tof2_digit", &tof700Digits);
+    bmnTree->SetBranchAddress("TOF700", &tof700Digits);
 
     Int_t startEvent = 0;
     Int_t nEvents = bmnTree->GetEntries();

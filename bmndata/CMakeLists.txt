@@ -94,6 +94,7 @@ BmnGemRaw2Digit.cxx
 BmnTrigRaw2Digit.cxx
 BmnZDCDigit.cxx
 BmnTof2Raw2Digit.cxx
+BmnTof2Raw2DigitNew.cxx
 BmnTof1Raw2Digit.cxx
 BmnRawDataDecoder.cxx
 BmnEventHeader.cxx

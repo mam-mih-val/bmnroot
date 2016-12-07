@@ -86,6 +86,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fDchMapper = NULL;
     fTrigMapper = NULL;
     fTof400Mapper = NULL;
+    fTof700Mapper = NULL;
     fDataQueue = NULL;
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
@@ -142,6 +143,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fDchMapper = NULL;
     fTrigMapper = NULL;
     fTof400Mapper = NULL;
+    fTof700Mapper = NULL;
     fDataQueue = NULL;
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
@@ -607,6 +609,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fDigiFileOut = new TFile(fDigiFileName, "recreate");
     InitDecoder();
 
+    Double_t *dnlcor = fTof700Mapper->GetINL();
+
+//    fTof700Mapper->readSlewingT0();
+//    fTof700Mapper->readSlewing();
+
     UInt_t pedEvCntr = 0; // counter for pedestal events between two spills
     BmnEventType curEventType = kBMNPAYLOAD;
     BmnEventType prevEventType = curEventType;
@@ -642,6 +649,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fSiliconMapper->FillEvent(adc128, silicon);
             fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
             fTof400Mapper->FillEvent(tdc, tof400);
+            fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             fDigiTree->Fill();
         }
         prevEventType = curEventType;
@@ -725,9 +733,9 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
     fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+    fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
-    //    BmnTof2Raw2Digit *tof700Mapper = new BmnTof2Raw2Digit(fTof700MapFileName);
     return kBMNSUCCESS;
 }
 
@@ -829,6 +837,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete fDchMapper;
     delete fTrigMapper;
     delete fTof400Mapper;
+    delete fTof700Mapper;
 
     delete sync;
     delete adc32;
@@ -894,6 +903,109 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adc, UInt_t ev) {
         for (UInt_t iSmpl = 0; iSmpl < ADC32_N_SAMPLES; ++iSmpl)
             pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
     }
+
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::FillTimeShiftsMapNoDB(UInt_t t0serial) {
+
+    Long64_t t0time = -1;
+    //    printf(" sync size %d, t0serial 0x%0x\n", sync->GetEntriesFast(), t0serial);
+    for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
+        BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
+        //	printf(" have 0x%0x requred 0x%0x\n", syncDig->GetSerial(), t0serial);
+        if (syncDig->GetSerial() == t0serial) {
+            t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
+            break;
+        }
+    }
+
+    if (t0time == -1) {
+        //        cerr << "No T0 digit found in tree" << endl;
+        return kBMNERROR;
+    }
+
+    for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
+        BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
+        Long64_t syncTime = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
+        fTimeShifts.insert(pair<UInt_t, Long64_t>(syncDig->GetSerial(), syncTime - t0time));
+    }
+
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::SlewingTOF700() {
+
+    fRootFileIn = new TFile(fRootFileName, "READ");
+    if (fRootFileIn->IsOpen() == false) {
+        printf("\n!!!!\ncannot open file %s \nSlewingTOF700 are stopped\n!!!!\n", fRootFileName.Data());
+        return kBMNERROR;
+    } else {
+        printf("\nInput root file: %s;\n", fRootFileName.Data());
+    }
+    fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
+    tdc = new TClonesArray("BmnTDCDigit");
+    sync = new TClonesArray("BmnSyncDigit");
+    fRawTree->SetBranchAddress("TDC", &tdc);
+    fRawTree->SetBranchAddress("SYNC", &sync);
+
+    fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
+
+    BmnGemRaw2Digit *gemMapper = NULL;
+    BmnDchRaw2Digit *dchMapper = NULL;
+    BmnTrigRaw2Digit *trigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
+    BmnTof1Raw2Digit *tof400Mapper = NULL;
+    BmnTof2Raw2DigitNew *tof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
+    tof700Mapper->print();
+
+    Double_t *dnlcor = tof700Mapper->GetINL();
+
+
+    for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
+        if (iEv % 1000 == 0) cout << "Slewing T0 event #" << iEv << endl;
+        fTimeShifts.clear();
+
+        fRawTree->GetEntry(iEv);
+
+        if (FillTimeShiftsMapNoDB(0x1690454) == kBMNERROR) {
+            //                cout << "No TimeShiftMap created" << endl;
+            continue;
+        }
+
+        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, fT0Time, &fT0Width, dnlcor);
+
+        tof700Mapper->fillSlewingT0(tdc, &fTimeShifts, fT0Time, fT0Width);
+    }
+
+    tof700Mapper->SlewingT0();
+    tof700Mapper->drawproft0();
+
+    tof700Mapper->readSlewingT0();
+
+
+    for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
+        if (iEv % 1000 == 0) cout << "Slewing RPC event #" << iEv << endl;
+        fTimeShifts.clear();
+
+        fRawTree->GetEntry(iEv);
+
+        if (FillTimeShiftsMapNoDB(0x1690454) == kBMNERROR) {
+            //                cout << "No TimeShiftMap created" << endl;
+            continue;
+        }
+
+        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, fT0Time, &fT0Width, dnlcor);
+
+        tof700Mapper->fillSlewing(tdc, &fTimeShifts, fT0Time, fT0Width);
+    }
+
+    tof700Mapper->Slewing();
+    tof700Mapper->drawprof();
+
+    //    fRootFileIn->Close();
+
+    //    delete trigMapper;
+    //    delete tof700Mapper;
 
     return kBMNSUCCESS;
 }

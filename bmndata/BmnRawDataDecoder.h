@@ -18,9 +18,11 @@
 #include "BmnDchRaw2Digit.h"
 #include "BmnSiliconRaw2Digit.h"
 #include "BmnTof1Raw2Digit.h"
+#include "BmnTof2Raw2DigitNew.h"
 #include "BmnTrigRaw2Digit.h"
 #include "BmnEventHeader.h"
 #include "BmnRunHeader.h"
+#include "BmnEnums.h"
 #include <bitset>
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,6 +70,7 @@ public:
     void ResetDecoder(TString file);
     BmnStatus DisposeDecoder();
     BmnStatus wait_stream(deque<UInt_t> *que, Int_t len);
+    BmnStatus SlewingTOF700();
 
     void SetQue(deque<UInt_t> *v) {
         fDataQueue = v;
@@ -222,12 +225,14 @@ private:
     BmnDchRaw2Digit *fDchMapper;
     BmnTrigRaw2Digit *fTrigMapper;
     BmnTof1Raw2Digit *fTof400Mapper;
+    BmnTof2Raw2DigitNew *fTof700Mapper;
     deque<UInt_t> *fDataQueue;
     void *fDataMutex; // actually std::mutex
 
     //Map to store pairs <Crate serial> - <crate time - T0 time>
     map<UInt_t, Long64_t> fTimeShifts;
     Double_t fT0Time; //ns
+    Double_t fT0Width; //ns
 
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr);
@@ -237,6 +242,7 @@ private:
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
     BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx) { return kBMNSUCCESS; };
     BmnStatus FillTimeShiftsMap();
+    BmnStatus FillTimeShiftsMapNoDB(UInt_t t0serial);
     
     BmnStatus CopyDataToPedMap(TClonesArray* adc, UInt_t ev);
 };

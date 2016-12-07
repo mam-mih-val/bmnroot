@@ -32,7 +32,11 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile) {
     //==================================================//
 }
 
-BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, Double_t& t0time) {
+BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, Double_t& t0time, Double_t *t0width, Double_t *dnlcor) {
+
+    const int tdc72vhl_tdcid2tdcnum[16] = {  2, 1, 0, 5, 4, 3, 8, 7, 6, -1, -1, -1, -1, -1, -1, -1 };
+    const int tdc72vhl_tdcch2ch[32] = { 7,7,7,7, 6,6,6,6, 5,5,5,5, 4,4,4,4, 3,3,3,3, 2,2,2,2, 1,1,1,1, 0,0,0,0};
+    //    cout <<" IN\n";
     for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
         BmnTrigMapping tM = fMap[iMap];
         for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
@@ -60,23 +64,36 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClon
             }
 
             if (nearestDig != NULL) {
-                BmnTrigDigit dig(0, rChannel1, tdcDig1->GetValue() * 25.0 / 1024, (nearestDig->GetValue() - tdcDig1->GetValue()) * 25.0 / 1024);
+		UInt_t dnl = (0x3FF&(tdcDig1->GetValue()));
+		Double_t timednl = tdcDig1->GetValue();
+		UInt_t chin = 0;
+		if (dnlcor)
+		{
+		    chin = tdc72vhl_tdcid2tdcnum[tdcDig1->GetHptdcId()]*8+tdc72vhl_tdcch2ch[(tdcDig1->GetChannel()*4)%32];
+//		    printf("raw %u double %f dnl %u cor %f\n", tdcDig1->GetValue(), timednl, dnl, *(dnlcor+chin*1024+dnl));
+		    timednl += *(dnlcor+chin*1024+dnl);
+		}
+                BmnTrigDigit dig(0, rChannel1, timednl * HPTIMEBIN, (nearestDig->GetValue() - tdcDig1->GetValue()) * HPTIMEBIN);
 
-                if (tM.name == "BC2") //in summer run there was no to, we use bc2 instead
-                    t0time = tdcDig1->GetValue() * 25.0 / 1024; //ns
-
+//                if (tM.name == "BC2") //in summer run there was no to, we use bc2 instead
+                if (tM.name == "T0")
+		{
+//		    if (dnlcor) printf("raw %u double %f dnl %u cor %f chin %d\n", tdcDig1->GetValue(), timednl, dnl, *(dnlcor+chin*1024+dnl), chin);
+                    t0time = timednl * HPTIMEBIN; //ns
+		    if (t0width != NULL) *t0width = (nearestDig->GetValue() - tdcDig1->GetValue()) * HPTIMEBIN;
+		}
                 if (tM.name == "T0") {
                     TClonesArray& ar_t0 = *t0;
-                    new(ar_t0[t0->GetEntriesFast()]) BmnTrigDigit(dig);
+                    if (t0) new(ar_t0[t0->GetEntriesFast()]) BmnTrigDigit(dig);
                 } else if (tM.name == "BC1") {
                     TClonesArray& ar_bc1 = *bc1;
-                    new(ar_bc1[bc1->GetEntriesFast()]) BmnTrigDigit(dig);
+                    if (bc1) new(ar_bc1[bc1->GetEntriesFast()]) BmnTrigDigit(dig);
                 } else if (tM.name == "BC2") {
                     TClonesArray& ar_bc2 = *bc2;
-                    new(ar_bc2[bc2->GetEntriesFast()]) BmnTrigDigit(dig);
+                    if (bc2) new(ar_bc2[bc2->GetEntriesFast()]) BmnTrigDigit(dig);
                 } else if (tM.name == "VETO") {
                     TClonesArray& ar_veto = *veto;
-                    new(ar_veto[veto->GetEntriesFast()]) BmnTrigDigit(dig);
+                    if (veto) new(ar_veto[veto->GetEntriesFast()]) BmnTrigDigit(dig);
                 }
             }
         }

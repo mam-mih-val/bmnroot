@@ -430,8 +430,8 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                     }
                 if (isGem)
                     Process_ADC64VE(&data[idx], payload, serial, 32, adc32);
-                else
-                    Process_ADC64VE(&data[idx], payload, serial, 128, adc128);
+                //else
+                //Process_ADC64VE(&data[idx], payload, serial, 128, adc128);
                 break;
             }
             case kFVME:

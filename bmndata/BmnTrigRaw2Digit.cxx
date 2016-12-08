@@ -84,31 +84,29 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClon
             if (nearestDig != NULL) {
                 Double_t tL = (tdcDig1->GetValue() + fINLTable[rChannel1][tdcDig1->GetValue() % 1024]) * 24.0 / 1024;
                 Double_t tT = (nearestDig->GetValue() + fINLTable[rChannel1][nearestDig->GetValue() % 1024]) * 24.0 / 1024;
-                BmnTrigDigit dig(0, rChannel1, tL, tT - tL);
 
                 if (tM.name == "T0") {
                     t0time = (tdcDig1->GetValue() + fINLTable[rChannel1][tdcDig1->GetValue() % 1024]) * 24.0 / 1024; //ns
                     TClonesArray& ar_t0 = *t0;
-                    if (t0) new(ar_t0[t0->GetEntriesFast()]) BmnTrigDigit(dig);
+                    if (t0) new(ar_t0[t0->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
                 } else if (tM.name == "BC1") {
                     TClonesArray& ar_bc1 = *bc1;
-                    if (bc1) new(ar_bc1[bc1->GetEntriesFast()]) BmnTrigDigit(dig);
+                    if (bc1) new(ar_bc1[bc1->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
                 } else if (tM.name == "BC2") {
                     TClonesArray& ar_bc2 = *bc2;
-                    if (bc2) new(ar_bc2[bc2->GetEntriesFast()]) BmnTrigDigit(dig);
+                    if (bc2) new(ar_bc2[bc2->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
                 } else if (tM.name == "VETO") {
                     TClonesArray& ar_veto = *veto;
-                    if (veto) new(ar_veto[veto->GetEntriesFast()]) BmnTrigDigit(dig);
+                    if (veto) new(ar_veto[veto->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
                 } else if (tM.name == "FD") {
                     TClonesArray& ar_fd = *fd;
-                    if (fd) new(ar_fd[fd->GetEntriesFast()]) BmnTrigDigit(dig);
+                    if (fd) new(ar_fd[fd->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
                 } else {
-                    for (Int_t i = 0; i < KNBDCHANNELS; ++i) {
-                        if (tM.name == (TString("BD") + TString(i))) {
+                    for (Int_t i = 0; i < KNBDCHANNELS; ++i)
+                        if (tM.name == TString(Form("BD%d", i))) {
                             TClonesArray& ar_bd = *bd;
-                            if (bd) new(ar_bd[bd->GetEntriesFast()]) BmnTrigDigit(dig);
+                            if (bd) new(ar_bd[bd->GetEntriesFast()]) BmnTrigDigit(i, tL, tT - tL);
                         }
-                    }
                 }
             }
         }

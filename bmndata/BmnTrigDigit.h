@@ -12,11 +12,7 @@ public:
     BmnTrigDigit();
 
     /** Constructor to use **/
-    BmnTrigDigit(Short_t iDet, Short_t iMod, Double_t iTime, Double_t iAmp);
-
-    Short_t GetDet() const {
-        return fDet;
-    }
+    BmnTrigDigit(Short_t iMod, Double_t iTime, Double_t iAmp);
 
     Short_t GetMod() const {
         return fMod;
@@ -42,17 +38,12 @@ public:
         fTime = time;
     }
 
-    void SetDet(Short_t det) {
-        fDet = det;
-    }
-
     /** Destructor **/
     virtual ~BmnTrigDigit();
 
 private:
 
-    Short_t fDet;
-    Short_t fMod;
+    Short_t fMod; //inner channel (for Barrel 40 channels, for T0, BC1, BC2, VC, FD only one)
     Double_t fTime;
     Double_t fAmp;
 

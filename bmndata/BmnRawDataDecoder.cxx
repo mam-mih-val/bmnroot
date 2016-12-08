@@ -92,6 +92,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fDataQueue = NULL;
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
+    syncCounter = 0;
 }
 
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
@@ -150,6 +151,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fDataQueue = NULL;
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
+    syncCounter = 0;
 
     GemMapStructure* map;
     UniDbDetectorParameter* mapParSize = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_map_size", fPeriodId, fRunId);
@@ -299,6 +301,21 @@ BmnStatus BmnRawDataDecoder::wait_stream(deque<UInt_t> *que, Int_t len) {
     return kBMNSUCCESS;
 }
 
+BmnStatus BmnRawDataDecoder::wait_file() {
+    Int_t t;
+    Int_t dt = 10000;
+    fCurentPositionRawFile = ftello64(fRawFileIn);
+    while (fCurentPositionRawFile >= fLengthRawFile){
+        usleep(dt);
+        t += dt;
+        if (t >= WAIT_LIMIT)
+            return kBMNERROR;
+        fCurentPositionRawFile = ftello64(fRawFileIn);
+    }
+    return kBMNSUCCESS;
+}
+
+
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
     //    fRawTree->Clear();
     //    if (wait_stream(fDataQueue, 2) == kBMNERROR)
@@ -352,8 +369,19 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
         fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     }
     fCurentPositionRawFile = ftello64(fRawFileIn);
-    if (fCurentPositionRawFile >= fLengthRawFile)
-        return kBMNFINISH;
+    if (fCurentPositionRawFile >= fLengthRawFile){
+        if (wait_file() == kBMNERROR)
+            return kBMNTIMEOUT;
+    }
+        if (fDat == kRUNNUMBERSYNC) {
+            syncCounter++;
+            if (syncCounter > 1)
+                return kBMNFINISH;                
+            fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
+            fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
+            fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
+            fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+        }
     //            break;
     if (fDat == kSYNC1) { //search for start of event
         // read number of bytes in event
@@ -405,7 +433,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     msc->Clear();
     eventHeaderDAQ->Clear();
 
-    if (fEventId % 100 == 0) cout << "Converting event #" << d[0] << endl;
+    if (fEventId % 100 == 0) cout << "Converting event #" << d[0] << " frunID " << fRunId << endl;
 
     UInt_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;

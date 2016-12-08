@@ -81,7 +81,7 @@ void BmnHistTrigger::FillFromDigi(
     for (Int_t digIndex = 0; digIndex < VDdigits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* bd = (BmnTrigDigit*) VDdigits->At(digIndex);
         histBDChannels->Fill(bd->GetMod());
-        new ((*BDEvents)[BDEvents->GetEntriesFast()]) BmnTrigDigit(bd->GetDet(), bd->GetMod(), bd->GetTime(), bd->GetAmp());
+        new ((*BDEvents)[BDEvents->GetEntriesFast()]) BmnTrigDigit(bd->GetMod(), bd->GetTime(), bd->GetAmp());
     }
 }
 

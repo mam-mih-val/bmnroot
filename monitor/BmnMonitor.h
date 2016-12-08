@@ -12,6 +12,9 @@
 #include "TFolder.h"
 #include "THttpServer.h"
 #include "TString.h"
+#include "TSystemDirectory.h"
+#include "TList.h"
+#include "TSystemFile.h"
 
 #include <BmnTrigDigit.h>
 #include <BmnTof1Digit.h>
@@ -42,10 +45,12 @@ public:
 
     BmnMonitor();
     virtual ~BmnMonitor();
-    void Monitor(TString startFile = "/home/ilnur/mnt/test/mpd-evb/TrigWord/mpd_run_Glob_306.data");
+    void Monitor(TString dir, TString startFile = "");//"/home/ilnur/mnt/test/mpd-evb/TrigWord/mpd_run_Glob_306.data");
     void ProcessRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
     void ProcessStreamRun();
     void ProcessFileRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
+    TString WatchNext(TString dirname, TString filename, Int_t cycleWait);
+    static TString WatchNext(Int_t inotifDir, Int_t cycleWait);
     
     // Getters
     deque<UInt_t> * GetDataQue() { return fDataQue;}
@@ -69,10 +74,12 @@ private:
     deque<UInt_t> * fDataQue;
     vector<BmnRunInfo> *_fileList;
 //    void *fDataMutex; // actually pthread_mutex_t
+    TString _curFile;
+    TString _curDir;
     TTree *fDigiTree;
-    TTree *fRecoTree = NULL;
-    TFile *fHistOut = NULL;
-    THttpServer * fServer = NULL;
+    TTree *fRecoTree;
+    TFile *fHistOut;
+    THttpServer * fServer;
     struct DigiArrays fDigiArrays;
 
 //    TClonesArray *header = NULL;
@@ -108,6 +115,11 @@ private:
     Int_t itersToUpdate = 1000;
     // GEM config
     Int_t hitBins = 100;
+    
+    Int_t _inotifDir;
+    Int_t _inotifDirW;
+    Int_t _inotifFile;
+    Int_t _inotifFileW;
 
 
     ClassDef(BmnMonitor, 1)

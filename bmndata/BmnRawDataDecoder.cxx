@@ -783,11 +783,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     //            Int_t iEv = fRawTree->GetEntries();
     //            fRawTree->GetEntry(iEv);
 
-    if (FillTimeShiftsMap() == kBMNERROR) {
-        cout << "No TimeShiftMap created" << endl;
+//    if (FillTimeShiftsMap() == kBMNERROR) {
+//        cout << "No TimeShiftMap created" << endl;
         //                continue;
         //FIX maybe add return?
-    }
+//    }
 
     BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
     curEventType = headDAQ->GetType();

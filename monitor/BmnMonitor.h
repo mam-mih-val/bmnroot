@@ -42,7 +42,7 @@ public:
 
     BmnMonitor();
     virtual ~BmnMonitor();
-    void Monitor();
+    void Monitor(TString startFile = "/home/ilnur/mnt/test/mpd-evb/TrigWord/mpd_run_Glob_306.data");
     void ProcessRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
     void ProcessStreamRun();
     void ProcessFileRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");

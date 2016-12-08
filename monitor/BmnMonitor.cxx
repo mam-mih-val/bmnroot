@@ -11,15 +11,10 @@
 #include "BmnMonitor.h"
 
 BmnMonitor::BmnMonitor() {
-    //    if (pthread_mutex_init((pthread_mutex_t*)fDataMutex, NULL))
-    //        printf("Error initializing mutex!\n");
-//    fDataMutex = new mutex();
     _fileList = new vector<BmnRunInfo>();
 }
 
 BmnMonitor::~BmnMonitor() {
-    //    pthread_mutex_destroy((pthread_mutex_t*) fDataMutex);
-//    delete (mutex*) fDataMutex;
     delete fServer;
     delete fHistOut;
     
@@ -42,7 +37,7 @@ BmnMonitor::~BmnMonitor() {
 }
 
 
-void BmnMonitor::Monitor() {
+void BmnMonitor::Monitor(TString startFile) {
     // Create server //
    if (gSystem->AccessPathName("auth.htdigest")!=0) {
       printf("Authorization file not found\n");
@@ -54,8 +49,10 @@ void BmnMonitor::Monitor() {
 //    fServer->SetItemField("/", "_layout","grid3x3");
 //    fServer->Restrict("/", "visible=all");
     
-    rawDataDecoder = new BmnRawDataDecoder("mpd_run_067.data", 0, 5);
+    rawDataDecoder = new BmnRawDataDecoder(startFile, 0, 5);
     rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
+    rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
+    rawDataDecoder->SetTof700Mapping("TOF700_map_period_5.txt");
     rawDataDecoder->InitConverter();
     rawDataDecoder->InitDecoder();
     fDigiTree = rawDataDecoder->GetDigiTree();
@@ -142,7 +139,10 @@ void BmnMonitor::ProcessStreamRun() {
             break;
         }
         rawDataDecoder->DecodeDataToDigiIterate();
+        gSystem->ProcessEvents();
         ProcessDigi(iEv++);
+        fServer->ProcessRequests();
+        gSystem->ProcessEvents();
     }
     rcvThread.join();
 
@@ -165,6 +165,8 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
 
     while (kTRUE && convertResult != kBMNFINISH) {
         convertResult = rawDataDecoder->ConvertRawToRootIterateFile();
+        fServer->ProcessRequests();
+        gSystem->ProcessEvents();
         lastEv = iEv;
         iEv = rawDataDecoder->GetNevents() - 1;
         if (iEv > lastEv){
@@ -184,22 +186,22 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
             fDigiArrays.t0,
             fDigiArrays.bc2,
             fDigiArrays.veto,
-            NULL,
-            NULL);
+            fDigiArrays.fd,
+            fDigiArrays.bd);
     bhGem->FillFromDigi(fDigiArrays.gem);
     bhToF400->FillFromDigi(fDigiArrays.tof400);
     bhToF700->FillFromDigi(fDigiArrays.tof700);
     bhDCH->FillFromDigi(fDigiArrays.dch);
     // Fill data Tree //
     fRecoTree->Fill();
-    // fill histograms what will be showed on the site//
+    // fill histograms what will be shown on the site//
     bhTrig_4show->FillFromDigi(
             fDigiArrays.bc1,
             fDigiArrays.t0,
             fDigiArrays.bc2,
             fDigiArrays.veto,
-            NULL,
-            NULL);
+            fDigiArrays.fd,
+            fDigiArrays.bd);
     bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv, (BmnEventHeader*)(fDigiArrays.header->At(0)));
     bhToF400_4show->FillFromDigi(fDigiArrays.tof400);
     bhToF700_4show->FillFromDigi(fDigiArrays.tof700);
@@ -211,8 +213,8 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
 //        bhGem_4show->ApplyNoiseMask(&(bhGem->histGemStrip), 0.5 * iEv);
 //        cout << " mask " << (*(bhGem->GetNoiseMask()))[0][0][0][199] << endl;
 //    }
-    gSystem->ProcessEvents();
-    fServer->ProcessRequests();
+//    gSystem->ProcessEvents();
+//    fServer->ProcessRequests();
     //            usleep(1e5);
 
 }

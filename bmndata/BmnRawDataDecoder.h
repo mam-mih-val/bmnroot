@@ -130,6 +130,10 @@ public:
         fTrigMapFileName = map;
     }
 
+    void SetTrigINLFile(TString file) {
+        fTrigINLFileName = file;
+    }
+
     void SetDchMapping(TString map) {
         fDchMapFileName = map;
     }
@@ -145,13 +149,13 @@ public:
     void SetTof700Mapping(TString map) {
         fTof700MapFileName = map;
     }
-    
+
     TString GetRootFileName() {
         return fRootFileName;
     }
 
 private:
-    
+
     vector<UInt_t> fGemSerials; //list of serial id for GEM
     UInt_t fNGemSerials;
 
@@ -160,7 +164,7 @@ private:
     UInt_t fEventId;
     UInt_t fNevents;
     //for event
-    Long64_t fTime_s; 
+    Long64_t fTime_s;
     Long64_t fTime_ns;
     //for run
     Long64_t fTimeStart_s;
@@ -181,12 +185,14 @@ private:
     TString fTof400MapFileName;
     TString fTof700MapFileName;
     TString fTrigMapFileName;
+    TString fTrigINLFileName;
 
     ifstream fDchMapFile;
     ifstream fGemMapFile;
     ifstream fTof400MapFile;
     ifstream fTof700MapFile;
     ifstream fTrigMapFile;
+    ifstream fTrigINLFile;
 
     TFile *fRootFileIn;
     TFile *fRootFileOut;
@@ -195,14 +201,14 @@ private:
 
     //DAQ arrays
     TClonesArray *sync;
-    TClonesArray *adc32;  //gem
+    TClonesArray *adc32; //gem
     TClonesArray *adc128; //sts
     TClonesArray *hrb;
     TClonesArray *tdc;
     TClonesArray *msc;
     TClonesArray *eventHeaderDAQ;
     BmnRunHeader *runHeaderDAQ;
-//    TClonesArray *runHeaderDAQ;
+    //    TClonesArray *runHeaderDAQ;
     TClonesArray *pedestalAdc;
 
     //Digi arrays
@@ -220,7 +226,7 @@ private:
     //header array
     TClonesArray *eventHeader;
     BmnRunHeader *runHeader;
-//    TClonesArray *runHeader;
+    //    TClonesArray *runHeader;
 
     UInt_t data[1000000];
     ULong_t fMaxEvent;
@@ -246,9 +252,12 @@ private:
     BmnStatus Process_HRB(UInt_t *data, UInt_t len, UInt_t serial);
     BmnStatus FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
-    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx) { return kBMNSUCCESS; };
+
+    BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx) {
+        return kBMNSUCCESS;
+    };
     BmnStatus FillTimeShiftsMap();
     BmnStatus FillTimeShiftsMapNoDB(UInt_t t0serial);
-    
+
     BmnStatus CopyDataToPedMap(TClonesArray* adc, UInt_t ev);
 };

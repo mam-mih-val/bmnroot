@@ -79,6 +79,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fDigiFileName = "";
     fDchMapFileName = "";
     fTrigMapFileName = "";
+    fTrigINLFileName = "";
     fGemMapFileName = "";
     fTof400MapFileName = "";
     fTof700MapFileName = "";
@@ -136,6 +137,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     //}
     fDchMapFileName = "";
     fTrigMapFileName = "";
+    fTrigINLFileName = "TRIG_INL.txt";
     fGemMapFileName = "";
     fTof400MapFileName = "";
     fTof700MapFileName = "";
@@ -642,7 +644,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         curEventType = headDAQ->GetType();
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType);
 
-        fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width, dnlcor);
+        fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time);
 
         if (curEventType == kBMNPEDESTAL) {
             if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
@@ -745,7 +747,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
     fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
-    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
+    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
     fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
@@ -807,8 +809,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fGemMapper->FillEvent(adc32, gem);
         fSiliconMapper->FillEvent(adc128, silicon);
         fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
-        fTof400Mapper->FillEvent(tdc, tof400);
         fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+        fTof400Mapper->FillEvent(tdc, tof400);
         fDigiTree->Fill();
     }
     prevEventType = curEventType;
@@ -975,7 +977,7 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     BmnGemRaw2Digit *gemMapper = NULL;
     BmnDchRaw2Digit *dchMapper = NULL;
-    BmnTrigRaw2Digit *trigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
+    BmnTrigRaw2Digit *trigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
     BmnTof1Raw2Digit *tof400Mapper = NULL;
     BmnTof2Raw2DigitNew *tof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     tof700Mapper->print();
@@ -994,7 +996,7 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
             continue;
         }
 
-        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width, dnlcor);
+        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time);
 
         tof700Mapper->fillSlewingT0(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1016,7 +1018,7 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
             continue;
         }
 
-        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width, dnlcor);
+        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time);
 
         tof700Mapper->fillSlewing(tdc, &fTimeShifts, fT0Time, fT0Width);
     }

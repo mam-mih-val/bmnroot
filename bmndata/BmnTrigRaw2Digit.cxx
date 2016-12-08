@@ -3,7 +3,7 @@
 
 const UShort_t kNCHANNELS = 8; // number of channels in one HPTDC
 
-BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile) {
+BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile) {
     fMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + mappingFile;
     //========== read mapping file            ==========//
     fMapFile.open((fMapFileName).Data());
@@ -29,22 +29,40 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile) {
         fMap.push_back(record);
     }
     fMapFile.close();
+    readINLCorrections(INLFile);
     //==================================================//
 }
 
-BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time, Double_t *t0width, Double_t *dnlcor) {
+BmnStatus BmnTrigRaw2Digit::readINLCorrections(TString INLFile) {
+    for (int i = 0; i < 72; i++)
+        for (int j = 0; j < 1024; j++)
+            fINLTable[i][j] = 0.;
 
-    const int tdc72vhl_tdcid2tdcnum[16] = {2, 1, 0, 5, 4, 3, 8, 7, 6, -1, -1, -1, -1, -1, -1, -1};
-    const int tdc72vhl_tdcch2ch[32] = {7, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0};
-    //    cout <<" IN\n";
+    fINLFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + INLFile;
+    //========== read INL file            ==========//
+    fINLFile.open((fINLFileName).Data(), ios::in);
+    if (!fINLFile.is_open()) {
+        cout << "Error opening INL-file (" << fINLFileName << ")!" << endl;
+        return kBMNERROR;
+    }
+
+    for (int i = 0; i < 72; i++)
+        for (int j = 0; j < 1024; j++)
+            fINLFile >> fINLTable[i][j];
+
+    fINLFile.close();
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time) {
+
     for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
         BmnTrigMapping tM = fMap[iMap];
         for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
             BmnTDCDigit* tdcDig1 = (BmnTDCDigit*) tdc->At(iTdc);
             if (tdcDig1->GetSerial() != tM.serial || tdcDig1->GetSlot() != tM.slot) continue;
             if (!tdcDig1->GetLeading()) continue; // use only leading digits
-//            UShort_t rChannel1 = tdcDig1->GetHptdcId() * kNCHANNELS + tdcDig1->GetChannel();
-            UShort_t rChannel1 = tdc72vhl_tdcid2tdcnum[tdcDig1->GetHptdcId()]*8 + tdc72vhl_tdcch2ch[(tdcDig1->GetChannel()*4) % 32];
+            UShort_t rChannel1 = tdcDig1->GetHptdcId() * kNCHANNELS + tdcDig1->GetChannel();
             if (rChannel1 != tM.channel) continue;
             BmnTDCDigit* nearestDig = NULL;
             UInt_t nearestTime = UINT_MAX;
@@ -54,8 +72,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClon
                 BmnTDCDigit* tdcDig2 = (BmnTDCDigit*) tdc->At(jTdc);
                 if (tdcDig2->GetSerial() != tM.serial || tdcDig2->GetSlot() != tM.slot) continue;
                 if (tdcDig2->GetLeading()) continue; // use only trailing digits as a pair to leading one
-//                UShort_t rChannel2 = tdcDig2->GetHptdcId() * kNCHANNELS + tdcDig2->GetChannel();
-                UShort_t rChannel2 = tdc72vhl_tdcid2tdcnum[tdcDig2->GetHptdcId()]*8 + tdc72vhl_tdcch2ch[(tdcDig2->GetChannel()*4) % 32];
+                UShort_t rChannel2 = tdcDig2->GetHptdcId() * kNCHANNELS + tdcDig2->GetChannel();
                 if (rChannel1 != rChannel2) continue; // we need the same hptdc & channel to create pair
                 if (tdcDig2->GetValue() < tdcDig1->GetValue()) continue; //time should be positive
                 if (tdcDig2->GetValue() - tdcDig1->GetValue() < nearestTime) {
@@ -65,23 +82,12 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClon
             }
 
             if (nearestDig != NULL) {
-                UInt_t dnl = (0x3FF & (tdcDig1->GetValue()));
-                Double_t timednl = tdcDig1->GetValue();
-                UInt_t chin = 0;
-                if (dnlcor) {
-                    chin = tdc72vhl_tdcid2tdcnum[tdcDig1->GetHptdcId()]*8 + tdc72vhl_tdcch2ch[(tdcDig1->GetChannel()*4) % 32];
-                    //		    printf("raw %u double %f dnl %u cor %f\n", tdcDig1->GetValue(), timednl, dnl, *(dnlcor+chin*1024+dnl));
-                    timednl += *(dnlcor + chin * 1024 + dnl);
-                }
-                BmnTrigDigit dig(0, rChannel1, timednl * HPTIMEBIN, (nearestDig->GetValue() - tdcDig1->GetValue()) * HPTIMEBIN);
-                
-                //                if (tM.name == "BC2") //in summer run there was no to, we use bc2 instead
+                Double_t tL = (tdcDig1->GetValue() + fINLTable[rChannel1][tdcDig1->GetValue() % 1024]) * 24.0 / 1024;
+                Double_t tT = (nearestDig->GetValue() + fINLTable[rChannel1][nearestDig->GetValue() % 1024]) * 24.0 / 1024;
+                BmnTrigDigit dig(0, rChannel1, tL, tT - tL);
+
                 if (tM.name == "T0") {
-                    //		    if (dnlcor) printf("raw %u double %f dnl %u cor %f chin %d\n", tdcDig1->GetValue(), timednl, dnl, *(dnlcor+chin*1024+dnl), chin);
-                    t0time = timednl * HPTIMEBIN; //ns
-                    if (t0width != NULL) *t0width = (nearestDig->GetValue() - tdcDig1->GetValue()) * HPTIMEBIN;
-                }
-                if (tM.name == "T0") {
+                    t0time = (tdcDig1->GetValue() + fINLTable[rChannel1][tdcDig1->GetValue() % 1024]) * 24.0 / 1024; //ns
                     TClonesArray& ar_t0 = *t0;
                     if (t0) new(ar_t0[t0->GetEntriesFast()]) BmnTrigDigit(dig);
                 } else if (tM.name == "BC1") {

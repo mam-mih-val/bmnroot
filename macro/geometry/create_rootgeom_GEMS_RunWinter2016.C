@@ -13,8 +13,8 @@ using namespace TMath;
 TGeoManager* gGeoMan = NULL;
 
 //Set Parameters of GEMS
-const Int_t nStations = 6;      //stations in the detector
-const Int_t nMaxModules = 2;    //max. number of modules in a station
+const Int_t nStations = BmnGemStationPositions_RunWinter2016::NStations;      //stations in the detector
+const Int_t nMaxModules = BmnGemStationPositions_RunWinter2016::NMaxModules;    //max. number of modules in a station
 
 //Positions of stations in the detector
 Double_t XStationPositions[nStations];
@@ -26,6 +26,20 @@ Double_t XModuleShifts[nStations][nMaxModules];
 Double_t YModuleShifts[nStations][nMaxModules];
 Double_t ZModuleShifts[nStations][nMaxModules];
 
+
+//GEM plane sizes (10x10 type) -------------------------------------------------
+const Double_t XModuleSize_Station10x10 = 10.0;
+const Double_t YModuleSize_Station10x10 = 10.0;
+
+    //Module Parameters (10x10 type)
+    const Double_t dXOuterFrame_Station10x10 = 5.0;
+    const Double_t dXInnerFrame_Station10x10 = 1.7;
+    const Double_t dYOuterFrame_Station10x10 = 3.75;
+    const Double_t dYInnerFrame_Station10x10 = 1.7;
+    const Double_t dZSensitiveVolume_Station10x10 = 0.9;
+    const Double_t ZModuleSize_Station10x10 = 1.3;
+    const Double_t Mylar_window_layer_Station10x10 = 0.1; //layer in front the of drift gap
+//------------------------------------------------------------------------------
 
 //GEM plane sizes (66x41 type) -------------------------------------------------
 const Double_t XModuleSize_Station66x41 = 66.0;
@@ -171,37 +185,41 @@ void create_rootgeom_GEMS_RunWinter2016() {
     //Set positions of GEM stations
     SetStationPositionsAndModuleShifts();
 
-    //station composing
-    CreateStation_One66x41Plane(GEMS, "station0",
-                                XStationPositions[0], YStationPositions[0], ZStationPositions[0],
-                                XModuleShifts[0][0], YModuleShifts[0][0], ZModuleShifts[0][0],
-                                kFALSE);
+    CreateStation_SmallGEM10x10Plane(GEMS, "station0",
+                                     XStationPositions[0], YStationPositions[0], ZStationPositions[0],
+                                     XModuleShifts[0][0], YModuleShifts[0][0], ZModuleShifts[0][0]);
 
+    //station composing
     CreateStation_One66x41Plane(GEMS, "station1",
                                 XStationPositions[1], YStationPositions[1], ZStationPositions[1],
                                 XModuleShifts[1][0], YModuleShifts[1][0], ZModuleShifts[1][0],
-                                kTRUE);
+                                kFALSE);
 
     CreateStation_One66x41Plane(GEMS, "station2",
                                 XStationPositions[2], YStationPositions[2], ZStationPositions[2],
                                 XModuleShifts[2][0], YModuleShifts[2][0], ZModuleShifts[2][0],
-                                kFALSE);
+                                kTRUE);
 
-    CreateStation_Two66x41Plane(GEMS, "station3",
+    CreateStation_One66x41Plane(GEMS, "station3",
                                 XStationPositions[3], YStationPositions[3], ZStationPositions[3],
                                 XModuleShifts[3][0], YModuleShifts[3][0], ZModuleShifts[3][0],
-                                XModuleShifts[3][1], YModuleShifts[3][1], ZModuleShifts[3][1]);
+                                kFALSE);
 
-    CreateStation_One163x45Plane(GEMS, "station4",
-                                 XStationPositions[4], YStationPositions[4], ZStationPositions[4],
-                                 XModuleShifts[4][0], YModuleShifts[4][0], ZModuleShifts[4][0],
-                                 XModuleShifts[4][1], YModuleShifts[4][1], ZModuleShifts[4][1],
-                                 HoleRadius_Station163x45+dXInnerFrame_Station163x45, kFALSE);
+    CreateStation_Two66x41Plane(GEMS, "station4",
+                                XStationPositions[4], YStationPositions[4], ZStationPositions[4],
+                                XModuleShifts[4][0], YModuleShifts[4][0], ZModuleShifts[4][],
+                                XModuleShifts[4][1], YModuleShifts[4][1], ZModuleShifts[4][1]);
 
     CreateStation_One163x45Plane(GEMS, "station5",
                                  XStationPositions[5], YStationPositions[5], ZStationPositions[5],
                                  XModuleShifts[5][0], YModuleShifts[5][0], ZModuleShifts[5][0],
                                  XModuleShifts[5][1], YModuleShifts[5][1], ZModuleShifts[5][1],
+                                 HoleRadius_Station163x45+dXInnerFrame_Station163x45, kFALSE);
+
+    CreateStation_One163x45Plane(GEMS, "station6",
+                                 XStationPositions[6], YStationPositions[6], ZStationPositions[6],
+                                 XModuleShifts[6][0], YModuleShifts[6][0], ZModuleShifts[6][0],
+                                 XModuleShifts[6][1], YModuleShifts[6][1], ZModuleShifts[6][1],
                                  HoleRadius_Station163x45+dXInnerFrame_Station163x45, kTRUE);
 
 
@@ -220,6 +238,102 @@ void create_rootgeom_GEMS_RunWinter2016() {
     top->Draw("ogl");
 }
 //------------------------------------------------------------------------------
+
+void CreateStation_SmallGEM10x10Plane(TGeoVolume* mother_volume, TString station_name,
+                                      Double_t x_position, Double_t y_position, Double_t z_position,
+                                      Double_t x_shift_mod0, Double_t y_shift_mod0, Double_t z_shift_mod0) {
+
+    TGeoVolume *stationA = new TGeoVolumeAssembly(station_name);
+    stationA->SetMedium(pMedAir);
+
+    //sensitive shapes
+    TGeoShape *moduleS = new TGeoBBox("moduleS", XModuleSize_Station10x10*0.5, YModuleSize_Station10x10*0.5, dZSensitiveVolume_Station10x10*0.5);
+
+    //frame shapes
+    TGeoShape *vertical_outer_frameS = new TGeoBBox("vertical_outer_frameS", dXOuterFrame_Station10x10*0.5, (YModuleSize_Station10x10+dYOuterFrame_Station10x10)*0.5, ZModuleSize_Station10x10*0.5);
+    TGeoShape *horizontal_outer_frameS = new TGeoBBox("horizontal_outer_frameS", XModuleSize_Station10x10*0.5, dYOuterFrame_Station10x10*0.5, ZModuleSize_Station10x10*0.5);
+    TGeoShape *vertical_inner_frameS = new TGeoBBox("vertical_inner_frameS", dXInnerFrame_Station10x10*0.5, (YModuleSize_Station10x10+dYOuterFrame_Station10x10+dYInnerFrame_Station10x10)*0.5, ZModuleSize_Station10x10*0.5);
+    TGeoShape *horizontal_inner_frameS = new TGeoBBox("horizontal_inner_frameS", (XModuleSize_Station10x10+dXOuterFrame_Station10x10)*0.5, dYInnerFrame_Station10x10*0.5, ZModuleSize_Station10x10*0.5);
+
+    //sensitive volumes
+    TGeoVolume *moduleV = new TGeoVolume("module_Sensor", moduleS);
+    moduleV->SetLineColor(TColor::GetColor("#ff47ca"));
+
+    //frame volumes
+    TGeoVolume *vertical_outer_frameV = new TGeoVolume("vertical_outer_frame", vertical_outer_frameS);
+    TGeoVolume *horizontal_outer_frameV = new TGeoVolume("horizontal_outer_frame", horizontal_outer_frameS);
+    TGeoVolume *vertical_inner_frameV = new TGeoVolume("vertical_inner_frame", vertical_inner_frameS);
+    TGeoVolume *horizontal_inner_frameV = new TGeoVolume("horizontal_inner_frame", horizontal_inner_frameS);
+    TGeoVolume *composite_frameV = new TGeoVolumeAssembly("frame");
+    vertical_outer_frameV->SetLineColor(TColor::GetColor("#9999ff"));
+    horizontal_outer_frameV->SetLineColor(TColor::GetColor("#9999ff"));
+    vertical_inner_frameV->SetLineColor(TColor::GetColor("#9999ff"));
+    horizontal_inner_frameV->SetLineColor(TColor::GetColor("#9999ff"));
+
+    //media for sensitive volumes
+    TGeoMedium *sensitive_medium = pMedArCO27030; //set medium
+    if(sensitive_medium) {
+        moduleV->SetMedium(sensitive_medium);
+    }
+    else Fatal("Main", "Invalid medium for sensitive modules!");
+
+    //media for frames
+    TGeoMedium *frame_medium = pMedCarbon; //set medium
+    if(frame_medium) {
+        vertical_outer_frameV->SetMedium(frame_medium);
+        horizontal_outer_frameV->SetMedium(frame_medium);
+        vertical_inner_frameV->SetMedium(frame_medium);
+        horizontal_inner_frameV->SetMedium(frame_medium);
+        composite_frameV->SetMedium(frame_medium);
+    }
+    else Fatal("Main", "Invalid medium for frames!");
+
+    moduleV->SetTransparency(20);
+
+    //module positions in the station
+    TGeoCombiTrans *module_position = new TGeoCombiTrans();
+    module_position->SetTranslation(x_shift_mod0, y_shift_mod0, z_shift_mod0);
+
+    //frame part positions in the frame
+    TGeoCombiTrans *left_outer_frame_position = new TGeoCombiTrans();
+    left_outer_frame_position->SetTranslation(XModuleSize_Station10x10*0.5+dXOuterFrame_Station10x10*0.5,
+                                              dYOuterFrame_Station10x10*0.5,
+                                              0.0);
+
+    TGeoCombiTrans *top_outer_frame_position = new TGeoCombiTrans();
+    top_outer_frame_position->SetTranslation(0.0,
+                                             YModuleSize_Station10x10*0.5 + dYOuterFrame_Station10x10*0.5,
+                                             0.0);
+
+    TGeoCombiTrans *right_inner_frame_position = new TGeoCombiTrans();
+    right_inner_frame_position->SetTranslation(-XModuleSize_Station10x10*0.5-dXInnerFrame_Station10x10*0.5,
+                                               -(dYOuterFrame_Station10x10+dYInnerFrame_Station10x10)*0.5 + dYOuterFrame_Station10x10,
+                                               0.0);
+
+    TGeoCombiTrans *bottom_inner_frame_position = new TGeoCombiTrans();
+    bottom_inner_frame_position->SetTranslation(dXOuterFrame_Station10x10*0.5,
+                                                -YModuleSize_Station10x10*0.5-dYInnerFrame_Station10x10*0.5,
+                                                0.0);
+
+    //frame positions in the station
+    TGeoCombiTrans *comp_frame_center_position = new TGeoCombiTrans();
+    comp_frame_center_position->SetTranslation(module_position->GetTranslation());
+    //comp_frame_center_position->SetDz((ZModuleSize_Station10x10-dZSensitiveVolume_Station10x10)*0.5 - Mylar_window_layer_Station10x10);
+
+    composite_frameV->AddNode(vertical_outer_frameV, 0, left_outer_frame_position);
+    composite_frameV->AddNode(horizontal_outer_frameV, 0, top_outer_frame_position);
+    //composite_frameV->AddNode(vertical_inner_frameV, 0, right_inner_frame_position);
+    //composite_frameV->AddNode(horizontal_inner_frameV, 0, bottom_inner_frame_position);
+
+    stationA->AddNode(moduleV, 0, module_position);
+    stationA->AddNode(composite_frameV, 0, comp_frame_center_position);
+
+    //Station position
+    Double_t station_shift = dZSensitiveVolume_Station10x10*0.5;
+    TGeoTranslation *station_pos = new TGeoTranslation(x_position, y_position, z_position+station_shift);
+
+    mother_volume->AddNode(stationA, 0, station_pos);
+}
 
 void CreateStation_One66x41Plane(TGeoVolume* mother_volume, TString station_name,
                                  Double_t x_position, Double_t y_position, Double_t z_position,

@@ -15,6 +15,7 @@
 
 #define HPTIMEBIN 0.02344
 #define INVHPTIMEBIN 42.6666
+#define KNBDCHANNELS 40
 
 using namespace std;
 using namespace TMath;
@@ -37,7 +38,7 @@ public:
         return fMap;
     }
     
-    BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, Double_t& t0time, Double_t *t0width = NULL, Double_t *dnlcor = NULL);
+    BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time, Double_t *t0width = NULL, Double_t *dnlcor = NULL);
     
 private:
             

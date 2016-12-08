@@ -1,3 +1,4 @@
+
 #include "BmnRawDataDecoder.h"
 
 //#include <pthread.h>
@@ -242,10 +243,10 @@ BmnStatus BmnRawDataDecoder::InitConverter(deque<UInt_t> *dq) {
     fDataQueue = dq;
     fRawTree = new TTree("BMN_RAW", "BMN_RAW");
     //    fRawFileIn = fopen(fRawFileName, "rb");
-//    if (fDataQueue == NULL) {
-//        printf("\n!!!!!\ncannot open stream\nConvertRawToRoot are stopped\n!!!!!\n\n");
-//        return kBMNERROR;
-//    }
+    //    if (fDataQueue == NULL) {
+    //        printf("\n!!!!!\ncannot open stream\nConvertRawToRoot are stopped\n!!!!!\n\n");
+    //        return kBMNERROR;
+    //    }
     //    fRootFileOut = new TFile(fRootFileName, "recreate");
     //    fseeko64(fRawFileIn, 0, SEEK_END);
     //    fLengthRawFile = ftello64(fRawFileIn);
@@ -620,8 +621,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
     Double_t *dnlcor = fTof700Mapper->GetINL();
 
-//    fTof700Mapper->readSlewingT0();
-//    fTof700Mapper->readSlewing();
+    //    fTof700Mapper->readSlewingT0();
+    //    fTof700Mapper->readSlewing();
 
     UInt_t pedEvCntr = 0; // counter for pedestal events between two spills
     BmnEventType curEventType = kBMNPAYLOAD;
@@ -641,7 +642,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         curEventType = headDAQ->GetType();
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType);
 
-        fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time, &fT0Width, dnlcor);
+        fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width, dnlcor);
 
         if (curEventType == kBMNPEDESTAL) {
             if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
@@ -659,29 +660,29 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
             fTof400Mapper->FillEvent(tdc, tof400);
             fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+            if (iEv == fNevents - 1) {
+                fDigiTree->Branch("RunHeader", &runHeader);
+                UInt_t sT = runHeaderDAQ->GetStartTime().GetTime();
+                UInt_t fT = runHeaderDAQ->GetFinishTime().GetTime();
+                UInt_t sD = runHeaderDAQ->GetStartTime().GetDate();
+                UInt_t fD = runHeaderDAQ->GetFinishTime().GetDate();
+
+                runHeader->SetRunId(runHeaderDAQ->GetRunId());
+                runHeader->SetStartTime(runHeaderDAQ->GetStartTime());
+                runHeader->SetFinishTime(runHeaderDAQ->GetFinishTime());
+
+                printf("\n============== Summary of run%04d ==============\n", runHeader->GetRunId());
+                printf("START (event 1):\t%d/%02d/%02d\t", sD / 10000, sD % 10000 / 100, sD % 100);
+                printf("%02d:%02d:%02d\n", sT / 10000, sT % 10000 / 100, sT % 100);
+                printf("FINISH (event %d):\t%d/%02d/%02d\t", fEventId, fD / 10000, fD % 10000 / 100, fD % 100);
+                printf("%02d:%02d:%02d\n", fT / 10000, fT % 10000 / 100, fT % 100);
+                printf("================================================\n");
+            }
             fDigiTree->Fill();
         }
         prevEventType = curEventType;
+
     }
-
-    fDigiTree->Branch("RunHeader", &runHeader);
-    UInt_t st = runHeaderDAQ->GetStartTime().GetTime();
-    UInt_t ft = runHeaderDAQ->GetFinishTime().GetTime();
-    UInt_t sd = runHeaderDAQ->GetStartTime().GetDate();
-    UInt_t fd = runHeaderDAQ->GetFinishTime().GetDate();
-
-    runHeader->SetRunId(runHeaderDAQ->GetRunId());
-    runHeader->SetStartTime(runHeaderDAQ->GetStartTime());
-    runHeader->SetFinishTime(runHeaderDAQ->GetFinishTime());
-    fDigiTree->Fill();
-
-    printf("\n============== Summary of run%04d ==============\n", runHeader->GetRunId());
-    printf("START (event 1):\t%d/%02d/%02d\t", sd / 10000, sd % 10000 / 100, sd % 100);
-    printf("%02d:%02d:%02d\n", st / 10000, st % 10000 / 100, st % 100);
-    printf("FINISH (event %d):\t%d/%02d/%02d\t", fEventId, fd / 10000, fd % 10000 / 100, fd % 100);
-    printf("%02d:%02d:%02d\n", ft / 10000, ft % 10000 / 100, ft % 100);
-    printf("================================================\n");
-
     fDigiTree->Write();
     fDigiFileOut->Close();
     fRootFileIn->Close();
@@ -720,6 +721,8 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     t0 = new TClonesArray("BmnTrigDigit");
     bc1 = new TClonesArray("BmnTrigDigit");
     bc2 = new TClonesArray("BmnTrigDigit");
+    bd = new TClonesArray("BmnTrigDigit");
+    fd = new TClonesArray("BmnTrigDigit");
     veto = new TClonesArray("BmnTrigDigit");
     eventHeader = new TClonesArray("BmnEventHeader");
     runHeader = new BmnRunHeader();
@@ -731,6 +734,8 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fDigiTree->Branch("BC1", &bc1);
     fDigiTree->Branch("BC2", &bc2);
     fDigiTree->Branch("VETO", &veto);
+    fDigiTree->Branch("FD", &fd);
+    fDigiTree->Branch("BD", &bd);
     fDigiTree->Branch("DCH", &dch);
     fDigiTree->Branch("GEM", &gem);
     fDigiTree->Branch("SILICON", &silicon);
@@ -742,7 +747,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
     fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
-//    fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
+    fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
     cout << "Init dec end" << endl;
@@ -759,6 +764,8 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     bc1->Clear();
     bc2->Clear();
     veto->Clear();
+    fd->Clear();
+    bd->Clear();
     eventHeader->Clear();
     //runHeader->Clear();
     fTimeShifts.clear();
@@ -784,7 +791,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     curEventType = headDAQ->GetType();
     new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType);
 
-    fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fT0Time);
+    fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time);
 
     if (curEventType == kBMNPEDESTAL) {
         if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) return kBMNERROR; //FIX return!
@@ -829,6 +836,8 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     fDigiTree->Branch("BC1", &bc1);
     fDigiTree->Branch("BC2", &bc2);
     fDigiTree->Branch("VETO", &veto);
+    fDigiTree->Branch("FD", &fd);
+    fDigiTree->Branch("BD", &bd);
     fDigiTree->Branch("DCH", &dch);
     fDigiTree->Branch("GEM", &gem);
     fDigiTree->Branch("TOF400", &tof400);
@@ -859,6 +868,8 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete bc1;
     delete bc2;
     delete veto;
+    delete fd;
+    delete bd;
     delete tof400;
     delete tof700;
     delete eventHeader;
@@ -982,7 +993,7 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
             continue;
         }
 
-        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, fT0Time, &fT0Width, dnlcor);
+        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width, dnlcor);
 
         tof700Mapper->fillSlewingT0(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1004,7 +1015,7 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
             continue;
         }
 
-        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, fT0Time, &fT0Width, dnlcor);
+        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width, dnlcor);
 
         tof700Mapper->fillSlewing(tdc, &fTimeShifts, fT0Time, fT0Width);
     }

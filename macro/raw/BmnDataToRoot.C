@@ -5,10 +5,9 @@
 void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE) {
   gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
   bmnloadlibs(); // load BmnRoot libraries
-  BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents);
-  decoder->SetPedestalRun(kFALSE);
-  decoder->SetTrigMapping("Trig_map_Run4.txt");
-  decoder->SetTof700Mapping("");
+  BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 5); //4 - period
+  decoder->SetTrigMapping("Trig_map_Run5.txt");
+  decoder->SetTof700Mapping("TOF700_map_period_5.txt");
   if(doConvert) decoder->ConvertRawToRoot();  // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
   decoder->DecodeDataToDigi();  // Decode data into detector-digits using current mappings.
   

@@ -211,6 +211,8 @@ private:
     TClonesArray *bc1;
     TClonesArray *bc2;
     TClonesArray *veto;
+    TClonesArray *fd;
+    TClonesArray *bd;
     //header array
     TClonesArray *eventHeader;
     BmnRunHeader *runHeader;

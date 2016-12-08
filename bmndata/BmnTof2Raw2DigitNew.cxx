@@ -162,6 +162,17 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 		    DNL_Table[c][i][j][k] = 0.;
 	}
     DNL_read();
+    
+    for (int c=0; c<TOF2_MAX_CHAMBERS; c++)
+	for (int i=0; i<2; i++)
+	{
+	    TvsWt0_const[c][i] = 0.;
+	    TvsWt0_slope[c][i] = 0.;
+	    TvsWt0_parab[c][i] = 0.;
+	    TvsW_const[c][i] = 0.;
+	    TvsW_slope[c][i] = 0.;
+	    TvsW_parab[c][i] = 0.;
+	}
 
     Wcut = 1700;
     Wmax = 3700;

@@ -21,15 +21,19 @@ private:
 
     ElectronDriftDirectionInModule EDriftDirection;
 
-/* Station 0-2 : plane 66x41  */
-/* Station 3 : two plane 66x41  */
+/* Station 0 : plane 10x10  */
+    Double_t XModuleSize_Plane10x10;
+    Double_t YModuleSize_Plane10x10;
+
+/* Station 1-3 : plane 66x41  */
+/* Station 4 : two plane 66x41  */
     Double_t XModuleSize_Plane66x41;
     Double_t YModuleSize_Plane66x41;
 
     Double_t XHotZoneSize_Plane66x41;
     Double_t YHotZoneSize_Plane66x41;
 
-/* Station 4-5 : plane 163x45 */
+/* Station 5-6 : plane 163x45 */
     Double_t XModuleSize_Plane163x45; // x size of module that is a half part of the plane
     Double_t YModuleSize_Plane163x45; // y size of module that is a half part of the plane
 
@@ -53,6 +57,7 @@ private:
     BmnGemStripStation_RunWinter2016(const BmnGemStripStation&);
     BmnGemStripStation_RunWinter2016& operator=(const BmnGemStripStation&);
 
+    void BuildModules_One10x10Plane();
     void BuildModules_One66x41Plane();
     void BuildModules_Two66x41Plane();
     void BuildModules_One163x45Plane();

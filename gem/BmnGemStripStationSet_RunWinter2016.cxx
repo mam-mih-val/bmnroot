@@ -3,7 +3,7 @@
 
 BmnGemStripStationSet_RunWinter2016::BmnGemStripStationSet_RunWinter2016(BmnGemStripConfiguration::GEM_CONFIG config) {
 
-    NStations = 6;
+    NStations = BmnGemStationPositions_RunWinter2016::NStations; //must be 7! (check it if you doubt))
 
     // !!! Classical coordinate system is used !!!
     XStationPositions = new Double_t[NStations];
@@ -20,7 +20,7 @@ BmnGemStripStationSet_RunWinter2016::BmnGemStripStationSet_RunWinter2016(BmnGemS
                 ZStationPositions[iStat] = BmnGemStationPositions_RunWinter2016::ZStationPositions[iStat];
             }
             break;
-            
+
         default:
             for (Int_t iStat = 0; iStat < NStations; iStat++) {
                 XStationPositions[iStat] = -BmnGemStationPositions_RunWinter2016::XStationPositions[iStat]; //inverted : (bm@n x-coord -> classical x-coord)

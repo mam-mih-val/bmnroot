@@ -26,7 +26,18 @@ BmnGemStripStation_RunWinter2016::BmnGemStripStation_RunWinter2016(Int_t iStatio
         //ZSize : z-size of the station
 
     switch (iStation) {
-        case 0: //one plane 66x41
+        case 0: //one plane 10x10
+            LowerLayerStripAngle = 0.0;
+            UpperLayerStripAngle = +90.0;
+            LowerLayerPitch = 0.04;
+            UpperLayerPitch = 0.04;
+            ZSizeModuleWithFrames = 1.3;
+            ZSizeModule = 0.9;
+            EDriftDirection = ForwardZAxisEDrift;
+            NModules = 1; //Number of modules in the station
+            break;
+
+        case 1: //one plane 66x41
             LowerLayerStripAngle = 0.0;
             UpperLayerStripAngle = +15.0;
             LowerLayerPitch = 0.08;
@@ -37,7 +48,7 @@ BmnGemStripStation_RunWinter2016::BmnGemStripStation_RunWinter2016(Int_t iStatio
             NModules = 1; //Number of modules in the station
             break;
 
-        case 1: //one plane 66x41
+        case 2: //one plane 66x41
             LowerLayerStripAngle = 0.0;
             UpperLayerStripAngle = -15.0;
             LowerLayerPitch = 0.08;
@@ -48,7 +59,7 @@ BmnGemStripStation_RunWinter2016::BmnGemStripStation_RunWinter2016(Int_t iStatio
             NModules = 1; //Number of modules in the station
             break;
 
-        case 2: //one plane 66x41
+        case 3: //one plane 66x41
             LowerLayerStripAngle = 0.0;
             UpperLayerStripAngle = +15.0;
             LowerLayerPitch = 0.08;
@@ -59,7 +70,7 @@ BmnGemStripStation_RunWinter2016::BmnGemStripStation_RunWinter2016(Int_t iStatio
             NModules = 1; //Number of modules in the station
             break;
 
-        case 3: //two plane 66x41
+        case 4: //two plane 66x41
             LowerLayerStripAngle = 0.0;
             UpperLayerStripAngle = -15.0;
             LowerLayerPitch = 0.08;
@@ -70,7 +81,7 @@ BmnGemStripStation_RunWinter2016::BmnGemStripStation_RunWinter2016(Int_t iStatio
             NModules = 2; //Number of modules in the station
             break;
 
-        case 4: //one plane 163x45
+        case 5: //one plane 163x45
             LowerLayerStripAngle = 0.0;
             UpperLayerStripAngle = +15.0;
             LowerLayerPitch = 0.08;
@@ -81,7 +92,7 @@ BmnGemStripStation_RunWinter2016::BmnGemStripStation_RunWinter2016(Int_t iStatio
             NModules = 2; //Number of modules in the station
             break;
 
-        case 5: //one plane 163x45
+        case 6: //one plane 163x45
             LowerLayerStripAngle = 0.0;
             UpperLayerStripAngle = -15.0;
             LowerLayerPitch = 0.08;
@@ -95,14 +106,18 @@ BmnGemStripStation_RunWinter2016::BmnGemStripStation_RunWinter2016(Int_t iStatio
 
     //Planes SIZES
 
-    //station 0-3 (plane 66x41)
+    //station 0 (plane 10x10)
+    XModuleSize_Plane10x10 = 10.0;
+    YModuleSize_Plane10x10 = 10.0;
+
+    //station 1-4 (plane 66x41)
     XModuleSize_Plane66x41 = 66.0;
     YModuleSize_Plane66x41 = 41.0;
 
     XHotZoneSize_Plane66x41 = 15.0;
     YHotZoneSize_Plane66x41 = 10.0;
 
-    //station 4-5 (plane 163x45)
+    //station 5-6 (plane 163x45)
     XModuleSize_Plane163x45 = 163.2*0.5;
     YModuleSize_Plane163x45 = 45.0;
 
@@ -139,21 +154,28 @@ BmnGemStripStation_RunWinter2016::BmnGemStripStation_RunWinter2016(Int_t iStatio
 
     //Assembling a station -----------------------------------------------------
 
-    if(StationNumber >= 0 && StationNumber <= 2) {
+    if (StationNumber == 0) {
+        XSize = XModuleSize_Plane10x10;
+        YSize = YModuleSize_Plane10x10;
+        ZSize = ZSizeModule;
+        BuildModules_One10x10Plane();
+    }
+
+    if(StationNumber >= 1 && StationNumber <= 3) {
         XSize = XModuleSize_Plane66x41;
         YSize = YModuleSize_Plane66x41;
         ZSize = ZSizeModule;
         BuildModules_One66x41Plane();
     }
 
-    if(StationNumber == 3) {
+    if(StationNumber == 4) {
         XSize = 2*XModuleSize_Plane66x41;
         YSize = YModuleSize_Plane66x41;
         ZSize = ZSizeModule;
         BuildModules_Two66x41Plane();
     }
 
-    if(StationNumber >= 4 && StationNumber <= 5) {
+    if(StationNumber >= 5 && StationNumber <= 6) {
         XSize = 2*XModuleSize_Plane163x45;
         YSize = YModuleSize_Plane163x45;
         ZSize = ZSizeModule;
@@ -196,6 +218,39 @@ Int_t BmnGemStripStation_RunWinter2016::GetPointModuleOwnership(Double_t xcoord,
     return -1;
 }
 //------------------------------------------------------------------------------
+
+void BmnGemStripStation_RunWinter2016::BuildModules_One10x10Plane() {
+
+    Modules = new BmnGemStripModule* [NModules];
+
+    //module
+    Modules[0] = new BmnGemStripModule(ZPosition + ZShiftOfModules[0], EDriftDirection);
+
+        //lower strip layer --------------------------------------------------------
+        BmnGemStripLayer lower_layer(0, LowerStripLayer,
+                                     XModuleSize_Plane10x10, YModuleSize_Plane10x10,
+                                     XShiftOfModules[0]+XPosition-XModuleSize_Plane10x10*0.5, YShiftOfModules[0]+YPosition-YModuleSize_Plane10x10*0.5,
+                                     LowerLayerPitch, LowerLayerStripAngle);
+
+        lower_layer.SetStripNumberingOrder(RightToLeft);
+        lower_layer.SetStripNumberingBorders(LeftTop, RightBottom);
+        //--------------------------------------------------------------------------
+
+        //upper strip layer --------------------------------------------------------
+        BmnGemStripLayer upper_layer(0, UpperStripLayer,
+                                     XModuleSize_Plane10x10, YModuleSize_Plane10x10,
+                                     XShiftOfModules[0]+XPosition-XModuleSize_Plane10x10*0.5, YShiftOfModules[0]+YPosition-YModuleSize_Plane10x10*0.5,
+                                     UpperLayerPitch, UpperLayerStripAngle);
+
+        upper_layer.SetStripNumberingOrder(LeftToRight);
+        upper_layer.SetStripNumberingBorders(LeftTop, RightBottom);
+        //--------------------------------------------------------------------------
+
+    Modules[0]->AddStripLayer(lower_layer);
+    Modules[0]->AddStripLayer(upper_layer);
+
+    return;
+}
 
 void BmnGemStripStation_RunWinter2016::BuildModules_One66x41Plane() {
 

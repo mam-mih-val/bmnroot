@@ -78,15 +78,11 @@ void BmnHistTrigger::FillFromDigi(
         histVDTimeLen->Fill(tv->GetAmp());
         histTriggers->Fill(3);
     }
-    //            for (Int_t digIndex = 0; digIndex < trigVDDigits->GetEntriesFast(); digIndex++) {
-    //                BmnTrigDigit* bd = (BmnTrigDigit*) trigBDDigits->At(digIndex);
-    //                bmh.histBDChannels->Fill(bd->GetMod());
-    //                BmnTrigDigit *bd1 = new (*(bmh.BDEvents))[bmh.BDEvents->GetEntriesFast()] BmnTrigDigit();
-    //                bd1->SetAmp(bd->GetAmp());
-    //                bd1->SetDet(bd->GetDet());
-    //                bd1->SetMod(bd->GetMod());
-    //                bd1->SetTime(bd->GetTime());
-    //            }
+    for (Int_t digIndex = 0; digIndex < VDdigits->GetEntriesFast(); digIndex++) {
+        BmnTrigDigit* bd = (BmnTrigDigit*) VDdigits->At(digIndex);
+        histBDChannels->Fill(bd->GetMod());
+        new ((*BDEvents)[BDEvents->GetEntriesFast()]) BmnTrigDigit(bd->GetDet(), bd->GetMod(), bd->GetTime(), bd->GetAmp());
+    }
 }
 
 void BmnHistTrigger::SaveHists(TString imgSavePath) {
@@ -121,16 +117,16 @@ void BmnHistTrigger::Register(THttpServer *serv) {
     fServer->Register(path, histTriggers);
     fServer->Register(path, histBDChannels);
     fServer->Register(path, histBDSpecific);
-   TString examples = TString("[") +
-           histBC1TimeLen->GetTitle() + TString(",") +
-           histBC2TimeLen->GetTitle() + TString(",") +
-           histFDTimeLen->GetTitle() + TString(",") +
-           histVDTimeLen->GetTitle() + TString(",") +
-           histSDTimeLen->GetTitle() + TString(",") +
-           histBDSpecific->GetTitle() + TString("]");
+    TString examples = TString("[") +
+            histBC1TimeLen->GetTitle() + TString(",") +
+            histBC2TimeLen->GetTitle() + TString(",") +
+            histFDTimeLen->GetTitle() + TString(",") +
+            histVDTimeLen->GetTitle() + TString(",") +
+            histSDTimeLen->GetTitle() + TString(",") +
+            histBDSpecific->GetTitle() + TString("]");
     fServer->SetItemField(path.Data(), "_monitoring", "2000");
     fServer->SetItemField(path.Data(), "_layout", "grid3x2");
-    fServer->SetItemField(path,"_drawitem", examples);
+    fServer->SetItemField(path, "_drawitem", examples);
 
     TString cmdTitle = path + "ChangeBDChannel";
     fServer->RegisterCommand(cmdTitle.Data(), "/" + fName + "/->SetSelBDChannel(%arg1%)", "button;");

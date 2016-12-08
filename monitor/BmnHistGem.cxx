@@ -17,7 +17,7 @@
 
 #include "BmnHistGem.h"
 
-const UInt_t moduleCount[GEM_STATIONS_COUNT] = {1, 1, 1, 1, 1, 1, 2};
+const UInt_t moduleCount[GEM_STATIONS_COUNT] = {1, 1, 1, 1, 2, 2, 2};
 const UInt_t layersCount[GEM_STATIONS_COUNT] = {2, 4, 4, 4, 4, 4, 4};
 const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 825, 1019};
 #define MAX_STRIPS 1020
@@ -112,7 +112,7 @@ void BmnHistGem::FillFromDigi(TClonesArray * gemDigits) {
     }
 }
 
-void BmnHistGem::FillFromDigiMasked(TClonesArray * gemDigits, vector<vector<vector<TH1F*> > >* hist0, Double_t threshold) {//vector<vector<vector<Int_t*> > >* mask) {
+void BmnHistGem::FillFromDigiMasked(TClonesArray * gemDigits, vector<vector<vector<TH1F*> > >* hist0, Double_t threshold, BmnEventHeader * head) {//vector<vector<vector<Int_t*> > >* mask) {
     for (Int_t digIndex = 0; digIndex < gemDigits->GetEntriesFast(); digIndex++) {
         BmnGemStripDigit* gs = (BmnGemStripDigit*) gemDigits->At(digIndex);
         Int_t module = gs->GetModule();
@@ -127,7 +127,7 @@ void BmnHistGem::FillFromDigiMasked(TClonesArray * gemDigits, vector<vector<vect
         if ((*hist0)[station][module][layer]->GetBinContent((*hist0)[station][module][layer]->FindBin(gemStrip)) <= threshold * 0.9)
             histGemStrip[station][module][layer]->AddBinContent(histGemStrip[station][module][layer]->FindBin(gemStrip));
 //            histGemStrip[station][module][layer]->Fill(gemStrip);
-                TString name = Form(fTitle + "_Station_%d_module_%d_layer_%d_%G", station, module, layer, threshold);
+                TString name = Form(fTitle + "_Station_%d_module_%d_layer_%d_Run%d", station, module, layer, head->GetRunId());
         histGemStrip[station][module][layer]->SetTitle(name);
     }
 }

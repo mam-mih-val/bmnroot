@@ -28,6 +28,7 @@
 #include "THttpServer.h"
 
 #include "BmnGemStripDigit.h"
+#include "BmnEventHeader.h"
 
 #define GEM_STATIONS_COUNT  7
 
@@ -47,7 +48,7 @@ public:
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);
     void FillFromDigi(TClonesArray * digits);
-    void FillFromDigiMasked(TClonesArray * digits, vector<vector<vector<TH1F*> > >* hist0, Double_t threshold);
+    void FillFromDigiMasked(TClonesArray * digits, vector<vector<vector<TH1F*> > >* hist0, Double_t threshold, BmnEventHeader * head);
     void ApplyNoiseMask(vector<vector<vector<TH1F*> > >* hist0, Double_t threshold);
     void UpdateNoiseMask(Double_t threshold);
     

@@ -357,7 +357,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
         // read number of bytes in event
         if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
         fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
-        if (fDat >= 100000 * kNBYTESINWORD) { // what the constant?
+        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
             printf("Wrong data size: %d:  skip this event\n", fDat);
             fread(data, kWORDSIZE, fDat, fRawFileIn);
         } else {
@@ -808,6 +808,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fSiliconMapper->FillEvent(adc128, silicon);
         fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
         fTof400Mapper->FillEvent(tdc, tof400);
+        fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         fDigiTree->Fill();
     }
     prevEventType = curEventType;

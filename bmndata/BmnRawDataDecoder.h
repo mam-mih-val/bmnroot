@@ -46,6 +46,8 @@ struct DigiArrays {
     TClonesArray *bc1;
     TClonesArray *bc2;
     TClonesArray *veto;
+    TClonesArray *fd;
+    TClonesArray *bd;
     //header array
     TClonesArray *header;
 };
@@ -90,6 +92,8 @@ public:
         d.bc1 = bc1;
         d.bc2 = bc2;
         d.veto = veto;
+        d.fd = fd;
+        d.bd = bd;
         d.header = eventHeader;
         return d;
     }

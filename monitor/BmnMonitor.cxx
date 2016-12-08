@@ -54,8 +54,8 @@ void BmnMonitor::Monitor() {
 //    fServer->SetItemField("/", "_layout","grid3x3");
 //    fServer->Restrict("/", "visible=all");
     
-    rawDataDecoder = new BmnRawDataDecoder("mpd_run_067.data", 0);
-    rawDataDecoder->SetTrigMapping("Trig_map_Run4.txt");
+    rawDataDecoder = new BmnRawDataDecoder("mpd_run_067.data", 0, 5);
+    rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
     rawDataDecoder->InitConverter();
     rawDataDecoder->InitDecoder();
     fDigiTree = rawDataDecoder->GetDigiTree();
@@ -63,7 +63,7 @@ void BmnMonitor::Monitor() {
     BmnRunInfo test, test2, test3;
     test.Name =  TString(getenv("VMCWORKDIR")) + "/build/mpd_run_067.data";
     test2.Name = TString(getenv("VMCWORKDIR")) + "/build/mpd_run_081.data";
-    test3.Name = TString(getenv("VMCWORKDIR")) + "/build/mpd_run_065.data";// 65
+    test3.Name = "/home/ilnur/mnt/test/mpd-evb/TrigWord/mpd_run_Glob_306.data";// 65
     cout << test.Name << endl;
 //    FileList->push_back(test);
 //    FileList->push_back(test2);
@@ -116,7 +116,7 @@ BmnStatus BmnMonitor::OpenStream() {
     fDataQue = &(dataReceiver->data_queue);
 //    dataReceiver-> SetQueMutex(fDataMutex);
 //    rawDataDecoder->SetQueMutex(fDataMutex);
-    rawDataDecoder->SetTrigMapping("Trig_map_Run4.txt");
+    rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
     //    FILE *data_stream = istream_iterator<UInt_t>(data_queue);
     //    istream<UInt_t> qstream(data_queue);
     //    rdd->SetRawFileIn(data_stream);
@@ -165,11 +165,12 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
 
     while (kTRUE && convertResult != kBMNFINISH) {
         convertResult = rawDataDecoder->ConvertRawToRootIterateFile();
-        rawDataDecoder->DecodeDataToDigiIterate();
         lastEv = iEv;
         iEv = rawDataDecoder->GetNevents() - 1;
-        if (iEv > lastEv)
+        if (iEv > lastEv){
+            rawDataDecoder->DecodeDataToDigiIterate();
             ProcessDigi(iEv);
+        }
     }
     FinishRun();
 
@@ -180,7 +181,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     // histograms fill//
     bhTrig->FillFromDigi(
             fDigiArrays.bc1,
-            NULL,
+            fDigiArrays.t0,
             fDigiArrays.bc2,
             fDigiArrays.veto,
             NULL,
@@ -194,12 +195,12 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     // fill histograms what will be showed on the site//
     bhTrig_4show->FillFromDigi(
             fDigiArrays.bc1,
-            NULL,
+            fDigiArrays.t0,
             fDigiArrays.bc2,
             fDigiArrays.veto,
             NULL,
             NULL);
-    bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv);
+    bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv, (BmnEventHeader*)(fDigiArrays.header->At(0)));
     bhToF400_4show->FillFromDigi(fDigiArrays.tof400);
     bhToF700_4show->FillFromDigi(fDigiArrays.tof700);
     bhDCH_4show->FillFromDigi(fDigiArrays.dch);

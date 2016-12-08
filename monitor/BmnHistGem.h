@@ -29,26 +29,39 @@
 
 #include "BmnGemStripDigit.h"
 
-#define GEM_LAYERS_COUNT    4
 #define GEM_STATIONS_COUNT  7
 
 using namespace std;
 
+struct histNmask{
+    TH1F*  hist;
+    Int_t* mask;
+};
+
 class BmnHistGem : public TNamed {
 public:
 
-    BmnHistGem(TString title);
-    BmnHistGem(const BmnHistGem& orig);
+    BmnHistGem(TString title = "GEM", Bool_t createNoiseMask = false);
     virtual ~BmnHistGem();
     void Reset();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);
     void FillFromDigi(TClonesArray * digits);
-    vector<vector<vector<TH1F*> > > histGemStrip;
+    void FillFromDigiMasked(TClonesArray * digits, vector<vector<vector<TH1F*> > >* hist0, Double_t threshold);
+    void ApplyNoiseMask(vector<vector<vector<TH1F*> > >* hist0, Double_t threshold);
+    void UpdateNoiseMask(Double_t threshold);
+    
+    vector<vector<vector<Int_t*> > > *GetNoiseMask(){
+        return &maskGemStrip;
+    }
+    vector<vector<vector<TH1F*  > > > histGemStrip;
+    vector<vector<vector<Int_t*> > > maskGemStrip;
+    
 
 private:
     THttpServer *fServer;
     TTree *frecoTree;
+//    vector<vector<vector<histNmask> > > maskGemStrip;
 
     ClassDef(BmnHistGem, 1)
 };

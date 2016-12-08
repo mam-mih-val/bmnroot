@@ -48,7 +48,7 @@ public:
     TH2F *histState = NULL;
     
     void FillFromDigi(TClonesArray * digits);
-    void SetSelection(Int_t Plane, Int_t Strip, Int_t Side);
+    void SetSelection(Int_t Plane, Int_t Strip);
     void SaveHists();
     
     void  SetPlane(Int_t v){ fSelectedPlane = v;}

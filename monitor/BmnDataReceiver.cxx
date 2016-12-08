@@ -28,6 +28,7 @@
 //for old fairsoft
 #define ZMQ_XSUB 10
 #define ZMQ_STREAM 11
+#define ZMQ_ROUTER_RAW 41
 
 BmnDataReceiver::BmnDataReceiver(){
     //gSystem->Load("libxml2");
@@ -249,10 +250,10 @@ int BmnDataReceiver::RecvData() {
             } else {
                 UChar_t *str = (UChar_t*)malloc ((frame_size + 1) * sizeof(UChar_t));
                 memcpy(buf, zmq_msg_data(&msg), frame_size);
-                ((mutex*)_deque_mutex)->lock();
+//                ((mutex*)_deque_mutex)->lock();
                 for (Int_t offset = 0; offset < frame_size; offset++)
                     data_queue.push_back(*(buf + offset));
-                ((mutex*)_deque_mutex)->unlock();
+//                ((mutex*)_deque_mutex)->unlock();
                 memcpy(str, zmq_msg_data(&msg), frame_size);
                 str[frame_size] = '\0';                
                 msg_len += frame_size;

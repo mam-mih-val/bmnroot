@@ -19,6 +19,28 @@ BmnHistToF::BmnHistToF(TString title = "ToF") {
     fSelectedPlane = -1;
     fSelectedStrip = -1;
     fSelectedSide = -1;
+    TString name;
+    name = fTitle + "_Leading_Time";
+    histLeadingTime = new TH1D(name, name, 500, 0, 1000);
+    name = fTitle + "_Leading_Time_Specific";
+    histLeadingTimeSpecific = new TH1D(name, name, 500, 0, 1000);
+    name = fTitle + "_Amplitude";
+    histAmp = new TH1D(name, name, 4096, 0, 96);
+    name = fTitle + "_Amplitude_Specific";
+    histAmpSpecific = new TH1D(name, name, 4096, 0, 96);
+    name = fTitle + "_Strip";
+    histStrip = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+    name = fTitle + "_StripSimult";
+    histStripSimult = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+    name = fTitle + "_State";
+    histState = new TH2F(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT, 2, 0, 2);
+
+    histSimultaneous.SetDirectory(0);
+    histL->SetDirectory(0);
+    histR->SetDirectory(0);
+    fServer = NULL;
+    fEventsBranch = NULL;
+    frecoTree = NULL;
 }
 
 BmnHistToF::~BmnHistToF() {
@@ -40,6 +62,7 @@ void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
     histR->Reset();
     histSimultaneous.Reset();
     histState->Reset();
+    Events->Clear();
     for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++) {
         BmnTof1Digit *td = (BmnTof1Digit *) ToF4Digits->At(digIndex);
         Int_t strip = td->GetStrip();
@@ -69,7 +92,8 @@ void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
         s = ((histL->GetBinContent(binIndex) * histR->GetBinContent(binIndex)) != 0) ? 1 : 0;
         histStripSimult->AddBinContent(s);
     }
-    fEventsBranch->Fill();
+//    if (fEventsBranch != NULL)
+//        fEventsBranch->Fill();
 }
 
 void BmnHistToF::SaveHists() {
@@ -80,25 +104,6 @@ void BmnHistToF::SaveHists() {
 void BmnHistToF::Register(THttpServer *serv) {
     fServer = serv;
     fServer->Register("/", this);
-    TString name;
-    name = fTitle + "_Leading_Time";
-    histLeadingTime = new TH1D(name, name, 500, 0, 1000);
-    name = fTitle + "_Leading_Time_Specific";
-    histLeadingTimeSpecific = new TH1D(name, name, 500, 0, 1000);
-    name = fTitle + "_Amplitude";
-    histAmp = new TH1D(name, name, 4096, 0, 96);
-    name = fTitle + "_Amplitude_Specific";
-    histAmpSpecific = new TH1D(name, name, 4096, 0, 96);
-    name = fTitle + "_Strip";
-    histStrip = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
-    name = fTitle + "_StripSimult";
-    histStripSimult = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
-    name = fTitle + "_State";
-    histState = new TH2F(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT, 2, 0, 2);
-
-    histSimultaneous.SetDirectory(0);
-    histL->SetDirectory(0);
-    histR->SetDirectory(0);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, histAmp);
     fServer->Register(path, histAmpSpecific);
@@ -108,24 +113,32 @@ void BmnHistToF::Register(THttpServer *serv) {
     fServer->Register(path, histLeadingTime);
     fServer->Register(path, histLeadingTimeSpecific);
 
-    fServer->SetItemField(path, "_monitoring", "2000");
-    fServer->RegisterCommand(path + "ChangeSlection", TString("/") + fName.Data() + "/->SetSelection(%arg1%,%arg2%,%arg3%)", "button;");
-    fServer->RegisterCommand(path + TString("Reset"), TString("/") + fName.Data() + "/->Reset()", "button;");
+    fServer->SetItemField(path.Data(), "_monitoring", "2000");
+    fServer->SetItemField(path.Data(), "_layout","grid3x3");
+    TString cmdTitle = path + "ChangeSlection";
+    fServer->RegisterCommand(cmdTitle, TString("/") + fName.Data() + "/->SetSelection(%arg1%,%arg2%,%arg3%)", "button;");
+    fServer->Restrict(cmdTitle, "visible=admin");
+    fServer->Restrict(cmdTitle, "allow=admin");
+    fServer->Restrict(cmdTitle.Data(), "deny=guest");
+    cmdTitle = path + TString("Reset");
+    fServer->RegisterCommand(cmdTitle, TString("/") + fName.Data() + "/->Reset()", "button;");
+    fServer->Restrict(cmdTitle.Data(), "visible=admin");
+    fServer->Restrict(cmdTitle.Data(), "allow=admin");
+    fServer->Restrict(cmdTitle.Data(), "deny=guest");
 }
 
 void BmnHistToF::SetDir(TFile* outFile, TTree* recoTree) {
     frecoTree = recoTree;
-    if (outFile != NULL) {
-        TDirectory *dir = outFile->mkdir(fTitle + "_hists");
-        dir->cd();
-        histLeadingTime->SetDirectory(dir);
-        histLeadingTimeSpecific->SetDirectory(dir);
-        histAmp->SetDirectory(dir);
-        histAmpSpecific->SetDirectory(dir);
-        histStrip->SetDirectory(dir);
-        histStripSimult->SetDirectory(dir);
-        histState->SetDirectory(dir);
-    }
+    TDirectory *dir = NULL;
+    if (outFile != NULL)
+        dir = outFile->mkdir(fTitle + "_hists");
+    histLeadingTime->SetDirectory(dir);
+    histLeadingTimeSpecific->SetDirectory(dir);
+    histAmp->SetDirectory(dir);
+    histAmpSpecific->SetDirectory(dir);
+    histStrip->SetDirectory(dir);
+    histStripSimult->SetDirectory(dir);
+    histState->SetDirectory(dir);
     if (Events != NULL)
         delete Events;
     Events = new TClonesArray("BmnTof1Digit");

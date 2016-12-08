@@ -18,7 +18,6 @@
 #include <BmnGemStripDigit.h>
 #include <BmnDchDigit.h>
 #include "BmnDataReceiver.h"
-#include "BmnHistGem.h"
 #include <BmnRawDataDecoder.h>
 #include "BmnEventHeader.h"
 
@@ -26,11 +25,17 @@
 #include "BmnHistToF700.h"
 #include "BmnHistTrigger.h"
 #include "BmnHistDch.h"
+#include "BmnHistGem.h"
 
-#define BD_CHANNELS        40
+#define RUN_FILE_CHECK_PERIOD 100000
 
 using namespace std;
 using namespace TMath;
+
+struct BmnRunInfo {
+    TString Name;
+    struct stat attr;
+};
 
 class BmnMonitor : public TNamed {
 public:
@@ -52,17 +57,18 @@ public:
 
 private:
     void ProcessDigi(Int_t iEv);
-    void SaveHist(TH1 *hist, TString imgSavePath);
     void RegisterAll();
+    static void CheckFileTime(TString Dir, vector<BmnRunInfo>* FileList);
     BmnStatus OpenFile(TString rawFileName);
     BmnStatus OpenStream();
     void FinishRun();
     
     static void threadWrapper(BmnDataReceiver * dr);
-    void threadDecodeWrapper(BmnRawDataDecoder* rdd);
+    static void threadDecodeWrapper(BmnRawDataDecoder* rdd);
     
     deque<UInt_t> * fDataQue;
-    void *fDataMutex; // actually pthread_mutex_t
+    vector<BmnRunInfo> *_fileList;
+//    void *fDataMutex; // actually pthread_mutex_t
     TTree *fDigiTree;
     TTree *fRecoTree = NULL;
     TFile *fHistOut = NULL;
@@ -81,11 +87,17 @@ private:
 //    TClonesArray *trigSDDigits = NULL;
 //    TClonesArray *trigFDDigits = NULL;
 
-    BmnHistGem *bhGem;
-    BmnHistToF *bhToF400;
-    BmnHistToF700 *bhToF700;
-    BmnHistDch *bhDCH1;
+    BmnHistGem     *bhGem;
+    BmnHistToF     *bhToF400;
+    BmnHistToF700  *bhToF700;
+    BmnHistDch     *bhDCH;
     BmnHistTrigger *bhTrig;
+    
+    BmnHistGem     *bhGem_4show;
+    BmnHistToF     *bhToF400_4show;
+    BmnHistToF700  *bhToF700_4show;
+    BmnHistDch     *bhDCH_4show;
+    BmnHistTrigger *bhTrig_4show;
 
     BmnDataReceiver *dataReceiver;
     BmnRawDataDecoder *rawDataDecoder;
@@ -93,7 +105,7 @@ private:
     Int_t fTest;
     Int_t runIndex = 0;
     TString imgSavePath = "~/Documents/BmnMonJS/public_html/img/";
-    Int_t itersToUpdate = 10;
+    Int_t itersToUpdate = 1000;
     // GEM config
     Int_t hitBins = 100;
 

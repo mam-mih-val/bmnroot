@@ -30,6 +30,12 @@ Double_t Length[Number] = {0.0, 0.33, 0.66, 1.0};
 BmnHistDch::BmnHistDch(TString title = "DCH") {
     fTitle = title;
     fName = title + "_cl";
+    for (Int_t i = 0; i < kNPLANES; ++i)
+        h_wires[i] = new TH1F(fTitle + "_" + names[i], names[i], kNREALWIRES, 0, kNREALWIRES);
+    Int_t FI = TColor::CreateGradientColorTable(Number, Length, R, G, B, nb);
+    for (Int_t i = 0; i < nb; ++i) {
+        myPalette[i] = FI + i;
+    }
 }
 
 BmnHistDch::~BmnHistDch() {
@@ -41,31 +47,25 @@ BmnHistDch::~BmnHistDch() {
 void BmnHistDch::Register(THttpServer *serv) {
     fServer = serv;
     fServer->Register("/", this);
-    TString name;
     TString path = "/" + fTitle + "/";
-    Int_t FI = TColor::CreateGradientColorTable(Number, Length, R, G, B, nb);
-    for (Int_t i = 0; i < nb; ++i) {
-        myPalette[i] = FI + i;
-    }
-    for (Int_t i = 0; i < kNPLANES; ++i) {
-        h_wires[i] = new TH1F(names[i], names[i], kNREALWIRES, 0, kNREALWIRES);
+    for (Int_t i = 0; i < kNPLANES; ++i)
         fServer->Register(path, h_wires[i]);
-
-    }
-    //    TCanvas* chmb1 = new TCanvas("DCH_1", "DCH_1", 1000, 1000);
     TString cmd = "/" + fName + "/->Reset()";
     fServer->SetItemField(path.Data(), "_monitoring", "2000");
-    fServer->RegisterCommand((path + "Reset").Data(), cmd.Data(), "button;");
+    fServer->SetItemField(path.Data(), "_layout", "grid3x3");
+    TString cmdTitle = path + "Reset";
+    fServer->RegisterCommand(cmdTitle.Data(), cmd.Data(), "button;");
+    fServer->Restrict(cmdTitle, "visible=admin");
+    fServer->Restrict(cmdTitle, "allow=admin");
 }
 
 void BmnHistDch::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
     frecoTree = recoTree;
-    if (outFile != NULL) {
-        TDirectory *dir = outFile->mkdir(fTitle + "_hists");
-        dir->cd();
-        for (Int_t i = 0; i < kNPLANES; ++i)
-            h_wires[i]->SetDirectory(dir);
-    }
+    TDirectory *dir = NULL;
+    if (outFile != NULL)
+        dir = outFile->mkdir(fTitle + "_hists");
+    for (Int_t i = 0; i < kNPLANES; ++i)
+        h_wires[i]->SetDirectory(dir);
 
 }
 

@@ -20,6 +20,9 @@
 #pragma link C++ class vector<TH1F*>+;
 #pragma link C++ class vector<vector<TH1F*> >+;
 #pragma link C++ class vector<vector<vector<TH1F*> > >+;
+#pragma link C++ class vector<int*>+;
+#pragma link C++ class vector<vector<int*> >+;
+#pragma link C++ class vector<vector<vector<int*> > >+;
 #pragma link C++ const unsigned int[];
 
 #endif

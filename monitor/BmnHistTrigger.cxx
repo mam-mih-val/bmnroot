@@ -18,9 +18,28 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     fName = title + "_cl";
     fSelectedBDChannel = -1;
     BDEvents = new TClonesArray("BmnTrigDigit");
-}
-
-BmnHistTrigger::BmnHistTrigger(const BmnHistTrigger& orig) {
+    TString name;
+    name = fTitle + "_BC1_Time_Length";
+    histBC1TimeLen = new TH1D(name, name, 300, 0, 20000);
+    name = fTitle + "_BC2_Time_Length";
+    histBC2TimeLen = new TH1D(name, name, 300, 0, 2000);
+    name = fTitle + "_FD_Time_Length";
+    histFDTimeLen = new TH1D(name, name, 300, 0, 2000);
+    name = fTitle + "_SD_Time_Length";
+    histSDTimeLen = new TH1D(name, name, 300, 0, 2000);
+    name = fTitle + "_VETO_Time_Length";
+    histVDTimeLen = new TH1D(name, name, 300, 0, 2000);
+    name = fTitle + "_BD_Channels";
+    histBDChannels = new TH1I(name, name, BD_CHANNELS, 0, BD_CHANNELS);
+    name = fTitle + "_BD_Specific_Channel";
+    histBDSpecific = new TH1D(name, name, 300, 0, 2000);
+    name = fTitle + "_Triggers_Counter";
+    histTriggers = new TH1I(name, name, 5, 0, 5);
+    TString triggerNames[5] = {"BC1", "SD", "BC2", "VD", "FD"};
+    TAxis* xa = histTriggers->GetXaxis();
+    for (Int_t i = 0; i < sizeof (triggerNames) / sizeof (*triggerNames); i++) {
+        xa->SetBinLabel(i + 1, triggerNames[i]);
+    }
 }
 
 BmnHistTrigger::~BmnHistTrigger() {
@@ -43,6 +62,7 @@ void BmnHistTrigger::FillFromDigi(
         TClonesArray * VDdigits,
         TClonesArray * FDdigits,
         TClonesArray * BDdigits) {
+    BDEvents->Clear();
     for (Int_t digIndex = 0; digIndex < BC1digits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* td1 = (BmnTrigDigit*) BC1digits->At(digIndex);
         histBC1TimeLen->Fill(td1->GetAmp());
@@ -92,28 +112,6 @@ void BmnHistTrigger::SetBDChannel(Int_t iSelChannel) {
 void BmnHistTrigger::Register(THttpServer *serv) {
     fServer = serv;
     fServer->Register("/", this);
-    TString name;
-    name = "BC1_Time_Length";
-    histBC1TimeLen = new TH1D(name, name, 300, 0, 20000);
-    name = "BC2_Time_Length";
-    histBC2TimeLen = new TH1D(name, name, 300, 0, 2000);
-    name = "FD_Time_Length";
-    histFDTimeLen = new TH1D(name, name, 300, 0, 2000);
-    name = "SD_Time_Length";
-    histSDTimeLen = new TH1D(name, name, 300, 0, 2000);
-    name = "VETO_Time_Length";
-    histVDTimeLen = new TH1D(name, name, 300, 0, 2000);
-    name = "BD_Channels";
-    histBDChannels = new TH1I(name, name, BD_CHANNELS, 0, BD_CHANNELS);
-    name = "BD_Specific_Channel";
-    histBDSpecific = new TH1D(name, name, 300, 0, 2000);
-    name = "Triggers_Counter";
-    histTriggers = new TH1I(name, name, 5, 0, 5);
-    TString triggerNames[5] = {"BC1", "SD", "BC2", "VD", "FD"};
-    TAxis* xa = histTriggers->GetXaxis();
-    for (Int_t i = 0; i < sizeof (triggerNames) / sizeof (*triggerNames); i++) {
-        xa->SetBinLabel(i + 1, triggerNames[i]);
-    }
     TString path = "/" + fTitle + "/";
     fServer->Register(path, histBC1TimeLen);
     fServer->Register(path, histBC2TimeLen);
@@ -123,29 +121,43 @@ void BmnHistTrigger::Register(THttpServer *serv) {
     fServer->Register(path, histTriggers);
     fServer->Register(path, histBDChannels);
     fServer->Register(path, histBDSpecific);
-    fServer->SetItemField(path, "_monitoring", "2000");
-    serv->SetItemField(path, "_layout", "grid3x2");
-    serv->SetItemField(path, "_drawitem",
-            "[BC1_Time_Length,BC2_Time_Length,FD_Time_Length,VETO_Time_Length,SD_Time_Length,BD_Specific_Channel]");
+   TString examples = TString("[") +
+           histBC1TimeLen->GetTitle() + TString(",") +
+           histBC2TimeLen->GetTitle() + TString(",") +
+           histFDTimeLen->GetTitle() + TString(",") +
+           histVDTimeLen->GetTitle() + TString(",") +
+           histSDTimeLen->GetTitle() + TString(",") +
+           histBDSpecific->GetTitle() + TString("]");
+    fServer->SetItemField(path.Data(), "_monitoring", "2000");
+    fServer->SetItemField(path.Data(), "_layout", "grid3x2");
+    fServer->SetItemField(path,"_drawitem", examples);
 
-    fServer->RegisterCommand(path + "ChangeBDChannel", "/" + fName + "/->SetSelBDChannel(%arg1%)", "button;");
-    fServer->RegisterCommand(path + "Reset", "/" + fName + "/->Reset()", "button;");
+    TString cmdTitle = path + "ChangeBDChannel";
+    fServer->RegisterCommand(cmdTitle.Data(), "/" + fName + "/->SetSelBDChannel(%arg1%)", "button;");
+    fServer->Restrict(cmdTitle.Data(), "visible=admin");
+    fServer->Restrict(cmdTitle.Data(), "allow=admin");
+    fServer->Restrict(cmdTitle.Data(), "deny=guest");
+    cmdTitle = path + "Reset";
+    fServer->RegisterCommand(cmdTitle.Data(), "/" + fName + "/->Reset()", "button;");
+    fServer->Restrict(cmdTitle.Data(), "visible=admin");
+    fServer->Restrict(cmdTitle.Data(), "allow=admin");
+    fServer->Restrict(cmdTitle.Data(), "deny=guest");
 }
 
 void BmnHistTrigger::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
     frecoTree = recoTree;
-    if (outFile != NULL) {
-        TDirectory *dir = outFile->mkdir(fTitle + "_hists");
-        dir->cd();
-        histBC1TimeLen->SetDirectory(dir);
-        histBC2TimeLen->SetDirectory(dir);
-        histFDTimeLen->SetDirectory(dir);
-        histSDTimeLen->SetDirectory(dir);
-        histVDTimeLen->SetDirectory(dir);
-        histBDChannels->SetDirectory(dir);
-        histBDSpecific->SetDirectory(dir);
-        histTriggers->SetDirectory(dir);
-    }
+    TDirectory *dir = NULL;
+    if (outFile != NULL)
+        dir = outFile->mkdir(fTitle + "_hists");
+    //        dir->cd();
+    histBC1TimeLen->SetDirectory(dir);
+    histBC2TimeLen->SetDirectory(dir);
+    histFDTimeLen->SetDirectory(dir);
+    histSDTimeLen->SetDirectory(dir);
+    histVDTimeLen->SetDirectory(dir);
+    histBDChannels->SetDirectory(dir);
+    histBDSpecific->SetDirectory(dir);
+    histTriggers->SetDirectory(dir);
     if (BDEvents != NULL)
         delete BDEvents;
     BDEvents = new TClonesArray("BmnTrigDigit");

@@ -166,7 +166,6 @@ BmnRawDataDecoder::~BmnRawDataDecoder() {
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
 
-    fRawTree = new TTree("BMN_RAW", "BMN_RAW");
     fRawFileIn = fopen(fRawFileName, "rb");
     if (fRawFileIn == NULL) {
         printf("\n!!!!!\ncannot open file %s\nConvertRawToRoot are stopped\n!!!!!\n\n", fRawFileName.Data());
@@ -243,10 +242,10 @@ BmnStatus BmnRawDataDecoder::InitConverter(deque<UInt_t> *dq) {
     fDataQueue = dq;
     fRawTree = new TTree("BMN_RAW", "BMN_RAW");
     //    fRawFileIn = fopen(fRawFileName, "rb");
-    if (fDataQueue == NULL) {
-        printf("\n!!!!!\ncannot open stream\nConvertRawToRoot are stopped\n!!!!!\n\n");
-        return kBMNERROR;
-    }
+//    if (fDataQueue == NULL) {
+//        printf("\n!!!!!\ncannot open stream\nConvertRawToRoot are stopped\n!!!!!\n\n");
+//        return kBMNERROR;
+//    }
     //    fRootFileOut = new TFile(fRootFileName, "recreate");
     //    fseeko64(fRawFileIn, 0, SEEK_END);
     //    fLengthRawFile = ftello64(fRawFileIn);
@@ -264,6 +263,7 @@ BmnStatus BmnRawDataDecoder::InitConverter(deque<UInt_t> *dq) {
 }
 
 BmnStatus BmnRawDataDecoder::InitConverter() {
+    fRawTree = new TTree("BMN_RAW", "BMN_RAW");
     sync = new TClonesArray("BmnSyncDigit");
     adc32 = new TClonesArray("BmnADC32Digit");
     adc128 = new TClonesArray("BmnADC128Digit");
@@ -342,6 +342,12 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
     //        if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
     fread(&fDat, kWORDSIZE, 1, fRawFileIn);
+    if (fDat == kRUNNUMBERSYNC) {
+        fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
+        fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
+        fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
+        fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+    }
     fCurentPositionRawFile = ftello64(fRawFileIn);
     if (fCurentPositionRawFile >= fLengthRawFile)
         return kBMNFINISH;
@@ -369,6 +375,10 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
 BmnStatus BmnRawDataDecoder::DisposeConverter() {
     fCurentPositionRawFile = ftello64(fRawFileIn);
     printf("Readed %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
+    fRawTree->Branch("RunHeader", &runHeaderDAQ);
+    runHeaderDAQ->SetRunId(fRunId);
+    runHeaderDAQ->SetStartTime(TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns));
+    runHeaderDAQ->SetFinishTime(TTimeStamp(time_t(fTime_s), fTime_ns));
 
     //    fRawTree->Write();
     //    fRootFileOut->Close();
@@ -732,9 +742,10 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName);
     fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
-    fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
+//    fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
+    cout << "Init dec end" << endl;
     return kBMNSUCCESS;
 }
 

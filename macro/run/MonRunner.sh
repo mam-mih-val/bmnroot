@@ -13,6 +13,6 @@ source $BMNROOT/build/config.sh
 while true; 
 
 do
-root -b -q $VMCWORKDIR/macro/raw/monitor.C
+/opt/fairsoft/install/bin/root.exe -b -q /home/ilnur/bmnroot/macro/raw/monitor.C
 
 done

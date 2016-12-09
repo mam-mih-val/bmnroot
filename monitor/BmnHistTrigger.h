@@ -27,6 +27,7 @@
 #include "THttpServer.h"
 
 #include "BmnTrigDigit.h"
+#include "BmnEventHeader.h"
 #define BD_CHANNELS 40
 
 class BmnHistTrigger : public TNamed {
@@ -42,7 +43,8 @@ public:
             TClonesArray * BC2digits,
             TClonesArray * VDdigits,
             TClonesArray * FDdigits,
-            TClonesArray * BDdigits);
+            TClonesArray * BDdigits,
+            BmnEventHeader * head, Int_t iEv);
     void Reset();
     void SaveHists(TString imgSavePath);
 

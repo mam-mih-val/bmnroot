@@ -1,4 +1,5 @@
 #include "TString.h"
+#include "TSystem.h"
 #include "BmnEnums.h"
 #include "BmnTTBDigit.h"
 #include "BmnTDCDigit.h"
@@ -34,7 +35,7 @@
 #include <UniDbDetectorParameter.h>
 
 // wait limit for input data
-#define WAIT_LIMIT 15000000
+#define WAIT_LIMIT 150000000
 using namespace std;
 
 struct DigiArrays {

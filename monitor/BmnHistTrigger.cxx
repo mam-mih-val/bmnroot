@@ -61,8 +61,11 @@ void BmnHistTrigger::FillFromDigi(
         TClonesArray * BC2digits,
         TClonesArray * VDdigits,
         TClonesArray * FDdigits,
-        TClonesArray * BDdigits) {
+        TClonesArray * BDdigits,
+        BmnEventHeader * head, Int_t iEv) {
     BDEvents->Clear();
+    histTriggers->SetTitle(fTitle + Form("_Triggers_Counter_runID_%d_nEvents_%d",
+            head->GetRunId(), iEv));
     for (Int_t digIndex = 0; digIndex < BC1digits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* td0 = (BmnTrigDigit*) BC1digits->At(digIndex);
         histBC1TimeLen->Fill(td0->GetAmp());

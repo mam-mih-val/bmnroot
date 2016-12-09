@@ -23,6 +23,6 @@ void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     BmnMonitor *bm = new BmnMonitor();
-    bm->Monitor();  
+    bm->Monitor("/bmn/run/seans_53/", "");  
     delete bm;
 }

@@ -73,6 +73,7 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
 
 
     rawDataDecoder = new BmnRawDataDecoder(startFile, 0, 5);
+    rawDataDecoder->SetRunId(1);
     rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
     rawDataDecoder->SetTof700Mapping("TOF700_map_period_5.txt");
@@ -258,11 +259,11 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
             ProcessDigi(iEv);
         }
         if (convertResult == kBMNTIMEOUT){
-            _curFile = "";
+            //_curFile = "";
             break;
         }
         if (convertResult == kBMNFINISH){
-            _curFile = "";
+            //_curFile = "";
             break;
         }
         nextFile = WatchNext(_inotifDir, 0);
@@ -284,7 +285,8 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
             fDigiArrays.bc2,
             fDigiArrays.veto,
             fDigiArrays.fd,
-            fDigiArrays.bd);
+            fDigiArrays.bd,
+            (BmnEventHeader*) (fDigiArrays.header->At(0)), iEv);
     bhGem->FillFromDigi(fDigiArrays.gem);
     bhToF400->FillFromDigi(fDigiArrays.tof400);
     bhToF700->FillFromDigi(fDigiArrays.tof700);
@@ -298,7 +300,8 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
             fDigiArrays.bc2,
             fDigiArrays.veto,
             fDigiArrays.fd,
-            fDigiArrays.bd);
+            fDigiArrays.bd,
+            (BmnEventHeader*) (fDigiArrays.header->At(0)), iEv);
     bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv, (BmnEventHeader*) (fDigiArrays.header->At(0)));
     bhToF400_4show->FillFromDigi(fDigiArrays.tof400);
     bhToF700_4show->FillFromDigi(fDigiArrays.tof700);
@@ -313,7 +316,6 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     //    gSystem->ProcessEvents();
     //    fServer->ProcessRequests();
     //            usleep(1e5);
-
 }
 
 void BmnMonitor::RegisterAll() {

@@ -2,7 +2,7 @@
 #include "BmnRawDataDecoder.h"
 
 //#include <pthread.h>
-//#include <mutex>
+#include <sys/stat.h>
 
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
@@ -304,13 +304,22 @@ BmnStatus BmnRawDataDecoder::wait_stream(deque<UInt_t> *que, Int_t len) {
 BmnStatus BmnRawDataDecoder::wait_file() {
     Int_t t;
     Int_t dt = 10000;
-    fCurentPositionRawFile = ftello64(fRawFileIn);
-    while (fCurentPositionRawFile >= fLengthRawFile){
+    Int_t prevSize = 0, size = 0;
+    struct stat st;
+    if(stat(fRawFileName.Data(), &st) == 0)
+        return kBMNERROR;
+    size = st.st_size;
+    prevSize = size;
+    while (prevSize == size){
+        gSystem->ProcessEvents();
         usleep(dt);
+        if(stat(fRawFileName.Data(), &st) == 0)
+            return kBMNERROR;
         t += dt;
         if (t >= WAIT_LIMIT)
             return kBMNERROR;
-        fCurentPositionRawFile = ftello64(fRawFileIn);
+        prevSize = size;
+        size = st.st_size;
     }
     return kBMNSUCCESS;
 }

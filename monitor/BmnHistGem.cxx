@@ -124,7 +124,7 @@ void BmnHistGem::FillFromDigiMasked(TClonesArray * gemDigits, vector<vector<vect
 //        cout << histGemStrip[station][module][layer]->GetTitle() << endl;
 //        cout << " hist0 getbincontent " << (*hist0)[station][module][layer]->GetBinContent(gemStrip) << endl;
 //        cout << " hist getbincontent " << histGemStrip[station][module][layer]->GetBinContent(gemStrip) << endl;
-        if ((*hist0)[station][module][layer]->GetBinContent((*hist0)[station][module][layer]->FindBin(gemStrip)) <= threshold * 0.9)
+        if ((*hist0)[station][module][layer]->GetBinContent((*hist0)[station][module][layer]->FindBin(gemStrip)) <= threshold * 0.7)
             histGemStrip[station][module][layer]->AddBinContent(histGemStrip[station][module][layer]->FindBin(gemStrip));
 //            histGemStrip[station][module][layer]->Fill(gemStrip);
                 TString name = Form(fTitle + "_Station_%d_module_%d_layer_%d_Run%d", station, module, layer, head->GetRunId());

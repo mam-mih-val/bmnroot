@@ -111,19 +111,20 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
 
 TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait) {
     TSystemDirectory dir(dirname, dirname);
-    TList *files = dir.GetListOfFiles();
     while (kTRUE) {
+        TList *files = dir.GetListOfFiles();
         if (files) {
-            files->Sort(kSortDescending);
+            files->Sort(kSortAscending);
             TSystemFile *file;
-            TString fname;
+            TString fname, retFname;
             TIter next(files);
             while ((file = (TSystemFile*) next())) {
+                fname = file->GetName();
                 if (!file->IsDirectory() && fname.EndsWith("data"))
-                    fname = file->GetName();
+                    retFname = fname;
             }
             if (filename != fname)
-                return fname;
+                return retFname;
         }
         usleep(cycleWait);
     }
@@ -256,10 +257,12 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
             ProcessDigi(iEv);
         }
         if (convertResult == kBMNTIMEOUT) {
+            printf("timeout\n");
             //_curFile = "";
             break;
         }
         if (convertResult == kBMNFINISH) {
+            printf("finish\n");
             //_curFile = "";
             break;
         }

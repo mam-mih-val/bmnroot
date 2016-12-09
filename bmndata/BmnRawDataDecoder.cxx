@@ -303,7 +303,6 @@ BmnStatus BmnRawDataDecoder::wait_stream(deque<UInt_t> *que, Int_t len) {
 }
 
 BmnStatus BmnRawDataDecoder::wait_file(Int_t len) {
-    //printf("wait for len = %d, ftello64 = %d\n", len, ftello64(fRawFileIn));
     Long_t pos = ftello64(fRawFileIn);
     Int_t t = 0;
     Int_t dt = 10000;
@@ -312,18 +311,16 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len) {
     while (fLengthRawFile < pos + len) {
         gSystem->ProcessEvents();
         usleep(dt);
-
         fseeko64(fRawFileIn, 0, SEEK_END);
         fLengthRawFile = ftello64(fRawFileIn);
+        fseeko64(fRawFileIn, pos - fLengthRawFile, SEEK_CUR);
         t += dt;
         if (t >= WAIT_LIMIT) {
             printf("limit er\n");
-            fseeko64(fRawFileIn, pos - fLengthRawFile, SEEK_CUR);
             return kBMNERROR;
         }
         size = st.st_size;
     }
-    fseeko64(fRawFileIn, pos - fLengthRawFile, SEEK_CUR);
     return kBMNSUCCESS;
 }
 
@@ -848,9 +845,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
         fGemMapper->FillEvent(adc32, gem);
         fSiliconMapper->FillEvent(adc128, silicon);
-        
-        fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         fTof400Mapper->FillEvent(tdc, tof400);
+//        fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+        
         fDigiTree->Fill();
     }
     prevEventType = curEventType;
@@ -860,6 +857,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
 
 void BmnRawDataDecoder::ResetDecoder(TString file) {
     fNevents = 0;
+    syncCounter = 0;
     fRawFileName = file;
     fRawFileIn = fopen(fRawFileName, "rb");
     if (fRawFileIn == NULL) {

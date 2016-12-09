@@ -63,6 +63,7 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
     _curDir = dir;
     if (_curFile.Length() == 0) {
         _curFile = WatchNext(dir, _curFile, 1e5);
+        printf("WN returned %s\n", _curFile.Data());
         //        _curFile = WatchNext(_inotifDir, 1e5);
     }
 
@@ -110,6 +111,7 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
 }
 
 TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait) {
+    DBG("started")
     TSystemDirectory dir(dirname, dirname);
     while (kTRUE) {
         TList *files = dir.GetListOfFiles();
@@ -354,6 +356,7 @@ void BmnMonitor::RegisterAll() {
 }
 
 void BmnMonitor::FinishRun() {
+    DBG("started")
     fRecoTree->Write();
     fHistOut->Write();
     fHistOut->GetName();

@@ -43,7 +43,8 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     MaxPlane = 0;
     TString dnlfile;
 //    char dnlfile[128];
-    int crate, slot, chan, plane, strip, side, filetype, cham, idcham;
+    int crate, slot, chan, plane, strip, side, filetype, cham;
+    float idcham;
     int id_crate;
 
     for (int c=0; c<TOF2_MAX_CRATES; c++)
@@ -56,7 +57,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     in >> dummy >> dummy;
     for (int i = 0; i < ncrates; i++)
     {
-    	    in >> crate >> std::hex >> id_crate;
+    	    in >> crate >> std::hex >> id_crate >> std::dec;
     	    if (!in.good()) break;
 	    if (crate >= TOF2_MAX_CRATES) break;
 	    numcrates[i] = crate;
@@ -86,7 +87,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 
     in >> dummy;
     in >> nchambers;
-//    printf("%d\n",nchambers);
+//    printf("N_CHAMBERS = %d\n",nchambers);
     in >> dummy >> dummy;
 //    printf("%s\n",dummy.Data());
     for (int i = 0; i < nchambers; i++)
@@ -96,7 +97,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     	    if (!in.good()) break;
 	    if (cham >= TOF2_MAX_CHAMBERS) break;
 	    numcha[i] = cham;
-	    idchambers[cham] = idcham;
+	    idchambers[cham] = int(idcham);
 	    if (in.eof()) break;
     }
 
@@ -989,7 +990,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
        float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
        if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
     }
-//    printf("Ok!\n");
+//    printf("n_rec = %d\n", n_rec);
     for(int ind=0;ind<n_rec;ind++){ 
        int ind1 = mapa[ind].pair;
        if (ind1 < 0) continue;

@@ -22,13 +22,13 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     name = fTitle + "_BC1_Time_Length";
     histBC1TimeLen = new TH1D(name, name, 300, 0, 1000);
     name = fTitle + "_BC2_Time_Length";
-    histBC2TimeLen = new TH1D(name, name, 300, 0, 500);
+    histBC2TimeLen = new TH1D(name, name, 300, 0, 100);
     name = fTitle + "_FD_Time_Length";
-    histFDTimeLen = new TH1D(name, name, 300, 0, 500);
+    histFDTimeLen = new TH1D(name, name, 300, 0, 100);
     name = fTitle + "_SD_Time_Length";
-    histSDTimeLen = new TH1D(name, name, 300, 0, 500);
+    histSDTimeLen = new TH1D(name, name, 300, 0, 100);
     name = fTitle + "_VETO_Time_Length";
-    histVDTimeLen = new TH1D(name, name, 300, 0, 500);
+    histVDTimeLen = new TH1D(name, name, 300, 0, 100);
     name = fTitle + "_BD_Channels";
     histBDChannels = new TH1I(name, name, BD_CHANNELS, 0, BD_CHANNELS);
     name = fTitle + "_BD_Specific_Channel";
@@ -64,8 +64,10 @@ void BmnHistTrigger::FillFromDigi(
         TClonesArray * BDdigits,
         BmnEventHeader * head, Int_t iEv) {
     BDEvents->Clear();
-    histTriggers->SetTitle(fTitle + Form("_Triggers_Counter_runID_%d_nEvents_%d",
-            head->GetRunId(), iEv));
+    Int_t rid = (head) ? head->GetRunId() : -1;
+        
+    histTriggers->SetTitle(fTitle + Form("_Triggers_Counter_runID_%d_eventID_%d",
+            rid, iEv));
     for (Int_t digIndex = 0; digIndex < BC1digits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* td0 = (BmnTrigDigit*) BC1digits->At(digIndex);
         histBC1TimeLen->Fill(td0->GetAmp());

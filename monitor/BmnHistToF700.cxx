@@ -29,7 +29,7 @@ BmnHistToF700::BmnHistToF700(TString title = "ToF700") {
     name = fTitle + "_Amplitude_Specific";
     histAmpSpecific = new TH1D(name, name, 4096, 0, 96);
     name = fTitle + "_Strip";
-    histStrip = new TH1I(name, name, TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_STRIPS_IN_CHAMBER);
+    histStrip = new TH1I(name, name, TOF2_MAX_CHAMBERS * TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_CHAMBERS * TOF2_MAX_STRIPS_IN_CHAMBER);
     name = fTitle + "_StripSimult";
     histStripSimult = new TH1I(name, name, TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_STRIPS_IN_CHAMBER);
     name = fTitle + "_State";
@@ -57,7 +57,7 @@ BmnHistToF700::~BmnHistToF700() {
     fServer->Unregister(this);
 }
 
-void BmnHistToF700::FillFromDigi(TClonesArray * ToF4Digits) {
+void BmnHistToF700::FillFromDigi(TClonesArray * ToF4Digits, BmnEventHeader * head, Int_t iEv) {
     histL->Reset();
     histR->Reset();
     histSimultaneous.Reset();
@@ -66,9 +66,11 @@ void BmnHistToF700::FillFromDigi(TClonesArray * ToF4Digits) {
     for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++) {
         BmnTof2Digit *td = (BmnTof2Digit *) ToF4Digits->At(digIndex);
         Int_t strip = td->GetStrip();
+        Int_t rid = (head) ? head->GetRunId() : -1;
+        histLeadingTime->SetTitle(fTitle + Form("_Triggers_Counter_runID_%d_eventID_%d", rid, iEv));
         histLeadingTime->Fill(td->GetTime());
         histAmp->Fill(td->GetAmplitude());
-        histStrip->Fill(strip);
+        histStrip->Fill(strip + td->GetPlane() * TOF2_MAX_STRIPS_IN_CHAMBER);
         //        if ((td->GetPlane() == fSelectedPlane) && (fSelectedPlane != -1))
         //            histState->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
         //        if (td->GetSide() == 0)

@@ -1034,9 +1034,8 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W2, 1);
 	    TvsW[mapa[ind].plane][1]->Fill(W, L);
 	}
-        TClonesArray &ar = *tof2digit;
 //        new(ar[tof2digit->GetEntriesFast()]) BmnTof2Digit(mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W*HPTIMEBIN,D*HPTIMEBIN);  
-        new(ar[tof2digit->GetEntriesFast()]) BmnTof2Digit(mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W,D*HPTIMEBIN);  
+        new((*tof2digit)[tof2digit->GetEntriesFast()]) BmnTof2Digit(mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W,D*HPTIMEBIN);  
        }
     }
 }

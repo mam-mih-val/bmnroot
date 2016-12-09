@@ -47,8 +47,8 @@ BmnStatus BmnDchRaw2Digit::FindInMap(DchMapStructure* mapArr, BmnTDCDigit* dig, 
         UInt_t ch = GetChTDC64v(dig->GetHptdcId(), dig->GetChannel());
         if (ch > map.channel_high || ch < map.channel_low) continue;
         Double_t tm = dig->GetValue() / 10.0 - t0 + ts; //divide by 10 for conversion (100 ps -> ns)
-        TClonesArray &ar_dch = *arr;
-        new(ar_dch[arr->GetEntriesFast()]) BmnDchDigit(map.plane, map.group * 16 + ch - map.channel_low, tm, 0);
+        //TClonesArray &ar_dch = *arr;
+        new((*arr)[arr->GetEntriesFast()]) BmnDchDigit(map.plane, map.group * 16 + ch - map.channel_low, tm, 0);
         return kBMNSUCCESS;
     }
     return kBMNERROR;

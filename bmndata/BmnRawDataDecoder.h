@@ -127,6 +127,10 @@ public:
     UInt_t GetNevents() const {
         return fNevents;
     }
+    
+    UInt_t GetEventId() const {
+        return fEventId;
+    }
 
     void SetTrigMapping(TString map) {
         fTrigMapFileName = map;

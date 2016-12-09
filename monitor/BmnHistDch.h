@@ -29,6 +29,7 @@
 #include "TString.h"
 #include "THttpServer.h"
 #include "BmnDchDigit.h"
+#include "BmnEventHeader.h"
 
 #define kNPLANES     16
 #define kNREALWIRES 240
@@ -45,7 +46,7 @@ public:
     void Reset();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
-    void FillFromDigi(TClonesArray * digits);
+    void FillFromDigi(TClonesArray * DchDigits, BmnEventHeader * head, Int_t iEv);
 
     TH1F * h_wires[kNPLANES];
     Float_t v_wires[kNPLANES][kNWIRES];

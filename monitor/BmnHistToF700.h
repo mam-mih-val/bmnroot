@@ -26,6 +26,7 @@
 #include "TFile.h"
 #include "TFolder.h"
 #include "THttpServer.h"
+#include "BmnEventHeader.h"
 
 #include "BmnTof2Digit.h"
 #include "BmnTof2Raw2Digit.h"
@@ -47,7 +48,7 @@ public:
     TH1I *histStripSimult = NULL;
     TH2F *histState = NULL;
     
-    void FillFromDigi(TClonesArray * digits);
+    void FillFromDigi(TClonesArray * ToF4Digits, BmnEventHeader * head, Int_t iEv);
     void SetSelection(Int_t Plane, Int_t Strip);
     void SaveHists();
     

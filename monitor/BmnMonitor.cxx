@@ -253,7 +253,7 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
         fServer->ProcessRequests();
         gSystem->ProcessEvents();
         lastEv = iEv;
-        iEv = rawDataDecoder->GetNevents() - 1;
+        iEv = rawDataDecoder->GetEventId();
         if (iEv > lastEv) {
             rawDataDecoder->DecodeDataToDigiIterate();
             ProcessDigi(iEv);
@@ -281,6 +281,7 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
 void BmnMonitor::ProcessDigi(Int_t iEv) {
     fDigiTree->GetEntry(iEv);
     // histograms fill//
+    BmnEventHeader* head = (BmnEventHeader*) fDigiArrays.header->At(0);
     bhTrig->FillFromDigi(
             fDigiArrays.bc1,
             fDigiArrays.t0,
@@ -288,11 +289,11 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
             fDigiArrays.veto,
             fDigiArrays.fd,
             fDigiArrays.bd,
-            (BmnEventHeader*) (fDigiArrays.header->At(0)), iEv);
+            head, iEv);
     bhGem->FillFromDigi(fDigiArrays.gem);
     bhToF400->FillFromDigi(fDigiArrays.tof400);
-    bhToF700->FillFromDigi(fDigiArrays.tof700);
-    bhDCH->FillFromDigi(fDigiArrays.dch);
+    bhToF700->FillFromDigi(fDigiArrays.tof700, head, iEv);
+    bhDCH->FillFromDigi(fDigiArrays.dch, head, iEv);
     // Fill data Tree //
     fRecoTree->Fill();
     // fill histograms what will be shown on the site//
@@ -303,11 +304,11 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
             fDigiArrays.veto,
             fDigiArrays.fd,
             fDigiArrays.bd,
-            (BmnEventHeader*) (fDigiArrays.header->At(0)), iEv);
-    bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv, (BmnEventHeader*) (fDigiArrays.header->At(0)));
+            head, iEv);
+    bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv, head);
     bhToF400_4show->FillFromDigi(fDigiArrays.tof400);
-    bhToF700_4show->FillFromDigi(fDigiArrays.tof700);
-    bhDCH_4show->FillFromDigi(fDigiArrays.dch);
+    bhToF700_4show->FillFromDigi(fDigiArrays.tof700, head, iEv);
+    bhDCH_4show->FillFromDigi(fDigiArrays.dch, head, iEv);
 
     //    if ((iEv % itersToUpdate == 0) && (iEv > 1)) {
     ////        bhGem->UpdateNoiseMask(0.5 * iEv);

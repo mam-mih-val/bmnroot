@@ -69,7 +69,8 @@ void BmnHistDch::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
 
 }
 
-void BmnHistDch::FillFromDigi(TClonesArray * DchDigits) {
+void BmnHistDch::FillFromDigi(TClonesArray * DchDigits, BmnEventHeader * head, Int_t iEv) {
+    Int_t rid = (head) ? head->GetRunId() : -1;
     for (Int_t iDig = 0; iDig < DchDigits->GetEntriesFast(); ++iDig) {
         BmnDchDigit* dig = (BmnDchDigit*) DchDigits->At(iDig);
         Int_t plane = dig->GetPlane();
@@ -78,6 +79,8 @@ void BmnHistDch::FillFromDigi(TClonesArray * DchDigits) {
         //        if (wire > kNREALWIRES - 1) {
         //            wire -= 128; //8 * 16 last preamplifier setup behind hole, so move signal in correct place
         //        }
+        
+        h_wires[plane]->SetTitle(names[plane] + Form("_runID_%d_eventID_%d", rid, iEv));
         h_wires[plane]->Fill(wire);
     }
 }

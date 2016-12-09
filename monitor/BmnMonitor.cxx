@@ -52,8 +52,8 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
     }
     fServer = new THttpServer("fastcgi:9000?auth_file=auth.htdigest&auth_domain=root");
     fServer->SetTimer(100, kTRUE);
-    fServer->SetItemField("/", "_monitoring","2000");
-    fServer->SetItemField("/", "_layout","grid3x3");
+    fServer->SetItemField("/", "_monitoring", "2000");
+    fServer->SetItemField("/", "_layout", "grid3x3");
 
     _inotifDir = inotify_init();
     _inotifDirW = inotify_add_watch(_inotifDir, dir, IN_CREATE);
@@ -63,11 +63,11 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
     _curDir = dir;
     if (_curFile.Length() == 0) {
         _curFile = WatchNext(dir, _curFile, 1e5);
-//        _curFile = WatchNext(_inotifDir, 1e5);
+        //        _curFile = WatchNext(_inotifDir, 1e5);
     }
-    
-   
-   
+
+
+
     _inotifFile = inotify_init();
     _inotifFileW = inotify_add_watch(_inotifFile, _curFile, IN_MODIFY);
 
@@ -82,7 +82,7 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
     fDigiTree = rawDataDecoder->GetDigiTree();
     RegisterAll();
 
-    while(kTRUE){
+    while (kTRUE) {
         ProcessFileRun(_curFile);
         _curFile = WatchNext(dir, _curFile, 1e5);
     }
@@ -110,24 +110,23 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
 }
 
 TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait) {
-   TSystemDirectory dir(dirname, dirname);
-   TList *files = dir.GetListOfFiles();
-   while(kTRUE){
-   if (files) {
-       files->Sort(kSortDescending);
-       TSystemFile *file;
-      TString fname;
-      TIter next(files);
-      while ((file=(TSystemFile*)next())) {
-         fname = file->GetName();
-         if (!file->IsDirectory() && fname.EndsWith("data")) {
+    TSystemDirectory dir(dirname, dirname);
+    TList *files = dir.GetListOfFiles();
+    while (kTRUE) {
+        if (files) {
+            files->Sort(kSortDescending);
+            TSystemFile *file;
+            TString fname;
+            TIter next(files);
+            while ((file = (TSystemFile*) next())) {
+                if (!file->IsDirectory() && fname.EndsWith("data"))
+                    fname = file->GetName();
+            }
             if (filename != fname)
                 return fname;
-         }
-      }
-   }
-   usleep(cycleWait);
-   }
+        }
+        usleep(cycleWait);
+    }
 }
 
 TString BmnMonitor::WatchNext(Int_t inotifDir, Int_t cycleWait) {
@@ -246,7 +245,7 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
     OpenFile(rawFileName);
     rawDataDecoder->ResetDecoder(_curDir + rawFileName);
 
-    while (kTRUE)  {
+    while (kTRUE) {
         convertResult = rawDataDecoder->ConvertRawToRootIterateFile();
         fServer->ProcessRequests();
         gSystem->ProcessEvents();
@@ -256,20 +255,20 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
             rawDataDecoder->DecodeDataToDigiIterate();
             ProcessDigi(iEv);
         }
-        if (convertResult == kBMNTIMEOUT){
+        if (convertResult == kBMNTIMEOUT) {
             //_curFile = "";
             break;
         }
-        if (convertResult == kBMNFINISH){
+        if (convertResult == kBMNFINISH) {
             //_curFile = "";
             break;
         }
-        nextFile = WatchNext(_inotifDir, 0);
-//        if (nextFile.Length() > 0){
-//            inotify_rm_watch(_inotifFile, _inotifFileW);
-//            _curFile = nextFile;
-//            break;
-//        }
+        //        nextFile = WatchNext(_inotifDir, 0);
+        //        if (nextFile.Length() > 0){
+        //            inotify_rm_watch(_inotifFile, _inotifFileW);
+        //            _curFile = nextFile;
+        //            break;
+        //        }
     }
     FinishRun();
 }

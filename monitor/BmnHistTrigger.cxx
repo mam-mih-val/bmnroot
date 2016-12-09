@@ -173,7 +173,7 @@ void BmnHistTrigger::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
         delete BDEvents;
     BDEvents = new TClonesArray("BmnTrigDigit");
     if (recoTree != NULL)
-        recoTree->Branch(fTitle, &BDEvents);
+        recoTree->Branch(fTitle + "_BD", &BDEvents);
 }
 
 void BmnHistTrigger::Reset() {

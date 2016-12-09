@@ -189,6 +189,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         //if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
         fread(&fDat, kWORDSIZE, 1, fRawFileIn);
         if (fDat == kRUNNUMBERSYNC) {
+            printf("RUN_NUMBER\n");
             fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
             fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
             fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
@@ -301,29 +302,30 @@ BmnStatus BmnRawDataDecoder::wait_stream(deque<UInt_t> *que, Int_t len) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::wait_file() {
-    Int_t t;
+BmnStatus BmnRawDataDecoder::wait_file(Int_t len) {
+    //printf("wait for len = %d, ftello64 = %d\n", len, ftello64(fRawFileIn));
+    Long_t pos = ftello64(fRawFileIn);
+    Int_t t = 0;
     Int_t dt = 10000;
-    Int_t prevSize = 0, size = 0;
+    Int_t size = 0;
     struct stat st;
-    if(stat(fRawFileName.Data(), &st) == 0)
-        return kBMNERROR;
-    size = st.st_size;
-    prevSize = size;
-    while (prevSize == size){
+    while (fLengthRawFile < pos + len) {
         gSystem->ProcessEvents();
         usleep(dt);
-        if(stat(fRawFileName.Data(), &st) == 0)
-            return kBMNERROR;
+
+        fseeko64(fRawFileIn, 0, SEEK_END);
+        fLengthRawFile = ftello64(fRawFileIn);
         t += dt;
-        if (t >= WAIT_LIMIT)
+        if (t >= WAIT_LIMIT) {
+            printf("limit er\n");
+            fseeko64(fRawFileIn, pos - fLengthRawFile, SEEK_CUR);
             return kBMNERROR;
-        prevSize = size;
+        }
         size = st.st_size;
     }
+    fseeko64(fRawFileIn, pos - fLengthRawFile, SEEK_CUR);
     return kBMNSUCCESS;
 }
-
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
     //    fRawTree->Clear();
@@ -370,44 +372,45 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
     //        if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
+        if (wait_file(4 * kWORDSIZE) == kBMNERROR)
+            return kBMNTIMEOUT;
     fread(&fDat, kWORDSIZE, 1, fRawFileIn);
+    if (fDat)
+        //printf("dat %d\n", fDat);
     if (fDat == kRUNNUMBERSYNC) {
+        printf("RunNumberSync!\n");
+        syncCounter++;
+        if (syncCounter > 1) {
+            cout << "Finish by SYNC" << endl;
+            return kBMNFINISH;
+        }
         fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
         fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
         fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
         fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     }
-    fCurentPositionRawFile = ftello64(fRawFileIn);
-    if (fCurentPositionRawFile >= fLengthRawFile){
-        if (wait_file() == kBMNERROR)
-            return kBMNTIMEOUT;
-    }
-        if (fDat == kRUNNUMBERSYNC) {
-            syncCounter++;
-            if (syncCounter > 1)
-                return kBMNFINISH;                
-            fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
-            fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
-            fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-            fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
-        }
-    //            break;
     if (fDat == kSYNC1) { //search for start of event
         // read number of bytes in event
+        //printf("kSYNC1\n");
         if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
         fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
-        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
-            printf("Wrong data size: %d:  skip this event\n", fDat);
-            fread(data, kWORDSIZE, fDat, fRawFileIn);
-        } else {
+//        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
+//            printf("Wrong data size: %d:  skip this event\n", fDat);
+//            fread(data, kWORDSIZE, fDat, fRawFileIn);
+//        } else {
             //read array of current event data and process them
-            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
+                        if (wait_file(fDat * kNBYTESINWORD * kWORDSIZE) == kBMNERROR)
+                            return kBMNTIMEOUT;
+            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) {
+                printf("finish by length\n");
+                return kBMNERROR;
+            }
             fEventId = data[0];
             if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
             ProcessEvent(data, fDat);
             fNevents++;
             fRawTree->Fill();
-        }
+//        }
     }
     return kBMNSUCCESS;
 }
@@ -820,11 +823,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     //            Int_t iEv = fRawTree->GetEntries();
     //            fRawTree->GetEntry(iEv);
 
-//    if (FillTimeShiftsMap() == kBMNERROR) {
-//        cout << "No TimeShiftMap created" << endl;
-        //                continue;
-        //FIX maybe add return?
-//    }
+        if (FillTimeShiftsMap() == kBMNERROR) {
+            cout << "No TimeShiftMap created" << endl;
+                    return kBMNERROR;
+        }
 
     BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
     curEventType = headDAQ->GetType();
@@ -843,9 +845,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
                 pedEvCntr = 0;
             }
         }
+        fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
         fGemMapper->FillEvent(adc32, gem);
         fSiliconMapper->FillEvent(adc128, silicon);
-        fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
+        
         fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         fTof400Mapper->FillEvent(tdc, tof400);
         fDigiTree->Fill();

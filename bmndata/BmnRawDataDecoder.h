@@ -35,7 +35,7 @@
 #include <UniDbDetectorParameter.h>
 
 // wait limit for input data
-#define WAIT_LIMIT 150000000
+#define WAIT_LIMIT 45000000
 using namespace std;
 
 struct DigiArrays {
@@ -73,7 +73,7 @@ public:
     void ResetDecoder(TString file);
     BmnStatus DisposeDecoder();
     BmnStatus wait_stream(deque<UInt_t> *que, Int_t len);
-    BmnStatus wait_file();
+    BmnStatus wait_file(Int_t len);
     BmnStatus SlewingTOF700();
 
     void SetQue(deque<UInt_t> *v) {
@@ -230,7 +230,7 @@ private:
     BmnRunHeader *runHeader;
     //    TClonesArray *runHeader;
 
-    UInt_t data[1000000];
+    UInt_t data[10000000];
     ULong_t fMaxEvent;
 
     UInt_t fDat; //current 32-bits word

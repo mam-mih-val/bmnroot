@@ -84,9 +84,7 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
 
     while(kTRUE){
         ProcessFileRun(_curFile);
-        if (_curFile.Length() == 0) {
-            _curFile = WatchNext(dir, _curFile, 1e5);
-        }
+        _curFile = WatchNext(dir, _curFile, 1e5);
     }
     //    BmnRunInfo test, test2, test3;
     //    test.Name =  TString(getenv("VMCWORKDIR")) + "/build/mpd_run_067.data";
@@ -267,11 +265,11 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
             break;
         }
         nextFile = WatchNext(_inotifDir, 0);
-        if (nextFile.Length() > 0){
-            inotify_rm_watch(_inotifFile, _inotifFileW);
-            _curFile = nextFile;
-            break;
-        }
+//        if (nextFile.Length() > 0){
+//            inotify_rm_watch(_inotifFile, _inotifFileW);
+//            _curFile = nextFile;
+//            break;
+//        }
     }
     FinishRun();
 }

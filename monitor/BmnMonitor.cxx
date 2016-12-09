@@ -61,9 +61,10 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
     fcntl(_inotifDir, F_SETFL, flags | O_NONBLOCK);
     _curFile = startFile;
     _curDir = dir;
-//    if (_curFile.Length() == 0) {
+    if (_curFile.Length() == 0) {
+        _curFile = WatchNext(dir, _curFile, 1e5);
 //        _curFile = WatchNext(_inotifDir, 1e5);
-//    }
+    }
     
    
    

@@ -64,9 +64,14 @@ void BmnHistTrigger::FillFromDigi(
         TClonesArray * BDdigits) {
     BDEvents->Clear();
     for (Int_t digIndex = 0; digIndex < BC1digits->GetEntriesFast(); digIndex++) {
-        BmnTrigDigit* td1 = (BmnTrigDigit*) BC1digits->At(digIndex);
-        histBC1TimeLen->Fill(td1->GetAmp());
+        BmnTrigDigit* td0 = (BmnTrigDigit*) BC1digits->At(digIndex);
+        histBC1TimeLen->Fill(td0->GetAmp());
         histTriggers->Fill(0);
+    }
+    for (Int_t digIndex = 0; digIndex < SDdigits->GetEntriesFast(); digIndex++) {
+        BmnTrigDigit* td1 = (BmnTrigDigit*) SDdigits->At(digIndex);
+        histSDTimeLen->Fill(td1->GetAmp());
+        histTriggers->Fill(1);
     }
     for (Int_t digIndex = 0; digIndex < BC2digits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* td2 = (BmnTrigDigit*) BC2digits->At(digIndex);
@@ -78,10 +83,17 @@ void BmnHistTrigger::FillFromDigi(
         histVDTimeLen->Fill(tv->GetAmp());
         histTriggers->Fill(3);
     }
-    for (Int_t digIndex = 0; digIndex < VDdigits->GetEntriesFast(); digIndex++) {
-        BmnTrigDigit* bd = (BmnTrigDigit*) VDdigits->At(digIndex);
+    for (Int_t digIndex = 0; digIndex < FDdigits->GetEntriesFast(); digIndex++) {
+        BmnTrigDigit* td3 = (BmnTrigDigit*) FDdigits->At(digIndex);
+        histFDTimeLen->Fill(td3->GetAmp());
+        histTriggers->Fill(4);
+    }
+    for (Int_t digIndex = 0; digIndex < BDdigits->GetEntriesFast(); digIndex++) {
+        BmnTrigDigit* bd = (BmnTrigDigit*) BDdigits->At(digIndex);
         histBDChannels->Fill(bd->GetMod());
         new ((*BDEvents)[BDEvents->GetEntriesFast()]) BmnTrigDigit(bd->GetMod(), bd->GetTime(), bd->GetAmp());
+        if (bd->GetMod() == fSelectedBDChannel)
+            histBDSpecific->Fill(bd->GetAmp());
     }
 }
 

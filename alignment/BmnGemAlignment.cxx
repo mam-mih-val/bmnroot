@@ -8,7 +8,7 @@ fSigma(1.), fPreSigma(1.), fName(""),
 fAccuracy(1e-3), fNumOfIterations(50000), fNGL(0),
 fIterationsNum(1), nSelectedTracks(0) {
 
-    // Declare branch names here 
+    // Declare branch names here
     hitsBranch = "BmnGemStripHit";
     tracksBranch = "BmnGemTrack";
     tracksSelectedBranch = "BmnAlignmentContainer";
@@ -52,8 +52,8 @@ void BmnGemAlignment::Exec(Option_t* opt) {
     StartMille();
     if (fChain->GetEntries() == fCurrentEvent) {
         fclose(fin_txt);
-        BinFilePede(); // Prepare bin-file for PEDE  
-        StartPede(); // Start PEDE    
+        BinFilePede(); // Prepare bin-file for PEDE
+        StartPede(); // Start PEDE
     }
 }
 
@@ -213,7 +213,7 @@ void BmnGemAlignment::StartPede() {
     fgets(buffer, sizeof (buffer), file);
     fSigma = atof(buffer);
     pclose(file);
-    BinFilePede(); //An action aimed at normalizing sigma to avoid chi2-warning 
+    BinFilePede(); //An action aimed at normalizing sigma to avoid chi2-warning
 
     system(TString(fCommandToRunPede + " && rm " + random).Data()); // first necessary Pede execution
 
@@ -245,11 +245,11 @@ void BmnGemAlignment::StartPede() {
 
                 //                if (corrCounter == 0)
                 //                    buff[0] = corr[iPar];
-                //                
+                //
                 //                else if (corrCounter == 1)
                 //                    buff[1] = corr[iPar];
-                //                
-                //                else 
+                //
+                //                else
                 //                    buff[2] = corr[iPar];
 
                 buff[corrCounter] = corr[iPar];
@@ -289,19 +289,20 @@ void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, Int_t iter) {
     TString alignType = "alignment_" + fAlignmentType + ".bin";
     fprintf(fin, "%s\n", alignType.Data());
     fprintf(fin, "method inversion %d %f\n", fNumOfIterations, fAccuracy);
+    fprintf(fin, "regularization 1.0\n");
     fprintf(fin, "Parameter\n");
 
     TString buff1 = "", buff2 = "", buff3 = "", buff4 = "", buff5 = "";
 
     string line;
 
-    // Go to the second string of existing millepede.res 
+    // Go to the second string of existing millepede.res
     resFile.ignore(numeric_limits<streamsize>::max(), '\n');
 
     while (getline(resFile, line)) {
         stringstream ss(line);
         Int_t size = ss.str().length();
-        // 40 and 68 symbols are fixed in the Pede-output by a given format 
+        // 40 and 68 symbols are fixed in the Pede-output by a given format
         if (size == 40) {
             ss >> buff1 >> buff2 >> buff3;
             fprintf(fin, "%d %f %f\n", buff1.Atoi(), buff2.Atof(), buff3.Atof());
@@ -322,13 +323,13 @@ void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, vector <Double_t>& corr)
 
     string line;
 
-    // Go to the second string of existing millepede.res 
+    // Go to the second string of existing millepede.res
     resFile.ignore(numeric_limits<streamsize>::max(), '\n');
 
     while (getline(resFile, line)) {
         stringstream ss(line);
         Int_t size = ss.str().length();
-        // 40 and 68 symbols are fixed in the Pede-output by a given format 
+        // 40 and 68 symbols are fixed in the Pede-output by a given format
         if (size == 40)
             ss >> buff1 >> buff2 >> buff3;
         else if (size == 68)
@@ -345,6 +346,7 @@ void BmnGemAlignment::MakeSteerFile(Int_t iter) {
     TString alignType = "alignment_" + fAlignmentType + ".bin";
     fprintf(steer, "%s\n", alignType.Data());
     fprintf(steer, "method inversion %d %f\n", fNumOfIterations, fAccuracy);
+    fprintf(steer, "regularization 1.0\n");
     fprintf(steer, "Parameter\n");
 
     Int_t nEntries = 0;

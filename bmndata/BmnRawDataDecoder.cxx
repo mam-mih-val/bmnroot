@@ -93,6 +93,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
     syncCounter = 0;
+    fPedoCounter = 0;
 }
 
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
@@ -152,14 +153,13 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
     syncCounter = 0;
+    fPedoCounter = 0;
 
     GemMapStructure* map;
-    UniDbDetectorParameter* mapParSize = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_map_size", fPeriodId, fRunId);
-    Int_t fEntriesInGlobMap = (mapParSize != NULL) ? mapParSize->GetInt() : 0;
-
+    Int_t fEntriesInGlobMap = 0;
     UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
     if (mapPar != NULL) mapPar->GetGemMapArray(map, fEntriesInGlobMap);
-
+    delete mapPar;
     for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
         if (find(fGemSerials.begin(), fGemSerials.end(), map[i].serial) == fGemSerials.end())
             fGemSerials.push_back(map[i].serial);
@@ -183,13 +183,14 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     fLengthRawFile = ftello64(fRawFileIn);
     rewind(fRawFileIn);
     printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
+    fRootFileOut = new TFile(fRootFileName, "recreate");
+    printf("RawRoot File %s\n\n", fRootFileName.Data());
 
     for (;;) {
         if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
         //if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
         fread(&fDat, kWORDSIZE, 1, fRawFileIn);
         if (fDat == kRUNNUMBERSYNC) {
-            printf("RUN_NUMBER\n");
             fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
             fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
             fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
@@ -214,12 +215,12 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
                 ProcessEvent(data, fDat);
                 fNevents++;
                 fRawTree->Fill();
+                printf("%lld\n", fRawTree->GetEntries());
             }
         }
     }
 
-    fRootFileOut = new TFile(fRootFileName, "recreate");
-    printf("RawRoot File %s\n\n", fRootFileName.Data());
+    printf("fPedoCounter = %d\n", fPedoCounter);    
 
     fRawTree->Branch("RunHeader", &runHeaderDAQ);
     runHeaderDAQ->SetRunId(fRunId);
@@ -369,45 +370,45 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
     //        if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
-        if (wait_file(4 * kWORDSIZE) == kBMNERROR)
-            return kBMNTIMEOUT;
+    if (wait_file(4 * kWORDSIZE) == kBMNERROR)
+        return kBMNTIMEOUT;
     fread(&fDat, kWORDSIZE, 1, fRawFileIn);
     if (fDat)
         //printf("dat %d\n", fDat);
-    if (fDat == kRUNNUMBERSYNC) {
-        printf("RunNumberSync!\n");
-        syncCounter++;
-        if (syncCounter > 1) {
-            cout << "Finish by SYNC" << endl;
-            return kBMNFINISH;
+        if (fDat == kRUNNUMBERSYNC) {
+            printf("RunNumberSync!\n");
+            syncCounter++;
+            if (syncCounter > 1) {
+                cout << "Finish by SYNC" << endl;
+                return kBMNFINISH;
+            }
+            fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
+            fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
+            fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
+            fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
         }
-        fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
-        fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
-        fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-        fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
-    }
     if (fDat == kSYNC1) { //search for start of event
         // read number of bytes in event
         //printf("kSYNC1\n");
         if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
         fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
-//        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
-//            printf("Wrong data size: %d:  skip this event\n", fDat);
-//            fread(data, kWORDSIZE, fDat, fRawFileIn);
-//        } else {
-            //read array of current event data and process them
-                        if (wait_file(fDat * kNBYTESINWORD * kWORDSIZE) == kBMNERROR)
-                            return kBMNTIMEOUT;
-            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) {
-                printf("finish by length\n");
-                return kBMNERROR;
-            }
-            fEventId = data[0];
-            if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
-            ProcessEvent(data, fDat);
-            fNevents++;
-            fRawTree->Fill();
-//        }
+        //        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
+        //            printf("Wrong data size: %d:  skip this event\n", fDat);
+        //            fread(data, kWORDSIZE, fDat, fRawFileIn);
+        //        } else {
+        //read array of current event data and process them
+        if (wait_file(fDat * kNBYTESINWORD * kWORDSIZE) == kBMNERROR)
+            return kBMNTIMEOUT;
+        if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) {
+            printf("finish by length\n");
+            return kBMNERROR;
+        }
+        fEventId = data[0];
+        if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+        ProcessEvent(data, fDat);
+        fNevents++;
+        fRawTree->Fill();
+        //        }
     }
     return kBMNSUCCESS;
 }
@@ -553,7 +554,12 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                         FillSYNC(d, serial, i);
                         break;
                     case kU40VE_RC:
-                        if (fPeriodId > 4 && type == 3) evType = ((d[i] & 0xFFFF) == 0xD8) ? kBMNPEDESTAL : kBMNPAYLOAD;
+                        if (fPeriodId > 4 && type == 3 && slot == 12) { //FIXME! use constants
+                            //                          printf("Trig word = 0x%X\tlen = %d \t slot = %d\n" ,d[i] & 0xFFFF, len, slot);
+                            evType = ((d[i] & 0xFFFF) == 0x4E) ? kBMNPEDESTAL : kBMNPAYLOAD;
+                            if (evType == kBMNPEDESTAL)
+                                fPedoCounter++;
+                        }
                         break;
                 }
             }
@@ -668,7 +674,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     BmnEventType prevEventType = curEventType;
 
     for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-        if (iEv % 1000 == 0) cout << "Decoding event #" << iEv << endl;
+        if (iEv % 100 == 0) cout << "Decoding event #" << iEv << endl;
         ClearArrays();
 
         fRawTree->GetEntry(iEv);
@@ -678,6 +684,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         }
 
         BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
+        if (!headDAQ) continue;
         curEventType = headDAQ->GetType();
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType);
 
@@ -701,21 +708,23 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             if (iEv == fNevents - 1) {
                 fDigiTree->Branch("RunHeader", &runHeader);
-                UInt_t sT = runHeaderDAQ->GetStartTime().GetTime();
-                UInt_t fT = runHeaderDAQ->GetFinishTime().GetTime();
-                UInt_t sD = runHeaderDAQ->GetStartTime().GetDate();
-                UInt_t fD = runHeaderDAQ->GetFinishTime().GetDate();
+                if (runHeaderDAQ) {
+                    UInt_t sT = runHeaderDAQ->GetStartTime().GetTime();
+                    UInt_t fT = runHeaderDAQ->GetFinishTime().GetTime();
+                    UInt_t sD = runHeaderDAQ->GetStartTime().GetDate();
+                    UInt_t fD = runHeaderDAQ->GetFinishTime().GetDate();
 
-                runHeader->SetRunId(runHeaderDAQ->GetRunId());
-                runHeader->SetStartTime(runHeaderDAQ->GetStartTime());
-                runHeader->SetFinishTime(runHeaderDAQ->GetFinishTime());
+                    runHeader->SetRunId(runHeaderDAQ->GetRunId());
+                    runHeader->SetStartTime(runHeaderDAQ->GetStartTime());
+                    runHeader->SetFinishTime(runHeaderDAQ->GetFinishTime());
 
-                printf("\n============== Summary of run%04d ==============\n", runHeader->GetRunId());
-                printf("START (event 1):\t%d/%02d/%02d\t", sD / 10000, sD % 10000 / 100, sD % 100);
-                printf("%02d:%02d:%02d\n", sT / 10000, sT % 10000 / 100, sT % 100);
-                printf("FINISH (event %d):\t%d/%02d/%02d\t", fEventId, fD / 10000, fD % 10000 / 100, fD % 100);
-                printf("%02d:%02d:%02d\n", fT / 10000, fT % 10000 / 100, fT % 100);
-                printf("================================================\n");
+                    printf("\n============== Summary of run%04d ==============\n", runHeader->GetRunId());
+                    printf("START (event 1):\t%d/%02d/%02d\t", sD / 10000, sD % 10000 / 100, sD % 100);
+                    printf("%02d:%02d:%02d\n", sT / 10000, sT % 10000 / 100, sT % 100);
+                    printf("FINISH (event %d):\t%d/%02d/%02d\t", fEventId, fD / 10000, fD % 10000 / 100, fD % 100);
+                    printf("%02d:%02d:%02d\n", fT / 10000, fT % 10000 / 100, fT % 100);
+                    printf("================================================\n");
+                }
             }
             fDigiTree->Fill();
         }
@@ -820,10 +829,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     //            Int_t iEv = fRawTree->GetEntries();
     //            fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMap() == kBMNERROR) {
-            cout << "No TimeShiftMap created" << endl;
-                    return kBMNERROR;
-        }
+    if (FillTimeShiftsMap() == kBMNERROR) {
+        cout << "No TimeShiftMap created" << endl;
+        return kBMNERROR;
+    }
 
     BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
     curEventType = headDAQ->GetType();
@@ -847,7 +856,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fSiliconMapper->FillEvent(adc128, silicon);
         fTof400Mapper->FillEvent(tdc, tof400);
         //fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
-        
+
         fDigiTree->Fill();
     }
     prevEventType = curEventType;
@@ -953,6 +962,7 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
 }
 
 BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adc, UInt_t ev) {
+    if (!fGemMapper) return kBMNERROR;
     UInt_t**** pedData = fGemMapper->GetPedData();
     for (UInt_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
         BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);

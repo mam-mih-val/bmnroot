@@ -165,6 +165,8 @@ private:
     vector<UInt_t> fGemSerials; //list of serial id for GEM
     UInt_t fNGemSerials;
 
+    UInt_t fPedoCounter;
+    
     UInt_t fRunId;
     UInt_t fPeriodId;
     UInt_t fEventId;

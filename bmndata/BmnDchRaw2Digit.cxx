@@ -2,7 +2,7 @@
 
 BmnDchRaw2Digit::BmnDchRaw2Digit(Int_t period, Int_t run) {
 
-    fEntriesInMap = 72;
+    fEntriesInMap = 0;
     
     cout << "Loading the DCH Map from DB: Period " << period << ", Run " << run << "..." << endl;
     

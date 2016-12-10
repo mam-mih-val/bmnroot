@@ -14,6 +14,7 @@
 #include <map>
 #include <vector>
 #include <UniDbDetectorParameter.h>
+#include <UniDbDetector.h>
 
 #define ADC_N_CHANNELS 64 //number of ADC channels
 #define ADC32_N_SAMPLES 32 //number of samples in one ADC digit
@@ -23,6 +24,7 @@
 #define N_CH_IN_BIG_GEM 3200 //number of channels in one part of big GEM stations (sum of all redout channels)
 #define N_CH_IN_BIG_GEM_0 1023//988 //number of channels in hot zone of one part of big GEM stations (sum of redout channels from X0 and Y0)
 #define N_CH_IN_BIG_GEM_1 2176//2100 //number of channels in big zone of one part of big GEM stations (sum of redout channels from X1 and Y1)
+#define N_CH_BUF 4096
 #define N_MODULES 2
 #define N_LAYERS 4
 #define N_EV_FOR_PEDESTALS 200

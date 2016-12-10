@@ -18,11 +18,11 @@
 #include "TFolder.h"
 
 
-void monitor(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root") {
+void monitor(TString dirName = "/bmn/run/current/", TString rawFileName = "", Bool_t runCurrent = kTRUE) {
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     BmnMonitor *bm = new BmnMonitor();
-    bm->Monitor("/bmn/run/seans_53/", "");  
+    bm->Monitor(dirName, rawFileName, runCurrent);  
     delete bm;
 }

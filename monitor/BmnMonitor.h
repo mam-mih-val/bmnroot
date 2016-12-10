@@ -31,6 +31,7 @@
 #include "BmnHistGem.h"
 
 #define RUN_FILE_CHECK_PERIOD 100000
+#define TTREE_MAX_SIZE 3e11
 
 using namespace std;
 using namespace TMath;
@@ -45,7 +46,7 @@ public:
 
     BmnMonitor();
     virtual ~BmnMonitor();
-    void Monitor(TString dir, TString startFile = "");//"/home/ilnur/mnt/test/mpd-evb/TrigWord/mpd_run_Glob_306.data");
+    void Monitor(TString dir, TString startFile = "", Bool_t runCurrent = kTRUE);//"/home/ilnur/mnt/test/mpd-evb/TrigWord/mpd_run_Glob_306.data");
     void ProcessRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
     void ProcessStreamRun();
     void ProcessFileRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");

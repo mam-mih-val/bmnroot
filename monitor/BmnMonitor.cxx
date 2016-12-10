@@ -44,7 +44,7 @@ BmnMonitor::~BmnMonitor() {
     delete _fileList;
 }
 
-void BmnMonitor::Monitor(TString dir, TString startFile) {
+void BmnMonitor::Monitor(TString dir, TString startFile, Bool_t runCurrent) {
     // Create server //
     if (gSystem->AccessPathName("auth.htdigest") != 0) {
         printf("Authorization file not found\n");
@@ -61,6 +61,13 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
     fcntl(_inotifDir, F_SETFL, flags | O_NONBLOCK);
     _curFile = startFile;
     _curDir = dir;
+    if (!runCurrent){
+        printf("first wn started with\n"); _curFile = "";
+        _curFile = WatchNext(dir, _curFile, 1e5);
+        printf("first wn returned %s\n", _curFile.Data()); 
+        _curFile = WatchNext(dir, _curFile, 1e5);
+        printf("found new file %s\n", _curFile.Data());        
+    }else
     if (_curFile.Length() == 0) {
         _curFile = WatchNext(dir, _curFile, 1e5);
         printf("WN returned %s\n", _curFile.Data());
@@ -112,6 +119,7 @@ void BmnMonitor::Monitor(TString dir, TString startFile) {
 
 TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait) {
     DBG("started")
+                printf("filename = %s\n", filename.Data());
     TSystemDirectory dir(dirname, dirname);
     while (kTRUE) {
         TList *files = dir.GetListOfFiles();
@@ -121,12 +129,15 @@ TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait
             TString fname, retFname;
             TIter next(files);
             while ((file = (TSystemFile*) next())) {
-                fname = file->GetName();
+                fname = TString(file->GetName());
                 if (!file->IsDirectory() && fname.EndsWith("data"))
                     retFname = fname;
             }
-            if (filename != fname)
+            printf("compare %s\nwith    %s\n", filename.Data(), retFname.Data());
+            if (strcmp(filename.Strip().Data(), retFname.Strip().Data()) != 0){
+            printf("compared %s\nwith     %s\ntrue????????\n", filename.Data(), retFname.Data());
                 return retFname;
+            }
         }
         usleep(cycleWait);
     }
@@ -177,6 +188,7 @@ BmnStatus BmnMonitor::OpenFile(TString rawFileName) {
     fHistOut = new TFile(outHistName, "recreate");
     DBG("file created")
     fRecoTree = new TTree("BmnMon", "BmnMon");
+    fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE);
     bhGem->SetDir(fHistOut, fRecoTree);
     bhDCH->SetDir(fHistOut, fRecoTree);
     bhToF400->SetDir(fHistOut, fRecoTree);

@@ -27,7 +27,7 @@
 #define N_CH_BUF 4096
 #define N_MODULES 2
 #define N_LAYERS 4
-#define N_EV_FOR_PEDESTALS 200
+#define N_EV_FOR_PEDESTALS 500
 
 using namespace std;
 using namespace TMath;

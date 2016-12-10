@@ -215,7 +215,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
                 ProcessEvent(data, fDat);
                 fNevents++;
                 fRawTree->Fill();
-                printf("%lld\n", fRawTree->GetEntries());
             }
         }
     }

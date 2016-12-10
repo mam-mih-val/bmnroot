@@ -219,6 +219,24 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
                 }
                 break;
             }
+            case 4:
+            {
+                realChannel = ch2048;
+                if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
+                mod = 0;
+                lay = fMid[realChannel].lay;
+                strip = fMid[realChannel].strip;
+                break;
+            }
+            case 5:
+            {
+                realChannel = ch2048;
+                if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
+                mod = 1;
+                lay = fMid[realChannel].lay;
+                strip = fMid[realChannel].strip;
+                break;
+            }
             default://middle gem's
             {
                 realChannel = ch2048;

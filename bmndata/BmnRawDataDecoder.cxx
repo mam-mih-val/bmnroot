@@ -403,7 +403,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
             return kBMNERROR;
         }
         fEventId = data[0];
-        if (fEventId < 0){
+        if (fEventId <= 0){
             printf("bad event #%d\n", fEventId);
             return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
         }

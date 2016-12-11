@@ -251,8 +251,8 @@ void BmnMonitor::ProcessStreamRun() {
 
 void BmnMonitor::ProcessFileRun(TString rawFileName) {
     runIndex = TString(rawFileName(rawFileName.Length() - 8, 3)).Atoi();
-    Int_t iEv = -1;
-    Int_t lastEv = -1;
+    Int_t iEv = 0;
+    Int_t lastEv = 0;
     TString nextFile;
     BmnStatus convertResult = kBMNSUCCESS;
 

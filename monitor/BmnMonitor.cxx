@@ -119,7 +119,6 @@ void BmnMonitor::Monitor(TString dir, TString startFile, Bool_t runCurrent) {
 
 TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait) {
     DBG("started")
-                printf("filename = %s\n", filename.Data());
     TSystemDirectory dir(dirname, dirname);
     while (kTRUE) {
         TList *files = dir.GetListOfFiles();
@@ -133,11 +132,10 @@ TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait
                 if (!file->IsDirectory() && fname.EndsWith("data"))
                     retFname = fname;
             }
-            printf("compare %s\nwith    %s\n", filename.Data(), retFname.Data());
-            if (strcmp(filename.Strip().Data(), retFname.Strip().Data()) != 0){
-            printf("compared %s\nwith     %s\ntrue????????\n", filename.Data(), retFname.Data());
+            delete file;
+            delete files;
+            if (strcmp(filename.Strip().Data(), retFname.Strip().Data()) != 0)
                 return retFname;
-            }
         }
         usleep(cycleWait);
     }
@@ -162,6 +160,7 @@ TString BmnMonitor::WatchNext(Int_t inotifDir, Int_t cycleWait) {
                     }
                 }
                 i += sizeof (struct inotify_event) +event->len;
+		delete event;
             }
             if (cycleWait > 0)
                 usleep(cycleWait);

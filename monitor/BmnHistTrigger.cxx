@@ -119,6 +119,12 @@ void BmnHistTrigger::SetBDChannel(Int_t iSelChannel) {
     histBDSpecific->SetTitle(title);
     printf("Set channel: %d\n", fSelectedBDChannel);
     fSelectedBDChannel = iSelChannel;
+    TString command;
+    if (fSelectedBDChannel >= 0)
+        command = Form("fMod == %d", fSelectedBDChannel);
+    histBDSpecific->Reset();
+    TString direction = "fTime>>" + TString(histBDSpecific->GetName());
+    frecoTree->Draw(direction, command, "");
 
 }
 
@@ -146,7 +152,7 @@ void BmnHistTrigger::Register(THttpServer *serv) {
     fServer->SetItemField(path, "_drawitem", examples);
 
     TString cmdTitle = path + "ChangeBDChannel";
-    fServer->RegisterCommand(cmdTitle.Data(), "/" + fName + "/->SetSelBDChannel(%arg1%)", "button;");
+    fServer->RegisterCommand(cmdTitle.Data(), "/" + fName + "/->SetBDChannel(%arg1%)", "button;");
     fServer->Restrict(cmdTitle.Data(), "visible=admin");
     fServer->Restrict(cmdTitle.Data(), "allow=admin");
     fServer->Restrict(cmdTitle.Data(), "deny=guest");

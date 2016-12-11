@@ -403,7 +403,11 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
             return kBMNERROR;
         }
         fEventId = data[0];
-        if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+        if (fEventId < 0){
+            printf("bad event #%d\n", fEventId);
+            return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+        }
+//            printf("process event #%d\n", fEventId);
         ProcessEvent(data, fDat);
         fNevents++;
         fRawTree->Fill();
@@ -793,8 +797,9 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 
     fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
-    fTof400Mapper = new BmnTof1Raw2Digit(); 
-    fTof400Mapper->setMapFromFile("$VMCWORKDIR/input/TOF400_PlaceMap_Period5.txt", "$VMCWORKDIR/input/TOF400_StripMap_Period5.txt");
+    fTof400Mapper = new BmnTof1Raw2Digit();
+    string wd(getenv("VMCWORKDIR"));
+    fTof400Mapper->setMapFromFile(wd + "/input/TOF400_PlaceMap_Period5.txt", wd + "/input/TOF400_StripMap_Period5.txt");
     //fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
@@ -830,11 +835,12 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     //            Int_t iEv = fRawTree->GetEntries();
     //            fRawTree->GetEntry(iEv);
 
-    if (FillTimeShiftsMap() == kBMNERROR) {
-        cout << "No TimeShiftMap created" << endl;
-        return kBMNERROR;
-    }
+//    if (FillTimeShiftsMap() == kBMNERROR) {
+//        cout << "No TimeShiftMap created" << endl;
+//        return kBMNERROR;
+//    }
 
+//            printf("decode event #%d\n", fEventId);
     BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
     curEventType = headDAQ->GetType();
     new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType);

@@ -793,7 +793,9 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 
     fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
-    fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+    fTof400Mapper = new BmnTof1Raw2Digit(); 
+    fTof400Mapper->setMapFromFile("$VMCWORKDIR/input/TOF400_PlaceMap_Period5.txt", "$VMCWORKDIR/input/TOF400_StripMap_Period5.txt");
+    //fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);

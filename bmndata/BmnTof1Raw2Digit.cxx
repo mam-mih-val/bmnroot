@@ -205,6 +205,7 @@ void BmnTof1Raw2Digit::setMapFromFile(string placementMapFile, string mapFile) {
 	fstream ff;
 	ff.open(placementMapFile.c_str(), std::fstream::in);
 	if(ff.fail()) {cerr << "Cannot open the file " << placementMapFile << endl; return;}
+        else cout << "placementMapFile " << placementMapFile << endl;
 	while(!ff.eof()) {
 		ff >> std::hex >> fcrate >> std::dec >> fslot >> std::hex >> fserial >> std::dec;
 		if(ff.eof()) {break;}
@@ -216,6 +217,7 @@ void BmnTof1Raw2Digit::setMapFromFile(string placementMapFile, string mapFile) {
 	//2. Main map
 	ff.open(mapFile.c_str(), std::fstream::in);
 	if(ff.fail()) {cerr << "Cannot open the file " << mapFile << endl; return;}
+        else cout << "StripmapFile " << mapFile << endl;
 	while(!ff.eof()) {
 		ff >> std::hex >> fserial >> std::dec >> fchan >> fplane >> fstrip >> side_c;
 		if(ff.eof()) {break;}

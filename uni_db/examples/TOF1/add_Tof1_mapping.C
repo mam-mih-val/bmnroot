@@ -1,5 +1,4 @@
 //Uploads Tof1 mapping from two text files
-#include "../db_structures.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -21,7 +20,7 @@ using namespace std;
 //Each line:
 //[HEX: TDC Serial] [Channel] [Plane id] [Strip id] [Side: L or R]
 
-void add_Tof1_mapping(string placement_map_filename, string main_map_filename, int sP = 4, int sR = 61, int eP = 4, int eR = 84) {
+void add_Tof1_mapping(string placement_map_filename = "/home/mikhailr/bmnroot/input/TOF400_PlaceMap_Period5.txt", string main_map_filename = "/home/mikhailr/bmnroot/input/TOF400_StripMap_Period5.txt", int sP = 5, int sR = 1, int eP = 5, int eR = 1e4) {
 	gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
 	basiclibs();
 	gSystem->Load("libUniDb");
@@ -81,7 +80,7 @@ void add_Tof1_mapping(string placement_map_filename, string main_map_filename, i
 	//Check if number of lines is correct (should be 72 * nTDC)
 	cout << nLines << " lines in the main mapping file" << endl;
 	cout << (double(nLines) / 72.0) << " TDCs in the main mapping file" << endl;
-	if(double(nLines)/72.0 !=nTDC) {cout << "Error!" << endl; return;}
+	//if(double(nLines)/72.0 !=nTDC) {cout << "Error!" << endl; return;}
 	
 	cout << "Resulting array of unsigned int: " << endl;
 	for(int i = 0; i < map1Size; i++) {

@@ -27,7 +27,7 @@
 #define N_CH_BUF 4096
 #define N_MODULES 2
 #define N_LAYERS 4
-#define N_EV_FOR_PEDESTALS 500
+#define N_EV_FOR_PEDESTALS 1000
 
 using namespace std;
 using namespace TMath;
@@ -92,6 +92,7 @@ private:
     BmnGemMap* fBigR1;
 
     GemMapStructure* fMap;
+    Bool_t fIsPedMapReady;
 
     vector<UInt_t> fSerials; //list of serial id for GEM
     BmnGemPed** fPedArr;

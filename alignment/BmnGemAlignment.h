@@ -62,20 +62,13 @@ public:
         if (fRunType == "beam") {
             fBeamRun = kTRUE;
             fAlignmentType = "xy";
-        }
-        else {
+        } else {
             fBeamRun = kFALSE;
             fAlignmentType = "xyz";
         }
 
         cout << "Type " << fAlignmentType << " established" << endl;
     }
-
-    void SetNumIterations(Int_t num) {
-        fIterationsNum = num;
-    }
-
-    // Strongly depends on current geometry
 
     void SetStatNumFixed(TString* st) {
         cout << "Alignment conditions: " << endl;
@@ -97,10 +90,62 @@ public:
     void SetNumOfIterations(UInt_t num) {
         fNumOfIterations = num;
     }
-    
+
     void SetAlignmentTypeByHands(TString type) {
         fAlignmentType = type;
     }
+
+    void SetGeometry(BmnGemStripConfiguration::GEM_CONFIG config) {
+        fGeometry = config;
+    }
+   
+    void SetChi2MaxPerNDF(Double_t val) {
+        fChi2MaxPerNDF = val;
+    }
+
+    void SetMinHitsAccepted(Int_t val) {
+        fMinHitsAccepted = val;
+    }
+
+    void SetTxMinMax(Double_t min, Double_t max) {
+        fTxMin = min;
+        fTxMax = max;
+    }
+
+    void SetTyMinMax(Double_t min, Double_t max) {
+        fTyMin = min;
+        fTyMax = max;
+    }
+    
+    void SetUseRealHitErrors(Bool_t flag) {
+        fIsUseRealHitErrors = flag;
+    } 
+    
+    void SetUseRegularization(Bool_t flag) {
+        fIsRegul = flag;
+    }
+    
+    void SetHugecut(Double_t val) {
+        fHugecut = val;
+    }
+    
+    void SetChisqcut(Double_t val1, Double_t val2) {
+        fChisqcut[0] = val1;
+        fChisqcut[1] = val2;
+    }
+    
+    void SetEntriesPerParam(Int_t entries) {
+        fEntries = entries;
+    }
+    
+    void SetOutlierdownweighting(Int_t n) {
+        fOutlierdownweighting = n;
+    }
+    
+    void SetDwfractioncut(Double_t fraction) {
+        fDwfractioncut = fraction;
+    }
+    
 
     void StartMille();
     void StartPede();
@@ -109,19 +154,15 @@ private:
 
     void BinFilePede();
     void DebugInfo(Int_t, Int_t, Int_t, Int_t, Double_t*, Double_t*, Double_t, Double_t);
-    void ReadPedeOutput(ifstream&, Int_t);
     void ReadPedeOutput(ifstream&, vector <Double_t>&);
-    void MakeSteerFile(Int_t);
+    void MakeSteerFile();
 
     TString fRecoFileName;
-
-    //    vector <Int_t> fNumStatUsed;
 
     TClonesArray* fGemHits;
     TClonesArray* fGemTracks;
     TClonesArray* fContainer;
 
-    Double_t fSigma;
     Double_t fPreSigma;
     Double_t fAccuracy;
     UInt_t fNumOfIterations;
@@ -136,8 +177,7 @@ private:
     TString fCommandToRunPede;
 
     Int_t fNGL;
-    Int_t fIterationsNum; // Number of iterations for PEDE to update align.params
-
+ 
     TString hitsBranch;
     TString tracksBranch;
     TString tracksSelectedBranch;
@@ -152,7 +192,25 @@ private:
 
     TClonesArray* fAlignCorr;
     BmnGemStripStationSet* fDetector; // Detector geometry
-    // BmnGemAlignmentCorrections* fCorrections;
+    BmnGemStripConfiguration::GEM_CONFIG fGeometry;
+
+    Bool_t fIsUseRealHitErrors; // errors are taken from hit finder algorithm
+
+    // Restrictions on track params
+    Double_t fChi2MaxPerNDF;
+    Double_t fMinHitsAccepted;
+    Double_t fTxMin;
+    Double_t fTxMax;
+    Double_t fTyMin;
+    Double_t fTyMax;
+    
+    // Millepede params.
+    Bool_t fIsRegul;         // use regularization or not
+    Double_t fHugecut;       // cut factor in iteration 0
+    Double_t fChisqcut[2];   // cut factor in iterations 1 and 2
+    Int_t fEntries;          // lower limit on number of entries/parameter
+    Int_t fOutlierdownweighting;  // number of internal iterations (> 1)
+    Double_t fDwfractioncut;      // reject all cases with a down-weight fraction >= val 
 
     ClassDef(BmnGemAlignment, 1)
 };

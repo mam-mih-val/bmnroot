@@ -3,18 +3,24 @@
 Int_t BmnGemAlignment::fCurrentEvent = 0;
 
 BmnGemAlignment::BmnGemAlignment() :
-fDebugInfo(kFALSE),
-fSigma(1.), fPreSigma(1.), fName(""),
+fDebugInfo(kFALSE), fPreSigma(1.), fName(""),
 fAccuracy(1e-3), fNumOfIterations(50000), fNGL(0),
-fIterationsNum(1), nSelectedTracks(0) {
+nSelectedTracks(0),
+fChi2MaxPerNDF(LDBL_MAX),
+fMinHitsAccepted(3), fIsUseRealHitErrors(kTRUE),
+fTxMin(-LDBL_MAX), fTxMax(LDBL_MAX), fTyMin(-LDBL_MAX), fTyMax(LDBL_MAX),
+fIsRegul(kFALSE), fHugecut(50.), fEntries(10), fOutlierdownweighting(0),
+fDwfractioncut(0.0) {
 
-    // Declare branch names here
+    fChisqcut[0] = 0.0;
+    fChisqcut[1] = 0.0;
+
+    // Declare branch names here 
     hitsBranch = "BmnGemStripHit";
-    tracksBranch = "BmnGemTrack";
-    tracksSelectedBranch = "BmnAlignmentContainer";
+    tracksBranch = "BmnGemTracks";
     alignCorrBranch = "BmnGemAlignmentCorrections";
 
-    fDetector = new BmnGemStripStationSet_RunSummer2016(BmnGemStripConfiguration::RunSummer2016);
+    fDetector = new BmnGemStripStationSet_RunSummer2016(fGeometry);
 }
 
 InitStatus BmnGemAlignment::Init() {
@@ -22,28 +28,20 @@ InitStatus BmnGemAlignment::Init() {
     cout << "\nBmnGemAlignment::Init()\n ";
 
     FairRootManager* ioman = FairRootManager::Instance();
-    fGemHits = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
-    fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTrack");
-    fContainer = (TClonesArray*) ioman->GetObject("BmnAlignmentContainer");
+    fGemHits = (TClonesArray*) ioman->GetObject(hitsBranch.Data());
+    fGemTracks = (TClonesArray*) ioman->GetObject(tracksBranch.Data());
 
-    fAlignCorr = new TClonesArray(alignCorrBranch);
-    ioman->Register(alignCorrBranch, "GEM", fAlignCorr, kTRUE);
+    fAlignCorr = new TClonesArray(alignCorrBranch.Data());
+    ioman->Register(alignCorrBranch.Data(), "GEM", fAlignCorr, kTRUE);
 
     if (fRunType == "")
         Fatal("BmnGemReco::Init()", "Alignment type has not been specified!!!");
 
     fChain = ioman->GetInChain();
     fRecoFileName = ioman->GetInFile()->GetName();
-    for (Int_t iEvent = 0; iEvent < fChain->GetEntries(); iEvent++) {
-        fChain->GetEntry(iEvent);
-        nSelectedTracks += fContainer->GetEntriesFast();
-    }
-
-    cout << "Number of selected tracks is: " << nSelectedTracks << endl;
 
     fName = "alignment_" + fAlignmentType;
     fin_txt = fopen(TString(fName + ".txt").Data(), "w");
-    fprintf(fin_txt, "%d\n", nSelectedTracks);
 
     return kSUCCESS;
 }
@@ -52,8 +50,8 @@ void BmnGemAlignment::Exec(Option_t* opt) {
     StartMille();
     if (fChain->GetEntries() == fCurrentEvent) {
         fclose(fin_txt);
-        BinFilePede(); // Prepare bin-file for PEDE
-        StartPede(); // Start PEDE
+        BinFilePede(); // Prepare bin-file for PEDE  
+        StartPede(); // Start PEDE    
     }
 }
 
@@ -66,9 +64,17 @@ void BmnGemAlignment::StartMille() {
     for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
         modTotal += fDetector->GetGemStation(iStat)->GetNModules();
 
-    for (Int_t iAlign = 0; iAlign < fContainer->GetEntriesFast(); iAlign++) {
-        BmnAlignmentContainer* cont = (BmnAlignmentContainer*) fContainer->UncheckedAt(iAlign);
-        BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(cont->GetTrackIndex());
+    for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
+        BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
+
+        FairTrackParam* params = track->GetParamFirst();
+        Double_t chi2 = track->GetChi2();
+        Double_t ndf = track->GetNDF();
+
+        // Use track constraints if necessary 
+        if (params->GetTx() < fTxMin || params->GetTx() > fTxMax || params->GetTy() < fTyMin || params->GetTy() > fTyMax || track->GetNHits() < fMinHitsAccepted
+                || chi2 / ndf > fChi2MaxPerNDF)
+            continue;
 
         for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
             Int_t nMod = fDetector->GetGemStation(iStat)->GetNModules();
@@ -88,8 +94,8 @@ void BmnGemAlignment::StartMille() {
                         Char_t* locDerX = Form("%d %d 1. %f 0. 0. ", stat, mod, Z);
                         Char_t* locDerY = Form("%d %d 0. 0. 1. %f ", stat, mod, Z);
 
-                        Char_t* measX = Form("%f %f ", X, 1. * fSigma);
-                        Char_t* measY = Form("%f %f ", Y, 1. * fSigma);
+                        Char_t* measX = Form("%f %f ", X, fIsUseRealHitErrors ? hit->GetDx() : 1.);
+                        Char_t* measY = Form("%f %f ", Y, fIsUseRealHitErrors ? hit->GetDy() : 1.);
 
                         Int_t N_zeros_beg = stat + mod;
                         Int_t N_zeros_end = fDetector->GetNStations() - N_zeros_beg;
@@ -135,6 +141,7 @@ void BmnGemAlignment::StartMille() {
                 }
             }
         }
+        nSelectedTracks++;
     }
 }
 
@@ -158,29 +165,32 @@ void BmnGemAlignment::BinFilePede() {
         Labels[iEle] = 1 + iEle;
 
     Double_t rMeasure, dMeasure;
-    Int_t nTracks, nMod;
+    Int_t nMod;
     Int_t nGem;
-    fout_txt >> nTracks;
     Double_t DerGl[dim], DerLc[NLC];
 
     BmnMille* Mille = new BmnMille(TString(fName + ".bin").Data(), kTRUE, kFALSE);
 
-    for (Int_t iTrack = 0; iTrack < nTracks; iTrack++) {
-        for (Int_t iPlane = 0; iPlane < 2 * fDetector->GetNStations(); iPlane++) {
-            fout_txt >> nGem >> nMod;
+    for (Int_t iTrack = 0; iTrack < nSelectedTracks; iTrack++) {
+        for (Int_t iDim = 0; iDim < 2; iDim++)
+            for (Int_t iStation = 0; iStation < fDetector->GetNStations(); iStation++) {
+                for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStation)->GetNModules(); iMod++) {
+                    fout_txt >> nGem >> nMod;
 
-            for (Int_t iVar = 0; iVar < NLC; iVar++)
-                fout_txt >> DerLc[iVar];
+                    for (Int_t iVar = 0; iVar < NLC; iVar++)
+                        fout_txt >> DerLc[iVar];
 
-            for (Int_t iVar = 0; iVar < dim; iVar++)
-                fout_txt >> DerGl[iVar];
+                    for (Int_t iVar = 0; iVar < dim; iVar++)
+                        fout_txt >> DerGl[iVar];
 
-            fout_txt >> rMeasure >> dMeasure;
-            Mille->mille(NLC, DerLc, dim, DerGl, Labels, rMeasure, fSigma * dMeasure);
+                    fout_txt >> rMeasure >> dMeasure;
+                    Mille->mille(NLC, DerLc, dim, DerGl, Labels, rMeasure, dMeasure);
 
-            if (fDebugInfo)
-                DebugInfo(nGem, nMod, NLC, dim, DerLc, DerGl, rMeasure, fSigma * dMeasure);
-        }
+                    if (fDebugInfo)
+                        DebugInfo(nGem, nMod, NLC, dim, DerLc, DerGl, rMeasure, dMeasure);
+                }
+            }
+
         Mille->end();
         if (fDebugInfo)
             cout << "========================> Another one RECORD = " << iTrack + 1 << " --> " << endl;
@@ -191,47 +201,39 @@ void BmnGemAlignment::BinFilePede() {
 }
 
 void BmnGemAlignment::StartPede() {
-    Int_t firstIter = 0;
-    MakeSteerFile(firstIter); // Create initial steer file
+    MakeSteerFile(); // Create initial steer file
 
-    TString iterNum = "";
-    iterNum += firstIter;
+    //    TString iterNum = "";
+    //    iterNum += firstIter;
 
-    TString commandToExec = "pede steer_" + iterNum + ".txt";
-    fCommandToRunPede = commandToExec;
+    fCommandToRunPede = "pede steer.txt";
+    system(fCommandToRunPede.Data());
 
-    TString random = "";
-    gRandom->SetSeed(0);
-    random += (Int_t) (gRandom->Rndm(0) * 1000);
-    system(TString(fCommandToRunPede + " >> " + random).Data());
-
-    FILE* file = popen(TString("cat " + random + " | grep -e 'by factor' | awk '{print $9}'").Data(), "r");
-    if (!file)
-        return;
-
-    Char_t buffer[100];
-    fgets(buffer, sizeof (buffer), file);
-    fSigma = atof(buffer);
-    pclose(file);
-    BinFilePede(); //An action aimed at normalizing sigma to avoid chi2-warning
-
-    system(TString(fCommandToRunPede + " && rm " + random).Data()); // first necessary Pede execution
-
-    for (Int_t iIter = 1; iIter < fIterationsNum; iIter++) {
-        ifstream resFile;
-        resFile.open("millepede.res", ios::in);
-        ReadPedeOutput(resFile, iIter);
-
-        system(Form("pede steer_%d.txt && rm steer_%d.txt", iIter, iIter));
-        resFile.close();
-    }
-
-    vector <Double_t> corr;
+    vector <Double_t> corr; // vector to store obtained corrections
 
     // Put align. corrections to outFile
     ifstream resFile("millepede.res", ios::in);
     ReadPedeOutput(resFile, corr);
     resFile.close();
+
+    // Make a regularization
+    //    if (fIsRegul) {
+    //        fRegulCoeff = 0.;
+    //        for (Int_t iPar = 0; iPar < corr.size(); iPar++)
+    //            fRegulCoeff += corr[iPar] * corr[iPar];
+    //
+    //        fRegulCoeff = Sqrt(fRegulCoeff);
+    //
+    //        MakeSteerFile(1);
+    //        fCommandToRunPede = "pede steer_1.txt";
+    //        system(fCommandToRunPede.Data()); // second necessary Pede execution
+    //
+    //        corr.clear();
+    //
+    //        ifstream resFile1("millepede.res", ios::in);
+    //        ReadPedeOutput(resFile1, corr);
+    //        resFile1.close();
+    //    }
 
     const Int_t nStat = fDetector->GetNStations();
 
@@ -242,15 +244,6 @@ void BmnGemAlignment::StartPede() {
             Int_t corrCounter = 0;
             Double_t buff[3] = {0., 0., 0.};
             for (Int_t iPar = nEntries; iPar < fNGL + 1; iPar++) {
-
-                //                if (corrCounter == 0)
-                //                    buff[0] = corr[iPar];
-                //
-                //                else if (corrCounter == 1)
-                //                    buff[1] = corr[iPar];
-                //
-                //                else
-                //                    buff[2] = corr[iPar];
 
                 buff[corrCounter] = corr[iPar];
 
@@ -264,8 +257,8 @@ void BmnGemAlignment::StartPede() {
                     tmp->SetY(buff[1]);
                     tmp->SetZ(buff[2]);
 
-                    // if (fDebugInfo)
-                    cout << buff[0] << " " << buff[1] << " " << buff[2] << endl;
+                    if (fDebugInfo)
+                        cout << buff[0] << " " << buff[1] << " " << buff[2] << endl;
                 }
 
                 if ((iPar + 1) % ((fAlignmentType == "xy") ? 2 : 3) == 0) {
@@ -280,41 +273,6 @@ void BmnGemAlignment::StartPede() {
     system("rm millepede.*");
 }
 
-void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, Int_t iter) {
-    if (!resFile)
-        Fatal("BmnGemReco::ReadPedeOutput", "No input file found!!");
-
-    // Open new steer file with obtained params.
-    FILE* fin = fopen(Form("steer_%d.txt", iter), "w");
-    TString alignType = "alignment_" + fAlignmentType + ".bin";
-    fprintf(fin, "%s\n", alignType.Data());
-    fprintf(fin, "method inversion %d %f\n", fNumOfIterations, fAccuracy);
-    fprintf(fin, "regularization 1.0\n");
-    fprintf(fin, "Parameter\n");
-
-    TString buff1 = "", buff2 = "", buff3 = "", buff4 = "", buff5 = "";
-
-    string line;
-
-    // Go to the second string of existing millepede.res
-    resFile.ignore(numeric_limits<streamsize>::max(), '\n');
-
-    while (getline(resFile, line)) {
-        stringstream ss(line);
-        Int_t size = ss.str().length();
-        // 40 and 68 symbols are fixed in the Pede-output by a given format
-        if (size == 40) {
-            ss >> buff1 >> buff2 >> buff3;
-            fprintf(fin, "%d %f %f\n", buff1.Atoi(), buff2.Atof(), buff3.Atof());
-        } else if (size == 68) {
-            ss >> buff1 >> buff2 >> buff3 >> buff4 >> buff5;
-            fprintf(fin, "%d %f %f\n", buff1.Atoi(), buff2.Atof(), buff3.Atof());
-        } else
-            cout << "Unsupported format given!";
-    }
-    fclose(fin);
-}
-
 void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, vector <Double_t>& corr) {
     if (!resFile)
         Fatal("BmnGemReco::ReadPedeOutput", "No input file found!!");
@@ -323,13 +281,13 @@ void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, vector <Double_t>& corr)
 
     string line;
 
-    // Go to the second string of existing millepede.res
+    // Go to the second string of existing millepede.res 
     resFile.ignore(numeric_limits<streamsize>::max(), '\n');
 
     while (getline(resFile, line)) {
         stringstream ss(line);
         Int_t size = ss.str().length();
-        // 40 and 68 symbols are fixed in the Pede-output by a given format
+        // 40 and 68 symbols are fixed in the Pede-output by a given format 
         if (size == 40)
             ss >> buff1 >> buff2 >> buff3;
         else if (size == 68)
@@ -341,25 +299,32 @@ void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, vector <Double_t>& corr)
     }
 }
 
-void BmnGemAlignment::MakeSteerFile(Int_t iter) {
-    FILE* steer = fopen(Form("steer_%d.txt", iter), "w");
+void BmnGemAlignment::MakeSteerFile() {
+    FILE* steer = fopen("steer.txt", "w");
     TString alignType = "alignment_" + fAlignmentType + ".bin";
     fprintf(steer, "%s\n", alignType.Data());
     fprintf(steer, "method inversion %d %f\n", fNumOfIterations, fAccuracy);
-    fprintf(steer, "regularization 1.0\n");
+    if (fIsRegul)
+        fprintf(steer, "regularisation 1 \n");
+    fprintf(steer, "hugecut %G\n", fHugecut);
+    if (fChisqcut[0] * fChisqcut[1] != 0)
+        fprintf(steer, "chisqcut %G %G\n", fChisqcut[0], fChisqcut[1]);
+    fprintf(steer, "entries %d\n", fEntries);
+    fprintf(steer, "outlierdownweighting %d\n", fOutlierdownweighting);
+    fprintf(steer, "dwfractioncut %G\n", fDwfractioncut);
     fprintf(steer, "Parameter\n");
 
     Int_t nEntries = 0;
     for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
         for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStat)->GetNModules(); iMod++) {
             for (Int_t iPar = nEntries; iPar < fNGL + 1; iPar++) {
-                fprintf(steer, "%d %f ", iPar + 1, 0.);
+                fprintf(steer, "%d %G ", iPar + 1, 0.);
 
                 for (Int_t iSize = 0; iSize < fFixedStats.size(); iSize++) {
                     if (find(fFixedStats.begin(), fFixedStats.end(), iStat) != fFixedStats.end())
-                        fprintf(steer, "%f\n", -1.);
+                        fprintf(steer, "%G\n", -1.);
                     else
-                        fprintf(steer, "%f\n", fPreSigma);
+                        fprintf(steer, "%G\n", fPreSigma);
                     break;
                 }
 
@@ -370,7 +335,6 @@ void BmnGemAlignment::MakeSteerFile(Int_t iter) {
             }
         }
     }
-
     fclose(steer);
 }
 

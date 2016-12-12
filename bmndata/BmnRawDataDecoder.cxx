@@ -139,7 +139,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     //}
     fDchMapFileName = "";
     fTrigMapFileName = "";
-    fTrigINLFileName = "TRIG_INL.txt";
+    fTrigINLFileName = "";
     fGemMapFileName = "";
     fTof400MapFileName = "";
     fTof700MapFileName = "";
@@ -446,7 +446,8 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     msc->Clear();
     eventHeaderDAQ->Clear();
 
-    if (fEventId % 100 == 0) cout << "Converting event #" << d[0] << " frunID " << fRunId << endl;
+    if (fEventId % 1000 == 0) 
+        printf("RUN:%d\t EVENT:%d (%.2f%% of whole RAW-file) \n", fRunId, d[0], fCurentPositionRawFile * 100.0 / fLengthRawFile);
 
     UInt_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;

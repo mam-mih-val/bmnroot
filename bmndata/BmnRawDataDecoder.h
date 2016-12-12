@@ -257,7 +257,7 @@ private:
 
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr);
-    BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnEventType &ped);
+    BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnEventType &ped, BmnTriggerType &trig);
     BmnStatus Process_HRB(UInt_t *data, UInt_t len, UInt_t serial);
     BmnStatus FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);

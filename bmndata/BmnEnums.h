@@ -57,9 +57,17 @@ enum BmnTofHitQA {
 /**
  * \enum Define type of event
  */
+enum BmnTriggerType {
+   kBMNBEAM = 0, /**< "beam"  BC1 + BC2 + T0 + VC */
+   kBMNMINBIAS = 1,  /**< "min.bias" BC1 + BC2 + T0 + VC + FD */
+};
+
+/**
+ * \enum Define type of event
+ */
 enum BmnEventType {
-   kBMNPEDESTAL = 0, /**< merged TOF hit. */
-   kBMNPAYLOAD = 1,  /**< not merged TOF hit. */
+   kBMNPEDESTAL = 0, /**< pedestal event. */
+   kBMNPAYLOAD = 1,  /**< spill event. */
 };
 
 #endif /* BMNENUMS_H_ */

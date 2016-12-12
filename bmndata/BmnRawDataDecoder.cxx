@@ -34,6 +34,13 @@ const UInt_t kADC64VE = 0xD4;
 const UInt_t kHRB = 0xC2;
 const UInt_t kFVME = 0xD1;
 const UInt_t kU40VE_RC = 0x4C;
+
+//event type trigger
+const UInt_t kEVENTTYPESLOT = 12;
+const UInt_t kGEMTRIGTYPE = 3;
+const UInt_t kTRIGBEAM = 6;
+const UInt_t kTRIGMINBIAS = 1;
+
 /********************************************************/
 
 using namespace std;
@@ -219,7 +226,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         }
     }
 
-    printf("fPedoCounter = %d\n", fPedoCounter);    
+    printf("fPedoCounter = %d\n", fPedoCounter);
 
     fRawTree->Branch("RunHeader", &runHeaderDAQ);
     runHeaderDAQ->SetRunId(fRunId);
@@ -403,11 +410,11 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
             return kBMNERROR;
         }
         fEventId = data[0];
-        if (fEventId <= 0){
+        if (fEventId <= 0) {
             printf("bad event #%d\n", fEventId);
             return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
         }
-//            printf("process event #%d\n", fEventId);
+        //            printf("process event #%d\n", fEventId);
         ProcessEvent(data, fDat);
         fNevents++;
         fRawTree->Fill();
@@ -446,11 +453,12 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     msc->Clear();
     eventHeaderDAQ->Clear();
 
-    if (fEventId % 1000 == 0) 
+    if (fEventId % 1000 == 0)
         printf("RUN:%d\t EVENT:%d (%.2f%% of whole RAW-file) \n", fRunId, d[0], fCurentPositionRawFile * 100.0 / fLengthRawFile);
 
     UInt_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;
+    BmnTriggerType trigType = kBMNBEAM;
 
     while (idx < len) {
         UInt_t serial = d[idx++];
@@ -477,7 +485,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 break;
             }
             case kFVME:
-                Process_FVME(&data[idx], payload, serial, evType);
+                Process_FVME(&data[idx], payload, serial, evType, trigType);
                 break;
             case kHRB:
                 Process_HRB(&data[idx], payload, serial);
@@ -485,7 +493,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         }
         idx += payload;
     }
-    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TTimeStamp(time_t(fTime_s), fTime_ns), evType);
+    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TTimeStamp(time_t(fTime_s), fTime_ns), evType, trigType);
 }
 
 BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr) {
@@ -523,7 +531,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, BmnEventType &evType) {
+BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, BmnEventType &evType, BmnTriggerType &trType) {
     UInt_t modId = 0;
     UInt_t slot = 0;
     UInt_t type = 0;
@@ -558,9 +566,9 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                         FillSYNC(d, serial, i);
                         break;
                     case kU40VE_RC:
-                        if (fPeriodId > 4 && type == 3 && slot == 12) { //FIXME! use constants
-                            //                          printf("Trig word = 0x%X\tlen = %d \t slot = %d\n" ,d[i] & 0xFFFF, len, slot);
-                            evType = ((d[i] & 0xFFFF) == 0x4E) ? kBMNPEDESTAL : kBMNPAYLOAD;
+                        if (fPeriodId > 4 && type == kGEMTRIGTYPE && slot == kEVENTTYPESLOT) {
+                            trType = ((d[i] & 0x7) == kTRIGMINBIAS) ? kBMNMINBIAS : kBMNBEAM;
+                            evType = ((d[i] & 0x8) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
                             if (evType == kBMNPEDESTAL)
                                 fPedoCounter++;
                         }
@@ -690,7 +698,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
         if (!headDAQ) continue;
         curEventType = headDAQ->GetType();
-        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType);
+        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig());
 
         fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time);
 
@@ -836,15 +844,15 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     //            Int_t iEv = fRawTree->GetEntries();
     //            fRawTree->GetEntry(iEv);
 
-//    if (FillTimeShiftsMap() == kBMNERROR) {
-//        cout << "No TimeShiftMap created" << endl;
-//        return kBMNERROR;
-//    }
+    //    if (FillTimeShiftsMap() == kBMNERROR) {
+    //        cout << "No TimeShiftMap created" << endl;
+    //        return kBMNERROR;
+    //    }
 
-//            printf("decode event #%d\n", fEventId);
+    //            printf("decode event #%d\n", fEventId);
     BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
     curEventType = headDAQ->GetType();
-    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType);
+    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig());
 
     fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time);
 

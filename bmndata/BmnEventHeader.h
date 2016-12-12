@@ -17,6 +17,8 @@ private:
     TTimeStamp fEventTime;
     /** Event Type (payload = 0 or pedestal = 1)**/
     BmnEventType fType;
+    /** Trigger Type **/
+    BmnTriggerType fTrigType;
 
 public:
 
@@ -24,7 +26,7 @@ public:
     BmnEventHeader();
 
     /** Constructor */
-    BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type);
+    BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type, BmnTriggerType trig);
 
     /** Get the run ID for this run*/
     UInt_t GetRunId() {
@@ -35,12 +37,16 @@ public:
     BmnEventType GetType() {
         return fType;
     }
+    
+    /** Get the type of this event*/
+    BmnTriggerType GetTrig() {
+        return fTrigType;
+    }
 
     /** Get the run ID for this run*/
     UInt_t GetEventId() {
         return fEventId;
     }
-
     
     /** Get the time for this event*/
     TTimeStamp GetEventTime() {

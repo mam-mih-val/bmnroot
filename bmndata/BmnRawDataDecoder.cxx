@@ -41,6 +41,8 @@ const UInt_t kGEMTRIGTYPE = 3;
 const UInt_t kTRIGBEAM = 6;
 const UInt_t kTRIGMINBIAS = 1;
 
+#define ANSI_COLOR_RED   "\x1b[31m"
+#define ANSI_COLOR_RESET "\x1b[0m"
 /********************************************************/
 
 using namespace std;
@@ -77,6 +79,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     adc128 = NULL;
     msc = NULL;
     dch = NULL;
+    mwpc = NULL;
     tof400 = NULL;
     tof700 = NULL;
     gem = NULL;
@@ -85,6 +88,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fRawFileName = "";
     fDigiFileName = "";
     fDchMapFileName = "";
+    fMwpcMapFileName = "";
     fTrigMapFileName = "";
     fTrigINLFileName = "";
     fGemMapFileName = "";
@@ -145,6 +149,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     //}
     fDchMapFileName = "";
+    fMwpcMapFileName = "";
     fTrigMapFileName = "";
     fTrigINLFileName = "";
     fGemMapFileName = "";
@@ -453,8 +458,10 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     msc->Clear();
     eventHeaderDAQ->Clear();
 
-    if (fEventId % 1000 == 0)
-        printf("RUN:%d\t EVENT:%d (%.2f%% of whole RAW-file) \n", fRunId, d[0], fCurentPositionRawFile * 100.0 / fLengthRawFile);
+    if (fEventId % 100 == 0) {
+        printf(ANSI_COLOR_RED "[%.2f%%]   " ANSI_COLOR_RESET, fCurentPositionRawFile * 100.0 / fLengthRawFile);
+        printf("EVENT:%d   RUN:%d\n", d[0], fRunId);
+    }
 
     UInt_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;
@@ -661,12 +668,14 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     }
     fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
     tdc = new TClonesArray("BmnTDCDigit");
+    hrb = new TClonesArray("BmnHRBDigit");
     sync = new TClonesArray("BmnSyncDigit");
     adc32 = new TClonesArray("BmnADC32Digit");
     adc128 = new TClonesArray("BmnADC128Digit");
     eventHeaderDAQ = new TClonesArray("BmnEventHeader");
     //runHeaderDAQ = new TClonesArray("BmnRunHeader");
     fRawTree->SetBranchAddress("TDC", &tdc);
+    fRawTree->SetBranchAddress("HRB", &hrb);
     fRawTree->SetBranchAddress("SYNC", &sync);
     fRawTree->SetBranchAddress("ADC32", &adc32);
     fRawTree->SetBranchAddress("ADC128", &adc128);
@@ -716,6 +725,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fGemMapper->FillEvent(adc32, gem);
             fSiliconMapper->FillEvent(adc128, silicon);
             fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
+            fMwpcMapper->FillEvent(hrb, mwpc);
             fTof400Mapper->FillEvent(tdc, tof400);
             fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             if (iEv == fNevents - 1) {
@@ -778,6 +788,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     tof400 = new TClonesArray("BmnTof1Digit");
     tof700 = new TClonesArray("BmnTof2Digit");
     dch = new TClonesArray("BmnDchDigit");
+    mwpc = new TClonesArray("BmnMwpcDigit");
     t0 = new TClonesArray("BmnTrigDigit");
     bc1 = new TClonesArray("BmnTrigDigit");
     bc2 = new TClonesArray("BmnTrigDigit");
@@ -797,6 +808,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fDigiTree->Branch("FD", &fd);
     fDigiTree->Branch("BD", &bd);
     fDigiTree->Branch("DCH", &dch);
+    fDigiTree->Branch("MWPC", &mwpc);
     fDigiTree->Branch("GEM", &gem);
     fDigiTree->Branch("SILICON", &silicon);
     fDigiTree->Branch("TOF400", &tof400);
@@ -805,6 +817,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
     fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
+    fMwpcMapper = new BmnMwpcRaw2Digit(fMwpcMapFileName);
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
     fTof400Mapper = new BmnTof1Raw2Digit();
     string wd(getenv("VMCWORKDIR"));
@@ -819,6 +832,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 
 BmnStatus BmnRawDataDecoder::ClearArrays() {
     dch->Clear();
+    mwpc->Clear();
     gem->Clear();
     silicon->Clear();
     tof400->Clear();
@@ -868,6 +882,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
             }
         }
         fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
+        fMwpcMapper->FillEvent(hrb, mwpc);
         fGemMapper->FillEvent(adc32, gem);
         fSiliconMapper->FillEvent(adc128, silicon);
         fTof400Mapper->FillEvent(tdc, tof400);
@@ -920,6 +935,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete fGemMapper;
     delete fSiliconMapper;
     delete fDchMapper;
+    delete fMwpcMapper;
     delete fTrigMapper;
     delete fTof400Mapper;
     delete fTof700Mapper;
@@ -930,6 +946,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete tdc;
     delete gem;
     delete dch;
+    delete mwpc;
     delete t0;
     delete bc1;
     delete bc2;

@@ -74,11 +74,11 @@ void add_TRIG_mapping() {
     AssignMapStructure(pBD, 0x6EA9711, 21, 29, 38);
     AssignMapStructure(pBD, 0x6EA9711, 21, 67, 39);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("T0", "T0_global_mapping", 5, 1, 5, 1e4, pT0, 1);
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BC1", "BC1_global_mapping", 5, 1, 5, 1e4, pBC1, 1);
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BC2", "BC2_global_mapping", 5, 1, 5, 1e4, pBC2, 1);
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("VETO", "VETO_global_mapping", 5, 1, 5, 1e4, pVETO, 1);
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BD", "BD_global_mapping", 5, 1, 5, 1e4, pBD, kNBDCH);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("T0", "T0_global_mapping", 5, 419, 5, 1e4, pT0, 1);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BC1", "BC1_global_mapping", 5, 419, 5, 1e4, pBC1, 1);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BC2", "BC2_global_mapping", 5, 419, 5, 1e4, pBC2, 1);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("VETO", "VETO_global_mapping", 5, 419, 5, 1e4, pVETO, 1);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BD", "BD_global_mapping", 5, 419, 5, 1e4, pBD, kNBDCH);
 
     // clean memory after work
     delete [] pT0;

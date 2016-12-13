@@ -16,6 +16,7 @@
 #include <fstream>
 #include "BmnGemRaw2Digit.h"
 #include "BmnGemStripDigit.h"
+#include "BmnMwpcRaw2Digit.h"
 #include "BmnDchRaw2Digit.h"
 #include "BmnSiliconRaw2Digit.h"
 #include "BmnTof1Raw2Digit.h"
@@ -43,6 +44,7 @@ struct DigiArrays {
     TClonesArray *tof400;
     TClonesArray *tof700;
     TClonesArray *dch;
+    TClonesArray *mwpc;
     TClonesArray *t0;
     TClonesArray *bc1;
     TClonesArray *bc2;
@@ -90,6 +92,7 @@ public:
         d.tof400 = tof400;
         d.tof700 = tof700;
         d.dch = dch;
+        d.mwpc = mwpc;
         d.t0 = t0;
         d.bc1 = bc1;
         d.bc2 = bc2;
@@ -144,6 +147,10 @@ public:
         fDchMapFileName = map;
     }
 
+    void SetMwpcMapping(TString map) {
+        fMwpcMapFileName = map;
+    }
+
     void SetGemMapping(TString map) {
         fGemMapFileName = map;
     }
@@ -189,6 +196,7 @@ private:
     TString fRawFileName;
     TString fDigiFileName;
     TString fDchMapFileName;
+    TString fMwpcMapFileName;
     TString fGemMapFileName;
     TString fTof400MapFileName;
     TString fTof700MapFileName;
@@ -196,6 +204,7 @@ private:
     TString fTrigINLFileName;
 
     ifstream fDchMapFile;
+    ifstream fMwpcMapFile;
     ifstream fGemMapFile;
     ifstream fTof400MapFile;
     ifstream fTof700MapFile;
@@ -225,6 +234,7 @@ private:
     TClonesArray *tof400;
     TClonesArray *tof700;
     TClonesArray *dch;
+    TClonesArray *mwpc;
     TClonesArray *t0;
     TClonesArray *bc1;
     TClonesArray *bc2;
@@ -244,6 +254,7 @@ private:
     BmnGemRaw2Digit *fGemMapper;
     BmnSiliconRaw2Digit *fSiliconMapper;
     BmnDchRaw2Digit *fDchMapper;
+    BmnMwpcRaw2Digit *fMwpcMapper;
     BmnTrigRaw2Digit *fTrigMapper;
     BmnTof1Raw2Digit *fTof400Mapper;
     BmnTof2Raw2DigitNew *fTof700Mapper;

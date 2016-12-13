@@ -7,10 +7,10 @@ fDebugInfo(kFALSE), fPreSigma(1.), fName(""),
 fAccuracy(1e-3), fNumOfIterations(50000), fNGL(0),
 nSelectedTracks(0),
 fChi2MaxPerNDF(LDBL_MAX),
-fMinHitsAccepted(3), fIsUseRealHitErrors(kTRUE),
+fMinHitsAccepted(3), fIsUseRealHitErrors(kFALSE),
 fTxMin(-LDBL_MAX), fTxMax(LDBL_MAX), fTyMin(-LDBL_MAX), fTyMax(LDBL_MAX),
 fIsRegul(kFALSE), fHugecut(50.), fEntries(10), fOutlierdownweighting(0),
-fDwfractioncut(0.0) {
+fDwfractioncut(0.0), fFixX(kFALSE), fFixY(kFALSE), fFixZ(kFALSE) {
 
     fChisqcut[0] = 0.0;
     fChisqcut[1] = 0.0;
@@ -203,9 +203,6 @@ void BmnGemAlignment::BinFilePede() {
 void BmnGemAlignment::StartPede() {
     MakeSteerFile(); // Create initial steer file
 
-    //    TString iterNum = "";
-    //    iterNum += firstIter;
-
     fCommandToRunPede = "pede steer.txt";
     system(fCommandToRunPede.Data());
 
@@ -215,25 +212,6 @@ void BmnGemAlignment::StartPede() {
     ifstream resFile("millepede.res", ios::in);
     ReadPedeOutput(resFile, corr);
     resFile.close();
-
-    // Make a regularization
-    //    if (fIsRegul) {
-    //        fRegulCoeff = 0.;
-    //        for (Int_t iPar = 0; iPar < corr.size(); iPar++)
-    //            fRegulCoeff += corr[iPar] * corr[iPar];
-    //
-    //        fRegulCoeff = Sqrt(fRegulCoeff);
-    //
-    //        MakeSteerFile(1);
-    //        fCommandToRunPede = "pede steer_1.txt";
-    //        system(fCommandToRunPede.Data()); // second necessary Pede execution
-    //
-    //        corr.clear();
-    //
-    //        ifstream resFile1("millepede.res", ios::in);
-    //        ReadPedeOutput(resFile1, corr);
-    //        resFile1.close();
-    //    }
 
     const Int_t nStat = fDetector->GetNStations();
 
@@ -334,6 +312,17 @@ void BmnGemAlignment::MakeSteerFile() {
                 }
             }
         }
+    }
+
+    for (Int_t iDim = 0; iDim < 3; iDim++) {
+        Int_t remain = (iDim == 0 && fFixX) ? 1 : (iDim == 1 && fFixY) ? 0 : (iDim == 2 && fFixZ) ? 2 : (-1);
+        if (remain < 0 || (remain == 2 && fAlignmentType == "xy"))
+            continue;
+        fprintf(steer, "constraint 0.0\n");
+        for (Int_t iPar = 1; iPar < fNGL + 1; iPar++)
+            if (iPar % ((fAlignmentType == "xy") ? 2 : 3) == remain)
+                fprintf(steer, "%d %G\n", iPar, 1.);
+
     }
     fclose(steer);
 }

@@ -98,7 +98,7 @@ public:
     void SetGeometry(BmnGemStripConfiguration::GEM_CONFIG config) {
         fGeometry = config;
     }
-   
+
     void SetChi2MaxPerNDF(Double_t val) {
         fChi2MaxPerNDF = val;
     }
@@ -116,36 +116,41 @@ public:
         fTyMin = min;
         fTyMax = max;
     }
-    
+
     void SetUseRealHitErrors(Bool_t flag) {
         fIsUseRealHitErrors = flag;
-    } 
-    
+    }
+
     void SetUseRegularization(Bool_t flag) {
         fIsRegul = flag;
     }
-    
+
     void SetHugecut(Double_t val) {
         fHugecut = val;
     }
-    
+
     void SetChisqcut(Double_t val1, Double_t val2) {
         fChisqcut[0] = val1;
         fChisqcut[1] = val2;
     }
-    
+
     void SetEntriesPerParam(Int_t entries) {
         fEntries = entries;
     }
-    
+
     void SetOutlierdownweighting(Int_t n) {
         fOutlierdownweighting = n;
     }
-    
+
     void SetDwfractioncut(Double_t fraction) {
         fDwfractioncut = fraction;
     }
-    
+
+    void SetFixDetector(Bool_t flag1, Bool_t flag2, Bool_t flag3) {
+        fFixX = flag1;
+        fFixY = flag2;
+        fFixZ = flag3;
+    }
 
     void StartMille();
     void StartPede();
@@ -177,7 +182,7 @@ private:
     TString fCommandToRunPede;
 
     Int_t fNGL;
- 
+
     TString hitsBranch;
     TString tracksBranch;
     TString tracksSelectedBranch;
@@ -203,14 +208,19 @@ private:
     Double_t fTxMax;
     Double_t fTyMin;
     Double_t fTyMax;
-    
+
     // Millepede params.
-    Bool_t fIsRegul;         // use regularization or not
-    Double_t fHugecut;       // cut factor in iteration 0
-    Double_t fChisqcut[2];   // cut factor in iterations 1 and 2
-    Int_t fEntries;          // lower limit on number of entries/parameter
-    Int_t fOutlierdownweighting;  // number of internal iterations (> 1)
-    Double_t fDwfractioncut;      // reject all cases with a down-weight fraction >= val 
+    Bool_t fIsRegul; // use regularization or not
+    Double_t fHugecut; // cut factor in iteration 0
+    Double_t fChisqcut[2]; // cut factor in iterations 1 and 2
+    Int_t fEntries; // lower limit on number of entries/parameter
+    Int_t fOutlierdownweighting; // number of internal iterations (> 1)
+    Double_t fDwfractioncut; // reject all cases with a down-weight fraction >= val 
+
+    // Fix overall shift in x,y,z-directions by constraints like a1 + a2 + ... + aN = 0
+    Bool_t fFixX;
+    Bool_t fFixY;
+    Bool_t fFixZ; // not meaningful in case of 2d-alignment (true/false)
 
     ClassDef(BmnGemAlignment, 1)
 };

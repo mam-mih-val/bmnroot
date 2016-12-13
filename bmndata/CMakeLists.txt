@@ -89,6 +89,7 @@ BmnSyncDigit.cxx
 BmnTTBDigit.cxx
 BmnMSCDigit.cxx
 BmnDchRaw2Digit.cxx
+BmnMwpcRaw2Digit.cxx
 BmnZDCRaw2Digit.cxx
 BmnGemRaw2Digit.cxx
 BmnTrigRaw2Digit.cxx

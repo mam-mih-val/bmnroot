@@ -50,8 +50,8 @@ void add_GEM_mapping() {
 
     //UniDbParameter::CreateParameter("GEM_map_size", IntType);
 //    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_map_size", 4, 61, 4, 84, 17);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_map_size", 5, 1, 5, 1e4, kNitems);
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_global_mapping", 5, 1, 5, 1e4, pValues, kNitems);
+//    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_map_size", 5, 1, 5, 1e4, kNitems);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_global_mapping", 5, 419, 5, 1e4, pValues, kNitems);
     if (pDetectorParameter == NULL)
         return_error = true;
 

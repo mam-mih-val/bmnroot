@@ -1,0 +1,14 @@
+Plane     Serial
+================
+    0  0x6E9B78B
+    1  0x46F2950 
+    2  0x6E9B820 
+    3  0x6E9B8BE 
+    4  0x6E9B83F 
+    5  0x6E9B838
+    6  0x6E9B8C5
+    7  0x6E9B791
+    8  0x6E9FFB7
+    9  0x6EA474D
+   10  0x6E9B8A5
+   11  0x6E9FFB4

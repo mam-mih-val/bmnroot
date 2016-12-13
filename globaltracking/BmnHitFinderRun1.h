@@ -366,7 +366,7 @@ void FindNeighbour(BmnMwpcDigit* digiStart, vector<BmnMwpcDigit*> digits, vector
     for (Int_t i = 0; i < digits.size(); ++i) {
         BmnMwpcDigit* digi = digits.at(i);
         if (digi->IsUsed()) continue;
-        if (Abs(digiStart->GetWireNumber() - digi->GetWireNumber()) < 2) {
+        if (Abs((Int_t)digiStart->GetWireNumber() - (Int_t)digi->GetWireNumber()) < 2) {
             digi->SetUsing(kTRUE);
             buffer.push_back(digi);
             FindNeighbour(digi, digits, buffer);

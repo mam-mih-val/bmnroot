@@ -41,7 +41,8 @@ const UInt_t kGEMTRIGTYPE = 3;
 const UInt_t kTRIGBEAM = 6;
 const UInt_t kTRIGMINBIAS = 1;
 
-#define ANSI_COLOR_RED   "\x1b[31m"
+#define ANSI_COLOR_RED   "\x1b[91m"
+#define ANSI_COLOR_BLUE  "\x1b[94m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 /********************************************************/
 
@@ -142,12 +143,9 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fNevents = 0;
     fMaxEvent = nEvents;
     fPeriodId = period;
-    fRunId = 0;
-    //if (period == 4) {
-    fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
-    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
-    //}
+    fRunId = (period > 4) ? 0 : TString(file(fRawFileName.Length() - 8, 3)).Atoi();
+    fRootFileName = "current_run.root"; //Form("bmn_run%04d_raw.root", fRunId);
+    fDigiFileName = ""; //Form("bmn_run%04d_digi.root", fRunId);
     fDchMapFileName = "";
     fMwpcMapFileName = "";
     fTrigMapFileName = "";
@@ -166,22 +164,14 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fTimeStart_ns = 0;
     syncCounter = 0;
     fPedoCounter = 0;
-
-    GemMapStructure* map;
-    Int_t fEntriesInGlobMap = 0;
-    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
-    if (mapPar != NULL) mapPar->GetGemMapArray(map, fEntriesInGlobMap);
-    delete mapPar;
-    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
-        if (find(fGemSerials.begin(), fGemSerials.end(), map[i].serial) == fGemSerials.end())
-            fGemSerials.push_back(map[i].serial);
-    fNGemSerials = fGemSerials.size();
 }
 
 BmnRawDataDecoder::~BmnRawDataDecoder() {
 }
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
+    
+    printf(ANSI_COLOR_RED "\n================ CONVERTING ================\n" ANSI_COLOR_RESET);
 
     fRawFileIn = fopen(fRawFileName, "rb");
     if (fRawFileIn == NULL) {
@@ -194,9 +184,11 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     fseeko64(fRawFileIn, 0, SEEK_END);
     fLengthRawFile = ftello64(fRawFileIn);
     rewind(fRawFileIn);
-    printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
+    printf("\nRAW FILE: ");
+    printf(ANSI_COLOR_BLUE "%s" ANSI_COLOR_RESET, fRawFileName.Data());
+    printf("\nRAW FILE LENGTH: ");
+    printf(ANSI_COLOR_BLUE "%.3f MB\n" ANSI_COLOR_RESET, fLengthRawFile / 1024. / 1024.);
     fRootFileOut = new TFile(fRootFileName, "recreate");
-    printf("RawRoot File %s\n\n", fRootFileName.Data());
 
     for (;;) {
         if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
@@ -205,8 +197,17 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         if (fDat == kRUNNUMBERSYNC) {
             fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
             fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
-            fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
+            //            fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
             fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+            GemMapStructure* map;
+            Int_t fEntriesInGlobMap = 0;
+            UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
+            if (mapPar != NULL) mapPar->GetGemMapArray(map, fEntriesInGlobMap);
+            delete mapPar;
+            for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
+                if (find(fGemSerials.begin(), fGemSerials.end(), map[i].serial) == fGemSerials.end())
+                    fGemSerials.push_back(map[i].serial);
+            fNGemSerials = fGemSerials.size();
         }
 
         fCurentPositionRawFile = ftello64(fRawFileIn);
@@ -245,6 +246,9 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     fRawTree->Write();
     fRootFileOut->Close();
     fclose(fRawFileIn);
+
+    gSystem->Exec(Form("mv %s bmn_run%04d_raw.root", fRootFileName.Data(), fRunId));
+    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
 
     delete sync;
     delete adc32;
@@ -459,7 +463,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     eventHeaderDAQ->Clear();
 
     if (fEventId % 100 == 0) {
-        printf(ANSI_COLOR_RED "[%.2f%%]   " ANSI_COLOR_RESET, fCurentPositionRawFile * 100.0 / fLengthRawFile);
+        printf(ANSI_COLOR_BLUE "[%.2f%%]   " ANSI_COLOR_RESET, fCurentPositionRawFile * 100.0 / fLengthRawFile);
         printf("EVENT:%d   RUN:%d\n", d[0], fRunId);
     }
 
@@ -658,13 +662,18 @@ BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
 }
 
 BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
+    
+    printf(ANSI_COLOR_RED "================= DECODING =================\n" ANSI_COLOR_RESET);
 
     fRootFileIn = new TFile(fRootFileName, "READ");
     if (fRootFileIn->IsOpen() == false) {
         printf("\n!!!!\ncannot open file %s \nDecodeDataToDigi are stopped\n!!!!\n", fRootFileName.Data());
         return kBMNERROR;
     } else {
-        printf("\nInput root file: %s;\nOutput digi file: %s;\n", fRootFileName.Data(), fDigiFileName.Data());
+        printf("\nINPUT ROOT FILE: ");
+        printf(ANSI_COLOR_BLUE "%s" ANSI_COLOR_RESET, fRootFileName.Data());
+        printf("\nOUTPUT DIGI FILE: ");
+        printf(ANSI_COLOR_BLUE "%s\n\n" ANSI_COLOR_RESET, fDigiFileName.Data());
     }
     fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
     tdc = new TClonesArray("BmnTDCDigit");
@@ -740,12 +749,14 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                     runHeader->SetStartTime(runHeaderDAQ->GetStartTime());
                     runHeader->SetFinishTime(runHeaderDAQ->GetFinishTime());
 
-                    printf("\n============== Summary of run%04d ==============\n", runHeader->GetRunId());
+                    printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
+                    printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runHeader->GetRunId());
+                    printf(ANSI_COLOR_RED "SUMMARY ===============\n" ANSI_COLOR_RESET);
                     printf("START (event 1):\t%d/%02d/%02d\t", sD / 10000, sD % 10000 / 100, sD % 100);
                     printf("%02d:%02d:%02d\n", sT / 10000, sT % 10000 / 100, sT % 100);
                     printf("FINISH (event %d):\t%d/%02d/%02d\t", fEventId, fD / 10000, fD % 10000 / 100, fD % 100);
                     printf("%02d:%02d:%02d\n", fT / 10000, fT % 10000 / 100, fT % 100);
-                    printf("================================================\n");
+                    printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
                 }
             }
             fDigiTree->Fill();

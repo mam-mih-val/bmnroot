@@ -155,8 +155,9 @@ public:
         fGemMapFileName = map;
     }
 
-    void SetTof400Mapping(TString map) {
-        fTof400MapFileName = map;
+    void SetTof400Mapping(TString PlaceMap, TString StripMap) {
+        fTof400PlaceMapFileName = PlaceMap;
+        fTof400StripMapFileName = StripMap;
     }
 
     void SetTof700Mapping(TString map) {
@@ -198,7 +199,8 @@ private:
     TString fDchMapFileName;
     TString fMwpcMapFileName;
     TString fGemMapFileName;
-    TString fTof400MapFileName;
+    TString fTof400PlaceMapFileName;
+    TString fTof400StripMapFileName;
     TString fTof700MapFileName;
     TString fTrigMapFileName;
     TString fTrigINLFileName;

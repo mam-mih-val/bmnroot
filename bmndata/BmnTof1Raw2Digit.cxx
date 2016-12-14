@@ -108,7 +108,7 @@ void BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
 	}
 	
 	//Load the mapping from the DB for all TDCs. Loop over all the TDCs in the placement map
-	cout << "Loading main map..." << endl;
+	cout << "Loading strip map..." << endl;
 	
 	Tof1PlMapIter it;
 	it = PlacementMap.begin();
@@ -205,7 +205,7 @@ void BmnTof1Raw2Digit::setMapFromFile(string placementMapFile, string mapFile) {
 	fstream ff;
 	ff.open(placementMapFile.c_str(), std::fstream::in);
 	if(ff.fail()) {cerr << "Cannot open the file " << placementMapFile << endl; return;}
-        else cout << "placementMapFile " << placementMapFile << endl;
+        else cout << "Reading TOF400 PlacementMap file " << placementMapFile << endl;
 	while(!ff.eof()) {
 		ff >> std::hex >> fcrate >> std::dec >> fslot >> std::hex >> fserial >> std::dec;
 		if(ff.eof()) {break;}
@@ -217,7 +217,7 @@ void BmnTof1Raw2Digit::setMapFromFile(string placementMapFile, string mapFile) {
 	//2. Main map
 	ff.open(mapFile.c_str(), std::fstream::in);
 	if(ff.fail()) {cerr << "Cannot open the file " << mapFile << endl; return;}
-        else cout << "StripmapFile " << mapFile << endl;
+        else cout << "Reading TOF400 StripMap file " << mapFile << endl;
 	while(!ff.eof()) {
 		ff >> std::hex >> fserial >> std::dec >> fchan >> fplane >> fstrip >> side_c;
 		if(ff.eof()) {break;}

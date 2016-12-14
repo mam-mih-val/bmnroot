@@ -93,7 +93,8 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fTrigMapFileName = "";
     fTrigINLFileName = "";
     fGemMapFileName = "";
-    fTof400MapFileName = "";
+    fTof400StripMapFileName = "";
+    fTof400PlaceMapFileName = "";
     fTof700MapFileName = "";
     fDat = 0;
     fGemMapper = NULL;
@@ -151,7 +152,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fTrigMapFileName = "";
     fTrigINLFileName = "";
     fGemMapFileName = "";
-    fTof400MapFileName = "";
+    fTof400StripMapFileName = "";
+    fTof400PlaceMapFileName = "";
     fTof700MapFileName = "";
     fDat = 0;
     fGemMapper = NULL;
@@ -828,10 +830,12 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
     fMwpcMapper = new BmnMwpcRaw2Digit(fMwpcMapFileName);
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
-    fTof400Mapper = new BmnTof1Raw2Digit();
-    string wd(getenv("VMCWORKDIR"));
-    fTof400Mapper->setMapFromFile(wd + "/input/TOF400_PlaceMap_Period5.txt", wd + "/input/TOF400_StripMap_Period5.txt");
-    //fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+    if (fTof400PlaceMapFileName.Sizeof() > 1 && fTof400StripMapFileName.Sizeof() > 1) {
+        fTof400Mapper = new BmnTof1Raw2Digit();
+        string wd(getenv("VMCWORKDIR"));
+        fTof400Mapper->setMapFromFile(wd + "/input/" + fTof400PlaceMapFileName.Data(), wd + "/input/" + fTof400StripMapFileName.Data());
+    }
+    else fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);

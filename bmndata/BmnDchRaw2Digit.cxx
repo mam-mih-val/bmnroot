@@ -21,8 +21,7 @@ void BmnDchRaw2Digit::FillEvent(TClonesArray *tdc, map<UInt_t, Long64_t> *ts, TC
         BmnTDCDigit *digit = (BmnTDCDigit*) tdc->At(i);
         if (digit->GetType() != DCH_TDC_TYPE) continue;
         map<UInt_t, Long64_t>::iterator it = ts->find(digit->GetSerial());
-        if (it == ts->end()) continue;
-        Long64_t timeShift = it->second;
+        Long64_t timeShift = (it != ts->end()) ? it->second : 0;
         if (FindInMap(fMap1, digit, dch, timeShift, t0) == kBMNERROR)
             FindInMap(fMap2, digit, dch, timeShift, t0);
     }

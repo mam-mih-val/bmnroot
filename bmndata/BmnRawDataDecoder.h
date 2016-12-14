@@ -276,7 +276,7 @@ private:
     BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx) {
         return kBMNSUCCESS;
     };
-    BmnStatus FillTimeShiftsMap();
+    BmnStatus FillTimeShiftsMap(TriggerMapStructure *map);
     BmnStatus FillTimeShiftsMapNoDB(UInt_t t0serial);
 
     BmnStatus CopyDataToPedMap(TClonesArray* adc, UInt_t ev);

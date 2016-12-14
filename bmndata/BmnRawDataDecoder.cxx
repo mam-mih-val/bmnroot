@@ -143,7 +143,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fNevents = 0;
     fMaxEvent = nEvents;
     fPeriodId = period;
-    fRunId = (period > 4) ? 0 : TString(file(fRawFileName.Length() - 8, 3)).Atoi();
+    fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
     fRootFileName = "current_run.root"; //Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = ""; //Form("bmn_run%04d_digi.root", fRunId);
     fDchMapFileName = "";
@@ -170,7 +170,7 @@ BmnRawDataDecoder::~BmnRawDataDecoder() {
 }
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
-    
+
     printf(ANSI_COLOR_RED "\n================ CONVERTING ================\n" ANSI_COLOR_RESET);
 
     fRawFileIn = fopen(fRawFileName, "rb");
@@ -198,7 +198,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
             fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
             fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
             //            fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-            fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
             GemMapStructure* map;
             Int_t fEntriesInGlobMap = 0;
             UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
@@ -662,9 +661,10 @@ BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
 }
 
 BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
-    
+
     printf(ANSI_COLOR_RED "================= DECODING =================\n" ANSI_COLOR_RESET);
 
+    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fRootFileIn = new TFile(fRootFileName, "READ");
     if (fRootFileIn->IsOpen() == false) {
         printf("\n!!!!\ncannot open file %s \nDecodeDataToDigi are stopped\n!!!!\n", fRootFileName.Data());
@@ -689,15 +689,16 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fRawTree->SetBranchAddress("ADC32", &adc32);
     fRawTree->SetBranchAddress("ADC128", &adc128);
     fRawTree->SetBranchAddress("EventHeader", &eventHeaderDAQ);
-    //fRawTree->SetBranchAddress("RunHeader", &runHeaderDAQ);
 
+    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     fDigiFileOut = new TFile(fDigiFileName, "recreate");
     InitDecoder();
 
-    Double_t *dnlcor = fTof700Mapper->GetINL();
-
-    //    fTof700Mapper->readSlewingT0();
-    //    fTof700Mapper->readSlewing();
+    TriggerMapStructure* map;
+    Int_t nEntries = 0;
+    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
+    if (mapPar != NULL) mapPar->GetTriggerMapArray(map, nEntries);
+    else printf(ANSI_COLOR_RED "No TO map found in DB\n" ANSI_COLOR_RESET);
 
     UInt_t pedEvCntr = 0; // counter for pedestal events between two spills
     BmnEventType curEventType = kBMNPAYLOAD;
@@ -708,10 +709,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         ClearArrays();
 
         fRawTree->GetEntry(iEv);
-
-        if (FillTimeShiftsMap() == kBMNERROR) {
-            cout << "No TimeShiftMap created" << endl;
-        }
+        FillTimeShiftsMap(map);
 
         BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
         if (!headDAQ) continue;
@@ -837,7 +835,6 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
-    cout << "Init dec end" << endl;
     return kBMNSUCCESS;
 }
 
@@ -971,29 +968,15 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
+BmnStatus BmnRawDataDecoder::FillTimeShiftsMap(TriggerMapStructure *map) {
 
-    TriggerMapStructure* map;
-    Int_t nEntries = 1;
-    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
-    if (mapPar != NULL)
-        mapPar->GetTriggerMapArray(map, nEntries);
-    else {
-        cerr << "No TO map found in DB" << endl;
-        return kBMNERROR;
-    }
-    Long64_t t0time = -1;
+    Long64_t t0time = 0;
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
         if (syncDig->GetSerial() == map->serial) {
             t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
             break;
         }
-    }
-
-    if (t0time == -1) {
-        cerr << "No TO digit found in tree" << endl;
-        return kBMNERROR;
     }
 
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {

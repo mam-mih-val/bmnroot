@@ -25,15 +25,15 @@ void add_GEM_mapping() {
     GemMapStructure* pValues = new GemMapStructure[kNitems];
 
     AssignMapStructure(pValues, 0, 0x76CBA8B, 0, 2047, 2, 2, 0);
-    AssignMapStructure(pValues, 1, 0x76CD410, 0, 2047, 4, 4, 0);
+    AssignMapStructure(pValues, 1, 0x76CD410, 0, 2047, 5, 4, 0);
     AssignMapStructure(pValues, 2, 0x76C8320, 0, 2047, 3, 3, 0);
     AssignMapStructure(pValues, 3, 0x76CB9C0, 0, 2047, 1, 1, 0);
-    AssignMapStructure(pValues, 4, 0x76CA266, 0, 2047, 5, 4, 0);
+    AssignMapStructure(pValues, 4, 0x76CA266, 0, 2047, 4, 4, 0);
     AssignMapStructure(pValues, 5, 0x76D08B9, 0, 127, 2, 2, 0);
-    AssignMapStructure(pValues, 6, 0x76D08B9, 128, 255, 4, 4, 0);
+    AssignMapStructure(pValues, 6, 0x76D08B9, 128, 255, 5, 4, 0);
     AssignMapStructure(pValues, 7, 0x76D08B9, 256, 383, 3, 3, 0);
     AssignMapStructure(pValues, 8, 0x76D08B9, 384, 511, 1, 1, 0);
-    AssignMapStructure(pValues, 9, 0x76D08B9, 896, 1023, 5, 4, 0);
+    AssignMapStructure(pValues, 9, 0x76D08B9, 896, 1023, 4, 4, 0);
     AssignMapStructure(pValues, 10, 0x76D08B9, 1024, 1535, 0, 0, 0);
     AssignMapStructure(pValues, 11, 0x76D08B9, 640, 767, 8, 6, 0);
     AssignMapStructure(pValues, 12, 0x76D08B9, 768, 895, 9, 6, 0);

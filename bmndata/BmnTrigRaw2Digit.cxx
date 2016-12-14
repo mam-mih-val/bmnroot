@@ -5,7 +5,7 @@ const UShort_t kNCHANNELS = 8; // number of channels in one HPTDC
 
 BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile) {
     fMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + mappingFile;
-    printf("Reading Triggers mapping file ...\n", fMapFileName.Data());
+    printf("Reading Triggers mapping file ...\n");
     //========== read mapping file            ==========//
     fMapFile.open((fMapFileName).Data());
     if (!fMapFile.is_open()) {

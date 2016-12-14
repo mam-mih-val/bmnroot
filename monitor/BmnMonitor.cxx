@@ -28,6 +28,7 @@ BmnMonitor::~BmnMonitor() {
     delete bhToF400;
     delete bhToF700;
     delete bhDCH;
+    delete bhMWPC;
     delete bhTrig;
     //    delete fRecoTree;
     delete fHistOut;
@@ -36,6 +37,7 @@ BmnMonitor::~BmnMonitor() {
     delete bhToF400_4show;
     delete bhToF700_4show;
     delete bhDCH_4show;
+    delete bhMWPC_4show;
     delete bhTrig_4show;
     delete fServer;
     rawDataDecoder->DisposeDecoder();
@@ -80,11 +82,11 @@ void BmnMonitor::Monitor(TString dir, TString startFile, Bool_t runCurrent) {
     _inotifFileW = inotify_add_watch(_inotifFile, _curFile, IN_MODIFY);
 
 
-    rawDataDecoder = new BmnRawDataDecoder(startFile, 0, 5);
-    rawDataDecoder->SetRunId(1);
+    rawDataDecoder = new BmnRawDataDecoder(dir + _curFile, 0, 5);
     rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
     rawDataDecoder->SetTof700Mapping("TOF700_map_period_5.txt");
+    rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
     rawDataDecoder->InitConverter();
     rawDataDecoder->InitDecoder();
     fDigiTree = rawDataDecoder->GetDigiTree();
@@ -94,27 +96,48 @@ void BmnMonitor::Monitor(TString dir, TString startFile, Bool_t runCurrent) {
         ProcessFileRun(_curFile);
         _curFile = WatchNext(dir, _curFile, 1e5);
     }
-    //    BmnRunInfo test, test2, test3;
-    //    test.Name =  TString(getenv("VMCWORKDIR")) + "/build/mpd_run_067.data";
-    //    test2.Name = TString(getenv("VMCWORKDIR")) + "/build/mpd_run_081.data";
-    //    test3.Name = "/home/ilnur/mnt/test/mpd-evb/TrigWord/mpd_run_Glob_306.data";// 65
-    //    cout << test.Name << endl;
-    ////    FileList->push_back(test);
-    ////    FileList->push_back(test2);
-    //    _fileList->push_back(test3);
-    //
-    //    for (auto f : *_fileList) {
-    //        stat(f.Name, &(f.attr));
-    //    }
-    ////    for (Int_t i = 0; i < 10; i++) {
-    //        for (auto f : *_fileList) {
-    //            ProcessFileRun(f.Name);
-    //        }
-    ////    }
-
+    
     inotify_rm_watch(_inotifDir, _inotifDirW);
     close(_inotifDir);
     close(_inotifFile);
+}
+
+BmnStatus BmnMonitor::BatchDirectory(TString dirname) {    
+    // Create server //
+    if (gSystem->AccessPathName("auth.htdigest") != 0) {
+        printf("Authorization file not found\n");
+        return kBMNERROR;
+    }
+    fServer = new THttpServer("fastcgi:9000?auth_file=auth.htdigest&auth_domain=root");
+    fServer->SetTimer(100, kTRUE);
+    fServer->SetItemField("/", "_monitoring", "2000");
+    fServer->SetItemField("/", "_layout", "grid3x3");    
+    rawDataDecoder = new BmnRawDataDecoder(_curFile, 0, 5);
+    rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
+    rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
+    rawDataDecoder->SetTof700Mapping("TOF700_map_period_5.txt");
+    rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
+    rawDataDecoder->InitConverter();
+    rawDataDecoder->InitDecoder();
+    fDigiTree = rawDataDecoder->GetDigiTree();
+    RegisterAll();
+    TSystemDirectory dir(dirname, dirname);
+    TList *files = dir.GetListOfFiles();
+        if (files) {
+            files->Sort(kSortAscending);
+            TSystemFile *file;
+            TString fname, retFname;
+            TIter next(files);
+            while ((file = (TSystemFile*) next())) {
+                fname = TString(file->GetName());
+                if (!file->IsDirectory() && fname.EndsWith("data"))
+                    ProcessFileRun(fname);
+            }
+            delete file;
+            delete files;
+        } else 
+            return kBMNERROR;
+        return kBMNSUCCESS;
 }
 
 TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait) {
@@ -190,6 +213,7 @@ BmnStatus BmnMonitor::OpenFile(TString rawFileName) {
     fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE);
     bhGem->SetDir(fHistOut, fRecoTree);
     bhDCH->SetDir(fHistOut, fRecoTree);
+    bhMWPC->SetDir(fHistOut, fRecoTree);
     bhToF400->SetDir(fHistOut, fRecoTree);
     bhToF700->SetDir(fHistOut, fRecoTree);
     bhTrig->SetDir(fHistOut, fRecoTree);
@@ -197,6 +221,7 @@ BmnStatus BmnMonitor::OpenFile(TString rawFileName) {
 
     bhGem_4show->SetDir(NULL, NULL);
     bhDCH_4show->SetDir(NULL, NULL);
+    bhMWPC_4show->SetDir(NULL, NULL);
     bhToF400_4show->SetDir(NULL, NULL);
     bhToF700_4show->SetDir(NULL, NULL);
     bhTrig_4show->SetDir(NULL, NULL);
@@ -305,6 +330,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhToF400->FillFromDigi(fDigiArrays.tof400);
     bhToF700->FillFromDigi(fDigiArrays.tof700, head, iEv);
     bhDCH->FillFromDigi(fDigiArrays.dch, head, iEv);
+    bhMWPC->FillFromDigi(fDigiArrays.mwpc, head);
     // Fill data Tree //
     fRecoTree->Fill();
     // fill histograms what will be shown on the site//
@@ -320,6 +346,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhToF400_4show->FillFromDigi(fDigiArrays.tof400);
     bhToF700_4show->FillFromDigi(fDigiArrays.tof700, head, iEv);
     bhDCH_4show->FillFromDigi(fDigiArrays.dch, head, iEv);
+    bhMWPC_4show->FillFromDigi(fDigiArrays.mwpc, head);
 
     //    if ((iEv % itersToUpdate == 0) && (iEv > 1)) {
     ////        bhGem->UpdateNoiseMask(0.5 * iEv);
@@ -348,12 +375,14 @@ void BmnMonitor::RegisterAll() {
     // histograms init //
     bhGem = new BmnHistGem("GEM");
     bhDCH = new BmnHistDch("DCH");
+    bhMWPC = new BmnHistMwpc("MWPC");
     bhToF400 = new BmnHistToF("ToF400");
     bhToF700 = new BmnHistToF700("ToF700");
     bhTrig = new BmnHistTrigger("Triggers");
 
     bhGem_4show = new BmnHistGem("GEM_");
     bhDCH_4show = new BmnHistDch("DCH_");
+    bhMWPC_4show = new BmnHistMwpc("MWPC_");
     bhToF400_4show = new BmnHistToF("ToF400_");
     bhToF700_4show = new BmnHistToF700("ToF700_");
     bhTrig_4show = new BmnHistTrigger("Triggers_");
@@ -361,6 +390,7 @@ void BmnMonitor::RegisterAll() {
 
     bhGem_4show->Register(fServer);
     bhDCH_4show->Register(fServer);
+    bhMWPC_4show->Register(fServer);
     bhToF400_4show->Register(fServer);
     bhToF700_4show->Register(fServer);
     bhTrig_4show->Register(fServer);
@@ -388,12 +418,14 @@ void BmnMonitor::FinishRun() {
     bhToF400->Reset();
     bhToF700->Reset();
     bhDCH->Reset();
+    bhMWPC->Reset();
     bhTrig->Reset();
     bhGem->Reset();
 
     bhToF400_4show->Reset();
     bhToF700_4show->Reset();
     bhDCH_4show->Reset();
+    bhMWPC_4show->Reset();
     bhTrig_4show->Reset();
     bhGem_4show->Reset();
 

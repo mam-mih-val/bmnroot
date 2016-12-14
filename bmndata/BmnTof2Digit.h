@@ -1,5 +1,5 @@
 #ifndef BMNTOF2DIGIT_H
-#define	BMNTOF2DIGIT_H
+#define	BMNTOF2DIGIT_H 2
 
 #include "TNamed.h"
 
@@ -37,7 +37,7 @@ class BmnTof2Digit : public TNamed
     Float_t fTime;
     Float_t fDiff;
 
-    ClassDef(BmnTof2Digit, 1);
+    ClassDef(BmnTof2Digit, 2);
 };
 
 #endif	/* BMNTOF2DIGIT_H */

@@ -170,6 +170,7 @@ public:
 
 private:
 
+    Int_t GetRunIdFromFile(TString name);
     vector<UInt_t> fGemSerials; //list of serial id for GEM
     UInt_t fNGemSerials;
 
@@ -260,6 +261,10 @@ private:
     BmnTrigRaw2Digit *fTrigMapper;
     BmnTof1Raw2Digit *fTof400Mapper;
     BmnTof2Raw2DigitNew *fTof700Mapper;
+    BmnEventType fCurEventType;
+    BmnEventType fPrevEventType;
+    UInt_t fPedEvCntr;
+    GemMapStructure* fGemMap;
     deque<UInt_t> *fDataQueue;
     void *fDataMutex; // actually std::mutex
 
@@ -278,7 +283,7 @@ private:
     BmnStatus FillMSC(UInt_t *d, UInt_t serial, UInt_t &idx) {
         return kBMNSUCCESS;
     };
-    BmnStatus FillTimeShiftsMap(TriggerMapStructure *map);
+    BmnStatus FillTimeShiftsMap();
     BmnStatus FillTimeShiftsMapNoDB(UInt_t t0serial);
 
     BmnStatus CopyDataToPedMap(TClonesArray* adc, UInt_t ev);

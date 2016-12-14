@@ -10,6 +10,7 @@
 //#pragma link C++ class BmnOnlineDecoder++;
 #pragma link C++ class BmnHistGem++;
 #pragma link C++ class BmnHistDch++;
+#pragma link C++ class BmnHistMwpc++;
 #pragma link C++ class BmnHistToF++;
 #pragma link C++ class BmnHistToF700++;
 #pragma link C++ class BmnHistTrigger++;

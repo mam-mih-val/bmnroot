@@ -144,9 +144,9 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fNevents = 0;
     fMaxEvent = nEvents;
     fPeriodId = period;
-    fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
-    fRootFileName = "current_run.root"; //Form("bmn_run%04d_raw.root", fRunId);
-    fDigiFileName = ""; //Form("bmn_run%04d_digi.root", fRunId);
+    fRunId = GetRunIdFromFile(fRawFileName);
+    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
+    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     fDchMapFileName = "";
     fMwpcMapFileName = "";
     fTrigMapFileName = "";
@@ -166,6 +166,14 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fTimeStart_ns = 0;
     syncCounter = 0;
     fPedoCounter = 0;
+    Int_t fEntriesInGlobMap = 0;
+    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
+    if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);
+    delete mapPar;
+    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
+        if (find(fGemSerials.begin(), fGemSerials.end(), fGemMap[i].serial) == fGemSerials.end())
+            fGemSerials.push_back(fGemMap[i].serial);
+    fNGemSerials = fGemSerials.size();
 }
 
 BmnRawDataDecoder::~BmnRawDataDecoder() {
@@ -196,21 +204,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
         //if (fread(&dat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
         fread(&fDat, kWORDSIZE, 1, fRawFileIn);
-        if (fDat == kRUNNUMBERSYNC) {
-            fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
-            fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
-            //            fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-            GemMapStructure* map;
-            Int_t fEntriesInGlobMap = 0;
-            UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
-            if (mapPar != NULL) mapPar->GetGemMapArray(map, fEntriesInGlobMap);
-            delete mapPar;
-            for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
-                if (find(fGemSerials.begin(), fGemSerials.end(), map[i].serial) == fGemSerials.end())
-                    fGemSerials.push_back(map[i].serial);
-            fNGemSerials = fGemSerials.size();
-        }
-
         fCurentPositionRawFile = ftello64(fRawFileIn);
         if (fCurentPositionRawFile >= fLengthRawFile) break;
         if (fDat == kSYNC1) { //search for start of event
@@ -399,9 +392,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
                 return kBMNFINISH;
             }
             fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
-            fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
-            fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-            fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+//            fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
         }
     if (fDat == kSYNC1) { //search for start of event
         // read number of bytes in event
@@ -695,14 +686,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     fDigiFileOut = new TFile(fDigiFileName, "recreate");
     InitDecoder();
-
-    TriggerMapStructure* map;
-    Int_t nEntries = 0;
-    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
-    if (mapPar != NULL) mapPar->GetTriggerMapArray(map, nEntries);
-    else printf(ANSI_COLOR_RED "No TO map found in DB\n" ANSI_COLOR_RESET);
-
-    UInt_t pedEvCntr = 0; // counter for pedestal events between two spills
     BmnEventType curEventType = kBMNPAYLOAD;
     BmnEventType prevEventType = curEventType;
 
@@ -711,7 +694,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         ClearArrays();
 
         fRawTree->GetEntry(iEv);
-        FillTimeShiftsMap(map);
+        FillTimeShiftsMap();
 
         BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
         if (!headDAQ) continue;
@@ -721,14 +704,14 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time);
 
         if (curEventType == kBMNPEDESTAL) {
-            if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
-            CopyDataToPedMap(adc32, pedEvCntr);
-            pedEvCntr++;
+            if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
+            CopyDataToPedMap(adc32, fPedEvCntr);
+            fPedEvCntr++;
         } else { // payload
             if (prevEventType == kBMNPEDESTAL) {
-                if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) {
+                if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) {
                     fGemMapper->RecalculatePedestals();
-                    pedEvCntr = 0;
+                    fPedEvCntr = 0;
                 }
             }
             fGemMapper->FillEvent(adc32, gem);
@@ -839,6 +822,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
+    fPedEvCntr = 0; // counter for pedestal events between two spills
     return kBMNSUCCESS;
 }
 
@@ -862,35 +846,31 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
 }
 
 BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
-    UInt_t pedEvCntr = 0; // counter for pedestal events between two spills
-    BmnEventType curEventType = kBMNPAYLOAD;
-    BmnEventType prevEventType = curEventType;
+    fCurEventType = kBMNPAYLOAD;
+    fPrevEventType = fCurEventType;
 
     ClearArrays();
     //            Int_t iEv = fRawTree->GetEntries();
     //            fRawTree->GetEntry(iEv);
 
-    //    if (FillTimeShiftsMap() == kBMNERROR) {
-    //        cout << "No TimeShiftMap created" << endl;
-    //        return kBMNERROR;
-    //    }
+    FillTimeShiftsMap();
 
     //            printf("decode event #%d\n", fEventId);
     BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
-    curEventType = headDAQ->GetType();
-    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig());
+    fCurEventType = headDAQ->GetType();
+    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig());
 
     fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time);
 
-    if (curEventType == kBMNPEDESTAL) {
-        if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) return kBMNERROR; //FIX return!
-        CopyDataToPedMap(adc32, pedEvCntr);
-        pedEvCntr++;
+    if (fCurEventType == kBMNPEDESTAL) {
+        if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) return kBMNERROR; //FIX return!
+        CopyDataToPedMap(adc32, fPedEvCntr);
+        fPedEvCntr++;
     } else { // payload
-        if (prevEventType == kBMNPEDESTAL) {
-            if (pedEvCntr == N_EV_FOR_PEDESTALS - 1) {
+        if (fPrevEventType == kBMNPEDESTAL) {
+            if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) {
                 fGemMapper->RecalculatePedestals();
-                pedEvCntr = 0;
+                fPedEvCntr = 0;
             }
         }
         fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
@@ -898,11 +878,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fGemMapper->FillEvent(adc32, gem);
         fSiliconMapper->FillEvent(adc128, silicon);
         fTof400Mapper->FillEvent(tdc, tof400);
-        //fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+        fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
 
         fDigiTree->Fill();
     }
-    prevEventType = curEventType;
+    fPrevEventType = fCurEventType;
 
     return kBMNSUCCESS;
 }
@@ -944,6 +924,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     //    fDigiTree->Write();
     //    fDigiFileOut->Close();
 
+    delete fGemMap;
     delete fGemMapper;
     delete fSiliconMapper;
     delete fDchMapper;
@@ -972,12 +953,12 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::FillTimeShiftsMap(TriggerMapStructure *map) {
+BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
 
     Long64_t t0time = 0;
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
-        if (syncDig->GetSerial() == map->serial) {
+        if (syncDig->GetSerial() == fGemMap->serial) {
             t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
             break;
         }
@@ -1111,4 +1092,18 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
     //    delete tof700Mapper;
 
     return kBMNSUCCESS;
+}
+
+Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
+    Int_t runId = -1;
+    FILE * file = fopen(name.Data(), "rb");
+    UInt_t word;
+    while (fread(&word, kWORDSIZE, 1, file)) {
+        if (word == kRUNNUMBERSYNC) {
+            fread(&word, kWORDSIZE, 1, file); //skip word
+            fread(&runId, kWORDSIZE, 1, file);
+            return runId;
+        }
+    }
+    fclose(fRawFileIn);
 }

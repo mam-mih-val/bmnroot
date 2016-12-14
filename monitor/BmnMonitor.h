@@ -28,6 +28,7 @@
 #include "BmnHistToF700.h"
 #include "BmnHistTrigger.h"
 #include "BmnHistDch.h"
+#include "BmnHistMwpc.h"
 #include "BmnHistGem.h"
 
 #define RUN_FILE_CHECK_PERIOD 100000
@@ -47,6 +48,7 @@ public:
     BmnMonitor();
     virtual ~BmnMonitor();
     void Monitor(TString dir, TString startFile = "", Bool_t runCurrent = kTRUE);//"/home/ilnur/mnt/test/mpd-evb/TrigWord/mpd_run_Glob_306.data");
+    BmnStatus BatchDirectory(TString dirname);
     void ProcessRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
     void ProcessStreamRun();
     void ProcessFileRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
@@ -99,12 +101,14 @@ private:
     BmnHistToF     *bhToF400;
     BmnHistToF700  *bhToF700;
     BmnHistDch     *bhDCH;
+    BmnHistMwpc    *bhMWPC;
     BmnHistTrigger *bhTrig;
     
     BmnHistGem     *bhGem_4show;
     BmnHistToF     *bhToF400_4show;
     BmnHistToF700  *bhToF700_4show;
     BmnHistDch     *bhDCH_4show;
+    BmnHistMwpc    *bhMWPC_4show;
     BmnHistTrigger *bhTrig_4show;
 
     BmnDataReceiver *dataReceiver;

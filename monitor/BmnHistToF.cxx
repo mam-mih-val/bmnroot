@@ -61,7 +61,6 @@ void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
     histL->Reset();
     histR->Reset();
     histSimultaneous.Reset();
-    histState->Reset();
     Events->Clear();
     for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++) {
         BmnTof1Digit *td = (BmnTof1Digit *) ToF4Digits->At(digIndex);
@@ -69,8 +68,10 @@ void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
         histLeadingTime->Fill(td->GetTime());
         histAmp->Fill(td->GetAmplitude());
         histStrip->Fill(strip);
-        if ((td->GetPlane() == fSelectedPlane))
+        if ((td->GetPlane() == fSelectedPlane)){
+            histState->Reset();
             histState->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
+        }
         if (td->GetSide() == 0)
             histL->Fill(strip);
         else
@@ -165,6 +166,8 @@ void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
     }
     histAmpSpecific->Reset();
     TString direction = "fAmplitude>>" + TString(histAmpSpecific->GetName());
+    printf("direction %s\n", direction.Data());
+    printf("command %s\n", command.Data());
     frecoTree->Draw(direction, command, "");
     histLeadingTimeSpecific->Reset();
     direction = "fTime>>" + TString(histLeadingTimeSpecific->GetName());

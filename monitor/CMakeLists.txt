@@ -44,6 +44,7 @@ BmnDataReceiver.cxx
 #BmnOnlineDecoder.cxx
 BmnHistGem.cxx
 BmnHistDch.cxx
+BmnHistMwpc.cxx
 BmnHistTrigger.cxx
 BmnHistToF.cxx
 BmnHistToF700.cxx
@@ -56,6 +57,7 @@ BmnDataReceiver.h
 #BmnOnlineDecoder.h
 BmnHistGem.h
 BmnHistDch.h
+BmnHistMwpc.h
 BmnHistTrigger.h
 BmnHistToF.h
 BmnHistToF700.h

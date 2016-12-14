@@ -25,9 +25,9 @@ BmnHistToF700::BmnHistToF700(TString title = "ToF700") {
     name = fTitle + "_Leading_Time_Specific";
     histLeadingTimeSpecific = new TH1D(name, name, 500, 0, 1000);
     name = fTitle + "_Amplitude";
-    histAmp = new TH1D(name, name, 4096, 0, 96);
+    histAmp = new TH1D(name, name, 4096, 0, 2000);
     name = fTitle + "_Amplitude_Specific";
-    histAmpSpecific = new TH1D(name, name, 4096, 0, 96);
+    histAmpSpecific = new TH1D(name, name, 4096, 0, 2000);
     name = fTitle + "_Strip";
     histStrip = new TH1I(name, name, TOF2_MAX_CHAMBERS * TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_CHAMBERS * TOF2_MAX_STRIPS_IN_CHAMBER);
     name = fTitle + "_StripSimult";
@@ -142,7 +142,7 @@ void BmnHistToF700::SetDir(TFile* outFile, TTree* recoTree) {
     histState->SetDirectory(dir);
     if (Events != NULL)
         delete Events;
-    Events = new TClonesArray("BmnTof1Digit");
+    Events = new TClonesArray("BmnTof2Digit");
     if (frecoTree != NULL)
         fEventsBranch = frecoTree->Branch(fTitle.Data(), &Events);
 }

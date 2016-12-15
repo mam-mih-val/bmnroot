@@ -357,6 +357,13 @@ class UniDbDetectorParameter
 	/// get parameters' values corresponding to the specified (vector) conditions
 	static TObjArray* Search(const TObjArray& search_conditions);
 
+    /// parse detector parameter's values:
+    /// detector_name - detector corresponding to the parameter values
+    /// parameter name - parameter filled by values
+    /// txtFile - path to the text file with parameter values: format: "start_period;start_run;end_period;end_run;value1 value2..."
+    /// function returns row count added to the database
+    static int ParseTxt(TString detector_name, TString parameter_name, TString text_file);
+
 	ClassDef(UniDbDetectorParameter,1);
 };
 

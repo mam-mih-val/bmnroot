@@ -1064,7 +1064,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
             cxxFile<<"\n\t// get join table record from DB\n";
             cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-            cxxFile<<"\t\tcout<<\"Error: getting join record from DB has been failed\"<<endl;\n\n";
+            cxxFile<<(TString::Format("\t\tcout<<\"Error: getting join record from DB has been failed for '%s' table\"<<endl;\n\n", curTableJoin->strJoinTableName.Data())).Data();
             cxxFile<<"\t\tdelete stmt;\n";
             cxxFile<<"\t\tdelete connUniDb;\n";
             cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
@@ -1074,7 +1074,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
             cxxFile<<"\t// extract join row\n";
             cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
-            cxxFile<<"\t\tcout<<\"Error: table record wasn't found\"<<endl;\n\n";
+            cxxFile<<(TString::Format("\t\tcout<<\"Error: the record wasn't found in '%s' table\"<<endl;\n\n", curTableJoin->strJoinTableName.Data())).Data();
             cxxFile<<"\t\tdelete stmt;\n";
             cxxFile<<"\t\tdelete connUniDb;\n";
 
@@ -1276,7 +1276,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
         cxxFile<<"\n\t// get table record from DB\n";
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-        cxxFile<<"\t\tcout<<\"Error: getting record from DB has been failed\"<<endl;\n\n";
+        cxxFile<<(TString::Format("\t\tcout<<\"Error: getting record from DB has been failed for '%s' table\"<<endl;\n\n", strTableName.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
         cxxFile<<"\t\tdelete connUniDb;\n";
         cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
@@ -1286,7 +1286,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
         cxxFile<<"\t// extract row\n";
         cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
-        cxxFile<<"\t\tcout<<\"Error: table record wasn't found\"<<endl;\n\n";
+        cxxFile<<(TString::Format("\t\tcout<<\"Error: the record wasn't found in '%s' table\"<<endl;\n\n", strTableName.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
         cxxFile<<"\t\tdelete connUniDb;\n";
         cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
@@ -1457,7 +1457,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
                 cxxFile<<"\n\t// get table record from DB\n";
                 cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-                cxxFile<<"\t\tcout<<\"Error: getting record from DB has been failed\"<<endl;\n\n";
+                cxxFile<<(TString::Format("\t\tcout<<\"Error: getting record from DB has been failed for '%s' table\"<<endl;\n\n", strTableName.Data())).Data();
                 cxxFile<<"\t\tdelete stmt;\n";
                 cxxFile<<"\t\tdelete connUniDb;\n";
                 cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
@@ -1467,7 +1467,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
                 cxxFile<<"\t// extract row\n";
                 cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
-                cxxFile<<"\t\tcout<<\"Error: table record wasn't found\"<<endl;\n\n";
+                cxxFile<<(TString::Format("\t\tcout<<\"Error: the record wasn't found in '%s' table\"<<endl;\n\n", strTableName.Data())).Data();
                 cxxFile<<"\t\tdelete stmt;\n";
                 cxxFile<<"\t\tdelete connUniDb;\n";
                 cxxFile<<"\t\treturn 0x00;\n\t}\n\n";

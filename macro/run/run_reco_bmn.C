@@ -2,12 +2,13 @@
 // Macro for reconstruction of simulated events
 //
 // inFile - input file with MC data, default: evetest.root. To process experimental data, you can
-// use 'runN-NN:' prefix, e.g. "run3-642:raw_file_path" then the geometry is obtained from the Unified Database.
+// use 'runN-NNN:' prefix, e.g. "run5-458:../digits_run5/bmn_run0458_digi.root" then the geometry is obtained from the Unified Database.
 // outFile - output file with reconstructed data, default: mpddst.root
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 
-void run_reco_bmn(TString inFile = "run5-458:/nfs/digits_run5/bmn_run0458_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE) {
+void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 40000000, Bool_t isPrimary = kTRUE)
+{
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;

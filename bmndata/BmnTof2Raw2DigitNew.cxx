@@ -1214,7 +1214,7 @@ void BmnTof2Raw2DigitNew::DNL_read()
      {
         if (nerr < 2)
         {
-    	    printf("Crate %d Slot %d Wrong line in %s file, channel %d != %d !\n", dnlname[c][s], n, ch);
+    	    printf("Crate %d Slot %d Wrong line in %s file, channel %d != %d !\n", c, s, dnlname[c][s], n, ch);
 	}
 	nerr++;
      }

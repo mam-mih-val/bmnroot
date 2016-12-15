@@ -57,7 +57,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     in >> dummy >> dummy;
     for (int i = 0; i < ncrates; i++)
     {
-    	    in >> crate >> std::hex >> id_crate >> std::dec;
+    	    in >> std::dec >> crate >> std::hex >> id_crate;
     	    if (!in.good()) break;
 	    if (crate >= TOF2_MAX_CRATES) break;
 	    numcrates[i] = crate;
@@ -65,7 +65,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 	    if (in.eof()) break;
     }
     in >> dummy;
-    in >> nslots;
+    in >> std::dec >> nslots;
 //    printf("%d\n",nslots);
     in >> dummy >> dummy >> dummy >> dummy;
 //    printf("%s\n",dummy.Data());
@@ -90,9 +90,13 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 //    printf("N_CHAMBERS = %d\n",nchambers);
     in >> dummy >> dummy;
 //    printf("%s\n",dummy.Data());
+    char line[256] = {""};
+    in.getline(line,128);
     for (int i = 0; i < nchambers; i++)
     {
-    	    in >> cham >> idcham;
+	    in.getline(line,128);
+//    	    in >> cham >> idcham;
+	    sscanf(line,"%d\t\t%f\n",&cham,&idcham);
 //	    printf("%d %d %d %s\n",crate,slot,filetype,dnlfile.Data());
     	    if (!in.good()) break;
 	    if (cham >= TOF2_MAX_CHAMBERS) break;
@@ -103,7 +107,6 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 
     if (!in.eof()) in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
 //    printf("%s\n",dummy.Data());
-    char line[256] = {""};
 	in.getline(line,128);
 //	printf("line %d %s\n", strlen(line),line);
     while (!in.eof()) {
@@ -176,9 +179,13 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 	}
 
     Wcut = 1700;
-    Wmax = 3700;
+    Wmax = 4000;
     WT0min = 260;
     WT0max = 560;
+
+    for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) LeadMin[i] = -5000;
+    for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) LeadMax[i] = +5000;
+
     LeadMin[0] = -400;
     LeadMin[1] = -300;
     LeadMin[2] = -400;
@@ -219,15 +226,11 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 
     T0shift = 0.;
 
+    for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) numstrip[i] = -1;
 //    numstrip[0] = 28;
 //    numstrip[1] = 28;
 //    numstrip[2] = 15;
 //    numstrip[3] = 15;
-
-    numstrip[0] = -1;
-    numstrip[1] = -1;
-    numstrip[2] = -1;
-    numstrip[3] = -1;
 
     gStyle->SetOptFit(111);
 
@@ -243,10 +246,10 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     {
 	sprintf(name, "Time_vs_Strip_Chamber_%d",i+1);
 	sprintf(title, "Time vs Strip Chamber %d",i+1);
-	TvsS[i] = new TH2F(name,title,TOF2_MAX_CHANNELS_IN_MODULE,0,TOF2_MAX_CHANNELS_IN_MODULE,20000, -10000., +10000.);
+	TvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,20000, -10000., +10000.);
 	sprintf(name, "Width_vs_Strip_Chamber_%d",i+1);
 	sprintf(title, "Width vs Strip Chamber %d",i+1);
-	WvsS[i] = new TH2F(name,title,TOF2_MAX_CHANNELS_IN_MODULE,0,TOF2_MAX_CHANNELS_IN_MODULE,20000, -10000., +10000.);
+	WvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,20000, -10000., +10000.);
     }
     for (int i=0; i<MaxPlane; i++)
     {
@@ -320,7 +323,7 @@ void BmnTof2Raw2DigitNew::print(){
      printf("===========================================================================\n");
      printf("  #\tchamber\tchamberID\n===========================================================================\n");
      for(int i=0;i<nchambers;i++){
-       printf("%3d\t%d\t%d\n",i,numcha[i],idchambers[numcha[i]]);
+       printf("%3d\t%d\t%.1f\n",i,numcha[i],idchambers[numcha[i]]);
      }   
      printf("===========================================================================\n");
      printf("  #\tslot\tfiletype\tfile\n===========================================================================\n");
@@ -673,7 +676,8 @@ void BmnTof2Raw2DigitNew::readSlewingT0()
   fgets(line, 255, fin);
   fgets(line1, 255, fin);
   printf("\n**************** %s Chamber %d Peak %d Time-Width area T0 slewing (read) ******************************\n\n", filname_base, p+1, pk+1);
-  fscanf(fin, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", &plane, &wmint0[p][pk], &wmaxt0[p][pk], &tmint0[p][pk], &tmaxt0[p][pk]);
+  int ni = fscanf(fin, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", &plane, &wmint0[p][pk], &wmaxt0[p][pk], &tmint0[p][pk], &tmaxt0[p][pk]);
+  if (ni != 5) continue;
   printf("Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane, wmint0[p][pk], wmaxt0[p][pk], tmint0[p][pk], tmaxt0[p][pk]);
   if (plane != (p+1))
   {
@@ -926,7 +930,8 @@ void BmnTof2Raw2DigitNew::readSlewing()
   fgets(line, 255, fin);
   fgets(line1, 255, fin);
   printf("**************** %s Chamber %d Peak %d Time-Width area RPC slewing (read) ******************************\n\n", filname_base, p+1, pk+1);
-  fscanf(fin, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", &plane, &wmin[p][pk], &wmax[p][pk], &tmin[p][pk], &tmax[p][pk]);
+  int ni = fscanf(fin, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", &plane, &wmin[p][pk], &wmax[p][pk], &tmin[p][pk], &tmax[p][pk]);
+  if (ni != 5) continue;
   printf("Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane, wmin[p][pk], wmax[p][pk], tmin[p][pk], tmax[p][pk]);
   if (plane != (p+1))
   {
@@ -1036,7 +1041,6 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	}
 //        new(ar[tof2digit->GetEntriesFast()]) BmnTof2Digit(mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W*HPTIMEBIN,D*HPTIMEBIN);  
         new((*tof2digit)[tof2digit->GetEntriesFast()]) BmnTof2Digit(mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W,D*HPTIMEBIN);  
-//        printf("%d %d %f %f %f\n",mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W,D*HPTIMEBIN);
        }
     }
 }
@@ -1131,7 +1135,7 @@ void BmnTof2Raw2DigitNew::DNL_read()
    fi.close();
   }
  }
- else if(dnltype[c][s] == 0)
+ else if(dnltype[c][s]%10 == 0)
  {
    float tcor;
    int n, pos, post;
@@ -1188,28 +1192,39 @@ void BmnTof2Raw2DigitNew::DNL_read()
  else if(dnltype[c][s] == 3)
  {
    float tcor;
-   int n, pos, post, ch;
+   int n, pos, post, ch, nerr = 0;
    char atext[25600];
    ifstream fi(dnlname[c][s]);
    if(fi.is_open())
    {
     n = 0;
     fi.getline(atext,25600);
+    fi.getline(atext,25600);
+    int getfirst = 1;
+    if (strstr(atext,"temp") == NULL) getfirst = 0;
     while (!fi.eof())
     {
-     fi.getline(atext,25600);
+     if (getfirst) fi.getline(atext,25600);
+     getfirst = 1;
      post = 0;
      pos = 0;
-     sscanf(&atext[post],"%d=%n", &ch, &pos);
+     sscanf(&atext[post],"%d= %n", &ch, &pos);
      post += pos;
-     if (ch != n) printf("Wrong line in %s file!\n", dnlname[c][s]);
+     if (ch != n)
+     {
+        if (nerr < 2)
+        {
+    	    printf("Crate %d Slot %d Wrong line in %s file, channel %d != %d !\n", dnlname[c][s], n, ch);
+	}
+	nerr++;
+     }
      for (int i=0; i<1024; i++)
      {
-        sscanf(&atext[post],"%f %n", &tcor, &pos);
+        sscanf(&atext[post],"%f, %n", &tcor, &pos);
 	post += pos;
         DNL_Table[c][s][n][i] = tcor;
      }
-     fi.getline(atext,25600);
+//     fi.getline(atext,25600);
      n++;
      if (n==TOF2_MAX_CHANNELS_IN_SLOT) break;
     }
@@ -1240,36 +1255,48 @@ void BmnTof2Raw2DigitNew::DNL_read()
  }
 }
 
+
+int champosn[TOF2_MAX_CHAMBERS] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
+
 void BmnTof2Raw2DigitNew::drawprep()
 {
-  TCanvas *cp = new TCanvas("cp", "Leadings&widths vs strip", 900,700);
- 
+  TCanvas *cp = new TCanvas("cp", "Leadings vs strip", 900,700);
   int i;
   cp->cd();
-  cp->Divide(2,5);
-  for (i=0; i<4; i++)
+  cp->Divide(5,3);
+  for (i=0; i<15; i++)
     {
-      cp->cd(i*2+1);
+      cp->cd(champosn[i]+1);
       TvsS[i]->Draw();
       gPad->AddExec("exselt","select_hist()");
-      cp->cd(i*2+2);
+    }   
+
+  TCanvas *cpw = new TCanvas("cpw", "Widths vs strip", 900,700);
+  cpw->cd();
+  cpw->Divide(5,3);
+  for (i=0; i<15; i++)
+    {
+      cpw->cd(champosn[i]+1);
       WvsS[i]->Draw();
       gPad->AddExec("exselt","select_hist()");
     }   
-    cp->cd(9);
-    Wt0->Draw();
-    gPad->AddExec("exselt","select_hist()");
-    cp->cd(10);
-    Wts->Draw();
-    gPad->AddExec("exselt","select_hist()");
+
+  TCanvas *cpt0 = new TCanvas("cpt0", "T0 hists", 900,700);
+  cpt0->cd();
+  cpt0->Divide(1,2);
+  cpt0->cd(1);
+  Wt0->Draw();
+  gPad->AddExec("exselt","select_hist()");
+  cpt0->cd(2);
+  Wts->Draw();
+  gPad->AddExec("exselt","select_hist()");
 
   TCanvas *cp1 = new TCanvas("cp1", "Leadings vs widths", 900,700);
- 
   cp1->cd();
-  cp1->Divide(1,4);
-  for (i=0; i<4; i++)
+  cp1->Divide(5,3);
+  for (i=0; i<15; i++)
     {
-      cp1->cd(i+1);
+      cp1->cd(champosn[i]+1);
       TvsWall[i]->Draw();
       gPad->AddExec("exselt","select_hist()");
     }   
@@ -1277,10 +1304,10 @@ void BmnTof2Raw2DigitNew::drawprep()
   TCanvas *cp2 = new TCanvas("cp2", "Leadings vs widths (max strip)", 900,700);
  
   cp2->cd();
-  cp2->Divide(1,4);
-  for (i=0; i<4; i++)
+  cp2->Divide(5,3);
+  for (i=0; i<15; i++)
     {
-      cp2->cd(i+1);
+      cp2->cd(champosn[i]+1);
       TvsWallmax[i]->Draw();
       gPad->AddExec("exselt","select_hist()");
     }   
@@ -1289,42 +1316,56 @@ void BmnTof2Raw2DigitNew::drawprep()
 
 void BmnTof2Raw2DigitNew::drawprof()
 {
-  TCanvas *callbe = new TCanvas("callbe", "Leadings vs widths (slewing RPC)", 900,700);
+  TCanvas *callbe = new TCanvas("callbe", "Leadings vs widths (slewing RPC, peak 1)", 900,700);
  
   int i;
   callbe->cd();
-  callbe->Divide(2,4);
-  for (i=0; i<4; i++)
+  callbe->Divide(5,3);
+  for (i=0; i<15; i++)
     {
-      callbe->cd(i*2+1);
+      callbe->cd(champosn[i]+1);
       TvsW[i][0]->Draw();
       gPad->AddExec("exselt","select_hist()");
-      callbe->cd(i*2+2);
+    }   
+
+  TCanvas *callbe1 = new TCanvas("callbe1", "Leadings vs widths (slewing RPC, peak2)", 900,700);
+  callbe1->cd();
+  callbe1->Divide(5,3);
+  for (i=0; i<15; i++)
+    {
+      callbe1->cd(champosn[i]+1);
       TvsW[i][1]->Draw();
       gPad->AddExec("exselt","select_hist()");
     }   
+
   return;
 }
-
 
 void BmnTof2Raw2DigitNew::drawproft0()
 {
   TCanvas *callbe0 = new TCanvas("callbe0", "Leadings vs widths (slewing T0)", 900,700);
- 
   int i;
   callbe0->cd();
-  callbe0->Divide(2,4);
-  for (i=0; i<4; i++)
+  callbe0->Divide(5,3);
+  for (i=0; i<15; i++)
     {
-      callbe0->cd(i*2+1);
+      callbe0->cd(champosn[i]+1);
       TvsWt0[i][0]->Draw();
       gPad->AddExec("exselt","select_hist()");
-      callbe0->cd(i*2+2);
+    }   
+
+  TCanvas *callbe01 = new TCanvas("callbe01", "Leadings vs widths (slewing T0)", 900,700);
+  callbe01->cd();
+  callbe01->Divide(5,3);
+  for (i=0; i<15; i++)
+    {
+      callbe01->cd(champosn[i]+1);
       TvsWt0[i][1]->Draw();
       gPad->AddExec("exselt","select_hist()");
     }   
   return;
 }
+
 
 int BmnTof2Raw2DigitNew::readGeom(int *numgeom)
 {

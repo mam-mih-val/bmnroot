@@ -6,9 +6,9 @@
 #define INVHPTIMEBIN 42.6666
 
 #define TOF2_MAX_STRIPS_IN_CHAMBER 32
-#define TOF2_MAX_CHANNELS_IN_SLOT 32
+#define TOF2_MAX_CHANNELS_IN_SLOT 64
 //#define TOF2_MAX_CHANNELS_IN_MODULE TOF2_MAX_CHANNELS_IN_SLOT
-#define TOF2_MAX_CHANNELS_IN_MODULE 32
+#define TOF2_MAX_CHANNELS_IN_MODULE 64
 #define TOF2_MAX_CRATES 5
 #define TOF2_MAX_SLOTS_IN_CRATE 20
 #define TOF2_MAX_CHAMBERS 15
@@ -113,7 +113,7 @@ private:
     int numstrip[TOF2_MAX_CHAMBERS];
     int numcr[TOF2_MAX_CRATES*TOF2_MAX_SLOTS_IN_CRATE], numcha[TOF2_MAX_CHAMBERS];
     int nslots, ncrates, nchambers;
-    int idchambers[TOF2_MAX_CHAMBERS]; 
+    float idchambers[TOF2_MAX_CHAMBERS]; 
     int numslots[TOF2_MAX_CRATES*TOF2_MAX_SLOTS_IN_CRATE]; 
     int idcrates[TOF2_MAX_CRATES], numcrates[TOF2_MAX_CRATES]; 
 

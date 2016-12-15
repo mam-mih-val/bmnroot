@@ -128,17 +128,17 @@ private:
               CH=(d[i]>>21)&0x7;
               VAL= ((d[i] & 0x7FFFF )<<2)|((d[i] & 0x180000)>>19); 
               if(_DEBUG_>1) printf("\t\tSERIAL: 0x%06X TYPE: 0x%02X SLOT: %d TDC: %d CH: %d fp: %d VAL: %d\n",serial,TYPE,SLOT,TDCID,CH,get_ch_tdc72vhl(TDCID,CH*4),VAL);
-	      if(SLOT==19 && get_ch_tdc72vhl(TDCID,CH*4)==12){
+	      if(SLOT==21 && get_ch_tdc72vhl(TDCID,CH*4)==38){
 	         TClonesArray &ar_t0 = *t0;
                  new(ar_t0[t0->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kTRUE,get_ch_tdc72vhl(TDCID,CH*4),0,VAL);
 	      }  
               ///////////////////////////////////////////////   
-	      if(SLOT==19 /*&& get_ch_tdc72vhl(TDCID,CH)!=12*/){
+	      if(SLOT==21 /*&& get_ch_tdc72vhl(TDCID,CH)!=12*/){
 	         TClonesArray &ar_bc = *counters;
                  new(ar_bc[counters->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kTRUE,get_ch_tdc72vhl(TDCID,CH*4),0,VAL);
               }
               /////////////////////////////////
-	      if(SLOT!=19){
+	      if(SLOT!=21){
 	         TClonesArray &ar_tof400 = *tof400;
                  new(ar_tof400[tof400->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kTRUE,get_ch_tdc72vhl(TDCID,CH*4),0,VAL);
 	      }     
@@ -184,17 +184,17 @@ private:
               CH=(d[i]>>21)&0x7;
               VAL= ((d[i] & 0x7FFFF )<<2)|((d[i] & 0x180000)>>19); 
               if(_DEBUG_>1) printf("\t\tSERIAL: 0x%06X TYPE: 0x%02X SLOT: %d TDC: %d CH: %d fp: %d VAL: %d\n",serial,TYPE,SLOT,TDCID,CH,get_ch_tdc72vhl(TDCID,CH*4),VAL);
-	      if(SLOT==19 && get_ch_tdc72vhl(TDCID,CH*4)==12){
+	      if(SLOT==21 && get_ch_tdc72vhl(TDCID,CH*4)==38){
 	         TClonesArray &ar_t0 = *t0;
                  new(ar_t0[t0->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kFALSE,get_ch_tdc72vhl(TDCID,CH*4),0,VAL);
 	      }     
               ///////////////////////////////////////////////   
-	      if(SLOT==19 /*&& get_ch_tdc72vhl(TDCID,CH)!=12*/){
+	      if(SLOT==21 /*&& get_ch_tdc72vhl(TDCID,CH)!=12*/){
 	         TClonesArray &ar_bc = *counters;
                  new(ar_bc[counters->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kFALSE,get_ch_tdc72vhl(TDCID,CH*4),0,VAL);
               }
               /////////////////////////////////
-	      if(SLOT!=19){
+	      if(SLOT!=21){
 	         TClonesArray &ar_tof400 = *tof400;
                  new(ar_tof400[tof400->GetEntriesFast()]) BmnTDCDigit(serial,TYPE,SLOT,kFALSE,get_ch_tdc72vhl(TDCID,CH*4),0,VAL);
 	      }     
@@ -219,7 +219,7 @@ private:
    };
    int get_ch_tdc64vhle(unsigned int tdc,unsigned int ch){
      const  int tdc64vhle_tdcid2tdcnum[16] = { 0, 1, 2, 3, 4, 5, 6, 7, -1, -1, -1, -1, -1, -1, -1, -1};
-     const  int tdc64vhle_tdcch2ch[32] = {7,7,7,7, 6,6,6,6, 5,5,5,5, 4,4,4,4, 3,3,3,3, 2,2,2,2, 1,1,1,1, 0,0,0,0};
+     const  int tdc64vhle_tdcch2ch[32] = {0,0,0,0, 1,1,1,1, 2,2,2,2, 3,3,3,3, 4,4,4,4, 5,5,5,5, 6,6,6,6, 7,7,7,7};
      return tdc64vhle_tdcid2tdcnum[tdc]*8+tdc64vhle_tdcch2ch[ch];
    };
    int get_ch_tdc72vhl(unsigned int tdc,unsigned int ch){

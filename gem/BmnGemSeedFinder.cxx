@@ -173,8 +173,8 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
                 Int_t prevStation = i - 1; //number of starting station
                 Int_t nSteps = 2;
                 for (Int_t i = xAddr; i > 0; i--) {
-//                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
-                                        SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kFALSE);
+                    //                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
+                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kFALSE);
                     if ((hitCntr > 1) && Abs(i - startBin) > nSteps * maxDist) break; //condition to finish search is dist < 2 * MaxDist
                     if (hitCntr >= kNHITSFORSEED) break;
                 }
@@ -205,8 +205,8 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
                 Int_t prevStation = i - 1; //number of starting station
                 Int_t nSteps = 2;
                 for (Int_t i = xAddr; i < fNBins; ++i) {
-//                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
-                                        SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kFALSE);
+                    //                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
+                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kFALSE);
                     if ((hitCntr > 1) && Abs(i - startBin) > nSteps * maxDist) break; //condition to finish search is dist < 2 * MaxDist
                     if (hitCntr >= kNHITSFORSEED) break;
                 }
@@ -265,7 +265,7 @@ BmnStatus BmnGemSeedFinder::FitSeeds(vector<BmnGemTrack> cand, TClonesArray* arr
             }
         }
 
-        if (minTrack.GetNHits() != 0)
+        if (minTrack.GetNHits() != 0) 
             new((*arr)[arr->GetEntriesFast()]) BmnGemTrack(minTrack);
     }
 }
@@ -983,8 +983,8 @@ void BmnGemSeedFinder::FillAddr() {
 
 void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float_t trs) {
 
-    TVector3 roughVertex(-3.0, 0.0, 0.0);
-
+    //TVector3 roughVertex(-3.0, 0.0, 0.0);
+    TVector3 roughVertex(0.0, 0.0, 0.0);
     //Needed for searching seeds by addresses 
     Float_t sigma_x2 = sigma_x * sigma_x;
 
@@ -1040,10 +1040,10 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
             potSum += pot;
         }
         if (potSum > trs) {
-            //            if (hit->GetStation() == 0) continue;
+            if (hit->GetStation() == 0) continue;
             if (!fIsField && !fIsTarget) {
                 if (Abs(hit->GetY()) > 1.) continue;
-                if (Abs(hit->GetX() - roughVertex.X()) > 1.) continue;
+                //               if (Abs(hit->GetX() - roughVertex.X()) > 1.) continue;
             }
             addresses.insert(pair<ULong_t, Int_t > (hit->GetAddr(), hitIdx));
         }

@@ -7,7 +7,7 @@
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 
-void run_reco_bmn(TString inFile = "run4-65:../raw/bmn_run0065_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 1000, Int_t nEvents = 40000000, Bool_t isPrimary = kTRUE) {
+void run_reco_bmn(TString inFile = "run5-458:/nfs/digits_run5/bmn_run0458_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
@@ -83,7 +83,7 @@ void run_reco_bmn(TString inFile = "run4-65:../raw/bmn_run0065_digi.root", TStri
         Double_t fieldScale = 0;
         double map_current = 900.0;
         int* current_current = pCurrentRun->GetFieldCurrent();
-        if (current_current == NULL) {
+        if (*current_current == 0) {
             fieldScale = 0;
             isField = kFALSE;
         } else
@@ -151,9 +151,9 @@ void run_reco_bmn(TString inFile = "run4-65:../raw/bmn_run0065_digi.root", TStri
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016;      // RunSummer2016 config (GEM_RunSummer2016.root))
-    // BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunWinter2016;      // RunWinter2016 config (GEM_RunWinter2016.root))
+    
+    //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016;      // RunSummer2016 config (GEM_RunSummer2016.root))
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunWinter2016;      // RunWinter2016 config (GEM_RunWinter2016.root))
     
     if (!isExp) {
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
@@ -164,7 +164,7 @@ void run_reco_bmn(TString inFile = "run4-65:../raw/bmn_run0065_digi.root", TStri
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-    gemHM->SetAlignmentCorrections("alignCorr_65v1.txt");
+    //    gemHM->SetAlignmentCorrections("alignCorr_65v1.txt");
     gemHM->SetHitMatching(kTRUE);
     fRun->AddTask(gemHM);
 
@@ -192,7 +192,7 @@ void run_reco_bmn(TString inFile = "run4-65:../raw/bmn_run0065_digi.root", TStri
     //    BmnDchHitProducer* dch2HP = new BmnDchHitProducer(2,0,false);
     BmnDchHitProducerTmp* dch2HP = new BmnDchHitProducerTmp(2);
     //dch2HP->SetOnlyPrimary(kTRUE);
-    //    fRun->AddTask(dch2HP);
+    //   fRun->AddTask(dch2HP);
 
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //

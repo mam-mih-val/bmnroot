@@ -1,7 +1,7 @@
 #include <TString.h>
 #include <TStopwatch.h>
 
-void gemAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst_noCorr_Stat_12345_origErrors.root") {
+void gemAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst_448.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
 
@@ -16,9 +16,10 @@ void gemAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst_noCorr_St
     fRun->SetOutputFile("align.root");
 
     BmnGemAlignment* gemAlign = new BmnGemAlignment();
+    gemAlign->SetGeometry(BmnGemStripConfiguration::RunWinter2016);
     TString type = "beam";
 
-    TString fixedStats[7] = {"fixed", "", "", "", "", "", "fixed"}; // St. 6 consists of two separate modules that could be either fixed or not simultaneously
+    TString fixedStats[7] = {"fixed", "", "", "", "", "", ""}; // St. 4, 5 and 6 consist of two separate modules that could be either fixed or not simultaneously
     gemAlign->SetStatNumFixed(fixedStats);
     gemAlign->SetRunType(type);
     gemAlign->SetPreSigma(0.001); // Default value is 1
@@ -26,13 +27,13 @@ void gemAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst_noCorr_St
     gemAlign->SetUseRealHitErrors(kTRUE); // Default value is false
     gemAlign->SetUseRegularization(kTRUE); // Default value is false
     gemAlign->SetHugecut(20.); // Default value is 50
-    gemAlign->SetChisqcut(5., 3.); //Default value is (0., 0.)
-    gemAlign->SetEntriesPerParam(300); //Default value is 10
+    // gemAlign->SetChisqcut(5., 2.); //Default value is (0., 0.)
+    // gemAlign->SetEntriesPerParam(3); //Default value is 10
     gemAlign->SetOutlierdownweighting(4); // Default value is 0
     gemAlign->SetDwfractioncut(0.3); // Default value is 0, should be less than 0.5 
-    gemAlign->SetFixDetector(true, true, true); // Default values are false(X), false(Y) and false(Z)     
+    gemAlign->SetFixDetector(kTRUE, kTRUE, kTRUE); // Default values are false(X), false(Y) and false(Z)     
     // gemAlign->SetDebugInfo(kTRUE);      // Default value is false
-    // gemAlign->SetAlignmentTypeByHands("xy");
+    // gemAlign->SetAlignmentTypeByHands("xyz");
 
     // Restrictions on track params.
     // gemAlign->SetMinHitsAccepted(3); // Default value is 3

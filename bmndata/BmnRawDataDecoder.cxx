@@ -701,7 +701,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         curEventType = headDAQ->GetType();
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig());
 
-        fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time);
+        fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
 
         if (curEventType == kBMNPEDESTAL) {
             if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
@@ -860,7 +860,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     fCurEventType = headDAQ->GetType();
     new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig());
 
-    fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time);
+    fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
 
     if (fCurEventType == kBMNPEDESTAL) {
         if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) return kBMNERROR; //FIX return!
@@ -1051,12 +1051,12 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x1690454) == kBMNERROR) {
+        if (FillTimeShiftsMapNoDB(0x1EA9711) == kBMNERROR) {
             //                cout << "No TimeShiftMap created" << endl;
             continue;
         }
 
-        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time);
+        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
 
         tof700Mapper->fillSlewingT0(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1073,12 +1073,12 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x1690454) == kBMNERROR) {
+        if (FillTimeShiftsMapNoDB(0x1EA9711) == kBMNERROR) {
             //                cout << "No TimeShiftMap created" << endl;
             continue;
         }
 
-        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time);
+        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
 
         tof700Mapper->fillSlewing(tdc, &fTimeShifts, fT0Time, fT0Width);
     }

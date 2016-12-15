@@ -55,7 +55,7 @@ BmnStatus BmnTrigRaw2Digit::readINLCorrections(TString INLFile) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time) {
+BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time, Double_t *t0width) {
 
     for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
         BmnTrigMapping tM = fMap[iMap];
@@ -87,7 +87,8 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClon
                 Double_t tT = (nearestDig->GetValue() + fINLTable[rChannel1][nearestDig->GetValue() % 1024]) * 24.0 / 1024;
 
                 if (tM.name == "T0") {
-                    t0time = (tdcDig1->GetValue() + fINLTable[rChannel1][tdcDig1->GetValue() % 1024]) * 24.0 / 1024; //ns
+                    t0time = tL; //ns
+    		    if (t0width) *t0width = tT - tL;
                     TClonesArray& ar_t0 = *t0;
                     if (t0) new(ar_t0[t0->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
                 } else if (tM.name == "BC1") {

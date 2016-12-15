@@ -37,7 +37,7 @@ public:
         return fMap;
     }
 
-    BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time);
+    BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time, Double_t *t0width = NULL);
     BmnStatus readINLCorrections(TString INLFile);
 
 private:

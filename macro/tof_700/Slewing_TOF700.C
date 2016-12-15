@@ -1,13 +1,13 @@
 
 using namespace std;
 
-void Slewing_TOF700(char *fname="bmn_run0362.root", int RunPeriod = 2) {
+void Slewing_TOF700(char *fname="bmn_run0472.root", int RunPeriod = 5) {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
 
     char mapping[256];
-    if(RunPeriod >= 1 && RunPeriod <= 4)
+    if(RunPeriod >= 1 && RunPeriod <= 5)
     {
 	sprintf(mapping, "TOF700_map_period_%d.txt", RunPeriod);
     }
@@ -29,7 +29,7 @@ void Slewing_TOF700(char *fname="bmn_run0362.root", int RunPeriod = 2) {
 	TOF2.SetLeadMinMax(3,-400, -50);
 	TOF2.SetLeadMinMax(4,-120, +120);
     }
-    else
+    else if (RunPeriod == 3)
     {
 	TOF2.SetW(1700,3700);
 	TOF2.SetWT0(640,710);
@@ -37,6 +37,12 @@ void Slewing_TOF700(char *fname="bmn_run0362.root", int RunPeriod = 2) {
 	TOF2.SetLeadMinMax(2,-350, -150);
 	TOF2.SetLeadMinMax(3,-350, +50);
 	TOF2.SetLeadMinMax(4,-200, +200);
+    }
+    else
+    {
+	TOF2.SetW(2100,4100);
+	TOF2.SetWT0(260,560);
+	for (int i=1; i<=15; i++) TOF2.SetLeadMinMax(i,-5000, -4900);
     }
 
     cout << "Process RUN file:  " << fname << endl;
@@ -89,10 +95,11 @@ void Slewing_TOF700(char *fname="bmn_run0362.root", int RunPeriod = 2) {
     }
     /////////////////////////////////////////////////////////////////////////////////////
    
-    _f_in->Close();
 
     TOF2.Slewing();
     TOF2.drawprof();
+
+    _f_in->Close();
 }
 
 void select_hist()

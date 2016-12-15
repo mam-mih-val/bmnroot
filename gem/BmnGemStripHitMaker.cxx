@@ -70,38 +70,9 @@ InitStatus BmnGemStripHitMaker::Init() {
     //Create GEM detector ------------------------------------------------------
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016:
-        {
             StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016" << "\n";
-
-            const Int_t nStat = StationSet->GetNStations();
-            const Int_t nParams = 3;
-
-            corr = new Double_t**[nStat];
-            for (Int_t iStat = 0; iStat < nStat; iStat++) {
-                Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
-                corr[iStat] = new Double_t*[nModul];
-                for (Int_t iMod = 0; iMod < nModul; iMod++) {
-                    corr[iStat][iMod] = new Double_t[nParams];
-                    for (Int_t iPar = 0; iPar < nParams; iPar++) {
-                        corr[iStat][iMod][iPar] = 0.;
-                    }
-                }
-            }
-
-            ReadFileCorrections(fFile, corr);
-
-            cout << "Alignment corrections to be used: " << endl;
-            for (Int_t iStat = 0; iStat < nStat; iStat++) {
-                Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
-                for (Int_t iMod = 0; iMod < nModul; iMod++) {
-                    for (Int_t iPar = 0; iPar < nParams; iPar++) {
-                        cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << corr[iStat][iMod][iPar] << endl;
-                    }
-                }
-            }
+            cout << "   Current Configuration : RunSummer2016" << "\n";       
             break;
-        }
 
         case BmnGemStripConfiguration::RunWinter2016:
             StationSet = new BmnGemStripStationSet_RunWinter2016(fCurrentConfig);
@@ -110,8 +81,35 @@ InitStatus BmnGemStripHitMaker::Init() {
 
         default:
             StationSet = NULL;
-
     }
+
+    const Int_t nStat = StationSet->GetNStations();
+    const Int_t nParams = 3;
+
+    corr = new Double_t**[nStat];
+    for (Int_t iStat = 0; iStat < nStat; iStat++) {
+      Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
+      corr[iStat] = new Double_t*[nModul];
+      for (Int_t iMod = 0; iMod < nModul; iMod++) {
+	corr[iStat][iMod] = new Double_t[nParams];
+	for (Int_t iPar = 0; iPar < nParams; iPar++) {
+	  corr[iStat][iMod][iPar] = 0.;
+	}
+      }
+    }
+    
+    ReadFileCorrections(fFile, corr);
+    
+    cout << "Alignment corrections to be used: " << endl;
+    for (Int_t iStat = 0; iStat < nStat; iStat++) {
+      Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
+      for (Int_t iMod = 0; iMod < nModul; iMod++) {
+	for (Int_t iPar = 0; iPar < nParams; iPar++) {
+	  cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << corr[iStat][iMod][iPar] << endl;
+	}
+      }
+    }
+    
     //--------------------------------------------------------------------------
 
     if (fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n\n ";
@@ -229,7 +227,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
                         BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
 
                 BmnGemStripHit* hit = (BmnGemStripHit*) fBmnGemStripHitsArray->At(fBmnGemStripHitsArray->GetEntriesFast() - 1);
-                hit->SetStation(iStation);
+                hit->SetStation(iStation); 
                 hit->SetModule(iModule);
                 hit->SetIndex(fBmnGemStripHitsArray->GetEntriesFast() - 1);
                 //--------------------------------------------------------------
@@ -261,7 +259,7 @@ void BmnGemStripHitMaker::Finish() {
 
         delete StationSet;
         StationSet = NULL;
-    }
+	}
     cout << "Work time of the GEM hit maker: " << workTime << endl;
 }
 

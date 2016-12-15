@@ -3,6 +3,7 @@
 //                      Generated 05-11-2015 
 // ----------------------------------------------------------------------
 
+#include "TSystem.h"
 #include "TSQLServer.h"
 #include "TSQLStatement.h"
 
@@ -1079,7 +1080,7 @@ int UniDbRun::SetRootGeometry(int start_period, int start_run, int end_period, i
 
     for (int i = 0; i < run_count; i++)
     {        
-        cout<<"Setting geometry for run_period:run - "<<pUniqueRuns[i].period_number<<":"<<pUniqueRuns[i].run_number<<"..."<<endl;
+        cout<<"Setting geometry for run_period:run   "<<pUniqueRuns[i].period_number<<":"<<pUniqueRuns[i].run_number<<"..."<<endl;
 
         UniDbRun* pCurRun = UniDbRun::GetRun(pUniqueRuns[i].period_number, pUniqueRuns[i].run_number);
         if (pCurRun == NULL)
@@ -1134,10 +1135,12 @@ int UniDbRun::GetRootGeometry(int period_number, int run_number, unsigned char*&
 
 int UniDbRun::WriteGeometryFile(int start_period, int start_run, int end_period, int end_run, char* geo_file_path)
 {
-    FILE* root_file = fopen(geo_file_path, "rb");
+    TString strGeoFilePath(geo_file_path);
+    gSystem->ExpandPathName(strGeoFilePath);
+    FILE* root_file = fopen(strGeoFilePath.Data(), "rb");
     if (root_file == NULL)
     {
-        cout<<"Error: opening root file: "<<geo_file_path<<" was failed"<<endl;
+        cout<<"Error: opening root file: "<<strGeoFilePath<<" was failed"<<endl;
         return -1;
     }
 
@@ -1146,7 +1149,7 @@ int UniDbRun::WriteGeometryFile(int start_period, int start_run, int end_period,
     rewind(root_file);
     if (file_size <= 0)
     {
-        cout<<"Error: getting file size: "<<geo_file_path<<" was failed"<<endl;
+        cout<<"Error: getting file size: "<<strGeoFilePath<<" was failed"<<endl;
         fclose(root_file);
         return -2;
     }
@@ -1162,7 +1165,7 @@ int UniDbRun::WriteGeometryFile(int start_period, int start_run, int end_period,
     size_t bytes_read = fread(buffer, 1, file_size, root_file);
     if (bytes_read != file_size)
     {
-        cout<<"Error: reading file: "<<geo_file_path<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
+        cout<<"Error: reading file: "<<strGeoFilePath<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
         delete [] buffer;
         fclose(root_file);
         return -4;

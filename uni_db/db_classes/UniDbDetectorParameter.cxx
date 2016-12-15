@@ -6,7 +6,11 @@
 #include "TSQLServer.h"
 #include "TSQLStatement.h"
 
+#define ONLY_DECLARATIONS
+#include "../function_set.h"
 #include "UniDbDetectorParameter.h"
+
+#include <fstream>
 
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
@@ -2178,6 +2182,296 @@ TObjArray* UniDbDetectorParameter::Search(const UniDbSearchCondition& search_con
     search_conditions.Add((TObject*)&search_condition);
 
     return Search(search_conditions);
+}
+
+
+/// parse detector parameter's values, function returns row count added to the database
+int UniDbDetectorParameter::ParseTxt(TString detector_name, TString parameter_name, TString text_file)
+{
+    ifstream txtFile;
+    txtFile.open(text_file, ios::in);
+    if (!txtFile.is_open())
+    {
+        cout<<"Error: opening TXT file '"<<text_file<<"' was failed"<<endl;
+        return -1;
+    }
+
+    // open connection to database
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+        return -3;
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    string cur_line;
+    while (getline(txtFile, cur_line))
+    {
+        //remove duplicates of whitespaces and tabs
+        string reduce_line = reduce(cur_line);
+
+        vector<string> elems;
+        stringstream ss;
+        ss.str(reduce_line);
+        string item;
+        while (getline(ss, item, ';'))
+            elems.push_back(item);
+
+        int elem_size = elems.size();
+
+        if ((elem_size != 5) && (elem_size != 7))
+        {
+            cout<<"Warning: the count of parameters is not equal 5 or 7 (start_period, start run, end_period, end_run, [serial], [channel], value)"<<endl<<"The current line will be skipped!"<<endl;
+            continue;
+        }
+
+        int cur_num_item = 0;
+        // get start period
+        item = elems[cur_num_item++];
+        int start_period = atoi(item.c_str());
+        // get start run
+        item = elems[cur_num_item++];
+        int start_run = atoi(item.c_str());
+
+        // get end period
+        item = elems[cur_num_item++];
+        int end_period = atoi(item.c_str());
+        // get end run
+        item = elems[cur_num_item++];
+        int end_run = atoi(item.c_str());
+
+        int serial_number = -1, channel_number = -1;
+        if (elem_size == 7)
+        {
+            // get serial number
+            item = elems[cur_num_item++];
+            serial_number = atoi(item.c_str());
+            // get start run
+            item = elems[cur_num_item++];
+            channel_number = atoi(item.c_str());
+        }
+
+        // get detector object from 'detector_' table
+        TString sql = TString::Format(
+                    "select detector_name "
+                    "from detector_ "
+                    "where lower(detector_name) = lower('%s'')", detector_name.Data());
+        TSQLStatement* stmt = uni_db->Statement(sql);
+
+        // get table record from DB
+        if (!stmt->Process())
+        {
+            cout<<"Error: getting record with detector from 'detector_' table has been failed"<<endl;
+            delete stmt;
+            return -4;
+        }
+        stmt->StoreResult();
+
+        // check detector with the given name is exist
+        if (!stmt->NextResultRow())
+        {
+            cout<<"Error: the detector with name '"<<detector_name<<"' wasn't found"<<endl;
+            delete stmt;
+            return -5;
+        }
+
+        detector_name = stmt->GetString(0);
+
+        delete stmt;
+
+        // get parameter object from 'parameter_' table
+        sql = TString::Format(
+                    "select parameter_id, parameter_name, parameter_type "
+                    "from parameter_ "
+                    "where lower(parameter_name) = lower('%s')", parameter_name.Data());
+        stmt = uni_db->Statement(sql);
+
+        // get table record from DB
+        if (!stmt->Process())
+        {
+            cout<<"Error: getting record with parameter from 'parameter_' table has been failed"<<endl;
+            delete stmt;
+            return -6;
+        }
+
+        stmt->StoreResult();
+
+        // extract row with parameter
+        if (!stmt->NextResultRow())
+        {
+            cout<<"Error: the parameter with name '"<<parameter_name<<"' wasn't found"<<endl;
+            delete stmt;
+            return -7;
+        }
+
+        //int parameter_id = stmt->GetInt(0);
+        parameter_name = stmt->GetString(1);
+        int parameter_type = stmt->GetInt(2);
+
+        delete stmt;
+
+        UniDbDetectorParameter* pDetectorParameter = NULL;
+        // choose parsing method for parameter's value according it's type
+        item = elems[cur_num_item];
+        switch (parameter_type)
+        {
+            case BoolType:
+                {
+                    bool value = (bool) atoi(item.c_str());
+                    if (elem_size == 7)
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, value);
+                    else
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, value);
+
+                    break;
+                }
+            case IntType:
+                {
+                    int value = atoi(item.c_str());
+                    if (value == 0)
+                    {
+                        if (!is_string_number(item))
+                        {
+                            cout<<"Error: the parameter value is not integer: '"<<item<<endl;
+                            continue;
+                        }
+                    }
+
+                    if (elem_size == 7)
+                       pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, value);
+                    else
+                       pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, value);
+
+                    break;
+                }
+            case DoubleType:
+                {
+                    double value = atof(item.c_str());
+                    if (elem_size == 7)
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, value);
+                    else
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, value);
+
+                    break;
+                }
+            case StringType:
+                {
+                    TString value = item;
+                    if (elem_size == 7)
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, value);
+                    else
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, value);
+
+                    break;
+                }
+            case IIArrayType:
+                {
+                    IIStructure st;
+                    vector<IIStructure> arr;
+                    // parse parameter values by space separated
+                    int num = 0;
+                    istringstream line_stream(item);
+                    string token;
+                    while (getline(line_stream, token, ' '))
+                    {
+                        if ((num % 2) == 0)
+                            st.int_1 = atoi(token.c_str());
+                        else
+                        {
+                            st.int_2 = atoi(token.c_str());
+                            arr.push_back(st);
+                        }
+
+                        num++;
+                    }// parse integer pairs by space separated
+
+                    int size_arr = arr.size();
+                    if (size_arr < 1)
+                        continue;
+
+                    // copy vector to dynamic array
+                    IIStructure* pValues = new IIStructure[size_arr];
+                    for (int i = 0; i < size_arr; i++)
+                        pValues[i] = arr[i];
+
+                    if (elem_size == 7)
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, pValues, size_arr);
+                    else
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, pValues, size_arr);
+
+                    delete [] pValues;
+
+                    break;
+                }
+            case IntArrayType:
+                {
+                    vector<int> arr;
+                    // parse parameter values by space separated
+                    istringstream line_stream(item);
+                    string token;
+                    while (getline(line_stream, token, ' '))
+                        arr.push_back(atoi(token.c_str()));
+
+                    int size_arr = arr.size();
+                    if (size_arr < 1)
+                        continue;
+
+                    // copy vector to dynamic array
+                    int* pValues = new int[size_arr];
+                    for (int i = 0; i < size_arr; i++)
+                        pValues[i] = arr[i];
+
+                    if (elem_size == 7)
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, pValues, size_arr);
+                    else
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, pValues, size_arr);
+
+                    delete [] pValues;
+
+                    break;
+                }
+            case DoubleArrayType:
+                {
+                    vector<double> arr;
+                    // parse parameter values by space separated
+                    istringstream line_stream(item);
+                    string token;
+                    while (getline(line_stream, token, ' '))
+                        arr.push_back(atof(token.c_str()));
+
+                    int size_arr = arr.size();
+                    if (size_arr < 1)
+                        continue;
+
+                    // copy vector to dynamic array
+                    double* pValues = new double[size_arr];
+                    for (int i = 0; i < size_arr; i++)
+                        pValues[i] = arr[i];
+
+                    if (elem_size == 7)
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, pValues, size_arr);
+                    else
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, pValues, size_arr);
+
+                    delete [] pValues;
+
+                    break;
+                }
+            default:
+                {
+                    cout<<"Error: the type of parameter ("<<parameter_name<<") is not supported now"<<endl;
+                    continue;
+                }
+        }// switch (parameter_type)
+
+        // clean memory
+        if (pDetectorParameter)
+            delete pDetectorParameter;
+    }
+
+    txtFile.close();
+    delete connUniDb;
+
+    return 0;
 }
 
 // -------------------------------------------------------------------

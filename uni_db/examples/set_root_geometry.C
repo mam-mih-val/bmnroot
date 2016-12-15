@@ -1,5 +1,6 @@
 #include <stdio.h>
 // macro for writing ROOT file with detector geometry to the database
+// e.g. root 'set_root_geometry.C("$VMCWORKDIR/macro/run/geometry_run/geometry_run5.root", 5, 419, 5, 10000)'
 void set_root_geometry(char* root_file_path, int start_period, int start_run, int end_period, int end_run)
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");

@@ -813,8 +813,6 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
     if (connUniDb == 0x00)
         return -3;
 
-    TSQLServer* uni_db = connUniDb->GetSQLServer();
-
     // parse SCHEMA file
     string strTableName = "";
     int skip_line_count = 0;
@@ -934,9 +932,7 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
         //cout<<"Size array: "<<size_arr<<endl;
         IIStructure* pValues = new IIStructure[size_arr];
         for (int i = 0; i < size_arr; i++)
-        {
             pValues[i] = arr[i];
-        }
 
         /*
         // print array

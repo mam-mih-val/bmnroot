@@ -5,7 +5,7 @@
 // nStartEvent - for compatibility, any number
 // nEvents - number of events to transport, default: 1
 // flag_store_FairRadLenPoint
-void run_sim_bmn(TString inFile = "dc4mb.r12", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
+void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
 #define BOX
@@ -18,9 +18,7 @@ void run_sim_bmn(TString inFile = "dc4mb.r12", TString outFile = "$VMCWORKDIR/ma
     bmnloadlibs(); // load libraries
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
-    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run1.C");
-    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run2.C");
-    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run3.C");
+    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run[NUMBER].C");
 
     // -----   Create simulation run   ----------------------------------------
     FairRunSim *fRun = new FairRunSim();

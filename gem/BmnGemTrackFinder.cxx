@@ -106,30 +106,33 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             Double_t z = hit->GetZ();
             BmnFitNode node;
 
-            fKalman->TGeoTrackPropagate(&par, z, fPDG, F, &length, "field");
+            if (fIsField)
+                fKalman->TGeoTrackPropagate(&par, z, fPDG, F, &length, "field");
             node.SetPredictedParam(&par);
-            fKalman->Update(&par, hit, chi2);
+            if (fIsField)
+                fKalman->Update(&par, hit, chi2);
             node.SetUpdatedParam(&par);
             node.SetChiSqFiltered(chi2);
             node.SetF(*F);
 
             nodes.push_back(node);
         }
-
+        
         tr.SetLength(length);
 
         delete F;
-//        tr.SetFitNodes(nodes);
-//        tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
-//        tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
-//        if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
-//        tr.SetChi2(chi2);
-//
-//        if (tr.GetChi2() / tr.GetNDF() > fChiSqCut) {
-//            tr.SetFlag(kBMNBAD);
-//            for (Int_t iHit = 0; iHit < tr.GetNHits(); ++iHit)
-//                GetHit(tr.GetHitIndex(iHit))->SetUsing(kFALSE);
-//        } else tr.SetFlag(kBMNGOOD);
+        //        tr.SetFitNodes(nodes);
+        //        tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
+        //        tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
+        //        if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
+        //        tr.SetChi2(chi2);
+        //
+        //        if (tr.GetChi2() / tr.GetNDF() > fChiSqCut) {
+        //            tr.SetFlag(kBMNBAD);
+        //            for (Int_t iHit = 0; iHit < tr.GetNHits(); ++iHit)
+        //                GetHit(tr.GetHitIndex(iHit))->SetUsing(kFALSE);
+        //        } else tr.SetFlag(kBMNGOOD);
+
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
         delete fKalman;
     }

@@ -12,7 +12,6 @@
 #include "TGButton.h"
 #include "TEveGValuators.h"
 #include "TGLabel.h"
-#include "TMutex.h"
 #include "TSemaphore.h"
 #include "TGFileDialog.h"
 

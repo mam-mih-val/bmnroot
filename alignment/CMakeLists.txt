@@ -35,7 +35,6 @@ BmnGemAlignment.cxx
 BmnGemAlignmentCorrections.cxx
 BmnDchAlignment.cxx
 BmnGlobalAlignment.cxx
-BmnAlignmentContainer.cxx
 BmnMille.cxx
 )
 

@@ -10,7 +10,6 @@
 #include <TVector3.h>
 #include "BmnGemTrack.h"
 #include "FairTrackParam.h"
-#include "BmnAlignmentContainer.h"
 #include <TH2.h>
 #include <limits.h>
 #include <TString.h>

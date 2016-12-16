@@ -104,6 +104,8 @@ public:
     int get_chamber_z(int chamber, float *z);
     int get_track_hits(float *xyz, float *cxyy, int *nhits, int *chamb, int *strip);
     void ReBook(int i);
+    void Book();
+    void BookSlewing();
     Double_t *GetINL() { return &DNL_Table[0][0][0][0]; }
 
 private:

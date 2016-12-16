@@ -19,44 +19,18 @@
 
 using namespace TMath;
 
-void Results_TOF700(char *fname = "bmn_run0472_digit.root", int RunPeriod = 5) {
+void Results_TOF700(char *fname = "bmn_run0472_digi.root") {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
 
-    char mapping[256];
-    if(RunPeriod >= 1 && RunPeriod <= 5)
-    {
-	sprintf(mapping, "TOF700_map_period_%d.txt", RunPeriod);
-    }
-    else
-    {
-	printf("Non-existing run period number %d!", RunPeriod);
-	return;
-    }
-
-    BmnTof2Raw2Digit TOF2(mapping);
-    TOF2.print();
-/*
-    if (RunPeriod <= 2)
-    {
-	int numgeom[4] = {1,5,3,6};
-	TOF2.readGeom(numgeom);
-    }
-    else
-    {
-	int numgeom[4] = {1,2,3,4};
-	TOF2.readGeom(numgeom);
-    }
-    TOF2.printGeom();
-*/
     TClonesArray *tof700Digits;
-    TChain *bmnTree = new TChain("BMN_DIGIT");
+    TChain *bmnTree = new TChain("cbmsim");
     if (bmnTree->Add(fname) == 0)
     {
 	delete bmnTree;
-	bmnTree = new TChain("cbmsim");
+	bmnTree = new TChain("BMN_DIGIT");
 	if (bmnTree->Add(fname) == 0)
 	{
 	    printf("Can't find BMN digits tree in file %s!\n", fname);
@@ -69,11 +43,13 @@ void Results_TOF700(char *fname = "bmn_run0472_digit.root", int RunPeriod = 5) {
     }
     else
     {
-	bmnTree->SetBranchAddress("bmn_tof2_digit", &tof700Digits);
+	bmnTree->SetBranchAddress("TOF700", &tof700Digits);
     }
 
     Int_t startEvent = 0;
     Int_t nEvents = bmnTree->GetEntries();
+
+    printf("\nNumber of events in tree is %d\n", nEvents);
 
     gStyle->SetOptFit(111);
 
@@ -91,7 +67,8 @@ void Results_TOF700(char *fname = "bmn_run0472_digit.root", int RunPeriod = 5) {
     {
 	sprintf(name,"Time_chamber_%d", i+1);
 	sprintf(title,"Time, chamber %d", i+1);
-	htime[i] = new TH1F(name, title, 2000, -50, 50);
+//	htime[i] = new TH1F(name, title, 2000, -50, 50);
+	htime[i] = new TH1F(name, title, 10000, -5000, 5000);
 	sprintf(name,"Width_chamber_%d", i+1);
 	sprintf(title,"Width, chamber %d", i+1);
 	hwidth[i] = new TH1F(name, title, 2500, 0, 5000);
@@ -101,7 +78,8 @@ void Results_TOF700(char *fname = "bmn_run0472_digit.root", int RunPeriod = 5) {
 
 	sprintf(name,"Time_chamber_%d_max_strip", i+1);
 	sprintf(title,"Time, chamber %d, max strip", i+1);
-	htimemax[i] = new TH1F(name, title, 2000, -50, 50);
+//	htimemax[i] = new TH1F(name, title, 2000, -50, 50);
+	htimemax[i] = new TH1F(name, title, 10000, -5000, 5000);
 	sprintf(name,"Strips_rate_chamber_%d_max_strip", i+1);
 	sprintf(title,"Strips rate, chamber %d, max strip", i+1);
 	hstripsmax[i] = new TH1F(name, title, 32, 0, 32);

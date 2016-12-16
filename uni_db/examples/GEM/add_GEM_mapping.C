@@ -37,16 +37,16 @@ void add_GEM_mapping() {
     AssignMapStructure(pValues, 10, 0x76D08B9, 1024, 1535, 0, 0, 0);
     AssignMapStructure(pValues, 11, 0x76D08B9, 640, 767, 8, 6, 0);
     AssignMapStructure(pValues, 12, 0x76D08B9, 768, 895, 9, 6, 0);
-    AssignMapStructure(pValues, 13, 0x76D08B9, 1792, 1919, 6, 5, 0);
-    AssignMapStructure(pValues, 14, 0x76D08B9, 1920, 2047, 7, 5, 0);
+    AssignMapStructure(pValues, 13, 0x76D08B9, 1792, 1919, 7, 5, 0);
+    AssignMapStructure(pValues, 14, 0x76D08B9, 1920, 2047, 6, 5, 0);
     AssignMapStructure(pValues, 15, 0x76CA26F, 0, 1023, 8, 6, 1);
     AssignMapStructure(pValues, 16, 0x76CE3EE, 0, 2047, 8, 6, 0);
     AssignMapStructure(pValues, 17, 0x76CE3E5, 0, 2047, 9, 6, 0);
     AssignMapStructure(pValues, 18, 0x30DCF31, 0, 1023, 9, 6, 1);
-    AssignMapStructure(pValues, 19, 0x76CA26F, 1024, 2047, 6, 5, 1);
-    AssignMapStructure(pValues, 20, 0x76C82BE, 0, 2047, 6, 5, 0);
-    AssignMapStructure(pValues, 21, 0x76CD411, 0, 2047, 7, 5, 0);
-    AssignMapStructure(pValues, 22, 0x30DCF31, 1024, 2047, 7, 5, 1); 
+    AssignMapStructure(pValues, 19, 0x76CA26F, 1024, 2047, 7, 5, 1);
+    AssignMapStructure(pValues, 20, 0x76C82BE, 0, 2047, 7, 5, 0);
+    AssignMapStructure(pValues, 21, 0x76CD411, 0, 2047, 6, 5, 0);
+    AssignMapStructure(pValues, 22, 0x30DCF31, 1024, 2047, 6, 5, 1); 
 
     //UniDbParameter::CreateParameter("GEM_map_size", IntType);
 //    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_map_size", 4, 61, 4, 84, 17);

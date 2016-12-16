@@ -1,4 +1,6 @@
 #include "BmnGemRaw2Digit.h"
+//#include "TH1F.h"
+//#include "TCanvas.h"
 
 BmnGemRaw2Digit::BmnGemRaw2Digit() {
 }
@@ -277,7 +279,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
         Double_t rms = (fIsPedMapReady) ? fPedRms[iSer][ch][iSmpl] : fPedArr[iSer][ch * nSmpl + iSmpl].noise; //fPedArr[iSer][ch * nSmpl + iSmpl].noise;//(fPeriod == 4) ? fPedArr[iSer][ch * nSmpl + iSmpl].noise : fPedRms[iSer][ch][iSmpl];
         Double_t sig = dig->GetStripSignal() - CMS - ped;
         //        Float_t threshold = (dig->GetStation() == 0 || dig->GetStation() == 6) ? 50 : 7.0 * rms;
-        Float_t threshold = 20;
+        Float_t threshold = 12; //20;
         if (sig < threshold) continue;
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }
@@ -357,6 +359,17 @@ BmnStatus BmnGemRaw2Digit::FindNoisyStrips() {
     const Short_t kNITER = 4;
     const Float_t coeff[kNITER] = {7, 5, 4, 4};
 
+    //        TH1F* h_prof = new TH1F("h_prof", "prof", 20480, 0.0, 20480.0);
+    //        TCanvas* canv = new TCanvas("c", "c", 1000, 1000);
+    //        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+    //            for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh)
+    //                for (Int_t iSmpl = 0; iSmpl < ADC32_N_SAMPLES; ++iSmpl)
+    //                    h_prof->SetBinContent(iSmpl + iCh * ADC32_N_SAMPLES + iCr * ADC_N_CHANNELS * ADC32_N_SAMPLES, fAdcProfiles[iCr][iCh][iSmpl]);
+    //    
+    //        h_prof->Draw();
+    //        canv->SaveAs("ADC_profile.root");
+    //        Fatal("", "STOP ADC FILLING");
+
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
         for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
             Bool_t channelOk[ADC32_N_SAMPLES];
@@ -381,7 +394,7 @@ BmnStatus BmnGemRaw2Digit::FindNoisyStrips() {
 //                            continue;
 //                        }
 //                        mean += (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx]);
-                    }
+                        }
 //                    if (nOk[iBunch] == 0) continue;
 //                    mean /= nOk[iBunch];
 //                    for (Short_t i = 0; i < kNSAMPLES; ++i) {
@@ -391,8 +404,8 @@ BmnStatus BmnGemRaw2Digit::FindNoisyStrips() {
 //                            nOk[iBunch]--;
 //                        }
 //                    }
-                }
-            }
+                    }
+                        }
             for (Short_t i = 0; i < ADC32_N_SAMPLES; ++i)
                 fNoiseChannels[iCr][iCh][i] = !(channelOk[i]);
         }
@@ -481,9 +494,8 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
                 Double_t CMS = CalcCMS(signals, nOk);
                 for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
 
-                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
-
-                    if (fPedDat[iCr][iEv][iCh][iSmpl] - CMS - fPedVal[iCr][iCh][iSmpl] > 20/*3 * fPedRms[iCr][iCh][iSmpl]*/) {
+                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0 || CMS == 0.0) continue;
+                    if (fPedDat[iCr][iEv][iCh][iSmpl] - CMS - fPedVal[iCr][iCh][iSmpl] > 50/*3 * fPedRms[iCr][iCh][iSmpl]*/) {
                         fAdcProfiles[iCr][iCh][iSmpl]++;
                     }
                 }

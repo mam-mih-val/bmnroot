@@ -197,13 +197,13 @@ void BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
 }
 
 //Load mapping from the file
-void BmnTof1Raw2Digit::setMapFromFile(string placementMapFile, string mapFile) {
+void BmnTof1Raw2Digit::setMapFromFile(TString placementMapFile, TString mapFile) {
 	UInt_t fcrate, fserial, fslot, fchan, fplane, fstrip;
 	char side_c;
 	
 	//1. Placement map
 	fstream ff;
-	ff.open(placementMapFile.c_str(), std::fstream::in);
+	ff.open(placementMapFile.Data(), std::fstream::in);
 	if(ff.fail()) {cerr << "Cannot open the file " << placementMapFile << endl; return;}
         else cout << "Reading TOF400 PlacementMap file " << placementMapFile << endl;
 	while(!ff.eof()) {
@@ -215,7 +215,7 @@ void BmnTof1Raw2Digit::setMapFromFile(string placementMapFile, string mapFile) {
 	ff.close();	
 	
 	//2. Main map
-	ff.open(mapFile.c_str(), std::fstream::in);
+	ff.open(mapFile.Data(), std::fstream::in);
 	if(ff.fail()) {cerr << "Cannot open the file " << mapFile << endl; return;}
         else cout << "Reading TOF400 StripMap file " << mapFile << endl;
 	while(!ff.eof()) {

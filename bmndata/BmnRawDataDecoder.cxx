@@ -107,6 +107,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fTimeStart_ns = 0;
     syncCounter = 0;
     fPedoCounter = 0;
+    fGemMap = NULL;
 }
 
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
@@ -166,6 +167,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fTimeStart_ns = 0;
     syncCounter = 0;
     fPedoCounter = 0;
+    fGemMap = NULL;
     Int_t fEntriesInGlobMap = 0;
     UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
     if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);
@@ -240,9 +242,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     fRawTree->Write();
     fRootFileOut->Close();
     fclose(fRawFileIn);
-
-    gSystem->Exec(Form("mv %s bmn_run%04d_raw.root", fRootFileName.Data(), fRunId));
-    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
 
     delete sync;
     delete adc32;
@@ -392,7 +391,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
                 return kBMNFINISH;
             }
             fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
-//            fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
+            //            fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
         }
     if (fDat == kSYNC1) { //search for start of event
         // read number of bytes in event
@@ -459,7 +458,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         printf("EVENT:%d   RUN:%d\n", d[0], fRunId);
     }
 
-    UInt_t idx = 1;
+    Long64_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;
     BmnTriggerType trigType = kBMNBEAM;
 
@@ -657,7 +656,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
     printf(ANSI_COLOR_RED "================= DECODING =================\n" ANSI_COLOR_RESET);
 
-    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fRootFileIn = new TFile(fRootFileName, "READ");
     if (fRootFileIn->IsOpen() == false) {
         printf("\n!!!!\ncannot open file %s \nDecodeDataToDigi are stopped\n!!!!\n", fRootFileName.Data());
@@ -683,14 +681,16 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fRawTree->SetBranchAddress("ADC128", &adc128);
     fRawTree->SetBranchAddress("EventHeader", &eventHeaderDAQ);
 
-    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     fDigiFileOut = new TFile(fDigiFileName, "recreate");
     InitDecoder();
     BmnEventType curEventType = kBMNPAYLOAD;
     BmnEventType prevEventType = curEventType;
 
     for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-        if (iEv % 100 == 0) cout << "Decoding event #" << iEv << endl;
+        if (iEv % 100 == 0) {
+            printf(ANSI_COLOR_BLUE "[%.2f%%]   " ANSI_COLOR_RESET, iEv * 100.0 / fNevents);
+            printf("EVENT:%d   RUN:%d\n", iEv, fRunId);
+        }
         ClearArrays();
 
         fRawTree->GetEntry(iEv);
@@ -719,7 +719,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
             fMwpcMapper->FillEvent(hrb, mwpc);
             fTof400Mapper->FillEvent(tdc, tof400);
-            fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+            //fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             if (iEv == fNevents - 1) {
                 fDigiTree->Branch("RunHeader", &runHeader);
                 if (runHeaderDAQ) {
@@ -815,11 +815,11 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
     if (fTof400PlaceMapFileName.Sizeof() > 1 && fTof400StripMapFileName.Sizeof() > 1) {
         fTof400Mapper = new BmnTof1Raw2Digit();
-        string wd(getenv("VMCWORKDIR"));
-        fTof400Mapper->setMapFromFile(wd + "/input/" + fTof400PlaceMapFileName.Data(), wd + "/input/" + fTof400StripMapFileName.Data());
-    }
-    else fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
-    fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
+        TString dir = Form("%s%s", getenv("VMCWORKDIR"), "/input/");
+        fTof400Mapper->setMapFromFile(dir + fTof400PlaceMapFileName.Data(), dir + fTof400StripMapFileName.Data());
+    } else
+        fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+    //fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
     fPedEvCntr = 0; // counter for pedestal events between two spills
@@ -878,7 +878,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fGemMapper->FillEvent(adc32, gem);
         fSiliconMapper->FillEvent(adc128, silicon);
         fTof400Mapper->FillEvent(tdc, tof400);
-        fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+        //fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
 
         fDigiTree->Fill();
     }
@@ -931,7 +931,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete fMwpcMapper;
     delete fTrigMapper;
     delete fTof400Mapper;
-    delete fTof700Mapper;
+    //delete fTof700Mapper;
 
     delete sync;
     delete adc32;
@@ -954,7 +954,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
 }
 
 BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
-
+    if (fGemMap == NULL) return kBMNERROR;
     Long64_t t0time = 0;
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);

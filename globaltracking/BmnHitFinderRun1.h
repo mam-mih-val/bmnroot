@@ -76,17 +76,17 @@ void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
 
     TVector3 dchPos;
 
-    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
-    if (pVolume != NULL) {
-        TString node_name = TString::Format("dch%d_0", plane / 2 + 1);
-        TGeoNode* pNode = pVolume->FindNode(node_name);
-        if (pNode != NULL) {
-            TGeoMatrix* pMatrix = pNode->GetMatrix();
-            dchPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
-        } else
-            cout << "DCH detector (" << node_name << ") wasn't found." << endl;
-    } else
-        cout << "Cave volume wasn't found." << endl;
+//    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
+//    if (pVolume != NULL) {
+//        TString node_name = TString::Format("dch%d_0", plane / 2 + 1);
+//        TGeoNode* pNode = pVolume->FindNode(node_name);
+//        if (pNode != NULL) {
+//            TGeoMatrix* pMatrix = pNode->GetMatrix();
+//            dchPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
+//        } else
+//            cout << "DCH detector (" << node_name << ") wasn't found." << endl;
+//    } else
+//        cout << "Cave volume wasn't found." << endl;
 
     Float_t delta = 2.0; //roughly
     for (Int_t i = 0; i < vec.size(); ++i) {
@@ -105,8 +105,11 @@ void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane) {
 
         if (hit.Z() < -100.0) continue;
         if ((plane == 0) || (plane == 2)) {
-            hit.RotateZ(-135.0 * DegToRad());
-            hit.SetY(-1.0 * hit.Y());
+            hit.RotateZ(45.0 * DegToRad());
+            //hit.SetY(-1.0 * hit.Y());
+        } else {
+            hit.RotateZ(90.0 * DegToRad());
+            //hit.SetY(-1.0 * hit.Y());
         }
         //        cout << hit.X() << " " << hit.Y() << " " << hit.Z() << " " << hit.Mag() << endl;
         new((*hits)[hits->GetEntriesFast()]) BmnDchHit(0, hit + dchPos, TVector3(0, 0, 0), 0, 0, 0, plane);

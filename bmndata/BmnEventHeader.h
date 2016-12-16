@@ -17,7 +17,7 @@ private:
     TTimeStamp fEventTime;
     /** Event Type (payload = 0 or pedestal = 1)**/
     BmnEventType fType;
-    /** Trigger Type **/
+    /** Trigger Type (beam = 6 or target = 1)**/
     BmnTriggerType fTrigType;
 
 public:

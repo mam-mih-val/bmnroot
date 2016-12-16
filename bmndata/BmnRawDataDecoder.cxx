@@ -686,6 +686,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     BmnEventType curEventType = kBMNPAYLOAD;
     BmnEventType prevEventType = curEventType;
 
+    if (fTof700Mapper) fTof700Mapper->BookSlewing();
+
     for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 100 == 0) {
             printf(ANSI_COLOR_BLUE "[%.2f%%]   " ANSI_COLOR_RESET, iEv * 100.0 / fNevents);
@@ -819,7 +821,10 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fTof400Mapper->setMapFromFile(dir + fTof400PlaceMapFileName.Data(), dir + fTof400StripMapFileName.Data());
     } else
         fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
-    //fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
+    fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
+    //    fTof700Mapper->readSlewingT0();
+    //    fTof700Mapper->readSlewing();
+
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
     fPedEvCntr = 0; // counter for pedestal events between two spills
@@ -1018,7 +1023,7 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMapNoDB(UInt_t t0serial) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::SlewingTOF700() {
+BmnStatus BmnRawDataDecoder::SlewingTOF700Init() {
 
     fRootFileIn = new TFile(fRootFileName, "READ");
     if (fRootFileIn->IsOpen() == false) {
@@ -1035,56 +1040,57 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
-    BmnGemRaw2Digit *gemMapper = NULL;
-    BmnDchRaw2Digit *dchMapper = NULL;
-    BmnTrigRaw2Digit *trigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
-    BmnTof1Raw2Digit *tof400Mapper = NULL;
-    BmnTof2Raw2DigitNew *tof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
-    tof700Mapper->print();
+    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
+    fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
+    fTof700Mapper->print();
 
-    Double_t *dnlcor = tof700Mapper->GetINL();
+    return kBMNSUCCESS;
+}
 
+BmnStatus BmnRawDataDecoder::SlewingTOF700() {
+
+    fTof700Mapper->BookSlewing();
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
-        if (iEv % 1000 == 0) cout << "Slewing T0 event #" << iEv << endl;
+        if (iEv % 5000 == 0) cout << "Slewing T0 event #" << iEv << endl;
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x1EA9711) == kBMNERROR) {
+        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
             //                cout << "No TimeShiftMap created" << endl;
             continue;
         }
 
-        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
+        fTrigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
 
-        tof700Mapper->fillSlewingT0(tdc, &fTimeShifts, fT0Time, fT0Width);
+        fTof700Mapper->fillSlewingT0(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
+    cout << "Slewing T0 event #" << fNevents << endl;
 
-    tof700Mapper->SlewingT0();
-    tof700Mapper->drawproft0();
+    fTof700Mapper->SlewingT0();
 
-    tof700Mapper->readSlewingT0();
+    fTof700Mapper->readSlewingT0();
 
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
-        if (iEv % 1000 == 0) cout << "Slewing RPC event #" << iEv << endl;
+        if (iEv % 5000 == 0) cout << "Slewing RPC event #" << iEv << endl;
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x1EA9711) == kBMNERROR) {
+        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
             //                cout << "No TimeShiftMap created" << endl;
             continue;
         }
 
-        trigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
+        fTrigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
 
-        tof700Mapper->fillSlewing(tdc, &fTimeShifts, fT0Time, fT0Width);
+        fTof700Mapper->fillSlewing(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
+    cout << "Slewing RPC event #" << fNevents << endl;
 
-    tof700Mapper->Slewing();
-    tof700Mapper->drawprof();
+    fTof700Mapper->Slewing();
 
     //    fRootFileIn->Close();
 

@@ -178,14 +178,14 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 	    TvsW_parab[c][i] = 0.;
 	}
 
-    Wcut = 1700;
-    Wmax = 4000;
+    Wcut = 2100;
+    Wmax = 4100;
     WT0min = 260;
     WT0max = 560;
 
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) LeadMin[i] = -5000;
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) LeadMax[i] = +5000;
-
+/*
     LeadMin[0] = -400;
     LeadMin[1] = -300;
     LeadMin[2] = -400;
@@ -195,6 +195,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     LeadMax[1] = -150;
     LeadMax[2] = -50;
     LeadMax[3] = +120;
+*/
 /*
     if (RUN < 470)
     {
@@ -232,6 +233,11 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 //    numstrip[2] = 15;
 //    numstrip[3] = 15;
 
+}
+void BmnTof2Raw2DigitNew::Book()
+{
+    char name[128], title[128];
+
     gStyle->SetOptFit(111);
 
     sprintf(name, "Width_T0");
@@ -253,18 +259,28 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     }
     for (int i=0; i<MaxPlane; i++)
     {
-	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_1",i+1);
-	sprintf(title, "Time vs Width Chamber %d Peak 1",i+1);
-	TvsW[i][0] = new TProfile(name,title,Wcut,0,Wcut,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
-	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_1",i+1);
-	sprintf(title, "Time vs T0 Width Chamber %d Peak 1",i+1);
-	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
 	sprintf(name, "Time_vs_Width_Chamber_%d_all",i+1);
 	sprintf(title, "Time vs Width Chamber %d all",i+1);
 	TvsWall[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
 	sprintf(name, "Time_vs_Width_Chamber_%d_all_max",i+1);
 	sprintf(title, "Time vs Width Chamber %d all, max strip",i+1);
 	TvsWallmax[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
+    }
+}
+void BmnTof2Raw2DigitNew::BookSlewing()
+{
+    char name[128], title[128];
+
+    gStyle->SetOptFit(111);
+
+    for (int i=0; i<MaxPlane; i++)
+    {
+	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_1",i+1);
+	sprintf(title, "Time vs Width Chamber %d Peak 1",i+1);
+	TvsW[i][0] = new TProfile(name,title,Wcut,0,Wcut,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
+	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_1",i+1);
+	sprintf(title, "Time vs T0 Width Chamber %d Peak 1",i+1);
+	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
     }
     for (int i=0; i<MaxPlane; i++)
     {
@@ -280,30 +296,48 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 void BmnTof2Raw2DigitNew::ReBook(int i)
 {
     char name[128], title[128];
-    delete TvsW[i][0];
+    if (TvsW[i][0])
+    {
+	delete TvsW[i][0];
 	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_1",i+1);
 	sprintf(title, "Time vs Width Chamber %d Peak 1",i+1);
 	TvsW[i][0] = new TProfile(name,title,Wcut,0,Wcut,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
-    delete TvsWt0[i][0];
+    }
+    if (TvsWt0[i][0])
+    {
+	delete TvsWt0[i][0];
 	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_1",i+1);
 	sprintf(title, "Time vs T0 Width Chamber %d Peak 1",i+1);
 	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
-    delete TvsWall[i];
+    }
+    if (TvsWall[i])
+    {
+	delete TvsWall[i];
 	sprintf(name, "Time_vs_Width_Chamber_%d_all",i+1);
 	sprintf(title, "Time vs Width Chamber %d all",i+1);
 	TvsWall[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
-    delete TvsWallmax[i];
+    }
+    if (TvsWallmax[i])
+    {
+	delete TvsWallmax[i];
 	sprintf(name, "Time_vs_Width_Chamber_%d_all_max",i+1);
 	sprintf(title, "Time vs Width Chamber %d all, max strip",i+1);
 	TvsWallmax[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
-    delete TvsW[i][1];
+    }
+    if (TvsW[i][1])
+    {
+	delete TvsW[i][1];
 	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_2",i+1);
 	sprintf(title, "Time vs Width Chamber %d Peak 2",i+1);
 	TvsW[i][1] = new TProfile(name,title,(Wmax-Wcut),Wcut,Wmax,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
-    delete TvsWt0[i][1];
+    }
+    if (TvsWt0[i][1])
+    {
+	delete TvsWt0[i][1];
 	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_2",i+1);
 	sprintf(title, "Time vs T0 Width Chamber %d Peak 2",i+1);
 	TvsWt0[i][1] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
+    }
 //    printf("c %d wc %d wm %d wt1 %d wt2 %d lmi %d lma %d\n", i, Wcut, Wmax, WT0min, WT0max, LeadMin[i], LeadMax[i]);
 }
 
@@ -993,6 +1027,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
        int slot = mapa[ind].slot;
        int dnl = digit->GetValue() & 0x3FF;
        float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
+//       printf("tm %f c %d s %d cor %f ts_diff %lld\n",tm, crate, slot, DNL_Table[crate][slot][chan][dnl], ts_diff);
        if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
     }
 //    printf("n_rec = %d\n", n_rec);
@@ -1040,6 +1075,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	    TvsW[mapa[ind].plane][1]->Fill(W, L);
 	}
 //        new(ar[tof2digit->GetEntriesFast()]) BmnTof2Digit(mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W*HPTIMEBIN,D*HPTIMEBIN);  
+//        printf("%d %d %f %f %f t0 %f t0width %f\n", mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W,D*HPTIMEBIN, t0, t0width);  
         new((*tof2digit)[tof2digit->GetEntriesFast()]) BmnTof2Digit(mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W,D*HPTIMEBIN);  
        }
     }

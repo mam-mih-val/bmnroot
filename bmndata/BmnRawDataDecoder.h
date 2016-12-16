@@ -76,6 +76,7 @@ public:
     BmnStatus DisposeDecoder();
     BmnStatus wait_stream(deque<UInt_t> *que, Int_t len);
     BmnStatus wait_file(Int_t len);
+    BmnStatus SlewingTOF700Init();
     BmnStatus SlewingTOF700();
 
     void SetQue(deque<UInt_t> *v) {
@@ -133,6 +134,10 @@ public:
     
     UInt_t GetEventId() const {
         return fEventId;
+    }
+
+    BmnTof2Raw2DigitNew *GetTof700Mapper() {
+        return fTof700Mapper;
     }
 
     void SetTrigMapping(TString map) {

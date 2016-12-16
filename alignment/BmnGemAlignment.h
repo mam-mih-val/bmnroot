@@ -1,34 +1,36 @@
 #ifndef BMNGEMALIGNMENT_H
 #define BMNGEMALIGNMENT_H 1
 
+#include <algorithm>
+#include <climits>
+#include <cstdio>
+#include <iomanip>
+#include <sstream>
+
+#include <TCanvas.h>
+#include <TChain.h>
+#include <TClonesArray.h>
+#include <TFile.h>
+#include <TGraphErrors.h>
+#include <TH2.h>
+#include <TLorentzVector.h>
 #include <TMath.h>
 #include <TNamed.h>
-#include <TChain.h>
-#include <TTree.h>
-#include <TClonesArray.h>
-#include <TLorentzVector.h>
-#include <TVector3.h>
-#include "BmnGemTrack.h"
-#include "FairTrackParam.h"
-#include <TH2.h>
-#include <limits.h>
+#include <TRandom1.h>
 #include <TString.h>
 #include <TSystem.h>
-#include <TFile.h>
-#include "BmnMille.h"
-#include "BmnMath.h"
+#include <TTree.h>
+#include <TVector3.h>
+
 #include "FairTask.h"
+#include "FairTrackParam.h"
+
 #include "BmnGemAlignmentCorrections.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripStationSet_RunSummer2016.h"
-
-#include <iomanip>
-#include <stdio.h>
-#include <algorithm>
-#include <sstream>
-#include <TRandom1.h>
-#include <TGraphErrors.h>
-#include <TCanvas.h>
+#include "BmnGemTrack.h"
+#include "BmnMath.h"
+#include "BmnMille.h"
 
 using namespace std;
 using namespace TMath;
@@ -38,7 +40,8 @@ public:
 
     BmnGemAlignment(); // Default constructor
 
-    virtual ~BmnGemAlignment() {
+    virtual ~BmnGemAlignment()
+    {
         delete fDetector;
     }
 
@@ -46,106 +49,131 @@ public:
 
     virtual void Exec(Option_t* opt);
 
-    virtual void Finish() {
+    virtual void Finish()
+    {
     }
 
-    void SetDebugInfo(Bool_t val) {
+    void SetDebugInfo(Bool_t val)
+    {
         fDebugInfo = val;
     }
 
-    void SetRunType(TString type) {
+    void SetResultName(TString resultName)
+    {
+        fResultName = resultName;
+    }
+
+    void SetRunType(TString type)
+    {
         fRunType = type;
         if (fRunType == "")
-            Fatal("BmnGemReco()", "Specify a run type!!!!!!!!!");
-
+            Fatal("BmnGemReco()", "Specify the run type!!!!!!!!!");
         if (fRunType == "beam") {
             fBeamRun = kTRUE;
             fAlignmentType = "xy";
-        } else {
+        }
+        else {
             fBeamRun = kFALSE;
             fAlignmentType = "xyz";
         }
-
-        cout << "Type " << fAlignmentType << " established" << endl;
+        cout <<"Type "+fAlignmentType+" established"<< endl;
     }
 
-    void SetStatNumFixed(TString* st) {
-        cout << "Alignment conditions: " << endl;
+    void SetStatNumFixed(TString* st)
+    {
+        cout <<"Alignment conditions: "<< endl;
         for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
-            cout << iStat << " " << st[iStat] << endl;
+            cout <<iStat<<" "+st[iStat]<< endl;
             if (st[iStat] == "fixed")
                 fFixedStats.push_back(iStat);
         }
     }
 
-    void SetPreSigma(Double_t presigma) {
+    void SetPreSigma(Double_t presigma)
+    {
         fPreSigma = presigma;
     }
 
-    void SetAccuracy(Double_t accuracy) {
+    void SetAccuracy(Double_t accuracy)
+    {
         fAccuracy = accuracy;
     }
 
-    void SetNumOfIterations(UInt_t num) {
+    void SetNumOfIterations(UInt_t num)
+    {
         fNumOfIterations = num;
     }
 
-    void SetAlignmentTypeByHands(TString type) {
+    void SetAlignmentTypeByHands(TString type)
+    {
         fAlignmentType = type;
     }
 
-    void SetGeometry(BmnGemStripConfiguration::GEM_CONFIG config) {
+    void SetGeometry(BmnGemStripConfiguration::GEM_CONFIG config)
+    {
         fGeometry = config;
     }
 
-    void SetChi2MaxPerNDF(Double_t val) {
+    void SetChi2MaxPerNDF(Double_t val)
+    {
         fChi2MaxPerNDF = val;
     }
 
-    void SetMinHitsAccepted(Int_t val) {
+    void SetMinHitsAccepted(Int_t val)
+    {
         fMinHitsAccepted = val;
     }
 
-    void SetTxMinMax(Double_t min, Double_t max) {
+    void SetTxMinMax(Double_t min, Double_t max)
+    {
         fTxMin = min;
         fTxMax = max;
     }
 
-    void SetTyMinMax(Double_t min, Double_t max) {
+    void SetTyMinMax(Double_t min, Double_t max)
+    {
         fTyMin = min;
         fTyMax = max;
     }
 
-    void SetUseRealHitErrors(Bool_t flag) {
+    void SetUseRealHitErrors(Bool_t flag)
+    {
         fIsUseRealHitErrors = flag;
     }
 
-    void SetUseRegularization(Bool_t flag) {
+    void SetUseRegularization(Bool_t flag)
+    {
         fIsRegul = flag;
     }
 
-    void SetHugecut(Double_t val) {
+    void SetHugecut(Double_t val)
+    {
         fHugecut = val;
     }
 
-    void SetChisqcut(Double_t val1, Double_t val2) {
+    void SetChisqcut(Double_t val1, Double_t val2)
+    {
         fChisqcut[0] = val1;
         fChisqcut[1] = val2;
     }
 
-    void SetEntriesPerParam(Int_t entries) {
+    void SetEntriesPerParam(Int_t entries)
+    {
         fEntries = entries;
     }
 
-    void SetOutlierdownweighting(Int_t n) {
+    void SetOutlierdownweighting(Int_t n)
+    {
         fOutlierdownweighting = n;
     }
 
-    void SetDwfractioncut(Double_t fraction) {
+    void SetDwfractioncut(Double_t fraction)
+    {
         fDwfractioncut = fraction;
     }
 
-    void SetFixDetector(Bool_t flag1, Bool_t flag2, Bool_t flag3) {
+    void SetFixDetector(Bool_t flag1, Bool_t flag2, Bool_t flag3)
+    {
         fFixX = flag1;
         fFixY = flag2;
         fFixZ = flag3;
@@ -172,8 +200,10 @@ private:
     UInt_t fNumOfIterations;
     vector <Int_t> fFixedStats;
 
-    Bool_t fDebugInfo;
-    Bool_t fBeamRun; // if true then it corresponds to 61 - 65 files
+    Bool_t  fDebugInfo;
+    Bool_t  fBeamRun;    // if true then it corresponds to no-target and no-field runs
+    // middle part of the result file name that identifies the variant (run and addInfo)
+    TString fResultName;
     TString fRunType;
     TString fSteerFileName;
 
@@ -198,7 +228,7 @@ private:
     BmnGemStripStationSet* fDetector; // Detector geometry
     BmnGemStripConfiguration::GEM_CONFIG fGeometry;
 
-    Bool_t fIsUseRealHitErrors; // errors are taken from hit finder algorithm
+    Bool_t fIsUseRealHitErrors;  // errors are taken from hit finder algorithm
 
     // Restrictions on track params
     Double_t fChi2MaxPerNDF;
@@ -208,18 +238,18 @@ private:
     Double_t fTyMin;
     Double_t fTyMax;
 
-    // Millepede params.
-    Bool_t fIsRegul; // use regularization or not
-    Double_t fHugecut; // cut factor in iteration 0
-    Double_t fChisqcut[2]; // cut factor in iterations 1 and 2
-    Int_t fEntries; // lower limit on number of entries/parameter
+    // Millepede params
+    Bool_t fIsRegul;             // use regularization or not
+    Double_t fHugecut;           // cut factor in iteration 0
+    Double_t fChisqcut[2];       // cut factor in iterations 1 and 2
+    Int_t fEntries;              // lower limit on number of entries/parameter
     Int_t fOutlierdownweighting; // number of internal iterations (> 1)
-    Double_t fDwfractioncut; // reject all cases with a down-weight fraction >= val 
+    Double_t fDwfractioncut;     // reject all cases with a down-weight fraction >= val
 
     // Fix overall shift in x,y,z-directions by constraints like a1 + a2 + ... + aN = 0
     Bool_t fFixX;
     Bool_t fFixY;
-    Bool_t fFixZ; // not meaningful in case of 2d-alignment (true/false)
+    Bool_t fFixZ; // meaningless in case of 2d-alignment (true/false)
 
     ClassDef(BmnGemAlignment, 1)
 };

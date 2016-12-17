@@ -1,5 +1,31 @@
-#include "BmnGemAlignment.h"
-#include "BmnGemStripStationSet_RunWinter2016.h"
+#include   "BmnGemAlignment.h"
+
+#include   <algorithm>
+#include   <climits>
+#include   <cstdio>
+#include   <iomanip>
+#include   <sstream>
+
+//#include <TCanvas.h>
+//#include <TFile.h>
+//#include <TGraphErrors.h>
+//#include <TH2.h>
+//#include <TLorentzVector.h>
+//#include <TMath.h>
+//#include <TNamed.h>
+//#include <TRandom1.h>
+//#include <TSystem.h>
+//#include <TTree.h>
+//#include <TVector3.h>
+
+#include   "FairTrackParam.h"
+
+#include   "BmnGemAlignmentCorrections.h"
+#include   "BmnGemTrack.h"
+#include   "BmnMath.h"
+#include   "BmnMille.h"
+
+using namespace TMath;
 
 Int_t BmnGemAlignment::fCurrentEvent = 0;
 

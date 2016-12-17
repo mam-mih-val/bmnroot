@@ -1,39 +1,21 @@
 #ifndef BMNGEMALIGNMENT_H
 #define BMNGEMALIGNMENT_H 1
 
-#include <algorithm>
-#include <climits>
-#include <cstdio>
-#include <iomanip>
-#include <sstream>
+#include  <vector>
+#include  <fstream>
 
-#include <TCanvas.h>
-#include <TChain.h>
-#include <TClonesArray.h>
-#include <TFile.h>
-#include <TGraphErrors.h>
-#include <TH2.h>
-#include <TLorentzVector.h>
-#include <TMath.h>
-#include <TNamed.h>
-#include <TRandom1.h>
-#include <TString.h>
-#include <TSystem.h>
-#include <TTree.h>
-#include <TVector3.h>
+#include  <TChain.h>
+#include  <TClonesArray.h>
+#include  <TString.h>
 
-#include "FairTask.h"
-#include "FairTrackParam.h"
+#include  "FairTask.h"
 
-#include "BmnGemAlignmentCorrections.h"
-#include "BmnGemStripStationSet.h"
-#include "BmnGemStripStationSet_RunSummer2016.h"
-#include "BmnGemTrack.h"
-#include "BmnMath.h"
-#include "BmnMille.h"
+#include  "BmnGemStripStationSet.h"
+#include  "BmnGemStripStationSet_RunSummer2016.h"
+#include  "BmnGemStripStationSet_RunWinter2016.h"
 
 using namespace std;
-using namespace TMath;
+
 
 class BmnGemAlignment : public FairTask {
 public:

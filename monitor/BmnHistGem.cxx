@@ -25,7 +25,6 @@ const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 825, 1019};
 BmnHistGem::BmnHistGem(TString title, Bool_t createNoiseMask) {
     fTitle = title;
     fName = title + "_cl";
-    cout << "Constructor " << fTitle << endl;
     TString name;
     for (Int_t stationIndex = 0; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
         vector<vector<TH1F*> > rowGEM;

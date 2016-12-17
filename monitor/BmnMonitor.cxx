@@ -18,8 +18,11 @@
 BmnMonitor::BmnMonitor() {
     _fileList = new vector<BmnRunInfo>();
     fRecoTree = NULL;
+    fRecoTree4Show = NULL;
     fHistOut = NULL;
     fServer = NULL;
+    TString name = fTitle + "_infoCanvas";
+    infoCanvas = new TCanvas(name, name);
 }
 
 BmnMonitor::~BmnMonitor() {
@@ -30,8 +33,14 @@ BmnMonitor::~BmnMonitor() {
     delete bhDCH;
     delete bhMWPC;
     delete bhTrig;
+
+    delete infoCanvas;
     //    delete fRecoTree;
+    fRecoTree4Show->Clear();
+    delete fRecoTree4Show;
     delete fHistOut;
+
+    fServer->Unregister(infoCanvas);
 
     delete bhGem_4show;
     delete bhToF400_4show;
@@ -46,98 +55,105 @@ BmnMonitor::~BmnMonitor() {
     delete _fileList;
 }
 
-void BmnMonitor::Monitor(TString dir, TString startFile, Bool_t runCurrent) {
-    // Create server //
-    if (gSystem->AccessPathName("auth.htdigest") != 0) {
-        printf("Authorization file not found\n");
-        return;
-    }
-    fServer = new THttpServer("fastcgi:9000?auth_file=auth.htdigest&auth_domain=root");
-    fServer->SetTimer(100, kTRUE);
-    fServer->SetItemField("/", "_monitoring", "2000");
-    fServer->SetItemField("/", "_layout", "grid3x3");
-
-    _inotifDir = inotify_init();
-    _inotifDirW = inotify_add_watch(_inotifDir, dir, IN_CREATE);
-    Int_t flags = fcntl(_inotifDir, F_GETFL, 0);
-    fcntl(_inotifDir, F_SETFL, flags | O_NONBLOCK);
+void BmnMonitor::Monitor(TString dirname, TString startFile, Bool_t runCurrent) {
     _curFile = startFile;
-    _curDir = dir;
-    if (!runCurrent){
-        printf("first wn started with\n"); _curFile = "";
-        _curFile = WatchNext(dir, _curFile, 1e5);
-        printf("first wn returned %s\n", _curFile.Data()); 
-        _curFile = WatchNext(dir, _curFile, 1e5);
-        printf("found new file %s\n", _curFile.Data());        
-    }else
-    if (_curFile.Length() == 0) {
-        _curFile = WatchNext(dir, _curFile, 1e5);
+    _curDir = dirname;
+    InitServer();
+    //    _inotifDir = inotify_init();
+    //    _inotifDirW = inotify_add_watch(_inotifDir, dir, IN_CREATE);
+    //    Int_t flags = fcntl(_inotifDir, F_GETFL, 0);
+    //    fcntl(_inotifDir, F_SETFL, flags | O_NONBLOCK);
+    if (!runCurrent) {
+        _curFile = "";
+        _curFile = WatchNext(_curDir, _curFile, 1e5);
+        printf("first wn returned %s\n", _curFile.Data());
+        _curFile = WatchNext(_curDir, _curFile, 1e5);
+        printf("found new file %s\n", _curFile.Data());
+    } else
+        if (_curFile.Length() == 0) {
+        _curFile = WatchNext(_curDir, _curFile, 1e5);
         printf("WN returned %s\n", _curFile.Data());
         //        _curFile = WatchNext(_inotifDir, 1e5);
     }
-
-
-
-    _inotifFile = inotify_init();
-    _inotifFileW = inotify_add_watch(_inotifFile, _curFile, IN_MODIFY);
-
-
-    rawDataDecoder = new BmnRawDataDecoder(dir + _curFile, 0, 5);
-    rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
-    rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
-    rawDataDecoder->SetTof700Mapping("TOF700_map_period_5.txt");
-    rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
-    rawDataDecoder->InitConverter();
-    rawDataDecoder->InitDecoder();
-    fDigiTree = rawDataDecoder->GetDigiTree();
+    //    _inotifFile = inotify_init();
+    //    _inotifFileW = inotify_add_watch(_inotifFile, _curFile, IN_MODIFY);
+    InitDecoder();
     RegisterAll();
 
     while (kTRUE) {
         ProcessFileRun(_curFile);
-        _curFile = WatchNext(dir, _curFile, 1e5);
+        _curFile = WatchNext(_curDir, _curFile, 1e5);
     }
-    
-    inotify_rm_watch(_inotifDir, _inotifDirW);
-    close(_inotifDir);
-    close(_inotifFile);
+    //    inotify_rm_watch(_inotifDir, _inotifDirW);
+    //    close(_inotifDir);
+    //    close(_inotifFile);
 }
 
-BmnStatus BmnMonitor::BatchDirectory(TString dirname) {    
-    // Create server //
-    if (gSystem->AccessPathName("auth.htdigest") != 0) {
-        printf("Authorization file not found\n");
+BmnStatus BmnMonitor::BatchDirectory(TString dirname) {
+    _curDir = dirname;
+    TSystemDirectory dir0(_curDir, _curDir);
+    TList *files0 = dir0.GetListOfFiles();
+    if (files0) {
+        files0->Sort(kSortAscending);
+        TSystemFile *file0;
+        TString fname0;
+        TIter next0(files0);
+        while ((file0 = (TSystemFile*) next0())) {
+            fname0 = TString(file0->GetName());
+            if (!file0->IsDirectory() && fname0.EndsWith("data")) {
+                _curFile = fname0;
+                break;
+            }
+        }
+        delete file0;
+        //        delete files0;
+    } else
         return kBMNERROR;
-    }
-    fServer = new THttpServer("fastcgi:9000?auth_file=auth.htdigest&auth_domain=root");
+
+    InitServer();
+    InitDecoder();
+    RegisterAll();
+    TSystemDirectory dir(_curDir, _curDir);
+    TList *files = dir.GetListOfFiles();
+    if (files) {
+        files->Sort(kSortAscending);
+        TSystemFile *file;
+        TString fname, retFname;
+        TIter next(files);
+        while ((file = (TSystemFile*) next())) {
+            fname = TString(file->GetName());
+            printf("fname = %s\n", fname.Data());
+            if (!file->IsDirectory() && fname.EndsWith("data"))
+                ProcessFileRun(fname);
+        }
+        delete file;
+        delete files;
+    } else
+        return kBMNERROR;
+    return kBMNSUCCESS;
+}
+
+void BmnMonitor::InitServer() {
+    if (gSystem->AccessPathName("auth.htdigest") != 0) {
+        printf("Authorization file not found\nStarting server without authorization\n");
+        fServer = new THttpServer("fastcgi:9000");
+    } else
+        fServer = new THttpServer("fastcgi:9000?auth_file=auth.htdigest&auth_domain=root");
     fServer->SetTimer(100, kTRUE);
     fServer->SetItemField("/", "_monitoring", "2000");
-    fServer->SetItemField("/", "_layout", "grid3x3");    
-    rawDataDecoder = new BmnRawDataDecoder(_curFile, 0, 5);
+    fServer->SetItemField("/", "_layout", "grid3x3");
+}
+
+void BmnMonitor::InitDecoder() {
+    rawDataDecoder = new BmnRawDataDecoder(_curDir + _curFile, 0, 5);
     rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
+    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_Period5.txt", "TOF400_StripMap_Period5.txt");
     rawDataDecoder->SetTof700Mapping("TOF700_map_period_5.txt");
     rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
     rawDataDecoder->InitConverter();
     rawDataDecoder->InitDecoder();
     fDigiTree = rawDataDecoder->GetDigiTree();
-    RegisterAll();
-    TSystemDirectory dir(dirname, dirname);
-    TList *files = dir.GetListOfFiles();
-        if (files) {
-            files->Sort(kSortAscending);
-            TSystemFile *file;
-            TString fname, retFname;
-            TIter next(files);
-            while ((file = (TSystemFile*) next())) {
-                fname = TString(file->GetName());
-                if (!file->IsDirectory() && fname.EndsWith("data"))
-                    ProcessFileRun(fname);
-            }
-            delete file;
-            delete files;
-        } else 
-            return kBMNERROR;
-        return kBMNSUCCESS;
 }
 
 TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait) {
@@ -183,7 +199,7 @@ TString BmnMonitor::WatchNext(Int_t inotifDir, Int_t cycleWait) {
                     }
                 }
                 i += sizeof (struct inotify_event) +event->len;
-		delete event;
+                delete event;
             }
             if (cycleWait > 0)
                 usleep(cycleWait);
@@ -210,7 +226,9 @@ BmnStatus BmnMonitor::OpenFile(TString rawFileName) {
     fHistOut = new TFile(outHistName, "recreate");
     DBG("file created")
     fRecoTree = new TTree("BmnMon", "BmnMon");
-    fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE);
+    fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
+    fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
+    fRecoTree4Show->SetDirectory(NULL); // tree will not be saved
     bhGem->SetDir(fHistOut, fRecoTree);
     bhDCH->SetDir(fHistOut, fRecoTree);
     bhMWPC->SetDir(fHistOut, fRecoTree);
@@ -219,12 +237,12 @@ BmnStatus BmnMonitor::OpenFile(TString rawFileName) {
     bhTrig->SetDir(fHistOut, fRecoTree);
     DBG("directory set for saved hist")
 
-    bhGem_4show->SetDir(NULL, NULL);
-    bhDCH_4show->SetDir(NULL, NULL);
-    bhMWPC_4show->SetDir(NULL, NULL);
-    bhToF400_4show->SetDir(NULL, NULL);
-    bhToF700_4show->SetDir(NULL, NULL);
-    bhTrig_4show->SetDir(NULL, NULL);
+    bhGem_4show->SetDir(NULL, fRecoTree4Show);
+    bhDCH_4show->SetDir(NULL, fRecoTree4Show);
+    bhMWPC_4show->SetDir(NULL, fRecoTree4Show);
+    bhToF400_4show->SetDir(NULL, fRecoTree4Show);
+    bhToF700_4show->SetDir(NULL, fRecoTree4Show);
+    bhTrig_4show->SetDir(NULL, fRecoTree4Show);
     DBG("directory set for show hists")
 }
 
@@ -266,8 +284,8 @@ void BmnMonitor::ProcessStreamRun() {
     }
     rcvThread.join();
 
-    rawDataDecoder->DisposeDecoder();
-    rawDataDecoder->DisposeConverter();
+//    rawDataDecoder->DisposeDecoder();
+//    rawDataDecoder->DisposeConverter();
     delete dataReceiver;
     delete rawDataDecoder;
     FinishRun();
@@ -280,7 +298,6 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
     Int_t lastEv = 0;
     TString nextFile;
     BmnStatus convertResult = kBMNSUCCESS;
-
     OpenFile(rawFileName);
     rawDataDecoder->ResetDecoder(_curDir + rawFileName);
 
@@ -304,12 +321,6 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
             //_curFile = "";
             break;
         }
-        //        nextFile = WatchNext(_inotifDir, 0);
-        //        if (nextFile.Length() > 0){
-        //            inotify_rm_watch(_inotifFile, _inotifFileW);
-        //            _curFile = nextFile;
-        //            break;
-        //        }
     }
     FinishRun();
 }
@@ -347,7 +358,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhToF700_4show->FillFromDigi(fDigiArrays.tof700, head, iEv);
     bhDCH_4show->FillFromDigi(fDigiArrays.dch, head, iEv);
     bhMWPC_4show->FillFromDigi(fDigiArrays.mwpc, head);
-
+    fRecoTree4Show->Fill();
     //    if ((iEv % itersToUpdate == 0) && (iEv > 1)) {
     ////        bhGem->UpdateNoiseMask(0.5 * iEv);
     ////        bhGem_4show->ApplyNoiseMask(bhGem->GetNoiseMask());
@@ -387,7 +398,7 @@ void BmnMonitor::RegisterAll() {
     bhToF700_4show = new BmnHistToF700("ToF700_");
     bhTrig_4show = new BmnHistTrigger("Triggers_");
 
-
+    fServer->Register("/", infoCanvas);
     bhGem_4show->Register(fServer);
     bhDCH_4show->Register(fServer);
     bhMWPC_4show->Register(fServer);
@@ -399,22 +410,25 @@ void BmnMonitor::RegisterAll() {
 
 void BmnMonitor::FinishRun() {
     DBG("started")
+    bhGem->SetDir(NULL, fRecoTree);
+    bhToF400->SetDir(NULL, fRecoTree);
+    bhToF700->SetDir(NULL, fRecoTree);
+    bhDCH->SetDir(NULL, fRecoTree);
+    bhMWPC->SetDir(NULL, fRecoTree);
+    bhTrig->SetDir(NULL, fRecoTree);
     fRecoTree->Write();
     fHistOut->Write();
-    fHistOut->GetName();
+//    fHistOut->Close();
+//    fRecoTree->Clear();
+//    delete fRecoTree;
+    fRecoTree4Show->Clear();
+    delete fRecoTree4Show;
     string cmd;
     cmd = string("chmod 775 ") + fHistOut->GetName();
     system(cmd.c_str());
 
     cmd = string("hadd -f shorter.root ") + fHistOut->GetName() +
             string("; mv shorter.root ") + fHistOut->GetName();
-    //    bhGem->SetDir(NULL, fRecoTree);
-    //    bhToF400->SetDir(NULL, fRecoTree);
-    //    bhToF700->SetDir(NULL, fRecoTree);
-    //    bhDCH->SetDir(NULL, fRecoTree);
-    //    bhTrig->SetDir(NULL, fRecoTree);
-    ////    fHistOut->Close();
-    //    
     bhToF400->Reset();
     bhToF700->Reset();
     bhDCH->Reset();

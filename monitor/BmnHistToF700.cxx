@@ -21,11 +21,11 @@ BmnHistToF700::BmnHistToF700(TString title = "ToF700") {
     fSelectedSide = -1;
     TString name;
     name = fTitle + "_Leading_Time";
-    histLeadingTime = new TH1D(name, name, 500, 0, 1000);
+    histLeadingTime = new TH1D(name, name, 500, 0, 2000);
     name = fTitle + "_Leading_Time_Specific";
-    histLeadingTimeSpecific = new TH1D(name, name, 500, 0, 1000);
+    histLeadingTimeSpecific = new TH1D(name, name, 500, 0, 2000);
     name = fTitle + "_Amplitude";
-    histAmp = new TH1D(name, name, 4096, 0, 2000);
+    histAmp = new TH1D(name, name, 4096, 0, 96);
     name = fTitle + "_Amplitude_Specific";
     histAmpSpecific = new TH1D(name, name, 4096, 0, 2000);
     name = fTitle + "_Strip";
@@ -41,6 +41,7 @@ BmnHistToF700::BmnHistToF700(TString title = "ToF700") {
     fServer = NULL;
     fEventsBranch = NULL;
     frecoTree = NULL;
+    Events = NULL;
 }
 
 BmnHistToF700::~BmnHistToF700() {
@@ -67,7 +68,7 @@ void BmnHistToF700::FillFromDigi(TClonesArray * ToF4Digits, BmnEventHeader * hea
         BmnTof2Digit *td = (BmnTof2Digit *) ToF4Digits->At(digIndex);
         Int_t strip = td->GetStrip();
         Int_t rid = (head) ? head->GetRunId() : -1;
-        histLeadingTime->SetTitle(fTitle + Form("_Triggers_Counter_runID_%d_eventID_%d", rid, iEv));
+        histLeadingTime->SetTitle(fTitle + Form("_Leading_Time_runID_%d_eventID_%d", rid, iEv));
         histLeadingTime->Fill(td->GetTime());
         histAmp->Fill(td->GetAmplitude());
         histStrip->Fill(strip + td->GetPlane() * TOF2_MAX_STRIPS_IN_CHAMBER);
@@ -77,8 +78,9 @@ void BmnHistToF700::FillFromDigi(TClonesArray * ToF4Digits, BmnEventHeader * hea
         //            histL->Fill(strip);
         //        else
         //            histR->Fill(strip);
-        if ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0) &&
-                (td->GetStrip() == fSelectedStrip) || (fSelectedStrip < 0)) {
+        if (
+                ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0)) &&
+                ((td->GetStrip() == fSelectedStrip) || (fSelectedStrip < 0))) {
             histAmpSpecific->Fill(td->GetAmplitude());
             histLeadingTimeSpecific->Fill(td->GetTime());
         }

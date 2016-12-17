@@ -64,6 +64,8 @@ public:
     void SetDigiTree(TTree * v)       { fDigiTree = v;}
 
 private:
+    void InitServer();
+    void InitDecoder();
     void ProcessDigi(Int_t iEv);
     void RegisterAll();
     static void CheckFileTime(TString Dir, vector<BmnRunInfo>* FileList);
@@ -81,6 +83,7 @@ private:
     TString _curDir;
     TTree *fDigiTree;
     TTree *fRecoTree;
+    TTree *fRecoTree4Show;
     TFile *fHistOut;
     THttpServer * fServer;
     struct DigiArrays fDigiArrays;
@@ -110,6 +113,8 @@ private:
     BmnHistDch     *bhDCH_4show;
     BmnHistMwpc    *bhMWPC_4show;
     BmnHistTrigger *bhTrig_4show;
+    
+    TCanvas *infoCanvas;
 
     BmnDataReceiver *dataReceiver;
     BmnRawDataDecoder *rawDataDecoder;

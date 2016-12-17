@@ -137,6 +137,7 @@ BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, TString parNameSize, BmnGemM
     delete par;
     for (Int_t i = 0; i < size; ++i)
         m[iiArr[i].int_2] = BmnGemMap(iiArr[i].int_1, lay, mod);
+    delete[] iiArr;
 }
 
 BmnGemRaw2Digit::~BmnGemRaw2Digit() {

@@ -380,11 +380,12 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
     //        if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
     if (wait_file(4 * kWORDSIZE) == kBMNERROR)
         return kBMNTIMEOUT;
+    fCurentPositionRawFile = ftello64(fRawFileIn);
     fread(&fDat, kWORDSIZE, 1, fRawFileIn);
     if (fDat)
         //printf("dat %d\n", fDat);
         if (fDat == kRUNNUMBERSYNC) {
-            printf("RunNumberSync!\n");
+            printf("RunNumberSync\n");
             syncCounter++;
             if (syncCounter > 1) {
                 cout << "Finish by SYNC" << endl;
@@ -828,6 +829,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
     fPedEvCntr = 0; // counter for pedestal events between two spills
+    if (fTof700Mapper) fTof700Mapper->BookSlewing();
     return kBMNSUCCESS;
 }
 
@@ -906,7 +908,7 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     fLengthRawFile = ftello64(fRawFileIn);
     rewind(fRawFileIn);
     printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
-    printf("RawRoot File %s\n\n", fRootFileName.Data());
+//    printf("RawRoot File %s\n\n", fRootFileName.Data());
     fDigiTree->Reset();
     fDigiTree->Branch("EventHeader", &eventHeader);
     //fDigiTree->Branch("RunHeader", &runHeader);
@@ -921,7 +923,7 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     fDigiTree->Branch("TOF400", &tof400);
     fDigiTree->Branch("TOF700", &tof700);
     fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
-    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
+//    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
 }
 

@@ -20,6 +20,7 @@ ${BMNROOT_SOURCE_DIR}/bmnbase
 ${BMNROOT_SOURCE_DIR}/BmnKalmanFilter
 
 ${BMNROOT_SOURCE_DIR}/bmndata
+${BMNROOT_SOURCE_DIR}/alignment
 #${BMNROOT_SOURCE_DIR}/sts
 #${BMNROOT_SOURCE_DIR}/sts/setup
 

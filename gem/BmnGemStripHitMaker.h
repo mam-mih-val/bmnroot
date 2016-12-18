@@ -15,6 +15,7 @@
 #include "BmnGemStripHit.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripConfiguration.h"
+#include "BmnGemAlignmentCorrections.h"
 
 using namespace std;
 
@@ -45,8 +46,8 @@ public:
     }
 
      void SetAlignmentCorrections(TString fname) {
-        TString dir = getenv("VMCWORKDIR");
-        fFile = dir + "/input/" + fname;
+       // TString dir = getenv("VMCWORKDIR");
+       // fFile = dir + "/input/" + fname;
         fFile = fname;
     }
 

@@ -408,7 +408,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
             return kBMNTIMEOUT;
         if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) {
             printf("finish by length\n");
-            return kBMNERROR;
+            return kBMNFINISH;
         }
         fEventId = data[0];
         if (fEventId <= 0) {
@@ -848,7 +848,10 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     bd->Clear();
     eventHeader->Clear();
     //runHeader->Clear();
-    fTimeShifts.clear();
+    if (fTimeShifts.size() > 1e5)
+        fTimeShifts = map<UInt_t, Long64_t>();
+    else
+        fTimeShifts.clear();
     return kBMNSUCCESS;
 }
 
@@ -970,7 +973,6 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
             break;
         }
     }
-
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
         Long64_t syncTime = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;

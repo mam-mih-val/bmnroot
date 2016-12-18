@@ -91,24 +91,24 @@ void BmnMonitor::Monitor(TString dirname, TString startFile, Bool_t runCurrent) 
 
 BmnStatus BmnMonitor::BatchDirectory(TString dirname) {
     _curDir = dirname;
-    TSystemDirectory dir0(_curDir, _curDir);
-    TList *files0 = dir0.GetListOfFiles();
-    if (files0) {
-        files0->Sort(kSortAscending);
-        TSystemFile *file0;
-        TString fname0;
-        TIter next0(files0);
-        while ((file0 = (TSystemFile*) next0())) {
-            fname0 = TString(file0->GetName());
-            if (!file0->IsDirectory() && fname0.EndsWith("data")) {
-                _curFile = fname0;
-                break;
-            }
-        }
-        delete file0;
-        //        delete files0;
-    } else
-        return kBMNERROR;
+//    TSystemDirectory dir0(_curDir, _curDir);
+//    TList *files0 = dir0.GetListOfFiles();
+//    if (files0) {
+//        files0->Sort(kSortAscending);
+//        TSystemFile *file0;
+//        TString fname0;
+//        TIter next0(files0);
+//        while ((file0 = (TSystemFile*) next0())) {
+//            fname0 = TString(file0->GetName());
+//            if (!file0->IsDirectory() && fname0.EndsWith("data")) {
+//                _curFile = fname0;
+//                break;
+//            }
+//        }
+//        delete file0;
+//        //        delete files0;
+//    } else
+//        return kBMNERROR;
 
     InitServer();
     InitDecoder();
@@ -303,6 +303,11 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
 
     while (kTRUE) {
         convertResult = rawDataDecoder->ConvertRawToRootIterateFile();
+        if (convertResult == kBMNFINISH) {
+            printf("finish\n");
+            //_curFile = "";
+            break;
+        }
         fServer->ProcessRequests();
         gSystem->ProcessEvents();
         lastEv = iEv;
@@ -313,11 +318,6 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
         }
         if (convertResult == kBMNTIMEOUT) {
             printf("timeout\n");
-            //_curFile = "";
-            break;
-        }
-        if (convertResult == kBMNFINISH) {
-            printf("finish\n");
             //_curFile = "";
             break;
         }
@@ -359,6 +359,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhDCH_4show->FillFromDigi(fDigiArrays.dch, head, iEv);
     bhMWPC_4show->FillFromDigi(fDigiArrays.mwpc, head);
     fRecoTree4Show->Fill();
+//    TPad * infoPad = infoCanvas->cd(1);
     //    if ((iEv % itersToUpdate == 0) && (iEv > 1)) {
     ////        bhGem->UpdateNoiseMask(0.5 * iEv);
     ////        bhGem_4show->ApplyNoiseMask(bhGem->GetNoiseMask());

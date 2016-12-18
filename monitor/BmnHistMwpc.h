@@ -45,6 +45,9 @@ private:
     THttpServer *fServer;
     TTree *frecoTree;
     TH1F * h_wires[MWPC_PLANES];
+    TClonesArray* MwpcHits;
+    TH2F* h_MWPC1;
+    TH2F* h_MWPC2;
 
     ClassDef(BmnHistMwpc, 1)
 };

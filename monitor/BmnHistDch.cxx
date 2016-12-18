@@ -38,10 +38,10 @@ BmnHistDch::BmnHistDch(TString title = "DCH") {
 //        myPalette[i] = FI + i;
 //    }
     fDchHits = new TClonesArray("BmnDchHit");
-//    h_DCH1 = new TH2F("h_DCH1", "DCH №1", 500, 0, 0, 500, 0, 0);
-//    h_DCH2 = new TH2F("h_DCH2", "DCH №2", 500, 0, 0, 500, 0, 0);
-//    h_DCH1 = new TH2F("h_DCH1", "DCH №1", kNWIRES, -kNWIRES/2, kNWIRES/2, kNWIRES, -kNWIRES/2, kNWIRES/2);
-//    h_DCH2 = new TH2F("h_DCH2", "DCH №2", kNWIRES, -kNWIRES/2, kNWIRES/2, kNWIRES, -kNWIRES/2, kNWIRES/2);
+//    h_DCH1 = new TH2F("h_DCH1", "DCH #1", 500, 0, 0, 500, 0, 0);
+//    h_DCH2 = new TH2F("h_DCH2", "DCH #2", 500, 0, 0, 500, 0, 0);
+//    h_DCH1 = new TH2F("h_DCH1", "DCH #1", kNWIRES, -kNWIRES/2, kNWIRES/2, kNWIRES, -kNWIRES/2, kNWIRES/2);
+//    h_DCH2 = new TH2F("h_DCH2", "DCH #2", kNWIRES, -kNWIRES/2, kNWIRES/2, kNWIRES, -kNWIRES/2, kNWIRES/2);
     h_DCH1 = new TH2F("h_DCH1", "DCH #1", hzWIRES, -hzWIRES/2, hzWIRES/2, hzWIRES, -hzWIRES/2, hzWIRES/2);
     h_DCH2 = new TH2F("h_DCH2", "DCH #2", hzWIRES, -hzWIRES/2, hzWIRES/2, hzWIRES, -hzWIRES/2, hzWIRES/2);
 }

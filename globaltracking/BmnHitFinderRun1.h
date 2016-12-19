@@ -1,5 +1,5 @@
 #ifndef BMNHITFINDERRUN1_H
-#define	BMNHITFINDERRUN1_H 1
+#define BMNHITFINDERRUN1_H 1
 
 #include <vector>
 #include "TGeoVolume.h"
@@ -77,17 +77,17 @@ inline void CombineHits(vector<TVector3> vec, TClonesArray* hits, Short_t plane)
 
     TVector3 dchPos;
 
-//    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
-//    if (pVolume != NULL) {
-//        TString node_name = TString::Format("dch%d_0", plane / 2 + 1);
-//        TGeoNode* pNode = pVolume->FindNode(node_name);
-//        if (pNode != NULL) {
-//            TGeoMatrix* pMatrix = pNode->GetMatrix();
-//            dchPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
-//        } else
-//            cout << "DCH detector (" << node_name << ") wasn't found." << endl;
-//    } else
-//        cout << "Cave volume wasn't found." << endl;
+    //    TGeoVolume* pVolume = gGeoManager->GetVolume("cave");
+    //    if (pVolume != NULL) {
+    //        TString node_name = TString::Format("dch%d_0", plane / 2 + 1);
+    //        TGeoNode* pNode = pVolume->FindNode(node_name);
+    //        if (pNode != NULL) {
+    //            TGeoMatrix* pMatrix = pNode->GetMatrix();
+    //            dchPos = TVector3(pMatrix->GetTranslation()[0], pMatrix->GetTranslation()[1], pMatrix->GetTranslation()[2]);
+    //        } else
+    //            cout << "DCH detector (" << node_name << ") wasn't found." << endl;
+    //    } else
+    //        cout << "Cave volume wasn't found." << endl;
 
     Float_t delta = 2.0; //roughly
     for (Int_t i = 0; i < vec.size(); ++i) {
@@ -141,7 +141,7 @@ inline vector<Float_t> MergeSubPlanes(vector<BmnDchDigit*> vec1, vector<BmnDchDi
             BmnDchDigit* d2 = (BmnDchDigit*) vec2.at(j);
             if (Abs(d1->GetWireNumber() - d2->GetWireNumber()) > 1) continue;
             Float_t n = (d1->GetWireNumber() + d2->GetWireNumber()) / 2.0;
-//            Float_t coord = (InnerRadiusOfOctagon - WireStep) * (2.0 * n / (nWires - 1) - 1);
+            //            Float_t coord = (InnerRadiusOfOctagon - WireStep) * (2.0 * n / (nWires - 1) - 1);
             Float_t coord = (MaxRadiusOfActiveVolume - WireStep) * (2.0 * n / (nWires - 1) - 1);
             v.push_back(coord);
         }
@@ -232,10 +232,10 @@ inline void ProcessDchDigits(TClonesArray* digits, TClonesArray * hitsArray) {
     vector<TVector3> u2v2 = CreateHitsByTwoPlanes(u2, v2, -5.0);
     vector<TVector3> x2y2 = CreateHitsByTwoPlanes(x2, y2, 5.0);
 
-//    CheckHits(u1v1, x1y1);
-//    CheckHits(x1y1, u1v1);
-//    CheckHits(u2v2, x2y2);
-//    CheckHits(x2y2, u2v2);
+    //    CheckHits(u1v1, x1y1);
+    //    CheckHits(x1y1, u1v1);
+    //    CheckHits(u2v2, x2y2);
+    //    CheckHits(x2y2, u2v2);
 
     CombineHits(u1v1, hitsArray, 0);
     CombineHits(x1y1, hitsArray, 1);
@@ -370,7 +370,7 @@ inline void FindNeighbour(BmnMwpcDigit* digiStart, vector<BmnMwpcDigit*> digits,
     for (Int_t i = 0; i < digits.size(); ++i) {
         BmnMwpcDigit* digi = digits.at(i);
         if (digi->IsUsed()) continue;
-        if (Abs((Int_t)digiStart->GetWireNumber() - (Int_t)digi->GetWireNumber()) < 2) {
+        if (Abs((Int_t) digiStart->GetWireNumber() - (Int_t) digi->GetWireNumber()) < 2) {
             digi->SetUsing(kTRUE);
             buffer.push_back(digi);
             FindNeighbour(digi, digits, buffer);
@@ -436,6 +436,51 @@ inline BmnStatus DigitsTimeSelection(TH1F* h_times, Float_t& left, Float_t& righ
     else return kBMNSUCCESS;
 }
 
+inline vector<TVector3> CreateHitsBy3Planes(vector<BmnMwpcDigit*> x, vector<BmnMwpcDigit*> u, vector<BmnMwpcDigit*> v, Float_t zPos) {
+    vector<TVector3> hits;
+    vector<TVector3> xu;
+    vector<TVector3> xv;
+    vector<TVector3> uv;
+    if (x.size() == 0 || u.size() == 0 || v.size() == 0) return hits;
+    for (Int_t i = 0; i < x.size(); ++i) {
+        BmnMwpcDigit* dI = (BmnMwpcDigit*) x.at(i);
+        for (Int_t j = 0; j < u.size(); ++j) {
+            BmnMwpcDigit* dJ = (BmnMwpcDigit*) u.at(j);
+            xu.push_back(CalcHitPosByTwoDigits(dI, dJ, zPos));
+        }
+    }
+    for (Int_t i = 0; i < x.size(); ++i) {
+        BmnMwpcDigit* dI = (BmnMwpcDigit*) x.at(i);
+        for (Int_t j = 0; j < v.size(); ++j) {
+            BmnMwpcDigit* dJ = (BmnMwpcDigit*) v.at(j);
+            xv.push_back(CalcHitPosByTwoDigits(dI, dJ, zPos));
+        }
+    }
+    for (Int_t i = 0; i < u.size(); ++i) {
+        BmnMwpcDigit* dI = (BmnMwpcDigit*) u.at(i);
+        for (Int_t j = 0; j < v.size(); ++j) {
+            BmnMwpcDigit* dJ = (BmnMwpcDigit*) v.at(j);
+            uv.push_back(CalcHitPosByTwoDigits(dI, dJ, zPos));
+        }
+    }
+    
+    const Float_t thDist = 1.0; //cm
+    for (Int_t i = 0; i < xu.size(); ++i) {
+        for (Int_t j = 0; j < xv.size(); ++j) {
+            if (Abs(xu[i].Mag() - xv[j].Mag()) > thDist) continue;
+            for (Int_t k = 0; k < uv.size(); ++k) {
+                if (Abs(xu[i].Mag() - uv[k].Mag()) > thDist) continue;
+                if (Abs(xv[j].Mag() - uv[k].Mag()) > thDist) continue;
+                Float_t xAv = (xu[i].X() + xv[j].X() + uv[k].X()) / 3.0;
+                Float_t yAv = (xu[i].Y() + xv[j].Y() + uv[k].Y()) / 3.0;
+                hits.push_back(TVector3(xAv, yAv, zPos));
+            }
+        }
+    }
+    //printf("hits size = %d\n", (Int_t)hits.size());
+    return hits;
+}
+
 inline void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
 
     //temporary containers
@@ -471,42 +516,42 @@ inline void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
         digit->SetUsing(kFALSE); //not used in hit finding yet
         //switch (dRef) {
         //  case 0x046F304E: x1_mwpc1.push_back(digit);
-              // break;
+        // break;
         //  case 0x046F3043: u1_mwpc1.push_back(digit);
-              // break;
+        // break;
         //  case 0x046F1A8D: v1_mwpc1.push_back(digit);
-              // break;
+        // break;
         ///  case 0x046F4504: x2_mwpc1.push_back(digit);
-              // break;
+        // break;
         // case 0x046F4514: u2_mwpc1.push_back(digit);
-              //break;
+        //break;
         //  case 0x046F45DF: v2_mwpc1.push_back(digit);
-              // break;
+        // break;
         //  case 0x046EFA53: x1_mwpc0.push_back(digit);
-              // break;
+        // break;
         //  case 0x046F3F1D: u1_mwpc0.push_back(digit);
-              // break;
+        // break;
         //  case 0x046F028B: v1_mwpc0.push_back(digit);
-              //break;
-                //case 0x046F3F97: x2_mwpc0.push_back(digit);
-              //break;
-                //case 0x046F4513: u2_mwpc0.push_back(digit);
-              //break;
-                //case 0x046F3F8E: v2_mwpc0.push_back(digit);
-              //break;
-                //case 0x046F47CB: x1_mwpc2.push_back(digit);
-              //break;
-                //case 0x046F3F8B: u1_mwpc2.push_back(digit);
-              //break;
-                //case 0x046F30B8: v1_mwpc2.push_back(digit);
-              //break;
-                //case 0x046F2950: x2_mwpc2.push_back(digit);
-              // break;
-                //case 0x046F2A79: u2_mwpc2.push_back(digit);
-              // break;
-                //case 0x046F2FFF: v2_mwpc2.push_back(digit);
-              //    break;
-                //}
+        //break;
+        //case 0x046F3F97: x2_mwpc0.push_back(digit);
+        //break;
+        //case 0x046F4513: u2_mwpc0.push_back(digit);
+        //break;
+        //case 0x046F3F8E: v2_mwpc0.push_back(digit);
+        //break;
+        //case 0x046F47CB: x1_mwpc2.push_back(digit);
+        //break;
+        //case 0x046F3F8B: u1_mwpc2.push_back(digit);
+        //break;
+        //case 0x046F30B8: v1_mwpc2.push_back(digit);
+        //break;
+        //case 0x046F2950: x2_mwpc2.push_back(digit);
+        // break;
+        //case 0x046F2A79: u2_mwpc2.push_back(digit);
+        // break;
+        //case 0x046F2FFF: v2_mwpc2.push_back(digit);
+        //    break;
+        //}
         switch (dPlane) {
             case 0: u1_mwpc0.push_back(digit);
                 break;
@@ -566,17 +611,22 @@ inline void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
     //    vector<TVector3> v1x2_mwpc2 = CreateHitsByTwoPlanes(v1_mwpc2_filtered, x2_mwpc2_filtered);
     //    vector<TVector3> u2v2_mwpc2 = CreateHitsByTwoPlanes(u2_mwpc2_filtered, v2_mwpc2_filtered);
 
-    vector<TVector3> u1v1_mwpc0 = CreateHitsByTwoPlanes(u1_mwpc0_filtered, v1_mwpc0_filtered, -2.0);
-    vector<TVector3> x2u2_mwpc0 = CreateHitsByTwoPlanes(x2_mwpc0_filtered, u2_mwpc0_filtered, 0.0);
-    vector<TVector3> v2x1_mwpc0 = CreateHitsByTwoPlanes(v2_mwpc0_filtered, x1_mwpc0_filtered, 2.0);
-
-    vector<TVector3> v2u2_mwpc1 = CreateHitsByTwoPlanes(v2_mwpc1_filtered, u2_mwpc1_filtered, -2.0);
-    vector<TVector3> x2v1_mwpc1 = CreateHitsByTwoPlanes(x2_mwpc1_filtered, v1_mwpc1_filtered, 0.0);
-    vector<TVector3> u1x1_mwpc1 = CreateHitsByTwoPlanes(u1_mwpc1_filtered, x1_mwpc1_filtered, 2.0);
-
-    vector<TVector3> x1u1_mwpc2 = CreateHitsByTwoPlanes(x1_mwpc2_filtered, u1_mwpc2_filtered, -2.0);
-    vector<TVector3> v1x2_mwpc2 = CreateHitsByTwoPlanes(v1_mwpc2_filtered, x2_mwpc2_filtered, 0.0);
-    vector<TVector3> u2v2_mwpc2 = CreateHitsByTwoPlanes(u2_mwpc2_filtered, v2_mwpc2_filtered, 2.0);
+//    vector<TVector3> u1v1_mwpc0 = CreateHitsByTwoPlanes(u1_mwpc0_filtered, v1_mwpc0_filtered, -2.0);
+//    vector<TVector3> x2u2_mwpc0 = CreateHitsByTwoPlanes(x2_mwpc0_filtered, u2_mwpc0_filtered, 0.0);
+//    vector<TVector3> v2x1_mwpc0 = CreateHitsByTwoPlanes(v2_mwpc0_filtered, x1_mwpc0_filtered, 2.0);
+//
+//    vector<TVector3> v2u2_mwpc1 = CreateHitsByTwoPlanes(v2_mwpc1_filtered, u2_mwpc1_filtered, -2.0);
+//    vector<TVector3> x2v1_mwpc1 = CreateHitsByTwoPlanes(x2_mwpc1_filtered, v1_mwpc1_filtered, 0.0);
+//    vector<TVector3> u1x1_mwpc1 = CreateHitsByTwoPlanes(u1_mwpc1_filtered, x1_mwpc1_filtered, 2.0);
+//
+//    vector<TVector3> x1u1_mwpc2 = CreateHitsByTwoPlanes(x1_mwpc2_filtered, u1_mwpc2_filtered, -2.0);
+//    vector<TVector3> v1x2_mwpc2 = CreateHitsByTwoPlanes(v1_mwpc2_filtered, x2_mwpc2_filtered, 0.0);
+//    vector<TVector3> u2v2_mwpc2 = CreateHitsByTwoPlanes(u2_mwpc2_filtered, v2_mwpc2_filtered, 2.0);
+    
+    vector<TVector3> xuv1_mwpc0 = CreateHitsBy3Planes(x1_mwpc0_filtered, u1_mwpc0_filtered, v1_mwpc0_filtered, 0.0);
+    vector<TVector3> xuv2_mwpc0 = CreateHitsBy3Planes(x2_mwpc0_filtered, u2_mwpc0_filtered, v2_mwpc0_filtered, 0.0);
+    vector<TVector3> xuv1_mwpc1 = CreateHitsBy3Planes(x1_mwpc1_filtered, u1_mwpc1_filtered, v1_mwpc1_filtered, 0.0);
+    vector<TVector3> xuv2_mwpc1 = CreateHitsBy3Planes(x2_mwpc1_filtered, u2_mwpc1_filtered, v2_mwpc1_filtered, 0.0);
 
     //    CreateMwpcHits(x1u1_mwpc0, hits, 0);
     //    CreateMwpcHits(v1x2_mwpc0, hits, 0);
@@ -588,15 +638,20 @@ inline void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
     //    CreateMwpcHits(v1x2_mwpc2, hits, 2);
     //    CreateMwpcHits(u2v2_mwpc2, hits, 2);
 
-    CreateMwpcHits(u1v1_mwpc0, hits, 0);
-    CreateMwpcHits(x2u2_mwpc0, hits, 0);
-    CreateMwpcHits(v2x1_mwpc0, hits, 0);
-    CreateMwpcHits(v2u2_mwpc1, hits, 1);
-    CreateMwpcHits(x2v1_mwpc1, hits, 1);
-    CreateMwpcHits(u1x1_mwpc1, hits, 1);
-    CreateMwpcHits(x1u1_mwpc2, hits, 2);
-    CreateMwpcHits(v1x2_mwpc2, hits, 2);
-    CreateMwpcHits(u2v2_mwpc2, hits, 2);
+//    CreateMwpcHits(u1v1_mwpc0, hits, 0);
+//    CreateMwpcHits(x2u2_mwpc0, hits, 0);
+//    CreateMwpcHits(v2x1_mwpc0, hits, 0);
+//    CreateMwpcHits(v2u2_mwpc1, hits, 1);
+//    CreateMwpcHits(x2v1_mwpc1, hits, 1);
+//    CreateMwpcHits(u1x1_mwpc1, hits, 1);
+//    CreateMwpcHits(x1u1_mwpc2, hits, 2);
+//    CreateMwpcHits(v1x2_mwpc2, hits, 2);
+//    CreateMwpcHits(u2v2_mwpc2, hits, 2);
+    
+    CreateMwpcHits(xuv1_mwpc0, hits, 0);
+    CreateMwpcHits(xuv2_mwpc0, hits, 0);
+    CreateMwpcHits(xuv1_mwpc1, hits, 1);
+    CreateMwpcHits(xuv2_mwpc1, hits, 1);
 }
 
-#endif	/* BMNHITFINDERRUN1_H 1*/
+#endif /* BMNHITFINDERRUN1_H 1*/

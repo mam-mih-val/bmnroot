@@ -37,13 +37,16 @@ BmnHistDch::BmnHistDch(TString title = "DCH") {
 //    for (Int_t i = 0; i < nb; ++i) {
 //        myPalette[i] = FI + i;
 //    }
+    TString name;
     fDchHits = new TClonesArray("BmnDchHit");
 //    h_DCH1 = new TH2F("h_DCH1", "DCH #1", 500, 0, 0, 500, 0, 0);
 //    h_DCH2 = new TH2F("h_DCH2", "DCH #2", 500, 0, 0, 500, 0, 0);
 //    h_DCH1 = new TH2F("h_DCH1", "DCH #1", kNWIRES, -kNWIRES/2, kNWIRES/2, kNWIRES, -kNWIRES/2, kNWIRES/2);
 //    h_DCH2 = new TH2F("h_DCH2", "DCH #2", kNWIRES, -kNWIRES/2, kNWIRES/2, kNWIRES, -kNWIRES/2, kNWIRES/2);
-    h_DCH1 = new TH2F("h_DCH1", "DCH #1", hzWIRES, -hzWIRES/2, hzWIRES/2, hzWIRES, -hzWIRES/2, hzWIRES/2);
-    h_DCH2 = new TH2F("h_DCH2", "DCH #2", hzWIRES, -hzWIRES/2, hzWIRES/2, hzWIRES, -hzWIRES/2, hzWIRES/2);
+    name = fTitle + "_h_DCH1";
+    h_DCH1 = new TH2F(name, "DCH #1", 500, -DCH_WDTH, DCH_WDTH, 500, -DCH_WDTH, DCH_WDTH);
+    name = fTitle + "_h_DCH2";
+    h_DCH2 = new TH2F(name, "DCH #2", 500, -DCH_WDTH, DCH_WDTH, 500, -DCH_WDTH, DCH_WDTH);
 }
 
 BmnHistDch::~BmnHistDch() {
@@ -70,8 +73,8 @@ void BmnHistDch::Register(THttpServer *serv) {
     fServer->SetItemField(path.Data(), "_layout", "grid3x3");
     TString cmdTitle = path + "Reset";
     fServer->RegisterCommand(cmdTitle.Data(), cmd.Data(), "button;");
-    fServer->Restrict(cmdTitle, "visible=admin");
-    fServer->Restrict(cmdTitle, "allow=admin");
+    fServer->Restrict(cmdTitle, "visible=shift");
+    fServer->Restrict(cmdTitle, "allow=shift");
 }
 
 void BmnHistDch::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
@@ -81,6 +84,8 @@ void BmnHistDch::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
         dir = outFile->mkdir(fTitle + "_hists");
     for (Int_t i = 0; i < kNPLANES; ++i)
         h_wires[i]->SetDirectory(dir);
+    h_DCH1->SetDirectory(dir);
+    h_DCH2->SetDirectory(dir);
 
 }
 
@@ -110,6 +115,8 @@ void BmnHistDch::FillFromDigi(TClonesArray * DchDigits, BmnEventHeader * head, I
 void BmnHistDch::Reset() {
     for (Int_t i = 0; i < kNPLANES; ++i)
         h_wires[i]->Reset();
+    h_DCH1->Reset();
+    h_DCH2->Reset();
 }
 
 

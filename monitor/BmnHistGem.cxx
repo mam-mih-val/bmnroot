@@ -81,8 +81,8 @@ void BmnHistGem::Register(THttpServer *serv) {
            histGemStrip[6][0][0]->GetTitle() + TString("]");
    fServer->SetItemField(path,"_drawitem", examples);
    fServer->RegisterCommand(cmdTitle.Data(), cmd.Data(), "button;");
-   fServer->Restrict(cmdTitle.Data(), "visible=admin");
-   fServer->Restrict(cmdTitle.Data(), "allow=admin");
+   fServer->Restrict(cmdTitle.Data(), "visible=shift");
+   fServer->Restrict(cmdTitle.Data(), "allow=shift");
     fServer->Restrict(cmdTitle.Data(), "deny=guest");
     
 }

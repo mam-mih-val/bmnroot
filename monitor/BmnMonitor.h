@@ -31,7 +31,7 @@
 #include "BmnHistMwpc.h"
 #include "BmnHistGem.h"
 
-#define RUN_FILE_CHECK_PERIOD 100000
+#define RUN_FILE_CHECK_PERIOD 1e6
 #define TTREE_MAX_SIZE 3e11
 
 using namespace std;

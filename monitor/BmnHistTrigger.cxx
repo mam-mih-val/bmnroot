@@ -153,13 +153,13 @@ void BmnHistTrigger::Register(THttpServer *serv) {
 
     TString cmdTitle = path + "ChangeBDChannel";
     fServer->RegisterCommand(cmdTitle.Data(), "/" + fName + "/->SetBDChannel(%arg1%)", "button;");
-    fServer->Restrict(cmdTitle.Data(), "visible=admin");
-    fServer->Restrict(cmdTitle.Data(), "allow=admin");
+    fServer->Restrict(cmdTitle.Data(), "visible=shift");
+    fServer->Restrict(cmdTitle.Data(), "allow=shift");
     fServer->Restrict(cmdTitle.Data(), "deny=guest");
     cmdTitle = path + "Reset";
     fServer->RegisterCommand(cmdTitle.Data(), "/" + fName + "/->Reset()", "button;");
-    fServer->Restrict(cmdTitle.Data(), "visible=admin");
-    fServer->Restrict(cmdTitle.Data(), "allow=admin");
+    fServer->Restrict(cmdTitle.Data(), "visible=shift");
+    fServer->Restrict(cmdTitle.Data(), "allow=shift");
     fServer->Restrict(cmdTitle.Data(), "deny=guest");
 }
 

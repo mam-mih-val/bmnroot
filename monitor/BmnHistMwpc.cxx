@@ -19,9 +19,12 @@ BmnHistMwpc::BmnHistMwpc(TString title = "MWPC") {
     fName = title + "_cl";
     for (Int_t i = 0; i < MWPC_PLANES; ++i)
         h_wires[i] = new TH1F(fTitle + "_" + Form("Plane_%d", i), Form("Plane_%d", i), MWPC_WIRES, 0, MWPC_WIRES);
+    TString name;
     MwpcHits = new TClonesArray("BmnMwpcHit");
-    h_MWPC1 = new TH2F("h_MWPC1", "MWPC #1", 200, -20, 20, 200, -20, 20);
-    h_MWPC2 = new TH2F("h_MWPC2", "MWPC #2", 200, -20, 20, 200, -20, 20);
+    name = fTitle + "_h_MWPC1";
+    h_MWPC1 = new TH2F(name, "MWPC #1", 200, -20, 20, 200, -20, 20);
+    name = fTitle + "_h_MWPC2";
+    h_MWPC2 = new TH2F(name, "MWPC #2", 200, -20, 20, 200, -20, 20);
     //    Int_t FI = TColor::CreateGradientColorTable(Number, Length, R, G, B, nb);
     //    for (Int_t i = 0; i < nb; ++i) {
     //        myPalette[i] = FI + i;
@@ -53,8 +56,8 @@ void BmnHistMwpc::Register(THttpServer *serv) {
     fServer->SetItemField(path.Data(), "_layout", "grid3x3");
     TString cmdTitle = path + "Reset";
     fServer->RegisterCommand(cmdTitle.Data(), cmd.Data(), "button;");
-    fServer->Restrict(cmdTitle, "visible=admin");
-    fServer->Restrict(cmdTitle, "allow=admin");
+    fServer->Restrict(cmdTitle, "visible=shift");
+    fServer->Restrict(cmdTitle, "allow=shift");
 }
 
 void BmnHistMwpc::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
@@ -64,6 +67,8 @@ void BmnHistMwpc::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
         dir = outFile->mkdir(fTitle + "_hists");
     for (Int_t i = 0; i < MWPC_PLANES; ++i)
         h_wires[i]->SetDirectory(dir);
+    h_MWPC1->SetDirectory(dir);
+    h_MWPC2->SetDirectory(dir);
 
 }
 
@@ -94,6 +99,8 @@ void BmnHistMwpc::FillFromDigi(TClonesArray * MwpcDigits, BmnEventHeader * head)
 void BmnHistMwpc::Reset() {
     for (Int_t i = 0; i < MWPC_PLANES; ++i)
         h_wires[i]->Reset();
+    h_MWPC1->Reset();
+    h_MWPC2->Reset();
 }
 
 

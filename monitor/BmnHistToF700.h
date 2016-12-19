@@ -45,8 +45,8 @@ public:
     TH1D *histAmp;
     TH1D *histAmpSpecific;
     TH1I *histStrip;
-    TH1I *histStripSimult;
-    TH2F *histState;
+//    TH1I *histStripSimult;
+//    TH2F *histState;
     
     void FillFromDigi(TClonesArray * ToF4Digits, BmnEventHeader * head, Int_t iEv);
     void SetSelection(Int_t Plane, Int_t Strip);

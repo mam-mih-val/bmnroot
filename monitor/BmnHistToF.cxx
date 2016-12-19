@@ -117,13 +117,13 @@ void BmnHistToF::Register(THttpServer *serv) {
     fServer->SetItemField(path.Data(), "_layout", "grid3x3");
     TString cmdTitle = path + "ChangeSlection";
     fServer->RegisterCommand(cmdTitle, TString("/") + fName.Data() + "/->SetSelection(%arg1%,%arg2%,%arg3%)", "button;");
-    fServer->Restrict(cmdTitle, "visible=admin");
-    fServer->Restrict(cmdTitle, "allow=admin");
+    fServer->Restrict(cmdTitle, "visible=shift");
+    fServer->Restrict(cmdTitle, "allow=shift");
     fServer->Restrict(cmdTitle.Data(), "deny=guest");
     cmdTitle = path + TString("Reset");
     fServer->RegisterCommand(cmdTitle, TString("/") + fName.Data() + "/->Reset()", "button;");
-    fServer->Restrict(cmdTitle.Data(), "visible=admin");
-    fServer->Restrict(cmdTitle.Data(), "allow=admin");
+    fServer->Restrict(cmdTitle.Data(), "visible=shift");
+    fServer->Restrict(cmdTitle.Data(), "allow=shift");
     fServer->Restrict(cmdTitle.Data(), "deny=guest");
 }
 

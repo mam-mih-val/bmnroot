@@ -10,6 +10,8 @@
 #include <sys/inotify.h>
 #include <sys/epoll.h>
 #include <fcntl.h>
+#include <root/TLatex.h>
+#include <root/TLegend.h>
 
 #include "BmnMonitor.h"
 
@@ -21,7 +23,7 @@ BmnMonitor::BmnMonitor() {
     fRecoTree4Show = NULL;
     fHistOut = NULL;
     fServer = NULL;
-    TString name = fTitle + "_infoCanvas";
+    TString name = "infoCanvas";
     infoCanvas = new TCanvas(name, name);
 }
 
@@ -65,13 +67,13 @@ void BmnMonitor::Monitor(TString dirname, TString startFile, Bool_t runCurrent) 
     //    fcntl(_inotifDir, F_SETFL, flags | O_NONBLOCK);
     if (!runCurrent) {
         _curFile = "";
-        _curFile = WatchNext(_curDir, _curFile, 1e5);
+        _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
         printf("first wn returned %s\n", _curFile.Data());
-        _curFile = WatchNext(_curDir, _curFile, 1e5);
+        _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
         printf("found new file %s\n", _curFile.Data());
     } else
         if (_curFile.Length() == 0) {
-        _curFile = WatchNext(_curDir, _curFile, 1e5);
+        _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
         printf("WN returned %s\n", _curFile.Data());
         //        _curFile = WatchNext(_inotifDir, 1e5);
     }
@@ -82,7 +84,7 @@ void BmnMonitor::Monitor(TString dirname, TString startFile, Bool_t runCurrent) 
 
     while (kTRUE) {
         ProcessFileRun(_curFile);
-        _curFile = WatchNext(_curDir, _curFile, 1e5);
+        _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
     }
     //    inotify_rm_watch(_inotifDir, _inotifDirW);
     //    close(_inotifDir);
@@ -91,24 +93,24 @@ void BmnMonitor::Monitor(TString dirname, TString startFile, Bool_t runCurrent) 
 
 BmnStatus BmnMonitor::BatchDirectory(TString dirname) {
     _curDir = dirname;
-//    TSystemDirectory dir0(_curDir, _curDir);
-//    TList *files0 = dir0.GetListOfFiles();
-//    if (files0) {
-//        files0->Sort(kSortAscending);
-//        TSystemFile *file0;
-//        TString fname0;
-//        TIter next0(files0);
-//        while ((file0 = (TSystemFile*) next0())) {
-//            fname0 = TString(file0->GetName());
-//            if (!file0->IsDirectory() && fname0.EndsWith("data")) {
-//                _curFile = fname0;
-//                break;
-//            }
-//        }
-//        delete file0;
-//        //        delete files0;
-//    } else
-//        return kBMNERROR;
+    TSystemDirectory dir0(_curDir, _curDir);
+    TList *files0 = dir0.GetListOfFiles();
+    if (files0) {
+        files0->Sort(kSortAscending);
+        TSystemFile *file0;
+        TString fname0;
+        TIter next0(files0);
+        while ((file0 = (TSystemFile*) next0())) {
+            fname0 = TString(file0->GetName());
+            if (!file0->IsDirectory() && fname0.EndsWith("data")) {
+                _curFile = fname0;
+                break;
+            }
+        }
+        delete file0;
+        //        delete files0;
+    } else
+        return kBMNERROR;
 
     InitServer();
     InitDecoder();
@@ -216,15 +218,12 @@ void BmnMonitor::CheckFileTime(TString Dir, vector<BmnRunInfo>* FileList) {
         FileList = new vector<BmnRunInfo>();
     else
         FileList->clear();
-    //    struct dirent
-
 }
 
 BmnStatus BmnMonitor::OpenFile(TString rawFileName) {
     DBG("opening file")
     TString outHistName = Form("bmn_run%04d_hist.root", runIndex);
     fHistOut = new TFile(outHistName, "recreate");
-    DBG("file created")
     fRecoTree = new TTree("BmnMon", "BmnMon");
     fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
     fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
@@ -360,6 +359,16 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhMWPC_4show->FillFromDigi(fDigiArrays.mwpc, head);
     fRecoTree4Show->Fill();
 //    TPad * infoPad = infoCanvas->cd(1);
+    infoCanvas->cd(1);
+//    infoPad->Clear();
+//    TLatex tltext(0.5, 0.5, "Run № ");
+    TLegend leg(0.1, 0.1, 0.8,0.8,
+            Form("Run #%d\nEvents %d",
+            rawDataDecoder->GetRunId(), rawDataDecoder->GetEventId()));
+            //(Char_t*)((head->GetTrig() == kBMNBEAM) ? "beam" : "target")));
+    leg.Draw();
+    infoCanvas->Modified();
+    infoCanvas->Update();
     //    if ((iEv % itersToUpdate == 0) && (iEv > 1)) {
     ////        bhGem->UpdateNoiseMask(0.5 * iEv);
     ////        bhGem_4show->ApplyNoiseMask(bhGem->GetNoiseMask());
@@ -400,6 +409,7 @@ void BmnMonitor::RegisterAll() {
     bhTrig_4show = new BmnHistTrigger("Triggers_");
 
     fServer->Register("/", infoCanvas);
+    fServer->Restrict(TString("/") + infoCanvas->GetName(), "visible=all");
     bhGem_4show->Register(fServer);
     bhDCH_4show->Register(fServer);
     bhMWPC_4show->Register(fServer);

@@ -36,7 +36,7 @@
 #include <UniDbDetectorParameter.h>
 
 // wait limit for input data
-#define WAIT_LIMIT 45000000
+#define WAIT_LIMIT 50000000
 using namespace std;
 
 struct DigiArrays {

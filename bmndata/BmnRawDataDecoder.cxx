@@ -722,7 +722,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
             fMwpcMapper->FillEvent(hrb, mwpc);
             fTof400Mapper->FillEvent(tdc, tof400);
-            //fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+            fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             if (iEv == fNevents - 1) {
                 fDigiTree->Branch("RunHeader", &runHeader);
                 if (runHeaderDAQ) {
@@ -888,7 +888,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fGemMapper->FillEvent(adc32, gem);
         fSiliconMapper->FillEvent(adc128, silicon);
         fTof400Mapper->FillEvent(tdc, tof400);
-        //fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+        fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
 
         fDigiTree->Fill();
     }
@@ -941,7 +941,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete fMwpcMapper;
     delete fTrigMapper;
     delete fTof400Mapper;
-    //delete fTof700Mapper;
+    delete fTof700Mapper;
 
     delete sync;
     delete adc32;

@@ -1,3 +1,23 @@
+// @(#)bmnroot/alignment:$Id$
+// Author: Pavel Batyk <pavel.batyuk@jinr.ru> 2016-01-01
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+// BmnGemAlignment                                                            //
+//                                                                            //
+// Alignment of GEM tracking detectors.                                       //
+//                                                                            //
+// Uses Volker Blobel and Claus Kleinwort Millepede II                        //
+//                                                                            //
+//                                                                            //
+//                                                                            //
+//                                                                            //
+//                                                                            //
+//                                                                            //
+//                                                                            //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
 #include   "BmnGemAlignment.h"
 
 #include   <algorithm>
@@ -17,70 +37,75 @@ using namespace TMath;
 
 Int_t BmnGemAlignment::fCurrentEvent = 0;
 
-BmnGemAlignment::BmnGemAlignment()
-: fResultName(""),
+BmnGemAlignment::BmnGemAlignment() :
+fResultName(""),
 fDebugInfo(kFALSE),
 fPreSigma(1.),
 fName(""),
 fAccuracy(1e-3),
 fNumOfIterations(50000),
-fNGL(0), nSelectedTracks(0),
+fNGL(0),
+nSelectedTracks(0),
 fChi2MaxPerNDF(LDBL_MAX),
 fMinHitsAccepted(3),
-fIsUseRealHitErrors(kFALSE),
+fUseRealHitErrors(kFALSE),
 fTxMin(-LDBL_MAX),
-fTxMax(LDBL_MAX),
+fTxMax( LDBL_MAX),
 fTyMin(-LDBL_MAX),
-fTyMax(LDBL_MAX),
-fIsRegul(kFALSE),
+fTyMax( LDBL_MAX),
+fUseRegularization(kFALSE),
 fHugecut(50.),
 fEntries(10),
 fOutlierdownweighting(0),
 fDwfractioncut(0.0),
 fFixX(kFALSE),
 fFixY(kFALSE),
-fFixZ(kFALSE), 
-fUseTrackWithMinChi2(kFALSE) {
+fFixZ(kFALSE),
+fUseTrackWithMinChi2(kFALSE)
+{
     fChisqcut[0] = 0.0;
     fChisqcut[1] = 0.0;
     // Declare branch names here
-    hitsBranch = "BmnGemStripHit";
-    tracksBranch = "BmnGemTracks";
-    alignCorrBranch = "BmnGemAlignmentCorrections";
-    fDetector = new BmnGemStripStationSet_RunWinter2016(fGeometry);
+    hitsBranch      =    "BmnGemStripHit";
+    tracksBranch    =    "BmnGemTracks";
+    alignCorrBranch =    "BmnGemAlignmentCorrections";
+    fDetector       = new BmnGemStripStationSet_RunWinter2016(fGeometry);
 }
 
-InitStatus BmnGemAlignment::Init() {
-    cout << "\nBmnGemAlignment::Init()\n ";
+InitStatus BmnGemAlignment::Init()
+{
+    cout << endl <<"BmnGemAlignment::Init()"<< endl;
     FairRootManager* ioman = FairRootManager::Instance();
-    fGemHits = (TClonesArray*) ioman->GetObject(hitsBranch.Data());
-    fGemTracks = (TClonesArray*) ioman->GetObject(tracksBranch.Data());
+    fGemHits   =    (TClonesArray*)ioman->GetObject(hitsBranch.Data());
+    fGemTracks =    (TClonesArray*)ioman->GetObject(tracksBranch.Data());
     fAlignCorr = new TClonesArray(alignCorrBranch.Data());
     ioman->Register(alignCorrBranch.Data(), "GEM", fAlignCorr, kTRUE);
     if (fRunType == "")
         Fatal("BmnGemReco::Init()", "Alignment type has not been specified!!!");
     fChain = ioman->GetInChain();
     fRecoFileName = ioman->GetInFile()->GetName();
-    fName = "alignment_" + fAlignmentType;
-    fin_txt = fopen(TString(fName + ".txt").Data(), "w");
+    fName = "alignment_"+fAlignmentType;
+    fin_txt = fopen(TString(fName+".txt").Data(), "w");
     return kSUCCESS;
 }
 
-void BmnGemAlignment::Exec(Option_t* opt) {
+void BmnGemAlignment::Exec(Option_t* opt)
+{
     StartMille();
     if (fChain->GetEntries() == fCurrentEvent) {
         fclose(fin_txt);
-        cout << "Num. of tracks to be used: " << nSelectedTracks << endl;
+        cout <<"Num. of tracks to be used: "<<nSelectedTracks<< endl;
         BinFilePede(); // Prepare bin-file for PEDE
-        StartPede(); // Start PEDE
+        StartPede();   // Start PEDE
     }
 }
 
-void BmnGemAlignment::StartMille() {
+void BmnGemAlignment::StartMille()
+{
     Int_t nPar = (fAlignmentType == "xy") ? 2 : 3;
     fCurrentEvent++;
     if (fCurrentEvent % 1000 == 0)
-        cout << "Event# = " << fCurrentEvent << endl;
+        cout <<"Event# = "<<fCurrentEvent<< endl;
     Int_t modTotal = 0;
     for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
         modTotal += fDetector->GetGemStation(iStat)->GetNModules();
@@ -88,15 +113,15 @@ void BmnGemAlignment::StartMille() {
     // Choose a single track with min. chi2-value (in case of target run)
     Double_t Chi2Min = LDBL_MAX;
     Int_t trID = 0;
-    if (fUseTrackWithMinChi2)
+    if (fUseTrackWithMinChi2) {
         for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
-            BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
+            BmnGemTrack* track = (BmnGemTrack*)fGemTracks->UncheckedAt(iTrack);
             if (track->GetChi2() < Chi2Min) {
                 Chi2Min = track->GetChi2();
                 trID = iTrack;
             }
         }
-
+    }
     for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
         BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
         if (fUseTrackWithMinChi2)
@@ -106,8 +131,14 @@ void BmnGemAlignment::StartMille() {
         Double_t chi2 = track->GetChi2();
         Double_t ndf = track->GetNDF();
         // Use track constraints if necessary
-        if (params->GetTx() < fTxMin || params->GetTx() > fTxMax || params->GetTy() < fTyMin || params->GetTy() > fTyMax || track->GetNHits() < fMinHitsAccepted
-                || chi2 / ndf > fChi2MaxPerNDF)
+        if ( !(
+        fTxMin < params->GetTx() && params->GetTx() < fTxMax
+        &&
+        fTyMin < params->GetTy() && params->GetTy() < fTyMax
+        &&
+        track->GetNHits() > fMinHitsAccepted
+        &&
+        chi2/ndf < fChi2MaxPerNDF) )
             continue;
         Int_t nModulesProcessed = 0;
         for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
@@ -116,9 +147,9 @@ void BmnGemAlignment::StartMille() {
                 nModulesProcessed++;
                 Int_t iHit;
                 for (iHit = 0; iHit < track->GetNHits(); iHit++) {
-                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetHitIndex(iHit));
+                    BmnGemStripHit* hit = (BmnGemStripHit*)fGemHits->UncheckedAt(track->GetHitIndex(iHit));
                     Short_t stat = hit->GetStation();
-                    Int_t mod = hit->GetModule();
+                    Int_t   mod  = hit->GetModule();
                     TString globDerX = "", globDerY = "", zeroEnd = "", zeroBeg = "";
                     if (stat == iStat && mod == iMod) {
                         Double_t X = hit->GetX();
@@ -126,14 +157,15 @@ void BmnGemAlignment::StartMille() {
                         Double_t Z = hit->GetZ();
                         Char_t* locDerX = Form("%d %d 1. %f 0. 0. ", stat, mod, Z);
                         Char_t* locDerY = Form("%d %d 0. 0. 1. %f ", stat, mod, Z);
-                        Char_t* measX = Form("%f %f ", X, fIsUseRealHitErrors ? hit->GetDx() : 1.);
-                        Char_t* measY = Form("%f %f ", Y, fIsUseRealHitErrors ? hit->GetDy() : 1.);
+                        Char_t* measX = Form("%f %f ", X, fUseRealHitErrors ? hit->GetDx() : 1.);
+                        Char_t* measY = Form("%f %f ", Y, fUseRealHitErrors ? hit->GetDy() : 1.);
                         Int_t N_zeros_beg = nPar * (nModulesProcessed - 1);
                         Int_t N_zeros_end = nPar * (modTotal - nModulesProcessed);
                         if (fAlignmentType == "xy") {
                             globDerX = "1. 0.";
                             globDerY = "0. 1.";
-                        } else {
+                        }
+                        else {
                             globDerX = TString(Form("1. 0. %f", track->GetParamFirst()->GetTx()));
                             globDerY = TString(Form("0. 1. %f", track->GetParamFirst()->GetTy()));
                         }
@@ -159,9 +191,10 @@ void BmnGemAlignment::StartMille() {
     }
 }
 
-void BmnGemAlignment::BinFilePede() {
+void BmnGemAlignment::BinFilePede()
+{
     ifstream fout_txt;
-    fout_txt.open(TString(fName + ".txt").Data(), ios::in);
+    fout_txt.open(TString(fName+".txt").Data(), ios::in);
     Int_t NLC = 4;
     Int_t NGL_PER_STAT = (fAlignmentType == "xy") ? 2 : 3;
     // Calculate number of glob. params.
@@ -177,7 +210,7 @@ void BmnGemAlignment::BinFilePede() {
     Int_t nMod;
     Int_t nGem;
     Double_t DerGl[dim], DerLc[NLC];
-    BmnMille* Mille = new BmnMille(TString(fName + ".bin").Data(), kTRUE, kFALSE);
+    BmnMille* Mille = new BmnMille(TString(fName+".bin").Data(), kTRUE, kFALSE);
     for (Int_t iTrack = 0; iTrack < nSelectedTracks; iTrack++) {
         for (Int_t iDim = 0; iDim < 2; iDim++)
             for (Int_t iStation = 0; iStation < fDetector->GetNStations(); iStation++) {
@@ -195,19 +228,20 @@ void BmnGemAlignment::BinFilePede() {
             }
         Mille->end();
         if (fDebugInfo)
-            cout << "========================> Another one RECORD = " << iTrack + 1 << " --> " << endl;
+            cout <<"========================> Another one RECORD = "<<iTrack + 1<<" --> "<< endl;
     }
     delete Mille;
     delete Labels;
     fout_txt.close();
 }
 
-void BmnGemAlignment::StartPede() {
+void BmnGemAlignment::StartPede()
+{
     MakeSteerFile(); // Create initial steer file
     fCommandToRunPede = "pede steer.txt";
     system(fCommandToRunPede.Data());
-    vector <Double_t> corr; // vector to store obtained corrections
-    // Put align. corrections to outFile
+    vector<Double_t> corr; // vector to store obtained corrections
+    // Put alignment corrections to outFile
     ifstream resFile("millepede.res", ios::in);
     ReadPedeOutput(resFile, corr);
     resFile.close();
@@ -222,14 +256,14 @@ void BmnGemAlignment::StartPede() {
                 buff[corrCounter] = corr[iPar];
                 corrCounter++;
                 if (corrCounter == ((fAlignmentType == "xy") ? 2 : 3)) {
-                    BmnGemAlignmentCorrections* tmp = new ((*fAlignCorr)[fAlignCorr->GetEntriesFast()]) BmnGemAlignmentCorrections();
+                    BmnGemAlignmentCorrections* tmp = new ((*fAlignCorr)[fAlignCorr->GetEntriesFast()])BmnGemAlignmentCorrections();
                     tmp->SetStation(iStat);
                     tmp->SetModule(iMod);
                     tmp->SetX(buff[0]);
                     tmp->SetY(buff[1]);
                     tmp->SetZ(buff[2]);
                     if (fDebugInfo)
-                        cout << buff[0] << " " << buff[1] << " " << buff[2] << endl;
+                        cout <<buff[0]<<" "<<buff[1]<<" "<<buff[2]<< endl;
                 }
                 if ((iPar + 1) % ((fAlignmentType == "xy") ? 2 : 3) == 0) {
                     nEntries = iPar + 1;
@@ -238,12 +272,13 @@ void BmnGemAlignment::StartPede() {
             }
         }
     }
-    //system(Form("cp millepede.res Millepede_%s_%s.res", fRecoFileName.Data(), fAlignmentType.Data()));
-    system(Form("cp millepede.res Millepede_%s_%s.res", fResultName.Data(), fAlignmentType.Data()));
+  //system(Form("cp millepede.res Millepede_%s_%s.res", fRecoFileName.Data(), fAlignmentType.Data()));
+    system(Form("cp millepede.res Millepede_%s_%s.res",   fResultName.Data(), fAlignmentType.Data()));
     system("rm millepede.*");
 }
 
-void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, vector <Double_t>& corr) {
+void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, vector<Double_t>& corr)
+{
     if (!resFile)
         Fatal("BmnGemReco::ReadPedeOutput", "No input file found!!");
     TString buff1 = "", buff2 = "", buff3 = "", buff4 = "", buff5 = "";
@@ -259,18 +294,19 @@ void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, vector <Double_t>& corr)
         else if (size == 68)
             ss >> buff1 >> buff2 >> buff3 >> buff4 >> buff5;
         else
-            cout << "Unsupported format given!";
+            cout <<"Unsupported format given!"<< endl;
         corr.push_back(buff2.Atof());
     }
 }
 
-void BmnGemAlignment::MakeSteerFile() {
+void BmnGemAlignment::MakeSteerFile()
+{
     FILE* steer = fopen("steer.txt", "w");
-    TString alignType = "alignment_" + fAlignmentType + ".bin";
+    TString alignType = "alignment_"+fAlignmentType+".bin";
     fprintf(steer, "%s\n", alignType.Data());
     fprintf(steer, "method inversion %d %f\n", fNumOfIterations, fAccuracy);
-    if (fIsRegul)
-        fprintf(steer, "regularisation 1.0\n");
+    if (fUseRegularization)
+        fprintf(steer, "regularization 1.0\n");
     fprintf(steer, "hugecut %G\n", fHugecut);
     if (fChisqcut[0] * fChisqcut[1] != 0)
         fprintf(steer, "chisqcut %G %G\n", fChisqcut[0], fChisqcut[1]);
@@ -309,7 +345,8 @@ void BmnGemAlignment::MakeSteerFile() {
     fclose(steer);
 }
 
-void BmnGemAlignment::DebugInfo(Int_t nGem, Int_t nMod, Int_t NLC, Int_t NGL, Double_t* DerLc, Double_t* DerGl, Double_t rMeasure, Double_t dMeasure) {
+void BmnGemAlignment::DebugInfo(Int_t nGem, Int_t nMod, Int_t NLC, Int_t NGL, Double_t* DerLc, Double_t* DerGl, Double_t rMeasure, Double_t dMeasure)
+{
     cout << "nGEM " << nGem << " nMod " << nMod << " nDerLc[ ] = ";
     for (Int_t icVar = 0; icVar < NLC; icVar++) cout << DerLc[icVar] << " ";
     cout << endl;

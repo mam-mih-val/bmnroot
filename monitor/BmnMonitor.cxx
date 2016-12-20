@@ -283,8 +283,8 @@ void BmnMonitor::ProcessStreamRun() {
     }
     rcvThread.join();
 
-//    rawDataDecoder->DisposeDecoder();
-//    rawDataDecoder->DisposeConverter();
+    //    rawDataDecoder->DisposeDecoder();
+    //    rawDataDecoder->DisposeConverter();
     delete dataReceiver;
     delete rawDataDecoder;
     FinishRun();
@@ -358,15 +358,28 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhDCH_4show->FillFromDigi(fDigiArrays.dch, head, iEv);
     bhMWPC_4show->FillFromDigi(fDigiArrays.mwpc, head);
     fRecoTree4Show->Fill();
-//    TPad * infoPad = infoCanvas->cd(1);
+    // print info canvas //
+    infoCanvas->Clear();
     infoCanvas->cd(1);
-//    infoPad->Clear();
-//    TLatex tltext(0.5, 0.5, "Run № ");
-    TLegend leg(0.1, 0.1, 0.8,0.8,
-            Form("Run #%d\nEvents %d",
-            rawDataDecoder->GetRunId(), rawDataDecoder->GetEventId()));
-            //(Char_t*)((head->GetTrig() == kBMNBEAM) ? "beam" : "target")));
-    leg.Draw();
+    TString  runType;
+    switch (head->GetTrig()) {
+        case kBMNBEAM:
+            runType = "Only beam";
+            break;
+        case kBMNMINBIAS:
+            runType = "With target";
+            break;
+        default:
+            runType = "???";
+            break;            
+    }
+        TLatex Tl;
+        Tl.SetTextAlign(23);
+        Tl.SetTextSize(0.16);
+        Tl.DrawLatex(0.5, 0.9, Form("Run: %04d", rawDataDecoder->GetRunId()));
+        Tl.DrawLatex(0.5, 0.6, Form("Event: %d", rawDataDecoder->GetEventId()));
+        Tl.DrawLatex(0.5, 0.3, Form("Run Type: %s", runType.Data()));
+        Tl.Draw();
     infoCanvas->Modified();
     infoCanvas->Update();
     //    if ((iEv % itersToUpdate == 0) && (iEv > 1)) {
@@ -429,9 +442,9 @@ void BmnMonitor::FinishRun() {
     bhTrig->SetDir(NULL, fRecoTree);
     fRecoTree->Write();
     fHistOut->Write();
-//    fHistOut->Close();
-//    fRecoTree->Clear();
-//    delete fRecoTree;
+    //    fHistOut->Close();
+    //    fRecoTree->Clear();
+    //    delete fRecoTree;
     fRecoTree4Show->Clear();
     delete fRecoTree4Show;
     string cmd;

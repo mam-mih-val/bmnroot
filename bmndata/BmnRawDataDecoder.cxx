@@ -315,8 +315,6 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len) {
     Long_t pos = ftello64(fRawFileIn);
     Int_t t = 0;
     Int_t dt = 10000;
-    Int_t size = 0;
-    struct stat st;
     while (fLengthRawFile < pos + len) {
         gSystem->ProcessEvents();
         usleep(dt);
@@ -324,11 +322,8 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len) {
         fLengthRawFile = ftello64(fRawFileIn);
         fseeko64(fRawFileIn, pos - fLengthRawFile, SEEK_CUR);
         t += dt;
-        if (t >= WAIT_LIMIT) {
-            printf("limit er\n");
+        if (t >= WAIT_LIMIT)
             return kBMNERROR;
-        }
-        size = st.st_size;
     }
     return kBMNSUCCESS;
 }

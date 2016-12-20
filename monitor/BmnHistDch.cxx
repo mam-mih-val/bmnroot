@@ -31,8 +31,11 @@ const TString names[kNPLANES] = {
 BmnHistDch::BmnHistDch(TString title = "DCH") {
     fTitle = title;
     fName = title + "_cl";
-    for (Int_t i = 0; i < kNPLANES; ++i)
+    for (Int_t i = 0; i < kNPLANES; ++i){
         h_wires[i] = new TH1F(fTitle + "_" + names[i], names[i], kNREALWIRES, 0, kNREALWIRES);
+        h_wires[i]->GetXaxis()->SetLabelSize(0.1);
+        h_wires[i]->GetYaxis()->SetLabelSize(0.1);
+    }
 //    Int_t FI = TColor::CreateGradientColorTable(Number, Length, R, G, B, nb);
 //    for (Int_t i = 0; i < nb; ++i) {
 //        myPalette[i] = FI + i;

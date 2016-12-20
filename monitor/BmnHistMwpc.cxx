@@ -17,8 +17,11 @@
 BmnHistMwpc::BmnHistMwpc(TString title = "MWPC") {
     fTitle = title;
     fName = title + "_cl";
-    for (Int_t i = 0; i < MWPC_PLANES; ++i)
+    for (Int_t i = 0; i < MWPC_PLANES; ++i){
         h_wires[i] = new TH1F(fTitle + "_" + Form("Plane_%d", i), Form("Plane_%d", i), MWPC_WIRES, 0, MWPC_WIRES);
+        h_wires[i]->GetXaxis()->SetLabelSize(0.1);
+        h_wires[i]->GetYaxis()->SetLabelSize(0.1);
+    }
     TString name;
     MwpcHits = new TClonesArray("BmnMwpcHit");
     name = fTitle + "_h_MWPC1";

@@ -911,7 +911,7 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     fLengthRawFile = ftello64(fRawFileIn);
     rewind(fRawFileIn);
     printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
-//    printf("RawRoot File %s\n\n", fRootFileName.Data());
+    //    printf("RawRoot File %s\n\n", fRootFileName.Data());
     fDigiTree->Reset();
     fDigiTree->Branch("EventHeader", &eventHeader);
     //fDigiTree->Branch("RunHeader", &runHeader);
@@ -926,7 +926,7 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     fDigiTree->Branch("TOF400", &tof400);
     fDigiTree->Branch("TOF700", &tof700);
     fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
-//    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
+    //    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
 }
 
@@ -1107,6 +1107,10 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
     Int_t runId = -1;
     FILE * file = fopen(name.Data(), "rb");
+    if (file == NULL) {
+        printf("File %s is not open!!!\n", name.Data());
+        return -1;
+    }
     UInt_t word;
     while (fread(&word, kWORDSIZE, 1, file)) {
         if (word == kRUNNUMBERSYNC) {

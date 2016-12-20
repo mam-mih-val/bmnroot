@@ -15,7 +15,7 @@
 #include <map>
 #include <UniDbDetectorParameter.h>
 
-#define N_WIRES_MWPC 96;
+#define N_WIRES_MWPC 96
 
 class BmnMwpcRaw2Digit {
 

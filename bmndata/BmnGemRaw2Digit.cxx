@@ -384,29 +384,29 @@ BmnStatus BmnGemRaw2Digit::FindNoisyStrips() {
                     for (Short_t i = 0; i < kNSAMPLES; ++i) {
                         Short_t idx = i + iBunch * kNSAMPLES;
                         //                        cout << fAdcProfiles[iCr][iCh][idx] << " ";
-                        if (fAdcProfiles[iCr][iCh][idx] > 0.50 * N_EV_FOR_PEDESTALS && channelOk[idx] == kTRUE) {
+                        if (fAdcProfiles[iCr][iCh][idx] > 0.40 * N_EV_FOR_PEDESTALS && channelOk[idx] == kTRUE) {
                             nOk[iBunch]--;
                             channelOk[idx] = kFALSE;
                             continue;
                         }
-//                        if (channelOk[idx] == kTRUE && fAdcProfiles[iCr][iCh][idx] == 0) {
-//                            //channelOk[idx] = kFALSE;
-//                            nOk[iBunch]--;
-//                            continue;
-//                        }
-//                        mean += (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx]);
-                        }
-//                    if (nOk[iBunch] == 0) continue;
-//                    mean /= nOk[iBunch];
-//                    for (Short_t i = 0; i < kNSAMPLES; ++i) {
-//                        Short_t idx = i + iBunch * kNSAMPLES;
-//                        if (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx] > coeff[itr] * mean) {
-//                            channelOk[idx] = kFALSE;
-//                            nOk[iBunch]--;
-//                        }
-//                    }
+                        //                        if (channelOk[idx] == kTRUE && fAdcProfiles[iCr][iCh][idx] == 0) {
+                        //                            //channelOk[idx] = kFALSE;
+                        //                            nOk[iBunch]--;
+                        //                            continue;
+                        //                        }
+                        //                        mean += (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx]);
                     }
-                        }
+                    //                    if (nOk[iBunch] == 0) continue;
+                    //                    mean /= nOk[iBunch];
+                    //                    for (Short_t i = 0; i < kNSAMPLES; ++i) {
+                    //                        Short_t idx = i + iBunch * kNSAMPLES;
+                    //                        if (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx] > coeff[itr] * mean) {
+                    //                            channelOk[idx] = kFALSE;
+                    //                            nOk[iBunch]--;
+                    //                        }
+                    //                    }
+                }
+            }
             for (Short_t i = 0; i < ADC32_N_SAMPLES; ++i)
                 fNoiseChannels[iCr][iCh][i] = !(channelOk[i]);
         }
@@ -503,14 +503,14 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
             }
     }
 
-    //    ofstream pedFile(Form("%s/input/GEM_pedestals_online.txt", getenv("VMCWORKDIR")));
-    //    pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
-    //    pedFile << "============================================" << endl;
-    //    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-    //        for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh)
-    //            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-    //                pedFile << hex << fSerials[iCr] << dec << "\t" << iCh * nSmpl + iSmpl << "\t" << fPedVal[iCr][iCh][iSmpl] << "\t" << fPedRms[iCr][iCh][iSmpl] << endl;
-    //    pedFile.close();
+    ofstream pedFile(Form("%s/input/GEM_pedestals.txt", getenv("VMCWORKDIR")));
+    pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
+    pedFile << "============================================" << endl;
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+        for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh)
+            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+                pedFile << hex << fSerials[iCr] << dec << "\t" << iCh * nSmpl + iSmpl << "\t" << fPedVal[iCr][iCh][iSmpl] << "\t" << fPedRms[iCr][iCh][iSmpl] << endl;
+    pedFile.close();
 
     fIsPedMapReady = kTRUE;
 

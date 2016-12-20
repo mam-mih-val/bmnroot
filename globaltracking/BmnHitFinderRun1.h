@@ -137,8 +137,10 @@ inline vector<Float_t> MergeSubPlanes(vector<BmnDchDigit*> vec1, vector<BmnDchDi
     vector<Float_t> v;
     for (Int_t i = 0; i < vec1.size(); ++i) {
         BmnDchDigit* d1 = (BmnDchDigit*) vec1.at(i);
+        if (d1->GetWireNumber() >= nWires) d1->SetWireNumber(d1->GetWireNumber() - nWires + 7 * 16);
         for (Int_t j = 0; j < vec2.size(); ++j) {
             BmnDchDigit* d2 = (BmnDchDigit*) vec2.at(j);
+            if (d2->GetWireNumber() >= nWires) d2->SetWireNumber(d2->GetWireNumber() - nWires + 7 * 16);
             if (Abs(d1->GetWireNumber() - d2->GetWireNumber()) > 1) continue;
             Float_t n = (d1->GetWireNumber() + d2->GetWireNumber()) / 2.0;
             //            Float_t coord = (InnerRadiusOfOctagon - WireStep) * (2.0 * n / (nWires - 1) - 1);

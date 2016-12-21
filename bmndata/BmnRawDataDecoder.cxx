@@ -171,11 +171,18 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     Int_t fEntriesInGlobMap = 0;
     UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
     if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);
-    delete mapPar;
+
     for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
         if (find(fGemSerials.begin(), fGemSerials.end(), fGemMap[i].serial) == fGemSerials.end())
             fGemSerials.push_back(fGemMap[i].serial);
     fNGemSerials = fGemSerials.size();
+
+    Int_t nEntries = 1;
+    mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
+    if (mapPar != NULL) mapPar->GetTriggerMapArray(fT0Map, nEntries);
+    else cerr << "No TO map found in DB" << endl;
+    delete mapPar;
+
 }
 
 BmnRawDataDecoder::~BmnRawDataDecoder() {
@@ -959,18 +966,18 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
 }
 
 BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
-    if (fGemMap == NULL) return kBMNERROR;
+    if (fT0Map == NULL) return kBMNERROR;
     Long64_t t0time = 0;
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
-        if (syncDig->GetSerial() == fGemMap->serial) {
+        if (syncDig->GetSerial() == fT0Map->serial) {
             t0time = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
             break;
         }
     }
     for (Int_t i = 0; i < sync->GetEntriesFast(); ++i) {
         BmnSyncDigit* syncDig = (BmnSyncDigit*) sync->At(i);
-        Long64_t syncTime = syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
+        Long64_t syncTime = (t0time == 0.0) ? 0 : syncDig->GetTime_ns() + syncDig->GetTime_sec() * 1000000000LL;
         fTimeShifts.insert(pair<UInt_t, Long64_t>(syncDig->GetSerial(), syncTime - t0time));
     }
 

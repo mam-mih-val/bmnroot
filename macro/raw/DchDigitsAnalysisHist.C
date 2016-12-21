@@ -25,7 +25,7 @@ const TString names[kNPLANES] = {
 };
 
 void DchDigitsAnalysisHist(UInt_t runId = 0) {
-    gStyle->SetOptStat(0);
+//    gStyle->SetOptStat(0);
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
@@ -49,7 +49,7 @@ void DchDigitsAnalysisHist(UInt_t runId = 0) {
         DchHits->Clear();
         eveTree->GetEntry(iEv);
         ProcessDchDigits(DchDigits, DchHits);
-        //cout << DchHits->GetEntriesFast() << endl;
+//        cout << DchHits->GetEntriesFast() << endl;
         for (Int_t iHit = 0; iHit < DchHits->GetEntriesFast(); ++iHit) {
             BmnDchHit* hit = (BmnDchHit*) DchHits->At(iHit);
             if (hit->GetDchId() == 1) h_DCH1->Fill(hit->GetX(), hit->GetY());

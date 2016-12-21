@@ -36,13 +36,13 @@ BmnMonitor::~BmnMonitor() {
     delete bhMWPC;
     delete bhTrig;
 
-    delete infoCanvas;
     //    delete fRecoTree;
     fRecoTree4Show->Clear();
     delete fRecoTree4Show;
     delete fHistOut;
 
     fServer->Unregister(infoCanvas);
+    delete infoCanvas;
 
     delete bhGem_4show;
     delete bhToF400_4show;
@@ -334,13 +334,12 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
             fDigiArrays.bc2,
             fDigiArrays.veto,
             fDigiArrays.fd,
-            fDigiArrays.bd,
-            head, iEv);
+            fDigiArrays.bd);
     bhGem->FillFromDigi(fDigiArrays.gem);
     bhToF400->FillFromDigi(fDigiArrays.tof400);
-    bhToF700->FillFromDigi(fDigiArrays.tof700, head, iEv);
-    bhDCH->FillFromDigi(fDigiArrays.dch, head, iEv);
-    bhMWPC->FillFromDigi(fDigiArrays.mwpc, head);
+    bhToF700->FillFromDigi(fDigiArrays.tof700);
+    bhDCH->FillFromDigi(fDigiArrays.dch);
+    bhMWPC->FillFromDigi(fDigiArrays.mwpc);
     // Fill data Tree //
     fRecoTree->Fill();
     // fill histograms what will be shown on the site//
@@ -350,13 +349,13 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
             fDigiArrays.bc2,
             fDigiArrays.veto,
             fDigiArrays.fd,
-            fDigiArrays.bd,
-            head, iEv);
-    bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv, head);
+            fDigiArrays.bd);
+    bhGem_4show->FillFromDigi(fDigiArrays.gem);
+//    bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv, head);
     bhToF400_4show->FillFromDigi(fDigiArrays.tof400);
-    bhToF700_4show->FillFromDigi(fDigiArrays.tof700, head, iEv);
-    bhDCH_4show->FillFromDigi(fDigiArrays.dch, head, iEv);
-    bhMWPC_4show->FillFromDigi(fDigiArrays.mwpc, head);
+    bhToF700_4show->FillFromDigi(fDigiArrays.tof700);
+    bhDCH_4show->FillFromDigi(fDigiArrays.dch);
+    bhMWPC_4show->FillFromDigi(fDigiArrays.mwpc);
     fRecoTree4Show->Fill();
     // print info canvas //
     infoCanvas->Clear();
@@ -364,10 +363,10 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     TString  runType;
     switch (head->GetTrig()) {
         case kBMNBEAM:
-            runType = "Only beam";
+            runType = "beam";
             break;
         case kBMNMINBIAS:
-            runType = "With target";
+            runType = "target";
             break;
         default:
             runType = "???";
@@ -422,7 +421,6 @@ void BmnMonitor::RegisterAll() {
     bhTrig_4show = new BmnHistTrigger("Triggers_");
 
     fServer->Register("/", infoCanvas);
-    fServer->Restrict(TString("/") + infoCanvas->GetName(), "visible=all");
     bhGem_4show->Register(fServer);
     bhDCH_4show->Register(fServer);
     bhMWPC_4show->Register(fServer);
@@ -434,12 +432,12 @@ void BmnMonitor::RegisterAll() {
 
 void BmnMonitor::FinishRun() {
     DBG("started")
-    bhGem->SetDir(NULL, fRecoTree);
-    bhToF400->SetDir(NULL, fRecoTree);
-    bhToF700->SetDir(NULL, fRecoTree);
-    bhDCH->SetDir(NULL, fRecoTree);
-    bhMWPC->SetDir(NULL, fRecoTree);
-    bhTrig->SetDir(NULL, fRecoTree);
+//    bhGem->SetDir(NULL, fRecoTree);
+//    bhToF400->SetDir(NULL, fRecoTree);
+//    bhToF700->SetDir(NULL, fRecoTree);
+//    bhDCH->SetDir(NULL, fRecoTree);
+//    bhMWPC->SetDir(NULL, fRecoTree);
+//    bhTrig->SetDir(NULL, fRecoTree);
     fRecoTree->Write();
     fHistOut->Write();
     //    fHistOut->Close();

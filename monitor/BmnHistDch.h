@@ -47,7 +47,7 @@ public:
     void Reset();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
-    void FillFromDigi(TClonesArray * DchDigits, BmnEventHeader * head, Int_t iEv);
+    void FillFromDigi(TClonesArray * DchDigits);
 
     TH1F * h_wires[kNPLANES];
     Float_t v_wires[kNPLANES][kNWIRES];

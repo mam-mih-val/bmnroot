@@ -1,7 +1,7 @@
 #include <TString.h>
 #include <TStopwatch.h>
 
-void gemAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst_573_all.root", TString addInfo = "") {
+void gemAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst_573_all.root", TString addInfo = "")
 {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries

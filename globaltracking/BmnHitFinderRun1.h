@@ -269,26 +269,26 @@ inline TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit * dJ, Float
 
     switch (localPlaneI) {
         case 2:
-            xI = xI;
+            xI = -xI;
             aI = 0.0;
             break;
-        case 0:
+        case 4:
             xI = xI;
             aI = -kAngleStep;
             break;
-        case 1:
+        case 3:
             xI = -xI;
             aI = kAngleStep;
             break;
         case 5:
-            xI = -xI;
+            xI = xI;
             aI = 0.0;
             break;
-        case 3:
+        case 1:
             xI = -xI;
             aI = -kAngleStep;
             break;
-        case 4:
+        case 0:
             xI = xI;
             aI = kAngleStep;
             break;
@@ -296,26 +296,26 @@ inline TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit * dJ, Float
 
     switch (localPlaneJ) {
         case 2:
-            xJ = xJ;
+            xJ = -xJ;
             aJ = 0.0;
             break;
-        case 0:
+        case 4:
             xJ = xJ;
             aJ = -kAngleStep;
             break;
-        case 1:
+        case 3:
             xJ = -xJ;
             aJ = kAngleStep;
             break;
         case 5:
-            xJ = -xJ;
+            xJ = xJ;
             aJ = 0.0;
             break;
-        case 3:
+        case 1:
             xJ = -xJ;
             aJ = -kAngleStep;
             break;
-        case 4:
+        case 0:
             xJ = xJ;
             aJ = kAngleStep;
             break;

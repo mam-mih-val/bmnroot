@@ -178,6 +178,8 @@ TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait
             if (strcmp(filename.Strip().Data(), retFname.Strip().Data()) != 0)
                 return retFname;
         }
+        fServer->ProcessRequests();
+        gSystem->ProcessEvents();
         usleep(cycleWait);
     }
 }
@@ -242,6 +244,20 @@ BmnStatus BmnMonitor::OpenFile(TString rawFileName) {
     bhToF400_4show->SetDir(NULL, fRecoTree4Show);
     bhToF700_4show->SetDir(NULL, fRecoTree4Show);
     bhTrig_4show->SetDir(NULL, fRecoTree4Show);
+    
+    bhToF400->Reset();
+    bhToF700->Reset();
+    bhDCH->Reset();
+    bhMWPC->Reset();
+    bhTrig->Reset();
+    bhGem->Reset();
+
+    bhToF400_4show->Reset();
+    bhToF700_4show->Reset();
+    bhDCH_4show->Reset();
+    bhMWPC_4show->Reset();
+    bhTrig_4show->Reset();
+    bhGem_4show->Reset();
     DBG("directory set for show hists")
 }
 
@@ -451,19 +467,6 @@ void BmnMonitor::FinishRun() {
 
     cmd = string("hadd -f shorter.root ") + fHistOut->GetName() +
             string("; mv shorter.root ") + fHistOut->GetName();
-    bhToF400->Reset();
-    bhToF700->Reset();
-    bhDCH->Reset();
-    bhMWPC->Reset();
-    bhTrig->Reset();
-    bhGem->Reset();
-
-    bhToF400_4show->Reset();
-    bhToF700_4show->Reset();
-    bhDCH_4show->Reset();
-    bhMWPC_4show->Reset();
-    bhTrig_4show->Reset();
-    bhGem_4show->Reset();
 
     system(cmd.c_str());
 }

@@ -19,7 +19,8 @@
 
 const UInt_t moduleCount[GEM_STATIONS_COUNT] = {1, 1, 1, 1, 2, 2, 2};
 const UInt_t layersCount[GEM_STATIONS_COUNT] = {2, 4, 4, 4, 4, 4, 4};
-const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 825, 1019};
+const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 1100, 1119};
+//const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 825, 1019};
 #define MAX_STRIPS 1020
 
 BmnHistGem::BmnHistGem(TString title, Bool_t createNoiseMask) {
@@ -35,9 +36,11 @@ BmnHistGem::BmnHistGem(TString title, Bool_t createNoiseMask) {
                 TH1F *h = new TH1F(name, name, nStrips[stationIndex], 0, nStrips[stationIndex]);
                 h->SetTitleSize(0.06, "XY");
                 h->SetLabelSize(0.08, "XY");
-                h->SetLabelColor(kOrange+5, "XY");
+                //                h->SetLabelColor(kOrange+5, "XY");
                 h->GetXaxis()->SetTitle("Strip Number");
+                h->GetXaxis()->SetTitleColor(kOrange + 5);
                 h->GetYaxis()->SetTitle("Activation Count");
+                h->GetYaxis()->SetTitleColor(kOrange + 5);
                 colGEM.push_back(h);
             }
             rowGEM.push_back(colGEM);

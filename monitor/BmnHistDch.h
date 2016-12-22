@@ -36,7 +36,7 @@
 #define kNREALWIRES 240
 #define kNWIRES     256
 #define Number        4
-#define DCH_WDTH    200
+#define DCH_WDTH    150
 
 using namespace std;
 

@@ -52,8 +52,16 @@ BmnHistDch::BmnHistDch(TString title = "DCH") {
     //    h_DCH2 = new TH2F("h_DCH2", "DCH #2", kNWIRES, -kNWIRES/2, kNWIRES/2, kNWIRES, -kNWIRES/2, kNWIRES/2);
     name = fTitle + "_h_DCH1";
     h_DCH1 = new TH2F(name, "DCH #1", 500, -DCH_WDTH, DCH_WDTH, 500, -DCH_WDTH, DCH_WDTH);
+    h_DCH1->GetXaxis()->SetTitle("X, cm");
+    h_DCH1->GetXaxis()->SetTitleColor(kOrange + 5);
+    h_DCH1->GetYaxis()->SetTitle("Y, cm");
+    h_DCH1->GetYaxis()->SetTitleColor(kOrange + 5);
     name = fTitle + "_h_DCH2";
     h_DCH2 = new TH2F(name, "DCH #2", 500, -DCH_WDTH, DCH_WDTH, 500, -DCH_WDTH, DCH_WDTH);
+    h_DCH2->GetXaxis()->SetTitle("X, cm");
+    h_DCH2->GetXaxis()->SetTitleColor(kOrange + 5);
+    h_DCH2->GetYaxis()->SetTitle("Y, cm");
+    h_DCH2->GetYaxis()->SetTitleColor(kOrange + 5);
 }
 
 BmnHistDch::~BmnHistDch() {

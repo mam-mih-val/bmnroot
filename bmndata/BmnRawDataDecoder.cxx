@@ -1121,5 +1121,5 @@ Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
             return runId;
         }
     }
-    fclose(fRawFileIn);
+    fclose(file);
 }

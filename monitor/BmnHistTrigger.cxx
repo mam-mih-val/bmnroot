@@ -44,11 +44,11 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     histVDTimeLen->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_BD_Channels";
     histBDChannels = new TH1I(name, name, BD_CHANNELS, 0, BD_CHANNELS);
-    histBDChannels->GetXaxis()->SetTitle("Time, ns");
+    histBDChannels->GetXaxis()->SetTitle("Channel #");
     histBDChannels->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_BD_Specific_Channel";
     histBDSpecific = new TH1D(name, name, 300, 0, 500);
-    histBDSpecific->GetXaxis()->SetTitle("Time, ns");
+    histBDSpecific->GetXaxis()->SetTitle("Channel #");
     histBDSpecific->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_Triggers_Counter";
     histTriggers = new TH1I(name, name, 5, 0, 5);

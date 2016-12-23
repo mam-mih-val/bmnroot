@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <iterator>
+#include <regex>
 
 #include <TNamed.h>
 #include "TFile.h"

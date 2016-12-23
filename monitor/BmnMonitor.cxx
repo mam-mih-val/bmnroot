@@ -1,7 +1,7 @@
 
 //#include <pthread.h>
 #include <thread>
-#include <mutex>
+#include <dirent.h>
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -93,45 +93,59 @@ void BmnMonitor::Monitor(TString dirname, TString startFile, Bool_t runCurrent) 
 
 BmnStatus BmnMonitor::BatchDirectory(TString dirname) {
     _curDir = dirname;
-    TSystemDirectory dir0(_curDir, _curDir);
-    TList *files0 = dir0.GetListOfFiles();
-    if (files0) {
-        files0->Sort(kSortAscending);
-        TSystemFile *file0;
-        TString fname0;
-        TIter next0(files0);
-        while ((file0 = (TSystemFile*) next0())) {
-            fname0 = TString(file0->GetName());
-            if (!file0->IsDirectory() && fname0.EndsWith("data")) {
-                _curFile = fname0;
+    struct dirent **namelist;
+    regex re("\\w+\\.data");
+    Int_t n;
+    n = scandir(dirname, &namelist, 0, versionsort);
+    if (n < 0){
+        perror("scandir");
+        return kBMNERROR;
+    }
+    else {
+        for (Int_t i = 0; i < n; ++i) {
+            printf("%s\n", namelist[i]->d_name);
+            if (regex_match(namelist[i]->d_name, re)){
+                _curFile = TString(namelist[i]->d_name);
                 break;
             }
         }
-        delete file0;
-        //        delete files0;
-    } else
-        return kBMNERROR;
+    }
 
     InitServer();
     InitDecoder();
     RegisterAll();
-    TSystemDirectory dir(_curDir, _curDir);
-    TList *files = dir.GetListOfFiles();
-    if (files) {
-        files->Sort(kSortAscending);
-        TSystemFile *file;
-        TString fname, retFname;
-        TIter next(files);
-        while ((file = (TSystemFile*) next())) {
-            fname = TString(file->GetName());
-            printf("fname = %s\n", fname.Data());
-            if (!file->IsDirectory() && fname.EndsWith("data"))
-                ProcessFileRun(fname);
-        }
-        delete file;
-        delete files;
-    } else
+    n = scandir(dirname, &namelist, 0, versionsort);
+    if (n < 0){
+        perror("scandir");
         return kBMNERROR;
+    }
+    else {
+        for (Int_t i = 0; i < n; ++i) {
+            printf("%s\n", namelist[i]->d_name);
+            if (regex_match(namelist[i]->d_name, re))
+                ProcessFileRun(TString(namelist[i]->d_name));
+            free(namelist[i]);
+        }
+        free(namelist);
+    }
+
+//    TSystemDirectory dir(_curDir, _curDir);
+//    TList *files = dir.GetListOfFiles();
+//    if (files) {
+//        files->Sort(kSortAscending);
+//        TSystemFile *file;
+//        TString fname, retFname;
+//        TIter next(files);
+//        while ((file = (TSystemFile*) next())) {
+//            fname = TString(file->GetName());
+//            printf("fname = %s\n", fname.Data());
+//            if (!file->IsDirectory() && fname.EndsWith("data"))
+//                ProcessFileRun(fname);
+//        }
+//        delete file;
+//        delete files;
+//    } else
+//        return kBMNERROR;
     return kBMNSUCCESS;
 }
 
@@ -160,28 +174,54 @@ void BmnMonitor::InitDecoder() {
 
 TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait) {
     DBG("started")
-    TSystemDirectory dir(dirname, dirname);
+    struct dirent **namelist;
+    regex re("\\w+\\.data");
+    Int_t n;
+    TString ret;
     while (kTRUE) {
-        TList *files = dir.GetListOfFiles();
-        if (files) {
-            files->Sort(kSortAscending);
-            TSystemFile *file;
-            TString fname, retFname;
-            TIter next(files);
-            while ((file = (TSystemFile*) next())) {
-                fname = TString(file->GetName());
-                if (!file->IsDirectory() && fname.EndsWith("data"))
-                    retFname = fname;
+        n = scandir(dirname, &namelist, 0, versionsort);
+        if (n < 0)
+            perror("scandir");
+        else {
+            for (Int_t i = 0; i < n; ++i) {
+                printf("%s\n", namelist[i]->d_name);
+                if (regex_match(namelist[i]->d_name, re)) {
+                    ret = namelist[i]->d_name;
+                    printf("!!!%s\n", namelist[i]->d_name);
+                }
+                free(namelist[i]);
             }
-            delete file;
-            delete files;
-            if (strcmp(filename.Strip().Data(), retFname.Strip().Data()) != 0)
-                return retFname;
+            free(namelist);
         }
+        if (strcmp(filename.Strip().Data(), ret.Strip().Data()) != 0)
+            return ret;
         fServer->ProcessRequests();
         gSystem->ProcessEvents();
         usleep(cycleWait);
     }
+
+    //    TSystemDirectory dir(dirname, dirname);
+    //    while (kTRUE) {
+    //        TList *files = dir.GetListOfFiles();
+    //        if (files) {
+    //            files->Sort(kSortAscending);
+    //            TSystemFile *file;
+    //            TString fname, retFname;
+    //            TIter next(files);
+    //            while ((file = (TSystemFile*) next())) {
+    //                fname = TString(file->GetName());
+    //                if (!file->IsDirectory() && fname.EndsWith("data"))
+    //                    retFname = fname;
+    //            }
+    //            delete file;
+    //            delete files;
+    //            if (strcmp(filename.Strip().Data(), retFname.Strip().Data()) != 0)
+    //                return retFname;
+    //        }
+    //        fServer->ProcessRequests();
+    //        gSystem->ProcessEvents();
+    //        usleep(cycleWait);
+    //    }
 }
 
 TString BmnMonitor::WatchNext(Int_t inotifDir, Int_t cycleWait) {
@@ -244,7 +284,7 @@ BmnStatus BmnMonitor::OpenFile(TString rawFileName) {
     bhToF400_4show->SetDir(NULL, fRecoTree4Show);
     bhToF700_4show->SetDir(NULL, fRecoTree4Show);
     bhTrig_4show->SetDir(NULL, fRecoTree4Show);
-    
+
     bhToF400->Reset();
     bhToF700->Reset();
     bhDCH->Reset();
@@ -367,7 +407,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
             fDigiArrays.fd,
             fDigiArrays.bd);
     bhGem_4show->FillFromDigi(fDigiArrays.gem);
-//    bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv, head);
+    //    bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv, head);
     bhToF400_4show->FillFromDigi(fDigiArrays.tof400);
     bhToF700_4show->FillFromDigi(fDigiArrays.tof700);
     bhDCH_4show->FillFromDigi(fDigiArrays.dch);
@@ -376,7 +416,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     // print info canvas //
     infoCanvas->Clear();
     infoCanvas->cd(1);
-    TString  runType;
+    TString runType;
     switch (head->GetTrig()) {
         case kBMNBEAM:
             runType = "beam";
@@ -386,15 +426,15 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
             break;
         default:
             runType = "???";
-            break;            
+            break;
     }
-        TLatex Tl;
-        Tl.SetTextAlign(23);
-        Tl.SetTextSize(0.16);
-        Tl.DrawLatex(0.5, 0.9, Form("Run: %04d", rawDataDecoder->GetRunId()));
-        Tl.DrawLatex(0.5, 0.6, Form("Event: %d", rawDataDecoder->GetEventId()));
-        Tl.DrawLatex(0.5, 0.3, Form("Run Type: %s", runType.Data()));
-        Tl.Draw();
+    TLatex Tl;
+    Tl.SetTextAlign(23);
+    Tl.SetTextSize(0.16);
+    Tl.DrawLatex(0.5, 0.9, Form("Run: %04d", rawDataDecoder->GetRunId()));
+    Tl.DrawLatex(0.5, 0.6, Form("Event: %d", rawDataDecoder->GetEventId()));
+    Tl.DrawLatex(0.5, 0.3, Form("Run Type: %s", runType.Data()));
+    Tl.Draw();
     infoCanvas->Modified();
     infoCanvas->Update();
     //    if ((iEv % itersToUpdate == 0) && (iEv > 1)) {
@@ -448,12 +488,12 @@ void BmnMonitor::RegisterAll() {
 
 void BmnMonitor::FinishRun() {
     DBG("started")
-//    bhGem->SetDir(NULL, fRecoTree);
-//    bhToF400->SetDir(NULL, fRecoTree);
-//    bhToF700->SetDir(NULL, fRecoTree);
-//    bhDCH->SetDir(NULL, fRecoTree);
-//    bhMWPC->SetDir(NULL, fRecoTree);
-//    bhTrig->SetDir(NULL, fRecoTree);
+    //    bhGem->SetDir(NULL, fRecoTree);
+    //    bhToF400->SetDir(NULL, fRecoTree);
+    //    bhToF700->SetDir(NULL, fRecoTree);
+    //    bhDCH->SetDir(NULL, fRecoTree);
+    //    bhMWPC->SetDir(NULL, fRecoTree);
+    //    bhTrig->SetDir(NULL, fRecoTree);
     fRecoTree->Write();
     fHistOut->Write();
     //    fHistOut->Close();

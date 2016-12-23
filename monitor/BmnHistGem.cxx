@@ -117,23 +117,15 @@ void BmnHistGem::FillFromDigi(TClonesArray * gemDigits) {
     }
 }
 
-void BmnHistGem::FillFromDigiMasked(TClonesArray * gemDigits, vector<vector<vector<TH1F*> > >* hist0, Double_t threshold, BmnEventHeader * head) {//vector<vector<vector<Int_t*> > >* mask) {
+void BmnHistGem::FillFromDigiMasked(TClonesArray * gemDigits, vector<vector<vector<TH1F*> > >* hist0, Double_t threshold) {//vector<vector<vector<Int_t*> > >* mask) {
     for (Int_t digIndex = 0; digIndex < gemDigits->GetEntriesFast(); digIndex++) {
         BmnGemStripDigit* gs = (BmnGemStripDigit*) gemDigits->At(digIndex);
         Int_t module = gs->GetModule();
         Int_t station = gs->GetStation();
         Int_t layer = gs->GetStripLayer();
         Int_t gemStrip = gs->GetStripNumber();
-        //        cout << "station " << station << " module " << module << " layer "<< layer << " strip " << gemStrip<<endl;
-        //        cout << histGemStrip[station][module][layer] << endl;
-        //        cout << histGemStrip[station][module][layer]->GetTitle() << endl;
-        //        cout << " hist0 getbincontent " << (*hist0)[station][module][layer]->GetBinContent(gemStrip) << endl;
-        //        cout << " hist getbincontent " << histGemStrip[station][module][layer]->GetBinContent(gemStrip) << endl;
         if ((*hist0)[station][module][layer]->GetBinContent((*hist0)[station][module][layer]->FindBin(gemStrip)) <= threshold * 0.7)
             histGemStrip[station][module][layer]->AddBinContent(histGemStrip[station][module][layer]->FindBin(gemStrip));
-        //            histGemStrip[station][module][layer]->Fill(gemStrip);
-        TString name = Form(fTitle + "_Station_%d_module_%d_layer_%d_Run%d", station, module, layer, head->GetRunId());
-        histGemStrip[station][module][layer]->SetTitle(name);
     }
 }
 

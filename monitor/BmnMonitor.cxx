@@ -68,13 +68,10 @@ void BmnMonitor::Monitor(TString dirname, TString startFile, Bool_t runCurrent) 
     if (!runCurrent) {
         _curFile = "";
         _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
-        printf("first wn returned %s\n", _curFile.Data());
         _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
-        printf("found new file %s\n", _curFile.Data());
     } else
         if (_curFile.Length() == 0) {
         _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
-        printf("WN returned %s\n", _curFile.Data());
         //        _curFile = WatchNext(_inotifDir, 1e5);
     }
     //    _inotifFile = inotify_init();
@@ -103,7 +100,6 @@ BmnStatus BmnMonitor::BatchDirectory(TString dirname) {
     }
     else {
         for (Int_t i = 0; i < n; ++i) {
-            printf("%s\n", namelist[i]->d_name);
             if (regex_match(namelist[i]->d_name, re)){
                 _curFile = TString(namelist[i]->d_name);
                 break;
@@ -121,31 +117,12 @@ BmnStatus BmnMonitor::BatchDirectory(TString dirname) {
     }
     else {
         for (Int_t i = 0; i < n; ++i) {
-            printf("%s\n", namelist[i]->d_name);
             if (regex_match(namelist[i]->d_name, re))
                 ProcessFileRun(TString(namelist[i]->d_name));
             free(namelist[i]);
         }
         free(namelist);
     }
-
-//    TSystemDirectory dir(_curDir, _curDir);
-//    TList *files = dir.GetListOfFiles();
-//    if (files) {
-//        files->Sort(kSortAscending);
-//        TSystemFile *file;
-//        TString fname, retFname;
-//        TIter next(files);
-//        while ((file = (TSystemFile*) next())) {
-//            fname = TString(file->GetName());
-//            printf("fname = %s\n", fname.Data());
-//            if (!file->IsDirectory() && fname.EndsWith("data"))
-//                ProcessFileRun(fname);
-//        }
-//        delete file;
-//        delete files;
-//    } else
-//        return kBMNERROR;
     return kBMNSUCCESS;
 }
 
@@ -184,11 +161,8 @@ TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait
             perror("scandir");
         else {
             for (Int_t i = 0; i < n; ++i) {
-                printf("%s\n", namelist[i]->d_name);
-                if (regex_match(namelist[i]->d_name, re)) {
+                if (regex_match(namelist[i]->d_name, re))
                     ret = namelist[i]->d_name;
-                    printf("!!!%s\n", namelist[i]->d_name);
-                }
                 free(namelist[i]);
             }
             free(namelist);
@@ -199,29 +173,6 @@ TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait
         gSystem->ProcessEvents();
         usleep(cycleWait);
     }
-
-    //    TSystemDirectory dir(dirname, dirname);
-    //    while (kTRUE) {
-    //        TList *files = dir.GetListOfFiles();
-    //        if (files) {
-    //            files->Sort(kSortAscending);
-    //            TSystemFile *file;
-    //            TString fname, retFname;
-    //            TIter next(files);
-    //            while ((file = (TSystemFile*) next())) {
-    //                fname = TString(file->GetName());
-    //                if (!file->IsDirectory() && fname.EndsWith("data"))
-    //                    retFname = fname;
-    //            }
-    //            delete file;
-    //            delete files;
-    //            if (strcmp(filename.Strip().Data(), retFname.Strip().Data()) != 0)
-    //                return retFname;
-    //        }
-    //        fServer->ProcessRequests();
-    //        gSystem->ProcessEvents();
-    //        usleep(cycleWait);
-    //    }
 }
 
 TString BmnMonitor::WatchNext(Int_t inotifDir, Int_t cycleWait) {
@@ -406,8 +357,8 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
             fDigiArrays.veto,
             fDigiArrays.fd,
             fDigiArrays.bd);
-    bhGem_4show->FillFromDigi(fDigiArrays.gem);
-    //    bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv, head);
+//    bhGem_4show->FillFromDigi(fDigiArrays.gem);
+        bhGem_4show->FillFromDigiMasked(fDigiArrays.gem, &(bhGem->histGemStrip), iEv);
     bhToF400_4show->FillFromDigi(fDigiArrays.tof400);
     bhToF700_4show->FillFromDigi(fDigiArrays.tof700);
     bhDCH_4show->FillFromDigi(fDigiArrays.dch);

@@ -927,7 +927,7 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     fDigiTree->Branch("GEM", &gem);
     fDigiTree->Branch("TOF400", &tof400);
     fDigiTree->Branch("TOF700", &tof700);
-    fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
+    fRunId = GetRunIdFromFile(fRawFileName);
     //    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
 }

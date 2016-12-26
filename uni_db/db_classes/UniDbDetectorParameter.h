@@ -124,7 +124,7 @@ class UniDbDetectorParameter
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
-	/// get common detector parameter value
+    /// get common detector parameter value
     static UniDbDetectorParameter* GetDetectorParameter(TString detector_name, TString parameter_name, int period_number, int run_number);
 	/// get TDC/ADC parameter value
     static UniDbDetectorParameter* GetDetectorParameter(TString detector_name, TString parameter_name, int period_number, int run_number, unsigned int dc_serial, int channel);
@@ -139,6 +139,15 @@ class UniDbDetectorParameter
 
     /// get parameter name of the current detector parameter
     TString GetParameterName();
+
+    /// get start period and run of the current detector parameter
+    void GetStart(int& start_period, int& start_run);
+    /// get end period and run of the current detector parameter
+    void GetEnd(int& end_period, int& end_run);
+    /// set start period and run of the current detector parameter
+    int SetStart(int start_period, int start_run);
+    /// set end period and run of the current detector parameter
+    int SetEnd(int end_period, int end_run);
 
 	// common function for adding common parameter value
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,

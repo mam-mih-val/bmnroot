@@ -126,6 +126,18 @@ BmnStatus BmnMonitor::BatchDirectory(TString dirname) {
     return kBMNSUCCESS;
 }
 
+BmnStatus BmnMonitor::BatchList(TString* files, Int_t count) {
+    _curFile = files[0];
+    InitServer();
+    InitDecoder();
+    RegisterAll();
+    for (Int_t i = 0; i < count; i++){
+        ProcessFileRun(files[i]);
+        }
+    return kBMNSUCCESS;
+}
+
+
 void BmnMonitor::InitServer() {
     if (gSystem->AccessPathName("auth.htdigest") != 0) {
         printf("Authorization file not found\nStarting server without authorization\n");
@@ -215,7 +227,7 @@ void BmnMonitor::CheckFileTime(TString Dir, vector<BmnRunInfo>* FileList) {
 
 BmnStatus BmnMonitor::OpenFile(TString rawFileName) {
     DBG("opening file")
-    TString outHistName = Form("bmn_run%04d_hist.root", runIndex);
+    TString outHistName = Form("bmn_run%04d_hist.root", rawDataDecoder->GetRunId());
     fHistOut = new TFile(outHistName, "recreate");
     fRecoTree = new TTree("BmnMon", "BmnMon");
     fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
@@ -299,13 +311,36 @@ void BmnMonitor::ProcessStreamRun() {
 }
 
 void BmnMonitor::ProcessFileRun(TString rawFileName) {
-    runIndex = TString(rawFileName(rawFileName.Length() - 8, 3)).Atoi();
+        printf("File %s \n", TString(_curDir + rawFileName).Data());
     Int_t iEv = 0;
     Int_t lastEv = 0;
     TString nextFile;
     BmnStatus convertResult = kBMNSUCCESS;
-    OpenFile(rawFileName);
+    
+const UInt_t kRUNNUMBERSYNC = 0x236E7552;
+const size_t kWORDSIZE = sizeof (UInt_t);
+const Short_t kNBYTESINWORD = 4;
+    Int_t runId = -1;
+    FILE * file = fopen(TString(_curDir + rawFileName).Data(), "rb");
+    if (file == NULL) {
+        printf("File %s is not open!!!\n", TString(_curDir + rawFileName).Data());
+        return;
+    }
+    UInt_t word;
+    while (fread(&word, kWORDSIZE, 1, file)) {
+        if (word == kRUNNUMBERSYNC) {
+            fread(&word, kWORDSIZE, 1, file); //skip word
+            fread(&runId, kWORDSIZE, 1, file);
+            break;
+        }
+    }
+    fclose(file);
+    printf("run id = %d\n", runId);
+//    if (runId < 573)
+//        return;
+    
     rawDataDecoder->ResetDecoder(_curDir + rawFileName);
+    OpenFile(rawFileName);
 
     while (kTRUE) {
         convertResult = rawDataDecoder->ConvertRawToRootIterateFile();
@@ -445,8 +480,8 @@ void BmnMonitor::FinishRun() {
     //    bhDCH->SetDir(NULL, fRecoTree);
     //    bhMWPC->SetDir(NULL, fRecoTree);
     //    bhTrig->SetDir(NULL, fRecoTree);
-    fRecoTree->Write();
-    fHistOut->Write();
+    printf("fRecoTree Write result = %d\n", fRecoTree->Write());
+    printf("fHistOut  Write result = %d\n", fHistOut->Write());
     //    fHistOut->Close();
     //    fRecoTree->Clear();
     //    delete fRecoTree;
@@ -454,12 +489,12 @@ void BmnMonitor::FinishRun() {
     delete fRecoTree4Show;
     string cmd;
     cmd = string("chmod 775 ") + fHistOut->GetName();
-    system(cmd.c_str());
+    printf("system result = %d\n", system(cmd.c_str()));
 
     cmd = string("hadd -f shorter.root ") + fHistOut->GetName() +
             string("; mv shorter.root ") + fHistOut->GetName();
 
-    system(cmd.c_str());
+    printf("system result = %d\n", system(cmd.c_str()));
 }
 
 void BmnMonitor::threadWrapper(BmnDataReceiver* dr) {

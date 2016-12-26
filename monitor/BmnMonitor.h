@@ -50,6 +50,7 @@ public:
     virtual ~BmnMonitor();
     void Monitor(TString dir, TString startFile = "", Bool_t runCurrent = kTRUE);//"/home/ilnur/mnt/test/mpd-evb/TrigWord/mpd_run_Glob_306.data");
     BmnStatus BatchDirectory(TString dirname);
+    BmnStatus BatchList(TString*, Int_t count);
     void ProcessRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
     void ProcessStreamRun();
     void ProcessFileRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");

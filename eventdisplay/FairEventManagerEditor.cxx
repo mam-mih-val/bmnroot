@@ -22,6 +22,8 @@
 #include "TGWindow.h"
 #include <TGLViewer.h>
 #include <TGLScenePad.h>
+#include "TEveBrowser.h"
+#include "TEveGedEditor.h"
 
 #include <iostream>
 using namespace std;
@@ -59,7 +61,7 @@ void FairEventManagerEditor::Init()
     // create tab for event visualization
     MakeTitle("FairEventManager  Editor");
     TGVerticalFrame* fInfoFrame = CreateEditorTabSubFrame("Event Info");
-    title1 = new TGCompositeFrame(fInfoFrame, 250, 10, kVerticalFrame | kLHintsExpandX | kFixedWidth | kOwnBackground);
+    TGCompositeFrame* title1 = new TGCompositeFrame(fInfoFrame, 250, 10, kVerticalFrame | kLHintsExpandX | kFixedWidth | kOwnBackground);
 
     // display file name
     TString Infile = "File: ";
@@ -145,14 +147,14 @@ void FairEventManagerEditor::Init()
     title1->AddFrame(fMaxEnergy, new TGLayoutHints(kLHintsTop, 1, 1, 1, 0));
     fManager->SetMaxEnergy(MAX_ENERGY);
 
-    TGHorizontalFrame* fGeometryFrame = new TGHorizontalFrame(title1);
+    fGeometryFrame = new TGHorizontalFrame(title1);
     // button: whether show detector geometry or not
     fGeometry = new TGCheckButton(fGeometryFrame, "show geometry");
     fGeometryFrame->AddFrame(fGeometry, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,1,1));
     fGeometry->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowGeometry(Bool_t)");
     fGeometry->SetOn();
     // button: whether show magnet or not
-    TGCheckButton* ShowMagnetButton = new TGCheckButton(fGeometryFrame, "show magnet");
+    ShowMagnetButton = new TGCheckButton(fGeometryFrame, "show magnet");
     fGeometryFrame->AddFrame(ShowMagnetButton, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,1,1));
     ShowMagnetButton->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMagnet(Bool_t)");
     ShowMagnetButton->SetOn();
@@ -174,7 +176,7 @@ void FairEventManagerEditor::Init()
     }
 
     // group for displaying simulation and reconstruction data
-    groupData = new TGGroupFrame(title1, "Show MC and reco data");
+    TGGroupFrame* groupData = new TGGroupFrame(title1, "Show MC and reco data");
     groupData->SetTitlePos(TGGroupFrame::kCenter);
 
     TGHorizontalFrame* framePointsInfo = new TGHorizontalFrame(groupData);
@@ -300,6 +302,11 @@ void FairEventManagerEditor::SelectPDG()
 // show or hide detector geometry
 void FairEventManagerEditor::ShowGeometry(Bool_t is_show)
 {
+    // set cursor HourClock
+    gVirtualX->SetCursor(gEve->GetMainWindow()->GetId(), gVirtualX->CreateCursor(kWatch));
+    gVirtualX->SetCursor(gEve->GetLTEFrame()->GetListTree()->GetId(), gVirtualX->CreateCursor(kWatch));
+    gVirtualX->SetCursor(gEve->GetLTEFrame()->GetEditor()->GetId(), gVirtualX->CreateCursor(kWatch));
+
     gEve->GetGlobalScene()->SetRnrState(is_show);
     if (!fManager->isOnline)
     {
@@ -307,7 +314,19 @@ void FairEventManagerEditor::ShowGeometry(Bool_t is_show)
         fManager->fRhoZGeomScene->SetRnrState(is_show);
     }
 
+    // disable Magnet show choice while hiding of detector geometry
+    if (!is_show)
+        fGeometryFrame->HideFrame(ShowMagnetButton);
+    else
+        fGeometryFrame->ShowFrame(ShowMagnetButton);
+
     gEve->Redraw3D();
+
+    // set cursor Pointer
+    gSystem->ProcessEvents();
+    gVirtualX->SetCursor(gEve->GetMainWindow()->GetId(), gVirtualX->CreateCursor(kPointer));
+    gVirtualX->SetCursor(gEve->GetLTEFrame()->GetListTree()->GetId(), gVirtualX->CreateCursor(kPointer));
+    gVirtualX->SetCursor(gEve->GetLTEFrame()->GetEditor()->GetId(), gVirtualX->CreateCursor(kPointer));
 }
 
 // show or hide magnet

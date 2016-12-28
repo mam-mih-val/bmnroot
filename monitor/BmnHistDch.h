@@ -29,13 +29,14 @@
 #include "TString.h"
 #include "THttpServer.h"
 #include "BmnDchDigit.h"
+#include "BmnDchHit.h"
 #include "BmnEventHeader.h"
 
 #define kNPLANES     16
 #define kNREALWIRES 240
 #define kNWIRES     256
 #define Number        4
-#define nb          100
+#define DCH_WDTH    150
 
 using namespace std;
 
@@ -46,7 +47,7 @@ public:
     void Reset();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
-    void FillFromDigi(TClonesArray * DchDigits, BmnEventHeader * head, Int_t iEv);
+    void FillFromDigi(TClonesArray * DchDigits);
 
     TH1F * h_wires[kNPLANES];
     Float_t v_wires[kNPLANES][kNWIRES];
@@ -54,8 +55,10 @@ public:
 private:
     THttpServer *fServer;
     TTree *frecoTree;
+    TClonesArray* fDchHits;
+    TH2F* h_DCH1;
+    TH2F* h_DCH2;
 
-    Int_t myPalette[nb];
 
 
     ClassDef(BmnHistDch, 1)

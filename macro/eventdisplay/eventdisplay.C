@@ -208,16 +208,6 @@ void SetTasks(FairEventManager* fMan, int data_source)
     // FOR EXPERIMENTAL DATA : set drawing tasks
     if (data_source == 1)
     {
-        /** experimental digits
-        // draw MWPC digits
-        BmnDigitDraw* MwpcDigit = new BmnDigitDraw("bmn_mwpc_digit", 1, expPointColor, pointMarker);
-        fMan->AddTask(MwpcDigit);
-        
-        // draw DCH digits
-        BmnDigitDraw* DchDigit = new BmnDigitDraw("bmn_dch_digit", 2, expPointColor, pointMarker);
-        fMan->AddTask(DchDigit);**/
-
-        // experimental reconstructed data
         // draw MWPC hits
         FairHitPointSetDraw* MwpcHit = new FairHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
         fMan->AddTask(MwpcHit);

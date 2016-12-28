@@ -39,12 +39,15 @@ public:
     void Reset();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
-    void FillFromDigi(TClonesArray * DchDigits, BmnEventHeader * head);
+    void FillFromDigi(TClonesArray * DchDigits);
 
 private:
     THttpServer *fServer;
     TTree *frecoTree;
     TH1F * h_wires[MWPC_PLANES];
+    TClonesArray* MwpcHits;
+    TH2F* h_MWPC1;
+    TH2F* h_MWPC2;
 
     ClassDef(BmnHistMwpc, 1)
 };

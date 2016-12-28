@@ -21,11 +21,6 @@
 
 // BmnRoot
 #pragma link C++ class FairMCModuleDraw;
-#pragma link C++ class RawDataParser;
-#pragma link C++ class RawDataConverter;
-#pragma link C++ class RawMWPCDigitDraw;
-#pragma link C++ class EventData;
-#pragma link C++ class BmnDigitDraw;
 #pragma link C++ class BmnTrackDrawH;
 #pragma link C++ class BmnTrackDrawP;
 #pragma link C++ class BmnGlobalTrackDraw;

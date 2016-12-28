@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <iterator>
+#include <regex>
 
 #include <TNamed.h>
 #include "TFile.h"
@@ -31,7 +32,7 @@
 #include "BmnHistMwpc.h"
 #include "BmnHistGem.h"
 
-#define RUN_FILE_CHECK_PERIOD 100000
+#define RUN_FILE_CHECK_PERIOD 1e5
 #define TTREE_MAX_SIZE 3e11
 
 using namespace std;
@@ -64,6 +65,8 @@ public:
     void SetDigiTree(TTree * v)       { fDigiTree = v;}
 
 private:
+    void InitServer();
+    void InitDecoder();
     void ProcessDigi(Int_t iEv);
     void RegisterAll();
     static void CheckFileTime(TString Dir, vector<BmnRunInfo>* FileList);
@@ -81,6 +84,7 @@ private:
     TString _curDir;
     TTree *fDigiTree;
     TTree *fRecoTree;
+    TTree *fRecoTree4Show;
     TFile *fHistOut;
     THttpServer * fServer;
     struct DigiArrays fDigiArrays;
@@ -110,6 +114,8 @@ private:
     BmnHistDch     *bhDCH_4show;
     BmnHistMwpc    *bhMWPC_4show;
     BmnHistTrigger *bhTrig_4show;
+    
+    TCanvas *infoCanvas;
 
     BmnDataReceiver *dataReceiver;
     BmnRawDataDecoder *rawDataDecoder;

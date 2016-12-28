@@ -44,30 +44,6 @@ struct BmnGemMap {
     }
 };
 
-struct BmnGemPed {
-    Double_t ped;
-    Double_t noise;
-
-    BmnGemPed(Double_t p, Double_t n) : ped(p), noise(n) {
-    }
-
-    BmnGemPed() : ped(0), noise(0) {
-    }
-};
-
-struct BmnGemPedestal {
-    UInt_t ser;
-    UInt_t ch;
-    Double_t ped;
-    Double_t noise;
-
-    BmnGemPedestal(UInt_t s, UInt_t c, Double_t p, Double_t n) : ser(s), ch(c), ped(p), noise(n) {
-    }
-
-    BmnGemPedestal() : ser(0), ch(0), ped(0.0), noise(0.0) {
-    }
-};
-
 class BmnGemRaw2Digit {
 public:
     BmnGemRaw2Digit(Int_t period, Int_t run);
@@ -92,10 +68,8 @@ private:
     BmnGemMap* fBigR1;
 
     GemMapStructure* fMap;
-    Bool_t fIsPedMapReady;
 
     vector<UInt_t> fSerials; //list of serial id for GEM
-    BmnGemPed** fPedArr;
 
     void ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
     BmnStatus ReadMap(TString parName, TString parNameSize, BmnGemMap* m, Int_t lay, Int_t mod);

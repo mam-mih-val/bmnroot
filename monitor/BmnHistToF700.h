@@ -39,16 +39,16 @@ public:
     void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);
     void Reset();
     
-    TClonesArray *Events = NULL;
-    TH1D *histLeadingTime = NULL;
-    TH1D *histLeadingTimeSpecific = NULL;
-    TH1D *histAmp = NULL;
-    TH1D *histAmpSpecific = NULL;
-    TH1I *histStrip = NULL;
-    TH1I *histStripSimult = NULL;
-    TH2F *histState = NULL;
+    TClonesArray *Events;
+    TH1D *histLeadingTime;
+    TH1D *histLeadingTimeSpecific;
+    TH1D *histAmp;
+    TH1D *histAmpSpecific;
+    TH1I *histStrip;
+//    TH1I *histStripSimult;
+//    TH2F *histState;
     
-    void FillFromDigi(TClonesArray * ToF4Digits, BmnEventHeader * head, Int_t iEv);
+    void FillFromDigi(TClonesArray * ToF4Digits);
     void SetSelection(Int_t Plane, Int_t Strip);
     void SaveHists();
     

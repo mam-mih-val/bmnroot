@@ -58,7 +58,7 @@ enum BmnTofHitQA {
  * \enum Define type of event
  */
 enum BmnTriggerType {
-   kBMNBEAM = 0, /**< "beam"  BC1 + BC2 + T0 + VC */
+   kBMNBEAM = 6, /**< "beam"  BC1 + BC2 + T0 + VC */
    kBMNMINBIAS = 1,  /**< "min.bias" BC1 + BC2 + T0 + VC + FD */
 };
 

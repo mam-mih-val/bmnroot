@@ -983,6 +983,100 @@ TString UniDbDetectorParameter::GetParameterName()
     return par_name;
 }
 
+// get start period and run of the current detector parameter
+void UniDbDetectorParameter::GetStart(int& start_period, int& start_run)
+{
+    start_period = i_start_period;
+    start_run = i_start_run;
+
+    return;
+}
+
+// get end period and run of the current detector parameter
+void UniDbDetectorParameter::GetEnd(int& end_period, int& end_run)
+{
+    end_period = i_end_period;
+    end_run = i_end_run;
+
+    return;
+}
+
+// set start period and run of the current detector parameter
+int UniDbDetectorParameter::SetStart(int start_period, int start_run)
+{
+    if (!connectionUniDb)
+    {
+        cout<<"Connection object is null"<<endl;
+        return -1;
+    }
+
+    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "update detector_parameter "
+        "set start_period = $1, start_run = $2"
+        "where value_id = $3");
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    stmt->NextIteration();
+    stmt->SetInt(0, start_period);
+    stmt->SetInt(1, start_run);
+    stmt->SetInt(2, i_value_id);
+
+    // write new value to database
+    if (!stmt->Process())
+    {
+        cout<<"Error: updating the record has been failed"<<endl;
+
+        delete stmt;
+        return -2;
+    }
+
+    i_start_period = start_period;
+    i_start_run = start_run;
+
+    delete stmt;
+    return 0;
+}
+
+// set end period and run of the current detector parameter
+int UniDbDetectorParameter::SetEnd(int end_period, int end_run)
+{
+    if (!connectionUniDb)
+    {
+        cout<<"Connection object is null"<<endl;
+        return -1;
+    }
+
+    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "update detector_parameter "
+        "set end_period = $1, end_run = $2"
+        "where value_id = $3");
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    stmt->NextIteration();
+    stmt->SetInt(0, end_period);
+    stmt->SetInt(1, end_run);
+    stmt->SetInt(2, i_value_id);
+
+    // write new value to database
+    if (!stmt->Process())
+    {
+        cout<<"Error: updating the record has been failed"<<endl;
+
+        delete stmt;
+        return -2;
+    }
+
+    i_end_period = end_period;
+    i_end_run = end_run;
+
+    delete stmt;
+    return 0;
+}
+
 // common function for adding common parameter value
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
 {

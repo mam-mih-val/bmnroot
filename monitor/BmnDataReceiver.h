@@ -20,7 +20,7 @@
 #define PNP_DISCOVER_PORT  33304
 #define PNP_DISCOVER_IP_ADDR "239.192.1.2"
 #define INPUT_IFACE "eno1"
-#define MAX_BUF_LEN 16777216
+#define MAX_BUF_LEN 4194304
 #define MAX_ADDR_LEN 255
 #define MAX_PORT_LEN 7
 #define MSG_TIMEOUT       100000
@@ -52,13 +52,16 @@ private:
     {
         Bool_t enabled;
         Bool_t isFree;
-        Char_t type[MAX_ADDR_LEN];
         Int_t id;
         UShort_t port;
+        Char_t type[MAX_ADDR_LEN];
     };
     struct serverInfo
     {
         Char_t hostName[MAX_ADDR_LEN];
+        Char_t index[MAX_ADDR_LEN];
+        Char_t name[MAX_ADDR_LEN];
+        Char_t type[MAX_ADDR_LEN];
         vector<serverIface> interfaces;
     };
     

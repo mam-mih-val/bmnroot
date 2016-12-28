@@ -22,18 +22,32 @@ BmnHistToF::BmnHistToF(TString title = "ToF") {
     TString name;
     name = fTitle + "_Leading_Time";
     histLeadingTime = new TH1D(name, name, 500, 0, 1000);
+    histLeadingTime->GetXaxis()->SetTitle("Time, ns");
+    histLeadingTime->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Leading_Time_Specific";
     histLeadingTimeSpecific = new TH1D(name, name, 500, 0, 1000);
+    histLeadingTimeSpecific->GetXaxis()->SetTitle("Time, ns");
+    histLeadingTimeSpecific->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Amplitude";
     histAmp = new TH1D(name, name, 4096, 0, 96);
+    histAmp->GetXaxis()->SetTitle("Amplitude, ns");
+    histAmp->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Amplitude_Specific";
     histAmpSpecific = new TH1D(name, name, 4096, 0, 96);
+    histAmpSpecific->GetXaxis()->SetTitle("Amplitude, ns");
+    histAmpSpecific->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Strip";
     histStrip = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+    histStrip->GetXaxis()->SetTitle("Strip #");
+    histStrip->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_StripSimult";
     histStripSimult = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
+    //    histStripSimult->GetXaxis()->SetTitle("Strip count");
+    //    histStripSimult->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_State";
     histState = new TH2F(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT, 2, 0, 2);
+    histStrip->GetXaxis()->SetTitle("Strip #");
+    histStrip->GetYaxis()->SetTitle("Side");
 
     histSimultaneous.SetDirectory(0);
     histL->SetDirectory(0);
@@ -41,6 +55,7 @@ BmnHistToF::BmnHistToF(TString title = "ToF") {
     fServer = NULL;
     fEventsBranch = NULL;
     frecoTree = NULL;
+    Events = NULL;
 }
 
 BmnHistToF::~BmnHistToF() {
@@ -58,6 +73,7 @@ BmnHistToF::~BmnHistToF() {
 }
 
 void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
+
     histL->Reset();
     histR->Reset();
     histSimultaneous.Reset();
@@ -68,7 +84,7 @@ void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
         histLeadingTime->Fill(td->GetTime());
         histAmp->Fill(td->GetAmplitude());
         histStrip->Fill(strip);
-        if ((td->GetPlane() == fSelectedPlane)){
+        if ((td->GetPlane() == fSelectedPlane)) {
             histState->Reset();
             histState->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
         }
@@ -76,9 +92,10 @@ void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
             histL->Fill(strip);
         else
             histR->Fill(strip);
-        if ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0) &&
-                (td->GetStrip() == fSelectedStrip) || (fSelectedStrip < 0) &&
-                (td->GetSide() == fSelectedSide) || (fSelectedSide < 0)) {
+        if (
+                ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0)) &&
+                ((td->GetStrip() == fSelectedStrip) || (fSelectedStrip < 0)) &&
+                ((td->GetSide() == fSelectedSide) || (fSelectedSide < 0))) {
             histAmpSpecific->Fill(td->GetAmplitude());
             histLeadingTimeSpecific->Fill(td->GetTime());
         }
@@ -93,13 +110,8 @@ void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
         s = ((histL->GetBinContent(binIndex) * histR->GetBinContent(binIndex)) != 0) ? 1 : 0;
         histStripSimult->AddBinContent(s);
     }
-//    if (fEventsBranch != NULL)
-//        fEventsBranch->Fill();
-}
-
-void BmnHistToF::SaveHists() {
-    SaveHist(histAmpSpecific, pathToImg);
-    histLeadingTimeSpecific->SaveAs(pathToImg + histLeadingTimeSpecific->GetTitle() + ".png");
+    //    if (fEventsBranch != NULL)
+    //        fEventsBranch->Fill();
 }
 
 void BmnHistToF::Register(THttpServer *serv) {
@@ -115,17 +127,17 @@ void BmnHistToF::Register(THttpServer *serv) {
     fServer->Register(path, histLeadingTimeSpecific);
 
     fServer->SetItemField(path.Data(), "_monitoring", "2000");
-    fServer->SetItemField(path.Data(), "_layout","grid3x3");
+    fServer->SetItemField(path.Data(), "_layout", "grid3x3");
     TString cmdTitle = path + "ChangeSlection";
     fServer->RegisterCommand(cmdTitle, TString("/") + fName.Data() + "/->SetSelection(%arg1%,%arg2%,%arg3%)", "button;");
-    fServer->Restrict(cmdTitle, "visible=admin");
-    fServer->Restrict(cmdTitle, "allow=admin");
+    fServer->Restrict(cmdTitle, "visible=shift");
+    fServer->Restrict(cmdTitle, "allow=shift");
     fServer->Restrict(cmdTitle.Data(), "deny=guest");
     cmdTitle = path + TString("Reset");
     fServer->RegisterCommand(cmdTitle, TString("/") + fName.Data() + "/->Reset()", "button;");
-    fServer->Restrict(cmdTitle.Data(), "visible=admin");
-    fServer->Restrict(cmdTitle.Data(), "allow=admin");
-    fServer->Restrict(cmdTitle.Data(), "deny=guest");
+    fServer->Restrict(cmdTitle.Data(), "visible=shift");
+    fServer->Restrict(cmdTitle.Data(), "allow=shift");
+    //    fServer->Restrict(cmdTitle.Data(), "deny=guest");
 }
 
 void BmnHistToF::SetDir(TFile* outFile, TTree* recoTree) {
@@ -164,18 +176,20 @@ void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
             command = command + " && ";
         command = command + Form("fSide == %d", fSelectedSide);
     }
-    histAmpSpecific->Reset();
-    TString direction = "fAmplitude>>" + TString(histAmpSpecific->GetName());
-    printf("direction %s\n", direction.Data());
-    printf("command %s\n", command.Data());
-    frecoTree->Draw(direction, command, "");
-    histLeadingTimeSpecific->Reset();
-    direction = "fTime>>" + TString(histLeadingTimeSpecific->GetName());
-    frecoTree->Draw(direction, command, "");
-
+    if (frecoTree != NULL) {
+        histAmpSpecific->Reset();
+        histAmpSpecific->SetTitle("Amplitude For: " + command);
+        TString direction = "fAmplitude>>" + TString(histAmpSpecific->GetName());
+        frecoTree->Draw(direction, command, "");
+        histLeadingTimeSpecific->Reset();
+        histLeadingTimeSpecific->SetTitle("Leading Time For: " + command);
+        direction = "fTime>>" + TString(histLeadingTimeSpecific->GetName());
+        frecoTree->Draw(direction.Data(), command.Data(), "");
+    }
 }
 
 void BmnHistToF::Reset() {
+    printf("fTitle = %s\n", fTitle.Data());
     histLeadingTime->Reset();
     histLeadingTimeSpecific->Reset();
     histAmp->Reset();

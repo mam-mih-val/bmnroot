@@ -36,7 +36,7 @@
 #include <UniDbDetectorParameter.h>
 
 // wait limit for input data
-#define WAIT_LIMIT 45000000
+#define WAIT_LIMIT 50000000
 using namespace std;
 
 struct DigiArrays {
@@ -270,6 +270,7 @@ private:
     BmnEventType fPrevEventType;
     UInt_t fPedEvCntr;
     GemMapStructure* fGemMap;
+    TriggerMapStructure* fT0Map;
     deque<UInt_t> *fDataQueue;
     void *fDataMutex; // actually std::mutex
 

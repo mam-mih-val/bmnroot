@@ -12,7 +12,8 @@ BmnDchRaw2Digit::BmnDchRaw2Digit(Int_t period, Int_t run) {
     UniDbDetectorParameter* pDetectorParameter2 = UniDbDetectorParameter::GetDetectorParameter("DCH2", "DCH_mapping", period, run);
     if (pDetectorParameter2 != NULL)
         pDetectorParameter2->GetDchMapArray(fMap2, fEntriesInMap);
-
+    delete pDetectorParameter1;
+    delete pDetectorParameter2;
 }
 
 void BmnDchRaw2Digit::FillEvent(TClonesArray *tdc, map<UInt_t, Long64_t> *ts, TClonesArray *dch, Double_t t0) {

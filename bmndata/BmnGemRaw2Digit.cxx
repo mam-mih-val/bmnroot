@@ -1,4 +1,6 @@
 #include "BmnGemRaw2Digit.h"
+#include "TH1F.h"
+#include "TCanvas.h"
 
 BmnGemRaw2Digit::BmnGemRaw2Digit() {
 }
@@ -8,16 +10,9 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     fPeriod = period;
     fRun = run;
     fEventId = 0;
-    fIsPedMapReady = kFALSE;
 
     cout << "Loading the GEM Map from DB: Period " << period << ", Run " << run << "..." << endl;
 
-    //    fSmall = new BmnGemMap[N_CH_IN_SMALL_GEM];
-    //    fMid = new BmnGemMap[N_CH_IN_MID_GEM];
-    //    fBigL0 = new BmnGemMap[N_CH_IN_BIG_GEM_0];
-    //    fBigL1 = new BmnGemMap[N_CH_IN_BIG_GEM_1];
-    //    fBigR0 = new BmnGemMap[N_CH_IN_BIG_GEM_0];
-    //    fBigR1 = new BmnGemMap[N_CH_IN_BIG_GEM_1];
     fSmall = new BmnGemMap[N_CH_BUF];
     fMid = new BmnGemMap[N_CH_BUF];
     fBigL0 = new BmnGemMap[N_CH_BUF];
@@ -54,9 +49,6 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     ReadMap("GEM_X1_Big_Right", "GEM_N_ch_X1_big_r", fBigR1, 0, 0);
     ReadMap("GEM_Y1_Big_Right", "GEM_N_ch_Y1_big_r", fBigR1, 1, 0);
 
-    fPedArr = new BmnGemPed* [fNSerials];
-    for (Int_t i = 0; i < fNSerials; ++i)
-        fPedArr[i] = new BmnGemPed[N_CH_IN_CRATE];
 
     //GemPedestalStructure* pedMap;
     //UniDbDetectorParameter* pedSizePar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_size_ped_map", fPeriod, fRun);
@@ -70,25 +62,6 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     //            if (pedMap[i].serial == fCrates[iCr])
     //                fPedArr[iCr][pedMap[i].channel] = BmnGemPed(pedMap[i].pedestal, pedMap[i].noise);
 
-    UInt_t ser = 0;
-    Int_t ch = 0;
-    Double_t ped = 0;
-    Double_t rms = 0;
-    TString dummy;
-    TString path = TString(getenv("VMCWORKDIR")) + TString("/input/GEM_pedestals.txt");
-
-    ifstream inFile(path.Data());
-    if (!inFile.is_open())
-        cout << "Error opening map-file (" << path << ")!" << endl;
-    inFile >> dummy >> dummy >> dummy >> dummy;
-    inFile >> dummy;
-    while (!inFile.eof()) {
-        inFile >> hex >> ser >> dec >> ch >> ped >> rms;
-        if (!inFile.good()) break;
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            if (ser == fSerials[iCr])
-                fPedArr[iCr][ch] = BmnGemPed(ped, rms);
-    }
 
     fPedVal = new Float_t**[fNSerials];
     fPedRms = new Float_t**[fNSerials];
@@ -113,6 +86,44 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
         }
     }
 
+    UInt_t ser = 0;
+    Int_t ch = 0;
+    Double_t ped = 0;
+    Double_t rms = 0;
+    TString dummy;
+    TString path = TString(getenv("VMCWORKDIR")) + TString("/input/GEM_pedestals.txt");
+
+    ifstream inFile(path.Data());
+    if (!inFile.is_open())
+        cout << "Error opening map-file (" << path << ")!" << endl;
+    inFile >> dummy >> dummy >> dummy >> dummy;
+    inFile >> dummy;
+    while (!inFile.eof()) {
+        inFile >> hex >> ser >> dec >> ch >> ped >> rms;
+        if (!inFile.good()) break;
+        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+            if (ser == fSerials[iCr]) {
+                //                fPedArr[iCr][ch] = BmnGemPed(ped, rms);
+                fPedVal[iCr][ch / ADC32_N_SAMPLES][ch % ADC32_N_SAMPLES] = ped;
+                fPedRms[iCr][ch / ADC32_N_SAMPLES][ch % ADC32_N_SAMPLES] = rms;
+            }
+    }
+
+    path = TString(getenv("VMCWORKDIR")) + TString("/input/GEM_noisy_Channels.txt");
+    ifstream noiseFile(path.Data());
+    if (!noiseFile.is_open())
+        cout << "Error opening map-file (" << path << ")!" << endl;
+    noiseFile >> dummy >> dummy >> dummy;
+    noiseFile >> dummy;
+    Bool_t isNoise;
+    while (!noiseFile.eof()) {
+        noiseFile >> hex >> ser >> dec >> ch >> isNoise;
+        if (!noiseFile.good()) break;
+        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+            if (ser == fSerials[iCr])
+                fNoiseChannels[iCr][ch / ADC32_N_SAMPLES][ch % ADC32_N_SAMPLES] = isNoise;
+    }
+
     fPedDat = new UInt_t***[fNSerials];
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
         fPedDat[iCr] = new UInt_t**[N_EV_FOR_PEDESTALS];
@@ -135,6 +146,7 @@ BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, TString parNameSize, BmnGemM
     delete par;
     for (Int_t i = 0; i < size; ++i)
         m[iiArr[i].int_2] = BmnGemMap(iiArr[i].int_1, lay, mod);
+    delete[] iiArr;
 }
 
 BmnGemRaw2Digit::~BmnGemRaw2Digit() {
@@ -273,11 +285,10 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
 
         if (fNoiseChannels[iSer][ch][iSmpl]) continue;
         BmnGemStripDigit * dig = &candDig[iSmpl];
-        Double_t ped = (fIsPedMapReady) ? fPedVal[iSer][ch][iSmpl] : fPedArr[iSer][ch * nSmpl + iSmpl].ped; //(fPeriod == 4) ? fPedArr[iSer][ch * nSmpl + iSmpl].ped : fPedVal[iSer][ch][iSmpl];
-        Double_t rms = (fIsPedMapReady) ? fPedRms[iSer][ch][iSmpl] : fPedArr[iSer][ch * nSmpl + iSmpl].noise; //fPedArr[iSer][ch * nSmpl + iSmpl].noise;//(fPeriod == 4) ? fPedArr[iSer][ch * nSmpl + iSmpl].noise : fPedRms[iSer][ch][iSmpl];
+        Double_t ped = fPedVal[iSer][ch][iSmpl];
+        Double_t rms = fPedRms[iSer][ch][iSmpl];
         Double_t sig = dig->GetStripSignal() - CMS - ped;
-        //        Float_t threshold = (dig->GetStation() == 0 || dig->GetStation() == 6) ? 50 : 7.0 * rms;
-        Float_t threshold = 20;
+        Float_t threshold = 20; //20;
         if (sig < threshold) continue;
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }
@@ -355,7 +366,18 @@ BmnStatus BmnGemRaw2Digit::FindNoisyStrips() {
     const Short_t kNBUNCHES = 2;
     const Short_t kNSAMPLES = ADC32_N_SAMPLES / kNBUNCHES;
     const Short_t kNITER = 4;
-    const Float_t coeff[kNITER] = {7, 5, 4, 4};
+    const Float_t coeff[kNITER] = {4, 4, 4, 4};
+
+    //            TH1F* h_prof = new TH1F("h_prof", "prof", 20480, 0.0, 20480.0);
+    //            TCanvas* canv = new TCanvas("c", "c", 1000, 1000);
+    //            for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+    //                for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh)
+    //                    for (Int_t iSmpl = 0; iSmpl < ADC32_N_SAMPLES; ++iSmpl)
+    //                        h_prof->SetBinContent(iSmpl + iCh * ADC32_N_SAMPLES + iCr * ADC_N_CHANNELS * ADC32_N_SAMPLES, fAdcProfiles[iCr][iCh][iSmpl]);
+    //        
+    //            h_prof->Draw();
+    //            canv->SaveAs("ADC_profile.root");
+    //            Fatal("", "STOP ADC FILLING");
 
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
         for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
@@ -370,27 +392,27 @@ BmnStatus BmnGemRaw2Digit::FindNoisyStrips() {
                     for (Short_t i = 0; i < kNSAMPLES; ++i) {
                         Short_t idx = i + iBunch * kNSAMPLES;
                         //                        cout << fAdcProfiles[iCr][iCh][idx] << " ";
-                        if (fAdcProfiles[iCr][iCh][idx] > 0.50 * N_EV_FOR_PEDESTALS && channelOk[idx] == kTRUE) {
+                        if (fAdcProfiles[iCr][iCh][idx] > 0.7 * N_EV_FOR_PEDESTALS && channelOk[idx] == kTRUE) {
                             nOk[iBunch]--;
                             channelOk[idx] = kFALSE;
                             continue;
                         }
-//                        if (channelOk[idx] == kTRUE && fAdcProfiles[iCr][iCh][idx] == 0) {
-//                            //channelOk[idx] = kFALSE;
-//                            nOk[iBunch]--;
-//                            continue;
-//                        }
-//                        mean += (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx]);
+                        if (channelOk[idx] == kTRUE && fAdcProfiles[iCr][iCh][idx] == 0) {
+                            //channelOk[idx] = kFALSE;
+                            nOk[iBunch]--;
+                            continue;
+                        }
+                        mean += (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx]);
                     }
-//                    if (nOk[iBunch] == 0) continue;
-//                    mean /= nOk[iBunch];
-//                    for (Short_t i = 0; i < kNSAMPLES; ++i) {
-//                        Short_t idx = i + iBunch * kNSAMPLES;
-//                        if (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx] > coeff[itr] * mean) {
-//                            channelOk[idx] = kFALSE;
-//                            nOk[iBunch]--;
-//                        }
-//                    }
+                    if (nOk[iBunch] == 0) continue;
+                    mean /= nOk[iBunch];
+                    for (Short_t i = 0; i < kNSAMPLES; ++i) {
+                        Short_t idx = i + iBunch * kNSAMPLES;
+                        if (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx] > coeff[itr] * mean) {
+                            channelOk[idx] = kFALSE;
+                            nOk[iBunch]--;
+                        }
+                    }
                 }
             }
             for (Short_t i = 0; i < ADC32_N_SAMPLES; ++i)
@@ -481,8 +503,7 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
                 Double_t CMS = CalcCMS(signals, nOk);
                 for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
 
-                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
-
+                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0 || CMS == 0.0) continue;
                     if (fPedDat[iCr][iEv][iCh][iSmpl] - CMS - fPedVal[iCr][iCh][iSmpl] > 20/*3 * fPedRms[iCr][iCh][iSmpl]*/) {
                         fAdcProfiles[iCr][iCh][iSmpl]++;
                     }
@@ -490,16 +511,14 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
             }
     }
 
-    //    ofstream pedFile(Form("%s/input/GEM_pedestals_online.txt", getenv("VMCWORKDIR")));
-    //    pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
-    //    pedFile << "============================================" << endl;
-    //    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-    //        for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh)
-    //            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
-    //                pedFile << hex << fSerials[iCr] << dec << "\t" << iCh * nSmpl + iSmpl << "\t" << fPedVal[iCr][iCh][iSmpl] << "\t" << fPedRms[iCr][iCh][iSmpl] << endl;
-    //    pedFile.close();
-
-    fIsPedMapReady = kTRUE;
+    ofstream pedFile(Form("%s/input/GEM_pedestals.txt", getenv("VMCWORKDIR")));
+    pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
+    pedFile << "============================================" << endl;
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
+        for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh)
+            for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+                pedFile << hex << fSerials[iCr] << dec << "\t" << iCh * nSmpl + iSmpl << "\t" << fPedVal[iCr][iCh][iSmpl] << "\t" << fPedRms[iCr][iCh][iSmpl] << endl;
+    pedFile.close();
 
     FindNoisyStrips();
 

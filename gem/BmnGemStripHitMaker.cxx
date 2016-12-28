@@ -1,3 +1,5 @@
+#include <TChain.h>
+
 #include "BmnGemStripHitMaker.h"
 
 #include "BmnGemStripStationSet_RunSummer2016.h"
@@ -71,7 +73,7 @@ InitStatus BmnGemStripHitMaker::Init() {
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016:
             StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016" << "\n";       
+            cout << "   Current Configuration : RunSummer2016" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunWinter2016:
@@ -88,28 +90,28 @@ InitStatus BmnGemStripHitMaker::Init() {
 
     corr = new Double_t**[nStat];
     for (Int_t iStat = 0; iStat < nStat; iStat++) {
-      Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
-      corr[iStat] = new Double_t*[nModul];
-      for (Int_t iMod = 0; iMod < nModul; iMod++) {
-	corr[iStat][iMod] = new Double_t[nParams];
-	for (Int_t iPar = 0; iPar < nParams; iPar++) {
-	  corr[iStat][iMod][iPar] = 0.;
-	}
-      }
+        Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
+        corr[iStat] = new Double_t*[nModul];
+        for (Int_t iMod = 0; iMod < nModul; iMod++) {
+            corr[iStat][iMod] = new Double_t[nParams];
+            for (Int_t iPar = 0; iPar < nParams; iPar++) {
+                corr[iStat][iMod][iPar] = 0.;
+            }
+        }
     }
-    
+
     ReadFileCorrections(fFile, corr);
-    
+
     cout << "Alignment corrections to be used: " << endl;
     for (Int_t iStat = 0; iStat < nStat; iStat++) {
-      Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
-      for (Int_t iMod = 0; iMod < nModul; iMod++) {
-	for (Int_t iPar = 0; iPar < nParams; iPar++) {
-	  cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << corr[iStat][iMod][iPar] << endl;
-	}
-      }
+        Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
+        for (Int_t iMod = 0; iMod < nModul; iMod++) {
+            for (Int_t iPar = 0; iPar < nParams; iPar++) {
+                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << corr[iStat][iMod][iPar] << endl;
+            }
+        }
     }
-    
+
     //--------------------------------------------------------------------------
 
     if (fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n\n ";
@@ -227,7 +229,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
                         BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
 
                 BmnGemStripHit* hit = (BmnGemStripHit*) fBmnGemStripHitsArray->At(fBmnGemStripHitsArray->GetEntriesFast() - 1);
-                hit->SetStation(iStation); 
+                hit->SetStation(iStation);
                 hit->SetModule(iModule);
                 hit->SetIndex(fBmnGemStripHitsArray->GetEntriesFast() - 1);
                 //--------------------------------------------------------------
@@ -259,40 +261,30 @@ void BmnGemStripHitMaker::Finish() {
 
         delete StationSet;
         StationSet = NULL;
-	}
+    }
     cout << "Work time of the GEM hit maker: " << workTime << endl;
 }
 
 void BmnGemStripHitMaker::ReadFileCorrections(TString fname, Double_t*** corr) {
     if (fname == "")
         return;
-    ifstream file(fname.Data(), ios::in);
 
-    string line;
-    TString stat = "", xCorr = "", yCorr = "", zCorr = "";
+    TChain* ch = new TChain("cbmsim");
+    ch->Add(fname.Data());
 
-    while (getline(file, line)) {
-        stringstream ss(line);
+    TClonesArray* corrs = NULL;
+    ch->SetBranchAddress("BmnGemAlignmentCorrections", &corrs);
 
-        ss >> stat >> xCorr >> yCorr >> zCorr;
-              
-        Int_t nMod = StationSet->GetGemStation(stat.Atoi())->GetNModules();
+    for (Int_t iEntry = 0; iEntry < ch->GetEntries(); iEntry++) {
+        ch->GetEntry(iEntry);
 
-        if (nMod == 1) {
-            corr[stat.Atoi()][0][0] = xCorr.Atof();
-            corr[stat.Atoi()][0][1] = yCorr.Atof();
-            corr[stat.Atoi()][0][2] = zCorr.Atof();
-
-        } else {
-            for (Int_t iMod = 0; iMod < nMod; iMod++) {
-                corr[stat.Atoi()][iMod][0] = xCorr.Atof();
-                corr[stat.Atoi()][iMod][1] = yCorr.Atof();
-                corr[stat.Atoi()][iMod][2] = zCorr.Atof();
-                ss >> xCorr >> yCorr >> zCorr;
-            }
+        for (Int_t iCorr = 0; iCorr < corrs->GetEntriesFast(); iCorr++) {
+            BmnGemAlignmentCorrections* align = (BmnGemAlignmentCorrections*) corrs->UncheckedAt(iCorr);     
+            corr[align->GetStation()][align->GetModule()][0] = -align->GetCorrections().X();
+            corr[align->GetStation()][align->GetModule()][1] = -align->GetCorrections().Y();
+            corr[align->GetStation()][align->GetModule()][2] = -align->GetCorrections().Z();
         }
     }
-    file.close();
 }
 
 ClassImp(BmnGemStripHitMaker)

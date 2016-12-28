@@ -1,4 +1,3 @@
-
 class DchMapStructure;
 
 int AssignMapStructure(DchMapStructure* pArray, int id, int pl, int gr, unsigned int cr, int sl, int ch_l, int ch_h) {
@@ -78,8 +77,8 @@ void add_DCH_mapping() {
     AssignMapStructure(pValues, 45, 5, 5, 0x46f1f79, 7, 48, 63);
     AssignMapStructure(pValues, 46, 5, 6, 0x46f1f79, 8, 0, 15);
     AssignMapStructure(pValues, 47, 5, 7, 0x46f1f79, 8, 16, 31);
-    AssignMapStructure(pValues, 48, 5, 8, 0x46f1f79, 8, 32, 47);
-    AssignMapStructure(pValues, 49, 5, 15, 0x46f1f79, 8, 48, 63);
+    AssignMapStructure(pValues, 48, 5, 15, 0x46f1f79, 8, 32, 47);
+    AssignMapStructure(pValues, 49, 5, 8, 0x46f1f79, 8, 48, 63);
     AssignMapStructure(pValues, 50, 5, 9, 0x46f1f79, 9, 0, 15);
     AssignMapStructure(pValues, 51, 5, 10, 0x46f1f79, 9, 16, 31);
     //XA_1

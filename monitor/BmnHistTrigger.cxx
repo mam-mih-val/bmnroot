@@ -21,20 +21,39 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     TString name;
     name = fTitle + "_BC1_Time_Length";
     histBC1TimeLen = new TH1D(name, name, 300, 0, 1000);
+    //                histBC1TimeLen->SetTitleSize(0.08, "XY");
+    //                histBC1TimeLen->SetLabelSize(0.08, "XY");
+    //                histBC1TimeLen->SetLabelColor(kOrange+5, "XY");
+    histBC1TimeLen->GetXaxis()->SetTitle("Time, ns");
+    histBC1TimeLen->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_BC2_Time_Length";
     histBC2TimeLen = new TH1D(name, name, 300, 0, 100);
+    histBC2TimeLen->GetXaxis()->SetTitle("Time, ns");
+    histBC2TimeLen->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_FD_Time_Length";
     histFDTimeLen = new TH1D(name, name, 300, 0, 100);
+    histFDTimeLen->GetXaxis()->SetTitle("Time, ns");
+    histFDTimeLen->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_SD_Time_Length";
     histSDTimeLen = new TH1D(name, name, 300, 0, 100);
+    histSDTimeLen->GetXaxis()->SetTitle("Time, ns");
+    histSDTimeLen->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_VETO_Time_Length";
     histVDTimeLen = new TH1D(name, name, 300, 0, 100);
+    histVDTimeLen->GetXaxis()->SetTitle("Time, ns");
+    histVDTimeLen->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_BD_Channels";
     histBDChannels = new TH1I(name, name, BD_CHANNELS, 0, BD_CHANNELS);
+    histBDChannels->GetXaxis()->SetTitle("Channel #");
+    histBDChannels->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_BD_Specific_Channel";
     histBDSpecific = new TH1D(name, name, 300, 0, 500);
+    histBDSpecific->GetXaxis()->SetTitle("Channel #");
+    histBDSpecific->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_Triggers_Counter";
     histTriggers = new TH1I(name, name, 5, 0, 5);
+    histTriggers->GetXaxis()->SetTitle("Trigger Name");
+    histTriggers->GetYaxis()->SetTitle("Activation Count");
     TString triggerNames[5] = {"BC1", "SD", "BC2", "VD", "FD"};
     TAxis* xa = histTriggers->GetXaxis();
     for (Int_t i = 0; i < sizeof (triggerNames) / sizeof (*triggerNames); i++) {
@@ -61,13 +80,8 @@ void BmnHistTrigger::FillFromDigi(
         TClonesArray * BC2digits,
         TClonesArray * VDdigits,
         TClonesArray * FDdigits,
-        TClonesArray * BDdigits,
-        BmnEventHeader * head, Int_t iEv) {
+        TClonesArray * BDdigits) {
     BDEvents->Clear();
-    Int_t rid = (head) ? head->GetRunId() : -1;
-        
-    histTriggers->SetTitle(fTitle + Form("_Triggers_Counter_runID_%d_eventID_%d",
-            rid, iEv));
     for (Int_t digIndex = 0; digIndex < BC1digits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* td0 = (BmnTrigDigit*) BC1digits->At(digIndex);
         histBC1TimeLen->Fill(td0->GetAmp());

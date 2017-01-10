@@ -39,7 +39,7 @@ public:
     void Reset();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
-    void FillFromDigi(TClonesArray * DchDigits, BmnEventHeader * head);
+    void FillFromDigi(TClonesArray * DchDigits);
 
 private:
     THttpServer *fServer;

@@ -43,8 +43,7 @@ public:
             TClonesArray * BC2digits,
             TClonesArray * VDdigits,
             TClonesArray * FDdigits,
-            TClonesArray * BDdigits,
-            BmnEventHeader * head, Int_t iEv);
+            TClonesArray * BDdigits);
     void Reset();
     void SaveHists(TString imgSavePath);
 

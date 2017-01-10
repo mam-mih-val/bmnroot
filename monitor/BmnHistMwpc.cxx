@@ -19,8 +19,12 @@ BmnHistMwpc::BmnHistMwpc(TString title = "MWPC") {
     fName = title + "_cl";
     for (Int_t i = 0; i < MWPC_PLANES; ++i){
         h_wires[i] = new TH1F(fTitle + "_" + Form("Plane_%d", i), Form("Plane_%d", i), MWPC_WIRES, 0, MWPC_WIRES);
-        h_wires[i]->GetXaxis()->SetLabelSize(0.1);
-        h_wires[i]->GetYaxis()->SetLabelSize(0.1);
+        h_wires[i]->SetTitleSize(0.06, "XY");
+        h_wires[i]->SetLabelSize(0.07, "XY");
+        h_wires[i]->GetXaxis()->SetTitle("Wire Number");
+        h_wires[i]->GetXaxis()->SetTitleColor(kOrange + 5);
+        h_wires[i]->GetYaxis()->SetTitle("Activation Count");
+        h_wires[i]->GetYaxis()->SetTitleColor(kOrange + 5);
     }
     TString name;
     MwpcHits = new TClonesArray("BmnMwpcHit");
@@ -75,21 +79,13 @@ void BmnHistMwpc::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
 
 }
 
-void BmnHistMwpc::FillFromDigi(TClonesArray * MwpcDigits, BmnEventHeader * head) {
-    Int_t rid = (head) ? head->GetRunId() : -1;
-    Int_t iEv = head->GetEventId();
+void BmnHistMwpc::FillFromDigi(TClonesArray * MwpcDigits) {
     MwpcHits->Clear();
     ProcessMwpcDigits(MwpcDigits, MwpcHits);
     for (Int_t iDig = 0; iDig < MwpcDigits->GetEntriesFast(); ++iDig) {
         BmnMwpcDigit* dig = (BmnMwpcDigit*) MwpcDigits->At(iDig);
         Int_t plane = dig->GetPlane();
         Int_t wire = dig->GetWireNumber();
-        //        v_wires[plane][wire] += 1;
-        //        if (wire > kNREALWIRES - 1) {
-        //            wire -= 128; //8 * 16 last preamplifier setup behind hole, so move signal in correct place
-        //        }
-
-        h_wires[plane]->SetTitle(Form("%d_runID_%d_eventID_%d", plane, rid, iEv));
         h_wires[plane]->Fill(wire);
     }
     for (Int_t iHit = 0; iHit < MwpcHits->GetEntriesFast(); ++iHit) {

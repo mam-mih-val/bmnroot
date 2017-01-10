@@ -45,7 +45,7 @@ public:
 class BmnZDCRaw2Digit{
 
 public:
-    BmnZDCRaw2Digit(TString mappingFile, TString runFile);
+    BmnZDCRaw2Digit(TString mappingFile, TString runFile, TString calibrationFile = "");
     BmnZDCRaw2Digit();
     void print();
 

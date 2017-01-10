@@ -48,7 +48,7 @@ public:
 //    TH1I *histStripSimult;
 //    TH2F *histState;
     
-    void FillFromDigi(TClonesArray * ToF4Digits, BmnEventHeader * head, Int_t iEv);
+    void FillFromDigi(TClonesArray * ToF4Digits);
     void SetSelection(Int_t Plane, Int_t Strip);
     void SaveHists();
     

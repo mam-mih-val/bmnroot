@@ -36,7 +36,7 @@
 #define kNREALWIRES 240
 #define kNWIRES     256
 #define Number        4
-#define DCH_WDTH    200
+#define DCH_WDTH    150
 
 using namespace std;
 
@@ -47,7 +47,7 @@ public:
     void Reset();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
-    void FillFromDigi(TClonesArray * DchDigits, BmnEventHeader * head, Int_t iEv);
+    void FillFromDigi(TClonesArray * DchDigits);
 
     TH1F * h_wires[kNPLANES];
     Float_t v_wires[kNPLANES][kNWIRES];

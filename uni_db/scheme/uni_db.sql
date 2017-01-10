@@ -293,30 +293,57 @@ CREATE OR REPLACE FUNCTION unlink_lo_parameter() RETURNS TRIGGER AS $$
 DECLARE
   objID integer;
 BEGIN
+  -- REPLACE BY 'UPDATE OF parameter_value' in CREATE TRIGGER for PostgreSQL 9.0+
+  IF (TG_OP = 'UPDATE') THEN
+    IF NEW.parameter_value = OLD.parameter_value THEN
+      RETURN NEW;
+    END IF;
+  END IF;
+  
+  -- delete unused large object
   objID = OLD.parameter_value;
   IF EXISTS(SELECT 1 FROM pg_catalog.pg_largeobject WHERE loid = objID)
     THEN PERFORM lo_unlink(objID);
   END IF;
-  RETURN OLD;
+
+  IF (TG_OP = 'UPDATE') THEN
+    RETURN NEW;
+  ELSE
+    RETURN OLD;
+  END IF;
 END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER unlink_lo_parameter_value
 AFTER UPDATE OR DELETE ON detector_parameter FOR EACH ROW EXECUTE PROCEDURE unlink_lo_parameter();
+--drop trigger unlink_lo_parameter_value on detector_parameter;
 
--- DROP TRIGGER unlink_large_object_geometry ON run_geometry;
+-- trigger to remove large_object by OID
 CREATE OR REPLACE FUNCTION unlink_lo_geometry() RETURNS TRIGGER AS $$
 DECLARE
   objID integer;
 BEGIN
+  -- REPLACE BY 'UPDATE OF root_geometry' in CREATE TRIGGER for PostgreSQL 9.0+
+  IF (TG_OP = 'UPDATE') THEN
+    IF NEW.root_geometry = OLD.root_geometry THEN
+      RETURN NEW;
+    END IF;
+  END IF;
+
   objID = OLD.root_geometry;
   IF EXISTS(SELECT 1 FROM pg_catalog.pg_largeobject WHERE loid = objID)
     THEN PERFORM lo_unlink(objID);
   END IF;
-  RETURN OLD;
+  
+  IF (TG_OP = 'UPDATE') THEN
+    RETURN NEW;
+  ELSE
+    RETURN OLD;
+  END IF;
 END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER unlink_large_object_geometry
 AFTER UPDATE OR DELETE ON run_geometry FOR EACH ROW EXECUTE PROCEDURE unlink_lo_geometry();
+--drop trigger unlink_large_object_geometry on run_geometry;
 
 -- trigger to check correctness of the valid period for detector parameter and delete row if exist
 CREATE OR REPLACE FUNCTION check_valid_period() RETURNS TRIGGER AS $$
@@ -334,7 +361,7 @@ BEGIN
         (NEW.start_period = dp.start_period) and (NEW.end_period = dp.end_period) and (NEW.start_run = dp.start_run) and (NEW.end_run = dp.end_run);
     
       IF NOT FOUND THEN
-        RAISE EXCEPTION 'The period of new detector parameter overlaps with existing value (id: %)', value_id;
+        RAISE EXCEPTION 'The period of new detector parameter overlaps with existing value (id: %)', valueID;
       ELSE
         EXECUTE 'DELETE FROM detector_parameter WHERE value_id = $1' USING valueID;
       END IF;  
@@ -351,7 +378,7 @@ BEGIN
         (NEW.start_period = dp.start_period) and (NEW.end_period = dp.end_period) and (NEW.start_run = dp.start_run) and (NEW.end_run = dp.end_run);
     
       IF NOT FOUND THEN
-        RAISE EXCEPTION 'The period of new detector parameter overlaps with existing value (id: %)', value_id;
+        RAISE EXCEPTION 'The period of new detector parameter overlaps with existing value (id: %)', valueID;
       ELSE
         EXECUTE 'DELETE FROM detector_parameter WHERE value_id = $1' USING valueID;
       END IF;  
@@ -629,6 +656,49 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 --select "clean_large_object"();
+
+-- drop function lo_size(int)
+CREATE OR REPLACE FUNCTION lo_size(bytea) RETURNS integer
+AS $$
+declare 
+  fd integer;
+  objID integer;
+  sz integer;
+begin
+  objID = $1;
+  fd = lo_open(objID, 262144);
+  if (fd < 0) then
+    raise exception 'Failed to open large object %', $1;
+    --return -1;
+  end if;
+  sz = lo_lseek(fd, 0, 2);
+  if (lo_close(fd) != 0) then
+    raise exception 'Failed to close large object %', $1;
+    --return -2;
+  end if;
+  return sz;
+end;
+$$ LANGUAGE 'plpgsql';
+
+CREATE OR REPLACE FUNCTION test_lo(integer) RETURNS integer
+AS $$
+declare
+  fd integer;
+  sz integer;
+begin
+  fd = lo_open($1, 262144);
+  if (fd < 0) then
+    raise exception 'Failed to open large object %', $1;
+    --return -1;
+  end if;
+  sz = lo_lseek(fd, 0, 2);
+  if (lo_close(fd) != 0) then
+    raise exception 'Failed to close large object %', $1;
+    --return -2;
+  end if;
+  return sz;
+end;
+$$ LANGUAGE 'plpgsql';
 
 
 -- DEFAULT INSERTION

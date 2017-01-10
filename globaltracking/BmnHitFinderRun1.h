@@ -57,7 +57,7 @@ const Float_t HalfStep = WireStep / 2.0;
 inline void CheckHits(vector<TVector3> &vec1, vector<TVector3> &vec2) {
 
     Bool_t flag = kFALSE;
-    Float_t delta = 10.0; // cm
+    Float_t delta = 1.0; // cm
     for (Int_t i = 0; i < vec1.size(); ++i) {
         TVector3* hit1 = &(vec1.at(i));
         for (Int_t j = 0; j < vec2.size(); ++j) {
@@ -183,7 +183,7 @@ inline void ProcessDchDigits(TClonesArray* digits, TClonesArray * hitsArray) {
         if (digit == NULL) continue;
         //cout << "plane = " << digit->GetPlane() << " wire = " << digit->GetWireNumber() << endl;
         Short_t plane = digit->GetPlane();
-        if (digit->GetTime() <= 450) continue;
+        //if (digit->GetTime() <= 450) continue;
         switch (plane) {
             case 0: va1.push_back(digit);
                 break;
@@ -234,10 +234,10 @@ inline void ProcessDchDigits(TClonesArray* digits, TClonesArray * hitsArray) {
     vector<TVector3> u2v2 = CreateHitsByTwoPlanes(u2, v2, -5.0);
     vector<TVector3> x2y2 = CreateHitsByTwoPlanes(x2, y2, 5.0);
 
-    //    CheckHits(u1v1, x1y1);
-    //    CheckHits(x1y1, u1v1);
-    //    CheckHits(u2v2, x2y2);
-    //    CheckHits(x2y2, u2v2);
+    CheckHits(u1v1, x1y1);
+    CheckHits(x1y1, u1v1);
+    CheckHits(u2v2, x2y2);
+    CheckHits(x2y2, u2v2);
 
     CombineHits(u1v1, hitsArray, 0);
     CombineHits(x1y1, hitsArray, 1);
@@ -269,26 +269,26 @@ inline TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit * dJ, Float
 
     switch (localPlaneI) {
         case 2:
-            xI = xI;
+            xI = -xI;
             aI = 0.0;
             break;
-        case 0:
+        case 4:
             xI = xI;
             aI = -kAngleStep;
             break;
-        case 1:
+        case 3:
             xI = -xI;
             aI = kAngleStep;
             break;
         case 5:
-            xI = -xI;
+            xI = xI;
             aI = 0.0;
             break;
-        case 3:
+        case 1:
             xI = -xI;
             aI = -kAngleStep;
             break;
-        case 4:
+        case 0:
             xI = xI;
             aI = kAngleStep;
             break;
@@ -296,26 +296,26 @@ inline TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit * dJ, Float
 
     switch (localPlaneJ) {
         case 2:
-            xJ = xJ;
+            xJ = -xJ;
             aJ = 0.0;
             break;
-        case 0:
+        case 4:
             xJ = xJ;
             aJ = -kAngleStep;
             break;
-        case 1:
+        case 3:
             xJ = -xJ;
             aJ = kAngleStep;
             break;
         case 5:
-            xJ = -xJ;
+            xJ = xJ;
             aJ = 0.0;
             break;
-        case 3:
+        case 1:
             xJ = -xJ;
             aJ = -kAngleStep;
             break;
-        case 4:
+        case 0:
             xJ = xJ;
             aJ = kAngleStep;
             break;

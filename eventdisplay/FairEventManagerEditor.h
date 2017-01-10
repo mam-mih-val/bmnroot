@@ -39,8 +39,8 @@ class FairEventManagerEditor : public TGedFrame
     TGCheckButton* fVizPri;
     TEveGValuator* fMinEnergy, *fMaxEnergy;
     TGLabel* fEventTime;
-    TGCompositeFrame* title1;
-    TGGroupFrame* groupData;
+    TGHorizontalFrame* fGeometryFrame;
+    TGCheckButton* ShowMagnetButton;
     TGCheckButton* fShowMCPoints, *fShowMCTracks, *fShowRecoPoints, *fShowRecoTracks;
 
     // current event number

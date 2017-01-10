@@ -4,6 +4,7 @@ FAIREXTERNALS=$1
 
 SIMMACHINE=$(uname -n)
 
+# change SIMPATH if you installed FairSoft not to the '/opt/fairsoft/install' directory
 export SIMPATH=/opt/fairsoft/install
 export ROOTSYS=$SIMPATH
 	

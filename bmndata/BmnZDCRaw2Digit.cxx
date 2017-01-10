@@ -12,7 +12,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(){
   n_rec=0;
   n_test=0;
 }
-BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
+BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString CalibrationFile) {
     for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
     for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
     for (int i=0; i<MAX_LOG_CHANNELS; i++) test_chan[i] = -1;
@@ -33,7 +33,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
     while (!in.eof()) {
         int id,chan,front_chan,size,ix,iy,used;
 	float x,y;
-        in >>std::hex >> id >>std::dec >> chan >> front_chan>>size>>ix>>iy>>x>>y>>used;
+        in >>std::hex >> id >>std::dec >> chan >> front_chan >> size >> ix >> iy >> x >> y >> used;
         if (!in.good()) break;
 //	printf("%0x %d %d %d %d %d %f %f\n",id,chan,front_chan,size,ix,iy,x,y);
 	if (size >= 200 && size <= 223)
@@ -50,6 +50,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
 	if (chan <= 0) continue;
 	if (front_chan <= 0) continue;
         zdc_map_element[n_rec].id=id;
+	if (chan > 64) chan -= 64;
         zdc_map_element[n_rec].adc_chan=chan-1;
 	if (front_chan > maxchan) maxchan = front_chan;
         zdc_map_element[n_rec].chan=front_chan-1;
@@ -126,7 +127,8 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
     FILE *fin = 0;
     char filn[128], tit1[32] = {"Channel"}, tit2[32] = {"Calibration"}, tit3[32] = {"Error"};
     TString path1 = dir + "/parameters/zdc/";
-    sprintf(filn, "%s%s_calibration.txt", path1.Data(), filname_base);
+    if (strlen(CalibrationFile.Data()) == 0) sprintf(filn, "%s%s_calibration.txt", path1.Data(), filname_base);
+    else sprintf(filn, "%s%s", path1.Data(), CalibrationFile.Data());
     fin = fopen(filn,"r");
     for (int i=0; i<maxchan; i++)
     {
@@ -162,10 +164,10 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile) {
 //----------------------------------
     nevents = 0;
     use_log_function = 0;
-    thres = 6.;
+    thres = 40.;
     wave2amp_flag = 1;
-    min_samples = 10;
-    ped_samples = 10;
+    min_samples = 5;
+    ped_samples = 5;
     use_meanxy = 0;
     sigma_amp = 10.;
     shower_energy = 48.;
@@ -509,7 +511,7 @@ void BmnZDCRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *zdcdigit) {
 	    continue;
        }
        int ind; 
-       for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
+       for(ind=0;ind<n_rec;ind++) {if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;}
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        TClonesArray &ar_zdc = *zdcdigit;

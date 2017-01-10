@@ -43,18 +43,13 @@ FairWebScreenshots.cxx
 
 if (BMNROOT)
   Set(INCLUDE_DIRECTORIES
-    ${INCLUDE_DIRECTORIES} 
-    ${CMAKE_SOURCE_DIR}/eventdisplay/raw
+    ${INCLUDE_DIRECTORIES}
     ${CMAKE_SOURCE_DIR}/bmndata
     ${CMAKE_SOURCE_DIR}/globaltracking
     ${CMAKE_SOURCE_DIR}/gem
   )
   Set(SRCS
     ${SRCS}
-    raw/RawDataParser.cxx
-    raw/RawDataConverter.cxx
-    raw/RawMWPCDigitDraw.cxx
-    bmn/BmnDigitDraw.cxx
     bmn/BmnTrackDrawH.cxx
     bmn/BmnTrackDrawP.cxx
     bmn/BmnGlobalTrackDraw.cxx

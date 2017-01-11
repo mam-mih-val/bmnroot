@@ -25,10 +25,8 @@ void gemAlignment_new(UInt_t nEvents=1e6, TString bmndstFileListFileName="bmndst
     bmndstFiles.close();
     fRun->SetSource(fFileSource);
     fRun->SetOutputFile(newAlignCorrFileName);
-    TString resultName; // will be only the essential part without ".root"
-    resultName = newAlignCorrFileName;  // and then strip ".root" from the end of it
-    re = ".root";
-    resultName(re) = "";
+    // resultName will be only essential part    without ".root":
+    TString resultName = newAlignCorrFileName.ReplaceAll(".root", "");
     BmnGemAlignment* gemAlign = new BmnGemAlignment();
     gemAlign->SetResultName(resultName);
     gemAlign->SetGeometry(BmnGemStripConfiguration::RunWinter2016);

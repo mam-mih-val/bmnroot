@@ -31,10 +31,6 @@ void run_reco_bmn_new(TString digiFileName      = "$VMCWORKDIR/macro/run/evetest
                       Bool_t  isPrimary         = kTRUE,
                       TString alignCorrFileName = "")
 {
-    if (!CheckFileExist(digiFileName)) return;
-    // when name of the file with alignment corrections is not empty,
-    // check if it exists 
-    if (alignCorrFileName != ""  &&  !CheckFileExist(alignCorrFileName)) return;
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
     // -----   Debug option   --------------------------------------------------
@@ -42,6 +38,9 @@ void run_reco_bmn_new(TString digiFileName      = "$VMCWORKDIR/macro/run/evetest
     // -----   Load libraries   ------------------------------------------------
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
+    // -----   When name of the file with alignment corrections is not empty,
+    // check its existence: 
+    if (alignCorrFileName != ""  &&  !CheckFileExist(alignCorrFileName)) return;
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
@@ -55,28 +54,43 @@ void run_reco_bmn_new(TString digiFileName      = "$VMCWORKDIR/macro/run/evetest
     // Set input source as simulation file or experimental data
   //FairSource* fFileSource;
     // for experimental datasource
-    if (digiFileName.Contains("bmn_run[0-9]+")) {
+    if (digiFileName.Contains("bmn_run")) {
+        TString  substr; // to store temporary substrings as TString,
+                         // not TSubString, because Atoi works only with TString
+        TRegexp re = "_[0-9]+_"; // to catch run number in 'bmn_run005_Glob_000812_digi.root'-like names
         if (digiFileName.Contains(":")) { // when 'runN-NNN:' prefix is used
+            TString  prefix = digiFileName("run[0-9]+-[0-9]+:");
             // get run period from 'runN'
-            Int_t   runPeriod = ((TString)digiFileName("[0-9]+")).Atoi();
+            substr = prefix("run[0-9]+");
+            substr = substr(   "[0-9]+");
+            Int_t    runPeriod = substr.Atoi();
             // get run number from '-NNN'
-            TString runNumStr = digiFileName("-[0-9]+");
-            Int_t   runNumber = ((TString)runNumStr("[0-9]+")).Atoi();
+            substr = prefix("-[0-9]+");
+            substr = substr( "[0-9]+");
+            Int_t    runNumber = substr.Atoi();
             // now strip digiFileName from the 'runN-NNN:' prefix
-            digiFileName("run[0-9]+-[0-9]+:") = "";
+            digiFileName.ReplaceAll(prefix, "");
         }
-        else if (digiFileName.Contains("_[0-9]+_")) { // when name is like 'bmn_run005_Glob_000812_digi.root'
+        else if (digiFileName.Contains(re)) { // when name is like 'bmn_run005_Glob_000812_digi.root'
             // get run period
-            TString runPerStr = digiFileName("bmn_run[0-9]+");
-            Int_t   runPeriod = ((TString)runPerStr("[0-9]+")).Atoi();
+            substr = digiFileName("bmn_run[0-9]+");
+            substr = substr(             "[0-9]+");
+            Int_t    runPeriod = substr.Atoi();
             // get run number
-            TString runNumStr = digiFileName(      "_[0-9]+_");
-            Int_t   runNumber = ((TString)runNumStr("[0-9]+")).Atoi();
+            substr = digiFileName("_[0-9]+_");
+            substr = substr(       "[0-9]+");
+            Int_t    runNumber = substr.Atoi();
         }
         else {
-            cout << "Error: digi file name is not recognized: "+geoFileName << endl;
+            cout <<"Error: digi file name "+digiFileName+" is not recognized!"<< endl;
             exit(-1);
         }
+        // check existence of the input digi file
+        if (!CheckFileExist(digiFileName)) {
+            cout <<"Error: digi file "+digiFileName+" does not exist!"<< endl;
+            exit(-1);
+        }
+        cout <<"runPeriod = "<<runPeriod<<"  runNumber = "<<runNumber<< endl;
         // set source as raw data file
         FairSource* fFileSource = new BmnFileSource(digiFileName);
         fRun->SetSource(fFileSource);

@@ -1,3 +1,5 @@
+#include <Rtypes.h>
+
 #include "BmnDchTrackFinder.h"
 
 BmnDchTrackFinder::BmnDchTrackFinder() :
@@ -64,10 +66,24 @@ InitStatus BmnDchTrackFinder::Init() {
     Double_t arr2[16] = {-45.7, -46.9, -51.5, -52.7, -57.3, -58.5, -63.1, -64.3, 64.3, 63.1, 58.5, 57.3, 52.7, 51.5, 46.9, 45.7};
     for (Int_t iSize = 0; iSize < 16; iSize++)
         z_glob[iSize] = arr2[iSize];
-    
-    noFunc = fopen("noFunc.txt", "w");
-    Func = fopen("Func.txt", "w");
-    
+
+    const Int_t n1 = 4;
+    const Int_t n2 = 150;
+
+    par_ab1 = new Float_t*[n1];
+    par_ab2 = new Float_t*[n1];
+    for (Int_t iDim = 0; iDim < n1; iDim++) {
+        par_ab1[iDim] = new Float_t[n2];
+        par_ab2[iDim] = new Float_t[n2];
+    }
+
+    chi2_DC1 = new Float_t[n2];
+    chi2_DC2 = new Float_t[n2];
+
+    size_segDC1 = new Int_t[n2];
+    size_segDC2 = new Int_t[n2];
+
+
 }
 
 void BmnDchTrackFinder::Exec(Option_t* opt) {
@@ -79,97 +95,73 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
     fDchTracks->Clear();
 
+    // Array cleaning and initializing 
+    for (Int_t iDim1 = 0; iDim1 < 4; iDim1++)
+        for (Int_t iDim2 = 0; iDim2 < 150; iDim2++) {
+            par_ab1[iDim1][iDim2] = 0.0;
+            par_ab2[iDim1][iDim2] = 0.0;
+        }
+
+    for (Int_t iDim = 0; iDim < 150; iDim++) {
+        chi2_DC1[iDim] = 0.;
+        chi2_DC2[iDim] = 0.;
+        size_segDC1[iDim] = 0;
+        size_segDC2[iDim] = 0;
+    }
+
     //temporary containers
-    Double_t time_xa1[20] = {-99};
-    Double_t time_xa2[20] = {-99};
-    Double_t time_xb1[20] = {-99};
-    Double_t time_xb2[20] = {-99};
-    Double_t time_ya1[20] = {-99};
-    Double_t time_ya2[20] = {-99};
-    Double_t time_yb1[20] = {-99};
-    Double_t time_yb2[20] = {-99};
-    Double_t time_ua1[20] = {-99};
-    Double_t time_ua2[20] = {-99};
-    Double_t time_ub1[20] = {-99};
-    Double_t time_ub2[20] = {-99};
-    Double_t time_va1[20] = {-99};
-    Double_t time_va2[20] = {-99};
-    Double_t time_vb1[20] = {-99};
-    Double_t time_vb2[20] = {-99};
+    // Order used: va1, vb1, ua1, ub1, ya1, yb1, xa1, xb1 (dch1) - va2, vb2, ua2, ub2, ya2, yb2, xa2, xb2 (dch2)
+    const Int_t nDim = 20;
+    const Int_t nPlanes = 16; // Total number of planes in both DCHs (0-7, 8-15)
 
-    Float_t wirenr_xa1[20] = {-99};
-    Float_t wirenr_xa2[20] = {-99};
-    Float_t wirenr_xb1[20] = {-99};
-    Float_t wirenr_xb2[20] = {-99};
-    Float_t wirenr_ya1[20] = {-99};
-    Float_t wirenr_ya2[20] = {-99};
-    Float_t wirenr_yb1[20] = {-99};
-    Float_t wirenr_yb2[20] = {-99};
-    Float_t wirenr_ua1[20] = {-99};
-    Float_t wirenr_ua2[20] = {-99};
-    Float_t wirenr_ub1[20] = {-99};
-    Float_t wirenr_ub2[20] = {-99};
-    Float_t wirenr_va1[20] = {-99};
-    Float_t wirenr_va2[20] = {-99};
-    Float_t wirenr_vb1[20] = {-99};
-    Float_t wirenr_vb2[20] = {-99};
+    Double_t time_xa1[nDim] = {-99.}, time_xa2[nDim] = {-99.}, time_xb1[nDim] = {-99.}, time_xb2[nDim] = {-99.},
+    time_ya1[nDim] = {-99.}, time_ya2[nDim] = {-99.}, time_yb1[nDim] = {-99.}, time_yb2[nDim] = {-99.},
+    time_ua1[nDim] = {-99.}, time_ua2[nDim] = {-99.}, time_ub1[nDim] = {-99.}, time_ub2[nDim] = {-99.},
+    time_va1[nDim] = {-99.}, time_va2[nDim] = {-99.}, time_vb1[nDim] = {-99.}, time_vb2[nDim] = {-99.};
 
-    Bool_t used_xa1[20] = {0};
-    Bool_t used_xa2[20] = {0};
-    Bool_t used_xb1[20] = {0};
-    Bool_t used_xb2[20] = {0};
-    Bool_t used_ya1[20] = {0};
-    Bool_t used_ya2[20] = {0};
-    Bool_t used_yb1[20] = {0};
-    Bool_t used_yb2[20] = {0};
-    Bool_t used_ua1[20] = {0};
-    Bool_t used_ua2[20] = {0};
-    Bool_t used_ub1[20] = {0};
-    Bool_t used_ub2[20] = {0};
-    Bool_t used_va1[20] = {0};
-    Bool_t used_va2[20] = {0};
-    Bool_t used_vb1[20] = {0};
-    Bool_t used_vb2[20] = {0};
+    Double_t wirenr_xa1[nDim] = {-99.}, wirenr_xa2[nDim] = {-99.}, wirenr_xb1[nDim] = {-99.}, wirenr_xb2[nDim] = {-99.},
+    wirenr_ya1[nDim] = {-99.}, wirenr_ya2[nDim] = {-99.}, wirenr_yb1[nDim] = {-99.}, wirenr_yb2[nDim] = {-99.},
+    wirenr_ua1[nDim] = {-99.}, wirenr_ua2[nDim] = {-99.}, wirenr_ub1[nDim] = {-99.}, wirenr_ub2[nDim] = {-99.},
+    wirenr_va1[nDim] = {-99.}, wirenr_va2[nDim] = {-99.}, wirenr_vb1[nDim] = {-99.}, wirenr_vb2[nDim] = {-99.};
 
-    Int_t it_xa1 = 0;
-    Int_t it_xa2 = 0;
-    Int_t it_xb1 = 0;
-    Int_t it_xb2 = 0;
-    Int_t it_ya1 = 0;
-    Int_t it_ya2 = 0;
-    Int_t it_yb1 = 0;
-    Int_t it_yb2 = 0;
-    Int_t it_ua1 = 0;
-    Int_t it_ua2 = 0;
-    Int_t it_ub1 = 0;
-    Int_t it_ub2 = 0;
-    Int_t it_va1 = 0;
-    Int_t it_va2 = 0;
-    Int_t it_vb1 = 0;
-    Int_t it_vb2 = 0;
+    Bool_t used_xa1[nDim] = {kFALSE}, used_xa2[nDim] = {kFALSE}, used_xb1[nDim] = {kFALSE}, used_xb2[nDim] = {kFALSE},
+    used_ya1[nDim] = {kFALSE}, used_ya2[nDim] = {kFALSE}, used_yb1[nDim] = {kFALSE}, used_yb2[nDim] = {kFALSE},
+    used_ua1[nDim] = {kFALSE}, used_ua2[nDim] = {kFALSE}, used_ub1[nDim] = {kFALSE}, used_ub2[nDim] = {kFALSE},
+    used_va1[nDim] = {kFALSE}, used_va2[nDim] = {kFALSE}, used_vb1[nDim] = {kFALSE}, used_vb2[nDim] = {kFALSE};
+
+    Int_t it_xa1 = 0, it_xa2 = 0, it_xb1 = 0, it_xb2 = 0,
+            it_ya1 = 0, it_ya2 = 0, it_yb1 = 0, it_yb2 = 0,
+            it_ua1 = 0, it_ua2 = 0, it_ub1 = 0, it_ub2 = 0,
+            it_va1 = 0, it_va2 = 0, it_vb1 = 0, it_vb2 = 0;
 
     Bool_t goodEv = kTRUE;
     Bool_t written = kFALSE;
 
     for (Int_t iDig = 0; iDig < fBmnDchDigitsArray->GetEntriesFast(); ++iDig) {
-
         BmnDchDigit* digit = (BmnDchDigit*) fBmnDchDigitsArray->UncheckedAt(iDig);
-        Short_t plane = digit->GetPlane();
 
         //skip identical events
         if (!written) {
             written = kTRUE;
             if (digit->GetTime() == prev_time && digit->GetWireNumber() == prev_wire) {
                 goodEv = kFALSE;
-                //                skipped_ev++;
             } else {
                 prev_time = Int_t(digit->GetTime());
                 prev_wire = Int_t(digit->GetWireNumber());
             }
         }//!written
 
-        Double_t times = digit->GetTime();
+        if (!goodEv)
+            return;
+
+        Short_t plane = digit->GetPlane();
+        Short_t wire = digit->GetWireNumber();
+        Double_t time = digit->GetTime();
         Bool_t secondaries = kFALSE;
+
+        // AssignTimesToWires(wire, time, it_va1, wirenr_va1, time_va1, secondaries);
+        // Order used: va1, vb1, ua1, ub1, ya1, yb1, xa1, xb1 - va2, vb2, ua2, ub2, ya2, yb2, xa2, xb2
+
         switch (plane) {
             case 0:
                 for (Int_t sec = 0; sec < it_va1 - 1; sec++) {
@@ -180,9 +172,10 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                 }//skip secondary hits                                                                                                                      
                 if (it_va1 == 19 || secondaries)break;
                 wirenr_va1[it_va1] = digit->GetWireNumber();
-                time_va1[it_va1] = times;
+                time_va1[it_va1] = time;
                 it_va1++;
                 break;
+
             case 1:
 
                 for (Int_t sec = 0; sec < it_vb1 - 1; sec++) {
@@ -193,7 +186,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                 }//skip secondary hits                                                                                                                      
                 if (it_vb1 == 19 || secondaries)break;
                 wirenr_vb1[it_vb1] = digit->GetWireNumber();
-                time_vb1[it_vb1] = times;
+                time_vb1[it_vb1] = time;
                 it_vb1++;
                 break;
             case 2:
@@ -206,7 +199,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
                 if (it_ua1 == 19 || secondaries)break;
                 wirenr_ua1[it_ua1] = digit->GetWireNumber();
-                time_ua1[it_ua1] = times;
+                time_ua1[it_ua1] = time;
                 it_ua1++;
                 break;
             case 3:
@@ -219,7 +212,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
                 if (it_ub1 == 19 || secondaries)break;
                 wirenr_ub1[it_ub1] = digit->GetWireNumber();
-                time_ub1[it_ub1] = times;
+                time_ub1[it_ub1] = time;
                 it_ub1++;
                 break;
             case 4:
@@ -233,7 +226,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                 if (it_ya1 == 19 || secondaries)break;
 
                 wirenr_ya1[it_ya1] = digit->GetWireNumber();
-                time_ya1[it_ya1] = times;
+                time_ya1[it_ya1] = time;
                 it_ya1++;
                 break;
             case 5:
@@ -245,7 +238,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                 }//skip secondary hits                                                                                                                      
                 if (it_yb1 == 19 || secondaries)break;
                 wirenr_yb1[it_yb1] = digit->GetWireNumber();
-                time_yb1[it_yb1] = times;
+                time_yb1[it_yb1] = time;
                 it_yb1++;
                 break;
             case 6:
@@ -258,7 +251,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
                 if (it_xa1 == 19 || secondaries)break;
                 wirenr_xa1[it_xa1] = digit->GetWireNumber();
-                time_xa1[it_xa1] = times;
+                time_xa1[it_xa1] = time;
                 it_xa1++;
                 break;
             case 7:
@@ -271,7 +264,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
                 if (it_xb1 == 19 || secondaries)break;
                 wirenr_xb1[it_xb1] = digit->GetWireNumber();
-                time_xb1[it_xb1] = times;
+                time_xb1[it_xb1] = time;
                 it_xb1++;
                 break;
             case 8:
@@ -284,7 +277,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
                 if (it_va2 == 19 || secondaries)break;
                 wirenr_va2[it_va2] = digit->GetWireNumber();
-                time_va2[it_va2] = times;
+                time_va2[it_va2] = time;
                 it_va2++;
                 break;
             case 9:
@@ -297,7 +290,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
                 if (it_vb2 == 19 || secondaries)break;
                 wirenr_vb2[it_vb2] = digit->GetWireNumber();
-                time_vb2[it_vb2] = times;
+                time_vb2[it_vb2] = time;
                 it_vb2++;
                 break;
             case 10:
@@ -309,7 +302,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                 }//skip secondary hits                                                                                                                       
                 if (it_ua2 == 19 || secondaries)break;
                 wirenr_ua2[it_ua2] = digit->GetWireNumber();
-                time_ua2[it_ua2] = times;
+                time_ua2[it_ua2] = time;
                 it_ua2++;
                 break;
             case 11:
@@ -322,7 +315,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
                 if (it_ub2 == 19 || secondaries)break;
                 wirenr_ub2[it_ub2] = digit->GetWireNumber();
-                time_ub2[it_ub2] = times;
+                time_ub2[it_ub2] = time;
                 it_ub2++;
                 break;
             case 12:
@@ -335,7 +328,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                 if (digit->GetWireNumber() == 111)break;
                 if (it_ya2 == 19 || secondaries)break;
                 wirenr_ya2[it_ya2] = digit->GetWireNumber();
-                time_ya2[it_ya2] = times;
+                time_ya2[it_ya2] = time;
                 it_ya2++;
                 break;
             case 13:
@@ -348,7 +341,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
                 if (it_yb2 == 19 || secondaries)break;
                 wirenr_yb2[it_yb2] = digit->GetWireNumber();
-                time_yb2[it_yb2] = times;
+                time_yb2[it_yb2] = time;
                 it_yb2++;
                 break;
             case 14:
@@ -361,7 +354,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                 }//skip secondarx hits                                                                                                                      
                 if (it_xa2 == 19 || secondaries)break;
                 wirenr_xa2[it_xa2] = digit->GetWireNumber();
-                time_xa2[it_xa2] = times;
+                time_xa2[it_xa2] = time;
                 it_xa2++;
                 break;
             case 15:
@@ -373,82 +366,60 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                 }//skip secondarx hits                                                                                                                      
                 if (it_xb2 == 19 || secondaries)break;
                 wirenr_xb2[it_xb2] = digit->GetWireNumber();
-                time_xb2[it_xb2] = times;
+                time_xb2[it_xb2] = time;
                 it_xb2++;
                 break;
         }
     }//for digis in event iDig
 
-    if (!goodEv)
-        return;
-
-    Float_t rh_segDC1[8][150];
-    Float_t rh_segDC2[8][150];
-    Float_t rh_sigm_segDC1[8][150];
-    Float_t rh_sigm_segDC2[8][150];
-    Float_t xDC1_glob[150];
-    Float_t yDC1_glob[150];
-    Float_t xDC2_glob[150];
-    Float_t yDC2_glob[150];
-
-    //    Float_t chi2_DC1[150];
-    //    Float_t chi2_DC2[150];
-        Int_t size_segDC1[150];
-        Int_t size_segDC2[150];
-
-    Float_t* chi2_DC1 = new Float_t[150];
-    Float_t* chi2_DC2 = new Float_t[150];
-//    Int_t* size_segDC1 = new Int_t[150];
-//    Int_t* size_segDC2 = new Int_t[150];
-
-    for (Int_t iDim = 0; iDim < 150; iDim++) {
-        chi2_DC1[iDim] = 0.;
-        chi2_DC2[iDim] = 0.;
-  //      size_segDC1[iDim] = 0;
-  //      size_segDC2[iDim] = 0;
-    }
-
-
+    Float_t rh_segDC1[8][150] = {0.};
+    Float_t rh_segDC2[8][150] = {0.};
+    Float_t rh_sigm_segDC1[8][150] = {0.};
+    Float_t rh_sigm_segDC2[8][150] = {0.};
+    Float_t xDC1_glob[150] = {0.};
+    Float_t yDC1_glob[150] = {0.};
+    Float_t xDC2_glob[150] = {0.};
+    Float_t yDC2_glob[150] = {0.};
 
     Int_t nDC1_segments = 0;
     Int_t nDC2_segments = 0;
     Bool_t has7DC1 = kFALSE;
     Bool_t has7DC2 = kFALSE;
 
-    Float_t x1_ab[2][150];
-    Float_t y1_ab[2][150];
-    Float_t u1_ab[2][150];
-    Float_t v1_ab[2][150];
-    Float_t sigm_x1_ab[2][150];
-    Float_t sigm_y1_ab[2][150];
-    Float_t sigm_u1_ab[2][150];
-    Float_t sigm_v1_ab[2][150];
-    Float_t x2_ab[2][150];
-    Float_t y2_ab[2][150];
-    Float_t u2_ab[2][150];
-    Float_t v2_ab[2][150];
-    Float_t sigm_x2_ab[2][150];
-    Float_t sigm_y2_ab[2][150];
-    Float_t sigm_u2_ab[2][150];
-    Float_t sigm_v2_ab[2][150];
+    Float_t x1_ab[2][150] = {0.};
+    Float_t y1_ab[2][150] = {0.};
+    Float_t u1_ab[2][150] = {0.};
+    Float_t v1_ab[2][150] = {0.};
+    Float_t sigm_x1_ab[2][150] = {0.};
+    Float_t sigm_y1_ab[2][150] = {0.};
+    Float_t sigm_u1_ab[2][150] = {0.};
+    Float_t sigm_v1_ab[2][150] = {0.};
+    Float_t x2_ab[2][150] = {0.};
+    Float_t y2_ab[2][150] = {0.};
+    Float_t u2_ab[2][150] = {0.};
+    Float_t v2_ab[2][150] = {0.};
+    Float_t sigm_x2_ab[2][150] = {0.};
+    Float_t sigm_y2_ab[2][150] = {0.};
+    Float_t sigm_u2_ab[2][150] = {0.};
+    Float_t sigm_v2_ab[2][150] = {0.};
 
     //single hits on ab-plane
-    Float_t x1_single[2][40];
-    Float_t y1_single[2][40];
-    Float_t u1_single[2][40];
-    Float_t v1_single[2][40];
-    Float_t sigm_x1_single[2][40];
-    Float_t sigm_y1_single[2][40];
-    Float_t sigm_u1_single[2][40];
-    Float_t sigm_v1_single[2][40];
-    Float_t x2_single[2][40];
-    Float_t y2_single[2][40];
-    Float_t u2_single[2][40];
-    Float_t v2_single[2][40];
-    Float_t sigm_x2_single[2][40];
-    Float_t sigm_y2_single[2][40];
-    Float_t sigm_u2_single[2][40];
-    Float_t sigm_v2_single[2][40];
+    Float_t x1_single[2][40] = {0.};
+    Float_t y1_single[2][40] = {0.};
+    Float_t u1_single[2][40] = {0.};
+    Float_t v1_single[2][40] = {0.};
+    Float_t sigm_x1_single[2][40] = {0.};
+    Float_t sigm_y1_single[2][40] = {0.};
+    Float_t sigm_u1_single[2][40] = {0.};
+    Float_t sigm_v1_single[2][40] = {0.};
+    Float_t x2_single[2][40] = {0.};
+    Float_t y2_single[2][40] = {0.};
+    Float_t u2_single[2][40] = {0.};
+    Float_t v2_single[2][40] = {0.};
+    Float_t sigm_x2_single[2][40] = {0.};
+    Float_t sigm_y2_single[2][40] = {0.};
+    Float_t sigm_u2_single[2][40] = {0.};
+    Float_t sigm_v2_single[2][40] = {0.};
 
     for (Int_t i = 0; i < 8; i++) {
         for (Int_t j = 0; j < 150; j++) {
@@ -1445,26 +1416,6 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
             }//j
         }//i
     }//(u,v) first
-
-    ///-------------DCH2 hit reco------------------///
-    //    Float_t par_ab1[4][150];
-    //    Float_t par_ab2[4][150];
-
-    Float_t** par_ab1 = new Float_t*[4];
-    Float_t** par_ab2 = new Float_t*[4];
-    for (Int_t iDim = 0; iDim < 4; iDim++) {
-        par_ab1[iDim] = new Float_t[150];
-        par_ab2[iDim] = new Float_t[150];
-    }
-
-    for (Int_t iDim1 = 0; iDim1 < 4; iDim1++)
-        for (Int_t iDim2 = 0; iDim2 < 150; iDim2++) {
-            par_ab1[iDim1][iDim2] = 0.0;
-            par_ab2[iDim1][iDim2] = 0.0;
-
-        }
-
-
 
     for (Int_t i = 0; i < 8; i++) {
         for (Int_t j = 0; j < 150; j++) {
@@ -2721,66 +2672,15 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
     }//max_size 
 
     //fill local segments z,x,y global coords; x-slope; y-slope; Chi2; to be continued...
-
-    //    cout << "0 " << fDchTracks->GetEntriesFast() << endl;
     CreateDchTrack(1, nDC1_segments, chi2_DC1, par_ab1, size_segDC1); // Dch1
-    //    cout << "dch1 " << fDchTracks->GetEntriesFast() << endl; 
- //   CreateDchTrack(2, nDC2_segments, chi2_DC2, par_ab2, size_segDC2); // Dch2
-    //    cout << "dch2 " << fDchTracks->GetEntriesFast() << endl; 
+    CreateDchTrack(2, nDC2_segments, chi2_DC2, par_ab2, size_segDC2); // Dch2
 
-
-
-        for (Int_t sizeit1 = 0; sizeit1 < nDC1_segments; sizeit1++) {
-            if (chi2_DC1[sizeit1] > 50) continue;
-            FairTrackParam trackParam;
-            Float_t z0 = Z_dch1;
-            Float_t x0 = par_ab1[1][sizeit1];
-            
-            Float_t y0 = par_ab1[3][sizeit1];
-            fprintf(noFunc, "\n%f %f %f\n", x0, y0, z0);
-            trackParam.SetPosition(TVector3(x0, y0, z0));
-            trackParam.SetTx(par_ab1[0][sizeit1]);
-            trackParam.SetTy(par_ab1[2][sizeit1]);
-              
-            BmnDchTrack* track = new((*fDchTracks)[fDchTracks->GetEntriesFast()]) BmnDchTrack();
-            track->SetChi2(chi2_DC1[sizeit1]);
-            track->SetNHits(size_segDC1[sizeit1]);
-            track->SetParamFirst(trackParam);
-        }
-//
-        for (Int_t sizeit2 = 0; sizeit2 < nDC2_segments; sizeit2++) {
-            if (chi2_DC2[sizeit2] > 50) continue;
-            FairTrackParam trackParam;
-            Float_t z0 = Z_dch2;
-            Float_t x0 = par_ab2[1][sizeit2];
-            Float_t y0 = par_ab2[3][sizeit2];
-            fprintf(noFunc, "%f %f %f\n", x0, y0, z0);
-            trackParam.SetPosition(TVector3(x0, y0, z0));
-            trackParam.SetTx(par_ab2[0][sizeit2]);
-            trackParam.SetTy(par_ab2[2][sizeit2]);  
-            
-            BmnDchTrack* track = new((*fDchTracks)[fDchTracks->GetEntriesFast()]) BmnDchTrack();
-            track->SetChi2(chi2_DC2[sizeit2]);
-            track->SetNHits(size_segDC2[sizeit2]);
-            track->SetParamFirst(trackParam);
-        }
-    //    
-    for (int i = 0; i < 4; i++) {
-        delete [] par_ab1[i];
-        delete [] par_ab2[i];
-    }
-    delete[] par_ab1;
-    delete[] par_ab2;
-
-    delete chi2_DC1;
-    delete chi2_DC2;
-
- //   delete size_segDC1;
- //   delete size_segDC2;
-
+   
     //   try to match the reconstructed segments from the two chambers
-    if (!fSegmentMatching)
+    if (!fSegmentMatching) {
+        cout << "\n======================== DCH track finder exec finished ========================" << endl;
         return;
+    }
 
     if (has7DC1) {
         Int_t match_dc2_seg = -1;
@@ -3036,6 +2936,20 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
     cout << "\n======================== DCH track finder exec finished ========================" << endl;
 }
 
+void BmnDchTrackFinder::AssignTimesToWires(Short_t wire, Double_t time, Int_t it, Double_t* wires, Double_t* times, Bool_t secondaries) {
+    for (Int_t sec = 0; sec < it - 1; sec++) {
+        if (wire == wires[sec]) {
+            secondaries = kTRUE;
+            break;
+        }
+    }//skip secondary hits                                                                                                                      
+    if (it == 19 || secondaries)
+        return;
+    wires[it] = wire;
+    times[it] = time;
+    it++;
+}
+
 void BmnDchTrackFinder::fit_seg(Float_t* rh_seg, Float_t* rh_sigm_seg, Float_t* par_ab, Int_t skip_first, Int_t skip_second) {
     Double_t sqrt_2 = sqrt(2.);
     //linear fit
@@ -3201,9 +3115,19 @@ void BmnDchTrackFinder::fit_seg(Float_t* rh_seg, Float_t* rh_sigm_seg, Float_t* 
 }
 
 void BmnDchTrackFinder::Finish() {
-    
-    fclose(noFunc);
+    for (Int_t i = 0; i < 4; i++) {
+        delete [] par_ab1[i];
+        delete [] par_ab2[i];
+    }
 
+    delete[] par_ab1;
+    delete[] par_ab2;
+
+    delete[] chi2_DC1;
+    delete[] chi2_DC2;
+
+    delete[] size_segDC1;
+    delete[] size_segDC2;
 }
 
 void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Int_t nSegments, Float_t* chi2Arr, Float_t** parArr, Int_t* sizeArr) {
@@ -3214,9 +3138,8 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Int_t nSegments, Float_t* ch
         Float_t z0 = (dchID == 1) ? Z_dch1 : Z_dch2;
         Float_t x0 = parArr[1][iSegment];
         Float_t y0 = parArr[3][iSegment];
-        cout << "Func " << x0 << endl;
-        trackParam.SetPosition(TVector3(x0, y0, z0));
-        trackParam.SetTx(parArr[0][iSegment]);
+        trackParam.SetPosition(TVector3(-x0, y0, z0));
+        trackParam.SetTx(-parArr[0][iSegment]);
         trackParam.SetTy(parArr[2][iSegment]);
 
         BmnDchTrack* track = new((*fDchTracks)[fDchTracks->GetEntriesFast()]) BmnDchTrack();

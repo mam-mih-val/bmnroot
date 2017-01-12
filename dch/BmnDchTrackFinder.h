@@ -68,13 +68,20 @@ private:
     Float_t y2_slope_sh; //
     
     Bool_t fSegmentMatching; 
+    
+    Float_t** par_ab1;
+    Float_t** par_ab2;
+    
+    Float_t* chi2_DC1;
+    Float_t* chi2_DC2;
+    Int_t* size_segDC1;
+    Int_t* size_segDC2;
+     
   
     void fit_seg(Float_t*, Float_t*, Float_t*, Int_t, Int_t);
     void CreateDchTrack(Int_t, Int_t, Float_t*, Float_t**, Int_t*);
-    
-    FILE* noFunc;
-    FILE* Func;
-     
+    void AssignTimesToWires(Short_t, Double_t, Int_t, Double_t*, Double_t*, Bool_t);
+         
     ClassDef(BmnDchTrackFinder, 1)
 };
 

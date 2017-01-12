@@ -841,7 +841,7 @@ int UniDbDetectorParameter::DeleteDetectorParameter(TString detector_name, TStri
 
     TString sql = TString::Format(
         "delete from detector_parameter "
-        "where detector_name = $1 and parameter_name = $2 and start_period = $3 and start_run = $4 and end_period = $5 and end_run = $6");
+        "where lower(detector_name) = lower($1) and parameter_id IN (select parameter_id from parameter_ where lower(parameter_name) = lower($2)) and start_period = $3 and start_run = $4 and end_period = $5 and end_run = $6");
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     stmt->NextIteration();
@@ -885,7 +885,7 @@ int UniDbDetectorParameter::DeleteDetectorParameter(TString detector_name, TStri
 
     TString sql = TString::Format(
         "delete from detector_parameter "
-        "where detector_name = $1 and parameter_name = $2 and start_period = $3 and start_run = $4 and end_period = $5 and end_run = $6 and dc_serial = $7 and channel = $8");
+        "where lower(detector_name) = lower($1) and parameter_id IN (select parameter_id from parameter_ where lower(parameter_name) = lower($2)) and start_period = $3 and start_run = $4 and end_period = $5 and end_run = $6 and dc_serial = $7 and channel = $8");
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     stmt->NextIteration();

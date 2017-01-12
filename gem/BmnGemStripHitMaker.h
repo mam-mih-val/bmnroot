@@ -46,9 +46,8 @@ public:
     }
 
      void SetAlignmentCorrections(TString fname) {
-       // TString dir = getenv("VMCWORKDIR");
-       // fFile = dir + "/input/" + fname;
-        fFile = fname;
+        TString dir = getenv("VMCWORKDIR");
+        fFile = dir + "/input/" + fname;
     }
 
 private:

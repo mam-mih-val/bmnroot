@@ -983,6 +983,100 @@ TString UniDbDetectorParameter::GetParameterName()
     return par_name;
 }
 
+// get start period and run of the current detector parameter
+void UniDbDetectorParameter::GetStart(int& start_period, int& start_run)
+{
+    start_period = i_start_period;
+    start_run = i_start_run;
+
+    return;
+}
+
+// get end period and run of the current detector parameter
+void UniDbDetectorParameter::GetEnd(int& end_period, int& end_run)
+{
+    end_period = i_end_period;
+    end_run = i_end_run;
+
+    return;
+}
+
+// set start period and run of the current detector parameter
+int UniDbDetectorParameter::SetStart(int start_period, int start_run)
+{
+    if (!connectionUniDb)
+    {
+        cout<<"Connection object is null"<<endl;
+        return -1;
+    }
+
+    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "update detector_parameter "
+        "set start_period = $1, start_run = $2"
+        "where value_id = $3");
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    stmt->NextIteration();
+    stmt->SetInt(0, start_period);
+    stmt->SetInt(1, start_run);
+    stmt->SetInt(2, i_value_id);
+
+    // write new value to database
+    if (!stmt->Process())
+    {
+        cout<<"Error: updating the record has been failed"<<endl;
+
+        delete stmt;
+        return -2;
+    }
+
+    i_start_period = start_period;
+    i_start_run = start_run;
+
+    delete stmt;
+    return 0;
+}
+
+// set end period and run of the current detector parameter
+int UniDbDetectorParameter::SetEnd(int end_period, int end_run)
+{
+    if (!connectionUniDb)
+    {
+        cout<<"Connection object is null"<<endl;
+        return -1;
+    }
+
+    TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "update detector_parameter "
+        "set end_period = $1, end_run = $2"
+        "where value_id = $3");
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    stmt->NextIteration();
+    stmt->SetInt(0, end_period);
+    stmt->SetInt(1, end_run);
+    stmt->SetInt(2, i_value_id);
+
+    // write new value to database
+    if (!stmt->Process())
+    {
+        cout<<"Error: updating the record has been failed"<<endl;
+
+        delete stmt;
+        return -2;
+    }
+
+    i_end_period = end_period;
+    i_end_run = end_run;
+
+    delete stmt;
+    return 0;
+}
+
 // common function for adding common parameter value
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
 {
@@ -2186,7 +2280,7 @@ TObjArray* UniDbDetectorParameter::Search(const UniDbSearchCondition& search_con
 
 
 /// parse detector parameter's values, function returns row count added to the database
-int UniDbDetectorParameter::ParseTxt(TString detector_name, TString parameter_name, TString text_file)
+int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, bool isSerialChannel)
 {
     ifstream txtFile;
     txtFile.open(text_file, ios::in);
@@ -2207,48 +2301,13 @@ int UniDbDetectorParameter::ParseTxt(TString detector_name, TString parameter_na
     while (getline(txtFile, cur_line))
     {
         //remove duplicates of whitespaces and tabs
-        string reduce_line = reduce(cur_line);
+        TString reduce_line = reduce(cur_line);
 
-        vector<string> elems;
-        stringstream ss;
-        ss.str(reduce_line);
-        string item;
-        while (getline(ss, item, ';'))
-            elems.push_back(item);
-
-        int elem_size = elems.size();
-
-        if ((elem_size != 5) && (elem_size != 7))
-        {
-            cout<<"Warning: the count of parameters is not equal 5 or 7 (start_period, start run, end_period, end_run, [serial], [channel], value)"<<endl<<"The current line will be skipped!"<<endl;
+        if (reduce_line[0] == '#')
             continue;
-        }
 
-        int cur_num_item = 0;
-        // get start period
-        item = elems[cur_num_item++];
-        int start_period = atoi(item.c_str());
-        // get start run
-        item = elems[cur_num_item++];
-        int start_run = atoi(item.c_str());
-
-        // get end period
-        item = elems[cur_num_item++];
-        int end_period = atoi(item.c_str());
-        // get end run
-        item = elems[cur_num_item++];
-        int end_run = atoi(item.c_str());
-
-        int serial_number = -1, channel_number = -1;
-        if (elem_size == 7)
-        {
-            // get serial number
-            item = elems[cur_num_item++];
-            serial_number = atoi(item.c_str());
-            // get start run
-            item = elems[cur_num_item++];
-            channel_number = atoi(item.c_str());
-        }
+        //stringstream ss;
+        //ss.str(reduce_line);
 
         // get detector object from 'detector_' table
         TString sql = TString::Format(
@@ -2309,15 +2368,40 @@ int UniDbDetectorParameter::ParseTxt(TString detector_name, TString parameter_na
 
         delete stmt;
 
+        TObjArray* tokens = reduce_line.Tokenize("\t ");
+        TString* item;
+        int value_count = tokens->GetEntriesFast();
+
         UniDbDetectorParameter* pDetectorParameter = NULL;
         // choose parsing method for parameter's value according it's type
-        item = elems[cur_num_item];
+        int serial_number = -1, channel_number = -1, cur_num_item = 0;
         switch (parameter_type)
         {
             case BoolType:
                 {
-                    bool value = (bool) atoi(item.c_str());
-                    if (elem_size == 7)
+                    int count_required = 1;
+                    if (isSerialChannel) count_required++, count_required++;
+
+                    if (value_count != count_required)
+                    {
+                        cout<<"Warning: the count of parameters is not equal 1 or 3 ([serial] [channel] value)"<<endl<<"The current line will be skipped!"<<endl;
+                        tokens->Delete();
+                        continue;
+                    }
+                    if (isSerialChannel)
+                    {
+                        // get serial number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        serial_number = item->Atoi();
+                        // get channel number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        channel_number = item->Atoi();
+                    }
+                    item = (TString*) tokens->At(cur_num_item++);
+                    tokens->Delete();
+
+                    bool value = (bool) item->Atoi();
+                    if (isSerialChannel)
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, value);
                     else
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, value);
@@ -2326,17 +2410,38 @@ int UniDbDetectorParameter::ParseTxt(TString detector_name, TString parameter_na
                 }
             case IntType:
                 {
-                    int value = atoi(item.c_str());
+                    int count_required = 1;
+                    if (isSerialChannel) count_required++, count_required++;
+
+                    if (value_count != count_required)
+                    {
+                        cout<<"Warning: the count of parameters is not equal 1 or 3 ([serial] [channel] value)"<<endl<<"The current line will be skipped!"<<endl;
+                        tokens->Delete();
+                        continue;
+                    }
+                    if (isSerialChannel)
+                    {
+                        // get serial number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        serial_number = item->Atoi();
+                        // get channel number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        channel_number = item->Atoi();
+                    }
+                    item = (TString*) tokens->At(cur_num_item++);
+                    tokens->Delete();
+
+                    int value = item->Atoi();
                     if (value == 0)
                     {
-                        if (!is_string_number(item))
+                        if (!item->IsDigit())
                         {
-                            cout<<"Error: the parameter value is not integer: '"<<item<<endl;
+                            cout<<"Error: the parameter value is not integer: '"<<item<<"'"<<endl;
                             continue;
                         }
                     }
 
-                    if (elem_size == 7)
+                    if (isSerialChannel)
                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, value);
                     else
                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, value);
@@ -2345,18 +2450,29 @@ int UniDbDetectorParameter::ParseTxt(TString detector_name, TString parameter_na
                 }
             case DoubleType:
                 {
-                    double value = atof(item.c_str());
-                    if (elem_size == 7)
-                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, value);
-                    else
-                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, value);
+                    int count_required = 1;
+                    if (isSerialChannel) count_required++, count_required++;
 
-                    break;
-                }
-            case StringType:
-                {
-                    TString value = item;
-                    if (elem_size == 7)
+                    if (value_count != count_required)
+                    {
+                        cout<<"Warning: the count of parameters is not equal 1 or 3 ([serial] [channel] value)"<<endl<<"The current line will be skipped!"<<endl;
+                        tokens->Delete();
+                        continue;
+                    }
+                    if (isSerialChannel)
+                    {
+                        // get serial number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        serial_number = item->Atoi();
+                        // get channel number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        channel_number = item->Atoi();
+                    }
+                    item = (TString*) tokens->At(cur_num_item++);
+                    tokens->Delete();
+
+                    double value = item->Atof();
+                    if (isSerialChannel)
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, value);
                     else
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, value);
@@ -2365,100 +2481,333 @@ int UniDbDetectorParameter::ParseTxt(TString detector_name, TString parameter_na
                 }
             case IIArrayType:
                 {
-                    IIStructure st;
-                    vector<IIStructure> arr;
-                    // parse parameter values by space separated
-                    int num = 0;
-                    istringstream line_stream(item);
-                    string token;
-                    while (getline(line_stream, token, ' '))
+                    int count_required = 2, size_arr = value_count/2;
+                    if (isSerialChannel)
                     {
-                        if ((num % 2) == 0)
-                            st.int_1 = atoi(token.c_str());
-                        else
-                        {
-                            st.int_2 = atoi(token.c_str());
-                            arr.push_back(st);
-                        }
+                        count_required++, count_required++;
+                        size_arr--;
+                    }
 
-                        num++;
-                    }// parse integer pairs by space separated
-
-                    int size_arr = arr.size();
-                    if (size_arr < 1)
+                    if ((value_count < count_required) || ((value_count % 2) != 0))
+                    {
+                        cout<<"Warning: the count of parameters should be greater 2 or 4 ([serial] [channel] values@2) and should be even"<<endl<<"The current line will be skipped!"<<endl;
+                        tokens->Delete();
                         continue;
+                    }
+                    if (isSerialChannel)
+                    {
+                        // get serial number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        serial_number = item->Atoi();
+                        // get channel number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        channel_number = item->Atoi();
+                    }
 
-                    // copy vector to dynamic array
+                    int iter = 0, num = count_required-2;
                     IIStructure* pValues = new IIStructure[size_arr];
-                    for (int i = 0; i < size_arr; i++)
-                        pValues[i] = arr[i];
+                    for (; iter < size_arr; iter++)
+                    {
+                        pValues[iter].int_1 = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].int_2 = ((TString*) tokens->At(num++))->Atoi();
+                    }
+                    tokens->Delete();
 
-                    if (elem_size == 7)
+                    if (isSerialChannel)
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, pValues, size_arr);
                     else
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, pValues, size_arr);
 
                     delete [] pValues;
-
                     break;
                 }
             case IntArrayType:
                 {
-                    vector<int> arr;
-                    // parse parameter values by space separated
-                    istringstream line_stream(item);
-                    string token;
-                    while (getline(line_stream, token, ' '))
-                        arr.push_back(atoi(token.c_str()));
+                    int count_required = 1, size_arr = value_count;
+                    if (isSerialChannel)
+                    {
+                        count_required++, count_required++;
+                        size_arr--, size_arr--;
+                    }
 
-                    int size_arr = arr.size();
-                    if (size_arr < 1)
+                    if (value_count < count_required)
+                    {
+                        cout<<"Warning: the count of parameters should be greater 1 or 3 ([serial] [channel] value1 value2...)"<<endl<<"The current line will be skipped!"<<endl;
+                        tokens->Delete();
                         continue;
+                    }
+                    if (isSerialChannel)
+                    {
+                        // get serial number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        serial_number = item->Atoi();
+                        // get channel number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        channel_number = item->Atoi();
+                    }
 
-                    // copy vector to dynamic array
+                    int iter = 0;
                     int* pValues = new int[size_arr];
-                    for (int i = 0; i < size_arr; i++)
-                        pValues[i] = arr[i];
+                    for (int num = count_required-1; num < value_count; num++,iter++)
+                        pValues[iter] = ((TString*) tokens->At(num))->Atoi();
+                    tokens->Delete();
 
-                    if (elem_size == 7)
+                    if (isSerialChannel)
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, pValues, size_arr);
                     else
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, pValues, size_arr);
 
                     delete [] pValues;
-
                     break;
                 }
             case DoubleArrayType:
                 {
-                    vector<double> arr;
-                    // parse parameter values by space separated
-                    istringstream line_stream(item);
-                    string token;
-                    while (getline(line_stream, token, ' '))
-                        arr.push_back(atof(token.c_str()));
+                    int count_required = 1, size_arr = value_count;
+                    if (isSerialChannel)
+                    {
+                        count_required++, count_required++;
+                        size_arr--, size_arr--;
+                    }
 
-                    int size_arr = arr.size();
-                    if (size_arr < 1)
+                    if (value_count < count_required)
+                    {
+                        cout<<"Warning: the count of parameters should be greater 1 or 3 ([serial] [channel] value1 value2...)"<<endl<<"The current line will be skipped!"<<endl;
+                        tokens->Delete();
                         continue;
+                    }
+                    if (isSerialChannel)
+                    {
+                        // get serial number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        serial_number = item->Atoi();
+                        // get channel number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        channel_number = item->Atoi();
+                    }
 
-                    // copy vector to dynamic array
+                    int iter = 0;
                     double* pValues = new double[size_arr];
-                    for (int i = 0; i < size_arr; i++)
-                        pValues[i] = arr[i];
+                    for (int num = count_required-1; num < value_count; num++, iter++)
+                        pValues[iter] = ((TString*) tokens->At(num))->Atof();
+                    tokens->Delete();
 
-                    if (elem_size == 7)
+                    if (isSerialChannel)
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, pValues, size_arr);
                     else
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, pValues, size_arr);
 
                     delete [] pValues;
+                    break;
+                }
+            case UIntArrayType:
+                {
+                    int count_required = 1, size_arr = value_count;
+                    if (isSerialChannel)
+                    {
+                        count_required++, count_required++;
+                        size_arr--, size_arr--;
+                    }
 
+                    if (value_count < count_required)
+                    {
+                        cout<<"Warning: the count of parameters should be greater 1 or 3 ([serial] [channel] value1 value2...)"<<endl<<"The current line will be skipped!"<<endl;
+                        tokens->Delete();
+                        continue;
+                    }
+                    if (isSerialChannel)
+                    {
+                        // get serial number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        serial_number = item->Atoi();
+                        // get channel number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        channel_number = item->Atoi();
+                    }
+
+                    int iter = 0;
+                    unsigned int* pValues = new unsigned int[size_arr];
+                    for (int num = count_required-1; num < value_count; num++, iter++)
+                        pValues[iter] = (unsigned int) ((TString*) tokens->At(num))->Atoll();
+                    tokens->Delete();
+
+                    if (isSerialChannel)
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, pValues, size_arr);
+                    else
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, pValues, size_arr);
+
+                    delete [] pValues;
+                    break;
+                }
+            case DchMapArrayType:
+                {
+                    int count_required = 6, size_arr = value_count/6;
+                    if (isSerialChannel)
+                        count_required++, count_required++;
+
+                    if ((value_count < count_required) || (((value_count-count_required+6) % 6) != 0))
+                    {
+                        cout<<"Warning: the count of parameters should be greater 6 or 8 ([serial] [channel] values@6) and must be divisible by 6"<<endl<<"The current line will be skipped!"<<endl;
+                        tokens->Delete();
+                        continue;
+                    }
+                    if (isSerialChannel)
+                    {
+                        // get serial number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        serial_number = item->Atoi();
+                        // get channel number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        channel_number = item->Atoi();
+                    }
+
+                    int iter = 0, num = count_required-6;
+                    DchMapStructure* pValues = new DchMapStructure[size_arr];
+                    for (; iter < size_arr; iter++)
+                    {
+                        pValues[iter].plane = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].group = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].crate = (unsigned int) ((TString*) tokens->At(num++))->Atoll();
+                        pValues[iter].slot = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].channel_low = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].channel_high = ((TString*) tokens->At(num++))->Atoi();
+                    }
+                    tokens->Delete();
+
+                    if (isSerialChannel)
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, pValues, size_arr);
+                    else
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, pValues, size_arr);
+
+                    delete [] pValues;
+                    break;
+                }
+            case GemMapArrayType:
+                {
+                    int count_required = 6, size_arr = value_count/6;
+                    if (isSerialChannel)
+                        count_required++, count_required++;
+
+                    if ((value_count < count_required) || (((value_count-count_required+6) % 6) != 0))
+                    {
+                        cout<<"Warning: the count of parameters should be greater 6 or 8 ([serial] [channel] values@6) and must be divisible by 6"<<endl<<"The current line will be skipped!"<<endl;
+                        tokens->Delete();
+                        continue;
+                    }
+                    if (isSerialChannel)
+                    {
+                        // get serial number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        serial_number = item->Atoi();
+                        // get channel number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        channel_number = item->Atoi();
+                    }
+
+                    int iter = 0, num = count_required-6;
+                    GemMapStructure* pValues = new GemMapStructure[size_arr];
+                    for (; iter < size_arr; iter++)
+                    {
+                        pValues[iter].serial = (unsigned int) ((TString*) tokens->At(num++))->Atoll();
+                        pValues[iter].id = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].station = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].channel_low = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].channel_high = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].hotZone = ((TString*) tokens->At(num++))->Atoi();
+                    }
+                    tokens->Delete();
+
+                    if (isSerialChannel)
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, pValues, size_arr);
+                    else
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, pValues, size_arr);
+
+                    delete [] pValues;
+                    break;
+                }
+            case GemPedestalArrayType:
+                {
+                    int count_required = 4, size_arr = value_count/4;
+                    if (isSerialChannel)
+                        count_required++, count_required++;
+
+                    if ((value_count < count_required) || (((value_count-count_required+4) % 4) != 0))
+                    {
+                        cout<<"Warning: the count of parameters should be greater 4 or 6 ([serial] [channel] values@6) and must be divisible by 4"<<endl<<"The current line will be skipped!"<<endl;
+                        tokens->Delete();
+                        continue;
+                    }
+                    if (isSerialChannel)
+                    {
+                        // get serial number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        serial_number = item->Atoi();
+                        // get channel number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        channel_number = item->Atoi();
+                    }
+
+                    int iter = 0, num = count_required-4;
+                    GemPedestalStructure* pValues = new GemPedestalStructure[size_arr];
+                    for (; iter < size_arr; iter++)
+                    {
+                        pValues[iter].serial = (unsigned int) ((TString*) tokens->At(num++))->Atoll();
+                        pValues[iter].channel = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].pedestal = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].noise = ((TString*) tokens->At(num++))->Atoi();
+                    }
+                    tokens->Delete();
+
+                    if (isSerialChannel)
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, pValues, size_arr);
+                    else
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, pValues, size_arr);
+
+                    delete [] pValues;
+                    break;
+                }
+            case TriggerMapArrayType:
+                {
+                    int count_required = 3, size_arr = value_count/3;
+                    if (isSerialChannel)
+                        count_required++, count_required++;
+
+                    if ((value_count < count_required) || (((value_count-count_required+3) % 3) != 0))
+                    {
+                        cout<<"Warning: the count of parameters should be greater 3 or 5 ([serial] [channel] values@3) and must be divisible by 3"<<endl<<"The current line will be skipped!"<<endl;
+                        tokens->Delete();
+                        continue;
+                    }
+                    if (isSerialChannel)
+                    {
+                        // get serial number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        serial_number = item->Atoi();
+                        // get channel number
+                        item = (TString*) tokens->At(cur_num_item++);
+                        channel_number = item->Atoi();
+                    }
+
+                    int iter = 0, num = count_required-3;
+                    TriggerMapStructure* pValues = new TriggerMapStructure[size_arr];
+                    for (; iter < size_arr; iter++)
+                    {
+                        pValues[iter].serial = (unsigned int) ((TString*) tokens->At(num++))->Atoll();
+                        pValues[iter].slot = (unsigned int) ((TString*) tokens->At(num++))->Atoll();
+                        pValues[iter].channel = ((TString*) tokens->At(num++))->Atoi();
+                    }
+                    tokens->Delete();
+
+                    if (isSerialChannel)
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, pValues, size_arr);
+                    else
+                        pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, pValues, size_arr);
+
+                    delete [] pValues;
                     break;
                 }
             default:
                 {
-                    cout<<"Error: the type of parameter ("<<parameter_name<<") is not supported now"<<endl;
+                    cout<<"Error: the type of parameter ("<<parameter_name<<") is not supported for parsing (txt) now"<<endl;
                     continue;
                 }
         }// switch (parameter_type)

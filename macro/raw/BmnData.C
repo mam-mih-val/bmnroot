@@ -48,7 +48,7 @@ private:
 	unsigned int ch=(d[ind]>>24)&0xFF; 
         unsigned int samples=(d[ind]&0xFFF)/2-4;
         unsigned short *val=(unsigned short *)&d[ind+3];
-        if(serial==0x6f4bb2){
+        if(serial==0x6f4bb2 || serial==0x6F4083){
           TClonesArray &ar_zdc = *zdc;
           new(ar_zdc[zdc->GetEntriesFast()]) BmnADCDigit(serial,ch,samples,val);
         }

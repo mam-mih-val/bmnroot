@@ -158,7 +158,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
         digit = (BmnGemStripDigit*) fBmnGemStripDigitsArray->At(idigit);
         station = StationSet->GetGemStation(digit->GetStation());
         module = station->GetModule(digit->GetModule());
-
+        
         if (module->SetStripSignalInLayer(digit->GetStripLayer(), digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
 
         if (fBmnGemStripDigitMatchesArray) {
@@ -285,6 +285,7 @@ void BmnGemStripHitMaker::ReadFileCorrections(TString fname, Double_t*** corr) {
             corr[align->GetStation()][align->GetModule()][2] = -align->GetCorrections().Z();
         }
     }
+    delete ch;
 }
 
 ClassImp(BmnGemStripHitMaker)

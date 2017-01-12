@@ -77,11 +77,11 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 
     const Int_t nIter = 5;
     //(0.006, 6.0, 1.05); //best parameters
-    const Int_t nBins[nIter] = {2000, 2000, 2000, 1000, 2000};
-    const Float_t sigX[nIter] = {0.005, 0.01, 0.05, 0.1, 0.5};
-    const Float_t stpY[nIter] = {1.0, 1.0, 2.0, 2.0, 10.0};
-    const Float_t thrs[nIter] = {2.5, 1.1, 1.1, 1.1, 1.1};
-    const Int_t length[nIter] = {4, 4, 4, 4, 4};
+    const Int_t nBins[nIter] = {2000, 2000, 2000, 1000, 500};
+    const Float_t sigX[nIter] = {0.005, 0.01, 0.05, 0.1, 0.005};
+    const Float_t stpY[nIter] = {1.0, 1.0, 2.0, 2.0, 20.0};
+    const Float_t thrs[nIter] = {2.5, 1.1, 1.1, 1.1, 1.2};
+    const Int_t length[nIter] = {4, 4, 4, 4, 3};
     const Float_t chi2cut[nIter] = {5.0, 4.0, 3.0, 2.0, 2.0};
 
     //Just skip too big events
@@ -150,8 +150,8 @@ void BmnGemSeedFinder::Finish() {
 
 BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
 
-    for (Int_t i = 0; i < 7/*kMAXSTATIONFORSEED*/; ++i)
-        for (Int_t j = Int_t(kY_STEP - 1); j < Int_t(kY_STEP); ++j) {
+    for (Int_t i = 1; i < 7/*kMAXSTATIONFORSEED*/; ++i)
+        for (Int_t j = 0; j < Int_t(kY_STEP); ++j) {
             for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
 
                 BmnGemStripHit* hit = GetHit(iHit);
@@ -256,16 +256,16 @@ BmnStatus BmnGemSeedFinder::FitSeeds(vector<BmnGemTrack> cand, TClonesArray* arr
             BmnGemTrack trackCand = cand.at(i);
             Float_t chi = trackCand.GetChi2() / trackCand.GetNDF();
             Float_t len = trackCand.GetLength();
-            if (len > deltaL) {
-                if (chi < deltaC) {
-                    deltaC = chi;
-                    deltaL = len;
-                    minTrack = trackCand;
-                }
+            //if (len > deltaL) {
+            if (chi < deltaC) {
+                deltaC = chi;
+                deltaL = len;
+                minTrack = trackCand;
             }
+            //}
         }
 
-        if (minTrack.GetNHits() != 0) 
+        if (minTrack.GetNHits() != 0)
             new((*arr)[arr->GetEntriesFast()]) BmnGemTrack(minTrack);
     }
 }
@@ -392,14 +392,14 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack* tr) {
 
     Double_t chi2 = 0.0;
     TVector3 lineParZY = LineFit(tr, fGemHitsArray, "ZY");
-    tr->SetChi2(chi2);
-    tr->SetNDF(nHits - 2); // because of 3 parameters in fit 
-    if (lineParZY.Z() / (nHits - 2) > 50) return kBMNERROR;
-    TVector3 CircParZX = CircleFit(tr, fGemHitsArray, chi2);
     //    tr->SetChi2(chi2);
-    //    tr->SetNDF(nHits - 3); // because of 3 parameters in fit 
+    //    tr->SetNDF(nHits - 2); // because of 3 parameters in fit 
+    if (lineParZY.Z() / (nHits - 2) > 50) return kBMNERROR; //chi2 cut
+    TVector3 CircParZX = CircleFit(tr, fGemHitsArray, chi2);
+    tr->SetChi2(chi2);
+    tr->SetNDF(nHits - 3); // because of 3 parameters in fit 
     //    cout << "\t\t\t\t\tCHI2 = " << chi2 << endl;
-    CircParZX.Print();
+    //CircParZX.Print();
 
     //Needed for start approximation of track parameters
 
@@ -523,7 +523,6 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack* tr) {
 
     Float_t Tx_first = h * (fZ - Zc) / (fX - Xc);
     Float_t Tx_last = h * (lZ - Zc) / (lX - Xc);
-    cout << Tx_first << " " << Tx_last << endl;
     Float_t Ty_last = B; // / (lX - Xc);
     Float_t Ty_first = B; // / (fX - Xc);
 
@@ -1043,7 +1042,7 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
             if (hit->GetStation() == 0) continue;
             if (!fIsField && !fIsTarget) {
                 if (Abs(hit->GetY()) > 1.) continue;
-                //               if (Abs(hit->GetX() - roughVertex.X()) > 1.) continue;
+                if (Abs(hit->GetX() - roughVertex.X()) > 1.) continue;
             }
             addresses.insert(pair<ULong_t, Int_t > (hit->GetAddr(), hitIdx));
         }

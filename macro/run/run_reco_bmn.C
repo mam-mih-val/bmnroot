@@ -165,7 +165,7 @@ void run_reco_bmn(TString inFile = "run5-811:/nfs/digits_run5/bmn_run0811_digi.r
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-//    gemHM->SetAlignmentCorrections("alignCorrs.root");
+    gemHM->SetAlignmentCorrections("alignCorrs.root");
     gemHM->SetHitMatching(kTRUE);
     fRun->AddTask(gemHM);
 

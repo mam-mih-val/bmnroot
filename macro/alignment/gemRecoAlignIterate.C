@@ -53,7 +53,11 @@ using      namespace std;
 /*
 void gemRecoAlignIterate(TString digiFileName="file_digi.root", Int_t maxNumOfIterations=1, Int_t nEvents=1e3, TString addInfo="", Bool_t isPrimary=kTRUE)
 */
-void gemRecoAlignIterate(TString digiFileListFileName="digi_files.txt", Int_t maxNumOfIterations=1, Int_t nEvents=1e3, TString addInfo="", Bool_t isPrimary=kTRUE)
+void gemRecoAlignIterate(TString digiFileListFileName="digi_files.txt",
+                         Int_t   maxNumOfIterations=1,
+                         Int_t   nEvents=1e3,
+                         TString addInfo="",
+                         Bool_t  isPrimary=kTRUE)
 {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
@@ -121,21 +125,21 @@ void gemRecoAlignIterate(TString digiFileListFileName="digi_files.txt", Int_t ma
         //
         // we will also need a vector for storing these bmndstFileName's at the current iteration
         vector<TString> bmndstFileNames;
-        TRegexp re("digi"); // this will be used for forming the bmndstFileName's
         // Run reconstruction on limited number of events from each digi file
         // from the list that is defined in the ifstream digiFiles(digiFileListFileName)
         for (vector<TString>::const_iterator digiFileName=digiFileNames.begin(); digiFileName!=digiFileNames.end(); digiFileName++) {
             TString bmndstFileName = *digiFileName;
             // replace digi with bmndst and add addInfo and itNr 
             if (iterNr == 0) { // do not include the addInfo metainformation into the name of the bmndstFileName
-                bmndstFileName(re) =          "bmndst_it"+itNr; // e.g. "somename_bmndst_it01.root"
+                bmndstFileName.ReplaceAll("digi",          "bmndst_it"+itNr); // e.g. "somename_bmndst_it01.root"
             }
             else { // iterNr > 0        include the addInfo metainformation into the name of the bmndstFileName
-                bmndstFileName(re) = addInfo+"_bmndst_it"+itNr;
+                bmndstFileName.ReplaceAll("digi", addInfo+"_bmndst_it"+itNr);
             }
             // NB! at iterNr==0 sumAlignCorrFileName==""
           //gROOT->ProcessLine(".L $VMCWORKDIR/macro/run/run_reco_bmn.C");
-            gROOT->LoadMacro("$VMCWORKDIR/macro/run/run_reco_bmn.C");
+            gROOT->LoadMacro("$VMCWORKDIR/macro/run/run_reco_bmn_new.C");
+            // now run reconstruction:
             run_reco_bmn(*digiFileName, bmndstFileName, 0, nEvents, kTRUE, sumAlignCorrFileName);
             // and also continue preparing list of the bmndst input files for the alignment:
             bmndstFileNames.push_back(bmndstFileName);
@@ -144,10 +148,10 @@ void gemRecoAlignIterate(TString digiFileListFileName="digi_files.txt", Int_t ma
         TString bmndstFileListFileName = digiFileListFileName;
         // replace digi with bmndst and add addInfo and itNr 
         if (iterNr == 0) { // do not include the addInfo metainformation into the name of the bmndstFileListFileName
-            bmndstFileListFileName(re) =          "bmndst_it"+itNr; // e.g. "somename_bmndst_it01.root"
+            bmndstFileListFileName.ReplaceAll("digi",          "bmndst_it"+itNr); // e.g. "somename_bmndst_it01.root"
         }
         else { // iterNr > 0        include the addInfo metainformation into the name of the bmndstFileListFileName
-            bmndstFileListFileName(re) = addInfo+"_bmndst_it"+itNr;
+            bmndstFileListFileName.ReplaceAll("digi", addInfo+"_bmndst_it"+itNr);
         }
         // create file with the list of new bmndst files:
         ofstream bmndstFiles(bmndstFileListFileName);
@@ -159,18 +163,16 @@ void gemRecoAlignIterate(TString digiFileListFileName="digi_files.txt", Int_t ma
       //gROOT->ProcessLine(.x $VMCWORKDIR/macro/alignment/gemAlignment.C(nEvents, bmndstFileName, addInfo));
         TString newAlignCorrFileName; // for now, it is semi-hardcoded: TBD!
         if (addInfo == "") {
-            newAlignCorrFileName = "bmn_run005_Glob_new_align_corr_it"+itNr+".root"
+            newAlignCorrFileName = "bmn_run05_Glob_new_align_corr_it"+itNr+".root"
         }
         else {
-            newAlignCorrFileName = "bmn_run005_Glob_"+addInfo+"_new_align_corr_it"+itNr+".root";
+            newAlignCorrFileName = "bmn_run05_Glob_"+addInfo+"_new_align_corr_it"+itNr+".root";
         }
-        // and  now run the alignment
-        gROOT->LoadMacro("$VMCWORKDIR/macro/alignment/gemAlignment.C");
+        // now run the alignment:
+        gROOT->LoadMacro("$VMCWORKDIR/macro/alignment/gemAlignment_new.C");
         gemAlignment(nEvents, bmndstFileListFileName, newAlignCorrFileName);
 
-        sumAlignCorrFileName =  newAlignCorrFileName; // as a basis, and then replace "new" with "sum"
-        re = "new";
-        sumAlignCorrFileName(re) = "sum";
+        sumAlignCorrFileName =  newAlignCorrFileName.ReplaceAll("new", "sum");
         // if iterNr == 0 nothing to update - in the next (iterNr=1) iteration use the only existing corrections
         if (iterNr == 0) {
             gROOT->ProcessLine(Form(".! cp %s %s", newAlignCorrFileName, sumAlignCorrFileName));
@@ -232,7 +234,7 @@ void gemRecoAlignIterate(TString digiFileListFileName="digi_files.txt", Int_t ma
     Double_t rtime = timer.RealTime();
     Double_t ctime = timer.CpuTime();
     cout << endl << endl;
-    cout << "Macro finished successfully." << endl;
-    cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;
+    cout <<"Macro finished successfully."<< endl;
+    cout <<"Real time " <<rtime<< " s, CPU time "<<ctime<< " s"<< endl;
     cout << endl;
 }

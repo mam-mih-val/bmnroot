@@ -2,13 +2,13 @@
 // Macro for reconstruction of simulated events
 //
 // inFile - input file with MC data, default: evetest.root. To process experimental data, you can
-// use 'runN-NNN:' prefix, e.g. "run5-458:../digits_run5/bmn_run0458_digi.root" then the geometry is obtained from the Unified Database.
+// use 'runN-NN:' prefix, e.g. "run3-642:raw_file_path" then the geometry is obtained from the Unified Database.
 // outFile - output file with reconstructed data, default: mpddst.root
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 
-void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 40000000, Bool_t isPrimary = kTRUE)
-{
+void run_reco_bmn(TString inFile = "run5-811:/nfs/digits_run5/bmn_run0811_digi.root", TString outFile = "bmndst.root", 
+        Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
@@ -165,10 +165,9 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-    //    gemHM->SetAlignmentCorrections("alignCorr_65v1.txt");
+    gemHM->SetAlignmentCorrections("alignCorrs.root");
     gemHM->SetHitMatching(kTRUE);
     fRun->AddTask(gemHM);
-
 
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
@@ -177,23 +176,6 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", kFALSE, 1, kTRUE);
     //tof1HP->SetOnlyPrimary(kTRUE);
     //    fRun->AddTask(tof1HP);
-    // ====================================================================== //
-    // ===                           DCH1 hit finder                      === //
-    // ====================================================================== //
-
-    //    BmnDchHitProducer* dch1HP = new BmnDchHitProducer(1,0,false);
-    BmnDchHitProducerTmp* dch1HP = new BmnDchHitProducerTmp(1);
-    //dch1HP->SetOnlyPrimary(kTRUE);
-    //    fRun->AddTask(dch1HP);
-
-    // ====================================================================== //
-    // ===                          DCH2 hit finder                       === //
-    // ====================================================================== //
-
-    //    BmnDchHitProducer* dch2HP = new BmnDchHitProducer(2,0,false);
-    BmnDchHitProducerTmp* dch2HP = new BmnDchHitProducerTmp(2);
-    //dch2HP->SetOnlyPrimary(kTRUE);
-    //   fRun->AddTask(dch2HP);
 
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
@@ -205,7 +187,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     //    fRun->AddTask(tof2HP);
 
     // ====================================================================== //
-    // ===                           Tracking                             === //
+    // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
 
     BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
@@ -229,9 +211,12 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ------------------------------------------------------------------------
 
     // ====================================================================== //
-    // ===                         End of tracking                        === //
+    // ===                           Tracking (DCH)                       === //
     // ====================================================================== //
-
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder();
+    // dchTF->SetSegmentMatching(kTRUE); // If true, segment matching over 2DCHs to be done. Default value is false.
+    fRun->AddTask(dchTF);
+    
     // -----  Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
     FairParRootFileIo* parIo1 = new FairParRootFileIo();

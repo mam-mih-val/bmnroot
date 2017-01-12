@@ -151,7 +151,7 @@ void BmnGemSeedFinder::Finish() {
 BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
 
     for (Int_t i = 1; i < 7/*kMAXSTATIONFORSEED*/; ++i)
-        for (Int_t j = 0; j < Int_t(kY_STEP); ++j) {
+        for (Int_t j = Int_t(kY_STEP - 1); j < Int_t(kY_STEP); ++j) {
             for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
 
                 BmnGemStripHit* hit = GetHit(iHit);

@@ -61,24 +61,25 @@ namespace BmnGemStationPositions_RunWinter2016 {
     const Double_t ZStationPositions[NStations] = {-181.5, 32.0, 64.0, 96.0, 128.0, 160.0, 192.0}; //All z-positions are start pos. of the sensitive vol.
 
     //(X-Y-Z)Shifts of modules in each station
-//    const Double_t XModuleShifts[NStations][NMaxModules] = {
-//        {0.0},          //station 0 (10x10)
-//        {0.0},          //station 1 (66x41)
-//        {0.0},          //station 2
-//        {0.0},          //station 3
-//        {-5.3, -1.7},   //station 4 (2 modules of 66x41)  // x-intersection of two modules
-//        {0.0, 0.0},     //station 5 (163x45): module0 + module1
-//        {0.0, 0.0}      //station 6 (163x45): module0 + module1
-//    };
-//    const Double_t YModuleShifts[NStations][NMaxModules] = {
-//        {0.0},          //station 0 (10x10)
-//        {0.0},          //station 1 (66x41)
-//        {0.0},          //station 2
-//        {0.0},          //station 3
-//        {+0.2, -0.2},   //station 4 (2 modules of 66x41) //first module is up, second is down
-//        {0.0, 0.0},     //station 5 (163x45): module0 + module1
-//        {0.0, 0.0}      //station 6 (163x45): module0 + module1
-//    };
+    const Double_t XModuleShifts[NStations][NMaxModules] = {
+        {0.0},          //station 0 (10x10)
+        {0.0},          //station 1 (66x41)
+        {0.0},          //station 2
+        {0.0},          //station 3
+        {-5.3, -1.7},   //station 4 (2 modules of 66x41)  // x-intersection of two modules
+        {0.0, 0.0},     //station 5 (163x45): module0 + module1
+        {0.0, 0.0}      //station 6 (163x45): module0 + module1
+    };
+    const Double_t YModuleShifts[NStations][NMaxModules] = {
+        {0.0},          //station 0 (10x10)
+        {0.0},          //station 1 (66x41)
+        {0.0},          //station 2
+        {0.0},          //station 3
+        {+0.2, -0.2},   //station 4 (2 modules of 66x41) //first module is up, second is down
+        {0.0, 0.0},     //station 5 (163x45): module0 + module1
+        {0.0, 0.0}      //station 6 (163x45): module0 + module1
+    };
+
     const Double_t ZModuleShifts[NStations][NMaxModules] = {
         {0.0},          //station 0 (10x10)
         {0.0},          //station 1 (66x41)
@@ -88,25 +89,9 @@ namespace BmnGemStationPositions_RunWinter2016 {
         {0.0, 0.0},     //station 5 (163x45): module0 + module1
         {0.0, 0.0}      //station 6 (163x45): module0 + module1
     };
-        //(X-Y-Z)Shifts of modules in each station
-    const Double_t XModuleShifts[NStations][NMaxModules] = {
-        {0.0},          //station 0 (10x10)
-        {+0.014+0.016},          //station 1 (66x41)
-        {+0.001+0.002},          //station 2
-        {+0.002+0.001},          //station 3
-        {-5.3+0.005, -1.7+0.005},   //station 4 (2 modules of 66x41) x-intersection of two modules
-        {0.0-0.008-0.004, 0.0-0.008-0.004},     //station 5 (163x45): module0 + module1
-        {0.0+0.0056+0.004, 0.0+0.0056+0.004}      //station 6 (163x45): module0 + module1
-    };
-    const Double_t YModuleShifts[NStations][NMaxModules] = {
-        {0.0},          //station 0 (10x10)
-        {0.0+0.005},          //station 1 (66x41)
-        {0.0-0.035},          //station 2
-        {0.0-0.007},          //station 3
-        {+0.2+0.014, -0.2+0.014},   //station 4 (2 modules of 66x41) first module is up, second is down
-        {0.0+0.019, 0.0+0.019},     //station 5 (163x45): module0 + module1
-        {0.0-0.017, 0.0-0.017}      //station 6 (163x45): module0 + module1
-    };
 }
 
 #endif
+//
+    //(X-Y-Z)Shifts of modules in each station
+  

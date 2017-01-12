@@ -27,8 +27,7 @@ void bmnloadlibs()
   gSystem->Load("libSilicon");
   gSystem->Load("libGlobalTracking");
   gSystem->Load("libTOF1");
-  gSystem->Load("libDch1");
-  gSystem->Load("libDch2");
+  gSystem->Load("libDch");
   gSystem->Load("libMWPC1");
   gSystem->Load("libMWPC2");
   gSystem->Load("libMWPC3");

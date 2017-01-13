@@ -10,6 +10,9 @@
 #include "BmnGemStripHit.h"
 #include "TMath.h"
 #include "TF1.h"
+#include "TArc.h"
+#include "TCanvas.h"
+#include "TH2F.h"
 #include "Math/WrappedTF1.h"
 #include "Math/BrentRootFinder.h"
 #include <iostream>
@@ -348,12 +351,15 @@ TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) 
     Double_t Szx = 0.0;
     Double_t Szy = 0.0;
 
+//    TH2F* h_Hits = new TH2F("h_Hits", "h_Hits", 400, 0.0, 250.0, 400, -10.0, 10.0);
+    
     const Float_t nHits = track->GetNHits();
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
         //Use Z and X coordinates of hits to fit in ZX plane
         Yi = hit->GetZ();
         Xi = hit->GetX();
+//        h_Hits->Fill(hit->GetZ(), hit->GetX());
         Zi = Xi * Xi + Yi * Yi;
         Wi = 1.0 / hit->GetDx() / hit->GetDx();
 
@@ -374,6 +380,29 @@ TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) 
     Xc = -0.5 * B;
     Zc = -0.5 * C;
     R = Sqrt(0.25 * B * B + 0.25 * C * C - D);
+
+//    BmnGemStripHit* hitF = (BmnGemStripHit*) arr->At(track->GetHitIndex(0));
+//    BmnGemStripHit* hitL = (BmnGemStripHit*) arr->At(track->GetHitIndex(nHits - 1));
+//    
+//    
+//    TArc* arc = new TArc(Zc, Xc, R, ATan2((hitF->GetX() - Xc), (hitF->GetZ() - Zc)) * RadToDeg(), ATan2((hitL->GetX() - Xc), (hitL->GetZ() - Zc)) * RadToDeg());
+//    arc->SetFillStyle(0);
+//    arc->SetLineWidth(2);
+//    arc->SetLineColor(kBlue);
+//    arc->SetNoEdges(1);
+//    
+//    TCanvas* c_New = new TCanvas("c", "c", 1000, 500);
+//    c_New->cd();
+//    h_Hits->SetMarkerStyle(20);
+//    h_Hits->SetMarkerSize(1.5);
+//    h_Hits->SetMarkerColor(kRed);
+//    h_Hits->Draw("P");
+//    arc->Draw("same");
+//    c_New->SaveAs("hits.png");
+////    getchar();
+//    delete h_Hits;
+//    delete c_New;
+//    delete arc;
 
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));

@@ -16,14 +16,14 @@ int wma[NUMBER_CHAMBERS] = {600,600,3300,3300,3300,3300,3300,3300,3300,3300,3300
 
 using namespace TMath;
 
-void Results_TOF700(char *fname = "../raw/bmn_run0834_digit.root") {
+void BmnResultsTOF700(char *fname = "../raw/bmn_run0834_digi.root") {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
 
     TClonesArray *tof700Digits;
-    TChain *bmnTree = new TChain("BMN_DIGIT");
+    TChain *bmnTree = new TChain("cbmsim");
     if (bmnTree->Add(fname) == 0)
     {
 	    printf("Can't find BMN digits tree in file %s!\n", fname);
@@ -31,7 +31,7 @@ void Results_TOF700(char *fname = "../raw/bmn_run0834_digit.root") {
     }
     else
     {
-	bmnTree->SetBranchAddress("bmn_tof2_digit", &tof700Digits);
+	bmnTree->SetBranchAddress("TOF700", &tof700Digits);
     }
 
     char name[128], title[128];
@@ -89,8 +89,6 @@ void Results_TOF700(char *fname = "../raw/bmn_run0834_digit.root") {
 	    smax[i] = -1;
 	}
 
-	if (tof700Digits->GetEntriesFast()) ntot++;
-
 	for (Int_t iDig = 0; iDig < tof700Digits->GetEntriesFast(); ++iDig) {
     	    BmnTof2Digit *digit = (BmnTof2Digit*) tof700Digits->At(iDig);
     	    if (digit == NULL) continue;
@@ -125,7 +123,6 @@ void Results_TOF700(char *fname = "../raw/bmn_run0834_digit.root") {
     } // event loop
 
 
-    for (int i=0; i<npairs; i++) FitIn(hdiff[i], -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htime[i], -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htimemax[i], -0.2, +0.2);
 

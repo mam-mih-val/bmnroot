@@ -1,7 +1,8 @@
 #ifndef BMNTOF2RAW2DIGIT_H
 #define BMNTOF2RAW2DIGIT_H
 
-#define SLFIT "pol2"
+#define SLFIT0 "pol2"
+#define SLFIT "pol3"
 #define HPTIMEBIN 0.02344
 #define INVHPTIMEBIN 42.6666
 
@@ -52,9 +53,13 @@ public:
 
     void SetWcut(int wcut) { Wcut = wcut; for (int c=0; c<MaxPlane; c++) ReBook(c); }
     int  GetWcut() { return Wcut; }
+    void SetWcutc(int c, int wcut) { if (c>0&&c<=MaxPlane) { Wcutc[c-1] = wcut; ReBook(c-1); } }
+    int  GetWcutc(int c) { if (c>0&&c<=MaxPlane) return Wcutc[c-1]; else return 0; }
 
     void SetWmax(int wm) { Wmax = wm; for (int c=0; c<MaxPlane; c++) ReBook(c); }
     int  GetWmax() { return Wmax; }
+    void SetWmaxc(int c, int wm) { if (c>0&&c<=MaxPlane) { Wmaxc[c-1] = wm; ReBook(c-1); } }
+    int  GetWmaxc(int c) { if (c>0&&c<=MaxPlane) return Wmaxc[c-1]; else return 0; }
 
     void SetW(int wcut, int wm) { Wcut = wcut;  Wmax = wm; for (int c=0; c<MaxPlane; c++) ReBook(c); }
 
@@ -67,10 +72,10 @@ public:
     void SetWT0(int wt1, int wt2) { WT0min = wt1;  WT0max = wt2; for (int c=0; c<MaxPlane; c++) ReBook(c); }
 
     void SetLeadMin(int c, int leadmin) { if (c>0&&c<=MaxPlane) {LeadMin[c-1] = leadmin; ReBook(c-1);} }
-    int  GetLeadMin(int c) { return LeadMin[c]; }
+    int  GetLeadMin(int c) { if (c>0&&c<=MaxPlane) return LeadMin[c-1]; else return 0;}
 
     void SetLeadMax(int c, int leadmax) { if (c>0&&c<=MaxPlane) {LeadMax[c-1] = leadmax; ReBook(c-1);} }
-    int  GetLeadMax(int c) { return LeadMax[c]; }
+    int  GetLeadMax(int c) { if (c>0&&c<=MaxPlane) return LeadMax[c-1]; else return 0; }
 
     void SetLeadMinMax(int c, int leadmin, int leadmax) { if (c>0&&c<=MaxPlane) {LeadMin[c-1] = leadmin; LeadMax[c-1] = leadmax; ReBook(c-1);}; }
 
@@ -105,6 +110,8 @@ private:
     float T0shift;
     int Wcut;
     int Wmax;
+    int Wcutc[TOF2_MAX_CHAMBERS];
+    int Wmaxc[TOF2_MAX_CHAMBERS];
     int WT0min;
     int WT0max;
     int LeadMin[TOF2_MAX_CHAMBERS];
@@ -140,6 +147,7 @@ private:
     float TvsW_const[TOF2_MAX_CHAMBERS][2];
     float TvsW_slope[TOF2_MAX_CHAMBERS][2];
     float TvsW_parab[TOF2_MAX_CHAMBERS][2];
+    float TvsW_cubic[TOF2_MAX_CHAMBERS][2];
 
     TProfile *TvsW[TOF2_MAX_CHAMBERS][2];
     TProfile *TvsWt0[TOF2_MAX_CHAMBERS][2];

@@ -1,10 +1,10 @@
 #ifndef BMNMONITOR_H
 #define BMNMONITOR_H 1
-
+// STL
 #include <iostream>
 #include <iterator>
 #include <regex>
-
+// FairROOT
 #include <TNamed.h>
 #include "TFile.h"
 #include "TChain.h"
@@ -12,11 +12,14 @@
 #include "TColor.h"
 #include "TFolder.h"
 #include "THttpServer.h"
+#include "TMessage.h"
+#include "TMonitor.h"
 #include "TString.h"
 #include "TSystemDirectory.h"
 #include "TList.h"
 #include "TSystemFile.h"
-
+#include "TServerSocket.h"
+// BmnRoot
 #include <BmnTrigDigit.h>
 #include <BmnTof1Digit.h>
 #include <BmnGemStripDigit.h>
@@ -24,16 +27,19 @@
 #include "BmnDataReceiver.h"
 #include <BmnRawDataDecoder.h>
 #include "BmnEventHeader.h"
-
+// BmnRoot Monitor
 #include "BmnHistToF.h"
 #include "BmnHistToF700.h"
 #include "BmnHistTrigger.h"
 #include "BmnHistDch.h"
 #include "BmnHistMwpc.h"
 #include "BmnHistGem.h"
+#include "BmnOnlineDecoder.h"
 
-#define RUN_FILE_CHECK_PERIOD 1e5
-#define TTREE_MAX_SIZE 3e11
+#define RAW_DECODER_SOCKET_PORT 9090
+#define RUN_FILE_CHECK_PERIOD    1e5
+#define DECO_SOCK_WAIT_PERIOD    1e4
+#define TTREE_MAX_SIZE          3e11
 
 using namespace std;
 using namespace TMath;
@@ -48,7 +54,8 @@ public:
 
     BmnMonitor();
     virtual ~BmnMonitor();
-    void Monitor(TString dir, TString startFile = "", Bool_t runCurrent = kTRUE);//"/home/ilnur/mnt/test/mpd-evb/TrigWord/mpd_run_Glob_306.data");
+    void Monitor(TString dir, TString startFile = "", Bool_t runCurrent = kTRUE);
+    void MonitorStream();
     BmnStatus BatchDirectory(TString dirname);
     BmnStatus BatchList(TString*, Int_t count);
     void ProcessRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
@@ -71,23 +78,24 @@ private:
     void ProcessDigi(Int_t iEv);
     void RegisterAll();
     static void CheckFileTime(TString Dir, vector<BmnRunInfo>* FileList);
-    BmnStatus OpenFile(TString rawFileName);
+    BmnStatus CreateFile(Int_t runID = 0);
     BmnStatus OpenStream();
     void FinishRun();
     
-    static void threadWrapper(BmnDataReceiver * dr);
-    static void threadDecodeWrapper(BmnRawDataDecoder* rdd);
+    static void threadReceiveWrapper(BmnDataReceiver * dr);
+    static void threadDecodeWrapper();
     
     deque<UInt_t> * fDataQue;
     vector<BmnRunInfo> *_fileList;
-//    void *fDataMutex; // actually pthread_mutex_t
     TString _curFile;
     TString _curDir;
+    TString fRawDecoAddr;
     TTree *fDigiTree;
     TTree *fRecoTree;
     TTree *fRecoTree4Show;
     TFile *fHistOut;
     THttpServer * fServer;
+    TSocket *fRawDecoSocket;
     struct DigiArrays fDigiArrays;
 
 //    TClonesArray *header = NULL;
@@ -120,13 +128,11 @@ private:
 
     BmnDataReceiver *dataReceiver;
     BmnRawDataDecoder *rawDataDecoder;
+    BmnOnlineDecoder *onlineDecoder;
 
     Int_t fTest;
     Int_t runIndex = 0;
-    TString imgSavePath = "~/Documents/BmnMonJS/public_html/img/";
     Int_t itersToUpdate = 1000;
-    // GEM config
-    Int_t hitBins = 100;
     
     Int_t _inotifDir;
     Int_t _inotifDirW;

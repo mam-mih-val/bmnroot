@@ -20,7 +20,6 @@
 const UInt_t moduleCount[GEM_STATIONS_COUNT] = {1, 1, 1, 1, 2, 2, 2};
 const UInt_t layersCount[GEM_STATIONS_COUNT] = {2, 4, 4, 4, 4, 4, 4};
 const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 1100, 1119};
-//const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 825, 1019};
 #define MAX_STRIPS 1020
 
 BmnHistGem::BmnHistGem(TString title, Bool_t createNoiseMask) {
@@ -98,8 +97,9 @@ void BmnHistGem::Register(THttpServer *serv) {
 void BmnHistGem::SetDir(TFile *outFile, TTree *recoTree) {
     frecoTree = recoTree;
     TDirectory *dir = NULL;
-    if (outFile != NULL)
+    if (outFile != NULL){
         dir = outFile->mkdir(fTitle + "_hists");
+    printf("dir path %s\n", dir->GetPath());}
     for (auto row : histGemStrip)
         for (auto col : row)
             for (auto el : col)

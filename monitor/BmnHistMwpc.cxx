@@ -39,12 +39,8 @@ BmnHistMwpc::BmnHistMwpc(TString title = "MWPC") {
 }
 
 BmnHistMwpc::~BmnHistMwpc() {
-    for (Int_t i = 0; i < MWPC_PLANES; ++i){
-        fServer->Unregister(h_wires[i]);
+    for (Int_t i = 0; i < MWPC_PLANES; ++i)
         delete h_wires[i];
-    }
-    fServer->Unregister(h_MWPC1);
-    fServer->Unregister(h_MWPC2);
     delete MwpcHits;
     delete h_MWPC1;
     delete h_MWPC2;

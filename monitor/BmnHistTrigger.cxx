@@ -63,15 +63,6 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
 
 BmnHistTrigger::~BmnHistTrigger() {
     delete BDEvents;
-    fServer->Unregister(histBC1TimeLen);
-    fServer->Unregister(histBC2TimeLen);
-    fServer->Unregister(histFDTimeLen);
-    fServer->Unregister(histVDTimeLen);
-    fServer->Unregister(histSDTimeLen);
-    fServer->Unregister(histTriggers);
-    fServer->Unregister(histBDChannels);
-    fServer->Unregister(histBDSpecific);
-    fServer->Unregister(this);
 }
 
 void BmnHistTrigger::FillFromDigi(

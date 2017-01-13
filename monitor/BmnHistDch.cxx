@@ -65,14 +65,11 @@ BmnHistDch::BmnHistDch(TString title = "DCH") {
 }
 
 BmnHistDch::~BmnHistDch() {
-    for (Int_t i = 0; i < kNPLANES; ++i) {
-        fServer->Unregister(h_wires[i]);
+    for (Int_t i = 0; i < kNPLANES; ++i)
         delete h_wires[i];
-    }
     delete fDchHits;
     delete h_DCH1;
     delete h_DCH2;
-    fServer->Unregister(this);
 }
 
 void BmnHistDch::Register(THttpServer *serv) {

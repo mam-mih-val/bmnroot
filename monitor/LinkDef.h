@@ -7,7 +7,7 @@
 
 #pragma link C++ class BmnDataReceiver++;
 #pragma link C++ class BmnMonitor++;
-//#pragma link C++ class BmnOnlineDecoder++;
+#pragma link C++ class BmnOnlineDecoder++;
 #pragma link C++ class BmnHistGem++;
 #pragma link C++ class BmnHistDch++;
 #pragma link C++ class BmnHistMwpc++;

@@ -62,14 +62,14 @@ BmnHistToF::~BmnHistToF() {
     delete histL;
     delete histR;
     delete Events;
-    fServer->Unregister(histAmp);
-    fServer->Unregister(histAmpSpecific);
-    fServer->Unregister(histStrip);
-    fServer->Unregister(histStripSimult);
-    fServer->Unregister(histState);
-    fServer->Unregister(histLeadingTime);
-    fServer->Unregister(histLeadingTimeSpecific);
-    fServer->Unregister(this);
+//    fServer->Unregister(histAmp);
+//    fServer->Unregister(histAmpSpecific);
+//    fServer->Unregister(histStrip);
+//    fServer->Unregister(histStripSimult);
+//    fServer->Unregister(histState);
+//    fServer->Unregister(histLeadingTime);
+//    fServer->Unregister(histLeadingTimeSpecific);
+//    fServer->Unregister(this);
 }
 
 void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
@@ -184,7 +184,7 @@ void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
         histLeadingTimeSpecific->Reset();
         histLeadingTimeSpecific->SetTitle("Leading Time For: " + command);
         direction = "fTime>>" + TString(histLeadingTimeSpecific->GetName());
-        frecoTree->Draw(direction.Data(), command.Data(), "");
+        frecoTree->Draw(direction, command, "");
     }
 }
 

@@ -41,7 +41,7 @@ link_directories( ${LINK_DIRECTORIES})
 Set(SRCS
 BmnMonitor.cxx
 BmnDataReceiver.cxx
-#BmnOnlineDecoder.cxx
+BmnOnlineDecoder.cxx
 BmnHistGem.cxx
 BmnHistDch.cxx
 BmnHistMwpc.cxx
@@ -54,7 +54,7 @@ BmnHistToF700.cxx
 Set(HEADERS
 BmnMonitor.h
 BmnDataReceiver.h
-#BmnOnlineDecoder.h
+BmnOnlineDecoder.h
 BmnHistGem.h
 BmnHistDch.h
 BmnHistMwpc.h

@@ -1,3 +1,6 @@
+#ifndef BMNRAWDATADECODER_H
+#define BMNRAWDATADECODER_H 1
+
 #include "TString.h"
 #include "TSystem.h"
 #include "BmnEnums.h"
@@ -106,14 +109,6 @@ public:
 
     TTree* GetDigiTree() {
         return fDigiTree;
-    }
-
-    void *GetQueMutex() {
-        return fDataMutex;
-    }
-
-    void SetQueMutex(void *v) {
-        fDataMutex = v;
     }
 
     void SetRunId(UInt_t v) {
@@ -272,7 +267,6 @@ private:
     GemMapStructure* fGemMap;
     TriggerMapStructure* fT0Map;
     deque<UInt_t> *fDataQueue;
-    void *fDataMutex; // actually std::mutex
 
     //Map to store pairs <Crate serial> - <crate time - T0 time>
     map<UInt_t, Long64_t> fTimeShifts;
@@ -294,3 +288,5 @@ private:
 
     BmnStatus CopyDataToPedMap(TClonesArray* adc, UInt_t ev);
 };
+
+#endif

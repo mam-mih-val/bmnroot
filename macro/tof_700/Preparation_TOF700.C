@@ -1,7 +1,7 @@
 
 using namespace std;
 
-void Preparation_TOF700(char *fname="bmn_run0472.root", int RunPeriod = 5) {
+void Preparation_TOF700(char *fname="../raw/bmn_run0834.root", int RunPeriod = 5) {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
@@ -40,9 +40,10 @@ void Preparation_TOF700(char *fname="bmn_run0472.root", int RunPeriod = 5) {
     }
     else
     {
-	TOF2.SetW(1700,4100);
-	TOF2.SetWT0(260,560);
-	for (int i=1; i<=15; i++) TOF2.SetLeadMinMax(i,-5200, -4800);
+	TOF2.SetW(2500,3300); // good peak
+	TOF2.SetWT0(400,600); // run 834
+	for (int i=1; i<=15; i++) if (!(i==1||i==4||i==7||i==10||i==13)) TOF2.SetLeadMinMax(i,-5200, -4800);  // run 834
+	for (int i=1; i<=15; i++) if (  i==1||i==4||i==7||i==10||i==13)  TOF2.SetLeadMinMax(i,-13200, -12800); // run 834
     }
     cout << "Process RUN file: " << fname << endl;
 
@@ -63,6 +64,7 @@ void Preparation_TOF700(char *fname="bmn_run0472.root", int RunPeriod = 5) {
 
         sync_raw->Clear();
 	t0_raw->Clear();
+	tof2_raw->Clear();
 
         _t_in->GetEntry(ev);
 

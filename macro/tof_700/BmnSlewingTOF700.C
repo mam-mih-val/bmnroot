@@ -1,7 +1,7 @@
 //file: full path to raw-file
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
-void BmnSlewingTOF700(TString file = "mpd_run472.data", Long_t nEvents = 0, Bool_t doConvert = kFALSE) {
+void BmnSlewingTOF700(TString file = "../raw/mpd_run834.data", Long_t nEvents = 0, Bool_t doConvert = kFALSE) {
   gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
   bmnloadlibs(); // load BmnRoot libraries
   BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 5); //4 - period
@@ -13,9 +13,10 @@ void BmnSlewingTOF700(TString file = "mpd_run472.data", Long_t nEvents = 0, Bool
 
   decoder->SlewingTOF700Init();  // Decode data into detector-digits using current mappings.
   BmnTof2Raw2DigitNew *tof700m = decoder->GetTof700Mapper();
-  tof700m->SetW(2100,4100);
-  tof700m->SetWT0(260,560);
-  for (int i=1; i<=15; i++) tof700m->SetLeadMinMax(i,-5000, -4900);
+  tof700m->SetW(2500,3300);
+  tof700m->SetWT0(400,600);
+  for (int i=1; i<=15; i++) if (!(i==1||i==4||i==7||i==10||i==13)) tof700m->SetLeadMinMax(i,-5200, -4800);  // run 834
+  for (int i=1; i<=15; i++) if (  i==1||i==4||i==7||i==10||i==13)  tof700m->SetLeadMinMax(i,-13200, -12800); // run 834
   decoder->SlewingTOF700();  // Decode data into detector-digits using current mappings.
   tof700m->drawproft0();
   tof700m->drawprof();

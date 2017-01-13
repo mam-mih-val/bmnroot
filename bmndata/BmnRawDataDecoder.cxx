@@ -825,8 +825,8 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     } else
         fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
-    //    fTof700Mapper->readSlewingT0();
-    //    fTof700Mapper->readSlewing();
+        fTof700Mapper->readSlewingT0();
+        fTof700Mapper->readSlewing();
 
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);

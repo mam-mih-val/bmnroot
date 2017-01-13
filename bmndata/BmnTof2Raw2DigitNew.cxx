@@ -176,6 +176,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 	    TvsW_const[c][i] = 0.;
 	    TvsW_slope[c][i] = 0.;
 	    TvsW_parab[c][i] = 0.;
+	    TvsW_cubic[c][i] = 0.;
 	}
 
     Wcut = 2100;
@@ -185,6 +186,8 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) LeadMin[i] = -5000;
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) LeadMax[i] = +5000;
+    for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) Wcutc[i] = -1;
+    for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) Wmaxc[i] = -1;
 /*
     LeadMin[0] = -400;
     LeadMin[1] = -300;
@@ -252,10 +255,10 @@ void BmnTof2Raw2DigitNew::Book()
     {
 	sprintf(name, "Time_vs_Strip_Chamber_%d",i+1);
 	sprintf(title, "Time vs Strip Chamber %d",i+1);
-	TvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,20000, -10000., +10000.);
+	TvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,30000, -20000., +10000.);
 	sprintf(name, "Width_vs_Strip_Chamber_%d",i+1);
 	sprintf(title, "Width vs Strip Chamber %d",i+1);
-	WvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,20000, -10000., +10000.);
+	WvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,30000, -20000., +10000.);
     }
     for (int i=0; i<MaxPlane; i++)
     {
@@ -293,51 +296,37 @@ void BmnTof2Raw2DigitNew::BookSlewing()
     }
 }
 
+
 void BmnTof2Raw2DigitNew::ReBook(int i)
 {
     char name[128], title[128];
-    if (TvsW[i][0])
-    {
-	delete TvsW[i][0];
+    int Wc = Wcut, Wm = Wmax;
+    if (Wcutc[i] >= 0.) Wc = Wcutc[i];
+    if (Wmaxc[i] >= 0.) Wm = Wmaxc[i];
+    delete TvsW[i][0];
 	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_1",i+1);
 	sprintf(title, "Time vs Width Chamber %d Peak 1",i+1);
-	TvsW[i][0] = new TProfile(name,title,Wcut,0,Wcut,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
-    }
-    if (TvsWt0[i][0])
-    {
-	delete TvsWt0[i][0];
+	TvsW[i][0] = new TProfile(name,title,Wc,0,Wc,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
+    delete TvsWt0[i][0];
 	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_1",i+1);
 	sprintf(title, "Time vs T0 Width Chamber %d Peak 1",i+1);
 	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
-    }
-    if (TvsWall[i])
-    {
-	delete TvsWall[i];
+    delete TvsWall[i];
 	sprintf(name, "Time_vs_Width_Chamber_%d_all",i+1);
 	sprintf(title, "Time vs Width Chamber %d all",i+1);
-	TvsWall[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
-    }
-    if (TvsWallmax[i])
-    {
-	delete TvsWallmax[i];
+	TvsWall[i] = new TH2F(name,title,Wm,0,Wm,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
+    delete TvsWallmax[i];
 	sprintf(name, "Time_vs_Width_Chamber_%d_all_max",i+1);
 	sprintf(title, "Time vs Width Chamber %d all, max strip",i+1);
-	TvsWallmax[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
-    }
-    if (TvsW[i][1])
-    {
-	delete TvsW[i][1];
+	TvsWallmax[i] = new TH2F(name,title,Wm,0,Wm,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
+    delete TvsW[i][1];
 	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_2",i+1);
 	sprintf(title, "Time vs Width Chamber %d Peak 2",i+1);
-	TvsW[i][1] = new TProfile(name,title,(Wmax-Wcut),Wcut,Wmax,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
-    }
-    if (TvsWt0[i][1])
-    {
-	delete TvsWt0[i][1];
+	TvsW[i][1] = new TProfile(name,title,(Wm-Wc),Wc,Wm,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
+    delete TvsWt0[i][1];
 	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_2",i+1);
 	sprintf(title, "Time vs T0 Width Chamber %d Peak 2",i+1);
 	TvsWt0[i][1] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
-    }
 //    printf("c %d wc %d wm %d wt1 %d wt2 %d lmi %d lma %d\n", i, Wcut, Wmax, WT0min, WT0max, LeadMin[i], LeadMax[i]);
 }
 
@@ -406,6 +395,8 @@ void BmnTof2Raw2DigitNew::fillPreparation(TClonesArray *data, map<UInt_t,Long64_
 //       printf("%d %d %d %d %d\n", i, mapa[ind].slot, mapa[ind].chan, digit->GetValue(), T0raw);
     }
 
+    int Wc = Wcut;
+
     float wmaxs[TOF2_MAX_CHAMBERS] = {0.}, tmaxs[TOF2_MAX_CHAMBERS] = {-1000.};
     int smax[TOF2_MAX_CHAMBERS] = {-1};
     for(int ind=0;ind<n_rec;ind++){
@@ -413,17 +404,19 @@ void BmnTof2Raw2DigitNew::fillPreparation(TClonesArray *data, map<UInt_t,Long64_
        if (ind1 < 0) continue;
        if(lead[ind1]==0 || trail[ind1]==0) continue;
        if(lead[ind]!=0 && trail[ind]!=0){
+	Wc = Wcut;
+	if (Wcutc[mapa[ind].plane] >= 0.) Wc = Wcutc[mapa[ind].plane];
 	float L = (lead[ind]+lead[ind1])/2.;
 	float W1 = trail[ind]-lead[ind];
 	float W2 = trail[ind1]-lead[ind1];
 	float W = (W1+W2)/2.;
-	if (((W1 < Wcut && W2 < Wcut)||(W1 >= Wcut && W2 >= Wcut)))
+	if (((W1 < Wc && W2 < Wc)||(W1 >= Wc && W2 >= Wc)))
 	{
 	    TvsS[mapa[ind].plane]->Fill(mapa[ind].strip, L);
 	    WvsS[mapa[ind].plane]->Fill(mapa[ind].strip, W);
 	    TvsWall[mapa[ind].plane]->Fill(W, L);
 	}
-	if (W > wmaxs[mapa[ind].plane] && ((W1 < Wcut && W2 < Wcut)||(W1 >= Wcut && W2 >= Wcut)))
+	if (W > wmaxs[mapa[ind].plane] && ((W1 < Wc && W2 < Wc)||(W1 >= Wc && W2 >= Wc)))
 	{
 		wmaxs[mapa[ind].plane] = W;
 		tmaxs[mapa[ind].plane] = L;
@@ -480,26 +473,32 @@ void BmnTof2Raw2DigitNew::fillSlewingT0(TClonesArray *data, map<UInt_t,Long64_t>
 //       if (tm > 100000.) printf("%d %d %d %d %f %d %d %f\n", i, mapa[ind].slot, mapa[ind].chan, digit->GetValue(),DNL_Table[crate][slot][chan][dnl], t0, ts_diff, tm);
 //       printf("%d %d %d %d %f %f %lld %f\n", i, mapa[ind].slot, mapa[ind].chan, digit->GetValue(),DNL_Table[crate][slot][chan][dnl], t0, ts_diff, tm);
     }
+    int Wc = Wcut;
+    int Wm = Wmax;
     for(int ind=0;ind<n_rec;ind++){
        int ind1 = mapa[ind].pair;
        if (ind1 < 0) continue;
        if (lead[ind1]==0 || trail[ind1]==0) continue;
        if (numstrip[mapa[ind].plane] >=0 && numstrip[mapa[ind].plane] != mapa[ind].strip) continue;
        if(lead[ind]!=0 && trail[ind]!=0){
+	Wc = Wcut;
+	if (Wcutc[mapa[ind].plane] >= 0.) Wc = Wcutc[mapa[ind].plane];
+	Wm = Wmax;
+	if (Wmaxc[mapa[ind].plane] >= 0.) Wm = Wmaxc[mapa[ind].plane];
 	float L = (lead[ind]+lead[ind1])/2.;
 	float W1 = trail[ind]-lead[ind];
 	float W2 = trail[ind1]-lead[ind1];
 	float W = (W1+W2)/2.;
 	if (L >= LeadMin[mapa[ind].plane] && L < LeadMax[mapa[ind].plane])
 	{
-	if ((int)W1 < Wcut && (int)W2 < Wcut)
+	if ((int)W1 < Wc && (int)W2 < Wc)
 	{
 	    TvsWt0[mapa[ind].plane][0]->Fill(t0width*INVHPTIMEBIN, L);
 	    tmean[0][ind] += L;
 	    ntmean[0][ind]++;
 //	    if (ntmean[0][ind] == 1) printf("%d %d %f %f %f %f %d %f\n",ind,ind1,lead[ind],lead[ind1],L, tmean[0][ind], ts_diff, t0width);
 	}
-	else if ((int)W1 >= Wcut && (int)W2 >= Wcut && (int)W1 < Wmax && (int)W2 < Wmax)
+	else if ((int)W1 >= Wc && (int)W2 >= Wc && (int)W1 < Wm && (int)W2 < Wm)
 	{
 	    TvsWt0[mapa[ind].plane][1]->Fill(t0width*INVHPTIMEBIN, L);
 	    tmean[1][ind] += L;
@@ -548,15 +547,15 @@ void BmnTof2Raw2DigitNew::SlewingT0()
   }
   if (nonzero >= 2)
     {
-      prof->Fit(SLFIT,"WQ0");
-      if(prof->GetFunction(SLFIT)) (prof->GetFunction(SLFIT))->ResetBit(TF1::kNotDraw);
+      prof->Fit(SLFIT0,"WQ0");
+      if(prof->GetFunction(SLFIT0)) (prof->GetFunction(SLFIT0))->ResetBit(TF1::kNotDraw);
     }
   else {printf(" Chamber %d slewing - too few nonzero bins = %d\n", plane+1, nonzero);fprintf(fout, " Chamber %d slewing - too few nonzero bins = %d\n", plane+1, nonzero);  fclose(fout); goto peak2; }
 
-  f_TW = prof->GetFunction(SLFIT);
+  f_TW = prof->GetFunction(SLFIT0);
   par1 = f_TW != 0 ? f_TW->GetParameter(0) : 0.;
   par2 = f_TW != 0 ? f_TW->GetParameter(1) : 0.;
-  par3 = !strcmp(SLFIT,"pol2") && f_TW != 0 ? f_TW->GetParameter(2) : 0.;
+  par3 = !strcmp(SLFIT0,"pol2") && f_TW != 0 ? f_TW->GetParameter(2) : 0.;
 
   if (prof == 0) { fclose(fout); goto peak2; }
 
@@ -625,15 +624,15 @@ peak2:
   }
   if (nonzero >= 2)
     {
-      prof->Fit(SLFIT,"WQ0");
-      if(prof->GetFunction(SLFIT)) (prof->GetFunction(SLFIT))->ResetBit(TF1::kNotDraw);
+      prof->Fit(SLFIT0,"WQ0");
+      if(prof->GetFunction(SLFIT0)) (prof->GetFunction(SLFIT0))->ResetBit(TF1::kNotDraw);
     }
   else {printf(" Chamber %d slewing - too few nonzero bins = %d\n", plane+1, nonzero);fprintf(fout, " Chamber %d slewing - too few nonzero bins = %d\n", plane+1, nonzero);  fclose(fout); continue; }
 
-  f_TW = prof->GetFunction(SLFIT);
+  f_TW = prof->GetFunction(SLFIT0);
   par1 = f_TW != 0 ? f_TW->GetParameter(0) : 0.;
   par2 = f_TW != 0 ? f_TW->GetParameter(1) : 0.;
-  par3 = !strcmp(SLFIT,"pol2") && f_TW != 0 ? f_TW->GetParameter(2) : 0.;
+  par3 = !strcmp(SLFIT0,"pol2") && f_TW != 0 ? f_TW->GetParameter(2) : 0.;
 
   printf("Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane+1, Wcut, Wmax, LeadMin[plane], LeadMax[plane]);
   fprintf(fout, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane+1, Wcut, Wmax, LeadMin[plane], LeadMax[plane]);
@@ -775,6 +774,8 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
        float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
        if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
     }
+    int Wc = Wcut;
+    int Wm = Wmax;
     for(int ind=0;ind<n_rec;ind++){
        int ind1 = mapa[ind].pair;
        if (ind1 < 0) continue;
@@ -782,12 +783,16 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
        if (numstrip[mapa[ind].plane] >=0 && numstrip[mapa[ind].plane] != mapa[ind].strip) continue;
        if(lead[ind]!=0 && trail[ind]!=0){
 //        if (mapa[ind].plane == 0) printf("%f %f %f %f\n",lead[ind1],lead[ind],trail[ind1],trail[ind]);
+	Wc = Wcut;
+	if (Wcutc[mapa[ind].plane] >= 0.) Wc = Wcutc[mapa[ind].plane];
+	Wm = Wmax;
+	if (Wmaxc[mapa[ind].plane] >= 0.) Wm = Wmaxc[mapa[ind].plane];
 	float L = (lead[ind1]+lead[ind])/2.;
 	float W1 = trail[ind]-lead[ind];
 	float W2 = trail[ind1]-lead[ind1];
 	float W = (W1+W2)/2.;
 	if (L >= LeadMin[mapa[ind].plane] && L < LeadMax[mapa[ind].plane])
-	if ((int)W1 < Wcut && (int)W2 < Wcut)
+	if ((int)W1 < Wc && (int)W2 < Wc)
 	{
 //            if (mapa[ind].plane == 0) printf(" peak 1 l1 %f W %f\n",L,W);
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
@@ -796,7 +801,7 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
 //            if (mapa[ind].plane == 0) printf(" peak 1 l3 %f\n",L);
 	    TvsW[mapa[ind].plane][0]->Fill(W, L);
 	}
-	else if (W1 >= Wcut && W2 >= Wcut && W1 < Wmax && W2 < Wmax)
+	else if (W1 >= Wc && W2 >= Wc && W1 < Wm && W2 < Wm)
 	{
 //            if (mapa[ind].plane == 0) printf(" peak 2 l1 %f W %f\n",L,W);
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
@@ -829,6 +834,7 @@ void BmnTof2Raw2DigitNew::Slewing()
   Double_t par1 = 0.;
   Double_t par2 = 0.;
   Double_t par3 = 0.;
+  Double_t par4 = 0.;
   TString dir = getenv("VMCWORKDIR");
   TString path = dir + "/parameters/tof2_slewing/";
   for (int plane = 0; plane < MaxPlane; plane++)
@@ -862,12 +868,13 @@ void BmnTof2Raw2DigitNew::Slewing()
   f_TW = prof->GetFunction(SLFIT);
   par1 = f_TW != 0 ? f_TW->GetParameter(0) : 0.;
   par2 = f_TW != 0 ? f_TW->GetParameter(1) : 0.;
-  par3 = !strcmp(SLFIT,"pol2") && f_TW != 0 ? f_TW->GetParameter(2) : 0.;
+  par3 = (!strcmp(SLFIT,"pol2") || !strcmp(SLFIT,"pol3")) && f_TW != 0 ? f_TW->GetParameter(2) : 0.;
+  par4 = !strcmp(SLFIT,"pol3") && f_TW != 0 ? f_TW->GetParameter(3) : 0.;
 
   printf("Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane+1, 0, Wcut, LeadMin[plane], LeadMax[plane]);
   fprintf(fout, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane+1, 0, Wcut, LeadMin[plane], LeadMax[plane]);
-  printf(" Time(Width) = %f + %f*Width + %g*Width**2\n", par1, par2, par3);
-  fprintf(fout, " Time(Width) = %f + %f*Width + %g*Width**2\n", par1, par2, par3);
+  printf(" Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3\n", par1, par2, par3, par4);
+  fprintf(fout, " Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3\n", par1, par2, par3, par4);
 
   fprintf(fout,"Chamber #%d channel offsets (average is %f)\n", plane+1, tmean_average[0][plane]);
   printf("Chamber #%d channel offsets (average is %f)\n", plane+1, tmean_average[0][plane]);
@@ -912,12 +919,13 @@ peak2:
   f_TW = prof->GetFunction(SLFIT);
   par1 = f_TW != 0 ? f_TW->GetParameter(0) : 0.;
   par2 = f_TW != 0 ? f_TW->GetParameter(1) : 0.;
-  par3 = !strcmp(SLFIT,"pol2") && f_TW != 0 ? f_TW->GetParameter(2) : 0.;
+  par3 = (!strcmp(SLFIT,"pol2") || !strcmp(SLFIT,"pol3")) && f_TW != 0 ? f_TW->GetParameter(2) : 0.;
+  par4 = !strcmp(SLFIT,"pol3") && f_TW != 0 ? f_TW->GetParameter(3) : 0.;
 
   printf("Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane+1, Wcut, Wmax, LeadMin[plane], LeadMax[plane]);
   fprintf(fout, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane+1, Wcut, Wmax, LeadMin[plane], LeadMax[plane]);
-  printf("Time(Width) = %f + %f*Width + %g*Width**2\n", par1, par2, par3);
-  fprintf(fout, " Time(Width) = %f + %f*Width + %g*Width**2\n", par1, par2, par3);
+  printf("Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3\n", par1, par2, par3, par4);
+  fprintf(fout, " Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3\n", par1, par2, par3, par4);
 
   fprintf(fout,"Chamber #%d channel offsets (average is %f)\n", plane+1, tmean_average[1][plane]);
   printf("Chamber #%d channel offsets (average is %f)\n", plane+1, tmean_average[1][plane]);
@@ -971,8 +979,8 @@ void BmnTof2Raw2DigitNew::readSlewing()
   {
 	printf(" slewing file error, chamber numbers are mismatched, %d != %d\n", p+1, plane);
   }
-  fscanf(fin, "Time(Width) = %f + %f*Width + %g*Width**2\n", &TvsW_const[p][pk], &TvsW_slope[p][pk], &TvsW_parab[p][pk]);
-  printf("Time(Width) = %f + %f*Width + %g*Width**2\n", TvsW_const[p][pk], TvsW_slope[p][pk], TvsW_parab[p][pk]);
+  fscanf(fin, "Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3\n", &TvsW_const[p][pk], &TvsW_slope[p][pk], &TvsW_parab[p][pk], &TvsW_cubic[p][pk]);
+  printf("Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3\n", TvsW_const[p][pk], TvsW_slope[p][pk], TvsW_parab[p][pk], &TvsW_cubic[p][pk]);
 
   fscanf(fin,"Chamber #%d channel offsets (average is %f)\n", &plane, &tmean_average[pk][p]);
   printf("Chamber #%d channel offsets (average is %f)\n", plane, tmean_average[pk][p]);
@@ -1031,32 +1039,38 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
        if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
     }
 //    printf("n_rec = %d\n", n_rec);
+    int Wc = Wcut;
+    int Wm = Wmax;
     for(int ind=0;ind<n_rec;ind++){ 
        int ind1 = mapa[ind].pair;
        if (ind1 < 0) continue;
        if(lead[ind1]==0 || trail[ind1]==0) continue;
        if(lead[ind]!=0 && trail[ind]!=0){
 //    printf("Ok!\n");
+	Wc = Wcut;
+	if (Wcutc[mapa[ind].plane] >= 0.) Wc = Wcutc[mapa[ind].plane];
+	Wm = Wmax;
+	if (Wmaxc[mapa[ind].plane] >= 0.) Wm = Wmaxc[mapa[ind].plane];
 	float L = (lead[ind1]+lead[ind])/2.;
 	float D = (lead[ind1]-lead[ind])/2.;
 	float W1 = trail[ind]-lead[ind];
 	float W2 = trail[ind1]-lead[ind1];
 	float W = (W1+W2)/2.;
-	if ((int)W1 < Wcut && (int)W2 < Wcut)
+	if ((int)W1 < Wc && (int)W2 < Wc)
 	{
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
 	    L -= tmean[0][ind];
     	    L -= slewing_correction(mapa[ind].plane, W, 0);
 	    TvsW[mapa[ind].plane][0]->Fill(W, L);
 	}
-	else if (W1 >= Wcut && W2 >= Wcut)
+	else if (W1 >= Wc && W2 >= Wc)
 	{
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
 	    L -= tmean[1][ind];
     	    L -= slewing_correction(mapa[ind].plane, W, 1);
 	    TvsW[mapa[ind].plane][1]->Fill(W, L);
         }
-	else if (W1 >= Wcut && W2 < Wcut)
+	else if (W1 >= Wc && W2 < Wc)
 	{
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
@@ -1065,7 +1079,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W1, 1);
 	    TvsW[mapa[ind].plane][1]->Fill(W, L);
 	}
-	else if (W1 < Wcut && W2 > Wcut)
+	else if (W1 < Wc && W2 > Wc)
 	{
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
@@ -1141,7 +1155,7 @@ float BmnTof2Raw2DigitNew::slewingt0_correction(int chamber, float width, int pe
 float BmnTof2Raw2DigitNew::slewing_correction(int chamber, float width, int peak)
 {
     if (chamber < 0 || chamber >= MaxPlane || peak < 0 || peak > 1) return 0.;
-    float cor = TvsW_const[chamber][peak] + TvsW_slope[chamber][peak]*width + TvsW_parab[chamber][peak]*width*width;
+    float cor = TvsW_const[chamber][peak] + TvsW_slope[chamber][peak]*width + TvsW_parab[chamber][peak]*width*width + TvsW_cubic[chamber][peak]*width*width*width;
     return cor;
 }
 
@@ -1286,6 +1300,48 @@ void BmnTof2Raw2DigitNew::DNL_read()
       }
    fi.close();
   }
+ }
+ else if(dnltype[c][s] == 5)
+ {
+   float tcor;
+   int n, pos, post, ch, nerr = 0;
+   char atext[25600];
+   ifstream fi(dnlname[c][s]);
+   if(fi.is_open())
+   {
+    n = 0;
+    fi.getline(atext,25600);
+    fi.getline(atext,25600);
+    int getfirst = 1;
+    if (strstr(atext,"temp") == NULL) getfirst = 0;
+    while (!fi.eof())
+    {
+     if (getfirst) fi.getline(atext,25600);
+     getfirst = 1;
+     post = 0;
+     pos = 0;
+     sscanf(&atext[post],"%d= %n", &ch, &pos);
+     post += pos;
+     if (ch != n)
+     {
+        if (nerr < 2)
+        {
+    	    printf("Crate %d Slot %d Wrong line in %s file, channel %d != %d !\n", c, s, dnlname[c][s], n, ch);
+	}
+	nerr++;
+     }
+     for (int i=0; i<1024; i++)
+     {
+        sscanf(&atext[post],"%f, %n", &tcor, &pos);
+	post += pos;
+        DNL_Table[c][s][n][i] = tcor;
+     }
+//     fi.getline(atext,25600);
+     n++;
+     if (n==72) break;
+    }
+   fi.close();
+   }
  }
  }
  }

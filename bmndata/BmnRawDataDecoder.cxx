@@ -518,8 +518,8 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
                 iCh = d[i] >> 24;
                 i += 3; // skip two timestamp words (they are empty)
                 for (Int_t iWord = 0; iWord < kNSTAMPS / 2; ++iWord) {
-                    val[2 * iWord] = d[i + iWord] & 0xFFFF; //take 16 lower bits and put them into corresponded cell of data-array
-                    val[2 * iWord + 1] = (d[i + iWord] >> 16) & 0xFFFF; //take 16 higher bits and put them into corresponded cell of data-array
+                    val[2 * iWord + 1] = d[i + iWord] & 0xFFFF; //take 16 lower bits and put them into corresponded cell of data-array
+                    val[2 * iWord] = (d[i + iWord] >> 16) & 0xFFFF; //take 16 higher bits and put them into corresponded cell of data-array
                 }
 
                 TClonesArray& ar_adc = *arr;
@@ -690,6 +690,29 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     BmnEventType prevEventType = curEventType;
 
     if (fTof700Mapper) fTof700Mapper->BookSlewing();
+    
+    for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
+        if (iEv % 100 == 0) {
+            printf(ANSI_COLOR_BLUE "[%.2f%%]   " ANSI_COLOR_RESET, iEv * 100.0 / fNevents);
+            printf("EVENT:%d   RUN:%d\n", iEv, fRunId);
+        }
+
+        fRawTree->GetEntry(iEv);
+
+        BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
+        if (!headDAQ) continue;
+        curEventType = headDAQ->GetType();
+
+        if (curEventType != kBMNPEDESTAL) continue;
+        if (fPedEvCntr != N_EV_FOR_PEDESTALS - 1) {
+            CopyDataToPedMap(adc32, fPedEvCntr);
+            fPedEvCntr++;
+        } else {
+            fGemMapper->RecalculatePedestals();
+            fPedEvCntr = 0;
+            break;
+        }
+    }
 
     for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 100 == 0) {
@@ -713,11 +736,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             CopyDataToPedMap(adc32, fPedEvCntr);
             fPedEvCntr++;
         } else { // payload
-            if (prevEventType == kBMNPEDESTAL) {
-                if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) {
-                    fGemMapper->RecalculatePedestals();
-                    fPedEvCntr = 0;
-                }
+            if (prevEventType == kBMNPEDESTAL && fPedEvCntr == N_EV_FOR_PEDESTALS - 1) {
+                fGemMapper->RecalculatePedestals();
+                fPedEvCntr = 0;
             }
             fGemMapper->FillEvent(adc32, gem);
             fSiliconMapper->FillEvent(adc128, silicon);

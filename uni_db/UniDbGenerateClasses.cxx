@@ -991,9 +991,9 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             count++;
         }
 
-        cxxFile<<"\n\t// inserting new record to DB\n";
+        cxxFile<<(TString::Format("\n\t// inserting new %s to the Database\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-        cxxFile<<"\t\tcout<<\"Error: inserting new record to DB has been failed\"<<endl;\n";
+        cxxFile<<(TString::Format("\t\tcout<<\"Error: inserting new %s to the Database has been failed\"<<endl;\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n\t\tdelete connUniDb;\n\t\treturn 0x00;\n\t}\n\n";
 
         cxxFile<<"\tdelete stmt;\n\n";

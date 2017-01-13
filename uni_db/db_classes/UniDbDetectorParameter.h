@@ -366,12 +366,17 @@ class UniDbDetectorParameter
 	/// get parameters' values corresponding to the specified (vector) conditions
 	static TObjArray* Search(const TObjArray& search_conditions);
 
-    /// parse detector parameter's values:
+    /// parse detector parameter's values and write them to the database:
+    /// txtFile - path to the text file with parameter values separated by spaces or tabs, e.g.: "value1 value2..."
+    ///           if line is started with '#' symbol - it will be skipped (as comments)
     /// detector_name - detector corresponding to the parameter values
     /// parameter name - parameter filled by values
-    /// txtFile - path to the text file with parameter values: format: "start_period;start_run;end_period;end_run;value1 value2..."
+    /// start_period - start period of validity range for the parameter values
+    /// start_run - start run of validity range for the parameter values
+    /// end_period - end period of validity range for the parameter values
+    /// end_run - end run of validity range for the parameter values
     /// function returns row count added to the database
-    static int ParseTxt(TString detector_name, TString parameter_name, TString text_file);
+    static int ParseTxt(TString text_file, TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, bool isSerialChannel = false);
 
 	ClassDef(UniDbDetectorParameter,1);
 };

@@ -288,7 +288,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
         Double_t ped = fPedVal[iSer][ch][iSmpl];
         Double_t rms = fPedRms[iSer][ch][iSmpl];
         Double_t sig = dig->GetStripSignal() - CMS - ped;
-        Float_t threshold = 20; //20;
+        Float_t threshold = 20;
         if (sig < threshold) continue;
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }
@@ -363,10 +363,10 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree * tree) {
 }
 
 BmnStatus BmnGemRaw2Digit::FindNoisyStrips() {
-    const Short_t kNBUNCHES = 2;
+    const Short_t kNBUNCHES = 8;
     const Short_t kNSAMPLES = ADC32_N_SAMPLES / kNBUNCHES;
     const Short_t kNITER = 4;
-    const Float_t coeff[kNITER] = {4, 4, 4, 4};
+    const Float_t coeff[kNITER] = {2, 2, 2, 2};
 
     //            TH1F* h_prof = new TH1F("h_prof", "prof", 20480, 0.0, 20480.0);
     //            TCanvas* canv = new TCanvas("c", "c", 1000, 1000);

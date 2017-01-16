@@ -7,9 +7,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
 {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
-    TString dir = "/nfs/run/seans_53/";
-    printf("Open file %s%s\n", dir.Data(),file.Data());
-    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(dir + file, nEvents, 5); //4 - period
+    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 5); //4 - period
     decoder->SetTrigMapping("Trig_map_Run5.txt");
     decoder->SetTrigINLFile("TRIG_INL.txt");
     // in case comment out the line decoder->SetTof400Mapping("...")  

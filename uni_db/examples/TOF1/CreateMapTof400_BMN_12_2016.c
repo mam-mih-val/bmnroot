@@ -24,7 +24,7 @@ void CreateMapTof400_BMN_12_2016(std::string placementMapFile, std::string mapFi
     slot[3] = 0x076caef6;
     slot[4] = 0x076cae7b;
     slot[5] = 0x0467332f;
-    slot[6] = 0x06e9202b;
+    slot[6] = 0x06e9404b;
     slot[7] = 0x06e9e4b0;
     slot[14] = 0x046f408c;
     slot[15] = 0x06e94033;
@@ -107,6 +107,7 @@ void CreateMapTof400_BMN_12_2016(std::string placementMapFile, std::string mapFi
                 {
                     if (det < 5) ff << 47 - (MapL[j] + (GetSide(MapDet[det][i]) - 1)*24) << '\t';
                     else ff << MapL[j] + (GetSide(MapDet[det][i]) - 1)*24 << '\t';
+                    //ff << MapL[j] + (GetSide(MapDet[det][i]) - 1)*24 << '\t';
                     ff << 'L';
                     ff << endl;
                 }
@@ -114,13 +115,14 @@ void CreateMapTof400_BMN_12_2016(std::string placementMapFile, std::string mapFi
                 {
                     if (det < 5) ff << 47 - (MapR[j] + (GetSide(MapDet[det][i]) - 3)*24) << '\t';
                     else ff << MapR[j] + (GetSide(MapDet[det][i]) - 3)*24 << '\t';
+                    //ff << MapR[j] + (GetSide(MapDet[det][i]) - 3)*24 << '\t';
                     ff << 'R';
                     ff << endl;
                 }
                 else
                 {
                     ff << -1 << '\t';
-                    ff << 'E';
+                    ff << 'L';
                     ff << endl;
                 }
             }

@@ -1,6 +1,6 @@
 //A simple macros to upload INL from an .ini file
 
-#include "../db_structures.h"
+//#include "../db_structures.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -11,7 +11,7 @@
 
 using namespace std;
 //add_Tof1_INL(the .ini filename, start period, start run, end period, end run)
-void add_Tof1_INL(string filename, int sP = 4, int sR = 61, int eP = 4, int eR = 84) {
+void add_Tof1_INL(string filename, int sP = 5, int sR = 430, int eP = 5, int eR = 1014) {
 	gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
 	basiclibs();
 	gSystem->Load("libUniDb");

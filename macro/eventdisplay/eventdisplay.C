@@ -221,15 +221,15 @@ void SetTasks(FairEventManager* fMan, int data_source)
         fMan->AddTask(DchHit);
 
         // draw MWPC tracks
-        BmnExpTrackDraw* MwpcTrack = new BmnExpTrackDraw("MwpcMatchedTracks", "BmnMwpcHit");
+        BmnTrackDrawH* MwpcTrack = new BmnTrackDrawH("MwpcMatchedTracks", "BmnMwpcHit");
         //fMan->AddTask(MwpcTrack);
         
         // draw GEM tracks
-        BmnExpTrackDraw* GemTrack = new BmnExpTrackDraw("BmnGemSeeds", "BmnGemStripHit");
+        BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemSeeds", "BmnGemStripHit");
         fMan->AddTask(GemTrack);
         
         // draw DCH tracks
-        BmnExpTrackDraw* DchTrack = new BmnExpTrackDraw("DchTracks", "BmnDchHit");
+        BmnTrackDrawH* DchTrack = new BmnTrackDrawH("DchTracks", "BmnDchHit");
         //fMan->AddTask(DchTrack);
 
         /*FairGeane* Geane = new FairGeane();

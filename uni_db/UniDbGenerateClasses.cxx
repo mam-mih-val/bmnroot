@@ -1661,9 +1661,9 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             count++;
         }
 
-        cxxFile<<"\n\t// delete table record from DB\n";
+        cxxFile<<(TString::Format("\n\t// delete %s (one record) from the DataBase\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-        cxxFile<<"\t\tcout<<\"Error: deleting record from DB has been failed\"<<endl;\n\n";
+        cxxFile<<(TString::Format("\t\tcout<<\"Error: deleting %s from the DataBase has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
         cxxFile<<"\t\tdelete connUniDb;\n";
         cxxFile<<"\t\treturn -1;\n\t}\n\n";
@@ -1710,9 +1710,9 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                 cxxFile<<"\tstmt->NextIteration();\n";
                 cxxFile<<(TString::Format("\tstmt->Set%s(0, %s);\n", cur_col->strStatementType.Data(), cur_col->strColumnName.Data())).Data();
 
-                cxxFile<<"\n\t// delete table record from DB\n";
+                cxxFile<<(TString::Format("\n\t// delete %s (one record) from the DataBase\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-                cxxFile<<"\t\tcout<<\"Error: deleting record from DB has been failed\"<<endl;\n\n";
+                cxxFile<<(TString::Format("\t\tcout<<\"Error: deleting %s from the DataBase has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\t\tdelete stmt;\n";
                 cxxFile<<"\t\tdelete connUniDb;\n";
                 cxxFile<<"\t\treturn -1;\n\t}\n\n";
@@ -1768,7 +1768,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
         cxxFile<<"\n\t// get table record from DB\n";
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-        cxxFile<<"\t\tcout<<\"Error: getting all records from DB has been failed\"<<endl;\n\n";
+        cxxFile<<"\t\tcout<<\"Error: getting all records from the DataBase has been failed\"<<endl;\n\n";
         cxxFile<<"\t\tdelete stmt;\n";
         cxxFile<<"\t\tdelete connUniDb;\n";
         cxxFile<<"\t\treturn -1;\n\t}\n\n";

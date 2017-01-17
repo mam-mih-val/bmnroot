@@ -1,7 +1,7 @@
 
 using namespace std;
 
-void Results_ZDC(char *fname="bmn_run0543_digit.root") {
+void Results_ZDC(char *fname="bmn_run0871_digit.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
@@ -16,17 +16,13 @@ void Results_ZDC(char *fname="bmn_run0543_digit.root") {
 
     gStyle->SetOptFit(111);
 
-    int numbers[9] = {22,23,24,28,29,30,36,37,38};
     char name[64], title[64];
-    TH1F *hamp[9] = {0};
-    TH1F *hsum = new TH1F("hsum", "Sum of amplitudes 3x3", 1000, 0, 200);
-    TH2F *hpro = new TH2F("hpro", "Cluster profile", 20, -750, 750, 20, -750, 750);
-    for (int i=0; i<9; i++)
-    {
-	sprintf(name, "hamp%02d", i);
-	sprintf(title, "Amplitude channel %02d", numbers[i]);
-	hamp[i] = new TH1F(name, title, 1000, 0, 200);
-    }
+    TH1F *hamp = 0;
+    sprintf(name, "hamp");
+    sprintf(title, "Module amplitude");
+    hamp = new TH1F(name, title, 500, 0, 1000);
+    TH1F *hsum = new TH1F("hsum", "Sum of amplitudes", 1000, 0, 5000);
+    TH2F *hpro = new TH2F("hpro", "Cluster profile", 22, -76*11, 76*11, 14, -76*7, 76*7);
     /////////////////////////////////////////////////////////////////////////////////////
 
     for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
@@ -36,6 +32,7 @@ void Results_ZDC(char *fname="bmn_run0543_digit.root") {
 
 	Float_t sum = 0.;
 
+	int xbin = 0;
 	for (Int_t iDig = 0; iDig < zdcDigits->GetEntriesFast(); ++iDig) {
     	    BmnZDCDigit *digit = (BmnZDCDigit*) zdcDigits->At(iDig);
     	    if (digit == NULL) continue;
@@ -43,28 +40,31 @@ void Results_ZDC(char *fname="bmn_run0543_digit.root") {
     	    Float_t ampl = digit->GetAmp();
     	    Float_t x = digit->GetX();
     	    Float_t y = digit->GetY();
-	    for (int i=0; i<9; i++)
+	    if (ampl > 0.) hamp->Fill(ampl);
+	    if (digit->GetSize() == 1) hpro->Fill(x,y,ampl);
+	    else // equalization for BIG modules
 	    {
-		if (chan == numbers[i])
-		{
-		    hamp[i]->Fill(ampl);
-		    hpro->Fill(x,y,ampl);
-		    sum += ampl;
-		}
+		xbin = hpro->FindBin(x+5.,y+5.);
+		hpro->SetBinContent(xbin,ampl/4.);
+		xbin = hpro->FindBin(x+5.,y-5.);
+		hpro->SetBinContent(xbin,ampl/4.);
+		xbin = hpro->FindBin(x-5.,y+5.);
+		hpro->SetBinContent(xbin,ampl/4.);
+		xbin = hpro->FindBin(x-5.,y-5.);
+		hpro->SetBinContent(xbin,ampl/4.);
 	    }
+	    sum += ampl;
 	}
-	hsum->Fill(sum);
+	if (sum > 0.) hsum->Fill(sum);
     }
     /////////////////////////////////////////////////////////////////////////////////////
     TCanvas *c = new TCanvas("c","Channel Amplitudes", 700,900);
     c->cd();
-    c->Divide(3,3);
-    for (int i=0; i<9; i++)
-    {
-	c->cd(i+1);
-	hamp[i]->Draw();
-	gPad->AddExec("exsel","select_hist()");
-    }
+    c->Divide(1,1);
+    c->cd(1);
+    hamp->Draw();
+    gPad->AddExec("exsel","select_hist()");
+
     TCanvas *c1 = new TCanvas("c1","Sum of Channel Amplitudes", 700,900);
     c1->cd();
     c1->Divide(1,1);

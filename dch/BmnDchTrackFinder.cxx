@@ -1,10 +1,38 @@
 #include <Rtypes.h>
+#include <TVector2.h>
 
 #include "BmnDchTrackFinder.h"
 
 BmnDchTrackFinder::BmnDchTrackFinder() :
-fSegmentMatching(kFALSE) {
-
+fSegmentMatching(kFALSE),
+has7DC1(kFALSE),
+has7DC2(kFALSE),
+nDC1_segments(0),
+nDC2_segments(0),
+pair_x2(0),
+pair_y2(0),
+pair_u2(0),
+pair_v2(0),
+single_xa2(0),
+single_ya2(0),
+single_ua2(0),
+single_va2(0),
+single_xb2(0),
+single_yb2(0),
+single_ub2(0),
+single_vb2(0),
+pair_x1(0),
+pair_y1(0),
+pair_u1(0),
+pair_v1(0),
+single_xa1(0),
+single_ya1(0),
+single_ua1(0),
+single_va1(0),
+single_xb1(0),
+single_yb1(0),
+single_ub1(0),
+single_vb1(0) {
     fEventNo = 0;
     tracksDch = "BmnDchTrack";
     InputDigitsBranchName = "DCH";
@@ -31,98 +59,31 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
 
 }
 
-InitStatus BmnDchTrackFinder::Init() {
-    cout << endl << "BmnDchTrackFinder::Init()" << endl;
-    FairRootManager* ioman = FairRootManager::Instance();
-
-    fBmnDchDigitsArray = (TClonesArray*) ioman->GetObject(InputDigitsBranchName);
-
-    fDchTracks = new TClonesArray(tracksDch.Data());
-    ioman->Register(tracksDch.Data(), "DCH", fDchTracks, kTRUE);
-
-    for (Int_t iScale = 0; iScale < 16; iScale++)
-        scale[iScale] = 0.5;
-
-    ifstream fin;
-    TString dir = getenv("VMCWORKDIR");
-    dir += "/input/";
-    fin.open((TString(dir + "transfer_func.txt")).Data(), ios::in);
-    for (Int_t fi = 0; fi < 16; fi++) {
-        fin >> t_dc[0][fi] >> t_dc[1][fi] >> t_dc[2][fi] >> t_dc[3][fi] >> t_dc[4][fi] >>
-                pol_par_dc[0][0][fi] >> pol_par_dc[0][1][fi] >> pol_par_dc[0][2][fi] >> pol_par_dc[0][3][fi] >> pol_par_dc[0][4][fi] >>
-                pol_par_dc[1][0][fi] >> pol_par_dc[1][1][fi] >> pol_par_dc[1][2][fi] >> pol_par_dc[1][3][fi] >> pol_par_dc[1][4][fi] >>
-                pol_par_dc[2][0][fi] >> pol_par_dc[2][1][fi] >> pol_par_dc[2][2][fi] >> pol_par_dc[2][3][fi] >> pol_par_dc[2][4][fi] >>
-                scaling[fi];
-    }
-
-    fin.close();
-
-    // z local xa->vb (cm) 
-    Double_t arr1[8] = {9.3, 8.1, 3.5, 2.3, -2.3, -3.5, -8.1, -9.3};
-    for (Int_t iSize = 0; iSize < 8; iSize++)
-        z_loc[iSize] = arr1[iSize];
-
-    // z global dc 1 & dc 2 (cm)
-    Double_t arr2[16] = {-45.7, -46.9, -51.5, -52.7, -57.3, -58.5, -63.1, -64.3, 64.3, 63.1, 58.5, 57.3, 52.7, 51.5, 46.9, 45.7};
-    for (Int_t iSize = 0; iSize < 16; iSize++)
-        z_glob[iSize] = arr2[iSize];
-
-    const Int_t n1 = 4;
-    const Int_t n2 = 150;
-
-    par_ab1 = new Float_t*[n1];
-    par_ab2 = new Float_t*[n1];
-    for (Int_t iDim = 0; iDim < n1; iDim++) {
-        par_ab1[iDim] = new Float_t[n2];
-        par_ab2[iDim] = new Float_t[n2];
-    }
-
-    chi2_DC1 = new Float_t[n2];
-    chi2_DC2 = new Float_t[n2];
-
-    size_segDC1 = new Int_t[n2];
-    size_segDC2 = new Int_t[n2];
-
-
-}
-
 void BmnDchTrackFinder::Exec(Option_t* opt) {
+    PrepareArraysToProcessEvent();
     cout << "\n======================== DCH track finder exec started =====================\n" << endl;
     cout << "Event number: " << fEventNo++ << endl;
 
     Double_t sqrt_2 = sqrt(2.);
     Double_t isqrt_2 = 1 / sqrt_2; //shift variables
 
-    fDchTracks->Clear();
-
-    // Array cleaning and initializing 
-    for (Int_t iDim1 = 0; iDim1 < 4; iDim1++)
-        for (Int_t iDim2 = 0; iDim2 < 150; iDim2++) {
-            par_ab1[iDim1][iDim2] = 0.0;
-            par_ab2[iDim1][iDim2] = 0.0;
-        }
-
-    for (Int_t iDim = 0; iDim < 150; iDim++) {
-        chi2_DC1[iDim] = 0.;
-        chi2_DC2[iDim] = 0.;
-        size_segDC1[iDim] = 0;
-        size_segDC2[iDim] = 0;
-    }
-
     //temporary containers
     // Order used: va1, vb1, ua1, ub1, ya1, yb1, xa1, xb1 (dch1) - va2, vb2, ua2, ub2, ya2, yb2, xa2, xb2 (dch2)
     const Int_t nDim = 20;
     const Int_t nPlanes = 16; // Total number of planes in both DCHs (0-7, 8-15)
 
-    Double_t time_xa1[nDim] = {-99.}, time_xa2[nDim] = {-99.}, time_xb1[nDim] = {-99.}, time_xb2[nDim] = {-99.},
-    time_ya1[nDim] = {-99.}, time_ya2[nDim] = {-99.}, time_yb1[nDim] = {-99.}, time_yb2[nDim] = {-99.},
-    time_ua1[nDim] = {-99.}, time_ua2[nDim] = {-99.}, time_ub1[nDim] = {-99.}, time_ub2[nDim] = {-99.},
-    time_va1[nDim] = {-99.}, time_va2[nDim] = {-99.}, time_vb1[nDim] = {-99.}, time_vb2[nDim] = {-99.};
+    Double_t time_xa1[nDim] = {0.0}, time_xa2[nDim] = {0.0}, time_xb1[nDim] = {0.0}, time_xb2[nDim] = {0.0},
+    time_ya1[nDim] = {0.0}, time_ya2[nDim] = {0.0}, time_yb1[nDim] = {0.0}, time_yb2[nDim] = {0.0},
+    time_ua1[nDim] = {0.0}, time_ua2[nDim] = {0.0}, time_ub1[nDim] = {0.0}, time_ub2[nDim] = {0.0},
+    time_va1[nDim] = {0.0}, time_va2[nDim] = {0.0}, time_vb1[nDim] = {0.0}, time_vb2[nDim] = {0.0};
 
-    Double_t wirenr_xa1[nDim] = {-99.}, wirenr_xa2[nDim] = {-99.}, wirenr_xb1[nDim] = {-99.}, wirenr_xb2[nDim] = {-99.},
-    wirenr_ya1[nDim] = {-99.}, wirenr_ya2[nDim] = {-99.}, wirenr_yb1[nDim] = {-99.}, wirenr_yb2[nDim] = {-99.},
-    wirenr_ua1[nDim] = {-99.}, wirenr_ua2[nDim] = {-99.}, wirenr_ub1[nDim] = {-99.}, wirenr_ub2[nDim] = {-99.},
-    wirenr_va1[nDim] = {-99.}, wirenr_va2[nDim] = {-99.}, wirenr_vb1[nDim] = {-99.}, wirenr_vb2[nDim] = {-99.};
+    Double_t TimesDch[nPlanes][nDim] = {0.0};
+    Double_t WiresDch[nPlanes][nDim] = {0.0};
+
+    Double_t wirenr_xa1[nDim] = {0.0}, wirenr_xa2[nDim] = {0.0}, wirenr_xb1[nDim] = {0.0}, wirenr_xb2[nDim] = {0.0},
+    wirenr_ya1[nDim] = {0.0}, wirenr_ya2[nDim] = {0.0}, wirenr_yb1[nDim] = {0.0}, wirenr_yb2[nDim] = {0.0},
+    wirenr_ua1[nDim] = {0.0}, wirenr_ua2[nDim] = {0.0}, wirenr_ub1[nDim] = {0.0}, wirenr_ub2[nDim] = {0.0},
+    wirenr_va1[nDim] = {0.0}, wirenr_va2[nDim] = {0.0}, wirenr_vb1[nDim] = {0.0}, wirenr_vb2[nDim] = {0.0};
 
     Bool_t used_xa1[nDim] = {kFALSE}, used_xa2[nDim] = {kFALSE}, used_xb1[nDim] = {kFALSE}, used_xb2[nDim] = {kFALSE},
     used_ya1[nDim] = {kFALSE}, used_ya2[nDim] = {kFALSE}, used_yb1[nDim] = {kFALSE}, used_yb2[nDim] = {kFALSE},
@@ -372,140 +333,16 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         }
     }//for digis in event iDig
 
-    Float_t rh_segDC1[8][150] = {0.};
-    Float_t rh_segDC2[8][150] = {0.};
-    Float_t rh_sigm_segDC1[8][150] = {0.};
-    Float_t rh_sigm_segDC2[8][150] = {0.};
-    Float_t xDC1_glob[150] = {0.};
-    Float_t yDC1_glob[150] = {0.};
-    Float_t xDC2_glob[150] = {0.};
-    Float_t yDC2_glob[150] = {0.};
-
-    Int_t nDC1_segments = 0;
-    Int_t nDC2_segments = 0;
-    Bool_t has7DC1 = kFALSE;
-    Bool_t has7DC2 = kFALSE;
-
-    Float_t x1_ab[2][150] = {0.};
-    Float_t y1_ab[2][150] = {0.};
-    Float_t u1_ab[2][150] = {0.};
-    Float_t v1_ab[2][150] = {0.};
-    Float_t sigm_x1_ab[2][150] = {0.};
-    Float_t sigm_y1_ab[2][150] = {0.};
-    Float_t sigm_u1_ab[2][150] = {0.};
-    Float_t sigm_v1_ab[2][150] = {0.};
-    Float_t x2_ab[2][150] = {0.};
-    Float_t y2_ab[2][150] = {0.};
-    Float_t u2_ab[2][150] = {0.};
-    Float_t v2_ab[2][150] = {0.};
-    Float_t sigm_x2_ab[2][150] = {0.};
-    Float_t sigm_y2_ab[2][150] = {0.};
-    Float_t sigm_u2_ab[2][150] = {0.};
-    Float_t sigm_v2_ab[2][150] = {0.};
-
-    //single hits on ab-plane
-    Float_t x1_single[2][40] = {0.};
-    Float_t y1_single[2][40] = {0.};
-    Float_t u1_single[2][40] = {0.};
-    Float_t v1_single[2][40] = {0.};
-    Float_t sigm_x1_single[2][40] = {0.};
-    Float_t sigm_y1_single[2][40] = {0.};
-    Float_t sigm_u1_single[2][40] = {0.};
-    Float_t sigm_v1_single[2][40] = {0.};
-    Float_t x2_single[2][40] = {0.};
-    Float_t y2_single[2][40] = {0.};
-    Float_t u2_single[2][40] = {0.};
-    Float_t v2_single[2][40] = {0.};
-    Float_t sigm_x2_single[2][40] = {0.};
-    Float_t sigm_y2_single[2][40] = {0.};
-    Float_t sigm_u2_single[2][40] = {0.};
-    Float_t sigm_v2_single[2][40] = {0.};
-
-    for (Int_t i = 0; i < 8; i++) {
-        for (Int_t j = 0; j < 150; j++) {
-            rh_segDC1[i][j] = -999;
-            rh_segDC2[i][j] = -999;
-            rh_sigm_segDC1[i][j] = 1;
-            rh_sigm_segDC2[i][j] = 1;
-            if (i > 1)
-                continue;
-
-            x1_ab[i][j] = -999;
-            y1_ab[i][j] = -999;
-            u1_ab[i][j] = -999;
-            v1_ab[i][j] = -999;
-            x2_ab[i][j] = -999;
-            y2_ab[i][j] = -999;
-            u2_ab[i][j] = -999;
-            v2_ab[i][j] = -999;
-            sigm_x1_ab[i][j] = 1;
-            sigm_y1_ab[i][j] = 1;
-            sigm_u1_ab[i][j] = 1;
-            sigm_v1_ab[i][j] = 1;
-            sigm_x2_ab[i][j] = 1;
-            sigm_y2_ab[i][j] = 1;
-            sigm_u2_ab[i][j] = 1;
-            sigm_v2_ab[i][j] = 1;
-
-            if (j > 39)
-                continue;
-
-            x1_single[i][j] = -999;
-            y1_single[i][j] = -999;
-            u1_single[i][j] = -999;
-            v1_single[i][j] = -999;
-            x2_single[i][j] = -999;
-            y2_single[i][j] = -999;
-            u2_single[i][j] = -999;
-            v2_single[i][j] = -999;
-            sigm_x1_single[i][j] = 1;
-            sigm_y1_single[i][j] = 1;
-            sigm_u1_single[i][j] = 1;
-            sigm_v1_single[i][j] = 1;
-            sigm_x2_single[i][j] = 1;
-            sigm_y2_single[i][j] = 1;
-            sigm_u2_single[i][j] = 1;
-            sigm_v2_single[i][j] = 1;
 
 
-            if (i > 0)
-                continue;
-
-            size_segDC1[j] = 0;
-            size_segDC2[j] = 0;
-            chi2_DC1[j] = 50;
-            chi2_DC2[j] = 50;
-
-            if (j > 39)
-                continue;
-
-            xDC1_glob[j] = -999;
-            yDC1_glob[j] = -999;
-            xDC2_glob[j] = -999;
-            yDC2_glob[j] = -999;
-        }
-    }
-    Int_t pair_x1 = 0;
-    Int_t pair_y1 = 0;
-    Int_t pair_u1 = 0;
-    Int_t pair_v1 = 0;
-    Int_t single_xa1 = 0;
-    Int_t single_ya1 = 0;
-    Int_t single_ua1 = 0;
-    Int_t single_va1 = 0;
-    Int_t single_xb1 = 0;
-    Int_t single_yb1 = 0;
-    Int_t single_ub1 = 0;
-    Int_t single_vb1 = 0;
-
-    Float_t xa1_pm[2] = {-999};
-    Float_t xb1_pm[2] = {-999};
-    Float_t ya1_pm[2] = {-999};
-    Float_t yb1_pm[2] = {-999};
-    Float_t ua1_pm[2] = {-999};
-    Float_t ub1_pm[2] = {-999};
-    Float_t va1_pm[2] = {-999};
-    Float_t vb1_pm[2] = {-999};
+    Float_t xa1_pm[2] = {0.};
+    Float_t xb1_pm[2] = {0.};
+    Float_t ya1_pm[2] = {0.};
+    Float_t yb1_pm[2] = {0.};
+    Float_t ua1_pm[2] = {0.};
+    Float_t ub1_pm[2] = {0.};
+    Float_t va1_pm[2] = {0.};
+    Float_t vb1_pm[2] = {0.};
 
     //   ---   X   ---
     for (Int_t i = 0; i < it_xa1; ++i) {
@@ -556,29 +393,10 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                     }
                 }
             }
-            if (d_a < 0.02) {
-                sigm_x1_ab[0][pair_x1] = 0.08 * 0.08;
-            } else if (d_a >= 0.02 && d_a < 0.1) {
-                sigm_x1_ab[0][pair_x1] = 0.06 * 0.06;
-            } else if (d_a >= 0.1 && d_a < 0.4) {
-                sigm_x1_ab[0][pair_x1] = 0.025 * 0.025;
-            } else if (d_a >= 0.4 && d_a < 0.41) {
-                sigm_x1_ab[0][pair_x1] = 0.08 * 0.08;
-            } else if (d_a >= 0.41) {
-                sigm_x1_ab[0][pair_x1] = 0.10 * 0.10;
-            }
 
-            if (d_b < 0.02) {
-                sigm_x1_ab[1][pair_x1] = 0.08 * 0.08;
-            } else if (d_b >= 0.02 && d_b < 0.1) {
-                sigm_x1_ab[1][pair_x1] = 0.06 * 0.06;
-            } else if (d_b >= 0.1 && d_b < 0.4) {
-                sigm_x1_ab[1][pair_x1] = 0.025 * 0.025;
-            } else if (d_b >= 0.4 && d_b < 0.41) {
-                sigm_x1_ab[1][pair_x1] = 0.08 * 0.08;
-            } else if (d_b >= 0.41) {
-                sigm_x1_ab[1][pair_x1] = 0.10 * 0.10;
-            }
+            CompareDaDb(d_a, sigm_x1_ab[0][pair_x1]);
+            CompareDaDb(d_b, sigm_x1_ab[1][pair_x1]);
+
             pair_x1++;
 
             used_xa1[i] = kTRUE;
@@ -612,22 +430,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         x1_single[0][single_xa1] = wirenr_xa1[i] - 119 + d_a;
         x1_single[0][single_xa1 + 1] = wirenr_xa1[i] - 119 - d_a;
 
-        if (d_a < 0.02) {
-            sigm_x1_single[0][single_xa1] = 0.08 * 0.08;
-            sigm_x1_single[0][single_xa1 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.02 && d_a < 0.1) {
-            sigm_x1_single[0][single_xa1] = 0.06 * 0.06;
-            sigm_x1_single[0][single_xa1 + 1] = 0.06 * 0.06;
-        } else if (d_a >= 0.1 && d_a < 0.4) {
-            sigm_x1_single[0][single_xa1] = 0.025 * 0.025;
-            sigm_x1_single[0][single_xa1 + 1] = 0.025 * 0.025;
-        } else if (d_a >= 0.4 && d_a < 0.41) {
-            sigm_x1_single[0][single_xa1] = 0.08 * 0.08;
-            sigm_x1_single[0][single_xa1 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.41) {
-            sigm_x1_single[0][single_xa1] = 0.10 * 0.10;
-            sigm_x1_single[0][single_xa1 + 1] = 0.10 * 0.10;
-        }
+        CompareDaDb(d_a, sigm_x1_single[0][single_xa1], sigm_x1_single[0][single_xa1 + 1]);
 
         single_xa1 += 2;
     }//for single xa
@@ -652,23 +455,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         x1_single[1][single_xb1] = wirenr_xb1[j] - 118.5 + d_b;
         x1_single[1][single_xb1 + 1] = wirenr_xb1[j] - 118.5 - d_b;
 
-        if (d_b < 0.02) {
-            sigm_x1_single[1][single_xb1] = 0.08 * 0.08;
-            sigm_x1_single[1][single_xb1 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.02 && d_b < 0.1) {
-            sigm_x1_single[1][single_xb1] = 0.06 * 0.06;
-            sigm_x1_single[1][single_xb1 + 1] = 0.06 * 0.06;
-        } else if (d_b >= 0.1 && d_b < 0.4) {
-            sigm_x1_single[1][single_xb1] = 0.0250 * 0.0250;
-            sigm_x1_single[1][single_xb1 + 1] = 0.0250 * 0.0250;
-        } else if (d_b >= 0.4 && d_b < 0.41) {
-            sigm_x1_single[1][single_xb1] = 0.08 * 0.08;
-            sigm_x1_single[1][single_xb1 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.41) {
-            sigm_x1_single[1][single_xb1] = 0.10 * 0.10;
-            sigm_x1_single[1][single_xb1 + 1] = 0.10 * 0.10;
-        }
-
+        CompareDaDb(d_b, sigm_x1_single[1][single_xb1], sigm_x1_single[1][single_xb1 + 1]);
         single_xb1 += 2;
 
     } // i for1  X. 
@@ -720,29 +507,10 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                     }
                 }
             }
-            if (d_a < 0.02) {
-                sigm_y1_ab[0][pair_y1] = 0.08 * 0.08;
-            } else if (d_a >= 0.02 && d_a < 0.1) {
-                sigm_y1_ab[0][pair_y1] = 0.06 * 0.06;
-            } else if (d_a >= 0.1 && d_a < 0.4) {
-                sigm_y1_ab[0][pair_y1] = 0.025 * 0.025;
-            } else if (d_a >= 0.4 && d_a < 0.41) {
-                sigm_y1_ab[0][pair_y1] = 0.08 * 0.08;
-            } else if (d_a >= 0.41) {
-                sigm_y1_ab[0][pair_y1] = 0.10 * 0.10;
-            }
 
-            if (d_b < 0.02) {
-                sigm_y1_ab[1][pair_y1] = 0.08 * 0.08;
-            } else if (d_b >= 0.02 && d_b < 0.1) {
-                sigm_y1_ab[1][pair_y1] = 0.06 * 0.06;
-            } else if (d_b >= 0.1 && d_b < 0.4) {
-                sigm_y1_ab[1][pair_y1] = 0.025 * 0.025;
-            } else if (d_b >= 0.4 && d_b < 0.41) {
-                sigm_y1_ab[1][pair_y1] = 0.08 * 0.08;
-            } else if (d_b >= 0.41) {
-                sigm_y1_ab[1][pair_y1] = 0.10 * 0.10;
-            }
+            CompareDaDb(d_a, sigm_y1_ab[0][pair_y1]);
+            CompareDaDb(d_b, sigm_y1_ab[1][pair_y1]);
+
             pair_y1++;
 
             used_ya1[i] = kTRUE;
@@ -771,22 +539,8 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         y1_single[0][single_ya1] = wirenr_ya1[i] - 119 + d_a;
         y1_single[0][single_ya1 + 1] = wirenr_ya1[i] - 119 - d_a;
 
-        if (d_a < 0.02) {
-            sigm_y1_single[0][single_ya1] = 0.08 * 0.08;
-            sigm_y1_single[0][single_ya1 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.02 && d_a < 0.1) {
-            sigm_y1_single[0][single_ya1] = 0.06 * 0.06;
-            sigm_y1_single[0][single_ya1 + 1] = 0.06 * 0.06;
-        } else if (d_a >= 0.1 && d_a < 0.4) {
-            sigm_y1_single[0][single_ya1] = 0.025 * 0.025;
-            sigm_y1_single[0][single_ya1 + 1] = 0.025 * 0.025;
-        } else if (d_a >= 0.4 && d_a < 0.41) {
-            sigm_y1_single[0][single_ya1] = 0.08 * 0.08;
-            sigm_y1_single[0][single_ya1 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.41) {
-            sigm_y1_single[0][single_ya1] = 0.10 * 0.10;
-            sigm_y1_single[0][single_ya1 + 1] = 0.10 * 0.10;
-        }
+        CompareDaDb(d_a, sigm_y1_single[0][single_ya1], sigm_y1_single[0][single_ya1 + 1]);
+
         single_ya1 += 2;
     }//for single ya
 
@@ -809,22 +563,8 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         y1_single[1][single_yb1] = wirenr_yb1[j] - 118.5 + d_b;
         y1_single[1][single_yb1 + 1] = wirenr_yb1[j] - 118.5 - d_b;
 
-        if (d_b < 0.02) {
-            sigm_y1_single[1][single_yb1] = 0.08 * 0.08;
-            sigm_y1_single[1][single_yb1 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.02 && d_b < 0.1) {
-            sigm_y1_single[1][single_yb1] = 0.06 * 0.06;
-            sigm_y1_single[1][single_yb1 + 1] = 0.06 * 0.06;
-        } else if (d_b >= 0.1 && d_b < 0.4) {
-            sigm_y1_single[1][single_yb1] = 0.025 * 0.025;
-            sigm_y1_single[1][single_yb1 + 1] = 0.025 * 0.025;
-        } else if (d_b >= 0.4 && d_b < 0.41) {
-            sigm_y1_single[1][single_yb1] = 0.10 * 0.10;
-            sigm_y1_single[1][single_yb1 + 1] = 0.10 * 0.10;
-        } else if (d_b >= 0.41) {
-            sigm_y1_single[1][single_yb1] = 0.10 * 0.10;
-            sigm_y1_single[1][single_yb1 + 1] = 0.10 * 0.10;
-        }
+        CompareDaDb(d_b, sigm_y1_single[1][single_yb1], sigm_y1_single[1][single_yb1 + 1]);
+
         single_yb1 += 2;
 
     } // i for1  Y.
@@ -876,29 +616,10 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                     }
                 }
             }
-            if (d_a < 0.02) {
-                sigm_u1_ab[0][pair_u1] = 0.08 * 0.08;
-            } else if (d_a >= 0.02 && d_a < 0.1) {
-                sigm_u1_ab[0][pair_u1] = 0.06 * 0.06;
-            } else if (d_a >= 0.1 && d_a < 0.4) {
-                sigm_u1_ab[0][pair_u1] = 0.025 * 0.025;
-            } else if (d_a >= 0.4 && d_a < 0.41) {
-                sigm_u1_ab[0][pair_u1] = 0.08 * 0.08;
-            } else if (d_a >= 0.41) {
-                sigm_u1_ab[0][pair_u1] = 0.10 * 0.10;
-            }
 
-            if (d_b < 0.02) {
-                sigm_u1_ab[1][pair_u1] = 0.08 * 0.08;
-            } else if (d_b >= 0.02 && d_b < 0.1) {
-                sigm_u1_ab[1][pair_u1] = 0.06 * 0.06;
-            } else if (d_b >= 0.1 && d_b < 0.4) {
-                sigm_u1_ab[1][pair_u1] = 0.025 * 0.025;
-            } else if (d_b >= 0.4 && d_b < 0.41) {
-                sigm_u1_ab[1][pair_u1] = 0.08 * 0.08;
-            } else if (d_b >= 0.41) {
-                sigm_u1_ab[1][pair_u1] = 0.10 * 0.10;
-            }
+            CompareDaDb(d_a, sigm_u1_ab[0][pair_u1]);
+            CompareDaDb(d_b, sigm_u1_ab[1][pair_u1]);
+
             pair_u1++;
             used_ua1[i] = kTRUE;
             used_ub1[j] = kTRUE;
@@ -927,22 +648,8 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         u1_single[0][single_ua1] = (wirenr_ua1[i] - 119 + d_a);
         u1_single[0][single_ua1 + 1] = (wirenr_ua1[i] - 119 - d_a);
 
-        if (d_a < 0.02) {
-            sigm_u1_single[0][single_ua1] = 0.08 * 0.08;
-            sigm_u1_single[0][single_ua1 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.02 && d_a < 0.1) {
-            sigm_u1_single[0][single_ua1] = 0.06 * 0.06;
-            sigm_u1_single[0][single_ua1 + 1] = 0.06 * 0.06;
-        } else if (d_a >= 0.1 && d_a < 0.4) {
-            sigm_u1_single[0][single_ua1] = 0.025 * 0.025;
-            sigm_u1_single[0][single_ua1 + 1] = 0.025 * 0.025;
-        } else if (d_a >= 0.4 && d_a < 0.41) {
-            sigm_u1_single[0][single_ua1] = 0.08 * 0.08;
-            sigm_u1_single[0][single_ua1 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.41) {
-            sigm_u1_single[0][single_ua1] = 0.10 * 0.10;
-            sigm_u1_single[0][single_ua1 + 1] = 0.10 * 0.10;
-        }
+        CompareDaDb(d_a, sigm_u1_single[0][single_ua1], sigm_u1_single[0][single_ua1 + 1]);
+
         single_ua1 += 2;
     }//for single ua
 
@@ -963,23 +670,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         u1_single[1][single_ub1] = (wirenr_ub1[j] - 118.5 + d_b);
         u1_single[1][single_ub1 + 1] = (wirenr_ub1[j] - 118.5 - d_b);
 
-        //hdev_occup[1]->Fill(d_b);
-        if (d_b < 0.02) {
-            sigm_u1_single[1][single_ub1] = 0.08 * 0.08;
-            sigm_u1_single[1][single_ub1 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.02 && d_b < 0.1) {
-            sigm_u1_single[1][single_ub1] = 0.06 * 0.06;
-            sigm_u1_single[1][single_ub1 + 1] = 0.06 * 0.06;
-        } else if (d_b >= 0.1 && d_b < 0.4) {
-            sigm_u1_single[1][single_ub1] = 0.025 * 0.025;
-            sigm_u1_single[1][single_ub1 + 1] = 0.025 * 0.025;
-        } else if (d_b >= 0.4 && d_b < 0.41) {
-            sigm_u1_single[1][single_ub1] = 0.08 * 0.08;
-            sigm_u1_single[1][single_ub1 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.41) {
-            sigm_u1_single[1][single_ub1] = 0.10 * 0.10;
-            sigm_u1_single[1][single_ub1 + 1] = 0.10 * 0.10;
-        }
+        CompareDaDb(d_b, sigm_u1_single[1][single_ub1], sigm_u1_single[1][single_ub1 + 1]);
         single_ub1 += 2;
     } // i for1  U.
 
@@ -1034,29 +725,10 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                     }
                 }
             }
-            if (d_a < 0.02) {
-                sigm_v1_ab[0][pair_v1] = 0.08 * 0.08;
-            } else if (d_a >= 0.02 && d_a < 0.1) {
-                sigm_v1_ab[0][pair_v1] = 0.06 * 0.06;
-            } else if (d_a >= 0.1 && d_a < 0.4) {
-                sigm_v1_ab[0][pair_v1] = 0.025 * 0.025;
-            } else if (d_a >= 0.4 && d_a < 0.41) {
-                sigm_v1_ab[0][pair_v1] = 0.08 * 0.08;
-            } else if (d_a >= 0.41) {
-                sigm_v1_ab[0][pair_v1] = 0.10 * 0.10;
-            }
 
-            if (d_b < 0.02) {
-                sigm_v1_ab[1][pair_v1] = 0.08 * 0.08;
-            } else if (d_b >= 0.02 && d_b < 0.1) {
-                sigm_v1_ab[1][pair_v1] = 0.06 * 0.06;
-            } else if (d_b >= 0.1 && d_b < 0.4) {
-                sigm_v1_ab[1][pair_v1] = 0.025 * 0.025;
-            } else if (d_b >= 0.4 && d_b < 0.41) {
-                sigm_v1_ab[1][pair_v1] = 0.08 * 0.08;
-            } else if (d_b >= 0.41) {
-                sigm_v1_ab[1][pair_v1] = 0.10 * 0.10;
-            }
+            CompareDaDb(d_a, sigm_v1_ab[0][pair_v1]);
+            CompareDaDb(d_b, sigm_v1_ab[1][pair_v1]);
+
             pair_v1++;
             used_va1[i] = kTRUE;
             used_vb1[j] = kTRUE;
@@ -1086,22 +758,8 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         v1_single[0][single_va1] = wirenr_va1[i] - 119 + d_a;
         v1_single[0][single_va1 + 1] = wirenr_va1[i] - 119 - d_a;
 
-        if (d_a < 0.02) {
-            sigm_v1_single[0][single_va1] = 0.08 * 0.08;
-            sigm_v1_single[0][single_va1 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.02 && d_a < 0.1) {
-            sigm_v1_single[0][single_va1] = 0.06 * 0.06;
-            sigm_v1_single[0][single_va1 + 1] = 0.06 * 0.06;
-        } else if (d_a >= 0.1 && d_a < 0.4) {
-            sigm_v1_single[0][single_va1] = 0.025 * 0.025;
-            sigm_v1_single[0][single_va1 + 1] = 0.025 * 0.025;
-        } else if (d_a >= 0.4 && d_a < 0.41) {
-            sigm_v1_single[0][single_va1] = 0.08 * 0.08;
-            sigm_v1_single[0][single_va1 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.41) {
-            sigm_v1_single[0][single_va1] = 0.10 * 0.10;
-            sigm_v1_single[0][single_va1 + 1] = 0.10 * 0.10;
-        }
+        CompareDaDb(d_a, sigm_v1_single[0][single_va1], sigm_v1_single[0][single_va1 + 1]);
+
         single_va1 += 2;
     }//for single va
 
@@ -1123,329 +781,26 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         v1_single[1][single_vb1] = wirenr_vb1[j] - 118.5 + d_b;
         v1_single[1][single_vb1 + 1] = wirenr_vb1[j] - 118.5 - d_b;
 
-        if (d_b < 0.02) {
-            sigm_v1_single[1][single_vb1] = 0.08 * 0.08;
-            sigm_v1_single[1][single_vb1 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.02 && d_b < 0.1) {
-            sigm_v1_single[1][single_vb1] = 0.06 * 0.06;
-            sigm_v1_single[1][single_vb1 + 1] = 0.06 * 0.06;
-        } else if (d_b >= 0.1 && d_b < 0.4) {
-            sigm_v1_single[1][single_vb1] = 0.0250 * 0.0250;
-            sigm_v1_single[1][single_vb1 + 1] = 0.0250 * 0.0250;
-        } else if (d_b >= 0.4 && d_b < 0.41) {
-            sigm_v1_single[1][single_vb1] = 0.08 * 0.08;
-            sigm_v1_single[1][single_vb1 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.41) {
-            sigm_v1_single[1][single_vb1] = 0.10 * 0.10;
-            sigm_v1_single[1][single_vb1 + 1] = 0.10 * 0.10;
-        }
+        CompareDaDb(d_b, sigm_v1_single[1][single_vb1], sigm_v1_single[1][single_vb1 + 1]);
         single_vb1 += 2;
 
     } // i for1  V.
 
-    //  ---  DC1 Segment Building  ------
-    Bool_t found_8p_seg = kFALSE;
-    Float_t x_slope = 0.0;
-    Float_t y_slope = 0.0;
+    nDC1_segments = BuildUVSegments(1, pair_u1, pair_v1, pair_x1, pair_y1, single_ua1, single_ub1, single_va1, single_vb1,
+            x1_ab, y1_ab, u1_ab, v1_ab, sigm_x1_ab, sigm_y1_ab, sigm_u1_ab, sigm_v1_ab, rh_segDC1, rh_sigm_segDC1, u1_single, v1_single, sigm_u1_single, sigm_v1_single);
 
-    if (pair_x1 * pair_y1 > 0) { //(x,y)first
-        for (Int_t i = 0; i < pair_x1; i++) {
-            if (nDC1_segments > 48)
-                break;
-            Float_t x_coord = (x1_ab[0][i] + x1_ab[1][i]) / 2;
-            Float_t XU = x_coord + x_slope * 0.5 * (z_loc[5] + z_loc[4] - z_loc[1] - z_loc[0]);
-            Float_t XV = x_coord + x_slope * 0.5 * (z_loc[7] + z_loc[6] - z_loc[1] - z_loc[0]);
-            for (Int_t j = 0; j < pair_y1; j++) {
-                if (nDC1_segments > 48)
-                    break;
-                Float_t y_coord = (y1_ab[0][j] + y1_ab[1][j]) / 2;
-                Float_t YU = y_coord + y_slope * 0.5 * (z_loc[5] + z_loc[4] - z_loc[3] - z_loc[2]);
-                Float_t YV = y_coord + y_slope * 0.5 * (z_loc[7] + z_loc[6] - z_loc[3] - z_loc[2]);
-                Float_t u_est = isqrt_2 * (YU - XU);
-                Float_t v_est = isqrt_2 * (YV + XV);
-                Bool_t foundU = kFALSE;
-
-                if (pair_u1 > 0) {
-                    Double_t dU_thresh = 1.3;
-                    for (Int_t k = 0; k < pair_u1; k++) {
-                        Float_t u_coord = (u1_ab[0][k] + u1_ab[1][k]) / 2;
-                        if (Abs(u_coord - u_est) > dU_thresh)
-                            continue;
-                        dU_thresh = Abs(u_coord - u_est);
-
-                        rh_segDC1[0][nDC1_segments] = x1_ab[0][i];
-                        rh_segDC1[1][nDC1_segments] = x1_ab[1][i];
-                        rh_segDC1[2][nDC1_segments] = y1_ab[0][j];
-                        rh_segDC1[3][nDC1_segments] = y1_ab[1][j];
-                        rh_segDC1[4][nDC1_segments] = u1_ab[0][k];
-                        rh_segDC1[5][nDC1_segments] = u1_ab[1][k];
-                        rh_sigm_segDC1[0][nDC1_segments] = sigm_x1_ab[0][i];
-                        rh_sigm_segDC1[1][nDC1_segments] = sigm_x1_ab[1][i];
-                        rh_sigm_segDC1[2][nDC1_segments] = sigm_y1_ab[0][j];
-                        rh_sigm_segDC1[3][nDC1_segments] = sigm_y1_ab[1][j];
-                        rh_sigm_segDC1[4][nDC1_segments] = sigm_u1_ab[0][k];
-                        rh_sigm_segDC1[5][nDC1_segments] = sigm_u1_ab[1][k];
-                        foundU = kTRUE;
-                        if (nDC1_segments > 48)
-                            break;
-                    }//k
-                }//(pair_u1>0)
-                if (found_8p_seg && !foundU)
-                    continue;
-                Bool_t foundV = kFALSE;
-                if (pair_v1 > 0) {
-                    Double_t dV_thresh = 1.3;
-                    for (Int_t m = 0; m < pair_v1; m++) {
-                        if (nDC1_segments > 48)break;
-                        Float_t v_coord = (v1_ab[0][m] + v1_ab[1][m]) / 2;
-                        if (Abs(v_coord - v_est) > dV_thresh)
-                            continue;
-                        dV_thresh = Abs(v_coord - v_est);
-
-                        foundV = kTRUE;
-                        rh_segDC1[0][nDC1_segments] = x1_ab[0][i];
-                        rh_segDC1[1][nDC1_segments] = x1_ab[1][i];
-                        rh_segDC1[2][nDC1_segments] = y1_ab[0][j];
-                        rh_segDC1[3][nDC1_segments] = y1_ab[1][j];
-                        rh_segDC1[6][nDC1_segments] = v1_ab[0][m];
-                        rh_segDC1[7][nDC1_segments] = v1_ab[1][m];
-                        rh_sigm_segDC1[0][nDC1_segments] = sigm_x1_ab[0][i];
-                        rh_sigm_segDC1[1][nDC1_segments] = sigm_x1_ab[1][i];
-                        rh_sigm_segDC1[2][nDC1_segments] = sigm_y1_ab[0][j];
-                        rh_sigm_segDC1[3][nDC1_segments] = sigm_y1_ab[1][j];
-                        rh_sigm_segDC1[6][nDC1_segments] = sigm_v1_ab[0][m];
-                        rh_sigm_segDC1[7][nDC1_segments] = sigm_v1_ab[1][m];
-                        if (!foundU) {
-                            Float_t min_a = 999;
-                            Float_t min_b = 999;
-
-                            for (Int_t kk = 0; kk < single_ua1; kk++) {
-                                if (Abs(u1_single[0][kk] - u_est) > 1.5)
-                                    continue; //????? 0.5 needs to be reviewed
-                                if (Abs(u1_single[0][kk] - u_est) < min_a) {
-                                    min_a = Abs(u1_single[0][kk] - u_est);
-                                    rh_segDC1[4][nDC1_segments] = u1_single[0][kk];
-                                    rh_sigm_segDC1[4][nDC1_segments] = sigm_u1_single[0][kk];
-
-                                    foundU = kTRUE;
-                                }
-                            }//for kk
-                            for (Int_t kk = 0; kk < single_ub1; kk++) {
-                                if (Abs(u1_single[1][kk] - u_est) > 1.5)
-                                    continue; //????? 0.5 needs to be reviewed
-                                if (Abs(u1_single[1][kk] - u_est) < min_b) {
-                                    min_a = Abs(u1_single[1][kk] - u_est);
-                                    rh_segDC1[5][nDC1_segments] = u1_single[1][kk];
-                                    rh_sigm_segDC1[5][nDC1_segments] = sigm_u1_single[1][kk];
-
-                                    foundU = kTRUE;
-                                }
-                            }//for kk
-
-                            if (nDC1_segments > 48)
-                                break;
-                        }//!foundU
-
-                        if (nDC1_segments > 48)
-                            break;
-                    }//m
-
-                }//(pair_v1>0)
-
-                if (!foundV && foundU) {
-                    Float_t min_a = 999;
-                    Float_t min_b = 999;
-                    for (Int_t kk = 0; kk < single_va1; kk++) {
-                        if (Abs(v1_single[0][kk] - v_est) > 1.5)
-                            continue; //????? 0.5 needs to be reviewed
-
-                        if (Abs(v1_single[0][kk] - v_est) < min_a) {
-                            min_a = Abs(v1_single[0][kk] - v_est);
-                            rh_segDC1[6][nDC1_segments] = v1_single[0][kk];
-                            rh_sigm_segDC1[6][nDC1_segments] = sigm_v1_single[0][kk];
-                            foundV = kTRUE;
-                        }
-                    }//for kk
-                    for (Int_t kk = 0; kk < single_vb1; kk++) {
-                        if (Abs(v1_single[1][kk] - v_est) > 1.5)
-                            continue; //????? 0.5 needs to be reviewed
-                        if (Abs(v1_single[1][kk] - v_est) < min_b) {
-                            min_b = Abs(v1_single[1][kk] - v_est);
-                            rh_segDC1[7][nDC1_segments] = v1_single[1][kk];
-                            rh_sigm_segDC1[7][nDC1_segments] = sigm_v1_single[1][kk];
-                            foundV = kTRUE;
-                        }
-                    }//for kk
-
-                }//!foundV
-                if (foundV || foundU) nDC1_segments++;
-            }//j
-        }//i
-
-    }//(x,y)first
+    nDC1_segments = BuildXYSegments(1, pair_u1, pair_v1, pair_x1, pair_y1, single_xa1, single_xb1, single_ya1, single_yb1,
+            x1_ab, y1_ab, u1_ab, v1_ab, sigm_x1_ab, sigm_y1_ab, sigm_u1_ab, sigm_v1_ab, rh_segDC1, rh_sigm_segDC1, x1_single, y1_single, sigm_x1_single, sigm_y1_single);
 
 
-    if (pair_u1 * pair_v1 > 0 && !found_8p_seg) { // (u,v) first
-
-        for (Int_t i = 0; i < pair_u1; i++) {
-            if (nDC1_segments > 48)
-                break;
-            Float_t u_coord = (u1_ab[0][i] + u1_ab[1][i]) / 2;
-            for (Int_t j = 0; j < pair_v1; j++) {
-                if (nDC1_segments > 48)
-                    break;
-                Float_t v_coord = (v1_ab[0][j] + v1_ab[1][j]) / 2;
-                Bool_t foundX = kFALSE;
-                Float_t y_est = isqrt_2 * (u_coord + v_coord);
-                Float_t x_est = isqrt_2 * (v_coord - u_coord);
-                if (pair_x1 > 0) {
-
-                    Double_t dX_thresh = 1.5;
-                    for (Int_t k = 0; k < pair_x1; k++) {
-                        Float_t x_coord = (x1_ab[0][k] + x1_ab[1][k]) / 2;
-                        if (nDC1_segments > 48)
-                            break;
-                        if (Abs(x_coord - x_est) > dX_thresh)
-                            continue;
-                        dX_thresh = Abs(x_coord - x_est);
-
-                        rh_segDC1[0][nDC1_segments] = x1_ab[0][k];
-                        rh_segDC1[1][nDC1_segments] = x1_ab[1][k];
-                        rh_segDC1[4][nDC1_segments] = u1_ab[0][i];
-                        rh_segDC1[5][nDC1_segments] = u1_ab[1][i];
-                        rh_segDC1[6][nDC1_segments] = v1_ab[0][j];
-                        rh_segDC1[7][nDC1_segments] = v1_ab[1][j];
-                        rh_sigm_segDC1[0][nDC1_segments] = sigm_x1_ab[0][k];
-                        rh_sigm_segDC1[1][nDC1_segments] = sigm_x1_ab[1][k];
-                        rh_sigm_segDC1[4][nDC1_segments] = sigm_u1_ab[0][i];
-                        rh_sigm_segDC1[5][nDC1_segments] = sigm_u1_ab[1][i];
-                        rh_sigm_segDC1[6][nDC1_segments] = sigm_v1_ab[0][j];
-                        rh_sigm_segDC1[7][nDC1_segments] = sigm_v1_ab[1][j];
-
-                        foundX = kTRUE;
-                        if (nDC1_segments > 48)
-                            break;
-                    }//k
-
-                }//(pair_x1>0)
-                if (found_8p_seg && !foundX)
-                    continue;
-                Bool_t foundY = kFALSE;
-                if (pair_y1 > 0) {
-
-                    Double_t dY_thresh = 1.0;
-                    for (Int_t m = 0; m < pair_y1; m++) {
-                        if (nDC1_segments > 48)
-                            break;
-                        Float_t y_coord = (y1_ab[0][m] + y1_ab[1][m]) / 2;
-                        if (Abs(y_coord - y_est) > dY_thresh)
-                            continue;
-                        dY_thresh = Abs(y_coord - y_est);
-
-                        foundY = kTRUE;
-                        if (nDC1_segments > 48)
-                            break;
-                        rh_segDC1[2][nDC1_segments] = y1_ab[0][m];
-                        rh_segDC1[3][nDC1_segments] = y1_ab[1][m];
-                        rh_segDC1[4][nDC1_segments] = u1_ab[0][i];
-                        rh_segDC1[5][nDC1_segments] = u1_ab[1][i];
-                        rh_segDC1[6][nDC1_segments] = v1_ab[0][j];
-                        rh_segDC1[7][nDC1_segments] = v1_ab[1][j];
-                        rh_sigm_segDC1[2][nDC1_segments] = sigm_y1_ab[0][m];
-                        rh_sigm_segDC1[3][nDC1_segments] = sigm_y1_ab[1][m];
-                        rh_sigm_segDC1[4][nDC1_segments] = sigm_u1_ab[0][i];
-                        rh_sigm_segDC1[5][nDC1_segments] = sigm_u1_ab[1][i];
-                        rh_sigm_segDC1[6][nDC1_segments] = sigm_v1_ab[0][j];
-                        rh_sigm_segDC1[7][nDC1_segments] = sigm_v1_ab[1][j];
-
-                        if (!foundX) {
-
-                            Float_t min_a = 999;
-                            Float_t min_b = 999;
-                            for (Int_t kk = 0; kk < single_xa1; kk++) {
-                                if (Abs(x1_single[0][kk] - x_est) > 1.5)
-                                    continue; //????? 0.5 needs to be reviewed                                                                                     
-                                if (Abs(x1_single[0][kk] - x_est) < min_a) {
-                                    min_a = Abs(x1_single[0][kk] - x_est);
-                                    rh_segDC1[0][nDC1_segments] = x1_single[0][kk];
-                                    rh_sigm_segDC1[0][nDC1_segments] = sigm_x1_single[0][kk];
-                                    foundX = kTRUE;
-                                }
-                            }//for kk                                                                                                                                                           
-                            for (Int_t kk = 0; kk < single_xb1; kk++) {
-                                if (Abs(x1_single[1][kk] - x_est) > 1.5)
-                                    continue; //????? 0.5 needs to be reviewed                                                                                     
-                                if (Abs(x1_single[1][kk] - x_est) < min_b) {
-                                    min_a = Abs(x1_single[1][kk] - x_est);
-                                    rh_segDC1[1][nDC1_segments] = x1_single[1][kk];
-                                    rh_sigm_segDC1[1][nDC1_segments] = sigm_x1_single[1][kk];
-                                    foundX = kTRUE;
-                                }
-                            }//for kk                                                                                                                                                           
-                            if (nDC1_segments > 48)
-                                break;
-                        }//!foundX
-
-                    }//m
-                    if (!foundY && foundX) {
-                        Float_t min_a = 999;
-                        Float_t min_b = 999;
-                        for (Int_t kk = 0; kk < single_ya1; kk++) {
-                            if (Abs(y1_single[0][kk] - y_est) > 1.5)
-                                continue; //????? 0.5 needs to be reviewed                                                                                     
-                            if (Abs(y1_single[0][kk] - y_est) < min_a) {
-                                min_a = Abs(y1_single[0][kk] - y_est);
-                                rh_segDC1[2][nDC1_segments] = y1_single[0][kk];
-                                rh_sigm_segDC1[2][nDC1_segments] = sigm_y1_single[0][kk];
-                                foundY = kTRUE;
-                            }
-                        }//for kk                                                                                                                                                           
-                        for (Int_t kk = 0; kk < single_yb1; kk++) {
-                            if (Abs(y1_single[1][kk] - y_est) > 1.5)
-                                continue; //????? 0.5 needs to be reviewed                                                                                     
-                            if (Abs(y1_single[1][kk] - y_est) < min_b) {
-                                min_b = Abs(y1_single[1][kk] - y_est);
-                                rh_segDC1[3][nDC1_segments] = y1_single[1][kk];
-                                rh_sigm_segDC1[3][nDC1_segments] = sigm_y1_single[1][kk];
-                                foundY = kTRUE;
-                            }
-                        }//for kk                                                                                                                                                           
-                    }//!foundY                         
-                }//(pair_y1>0)
-                if (foundX || foundY) nDC1_segments++;
-            }//j
-        }//i
-    }//(u,v) first
-
-    for (Int_t i = 0; i < 8; i++) {
-        for (Int_t j = 0; j < 150; j++) {
-            if (i > 1)continue;
-            par_ab1[i][j] = -999;
-            par_ab2[i][j] = -999;
-
-        }
-    }
-    Int_t pair_x2 = 0;
-    Int_t pair_y2 = 0;
-    Int_t pair_u2 = 0;
-    Int_t pair_v2 = 0;
-    Int_t single_xa2 = 0;
-    Int_t single_ya2 = 0;
-    Int_t single_ua2 = 0;
-    Int_t single_va2 = 0;
-    Int_t single_xb2 = 0;
-    Int_t single_yb2 = 0;
-    Int_t single_ub2 = 0;
-    Int_t single_vb2 = 0;
-
-    Float_t xa2_pm[2] = {-999};
-    Float_t xb2_pm[2] = {-999};
-    Float_t ya2_pm[2] = {-999};
-    Float_t yb2_pm[2] = {-999};
-    Float_t ua2_pm[2] = {-999};
-    Float_t ub2_pm[2] = {-999};
-    Float_t va2_pm[2] = {-999};
-    Float_t vb2_pm[2] = {-999};
+    Float_t xa2_pm[2] = {0.};
+    Float_t xb2_pm[2] = {0.};
+    Float_t ya2_pm[2] = {0.};
+    Float_t yb2_pm[2] = {0.};
+    Float_t ua2_pm[2] = {0.};
+    Float_t ub2_pm[2] = {0.};
+    Float_t va2_pm[2] = {0.};
+    Float_t vb2_pm[2] = {0.};
 
     //   ---   X   ---
     for (Int_t i = 0; i < it_xa2; ++i) {
@@ -1497,29 +852,10 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                     }
                 }
             }
-            if (d_a < 0.02) {
-                sigm_x2_ab[0][pair_x2] = 0.08 * 0.08;
-            } else if (d_a >= 0.02 && d_a < 0.1) {
-                sigm_x2_ab[0][pair_x2] = 0.06 * 0.06;
-            } else if (d_a >= 0.1 && d_a < 0.4) {
-                sigm_x2_ab[0][pair_x2] = 0.025 * 0.025;
-            } else if (d_a >= 0.4 && d_a < 0.41) {
-                sigm_x2_ab[0][pair_x2] = 0.08 * 0.08;
-            } else if (d_a >= 0.41) {
-                sigm_x2_ab[0][pair_x2] = 0.10 * 0.10;
-            }
 
-            if (d_b < 0.02) {
-                sigm_x2_ab[1][pair_x2] = 0.08 * 0.08;
-            } else if (d_b >= 0.02 && d_b < 0.1) {
-                sigm_x2_ab[1][pair_x2] = 0.06 * 0.06;
-            } else if (d_b >= 0.1 && d_b < 0.4) {
-                sigm_x2_ab[1][pair_x2] = 0.025 * 0.025;
-            } else if (d_b >= 0.4 && d_b < 0.41) {
-                sigm_x2_ab[1][pair_x2] = 0.08 * 0.08;
-            } else if (d_b >= 0.41) {
-                sigm_x2_ab[1][pair_x2] = 0.10 * 0.10;
-            }
+            CompareDaDb(d_a, sigm_x2_ab[0][pair_x2]);
+            CompareDaDb(d_b, sigm_x2_ab[1][pair_x2]);
+
             pair_x2++;
             used_xa2[i] = kTRUE;
             used_xb2[j] = kTRUE;
@@ -1548,22 +884,9 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
         x2_single[0][single_xa2] = wirenr_xa2[i] - 118.5 + d_a;
         x2_single[0][single_xa2 + 1] = wirenr_xa2[i] - 118.5 - d_a;
-        if (d_a < 0.02) {
-            sigm_x2_single[0][single_xa2] = 0.08 * 0.08;
-            sigm_x2_single[0][single_xa2 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.02 && d_a < 0.1) {
-            sigm_x2_single[0][single_xa2] = 0.06 * 0.06;
-            sigm_x2_single[0][single_xa2 + 1] = 0.06 * 0.06;
-        } else if (d_a >= 0.1 && d_a < 0.4) {
-            sigm_x2_single[0][single_xa2] = 0.0250 * 0.0250;
-            sigm_x2_single[0][single_xa2 + 1] = 0.0250 * 0.0250;
-        } else if (d_a >= 0.4 && d_a < 0.41) {
-            sigm_x2_single[0][single_xa2] = 0.08 * 0.08;
-            sigm_x2_single[0][single_xa2 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.41) {
-            sigm_x2_single[0][single_xa2] = 0.10 * 0.10;
-            sigm_x2_single[0][single_xa2 + 1] = 0.10 * 0.10;
-        }
+
+        CompareDaDb(d_a, sigm_x2_single[0][single_xa2], sigm_x2_single[0][single_xa2 + 1]);
+
         single_xa2 += 2;
     }//for single xa
 
@@ -1587,22 +910,8 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
         x2_single[1][single_xb2] = wirenr_xb2[j] - 118.5 + d_b;
         x2_single[1][single_xb2 + 1] = wirenr_xb2[j] - 118.5 - d_b;
-        if (d_b < 0.02) {
-            sigm_x2_single[1][single_xb2] = 0.08 * 0.08;
-            sigm_x2_single[1][single_xb2 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.02 && d_b < 0.1) {
-            sigm_x2_single[1][single_xb2] = 0.06 * 0.06;
-            sigm_x2_single[1][single_xb2 + 1] = 0.06 * 0.06;
-        } else if (d_b >= 0.1 && d_b < 0.4) {
-            sigm_x2_single[1][single_xb2] = 0.0250 * 0.0250;
-            sigm_x2_single[1][single_xb2 + 1] = 0.0250 * 0.0250;
-        } else if (d_b >= 0.4 && d_b < 0.41) {
-            sigm_x2_single[1][single_xb2] = 0.08 * 0.08;
-            sigm_x2_single[1][single_xb2 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.41) {
-            sigm_x2_single[1][single_xb2] = 0.1 * 0.1;
-            sigm_x2_single[1][single_xb2 + 1] = 0.1 * 0.1;
-        }
+
+        CompareDaDb(d_b, sigm_x2_single[1][single_xb2], sigm_x2_single[1][single_xb2 + 1]);
         single_xb2 += 2;
     }//j xb2
 
@@ -1655,29 +964,10 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                     }
                 }
             }
-            if (d_a < 0.02) {
-                sigm_y2_ab[0][pair_y2] = 0.08 * 0.08;
-            } else if (d_a >= 0.02 && d_a < 0.1) {
-                sigm_y2_ab[0][pair_y2] = 0.06 * 0.06;
-            } else if (d_a >= 0.1 && d_a < 0.4) {
-                sigm_y2_ab[0][pair_y2] = 0.025 * 0.025;
-            } else if (d_a >= 0.4 && d_a < 0.41) {
-                sigm_y2_ab[0][pair_y2] = 0.08 * 0.08;
-            } else if (d_a >= 0.41) {
-                sigm_y2_ab[0][pair_y2] = 0.10 * 0.10;
-            }
 
-            if (d_b < 0.02) {
-                sigm_y2_ab[1][pair_y2] = 0.08 * 0.08;
-            } else if (d_b >= 0.02 && d_b < 0.1) {
-                sigm_y2_ab[1][pair_y2] = 0.06 * 0.06;
-            } else if (d_b >= 0.1 && d_b < 0.4) {
-                sigm_y2_ab[1][pair_y2] = 0.025 * 0.025;
-            } else if (d_b >= 0.4 && d_b < 0.41) {
-                sigm_y2_ab[1][pair_y2] = 0.08 * 0.08;
-            } else if (d_b >= 0.41) {
-                sigm_y2_ab[1][pair_y2] = 0.10 * 0.10;
-            }
+            CompareDaDb(d_a, sigm_y2_ab[0][pair_y2]);
+            CompareDaDb(d_b, sigm_y2_ab[1][pair_y2]);
+
             pair_y2++;
             used_ya2[i] = kTRUE;
             used_yb2[j] = kTRUE;
@@ -1706,22 +996,8 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
         y2_single[0][single_ya2] = wirenr_ya2[i] - 119 + d_a;
         y2_single[0][single_ya2 + 1] = wirenr_ya2[i] - 119 - d_a;
-        if (d_a < 0.02) {
-            sigm_y2_single[0][single_ya2] = 0.08 * 0.08;
-            sigm_y2_single[0][single_ya2 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.02 && d_a < 0.1) {
-            sigm_y2_single[0][single_ya2] = 0.06 * 0.06;
-            sigm_y2_single[0][single_ya2 + 1] = 0.06 * 0.06;
-        } else if (d_a >= 0.1 && d_a < 0.4) {
-            sigm_y2_single[0][single_ya2] = 0.025 * 0.025;
-            sigm_y2_single[0][single_ya2 + 1] = 0.025 * 0.025;
-        } else if (d_a >= 0.4 && d_a < 0.41) {
-            sigm_y2_single[0][single_ya2] = 0.08 * 0.08;
-            sigm_y2_single[0][single_ya2 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.41) {
-            sigm_y2_single[0][single_ya2] = 0.10 * 0.10;
-            sigm_y2_single[0][single_ya2 + 1] = 0.10 * 0.10;
-        }
+
+        CompareDaDb(d_a, sigm_y2_single[0][single_ya2], sigm_y2_single[0][single_ya2 + 1]);
         single_ya2 += 2;
     }//for single ya
 
@@ -1743,22 +1019,8 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
         y2_single[1][single_yb2] = wirenr_yb2[j] - 118.5 + d_b;
         y2_single[1][single_yb2 + 1] = wirenr_yb2[j] - 118.5 - d_b;
-        if (d_b < 0.02) {
-            sigm_y2_single[1][single_yb2] = 0.08 * 0.08;
-            sigm_y2_single[1][single_yb2 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.02 && d_b < 0.1) {
-            sigm_y2_single[1][single_yb2] = 0.06 * 0.06;
-            sigm_y2_single[1][single_yb2 + 1] = 0.06 * 0.06;
-        } else if (d_b >= 0.1 && d_b < 0.4) {
-            sigm_y2_single[1][single_yb2] = 0.0250 * 0.0250;
-            sigm_y2_single[1][single_yb2 + 1] = 0.0250 * 0.0250;
-        } else if (d_b >= 0.4 && d_b < 0.41) {
-            sigm_y2_single[1][single_yb2] = 0.1 * 0.1;
-            sigm_y2_single[1][single_yb2 + 1] = 0.1 * 0.1;
-        } else if (d_b >= 0.41) {
-            sigm_y2_single[1][single_yb2] = 0.10 * 0.10;
-            sigm_y2_single[1][single_yb2 + 1] = 0.10 * 0.10;
-        }
+
+        CompareDaDb(d_b, sigm_y2_single[1][single_yb2], sigm_y2_single[1][single_yb2 + 1]);
         single_yb2 += 2;
 
     } // i for1  Y.
@@ -1812,29 +1074,10 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                     }
                 }
             }
-            if (d_a < 0.02) {
-                sigm_u2_ab[0][pair_u2] = 0.08 * 0.08;
-            } else if (d_a >= 0.02 && d_a < 0.1) {
-                sigm_u2_ab[0][pair_u2] = 0.06 * 0.06;
-            } else if (d_a >= 0.1 && d_a < 0.4) {
-                sigm_u2_ab[0][pair_u2] = 0.025 * 0.025;
-            } else if (d_a >= 0.4 && d_a < 0.41) {
-                sigm_u2_ab[0][pair_u2] = 0.08 * 0.08;
-            } else if (d_a >= 0.41) {
-                sigm_u2_ab[0][pair_u2] = 0.10 * 0.10;
-            }
 
-            if (d_b < 0.02) {
-                sigm_u2_ab[1][pair_u2] = 0.08 * 0.08;
-            } else if (d_b >= 0.02 && d_b < 0.1) {
-                sigm_u2_ab[1][pair_u2] = 0.06 * 0.06;
-            } else if (d_b >= 0.1 && d_b < 0.4) {
-                sigm_u2_ab[1][pair_u2] = 0.025 * 0.025;
-            } else if (d_b >= 0.4 && d_b < 0.41) {
-                sigm_u2_ab[1][pair_u2] = 0.08 * 0.08;
-            } else if (d_b >= 0.41) {
-                sigm_u2_ab[1][pair_u2] = 0.10 * 0.10;
-            }
+            CompareDaDb(d_a, sigm_u2_ab[0][pair_u2]);
+            CompareDaDb(d_b, sigm_u2_ab[1][pair_u2]);
+
             pair_u2++;
             used_ua2[i] = kTRUE;
             used_ub2[j] = kTRUE;
@@ -1862,22 +1105,9 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
         u2_single[0][single_ua2] = (wirenr_ua2[i] - 119 + d_a);
         u2_single[0][single_ua2 + 1] = (wirenr_ua2[i] - 119 - d_a);
-        if (d_a < 0.02) {
-            sigm_u2_single[0][single_ua2] = 0.08 * 0.08;
-            sigm_u2_single[0][single_ua2 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.02 && d_a < 0.1) {
-            sigm_u2_single[0][single_ua2] = 0.06 * 0.06;
-            sigm_u2_single[0][single_ua2 + 1] = 0.06 * 0.06;
-        } else if (d_a >= 0.1 && d_a < 0.4) {
-            sigm_u2_single[0][single_ua2] = 0.025 * 0.025;
-            sigm_u2_single[0][single_ua2 + 1] = 0.025 * 0.025;
-        } else if (d_a >= 0.4 && d_a < 0.41) {
-            sigm_u2_single[0][single_ua2] = 0.08 * 0.08;
-            sigm_u2_single[0][single_ua2 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.41) {
-            sigm_u2_single[0][single_ua2] = 0.10 * 0.10;
-            sigm_u2_single[0][single_ua2 + 1] = 0.10 * 0.10;
-        }
+
+        CompareDaDb(d_a, sigm_u2_single[0][single_ua2], sigm_u2_single[0][single_ua2 + 1]);
+
         single_ua2 += 2;
     }//for single ua
 
@@ -1900,22 +1130,9 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
         u2_single[1][single_ub2] = (wirenr_ub2[j] - 118.5 + d_b);
         u2_single[1][single_ub2 + 1] = (wirenr_ub2[j] - 118.5 - d_b);
-        if (d_b < 0.02) {
-            sigm_u2_single[1][single_ub2] = 0.08 * 0.08;
-            sigm_u2_single[1][single_ub2 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.02 && d_b < 0.1) {
-            sigm_u2_single[1][single_ub2] = 0.060 * 0.060;
-            sigm_u2_single[1][single_ub2 + 1] = 0.060 * 0.060;
-        } else if (d_b >= 0.1 && d_b < 0.4) {
-            sigm_u2_single[1][single_ub2] = 0.025 * 0.025;
-            sigm_u2_single[1][single_ub2 + 1] = 0.0250 * 0.0250;
-        } else if (d_b >= 0.4 && d_b < 0.41) {
-            sigm_u2_single[1][single_ub2] = 0.08 * 0.08;
-            sigm_u2_single[1][single_ub2 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.41) {
-            sigm_u2_single[1][single_ub2] = 0.10 * 0.10;
-            sigm_u2_single[1][single_ub2 + 1] = 0.10 * 0.10;
-        }
+
+        CompareDaDb(d_b, sigm_u2_single[1][single_ub2], sigm_u2_single[1][single_ub2 + 1]);
+
         single_ub2 += 2;
 
     } // i for1  U.
@@ -1968,29 +1185,9 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                     }
                 }
             }
-            if (d_a < 0.02) {
-                sigm_v2_ab[0][pair_v2] = 0.08 * 0.08;
-            } else if (d_a >= 0.02 && d_a < 0.1) {
-                sigm_v2_ab[0][pair_v2] = 0.06 * 0.06;
-            } else if (d_a >= 0.1 && d_a < 0.4) {
-                sigm_v2_ab[0][pair_v2] = 0.025 * 0.025;
-            } else if (d_a >= 0.4 && d_a < 0.41) {
-                sigm_v2_ab[0][pair_v2] = 0.08 * 0.08;
-            } else if (d_a >= 0.41) {
-                sigm_v2_ab[0][pair_v2] = 0.10 * 0.10;
-            }
 
-            if (d_b < 0.02) {
-                sigm_v2_ab[1][pair_v2] = 0.08 * 0.08;
-            } else if (d_b >= 0.02 && d_b < 0.1) {
-                sigm_v2_ab[1][pair_v2] = 0.06 * 0.06;
-            } else if (d_b >= 0.1 && d_b < 0.4) {
-                sigm_v2_ab[1][pair_v2] = 0.025 * 0.025;
-            } else if (d_b >= 0.4 && d_b < 0.41) {
-                sigm_v2_ab[1][pair_v2] = 0.08 * 0.08;
-            } else if (d_b >= 0.41) {
-                sigm_v2_ab[1][pair_v2] = 0.10 * 0.10;
-            }
+            CompareDaDb(d_a, sigm_v2_ab[0][pair_v2]);
+            CompareDaDb(d_b, sigm_v2_ab[1][pair_v2]);
             pair_v2++;
 
             used_va2[i] = kTRUE;
@@ -2020,22 +1217,8 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
         v2_single[0][single_va2] = wirenr_va2[i] - 119 + d_a;
         v2_single[0][single_va2 + 1] = wirenr_va2[i] - 119 - d_a;
-        if (d_a < 0.02) {
-            sigm_v2_single[0][single_va2] = 0.08 * 0.08;
-            sigm_v2_single[0][single_va2 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.02 && d_a < 0.1) {
-            sigm_v2_single[0][single_va2] = 0.06 * 0.06;
-            sigm_v2_single[0][single_va2 + 1] = 0.06 * 0.06;
-        } else if (d_a >= 0.1 && d_a < 0.4) {
-            sigm_v2_single[0][single_va2] = 0.025 * 0.025;
-            sigm_v2_single[0][single_va2 + 1] = 0.025 * 0.025;
-        } else if (d_a >= 0.4 && d_a < 0.41) {
-            sigm_v2_single[0][single_va2] = 0.08 * 0.08;
-            sigm_v2_single[0][single_va2 + 1] = 0.08 * 0.08;
-        } else if (d_a >= 0.41) {
-            sigm_v2_single[0][single_va2] = 0.10 * 0.10;
-            sigm_v2_single[0][single_va2 + 1] = 0.10 * 0.10;
-        }
+
+        CompareDaDb(d_a, sigm_v2_single[0][single_va2], sigm_v2_single[0][single_va2 + 1]);
 
         single_va2 += 2;
     }//for single va
@@ -2058,882 +1241,395 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
         v2_single[1][single_vb2] = wirenr_vb2[j] - 118.5 + d_b;
         v2_single[1][single_vb2 + 1] = wirenr_vb2[j] - 118.5 - d_b;
-        if (d_b < 0.02) {
-            sigm_v2_single[1][single_vb2] = 0.08 * 0.08;
-            sigm_v2_single[1][single_vb2 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.02 && d_b < 0.1) {
-            sigm_v2_single[1][single_vb2] = 0.060 * 0.060;
-            sigm_v2_single[1][single_vb2 + 1] = 0.060 * 0.060;
-        } else if (d_b >= 0.1 && d_b < 0.4) {
-            sigm_v2_single[1][single_vb2] = 0.0250 * 0.0250;
-            sigm_v2_single[1][single_vb2 + 1] = 0.0250 * 0.0250;
-        } else if (d_b >= 0.4 && d_b < 0.41) {
-            sigm_v2_single[1][single_vb2] = 0.08 * 0.08;
-            sigm_v2_single[1][single_vb2 + 1] = 0.08 * 0.08;
-        } else if (d_b >= 0.41) {
-            sigm_v2_single[1][single_vb2] = 0.10 * 0.10;
-            sigm_v2_single[1][single_vb2 + 1] = 0.10 * 0.10;
-        }
+
+        CompareDaDb(d_b, sigm_v2_single[1][single_vb2], sigm_v2_single[1][single_vb2 + 1]);
         single_vb2 += 2;
     } // i for1  V.
 
-    //  ---  DC2 Segment Building  ------
-
-    found_8p_seg = kFALSE;
-    x_slope = 0.0;
-    y_slope = 0.0;
-
-    if (pair_x2 * pair_y2 > 0) { //(x,y)first
-
-        for (Int_t i = 0; i < pair_x2; i++) {
-            if (nDC2_segments > 48)
-                break;
-            Float_t x_coord = (x2_ab[0][i] + x2_ab[1][i]) / 2;
-            Float_t XU = x_coord + x_slope * 0.5 * (z_loc[5] + z_loc[4] - z_loc[1] - z_loc[0]);
-            Float_t XV = x_coord + x_slope * 0.5 * (z_loc[7] + z_loc[6] - z_loc[1] - z_loc[0]);
-
-            for (Int_t j = 0; j < pair_y2; j++) {
-                if (nDC2_segments > 48)
-                    break;
-                Float_t y_coord = (y2_ab[0][j] + y2_ab[1][j]) / 2;
-                Float_t YU = y_coord + y_slope * 0.5 * (z_loc[5] + z_loc[4] - z_loc[3] - z_loc[2]);
-                Float_t YV = y_coord + y_slope * 0.5 * (z_loc[7] + z_loc[6] - z_loc[3] - z_loc[2]);
-                Bool_t foundU = kFALSE;
-                Float_t u_est = isqrt_2 * (YU - XU);
-                Float_t v_est = isqrt_2 * (YV + XV);
-                if (pair_u2 > 0) {
-
-                    Double_t dU_thresh = 1.3;
-                    for (Int_t k = 0; k < pair_u2; k++) {
-                        Float_t u_coord = (u2_ab[0][k] + u2_ab[1][k]) / 2;
-
-                        if (Abs(u_coord - u_est) > dU_thresh)
-                            continue;
-                        dU_thresh = Abs(u_coord - u_est);
-
-                        rh_segDC2[0][nDC2_segments] = x2_ab[0][i];
-                        rh_segDC2[1][nDC2_segments] = x2_ab[1][i];
-                        rh_segDC2[2][nDC2_segments] = y2_ab[0][j];
-                        rh_segDC2[3][nDC2_segments] = y2_ab[1][j];
-                        rh_segDC2[4][nDC2_segments] = u2_ab[0][k];
-                        rh_segDC2[5][nDC2_segments] = u2_ab[1][k];
-                        rh_sigm_segDC2[0][nDC2_segments] = sigm_x2_ab[0][i];
-                        rh_sigm_segDC2[1][nDC2_segments] = sigm_x2_ab[1][i];
-                        rh_sigm_segDC2[2][nDC2_segments] = sigm_y2_ab[0][j];
-                        rh_sigm_segDC2[3][nDC2_segments] = sigm_y2_ab[1][j];
-                        rh_sigm_segDC2[4][nDC2_segments] = sigm_u2_ab[0][k];
-                        rh_sigm_segDC2[5][nDC2_segments] = sigm_u2_ab[1][k];
-
-                        foundU = kTRUE;
-                        if (nDC2_segments > 48)
-                            break;
-                    }//k
-                }//(pair_u2>0)
-                if (found_8p_seg && !foundU)
-                    continue;
-                Bool_t foundV = kFALSE;
-                if (pair_v2 > 0) {
-                    Double_t dV_thresh = 1.3;
-                    for (Int_t m = 0; m < pair_v2; m++) {
-                        if (nDC2_segments > 48)
-                            break;
-                        Float_t v_coord = (v2_ab[0][m] + v2_ab[1][m]) / 2;
-
-                        if (Abs(v_coord - v_est) > dV_thresh)
-                            continue;
-                        dV_thresh = Abs(v_coord - v_est);
-
-                        foundV = kTRUE;
-                        rh_segDC2[0][nDC2_segments] = x2_ab[0][i];
-                        rh_segDC2[1][nDC2_segments] = x2_ab[1][i];
-                        rh_segDC2[2][nDC2_segments] = y2_ab[0][j];
-                        rh_segDC2[3][nDC2_segments] = y2_ab[1][j];
-                        rh_segDC2[6][nDC2_segments] = v2_ab[0][m];
-                        rh_segDC2[7][nDC2_segments] = v2_ab[1][m];
-                        rh_sigm_segDC2[0][nDC2_segments] = sigm_x2_ab[0][i];
-                        rh_sigm_segDC2[1][nDC2_segments] = sigm_x2_ab[1][i];
-                        rh_sigm_segDC2[2][nDC2_segments] = sigm_y2_ab[0][j];
-                        rh_sigm_segDC2[3][nDC2_segments] = sigm_y2_ab[1][j];
-                        rh_sigm_segDC2[6][nDC2_segments] = sigm_v2_ab[0][m];
-                        rh_sigm_segDC2[7][nDC2_segments] = sigm_v2_ab[1][m];
-                        if (!foundU) {
-                            Float_t min_a = 999;
-                            Float_t min_b = 999;
-                            for (Int_t kk = 0; kk < single_ua2; kk++) {
-                                if (Abs(u2_single[0][kk] - u_est) > 1.5)
-                                    continue; //????? 0.5 needs to be reviewed
-                                if (Abs(u2_single[0][kk] - u_est) < min_a) {
-                                    min_a = Abs(u2_single[0][kk] - u_est);
-                                    rh_segDC2[4][nDC2_segments] = u2_single[0][kk];
-                                    rh_sigm_segDC2[4][nDC2_segments] = sigm_u2_single[0][kk];
-                                    foundU = kTRUE;
-                                }
-                            }//for kk
-                            for (Int_t kk = 0; kk < single_ub2; kk++) {
-                                if (Abs(u2_single[1][kk] - u_est) > 1.5)
-                                    continue; //????? 0.5 needs to be reviewed
-                                if (Abs(u2_single[1][kk] - u_est) < min_b) {
-                                    min_b = Abs(u2_single[1][kk] - u_est);
-                                    rh_segDC2[5][nDC2_segments] = u2_single[1][kk];
-                                    rh_sigm_segDC2[5][nDC2_segments] = sigm_u2_single[1][kk];
-                                    foundU = kTRUE;
-                                }
-                            }//for kk
-                            if (nDC2_segments > 48)
-                                break;
-                        }//!foundU
-
-                        if (nDC2_segments > 48)
-                            break;
-                    }//m
-                }//(pair_v2>0)
-                if (!foundV && foundU) {
-                    Float_t min_a = 999;
-                    Float_t min_b = 999;
-                    for (Int_t kk = 0; kk < single_va2; kk++) {
-                        if (Abs(v2_single[0][kk] - v_est) > 1.5)
-                            continue; //????? 0.5 needs to be reviewed                                                                                     
-                        if (Abs(v2_single[0][kk] - v_est) < min_a) {
-                            min_a = Abs(v2_single[0][kk] - v_est);
-                            rh_segDC2[6][nDC2_segments] = v2_single[0][kk];
-                            rh_sigm_segDC2[6][nDC2_segments] = sigm_v2_single[0][kk];
-                            foundV = kTRUE;
-                        }
-                    }//for kk                                                                                                                                                           
-                    for (Int_t kk = 0; kk < single_vb2; kk++) {
-                        if (Abs(v2_single[1][kk] - v_est) > 1.5)
-                            continue; //????? 0.5 needs to be reviewed                                                                                     
-                        if (Abs(v2_single[1][kk] - v_est) < min_b) {
-                            min_b = Abs(v2_single[1][kk] - v_est);
-                            rh_segDC2[7][nDC2_segments] = v2_single[1][kk];
-                            rh_sigm_segDC2[7][nDC2_segments] = sigm_v2_single[1][kk];
-                            foundV = kTRUE;
-                        }
-                    }//for kk                                                                                                                           
-                }//!foundV 
-                if (foundV || foundU) nDC2_segments++;
-            }//j
-        }//i
-    }//(x,y)first
-
-    if (pair_u2 * pair_v2 > 0 && !found_8p_seg) { // (u,v) first
-        for (Int_t i = 0; i < pair_u2; i++) {
-            if (nDC2_segments > 48)
-                break;
-            Float_t u_coord = (u2_ab[0][i] + u2_ab[1][i]) / 2;
-
-            for (Int_t j = 0; j < pair_v2; j++) {
-                if (nDC2_segments > 48)
-                    break;
-                Float_t v_coord = (v2_ab[0][j] + v2_ab[1][j]) / 2;
-                Bool_t foundX = kFALSE;
-                Float_t x_est = isqrt_2 * (v_coord - u_coord);
-                Float_t y_est = isqrt_2 * (u_coord + v_coord);
-                if (pair_x2 > 0) {
-                    Double_t dX_thresh = 1.5;
-                    for (Int_t k = 0; k < pair_x2; k++) {
-                        Float_t x_coord = (x2_ab[0][k] + x2_ab[1][k]) / 2;
-                        if (nDC2_segments > 48)
-                            break;
-                        if (Abs(x_coord - x_est) > dX_thresh)
-                            continue;
-                        dX_thresh = Abs(x_coord - x_est);
-
-                        rh_segDC2[0][nDC2_segments] = x2_ab[0][k];
-                        rh_segDC2[1][nDC2_segments] = x2_ab[1][k];
-                        rh_segDC2[4][nDC2_segments] = u2_ab[0][i];
-                        rh_segDC2[5][nDC2_segments] = u2_ab[1][i];
-                        rh_segDC2[6][nDC2_segments] = v2_ab[0][j];
-                        rh_segDC2[7][nDC2_segments] = v2_ab[1][j];
-                        rh_sigm_segDC2[0][nDC2_segments] = sigm_x2_ab[0][k];
-                        rh_sigm_segDC2[1][nDC2_segments] = sigm_x2_ab[1][k];
-                        rh_sigm_segDC2[4][nDC2_segments] = sigm_u2_ab[0][i];
-                        rh_sigm_segDC2[5][nDC2_segments] = sigm_u2_ab[1][i];
-                        rh_sigm_segDC2[6][nDC2_segments] = sigm_v2_ab[0][j];
-                        rh_sigm_segDC2[7][nDC2_segments] = sigm_v2_ab[1][j];
-
-                        foundX = kTRUE;
-                        if (nDC2_segments > 48)
-                            break;
-                    }//k
-                }//(pair_x2>0)
-                if (found_8p_seg && !foundX)
-                    continue;
-                Bool_t foundY = kFALSE;
-                if (pair_y2 > 0) {
-                    Double_t dY_thresh = 1.0;
-                    for (Int_t m = 0; m < pair_y2; m++) {
-                        if (nDC2_segments > 48)
-                            break;
-                        Float_t y_coord = (y2_ab[0][m] + y2_ab[1][m]) / 2;
-                        if (Abs(y_coord - y_est) > dY_thresh)
-                            continue;
-                        dY_thresh = Abs(y_coord - y_est);
-                        foundY = kTRUE;
-                        rh_segDC2[2][nDC2_segments] = y2_ab[0][m];
-                        rh_segDC2[3][nDC2_segments] = y2_ab[1][m];
-                        rh_segDC2[4][nDC2_segments] = u2_ab[0][i];
-                        rh_segDC2[5][nDC2_segments] = u2_ab[1][i];
-                        rh_segDC2[6][nDC2_segments] = v2_ab[0][j];
-                        rh_segDC2[7][nDC2_segments] = v2_ab[1][j];
-                        rh_sigm_segDC2[2][nDC2_segments] = sigm_y2_ab[0][m];
-                        rh_sigm_segDC2[3][nDC2_segments] = sigm_y2_ab[1][m];
-                        rh_sigm_segDC2[4][nDC2_segments] = sigm_u2_ab[0][i];
-                        rh_sigm_segDC2[5][nDC2_segments] = sigm_u2_ab[1][i];
-                        rh_sigm_segDC2[6][nDC2_segments] = sigm_v2_ab[0][j];
-                        rh_sigm_segDC2[7][nDC2_segments] = sigm_v2_ab[1][j];
-                        if (!foundX) {
-                            Float_t min_a = 999;
-                            Float_t min_b = 999;
-                            for (Int_t kk = 0; kk < single_xa2; kk++) {
-                                if (Abs(x2_single[1][kk] - x_est) > 1.5)
-                                    continue; //????? 0.5 needs to be reviewed
-
-                                if (Abs(x2_single[0][kk] - x_est) < min_a) {
-                                    min_a = Abs(x2_single[0][kk] - x_est);
-                                    rh_segDC2[0][nDC2_segments] = x2_single[0][kk];
-                                    rh_sigm_segDC2[0][nDC2_segments] = sigm_x2_single[0][kk];
-                                    foundX = kTRUE;
-                                }
-                            }//for kk                                                                                                                                                           
-                            for (Int_t kk = 0; kk < single_xb2; kk++) {
-
-                                if (Abs(x2_single[1][kk] - x_est) > 1.5)
-                                    continue; //????? 0.5 needs to be reviewed                                                                                     
-                                if (Abs(x2_single[1][kk] - x_est) < min_b) {
-                                    min_b = Abs(x2_single[1][kk] - x_est);
-                                    rh_segDC2[1][nDC2_segments] = x2_single[1][kk];
-                                    rh_sigm_segDC2[1][nDC2_segments] = sigm_x2_single[1][kk];
-                                    foundX = kTRUE;
-                                }
-                            }//for kk 
-                            if (nDC2_segments > 48)
-                                break;
-                        }//!foundX
-                    }//m         
-                    if (foundX && !foundY) {
-                        Float_t min_a = 999;
-                        Float_t min_b = 999;
-                        for (Int_t kk = 0; kk < single_ya2; kk++) {
-                            if (Abs(y2_single[0][kk] - y_est) > 1.5)
-                                continue; //????? 0.5 needs to be reviewed                                                                                     
-                            if (Abs(y2_single[0][kk] - y_est) < min_a) {
-                                min_a = Abs(y2_single[0][kk] - y_est);
-                                rh_segDC2[2][nDC2_segments] = y2_single[0][kk];
-                                rh_sigm_segDC2[2][nDC2_segments] = sigm_y2_single[0][kk];
-                                foundY = kTRUE;
-                            }
-                        }//for kk                                                                                                                                                          
-                        for (Int_t kk = 0; kk < single_yb2; kk++) {
-                            if (Abs(y2_single[1][kk] - y_est) > 1.5)
-                                continue; //????? 0.5 needs to be reviewed                                                                                     
-                            if (Abs(y2_single[1][kk] - y_est) < min_b) {
-                                min_b = Abs(y2_single[1][kk] - y_est);
-                                rh_segDC2[3][nDC2_segments] = y2_single[1][kk];
-                                rh_sigm_segDC2[3][nDC2_segments] = sigm_y2_single[1][kk];
-                                foundY = kTRUE;
-                            }
-                        }//for kk 
-                    }
-                }//(pair_y2>0)
-                if (foundX || foundY) nDC2_segments++;
-            }//j
-        }//i
-    }//(u,v) first
-
-    //linear fit for dch1 segs
-
-    for (Int_t j = 0; j < nDC1_segments; j++) {
-        //fit the initial seg and see if the chi2/ndof is too big try to get rid of the hit with the biggest deviation from the fit
-        Int_t worst_hit = -1;
-        Double_t max_resid = 0;
-        for (Int_t i = 0; i < 8; i++) {
-            if (rh_segDC1[i][j] != -999) size_segDC1[j]++;
-        }
-        for (Int_t rej = 0; rej < 2; rej++) {//allow 2 passes max 8->7 & 7->6
-
-            Float_t rh_seg[8] = {-999};
-            Float_t rh_sigm_seg[8] = {-999};
-            Float_t par_ab[4] = {999, 999, 999, 999};
-
-            for (Int_t i = 0; i < 8; i++) {
-                rh_seg[i] = rh_segDC1[i][j];
-                rh_sigm_seg[i] = rh_sigm_segDC1[i][j];
-            }
-
-            fit_seg(rh_seg, rh_sigm_seg, par_ab, -1, -1); //usual fit without skipping any plane
-            for (Int_t i = 0; i < 4; i++) {
-                par_ab1[i][j] = par_ab[i];
-            }
-
-            chi2_DC1[j] = 0;
-            Float_t resid = 999;
-            Float_t dev_coord[8] = {9, 9, 9, 9, 9, 9, 9, 9};
-
-            for (Int_t i = 0; i < 8; i++) {
-                if (i == 0 && rh_segDC1[i][j] != -999) {
-
-                    resid = rh_segDC1[i][j] - z_loc[i] * par_ab1[0][j] - par_ab1[1][j];
-
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                    chi2_DC1[j] += (resid * resid) / rh_sigm_segDC1[i][j];
-
-                }
-                if (i == 1 && rh_segDC1[i][j] != -999) {
-                    resid = rh_segDC1[i][j] - z_loc[i] * par_ab1[0][j] - par_ab1[1][j];
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                    chi2_DC1[j] += (resid * resid) / rh_sigm_segDC1[i][j];
-
-                }
-                if (i == 2 && rh_segDC1[i][j] != -999) {
-                    resid = rh_segDC1[i][j] - z_loc[i] * par_ab1[2][j] - par_ab1[3][j];
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                    chi2_DC1[j] += (resid * resid) / rh_sigm_segDC1[i][j];
-
-                }
-                if (i == 3 && rh_segDC1[i][j] != -999) {
-                    resid = rh_segDC1[i][j] - z_loc[i] * par_ab1[2][j] - par_ab1[3][j];
-
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                    chi2_DC1[j] += (resid * resid) / rh_sigm_segDC1[i][j];
-                }
-                if (i == 4 && rh_segDC1[i][j] != -999) {
-                    resid = rh_segDC1[i][j] - isqrt_2 * z_loc[i]*(par_ab1[2][j] - par_ab1[0][j]) - isqrt_2 * (par_ab1[3][j] - par_ab1[1][j]);
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                    chi2_DC1[j] += (resid * resid) / rh_sigm_segDC1[i][j];
-
-                }
-                if (i == 5 && rh_segDC1[i][j] != -999) {
-                    resid = rh_segDC1[i][j] - isqrt_2 * z_loc[i]*(par_ab1[2][j] - par_ab1[0][j]) - isqrt_2 * (par_ab1[3][j] - par_ab1[1][j]);
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                    chi2_DC1[j] += (resid * resid) / rh_sigm_segDC1[i][j];
-                }
-                if (i == 6 && rh_segDC1[i][j] != -999) {
-                    resid = rh_segDC1[i][j] - isqrt_2 * z_loc[i]*(par_ab1[2][j] + par_ab1[0][j]) - isqrt_2 * (par_ab1[3][j] + par_ab1[1][j]);
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                    chi2_DC1[j] += (resid * resid) / rh_sigm_segDC1[i][j];
-                }
-                if (i == 7 && rh_segDC1[i][j] != -999) {
-
-
-                    resid = rh_segDC1[i][j] - isqrt_2 * z_loc[i]*(par_ab1[2][j] + par_ab1[0][j]) - isqrt_2 * (par_ab1[3][j] + par_ab1[1][j]);
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                    chi2_DC1[j] += (resid * resid) / rh_sigm_segDC1[i][j];
-
-                }
-            }//i
-
-            chi2_DC1[j] /= (size_segDC1[j] - 4);
-
-            if (chi2_DC1[j] > 30) {
-                if (size_segDC1[j] == 6) {
-                    chi2_DC1[j] = 999;
-                    break;
-                } else {
-                    rh_segDC1[worst_hit][j] = -999; //erase worst hit and refit
-                    size_segDC1[j]--;
-                    max_resid = 0;
-                    continue;
-                }
-            }
-        }//rej 0 1 2
-
-        //add shifts to slopes and coords
-        par_ab1[0][j] += x1_slope_sh + x1_slope_sh * par_ab1[0][j] * par_ab1[0][j];
-        par_ab1[2][j] += y1_slope_sh + y1_slope_sh * par_ab1[2][j] * par_ab1[2][j];
-        par_ab1[1][j] += x1_sh;
-        par_ab1[3][j] += y1_sh;
-
-        xDC1_glob[j] = par_ab1[0][j]*(99.5) + par_ab1[1][j];
-        yDC1_glob[j] = par_ab1[2][j]*(99.5) + par_ab1[3][j];
-        if (size_segDC1[j] > 6)
-            has7DC1 = kTRUE;
-    }//for DC1 segs
-
-    //linear fit for dch1 segs
-    for (Int_t j = 0; j < nDC2_segments; j++) {
-        Int_t worst_hit = -1;
-        Double_t max_resid = 0;
-        for (Int_t i = 0; i < 8; i++) {
-            if (rh_segDC2[i][j] != -999)
-                size_segDC2[j]++;
-        }
-        for (Int_t rej = 0; rej < 2; rej++) {//allow 2 passes max 8->7 & 7->6
-
-            //end linear fit
-            Float_t rh_seg[8] = {-999};
-            Float_t rh_sigm_seg[8] = {-999};
-            Float_t par_ab[4] = {999, 999, 999, 999};
-
-            for (Int_t i = 0; i < 8; i++) {
-                rh_seg[i] = rh_segDC2[i][j];
-                rh_sigm_seg[i] = rh_sigm_segDC2[i][j];
-            }
-
-            fit_seg(rh_seg, rh_sigm_seg, par_ab, -1, -1); //usual fit without skipping any plane
-            for (Int_t i = 0; i < 4; i++) {
-                par_ab2[i][j] = par_ab[i];
-            }
-
-            chi2_DC2[j] = 0;
-
-            Float_t resid = 999;
-
-            for (Int_t i = 0; i < 8; i++) {
-                if (i == 0 && rh_segDC2[i][j] != -999) {
-                    resid = rh_segDC2[i][j] - z_loc[i] * par_ab2[0][j] - par_ab2[1][j];
-                    chi2_DC2[j] += (resid * resid) / rh_sigm_segDC2[i][j];
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                }
-                if (i == 1 && rh_segDC2[i][j] != -999) {
-                    resid = rh_segDC2[i][j] - z_loc[i] * par_ab2[0][j] - par_ab2[1][j];
-
-                    chi2_DC2[j] += (resid * resid) / rh_sigm_segDC2[i][j];
-
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                }
-                if (i == 2 && rh_segDC2[i][j] != -999) {
-                    resid = rh_segDC2[i][j] - z_loc[i] * par_ab2[2][j] - par_ab2[3][j];
-
-                    chi2_DC2[j] += (resid * resid) / rh_sigm_segDC2[i][j];
-
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                }
-                if (i == 3 && rh_segDC2[i][j] != -999) {
-                    resid = rh_segDC2[i][j] - z_loc[i] * par_ab2[2][j] - par_ab2[3][j];
-
-                    chi2_DC2[j] += (resid * resid) / rh_sigm_segDC2[i][j];
-
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                }
-                if (i == 4 && rh_segDC2[i][j] != -999) {
-                    resid = rh_segDC2[i][j] - isqrt_2 * z_loc[i]*(par_ab2[2][j] - par_ab2[0][j]) - isqrt_2 * (par_ab2[3][j] - par_ab2[1][j]);
-                    chi2_DC2[j] += (resid * resid) / rh_sigm_segDC2[i][j];
-
-
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                }
-                if (i == 5 && rh_segDC2[i][j] != -999) {
-                    resid = rh_segDC2[i][j] - isqrt_2 * z_loc[i]*(par_ab2[2][j] - par_ab2[0][j]) - isqrt_2 * (par_ab2[3][j] - par_ab2[1][j]);
-                    chi2_DC2[j] += (resid * resid) / rh_sigm_segDC2[i][j];
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                }
-                if (i == 6 && rh_segDC2[i][j] != -999) {
-                    resid = rh_segDC2[i][j] - isqrt_2 * z_loc[i]*(par_ab2[2][j] + par_ab2[0][j]) - isqrt_2 * (par_ab2[3][j] + par_ab2[1][j]);
-                    chi2_DC2[j] += (resid * resid) / rh_sigm_segDC2[i][j];
-
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                }
-                if (i == 7 && rh_segDC2[i][j] != -999) {
-                    resid = rh_segDC2[i][j] - isqrt_2 * z_loc[i]*(par_ab2[2][j] + par_ab2[0][j]) - isqrt_2 * (par_ab2[3][j] + par_ab2[1][j]);
-                    chi2_DC2[j] += (resid * resid) / rh_sigm_segDC2[i][j];
-
-                    if (Abs(resid) > max_resid) {
-                        worst_hit = i;
-                        max_resid = Abs(resid);
-                    }
-                }
-            }//i
-            chi2_DC2[j] /= (size_segDC2[j] - 4);
-            //if chi2 is big and seg_size = min erase this seg
-            if (chi2_DC2[j] > 30) {
-                if (size_segDC2[j] == 6) {
-                    chi2_DC2[j] = 999;
-                    break;
-                } else {
-                    rh_segDC2[worst_hit][j] = -999; //erase worst hit and refit
-                    size_segDC2[j]--;
-                    max_resid = 0;
-                    continue;
-                }
-            }
-        }//rej 0 1 2
-
-        //add shifts to slopes and coords
-        par_ab2[0][j] += x2_slope_sh + x2_slope_sh * par_ab2[0][j] * par_ab2[0][j];
-        par_ab2[2][j] += y2_slope_sh + y2_slope_sh * par_ab2[2][j] * par_ab2[2][j];
-        par_ab2[1][j] += x2_sh;
-        par_ab2[3][j] += y2_sh;
-
-        xDC2_glob[j] = par_ab2[0][j]*(-99.5) + par_ab2[1][j];
-        yDC2_glob[j] = par_ab2[2][j]*(-99.5) + par_ab2[3][j];
-        //
-        if (size_segDC2[j] > 6) has7DC2 = kTRUE;
-    }//for DC2 segs
-
-    //count the number of rh per segment
-    Double_t x_mid[50]; //x glob of matched segment in the z situated between the two DCH chambers
-    Double_t y_mid[50]; //y glob of matched segment in the z situated between the two DCH chambers
-    Double_t a_X[50]; //x slope of the matched segment
-    Double_t a_Y[50]; //y slope of the matched segment
-    Double_t imp[50]; //reconstructed particle trajectory momentum 
-    Double_t leng[50]; //the distance from z = 0 to the global poInt_t of the matched segment
-    Int_t seg_it = -1;
-    Int_t dc1_best[50];
-    Int_t dc2_best[50];
-    Float_t Chi2_match[50]; //chi2 of the matched seg
-    for (Int_t seg = 0; seg < 50; seg++) {
-        x_mid[seg] = -999;
-        y_mid[seg] = -999;
-        a_X[seg] = -999;
-        a_Y[seg] = -999;
-        imp[seg] = -999;
-        leng[seg] = -999;
-        Chi2_match[seg] = -999;
-        dc1_best[seg] = 0;
-        dc2_best[seg] = 0;
-    }
-
-    Float_t xMean = 999;
-    Float_t yMean = 999;
-
-    //leave only longest and best chi2 segments
-    //dc1
-    for (Int_t max_size = 8; max_size > 5; max_size--) {
-        //find longest and best chi2 seg
-        for (Int_t sizeit1 = 0; sizeit1 < nDC1_segments; sizeit1++) {
-            if (size_segDC1[sizeit1] != max_size)
-                continue;
-            for (Int_t sizeit1_1 = 0; sizeit1_1 < nDC1_segments; sizeit1_1++) {
-                if (sizeit1_1 == sizeit1)
-                    continue;
-                for (Int_t hit = 0; hit < 4; hit++) {
-                    if (rh_segDC1[2 * hit][sizeit1] == rh_segDC1[2 * hit][sizeit1_1] && rh_segDC1[2 * hit + 1][sizeit1] == rh_segDC1[2 * hit + 1][sizeit1_1] && (chi2_DC1[sizeit1] <= chi2_DC1[sizeit1_1] || size_segDC1[sizeit1] > size_segDC1[sizeit1_1])) {
-                        chi2_DC1[sizeit1_1] = 999; //mark seg as bad                                                                                                   
-                        break;
-                    }
-                }//hit
-            }
-        }
-    }//max_size
-
-    //dc2
-    for (Int_t max_size = 8; max_size > 5; max_size--) {
-        //find longest and best chi2 seg                                                                                                                
-        for (Int_t sizeit2 = 0; sizeit2 < nDC2_segments; sizeit2++) {
-            if (size_segDC2[sizeit2] != max_size)
-                continue;
-            for (Int_t sizeit2_2 = 0; sizeit2_2 < nDC2_segments; sizeit2_2++) {
-                if (sizeit2_2 == sizeit2)
-                    continue;
-                for (Int_t hit = 0; hit < 4; hit++) {
-                    if (rh_segDC2[2 * hit][sizeit2] == rh_segDC2[2 * hit][sizeit2_2] && rh_segDC2[2 * hit + 1][sizeit2] == rh_segDC2[2 * hit + 1][sizeit2_2] && (chi2_DC2[sizeit2] <= chi2_DC2[sizeit2_2] || size_segDC2[sizeit2] > size_segDC2[sizeit2_2])) {
-                        chi2_DC2[sizeit2_2] = 999; //mark seg as bad                                                                                                     
-                        break;
-                    }
-                }//hit                                                                                                                                                 
-            }
-        }
-    }//max_size 
-
-    //fill local segments z,x,y global coords; x-slope; y-slope; Chi2; to be continued...
-    CreateDchTrack(1, nDC1_segments, chi2_DC1, par_ab1, size_segDC1); // Dch1
-    CreateDchTrack(2, nDC2_segments, chi2_DC2, par_ab2, size_segDC2); // Dch2
-
+    // Build segments
+    nDC2_segments = BuildUVSegments(2, pair_u2, pair_v2, pair_x2, pair_y2, single_ua2, single_ub2, single_va2, single_vb2,
+            x2_ab, y2_ab, u2_ab, v2_ab, sigm_x2_ab, sigm_y2_ab, sigm_u2_ab, sigm_v2_ab, rh_segDC2, rh_sigm_segDC2, u2_single, v2_single, sigm_u2_single, sigm_v2_single);
    
-    //   try to match the reconstructed segments from the two chambers
+    nDC2_segments = BuildXYSegments(2, pair_u2, pair_v2, pair_x2, pair_y2, single_xa2, single_xb2, single_ya2, single_yb2,
+            x2_ab, y2_ab, u2_ab, v2_ab, sigm_x2_ab, sigm_y2_ab, sigm_u2_ab, sigm_v2_ab, rh_segDC2, rh_sigm_segDC2, x2_single, y2_single, sigm_x2_single, sigm_y2_single);
+
+    // Common procedures over dch1 and dch2 
+    // Fit found segments
+    FitDchSegments(1, size_segDC1, rh_segDC1, rh_sigm_segDC1, par_ab1, chi2_DC1, xDC1_glob, yDC1_glob); // Dch1
+    FitDchSegments(2, size_segDC2, rh_segDC2, rh_sigm_segDC2, par_ab2, chi2_DC2, xDC2_glob, yDC2_glob); // Dch2
+
+    // Leave only longest and best chi2 segments   
+    SelectLongestAndBestSegments(1, size_segDC1, rh_segDC1, chi2_DC1); // Dch1
+    SelectLongestAndBestSegments(2, size_segDC2, rh_segDC2, chi2_DC2); // Dch2
+
+    // Fill local segments z,x,y global coords; x-slope; y-slope; Chi2; to be continued...
+    CreateDchTrack(1, chi2_DC1, par_ab1, size_segDC1); // Dch1
+    CreateDchTrack(2, chi2_DC2, par_ab2, size_segDC2); // Dch2
+
+    // Try to match the reconstructed segments from the two chambers
+    // Not used in this version
     if (!fSegmentMatching) {
         cout << "\n======================== DCH track finder exec finished ========================" << endl;
         return;
     }
 
-    if (has7DC1) {
-        Int_t match_dc2_seg = -1;
-        Float_t ax = -999.0;
-        Float_t ay = -999.0;
-        Float_t ax1 = -999.0;
-        Float_t ax2 = -999.0;
-        Float_t ay1 = -999.0;
-        Float_t ay2 = -999.0;
-        Float_t bx1, bx2, by1, by2;
-        bx1 = bx2 = by1 = by2 = -999.0;
 
-        for (Int_t segdc1Nr = 0; segdc1Nr < nDC1_segments; segdc1Nr++) {
-            if (chi2_DC1[segdc1Nr] > 50 || size_segDC1[segdc1Nr] < 7)
-                continue; //skip rejected segs with chi2 = 999 
-            Float_t min_distX = 20;
-            Float_t min_distY = 15;
-            Float_t min_distSQ = 225;
+    cout << "\n======================== DCH track finder exec finished ========================" << endl;
+}
 
-            Float_t dx = -999;
-            Float_t dy = -999;
-            Float_t daX = -999;
-            Float_t daY = -999;
-            Float_t chi2_match = 0;
+Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
+        Int_t pairU, Int_t pairV, Int_t pairX, Int_t pairY, Int_t single_xa, Int_t single_xb, Int_t single_ya, Int_t single_yb,
+        Float_t** x_ab, Float_t** y_ab, Float_t** u_ab, Float_t** v_ab,
+        Float_t** sigm_x_ab, Float_t** sigm_y_ab, Float_t** sigm_u_ab, Float_t** sigm_v_ab,
+        Float_t** rh_seg, Float_t** rh_sigm_seg,
+        Float_t** x_single, Float_t** y_single, Float_t** sigm_x_single, Float_t** sigm_y_single) {
 
-            for (Int_t segdc2Nr = 0; segdc2Nr < nDC2_segments; segdc2Nr++) {
-                if (chi2_DC2[segdc2Nr] > 50)
-                    continue; //skip rejected segs with chi2 = 999 
+    Double_t sqrt_2 = sqrt(2.);
+    Double_t isqrt_2 = 1. / sqrt_2;
 
-                Float_t distX = Abs(xDC1_glob[segdc1Nr] - xDC2_glob[segdc2Nr]);
-                Float_t distY = Abs(yDC1_glob[segdc1Nr] - yDC2_glob[segdc2Nr]);
-                if (distX < min_distX && distY < min_distY) {
-                    Float_t distSQ = distX * distX + distY*distY;
+    Int_t nDC_segments = (dchID == 1) ? nDC1_segments : nDC2_segments;
+    for (Int_t i = 0; i < pairU; i++) {
+        if (nDC_segments > 48)
+            break;
+        Float_t u_coord = (u_ab[0][i] + u_ab[1][i]) / 2;
 
-                    chi2_match = (Abs(xDC1_glob[segdc1Nr] - xDC2_glob[segdc2Nr]) * Abs(xDC1_glob[segdc1Nr] - xDC2_glob[segdc2Nr]) / 49)+(distY * distY / 43.56)+((par_ab2[0][segdc2Nr] - par_ab1[0][segdc1Nr] * par_ab2[0][segdc2Nr] - par_ab1[0][segdc1Nr]) / 0.0144)+(par_ab2[2][segdc2Nr] - par_ab1[2][segdc1Nr] * par_ab2[2][segdc2Nr] - par_ab1[2][segdc1Nr]) / 0.0225;
-                    if (distSQ < min_distSQ) {
+        for (Int_t j = 0; j < pairV; j++) {
+            if (nDC_segments > 48)
+                break;
+            Float_t v_coord = (v_ab[0][j] + v_ab[1][j]) / 2;
+            Bool_t foundX = kFALSE;
+            Float_t x_est = isqrt_2 * (v_coord - u_coord);
+            Float_t y_est = isqrt_2 * (u_coord + v_coord);
+            if (pairX > 0) {
+                Double_t dX_thresh = 1.5;
+                for (Int_t k = 0; k < pairX; k++) {
+                    Float_t x_coord = (x_ab[0][k] + x_ab[1][k]) / 2;
+                    if (nDC_segments > 48)
+                        break;
+                    if (Abs(x_coord - x_est) > dX_thresh)
+                        continue;
+                    dX_thresh = Abs(x_coord - x_est);
 
-                        dx = xDC2_glob[segdc2Nr] - xDC1_glob[segdc1Nr];
-                        dy = yDC2_glob[segdc2Nr] - yDC1_glob[segdc1Nr];
-                        xMean = 0.5 * (xDC1_glob[segdc1Nr] + xDC2_glob[segdc2Nr]);
-                        yMean = 0.5 * (yDC1_glob[segdc1Nr] + yDC2_glob[segdc2Nr]);
-                        ax = (par_ab2[1][segdc2Nr] - par_ab1[1][segdc1Nr]) / 199;
-                        ay = (par_ab2[3][segdc2Nr] - par_ab1[3][segdc1Nr]) / 199;
+                    rh_seg[0][nDC_segments] = x_ab[0][k];
+                    rh_seg[1][nDC_segments] = x_ab[1][k];
+                    rh_seg[4][nDC_segments] = u_ab[0][i];
+                    rh_seg[5][nDC_segments] = u_ab[1][i];
+                    rh_seg[6][nDC_segments] = v_ab[0][j];
+                    rh_seg[7][nDC_segments] = v_ab[1][j];
+                    rh_sigm_seg[0][nDC_segments] = sigm_x_ab[0][k];
+                    rh_sigm_seg[1][nDC_segments] = sigm_x_ab[1][k];
+                    rh_sigm_seg[4][nDC_segments] = sigm_u_ab[0][i];
+                    rh_sigm_seg[5][nDC_segments] = sigm_u_ab[1][i];
+                    rh_sigm_seg[6][nDC_segments] = sigm_v_ab[0][j];
+                    rh_sigm_seg[7][nDC_segments] = sigm_v_ab[1][j];
 
-                        min_distSQ = distSQ;
-                        match_dc2_seg = segdc2Nr; //remember matched dc2 seg 
-                        daX = par_ab2[0][segdc2Nr] - par_ab1[0][segdc1Nr];
-                        daY = par_ab2[2][segdc2Nr] - par_ab1[2][segdc1Nr];
-                        ax1 = par_ab1[0][segdc1Nr];
-                        ax2 = par_ab2[0][segdc2Nr];
-                        ay1 = par_ab1[2][segdc1Nr];
-                        ay2 = par_ab2[2][segdc2Nr];
-                        bx2 = par_ab2[1][segdc2Nr];
-                        by2 = par_ab2[3][segdc2Nr];
-                    } // min_dist
-                }//distX<min_distX && distY<min_distY
+                    foundX = kTRUE;
+                    if (nDC_segments > 48)
+                        break;
+                }//k
+            }//(pair_x2>0)
+            //                if (found_8p_seg && !foundX)
+            //                    continue;
+            Bool_t foundY = kFALSE;
+            if (pairY > 0) {
+                Double_t dY_thresh = 1.0;
+                for (Int_t m = 0; m < pairY; m++) {
+                    if (nDC_segments > 48)
+                        break;
+                    Float_t y_coord = (y_ab[0][m] + y_ab[1][m]) / 2;
+                    if (Abs(y_coord - y_est) > dY_thresh)
+                        continue;
+                    dY_thresh = Abs(y_coord - y_est);
+                    foundY = kTRUE;
+                    rh_seg[2][nDC_segments] = y_ab[0][m];
+                    rh_seg[3][nDC_segments] = y_ab[1][m];
+                    rh_seg[4][nDC_segments] = u_ab[0][i];
+                    rh_seg[5][nDC_segments] = u_ab[1][i];
+                    rh_seg[6][nDC_segments] = v_ab[0][j];
+                    rh_seg[7][nDC_segments] = v_ab[1][j];
+                    rh_sigm_seg[2][nDC_segments] = sigm_y_ab[0][m];
+                    rh_sigm_seg[3][nDC_segments] = sigm_y_ab[1][m];
+                    rh_sigm_seg[4][nDC_segments] = sigm_u_ab[0][i];
+                    rh_sigm_seg[5][nDC_segments] = sigm_u_ab[1][i];
+                    rh_sigm_seg[6][nDC_segments] = sigm_v_ab[0][j];
+                    rh_sigm_seg[7][nDC_segments] = sigm_v_ab[1][j];
+                    if (!foundX) {
+                        Float_t min_a = 999;
+                        Float_t min_b = 999;
+                        for (Int_t kk = 0; kk < single_xa; kk++) {
+                            if (Abs(x_single[1][kk] - x_est) > 1.5)
+                                continue; //????? 0.5 needs to be reviewed
 
-            } // segdc2Nr
+                            if (Abs(x_single[0][kk] - x_est) < min_a) {
+                                min_a = Abs(x_single[0][kk] - x_est);
+                                rh_seg[0][nDC_segments] = x_single[0][kk];
+                                rh_sigm_seg[0][nDC_segments] = sigm_x_single[0][kk];
+                                foundX = kTRUE;
+                            }
+                        }//for kk                                                                                                                                                           
+                        for (Int_t kk = 0; kk < single_xb; kk++) {
 
-            if (min_distSQ == 225) continue;
+                            if (Abs(x_single[1][kk] - x_est) > 1.5)
+                                continue; //????? 0.5 needs to be reviewed                                                                                     
+                            if (Abs(x_single[1][kk] - x_est) < min_b) {
+                                min_b = Abs(x_single[1][kk] - x_est);
+                                rh_seg[1][nDC_segments] = x_single[1][kk];
+                                rh_sigm_seg[1][nDC_segments] = sigm_x_single[1][kk];
+                                foundX = kTRUE;
+                            }
+                        }//for kk 
+                        if (nDC_segments > 48)
+                            break;
+                    }//!foundX
+                }//m         
+                if (foundX && !foundY) {
+                    Float_t min_a = 999;
+                    Float_t min_b = 999;
+                    for (Int_t kk = 0; kk < single_ya; kk++) {
+                        if (Abs(y_single[0][kk] - y_est) > 1.5)
+                            continue; //????? 0.5 needs to be reviewed                                                                                     
+                        if (Abs(y_single[0][kk] - y_est) < min_a) {
+                            min_a = Abs(y_single[0][kk] - y_est);
+                            rh_seg[2][nDC_segments] = y_single[0][kk];
+                            rh_sigm_seg[2][nDC_segments] = sigm_y_single[0][kk];
+                            foundY = kTRUE;
+                        }
+                    }//for kk                                                                                                                                                          
+                    for (Int_t kk = 0; kk < single_yb; kk++) {
+                        if (Abs(y_single[1][kk] - y_est) > 1.5)
+                            continue; //????? 0.5 needs to be reviewed                                                                                     
+                        if (Abs(y_single[1][kk] - y_est) < min_b) {
+                            min_b = Abs(y_single[1][kk] - y_est);
+                            rh_seg[3][nDC_segments] = y_single[1][kk];
+                            rh_sigm_seg[3][nDC_segments] = sigm_y_single[1][kk];
+                            foundY = kTRUE;
+                        }
+                    }//for kk 
+                }
+            }//(pair_y2>0)
+            if (foundX || foundY) nDC_segments++;
+        }//j
+    }//i
+    return nDC_segments;
+}
 
-            //-n	  if(Abs(dx) < 7 && Abs(dy)<8.2){
-            if (Abs(dx) < 10 && Abs(dy) < 10) {
-                if (Abs(daX) < 0.2 && Abs(daY) < 0.2) {
-                    seg_it++;
-                    leng[seg_it] = sqrt(628.65 * 628.65 + (xMean * xMean));
-                    x_mid[seg_it] = xMean;
-                    y_mid[seg_it] = yMean;
-                    //a_X[seg_it] = atan(ax);
-                    //a_Y[seg_it] = atan(ay);
-                    a_X[seg_it] = ax;
-                    a_Y[seg_it] = ay;
-                    imp[seg_it] = -0.4332 / (ax + 0.006774);
-                    Chi2_match[seg_it] = chi2_match;
-                    chi2_DC1[segdc1Nr] = 999; //mark dch1 seg as used for future iterations
-                    chi2_DC2[match_dc2_seg] = 999; //mark dch2 seg as used for future iterations
+Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, Int_t pairX, Int_t pairY, Int_t single_ua, Int_t single_ub, Int_t single_va, Int_t single_vb,
+        Float_t** x_ab, Float_t** y_ab, Float_t** u_ab, Float_t** v_ab,
+        Float_t** sigm_x_ab, Float_t** sigm_y_ab, Float_t** sigm_u_ab, Float_t** sigm_v_ab,
+        Float_t** rh_seg, Float_t** rh_sigm_seg,
+        Float_t** u_single, Float_t** v_single, Float_t** sigm_u_single, Float_t** sigm_v_single) {
 
-                }// dax  day
-            }//dx<0.1 dy
-        } // segdc1Nr
-    } // if(has7DC1)  8p+6p
+    Double_t sqrt_2 = sqrt(2.);
+    Double_t isqrt_2 = 1. / sqrt_2;
 
-    if (has7DC2) {
-        Int_t match_dc1_seg = -1;
+    Int_t nDC_segments = (dchID == 1) ? nDC1_segments : nDC2_segments;
 
-        Float_t ax = -999.0;
-        Float_t ay = -999.0;
-        Float_t ax1 = -999.0;
-        Float_t ax2 = -999.0;
-        Float_t ay1 = -999.0;
-        Float_t ay2 = -999.0;
+    for (Int_t i = 0; i < pairX; i++) {
+        if (nDC_segments > 48)
+            break;
+        Float_t x_coord = (x_ab[0][i] + x_ab[1][i]) / 2;
+        // cout << " x_coord = " << x_coord << endl;
+        Float_t XU = x_coord;
+        Float_t XV = x_coord;
 
-        Float_t bx1, bx2, by1, by2;
-        bx1 = bx2 = by1 = by2 = -999.0;
+        for (Int_t j = 0; j < pairY; j++) {
+            if (nDC_segments > 48)
+                break;
+            Float_t y_coord = (y_ab[0][j] + y_ab[1][j]) / 2;
+            Float_t YU = y_coord;
+            Float_t YV = y_coord;
+            Bool_t foundU = kFALSE;
+            Float_t u_est = isqrt_2 * (YU - XU);
+            Float_t v_est = isqrt_2 * (YV + XV);
+            if (pairU > 0) {
 
-        for (Int_t segdc2Nr = 0; segdc2Nr < nDC2_segments; segdc2Nr++) {
+                Double_t dU_thresh = 1.3;
+                for (Int_t k = 0; k < pairU; k++) {
+                    Float_t u_coord = (u_ab[0][k] + u_ab[1][k]) / 2;
 
-            Float_t min_distX = 20;
-            Float_t min_distY = 15;
-            Float_t min_distSQ = 225;
+                    if (Abs(u_coord - u_est) > dU_thresh)
+                        continue;
+                    dU_thresh = Abs(u_coord - u_est);
 
-            Float_t dx = -999;
-            Float_t dy = -999;
-            Float_t daX = -999;
-            Float_t daY = -999;
+                    rh_seg[0][nDC_segments] = x_ab[0][i];
+                    // cout << " rh_seg[0][nDC_segments] = " << rh_seg[0][nDC_segments] << " x_ab[0][i] = " << x_ab[0][i] << endl;
+                    rh_seg[1][nDC_segments] = x_ab[1][i];
+                    rh_seg[2][nDC_segments] = y_ab[0][j];
+                    rh_seg[3][nDC_segments] = y_ab[1][j];
+                    rh_seg[4][nDC_segments] = u_ab[0][k];
+                    rh_seg[5][nDC_segments] = u_ab[1][k];
+                    rh_sigm_seg[0][nDC_segments] = sigm_x_ab[0][i];
+                    rh_sigm_seg[1][nDC_segments] = sigm_x_ab[1][i];
+                    rh_sigm_seg[2][nDC_segments] = sigm_y_ab[0][j];
+                    rh_sigm_seg[3][nDC_segments] = sigm_y_ab[1][j];
+                    rh_sigm_seg[4][nDC_segments] = sigm_u_ab[0][k];
+                    rh_sigm_seg[5][nDC_segments] = sigm_u_ab[1][k];
 
-            if (chi2_DC2[segdc2Nr] > 50 || size_segDC2[segdc2Nr] < 7)
-                continue;
+                    foundU = kTRUE;
+                    if (nDC_segments > 48)
+                        break;
+                }//k
+            }//(pair_u2>0)
 
-            Float_t chi2_match = 0;
+            Bool_t foundV = kFALSE;
+            if (pairV > 0) {
+                Double_t dV_thresh = 1.3;
+                for (Int_t m = 0; m < pairV; m++) {
+                    if (nDC_segments > 48)
+                        break;
+                    Float_t v_coord = (v_ab[0][m] + v_ab[1][m]) / 2;
 
-            for (Int_t segdc1Nr = 0; segdc1Nr < nDC1_segments; segdc1Nr++) {
-                if (chi2_DC1[segdc1Nr] > 50)
+                    if (Abs(v_coord - v_est) > dV_thresh)
+                        continue;
+                    dV_thresh = Abs(v_coord - v_est);
+
+                    foundV = kTRUE;
+                    rh_seg[0][nDC_segments] = x_ab[0][i];
+                    rh_seg[1][nDC_segments] = x_ab[1][i];
+                    rh_seg[2][nDC_segments] = y_ab[0][j];
+                    rh_seg[3][nDC_segments] = y_ab[1][j];
+                    rh_seg[6][nDC_segments] = v_ab[0][m];
+                    rh_seg[7][nDC_segments] = v_ab[1][m];
+                    rh_sigm_seg[0][nDC_segments] = sigm_x_ab[0][i];
+                    rh_sigm_seg[1][nDC_segments] = sigm_x_ab[1][i];
+                    rh_sigm_seg[2][nDC_segments] = sigm_y_ab[0][j];
+                    rh_sigm_seg[3][nDC_segments] = sigm_y_ab[1][j];
+                    rh_sigm_seg[6][nDC_segments] = sigm_v_ab[0][m];
+                    rh_sigm_seg[7][nDC_segments] = sigm_v_ab[1][m];
+
+                    if (!foundU) {
+                        Float_t min_a = 999;
+                        Float_t min_b = 999;
+                        for (Int_t kk = 0; kk < single_ua; kk++) {
+                            if (Abs(u_single[0][kk] - u_est) > 1.5)
+                                continue; //????? 0.5 needs to be reviewed
+                            if (Abs(u_single[0][kk] - u_est) < min_a) {
+                                min_a = Abs(u_single[0][kk] - u_est);
+                                rh_seg[4][nDC_segments] = u_single[0][kk];
+                                rh_sigm_seg[4][nDC_segments] = sigm_u_single[0][kk];
+                                foundU = kTRUE;
+                            }
+                        }//for kk
+                        for (Int_t kk = 0; kk < single_ub; kk++) {
+                            if (Abs(u_single[1][kk] - u_est) > 1.5)
+                                continue; //????? 0.5 needs to be reviewed
+                            if (Abs(u_single[1][kk] - u_est) < min_b) {
+                                min_b = Abs(u_single[1][kk] - u_est);
+                                rh_seg[5][nDC_segments] = u_single[1][kk];
+                                rh_sigm_seg[5][nDC_segments] = sigm_u_single[1][kk];
+                                foundU = kTRUE;
+                            }
+                        }//for kk
+                        if (nDC_segments > 48)
+                            break;
+                    }//!foundU
+
+                    if (nDC_segments > 48)
+                        break;
+                }//m
+            }//(pair_v2>0)
+            if (!foundV && foundU) {
+                Float_t min_a = 999;
+                Float_t min_b = 999;
+                for (Int_t kk = 0; kk < single_va; kk++) {
+                    if (Abs(v_single[0][kk] - v_est) > 1.5)
+                        continue; //????? 0.5 needs to be reviewed                                                                                     
+                    if (Abs(v_single[0][kk] - v_est) < min_a) {
+                        min_a = Abs(v_single[0][kk] - v_est);
+                        rh_seg[6][nDC_segments] = v_single[0][kk];
+                        rh_sigm_seg[6][nDC_segments] = sigm_v_single[0][kk];
+                        foundV = kTRUE;
+                    }
+                }//for kk                                                                                                                                                           
+                for (Int_t kk = 0; kk < single_vb; kk++) {
+                    if (Abs(v_single[1][kk] - v_est) > 1.5)
+                        continue; //????? 0.5 needs to be reviewed                                                                                     
+                    if (Abs(v_single[1][kk] - v_est) < min_b) {
+                        min_b = Abs(v_single[1][kk] - v_est);
+                        rh_seg[7][nDC_segments] = v_single[1][kk];
+                        rh_sigm_seg[7][nDC_segments] = sigm_v_single[1][kk];
+                        foundV = kTRUE;
+                    }
+                }//for kk                                                                                                                           
+            }//!foundV 
+            if (foundV || foundU) nDC_segments++;
+        }//j
+    }//i
+    return nDC_segments;
+}
+
+void BmnDchTrackFinder::FitDchSegments(Int_t dchID, Int_t* size_seg, Float_t** rh_seg, Float_t** rh_sigm_seg, Float_t** par_ab, Float_t* chi2, Float_t* x_glob, Float_t* y_glob) {
+    Int_t nDC_segments = (dchID == 1) ? nDC1_segments : nDC2_segments;
+    for (Int_t j = 0; j < nDC_segments; j++) {
+        Int_t worst_hit = -1;
+        Double_t max_resid = 0;
+
+        Float_t _rh_seg[8];
+        Float_t _rh_sigm_seg[8];
+        Float_t _par_ab[4];
+
+        for (Int_t i = 0; i < 8; i++)
+            if (Abs(rh_seg[i][j] + 999.) > FLT_EPSILON)
+                size_seg[j]++;
+
+        for (Int_t rej = 0; rej < 2; rej++) {//allow 2 passes max 8->7 & 7->6
+            for (Int_t i = 0; i < 8; i++) {
+                _rh_seg[i] = rh_seg[i][j];
+                _rh_sigm_seg[i] = rh_sigm_seg[i][j];
+            }
+
+            fit_seg(_rh_seg, _rh_sigm_seg, _par_ab, -1, -1); //usual fit without skipping any plane
+            for (Int_t i = 0; i < 4; i++)
+                par_ab[i][j] = _par_ab[i];
+
+            chi2[j] = 0;
+
+            Float_t resid(LDBL_MAX);
+            for (Int_t i = 0; i < 8; i++) {
+                if (Abs(rh_seg[i][j] + 999.) < FLT_EPSILON)
                     continue;
 
-
-                Float_t distX = Abs(xDC1_glob[segdc1Nr] - xDC2_glob[segdc2Nr]);
-                Float_t distY = Abs(yDC1_glob[segdc1Nr] - yDC2_glob[segdc2Nr]);
-
-                if (distX < min_distX && distY < min_distY) {
-                    Float_t distSQ = distX * distX + distY*distY;
-
-                    chi2_match = (Abs(xDC1_glob[segdc1Nr] - xDC2_glob[segdc2Nr]) * Abs(xDC1_glob[segdc1Nr] - xDC2_glob[segdc2Nr]) / 49)+(distY * distY / 43.56)+((par_ab2[0][segdc2Nr] - par_ab1[0][segdc1Nr] * par_ab2[0][segdc2Nr] - par_ab1[0][segdc1Nr]) / 0.0144)+(par_ab2[2][segdc2Nr] - par_ab1[2][segdc1Nr] * par_ab2[2][segdc2Nr] - par_ab1[2][segdc1Nr]) / 0.0225;
-
-                    if (distSQ < min_distSQ) {
-
-                        dx = xDC2_glob[segdc2Nr] - xDC1_glob[segdc1Nr];
-                        dy = yDC2_glob[segdc2Nr] - yDC1_glob[segdc1Nr];
-                        xMean = 0.5 * (xDC1_glob[segdc1Nr] + xDC2_glob[segdc2Nr]);
-                        yMean = 0.5 * (yDC1_glob[segdc1Nr] + yDC2_glob[segdc2Nr]);
-                        min_distSQ = distSQ;
-                        ax = (par_ab2[1][segdc2Nr] - par_ab1[1][segdc1Nr]) / 199;
-                        ay = (par_ab2[3][segdc2Nr] - par_ab1[3][segdc1Nr]) / 199;
-                        match_dc1_seg = segdc1Nr;
-                        daX = par_ab2[0][segdc2Nr] - par_ab1[0][segdc1Nr];
-                        daY = par_ab2[2][segdc2Nr] - par_ab1[2][segdc1Nr];
-                    } // min_dist
+                resid = CalculateResidual(i, j, rh_seg, par_ab);
+                chi2[j] += (resid * resid) / rh_sigm_seg[i][j];
+                if (Abs(resid) > max_resid) {
+                    worst_hit = i;
+                    max_resid = Abs(resid);
                 }
-            } // segdc1Nr
-
-            if (min_distSQ >= 225) continue;
-
-            if (Abs(dx) < 10 && Abs(dy) < 10) {
-                if (Abs(daX) < 0.2 && Abs(daY) < 0.2) {
-
-                    seg_it++;
-                    leng[seg_it] = sqrt(628.65 * 628.65 + (xMean * xMean));
-                    x_mid[seg_it] = xMean;
-                    y_mid[seg_it] = yMean;
-                    a_X[seg_it] = atan(ax);
-                    a_Y[seg_it] = atan(ay);
-                    imp[seg_it] = -0.4332 / (ax + 0.006774);
-                    Chi2_match[seg_it] = chi2_match;
-                    chi2_DC2[segdc2Nr] = 999; //mark dch2 seg as used for future iterations
-                    chi2_DC1[match_dc1_seg] = 999; //mark dch1 seg as used for future iterations
-
-                } // dax  day  
-            } //  dx  dy
-        } // segdc2Nr
-    }//  6p+8p  has7DC2
-
-    //do 6+6p glob segs
-
-    Int_t match_dc1_seg = -1;
-
-    Float_t ax = -999.0;
-    Float_t ay = -999.0;
-    Float_t ax1 = -999.0;
-    Float_t ax2 = -999.0;
-    Float_t ay1 = -999.0;
-    Float_t ay2 = -999.0;
-
-    Float_t bx1, bx2, by1, by2;
-    bx1 = bx2 = by1 = by2 = -999.0;
-
-    for (Int_t segdc2Nr = 0; segdc2Nr < nDC2_segments; segdc2Nr++) {
-        Float_t min_distX = 20;
-        Float_t min_distY = 15;
-        Float_t min_distSQ = 225;
-
-        Float_t dx = -999;
-        Float_t dy = -999;
-        Float_t daX = -999;
-        Float_t daY = -999;
-
-        if (chi2_DC2[segdc2Nr] > 50)
-            continue;
-
-        Float_t chi2_match = 0;
-        for (Int_t segdc1Nr = 0; segdc1Nr < nDC1_segments; segdc1Nr++) {
-            if (chi2_DC1[segdc1Nr] > 50)
-                continue;
-
-            Float_t distX = Abs(xDC1_glob[segdc1Nr] - xDC2_glob[segdc2Nr]);
-            Float_t distY = Abs(yDC1_glob[segdc1Nr] - yDC2_glob[segdc2Nr]);
-
-            if (distX < min_distX && distY < min_distY) {
-                Float_t distSQ = distX * distX + distY*distY;
-
-                chi2_match = (Abs(xDC1_glob[segdc1Nr] - xDC2_glob[segdc2Nr]) * Abs(xDC1_glob[segdc1Nr] - xDC2_glob[segdc2Nr]) / 49)+(distY * distY / 43.56)+((par_ab2[0][segdc2Nr] - par_ab1[0][segdc1Nr] * par_ab2[0][segdc2Nr] - par_ab1[0][segdc1Nr]) / 0.0144)+(par_ab2[2][segdc2Nr] - par_ab1[2][segdc1Nr] * par_ab2[2][segdc2Nr] - par_ab1[2][segdc1Nr]) / 0.0225;
-                if (distSQ < min_distSQ) {
-
-                    dx = xDC2_glob[segdc2Nr] - xDC1_glob[segdc1Nr];
-                    dy = yDC2_glob[segdc2Nr] - yDC1_glob[segdc1Nr];
-                    xMean = 0.5 * (xDC1_glob[segdc1Nr] + xDC2_glob[segdc2Nr]);
-                    yMean = 0.5 * (yDC1_glob[segdc1Nr] + yDC2_glob[segdc2Nr]);
-                    min_distSQ = distSQ;
-                    ax = (par_ab2[1][segdc2Nr] - par_ab1[1][segdc1Nr]) / 199;
-                    ay = (par_ab2[3][segdc2Nr] - par_ab1[3][segdc1Nr]) / 199;
-                    match_dc1_seg = segdc1Nr;
-                    daX = par_ab2[0][segdc2Nr] - par_ab1[0][segdc1Nr];
-                    daY = par_ab2[2][segdc2Nr] - par_ab1[2][segdc1Nr];
-
-                } // min_dist
             }
-        } // segdc1Nr
 
-        if (min_distSQ >= 225)
-            continue;
+            chi2[j] /= (size_seg[j] - 4);
 
-        if (Abs(dx) < 10 && Abs(dy) < 10) {
-            if (Abs(daX) < 0.2 && Abs(daY) < 0.2) {
-
-                seg_it++;
-                leng[seg_it] = sqrt(628.65 * 628.65 + (xMean * xMean));
-                x_mid[seg_it] = xMean;
-                y_mid[seg_it] = yMean;
-                a_X[seg_it] = atan(ax);
-                a_Y[seg_it] = atan(ay);
-                imp[seg_it] = -0.4332 / (ax + 0.006774);
-                Chi2_match[seg_it] = chi2_match;
-                chi2_DC2[segdc2Nr] = 999; //mark dc2 seg as used for future iterations
-                chi2_DC1[match_dc1_seg] = 999; //mark dch1 seg as used for future iterations
-            } // dax  day  
-        } //  dx  dy
-    } // segdc2Nr
-
-    if (seg_it>-1) {
-        for (Int_t seg = 0; seg < seg_it + 1; seg++) {
-            FairTrackParam ParamsTrackDchMatch;
-            Float_t z0 = Z_dch_mid;
-            Float_t x0 = x_mid[seg];
-            Float_t y0 = y_mid[seg];
-            ParamsTrackDchMatch.SetPosition(TVector3(x0, y0, z0));
-            ParamsTrackDchMatch.SetTx(a_X[seg]);
-            ParamsTrackDchMatch.SetTy(a_Y[seg]);
-            BmnDchTrack* track = new ((*fDchTracks)[fDchTracks->GetEntriesFast()]) BmnDchTrack();
-            track->SetChi2(Chi2_match[seg]);
-            track->SetParamFirst(ParamsTrackDchMatch);
-
+            //if chi2 is big and seg_size = min erase this seg
+            if (chi2[j] > 30.)
+                if (size_seg[j] == 6) {
+                    chi2[j] = 999.;
+                    break;
+                } else {
+                    rh_seg[worst_hit][j] = -999.; //erase worst hit and refit
+                    size_seg[j]--;
+                    max_resid = 0;
+                    continue;
+                }
         }
-    }//seg_it>0
-    cout << "\n======================== DCH track finder exec finished ========================" << endl;
+
+        // Add shifts to slopes and coords
+        Float_t x_slope_sh = (dchID == 1) ? x1_slope_sh : x2_slope_sh;
+        Float_t y_slope_sh = (dchID == 1) ? y1_slope_sh : y2_slope_sh;
+        Float_t x_sh = (dchID == 1) ? x1_sh : x2_sh;
+        Float_t y_sh = (dchID == 1) ? y1_sh : y2_sh;
+
+        par_ab[0][j] += x_slope_sh + x_slope_sh * par_ab[0][j] * par_ab[0][j];
+        par_ab[2][j] += y_slope_sh + y_slope_sh * par_ab[2][j] * par_ab[2][j];
+        par_ab[1][j] += x_sh;
+        par_ab[3][j] += y_sh;
+
+        x_glob[j] = par_ab[0][j]*(-99.5) + par_ab[1][j];
+        y_glob[j] = par_ab[2][j]*(-99.5) + par_ab[3][j];
+
+        Bool_t has7DC = (dchID == 1) ? has7DC1 : has7DC2;
+        if (size_seg[j] > 6)
+            has7DC = kTRUE;
+    }
 }
 
 void BmnDchTrackFinder::AssignTimesToWires(Short_t wire, Double_t time, Int_t it, Double_t* wires, Double_t* times, Bool_t secondaries) {
@@ -2948,6 +1644,46 @@ void BmnDchTrackFinder::AssignTimesToWires(Short_t wire, Double_t time, Int_t it
     wires[it] = wire;
     times[it] = time;
     it++;
+}
+
+void BmnDchTrackFinder::CompareDaDb(Float_t d, Float_t& ele) {
+    ele = (d < 0.02) ? (0.08 * 0.08) :
+            (d >= 0.02 && d < 0.1) ? (0.06 * 0.06) :
+            (d >= 0.1 && d < 0.4) ? (0.025 * 0.025) :
+            (d >= 0.4 && d < 0.41) ? (0.08 * 0.08) :
+            (0.10 * 0.10);
+}
+
+void BmnDchTrackFinder::CompareDaDb(Float_t d, Float_t& ele1, Float_t& ele2) {
+    ele1 = (d < 0.02) ? (0.08 * 0.08) :
+            (d >= 0.02 && d < 0.1) ? (0.06 * 0.06) :
+            (d >= 0.1 && d < 0.4) ? (0.025 * 0.025) :
+            (d >= 0.4 && d < 0.41) ? (0.08 * 0.08) :
+            (0.10 * 0.10);
+    ele2 = ele1;
+}
+
+void BmnDchTrackFinder::SelectLongestAndBestSegments(Int_t dchID, Int_t* size_seg, Float_t** rh_seg, Float_t* chi2) {
+    Int_t nDC_segments = (dchID == 1) ? nDC1_segments : nDC2_segments;
+    for (Int_t max_size = 8; max_size > 5; max_size--) {
+        //find longest and best chi2 seg
+        for (Int_t it1 = 0; it1 < nDC_segments; it1++) {
+            if (size_seg[it1] != max_size)
+                continue;
+            for (Int_t it2 = 0; it2 < nDC_segments; it2++) {
+                if (it2 == it1)
+                    continue;
+                for (Int_t hit = 0; hit < 4; hit++) {
+                    if (rh_seg[2 * hit][it1] == rh_seg[2 * hit][it2] &&
+                            rh_seg[2 * hit + 1][it1] == rh_seg[2 * hit + 1][it2] &&
+                            (chi2[it1] <= chi2[it2] || size_seg[it1] > size_seg[it2])) {
+                        chi2[it2] = 999; //mark seg as bad                                                                                                   
+                        break;
+                    }
+                }//hit
+            }
+        }
+    }//max_size
 }
 
 void BmnDchTrackFinder::fit_seg(Float_t* rh_seg, Float_t* rh_sigm_seg, Float_t* par_ab, Int_t skip_first, Int_t skip_second) {
@@ -2966,12 +1702,11 @@ void BmnDchTrackFinder::fit_seg(Float_t* rh_seg, Float_t* rh_sigm_seg, Float_t* 
     for (Int_t i = 0; i < 4; i++) {
         par_ab[i] = 999;
     }
-    Float_t xDC_glob, yDC_glob = -999;
 
     for (Int_t i = 0; i < 8; i++) {
         h[i] = 1;
         //out1<<"setting h[i]"<<endl;
-        if (i == skip_first || i == skip_second || rh_seg[i] == -999) {
+        if (i == skip_first || i == skip_second || Abs(rh_seg[i] + 999.) < FLT_EPSILON) {
             h[i] = 0;
         }
     }//i
@@ -3114,24 +1849,9 @@ void BmnDchTrackFinder::fit_seg(Float_t* rh_seg, Float_t* rh_sigm_seg, Float_t* 
     }
 }
 
-void BmnDchTrackFinder::Finish() {
-    for (Int_t i = 0; i < 4; i++) {
-        delete [] par_ab1[i];
-        delete [] par_ab2[i];
-    }
-
-    delete[] par_ab1;
-    delete[] par_ab2;
-
-    delete[] chi2_DC1;
-    delete[] chi2_DC2;
-
-    delete[] size_segDC1;
-    delete[] size_segDC2;
-}
-
-void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Int_t nSegments, Float_t* chi2Arr, Float_t** parArr, Int_t* sizeArr) {
-    for (Int_t iSegment = 0; iSegment < nSegments; iSegment++) {
+void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Float_t* chi2Arr, Float_t** parArr, Int_t* sizeArr) {
+    Int_t nDC_segments = (dchID == 1) ? nDC1_segments : nDC2_segments;
+    for (Int_t iSegment = 0; iSegment < nDC_segments; iSegment++) {
         if (chi2Arr[iSegment] > 50)
             continue;
         FairTrackParam trackParam;
@@ -3148,6 +1868,348 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Int_t nSegments, Float_t* ch
         track->SetParamFirst(trackParam);
     }
 }
-ClassImp(BmnDchTrackFinder)
 
+Float_t BmnDchTrackFinder::CalculateResidual(Int_t i, Int_t j, Float_t** rh_seg, Float_t** par_ab) {
+    Double_t sqrt_2 = sqrt(2.);
+    Double_t isqrt_2 = 1 / sqrt_2;
+
+    return (i < 2) ? rh_seg[i][j] - z_loc[i] * par_ab[0][j] - par_ab[1][j] :
+            (i >= 2 && i < 4) ? rh_seg[i][j] - z_loc[i] * par_ab[2][j] - par_ab[3][j] :
+            (i >= 4 && i < 6) ? rh_seg[i][j] - isqrt_2 * z_loc[i] * (par_ab[2][j] - par_ab[0][j]) - isqrt_2 * (par_ab[3][j] - par_ab[1][j]) :
+            rh_seg[i][j] - isqrt_2 * z_loc[i] * (par_ab[2][j] + par_ab[0][j]) - isqrt_2 * (par_ab[3][j] + par_ab[1][j]);
+}
+
+InitStatus BmnDchTrackFinder::Init() {
+    cout << endl << "BmnDchTrackFinder::Init()" << endl;
+    FairRootManager* ioman = FairRootManager::Instance();
+
+    fBmnDchDigitsArray = (TClonesArray*) ioman->GetObject(InputDigitsBranchName);
+
+    fDchTracks = new TClonesArray(tracksDch.Data());
+    ioman->Register(tracksDch.Data(), "DCH", fDchTracks, kTRUE);
+
+    for (Int_t iScale = 0; iScale < 16; iScale++)
+        scale[iScale] = 0.5;
+
+    ifstream fin;
+    TString dir = getenv("VMCWORKDIR");
+    dir += "/input/";
+    fin.open((TString(dir + "transfer_func.txt")).Data(), ios::in);
+    for (Int_t fi = 0; fi < 16; fi++) {
+        fin >> t_dc[0][fi] >> t_dc[1][fi] >> t_dc[2][fi] >> t_dc[3][fi] >> t_dc[4][fi] >>
+                pol_par_dc[0][0][fi] >> pol_par_dc[0][1][fi] >> pol_par_dc[0][2][fi] >> pol_par_dc[0][3][fi] >> pol_par_dc[0][4][fi] >>
+                pol_par_dc[1][0][fi] >> pol_par_dc[1][1][fi] >> pol_par_dc[1][2][fi] >> pol_par_dc[1][3][fi] >> pol_par_dc[1][4][fi] >>
+                pol_par_dc[2][0][fi] >> pol_par_dc[2][1][fi] >> pol_par_dc[2][2][fi] >> pol_par_dc[2][3][fi] >> pol_par_dc[2][4][fi] >>
+                scaling[fi];
+    }
+
+    fin.close();
+
+    const Int_t N = 2;
+
+    // z local xa->vb (cm) 
+    Double_t arr1[4 * N] = {9.3, 8.1, 3.5, 2.3, -2.3, -3.5, -8.1, -9.3};
+    for (Int_t iSize = 0; iSize < 4 * N; iSize++)
+        z_loc[iSize] = arr1[iSize];
+
+    // z global dc 1 & dc 2 (cm)
+    Double_t arr2[8 * N] = {-45.7, -46.9, -51.5, -52.7, -57.3, -58.5, -63.1, -64.3, 64.3, 63.1, 58.5, 57.3, 52.7, 51.5, 46.9, 45.7};
+    for (Int_t iSize = 0; iSize < 8 * N; iSize++)
+        z_glob[iSize] = arr2[iSize];
+
+    x1_ab = new Float_t*[N];
+    y1_ab = new Float_t*[N];
+    u1_ab = new Float_t*[N];
+    v1_ab = new Float_t*[N];
+    sigm_x1_ab = new Float_t*[N];
+    sigm_y1_ab = new Float_t*[N];
+    sigm_u1_ab = new Float_t*[N];
+    sigm_v1_ab = new Float_t*[N];
+    x2_ab = new Float_t*[N];
+    y2_ab = new Float_t*[N];
+    u2_ab = new Float_t*[N];
+    v2_ab = new Float_t*[N];
+    sigm_x2_ab = new Float_t*[N];
+    sigm_y2_ab = new Float_t*[N];
+    sigm_u2_ab = new Float_t*[N];
+    sigm_v2_ab = new Float_t*[N];
+    for (Int_t iDim = 0; iDim < N; iDim++) {
+        x1_ab[iDim] = new Float_t[75 * N];
+        y1_ab[iDim] = new Float_t[75 * N];
+        u1_ab[iDim] = new Float_t[75 * N];
+        v1_ab[iDim] = new Float_t[75 * N];
+        sigm_x1_ab[iDim] = new Float_t[75 * N];
+        sigm_y1_ab[iDim] = new Float_t[75 * N];
+        sigm_u1_ab[iDim] = new Float_t[75 * N];
+        sigm_v1_ab[iDim] = new Float_t[75 * N];
+        x2_ab[iDim] = new Float_t[75 * N];
+        y2_ab[iDim] = new Float_t[75 * N];
+        u2_ab[iDim] = new Float_t[75 * N];
+        v2_ab[iDim] = new Float_t[75 * N];
+        sigm_x2_ab[iDim] = new Float_t[75 * N];
+        sigm_y2_ab[iDim] = new Float_t[75 * N];
+        sigm_u2_ab[iDim] = new Float_t[75 * N];
+        sigm_v2_ab[iDim] = new Float_t[75 * N];
+    }
+
+    par_ab1 = new Float_t*[2 * N];
+    par_ab2 = new Float_t*[2 * N];
+    for (Int_t iDim = 0; iDim < 2 * N; iDim++) {
+        par_ab1[iDim] = new Float_t[75 * N];
+        par_ab2[iDim] = new Float_t[75 * N];
+    }
+
+    chi2_DC1 = new Float_t[75 * N];
+    chi2_DC2 = new Float_t[75 * N];
+    xDC1_glob = new Float_t[75 * N];
+    yDC1_glob = new Float_t[75 * N];
+    xDC2_glob = new Float_t[75 * N];
+    yDC2_glob = new Float_t[75 * N];
+
+    size_segDC1 = new Int_t[75 * N];
+    size_segDC2 = new Int_t[75 * N];
+
+    rh_segDC1 = new Float_t*[4 * N];
+    rh_segDC2 = new Float_t*[4 * N];
+    rh_sigm_segDC1 = new Float_t*[4 * N];
+    rh_sigm_segDC2 = new Float_t*[4 * N];
+    for (Int_t iDim = 0; iDim < 4 * N; iDim++) {
+        rh_segDC1[iDim] = new Float_t[75 * N];
+        rh_segDC2[iDim] = new Float_t[75 * N];
+        rh_sigm_segDC1[iDim] = new Float_t[75 * N];
+        rh_sigm_segDC2[iDim] = new Float_t[75 * N];
+    }
+
+    //single hits on ab-plane
+    x1_single = new Float_t*[N];
+    y1_single = new Float_t*[N];
+    u1_single = new Float_t*[N];
+    v1_single = new Float_t*[N];
+    sigm_x1_single = new Float_t*[N];
+    sigm_y1_single = new Float_t*[N];
+    sigm_u1_single = new Float_t*[N];
+    sigm_v1_single = new Float_t*[N];
+    x2_single = new Float_t*[N];
+    y2_single = new Float_t*[N];
+    u2_single = new Float_t*[N];
+    v2_single = new Float_t*[N];
+    sigm_x2_single = new Float_t*[N];
+    sigm_y2_single = new Float_t*[N];
+    sigm_u2_single = new Float_t*[N];
+    sigm_v2_single = new Float_t*[N];
+    for (Int_t iDim = 0; iDim < N; iDim++) {
+        x1_single[iDim] = new Float_t[20 * N];
+        y1_single[iDim] = new Float_t[20 * N];
+        u1_single[iDim] = new Float_t[20 * N];
+        v1_single[iDim] = new Float_t[20 * N];
+        sigm_x1_single[iDim] = new Float_t[20 * N];
+        sigm_y1_single[iDim] = new Float_t[20 * N];
+        sigm_u1_single[iDim] = new Float_t[20 * N];
+        sigm_v1_single[iDim] = new Float_t[20 * N];
+        x2_single[iDim] = new Float_t[20 * N];
+        y2_single[iDim] = new Float_t[20 * N];
+        u2_single[iDim] = new Float_t[20 * N];
+        v2_single[iDim] = new Float_t[20 * N];
+        sigm_x2_single[iDim] = new Float_t[20 * N];
+        sigm_y2_single[iDim] = new Float_t[20 * N];
+        sigm_u2_single[iDim] = new Float_t[20 * N];
+        sigm_v2_single[iDim] = new Float_t[20 * N];
+    }
+}
+
+void BmnDchTrackFinder::PrepareArraysToProcessEvent() {
+    fDchTracks->Clear();
+    has7DC1 = kFALSE;
+    has7DC2 = kFALSE;
+    nDC1_segments = 0;
+    nDC2_segments = 0;
+    // Array cleaning and initializing 
+    for (Int_t iDim1 = 0; iDim1 < 4; iDim1++)
+        for (Int_t iDim2 = 0; iDim2 < 150; iDim2++) {
+            par_ab1[iDim1][iDim2] = -999.;
+            par_ab2[iDim1][iDim2] = -999.;
+        }
+
+    for (Int_t iDim = 0; iDim < 150; iDim++) {
+        chi2_DC1[iDim] = 50.;
+        chi2_DC2[iDim] = 50.;
+        size_segDC1[iDim] = 0;
+        size_segDC2[iDim] = 0;
+        xDC1_glob[iDim] = -999.;
+        yDC1_glob[iDim] = -999.;
+        xDC2_glob[iDim] = -999.;
+        yDC2_glob[iDim] = -999.;
+    }
+
+    for (Int_t iDim1 = 0; iDim1 < 8; iDim1++)
+        for (Int_t iDim2 = 0; iDim2 < 150; iDim2++) {
+            rh_segDC1[iDim1][iDim2] = -999.;
+            rh_segDC2[iDim1][iDim2] = -999.;
+            rh_sigm_segDC1[iDim1][iDim2] = 1.;
+            rh_sigm_segDC2[iDim1][iDim2] = 1.;
+        }
+
+    for (Int_t iDim1 = 0; iDim1 < 2; iDim1++) {
+        for (Int_t iDim2 = 0; iDim2 < 150; iDim2++) {
+            x1_ab[iDim1][iDim2] = -999.;
+            y1_ab[iDim1][iDim2] = -999.;
+            u1_ab[iDim1][iDim2] = -999.;
+            v1_ab[iDim1][iDim2] = -999.;
+            sigm_x1_ab[iDim1][iDim2] = 1.;
+            sigm_y1_ab[iDim1][iDim2] = 1.;
+            sigm_u1_ab[iDim1][iDim2] = 1.;
+            sigm_v1_ab[iDim1][iDim2] = 1.;
+            x2_ab[iDim1][iDim2] = -999.;
+            y2_ab[iDim1][iDim2] = -999.;
+            u2_ab[iDim1][iDim2] = -999.;
+            v2_ab[iDim1][iDim2] = -999.;
+            sigm_x2_ab[iDim1][iDim2] = 1.;
+            sigm_y2_ab[iDim1][iDim2] = 1.;
+            sigm_u2_ab[iDim1][iDim2] = 1.;
+            sigm_v2_ab[iDim1][iDim2] = 1.;
+        }
+        for (Int_t iDim2 = 0; iDim2 < 40; iDim2++) {
+            x1_single[iDim1][iDim2] = -999.;
+            y1_single[iDim1][iDim2] = -999.;
+            u1_single[iDim1][iDim2] = -999.;
+            v1_single[iDim1][iDim2] = -999.;
+            sigm_x1_single[iDim1][iDim2] = 1.;
+            sigm_y1_single[iDim1][iDim2] = 1.;
+            sigm_u1_single[iDim1][iDim2] = 1.;
+            sigm_v1_single[iDim1][iDim2] = 1.;
+            x2_single[iDim1][iDim2] = -999.;
+            y2_single[iDim1][iDim2] = -999.;
+            u2_single[iDim1][iDim2] = -999.;
+            v2_single[iDim1][iDim2] = -999.;
+            sigm_x2_single[iDim1][iDim2] = 1.;
+            sigm_y2_single[iDim1][iDim2] = 1.;
+            sigm_u2_single[iDim1][iDim2] = 1.;
+            sigm_v2_single[iDim1][iDim2] = 1.;
+        }
+    }
+    pair_x2 = 0;
+    pair_y2 = 0;
+    pair_u2 = 0;
+    pair_v2 = 0;
+    single_xa2 = 0;
+    single_ya2 = 0;
+    single_ua2 = 0;
+    single_va2 = 0;
+    single_xb2 = 0;
+    single_yb2 = 0;
+    single_ub2 = 0;
+    single_vb2 = 0;
+    pair_x1 = 0;
+    pair_y1 = 0;
+    pair_u1 = 0;
+    pair_v1 = 0;
+    single_xa1 = 0;
+    single_ya1 = 0;
+    single_ua1 = 0;
+    single_va1 = 0;
+    single_xb1 = 0;
+    single_yb1 = 0;
+    single_ub1 = 0;
+    single_vb1 = 0;
+}
+
+void BmnDchTrackFinder::Finish() {
+    for (Int_t i = 0; i < 4; i++) {
+        delete [] par_ab1[i];
+        delete [] par_ab2[i];
+    }
+
+    delete[] par_ab1;
+    delete[] par_ab2;
+
+    delete[] chi2_DC1;
+    delete[] chi2_DC2;
+
+    delete[] size_segDC1;
+    delete[] size_segDC2;
+
+    for (Int_t i = 0; i < 8; i++) {
+        delete [] rh_segDC1[i];
+        delete [] rh_segDC2[i];
+    }
+
+    delete[] rh_segDC1;
+    delete[] rh_segDC2;
+
+    delete [] xDC1_glob;
+    delete [] xDC2_glob;
+    delete [] yDC1_glob;
+    delete [] yDC2_glob;
+
+    for (Int_t i = 0; i < 2; i++) {
+        delete [] x1_ab[i];
+        delete [] y1_ab[i];
+        delete [] u1_ab[i];
+        delete [] v1_ab[i];
+        delete [] sigm_x1_ab[i];
+        delete [] sigm_y1_ab[i];
+        delete [] sigm_u1_ab[i];
+        delete [] sigm_v1_ab[i];
+        delete [] x2_ab[i];
+        delete [] y2_ab[i];
+        delete [] u2_ab[i];
+        delete [] v2_ab[i];
+        delete [] sigm_x2_ab[i];
+        delete [] sigm_y2_ab[i];
+        delete [] sigm_u2_ab[i];
+        delete [] sigm_v2_ab[i];
+
+        delete [] x1_single[i];
+        delete [] y1_single[i];
+        delete [] u1_single[i];
+        delete [] v1_single[i];
+        delete [] sigm_x1_single[i];
+        delete [] sigm_y1_single[i];
+        delete [] sigm_u1_single[i];
+        delete [] sigm_v1_single[i];
+        delete [] x2_single[i];
+        delete [] y2_single[i];
+        delete [] u2_single[i];
+        delete [] v2_single[i];
+        delete [] sigm_x2_single[i];
+        delete [] sigm_y2_single[i];
+        delete [] sigm_u2_single[i];
+        delete [] sigm_v2_single[i];
+    }
+
+    delete [] x1_ab;
+    delete [] y1_ab;
+    delete [] u1_ab;
+    delete [] v1_ab;
+    delete [] sigm_x1_ab;
+    delete [] sigm_y1_ab;
+    delete [] sigm_u1_ab;
+    delete [] sigm_v1_ab;
+    delete [] x2_ab;
+    delete [] y2_ab;
+    delete [] u2_ab;
+    delete [] v2_ab;
+    delete [] sigm_x2_ab;
+    delete [] sigm_y2_ab;
+    delete [] sigm_u2_ab;
+    delete [] sigm_v2_ab;
+
+    delete [] x1_single;
+    delete [] y1_single;
+    delete [] u1_single;
+    delete [] v1_single;
+    delete [] sigm_x1_single;
+    delete [] sigm_y1_single;
+    delete [] sigm_u1_single;
+    delete [] sigm_v1_single;
+    delete [] x2_single;
+    delete [] y2_single;
+    delete [] u2_single;
+    delete [] v2_single;
+    delete [] sigm_x2_single;
+    delete [] sigm_y2_single;
+    delete [] sigm_u2_single;
+    delete [] sigm_v2_single;
+}
+ClassImp(BmnDchTrackFinder)
 

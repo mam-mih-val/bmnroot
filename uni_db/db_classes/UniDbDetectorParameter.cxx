@@ -5,6 +5,7 @@
 
 #include "TSQLServer.h"
 #include "TSQLStatement.h"
+#include "TObjString.h"
 
 #define ONLY_DECLARATIONS
 #include "../function_set.h"
@@ -2369,7 +2370,7 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
         delete stmt;
 
         TObjArray* tokens = reduce_line.Tokenize("\t ");
-        TString* item;
+        TObjString* item;
         int value_count = tokens->GetEntriesFast();
 
         UniDbDetectorParameter* pDetectorParameter = NULL;
@@ -2391,16 +2392,16 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     if (isSerialChannel)
                     {
                         // get serial number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        serial_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        serial_number = item->GetString().Atoi();
                         // get channel number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        channel_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        channel_number = item->GetString().Atoi();
                     }
-                    item = (TString*) tokens->At(cur_num_item++);
+                    item = (TObjString*) tokens->At(cur_num_item++);
                     tokens->Delete();
 
-                    bool value = (bool) item->Atoi();
+                    bool value = (bool) item->GetString().Atoi();
                     if (isSerialChannel)
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, value);
                     else
@@ -2422,19 +2423,19 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     if (isSerialChannel)
                     {
                         // get serial number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        serial_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        serial_number = item->GetString().Atoi();
                         // get channel number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        channel_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        channel_number = item->GetString().Atoi();
                     }
-                    item = (TString*) tokens->At(cur_num_item++);
+                    item = (TObjString*) tokens->At(cur_num_item++);
                     tokens->Delete();
 
-                    int value = item->Atoi();
+                    int value = item->GetString().Atoi();
                     if (value == 0)
                     {
-                        if (!item->IsDigit())
+                        if (!item->GetString().IsDigit())
                         {
                             cout<<"Error: the parameter value is not integer: '"<<item<<"'"<<endl;
                             continue;
@@ -2462,16 +2463,16 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     if (isSerialChannel)
                     {
                         // get serial number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        serial_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        serial_number = item->GetString().Atoi();
                         // get channel number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        channel_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        channel_number = item->GetString().Atoi();
                     }
-                    item = (TString*) tokens->At(cur_num_item++);
+                    item = (TObjString*) tokens->At(cur_num_item++);
                     tokens->Delete();
 
-                    double value = item->Atof();
+                    double value = item->GetString().Atof();
                     if (isSerialChannel)
                         pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name,start_period, start_run, end_period, end_run, serial_number, channel_number, value);
                     else
@@ -2497,19 +2498,19 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     if (isSerialChannel)
                     {
                         // get serial number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        serial_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        serial_number = item->GetString().Atoi();
                         // get channel number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        channel_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        channel_number = item->GetString().Atoi();
                     }
 
                     int iter = 0, num = count_required-2;
                     IIStructure* pValues = new IIStructure[size_arr];
                     for (; iter < size_arr; iter++)
                     {
-                        pValues[iter].int_1 = ((TString*) tokens->At(num++))->Atoi();
-                        pValues[iter].int_2 = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].int_1 = ((TObjString*) tokens->At(num++))->GetString().Atoi();
+                        pValues[iter].int_2 = ((TObjString*) tokens->At(num++))->GetString().Atoi();
                     }
                     tokens->Delete();
 
@@ -2539,17 +2540,17 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     if (isSerialChannel)
                     {
                         // get serial number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        serial_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        serial_number = item->GetString().Atoi();
                         // get channel number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        channel_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        channel_number = item->GetString().Atoi();
                     }
 
                     int iter = 0;
                     int* pValues = new int[size_arr];
                     for (int num = count_required-1; num < value_count; num++,iter++)
-                        pValues[iter] = ((TString*) tokens->At(num))->Atoi();
+                        pValues[iter] = ((TObjString*) tokens->At(num))->GetString().Atoi();
                     tokens->Delete();
 
                     if (isSerialChannel)
@@ -2578,17 +2579,17 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     if (isSerialChannel)
                     {
                         // get serial number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        serial_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        serial_number = item->GetString().Atoi();
                         // get channel number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        channel_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        channel_number = item->GetString().Atoi();
                     }
 
                     int iter = 0;
                     double* pValues = new double[size_arr];
                     for (int num = count_required-1; num < value_count; num++, iter++)
-                        pValues[iter] = ((TString*) tokens->At(num))->Atof();
+                        pValues[iter] = ((TObjString*) tokens->At(num))->GetString().Atof();
                     tokens->Delete();
 
                     if (isSerialChannel)
@@ -2617,17 +2618,17 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     if (isSerialChannel)
                     {
                         // get serial number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        serial_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        serial_number = item->GetString().Atoi();
                         // get channel number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        channel_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        channel_number = item->GetString().Atoi();
                     }
 
                     int iter = 0;
                     unsigned int* pValues = new unsigned int[size_arr];
                     for (int num = count_required-1; num < value_count; num++, iter++)
-                        pValues[iter] = (unsigned int) ((TString*) tokens->At(num))->Atoll();
+                        pValues[iter] = (unsigned int) ((TObjString*) tokens->At(num))->GetString().Atoll();
                     tokens->Delete();
 
                     if (isSerialChannel)
@@ -2653,23 +2654,23 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     if (isSerialChannel)
                     {
                         // get serial number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        serial_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        serial_number = item->GetString().Atoi();
                         // get channel number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        channel_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        channel_number = item->GetString().Atoi();
                     }
 
                     int iter = 0, num = count_required-6;
                     DchMapStructure* pValues = new DchMapStructure[size_arr];
                     for (; iter < size_arr; iter++)
                     {
-                        pValues[iter].plane = ((TString*) tokens->At(num++))->Atoi();
-                        pValues[iter].group = ((TString*) tokens->At(num++))->Atoi();
-                        pValues[iter].crate = (unsigned int) ((TString*) tokens->At(num++))->Atoll();
-                        pValues[iter].slot = ((TString*) tokens->At(num++))->Atoi();
-                        pValues[iter].channel_low = ((TString*) tokens->At(num++))->Atoi();
-                        pValues[iter].channel_high = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].plane = ((TObjString*) tokens->At(num++))->GetString().Atoi();
+                        pValues[iter].group = ((TObjString*) tokens->At(num++))->GetString().Atoi();
+                        pValues[iter].crate = (unsigned int) ((TObjString*) tokens->At(num++))->GetString().Atoll();
+                        pValues[iter].slot = ((TObjString*) tokens->At(num++))->GetString().Atoi();
+                        pValues[iter].channel_low = ((TObjString*) tokens->At(num++))->GetString().Atoi();
+                        pValues[iter].channel_high = ((TObjString*) tokens->At(num++))->GetString().Atoi();
                     }
                     tokens->Delete();
 
@@ -2696,23 +2697,23 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     if (isSerialChannel)
                     {
                         // get serial number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        serial_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        serial_number = item->GetString().Atoi();
                         // get channel number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        channel_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        channel_number = item->GetString().Atoi();
                     }
 
                     int iter = 0, num = count_required-6;
                     GemMapStructure* pValues = new GemMapStructure[size_arr];
                     for (; iter < size_arr; iter++)
                     {
-                        pValues[iter].serial = (unsigned int) ((TString*) tokens->At(num++))->Atoll();
-                        pValues[iter].id = ((TString*) tokens->At(num++))->Atoi();
-                        pValues[iter].station = ((TString*) tokens->At(num++))->Atoi();
-                        pValues[iter].channel_low = ((TString*) tokens->At(num++))->Atoi();
-                        pValues[iter].channel_high = ((TString*) tokens->At(num++))->Atoi();
-                        pValues[iter].hotZone = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].serial = (unsigned int) ((TObjString*) tokens->At(num++))->GetString().Atoll();
+                        pValues[iter].id = ((TObjString*) tokens->At(num++))->GetString().Atoi();
+                        pValues[iter].station = ((TObjString*) tokens->At(num++))->GetString().Atoi();
+                        pValues[iter].channel_low = ((TObjString*) tokens->At(num++))->GetString().Atoi();
+                        pValues[iter].channel_high = ((TObjString*) tokens->At(num++))->GetString().Atoi();
+                        pValues[iter].hotZone = ((TObjString*) tokens->At(num++))->GetString().Atoi();
                     }
                     tokens->Delete();
 
@@ -2739,21 +2740,21 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     if (isSerialChannel)
                     {
                         // get serial number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        serial_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        serial_number = item->GetString().Atoi();
                         // get channel number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        channel_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        channel_number = item->GetString().Atoi();
                     }
 
                     int iter = 0, num = count_required-4;
                     GemPedestalStructure* pValues = new GemPedestalStructure[size_arr];
                     for (; iter < size_arr; iter++)
                     {
-                        pValues[iter].serial = (unsigned int) ((TString*) tokens->At(num++))->Atoll();
-                        pValues[iter].channel = ((TString*) tokens->At(num++))->Atoi();
-                        pValues[iter].pedestal = ((TString*) tokens->At(num++))->Atoi();
-                        pValues[iter].noise = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].serial = (unsigned int) ((TObjString*) tokens->At(num++))->GetString().Atoll();
+                        pValues[iter].channel = ((TObjString*) tokens->At(num++))->GetString().Atoi();
+                        pValues[iter].pedestal = ((TObjString*) tokens->At(num++))->GetString().Atoi();
+                        pValues[iter].noise = ((TObjString*) tokens->At(num++))->GetString().Atoi();
                     }
                     tokens->Delete();
 
@@ -2780,20 +2781,20 @@ int UniDbDetectorParameter::ParseTxt(TString text_file, TString detector_name, T
                     if (isSerialChannel)
                     {
                         // get serial number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        serial_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        serial_number = item->GetString().Atoi();
                         // get channel number
-                        item = (TString*) tokens->At(cur_num_item++);
-                        channel_number = item->Atoi();
+                        item = (TObjString*) tokens->At(cur_num_item++);
+                        channel_number = item->GetString().Atoi();
                     }
 
                     int iter = 0, num = count_required-3;
                     TriggerMapStructure* pValues = new TriggerMapStructure[size_arr];
                     for (; iter < size_arr; iter++)
                     {
-                        pValues[iter].serial = (unsigned int) ((TString*) tokens->At(num++))->Atoll();
-                        pValues[iter].slot = (unsigned int) ((TString*) tokens->At(num++))->Atoll();
-                        pValues[iter].channel = ((TString*) tokens->At(num++))->Atoi();
+                        pValues[iter].serial = (unsigned int) ((TObjString*) tokens->At(num++))->GetString().Atoll();
+                        pValues[iter].slot = (unsigned int) ((TObjString*) tokens->At(num++))->GetString().Atoll();
+                        pValues[iter].channel = ((TObjString*) tokens->At(num++))->GetString().Atoi();
                     }
                     tokens->Delete();
 

@@ -43,8 +43,8 @@ void Raw2Digit(char *fname="bmn_run0815.root", int RunPeriod = 5) {
     }
     else
     {
-	TOF2.SetW(2500,3300); // good peak
-	TOF2.SetWT0(400,600); // run 834
+	TOF2.SetW(2500,3300); // run 834...
+	TOF2.SetWT0(400,600); // run 834...
 	for (int i=1; i<=15; i++) if (!(i==1||i==4||i==7||i==10||i==13)) TOF2.SetLeadMinMax(i,-5200, -4800);  // run 834
 	for (int i=1; i<=15; i++) if (  i==1||i==4||i==7||i==10||i==13)  TOF2.SetLeadMinMax(i,-13200, -12800); // run 834
     }
@@ -84,7 +84,6 @@ void Raw2Digit(char *fname="bmn_run0815.root", int RunPeriod = 5) {
 
         sync_raw->Clear();
 	t0_raw->Clear();
-        tof1_raw->Clear();
 	tof2_raw->Clear();
 	zdc_raw->Clear();
 

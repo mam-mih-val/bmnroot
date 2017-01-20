@@ -89,8 +89,6 @@ void Results_TOF700(char *fname = "../raw/bmn_run0834_digit.root") {
 	    smax[i] = -1;
 	}
 
-	if (tof700Digits->GetEntriesFast()) ntot++;
-
 	for (Int_t iDig = 0; iDig < tof700Digits->GetEntriesFast(); ++iDig) {
     	    BmnTof2Digit *digit = (BmnTof2Digit*) tof700Digits->At(iDig);
     	    if (digit == NULL) continue;
@@ -125,7 +123,6 @@ void Results_TOF700(char *fname = "../raw/bmn_run0834_digit.root") {
     } // event loop
 
 
-    for (int i=0; i<npairs; i++) FitIn(hdiff[i], -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htime[i], -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htimemax[i], -0.2, +0.2);
 

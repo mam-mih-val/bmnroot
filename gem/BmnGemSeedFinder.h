@@ -27,14 +27,14 @@ public:
     BmnGemSeedFinder();
     virtual ~BmnGemSeedFinder();
     void SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal);
-    Bool_t CalculateTrackParamsSpiral(BmnGemTrack* tr, TVector3* spirPar, TVector3* linePar, Short_t q);
+    Bool_t CalculateTrackParamsSpiral(BmnGemTrack* tr);
     Bool_t CalculateTrackParamsParabolicSpiral(BmnGemTrack* tr, TLorentzVector* spirPar, TVector3* linePar, Short_t q);
 
     BmnStatus FindSeeds(vector<BmnGemTrack>& cand);
-    BmnStatus FitSeeds(vector<BmnGemTrack> cand, TClonesArray* arr);
+    BmnStatus FitSeeds(vector<BmnGemTrack> cand);
     BmnStatus CalculateTrackParamsLine(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsCircle(BmnGemTrack* tr);
-
+    
     void SetHitsUnused(BmnGemTrack* tr);
 
     void FillAddr();
@@ -71,6 +71,20 @@ public:
     void SetTarget(Bool_t f) {
         fIsTarget = f;
     }
+    
+    void SetXRange(Float_t xMin, Float_t xMax) {
+        fXmax = xMax;
+        fXmin = xMin;
+    }
+    
+    void SetYRange(Float_t yMin, Float_t yMax) {
+        fYmax = yMax;
+        fYmin = yMin;
+    }
+    
+    void AddStationToSkip(Short_t st) {
+        skipStations.push_back(st);
+    }
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
@@ -97,6 +111,14 @@ private:
     Float_t fWidth;
 
     UInt_t fEventNo; // event counter
+    
+    //ranges for seed finder
+    Float_t fXmin;
+    Float_t fXmax;
+    Float_t fYmin;
+    Float_t fYmax;
+    
+    vector<Short_t> skipStations;
 
     TClonesArray* fGemHitsArray;
     TClonesArray* fGemSeedsArray;

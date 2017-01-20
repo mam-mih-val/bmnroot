@@ -154,7 +154,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ====================================================================== //
     
     //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016;      // RunSummer2016 config (GEM_RunSummer2016.root))
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunWinter2016;      // RunWinter2016 config (GEM_RunWinter2016.root))
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunWinter2016; // RunWinter2016 config (GEM_RunWinter2016.root))
     
     if (!isExp) {
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
@@ -165,7 +165,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-    gemHM->SetAlignmentCorrections("alignCorrs.root");
+    gemHM->SetAlignmentCorrections("alignCorrs_18ene.root");
     gemHM->SetHitMatching(kTRUE);
     fRun->AddTask(gemHM);
 
@@ -194,20 +194,25 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     gemSF->SetUseLorentz(kTRUE);
     gemSF->SetField(isField);
     gemSF->SetTarget(isTarget);
+    gemSF->SetXRange(0.0, 100.0);
+    gemSF->SetYRange(-3.0, 3.0);
+    gemSF->AddStationToSkip(0);
+    gemSF->AddStationToSkip(1);
+    gemSF->AddStationToSkip(2);
     fRun->AddTask(gemSF);
 
-    BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
-    gemTF->SetField(isField);
-    fRun->AddTask(gemTF);
+//    BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
+//    gemTF->SetField(isField);
+//    fRun->AddTask(gemTF);
 
     //    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
     //    glFinder->SetRun1(kRUN1);
     //    fRun->AddTask(glFinder);
 
     // -----   Primary vertex finding   ---------------------------------------
-    BmnGemVertexFinder* vf = new BmnGemVertexFinder();
-    vf->SetField(isField);
-    fRun->AddTask(vf);
+//    BmnGemVertexFinder* vf = new BmnGemVertexFinder();
+//    vf->SetField(isField);
+//    fRun->AddTask(vf);
     // ------------------------------------------------------------------------
 
     // ====================================================================== //

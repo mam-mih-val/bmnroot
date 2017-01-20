@@ -12,6 +12,7 @@
 **/
 #include "FairEventManager.h"
 #include "constants.h"
+#include "../uni_db/function_set.h"
 
 #include "FairMCPointDraw.h"
 #include "FairMCTracks.h"
@@ -80,7 +81,8 @@ FairEventManager::FairEventManager()
    fEntryCount(0),
    isZDCModule(NULL),
    fgShowRecoPointsIsShow(false),
-   fgRedrawRecoPointsReqired(false)
+   fgRedrawRecoPointsReqired(false),
+   fLastUsedColor(2001)
 {
     fgRinstance = this;
 
@@ -105,7 +107,7 @@ void FairEventManager::InitColorStructure()
     cntSelectedColoring = 0;
     cntLevelColoring = 0;
 
-    if(ValidateXml(coloring_xml_path.Data(),coloring_xsd_path.Data())==true)
+    if (ValidateXml(coloring_xml_path.Data(),coloring_xsd_path.Data()) == true)
     {
         xmlNode* root_element = NULL;
         xmlSchemaPtr schema = NULL;
@@ -145,7 +147,8 @@ void FairEventManager::InitColorStructure()
             int i=0;
             while (cur_node)
             {
-                if (strcmp((char*)cur_node->name, "text") != 0)//skipping elements with no attributes
+                if ((strcmp((char*)cur_node->name, "text") != 0) //skipping elements with no attributes
+                   && (cur_node->type != XML_COMMENT_NODE))
                 {
                     xmlAttr* attribute = cur_node->properties;
                     while(attribute)
@@ -583,7 +586,62 @@ bool FairEventManager::ValidateXml(const char *XMLFileName, const char *XSDFileN
 // yellow, orange
 Int_t FairEventManager::GetColor(TString colorName)
 {
+    colorName = colorName.ReplaceAll(" ", "");
     colorName.ToLower();
+
+    // check if instead of color name we have an RGB triple
+    if (colorName.BeginsWith("rgb"))
+    {
+        // parse rgb triple
+        if (colorName < 6)
+        {
+            cout<<colorName<<" - RGB triple isn't correct. Color set to default blue"<<endl;
+            return 600;
+        }
+        TString triple = colorName(3, colorName.Length() - 3);
+        triple.Remove(TString::kLeading, '(');
+        triple.Remove(TString::kTrailing, ')');
+
+        int red_rgb = -1, green_rgb = -1, blue_rgb = -1;
+        if (triple[0] == '#')
+        {
+            if (triple < 7)
+            {
+                cout<<triple<<" - hex triple size after '#' isn't correct (should have 6 symbols). Color set to default blue"<<endl;
+                return 600;
+            }
+
+            TString str_red = triple(1,2);
+            TString str_green = triple(3,2);
+            TString str_blue = triple(5,2);
+            if ((!str_red.IsHex()) || (!str_green.IsHex()) || (!str_blue.IsHex()))
+            {
+                cout<<triple<<" - hex triple after '#' has not hex format. Color set to default blue"<<endl;
+                return 600;
+            }
+
+            red_rgb = hex_string_to_int(str_red.Data());
+            green_rgb = hex_string_to_int(str_green.Data());
+            blue_rgb = hex_string_to_int(str_blue.Data());
+        }
+        else
+        {
+            TObjArray* pRGB = triple.Tokenize(",");
+            if (pRGB->GetEntriesFast() < 3)
+            {
+                cout<<triple<<" - RGB string doesn't include color triple. Color set to default blue"<<endl;
+                return 600;
+            }
+            red_rgb = ((TObjString*)pRGB->At(0))->GetString().Atoi();
+            green_rgb = ((TObjString*)pRGB->At(1))->GetString().Atoi();
+            blue_rgb = ((TObjString*)pRGB->At(2))->GetString().Atoi();
+            delete pRGB;
+        }
+
+        Int_t ci = fLastUsedColor++;
+        new TColor(ci, red_rgb/255.0F, green_rgb/255.0F, blue_rgb/255.0F);
+        return ci;
+    }
 
     if (colorName == "white") return 0;
     else if (colorName == "black") return 1;
@@ -610,7 +668,7 @@ Int_t FairEventManager::GetColor(TString colorName)
     else if (colorName == "khaki") return 403;
     else
     {
-        std::cout<<colorName<<" not found. Color set to default blue" << std::endl;
+        cout<<colorName<<" not found. Color set to default blue"<<endl;
         return 600;
     }
 }

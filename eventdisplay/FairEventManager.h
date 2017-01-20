@@ -176,6 +176,9 @@ class FairEventManager : public TEveEventManager
     // maximum energy to cut particles by energy in selected event
     Float_t fEvtMaxEnergy; //!
 
+    // the last color indice of Color Creating from rgb triple
+    Int_t fLastUsedColor; //!
+
     // skeleton Singleton Instance
     static FairEventManager* fgRinstance; //!
 

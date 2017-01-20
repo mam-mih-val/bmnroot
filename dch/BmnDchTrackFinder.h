@@ -13,6 +13,7 @@
 
 #include "BmnDchDigit.h"
 #include "BmnDchTrack.h"
+#include "BmnMath.h"
 
 using namespace std;
 using namespace TMath;
@@ -156,9 +157,7 @@ private:
     Int_t single_ub1;
     Int_t single_vb1;
   
-    void fit_seg(Float_t*, Float_t*, Float_t*, Int_t, Int_t);
     void CreateDchTrack(Int_t, Float_t*, Float_t**, Int_t*);
-    void AssignTimesToWires(Short_t, Double_t, Int_t, Double_t*, Double_t*, Bool_t);
     void SelectLongestAndBestSegments(Int_t, Int_t*, Float_t**, Float_t*);
     void CompareDaDb(Float_t, Float_t&);
     void CompareDaDb(Float_t, Float_t&, Float_t&);

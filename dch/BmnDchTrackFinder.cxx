@@ -1,6 +1,4 @@
 #include <Rtypes.h>
-#include <TVector2.h>
-
 #include "BmnDchTrackFinder.h"
 
 BmnDchTrackFinder::BmnDchTrackFinder() :
@@ -53,7 +51,7 @@ single_vb1(0) {
     y1_slope_sh = 0.051;
     x2_slope_sh = -0.08;
     y2_slope_sh = 0.055;
-    
+
     scale = 0.5;
 }
 
@@ -67,32 +65,22 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
     cout << "Event number: " << fEventNo++ << endl;
 
     //temporary containers
-    // Order used: va1, vb1, ua1, ub1, ya1, yb1, xa1, xb1 (dch1) - va2, vb2, ua2, ub2, ya2, yb2, xa2, xb2 (dch2)
+    // Order used: va1, vb1, ua1, ub1, ya1, yb1, xa1, xb1 (dch1, 0 - 7) - va2, vb2, ua2, ub2, ya2, yb2, xa2, xb2 (dch2, 8 - 15)
     const Int_t nDim = 20;
     const Int_t nPlanes = 16; // Total number of planes in both DCHs (0-7, 8-15)
 
-    Double_t time_xa1[nDim] = {0.0}, time_xa2[nDim] = {0.0}, time_xb1[nDim] = {0.0}, time_xb2[nDim] = {0.0},
-    time_ya1[nDim] = {0.0}, time_ya2[nDim] = {0.0}, time_yb1[nDim] = {0.0}, time_yb2[nDim] = {0.0},
-    time_ua1[nDim] = {0.0}, time_ua2[nDim] = {0.0}, time_ub1[nDim] = {0.0}, time_ub2[nDim] = {0.0},
-    time_va1[nDim] = {0.0}, time_va2[nDim] = {0.0}, time_vb1[nDim] = {0.0}, time_vb2[nDim] = {0.0};
-
-    Double_t TimesDch[nPlanes][nDim] = {0.0};
-    Double_t WiresDch[nPlanes][nDim] = {0.0};
-
-    Double_t wirenr_xa1[nDim] = {0.0}, wirenr_xa2[nDim] = {0.0}, wirenr_xb1[nDim] = {0.0}, wirenr_xb2[nDim] = {0.0},
-    wirenr_ya1[nDim] = {0.0}, wirenr_ya2[nDim] = {0.0}, wirenr_yb1[nDim] = {0.0}, wirenr_yb2[nDim] = {0.0},
-    wirenr_ua1[nDim] = {0.0}, wirenr_ua2[nDim] = {0.0}, wirenr_ub1[nDim] = {0.0}, wirenr_ub2[nDim] = {0.0},
-    wirenr_va1[nDim] = {0.0}, wirenr_va2[nDim] = {0.0}, wirenr_vb1[nDim] = {0.0}, wirenr_vb2[nDim] = {0.0};
-
-    Bool_t used_xa1[nDim] = {kFALSE}, used_xa2[nDim] = {kFALSE}, used_xb1[nDim] = {kFALSE}, used_xb2[nDim] = {kFALSE},
-    used_ya1[nDim] = {kFALSE}, used_ya2[nDim] = {kFALSE}, used_yb1[nDim] = {kFALSE}, used_yb2[nDim] = {kFALSE},
-    used_ua1[nDim] = {kFALSE}, used_ua2[nDim] = {kFALSE}, used_ub1[nDim] = {kFALSE}, used_ub2[nDim] = {kFALSE},
-    used_va1[nDim] = {kFALSE}, used_va2[nDim] = {kFALSE}, used_vb1[nDim] = {kFALSE}, used_vb2[nDim] = {kFALSE};
-
-    Int_t it_xa1 = 0, it_xa2 = 0, it_xb1 = 0, it_xb2 = 0,
-            it_ya1 = 0, it_ya2 = 0, it_yb1 = 0, it_yb2 = 0,
-            it_ua1 = 0, it_ua2 = 0, it_ub1 = 0, it_ub2 = 0,
-            it_va1 = 0, it_va2 = 0, it_vb1 = 0, it_vb2 = 0;
+    Double_t times[nPlanes][nDim];
+    Double_t wires[nPlanes][nDim];
+    Int_t it[nPlanes];
+    Bool_t used[nPlanes][nDim];
+    for (Int_t iPlanes = 0; iPlanes < nPlanes; iPlanes++) {
+        it[iPlanes] = 0;
+        for (Int_t iDim = 0; iDim < nDim; iDim++) {
+            used[iPlanes][iDim] = kFALSE;
+            times[iPlanes][iDim] = 0.;
+            wires[iPlanes][iDim] = 0.;
+        }
+    }
 
     Bool_t goodEv = kTRUE;
     Bool_t written = kFALSE;
@@ -114,237 +102,40 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         if (!goodEv)
             return;
 
+        // Order used: va1(0), vb1(1), ua1(2), ub1(3), ya1(4), yb1(5), xa1(6), xb1(7) -> 
+        //             va2(8), vb2(9), ua2(10), ub2(11), ya2(12), yb2(13), xa2(14), xb2(15)
         Short_t plane = digit->GetPlane();
         Short_t wire = digit->GetWireNumber();
         Double_t time = digit->GetTime();
         Bool_t secondaries = kFALSE;
 
-        // AssignTimesToWires(wire, time, it_va1, wirenr_va1, time_va1, secondaries);
-        // Order used: va1, vb1, ua1, ub1, ya1, yb1, xa1, xb1 - va2, vb2, ua2, ub2, ya2, yb2, xa2, xb2
+        for (Int_t sec = 0; sec < it[plane] - 1; sec++)
+            if (wire == wires[plane][sec]) {
+                secondaries = kTRUE;
+                break;
+            }
 
-        switch (plane) {
-            case 0:
-                for (Int_t sec = 0; sec < it_va1 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_va1[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                      
-                if (it_va1 == 19 || secondaries)break;
-                wirenr_va1[it_va1] = digit->GetWireNumber();
-                time_va1[it_va1] = time;
-                it_va1++;
-                break;
+        if (it[plane] == (nDim - 1) || secondaries)
+            continue;
 
-            case 1:
+        wires[plane][it[plane]] = wire;
+        times[plane][it[plane]] = time;
+        it[plane]++;
+    }
 
-                for (Int_t sec = 0; sec < it_vb1 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_vb1[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                      
-                if (it_vb1 == 19 || secondaries)break;
-                wirenr_vb1[it_vb1] = digit->GetWireNumber();
-                time_vb1[it_vb1] = time;
-                it_vb1++;
-                break;
-            case 2:
-                for (Int_t sec = 0; sec < it_ua1 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_ua1[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                      
+    pair_v1 = Reconstruction(1, "v", pair_v1, it[0], it[1], wires[0], wires[1], times[0], times[1], used[0], used[1], v1_ab, sigm_v1_ab);
+    pair_u1 = Reconstruction(1, "u", pair_u1, it[2], it[3], wires[2], wires[3], times[2], times[3], used[2], used[3], u1_ab, sigm_u1_ab);
+    pair_y1 = Reconstruction(1, "y", pair_y1, it[4], it[5], wires[4], wires[5], times[4], times[5], used[4], used[5], y1_ab, sigm_y1_ab);
+    pair_x1 = Reconstruction(1, "x", pair_x1, it[6], it[7], wires[6], wires[7], times[6], times[7], used[6], used[7], x1_ab, sigm_x1_ab);
 
-                if (it_ua1 == 19 || secondaries)break;
-                wirenr_ua1[it_ua1] = digit->GetWireNumber();
-                time_ua1[it_ua1] = time;
-                it_ua1++;
-                break;
-            case 3:
-                for (Int_t sec = 0; sec < it_ub1 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_ub1[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                      
-
-                if (it_ub1 == 19 || secondaries)break;
-                wirenr_ub1[it_ub1] = digit->GetWireNumber();
-                time_ub1[it_ub1] = time;
-                it_ub1++;
-                break;
-            case 4:
-
-                for (Int_t sec = 0; sec < it_ya1 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_ya1[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                      
-                if (it_ya1 == 19 || secondaries)break;
-
-                wirenr_ya1[it_ya1] = digit->GetWireNumber();
-                time_ya1[it_ya1] = time;
-                it_ya1++;
-                break;
-            case 5:
-                for (Int_t sec = 0; sec < it_yb1 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_yb1[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                      
-                if (it_yb1 == 19 || secondaries)break;
-                wirenr_yb1[it_yb1] = digit->GetWireNumber();
-                time_yb1[it_yb1] = time;
-                it_yb1++;
-                break;
-            case 6:
-                for (Int_t sec = 0; sec < it_xa1 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_xa1[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondarx hits                                                                                                                      
-
-                if (it_xa1 == 19 || secondaries)break;
-                wirenr_xa1[it_xa1] = digit->GetWireNumber();
-                time_xa1[it_xa1] = time;
-                it_xa1++;
-                break;
-            case 7:
-                for (Int_t sec = 0; sec < it_xb1 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_xb1[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                      
-
-                if (it_xb1 == 19 || secondaries)break;
-                wirenr_xb1[it_xb1] = digit->GetWireNumber();
-                time_xb1[it_xb1] = time;
-                it_xb1++;
-                break;
-            case 8:
-                for (Int_t sec = 0; sec < it_va2 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_va2[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                      
-
-                if (it_va2 == 19 || secondaries)break;
-                wirenr_va2[it_va2] = digit->GetWireNumber();
-                time_va2[it_va2] = time;
-                it_va2++;
-                break;
-            case 9:
-                for (Int_t sec = 0; sec < it_vb2 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_vb2[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                       
-
-                if (it_vb2 == 19 || secondaries)break;
-                wirenr_vb2[it_vb2] = digit->GetWireNumber();
-                time_vb2[it_vb2] = time;
-                it_vb2++;
-                break;
-            case 10:
-                for (Int_t sec = 0; sec < it_ua2 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_ua2[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                       
-                if (it_ua2 == 19 || secondaries)break;
-                wirenr_ua2[it_ua2] = digit->GetWireNumber();
-                time_ua2[it_ua2] = time;
-                it_ua2++;
-                break;
-            case 11:
-                for (Int_t sec = 0; sec < it_ub2 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_ub2[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                      
-
-                if (it_ub2 == 19 || secondaries)break;
-                wirenr_ub2[it_ub2] = digit->GetWireNumber();
-                time_ub2[it_ub2] = time;
-                it_ub2++;
-                break;
-            case 12:
-                for (Int_t sec = 0; sec < it_ya2 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_ya2[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                       
-                // if (digit->GetWireNumber() == 111)break;
-                if (it_ya2 == 19 || secondaries)break;
-                wirenr_ya2[it_ya2] = digit->GetWireNumber();
-                time_ya2[it_ya2] = time;
-                it_ya2++;
-                break;
-            case 13:
-                for (Int_t sec = 0; sec < it_yb2 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_yb2[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondary hits                                                                                                                       
-
-                if (it_yb2 == 19 || secondaries)break;
-                wirenr_yb2[it_yb2] = digit->GetWireNumber();
-                time_yb2[it_yb2] = time;
-                it_yb2++;
-                break;
-            case 14:
-
-                for (Int_t sec = 0; sec < it_xa2 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_xa2[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondarx hits                                                                                                                      
-                if (it_xa2 == 19 || secondaries)break;
-                wirenr_xa2[it_xa2] = digit->GetWireNumber();
-                time_xa2[it_xa2] = time;
-                it_xa2++;
-                break;
-            case 15:
-                for (Int_t sec = 0; sec < it_xb2 - 1; sec++) {
-                    if (digit->GetWireNumber() == wirenr_xb2[sec]) {
-                        secondaries = kTRUE;
-                        break;
-                    }
-                }//skip secondarx hits                                                                                                                      
-                if (it_xb2 == 19 || secondaries)break;
-                wirenr_xb2[it_xb2] = digit->GetWireNumber();
-                time_xb2[it_xb2] = time;
-                it_xb2++;
-                break;
-        }
-    }//for digis in event iDig
-
-    pair_x1 = Reconstruction(1, "x", pair_x1, it_xa1, it_xb1, wirenr_xa1, wirenr_xb1, time_xa1, time_xb1, used_xa1, used_xb1, x1_ab, sigm_x1_ab);
-    pair_y1 = Reconstruction(1, "y", pair_y1, it_ya1, it_yb1, wirenr_ya1, wirenr_yb1, time_ya1, time_yb1, used_ya1, used_yb1, y1_ab, sigm_y1_ab);
-    pair_u1 = Reconstruction(1, "u", pair_u1, it_ua1, it_ub1, wirenr_ua1, wirenr_ub1, time_ua1, time_ub1, used_ua1, used_ub1, u1_ab, sigm_u1_ab);
-    pair_v1 = Reconstruction(1, "v", pair_v1, it_va1, it_vb1, wirenr_va1, wirenr_vb1, time_va1, time_vb1, used_va1, used_vb1, v1_ab, sigm_v1_ab);
-    
-    single_xa1 = ReconstructionSingle(1, "x", "a", single_xa1, it_xa1, wirenr_xa1, time_xa1, used_xa1, x1_single, sigm_x1_single);
-    single_xb1 = ReconstructionSingle(1, "x", "b", single_xb1, it_xb1, wirenr_xb1, time_xb1, used_xb1, x1_single, sigm_x1_single);
-    single_ya1 = ReconstructionSingle(1, "y", "a", single_ya1, it_ya1, wirenr_ya1, time_ya1, used_ya1, y1_single, sigm_y1_single);
-    single_yb1 = ReconstructionSingle(1, "y", "b", single_yb1, it_yb1, wirenr_yb1, time_yb1, used_yb1, y1_single, sigm_y1_single);
-    single_ua1 = ReconstructionSingle(1, "u", "a", single_ua1, it_ua1, wirenr_ua1, time_ua1, used_ua1, u1_single, sigm_u1_single);
-    single_ub1 = ReconstructionSingle(1, "u", "b", single_ub1, it_ub1, wirenr_ub1, time_ub1, used_ub1, u1_single, sigm_u1_single);
-    single_va1 = ReconstructionSingle(1, "v", "a", single_va1, it_va1, wirenr_va1, time_va1, used_va1, v1_single, sigm_v1_single);
-    single_vb1 = ReconstructionSingle(1, "v", "b", single_vb1, it_vb1, wirenr_vb1, time_vb1, used_vb1, v1_single, sigm_v1_single);
+    single_va1 = ReconstructionSingle(1, "v", "a", single_va1, it[0], wires[0], times[0], used[0], v1_single, sigm_v1_single);
+    single_vb1 = ReconstructionSingle(1, "v", "b", single_vb1, it[1], wires[1], times[1], used[1], v1_single, sigm_v1_single);
+    single_ua1 = ReconstructionSingle(1, "u", "a", single_ua1, it[2], wires[2], times[2], used[2], u1_single, sigm_u1_single);
+    single_ub1 = ReconstructionSingle(1, "u", "b", single_ub1, it[3], wires[3], times[3], used[3], u1_single, sigm_u1_single);
+    single_ya1 = ReconstructionSingle(1, "y", "a", single_ya1, it[4], wires[4], times[4], used[4], y1_single, sigm_y1_single);
+    single_yb1 = ReconstructionSingle(1, "y", "b", single_yb1, it[5], wires[5], times[5], used[5], y1_single, sigm_y1_single);
+    single_xa1 = ReconstructionSingle(1, "x", "a", single_xa1, it[6], wires[6], times[6], used[6], x1_single, sigm_x1_single);
+    single_xb1 = ReconstructionSingle(1, "x", "b", single_xb1, it[7], wires[7], times[7], used[7], x1_single, sigm_x1_single);
 
     nDC1_segments = BuildUVSegments(1, pair_u1, pair_v1, pair_x1, pair_y1, single_ua1, single_ub1, single_va1, single_vb1,
             x1_ab, y1_ab, u1_ab, v1_ab, sigm_x1_ab, sigm_y1_ab, sigm_u1_ab, sigm_v1_ab, rh_segDC1, rh_sigm_segDC1, u1_single, v1_single, sigm_u1_single, sigm_v1_single);
@@ -352,19 +143,19 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
     nDC1_segments = BuildXYSegments(1, pair_u1, pair_v1, pair_x1, pair_y1, single_xa1, single_xb1, single_ya1, single_yb1,
             x1_ab, y1_ab, u1_ab, v1_ab, sigm_x1_ab, sigm_y1_ab, sigm_u1_ab, sigm_v1_ab, rh_segDC1, rh_sigm_segDC1, x1_single, y1_single, sigm_x1_single, sigm_y1_single);
 
-    pair_x2 = Reconstruction(2, "x", pair_x2, it_xa2, it_xb2, wirenr_xa2, wirenr_xb2, time_xa2, time_xb2, used_xa2, used_xb2, x2_ab, sigm_x2_ab);
-    pair_y2 = Reconstruction(2, "y", pair_y2, it_ya2, it_yb2, wirenr_ya2, wirenr_yb2, time_ya2, time_yb2, used_ya2, used_yb2, y2_ab, sigm_y2_ab);
-    pair_u2 = Reconstruction(2, "u", pair_u2, it_ua2, it_ub2, wirenr_ua2, wirenr_ub2, time_ua2, time_ub2, used_ua2, used_ub2, u2_ab, sigm_u2_ab);
-    pair_v2 = Reconstruction(2, "v", pair_v2, it_va2, it_vb2, wirenr_va2, wirenr_vb2, time_va2, time_vb2, used_va2, used_vb2, v2_ab, sigm_v2_ab);
-    
-    single_xa2 = ReconstructionSingle(2, "x", "a", single_xa2, it_xa2, wirenr_xa2, time_xa2, used_xa2, x2_single, sigm_x2_single);
-    single_xb2 = ReconstructionSingle(2, "x", "b", single_xb2, it_xb2, wirenr_xb2, time_xb2, used_xb2, x2_single, sigm_x2_single);
-    single_ya2 = ReconstructionSingle(2, "y", "a", single_ya2, it_ya2, wirenr_ya2, time_ya2, used_ya2, y2_single, sigm_y2_single);
-    single_yb2 = ReconstructionSingle(2, "y", "b", single_yb2, it_yb2, wirenr_yb2, time_yb2, used_yb2, y2_single, sigm_y2_single);
-    single_ua2 = ReconstructionSingle(2, "u", "a", single_ua2, it_ua2, wirenr_ua2, time_ua2, used_ua2, u2_single, sigm_u2_single);
-    single_ub2 = ReconstructionSingle(2, "u", "b", single_ub2, it_ub2, wirenr_ub2, time_ub2, used_ub2, u2_single, sigm_u2_single);
-    single_va2 = ReconstructionSingle(2, "v", "a", single_va2, it_va2, wirenr_va2, time_va2, used_va2, v2_single, sigm_v2_single);
-    single_vb2 = ReconstructionSingle(2, "v", "b", single_vb2, it_vb2, wirenr_vb2, time_vb2, used_vb2, v2_single, sigm_v2_single);
+    pair_v2 = Reconstruction(2, "v", pair_v2, it[8], it[9], wires[8], wires[9], times[8], times[9], used[8], used[9], v2_ab, sigm_v2_ab);
+    pair_u2 = Reconstruction(2, "u", pair_u2, it[10], it[11], wires[10], wires[11], times[10], times[11], used[10], used[11], u2_ab, sigm_u2_ab);
+    pair_y2 = Reconstruction(2, "y", pair_y2, it[12], it[13], wires[12], wires[13], times[12], times[13], used[12], used[13], y2_ab, sigm_y2_ab);
+    pair_x2 = Reconstruction(2, "x", pair_x2, it[14], it[15], wires[14], wires[15], times[14], times[15], used[14], used[15], x2_ab, sigm_x2_ab);
+
+    single_va2 = ReconstructionSingle(2, "v", "a", single_va2, it[8], wires[8], times[8], used[8], v2_single, sigm_v2_single);
+    single_vb2 = ReconstructionSingle(2, "v", "b", single_vb2, it[9], wires[9], times[9], used[9], v2_single, sigm_v2_single);
+    single_ua2 = ReconstructionSingle(2, "u", "a", single_ua2, it[10], wires[10], times[10], used[10], u2_single, sigm_u2_single);
+    single_ub2 = ReconstructionSingle(2, "u", "b", single_ub2, it[11], wires[11], times[11], used[11], u2_single, sigm_u2_single);
+    single_ya2 = ReconstructionSingle(2, "y", "a", single_ya2, it[12], wires[12], times[12], used[12], y2_single, sigm_y2_single);
+    single_yb2 = ReconstructionSingle(2, "y", "b", single_yb2, it[13], wires[13], times[13], used[13], y2_single, sigm_y2_single);
+    single_xa2 = ReconstructionSingle(2, "x", "a", single_xa2, it[14], wires[14], times[14], used[14], x2_single, sigm_x2_single);
+    single_xb2 = ReconstructionSingle(2, "x", "b", single_xb2, it[15], wires[15], times[15], used[15], x2_single, sigm_x2_single);
 
     // Build segments
     nDC2_segments = BuildUVSegments(2, pair_u2, pair_v2, pair_x2, pair_y2, single_ua2, single_ub2, single_va2, single_vb2,
@@ -691,7 +482,7 @@ void BmnDchTrackFinder::FitDchSegments(Int_t dchID, Int_t* size_seg, Float_t** r
                 _rh_sigm_seg[i] = rh_sigm_seg[i][j];
             }
 
-            fit_seg(_rh_seg, _rh_sigm_seg, _par_ab, -1, -1); //usual fit without skipping any plane
+            fit_seg(z_loc, _rh_seg, _rh_sigm_seg, _par_ab, -1, -1); //usual fit without skipping any plane
             for (Int_t i = 0; i < 4; i++)
                 par_ab[i][j] = _par_ab[i];
 
@@ -745,20 +536,6 @@ void BmnDchTrackFinder::FitDchSegments(Int_t dchID, Int_t* size_seg, Float_t** r
     }
 }
 
-void BmnDchTrackFinder::AssignTimesToWires(Short_t wire, Double_t time, Int_t it, Double_t* wires, Double_t* times, Bool_t secondaries) {
-    for (Int_t sec = 0; sec < it - 1; sec++) {
-        if (wire == wires[sec]) {
-            secondaries = kTRUE;
-            break;
-        }
-    }//skip secondary hits                                                                                                                      
-    if (it == 19 || secondaries)
-        return;
-    wires[it] = wire;
-    times[it] = time;
-    it++;
-}
-
 void BmnDchTrackFinder::CompareDaDb(Float_t d, Float_t& ele) {
     ele = (d < 0.02) ? (0.08 * 0.08) :
             (d >= 0.02 && d < 0.1) ? (0.06 * 0.06) :
@@ -778,188 +555,22 @@ void BmnDchTrackFinder::CompareDaDb(Float_t d, Float_t& ele1, Float_t& ele2) {
 
 void BmnDchTrackFinder::SelectLongestAndBestSegments(Int_t dchID, Int_t* size_seg, Float_t** rh_seg, Float_t* chi2) {
     Int_t nDC_segments = (dchID == 1) ? nDC1_segments : nDC2_segments;
-    for (Int_t max_size = 8; max_size > 5; max_size--) {
-        //find longest and best chi2 seg
+    for (Int_t max_size = 8; max_size > 5; max_size--) 
         for (Int_t it1 = 0; it1 < nDC_segments; it1++) {
             if (size_seg[it1] != max_size)
                 continue;
             for (Int_t it2 = 0; it2 < nDC_segments; it2++) {
                 if (it2 == it1)
                     continue;
-                for (Int_t hit = 0; hit < 4; hit++) {
+                for (Int_t hit = 0; hit < 4; hit++) 
                     if (rh_seg[2 * hit][it1] == rh_seg[2 * hit][it2] &&
                             rh_seg[2 * hit + 1][it1] == rh_seg[2 * hit + 1][it2] &&
                             (chi2[it1] <= chi2[it2] || size_seg[it1] > size_seg[it2])) {
-                        chi2[it2] = 999; //mark seg as bad                                                                                                   
+                        chi2[it2] = 999.;                                                                                                   
                         break;
                     }
-                }//hit
             }
         }
-    }//max_size
-}
-
-void BmnDchTrackFinder::fit_seg(Float_t* rh_seg, Float_t* rh_sigm_seg, Float_t* par_ab, Int_t skip_first, Int_t skip_second) {
-    Double_t sqrt_2 = sqrt(2.);
-    //linear fit
-    Float_t A[4][4] = {
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0}
-    }; //coef matrix
-    Float_t f[4] = {0}; //free coef 
-    //      Float_t sigm_sq[8] = {1,1,1,1,1,1,1,1};
-    Int_t h[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-
-    for (Int_t i = 0; i < 4; i++) {
-        par_ab[i] = 999;
-    }
-
-    for (Int_t i = 0; i < 8; i++) {
-        h[i] = 1;
-        //out1<<"setting h[i]"<<endl;
-        if (i == skip_first || i == skip_second || Abs(rh_seg[i] + 999.) < FLT_EPSILON) {
-            h[i] = 0;
-        }
-    }//i
-
-    A[0][0] = 2 * z_loc[0] * z_loc[0] * h[0] / rh_sigm_seg[0] + z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6] +
-            2 * z_loc[1] * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7]; //aX_a
-
-    A[0][1] = 2 * z_loc[0] * h[0] / rh_sigm_seg[0] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6] +
-            2 * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7]; //bX_a
-
-    A[0][2] = z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] +
-            z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5]; //aY
-
-    A[0][3] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //bY_a
-
-    //dChi2/d_b_x
-
-    A[1][0] = 2 * z_loc[0] * h[0] / rh_sigm_seg[0] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6]
-            + 2 * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7];
-
-    A[1][1] = 2 * h[0] / rh_sigm_seg[0] + 1 * h[4] / rh_sigm_seg[4] + 1 * h[6] / rh_sigm_seg[6]
-            + 2 * h[1] / rh_sigm_seg[1] + 1 * h[5] / rh_sigm_seg[5] + 1 * h[7] / rh_sigm_seg[7]; //bX_a
-
-    A[1][2] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //aY_a
-
-    A[1][3] = 1 * h[7] / rh_sigm_seg[7] - 1 * h[5] / rh_sigm_seg[5] + 1 * h[6] / rh_sigm_seg[6] - 1 * h[4] / rh_sigm_seg[4]; //bY_a
-
-    //dChi2/da_y
-
-    A[2][0] = z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5]; //aX_a
-
-    A[2][1] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //bX_a
-
-    A[2][2] = 2 * z_loc[2] * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6]
-            + 2 * z_loc[3] * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7]; //aY_a
-
-    A[2][3] = 2 * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6]
-            + 2 * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7];
-
-    ////dChi2/db_y
-
-    A[3][0] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //aX_a
-
-    A[3][1] = 1 * h[6] / rh_sigm_seg[6] - 1 * h[4] / rh_sigm_seg[4] + 1 * h[7] / rh_sigm_seg[7] - 1 * h[5] / rh_sigm_seg[5]; //bX_a
-
-    A[3][2] = 2 * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6]
-            + 2 * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7]; //aY_a
-
-    A[3][3] = 2 * h[2] / rh_sigm_seg[2] + 1 * h[4] / rh_sigm_seg[4] + 1 * h[6] / rh_sigm_seg[6]
-            + 2 * h[3] / rh_sigm_seg[3] + 1 * h[5] / rh_sigm_seg[5] + 1 * h[7] / rh_sigm_seg[7]; //bY_a
-
-
-    //free coef
-
-    //dChi2/da_x
-
-    f[0] = 2 * z_loc[0] * rh_seg[0] * h[0] / rh_sigm_seg[0] + sqrt_2 * z_loc[6] * rh_seg[6] * h[6] / rh_sigm_seg[6] - sqrt_2 * z_loc[4] * rh_seg[4] * h[4] / rh_sigm_seg[4] +
-            2 * z_loc[1] * rh_seg[1] * h[1] / rh_sigm_seg[1] + sqrt_2 * z_loc[7] * rh_seg[7] * h[7] / rh_sigm_seg[7] - sqrt_2 * z_loc[5] * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
-    //dChi2/db_x
-    f[1] = 2 * rh_seg[0] * h[0] / rh_sigm_seg[0] + sqrt_2 * rh_seg[6] * h[6] / rh_sigm_seg[6] - sqrt_2 * rh_seg[4] * h[4] / rh_sigm_seg[4] +
-            2 * rh_seg[1] * h[1] / rh_sigm_seg[1] + sqrt_2 * rh_seg[7] * h[7] / rh_sigm_seg[7] - sqrt_2 * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
-    //dChi2/da_y
-    f[2] = 2 * z_loc[2] * rh_seg[2] * h[2] / rh_sigm_seg[2] + sqrt_2 * z_loc[6] * rh_seg[6] * h[6] / rh_sigm_seg[6] + sqrt_2 * z_loc[4] * rh_seg[4] * h[4] / rh_sigm_seg[4] +
-            2 * z_loc[3] * rh_seg[3] * h[3] / rh_sigm_seg[3] + sqrt_2 * z_loc[7] * rh_seg[7] * h[7] / rh_sigm_seg[7] + sqrt_2 * z_loc[5] * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
-    ////dChi2/db_y
-    f[3] = 2 * rh_seg[2] * h[2] / rh_sigm_seg[2] + sqrt_2 * rh_seg[6] * h[6] / rh_sigm_seg[6] + sqrt_2 * rh_seg[4] * h[4] / rh_sigm_seg[4] +
-            2 * rh_seg[3] * h[3] / rh_sigm_seg[3] + sqrt_2 * rh_seg[7] * h[7] / rh_sigm_seg[7] + sqrt_2 * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
-
-    //inverse the matrix
-
-    /**** Gaussian algorithm for 4x4 matrix inversion ****/
-    Int_t i1, j1, k1, l1;
-    Double_t factor;
-    Double_t temp[4];
-    Double_t b[4][4];
-    Double_t A0[4][4];
-
-    for (i1 = 0; i1 < 4; i1++) for (j1 = 0; j1 < 4; j1++) A0[i1][j1] = A[i1][j1];
-
-    // Set b to I
-    for (i1 = 0; i1 < 4; i1++) for (j1 = 0; j1 < 4; j1++)
-            if (i1 == j1) b[i1][j1] = 1.0;
-            else b[i1][j1] = 0.0;
-
-    for (i1 = 0; i1 < 4; i1++) {
-        for (j1 = i1 + 1; j1 < 4; j1++)
-            if (Abs(A[i1][i1]) < Abs(A[j1][i1])) {
-                for (l1 = 0; l1 < 4; l1++) temp[l1] = A[i1][l1];
-                for (l1 = 0; l1 < 4; l1++) A[i1][l1] = A[j1][l1];
-                for (l1 = 0; l1 < 4; l1++) A[j1][l1] = temp[l1];
-                for (l1 = 0; l1 < 4; l1++) temp[l1] = b[i1][l1];
-                for (l1 = 0; l1 < 4; l1++) b[i1][l1] = b[j1][l1];
-                for (l1 = 0; l1 < 4; l1++) b[j1][l1] = temp[l1];
-            }
-        factor = A[i1][i1];
-        for (j1 = 4 - 1; j1>-1; j1--) {
-            b[i1][j1] /= factor;
-            A[i1][j1] /= factor;
-        }
-        for (j1 = i1 + 1; j1 < 4; j1++) {
-            factor = -A[j1][i1];
-            for (k1 = 0; k1 < 4; k1++) {
-                A[j1][k1] += A[i1][k1] * factor;
-                b[j1][k1] += b[i1][k1] * factor;
-            }
-        }
-    }
-    for (i1 = 3; i1 > 0; i1--) {
-        for (j1 = i1 - 1; j1>-1; j1--) {
-            factor = -A[j1][i1];
-            for (k1 = 0; k1 < 4; k1++) {
-                A[j1][k1] += A[i1][k1] * factor;
-                b[j1][k1] += b[i1][k1] * factor;
-            }
-        }
-    }
-
-    Float_t sum;
-
-    Float_t A1[4][4] = {
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0},
-        {0, 0, 0, 0}
-    };
-
-    for (i1 = 0; i1 < 4; ++i1) for (j1 = 0; j1 < 4; ++j1) {
-            sum = 0;
-
-            for (k1 = 0; k1 < 4; ++k1)
-                sum += A0[i1][k1] * b[k1][j1];
-            A1[i1][j1] = sum;
-        }
-
-    for (i1 = 0; i1 < 4; i1++) {
-        par_ab[i1] = 0;
-        for (j1 = 0; j1 < 4; j1++) {
-            par_ab[i1] += b[i1][j1] * f[j1];
-        }
-    }
 }
 
 void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Float_t* chi2Arr, Float_t** parArr, Int_t* sizeArr) {
@@ -1326,13 +937,13 @@ Int_t BmnDchTrackFinder::Reconstruction(Int_t dchID, TString wire, Int_t pair, I
         Double_t* wirenr_a, Double_t* wirenr_b, Double_t* time_a, Double_t* time_b,
         Bool_t* used_a, Bool_t* used_b,
         Float_t** _ab, Float_t** sigm_ab) {
-    
+
     const Int_t arrIdxShift = (dchID == 2) ? 8 : 0;
     const Int_t arrIdxStart = (wire == "x") ? 0 : (wire == "y") ? 2 : (wire == "u") ? 4 : 6;
-    
+
     Float_t a_pm[2], b_pm[2];
 
-    for (Int_t i = 0; i < it_a; ++i) {
+    for (Int_t i = 0; i < it_a; ++i)
         for (Int_t j = 0; j < it_b; ++j) {
             if (pair > 48)
                 break;
@@ -1340,46 +951,46 @@ Int_t BmnDchTrackFinder::Reconstruction(Int_t dchID, TString wire, Int_t pair, I
                 continue;
             Int_t func_nr_a = -1;
             Int_t func_nr_b = -1;
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
+            for (Int_t t_it = 0; t_it < 4; t_it++)
                 if (time_a[i] >= t_dc[t_it][0 + arrIdxStart + arrIdxShift] && time_a[i] < t_dc[t_it + 1][0 + arrIdxStart + arrIdxShift]) {
                     func_nr_a = t_it;
                     break;
                 }
-            }
+
             Double_t time = time_a[i];
             Double_t d_a = 0;
             Double_t d_b = 0;
-            
-            if (func_nr_a == 1 || func_nr_a == 2) d_a = scale * (pol_par_dc[1][0][0 + arrIdxStart + arrIdxShift] + pol_par_dc[1][1][0 + arrIdxStart + arrIdxShift] * time + 
-                    pol_par_dc[1][2][0 + arrIdxStart + arrIdxShift] * Power(time, 2) + 
-                    pol_par_dc[1][3][0 + arrIdxStart + arrIdxShift] * Power(time, 3) + 
+
+            if (func_nr_a == 1 || func_nr_a == 2) d_a = scale * (pol_par_dc[1][0][0 + arrIdxStart + arrIdxShift] + pol_par_dc[1][1][0 + arrIdxStart + arrIdxShift] * time +
+                    pol_par_dc[1][2][0 + arrIdxStart + arrIdxShift] * Power(time, 2) +
+                    pol_par_dc[1][3][0 + arrIdxStart + arrIdxShift] * Power(time, 3) +
                     pol_par_dc[1][4][0 + arrIdxStart + arrIdxShift] * Power(time, 4));
-            
+
             else if (func_nr_a == 0) d_a = 0;
-            
-            else if (func_nr_a == 3) d_a = scale * (pol_par_dc[2][0][0 + arrIdxStart + arrIdxShift] + pol_par_dc[2][1][0 + arrIdxStart + arrIdxShift] * time + 
-                    pol_par_dc[2][2][0 + arrIdxStart + arrIdxShift] * Power(time, 2) + 
-                    pol_par_dc[2][3][0 + arrIdxStart + arrIdxShift] * Power(time, 3) + 
+
+            else if (func_nr_a == 3) d_a = scale * (pol_par_dc[2][0][0 + arrIdxStart + arrIdxShift] + pol_par_dc[2][1][0 + arrIdxStart + arrIdxShift] * time +
+                    pol_par_dc[2][2][0 + arrIdxStart + arrIdxShift] * Power(time, 2) +
+                    pol_par_dc[2][3][0 + arrIdxStart + arrIdxShift] * Power(time, 3) +
                     pol_par_dc[2][4][0 + arrIdxStart + arrIdxShift] * Power(time, 4));
 
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
+            for (Int_t t_it = 0; t_it < 4; t_it++) 
                 if (time_b[j] >= t_dc[t_it][1 + arrIdxStart + arrIdxShift] && time_b[j] < t_dc[t_it + 1][1 + arrIdxStart + arrIdxShift]) {
                     func_nr_b = t_it;
                     break;
                 }
-            }
+
             time = time_b[j];
 
-            if (func_nr_b == 1 || func_nr_b == 2) d_b = scale * (pol_par_dc[1][0][1 + arrIdxStart + arrIdxShift] + pol_par_dc[1][1][1 + arrIdxStart + arrIdxShift] * time + 
-                    pol_par_dc[1][2][1 + arrIdxStart + arrIdxShift] * Power(time, 2) + 
-                    pol_par_dc[1][3][1 + arrIdxStart + arrIdxShift] * Power(time, 3) + 
+            if (func_nr_b == 1 || func_nr_b == 2) d_b = scale * (pol_par_dc[1][0][1 + arrIdxStart + arrIdxShift] + pol_par_dc[1][1][1 + arrIdxStart + arrIdxShift] * time +
+                    pol_par_dc[1][2][1 + arrIdxStart + arrIdxShift] * Power(time, 2) +
+                    pol_par_dc[1][3][1 + arrIdxStart + arrIdxShift] * Power(time, 3) +
                     pol_par_dc[1][4][1 + arrIdxStart + arrIdxShift] * Power(time, 4));
-            
+
             else if (func_nr_b == 0) d_b = 0;
-            
-            else if (func_nr_b == 3) d_b = scale * (pol_par_dc[2][0][1 + arrIdxStart + arrIdxShift] + pol_par_dc[2][1][1 + arrIdxStart + arrIdxShift] * time + 
-                    pol_par_dc[2][2][1 + arrIdxStart + arrIdxShift] * Power(time, 2) + 
-                    pol_par_dc[2][3][1 + arrIdxStart + arrIdxShift] * Power(time, 3) + 
+
+            else if (func_nr_b == 3) d_b = scale * (pol_par_dc[2][0][1 + arrIdxStart + arrIdxShift] + pol_par_dc[2][1][1 + arrIdxStart + arrIdxShift] * time +
+                    pol_par_dc[2][2][1 + arrIdxStart + arrIdxShift] * Power(time, 2) +
+                    pol_par_dc[2][3][1 + arrIdxStart + arrIdxShift] * Power(time, 3) +
                     pol_par_dc[2][4][1 + arrIdxStart + arrIdxShift] * Power(time, 4));
 
             a_pm[0] = wirenr_a[i] - 119 + d_a;
@@ -1388,15 +999,13 @@ Int_t BmnDchTrackFinder::Reconstruction(Int_t dchID, TString wire, Int_t pair, I
             b_pm[1] = wirenr_b[j] - 118.5 - d_b;
 
             Double_t dmin = LDBL_MAX;
-            for (Int_t k = 0; k < 2; k++) {
-                for (Int_t m = 0; m < 2; m++) {
+            for (Int_t k = 0; k < 2; k++)
+                for (Int_t m = 0; m < 2; m++)
                     if (Abs(a_pm[k] - b_pm[m]) < dmin) {
                         dmin = Abs(a_pm[k] - b_pm[m]);
                         _ab[0][pair] = a_pm[k];
                         _ab[1][pair] = b_pm[m];
                     }
-                }
-            }
 
             CompareDaDb(d_a, sigm_ab[0][pair]);
             CompareDaDb(d_b, sigm_ab[1][pair]);
@@ -1406,20 +1015,19 @@ Int_t BmnDchTrackFinder::Reconstruction(Int_t dchID, TString wire, Int_t pair, I
             used_a[i] = kTRUE;
             used_b[j] = kTRUE;
         }
-    }
     return pair;
 }
 
 Int_t BmnDchTrackFinder::ReconstructionSingle(Int_t dchID, TString wire, TString lay, Int_t single, Int_t it,
         Double_t* wirenr, Double_t* time_, Bool_t* used,
         Float_t** _single, Float_t** sigm_single) {
-    
+
     const Int_t arrIdxStart = (wire == "x") ? 0 : (wire == "y") ? 2 : (wire == "u") ? 4 : 6;
-    
+
     const Int_t arrIdx1 = (lay == "a") ? 0 : 1;
     const Int_t arrIdx2 = (dchID == 2) ? 8 : 0;
     const Double_t coeff = (lay == "a") ? 119 : 118.5;
-        
+
     for (Int_t i = 0; i < it; ++i) {
         if (used[i])
             continue;
@@ -1434,16 +1042,16 @@ Int_t BmnDchTrackFinder::ReconstructionSingle(Int_t dchID, TString wire, TString
         Double_t time = time_[i];
         Double_t d = 0;
 
-        if (func_nr == 1 || func_nr == 2) d = scale * (pol_par_dc[1][0][0 + arrIdx1 + arrIdx2] + pol_par_dc[1][1][0 + arrIdx1 + arrIdx2] * time + 
-                    pol_par_dc[1][2][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 2) + 
-                    pol_par_dc[1][3][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 3) + 
-                    pol_par_dc[1][4][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 4));
-        
+        if (func_nr == 1 || func_nr == 2) d = scale * (pol_par_dc[1][0][0 + arrIdx1 + arrIdx2] + pol_par_dc[1][1][0 + arrIdx1 + arrIdx2] * time +
+                pol_par_dc[1][2][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 2) +
+                pol_par_dc[1][3][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 3) +
+                pol_par_dc[1][4][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 4));
+
         else if (func_nr == 0) d = 0;
-        
-        else if (func_nr == 3) d = scale * (pol_par_dc[2][0][0 + arrIdx1 + arrIdx2] + pol_par_dc[2][1][0 + arrIdx1 + arrIdx2] * time + 
-                pol_par_dc[2][2][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 2) + 
-                pol_par_dc[2][3][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 3) + 
+
+        else if (func_nr == 3) d = scale * (pol_par_dc[2][0][0 + arrIdx1 + arrIdx2] + pol_par_dc[2][1][0 + arrIdx1 + arrIdx2] * time +
+                pol_par_dc[2][2][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 2) +
+                pol_par_dc[2][3][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 3) +
                 pol_par_dc[2][4][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 4));
 
         _single[0 + arrIdx1][single] = wirenr[i] - coeff + d;
@@ -1451,8 +1059,8 @@ Int_t BmnDchTrackFinder::ReconstructionSingle(Int_t dchID, TString wire, TString
 
         CompareDaDb(d, sigm_single[0 + arrIdx1][single], sigm_single[0 + arrIdx1][single + 1]);
 
-        single += 2; 
-    } 
+        single += 2;
+    }
     return single;
 }
 ClassImp(BmnDchTrackFinder)

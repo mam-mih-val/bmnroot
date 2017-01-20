@@ -526,3 +526,165 @@ TVector3 CircleBy3Hit(BmnGemTrack* track, const BmnGemStripHit* h0, const BmnGem
     return TVector3(Zc, Xc, R);
 
 }
+// Пусть пока этот крокодил поживет здесь:)
+void fit_seg(Float_t* z_loc, Float_t* rh_seg, Float_t* rh_sigm_seg, Float_t* par_ab, Int_t skip_first, Int_t skip_second) {
+    Double_t sqrt_2 = sqrt(2.);
+    //linear fit
+    Float_t A[4][4] = {
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0}
+    }; //coef matrix
+    Float_t f[4] = {0}; //free coef 
+    //      Float_t sigm_sq[8] = {1,1,1,1,1,1,1,1};
+    Int_t h[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+    for (Int_t i = 0; i < 4; i++) 
+        par_ab[i] = 999;
+
+    for (Int_t i = 0; i < 8; i++) {
+        h[i] = 1;
+        //out1<<"setting h[i]"<<endl;
+        if (i == skip_first || i == skip_second || Abs(rh_seg[i] + 999.) < FLT_EPSILON) {
+            h[i] = 0;
+        }
+    }//i
+
+    A[0][0] = 2 * z_loc[0] * z_loc[0] * h[0] / rh_sigm_seg[0] + z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6] +
+            2 * z_loc[1] * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7]; //aX_a
+
+    A[0][1] = 2 * z_loc[0] * h[0] / rh_sigm_seg[0] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6] +
+            2 * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7]; //bX_a
+
+    A[0][2] = z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] +
+            z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5]; //aY
+
+    A[0][3] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //bY_a
+
+    //dChi2/d_b_x
+
+    A[1][0] = 2 * z_loc[0] * h[0] / rh_sigm_seg[0] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6]
+            + 2 * z_loc[1] * h[1] / rh_sigm_seg[1] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7];
+
+    A[1][1] = 2 * h[0] / rh_sigm_seg[0] + 1 * h[4] / rh_sigm_seg[4] + 1 * h[6] / rh_sigm_seg[6]
+            + 2 * h[1] / rh_sigm_seg[1] + 1 * h[5] / rh_sigm_seg[5] + 1 * h[7] / rh_sigm_seg[7]; //bX_a
+
+    A[1][2] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //aY_a
+
+    A[1][3] = 1 * h[7] / rh_sigm_seg[7] - 1 * h[5] / rh_sigm_seg[5] + 1 * h[6] / rh_sigm_seg[6] - 1 * h[4] / rh_sigm_seg[4]; //bY_a
+
+    //dChi2/da_y
+
+    A[2][0] = z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5]; //aX_a
+
+    A[2][1] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //bX_a
+
+    A[2][2] = 2 * z_loc[2] * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * z_loc[6] * h[6] / rh_sigm_seg[6]
+            + 2 * z_loc[3] * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * z_loc[7] * h[7] / rh_sigm_seg[7]; //aY_a
+
+    A[2][3] = 2 * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6]
+            + 2 * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7];
+
+    ////dChi2/db_y
+
+    A[3][0] = z_loc[6] * h[6] / rh_sigm_seg[6] - z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[7] * h[7] / rh_sigm_seg[7] - z_loc[5] * h[5] / rh_sigm_seg[5]; //aX_a
+
+    A[3][1] = 1 * h[6] / rh_sigm_seg[6] - 1 * h[4] / rh_sigm_seg[4] + 1 * h[7] / rh_sigm_seg[7] - 1 * h[5] / rh_sigm_seg[5]; //bX_a
+
+    A[3][2] = 2 * z_loc[2] * h[2] / rh_sigm_seg[2] + z_loc[4] * h[4] / rh_sigm_seg[4] + z_loc[6] * h[6] / rh_sigm_seg[6]
+            + 2 * z_loc[3] * h[3] / rh_sigm_seg[3] + z_loc[5] * h[5] / rh_sigm_seg[5] + z_loc[7] * h[7] / rh_sigm_seg[7]; //aY_a
+
+    A[3][3] = 2 * h[2] / rh_sigm_seg[2] + 1 * h[4] / rh_sigm_seg[4] + 1 * h[6] / rh_sigm_seg[6]
+            + 2 * h[3] / rh_sigm_seg[3] + 1 * h[5] / rh_sigm_seg[5] + 1 * h[7] / rh_sigm_seg[7]; //bY_a
+
+
+    //free coef
+
+    //dChi2/da_x
+
+    f[0] = 2 * z_loc[0] * rh_seg[0] * h[0] / rh_sigm_seg[0] + sqrt_2 * z_loc[6] * rh_seg[6] * h[6] / rh_sigm_seg[6] - sqrt_2 * z_loc[4] * rh_seg[4] * h[4] / rh_sigm_seg[4] +
+            2 * z_loc[1] * rh_seg[1] * h[1] / rh_sigm_seg[1] + sqrt_2 * z_loc[7] * rh_seg[7] * h[7] / rh_sigm_seg[7] - sqrt_2 * z_loc[5] * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
+    //dChi2/db_x
+    f[1] = 2 * rh_seg[0] * h[0] / rh_sigm_seg[0] + sqrt_2 * rh_seg[6] * h[6] / rh_sigm_seg[6] - sqrt_2 * rh_seg[4] * h[4] / rh_sigm_seg[4] +
+            2 * rh_seg[1] * h[1] / rh_sigm_seg[1] + sqrt_2 * rh_seg[7] * h[7] / rh_sigm_seg[7] - sqrt_2 * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
+    //dChi2/da_y
+    f[2] = 2 * z_loc[2] * rh_seg[2] * h[2] / rh_sigm_seg[2] + sqrt_2 * z_loc[6] * rh_seg[6] * h[6] / rh_sigm_seg[6] + sqrt_2 * z_loc[4] * rh_seg[4] * h[4] / rh_sigm_seg[4] +
+            2 * z_loc[3] * rh_seg[3] * h[3] / rh_sigm_seg[3] + sqrt_2 * z_loc[7] * rh_seg[7] * h[7] / rh_sigm_seg[7] + sqrt_2 * z_loc[5] * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
+    ////dChi2/db_y
+    f[3] = 2 * rh_seg[2] * h[2] / rh_sigm_seg[2] + sqrt_2 * rh_seg[6] * h[6] / rh_sigm_seg[6] + sqrt_2 * rh_seg[4] * h[4] / rh_sigm_seg[4] +
+            2 * rh_seg[3] * h[3] / rh_sigm_seg[3] + sqrt_2 * rh_seg[7] * h[7] / rh_sigm_seg[7] + sqrt_2 * rh_seg[5] * h[5] / rh_sigm_seg[5]; //j = nr of seg
+
+    //inverse the matrix
+
+    /**** Gaussian algorithm for 4x4 matrix inversion ****/
+    Int_t i1, j1, k1, l1;
+    Double_t factor;
+    Double_t temp[4];
+    Double_t b[4][4];
+    Double_t A0[4][4];
+
+    for (i1 = 0; i1 < 4; i1++) for (j1 = 0; j1 < 4; j1++) A0[i1][j1] = A[i1][j1];
+
+    // Set b to I
+    for (i1 = 0; i1 < 4; i1++) for (j1 = 0; j1 < 4; j1++)
+            if (i1 == j1) b[i1][j1] = 1.0;
+            else b[i1][j1] = 0.0;
+
+    for (i1 = 0; i1 < 4; i1++) {
+        for (j1 = i1 + 1; j1 < 4; j1++)
+            if (Abs(A[i1][i1]) < Abs(A[j1][i1])) {
+                for (l1 = 0; l1 < 4; l1++) temp[l1] = A[i1][l1];
+                for (l1 = 0; l1 < 4; l1++) A[i1][l1] = A[j1][l1];
+                for (l1 = 0; l1 < 4; l1++) A[j1][l1] = temp[l1];
+                for (l1 = 0; l1 < 4; l1++) temp[l1] = b[i1][l1];
+                for (l1 = 0; l1 < 4; l1++) b[i1][l1] = b[j1][l1];
+                for (l1 = 0; l1 < 4; l1++) b[j1][l1] = temp[l1];
+            }
+        factor = A[i1][i1];
+        for (j1 = 4 - 1; j1>-1; j1--) {
+            b[i1][j1] /= factor;
+            A[i1][j1] /= factor;
+        }
+        for (j1 = i1 + 1; j1 < 4; j1++) {
+            factor = -A[j1][i1];
+            for (k1 = 0; k1 < 4; k1++) {
+                A[j1][k1] += A[i1][k1] * factor;
+                b[j1][k1] += b[i1][k1] * factor;
+            }
+        }
+    }
+    for (i1 = 3; i1 > 0; i1--) {
+        for (j1 = i1 - 1; j1>-1; j1--) {
+            factor = -A[j1][i1];
+            for (k1 = 0; k1 < 4; k1++) {
+                A[j1][k1] += A[i1][k1] * factor;
+                b[j1][k1] += b[i1][k1] * factor;
+            }
+        }
+    }
+
+    Float_t sum;
+
+    Float_t A1[4][4] = {
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0}
+    };
+
+    for (i1 = 0; i1 < 4; ++i1) for (j1 = 0; j1 < 4; ++j1) {
+            sum = 0;
+
+            for (k1 = 0; k1 < 4; ++k1)
+                sum += A0[i1][k1] * b[k1][j1];
+            A1[i1][j1] = sum;
+        }
+
+    for (i1 = 0; i1 < 4; i1++) {
+        par_ab[i1] = 0;
+        for (j1 = 0; j1 < 4; j1++) {
+            par_ab[i1] += b[i1][j1] * f[j1];
+        }
+    }
+}

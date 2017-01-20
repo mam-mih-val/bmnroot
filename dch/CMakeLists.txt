@@ -18,6 +18,7 @@ ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/mcstack
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/dch
+${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )

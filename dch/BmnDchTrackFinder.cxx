@@ -53,6 +53,8 @@ single_vb1(0) {
     y1_slope_sh = 0.051;
     x2_slope_sh = -0.08;
     y2_slope_sh = 0.055;
+    
+    scale = 0.5;
 }
 
 BmnDchTrackFinder::~BmnDchTrackFinder() {
@@ -63,9 +65,6 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
     PrepareArraysToProcessEvent();
     cout << "\n======================== DCH track finder exec started =====================\n" << endl;
     cout << "Event number: " << fEventNo++ << endl;
-
-    Double_t sqrt_2 = sqrt(2.);
-    Double_t isqrt_2 = 1 / sqrt_2; //shift variables
 
     //temporary containers
     // Order used: va1, vb1, ua1, ub1, ya1, yb1, xa1, xb1 (dch1) - va2, vb2, ua2, ub2, ya2, yb2, xa2, xb2 (dch2)
@@ -286,7 +285,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                         break;
                     }
                 }//skip secondary hits                                                                                                                       
-                if (digit->GetWireNumber() == 111)break;
+                // if (digit->GetWireNumber() == 111)break;
                 if (it_ya2 == 19 || secondaries)break;
                 wirenr_ya2[it_ya2] = digit->GetWireNumber();
                 time_ya2[it_ya2] = time;
@@ -333,458 +332,19 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         }
     }//for digis in event iDig
 
-
-
-    Float_t xa1_pm[2] = {0.};
-    Float_t xb1_pm[2] = {0.};
-    Float_t ya1_pm[2] = {0.};
-    Float_t yb1_pm[2] = {0.};
-    Float_t ua1_pm[2] = {0.};
-    Float_t ub1_pm[2] = {0.};
-    Float_t va1_pm[2] = {0.};
-    Float_t vb1_pm[2] = {0.};
-
-    //   ---   X   ---
-    for (Int_t i = 0; i < it_xa1; ++i) {
-        for (Int_t j = 0; j < it_xb1; ++j) {
-            if (pair_x1 > 48)
-                break;
-            if ((wirenr_xa1[i] != wirenr_xb1[j] && wirenr_xa1[i] != wirenr_xb1[j] + 1))
-                continue;
-            Int_t func_nr_a = -1;
-            Int_t func_nr_b = -1;
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_xa1[i] >= t_dc[t_it][0] && time_xa1[i] < t_dc[t_it + 1][0]) {
-                    func_nr_a = t_it;
-                    break;
-                }
-            }
-            Double_t time_xa = time_xa1[i];
-            Double_t d_a = 0;
-            Double_t d_b = 0;
-            if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[0]*(pol_par_dc[1][0][0] + pol_par_dc[1][1][0] * time_xa + pol_par_dc[1][2][0] * time_xa * time_xa + pol_par_dc[1][3][0] * time_xa * time_xa * time_xa + pol_par_dc[1][4][0] * time_xa * time_xa * time_xa * time_xa);
-            else if (func_nr_a == 0) d_a = 0;
-            else if (func_nr_a == 3) d_a = scale[0]*(pol_par_dc[2][0][0] + pol_par_dc[2][1][0] * time_xa + pol_par_dc[2][2][0] * time_xa * time_xa + pol_par_dc[2][3][0] * time_xa * time_xa * time_xa + pol_par_dc[2][4][0] * time_xa * time_xa * time_xa * time_xa);
-
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_xb1[j] >= t_dc[t_it][1] && time_xb1[j] < t_dc[t_it + 1][1]) {
-                    func_nr_b = t_it;
-                    break;
-                }
-            }
-            time_xa = time_xb1[j];
-
-            if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[1]*(pol_par_dc[1][0][1] + pol_par_dc[1][1][1] * time_xa + pol_par_dc[1][2][1] * time_xa * time_xa + pol_par_dc[1][3][1] * time_xa * time_xa * time_xa + pol_par_dc[1][4][1] * time_xa * time_xa * time_xa * time_xa);
-            else if (func_nr_b == 0) d_b = 0;
-            else if (func_nr_b == 3) d_b = scale[1]*(pol_par_dc[2][0][1] + pol_par_dc[2][1][1] * time_xa + pol_par_dc[2][2][1] * time_xa * time_xa + pol_par_dc[2][3][1] * time_xa * time_xa * time_xa + pol_par_dc[2][4][1] * time_xa * time_xa * time_xa * time_xa);
-
-            xa1_pm[0] = wirenr_xa1[i] - 119 + d_a;
-            xa1_pm[1] = wirenr_xa1[i] - 119 - d_a;
-            xb1_pm[0] = wirenr_xb1[j] - 118.5 + d_b;
-            xb1_pm[1] = wirenr_xb1[j] - 118.5 - d_b;
-
-            Double_t dmin1 = 999;
-            for (Int_t k = 0; k < 2; k++) {
-                for (Int_t m = 0; m < 2; m++) {
-                    if (Abs(xa1_pm[k] - xb1_pm[m]) < dmin1) {
-                        dmin1 = Abs(xa1_pm[k] - xb1_pm[m]);
-                        x1_ab[0][pair_x1] = xa1_pm[k];
-                        x1_ab[1][pair_x1] = xb1_pm[m];
-                    }
-                }
-            }
-
-            CompareDaDb(d_a, sigm_x1_ab[0][pair_x1]);
-            CompareDaDb(d_b, sigm_x1_ab[1][pair_x1]);
-
-            pair_x1++;
-
-            used_xa1[i] = kTRUE;
-            used_xb1[j] = kTRUE;
-
-        }// j for2
-    } // i for1  X.
-
-
-    //reconstruct single X-plane hits
-
-    for (Int_t i = 0; i < it_xa1; ++i) {
-        if (used_xa1[i])
-            continue;
-
-        Int_t func_nr_a = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_xa1[i] >= t_dc[t_it][0] && time_xa1[i] < t_dc[t_it + 1][0]) {
-                func_nr_a = t_it;
-                break;
-            }
-        }
-        Double_t time_xa = time_xa1[i];
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-
-        if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[0]*(pol_par_dc[1][0][0] + pol_par_dc[1][1][0] * time_xa + pol_par_dc[1][2][0] * time_xa * time_xa + pol_par_dc[1][3][0] * time_xa * time_xa * time_xa + pol_par_dc[1][4][0] * time_xa * time_xa * time_xa * time_xa);
-        else if (func_nr_a == 0) d_a = 0;
-        else if (func_nr_a == 3) d_a = scale[0]*(pol_par_dc[2][0][0] + pol_par_dc[2][1][0] * time_xa + pol_par_dc[2][2][0] * time_xa * time_xa + pol_par_dc[2][3][0] * time_xa * time_xa * time_xa + pol_par_dc[2][4][0] * time_xa * time_xa * time_xa * time_xa);
-
-        x1_single[0][single_xa1] = wirenr_xa1[i] - 119 + d_a;
-        x1_single[0][single_xa1 + 1] = wirenr_xa1[i] - 119 - d_a;
-
-        CompareDaDb(d_a, sigm_x1_single[0][single_xa1], sigm_x1_single[0][single_xa1 + 1]);
-
-        single_xa1 += 2;
-    }//for single xa
-
-    for (Int_t j = 0; j < it_xb1; ++j) {
-        if (used_xb1[j]) continue;
-        Int_t func_nr_b = -1;
-
-        Double_t time_xa = time_xb1[j];
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_xb1[j] >= t_dc[t_it][1] && time_xb1[j] < t_dc[t_it + 1][1]) {
-                func_nr_b = t_it;
-                break;
-            }
-        }
-        time_xa = time_xb1[j];
-        if (func_nr_b == 1 || func_nr_b == 2)d_b = scale[1]*(pol_par_dc[1][0][1] + pol_par_dc[1][1][1] * time_xa + pol_par_dc[1][2][1] * time_xa * time_xa + pol_par_dc[1][3][1] * time_xa * time_xa * time_xa + pol_par_dc[1][4][1] * time_xa * time_xa * time_xa * time_xa);
-        else if (func_nr_b == 0)d_b = 0;
-        else if (func_nr_b == 3)d_b = scale[1]*(pol_par_dc[2][0][1] + pol_par_dc[2][1][1] * time_xa + pol_par_dc[2][2][1] * time_xa * time_xa + pol_par_dc[2][3][1] * time_xa * time_xa * time_xa + pol_par_dc[2][4][1] * time_xa * time_xa * time_xa * time_xa);
-        x1_single[1][single_xb1] = wirenr_xb1[j] - 118.5 + d_b;
-        x1_single[1][single_xb1 + 1] = wirenr_xb1[j] - 118.5 - d_b;
-
-        CompareDaDb(d_b, sigm_x1_single[1][single_xb1], sigm_x1_single[1][single_xb1 + 1]);
-        single_xb1 += 2;
-
-    } // i for1  X. 
-
-    //   ----   Y   ----
-
-    for (Int_t i = 0; i < it_ya1; ++i) {
-        for (Int_t j = 0; j < it_yb1; ++j) {
-            if (pair_y1 > 48)
-                break;
-            if ((wirenr_ya1[i] != wirenr_yb1[j] && wirenr_ya1[i] != wirenr_yb1[j] + 1)) continue;
-            Int_t func_nr_a = -1;
-            Int_t func_nr_b = -1;
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_ya1[i] >= t_dc[t_it][2] && time_ya1[i] < t_dc[t_it + 1][2]) {
-                    func_nr_a = t_it;
-                    break;
-                }
-            }
-            Double_t d_a = 0;
-            Double_t d_b = 0;
-
-            if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[2]*(pol_par_dc[1][0][2] + pol_par_dc[1][1][2] * time_ya1[i] + pol_par_dc[1][2][2] * time_ya1[i] * time_ya1[i] + pol_par_dc[1][3][2] * time_ya1[i] * time_ya1[i] * time_ya1[i] + pol_par_dc[1][4][2] * time_ya1[i] * time_ya1[i] * time_ya1[i] * time_ya1[i]);
-            else if (func_nr_a == 0) d_a = 0;
-            else if (func_nr_a == 3) d_a = scale[2]*(pol_par_dc[2][0][2] + pol_par_dc[2][1][2] * time_ya1[i] + pol_par_dc[2][2][2] * time_ya1[i] * time_ya1[i] + pol_par_dc[2][3][2] * time_ya1[i] * time_ya1[i] * time_ya1[i] + pol_par_dc[2][4][2] * time_ya1[i] * time_ya1[i] * time_ya1[i] * time_ya1[i]);
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_yb1[j] >= t_dc[t_it][3] && time_yb1[j] < t_dc[t_it + 1][3]) {
-                    func_nr_b = t_it;
-                    break;
-                }
-            }
-            if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[3]*(pol_par_dc[1][0][3] + pol_par_dc[1][1][3] * time_yb1[j] + pol_par_dc[1][2][3] * time_yb1[j] * time_yb1[j] + pol_par_dc[1][3][3] * time_yb1[j] * time_yb1[j] * time_yb1[j] + pol_par_dc[1][4][3] * time_yb1[j] * time_yb1[j] * time_yb1[j] * time_yb1[j]);
-            else if (func_nr_b == 0) d_b = 0;
-            else if (func_nr_b == 3) d_b = scale[3]*(pol_par_dc[2][0][3] + pol_par_dc[2][1][3] * time_yb1[j] + pol_par_dc[2][2][3] * time_yb1[j] * time_yb1[j] + pol_par_dc[2][3][3] * time_yb1[j] * time_yb1[j] * time_yb1[j] + pol_par_dc[2][4][3] * time_yb1[j] * time_yb1[j] * time_yb1[j] * time_yb1[j]);
-
-            ya1_pm[0] = wirenr_ya1[i] - 119 + d_a;
-            ya1_pm[1] = wirenr_ya1[i] - 119 - d_a;
-            yb1_pm[0] = wirenr_yb1[j] - 118.5 + d_b;
-            yb1_pm[1] = wirenr_yb1[j] - 118.5 - d_b;
-
-            Double_t dmin1 = 999;
-
-            for (Int_t k = 0; k < 2; k++) {
-                for (Int_t m = 0; m < 2; m++) {
-                    if (Abs(ya1_pm[k] - yb1_pm[m]) < dmin1) {
-                        dmin1 = Abs(ya1_pm[k] - yb1_pm[m]);
-                        y1_ab[0][pair_y1] = ya1_pm[k];
-                        y1_ab[1][pair_y1] = yb1_pm[m];
-                    }
-                }
-            }
-
-            CompareDaDb(d_a, sigm_y1_ab[0][pair_y1]);
-            CompareDaDb(d_b, sigm_y1_ab[1][pair_y1]);
-
-            pair_y1++;
-
-            used_ya1[i] = kTRUE;
-            used_yb1[j] = kTRUE;
-
-        }// j for2
-    } // i for1  Y.
-
-
-    //reconstruct single Y-plane hits
-    for (Int_t i = 0; i < it_ya1; ++i) {
-        if (used_ya1[i]) continue;
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-        Int_t func_nr_a = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_ya1[i] >= t_dc[t_it][2] && time_ya1[i] < t_dc[t_it + 1][2]) {
-                func_nr_a = t_it;
-                break;
-            }
-        }
-        if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[2]*(pol_par_dc[1][0][2] + pol_par_dc[1][1][2] * time_ya1[i] + pol_par_dc[1][2][2] * time_ya1[i] * time_ya1[i] + pol_par_dc[1][3][2] * time_ya1[i] * time_ya1[i] * time_ya1[i] + pol_par_dc[1][4][2] * time_ya1[i] * time_ya1[i] * time_ya1[i] * time_ya1[i]);
-        else if (func_nr_a == 0) d_a = 0;
-        else if (func_nr_a == 3) d_a = scale[2]*(pol_par_dc[2][0][2] + pol_par_dc[2][1][2] * time_ya1[i] + pol_par_dc[2][2][2] * time_ya1[i] * time_ya1[i] + pol_par_dc[2][3][2] * time_ya1[i] * time_ya1[i] * time_ya1[i] + pol_par_dc[2][4][2] * time_ya1[i] * time_ya1[i] * time_ya1[i] * time_ya1[i]);
-
-        y1_single[0][single_ya1] = wirenr_ya1[i] - 119 + d_a;
-        y1_single[0][single_ya1 + 1] = wirenr_ya1[i] - 119 - d_a;
-
-        CompareDaDb(d_a, sigm_y1_single[0][single_ya1], sigm_y1_single[0][single_ya1 + 1]);
-
-        single_ya1 += 2;
-    }//for single ya
-
-    for (Int_t j = 0; j < it_yb1; ++j) {
-        if (used_yb1[j])
-            continue;
-        Double_t time_ya = time_yb1[j];
-        Int_t func_nr_b = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_yb1[j] >= t_dc[t_it][3] && time_yb1[j] < t_dc[t_it + 1][3]) {
-                func_nr_b = t_it;
-                break;
-            }
-        }
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-        if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[3]*(pol_par_dc[1][0][3] + pol_par_dc[1][1][3] * time_yb1[j] + pol_par_dc[1][2][3] * time_yb1[j] * time_yb1[j] + pol_par_dc[1][3][3] * time_yb1[j] * time_yb1[j] * time_yb1[j] + pol_par_dc[1][4][3] * time_yb1[j] * time_yb1[j] * time_yb1[j] * time_yb1[j]);
-        else if (func_nr_b == 0) d_b = 0;
-        else if (func_nr_b == 3) d_b = scale[3]*(pol_par_dc[2][0][3] + pol_par_dc[2][1][3] * time_yb1[j] + pol_par_dc[2][2][3] * time_yb1[j] * time_yb1[j] + pol_par_dc[2][3][3] * time_yb1[j] * time_yb1[j] * time_yb1[j] + pol_par_dc[2][4][3] * time_yb1[j] * time_yb1[j] * time_yb1[j] * time_yb1[j]);
-        y1_single[1][single_yb1] = wirenr_yb1[j] - 118.5 + d_b;
-        y1_single[1][single_yb1 + 1] = wirenr_yb1[j] - 118.5 - d_b;
-
-        CompareDaDb(d_b, sigm_y1_single[1][single_yb1], sigm_y1_single[1][single_yb1 + 1]);
-
-        single_yb1 += 2;
-
-    } // i for1  Y.
-
-    //   ----   U   ---
-
-    for (Int_t i = 0; i < it_ua1; ++i) {
-        for (Int_t j = 0; j < it_ub1; ++j) {
-            if (pair_u1 > 48)
-                break;
-            if ((wirenr_ua1[i] != wirenr_ub1[j] && wirenr_ua1[i] != wirenr_ub1[j] + 1))
-                continue;
-            Double_t d_a = 0;
-            Double_t d_b = 0;
-
-            Int_t func_nr_a = -1;
-            Int_t func_nr_b = -1;
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_ua1[i] >= t_dc[t_it][4] && time_ua1[i] < t_dc[t_it + 1][4]) {
-                    func_nr_a = t_it;
-                    break;
-                }
-            }
-            if (func_nr_a == 0) d_a = 0;
-            else if (func_nr_a == 3) d_a = scale[4]*(pol_par_dc[2][0][4] + pol_par_dc[2][1][4] * time_ua1[i] + pol_par_dc[2][2][4] * time_ua1[i] * time_ua1[i] + pol_par_dc[2][3][4] * time_ua1[i] * time_ua1[i] * time_ua1[i] + pol_par_dc[2][4][4] * time_ua1[i] * time_ua1[i] * time_ua1[i] * time_ua1[i]);
-            else if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[4]*(pol_par_dc[1][0][4] + pol_par_dc[1][1][4] * time_ua1[i] + pol_par_dc[1][2][4] * time_ua1[i] * time_ua1[i] + pol_par_dc[1][3][4] * time_ua1[i] * time_ua1[i] * time_ua1[i] + pol_par_dc[1][4][4] * time_ua1[i] * time_ua1[i] * time_ua1[i] * time_ua1[i]);
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_ub1[j] >= t_dc[t_it][5] && time_ub1[j] < t_dc[t_it + 1][5]) {
-                    func_nr_b = t_it;
-                    break;
-                }
-            }
-
-            if (func_nr_b == 0) d_b = 0;
-            else if (func_nr_b == 3) d_b = scale[5]*(pol_par_dc[2][0][5] + pol_par_dc[2][1][5] * time_ub1[j] + pol_par_dc[2][2][5] * time_ub1[j] * time_ub1[j] + pol_par_dc[2][3][5] * time_ub1[j] * time_ub1[j] * time_ub1[j] + pol_par_dc[2][4][5] * time_ub1[j] * time_ub1[j] * time_ub1[j] * time_ub1[j]);
-            else if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[5]*(pol_par_dc[1][0][5] + pol_par_dc[1][1][5] * time_ub1[j] + pol_par_dc[1][2][5] * time_ub1[j] * time_ub1[j] + pol_par_dc[1][3][5] * time_ub1[j] * time_ub1[j] * time_ub1[j] + pol_par_dc[1][4][5] * time_ub1[j] * time_ub1[j] * time_ub1[j] * time_ub1[j]);
-            ua1_pm[0] = wirenr_ua1[i] - 119 + d_a;
-            ua1_pm[1] = wirenr_ua1[i] - 119 - d_a;
-            ub1_pm[0] = wirenr_ub1[j] - 118.5 + d_b;
-            ub1_pm[1] = wirenr_ub1[j] - 118.5 - d_b;
-            Double_t dmin1 = 999;
-
-            for (Int_t k = 0; k < 2; k++) {
-                for (Int_t m = 0; m < 2; m++) {
-                    if (Abs(ua1_pm[k] - ub1_pm[m]) < dmin1) {
-                        dmin1 = Abs(ua1_pm[k] - ub1_pm[m]);
-                        u1_ab[0][pair_u1] = ua1_pm[k];
-                        u1_ab[1][pair_u1] = ub1_pm[m];
-                    }
-                }
-            }
-
-            CompareDaDb(d_a, sigm_u1_ab[0][pair_u1]);
-            CompareDaDb(d_b, sigm_u1_ab[1][pair_u1]);
-
-            pair_u1++;
-            used_ua1[i] = kTRUE;
-            used_ub1[j] = kTRUE;
-        }// j for2
-    } // i for1  U.
-
-    //reconstruct single U-plane hits
-
-    for (Int_t i = 0; i < it_ua1; ++i) {
-        if (used_ua1[i])
-            continue;
-
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-        Int_t func_nr_a = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_ua1[i] >= t_dc[t_it][4] && time_ua1[i] < t_dc[t_it + 1][4]) {
-                func_nr_a = t_it;
-                break;
-            }
-        }
-        if (func_nr_a == 0) d_a = 0;
-        else if (func_nr_a == 3) d_a = scale[4]*(pol_par_dc[2][0][4] + pol_par_dc[2][1][4] * time_ua1[i] + pol_par_dc[2][2][4] * time_ua1[i] * time_ua1[i] + pol_par_dc[2][3][4] * time_ua1[i] * time_ua1[i] * time_ua1[i] + pol_par_dc[2][4][4] * time_ua1[i] * time_ua1[i] * time_ua1[i] * time_ua1[i]);
-        else if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[4]*(pol_par_dc[1][0][4] + pol_par_dc[1][1][4] * time_ua1[i] + pol_par_dc[1][2][4] * time_ua1[i] * time_ua1[i] + pol_par_dc[1][3][4] * time_ua1[i] * time_ua1[i] * time_ua1[i] + pol_par_dc[1][4][4] * time_ua1[i] * time_ua1[i] * time_ua1[i] * time_ua1[i]);
-
-        u1_single[0][single_ua1] = (wirenr_ua1[i] - 119 + d_a);
-        u1_single[0][single_ua1 + 1] = (wirenr_ua1[i] - 119 - d_a);
-
-        CompareDaDb(d_a, sigm_u1_single[0][single_ua1], sigm_u1_single[0][single_ua1 + 1]);
-
-        single_ua1 += 2;
-    }//for single ua
-
-    for (Int_t j = 0; j < it_ub1; ++j) {
-        if (used_ub1[j]) continue;
-        Int_t func_nr_b = -1;
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_ub1[j] >= t_dc[t_it][5] && time_ub1[j] < t_dc[t_it + 1][5]) {
-                func_nr_b = t_it;
-                break;
-            }
-        }
-        if (func_nr_b == 0) d_b = 0;
-        else if (func_nr_b == 3) d_b = scale[5]*(pol_par_dc[2][0][5] + pol_par_dc[2][1][5] * time_ub1[j] + pol_par_dc[2][2][5] * time_ub1[j] * time_ub1[j] + pol_par_dc[2][3][5] * time_ub1[j] * time_ub1[j] * time_ub1[j] + pol_par_dc[2][4][5] * time_ub1[j] * time_ub1[j] * time_ub1[j] * time_ub1[j]);
-        else if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[5]*(pol_par_dc[1][0][5] + pol_par_dc[1][1][5] * time_ub1[j] + pol_par_dc[1][2][5] * time_ub1[j] * time_ub1[j] + pol_par_dc[1][3][5] * time_ub1[j] * time_ub1[j] * time_ub1[j] + pol_par_dc[1][4][5] * time_ub1[j] * time_ub1[j] * time_ub1[j] * time_ub1[j]);
-        u1_single[1][single_ub1] = (wirenr_ub1[j] - 118.5 + d_b);
-        u1_single[1][single_ub1 + 1] = (wirenr_ub1[j] - 118.5 - d_b);
-
-        CompareDaDb(d_b, sigm_u1_single[1][single_ub1], sigm_u1_single[1][single_ub1 + 1]);
-        single_ub1 += 2;
-    } // i for1  U.
-
-    //   ----   V   ---
-    for (Int_t i = 0; i < it_va1; ++i) {
-        for (Int_t j = 0; j < it_vb1; ++j) {
-
-            if (pair_v1 > 48)
-                break;
-            if ((wirenr_va1[i] != wirenr_vb1[j] && wirenr_va1[i] != wirenr_vb1[j] + 1))
-                continue;
-
-            Double_t d_a = 0;
-            Double_t d_b = 0;
-
-            Int_t func_nr_a = -1;
-            Int_t func_nr_b = -1;
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_va1[i] >= t_dc[t_it][6] && time_va1[i] < t_dc[t_it + 1][6]) {
-                    func_nr_a = t_it;
-                    break;
-                }
-            }
-
-            if (func_nr_a == 0) d_a = 0;
-            else if (func_nr_a == 3) d_a = scale[6]*(pol_par_dc[2][0][6] + pol_par_dc[2][1][6] * time_va1[i] + pol_par_dc[2][2][6] * time_va1[i] * time_va1[i] + pol_par_dc[2][3][6] * time_va1[i] * time_va1[i] * time_va1[i] + pol_par_dc[2][4][6] * time_va1[i] * time_va1[i] * time_va1[i] * time_va1[i]);
-            else if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[6]*(pol_par_dc[1][0][6] + pol_par_dc[1][1][6] * time_va1[i] + pol_par_dc[1][2][6] * time_va1[i] * time_va1[i] + pol_par_dc[1][3][6] * time_va1[i] * time_va1[i] * time_va1[i] + pol_par_dc[1][4][6] * time_va1[i] * time_va1[i] * time_va1[i] * time_va1[i]);
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_vb1[j] >= t_dc[t_it][7] && time_vb1[j] < t_dc[t_it + 1][7]) {
-                    func_nr_b = t_it;
-                    break;
-                }
-            }
-
-            if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[7]*(pol_par_dc[1][0][7] + pol_par_dc[1][1][7] * time_vb1[j] + pol_par_dc[1][2][7] * time_vb1[j] * time_vb1[j] + pol_par_dc[1][3][7] * time_vb1[j] * time_vb1[j] * time_vb1[j] + pol_par_dc[1][4][7] * time_vb1[j] * time_vb1[j] * time_vb1[j] * time_vb1[j]);
-
-            else if (func_nr_b == 0) d_b = 0;
-            else if (func_nr_b == 3) d_b = scale[7]*(pol_par_dc[2][0][7] + pol_par_dc[2][1][7] * time_vb1[j] + pol_par_dc[2][2][7] * time_vb1[j] * time_vb1[j] + pol_par_dc[2][3][7] * time_vb1[j] * time_vb1[j] * time_vb1[j] + pol_par_dc[2][4][7] * time_vb1[j] * time_vb1[j] * time_vb1[j] * time_vb1[j]);
-
-            va1_pm[0] = wirenr_va1[i] - 119 + d_a;
-            va1_pm[1] = wirenr_va1[i] - 119 - d_a;
-            vb1_pm[0] = wirenr_vb1[j] - 118.5 + d_b;
-            vb1_pm[1] = wirenr_vb1[j] - 118.5 - d_b;
-            Double_t dmin1 = 999;
-
-            for (Int_t k = 0; k < 2; k++) {
-                for (Int_t m = 0; m < 2; m++) {
-                    if (Abs(va1_pm[k] - vb1_pm[m]) < dmin1) {
-                        dmin1 = Abs(va1_pm[k] - vb1_pm[m]);
-                        v1_ab[0][pair_v1] = va1_pm[k];
-                        v1_ab[1][pair_v1] = vb1_pm[m];
-                    }
-                }
-            }
-
-            CompareDaDb(d_a, sigm_v1_ab[0][pair_v1]);
-            CompareDaDb(d_b, sigm_v1_ab[1][pair_v1]);
-
-            pair_v1++;
-            used_va1[i] = kTRUE;
-            used_vb1[j] = kTRUE;
-
-        }// j for2
-    } // i for1  V.
-
-    //reconstruct single V-plane hits
-
-    for (Int_t i = 0; i < it_va1; ++i) {
-        if (used_va1[i])
-            continue;
-
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-        Int_t func_nr_a = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_va1[i] >= t_dc[t_it][6] && time_va1[i] < t_dc[t_it + 1][6]) {
-                func_nr_a = t_it;
-                break;
-            }
-        }
-        if (func_nr_a == 0) d_a = 0;
-        else if (func_nr_a == 3) d_a = scale[6]*(pol_par_dc[2][0][6] + pol_par_dc[2][1][6] * time_va1[i] + pol_par_dc[2][2][6] * time_va1[i] * time_va1[i] + pol_par_dc[2][3][6] * time_va1[i] * time_va1[i] * time_va1[i] + pol_par_dc[2][4][6] * time_va1[i] * time_va1[i] * time_va1[i] * time_va1[i]);
-        else if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[6]*(pol_par_dc[1][0][6] + pol_par_dc[1][1][6] * time_va1[i] + pol_par_dc[1][2][6] * time_va1[i] * time_va1[i] + pol_par_dc[1][3][6] * time_va1[i] * time_va1[i] * time_va1[i] + pol_par_dc[1][4][6] * time_va1[i] * time_va1[i] * time_va1[i] * time_va1[i]);
-
-        v1_single[0][single_va1] = wirenr_va1[i] - 119 + d_a;
-        v1_single[0][single_va1 + 1] = wirenr_va1[i] - 119 - d_a;
-
-        CompareDaDb(d_a, sigm_v1_single[0][single_va1], sigm_v1_single[0][single_va1 + 1]);
-
-        single_va1 += 2;
-    }//for single va
-
-    for (Int_t j = 0; j < it_vb1; ++j) {
-        if (used_vb1[j]) continue;
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-        Int_t func_nr_b = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_vb1[j] >= t_dc[t_it][7] && time_vb1[j] < t_dc[t_it + 1][7]) {
-                func_nr_b = t_it;
-                break;
-            }
-        }
-        if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[7]*(pol_par_dc[1][0][7] + pol_par_dc[1][1][7] * time_vb1[j] + pol_par_dc[1][2][7] * time_vb1[j] * time_vb1[j] + pol_par_dc[1][3][7] * time_vb1[j] * time_vb1[j] * time_vb1[j] + pol_par_dc[1][4][7] * time_vb1[j] * time_vb1[j] * time_vb1[j] * time_vb1[j]);
-        else if (func_nr_b == 0) d_b = 0;
-        else if (func_nr_b == 3) d_b = scale[7]*(pol_par_dc[2][0][7] + pol_par_dc[2][1][7] * time_vb1[j] + pol_par_dc[2][2][7] * time_vb1[j] * time_vb1[j] + pol_par_dc[2][3][7] * time_vb1[j] * time_vb1[j] * time_vb1[j] + pol_par_dc[2][4][7] * time_vb1[j] * time_vb1[j] * time_vb1[j] * time_vb1[j]);
-
-        v1_single[1][single_vb1] = wirenr_vb1[j] - 118.5 + d_b;
-        v1_single[1][single_vb1 + 1] = wirenr_vb1[j] - 118.5 - d_b;
-
-        CompareDaDb(d_b, sigm_v1_single[1][single_vb1], sigm_v1_single[1][single_vb1 + 1]);
-        single_vb1 += 2;
-
-    } // i for1  V.
+    pair_x1 = Reconstruction(1, "x", pair_x1, it_xa1, it_xb1, wirenr_xa1, wirenr_xb1, time_xa1, time_xb1, used_xa1, used_xb1, x1_ab, sigm_x1_ab);
+    pair_y1 = Reconstruction(1, "y", pair_y1, it_ya1, it_yb1, wirenr_ya1, wirenr_yb1, time_ya1, time_yb1, used_ya1, used_yb1, y1_ab, sigm_y1_ab);
+    pair_u1 = Reconstruction(1, "u", pair_u1, it_ua1, it_ub1, wirenr_ua1, wirenr_ub1, time_ua1, time_ub1, used_ua1, used_ub1, u1_ab, sigm_u1_ab);
+    pair_v1 = Reconstruction(1, "v", pair_v1, it_va1, it_vb1, wirenr_va1, wirenr_vb1, time_va1, time_vb1, used_va1, used_vb1, v1_ab, sigm_v1_ab);
+    
+    single_xa1 = ReconstructionSingle(1, "x", "a", single_xa1, it_xa1, wirenr_xa1, time_xa1, used_xa1, x1_single, sigm_x1_single);
+    single_xb1 = ReconstructionSingle(1, "x", "b", single_xb1, it_xb1, wirenr_xb1, time_xb1, used_xb1, x1_single, sigm_x1_single);
+    single_ya1 = ReconstructionSingle(1, "y", "a", single_ya1, it_ya1, wirenr_ya1, time_ya1, used_ya1, y1_single, sigm_y1_single);
+    single_yb1 = ReconstructionSingle(1, "y", "b", single_yb1, it_yb1, wirenr_yb1, time_yb1, used_yb1, y1_single, sigm_y1_single);
+    single_ua1 = ReconstructionSingle(1, "u", "a", single_ua1, it_ua1, wirenr_ua1, time_ua1, used_ua1, u1_single, sigm_u1_single);
+    single_ub1 = ReconstructionSingle(1, "u", "b", single_ub1, it_ub1, wirenr_ub1, time_ub1, used_ub1, u1_single, sigm_u1_single);
+    single_va1 = ReconstructionSingle(1, "v", "a", single_va1, it_va1, wirenr_va1, time_va1, used_va1, v1_single, sigm_v1_single);
+    single_vb1 = ReconstructionSingle(1, "v", "b", single_vb1, it_vb1, wirenr_vb1, time_vb1, used_vb1, v1_single, sigm_v1_single);
 
     nDC1_segments = BuildUVSegments(1, pair_u1, pair_v1, pair_x1, pair_y1, single_ua1, single_ub1, single_va1, single_vb1,
             x1_ab, y1_ab, u1_ab, v1_ab, sigm_x1_ab, sigm_y1_ab, sigm_u1_ab, sigm_v1_ab, rh_segDC1, rh_sigm_segDC1, u1_single, v1_single, sigm_u1_single, sigm_v1_single);
@@ -792,464 +352,24 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
     nDC1_segments = BuildXYSegments(1, pair_u1, pair_v1, pair_x1, pair_y1, single_xa1, single_xb1, single_ya1, single_yb1,
             x1_ab, y1_ab, u1_ab, v1_ab, sigm_x1_ab, sigm_y1_ab, sigm_u1_ab, sigm_v1_ab, rh_segDC1, rh_sigm_segDC1, x1_single, y1_single, sigm_x1_single, sigm_y1_single);
 
-
-    Float_t xa2_pm[2] = {0.};
-    Float_t xb2_pm[2] = {0.};
-    Float_t ya2_pm[2] = {0.};
-    Float_t yb2_pm[2] = {0.};
-    Float_t ua2_pm[2] = {0.};
-    Float_t ub2_pm[2] = {0.};
-    Float_t va2_pm[2] = {0.};
-    Float_t vb2_pm[2] = {0.};
-
-    //   ---   X   ---
-    for (Int_t i = 0; i < it_xa2; ++i) {
-        for (Int_t j = 0; j < it_xb2; ++j) {
-            if (pair_x2 > 48)
-                break;
-            if ((wirenr_xa2[i] != wirenr_xb2[j] && wirenr_xa2[i] != wirenr_xb2[j] + 1))
-                continue;
-            Int_t func_nr_a = -1;
-            Int_t func_nr_b = -1;
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_xa2[i] >= t_dc[t_it][8] && time_xa2[i] < t_dc[t_it + 1][8]) {
-                    func_nr_a = t_it;
-                    break;
-                }
-            }
-            Double_t time_xa = time_xa2[i];
-            Double_t d_a = 0;
-            Double_t d_b = 0;
-
-            if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[8]*(pol_par_dc[1][0][8] + pol_par_dc[1][1][8] * time_xa + pol_par_dc[1][2][8] * time_xa * time_xa + pol_par_dc[1][3][8] * time_xa * time_xa * time_xa + pol_par_dc[1][4][8] * time_xa * time_xa * time_xa * time_xa);
-            else if (func_nr_a == 0) d_a = 0;
-            else if (func_nr_a == 3) d_a = scale[8]*(pol_par_dc[2][0][8] + pol_par_dc[2][1][8] * time_xa + pol_par_dc[2][2][8] * time_xa * time_xa + pol_par_dc[2][3][8] * time_xa * time_xa * time_xa + pol_par_dc[2][4][8] * time_xa * time_xa * time_xa * time_xa);
-
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_xb2[j] >= t_dc[t_it][9] && time_xb2[j] < t_dc[t_it + 1][9]) {
-                    func_nr_b = t_it;
-                    break;
-                }
-            }
-            time_xa = time_xb2[j];
-
-            if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[9]*(pol_par_dc[1][0][9] + pol_par_dc[1][1][9] * time_xa + pol_par_dc[1][2][9] * time_xa * time_xa + pol_par_dc[1][3][9] * time_xa * time_xa * time_xa + pol_par_dc[1][4][9] * time_xa * time_xa * time_xa * time_xa);
-            else if (func_nr_b == 0) d_b = 0;
-            else if (func_nr_b == 3) d_b = scale[9]*(pol_par_dc[2][0][9] + pol_par_dc[2][1][9] * time_xa + pol_par_dc[2][2][9] * time_xa * time_xa + pol_par_dc[2][3][9] * time_xa * time_xa * time_xa + pol_par_dc[2][4][9] * time_xa * time_xa * time_xa * time_xa);
-
-            xa2_pm[0] = wirenr_xa2[i] - 119 + d_a;
-            xa2_pm[1] = wirenr_xa2[i] - 119 - d_a;
-            xb2_pm[0] = wirenr_xb2[j] - 118.5 + d_b;
-            xb2_pm[1] = wirenr_xb2[j] - 118.5 - d_b;
-
-            Double_t dmin1 = 999;
-            for (Int_t k = 0; k < 2; k++) {
-                for (Int_t m = 0; m < 2; m++) {
-                    if (Abs(xa2_pm[k] - xb2_pm[m]) < dmin1) {
-                        dmin1 = Abs(xa2_pm[k] - xb2_pm[m]);
-                        x2_ab[0][pair_x2] = xa2_pm[k];
-                        x2_ab[1][pair_x2] = xb2_pm[m];
-                    }
-                }
-            }
-
-            CompareDaDb(d_a, sigm_x2_ab[0][pair_x2]);
-            CompareDaDb(d_b, sigm_x2_ab[1][pair_x2]);
-
-            pair_x2++;
-            used_xa2[i] = kTRUE;
-            used_xb2[j] = kTRUE;
-        }// j for2
-    } // i for1  X.
-
-    //reconstruct single X-plane hits
-
-    for (Int_t i = 0; i < it_xa2; ++i) {
-        if (used_xa2[i])
-            continue;
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-
-        Int_t func_nr_a = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_xa2[i] >= t_dc[t_it][8] && time_xa2[i] < t_dc[t_it + 1][8]) {
-                func_nr_a = t_it;
-                break;
-            }
-        }
-        Double_t time_xa = time_xa2[i];
-        if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[8]*(pol_par_dc[1][0][8] + pol_par_dc[1][1][8] * time_xa + pol_par_dc[1][2][8] * time_xa * time_xa + pol_par_dc[1][3][8] * time_xa * time_xa * time_xa + pol_par_dc[1][4][8] * time_xa * time_xa * time_xa * time_xa);
-        else if (func_nr_a == 0)d_a = 0;
-        else if (func_nr_a == 3)d_a = scale[8]*(pol_par_dc[2][0][8] + pol_par_dc[2][1][8] * time_xa + pol_par_dc[2][2][8] * time_xa * time_xa + pol_par_dc[2][3][8] * time_xa * time_xa * time_xa + pol_par_dc[2][4][8] * time_xa * time_xa * time_xa * time_xa);
-
-        x2_single[0][single_xa2] = wirenr_xa2[i] - 118.5 + d_a;
-        x2_single[0][single_xa2 + 1] = wirenr_xa2[i] - 118.5 - d_a;
-
-        CompareDaDb(d_a, sigm_x2_single[0][single_xa2], sigm_x2_single[0][single_xa2 + 1]);
-
-        single_xa2 += 2;
-    }//for single xa
-
-    for (Int_t j = 0; j < it_xb2; ++j) {
-        if (used_xb2[j])
-            continue;
-        Int_t func_nr_b = -1;
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_xb2[j] >= t_dc[t_it][9] && time_xb2[j] < t_dc[t_it + 1][9]) {
-                func_nr_b = t_it;
-                break;
-            }
-        }
-        Double_t time_xa = time_xb2[j];
-        if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[9]*(pol_par_dc[1][0][9] + pol_par_dc[1][1][9] * time_xa + pol_par_dc[1][2][9] * time_xa * time_xa + pol_par_dc[1][3][9] * time_xa * time_xa * time_xa + pol_par_dc[1][4][9] * time_xa * time_xa * time_xa * time_xa);
-        else if (func_nr_b == 0) d_b = 0;
-        else if (func_nr_b == 3) d_b = scale[9]*(pol_par_dc[2][0][9] + pol_par_dc[2][1][9] * time_xa + pol_par_dc[2][2][9] * time_xa * time_xa + pol_par_dc[2][3][9] * time_xa * time_xa * time_xa + pol_par_dc[2][4][9] * time_xa * time_xa * time_xa * time_xa);
-
-        x2_single[1][single_xb2] = wirenr_xb2[j] - 118.5 + d_b;
-        x2_single[1][single_xb2 + 1] = wirenr_xb2[j] - 118.5 - d_b;
-
-        CompareDaDb(d_b, sigm_x2_single[1][single_xb2], sigm_x2_single[1][single_xb2 + 1]);
-        single_xb2 += 2;
-    }//j xb2
-
-    //------Y-------
-
-    for (Int_t i = 0; i < it_ya2; ++i) {
-        for (Int_t j = 0; j < it_yb2; ++j) {
-            if (pair_y2 > 48)
-                break;
-            if ((wirenr_ya2[i] != wirenr_yb2[j] && wirenr_ya2[i] != wirenr_yb2[j] + 1))
-                continue;
-            Double_t d_a = 0;
-            Double_t d_b = 0;
-
-            Int_t func_nr_a = -1;
-            Int_t func_nr_b = -1;
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_ya2[i] >= t_dc[t_it][10] && time_ya2[i] < t_dc[t_it + 1][10]) {
-                    func_nr_a = t_it;
-                    break;
-                }
-            }
-            if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[10]*(pol_par_dc[1][0][10] + pol_par_dc[1][1][10] * time_ya2[i] + pol_par_dc[1][2][10] * time_ya2[i] * time_ya2[i] + pol_par_dc[1][3][10] * time_ya2[i] * time_ya2[i] * time_ya2[i] + pol_par_dc[1][4][10] * time_ya2[i] * time_ya2[i] * time_ya2[i] * time_ya2[i]);
-            else if (func_nr_a == 0) d_a = 0;
-            else if (func_nr_a == 3) d_a = scale[10]*(pol_par_dc[2][0][10] + pol_par_dc[2][1][10] * time_ya2[i] + pol_par_dc[2][2][10] * time_ya2[i] * time_ya2[i] + pol_par_dc[2][3][10] * time_ya2[i] * time_ya2[i] * time_ya2[i] + pol_par_dc[2][4][10] * time_ya2[i] * time_ya2[i] * time_ya2[i] * time_ya2[i]);
-
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_yb2[j] >= t_dc[t_it][11] && time_yb2[j] < t_dc[t_it + 1][11]) {
-                    func_nr_b = t_it;
-                    break;
-                }
-            }
-            if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[11]*(pol_par_dc[1][0][11] + pol_par_dc[1][1][11] * time_yb2[j] + pol_par_dc[1][2][11] * time_yb2[j] * time_yb2[j] + pol_par_dc[1][3][11] * time_yb2[j] * time_yb2[j] * time_yb2[j] + pol_par_dc[1][4][11] * time_yb2[j] * time_yb2[j] * time_yb2[j] * time_yb2[j]);
-            else if (func_nr_b == 0) d_b = 0;
-            else if (func_nr_b == 3) d_b = scale[11]*(pol_par_dc[2][0][11] + pol_par_dc[2][1][11] * time_yb2[j] + pol_par_dc[2][2][11] * time_yb2[j] * time_yb2[j] + pol_par_dc[2][3][11] * time_yb2[j] * time_yb2[j] * time_yb2[j] + pol_par_dc[2][4][11] * time_yb2[j] * time_yb2[j] * time_yb2[j] * time_yb2[j]);
-
-            ya2_pm[0] = wirenr_ya2[i] - 119 + d_a;
-            ya2_pm[1] = wirenr_ya2[i] - 119 - d_a;
-            yb2_pm[0] = wirenr_yb2[j] - 118.5 + d_b;
-            yb2_pm[1] = wirenr_yb2[j] - 118.5 - d_b;
-
-
-            Double_t dmin1 = 999;
-            for (Int_t k = 0; k < 2; k++) {
-                for (Int_t m = 0; m < 2; m++) {
-                    if (Abs(ya2_pm[k] - yb2_pm[m]) < dmin1) {
-                        dmin1 = Abs(ya2_pm[k] - yb2_pm[m]);
-                        y2_ab[0][pair_y2] = ya2_pm[k];
-                        y2_ab[1][pair_y2] = yb2_pm[m];
-                    }
-                }
-            }
-
-            CompareDaDb(d_a, sigm_y2_ab[0][pair_y2]);
-            CompareDaDb(d_b, sigm_y2_ab[1][pair_y2]);
-
-            pair_y2++;
-            used_ya2[i] = kTRUE;
-            used_yb2[j] = kTRUE;
-
-        }// j for2
-    } // i for1  Y.
-
-    //reconstruct single Y-plane hits
-
-    for (Int_t i = 0; i < it_ya2; ++i) {
-        if (used_ya2[i])
-            continue;
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-
-        Int_t func_nr_a = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_ya2[i] >= t_dc[t_it][10] && time_ya2[i] < t_dc[t_it + 1][10]) {
-                func_nr_a = t_it;
-                break;
-            }
-        }
-        if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[10]*(pol_par_dc[1][0][10] + pol_par_dc[1][1][10] * time_ya2[i] + pol_par_dc[1][2][10] * time_ya2[i] * time_ya2[i] + pol_par_dc[1][3][10] * time_ya2[i] * time_ya2[i] * time_ya2[i] + pol_par_dc[1][4][10] * time_ya2[i] * time_ya2[i] * time_ya2[i] * time_ya2[i]);
-        else if (func_nr_a == 0) d_a = 0;
-        else if (func_nr_a == 3) d_a = scale[10]*(pol_par_dc[2][0][10] + pol_par_dc[2][1][10] * time_ya2[i] + pol_par_dc[2][2][10] * time_ya2[i] * time_ya2[i] + pol_par_dc[2][3][10] * time_ya2[i] * time_ya2[i] * time_ya2[i] + pol_par_dc[2][4][10] * time_ya2[i] * time_ya2[i] * time_ya2[i] * time_ya2[i]);
-
-        y2_single[0][single_ya2] = wirenr_ya2[i] - 119 + d_a;
-        y2_single[0][single_ya2 + 1] = wirenr_ya2[i] - 119 - d_a;
-
-        CompareDaDb(d_a, sigm_y2_single[0][single_ya2], sigm_y2_single[0][single_ya2 + 1]);
-        single_ya2 += 2;
-    }//for single ya
-
-    for (Int_t j = 0; j < it_yb2; ++j) {
-        if (used_yb2[j])
-            continue;
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-        Int_t func_nr_b = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_yb2[j] >= t_dc[t_it][11] && time_yb2[j] < t_dc[t_it + 1][11]) {
-                func_nr_b = t_it;
-                break;
-            }
-        }
-        if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[11]*(pol_par_dc[1][0][11] + pol_par_dc[1][1][11] * time_yb2[j] + pol_par_dc[1][2][11] * time_yb2[j] * time_yb2[j] + pol_par_dc[1][3][11] * time_yb2[j] * time_yb2[j] * time_yb2[j] + pol_par_dc[1][4][11] * time_yb2[j] * time_yb2[j] * time_yb2[j] * time_yb2[j]);
-        else if (func_nr_b == 0) d_b = 0;
-        else if (func_nr_b == 3) d_b = scale[11]*(pol_par_dc[2][0][11] + pol_par_dc[2][1][11] * time_yb2[j] + pol_par_dc[2][2][11] * time_yb2[j] * time_yb2[j] + pol_par_dc[2][3][11] * time_yb2[j] * time_yb2[j] * time_yb2[j] + pol_par_dc[2][4][11] * time_yb2[j] * time_yb2[j] * time_yb2[j] * time_yb2[j]);
-
-        y2_single[1][single_yb2] = wirenr_yb2[j] - 118.5 + d_b;
-        y2_single[1][single_yb2 + 1] = wirenr_yb2[j] - 118.5 - d_b;
-
-        CompareDaDb(d_b, sigm_y2_single[1][single_yb2], sigm_y2_single[1][single_yb2 + 1]);
-        single_yb2 += 2;
-
-    } // i for1  Y.
-
-    //   ----   U   ---
-    for (Int_t i = 0; i < it_ua2; ++i) {
-        for (Int_t j = 0; j < it_ub2; ++j) {
-            if (pair_u2 > 48)
-                break;
-            if ((wirenr_ua2[i] != wirenr_ub2[j] && wirenr_ua2[i] != wirenr_ub2[j] + 1))
-                continue;
-
-            Double_t d_a = 0;
-            Double_t d_b = 0;
-
-            Int_t func_nr_a = -1;
-            Int_t func_nr_b = -1;
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_ua2[i] >= t_dc[t_it][12] && time_ua2[i] < t_dc[t_it + 1][12]) {
-                    func_nr_a = t_it;
-                    break;
-                }
-            }
-            if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[12]*(pol_par_dc[1][0][12] + pol_par_dc[1][1][12] * time_ua2[i] + pol_par_dc[1][2][12] * time_ua2[i] * time_ua2[i] + pol_par_dc[1][3][12] * time_ua2[i] * time_ua2[i] * time_ua2[i] + pol_par_dc[1][4][12] * time_ua2[i] * time_ua2[i] * time_ua2[i] * time_ua2[i]);
-            else if (func_nr_a == 0) d_a = 0;
-            else if (func_nr_a == 3) d_a = scale[12]*(pol_par_dc[1][0][12] + pol_par_dc[1][1][12] * time_ua2[i] + pol_par_dc[1][2][12] * time_ua2[i] * time_ua2[i] + pol_par_dc[1][3][12] * time_ua2[i] * time_ua2[i] * time_ua2[i] + pol_par_dc[1][4][12] * time_ua2[i] * time_ua2[i] * time_ua2[i] * time_ua2[i]);
-
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_ub2[j] >= t_dc[t_it][13] && time_ub2[j] < t_dc[t_it + 1][13]) {
-                    func_nr_b = t_it;
-                    break;
-                }
-            }
-
-            if (func_nr_b == 0) d_b = 0;
-            else if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[13]*(pol_par_dc[1][0][13] + pol_par_dc[1][1][13] * time_ub2[j] + pol_par_dc[1][2][13] * time_ub2[j] * time_ub2[j] + pol_par_dc[1][3][13] * time_ub2[j] * time_ub2[j] * time_ub2[j] + pol_par_dc[1][4][13] * time_ub2[j] * time_ub2[j] * time_ub2[j] * time_ub2[j]);
-            else if (func_nr_b == 3) d_b = scale[13]*(pol_par_dc[1][0][13] + pol_par_dc[1][1][13] * time_ub2[j] + pol_par_dc[1][2][13] * time_ub2[j] * time_ub2[j] + pol_par_dc[1][3][13] * time_ub2[j] * time_ub2[j] * time_ub2[j] + pol_par_dc[1][4][13] * time_ub2[j] * time_ub2[j] * time_ub2[j] * time_ub2[j]);
-
-            ua2_pm[0] = wirenr_ua2[i] - 119 + d_a;
-            ua2_pm[1] = wirenr_ua2[i] - 119 - d_a;
-            ub2_pm[0] = wirenr_ub2[j] - 118.5 + d_b;
-            ub2_pm[1] = wirenr_ub2[j] - 118.5 - d_b;
-
-            Double_t dmin1 = 999;
-            for (Int_t k = 0; k < 2; k++) {
-                for (Int_t m = 0; m < 2; m++) {
-                    if (Abs(ua2_pm[k] - ub2_pm[m]) < dmin1) {
-                        dmin1 = Abs(ua2_pm[k] - ub2_pm[m]);
-                        u2_ab[0][pair_u2] = ua2_pm[k];
-                        u2_ab[1][pair_u2] = ub2_pm[m];
-                    }
-                }
-            }
-
-            CompareDaDb(d_a, sigm_u2_ab[0][pair_u2]);
-            CompareDaDb(d_b, sigm_u2_ab[1][pair_u2]);
-
-            pair_u2++;
-            used_ua2[i] = kTRUE;
-            used_ub2[j] = kTRUE;
-        }// j for2
-    } // i for1  U.
-
-    //reconstruct single U-plane hits
-
-    for (Int_t i = 0; i < it_ua2; ++i) {
-        if (used_ua2[i])
-            continue;
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-
-        Int_t func_nr_a = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_ua2[i] >= t_dc[t_it][12] && time_ua2[i] < t_dc[t_it + 1][12]) {
-                func_nr_a = t_it;
-                break;
-            }
-        }
-        if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[12]*(pol_par_dc[1][0][12] + pol_par_dc[1][1][12] * time_ua2[i] + pol_par_dc[1][2][12] * time_ua2[i] * time_ua2[i] + pol_par_dc[1][3][12] * time_ua2[i] * time_ua2[i] * time_ua2[i] + pol_par_dc[1][4][12] * time_ua2[i] * time_ua2[i] * time_ua2[i] * time_ua2[i]);
-        else if (func_nr_a == 0) d_a = 0;
-        else if (func_nr_a == 3) d_a = scale[12]*(pol_par_dc[1][0][12] + pol_par_dc[1][1][12] * time_ua2[i] + pol_par_dc[1][2][12] * time_ua2[i] * time_ua2[i] + pol_par_dc[1][3][12] * time_ua2[i] * time_ua2[i] * time_ua2[i] + pol_par_dc[1][4][12] * time_ua2[i] * time_ua2[i] * time_ua2[i] * time_ua2[i]);
-
-        u2_single[0][single_ua2] = (wirenr_ua2[i] - 119 + d_a);
-        u2_single[0][single_ua2 + 1] = (wirenr_ua2[i] - 119 - d_a);
-
-        CompareDaDb(d_a, sigm_u2_single[0][single_ua2], sigm_u2_single[0][single_ua2 + 1]);
-
-        single_ua2 += 2;
-    }//for single ua
-
-    for (Int_t j = 0; j < it_ub2; ++j) {
-        if (used_ub2[j])
-            continue;
-        Int_t func_nr_b = -1;
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_ub2[j] >= t_dc[t_it][13] && time_ub2[j] < t_dc[t_it + 1][13]) {
-                func_nr_b = t_it;
-                break;
-            }
-        }
-        if (func_nr_b == 0) d_b = 0;
-        else if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[13]*(pol_par_dc[1][0][13] + pol_par_dc[1][1][13] * time_ub2[j] + pol_par_dc[1][2][13] * time_ub2[j] * time_ub2[j] + pol_par_dc[1][3][13] * time_ub2[j] * time_ub2[j] * time_ub2[j] + pol_par_dc[1][4][13] * time_ub2[j] * time_ub2[j] * time_ub2[j] * time_ub2[j]);
-        else if (func_nr_b == 3)d_b = scale[13]*(pol_par_dc[1][0][13] + pol_par_dc[1][1][13] * time_ub2[j] + pol_par_dc[1][2][13] * time_ub2[j] * time_ub2[j] + pol_par_dc[1][3][13] * time_ub2[j] * time_ub2[j] * time_ub2[j] + pol_par_dc[1][4][13] * time_ub2[j] * time_ub2[j] * time_ub2[j] * time_ub2[j]);
-
-        u2_single[1][single_ub2] = (wirenr_ub2[j] - 118.5 + d_b);
-        u2_single[1][single_ub2 + 1] = (wirenr_ub2[j] - 118.5 - d_b);
-
-        CompareDaDb(d_b, sigm_u2_single[1][single_ub2], sigm_u2_single[1][single_ub2 + 1]);
-
-        single_ub2 += 2;
-
-    } // i for1  U.
-
-    //   ----   V   ---
-    for (Int_t i = 0; i < it_va2; ++i) {
-        for (Int_t j = 0; j < it_vb2; ++j) {
-            if (pair_v2 > 48)
-                break;
-            if ((wirenr_va2[i] != wirenr_vb2[j] && wirenr_va2[i] != wirenr_vb2[j] + 1))
-                continue;
-
-            Double_t d_a = 0;
-            Double_t d_b = 0;
-
-            Int_t func_nr_a = -1;
-            Int_t func_nr_b = -1;
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_va2[i] >= t_dc[t_it][14] && time_va2[i] < t_dc[t_it + 1][14]) {
-                    func_nr_a = t_it;
-                    break;
-                }
-            }
-            if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[14]*(pol_par_dc[1][0][14] + pol_par_dc[1][1][14] * time_va2[i] + pol_par_dc[1][2][14] * time_va2[i] * time_va2[i] + pol_par_dc[1][3][14] * time_va2[i] * time_va2[i] * time_va2[i] + pol_par_dc[1][4][14] * time_va2[i] * time_va2[i] * time_va2[i] * time_va2[i]);
-            else if (func_nr_a == 0) d_a = 0;
-            else if (func_nr_a == 3) d_a = scale[14]*(pol_par_dc[2][0][14] + pol_par_dc[2][1][14] * time_va2[i] + pol_par_dc[2][2][14] * time_va2[i] * time_va2[i] + pol_par_dc[2][3][14] * time_va2[i] * time_va2[i] * time_va2[i] + pol_par_dc[2][4][14] * time_va2[i] * time_va2[i] * time_va2[i] * time_va2[i]);
-
-            for (Int_t t_it = 0; t_it < 4; t_it++) {
-                if (time_vb2[j] >= t_dc[t_it][15] && time_vb2[j] < t_dc[t_it + 1][15]) {
-                    func_nr_b = t_it;
-                    break;
-                }
-            }
-            if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[15]*(pol_par_dc[1][0][15] + pol_par_dc[1][1][15] * time_vb2[j] + pol_par_dc[1][2][15] * time_vb2[j] * time_vb2[j] + pol_par_dc[1][3][15] * time_vb2[j] * time_vb2[j] * time_vb2[j] + pol_par_dc[1][4][15] * time_vb2[j] * time_vb2[j] * time_vb2[j] * time_vb2[j]);
-            else if (func_nr_b == 0) d_b = 0;
-            else if (func_nr_b == 3) d_b = scale[15]*(pol_par_dc[2][0][15] + pol_par_dc[2][1][15] * time_vb2[j] + pol_par_dc[2][2][15] * time_vb2[j] * time_vb2[j] + pol_par_dc[2][3][15] * time_vb2[j] * time_vb2[j] * time_vb2[j] + pol_par_dc[2][4][15] * time_vb2[j] * time_vb2[j] * time_vb2[j] * time_vb2[j]);
-
-            va2_pm[0] = wirenr_va2[i] - 119 + d_a;
-            va2_pm[1] = wirenr_va2[i] - 119 - d_a;
-            vb2_pm[0] = wirenr_vb2[j] - 118.5 + d_b;
-            vb2_pm[1] = wirenr_vb2[j] - 118.5 - d_b;
-
-            Double_t dmin1 = 999;
-            for (Int_t k = 0; k < 2; k++) {
-                for (Int_t m = 0; m < 2; m++) {
-                    if (Abs(va2_pm[k] - vb2_pm[m]) < dmin1) {
-                        dmin1 = Abs(va2_pm[k] - vb2_pm[m]);
-                        v2_ab[0][pair_v2] = va2_pm[k];
-                        v2_ab[1][pair_v2] = vb2_pm[m];
-                    }
-                }
-            }
-
-            CompareDaDb(d_a, sigm_v2_ab[0][pair_v2]);
-            CompareDaDb(d_b, sigm_v2_ab[1][pair_v2]);
-            pair_v2++;
-
-            used_va2[i] = kTRUE;
-            used_vb2[j] = kTRUE;
-        }// j for2
-    } // i for1  V.
-
-    //reconstruct single V-plane hits
-
-    for (Int_t i = 0; i < it_va2; ++i) {
-        if (used_va2[i])
-            continue;
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-
-        //added
-        Int_t func_nr_a = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_va2[i] >= t_dc[t_it][14] && time_va2[i] < t_dc[t_it + 1][14]) {
-                func_nr_a = t_it;
-                break;
-            }
-        }
-        if (func_nr_a == 1 || func_nr_a == 2) d_a = scale[14]*(pol_par_dc[1][0][14] + pol_par_dc[1][1][14] * time_va2[i] + pol_par_dc[1][2][14] * time_va2[i] * time_va2[i] + pol_par_dc[1][3][14] * time_va2[i] * time_va2[i] * time_va2[i] + pol_par_dc[1][4][14] * time_va2[i] * time_va2[i] * time_va2[i] * time_va2[i]);
-        else if (func_nr_a == 0) d_a = 0;
-        else if (func_nr_a == 3) d_a = scale[14]*(pol_par_dc[2][0][14] + pol_par_dc[2][1][14] * time_va2[i] + pol_par_dc[2][2][14] * time_va2[i] * time_va2[i] + pol_par_dc[2][3][14] * time_va2[i] * time_va2[i] * time_va2[i] + pol_par_dc[2][4][14] * time_va2[i] * time_va2[i] * time_va2[i] * time_va2[i]);
-
-        v2_single[0][single_va2] = wirenr_va2[i] - 119 + d_a;
-        v2_single[0][single_va2 + 1] = wirenr_va2[i] - 119 - d_a;
-
-        CompareDaDb(d_a, sigm_v2_single[0][single_va2], sigm_v2_single[0][single_va2 + 1]);
-
-        single_va2 += 2;
-    }//for single va
-
-    for (Int_t j = 0; j < it_vb2; ++j) {
-        if (used_vb2[j])
-            continue;
-        Double_t d_a = 0;
-        Double_t d_b = 0;
-        Int_t func_nr_b = -1;
-        for (Int_t t_it = 0; t_it < 4; t_it++) {
-            if (time_vb2[j] >= t_dc[t_it][15] && time_vb2[j] < t_dc[t_it + 1][15]) {
-                func_nr_b = t_it;
-                break;
-            }
-        }
-        if (func_nr_b == 1 || func_nr_b == 2) d_b = scale[15]*(pol_par_dc[1][0][15] + pol_par_dc[1][1][15] * time_vb2[j] + pol_par_dc[1][2][15] * time_vb2[j] * time_vb2[j] + pol_par_dc[1][3][15] * time_vb2[j] * time_vb2[j] * time_vb2[j] + pol_par_dc[1][4][15] * time_vb2[j] * time_vb2[j] * time_vb2[j] * time_vb2[j]);
-        else if (func_nr_b == 0) d_b = 0;
-        else if (func_nr_b == 3) d_b = scale[15]*(pol_par_dc[2][0][15] + pol_par_dc[2][1][15] * time_vb2[j] + pol_par_dc[2][2][15] * time_vb2[j] * time_vb2[j] + pol_par_dc[2][3][15] * time_vb2[j] * time_vb2[j] * time_vb2[j] + pol_par_dc[2][4][15] * time_vb2[j] * time_vb2[j] * time_vb2[j] * time_vb2[j]);
-
-        v2_single[1][single_vb2] = wirenr_vb2[j] - 118.5 + d_b;
-        v2_single[1][single_vb2 + 1] = wirenr_vb2[j] - 118.5 - d_b;
-
-        CompareDaDb(d_b, sigm_v2_single[1][single_vb2], sigm_v2_single[1][single_vb2 + 1]);
-        single_vb2 += 2;
-    } // i for1  V.
+    pair_x2 = Reconstruction(2, "x", pair_x2, it_xa2, it_xb2, wirenr_xa2, wirenr_xb2, time_xa2, time_xb2, used_xa2, used_xb2, x2_ab, sigm_x2_ab);
+    pair_y2 = Reconstruction(2, "y", pair_y2, it_ya2, it_yb2, wirenr_ya2, wirenr_yb2, time_ya2, time_yb2, used_ya2, used_yb2, y2_ab, sigm_y2_ab);
+    pair_u2 = Reconstruction(2, "u", pair_u2, it_ua2, it_ub2, wirenr_ua2, wirenr_ub2, time_ua2, time_ub2, used_ua2, used_ub2, u2_ab, sigm_u2_ab);
+    pair_v2 = Reconstruction(2, "v", pair_v2, it_va2, it_vb2, wirenr_va2, wirenr_vb2, time_va2, time_vb2, used_va2, used_vb2, v2_ab, sigm_v2_ab);
+    
+    single_xa2 = ReconstructionSingle(2, "x", "a", single_xa2, it_xa2, wirenr_xa2, time_xa2, used_xa2, x2_single, sigm_x2_single);
+    single_xb2 = ReconstructionSingle(2, "x", "b", single_xb2, it_xb2, wirenr_xb2, time_xb2, used_xb2, x2_single, sigm_x2_single);
+    single_ya2 = ReconstructionSingle(2, "y", "a", single_ya2, it_ya2, wirenr_ya2, time_ya2, used_ya2, y2_single, sigm_y2_single);
+    single_yb2 = ReconstructionSingle(2, "y", "b", single_yb2, it_yb2, wirenr_yb2, time_yb2, used_yb2, y2_single, sigm_y2_single);
+    single_ua2 = ReconstructionSingle(2, "u", "a", single_ua2, it_ua2, wirenr_ua2, time_ua2, used_ua2, u2_single, sigm_u2_single);
+    single_ub2 = ReconstructionSingle(2, "u", "b", single_ub2, it_ub2, wirenr_ub2, time_ub2, used_ub2, u2_single, sigm_u2_single);
+    single_va2 = ReconstructionSingle(2, "v", "a", single_va2, it_va2, wirenr_va2, time_va2, used_va2, v2_single, sigm_v2_single);
+    single_vb2 = ReconstructionSingle(2, "v", "b", single_vb2, it_vb2, wirenr_vb2, time_vb2, used_vb2, v2_single, sigm_v2_single);
 
     // Build segments
     nDC2_segments = BuildUVSegments(2, pair_u2, pair_v2, pair_x2, pair_y2, single_ua2, single_ub2, single_va2, single_vb2,
             x2_ab, y2_ab, u2_ab, v2_ab, sigm_x2_ab, sigm_y2_ab, sigm_u2_ab, sigm_v2_ab, rh_segDC2, rh_sigm_segDC2, u2_single, v2_single, sigm_u2_single, sigm_v2_single);
-   
+
     nDC2_segments = BuildXYSegments(2, pair_u2, pair_v2, pair_x2, pair_y2, single_xa2, single_xb2, single_ya2, single_yb2,
             x2_ab, y2_ab, u2_ab, v2_ab, sigm_x2_ab, sigm_y2_ab, sigm_u2_ab, sigm_v2_ab, rh_segDC2, rh_sigm_segDC2, x2_single, y2_single, sigm_x2_single, sigm_y2_single);
 
@@ -1328,8 +448,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
                         break;
                 }//k
             }//(pair_x2>0)
-            //                if (found_8p_seg && !foundX)
-            //                    continue;
+
             Bool_t foundY = kFALSE;
             if (pairY > 0) {
                 Double_t dY_thresh = 1.0;
@@ -1408,8 +527,8 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
                 }
             }//(pair_y2>0)
             if (foundX || foundY) nDC_segments++;
-        }//j
-    }//i
+        }
+    }
     return nDC_segments;
 }
 
@@ -1428,106 +547,100 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
         if (nDC_segments > 48)
             break;
         Float_t x_coord = (x_ab[0][i] + x_ab[1][i]) / 2;
-        // cout << " x_coord = " << x_coord << endl;
         Float_t XU = x_coord;
         Float_t XV = x_coord;
 
         for (Int_t j = 0; j < pairY; j++) {
-            if (nDC_segments > 48)
-                break;
             Float_t y_coord = (y_ab[0][j] + y_ab[1][j]) / 2;
             Float_t YU = y_coord;
             Float_t YV = y_coord;
             Bool_t foundU = kFALSE;
             Float_t u_est = isqrt_2 * (YU - XU);
             Float_t v_est = isqrt_2 * (YV + XV);
-            if (pairU > 0) {
 
-                Double_t dU_thresh = 1.3;
-                for (Int_t k = 0; k < pairU; k++) {
-                    Float_t u_coord = (u_ab[0][k] + u_ab[1][k]) / 2;
+            Double_t dU_thresh = 1.3;
+            for (Int_t k = 0; k < pairU; k++) {
+                Float_t u_coord = (u_ab[0][k] + u_ab[1][k]) / 2;
 
-                    if (Abs(u_coord - u_est) > dU_thresh)
-                        continue;
-                    dU_thresh = Abs(u_coord - u_est);
+                if (Abs(u_coord - u_est) > dU_thresh)
+                    continue;
+                dU_thresh = Abs(u_coord - u_est);
 
-                    rh_seg[0][nDC_segments] = x_ab[0][i];
-                    // cout << " rh_seg[0][nDC_segments] = " << rh_seg[0][nDC_segments] << " x_ab[0][i] = " << x_ab[0][i] << endl;
-                    rh_seg[1][nDC_segments] = x_ab[1][i];
-                    rh_seg[2][nDC_segments] = y_ab[0][j];
-                    rh_seg[3][nDC_segments] = y_ab[1][j];
-                    rh_seg[4][nDC_segments] = u_ab[0][k];
-                    rh_seg[5][nDC_segments] = u_ab[1][k];
-                    rh_sigm_seg[0][nDC_segments] = sigm_x_ab[0][i];
-                    rh_sigm_seg[1][nDC_segments] = sigm_x_ab[1][i];
-                    rh_sigm_seg[2][nDC_segments] = sigm_y_ab[0][j];
-                    rh_sigm_seg[3][nDC_segments] = sigm_y_ab[1][j];
-                    rh_sigm_seg[4][nDC_segments] = sigm_u_ab[0][k];
-                    rh_sigm_seg[5][nDC_segments] = sigm_u_ab[1][k];
+                rh_seg[0][nDC_segments] = x_ab[0][i];
+                rh_seg[1][nDC_segments] = x_ab[1][i];
+                rh_seg[2][nDC_segments] = y_ab[0][j];
+                rh_seg[3][nDC_segments] = y_ab[1][j];
+                rh_seg[4][nDC_segments] = u_ab[0][k];
+                rh_seg[5][nDC_segments] = u_ab[1][k];
+                rh_sigm_seg[0][nDC_segments] = sigm_x_ab[0][i];
+                rh_sigm_seg[1][nDC_segments] = sigm_x_ab[1][i];
+                rh_sigm_seg[2][nDC_segments] = sigm_y_ab[0][j];
+                rh_sigm_seg[3][nDC_segments] = sigm_y_ab[1][j];
+                rh_sigm_seg[4][nDC_segments] = sigm_u_ab[0][k];
+                rh_sigm_seg[5][nDC_segments] = sigm_u_ab[1][k];
 
-                    foundU = kTRUE;
-                    if (nDC_segments > 48)
-                        break;
-                }//k
-            }//(pair_u2>0)
+                foundU = kTRUE;
+                if (nDC_segments > 48)
+                    break;
+            }
 
             Bool_t foundV = kFALSE;
-            if (pairV > 0) {
-                Double_t dV_thresh = 1.3;
-                for (Int_t m = 0; m < pairV; m++) {
+
+            Double_t dV_thresh = 1.3;
+            for (Int_t m = 0; m < pairV; m++) {
+                if (nDC_segments > 48)
+                    break;
+                Float_t v_coord = (v_ab[0][m] + v_ab[1][m]) / 2;
+
+                if (Abs(v_coord - v_est) > dV_thresh)
+                    continue;
+                dV_thresh = Abs(v_coord - v_est);
+
+                foundV = kTRUE;
+                rh_seg[0][nDC_segments] = x_ab[0][i];
+                rh_seg[1][nDC_segments] = x_ab[1][i];
+                rh_seg[2][nDC_segments] = y_ab[0][j];
+                rh_seg[3][nDC_segments] = y_ab[1][j];
+                rh_seg[6][nDC_segments] = v_ab[0][m];
+                rh_seg[7][nDC_segments] = v_ab[1][m];
+                rh_sigm_seg[0][nDC_segments] = sigm_x_ab[0][i];
+                rh_sigm_seg[1][nDC_segments] = sigm_x_ab[1][i];
+                rh_sigm_seg[2][nDC_segments] = sigm_y_ab[0][j];
+                rh_sigm_seg[3][nDC_segments] = sigm_y_ab[1][j];
+                rh_sigm_seg[6][nDC_segments] = sigm_v_ab[0][m];
+                rh_sigm_seg[7][nDC_segments] = sigm_v_ab[1][m];
+
+                if (!foundU) {
+                    Float_t min_a = 999;
+                    Float_t min_b = 999;
+                    for (Int_t kk = 0; kk < single_ua; kk++) {
+                        if (Abs(u_single[0][kk] - u_est) > 1.5)
+                            continue; //????? 0.5 needs to be reviewed
+                        if (Abs(u_single[0][kk] - u_est) < min_a) {
+                            min_a = Abs(u_single[0][kk] - u_est);
+                            rh_seg[4][nDC_segments] = u_single[0][kk];
+                            rh_sigm_seg[4][nDC_segments] = sigm_u_single[0][kk];
+                            foundU = kTRUE;
+                        }
+                    }//for kk
+                    for (Int_t kk = 0; kk < single_ub; kk++) {
+                        if (Abs(u_single[1][kk] - u_est) > 1.5)
+                            continue; //????? 0.5 needs to be reviewed
+                        if (Abs(u_single[1][kk] - u_est) < min_b) {
+                            min_b = Abs(u_single[1][kk] - u_est);
+                            rh_seg[5][nDC_segments] = u_single[1][kk];
+                            rh_sigm_seg[5][nDC_segments] = sigm_u_single[1][kk];
+                            foundU = kTRUE;
+                        }
+                    }//for kk
                     if (nDC_segments > 48)
                         break;
-                    Float_t v_coord = (v_ab[0][m] + v_ab[1][m]) / 2;
+                }//!foundU
 
-                    if (Abs(v_coord - v_est) > dV_thresh)
-                        continue;
-                    dV_thresh = Abs(v_coord - v_est);
-
-                    foundV = kTRUE;
-                    rh_seg[0][nDC_segments] = x_ab[0][i];
-                    rh_seg[1][nDC_segments] = x_ab[1][i];
-                    rh_seg[2][nDC_segments] = y_ab[0][j];
-                    rh_seg[3][nDC_segments] = y_ab[1][j];
-                    rh_seg[6][nDC_segments] = v_ab[0][m];
-                    rh_seg[7][nDC_segments] = v_ab[1][m];
-                    rh_sigm_seg[0][nDC_segments] = sigm_x_ab[0][i];
-                    rh_sigm_seg[1][nDC_segments] = sigm_x_ab[1][i];
-                    rh_sigm_seg[2][nDC_segments] = sigm_y_ab[0][j];
-                    rh_sigm_seg[3][nDC_segments] = sigm_y_ab[1][j];
-                    rh_sigm_seg[6][nDC_segments] = sigm_v_ab[0][m];
-                    rh_sigm_seg[7][nDC_segments] = sigm_v_ab[1][m];
-
-                    if (!foundU) {
-                        Float_t min_a = 999;
-                        Float_t min_b = 999;
-                        for (Int_t kk = 0; kk < single_ua; kk++) {
-                            if (Abs(u_single[0][kk] - u_est) > 1.5)
-                                continue; //????? 0.5 needs to be reviewed
-                            if (Abs(u_single[0][kk] - u_est) < min_a) {
-                                min_a = Abs(u_single[0][kk] - u_est);
-                                rh_seg[4][nDC_segments] = u_single[0][kk];
-                                rh_sigm_seg[4][nDC_segments] = sigm_u_single[0][kk];
-                                foundU = kTRUE;
-                            }
-                        }//for kk
-                        for (Int_t kk = 0; kk < single_ub; kk++) {
-                            if (Abs(u_single[1][kk] - u_est) > 1.5)
-                                continue; //????? 0.5 needs to be reviewed
-                            if (Abs(u_single[1][kk] - u_est) < min_b) {
-                                min_b = Abs(u_single[1][kk] - u_est);
-                                rh_seg[5][nDC_segments] = u_single[1][kk];
-                                rh_sigm_seg[5][nDC_segments] = sigm_u_single[1][kk];
-                                foundU = kTRUE;
-                            }
-                        }//for kk
-                        if (nDC_segments > 48)
-                            break;
-                    }//!foundU
-
-                    if (nDC_segments > 48)
-                        break;
-                }//m
-            }//(pair_v2>0)
+                if (nDC_segments > 48)
+                    break;
+            }//m
+            //            }//(pair_v2>0)
             if (!foundV && foundU) {
                 Float_t min_a = 999;
                 Float_t min_b = 999;
@@ -1550,11 +663,11 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
                         rh_sigm_seg[7][nDC_segments] = sigm_v_single[1][kk];
                         foundV = kTRUE;
                     }
-                }//for kk                                                                                                                           
-            }//!foundV 
+                }
+            }
             if (foundV || foundU) nDC_segments++;
-        }//j
-    }//i
+        }
+    }
     return nDC_segments;
 }
 
@@ -1888,9 +1001,6 @@ InitStatus BmnDchTrackFinder::Init() {
     fDchTracks = new TClonesArray(tracksDch.Data());
     ioman->Register(tracksDch.Data(), "DCH", fDchTracks, kTRUE);
 
-    for (Int_t iScale = 0; iScale < 16; iScale++)
-        scale[iScale] = 0.5;
-
     ifstream fin;
     TString dir = getenv("VMCWORKDIR");
     dir += "/input/";
@@ -2210,6 +1320,140 @@ void BmnDchTrackFinder::Finish() {
     delete [] sigm_y2_single;
     delete [] sigm_u2_single;
     delete [] sigm_v2_single;
+}
+
+Int_t BmnDchTrackFinder::Reconstruction(Int_t dchID, TString wire, Int_t pair, Int_t it_a, Int_t it_b,
+        Double_t* wirenr_a, Double_t* wirenr_b, Double_t* time_a, Double_t* time_b,
+        Bool_t* used_a, Bool_t* used_b,
+        Float_t** _ab, Float_t** sigm_ab) {
+    
+    const Int_t arrIdxShift = (dchID == 2) ? 8 : 0;
+    const Int_t arrIdxStart = (wire == "x") ? 0 : (wire == "y") ? 2 : (wire == "u") ? 4 : 6;
+    
+    Float_t a_pm[2], b_pm[2];
+
+    for (Int_t i = 0; i < it_a; ++i) {
+        for (Int_t j = 0; j < it_b; ++j) {
+            if (pair > 48)
+                break;
+            if ((wirenr_a[i] != wirenr_b[j] && wirenr_a[i] != wirenr_b[j] + 1))
+                continue;
+            Int_t func_nr_a = -1;
+            Int_t func_nr_b = -1;
+            for (Int_t t_it = 0; t_it < 4; t_it++) {
+                if (time_a[i] >= t_dc[t_it][0 + arrIdxStart + arrIdxShift] && time_a[i] < t_dc[t_it + 1][0 + arrIdxStart + arrIdxShift]) {
+                    func_nr_a = t_it;
+                    break;
+                }
+            }
+            Double_t time = time_a[i];
+            Double_t d_a = 0;
+            Double_t d_b = 0;
+            
+            if (func_nr_a == 1 || func_nr_a == 2) d_a = scale * (pol_par_dc[1][0][0 + arrIdxStart + arrIdxShift] + pol_par_dc[1][1][0 + arrIdxStart + arrIdxShift] * time + 
+                    pol_par_dc[1][2][0 + arrIdxStart + arrIdxShift] * Power(time, 2) + 
+                    pol_par_dc[1][3][0 + arrIdxStart + arrIdxShift] * Power(time, 3) + 
+                    pol_par_dc[1][4][0 + arrIdxStart + arrIdxShift] * Power(time, 4));
+            
+            else if (func_nr_a == 0) d_a = 0;
+            
+            else if (func_nr_a == 3) d_a = scale * (pol_par_dc[2][0][0 + arrIdxStart + arrIdxShift] + pol_par_dc[2][1][0 + arrIdxStart + arrIdxShift] * time + 
+                    pol_par_dc[2][2][0 + arrIdxStart + arrIdxShift] * Power(time, 2) + 
+                    pol_par_dc[2][3][0 + arrIdxStart + arrIdxShift] * Power(time, 3) + 
+                    pol_par_dc[2][4][0 + arrIdxStart + arrIdxShift] * Power(time, 4));
+
+            for (Int_t t_it = 0; t_it < 4; t_it++) {
+                if (time_b[j] >= t_dc[t_it][1 + arrIdxStart + arrIdxShift] && time_b[j] < t_dc[t_it + 1][1 + arrIdxStart + arrIdxShift]) {
+                    func_nr_b = t_it;
+                    break;
+                }
+            }
+            time = time_b[j];
+
+            if (func_nr_b == 1 || func_nr_b == 2) d_b = scale * (pol_par_dc[1][0][1 + arrIdxStart + arrIdxShift] + pol_par_dc[1][1][1 + arrIdxStart + arrIdxShift] * time + 
+                    pol_par_dc[1][2][1 + arrIdxStart + arrIdxShift] * Power(time, 2) + 
+                    pol_par_dc[1][3][1 + arrIdxStart + arrIdxShift] * Power(time, 3) + 
+                    pol_par_dc[1][4][1 + arrIdxStart + arrIdxShift] * Power(time, 4));
+            
+            else if (func_nr_b == 0) d_b = 0;
+            
+            else if (func_nr_b == 3) d_b = scale * (pol_par_dc[2][0][1 + arrIdxStart + arrIdxShift] + pol_par_dc[2][1][1 + arrIdxStart + arrIdxShift] * time + 
+                    pol_par_dc[2][2][1 + arrIdxStart + arrIdxShift] * Power(time, 2) + 
+                    pol_par_dc[2][3][1 + arrIdxStart + arrIdxShift] * Power(time, 3) + 
+                    pol_par_dc[2][4][1 + arrIdxStart + arrIdxShift] * Power(time, 4));
+
+            a_pm[0] = wirenr_a[i] - 119 + d_a;
+            a_pm[1] = wirenr_a[i] - 119 - d_a;
+            b_pm[0] = wirenr_b[j] - 118.5 + d_b;
+            b_pm[1] = wirenr_b[j] - 118.5 - d_b;
+
+            Double_t dmin = LDBL_MAX;
+            for (Int_t k = 0; k < 2; k++) {
+                for (Int_t m = 0; m < 2; m++) {
+                    if (Abs(a_pm[k] - b_pm[m]) < dmin) {
+                        dmin = Abs(a_pm[k] - b_pm[m]);
+                        _ab[0][pair] = a_pm[k];
+                        _ab[1][pair] = b_pm[m];
+                    }
+                }
+            }
+
+            CompareDaDb(d_a, sigm_ab[0][pair]);
+            CompareDaDb(d_b, sigm_ab[1][pair]);
+
+            pair++;
+
+            used_a[i] = kTRUE;
+            used_b[j] = kTRUE;
+        }
+    }
+    return pair;
+}
+
+Int_t BmnDchTrackFinder::ReconstructionSingle(Int_t dchID, TString wire, TString lay, Int_t single, Int_t it,
+        Double_t* wirenr, Double_t* time_, Bool_t* used,
+        Float_t** _single, Float_t** sigm_single) {
+    
+    const Int_t arrIdxStart = (wire == "x") ? 0 : (wire == "y") ? 2 : (wire == "u") ? 4 : 6;
+    
+    const Int_t arrIdx1 = (lay == "a") ? 0 : 1;
+    const Int_t arrIdx2 = (dchID == 2) ? 8 : 0;
+    const Double_t coeff = (lay == "a") ? 119 : 118.5;
+        
+    for (Int_t i = 0; i < it; ++i) {
+        if (used[i])
+            continue;
+
+        Int_t func_nr = -1;
+        for (Int_t t_it = 0; t_it < 4; t_it++) {
+            if (time_[i] >= t_dc[t_it][0 + arrIdxStart + arrIdx1 + arrIdx2] && time_[i] < t_dc[t_it + 1][0 + arrIdxStart + arrIdx1 + arrIdx2]) {
+                func_nr = t_it;
+                break;
+            }
+        }
+        Double_t time = time_[i];
+        Double_t d = 0;
+
+        if (func_nr == 1 || func_nr == 2) d = scale * (pol_par_dc[1][0][0 + arrIdx1 + arrIdx2] + pol_par_dc[1][1][0 + arrIdx1 + arrIdx2] * time + 
+                    pol_par_dc[1][2][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 2) + 
+                    pol_par_dc[1][3][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 3) + 
+                    pol_par_dc[1][4][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 4));
+        
+        else if (func_nr == 0) d = 0;
+        
+        else if (func_nr == 3) d = scale * (pol_par_dc[2][0][0 + arrIdx1 + arrIdx2] + pol_par_dc[2][1][0 + arrIdx1 + arrIdx2] * time + 
+                pol_par_dc[2][2][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 2) + 
+                pol_par_dc[2][3][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 3) + 
+                pol_par_dc[2][4][0 + arrIdxStart + arrIdx1 + arrIdx2] * Power(time, 4));
+
+        _single[0 + arrIdx1][single] = wirenr[i] - coeff + d;
+        _single[0 + arrIdx1][single + 1] = wirenr[i] - coeff - d;
+
+        CompareDaDb(d, sigm_single[0 + arrIdx1][single], sigm_single[0 + arrIdx1][single + 1]);
+
+        single += 2; 
+    } 
+    return single;
 }
 ClassImp(BmnDchTrackFinder)
 

@@ -50,7 +50,7 @@ private:
     Double_t pol_par_dc[3][5][16]; //[polinom number][param number][plane number]
     Double_t scaling[16]; //[plane number]
     
-    Float_t scale[16];  //scaling for transfer function coeffs
+    Float_t scale;  //scaling for transfer function coeffs
     
     Float_t z_loc[8];   // z local xa->vb (cm)
     Float_t z_glob[16]; // z global dc 1 & dc 2 (cm)
@@ -175,6 +175,13 @@ private:
         Float_t**, Float_t**, Float_t**, Float_t**,
         Float_t**, Float_t**, Float_t**,
         Float_t**, Float_t**, Float_t**);
+    Int_t Reconstruction(Int_t, TString, Int_t, Int_t, Int_t,
+        Double_t*, Double_t*, Double_t*, Double_t*,
+        Bool_t*, Bool_t*,
+        Float_t**, Float_t**);
+    Int_t ReconstructionSingle(Int_t, TString, TString, Int_t, Int_t,
+        Double_t*, Double_t*, Bool_t*,
+        Float_t**, Float_t**);
          
     ClassDef(BmnDchTrackFinder, 1)
 };

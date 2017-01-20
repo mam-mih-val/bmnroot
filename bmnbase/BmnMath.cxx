@@ -383,7 +383,7 @@ TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) 
 
 //    BmnGemStripHit* hitF = (BmnGemStripHit*) arr->At(track->GetHitIndex(0));
 //    BmnGemStripHit* hitL = (BmnGemStripHit*) arr->At(track->GetHitIndex(nHits - 1));
-//    
+    
 //    
 //    TArc* arc = new TArc(Zc, Xc, R, ATan2((hitF->GetX() - Xc), (hitF->GetZ() - Zc)) * RadToDeg(), ATan2((hitL->GetX() - Xc), (hitL->GetZ() - Zc)) * RadToDeg());
 //    arc->SetFillStyle(0);
@@ -399,7 +399,7 @@ TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) 
 //    h_Hits->Draw("P");
 //    arc->Draw("same");
 //    c_New->SaveAs("hits.png");
-////    getchar();
+//    getchar();
 //    delete h_Hits;
 //    delete c_New;
 //    delete arc;
@@ -485,7 +485,7 @@ TVector3 CircleBy3Hit(BmnGemTrack* track, const TClonesArray* arr) {
     Float_t Zc = -B / 2;
     Float_t R = Sqrt(A * A + B * B - 4 * C) / 2;
 
-    return TVector3(Xc, Zc, R);
+    return TVector3(Zc, Xc, R);
 
 }
 
@@ -523,6 +523,6 @@ TVector3 CircleBy3Hit(BmnGemTrack* track, const BmnGemStripHit* h0, const BmnGem
     Float_t Zc = -B / 2;
     Float_t R = Sqrt(A * A + B * B - 4 * C) / 2;
 
-    return TVector3(Xc, Zc, R);
+    return TVector3(Zc, Xc, R);
 
 }

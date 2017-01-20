@@ -109,6 +109,7 @@ private:
     TClonesArray* fMwpc3Hits;
     TClonesArray* fDch1Hits;
     TClonesArray* fDch2Hits;
+    TClonesArray* fDchTracks;
     TClonesArray* fTof1Hits;
     TClonesArray* fTof2Hits;
 

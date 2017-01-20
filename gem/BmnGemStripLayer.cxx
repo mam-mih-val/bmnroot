@@ -291,10 +291,18 @@ Double_t BmnGemStripLayer::GetStripHitError(Int_t num) {
     return -1.0;
 }
 
+Int_t BmnGemStripLayer::GetStripHitClusterSize(Int_t num) {
+    if(num >= 0 && num < StripHitsClusterSize.size()) {
+        return StripHitsClusterSize[num];
+    }
+    return -1.0;
+}
+
 void BmnGemStripLayer::ResetStripHits() {
     StripHits.clear();
     StripHitsTotalSignal.clear();
     StripHitsErrors.clear();
+    StripHitsClusterSize.clear();
 }
 
 Double_t BmnGemStripLayer::ConvertNormalPointToStripX(Double_t x, Double_t y) {
@@ -387,7 +395,7 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
     ResetStripHits();
 
     Double_t threshold = ClusterFindingThreshold;
-    //Double_t threshold = 0.0;
+    //Double_t threshold = 500.0;
 
     StripCluster cluster;
 
@@ -486,6 +494,7 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
     StripHits.push_back(mean_strip_position);
     StripHitsTotalSignal.push_back(total_cluster_signal);
     StripHitsErrors.push_back(cluster_rms);
+    StripHitsClusterSize.push_back(NStripsInCluster);
 
     //return to a previous strip
     curcnt--;
@@ -495,7 +504,7 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
  }
 
  void BmnGemStripLayer::SmoothStripSignal(vector<Double_t>& AnalyzableStrips, Int_t NIterations, Int_t SmoothWindow, Double_t Weight) {
-     //It's Simple Moving Average (SMA) method
+     //It's the Simple Moving Average (SMA) method
     //AnalyzableStrips - analyzable strip layer (ref)
     //NIterations - number of smooth iterations (usually 1)
     //SmoothWindow - number of strips on the left-right of the current strip (usually 1)

@@ -158,7 +158,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
         digit = (BmnGemStripDigit*) fBmnGemStripDigitsArray->At(idigit);
         station = StationSet->GetGemStation(digit->GetStation());
         module = station->GetModule(digit->GetModule());
-        
+
         if (module->SetStripSignalInLayer(digit->GetStripLayer(), digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
 
         if (fBmnGemStripDigitMatchesArray) {
@@ -232,6 +232,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 hit->SetStation(iStation);
                 hit->SetModule(iModule);
                 hit->SetIndex(fBmnGemStripHitsArray->GetEntriesFast() - 1);
+                hit->SetClusterSizeInLowerLayer(module->GetIntersectionPoint_LowerLayerClusterSize(iPoint));
+                hit->SetClusterSizeInUpperLayer(module->GetIntersectionPoint_UpperLayerClusterSize(iPoint));
                 //--------------------------------------------------------------
 
                 //hit matching -------------------------------------------------
@@ -279,7 +281,7 @@ void BmnGemStripHitMaker::ReadFileCorrections(TString fname, Double_t*** corr) {
         ch->GetEntry(iEntry);
 
         for (Int_t iCorr = 0; iCorr < corrs->GetEntriesFast(); iCorr++) {
-            BmnGemAlignmentCorrections* align = (BmnGemAlignmentCorrections*) corrs->UncheckedAt(iCorr);     
+            BmnGemAlignmentCorrections* align = (BmnGemAlignmentCorrections*) corrs->UncheckedAt(iCorr);
             corr[align->GetStation()][align->GetModule()][0] = -align->GetCorrections().X();
             corr[align->GetStation()][align->GetModule()][1] = -align->GetCorrections().Y();
             corr[align->GetStation()][align->GetModule()][2] = -align->GetCorrections().Z();

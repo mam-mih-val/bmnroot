@@ -97,6 +97,7 @@ public:
     Double_t GetStripHitPos(Int_t num); //hit position
     Double_t GetStripHitTotalSignal(Int_t num); //sum signal of the hit
     Double_t GetStripHitError(Int_t num); //hit error
+    Int_t GetStripHitClusterSize(Int_t num); //number of strips in the cluster for the num-hit
     void ResetStripHits();
     //--------------------------------------------------------------------------
 
@@ -155,9 +156,10 @@ private:
     vector<BmnMatch> StripMatches; //ID-point matches for all strips
 
     //Strip hits (It is filled after cluster finding and fitting) --------------
-    vector<Double_t> StripHits;
+    vector<Double_t> StripHits; //positions of strip hits
     vector<Double_t> StripHitsTotalSignal;
     vector<Double_t> StripHitsErrors;
+    vector<Int_t> StripHitsClusterSize; //cluster size (number of strips) for each strip hit
     vector<Double_t> SmoothStrips; //smoothed signal strips (It is filled after smoothing algorithm)
     Double_t ClusterFindingThreshold; //min. threshold cut
     //--------------------------------------------------------------------------

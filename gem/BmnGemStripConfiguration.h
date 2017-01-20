@@ -79,7 +79,6 @@ namespace BmnGemStationPositions_RunWinter2016 {
         {0.0, 0.0},     //station 5 (163x45): module0 + module1
         {0.0, 0.0}      //station 6 (163x45): module0 + module1
     };
-
     const Double_t ZModuleShifts[NStations][NMaxModules] = {
         {0.0},          //station 0 (10x10)
         {0.0},          //station 1 (66x41)
@@ -92,6 +91,3 @@ namespace BmnGemStationPositions_RunWinter2016 {
 }
 
 #endif
-//
-    //(X-Y-Z)Shifts of modules in each station
-  

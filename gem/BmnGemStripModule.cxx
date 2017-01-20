@@ -921,6 +921,20 @@ void BmnGemStripModule::CalculateStripHitIntersectionPoints() {
 
                         IntersectionPointMatches.push_back(intersection_match);
                         //--------------------------------------------------------------
+
+                        //Addition of the information about cluster size (number strips) in both strip layers for each intersection
+                        Int_t iLayerClusterSize = StripLayers[ilayer].GetStripHitClusterSize(i_strip_hit);
+                        Int_t jLayerClusterSize = StripLayers[jlayer].GetStripHitClusterSize(j_strip_hit);
+                        
+                        if(StripLayers[ilayer].GetType() == LowerStripLayer) {
+                            IntersectionPoints_LowerLayerClusterSize.push_back(iLayerClusterSize);
+                            IntersectionPoints_UpperLayerClusterSize.push_back(jLayerClusterSize);
+                        }
+                        else {
+                            IntersectionPoints_LowerLayerClusterSize.push_back(jLayerClusterSize);
+                            IntersectionPoints_UpperLayerClusterSize.push_back(iLayerClusterSize);
+                        }
+                        //------------------------------------------------------
                     }
                 }
             }
@@ -1002,6 +1016,8 @@ void BmnGemStripModule::ResetIntersectionPoints() {
     IntersectionPointsY.clear();
     IntersectionPointsXErrors.clear();
     IntersectionPointsYErrors.clear();
+    IntersectionPoints_LowerLayerClusterSize.clear();
+    IntersectionPoints_UpperLayerClusterSize.clear();
     IntersectionPointMatches.clear();
 }
 

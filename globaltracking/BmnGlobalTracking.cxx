@@ -36,13 +36,13 @@ fEventNo(0) {
     fFinder = new BmnTrackFinder();
     fPropagator = new BmnTrackPropagator();
     fUpdater = new BmnKalmanFilter();
-//    fFitter = new BmnTrackFitter(fPropagator, fUpdater);
+    //    fFitter = new BmnTrackFitter(fPropagator, fUpdater);
     isRUN1 = kFALSE;
 }
 
 BmnGlobalTracking::~BmnGlobalTracking() {
     delete fMerger;
-//    delete fFitter;
+    //    delete fFitter;
     delete fFinder;
     delete fPropagator;
     delete fUpdater;
@@ -108,10 +108,10 @@ InitStatus BmnGlobalTracking::Init() {
             Fatal("Init", "No BmnGemStripHit array!");
         }
 
-        fGemMcPoints = (TClonesArray*) ioman->GetObject("StsPoint");
-        if (!fGemMcPoints) {
-            Fatal("Init", "No StsPoint array!");
-        }
+        //        fGemMcPoints = (TClonesArray*) ioman->GetObject("StsPoint");
+        //        if (!fGemMcPoints) {
+        //            Fatal("Init", "No StsPoint array!");
+        //        }
     } else {
         cout << "\nERROR!GEM stations are excluded from global tracking!!!" << endl;
         //Fatal("Init", "No GEM stations!");
@@ -159,47 +159,53 @@ InitStatus BmnGlobalTracking::Init() {
     }
     // ------------------------------------------------------//
 
+    // ----------------- DCH initialization -----------------// 
+    fDchTracks = (TClonesArray*) ioman->GetObject("DchTracks");
+    if (!fDchTracks)
+        cout << "WARNING! No DchTracks array!" << endl;
+    // ------------------------------------------------------// 
+
     // ----------------- DCH1 initialization -----------------// 
-    if (fDet.GetDet(kDCH1)) {
-        fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit0");
-        if (!fDch1Hits) {
-            cout << "BmnGlobalTracking::Init: No BmnDch1Hit0 array!" << endl;
-        } else {
-            fDch1McPoints = (TClonesArray*) ioman->GetObject("DCH1Point");
-            if (!fDch1McPoints) {
-                cout << "BmnGlobalTracking::Init: No DCH1Point array!" << endl;
-            }
-        }
-    } else {
-        cout << "\nWARNING! Detector DCH1 is excluded from global tracking!!!" << endl;
-    }
+//    if (fDet.GetDet(kDCH1)) {
+//        fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit0");
+//        if (!fDch1Hits) {
+//            cout << "BmnGlobalTracking::Init: No BmnDch1Hit0 array!" << endl;
+//        } else {
+//            fDch1McPoints = (TClonesArray*) ioman->GetObject("DCH1Point");
+//            if (!fDch1McPoints) {
+//                cout << "BmnGlobalTracking::Init: No DCH1Point array!" << endl;
+//            }
+//        }
+//    } else {
+//        cout << "\nWARNING! Detector DCH1 is excluded from global tracking!!!" << endl;
+//    }
     // ------------------------------------------------------// 
 
     // ----------------- DCH2 initialization -----------------// 
-    if (fDet.GetDet(kDCH2)) {
-        fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit0");
-        if (!fDch2Hits) {
-            cout << "BmnGlobalTracking::Init: No BmnDch2Hit0 array!" << endl;
-        } else {
-            fDch2McPoints = (TClonesArray*) ioman->GetObject("DCH2Point");
-            if (!fDch2McPoints) {
-                cout << "BmnGlobalTracking::Init: No DCH2Point array!" << endl;
-            }
-        }
-    } else {
-        cout << "\nWARNING! Detector DCH2 is excluded from global tracking!!!" << endl;
-    }
+//    if (fDet.GetDet(kDCH2)) {
+//        fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit0");
+//        if (!fDch2Hits) {
+//            cout << "BmnGlobalTracking::Init: No BmnDch2Hit0 array!" << endl;
+//        } else {
+//            fDch2McPoints = (TClonesArray*) ioman->GetObject("DCH2Point");
+//            if (!fDch2McPoints) {
+//                cout << "BmnGlobalTracking::Init: No DCH2Point array!" << endl;
+//            }
+//        }
+//    } else {
+//        cout << "\nWARNING! Detector DCH2 is excluded from global tracking!!!" << endl;
+//    }
     // ------------------------------------------------------// 
 
     // Create and register track arrays
     fGlobalTracks = new TClonesArray("BmnGlobalTrack", 100);
     ioman->Register("GlobalTrack", "GLOBAL", fGlobalTracks, kTRUE);
 
-    fMcTracks = (TClonesArray*) ioman->GetObject("MCTrack");
-    if (!fMcTracks) {
-        Fatal("Init", "No MCTrack array!");
-    }
-    ioman->Register("MCTrack", "MC", fMcTracks, kTRUE);
+    //    fMcTracks = (TClonesArray*) ioman->GetObject("MCTrack");
+    //    if (!fMcTracks) {
+    //        Fatal("Init", "No MCTrack array!");
+    //    }
+    //    ioman->Register("MCTrack", "MC", fMcTracks, kTRUE);
 
     cout << "BmnGlobalTracking::Init finished\n";
     return kSUCCESS;
@@ -266,14 +272,14 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         }
     }
     CalculateLength();
-    
+
     for (Int_t i = 0; i < fGlobalTracks->GetEntriesFast(); ++i) {
         BmnGlobalTrack* globalTrack = (BmnGlobalTrack*) fGlobalTracks->At(i);
-//        if ((globalTrack->GetChi2() / (globalTrack->GetNofHits() - 1)  > fChiSqCut) || (globalTrack->GetNofHits() < 6)) globalTrack->SetFlag(kBMNBAD);
-//        if (globalTrack->GetNofHits() < 5) globalTrack->SetFlag(kBMNBAD);
-        if ((globalTrack->GetChi2() / (globalTrack->GetNHits() - 1)  > fChiSqCut)) globalTrack->SetFlag(kBMNBAD);
+        //        if ((globalTrack->GetChi2() / (globalTrack->GetNofHits() - 1)  > fChiSqCut) || (globalTrack->GetNofHits() < 6)) globalTrack->SetFlag(kBMNBAD);
+        //        if (globalTrack->GetNofHits() < 5) globalTrack->SetFlag(kBMNBAD);
+        if ((globalTrack->GetChi2() / (globalTrack->GetNHits() - 1) > fChiSqCut)) globalTrack->SetFlag(kBMNBAD);
     }
-    
+
     clock_t tFinish = clock();
 
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
@@ -408,7 +414,7 @@ BmnStatus BmnGlobalTracking::NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num) {
         FairTrackParam tpar(zParamMap[hit->GetZ()]);
         Float_t chi = 0.0;
         fUpdater->Update(&tpar, hit, chi); //update by KF
-//        dist = Sqrt((tpar.GetX() - hit->GetX()) * (tpar.GetX() - hit->GetX()) + (tpar.GetY() - hit->GetY()) * (tpar.GetY() - hit->GetY()));
+        //        dist = Sqrt((tpar.GetX() - hit->GetX()) * (tpar.GetX() - hit->GetX()) + (tpar.GetY() - hit->GetY()) * (tpar.GetY() - hit->GetY()));
         dist = Sqrt(Sqr(tpar.GetX() - hit->GetX()) + Sqr(tpar.GetY() - hit->GetY()) + Sqr(tpar.GetZ() - hit->GetZ()));
 
         //        if (chi < fChiSqCut && chi < minChiSq && dist < minDist) { // Check if hit is inside validation gate and closer to the track.
@@ -422,7 +428,7 @@ BmnStatus BmnGlobalTracking::NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num) {
     }
 
     if (minHit != NULL) { // Check if hit was added
-//        cout << "z = " << minHit->GetZ() << " TOF" << num << endl;
+        //        cout << "z = " << minHit->GetZ() << " TOF" << num << endl;
         tr->SetParamLast(minPar);
         tr->SetChi2(tr->GetChi2() + minChiSq);
         minHit->SetUsing(kTRUE);
@@ -488,10 +494,10 @@ BmnStatus BmnGlobalTracking::NearestHitMergeDCH(BmnGlobalTrack* tr, Int_t num) {
         FairTrackParam tpar(zParamMap[hit->GetZ()]);
         Float_t chi = 0.0;
         fUpdater->Update(&tpar, hit, chi); //update by KF
-//        dist = Sqrt((tpar.GetX() - hit->GetX()) * (tpar.GetX() - hit->GetX()) + (tpar.GetY() - hit->GetY()) * (tpar.GetY() - hit->GetY()));
+        //        dist = Sqrt((tpar.GetX() - hit->GetX()) * (tpar.GetX() - hit->GetX()) + (tpar.GetY() - hit->GetY()) * (tpar.GetY() - hit->GetY()));
         dist = Sqrt(Sqr(tpar.GetX() - hit->GetX()) + Sqr(tpar.GetY() - hit->GetY()) + Sqr(tpar.GetZ() - hit->GetZ()));
 
-//        cout << "dist = " << dist << endl;
+        //        cout << "dist = " << dist << endl;
         //        if (chi < fChiSqCut && chi < minChiSq && dist < minDist) { // Check if hit is inside validation gate and closer to the track.
         if (chi < fChiSqCut && chi < minChiSq && dist < minDist) { // Check if hit is inside validation gate and closer to the track.
             minDist = dist;
@@ -506,7 +512,7 @@ BmnStatus BmnGlobalTracking::NearestHitMergeDCH(BmnGlobalTrack* tr, Int_t num) {
         tr->SetParamLast(minPar);
         tr->SetChi2(tr->GetChi2() + minChiSq);
         minHit->SetUsing(kTRUE);
-//        cout << "z = " << minHit->GetZ() << " DCH" << num << endl;
+        //        cout << "z = " << minHit->GetZ() << " DCH" << num << endl;
         if (num == 1)
             tr->SetDch1HitIndex(minIdx);
         else

@@ -1,3 +1,19 @@
+// @(#)bmnroot/dch:$Id$
+// Author: Pavel Batyuk (VBLHEP) <pavel.batyuk@jinr.ru> 2017-01-21
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+// BmnDchTrackFinder                                                          //
+//                                                                            //
+// Implementation of an algorithm developed by                                // 
+// N.Voytishin and V.Paltchik (LIT)                                           //
+// to the BmnRoot software                                                    //
+//                                                                            //
+// The algorithm serves for searching for track segments                      //
+// in the Drift Chambers of the BM@N experiment                               //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
 #ifndef BMNDCHTRACKFINDER_H
 #define BMNDCHTRACKFINDER_H 1
 
@@ -8,6 +24,7 @@
 #include <TString.h>
 #include <TClonesArray.h>
 #include <TVector2.h>
+#include <Rtypes.h>
 #include  "FairTask.h"
 #include  "FairTrackParam.h"
 
@@ -33,9 +50,9 @@ public:
     void SetSegmentMatching(Bool_t flag) {
         fSegmentMatching = flag;
     }
-    
      
 private:
+    const Int_t N = 2;
     UInt_t fEventNo; // event counter
     
     TString InputDigitsBranchName;
@@ -46,6 +63,11 @@ private:
     
     Int_t prev_wire;
     Int_t prev_time;
+    
+    Int_t nChambers; // dch1 or dch2
+    Int_t nWires;    // corresponding to the found v(0), u(1), y(2), x(3)-pairs
+    Int_t nLayers;   // a(0) or b(1)
+    Int_t nSegmentsMax; // Max. number of found segments to store
     
     Double_t t_dc[5][16]; //[time interval][plane number]
     Double_t pol_par_dc[3][5][16]; //[polinom number][param number][plane number]
@@ -70,92 +92,37 @@ private:
     Float_t y2_slope_sh; //
     
     Bool_t fSegmentMatching; 
-    
-    Float_t** par_ab1;
-    Float_t** par_ab2;
-    
-    Float_t* chi2_DC1;
-    Float_t* chi2_DC2;
-    Int_t* size_segDC1;
-    Int_t* size_segDC2;
-    
-    Float_t** rh_segDC1;
-    Float_t** rh_segDC2;
-    
-    Float_t* xDC1_glob;
-    Float_t* yDC1_glob;
-    Float_t* xDC2_glob;
-    Float_t* yDC2_glob;
-    
-    Float_t** rh_sigm_segDC1;
-    Float_t** rh_sigm_segDC2;
-       
-    Float_t** x1_ab;
-    Float_t** y1_ab;
-    Float_t** u1_ab;
-    Float_t** v1_ab;
-    Float_t** sigm_x1_ab;
-    Float_t** sigm_y1_ab;
-    Float_t** sigm_u1_ab;
-    Float_t** sigm_v1_ab;
-    Float_t** x2_ab;
-    Float_t** y2_ab;
-    Float_t** u2_ab;
-    Float_t** v2_ab;
-    Float_t** sigm_x2_ab;
-    Float_t** sigm_y2_ab;
-    Float_t** sigm_u2_ab;
-    Float_t** sigm_v2_ab;
-
-    //single hits on ab-plane
-    Float_t** x1_single;
-    Float_t** y1_single;
-    Float_t** u1_single;
-    Float_t** v1_single;
-    Float_t** sigm_x1_single;
-    Float_t** sigm_y1_single;
-    Float_t** sigm_u1_single;
-    Float_t** sigm_v1_single;
-    Float_t** x2_single;
-    Float_t** y2_single;
-    Float_t** u2_single;
-    Float_t** v2_single;
-    Float_t** sigm_x2_single;
-    Float_t** sigm_y2_single;
-    Float_t** sigm_u2_single;
-    Float_t** sigm_v2_single;
-    
     Bool_t has7DC1;
     Bool_t has7DC2;
     
-    Int_t nDC1_segments;
-    Int_t nDC2_segments;
+    Float_t** x_global;
+    Float_t** y_global;
+    Float_t** Chi2;
+        
+    Float_t*** v;
+    Float_t*** u;
+    Float_t*** y;
+    Float_t*** x;
+    Float_t*** v_Single;
+    Float_t*** u_Single;
+    Float_t*** y_Single;
+    Float_t*** x_Single;
+    Float_t*** sigm_v;
+    Float_t*** sigm_u;
+    Float_t*** sigm_y;
+    Float_t*** sigm_x;
+    Float_t*** Sigm_v_single;
+    Float_t*** Sigm_u_single;
+    Float_t*** Sigm_y_single;
+    Float_t*** Sigm_x_single;
+    Float_t*** params;
+    Float_t*** rh_segment;
+    Float_t*** rh_sigm_segment;
     
-    Int_t pair_x2;
-    Int_t pair_y2;
-    Int_t pair_u2;
-    Int_t pair_v2;
-    Int_t single_xa2;
-    Int_t single_ya2;
-    Int_t single_ua2;
-    Int_t single_va2;
-    Int_t single_xb2;
-    Int_t single_yb2;
-    Int_t single_ub2;
-    Int_t single_vb2;
-    
-    Int_t pair_x1;
-    Int_t pair_y1;
-    Int_t pair_u1;
-    Int_t pair_v1;
-    Int_t single_xa1;
-    Int_t single_ya1;
-    Int_t single_ua1;
-    Int_t single_va1;
-    Int_t single_xb1;
-    Int_t single_yb1;
-    Int_t single_ub1;
-    Int_t single_vb1;
+    Int_t* nSegments;
+    Int_t** pairs;
+    Int_t** segment_size;
+    Int_t*** singles;
   
     void CreateDchTrack(Int_t, Float_t*, Float_t**, Int_t*);
     void SelectLongestAndBestSegments(Int_t, Int_t*, Float_t**, Float_t*);

@@ -1,42 +1,36 @@
-#include <Rtypes.h>
+// @(#)bmnroot/dch:$Id$
+// Author: Pavel Batyuk (VBLHEP) <pavel.batyuk@jinr.ru> 2017-01-21
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+// BmnDchTrackFinder                                                          //
+//                                                                            //
+// Implementation of an algorithm developed by                                // 
+// N.Voytishin and V.Paltchik (LIT)                                           //
+// to the BmnRoot software                                                    //
+//                                                                            //
+// The algorithm serves for searching for track segments                      //
+// in the Drift Chambers of the BM@N experiment                               //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
 #include "BmnDchTrackFinder.h"
 
 BmnDchTrackFinder::BmnDchTrackFinder() :
 fSegmentMatching(kFALSE),
 has7DC1(kFALSE),
-has7DC2(kFALSE),
-nDC1_segments(0),
-nDC2_segments(0),
-pair_x2(0),
-pair_y2(0),
-pair_u2(0),
-pair_v2(0),
-single_xa2(0),
-single_ya2(0),
-single_ua2(0),
-single_va2(0),
-single_xb2(0),
-single_yb2(0),
-single_ub2(0),
-single_vb2(0),
-pair_x1(0),
-pair_y1(0),
-pair_u1(0),
-pair_v1(0),
-single_xa1(0),
-single_ya1(0),
-single_ua1(0),
-single_va1(0),
-single_xb1(0),
-single_yb1(0),
-single_ub1(0),
-single_vb1(0) {
+has7DC2(kFALSE) {
     fEventNo = 0;
     tracksDch = "BmnDchTrack";
     InputDigitsBranchName = "DCH";
 
     prev_wire = -1;
     prev_time = -1;
+
+    nChambers = 2;
+    nWires = 4;
+    nLayers = 2;
+    nSegmentsMax = 100;
 
     Z_dch1 = 529.65;
     Z_dch2 = 727.65;
@@ -123,62 +117,46 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         it[plane]++;
     }
 
-    pair_v1 = Reconstruction(1, "v", pair_v1, it[0], it[1], wires[0], wires[1], times[0], times[1], used[0], used[1], v1_ab, sigm_v1_ab);
-    pair_u1 = Reconstruction(1, "u", pair_u1, it[2], it[3], wires[2], wires[3], times[2], times[3], used[2], used[3], u1_ab, sigm_u1_ab);
-    pair_y1 = Reconstruction(1, "y", pair_y1, it[4], it[5], wires[4], wires[5], times[4], times[5], used[4], used[5], y1_ab, sigm_y1_ab);
-    pair_x1 = Reconstruction(1, "x", pair_x1, it[6], it[7], wires[6], wires[7], times[6], times[7], used[6], used[7], x1_ab, sigm_x1_ab);
+    TString wireNames[nWires] = {"v", "u", "y", "x"};
+    TString layNames[nLayers] = {"a", "b"};
+    Int_t cntr = 0;
 
-    single_va1 = ReconstructionSingle(1, "v", "a", single_va1, it[0], wires[0], times[0], used[0], v1_single, sigm_v1_single);
-    single_vb1 = ReconstructionSingle(1, "v", "b", single_vb1, it[1], wires[1], times[1], used[1], v1_single, sigm_v1_single);
-    single_ua1 = ReconstructionSingle(1, "u", "a", single_ua1, it[2], wires[2], times[2], used[2], u1_single, sigm_u1_single);
-    single_ub1 = ReconstructionSingle(1, "u", "b", single_ub1, it[3], wires[3], times[3], used[3], u1_single, sigm_u1_single);
-    single_ya1 = ReconstructionSingle(1, "y", "a", single_ya1, it[4], wires[4], times[4], used[4], y1_single, sigm_y1_single);
-    single_yb1 = ReconstructionSingle(1, "y", "b", single_yb1, it[5], wires[5], times[5], used[5], y1_single, sigm_y1_single);
-    single_xa1 = ReconstructionSingle(1, "x", "a", single_xa1, it[6], wires[6], times[6], used[6], x1_single, sigm_x1_single);
-    single_xb1 = ReconstructionSingle(1, "x", "b", single_xb1, it[7], wires[7], times[7], used[7], x1_single, sigm_x1_single);
+    for (Int_t iDch = 0; iDch < nChambers; iDch++) {
+        for (Int_t iWire = 0; iWire < nWires; iWire++) {
+            Int_t start = 2 * iWire + (nPlanes / 2) * iDch;
+            Int_t finish = start + 1;
+            Float_t*** coord = (iWire == 0) ? v : (iWire == 1) ? u : (iWire == 2) ? y : x;
+            Float_t*** sigma = (iWire == 0) ? sigm_v : (iWire == 1) ? sigm_u : (iWire == 2) ? sigm_y : sigm_x;
 
-    nDC1_segments = BuildUVSegments(1, pair_u1, pair_v1, pair_x1, pair_y1, single_ua1, single_ub1, single_va1, single_vb1,
-            x1_ab, y1_ab, u1_ab, v1_ab, sigm_x1_ab, sigm_y1_ab, sigm_u1_ab, sigm_v1_ab, rh_segDC1, rh_sigm_segDC1, u1_single, v1_single, sigm_u1_single, sigm_v1_single);
+            pairs[iDch][iWire] = Reconstruction(iDch + 1, wireNames[iWire], pairs[iDch][iWire], it[start], it[finish],
+                    wires[start], wires[finish], times[start], times[finish], used[start], used[finish],
+                    coord[iDch], sigma[iDch]);
 
-    nDC1_segments = BuildXYSegments(1, pair_u1, pair_v1, pair_x1, pair_y1, single_xa1, single_xb1, single_ya1, single_yb1,
-            x1_ab, y1_ab, u1_ab, v1_ab, sigm_x1_ab, sigm_y1_ab, sigm_u1_ab, sigm_v1_ab, rh_segDC1, rh_sigm_segDC1, x1_single, y1_single, sigm_x1_single, sigm_y1_single);
+            for (Int_t iLayer = 0; iLayer < nLayers; iLayer++) {
+                Float_t*** single_coord = (iWire == 0) ? v_Single : (iWire == 1) ? u_Single : (iWire == 2) ? y_Single : x_Single;
+                Float_t*** single_sigma = (iWire == 0) ? Sigm_v_single : (iWire == 1) ? Sigm_u_single : (iWire == 2) ? Sigm_y_single : Sigm_x_single;
+                singles[iDch][iWire][iLayer] = ReconstructionSingle(iDch + 1, wireNames[iWire], layNames[iLayer],
+                        singles[iDch][iWire][iLayer], it[cntr], wires[cntr], times[cntr], used[cntr], single_coord[iDch], single_sigma[iDch]);
+                cntr++;
+            }
+        }
+        nSegments[iDch] = BuildUVSegments(iDch + 1,
+                pairs[iDch][1], pairs[iDch][0], pairs[iDch][3], pairs[iDch][2], singles[iDch][1][0], singles[iDch][1][1], singles[iDch][0][0], singles[iDch][0][1],
+                x[iDch], y[iDch], u[iDch], v[iDch], sigm_x[iDch], sigm_y[iDch], sigm_u[iDch], sigm_v[iDch], rh_segment[iDch], rh_sigm_segment[iDch],
+                u_Single[iDch], v_Single[iDch], Sigm_u_single[iDch], Sigm_v_single[iDch]);
 
-    pair_v2 = Reconstruction(2, "v", pair_v2, it[8], it[9], wires[8], wires[9], times[8], times[9], used[8], used[9], v2_ab, sigm_v2_ab);
-    pair_u2 = Reconstruction(2, "u", pair_u2, it[10], it[11], wires[10], wires[11], times[10], times[11], used[10], used[11], u2_ab, sigm_u2_ab);
-    pair_y2 = Reconstruction(2, "y", pair_y2, it[12], it[13], wires[12], wires[13], times[12], times[13], used[12], used[13], y2_ab, sigm_y2_ab);
-    pair_x2 = Reconstruction(2, "x", pair_x2, it[14], it[15], wires[14], wires[15], times[14], times[15], used[14], used[15], x2_ab, sigm_x2_ab);
+        nSegments[iDch] = BuildXYSegments(iDch + 1,
+                pairs[iDch][1], pairs[iDch][0], pairs[iDch][3], pairs[iDch][2], singles[iDch][3][0], singles[iDch][3][1], singles[iDch][2][0], singles[iDch][2][1],
+                x[iDch], y[iDch], u[iDch], v[iDch], sigm_x[iDch], sigm_y[iDch], sigm_u[iDch], sigm_v[iDch], rh_segment[iDch], rh_sigm_segment[iDch],
+                x_Single[iDch], y_Single[iDch], Sigm_x_single[iDch], Sigm_y_single[iDch]);
 
-    single_va2 = ReconstructionSingle(2, "v", "a", single_va2, it[8], wires[8], times[8], used[8], v2_single, sigm_v2_single);
-    single_vb2 = ReconstructionSingle(2, "v", "b", single_vb2, it[9], wires[9], times[9], used[9], v2_single, sigm_v2_single);
-    single_ua2 = ReconstructionSingle(2, "u", "a", single_ua2, it[10], wires[10], times[10], used[10], u2_single, sigm_u2_single);
-    single_ub2 = ReconstructionSingle(2, "u", "b", single_ub2, it[11], wires[11], times[11], used[11], u2_single, sigm_u2_single);
-    single_ya2 = ReconstructionSingle(2, "y", "a", single_ya2, it[12], wires[12], times[12], used[12], y2_single, sigm_y2_single);
-    single_yb2 = ReconstructionSingle(2, "y", "b", single_yb2, it[13], wires[13], times[13], used[13], y2_single, sigm_y2_single);
-    single_xa2 = ReconstructionSingle(2, "x", "a", single_xa2, it[14], wires[14], times[14], used[14], x2_single, sigm_x2_single);
-    single_xb2 = ReconstructionSingle(2, "x", "b", single_xb2, it[15], wires[15], times[15], used[15], x2_single, sigm_x2_single);
-
-    // Build segments
-    nDC2_segments = BuildUVSegments(2, pair_u2, pair_v2, pair_x2, pair_y2, single_ua2, single_ub2, single_va2, single_vb2,
-            x2_ab, y2_ab, u2_ab, v2_ab, sigm_x2_ab, sigm_y2_ab, sigm_u2_ab, sigm_v2_ab, rh_segDC2, rh_sigm_segDC2, u2_single, v2_single, sigm_u2_single, sigm_v2_single);
-
-    nDC2_segments = BuildXYSegments(2, pair_u2, pair_v2, pair_x2, pair_y2, single_xa2, single_xb2, single_ya2, single_yb2,
-            x2_ab, y2_ab, u2_ab, v2_ab, sigm_x2_ab, sigm_y2_ab, sigm_u2_ab, sigm_v2_ab, rh_segDC2, rh_sigm_segDC2, x2_single, y2_single, sigm_x2_single, sigm_y2_single);
-
-    // Common procedures over dch1 and dch2 
-    // Fit found segments
-    FitDchSegments(1, size_segDC1, rh_segDC1, rh_sigm_segDC1, par_ab1, chi2_DC1, xDC1_glob, yDC1_glob); // Dch1
-    FitDchSegments(2, size_segDC2, rh_segDC2, rh_sigm_segDC2, par_ab2, chi2_DC2, xDC2_glob, yDC2_glob); // Dch2
-
-    // Leave only longest and best chi2 segments   
-    SelectLongestAndBestSegments(1, size_segDC1, rh_segDC1, chi2_DC1); // Dch1
-    SelectLongestAndBestSegments(2, size_segDC2, rh_segDC2, chi2_DC2); // Dch2
-
-    // Fill local segments z,x,y global coords; x-slope; y-slope; Chi2; to be continued...
-    CreateDchTrack(1, chi2_DC1, par_ab1, size_segDC1); // Dch1
-    CreateDchTrack(2, chi2_DC2, par_ab2, size_segDC2); // Dch2
+        FitDchSegments(iDch + 1, segment_size[iDch], rh_segment[iDch], rh_sigm_segment[iDch], params[iDch], Chi2[iDch], x_global[iDch], y_global[iDch]); // Fit found segments
+        SelectLongestAndBestSegments(iDch + 1, segment_size[iDch], rh_segment[iDch], Chi2[iDch]); // Save only longest and best chi2 segments
+        CreateDchTrack(iDch + 1, Chi2[iDch], params[iDch], segment_size[iDch]); // Fill segment parameters
+    }
 
     // Try to match the reconstructed segments from the two chambers
-    // Not used in this version
+    // Not implemented yet (TO DO A.S.A.P.)
     if (!fSegmentMatching) {
         cout << "\n======================== DCH track finder exec finished ========================" << endl;
         return;
@@ -198,7 +176,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
     Double_t sqrt_2 = sqrt(2.);
     Double_t isqrt_2 = 1. / sqrt_2;
 
-    Int_t nDC_segments = (dchID == 1) ? nDC1_segments : nDC2_segments;
+    Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
     for (Int_t i = 0; i < pairU; i++) {
         if (nDC_segments > 48)
             break;
@@ -332,7 +310,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
     Double_t sqrt_2 = sqrt(2.);
     Double_t isqrt_2 = 1. / sqrt_2;
 
-    Int_t nDC_segments = (dchID == 1) ? nDC1_segments : nDC2_segments;
+    Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
 
     for (Int_t i = 0; i < pairX; i++) {
         if (nDC_segments > 48)
@@ -463,7 +441,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
 }
 
 void BmnDchTrackFinder::FitDchSegments(Int_t dchID, Int_t* size_seg, Float_t** rh_seg, Float_t** rh_sigm_seg, Float_t** par_ab, Float_t* chi2, Float_t* x_glob, Float_t* y_glob) {
-    Int_t nDC_segments = (dchID == 1) ? nDC1_segments : nDC2_segments;
+    Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
     for (Int_t j = 0; j < nDC_segments; j++) {
         Int_t worst_hit = -1;
         Double_t max_resid = 0;
@@ -554,19 +532,19 @@ void BmnDchTrackFinder::CompareDaDb(Float_t d, Float_t& ele1, Float_t& ele2) {
 }
 
 void BmnDchTrackFinder::SelectLongestAndBestSegments(Int_t dchID, Int_t* size_seg, Float_t** rh_seg, Float_t* chi2) {
-    Int_t nDC_segments = (dchID == 1) ? nDC1_segments : nDC2_segments;
-    for (Int_t max_size = 8; max_size > 5; max_size--) 
+    Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
+    for (Int_t max_size = 8; max_size > 5; max_size--)
         for (Int_t it1 = 0; it1 < nDC_segments; it1++) {
             if (size_seg[it1] != max_size)
                 continue;
             for (Int_t it2 = 0; it2 < nDC_segments; it2++) {
                 if (it2 == it1)
                     continue;
-                for (Int_t hit = 0; hit < 4; hit++) 
+                for (Int_t hit = 0; hit < 4; hit++)
                     if (rh_seg[2 * hit][it1] == rh_seg[2 * hit][it2] &&
                             rh_seg[2 * hit + 1][it1] == rh_seg[2 * hit + 1][it2] &&
                             (chi2[it1] <= chi2[it2] || size_seg[it1] > size_seg[it2])) {
-                        chi2[it2] = 999.;                                                                                                   
+                        chi2[it2] = 999.;
                         break;
                     }
             }
@@ -574,7 +552,7 @@ void BmnDchTrackFinder::SelectLongestAndBestSegments(Int_t dchID, Int_t* size_se
 }
 
 void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Float_t* chi2Arr, Float_t** parArr, Int_t* sizeArr) {
-    Int_t nDC_segments = (dchID == 1) ? nDC1_segments : nDC2_segments;
+    Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
     for (Int_t iSegment = 0; iSegment < nDC_segments; iSegment++) {
         if (chi2Arr[iSegment] > 50)
             continue;
@@ -616,17 +594,13 @@ InitStatus BmnDchTrackFinder::Init() {
     TString dir = getenv("VMCWORKDIR");
     dir += "/input/";
     fin.open((TString(dir + "transfer_func.txt")).Data(), ios::in);
-    for (Int_t fi = 0; fi < 16; fi++) {
+    for (Int_t fi = 0; fi < 16; fi++)
         fin >> t_dc[0][fi] >> t_dc[1][fi] >> t_dc[2][fi] >> t_dc[3][fi] >> t_dc[4][fi] >>
-                pol_par_dc[0][0][fi] >> pol_par_dc[0][1][fi] >> pol_par_dc[0][2][fi] >> pol_par_dc[0][3][fi] >> pol_par_dc[0][4][fi] >>
-                pol_par_dc[1][0][fi] >> pol_par_dc[1][1][fi] >> pol_par_dc[1][2][fi] >> pol_par_dc[1][3][fi] >> pol_par_dc[1][4][fi] >>
-                pol_par_dc[2][0][fi] >> pol_par_dc[2][1][fi] >> pol_par_dc[2][2][fi] >> pol_par_dc[2][3][fi] >> pol_par_dc[2][4][fi] >>
-                scaling[fi];
-    }
-
+            pol_par_dc[0][0][fi] >> pol_par_dc[0][1][fi] >> pol_par_dc[0][2][fi] >> pol_par_dc[0][3][fi] >> pol_par_dc[0][4][fi] >>
+            pol_par_dc[1][0][fi] >> pol_par_dc[1][1][fi] >> pol_par_dc[1][2][fi] >> pol_par_dc[1][3][fi] >> pol_par_dc[1][4][fi] >>
+            pol_par_dc[2][0][fi] >> pol_par_dc[2][1][fi] >> pol_par_dc[2][2][fi] >> pol_par_dc[2][3][fi] >> pol_par_dc[2][4][fi] >>
+            scaling[fi];
     fin.close();
-
-    const Int_t N = 2;
 
     // z local xa->vb (cm) 
     Double_t arr1[4 * N] = {9.3, 8.1, 3.5, 2.3, -2.3, -3.5, -8.1, -9.3};
@@ -638,299 +612,226 @@ InitStatus BmnDchTrackFinder::Init() {
     for (Int_t iSize = 0; iSize < 8 * N; iSize++)
         z_glob[iSize] = arr2[iSize];
 
-    x1_ab = new Float_t*[N];
-    y1_ab = new Float_t*[N];
-    u1_ab = new Float_t*[N];
-    v1_ab = new Float_t*[N];
-    sigm_x1_ab = new Float_t*[N];
-    sigm_y1_ab = new Float_t*[N];
-    sigm_u1_ab = new Float_t*[N];
-    sigm_v1_ab = new Float_t*[N];
-    x2_ab = new Float_t*[N];
-    y2_ab = new Float_t*[N];
-    u2_ab = new Float_t*[N];
-    v2_ab = new Float_t*[N];
-    sigm_x2_ab = new Float_t*[N];
-    sigm_y2_ab = new Float_t*[N];
-    sigm_u2_ab = new Float_t*[N];
-    sigm_v2_ab = new Float_t*[N];
-    for (Int_t iDim = 0; iDim < N; iDim++) {
-        x1_ab[iDim] = new Float_t[75 * N];
-        y1_ab[iDim] = new Float_t[75 * N];
-        u1_ab[iDim] = new Float_t[75 * N];
-        v1_ab[iDim] = new Float_t[75 * N];
-        sigm_x1_ab[iDim] = new Float_t[75 * N];
-        sigm_y1_ab[iDim] = new Float_t[75 * N];
-        sigm_u1_ab[iDim] = new Float_t[75 * N];
-        sigm_v1_ab[iDim] = new Float_t[75 * N];
-        x2_ab[iDim] = new Float_t[75 * N];
-        y2_ab[iDim] = new Float_t[75 * N];
-        u2_ab[iDim] = new Float_t[75 * N];
-        v2_ab[iDim] = new Float_t[75 * N];
-        sigm_x2_ab[iDim] = new Float_t[75 * N];
-        sigm_y2_ab[iDim] = new Float_t[75 * N];
-        sigm_u2_ab[iDim] = new Float_t[75 * N];
-        sigm_v2_ab[iDim] = new Float_t[75 * N];
+    v = new Float_t**[nChambers];
+    u = new Float_t**[nChambers];
+    y = new Float_t**[nChambers];
+    x = new Float_t**[nChambers];
+    v_Single = new Float_t**[nChambers];
+    u_Single = new Float_t**[nChambers];
+    y_Single = new Float_t**[nChambers];
+    x_Single = new Float_t**[nChambers];
+    sigm_v = new Float_t**[nChambers];
+    sigm_u = new Float_t**[nChambers];
+    sigm_y = new Float_t**[nChambers];
+    sigm_x = new Float_t**[nChambers];
+    Sigm_v_single = new Float_t**[nChambers];
+    Sigm_u_single = new Float_t**[nChambers];
+    Sigm_y_single = new Float_t**[nChambers];
+    Sigm_x_single = new Float_t**[nChambers];
+    segment_size = new Int_t*[nChambers];
+    Chi2 = new Float_t*[nChambers];
+    x_global = new Float_t*[nChambers];
+    y_global = new Float_t*[nChambers];
+    params = new Float_t**[nChambers];
+    rh_segment = new Float_t**[nChambers];
+    rh_sigm_segment = new Float_t**[nChambers];
+    for (Int_t iChamber = 0; iChamber < nChambers; iChamber++) {
+        v[iChamber] = new Float_t*[N];
+        u[iChamber] = new Float_t*[N];
+        y[iChamber] = new Float_t*[N];
+        x[iChamber] = new Float_t*[N];
+        v_Single[iChamber] = new Float_t*[N];
+        u_Single[iChamber] = new Float_t*[N];
+        y_Single[iChamber] = new Float_t*[N];
+        x_Single[iChamber] = new Float_t*[N];
+        sigm_v[iChamber] = new Float_t*[N];
+        sigm_u[iChamber] = new Float_t*[N];
+        sigm_y[iChamber] = new Float_t*[N];
+        sigm_x[iChamber] = new Float_t*[N];
+        Sigm_v_single[iChamber] = new Float_t*[N];
+        Sigm_u_single[iChamber] = new Float_t*[N];
+        Sigm_y_single[iChamber] = new Float_t*[N];
+        Sigm_x_single[iChamber] = new Float_t*[N];
+        segment_size[iChamber] = new Int_t[75 * N];
+        Chi2[iChamber] = new Float_t[75 * N];
+        x_global[iChamber] = new Float_t[75 * N];
+        y_global[iChamber] = new Float_t[75 * N];
+        params[iChamber] = new Float_t*[2 * N];
+        rh_segment[iChamber] = new Float_t*[4 * N];
+        rh_sigm_segment[iChamber] = new Float_t*[4 * N];
+        for (Int_t iDim = 0; iDim < N; iDim++) {
+            v[iChamber][iDim] = new Float_t[75 * N];
+            u[iChamber][iDim] = new Float_t[75 * N];
+            y[iChamber][iDim] = new Float_t[75 * N];
+            x[iChamber][iDim] = new Float_t[75 * N];
+            v_Single[iChamber][iDim] = new Float_t[20 * N];
+            u_Single[iChamber][iDim] = new Float_t[20 * N];
+            y_Single[iChamber][iDim] = new Float_t[20 * N];
+            x_Single[iChamber][iDim] = new Float_t[20 * N];
+            sigm_v[iChamber][iDim] = new Float_t[75 * N];
+            sigm_u[iChamber][iDim] = new Float_t[75 * N];
+            sigm_y[iChamber][iDim] = new Float_t[75 * N];
+            sigm_x[iChamber][iDim] = new Float_t[75 * N];
+            Sigm_v_single[iChamber][iDim] = new Float_t[20 * N];
+            Sigm_u_single[iChamber][iDim] = new Float_t[20 * N];
+            Sigm_y_single[iChamber][iDim] = new Float_t[20 * N];
+            Sigm_x_single[iChamber][iDim] = new Float_t[20 * N];
+        }
+        for (Int_t iDim = 0; iDim < 2 * N; iDim++)
+            params[iChamber][iDim] = new Float_t[75 * N];
+        for (Int_t iDim = 0; iDim < 4 * N; iDim++) {
+            rh_segment[iChamber][iDim] = new Float_t[75 * N];
+            rh_sigm_segment[iChamber][iDim] = new Float_t[75 * N];
+        }
     }
-
-    par_ab1 = new Float_t*[2 * N];
-    par_ab2 = new Float_t*[2 * N];
-    for (Int_t iDim = 0; iDim < 2 * N; iDim++) {
-        par_ab1[iDim] = new Float_t[75 * N];
-        par_ab2[iDim] = new Float_t[75 * N];
+    pairs = new Int_t*[nChambers];
+    for (Int_t iChamber = 0; iChamber < nChambers; iChamber++)
+        pairs[iChamber] = new Int_t[nWires];
+    singles = new Int_t**[nChambers];
+    for (Int_t iChamber = 0; iChamber < nChambers; iChamber++) {
+        singles[iChamber] = new Int_t*[nWires];
+        for (Int_t iWire = 0; iWire < nWires; iWire++)
+            singles[iChamber][iWire] = new Int_t[nLayers];
     }
-
-    chi2_DC1 = new Float_t[75 * N];
-    chi2_DC2 = new Float_t[75 * N];
-    xDC1_glob = new Float_t[75 * N];
-    yDC1_glob = new Float_t[75 * N];
-    xDC2_glob = new Float_t[75 * N];
-    yDC2_glob = new Float_t[75 * N];
-
-    size_segDC1 = new Int_t[75 * N];
-    size_segDC2 = new Int_t[75 * N];
-
-    rh_segDC1 = new Float_t*[4 * N];
-    rh_segDC2 = new Float_t*[4 * N];
-    rh_sigm_segDC1 = new Float_t*[4 * N];
-    rh_sigm_segDC2 = new Float_t*[4 * N];
-    for (Int_t iDim = 0; iDim < 4 * N; iDim++) {
-        rh_segDC1[iDim] = new Float_t[75 * N];
-        rh_segDC2[iDim] = new Float_t[75 * N];
-        rh_sigm_segDC1[iDim] = new Float_t[75 * N];
-        rh_sigm_segDC2[iDim] = new Float_t[75 * N];
-    }
-
-    //single hits on ab-plane
-    x1_single = new Float_t*[N];
-    y1_single = new Float_t*[N];
-    u1_single = new Float_t*[N];
-    v1_single = new Float_t*[N];
-    sigm_x1_single = new Float_t*[N];
-    sigm_y1_single = new Float_t*[N];
-    sigm_u1_single = new Float_t*[N];
-    sigm_v1_single = new Float_t*[N];
-    x2_single = new Float_t*[N];
-    y2_single = new Float_t*[N];
-    u2_single = new Float_t*[N];
-    v2_single = new Float_t*[N];
-    sigm_x2_single = new Float_t*[N];
-    sigm_y2_single = new Float_t*[N];
-    sigm_u2_single = new Float_t*[N];
-    sigm_v2_single = new Float_t*[N];
-    for (Int_t iDim = 0; iDim < N; iDim++) {
-        x1_single[iDim] = new Float_t[20 * N];
-        y1_single[iDim] = new Float_t[20 * N];
-        u1_single[iDim] = new Float_t[20 * N];
-        v1_single[iDim] = new Float_t[20 * N];
-        sigm_x1_single[iDim] = new Float_t[20 * N];
-        sigm_y1_single[iDim] = new Float_t[20 * N];
-        sigm_u1_single[iDim] = new Float_t[20 * N];
-        sigm_v1_single[iDim] = new Float_t[20 * N];
-        x2_single[iDim] = new Float_t[20 * N];
-        y2_single[iDim] = new Float_t[20 * N];
-        u2_single[iDim] = new Float_t[20 * N];
-        v2_single[iDim] = new Float_t[20 * N];
-        sigm_x2_single[iDim] = new Float_t[20 * N];
-        sigm_y2_single[iDim] = new Float_t[20 * N];
-        sigm_u2_single[iDim] = new Float_t[20 * N];
-        sigm_v2_single[iDim] = new Float_t[20 * N];
-    }
+    nSegments = new Int_t[nSegmentsMax];
 }
 
 void BmnDchTrackFinder::PrepareArraysToProcessEvent() {
     fDchTracks->Clear();
     has7DC1 = kFALSE;
     has7DC2 = kFALSE;
-    nDC1_segments = 0;
-    nDC2_segments = 0;
+
     // Array cleaning and initializing 
-    for (Int_t iDim1 = 0; iDim1 < 4; iDim1++)
-        for (Int_t iDim2 = 0; iDim2 < 150; iDim2++) {
-            par_ab1[iDim1][iDim2] = -999.;
-            par_ab2[iDim1][iDim2] = -999.;
+    for (Int_t iChamber = 0; iChamber < nChambers; iChamber++)
+        for (Int_t iWire = 0; iWire < nWires; iWire++) {
+            pairs[iChamber][iWire] = 0;
+            for (Int_t iLayer = 0; iLayer < nLayers; iLayer++)
+                singles[iChamber][iWire][iLayer] = 0;
         }
-
-    for (Int_t iDim = 0; iDim < 150; iDim++) {
-        chi2_DC1[iDim] = 50.;
-        chi2_DC2[iDim] = 50.;
-        size_segDC1[iDim] = 0;
-        size_segDC2[iDim] = 0;
-        xDC1_glob[iDim] = -999.;
-        yDC1_glob[iDim] = -999.;
-        xDC2_glob[iDim] = -999.;
-        yDC2_glob[iDim] = -999.;
+    for (Int_t iChamber = 0; iChamber < nChambers; iChamber++) {
+        for (Int_t iDim1 = 0; iDim1 < 2 * N; iDim1++)
+            for (Int_t iDim2 = 0; iDim2 < 75 * N; iDim2++)
+                params[iChamber][iDim1][iDim2] = -999.;
+        for (Int_t iDim1 = 0; iDim1 < 75 * N; iDim1++) {
+            segment_size[iChamber][iDim1] = 0;
+            Chi2[iChamber][iDim1] = 50.;
+            x_global[iChamber][iDim1] = -999.;
+            y_global[iChamber][iDim1] = -999.;
+        }
+        for (Int_t iDim1 = 0; iDim1 < N; iDim1++) {
+            for (Int_t iDim2 = 0; iDim2 < 75 * N; iDim2++) {
+                v[iChamber][iDim1][iDim2] = -999.;
+                u[iChamber][iDim1][iDim2] = -999.;
+                y[iChamber][iDim1][iDim2] = -999.;
+                x[iChamber][iDim1][iDim2] = -999.;
+                sigm_v[iChamber][iDim1][iDim2] = 1.;
+                sigm_u[iChamber][iDim1][iDim2] = 1.;
+                sigm_y[iChamber][iDim1][iDim2] = 1.;
+                sigm_x[iChamber][iDim1][iDim2] = 1.;
+            }
+            for (Int_t iDim3 = 0; iDim3 < 20 * N; iDim3++) {
+                v_Single[iChamber][iDim1][iDim3] = -999.;
+                u_Single[iChamber][iDim1][iDim3] = -999.;
+                y_Single[iChamber][iDim1][iDim3] = -999.;
+                x_Single[iChamber][iDim1][iDim3] = -999.;
+                Sigm_v_single[iChamber][iDim1][iDim3] = 1.;
+                Sigm_u_single[iChamber][iDim1][iDim3] = 1.;
+                Sigm_y_single[iChamber][iDim1][iDim3] = 1.;
+                Sigm_x_single[iChamber][iDim1][iDim3] = 1.;
+            }
+        }
+        for (Int_t iDim1 = 0; iDim1 < 4 * N; iDim1++)
+            for (Int_t iDim2 = 0; iDim2 < 75 * N; iDim2++) {
+                rh_segment[iChamber][iDim1][iDim2] = -999.;
+                rh_sigm_segment[iChamber][iDim1][iDim2] = 1.;
+            }
     }
-
-    for (Int_t iDim1 = 0; iDim1 < 8; iDim1++)
-        for (Int_t iDim2 = 0; iDim2 < 150; iDim2++) {
-            rh_segDC1[iDim1][iDim2] = -999.;
-            rh_segDC2[iDim1][iDim2] = -999.;
-            rh_sigm_segDC1[iDim1][iDim2] = 1.;
-            rh_sigm_segDC2[iDim1][iDim2] = 1.;
-        }
-
-    for (Int_t iDim1 = 0; iDim1 < 2; iDim1++) {
-        for (Int_t iDim2 = 0; iDim2 < 150; iDim2++) {
-            x1_ab[iDim1][iDim2] = -999.;
-            y1_ab[iDim1][iDim2] = -999.;
-            u1_ab[iDim1][iDim2] = -999.;
-            v1_ab[iDim1][iDim2] = -999.;
-            sigm_x1_ab[iDim1][iDim2] = 1.;
-            sigm_y1_ab[iDim1][iDim2] = 1.;
-            sigm_u1_ab[iDim1][iDim2] = 1.;
-            sigm_v1_ab[iDim1][iDim2] = 1.;
-            x2_ab[iDim1][iDim2] = -999.;
-            y2_ab[iDim1][iDim2] = -999.;
-            u2_ab[iDim1][iDim2] = -999.;
-            v2_ab[iDim1][iDim2] = -999.;
-            sigm_x2_ab[iDim1][iDim2] = 1.;
-            sigm_y2_ab[iDim1][iDim2] = 1.;
-            sigm_u2_ab[iDim1][iDim2] = 1.;
-            sigm_v2_ab[iDim1][iDim2] = 1.;
-        }
-        for (Int_t iDim2 = 0; iDim2 < 40; iDim2++) {
-            x1_single[iDim1][iDim2] = -999.;
-            y1_single[iDim1][iDim2] = -999.;
-            u1_single[iDim1][iDim2] = -999.;
-            v1_single[iDim1][iDim2] = -999.;
-            sigm_x1_single[iDim1][iDim2] = 1.;
-            sigm_y1_single[iDim1][iDim2] = 1.;
-            sigm_u1_single[iDim1][iDim2] = 1.;
-            sigm_v1_single[iDim1][iDim2] = 1.;
-            x2_single[iDim1][iDim2] = -999.;
-            y2_single[iDim1][iDim2] = -999.;
-            u2_single[iDim1][iDim2] = -999.;
-            v2_single[iDim1][iDim2] = -999.;
-            sigm_x2_single[iDim1][iDim2] = 1.;
-            sigm_y2_single[iDim1][iDim2] = 1.;
-            sigm_u2_single[iDim1][iDim2] = 1.;
-            sigm_v2_single[iDim1][iDim2] = 1.;
-        }
-    }
-    pair_x2 = 0;
-    pair_y2 = 0;
-    pair_u2 = 0;
-    pair_v2 = 0;
-    single_xa2 = 0;
-    single_ya2 = 0;
-    single_ua2 = 0;
-    single_va2 = 0;
-    single_xb2 = 0;
-    single_yb2 = 0;
-    single_ub2 = 0;
-    single_vb2 = 0;
-    pair_x1 = 0;
-    pair_y1 = 0;
-    pair_u1 = 0;
-    pair_v1 = 0;
-    single_xa1 = 0;
-    single_ya1 = 0;
-    single_ua1 = 0;
-    single_va1 = 0;
-    single_xb1 = 0;
-    single_yb1 = 0;
-    single_ub1 = 0;
-    single_vb1 = 0;
+    for (Int_t iSegment = 0; iSegment < nSegmentsMax; iSegment++)
+        nSegments[iSegment] = 0;
 }
 
 void BmnDchTrackFinder::Finish() {
-    for (Int_t i = 0; i < 4; i++) {
-        delete [] par_ab1[i];
-        delete [] par_ab2[i];
+    // Delete 1d-arrays
+    delete [] nSegments;
+    // Delete 2d-arrays and 3d-arrays
+    for (Int_t iChamber = 0; iChamber < nChambers; iChamber++) {
+        delete [] x_global[iChamber];
+        delete [] y_global[iChamber];
+        delete [] Chi2[iChamber];
+        delete [] pairs[iChamber];
+        delete [] segment_size[iChamber];
+        for (Int_t iDim = 0; iDim < N; iDim++) {
+            delete [] v[iChamber][iDim];
+            delete [] u[iChamber][iDim];
+            delete [] y[iChamber][iDim];
+            delete [] x[iChamber][iDim];
+            delete [] sigm_v[iChamber][iDim];
+            delete [] sigm_u[iChamber][iDim];
+            delete [] sigm_y[iChamber][iDim];
+            delete [] sigm_x[iChamber][iDim];
+            delete [] v_Single[iChamber][iDim];
+            delete [] u_Single[iChamber][iDim];
+            delete [] y_Single[iChamber][iDim];
+            delete [] x_Single[iChamber][iDim];
+            delete [] Sigm_v_single[iChamber][iDim];
+            delete [] Sigm_u_single[iChamber][iDim];
+            delete [] Sigm_y_single[iChamber][iDim];
+            delete [] Sigm_x_single[iChamber][iDim];
+        }
+        for (Int_t iDim = 0; iDim < 2 * N; iDim++)
+            delete [] params[iChamber][iDim];
+        for (Int_t iDim = 0; iDim < 4 * N; iDim++) {
+            delete [] rh_segment[iChamber][iDim];
+            delete [] rh_sigm_segment[iChamber][iDim];
+        }
+        delete [] v[iChamber];
+        delete [] u[iChamber];
+        delete [] y[iChamber];
+        delete [] x[iChamber];
+        delete [] sigm_v[iChamber];
+        delete [] sigm_u[iChamber];
+        delete [] sigm_y[iChamber];
+        delete [] sigm_x[iChamber];
+        delete [] v_Single[iChamber];
+        delete [] u_Single[iChamber];
+        delete [] y_Single[iChamber];
+        delete [] x_Single[iChamber];
+        delete [] Sigm_v_single[iChamber];
+        delete [] Sigm_u_single[iChamber];
+        delete [] Sigm_y_single[iChamber];
+        delete [] Sigm_x_single[iChamber];
+        delete [] params[iChamber];
+        delete [] rh_segment[iChamber];
+        delete [] rh_sigm_segment[iChamber];
+        for (Int_t iWire = 0; iWire < nWires; iWire++)
+            delete [] singles[iChamber][iWire];
+        delete [] singles[iChamber];
     }
-
-    delete[] par_ab1;
-    delete[] par_ab2;
-
-    delete[] chi2_DC1;
-    delete[] chi2_DC2;
-
-    delete[] size_segDC1;
-    delete[] size_segDC2;
-
-    for (Int_t i = 0; i < 8; i++) {
-        delete [] rh_segDC1[i];
-        delete [] rh_segDC2[i];
-    }
-
-    delete[] rh_segDC1;
-    delete[] rh_segDC2;
-
-    delete [] xDC1_glob;
-    delete [] xDC2_glob;
-    delete [] yDC1_glob;
-    delete [] yDC2_glob;
-
-    for (Int_t i = 0; i < 2; i++) {
-        delete [] x1_ab[i];
-        delete [] y1_ab[i];
-        delete [] u1_ab[i];
-        delete [] v1_ab[i];
-        delete [] sigm_x1_ab[i];
-        delete [] sigm_y1_ab[i];
-        delete [] sigm_u1_ab[i];
-        delete [] sigm_v1_ab[i];
-        delete [] x2_ab[i];
-        delete [] y2_ab[i];
-        delete [] u2_ab[i];
-        delete [] v2_ab[i];
-        delete [] sigm_x2_ab[i];
-        delete [] sigm_y2_ab[i];
-        delete [] sigm_u2_ab[i];
-        delete [] sigm_v2_ab[i];
-
-        delete [] x1_single[i];
-        delete [] y1_single[i];
-        delete [] u1_single[i];
-        delete [] v1_single[i];
-        delete [] sigm_x1_single[i];
-        delete [] sigm_y1_single[i];
-        delete [] sigm_u1_single[i];
-        delete [] sigm_v1_single[i];
-        delete [] x2_single[i];
-        delete [] y2_single[i];
-        delete [] u2_single[i];
-        delete [] v2_single[i];
-        delete [] sigm_x2_single[i];
-        delete [] sigm_y2_single[i];
-        delete [] sigm_u2_single[i];
-        delete [] sigm_v2_single[i];
-    }
-
-    delete [] x1_ab;
-    delete [] y1_ab;
-    delete [] u1_ab;
-    delete [] v1_ab;
-    delete [] sigm_x1_ab;
-    delete [] sigm_y1_ab;
-    delete [] sigm_u1_ab;
-    delete [] sigm_v1_ab;
-    delete [] x2_ab;
-    delete [] y2_ab;
-    delete [] u2_ab;
-    delete [] v2_ab;
-    delete [] sigm_x2_ab;
-    delete [] sigm_y2_ab;
-    delete [] sigm_u2_ab;
-    delete [] sigm_v2_ab;
-
-    delete [] x1_single;
-    delete [] y1_single;
-    delete [] u1_single;
-    delete [] v1_single;
-    delete [] sigm_x1_single;
-    delete [] sigm_y1_single;
-    delete [] sigm_u1_single;
-    delete [] sigm_v1_single;
-    delete [] x2_single;
-    delete [] y2_single;
-    delete [] u2_single;
-    delete [] v2_single;
-    delete [] sigm_x2_single;
-    delete [] sigm_y2_single;
-    delete [] sigm_u2_single;
-    delete [] sigm_v2_single;
+    delete [] x_global;
+    delete [] y_global;
+    delete [] Chi2;
+    delete [] pairs;
+    delete [] segment_size;
+    delete [] v;
+    delete [] u;
+    delete [] y;
+    delete [] x;
+    delete [] sigm_v;
+    delete [] sigm_u;
+    delete [] sigm_y;
+    delete [] sigm_x;
+    delete [] v_Single;
+    delete [] u_Single;
+    delete [] y_Single;
+    delete [] x_Single;
+    delete [] Sigm_v_single;
+    delete [] Sigm_u_single;
+    delete [] Sigm_y_single;
+    delete [] Sigm_x_single;
+    delete [] params;
+    delete [] rh_segment;
+    delete [] rh_sigm_segment;
+    delete [] singles;
 }
 
 Int_t BmnDchTrackFinder::Reconstruction(Int_t dchID, TString wire, Int_t pair, Int_t it_a, Int_t it_b,
@@ -973,7 +874,7 @@ Int_t BmnDchTrackFinder::Reconstruction(Int_t dchID, TString wire, Int_t pair, I
                     pol_par_dc[2][3][0 + arrIdxStart + arrIdxShift] * Power(time, 3) +
                     pol_par_dc[2][4][0 + arrIdxStart + arrIdxShift] * Power(time, 4));
 
-            for (Int_t t_it = 0; t_it < 4; t_it++) 
+            for (Int_t t_it = 0; t_it < 4; t_it++)
                 if (time_b[j] >= t_dc[t_it][1 + arrIdxStart + arrIdxShift] && time_b[j] < t_dc[t_it + 1][1 + arrIdxStart + arrIdxShift]) {
                     func_nr_b = t_it;
                     break;

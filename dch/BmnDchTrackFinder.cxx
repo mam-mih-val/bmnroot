@@ -24,6 +24,7 @@ has7DC1(kFALSE),
 has7DC2(kFALSE),
 expData(isExp) {
     fEventNo = 0;
+    N = 2;
     tracksDch = "BmnDchTrack";
     InputDigitsBranchName = "DCH";
 
@@ -121,8 +122,10 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         it[plane]++;
     }
 
-    TString wireNames[nWires] = {"v", "u", "y", "x"};
-    TString layNames[nLayers] = {"a", "b"};
+    const Int_t nWires_ = 4;
+    const Int_t nLayers_ = 2;
+    TString wireNames[nWires_] = {"v", "u", "y", "x"};
+    TString layNames[nLayers_] = {"a", "b"};
     Int_t cntr = 0;
 
     for (Int_t iDch = 0; iDch < nChambers; iDch++) {
@@ -605,12 +608,12 @@ InitStatus BmnDchTrackFinder::Init() {
     fin.close();
 
     // z local xa->vb (cm) 
-    Double_t arr1[4 * N] = {9.3, 8.1, 3.5, 2.3, -2.3, -3.5, -8.1, -9.3};
+    Double_t arr1[8] = {9.3, 8.1, 3.5, 2.3, -2.3, -3.5, -8.1, -9.3};
     for (Int_t iSize = 0; iSize < 4 * N; iSize++)
         z_loc[iSize] = arr1[iSize];
 
     // z global dc 1 & dc 2 (cm)
-    Double_t arr2[8 * N] = {-45.7, -46.9, -51.5, -52.7, -57.3, -58.5, -63.1, -64.3, 64.3, 63.1, 58.5, 57.3, 52.7, 51.5, 46.9, 45.7};
+    Double_t arr2[16] = {-45.7, -46.9, -51.5, -52.7, -57.3, -58.5, -63.1, -64.3, 64.3, 63.1, 58.5, 57.3, 52.7, 51.5, 46.9, 45.7};
     for (Int_t iSize = 0; iSize < 8 * N; iSize++)
         z_glob[iSize] = arr2[iSize];
 

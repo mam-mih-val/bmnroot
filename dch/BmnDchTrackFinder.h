@@ -53,7 +53,7 @@ public:
     }
      
 private:
-    const Int_t N = 2;
+    Int_t N;
     Bool_t expData;
     UInt_t fEventNo; // event counter
     

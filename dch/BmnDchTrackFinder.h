@@ -38,7 +38,8 @@ using namespace TMath;
 class BmnDchTrackFinder : public FairTask {
 public:
 
-    BmnDchTrackFinder();
+    BmnDchTrackFinder() {};
+    BmnDchTrackFinder(Bool_t);
     virtual ~BmnDchTrackFinder();
     
     virtual InitStatus Init();
@@ -53,6 +54,7 @@ public:
      
 private:
     const Int_t N = 2;
+    Bool_t expData;
     UInt_t fEventNo; // event counter
     
     TString InputDigitsBranchName;

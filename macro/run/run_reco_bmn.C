@@ -218,11 +218,8 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ====================================================================== //
     // ===                           Tracking (DCH)                       === //
     // ====================================================================== //
-    if (isExp) {
-        BmnDchTrackFinder* dchTF = new BmnDchTrackFinder();
-        // dchTF->SetSegmentMatching(kTRUE); // If true, segment matching over 2DCHs to be done. Default value is false.
-        fRun->AddTask(dchTF);
-    }
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    fRun->AddTask(dchTF);
     
     // -----  Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRun->GetRuntimeDb();

@@ -17,6 +17,7 @@ ${BMNROOT_SOURCE_DIR}/bmnbase
 ${BMNROOT_SOURCE_DIR}/bmndata
 ${BMNROOT_SOURCE_DIR}/bmnfield
 ${BMNROOT_SOURCE_DIR}/gem
+${BMNROOT_SOURCE_DIR}/dch
 ${BMNROOT_SOURCE_DIR}/globaltracking
 #${BMNROOT_SOURCE_DIR}/sts
 #${BMNROOT_SOURCE_DIR}/sts/setup
@@ -38,46 +39,37 @@ Set(SRCS
     BmnDetectorSetup.cxx
     BmnGlobalTrackingQA.cxx
     BmnManageQA.cxx
-    #BmnFindGlobalTracks.cxx
     BmnTrackFinder.cxx
     BmnHitToTrackMerger.cxx
     BmnKalmanFilter.cxx
     BmnTrackExtrapolator.cxx
     BmnTrackPropagator.cxx
-    #BmnTrackFitter.cxx
     BmnMatrixMath.cxx
-#    BmnTrackingGeometryConstructor.cxx
     BmnGeoNavigator.cxx
     BmnMaterialEffects.cxx
     BmnTrackSelector.cxx
     BmnGlobalTracking.cxx
     BmnHitMatchingQA.cxx
-    #BmnSeedFinder.cxx
 )
 
 Set(HEADERS
     BmnDetectorSetup.h
     BmnGlobalTrackingQA.h
-    BmnManageQA.h
-    #BmnFindGlobalTracks.h    
+    BmnManageQA.h  
     BmnTrackFinder.h
     BmnHitToTrackMerger.h
     BmnKalmanFilter.h
     BmnTrackExtrapolator.h
     BmnTrackPropagator.h
-    #BmnTrackFitter.h
     BmnMatrixMath.h
     BmnDefaultSettings.h
-#    BmnTrackingGeometryConstructor.h
     BmnGeoNavigator.h
     BmnMaterialInfo.h
     BmnMaterialEffects.h
     BmnTrackSelector.h
     BmnGlobalTracking.h
     BmnHitMatchingQA.h
-    #BmnSeedFinder.h
     BmnHitFinderRun1.h
-#    BmnTrackFinderRun1.h
 )
 
 If (Boost_FOUND)

@@ -185,6 +185,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripModule *module = station->GetModule(iModule);
             Double_t z = module->GetZPositionRegistered();
+            z += corr[iStation][iModule][2]; //alignment implementation
 
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
 
@@ -223,8 +224,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 x += corr[iStation][iModule][0];
                 y += corr[iStation][iModule][1];
-                z += corr[iStation][iModule][2];
-
+                
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
                         BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
 

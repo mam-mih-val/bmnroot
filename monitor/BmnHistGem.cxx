@@ -97,9 +97,8 @@ void BmnHistGem::Register(THttpServer *serv) {
 void BmnHistGem::SetDir(TFile *outFile, TTree *recoTree) {
     frecoTree = recoTree;
     TDirectory *dir = NULL;
-    if (outFile != NULL){
+    if (outFile != NULL)
         dir = outFile->mkdir(fTitle + "_hists");
-    printf("dir path %s\n", dir->GetPath());}
     for (auto row : histGemStrip)
         for (auto col : row)
             for (auto el : col)

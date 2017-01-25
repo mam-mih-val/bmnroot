@@ -323,7 +323,7 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len) {
     Int_t t = 0;
     Int_t dt = 10000;
     while (fLengthRawFile < pos + len) {
-        gSystem->ProcessEvents();
+//        gSystem->ProcessEvents();
         usleep(dt);
         fseeko64(fRawFileIn, 0, SEEK_END);
         fLengthRawFile = ftello64(fRawFileIn);
@@ -891,7 +891,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     //            printf("decode event #%d\n", fEventId);
     BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
     fCurEventType = headDAQ->GetType();
-    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig());
 
     fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
 
@@ -912,7 +911,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fSiliconMapper->FillEvent(adc128, silicon);
         fTof400Mapper->FillEvent(tdc, tof400);
         fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
-
+        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig());
         fDigiTree->Fill();
     }
     fPrevEventType = fCurEventType;

@@ -83,6 +83,7 @@
 #pragma link C++ class BmnTrigRaw2Digit+;
 
 #pragma link C++ class BmnRawDataDecoder+;
+#pragma link C++ class DigiArrays+;
 
 #pragma link C++ class BmnEventHeader+;
 #pragma link C++ class BmnRunHeader+;

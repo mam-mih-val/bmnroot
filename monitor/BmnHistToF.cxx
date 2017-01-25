@@ -53,7 +53,6 @@ BmnHistToF::BmnHistToF(TString title = "ToF") {
     histL->SetDirectory(0);
     histR->SetDirectory(0);
     fServer = NULL;
-    fEventsBranch = NULL;
     frecoTree = NULL;
     Events = NULL;
 }
@@ -156,7 +155,7 @@ void BmnHistToF::SetDir(TFile* outFile, TTree* recoTree) {
         delete Events;
     Events = new TClonesArray("BmnTof1Digit");
     if (frecoTree != NULL)
-        fEventsBranch = frecoTree->Branch(fTitle.Data(), &Events);
+        frecoTree->Branch(fTitle.Data(), &Events);
 }
 
 void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
@@ -189,7 +188,6 @@ void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
 }
 
 void BmnHistToF::Reset() {
-    printf("fTitle = %s\n", fTitle.Data());
     histLeadingTime->Reset();
     histLeadingTimeSpecific->Reset();
     histAmp->Reset();

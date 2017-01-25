@@ -49,7 +49,6 @@ BmnHistToF700::BmnHistToF700(TString title = "ToF700") {
     histL->SetDirectory(0);
     histR->SetDirectory(0);
     fServer = NULL;
-    fEventsBranch = NULL;
     frecoTree = NULL;
     Events = NULL;
 }
@@ -152,7 +151,7 @@ void BmnHistToF700::SetDir(TFile* outFile, TTree* recoTree) {
         delete Events;
     Events = new TClonesArray("BmnTof2Digit");
     if (frecoTree != NULL)
-        fEventsBranch = frecoTree->Branch(fTitle.Data(), &Events);
+        frecoTree->Branch(fTitle.Data(), &Events);
 }
 
 void BmnHistToF700::SetSelection(Int_t Plane, Int_t Strip) {

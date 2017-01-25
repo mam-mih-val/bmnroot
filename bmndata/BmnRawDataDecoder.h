@@ -38,11 +38,11 @@
 #include <deque>
 #include <UniDbDetectorParameter.h>
 
-// wait limit for input data
-#define WAIT_LIMIT 50000000
+// wait limit for input data (ms)
+#define WAIT_LIMIT 45000000
 using namespace std;
 
-struct DigiArrays {
+struct digiArrays {
     TClonesArray *gem;
     TClonesArray *tof400;
     TClonesArray *tof700;
@@ -57,6 +57,54 @@ struct DigiArrays {
     //header array
     TClonesArray *header;
 };
+
+class DigiArrays : public TObject {
+public:
+    DigiArrays(){
+        gem = NULL;
+        tof400 = NULL;
+        tof700 = NULL;
+        dch = NULL;
+        mwpc = NULL;
+        t0 = NULL;
+        bc1 = NULL;
+        bc2 = NULL;
+        veto = NULL;
+        fd = NULL;
+        bd = NULL;
+        header = NULL;
+    };
+    ~DigiArrays(){};
+    void Clear(){
+        delete this->bc1;
+        delete this->bc2;
+        delete this->bd;
+        delete this->dch;
+        delete this->fd;
+        delete this->gem;
+        delete this->header;
+        delete this->mwpc;
+        delete this->t0;
+        delete this->tof400;
+        delete this->tof700;
+        delete this->veto;
+    };
+    TClonesArray *gem;//->
+    TClonesArray *tof400;//->
+    TClonesArray *tof700;//->
+    TClonesArray *dch;//->
+    TClonesArray *mwpc;//->
+    TClonesArray *t0;//->
+    TClonesArray *bc1;//->
+    TClonesArray *bc2;//->
+    TClonesArray *veto;//->
+    TClonesArray *fd;//->
+    TClonesArray *bd;//->
+    TClonesArray *header;//->
+private:
+    ClassDef(DigiArrays, 1)
+};
+    ClassImp(DigiArrays)
 
 class BmnRawDataDecoder {
 public:
@@ -90,8 +138,8 @@ public:
         return fDataQueue;
     }
 
-    struct DigiArrays GetDigiArrays() {
-        struct DigiArrays d;
+    struct digiArrays GetDigiArrays() {
+        struct digiArrays d;
         d.gem = gem;
         d.tof400 = tof400;
         d.tof700 = tof700;
@@ -106,6 +154,26 @@ public:
         d.header = eventHeader;
         return d;
     }
+    
+    
+    DigiArrays GetDigiArraysObject() {
+//        fDigiTree->GetEntry(GetEventId());
+        DigiArrays d;// = new DigiArrays();
+        d.gem = (TClonesArray*)gem;
+        d.tof400 = (TClonesArray*)tof400;
+        d.tof700 = (TClonesArray*)tof700;
+        d.dch = (TClonesArray*)dch;
+        d.mwpc = (TClonesArray*)mwpc;
+        d.t0 = (TClonesArray*)t0;
+        d.bc1 = (TClonesArray*)bc1;
+        d.bc2 = (TClonesArray*)bc2;
+        d.veto = (TClonesArray*)veto;
+        d.fd = (TClonesArray*)fd;
+        d.bd = (TClonesArray*)bd;
+        d.header = (TClonesArray*)eventHeader;
+        return d;
+    }
+    
 
     TTree* GetDigiTree() {
         return fDigiTree;
@@ -114,6 +182,10 @@ public:
     void SetRunId(UInt_t v) {
         fRunId = v;
     }
+    
+    void SetPeriodId(UInt_t v) {
+        fPeriodId = v;
+    }
 
     map<UInt_t, Long64_t> GetTimeShifts() {
         return fTimeShifts;
@@ -121,6 +193,10 @@ public:
 
     UInt_t GetRunId() const {
         return fRunId;
+    }
+    
+    UInt_t GetPeriodId() const {
+        return fPeriodId;
     }
 
     UInt_t GetNevents() const {

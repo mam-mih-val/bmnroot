@@ -60,7 +60,7 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
 void BmnDchTrackFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
     PrepareArraysToProcessEvent();
-    cout << "\n======================== DCH track finder exec started =====================\n" << endl;
+    cout << "\n======================== DCH track finder exec started ====================\n" << endl;
     cout << "Event number: " << fEventNo++ << endl;
 
     //temporary containers
@@ -164,7 +164,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
     // Try to match the reconstructed segments from the two chambers
     // Not implemented yet (TO DO A.S.A.P.)
-    cout << "\n======================== DCH track finder exec finished ========================" << endl;
+    cout << "\n======================== DCH track finder exec finished ===================" << endl;
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }

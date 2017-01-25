@@ -474,7 +474,7 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
     if(mean_strip_position < 0.0) mean_strip_position = 0.0;
     if(mean_strip_position >= AnalyzableStrips.size()) mean_strip_position = AnalyzableStrips.size() - 0.001;
     //--------------------------------------------------------------------------
-
+   
     //cluster standard deviation (sigma): RMS ----------------------------------
     if(NStripsInCluster > 1) {
         for(Int_t i = 0; i < NStripsInCluster; ++i) {

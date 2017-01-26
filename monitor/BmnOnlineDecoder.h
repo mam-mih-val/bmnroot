@@ -19,6 +19,7 @@
 #include "TFile.h"
 #include "TChain.h"
 #include "TClonesArray.h"
+#include "TMessage.h"
 #include "TServerSocket.h"
 #include "TString.h"
 // BmnRoot
@@ -37,7 +38,9 @@ class BmnOnlineDecoder : public TNamed {
 public:
     BmnOnlineDecoder();
     virtual ~BmnOnlineDecoder();
-    BmnStatus Decode();
+    BmnStatus Accept();
+    BmnStatus Decode(TString dirname, TString startFile, Bool_t runCurrent);
+    BmnStatus BatchDirectory(TString dirname);
 private:
     void InitDecoder();
     void InitDecoder(TString);
@@ -46,6 +49,7 @@ private:
     
     BmnRawDataDecoder *rawDataDecoder;
     TServerSocket *fRawDecoSocket;
+    TSocket *client;
     TString _curFile;
     TString _curDir;
     

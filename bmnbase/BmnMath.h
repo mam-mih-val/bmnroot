@@ -39,7 +39,6 @@ TVector3 SpiralFit(BmnGemTrack* tr, const TClonesArray* arr);
 TLorentzVector SpiralParabolicFit(BmnGemTrack* tr, const TClonesArray* arr);
 TVector3 SpiralFitByTwoPoints(const BmnGemTrack* tr, const TClonesArray* arr);
 Bool_t IsParCorrect(const FairTrackParam* par);
-Int_t stationNumber(const string& detName, const Float_t z);
 Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right);
 TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type);
 TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2);

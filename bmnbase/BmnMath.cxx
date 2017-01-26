@@ -219,35 +219,6 @@ Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* ar
     }
 }
 
-Int_t stationNumber(const string& detName, const Float_t z) {
-    Int_t station = -1;
-    if (detName == "Gem") {
-        const Float_t delta = 6.;
-        if (Abs(30 - z) < delta) station = 0;
-        else if (Abs(45 - z) < delta) station = 1;
-        else if (Abs(60 - z) < delta) station = 2;
-        else if (Abs(80 - z) < delta) station = 3;
-        else if (Abs(100 - z) < delta) station = 4;
-        else if (Abs(130 - z) < delta) station = 5;
-        else if (Abs(160 - z) < delta) station = 6;
-        else if (Abs(190 - z) < delta) station = 7;
-        else if (Abs(230 - z) < delta) station = 8;
-        else if (Abs(270 - z) < delta) station = 9;
-        else if (Abs(315 - z) < delta) station = 10;
-        else if (Abs(360 - z) < delta) station = 11;
-        else station = -1;
-    } else if (detName == "Tof1") {
-        station = 12;
-    } else if (detName == "Dch1") {
-        station = 13;
-    } else if (detName == "Dch2") {
-        station = 14;
-    } else if (detName == "Tof2") {
-        station = 15;
-    }
-    return station;
-}
-
 Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right) {
 
     // Create the wrapper for function
@@ -406,10 +377,7 @@ TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) 
 
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
-        Yi = hit->GetZ();
-        Xi = hit->GetX();
-
-        chi2 += Sqr(((Xi - Xc) * (Xi - Xc) + (Yi - Zc) * (Yi - Zc) - R * R) / hit->GetDx());
+        chi2 += Sqr((R - Sqrt(Sqr(hit->GetX() - Xc) + Sqr(hit->GetZ() - Zc))) / hit->GetDx());
     }
 
     return TVector3(Zc, Xc, R);

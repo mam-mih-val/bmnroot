@@ -60,7 +60,7 @@ public:
     Int_t GetStrip() { return fSelectedStrip;}
 private:
     THttpServer *fServer;
-    TBranch * fEventsBranch;
+//    TBranch * fEventsBranch;
     Int_t fSelectedPlane;
     Int_t fSelectedStrip;
     Int_t fSelectedSide;

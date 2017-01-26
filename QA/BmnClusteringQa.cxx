@@ -164,8 +164,8 @@ void BmnClusteringQa::ProcessPoints(const TClonesArray* points, const string& de
     if (NULL == points || !fHM->Exists(histName)) return;
     for (Int_t i = 0; i < points->GetEntriesFast(); i++) {
         const FairMCPoint* point = (const FairMCPoint*) (points->At(i));
-        Int_t station = stationNumber("Gem", point->GetZ());
-        fHM->H1(histName)->Fill(station); //FIXME! Get Station ID from point!
+//        Int_t station = stationNumber("Gem", point->GetZ());
+//        fHM->H1(histName)->Fill(station); //FIXME! Get Station ID from point!
     }
 }
 
@@ -229,8 +229,8 @@ void BmnClusteringQa::ProcessHits(const TClonesArray* hits, const TClonesArray* 
         
         for (Int_t i = 0; i < fGemPoints->GetEntriesFast(); ++i) {
             const FairMCPoint* pnt = (const FairMCPoint*) (fGemPoints->At(i));
-            Int_t station = stationNumber("Gem", pnt->GetZ());
-            if (station != iSt) continue; 
+//            Int_t station = stationNumber("Gem", pnt->GetZ());
+//            if (station != iSt) continue; 
             fHM->H2(occupname.Data())->Fill(pnt->GetX(), pnt->GetY());
         }
 

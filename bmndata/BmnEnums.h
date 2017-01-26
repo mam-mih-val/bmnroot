@@ -70,4 +70,12 @@ enum BmnEventType {
    kBMNPAYLOAD = 1,  /**< spill event. */
 };
 
+/**
+ * \enum Define worker state
+ */
+enum BmnWorkerState {
+    kBMNWAIT    = 0,
+    kBMNWORK    = 1,
+};
+
 #endif /* BMNENUMS_H_ */

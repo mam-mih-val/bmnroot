@@ -38,7 +38,8 @@
 
 #define RAW_DECODER_SOCKET_PORT 9090
 #define RUN_FILE_CHECK_PERIOD    1e5
-#define DECO_SOCK_WAIT_PERIOD    1e4
+#define DECO_SOCK_WAIT_PERIOD    1e2
+#define DECO_SOCK_WAIT_LIMIT     5e4
 #define TTREE_MAX_SIZE          3e11
 
 using namespace std;
@@ -55,7 +56,7 @@ public:
     BmnMonitor();
     virtual ~BmnMonitor();
     void Monitor(TString dir, TString startFile = "", Bool_t runCurrent = kTRUE);
-    void MonitorStream();
+    void MonitorStream(TString dir, TString startFile = "", Bool_t runCurrent = kTRUE);
     BmnStatus BatchDirectory(TString dirname);
     BmnStatus BatchList(TString*, Int_t count);
     void ProcessRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
@@ -83,7 +84,7 @@ private:
     void FinishRun();
     
     static void threadReceiveWrapper(BmnDataReceiver * dr);
-    static void threadDecodeWrapper();
+    static void threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent);
     
     deque<UInt_t> * fDataQue;
     vector<BmnRunInfo> *_fileList;
@@ -96,7 +97,8 @@ private:
     TFile *fHistOut;
     THttpServer * fServer;
     TSocket *fRawDecoSocket;
-    struct DigiArrays fDigiArrays;
+//    struct DigiArrays fDigiArrays;
+    DigiArrays *fDigiArrays;
 
 //    TClonesArray *header = NULL;
 //    TClonesArray *gemDigits = NULL;
@@ -131,8 +133,10 @@ private:
     BmnOnlineDecoder *onlineDecoder;
 
     Int_t fTest;
-    Int_t runIndex = 0;
-    Int_t itersToUpdate = 1000;
+    Int_t fRunID;
+    BmnWorkerState fState;
+    Int_t itersToUpdate;
+    Int_t decoTimeout;
     
     Int_t _inotifDir;
     Int_t _inotifDirW;

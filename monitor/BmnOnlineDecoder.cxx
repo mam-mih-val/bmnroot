@@ -17,7 +17,6 @@
 #include "BmnOnlineDecoder.h"
 
 BmnOnlineDecoder::BmnOnlineDecoder() {
-    InitDecoder();
     fRawDecoSocket = new TServerSocket(RAW_DECODER_SOCKET_PORT, kTRUE);
     
     
@@ -25,12 +24,14 @@ BmnOnlineDecoder::BmnOnlineDecoder() {
 
 BmnOnlineDecoder::~BmnOnlineDecoder() {
     fRawDecoSocket->Close();
+    delete rawDataDecoder;
 }
 
 void BmnOnlineDecoder::InitDecoder() {
     DBG("started")
     rawDataDecoder = new BmnRawDataDecoder();
     rawDataDecoder->SetRunId(1000);
+    rawDataDecoder->SetPeriodId(5);
     rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
     rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_Period5.txt", "TOF400_StripMap_Period5.txt");
@@ -54,35 +55,58 @@ void BmnOnlineDecoder::InitDecoder(TString file) {
     
 }
 
-BmnStatus BmnOnlineDecoder::Decode(){
-    DBG("started")
-    TSocket *s = fRawDecoSocket->Accept();
-    s->Send("ready");
+BmnStatus BmnOnlineDecoder::Accept(){
+    client = fRawDecoSocket->Accept();
+    if (client == NULL){
+        DBGERR("TServerSocket")
+        return kBMNERROR;
+    }else{
+        printf("New connection accepted\n");
+    }
+    client->Send("ready");
    // Check some options of socket 0.
    int val;
-   s->GetOption(kSendBuffer, val);
+   client->GetOption(kSendBuffer, val);
    printf("sendbuffer size: %d\n", val);
-   s->GetOption(kRecvBuffer, val);
+   client->GetOption(kRecvBuffer, val);
    printf("recvbuffer size: %d\n", val);
    // Get the remote addresses (informational only).
-   TInetAddress adr = s->GetInetAddress();
+   TInetAddress adr = client->GetInetAddress();
    adr.Print();
+   adr = client->GetLocalInetAddress();
+   adr.Print();
+   return kBMNSUCCESS;
+}
+
+BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t runCurrent){
+    DBG("started")
+    _curFile = startFile;
+    _curDir = dirname;
+    Accept();
    
-   _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
+    if (!runCurrent) {
+        _curFile = "";
+        _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
+        _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
+    } else
+        if (_curFile.Length() == 0) {
+        _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
+        }
     InitDecoder(_curDir + _curFile);
 
     while (kTRUE) {
         ProcessFileRun(_curFile);
         _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
     }
-   
-    
-    
+    client->Close();
+    delete client;
     return kBMNSUCCESS;
 }
 
 
 void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
+   TMessage::EnableSchemaEvolutionForAll(kFALSE);
+   TMessage mess(kMESS_OBJECT);
     printf("File %s \n", TString(_curDir + rawFileName).Data());
     Int_t iEv = 0;
     Int_t lastEv = 0;
@@ -108,11 +132,7 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
     }
     fclose(file);
     printf("run id = %d\n", runId);
-    //    if (runId < 573)
-    //        return;
-
-    rawDataDecoder->ResetDecoder(_curDir + rawFileName);
-    
+    rawDataDecoder->ResetDecoder(_curDir + rawFileName);    
 
     while (kTRUE) {
         convertResult = rawDataDecoder->ConvertRawToRootIterateFile();
@@ -126,14 +146,34 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
         if (iEv > lastEv) {
             rawDataDecoder->DecodeDataToDigiIterate();
 //            ProcessDigi(iEv);
+            mess.Reset();
+            DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
+//            TH1F *qq = new TH1F("qq", "qq", 100, 0, 100);
+//            mess.WriteObject(qq);
+//            TBuffer:: t(TBuffer::kWrite);
+//            iterDigi.Streamer(t);
+//            printf("buf len %d\n", t.BufferSize());
+//            iterDigi.header->BypassStreamer(kFALSE);
+//            iterDigi.bc1->BypassStreamer(kFALSE);
+//            iterDigi.bc2->BypassStreamer(kFALSE);
+//            iterDigi.bd->BypassStreamer(kFALSE);
+//            iterDigi.dch->BypassStreamer(kFALSE);
+//            iterDigi.fd->BypassStreamer(kFALSE);
+//            iterDigi.gem->BypassStreamer(kFALSE);
+//            iterDigi.mwpc->BypassStreamer(kFALSE);
+//            iterDigi.t0->BypassStreamer(kFALSE);
+//            iterDigi.tof400->BypassStreamer(kFALSE);
+//            iterDigi.tof700->BypassStreamer(kFALSE);
+//            iterDigi.veto->BypassStreamer(kFALSE);
+            mess.WriteObject(&iterDigi);
+            client->Send(mess);
+//            delete iterDigi;
         }
         if (convertResult == kBMNTIMEOUT) {
             printf("timeout\n");
-            //_curFile = "";
             break;
         }
     }
-//    FinishRun();
 }
 
 TString BmnOnlineDecoder::WatchNext(TString dirname, TString filename, Int_t cycleWait) {
@@ -161,6 +201,42 @@ TString BmnOnlineDecoder::WatchNext(TString dirname, TString filename, Int_t cyc
     }
 }
 
+BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
+    _curDir = dirname;
+    Accept();
+    struct dirent **namelist;
+    regex re("\\w+\\.data");
+    Int_t n;
+    n = scandir(dirname, &namelist, 0, versionsort);
+    if (n < 0) {
+        perror("scandir");
+        return kBMNERROR;
+    } else {
+        for (Int_t i = 0; i < n; ++i) {
+            if (regex_match(namelist[i]->d_name, re)) {
+                _curFile = TString(namelist[i]->d_name);
+                break;
+            }
+        }
+    }
+
+    InitDecoder(_curDir + _curFile);
+    n = scandir(dirname, &namelist, 0, versionsort);
+    if (n < 0) {
+        perror("scandir");
+        return kBMNERROR;
+    } else {
+        for (Int_t i = 0; i < n; ++i) {
+            if (regex_match(namelist[i]->d_name, re))
+                ProcessFileRun(TString(namelist[i]->d_name));
+            free(namelist[i]);
+        }
+        free(namelist);
+    }
+    client->Close();
+    delete client;
+    return kBMNSUCCESS;
+}
 
 
 ClassImp(BmnOnlineDecoder);

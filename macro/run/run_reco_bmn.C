@@ -165,7 +165,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-    gemHM->SetAlignmentCorrections("alignCorrs_18ene.root");
+    gemHM->SetAlignmentCorrections("$VMCWORKDIR/input/alignCorrs_18ene.root");
     gemHM->SetHitMatching(kTRUE);
     fRun->AddTask(gemHM);
 

@@ -29,25 +29,25 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
             fSerials.push_back(fMap[i].serial);
     fNSerials = fSerials.size();
 
-    ReadMap("GEM_X_small", "GEM_N_ch_X_small", fSmall, 0, 0);
-    ReadMap("GEM_Y_small", "GEM_N_ch_Y_small", fSmall, 1, 0);
+    ReadMap("GEM_X_small", fSmall, 0, 0);
+    ReadMap("GEM_Y_small", fSmall, 1, 0);
 
-    ReadMap("GEM_X0_middle", "GEM_N_ch_X0_middle", fMid, 2, 0);
-    ReadMap("GEM_Y0_middle", "GEM_N_ch_Y0_middle", fMid, 3, 0);
-    ReadMap("GEM_X1_middle", "GEM_N_ch_X1_middle", fMid, 0, 0);
-    ReadMap("GEM_Y1_middle", "GEM_N_ch_Y1_middle", fMid, 1, 0);
+    ReadMap("GEM_X0_middle", fMid, 2, 0);
+    ReadMap("GEM_Y0_middle", fMid, 3, 0);
+    ReadMap("GEM_X1_middle", fMid, 0, 0);
+    ReadMap("GEM_Y1_middle", fMid, 1, 0);
 
-    ReadMap("GEM_X0_Big_Left", "GEM_N_ch_X0_big_l", fBigL0, 2, 1);
-    ReadMap("GEM_Y0_Big_Left", "GEM_N_ch_Y0_big_l", fBigL0, 3, 1);
+    ReadMap("GEM_X0_Big_Left", fBigL0, 2, 1);
+    ReadMap("GEM_Y0_Big_Left", fBigL0, 3, 1);
 
-    ReadMap("GEM_X1_Big_Left", "GEM_N_ch_X1_big_l", fBigL1, 0, 1);
-    ReadMap("GEM_Y1_Big_Left", "GEM_N_ch_Y1_big_l", fBigL1, 1, 1);
+    ReadMap("GEM_X1_Big_Left", fBigL1, 0, 1);
+    ReadMap("GEM_Y1_Big_Left", fBigL1, 1, 1);
 
-    ReadMap("GEM_X0_Big_Right", "GEM_N_ch_X0_big_r", fBigR0, 2, 0);
-    ReadMap("GEM_Y0_Big_Right", "GEM_N_ch_Y0_big_r", fBigR0, 3, 0);
+    ReadMap("GEM_X0_Big_Right", fBigR0, 2, 0);
+    ReadMap("GEM_Y0_Big_Right", fBigR0, 3, 0);
 
-    ReadMap("GEM_X1_Big_Right", "GEM_N_ch_X1_big_r", fBigR1, 0, 0);
-    ReadMap("GEM_Y1_Big_Right", "GEM_N_ch_Y1_big_r", fBigR1, 1, 0);
+    ReadMap("GEM_X1_Big_Right", fBigR1, 0, 0);
+    ReadMap("GEM_Y1_Big_Right", fBigR1, 1, 0);
 
 
     //GemPedestalStructure* pedMap;
@@ -138,7 +138,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     }
 }
 
-BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, TString parNameSize, BmnGemMap* m, Int_t lay, Int_t mod) {
+BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod) {
     Int_t size = 0;
     UniDbDetectorParameter* par = UniDbDetectorParameter::GetDetectorParameter("GEM", parName, fPeriod, fRun);
     IIStructure* iiArr;
@@ -200,7 +200,21 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
                 strip = fSmall[realChannel].strip;
                 break;
             }
-            case 6:
+            case 7:
+            {
+                realChannel = ch2048;
+                if (gemM->hotZone == 1) {
+                    mod = 0;
+                    lay = fBigL0[realChannel].lay;
+                    strip = fBigL0[realChannel].strip;
+                } else {
+                    if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
+                    mod = 0;
+                    lay = fBigL1[realChannel].lay;
+                    strip = fBigL1[realChannel].strip;
+                }
+                break;
+            }
             case 8:
             {
                 realChannel = ch2048;
@@ -216,7 +230,21 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM,
                 }
                 break;
             }
-            case 7:
+            case 6:
+            {
+                realChannel = ch2048;
+                if (gemM->hotZone == 1) {
+                    mod = 1;
+                    lay = fBigR0[realChannel].lay;
+                    strip = fBigR0[realChannel].strip;
+                } else {
+                    if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
+                    mod = 1;
+                    lay = fBigR1[realChannel].lay;
+                    strip = fBigR1[realChannel].strip;
+                }
+                break;
+            }
             case 9:
             {
                 realChannel = ch2048;

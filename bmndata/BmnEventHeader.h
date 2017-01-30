@@ -19,6 +19,8 @@ private:
     BmnEventType fType;
     /** Trigger Type (beam = 6 or target = 1)**/
     BmnTriggerType fTrigType;
+    /** Tripped Gems (1 bit for 1 GEM module)**/
+    Long64_t fTripWord;    
 
 public:
 

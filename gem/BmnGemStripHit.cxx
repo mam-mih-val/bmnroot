@@ -7,6 +7,8 @@ BmnGemStripHit::BmnGemStripHit() : BmnHit() {
     fNormSignalDiff = -1.0;
     fLowerLayerClusterSize = 0;
     fUpperLayerClusterSize = 0;
+    fLowerLayerStripPos = -1.0;
+    fUpperLayerStripPos = -1.0;
 }
 
 BmnGemStripHit::BmnGemStripHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t index)
@@ -17,6 +19,8 @@ BmnGemStripHit::BmnGemStripHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t i
     fNormSignalDiff = -1.0;
     fLowerLayerClusterSize = 0;
     fUpperLayerClusterSize = 0;
+    fLowerLayerStripPos = -1.0;
+    fUpperLayerStripPos = -1.0;
 }
 
 BmnGemStripHit::~BmnGemStripHit() {

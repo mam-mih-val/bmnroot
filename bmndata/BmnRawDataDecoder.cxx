@@ -241,6 +241,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     runHeaderDAQ->SetRunId(fRunId);
     runHeaderDAQ->SetStartTime(TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns));
     runHeaderDAQ->SetFinishTime(TTimeStamp(time_t(fTime_s), fTime_ns));
+    runHeaderDAQ->SetNEvents(fNevents);
     fRawTree->Fill();
 
     fCurentPositionRawFile = ftello64(fRawFileIn);
@@ -433,6 +434,7 @@ BmnStatus BmnRawDataDecoder::DisposeConverter() {
     runHeaderDAQ->SetRunId(fRunId);
     runHeaderDAQ->SetStartTime(TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns));
     runHeaderDAQ->SetFinishTime(TTimeStamp(time_t(fTime_s), fTime_ns));
+    runHeaderDAQ->SetNEvents(fNevents);
 
     //    fRawTree->Write();
     //    fRootFileOut->Close();
@@ -757,6 +759,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                     runHeader->SetRunId(runHeaderDAQ->GetRunId());
                     runHeader->SetStartTime(runHeaderDAQ->GetStartTime());
                     runHeader->SetFinishTime(runHeaderDAQ->GetFinishTime());
+                    runHeader->SetNEvents(runHeaderDAQ->GetNEvents());
 
                     printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
                     printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runHeader->GetRunId());

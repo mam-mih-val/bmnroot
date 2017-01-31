@@ -75,7 +75,7 @@ namespace BmnGemStationPositions_RunWinter2016 {
         {0.0},          //station 1 (66x41)
         {0.0},          //station 2
         {0.0},          //station 3
-        {+0.2, -0.2},   //station 4 (2 modules of 66x41) //first module is up, second is down
+        {0.0, +0.2},    //station 4 (2 modules of 66x41)
         {0.0, 0.0},     //station 5 (163x45): module0 + module1
         {0.0, 0.0}      //station 6 (163x45): module0 + module1
     };

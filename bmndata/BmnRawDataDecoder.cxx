@@ -1011,14 +1011,14 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adc, UInt_t ev) {
     if (!fGemMapper) return kBMNERROR;
     UInt_t**** pedData = fGemMapper->GetPedData();
     for (UInt_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
-        BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
 
         Int_t iSer = -1;
         for (iSer = 0; iSer < fNGemSerials; ++iSer)
             if (adcDig->GetSerial() == fGemSerials[iSer]) break;
         if (iSer == -1) return kBMNERROR;
 
-        for (UInt_t iSmpl = 0; iSmpl < ADC32_N_SAMPLES; ++iSmpl)
+        for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl)
             pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
     }
 

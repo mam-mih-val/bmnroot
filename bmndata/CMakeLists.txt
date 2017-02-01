@@ -81,8 +81,6 @@ BmnTrigDigit.cxx
 BmnDchDigit.cxx
 BmnEcalDigit.cxx
 BmnADCDigit.cxx
-BmnADC32Digit.cxx
-BmnADC128Digit.cxx
 BmnTDCDigit.cxx
 BmnHRBDigit.cxx
 BmnSyncDigit.cxx

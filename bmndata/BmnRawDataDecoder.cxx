@@ -288,8 +288,8 @@ BmnStatus BmnRawDataDecoder::InitConverter(deque<UInt_t> *dq) {
 BmnStatus BmnRawDataDecoder::InitConverter() {
     fRawTree = new TTree("BMN_RAW", "BMN_RAW");
     sync = new TClonesArray("BmnSyncDigit");
-    adc32 = new TClonesArray("BmnADC32Digit");
-    adc128 = new TClonesArray("BmnADC128Digit");
+    adc32 = new TClonesArray("BmnADCDigit");
+    adc128 = new TClonesArray("BmnADCDigit");
     tdc = new TClonesArray("BmnTDCDigit");
     hrb = new TClonesArray("BmnHRBDigit");
     msc = new TClonesArray("BmnMSCDigit");
@@ -507,7 +507,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
     const UChar_t kNCH = 64;
     const UChar_t kNSTAMPS = nSmpl;
 
-    UInt_t val[kNSTAMPS];
+    UShort_t val[kNSTAMPS];
     for (Int_t i = 0; i < kNSTAMPS; ++i) val[i] = 0;
 
     UInt_t i = 0;
@@ -527,9 +527,9 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
                 TClonesArray& ar_adc = *arr;
                 if (iCh >= 0 && iCh < kNCH) {
                     if (kNSTAMPS == ADC128_N_SAMPLES)
-                        new(ar_adc[arr->GetEntriesFast()]) BmnADC128Digit(serial, iCh, val);
+                        new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC128_N_SAMPLES, val);
                     else if (kNSTAMPS == ADC32_N_SAMPLES)
-                        new(ar_adc[arr->GetEntriesFast()]) BmnADC32Digit(serial, iCh, val);
+                        new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC32_N_SAMPLES, val);
                 }
                 i += (kNSTAMPS / 2); //skip words (we've processed them)
             }
@@ -675,8 +675,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     tdc = new TClonesArray("BmnTDCDigit");
     hrb = new TClonesArray("BmnHRBDigit");
     sync = new TClonesArray("BmnSyncDigit");
-    adc32 = new TClonesArray("BmnADC32Digit");
-    adc128 = new TClonesArray("BmnADC128Digit");
+    adc32 = new TClonesArray("BmnADCDigit");
+    adc128 = new TClonesArray("BmnADCDigit");
     eventHeaderDAQ = new TClonesArray("BmnEventHeader");
     //runHeaderDAQ = new TClonesArray("BmnRunHeader");
     fRawTree->SetBranchAddress("TDC", &tdc);
@@ -698,7 +698,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             printf(ANSI_COLOR_BLUE "[%.2f%%]   " ANSI_COLOR_RESET, iEv * 100.0 / fNevents);
             printf("EVENT:%d   RUN:%d\n", iEv, fRunId);
         }
-
+        
         fRawTree->GetEntry(iEv);
 
         BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);

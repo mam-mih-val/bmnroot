@@ -18,7 +18,8 @@ BmnADCDigit::BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, UShort_t *iV
         fValue[i] = iValue[i];
 }
 
-BmnADCDigit::~BmnADCDigit() {
+BmnADCDigit::~BmnADCDigit() { 
+    delete [] fValue;
 }
 
 ClassImp(BmnADCDigit)

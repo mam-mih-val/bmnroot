@@ -453,8 +453,8 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     sync->Clear();
     tdc->Clear();
     hrb->Clear();
-    adc32->Clear();
-    adc128->Clear();
+    adc32->Delete();
+    adc128->Delete();
     msc->Clear();
     eventHeaderDAQ->Clear();
 

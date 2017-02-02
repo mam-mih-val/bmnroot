@@ -161,8 +161,8 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
 BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
     fEventId++;
     for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
-        BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
-        UInt_t ch = adcDig->GetChannel() * ADC32_N_SAMPLES;
+        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+        UInt_t ch = adcDig->GetChannel() * adcDig->GetNSamples();
         for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
             GemMapStructure gemM = fMap[iMap];
             if (adcDig->GetSerial() == gemM.serial && ch <= gemM.channel_high && ch >= gemM.channel_low) {
@@ -173,8 +173,8 @@ BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
     }
 }
 
-void BmnGemRaw2Digit::ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray * gem) {
-    const UInt_t nSmpl = ADC32_N_SAMPLES;
+void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, TClonesArray * gem) {
+    const UInt_t nSmpl = adcDig->GetNSamples();
     UInt_t ch = adcDig->GetChannel();
     UInt_t ser = adcDig->GetSerial();
 
@@ -341,7 +341,7 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree * tree) {
         if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
         tree->GetEntry(iEv);
         for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
-            BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+            BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
             Double_t signals[nSmpl];
             Int_t nOk = 0;
             for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
@@ -364,7 +364,7 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree * tree) {
         if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
         tree->GetEntry(iEv);
         for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
-            BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+            BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
             Double_t signals[nSmpl];
             Int_t nOk = 0;
             for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
@@ -379,7 +379,7 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree * tree) {
     }
 
     for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
-        BmnADC32Digit* adcDig = (BmnADC32Digit*) adc->At(iAdc);
+        BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
         for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
             noises[iAdc][iSmpl] = Sqrt(noises[iAdc][iSmpl] / nEv);
             if (noises[iAdc][iSmpl])

@@ -1,5 +1,5 @@
 #ifndef BMNADCDIGIT_H
-#define	BMNADCDIGIT_H
+#define BMNADCDIGIT_H
 
 #include "TNamed.h"
 
@@ -7,29 +7,41 @@ using namespace std;
 
 class BmnADCDigit : public TObject {
 
-public:
+private:
+    UInt_t fSerial;
+    UInt_t fChannel;
+    UInt_t fNsmpl;
+    UShort_t* fValue; //[fNsmpl]
     
-/** Default constructor **/
+public:
+
+    /** Default constructor **/
     BmnADCDigit();
 
     /** Constructor to use **/
-    BmnADCDigit(UInt_t iSerial,UChar_t iChannel,UChar_t iSamples,UShort_t *iValue);
+    BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, UShort_t *iValue);
 
-    UInt_t  GetSerial()   const {return fSerial;}
-    UInt_t  GetSamples()  const {return fSamples;}
-    UInt_t  GetChannel()  const {return fChannel;}
-    UShort_t *GetValue()  const {return (UShort_t *)fValue;}
-    void    SetSample(UShort_t val);
+    UInt_t GetSerial() const {
+        return fSerial;
+    }
+
+    UInt_t GetChannel() const {
+        return fChannel;
+    }
+    
+    UInt_t GetNSamples() const {
+        return fNsmpl;
+    }
+    
+    UShort_t *GetValue() const {
+        return (UShort_t *) fValue;
+    }
+
     /** Destructor **/
     virtual ~BmnADCDigit();
-private:
-    UInt_t    fSerial; 
-    UChar_t   fChannel;
-    UInt_t    fSamples;
-    UShort_t  fValue[200];
-    
-    ClassDef(BmnADCDigit, 1);
+
+    ClassDef(BmnADCDigit, 2);
 };
 
-#endif	/* BMNADCDIGIT_H */
+#endif /* BMNADCDIGIT_H */
 

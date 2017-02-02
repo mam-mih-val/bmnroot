@@ -12,7 +12,7 @@ class BmnDchHit : public BmnHit
 public:
 
   BmnDchHit();
-  BmnDchHit(Int_t detectorID, TVector3 pos, TVector3 dpos, Int_t refIndex, Int_t flag, Int_t trackIndex, UShort_t dchlayer);
+  BmnDchHit(Int_t detectorID, TVector3 pos, TVector3 dpos, Int_t refIndex, Int_t flag, Int_t trackIndex, UChar_t dchlayer);
   BmnDchHit(Int_t detectorID, TVector3 pos, TVector3 dpos, Int_t refIndex, Int_t flag);
   BmnDchHit(Int_t detectorID, TVector3 pos, TVector3 dpos, Int_t refIndex);
 
@@ -27,13 +27,13 @@ public:
   Int_t GetNofDim() const { return fNofDim; } // get number of measurements per point
   Int_t Overlap() const { return fIndex.GetSize()-1; } // 
   Int_t GetIndex(Int_t indx = 0) const { return fIndex[indx]; } // 
-  UShort_t GetLayer() const { return  fDchLayer; } // 
+  UChar_t GetLayer() const { return  fDchLayer; } // 
   Int_t GetDetectorID() const { return  fDetectorID; } // 
   Double_t GetPhi() const { return fPhi; } // get rotation angle 
   Double_t GetMeas(Int_t indx = 0) const { return fMeas[indx]; } // get measurement 
   Double_t GetError(Int_t indx = 0) const { return fError[indx]; } // get measurement error
   const TArrayI* Index() const { return &fIndex; } ///< Get index array of the hit
-  Short_t GetDchId() const { return fDchId; }
+  UChar_t GetDchId() const { return fDchId; }
   Int_t GetHitId() const { return fID; }
 
         Double_t	GetDrift(void) const {return fDriftLength; };
@@ -48,7 +48,7 @@ public:
   /** Modifiers **/
   //void SetTrackId(Int_t trackID) { fTrackID = trackID; }
   void SetFlag(Int_t flag) { fFlag = flag; }
-  void SetDchId(Short_t id) { fDchId = id; }
+  void SetDchId(UChar_t id) { fDchId = id; }
   void SetNofDim(Int_t dim) { fNofDim = dim; } // set number of measurements per point
   void SetPhi(Double_t phi) { fPhi = phi; } // set rotation angle 
   void SetMeas(Double_t meas, Int_t indx = 0) { fMeas[indx] = meas; } // set measurement 
@@ -73,7 +73,7 @@ protected:
    
   Int_t fID; // identifier of hit in hits array
   Int_t fDetectorID;            // Detector ID
-  UInt_t fDchLayer;             // Dch layer ID (0-7)
+  UChar_t fDchLayer;             // Dch layer ID (0-7)
   Int_t fTrackID;               // track ID
   Int_t fFlag; 			// Flag for general purposes [TDC, event tagging...]
   Int_t fNofDim; 		// number of measurements per point
@@ -81,7 +81,7 @@ protected:
   Double32_t fMeas[2]; 		// measurements (coordinates)
   Double32_t fError[2]; 	// measurement errors
   TArrayI fIndex; 		//!     // array of indices of overlapped MC points
-  Short_t fDchId;                // DCH Id (1, 2)
+  UChar_t fDchId;                // DCH Id (1, 2)
   
   Double32_t	fDriftLength, fWirePos, fWireDelayLength, fTS;
 

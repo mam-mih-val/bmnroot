@@ -5,7 +5,7 @@
 #include "TTree.h"
 #include "TClonesArray.h"
 #include <iostream>
-#include "BmnADC128Digit.h"
+#include "BmnADCDigit.h"
 #include "BmnEnums.h"
 #include "TMath.h"
 #include <fstream>

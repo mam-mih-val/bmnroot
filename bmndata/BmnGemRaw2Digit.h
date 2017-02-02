@@ -6,7 +6,7 @@
 #include "TClonesArray.h"
 #include <iostream>
 #include "BmnGemStripDigit.h"
-#include "BmnADC32Digit.h"
+#include "BmnADCDigit.h"
 #include "BmnEnums.h"
 #include "TMath.h"
 #include <fstream>
@@ -71,7 +71,7 @@ private:
 
     vector<UInt_t> fSerials; //list of serial id for GEM
 
-    void ProcessDigit(BmnADC32Digit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
+    void ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
     BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);
     Double_t CalcCMS(Double_t* samples, Int_t size);
     BmnStatus FindNoisyStrips();

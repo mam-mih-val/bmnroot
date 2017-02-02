@@ -353,12 +353,12 @@ void BmnZDCRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t 
        {
     	    UShort_t *samt = digit->GetValue();
 	    int j2 = 0;
-    	    for (int j1 = 0;j1<digit->GetSamples(); j1++)
+    	    for (int j1 = 0;j1<digit->GetNSamples(); j1++)
     	    {
 		j2 = 1 - j1%2 + (j1/2)*2;
 		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]);
     	    }
-    	    if ((amp = testwave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
 	    {
 		if (htest[num_test]) htest[num_test]->Fill(amp);
 		log_amp[num_test] = amp;
@@ -372,12 +372,12 @@ void BmnZDCRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t 
        if((num=number[ind])<0) continue;
        UShort_t *sam = digit->GetValue();
        int j2 = 0;
-       for (int j = 0;j<digit->GetSamples(); j++)
+       for (int j = 0;j<digit->GetNSamples(); j++)
        {
 	    j2 = 1 - j%2 + (j/2)*2;
 	    if (SampleProf[num]) SampleProf[num]->Fill(j,sam[j2]>>4);
        }
-       if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
        {
 //	    printf("chan %d amp %f coef %f\n", zdc_map_element[ind].chan, amp, cal[zdc_map_element[ind].chan]);
 	    xm += amp*cal[zdc_map_element[ind].chan]*zdc_map_element[ind].x;
@@ -446,12 +446,12 @@ void BmnZDCRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Float
        {
     	    UShort_t *samt = digit->GetValue();
 	    int j2 = 0;
-    	    for (int j1 = 0;j1<digit->GetSamples(); j1++)
+    	    for (int j1 = 0;j1<digit->GetNSamples(); j1++)
     	    {
 		j2 = 1 - j1%2 + (j1/2)*2;
 		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]);
     	    }
-    	    if ((amp = testwave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
 	    {
 		if (htest[num_test]) htest[num_test]->Fill(amp);
 		log_amp[num_test] = amp;
@@ -465,12 +465,12 @@ void BmnZDCRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Float
        if((num=number[ind])<0) continue;
        UShort_t *sam = digit->GetValue();
        int j2 = 0;
-       for (int j1 = 0;j1<digit->GetSamples(); j1++)
+       for (int j1 = 0;j1<digit->GetNSamples(); j1++)
        {
 	    j2 = 1 - j1%2 + (j1/2)*2;
 	    if (SampleProf[num]) SampleProf[num]->Fill(j1,sam[j2]>>4);
        }
-       if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
        {
 //	    printf("chan %d amp %f coef %f\n", zdc_map_element[ind].chan, amp, cal[zdc_map_element[ind].chan]);
 	    xm += amp*cal[zdc_map_element[ind].chan]*zdc_map_element[ind].x;
@@ -498,12 +498,12 @@ void BmnZDCRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *zdcdigit) {
        {
     	    UShort_t *samt = digit->GetValue();
 	    int j2 = 0;
-    	    for (int j1 = 0;j1<digit->GetSamples(); j1++)
+    	    for (int j1 = 0;j1<digit->GetNSamples(); j1++)
     	    {
 		j2 = 1 - j1%2 + (j1/2)*2;
 		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]);
     	    }
-    	    if ((amp = testwave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
 	    {
 		if (htest[num_test]) htest[num_test]->Fill(amp);
 		log_amp[num_test] = amp;
@@ -515,7 +515,7 @@ void BmnZDCRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *zdcdigit) {
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        TClonesArray &ar_zdc = *zdcdigit;
-       if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
        {
 	   amp *= cal[zdc_map_element[ind].chan];
            new(ar_zdc[zdcdigit->GetEntriesFast()]) BmnZDCDigit(zdc_map_element[ind].ix,zdc_map_element[ind].iy,zdc_map_element[ind].x,zdc_map_element[ind].y,zdc_map_element[ind].size+1,
@@ -536,7 +536,7 @@ void BmnZDCRaw2Digit::fillAmplitudes(TClonesArray *data) {
        if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
        if (num_test >= 0 && digit->GetSerial() == test_id[num_test])
        {
-    	    if ((amp = testwave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
 	    {
 		log_amp[num_test] = amp;
 	    }
@@ -546,7 +546,7 @@ void BmnZDCRaw2Digit::fillAmplitudes(TClonesArray *data) {
        for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
-       if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
        {
 	   zdc_amp[zdc_map_element[ind].chan] = amp;
        }
@@ -696,7 +696,7 @@ int BmnZDCRaw2Digit::fillCalibrateCluster(TClonesArray *data, Float_t x, Float_t
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
-       if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
        {
 //	    printf("chan %d amp %f coef %f\n", zdc_map_element[ind].chan, amp, cal[zdc_map_element[ind].chan]);
 	    amp_array[nevents][num] = amp*cal[zdc_map_element[ind].chan];
@@ -806,7 +806,7 @@ int BmnZDCRaw2Digit::fillCalibrateNumbers(TClonesArray *data, Float_t x, Float_t
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
-       if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
        {
 	    amp_array[nevents][num] = amp*cal[zdc_map_element[ind].chan];
 	    pedestals[nevents][num] = ped;
@@ -885,7 +885,7 @@ int BmnZDCRaw2Digit::fillCalibrateAll(TClonesArray *data, Float_t x, Float_t y, 
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
-       if ((amp = wave2amp(digit->GetSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
        {
 	    amp_array[nevents][num] = amp*cal[zdc_map_element[ind].chan];
 	    pedestals[nevents][num] = ped;

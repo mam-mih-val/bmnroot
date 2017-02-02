@@ -13,29 +13,29 @@ public:
     BmnDchDigit();
 
     /** Constructor to use **/
-    BmnDchDigit(Short_t iPlane, Short_t iWire, Double_t iTime, Int_t refId);
+    BmnDchDigit(UChar_t iPlane, Short_t iWire, Double_t iTime, Int_t refId);
 
-    Short_t  GetPlane()      const {return fPlane;}
+    UChar_t  GetPlane()      const {return fPlane;}
     Short_t  GetWireNumber() const {return fWire;}
     Double_t  GetTime()       const {return fTime;}
     Int_t    GetRefId()      const {return fRef;}
 
-    void SetPlane(Short_t _tmp) {fPlane = _tmp;}
+    void SetPlane(UChar_t _tmp) {fPlane = _tmp;}
     void SetWireNumber(Short_t _tmp) {fWire = _tmp;}
     void SetTime(Double_t _tmp) {fTime = _tmp;}
     void SetRefId(Int_t _tmp) {fRef = _tmp;}
 
     /** Destructor **/
     virtual ~BmnDchDigit();
-
+    
 private:
 
-    Short_t fPlane;
+    UChar_t fPlane;
     Short_t fWire;
     Double_t fTime;
     Int_t   fRef;
 
-    ClassDef(BmnDchDigit, 1);
+    ClassDef(BmnDchDigit, 2);
 
 };
 

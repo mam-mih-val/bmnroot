@@ -8,8 +8,6 @@
 #include "BmnTDCDigit.h"
 #include "BmnHRBDigit.h"
 #include "BmnADCDigit.h"
-#include "BmnADC32Digit.h"
-#include "BmnADC128Digit.h"
 #include "BmnSyncDigit.h"
 #include "TFile.h"
 #include "TTree.h"

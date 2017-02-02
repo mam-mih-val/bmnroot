@@ -8,7 +8,7 @@
 static Float_t workTime = 0.0;
 
 BmnGemStripHitMaker::BmnGemStripHitMaker()
-: fHitMatching(kTRUE), fFile("") {
+: fHitMatching(kTRUE), fAlignCorrFileName("") {
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = "BmnGemStripDigit";
@@ -24,7 +24,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
 }
 
 BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
-: fHitMatching(kTRUE), fFile("") {
+: fHitMatching(kTRUE), fAlignCorrFileName("") {
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
@@ -100,7 +100,7 @@ InitStatus BmnGemStripHitMaker::Init() {
         }
     }
 
-    ReadFileCorrections(fFile, corr);
+    ReadAlignCorrFile(fAlignCorrFileName, corr);
 
     cout << "Alignment corrections to be used: " << endl;
     for (Int_t iStat = 0; iStat < nStat; iStat++) {
@@ -224,7 +224,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 x += corr[iStation][iModule][0];
                 y += corr[iStation][iModule][1];
-                
+
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
                         BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
 
@@ -269,7 +269,7 @@ void BmnGemStripHitMaker::Finish() {
     cout << "Work time of the GEM hit maker: " << workTime << endl;
 }
 
-void BmnGemStripHitMaker::ReadFileCorrections(TString fname, Double_t*** corr) {
+void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
     if (fname == "")
         return;
 

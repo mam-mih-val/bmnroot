@@ -9,6 +9,8 @@
 #pragma link C++ class UniDbConnection+;
 #pragma link C++ class UniDbGeoConverter+;
 #pragma link C++ class UniDbGenerateClasses+;
+#pragma link C++ class TangoTimeParameter+;
+#pragma link C++ class TangoTimeInterval+;
 #pragma link C++ class UniDbTangoData+;
 #pragma link C++ class UniDbSearchCondition+;
 

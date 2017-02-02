@@ -1,8 +1,8 @@
+#include "db_settings.h"
 #include "UniDbTangoData.h"
 
 #include <TSQLServer.h>
-#include <TSQLResult.h>
-#include <TSQLRow.h>
+#include <TSQLStatement.h>
 #include <TCanvas.h>
 #include <TGraph.h>
 #include <TGraph2D.h>
@@ -18,7 +18,35 @@
 #include <fstream>
 #include <iostream>
 
-using namespace std;
+TangoTimeParameter::TangoTimeParameter()
+{
+}
+
+TangoTimeParameter::TangoTimeParameter(TDatime par_time, Tango_Parameter_Type par_type)
+{
+    parameter_time = par_time;
+    parameter_type = par_type;
+}
+
+TangoTimeParameter::~TangoTimeParameter()
+{
+}
+ClassImp(TangoTimeParameter);
+
+TangoTimeInterval::TangoTimeInterval()
+{
+}
+
+TangoTimeInterval::TangoTimeInterval(TDatime start_time_interval, TDatime end_time_interval)
+{
+    start_time = start_time_interval;
+    end_time = end_time_interval;
+}
+
+TangoTimeInterval::~TangoTimeInterval()
+{
+}
+ClassImp(TangoTimeInterval);
 
 void UniDbTangoData::SplitString(TString str, TString delim, vector<TString> &v)
 {
@@ -70,33 +98,19 @@ int UniDbTangoData::StringToTime(TString str_time)
 }
 
 
-CSVData* UniDbTangoData::GetCSVData(string filename)
+vector<CSVElement>* UniDbTangoData::GetCSVData(string filename)
 {
-    int size = 0;
-    string s;
     ifstream fin(filename.c_str());
-
     if (!fin.is_open())
     {
-        cout << "Файл не может быть открыт!\n";
+        cout<<"Error was occured while opening the file!\n";
         return NULL;
     }
-    else
-    {
-        while (!fin.eof())
-        {
-            getline (fin, s, '"');
-            if ((s == "DB_Klet_Pos.PsA") || (s == "DB_Portal_Pos.PsA"))
-                size++;
-        }
-    }
-    fin.seekg (0, fin.beg);
 
-    CSVData* zdcXY = new CSVData(size);
-    int count = 0;
+    vector<CSVElement>* zdcXY = new vector<CSVElement>();
     vector<TString> elements;
     TString temp, ttemp, delim = ";";
-
+    string s;
     while (!fin.eof())
     {
         getline(fin, s);
@@ -112,31 +126,35 @@ CSVData* UniDbTangoData::GetCSVData(string filename)
 
             if (ttemp == "DB_Portal_Pos.PsA")
             {
-                zdcXY->dataArray[count].varName = "ZDC_X";
+                CSVElement par;
+                par.varName = "ZDC_X";
                 temp = "";
                 ttemp = "";
                 temp = elements.at(1);
                 int n_in = temp.Length();
                 ttemp = temp(1, n_in-2);
-                zdcXY->dataArray[count].runTime = StringToDatime(ttemp);
+                par.runTime = StringToDatime(ttemp);
                 temp = "";
                 temp = elements.at(2);
-                zdcXY->dataArray[count].varValue = temp.Atoi();
-                count++;
+                par.varValue = temp.Atoi();
+
+                zdcXY->push_back(par);
             }
             if (ttemp == "DB_Klet_Pos.PsA")
             {
-                zdcXY->dataArray[count].varName = "ZDC_Y";
+                CSVElement par;
+                par.varName = "ZDC_Y";
                 temp = "";
                 ttemp = "";
                 temp = elements.at(1);
                 int n_in = temp.Length();
                 ttemp = temp(1, n_in-2);
-                zdcXY->dataArray[count].runTime = StringToDatime(ttemp);
+                par.runTime = StringToDatime(ttemp);
                 temp = "";
                 temp = elements.at(2);
-                zdcXY->dataArray[count].varValue = temp.Atoi();
-                count++;
+                par.varValue = temp.Atoi();
+
+                zdcXY->push_back(par);
             }
         }
     }
@@ -147,7 +165,7 @@ CSVData* UniDbTangoData::GetCSVData(string filename)
     return zdcXY;
 }
 
-void UniDbTangoData::PrintCSVData(CSVData* zdcXY, bool isGraphicPresentation, bool isTimeCut, TDatime* start_time, TDatime* end_time)
+void UniDbTangoData::PrintCSVData(vector<CSVElement>* zdcXY, bool isGraphicPresentation, bool isTimeCut, TDatime* start_time, TDatime* end_time)
 {
     if (isTimeCut)
     {
@@ -161,39 +179,39 @@ void UniDbTangoData::PrintCSVData(CSVData* zdcXY, bool isGraphicPresentation, bo
     // if console presentation
     if (!isGraphicPresentation)
     {
-        for (int i = 0; i < zdcXY->dataCount; i++)
+        for (int i = 0; i < zdcXY->size(); i++)
         {
-            if ((!isTimeCut) || ((zdcXY->dataArray[i].runTime.Convert() >= start_time->Convert()) && (zdcXY->dataArray[i].runTime.Convert() <= end_time->Convert())))
-                cout<< zdcXY->dataArray[i].varName<<" "<<zdcXY->dataArray[i].runTime.AsSQLString()<<" "<<zdcXY->dataArray[i].varValue<<" "<<endl;
+            if ((!isTimeCut) || ((zdcXY->at(i).runTime.Convert() >= start_time->Convert()) && (zdcXY->at(i).runTime.Convert() <= end_time->Convert())))
+                cout<< zdcXY->at(i).varName<<" "<<zdcXY->at(i).runTime.AsSQLString()<<" "<<zdcXY->at(i).varValue<<" "<<endl;
         }
 
         return;
     }// if console presentation
 
     // if multigraph presentation
-    const int N = (int) zdcXY->dataCount/2;
+    const int N = (int) zdcXY->size()/2;
     int x[N], y[N], xx[N], yy[N];
 
     int count = 0;
-    for (int i = 0; i < zdcXY->dataCount; i++)
+    for (int i = 0; i < zdcXY->size(); i++)
     {
-        if (zdcXY->dataArray[i].varName == "ZDC_X")
+        if (zdcXY->at(i).varName == "ZDC_X")
         {
-            int cur_time = zdcXY->dataArray[i].runTime.Convert();
+            int cur_time = zdcXY->at(i).runTime.Convert();
             if ((!isTimeCut) || ((cur_time > start_time->Convert()) && (cur_time <= end_time->Convert())))
             {
                 x[count] = cur_time;
-                y[count] = zdcXY->dataArray[i].varValue;
+                y[count] = zdcXY->at(i).varValue;
                 count++;
             }
         }
-        if (zdcXY->dataArray[i].varName == "ZDC_Y")
+        if (zdcXY->at(i).varName == "ZDC_Y")
         {
-            int cur_time = zdcXY->dataArray[i].runTime.Convert();
+            int cur_time = zdcXY->at(i).runTime.Convert();
             if ((!isTimeCut) || ((cur_time > start_time->Convert()) && (cur_time <= end_time->Convert())))
             {
                 xx[count] = cur_time;
-                yy[count] = zdcXY->dataArray[i].varValue;
+                yy[count] = zdcXY->at(i).varValue;
             }
         }
     }
@@ -228,127 +246,274 @@ void UniDbTangoData::PrintCSVData(CSVData* zdcXY, bool isGraphicPresentation, bo
     return;
 }
 
-Tango_Double_Data* UniDbTangoData::GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end)
+TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end)
 {
-    //подключение к базе данных
-    TSQLServer* db = TSQLServer::Connect("mysql://159.93.120.43","tango","tangompd");
-    db->GetTables("hdbpp");
+    // TANGO database connection
+    TString strConnection = TString::Format("mysql://%s", TANGO_DB_HOST);
+    TSQLServer* db = TSQLServer::Connect(strConnection, TANGO_DB_USERNAME, TANGO_DB_PASSWORD);
+    db->GetTables(TANGO_DB_NAME);
 
-    //запрос на поиск в базовых таблицах, с учётом заданных параметров
-    TString query_info = TString::Format(
+    // searching for parameters with given parameter_name for detector with detector_name
+    TString strStatement = TString::Format(
                 "SELECT att_conf_id,data_type FROM att_conf ac join att_conf_data_type acdt on ac.att_conf_data_type_id = acdt.att_conf_data_type_id WHERE family=\"%s\" and name=\"%s\" ",
                 detector_name, parameter_name);
-    TSQLResult* res = db->Query(query_info.Data());
-    int nrows = res->GetRowCount();
-    if (nrows < 1)
+    TSQLStatement* stmt_select = db->Statement(strStatement);
+    if (!stmt_select->Process())
+    {
+            cout<<"Error: getting info about parameter from Tango has been failed"<<endl;
+
+            delete stmt_select;
+            delete db;
+            return NULL;
+    }
+
+    stmt_select->StoreResult();
+    if (!stmt_select->NextResultRow())
     {
         cout<<"Error: There is no parameter '"<<parameter_name<<"' for "<<detector_name<<" detector"<<endl;
+        delete stmt_select;
+        delete db;
         return NULL;
     }
 
-    TSQLRow* row = res->Next();
-    TString data_id((char*) row->GetField(0));
-    TString table_name = TString::Format("att_%s", (char*)(row->GetField(1)));
+    int data_id = stmt_select->GetInt(0);
+    TString data_type(stmt_select->GetString(1));
+    TString table_name = TString::Format("att_%s", data_type.Data());
     //cout<<"Data table name - "<<table_name<<endl;
+    delete stmt_select;
 
-    //запрос к таблице с данными, найденной по типу атрибута
-    TString query_data = TString::Format("SELECT data_time, dim_x_r, dim_x_w, idx, value_r FROM %s WHERE att_conf_id=\"%s\" and data_time>=\"%s\" and data_time<=\"%s\" ORDER BY data_time,idx",
-                                        table_name.Data(), data_id.Data(), date_start, date_end);
-    //cout<<"Query data: "<<query_data<<endl;
-    res = db->Query(query_data.Data());
-
-    nrows = res->GetRowCount();
-    if (nrows == 0)
+    Tango_Parameter_Type par_type;
+    if (data_type == "array_devdouble_rw")
+        par_type = Tango_Double_Parameter;
+    else
     {
-        cout<<"Warning: There are no parameters for the given conditions"<<endl;
-        return NULL;
+        if (data_type == "array_devboolean_rw")
+            par_type = Tango_Bool_Parameter;
+        else
+        {
+            cout<<"Error: This Tango type is not supported: '"<<data_type<<endl;
+            delete db;
+            return NULL;
+        }
     }
 
-    Tango_Double_Data* TD = NULL;
-    TDatime datetime;
-    int yy, mm, dd, hour, min, sec;
-
-    //запись данных в структуру
-    int data_ind = 0;
-    for (int i = 0; i < nrows; i++)
+    // getting data from the table found by attribute type
+    TString query_data = TString::Format("SELECT data_time, dim_x_r, dim_x_w, idx, value_r FROM %s WHERE att_conf_id=\"%d\" and data_time>=\"%s\" and data_time<=\"%s\" ORDER BY data_time,idx",
+                                        table_name.Data(), data_id, date_start, date_end);
+    //cout<<"Query data: "<<query_data<<endl;
+    stmt_select = db->Statement(query_data);
+    if (!stmt_select->Process())
     {
-        row = res->Next();
+            cout<<"Error: getting info about parameter values from Tango has been failed"<<endl;
 
-        char* data_time = (char*) (row->GetField(0));
-        sscanf(data_time, "%d-%d-%d %d:%d:%d", &yy, &mm, &dd, &hour, &min, &sec);
-        datetime.Set(yy, mm, dd, hour, min, sec);
+            delete stmt_select;
+            delete db;
+            return NULL;
+    }
 
-        char* par_len = (char*) row->GetField(1);
-        int i_par_len = atoi(par_len);
+    stmt_select->StoreResult();
+
+    // write data to the result array
+    TObjArray* tango_data = new TObjArray();
+    tango_data->SetOwner(kTRUE);
+    int i = 0;
+    while (stmt_select->NextResultRow())
+    {
+        TDatime datetime = stmt_select->GetTimestamp(0);
+        int i_par_len = stmt_select->GetInt(1);
         if (i_par_len == 0)
         {
-            cout<<"Critical error: Parameter length can't be equal 0"<<endl;
-            if (TD != NULL) delete TD;
+            cout<<"Error: Parameter length can't be equal 0"<<endl;
+            delete tango_data;
+            delete stmt_select;
+            delete db;
             return NULL;
         }
 
-        char* real_par_len = (char*) row->GetField(2);
-        int i_real_par_len = atoi(real_par_len);
+        int i_real_par_len = stmt_select->GetInt(2);
         if (i_real_par_len == 0)
         {
-            cout<<"Critical error: Real parameter length can't be equal 0"<<endl;
-            if (TD != NULL) delete TD;
+            cout<<"Error: Real parameter length can't be equal 0"<<endl;
+            delete tango_data;
+            delete stmt_select;
+            delete db;
             return NULL;
         }
 
-        if (i == 0)
-        {
-            cout<<"Parameter length: "<<i_par_len<<" (real: "<<i_real_par_len<<"). Number of parameter values: "<<nrows/i_par_len<<"."<<endl;
-            TD = new Tango_Double_Data(nrows/i_par_len);
-        }
+        if (i++ == 0)
+            cout<<"Parameter length: "<<i_par_len<<" (real: "<<i_real_par_len<<"). Number of time points: "<<stmt_select->GetNumAffectedRows()/i_par_len<<"."<<endl;
 
-        TD->dataArray[data_ind].parameter_time = datetime;
-        //cout<<TD[i].parameter_time.AsString()<<endl;
-
-        TD->dataArray[data_ind].parameter_length = i_par_len;
-        TD->dataArray[data_ind].parameter_value = new double[i_par_len];
-        //cout<<TD[i].parameter_length<<endl;
-
+        TangoTimeParameter* par = new TangoTimeParameter(datetime, par_type);
+        //cout<<par.parameter_time.AsString()<<endl;
         for (int ind = 0; ind < i_par_len; ind++)
         {
             if (ind > 0)
-            {
-                row = res->Next();
-                i++;
-            }
+                stmt_select->NextResultRow();
 
-            char* idx = (char*) row->GetField(3);
-            int i_idx = atoi(idx);
+            int i_idx = stmt_select->GetInt(3);
             //cout<<"idx:ind - "<<idx<<":"<<ind<<endl;
             if (i_idx != ind)
             {
-                cout<<"Critical error: idx should be equal index of the parameter array"<<endl;
-                if (TD != NULL) delete TD;
+                cout<<"Error: idx should be equal index of the parameter array"<<endl;
+                delete tango_data;
+                delete stmt_select;
+                delete db;
                 return NULL;
             }
 
-            char* val = (char*) row->GetField(4);
-            double d_val = atof(val);
-            TD->dataArray[data_ind].parameter_value[ind] = d_val;
-            //cout<<TD[i].parameter_value[ind]<<endl;
-        }
+            if (ind >= i_real_par_len)
+                continue;
 
-        data_ind++;
+            if (par_type == Tango_Bool_Parameter)
+            {
+                bool b_val = (bool) stmt_select->GetInt(4);
+                par->bool_parameter_value.push_back(b_val);
+                par->double_parameter_value.push_back(b_val);
+                //cout<<par.bool_parameter_value[par.bool_parameter_value.size()-1]<<endl;
+            }
+            else
+            {
+                double d_val = stmt_select->GetDouble(4);
+                par->double_parameter_value.push_back(d_val);
+                //cout<<par.double_parameter_value[par.double_parameter_value.size()-1]<<endl;
+            }
+
+        }
+         //cout<<par.bool_parameter_value.size().size()<<endl;
+        //cout<<par.double_parameter_value.size().size()<<endl;
+
+        tango_data->Add(par);
     }
 
-    return TD;
+    delete stmt_select;
+    delete db;
+
+    return tango_data;
 }
 
-void UniDbTangoData::PrintTangoDataConsole(Tango_Double_Data* TD)
+// now it works only if channel count is constant during given time period
+TObjArray* UniDbTangoData::SearchTangoIntervals(char* detector_name, char* parameter_name, char* date_start, char* date_end, enumConditions condition, bool value)
+{
+    TObjArray* tango_data = GetTangoParameter(detector_name, parameter_name, date_start, date_end);
+    if (tango_data == NULL) return NULL;
+
+    TObjArray* pTimeIntervals = new TObjArray();
+    pTimeIntervals->SetOwner(kTRUE);
+
+    vector<int> vecStart;
+    vector<bool> vecCondition;
+    TangoTimeParameter* pParameter;
+    //cout<<"tango_data->GetEntriesFast(): "<<tango_data->GetEntriesFast()<<endl;
+    for (int i = 0; i < tango_data->GetEntriesFast(); i++)
+    {
+        pParameter = (TangoTimeParameter*) tango_data->At(i);
+        if (i == 0)
+        {
+            for (int j = 0; j < pParameter->bool_parameter_value.size(); j++)
+            {
+                vecCondition.push_back(false);
+                vecStart.push_back(0);
+
+                TObjArray* pChannel = new TObjArray();
+                pChannel->SetOwner(kTRUE);
+                pTimeIntervals->Add(pChannel);
+            }
+        }
+
+        for (int j = 0; j < pParameter->bool_parameter_value.size(); j++)
+        {
+            bool isCondition;
+            switch (condition)
+            {
+                case conditionLess:             isCondition = pParameter->bool_parameter_value[j] < value; break;
+                case conditionLessOrEqual:      isCondition = pParameter->bool_parameter_value[j] <= value; break;
+                case conditionEqual:            isCondition = pParameter->bool_parameter_value[j] == value; break;
+                case conditionNotEqual:         isCondition = pParameter->bool_parameter_value[j] != value; break;
+                case conditionGreater:          isCondition = pParameter->bool_parameter_value[j] > value; break;
+                case conditionGreaterOrEqual:   isCondition = pParameter->bool_parameter_value[j] >= value; break;
+                default:
+                {
+                    cout<<"Error: comparison operator in the searching of intervals is not appropriable for boolean type"<<endl;
+                    delete tango_data;
+                    delete pTimeIntervals;
+                    return NULL;
+                }
+            }
+
+            if (isCondition)
+            {
+                // save start interval
+                if (!vecCondition[j])
+                {
+                    vecCondition[j] = true;
+                    vecStart[j] = i;
+                    //cout<<"vecCondition "<<j<<": true"<<endl<<"Start: "<<i<<endl<<endl;
+                }
+            }
+            else
+            {
+                // write interval
+                if (vecCondition[j])
+                {
+                    vecCondition[j] = false;
+
+                    int start_i = vecStart[j];
+                    TDatime startInterval = ((TangoTimeParameter*)tango_data->At(start_i))->parameter_time;
+                    if (start_i > 0)
+                    {
+                        TDatime previousTime = ((TangoTimeParameter*)tango_data->At(start_i-1))->parameter_time;
+                        TDatime middleTime((startInterval.Convert() + previousTime.Convert()) / 2);
+                        startInterval = middleTime;
+                    }
+                    TDatime endInterval((((TangoTimeParameter*)tango_data->At(i))->parameter_time.Convert() + ((TangoTimeParameter*)tango_data->At(i-1))->parameter_time.Convert()) / 2);
+
+                    TangoTimeInterval* pTimeInterval = new TangoTimeInterval(startInterval, endInterval);
+                    ((TObjArray*)pTimeIntervals->At(j))->Add(pTimeInterval);
+                }
+            }
+        }//for (int j = 0; j < pParameter->bool_parameter_value.size(); j++)
+    }//for (int i = 0; i < tango_data->GetEntriesFast(); i++)
+
+    // write the last period if neccessary
+    for (int j = 0; j < pParameter->bool_parameter_value.size(); j++)
+    {
+        if (vecCondition[j])
+        {
+            vecCondition[j] = false;
+
+            int start_i = vecStart[j];
+            TDatime startInterval = ((TangoTimeParameter*)tango_data->At(start_i))->parameter_time;
+            if (start_i > 0)
+            {
+                TDatime previousTime = ((TangoTimeParameter*)tango_data->At(start_i-1))->parameter_time;
+                TDatime middleTime((startInterval.Convert() + previousTime.Convert()) / 2);
+                startInterval = middleTime;
+            }
+            TDatime endInterval = ((TangoTimeParameter*)tango_data->At(tango_data->GetEntriesFast()-1))->parameter_time;
+
+            TangoTimeInterval* pTimeInterval = new TangoTimeInterval(startInterval, endInterval);
+            ((TObjArray*)pTimeIntervals->At(j))->Add(pTimeInterval);
+        }
+    }//write the last period if neccessary
+
+    delete tango_data;
+    return pTimeIntervals;
+}
+
+void UniDbTangoData::PrintTangoDataConsole(TObjArray* tango_data)
 {
     int def_precision = cout.precision();
     cout.precision(17);
-    for (int i = 0; i < TD->dataCount; i++)
+    for (int i = 0; i < tango_data->GetEntriesFast(); i++)
     {
-        cout<<TD->dataArray[i].parameter_time.AsSQLString()<<endl;
+        TangoTimeParameter* pParameter = (TangoTimeParameter*) tango_data->At(i);
+        cout<<pParameter->parameter_time.AsSQLString()<<endl;
         //cout<<TD->dataArray[i].parameter_length<<endl;
-        for (int j = 0; j < TD->dataArray[i].parameter_length; j++)
-            cout<<TD->dataArray[i].parameter_value[j]<<"  ";
+
+        for (int j = 0; j < pParameter->double_parameter_value.size(); j++)
+        {
+            cout<<pParameter->double_parameter_value[j]<<"  ";
+        }
         cout<<""<<endl<<endl;
     }
     cout.precision(def_precision);
@@ -356,21 +521,22 @@ void UniDbTangoData::PrintTangoDataConsole(Tango_Double_Data* TD)
     return;
 }
 
-void UniDbTangoData::PrintTangoDataSurface(Tango_Double_Data* TD)
+void UniDbTangoData::PrintTangoDataSurface(TObjArray* tango_data)
 {
     TCanvas* c1 = new TCanvas("c1", "Tango Data", 800, 600);
 
     TGraph2D* gr2 = new TGraph2D();
     gr2->SetTitle("Tango Data (surface)");
 
-    int par_length;
-    for (int i = 0; i < TD->dataCount; i++)
+    int par_length = 0;
+    for (int i = 0; i < tango_data->GetEntriesFast(); i++)
     {
-        par_length = TD->dataArray[i].parameter_length;
+        TangoTimeParameter* pParameter = (TangoTimeParameter*) tango_data->At(i);
+        par_length = pParameter->double_parameter_value.size();
         for (int j = 0; j < par_length; j++)
         {
-            int cur_time = TD->dataArray[i].parameter_time.Convert();
-            double value = TD->dataArray[i].parameter_value[j];
+            int cur_time = pParameter->parameter_time.Convert();
+            double value = pParameter->double_parameter_value[j];
             //cout<<x<<" "<<y<<" "<<z<<endl;
             gr2->SetPoint(i*par_length+j, cur_time, j+1, value);
         }
@@ -406,11 +572,11 @@ void UniDbTangoData::PrintTangoDataSurface(Tango_Double_Data* TD)
     return;
 }
 
-void UniDbTangoData::PrintTangoDataMulti3D(Tango_Double_Data* TD)
+void UniDbTangoData::PrintTangoDataMulti3D(TObjArray* tango_data)
 {
     TCanvas* c1 = new TCanvas("c1", "Tango Data", 800, 600);
 
-    int par_length = TD->dataArray[0].parameter_length;
+    int par_length = ((TangoTimeParameter*)tango_data->At(0))->double_parameter_value.size();
     TGraph* gr = new TGraph[par_length]();
     gRandom->SetSeed();
     for (int j = 0; j < par_length; j++)
@@ -422,13 +588,14 @@ void UniDbTangoData::PrintTangoDataMulti3D(Tango_Double_Data* TD)
         gr[j].SetLineWidth(3);
     }
 
-    for (int i = 0; i < TD->dataCount; i++)
+    for (int i = 0; i < tango_data->GetEntriesFast(); i++)
     {
-        par_length = TD->dataArray[i].parameter_length;
+        TangoTimeParameter* pParameter = (TangoTimeParameter*) tango_data->At(i);
+        par_length = pParameter->double_parameter_value.size();
         for (int j = 0; j < par_length; j++)
         {
             //int cur_time = TD->dataArray[i].parameter_time.Convert();
-            double value = TD->dataArray[i].parameter_value[j];
+            double value = pParameter->double_parameter_value[j];
             gr[j].SetPoint(i, i, value);
         }
     }
@@ -442,6 +609,26 @@ void UniDbTangoData::PrintTangoDataMulti3D(Tango_Double_Data* TD)
     gPad->Update();
 
     c1->Modified();
+    return;
+}
+
+void UniDbTangoData::PrintTangoIntervalConsole(TObjArray* tango_data)
+{
+    for (int i = 0; i < tango_data->GetEntriesFast(); i++)
+    {
+        cout<<"Channel "<<i<<":"<<endl;
+        TObjArray* pChannel = (TObjArray*) tango_data->At(i);
+        for (int j = 0; j < pChannel->GetEntriesFast(); j++)
+        {
+            TangoTimeInterval* pInterval = (TangoTimeInterval*) pChannel->At(j);
+            cout<<"   "<<pInterval->start_time.AsSQLString();
+            cout<<" - ";
+            cout<<pInterval->end_time.AsSQLString();
+        }
+        if (pChannel->GetEntriesFast() == 0) cout<<"No intervals correspond to the specified conditions...";
+        cout<<endl;
+    }
+
     return;
 }
 

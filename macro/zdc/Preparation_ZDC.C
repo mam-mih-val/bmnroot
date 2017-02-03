@@ -1,18 +1,18 @@
 
 using namespace std;
 
-void Preparation_ZDC(char *fname="bmn_run0543.root") {
+void Preparation_ZDC(char *fname="../raw/bmn_run0871.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
-    int RUN;
+    int RUN, n_notrig = 0, n_phys = 0, n_led = 0, n_bad = 0;
+    UInt_t TRIGWORD = 0;
     sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
 
     const char *mapping;
-    if(RUN < 470) mapping="ZDC_map_Feb20.txt";
-    else mapping="ZDC_map_Mar08.txt";
+    mapping = "ZDC_map_period_5.txt";
 
-    BmnZDCRaw2Digit ZDC(mapping, fname);
+    BmnZDCRaw2Digit ZDC(mapping, fname, "zdc_muon_calibration.txt");
     ZDC.print();
 
     cout << "Process RUN:  " << RUN << endl;
@@ -21,30 +21,47 @@ void Preparation_ZDC(char *fname="bmn_run0543.root") {
     TFile *_f_in = new TFile(fname, "READ");
     TTree *_t_in = (TTree *) _f_in->Get("BMN_RAW");
     TClonesArray *zdc_raw  = new TClonesArray("BmnADCDigit");
-    _t_in->SetBranchAddress("bmn_zdc",   &zdc_raw);
+    _t_in->SetBranchAddress("bmn_zdc",    &zdc_raw);
+    _t_in->SetBranchAddress("bmn_trigword",&TRIGWORD);
     /////////////////////////////////////////////////////////////////////////////////////
 
-//    for (int ev = 0; ev < _t_in->GetEntries(); ev++) {
-    for (int ev = 0; ev < 5000; ev++) {
+    for (int ev = 0; ev < _t_in->GetEntries(); ev++) {
 
-        if ((ev % 1000) == 0) printf("Preparation ZDC, event %d\n", ev);
+        if ((ev % 1000) == 0) printf("Preparation ZDC, event %d, phys %d, led %d\n", ev, n_phys, n_led);
 
+	TRIGWORD = 0;
         zdc_raw->Clear(); 
 
         _t_in->GetEntry(ev);
 
-        ZDC.fillAmplitudes(zdc_raw);
+	if (TRIGWORD == 0)
+	{
+	    n_notrig++;
+	}
+	else if ((TRIGWORD&0x8) == 0)
+	{
+	    n_phys++;
+	    ZDC.fillAmplitudes(zdc_raw);
+	    ZDC.fillSampleProfilesAll(zdc_raw, 0., 0., 48.);
+	    //ZDC.fillSampleProfiles(zdc_raw, 0., 0., 48., 3);
+	}
+	else if ((TRIGWORD&0x8) == 0x8)
+	{
+	    n_led++;
+	    //ZDC.fillAmplitudes(zdc_raw);
+	    //ZDC.fillSampleProfilesAll(zdc_raw, 0., 0., 48.);
 
-        if ((ev % 1000) == 0 && ZDC.getLogChan(0) >= 0) printf("     Log channel 0 (Id = 0x%0x, Ch = %d) amplitude is %f\n", ZDC.getLogId(0), ZDC.getLogChan(0), ZDC.getLogAmp(0));
-        if ((ev % 1000) == 0 && ZDC.getLogChan(1) >= 0) printf("     Log channel 1 (Id = 0x%0x, Ch = %d) amplitude is %f\n", ZDC.getLogId(1), ZDC.getLogChan(1), ZDC.getLogAmp(1));
-
-//        ZDC.fillSampleProfiles(zdc_raw, 0., 0., 48., 3);
-        ZDC.fillSampleProfilesAll(zdc_raw, 0., 0., 48.);
-
-
+	    //ZDC.fillSampleProfiles(zdc_raw, 0., 0., 48., 3);
+	    //if ((ev % 1000) == 0 && ZDC.getLogChan(0) >= 0) printf("     Log channel 0 (Id = 0x%0x, Ch = %d) amplitude is %f\n", ZDC.getLogId(0), ZDC.getLogChan(0), ZDC.getLogAmp(0));
+	    //if ((ev % 1000) == 0 && ZDC.getLogChan(1) >= 0) printf("     Log channel 1 (Id = 0x%0x, Ch = %d) amplitude is %f\n", ZDC.getLogId(1), ZDC.getLogChan(1), ZDC.getLogAmp(1));
+	}
+	else
+	{
+	    n_bad++;
+	}
     }
     /////////////////////////////////////////////////////////////////////////////////////
-//    ZDC.drawprof();
+    ZDC.drawprof();
     ZDC.drawtest();
     /////////////////////////////////////////////////////////////////////////////////////
    

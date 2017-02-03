@@ -7,6 +7,8 @@
 
 #include "Rtypes.h"
 #include "TClonesArray.h"
+#include "TRegexp.h"
+#include "TString.h"
 
 #include "FairTask.h"
 #include "FairMCPoint.h"
@@ -45,9 +47,15 @@ public:
         fCurrentConfig = config;
     }
 
-     void SetAlignmentCorrections(TString fname) {
-        TString dir = getenv("VMCWORKDIR");
-        fFile = dir + "/input/" + fname;
+    void SetAlignmentCorrectionsFileName(TString filename) {
+        // temporary patch to be able to run re-reconstructions and subsequent re-alignments iteratively
+        // Anatoly.Solomin@jinr.ru 2017-02-01 16:43:03
+        TRegexp re = "_it[0-9]+"; // to match patterns like "_it02" in the file name with corrections after iteration 2
+        if ( ! filename.Contains(re)) {  // normal, not an iterative alignment running
+            TString dir = getenv("VMCWORKDIR");
+            fAlignCorrFileName = dir+"/input/"+filename; }
+        else// iterative case: file name [with its relative or absolute  path] is used as is
+            fAlignCorrFileName = filename;
     }
 
 private:
@@ -76,8 +84,8 @@ private:
 
     BmnGemStripStationSet *StationSet; //Entire GEM detector
 
-    TString fFile; // a file with geometry corrections
-    void ReadFileCorrections(TString, Double_t***); // read corrections from the file
+    TString fAlignCorrFileName; // a file with geometry corrections
+    void ReadAlignCorrFile(TString, Double_t***); // read corrections from the file
     Double_t*** corr; // array to store the corrections
 
     ClassDef(BmnGemStripHitMaker,1);

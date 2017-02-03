@@ -29,9 +29,9 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // -----   Reconstruction run   -------------------------------------------
     FairRunAna *fRun = new FairRunAna();
 
-    Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
-    Bool_t isTarget = kTRUE; // flag for tracking (run with target or not)
-    Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
+    Bool_t isField  = kTRUE;  // flag for tracking (to use mag.field or not)
+    Bool_t isTarget = kTRUE;  // flag for tracking (run with target or not)
+    Bool_t isExp    = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Set input source as simulation file or experimental data
     FairSource* fFileSource;
@@ -112,7 +112,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
-    }// for simulated files
+    } // for simulated files
     else {
         if (!CheckFileExist(inFile)) return;
         fFileSource = new FairFileSource(inFile);
@@ -125,7 +125,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // Parameter file
     TString parFile = inFile;
 
-    //  Digitisation files.
+    // Digitisation files.
     // Add TObjectString containing the different file names to
     // a TList which is passed as input to the FairParAsciiFileIo.
     // The FairParAsciiFileIo will take care to create on the fly
@@ -152,10 +152,10 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    
-    //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016;      // RunSummer2016 config (GEM_RunSummer2016.root))
+
+  //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016; // RunSummer2016 config (GEM_RunSummer2016.root))
     BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunWinter2016; // RunWinter2016 config (GEM_RunWinter2016.root))
-    
+
     if (!isExp) {
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
         gemDigit->SetCurrentConfig(gem_config);
@@ -165,7 +165,11 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-    gemHM->SetAlignmentCorrections("$VMCWORKDIR/input/alignCorrs_18ene.root");
+    gemHM->SetAlignmentCorrectionsFileName("alignCorrs_18ene.root"); // In case of running iterative alignment, file name will contain pattern "_it[0-9]+";
+                                                                     // in that case [<path>/]<filename> will be used in BmnGemStripHitMaker as is,
+                                                                     // instead of <filename> in default location "bmnroot/input" .
+                                                                     // Anatoly.Solomin@jinr.ru 2017-02-01 14:32:16
+
     gemHM->SetHitMatching(kTRUE);
     fRun->AddTask(gemHM);
 
@@ -220,7 +224,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ====================================================================== //
     BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
     fRun->AddTask(dchTF);
-    
+
     // -----  Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
     FairParRootFileIo* parIo1 = new FairParRootFileIo();

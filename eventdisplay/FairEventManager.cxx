@@ -12,7 +12,6 @@
 **/
 #include "FairEventManager.h"
 #include "constants.h"
-#include "../uni_db/function_set.h"
 
 #include "FairMCPointDraw.h"
 #include "FairMCTracks.h"
@@ -35,6 +34,7 @@
 #include <unistd.h>
 #include <cerrno>
 #include <iostream>
+#include <sstream>
 using namespace std;
 
 ClassImp(FairEventManager)
@@ -524,6 +524,16 @@ void FairEventManager::LevelChangeNodeProperty(TGeoNode* node, int level)
             }
         }//if (level < arr_size)
     }
+}
+
+// convert string with hexadecimal presentation without "0x" to integer
+int hex_string_to_int(string hex_string)
+{
+    int x;
+    stringstream stream;
+    stream<<std::hex<<hex_string;
+    stream>>x;
+    return x;
 }
 
 //returns true if successful or false if validation failed

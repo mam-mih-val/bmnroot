@@ -216,8 +216,8 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
 
     for (int i=0; i<n_rec; i++)
     {
-	sprintf(tit, "samprof%d", i);
-	sprintf(nam, "Average sampling wave, module %d", i);
+	sprintf(tit, "samprof%d", zdc_map_element[i].chan+1);
+	sprintf(nam, "Average sampling wave, module %d", zdc_map_element[i].chan+1);
 	SampleProf[i]   = new TProfile(tit, nam, 200, 0., 200., -100000., +100000.,"s");
     }
 }
@@ -349,7 +349,7 @@ void BmnZDCRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t 
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
        num_test = is_test[digit->GetChannel()];
        if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
-       if (num_test >= 0 && digit->GetSerial() == test_id[num_test])
+       if (num_test >= 0 && (digit->GetSerial()&0xFFFFFF) == test_id[num_test])
        {
     	    UShort_t *samt = digit->GetValue();
 	    int j2 = 0;
@@ -366,7 +366,7 @@ void BmnZDCRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t 
 	    continue;
        }
        int ind, num; 
-       for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
+       for(ind=0;ind<n_rec;ind++) if((digit->GetSerial()&0xFFFFFF)==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
@@ -442,7 +442,7 @@ void BmnZDCRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Float
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
        num_test = is_test[digit->GetChannel()];
        if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
-       if (num_test >= 0 && digit->GetSerial() == test_id[num_test])
+       if (num_test >= 0 && (digit->GetSerial()&0xFFFFFF) == test_id[num_test])
        {
     	    UShort_t *samt = digit->GetValue();
 	    int j2 = 0;
@@ -459,7 +459,7 @@ void BmnZDCRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Float
 	    continue;
        }
        int ind, num; 
-       for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
+       for(ind=0;ind<n_rec;ind++) if((digit->GetSerial()&0xFFFFFF)==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
@@ -494,7 +494,7 @@ void BmnZDCRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *zdcdigit) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
        num_test = is_test[digit->GetChannel()];
        if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
-       if (num_test >= 0 && digit->GetSerial() == test_id[num_test])
+       if (num_test >= 0 && (digit->GetSerial()&0xFFFFFF) == test_id[num_test])
        {
     	    UShort_t *samt = digit->GetValue();
 	    int j2 = 0;
@@ -511,7 +511,7 @@ void BmnZDCRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *zdcdigit) {
 	    continue;
        }
        int ind; 
-       for(ind=0;ind<n_rec;ind++) {if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;}
+       for(ind=0;ind<n_rec;ind++) {if((digit->GetSerial()&0xFFFFFF)==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;}
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        TClonesArray &ar_zdc = *zdcdigit;
@@ -534,7 +534,7 @@ void BmnZDCRaw2Digit::fillAmplitudes(TClonesArray *data) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
        num_test = is_test[digit->GetChannel()];
        if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
-       if (num_test >= 0 && digit->GetSerial() == test_id[num_test])
+       if (num_test >= 0 && (digit->GetSerial()&0xFFFFFF) == test_id[num_test])
        {
     	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
 	    {
@@ -543,7 +543,7 @@ void BmnZDCRaw2Digit::fillAmplitudes(TClonesArray *data) {
 	    continue;
        }
        int ind; 
-       for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
+       for(ind=0;ind<n_rec;ind++) if((digit->GetSerial()&0xFFFFFF)==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
@@ -692,7 +692,7 @@ int BmnZDCRaw2Digit::fillCalibrateCluster(TClonesArray *data, Float_t x, Float_t
      for (int i = 0; i < data->GetEntriesFast(); i++) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
        int ind, num; 
-       for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
+       for(ind=0;ind<n_rec;ind++) if((digit->GetSerial()&0xFFFFFF)==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
@@ -802,7 +802,7 @@ int BmnZDCRaw2Digit::fillCalibrateNumbers(TClonesArray *data, Float_t x, Float_t
     for (int i = 0; i < data->GetEntriesFast(); i++) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
        int ind, num; 
-       for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
+       for(ind=0;ind<n_rec;ind++) if((digit->GetSerial()&0xFFFFFF)==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
@@ -881,7 +881,7 @@ int BmnZDCRaw2Digit::fillCalibrateAll(TClonesArray *data, Float_t x, Float_t y, 
     for (int i = 0; i < data->GetEntriesFast(); i++) {
        BmnADCDigit *digit = (BmnADCDigit*) data->At(i);
        int ind, num; 
-       for(ind=0;ind<n_rec;ind++) if(digit->GetSerial()==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
+       for(ind=0;ind<n_rec;ind++) if((digit->GetSerial()&0xFFFFFF)==zdc_map_element[ind].id && digit->GetChannel()==(zdc_map_element[ind].adc_chan)) break;
        if(ind==n_rec) continue; 
        if(zdc_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
@@ -1330,6 +1330,7 @@ void BmnZDCRaw2Digit::drawtest()
    htest[i]->Draw();
    ctest->cd(i*2+2);
    TestProf[i]->Draw();
+   gPad->AddExec("exselt","select_hist()");
   }
   return;
 }

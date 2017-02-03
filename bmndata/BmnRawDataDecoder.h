@@ -22,6 +22,7 @@
 #include "BmnSiliconRaw2Digit.h"
 #include "BmnTof1Raw2Digit.h"
 #include "BmnTof2Raw2DigitNew.h"
+#include "BmnZDCRaw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
 #include "BmnEventHeader.h"
 #include "BmnRunHeader.h"
@@ -44,6 +45,7 @@ struct digiArrays {
     TClonesArray *gem;
     TClonesArray *tof400;
     TClonesArray *tof700;
+    TClonesArray *zdc;
     TClonesArray *dch;
     TClonesArray *mwpc;
     TClonesArray *t0;
@@ -62,6 +64,7 @@ public:
         gem = NULL;
         tof400 = NULL;
         tof700 = NULL;
+	zdc = NULL;
         dch = NULL;
         mwpc = NULL;
         t0 = NULL;
@@ -85,11 +88,13 @@ public:
         delete this->t0;
         delete this->tof400;
         delete this->tof700;
+        delete this->zdc;
         delete this->veto;
     };
     TClonesArray *gem;//->
     TClonesArray *tof400;//->
     TClonesArray *tof700;//->
+    TClonesArray *zdc;//->
     TClonesArray *dch;//->
     TClonesArray *mwpc;//->
     TClonesArray *t0;//->
@@ -141,6 +146,7 @@ public:
         d.gem = gem;
         d.tof400 = tof400;
         d.tof700 = tof700;
+	d.zdc = zdc;
         d.dch = dch;
         d.mwpc = mwpc;
         d.t0 = t0;
@@ -160,6 +166,7 @@ public:
         d.gem = (TClonesArray*)gem;
         d.tof400 = (TClonesArray*)tof400;
         d.tof700 = (TClonesArray*)tof700;
+        d.zdc = (TClonesArray*)zdc;
         d.dch = (TClonesArray*)dch;
         d.mwpc = (TClonesArray*)mwpc;
         d.t0 = (TClonesArray*)t0;
@@ -209,6 +216,10 @@ public:
         return fTof700Mapper;
     }
 
+    BmnZDCRaw2Digit *GetZDCMapper() {
+        return fZDCMapper;
+    }
+
     void SetTrigMapping(TString map) {
         fTrigMapFileName = map;
     }
@@ -238,6 +249,15 @@ public:
         fTof700MapFileName = map;
     }
 
+    void SetZDCMapping(TString map) {
+	fZDCMapFileName = map;
+    }
+
+    void SetZDCCalibration(TString cal) {
+	fZDCCalibrationFileName = cal;
+    }
+
+
     TString GetRootFileName() {
         return fRootFileName;
     }
@@ -247,6 +267,8 @@ private:
     Int_t GetRunIdFromFile(TString name);
     vector<UInt_t> fGemSerials; //list of serial id for GEM
     UInt_t fNGemSerials;
+    vector<UInt_t> fZDCSerials; //list of serial id for GEM
+    UInt_t fNZDCSerials;
 
     UInt_t fPedoCounter;
     
@@ -277,6 +299,8 @@ private:
     TString fTof400PlaceMapFileName;
     TString fTof400StripMapFileName;
     TString fTof700MapFileName;
+    TString fZDCMapFileName;
+    TString fZDCCalibrationFileName;
     TString fTrigMapFileName;
     TString fTrigINLFileName;
 
@@ -285,6 +309,8 @@ private:
     ifstream fGemMapFile;
     ifstream fTof400MapFile;
     ifstream fTof700MapFile;
+    ifstream fZDCMapFile;
+    ifstream fZDCCalibraionFile;
     ifstream fTrigMapFile;
     ifstream fTrigINLFile;
 
@@ -295,8 +321,9 @@ private:
 
     //DAQ arrays
     TClonesArray *sync;
-    TClonesArray *adc32; //gem
+    TClonesArray *adc32;  //gem
     TClonesArray *adc128; //sts
+    TClonesArray *adc   ; //zdc
     TClonesArray *hrb;
     TClonesArray *tdc;
     TClonesArray *msc;
@@ -310,6 +337,7 @@ private:
     TClonesArray *gem;
     TClonesArray *tof400;
     TClonesArray *tof700;
+    TClonesArray *zdc;
     TClonesArray *dch;
     TClonesArray *mwpc;
     TClonesArray *t0;
@@ -335,6 +363,7 @@ private:
     BmnTrigRaw2Digit *fTrigMapper;
     BmnTof1Raw2Digit *fTof400Mapper;
     BmnTof2Raw2DigitNew *fTof700Mapper;
+    BmnZDCRaw2Digit *fZDCMapper;
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
     UInt_t fPedEvCntr;
@@ -349,6 +378,7 @@ private:
 
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr);
+    BmnStatus Process_ADC64WR(UInt_t *data, UInt_t len, UInt_t serial, TClonesArray *arr);
     BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnEventType &ped, BmnTriggerType &trig);
     BmnStatus Process_HRB(UInt_t *data, UInt_t len, UInt_t serial);
     BmnStatus FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);

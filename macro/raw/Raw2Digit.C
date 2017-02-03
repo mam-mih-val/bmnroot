@@ -1,6 +1,6 @@
 using namespace std;
 
-void Raw2Digit(char *fname="bmn_run0815.root", int RunPeriod = 5) {
+void Raw2Digit(char *fname="bmn_run0871.root", int RunPeriod = 5) {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
@@ -52,6 +52,7 @@ void Raw2Digit(char *fname="bmn_run0815.root", int RunPeriod = 5) {
     cout << "Process RUN:  " << RUN << endl;
 
     /////////////////////////////////////////////////////////////////////////////////////
+    UInt_t TRIGWORD = 0;
     TFile *_f_in = new TFile(fname, "READ");
     TTree *_t_in = (TTree *) _f_in->Get("BMN_RAW");
     TClonesArray *t0_raw   = new TClonesArray("BmnTDCDigit");
@@ -62,6 +63,7 @@ void Raw2Digit(char *fname="bmn_run0815.root", int RunPeriod = 5) {
     _t_in->SetBranchAddress("bmn_sync",  &sync_raw);
     _t_in->SetBranchAddress("bmn_tof700",&tof2_raw);
     _t_in->SetBranchAddress("bmn_zdc",   &zdc_raw);
+    _t_in->SetBranchAddress("bmn_trigword",   &TRIGWORD);
     /////////////////////////////////////////////////////////////////////////////////////
     long long EVENT = 0,TIME_SEC = 0,TIME_NS = 0;
     float T0;
@@ -73,6 +75,7 @@ void Raw2Digit(char *fname="bmn_run0815.root", int RunPeriod = 5) {
     TClonesArray * tof2_digit  = new TClonesArray("BmnTof2Digit");
     _t_out->Branch("bmn_run",         &RUN,     "bmn_run/I");   
     _t_out->Branch("bmn_event",       &EVENT,   "bmn_event/I");   
+    _t_out->Branch("bmn_trigword",    &TRIGWORD,"bmn_trigword/i");   
     _t_out->Branch("bmn_time_sec",    &TIME_SEC,"bmn_time_sec/I");   
     _t_out->Branch("bmn_time_ns",     &TIME_NS, "bmn_time_ns/I");   
     _t_out->Branch("bmn_t0",          &T0,      "bmn_t0/F");   
@@ -89,6 +92,7 @@ void Raw2Digit(char *fname="bmn_run0815.root", int RunPeriod = 5) {
 
         zdc_digit->Clear();  
         tof2_digit->Clear();  
+	TRIGWORD = 0;
  
         _t_in->GetEntry(ev);
 
@@ -97,7 +101,7 @@ void Raw2Digit(char *fname="bmn_run0815.root", int RunPeriod = 5) {
         ZDC.fillEvent(zdc_raw, zdc_digit);
         T0 = TOF2.get_t0();
         if ((ev % 1000) == 0) printf("Digits producing, event %d, tof2_raw hits %d, tof2 digits %d, zdc_raw hits %d, zdc digits %d\n", ev, tof2_raw->GetEntries(), tof2_digit->GetEntries(), zdc_raw->GetEntries(), zdc_digit->GetEntries());
-        if (T0 == 0) continue;
+//        if (T0 == 0) continue;
         _t_out->Fill();
     }
     /////////////////////////////////////////////////////////////////////////////////////
@@ -107,8 +111,6 @@ void Raw2Digit(char *fname="bmn_run0815.root", int RunPeriod = 5) {
     _f_out->Write(); 
     _f_out->Close();
     return;
-    TOF2.SlewingResults();
-    TOF2.drawprof();
 }
 
 void select_hist()

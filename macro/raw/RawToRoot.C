@@ -1,4 +1,4 @@
-void RawToRoot(char *fname="mpd_run834.data")
+void RawToRoot(char *fname="mpd_run_Glob_871.data")
 {
 gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
 bmnloadlibs();

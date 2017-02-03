@@ -17,6 +17,7 @@ private:
   FILE *in;
   int RUN;
   unsigned int EVENT; 
+  unsigned int TRIGWORD;
 
   TFile *File;
   TTree *Tree;
@@ -65,6 +66,12 @@ private:
         unsigned int type=(d[i]>>28)&0xFF;
         if(type==0xA){  if(_DEBUG_>1) printf("Event header: evt# %d\n",d[i]&0xFFFFF);}
         else if(type==0xB){  if(_DEBUG_>1) printf("Event trailer: readout status %X, word count %d\n",(d[i]>>24)&0xF,d[i]&0xFFFFFF);}
+        else if(type==0x3){
+	   if (SLOT==12 && TYPE==0x4C)
+	   {
+		 TRIGWORD = d[i];
+	   }
+	}
         else if(type==0x8){
            if(_DEBUG_>1) printf("\tModule header: slot %d, module Id %X, evt# %d\n",(d[i]>>23)&0x1F,(d[i]>>16)&0x7F,d[i]&0xFFFF);
            TYPE=(d[i]>>16)&0x7F;
@@ -246,6 +253,7 @@ public:
   BmnDataToRoot(char *file){
      char str[200];
      EVENT=0;
+     TRIGWORD=0;
      sscanf(&file[strlen(file)-8],"%d",&RUN); printf("Processing run: %d\n",RUN);
      sprintf(str,"bmn_run%04d.root",RUN);
      File=new TFile(str,"recreate");
@@ -272,6 +280,7 @@ public:
      Tree->Branch("bmn_beamcounters",&counters);
      Tree->Branch("bmn_ecal",        &ecal);   
      Tree->Branch("bmn_zdc",         &zdc);    
+     Tree->Branch("bmn_trigword",    &TRIGWORD,"bmn_trigword/i");   
      
      in=fopen(file,"rb");
      if (in == NULL) perror(file);
@@ -294,6 +303,7 @@ public:
     trigger->Clear();
     counters->Clear();
     EVENT=0;
+    TRIGWORD=0;
     unsigned int dat,ret;
     for(;;){ if((ret=fread(&dat,sizeof(unsigned int),1,in))!=1) return -1; if(dat==0x2A502A50 || dat==0x4A624A62 ) break;} 
     if((ret=fread(&dat,sizeof(unsigned int),1,in))!=1) return -1;

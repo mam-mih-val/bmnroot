@@ -1,7 +1,7 @@
 
 using namespace std;
 
-void Slewing_TOF700(char *fname="../raw/bmn_run0815.root", int RunPeriod = 5) {
+void Slewing_TOF700(char *fname="../raw/bmn_run0985.root", int RunPeriod = 5) {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
@@ -40,15 +40,20 @@ void Slewing_TOF700(char *fname="../raw/bmn_run0815.root", int RunPeriod = 5) {
     }
     else
     {
-	TOF2.SetW(2500,3300); // run 834...
-	TOF2.SetWT0(400,600); // run 834...
-	for (int i=1; i<=15; i++) if (!(i==1||i==4||i==7||i==10||i==13)) TOF2.SetLeadMinMax(i,-5200, -4800);  // run 834
-	for (int i=1; i<=15; i++) if (  i==1||i==4||i==7||i==10||i==13)  TOF2.SetLeadMinMax(i,-13200, -12800); // run 834
+//	TOF2.SetW(2500,3300); // run 834...
+//	TOF2.SetWT0(400,600); // run 834...
+	TOF2.SetW(2500,4500); // run 985...
+	TOF2.SetWT0(450,750); // run 985...
+//	for (int i=1; i<=15; i++) if (!(i==1||i==4||i==7||i==10||i==13)) TOF2.SetLeadMinMax(i,-5200, -4800);  // run 834
+//	for (int i=1; i<=15; i++) if (  i==1||i==4||i==7||i==10||i==13)  TOF2.SetLeadMinMax(i,-13200, -12800); // run 834
+	for (int i=1; i<=15; i++) TOF2.SetLeadMinMax(i,-14000, -12000);  // run 985
+	TOF2.SetLeadMinMax(10,-13000, -12875); // run 985
     }
 
     cout << "Process RUN file:  " << fname << endl;
 
     /////////////////////////////////////////////////////////////////////////////////////
+    UInt_t TRIGWORD = 0;
     TFile *_f_in = new TFile(fname, "READ");
     TTree *_t_in = (TTree *) _f_in->Get("BMN_RAW");
     TClonesArray *t0_raw   = new TClonesArray("BmnTDCDigit");
@@ -57,6 +62,7 @@ void Slewing_TOF700(char *fname="../raw/bmn_run0815.root", int RunPeriod = 5) {
     _t_in->SetBranchAddress("bmn_t0",    &t0_raw);
     _t_in->SetBranchAddress("bmn_sync",  &sync_raw);
     _t_in->SetBranchAddress("bmn_tof700",&tof2_raw);
+    _t_in->SetBranchAddress("bmn_trigword",   &TRIGWORD);
     /////////////////////////////////////////////////////////////////////////////////////
 
     for (int ev = 0; ev < _t_in->GetEntries(); ev++) {
@@ -68,6 +74,8 @@ void Slewing_TOF700(char *fname="../raw/bmn_run0815.root", int RunPeriod = 5) {
 	tof2_raw->Clear();
 
         _t_in->GetEntry(ev);
+
+	if ((TRIGWORD&0x8) != 0) continue;
 
         TOF2.fillSlewingT0(tof2_raw, sync_raw, t0_raw);
 

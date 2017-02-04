@@ -8,8 +8,10 @@ void Results_ZDC(char *fname="bmn_run0871_digit.root") {
     TChain *bmnTree = new TChain("BMN_DIGIT");
     bmnTree->Add(fname);
 
+    UInt_t TRIGWORD = 0;
     TClonesArray *zdcDigits;
     bmnTree->SetBranchAddress("bmn_zdc_digit", &zdcDigits);
+    bmnTree->SetBranchAddress("bmn_trigword",  &TRIGWORD);   
 
     Int_t startEvent = 0;
     Int_t nEvents = bmnTree->GetEntries();
@@ -25,10 +27,19 @@ void Results_ZDC(char *fname="bmn_run0871_digit.root") {
     TH2F *hpro = new TH2F("hpro", "Cluster profile", 22, -76*11, 76*11, 14, -76*7, 76*7);
     /////////////////////////////////////////////////////////////////////////////////////
 
+    int n_phys = 0, n_led = 0;
     for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
+
+	TRIGWORD = 0;
+
         bmnTree->GetEntry(iEv);
 
-        if (iEv % 10000 == 0) cout << "Event: " << iEv << "/" << startEvent + nEvents << endl;
+	if ((TRIGWORD&0x8) == 0) n_phys++;
+	else if ((TRIGWORD&0x8) == 0x8) n_led++;
+
+        if (iEv % 10000 == 0) cout << "Event: " << iEv << "/" << startEvent + nEvents << " ( phys " << n_phys << ", led " << n_led << " )" << endl;
+
+	if ((TRIGWORD&0x8) != 0) continue;
 
 	Float_t sum = 0.;
 
@@ -70,12 +81,14 @@ void Results_ZDC(char *fname="bmn_run0871_digit.root") {
     c1->Divide(1,1);
     c1->cd(1);
     hsum->Draw();
+    gPad->AddExec("exsel","select_hist()");
 
     TCanvas *c2 = new TCanvas("c2","Average Shape", 700,900);
     c2->cd();
     c2->Divide(1,1);
     c2->cd(1);
     hpro->Draw();
+    gPad->AddExec("exsel","select_hist()");
 
 }
 

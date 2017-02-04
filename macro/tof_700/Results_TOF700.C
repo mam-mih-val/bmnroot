@@ -16,7 +16,7 @@ int wma[NUMBER_CHAMBERS] = {600,600,3300,3300,3300,3300,3300,3300,3300,3300,3300
 
 using namespace TMath;
 
-void Results_TOF700(char *fname = "../raw/bmn_run0834_digit.root") {
+void Results_TOF700(char *fname = "../raw/bmn_run0871_digit.root") {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -24,6 +24,7 @@ void Results_TOF700(char *fname = "../raw/bmn_run0834_digit.root") {
 
     TClonesArray *tof700Digits;
     TChain *bmnTree = new TChain("BMN_DIGIT");
+    UInt_t TRIGWORD = 0;
     if (bmnTree->Add(fname) == 0)
     {
 	    printf("Can't find BMN digits tree in file %s!\n", fname);
@@ -32,6 +33,7 @@ void Results_TOF700(char *fname = "../raw/bmn_run0834_digit.root") {
     else
     {
 	bmnTree->SetBranchAddress("bmn_tof2_digit", &tof700Digits);
+	bmnTree->SetBranchAddress("bmn_trigword",   &TRIGWORD);   
     }
 
     char name[128], title[128];
@@ -72,12 +74,18 @@ void Results_TOF700(char *fname = "../raw/bmn_run0834_digit.root") {
     }
 
     for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
+
+	TRIGWORD = 0;
+
         bmnTree->GetEntry(iEv);
 
         if (iEv % 10000 == 0)
 	{
 	    cout << "Event: " << iEv << "/" << startEvent + nEvents << endl;
 	}
+
+	if ((TRIGWORD&0x8) != 0) continue;
+
 	float wmax[NUMBER_CHAMBERS] = {0.};
 	float tmax[NUMBER_CHAMBERS] = {-10000000.};
 	int smax[NUMBER_CHAMBERS] = {-1};
@@ -126,12 +134,12 @@ void Results_TOF700(char *fname = "../raw/bmn_run0834_digit.root") {
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htime[i], -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htimemax[i], -0.2, +0.2);
 
-    TCanvas *c1 = new TCanvas("c1", "RPC time - T0 time", 900, 900);
-    c1->Divide(5,3);
-    c1->cd();
+    TCanvas *ct = new TCanvas("ct", "RPC time - T0 time", 900, 900);
+    ct->Divide(5,3);
+    ct->cd();
     for (int i=0; i<NUMBER_CHAMBERS; i++)
     {
-	c1->cd(i+1);
+	ct->cd(i+1);
 	htime[i]->Draw();
 	gPad->AddExec("exselt","select_hist()");
     }

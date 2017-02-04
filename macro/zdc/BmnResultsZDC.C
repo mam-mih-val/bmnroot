@@ -1,71 +1,82 @@
 
 using namespace std;
 
-void Preparation_ZDC(char *fname="../raw/bmn_run0871.root") {
+void BmnResultsZDC(char *fname="../raw/bmn_run0871_digi.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
-    int RUN, n_notrig = 0, n_phys = 0, n_led = 0, n_bad = 0;
-    UInt_t TRIGWORD = 0;
-    sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
+    TChain *bmnTree = new TChain("cbmsim");
+    bmnTree->Add(fname);
 
-    const char *mapping;
-    mapping = "ZDC_map_period_5.txt";
+    TClonesArray *zdcDigits;
+    bmnTree->SetBranchAddress("ZDC", &zdcDigits);
 
-    BmnZDCRaw2Digit ZDC(mapping, fname, "zdc_muon_calibration.txt");
-    ZDC.print();
+    Int_t startEvent = 0;
+    Int_t nEvents = bmnTree->GetEntries();
 
-    cout << "Process RUN:  " << RUN << endl;
+    gStyle->SetOptFit(111);
 
+    char name[64], title[64];
+    TH1F *hamp = 0;
+    sprintf(name, "hamp");
+    sprintf(title, "Module amplitude");
+    hamp = new TH1F(name, title, 500, 0, 1000);
+    TH1F *hsum = new TH1F("hsum", "Sum of amplitudes", 1000, 0, 5000);
+    TH2F *hpro = new TH2F("hpro", "Cluster profile", 22, -76*11, 76*11, 14, -76*7, 76*7);
     /////////////////////////////////////////////////////////////////////////////////////
-    TFile *_f_in = new TFile(fname, "READ");
-    TTree *_t_in = (TTree *) _f_in->Get("BMN_RAW");
-    TClonesArray *zdc_raw  = new TClonesArray("BmnADCDigit");
-    _t_in->SetBranchAddress("bmn_zdc",    &zdc_raw);
-    _t_in->SetBranchAddress("bmn_trigword",&TRIGWORD);
-    /////////////////////////////////////////////////////////////////////////////////////
 
-    for (int ev = 0; ev < _t_in->GetEntries(); ev++) {
+    for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
+        bmnTree->GetEntry(iEv);
 
-        if ((ev % 1000) == 0) printf("Preparation ZDC, event %d, phys %d, led %d\n", ev, n_phys, n_led);
+        if (iEv % 10000 == 0) cout << "Event: " << iEv << "/" << startEvent + nEvents << endl;
 
-	TRIGWORD = 0;
-        zdc_raw->Clear(); 
+	Float_t sum = 0.;
 
-        _t_in->GetEntry(ev);
-
-	if (TRIGWORD == 0)
-	{
-	    n_notrig++;
+	int xbin = 0;
+	for (Int_t iDig = 0; iDig < zdcDigits->GetEntriesFast(); ++iDig) {
+    	    BmnZDCDigit *digit = (BmnZDCDigit*) zdcDigits->At(iDig);
+    	    if (digit == NULL) continue;
+    	    Short_t chan = digit->GetChannel();
+    	    Float_t ampl = digit->GetAmp();
+    	    Float_t x = digit->GetX();
+    	    Float_t y = digit->GetY();
+	    if (ampl > 0.) hamp->Fill(ampl);
+	    if (digit->GetSize() == 1) hpro->Fill(x,y,ampl);
+	    else // equalization for BIG modules
+	    {
+		xbin = hpro->FindBin(x+5.,y+5.);
+		hpro->SetBinContent(xbin,ampl/4.);
+		xbin = hpro->FindBin(x+5.,y-5.);
+		hpro->SetBinContent(xbin,ampl/4.);
+		xbin = hpro->FindBin(x-5.,y+5.);
+		hpro->SetBinContent(xbin,ampl/4.);
+		xbin = hpro->FindBin(x-5.,y-5.);
+		hpro->SetBinContent(xbin,ampl/4.);
+	    }
+	    sum += ampl;
 	}
-	else if ((TRIGWORD&0x8) == 0)
-	{
-	    n_phys++;
-	    ZDC.fillAmplitudes(zdc_raw);
-	    ZDC.fillSampleProfilesAll(zdc_raw, 0., 0., 48.);
-	    //ZDC.fillSampleProfiles(zdc_raw, 0., 0., 48., 3);
-	}
-	else if ((TRIGWORD&0x8) == 0x8)
-	{
-	    n_led++;
-	    //ZDC.fillAmplitudes(zdc_raw);
-	    //ZDC.fillSampleProfilesAll(zdc_raw, 0., 0., 48.);
-
-	    //ZDC.fillSampleProfiles(zdc_raw, 0., 0., 48., 3);
-	    //if ((ev % 1000) == 0 && ZDC.getLogChan(0) >= 0) printf("     Log channel 0 (Id = 0x%0x, Ch = %d) amplitude is %f\n", ZDC.getLogId(0), ZDC.getLogChan(0), ZDC.getLogAmp(0));
-	    //if ((ev % 1000) == 0 && ZDC.getLogChan(1) >= 0) printf("     Log channel 1 (Id = 0x%0x, Ch = %d) amplitude is %f\n", ZDC.getLogId(1), ZDC.getLogChan(1), ZDC.getLogAmp(1));
-	}
-	else
-	{
-	    n_bad++;
-	}
+	if (sum > 0.) hsum->Fill(sum);
     }
     /////////////////////////////////////////////////////////////////////////////////////
-    ZDC.drawprof();
-    ZDC.drawtest();
-    /////////////////////////////////////////////////////////////////////////////////////
-   
-    _f_in->Close();
+    TCanvas *c = new TCanvas("c","Channel Amplitudes", 700,900);
+    c->cd();
+    c->Divide(1,1);
+    c->cd(1);
+    hamp->Draw();
+    gPad->AddExec("exsel","select_hist()");
+
+    TCanvas *c1 = new TCanvas("c1","Sum of Channel Amplitudes", 700,900);
+    c1->cd();
+    c1->Divide(1,1);
+    c1->cd(1);
+    hsum->Draw();
+
+    TCanvas *c2 = new TCanvas("c2","Average Shape", 700,900);
+    c2->cd();
+    c2->Divide(1,1);
+    c2->cd(1);
+    hpro->Draw();
+
 }
 
 void select_hist()

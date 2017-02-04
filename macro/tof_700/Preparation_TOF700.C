@@ -1,7 +1,7 @@
 
 using namespace std;
 
-void Preparation_TOF700(char *fname="../raw/bmn_run0834.root", int RunPeriod = 5) {
+void Preparation_TOF700(char *fname="../raw/bmn_run0871.root", int RunPeriod = 5) {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
@@ -48,6 +48,7 @@ void Preparation_TOF700(char *fname="../raw/bmn_run0834.root", int RunPeriod = 5
     cout << "Process RUN file: " << fname << endl;
 
     /////////////////////////////////////////////////////////////////////////////////////
+    UInt_t TRIGWORD = 0;
     TFile *_f_in = new TFile(fname, "READ");
     TTree *_t_in = (TTree *) _f_in->Get("BMN_RAW");
     TClonesArray *t0_raw   = new TClonesArray("BmnTDCDigit");
@@ -56,6 +57,7 @@ void Preparation_TOF700(char *fname="../raw/bmn_run0834.root", int RunPeriod = 5
     _t_in->SetBranchAddress("bmn_t0",    &t0_raw);
     _t_in->SetBranchAddress("bmn_sync",  &sync_raw);
     _t_in->SetBranchAddress("bmn_tof700",&tof2_raw);
+    _t_in->SetBranchAddress("bmn_trigword",   &TRIGWORD);
     /////////////////////////////////////////////////////////////////////////////////////
 
     for (int ev = 0; ev < _t_in->GetEntries(); ev++) {
@@ -65,8 +67,11 @@ void Preparation_TOF700(char *fname="../raw/bmn_run0834.root", int RunPeriod = 5
         sync_raw->Clear();
 	t0_raw->Clear();
 	tof2_raw->Clear();
+	TRIGWORD = 0;
 
         _t_in->GetEntry(ev);
+
+	if ((TRIGWORD&0x8) != 0) continue;
 
         TOF2.fillPreparation(tof2_raw, sync_raw, t0_raw);
 

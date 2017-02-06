@@ -153,7 +153,6 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
 
-  //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSummer2016; // RunSummer2016 config (GEM_RunSummer2016.root))
     BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunWinter2016; // RunWinter2016 config (GEM_RunWinter2016.root))
 
     if (!isExp) {
@@ -165,7 +164,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-    gemHM->SetAlignmentCorrectionsFileName("alignCorrs_18ene.root"); // In case of running iterative alignment, file name will contain pattern "_it[0-9]+";
+    gemHM->SetAlignmentCorrectionsFileName("alignCorrsLocal_GEM.root"); // In case of running iterative alignment, file name will contain pattern "_it[0-9]+";
                                                                      // in that case [<path>/]<filename> will be used in BmnGemStripHitMaker as is,
                                                                      // instead of <filename> in default location "bmnroot/input" .
                                                                      // Anatoly.Solomin@jinr.ru 2017-02-01 14:32:16
@@ -199,24 +198,23 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     gemSF->SetField(isField);
     gemSF->SetTarget(isTarget);
     gemSF->SetXRange(0.0, 100.0);
-    gemSF->SetYRange(-3.0, 3.0);
+    gemSF->SetYRange(-1.0, 1.0);
     gemSF->AddStationToSkip(0);
-    gemSF->AddStationToSkip(1);
-    gemSF->AddStationToSkip(2);
+    // gemSF->AddStationToSkip(1);
+    // gemSF->AddStationToSkip(2);
     fRun->AddTask(gemSF);
 
-//    BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
-//    gemTF->SetField(isField);
-//    fRun->AddTask(gemTF);
-
-    //    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
-    //    glFinder->SetRun1(kRUN1);
-    //    fRun->AddTask(glFinder);
-
+    BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
+    gemTF->SetField(isField);
+    fRun->AddTask(gemTF);
+    
     // -----   Primary vertex finding   ---------------------------------------
-//    BmnGemVertexFinder* vf = new BmnGemVertexFinder();
-//    vf->SetField(isField);
-//    fRun->AddTask(vf);
+    BmnGemVertexFinder* vf = new BmnGemVertexFinder();
+    vf->SetField(isField);
+    fRun->AddTask(vf);
+
+    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
+    //    fRun->AddTask(glFinder); 
     // ------------------------------------------------------------------------
 
     // ====================================================================== //

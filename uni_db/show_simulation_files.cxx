@@ -1,8 +1,8 @@
 //============================================================================
-// Name        : get_mpd_prod.cpp
+// Name        : show_simulation_files.cpp
 // Author      : Konstantin Gertsenberger
 // Copyright   : JINR
-// Description : Get list of production files
+// Description : Get list of simulation files
 //============================================================================
 
 // own headers
@@ -28,9 +28,11 @@ int main(int argc, char** argv)
     if (argc > 1){
         string first_par = argv[1];
         if ((first_par == "/?") || (first_par == "--help") || (first_par == "-h")){
-            cout<<"Get list of production files"<<endl<<"parameters separated by comma:"<<endl<<"gen - generator"<<endl<<"energy - collision energy"<<endl
-                <<"particle - particles in collision"<<endl<<"desc - text in description"<<endl<<"type - type of data in file"<<endl<<endl<<"Examples:"<<endl
-                <<"get_mpd_prod gen=QGSM,energy=9,particle=AuAu"<<endl<<"get_mpd_prod gen=urqmd,energy=5-9,desc=50K"<<endl;
+            cout<<"Get list of simulation files satisfying the given parameters."<<endl<<"Parameters separated by comma:"<<endl<<"gen - generator name"<<endl
+               <<"energy - collision energy (range is supported by '-' symbol)"<<endl<<"beam - first particle in collision (first beam)"<<endl
+               <<"target - second particle in collision (second beam) OR target"<<endl<<"desc - text in description"<<endl
+               <<"path - part of the file path"<<endl<<endl<<"Examples:"<<endl<<"show_simulation_files gen=QGSM,energy=9,beam=Au,target=Au"<<endl
+               <<"show_simulation_files gen=urqmd,energy=5-9,desc=50K"<<endl;
 
             return 0;
         }
@@ -49,7 +51,7 @@ int main(int argc, char** argv)
         string token;
 
         // parse tokens by comma separated
-        while(getline(ss, token, ','))
+        while (getline(ss, token, ','))
         {
             // to lowercase
             transform(token.begin(), token.end(), token.begin(), ::tolower);
@@ -104,7 +106,7 @@ int main(int argc, char** argv)
                         }
                     }//else
                 }//if ((token.length() > 7) && (token.substr(0,7) == "energy="))
-                // particles' names in collision parsing
+                // beam particle's name in collision parsing
                 else
                 {
                     if ((token.length() > 5) && (token.substr(0,5) == "beam="))
@@ -122,7 +124,7 @@ int main(int argc, char** argv)
                         }
                         else
                         {
-                            // type of data parsing
+                            // target particle's name in collision parsing
                             if ((token.length() > 7) && (token.substr(0,7) == "target="))
                             {
                                 isTarget = true;
@@ -145,8 +147,8 @@ int main(int argc, char** argv)
     }//for (int i = 1; i < argc; i++)
 
     // generate query
-    TString strConn = "pgsql://nc13.jinr.ru/" + (TString)UNI_DB_NAME;
-    TSQLServer* pSQLServer = TSQLServer::Connect(strConn, UNI_DB_USERNAME, UNI_DB_PASSWORD);
+    TString strConnection = "pgsql://" + TString(UNI_DB_HOST) + "/" + (TString)UNI_DB_NAME;
+    TSQLServer* pSQLServer = TSQLServer::Connect(strConnection, UNI_DB_USERNAME, UNI_DB_PASSWORD);
     if (pSQLServer == 0x00)
     {
         cout<<"Connection to database wasn't established"<<endl;
@@ -207,7 +209,7 @@ int main(int argc, char** argv)
                                    "where lower(beam_particle) = '%s'", strBeam.data());
         }
     }
-    // if beam particle was selected
+    // if target particle was selected
     if (isTarget == true)
     {
         if (isWhere)
@@ -242,13 +244,14 @@ int main(int argc, char** argv)
         }
     }
 
+    sql += " order by generator_name,energy";
     //cout<<sql<<endl;
 
     TSQLResult* res = pSQLServer->Query(sql);
 
     int nrows = res->GetRowCount();
     if (nrows == 0)
-        cout<<"There are no records for these parameters"<<endl;
+        cout<<"There are no simulation files for these parameters"<<endl;
     else
     {
         TSQLRow* row;
@@ -260,7 +263,7 @@ int main(int argc, char** argv)
             delete row;
         }
 
-        cout<<"Total count: "<<nrows<<endl;
+        cout<<endl<<"Total count: "<<nrows<<endl;
     }
 
     delete res;

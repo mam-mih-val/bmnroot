@@ -19,7 +19,7 @@ UniDbConnection* UniDbConnection::Open(UniConnectionType database_type)
     switch (database_type)
     {
         case UNIFIED_DB:
-            conString = "pgsql://nc13.jinr.ru/" + (TString)UNI_DB_NAME;
+            conString = "pgsql://" + (TString)UNI_DB_HOST + "/" + (TString)UNI_DB_NAME;
             break;
         default:
             {
@@ -54,9 +54,9 @@ UniDbConnection* UniDbConnection::Open(UniConnectionType database_type)
 }
 
 // -------------------------------------------------------------------
-UniDbConnection* UniDbConnection::Open(TString strDBConn, TString strDBName, TString strUID, TString strPassword)
+UniDbConnection* UniDbConnection::Open(TString strDBHost, TString strDBName, TString strUID, TString strPassword)
 {
-    TString conString = strDBConn + strDBName;
+    TString conString = "pgsql://" + strDBHost + TString("/") + strDBName;
 
     if (UniDbConnection::mapConnection == NULL)
         UniDbConnection::mapConnection = new mapSQLServer();

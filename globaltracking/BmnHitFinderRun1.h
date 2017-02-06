@@ -333,7 +333,7 @@ inline vector<TVector3> CreateHitsByTwoPlanes(vector<BmnMwpcDigit*> x, vector<Bm
         BmnMwpcDigit* dI = (BmnMwpcDigit*) x.at(i);
         for (Int_t j = 0; j < y.size(); ++j) {
             BmnMwpcDigit* dJ = (BmnMwpcDigit*) y.at(j);
-            if (Abs(dI->GetTime() - dJ->GetTime()) > 6) continue;
+            if (Abs((Int_t)dI->GetTime() - (Int_t)dJ->GetTime()) > 6) continue;
             v.push_back(CalcHitPosByTwoDigits(dI, dJ, zPos));
         }
     }

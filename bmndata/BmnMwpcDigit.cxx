@@ -16,7 +16,7 @@ BmnMwpcDigit::BmnMwpcDigit() {
     fUse = kFALSE;
 }
 
-BmnMwpcDigit::BmnMwpcDigit(UInt_t iPlane, UInt_t iWire, Float_t iTime, Int_t refId) {
+BmnMwpcDigit::BmnMwpcDigit(UInt_t iPlane, UInt_t iWire, UInt_t iTime, Int_t refId) {
     fTime = iTime;
     fPlane = iPlane;
     fWire = iWire;
@@ -24,8 +24,8 @@ BmnMwpcDigit::BmnMwpcDigit(UInt_t iPlane, UInt_t iWire, Float_t iTime, Int_t ref
     fUse = kFALSE;
 }
 
-BmnMwpcDigit::BmnMwpcDigit(UInt_t iPlane, UInt_t iWire) {
-    fTime = 0.0;
+BmnMwpcDigit::BmnMwpcDigit(UInt_t iPlane, UInt_t iWire, UInt_t iTime) {
+    fTime = iTime;
     fPlane = iPlane;
     fWire = iWire;
     fRef = -1;

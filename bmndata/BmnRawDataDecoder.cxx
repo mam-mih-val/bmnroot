@@ -549,7 +549,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
         if (subType == 0) {
             i += 5; //skip unused words
             UInt_t iCh = 0;
-            while (iCh < kNCH - 1) {
+            while (iCh < kNCH - 1 && i < len) {
                 iCh = d[i] >> 24;
                 i += 3; // skip two timestamp words (they are empty)
                 for (Int_t iWord = 0; iWord < kNSTAMPS / 2; ++iWord) {
@@ -585,7 +585,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
         if (subType == 0) {
             i += 5; //skip unused words
             UInt_t iCh = 0;
-            while (iCh < kNCH - 1) {
+            while (iCh < kNCH - 1 && i < len) {
                 iCh = d[i] >> 24;
 		ns = (d[i] & 0xFFF)/2 - 4;
                 i += 3; // skip two timestamp words (they are empty)
@@ -596,6 +596,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
 
                 TClonesArray& ar_adc = *arr;
                 if (iCh >= 0 && iCh < kNCH) {
+//			printf("ns == %d, serial == 0x%0x, chan == %d\n", ns, serial, iCh);
                         new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ns, val);
                 }
                 i += (ns / 2); //skip words (we've processed them)

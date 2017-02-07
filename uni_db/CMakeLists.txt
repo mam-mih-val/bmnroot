@@ -57,8 +57,11 @@ add_library(UniDb SHARED ${UNIDB_SRCS})
 target_link_libraries(UniDb ${ROOT_LIBRARIES} xml2)
 set_target_properties(UniDb PROPERTIES VERSION 0.0.1 SOVERSION 0)
 
-add_executable (get_mpd_prod get_mpd_prod.cxx)
-target_link_libraries(get_mpd_prod ${ROOT_LIBRARIES})
+add_executable (show_simulation_files show_simulation_files.cxx)
+target_link_libraries(show_simulation_files ${ROOT_LIBRARIES})
+
+add_executable (show_experiment_files show_experiment_files.cxx)
+target_link_libraries(show_experiment_files ${ROOT_LIBRARIES})
 
 ################ install ###################
 install(TARGETS UniDb DESTINATION ${CMAKE_BINARY_DIR}/lib)

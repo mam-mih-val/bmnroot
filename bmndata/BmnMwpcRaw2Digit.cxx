@@ -32,7 +32,7 @@ void BmnMwpcRaw2Digit::FillEvent(TClonesArray *hrb, TClonesArray *mwpc) {
         BmnHRBDigit *dig = (BmnHRBDigit*) hrb->At(iDig);
         map<UInt_t, UInt_t>::iterator it = mapping.find(dig->GetSerial());
         if (it == mapping.end()) continue;
-        new((*mwpc)[mwpc->GetEntriesFast()]) BmnMwpcDigit(it->second, dig->GetChannel());
+        new((*mwpc)[mwpc->GetEntriesFast()]) BmnMwpcDigit(it->second, dig->GetChannel(), dig->GetSample() * 8); // dig->GetSample() * 8 -- convert to ns
     }
 }
 

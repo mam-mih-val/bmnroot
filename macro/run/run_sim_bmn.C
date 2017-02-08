@@ -225,8 +225,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
-
-    cout << "Macro finished succesfully." << endl;
+    cout<<"Macro finished successfully."<<endl;     // marker of successfully execution for CDASH
 
     gApplication->Terminate();
 }

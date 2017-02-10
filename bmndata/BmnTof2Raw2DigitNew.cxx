@@ -43,7 +43,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     MaxPlane = 0;
     TString dnlfile;
 //    char dnlfile[128];
-    int crate, slot, chan, plane, strip, side, filetype, cham;
+    int crate, slot, chan, plane, strip, side, filetype, cham, cable;
     float idcham;
     int id_crate;
 
@@ -51,6 +51,10 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 	for (int i=0; i<TOF2_MAX_SLOTS_IN_CRATE; i++)
 	    dnltype[c][i] = -1;
 
+    for (int c=0; c<TOF2_MAX_CRATES; c++)
+	for (int s=0; s<TOF2_MAX_SLOTS_IN_CRATE; s++)
+	    for (int ch=0; ch<TOF2_MAX_CHANNELS_IN_SLOT; ch++)
+		nrec[c][s][ch] = -1;
 
     in >> dummy;
     in >> ncrates;
@@ -105,7 +109,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 	    if (in.eof()) break;
     }
 
-    if (!in.eof()) in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
+    if (!in.eof()) in >> dummy >> dummy >> dummy >> dummy;
 //    printf("%s\n",dummy.Data());
 	in.getline(line,128);
 //	printf("line %d %s\n", strlen(line),line);
@@ -114,29 +118,113 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 //	printf("line %d %s\n", strlen(line),line);
 	in.getline(line,128);
 //	printf("line %d %s\n", strlen(line),line);
-	sscanf(line,"%d\t%d\t%d\t%d\t%d\t%d\n",&crate,&slot,&chan,&plane,&strip,&side);
-//        in >> crate >> slot >> chan >> plane >> strip >> side;
-//	printf("%d %d %d %d %d %d\n",crate, slot,chan,plane,strip,side);
+	sscanf(line,"%d\t%d\t%d\t%d\n",&crate,&slot,&plane,&cable);
+//        in >> crate >> slot >> plane >> cable;
+//	printf("%d %d %d %d\n",crate, slot, plane, cable);
         if (!in.good()) break;
 	if (crate >= TOF2_MAX_CRATES) break;
 	if (slot >= TOF2_MAX_SLOTS_IN_CRATE) break;
-	if (chan >= TOF2_MAX_CHANNELS_IN_SLOT) break;
 	if (plane >= TOF2_MAX_CHAMBERS) break;
-	if (strip > TOF2_MAX_STRIPS_IN_CHAMBER) break;
-//	printf(" a %d %d %d %d %d %d\n",crate, slot,chan,plane,strip,side);
-        mapa[n_rec].id=idcrates[crate];
-        mapa[n_rec].crate=crate;
-        mapa[n_rec].slot=slot;
-        mapa[n_rec].chan=chan;
-        mapa[n_rec].plane=plane;
-        mapa[n_rec].strip=strip-1;
-        mapa[n_rec].side=side; 
-	mapa[n_rec].pair=-2;
-	ntmean[0][n_rec] = 0;
-	ntmean[1][n_rec] = 0;
-	tmean[0][n_rec] = 0.;
-	tmean[1][n_rec] = 0.;
-	n_rec++;
+	if (cable == 0)
+	{
+	    for (int ie=1; ie<=2; ie++)
+	    {
+	      for (int is=0; is<TOF2_MAX_STRIPS_IN_CHAMBER/2; is++)
+	      {
+		mapa[n_rec].id=idcrates[crate];
+		mapa[n_rec].crate=crate;
+		mapa[n_rec].slot=slot;
+		mapa[n_rec].plane=plane;
+		mapa[n_rec].pair=-2;
+		chan = is + (ie-1)*16;
+		mapa[n_rec].chan=chan;
+		mapa[n_rec].strip=is;
+		mapa[n_rec].side=ie; 
+		ntmean[0][n_rec] = 0;
+		ntmean[1][n_rec] = 0;
+		tmean[0][n_rec] = 0.;
+		tmean[1][n_rec] = 0.;
+		nrec[crate][slot][chan] = n_rec;
+		n_rec++;
+	      }
+	    }
+	    for (int ie=1; ie<=2; ie++)
+	    {
+	      for (int is=TOF2_MAX_STRIPS_IN_CHAMBER/2; is<TOF2_MAX_STRIPS_IN_CHAMBER; is++)
+	      {
+		mapa[n_rec].id=idcrates[crate];
+		mapa[n_rec].crate=crate;
+		mapa[n_rec].slot=slot;
+		mapa[n_rec].plane=plane;
+		mapa[n_rec].pair=-2;
+		chan = 16 + is + (ie-1)*16;
+		mapa[n_rec].chan=chan;
+		mapa[n_rec].strip=is;
+		mapa[n_rec].side=ie; 
+		ntmean[0][n_rec] = 0;
+		ntmean[1][n_rec] = 0;
+		tmean[0][n_rec] = 0.;
+		tmean[1][n_rec] = 0.;
+		nrec[crate][slot][chan] = n_rec;
+		n_rec++;
+	      }
+	    }
+	}
+	else if (cable == 1)
+	{
+	    for (int ie=1; ie<=2; ie++)
+	    {
+	      for (int is=0; is<TOF2_MAX_STRIPS_IN_CHAMBER/2; is++)
+	      {
+		mapa[n_rec].id=idcrates[crate];
+		mapa[n_rec].crate=crate;
+		mapa[n_rec].slot=slot;
+		mapa[n_rec].plane=plane;
+		mapa[n_rec].pair=-2;
+		chan = is + (ie-1)*16;
+		mapa[n_rec].chan=chan;
+		mapa[n_rec].strip=is;
+		mapa[n_rec].side=ie; 
+		ntmean[0][n_rec] = 0;
+		ntmean[1][n_rec] = 0;
+		tmean[0][n_rec] = 0.;
+		tmean[1][n_rec] = 0.;
+		nrec[crate][slot][chan] = n_rec;
+		n_rec++;
+	      }
+	    }
+	}
+	else if (cable == 2)
+	{
+	    for (int ie=1; ie<=2; ie++)
+	    {
+	      for (int is=0; is<TOF2_MAX_STRIPS_IN_CHAMBER/2; is++)
+	      {
+		mapa[n_rec].id=idcrates[crate];
+		mapa[n_rec].crate=crate;
+		mapa[n_rec].slot=slot;
+		mapa[n_rec].plane=plane;
+		mapa[n_rec].pair=-2;
+		chan = 32 + is + (ie-1)*16;
+		mapa[n_rec].chan=chan;
+		mapa[n_rec].strip=is;
+		mapa[n_rec].side=ie; 
+		ntmean[0][n_rec] = 0;
+		ntmean[1][n_rec] = 0;
+		tmean[0][n_rec] = 0.;
+		tmean[1][n_rec] = 0.;
+		nrec[crate][slot][chan] = n_rec;
+		n_rec++;
+		if (n_rec >= TOF2_MAX_CHANNEL) break;
+	      }
+	      if (n_rec >= TOF2_MAX_CHANNEL) break;
+	    }
+	}
+	else
+	{
+	    printf("Wrong cable flag, line is %s\n",line);
+	    continue;
+	}
 	if (n_rec >= TOF2_MAX_CHANNEL) break;
 	if (plane > MaxPlane) MaxPlane = plane;
     }
@@ -367,6 +455,16 @@ void BmnTof2Raw2DigitNew::print(){
      printf("===========================================================================\n");
 }
 
+int BmnTof2Raw2DigitNew::numcrate(int id)
+{
+    for (int ic=0; ic<ncrates; ic++)
+    {
+	if (id==idcrates[ic]) return ic;
+    }
+    return -1;
+}
+
+
 void BmnTof2Raw2DigitNew::fillPreparation(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width) {
 
     Long64_t ts_diff = 0L;
@@ -388,10 +486,10 @@ void BmnTof2Raw2DigitNew::fillPreparation(TClonesArray *data, map<UInt_t,Long64_
        map<UInt_t,Long64_t>::iterator it = ts->find(digit->GetSerial());
        if (it == ts->end()) continue;
        ts_diff = it->second;
-       int ind; 
-       for(ind=0;ind<n_rec;ind++) 
-         if((digit->GetSerial()&0xFFFFFF)==mapa[ind].id && digit->GetSlot()==mapa[ind].slot && chan==mapa[ind].chan) break;
-       if(ind==n_rec) continue; 
+       int nc = numcrate((digit->GetSerial())&0xFFFFFF);
+       if (nc < 0) continue;
+       int ind = nrec[nc][digit->GetSlot()][chan]; 
+       if(ind==-1) continue; 
        Wts->Fill(ts_diff);
        int crate = mapa[ind].crate;
        int slot = mapa[ind].slot;
@@ -462,13 +560,10 @@ void BmnTof2Raw2DigitNew::fillSlewingT0(TClonesArray *data, map<UInt_t,Long64_t>
        if (it == ts->end()) continue;
 //       printf(" Tstamp OK!\n");
        ts_diff = it->second;
-       int ind; 
-       for(ind=0;ind<n_rec;ind++)
-       {
-//         printf("%d %d %d 0x%0x %d %d 0x%0x\n", ind, mapa[ind].slot, mapa[ind].chan, mapa[ind].id, digit->GetSlot(), chan, digit->GetSerial());
-         if(((digit->GetSerial())&0xFFFFFF)==mapa[ind].id && digit->GetSlot()==mapa[ind].slot && chan==mapa[ind].chan) break;
-       }
-       if(ind==n_rec) continue; 
+       int nc = numcrate((digit->GetSerial())&0xFFFFFF);
+       if (nc < 0) continue;
+       int ind = nrec[nc][digit->GetSlot()][chan]; 
+       if(ind==-1) continue; 
 //       printf(" Found!\n");
        int crate = mapa[ind].crate;
        int slot = mapa[ind].slot;
@@ -770,10 +865,10 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
        map<UInt_t,Long64_t>::iterator it = ts->find(digit->GetSerial());
        if (it == ts->end()) continue;
        ts_diff = it->second;
-       int ind; 
-       for(ind=0;ind<n_rec;ind++) 
-         if(((digit->GetSerial())&0xFFFFFF)==mapa[ind].id && digit->GetSlot()==mapa[ind].slot && chan==mapa[ind].chan) break;
-       if(ind==n_rec) continue; 
+       int nc = numcrate((digit->GetSerial())&0xFFFFFF);
+       if (nc < 0) continue;
+       int ind = nrec[nc][digit->GetSlot()][chan]; 
+       if(ind==-1) continue; 
        int crate = mapa[ind].crate;
        int slot = mapa[ind].slot;
        int dnl = digit->GetValue() & 0x3FF;
@@ -986,7 +1081,7 @@ void BmnTof2Raw2DigitNew::readSlewing()
 	printf(" slewing file error, chamber numbers are mismatched, %d != %d\n", p+1, plane);
   }
   fscanf(fin, "Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3\n", &TvsW_const[p][pk], &TvsW_slope[p][pk], &TvsW_parab[p][pk], &TvsW_cubic[p][pk]);
-  printf("Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3\n", TvsW_const[p][pk], TvsW_slope[p][pk], TvsW_parab[p][pk], &TvsW_cubic[p][pk]);
+  printf("Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3\n", TvsW_const[p][pk], TvsW_slope[p][pk], TvsW_parab[p][pk], TvsW_cubic[p][pk]);
 
   fscanf(fin,"Chamber #%d channel offsets (average is %f)\n", &plane, &tmean_average[pk][p]);
   printf("Chamber #%d channel offsets (average is %f)\n", plane, tmean_average[pk][p]);
@@ -1033,10 +1128,10 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
        map<UInt_t,Long64_t>::iterator it = ts->find(digit->GetSerial());
        if (it == ts->end()) continue;
        ts_diff = it->second;
-       int ind; 
-       for(ind=0;ind<n_rec;ind++) 
-         if(((digit->GetSerial())&0xFFFFFF)==mapa[ind].id && digit->GetSlot()==mapa[ind].slot && chan==mapa[ind].chan) break;
-       if(ind==n_rec) continue; 
+       int nc = numcrate((digit->GetSerial())&0xFFFFFF);
+       if (nc < 0) continue;
+       int ind = nrec[nc][digit->GetSlot()][chan]; 
+       if(ind==-1) continue; 
        int crate = mapa[ind].crate;
        int slot = mapa[ind].slot;
        int dnl = digit->GetValue() & 0x3FF;

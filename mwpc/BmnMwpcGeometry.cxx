@@ -11,7 +11,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "BmnMwpcGeometry.h"
 
-BmnMwpcGeometry::BmnMwpcGeometry() {
+BmnMwpcGeometry::BmnMwpcGeometry() :
+fDebug(kFALSE) {
     fNChambers = 2;
     fNPlanes = 6;
     fTimeBin = 8;
@@ -50,7 +51,6 @@ BmnMwpcGeometry::BmnMwpcGeometry() {
             zPlanePos[iChamber][iPlane] = zLeft[iChamber] + fSpaceLeft + iPlane * fPlaneStep;
 
     // Check built geometry
-    fDebug = kTRUE;
     if (fDebug)
         for (Int_t iChamber = 0; iChamber < fNChambers; iChamber++) {
             cout << "MWPC" << iChamber + 1 << endl;

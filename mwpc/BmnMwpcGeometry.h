@@ -64,6 +64,10 @@ public:
     Double_t GetPlaneWidth() {
         return fPlaneWidth;
     }
+    
+    Double_t GetZPlanePos(Int_t chamber, Int_t plane) {
+        return zPlanePos[chamber][plane];
+    }
  
 private:
 

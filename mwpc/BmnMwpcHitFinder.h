@@ -73,16 +73,15 @@ private:
     vector <BmnMwpcDigit*> CheckDigits(vector <BmnMwpcDigit*>);
     void FindNeighbour(BmnMwpcDigit*, vector <BmnMwpcDigit*>, vector<BmnMwpcDigit*>);
     vector <TVector3> CreateHitsBy3Planes(vector <BmnMwpcDigit*>, vector <BmnMwpcDigit*>, vector <BmnMwpcDigit*>, Float_t);
-    TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit*, BmnMwpcDigit*, Float_t);
+    TVector3 CalcHitPosByTwoDigits(BmnMwpcDigit*, BmnMwpcDigit*);
     void CreateMwpcHits(vector <TVector3>, TClonesArray*, Short_t);
     void DefineCoordinateAngle(Short_t, Double_t&, Double_t&);
     void FindPairs(vector <BmnMwpcDigit*>, vector <BmnMwpcDigit*>, vector <TVector3>&);
     
     Float_t thDist;      // distance between found hits [cm]
     Int_t nInputDigits;  // max. number of found digits per plane
-    UInt_t fMinTime;
-    UInt_t fMaxTime;
-    
+    Int_t nTimeSamples;  // 
+      
     Bool_t fUseDigitsInTimeBin; // use digits found in a time bin of width = kTimeBin (8 ns).
     
     BmnMwpcGeometry* fMwpcGeometry;

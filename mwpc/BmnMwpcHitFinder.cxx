@@ -28,11 +28,9 @@ fUseDigitsInTimeBin(kTRUE),
 expData(isExp) {
     fInputBranchName = "MWPC";
     fOutputBranchName = "BmnMwpcHit";
-
     thDist = 1.;
     nInputDigits = 3;
-    fMinTime = 0;
-    fMaxTime = 352;
+    nTimeSamples = 3;
 }
 
 BmnMwpcHitFinder::~BmnMwpcHitFinder() {
@@ -77,8 +75,11 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
         for (Int_t iPlane = 0; iPlane < kNPlanes; iPlane++)
             digits_filtered[iChamber][iPlane] = CheckDigits(digits[iChamber][iPlane]);
 
-        CreateMwpcHits(CreateHitsBy3Planes(digits_filtered[iChamber][0], digits_filtered[iChamber][1], digits_filtered[iChamber][2], 0.0), fBmnMwpcHitArray, iChamber);
-        CreateMwpcHits(CreateHitsBy3Planes(digits_filtered[iChamber][3], digits_filtered[iChamber][4], digits_filtered[iChamber][5], 0.0), fBmnMwpcHitArray, iChamber);
+        // Z-coordinate of created hit is considered as known Z-position of planes 1 and 4 respecting to the considering chamber (1 or 2) 
+        CreateMwpcHits(CreateHitsBy3Planes(digits_filtered[iChamber][0], digits_filtered[iChamber][1], digits_filtered[iChamber][2], 
+                fMwpcGeometry->GetZPlanePos(iChamber, 1)), fBmnMwpcHitArray, iChamber);
+        CreateMwpcHits(CreateHitsBy3Planes(digits_filtered[iChamber][3], digits_filtered[iChamber][4], digits_filtered[iChamber][5], 
+                fMwpcGeometry->GetZPlanePos(iChamber, 4)), fBmnMwpcHitArray, iChamber);
     }
     cout << "\n======================== MWPC hit finder exec finished ===================" << endl;
     clock_t tFinish = clock();
@@ -103,37 +104,38 @@ vector <BmnMwpcDigit*> BmnMwpcHitFinder::CheckDigits(vector <BmnMwpcDigit*> digi
     if (digitsIn.size() > nInputDigits)
         return digitsOut;
 
+    // Mark digits with the same wire number to work with one having a minimum time 
+    for (Int_t iSize = 0; iSize < digitsIn.size(); iSize++) {
+              for (Int_t jSize = 0; jSize < digitsIn.size(); jSize++) {
+                 if (iSize == jSize)
+                     continue;
+                 if (digitsIn[iSize]->GetWireNumber() != digitsIn[jSize]->GetWireNumber())
+                     continue;
+                 if (digitsIn[iSize]->GetTime() > digitsIn[jSize]->GetTime())
+                     digitsIn[iSize]->SetUsing(kTRUE);
+                 else
+                     digitsIn[jSize]->SetUsing(kTRUE);
+             } 
+        }          
+
     vector <BmnMwpcDigit*> digitsOrderedInTime;
 
-    multimap <UInt_t, BmnMwpcDigit*> digitsToBeOrderedInTime;
-    for (Int_t iSize = 0; iSize < digitsIn.size(); iSize++)
-        digitsToBeOrderedInTime.insert(pair <UInt_t, BmnMwpcDigit*> (digitsIn[iSize]->GetTime(), digitsIn[iSize]));
+    map <UInt_t, BmnMwpcDigit*> digitsToBeOrderedInTime;
+    for (Int_t iSize = 0; iSize < digitsIn.size(); iSize++) {
+        if (digitsIn[iSize]->IsUsed())
+            continue;
+        digitsToBeOrderedInTime.insert(pair <UInt_t, BmnMwpcDigit*> (digitsIn[iSize]->GetTime(), digitsIn[iSize]));      
+    }
 
-    for (multimap <UInt_t, BmnMwpcDigit*>::iterator it = digitsToBeOrderedInTime.begin(); it != digitsToBeOrderedInTime.end(); it++)
+    for (map <UInt_t, BmnMwpcDigit*>::iterator it = digitsToBeOrderedInTime.begin(); it != digitsToBeOrderedInTime.end(); it++)
         digitsOrderedInTime.push_back(it->second);
-    //
-    //    for (Int_t iSize = 0; iSize < digitsIn.size(); iSize++) {
-    //        cout << "digitsIn: plane = " << digitsIn[iSize]->GetPlane() << " time = " << digitsIn[iSize]->GetTime();
-    //        // cout << " digitsSorted: plane = " << digitsOrderedInTime[iSize]->GetPlane() << " time = " << digitsOrderedInTime[iSize]->GetTime() << endl;
-    //    }
 
-//    if (digitsIn.size() != digitsOrderedInTime.size()) {
-//       
-//        for (Int_t iSize = 0; iSize < digitsIn.size(); iSize++)
-//            cout << "1: " << digitsIn[iSize]->GetTime() << " " << digitsIn[iSize]->GetPlane() << " " << digitsIn[iSize]->GetWireNumber() << endl;
-//        
-//        for (Int_t iSize = 0; iSize < digitsOrderedInTime.size(); iSize++)
-//            cout << "2: " << digitsOrderedInTime[iSize]->GetTime() << " " << digitsOrderedInTime[iSize]->GetPlane() << " " << digitsIn[iSize]->GetWireNumber() << endl;
-//        
-//        getchar();
-//    }
-
-    for (Int_t iDigit = 0; iDigit < digitsIn.size(); iDigit++) {
-        BmnMwpcDigit* dI = digitsIn[iDigit];
+    for (Int_t iDigit = 0; iDigit < digitsOrderedInTime.size(); iDigit++) {
+        BmnMwpcDigit* dI = digitsOrderedInTime[iDigit];
         vector <BmnMwpcDigit*> buffer;
         buffer.push_back(dI);
 
-        FindNeighbour(dI, digitsIn, buffer);
+        FindNeighbour(dI, digitsOrderedInTime, buffer);
 
         if (buffer.size() == 1)
             digitsOut.push_back(dI); //just copy digit 
@@ -210,14 +212,14 @@ void BmnMwpcHitFinder::FindPairs(vector <BmnMwpcDigit*> in1, vector <BmnMwpcDigi
         BmnMwpcDigit* digX = (BmnMwpcDigit*) in1[iIn1];
         for (Int_t iIn2 = 0; iIn2 < in2.size(); iIn2++) {
             BmnMwpcDigit* digU = (BmnMwpcDigit*) in2[iIn2];
-            if (fUseDigitsInTimeBin && Abs((Int_t) digX->GetTime() - (Int_t) digU->GetTime()) > kTimeBin)
+            if (fUseDigitsInTimeBin && Abs((Int_t) digX->GetTime() - (Int_t) digU->GetTime()) > nTimeSamples * kTimeBin)
                 continue;
-            out.push_back(CalcHitPosByTwoDigits(digX, digU, 0.0));
+            out.push_back(CalcHitPosByTwoDigits(digX, digU));
         }
     }
 }
 
-TVector3 BmnMwpcHitFinder::CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ, Float_t zPos) {
+TVector3 BmnMwpcHitFinder::CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ) {
     Short_t kNPlanes = fMwpcGeometry->GetNPlanes();
     Short_t kNWires = fMwpcGeometry->GetNWires();
     Double_t kPlaneWidth = fMwpcGeometry->GetPlaneWidth();
@@ -236,9 +238,8 @@ TVector3 BmnMwpcHitFinder::CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit*
 
     Float_t xGlob = (xI * Sin(aJ) - xJ * Sin(aI)) / Sin(aJ - aI);
     Float_t yGlob = (xI * Cos(aJ) - xJ * Cos(aI)) / Sin(aJ - aI);
-    Float_t zGlob = Float_t(min(dI->GetPlane() % kNPlanes + 1, dJ->GetPlane() % kNPlanes + 1) - 3); //average position between two neighbor planes
-
-    TVector3 pos(xGlob, yGlob, zGlob);
+   
+    TVector3 pos(xGlob, yGlob, 0.);
     return pos;
 }
 

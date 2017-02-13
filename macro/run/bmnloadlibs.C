@@ -28,9 +28,7 @@ void bmnloadlibs()
   gSystem->Load("libGlobalTracking");
   gSystem->Load("libTOF1");
   gSystem->Load("libDch");
-  gSystem->Load("libMWPC1");
-  gSystem->Load("libMWPC2");
-  gSystem->Load("libMWPC3");
+  gSystem->Load("libMwpc");
   gSystem->Load("libBmnQa");
 
   gSystem->Load("libGeane");

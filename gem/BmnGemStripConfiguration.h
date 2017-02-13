@@ -58,7 +58,7 @@ namespace BmnGemStationPositions_RunWinter2016 {
     //(X-Y-Z)Positions of stations
     const Double_t XStationPositions[NStations] = {+0.0, -1.5, -1.5, -1.5, +0.0, +0.0, +0.0};
     const Double_t YStationPositions[NStations] = {+0.0, +0.0, +0.0, +0.0, +0.0, -2.4, -2.4};
-    const Double_t ZStationPositions[NStations] = {-185.8+0.1, 32.0+0.7, 64.0+0.7, 96.0+0.7, 128.0+0.7, 160.0+1.5, 192.0+1.5}; //All z-positions are start pos. of the sensitive vol.
+    const Double_t ZStationPositions[NStations] = {-186.0+0.1, 31.8+0.7, 63.8+0.7, 95.8+0.7, 127.8+0.7, 159.8+1.5, 191.8+1.5}; //All z-positions are start pos. of the sensitive vol.
 
     //(X-Y-Z)Shifts of modules in each station
     const Double_t XModuleShifts[NStations][NMaxModules] = {

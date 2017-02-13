@@ -17,6 +17,7 @@ ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/mcstack
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/mwpc
+${CMAKE_SOURCE_DIR}/gem
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})

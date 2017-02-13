@@ -76,9 +76,9 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
             digits_filtered[iChamber][iPlane] = CheckDigits(digits[iChamber][iPlane]);
 
         // Z-coordinate of created hit is considered as known Z-position of planes 1 and 4 respecting to the considering chamber (1 or 2) 
-        CreateMwpcHits(CreateHitsBy3Planes(digits_filtered[iChamber][0], digits_filtered[iChamber][1], digits_filtered[iChamber][2], 
+        CreateMwpcHits(CreateHitsBy3Planes(digits_filtered[iChamber][0], digits_filtered[iChamber][1], digits_filtered[iChamber][2],
                 fMwpcGeometry->GetZPlanePos(iChamber, 1)), fBmnMwpcHitArray, iChamber);
-        CreateMwpcHits(CreateHitsBy3Planes(digits_filtered[iChamber][3], digits_filtered[iChamber][4], digits_filtered[iChamber][5], 
+        CreateMwpcHits(CreateHitsBy3Planes(digits_filtered[iChamber][3], digits_filtered[iChamber][4], digits_filtered[iChamber][5],
                 fMwpcGeometry->GetZPlanePos(iChamber, 4)), fBmnMwpcHitArray, iChamber);
     }
     cout << "\n======================== MWPC hit finder exec finished ===================" << endl;
@@ -90,7 +90,7 @@ void BmnMwpcHitFinder::CreateMwpcHits(vector <TVector3> pos, TClonesArray* hits,
     Double_t kWireStep = fMwpcGeometry->GetWireStep();
     TVector3 errors(kWireStep / Sqrt(12.0), kWireStep / Sqrt(12.0), 1.0 / Sqrt(12.0));
 
-    if (pos.size() == 0)
+    if (pos.size() == 0 || pos.size() > 1)
         return;
 
     for (Int_t iSize = 0; iSize < pos.size(); iSize++) {
@@ -106,17 +106,17 @@ vector <BmnMwpcDigit*> BmnMwpcHitFinder::CheckDigits(vector <BmnMwpcDigit*> digi
 
     // Mark digits with the same wire number to work with one having a minimum time 
     for (Int_t iSize = 0; iSize < digitsIn.size(); iSize++) {
-              for (Int_t jSize = 0; jSize < digitsIn.size(); jSize++) {
-                 if (iSize == jSize)
-                     continue;
-                 if (digitsIn[iSize]->GetWireNumber() != digitsIn[jSize]->GetWireNumber())
-                     continue;
-                 if (digitsIn[iSize]->GetTime() > digitsIn[jSize]->GetTime())
-                     digitsIn[iSize]->SetUsing(kTRUE);
-                 else
-                     digitsIn[jSize]->SetUsing(kTRUE);
-             } 
-        }          
+        for (Int_t jSize = 0; jSize < digitsIn.size(); jSize++) {
+            if (iSize == jSize)
+                continue;
+            if (digitsIn[iSize]->GetWireNumber() != digitsIn[jSize]->GetWireNumber())
+                continue;
+            if (digitsIn[iSize]->GetTime() > digitsIn[jSize]->GetTime())
+                digitsIn[iSize]->SetUsing(kTRUE);
+            else
+                digitsIn[jSize]->SetUsing(kTRUE);
+        }
+    }
 
     vector <BmnMwpcDigit*> digitsOrderedInTime;
 
@@ -124,7 +124,7 @@ vector <BmnMwpcDigit*> BmnMwpcHitFinder::CheckDigits(vector <BmnMwpcDigit*> digi
     for (Int_t iSize = 0; iSize < digitsIn.size(); iSize++) {
         if (digitsIn[iSize]->IsUsed())
             continue;
-        digitsToBeOrderedInTime.insert(pair <UInt_t, BmnMwpcDigit*> (digitsIn[iSize]->GetTime(), digitsIn[iSize]));      
+        digitsToBeOrderedInTime.insert(pair <UInt_t, BmnMwpcDigit*> (digitsIn[iSize]->GetTime(), digitsIn[iSize]));
     }
 
     for (map <UInt_t, BmnMwpcDigit*>::iterator it = digitsToBeOrderedInTime.begin(); it != digitsToBeOrderedInTime.end(); it++)
@@ -200,7 +200,7 @@ vector <TVector3> BmnMwpcHitFinder::CreateHitsBy3Planes(vector <BmnMwpcDigit*> x
                     continue;
                 else
                     mag = hitCandidate.Mag();
-                hits.push_back(TVector3(xAv, yAv, zPos));
+                hits.push_back(hitCandidate);
             }
         }
     return hits;
@@ -238,7 +238,7 @@ TVector3 BmnMwpcHitFinder::CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit*
 
     Float_t xGlob = (xI * Sin(aJ) - xJ * Sin(aI)) / Sin(aJ - aI);
     Float_t yGlob = (xI * Cos(aJ) - xJ * Cos(aI)) / Sin(aJ - aI);
-   
+
     TVector3 pos(xGlob, yGlob, 0.);
     return pos;
 }

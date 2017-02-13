@@ -20,6 +20,9 @@
 #include <TString.h>
 #include "FairTask.h"
 #include "BmnMwpcTrack.h"
+#include "BmnMwpcHit.h"
+#include "BmnEnums.h"
+#include "BmnMath.h"
 
 using namespace std;
 using namespace TMath;
@@ -36,6 +39,10 @@ public:
     virtual void Exec(Option_t* opt);
 
     virtual void Finish();
+    
+    BmnStatus FindSeeds(vector <BmnMwpcTrack>& cand);
+    BmnStatus  FitSeeds(vector <BmnMwpcTrack> cand);
+    BmnStatus CalculateTrackParamsLine(BmnMwpcTrack* tr);
     
      
 private:

@@ -13,6 +13,7 @@
 #ifndef BMNMWPCGEOMETRY_H
 #define BMNMWPCGEOMETRY_H
 
+#include <iostream>
 #include <TNamed.h>
 #include <TMath.h>
 
@@ -75,9 +76,18 @@ private:
     Double_t fPlaneStep; // in cm
     Double_t fPlaneHeight; // in cm
     Double_t fPlaneWidth; //in cm
+    Double_t fSpaceLeft; //in cm
+    Double_t fSpaceRight; //in cm
     
     Double_t zPlanePos[2][6];
-
+    Double_t zRight[2];
+    Double_t zLeft[2];
+    
+    Double_t fChamberWidth;
+    Double_t fDistanceBetweenMWPC;
+    
+    Bool_t fDebug;
+    
     ClassDef(BmnMwpcGeometry, 1);
 };
 

@@ -28,6 +28,8 @@
 #include "TFolder.h"
 #include "TString.h"
 #include "THttpServer.h"
+
+#include "BmnHist.h"
 #include "BmnDchDigit.h"
 #include "BmnDchHit.h"
 #include "BmnEventHeader.h"
@@ -40,7 +42,7 @@
 
 using namespace std;
 
-class BmnHistDch : public TNamed {
+class BmnHistDch : public BmnHist {
 public:
     BmnHistDch(TString title);
     virtual ~BmnHistDch();
@@ -53,8 +55,6 @@ public:
     Float_t v_wires[kNPLANES][kNWIRES];
 
 private:
-    THttpServer *fServer;
-    TTree *frecoTree;
     TClonesArray* fDchHits;
     TH2F* h_DCH1;
     TH2F* h_DCH2;

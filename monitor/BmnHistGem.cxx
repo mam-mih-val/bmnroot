@@ -11,9 +11,9 @@
  * Created on November 15, 2016, 12:57 PM
  */
 
-#include <stdexcept>
-#include <vector>
-#include <root/TH1.h>
+#include <algorithm>
+#include <numeric>
+#include <root/TNamed.h>
 
 #include "BmnHistGem.h"
 
@@ -21,11 +21,23 @@ const UInt_t moduleCount[GEM_STATIONS_COUNT] = {1, 1, 1, 1, 2, 2, 2};
 const UInt_t layersCount[GEM_STATIONS_COUNT] = {2, 4, 4, 4, 4, 4, 4};
 const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 1100, 1119};
 #define MAX_STRIPS 1020
+#define PAD_WIDTH   200
+#define PAD_HEIGHT  150
 
-BmnHistGem::BmnHistGem(TString title, Bool_t createNoiseMask) {
+BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : BmnHist() {
+    refPath = path;
     fTitle = title;
     fName = title + "_cl";
     TString name;
+    // Create canvas
+    sumMods = accumulate(begin(moduleCount), end(moduleCount), 0);
+    maxLayers = *max_element(begin(layersCount), end(layersCount));
+    printf("module sum = %d\n", sumMods);
+    printf("maxLayers  = %d\n", maxLayers);
+    name = fTitle + "Canvas";
+    canGemStrip = new TCanvas(name, name, PAD_WIDTH * maxLayers, PAD_HEIGHT * sumMods);
+    canGemStrip->Divide(maxLayers, sumMods);
+    // Create histograms
     for (Int_t stationIndex = 0; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
         vector<vector<TH1F*> > rowGEM;
         for (Int_t moduleIndex = 0; moduleIndex < moduleCount[stationIndex]; moduleIndex++) {
@@ -35,7 +47,6 @@ BmnHistGem::BmnHistGem(TString title, Bool_t createNoiseMask) {
                 TH1F *h = new TH1F(name, name, nStrips[stationIndex], 0, nStrips[stationIndex]);
                 h->SetTitleSize(0.06, "XY");
                 h->SetLabelSize(0.08, "XY");
-                //                h->SetLabelColor(kOrange+5, "XY");
                 h->GetXaxis()->SetTitle("Strip Number");
                 h->GetXaxis()->SetTitleColor(kOrange + 5);
                 h->GetYaxis()->SetTitle("Activation Count");
@@ -60,6 +71,18 @@ BmnHistGem::BmnHistGem(TString title, Bool_t createNoiseMask) {
         }
         maskGemStrip.push_back(rowGEM);
     }
+    Int_t modCtr = 0; // filling GEM Canvas' pads
+    canGemStripPads.resize(sumMods * maxLayers);
+    for (Int_t stationIndex = 0; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
+        for (Int_t moduleIndex = 0; moduleIndex < moduleCount[stationIndex]; moduleIndex++) {
+            for (Int_t layerIndex = 0; layerIndex < layersCount[stationIndex]; layerIndex++) {
+                PadInfo<TH1F> *p = new PadInfo<TH1F>();
+                p->current = histGemStrip[stationIndex][moduleIndex][layerIndex];
+                canGemStripPads[modCtr * maxLayers + layerIndex] = p;
+            }
+            modCtr++;
+        }
+    }
 }
 
 BmnHistGem::~BmnHistGem() {
@@ -73,12 +96,11 @@ void BmnHistGem::Register(THttpServer *serv) {
     fServer = serv;
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
+    fServer->Register(path, canGemStrip);
     for (auto row : histGemStrip)
         for (auto col : row)
             for (auto el : col)
                 fServer->Register(path, el);
-    TString cmd = "/" + fName + "/->Reset()";
-    TString cmdTitle = path + "Reset";
     fServer->SetItemField(path, "_monitoring", "2000");
     fServer->SetItemField(path, "_layout", "grid3x3");
     TString examples = TString("[") +
@@ -87,10 +109,16 @@ void BmnHistGem::Register(THttpServer *serv) {
             histGemStrip[6][1][0]->GetTitle() + TString(",") +
             histGemStrip[6][0][0]->GetTitle() + TString("]");
     fServer->SetItemField(path, "_drawitem", examples);
+    TString cmd = "/" + fName + "/->Reset()";
+    TString cmdTitle = path + "Reset";
     fServer->RegisterCommand(cmdTitle.Data(), cmd.Data(), "button;");
     fServer->Restrict(cmdTitle.Data(), "visible=shift");
     fServer->Restrict(cmdTitle.Data(), "allow=shift");
     fServer->Restrict(cmdTitle.Data(), "deny=guest");
+    cmd = "/" + fName + "/->SetRefRun(%arg1%)";
+    cmdTitle = path + "SetRefRun";
+    fServer->RegisterCommand(cmdTitle.Data(), cmd.Data(), "button;");
+    //    fServer->Restrict(cmdTitle.Data(), "deny=guest");
 
 }
 
@@ -103,6 +131,25 @@ void BmnHistGem::SetDir(TFile *outFile, TTree *recoTree) {
         for (auto col : row)
             for (auto el : col)
                 el->SetDirectory(dir);
+}
+
+void BmnHistGem::DrawBoth() {
+    for (Int_t iPad = 0; iPad < canGemStripPads.size(); iPad++) {
+        canGemStrip->cd(iPad + 1)->Clear();
+        if (!canGemStripPads[iPad]) continue;
+        if (canGemStripPads[iPad]->current)
+            canGemStripPads[iPad]->current->Draw();
+        if (canGemStripPads[iPad]->ref != NULL) {
+            Double_t k = (canGemStripPads[iPad]->ref->GetEntries() > 0) ?
+                    canGemStripPads[iPad]->current->GetEntries() /
+                    (Double_t)canGemStripPads[iPad]->ref->GetEntries() : 1;
+//            printf("current %f, ref %f, scale %f\n", canGemStripPads[iPad]->current->GetEntries(), canGemStripPads[iPad]->ref->GetEntries(), k);
+//            canGemStripPads[iPad]->ref->Scale(k);
+            canGemStripPads[iPad]->ref->Draw("same");
+        }
+    }
+    canGemStrip->Update();
+    canGemStrip->Modified();
 }
 
 void BmnHistGem::FillFromDigi(TClonesArray * gemDigits) {
@@ -124,7 +171,8 @@ void BmnHistGem::FillFromDigiMasked(TClonesArray * gemDigits, vector<vector<vect
         Int_t layer = gs->GetStripLayer();
         Int_t gemStrip = gs->GetStripNumber();
         if ((*hist0)[station][module][layer]->GetBinContent((*hist0)[station][module][layer]->FindBin(gemStrip)) <= threshold * 0.7)
-            histGemStrip[station][module][layer]->AddBinContent(histGemStrip[station][module][layer]->FindBin(gemStrip));
+            histGemStrip[station][module][layer]->Fill(gemStrip);
+//            histGemStrip[station][module][layer]->AddBinContent(histGemStrip[station][module][layer]->FindBin(gemStrip));
     }
 }
 
@@ -140,14 +188,63 @@ void BmnHistGem::UpdateNoiseMask(Double_t threshold) {
 }
 
 void BmnHistGem::ApplyNoiseMask(vector<vector<vector<TH1F*> > >* hist0, Double_t threshold) {
-    //    auto m
-    //    cout << " mask " << (*mask)[0][0][0][199] << endl;
     for (Int_t iStation = 0; iStation < GEM_STATIONS_COUNT; iStation++)
         for (Int_t iModule = 0; iModule < moduleCount[iStation]; iModule++)
             for (Int_t iLayer = 0; iLayer < layersCount[iStation]; iLayer++)
                 for (Int_t iStrip = 0; iStrip < histGemStrip[iStation][iModule][iLayer]->GetNbinsX() + 1; iStrip++)
                     if ((*hist0)[iStation][iModule][iLayer]->GetBinContent(iStrip) > threshold)
                         histGemStrip[iStation][iModule][iLayer]->SetBinContent(iStrip, 0);
+}
+
+BmnStatus BmnHistGem::LoadRefRun(TString FileName) {
+    printf("Loading ref histos\n");
+    canGemStripPads.clear();
+    canGemStripPads.resize(maxLayers * sumMods);
+    if (refFile != NULL) delete refFile;
+    refFile = new TFile(refPath + FileName, "read");
+    if (refFile->IsOpen() == false) {
+        printf("Cannot open file %s !\n", FileName.Data());
+        return kBMNERROR;
+    }
+    Int_t modCtr = 0;
+    TString refName = Form("ref%06d_", refID);
+    TString name;
+//    if (!refFile->cd((refName + "GEM_hists"))) {
+//        printf("Folder not found!\n");
+//        return kBMNERROR;
+//    }
+    for (Int_t stationIndex = 0; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
+        for (Int_t moduleIndex = 0; moduleIndex < moduleCount[stationIndex]; moduleIndex++) {
+            for (Int_t layerIndex = 0; layerIndex < layersCount[stationIndex]; layerIndex++) {
+                name = Form(refName + fTitle + "_Station_%d_module_%d_layer_%d", stationIndex, moduleIndex, layerIndex);
+                PadInfo<TH1F> *p = new PadInfo<TH1F>();
+                p->current = histGemStrip[stationIndex][moduleIndex][layerIndex];
+//                p.ref = (TH1F*) gDirectory->Get(name.Data());
+//                TH1F* tempHist;
+                p->ref = (TH1F*) refFile->Get(refName + "GEM_hists/" + name);
+//                refFile->GetObject(refName + "GEM_hists/" + name, tempHist);
+//                p->ref = (TH1F*)(tempHist->Clone(name + "_qq"));
+                p->ref->SetLineColor(kRed);
+                p->ref->SetDirectory(0);
+                canGemStripPads[modCtr * maxLayers + layerIndex] = p;
+                printf("histo %s loaded to %d\n", canGemStripPads[modCtr * maxLayers + layerIndex]->ref->GetName(), modCtr * maxLayers + layerIndex);
+            }
+            modCtr++;
+        }
+    }
+//    refFile->Close();
+    delete refFile;
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnHistGem::SetRefRun(Int_t id) {
+    TString FileName = Form("bmn_run%04d_hist.root", id);
+    printf("SetRefRun: %s\n", FileName.Data());
+    if (refRunName != FileName) {
+        refRunName = FileName;
+        refID = id;
+        LoadRefRun(refRunName);
+    }
 }
 
 void BmnHistGem::Reset() {

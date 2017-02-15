@@ -26,11 +26,12 @@
 #include "TFile.h"
 #include "THttpServer.h"
 
+#include "BmnHist.h"
 #include "BmnTrigDigit.h"
 #include "BmnEventHeader.h"
 #define BD_CHANNELS 40
 
-class BmnHistTrigger : public TNamed {
+class BmnHistTrigger : public BmnHist {
 public:
     BmnHistTrigger(TString title);
     virtual ~BmnHistTrigger();
@@ -45,7 +46,6 @@ public:
             TClonesArray * FDdigits,
             TClonesArray * BDdigits);
     void Reset();
-    void SaveHists(TString imgSavePath);
 
     void SetBDChannel(Int_t iSelChannel);
 
@@ -63,16 +63,7 @@ public:
     TH1D *histBDSpecific;
     TH1I *histTriggers;
 private:
-    THttpServer *fServer;
-    TTree *frecoTree;
     Int_t fSelectedBDChannel;
-
-    void SaveHist(TH1 *hist, TString path) {
-        TCanvas *c0 = new TCanvas("c0", hist->GetTitle());
-        hist->Draw();
-        c0->SaveAs(TString(path + TString(hist->GetTitle()) + ".png").Data());
-        delete c0;
-    }
 
     ClassDef(BmnHistTrigger, 1)
 };

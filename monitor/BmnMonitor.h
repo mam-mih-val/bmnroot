@@ -56,14 +56,15 @@ public:
     BmnMonitor();
     virtual ~BmnMonitor();
     void Monitor(TString dir, TString startFile = "", Bool_t runCurrent = kTRUE);
-    void MonitorStream(TString dir, TString startFile = "", Bool_t runCurrent = kTRUE);
+    void MonitorStream(TString dir, TString refDir = "");
     BmnStatus BatchDirectory(TString dirname);
     BmnStatus BatchList(TString*, Int_t count);
-    void ProcessRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
+    void ProcessRun(TString digiName);
     void ProcessStreamRun();
-    void ProcessFileRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
+    void ProcessFileRun(TString digiName);
     TString WatchNext(TString dirname, TString filename, Int_t cycleWait);
     static TString WatchNext(Int_t inotifDir, Int_t cycleWait);
+    static void threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent);
     
     // Getters
     deque<UInt_t> * GetDataQue() { return fDataQue;}
@@ -78,18 +79,17 @@ private:
     void InitDecoder();
     void ProcessDigi(Int_t iEv);
     void RegisterAll();
-    static void CheckFileTime(TString Dir, vector<BmnRunInfo>* FileList);
     BmnStatus CreateFile(Int_t runID = 0);
     BmnStatus OpenStream();
     void FinishRun();
     
     static void threadReceiveWrapper(BmnDataReceiver * dr);
-    static void threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent);
     
     deque<UInt_t> * fDataQue;
     vector<BmnRunInfo> *_fileList;
     TString _curFile;
     TString _curDir;
+    TString _refDir;
     TString fRawDecoAddr;
     TTree *fDigiTree;
     TTree *fRecoTree;
@@ -97,20 +97,7 @@ private:
     TFile *fHistOut;
     THttpServer * fServer;
     TSocket *fRawDecoSocket;
-//    struct DigiArrays fDigiArrays;
     DigiArrays *fDigiArrays;
-
-//    TClonesArray *header = NULL;
-//    TClonesArray *gemDigits = NULL;
-//    TClonesArray *ToF4Digits = NULL;
-//    TClonesArray *ToF7Digits = NULL;
-//    TClonesArray *DchDigits = NULL;
-//    TClonesArray *trigBC1Digits = NULL;
-//    TClonesArray *trigBC2Digits = NULL;
-//    TClonesArray *trigVDDigits = NULL;
-//    TClonesArray *trigBDDigits = NULL;
-//    TClonesArray *trigSDDigits = NULL;
-//    TClonesArray *trigFDDigits = NULL;
 
     BmnHistGem     *bhGem;
     BmnHistToF     *bhToF400;
@@ -127,6 +114,7 @@ private:
     BmnHistTrigger *bhTrig_4show;
     
     TCanvas *infoCanvas;
+    TList *refList;
 
     BmnDataReceiver *dataReceiver;
     BmnRawDataDecoder *rawDataDecoder;

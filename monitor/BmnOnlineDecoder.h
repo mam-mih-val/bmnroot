@@ -33,6 +33,7 @@
 
 #define RAW_DECODER_SOCKET_PORT 9090
 #define RUN_FILE_CHECK_PERIOD    1e5
+#define MAX_CLIENTS               20
 
 class BmnOnlineDecoder : public TNamed {
 public:
@@ -50,6 +51,8 @@ private:
     BmnRawDataDecoder *rawDataDecoder;
     TServerSocket *fRawDecoSocket;
     TSocket *client;
+    vector <TSocket*> clients;//[MAX_CLIENTS];
+    Int_t iClients;
     TString _curFile;
     TString _curDir;
     

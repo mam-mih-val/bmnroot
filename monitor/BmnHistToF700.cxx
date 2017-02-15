@@ -104,11 +104,6 @@ void BmnHistToF700::FillFromDigi(TClonesArray * ToF4Digits) {
 //    }
 }
 
-void BmnHistToF700::SaveHists() {
-    SaveHist(histAmpSpecific, pathToImg);
-    histLeadingTimeSpecific->SaveAs(pathToImg + histLeadingTimeSpecific->GetTitle() + ".png");
-}
-
 void BmnHistToF700::Register(THttpServer *serv) {
     fServer = serv;
     fServer->Register("/", this);

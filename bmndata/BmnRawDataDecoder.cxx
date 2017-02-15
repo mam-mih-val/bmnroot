@@ -439,30 +439,9 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
         //            printf("process event #%d\n", fEventId);
         ProcessEvent(data, fDat);
         fNevents++;
-        fRawTree->Fill();
+//        fRawTree->Fill();
         //        }
     }
-    return kBMNSUCCESS;
-}
-
-BmnStatus BmnRawDataDecoder::DisposeConverter() {
-    fCurentPositionRawFile = ftello64(fRawFileIn);
-    printf("Readed %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
-    fRawTree->Branch("RunHeader", &runHeaderDAQ);
-    runHeaderDAQ->SetRunId(fRunId);
-    runHeaderDAQ->SetStartTime(TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns));
-    runHeaderDAQ->SetFinishTime(TTimeStamp(time_t(fTime_s), fTime_ns));
-    runHeaderDAQ->SetNEvents(fNevents);
-
-    //    fRawTree->Write();
-    //    fRootFileOut->Close();
-    //    fclose(fRawFileIn);
-
-    //    delete sync;
-    //    delete adc;
-    //    delete tdc;
-    //    delete msc;
-
     return kBMNSUCCESS;
 }
 
@@ -993,7 +972,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         fZDCMapper->fillEvent(adc, zdc);
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig());
-        fDigiTree->Fill();
+//        fDigiTree->Fill();
     }
     fPrevEventType = fCurEventType;
 
@@ -1016,19 +995,19 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
     //    printf("RawRoot File %s\n\n", fRootFileName.Data());
     fDigiTree->Reset();
-    fDigiTree->Branch("EventHeader", &eventHeader);
-    //fDigiTree->Branch("RunHeader", &runHeader);
-    fDigiTree->Branch("T0", &t0);
-    fDigiTree->Branch("BC1", &bc1);
-    fDigiTree->Branch("BC2", &bc2);
-    fDigiTree->Branch("VETO", &veto);
-    fDigiTree->Branch("FD", &fd);
-    fDigiTree->Branch("BD", &bd);
-    fDigiTree->Branch("DCH", &dch);
-    fDigiTree->Branch("GEM", &gem);
-    fDigiTree->Branch("TOF400", &tof400);
-    fDigiTree->Branch("TOF700", &tof700);
-    fDigiTree->Branch("ZDC", &zdc);
+//    fDigiTree->Branch("EventHeader", &eventHeader);
+//    //fDigiTree->Branch("RunHeader", &runHeader);
+//    fDigiTree->Branch("T0", &t0);
+//    fDigiTree->Branch("BC1", &bc1);
+//    fDigiTree->Branch("BC2", &bc2);
+//    fDigiTree->Branch("VETO", &veto);
+//    fDigiTree->Branch("FD", &fd);
+//    fDigiTree->Branch("BD", &bd);
+//    fDigiTree->Branch("DCH", &dch);
+//    fDigiTree->Branch("GEM", &gem);
+//    fDigiTree->Branch("TOF400", &tof400);
+//    fDigiTree->Branch("TOF700", &tof700);
+//    fDigiTree->Branch("ZDC", &zdc);
     fRunId = GetRunIdFromFile(fRawFileName);
     //    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);

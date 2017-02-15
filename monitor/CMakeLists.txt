@@ -42,6 +42,7 @@ Set(SRCS
 BmnMonitor.cxx
 BmnDataReceiver.cxx
 BmnOnlineDecoder.cxx
+BmnHist.cxx
 BmnHistGem.cxx
 BmnHistDch.cxx
 BmnHistMwpc.cxx
@@ -55,6 +56,7 @@ Set(HEADERS
 BmnMonitor.h
 BmnDataReceiver.h
 BmnOnlineDecoder.h
+BmnHist.h
 BmnHistGem.h
 BmnHistDch.h
 BmnHistMwpc.h

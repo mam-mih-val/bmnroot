@@ -35,6 +35,11 @@ BmnMwpcHitFinder.cxx
 BmnMwpcGeometry.cxx
 BmnMwpcTrack.cxx
 BmnMwpcTrackFinder.cxx
+BmnMwpc.cxx
+BmnMwpcContFact.cxx
+BmnMwpcGeo.cxx
+BmnMwpcGeoPar.cxx
+BmnMwpcPoint.cxx
 )
 
 

@@ -9,4 +9,11 @@
 #pragma link C++ class  BmnMwpcGeometry+;
 #pragma link C++ class  BmnMwpcTrack+;
 #pragma link C++ class  BmnMwpcTrackFinder+;
+
+#pragma link C++ class  BmnMwpc+;
+#pragma link C++ class  BmnMwpcContFact+;
+#pragma link C++ class  BmnMwpcGeo+;
+#pragma link C++ class  BmnMwpcGeoPar+;
+#pragma link C++ class  BmnMwpcPoint+;
+
 #endif

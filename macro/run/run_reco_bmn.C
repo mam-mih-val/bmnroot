@@ -141,13 +141,9 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
-
-    //    BmnMwpcHitProducer* mwpcHP1 = new BmnMwpcHitProducer(1);
-    //    fRun->AddTask(mwpcHP1);
-    //    BmnMwpcHitProducer* mwpcHP2 = new BmnMwpcHitProducer(2);
-    //    fRun->AddTask(mwpcHP2);
-    //    BmnMwpcHitProducer* mwpcHP3 = new BmnMwpcHitProducer(3);
-    //    fRun->AddTask(mwpcHP3);
+    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
+    // mwpcHM->SetUseDigitsInTimeBin(kFALSE);
+    fRun->AddTask(mwpcHM);
 
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
@@ -189,6 +185,12 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     tof2HP->SetXshift(32.);
     //    fRun->AddTask(tof2HP);
 
+    // ====================================================================== //
+    // ===                           Tracking (MWPC)                      === //
+    // ====================================================================== //
+    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
+    fRun->AddTask(mwpcTF);
+    
     // ====================================================================== //
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //

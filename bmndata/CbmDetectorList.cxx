@@ -24,14 +24,11 @@ void CbmDetectorList::GetSystemName(DetectorId det, TString& name)
         case kMVD:  name = "mvd";  break;
         case kGEM:  name = "gem";  break;
         case kTOF1: name = "tof1"; break;
-        case kDCH1: name = "dch1"; break;
-        case kDCH2: name = "dch2"; break;
+        case kDCH: name = "dch"; break;
         case kTOF:  name = "tof";  break;
         case kZDC:  name = "zdc";  break;
         case kRECOIL:  name = "recoil";  break;
-        case kMWPC1:  name = "mwpc1";  break;
-        case kMWPC2:  name = "mwpc2";  break;
-        case kMWPC3:  name = "mwpc3";  break;
+        case kMWPC:  name = "MWPC";  break;
         default:    name = "unknown"; break;
     }
 }
@@ -56,14 +53,11 @@ void CbmDetectorList::GetSystemNameCaps(DetectorId det, TString& name)
         case kMVD:  name = "MVD";  break;
         case kGEM:  name = "GEM";  break;
         case kTOF1: name = "TOF1";  break;
-        case kDCH1: name = "DCH1";  break;
-        case kDCH2: name = "DCH2";  break;
+        case kDCH: name = "DCH";  break;
         case kTOF:  name = "TOF";  break;
         case kZDC:  name = "ZDC";  break;
         case kRECOIL:  name = "RECOIL";  break;
-        case kMWPC1:  name = "mwpc1";  break;
-        case kMWPC2:  name = "mwpc2";  break;
-        case kMWPC3:  name = "mwpc3";  break;
+        case kMWPC:  name = "MWPC";  break;
         default:    name = "UNKNOWN"; break;
   }
 }

@@ -40,7 +40,7 @@ TLorentzVector SpiralParabolicFit(BmnGemTrack* tr, const TClonesArray* arr);
 TVector3 SpiralFitByTwoPoints(const BmnGemTrack* tr, const TClonesArray* arr);
 Bool_t IsParCorrect(const FairTrackParam* par);
 Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right);
-TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type);
+TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type);
 TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2);
 TVector3 CircleBy3Hit(BmnGemTrack* track, const TClonesArray* arr);
 TVector3 CircleBy3Hit(BmnGemTrack* track, const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2);

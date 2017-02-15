@@ -24,6 +24,7 @@
 #include "CbmTofPoint.h"
 #include "BmnHit.h"
 #include "BmnGemTrack.h"
+#include "BmnDchTrack.h"
 #include "FairRootManager.h"
 #include "FairRunAna.h"
 #include "FairRuntimeDb.h"
@@ -37,6 +38,7 @@
 #include "TCanvas.h"
 #include "TColor.h"
 #include "TGraph.h"
+#include "BmnKalmanFilter_tmp.h"
 
 class TClonesArray;
 
@@ -82,6 +84,8 @@ public:
     const Short_t GetDetConf() const {
         return fDetConf;
     };
+    
+    BmnStatus CreateDchHitsFromTracks();
 
 private:
 
@@ -101,24 +105,22 @@ private:
     void SelectTracksForTofMerging();
 
     // INPUT ARRAYS
-    TClonesArray* fSeeds;
+    TClonesArray* fGemSeeds;
     TClonesArray* fGemTracks;
     TClonesArray* fGemHits;
-    TClonesArray* fMwpc1Hits;
-    TClonesArray* fMwpc2Hits;
-    TClonesArray* fMwpc3Hits;
-    TClonesArray* fDch1Hits;
-    TClonesArray* fDch2Hits;
+    TClonesArray* fMwpcHits;
+    TClonesArray* fDchHits;
     TClonesArray* fDchTracks;
     TClonesArray* fTof1Hits;
     TClonesArray* fTof2Hits;
+    
+    TClonesArray* fEvHead;
 
     // INPUT FOR CHECKING EFFICIENCY
     TClonesArray* fGemMcPoints;
     TClonesArray* fTof1McPoints;
     TClonesArray* fTof2McPoints;
-    TClonesArray* fDch1McPoints;
-    TClonesArray* fDch2McPoints;
+    TClonesArray* fDchMcPoints;
     TClonesArray* fMcTracks;
 
     // OUTPUT ARRAYS

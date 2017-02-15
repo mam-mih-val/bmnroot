@@ -44,12 +44,9 @@ Bool_t BmnDetectorSetup::CheckDetectorPresence(const std::string& name) const {
 }
 
 void BmnDetectorSetup::DetermineSetup() {
-    fDet[kMWPC1] = CheckDetectorPresence("mwpc1");
-    fDet[kMWPC2] = CheckDetectorPresence("mwpc2");
-    fDet[kMWPC3] = CheckDetectorPresence("mwpc3");
+    fDet[kMWPC] = CheckDetectorPresence("MWPC");
     fDet[kGEM] = CheckDetectorPresence("GEM");
-    fDet[kDCH1] = CheckDetectorPresence("dch1");
-    fDet[kDCH2] = CheckDetectorPresence("dch2");
+    fDet[kDCH] = CheckDetectorPresence("DCH");
     fDet[kTOF1] = CheckDetectorPresence("TOFB1");
     fDet[kTOF] = CheckDetectorPresence("tof2");
 }
@@ -57,13 +54,10 @@ void BmnDetectorSetup::DetermineSetup() {
 string BmnDetectorSetup::ToString() const {
     string str = "-I- BMN detector setup information: \n";
     str += "  Tracking detectors found in setup: ";
-    if (fDet.find(kMWPC1)->second) str += "MWPC1 ";
-    if (fDet.find(kMWPC2)->second) str += "MWPC2 ";
-    if (fDet.find(kMWPC3)->second) str += "MWPC3 ";
+    if (fDet.find(kMWPC)->second) str += "MWPC ";
     if (fDet.find(kGEM)->second) str += "GEM ";
     if (fDet.find(kTOF1)->second) str += "TOF400 ";
-    if (fDet.find(kDCH1)->second) str += "DCH1 ";
-    if (fDet.find(kDCH2)->second) str += "DCH2 ";
+    if (fDet.find(kDCH)->second) str += "DCH ";
     if (fDet.find(kTOF)->second) str += "TOF700 ";
     str += "\n";
     return str;

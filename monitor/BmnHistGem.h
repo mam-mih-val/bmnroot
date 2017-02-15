@@ -27,6 +27,7 @@
 #include "TString.h"
 #include "THttpServer.h"
 
+#include "BmnHist.h"
 #include "BmnGemStripDigit.h"
 #include "BmnEventHeader.h"
 
@@ -39,18 +40,21 @@ struct histNmask{
     Int_t* mask;
 };
 
-class BmnHistGem : public TNamed {
+class BmnHistGem : public BmnHist {
 public:
 
-    BmnHistGem(TString title = "GEM", Bool_t createNoiseMask = false);
+    BmnHistGem(TString title = "GEM", TString path = "", Bool_t createNoiseMask = false);
     virtual ~BmnHistGem();
     void Reset();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);
+    void DrawBoth();
     void FillFromDigi(TClonesArray * digits);
     void FillFromDigiMasked(TClonesArray * digits, vector<vector<vector<TH1F*> > >* hist0, Double_t threshold);
     void ApplyNoiseMask(vector<vector<vector<TH1F*> > >* hist0, Double_t threshold);
     void UpdateNoiseMask(Double_t threshold);
+    BmnStatus LoadRefRun(TString FileName);
+    BmnStatus  SetRefRun(Int_t id);
     
     vector<vector<vector<Int_t*> > > *GetNoiseMask(){
         return &maskGemStrip;
@@ -60,8 +64,11 @@ public:
     
 
 private:
-    THttpServer *fServer;
-    TTree *frecoTree;
+    TCanvas *canGemStrip;
+    vector<PadInfo<TH1F>*> canGemStripPads;
+//    vector<PadInfo*> canGemStripPads;
+    UInt_t sumMods;
+    UInt_t maxLayers;
 //    vector<vector<vector<histNmask> > > maskGemStrip;
 
     ClassDef(BmnHistGem, 1)

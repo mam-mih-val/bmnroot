@@ -389,7 +389,7 @@ void BmnClusteringQa::CreateH2(
 
 void BmnClusteringQa::CreateNofObjectsHistograms(DetectorId detId, const string& detName) {
     if (!fDet.GetDet(detId)) return;
-    assert(detId == kTOF || detId == kGEM || detId == kTOF1 || detId == kDCH1 || detId == kDCH2);
+    assert(detId == kTOF || detId == kGEM || detId == kTOF1 || detId == kDCH);
     Int_t nofBins = 5000;
     Double_t minX = 0;
     Double_t maxX = 5000;

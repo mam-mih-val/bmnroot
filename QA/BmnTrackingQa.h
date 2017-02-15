@@ -243,10 +243,8 @@ private:
     TClonesArray* fTof1Hits;
     TClonesArray* fTof2Points;
     TClonesArray* fTof2Hits;
-    TClonesArray* fDch1Points;
-    TClonesArray* fDch1Hits;
-    TClonesArray* fDch2Points;
-    TClonesArray* fDch2Hits;
+    TClonesArray* fDchPoints;
+    TClonesArray* fDchHits;
     
     TClonesArray* fVertex;
 

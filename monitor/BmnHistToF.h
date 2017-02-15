@@ -27,11 +27,12 @@
 #include "TFolder.h"
 #include "THttpServer.h"
 
+#include "BmnHist.h"
 #include "BmnTof1Digit.h"
 #define TOF400_PLANE_COUNT  4
 #define TOF400_STRIP_COUNT 48
 
-class BmnHistToF : public TNamed {
+class BmnHistToF : public BmnHist {
 public:
     BmnHistToF(TString title);
     virtual ~BmnHistToF();
@@ -59,12 +60,10 @@ public:
     Int_t GetSide () { return fSelectedSide ;}
     Int_t GetStrip() { return fSelectedStrip;}
 private:
-    THttpServer *fServer;
 //    TBranch * fEventsBranch;
     Int_t fSelectedPlane;
     Int_t fSelectedStrip;
     Int_t fSelectedSide;
-    TTree *frecoTree;
     TH1I *histL = new TH1I("", "", TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
     TH1I *histR = new TH1I("", "", TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
     TH1I histSimultaneous;

@@ -38,8 +38,7 @@ public:
       fPoints[kMVD];
       fPoints[kGEM];
       fPoints[kTOF1];
-      fPoints[kDCH1];
-      fPoints[kDCH2];
+      fPoints[kDCH];
       fPoints[kTOF];
 //      fStationPoints[kMVD];
 //      fStationPoints[kGEM];
@@ -228,8 +227,7 @@ public:
       ss << PointsToString(kMVD, "MVD") << "|";
       ss << PointsToString(kGEM, "STS") << "|";
       ss << PointsToString(kTOF1, "TOF1") << "|";
-      ss << PointsToString(kDCH1, "DCH1") << "|";
-      ss << PointsToString(kDCH2, "DCH2") << "|";
+      ss << PointsToString(kDCH, "DCH1") << "|";
       ss << PointsToString(kTOF, "TOF") << "|";
       ss << endl;
       return ss.str();

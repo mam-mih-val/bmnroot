@@ -37,7 +37,7 @@ BmnGemSeedFinder::~BmnGemSeedFinder() {
 
 InitStatus BmnGemSeedFinder::Init() {
 
-    cout << "======================== Seed finder init started =========================" << endl;
+    cout << "------------------------ GEM seed  finder init started --------------------" << endl;
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
@@ -59,12 +59,12 @@ InitStatus BmnGemSeedFinder::Init() {
 
     fField = FairRunAna::Instance()->GetField();
 
-    cout << "======================== Seed finder init finished ========================" << endl;
+    cout << "======================== GEM seed  finder init finished ===================" << endl;
 }
 
 void BmnGemSeedFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
-    cout << "\n======================== GEM seed finder exec started =====================\n" << endl;
+    cout << "------------------------ GEM seed  finder exec started --------------------" << endl;
     cout << "Event number: " << fEventNo++ << endl;
 
     //    if (fEventNo == 590) getchar();
@@ -113,14 +113,14 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     FindSeeds(seeds);
     FitSeeds(seeds);
 
-    cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
+    cout << "GEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
 
     //    for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit)
     //        GetHit(iHit)->SetUsing(kFALSE);
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 
-    cout << "\n======================== Seed finder exec finished ========================" << endl;
+    cout << "======================== GEM seed  finder exec finished ===================" << endl;
 
 }
 
@@ -165,7 +165,7 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
                 Int_t maxDist = 0;
                 Int_t hitCntr = 0;
                 Int_t startBin = 0;
-                Int_t prevStation = iSt - 1; //number of starting station         
+                Int_t prevStation = iSt - 1; //number of starting station
                 for (Int_t i = xAddr; i > 0; i--) {
                     //                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
                     SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kFALSE);
@@ -773,8 +773,8 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack* tr) {
     //    cout << "Ax = " << Ax << " | Ay = " << Ay << endl;
     //    const Float_t k = 2.99792458 * 10e-4;
     //    Float_t dTxdz = (-1.0 / fR / sinThetaF) * (b * b + fR * fR) / Sqr(b * cosThetaF - fR * sinThetaF);
-    //    
-    //    Float_t qpTmp = dTxdz / k / Ax;   
+    //
+    //    Float_t qpTmp = dTxdz / k / Ax;
     Float_t QPFirst = q / Sqrt(PxFirst * PxFirst + PyFirst * PyFirst + PzFirst * PzFirst);
 
     //    cout << QPFirst << " " << qpTmp << endl;
@@ -1000,7 +1000,7 @@ BmnGemStripHit* BmnGemSeedFinder::GetHit(Int_t i) {
 }
 
 void BmnGemSeedFinder::FillAddr() {
-    //Needed for searching seeds by addresses 
+    //Needed for searching seeds by addresses
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (!hit) continue;
@@ -1025,7 +1025,7 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
 
     //TVector3 roughVertex(-3.0, 0.0, 0.0);
     TVector3 roughVertex(0.0, 0.0, 0.0);
-    //Needed for searching seeds by addresses 
+    //Needed for searching seeds by addresses
     Float_t sigma_x2 = sigma_x * sigma_x;
 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
@@ -1034,7 +1034,7 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
         //        if (hit->IsUsed()) continue; //Don't use used hits
         if (hit->GetStation() > kMAXSTATIONFORSEED + kNHITSFORSEED) continue;
 
-        hit->SetFlag(kFALSE); // by default hits are not filtered 
+        hit->SetFlag(kFALSE); // by default hits are not filtered
 
         //        const Float_t oneOverR = 1.0 / Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
         const Float_t oneOverR = 1.0 / Sqrt(Sqr(hit->GetX() - roughVertex.X()) + Sqr(hit->GetY() - roughVertex.Y()) + Sqr(hit->GetZ() - roughVertex.Z()));

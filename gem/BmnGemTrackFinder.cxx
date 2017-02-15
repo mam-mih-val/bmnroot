@@ -44,7 +44,7 @@ BmnGemTrackFinder::~BmnGemTrackFinder() {
 
 InitStatus BmnGemTrackFinder::Init() {
 
-    cout << "======================== GEM track finder init started ====================" << endl;
+    cout << "------------------------ GEM track finder init started --------------------" << endl;
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
@@ -69,8 +69,8 @@ InitStatus BmnGemTrackFinder::Init() {
 
 void BmnGemTrackFinder::Exec(Option_t* opt) {
 
-    cout << "\n====================== GEM track finder exec started ======================" << endl;
-    cout << "\n Event number: " << fEventNo++ << endl;
+    cout << "------------------------ GEM track finder exec started --------------------" << endl;
+    cout << "Event number: " << fEventNo++ << endl;
 
     clock_t tStart = clock();
     fGemTracksArray->Clear();
@@ -143,7 +143,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 
-    cout << "\n====================== GEM track finder exec finished =====================" << endl;
+    cout << "======================== GEM track finder exec finished ===================" << endl;
 
 }
 

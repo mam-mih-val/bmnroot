@@ -171,8 +171,8 @@ void gemRecoAlignIterate(TString digiFileListFileName="digi_files.txt",
         // now run the alignment:
         gROOT->LoadMacro("$VMCWORKDIR/macro/alignment/gemAlignment_new.C");
         gemAlignment(nEvents, bmndstFileListFileName, newAlignCorrFileName);
-
-        sumAlignCorrFileName =  newAlignCorrFileName.ReplaceAll("new", "sum");
+        sumAlignCorrFileName =  newAlignCorrFileName;
+        sumAlignCorrFileName =  sumAlignCorrFileName.ReplaceAll("new", "sum");
         // if iterNr == 0 nothing to update - in the next (iterNr=1) iteration use the only existing corrections
         if (iterNr == 0) {
             gROOT->ProcessLine(Form(".! cp %s %s", newAlignCorrFileName, sumAlignCorrFileName));

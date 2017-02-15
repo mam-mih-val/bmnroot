@@ -61,6 +61,10 @@ fDebug(kFALSE) {
         }
 }
 
+TVector3 BmnMwpcGeometry::GetChamberCenter(Int_t chamber) {
+    return TVector3(0.0, 0.0, (zRight[chamber] + zLeft[chamber]) * 0.5);
+}
+
 BmnMwpcGeometry::~BmnMwpcGeometry() {
 
 }

@@ -16,6 +16,7 @@
 #include <iostream>
 #include <TNamed.h>
 #include <TMath.h>
+#include <TVector3.h>
 
 using namespace std;
 using namespace TMath;
@@ -68,6 +69,8 @@ public:
     Double_t GetZPlanePos(Int_t chamber, Int_t plane) {
         return zPlanePos[chamber][plane];
     }
+    
+    TVector3 GetChamberCenter(Int_t chamber);
  
 private:
 

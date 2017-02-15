@@ -79,6 +79,7 @@ private:
     void InitDecoder();
     void ProcessDigi(Int_t iEv);
     void RegisterAll();
+    void UpdateRuns();
     BmnStatus CreateFile(Int_t runID = 0);
     BmnStatus OpenStream();
     void FinishRun();

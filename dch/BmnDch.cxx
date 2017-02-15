@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------
-// -----                       BmnDch1 source file                      -----
+// -----                       BmnDch source file                      -----
 // -------------------------------------------------------------------------
 
 #include <iostream>
@@ -17,12 +17,12 @@
 #include "FairGeoLoader.h"
 #include "FairGeoNode.h"
 #include "FairGeoRootBuilder.h"
-#include "BmnDch1Geo.h"
+#include "BmnDchGeo.h"
 #include "FairRootManager.h"
-#include "BmnDch1.h"
-#include "BmnDch1Point.h"
+#include "BmnDch.h"
+#include "BmnDchPoint.h"
 #include "FairRuntimeDb.h"
-#include "BmnDch1GeoPar.h"
+#include "BmnDchGeoPar.h"
 #include "TObjArray.h"
 #include "FairRun.h"
 #include "FairVolume.h"
@@ -34,30 +34,30 @@
 #include "FairGeoMedia.h"
 
 //------------------------------------------------------------------------------------------------------------------------
-BmnDch1::BmnDch1() 
- : FairDetector("DCH1", kTRUE)
+BmnDch::BmnDch() 
+ : FairDetector("DCH", kTRUE)
 {
-	fPointCollection = new TClonesArray("BmnDch1Point");
+	fPointCollection = new TClonesArray("BmnDchPoint");
 	fPosIndex = 0;
 	fVerboseLevel = 1;
 	ResetParameters();
 }
 //------------------------------------------------------------------------------------------------------------------------
-BmnDch1::BmnDch1(const char* name, Bool_t active)
+BmnDch::BmnDch(const char* name, Bool_t active)
  : FairDetector(name, active)
 {  
-	fPointCollection = new TClonesArray("BmnDch1Point");
+	fPointCollection = new TClonesArray("BmnDchPoint");
 	fPosIndex = 0;
     fVerboseLevel = 1;
 	ResetParameters();
 }
 //------------------------------------------------------------------------------------------------------------------------
-BmnDch1::~BmnDch1() 
+BmnDch::~BmnDch() 
 {
 	if(fPointCollection){fPointCollection->Delete(); delete fPointCollection; }
 }
 //------------------------------------------------------------------------------------------------------------------------
-int BmnDch1::DistAndPoints(TVector3 p3, TVector3 p4, TVector3& pa, TVector3& pb) {                                         
+int BmnDch::DistAndPoints(TVector3 p3, TVector3 p4, TVector3& pa, TVector3& pb) {                                         
     pa=(p3+p4)*0.5;
     pb=pa;
     
@@ -66,7 +66,7 @@ int BmnDch1::DistAndPoints(TVector3 p3, TVector3 p4, TVector3& pa, TVector3& pb)
     return 0;
 } 
 //------------------------------------------------------------------------------------------------------------------------
-TVector3 BmnDch1::GlobalToLocal(TVector3& global) {
+TVector3 BmnDch::GlobalToLocal(TVector3& global) {
     Double_t globPos[3];
     Double_t localPos[3];
     global.GetXYZ(globPos);
@@ -74,7 +74,7 @@ TVector3 BmnDch1::GlobalToLocal(TVector3& global) {
     return TVector3(localPos);
 }
 //------------------------------------------------------------------------------------------------------------------------
-TVector3 BmnDch1::LocalToGlobal(TVector3& local) {
+TVector3 BmnDch::LocalToGlobal(TVector3& local) {
     Double_t globPos[3];
     Double_t localPos[3];
     local.GetXYZ(localPos);
@@ -82,7 +82,7 @@ TVector3 BmnDch1::LocalToGlobal(TVector3& local) {
     return TVector3(globPos);
 }
 //----------------------------------------------------------------------------------------------------------------------
-Bool_t  BmnDch1::ProcessHits(FairVolume* vol)
+Bool_t  BmnDch::ProcessHits(FairVolume* vol)
 {
   // Set parameters at entrance of volume. Reset ELoss.
   if (gMC->IsTrackEntering()) {
@@ -115,7 +115,7 @@ Bool_t  BmnDch1::ProcessHits(FairVolume* vol)
   // Sum energy loss for all steps in the active volume
   fELoss += gMC->Edep();
 
-  // Create BmnDch1Point at EXIT of active volume;
+  // Create BmnDchPoint at EXIT of active volume;
   if ((gMC->IsTrackExiting() || gMC->IsTrackStop() || gMC->IsTrackDisappeared()) && fELoss > 0) {
     TLorentzVector PosOut;
     gMC->TrackPosition(PosOut);
@@ -137,77 +137,77 @@ Bool_t  BmnDch1::ProcessHits(FairVolume* vol)
     //int result =
     DistAndPoints(fPosIn, fPosOut, fPos, trackPosition);
 
-    BmnDch1Point *p = AddHit(fTrackID, fVolumeID, fPos, fPos.Perp(),
+    BmnDchPoint *p = AddHit(fTrackID, fVolumeID, fPos, fPos.Perp(),
                 TVector3(fMom.Px(), fMom.Py(), fMom.Pz()),
                 fTime, (fLength+gMC->TrackLength())/2, fELoss,
                 fIsPrimary, fCharge, fPdgId, trackPosition);
     p->SetPhi(phi); //AZ
 
-    ((CbmStack*)gMC->GetStack())->AddPoint(kDCH1);
+    ((CbmStack*)gMC->GetStack())->AddPoint(kDCH);
   }
 
   return kTRUE;
 }
 //------------------------------------------------------------------------------------------------------------------------
-void BmnDch1::EndOfEvent() 
+void BmnDch::EndOfEvent() 
 {
 	if(fVerboseLevel) Print();
   	fPointCollection->Clear();
   	fPosIndex = 0;
 }
 //------------------------------------------------------------------------------------------------------------------------
-void BmnDch1::Register(){ FairRootManager::Instance()->Register("DCH1Point", "DCH1", fPointCollection, kTRUE); }
+void BmnDch::Register(){ FairRootManager::Instance()->Register("DCHPoint", "DCH", fPointCollection, kTRUE); }
 //------------------------------------------------------------------------------------------------------------------------
-TClonesArray* BmnDch1::GetCollection(Int_t iColl) const 
+TClonesArray* BmnDch::GetCollection(Int_t iColl) const 
 {
 	if(iColl == 0) 	return fPointCollection;
 	
 return NULL;
 }
 //------------------------------------------------------------------------------------------------------------------------
-void BmnDch1::Print() const 
+void BmnDch::Print() const 
 {
 	Int_t nHits = fPointCollection->GetEntriesFast();
-	cout << "-I- BmnDch1: " << nHits << " points registered in this event." << endl;
+	cout << "-I- BmnDch: " << nHits << " points registered in this event." << endl;
 	
 	if(fVerboseLevel > 1)
     		for(Int_t i=0; i<nHits; i++) (*fPointCollection)[i]->Print();
 }
 //------------------------------------------------------------------------------------------------------------------------
-void BmnDch1::Reset(){ fPointCollection->Clear(); ResetParameters(); }
+void BmnDch::Reset(){ fPointCollection->Clear(); ResetParameters(); }
 //------------------------------------------------------------------------------------------------------------------------
-void BmnDch1::CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset)
+void BmnDch::CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset)
 {
 	Int_t nEntries = cl1->GetEntriesFast();
-	cout << "-I- BmnDch1: " << nEntries << " entries to add." << endl;
+	cout << "-I- BmnDch: " << nEntries << " entries to add." << endl;
 	TClonesArray& clref = *cl2;
-	BmnDch1Point* oldpoint = NULL;
+	BmnDchPoint* oldpoint = NULL;
 	
 	for(Int_t i=0; i<nEntries; i++) 
 	{
-		oldpoint = (BmnDch1Point*) cl1->At(i);
+		oldpoint = (BmnDchPoint*) cl1->At(i);
 		Int_t index = oldpoint->GetTrackID() + offset;
 		oldpoint->SetTrackID(index);
-		new (clref[fPosIndex]) BmnDch1Point(*oldpoint);
+		new (clref[fPosIndex]) BmnDchPoint(*oldpoint);
 		fPosIndex++;
 	}
 	
-	cout << "-I- BmnDch1: " << cl2->GetEntriesFast() << " merged entries."  << endl;
+	cout << "-I- BmnDch: " << cl2->GetEntriesFast() << " merged entries."  << endl;
 }
 //------------------------------------------------------------------------------------------------------------------------
-void BmnDch1::ConstructGeometry() 
+void BmnDch::ConstructGeometry() 
 {
   TString fileName = GetGeometryFileName();
   
   if ( fileName.EndsWith(".root") ) {
     gLogger->Info(MESSAGE_ORIGIN,
-                "Constructing DCH1 geometry from ROOT file %s", 
+                "Constructing DCH geometry from ROOT file %s", 
                 fileName.Data());
     ConstructRootGeometry();
   }
   else if ( fileName.EndsWith(".geo") ) {
     gLogger->Info(MESSAGE_ORIGIN,
-		  "Constructing DCH1 geometry from ASCII file %s", 
+		  "Constructing DCH geometry from ASCII file %s", 
 		  fileName.Data());
     ConstructAsciiGeometry();
   }
@@ -227,21 +227,21 @@ void BmnDch1::ConstructGeometry()
 }
 
 // -----   ConstructAsciiGeometry   -------------------------------------------
-void BmnDch1::ConstructAsciiGeometry() {
+void BmnDch::ConstructAsciiGeometry() {
   
   FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
   FairGeoInterface* geoFace = geoLoad->getGeoInterface();
-  BmnDch1Geo*       DCH1Geo  = new BmnDch1Geo();
-  DCH1Geo->setGeomFile(GetGeometryFileName());
-  geoFace->addGeoModule(DCH1Geo);
+  BmnDchGeo*       DCHGeo  = new BmnDchGeo();
+  DCHGeo->setGeomFile(GetGeometryFileName());
+  geoFace->addGeoModule(DCHGeo);
 
-  Bool_t rc = geoFace->readSet(DCH1Geo);
-  if (rc) DCH1Geo->create(geoLoad->getGeoBuilder());
-  TList* volList = DCH1Geo->getListOfVolumes();
+  Bool_t rc = geoFace->readSet(DCHGeo);
+  if (rc) DCHGeo->create(geoLoad->getGeoBuilder());
+  TList* volList = DCHGeo->getListOfVolumes();
   // store geo parameter
   FairRun *fRun = FairRun::Instance();
   FairRuntimeDb *rtdb= FairRun::Instance()->GetRuntimeDb();
-  BmnDch1GeoPar* par=(BmnDch1GeoPar*)(rtdb->getContainer("BmnDch1GeoPar"));
+  BmnDchGeoPar* par=(BmnDchGeoPar*)(rtdb->getContainer("BmnDchGeoPar"));
   TObjArray *fSensNodes = par->GetGeoSensitiveNodes();
   TObjArray *fPassNodes = par->GetGeoPassiveNodes();
 
@@ -265,7 +265,7 @@ void BmnDch1::ConstructAsciiGeometry() {
 
 /*
 // -----   ConstructGDMLGeometry   -------------------------------------------
-void BmnDch1::ConstructGDMLGeometry()
+void BmnDch::ConstructGDMLGeometry()
 {
     TGDMLParse parser;
     TGeoVolume* v1 = parser.GDMLReadFile(GetGeometryFileName());
@@ -362,7 +362,7 @@ void BmnDch1::ConstructGDMLGeometry()
 */
 
 // -----   ConstructGDMLGeometry   -------------------------------------------
-void BmnDch1::ConstructGDMLGeometry()
+void BmnDch::ConstructGDMLGeometry()
 {
    TFile *old = gFile;
    TGDMLParse parser;
@@ -405,7 +405,7 @@ void BmnDch1::ConstructGDMLGeometry()
    gFile = old;
 }
 
-void BmnDch1::ExpandNodeForGdml(TGeoNode* node)
+void BmnDch::ExpandNodeForGdml(TGeoNode* node)
 {
    LOG(DEBUG) << "----------------------------------------- ExpandNodeForGdml for node " << node->GetName() << FairLogger::endl;
 
@@ -529,7 +529,7 @@ void BmnDch1::ExpandNodeForGdml(TGeoNode* node)
 }
 
 //Check if Sensitive-----------------------------------------------------------
-Bool_t BmnDch1::CheckIfSensitive(std::string name)
+Bool_t BmnDch::CheckIfSensitive(std::string name)
 {
   TString tsname = name;
   if (tsname.Contains("Active")) {
@@ -538,7 +538,7 @@ Bool_t BmnDch1::CheckIfSensitive(std::string name)
   return kFALSE;
     
     
-//  if(0 == TString(name).CompareTo("DCH1DetV")) {
+//  if(0 == TString(name).CompareTo("DCHDetV")) {
 //    return kTRUE;
 //  }
 //  return kFALSE;
@@ -547,15 +547,15 @@ Bool_t BmnDch1::CheckIfSensitive(std::string name)
 //---------------------------------------------------------  
 
 //------------------------------------------------------------------------------------------------------------------------
-BmnDch1Point* BmnDch1::AddHit(Int_t trackID, Int_t detID, TVector3 pos, Double_t radius,
+BmnDchPoint* BmnDch::AddHit(Int_t trackID, Int_t detID, TVector3 pos, Double_t radius,
 			    TVector3 mom, Double_t time, Double_t length, 
 			    Double_t eLoss, Int_t isPrimary, Double_t charge, Int_t pdgId, TVector3 trackPos) 
 {
 	TClonesArray& clref = *fPointCollection;
 	Int_t size = clref.GetEntriesFast();
     //std::cout << "ELoss: " << eLoss << "\n";	
-    return new(clref[size]) BmnDch1Point(trackID, detID, pos, radius, mom, time, length, eLoss, isPrimary, charge, pdgId, trackPos);
+    return new(clref[size]) BmnDchPoint(trackID, detID, pos, radius, mom, time, length, eLoss, isPrimary, charge, pdgId, trackPos);
 }
 //------------------------------------------------------------------------------------------------------------------------
 
-ClassImp(BmnDch1)
+ClassImp(BmnDch)

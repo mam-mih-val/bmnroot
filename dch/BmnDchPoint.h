@@ -1,10 +1,10 @@
 //------------------------------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------
-// -----                     BmnDch1Point header file                   -----
+// -----                     BmnDchPoint header file                   -----
 // -------------------------------------------------------------------------
 
-#ifndef BMNDCH1POINT_H
-#define BMNDCH1POINT_H
+#ifndef BMNDCHPOINT_H
+#define BMNDCHPOINT_H
 
 
 #include "TObject.h"
@@ -14,7 +14,7 @@
 using namespace std;
 
 //------------------------------------------------------------------------------------------------------------------------
-class BmnDch1Point : public FairMCPoint
+class BmnDchPoint : public FairMCPoint
 {
 
 public:
@@ -28,12 +28,12 @@ public:
    *@param length   Track length since creation [cm]
    *@param eLoss    Energy deposit [GeV]
    **/
-  	BmnDch1Point(Int_t trackID, Int_t detID, TVector3 pos, Double_t radius, TVector3 mom, Double_t tof, 
+  	BmnDchPoint(Int_t trackID, Int_t detID, TVector3 pos, Double_t radius, TVector3 mom, Double_t tof, 
   	    Double_t length, Double_t eLoss, Int_t isPrimary, Double_t charge, Int_t pdgId, TVector3 trackPos);
-  	BmnDch1Point(const BmnDch1Point& point) { *this = point; };
+  	BmnDchPoint(const BmnDchPoint& point) { *this = point; };
 
-  	BmnDch1Point();	
-  	virtual ~BmnDch1Point();
+  	BmnDchPoint();	
+  	virtual ~BmnDchPoint();
 
 	Double_t GetDistance(); // DCA between track and straw
 	Double_t GetTrackX() { return fTX; }
@@ -55,7 +55,7 @@ protected:
     Double_t fTX, fTY, fTZ; // track coordinates at DCA to straw
     Double_t fPhi; // tube rotation angle - AZ (interim solution)
 
-  ClassDef(BmnDch1Point,2)
+  ClassDef(BmnDchPoint,2)
 
 };
 

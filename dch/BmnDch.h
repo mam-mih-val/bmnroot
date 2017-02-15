@@ -1,18 +1,18 @@
 //------------------------------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------
-// -----                         BmnDch1 header file                    -----
+// -----                         BmnDch header file                    -----
 // -------------------------------------------------------------------------
 
-/**  DCH1.h
+/**  DCH.h
  **
- ** Defines the active detector DCH1. Constructs the geometry and
+ ** Defines the active detector DCH. Constructs the geometry and
  ** registers MCPoints.
  **/
 
 
 
-#ifndef BMNDCH1_H
-#define BMNDCH1_H
+#ifndef BMNDCH_H
+#define BMNDCH_H
 
 
 #include "TClonesArray.h"
@@ -24,24 +24,24 @@
 #include <map>
 using namespace std;
 
-class BmnDch1Point;
+class BmnDchPoint;
 class FairVolume;
 
 //------------------------------------------------------------------------------------------------------------------------
-class BmnDch1 : public FairDetector
+class BmnDch : public FairDetector
 {
 
 public:
 
    	// *@param name    detector name
    	// *@param active  sensitivity flag
-  	BmnDch1(const char* name, Bool_t active);
+  	BmnDch(const char* name, Bool_t active);
 
-	BmnDch1();
-	virtual ~BmnDch1();
+	BmnDch();
+	virtual ~BmnDch();
 
 	// Defines the action to be taken when a step is inside the
-	// active volume. Creates BmnDch1Points and adds them to the collection.
+	// active volume. Creates BmnDchPoints and adds them to the collection.
 	// @param vol  Pointer to the active volume
         virtual Bool_t  ProcessHits(FairVolume* vol = 0);
 
@@ -66,7 +66,7 @@ public:
 	// *@param offset  Index offset
  	virtual void CopyClones(TClonesArray* cl1, TClonesArray* cl2, Int_t offset);
 
-	// Constructs the DCH1 geometry
+	// Constructs the DCH geometry
  	virtual void ConstructGeometry();
     // Construct the geometry from an ASCII geometry file
     virtual void ConstructAsciiGeometry();
@@ -116,20 +116,20 @@ private:
         TVector3 GlobalToLocal(TVector3& global);
         TVector3 LocalToGlobal(TVector3& local);
         
-	// Adds a BmnDch1Point to the HitCollection
-  	BmnDch1Point* AddHit(Int_t trackID, Int_t detID, TVector3 pos, Double_t radius, TVector3 mom, Double_t time, 
+	// Adds a BmnDchPoint to the HitCollection
+  	BmnDchPoint* AddHit(Int_t trackID, Int_t detID, TVector3 pos, Double_t radius, TVector3 mom, Double_t time, 
   	Double_t length, Double_t eLoss, Int_t isPrimary, Double_t charge, Int_t fPdgId, TVector3 trackPos); 
  
 	// Resets the private members for the track parameters
   	void ResetParameters();
 
 
-  ClassDef(BmnDch1,1) 
+  ClassDef(BmnDch,1) 
 
 };
 
 //------------------------------------------------------------------------------------------------------------------------
-inline void BmnDch1::ResetParameters() 
+inline void BmnDch::ResetParameters() 
 {
 	fTrackID = -1;
 	fVolumeID = fwheel = 0;

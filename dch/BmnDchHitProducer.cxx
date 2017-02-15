@@ -13,11 +13,9 @@
 #include <TVector3.h>
 #include <TVector2.h>
 #include "TRandom.h"
-#include "BmnDch1.h"
-#include "BmnDch2.h"
+#include "BmnDch.h"
 #include "BmnDchHit.h"
-#include "BmnDch1Point.h"
-#include "BmnDch2Point.h"
+#include "BmnDchPoint.h"
 #include "FairRun.h"
 #include "FairRuntimeDb.h"
 #include "FairRootManager.h"

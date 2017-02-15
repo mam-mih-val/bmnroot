@@ -32,8 +32,7 @@ fMvdPoints(NULL),
 fGemPoints(NULL),
 fTof1Points(NULL),
 fTof2Points(NULL),
-fDch1Points(NULL),
-fDch2Points(NULL) {
+fDchPoints(NULL){
     ReadDataBranches();
 
 
@@ -60,8 +59,7 @@ void BmnMCTrackCreator::Create() {
     //AddPoints(kMVD, fMvdPoints);
     AddPoints(kGEM, fGemPoints);
     AddPoints(kTOF1, fTof1Points);
-    AddPoints(kDCH1, fDch1Points);
-    AddPoints(kDCH2, fDch2Points);
+    AddPoints(kDCH, fDchPoints);
     AddPoints(kTOF, fTof2Points);
     std::map<Int_t, BmnMCTrack>::iterator it;
 //    for (it = fBmnMCTracks.begin(); it != fBmnMCTracks.end(); it++)
@@ -80,8 +78,7 @@ void BmnMCTrackCreator::ReadDataBranches() {
     fGemPoints = (TClonesArray*) ioman->GetObject("StsPoint");
     fTof1Points = (TClonesArray*) ioman->GetObject("TOF1Point");
     fTof2Points = (TClonesArray*) ioman->GetObject("TofPoint");
-    fDch1Points = (TClonesArray*) ioman->GetObject("DCH1Point");
-    fDch2Points = (TClonesArray*) ioman->GetObject("DCH2Point");
+    fDchPoints = (TClonesArray*) ioman->GetObject("DCHPoint");
 }
 
 void BmnMCTrackCreator::AddPoints(DetectorId detId, const TClonesArray* array) {

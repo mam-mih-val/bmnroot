@@ -26,13 +26,15 @@
 #include "TFolder.h"
 #include "TString.h"
 #include "THttpServer.h"
+
+#include "BmnHist.h"
 #include "BmnMwpcDigit.h"
 #include "BmnEventHeader.h"
 
 #define MWPC_PLANES 12
 #define MWPC_WIRES 96
 
-class BmnHistMwpc : public TNamed {
+class BmnHistMwpc : public BmnHist {
 public:
     BmnHistMwpc(TString title);
     virtual ~BmnHistMwpc();
@@ -42,8 +44,6 @@ public:
     void FillFromDigi(TClonesArray * DchDigits);
 
 private:
-    THttpServer *fServer;
-    TTree *frecoTree;
     TH1F * h_wires[MWPC_PLANES];
     TClonesArray* MwpcHits;
     TH2F* h_MWPC1;

@@ -200,7 +200,7 @@ BmnStatus BmnHistGem::LoadRefRun(TString FileName) {
     printf("Loading ref histos\n");
     canGemStripPads.clear();
     canGemStripPads.resize(maxLayers * sumMods);
-    if (refFile != NULL) delete refFile;
+//    if (refFile != NULL) delete refFile;
     refFile = new TFile(refPath + FileName, "read");
     if (refFile->IsOpen() == false) {
         printf("Cannot open file %s !\n", FileName.Data());
@@ -222,18 +222,21 @@ BmnStatus BmnHistGem::LoadRefRun(TString FileName) {
 //                p.ref = (TH1F*) gDirectory->Get(name.Data());
 //                TH1F* tempHist;
                 p->ref = (TH1F*) refFile->Get(refName + "GEM_hists/" + name);
+                if (p->ref == NULL)
+                p->ref = (TH1F*) refFile->Get(TString("GEM_hists/") + Form(fTitle + "_Station_%d_module_%d_layer_%d", stationIndex, moduleIndex, layerIndex)
+                        )->Clone(name);
 //                refFile->GetObject(refName + "GEM_hists/" + name, tempHist);
 //                p->ref = (TH1F*)(tempHist->Clone(name + "_qq"));
                 p->ref->SetLineColor(kRed);
                 p->ref->SetDirectory(0);
                 canGemStripPads[modCtr * maxLayers + layerIndex] = p;
-                printf("histo %s loaded to %d\n", canGemStripPads[modCtr * maxLayers + layerIndex]->ref->GetName(), modCtr * maxLayers + layerIndex);
             }
             modCtr++;
         }
     }
 //    refFile->Close();
     delete refFile;
+    refFile = NULL;
     return kBMNSUCCESS;
 }
 

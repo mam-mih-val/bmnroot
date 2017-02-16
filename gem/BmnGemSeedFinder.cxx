@@ -1054,7 +1054,7 @@ BmnGemStripHit* BmnGemSeedFinder::GetHit(Int_t i) {
     if (skip) return NULL;
     if (hit->GetY() > fYmax || hit->GetY() < fYmin) return NULL;
     if (hit->GetX() > fXmax || hit->GetX() < fXmin) return NULL;
-    if (hit->GetClusterSizeInLowerLayer() == 1 && hit->GetClusterSizeInUpperLayer() == 1) return NULL;
+//    if (hit->GetClusterSizeInLowerLayer() == 1 && hit->GetClusterSizeInUpperLayer() == 1) return NULL;
     //tmp!!!
     //    if (hit->GetStation() == 1 && (hit->GetX() > 0.7 || hit->GetX() < 0.4)) return NULL;
     //    if (hit->GetStation() == 3 && (hit->GetX() > 2.3 || hit->GetX() < 1.9)) return NULL;

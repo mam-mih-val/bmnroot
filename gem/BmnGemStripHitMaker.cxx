@@ -100,21 +100,24 @@ InitStatus BmnGemStripHitMaker::Init() {
         }
     }
 
+    // NB! When fAlignCorrFileName is empty string, no alinment corrections are used at all,
+    // they remain to be simply zeros (just immediate return from ReadAlignCorrFile);
+    // this is used when e.g. we want to run alignment from scratch.
     ReadAlignCorrFile(fAlignCorrFileName, corr);
 
-    cout << "Alignment corrections to be used: " << endl;
+    cout <<"Alignment corrections to be used: "<< endl;
     for (Int_t iStat = 0; iStat < nStat; iStat++) {
         Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
         for (Int_t iMod = 0; iMod < nModul; iMod++) {
             for (Int_t iPar = 0; iPar < nParams; iPar++) {
-                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << corr[iStat][iMod][iPar] << endl;
+                cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<corr[iStat][iMod][iPar]<< endl;
             }
         }
     }
 
     //--------------------------------------------------------------------------
 
-    if (fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n\n ";
+    if (fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n";
 
     return kSUCCESS;
 }

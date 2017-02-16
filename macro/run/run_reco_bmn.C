@@ -249,7 +249,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     Double_t rtime = timer.RealTime();
     Double_t ctime = timer.CpuTime();
     cout << endl << endl;
-    cout << "Macro finished successfully." << endl;     // marker of successfully execution for CDASH
+    cout << "Macro finished successfully." << endl;     // marker of successful execution for CDASH
     cout << "Output file is " << outFile << endl;
     cout << "Parameter file is " << parFile << endl;
     cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;

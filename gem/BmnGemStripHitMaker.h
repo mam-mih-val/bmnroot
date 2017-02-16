@@ -49,13 +49,14 @@ public:
 
     void SetAlignmentCorrectionsFileName(TString filename) {
         // temporary patch to be able to run re-reconstructions and subsequent re-alignments iteratively
-        // Anatoly.Solomin@jinr.ru 2017-02-01 16:43:03
+        // Anatoly.Solomin@jinr.ru 2017-02-15 20:42:13
         TRegexp re = "_it[0-9]+"; // to match patterns like "_it02" in the file name with corrections after iteration 2
-        if ( ! filename.Contains(re)) {  // normal, not an iterative alignment running
+        if (filename.Contains(re)  ||  filename=="") { // special iterative case: file name [with its relative or absolute  path] is used as is
+            fAlignCorrFileName = filename; }           // or when corrections are simply ignored (empty name), e.g. when running alignment from scratch
+        else { // normal, not an iterative alignment running, and the name is not empty
             TString dir = getenv("VMCWORKDIR");
-            fAlignCorrFileName = dir+"/input/"+filename; }
-        else// iterative case: file name [with its relative or absolute  path] is used as is
-            fAlignCorrFileName = filename;
+            fAlignCorrFileName = dir+"/input/"+filename;
+        }
     }
 
 private:

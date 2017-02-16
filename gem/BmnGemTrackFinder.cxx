@@ -75,6 +75,71 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fGemTracksArray->Clear();
     CheckSplitting(fGemSeedsArray);
+
+//    for (Int_t iTr = 0; iTr < fGemSeedsArray->GetEntriesFast(); ++iTr) {
+//        BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArray->At(iTr);
+//        if (track->GetChi2() < 0.0) continue; //split param
+//
+//        for (Int_t iSt = 1; iSt < 7; ++iSt) {
+//            Bool_t used = kFALSE;
+//            for (Int_t iTrHit = 0; iTrHit < track->GetNHits(); ++iTrHit) {
+//                UInt_t stTr = GetHit(track->GetHitIndex(iTrHit))->GetStation();
+//                if (stTr == iSt) {
+//                    used = kTRUE;
+//                    break;
+//                }
+//            }
+//            if (used) continue;
+//
+//            BmnHit* minHit = NULL; // Pointer to hit with minimum chi-square
+//            Float_t minDist = 0.5;//FLT_MAX;
+//            Int_t minIdx = 0;
+//            Float_t dist = 0.0;
+//
+//            for (Int_t iHit = 0; iHit < fGemHitArray->GetEntriesFast(); ++iHit) {
+//                BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(iHit);
+//                if (!hit) continue;
+//                UInt_t st = hit->GetStation();
+//                if (st != iSt) continue;
+//
+//                fKalman = new BmnKalmanFilter_tmp();
+//                Double_t length = 0.0;
+//                vector<Double_t>* F = new vector<Double_t> (25, 0.);
+//                if (F != NULL) {
+//                    F->assign(25, 0.);
+//                    (*F)[0] = 1.;
+//                    (*F)[6] = 1.;
+//                    (*F)[12] = 1.;
+//                    (*F)[18] = 1.;
+//                    (*F)[24] = 1.;
+//                }
+//                FairTrackParam par = *(track->GetParamFirst());
+//                fKalman->TGeoTrackPropagate(&par, hit->GetZ(), fPDG, F, &length, "field");
+//                dist = Dist(par.GetX(), par.GetY(), hit->GetX(), hit->GetY());
+////                printf("dist = %f\n", dist);
+//                if (dist < minDist) { // Check if hit is inside validation gate and closer to the track.
+//                    minDist = dist;
+//                    minHit = hit;
+//                    minIdx = iHit;
+//                }
+//                delete F;
+//                delete fKalman;
+//            }
+//
+//            if (minHit != NULL) { // Check if hit was added
+////                printf("\t\t\t\t\t\t\t\tFOUND MIN DIST = %f\n", minDist);
+////                track->SetParamLast(minPar);
+//                //track->SetChi2(track->GetChi2() + minChiSq);
+////                minHit->SetUsing(kTRUE);
+////                printf("BEFORE ADDING: %d\n", track->GetNHits());
+//                track->AddHit(minIdx, minHit);
+//                track->SortHits();
+////                printf("AFTER ADDING: %d\n", track->GetNHits());
+//            }
+//        }
+//    }
+
+
     for (Int_t iTr = 0; iTr < fGemSeedsArray->GetEntriesFast(); ++iTr) {
         BmnGemTrack* track = (BmnGemTrack*) fGemSeedsArray->At(iTr);
 
@@ -124,15 +189,15 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         tr.SetFitNodes(nodes);
         tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
         tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
-        //if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
+//        if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
         tr.SetChi2(chi2);
         tr.SetNDF(nHits - 3);
 
-//        if (tr.GetChi2() / tr.GetNDF() > fChiSqCut) {
-//            tr.SetFlag(kBMNBAD);
-//            for (Int_t iHit = 0; iHit < tr.GetNHits(); ++iHit)
-//                GetHit(tr.GetHitIndex(iHit))->SetUsing(kFALSE);
-//        } else tr.SetFlag(kBMNGOOD);
+        //        if (tr.GetChi2() / tr.GetNDF() > fChiSqCut) {
+        //            tr.SetFlag(kBMNBAD);
+        //            for (Int_t iHit = 0; iHit < tr.GetNHits(); ++iHit)
+        //                GetHit(tr.GetHitIndex(iHit))->SetUsing(kFALSE);
+        //        } else tr.SetFlag(kBMNGOOD);
 
         new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tr);
         delete fKalman;

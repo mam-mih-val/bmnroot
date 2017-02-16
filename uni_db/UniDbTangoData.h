@@ -128,7 +128,8 @@ class UniDbTangoData
     //	date_end - время окончания считавания параметра (например, "2015-03-13 24:00:00")
     //  condition - условие выборки периодов времени
     //  value - значения для условия выборки, с которым происходит сравнение
-    TObjArray* SearchTangoIntervals(char* detector_name, char* parameter_name, char* date_start, char* date_end,  enumConditions condition = conditionEqual, bool value = true);
+    //  mapChannel - массив целочисленных значений для изменения порядка TObjArray-ев в результирующем массиве, если, например, каналы идут в другой последоватлеьности
+    TObjArray* SearchTangoIntervals(char* detector_name, char* parameter_name, char* date_start, char* date_end,  enumConditions condition = conditionEqual, bool value = true, int* mapChannel = NULL);
 
     // Функции PrintTangoData[Console,Surface,MultiGraph] выполняет вывод данных из заполненной ранее структуры
     // в консоль, графически как поверхность или графически в виде набора графиков,
@@ -136,7 +137,7 @@ class UniDbTangoData
     void PrintTangoDataConsole(TObjArray* tango_data);
     void PrintTangoDataSurface(TObjArray* tango_data);
     void PrintTangoDataMulti3D(TObjArray* tango_data);
-    void PrintTangoIntervalConsole(TObjArray* tango_data);
+    void PrintTangoIntervalConsole(TObjArray* tango_data, TString channel_name = "Channel");
 
  ClassDef(UniDbTangoData,1)
 };

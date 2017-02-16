@@ -5,7 +5,7 @@
 //                                                                            //
 // BmnDchTrackFinder                                                          //
 //                                                                            //
-// Implementation of an algorithm developed by                                // 
+// Implementation of an algorithm developed by                                //
 // N.Voytishin and V.Paltchik (LIT)                                           //
 // to the BmnRoot software                                                    //
 //                                                                            //
@@ -36,9 +36,9 @@ expData(isExp) {
     nLayers = 2;
     nSegmentsMax = 100;
 
-    Z_dch1 = 529.65;
-    Z_dch2 = 727.65;
-    Z_dch_mid = 628.65;
+    Z_dch1 = 523.45;
+    Z_dch2 = 722.45;
+    Z_dch_mid = 622.95;
 
     x1_sh = 15.0;
     x2_sh = 12.2;
@@ -60,7 +60,7 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
 void BmnDchTrackFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
     PrepareArraysToProcessEvent();
-    cout << "\n======================== DCH track finder exec started ====================\n" << endl;
+    cout << "------------------------ DCH track finder exec started --------------------" << endl;
     cout << "Event number: " << fEventNo++ << endl;
 
     //temporary containers
@@ -101,7 +101,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         if (!goodEv)
             return;
 
-        // Order used: va1(0), vb1(1), ua1(2), ub1(3), ya1(4), yb1(5), xa1(6), xb1(7) -> 
+        // Order used: va1(0), vb1(1), ua1(2), ub1(3), ya1(4), yb1(5), xa1(6), xb1(7) ->
         //             va2(8), vb2(9), ua2(10), ub2(11), ya2(12), yb2(13), xa2(14), xb2(15)
         Short_t plane = digit->GetPlane();
         Short_t wire = digit->GetWireNumber();
@@ -164,7 +164,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
     // Try to match the reconstructed segments from the two chambers
     // Not implemented yet (TO DO A.S.A.P.)
-    cout << "\n======================== DCH track finder exec finished ===================" << endl;
+    cout << "======================== DCH track finder exec finished ===================" << endl;
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
@@ -257,45 +257,45 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
                                 rh_sigm_seg[0][nDC_segments] = sigm_x_single[0][kk];
                                 foundX = kTRUE;
                             }
-                        }//for kk                                                                                                                                                           
+                        }//for kk
                         for (Int_t kk = 0; kk < single_xb; kk++) {
 
                             if (Abs(x_single[1][kk] - x_est) > 1.5)
-                                continue; //????? 0.5 needs to be reviewed                                                                                     
+                                continue; //????? 0.5 needs to be reviewed
                             if (Abs(x_single[1][kk] - x_est) < min_b) {
                                 min_b = Abs(x_single[1][kk] - x_est);
                                 rh_seg[1][nDC_segments] = x_single[1][kk];
                                 rh_sigm_seg[1][nDC_segments] = sigm_x_single[1][kk];
                                 foundX = kTRUE;
                             }
-                        }//for kk 
+                        }//for kk
                         if (nDC_segments > 48)
                             break;
                     }//!foundX
-                }//m         
+                }//m
                 if (foundX && !foundY) {
                     Float_t min_a = 999;
                     Float_t min_b = 999;
                     for (Int_t kk = 0; kk < single_ya; kk++) {
                         if (Abs(y_single[0][kk] - y_est) > 1.5)
-                            continue; //????? 0.5 needs to be reviewed                                                                                     
+                            continue; //????? 0.5 needs to be reviewed
                         if (Abs(y_single[0][kk] - y_est) < min_a) {
                             min_a = Abs(y_single[0][kk] - y_est);
                             rh_seg[2][nDC_segments] = y_single[0][kk];
                             rh_sigm_seg[2][nDC_segments] = sigm_y_single[0][kk];
                             foundY = kTRUE;
                         }
-                    }//for kk                                                                                                                                                          
+                    }//for kk
                     for (Int_t kk = 0; kk < single_yb; kk++) {
                         if (Abs(y_single[1][kk] - y_est) > 1.5)
-                            continue; //????? 0.5 needs to be reviewed                                                                                     
+                            continue; //????? 0.5 needs to be reviewed
                         if (Abs(y_single[1][kk] - y_est) < min_b) {
                             min_b = Abs(y_single[1][kk] - y_est);
                             rh_seg[3][nDC_segments] = y_single[1][kk];
                             rh_sigm_seg[3][nDC_segments] = sigm_y_single[1][kk];
                             foundY = kTRUE;
                         }
-                    }//for kk 
+                    }//for kk
                 }
             }//(pair_y2>0)
             if (foundX || foundY) nDC_segments++;
@@ -418,17 +418,17 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
                 Float_t min_b = 999;
                 for (Int_t kk = 0; kk < single_va; kk++) {
                     if (Abs(v_single[0][kk] - v_est) > 1.5)
-                        continue; //????? 0.5 needs to be reviewed                                                                                     
+                        continue; //????? 0.5 needs to be reviewed
                     if (Abs(v_single[0][kk] - v_est) < min_a) {
                         min_a = Abs(v_single[0][kk] - v_est);
                         rh_seg[6][nDC_segments] = v_single[0][kk];
                         rh_sigm_seg[6][nDC_segments] = sigm_v_single[0][kk];
                         foundV = kTRUE;
                     }
-                }//for kk                                                                                                                                                           
+                }//for kk
                 for (Int_t kk = 0; kk < single_vb; kk++) {
                     if (Abs(v_single[1][kk] - v_est) > 1.5)
-                        continue; //????? 0.5 needs to be reviewed                                                                                     
+                        continue; //????? 0.5 needs to be reviewed
                     if (Abs(v_single[1][kk] - v_est) < min_b) {
                         min_b = Abs(v_single[1][kk] - v_est);
                         rh_seg[7][nDC_segments] = v_single[1][kk];
@@ -607,7 +607,7 @@ InitStatus BmnDchTrackFinder::Init() {
             scaling[fi];
     fin.close();
 
-    // z local xa->vb (cm) 
+    // z local xa->vb (cm)
     Double_t arr1[8] = {9.3, 8.1, 3.5, 2.3, -2.3, -3.5, -8.1, -9.3};
     for (Int_t iSize = 0; iSize < 4 * N; iSize++)
         z_loc[iSize] = arr1[iSize];
@@ -707,7 +707,7 @@ void BmnDchTrackFinder::PrepareArraysToProcessEvent() {
     has7DC1 = kFALSE;
     has7DC2 = kFALSE;
 
-    // Array cleaning and initializing 
+    // Array cleaning and initializing
     for (Int_t iChamber = 0; iChamber < nChambers; iChamber++)
         for (Int_t iWire = 0; iWire < nWires; iWire++) {
             pairs[iChamber][iWire] = 0;

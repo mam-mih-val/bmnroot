@@ -11,6 +11,7 @@
 #include "TMath.h"
 #include "TF1.h"
 #include "TArc.h"
+#include "TLine.h"
 #include "TCanvas.h"
 #include "TH2F.h"
 #include "Math/WrappedTF1.h"
@@ -236,7 +237,7 @@ Float_t NumericalRootFinder(TF1 f, Float_t left, Float_t right) {
     return brf.Root();
 }
 
-TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type) {
+TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
 
     //Weighted Least Square Method//
     Float_t Xi = 0.0, Yi = 0.0; // coordinates of current track point
@@ -250,7 +251,16 @@ TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type) {
     Float_t SumWXY = 0.0; // sum of (weight * x * y)
     Float_t SumWX2 = 0.0; // sum of (weight * x * x)
 
+  //  TH2F* h_Hits = new TH2F("h_Hits", "h_Hits", 400, 0.0, 250.0, 400, -10.0, 10.0);
+  //  TH2F* h_HitsAll = new TH2F("h_HitsAll", "h_HitsAll", 400, 0.0, 250.0, 400, -10.0, 10.0);
+
     const Float_t nHits = track->GetNHits();
+
+//    for (Int_t iHit = 0; iHit < arr->GetEntriesFast(); iHit++) {
+//        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(iHit);
+//        h_HitsAll->Fill(hit->GetZ(), hit->GetX());
+//    }
+
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
         if (type.Contains("XY")) {
@@ -261,6 +271,7 @@ TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type) {
             Xi = hit->GetZ();
             Yi = hit->GetX();
             Si = hit->GetDx();
+         //   h_Hits->Fill(hit->GetZ(), hit->GetX());
         } else if (type.Contains("ZY")) {
             Xi = hit->GetZ();
             Yi = hit->GetY();
@@ -279,6 +290,30 @@ TVector3 LineFit(BmnGemTrack* track, const TClonesArray* arr, TString type) {
 
     a = (SumW * SumWXY - SumWX * SumWY) / (SumW * SumWX2 - SumWX * SumWX);
     b = (SumWX2 * SumWY - SumWX * SumWXY) / (SumW * SumWX2 - SumWX * SumWX);
+
+    // z1, x1, z2, x2
+ //   TLine* line = new TLine();
+    // line->SetFillStyle(0);
+//    line->SetLineWidth(2);
+//    line->SetLineColor(kBlue);
+    // line->SetNoEdges(1);
+
+//    TCanvas* c_New = new TCanvas("c", "c", 1000, 500);
+//    c_New->cd();
+//    h_Hits->SetMarkerStyle(20);
+//    h_Hits->SetMarkerSize(1.5);
+//    h_Hits->SetMarkerColor(kRed);
+//    h_Hits->Draw("P");
+//    h_HitsAll->SetMarkerStyle(20);
+//    h_HitsAll->SetMarkerSize(0.75);
+//    h_HitsAll->SetMarkerColor(kBlue);
+//    h_HitsAll->Draw("Psame");
+//    line->Draw("same");
+//    c_New->SaveAs("hits.png");
+//    getchar();
+//    delete h_Hits;
+//    delete c_New;
+//    delete line;
 
     Float_t chi2 = 0.0;
 
@@ -322,15 +357,15 @@ TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) 
     Double_t Szx = 0.0;
     Double_t Szy = 0.0;
 
-//    TH2F* h_Hits = new TH2F("h_Hits", "h_Hits", 400, 0.0, 250.0, 400, -10.0, 10.0);
-    
+    //    TH2F* h_Hits = new TH2F("h_Hits", "h_Hits", 400, 0.0, 250.0, 400, -10.0, 10.0);
+
     const Float_t nHits = track->GetNHits();
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
         //Use Z and X coordinates of hits to fit in ZX plane
         Yi = hit->GetZ();
         Xi = hit->GetX();
-//        h_Hits->Fill(hit->GetZ(), hit->GetX());
+        //        h_Hits->Fill(hit->GetZ(), hit->GetX());
         Zi = Xi * Xi + Yi * Yi;
         Wi = 1.0 / hit->GetDx() / hit->GetDx();
 
@@ -352,28 +387,28 @@ TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) 
     Zc = -0.5 * C;
     R = Sqrt(0.25 * B * B + 0.25 * C * C - D);
 
-//    BmnGemStripHit* hitF = (BmnGemStripHit*) arr->At(track->GetHitIndex(0));
-//    BmnGemStripHit* hitL = (BmnGemStripHit*) arr->At(track->GetHitIndex(nHits - 1));
-    
-//    
-//    TArc* arc = new TArc(Zc, Xc, R, ATan2((hitF->GetX() - Xc), (hitF->GetZ() - Zc)) * RadToDeg(), ATan2((hitL->GetX() - Xc), (hitL->GetZ() - Zc)) * RadToDeg());
-//    arc->SetFillStyle(0);
-//    arc->SetLineWidth(2);
-//    arc->SetLineColor(kBlue);
-//    arc->SetNoEdges(1);
-//    
-//    TCanvas* c_New = new TCanvas("c", "c", 1000, 500);
-//    c_New->cd();
-//    h_Hits->SetMarkerStyle(20);
-//    h_Hits->SetMarkerSize(1.5);
-//    h_Hits->SetMarkerColor(kRed);
-//    h_Hits->Draw("P");
-//    arc->Draw("same");
-//    c_New->SaveAs("hits.png");
-//    getchar();
-//    delete h_Hits;
-//    delete c_New;
-//    delete arc;
+    //    BmnGemStripHit* hitF = (BmnGemStripHit*) arr->At(track->GetHitIndex(0));
+    //    BmnGemStripHit* hitL = (BmnGemStripHit*) arr->At(track->GetHitIndex(nHits - 1));
+
+    //    
+    //    TArc* arc = new TArc(Zc, Xc, R, ATan2((hitF->GetX() - Xc), (hitF->GetZ() - Zc)) * RadToDeg(), ATan2((hitL->GetX() - Xc), (hitL->GetZ() - Zc)) * RadToDeg());
+    //    arc->SetFillStyle(0);
+    //    arc->SetLineWidth(2);
+    //    arc->SetLineColor(kBlue);
+    //    arc->SetNoEdges(1);
+    //    
+    //    TCanvas* c_New = new TCanvas("c", "c", 1000, 500);
+    //    c_New->cd();
+    //    h_Hits->SetMarkerStyle(20);
+    //    h_Hits->SetMarkerSize(1.5);
+    //    h_Hits->SetMarkerColor(kRed);
+    //    h_Hits->Draw("P");
+    //    arc->Draw("same");
+    //    c_New->SaveAs("hits.png");
+    //    getchar();
+    //    delete h_Hits;
+    //    delete c_New;
+    //    delete arc;
 
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
@@ -495,6 +530,7 @@ TVector3 CircleBy3Hit(BmnGemTrack* track, const BmnGemStripHit* h0, const BmnGem
 
 }
 // Пусть пока этот крокодил поживет здесь:)
+
 void fit_seg(Float_t* z_loc, Float_t* rh_seg, Float_t* rh_sigm_seg, Float_t* par_ab, Int_t skip_first, Int_t skip_second) {
     Double_t sqrt_2 = sqrt(2.);
     //linear fit
@@ -508,7 +544,7 @@ void fit_seg(Float_t* z_loc, Float_t* rh_seg, Float_t* rh_sigm_seg, Float_t* par
     //      Float_t sigm_sq[8] = {1,1,1,1,1,1,1,1};
     Int_t h[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-    for (Int_t i = 0; i < 4; i++) 
+    for (Int_t i = 0; i < 4; i++)
         par_ab[i] = 999;
 
     for (Int_t i = 0; i < 8; i++) {

@@ -137,6 +137,9 @@ private:
     int numslots[TOF2_MAX_CRATES*TOF2_MAX_SLOTS_IN_CRATE]; 
     int idcrates[TOF2_MAX_CRATES], numcrates[TOF2_MAX_CRATES]; 
 
+    int numcrate(int id);
+    int nrec[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE][TOF2_MAX_CHANNELS_IN_SLOT];
+
     float tmean[2][TOF2_MAX_CHANNEL];
     int ntmean[2][TOF2_MAX_CHANNEL];
     float tmean_average[2][TOF2_MAX_CHAMBERS];

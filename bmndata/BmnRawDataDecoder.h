@@ -41,23 +41,6 @@
 #define WAIT_LIMIT 45000000
 using namespace std;
 
-struct digiArrays {
-    TClonesArray *gem;
-    TClonesArray *tof400;
-    TClonesArray *tof700;
-    TClonesArray *zdc;
-    TClonesArray *dch;
-    TClonesArray *mwpc;
-    TClonesArray *t0;
-    TClonesArray *bc1;
-    TClonesArray *bc2;
-    TClonesArray *veto;
-    TClonesArray *fd;
-    TClonesArray *bd;
-    //header array
-    TClonesArray *header;
-};
-
 class DigiArrays : public TObject {
 public:
     DigiArrays(){
@@ -77,19 +60,19 @@ public:
     };
     ~DigiArrays(){};
     void Clear(){
-        delete this->bc1;
-        delete this->bc2;
-        delete this->bd;
-        delete this->dch;
-        delete this->fd;
-        delete this->gem;
-        delete this->header;
-        delete this->mwpc;
-        delete this->t0;
-        delete this->tof400;
-        delete this->tof700;
-        delete this->zdc;
-        delete this->veto;
+        if (bc1) delete bc1;
+        if (bc2) delete bc2;
+        if (bd) delete bd;
+        if (dch) delete dch;
+        if (fd) delete fd;
+        if (gem) delete gem;
+        if (header) delete header;
+        if (mwpc) delete mwpc;
+        if (t0) delete t0;
+        if (tof400) delete tof400;
+        if (tof700) delete tof700;
+        if (zdc) delete this->zdc;
+        if (veto) delete veto;
     };
     TClonesArray *gem;//->
     TClonesArray *tof400;//->
@@ -124,7 +107,6 @@ public:
     BmnStatus CalcGemPedestals();
     BmnStatus InitConverter();
     BmnStatus InitConverter(deque<UInt_t> *dq);
-    BmnStatus DisposeConverter();
     BmnStatus InitDecoder();
     void ResetDecoder(TString file);
     BmnStatus DisposeDecoder();
@@ -140,9 +122,10 @@ public:
     deque<UInt_t> *GetQue() {
         return fDataQueue;
     }
-
-    struct digiArrays GetDigiArrays() {
-        struct digiArrays d;
+    
+    DigiArrays GetDigiArraysObject() {
+//        fDigiTree->GetEntry(GetEventId());
+        DigiArrays d;// = new DigiArrays();
         d.gem = gem;
         d.tof400 = tof400;
         d.tof700 = tof700;
@@ -156,26 +139,6 @@ public:
         d.fd = fd;
         d.bd = bd;
         d.header = eventHeader;
-        return d;
-    }
-    
-    
-    DigiArrays GetDigiArraysObject() {
-//        fDigiTree->GetEntry(GetEventId());
-        DigiArrays d;// = new DigiArrays();
-        d.gem = (TClonesArray*)gem;
-        d.tof400 = (TClonesArray*)tof400;
-        d.tof700 = (TClonesArray*)tof700;
-        d.zdc = (TClonesArray*)zdc;
-        d.dch = (TClonesArray*)dch;
-        d.mwpc = (TClonesArray*)mwpc;
-        d.t0 = (TClonesArray*)t0;
-        d.bc1 = (TClonesArray*)bc1;
-        d.bc2 = (TClonesArray*)bc2;
-        d.veto = (TClonesArray*)veto;
-        d.fd = (TClonesArray*)fd;
-        d.bd = (TClonesArray*)bd;
-        d.header = (TClonesArray*)eventHeader;
         return d;
     }
     

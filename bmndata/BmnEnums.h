@@ -76,6 +76,7 @@ enum BmnEventType {
 enum BmnWorkerState {
     kBMNWAIT    = 0,
     kBMNWORK    = 1,
+    kBMNRECON   = 2,
 };
 
 #endif /* BMNENUMS_H_ */

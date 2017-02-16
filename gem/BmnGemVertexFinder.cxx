@@ -24,7 +24,7 @@ BmnGemVertexFinder::~BmnGemVertexFinder() {
 
 InitStatus BmnGemVertexFinder::Init() {
 
-    cout << "======================== Vertex finder init started =========================" << endl;
+    cout << "--------------------------- Vertex finder init started --------------------" << endl;
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
@@ -39,13 +39,13 @@ InitStatus BmnGemVertexFinder::Init() {
 
     fField = FairRunAna::Instance()->GetField();
 
-    cout << "======================== Vertex finder init finished ========================" << endl;
+    cout << "=========================== Vertex finder init finished ===================" << endl;
 }
 
 void BmnGemVertexFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
 
-    cout << "\n======================== Vertex finder exec started =====================\n" << endl;
+    cout << "--------------------------- Vertex finder exec started --------------------" << endl;
     cout << "Event number: " << fEventNo++ << endl;
 
     fVertexArray->Clear();

@@ -184,26 +184,6 @@ void BmnTrackingQa::ReadDataBranches() {
             cout << "BmnTrackingQA::Init: No BmnTof1Hit array!" << endl;
         }
     }
-    if (fDet.GetDet(kDCH1)) {
-        fDch1Points = (TClonesArray*) ioman->GetObject("DCH1Point");
-        if (NULL == fDch1Points) {
-            cout << "BmnTrackingQA::Init: No DCH1Point array!" << endl;
-        }
-        fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit0");
-        if (NULL == fDch1Hits) {
-            cout << "BmnTrackingQA::Init: No BmnDch1Hit0 array!" << endl;
-        }
-    }
-    if (fDet.GetDet(kDCH2)) {
-        fDch2Points = (TClonesArray*) ioman->GetObject("DCH2Point");
-        if (NULL == fDch2Points) {
-            cout << "BmnTrackingQA::Init: No DCH2Point array!" << endl;
-        }
-        fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit0");
-        if (NULL == fDch2Hits) {
-            cout << "BmnTrackingQA::Init: No BmnDch2Hit0 array!" << endl;
-        }
-    }
     if (fDet.GetDet(kTOF)) {
         fTof2Points = (TClonesArray*) ioman->GetObject("TofPoint");
         if (NULL == fTof2Points) {
@@ -279,8 +259,7 @@ vector<string> BmnTrackingQa::CreateGlobalTrackingHistogramNames() {
     vector<string> detectors;
     if (fDet.GetDet(kGEM)) detectors.push_back("Gem");
     //    if (fDet.GetDet(kTOF1)) detectors.push_back("Tof1");
-    //    if (fDet.GetDet(kDCH1)) detectors.push_back("Dch1");
-    //    if (fDet.GetDet(kDCH2)) detectors.push_back("Dch2");
+    //    if (fDet.GetDet(kDCH1)) detectors.push_back("Dch");
     //    if (fDet.GetDet(kTOF)) detectors.push_back("Tof2");
     vector<string> names1 = CreateGlobalTrackingHistogramNames(detectors);
     set<string> names;
@@ -295,8 +274,7 @@ vector<string> BmnTrackingQa::GlobalTrackVariants() {
     vector<string> detectors;
     if (fDet.GetDet(kGEM)) detectors.push_back("Gem");
     if (fDet.GetDet(kTOF1)) detectors.push_back("Tof1");
-    if (fDet.GetDet(kDCH1)) detectors.push_back("Dch1");
-    if (fDet.GetDet(kDCH2)) detectors.push_back("Dch2");
+    if (fDet.GetDet(kDCH)) detectors.push_back("Dch");
     if (fDet.GetDet(kTOF)) detectors.push_back("Tof2");
     string name("");
     for (Int_t i = 0; i < detectors.size(); ++i) {
@@ -333,8 +311,7 @@ void BmnTrackingQa::CreateHistograms() {
         CreateH1("hno_NofObjects_GemHits", "GEM hits per event", "Yield", nofBinsC, 1., maxXC);
     }
     if (fDet.GetDet(kTOF1)) CreateH1("hno_NofObjects_Tof1Hits", "TOF1 hits per event", "Yield", nofBinsC, 1., maxXC);
-    if (fDet.GetDet(kDCH1)) CreateH1("hno_NofObjects_Dch1Hits", "DCH1 hits per event", "Yield", nofBinsC, 1., maxXC);
-    if (fDet.GetDet(kDCH2)) CreateH1("hno_NofObjects_Dch2Hits", "DCH2 hits per event", "Yield", nofBinsC, 1., maxXC);
+    if (fDet.GetDet(kDCH)) CreateH1("hno_NofObjects_DchHits", "DCH1 hits per event", "Yield", nofBinsC, 1., maxXC);
     if (fDet.GetDet(kTOF)) CreateH1("hno_NofObjects_Tof2Hits", "TOF2 hits per event", "Yield", nofBinsC, 1., maxXC);
 
     // Histogram stores number of events
@@ -743,7 +720,7 @@ void BmnTrackingQa::ProcessGlobal() {
 }
 
 void BmnTrackingQa::FillTrackQualityHistograms(const BmnTrackMatch* trackMatch, DetectorId detId) {
-    string detName = (detId == kGEM) ? "Gem" : (detId == kTOF1) ? "Tof1" : (detId == kDCH1) ? "Dch1" : (detId == kDCH2) ? "Dch2" : (detId == kTOF) ? "Tof2" : "";
+    string detName = (detId == kGEM) ? "Gem" : (detId == kTOF1) ? "Tof1" : (detId == kDCH) ? "Dch" : (detId == kTOF) ? "Tof2" : "";
     assert(detName != "");
     string histName = "hth_" + detName + "_TrackHits";
     fHM->H1(histName + "_All")->Fill(trackMatch->GetNofHits());
@@ -792,8 +769,7 @@ void BmnTrackingQa::IncreaseCounters() {
         fHM->H1("hno_NofObjects_GemHits")->Fill(fGemHits->GetEntriesFast());
     }
     if (fDet.GetDet(kTOF1) && fTof1Hits) fHM->H1("hno_NofObjects_Tof1Hits")->Fill(fTof1Hits->GetEntriesFast());
-    if (fDet.GetDet(kDCH1) && fDch1Hits) fHM->H1("hno_NofObjects_Dch1Hits")->Fill(fDch1Hits->GetEntriesFast());
-    if (fDet.GetDet(kDCH2) && fDch2Hits) fHM->H1("hno_NofObjects_Dch2Hits")->Fill(fDch2Hits->GetEntriesFast());
+    if (fDet.GetDet(kDCH) && fDchHits) fHM->H1("hno_NofObjects_DchHits")->Fill(fDchHits->GetEntriesFast());
     if (fDet.GetDet(kTOF) && fTof2Hits) fHM->H1("hno_NofObjects_Tof2Hits")->Fill(fTof2Hits->GetEntriesFast());
 }
 

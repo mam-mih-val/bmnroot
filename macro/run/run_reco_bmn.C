@@ -141,13 +141,9 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
-
-    //    BmnMwpcHitProducer* mwpcHP1 = new BmnMwpcHitProducer(1);
-    //    fRun->AddTask(mwpcHP1);
-    //    BmnMwpcHitProducer* mwpcHP2 = new BmnMwpcHitProducer(2);
-    //    fRun->AddTask(mwpcHP2);
-    //    BmnMwpcHitProducer* mwpcHP3 = new BmnMwpcHitProducer(3);
-    //    fRun->AddTask(mwpcHP3);
+    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
+    // mwpcHM->SetUseDigitsInTimeBin(kFALSE);
+    fRun->AddTask(mwpcHM);
 
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
@@ -189,6 +185,12 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     tof2HP->SetXshift(32.);
     //    fRun->AddTask(tof2HP);
 
+    // ====================================================================== //
+    // ===                           Tracking (MWPC)                      === //
+    // ====================================================================== //
+    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
+    fRun->AddTask(mwpcTF);
+    
     // ====================================================================== //
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
@@ -247,7 +249,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     Double_t rtime = timer.RealTime();
     Double_t ctime = timer.CpuTime();
     cout << endl << endl;
-    cout << "Macro finished successfully." << endl;
+    cout << "Macro finished successfully." << endl;     // marker of successful execution for CDASH
     cout << "Output file is " << outFile << endl;
     cout << "Parameter file is " << parFile << endl;
     cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;

@@ -106,8 +106,7 @@ void CbmMCTrack::Print(Int_t trackId) const {
          << ", MVD "  << GetNPoints(kMVD)
          << ", GEM "  << GetNPoints(kGEM)
          << ", TOF1 " << GetNPoints(kTOF1)
-         << ", DCH1 " << GetNPoints(kDCH1)
-         << ", DCH2 " << GetNPoints(kDCH2)
+         << ", DCH1 " << GetNPoints(kDCH)
          << ", TOF2 " << GetNPoints(kTOF)
          << ", ZDC "  << GetNPoints(kZDC)
          << ", RECOIL "  << GetNPoints(kRECOIL) << FairLogger::endl;
@@ -147,8 +146,7 @@ Int_t CbmMCTrack::GetNPoints(DetectorId detId) const
   else if ( detId == kMVD  ) return ( (fNPoints & (  7  <<  1) ) >>  1);
   else if ( detId == kGEM  ) return ( (fNPoints & ( 15  <<  4) ) >>  4);
   else if ( detId == kTOF1 ) return ( (fNPoints & (  1  <<  8) ) >>  8);
-  else if ( detId == kDCH1 ) return ( (fNPoints & ( 15  <<  9) ) >>  9);
-  else if ( detId == kDCH2 ) return ( (fNPoints & ( 15  << 13) ) >> 13);
+  else if ( detId == kDCH ) return ( (fNPoints & ( 15  <<  9) ) >>  9);
   else if ( detId == kTOF  ) return ( (fNPoints & (  1  << 17) ) >> 17);
   else if ( detId == kZDC  ) return ( (fNPoints & ( 15  << 18) ) >> 18);
   else if ( detId == kECAL  ) return ( (fNPoints & ( 3  << 22) ) >> 22);
@@ -190,16 +188,10 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Int_t nPoints) {
     fNPoints = ( fNPoints & ( ~ (  1 <<  8 ) ) )  |  ( nPoints <<  8 );
   }
 
-  else if ( iDet == kDCH1 ) {
+  else if ( iDet == kDCH ) {
     if      ( nPoints <  0 ) nPoints =  0;
     else if ( nPoints > 15 ) nPoints = 15;
     fNPoints = ( fNPoints & ( ~ ( 15 <<  9 ) ) )  |  ( nPoints <<  9 );
-  }
-
-  else if ( iDet == kDCH2 ) {
-    if      ( nPoints <  0 ) nPoints =  0;
-    else if ( nPoints > 15 ) nPoints = 15;
-    fNPoints = ( fNPoints & ( ~ ( 15 << 13 ) ) )  |  ( nPoints << 13 );
   }
 
   else if ( iDet == kTOF ) {
@@ -232,22 +224,7 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Int_t nPoints) {
     fNPoints = ( fNPoints & ( ~ ( 63 << 25 ) ) )  |  ( nPoints << 25 );
   }
 
-  else if ( iDet == kMWPC1) {
-//    if      ( nPoints < 0  ) nPoints = 0;
-//    else if ( nPoints > 63 ) nPoints = 63;
-//    fNPoints = ( fNPoints & ( ~ ( 63 << 25 ) ) )  |  ( nPoints << 25 );
-  }
-  
-  else if ( iDet == kMWPC2) {
-//    if      ( nPoints < 0  ) nPoints = 0;
-//    else if ( nPoints > 63 ) nPoints = 63;
-//    fNPoints = ( fNPoints & ( ~ ( 63 << 25 ) ) )  |  ( nPoints << 25 );
-  }
-  
-  else if ( iDet == kMWPC3) {
-//    if      ( nPoints < 0  ) nPoints = 0;
-//    else if ( nPoints > 63 ) nPoints = 63;
-//    fNPoints = ( fNPoints & ( ~ ( 63 << 25 ) ) )  |  ( nPoints << 25 );
+  else if ( iDet == kMWPC) {
   }
   else LOG(ERROR) << "Unknown detector ID "
           << iDet << FairLogger::endl;

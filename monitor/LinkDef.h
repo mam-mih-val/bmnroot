@@ -8,6 +8,10 @@
 #pragma link C++ class BmnDataReceiver++;
 #pragma link C++ class BmnMonitor++;
 #pragma link C++ class BmnOnlineDecoder++;
+#pragma link C++ class BmnHist+;
+#pragma link C++ class PadInfo<TH1F>++;
+#pragma link C++ class PadInfo<TH1I>++;
+//#pragma link C++ class PadInfo++;
 #pragma link C++ class BmnHistGem++;
 #pragma link C++ class BmnHistDch++;
 #pragma link C++ class BmnHistMwpc++;
@@ -24,7 +28,7 @@
 #pragma link C++ class vector<int*>+;
 #pragma link C++ class vector<vector<int*> >+;
 #pragma link C++ class vector<vector<vector<int*> > >+;
-#pragma link C++ const unsigned int[];
+#pragma link C++ class vector<TSocket*>+;
 
 #endif
 

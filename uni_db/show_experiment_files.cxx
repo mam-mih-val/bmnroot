@@ -32,7 +32,7 @@ int main(int argc, char** argv)
                <<"period - period number (range is supported by '-' symbol)"<<endl<<"run - run number (range is supported by '-' symbol)"<<endl
                <<"beam - first particle in collision (first beam)"<<endl<<"target - second particle in collision (second beam) OR target"<<endl
                <<"energy - collision energy (range is supported by '-' symbol)"<<endl<<"events - event count (range is supported by '-' symbol)"<<endl
-               <<"time - experimental file (or files in case of the time interval) including event at this time (range is supported by '-' symbol"<<endl
+               <<"time - experimental file (or files in case of the time interval) including event at this time (range is supported by '-' symbol), datetime format - yyyy-mm-dd 24hh:mm:ss"<<endl
                <<"field - field current (range is supported by '-' symbol)"<<endl<<"size - file size (range is supported by '-' symbol)"<<endl
                <<"path - part of the file path"<<endl<<endl<<"Examples:"<<endl<<"show_experiment_files period=5,energy=3-,beam=d,target=C"<<endl
                <<"show_experiment_files period=4-5,field=-800"<<endl;

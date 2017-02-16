@@ -28,10 +28,11 @@
 #include "THttpServer.h"
 #include "BmnEventHeader.h"
 
+#include "BmnHist.h"
 #include "BmnTof2Digit.h"
 #include "BmnTof2Raw2Digit.h"
 
-class BmnHistToF700 : public TNamed {
+class BmnHistToF700 : public BmnHist {
 public:
     BmnHistToF700(TString title);
     virtual ~BmnHistToF700();
@@ -50,7 +51,6 @@ public:
     
     void FillFromDigi(TClonesArray * ToF4Digits);
     void SetSelection(Int_t Plane, Int_t Strip);
-    void SaveHists();
     
     void  SetPlane(Int_t v){ fSelectedPlane = v;}
     void  SetSide (Int_t v){ fSelectedSide  = v;}
@@ -59,12 +59,10 @@ public:
     Int_t GetSide () { return fSelectedSide ;}
     Int_t GetStrip() { return fSelectedStrip;}    
 private:
-    THttpServer *fServer;
 //    TBranch * fEventsBranch;
     Int_t fSelectedPlane;
     Int_t fSelectedStrip;
     Int_t fSelectedSide;
-    TTree *frecoTree;
     TH1I *histL = new TH1I("", "", TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_STRIPS_IN_CHAMBER);
     TH1I *histR = new TH1I("", "", TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_STRIPS_IN_CHAMBER);
     TH1I histSimultaneous;

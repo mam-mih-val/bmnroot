@@ -340,8 +340,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
             return NULL;
         }
 
-        if (i++ == 0)
-            cout<<"Parameter length: "<<i_par_len<<" (real: "<<i_real_par_len<<"). Number of time points: "<<stmt_select->GetNumAffectedRows()/i_par_len<<"."<<endl;
+        //if (i++ == 0) cout<<"Parameter length: "<<i_par_len<<" (real: "<<i_real_par_len<<"). Number of time points: "<<stmt_select->GetNumAffectedRows()/i_par_len<<"."<<endl;
 
         TangoTimeParameter* par = new TangoTimeParameter(datetime, par_type);
         //cout<<par.parameter_time.AsString()<<endl;
@@ -392,7 +391,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
 }
 
 // now it works only if channel count is constant during given time period
-TObjArray* UniDbTangoData::SearchTangoIntervals(char* detector_name, char* parameter_name, char* date_start, char* date_end, enumConditions condition, bool value)
+TObjArray* UniDbTangoData::SearchTangoIntervals(char* detector_name, char* parameter_name, char* date_start, char* date_end, enumConditions condition, bool value, int* mapChannel)
 {
     TObjArray* tango_data = GetTangoParameter(detector_name, parameter_name, date_start, date_end);
     if (tango_data == NULL) return NULL;
@@ -468,7 +467,9 @@ TObjArray* UniDbTangoData::SearchTangoIntervals(char* detector_name, char* param
                     TDatime endInterval((((TangoTimeParameter*)tango_data->At(i))->parameter_time.Convert() + ((TangoTimeParameter*)tango_data->At(i-1))->parameter_time.Convert()) / 2);
 
                     TangoTimeInterval* pTimeInterval = new TangoTimeInterval(startInterval, endInterval);
-                    ((TObjArray*)pTimeIntervals->At(j))->Add(pTimeInterval);
+                    int real_channel = j;
+                    if (mapChannel) real_channel = mapChannel[j];
+                    ((TObjArray*)pTimeIntervals->At(real_channel))->Add(pTimeInterval);
                 }
             }
         }//for (int j = 0; j < pParameter->bool_parameter_value.size(); j++)
@@ -492,7 +493,9 @@ TObjArray* UniDbTangoData::SearchTangoIntervals(char* detector_name, char* param
             TDatime endInterval = ((TangoTimeParameter*)tango_data->At(tango_data->GetEntriesFast()-1))->parameter_time;
 
             TangoTimeInterval* pTimeInterval = new TangoTimeInterval(startInterval, endInterval);
-            ((TObjArray*)pTimeIntervals->At(j))->Add(pTimeInterval);
+            int real_channel = j;
+            if (mapChannel) real_channel = mapChannel[j];
+            ((TObjArray*)pTimeIntervals->At(real_channel))->Add(pTimeInterval);
         }
     }//write the last period if neccessary
 
@@ -612,11 +615,11 @@ void UniDbTangoData::PrintTangoDataMulti3D(TObjArray* tango_data)
     return;
 }
 
-void UniDbTangoData::PrintTangoIntervalConsole(TObjArray* tango_data)
+void UniDbTangoData::PrintTangoIntervalConsole(TObjArray* tango_data, TString channel_name)
 {
     for (int i = 0; i < tango_data->GetEntriesFast(); i++)
     {
-        cout<<"Channel "<<i<<":"<<endl;
+        cout<<channel_name.Data()<<" "<<i<<":"<<endl;
         TObjArray* pChannel = (TObjArray*) tango_data->At(i);
         for (int j = 0; j < pChannel->GetEntriesFast(); j++)
         {
@@ -625,7 +628,7 @@ void UniDbTangoData::PrintTangoIntervalConsole(TObjArray* tango_data)
             cout<<" - ";
             cout<<pInterval->end_time.AsSQLString();
         }
-        if (pChannel->GetEntriesFast() == 0) cout<<"No intervals correspond to the specified conditions...";
+        if (pChannel->GetEntriesFast() == 0) cout<<"   No intervals correspond to the specified conditions";
         cout<<endl;
     }
 

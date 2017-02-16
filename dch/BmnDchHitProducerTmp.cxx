@@ -134,11 +134,7 @@ BmnStatus BmnDchHitProducerTmp::ProcessPoints() {
         new((*fBmnDchHitsArray)[fBmnDchHitsArray->GetEntriesFast()]) BmnHit(0, TVector3(x_smeared, y_smeared, z_smeared), TVector3(err[0], err[1], err[2]), pointId);
         BmnHit* hit = (BmnHit*) fBmnDchHitsArray->At(fBmnDchHitsArray->GetEntriesFast() - 1);
         hit->SetIndex(fBmnDchHitsArray->GetEntriesFast() - 1);
-        if (fDchNum == 1) {
-            hit->SetDetId(kDCH1);
-        } else if (fDchNum == 2) {
-            hit->SetDetId(kDCH2);
-        }
+        hit->SetDetId(kDCH);
         hit->SetType(1);
 
         delete rand_gen;

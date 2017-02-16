@@ -25,7 +25,9 @@
 #include   <cstdio>
 #include   <iomanip>
 #include   <sstream>
-#include <Rtypes.h>
+#include   <Rtypes.h>
+
+#include   "TRegexp.h"
 
 #include   "FairTrackParam.h"
 
@@ -269,7 +271,19 @@ void BmnGemAlignment::StartPede() {
         }
     }
     //system(Form("cp millepede.res Millepede_%s_%s.res", fRecoFileName.Data(), fAlignmentType.Data()));
-    system(Form("cp millepede.res Millepede_%s_%s.res", fResultName.Data(), fAlignmentType.Data()));
+
+    // insert fAlignmentType before iteration number:
+    TRegexp re = "_it[0-9]+";
+    if (fResultName.Contains(re)) {
+        TSubString itNr = fResultName(re);
+        TString fResultNameNoItNr = fResultName;
+        fResultNameNoItNr.ReplaceAll(itNr, "");
+        system("cp millepede.res Millepede_"+fResultNameNoItNr+"_"+fAlignmentType+itNr+".res"); }
+    else {
+        system("cp millepede.res Millepede_"+fResultName      +"_"+fAlignmentType     +".res");
+    }
+    // Anatoly.Solomin@jinr.ru 2017-02-15 20:42:13
+
     system("rm millepede.*");
 }
 
@@ -357,7 +371,7 @@ void BmnGemAlignment::MakeSteerFile() {
                 modCounter++;
             }
     }
-     
+
     delete [] deltaZ;
 
     // 1. * aX_i = 0, 1. * aY_i = 0,  1. * aZ_i = 0

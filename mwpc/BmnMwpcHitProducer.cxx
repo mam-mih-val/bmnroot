@@ -138,9 +138,7 @@ BmnStatus BmnMwpcHitProducer::ProcessPoints() {
         new((*fBmnMwpcHitsArray)[fBmnMwpcHitsArray->GetEntriesFast()]) BmnHit(0, TVector3(x_smeared, y_smeared, z_smeared), TVector3(err[0], err[1], err[2]), trId);
         BmnHit* hit = (BmnHit*) fBmnMwpcHitsArray->At(fBmnMwpcHitsArray->GetEntriesFast() - 1);
         hit->SetIndex(fBmnMwpcHitsArray->GetEntriesFast() - 1);
-        if (fMwpcNum == 1) hit->SetDetId(kMWPC1);
-        else if (fMwpcNum == 2) hit->SetDetId(kMWPC2);
-        else if (fMwpcNum == 3) hit->SetDetId(kMWPC3);
+        hit->SetDetId(kMWPC);
         idx++;
 
         delete rand_gen;

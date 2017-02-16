@@ -128,6 +128,9 @@ private:
     int ntmean[2][TOF2_MAX_CHANNEL];
     float tmean_average[2][TOF2_MAX_CHAMBERS];
 
+    int numcrate(int id);
+    int nrec[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE][TOF2_MAX_CHANNELS_IN_SLOT];
+
     double DNL_Table[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE][72][1024];
     int dnltype[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE];
     char dnlname[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE][128];

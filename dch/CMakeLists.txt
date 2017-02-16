@@ -33,11 +33,11 @@ ${FAIRROOT_LIBRARY_DIR}
 link_directories( ${LINK_DIRECTORIES})
 
 set(Dch_SRCS
-BmnDch1.cxx 
-BmnDch1Point.cxx  
-BmnDch1ContFact.cxx  
-BmnDch1Geo.cxx 
-BmnDch1GeoPar.cxx
+BmnDch.cxx 
+BmnDchPoint.cxx  
+BmnDchContFact.cxx  
+BmnDchGeo.cxx 
+BmnDchGeoPar.cxx
 
 BmnDchHitProducer.cxx
 BmnDchHitProducerTmp.cxx
@@ -48,12 +48,6 @@ ScalarUI.cxx
 DchHitPlane.cxx
 BmnDchTrackFinder.cxx
 BmnDchTrack.cxx
-
-BmnDch2.cxx 
-BmnDch2Point.cxx  
-BmnDch2ContFact.cxx  
-BmnDch2Geo.cxx 
-BmnDch2GeoPar.cxx
 )
 
 

@@ -48,7 +48,7 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     histBDChannels->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_BD_Specific_Channel";
     histBDSpecific = new TH1D(name, name, 300, 0, 500);
-    histBDSpecific->GetXaxis()->SetTitle("Channel #");
+    histBDSpecific->GetXaxis()->SetTitle("Time, ns");
     histBDSpecific->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_Triggers_Counter";
     histTriggers = new TH1I(name, name, 5, 0, 5);
@@ -101,14 +101,10 @@ void BmnHistTrigger::FillFromDigi(
     for (Int_t digIndex = 0; digIndex < BDdigits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* bd = (BmnTrigDigit*) BDdigits->At(digIndex);
         histBDChannels->Fill(bd->GetMod());
-        new ((*BDEvents)[BDEvents->GetEntriesFast()]) BmnTrigDigit(bd->GetMod(), bd->GetTime(), bd->GetAmp());
+//        new ((*BDEvents)[BDEvents->GetEntriesFast()]) BmnTrigDigit(bd->GetMod(), bd->GetTime(), bd->GetAmp());
         if (bd->GetMod() == fSelectedBDChannel)
             histBDSpecific->Fill(bd->GetAmp());
     }
-}
-
-void BmnHistTrigger::SaveHists(TString imgSavePath) {
-    SaveHist(histTriggers, imgSavePath);
 }
 
 void BmnHistTrigger::SetBDChannel(Int_t iSelChannel) {
@@ -117,16 +113,16 @@ void BmnHistTrigger::SetBDChannel(Int_t iSelChannel) {
         printf("Wrong channel!\n");
         return;
     }
-    if (iSelChannel == -1)
-        title = Form("BD for All Channels");
-    else
-        title = Form("BD for %d channel", iSelChannel);
-    histBDSpecific->SetTitle(title);
     printf("Set channel: %d\n", fSelectedBDChannel);
     fSelectedBDChannel = iSelChannel;
     TString command;
     if (fSelectedBDChannel >= 0)
         command = Form("fMod == %d", fSelectedBDChannel);
+    if (iSelChannel == -1)
+        title = Form("BD for All Channels");
+    else
+        title = "BD Time Length For: " + command;
+    histBDSpecific->SetTitle(title);
     histBDSpecific->Reset();
     TString direction = "fTime>>" + TString(histBDSpecific->GetName());
     frecoTree->Draw(direction, command, "");
@@ -160,6 +156,7 @@ void BmnHistTrigger::Register(THttpServer *serv) {
     fServer->RegisterCommand(cmdTitle.Data(), "/" + fName + "/->SetBDChannel(%arg1%)", "button;");
     fServer->Restrict(cmdTitle.Data(), "visible=shift");
     fServer->Restrict(cmdTitle.Data(), "allow=shift");
+    fServer->Restrict(cmdTitle.Data(), "hidden=guest");
     fServer->Restrict(cmdTitle.Data(), "deny=guest");
     cmdTitle = path + "Reset";
     fServer->RegisterCommand(cmdTitle.Data(), "/" + fName + "/->Reset()", "button;");

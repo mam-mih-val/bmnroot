@@ -1,6 +1,6 @@
 /****************************************************************************
-    Класс для доступа к информации детекторов в БД эксперимента Tango
-    добавлено чтение информации по положению ZDC из CSV файлов
+           Class can be used to get hardware detector data
+             from Tango (Slow Control System) database
 ****************************************************************************/
 
 #ifndef UNIDBTANGODATA_H
@@ -24,7 +24,7 @@ struct CSVElement
     int varValue;		// value of the parameter
 };
 
-enum Tango_Parameter_Type {Tango_Bool_Parameter, Tango_Double_Parameter};
+enum Tango_Parameter_Type {Tango_Bool = 1, Tango_Double = 2, Tango_Bool_Array = 11, Tango_Double_Array = 12};
 
 class TangoTimeParameter : public TObject
 {
@@ -45,11 +45,6 @@ class TangoTimeParameter : public TObject
     /** Destructor **/
     virtual ~TangoTimeParameter();
 
-    /** Initialisation (virtual). If needed, to be implemented in the
-    ** derived class. Else no action.
-    **/
-    //virtual void Init(){}
-
   ClassDef(TangoTimeParameter,1);
 };
 
@@ -68,11 +63,6 @@ class TangoTimeInterval : public TObject
 
     /** Destructor **/
     virtual ~TangoTimeInterval();
-
-    /** Initialisation (virtual). If needed, to be implemented in the
-    ** derived class. Else no action.
-    **/
-    //virtual void Init(){}
 
   ClassDef(TangoTimeInterval,1);
 };
@@ -138,6 +128,9 @@ class UniDbTangoData
     void PrintTangoDataSurface(TObjArray* tango_data);
     void PrintTangoDataMulti3D(TObjArray* tango_data);
     void PrintTangoIntervalConsole(TObjArray* tango_data, TString channel_name = "Channel");
+
+    // return average value for Tango data array (result vector with size greater than 1 is used in case of many channels)
+    vector<double> GetAverageTangoData(TObjArray* tango_data);
 
  ClassDef(UniDbTangoData,1)
 };

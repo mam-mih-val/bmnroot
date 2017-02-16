@@ -283,23 +283,34 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
     delete stmt_select;
 
     Tango_Parameter_Type par_type;
-    if (data_type == "array_devdouble_rw")
-        par_type = Tango_Double_Parameter;
+    if ((data_type == "array_devdouble_rw") || (data_type == "array_devdouble_ro"))
+        par_type = Tango_Double_Array;
     else
     {
-        if (data_type == "array_devboolean_rw")
-            par_type = Tango_Bool_Parameter;
+        if ((data_type == "array_devboolean_rw") || (data_type == "array_devboolean_ro"))
+            par_type = Tango_Bool_Array;
         else
         {
-            cout<<"Error: This Tango type is not supported: '"<<data_type<<endl;
-            delete db;
-            return NULL;
+            if ((data_type == "scalar_devdouble_rw") || (data_type == "scalar_devdouble_ro"))
+                par_type = Tango_Double;
+            else
+            {
+                cout<<"Error: This Tango type is not supported: '"<<data_type<<"'"<<endl;
+                delete db;
+                return NULL;
+            }
         }
     }
 
     // getting data from the table found by attribute type
-    TString query_data = TString::Format("SELECT data_time, dim_x_r, dim_x_w, idx, value_r FROM %s WHERE att_conf_id=\"%d\" and data_time>=\"%s\" and data_time<=\"%s\" ORDER BY data_time,idx",
-                                        table_name.Data(), data_id, date_start, date_end);
+    TString query_data = "";
+    if (par_type > 10)
+        query_data = TString::Format("SELECT data_time, value_r, dim_x_r, dim_x_w, idx FROM %s WHERE att_conf_id=\"%d\" and data_time>=\"%s\" and data_time<=\"%s\" ORDER BY data_time,idx",
+                                     table_name.Data(), data_id, date_start, date_end);
+    else
+        query_data = TString::Format("SELECT data_time, value_r FROM %s WHERE att_conf_id=\"%d\" and data_time>=\"%s\" and data_time<=\"%s\" ORDER BY data_time",
+                                      table_name.Data(), data_id, date_start, date_end);
+
     //cout<<"Query data: "<<query_data<<endl;
     stmt_select = db->Statement(query_data);
     if (!stmt_select->Process())
@@ -320,7 +331,9 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
     while (stmt_select->NextResultRow())
     {
         TDatime datetime = stmt_select->GetTimestamp(0);
-        int i_par_len = stmt_select->GetInt(1);
+
+        int i_par_len = 1;
+        if (par_type > 10) i_par_len = stmt_select->GetInt(2);
         if (i_par_len == 0)
         {
             cout<<"Error: Parameter length can't be equal 0"<<endl;
@@ -330,7 +343,8 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
             return NULL;
         }
 
-        int i_real_par_len = stmt_select->GetInt(2);
+        int i_real_par_len = 1;
+        if (par_type > 10) i_real_par_len = stmt_select->GetInt(3);
         if (i_real_par_len == 0)
         {
             cout<<"Error: Real parameter length can't be equal 0"<<endl;
@@ -349,7 +363,9 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
             if (ind > 0)
                 stmt_select->NextResultRow();
 
-            int i_idx = stmt_select->GetInt(3);
+            int i_idx = 0;
+            if (par_type > 10)
+                 i_idx = stmt_select->GetInt(4);
             //cout<<"idx:ind - "<<idx<<":"<<ind<<endl;
             if (i_idx != ind)
             {
@@ -363,16 +379,16 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
             if (ind >= i_real_par_len)
                 continue;
 
-            if (par_type == Tango_Bool_Parameter)
+            if ((par_type == Tango_Bool_Array) || (par_type == Tango_Bool))
             {
-                bool b_val = (bool) stmt_select->GetInt(4);
+                bool b_val = (bool) stmt_select->GetInt(1);
                 par->bool_parameter_value.push_back(b_val);
                 par->double_parameter_value.push_back(b_val);
                 //cout<<par.bool_parameter_value[par.bool_parameter_value.size()-1]<<endl;
             }
             else
             {
-                double d_val = stmt_select->GetDouble(4);
+                double d_val = stmt_select->GetDouble(1);
                 par->double_parameter_value.push_back(d_val);
                 //cout<<par.double_parameter_value[par.double_parameter_value.size()-1]<<endl;
             }
@@ -633,6 +649,28 @@ void UniDbTangoData::PrintTangoIntervalConsole(TObjArray* tango_data, TString ch
     }
 
     return;
+}
+
+vector<double> UniDbTangoData::GetAverageTangoData(TObjArray* tango_data)
+{
+    vector<double> result;
+    int time_count = tango_data->GetEntriesFast();
+    for (int i = 0; i < time_count; i++)
+    {
+        TangoTimeParameter* pParameter = (TangoTimeParameter*) tango_data->At(i);
+        for (int j = 0; j < pParameter->double_parameter_value.size(); j++)
+        {
+            if (i == 0)
+                result.push_back(pParameter->double_parameter_value[j]);
+            else
+                result[j] += pParameter->double_parameter_value[j];
+        }
+    }
+
+    for (int j = 0; j < result.size(); j++)
+       result[j] /= time_count;
+
+    return result;
 }
 
 // -------------------------------------------------------------------

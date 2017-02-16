@@ -142,7 +142,7 @@ def main() :
             bmndstFileNames.append(bmndstFileName+'\n')
             # run the reconstruction
 
-            call(['root', '-l', '-q', '$VMCWORKDIR/macro/run/run_reco_bmn.C("'+digiFileName+'", "'+bmndstFileName+'", '+str(0)+', '+str(options.nEvents)+', '+options.isPrimary+', "'+sumAlignCorrFileName+'")'])
+            call(['root', '-l', '-q', '$VMCWORKDIR/macro/run/run_reco_bmn_new.C("'+digiFileName+'", "'+bmndstFileName+'", '+str(0)+', '+str(options.nEvents)+', '+options.isPrimary+', "'+sumAlignCorrFileName+'")'])
             # count total events processed for the alignment:
             nEventsTotal += options.nEvents
         # We also prepare a file with the list of these files inside the loop.

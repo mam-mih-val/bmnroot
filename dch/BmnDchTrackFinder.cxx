@@ -36,9 +36,9 @@ expData(isExp) {
     nLayers = 2;
     nSegmentsMax = 100;
 
-    Z_dch1 = 529.65;
-    Z_dch2 = 727.65;
-    Z_dch_mid = 628.65;
+    Z_dch1 = 523.45;
+    Z_dch2 = 722.45;
+    Z_dch_mid = 622.95;
 
     x1_sh = 15.0;
     x2_sh = 12.2;

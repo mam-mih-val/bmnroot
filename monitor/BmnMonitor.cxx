@@ -350,6 +350,11 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     fHistOut = new TFile(outHistName, "recreate");
     fRecoTree = new TTree("BmnMon", "BmnMon");
     fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
+    if (fRecoTree4Show) {
+        fRecoTree4Show->Clear();
+        delete fRecoTree4Show;
+        fRecoTree4Show = NULL;
+    }
     fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
     fRecoTree4Show->SetDirectory(NULL); // tree will not be saved
 
@@ -624,8 +629,6 @@ void BmnMonitor::FinishRun() {
     //            delete fRecoTree;
     //    DBG("tree deleted")
     //    DBG("fHist closed")
-    fRecoTree4Show->Clear();
-    delete fRecoTree4Show;
     string cmd;
     cmd = string("chmod 775 ") + fHistOut->GetName();
     printf("system result = %d\n", system(cmd.c_str()));
@@ -651,8 +654,8 @@ void BmnMonitor::threadReceiveWrapper(BmnDataReceiver* dr) {
 void BmnMonitor::threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent) {
 
     BmnOnlineDecoder *deco = new BmnOnlineDecoder();
-    //    deco->Decode(dirname, startFile, runCurrent);
-    deco->BatchDirectory(dirname);
+    deco->Decode(dirname, startFile, runCurrent);
+    //    deco->BatchDirectory(dirname);
 }
 
 ClassImp(BmnMonitor);

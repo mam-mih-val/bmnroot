@@ -7,8 +7,9 @@
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 
-void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root",
-        Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE) {
+void run_reco_bmn(TString inFile = "run5-1014:$VMCWORKDIR/macro/raw/bmn_run1014_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst_1014.root", Int_t nStartEvent = 0, Int_t nEvents = 1000, Bool_t isPrimary = kTRUE) {
+//void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root",
+//        Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
@@ -125,7 +126,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // Parameter file
     TString parFile = inFile;
 
-    // Digitisation files.
+    // Digitization files.
     // Add TObjectString containing the different file names to
     // a TList which is passed as input to the FairParAsciiFileIo.
     // The FairParAsciiFileIo will take care to create on the fly
@@ -137,6 +138,11 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 
     TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
     parFileList->Add(&tofDigiFile);
+
+    if (iVerbose == 0) { // print only progress bar in terminal in quiet mode
+        BmnCounter* cntr = new BmnCounter(nEvents);
+        fRun->AddTask(cntr);
+    }
 
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
@@ -172,9 +178,9 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //
 
-    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", kFALSE, 1, kTRUE);
+    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
     //tof1HP->SetOnlyPrimary(kTRUE);
-        fRun->AddTask(tof1HP);
+    fRun->AddTask(tof1HP);
 
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
@@ -190,7 +196,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ====================================================================== //
     BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
     fRun->AddTask(mwpcTF);
-    
+
     // ====================================================================== //
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
@@ -199,31 +205,35 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     gemSF->SetUseLorentz(kTRUE);
     gemSF->SetField(isField);
     gemSF->SetTarget(isTarget);
-    gemSF->SetXRange(0.0, 100.0);
-    gemSF->SetYRange(-1.0, 1.0);
+    //gemSF->SetXRange(-1.0, 10.0);
+    //gemSF->SetYRange(-0.5, 0.5);
     gemSF->AddStationToSkip(0);
-    // gemSF->AddStationToSkip(1);
-    // gemSF->AddStationToSkip(2);
+    gemSF->AddStationToSkip(1);
+    gemSF->AddStationToSkip(2);
     fRun->AddTask(gemSF);
 
     BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
     gemTF->SetField(isField);
     fRun->AddTask(gemTF);
-    
-    // -----   Primary vertex finding   ---------------------------------------
+
+    // ====================================================================== //
+    // ===                     Primary vertex finding                     === //
+    // ====================================================================== //
     BmnGemVertexFinder* vf = new BmnGemVertexFinder();
     vf->SetField(isField);
     fRun->AddTask(vf);
-
-    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
-    //    fRun->AddTask(glFinder); 
-    // ------------------------------------------------------------------------
 
     // ====================================================================== //
     // ===                           Tracking (DCH)                       === //
     // ====================================================================== //
     BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
     fRun->AddTask(dchTF);
+
+    // ====================================================================== //
+    // ===                          Global Tracking                       === //
+    // ====================================================================== //
+    BmnGlobalTracking* glFinder = new BmnGlobalTracking();
+    fRun->AddTask(glFinder);
 
     // -----  Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
@@ -238,6 +248,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
     // ------------------------------------------------------------------------
 
     // -----   Initialize and run   --------------------------------------------
+    fRun->GetMainTask()->SetVerbose(iVerbose);
     fRun->Init();
     cout << "Starting run" << endl;
     fRun->Run(nStartEvent, nStartEvent + nEvents);

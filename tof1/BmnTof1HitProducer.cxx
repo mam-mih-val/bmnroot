@@ -133,7 +133,7 @@ Bool_t 		BmnTof1HitProducer::DoubleHitExist(Double_t val) // val - distance to t
 //--------------------------------------------------------------------------------------------------------------------------------------
 void 		BmnTof1HitProducer::Exec(Option_t* opt) 
 {
-    cout << endl << "======================== TOF400 exec started ====================" << endl;
+    if (fVerbose) cout << endl << "======================== TOF400 exec started ====================" << endl;
 	static const TVector3 XYZ_err(fErrX, fErrY, 0.); 
 
 	aTofHits->Clear();
@@ -272,8 +272,8 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
 
 	int nFinally = CompressHits(); // remove blank slotes
 
-        cout<<"Tof400  single hits= "<<nSingleHits<<", double hits= "<<nDoubleHits<<", final hits= "<<nFinally<<endl;
-        cout << "======================== TOF400 exec finished ====================" << endl;
+        if (fVerbose) cout<<"Tof400  single hits= "<<nSingleHits<<", double hits= "<<nDoubleHits<<", final hits= "<<nFinally<<endl;
+        if (fVerbose) cout << "======================== TOF400 exec finished ====================" << endl;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void 			BmnTof1HitProducer::Finish() 

@@ -1,7 +1,7 @@
 #include "../db_structures.h"
 
 // macro for getting average magnetic field for 930 run (5-th session)
-void tango_avg_field()
+void tango_avg_field(int period = 5, int run = 930)
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
@@ -10,7 +10,13 @@ void tango_avg_field()
     UniDbTangoData db_tango;
 
     // get run time (period 5, run 930)
-    UniDbRun* pRun = UniDbRun::GetRun(5, 930);
+    UniDbRun* pRun = UniDbRun::GetRun(period, run);
+    if (pRun == NULL)
+    {
+        cout<<"Macro finished with errors: no experimental run was found for given numbers"<<endl;
+        exit(-1);
+    }
+
     TString strDateStart = pRun->GetStartDatetime().AsSQLString();
     TString strDateEnd = pRun->GetEndDatetime()->AsSQLString();
     delete pRun;
@@ -34,6 +40,6 @@ void tango_avg_field()
     double average_field = vec_average[0];
     delete tango_data;
 
-    cout<<"Average magnetic field for run 930: "<<average_field<<" mv"<<endl;
+    cout<<"Average magnetic field for run "<<period<<"-"<<run<<": "<<average_field<<" mv"<<endl;
     cout<<"Macro finished successfully"<<endl;
 }

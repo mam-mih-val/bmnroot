@@ -174,7 +174,7 @@ void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString
 
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", kFALSE, 1, kTRUE);
     //tof1HP->SetOnlyPrimary(kTRUE);
-    //    fRun->AddTask(tof1HP);
+        fRun->AddTask(tof1HP);
 
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //

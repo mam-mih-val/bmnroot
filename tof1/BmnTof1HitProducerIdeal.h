@@ -18,6 +18,7 @@ protected:
         TClonesArray 			*aMcPoints;	//! <--- MC input
         TClonesArray 			*aMcTracks;	//! <--- MC input
         TClonesArray 			*aExpDigits;	//! <--- Exp input
+        TClonesArray 			*aExpDigitsT0;	//! <--- Exp input
         TClonesArray 			*aTofHits;	//! ---> output
 
 	Bool_t				fDoTest;

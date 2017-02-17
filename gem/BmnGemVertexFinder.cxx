@@ -24,7 +24,7 @@ BmnGemVertexFinder::~BmnGemVertexFinder() {
 
 InitStatus BmnGemVertexFinder::Init() {
 
-    cout << "--------------------------- Vertex finder init started --------------------" << endl;
+    if (fVerbose) cout << "=========================== Vertex finder init started ====================" << endl;
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
@@ -39,14 +39,14 @@ InitStatus BmnGemVertexFinder::Init() {
 
     fField = FairRunAna::Instance()->GetField();
 
-    cout << "=========================== Vertex finder init finished ===================" << endl;
+    if (fVerbose) cout << "=========================== Vertex finder init finished ===================" << endl;
 }
 
 void BmnGemVertexFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
 
-    cout << "--------------------------- Vertex finder exec started --------------------" << endl;
-    cout << "Event number: " << fEventNo++ << endl;
+    if (fVerbose) cout << "======================== Vertex finder exec started  ======================" << endl;
+    if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
 
     fVertexArray->Clear();
     const Int_t pdg = 211;
@@ -54,38 +54,38 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
     Float_t vy = 0.0;
     Float_t vz = 0.0;
     const Int_t nTracks = fGemTracksArray->GetEntriesFast();
-    if (nTracks == 0) return;
-    if (nTracks < 2) {
+    if (nTracks > 0 && nTracks < 2) { //one-track events
         //Just propagation track on Z = 0.0
         const Float_t fZ = 0.0;
         Float_t fX, fY;
         BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(0);
-        if (track->GetFlag() == kBMNBAD) return;
-        FairTrackParam par0 = *(track->GetParamFirst());
-        if (!fIsField) {
-            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(track->GetHitIndex(0));
-            fX = hit->GetX() - par0.GetTx() * hit->GetZ();
-            fY = hit->GetY() - par0.GetTy() * hit->GetZ();
-        } else {
-            fKalman = new BmnKalmanFilter_tmp();
-            vector<Double_t>* F = new vector<Double_t> (25, 0.);
-            if (F != NULL) {
-                F->assign(25, 0.);
-                (*F)[0] = 1.;
-                (*F)[6] = 1.;
-                (*F)[12] = 1.;
-                (*F)[18] = 1.;
-                (*F)[24] = 1.;
-            }
-            fKalman->TGeoTrackPropagate(&par0, fZ, pdg, F, 0, "field");
-            fX = par0.GetX();
-            fY = par0.GetY();
+        if (track->GetFlag() != kBMNBAD) {
+            FairTrackParam par0 = *(track->GetParamFirst());
+            if (!fIsField) {
+                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(track->GetHitIndex(0));
+                fX = hit->GetX() - par0.GetTx() * hit->GetZ();
+                fY = hit->GetY() - par0.GetTy() * hit->GetZ();
+            } else {
+                fKalman = new BmnKalmanFilter_tmp();
+                vector<Double_t>* F = new vector<Double_t> (25, 0.);
+                if (F != NULL) {
+                    F->assign(25, 0.);
+                    (*F)[0] = 1.;
+                    (*F)[6] = 1.;
+                    (*F)[12] = 1.;
+                    (*F)[18] = 1.;
+                    (*F)[24] = 1.;
+                }
+                fKalman->TGeoTrackPropagate(&par0, fZ, pdg, F, 0, "field");
+                fX = par0.GetX();
+                fY = par0.GetY();
 
-            delete F;
-            delete fKalman;
+                delete F;
+                delete fKalman;
+            }
+            new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", fX, fY, fZ, 0.0, 0, 1, TMatrixFSym(3));
         }
-        new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", fX, fY, fZ, 0.0, 0, 1, TMatrixFSym(3));
-    } else {
+    } else if (nTracks >= 2) {
         const Float_t z0 = -1.0;
         const Float_t z1 = 1.0;
 
@@ -196,7 +196,7 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
 
         new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", vx, vy, vz, 0.0, 0, nTracks, TMatrixFSym(3));
     }
-    cout << "\n======================== Vertex finder exec finished ========================" << endl;
+    if (fVerbose) cout << "\n======================== Vertex finder exec finished ======================" << endl;
 
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;

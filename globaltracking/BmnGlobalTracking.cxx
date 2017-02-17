@@ -54,7 +54,7 @@ BmnGlobalTracking::~BmnGlobalTracking() {
 }
 
 InitStatus BmnGlobalTracking::Init() {
-    cout << "BmnGlobalTracking::Init started\n";
+    if (fVerbose) cout << "BmnGlobalTracking::Init started\n";
 
     FairRootManager* ioman = FairRootManager::Instance();
     if (!ioman) {
@@ -62,7 +62,7 @@ InitStatus BmnGlobalTracking::Init() {
     }
 
     fDet.DetermineSetup();
-    cout << fDet.ToString();
+    if (fVerbose) cout << fDet.ToString();
 
     // ----------------- MWPC1 initialization -----------------//
     //    if (fDet.GetDet(kMWPC1)) {
@@ -124,10 +124,10 @@ InitStatus BmnGlobalTracking::Init() {
 
     fGemSeeds = (TClonesArray*) ioman->GetObject("BmnGemSeeds"); //in
     if (!fGemSeeds)
-        cout << "BmnGlobalTracking::Init: No GEM seeds array!" << endl;
+        if (fVerbose) cout << "BmnGlobalTracking::Init: No GEM seeds array!" << endl;
     fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTracks");
     if (!fGemTracks)
-        cout << "BmnGlobalTracking::Init: No GEM tracks array!" << endl;
+        if (fVerbose) cout << "BmnGlobalTracking::Init: No GEM tracks array!" << endl;
     // ------------------------------------------------------//
 
     // ----------------- TOF1 initialization -----------------//
@@ -165,28 +165,28 @@ InitStatus BmnGlobalTracking::Init() {
     // ----------------- DCH initialization -----------------// 
     fDchTracks = (TClonesArray*) ioman->GetObject("BmnDchTrack");
     if (!fDchTracks)
-        cout << "WARNING! No DchTracks array!" << endl;
+        if (fVerbose) cout << "WARNING! No DchTracks array!" << endl;
     fDchHits = new TClonesArray("BmnDchHit", 100);
     ioman->Register("BmnDchHit", "DCH", fDchHits, kTRUE);
     // ------------------------------------------------------//
 
     fEvHead = (TClonesArray*) ioman->GetObject("EventHeader");
     if (!fEvHead)
-        cout << "WARNING! No EventHeader array!!!" << endl;
+        if (fVerbose) cout << "WARNING! No EventHeader array!!!" << endl;
 
     // Create and register track arrays
     fGlobalTracks = new TClonesArray("BmnGlobalTrack", 100);
     ioman->Register("BmnGlobalTrack", "GLOBAL", fGlobalTracks, kTRUE);
 
-    cout << "BmnGlobalTracking::Init finished\n";
+    if (fVerbose) cout << "BmnGlobalTracking::Init finished\n";
     return kSUCCESS;
 }
 
 void BmnGlobalTracking::Exec(Option_t* opt) {
 
-    cout << "\n======================== Global tracking exec started =====================\n" << endl;
+    if (fVerbose) cout << "\n======================== Global tracking exec started =====================\n" << endl;
     fEventNo = ((BmnEventHeader*) fEvHead->At(0))->GetEventId();
-    printf("Event number: %d\n", fEventNo);
+    if (fVerbose) printf("Event number: %d\n", fEventNo);
 
     clock_t tStart = clock();
     fGlobalTracks->Clear();
@@ -234,8 +234,8 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 
-    cout << "GLOBAL_TRACKING: Number of merged tracks: " << fGlobalTracks->GetEntriesFast() << endl;
-    cout << "\n======================= Global tracking exec finished =====================\n" << endl;
+    if (fVerbose) cout << "GLOBAL_TRACKING: Number of merged tracks: " << fGlobalTracks->GetEntriesFast() << endl;
+    if (fVerbose) cout << "\n======================== Global tracking exec finished ====================\n" << endl;
 }
 
 //BmnStatus BmnGlobalTracking::NearestHitMergeGEM(BmnGlobalTrack* tr) {
@@ -559,7 +559,6 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
 }
 
 void BmnGlobalTracking::Finish() {
-    cout << "Global tracking finish" << endl;
 }
 
 void BmnGlobalTracking::CalculateLength() {

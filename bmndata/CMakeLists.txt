@@ -98,6 +98,7 @@ BmnTof1Raw2Digit.cxx
 BmnRawDataDecoder.cxx
 BmnEventHeader.cxx
 BmnRunHeader.cxx
+BmnCounterTask.cxx
 BmnEnums.h
 )
 

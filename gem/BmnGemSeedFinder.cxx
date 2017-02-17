@@ -37,7 +37,7 @@ BmnGemSeedFinder::~BmnGemSeedFinder() {
 
 InitStatus BmnGemSeedFinder::Init() {
 
-    cout << "======================== Seed finder init started =========================" << endl;
+    if (fVerbose) cout << "======================== Seed finder init started =========================" << endl;
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
@@ -53,19 +53,15 @@ InitStatus BmnGemSeedFinder::Init() {
     fGemSeedsArray = new TClonesArray(fSeedsBranchName, 100); //out
     ioman->Register("BmnGemSeeds", "GEM", fGemSeedsArray, kTRUE);
 
-
-    fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
-    fMCPointsArray = (TClonesArray*) ioman->GetObject("StsPoint");
-
     fField = FairRunAna::Instance()->GetField();
 
-    cout << "======================== Seed finder init finished ========================" << endl;
+    if (fVerbose) cout << "======================== Seed finder init finished ========================" << endl;
 }
 
 void BmnGemSeedFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
-    cout << "\n======================== GEM seed finder exec started =====================\n" << endl;
-    cout << "Event number: " << fEventNo++ << endl;
+    if (fVerbose) cout << "\n======================== GEM seed finder exec started =====================\n" << endl;
+    if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
 
     //    if (fEventNo == 590) getchar();
     fGemSeedsArray->Clear();
@@ -130,14 +126,14 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     FindSeeds(seeds);
     FitSeeds(seeds);
 
-    cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
+    if (fVerbose) cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
 
     //    for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit)
     //        GetHit(iHit)->SetUsing(kFALSE);
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 
-    cout << "\n======================== Seed finder exec finished ========================" << endl;
+    if (fVerbose) cout << "\n======================== GEM seed finder exec finished ====================" << endl;
 
 }
 
@@ -304,7 +300,6 @@ BmnStatus BmnGemSeedFinder::FitSeeds(vector<BmnGemTrack> cand) {
     // |   Targ  = 1    |   Targ  = 1    |
     // |________________|________________|
 
-    printf("N seeds = %d\n", cand.size());
     for (Int_t i = 0; i < cand.size(); ++i) {
         BmnGemTrack* trackCand = &(cand.at(i));
         if (fIsField) {

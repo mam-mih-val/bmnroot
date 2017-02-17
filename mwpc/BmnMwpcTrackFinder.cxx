@@ -27,18 +27,17 @@ BmnMwpcTrackFinder::~BmnMwpcTrackFinder() {
 
 void BmnMwpcTrackFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
-    cout << "\n======================== MWPC track finder exec started ====================\n" << endl;
-    cout << "Event number: " << fEventNo++ << endl;
+    if (fVerbose) cout << "\n======================== MWPC track finder exec started ===================\n" << endl;
+    if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
 
     fBmnMwpcTracksArray->Clear();
-    if (fBmnMwpcHitsArray->GetEntriesFast() < 3)
-        return;
+    if (fBmnMwpcHitsArray->GetEntriesFast() >= 3) {
+        vector <BmnMwpcTrack> seeds;
+        FindSeeds(seeds);
+        FitSeeds(seeds);
+    }
 
-    vector <BmnMwpcTrack> seeds;
-    FindSeeds(seeds);
-    FitSeeds(seeds);
-
-    cout << "\n======================== MWPC track finder exec finished ===================" << endl;
+    if (fVerbose) cout << "\n======================== MWPC track finder exec finished ==================" << endl;
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
@@ -46,7 +45,7 @@ void BmnMwpcTrackFinder::Exec(Option_t* opt) {
 InitStatus BmnMwpcTrackFinder::Init() {
     if (!expData)
         return kERROR;
-    cout << "BmnMwpcTrackFinder::Init()" << endl;
+    if (fVerbose) cout << "BmnMwpcTrackFinder::Init()" << endl;
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnMwpcHitsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);

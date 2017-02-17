@@ -86,4 +86,6 @@
 #pragma link C++ class BmnEventHeader+;
 #pragma link C++ class BmnRunHeader+;
 
+#pragma link C++ class BmnCounter+;
+
 #endif

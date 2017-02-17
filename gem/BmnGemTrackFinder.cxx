@@ -29,9 +29,7 @@ fChiSqCut(25.) {
     fKalman = NULL;
     fGemHitArray = NULL;
     fGemTracksArray = NULL;
-    fMCTracksArray = NULL;
     fGemSeedsArray = NULL;
-    fMCPointsArray = NULL;
     fField = NULL;
     fIsField = kTRUE;
     fHitsBranchName = "BmnGemStripHit";
@@ -44,7 +42,7 @@ BmnGemTrackFinder::~BmnGemTrackFinder() {
 
 InitStatus BmnGemTrackFinder::Init() {
 
-    cout << "======================== GEM track finder init started ====================" << endl;
+    if (fVerbose) cout << "======================== GEM track finder init started ====================" << endl;
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
@@ -57,20 +55,17 @@ InitStatus BmnGemTrackFinder::Init() {
     fGemTracksArray = new TClonesArray(fTracksBranchName, 100); //out
     ioman->Register("BmnGemTracks", "GEM", fGemTracksArray, kTRUE);
 
-    fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
-    fMCPointsArray = (TClonesArray*) ioman->GetObject("StsPoint");
-
     fField = FairRunAna::Instance()->GetField();
 
     fPropagator = new BmnTrackPropagator();
 
-    cout << "======================== GEM track finder init finished ===================" << endl;
+    if (fVerbose) cout << "======================== GEM track finder init finished ===================" << endl;
 }
 
 void BmnGemTrackFinder::Exec(Option_t* opt) {
 
-    cout << "\n====================== GEM track finder exec started ======================" << endl;
-    cout << "\n Event number: " << fEventNo++ << endl;
+    if (fVerbose) cout << "\n======================== GEM track finder exec started ====================" << endl;
+    if (fVerbose) cout << "\n Event number: " << fEventNo++ << endl;
 
     clock_t tStart = clock();
     fGemTracksArray->Clear();
@@ -204,11 +199,11 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
     }
 
     clock_t tFinish = clock();
-    cout << "GEM_TRACKING: Number of found tracks: " << fGemTracksArray->GetEntriesFast() << endl;
+    if (fVerbose) cout << "GEM_TRACKING: Number of found tracks: " << fGemTracksArray->GetEntriesFast() << endl;
 
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 
-    cout << "\n====================== GEM track finder exec finished =====================" << endl;
+    if (fVerbose) cout << "\n======================== GEM track finder exec finished ===================" << endl;
 
 }
 

@@ -64,8 +64,6 @@ private:
     TClonesArray* fGemHitArray;
     TClonesArray* fGemSeedsArray;
     TClonesArray* fGemTracksArray;
-    TClonesArray* fMCTracksArray;
-    TClonesArray* fMCPointsArray;
 
     /* Track propagation tool */
     BmnTrackPropagator* fPropagator;

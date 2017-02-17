@@ -48,7 +48,7 @@ public:
     //some useful functions
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
     BmnGemStripHit* GetHit(Int_t i);
-
+    
     void SetTrs(Float_t trs) {
         kTRS = trs;
     }
@@ -123,8 +123,6 @@ private:
 
     TClonesArray* fGemHitsArray;
     TClonesArray* fGemSeedsArray;
-    TClonesArray* fMCTracksArray;
-    TClonesArray* fMCPointsArray;
 
     FairField* fField;
 

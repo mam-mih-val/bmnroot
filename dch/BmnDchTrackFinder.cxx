@@ -60,8 +60,8 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
 void BmnDchTrackFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
     PrepareArraysToProcessEvent();
-    cout << "------------------------ DCH track finder exec started --------------------" << endl;
-    cout << "Event number: " << fEventNo++ << endl;
+    if (fVerbose) cout << "======================== DCH track finder exec started ====================" << endl;
+    if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
 
     //temporary containers
     // Order used: va1, vb1, ua1, ub1, ya1, yb1, xa1, xb1 (dch1, 0 - 7) - va2, vb2, ua2, ub2, ya2, yb2, xa2, xb2 (dch2, 8 - 15)
@@ -164,7 +164,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
 
     // Try to match the reconstructed segments from the two chambers
     // Not implemented yet (TO DO A.S.A.P.)
-    cout << "======================== DCH track finder exec finished ===================" << endl;
+    if (fVerbose) cout << "======================== DCH track finder exec finished ===================" << endl;
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
@@ -587,7 +587,7 @@ Float_t BmnDchTrackFinder::CalculateResidual(Int_t i, Int_t j, Float_t** rh_seg,
 InitStatus BmnDchTrackFinder::Init() {
     if (!expData)
         return kERROR;
-    cout << "BmnDchTrackFinder::Init()" << endl;
+    if (fVerbose) cout << "BmnDchTrackFinder::Init()" << endl;
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnDchDigitsArray = (TClonesArray*) ioman->GetObject(InputDigitsBranchName);

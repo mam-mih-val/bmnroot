@@ -47,7 +47,7 @@ void BmnDetectorSetup::DetermineSetup() {
     fDet[kMWPC] = CheckDetectorPresence("MWPC");
     fDet[kGEM] = CheckDetectorPresence("GEM");
     fDet[kDCH] = CheckDetectorPresence("DCH");
-    fDet[kTOF1] = CheckDetectorPresence("TOFB1");
+    fDet[kTOF1] = CheckDetectorPresence("TOF400");
     fDet[kTOF] = CheckDetectorPresence("tof2");
 }
 

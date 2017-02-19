@@ -23,6 +23,8 @@
 
 using namespace std;
 
+static Float_t workTime = 0.0;
+
 ClassImp(BmnTof1HitProducer)
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTof1HitProducer::BmnTof1HitProducer(const char *name, Bool_t useMCdata, Int_t verbose, Bool_t test)
@@ -133,6 +135,7 @@ Bool_t 		BmnTof1HitProducer::DoubleHitExist(Double_t val) // val - distance to t
 //--------------------------------------------------------------------------------------------------------------------------------------
 void 		BmnTof1HitProducer::Exec(Option_t* opt) 
 {
+    clock_t tStart = clock();
     if (fVerbose) cout << endl << "======================== TOF400 exec started ====================" << endl;
 	static const TVector3 XYZ_err(fErrX, fErrY, 0.); 
 
@@ -271,6 +274,9 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
 	MergeHitsOnStrip(); // save only the fastest hit in the strip
 
 	int nFinally = CompressHits(); // remove blank slotes
+        
+        clock_t tFinish = clock();
+        workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 
         if (fVerbose) cout<<"Tof400  single hits= "<<nSingleHits<<", double hits= "<<nDoubleHits<<", final hits= "<<nFinally<<endl;
         if (fVerbose) cout << "======================== TOF400 exec finished ====================" << endl;
@@ -287,6 +293,8 @@ void 			BmnTof1HitProducer::Finish()
 		file.Close();
 		gFile = ptr;
 	}
+        
+    cout << "Work time of the TOF-400 hit finder: " << workTime << endl;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // input- strip edge position & signal times; output- strip crosspoint; return false, if crosspoint outside strip 

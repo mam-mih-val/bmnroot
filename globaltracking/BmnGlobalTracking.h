@@ -105,12 +105,12 @@ private:
     void SelectTracksForTofMerging();
 
     // INPUT ARRAYS
-    TClonesArray* fGemSeeds;
     TClonesArray* fGemTracks;
     TClonesArray* fGemHits;
+    TClonesArray* fMwpcTracks;
     TClonesArray* fMwpcHits;
-    TClonesArray* fDchHits;
     TClonesArray* fDchTracks;
+    TClonesArray* fDchHits;
     TClonesArray* fTof1Hits;
     TClonesArray* fTof2Hits;
     
@@ -127,15 +127,6 @@ private:
 
     TClonesArray* fGlobalTracks; //output BmnGlobalTrack array
 
-    // Tools
-    BmnTrackFinder* fFinder; // track finder
-    BmnHitToTrackMerger* fMerger; // hit-to-track merger
-//    BmnTrackFitter* fFitter; // track fitter
-    // track propagator
-    // Used to propagate STS track to the last STS station!!!
-    // Since this cannot be done in parallel mode!!!
-    BmnTrackPropagator* fPropagator;
-    BmnKalmanFilter* fUpdater;
 
     /*
      * Detector configuration, 5 bits:

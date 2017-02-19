@@ -13,7 +13,7 @@ static Float_t workTime = 0.0;
 map<ULong_t, Int_t> addresses; // map for calculating addresses of hits in histogram {x/R, y/R}
 const UInt_t kNHITSFORSEED = 12; // we use for seeds only kNHITSFORSEED hits
 const UInt_t kMAXSTATIONFORSEED = 5; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
-const Float_t kLINECHICUT = 1000.0;
+const Float_t kLINECHICUT = 100.0;
 
 using namespace std;
 using namespace TMath;
@@ -78,18 +78,19 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
 
     const Int_t nIter = 5;
     //(0.006, 6.0, 1.05); //best parameters
-    
+
     const Int_t nBins[nIter] = {2000, 2000, 2000, 1000, 300};
-    const Float_t sigX[nIter] = {0.005, 0.01, 0.05, 0.1, 0.005};
-    const Float_t stpY[nIter] = {1.0, 1.0, 2.0, 2.0, 100.0};
+    const Float_t sigX[nIter] = {0.005, 0.1, 0.05, 0.1, 0.005};
+    const Float_t stpY[nIter] = {1.0, 4.0, 2.0, 2.0, 100.0};
     const Float_t thrs[nIter] = {2.5, 1.1, 1.1, 1.1, 1.0};
     const Int_t length[nIter] = {4, 4, 4, 4, 4};
 
     //Just skip too big events
     if (fGemHitsArray->GetEntriesFast() > 500) return;
 
-//    Int_t i = 4; //no target
-    Int_t i = 3; //with target
+    Int_t i = -1;
+    if (fIsTarget) i = 1; //with target
+    else i = 4; //no target
     addresses.clear();
 
     fNBins = nBins[i];
@@ -110,17 +111,17 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     vector<BmnGemTrack> seeds;
     //    FindSeedsBy3planes(seeds);
 
-//    UInt_t NhitsInStation[6] = {0};
-//    for (Int_t iSt = 1; iSt < 7; ++iSt) {
-//        for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
-//            BmnGemStripHit* hit = GetHit(iHit);
-//            if (!hit) continue;
-//            if (hit->GetStation() != iSt) continue;
-//            NhitsInStation[iSt - 1]++;
-//        }
-//        if (NhitsInStation[iSt - 1] > 1) return;
-//    }
-    
+    //    UInt_t NhitsInStation[6] = {0};
+    //    for (Int_t iSt = 1; iSt < 7; ++iSt) {
+    //        for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
+    //            BmnGemStripHit* hit = GetHit(iHit);
+    //            if (!hit) continue;
+    //            if (hit->GetStation() != iSt) continue;
+    //            NhitsInStation[iSt - 1]++;
+    //        }
+    //        if (NhitsInStation[iSt - 1] > 1) return;
+    //    }
+
 
 
     FindSeeds(seeds);
@@ -1049,7 +1050,7 @@ BmnGemStripHit* BmnGemSeedFinder::GetHit(Int_t i) {
     if (skip) return NULL;
     if (hit->GetY() > fYmax || hit->GetY() < fYmin) return NULL;
     if (hit->GetX() > fXmax || hit->GetX() < fXmin) return NULL;
-//    if (hit->GetClusterSizeInLowerLayer() == 1 && hit->GetClusterSizeInUpperLayer() == 1) return NULL;
+    //    if (hit->GetClusterSizeInLowerLayer() == 1 && hit->GetClusterSizeInUpperLayer() == 1) return NULL;
     //tmp!!!
     //    if (hit->GetStation() == 1 && (hit->GetX() > 0.7 || hit->GetX() < 0.4)) return NULL;
     //    if (hit->GetStation() == 3 && (hit->GetX() > 2.3 || hit->GetX() < 1.9)) return NULL;

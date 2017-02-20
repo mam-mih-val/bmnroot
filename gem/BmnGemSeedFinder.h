@@ -31,6 +31,7 @@ public:
     Bool_t CalculateTrackParamsParabolicSpiral(BmnGemTrack* tr, TLorentzVector* spirPar, TVector3* linePar, Short_t q);
 
     BmnStatus FindSeeds(vector<BmnGemTrack>& cand);
+    BmnStatus FindSeedsBy3planes(vector<BmnGemTrack>& cand);
     BmnStatus FitSeeds(vector<BmnGemTrack> cand);
     BmnStatus CalculateTrackParamsLine(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsCircle(BmnGemTrack* tr);
@@ -47,7 +48,7 @@ public:
     //some useful functions
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
     BmnGemStripHit* GetHit(Int_t i);
-
+    
     void SetTrs(Float_t trs) {
         kTRS = trs;
     }
@@ -122,8 +123,6 @@ private:
 
     TClonesArray* fGemHitsArray;
     TClonesArray* fGemSeedsArray;
-    TClonesArray* fMCTracksArray;
-    TClonesArray* fMCPointsArray;
 
     FairField* fField;
 

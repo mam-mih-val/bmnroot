@@ -16,13 +16,14 @@
 #include "CbmMCTrack.h"
 #include "BmnTofHit.h"
 #include "BmnTOF1Point.h"
-#include "BmnTof1Digit.h"
 
-#include "BmnTof1GeoUtils.h"
+//#include "BmnTof1GeoUtils.h"
 
 #include "BmnTof1HitProducer.h"
 
 using namespace std;
+
+static Float_t workTime = 0.0;
 
 ClassImp(BmnTof1HitProducer)
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -49,7 +50,7 @@ BmnTof1HitProducer::BmnTof1HitProducer(const char *name, Bool_t useMCdata, Int_t
 				
 		h2TestEtaPhi = new TH2D("TestEtaPhi", ";#eta;#phi, degree", 1000, -1.6, 1.6, 1000, -181., 181.);								fList.Add(h2TestEtaPhi);
 		h2TestRZ = new TH2D("TestRZ", ";X, cm;Y, cm", 1000, -300., 300., 1000, -200., 200.);										fList.Add(h2TestRZ);
-		h2TdetIdStripId = new TH2D("TdetIdStripId", ";stripId;detId", 100, -0.5, 99.5, 10, -0.5, 9.5);									fList.Add(h2TdetIdStripId);		
+		h2TdetIdStripId = new TH2D("TdetIdStripId", ";stripId;detId", 100, -0.5, 99.5, 21, -0.5, 20.5);									fList.Add(h2TdetIdStripId);		
     	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -76,6 +77,8 @@ assert(aMcTracks);
 	{
     		aExpDigits = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF400");
 assert(aExpDigits);	
+                aExpDigitsT0 = (TClonesArray*) FairRootManager::Instance()->GetObject("T0");
+assert(aExpDigits);
 	}
 	
     	// Create and register output array
@@ -132,6 +135,8 @@ Bool_t 		BmnTof1HitProducer::DoubleHitExist(Double_t val) // val - distance to t
 //--------------------------------------------------------------------------------------------------------------------------------------
 void 		BmnTof1HitProducer::Exec(Option_t* opt) 
 {
+    clock_t tStart = clock();
+    if (fVerbose) cout << endl << "======================== TOF400 exec started ====================" << endl;
 	static const TVector3 XYZ_err(fErrX, fErrY, 0.); 
 
 	aTofHits->Clear();
@@ -202,72 +207,79 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
 	}
 	else
 	{
-		TVector3 p1, p2, crosspoint;
+		TVector3 crosspoint;
 				
 		// Sorting by strip UIDs
 		typedef multimap<Int_t, BmnTof1Digit*> Tmap;
 		Tmap 	mDigits;
-	
-		for(Int_t digitIndex = 0, nTofDigits = aExpDigits->GetEntriesFast(); digitIndex < nTofDigits; digitIndex++ )  // cycle by TOF digits
-		{
-			BmnTof1Digit *pDigit = (BmnTof1Digit*) aExpDigits->UncheckedAt(digitIndex);		
-			if(fVerbose > 2) pDigit->print(); 	
-			
-			UID =  BmnTOF1Point::GetVolumeUID(0, pDigit->GetPlane(), pDigit->GetStrip() + 1); // strip [0,47] -> [1, 48]
-			mDigits.insert(make_pair(UID, pDigit));				
-		}
-		
-		// Looking for digit pairs on both sides of same strip
-		size_t counter;
-		for(Tmap::iterator it = mDigits.begin(), itEnd = mDigits.end(); it != itEnd;  it = mDigits.upper_bound(it->first))
-		{
-	  		UID = it->first;
-	  		counter = mDigits.count(UID); // hash(detId, stripId)
+                
+                Int_t nT0Digits = aExpDigitsT0->GetEntriesFast();
+                if (nT0Digits == 1){                               // T0 digit should be
+                    BmnTrigDigit* digT0 = (BmnTrigDigit*) aExpDigitsT0->At(0);
 
-	  		//if(counter < 2) continue; // must be at least two digits on both sides of same strip
-	  		if(counter != 2) continue; // FIXME: now can be ONLY ONE digit at the strip side  1 + 1 == 2
-	  		
-	  		BmnTof1Digit *dig1 = it->second, *dig2 = (++it)->second;
-			Short_t side1 = dig1->GetSide(), side2 = dig2->GetSide();
-			
-			if(side1 != side2) // digits on different sides of same strip
-			{
-			
-				Int_t  strip =	BmnTOF1Point::GetStrip(UID);
-				Int_t det = BmnTOF1Point::GetModule(UID);
-				
-				if(fDoTest) h2TdetIdStripId->Fill(strip, det);
-			
-				const LStrip *pStrip = pGeoUtils->FindStrip(UID);
-				
-				p1 = (pStrip->A + pStrip->B) * 0.5; // [cm] strip side1 end's position 
-				p2 = (pStrip->C + pStrip->D) * 0.5; // [cm] strip side2 end's position 	
- 				
-				float time1 = dig1->GetTime(), time2 = dig2->GetTime();
-				float stripLength = (p2-p1).Mag();
-				float maxDelta =   (stripLength + 0.5) * fSignalVelosity; // + 5 mm on the strip edge
-				
-				if(GetCrossPoint(p1, dig1->GetTime(), p2, dig2->GetTime(), crosspoint)) // crosspoint inside strip edges
-				{
-					AddHit(UID, crosspoint, XYZ_err, -1, -1, dig1->GetTime()); 	
-					nSingleHits++;
+                    for(Int_t digitIndex = 0, nTofDigits = aExpDigits->GetEntriesFast(); digitIndex < nTofDigits; digitIndex++ )  // cycle by TOF digits
+                    {
+                            BmnTof1Digit *pDigit = (BmnTof1Digit*) aExpDigits->UncheckedAt(digitIndex);		
+                            if(fVerbose > 2) pDigit->print(); 	
+                            if (pDigit->GetStrip() == 0 || pDigit->GetStrip() == 47) continue; // skip noise strips
+                            UID =  BmnTOF1Point::GetVolumeUID(0, pDigit->GetPlane() + 1, pDigit->GetStrip() + 1); // strip [0,47] -> [1, 48]
+                            mDigits.insert(make_pair(UID, pDigit));				
+                    }
 
-					if(fDoTest)
-			 		{
-			 			h2TestXYSmeared2->Fill(crosspoint.X(), crosspoint.Y());
-			 			TVector3 stripCenter(p1+p2); stripCenter *= 0.5;
-			 			h2TestRZ->Fill(stripCenter.X(), stripCenter.Y());
-			 		}			
-				}					
-			}
-		}	
+                    // Looking for digit pairs on both sides of same strip
+                    size_t counter;
+                    for(Tmap::iterator it = mDigits.begin(), itEnd = mDigits.end(); it != itEnd;  it = mDigits.upper_bound(it->first))
+                    {
+                            UID = it->first;
+                            counter = mDigits.count(UID); // hash(detId, stripId)
+
+                            if(counter != 2) continue; // now can be ONLY ONE digit at the strip side  1 + 1 == 2
+                            BmnTof1Digit *dig1, *dig2;
+                            if (it->second->GetSide() == 0 ){
+                                dig1 = it->second;
+                                dig2 = (++it)->second;
+                            }
+                            else {
+                                dig2 = it->second;
+                                dig1 = (++it)->second;
+                            }
+                            Short_t side1 = dig1->GetSide(), side2 = dig2->GetSide();
+
+                            if(side1 != side2) // digits on different sides of same strip
+                            {
+                                    Int_t  strip =	BmnTOF1Point::GetStrip(UID);
+                                    Int_t det = BmnTOF1Point::GetModule(UID);
+
+                                    if(fDoTest) h2TdetIdStripId->Fill(strip, det);
+
+                                    const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+
+                                    if(GetCrossPoint(pStrip, dig1->GetTime(), dig2->GetTime(), crosspoint)) // crosspoint inside strip edges
+                                    {
+                                            AddHit(UID, crosspoint, XYZ_err, -1, -1, /*dig1->GetTime()*/CalculateToF(dig1, dig2, digT0)); 	
+                                            nSingleHits++;
+
+                                            if(fDoTest)
+                                            {
+                                                    h2TestXYSmeared2->Fill(crosspoint.X(), crosspoint.Y());
+                                                    TVector3 stripCenter(pStrip->center);
+                                                    h2TestRZ->Fill(stripCenter.X(), stripCenter.Y());
+                                            }			
+                                    }					
+                            }
+                    }
+                }
 	}
 	
 	MergeHitsOnStrip(); // save only the fastest hit in the strip
 
 	int nFinally = CompressHits(); // remove blank slotes
+        
+        clock_t tFinish = clock();
+        workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 
-        cout<<" -I- [BmnTof1HitProducer::Exec]  single hits= "<<nSingleHits<<", double hits= "<<nDoubleHits<<", final hits= "<<nFinally<<endl;
+        if (fVerbose) cout<<"Tof400  single hits= "<<nSingleHits<<", double hits= "<<nDoubleHits<<", final hits= "<<nFinally<<endl;
+        if (fVerbose) cout << "======================== TOF400 exec finished ====================" << endl;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void 			BmnTof1HitProducer::Finish() 
@@ -281,6 +293,8 @@ void 			BmnTof1HitProducer::Finish()
 		file.Close();
 		gFile = ptr;
 	}
+        
+    cout << "Work time of the TOF-400 hit finder: " << workTime << endl;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // input- strip edge position & signal times; output- strip crosspoint; return false, if crosspoint outside strip 
@@ -288,22 +302,33 @@ bool			BmnTof1HitProducer::GetCrossPoint(const TVector3& p1, double time1, const
 {
 	double stripLength = (p2-p1).Mag();
 	double maxDelta =   (stripLength + 0.5) * fSignalVelosity; // + 5 mm on the strip edge
-
-cout<<"\n  GetCrossPoint maxDelta="<<maxDelta<<" time1="<<time1<<" time2="<<time2<<"  "<<abs(time1 - time2);
-	
 	if(abs(time1 - time2) > maxDelta) return false; // estimated position out the strip edge.
-	
 	double dL =  abs(time1 - time2) / fSignalVelosity;
 	double a2 = (stripLength - dL) / 2.;
-	
 	if(time1 > time2)	crossPoint = p2 + (p1-p2) * (a2 / stripLength);
 	else			crossPoint = p1 + (p2-p1) * (a2 / stripLength);
-	
-	
-cout<<"\n  AAAAA dL = "<<dL<<"   "<< (a2 / stripLength);
+return true;	
+}
 
-
-						
+bool			BmnTof1HitProducer::GetCrossPoint(const LStrip *pStrip, double time1, double time2, TVector3& crossPoint) 
+{
+        TVector3 s1, s2, centr;
+        s1 = (pStrip->A + pStrip->B) * 0.5; // [cm] strip side1 end's position 
+        s2 = (pStrip->C + pStrip->D) * 0.5; // [cm] strip side2 end's position 
+        centr = pStrip->center;
+	double stripLength = (s2-s1).Mag();
+	double maxDelta =   (stripLength + 1.0) * fSignalVelosity; // + 10 mm on the strip edge
+	if(abs(time1 - time2) > maxDelta) return false; // estimated position out the strip edge.
+	double dL = (time1 - time2) * 0.5 / fSignalVelosity;
+        s1(0) = 0; s1(1) = dL; s1(2) = 0;
+	crossPoint = centr + s1;
+        /*if (time1 > time2)
+        {
+            cout << "stripLength = " << stripLength << "  dL = " << dL << endl;
+            cout << "centr.x = " << centr(0) << "; centr.y = " << centr(1) << "; centr.z = " << centr(2) << endl;
+            cout << "crossPoint.x = " << crossPoint(0) << "; crossPoint.y = " << crossPoint(1) << "; crossPoint.z = " << crossPoint(2) << endl;
+            getchar();
+       }//*/
 return true;	
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -313,3 +338,38 @@ void 			BmnTof1HitProducer::SetSeed(UInt_t seed)
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 
+Double_t                BmnTof1HitProducer::CalculateToF (BmnTof1Digit *d1, BmnTof1Digit *d2, BmnTrigDigit *t0){
+    Int_t CorrRPC_It1, CorrT0_It1;
+    Double_t CorrPlane7Coeff_It1[5][4] = {
+        {12.24, -3.919, 0.2624, -0.005153},
+        {-122.9, 14.84, -0.6158, 0.008724},
+        {-12.34, 0.482, 0., 0.},
+        {-12.28, 0.479, 0., 0.},
+        {-13.14, 0.5034, 0., 0.}
+    };
+    Double_t CorrT0Coeff_It1[3][4] = {
+        {-5.486, 1.087, -0.07936, 0.00208},
+        {10.77, -2.635, 0.1984, -0.004631},
+        {0., 0., 0., 0.}
+    };
+    Double_t timeRPC = (d1->GetTime() + d2->GetTime()) * 0.5;
+    Double_t ampRPC = d1->GetAmplitude() + d2->GetAmplitude();
+    Double_t timeT0 = t0->GetTime();
+    Double_t ampT0 = t0->GetAmp();
+    Double_t dt = timeRPC - timeT0;
+    if (ampRPC < 20.46) CorrRPC_It1 = 0;
+    else if (ampRPC >= 20.46 && ampRPC < 27.25) CorrRPC_It1 = 1;
+    else if (ampRPC >= 27.25 && ampRPC < 34.81) CorrRPC_It1 = 2;
+    else if (ampRPC >= 34.81 && ampRPC < 37.11) CorrRPC_It1 = 3;
+    else if (ampRPC >= 37.11) CorrRPC_It1 = 4;
+    dt = dt - (CorrPlane7Coeff_It1[CorrRPC_It1][0] + CorrPlane7Coeff_It1[CorrRPC_It1][1] * ampRPC +
+            CorrPlane7Coeff_It1[CorrRPC_It1][2] * ampRPC * ampRPC +
+            CorrPlane7Coeff_It1[CorrRPC_It1][3] * ampRPC * ampRPC * ampRPC);
+    if (ampT0 >= 6.15 && ampT0 < 12.3) CorrT0_It1 = 0;
+    else if (ampT0 >= 12.3 && ampT0 < 17.14) CorrT0_It1 = 1;
+    else  CorrT0_It1 = 2;
+    dt = dt - (CorrT0Coeff_It1[CorrT0_It1][0] + CorrT0Coeff_It1[CorrT0_It1][1] * ampT0 +
+            CorrT0Coeff_It1[CorrT0_It1][2] * ampT0 * ampT0 +
+            CorrT0Coeff_It1[CorrT0_It1][3] * ampT0 * ampT0 * ampT0); 
+    return dt + 14.; // 14 ns
+}

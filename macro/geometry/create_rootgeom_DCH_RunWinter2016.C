@@ -72,13 +72,12 @@ void create_rootgeom_DCH_RunWinter2016() {
     // --------------------------------------------------------------------------
 
     // Define TOP Geometry
-    TGeoVolume* DCH1Top = new TGeoVolumeAssembly(geoDetectorName);
-    DCH1Top->SetMedium(pMedAir);
-    TGeoVolume* DCH2Top = new TGeoVolumeAssembly(geoDetectorName);
-    DCH2Top->SetMedium(pMedAir);
+    TGeoVolume* DCH = new TGeoVolumeAssembly(geoDetectorName);
+    DCH->SetMedium(pMedAir);
 
     //Transformations (translations, rotations and scales)
-    //TGeoTranslation *DetPos_trans = new TGeoTranslation("DetPos_trans", DCH1_Xpos, DCH1_Ypos, DCH1_Zpos);
+    TGeoCombiTrans *combi1 = new TGeoCombiTrans(DCH1_Xpos, DCH1_Ypos, DCH1_Zpos, new TGeoRotation("rot", 45*0.5, 0, 0));
+    TGeoCombiTrans *combi2 = new TGeoCombiTrans(DCH2_Xpos, DCH2_Ypos, DCH2_Zpos, new TGeoRotation("rot", 45*0.5, 0, 0));
 
     TGeoRotation *rot_Octagon = new TGeoRotation("rot_Octagon");
     rot_Octagon->SetAngles(90, -22.5, 90, 67.5, 0, 0);
@@ -88,22 +87,29 @@ void create_rootgeom_DCH_RunWinter2016() {
     OctagonS->DefineSection(0, -ZLength_DCH1 / 2, InnerRadiusOfOctagon, OuterRadiusOfOctagon);
     OctagonS->DefineSection(1, ZLength_DCH1 / 2, InnerRadiusOfOctagon, OuterRadiusOfOctagon);
 
-    TGeoCombiTrans *combi1 = new TGeoCombiTrans(DCH1_Xpos, DCH1_Ypos, DCH1_Zpos, rot_Octagon);
-    TGeoCombiTrans *combi2 = new TGeoCombiTrans(DCH2_Xpos, DCH2_Ypos, DCH2_Zpos, rot_Octagon);
+    TGeoVolume *DCHDetV = new TGeoVolume("DCHDetV", OctagonS);
+    DCHDetV->SetMedium(pMedAir);
+    DCHDetV->SetLineColor(kBlue);
+    DCHDetV->SetTransparency(75);
 
-    TGeoVolume *DCH1DetV = new TGeoVolume("DCH1DetV", OctagonS);
-    DCH1DetV->SetMedium(pMedAir);
-    DCH1DetV->SetLineColor(kBlue);
-    
-    TGeoVolume *DCH2DetV = new TGeoVolume("DCH2DetV", OctagonS);
-    DCH2DetV->SetMedium(pMedAir);
-    DCH2DetV->SetLineColor(kBlue);
+    TGeoPgon *OctagonPlaneS = new TGeoPgon("OctagonActivePlaneS", 0, 360, 8, 2);
+    OctagonPlaneS->DefineSection(0, -0.05, InnerRadiusOfOctagon, OuterRadiusOfOctagon);
+    OctagonPlaneS->DefineSection(1, 0.05, InnerRadiusOfOctagon, OuterRadiusOfOctagon);
+
+    TGeoVolume *DCHActivePlaneV = new TGeoVolume("DCHActivePlaneV", OctagonPlaneS);
+    DCHActivePlaneV->SetMedium(pMedArCO27030);
+    DCHActivePlaneV->SetLineColor(kBlue);
+    DCHActivePlaneV->SetTransparency(40);
+
+    for (Int_t iPlane = 1; iPlane <= 8; ++iPlane) {
+        TGeoTranslation t0(0.0, 0.0, ZLength_DCH1 / 8 * (iPlane - (8 + 1) / 2.0));
+        DCHDetV->AddNode(DCHActivePlaneV, iPlane - 1, new TGeoCombiTrans(t0));
+    }
 
     //Adding volumes to the TOP Volume
-    top->AddNode(DCH1Top, 1);
-    top->AddNode(DCH2Top, 1);
-    DCH1Top->AddNode(DCH1DetV, 1, combi1);
-    DCH2Top->AddNode(DCH2DetV, 1, combi2);
+    DCH->AddNode(DCHDetV, 0, combi1);
+    DCH->AddNode(DCHDetV, 0, combi2);
+    top->AddNode(DCH, 0);
     top->SetVisContainers(kTRUE);
 
     // ---------------   Finish   -----------------------------------------------

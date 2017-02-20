@@ -26,7 +26,7 @@ BmnMonitor::BmnMonitor() {
     fServer = NULL;
     fRawDecoSocket = NULL;
     fRunID = 0;
-    fState = kBMNWAIT;
+    fState = kBMNRECON;
     itersToUpdate = 1000;
     TString name = "infoCanvas";
     infoCanvas = new TCanvas(name, name);
@@ -100,7 +100,7 @@ void BmnMonitor::Monitor(TString dirname, TString startFile, Bool_t runCurrent) 
 }
 
 void BmnMonitor::MonitorStream(TString dirname, TString refDir) {
-//    _curFile = startFile;
+    //    _curFile = startFile;
     _curDir = dirname;
     if (refDir == "")
         _refDir = _curDir;
@@ -109,40 +109,48 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir) {
     DBG("started")
     InitServer();
     RegisterAll();
-//    thread threadDeco(threadDecodeWrapper, dirname, startFile, runCurrent);
-//    if (threadDeco.joinable())
-//        threadDeco.detach();
+    //    thread threadDeco(threadDecodeWrapper, dirname, startFile, runCurrent);
+    //    if (threadDeco.joinable())
+    //        threadDeco.detach();
     fRawDecoAddr = "localhost";
     usleep(1e6);
-    fRawDecoSocket = new TSocket(fRawDecoAddr, RAW_DECODER_SOCKET_PORT);
-    if (fRawDecoSocket == NULL){
-        DBGERR("TSocket")
-        return;
-    }else{
-        printf("Connected to %s\n", fRawDecoAddr.Data());
-    }
-        fRawDecoSocket->GetInetAddress().Print();
-    
-    TMonitor *mon = new TMonitor;
-    mon->Add(fRawDecoSocket);
-//    mon->SetInterest(fRawDecoSocket, 1);
     Int_t len;
     decoTimeout = 0;
+    TMonitor *mon = new TMonitor;
     while (kTRUE) {
         gSystem->ProcessEvents();
-//        fServer->ProcessRequests();
+        //        fServer->ProcessRequests();
+        switch (fState) {
+            case kBMNRECON:
+                fRawDecoSocket = new TSocket(fRawDecoAddr, RAW_DECODER_SOCKET_PORT);
+                if (fRawDecoSocket == NULL) {
+                    DBGERR("TSocket")
+                    return;
+                } else {
+                    printf("Connected to %s\n", fRawDecoAddr.Data());
+                }
+                fRawDecoSocket->GetInetAddress().Print();
+
+                mon->Add(fRawDecoSocket);
+                //    mon->SetInterest(fRawDecoSocket, 1);
+                fState = kBMNWAIT;
+                break;
+            default:
+                break;
+
+        }
         TSocket *sel;
         sel = mon->Select(DECO_SOCK_WAIT_PERIOD);
-        if (sel == (TSocket *)-1){ // timeout
+        if (sel == (TSocket *) - 1) { // timeout
             decoTimeout += DECO_SOCK_WAIT_PERIOD;
             DBG("mon select timeout")
-            if ((decoTimeout > DECO_SOCK_WAIT_LIMIT) && (fState == kBMNWORK)){
+            if ((decoTimeout > DECO_SOCK_WAIT_LIMIT) && (fState == kBMNWORK)) {
                 FinishRun();
                 fState = kBMNWAIT;
             }
             continue;
         }
-        if (sel == (TSocket *)0){ // error
+        if (sel == (TSocket *) 0) { // error
             printf("TSocket error: %s\n", strerror(errno));
             DBGERR("mon select")
             continue;
@@ -150,29 +158,31 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir) {
         decoTimeout = 0;
         TMessage *mess;
         len = sel->Recv(mess);
-        if (len <= 0){
+        if (len <= 0) {
             if (len == 0)
                 printf("Connection closed by decoder\n");
             else
                 DBGERR("Recv error")
-            FinishRun();
+                FinishRun();
             delete mess;
-            break;
+            fState = kBMNRECON;
+            continue;
         }
         gSystem->ProcessEvents();
-        switch (mess->What()){
+        switch (mess->What()) {
             case kMESS_STRING:
                 char str[64];
                 mess->ReadString(str, 64);
                 printf("message: %s\n", str);
                 break;
-            case kMESS_OBJECT:{
-                fDigiArrays = (DigiArrays*)mess->ReadObject(mess->GetClass());
+            case kMESS_OBJECT:
+            {
+                fDigiArrays = (DigiArrays*) mess->ReadObject(mess->GetClass());
                 if (fDigiArrays->header->GetEntriesFast() == 0)
                     break;
                 BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
                 Int_t runID = head->GetRunId();
-                switch (fState){
+                switch (fState) {
                     case kBMNWAIT:
                         fRunID = runID;
                         CreateFile(fRunID);
@@ -180,14 +190,14 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir) {
                         ProcessDigi(fRunID);
                         break;
                     case kBMNWORK:
-                        if (fRunID != runID){
+                        if (fRunID != runID) {
                             FinishRun();
                             fRunID = runID;
                             CreateFile(fRunID);
                         }
                         ProcessDigi(fRunID);
                         break;
-                    default:                        
+                    default:
                         break;
                 }
                 fDigiArrays->Clear();
@@ -334,14 +344,20 @@ TString BmnMonitor::WatchNext(Int_t inotifDir, Int_t cycleWait) {
 
 BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     DBG("opening file")
+    UpdateRuns();
     TString outHistName = Form("bmn_run%04d_hist.root", runID);
     fRecoTree = NULL;
     fHistOut = new TFile(outHistName, "recreate");
     fRecoTree = new TTree("BmnMon", "BmnMon");
     fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
+    if (fRecoTree4Show) {
+        fRecoTree4Show->Clear();
+        delete fRecoTree4Show;
+        fRecoTree4Show = NULL;
+    }
     fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
     fRecoTree4Show->SetDirectory(NULL); // tree will not be saved
-    
+
     TString refName = Form("ref%06d_", fRunID);
     if (bhGem != NULL) delete bhGem;
     if (bhToF400 != NULL) delete bhToF400;
@@ -369,12 +385,12 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhToF700_4show->SetDir(NULL, fRecoTree4Show);
     bhTrig_4show->SetDir(NULL, fRecoTree4Show);
 
-//    bhToF400->Reset();
-//    bhToF700->Reset();
-//    bhDCH->Reset();
-//    bhMWPC->Reset();
-//    bhTrig->Reset();
-//    bhGem->Reset();
+    //    bhToF400->Reset();
+    //    bhToF700->Reset();
+    //    bhDCH->Reset();
+    //    bhMWPC->Reset();
+    //    bhTrig->Reset();
+    //    bhGem->Reset();
     bhToF400_4show->Reset();
     bhToF700_4show->Reset();
     bhDCH_4show->Reset();
@@ -485,10 +501,10 @@ void BmnMonitor::ProcessFileRun(TString rawFileName) {
 }
 
 void BmnMonitor::ProcessDigi(Int_t iEv) {
-//    fDigiTree->GetEntry(iEv);
+    //    fDigiTree->GetEntry(iEv);
     // histograms fill//
-//    DBG("started")
-    if (fDigiArrays->header == NULL){
+    //    DBG("started")
+    if (fDigiArrays->header == NULL) {
         printf("Wrong header!\n");
         return;
     }
@@ -574,11 +590,15 @@ void BmnMonitor::RegisterAll() {
     bhToF400_4show->Register(fServer);
     bhToF700_4show->Register(fServer);
     bhTrig_4show->Register(fServer);
-    
+    fServer->Register("/", refList);
+    DBG("histograms registered")
+}
+
+void BmnMonitor::UpdateRuns() {
     struct dirent **namelist;
     regex re("bmn_run0*(\\d+)_hist.root");
-//    regex reFile("");
     Int_t n;
+    refList->Clear();
     n = scandir(_refDir, &namelist, 0, versionsort);
     if (n < 0)
         perror("scandir");
@@ -586,13 +606,11 @@ void BmnMonitor::RegisterAll() {
         for (Int_t i = 0; i < n; ++i) {
             if (regex_match(namelist[i]->d_name, re))
                 refList->Add(new TObjString(
-                TString(regex_replace(namelist[i]->d_name, re, "$1"))));
+                    TString(regex_replace(namelist[i]->d_name, re, "$1"))));
             free(namelist[i]);
         }
         free(namelist);
     }
-    fServer->Register("/", refList);
-    DBG("histograms registered")
 }
 
 void BmnMonitor::FinishRun() {
@@ -605,14 +623,12 @@ void BmnMonitor::FinishRun() {
     //    bhTrig->SetDir(NULL, fRecoTree);
     printf("fRecoTree Write result = %d\n", fRecoTree->Write());
     printf("fHistOut  Write result = %d\n", fHistOut->Write());
-//    DBG("list deleted")
-//            fRecoTree->Clear();
-//    DBG("tree cleared")
-//            delete fRecoTree;
-//    DBG("tree deleted")
-//    DBG("fHist closed")
-    fRecoTree4Show->Clear();
-    delete fRecoTree4Show;
+    //    DBG("list deleted")
+    //            fRecoTree->Clear();
+    //    DBG("tree cleared")
+    //            delete fRecoTree;
+    //    DBG("tree deleted")
+    //    DBG("fHist closed")
     string cmd;
     cmd = string("chmod 775 ") + fHistOut->GetName();
     printf("system result = %d\n", system(cmd.c_str()));
@@ -620,15 +636,15 @@ void BmnMonitor::FinishRun() {
     cmd = string("hadd -f shorter.root ") + fHistOut->GetName() +
             string("; mv shorter.root ") + fHistOut->GetName();
 
-//    bhGem->SetDir(NULL, fRecoTree);
-//    bhDCH->SetDir(NULL, fRecoTree);
-//    bhMWPC->SetDir(NULL, fRecoTree);
-//    bhToF400->SetDir(NULL, fRecoTree);
-//    bhToF700->SetDir(NULL, fRecoTree);
-//    bhTrig->SetDir(NULL, fRecoTree);
-//            fHistOut->Close();
-//           delete fHistOut;
-//    printf("system result = %d\n", system(cmd.c_str()));
+    //    bhGem->SetDir(NULL, fRecoTree);
+    //    bhDCH->SetDir(NULL, fRecoTree);
+    //    bhMWPC->SetDir(NULL, fRecoTree);
+    //    bhToF400->SetDir(NULL, fRecoTree);
+    //    bhToF700->SetDir(NULL, fRecoTree);
+    //    bhTrig->SetDir(NULL, fRecoTree);
+    //            fHistOut->Close();
+    //           delete fHistOut;
+    //    printf("system result = %d\n", system(cmd.c_str()));
 }
 
 void BmnMonitor::threadReceiveWrapper(BmnDataReceiver* dr) {
@@ -638,8 +654,8 @@ void BmnMonitor::threadReceiveWrapper(BmnDataReceiver* dr) {
 void BmnMonitor::threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent) {
 
     BmnOnlineDecoder *deco = new BmnOnlineDecoder();
-//    deco->Decode(dirname, startFile, runCurrent);
-    deco->BatchDirectory(dirname);
+    deco->Decode(dirname, startFile, runCurrent);
+    //    deco->BatchDirectory(dirname);
 }
 
 ClassImp(BmnMonitor);

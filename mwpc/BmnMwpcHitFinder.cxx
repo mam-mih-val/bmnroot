@@ -40,7 +40,7 @@ BmnMwpcHitFinder::~BmnMwpcHitFinder() {
 InitStatus BmnMwpcHitFinder::Init() {
     if (!expData)
         return kERROR;
-    cout << " BmnMwpcHitFinder::Init() " << endl;
+    if (fVerbose) cout << " BmnMwpcHitFinder::Init() " << endl;
 
     FairRootManager* ioman = FairRootManager::Instance();
     fBmnMwpcDigitArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
@@ -54,8 +54,8 @@ InitStatus BmnMwpcHitFinder::Init() {
 
 void BmnMwpcHitFinder::Exec(Option_t* opt) {
     clock_t tStart = clock();
-    cout << "\n======================== MWPC hit finder exec started ====================\n" << endl;
-    cout << "Event number: " << fEventNo++ << endl;
+    if (fVerbose) cout << "\n======================== MWPC hit finder exec started =====================\n" << endl;
+    if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
 
     fBmnMwpcHitArray->Clear();
     Short_t kNChambers = fMwpcGeometry->GetNChambers();
@@ -81,7 +81,7 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
         CreateMwpcHits(CreateHitsBy3Planes(digits_filtered[iChamber][3], digits_filtered[iChamber][4], digits_filtered[iChamber][5],
                 fMwpcGeometry->GetZPlanePos(iChamber, 4)), fBmnMwpcHitArray, iChamber);
     }
-    cout << "\n======================== MWPC hit finder exec finished ===================" << endl;
+    if (fVerbose) cout << "\n======================== MWPC hit finder exec finished ====================" << endl;
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }

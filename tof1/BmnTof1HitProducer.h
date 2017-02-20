@@ -9,6 +9,9 @@
 #include <math.h>
 
 #include "BmnTof1HitProducerIdeal.h"
+#include "BmnTof1GeoUtils.h"
+#include "BmnTof1Digit.h"
+#include "BmnTrigDigit.h"
 
 class TRandom2;
 class TEfficiency;
@@ -39,7 +42,8 @@ class BmnTof1HitProducer : public BmnTof1HitProducerIdeal
 
 	// input- strip edge position & signal times; output- strip crosspoint; return false, if crosspoint outside strip 
 	bool			GetCrossPoint(const TVector3& p1, double time1, const TVector3& p2, double time2, TVector3& crossPoint);
-	
+	bool                    GetCrossPoint(const LStrip *pStrip, double time1, double time2, TVector3& crossPoint);
+        Double_t                CalculateToF (BmnTof1Digit *d1, BmnTof1Digit *d2, BmnTrigDigit *t0);
 public:
 	BmnTof1HitProducer(const char *name = "TOF1 HitProducer", Bool_t useMCdata = true, Int_t verbose = 1, Bool_t DoTest = false);
 	virtual ~BmnTof1HitProducer();

@@ -330,6 +330,7 @@ private:
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
     UInt_t fPedEvCntr;
+    Bool_t fPedEnough;
     GemMapStructure* fGemMap;
     TriggerMapStructure* fT0Map;
     deque<UInt_t> *fDataQueue;

@@ -23,7 +23,7 @@ void CreateMapTof400_BMN_12_2016(std::string placementMapFile, std::string mapFi
     slot[2] = 0x06e9da91;
     slot[3] = 0x076caef6;
     slot[4] = 0x076cae7b;
-    slot[5] = 0x0467332f;
+    slot[5] = 0x046f332f;
     slot[6] = 0x06e9404b;
     slot[7] = 0x06e9e4b0;
     slot[14] = 0x046f408c;

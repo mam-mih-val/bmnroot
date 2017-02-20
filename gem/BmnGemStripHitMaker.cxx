@@ -56,8 +56,10 @@ InitStatus BmnGemStripHitMaker::Init() {
     fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
     fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
 
-    if (fVerbose && fBmnGemStripDigitMatchesArray) cout << "  Strip matching information exists!\n";
-    else cout << "  Strip matching information doesn`t exist!\n";
+    if (fVerbose) {
+        if (fBmnGemStripDigitMatchesArray) cout << "  Strip matching information exists!\n";
+        else cout << "  Strip matching information doesn`t exist!\n";
+    }
 
     fBmnGemStripHitsArray = new TClonesArray(fOutputHitsBranchName);
     ioman->Register(fOutputHitsBranchName, "GEM", fBmnGemStripHitsArray, kTRUE);
@@ -73,12 +75,12 @@ InitStatus BmnGemStripHitMaker::Init() {
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016:
             StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016" << "\n";
+            if (fVerbose) cout << "   Current Configuration : RunSummer2016" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunWinter2016:
             StationSet = new BmnGemStripStationSet_RunWinter2016(fCurrentConfig);
-            cout << "   Current Configuration : RunWinter2016" << "\n";
+            if (fVerbose) cout << "   Current Configuration : RunWinter2016" << "\n";
             break;
 
         default:
@@ -105,12 +107,12 @@ InitStatus BmnGemStripHitMaker::Init() {
     // this is used when e.g. we want to run alignment from scratch.
     ReadAlignCorrFile(fAlignCorrFileName, corr);
 
-    cout <<"Alignment corrections to be used: "<< endl;
+    if (fVerbose) cout << "Alignment corrections to be used: " << endl;
     for (Int_t iStat = 0; iStat < nStat; iStat++) {
         Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
         for (Int_t iMod = 0; iMod < nModul; iMod++) {
             for (Int_t iPar = 0; iPar < nParams; iPar++) {
-                cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<corr[iStat][iMod][iPar]<< endl;
+                if (fVerbose) cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << corr[iStat][iMod][iPar] << endl;
             }
         }
     }

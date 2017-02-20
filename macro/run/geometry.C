@@ -9,13 +9,13 @@ geometry(FairRunSim *fRun) {
     cave->SetGeometryFileName("cave.geo");
     fRun->AddModule(cave);
 
-    FairModule* pipe = new FairPipe("PIPE");
-    pipe->SetGeometryFileName("pipe_Be_kompozit_gap75cm_3.geo");
-    //fRun->AddModule(pipe);
+//    FairModule* pipe = new FairPipe("PIPE");
+//    pipe->SetGeometryFileName("pipe_Be_kompozit_gap75cm_3.geo");
+//    fRun->AddModule(pipe);
 
-    FairModule* target = new FairTarget("Target");
-    target->SetGeometryFileName("target_au_250mu.geo");
-    fRun->AddModule(target);
+    //    FairModule* target = new FairTarget("Target");
+    //    target->SetGeometryFileName("target_au_250mu.geo");
+    //    fRun->AddModule(target);
 
     FairModule* magnet = new FairMagnet("MAGNET");
     magnet->SetGeometryFileName("magnet_modified.root");
@@ -23,7 +23,7 @@ geometry(FairRunSim *fRun) {
 
     // -----   Create detectors        -------------------------
     FairDetector* tof = new CbmTof("TOF", kTRUE);
-    tof->SetGeometryFileName("tof_v07a.geo");
+    tof->SetGeometryFileName("tof2_v1.root");
     fRun->AddModule(tof);
 
     CbmPsdv1* psd = new CbmPsdv1("PSD", kTRUE);
@@ -33,26 +33,24 @@ geometry(FairRunSim *fRun) {
     fRun->AddModule(psd);
 
     FairDetector* sts = new CbmSts("STS", kTRUE);
-    //sts->SetGeometryFileName("GEMS_RunSummer2016.root");
     sts->SetGeometryFileName("GEMS_RunWinter2016.root");
     fRun->AddModule(sts);
 
-    FairDetector* recoil = new BmnRecoil("RECOIL", kTRUE);
-    recoil->SetGeometryFileName("recoil_modules_70x12_v1.geo");
-    fRun->AddModule(recoil);
+    //    FairDetector* recoil = new BmnRecoil("RECOIL", kTRUE);
+    //    recoil->SetGeometryFileName("recoil_modules_70x12_v1.geo");
+    //    fRun->AddModule(recoil);
 
     FairDetector* tof1 = new BmnTOF1("TOF1", kTRUE);
-    //  tof1->SetGeometryFileName("tof1_W400_v1.geo");
-    tof1->SetGeometryFileName("TOFB1_v3.root");
+    tof1->SetGeometryFileName("TOF400_RUN5_part2.root");
     fRun->AddModule(tof1);
 
-    FairDetector* dch1 = new BmnDch1("DCH1", kTRUE);
-    dch1->SetGeometryFileName("dch1_v1.root");
-    fRun->AddModule(dch1);
+    FairDetector* dch = new BmnDch("DCH", kTRUE);
+    dch->SetGeometryFileName("DCH_RunWinter2016.root");
+    fRun->AddModule(dch);
 
-    FairDetector* dch2 = new BmnDch2("DCH2", kTRUE);
-    dch2->SetGeometryFileName("dch2_v1.root");
-    fRun->AddModule(dch2);
+    FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
+    mwpc->SetGeometryFileName("MWPC_RunWinter2016.root");
+    fRun->AddModule(mwpc);
 
     FairDetector* bd = new BmnBd("BD", kTRUE);
     bd->SetGeometryFileName("bd_v1_0.geo");

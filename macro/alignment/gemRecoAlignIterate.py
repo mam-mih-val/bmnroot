@@ -105,7 +105,8 @@ def main() :
         else :
             sumAlignCorrFileName = options.digiFileListFileName.replace('filelist_digi.txt',                  'sum_align_it00.root')
         # now create the appropriate file with that name:
-        call(['cp', '$VMCWORKDIR/input/'+options.alignCorrFileName, 'sumAlignCorrFileName'])
+       #call(    ['cp', '$VMCWORKDIR/input/'+options.alignCorrFileName,    sumAlignCorrFileName])
+        os.system('cp    $VMCWORKDIR/input/'+options.alignCorrFileName+' '+sumAlignCorrFileName)
 
     else :
         # or it can also be empty, if we want to run the alignment form scratch

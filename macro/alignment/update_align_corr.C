@@ -1,3 +1,7 @@
+// This macro updates the cumulative mis-alignment parameters; it is only called
+// when the "previous" misalignment file already exists someway: either we use
+// the defaults, or start using this macro only from the second iteration...
+
 #include   <TClonesArray.h>
 #include   <TFile.h>
 #include   <TString.h>
@@ -10,30 +14,27 @@ void update_align_corr(TString preAlignCorrFileName
 {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
-    TFile* preF = new TFile(preAlignCorrFileName.Data());
-    TTree* preT = (TTree*)preF->Get("cbmsim");
+    TFile* preFile = new TFile(preAlignCorrFileName.Data());
+    TTree* preTree = (TTree*)preFile->Get("cbmsim");
     TClonesArray* preCorrs = NULL;
-    preT->GetBranch("BmnGemAlignmentCorrections")->SetAutoDelete(kFALSE);
-    preT->SetBranchAddress("BmnGemAlignmentCorrections", &preCorrs);
+    preTree->GetBranch("BmnGemAlignmentCorrections")->SetAutoDelete(kFALSE);
+    preTree->SetBranchAddress("BmnGemAlignmentCorrections", &preCorrs);
 
-    TFile* newF = new TFile(newAlignCorrFileName.Data());
-    TTree* newT = (TTree*)newF->Get("cbmsim");
+    TFile* newFile = new TFile(newAlignCorrFileName.Data());
+    TTree* newTree = (TTree*)newFile->Get("cbmsim");
     TClonesArray* newCorrs = NULL;
-    newT->GetBranch("BmnGemAlignmentCorrections")->SetAutoDelete(kFALSE);
-    newT->SetBranchAddress("BmnGemAlignmentCorrections", &newCorrs);
+    newTree->GetBranch("BmnGemAlignmentCorrections")->SetAutoDelete(kFALSE);
+    newTree->SetBranchAddress("BmnGemAlignmentCorrections", &newCorrs);
 
-    TFile* sumF = new TFile(sumAlignCorrFileName.Data(),"recreate");
-    TTree* sumT = preT->CloneTree();
+    TFile* sumFile = new TFile(sumAlignCorrFileName.Data(),"recreate");
+    TTree* sumTree = preTree->CloneTree();
     TClonesArray* sumCorrs = NULL;
-    sumT->SetBranchAddress("BmnGemAlignmentCorrections", &sumCorrs);
+    sumTree->SetBranchAddress("BmnGemAlignmentCorrections", &sumCorrs);
 
-    for (Int_t iEntry=0; iEntry<(preT->GetEntries()); iEntry++) {
-      //preCorrs->Clear();
-      //newCorrs->Clear();
-      //sumCorrs->Clear();
-        preT->GetEntry(iEntry);
-        newT->GetEntry(iEntry);
-        sumT->GetEntry(iEntry);
+    for (Int_t iEntry=0; iEntry<(preTree->GetEntries()); iEntry++) {
+        preTree->GetEntry(iEntry);
+        newTree->GetEntry(iEntry);
+        sumTree->GetEntry(iEntry);
         for (Int_t iCorr=0; iCorr<(preCorrs->GetEntriesFast()); iCorr++) {
             BmnGemAlignmentCorrections* preCo = (BmnGemAlignmentCorrections*)preCorrs->UncheckedAt(iCorr);
             BmnGemAlignmentCorrections* newCo = (BmnGemAlignmentCorrections*)newCorrs->UncheckedAt(iCorr);
@@ -43,12 +44,14 @@ void update_align_corr(TString preAlignCorrFileName
                                   preCo->GetCorrections().Y() + newCo->GetCorrections().Y(),   
                                   preCo->GetCorrections().Z() + newCo->GetCorrections().Z());
         }
+        sumTree->Fill();
     }
-    preT->Print();
-    newT->Print();
-    sumT->Print();
-    sumF->Write();
-    delete preF;
-    delete newF;
-    delete sumF;
+    preTree->Print();
+    newTree->Print();
+    sumTree->Print();
+    sumFile->cd();
+    sumTree->Write();
+    delete preFile;
+    delete newFile;
+    delete sumFile;
 }

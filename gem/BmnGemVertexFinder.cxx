@@ -15,7 +15,7 @@ BmnGemVertexFinder::BmnGemVertexFinder() : fEventNo(0) {
     fIsField = kTRUE;
     fField = NULL;
     fHitsBranchName = "BmnGemStripHit";
-    fTracksBranchName = "BmnGemTracks";
+    fTracksBranchName = "BmnGemTrack";
     fVertexBranchName = "BmnVertex";
 }
 

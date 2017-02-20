@@ -33,7 +33,7 @@ fChiSqCut(25.) {
     fField = NULL;
     fIsField = kTRUE;
     fHitsBranchName = "BmnGemStripHit";
-    fSeedsBranchName = "BmnGemSeeds";
+    fSeedsBranchName = "BmnGemSeed";
     fTracksBranchName = "BmnGemTrack";
 }
 
@@ -53,7 +53,7 @@ InitStatus BmnGemTrackFinder::Init() {
     fGemHitArray = (TClonesArray*) ioman->GetObject(fHitsBranchName); //in
     fGemSeedsArray = (TClonesArray*) ioman->GetObject(fSeedsBranchName); //in
     fGemTracksArray = new TClonesArray(fTracksBranchName, 100); //out
-    ioman->Register("BmnGemTracks", "GEM", fGemTracksArray, kTRUE);
+    ioman->Register("BmnGemTrack", "GEM", fGemTracksArray, kTRUE);
 
     fField = FairRunAna::Instance()->GetField();
 

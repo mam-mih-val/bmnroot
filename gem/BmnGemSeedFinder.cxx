@@ -51,7 +51,7 @@ InitStatus BmnGemSeedFinder::Init() {
         return kERROR;
     }
     fGemSeedsArray = new TClonesArray(fSeedsBranchName, 100); //out
-    ioman->Register("BmnGemSeeds", "GEM", fGemSeedsArray, kTRUE);
+    ioman->Register("BmnGemSeed", "GEM", fGemSeedsArray, kTRUE);
 
     fField = FairRunAna::Instance()->GetField();
 

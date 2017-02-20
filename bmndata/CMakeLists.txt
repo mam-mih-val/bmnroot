@@ -99,6 +99,7 @@ BmnRawDataDecoder.cxx
 BmnEventHeader.cxx
 BmnRunHeader.cxx
 BmnCounterTask.cxx
+BmnFitNode.h
 BmnEnums.h
 )
 

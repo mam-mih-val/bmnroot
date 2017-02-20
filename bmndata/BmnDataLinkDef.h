@@ -88,4 +88,6 @@
 
 #pragma link C++ class BmnCounter+;
 
+#pragma link C++ class BmnFitNode+;
+
 #endif

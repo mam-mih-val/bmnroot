@@ -146,8 +146,8 @@ private:
     Int_t fPDG; // PDG hypothesis
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
 
-    BmnStatus NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num);
-    BmnStatus NearestHitMergeDCH(BmnGlobalTrack* tr, Int_t num);
+    BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num);
+    BmnStatus MatchingDCH(BmnGlobalTrack* tr);
     
     BmnStatus Refit(BmnGlobalTrack* tr);
     BmnStatus EfficiencyCalculation();

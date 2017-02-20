@@ -16,6 +16,8 @@ BmnGlobalTrack::BmnGlobalTrack()
     fTof2Hit(-1),
     fDch1Hit(-1),
     fDch2Hit(-1),
+    fDchTrack(-1),
+    fMwpcTrack(-1),
     fFitNodes()
 {
 }
@@ -29,8 +31,7 @@ BmnGlobalTrack::~BmnGlobalTrack() { }
 
 // -----   Public method Print   -------------------------------------------
 void BmnGlobalTrack::Print() const {
-  cout << endl << "GemTrack " << fGemTrack << ", Tof1Hit " << fTof1Hit << ", Dch1Hit " << fDch1Hit
-       << ", Dch2Hit " << fDch2Hit << ", Tof2Hit " << fTof2Hit << endl;
+  cout << endl << "MwpcTrack " << fMwpcTrack << ", GemTrack " << fGemTrack << ", Tof1Hit " << fTof1Hit << ", Tof2Hit " << fTof2Hit << ", DchTrack " << fDchTrack << endl;
 }
 // -------------------------------------------------------------------------
 

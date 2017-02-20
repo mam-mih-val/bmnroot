@@ -30,22 +30,25 @@ class BmnGlobalTrack : public BmnTrack {
 
 
   /** Accessors **/
-  Int_t GetGemTrackIndex()  const { return fGemTrack; }
-  Int_t GetTof1HitIndex()   const { return fTof1Hit;  }
-  Int_t GetTof2HitIndex()   const { return fTof2Hit;  }
-  Int_t GetDch1HitIndex()   const { return fDch1Hit;  }
-  Int_t GetDch2HitIndex()   const { return fDch2Hit;  }
+  Int_t GetGemTrackIndex()  const { return fGemTrack;  }
+  Int_t GetTof1HitIndex()   const { return fTof1Hit;   }
+  Int_t GetTof2HitIndex()   const { return fTof2Hit;   }
+  Int_t GetDch1HitIndex()   const { return fDch1Hit;   }
+  Int_t GetDch2HitIndex()   const { return fDch2Hit;   }
+  Int_t GetDchTrackIndex()  const { return fDchTrack;  }
+  Int_t GetMwpcTrackIndex() const { return fMwpcTrack; }
   
   const BmnFitNode* GetFitNode(Int_t index) const {return &fFitNodes[index];}
   const vector<BmnFitNode>& GetFitNodes() const {return fFitNodes;}
 
-
   /** Modifiers **/
-  void SetGemTrackIndex(Int_t iGem)  { fGemTrack = iGem;  }
-  void SetTof1HitIndex(Int_t iTof1Hit) { fTof1Hit = iTof1Hit; }
-  void SetTof2HitIndex(Int_t iTof2Hit) { fTof2Hit = iTof2Hit; }
-  void SetDch1HitIndex(Int_t iDch1Hit) { fDch1Hit = iDch1Hit; }
-  void SetDch2HitIndex(Int_t iDch2Hit) { fDch2Hit = iDch2Hit; }
+  void SetGemTrackIndex(Int_t iGem)    { fGemTrack  = iGem;     }
+  void SetTof1HitIndex(Int_t iTof1Hit) { fTof1Hit   = iTof1Hit; }
+  void SetTof2HitIndex(Int_t iTof2Hit) { fTof2Hit   = iTof2Hit; }
+  void SetDch1HitIndex(Int_t iDch1Hit) { fDch1Hit   = iDch1Hit; }
+  void SetDch2HitIndex(Int_t iDch2Hit) { fDch2Hit   = iDch2Hit; }
+  void SetDchTrackIndex(Int_t iDch)    { fDchTrack  = iDch;     }
+  void SetMwpcTrackIndex(Int_t iMwpc)  { fMwpcTrack = iMwpc;    }
   
   void SetFitNodes(const vector<BmnFitNode>& nodes) {fFitNodes = nodes;}
 
@@ -62,6 +65,8 @@ class BmnGlobalTrack : public BmnTrack {
   Int_t fTof2Hit;
   Int_t fDch1Hit;
   Int_t fDch2Hit;
+  Int_t fDchTrack;
+  Int_t fMwpcTrack;
   
   vector<BmnFitNode> fFitNodes; // Array of fit nodes
 

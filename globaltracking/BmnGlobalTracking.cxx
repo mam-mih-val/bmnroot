@@ -67,7 +67,7 @@ InitStatus BmnGlobalTracking::Init() {
         if (!fGemHits)
             if (fVerbose)
                 cout << "Init. No BmnGemStripHit array!" << endl;
-        fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTracks");
+        fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTrack");
         if (!fGemTracks)
             if (fVerbose)
                 cout << "Init. No GEM tracks array!" << endl;
@@ -75,10 +75,10 @@ InitStatus BmnGlobalTracking::Init() {
 
     // TOF1
     if (fDet.GetDet(kTOF1)) {
-        fTof1Hits = (TClonesArray*) ioman->GetObject("TOF1Hit");
+        fTof1Hits = (TClonesArray*) ioman->GetObject("BmnTof1Hit");
         if (!fTof1Hits)
             if (fVerbose)
-                cout << "Init. No TOF1Hit array!" << endl;
+                cout << "Init. No BmnTof1Hit array!" << endl;
     }
 
     // TOF2
@@ -141,8 +141,8 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
 
         //        if (NearestHitMergeTOF(glTr, 1) == kBMNSUCCESS) {
         //            /*Refit(glTr);*/        
-        NearestHitMergeTOF(glTr, 1);
-        NearestHitMergeDCH(glTr, 1);
+        MatchingTOF(glTr, 1);
+        MatchingDCH(glTr);
         //        NearestHitMergeDCH(glTr, 2);
         //        if (NearestHitMergeDCH(glTr, 2) == kBMNSUCCESS) {
         //            /*Refit(glTr);*/        }
@@ -243,7 +243,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
 //
 //}
 
-BmnStatus BmnGlobalTracking::NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num) {
+BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
 
     TClonesArray* tofHits = (num == 1 && fTof1Hits) ? fTof1Hits : (num == 2 && fTof2Hits) ? fTof2Hits : NULL;
     if (!tofHits) return kBMNERROR;
@@ -251,27 +251,29 @@ BmnStatus BmnGlobalTracking::NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num) {
     BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
 
     Double_t minChiSq = DBL_MAX;
-    BmnHit* minHit = NULL; // Pointer to hit with minimum chi-square
+    BmnHit* minHit = NULL; // Pointer to the nearest hit
     Int_t minIdx = -1;
-    FairTrackParam minPar; // Track parameters for closest hit
-    //    printf("Xt = %f \t Yt = %f \t Ct = %f\n", par->GetX(), par->GetY(), tr->GetChi2());
+    FairTrackParam minParUp;   // updated track parameters for closest hit
+    FairTrackParam minParPred; // predicted track parameters for closest hit
     for (Int_t hitIdx = 0; hitIdx < tofHits->GetEntriesFast(); ++hitIdx) {
         BmnHit* hit = (BmnHit*) tofHits->At(hitIdx);
-        FairTrackParam par(*(tr->GetParamLast()));
-        kalman->TGeoTrackPropagate(&par, hit->GetZ(), fPDG, NULL, NULL, "field");
+//        hit->SetX(hit->GetX() + 5.91); // FIXME!!! TMP ALIGNMENT!!!
+        FairTrackParam parPredict(*(tr->GetParamLast()));
+        kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, NULL, "field");
+        FairTrackParam parUpdate = parPredict;
         Double_t chi;
-        kalman->Update(&par, hit, chi);
+        kalman->Update(&parUpdate, hit, chi);
         if (chi < minChiSq) {
             minChiSq = chi;
             minHit = hit;
-            minPar = par;
+            minParUp = parUpdate;
+            minParPred = parPredict;
             minIdx = hitIdx;
         }
-        //        printf("Xh = %f \t Yh = %f \t Ch = %f\n", hit->GetX(), hit->GetY(), chi);
     }
 
     if (minHit != NULL) { // Check if hit was added
-        tr->SetParamLast(minPar);
+        tr->SetParamLast(minParUp);
         tr->SetChi2(tr->GetChi2() + minChiSq);
         if (num == 1)
             tr->SetTof1HitIndex(minIdx);
@@ -279,6 +281,12 @@ BmnStatus BmnGlobalTracking::NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num) {
             tr->SetTof2HitIndex(minIdx);
         tr->SetNHits(tr->GetNHits() + 1);
         tr->SetNDF(tr->GetNDF() + 1);
+        vector<BmnFitNode> nodes;
+        BmnFitNode node;
+        node.SetUpdatedParam(&minParUp);
+        node.SetPredictedParam(&minParPred);
+        nodes.push_back(node);
+        tr->SetFitNodes(nodes);
         return kBMNSUCCESS;
     } else {
         return kBMNERROR;
@@ -297,85 +305,115 @@ BmnStatus BmnGlobalTracking::CreateDchHitsFromTracks() {
     }
 }
 
-BmnStatus BmnGlobalTracking::NearestHitMergeDCH(BmnGlobalTrack* tr, Int_t num) {
-
-    TClonesArray* dchHits = fDchHits;
-    if (!dchHits) return kBMNERROR;
+BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr) {
 
     BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
-
-    // First find hit with minimum Z position and build map from Z hit position
-    // to track parameter to improve the calculation speed.
-
-    Double_t zMin = 10e10;
-    map<Float_t, FairTrackParam> zParamMap;
-
-    for (Int_t hitIdx = 0; hitIdx < dchHits->GetEntriesFast(); ++hitIdx) {
-        const BmnHit* hit = (BmnHit*) dchHits->At(hitIdx);
-        zMin = min(zMin, hit->GetZ());
-        zParamMap[hit->GetZ()] = FairTrackParam();
-    }
-
-    FairTrackParam par(*(tr->GetParamLast()));
-    // Extrapolate track minimum Z position of hit using magnetic field propagator
-    if (kalman->TGeoTrackPropagate(&par, zMin, fPDG, NULL, NULL, "field") == kBMNERROR) {
-        return kBMNERROR;
-    }
-    // Extrapolate track parameters to each Z position in the map.
-    // This is done to improve calculation speed.
-    // In case of planar TOF geometry only 1 track extrapolation is required,
-    // since all hits located at the same Z.
-    for (map<Float_t, FairTrackParam>::iterator it = zParamMap.begin(); it != zParamMap.end(); it++) {
-        (*it).second = par;
-        kalman->TGeoTrackPropagate(&(*it).second, (*it).first, fPDG, NULL, NULL, "field");
-    }
-
-    // Loop over hits
-    Float_t minChiSq = 10e10; // minimum chi-square of hit
-    BmnHit* minHit = NULL; // Pointer to hit with minimum chi-square
-    Float_t minDist = 10e6;
-    Int_t minIdx = 0;
-    Float_t dist = 0.0;
-    FairTrackParam minPar; // Track parameters for closest hit
-    for (Int_t hitIdx = 0; hitIdx < dchHits->GetEntriesFast(); ++hitIdx) {
-        BmnHit* hit = (BmnHit*) dchHits->At(hitIdx);
-        if (zParamMap.find(hit->GetZ()) == zParamMap.end()) { // This should never happen
-            cout << "DCH_MATCHING: NearestHitMerge: Z position " << hit->GetZ() << " not found in map. Something is wrong.\n";
-        }
-        FairTrackParam tpar(zParamMap[hit->GetZ()]);
-        Float_t chi = 0.0;
-        //        fUpdater->Update(&tpar, hit, chi); //update by KF
-        dist = Sqrt(Sqr(tpar.GetX() - hit->GetX()) + Sqr(tpar.GetY() - hit->GetY()) + Sqr(tpar.GetZ() - hit->GetZ()));
-
-        //        cout << "\t\t\t\t\t\t\t\t\t\t\tdist = " << dist << endl;
-        if (dist < minDist) { // Check if hit is inside validation gate and closer to the track.
-            minDist = dist;
+    
+    Double_t minChiSq = DBL_MAX;
+    BmnTrack* minTrack = NULL; // Pointer to the nearest track
+    Int_t minIdx = -1;
+    FairTrackParam minPar; // Track parameters for the closest dch track
+    for (Int_t trIdx = 0; trIdx < fDchTracks->GetEntriesFast(); ++trIdx) {
+        BmnTrack* dchTr = (BmnTrack*) fDchTracks->At(trIdx);
+        FairTrackParam par(*(tr->GetParamLast()));
+        kalman->TGeoTrackPropagate(&par, dchTr->GetParamFirst()->GetZ(), fPDG, NULL, NULL, "field");
+        Double_t chi;
+        BmnDchHit hit(1, TVector3(dchTr->GetParamFirst()->GetX(), dchTr->GetParamFirst()->GetY(), dchTr->GetParamFirst()->GetZ()), TVector3(0, 0, 0), 0); //tmp hit for updating track parameters
+        kalman->Update(&par, &hit, chi);
+        if (chi < minChiSq) {
             minChiSq = chi;
-            minHit = hit;
-            minPar = tpar;
-            minIdx = hitIdx;
+            minTrack = dchTr;
+            minPar = par;
+            minIdx = trIdx;
         }
     }
-
-    //    if (minDist < 10e6 && num == 1) {
-    //        h_dist1->Fill(minDist);
-    //    }
-    //    if (minDist < 10e6 && num == 2) {
-    //        h_dist2->Fill(minDist);
-    //    }
-
-    if (minHit != NULL) { // Check if hit was added
+    
+    if (minTrack != NULL) { // Check if hit was added
         tr->SetParamLast(minPar);
         tr->SetChi2(tr->GetChi2() + minChiSq);
-        if (num == 1)
-            tr->SetDch1HitIndex(minIdx);
-        else
-            tr->SetDch2HitIndex(minIdx);
-        tr->SetNHits(tr->GetNHits() + 1);
+        tr->SetDchTrackIndex(minIdx);
+        tr->SetNHits(tr->GetNHits() + minTrack->GetNHits());
+        tr->SetNDF(tr->GetNDF() + minTrack->GetNHits()); //FIXME!
         return kBMNSUCCESS;
     } else {
         return kBMNERROR;
     }
+
+    delete kalman;
+    
+//    
+//    // First find hit with minimum Z position and build map from Z hit position
+//    // to track parameter to improve the calculation speed.
+//
+//    Double_t zMin = 10e10;
+//    map<Float_t, FairTrackParam> zParamMap;
+//
+//    for (Int_t hitIdx = 0; hitIdx < dchHits->GetEntriesFast(); ++hitIdx) {
+//        const BmnHit* hit = (BmnHit*) dchHits->At(hitIdx);
+//        zMin = min(zMin, hit->GetZ());
+//        zParamMap[hit->GetZ()] = FairTrackParam();
+//    }
+//
+//    FairTrackParam par(*(tr->GetParamLast()));
+//    // Extrapolate track minimum Z position of hit using magnetic field propagator
+//    if (kalman->TGeoTrackPropagate(&par, zMin, fPDG, NULL, NULL, "field") == kBMNERROR) {
+//        return kBMNERROR;
+//    }
+//    // Extrapolate track parameters to each Z position in the map.
+//    // This is done to improve calculation speed.
+//    // In case of planar TOF geometry only 1 track extrapolation is required,
+//    // since all hits located at the same Z.
+//    for (map<Float_t, FairTrackParam>::iterator it = zParamMap.begin(); it != zParamMap.end(); it++) {
+//        (*it).second = par;
+//        kalman->TGeoTrackPropagate(&(*it).second, (*it).first, fPDG, NULL, NULL, "field");
+//    }
+//
+//    // Loop over hits
+//    Float_t minChiSq = 10e10; // minimum chi-square of hit
+//    BmnHit* minHit = NULL; // Pointer to hit with minimum chi-square
+//    Float_t minDist = 10e6;
+//    Int_t minIdx = 0;
+//    Float_t dist = 0.0;
+//    FairTrackParam minPar; // Track parameters for closest hit
+//    for (Int_t hitIdx = 0; hitIdx < dchHits->GetEntriesFast(); ++hitIdx) {
+//        BmnHit* hit = (BmnHit*) dchHits->At(hitIdx);
+//        if (zParamMap.find(hit->GetZ()) == zParamMap.end()) { // This should never happen
+//            cout << "DCH_MATCHING: NearestHitMerge: Z position " << hit->GetZ() << " not found in map. Something is wrong.\n";
+//        }
+//        FairTrackParam tpar(zParamMap[hit->GetZ()]);
+//        Float_t chi = 0.0;
+//        //        fUpdater->Update(&tpar, hit, chi); //update by KF
+//        dist = Sqrt(Sqr(tpar.GetX() - hit->GetX()) + Sqr(tpar.GetY() - hit->GetY()) + Sqr(tpar.GetZ() - hit->GetZ()));
+//
+//        //        cout << "\t\t\t\t\t\t\t\t\t\t\tdist = " << dist << endl;
+//        if (dist < minDist) { // Check if hit is inside validation gate and closer to the track.
+//            minDist = dist;
+//            minChiSq = chi;
+//            minHit = hit;
+//            minPar = tpar;
+//            minIdx = hitIdx;
+//        }
+//    }
+//
+//    //    if (minDist < 10e6 && num == 1) {
+//    //        h_dist1->Fill(minDist);
+//    //    }
+//    //    if (minDist < 10e6 && num == 2) {
+//    //        h_dist2->Fill(minDist);
+//    //    }
+//
+//    if (minHit != NULL) { // Check if hit was added
+//        tr->SetParamLast(minPar);
+//        tr->SetChi2(tr->GetChi2() + minChiSq);
+//        if (num == 1)
+//            tr->SetDch1HitIndex(minIdx);
+//        else
+//            tr->SetDch2HitIndex(minIdx);
+//        tr->SetNHits(tr->GetNHits() + 1);
+//        return kBMNSUCCESS;
+//    } else {
+//        return kBMNERROR;
+//    }
 
 }
 

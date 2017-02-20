@@ -71,6 +71,14 @@ public:
     }
     
     TVector3 GetChamberCenter(Int_t chamber);
+    
+    Double_t GetZRight(Int_t chamber) {
+        return zRight[chamber];
+    }
+    
+    Double_t GetZLeft(Int_t chamber) {
+        return zLeft[chamber];
+    }
  
 private:
 

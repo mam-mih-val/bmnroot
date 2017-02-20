@@ -21,6 +21,7 @@
 #include "FairTask.h"
 #include "BmnMwpcTrack.h"
 #include "BmnMwpcHit.h"
+#include "BmnMwpcGeometry.h"
 #include "BmnEnums.h"
 #include "BmnMath.h"
 
@@ -40,9 +41,11 @@ public:
 
     virtual void Finish();
     
-    BmnStatus FindSeeds(vector <BmnMwpcTrack>& cand);
-    BmnStatus  FitSeeds(vector <BmnMwpcTrack> cand);
+    Int_t FindSeeds(vector <BmnMwpcTrack>& cand, Int_t);
+    BmnStatus FitFoundTracks(vector <BmnMwpcTrack> cand);
     BmnStatus CalculateTrackParamsLine(BmnMwpcTrack* tr);
+    
+    void SingleHitInChamber(vector <BmnMwpcTrack>&, Int_t, vector <BmnMwpcTrack>&);
     
      
 private:
@@ -57,6 +60,8 @@ private:
     
     /** Output array of MWPC tracks **/
     TClonesArray* fBmnMwpcTracksArray; 
+    
+    BmnMwpcGeometry* fMwpcGeo;
          
     ClassDef(BmnMwpcTrackFinder, 1)
 };

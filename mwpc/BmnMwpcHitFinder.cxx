@@ -90,8 +90,9 @@ void BmnMwpcHitFinder::CreateMwpcHits(vector <TVector3> pos, TClonesArray* hits,
     Double_t kWireStep = fMwpcGeometry->GetWireStep();
     TVector3 errors(kWireStep / Sqrt(12.0), kWireStep / Sqrt(12.0), 1.0 / Sqrt(12.0));
 
-    if (pos.size() == 0 || pos.size() > 1)
-        return;
+//    if (pos.size() == 0 || pos.size() > 1)
+//    if (pos.size() == 0)
+//        return;
 
     for (Int_t iSize = 0; iSize < pos.size(); iSize++) {
         BmnMwpcHit* hit = new((*hits)[hits->GetEntriesFast()]) BmnMwpcHit(0, pos.at(iSize), errors, -1);

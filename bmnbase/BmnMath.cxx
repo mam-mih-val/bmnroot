@@ -262,7 +262,7 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
 //    }
 
     for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+        BmnHit* hit = (BmnHit*) arr->At(track->GetHitIndex(i));
         if (type.Contains("XY")) {
             Xi = hit->GetX();
             Yi = hit->GetY();
@@ -318,7 +318,7 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
     Float_t chi2 = 0.0;
 
     for (Int_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+        BmnHit* hit = (BmnHit*) arr->At(track->GetHitIndex(i));
         if (type.Contains("XY")) {
             Xi = hit->GetX();
             Yi = hit->GetY();

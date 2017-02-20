@@ -25,13 +25,13 @@
 // alignCorrFileName - input file with the alignment corrections,
 // default: for the time being should be kept up-to-date by hand here.
 
-void run_reco_bmn(TString digiFileName      = "$VMCWORKDIR/macro/run/evetest.root"
-                 ,TString bmndstFileName    = "$VMCWORKDIR/macro/run/bmndst.root"
-                 ,Int_t   nStartEvent       =  0
-                 ,Int_t   nEvents           =  40000000
-                 ,Bool_t  isPrimary         =  kTRUE
-                 ,TString alignCorrFileName = "alignCorrsLocal_GEM.root"
-                 )
+void run_reco_bmn_new(TString digiFileName      = "$VMCWORKDIR/macro/run/evetest.root"
+                     ,TString bmndstFileName    = "$VMCWORKDIR/macro/run/bmndst.root"
+                     ,Int_t   nStartEvent       =  0
+                     ,Int_t   nEvents           =  40000000
+                     ,Bool_t  isPrimary         =  kTRUE
+                     ,TString alignCorrFileName = "alignCorrsLocal_GEM.root"
+                     )
 {   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
     // ----    Debug option   --------------------------------------------------

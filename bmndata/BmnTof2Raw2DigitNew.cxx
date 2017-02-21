@@ -343,20 +343,20 @@ void BmnTof2Raw2DigitNew::Book()
 
     for (int i=0; i<MaxPlane; i++)
     {
-	sprintf(name, "Time_vs_Strip_Chamber_%d",i+1);
-	sprintf(title, "Time vs Strip Chamber %d",i+1);
+	sprintf(name, "Time_vs_Strip_Chamber_%.1f",idchambers[i]);
+	sprintf(title, "Time vs Strip Chamber %.1f",idchambers[i]);
 	TvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,30000, -20000., +10000.);
-	sprintf(name, "Width_vs_Strip_Chamber_%d",i+1);
-	sprintf(title, "Width vs Strip Chamber %d",i+1);
+	sprintf(name, "Width_vs_Strip_Chamber_%.1f",idchambers[i]);
+	sprintf(title, "Width vs Strip Chamber %.1f",idchambers[i]);
 	WvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,30000, -20000., +10000.);
     }
     for (int i=0; i<MaxPlane; i++)
     {
-	sprintf(name, "Time_vs_Width_Chamber_%d_all",i+1);
-	sprintf(title, "Time vs Width Chamber %d all",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%.1f_all",idchambers[i]);
+	sprintf(title, "Time vs Width Chamber %.1f all",idchambers[i]);
 	TvsWall[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
-	sprintf(name, "Time_vs_Width_Chamber_%d_all_max",i+1);
-	sprintf(title, "Time vs Width Chamber %d all, max strip",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%.1f_all_max",idchambers[i]);
+	sprintf(title, "Time vs Width Chamber %.1f all, max strip",idchambers[i]);
 	TvsWallmax[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
     }
 }
@@ -368,23 +368,23 @@ void BmnTof2Raw2DigitNew::BookSlewing()
 
     for (int i=0; i<MaxPlane; i++)
     {
-	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_1",i+1);
-	sprintf(title, "Time vs Width Chamber %d Peak 1",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%.1f_Peak_1",idchambers[i]);
+	sprintf(title, "Time vs Width Chamber %.1f Peak 1",idchambers[i]);
 	if (TvsW[i][0]) delete TvsW[i][0];
 	TvsW[i][0] = new TProfile(name,title,Wcut,0,Wcut,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
-	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_1",i+1);
-	sprintf(title, "Time vs T0 Width Chamber %d Peak 1",i+1);
+	sprintf(name, "Time_vs_T0_Width_Chamber_%.1f_Peak_1",idchambers[i]);
+	sprintf(title, "Time vs T0 Width Chamber %.1f Peak 1",idchambers[i]);
 	if (TvsWt0[i][0]) delete TvsWt0[i][0];
 	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
     }
     for (int i=0; i<MaxPlane; i++)
     {
-	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_2",i+1);
-	sprintf(title, "Time vs Width Chamber %d Peak 2",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%.1f_Peak_2",idchambers[i]);
+	sprintf(title, "Time vs Width Chamber %.1f Peak 2",idchambers[i]);
 	if (TvsW[i][1]) delete TvsW[i][1];
 	TvsW[i][1] = new TProfile(name,title,(Wmax-Wcut),Wcut,Wmax,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
-	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_2",i+1);
-	sprintf(title, "Time vs T0 Width Chamber %d Peak 2",i+1);
+	sprintf(name, "Time_vs_T0_Width_Chamber_%.1f_Peak_2",idchambers[i]);
+	sprintf(title, "Time vs T0 Width Chamber %.1f Peak 2",idchambers[i]);
 	if (TvsWt0[i][1]) delete TvsWt0[i][1];
 	TvsWt0[i][1] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
     }
@@ -398,28 +398,28 @@ void BmnTof2Raw2DigitNew::ReBook(int i)
     if (Wcutc[i] >= 0.) Wc = Wcutc[i];
     if (Wmaxc[i] >= 0.) Wm = Wmaxc[i];
     delete TvsW[i][0];
-	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_1",i+1);
-	sprintf(title, "Time vs Width Chamber %d Peak 1",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%.1f_Peak_1",idchambers[i]);
+	sprintf(title, "Time vs Width Chamber %.1f Peak 1",idchambers[i]);
 	TvsW[i][0] = new TProfile(name,title,Wc,0,Wc,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
     delete TvsWt0[i][0];
-	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_1",i+1);
-	sprintf(title, "Time vs T0 Width Chamber %d Peak 1",i+1);
+	sprintf(name, "Time_vs_T0_Width_Chamber_%.1f_Peak_1",idchambers[i]);
+	sprintf(title, "Time vs T0 Width Chamber %.1f Peak 1",idchambers[i]);
 	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
     delete TvsWall[i];
-	sprintf(name, "Time_vs_Width_Chamber_%d_all",i+1);
-	sprintf(title, "Time vs Width Chamber %d all",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%.1f_all",idchambers[i]);
+	sprintf(title, "Time vs Width Chamber %.1f all",idchambers[i]);
 	TvsWall[i] = new TH2F(name,title,Wm,0,Wm,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
     delete TvsWallmax[i];
-	sprintf(name, "Time_vs_Width_Chamber_%d_all_max",i+1);
-	sprintf(title, "Time vs Width Chamber %d all, max strip",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%.1f_all_max",idchambers[i]);
+	sprintf(title, "Time vs Width Chamber %.1f all, max strip",idchambers[i]);
 	TvsWallmax[i] = new TH2F(name,title,Wm,0,Wm,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
     delete TvsW[i][1];
-	sprintf(name, "Time_vs_Width_Chamber_%d_Peak_2",i+1);
-	sprintf(title, "Time vs Width Chamber %d Peak 2",i+1);
+	sprintf(name, "Time_vs_Width_Chamber_%.1f_Peak_2",idchambers[i]);
+	sprintf(title, "Time vs Width Chamber %.1f Peak 2",idchambers[i]);
 	TvsW[i][1] = new TProfile(name,title,(Wm-Wc),Wc,Wm,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
     delete TvsWt0[i][1];
-	sprintf(name, "Time_vs_T0_Width_Chamber_%d_Peak_2",i+1);
-	sprintf(title, "Time vs T0 Width Chamber %d Peak 2",i+1);
+	sprintf(name, "Time_vs_T0_Width_Chamber_%.1f_Peak_2",idchambers[i]);
+	sprintf(title, "Time vs T0 Width Chamber %.1f Peak 2",idchambers[i]);
 	TvsWt0[i][1] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
 //    printf("c %d wc %d wm %d wt1 %d wt2 %d lmi %d lma %d\n", i, Wcut, Wmax, WT0min, WT0max, LeadMin[i], LeadMax[i]);
 }
@@ -1452,16 +1452,29 @@ void BmnTof2Raw2DigitNew::DNL_read()
  }
 }
 
-
+#if TOF2_MAX_CHAMBERS == 15
 int champosn[TOF2_MAX_CHAMBERS] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
+#define NDX 5
+#define NDY 3
+#else
+#if TOF2_MAX_CHAMBERS == 24
+int champosn[TOF2_MAX_CHAMBERS] = {17,18, 3, 1,19, 4,23,20, 5,15,21, 6, 2,22, 9,10,11,12,13,14, 7, 8, 0,16};
+#define NDX 8
+#define NDY 3
+#else
+int champosn[TOF2_MAX_CHAMBERS] = {0};
+#define NDX 1
+#define NDY 1
+#endif
+#endif
 
 void BmnTof2Raw2DigitNew::drawprep()
 {
   TCanvas *cp = new TCanvas("cp", "Leadings vs strip", 900,700);
   int i;
   cp->cd();
-  cp->Divide(5,3);
-  for (i=0; i<15; i++)
+  cp->Divide(NDX,NDY);
+  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
       cp->cd(champosn[i]+1);
       TvsS[i]->Draw();
@@ -1470,8 +1483,8 @@ void BmnTof2Raw2DigitNew::drawprep()
 
   TCanvas *cpw = new TCanvas("cpw", "Widths vs strip", 900,700);
   cpw->cd();
-  cpw->Divide(5,3);
-  for (i=0; i<15; i++)
+  cpw->Divide(NDX,NDY);
+  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
       cpw->cd(champosn[i]+1);
       WvsS[i]->Draw();
@@ -1490,8 +1503,8 @@ void BmnTof2Raw2DigitNew::drawprep()
 
   TCanvas *cp1 = new TCanvas("cp1", "Leadings vs widths", 900,700);
   cp1->cd();
-  cp1->Divide(5,3);
-  for (i=0; i<15; i++)
+  cp1->Divide(NDX,NDY);
+  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
       cp1->cd(champosn[i]+1);
       TvsWall[i]->Draw();
@@ -1501,8 +1514,8 @@ void BmnTof2Raw2DigitNew::drawprep()
   TCanvas *cp2 = new TCanvas("cp2", "Leadings vs widths (max strip)", 900,700);
  
   cp2->cd();
-  cp2->Divide(5,3);
-  for (i=0; i<15; i++)
+  cp2->Divide(NDX,NDY);
+  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
       cp2->cd(champosn[i]+1);
       TvsWallmax[i]->Draw();
@@ -1517,8 +1530,8 @@ void BmnTof2Raw2DigitNew::drawprof()
  
   int i;
   callbe->cd();
-  callbe->Divide(5,3);
-  for (i=0; i<15; i++)
+  callbe->Divide(NDX,NDY);
+  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
       callbe->cd(champosn[i]+1);
       TvsW[i][0]->Draw();
@@ -1527,8 +1540,8 @@ void BmnTof2Raw2DigitNew::drawprof()
 
   TCanvas *callbe1 = new TCanvas("callbe1", "Leadings vs widths (slewing RPC, peak2)", 900,700);
   callbe1->cd();
-  callbe1->Divide(5,3);
-  for (i=0; i<15; i++)
+  callbe1->Divide(NDX,NDY);
+  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
       callbe1->cd(champosn[i]+1);
       TvsW[i][1]->Draw();
@@ -1543,8 +1556,8 @@ void BmnTof2Raw2DigitNew::drawproft0()
   TCanvas *callbe0 = new TCanvas("callbe0", "Leadings vs widths (slewing T0)", 900,700);
   int i;
   callbe0->cd();
-  callbe0->Divide(5,3);
-  for (i=0; i<15; i++)
+  callbe0->Divide(NDX,NDY);
+  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
       callbe0->cd(champosn[i]+1);
       TvsWt0[i][0]->Draw();
@@ -1553,8 +1566,8 @@ void BmnTof2Raw2DigitNew::drawproft0()
 
   TCanvas *callbe01 = new TCanvas("callbe01", "Leadings vs widths (slewing T0)", 900,700);
   callbe01->cd();
-  callbe01->Divide(5,3);
-  for (i=0; i<15; i++)
+  callbe01->Divide(NDX,NDY);
+  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
       callbe01->cd(champosn[i]+1);
       TvsWt0[i][1]->Draw();

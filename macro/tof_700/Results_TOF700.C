@@ -11,8 +11,29 @@
 #include "TGeoManager.h"
 
 #define NUMBER_CHAMBERS 15
-int wmi[NUMBER_CHAMBERS] = {400,400,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500};
-int wma[NUMBER_CHAMBERS] = {600,600,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300};
+
+#if NUMBER_CHAMBERS == 15
+int champos[NUMBER_CHAMBERS] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
+int wmi[NUMBER_CHAMBERS] = {2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500};
+int wma[NUMBER_CHAMBERS] = {3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,3300};
+#define NDX 5
+#define NDY 3
+#else
+#if NUMBER_CHAMBERS == 24
+int champos[NUMBER_CHAMBERS] = {17,18, 3, 1,19, 4,23,20, 5,15,21, 6, 2,22, 9,10,11,12,13,14, 7, 8, 0,16};
+int wmi[NUMBER_CHAMBERS] = {2500};
+int wma[NUMBER_CHAMBERS] = {3300};
+#define NDX 8
+#define NDY 3
+#else
+int champos[NUMBER_CHAMBERS] = {0};
+int wmi[NUMBER_CHAMBERS] = {2500};
+int wma[NUMBER_CHAMBERS] = {3300};
+#define NDX 1
+#define NDY 1
+#endif
+#endif
+
 
 using namespace TMath;
 
@@ -135,62 +156,62 @@ void Results_TOF700(char *fname = "../raw/bmn_run0871_digit.root") {
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htimemax[i], -0.2, +0.2);
 
     TCanvas *ct = new TCanvas("ct", "RPC time - T0 time", 900, 900);
-    ct->Divide(5,3);
+    ct->Divide(NDX,NDY);
     ct->cd();
     for (int i=0; i<NUMBER_CHAMBERS; i++)
     {
-	ct->cd(i+1);
+	ct->cd(champos[i]+1);
 	htime[i]->Draw();
 	gPad->AddExec("exselt","select_hist()");
     }
 
     TCanvas *c1m = new TCanvas("c1m", "RPC time max strip - T0 time", 900, 900);
-    c1m->Divide(5,3);
+    c1m->Divide(NDX,NDY);
     c1m->cd();
     for (int i=0; i<NUMBER_CHAMBERS; i++)
     {
-	c1m->cd(i+1);
+	c1m->cd(champos[i]+1);
 	htimemax[i]->Draw();
 	gPad->AddExec("exselt","select_hist()");
     }
 
 
     TCanvas *c2 = new TCanvas("c2", "RPC strip rate", 900, 900);
-    c2->Divide(5,3);
+    c2->Divide(NDX,NDY);
     c2->cd();
     for (int i=0; i<NUMBER_CHAMBERS; i++)
     {
-	c2->cd(i+1);
+	c2->cd(champos[i]+1);
 	hstrips[i]->Draw();
 	gPad->AddExec("exselt","select_hist()");
     }
 
     TCanvas *c2m = new TCanvas("c2m", "RPC maximal strip rate", 900, 900);
-    c2m->Divide(5,3);
+    c2m->Divide(NDX,NDY);
     c2m->cd();
     for (int i=0; i<NUMBER_CHAMBERS; i++)
     {
-	c2m->cd(i+1);
+	c2m->cd(champos[i]+1);
 	hstripsmax[i]->Draw();
 	gPad->AddExec("exselt","select_hist()");
     }
 
     TCanvas *cw = new TCanvas("cw", "RPC pulse width", 900, 900);
-    cw->Divide(5,3);
+    cw->Divide(NDX,NDY);
     cw->cd();
     for (int i=0; i<NUMBER_CHAMBERS; i++)
     {
-	cw->cd(i+1);
+	cw->cd(champos[i]+1);
 	hwidth[i]->Draw();
 	gPad->AddExec("exselt","select_hist()");
     }
 
     TCanvas *clr = new TCanvas("clr", "LR Time Difference", 900, 900);
-    clr->Divide(5,3);
+    clr->Divide(NDX,NDY);
     clr->cd();
     for (int i=0; i<NUMBER_CHAMBERS; i++)
     {
-	clr->cd(i+1);
+	clr->cd(champos[i]+1);
 	hlrdiff[i]->Draw();
 	gPad->AddExec("exselt","select_hist()");
     }

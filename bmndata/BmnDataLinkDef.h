@@ -63,6 +63,7 @@
 #pragma link C++ class BmnDchDigit+;
 #pragma link C++ class BmnEcalDigit+;
 #pragma link C++ class BmnZDCDigit+;
+#pragma link C++ class BmnECALDigit+;
 
 #pragma link C++ class BmnADCDigit+;
 #pragma link C++ class BmnTDCDigit+;
@@ -74,6 +75,7 @@
 #pragma link C++ class BmnDchRaw2Digit+;
 #pragma link C++ class BmnMwpcRaw2Digit+;
 #pragma link C++ class BmnZDCRaw2Digit+;
+#pragma link C++ class BmnECALRaw2Digit+;
 #pragma link C++ class BmnTof2Raw2Digit+;
 #pragma link C++ class BmnTof2Raw2DigitNew+;
 #pragma link C++ class BmnTof1Raw2Digit+;

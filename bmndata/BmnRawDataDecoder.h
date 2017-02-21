@@ -23,6 +23,7 @@
 #include "BmnTof1Raw2Digit.h"
 #include "BmnTof2Raw2DigitNew.h"
 #include "BmnZDCRaw2Digit.h"
+#include "BmnECALRaw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
 #include "BmnEventHeader.h"
 #include "BmnRunHeader.h"
@@ -48,6 +49,7 @@ public:
         tof400 = NULL;
         tof700 = NULL;
 	zdc = NULL;
+	ecal = NULL;
         dch = NULL;
         mwpc = NULL;
         t0 = NULL;
@@ -72,12 +74,14 @@ public:
         if (tof400) delete tof400;
         if (tof700) delete tof700;
         if (zdc) delete this->zdc;
+        if (ecal) delete this->ecal;
         if (veto) delete veto;
     };
     TClonesArray *gem;//->
     TClonesArray *tof400;//->
     TClonesArray *tof700;//->
     TClonesArray *zdc;//->
+    TClonesArray *ecal;//->
     TClonesArray *dch;//->
     TClonesArray *mwpc;//->
     TClonesArray *t0;//->
@@ -130,6 +134,7 @@ public:
         d.tof400 = tof400;
         d.tof700 = tof700;
 	d.zdc = zdc;
+	d.ecal = ecal;
         d.dch = dch;
         d.mwpc = mwpc;
         d.t0 = t0;
@@ -183,6 +188,10 @@ public:
         return fZDCMapper;
     }
 
+    BmnECALRaw2Digit *GetECALMapper() {
+        return fECALMapper;
+    }
+
     void SetTrigMapping(TString map) {
         fTrigMapFileName = map;
     }
@@ -216,10 +225,17 @@ public:
 	fZDCMapFileName = map;
     }
 
+    void SetECALMapping(TString map) {
+	fECALMapFileName = map;
+    }
+
     void SetZDCCalibration(TString cal) {
 	fZDCCalibrationFileName = cal;
     }
 
+    void SetECALCalibration(TString cal) {
+	fECALCalibrationFileName = cal;
+    }
 
     TString GetRootFileName() {
         return fRootFileName;
@@ -232,6 +248,8 @@ private:
     UInt_t fNGemSerials;
     vector<UInt_t> fZDCSerials; //list of serial id for GEM
     UInt_t fNZDCSerials;
+    vector<UInt_t> fECALSerials; //list of serial id for GEM
+    UInt_t fNECALSerials;
 
     UInt_t fPedoCounter;
     
@@ -264,6 +282,8 @@ private:
     TString fTof700MapFileName;
     TString fZDCMapFileName;
     TString fZDCCalibrationFileName;
+    TString fECALMapFileName;
+    TString fECALCalibrationFileName;
     TString fTrigMapFileName;
     TString fTrigINLFileName;
 
@@ -274,6 +294,8 @@ private:
     ifstream fTof700MapFile;
     ifstream fZDCMapFile;
     ifstream fZDCCalibraionFile;
+    ifstream fECALMapFile;
+    ifstream fECALCalibraionFile;
     ifstream fTrigMapFile;
     ifstream fTrigINLFile;
 
@@ -286,7 +308,7 @@ private:
     TClonesArray *sync;
     TClonesArray *adc32;  //gem
     TClonesArray *adc128; //sts
-    TClonesArray *adc   ; //zdc
+    TClonesArray *adc   ; //zdc & ecal
     TClonesArray *hrb;
     TClonesArray *tdc;
     TClonesArray *msc;
@@ -301,6 +323,7 @@ private:
     TClonesArray *tof400;
     TClonesArray *tof700;
     TClonesArray *zdc;
+    TClonesArray *ecal;
     TClonesArray *dch;
     TClonesArray *mwpc;
     TClonesArray *t0;
@@ -327,6 +350,7 @@ private:
     BmnTof1Raw2Digit *fTof400Mapper;
     BmnTof2Raw2DigitNew *fTof700Mapper;
     BmnZDCRaw2Digit *fZDCMapper;
+    BmnECALRaw2Digit *fECALMapper;
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
     UInt_t fPedEvCntr;

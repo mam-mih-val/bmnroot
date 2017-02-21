@@ -86,6 +86,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     tof400 = NULL;
     tof700 = NULL;
     zdc = NULL;
+    ecal = NULL;
     gem = NULL;
     silicon = NULL;
     fRootFileName = "";
@@ -101,6 +102,8 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fTof700MapFileName = "";
     fZDCCalibrationFileName = "";
     fZDCMapFileName = "";
+    fECALCalibrationFileName = "";
+    fECALMapFileName = "";
     fDat = 0;
     fGemMapper = NULL;
     fDchMapper = NULL;
@@ -108,6 +111,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fTof400Mapper = NULL;
     fTof700Mapper = NULL;
     fZDCMapper = NULL;
+    fECALMapper = NULL;
     fDataQueue = NULL;
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
@@ -146,6 +150,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     tof400 = NULL;
     tof700 = NULL;
     zdc = NULL;
+    ecal = NULL;
     gem = NULL;
     silicon = NULL;
     fRawFileName = file;
@@ -166,6 +171,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fTof700MapFileName = "";
     fZDCCalibrationFileName = "";
     fZDCMapFileName = "";
+    fECALCalibrationFileName = "";
+    fECALMapFileName = "";
     fDat = 0;
     fGemMapper = NULL;
     fDchMapper = NULL;
@@ -173,6 +180,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fTof400Mapper = NULL;
     fTof700Mapper = NULL;
     fZDCMapper = NULL;
+    fECALMapper = NULL;
     fDataQueue = NULL;
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
@@ -191,6 +199,14 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fZDCSerials.push_back(0x046f4083);
     fZDCSerials.push_back(0x046f4bb2);
     fNZDCSerials = fZDCSerials.size();
+
+    fECALSerials.push_back(0x07A8DEEE);
+    fECALSerials.push_back(0x07A92F52);
+    fECALSerials.push_back(0x07A8DEE2);
+    fECALSerials.push_back(0x07A8DFCA);
+    fECALSerials.push_back(0x07A8DED7);
+    fECALSerials.push_back(0x06E9E55A);
+    fNECALSerials = fECALSerials.size();
 
     Int_t nEntries = 1;
     mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
@@ -500,6 +516,18 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 };
                 if (isZDC)
                     Process_ADC64WR(&data[idx], payload, serial, adc);
+		else
+		{
+            	    Bool_t isECAL = kFALSE;
+            	    for (Int_t iSer = 0; (iSer < fNECALSerials); ++iSer) {
+                	if (serial == fECALSerials[iSer]) {
+                    	    isECAL = kTRUE;
+                    	    break;
+                	}
+            	    };
+            	    if (isECAL)
+                	Process_ADC64WR(&data[idx], payload, serial, adc);
+		}
                 break;
             }
             case kFVME:
@@ -797,6 +825,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fTof400Mapper->FillEvent(tdc, tof400);
             fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             fZDCMapper->fillEvent(adc, zdc);
+            fECALMapper->fillEvent(adc, ecal);
             if (iEv == fNevents - 1) {
                 fDigiTree->Branch("RunHeader", &runHeader);
                 if (runHeaderDAQ) {
@@ -860,6 +889,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     tof400 = new TClonesArray("BmnTof1Digit");
     tof700 = new TClonesArray("BmnTof2Digit");
     zdc = new TClonesArray("BmnZDCDigit");
+    ecal = new TClonesArray("BmnECALDigit");
     dch = new TClonesArray("BmnDchDigit");
     mwpc = new TClonesArray("BmnMwpcDigit");
     t0 = new TClonesArray("BmnTrigDigit");
@@ -887,6 +917,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fDigiTree->Branch("TOF400", &tof400);
     fDigiTree->Branch("TOF700", &tof700);
     fDigiTree->Branch("ZDC", &zdc);
+    fDigiTree->Branch("ECAL", &ecal);
 
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
@@ -905,6 +936,8 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fTof700Mapper->readSlewing();
     fZDCMapper = new BmnZDCRaw2Digit(fZDCMapFileName, fRootFileName, fZDCCalibrationFileName);
     fZDCMapper->print();
+    fECALMapper = new BmnECALRaw2Digit(fECALMapFileName, fRootFileName, fECALCalibrationFileName);
+    fECALMapper->print();
 
     fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
     fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
@@ -922,6 +955,7 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     tof400->Clear();
     tof700->Clear();
     zdc->Clear();
+    ecal->Clear();
     t0->Clear();
     bc1->Clear();
     bc2->Clear();
@@ -968,6 +1002,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fTof400Mapper->FillEvent(tdc, tof400);
         fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         fZDCMapper->fillEvent(adc, zdc);
+        fECALMapper->fillEvent(adc, ecal);
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig());
         //        fDigiTree->Fill();
 
@@ -1006,6 +1041,7 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     //    fDigiTree->Branch("TOF400", &tof400);
     //    fDigiTree->Branch("TOF700", &tof700);
     //    fDigiTree->Branch("ZDC", &zdc);
+    //    fDigiTree->Branch("ECAL", &ecal);
     fRunId = GetRunIdFromFile(fRawFileName);
     //    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
@@ -1024,6 +1060,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete fTof400Mapper;
     delete fTof700Mapper;
     delete fZDCMapper;
+    delete fECALMapper;
 
     delete sync;
     delete adc32;
@@ -1042,6 +1079,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete tof400;
     delete tof700;
     delete zdc;
+    delete ecal;
     delete eventHeader;
     delete runHeader;
     return kBMNSUCCESS;

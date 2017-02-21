@@ -89,9 +89,11 @@ BmnMSCDigit.cxx
 BmnDchRaw2Digit.cxx
 BmnMwpcRaw2Digit.cxx
 BmnZDCRaw2Digit.cxx
+BmnECALRaw2Digit.cxx
 BmnGemRaw2Digit.cxx
 BmnTrigRaw2Digit.cxx
 BmnZDCDigit.cxx
+BmnECALDigit.cxx
 BmnTof2Raw2Digit.cxx
 BmnTof2Raw2DigitNew.cxx
 BmnTof1Raw2Digit.cxx

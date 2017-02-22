@@ -15,7 +15,7 @@
 #include <cstdlib> 
 
 #define MAX_ECAL_EVENTS 10000
-#define MAX_ECAL_CHANNELS 360
+#define MAX_ECAL_CHANNELS 384
 #define MAX_ECAL_LOG_CHANNELS 24
 
 static int nevents_ecal;
@@ -27,12 +27,12 @@ static int use_log_function_ecal;
 
 class Bmn_ECAL_map_element{
 public:
-  Bmn_ECAL_map_element(){ id=chan=adc_chan=size=x=y=-1; used=0;};
-  void set(unsigned long v1,unsigned char v2,unsigned char v3,unsigned char v4,unsigned char v5,unsigned char v6,unsigned char v7, float v8, float v9){
+  Bmn_ECAL_map_element(){ id=chan=adc_chan=size=0; x=y=-1; used=0;};
+  void set(unsigned long v1,unsigned int v2,unsigned char v3,unsigned char v4,unsigned char v5,unsigned char v6,unsigned char v7, float v8, float v9){
     id=v1; chan=v2; adc_chan=v3; size=v4; ix=v5; iy=v6; used=v7; x=v8; y=v9;
   }; 
   unsigned long id;
-  unsigned char chan;
+  unsigned int chan;
   unsigned char adc_chan;
   unsigned char size;
   unsigned char ix;
@@ -100,7 +100,7 @@ public:
 
     void drawecal(int nohist = 0);
 
-    void drawprof();
+    void drawprof(int achan = 0);
 
     void drawtest();
 
@@ -117,7 +117,7 @@ public:
 private:
     char filname_base[256];
     int maxchan;
-    Bmn_ECAL_map_element ecal_map_element[256];
+    Bmn_ECAL_map_element ecal_map_element[MAX_ECAL_CHANNELS*2];
     float cell_size[10];
     int n_rec;
     float thres;

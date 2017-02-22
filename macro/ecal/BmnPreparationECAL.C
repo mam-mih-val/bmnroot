@@ -36,9 +36,8 @@ void BmnPreparationECAL(char *fname="../raw/bmn_run0814_raw.root") {
 	//ECAL.fillSampleProfiles(ecal_raw, 0., 0., 48., 3);
     }
     /////////////////////////////////////////////////////////////////////////////////////
-    ECAL.drawecal();
-    ECAL.drawprof();
-    ECAL.drawtest();
+    ECAL.drawecal(1);   // draw ECAL modules with module number and calibration coefficient
+    ECAL.drawprof(229); // average waveform for module 229
     /////////////////////////////////////////////////////////////////////////////////////
    
     _f_in->Close();

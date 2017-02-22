@@ -19,7 +19,7 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(TString mappingFile, TString RunFile, TString
     for (int i=0; i<MAX_ECAL_LOG_CHANNELS; i++) log_amp[i] = -1.;
     for (int i=0; i<MAX_ECAL_LOG_CHANNELS; i++) test_chan[i] = -1;
     for (int i=0; i<MAX_ECAL_LOG_CHANNELS; i++) test_id[i] = -1;
-    for (int i=0; i<256; i++) is_test[i] = -1;
+    for (int i=0; i<512; i++) is_test[i] = -1;
     n_test = 0;
     n_rec=0;
     TString dummy;
@@ -36,7 +36,7 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(TString mappingFile, TString RunFile, TString
         int id,chan,front_chan,size,ix,iy,used;
 	float x,y;
 //        in >>std::hex >> id >>std::dec >> chan >> front_chan >> size >> ix >> iy >> x >> y >> used;
-        in >>std::hex >> id >>std::dec >> chan >> front_chan >> x >> y;
+        in >> std::hex >> id >> std::dec >> chan >> front_chan >> x >> y;
         if (!in.good()) break;
 //	printf("%0x %d %d %d %d %d %f %f\n",id,chan,front_chan,size,ix,iy,x,y);
 /*
@@ -60,10 +60,12 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(TString mappingFile, TString RunFile, TString
 	if (front_chan > maxchan) maxchan = front_chan;
         ecal_map_element[n_rec].chan=front_chan-1;
         ecal_map_element[n_rec].size=0;
+	x *= 10.;
+	y *= 10.;
         ecal_map_element[n_rec].x=x;
         ecal_map_element[n_rec].y=y;
-        ecal_map_element[n_rec].ix=(int)(x/40.075);
-        ecal_map_element[n_rec].iy=(int)(y/40.075);
+        ecal_map_element[n_rec].ix=(int)(x/40.);
+        ecal_map_element[n_rec].iy=(int)(y/40.);
         ecal_map_element[n_rec].used=1;
 	if (x < xmin)
 	{
@@ -215,24 +217,24 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(TString mappingFile, TString RunFile, TString
     hsum_raw = new TH1F("hsumraw_ecal","Sum of raw amplitudes (ecal)", 2000, 0., 20000.);
     hsum     = new TH1F("hsumcal_ecal","Sum of calibrated amplitudes (ecal)", 1000, 0., 200.);
 
-    hxmean   = new TH1F("hxmean_ecal","Shower mean X (ecal)", 1000, -500., +500.);
-    hymean   = new TH1F("hymean_ecal","Shower mean Y (ecal)", 1000, -500., +500.);
+    hxmean   = new TH1F("hxmean_ecal","Shower mean X (ecal)", 750, 0., +1500.);
+    hymean   = new TH1F("hymean_ecal","Shower mean Y (ecal)", 750, 0., +1500.);
 
-    hampl   = new TH1F("hampl","Module amplitudes (ecal)", 10000, 0., 10000.);
+    hampl   = new TH1F("hampl","Module amplitudes (ecal)", 1000, 0., 1000.);
 
     for (int i=0; i<n_rec; i++)
     {
 	sprintf(tit, "samprof%d_ecal", ecal_map_element[i].chan+1);
 	sprintf(nam, "Average sampling wave, module %d (ecal)", ecal_map_element[i].chan+1);
-	SampleProf[i]   = new TProfile(tit, nam, 200, 0., 200., -100000., +100000.,"s");
+	SampleProf[ecal_map_element[i].chan]   = new TProfile(tit, nam, 200, 0., 200., -100000., +100000.,"s");
     }
 }
 
 
 void BmnECALRaw2Digit::print() {
-     printf("id#\tECAL chan\tADC_chan\tsize\tix\tiy\tx\ty\tused\n");
+     printf("id#\t\tECAL chan\tADC_chan\tsize\tix\tiy\tx\ty\tused\n");
      for(int i=0;i<n_rec;i++)
-     printf("0x%06lX\t%d\t%d\t%d\t%d\t%d\t%d\t%g\t%g\n",
+     printf("0x%06lX\t\t%d\t%d\t%d\t%d\t%d\t%d\t%g\t%g\n",
          ecal_map_element[i].id,ecal_map_element[i].chan+1,ecal_map_element[i].adc_chan+1,ecal_map_element[i].size+1,
          ecal_map_element[i].ix,ecal_map_element[i].iy,ecal_map_element[i].used,ecal_map_element[i].x,ecal_map_element[i].y); 
    
@@ -424,7 +426,7 @@ void BmnECALRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Floa
 	}
 	if (i0 == -1)
 	{
-	    printf("Warninig: Beam entry point (%f,%f) outside any ECAL module!\n", x, y);
+//	    printf("Warninig: Beam entry point (%f,%f) outside any ECAL module!\n", x, y);
 //	    return;
 	}
 	ncells = n_rec;
@@ -1295,25 +1297,35 @@ void BmnECALRaw2Digit::drawecal(int nohist)
   return;
 }
 
-void BmnECALRaw2Digit::drawprof()
+void BmnECALRaw2Digit::drawprof(int achan)
 {
   TCanvas *csampro = new TCanvas("csampro", "ECAL sample profiles", 800,800);
   csampro->cd();
-  if (ncells <= 4) csampro->Divide(2,2);
-  else if (ncells <= 9) csampro->Divide(3,3);
-  else  if (ncells <= 16) csampro->Divide(4,4);
-  else  if (ncells <= 25) csampro->Divide(5,5);
-  else  if (ncells <= 36) csampro->Divide(6,6);
-  else  if (ncells <= 49) csampro->Divide(7,7);
-  else  if (ncells <= 49) csampro->Divide(7,7);
-  else  csampro->Divide(8,7);
-  for (int i=0; i<ncells; i++)
+  if (achan == 0)
   {
-    csampro->cd(i+1);
-    if (SampleProf[i]) SampleProf[i]->Draw();
+    if (ncells <= 4) csampro->Divide(2,2);
+    else  if (ncells <= 9) csampro->Divide(3,3);
+    else  if (ncells <= 16) csampro->Divide(4,4);
+    else  if (ncells <= 25) csampro->Divide(5,5);
+    else  if (ncells <= 36) csampro->Divide(6,6);
+    else  if (ncells <= 49) csampro->Divide(7,7);
+    else  if (ncells <= 64) csampro->Divide(8,8);
+    else  if (ncells <= 81) csampro->Divide(9,9);
+    else  if (ncells <= 100) csampro->Divide(10,10);
+    else  if (ncells <= 121) csampro->Divide(11,11);
+    else  csampro->Divide(30,12);
+    for (int i=0; i<ncells; i++)
+    {
+	csampro->cd(i+1);
+	if (SampleProf[i]) SampleProf[i]->Draw();
+	gPad->AddExec("exselt","select_hist()");
+    }
+  }
+  else
+  {
+    if (SampleProf[achan-1]) SampleProf[achan-1]->Draw();
     gPad->AddExec("exselt","select_hist()");
   }
-
   TCanvas *calres = new TCanvas("calres1e", "ECAL mean X and Y", 800,800);
   calres->cd();
   calres->Divide(1,3);

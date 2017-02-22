@@ -22,7 +22,7 @@ void BmnResultsECAL(char *fname="../raw/bmn_run0814_digi.root") {
     sprintf(title, "Module amplitude");
     hamp = new TH1F(name, title, 500, 0, 1000);
     TH1F *hsum = new TH1F("hsum", "Sum of amplitudes", 1000, 0, 5000);
-    TH2F *hpro = new TH2F("hpro", "Cluster profile", 22, -76*11, 76*11, 14, -76*7, 76*7);
+    TH2F *hpro = new TH2F("hpro", "Cluster profile", 30, 0, 30*40, 12, 0, 12*40);
     /////////////////////////////////////////////////////////////////////////////////////
 
     for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {

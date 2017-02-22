@@ -363,8 +363,9 @@ void BmnECALRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t
 	    int j2 = 0;
     	    for (int j1 = 0;j1<digit->GetNSamples(); j1++)
     	    {
-		j2 = 1 - j1%2 + (j1/2)*2;
-		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]);
+//		j2 = 1 - j1%2 + (j1/2)*2;
+		j2 = j1;
+		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]>>SHIFT);
     	    }
     	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
 	    {
@@ -382,7 +383,8 @@ void BmnECALRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t
        int j2 = 0;
        for (int j = 0;j<digit->GetNSamples(); j++)
        {
-	    j2 = 1 - j%2 + (j/2)*2;
+//	    j2 = 1 - j%2 + (j/2)*2;
+	    j2 = j;
 	    if (SampleProf[num]) SampleProf[num]->Fill(j,sam[j2]>>SHIFT);
        }
        if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
@@ -457,8 +459,9 @@ void BmnECALRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Floa
 	    int j2 = 0;
     	    for (int j1 = 0;j1<digit->GetNSamples(); j1++)
     	    {
-		j2 = 1 - j1%2 + (j1/2)*2;
-		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]);
+//		j2 = 1 - j1%2 + (j1/2)*2;
+		j2 = j1;
+		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]>>SHIFT);
     	    }
     	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
 	    {
@@ -476,7 +479,8 @@ void BmnECALRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Floa
        int j2 = 0;
        for (int j1 = 0;j1<digit->GetNSamples(); j1++)
        {
-	    j2 = 1 - j1%2 + (j1/2)*2;
+//	    j2 = 1 - j1%2 + (j1/2)*2;
+	    j2 = j1;
 	    if (SampleProf[num]) SampleProf[num]->Fill(j1,sam[j2]>>SHIFT);
        }
        if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
@@ -510,8 +514,9 @@ void BmnECALRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ecaldigit) {
 	    int j2 = 0;
     	    for (int j1 = 0;j1<digit->GetNSamples(); j1++)
     	    {
-		j2 = 1 - j1%2 + (j1/2)*2;
-		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]);
+//		j2 = 1 - j1%2 + (j1/2)*2;
+		j2 = j1;
+		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]>>SHIFT);
     	    }
     	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
 	    {

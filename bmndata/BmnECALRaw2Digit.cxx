@@ -170,7 +170,7 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(TString mappingFile, TString RunFile, TString
 //----------------------------------
     nevents_ecal = 0;
     use_log_function_ecal = 0;
-    thres = 1.;
+    thres = 15.;
     wave2amp_flag = 1;
     min_samples = 5;
     ped_samples = 3;
@@ -1116,7 +1116,8 @@ float BmnECALRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 	    {
 		for (int m = 0; m < ns; m++)
 		{
-		    m1 = 1 - (m%2) + (m/2)*2;
+//		    m1 = 1 - (m%2) + (m/2)*2;
+		    m1 = m;
 		    if (m < ped_samples)
 		    {
 			pedest += (s[m1]>>SHIFT);
@@ -1181,7 +1182,8 @@ float BmnECALRaw2Digit::testwave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 	    {
 		for (int m = 0; m < ns; m++)
 		{
-		    m1 = 1 - (m%2) + (m/2)*2;
+//		    m1 = 1 - (m%2) + (m/2)*2;
+		    m1 = m;
 		    if (m < ped_samples)
 		    {
 			pedest += s[m1]>>SHIFT;

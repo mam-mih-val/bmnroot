@@ -70,7 +70,7 @@ fRunType("target") {
     fChisqcut[1] = 0.0;
     // Declare branch names here
     hitsBranch = "BmnGemStripHit";
-    tracksBranch    =    "BmnGemTracks";
+    tracksBranch    =    "BmnGemTrack";
     alignCorrBranch = "BmnGemAlignmentCorrections";
     fDetector = new BmnGemStripStationSet_RunWinter2016(fGeometry);
 }

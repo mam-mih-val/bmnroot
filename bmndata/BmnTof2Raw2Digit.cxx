@@ -109,7 +109,7 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile, UInt_t 
 
     if (!in.eof()) in >> dummy >> dummy >> dummy >> dummy;
 //    printf("%s\n",dummy.Data());
-	in.getline(line,128);
+//	in.getline(line,128);
 //	printf("line %d %s\n", strlen(line),line);
     while (!in.eof()) {
 //	in.getline(line,128);

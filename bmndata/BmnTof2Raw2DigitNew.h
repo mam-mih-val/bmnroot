@@ -12,7 +12,7 @@
 #define TOF2_MAX_CHANNELS_IN_MODULE 64
 #define TOF2_MAX_CRATES 5
 #define TOF2_MAX_SLOTS_IN_CRATE 20
-#define TOF2_MAX_CHAMBERS 15
+#define TOF2_MAX_CHAMBERS 24
 #define TOF2_MAX_CHANNEL 1100
 
 #define TOF700_TDC_TYPE (0x11) //TDC32VL
@@ -48,7 +48,7 @@ public:
 class BmnTof2Raw2DigitNew{
 
 public:
-    BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile = "empty", UInt_t SlewingRun = 0, UInt_t SlewingChamber = 0);
+    BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile = "empty", UInt_t SlewingRun = 0, UInt_t SlewingChamber = 0, TString geomFile="");
     BmnTof2Raw2DigitNew();
     void print();
     void getEventInfo(long long *ev,long long *t1,long long *t2);
@@ -103,7 +103,7 @@ public:
     void drawprep();
     void drawprof();
     void drawproft0();
-    int readGeom(int *numgeom);
+    int readGeom(char *geomFile);
     int printGeom();
     int get_strip_xyz(int chamber, int strip, float *x, float *y, float *z);
     int get_chamber_z(int chamber, float *z);
@@ -176,6 +176,9 @@ private:
     TH2F *TvsWall[TOF2_MAX_CHAMBERS];
     TH2F *TvsWallmax[TOF2_MAX_CHAMBERS];
 
+    float halfxwidth[TOF2_MAX_CHAMBERS];
+    float halfywidth[TOF2_MAX_CHAMBERS];
+    float xoffs, yoffs, zoffs;
     int nstrips[TOF2_MAX_CHAMBERS];
     float zchamb[TOF2_MAX_CHAMBERS];
     float xcens[TOF2_MAX_CHAMBERS][TOF2_MAX_STRIPS_IN_CHAMBER];

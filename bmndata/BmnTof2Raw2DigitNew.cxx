@@ -16,7 +16,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(){
     n_rec=0;
 }
 
-BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, UInt_t SlewingRun, UInt_t SlewingChamber) {
+BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, UInt_t SlewingRun, UInt_t SlewingChamber, TString geomFile) {
 
     char *delim = 0, name[128], title[128];
     n_rec=0;
@@ -231,8 +231,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     if (n_rec) MaxPlane++;
     in.close();
 
-//    int numgeom[TOF2_MAX_CHAMBERS] = {1,2,3,4};
-//    readGeom(numgeom);
+    readGeom((char *)geomFile.Data());
 
     for(int ind=0;ind<n_rec;ind++){ 
      if (mapa[ind].pair == -1) continue; 
@@ -1577,42 +1576,56 @@ void BmnTof2Raw2DigitNew::drawproft0()
 }
 
 
-int BmnTof2Raw2DigitNew::readGeom(int *numgeom)
+int BmnTof2Raw2DigitNew::readGeom(char *geomfile)
 {
-	float halfxwidth[6] = {80,80,280,280,80,280};
-	float halfywidth[6] = { 5, 5,  9,  9, 5,  9};
-	float xoffs = +60., yoffs = -74., zoffs = +1370.+6650.;
 	char fname[128];
 	FILE *fg = 0;
-	int nf = 0, ic, ns;
-	float x,y,z;
-	TString dir = getenv("VMCWORKDIR");
-	for (int i=0; i<MaxPlane; i++)
+	float ic = 0;
+	int nf = 0, n = 0, i;
+	float step, sx, sy, x, y, z;
+	if (strlen(geomfile) == 0)
 	{
-	    ic = numgeom[i];
-	    if (ic < 1) continue;
-	    sprintf(fname,"%s/geometry/TOF2chamber%d.txt",dir.Data(),ic);
-	    fg = fopen(fname,"r");
-	    if (fg == NULL) continue;
-	    nstrips[i] = 0;
-	    while(fscanf(fg,"%d %f %f %f\n",&ns, &x, &y, &z) == 4)
-	    {
-		zchamb[i] = -z + zoffs;
-		xcens[i][ns] = x + xoffs;
-		ycens[i][ns] = y + yoffs;
-		xmins[i][ns] = xcens[i][ns] - halfxwidth[ic];
-		xmaxs[i][ns] = xcens[i][ns] + halfxwidth[ic];
-		ymins[i][ns] = ycens[i][ns] - halfywidth[ic];
-		ymaxs[i][ns] = ycens[i][ns] + halfywidth[ic];
-//		printf("C %d S %d %f %f %f %f %f\n",ic,ns,zchamb[i],xmins[i][ns],xmaxs[i][ns],ymins[i][ns],ymaxs[i][ns]);
-		nstrips[i]++;
-	    }
-	    fclose(fg);
-	    nf++;
+	    printf("TOF700 geometry file name not defined!\n");
+	    return 0;
 	}
-//	i = 3;
-//	ns = 5;
-//	printf("C %d S %d %f %f %f %f %f\n",i,ns,zchamb[i],xmins[i][ns],xmaxs[i][ns],ymins[i][ns],ymaxs[i][ns]);
+	TString dir = getenv("VMCWORKDIR");
+	sprintf(fname,"%s/geometry/%s",dir.Data(),geomfile);
+	fg = fopen(fname,"r");
+	if (fg == NULL)
+	{
+	    printf("TOF700 geometry file %s open error!\n", fname);
+	    return 0;
+	}
+	if (fscanf(fg,"%f %f %f\n", &xoffs, &yoffs, &zoffs) != 3)
+	{
+	    printf("Wrong first line in TOF700 geometry file %s\n", fname);
+	    return 0;
+	};
+	for (i=0; i<MaxPlane; i++) nstrips[i] = 0;
+	while(fscanf(fg,"%f %d %f %f %f %f %f %f\n", &ic, &n, &step, &sy, &sx, &x, &y, &z) == 8)
+	{
+		for (i=0; i<MaxPlane; i++)
+		{
+		    if (ic == idchambers[i]) break;
+		}
+		if (i >= MaxPlane) continue;
+		halfxwidth[i] = sx/20.;
+		halfywidth[i] = sy/20.;
+		zchamb[i] = z/10. + zoffs;
+		nstrips[i] = n;
+		for (int ns=n-1; ns>=0; ns--)
+		{
+		xcens[i][ns] = x/10. + xoffs;
+		ycens[i][ns] = y/10. + yoffs - (n-ns-1)*step/10.;
+		xmins[i][ns] = xcens[i][ns] - halfxwidth[i];
+		xmaxs[i][ns] = xcens[i][ns] + halfxwidth[i];
+		ymins[i][ns] = ycens[i][ns] - halfywidth[i];
+		ymaxs[i][ns] = ycens[i][ns] + halfywidth[i];
+//		printf("C %d S %d %f %f %f %f %f\n",ic,ns,zchamb[i],xmins[i][ns],xmaxs[i][ns],ymins[i][ns],ymaxs[i][ns]);
+		}
+		nf++;
+	}
+	fclose(fg);
 	if (nf == MaxPlane) return 1;
 	else
 	{
@@ -1669,15 +1682,14 @@ int BmnTof2Raw2DigitNew::get_track_hits(float *xyz, float *cxyz, int *nhits, int
 
 int BmnTof2Raw2DigitNew::printGeom()
 {
-    float halfxwidth[6] = {80,80,280,280,80,280};
-    float halfywidth[6] = { 5, 5,  9,  9, 5,  9};
     for (int j=0; j<MaxPlane; j++)
     {
-	printf("Chamber %d, number of strips %d, Z-coordinate %f, WidthX/2 %f, WidthY/2 %f\n",j+1,nstrips[j],zchamb[j], halfxwidth[j], halfywidth[j]);
-	for (int k=0; k<nstrips[j]; k++)
-	{
-		printf("   Strip %d X %f Y %f\n", k+1, xcens[j][k],ycens[j][k]);
-	}
+	printf("Chamber %d (%.1f), number of strips %d, Z-coordinate %f, WidthX/2 %f, WidthY/2 %f\n",j+1,idchambers[j],nstrips[j],zchamb[j], halfxwidth[j], halfywidth[j]);
+	printf(" Upper strip X %f Y %f\n", xcens[j][nstrips[j]-1],ycens[j][nstrips[j]-1]);
+//	for (int k=0; k<nstrips[j]; k++)
+//	{
+//		printf("   Strip %d X %f Y %f\n", k+1, xcens[j][k],ycens[j][k]);
+//	}
     }
 }
 

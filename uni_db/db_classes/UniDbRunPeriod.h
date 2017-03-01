@@ -42,6 +42,8 @@ class UniDbRunPeriod
 	static UniDbRunPeriod* CreateRunPeriod(int period_number, TDatime start_datetime, TDatime* end_datetime);
 	/// get run period from the database
 	static UniDbRunPeriod* GetRunPeriod(int period_number);
+	/// check run period exists in the database
+	static bool CheckRunPeriodExists(int period_number);
 	/// delete run period from the database
 	static int DeleteRunPeriod(int period_number);
 	/// print all run periods

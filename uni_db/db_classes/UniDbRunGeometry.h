@@ -42,6 +42,8 @@ class UniDbRunGeometry
 	static UniDbRunGeometry* CreateRunGeometry(unsigned char* root_geometry, Long_t size_root_geometry);
 	/// get run geometry from the database
 	static UniDbRunGeometry* GetRunGeometry(int geometry_id);
+	/// check run geometry exists in the database
+	static bool CheckRunGeometryExists(int geometry_id);
 	/// delete run geometry from the database
 	static int DeleteRunGeometry(int geometry_id);
 	/// print all run geometrys

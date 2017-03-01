@@ -12,8 +12,6 @@ var searchData=
   ['unidbrungeometry_2eh',['UniDbRunGeometry.h',['../_uni_db_run_geometry_8h.html',1,'']]],
   ['unidbrunperiod_2ecxx',['UniDbRunPeriod.cxx',['../_uni_db_run_period_8cxx.html',1,'']]],
   ['unidbrunperiod_2eh',['UniDbRunPeriod.h',['../_uni_db_run_period_8h.html',1,'']]],
-  ['unidbshift_2ecxx',['UniDbShift.cxx',['../_uni_db_shift_8cxx.html',1,'']]],
-  ['unidbshift_2eh',['UniDbShift.h',['../_uni_db_shift_8h.html',1,'']]],
   ['unidbsimulationfile_2ecxx',['UniDbSimulationFile.cxx',['../_uni_db_simulation_file_8cxx.html',1,'']]],
   ['unidbsimulationfile_2eh',['UniDbSimulationFile.h',['../_uni_db_simulation_file_8h.html',1,'']]]
 ];

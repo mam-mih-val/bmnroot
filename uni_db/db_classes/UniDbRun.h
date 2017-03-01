@@ -65,6 +65,10 @@ class UniDbRun
 	static UniDbRun* GetRun(int period_number, int run_number);
 	/// get run from the database
 	static UniDbRun* GetRun(TString file_path);
+	/// check run exists in the database
+	static bool CheckRunExists(int period_number, int run_number);
+	/// check run exists in the database
+	static bool CheckRunExists(TString file_path);
 	/// delete run from the database
 	static int DeleteRun(int period_number, int run_number);
 	/// delete run from the database

@@ -591,6 +591,41 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             }
         }
 
+        // CHECK RECORD EXISTS - DECLARATION
+        hFile<<(TString::Format("\t/// check %s exists in the database\n", strTableNameSpace.Data())).Data();
+        hFile<<(TString::Format("\tstatic bool Check%sExists(", strShortTableName.Data())).Data();
+        count = 0;
+        is_flag = false;
+        for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
+        {
+            structColumnInfo* cur_col= *it;
+            if (cur_col->isUnique)
+                is_flag = true;
+            if (!cur_col->isPrimary)
+                continue;
+
+            if (count == 0)
+                hFile<<(TString::Format("%s %s", cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
+            else
+                hFile<<(TString::Format(", %s %s", cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
+
+            count++;
+        }
+        hFile<<");\n";
+
+        if (is_flag)
+        {
+            for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
+            {
+                structColumnInfo* cur_col= *it;
+                if (!cur_col->isUnique)
+                    continue;
+
+                hFile<<(TString::Format("\t/// check %s exists in the database\n", strTableNameSpace.Data())).Data();
+                hFile<<(TString::Format("\tstatic bool Check%sExists(%s %s);\n", strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
+            }
+        }
+
         // DELETE RECORD - DECLARATION
         hFile<<(TString::Format("\t/// delete %s from the database\n", strTableNameSpace.Data())).Data();
         hFile<<(TString::Format("\tstatic int Delete%s(", strShortTableName.Data())).Data();
@@ -884,7 +919,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         cxxFile<<"}\n\n";
 
         // CREATE NEW RECORD - INPLEMENTATION
-        cxxFile<<"// -----   Creating new record in class table ---------------------------\n";
+        cxxFile<<(TString::Format("// -----   Creating new %s in the database  ---------------------------\n", strTableNameSpace.Data())).Data();
         cxxFile<<(TString::Format("%s* %s::Create%s(", strClassName.Data(), strClassName.Data(), strShortTableName.Data())).Data();
         count = 0;
         for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
@@ -1175,7 +1210,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         cxxFile<<");\n}\n\n";
 
         // GET RECORD - IMPLEMENTATION
-        cxxFile<<"// -----   Get table record from database ---------------------------\n";
+        cxxFile<<(TString::Format("// -----  Get %s from the database  ---------------------------\n", strTableNameSpace.Data())).Data();
         cxxFile<<(TString::Format("%s* %s::Get%s(", strClassName.Data(), strClassName.Data(), strShortTableName.Data())).Data();
         count = 0;
         is_flag = false;
@@ -1274,9 +1309,9 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
         cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n";
 
-        cxxFile<<"\n\t// get table record from DB\n";
+        cxxFile<<(TString::Format("\n\t// get %s from the database\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-        cxxFile<<(TString::Format("\t\tcout<<\"Error: getting record from DB has been failed for '%s' table\"<<endl;\n\n", strTableName.Data())).Data();
+        cxxFile<<(TString::Format("\t\tcout<<\"Error: getting %s from the database has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
         cxxFile<<"\t\tdelete connUniDb;\n";
         cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
@@ -1286,7 +1321,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
         cxxFile<<"\t// extract row\n";
         cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
-        cxxFile<<(TString::Format("\t\tcout<<\"Error: the record wasn't found in '%s' table\"<<endl;\n\n", strTableName.Data())).Data();
+        cxxFile<<(TString::Format("\t\tcout<<\"Error: %s wasn't found in the database\"<<endl;\n\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
         cxxFile<<"\t\tdelete connUniDb;\n";
         cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
@@ -1416,7 +1451,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                 if (!cur_col->isUnique)
                     continue;
 
-                cxxFile<<"// -----   Get table record from database for unique key--------------\n";
+                cxxFile<<(TString::Format("// -----  Get %s from the database by unique key  --------------\n", strTableNameSpace.Data())).Data();
                 cxxFile<<(TString::Format("%s* %s::Get%s(%s %s)\n{\n" ,
                                           strClassName.Data(), strClassName.Data(), strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
 
@@ -1455,9 +1490,9 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
                 cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n";
 
-                cxxFile<<"\n\t// get table record from DB\n";
+                cxxFile<<(TString::Format("\n\t// get %s from the database\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-                cxxFile<<(TString::Format("\t\tcout<<\"Error: getting record from DB has been failed for '%s' table\"<<endl;\n\n", strTableName.Data())).Data();
+                cxxFile<<(TString::Format("\t\tcout<<\"Error: getting %s from the database has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\t\tdelete stmt;\n";
                 cxxFile<<"\t\tdelete connUniDb;\n";
                 cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
@@ -1467,7 +1502,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
                 cxxFile<<"\t// extract row\n";
                 cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
-                cxxFile<<(TString::Format("\t\tcout<<\"Error: the record wasn't found in '%s' table\"<<endl;\n\n", strTableName.Data())).Data();
+                cxxFile<<(TString::Format("\t\tcout<<\"Error: %s wasn't found in the database\"<<endl;\n\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\t\tdelete stmt;\n";
                 cxxFile<<"\t\tdelete connUniDb;\n";
                 cxxFile<<"\t\treturn 0x00;\n\t}\n\n";
@@ -1591,8 +1626,152 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             }// for(vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
         }// static get functions for Unique fields
 
+        // CHECK RECORD EXISTS - IMPLEMENTATION
+        cxxFile<<(TString::Format("// -----  Check %s exists in the database  ---------------------------\n", strTableNameSpace.Data())).Data();
+        cxxFile<<(TString::Format("bool %s::Check%sExists(", strClassName.Data(), strShortTableName.Data())).Data();
+        count = 0;
+        is_flag = false;
+        for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
+        {
+            structColumnInfo* cur_col= *it;
+            if (cur_col->isUnique)
+                is_flag = true;
+            if (!cur_col->isPrimary)
+                continue;
+
+            if (count == 0)
+                cxxFile<<(TString::Format("%s %s", cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
+            else
+                cxxFile<<(TString::Format(", %s %s", cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
+
+            count++;
+        }
+        cxxFile<<")\n{\n";
+
+        cxxFile<<"\tUniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);\n";
+        cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
+
+        cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
+        cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"select 1 \"\n\t\t\"from %s", strTableName.Data())).Data();
+        // for join table
+        if (isJoin)
+        {
+            cxxFile<<(TString::Format(" join %s on %s.%s=%s.%s", curTableJoin->strJoinTableName.Data(), strTableName.Data(), curTableJoin->strJoinField.strColumnName.Data(),
+                                      curTableJoin->strJoinTableName.Data(), curTableJoin->strJoinField.strColumnName.Data())).Data();
+        }// for join table
+        cxxFile<<" \"\n\t\t\"where";
+        count = 0;
+        for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
+        {
+            structColumnInfo* cur_col= *it;
+            if (!cur_col->isPrimary)
+                continue;
+
+            if (count > 0)
+                cxxFile<<" and";
+
+
+            if (cur_col->strStatementType == "String")
+                cxxFile<<(TString::Format(" lower(%s) = lower('%%%s')", cur_col->strColumnName.Data(), cur_col->strPrintfType.Data())).Data();
+            else
+                cxxFile<<(TString::Format(" %s = %%%s", cur_col->strColumnName.Data(), cur_col->strPrintfType.Data())).Data();
+
+            count++;
+        }
+
+        cxxFile<<"\"";
+        for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
+        {
+            structColumnInfo* cur_col= *it;
+            if (!cur_col->isPrimary)
+                continue;
+
+            if (cur_col->strStatementType == "String")
+                cxxFile<<(TString::Format(", %s.Data()", cur_col->strColumnName.Data())).Data();
+            else
+                cxxFile<<(TString::Format(", %s", cur_col->strColumnName.Data())).Data();
+        }
+        cxxFile<<");\n";
+
+        cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n";
+
+        cxxFile<<(TString::Format("\n\t// get %s from the database\n", strTableNameSpace.Data())).Data();
+        cxxFile<<"\tif (!stmt->Process())\n\t{\n";
+        cxxFile<<(TString::Format("\t\tcout<<\"Error: getting %s from the database has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
+        cxxFile<<"\t\tdelete stmt;\n";
+        cxxFile<<"\t\tdelete connUniDb;\n";
+        cxxFile<<"\t\treturn false;\n\t}\n\n";
+
+        cxxFile<<"\t// store result of statement in buffer\n";
+        cxxFile<<"\tstmt->StoreResult();\n\n";
+
+        cxxFile<<"\t// extract row\n";
+        cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
+        cxxFile<<"\t\tdelete stmt;\n";
+        cxxFile<<"\t\tdelete connUniDb;\n";
+        cxxFile<<"\t\treturn false;\n\t}\n\n";
+
+        cxxFile<<"\tdelete stmt;\n";
+        cxxFile<<"\tdelete connUniDb;\n\n";
+        cxxFile<<"\treturn true;\n}\n\n";
+
+        // static get functions for Unique fields
+        if (is_flag)
+        {
+            for (vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
+            {
+                structColumnInfo* cur_col = *it;
+                if (!cur_col->isUnique)
+                    continue;
+
+                cxxFile<<(TString::Format("// -----  Check %s exists in the database by unique key  --------------\n", strTableNameSpace.Data())).Data();
+                cxxFile<<(TString::Format("bool %s::Check%sExists(%s %s)\n{\n" ,
+                                          strClassName.Data(), strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
+
+                cxxFile<<"\tUniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);\n";
+                cxxFile<<"\tif (connUniDb == 0x00) return 0x00;\n\n";
+
+                cxxFile<<"\tTSQLServer* uni_db = connUniDb->GetSQLServer();\n\n";
+                cxxFile<<(TString::Format("\tTString sql = TString::Format(\n\t\t\"select 1 \"\n\t\t\"from %s", strTableName.Data())).Data();
+                // for join table
+                if (isJoin)
+                {
+                    cxxFile<<(TString::Format(" join %s on %s.%s=%s.%s", curTableJoin->strJoinTableName.Data(), strTableName.Data(), curTableJoin->strJoinField.strColumnName.Data(),
+                                              curTableJoin->strJoinTableName.Data(), curTableJoin->strJoinField.strColumnName.Data())).Data();
+                }// for join table
+                if (cur_col->strStatementType == "String")
+                    cxxFile<<(TString::Format(" \"\n\t\t\"where lower(%s) = lower('%%%s')\", %s.Data());\n",
+                                              cur_col->strColumnName.Data(), cur_col->strPrintfType.Data(), cur_col->strColumnName.Data())).Data();
+                else
+                    cxxFile<<(TString::Format(" \"\n\t\t\"where %s = %%%s\", %s);\n",
+                                              cur_col->strColumnName.Data(), cur_col->strPrintfType.Data(), cur_col->strColumnName.Data())).Data();
+
+                cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n";
+
+                cxxFile<<(TString::Format("\n\t// get %s from the database\n", strTableNameSpace.Data())).Data();
+                cxxFile<<"\tif (!stmt->Process())\n\t{\n";
+                cxxFile<<(TString::Format("\t\tcout<<\"Error: getting %s from the database has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
+                cxxFile<<"\t\tdelete stmt;\n";
+                cxxFile<<"\t\tdelete connUniDb;\n";
+                cxxFile<<"\t\treturn false;\n\t}\n\n";
+
+                cxxFile<<"\t// store result of statement in buffer\n";
+                cxxFile<<"\tstmt->StoreResult();\n\n";
+
+                cxxFile<<"\t// extract row\n";
+                cxxFile<<"\tif (!stmt->NextResultRow())\n\t{\n";
+                cxxFile<<"\t\tdelete stmt;\n";
+                cxxFile<<"\t\tdelete connUniDb;\n";
+                cxxFile<<"\t\treturn false;\n\t}\n\n";
+
+                cxxFile<<"\tdelete stmt;\n";
+                cxxFile<<"\tdelete connUniDb;\n\n";
+                cxxFile<<"\treturn true;\n}\n\n";
+            }// for(vector<structColumnInfo*>::iterator it = vecColumns.begin(); it != vecColumns.end(); ++it)
+        }// static get functions for Unique fields
+
         // DELETE RECORD - IMPLEMENTATION
-        cxxFile<<"// -----   Delete record from class table ---------------------------\n";
+        cxxFile<<(TString::Format("// -----  Delete %s from the database  ---------------------------\n", strTableNameSpace.Data())).Data();
         cxxFile<<(TString::Format("int %s::Delete%s(", strClassName.Data(), strShortTableName.Data())).Data();
         count = 0;
         is_flag = false;
@@ -1661,9 +1840,9 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
             count++;
         }
 
-        cxxFile<<(TString::Format("\n\t// delete %s (one record) from the DataBase\n", strTableNameSpace.Data())).Data();
+        cxxFile<<(TString::Format("\n\t// delete %s from the dataBase\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-        cxxFile<<(TString::Format("\t\tcout<<\"Error: deleting %s from the DataBase has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
+        cxxFile<<(TString::Format("\t\tcout<<\"Error: deleting %s from the dataBase has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
         cxxFile<<"\t\tdelete connUniDb;\n";
         cxxFile<<"\t\treturn -1;\n\t}\n\n";
@@ -1681,7 +1860,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                 if (!cur_col->isUnique)
                     continue;
 
-                cxxFile<<"// -----   Delete table record from database for unique key--------------\n";
+                cxxFile<<(TString::Format("// -----  Delete %s from the database by unique key  --------------\n", strTableNameSpace.Data())).Data();
                 cxxFile<<(TString::Format("int %s::Delete%s(%s %s)\n{\n" ,
                                           strClassName.Data(), strShortTableName.Data(), cur_col->strVariableType.Data(), cur_col->strColumnName.Data())).Data();
 
@@ -1710,7 +1889,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                 cxxFile<<"\tstmt->NextIteration();\n";
                 cxxFile<<(TString::Format("\tstmt->Set%s(0, %s);\n", cur_col->strStatementType.Data(), cur_col->strColumnName.Data())).Data();
 
-                cxxFile<<(TString::Format("\n\t// delete %s (one record) from the DataBase\n", strTableNameSpace.Data())).Data();
+                cxxFile<<(TString::Format("\n\t// delete %s from the dataBase\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\tif (!stmt->Process())\n\t{\n";
                 cxxFile<<(TString::Format("\t\tcout<<\"Error: deleting %s from the DataBase has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
                 cxxFile<<"\t\tdelete stmt;\n";
@@ -1724,7 +1903,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         }// static Delete functions for Unique fields
 
         // PRINT ALL ROWS - IMPLEMENTATION
-        cxxFile<<"// -----   Print all table records ---------------------------------\n";
+        cxxFile<<(TString::Format("// -----  Print all '%ss'  ---------------------------------\n", strTableNameSpace.Data())).Data();
         cxxFile<<(TString::Format("int %s::PrintAll()\n{\n", strClassName.Data())).Data();
 
         cxxFile<<"\tUniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);\n";
@@ -1766,9 +1945,9 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
 
         cxxFile<<"\tTSQLStatement* stmt = uni_db->Statement(sql);\n";
 
-        cxxFile<<"\n\t// get table record from DB\n";
+        cxxFile<<(TString::Format("\n\t// get all '%ss' from the database\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-        cxxFile<<"\t\tcout<<\"Error: getting all records from the DataBase has been failed\"<<endl;\n\n";
+        cxxFile<<(TString::Format("\t\tcout<<\"Error: getting all '%ss' from the dataBase has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
         cxxFile<<"\t\tdelete stmt;\n";
         cxxFile<<"\t\tdelete connUniDb;\n";
         cxxFile<<"\t\treturn -1;\n\t}\n\n";
@@ -1983,9 +2162,9 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
                 count++;
             }
 
-            cxxFile<<"\n\t// write new value to database\n";
+            cxxFile<<"\n\t// write new value to the database\n";
             cxxFile<<"\tif (!stmt->Process())\n\t{\n";
-            cxxFile<<"\t\tcout<<\"Error: updating the record has been failed\"<<endl;\n\n";
+            cxxFile<<(TString::Format("\t\tcout<<\"Error: updating information about %s has been failed\"<<endl;\n\n", strTableNameSpace.Data())).Data();
             cxxFile<<"\t\tdelete stmt;\n";
             cxxFile<<"\t\treturn -2;\n\t}\n\n";
 
@@ -2023,7 +2202,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         }// setters functions - implementation
 
         // PRINT VALUES - IMPLEMENTATION
-        cxxFile<<"// -----   Print current record ---------------------------------------\n";
+        cxxFile<<(TString::Format("// -----  Print current %s  ---------------------------------------\n", strTableNameSpace.Data())).Data();
         cxxFile<<(TString::Format("void %s::Print()\n{\n", strClassName.Data())).Data();
 
         cxxFile<<(TString::Format("\tcout<<\"Table '%s'\";\n\tcout", strTableName.Data())).Data();

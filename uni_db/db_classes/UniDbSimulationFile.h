@@ -58,6 +58,10 @@ class UniDbSimulationFile
 	static UniDbSimulationFile* GetSimulationFile(int file_id);
 	/// get simulation file from the database
 	static UniDbSimulationFile* GetSimulationFile(TString file_path);
+	/// check simulation file exists in the database
+	static bool CheckSimulationFileExists(int file_id);
+	/// check simulation file exists in the database
+	static bool CheckSimulationFileExists(TString file_path);
 	/// delete simulation file from the database
 	static int DeleteSimulationFile(int file_id);
 	/// delete simulation file from the database

@@ -29,7 +29,7 @@ UniDbParameter::~UniDbParameter()
 		delete connectionUniDb;
 }
 
-// -----   Creating new record in class table ---------------------------
+// -----   Creating new parameter in the database  ---------------------------
 UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int parameter_type)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -46,10 +46,10 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 	stmt->SetString(0, parameter_name);
 	stmt->SetInt(1, parameter_type);
 
-	// inserting new record to DB
+	// inserting new parameter to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new record to DB has been failed"<<endl;
+		cout<<"Error: inserting new parameter to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -97,7 +97,7 @@ UniDbParameter* UniDbParameter::CreateParameter(TString parameter_name, int para
 	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type);
 }
 
-// -----   Get table record from database ---------------------------
+// -----  Get parameter from the database  ---------------------------
 UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -111,10 +111,10 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 		"where parameter_id = %d", parameter_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get parameter from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from DB has been failed"<<endl;
+		cout<<"Error: getting parameter from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -127,7 +127,7 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: table record wasn't found"<<endl;
+		cout<<"Error: parameter wasn't found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -146,7 +146,7 @@ UniDbParameter* UniDbParameter::GetParameter(int parameter_id)
 	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type);
 }
 
-// -----   Get table record from database for unique key--------------
+// -----  Get parameter from the database by unique key  --------------
 UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -160,10 +160,10 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 		"where lower(parameter_name) = lower('%s')", parameter_name.Data());
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get parameter from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from DB has been failed"<<endl;
+		cout<<"Error: getting parameter from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -176,7 +176,7 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: table record wasn't found"<<endl;
+		cout<<"Error: parameter wasn't found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -195,7 +195,89 @@ UniDbParameter* UniDbParameter::GetParameter(TString parameter_name)
 	return new UniDbParameter(connUniDb, tmp_parameter_id, tmp_parameter_name, tmp_parameter_type);
 }
 
-// -----   Delete record from class table ---------------------------
+// -----  Check parameter exists in the database  ---------------------------
+bool UniDbParameter::CheckParameterExists(int parameter_id)
+{
+	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	if (connUniDb == 0x00) return 0x00;
+
+	TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"select 1 "
+		"from parameter_ "
+		"where parameter_id = %d", parameter_id);
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	// get parameter from the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: getting parameter from the database has been failed"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	// extract row
+	if (!stmt->NextResultRow())
+	{
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	delete stmt;
+	delete connUniDb;
+
+	return true;
+}
+
+// -----  Check parameter exists in the database by unique key  --------------
+bool UniDbParameter::CheckParameterExists(TString parameter_name)
+{
+	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	if (connUniDb == 0x00) return 0x00;
+
+	TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"select 1 "
+		"from parameter_ "
+		"where lower(parameter_name) = lower('%s')", parameter_name.Data());
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	// get parameter from the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: getting parameter from the database has been failed"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	// extract row
+	if (!stmt->NextResultRow())
+	{
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	delete stmt;
+	delete connUniDb;
+
+	return true;
+}
+
+// -----  Delete parameter from the database  ---------------------------
 int UniDbParameter::DeleteParameter(int parameter_id)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -211,10 +293,10 @@ int UniDbParameter::DeleteParameter(int parameter_id)
 	stmt->NextIteration();
 	stmt->SetInt(0, parameter_id);
 
-	// delete table record from DB
+	// delete parameter from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting record from DB has been failed"<<endl;
+		cout<<"Error: deleting parameter from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -226,7 +308,7 @@ int UniDbParameter::DeleteParameter(int parameter_id)
 	return 0;
 }
 
-// -----   Delete table record from database for unique key--------------
+// -----  Delete parameter from the database by unique key  --------------
 int UniDbParameter::DeleteParameter(TString parameter_name)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -242,10 +324,10 @@ int UniDbParameter::DeleteParameter(TString parameter_name)
 	stmt->NextIteration();
 	stmt->SetString(0, parameter_name);
 
-	// delete table record from DB
+	// delete parameter from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting record from DB has been failed"<<endl;
+		cout<<"Error: deleting parameter from the DataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -257,7 +339,7 @@ int UniDbParameter::DeleteParameter(TString parameter_name)
 	return 0;
 }
 
-// -----   Print all table records ---------------------------------
+// -----  Print all 'parameters'  ---------------------------------
 int UniDbParameter::PrintAll()
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -270,10 +352,10 @@ int UniDbParameter::PrintAll()
 		"from parameter_");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get all 'parameters' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all records from DB has been failed"<<endl;
+		cout<<"Error: getting all 'parameters' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -324,10 +406,10 @@ int UniDbParameter::SetParameterName(TString parameter_name)
 	stmt->SetString(0, parameter_name);
 	stmt->SetInt(1, i_parameter_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -359,10 +441,10 @@ int UniDbParameter::SetParameterType(int parameter_type)
 	stmt->SetInt(0, parameter_type);
 	stmt->SetInt(1, i_parameter_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about parameter has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -374,7 +456,7 @@ int UniDbParameter::SetParameterType(int parameter_type)
 	return 0;
 }
 
-// -----   Print current record ---------------------------------------
+// -----  Print current parameter  ---------------------------------------
 void UniDbParameter::Print()
 {
 	cout<<"Table 'parameter_'";

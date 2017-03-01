@@ -40,6 +40,8 @@ class UniDbDetector
 	static UniDbDetector* CreateDetector(TString detector_name, TString* description);
 	/// get detector from the database
 	static UniDbDetector* GetDetector(TString detector_name);
+	/// check detector exists in the database
+	static bool CheckDetectorExists(TString detector_name);
 	/// delete detector from the database
 	static int DeleteDetector(TString detector_name);
 	/// print all detectors

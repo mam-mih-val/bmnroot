@@ -46,7 +46,7 @@ UniDbSimulationFile::~UniDbSimulationFile()
 		delete d_file_size;
 }
 
-// -----   Creating new record in class table ---------------------------
+// -----   Creating new simulation file in the database  ---------------------------
 UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path, TString generator_name, TString beam_particle, TString* target_particle, double* energy, TString centrality, int* event_count, TString* file_desc, double* file_size)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -85,10 +85,10 @@ UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path
 	else
 		stmt->SetDouble(8, *file_size);
 
-	// inserting new record to DB
+	// inserting new simulation file to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new record to DB has been failed"<<endl;
+		cout<<"Error: inserting new simulation file to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -160,7 +160,7 @@ UniDbSimulationFile* UniDbSimulationFile::CreateSimulationFile(TString file_path
 	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size);
 }
 
-// -----   Get table record from database ---------------------------
+// -----  Get simulation file from the database  ---------------------------
 UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -174,10 +174,10 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 		"where file_id = %d", file_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get simulation file from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from DB has been failed"<<endl;
+		cout<<"Error: getting simulation file from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -190,7 +190,7 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: table record wasn't found"<<endl;
+		cout<<"Error: simulation file wasn't found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -233,7 +233,7 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(int file_id)
 	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size);
 }
 
-// -----   Get table record from database for unique key--------------
+// -----  Get simulation file from the database by unique key  --------------
 UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -247,10 +247,10 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 		"where lower(file_path) = lower('%s')", file_path.Data());
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get simulation file from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from DB has been failed"<<endl;
+		cout<<"Error: getting simulation file from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -263,7 +263,7 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: table record wasn't found"<<endl;
+		cout<<"Error: simulation file wasn't found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -306,7 +306,89 @@ UniDbSimulationFile* UniDbSimulationFile::GetSimulationFile(TString file_path)
 	return new UniDbSimulationFile(connUniDb, tmp_file_id, tmp_file_path, tmp_generator_name, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_centrality, tmp_event_count, tmp_file_desc, tmp_file_size);
 }
 
-// -----   Delete record from class table ---------------------------
+// -----  Check simulation file exists in the database  ---------------------------
+bool UniDbSimulationFile::CheckSimulationFileExists(int file_id)
+{
+	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	if (connUniDb == 0x00) return 0x00;
+
+	TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"select 1 "
+		"from simulation_file "
+		"where file_id = %d", file_id);
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	// get simulation file from the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: getting simulation file from the database has been failed"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	// extract row
+	if (!stmt->NextResultRow())
+	{
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	delete stmt;
+	delete connUniDb;
+
+	return true;
+}
+
+// -----  Check simulation file exists in the database by unique key  --------------
+bool UniDbSimulationFile::CheckSimulationFileExists(TString file_path)
+{
+	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	if (connUniDb == 0x00) return 0x00;
+
+	TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"select 1 "
+		"from simulation_file "
+		"where lower(file_path) = lower('%s')", file_path.Data());
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	// get simulation file from the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: getting simulation file from the database has been failed"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	// extract row
+	if (!stmt->NextResultRow())
+	{
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	delete stmt;
+	delete connUniDb;
+
+	return true;
+}
+
+// -----  Delete simulation file from the database  ---------------------------
 int UniDbSimulationFile::DeleteSimulationFile(int file_id)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -322,10 +404,10 @@ int UniDbSimulationFile::DeleteSimulationFile(int file_id)
 	stmt->NextIteration();
 	stmt->SetInt(0, file_id);
 
-	// delete table record from DB
+	// delete simulation file from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting record from DB has been failed"<<endl;
+		cout<<"Error: deleting simulation file from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -337,7 +419,7 @@ int UniDbSimulationFile::DeleteSimulationFile(int file_id)
 	return 0;
 }
 
-// -----   Delete table record from database for unique key--------------
+// -----  Delete simulation file from the database by unique key  --------------
 int UniDbSimulationFile::DeleteSimulationFile(TString file_path)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -353,10 +435,10 @@ int UniDbSimulationFile::DeleteSimulationFile(TString file_path)
 	stmt->NextIteration();
 	stmt->SetString(0, file_path);
 
-	// delete table record from DB
+	// delete simulation file from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting record from DB has been failed"<<endl;
+		cout<<"Error: deleting simulation file from the DataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -368,7 +450,7 @@ int UniDbSimulationFile::DeleteSimulationFile(TString file_path)
 	return 0;
 }
 
-// -----   Print all table records ---------------------------------
+// -----  Print all 'simulation files'  ---------------------------------
 int UniDbSimulationFile::PrintAll()
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -381,10 +463,10 @@ int UniDbSimulationFile::PrintAll()
 		"from simulation_file");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get all 'simulation files' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all records from DB has been failed"<<endl;
+		cout<<"Error: getting all 'simulation files' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -459,10 +541,10 @@ int UniDbSimulationFile::SetFilePath(TString file_path)
 	stmt->SetString(0, file_path);
 	stmt->SetInt(1, i_file_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about simulation file has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -494,10 +576,10 @@ int UniDbSimulationFile::SetGeneratorName(TString generator_name)
 	stmt->SetString(0, generator_name);
 	stmt->SetInt(1, i_file_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about simulation file has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -529,10 +611,10 @@ int UniDbSimulationFile::SetBeamParticle(TString beam_particle)
 	stmt->SetString(0, beam_particle);
 	stmt->SetInt(1, i_file_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about simulation file has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -567,10 +649,10 @@ int UniDbSimulationFile::SetTargetParticle(TString* target_particle)
 		stmt->SetString(0, *target_particle);
 	stmt->SetInt(1, i_file_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about simulation file has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -609,10 +691,10 @@ int UniDbSimulationFile::SetEnergy(double* energy)
 		stmt->SetDouble(0, *energy);
 	stmt->SetInt(1, i_file_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about simulation file has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -648,10 +730,10 @@ int UniDbSimulationFile::SetCentrality(TString centrality)
 	stmt->SetString(0, centrality);
 	stmt->SetInt(1, i_file_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about simulation file has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -686,10 +768,10 @@ int UniDbSimulationFile::SetEventCount(int* event_count)
 		stmt->SetInt(0, *event_count);
 	stmt->SetInt(1, i_file_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about simulation file has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -728,10 +810,10 @@ int UniDbSimulationFile::SetFileDesc(TString* file_desc)
 		stmt->SetString(0, *file_desc);
 	stmt->SetInt(1, i_file_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about simulation file has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -770,10 +852,10 @@ int UniDbSimulationFile::SetFileSize(double* file_size)
 		stmt->SetDouble(0, *file_size);
 	stmt->SetInt(1, i_file_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about simulation file has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -789,7 +871,7 @@ int UniDbSimulationFile::SetFileSize(double* file_size)
 	return 0;
 }
 
-// -----   Print current record ---------------------------------------
+// -----  Print current simulation file  ---------------------------------------
 void UniDbSimulationFile::Print()
 {
 	cout<<"Table 'simulation_file'";

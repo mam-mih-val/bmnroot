@@ -25,7 +25,7 @@
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">The Unified Database Interface
    </div>
-   <div id="projectbrief">C++ interface of the databases for physics experiments</div>
+   <div id="projectbrief">C++ interface of the unified database for offline physics data processing</div>
   </td>
  </tr>
  </tbody>
@@ -106,9 +106,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7b86329ff7af8ecd9e95e4cc1cdf610c"><td class="memItemLeft" align="right" valign="top">Long_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_geometry.html#a7b86329ff7af8ecd9e95e4cc1cdf610c">GetRootGeometrySize</a> ()</td></tr>
 <tr class="memdesc:a7b86329ff7af8ecd9e95e4cc1cdf610c"><td class="mdescLeft">&#160;</td><td class="mdescRight">get size of root geometry of the current run geometry  <a href="#a7b86329ff7af8ecd9e95e4cc1cdf610c">More...</a><br /></td></tr>
 <tr class="separator:a7b86329ff7af8ecd9e95e4cc1cdf610c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b1eaeb35573ea0cefbf6d79b7a5e541"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_geometry.html#a6b1eaeb35573ea0cefbf6d79b7a5e541">SetGeometryId</a> (int geometry_id)</td></tr>
-<tr class="memdesc:a6b1eaeb35573ea0cefbf6d79b7a5e541"><td class="mdescLeft">&#160;</td><td class="mdescRight">set geometry id of the current run geometry  <a href="#a6b1eaeb35573ea0cefbf6d79b7a5e541">More...</a><br /></td></tr>
-<tr class="separator:a6b1eaeb35573ea0cefbf6d79b7a5e541"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4900585900f2a1f5150ff329fc7e8f67"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_geometry.html#a4900585900f2a1f5150ff329fc7e8f67">SetRootGeometry</a> (unsigned char *root_geometry, Long_t size_root_geometry)</td></tr>
 <tr class="memdesc:a4900585900f2a1f5150ff329fc7e8f67"><td class="mdescLeft">&#160;</td><td class="mdescRight">set root geometry of the current run geometry  <a href="#a4900585900f2a1f5150ff329fc7e8f67">More...</a><br /></td></tr>
 <tr class="separator:a4900585900f2a1f5150ff329fc7e8f67"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -126,6 +123,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a4cf3ff1519e6411db8ed981357b850db"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_uni_db_run_geometry.html">UniDbRunGeometry</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_geometry.html#a4cf3ff1519e6411db8ed981357b850db">GetRunGeometry</a> (int geometry_id)</td></tr>
 <tr class="memdesc:a4cf3ff1519e6411db8ed981357b850db"><td class="mdescLeft">&#160;</td><td class="mdescRight">get run geometry from the database  <a href="#a4cf3ff1519e6411db8ed981357b850db">More...</a><br /></td></tr>
 <tr class="separator:a4cf3ff1519e6411db8ed981357b850db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6e2978d2d1519da6f5a329c0447a9d8"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_geometry.html#aa6e2978d2d1519da6f5a329c0447a9d8">CheckRunGeometryExists</a> (int geometry_id)</td></tr>
+<tr class="memdesc:aa6e2978d2d1519da6f5a329c0447a9d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">check run geometry exists in the database  <a href="#aa6e2978d2d1519da6f5a329c0447a9d8">More...</a><br /></td></tr>
+<tr class="separator:aa6e2978d2d1519da6f5a329c0447a9d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d0ab7cc8df8c9f10d2f1429938ea5db"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_geometry.html#a0d0ab7cc8df8c9f10d2f1429938ea5db">DeleteRunGeometry</a> (int geometry_id)</td></tr>
 <tr class="memdesc:a0d0ab7cc8df8c9f10d2f1429938ea5db"><td class="mdescLeft">&#160;</td><td class="mdescRight">delete run geometry from the database  <a href="#a0d0ab7cc8df8c9f10d2f1429938ea5db">More...</a><br /></td></tr>
 <tr class="separator:a0d0ab7cc8df8c9f10d2f1429938ea5db"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -135,6 +135,8 @@ Static Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="_uni_db_run_geometry_8h.html">db_classes/UniDbRunGeometry.h</a> Class for the table: run_geometry </p>
+
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8h_source.html#l00018">18</a> of file <a class="el" href="_uni_db_run_geometry_8h_source.html">UniDbRunGeometry.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a05704eb4af3a227cce5aef7a65000bb5"></a>
 <div class="memitem">
@@ -157,9 +159,39 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8cxx_source.html#l00026">26</a> of file <a class="el" href="_uni_db_run_geometry_8cxx_source.html">UniDbRunGeometry.cxx</a>.</p>
+
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="aa6e2978d2d1519da6f5a329c0447a9d8"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool UniDbRunGeometry::CheckRunGeometryExists </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>geometry_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>check run geometry exists in the database </p>
+
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8cxx_source.html#l00151">151</a> of file <a class="el" href="_uni_db_run_geometry_8cxx_source.html">UniDbRunGeometry.cxx</a>.</p>
+
+</div>
+</div>
 <a class="anchor" id="a29c40c79bab6df4d3ad3ab27dce80ece"></a>
 <div class="memitem">
 <div class="memproto">
@@ -220,6 +252,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>add new run geometry to the database </p>
 
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8cxx_source.html#l00035">35</a> of file <a class="el" href="_uni_db_run_geometry_8cxx_source.html">UniDbRunGeometry.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a0d0ab7cc8df8c9f10d2f1429938ea5db"></a>
@@ -246,6 +280,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>delete run geometry from the database </p>
 
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8cxx_source.html#l00192">192</a> of file <a class="el" href="_uni_db_run_geometry_8cxx_source.html">UniDbRunGeometry.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a5928baa7c67289824922bd835b6fe743"></a>
@@ -270,6 +306,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>get geometry id of the current run geometry </p>
+
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8h_source.html#l00054">54</a> of file <a class="el" href="_uni_db_run_geometry_8h_source.html">UniDbRunGeometry.h</a>.</p>
 
 </div>
 </div>
@@ -296,6 +334,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get root geometry of the current run geometry </p>
 
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8h_source.html#l00056">56</a> of file <a class="el" href="_uni_db_run_geometry_8h_source.html">UniDbRunGeometry.h</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a7b86329ff7af8ecd9e95e4cc1cdf610c"></a>
@@ -320,6 +360,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>get size of root geometry of the current run geometry </p>
+
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8h_source.html#l00058">58</a> of file <a class="el" href="_uni_db_run_geometry_8h_source.html">UniDbRunGeometry.h</a>.</p>
 
 </div>
 </div>
@@ -347,6 +389,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get run geometry from the database </p>
 
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8cxx_source.html#l00102">102</a> of file <a class="el" href="_uni_db_run_geometry_8cxx_source.html">UniDbRunGeometry.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="ad1bc7faebe95600b2ab04623518aca0e"></a>
@@ -363,6 +407,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>print information about current run geometry </p>
+
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8cxx_source.html#l00310">310</a> of file <a class="el" href="_uni_db_run_geometry_8cxx_source.html">UniDbRunGeometry.cxx</a>.</p>
 
 </div>
 </div>
@@ -389,23 +435,7 @@ Static Public Member Functions</h2></td></tr>
 
 <p>print all run geometrys </p>
 
-</div>
-</div>
-<a class="anchor" id="a6b1eaeb35573ea0cefbf6d79b7a5e541"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int UniDbRunGeometry::SetGeometryId </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>geometry_id</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>set geometry id of the current run geometry </p>
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8cxx_source.html#l00223">223</a> of file <a class="el" href="_uni_db_run_geometry_8cxx_source.html">UniDbRunGeometry.cxx</a>.</p>
 
 </div>
 </div>
@@ -435,11 +465,13 @@ Static Public Member Functions</h2></td></tr>
 
 <p>set root geometry of the current run geometry </p>
 
+<p>Definition at line <a class="el" href="_uni_db_run_geometry_8cxx_source.html#l00270">270</a> of file <a class="el" href="_uni_db_run_geometry_8cxx_source.html">UniDbRunGeometry.cxx</a>.</p>
+
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>C:/Users/SoulKeeper/Downloads/db_classes/<a class="el" href="_uni_db_run_geometry_8h_source.html">UniDbRunGeometry.h</a></li>
-<li>C:/Users/SoulKeeper/Downloads/db_classes/<a class="el" href="_uni_db_run_geometry_8cxx.html">UniDbRunGeometry.cxx</a></li>
+<li>db_classes/<a class="el" href="_uni_db_run_geometry_8h_source.html">UniDbRunGeometry.h</a></li>
+<li>db_classes/<a class="el" href="_uni_db_run_geometry_8cxx_source.html">UniDbRunGeometry.cxx</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

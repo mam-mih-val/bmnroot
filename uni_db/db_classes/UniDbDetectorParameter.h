@@ -72,6 +72,8 @@ class UniDbDetectorParameter
 	static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, int parameter_id, int start_period, int start_run, int end_period, int end_run, unsigned int* dc_serial, int* channel, unsigned char* parameter_value, Long_t size_parameter_value);
 	/// get detector parameter from the database
 	static UniDbDetectorParameter* GetDetectorParameter(int value_id);
+	/// check detector parameter exists in the database
+	static bool CheckDetectorParameterExists(int value_id);
 	/// delete detector parameter from the database
 	static int DeleteDetectorParameter(int value_id);
 	/// print all detector parameters

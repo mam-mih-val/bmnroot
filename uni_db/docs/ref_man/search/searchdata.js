@@ -1,9 +1,10 @@
 var indexSectionsWithContent =
 {
-  0: "cdgprsuw~",
+  0: "cdgoprsuw~",
   1: "u",
   2: "u",
-  3: "cdgprsw~"
+  3: "cdgprsw~",
+  4: "o"
 };
 
 var indexSectionNames =
@@ -11,7 +12,8 @@ var indexSectionNames =
   0: "all",
   1: "classes",
   2: "files",
-  3: "functions"
+  3: "functions",
+  4: "defines"
 };
 
 var indexSectionLabels =
@@ -19,6 +21,7 @@ var indexSectionLabels =
   0: "All",
   1: "Classes",
   2: "Files",
-  3: "Functions"
+  3: "Functions",
+  4: "Macros"
 };
 

@@ -54,7 +54,7 @@ UniDbRun::~UniDbRun()
 		delete i_geometry_id;
 }
 
-// -----   Creating new record in class table ---------------------------
+// -----   Creating new run in the database  ---------------------------
 UniDbRun* UniDbRun::CreateRun(int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -102,10 +102,10 @@ UniDbRun* UniDbRun::CreateRun(int period_number, int run_number, TString file_pa
 	else
 		stmt->SetInt(11, *geometry_id);
 
-	// inserting new record to DB
+	// inserting new run to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new record to DB has been failed"<<endl;
+		cout<<"Error: inserting new run to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -155,7 +155,7 @@ UniDbRun* UniDbRun::CreateRun(int period_number, int run_number, TString file_pa
 	return new UniDbRun(connUniDb, tmp_period_number, tmp_run_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
 }
 
-// -----   Get table record from database ---------------------------
+// -----  Get run from the database  ---------------------------
 UniDbRun* UniDbRun::GetRun(int period_number, int run_number)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -169,10 +169,10 @@ UniDbRun* UniDbRun::GetRun(int period_number, int run_number)
 		"where period_number = %d and run_number = %d", period_number, run_number);
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get run from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from DB has been failed"<<endl;
+		cout<<"Error: getting run from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -185,7 +185,7 @@ UniDbRun* UniDbRun::GetRun(int period_number, int run_number)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: table record wasn't found"<<endl;
+		cout<<"Error: run wasn't found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -236,7 +236,7 @@ UniDbRun* UniDbRun::GetRun(int period_number, int run_number)
 	return new UniDbRun(connUniDb, tmp_period_number, tmp_run_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
 }
 
-// -----   Get table record from database for unique key--------------
+// -----  Get run from the database by unique key  --------------
 UniDbRun* UniDbRun::GetRun(TString file_path)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -250,10 +250,10 @@ UniDbRun* UniDbRun::GetRun(TString file_path)
 		"where lower(file_path) = lower('%s')", file_path.Data());
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get run from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from DB has been failed"<<endl;
+		cout<<"Error: getting run from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -266,7 +266,7 @@ UniDbRun* UniDbRun::GetRun(TString file_path)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: table record wasn't found"<<endl;
+		cout<<"Error: run wasn't found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -317,7 +317,89 @@ UniDbRun* UniDbRun::GetRun(TString file_path)
 	return new UniDbRun(connUniDb, tmp_period_number, tmp_run_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
 }
 
-// -----   Delete record from class table ---------------------------
+// -----  Check run exists in the database  ---------------------------
+bool UniDbRun::CheckRunExists(int period_number, int run_number)
+{
+	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	if (connUniDb == 0x00) return 0x00;
+
+	TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"select 1 "
+		"from run_ "
+		"where period_number = %d and run_number = %d", period_number, run_number);
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	// get run from the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: getting run from the database has been failed"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	// extract row
+	if (!stmt->NextResultRow())
+	{
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	delete stmt;
+	delete connUniDb;
+
+	return true;
+}
+
+// -----  Check run exists in the database by unique key  --------------
+bool UniDbRun::CheckRunExists(TString file_path)
+{
+	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	if (connUniDb == 0x00) return 0x00;
+
+	TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"select 1 "
+		"from run_ "
+		"where lower(file_path) = lower('%s')", file_path.Data());
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	// get run from the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: getting run from the database has been failed"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	// extract row
+	if (!stmt->NextResultRow())
+	{
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	delete stmt;
+	delete connUniDb;
+
+	return true;
+}
+
+// -----  Delete run from the database  ---------------------------
 int UniDbRun::DeleteRun(int period_number, int run_number)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -334,10 +416,10 @@ int UniDbRun::DeleteRun(int period_number, int run_number)
 	stmt->SetInt(0, period_number);
 	stmt->SetInt(1, run_number);
 
-	// delete table record from DB
+	// delete run from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting record from DB has been failed"<<endl;
+		cout<<"Error: deleting run from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -349,7 +431,7 @@ int UniDbRun::DeleteRun(int period_number, int run_number)
 	return 0;
 }
 
-// -----   Delete table record from database for unique key--------------
+// -----  Delete run from the database by unique key  --------------
 int UniDbRun::DeleteRun(TString file_path)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -365,10 +447,10 @@ int UniDbRun::DeleteRun(TString file_path)
 	stmt->NextIteration();
 	stmt->SetString(0, file_path);
 
-	// delete table record from DB
+	// delete run from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting record from DB has been failed"<<endl;
+		cout<<"Error: deleting run from the DataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -380,7 +462,7 @@ int UniDbRun::DeleteRun(TString file_path)
 	return 0;
 }
 
-// -----   Print all table records ---------------------------------
+// -----  Print all 'runs'  ---------------------------------
 int UniDbRun::PrintAll()
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -393,10 +475,10 @@ int UniDbRun::PrintAll()
 		"from run_");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get all 'runs' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all records from DB has been failed"<<endl;
+		cout<<"Error: getting all 'runs' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -480,10 +562,10 @@ int UniDbRun::SetPeriodNumber(int period_number)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -516,10 +598,10 @@ int UniDbRun::SetRunNumber(int run_number)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -552,10 +634,10 @@ int UniDbRun::SetFilePath(TString file_path)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -588,10 +670,10 @@ int UniDbRun::SetBeamParticle(TString beam_particle)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -627,10 +709,10 @@ int UniDbRun::SetTargetParticle(TString* target_particle)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -670,10 +752,10 @@ int UniDbRun::SetEnergy(double* energy)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -710,10 +792,10 @@ int UniDbRun::SetStartDatetime(TDatime start_datetime)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -749,10 +831,10 @@ int UniDbRun::SetEndDatetime(TDatime* end_datetime)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -792,10 +874,10 @@ int UniDbRun::SetEventCount(int* event_count)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -835,10 +917,10 @@ int UniDbRun::SetFieldCurrent(int* field_current)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -878,10 +960,10 @@ int UniDbRun::SetFileSize(double* file_size)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -921,10 +1003,10 @@ int UniDbRun::SetGeometryId(int* geometry_id)
 	stmt->SetInt(1, i_period_number);
 	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -940,7 +1022,7 @@ int UniDbRun::SetGeometryId(int* geometry_id)
 	return 0;
 }
 
-// -----   Print current record ---------------------------------------
+// -----  Print current run  ---------------------------------------
 void UniDbRun::Print()
 {
 	cout<<"Table 'run_'";

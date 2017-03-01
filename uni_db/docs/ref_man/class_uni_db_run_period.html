@@ -25,7 +25,7 @@
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">The Unified Database Interface
    </div>
-   <div id="projectbrief">C++ interface of the databases for physics experiments</div>
+   <div id="projectbrief">C++ interface of the unified database for offline physics data processing</div>
   </td>
  </tr>
  </tbody>
@@ -106,9 +106,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a82de7544be4cacb80b39a9422fb3f347"><td class="memItemLeft" align="right" valign="top">TDatime *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_period.html#a82de7544be4cacb80b39a9422fb3f347">GetEndDatetime</a> ()</td></tr>
 <tr class="memdesc:a82de7544be4cacb80b39a9422fb3f347"><td class="mdescLeft">&#160;</td><td class="mdescRight">get end datetime of the current run period  <a href="#a82de7544be4cacb80b39a9422fb3f347">More...</a><br /></td></tr>
 <tr class="separator:a82de7544be4cacb80b39a9422fb3f347"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf0a508a5bcf6d04a848b695edd1f79e"><td class="memItemLeft" align="right" valign="top">TString *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_period.html#abf0a508a5bcf6d04a848b695edd1f79e">GetContactPerson</a> ()</td></tr>
-<tr class="memdesc:abf0a508a5bcf6d04a848b695edd1f79e"><td class="mdescLeft">&#160;</td><td class="mdescRight">get contact person of the current run period  <a href="#abf0a508a5bcf6d04a848b695edd1f79e">More...</a><br /></td></tr>
-<tr class="separator:abf0a508a5bcf6d04a848b695edd1f79e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afeea7243dd5b8a50df177cb87feda895"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_period.html#afeea7243dd5b8a50df177cb87feda895">SetPeriodNumber</a> (int period_number)</td></tr>
 <tr class="memdesc:afeea7243dd5b8a50df177cb87feda895"><td class="mdescLeft">&#160;</td><td class="mdescRight">set period number of the current run period  <a href="#afeea7243dd5b8a50df177cb87feda895">More...</a><br /></td></tr>
 <tr class="separator:afeea7243dd5b8a50df177cb87feda895"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -118,9 +115,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:acb278ed9814da3ef30f83e5ef4141bac"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_period.html#acb278ed9814da3ef30f83e5ef4141bac">SetEndDatetime</a> (TDatime *end_datetime)</td></tr>
 <tr class="memdesc:acb278ed9814da3ef30f83e5ef4141bac"><td class="mdescLeft">&#160;</td><td class="mdescRight">set end datetime of the current run period  <a href="#acb278ed9814da3ef30f83e5ef4141bac">More...</a><br /></td></tr>
 <tr class="separator:acb278ed9814da3ef30f83e5ef4141bac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d78e9132c5cc7b01e3cc2d1c75c5edc"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_period.html#a3d78e9132c5cc7b01e3cc2d1c75c5edc">SetContactPerson</a> (TString *contact_person)</td></tr>
-<tr class="memdesc:a3d78e9132c5cc7b01e3cc2d1c75c5edc"><td class="mdescLeft">&#160;</td><td class="mdescRight">set contact person of the current run period  <a href="#a3d78e9132c5cc7b01e3cc2d1c75c5edc">More...</a><br /></td></tr>
-<tr class="separator:a3d78e9132c5cc7b01e3cc2d1c75c5edc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a42b305bb9b3958a08288c801a2044445"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_period.html#a42b305bb9b3958a08288c801a2044445">Print</a> ()</td></tr>
 <tr class="memdesc:a42b305bb9b3958a08288c801a2044445"><td class="mdescLeft">&#160;</td><td class="mdescRight">print information about current run period  <a href="#a42b305bb9b3958a08288c801a2044445">More...</a><br /></td></tr>
 <tr class="separator:a42b305bb9b3958a08288c801a2044445"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -129,12 +123,15 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:ad580f7850fe97ec05d7c1ac60c296b95"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_uni_db_run_period.html">UniDbRunPeriod</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_period.html#ad580f7850fe97ec05d7c1ac60c296b95">CreateRunPeriod</a> (int period_number, TDatime start_datetime, TDatime *end_datetime, TString *contact_person)</td></tr>
-<tr class="memdesc:ad580f7850fe97ec05d7c1ac60c296b95"><td class="mdescLeft">&#160;</td><td class="mdescRight">add new run period to the database  <a href="#ad580f7850fe97ec05d7c1ac60c296b95">More...</a><br /></td></tr>
-<tr class="separator:ad580f7850fe97ec05d7c1ac60c296b95"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc00cfb4a7f3db1efa8b887b97bb476c"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_uni_db_run_period.html">UniDbRunPeriod</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_period.html#afc00cfb4a7f3db1efa8b887b97bb476c">CreateRunPeriod</a> (int period_number, TDatime start_datetime, TDatime *end_datetime)</td></tr>
+<tr class="memdesc:afc00cfb4a7f3db1efa8b887b97bb476c"><td class="mdescLeft">&#160;</td><td class="mdescRight">add new run period to the database  <a href="#afc00cfb4a7f3db1efa8b887b97bb476c">More...</a><br /></td></tr>
+<tr class="separator:afc00cfb4a7f3db1efa8b887b97bb476c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa026c89f5c2e288863c112455e752525"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_uni_db_run_period.html">UniDbRunPeriod</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_period.html#aa026c89f5c2e288863c112455e752525">GetRunPeriod</a> (int period_number)</td></tr>
 <tr class="memdesc:aa026c89f5c2e288863c112455e752525"><td class="mdescLeft">&#160;</td><td class="mdescRight">get run period from the database  <a href="#aa026c89f5c2e288863c112455e752525">More...</a><br /></td></tr>
 <tr class="separator:aa026c89f5c2e288863c112455e752525"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aede9ac04bf613e2abd082c7b673d8ac3"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_period.html#aede9ac04bf613e2abd082c7b673d8ac3">CheckRunPeriodExists</a> (int period_number)</td></tr>
+<tr class="memdesc:aede9ac04bf613e2abd082c7b673d8ac3"><td class="mdescLeft">&#160;</td><td class="mdescRight">check run period exists in the database  <a href="#aede9ac04bf613e2abd082c7b673d8ac3">More...</a><br /></td></tr>
+<tr class="separator:aede9ac04bf613e2abd082c7b673d8ac3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa7be182b91f70a8f01b9322790dcf257"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_run_period.html#aa7be182b91f70a8f01b9322790dcf257">DeleteRunPeriod</a> (int period_number)</td></tr>
 <tr class="memdesc:aa7be182b91f70a8f01b9322790dcf257"><td class="mdescLeft">&#160;</td><td class="mdescRight">delete run period from the database  <a href="#aa7be182b91f70a8f01b9322790dcf257">More...</a><br /></td></tr>
 <tr class="separator:aa7be182b91f70a8f01b9322790dcf257"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -144,6 +141,8 @@ Static Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="_uni_db_run_period_8h.html">db_classes/UniDbRunPeriod.h</a> Class for the table: run_period </p>
+
+<p>Definition at line <a class="el" href="_uni_db_run_period_8h_source.html#l00018">18</a> of file <a class="el" href="_uni_db_run_period_8h_source.html">UniDbRunPeriod.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a4d3c6450ea56606d65350e0ba05b5518"></a>
 <div class="memitem">
@@ -166,9 +165,39 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Definition at line <a class="el" href="_uni_db_run_period_8cxx_source.html#l00026">26</a> of file <a class="el" href="_uni_db_run_period_8cxx_source.html">UniDbRunPeriod.cxx</a>.</p>
+
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="aede9ac04bf613e2abd082c7b673d8ac3"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool UniDbRunPeriod::CheckRunPeriodExists </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>period_number</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>check run period exists in the database </p>
+
+<p>Definition at line <a class="el" href="_uni_db_run_period_8cxx_source.html#l00130">130</a> of file <a class="el" href="_uni_db_run_period_8cxx_source.html">UniDbRunPeriod.cxx</a>.</p>
+
+</div>
+</div>
 <a class="anchor" id="a1e426670975ede7cb23fa1c607090fc7"></a>
 <div class="memitem">
 <div class="memproto">
@@ -195,7 +224,7 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ad580f7850fe97ec05d7c1ac60c296b95"></a>
+<a class="anchor" id="afc00cfb4a7f3db1efa8b887b97bb476c"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -218,13 +247,7 @@ Static Public Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">TDatime *&#160;</td>
-          <td class="paramname"><em>end_datetime</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">TString *&#160;</td>
-          <td class="paramname"><em>contact_person</em>&#160;</td>
+          <td class="paramname"><em>end_datetime</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -240,6 +263,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>add new run period to the database </p>
+
+<p>Definition at line <a class="el" href="_uni_db_run_period_8cxx_source.html#l00035">35</a> of file <a class="el" href="_uni_db_run_period_8cxx_source.html">UniDbRunPeriod.cxx</a>.</p>
 
 </div>
 </div>
@@ -267,30 +292,7 @@ Static Public Member Functions</h2></td></tr>
 
 <p>delete run period from the database </p>
 
-</div>
-</div>
-<a class="anchor" id="abf0a508a5bcf6d04a848b695edd1f79e"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">TString* UniDbRunPeriod::GetContactPerson </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>get contact person of the current run period </p>
+<p>Definition at line <a class="el" href="_uni_db_run_period_8cxx_source.html#l00171">171</a> of file <a class="el" href="_uni_db_run_period_8cxx_source.html">UniDbRunPeriod.cxx</a>.</p>
 
 </div>
 </div>
@@ -317,6 +319,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get end datetime of the current run period </p>
 
+<p>Definition at line <a class="el" href="_uni_db_run_period_8h_source.html#l00058">58</a> of file <a class="el" href="_uni_db_run_period_8h_source.html">UniDbRunPeriod.h</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a199a19b9b3b6f163fe6493c08b4399f3"></a>
@@ -341,6 +345,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>get period number of the current run period </p>
+
+<p>Definition at line <a class="el" href="_uni_db_run_period_8h_source.html#l00054">54</a> of file <a class="el" href="_uni_db_run_period_8h_source.html">UniDbRunPeriod.h</a>.</p>
 
 </div>
 </div>
@@ -368,6 +374,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get run period from the database </p>
 
+<p>Definition at line <a class="el" href="_uni_db_run_period_8cxx_source.html#l00079">79</a> of file <a class="el" href="_uni_db_run_period_8cxx_source.html">UniDbRunPeriod.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a38d1ff7caa07b8b11239cc0101814b12"></a>
@@ -393,6 +401,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get start datetime of the current run period </p>
 
+<p>Definition at line <a class="el" href="_uni_db_run_period_8h_source.html#l00056">56</a> of file <a class="el" href="_uni_db_run_period_8h_source.html">UniDbRunPeriod.h</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a42b305bb9b3958a08288c801a2044445"></a>
@@ -409,6 +419,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>print information about current run period </p>
+
+<p>Definition at line <a class="el" href="_uni_db_run_period_8cxx_source.html#l00363">363</a> of file <a class="el" href="_uni_db_run_period_8cxx_source.html">UniDbRunPeriod.cxx</a>.</p>
 
 </div>
 </div>
@@ -435,23 +447,7 @@ Static Public Member Functions</h2></td></tr>
 
 <p>print all run periods </p>
 
-</div>
-</div>
-<a class="anchor" id="a3d78e9132c5cc7b01e3cc2d1c75c5edc"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int UniDbRunPeriod::SetContactPerson </td>
-          <td>(</td>
-          <td class="paramtype">TString *&#160;</td>
-          <td class="paramname"><em>contact_person</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>set contact person of the current run period </p>
+<p>Definition at line <a class="el" href="_uni_db_run_period_8cxx_source.html#l00202">202</a> of file <a class="el" href="_uni_db_run_period_8cxx_source.html">UniDbRunPeriod.cxx</a>.</p>
 
 </div>
 </div>
@@ -471,6 +467,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>set end datetime of the current run period </p>
 
+<p>Definition at line <a class="el" href="_uni_db_run_period_8cxx_source.html#l00320">320</a> of file <a class="el" href="_uni_db_run_period_8cxx_source.html">UniDbRunPeriod.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="afeea7243dd5b8a50df177cb87feda895"></a>
@@ -488,6 +486,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>set period number of the current run period </p>
+
+<p>Definition at line <a class="el" href="_uni_db_run_period_8cxx_source.html#l00250">250</a> of file <a class="el" href="_uni_db_run_period_8cxx_source.html">UniDbRunPeriod.cxx</a>.</p>
 
 </div>
 </div>
@@ -507,11 +507,13 @@ Static Public Member Functions</h2></td></tr>
 
 <p>set start datetime of the current run period </p>
 
+<p>Definition at line <a class="el" href="_uni_db_run_period_8cxx_source.html#l00285">285</a> of file <a class="el" href="_uni_db_run_period_8cxx_source.html">UniDbRunPeriod.cxx</a>.</p>
+
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>C:/Users/SoulKeeper/Downloads/db_classes/<a class="el" href="_uni_db_run_period_8h_source.html">UniDbRunPeriod.h</a></li>
-<li>C:/Users/SoulKeeper/Downloads/db_classes/<a class="el" href="_uni_db_run_period_8cxx.html">UniDbRunPeriod.cxx</a></li>
+<li>db_classes/<a class="el" href="_uni_db_run_period_8h_source.html">UniDbRunPeriod.h</a></li>
+<li>db_classes/<a class="el" href="_uni_db_run_period_8cxx_source.html">UniDbRunPeriod.cxx</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

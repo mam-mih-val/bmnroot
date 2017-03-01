@@ -48,6 +48,10 @@ class UniDbParameter
 	static UniDbParameter* GetParameter(int parameter_id);
 	/// get parameter from the database
 	static UniDbParameter* GetParameter(TString parameter_name);
+	/// check parameter exists in the database
+	static bool CheckParameterExists(int parameter_id);
+	/// check parameter exists in the database
+	static bool CheckParameterExists(TString parameter_name);
 	/// delete parameter from the database
 	static int DeleteParameter(int parameter_id);
 	/// delete parameter from the database

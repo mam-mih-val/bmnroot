@@ -30,7 +30,7 @@ UniDbDetector::~UniDbDetector()
 		delete str_description;
 }
 
-// -----   Creating new record in class table ---------------------------
+// -----   Creating new detector in the database  ---------------------------
 UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* description)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -50,10 +50,10 @@ UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* des
 	else
 		stmt->SetString(1, *description);
 
-	// inserting new record to DB
+	// inserting new detector to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new record to DB has been failed"<<endl;
+		cout<<"Error: inserting new detector to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -71,7 +71,7 @@ UniDbDetector* UniDbDetector::CreateDetector(TString detector_name, TString* des
 	return new UniDbDetector(connUniDb, tmp_detector_name, tmp_description);
 }
 
-// -----   Get table record from database ---------------------------
+// -----  Get detector from the database  ---------------------------
 UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -85,10 +85,10 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 		"where lower(detector_name) = lower('%s')", detector_name.Data());
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get detector from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from DB has been failed"<<endl;
+		cout<<"Error: getting detector from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -101,7 +101,7 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: table record wasn't found"<<endl;
+		cout<<"Error: detector wasn't found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -120,7 +120,48 @@ UniDbDetector* UniDbDetector::GetDetector(TString detector_name)
 	return new UniDbDetector(connUniDb, tmp_detector_name, tmp_description);
 }
 
-// -----   Delete record from class table ---------------------------
+// -----  Check detector exists in the database  ---------------------------
+bool UniDbDetector::CheckDetectorExists(TString detector_name)
+{
+	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	if (connUniDb == 0x00) return 0x00;
+
+	TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"select 1 "
+		"from detector_ "
+		"where lower(detector_name) = lower('%s')", detector_name.Data());
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	// get detector from the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: getting detector from the database has been failed"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	// extract row
+	if (!stmt->NextResultRow())
+	{
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	delete stmt;
+	delete connUniDb;
+
+	return true;
+}
+
+// -----  Delete detector from the database  ---------------------------
 int UniDbDetector::DeleteDetector(TString detector_name)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -136,10 +177,10 @@ int UniDbDetector::DeleteDetector(TString detector_name)
 	stmt->NextIteration();
 	stmt->SetString(0, detector_name);
 
-	// delete table record from DB
+	// delete detector from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting record from DB has been failed"<<endl;
+		cout<<"Error: deleting detector from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -151,7 +192,7 @@ int UniDbDetector::DeleteDetector(TString detector_name)
 	return 0;
 }
 
-// -----   Print all table records ---------------------------------
+// -----  Print all 'detectors'  ---------------------------------
 int UniDbDetector::PrintAll()
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -164,10 +205,10 @@ int UniDbDetector::PrintAll()
 		"from detector_");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get all 'detectors' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all records from DB has been failed"<<endl;
+		cout<<"Error: getting all 'detectors' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -218,10 +259,10 @@ int UniDbDetector::SetDetectorName(TString detector_name)
 	stmt->SetString(0, detector_name);
 	stmt->SetString(1, str_detector_name);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about detector has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -256,10 +297,10 @@ int UniDbDetector::SetDescription(TString* description)
 		stmt->SetString(0, *description);
 	stmt->SetString(1, str_detector_name);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about detector has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -275,7 +316,7 @@ int UniDbDetector::SetDescription(TString* description)
 	return 0;
 }
 
-// -----   Print current record ---------------------------------------
+// -----  Print current detector  ---------------------------------------
 void UniDbDetector::Print()
 {
 	cout<<"Table 'detector_'";

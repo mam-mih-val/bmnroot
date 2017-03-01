@@ -20,11 +20,13 @@
 #include "BmnHitMatchingQA.h"
 #include "TClonesArray.h"
 #include "BmnGlobalTrack.h"
-#include "CbmStsPoint.h"
 #include "CbmTofPoint.h"
 #include "BmnHit.h"
 #include "BmnGemTrack.h"
 #include "BmnDchTrack.h"
+#include "BmnDchHit.h"
+#include "BmnMwpcHit.h"
+#include "BmnMwpcTrack.h"
 #include "FairRootManager.h"
 #include "FairRunAna.h"
 #include "FairRuntimeDb.h"
@@ -148,6 +150,7 @@ private:
 
     BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num);
     BmnStatus MatchingDCH(BmnGlobalTrack* tr);
+    BmnStatus MatchingMWPC(BmnGlobalTrack* tr);
     
     BmnStatus Refit(BmnGlobalTrack* tr);
     BmnStatus EfficiencyCalculation();

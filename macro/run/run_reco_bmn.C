@@ -7,9 +7,8 @@
 // nStartEvent - number (start with zero) of first event to process, default: 0
 // nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
 
-void run_reco_bmn(TString inFile = "run5-1014:$VMCWORKDIR/macro/raw/bmn_run1014_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst_1014.root", Int_t nStartEvent = 0, Int_t nEvents = 1000, Bool_t isPrimary = kTRUE) {
-//void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root",
-//        Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE) {
+//void run_reco_bmn(TString inFile = "run5-813:$VMCWORKDIR/macro/raw/bmn_run0813_digi.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst_813.root", Int_t nStartEvent = 0, Int_t nEvents = 5000000, Bool_t isPrimary = kTRUE) {
+void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 10000, Bool_t isPrimary = kTRUE) {
     // ========================================================================
     // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
     Int_t iVerbose = 0;
@@ -31,7 +30,7 @@ void run_reco_bmn(TString inFile = "run5-1014:$VMCWORKDIR/macro/raw/bmn_run1014_
     FairRunAna *fRun = new FairRunAna();
 
     Bool_t isField  = kTRUE;  // flag for tracking (to use mag.field or not)
-    Bool_t isTarget = kTRUE;  // flag for tracking (run with target or not)
+    Bool_t isTarget = kFALSE;//kTRUE;  // flag for tracking (run with target or not)
     Bool_t isExp    = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Set input source as simulation file or experimental data
@@ -139,7 +138,7 @@ void run_reco_bmn(TString inFile = "run5-1014:$VMCWORKDIR/macro/raw/bmn_run1014_
     TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
     parFileList->Add(&tofDigiFile);
 
-    if (iVerbose == 0) { // print only progress bar in terminal in quiet mode
+    if (isExp && iVerbose == 0) { // print only progress bar in terminal in quiet mode
         BmnCounter* cntr = new BmnCounter(nEvents);
         fRun->AddTask(cntr);
     }
@@ -166,7 +165,7 @@ void run_reco_bmn(TString inFile = "run5-1014:$VMCWORKDIR/macro/raw/bmn_run1014_
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-    gemHM->SetAlignmentCorrectionsFileName("alignCorrsLocal_GEM.root"); // In case of running iterative alignment, file name will contain pattern "_it[0-9]+";
+    if (isExp) gemHM->SetAlignmentCorrectionsFileName("alignCorrsLocal_GEM.root"); // In case of running iterative alignment, file name will contain pattern "_it[0-9]+";
                                                                      // in that case [<path>/]<filename> will be used in BmnGemStripHitMaker as is,
                                                                      // instead of <filename> in default location "bmnroot/input" .
                                                                      // Anatoly.Solomin@jinr.ru 2017-02-01 14:32:16
@@ -205,11 +204,11 @@ void run_reco_bmn(TString inFile = "run5-1014:$VMCWORKDIR/macro/raw/bmn_run1014_
     gemSF->SetUseLorentz(kTRUE);
     gemSF->SetField(isField);
     gemSF->SetTarget(isTarget);
-    //gemSF->SetXRange(-1.0, 10.0);
-    //gemSF->SetYRange(-0.5, 0.5);
+    //gemSF->SetXRange(-5.0, 20.0);
+    //gemSF->SetYRange(-4.8., -3.8);
     gemSF->AddStationToSkip(0);
-    gemSF->AddStationToSkip(1);
-    gemSF->AddStationToSkip(2);
+    //gemSF->AddStationToSkip(1);
+    //gemSF->AddStationToSkip(2);
     fRun->AddTask(gemSF);
 
     BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
@@ -227,6 +226,7 @@ void run_reco_bmn(TString inFile = "run5-1014:$VMCWORKDIR/macro/raw/bmn_run1014_
     // ===                           Tracking (DCH)                       === //
     // ====================================================================== //
     BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    dchTF->SetTransferFunction("pol_coord00813.txt");
     fRun->AddTask(dchTF);
 
     // ====================================================================== //
@@ -234,7 +234,7 @@ void run_reco_bmn(TString inFile = "run5-1014:$VMCWORKDIR/macro/raw/bmn_run1014_
     // ====================================================================== //
     BmnGlobalTracking* glFinder = new BmnGlobalTracking();
     fRun->AddTask(glFinder);
-
+    
     // -----  Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
     FairParRootFileIo* parIo1 = new FairParRootFileIo();

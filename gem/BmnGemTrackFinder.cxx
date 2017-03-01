@@ -184,7 +184,11 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         tr.SetFitNodes(nodes);
         tr.SetParamFirst(*(nodes[0].GetUpdatedParam()));
         tr.SetParamLast(*(nodes[nodes.size() - 1].GetUpdatedParam()));
-//        if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
+//        printf("BEFORE\n");
+//        tr.GetParamFirst()->Print();
+        if (fKalman->FitSmooth(&tr, fGemHitArray) == kBMNERROR) continue;
+//        printf("AFTER\n");
+//        tr.GetParamFirst()->Print();
         tr.SetChi2(chi2);
         tr.SetNDF(nHits - 3);
 

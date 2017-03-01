@@ -6,14 +6,14 @@
 #include <math.h>
 #include <iostream>
 #include <vector>
-#include "FairHit.h"
+#include "BmnHit.h"
 #include <TObject.h>
 
 using namespace std;
 
 // class TClonesArray;
 
-class BmnMwpcHit : public FairHit {
+class BmnMwpcHit : public BmnHit {
 public:
 
     /** Default constructor **/

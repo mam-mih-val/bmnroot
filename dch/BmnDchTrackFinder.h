@@ -51,6 +51,10 @@ public:
     void SetSegmentMatching(Bool_t flag) {
         fSegmentMatching = flag;
     }
+    
+    void SetTransferFunction(TString name) {
+        fTransferFunctionName = name;
+    }
      
 private:
     Int_t N;
@@ -59,6 +63,8 @@ private:
     
     TString InputDigitsBranchName;
     TString tracksDch;
+    
+    TString fTransferFunctionName;
     
     TClonesArray* fBmnDchDigitsArray;
     TClonesArray* fDchTracks;    

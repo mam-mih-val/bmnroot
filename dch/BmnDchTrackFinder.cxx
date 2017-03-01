@@ -27,6 +27,7 @@ expData(isExp) {
     N = 2;
     tracksDch = "BmnDchTrack";
     InputDigitsBranchName = "DCH";
+    fTransferFunctionName = "transfer_func.txt";
 
     prev_wire = -1;
     prev_time = -1;
@@ -598,7 +599,7 @@ InitStatus BmnDchTrackFinder::Init() {
     ifstream fin;
     TString dir = getenv("VMCWORKDIR");
     dir += "/input/";
-    fin.open((TString(dir + "transfer_func.txt")).Data(), ios::in);
+    fin.open((TString(dir + fTransferFunctionName)).Data(), ios::in);
     for (Int_t fi = 0; fi < 16; fi++)
         fin >> t_dc[0][fi] >> t_dc[1][fi] >> t_dc[2][fi] >> t_dc[3][fi] >> t_dc[4][fi] >>
             pol_par_dc[0][0][fi] >> pol_par_dc[0][1][fi] >> pol_par_dc[0][2][fi] >> pol_par_dc[0][3][fi] >> pol_par_dc[0][4][fi] >>

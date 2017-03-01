@@ -41,15 +41,15 @@ expData(isExp) {
     Z_dch2 = 722.45;
     Z_dch_mid = 622.95;
 
-    x1_sh = 15.0;
-    x2_sh = 12.2;
-    y1_sh = 0.2;
-    y2_sh = -0.3;
+    x1_sh = 12.80;
+    x2_sh =  6.24;
+    y1_sh =  0.00;
+    y2_sh =  0.50;
 
-    x1_slope_sh = -0.08;
-    y1_slope_sh = 0.051;
-    x2_slope_sh = -0.08;
-    y2_slope_sh = 0.055;
+    x1_slope_sh = -0.087;
+    y1_slope_sh =  0.051;
+    x2_slope_sh = -0.085;
+    y2_slope_sh =  0.058;
 
     scale = 0.5;
 }

@@ -41,11 +41,11 @@ void BmnMwpcTrackFinder::Exec(Option_t* opt) {
 
     vector <BmnMwpcTrack> seeds_mwpc0, seeds_mwpc1;
     vector <BmnMwpcTrack> foundTracks;
-    
+
     FindSeeds(seeds_mwpc0, 0);
     FindSeeds(seeds_mwpc1, 1);
 
-    if (seeds_mwpc0.size() != 0 && seeds_mwpc1.size() == 0) 
+    if (seeds_mwpc0.size() != 0 && seeds_mwpc1.size() == 0)
         SingleHitInChamber(seeds_mwpc0, 1, foundTracks);
 
     FitFoundTracks(foundTracks);
@@ -99,7 +99,7 @@ void BmnMwpcTrackFinder::SingleHitInChamber(vector <BmnMwpcTrack>& cand, Int_t m
 
         cand[iCand].AddHit(it->second->GetHitId(), it->second);
         cand[iCand].SortHits();
-        
+
         finalTracks.push_back(cand[iCand]);
     }
 }
@@ -172,11 +172,22 @@ Int_t BmnMwpcTrackFinder::FindSeeds(vector <BmnMwpcTrack>& cand, Int_t mwpcId) {
 }
 
 BmnStatus BmnMwpcTrackFinder::FitFoundTracks(vector <BmnMwpcTrack> cand) {
+    Double_t minChi = DBL_MAX;
+    Int_t minId = -1;
     for (Int_t iTrack = 0; iTrack < cand.size(); iTrack++) {
         BmnMwpcTrack* trackCand = &(cand[iTrack]);
         CalculateTrackParamsLine(trackCand);
+        if (trackCand->GetChi2() < minChi) {
+            minChi = trackCand->GetChi2();
+            minId = iTrack;
+        }
     }
-    return kBMNSUCCESS;
+    if (minId != -1) {
+        new((*fBmnMwpcTracksArray)[fBmnMwpcTracksArray->GetEntriesFast()]) BmnMwpcTrack(cand[minId]);
+        return kBMNSUCCESS;
+    } else
+        return kBMNERROR;
+
 }
 
 BmnStatus BmnMwpcTrackFinder::CalculateTrackParamsLine(BmnMwpcTrack* tr) {
@@ -205,8 +216,7 @@ BmnStatus BmnMwpcTrackFinder::CalculateTrackParamsLine(BmnMwpcTrack* tr) {
     parF.SetTy(lineParZY.X());
 
     FairTrackParam parL;
-    parL.SetPosition(TVector3(lX, lY, lZ));
-    parL.SetPosition(TVector3(lineParZX.X() * lZ + lineParZX.Y(), lineParZY.X() * lZ + lineParZY.Y(), fZ));
+    parL.SetPosition(TVector3(lineParZX.X() * lZ + lineParZX.Y(), lineParZY.X() * lZ + lineParZY.Y(), lZ));
     parL.SetTx(lineParZX.X());
     parL.SetTy(lineParZY.X());
     parL.SetQp(0.0);
@@ -218,9 +228,6 @@ BmnStatus BmnMwpcTrackFinder::CalculateTrackParamsLine(BmnMwpcTrack* tr) {
     //tr->SetChi2(lineParZY.Z());
     tr->SetChi2(lineParZX.Z());
     tr->SetNDF(nHits - 2); // -2 because of line fit (2 params)
-
-    if (nHits != 0)
-        new((*fBmnMwpcTracksArray)[fBmnMwpcTracksArray->GetEntriesFast()]) BmnMwpcTrack(*tr);
 
     return kBMNSUCCESS;
 }

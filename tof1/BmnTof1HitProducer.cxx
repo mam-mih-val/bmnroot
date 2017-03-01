@@ -320,7 +320,7 @@ bool			BmnTof1HitProducer::GetCrossPoint(const LStrip *pStrip, double time1, dou
 	double maxDelta =   (stripLength + 1.0) * fSignalVelosity; // + 10 mm on the strip edge
 	if(abs(time1 - time2) > maxDelta) return false; // estimated position out the strip edge.
 	double dL = (time1 - time2) * 0.5 / fSignalVelosity;
-        s1(0) = 0 - 3.8; s1(1) = dL + 6.03; s1(2) = 0; //TMP ALIGMENT CORRECTIONS
+        s1(0) = 0; s1(1) = dL; s1(2) = 0; //TMP ALIGMENT CORRECTIONS
 	crossPoint = centr + s1;
         /*if (time1 > time2)
         {

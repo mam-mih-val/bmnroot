@@ -65,21 +65,23 @@ fFixX(kFALSE),
 fFixY(kFALSE),
 fFixZ(kFALSE),
 fUseTrackWithMinChi2(kFALSE),
-fRunType("target") {
+fRunType("target")
+{
     fChisqcut[0] = 0.0;
     fChisqcut[1] = 0.0;
     // Declare branch names here
-    hitsBranch = "BmnGemStripHit";
-    tracksBranch    =    "BmnGemTrack";
+    hitsBranch      = "BmnGemStripHit";
+    tracksBranch    = "BmnGemTrack";
     alignCorrBranch = "BmnGemAlignmentCorrections";
     fDetector = new BmnGemStripStationSet_RunWinter2016(fGeometry);
 }
 
-InitStatus BmnGemAlignment::Init() {
-    cout << endl << "BmnGemAlignment::Init()" << endl;
+InitStatus BmnGemAlignment::Init()
+{
+    cout <<endl<<"BmnGemAlignment::Init()"<< endl;
     FairRootManager* ioman = FairRootManager::Instance();
-    fGemHits = (TClonesArray*) ioman->GetObject(hitsBranch.Data());
-    fGemTracks = (TClonesArray*) ioman->GetObject(tracksBranch.Data());
+    fGemHits   = (TClonesArray*)ioman->GetObject(hitsBranch.Data());
+    fGemTracks = (TClonesArray*)ioman->GetObject(tracksBranch.Data());
     fAlignCorr = new TClonesArray(alignCorrBranch.Data());
     ioman->Register(alignCorrBranch.Data(), "GEM", fAlignCorr, kTRUE);
     if (fRunType == "")
@@ -87,12 +89,13 @@ InitStatus BmnGemAlignment::Init() {
     SetRunType(fRunType);
     fChain = ioman->GetInChain();
     fRecoFileName = ioman->GetInFile()->GetName();
-    fName = "alignment_" + fAlignmentType;
-    fin_txt = fopen(TString(fName + ".txt").Data(), "w");
+    fName = "alignment_"+fAlignmentType;
+    fin_txt = fopen(TString(fName+".txt").Data(), "w");
     return kSUCCESS;
 }
 
-void BmnGemAlignment::Exec(Option_t* opt) {
+void BmnGemAlignment::Exec(Option_t* opt)
+{
     StartMille();
     if (fChain->GetEntries() == fCurrentEvent) {
         fclose(fin_txt);
@@ -102,7 +105,8 @@ void BmnGemAlignment::Exec(Option_t* opt) {
     }
 }
 
-void BmnGemAlignment::StartMille() {
+void BmnGemAlignment::StartMille()
+{
     Int_t nPar = (fAlignmentType == "xy") ? 2 : 3;
     fCurrentEvent++;
     if (fCurrentEvent % 1000 == 0)
@@ -191,7 +195,8 @@ void BmnGemAlignment::StartMille() {
     }
 }
 
-void BmnGemAlignment::BinFilePede() {
+void BmnGemAlignment::BinFilePede()
+{
     ifstream fout_txt;
     fout_txt.open(TString(fName + ".txt").Data(), ios::in);
     Int_t NLC = 4;
@@ -234,7 +239,8 @@ void BmnGemAlignment::BinFilePede() {
     fout_txt.close();
 }
 
-void BmnGemAlignment::StartPede() {
+void BmnGemAlignment::StartPede()
+{
     MakeSteerFile(); // Create initial steer file
     fCommandToRunPede = "pede steer.txt";
     system(fCommandToRunPede.Data());
@@ -245,23 +251,40 @@ void BmnGemAlignment::StartPede() {
     resFile.close();
     const Int_t nStat = fDetector->GetNStations();
     Int_t nEntries = 0;
+    // ref test:
+    TClonesArray& fAlignCorrRef = *fAlignCorr;
+    Int_t corrStoreCounter = 0; // ref test
+
     for (Int_t iStat = 0; iStat < nStat; iStat++) {
         Int_t nModul = fDetector->GetGemStation(iStat)->GetNModules();
         for (Int_t iMod = 0; iMod < nModul; iMod++) {
             Int_t corrCounter = 0;
             Double_t buff[3] = {0., 0., 0.};
-            for (Int_t iPar = nEntries; iPar < fNGL + 1; iPar++) {
+            if (fDebugInfo)
+                cout <<"nEntries = "<<nEntries<<" fNGL+1 = "<<fNGL+1<< endl;
+            for (Int_t iPar=nEntries; iPar<fNGL+1; iPar++) {
                 buff[corrCounter] = corr[iPar];
                 corrCounter++;
                 if (corrCounter == ((fAlignmentType == "xy") ? 2 : 3)) {
-                    BmnGemAlignmentCorrections* tmp = new ((*fAlignCorr)[fAlignCorr->GetEntriesFast()])BmnGemAlignmentCorrections();
+                   if (fDebugInfo) {
+                        cout <<"fAlignCorr->GetEntriesFast() = "<<fAlignCorr->GetEntriesFast()<< endl;
+                        cout <<"corrStoreCounter             = "<<corrStoreCounter            << endl;
+                    }
+
+                  //BmnGemAlignmentCorrections* tmp = new((*fAlignCorr)[fAlignCorr->GetEntriesFast()]) BmnGemAlignmentCorrections();
+                    // ref test:
+                    BmnGemAlignmentCorrections* tmp = new(  fAlignCorrRef[corrStoreCounter])           BmnGemAlignmentCorrections();
+
                     tmp->SetStation(iStat);
                     tmp->SetModule(iMod);
                     tmp->SetX(buff[0]);
                     tmp->SetY(buff[1]);
                     tmp->SetZ(buff[2]);
+                    // ref test:
+                    corrStoreCounter++;
+
                     if (fDebugInfo)
-                        cout << buff[0] << " " << buff[1] << " " << buff[2] << endl;
+                        cout <<"iStat = "<<iStat<<" iMod = "<<iMod<<" iPar = "<<iPar<<" "<<buff[0]<<" "<<buff[1]<<" "<<buff[2]<< endl;
                 }
                 if ((iPar + 1) % ((fAlignmentType == "xy") ? 2 : 3) == 0) {
                     nEntries = iPar + 1;
@@ -287,7 +310,8 @@ void BmnGemAlignment::StartPede() {
     system("rm millepede.*");
 }
 
-void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, vector<Double_t>& corr) {
+void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, vector<Double_t>& corr)
+{
     if (!resFile)
         Fatal("BmnGemReco::ReadPedeOutput", "No input file found!!");
     TString buff1 = "", buff2 = "", buff3 = "", buff4 = "", buff5 = "";
@@ -308,7 +332,8 @@ void BmnGemAlignment::ReadPedeOutput(ifstream& resFile, vector<Double_t>& corr) 
     }
 }
 
-void BmnGemAlignment::MakeSteerFile() {
+void BmnGemAlignment::MakeSteerFile()
+{
     FILE* steer = fopen("steer.txt", "w");
     TString alignType = "alignment_" + fAlignmentType + ".bin";
     fprintf(steer, "%s\n", alignType.Data());
@@ -387,7 +412,8 @@ void BmnGemAlignment::MakeSteerFile() {
     fclose(steer);
 }
 
-void BmnGemAlignment::DebugInfo(Int_t nGem, Int_t nMod, Int_t NLC, Int_t NGL, Double_t* DerLc, Double_t* DerGl, Double_t rMeasure, Double_t dMeasure) {
+void BmnGemAlignment::DebugInfo(Int_t nGem, Int_t nMod, Int_t NLC, Int_t NGL, Double_t* DerLc, Double_t* DerGl, Double_t rMeasure, Double_t dMeasure)
+{
     cout << "nGEM " << nGem << " nMod " << nMod << " nDerLc[ ] = ";
     for (Int_t icVar = 0; icVar < NLC; icVar++) cout << DerLc[icVar] << " ";
     cout << endl;

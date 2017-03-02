@@ -10,16 +10,28 @@
 #ifndef BMNHIST_H
 #define BMNHIST_H 1
 
+#include <stdlib.h>
+#include <vector>
+
 #include <TNamed.h>
 #include "TH1F.h"
 #include "TH1D.h"
 #include "TH2F.h"
+#include "THStack.h"
+#include "TCanvas.h"
 #include "TChain.h"
 #include "TFolder.h"
 #include "TString.h"
 #include "THttpServer.h"
 
-template <class HH>
+#include "BmnEventHeader.h"
+
+#define PAD_WIDTH   200
+#define PAD_HEIGHT  150
+
+using namespace std;
+
+//template <class HH>
 class PadInfo : public TObject {
 public:
     PadInfo() {
@@ -31,12 +43,12 @@ public:
         if (ref) delete ref;
         ref = NULL;
     }
-    HH* current;
-    HH* ref;
+    TH1* current;
+    TH1* ref;
 private:
     ClassDef(PadInfo, 1)
 };
-templateClassImp(PadInfo)
+ClassImp(PadInfo)
 
 class BmnHist : public TNamed {
 public:
@@ -46,6 +58,9 @@ public:
     virtual void Reset() = 0;
     virtual void Register(THttpServer *serv) = 0;
     virtual void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) = 0;
+//    virtual BmnStatus LoadRefRun(TString FileName) = 0;
+//    template <class HH>
+    static void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads);
 
     void SetRefRunName(TString v) {
         this->refRunName = v;

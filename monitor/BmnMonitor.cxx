@@ -126,13 +126,15 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir) {
                 if (fRawDecoSocket == NULL) {
                     DBGERR("TSocket")
                     return;
-                } else {
-                    printf("Connected to %s\n", fRawDecoAddr.Data());
-                }
+                } else 
+                    if (!fRawDecoSocket->IsValid()){
+                        usleep(DECO_SOCK_WAIT_PERIOD * 1000);
+                        continue;
+                    }
+                printf("Connected to %s\n", fRawDecoAddr.Data());
                 fRawDecoSocket->GetInetAddress().Print();
 
                 mon->Add(fRawDecoSocket);
-                //    mon->SetInterest(fRawDecoSocket, 1);
                 fState = kBMNWAIT;
                 break;
             default:
@@ -166,6 +168,9 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir) {
                 FinishRun();
             delete mess;
             fState = kBMNRECON;
+            mon->Remove(fRawDecoSocket);
+            delete fRawDecoSocket;
+            fRawDecoSocket = NULL;
             continue;
         }
         gSystem->ProcessEvents();
@@ -531,8 +536,8 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
             fDigiArrays->veto,
             fDigiArrays->fd,
             fDigiArrays->bd);
-    //    bhGem_4show->FillFromDigi(fDigiArrays->gem);
-    bhGem_4show->FillFromDigiMasked(fDigiArrays->gem, &(bhGem->histGemStrip), iEv);
+    bhGem_4show->FillFromDigi(fDigiArrays->gem);
+//    bhGem_4show->FillFromDigiMasked(fDigiArrays->gem, &(bhGem->histGemStrip), iEv);
     bhGem_4show->DrawBoth();
     bhToF400_4show->FillFromDigi(fDigiArrays->tof400);
     bhToF700_4show->FillFromDigi(fDigiArrays->tof700);

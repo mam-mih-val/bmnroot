@@ -932,6 +932,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     fTof700Mapper->print();
+    fTof700Mapper->printGeom();
     fTof700Mapper->readSlewingT0();
     fTof700Mapper->readSlewing();
     fZDCMapper = new BmnZDCRaw2Digit(fZDCMapFileName, fRootFileName, fZDCCalibrationFileName);

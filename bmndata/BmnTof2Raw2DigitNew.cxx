@@ -105,7 +105,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     	    if (!in.good()) break;
 	    if (cham >= TOF2_MAX_CHAMBERS) break;
 	    numcha[i] = cham;
-	    idchambers[cham] = int(idcham);
+	    idchambers[cham] = idcham;
 	    if (in.eof()) break;
     }
 
@@ -1309,7 +1309,7 @@ void BmnTof2Raw2DigitNew::DNL_read()
 	post += pos;
         DNL_Table[c][s][n][i] = tcor;
      }
-     fi.getline(atext,25600);
+//     fi.getline(atext,25600);
      n++;
      if (n==72) break;
     }

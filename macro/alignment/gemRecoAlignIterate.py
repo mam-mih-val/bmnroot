@@ -59,7 +59,7 @@ def main() :
     parser.add_option("-v", "--verbose", dest="verbose",                default=True,                               help="print this to stdout")
     parser.add_option("-l", "--list",    dest="digiFileListFileName",   default='bmn_run05_Glob_filelist_digi.txt', help="take list of digi files from file")
     parser.add_option("-m", "--maxit",   dest="maxNumOfIterations",     default=1,                                  help="maximum number of iterations",           type="int")
-    parser.add_option("-n", "--nev",     dest="nEvents",                default=1e3,                                help="number of events to process",            type="int")
+    parser.add_option("-n", "--nev",     dest="nEvents",                default=10000,                              help="number of events to process",            type="int")
     parser.add_option("-i", "--inf",     dest="addInfo",                default='',                                 help="additional meta-information")
     parser.add_option("-p", "--prim",    dest="isPrimary",              default='kTRUE',                            help="is primary or not")
     parser.add_option("-c", "--corr",    dest="startAlignCorrFileName", default='',                                 help="file name with the starting alignment corrections")

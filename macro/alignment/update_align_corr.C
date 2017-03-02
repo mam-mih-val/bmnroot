@@ -26,9 +26,11 @@ void update_align_corr(TString preAlignCorrFileName,
     newTree->SetBranchAddress("BmnGemAlignmentCorrections", &newCorrs);
 
     TFile* sumFile = new TFile(sumAlignCorrFileName.Data(),"RECREATE");
-    TTree* sumTree = newTree->CloneTree();
+  //TTree* sumTree = newTree->CloneTree();
+    TTree* sumTree = new TTree("cbmsim");
     TClonesArray* sumCorrs = NULL;
-    sumTree->SetBranchAddress("BmnGemAlignmentCorrections", &sumCorrs);
+  //sumTree->SetBranchAddress("BmnGemAlignmentCorrections", &sumCorrs);
+    sumTree->Branch("BmnGemAlignmentCorrections", &sumCorrs);
 
     BmnGemStripStationSet* StationSet = new BmnGemStripStationSet_RunWinter2016(BmnGemStripConfiguration::RunWinter2016);
     const Int_t nStat = StationSet->GetNStations();

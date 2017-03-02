@@ -6,7 +6,7 @@ using namespace std;
 
 void gemAlignment_new(TString bmndstFileListFileName = "filelist_bmndst_it00.txt",
                       TString newAlignCorrFileName   = "",
-                      UInt_t  nEvents                =  1e6)
+                      UInt_t  nEvents                =  10000)
 {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
@@ -60,7 +60,7 @@ void gemAlignment_new(TString bmndstFileListFileName = "filelist_bmndst_it00.txt
     gemAlign->SetOutlierdownweighting(4);          // Default value is 0
     gemAlign->SetDwfractioncut(0.5);               // Default value is 0, should be less than 0.5
     gemAlign->SetFixDetector(kTRUE, kTRUE, kTRUE); // Default values are false(X), false(Y) and false(Z)
-    gemAlign->SetDebugInfo(kTRUE);                 // Default value is false //
+  //gemAlign->SetDebugInfo(kTRUE);                 // Default value is false
 
     // Restrictions on track params.
   //gemAlign->SetMinHitsAccepted(5);               // Default value is 3

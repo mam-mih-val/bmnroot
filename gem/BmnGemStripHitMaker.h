@@ -48,15 +48,16 @@ public:
     }
 
     void SetAlignmentCorrectionsFileName(TString filename) {
-        // temporary patch to be able to run re-reconstructions and subsequent re-alignments iteratively
-        // Anatoly.Solomin@jinr.ru 2017-02-15 20:42:13
-        TRegexp re = "_it[0-9]+"; // to match patterns like "_it02" in the file name with corrections after iteration 2
-        if (filename.Contains(re)  ||  filename=="") { // special iterative case: file name [with its relative or absolute  path] is used as is
-            fAlignCorrFileName = filename; }           // or when corrections are simply ignored (empty name), e.g. when running alignment from scratch
-        else { // normal, not an iterative alignment running, and the name is not empty
-            TString dir = getenv("VMCWORKDIR");
-            fAlignCorrFileName = dir+"/input/"+filename;
-        }
+        fAlignCorrFileName = filename;
+        // filename [with its relative or absolute  path] is used as is and is
+        // taken from alignCorrFileName parameter in run_reco_bmn.C
+        //
+        // NB! As soon as storage of the alignment corrections is arranged in
+        // the UniDb, we will need to change this, so that the default values
+        // are taken from there. Candidate for the default filename defined in
+        // run_reco_bmn.C is alignCorrFileName = "UniDb" (case insensitive!)).
+        //
+        // Anatoly.Solomin@jinr.ru 2017-02-21 14:05:00
     }
 
 private:

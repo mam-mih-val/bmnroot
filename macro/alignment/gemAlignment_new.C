@@ -4,11 +4,9 @@
 #include  <TStopwatch.h>
 using namespace std;
 
-void gemAlignment_new(TString bmndstFileListFileName = "bmndst_files.txt"
-                     ,TString newAlignCorrFileName   = ""
-                     ,UInt_t  nEvents                =  1e6
-                   //,TString addInfo                = ""
-                     )
+void gemAlignment_new(TString bmndstFileListFileName = "filelist_bmndst_it00.txt",
+                      TString newAlignCorrFileName   = "",
+                      UInt_t  nEvents                =  1e6)
 {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
@@ -19,28 +17,29 @@ void gemAlignment_new(TString bmndstFileListFileName = "bmndst_files.txt"
     timer.Start();
     FairRunAna* fRunAna = new FairRunAna();
     ifstream bmndstFiles(bmndstFileListFileName);
-    cout <<"bmndstFileListFileName: "+bmndstFileListFileName<< endl;
+    cout <<"bmndstFileListFileName = "+bmndstFileListFileName<< endl;
     TString fname;
     string  fnamestr;
-    // the first file only:
+    // to create the FairSource* fFileSource object, here read the first file name only:
     bmndstFiles >> fnamestr;
     // because fstream produces string, while we need TString, we reassign:
     fname = fnamestr;
-    cout <<"fname: "+fname<< endl;
+    cout <<"fname                  = "+fname<< endl;
     FairSource* fFileSource = new BmnFileSource(fname);
     // the rest of the files should be AddFile'ed to form a chain in the BmnFileSource object:
     while (bmndstFiles >> fnamestr) {
         fname = fnamestr;
-        cout <<"fname: "+fname<< endl;
+        cout <<"fname                  = "+fname<< endl;
         fFileSource->BmnFileSource::AddFile(fname);
     }
     bmndstFiles.close();
     fRunAna->SetSource(fFileSource);
+    cout <<"newAlignCorrFileName   = "+newAlignCorrFileName<< endl;
     fRunAna->SetOutputFile(newAlignCorrFileName);
     // resultName will be only essential part without ".root":
     TString resultName = newAlignCorrFileName;
     resultName.ReplaceAll(".root", "");
-    cout <<"resultName: "+resultName<< endl;
+    cout <<"resultName             = "+resultName<< endl;
     BmnGemAlignment* gemAlign = new BmnGemAlignment();
     gemAlign->SetResultName(resultName);
     gemAlign->SetGeometry(BmnGemStripConfiguration::RunWinter2016);
@@ -61,17 +60,20 @@ void gemAlignment_new(TString bmndstFileListFileName = "bmndst_files.txt"
     gemAlign->SetOutlierdownweighting(4);          // Default value is 0
     gemAlign->SetDwfractioncut(0.5);               // Default value is 0, should be less than 0.5
     gemAlign->SetFixDetector(kTRUE, kTRUE, kTRUE); // Default values are false(X), false(Y) and false(Z)
-  //gemAlign->SetDebugInfo(kTRUE);                 // Default value is false
+    gemAlign->SetDebugInfo(kTRUE);                 // Default value is false //
 
     // Restrictions on track params.
   //gemAlign->SetMinHitsAccepted(5);               // Default value is 3
   //gemAlign->SetChi2MaxPerNDF(2.);                // Cut on chi2/ndf for found tracks, default value is not limited
   //gemAlign->SetTxMinMax(-1.,   0.);
   //gemAlign->SetTyMinMax(-0.05, 0.05);
-    /********************************/
+
     fRunAna->AddTask(gemAlign);
     fRunAna->Init();
     fRunAna->Run(0, nEvents);
+  //delete fRunAna;
+  //delete fFileSource;
+  //delete gemAlign;
     // -----   Finish   --------------------------------------------------------
     timer.Stop();
     Double_t rtime = timer.RealTime();

@@ -297,12 +297,14 @@ void BmnGemAlignment::StartPede()
 
     // insert fAlignmentType before iteration number:
     TRegexp re = "_it[0-9]+";
-    if (fResultName.Contains(re)) {
+    if (fResultName.Contains("_it")) {
         TSubString itNr = fResultName(re);
         TString fResultNameNoItNr = fResultName;
         fResultNameNoItNr.ReplaceAll(itNr, "");
+        if (fDebugInfo) cout <<"fResultNameNoItNr = "+fResultNameNoItNr<< endl;
         system("cp millepede.res Millepede_"+fResultNameNoItNr+"_"+fAlignmentType+itNr+".res"); }
     else {
+        if (fDebugInfo) cout <<"fResultName       = "+fResultName      << endl;
         system("cp millepede.res Millepede_"+fResultName      +"_"+fAlignmentType     +".res");
     }
     // Anatoly.Solomin@jinr.ru 2017-02-15 20:42:13

@@ -109,7 +109,7 @@ BmnTof2Raw2Digit::BmnTof2Raw2Digit(TString mappingFile, TString RunFile, UInt_t 
 
     if (!in.eof()) in >> dummy >> dummy >> dummy >> dummy;
 //    printf("%s\n",dummy.Data());
-//	in.getline(line,128);
+	in.getline(line,128);
 //	printf("line %d %s\n", strlen(line),line);
     while (!in.eof()) {
 //	in.getline(line,128);
@@ -1374,7 +1374,7 @@ void BmnTof2Raw2Digit::DNL_read()
     n = 0;
     while (!fi.eof())
     {
-//     fi.getline(atext,25600);
+     fi.getline(atext,25600);
      post = 0;
      pos = 0;
      for (int i=0; i<1024; i++)
@@ -1383,7 +1383,7 @@ void BmnTof2Raw2Digit::DNL_read()
 	post += pos;
         DNL_Table[c][s][n][i] = tcor;
      }
-     fi.getline(atext,25600);
+//     fi.getline(atext,25600);
      n++;
      if (n==72) break;
     }

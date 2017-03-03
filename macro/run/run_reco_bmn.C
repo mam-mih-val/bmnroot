@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // Macro for reconstruction of simulated or experimental events.
 //
-// digiFileName - input file with data.
+// inputFileName - input file with data.
 //
 // To process experimental data, you can use 'runN-NNN:'-like prefix
 // and then the geometry will be obtained from the Unified Database.
@@ -28,7 +28,7 @@
 // Candidate for the default then can be:
 // alignCorrFileName = "UniDb" (case insensitive!)
 
-void run_reco_bmn(TString digiFileName      = "$VMCWORKDIR/macro/run/evetest.root",
+void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.root",
                   TString bmndstFileName    = "$VMCWORKDIR/macro/run/bmndst.root",
                   Int_t   nStartEvent       =  0,
                   Int_t   nEvents           =  10000,
@@ -56,25 +56,25 @@ void run_reco_bmn(TString digiFileName      = "$VMCWORKDIR/macro/run/evetest.roo
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
-    Ssiz_t indColon = digiFileName.First(':');
-    Ssiz_t indDash  = digiFileName.First('-');
+    Ssiz_t indColon = inputFileName.First(':');
+    Ssiz_t indDash  = inputFileName.First('-');
     // for experimental datasource
-    if ((indColon >= 0) && (indDash < indColon) && (digiFileName.BeginsWith("run"))) {
+    if ((indColon >= 0) && (indDash < indColon) && (inputFileName.BeginsWith("run"))) {
         // get run period
-        TString number_string(digiFileName(3, indDash - 3));
+        TString number_string(inputFileName(3, indDash - 3));
         Int_t run_period = number_string.Atoi();
         // get run number
-        number_string = digiFileName(indDash + 1, indColon - indDash - 1);
+        number_string = inputFileName(indDash + 1, indColon - indDash - 1);
         Int_t run_number = number_string.Atoi();
-        digiFileName.Remove(0, indColon + 1);
+        inputFileName.Remove(0, indColon + 1);
         cout <<"run_period = "<<run_period<<"  run_number = "<<run_number<< endl;
 
-        if ( ! CheckFileExist(digiFileName)) {
-            cout <<"Error: digi file "+digiFileName+" does not exist!"<< endl;
+        if ( ! CheckFileExist(inputFileName)) {
+            cout <<"Error: digi file "+inputFileName+" does not exist!"<< endl;
             exit(-1);
         }
         // set source as raw data file
-        fFileSource = new BmnFileSource(digiFileName);
+        fFileSource = new BmnFileSource(inputFileName);
 
         // get geometry for run
         TString geoFileName = "current_geo_file.root";
@@ -139,15 +139,15 @@ void run_reco_bmn(TString digiFileName      = "$VMCWORKDIR/macro/run/evetest.roo
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
     }
     else { // for simulated files
-        if ( ! CheckFileExist(digiFileName)) return;
-        fFileSource = new FairFileSource(digiFileName);
+        if ( ! CheckFileExist(inputFileName)) return;
+        fFileSource = new FairFileSource(inputFileName);
     }
     fRunAna->SetSource(fFileSource);
     fRunAna->SetOutputFile(bmndstFileName);
     fRunAna->SetGenerateRunInfo(false);
 
     // "Parameter file" in the FairRoot terminology
-    TString parFileName = digiFileName;
+    TString parFileName = inputFileName;
 
     // Digitisation files.
     // Add TObjectString file names to a TList which is passed as input to the

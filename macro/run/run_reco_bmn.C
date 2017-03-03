@@ -3,36 +3,29 @@
 //
 // digiFileName - input file with data.
 //
-// To process experimental data, you can use 'run[0]*N-[0]*NNN:'-like prefix
-// (with arbitrary number of leading zeros), e.g.
-// "run005-000458:../digits_run5/bmn_run458_digi.root",
+// To process experimental data, you can use 'runN-NNN:'-like prefix
 // and then the geometry will be obtained from the Unified Database.
-//
-// // However, if the file name is like "bmn_run005_Glob_000812_digi.root",
-// // then nothing to do: the geometry will be
-// // obtained from the Unified Database automatically without any prefix,
-// // although if prefix is still used, everything also works correctly.
 //
 // bmndstFileName - output file with reconstructed data.
 //
 // nStartEvent - number (starts with zero) of first event to process, default: 0.
 //
 // nEvents - number of events to process, 0 - all events of given file will be
-// processed, default: 1000.
+// processed, default: 10000.
 //
 // isPrimary - flag needed when working with MC events, default: kTRUE.
 //
 // alignCorrFileName - input file with the current misalignments,
 // i.e. alignment corrections but with the opposite sign.
 //
-// If alignCorrFileName == "", then no corrections are applied at all.
+// If alignCorrFileName == '', then no corrections are applied at all.
 //
 // IMPORTANT: for the time being, the default file name should be kept
 // up-to-date by hand here.
 //
 // NB! As soon as storage of the alignment corrections is arranged in the UniDb,
 // we will need to change this, so that the default values are taken from there.
-// Candidate for the default then will be:
+// Candidate for the default then can be:
 // alignCorrFileName = "UniDb" (case insensitive!)
 
 void run_reco_bmn(TString digiFileName      = "$VMCWORKDIR/macro/run/evetest.root",

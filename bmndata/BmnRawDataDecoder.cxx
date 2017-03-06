@@ -49,6 +49,8 @@ const UInt_t kTRIGMINBIAS = 1;
 
 using namespace std;
 
+class UniDbRun;
+
 BmnRawDataDecoder::BmnRawDataDecoder() {
     fRunId = 0;
     fPeriodId = 0;
@@ -515,17 +517,17 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 };
                 if (isZDC)
                     Process_ADC64WR(&data[idx], payload, serial, adc);
-		else {
-            	    Bool_t isECAL = kFALSE;
-            	    for (Int_t iSer = 0; (iSer < fNECALSerials); ++iSer) {
-                	if (serial == fECALSerials[iSer]) {
-                    	    isECAL = kTRUE;
-                    	    break;
-                	}
-            	    };
-            	    if (isECAL)
-                	Process_ADC64WR(&data[idx], payload, serial, adc);
-		}
+                else {
+                    Bool_t isECAL = kFALSE;
+                    for (Int_t iSer = 0; (iSer < fNECALSerials); ++iSer) {
+                        if (serial == fECALSerials[iSer]) {
+                            isECAL = kTRUE;
+                            break;
+                        }
+                    };
+                    if (isECAL)
+                        Process_ADC64WR(&data[idx], payload, serial, adc);
+                }
                 break;
             }
             case kFVME:
@@ -836,11 +838,15 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 UInt_t fT = runHeaderDAQ->GetFinishTime().GetTime();
                 UInt_t sD = runHeaderDAQ->GetStartTime().GetDate();
                 UInt_t fD = runHeaderDAQ->GetFinishTime().GetDate();
+                Int_t nEv = (Int_t)runHeaderDAQ->GetNEvents();
+                TDatime sDatime(sD / 10000, sD % 10000 / 100, sD % 100, sT / 10000, sT % 10000 / 100, sT % 100);
+                TDatime fDatime(fD / 10000, fD % 10000 / 100, fD % 100, fT / 10000, fT % 10000 / 100, fT % 100);
+                Double_t fSize = Double_t(fLengthRawFile);
 
                 runHeader->SetRunId(runHeaderDAQ->GetRunId());
                 runHeader->SetStartTime(runHeaderDAQ->GetStartTime());
                 runHeader->SetFinishTime(runHeaderDAQ->GetFinishTime());
-                runHeader->SetNEvents(runHeaderDAQ->GetNEvents());
+                runHeader->SetNEvents(nEv);
 
                 printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
                 printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runHeader->GetRunId());
@@ -850,6 +856,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 printf("FINISH (event %d):\t%d/%02d/%02d\t", fEventId, fD / 10000, fD % 10000 / 100, fD % 100);
                 printf("%02d:%02d:%02d\n", fT / 10000, fT % 10000 / 100, fT % 100);
                 printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
+                
+                if (!UniDbRun::GetRun(fPeriodId, runHeaderDAQ->GetRunId()))
+                    UniDbRun::CreateRun(fPeriodId, runHeaderDAQ->GetRunId(), "", "", NULL, NULL, sDatime, &fDatime, &nEv, NULL, &fSize, NULL);
             }
         }
         fDigiTree->Fill();
@@ -1075,7 +1084,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete adc128;
     delete adc;
     delete tdc;
-    
+
     if (gem) delete gem;
     if (dch) delete dch;
     if (mwpc) delete mwpc;
@@ -1089,7 +1098,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (tof700) delete tof700;
     if (zdc) delete zdc;
     if (ecal) delete ecal;
-    
+
     delete eventHeader;
     delete runHeader;
     return kBMNSUCCESS;

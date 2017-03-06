@@ -37,6 +37,7 @@
 #include <map>
 #include <deque>
 #include <UniDbDetectorParameter.h>
+#include <UniDbRun.h>
 
 // wait limit for input data (ms)
 #define WAIT_LIMIT 45000000

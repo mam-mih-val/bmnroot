@@ -8,6 +8,20 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 5); //5 - period
+    
+    Bool_t setup[9]; //array of flags to determine BM@N setup
+    //Just put "0" to exclude detector from decoding
+    setup[0] = 1; // TRIGGERS
+    setup[1] = 1; // MWPC
+    setup[2] = 1; // SILICON
+    setup[3] = 1; // GEM
+    setup[4] = 1; // TOF-400
+    setup[5] = 1; // TOF-700
+    setup[6] = 1; // DCH
+    setup[7] = 1; // ZDC
+    setup[8] = 1; // ECAL
+    decoder->SetDetectorSetup(setup);
+    
     decoder->SetTrigMapping("Trig_map_Run5.txt");
     decoder->SetTrigINLFile("TRIG_INL.txt");
     // in case comment out the line decoder->SetTof400Mapping("...")  

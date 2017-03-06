@@ -237,6 +237,8 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
 
 
 BmnStatus BmnGlobalTracking::MatchingMWPC(BmnGlobalTrack* tr) {
+    
+    if(!fMwpcTracks) return kBMNERROR;
 
     BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
 
@@ -347,6 +349,8 @@ BmnStatus BmnGlobalTracking::CreateDchHitsFromTracks() {
 }
 
 BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr) {
+    
+    if(!fDchTracks) return kBMNERROR;
 
     BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
 

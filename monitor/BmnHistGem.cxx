@@ -21,8 +21,6 @@ const UInt_t moduleCount[GEM_STATIONS_COUNT] = {1, 1, 1, 1, 2, 2, 2};
 const UInt_t layersCount[GEM_STATIONS_COUNT] = {2, 4, 4, 4, 4, 4, 4};
 const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 1100, 1119};
 #define MAX_STRIPS 1020
-#define PAD_WIDTH   200
-#define PAD_HEIGHT  150
 
 BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : BmnHist() {
     refPath = path;
@@ -32,8 +30,6 @@ BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : Bm
     // Create canvas
     sumMods = accumulate(begin(moduleCount), end(moduleCount), 0);
     maxLayers = *max_element(begin(layersCount), end(layersCount));
-    printf("module sum = %d\n", sumMods);
-    printf("maxLayers  = %d\n", maxLayers);
     name = fTitle + "Canvas";
     canGemStrip = new TCanvas(name, name, PAD_WIDTH * maxLayers, PAD_HEIGHT * sumMods);
     canGemStrip->Divide(maxLayers, sumMods);
@@ -207,8 +203,9 @@ BmnStatus BmnHistGem::LoadRefRun(TString FileName) {
                 if (p->ref == NULL) {
                     TH1F* tempH = (TH1F*) refFile->Get(TString("GEM_hists/") + name);
                     if (tempH == NULL) {
-                        printf("Cannot open file %s !\n", FileName.Data());
-                        return kBMNERROR;
+                        printf("Cannot load %s !\n", name.Data());
+                        continue;
+//                        return kBMNERROR;
                     }
                     p->ref = (TH1F*) (tempH->Clone(name));
                 }

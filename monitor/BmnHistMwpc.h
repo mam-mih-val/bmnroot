@@ -33,6 +33,8 @@
 
 #define MWPC_PLANES 12
 #define MWPC_WIRES 96
+#define MWPC_ROWS    4
+#define MWPC_COLS    (MWPC_PLANES/MWPC_ROWS)
 
 class BmnHistMwpc : public BmnHist {
 public:
@@ -41,13 +43,21 @@ public:
     void Reset();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
+    void DrawBoth();
     void FillFromDigi(TClonesArray * DchDigits);
+    BmnStatus LoadRefRun(TString FileName);
+    BmnStatus  SetRefRun(Int_t id);
 
 private:
     TH1F * h_wires[MWPC_PLANES];
+    TH1F * h_times[MWPC_PLANES];
     TClonesArray* MwpcHits;
     TH2F* h_MWPC1;
     TH2F* h_MWPC2;
+    TCanvas *canWires;
+    TCanvas *canTimes;
+    vector<PadInfo*> canWiresPads;
+    vector<PadInfo*> canTimesPads;
 
     ClassDef(BmnHistMwpc, 1)
 };

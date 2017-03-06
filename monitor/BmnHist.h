@@ -23,6 +23,8 @@
 #include "TFolder.h"
 #include "TString.h"
 #include "THttpServer.h"
+#include "TFile.h"
+#include "TFolder.h"
 
 #include "BmnEventHeader.h"
 
@@ -61,6 +63,7 @@ public:
 //    virtual BmnStatus LoadRefRun(TString FileName) = 0;
 //    template <class HH>
     static void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads);
+    static BmnStatus LoadRefRun(Int_t refID, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names);
 
     void SetRefRunName(TString v) {
         this->refRunName = v;
@@ -76,6 +79,14 @@ public:
 
     Int_t GetRefID() const {
         return refID;
+    }
+
+    void SetRefPath(TString v) {
+        this->refPath = v;
+    }
+
+    TString GetRefPath() const {
+        return refPath;
     }
     //    virtual void FillFromDigi(TClonesArray * digits) = 0;
 protected:

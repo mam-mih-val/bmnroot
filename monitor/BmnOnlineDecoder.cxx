@@ -37,6 +37,18 @@ BmnOnlineDecoder::~BmnOnlineDecoder() {
 void BmnOnlineDecoder::InitDecoder() {
     DBG("started")
     rawDataDecoder = new BmnRawDataDecoder();
+    Bool_t setup[9]; //array of flags to determine BM@N setup
+    //Just put "0" to exclude detector from decoding
+    setup[0] = 1; // TRIGGERS
+    setup[1] = 1; // MWPC
+    setup[2] = 0; // SILICON
+    setup[3] = 1; // GEM
+    setup[4] = 1; // TOF-400
+    setup[5] = 1; // TOF-700
+    setup[6] = 1; // DCH
+    setup[7] = 0; // ZDC
+    setup[8] = 0; // ECAL
+    rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetRunId(1000);
     rawDataDecoder->SetPeriodId(5);
     rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
@@ -54,6 +66,18 @@ void BmnOnlineDecoder::InitDecoder() {
 void BmnOnlineDecoder::InitDecoder(TString file) {
     DBG("started")
     rawDataDecoder = new BmnRawDataDecoder(file, 0, 5);
+    Bool_t setup[9]; //array of flags to determine BM@N setup
+    //Just put "0" to exclude detector from decoding
+    setup[0] = 1; // TRIGGERS
+    setup[1] = 1; // MWPC
+    setup[2] = 0; // SILICON
+    setup[3] = 1; // GEM
+    setup[4] = 1; // TOF-400
+    setup[5] = 1; // TOF-700
+    setup[6] = 1; // DCH
+    setup[7] = 0; // ZDC
+    setup[8] = 0; // ECAL
+    rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
     rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_Period5_v3.txt", "TOF400_StripMap_Period5_v3.txt");

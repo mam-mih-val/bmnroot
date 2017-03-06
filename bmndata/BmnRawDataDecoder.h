@@ -54,6 +54,7 @@ public:
         ecal = NULL;
         dch = NULL;
         mwpc = NULL;
+        silicon = NULL;
         t0 = NULL;
         bc1 = NULL;
         bc2 = NULL;
@@ -75,6 +76,7 @@ public:
         if (gem) delete gem;
         if (header) delete header;
         if (mwpc) delete mwpc;
+        if (silicon) delete silicon;
         if (t0) delete t0;
         if (tof400) delete tof400;
         if (tof700) delete tof700;
@@ -82,20 +84,21 @@ public:
         if (ecal) delete this->ecal;
         if (veto) delete veto;
     };
-    TClonesArray *gem; //->
-    TClonesArray *tof400; //->
-    TClonesArray *tof700; //->
-    TClonesArray *zdc; //->
-    TClonesArray *ecal; //->
-    TClonesArray *dch; //->
-    TClonesArray *mwpc; //->
-    TClonesArray *t0; //->
-    TClonesArray *bc1; //->
-    TClonesArray *bc2; //->
-    TClonesArray *veto; //->
-    TClonesArray *fd; //->
-    TClonesArray *bd; //->
-    TClonesArray *header; //->
+    TClonesArray *silicon; 
+    TClonesArray *gem; 
+    TClonesArray *tof400; 
+    TClonesArray *tof700; 
+    TClonesArray *zdc; 
+    TClonesArray *ecal; 
+    TClonesArray *dch; 
+    TClonesArray *mwpc; 
+    TClonesArray *t0; 
+    TClonesArray *bc1; 
+    TClonesArray *bc2; 
+    TClonesArray *veto; 
+    TClonesArray *fd; 
+    TClonesArray *bd; 
+    TClonesArray *header; 
 private:
     ClassDef(DigiArrays, 1)
 };
@@ -136,6 +139,7 @@ public:
     DigiArrays GetDigiArraysObject() {
         //        fDigiTree->GetEntry(GetEventId());
         DigiArrays d; // = new DigiArrays();
+        d.silicon = silicon;
         d.gem = gem;
         d.tof400 = tof400;
         d.tof700 = tof700;

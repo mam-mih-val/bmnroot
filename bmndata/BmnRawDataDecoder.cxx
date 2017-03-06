@@ -453,7 +453,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
             printf("bad event #%d\n", fEventId);
             return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
         }
-        //            printf("process event #%d\n", fEventId);
         ProcessEvent(data, fDat);
         fNevents++;
         //        fRawTree->Fill();
@@ -997,7 +996,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
     fCurEventType = headDAQ->GetType();
 
-    fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
+    if (fTrigMapper) fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
 
     if (fCurEventType == kBMNPEDESTAL) {
         if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) return kBMNERROR; //FIX return!
@@ -1011,15 +1010,15 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
                 fPedEnough = kTRUE;
             }
         }
-        if (fPedEnough)
+        if ((fGemMapper) && (fPedEnough))
             fGemMapper->FillEvent(adc32, gem);
-        fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
-        fMwpcMapper->FillEvent(hrb, mwpc);
-        fSiliconMapper->FillEvent(adc128, silicon);
-        fTof400Mapper->FillEvent(tdc, tof400);
-        fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
-        fZDCMapper->fillEvent(adc, zdc);
-        fECALMapper->fillEvent(adc, ecal);
+        if (fSiliconMapper) fSiliconMapper->FillEvent(adc128, silicon);
+        if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
+        if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
+        if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, tof400);
+        if (fTof700Mapper) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+        if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
+        if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig());
         //        fDigiTree->Fill();
 

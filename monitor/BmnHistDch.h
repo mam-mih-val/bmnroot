@@ -28,6 +28,7 @@
 #include "TFolder.h"
 #include "TString.h"
 #include "THttpServer.h"
+#include "TGaxis.h"
 
 #include "BmnHist.h"
 #include "BmnDchDigit.h"
@@ -39,6 +40,8 @@
 #define kNWIRES     256
 #define Number        4
 #define DCH_WDTH    150
+#define PLANE_ROWS    4
+#define PLANE_COLS    (kNPLANES/PLANE_ROWS)
 
 using namespace std;
 
@@ -50,14 +53,21 @@ public:
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
     void FillFromDigi(TClonesArray * DchDigits);
-
-    TH1F * h_wires[kNPLANES];
-    Float_t v_wires[kNPLANES][kNWIRES];
+    void DrawBoth();
+    BmnStatus LoadRefRun(TString FileName);
+    BmnStatus  SetRefRun(Int_t id);
 
 private:
     TClonesArray* fDchHits;
+    TH1F * h_wires[kNPLANES];
+    TH1F * h_times[kNPLANES];
+    Float_t v_wires[kNPLANES][kNWIRES];
     TH2F* h_DCH1;
     TH2F* h_DCH2;
+    TCanvas *canWires;
+    TCanvas *canTimes;
+    vector<PadInfo*> canWiresPads;
+    vector<PadInfo*> canTimesPads;
 
 
 

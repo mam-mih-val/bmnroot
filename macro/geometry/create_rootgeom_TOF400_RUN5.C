@@ -17,7 +17,7 @@ void MakeBMNROOT_TOFv3()
 
     // -------   Geometry file name (output)   -------------------------------
     const TString geoDetectorName = "TOF400";
-    const TString geoDetectorVersion = "RUN5_part1";
+    const TString geoDetectorVersion = "RUN6";
     const TString geoFileName = geoPath + "/geometry/" + geoDetectorName + "_" + geoDetectorVersion + ".root";
 
     // -----------------   Get and create the required media    --------------

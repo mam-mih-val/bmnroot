@@ -913,7 +913,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         tof400 = new TClonesArray("BmnTof1Digit");
         fDigiTree->Branch("TOF400", &tof400);
         if (fTof400PlaceMapFileName.Sizeof() > 1 && fTof400StripMapFileName.Sizeof() > 1) {
-            fTof400Mapper = new BmnTof1Raw2Digit();
+            fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId);
             TString dir = Form("%s%s", getenv("VMCWORKDIR"), "/input/");
             fTof400Mapper->setMapFromFile(dir + fTof400PlaceMapFileName.Data(), dir + fTof400StripMapFileName.Data());
         } else
@@ -1066,7 +1066,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fMwpcMapper) delete fMwpcMapper;
     if (fTrigMapper) delete fTrigMapper;
     if (fTof400Mapper) delete fTof400Mapper;
-    if (fTof400Mapper) delete fTof700Mapper;
+    if (fTof700Mapper) delete fTof700Mapper;
     if (fZDCMapper) delete fZDCMapper;
     if (fECALMapper) delete fECALMapper;
 

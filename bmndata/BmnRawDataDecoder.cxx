@@ -337,7 +337,6 @@ BmnStatus BmnRawDataDecoder::InitConverter() {
     fRawTree->Branch("HRB", &hrb);
     fRawTree->Branch("MSC", &msc);
     fRawTree->Branch("EventHeader", &eventHeaderDAQ);
-    //    fRawTree->Branch("RunHeader", &runHeaderDAQ);
     return kBMNSUCCESS;
 }
 
@@ -516,8 +515,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 };
                 if (isZDC)
                     Process_ADC64WR(&data[idx], payload, serial, adc);
-		else
-		{
+		else {
             	    Bool_t isECAL = kFALSE;
             	    for (Int_t iSer = 0; (iSer < fNECALSerials); ++iSer) {
                 	if (serial == fECALSerials[iSer]) {
@@ -753,7 +751,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     adc128 = new TClonesArray("BmnADCDigit");
     adc = new TClonesArray("BmnADCDigit");
     eventHeaderDAQ = new TClonesArray("BmnEventHeader");
-    //runHeaderDAQ = new TClonesArray("BmnRunHeader");
+    runHeaderDAQ = new BmnRunHeader();
     fRawTree->SetBranchAddress("TDC", &tdc);
     fRawTree->SetBranchAddress("HRB", &hrb);
     fRawTree->SetBranchAddress("SYNC", &sync);
@@ -761,6 +759,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fRawTree->SetBranchAddress("ADC128", &adc128);
     fRawTree->SetBranchAddress("ADC", &adc);
     fRawTree->SetBranchAddress("EventHeader", &eventHeaderDAQ);
+    fRawTree->SetBranchAddress("RunHeader", &runHeaderDAQ);
 
     fDigiFileOut = new TFile(fDigiFileName, "recreate");
     InitDecoder();
@@ -769,26 +768,28 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
     if (fTof700Mapper) fTof700Mapper->BookSlewing();
 
-    for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-        if (iEv % 100 == 0) {
-            printf(ANSI_COLOR_BLUE "[%.2f%%]   " ANSI_COLOR_RESET, iEv * 100.0 / fNevents);
-            printf("EVENT:%d   RUN:%d\n", iEv, fRunId);
-        }
+    if (fGemMapper) {
+        for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
+            if (iEv % 100 == 0) {
+                printf(ANSI_COLOR_BLUE "[%.2f%%]   " ANSI_COLOR_RESET, iEv * 100.0 / fNevents);
+                printf("EVENT:%d   RUN:%d\n", iEv, fRunId);
+            }
 
-        fRawTree->GetEntry(iEv);
+            fRawTree->GetEntry(iEv);
 
-        BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
-        if (!headDAQ) continue;
-        curEventType = headDAQ->GetType();
+            BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
+            if (!headDAQ) continue;
+            curEventType = headDAQ->GetType();
 
-        if (curEventType != kBMNPEDESTAL) continue;
-        if (fPedEvCntr != N_EV_FOR_PEDESTALS - 1) {
-            CopyDataToPedMap(adc32, fPedEvCntr);
-            fPedEvCntr++;
-        } else {
-            fGemMapper->RecalculatePedestals();
-            fPedEvCntr = 0;
-            break;
+            if (curEventType != kBMNPEDESTAL) continue;
+            if (fPedEvCntr != N_EV_FOR_PEDESTALS - 1) {
+                CopyDataToPedMap(adc32, fPedEvCntr);
+                fPedEvCntr++;
+            } else {
+                fGemMapper->RecalculatePedestals();
+                fPedEvCntr = 0;
+                break;
+            }
         }
     }
 
@@ -807,7 +808,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         curEventType = headDAQ->GetType();
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig());
 
-        fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
+        if (fTrigMapper) fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
 
         if (curEventType == kBMNPEDESTAL) {
             if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
@@ -815,42 +816,43 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fPedEvCntr++;
         } else { // payload
             if (prevEventType == kBMNPEDESTAL && fPedEvCntr == N_EV_FOR_PEDESTALS - 1) {
-                fGemMapper->RecalculatePedestals();
+                if (fGemMapper) fGemMapper->RecalculatePedestals();
                 fPedEvCntr = 0;
             }
-            fGemMapper->FillEvent(adc32, gem);
-            fSiliconMapper->FillEvent(adc128, silicon);
-            fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
-            fMwpcMapper->FillEvent(hrb, mwpc);
-            fTof400Mapper->FillEvent(tdc, tof400);
-            fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
-            fZDCMapper->fillEvent(adc, zdc);
-            fECALMapper->fillEvent(adc, ecal);
-            if (iEv == fNevents - 1) {
-                fDigiTree->Branch("RunHeader", &runHeader);
-                if (runHeaderDAQ) {
-                    UInt_t sT = runHeaderDAQ->GetStartTime().GetTime();
-                    UInt_t fT = runHeaderDAQ->GetFinishTime().GetTime();
-                    UInt_t sD = runHeaderDAQ->GetStartTime().GetDate();
-                    UInt_t fD = runHeaderDAQ->GetFinishTime().GetDate();
-
-                    runHeader->SetRunId(runHeaderDAQ->GetRunId());
-                    runHeader->SetStartTime(runHeaderDAQ->GetStartTime());
-                    runHeader->SetFinishTime(runHeaderDAQ->GetFinishTime());
-                    runHeader->SetNEvents(runHeaderDAQ->GetNEvents());
-
-                    printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
-                    printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runHeader->GetRunId());
-                    printf(ANSI_COLOR_RED "SUMMARY ===============\n" ANSI_COLOR_RESET);
-                    printf("START (event 1):\t%d/%02d/%02d\t", sD / 10000, sD % 10000 / 100, sD % 100);
-                    printf("%02d:%02d:%02d\n", sT / 10000, sT % 10000 / 100, sT % 100);
-                    printf("FINISH (event %d):\t%d/%02d/%02d\t", fEventId, fD / 10000, fD % 10000 / 100, fD % 100);
-                    printf("%02d:%02d:%02d\n", fT / 10000, fT % 10000 / 100, fT % 100);
-                    printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
-                }
-            }
-            fDigiTree->Fill();
+            if (fGemMapper) fGemMapper->FillEvent(adc32, gem);
+            if (fSiliconMapper) fSiliconMapper->FillEvent(adc128, silicon);
+            if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
+            if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
+            if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, tof400);
+            if (fTof700Mapper) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+            if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
+            if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
         }
+
+        if (iEv == fNevents - 1) {
+            fDigiTree->Branch("RunHeader", &runHeader);
+            if (runHeaderDAQ) {
+                UInt_t sT = runHeaderDAQ->GetStartTime().GetTime();
+                UInt_t fT = runHeaderDAQ->GetFinishTime().GetTime();
+                UInt_t sD = runHeaderDAQ->GetStartTime().GetDate();
+                UInt_t fD = runHeaderDAQ->GetFinishTime().GetDate();
+
+                runHeader->SetRunId(runHeaderDAQ->GetRunId());
+                runHeader->SetStartTime(runHeaderDAQ->GetStartTime());
+                runHeader->SetFinishTime(runHeaderDAQ->GetFinishTime());
+                runHeader->SetNEvents(runHeaderDAQ->GetNEvents());
+
+                printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
+                printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runHeader->GetRunId());
+                printf(ANSI_COLOR_RED "SUMMARY ===============\n" ANSI_COLOR_RESET);
+                printf("START (event 1):\t%d/%02d/%02d\t", sD / 10000, sD % 10000 / 100, sD % 100);
+                printf("%02d:%02d:%02d\n", sT / 10000, sT % 10000 / 100, sT % 100);
+                printf("FINISH (event %d):\t%d/%02d/%02d\t", fEventId, fD / 10000, fD % 10000 / 100, fD % 100);
+                printf("%02d:%02d:%02d\n", fT / 10000, fT % 10000 / 100, fT % 100);
+                printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
+            }
+        }
+        fDigiTree->Fill();
         prevEventType = curEventType;
 
     }
@@ -864,105 +866,110 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 }
 
 BmnStatus BmnRawDataDecoder::InitDecoder() {
-    //    fRootFileIn = new TFile(fRootFileName, "READ");
-    //    if (fRootFileIn->IsOpen() == false) {
-    //        printf("\n!!!!\ncannot open file %s \nDecodeDataToDigi are stopped\n!!!!\n", fRootFileName.Data());
-    //        return kBMNERROR;
-    //    } else {
-    //        printf("\nInput root file: %s;\nOutput digi file: %s;\n", fRootFileName.Data(), fDigiFileName.Data());
-    //    }
-    //    fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
-    //    tdc = new TClonesArray("BmnTDCDigit");
-    //    sync = new TClonesArray("BmnSyncDigit");
-    //    adc = new TClonesArray("BmnADC32Digit");
-    //    headerDAQ = new TClonesArray("BmnEventHeader");
-    //    fRawTree->SetBranchAddress("TDC", &tdc);
-    //    fRawTree->SetBranchAddress("SYNC", &sync);
-    //    fRawTree->SetBranchAddress("ADC", &adc);
-    //    fRawTree->SetBranchAddress("EventHeader", &headerDAQ);
 
     //    fDigiFileOut = new TFile(fDigiFileName, "recreate");
     fDigiTree = new TTree("cbmsim", "bmn_digit");
 
-    gem = new TClonesArray("BmnGemStripDigit");
-    silicon = new TClonesArray("BmnSiliconDigit");
-    tof400 = new TClonesArray("BmnTof1Digit");
-    tof700 = new TClonesArray("BmnTof2Digit");
-    zdc = new TClonesArray("BmnZDCDigit");
-    ecal = new TClonesArray("BmnECALDigit");
-    dch = new TClonesArray("BmnDchDigit");
-    mwpc = new TClonesArray("BmnMwpcDigit");
-    t0 = new TClonesArray("BmnTrigDigit");
-    bc1 = new TClonesArray("BmnTrigDigit");
-    bc2 = new TClonesArray("BmnTrigDigit");
-    bd = new TClonesArray("BmnTrigDigit");
-    fd = new TClonesArray("BmnTrigDigit");
-    veto = new TClonesArray("BmnTrigDigit");
     eventHeader = new TClonesArray("BmnEventHeader");
     runHeader = new BmnRunHeader();
-    //    runHeader = new TClonesArray("BmnRunHeader");
-
     fDigiTree->Branch("EventHeader", &eventHeader);
-    //    fDigiTree->Branch("RunHeader", &runHeader);
-    fDigiTree->Branch("T0", &t0);
-    fDigiTree->Branch("BC1", &bc1);
-    fDigiTree->Branch("BC2", &bc2);
-    fDigiTree->Branch("VETO", &veto);
-    fDigiTree->Branch("FD", &fd);
-    fDigiTree->Branch("BD", &bd);
-    fDigiTree->Branch("DCH", &dch);
-    fDigiTree->Branch("MWPC", &mwpc);
-    fDigiTree->Branch("GEM", &gem);
-    fDigiTree->Branch("SILICON", &silicon);
-    fDigiTree->Branch("TOF400", &tof400);
-    fDigiTree->Branch("TOF700", &tof700);
-    fDigiTree->Branch("ZDC", &zdc);
-    fDigiTree->Branch("ECAL", &ecal);
-
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
-    fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
-    fMwpcMapper = new BmnMwpcRaw2Digit(fMwpcMapFileName);
-    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
-    if (fTof400PlaceMapFileName.Sizeof() > 1 && fTof400StripMapFileName.Sizeof() > 1) {
-        fTof400Mapper = new BmnTof1Raw2Digit();
-        TString dir = Form("%s%s", getenv("VMCWORKDIR"), "/input/");
-        fTof400Mapper->setMapFromFile(dir + fTof400PlaceMapFileName.Data(), dir + fTof400StripMapFileName.Data());
-    } else
-        fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
-    fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
-    fTof700Mapper->print();
-    fTof700Mapper->printGeom();
-    fTof700Mapper->readSlewingT0();
-    fTof700Mapper->readSlewing();
-    fZDCMapper = new BmnZDCRaw2Digit(fZDCMapFileName, fRootFileName, fZDCCalibrationFileName);
-    fZDCMapper->print();
-    fECALMapper = new BmnECALRaw2Digit(fECALMapFileName, fRootFileName, fECALCalibrationFileName);
-    fECALMapper->print();
+    if (fDetectorSetup[0]) {
+        t0 = new TClonesArray("BmnTrigDigit");
+        bc1 = new TClonesArray("BmnTrigDigit");
+        bc2 = new TClonesArray("BmnTrigDigit");
+        bd = new TClonesArray("BmnTrigDigit");
+        fd = new TClonesArray("BmnTrigDigit");
+        veto = new TClonesArray("BmnTrigDigit");
+        fDigiTree->Branch("T0", &t0);
+        fDigiTree->Branch("BC1", &bc1);
+        fDigiTree->Branch("BC2", &bc2);
+        fDigiTree->Branch("VETO", &veto);
+        fDigiTree->Branch("FD", &fd);
+        fDigiTree->Branch("BD", &bd);
+        fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
+    }
 
-    fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
-    fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
+    if (fDetectorSetup[1]) {
+        mwpc = new TClonesArray("BmnMwpcDigit");
+        fDigiTree->Branch("MWPC", &mwpc);
+        fMwpcMapper = new BmnMwpcRaw2Digit(fMwpcMapFileName);
+    }
+
+    if (fDetectorSetup[2]) {
+        silicon = new TClonesArray("BmnSiliconDigit");
+        fDigiTree->Branch("SILICON", &silicon);
+        fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
+    }
+
+    if (fDetectorSetup[3]) {
+        gem = new TClonesArray("BmnGemStripDigit");
+        fDigiTree->Branch("GEM", &gem);
+        fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
+    }
+
+    if (fDetectorSetup[4]) {
+        tof400 = new TClonesArray("BmnTof1Digit");
+        fDigiTree->Branch("TOF400", &tof400);
+        if (fTof400PlaceMapFileName.Sizeof() > 1 && fTof400StripMapFileName.Sizeof() > 1) {
+            fTof400Mapper = new BmnTof1Raw2Digit();
+            TString dir = Form("%s%s", getenv("VMCWORKDIR"), "/input/");
+            fTof400Mapper->setMapFromFile(dir + fTof400PlaceMapFileName.Data(), dir + fTof400StripMapFileName.Data());
+        } else
+            fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+    }
+
+    if (fDetectorSetup[5]) {
+        fDigiTree->Branch("TOF700", &tof700);
+        tof700 = new TClonesArray("BmnTof2Digit");
+        fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
+        fTof700Mapper->print();
+        fTof700Mapper->readSlewingT0();
+        fTof700Mapper->readSlewing();
+        fTof700Mapper->BookSlewing();
+    }
+
+    if (fDetectorSetup[6]) {
+        dch = new TClonesArray("BmnDchDigit");
+        fDigiTree->Branch("DCH", &dch);
+        fDchMapper = new BmnDchRaw2Digit(fPeriodId, fRunId);
+    }
+
+    if (fDetectorSetup[7]) {
+        zdc = new TClonesArray("BmnZDCDigit");
+        fDigiTree->Branch("ZDC", &zdc);
+        fZDCMapper = new BmnZDCRaw2Digit(fZDCMapFileName, fRootFileName, fZDCCalibrationFileName);
+        fZDCMapper->print();
+    }
+
+    if (fDetectorSetup[8]) {
+        ecal = new TClonesArray("BmnECALDigit");
+        fDigiTree->Branch("ECAL", &ecal);
+        fECALMapper = new BmnECALRaw2Digit(fECALMapFileName, fRootFileName, fECALCalibrationFileName);
+        fECALMapper->print();
+    }
+
     fPedEvCntr = 0; // counter for pedestal events between two spills
-    if (fTof700Mapper) fTof700Mapper->BookSlewing();
     fPedEnough = kFALSE;
     return kBMNSUCCESS;
 }
 
 BmnStatus BmnRawDataDecoder::ClearArrays() {
-    dch->Clear();
-    mwpc->Clear();
-    gem->Clear();
-    silicon->Clear();
-    tof400->Clear();
-    tof700->Clear();
-    zdc->Clear();
-    ecal->Clear();
-    t0->Clear();
-    bc1->Clear();
-    bc2->Clear();
-    veto->Clear();
-    fd->Clear();
-    bd->Clear();
+    if (dch) dch->Clear();
+    if (mwpc) mwpc->Clear();
+    if (gem) gem->Clear();
+    if (silicon) silicon->Clear();
+    if (tof400) tof400->Clear();
+    if (tof700) tof700->Clear();
+    if (zdc) zdc->Clear();
+    if (ecal) ecal->Clear();
+    if (t0) t0->Clear();
+    if (bc1) bc1->Clear();
+    if (bc2) bc2->Clear();
+    if (veto) veto->Clear();
+    if (fd) fd->Clear();
+    if (bd) bd->Clear();
     eventHeader->Clear();
     //runHeader->Clear();
     if (fTimeShifts.size() > 1e5)
@@ -1052,35 +1059,37 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     //    fDigiTree->Write();
     //    fDigiFileOut->Close();
 
-    delete fGemMap;
-    delete fGemMapper;
-    delete fSiliconMapper;
-    delete fDchMapper;
-    delete fMwpcMapper;
-    delete fTrigMapper;
-    delete fTof400Mapper;
-    delete fTof700Mapper;
-    delete fZDCMapper;
-    delete fECALMapper;
+    if (fGemMap) delete fGemMap;
+    if (fGemMapper) delete fGemMapper;
+    if (fSiliconMapper) delete fSiliconMapper;
+    if (fDchMapper) delete fDchMapper;
+    if (fMwpcMapper) delete fMwpcMapper;
+    if (fTrigMapper) delete fTrigMapper;
+    if (fTof400Mapper) delete fTof400Mapper;
+    if (fTof400Mapper) delete fTof700Mapper;
+    if (fZDCMapper) delete fZDCMapper;
+    if (fECALMapper) delete fECALMapper;
 
     delete sync;
     delete adc32;
     delete adc128;
     delete adc;
     delete tdc;
-    delete gem;
-    delete dch;
-    delete mwpc;
-    delete t0;
-    delete bc1;
-    delete bc2;
-    delete veto;
-    delete fd;
-    delete bd;
-    delete tof400;
-    delete tof700;
-    delete zdc;
-    delete ecal;
+    
+    if (gem) delete gem;
+    if (dch) delete dch;
+    if (mwpc) delete mwpc;
+    if (t0) delete t0;
+    if (bc1) delete bc1;
+    if (bc2) delete bc2;
+    if (veto) delete veto;
+    if (fd) delete fd;
+    if (bd) delete bd;
+    if (tof400) delete tof400;
+    if (tof700) delete tof700;
+    if (zdc) delete zdc;
+    if (ecal) delete ecal;
+    
     delete eventHeader;
     delete runHeader;
     return kBMNSUCCESS;

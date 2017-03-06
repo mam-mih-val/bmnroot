@@ -16,5 +16,6 @@
 //#pragma link C++ class BmnFieldMapSym3+;
 #pragma link C++ class BmnFieldPar+;
 #pragma link C++ class BmnFieldCreator+;
+#pragma link C++ class BmnSP41FieldMapCreator+;
 
 #endif

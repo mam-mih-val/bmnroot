@@ -185,7 +185,7 @@ ToF400DigitAnalysis_period5(TString file = "", Int_t nEvForRead = 0, Int_t Periu
     for (Int_t i = 0; i < kNST + 1; i++) {
         name = Form("hdt_%d", i);
         name2 = Form("dt T0 - ToF400_Plane7_str_%d", i);
-        hdt[i] = new TH1I(name, name2, 1024 + 512, -2000., 2000.);
+        hdt[i] = new TH1I(name, name2, 1024 + 512, -18., 18.);
         hdt[i]->SetLineWidth(3);
         ListAnalysis->Add(hdt[i]);
     }

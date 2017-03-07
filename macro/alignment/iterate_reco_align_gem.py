@@ -217,7 +217,7 @@ def main() :
         if iterNr==1 and options.startAlignCorrFileName=='' :
             call(['cp', newAlignCorrFileName, sumAlignCorrFileName]) # if we started from from scratch
         else : # update sumAlignCorrFileName file and at next iteration use it
-            call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/update_align_correction_gem.C("'+preAlignCorrFileName+'", "'+newAlignCorrFileName+'", "'+sumAlignCorrFileName+'")'])
+            call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/update_align_corrections_gem.C("'+preAlignCorrFileName+'", "'+newAlignCorrFileName+'", "'+sumAlignCorrFileName+'")'])
 
 if __name__ == "__main__" :
     main()

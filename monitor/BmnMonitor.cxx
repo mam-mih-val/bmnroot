@@ -561,6 +561,8 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         bhDCH_4show->DrawBoth();
         bhMWPC_4show->DrawBoth();
         bhTrig_4show->DrawBoth();
+        bhToF400_4show->DrawBoth();
+        bhToF700_4show->DrawBoth();
     }
     // print info canvas //
     infoCanvas->Clear();

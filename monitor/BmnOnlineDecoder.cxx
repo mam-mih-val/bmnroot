@@ -50,7 +50,7 @@ void BmnOnlineDecoder::InitDecoder() {
     setup[8] = 0; // ECAL
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetRunId(1000);
-    rawDataDecoder->SetPeriodId(5);
+    rawDataDecoder->SetPeriodId(6);
     rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
     rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");

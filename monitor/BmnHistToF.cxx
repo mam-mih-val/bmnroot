@@ -55,20 +55,39 @@ BmnHistToF::BmnHistToF(TString title = "ToF") {
     fServer = NULL;
     frecoTree = NULL;
     Events = NULL;
+    name = fTitle + "CanvasTimes";
+    canTimes = new TCanvas(name, name, PAD_WIDTH * TOF_ROWS, PAD_HEIGHT * TOF_COLS);
+    canTimes->Divide(TOF_ROWS, TOF_COLS);
+    canTimesPads.resize(TOF_ROWS * TOF_COLS);
+    for (Int_t iPad = 0; iPad < TOF_ROWS * TOF_COLS; iPad++) {
+        PadInfo* p = new PadInfo();
+        canTimesPads[iPad] = p;
+        canTimes->GetPad(iPad + 1)->SetGrid();
+    }
+    canTimesPads[0]->current = histLeadingTime;
+    canTimesPads[1]->current = histAmp;
+    canTimesPads[2]->current = histLeadingTimeSpecific;
+    canTimesPads[3]->current = histAmpSpecific;
+    canTimesPads[4]->current = histStrip;
+    canTimesPads[5]->current = histStripSimult;
+    for (Int_t iPad = 0; iPad < canTimesPads.size(); iPad++)
+        if (canTimesPads[iPad]->current) {
+            Names.push_back(canTimesPads[iPad]->current->GetName());
+            canTimesPads[iPad]->current->SetTitleSize(0.06, "XY");
+            canTimesPads[iPad]->current->SetLabelSize(0.08, "XY");
+            TAxis *ax = canTimesPads[iPad]->current->GetYaxis();
+            ax->SetTitleColor(kOrange + 10);
+            ax->SetTitleOffset(1.8);
+            ax->SetTitleFont(62);
+            ax = canTimesPads[iPad]->current->GetXaxis();
+            ax->SetTitleColor(kOrange + 10);
+        }
 }
 
 BmnHistToF::~BmnHistToF() {
     delete histL;
     delete histR;
     delete Events;
-//    fServer->Unregister(histAmp);
-//    fServer->Unregister(histAmpSpecific);
-//    fServer->Unregister(histStrip);
-//    fServer->Unregister(histStripSimult);
-//    fServer->Unregister(histState);
-//    fServer->Unregister(histLeadingTime);
-//    fServer->Unregister(histLeadingTimeSpecific);
-//    fServer->Unregister(this);
 }
 
 void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
@@ -117,6 +136,7 @@ void BmnHistToF::Register(THttpServer *serv) {
     fServer = serv;
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
+    fServer->Register(path, canTimes);
     fServer->Register(path, histAmp);
     fServer->Register(path, histAmpSpecific);
     fServer->Register(path, histStrip);
@@ -125,9 +145,15 @@ void BmnHistToF::Register(THttpServer *serv) {
     fServer->Register(path, histLeadingTime);
     fServer->Register(path, histLeadingTimeSpecific);
 
+    TString cmd = "/" + fName + "/->SetRefRun(%arg1%)";
+    TString cmdTitle = path + "SetRefRun";
+    fServer->RegisterCommand(cmdTitle.Data(), cmd.Data(), "button;");
+    fServer->Restrict(cmdTitle.Data(), "visible=shift");
+    fServer->Restrict(cmdTitle.Data(), "allow=shift");
+    fServer->Restrict(cmdTitle.Data(), "deny=guest");
     fServer->SetItemField(path.Data(), "_monitoring", "2000");
     fServer->SetItemField(path.Data(), "_layout", "grid3x3");
-    TString cmdTitle = path + "ChangeSlection";
+    cmdTitle = path + "ChangeSlection";
     fServer->RegisterCommand(cmdTitle, TString("/") + fName.Data() + "/->SetSelection(%arg1%,%arg2%,%arg3%)", "button;");
     fServer->Restrict(cmdTitle, "visible=shift");
     fServer->Restrict(cmdTitle, "allow=shift");
@@ -195,6 +221,20 @@ void BmnHistToF::Reset() {
     histStrip->Reset();
     histStripSimult->Reset();
     histState->Reset();
+}
+
+void BmnHistToF::DrawBoth() {
+    BmnHist::DrawRef(canTimes, &canTimesPads);
+}
+
+BmnStatus BmnHistToF::SetRefRun(Int_t id) {
+    TString FileName = Form("bmn_run%04d_hist.root", id);
+    printf("SetRefRun: %s\n", FileName.Data());
+    if (refRunName != FileName) {
+        refRunName = FileName;
+        refID = id;
+        BmnHist::LoadRefRun(refID, fTitle, canTimesPads, Names);
+    }
 }
 
 ClassImp(BmnHistToF);

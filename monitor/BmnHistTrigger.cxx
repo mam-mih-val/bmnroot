@@ -34,7 +34,7 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     histFDTimeLen = new TH1D(name, name, 300, 0, 1000);
     histFDTimeLen->GetXaxis()->SetTitle("Time, ns");
     histFDTimeLen->GetYaxis()->SetTitle("Activation Count");
-    name = fTitle + "_SD_Time";
+    name = fTitle + "_T0_Time";
     histSDTimeLen = new TH1D(name, name, 300, 0, 1000);
     histSDTimeLen->GetXaxis()->SetTitle("Time, ns");
     histSDTimeLen->GetYaxis()->SetTitle("Activation Count");
@@ -58,7 +58,7 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     histBDSpecific = new TH1D(name, name, 300, 0, 1000);
     histBDSpecific->GetXaxis()->SetTitle("Time, ns");
     histBDSpecific->GetYaxis()->SetTitle("Activation Count");
-    TString triggerNames[6] = {"BC1", "SD", "BC2", "VD", "FD", "BD"};
+    TString triggerNames[6] = {"BC1", "T0", "BC2", "VD", "FD", "BD"};
     name = fTitle + "_Counter";
     histTriggers = new TH1I(name, name, 6, 0, 6);
     histTriggers->GetXaxis()->SetTitle("Trigger Name");
@@ -119,7 +119,7 @@ void BmnHistTrigger::FillFromDigi(
     for (Int_t digIndex = 0; digIndex < SDdigits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* td1 = (BmnTrigDigit*) SDdigits->At(digIndex);
         histSDTimeLen->Fill(td1->GetTime());
-        histTriggers->Fill("SD", 1);
+        histTriggers->Fill("T0", 1);
     }
     for (Int_t digIndex = 0; digIndex < BC2digits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* td2 = (BmnTrigDigit*) BC2digits->At(digIndex);

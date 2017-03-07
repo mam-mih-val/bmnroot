@@ -38,7 +38,7 @@
 
 #define RAW_DECODER_SOCKET_PORT 9090
 #define RUN_FILE_CHECK_PERIOD    1e5
-#define DECO_SOCK_WAIT_PERIOD    1e2
+#define DECO_SOCK_WAIT_PERIOD    5e2
 #define DECO_SOCK_WAIT_LIMIT     5e4
 #define TTREE_MAX_SIZE          3e11
 
@@ -56,7 +56,7 @@ public:
     BmnMonitor();
     virtual ~BmnMonitor();
     void Monitor(TString dir, TString startFile = "", Bool_t runCurrent = kTRUE);
-    void MonitorStream(TString dir, TString refDir = "");
+    void MonitorStream(TString dir, TString refDir = "", TString decoAddr = "localhost");
     BmnStatus BatchDirectory(TString dirname);
     BmnStatus BatchList(TString*, Int_t count);
     void ProcessRun(TString digiName);
@@ -65,6 +65,7 @@ public:
     TString WatchNext(TString dirname, TString filename, Int_t cycleWait);
     static TString WatchNext(Int_t inotifDir, Int_t cycleWait);
     static void threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent);
+    static void threadCmdWrapper(string cmd);
     
     // Getters
     deque<UInt_t> * GetDataQue() { return fDataQue;}
@@ -123,6 +124,7 @@ private:
 
     Int_t fTest;
     Int_t fRunID;
+    Int_t fEvents;
     BmnWorkerState fState;
     Int_t itersToUpdate;
     Int_t decoTimeout;

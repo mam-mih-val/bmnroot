@@ -29,7 +29,6 @@
 
 #include "BmnHist.h"
 #include "BmnGemStripDigit.h"
-#include "BmnEventHeader.h"
 
 #define GEM_STATIONS_COUNT  7
 
@@ -59,14 +58,14 @@ public:
     vector<vector<vector<Int_t*> > > *GetNoiseMask(){
         return &maskGemStrip;
     }
-    vector<vector<vector<TH1F*  > > > histGemStrip;
-    vector<vector<vector<Int_t*> > > maskGemStrip;
     
 
 private:
+    vector<vector<vector<TH1F*  > > > histGemStrip;
+    vector<vector<vector<Int_t*> > > maskGemStrip;
     TCanvas *canGemStrip;
-    vector<PadInfo<TH1F>*> canGemStripPads;
-//    vector<PadInfo*> canGemStripPads;
+//    vector<PadInfo<TH1>*> canGemStripPads;
+    vector<PadInfo*> canGemStripPads;
     UInt_t sumMods;
     UInt_t maxLayers;
 //    vector<vector<vector<histNmask> > > maskGemStrip;

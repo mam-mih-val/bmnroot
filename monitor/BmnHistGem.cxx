@@ -21,8 +21,6 @@ const UInt_t moduleCount[GEM_STATIONS_COUNT] = {1, 1, 1, 1, 2, 2, 2};
 const UInt_t layersCount[GEM_STATIONS_COUNT] = {2, 4, 4, 4, 4, 4, 4};
 const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 1100, 1119};
 #define MAX_STRIPS 1020
-#define PAD_WIDTH   200
-#define PAD_HEIGHT  150
 
 BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : BmnHist() {
     refPath = path;
@@ -32,8 +30,6 @@ BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : Bm
     // Create canvas
     sumMods = accumulate(begin(moduleCount), end(moduleCount), 0);
     maxLayers = *max_element(begin(layersCount), end(layersCount));
-    printf("module sum = %d\n", sumMods);
-    printf("maxLayers  = %d\n", maxLayers);
     name = fTitle + "Canvas";
     canGemStrip = new TCanvas(name, name, PAD_WIDTH * maxLayers, PAD_HEIGHT * sumMods);
     canGemStrip->Divide(maxLayers, sumMods);
@@ -48,9 +44,9 @@ BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : Bm
                 h->SetTitleSize(0.06, "XY");
                 h->SetLabelSize(0.08, "XY");
                 h->GetXaxis()->SetTitle("Strip Number");
-                h->GetXaxis()->SetTitleColor(kOrange + 5);
+                h->GetXaxis()->SetTitleColor(kOrange + 10);
                 h->GetYaxis()->SetTitle("Activation Count");
-                h->GetYaxis()->SetTitleColor(kOrange + 5);
+                h->GetYaxis()->SetTitleColor(kOrange + 10);
                 colGEM.push_back(h);
             }
             rowGEM.push_back(colGEM);
@@ -76,7 +72,8 @@ BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : Bm
     for (Int_t stationIndex = 0; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
         for (Int_t moduleIndex = 0; moduleIndex < moduleCount[stationIndex]; moduleIndex++) {
             for (Int_t layerIndex = 0; layerIndex < layersCount[stationIndex]; layerIndex++) {
-                PadInfo<TH1F> *p = new PadInfo<TH1F>();
+//                PadInfo<TH1F> *p = new PadInfo<TH1F>();
+                PadInfo *p = new PadInfo();
                 p->current = histGemStrip[stationIndex][moduleIndex][layerIndex];
                 canGemStripPads[modCtr * maxLayers + layerIndex] = p;
             }
@@ -134,22 +131,7 @@ void BmnHistGem::SetDir(TFile *outFile, TTree *recoTree) {
 }
 
 void BmnHistGem::DrawBoth() {
-    for (Int_t iPad = 0; iPad < canGemStripPads.size(); iPad++) {
-        canGemStrip->cd(iPad + 1)->Clear();
-        if (!canGemStripPads[iPad]) continue;
-        if (canGemStripPads[iPad]->current)
-            canGemStripPads[iPad]->current->Draw();
-        if (canGemStripPads[iPad]->ref != NULL) {
-            Double_t k = (canGemStripPads[iPad]->ref->GetEntries() > 0) ?
-                    canGemStripPads[iPad]->current->GetEntries() /
-                    (Double_t)canGemStripPads[iPad]->ref->GetEntries() : 1;
-//            printf("current %f, ref %f, scale %f\n", canGemStripPads[iPad]->current->GetEntries(), canGemStripPads[iPad]->ref->GetEntries(), k);
-//            canGemStripPads[iPad]->ref->Scale(k);
-            canGemStripPads[iPad]->ref->Draw("same");
-        }
-    }
-    canGemStrip->Update();
-    canGemStrip->Modified();
+    BmnHist::DrawRef(canGemStrip, &canGemStripPads);
 }
 
 void BmnHistGem::FillFromDigi(TClonesArray * gemDigits) {
@@ -172,7 +154,7 @@ void BmnHistGem::FillFromDigiMasked(TClonesArray * gemDigits, vector<vector<vect
         Int_t gemStrip = gs->GetStripNumber();
         if ((*hist0)[station][module][layer]->GetBinContent((*hist0)[station][module][layer]->FindBin(gemStrip)) <= threshold * 0.7)
             histGemStrip[station][module][layer]->Fill(gemStrip);
-//            histGemStrip[station][module][layer]->AddBinContent(histGemStrip[station][module][layer]->FindBin(gemStrip));
+        //            histGemStrip[station][module][layer]->AddBinContent(histGemStrip[station][module][layer]->FindBin(gemStrip));
     }
 }
 
@@ -198,35 +180,35 @@ void BmnHistGem::ApplyNoiseMask(vector<vector<vector<TH1F*> > >* hist0, Double_t
 
 BmnStatus BmnHistGem::LoadRefRun(TString FileName) {
     printf("Loading ref histos\n");
-    canGemStripPads.clear();
-    canGemStripPads.resize(maxLayers * sumMods);
-//    if (refFile != NULL) delete refFile;
     refFile = new TFile(refPath + FileName, "read");
     if (refFile->IsOpen() == false) {
         printf("Cannot open file %s !\n", FileName.Data());
         return kBMNERROR;
     }
+    canGemStripPads.clear();
+    canGemStripPads.resize(maxLayers * sumMods);
     Int_t modCtr = 0;
     TString refName = Form("ref%06d_", refID);
     TString name;
-//    if (!refFile->cd((refName + "GEM_hists"))) {
-//        printf("Folder not found!\n");
-//        return kBMNERROR;
-//    }
     for (Int_t stationIndex = 0; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
         for (Int_t moduleIndex = 0; moduleIndex < moduleCount[stationIndex]; moduleIndex++) {
             for (Int_t layerIndex = 0; layerIndex < layersCount[stationIndex]; layerIndex++) {
-                name = Form(refName + fTitle + "_Station_%d_module_%d_layer_%d", stationIndex, moduleIndex, layerIndex);
-                PadInfo<TH1F> *p = new PadInfo<TH1F>();
+                name = Form(fTitle + "_Station_%d_module_%d_layer_%d", stationIndex, moduleIndex, layerIndex);
+//                PadInfo<TH1F> *p = new PadInfo<TH1F>();
+                PadInfo *p = new PadInfo();
                 p->current = histGemStrip[stationIndex][moduleIndex][layerIndex];
-//                p.ref = (TH1F*) gDirectory->Get(name.Data());
-//                TH1F* tempHist;
-                p->ref = (TH1F*) refFile->Get(refName + "GEM_hists/" + name);
-                if (p->ref == NULL)
-                p->ref = (TH1F*) refFile->Get(TString("GEM_hists/") + Form(fTitle + "_Station_%d_module_%d_layer_%d", stationIndex, moduleIndex, layerIndex)
-                        )->Clone(name);
-//                refFile->GetObject(refName + "GEM_hists/" + name, tempHist);
-//                p->ref = (TH1F*)(tempHist->Clone(name + "_qq"));
+                //                p.ref = (TH1F*) gDirectory->Get(name.Data());
+                //                TH1F* tempHist;
+                p->ref = (TH1F*) refFile->Get(refName + "GEM_hists/" + refName + name);
+                if (p->ref == NULL) {
+                    TH1F* tempH = (TH1F*) refFile->Get(TString("GEM_hists/") + name);
+                    if (tempH == NULL) {
+                        printf("Cannot load %s !\n", name.Data());
+                        continue;
+//                        return kBMNERROR;
+                    }
+                    p->ref = (TH1F*) (tempH->Clone(name));
+                }
                 p->ref->SetLineColor(kRed);
                 p->ref->SetDirectory(0);
                 canGemStripPads[modCtr * maxLayers + layerIndex] = p;
@@ -234,7 +216,7 @@ BmnStatus BmnHistGem::LoadRefRun(TString FileName) {
             modCtr++;
         }
     }
-//    refFile->Close();
+    //    refFile->Close();
     delete refFile;
     refFile = NULL;
     return kBMNSUCCESS;

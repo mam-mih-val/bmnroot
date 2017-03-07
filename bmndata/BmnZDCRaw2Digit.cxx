@@ -12,7 +12,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(){
   n_rec=0;
   n_test=0;
 }
-BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString CalibrationFile) {
+BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString CalibrationFile, TString MaxPositionFile) {
     for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
     for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
     for (int i=0; i<MAX_LOG_CHANNELS; i++) test_chan[i] = -1;
@@ -160,6 +160,40 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
     for (int i=0; i<maxchan; i++)
     {
 	printf("%d\t%f\t%f\n", i, cal[i], cale[i]);
+    }
+//----------------------------------
+    path1 = dir + "/input/";
+    MaxPos_min = 0;
+    MaxPos_max = 1000;
+    if (strlen(MaxPositionFile.Data()) == 0)
+    {
+	printf("\nNo cuts on samples wave max position.\n\n");
+    }
+    else
+    {
+	sprintf(filn, "%s%s", path1.Data(), MaxPositionFile.Data());
+	fin = fopen(filn,"r");
+	if (!fin)
+	{
+	    printf("\nCan't open samples wave max position file %s !\n", filn);
+	    printf("No cuts on samples wave max position.\n\n");
+	}
+	else
+	{
+	    Int_t runn;
+	    Float_t mpos = 10., msig = 2.;
+	    while (fscanf(fin, "%d %f %f\n", &runn, &mpos, &msig) == 3)
+	    {
+		if (runn == RUN)
+		{
+		    MaxPos_min = (int)(mpos - 2.*msig);
+		    MaxPos_max = (int)(mpos + 2.*msig + 0.5);
+		    printf("\nRun %d Samples wave Max position range %d - %d\n\n", runn, MaxPos_min, MaxPos_max);
+		    break;
+		}
+	    };
+	    fclose(fin);
+	}
     }
 //----------------------------------
     nevents = 0;
@@ -1132,8 +1166,17 @@ float BmnZDCRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 			    }
 			    else if (nsignal > nsignal_max)
 			    {
-				signal_max = signal;
-				nsignal_max = nsignal;
+				if (MaxPos_min <= ismax && MaxPos_max >= ismax)
+				{
+				    signal_max = signal;
+				    nsignal_max = nsignal;
+				}
+				else
+				{
+				    signal = 0.;
+				    nsignal = 0;
+				    nsignal_max = 0;
+				}
 			    }
 			}
 		    }
@@ -1141,7 +1184,11 @@ float BmnZDCRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 //		printf("Chan %d Amplmax %f Ped %f imax %d nsam %d\n",l,ampl_max,pedest[l],ismax,nsamples[l]);
 		if (nsignal_max > 0 || ampl_max > 0.)
 		{
-		  if (wave2amp_flag) signal_max = ampl_max;
+		  if (wave2amp_flag)
+		  {
+		    if (MaxPos_min <= ismax && MaxPos_max >= ismax) signal_max = ampl_max;
+		    else signal_max = 0.;
+		  }
 		}
 		else
 		{

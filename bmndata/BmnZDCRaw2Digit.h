@@ -45,7 +45,7 @@ public:
 class BmnZDCRaw2Digit{
 
 public:
-    BmnZDCRaw2Digit(TString mappingFile, TString runFile, TString calibrationFile = "");
+    BmnZDCRaw2Digit(TString mappingFile, TString runFile, TString calibrationFile = "", TString MaxPositionFile = "");
     BmnZDCRaw2Digit();
     void print();
 
@@ -122,6 +122,7 @@ private:
     int n_rec;
     float thres;
     int wave2amp_flag;
+    int MaxPos_min, MaxPos_max;
     int min_samples;
     int ped_samples;
     int use_meanxy;

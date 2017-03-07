@@ -30,6 +30,8 @@
 #include "BmnTrigDigit.h"
 #include "BmnEventHeader.h"
 #define BD_CHANNELS 40
+#define TRIG_ROWS    3
+#define TRIG_COLS    3
 
 class BmnHistTrigger : public BmnHist {
 public:
@@ -46,6 +48,9 @@ public:
             TClonesArray * FDdigits,
             TClonesArray * BDdigits);
     void Reset();
+    void DrawBoth();
+//    BmnStatus LoadRefRun(TString FileName);
+    BmnStatus  SetRefRun(Int_t id);
 
     void SetBDChannel(Int_t iSelChannel);
 
@@ -53,6 +58,8 @@ public:
         return fSelectedBDChannel;
     }
 
+private:
+    vector<TString> Names;
     TClonesArray *BDEvents;
     TH1D *histBC1TimeLen;
     TH1D *histBC2TimeLen;
@@ -60,9 +67,12 @@ public:
     TH1D *histVDTimeLen;
     TH1D *histFDTimeLen;
     TH1I *histBDChannels;
+    TH1I *histBDSimult;
+    TH1I *histBDTime;
     TH1D *histBDSpecific;
     TH1I *histTriggers;
-private:
+    TCanvas *canTimes;
+    vector<PadInfo*> canTimesPads;
     Int_t fSelectedBDChannel;
 
     ClassDef(BmnHistTrigger, 1)

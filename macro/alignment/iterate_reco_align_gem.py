@@ -32,13 +32,18 @@
 # "run5-458:../digits_run5/bmn_run0458_digi.root"
 # then the geometry is obtained from the Unified Database.
 #
-# However, if the file name is like
-# "bmn_run05_Glob_000812_digi.root", then nothing to do: the geometry will be
-# obtained from the Unified Database automatically without any prefix, although
-# if prefix is still used, it also works correctly.
+#
+## Not implemented yet in run_reco_bmn.C:
+##
+## However, if the file name is like
+## "bmn_run05_Glob_000812_digi.root", then nothing to do: the geometry will be
+## obtained from the Unified Database automatically without any prefix, although
+## if prefix is still used, it also works correctly.
 #
 # nStartEvent - number (start with zero) of first event to process, default: 0
 # nEvents - number of events to process
+#
+# Anatoly.Solomin@jinr.ru 2017-02-16
 # -----------------------------------------------------------------------------
 #!/usr/bin/python
 import   os
@@ -150,16 +155,16 @@ def main() :
         # counter of total events processed for the alignment:
         nEventsTotal = 0
         for digiFileName in digiFileNames :
-            print 'digiFileName                   = '+digiFileName
+           #print 'digiFileName                   = '+digiFileName
             # Define bmndstFileName by replacing 'digi' with 'bmndst'
             # and add addInfo and itNr,
             # e.g. 'bmn_run05_Glob_000812_digi.root'  -->  'bmn_run05_Glob_000812_tilted_beams_bmndst_it01.root'
             if options.addInfo != '' :
                 bmndstFileName = digiFileName.replace('digi', options.addInfo+'_bmndst_it'+itNr)
-                print 'bmndstFileName                 = '+bmndstFileName
+               #print 'bmndstFileName                 = '+bmndstFileName
             else :
                 bmndstFileName = digiFileName.replace('digi',                  'bmndst_it'+itNr)
-                print 'bmndstFileName                 = '+bmndstFileName
+               #print 'bmndstFileName                 = '+bmndstFileName
             # and memorise it in the list that will be used during alignment:
             bmndstFileNames.append(bmndstFileName+'\n')
 
@@ -197,20 +202,22 @@ def main() :
         # e.g. 'bmn_run05_Glob_filelist_tilted_beams_bmndst_it01.txt'  -->  'bmn_run05_Glob_tilted_beams_new_align_it01.root'
 
         # And now run the alignment:
-        call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/gemAlignment_new.C("'+bmndstFileListFileName+'", "'+newAlignCorrFileName+'", '+str(nEventsTotal)+')'])
+        call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/determine_align_corrections_gem.C("'+bmndstFileListFileName+'", "'+newAlignCorrFileName+'", '+str(nEventsTotal)+')'])
         # the already used for the reconstruction sumAlignCorrFileName
         # now becomes the previous one:
+        print 'just used for the reconstruction files were:'
         print 'preAlignCorrFileName           = '+preAlignCorrFileName
         print 'sumAlignCorrFileName           = '+sumAlignCorrFileName
         preAlignCorrFileName =  sumAlignCorrFileName
         # and the new sumAlignCorrFileName will be:
         sumAlignCorrFileName =  newAlignCorrFileName.replace('new_', 'sum_')
+        print 'new files will be:'
         print 'preAlignCorrFileName           = '+preAlignCorrFileName
         print 'sumAlignCorrFileName           = '+sumAlignCorrFileName
         if iterNr==1 and options.startAlignCorrFileName=='' :
             call(['cp', newAlignCorrFileName, sumAlignCorrFileName]) # if we started from from scratch
         else : # update sumAlignCorrFileName file and at next iteration use it
-            call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/update_align_corr.C("'+preAlignCorrFileName+'", "'+newAlignCorrFileName+'", "'+sumAlignCorrFileName+'")'])
+            call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/update_align_correction_gem.C("'+preAlignCorrFileName+'", "'+newAlignCorrFileName+'", "'+sumAlignCorrFileName+'")'])
 
 if __name__ == "__main__" :
     main()

@@ -55,7 +55,7 @@ BmnStatus BmnTrigRaw2Digit::readINLCorrections(TString INLFile) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time, Double_t *t0width) {
+BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *trigger, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time, Double_t *t0width) {
 
     for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
         BmnTrigMapping tM = fMap[iMap];
@@ -91,6 +91,9 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClon
     		    if (t0width) *t0width = tT - tL;
                     TClonesArray& ar_t0 = *t0;
                     if (t0) new(ar_t0[t0->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
+                } else if (tM.name == "TRIGGER") {
+                    TClonesArray& ar_trig = *trigger;
+                    if (trigger) new(ar_trig[trigger->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
                 } else if (tM.name == "BC1") {
                     TClonesArray& ar_bc1 = *bc1;
                     if (bc1) new(ar_bc1[bc1->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);

@@ -59,6 +59,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fMaxEvent = 0;
     fLengthRawFile = 0;
     fCurentPositionRawFile = 0;
+    trigger = NULL;
     t0 = NULL;
     bc1 = NULL;
     bc2 = NULL;
@@ -124,6 +125,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
 
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
 
+    trigger = NULL;
     t0 = NULL;
     runHeaderDAQ = NULL;
     eventHeaderDAQ = NULL;
@@ -809,7 +811,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         curEventType = headDAQ->GetType();
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig());
 
-        if (fTrigMapper) fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
+        if (fTrigMapper) fTrigMapper->FillEvent(tdc, trigger, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
 
         if (curEventType == kBMNPEDESTAL) {
             if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
@@ -885,12 +887,14 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
     if (fDetectorSetup[0]) {
+        trigger = new TClonesArray("BmnTrigDigit");
         t0 = new TClonesArray("BmnTrigDigit");
         bc1 = new TClonesArray("BmnTrigDigit");
         bc2 = new TClonesArray("BmnTrigDigit");
         bd = new TClonesArray("BmnTrigDigit");
         fd = new TClonesArray("BmnTrigDigit");
         veto = new TClonesArray("BmnTrigDigit");
+        fDigiTree->Branch("TRIGGER", &trigger);
         fDigiTree->Branch("T0", &t0);
         fDigiTree->Branch("BC1", &bc1);
         fDigiTree->Branch("BC2", &bc2);
@@ -973,6 +977,7 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (tof700) tof700->Clear();
     if (zdc) zdc->Clear();
     if (ecal) ecal->Clear();
+    if (trigger) trigger->Clear();
     if (t0) t0->Clear();
     if (bc1) bc1->Clear();
     if (bc2) bc2->Clear();
@@ -997,7 +1002,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
     fCurEventType = headDAQ->GetType();
 
-    if (fTrigMapper) fTrigMapper->FillEvent(tdc, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
+    if (fTrigMapper) fTrigMapper->FillEvent(tdc, trigger, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
 
     if (fCurEventType == kBMNPEDESTAL) {
         if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) return kBMNERROR; //FIX return!
@@ -1088,6 +1093,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (gem) delete gem;
     if (dch) delete dch;
     if (mwpc) delete mwpc;
+    if (trigger) delete trigger;
     if (t0) delete t0;
     if (bc1) delete bc1;
     if (bc2) delete bc2;
@@ -1207,7 +1213,7 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
             continue;
         }
 
-        fTrigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
+        fTrigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
 
         fTof700Mapper->fillSlewingT0(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1229,7 +1235,7 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
             continue;
         }
 
-        fTrigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
+        fTrigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
 
         fTof700Mapper->fillSlewing(tdc, &fTimeShifts, fT0Time, fT0Width);
     }

@@ -55,6 +55,7 @@ public:
         dch = NULL;
         mwpc = NULL;
         silicon = NULL;
+        trigger = NULL;
         t0 = NULL;
         bc1 = NULL;
         bc2 = NULL;
@@ -77,6 +78,7 @@ public:
         if (header) delete header;
         if (mwpc) delete mwpc;
         if (silicon) delete silicon;
+        if (trigger) delete trigger;
         if (t0) delete t0;
         if (tof400) delete tof400;
         if (tof700) delete tof700;
@@ -92,6 +94,7 @@ public:
     TClonesArray *ecal; 
     TClonesArray *dch; 
     TClonesArray *mwpc; 
+    TClonesArray *trigger; 
     TClonesArray *t0; 
     TClonesArray *bc1; 
     TClonesArray *bc2; 
@@ -147,6 +150,7 @@ public:
         d.ecal = ecal;
         d.dch = dch;
         d.mwpc = mwpc;
+        d.trigger = trigger;
         d.t0 = t0;
         d.bc1 = bc1;
         d.bc2 = bc2;
@@ -344,6 +348,7 @@ private:
     TClonesArray *ecal;
     TClonesArray *dch;
     TClonesArray *mwpc;
+    TClonesArray *trigger;
     TClonesArray *t0;
     TClonesArray *bc1;
     TClonesArray *bc2;

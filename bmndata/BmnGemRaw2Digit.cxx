@@ -336,9 +336,10 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree * tree) {
         noises[i] = new Double_t[nSmpl];
     }
 
+    cout << "Pedestals calculation..." << endl;
     UInt_t nEv = tree->GetEntries();
     for (Int_t iEv = 0; iEv < nEv; ++iEv) {
-        if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
+        //        if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
         tree->GetEntry(iEv);
         for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
@@ -359,9 +360,9 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree * tree) {
         for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
             pedestals[iAdc][iSmpl] /= nEv;
 
-
+    cout << "RMS calculation..." << endl;
     for (Int_t iEv = 0; iEv < nEv; ++iEv) {
-        if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
+        //        if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
         tree->GetEntry(iEv);
         for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
@@ -472,9 +473,9 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
                 fAdcProfiles[iCr][iCh][iSmpl] = 0;
             }
         }
-
+    cout << "Pedestals calculation..." << endl;
     for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-        if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
+        //        if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
         for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
             for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
                 Double_t signals[nSmpl];
@@ -492,8 +493,9 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
             }
     }
 
+    cout << "RMS calculation..." << endl;
     for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-        if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
+        //        if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
         for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
             for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
                 Double_t signals[nSmpl];
@@ -517,8 +519,9 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
             for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
                 fPedRms[iCr][iCh][iSmpl] = Sqrt(fPedRms[iCr][iCh][iSmpl] / N_EV_FOR_PEDESTALS);
 
+    cout << "Profile filling..." << endl;
     for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-        if (iEv % 100 == 0) cout << "Profile filling: read event #" << iEv << endl;
+        //        if (iEv % 100 == 0) cout << "Profile filling: read event #" << iEv << endl;
         for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
             for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
                 Double_t signals[nSmpl];

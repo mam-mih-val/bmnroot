@@ -10,9 +10,9 @@
 #include   <TString.h>
 #include   <TTree.h>
 
-void update_align_correction_gem(TString preAlignCorrFileName,
-                                 TString newAlignCorrFileName,
-                                 TString sumAlignCorrFileName)
+void update_align_corrections_gem(TString preAlignCorrFileName,
+                                  TString newAlignCorrFileName,
+                                  TString sumAlignCorrFileName)
 {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries

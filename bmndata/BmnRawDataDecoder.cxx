@@ -837,27 +837,28 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 UInt_t fT = runHeaderDAQ->GetFinishTime().GetTime();
                 UInt_t sD = runHeaderDAQ->GetStartTime().GetDate();
                 UInt_t fD = runHeaderDAQ->GetFinishTime().GetDate();
-                Int_t nEv = (Int_t)runHeaderDAQ->GetNEvents();
+                Int_t nEv = (Int_t) runHeaderDAQ->GetNEvents();
                 TDatime sDatime(sD / 10000, sD % 10000 / 100, sD % 100, sT / 10000, sT % 10000 / 100, sT % 100);
                 TDatime fDatime(fD / 10000, fD % 10000 / 100, fD % 100, fT / 10000, fT % 10000 / 100, fT % 100);
                 Double_t fSize = Double_t(fLengthRawFile);
+                UInt_t runId = runHeaderDAQ->GetRunId();
 
-                runHeader->SetRunId(runHeaderDAQ->GetRunId());
+                runHeader->SetRunId(runId);
                 runHeader->SetStartTime(runHeaderDAQ->GetStartTime());
                 runHeader->SetFinishTime(runHeaderDAQ->GetFinishTime());
                 runHeader->SetNEvents(nEv);
 
                 printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
-                printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runHeader->GetRunId());
+                printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runId);
                 printf(ANSI_COLOR_RED "SUMMARY ===============\n" ANSI_COLOR_RESET);
                 printf("START (event 1):\t%d/%02d/%02d\t", sD / 10000, sD % 10000 / 100, sD % 100);
                 printf("%02d:%02d:%02d\n", sT / 10000, sT % 10000 / 100, sT % 100);
                 printf("FINISH (event %d):\t%d/%02d/%02d\t", fEventId, fD / 10000, fD % 10000 / 100, fD % 100);
                 printf("%02d:%02d:%02d\n", fT / 10000, fT % 10000 / 100, fT % 100);
                 printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
-                
-                if (!UniDbRun::GetRun(fPeriodId, runHeaderDAQ->GetRunId()))
-                    UniDbRun::CreateRun(fPeriodId, runHeaderDAQ->GetRunId(), "", "", NULL, NULL, sDatime, &fDatime, &nEv, NULL, &fSize, NULL);
+
+                if (!UniDbRun::GetRun(fPeriodId, runId))
+                    UniDbRun::CreateRun(fPeriodId, runId, TString::Format("/nica/data4mpd1/dataBMN/bmndata2/run6/raw/mpd_run_Glob_%d.data", runId), "", NULL, NULL, sDatime, &fDatime, &nEv, NULL, &fSize, NULL);
             }
         }
         fDigiTree->Fill();

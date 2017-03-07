@@ -1,12 +1,20 @@
+// -----------------------------------------------------------------------------
+// This macro determins misalignments of the BM@N GEM station modules in terms
+// of X, Y, and Z coordinates in cm.
+//
+// Anatoly.Solomin@jinr.ru 2017-02-16
+//
+// Derived from original gemAlignment.C macro created by Pavel.Batyk@jinr.ru 2016-11
+
 #include  <fstream>
 #include  <string>
 #include  <TString.h>
 #include  <TStopwatch.h>
 using namespace std;
 
-void gemAlignment_new(TString bmndstFileListFileName = "filelist_bmndst_it00.txt",
-                      TString newAlignCorrFileName   = "",
-                      UInt_t  nEvents                =  10000)
+void determine_align_corrections_gem(TString bmndstFileListFileName = "filelist_bmndst_it00.txt",
+                                     TString newAlignCorrFileName   = "",
+                                     UInt_t  nEvents                =  10000)
 {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries

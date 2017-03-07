@@ -76,21 +76,25 @@ void add_GEM_local_mapping() {
     ReadAndPut(path + TString("GEM_Y0_Big_Right_period_5.txt"), Y0_big_r);
     ReadAndPut(path + TString("GEM_Y1_Big_Left_period_5.txt"), Y1_big_l);
     ReadAndPut(path + TString("GEM_Y1_Big_Right_period_5.txt"), Y1_big_r);
+    
+    UInt_t period = 6;
+    UInt_t runMin = 1;
+    UInt_t runMax = 1e4;
 
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X_small", 5, 419, 5, 1e4, X_small, kNchXsmall);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y_small", 5, 419, 5, 1e4, Y_small, kNchYsmall);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X0_middle", 5, 419, 5, 1e4, X0_mid, kNchX0mid);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y0_middle", 5, 419, 5, 1e4, Y0_mid, kNchY0mid);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X1_middle", 5, 419, 5, 1e4, X1_mid, kNchX1mid);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y1_middle", 5, 419, 5, 1e4, Y1_mid, kNchY1mid);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X0_Big_Left", 5, 419, 5, 1e4, X0_big_l, kNchX0big_l);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X0_Big_Right", 5, 419, 5, 1e4, X0_big_r, kNchX0big_r);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X1_Big_Left", 5, 419, 5, 1e4, X1_big_l, kNchX1big_l);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X1_Big_Right", 5, 419, 5, 1e4, X1_big_r, kNchX1big_r);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y0_Big_Left", 5, 419, 5, 1e4, Y0_big_l, kNchY0big_l);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y0_Big_Right", 5, 419, 5, 1e4, Y0_big_r, kNchY0big_r);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y1_Big_Left", 5, 419, 5, 1e4, Y1_big_l, kNchY1big_l);
-    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y1_Big_Right", 5, 419, 5, 1e4, Y1_big_r, kNchY1big_r);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X_small", period, runMin, period, runMax, X_small, kNchXsmall);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y_small", period, runMin, period, runMax, Y_small, kNchYsmall);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X0_middle", period, runMin, period, runMax, X0_mid, kNchX0mid);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y0_middle", period, runMin, period, runMax, Y0_mid, kNchY0mid);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X1_middle", period, runMin, period, runMax, X1_mid, kNchX1mid);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y1_middle", period, runMin, period, runMax, Y1_mid, kNchY1mid);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X0_Big_Left", period, runMin, period, runMax, X0_big_l, kNchX0big_l);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X0_Big_Right", period, runMin, period, runMax, X0_big_r, kNchX0big_r);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X1_Big_Left", period, runMin, period, runMax, X1_big_l, kNchX1big_l);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_X1_Big_Right", period, runMin, period, runMax, X1_big_r, kNchX1big_r);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y0_Big_Left", period, runMin, period, runMax, Y0_big_l, kNchY0big_l);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y0_Big_Right", period, runMin, period, runMax, Y0_big_r, kNchY0big_r);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y1_Big_Left", period, runMin, period, runMax, Y1_big_l, kNchY1big_l);
+    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_Y1_Big_Right", period, runMin, period, runMax, Y1_big_r, kNchY1big_r);
 
     // clean memory after work
     delete [] X_small;

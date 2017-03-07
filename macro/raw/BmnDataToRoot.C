@@ -7,7 +7,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
 {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
-    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 5); //5 - period
+    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //5 - period
     
     Bool_t setup[9]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
@@ -26,7 +26,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     decoder->SetTrigINLFile("TRIG_INL.txt");
     // in case comment out the line decoder->SetTof400Mapping("...")  
     // the maps of TOF400 will be readed from DB (only for JINR network)
-    decoder->SetTof400Mapping("TOF400_PlaceMap_Period5_v3.txt", "TOF400_StripMap_Period5_v3.txt");
+    decoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
     decoder->SetTof700Mapping("TOF700_map_period_5.txt");
     decoder->SetZDCMapping("ZDC_map_period_5.txt");
     decoder->SetZDCCalibration("zdc_muon_calibration.txt");

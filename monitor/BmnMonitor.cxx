@@ -39,34 +39,46 @@ BmnMonitor::BmnMonitor() {
     bhDCH = NULL;
     bhMWPC = NULL;
     bhTrig = NULL;
+    bhGem_4show = NULL;
+    bhToF400_4show = NULL;
+    bhToF700_4show = NULL;
+    bhDCH_4show = NULL;
+    bhMWPC_4show = NULL;
+    bhTrig_4show = NULL;
+    rawDataDecoder = NULL;
 }
 
 BmnMonitor::~BmnMonitor() {
 
-    delete bhGem;
-    delete bhToF400;
-    delete bhToF700;
-    delete bhDCH;
-    delete bhMWPC;
-    delete bhTrig;
+    printf("1\n");
+    if (bhGem) delete bhGem;
+    if (bhToF400) delete bhToF400;
+    if (bhToF700) delete bhToF700;
+    if (bhDCH) delete bhDCH;
+    if (bhMWPC) delete bhMWPC;
+    if (bhTrig) delete bhTrig;
 
     //    delete fRecoTree;
     if (fHistOut != NULL)
         delete fHistOut;
+    printf("2\n");
+    //    fServer->Unregister(infoCanvas);
+    if (infoCanvas) delete infoCanvas;
 
-    fServer->Unregister(infoCanvas);
-    delete infoCanvas;
-
-    delete bhGem_4show;
-    delete bhToF400_4show;
-    delete bhToF700_4show;
-    delete bhDCH_4show;
-    delete bhMWPC_4show;
-    delete bhTrig_4show;
-    delete fServer;
-    rawDataDecoder->DisposeDecoder();
-    delete rawDataDecoder;
-    delete _fileList;
+    printf("3\n");
+    if (bhGem_4show) delete bhGem_4show;
+    printf("4\n");
+    if (bhToF400_4show) delete bhToF400_4show;
+    if (bhToF700_4show) delete bhToF700_4show;
+    if (bhDCH_4show) delete bhDCH_4show;
+    if (bhMWPC_4show) delete bhMWPC_4show;
+    if (bhTrig_4show) delete bhTrig_4show;
+    if (fServer) delete fServer;
+    if (rawDataDecoder) {
+        rawDataDecoder->DisposeDecoder();
+        delete rawDataDecoder;
+    }
+    if (_fileList) delete _fileList;
 }
 
 void BmnMonitor::Monitor(TString dirname, TString startFile, Bool_t runCurrent) {
@@ -146,7 +158,7 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir, TString decoAddr
         sel = mon->Select(DECO_SOCK_WAIT_PERIOD);
         if (sel == (TSocket *) - 1) { // timeout
             decoTimeout += DECO_SOCK_WAIT_PERIOD;
-            DBG("mon select timeout")
+            //            DBG("mon select timeout")
             if ((decoTimeout > DECO_SOCK_WAIT_LIMIT) && (fState == kBMNWORK)) {
                 FinishRun();
                 fState = kBMNWAIT;
@@ -603,6 +615,13 @@ void BmnMonitor::RegisterAll() {
     bhTrig_4show->Register(fServer);
     fServer->Register("/", refList);
     DBG("histograms registered")
+
+    bhGem_4show->SetRefPath(_refDir);
+    bhDCH_4show->SetRefPath(_refDir);
+    bhMWPC_4show->SetRefPath(_refDir);
+    bhToF400_4show->SetRefPath(_refDir);
+    bhToF700_4show->SetRefPath(_refDir);
+    bhTrig_4show->SetRefPath(_refDir);
 }
 
 void BmnMonitor::UpdateRuns() {
@@ -634,24 +653,25 @@ void BmnMonitor::FinishRun() {
             //    bhTrig->SetDir(NULL, fRecoTree);
     if (fRecoTree)
         printf("fRecoTree Write result = %d\n", fRecoTree->Write());
-    printf("fHistOut  Write result = %d\n", fHistOut->Write());
-    //    DBG("list deleted")
-    //            fRecoTree->Clear();
-    //    DBG("tree cleared")
-    //            delete fRecoTree;
-    //    DBG("tree deleted")
-    //    DBG("fHist closed")
-    string cmd;
-    cmd = string("chmod 775 ") + fHistOut->GetName();
-    printf("system result = %d\n", system(cmd.c_str()));
+    if (fHistOut) {
+        printf("fHistOut  Write result = %d\n", fHistOut->Write());
+        //    DBG("list deleted")
+        //            fRecoTree->Clear();
+        //    DBG("tree cleared")
+        //            delete fRecoTree;
+        //    DBG("tree deleted")
+        //    DBG("fHist closed")
+        string cmd;
+        cmd = string("chmod 775 ") + fHistOut->GetName();
+        printf("system result = %d\n", system(cmd.c_str()));
 
-    cmd = string("hadd -f shorter.root ") + fHistOut->GetName() +
-            string("; mv shorter.root ") + fHistOut->GetName();
-//    printf("system result = %d\n", system(cmd.c_str()));
-    std::thread threadHAdd(BmnMonitor::threadCmdWrapper, cmd);
-    if (threadHAdd.joinable())
-        threadHAdd.detach();
-
+        cmd = string("hadd -f shorter.root ") + fHistOut->GetName() +
+                string("; mv shorter.root ") + fHistOut->GetName();
+        //    printf("system result = %d\n", system(cmd.c_str()));
+        std::thread threadHAdd(BmnMonitor::threadCmdWrapper, cmd);
+        if (threadHAdd.joinable())
+            threadHAdd.detach();
+    }
     //    bhGem->SetDir(NULL, fRecoTree);
     //    bhDCH->SetDir(NULL, fRecoTree);
     //    bhMWPC->SetDir(NULL, fRecoTree);

@@ -76,6 +76,7 @@ BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : Bm
                 PadInfo *p = new PadInfo();
                 p->current = histGemStrip[stationIndex][moduleIndex][layerIndex];
                 canGemStripPads[modCtr * maxLayers + layerIndex] = p;
+                canGemStrip->GetPad(modCtr * maxLayers + layerIndex + 1)->SetGrid();
             }
             modCtr++;
         }

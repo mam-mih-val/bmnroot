@@ -19,7 +19,7 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     fSelectedBDChannel = -1;
     BDEvents = new TClonesArray("BmnTrigDigit");
     TString name;
-    name = fTitle + "_BC1_Time_Length";
+    name = fTitle + "_BC1_Time";
     histBC1TimeLen = new TH1D(name, name, 300, 0, 1000);
     //                histBC1TimeLen->SetTitleSize(0.08, "XY");
     //                histBC1TimeLen->SetLabelSize(0.08, "XY");
@@ -86,8 +86,17 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     canTimesPads[7]->current = histSDTimeLen;
     canTimesPads[8]->current = histBDTime;
     for (Int_t iPad = 0; iPad < canTimesPads.size(); iPad++)
-        if (canTimesPads[iPad]->current)
+        if (canTimesPads[iPad]->current) {
             Names.push_back(canTimesPads[iPad]->current->GetName());
+            canTimesPads[iPad]->current->SetTitleSize(0.06, "XY");
+            canTimesPads[iPad]->current->SetLabelSize(0.08, "XY");
+            TAxis *ax = canTimesPads[iPad]->current->GetYaxis();
+            ax->SetTitleColor(kOrange + 10);
+            ax->SetTitleOffset(1.8);
+            ax->SetTitleFont(62);
+            ax = canTimesPads[iPad]->current->GetXaxis();
+            ax->SetTitleColor(kOrange + 10);
+        }
 }
 
 BmnHistTrigger::~BmnHistTrigger() {

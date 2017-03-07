@@ -51,9 +51,9 @@ void BmnOnlineDecoder::InitDecoder() {
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetRunId(1000);
     rawDataDecoder->SetPeriodId(5);
-    rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
+    rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
-    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_Period5_v3.txt", "TOF400_StripMap_Period5_v3.txt");
+    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
     rawDataDecoder->SetTof700Mapping("TOF700_map_period_5.txt");
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
@@ -65,7 +65,7 @@ void BmnOnlineDecoder::InitDecoder() {
 
 void BmnOnlineDecoder::InitDecoder(TString file) {
     DBG("started")
-    rawDataDecoder = new BmnRawDataDecoder(file, 0, 5);
+    rawDataDecoder = new BmnRawDataDecoder(file, 0, 6);
     Bool_t setup[9]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
@@ -78,16 +78,15 @@ void BmnOnlineDecoder::InitDecoder(TString file) {
     setup[7] = 0; // ZDC
     setup[8] = 0; // ECAL
     rawDataDecoder->SetDetectorSetup(setup);
-    rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
+    rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
-    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_Period5_v3.txt", "TOF400_StripMap_Period5_v3.txt");
+    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
     rawDataDecoder->SetTof700Mapping("TOF700_map_period_5.txt");
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
     rawDataDecoder->InitConverter();
     rawDataDecoder->InitDecoder();
-
 }
 
 BmnStatus BmnOnlineDecoder::Accept() {

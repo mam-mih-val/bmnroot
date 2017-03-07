@@ -19,7 +19,7 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     fSelectedBDChannel = -1;
     BDEvents = new TClonesArray("BmnTrigDigit");
     TString name;
-    name = fTitle + "_BC1_Time_Length";
+    name = fTitle + "_BC1_Time";
     histBC1TimeLen = new TH1D(name, name, 300, 0, 1000);
     //                histBC1TimeLen->SetTitleSize(0.08, "XY");
     //                histBC1TimeLen->SetLabelSize(0.08, "XY");
@@ -34,7 +34,7 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     histFDTimeLen = new TH1D(name, name, 300, 0, 1000);
     histFDTimeLen->GetXaxis()->SetTitle("Time, ns");
     histFDTimeLen->GetYaxis()->SetTitle("Activation Count");
-    name = fTitle + "_SD_Time";
+    name = fTitle + "_T0_Time";
     histSDTimeLen = new TH1D(name, name, 300, 0, 1000);
     histSDTimeLen->GetXaxis()->SetTitle("Time, ns");
     histSDTimeLen->GetYaxis()->SetTitle("Activation Count");
@@ -58,7 +58,7 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     histBDSpecific = new TH1D(name, name, 300, 0, 1000);
     histBDSpecific->GetXaxis()->SetTitle("Time, ns");
     histBDSpecific->GetYaxis()->SetTitle("Activation Count");
-    TString triggerNames[6] = {"BC1", "SD", "BC2", "VD", "FD", "BD"};
+    TString triggerNames[6] = {"BC1", "T0", "BC2", "VD", "FD", "BD"};
     name = fTitle + "_Counter";
     histTriggers = new TH1I(name, name, 6, 0, 6);
     histTriggers->GetXaxis()->SetTitle("Trigger Name");
@@ -86,8 +86,17 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     canTimesPads[7]->current = histSDTimeLen;
     canTimesPads[8]->current = histBDTime;
     for (Int_t iPad = 0; iPad < canTimesPads.size(); iPad++)
-        if (canTimesPads[iPad]->current)
+        if (canTimesPads[iPad]->current) {
             Names.push_back(canTimesPads[iPad]->current->GetName());
+            canTimesPads[iPad]->current->SetTitleSize(0.06, "XY");
+            canTimesPads[iPad]->current->SetLabelSize(0.08, "XY");
+            TAxis *ax = canTimesPads[iPad]->current->GetYaxis();
+            ax->SetTitleColor(kOrange + 10);
+            ax->SetTitleOffset(1.8);
+            ax->SetTitleFont(62);
+            ax = canTimesPads[iPad]->current->GetXaxis();
+            ax->SetTitleColor(kOrange + 10);
+        }
 }
 
 BmnHistTrigger::~BmnHistTrigger() {
@@ -110,7 +119,7 @@ void BmnHistTrigger::FillFromDigi(
     for (Int_t digIndex = 0; digIndex < SDdigits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* td1 = (BmnTrigDigit*) SDdigits->At(digIndex);
         histSDTimeLen->Fill(td1->GetTime());
-        histTriggers->Fill("SD", 1);
+        histTriggers->Fill("T0", 1);
     }
     for (Int_t digIndex = 0; digIndex < BC2digits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* td2 = (BmnTrigDigit*) BC2digits->At(digIndex);

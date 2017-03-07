@@ -25,22 +25,25 @@ BmnHist::~BmnHist() {
 
 void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
     Double_t maxy;
-    //    Double_t k = 1;
+    Double_t k = 1;
     for (Int_t iPad = 0; iPad < canGemStripPads->size(); iPad++) {
         TVirtualPad *pad = canGemStrip->cd(iPad + 1);
         pad->Clear();
         if (!canGemStripPads->at(iPad)) continue;
         if (canGemStripPads->at(iPad)->current) {
-            //            maxy = canGemStripPads->at(iPad)->current->GetMaximum();
+            maxy = canGemStripPads->at(iPad)->current->GetBinContent(canGemStripPads->at(iPad)->current->GetMaximumBin());
             canGemStripPads->at(iPad)->current->Draw();
             if (canGemStripPads->at(iPad)->ref != NULL) {
-                //                k = (canGemStripPads[iPad]->ref->GetEntries() > 0) ?
-                //                        canGemStripPads[iPad]->current->GetEntries() /
-                //                        (Double_t) canGemStripPads[iPad]->ref->GetEntries() : 1;
-                if (canGemStripPads->at(iPad)->ref->GetEntries() > 0)
-                    canGemStripPads->at(iPad)->ref->DrawNormalized("same hist", canGemStripPads->at(iPad)->current->GetEntries());
+                k = (canGemStripPads->at(iPad)->ref->Integral() > 0) ?
+                        canGemStripPads->at(iPad)->current->Integral() /
+                        (Double_t) canGemStripPads->at(iPad)->ref->Integral() : 1;
+                if (canGemStripPads->at(iPad)->ref->Integral() > 0)
+                    canGemStripPads->at(iPad)->ref->DrawNormalized("same hist", canGemStripPads->at(iPad)->current->Integral());
+                k = k * canGemStripPads->at(iPad)->ref->GetBinContent(canGemStripPads->at(iPad)->ref->GetMaximumBin());
+                if (maxy < k)
+                    maxy = k;
+                canGemStripPads->at(iPad)->current->GetYaxis()->SetRangeUser(0, maxy * 1.05);
             }
-            //            canGemStripPads->at(iPad)->current->GetYaxis()->SetRangeUser(0, maxy);
         }
         //        pad->Update();
         pad->Modified();

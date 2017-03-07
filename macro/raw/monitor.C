@@ -1,5 +1,5 @@
 
-void monitor(TString dirName = "/bmn/run/current/", TString refDir = "/bmn/test/mon/", TString decoAddr = "localhost") {
+void monitor(TString dirName = "/bmn/test/mon/", TString refDir = "/bmn/test/mon/", TString decoAddr = "localhost") {
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();

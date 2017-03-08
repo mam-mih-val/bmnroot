@@ -361,11 +361,12 @@ TString BmnMonitor::WatchNext(Int_t inotifDir, Int_t cycleWait) {
 }
 
 BmnStatus BmnMonitor::CreateFile(Int_t runID) {
-    DBG("opening file")
     UpdateRuns();
     TString outHistName = Form("bmn_run%04d_hist.root", runID);
     fRecoTree = NULL;
     fHistOut = new TFile(outHistName, "recreate");
+    if (fHistOut)
+        printf("file %s created\n", outHistName.Data());
     fRecoTree = new TTree("BmnMon", "BmnMon");
     fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
     if (fRecoTree4Show) {
@@ -669,10 +670,10 @@ void BmnMonitor::FinishRun() {
 
         cmd = string("hadd -f shorter.root ") + fHistOut->GetName() +
                 string("; mv shorter.root ") + fHistOut->GetName();
-        //    printf("system result = %d\n", system(cmd.c_str()));
-        std::thread threadHAdd(BmnMonitor::threadCmdWrapper, cmd);
-        if (threadHAdd.joinable())
-            threadHAdd.detach();
+           printf("system result = %d\n", system(cmd.c_str()));
+        //std::thread threadHAdd(BmnMonitor::threadCmdWrapper, cmd);
+        //if (threadHAdd.joinable())
+        //    threadHAdd.detach();
     }
     //    bhGem->SetDir(NULL, fRecoTree);
     //    bhDCH->SetDir(NULL, fRecoTree);

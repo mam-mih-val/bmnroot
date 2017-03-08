@@ -39,7 +39,7 @@ BmnHistDch::BmnHistDch(TString title = "DCH") {
         h_wires[i]->GetYaxis()->SetTitleColor(kOrange + 10);
         h_wires[i]->GetYaxis()->SetTitleOffset(1.8);
         h_wires[i]->GetYaxis()->SetTitleFont(62);
-        h_times[i] = new TH1F(fTitle + "_" + names[i] + "_Time", names[i] + "_Time", 500, -300, 300);
+        h_times[i] = new TH1F(fTitle + "_" + names[i] + "_Time", names[i] + "_Time", 500, -300, 1300);
         h_times[i]->SetTitleSize(0.06, "XY");
         h_times[i]->SetLabelSize(0.08, "XY");
         h_times[i]->GetXaxis()->SetTitle("Time");
@@ -143,7 +143,7 @@ void BmnHistDch::DrawBoth() {
 void BmnHistDch::FillFromDigi(TClonesArray * DchDigits) {
     //    Int_t rid = (head) ? head->GetRunId() : -1;
     fDchHits->Clear();
-    ProcessDchDigits(DchDigits, fDchHits);
+    //ProcessDchDigits(DchDigits, fDchHits);
     for (Int_t iDig = 0; iDig < DchDigits->GetEntriesFast(); ++iDig) {
         BmnDchDigit* dig = (BmnDchDigit*) DchDigits->At(iDig);
         Int_t plane = dig->GetPlane();

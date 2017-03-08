@@ -142,6 +142,7 @@ void BmnHistGem::FillFromDigi(TClonesArray * gemDigits) {
         Int_t station = gs->GetStation();
         Int_t layer = gs->GetStripLayer();
         Int_t gemStrip = gs->GetStripNumber();
+//printf("station %d, module %d, layer %d\n", station, module, layer);
         histGemStrip[station][module][layer]->Fill(gemStrip);
     }
 }

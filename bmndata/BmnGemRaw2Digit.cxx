@@ -49,20 +49,6 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     ReadMap("GEM_X1_Big_Right", fBigR1, 0, 0);
     ReadMap("GEM_Y1_Big_Right", fBigR1, 1, 0);
 
-
-    //GemPedestalStructure* pedMap;
-    //UniDbDetectorParameter* pedSizePar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_size_ped_map", fPeriod, fRun);
-
-    //    Int_t sizePedMap = (pedSizePar != NULL) ? pedSizePar->GetInt() : 0;
-    //    UniDbDetectorParameter* pedPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_pedestal", fPeriod, fRun);
-    //    if (pedPar != NULL) pedPar->GetGemPedestalArray(pedMap, sizePedMap);
-    //
-    //    for (Int_t i = 0; i < sizePedMap; ++i)
-    //        for (Int_t iCr = 0; iCr < fNCrates; ++iCr)
-    //            if (pedMap[i].serial == fCrates[iCr])
-    //                fPedArr[iCr][pedMap[i].channel] = BmnGemPed(pedMap[i].pedestal, pedMap[i].noise);
-
-
     fPedVal = new Float_t**[fNSerials];
     fPedRms = new Float_t**[fNSerials];
     fAdcProfiles = new UInt_t**[fNSerials];
@@ -192,30 +178,19 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
         UInt_t realChannel = 0;
 
         switch (gemM->id) {
-            case 0: //small gem
-            {
-                realChannel = ch2048 - gemM->channel_low;
-                mod = fSmall[realChannel].mod;
-                lay = fSmall[realChannel].lay;
-                strip = fSmall[realChannel].strip;
-                break;
-            }
-            case 7:
+            case 4:
+            case 1:
+            case 2:
             {
                 realChannel = ch2048;
-                if (gemM->hotZone == 1) {
-                    mod = 0;
-                    lay = fBigL0[realChannel].lay;
-                    strip = fBigL0[realChannel].strip;
-                } else {
-                    if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-                    mod = 0;
-                    lay = fBigL1[realChannel].lay;
-                    strip = fBigL1[realChannel].strip;
-                }
+                if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
+                mod = fMid[realChannel].mod;
+                lay = fMid[realChannel].lay;
+                strip = fMid[realChannel].strip;
                 break;
             }
-            case 8:
+            case 50:
+            case 60:
             {
                 realChannel = ch2048;
                 if (gemM->hotZone == 1) {
@@ -230,22 +205,8 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
                 }
                 break;
             }
-            case 6:
-            {
-                realChannel = ch2048;
-                if (gemM->hotZone == 1) {
-                    mod = 1;
-                    lay = fBigR0[realChannel].lay;
-                    strip = fBigR0[realChannel].strip;
-                } else {
-                    if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-                    mod = 1;
-                    lay = fBigR1[realChannel].lay;
-                    strip = fBigR1[realChannel].strip;
-                }
-                break;
-            }
-            case 9:
+            case 51:
+            case 61:
             {
                 realChannel = ch2048;
                 if (gemM->hotZone == 1) {
@@ -260,7 +221,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
                 }
                 break;
             }
-            case 4:
+            case 3:
             {
                 realChannel = ch2048;
                 if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
@@ -269,20 +230,11 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
                 strip = fMid[realChannel].strip;
                 break;
             }
-            case 5:
+            case 0:
             {
                 realChannel = ch2048;
                 if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
                 mod = 1;
-                lay = fMid[realChannel].lay;
-                strip = fMid[realChannel].strip;
-                break;
-            }
-            default://middle gem's
-            {
-                realChannel = ch2048;
-                if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-                mod = fMid[realChannel].mod;
                 lay = fMid[realChannel].lay;
                 strip = fMid[realChannel].strip;
                 break;

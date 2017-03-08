@@ -177,16 +177,16 @@ void BmnHistTrigger::Register(THttpServer *serv) {
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canTimes);
-    fServer->Register(path, histBC1TimeLen);
-    fServer->Register(path, histBC2TimeLen);
-    fServer->Register(path, histFDTimeLen);
-    fServer->Register(path, histVDTimeLen);
-    fServer->Register(path, histSDTimeLen);
-    fServer->Register(path, histTriggers);
-    fServer->Register(path, histBDChannels);
-    fServer->Register(path, histBDSimult);
-    fServer->Register(path, histBDTime);
-    fServer->Register(path, histBDSpecific);
+//    fServer->Register(path, histBC1TimeLen);
+//    fServer->Register(path, histBC2TimeLen);
+//    fServer->Register(path, histFDTimeLen);
+//    fServer->Register(path, histVDTimeLen);
+//    fServer->Register(path, histSDTimeLen);
+//    fServer->Register(path, histTriggers);
+//    fServer->Register(path, histBDChannels);
+//    fServer->Register(path, histBDSimult);
+//    fServer->Register(path, histBDTime);
+//    fServer->Register(path, histBDSpecific);
     TString examples = TString("[") +
             histBC1TimeLen->GetTitle() + TString(",") +
             histBC2TimeLen->GetTitle() + TString(",") +

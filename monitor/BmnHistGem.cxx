@@ -95,10 +95,10 @@ void BmnHistGem::Register(THttpServer *serv) {
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canGemStrip);
-    for (auto row : histGemStrip)
-        for (auto col : row)
-            for (auto el : col)
-                fServer->Register(path, el);
+//    for (auto row : histGemStrip)
+//        for (auto col : row)
+//            for (auto el : col)
+//                fServer->Register(path, el);
     fServer->SetItemField(path, "_monitoring", "2000");
     fServer->SetItemField(path, "_layout", "grid3x3");
     TString examples = TString("[") +

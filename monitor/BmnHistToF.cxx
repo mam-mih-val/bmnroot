@@ -137,13 +137,13 @@ void BmnHistToF::Register(THttpServer *serv) {
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canTimes);
-    fServer->Register(path, histAmp);
-    fServer->Register(path, histAmpSpecific);
-    fServer->Register(path, histStrip);
-    fServer->Register(path, histStripSimult);
+//    fServer->Register(path, histAmp);
+//    fServer->Register(path, histAmpSpecific);
+//    fServer->Register(path, histStrip);
+//    fServer->Register(path, histStripSimult);
     fServer->Register(path, histState);
-    fServer->Register(path, histLeadingTime);
-    fServer->Register(path, histLeadingTimeSpecific);
+//    fServer->Register(path, histLeadingTime);
+//    fServer->Register(path, histLeadingTimeSpecific);
 
     TString cmd = "/" + fName + "/->SetRefRun(%arg1%)";
     TString cmdTitle = path + "SetRefRun";

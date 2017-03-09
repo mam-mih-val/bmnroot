@@ -209,6 +209,8 @@ void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
         histLeadingTimeSpecific->Reset();
         histLeadingTimeSpecific->SetTitle("Leading Time For: " + command);
         direction = "fTime>>" + TString(histLeadingTimeSpecific->GetName());
+//        TDirectory *d = gDirectory->GetDirectory();
+//        TDirectory()
         frecoTree->Draw(direction, command, "");
     }
 }

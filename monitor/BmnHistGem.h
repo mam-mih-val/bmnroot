@@ -10,8 +10,8 @@
  *
  * Created on November 15, 2016, 12:57 PM
  */
-#ifndef BMNMONHISTS_H
-#define BMNMONHISTS_H 1
+#ifndef BMNHISTGEM_H
+#define BMNHISTGEM_H 1
 #include <TNamed.h>
 #include <exception>
 #include <stdlib.h>
@@ -49,26 +49,17 @@ public:
     void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);
     void DrawBoth();
     void FillFromDigi(TClonesArray * digits);
-    void FillFromDigiMasked(TClonesArray * digits, vector<vector<vector<TH1F*> > >* hist0, Double_t threshold);
-    void ApplyNoiseMask(vector<vector<vector<TH1F*> > >* hist0, Double_t threshold);
-    void UpdateNoiseMask(Double_t threshold);
     BmnStatus LoadRefRun(TString FileName);
     BmnStatus  SetRefRun(Int_t id);
     
-    vector<vector<vector<Int_t*> > > *GetNoiseMask(){
-        return &maskGemStrip;
-    }
-    
-
 private:
+    vector<TString> Names;
     vector<vector<vector<TH1F*  > > > histGemStrip;
-    vector<vector<vector<Int_t*> > > maskGemStrip;
     TCanvas *canGemStrip;
 //    vector<PadInfo<TH1>*> canGemStripPads;
     vector<PadInfo*> canGemStripPads;
     UInt_t sumMods;
     UInt_t maxLayers;
-//    vector<vector<vector<histNmask> > > maskGemStrip;
 
     ClassDef(BmnHistGem, 1)
 };

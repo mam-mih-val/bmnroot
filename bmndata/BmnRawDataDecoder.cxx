@@ -163,6 +163,15 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fMaxEvent = nEvents;
     fPeriodId = period;
     fRunId = GetRunIdFromFile(fRawFileName);
+    if (fRunId < 1) {
+        regex re("mpd_run_Glob_(\\d+).data");
+        string idstr = regex_replace(file.Data(), re, "$1");
+        Int_t id = atoi(idstr.c_str());
+        if (id == 0) {
+            printf("!!! Error Could not detect runID\n");
+            return;
+        }
+    }
     fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     fDchMapFileName = "";

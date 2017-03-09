@@ -44,6 +44,7 @@ BmnDataReceiver.cxx
 BmnOnlineDecoder.cxx
 BmnHist.cxx
 BmnHistGem.cxx
+BmnHistSilicon.cxx
 BmnHistDch.cxx
 BmnHistMwpc.cxx
 BmnHistTrigger.cxx
@@ -58,6 +59,7 @@ BmnDataReceiver.h
 BmnOnlineDecoder.h
 BmnHist.h
 BmnHistGem.h
+BmnHistSilicon.h
 BmnHistDch.h
 BmnHistMwpc.h
 BmnHistTrigger.h

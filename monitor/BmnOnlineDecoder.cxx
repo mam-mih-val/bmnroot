@@ -19,10 +19,6 @@
 BmnOnlineDecoder::BmnOnlineDecoder() {
     fRawDecoSocket = new TServerSocket(RAW_DECODER_SOCKET_PORT, kTRUE);
     fRawDecoSocket->SetOption(kNoBlock, 1);
-    fRawDecoSocket->SetOption(kKeepAlive, 1);
-    Int_t v;
-    fRawDecoSocket->GetOption(kKeepAlive, v);
-    printf("kKeepAlive: %d\n", v);
     rawDataDecoder = NULL;
     iClients = 0;
 
@@ -243,7 +239,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
     _curDir = dirname;
     Accept();
     struct dirent **namelist;
-    regex re("\\w+\\.data");
+    regex re("\\w+\\.data"); //mpd_run_Glob_(\d+).data  $1
     Int_t n;
     n = scandir(dirname, &namelist, 0, versionsort);
     if (n < 0) {
@@ -275,8 +271,8 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         cl->Close();
         delete cl;
     }
-//    client->Close();
-//    delete client;
+    //    client->Close();
+    //    delete client;
     return kBMNSUCCESS;
 }
 

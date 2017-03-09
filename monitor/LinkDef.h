@@ -15,6 +15,7 @@
 //#pragma link C++ class PadInfo<TH1I>++;
 #pragma link C++ class PadInfo++;
 #pragma link C++ class BmnHistGem++;
+#pragma link C++ class BmnHistSilicon++;
 #pragma link C++ class BmnHistDch++;
 #pragma link C++ class BmnHistMwpc++;
 #pragma link C++ class BmnHistToF++;

@@ -63,10 +63,12 @@ BmnStatus BmnHist::LoadRefRun(Int_t refID, TString fTitle, vector<PadInfo*> canP
     TString refName = Form("ref%06d_", refID);
     TString name;
     for (Int_t iPad = 0; iPad < Names.size(); iPad++) {
+        name = Names[iPad];
+        if (name.Length() == 0)
+            continue;
         delete canPads[iPad]->ref;
         canPads[iPad]->ref = NULL;
         TH1F* tempH = NULL;
-        name = Names[iPad];
         tempH = (TH1F*) refFile->Get(refName + fTitle + "_hists/" + refName + name);
         if (tempH == NULL) {
             tempH = (TH1F*) refFile->Get(fTitle + "_hists/" + name);

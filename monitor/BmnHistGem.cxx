@@ -53,30 +53,19 @@ BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : Bm
         }
         histGemStrip.push_back(rowGEM);
     }
-    for (Int_t stationIndex = 0; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
-        vector<vector<Int_t*> > rowGEM;
-        for (Int_t moduleIndex = 0; moduleIndex < moduleCount[stationIndex]; moduleIndex++) {
-            vector<Int_t*> colGEM;
-            for (Int_t layerIndex = 0; layerIndex < layersCount[stationIndex]; layerIndex++) {
-                Int_t* m = new Int_t[MAX_STRIPS];
-                colGEM.push_back(m);
-                for (Int_t im = 0; im < MAX_STRIPS; im++)
-                    m[im] = 1;
-            }
-            rowGEM.push_back(colGEM);
-        }
-        maskGemStrip.push_back(rowGEM);
-    }
     Int_t modCtr = 0; // filling GEM Canvas' pads
     canGemStripPads.resize(sumMods * maxLayers);
-    for (Int_t stationIndex = 0; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
+    Names.resize(sumMods * maxLayers);
+    for (Int_t stationIndex = 1; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
         for (Int_t moduleIndex = 0; moduleIndex < moduleCount[stationIndex]; moduleIndex++) {
             for (Int_t layerIndex = 0; layerIndex < layersCount[stationIndex]; layerIndex++) {
 //                PadInfo<TH1F> *p = new PadInfo<TH1F>();
                 PadInfo *p = new PadInfo();
                 p->current = histGemStrip[stationIndex][moduleIndex][layerIndex];
-                canGemStripPads[modCtr * maxLayers + layerIndex] = p;
-                canGemStrip->GetPad(modCtr * maxLayers + layerIndex + 1)->SetGrid();
+                Int_t iPad = modCtr * maxLayers + layerIndex;
+                canGemStripPads[iPad] = p;
+                canGemStrip->GetPad(iPad + 1)->SetGrid();
+                Names[iPad] = canGemStripPads[iPad]->current->GetName();
             }
             modCtr++;
         }
@@ -84,10 +73,6 @@ BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : Bm
 }
 
 BmnHistGem::~BmnHistGem() {
-    for (auto row : maskGemStrip)
-        for (auto col : row)
-            for (auto el : col)
-                delete[] el;
 }
 
 void BmnHistGem::Register(THttpServer *serv) {
@@ -101,12 +86,6 @@ void BmnHistGem::Register(THttpServer *serv) {
 //                fServer->Register(path, el);
     fServer->SetItemField(path, "_monitoring", "2000");
     fServer->SetItemField(path, "_layout", "grid3x3");
-    TString examples = TString("[") +
-            histGemStrip[0][0][0]->GetTitle() + TString(",") +
-            histGemStrip[0][0][1]->GetTitle() + TString(",") +
-            histGemStrip[6][1][0]->GetTitle() + TString(",") +
-            histGemStrip[6][0][0]->GetTitle() + TString("]");
-    fServer->SetItemField(path, "_drawitem", examples);
     TString cmd = "/" + fName + "/->Reset()";
     TString cmdTitle = path + "Reset";
     fServer->RegisterCommand(cmdTitle.Data(), cmd.Data(), "button;");
@@ -147,39 +126,6 @@ void BmnHistGem::FillFromDigi(TClonesArray * gemDigits) {
     }
 }
 
-void BmnHistGem::FillFromDigiMasked(TClonesArray * gemDigits, vector<vector<vector<TH1F*> > >* hist0, Double_t threshold) {//vector<vector<vector<Int_t*> > >* mask) {
-    for (Int_t digIndex = 0; digIndex < gemDigits->GetEntriesFast(); digIndex++) {
-        BmnGemStripDigit* gs = (BmnGemStripDigit*) gemDigits->At(digIndex);
-        Int_t module = gs->GetModule();
-        Int_t station = gs->GetStation();
-        Int_t layer = gs->GetStripLayer();
-        Int_t gemStrip = gs->GetStripNumber();
-        if ((*hist0)[station][module][layer]->GetBinContent((*hist0)[station][module][layer]->FindBin(gemStrip)) <= threshold * 0.7)
-            histGemStrip[station][module][layer]->Fill(gemStrip);
-        //            histGemStrip[station][module][layer]->AddBinContent(histGemStrip[station][module][layer]->FindBin(gemStrip));
-    }
-}
-
-void BmnHistGem::UpdateNoiseMask(Double_t threshold) {
-    for (Int_t iStation = 0; iStation < GEM_STATIONS_COUNT; iStation++)
-        for (Int_t iModule = 0; iModule < moduleCount[iStation]; iModule++)
-            for (Int_t iLayer = 0; iLayer < layersCount[iStation]; iLayer++)
-                for (Int_t iStrip = 0; iStrip < histGemStrip[iStation][iModule][iLayer]->GetNbinsX() + 1; iStrip++) {
-                    maskGemStrip[iStation][iModule][iLayer][iStrip] = 0;
-                    //                    cout << " MASK " << maskGemStrip[iStation][iModule][iLayer][iStrip] << endl;
-                    //                            (histGemStrip[iStation][iModule][iLayer]->GetBinContent(iStrip) > threshold) ? 0 : 0;
-                }
-}
-
-void BmnHistGem::ApplyNoiseMask(vector<vector<vector<TH1F*> > >* hist0, Double_t threshold) {
-    for (Int_t iStation = 0; iStation < GEM_STATIONS_COUNT; iStation++)
-        for (Int_t iModule = 0; iModule < moduleCount[iStation]; iModule++)
-            for (Int_t iLayer = 0; iLayer < layersCount[iStation]; iLayer++)
-                for (Int_t iStrip = 0; iStrip < histGemStrip[iStation][iModule][iLayer]->GetNbinsX() + 1; iStrip++)
-                    if ((*hist0)[iStation][iModule][iLayer]->GetBinContent(iStrip) > threshold)
-                        histGemStrip[iStation][iModule][iLayer]->SetBinContent(iStrip, 0);
-}
-
 BmnStatus BmnHistGem::LoadRefRun(TString FileName) {
     printf("Loading ref histos\n");
     refFile = new TFile(refPath + FileName, "read");
@@ -201,15 +147,15 @@ BmnStatus BmnHistGem::LoadRefRun(TString FileName) {
                 p->current = histGemStrip[stationIndex][moduleIndex][layerIndex];
                 //                p.ref = (TH1F*) gDirectory->Get(name.Data());
                 //                TH1F* tempHist;
-                p->ref = (TH1F*) refFile->Get(refName + "GEM_hists/" + refName + name);
+                p->ref = (TH1*) refFile->Get(refName + "GEM_hists/" + refName + name);
                 if (p->ref == NULL) {
-                    TH1F* tempH = (TH1F*) refFile->Get(TString("GEM_hists/") + name);
+                    TH1* tempH = (TH1*) refFile->Get(TString("GEM_hists/") + name);
                     if (tempH == NULL) {
                         printf("Cannot load %s !\n", name.Data());
                         continue;
 //                        return kBMNERROR;
                     }
-                    p->ref = (TH1F*) (tempH->Clone(name));
+                    p->ref = (TH1*) (tempH->Clone(name));
                 }
                 p->ref->SetLineColor(kRed);
                 p->ref->SetDirectory(0);
@@ -230,7 +176,8 @@ BmnStatus BmnHistGem::SetRefRun(Int_t id) {
     if (refRunName != FileName) {
         refRunName = FileName;
         refID = id;
-        LoadRefRun(refRunName);
+        BmnHist::LoadRefRun(refID, fTitle, canGemStripPads, Names);
+//        LoadRefRun(refRunName);
     }
 }
 
@@ -239,11 +186,6 @@ void BmnHistGem::Reset() {
         for (auto col : row)
             for (auto el : col)
                 el->Reset();
-    for (auto row : maskGemStrip)
-        for (auto col : row)
-            for (auto el : col)
-                for (Int_t im = 0; im < MAX_STRIPS; im++)
-                    el[im] = 1;
 }
 
 

@@ -27,7 +27,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     // in case comment out the line decoder->SetTof400Mapping("...")  
     // the maps of TOF400 will be readed from DB (only for JINR network)
     decoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
-    decoder->SetTof700Mapping("TOF700_map_period_5.txt");
+    decoder->SetTof700Mapping("TOF700_map_period_6.txt");
     decoder->SetZDCMapping("ZDC_map_period_5.txt");
     decoder->SetZDCCalibration("zdc_muon_calibration.txt");
     decoder->SetECALMapping("ECAL_map_period_5.txt");

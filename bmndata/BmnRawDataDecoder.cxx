@@ -943,8 +943,8 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     }
 
     if (fDetectorSetup[5]) {
-        fDigiTree->Branch("TOF700", &tof700);
         tof700 = new TClonesArray("BmnTof2Digit");
+        fDigiTree->Branch("TOF700", &tof700);        
         fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
         fTof700Mapper->print();
         fTof700Mapper->readSlewingT0();

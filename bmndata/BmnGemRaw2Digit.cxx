@@ -49,20 +49,6 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     ReadMap("GEM_X1_Big_Right", fBigR1, 0, 0);
     ReadMap("GEM_Y1_Big_Right", fBigR1, 1, 0);
 
-
-    //GemPedestalStructure* pedMap;
-    //UniDbDetectorParameter* pedSizePar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_size_ped_map", fPeriod, fRun);
-
-    //    Int_t sizePedMap = (pedSizePar != NULL) ? pedSizePar->GetInt() : 0;
-    //    UniDbDetectorParameter* pedPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_pedestal", fPeriod, fRun);
-    //    if (pedPar != NULL) pedPar->GetGemPedestalArray(pedMap, sizePedMap);
-    //
-    //    for (Int_t i = 0; i < sizePedMap; ++i)
-    //        for (Int_t iCr = 0; iCr < fNCrates; ++iCr)
-    //            if (pedMap[i].serial == fCrates[iCr])
-    //                fPedArr[iCr][pedMap[i].channel] = BmnGemPed(pedMap[i].pedestal, pedMap[i].noise);
-
-
     fPedVal = new Float_t**[fNSerials];
     fPedRms = new Float_t**[fNSerials];
     fAdcProfiles = new UInt_t**[fNSerials];
@@ -189,105 +175,26 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
         Int_t lay = -1;
         Int_t mod = -1;
         Int_t ch2048 = ch * nSmpl + iSmpl;
-        UInt_t realChannel = 0;
+        UInt_t realChannel = ch2048;
+        BmnGemMap* fBigMap = NULL;
 
-        switch (gemM->id) {
-            case 0: //small gem
-            {
-                realChannel = ch2048 - gemM->channel_low;
-                mod = fSmall[realChannel].mod;
-                lay = fSmall[realChannel].lay;
-                strip = fSmall[realChannel].strip;
-                break;
-            }
-            case 7:
-            {
-                realChannel = ch2048;
-                if (gemM->hotZone == 1) {
-                    mod = 0;
-                    lay = fBigL0[realChannel].lay;
-                    strip = fBigL0[realChannel].strip;
-                } else {
-                    if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-                    mod = 0;
-                    lay = fBigL1[realChannel].lay;
-                    strip = fBigL1[realChannel].strip;
-                }
-                break;
-            }
-            case 8:
-            {
-                realChannel = ch2048;
-                if (gemM->hotZone == 1) {
-                    mod = fBigL0[realChannel].mod;
-                    lay = fBigL0[realChannel].lay;
-                    strip = fBigL0[realChannel].strip;
-                } else {
-                    if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-                    mod = fBigL1[realChannel].mod;
-                    lay = fBigL1[realChannel].lay;
-                    strip = fBigL1[realChannel].strip;
-                }
-                break;
-            }
-            case 6:
-            {
-                realChannel = ch2048;
-                if (gemM->hotZone == 1) {
-                    mod = 1;
-                    lay = fBigR0[realChannel].lay;
-                    strip = fBigR0[realChannel].strip;
-                } else {
-                    if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-                    mod = 1;
-                    lay = fBigR1[realChannel].lay;
-                    strip = fBigR1[realChannel].strip;
-                }
-                break;
-            }
-            case 9:
-            {
-                realChannel = ch2048;
-                if (gemM->hotZone == 1) {
-                    mod = fBigR0[realChannel].mod;
-                    lay = fBigR0[realChannel].lay;
-                    strip = fBigR0[realChannel].strip;
-                } else {
-                    if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-                    mod = fBigR1[realChannel].mod;
-                    lay = fBigR1[realChannel].lay;
-                    strip = fBigR1[realChannel].strip;
-                }
-                break;
-            }
-            case 4:
-            {
-                realChannel = ch2048;
-                if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-                mod = 0;
-                lay = fMid[realChannel].lay;
-                strip = fMid[realChannel].strip;
-                break;
-            }
-            case 5:
-            {
-                realChannel = ch2048;
-                if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-                mod = 1;
-                lay = fMid[realChannel].lay;
-                strip = fMid[realChannel].strip;
-                break;
-            }
-            default://middle gem's
-            {
-                realChannel = ch2048;
-                if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
-                mod = fMid[realChannel].mod;
-                lay = fMid[realChannel].lay;
-                strip = fMid[realChannel].strip;
-                break;
+        if (gemM->id < 10) {
+            if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
+            fBigMap = fMid;
+        } else {
+            if (gemM->hotZone % 2 == 0) {
+                if (gemM->id % 10 == 0) fBigMap = fBigL0;
+                else fBigMap = fBigR0;
+            } else {
+                if (gemM->id % 10 == 0) fBigMap = fBigL1;
+                else fBigMap = fBigR1;
+                if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
             }
         }
+        mod = (gemM->hotZone < 2) ? 0 : 1;
+        lay = fBigMap[realChannel].lay;
+        strip = fBigMap[realChannel].strip;
+
         if (strip > 0) {
             BmnGemStripDigit dig;
             dig.SetStation(gemM->station);
@@ -336,9 +243,10 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree * tree) {
         noises[i] = new Double_t[nSmpl];
     }
 
+    cout << "Pedestals calculation..." << endl;
     UInt_t nEv = tree->GetEntries();
     for (Int_t iEv = 0; iEv < nEv; ++iEv) {
-        if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
+        //        if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
         tree->GetEntry(iEv);
         for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
@@ -359,9 +267,9 @@ BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree * tree) {
         for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
             pedestals[iAdc][iSmpl] /= nEv;
 
-
+    cout << "RMS calculation..." << endl;
     for (Int_t iEv = 0; iEv < nEv; ++iEv) {
-        if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
+        //        if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
         tree->GetEntry(iEv);
         for (Int_t iAdc = 0; iAdc < nDigs; ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
@@ -472,9 +380,9 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
                 fAdcProfiles[iCr][iCh][iSmpl] = 0;
             }
         }
-
+    cout << "Pedestals calculation..." << endl;
     for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-        if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
+        //        if (iEv % 100 == 0) cout << "Pedestals calculation: read event #" << iEv << endl;
         for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
             for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
                 Double_t signals[nSmpl];
@@ -492,8 +400,9 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
             }
     }
 
+    cout << "RMS calculation..." << endl;
     for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-        if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
+        //        if (iEv % 100 == 0) cout << "RMS calculation: read event #" << iEv << endl;
         for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
             for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
                 Double_t signals[nSmpl];
@@ -517,8 +426,9 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
             for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
                 fPedRms[iCr][iCh][iSmpl] = Sqrt(fPedRms[iCr][iCh][iSmpl] / N_EV_FOR_PEDESTALS);
 
+    cout << "Profile filling..." << endl;
     for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-        if (iEv % 100 == 0) cout << "Profile filling: read event #" << iEv << endl;
+        //        if (iEv % 100 == 0) cout << "Profile filling: read event #" << iEv << endl;
         for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
             for (Int_t iCh = 0; iCh < ADC_N_CHANNELS; ++iCh) {
                 Double_t signals[nSmpl];

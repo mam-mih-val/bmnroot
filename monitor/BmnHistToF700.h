@@ -31,6 +31,8 @@
 #include "BmnHist.h"
 #include "BmnTof2Digit.h"
 #include "BmnTof2Raw2Digit.h"
+#define TOF_COLS    3
+#define TOF_ROWS    2
 
 class BmnHistToF700 : public BmnHist {
 public:
@@ -39,15 +41,8 @@ public:
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);
     void Reset();
-    
-    TClonesArray *Events;
-    TH1D *histLeadingTime;
-    TH1D *histLeadingTimeSpecific;
-    TH1D *histAmp;
-    TH1D *histAmpSpecific;
-    TH1I *histStrip;
-//    TH1I *histStripSimult;
-//    TH2F *histState;
+    void DrawBoth();
+    BmnStatus  SetRefRun(Int_t id);    
     
     void FillFromDigi(TClonesArray * ToF4Digits);
     void SetSelection(Int_t Plane, Int_t Strip);
@@ -59,14 +54,23 @@ public:
     Int_t GetSide () { return fSelectedSide ;}
     Int_t GetStrip() { return fSelectedStrip;}    
 private:
-//    TBranch * fEventsBranch;
+    TClonesArray *Events;
+    TH1D *histLeadingTime;
+    TH1D *histLeadingTimeSpecific;
+    TH1D *histAmp;
+    TH1D *histAmpSpecific;
+    TH1I *histStrip;
+//    TH1I *histStripSimult;
+//    TH2F *histState;
     Int_t fSelectedPlane;
     Int_t fSelectedStrip;
     Int_t fSelectedSide;
     TH1I *histL = new TH1I("", "", TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_STRIPS_IN_CHAMBER);
     TH1I *histR = new TH1I("", "", TOF2_MAX_STRIPS_IN_CHAMBER, 0, TOF2_MAX_STRIPS_IN_CHAMBER);
     TH1I histSimultaneous;
-    TString pathToImg = "/home/ilnur/Documents/BmnMonJS/public_html/img/";
+    vector<TString> Names;
+    TCanvas *canTimes;
+    vector<PadInfo*> canTimesPads;
     
 void SaveHist(TH1 *hist, TString path) {
     TCanvas *c0 = new TCanvas("c0", hist->GetTitle());

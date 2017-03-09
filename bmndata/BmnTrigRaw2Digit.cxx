@@ -55,7 +55,7 @@ BmnStatus BmnTrigRaw2Digit::readINLCorrections(TString INLFile) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time, Double_t *t0width) {
+BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *trigger, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time, Double_t *t0width) {
 
     for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
         BmnTrigMapping tM = fMap[iMap];
@@ -85,24 +85,27 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *t0, TClon
             if (nearestDig != NULL) {
                 Double_t tL = (tdcDig1->GetValue() + fINLTable[rChannel1][tdcDig1->GetValue() % 1024]) * 24.0 / 1024;
                 Double_t tT = (nearestDig->GetValue() + fINLTable[rChannel1][nearestDig->GetValue() % 1024]) * 24.0 / 1024;
-
-                if (tM.name == "T0") {
+                Int_t iMod = tM.name.Contains("_0") ? 0 : (tM.name.Contains("_1")) ? 1 : -1; //FIXME!!! add "module" into map for T0, FD, BC, VC and use it here without checking name!
+                if (tM.name == "T0_0" || tM.name == "T0_1") {
                     t0time = tL; //ns
     		    if (t0width) *t0width = tT - tL;
                     TClonesArray& ar_t0 = *t0;
-                    if (t0) new(ar_t0[t0->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
+                    if (t0) new(ar_t0[t0->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
+                } else if (tM.name == "TRIGGER") {
+                    TClonesArray& ar_trig = *trigger;
+                    if (trigger) new(ar_trig[trigger->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
                 } else if (tM.name == "BC1") {
                     TClonesArray& ar_bc1 = *bc1;
-                    if (bc1) new(ar_bc1[bc1->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
-                } else if (tM.name == "BC2") {
+                    if (bc1) new(ar_bc1[bc1->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
+                } else if (tM.name == "BC2_0" || tM.name == "BC2_1") {
                     TClonesArray& ar_bc2 = *bc2;
-                    if (bc2) new(ar_bc2[bc2->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
-                } else if (tM.name == "VETO") {
+                    if (bc2) new(ar_bc2[bc2->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
+                } else if (tM.name == "VETO_0" || tM.name == "VETO_1") {
                     TClonesArray& ar_veto = *veto;
-                    if (veto) new(ar_veto[veto->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
-                } else if (tM.name == "FD") {
+                    if (veto) new(ar_veto[veto->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
+                } else if (tM.name == "FD_0" || tM.name == "FD_1") {
                     TClonesArray& ar_fd = *fd;
-                    if (fd) new(ar_fd[fd->GetEntriesFast()]) BmnTrigDigit(0, tL, tT - tL);
+                    if (fd) new(ar_fd[fd->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
                 } else {
                     for (Int_t i = 0; i < KNBDCHANNELS; ++i)
                         if (tM.name == TString(Form("BD%d", i))) {

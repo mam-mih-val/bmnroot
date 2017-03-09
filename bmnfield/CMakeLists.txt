@@ -32,6 +32,7 @@ BmnFieldMapData.cxx
 #BmnFieldMapSym3.cxx     
 BmnFieldPar.cxx         
 BmnFieldCreator.cxx
+BmnSP41FieldMapCreator.cxx
 )
 
 # fill list of header files from list of source files

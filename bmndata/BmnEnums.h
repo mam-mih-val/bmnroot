@@ -13,70 +13,70 @@
  * \enum Define type of hit on detector station.
  */
 enum BmnHitType {
-   kBMNSTRIPHIT = 0, /**< Strip hit. */
-   kBMNPIXELHIT = 1, /**< Pixel hit. */
-   kBMNMIXHIT = 2 /**< Mixed type of hits, i.e. both strip and pixel hits. **/
+    kBMNSTRIPHIT = 0, /**< Strip hit. */
+    kBMNPIXELHIT = 1, /**< Pixel hit. */
+    kBMNMIXHIT = 2 /**< Mixed type of hits, i.e. both strip and pixel hits. **/
 };
 
 /**
  * \enum Define status code.
  */
 enum BmnStatus {
-   kBMNSUCCESS = 0, /**< Success. */
-   kBMNERROR = 1, /**< Error. */
-   kBMNTIMEOUT = 2,
-   kBMNFINISH = 3
+    kBMNSUCCESS = 0, /**< Success. */
+    kBMNERROR = 1, /**< Error. */
+    kBMNTIMEOUT = 2,
+    kBMNFINISH = 3
 };
 
 /**
  * \enum Define reconstructed track quality.
  */
 enum BmnTrackQa {
-   kBMNGOOD = 0, /**< Good track. */
-   kBMNBAD = 1, /**< Bad track. */
-   kBMNGOODMERGE = 2 /**< Correctly merged track. */
+    kBMNGOOD = 0, /**< Good track. */
+    kBMNBAD = 1, /**< Bad track. */
+    kBMNGOODMERGE = 2 /**< Correctly merged track. */
 };
 
 /**
  * \enum Define system identificator.
  */
 enum BmnSystemId {
-   kBMNGEM = 0, /**< GEM detector. */
-   kBMNTOF = 2, /**< TOF detector. */
-   kBMNSTS = 4 /**< STS detector. */
+    kBMNGEM = 0, /**< GEM detector. */
+    kBMNTOF = 2, /**< TOF detector. */
+    kBMNSTS = 4 /**< STS detector. */
 };
 
 /**
  * \enum Define status of TOF hit merging
  */
 enum BmnTofHitQA {
-   kBMNTOFGOOD = 0, /**< merged TOF hit. */
-   kBMNTOFBAD = 1,  /**< not merged TOF hit. */
+    kBMNTOFGOOD = 0, /**< merged TOF hit. */
+    kBMNTOFBAD = 1, /**< not merged TOF hit. */
 };
 
 /**
  * \enum Define type of event
  */
 enum BmnTriggerType {
-   kBMNBEAM = 6, /**< "beam"  BC1 + BC2 + T0 + VC */
-   kBMNMINBIAS = 1,  /**< "min.bias" BC1 + BC2 + T0 + VC + FD */
+    kBMNBEAM = 6, /**< "beam"  BC1 + BC2 + T0 + VC */
+    kBMNMINBIAS = 1, /**< "min.bias" BC1 + BC2 + T0 + VC + FD */
 };
 
 /**
  * \enum Define type of event
  */
 enum BmnEventType {
-   kBMNPEDESTAL = 0, /**< pedestal event. */
-   kBMNPAYLOAD = 1,  /**< spill event. */
+    kBMNPEDESTAL = 0, /**< pedestal event. */
+    kBMNPAYLOAD = 1, /**< spill event. */
 };
 
 /**
  * \enum Define worker state
  */
 enum BmnWorkerState {
-    kBMNWAIT    = 0,
-    kBMNWORK    = 1,
-    kBMNRECON   = 2,
+    kBMNWAIT = 0,
+    kBMNWORK = 1,
+    kBMNRECON = 2,
 };
 
 #endif /* BMNENUMS_H_ */

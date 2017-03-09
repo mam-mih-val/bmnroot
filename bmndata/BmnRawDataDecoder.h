@@ -15,6 +15,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <regex>
 #include "BmnGemRaw2Digit.h"
 #include "BmnGemStripDigit.h"
 #include "BmnMwpcRaw2Digit.h"
@@ -37,6 +38,7 @@
 #include <map>
 #include <deque>
 #include <UniDbDetectorParameter.h>
+#include <UniDbRun.h>
 
 // wait limit for input data (ms)
 #define WAIT_LIMIT 45000000
@@ -44,14 +46,17 @@ using namespace std;
 
 class DigiArrays : public TObject {
 public:
-    DigiArrays(){
+
+    DigiArrays() {
         gem = NULL;
         tof400 = NULL;
         tof700 = NULL;
-	zdc = NULL;
-	ecal = NULL;
+        zdc = NULL;
+        ecal = NULL;
         dch = NULL;
         mwpc = NULL;
+        silicon = NULL;
+        trigger = NULL;
         t0 = NULL;
         bc1 = NULL;
         bc2 = NULL;
@@ -60,8 +65,11 @@ public:
         bd = NULL;
         header = NULL;
     };
-    ~DigiArrays(){};
-    void Clear(){
+
+    ~DigiArrays() {
+    };
+
+    void Clear() {
         if (bc1) delete bc1;
         if (bc2) delete bc2;
         if (bd) delete bd;
@@ -70,6 +78,8 @@ public:
         if (gem) delete gem;
         if (header) delete header;
         if (mwpc) delete mwpc;
+        if (silicon) delete silicon;
+        if (trigger) delete trigger;
         if (t0) delete t0;
         if (tof400) delete tof400;
         if (tof700) delete tof700;
@@ -77,24 +87,27 @@ public:
         if (ecal) delete this->ecal;
         if (veto) delete veto;
     };
-    TClonesArray *gem;//->
-    TClonesArray *tof400;//->
-    TClonesArray *tof700;//->
-    TClonesArray *zdc;//->
-    TClonesArray *ecal;//->
-    TClonesArray *dch;//->
-    TClonesArray *mwpc;//->
-    TClonesArray *t0;//->
-    TClonesArray *bc1;//->
-    TClonesArray *bc2;//->
-    TClonesArray *veto;//->
-    TClonesArray *fd;//->
-    TClonesArray *bd;//->
-    TClonesArray *header;//->
+    TClonesArray *silicon; 
+    TClonesArray *gem; 
+    TClonesArray *tof400; 
+    TClonesArray *tof700; 
+    TClonesArray *zdc; 
+    TClonesArray *ecal; 
+    TClonesArray *dch; 
+    TClonesArray *mwpc; 
+    TClonesArray *trigger; 
+    TClonesArray *t0; 
+    TClonesArray *bc1; 
+    TClonesArray *bc2; 
+    TClonesArray *veto; 
+    TClonesArray *fd; 
+    TClonesArray *bd; 
+    TClonesArray *header; 
 private:
     ClassDef(DigiArrays, 1)
 };
-    ClassImp(DigiArrays)
+
+ClassImp(DigiArrays)
 
 class BmnRawDataDecoder {
 public:
@@ -126,17 +139,19 @@ public:
     deque<UInt_t> *GetQue() {
         return fDataQueue;
     }
-    
+
     DigiArrays GetDigiArraysObject() {
-//        fDigiTree->GetEntry(GetEventId());
-        DigiArrays d;// = new DigiArrays();
+        //        fDigiTree->GetEntry(GetEventId());
+        DigiArrays d; // = new DigiArrays();
+        d.silicon = silicon;
         d.gem = gem;
         d.tof400 = tof400;
         d.tof700 = tof700;
-	d.zdc = zdc;
-	d.ecal = ecal;
+        d.zdc = zdc;
+        d.ecal = ecal;
         d.dch = dch;
         d.mwpc = mwpc;
+        d.trigger = trigger;
         d.t0 = t0;
         d.bc1 = bc1;
         d.bc2 = bc2;
@@ -146,7 +161,6 @@ public:
         d.header = eventHeader;
         return d;
     }
-    
 
     TTree* GetDigiTree() {
         return fDigiTree;
@@ -155,7 +169,7 @@ public:
     void SetRunId(UInt_t v) {
         fRunId = v;
     }
-    
+
     void SetPeriodId(UInt_t v) {
         fPeriodId = v;
     }
@@ -167,7 +181,7 @@ public:
     UInt_t GetRunId() const {
         return fRunId;
     }
-    
+
     UInt_t GetPeriodId() const {
         return fPeriodId;
     }
@@ -175,7 +189,7 @@ public:
     UInt_t GetNevents() const {
         return fNevents;
     }
-    
+
     UInt_t GetEventId() const {
         return fEventId;
     }
@@ -222,26 +236,35 @@ public:
     }
 
     void SetZDCMapping(TString map) {
-	fZDCMapFileName = map;
+        fZDCMapFileName = map;
     }
 
     void SetECALMapping(TString map) {
-	fECALMapFileName = map;
+        fECALMapFileName = map;
     }
 
     void SetZDCCalibration(TString cal) {
-	fZDCCalibrationFileName = cal;
+        fZDCCalibrationFileName = cal;
     }
 
     void SetECALCalibration(TString cal) {
-	fECALCalibrationFileName = cal;
+        fECALCalibrationFileName = cal;
     }
 
     TString GetRootFileName() {
         return fRootFileName;
     }
 
+    BmnStatus SetDetectorSetup(Bool_t* setup) {
+        for (Int_t i = 0; i < 9; ++i) {
+            fDetectorSetup[i] = setup[i];
+        }
+    }
+
 private:
+
+    //9 bits correspond to detectors which we need to decode
+    Bool_t fDetectorSetup[9];
 
     Int_t GetRunIdFromFile(TString name);
     vector<UInt_t> fGemSerials; //list of serial id for GEM
@@ -252,7 +275,7 @@ private:
     UInt_t fNECALSerials;
 
     UInt_t fPedoCounter;
-    
+
     UInt_t fRunId;
     UInt_t fPeriodId;
     UInt_t fEventId;
@@ -306,9 +329,9 @@ private:
 
     //DAQ arrays
     TClonesArray *sync;
-    TClonesArray *adc32;  //gem
+    TClonesArray *adc32; //gem
     TClonesArray *adc128; //sts
-    TClonesArray *adc   ; //zdc & ecal
+    TClonesArray *adc; //zdc & ecal
     TClonesArray *hrb;
     TClonesArray *tdc;
     TClonesArray *msc;
@@ -326,6 +349,7 @@ private:
     TClonesArray *ecal;
     TClonesArray *dch;
     TClonesArray *mwpc;
+    TClonesArray *trigger;
     TClonesArray *t0;
     TClonesArray *bc1;
     TClonesArray *bc2;
@@ -341,7 +365,7 @@ private:
     ULong_t fMaxEvent;
 
     UInt_t fDat; //current 32-bits word
-    UInt_t syncCounter; 
+    UInt_t syncCounter;
     BmnGemRaw2Digit *fGemMapper;
     BmnSiliconRaw2Digit *fSiliconMapper;
     BmnDchRaw2Digit *fDchMapper;

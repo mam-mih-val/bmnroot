@@ -181,6 +181,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
         if (gemM->id < 10) {
             if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
             fBigMap = fMid;
+            mod = 0;
         } else {
             if (gemM->hotZone % 2 == 0) {
                 if (gemM->id % 10 == 0) fBigMap = fBigL0;
@@ -191,7 +192,8 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
                 if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
             }
         }
-        mod = fBigMap[realChannel].mod;
+        if (gemM->hotZone < 2) mod = 0;
+        else mod = 1;
         lay = fBigMap[realChannel].lay;
         strip = fBigMap[realChannel].strip;
 

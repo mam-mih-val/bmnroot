@@ -34,22 +34,19 @@ void add_GEM_mapping() {
     AssignMapStructure(pValues, 7, 0x76D08B9, 256, 383, 2, 3, 0);
     AssignMapStructure(pValues, 8, 0x76D08B9, 384, 511, 3, 4, 0);
     AssignMapStructure(pValues, 9, 0x76D08B9, 896, 1023, 1, 1, 0);
-    AssignMapStructure(pValues, 11, 0x76D08B9, 640, 767, 50, 6, 0);
-    AssignMapStructure(pValues, 12, 0x76D08B9, 768, 895, 51, 6, 0);
-    AssignMapStructure(pValues, 13, 0x76D08B9, 1792, 1919, 60, 5, 0);
-    AssignMapStructure(pValues, 14, 0x76D08B9, 1920, 2047, 61, 5, 0);
-    AssignMapStructure(pValues, 15, 0x76CA26F, 0, 1023, 50, 6, 1);
-    AssignMapStructure(pValues, 16, 0x76CE3EE, 0, 2047, 50, 6, 0);
-    AssignMapStructure(pValues, 17, 0x76CE3E5, 0, 2047, 51, 6, 0);
-    AssignMapStructure(pValues, 18, 0x30DCF31, 0, 1023, 51, 6, 1);
-    AssignMapStructure(pValues, 19, 0x76CA26F, 1024, 2047, 60, 5, 1);
-    AssignMapStructure(pValues, 20, 0x76C82BE, 0, 2047, 60, 5, 0);
-    AssignMapStructure(pValues, 21, 0x76CD411, 0, 2047, 61, 5, 0);
-    AssignMapStructure(pValues, 22, 0x30DCF31, 1024, 2047, 61, 5, 1); 
+    AssignMapStructure(pValues, 11, 0x76D08B9, 640, 767, 50, 6, 3);
+    AssignMapStructure(pValues, 12, 0x76D08B9, 768, 895, 51, 6, 1);
+    AssignMapStructure(pValues, 13, 0x76D08B9, 1792, 1919, 60, 5, 1);
+    AssignMapStructure(pValues, 14, 0x76D08B9, 1920, 2047, 61, 5, 3);
+    AssignMapStructure(pValues, 15, 0x76CA26F, 0, 1023, 50, 6, 2);
+    AssignMapStructure(pValues, 16, 0x76CE3EE, 0, 2047, 50, 6, 3);
+    AssignMapStructure(pValues, 17, 0x76CE3E5, 0, 2047, 51, 6, 1);
+    AssignMapStructure(pValues, 18, 0x30DCF31, 0, 1023, 51, 6, 0);
+    AssignMapStructure(pValues, 19, 0x76CA26F, 1024, 2047, 60, 5, 0);
+    AssignMapStructure(pValues, 20, 0x76C82BE, 0, 2047, 60, 5, 1);
+    AssignMapStructure(pValues, 21, 0x76CD411, 0, 2047, 61, 5, 3);
+    AssignMapStructure(pValues, 22, 0x30DCF31, 1024, 2047, 61, 5, 2);
 
-    //UniDbParameter::CreateParameter("GEM_map_size", IntType);
-//    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_map_size", 4, 61, 4, 84, 17);
-//    UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_map_size", 5, 1, 5, 1e4, kNitems);
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_global_mapping", 6, 1, 6, 10000, pValues, kNitems);
     if (pDetectorParameter == NULL)
         return_error = true;

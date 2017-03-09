@@ -166,8 +166,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     if (fRunId < 1) {
         regex re("mpd_run_Glob_(\\d+).data");
         string idstr = regex_replace(file.Data(), re, "$1");
-        Int_t id = atoi(idstr.c_str());
-        if (id == 0) {
+       fRunId = atoi(idstr.c_str());
+        if (fRunId == 0) {
             printf("!!! Error Could not detect runID\n");
             return;
         }

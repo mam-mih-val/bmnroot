@@ -202,6 +202,7 @@ BmnStatus BmnHistMwpc::SetRefRun(Int_t id) {
         refRunName = FileName;
         refID = id;
         LoadRefRun(refRunName);
+        DrawBoth();
     }
 }
 

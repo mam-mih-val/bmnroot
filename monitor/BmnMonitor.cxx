@@ -670,10 +670,10 @@ void BmnMonitor::FinishRun() {
 
         cmd = string("hadd -f shorter.root ") + fHistOut->GetName() +
                 string("; mv shorter.root ") + fHistOut->GetName();
-           printf("system result = %d\n", system(cmd.c_str()));
-        //std::thread threadHAdd(BmnMonitor::threadCmdWrapper, cmd);
-        //if (threadHAdd.joinable())
-        //    threadHAdd.detach();
+//           printf("system result = %d\n", system(cmd.c_str()));
+        std::thread threadHAdd(BmnMonitor::threadCmdWrapper, cmd);
+        if (threadHAdd.joinable())
+            threadHAdd.detach();
     }
     //    bhGem->SetDir(NULL, fRecoTree);
     //    bhDCH->SetDir(NULL, fRecoTree);

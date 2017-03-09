@@ -264,6 +264,7 @@ BmnStatus BmnHistTrigger::SetRefRun(Int_t id) {
         refRunName = FileName;
         refID = id;
         BmnHist::LoadRefRun(refID, fTitle, canTimesPads, Names);
+        DrawBoth();
     }
 }
 

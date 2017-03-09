@@ -178,6 +178,7 @@ BmnStatus BmnHistGem::SetRefRun(Int_t id) {
         refID = id;
         BmnHist::LoadRefRun(refID, fTitle, canGemStripPads, Names);
 //        LoadRefRun(refRunName);
+        DrawBoth();
     }
 }
 

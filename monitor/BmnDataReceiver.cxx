@@ -43,14 +43,12 @@ void BmnDataReceiver::InitSocks() //:
 //_ctx(1),
 //_socket_mcast(_ctx, ZMQ_SUB)
 {
-    DBG("started")
     _ctx = zmq_ctx_new();
     _socket_mcast = zmq_socket(_ctx, ZMQ_XSUB);
     _socket_data = zmq_socket(_ctx, ZMQ_STREAM);
 }
 
 void BmnDataReceiver::DeinitSocks() {
-    DBG("started")
     //_socket_mcast.close();
     zmq_close(_socket_mcast);
     zmq_close(_socket_data);

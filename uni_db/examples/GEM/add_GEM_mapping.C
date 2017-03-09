@@ -24,12 +24,12 @@ void add_GEM_mapping() {
 
     GemMapStructure* pValues = new GemMapStructure[kNitems];
 
-    AssignMapStructure(pValues, 0, 0x76CBA8B, 0, 2047, 0, 4, 0);
+    AssignMapStructure(pValues, 0, 0x76CBA8B, 0, 2047, 0, 4, 2);
     AssignMapStructure(pValues, 1, 0x76CD410, 0, 2047, 4, 2, 0);
     AssignMapStructure(pValues, 2, 0x76C8320, 0, 2047, 2, 3, 0);
     AssignMapStructure(pValues, 3, 0x76CB9C0, 0, 2047, 3, 4, 0);
     AssignMapStructure(pValues, 4, 0x76CA266, 0, 2047, 1, 1, 0);
-    AssignMapStructure(pValues, 5, 0x76D08B9, 0, 127, 0, 4, 0);
+    AssignMapStructure(pValues, 5, 0x76D08B9, 0, 127, 0, 4, 2);
     AssignMapStructure(pValues, 6, 0x76D08B9, 128, 255, 4, 2, 0);
     AssignMapStructure(pValues, 7, 0x76D08B9, 256, 383, 2, 3, 0);
     AssignMapStructure(pValues, 8, 0x76D08B9, 384, 511, 3, 4, 0);

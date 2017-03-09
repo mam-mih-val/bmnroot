@@ -835,14 +835,14 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         if (iEv == fNevents - 1) {
             fDigiTree->Branch("RunHeader", &runHeader);
             if (runHeaderDAQ) {
-                UInt_t sT = runHeaderDAQ->GetStartTime().GetTime();
-                UInt_t fT = runHeaderDAQ->GetFinishTime().GetTime();
-                UInt_t sD = runHeaderDAQ->GetStartTime().GetDate();
-                UInt_t fD = runHeaderDAQ->GetFinishTime().GetDate();
+                UInt_t sT = runHeaderDAQ->GetStartTime().GetTime(kFALSE);
+                UInt_t fT = runHeaderDAQ->GetFinishTime().GetTime(kFALSE);
+                UInt_t sD = runHeaderDAQ->GetStartTime().GetDate(kFALSE);
+                UInt_t fD = runHeaderDAQ->GetFinishTime().GetDate(kFALSE);
                 Int_t nEv = (Int_t) runHeaderDAQ->GetNEvents();
                 TDatime sDatime(sD / 10000, sD % 10000 / 100, sD % 100, sT / 10000, sT % 10000 / 100, sT % 100);
                 TDatime fDatime(fD / 10000, fD % 10000 / 100, fD % 100, fT / 10000, fT % 10000 / 100, fT % 100);
-                Double_t fSize = Double_t(fLengthRawFile);
+                Double_t fSize = Double_t(fLengthRawFile / 1024. / 1024.);
                 UInt_t runId = runHeaderDAQ->GetRunId();
 
                 runHeader->SetRunId(runId);

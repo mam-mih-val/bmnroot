@@ -84,7 +84,7 @@ void ReadAndPut(TString fName, DchMapStructure* pValues1, DchMapStructure* pValu
             if (name == planes[j])
                 break;
         planeId = j;
-        printf("%s\t%d\t%d\t%d\t%d\t%d\n", name.Data(), planeId, group, ser, slot, ch_l, ch_h);
+        printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\n", name.Data(), planeId, group, ser, slot, ch_l, ch_h);
         if (planeId / 8 == 0)
             AssignMapStructure(pValues1, i1++, planeId, group, ser, slot, ch_l, ch_h);
         else

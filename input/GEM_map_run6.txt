@@ -1,14 +1,14 @@
 //GEM_id: the second digit 0=left, 1=right;
 //Module: 0=00 (mod0,hotZone), 1=01 (mod0,bigZone), 2=10 (mod1,hotZone), 3=11 (mod1,bigZone)
-//For middle GEMs Module = 0 (for both hotZone and bigZone)
+//For middle GEMs Module = 0 or 2 
    Serial    Ch_lo    Ch_hi   GEM_id  Station  Module     
 =====================================================
-0x76CBA8B        0     2047        0        4       0     
+0x76CBA8B        0     2047        0        4       2     
 0x76CD410        0     2047        4        2       0     
 0x76C8320        0     2047        2        3       0     
 0x76CB9C0        0     2047        3        4       0     
 0x76CA266        0     2047        1        1       0     
-0x76D08B9        0      127        0        4       0      
+0x76D08B9        0      127        0        4       2      
 0x76D08B9      128      255        4        2       0     
 0x76D08B9      256      383        2        3       0      
 0x76D08B9      384      511        3        4       0     

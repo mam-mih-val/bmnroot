@@ -18,20 +18,24 @@ void add_TRIG_mapping() {
     //needed only to put new detector in dataBase
     //UniDbDetector* pDetector = UniDbDetector::CreateDetector("BD", NULL);
 
-    TriggerMapStructure* pT0 = new TriggerMapStructure();
+    TriggerMapStructure* pT0 = new TriggerMapStructure[2];
     TriggerMapStructure* pBC1 = new TriggerMapStructure();
-    TriggerMapStructure* pBC2 = new TriggerMapStructure();
-    TriggerMapStructure* pVETO = new TriggerMapStructure();
-    TriggerMapStructure* pFD = new TriggerMapStructure();
+    TriggerMapStructure* pBC2 = new TriggerMapStructure[2];
+    TriggerMapStructure* pVETO = new TriggerMapStructure[2];
+    TriggerMapStructure* pFD = new TriggerMapStructure[2];
 
     const UInt_t kNBDCH = 40;
     TriggerMapStructure* pBD = new TriggerMapStructure[kNBDCH];
 
     AssignMapStructure(pT0, 0x6EA9711, 21, 33, 0);
-    AssignMapStructure(pBC1, 0x6EA9711, 21, -1, 0);
+    AssignMapStructure(pT0, 0x6EA9711, 21, 42, 1);
+    AssignMapStructure(pBC1, 0x6EA9711, 21, 31, 0);
     AssignMapStructure(pBC2, 0x6EA9711, 21, 24, 0);
+    AssignMapStructure(pBC2, 0x6EA9711, 21, 34, 1);
     AssignMapStructure(pVETO, 0x6EA9711, 21, 28, 0);
+    AssignMapStructure(pVETO, 0x6EA9711, 21, 38, 1);
     AssignMapStructure(pFD, 0x6EA9711, 21, 32, 0);
+    AssignMapStructure(pFD, 0x6EA9711, 21, 22, 1);
 
     AssignMapStructure(pBD, 0x6EA9711, 21, 15, 0);
     AssignMapStructure(pBD, 0x6EA9711, 21, 22, 1);
@@ -74,11 +78,15 @@ void add_TRIG_mapping() {
     AssignMapStructure(pBD, 0x6EA9711, 21, 29, 38);
     AssignMapStructure(pBD, 0x6EA9711, 21, 67, 39);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("T0", "T0_global_mapping", 5, 419, 5, 1e4, pT0, 1);
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BC1", "BC1_global_mapping", 5, 419, 5, 1e4, pBC1, 1);
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BC2", "BC2_global_mapping", 5, 419, 5, 1e4, pBC2, 1);
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("VETO", "VETO_global_mapping", 5, 419, 5, 1e4, pVETO, 1);
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BD", "BD_global_mapping", 5, 419, 5, 1e4, pBD, kNBDCH);
+    Int_t period = 6;
+    Int_t startRun = 1;
+    Int_t finishRun = 1e4;
+    
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("T0", "T0_global_mapping", period, startRun, period, finishRun, pT0, 2);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BC1", "BC1_global_mapping", period, startRun, period, finishRun, pBC1, 1);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BC2", "BC2_global_mapping", period, startRun, period, finishRun, pBC2, 2);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("VETO", "VETO_global_mapping", period, startRun, period, finishRun, pVETO, 2);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("BD", "BD_global_mapping", period, startRun, period, finishRun, pBD, kNBDCH);
 
     // clean memory after work
     delete [] pT0;

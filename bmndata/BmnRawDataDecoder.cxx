@@ -946,7 +946,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         tof700 = new TClonesArray("BmnTof2Digit");
         fDigiTree->Branch("TOF700", &tof700);        
         fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
-        fTof700Mapper->print();
+//        fTof700Mapper->print();
         fTof700Mapper->readSlewingT0();
         fTof700Mapper->readSlewing();
         fTof700Mapper->BookSlewing();
@@ -962,14 +962,14 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         zdc = new TClonesArray("BmnZDCDigit");
         fDigiTree->Branch("ZDC", &zdc);
         fZDCMapper = new BmnZDCRaw2Digit(fZDCMapFileName, fRootFileName, fZDCCalibrationFileName);
-        fZDCMapper->print();
+//        fZDCMapper->print();
     }
 
     if (fDetectorSetup[8]) {
         ecal = new TClonesArray("BmnECALDigit");
         fDigiTree->Branch("ECAL", &ecal);
         fECALMapper = new BmnECALRaw2Digit(fECALMapFileName, fRootFileName, fECALCalibrationFileName);
-        fECALMapper->print();
+//        fECALMapper->print();
     }
 
     fPedEvCntr = 0; // counter for pedestal events between two spills
@@ -1202,7 +1202,7 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700Init() {
 
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
-    fTof700Mapper->print();
+//    fTof700Mapper->print();
 
     return kBMNSUCCESS;
 }

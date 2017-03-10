@@ -29,7 +29,7 @@ BmnHistDch::BmnHistDch(TString title = "DCH") {
     fTitle = title;
     fName = title + "_cl";
     for (Int_t i = 0; i < kNPLANES; ++i) {
-        h_wires[i] = new TH1F(fTitle + "_" + names[i], names[i], kNREALWIRES, 0, kNREALWIRES);
+        h_wires[i] = new TH1F(fTitle + "_" + names[i], names[i], kNWIRES, 0, kNWIRES);
         h_wires[i]->SetTitleSize(0.06, "XY");
         h_wires[i]->SetLabelSize(0.08, "XY");
         h_wires[i]->GetXaxis()->SetTitle("Wire Number");
@@ -143,7 +143,7 @@ void BmnHistDch::DrawBoth() {
 void BmnHistDch::FillFromDigi(TClonesArray * DchDigits) {
     //    Int_t rid = (head) ? head->GetRunId() : -1;
     fDchHits->Clear();
-    //ProcessDchDigits(DchDigits, fDchHits);
+    ProcessDchDigits(DchDigits, fDchHits);
     for (Int_t iDig = 0; iDig < DchDigits->GetEntriesFast(); ++iDig) {
         BmnDchDigit* dig = (BmnDchDigit*) DchDigits->At(iDig);
         Int_t plane = dig->GetPlane();

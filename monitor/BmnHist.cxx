@@ -37,6 +37,7 @@ void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
                 k = (canGemStripPads->at(iPad)->ref->Integral() > 0) ?
                         canGemStripPads->at(iPad)->current->Integral() /
                         (Double_t) canGemStripPads->at(iPad)->ref->Integral() : 1;
+                if (k == 0) k = 1;
                 if (canGemStripPads->at(iPad)->ref->Integral() > 0)
                     canGemStripPads->at(iPad)->ref->DrawNormalized("same hist", canGemStripPads->at(iPad)->current->Integral());
                 k = k * canGemStripPads->at(iPad)->ref->GetBinContent(canGemStripPads->at(iPad)->ref->GetMaximumBin());

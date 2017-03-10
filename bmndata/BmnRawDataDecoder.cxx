@@ -164,8 +164,9 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fPeriodId = period;
     fRunId = GetRunIdFromFile(fRawFileName);
     if (fRunId < 1) {
-        regex re("mpd_run_Glob_(\\d+).data");
-        string idstr = regex_replace(file.Data(), re, "$1");
+        printf("raw file %s\n", fRawFileName.Data());
+        regex re(".*mpd_run_Glob_(\\d+).data");
+        string idstr = regex_replace(fRawFileName.Data(), re, "$1");
        fRunId = atoi(idstr.c_str());
         if (fRunId == 0) {
             printf("!!! Error Could not detect runID\n");

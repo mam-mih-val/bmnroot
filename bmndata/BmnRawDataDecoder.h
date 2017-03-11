@@ -15,7 +15,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <regex>
+//#include <regex>
 #include "BmnGemRaw2Digit.h"
 #include "BmnGemStripDigit.h"
 #include "BmnMwpcRaw2Digit.h"

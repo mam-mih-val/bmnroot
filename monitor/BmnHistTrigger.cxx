@@ -258,12 +258,12 @@ void BmnHistTrigger::DrawBoth() {
 }
 
 BmnStatus BmnHistTrigger::SetRefRun(Int_t id) {
-    TString FileName = Form("bmn_run%04d_hist.root", id);
-    printf("SetRefRun: %s\n", FileName.Data());
-    if (refRunName != FileName) {
+    if (refID != id) {
+        TString FileName = Form("bmn_run%04d_hist.root", id);
+        printf("SetRefRun: %s\n", FileName.Data());
         refRunName = FileName;
         refID = id;
-        BmnHist::LoadRefRun(refID, fTitle, canTimesPads, Names);
+        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canTimesPads, Names);
         DrawBoth();
     }
 }

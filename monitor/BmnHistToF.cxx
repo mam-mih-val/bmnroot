@@ -137,13 +137,13 @@ void BmnHistToF::Register(THttpServer *serv) {
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canTimes);
-//    fServer->Register(path, histAmp);
-//    fServer->Register(path, histAmpSpecific);
-//    fServer->Register(path, histStrip);
-//    fServer->Register(path, histStripSimult);
+    //    fServer->Register(path, histAmp);
+    //    fServer->Register(path, histAmpSpecific);
+    //    fServer->Register(path, histStrip);
+    //    fServer->Register(path, histStripSimult);
     fServer->Register(path, histState);
-//    fServer->Register(path, histLeadingTime);
-//    fServer->Register(path, histLeadingTimeSpecific);
+    //    fServer->Register(path, histLeadingTime);
+    //    fServer->Register(path, histLeadingTimeSpecific);
 
     TString cmd = "/" + fName + "/->SetRefRun(%arg1%)";
     TString cmdTitle = path + "SetRefRun";
@@ -190,28 +190,30 @@ void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
     SetSide(Side);
     TString command;
     if (fSelectedPlane >= 0)
-        command = Form("fPlane == %d", fSelectedPlane);
+        command = Form("%s.fPlane == %d", fTitle.Data(), fSelectedPlane);
     if (fSelectedStrip >= 0) {
         if (command.Length() > 0)
             command = command + " && ";
-        command = command + Form("fStrip == %d", fSelectedStrip);
+        command = command + Form("%s.fStrip == %d", fTitle.Data(), fSelectedStrip);
     }
     if (fSelectedSide >= 0) {
         if (command.Length() > 0)
             command = command + " && ";
-        command = command + Form("fSide == %d", fSelectedSide);
+        command = command + Form("%s.fSide == %d", fTitle.Data(), fSelectedSide);
     }
     if (frecoTree != NULL) {
         histAmpSpecific->Reset();
         histAmpSpecific->SetTitle("Amplitude For: " + command);
         TString direction = "fAmplitude>>" + TString(histAmpSpecific->GetName());
+//        TCanvas *c1 = new TCanvas("c1");
         frecoTree->Draw(direction, command, "");
         histLeadingTimeSpecific->Reset();
         histLeadingTimeSpecific->SetTitle("Leading Time For: " + command);
         direction = "fTime>>" + TString(histLeadingTimeSpecific->GetName());
-//        TDirectory *d = gDirectory->GetDirectory();
-//        TDirectory()
-        frecoTree->Draw(direction, command, "");
+        //        TDirectory *d = gDirectory->GetDirectory();
+        //        TDirectory()
+        frecoTree->Draw(direction, command, "goff");
+//        delete c1;
     }
 }
 
@@ -230,12 +232,12 @@ void BmnHistToF::DrawBoth() {
 }
 
 BmnStatus BmnHistToF::SetRefRun(Int_t id) {
-    TString FileName = Form("bmn_run%04d_hist.root", id);
-    printf("SetRefRun: %s\n", FileName.Data());
-    if (refRunName != FileName) {
+    if (refID != id) {
+        TString FileName = Form("bmn_run%04d_hist.root", id);
+        printf("SetRefRun: %s\n", FileName.Data());
         refRunName = FileName;
         refID = id;
-        BmnHist::LoadRefRun(refID, fTitle, canTimesPads, Names);
+        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canTimesPads, Names);
         DrawBoth();
     }
 }

@@ -126,58 +126,13 @@ void BmnHistGem::FillFromDigi(TClonesArray * gemDigits) {
     }
 }
 
-BmnStatus BmnHistGem::LoadRefRun(TString FileName) {
-    printf("Loading ref histos\n");
-    refFile = new TFile(refPath + FileName, "read");
-    if (refFile->IsOpen() == false) {
-        printf("Cannot open file %s !\n", FileName.Data());
-        return kBMNERROR;
-    }
-    canGemStripPads.clear();
-    canGemStripPads.resize(maxLayers * sumMods);
-    Int_t modCtr = 0;
-    TString refName = Form("ref%06d_", refID);
-    TString name;
-    for (Int_t stationIndex = 0; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
-        for (Int_t moduleIndex = 0; moduleIndex < moduleCount[stationIndex]; moduleIndex++) {
-            for (Int_t layerIndex = 0; layerIndex < layersCount[stationIndex]; layerIndex++) {
-                name = Form(fTitle + "_Station_%d_module_%d_layer_%d", stationIndex, moduleIndex, layerIndex);
-//                PadInfo<TH1F> *p = new PadInfo<TH1F>();
-                PadInfo *p = new PadInfo();
-                p->current = histGemStrip[stationIndex][moduleIndex][layerIndex];
-                //                p.ref = (TH1F*) gDirectory->Get(name.Data());
-                //                TH1F* tempHist;
-                p->ref = (TH1*) refFile->Get(refName + "GEM_hists/" + refName + name);
-                if (p->ref == NULL) {
-                    TH1* tempH = (TH1*) refFile->Get(TString("GEM_hists/") + name);
-                    if (tempH == NULL) {
-                        printf("Cannot load %s !\n", name.Data());
-                        continue;
-//                        return kBMNERROR;
-                    }
-                    p->ref = (TH1*) (tempH->Clone(name));
-                }
-                p->ref->SetLineColor(kRed);
-                p->ref->SetDirectory(0);
-                canGemStripPads[modCtr * maxLayers + layerIndex] = p;
-            }
-            modCtr++;
-        }
-    }
-    //    refFile->Close();
-    delete refFile;
-    refFile = NULL;
-    return kBMNSUCCESS;
-}
-
 BmnStatus BmnHistGem::SetRefRun(Int_t id) {
-    TString FileName = Form("bmn_run%04d_hist.root", id);
-    printf("SetRefRun: %s\n", FileName.Data());
-    if (refRunName != FileName) {
+    if (refID != id) {
+        TString FileName = Form("bmn_run%04d_hist.root", id);
+        printf("SetRefRun: %s\n", FileName.Data());
         refRunName = FileName;
         refID = id;
-        BmnHist::LoadRefRun(refID, fTitle, canGemStripPads, Names);
-//        LoadRefRun(refRunName);
+        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canGemStripPads, Names);
         DrawBoth();
     }
 }

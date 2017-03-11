@@ -163,16 +163,6 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fMaxEvent = nEvents;
     fPeriodId = period;
     fRunId = GetRunIdFromFile(fRawFileName);
-    if (fRunId < 1) {
-        printf("raw file %s\n", fRawFileName.Data());
-        regex re(".*mpd_run_Glob_(\\d+).data");
-        string idstr = regex_replace(fRawFileName.Data(), re, "$1");
-       fRunId = atoi(idstr.c_str());
-        if (fRunId == 0) {
-            printf("!!! Error Could not detect runID\n");
-            return;
-        }
-    }
     fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
     fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
     fDchMapFileName = "";
@@ -201,33 +191,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     syncCounter = 0;
     fPedoCounter = 0;
     fGemMap = NULL;
-    Int_t fEntriesInGlobMap = 0;
-    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
-    if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);
-
-    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
-        if (find(fGemSerials.begin(), fGemSerials.end(), fGemMap[i].serial) == fGemSerials.end())
-            fGemSerials.push_back(fGemMap[i].serial);
-    fNGemSerials = fGemSerials.size();
-
-    fZDCSerials.push_back(0x046f4083);
-    fZDCSerials.push_back(0x046f4bb2);
-    fNZDCSerials = fZDCSerials.size();
-
-    fECALSerials.push_back(0x07A8DEEE);
-    fECALSerials.push_back(0x07A92F52);
-    fECALSerials.push_back(0x07A8DEE2);
-    fECALSerials.push_back(0x07A8DFCA);
-    fECALSerials.push_back(0x07A8DED7);
-    fECALSerials.push_back(0x06E9E55A);
-    fNECALSerials = fECALSerials.size();
-
-    Int_t nEntries = 1;
-    mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
-    if (mapPar != NULL) mapPar->GetTriggerMapArray(fT0Map, nEntries);
-    else cerr << "No TO map found in DB" << endl;
-    delete mapPar;
-
+    InitMaps();
 }
 
 BmnRawDataDecoder::~BmnRawDataDecoder() {
@@ -1277,4 +1241,34 @@ Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
         }
     }
     fclose(file);
+}
+
+void BmnRawDataDecoder::InitMaps(){
+    Int_t fEntriesInGlobMap = 0;
+    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
+    if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);
+
+    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
+        if (find(fGemSerials.begin(), fGemSerials.end(), fGemMap[i].serial) == fGemSerials.end())
+            fGemSerials.push_back(fGemMap[i].serial);
+    fNGemSerials = fGemSerials.size();
+
+    fZDCSerials.push_back(0x046f4083);
+    fZDCSerials.push_back(0x046f4bb2);
+    fNZDCSerials = fZDCSerials.size();
+
+    fECALSerials.push_back(0x07A8DEEE);
+    fECALSerials.push_back(0x07A92F52);
+    fECALSerials.push_back(0x07A8DEE2);
+    fECALSerials.push_back(0x07A8DFCA);
+    fECALSerials.push_back(0x07A8DED7);
+    fECALSerials.push_back(0x06E9E55A);
+    fNECALSerials = fECALSerials.size();
+
+    Int_t nEntries = 1;
+    mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
+    if (mapPar != NULL) mapPar->GetTriggerMapArray(fT0Map, nEntries);
+    else cerr << "No TO map found in DB" << endl;
+    delete mapPar;
+
 }

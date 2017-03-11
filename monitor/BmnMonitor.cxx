@@ -120,6 +120,7 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir, TString decoAddr
     else
         _refDir = refDir;
     DBG("started")
+    printf("Ref dir set to %s\n", _refDir.Data());
     InitServer();
     RegisterAll();
     //    thread threadDeco(threadDecodeWrapper, dirname, startFile, runCurrent);
@@ -629,7 +630,7 @@ void BmnMonitor::RegisterAll() {
 
 void BmnMonitor::UpdateRuns() {
     struct dirent **namelist;
-    regex re("bmn_run0*(\\d+)_hist.root");
+    regex re(".*bmn_run0*(\\d+)_hist.root");
     Int_t n;
     refList->Clear();
     n = scandir(_refDir, &namelist, 0, versionsort);

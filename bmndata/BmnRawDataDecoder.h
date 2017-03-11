@@ -125,6 +125,7 @@ public:
     BmnStatus InitConverter();
     BmnStatus InitConverter(deque<UInt_t> *dq);
     BmnStatus InitDecoder();
+    void InitMaps();
     void ResetDecoder(TString file);
     BmnStatus DisposeDecoder();
     BmnStatus wait_stream(deque<UInt_t> *que, Int_t len);

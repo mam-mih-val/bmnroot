@@ -63,7 +63,7 @@ public:
 //    virtual BmnStatus LoadRefRun(TString FileName) = 0;
 //    template <class HH>
     static void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads);
-    static BmnStatus LoadRefRun(Int_t refID, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names);
+    static BmnStatus LoadRefRun(Int_t refID, TString FullName, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names);
 
     void SetRefRunName(TString v) {
         this->refRunName = v;

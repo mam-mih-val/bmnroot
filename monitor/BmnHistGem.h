@@ -49,7 +49,6 @@ public:
     void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);
     void DrawBoth();
     void FillFromDigi(TClonesArray * digits);
-    BmnStatus LoadRefRun(TString FileName);
     BmnStatus  SetRefRun(Int_t id);
     
 private:

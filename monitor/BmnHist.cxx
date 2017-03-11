@@ -53,12 +53,12 @@ void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
     canGemStrip->Modified();
 }
 
-BmnStatus BmnHist::LoadRefRun(Int_t refID, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names) {
+BmnStatus BmnHist::LoadRefRun(Int_t refID, TString FullName, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names) {
     printf("Loading ref histos\n");
-    TString FileName = Form("bmn_run%04d_hist.root", refID);
-    TFile *refFile = new TFile(FileName, "read");
+//    TString FileName = Form("bmn_run%04d_hist.root", refID);
+    TFile *refFile = new TFile(FullName, "read");
     if (refFile->IsOpen() == false) {
-        printf("Cannot open file %s !\n", FileName.Data());
+        printf("Cannot open file %s !\n", FullName.Data());
         return kBMNERROR;
     }
     TString refName = Form("ref%06d_", refID);

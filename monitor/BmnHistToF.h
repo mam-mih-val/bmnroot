@@ -75,13 +75,6 @@ private:
     TCanvas *canTimes;
     vector<PadInfo*> canTimesPads;
     
-void SaveHist(TH1 *hist, TString path) {
-    TCanvas *c0 = new TCanvas("c0", hist->GetTitle());
-    hist->Draw();
-    c0->SaveAs(TString(path + TString(hist->GetTitle()) + ".png").Data());
-    delete c0;
-}
-    
     ClassDef(BmnHistToF, 1)
 };
 

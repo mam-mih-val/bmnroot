@@ -27,7 +27,7 @@ BmnOnlineDecoder::BmnOnlineDecoder() {
 
 BmnOnlineDecoder::~BmnOnlineDecoder() {
     fRawDecoSocket->Close();
-    delete rawDataDecoder;
+    if (rawDataDecoder) delete rawDataDecoder;
 }
 
 void BmnOnlineDecoder::InitDecoder() {
@@ -59,9 +59,25 @@ void BmnOnlineDecoder::InitDecoder() {
 
 }
 
-void BmnOnlineDecoder::InitDecoder(TString file) {
+void BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     DBG("started")
-    rawDataDecoder = new BmnRawDataDecoder(file, 0, 6);
+//    rawDataDecoder = new BmnRawDataDecoder(file, 0, 6);
+    rawDataDecoder = new BmnRawDataDecoder();
+    
+    Int_t runID = 0;
+    if (runID < 1) {
+        printf("raw file %s\n", fRawFileName.Data());
+        regex re(".*mpd_run_Glob_(\\d+).data");
+        string idstr = regex_replace(fRawFileName.Data(), re, "$1");
+       runID = atoi(idstr.c_str());
+        if (runID == 0) {
+            printf("!!! Error Could not detect runID\n");
+            return;
+        }
+    }
+    rawDataDecoder->SetRunId(runID);
+    rawDataDecoder->SetPeriodId(6);
+    rawDataDecoder->InitMaps();
     Bool_t setup[9]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
@@ -140,6 +156,8 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
         InitDecoder(_curDir + _curFile);
         ProcessFileRun(_curFile);
         rawDataDecoder->DisposeDecoder();
+        delete rawDataDecoder;
+        rawDataDecoder = NULL;
         _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
     }
     client->Close();
@@ -160,22 +178,11 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
     const size_t kWORDSIZE = sizeof (UInt_t);
     const Short_t kNBYTESINWORD = 4;
     Int_t runId = -1;
-    FILE * file = fopen(TString(_curDir + rawFileName).Data(), "rb");
-    if (file == NULL) {
-        printf("File %s is not open!!!\n", TString(_curDir + rawFileName).Data());
-        return;
-    }
-    UInt_t word;
-    while (fread(&word, kWORDSIZE, 1, file)) {
-        if (word == kRUNNUMBERSYNC) {
-            fread(&word, kWORDSIZE, 1, file); //skip word
-            fread(&runId, kWORDSIZE, 1, file);
-            break;
-        }
-    }
-    fclose(file);
-    printf("run id = %d\n", runId);
     rawDataDecoder->ResetDecoder(_curDir + rawFileName);
+    runId = rawDataDecoder->GetRunId();
+    if (runId < 1216)
+        return;
+    printf("run id = %d\n", runId);
 
     Int_t sendRes = 0;
     while (kTRUE) {

@@ -99,6 +99,8 @@ void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
     for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++) {
         BmnTof1Digit *td = (BmnTof1Digit *) ToF4Digits->At(digIndex);
         Int_t strip = td->GetStrip();
+        if ((strip == 0) || (strip == 47))
+            continue;
         histLeadingTime->Fill(td->GetTime());
         histAmp->Fill(td->GetAmplitude());
         histStrip->Fill(strip);

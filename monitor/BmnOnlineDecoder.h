@@ -21,6 +21,7 @@
 #include "TClonesArray.h"
 #include "TMessage.h"
 #include "TServerSocket.h"
+#include "TSocket.h"
 #include "TString.h"
 // BmnRoot
 #include <BmnTrigDigit.h>
@@ -34,6 +35,9 @@
 #define RAW_DECODER_SOCKET_PORT 9090
 #define RUN_FILE_CHECK_PERIOD    1e5
 #define MAX_CLIENTS               20
+#define RUN_FILE_CHECK_PERIOD    1e5
+#define DECO_SOCK_WAIT_PERIOD    5e2
+#define DECO_SOCK_WAIT_LIMIT     5e4
 
 class BmnOnlineDecoder : public TNamed {
 public:
@@ -55,6 +59,7 @@ private:
     Int_t iClients;
     TString _curFile;
     TString _curDir;
+    Int_t fEvents;
     
 
     ClassDef(BmnOnlineDecoder, 1)

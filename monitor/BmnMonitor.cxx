@@ -19,6 +19,7 @@
 #define INOTIF_BUF_LEN (255 * (sizeof(struct inotify_event) + 255))
 
 BmnMonitor::BmnMonitor() {
+    keepWorking = kTRUE;
     _fileList = new vector<BmnRunInfo>();
     fRecoTree = NULL;
     fRecoTree4Show = NULL;
@@ -131,7 +132,7 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir, TString decoAddr
     Int_t len;
     decoTimeout = 0;
     TMonitor *mon = new TMonitor;
-    while (kTRUE) {
+    while (keepWorking) {
         gSystem->ProcessEvents();
         //        fServer->ProcessRequests();
         switch (fState) {
@@ -147,7 +148,7 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir, TString decoAddr
                 }
                 printf("Connected to %s\n", fRawDecoAddr.Data());
                 fRawDecoSocket->GetInetAddress().Print();
-
+                fRawDecoSocket->SetOption(kKeepAlive, 1);
                 mon->Add(fRawDecoSocket);
                 fState = kBMNWAIT;
                 break;
@@ -180,6 +181,7 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir, TString decoAddr
             else
                 DBGERR("Recv error")
                 FinishRun();
+            keepWorking = kFALSE; break;// @TODO remove
             delete mess;
             fState = kBMNRECON;
             mon->Remove(fRawDecoSocket);
@@ -196,6 +198,10 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir, TString decoAddr
                 break;
             case kMESS_OBJECT:
             {
+//                if (mess->GetClass() != DigiArrays::Class()){
+//                    printf("!wrong class!\n");
+//                    continue;
+//                }
                 fDigiArrays = (DigiArrays*) mess->ReadObject(mess->GetClass());
                 if (fDigiArrays->header->GetEntriesFast() == 0)
                     break;
@@ -211,6 +217,7 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir, TString decoAddr
                     case kBMNWORK:
                         if (fRunID != runID) {
                             FinishRun();
+                            keepWorking = kFALSE; break;// @TODO remove
                             fRunID = runID;
                             CreateFile(fRunID);
                         }
@@ -362,6 +369,7 @@ TString BmnMonitor::WatchNext(Int_t inotifDir, Int_t cycleWait) {
 }
 
 BmnStatus BmnMonitor::CreateFile(Int_t runID) {
+    fEvents = 0;
     UpdateRuns();
     TString outHistName = Form("bmn_run%04d_hist.root", runID);
     fRecoTree = NULL;
@@ -524,6 +532,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     //    fDigiTree->GetEntry(iEv);
     // histograms fill//
     //    DBG("started")
+    fEvents++;
     if (fDigiArrays->header == NULL) {
         printf("Wrong header!\n");
         return;
@@ -558,7 +567,31 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhDCH_4show->FillFromDigi(fDigiArrays->dch);
     bhMWPC_4show->FillFromDigi(fDigiArrays->mwpc);
     fRecoTree4Show->Fill();
-    if (head->GetEventId() % 100 == 0) {
+    if (fEvents % 500 == 0) {
+        // print info canvas //
+        infoCanvas->Clear();
+        infoCanvas->cd(1);
+        TString runType;
+        switch (head->GetTrig()) {
+            case kBMNBEAM:
+                runType = "beam";
+                break;
+            case kBMNMINBIAS:
+                runType = "target";
+                break;
+            default:
+                runType = "???";
+                break;
+        }
+        TLatex Tl;
+        Tl.SetTextAlign(23);
+        Tl.SetTextSize(0.16);
+        Tl.DrawLatex(0.5, 0.9, Form("Run: %04d", head->GetRunId()));
+        Tl.DrawLatex(0.5, 0.6, Form("Event: %d", head->GetEventId()));
+        Tl.DrawLatex(0.5, 0.3, Form("Run Type: %s", runType.Data()));
+        Tl.Draw();
+        infoCanvas->Modified();
+        infoCanvas->Update();
         bhGem_4show->DrawBoth();
         bhDCH_4show->DrawBoth();
         bhMWPC_4show->DrawBoth();
@@ -566,30 +599,6 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         bhToF400_4show->DrawBoth();
         bhToF700_4show->DrawBoth();
     }
-    // print info canvas //
-    infoCanvas->Clear();
-    infoCanvas->cd(1);
-    TString runType;
-    switch (head->GetTrig()) {
-        case kBMNBEAM:
-            runType = "beam";
-            break;
-        case kBMNMINBIAS:
-            runType = "target";
-            break;
-        default:
-            runType = "???";
-            break;
-    }
-    TLatex Tl;
-    Tl.SetTextAlign(23);
-    Tl.SetTextSize(0.16);
-    Tl.DrawLatex(0.5, 0.9, Form("Run: %04d", head->GetRunId()));
-    Tl.DrawLatex(0.5, 0.6, Form("Event: %d", head->GetEventId()));
-    Tl.DrawLatex(0.5, 0.3, Form("Run Type: %s", runType.Data()));
-    Tl.Draw();
-    infoCanvas->Modified();
-    infoCanvas->Update();
     //    if ((iEv % itersToUpdate == 0) && (iEv > 1)) {
     ////        bhGem->UpdateNoiseMask(0.5 * iEv);
     ////        bhGem_4show->ApplyNoiseMask(bhGem->GetNoiseMask());
@@ -671,7 +680,7 @@ void BmnMonitor::FinishRun() {
 
         cmd = string("hadd -f shorter.root ") + fHistOut->GetName() +
                 string("; mv shorter.root ") + fHistOut->GetName();
-//           printf("system result = %d\n", system(cmd.c_str()));
+        //           printf("system result = %d\n", system(cmd.c_str()));
         std::thread threadHAdd(BmnMonitor::threadCmdWrapper, cmd);
         if (threadHAdd.joinable())
             threadHAdd.detach();

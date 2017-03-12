@@ -392,8 +392,10 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
     //        if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
-    if (wait_file(4 * kWORDSIZE) == kBMNERROR)
+    if (wait_file(4 * kWORDSIZE) == kBMNERROR) {
         return kBMNTIMEOUT;
+        printf("file timeout\n");
+    }
     fCurentPositionRawFile = ftello64(fRawFileIn);
     fread(&fDat, kWORDSIZE, 1, fRawFileIn);
     if (fDat)
@@ -418,8 +420,10 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
         //            fread(data, kWORDSIZE, fDat, fRawFileIn);
         //        } else {
         //read array of current event data and process them
-        if (wait_file(fDat * kNBYTESINWORD * kWORDSIZE) == kBMNERROR)
+        if (wait_file(fDat * kNBYTESINWORD * kWORDSIZE) == kBMNERROR) {
             return kBMNTIMEOUT;
+            printf("file timeout\n");
+        }
         if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) {
             printf("finish by length\n");
             return kBMNFINISH;
@@ -547,8 +551,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
                 }
                 i += (kNSTAMPS / 2); //skip words (we've processed them)
             }
-        }
-	else break;
+        } else break;
     }
     return kBMNSUCCESS;
 }
@@ -583,8 +586,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
                 }
                 i += (ns / 2); //skip words (we've processed them)
             }
-        }
-	else break;
+        } else break;
     }
     return kBMNSUCCESS;
 }
@@ -911,9 +913,9 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 
     if (fDetectorSetup[5]) {
         tof700 = new TClonesArray("BmnTof2Digit");
-        fDigiTree->Branch("TOF700", &tof700);        
+        fDigiTree->Branch("TOF700", &tof700);
         fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
-//        fTof700Mapper->print();
+        //        fTof700Mapper->print();
         fTof700Mapper->readSlewingT0();
         fTof700Mapper->readSlewing();
         fTof700Mapper->BookSlewing();
@@ -929,14 +931,14 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         zdc = new TClonesArray("BmnZDCDigit");
         fDigiTree->Branch("ZDC", &zdc);
         fZDCMapper = new BmnZDCRaw2Digit(fZDCMapFileName, fRootFileName, fZDCCalibrationFileName);
-//        fZDCMapper->print();
+        //        fZDCMapper->print();
     }
 
     if (fDetectorSetup[8]) {
         ecal = new TClonesArray("BmnECALDigit");
         fDigiTree->Branch("ECAL", &ecal);
         fECALMapper = new BmnECALRaw2Digit(fECALMapFileName, fRootFileName, fECALCalibrationFileName);
-//        fECALMapper->print();
+        //        fECALMapper->print();
     }
 
     fPedEvCntr = 0; // counter for pedestal events between two spills
@@ -1169,7 +1171,7 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700Init() {
 
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
-//    fTof700Mapper->print();
+    //    fTof700Mapper->print();
 
     return kBMNSUCCESS;
 }
@@ -1273,7 +1275,7 @@ Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
     fclose(file);
 }
 
-void BmnRawDataDecoder::InitMaps(){
+void BmnRawDataDecoder::InitMaps() {
     Int_t fEntriesInGlobMap = 0;
     UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
     if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);

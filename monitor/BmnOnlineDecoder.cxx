@@ -19,6 +19,7 @@
 BmnOnlineDecoder::BmnOnlineDecoder() {
     fRawDecoSocket = new TServerSocket(RAW_DECODER_SOCKET_PORT, kTRUE);
     fRawDecoSocket->SetOption(kNoBlock, 1);
+    fRawDecoSocket->SetOption(kKeepAlive, 1);
     rawDataDecoder = NULL;
     iClients = 0;
 
@@ -61,15 +62,15 @@ void BmnOnlineDecoder::InitDecoder() {
 
 void BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     DBG("started")
-//    rawDataDecoder = new BmnRawDataDecoder(file, 0, 6);
+    //    rawDataDecoder = new BmnRawDataDecoder(file, 0, 6);
     rawDataDecoder = new BmnRawDataDecoder();
-    
+
     Int_t runID = 0;
     if (runID < 1) {
         printf("raw file %s\n", fRawFileName.Data());
         regex re(".*mpd_run_Glob_(\\d+).data");
         string idstr = regex_replace(fRawFileName.Data(), re, "$1");
-       runID = atoi(idstr.c_str());
+        runID = atoi(idstr.c_str());
         if (runID == 0) {
             printf("!!! Error Could not detect runID\n");
             return;
@@ -115,14 +116,17 @@ BmnStatus BmnOnlineDecoder::Accept() {
         } else {
             if (client == (TSocket*) - 1)
                 break;
+//            client->SetOption(kNoBlock, 1);
             clients.push_back(client);
             //            clients[iClients++] = client;
             printf("New connection accepted\n");
             client->Send("ready");
             // Check some options of socket 0.
-            int val;
+            Int_t val;
             client->GetOption(kKeepAlive, val);
             printf("kKeepAlive: %d\n", val);
+            client->GetOption(kNoBlock, val);
+            printf("kNoBlock: %d\n", val);
             client->GetOption(kSendBuffer, val);
             printf("sendbuffer size: %d\n", val);
             client->GetOption(kRecvBuffer, val);
@@ -180,8 +184,8 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
     Int_t runId = -1;
     rawDataDecoder->ResetDecoder(_curDir + rawFileName);
     runId = rawDataDecoder->GetRunId();
-    if (runId < 1216)
-        return;
+//    if (runId < 1216)
+//        return;
     printf("run id = %d\n", runId);
 
     Int_t sendRes = 0;
@@ -196,11 +200,21 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
         if (iEv > lastEv) {
             Accept();
             rawDataDecoder->DecodeDataToDigiIterate();
+            fEvents++;
+            if (fEvents % 5 != 0) // @TODO remove
+                continue;
             mess.Reset();
             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
             mess.WriteObject(&iterDigi);
             for (auto cl = begin(clients); cl != end(clients); cl++) {
+
+//                Int_t sel = (*cl)->Select(2, 1); // kWrite == 2
+////                printf("select == %d\n", sel);
+//                if (sel ==  - 1) { // timeout
+//                    continue;
+//                }
                 sendRes = (*cl)->Send(mess);
+//                printf("sendRes == %d\n", sendRes);
                 if (sendRes == -1) {
                     clients.erase(cl);
                     cl--;

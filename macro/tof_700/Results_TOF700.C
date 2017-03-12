@@ -10,7 +10,9 @@
 #include "TFile.h"
 #include "TGeoManager.h"
 
-#define NUMBER_CHAMBERS 15
+#define NUMBER_CHAMBERS 24
+#define DIFF_CHAMB_1 9
+#define DIFF_CHAMB_2 18
 
 #if NUMBER_CHAMBERS == 15
 int champos[NUMBER_CHAMBERS] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
@@ -21,14 +23,14 @@ int wma[NUMBER_CHAMBERS] = {3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,33
 #else
 #if NUMBER_CHAMBERS == 24
 int champos[NUMBER_CHAMBERS] = {17,18, 3, 1,19, 4,23,20, 5,15,21, 6, 2,22, 9,10,11,12,13,14, 7, 8, 0,16};
-int wmi[NUMBER_CHAMBERS] = {2500};
-int wma[NUMBER_CHAMBERS] = {3300};
+int wmi[NUMBER_CHAMBERS] = {2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500};
+int wma[NUMBER_CHAMBERS] = {4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000};
 #define NDX 8
 #define NDY 3
 #else
 int champos[NUMBER_CHAMBERS] = {0};
 int wmi[NUMBER_CHAMBERS] = {2500};
-int wma[NUMBER_CHAMBERS] = {3300};
+int wma[NUMBER_CHAMBERS] = {4000};
 #define NDX 1
 #define NDY 1
 #endif
@@ -37,7 +39,7 @@ int wma[NUMBER_CHAMBERS] = {3300};
 
 using namespace TMath;
 
-void Results_TOF700(char *fname = "../raw/bmn_run0871_digit.root") {
+void Results_TOF700(char *fname = "../raw/bmn_run1421_digit.root") {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -71,6 +73,7 @@ void Results_TOF700(char *fname = "../raw/bmn_run0871_digit.root") {
     TH1F *hstrips[NUMBER_CHAMBERS] = {0};
     TH1F *hstripsmax[NUMBER_CHAMBERS] = {0};
     TH1F *htimemax[NUMBER_CHAMBERS] = {0};
+    TH1F *hdiff = 0;
 
     for (int i = 0; i<NUMBER_CHAMBERS; i++)
     {
@@ -93,6 +96,10 @@ void Results_TOF700(char *fname = "../raw/bmn_run0871_digit.root") {
 	sprintf(title,"Strips rate, chamber %d, max strip", i+1);
 	hstripsmax[i] = new TH1F(name, title, 32, 0, 32);
     }
+
+    sprintf(name,"Time_diff_chabmers_%d_%d", DIFF_CHAMB_1, DIFF_CHAMB_2);
+    sprintf(title,"Time difference, chambers %d and %d", DIFF_CHAMB_1, DIFF_CHAMB_2);
+    hdiff = new TH1F(name, title, 10000, -250, 250);
 
     for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
 
@@ -149,9 +156,16 @@ void Results_TOF700(char *fname = "../raw/bmn_run0871_digit.root") {
 		hstripsmax[i]->Fill(smax[i]);
 	    }
 	}
+//	if ((smax[DIFF_CHAMB_1] == 21) && (smax[DIFF_CHAMB_2] == 21) )
+	if ((smax[DIFF_CHAMB_1] >= 16) && (smax[DIFF_CHAMB_1] <= 21) )
+	if ((smax[DIFF_CHAMB_2] >= 16) && (smax[DIFF_CHAMB_2] <= 21) )
+	{
+		hdiff->Fill(tmax[DIFF_CHAMB_1]-tmax[DIFF_CHAMB_2]);
+	}
     } // event loop
 
 
+    FitIn(hdiff, -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htime[i], -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htimemax[i], -0.2, +0.2);
 
@@ -215,6 +229,13 @@ void Results_TOF700(char *fname = "../raw/bmn_run0871_digit.root") {
 	hlrdiff[i]->Draw();
 	gPad->AddExec("exselt","select_hist()");
     }
+
+    TCanvas *cdif = new TCanvas("cdif", "Time Difference", 900, 900);
+    cdif->Divide(1,1);
+    cdif->cd();
+    cdif->cd(1);
+    hdiff->Draw();
+    gPad->AddExec("exselt","select_hist()");
 }
 
 double FitIn2Sigma(TH1F *h)

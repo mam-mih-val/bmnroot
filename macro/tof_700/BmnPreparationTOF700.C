@@ -1,7 +1,7 @@
 //file: full path to raw-file
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
-void BmnSlewingTOF700(TString file = "../raw/mpd_run_Glob_1421.data", Long_t nEvents = 0, Bool_t doConvert = kFALSE) {
+void BmnPreparationTOF700(TString file = "../raw/mpd_run_Glob_1421.data", Long_t nEvents = 0, Bool_t doConvert = kFALSE) {
   gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
   bmnloadlibs(); // load BmnRoot libraries
   BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //4 - period
@@ -25,15 +25,13 @@ void BmnSlewingTOF700(TString file = "../raw/mpd_run_Glob_1421.data", Long_t nEv
 
   if(doConvert) decoder->ConvertRawToRoot();  // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
 
-  decoder->SlewingTOF700Init();  // Decode data into detector-digits using current mappings.
+  decoder->PreparationTOF700Init();  // Decode data into detector-digits using current mappings.
   BmnTof2Raw2DigitNew *tof700m = decoder->GetTof700Mapper();
+  tof700m->Book();
   tof700m->SetW(2500,4000);
   tof700m->SetWT0(720,860);
-  for (int i=1; i<=24; i++) if (!(i==22||i==15||i==16||i==17||i==18||i==19||i==20||i==10)) tof700m->SetLeadMinMax(i,2850, 2950);  // run 834
-  for (int i=1; i<=24; i++) if (  i==22||i==15||i==16||i==17||i==18||i==19||i==20||i==10)  tof700m->SetLeadMinMax(i,-5970, -5800); // run 834
-  decoder->SlewingTOF700();  // Decode data into detector-digits using current mappings.
-  tof700m->drawproft0();
-  tof700m->drawprof();
+  decoder->PreparationTOF700();  // Decode data into detector-digits using current mappings.
+  tof700m->drawprep();
   delete decoder;
 }
 

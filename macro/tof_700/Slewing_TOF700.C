@@ -1,13 +1,13 @@
 
 using namespace std;
 
-void Slewing_TOF700(char *fname="../raw/bmn_run0985.root", int RunPeriod = 5) {
+void Slewing_TOF700(char *fname="../raw/bmn_run1421.root", int RunPeriod = 6) {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
 
     char mapping[256];
-    if(RunPeriod >= 1 && RunPeriod <= 5)
+    if(RunPeriod >= 1 && RunPeriod <= 6)
     {
 	sprintf(mapping, "TOF700_map_period_%d.txt", RunPeriod);
     }
@@ -38,17 +38,28 @@ void Slewing_TOF700(char *fname="../raw/bmn_run0985.root", int RunPeriod = 5) {
 	TOF2.SetLeadMinMax(3,-350, +50);
 	TOF2.SetLeadMinMax(4,-200, +200);
     }
-    else
+    else if (RunPeriod == 5)
     {
 //	TOF2.SetW(2500,3300); // run 834...
 //	TOF2.SetWT0(400,600); // run 834...
-	TOF2.SetW(2500,4500); // run 985...
-	TOF2.SetWT0(450,750); // run 985...
+//	TOF2.SetW(2500,4500); // run 985...
+//	TOF2.SetWT0(450,750); // run 985...
 //	for (int i=1; i<=15; i++) if (!(i==1||i==4||i==7||i==10||i==13)) TOF2.SetLeadMinMax(i,-5200, -4800);  // run 834
 //	for (int i=1; i<=15; i++) if (  i==1||i==4||i==7||i==10||i==13)  TOF2.SetLeadMinMax(i,-13200, -12800); // run 834
-	for (int i=1; i<=15; i++) TOF2.SetLeadMinMax(i,-14000, -12000);  // run 985
-	TOF2.SetLeadMinMax(10,-13000, -12875); // run 985
+//	for (int i=1; i<=15; i++) TOF2.SetLeadMinMax(i,-14000, -12000);  // run 985
+//	TOF2.SetLeadMinMax(10,-13000, -12875); // run 985
     }
+    else if (RunPeriod == 6)
+    {
+	TOF2.SetW(2500,4000);
+	TOF2.SetWT0(720,860);
+	for (int i=1; i<=24; i++) if (!(i==22||i==15||i==16||i==17||i==18||i==19||i==20||i==10)) TOF2.SetLeadMinMax(i,2850, 2950);  // run 1209
+	for (int i=1; i<=24; i++) if (  i==22||i==15||i==16||i==17||i==18||i==19||i==20||i==10)  TOF2.SetLeadMinMax(i,-5970, -5800); // run 1209
+//	for (int i=1; i<=24; i++) if (!(i==22||i==15||i==16||i==17||i==18||i==19||i==20||i==10)) TOF2.SetLeadMinMax(i,2650, 2950);  // run 1227
+//	for (int i=1; i<=24; i++) if (  i==22||i==15||i==16||i==17||i==18||i==19||i==20||i==10)  TOF2.SetLeadMinMax(i,-5600, -5400); // run 1227
+    }
+
+    TOF2.readSlewingLimits();
 
     cout << "Process RUN file:  " << fname << endl;
 
@@ -64,6 +75,7 @@ void Slewing_TOF700(char *fname="../raw/bmn_run0985.root", int RunPeriod = 5) {
     _t_in->SetBranchAddress("bmn_tof700",&tof2_raw);
     _t_in->SetBranchAddress("bmn_trigword",   &TRIGWORD);
     /////////////////////////////////////////////////////////////////////////////////////
+
 
     for (int ev = 0; ev < _t_in->GetEntries(); ev++) {
 

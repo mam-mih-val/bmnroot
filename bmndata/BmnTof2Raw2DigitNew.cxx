@@ -3,6 +3,7 @@
 #include "TStyle.h"
 #include "TProfile2D.h"
 #include "TH2D.h"
+#include "TLine.h"
 #include "TCanvas.h"
 #include "TROOT.h"
 #include "BmnTof2Raw2DigitNew.h"
@@ -268,10 +269,10 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 	    TvsWt0[c][i] = NULL;
 	}
 
-    Wcut = 2100;
-    Wmax = 4100;
-    WT0min = 260;
-    WT0max = 560;
+    Wcut = 2500;
+    Wmax = 4000;
+    WT0min = 720;
+    WT0max = 860;
 
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) LeadMin[i] = -5000;
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) LeadMax[i] = +5000;
@@ -782,6 +783,30 @@ peak2:
   return;
 }
 
+void BmnTof2Raw2DigitNew::readSlewingLimits()
+{
+  TString dir = getenv("VMCWORKDIR");
+  TString path = dir + "/parameters/tof2_slewing/";
+  char filn[128];
+  FILE *finl = 0;
+  sprintf(filn, "%s%s_slewing_limits.txt", path.Data(), filname_base);
+  finl = fopen(filn,"r");
+  if (finl == NULL)
+  {
+    printf("No slewing limits file %s, use defaults\n", filn);
+    return;
+  };
+  int j, lmi, lma;
+  for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
+    {
+      fscanf(finl,"\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", &j, &lmi, &lma);
+      printf("\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", j, lmi, lma);
+      SetLeadMinMax(j,lmi,lma);
+    }   
+  fclose(finl);
+  return;
+}
+
 void BmnTof2Raw2DigitNew::readSlewingT0()
 {
   Int_t plane, dummy;
@@ -1088,6 +1113,7 @@ void BmnTof2Raw2DigitNew::readSlewing()
   {
 	printf(" slewing file error, chamber numbers are mismatched, %d != %d\n", p+1, plane);
   }
+  if (pk == 1) { Wcutc[p] = wmin[p][pk]; Wmaxc[p] = wmax[p][pk]; };
   int ip, is, is1;
   for (int ind=0; ind<n_rec; ind++)
   {
@@ -1470,7 +1496,15 @@ int champosn[TOF2_MAX_CHAMBERS] = {0};
 void BmnTof2Raw2DigitNew::drawprep()
 {
   TCanvas *cp = new TCanvas("cp", "Leadings vs strip", 900,700);
-  int i;
+  TLine *l = 0, *l1 = 0;
+  FILE *fout = 0;
+  int i, im, y;
+  float ymin, ymax, xmin, xmax;
+  TString dir = getenv("VMCWORKDIR");
+  TString path = dir + "/parameters/tof2_slewing/";
+  char filn[128];
+  sprintf(filn, "%s%s_slewing_limits.txt", path.Data(), filname_base);
+  fout = fopen(filn,"w");
   cp->cd();
   cp->Divide(NDX,NDY);
   for (i=0; i<TOF2_MAX_CHAMBERS; i++)
@@ -1478,7 +1512,22 @@ void BmnTof2Raw2DigitNew::drawprep()
       cp->cd(champosn[i]+1);
       TvsS[i]->Draw();
       gPad->AddExec("exselt","select_hist()");
+      im = (TvsS[i]->ProjectionY())->GetMaximumBin();
+      y  = (int)((TvsS[i]->ProjectionY())->GetBinCenter(im));
+      ymin = y - 50;
+      ymax = y + 50;
+      xmin = (TvsS[i]->GetXaxis())->GetXmin();
+      xmax = (TvsS[i]->GetXaxis())->GetXmax();
+      l = new TLine(xmin,ymin,xmax,ymin);
+      l->Draw();
+      l->SetLineColor(kRed);
+      l = new TLine(xmin,ymax,xmax,ymax);
+      l->Draw();
+      l->SetLineColor(kRed);
+      fprintf(fout,"\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", i+1, (int)ymin, (int)ymax);
+      printf("\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", i+1, (int)ymin, (int)ymax);
     }   
+  fclose(fout);
 
   TCanvas *cpw = new TCanvas("cpw", "Widths vs strip", 900,700);
   cpw->cd();
@@ -1488,6 +1537,16 @@ void BmnTof2Raw2DigitNew::drawprep()
       cpw->cd(champosn[i]+1);
       WvsS[i]->Draw();
       gPad->AddExec("exselt","select_hist()");
+      ymin = Wcut;
+      ymax = Wmax;
+      xmin = (WvsS[i]->GetXaxis())->GetXmin();
+      xmax = (WvsS[i]->GetXaxis())->GetXmax();
+      l = new TLine(xmin,ymin,xmax,ymin);
+      l->Draw();
+      l->SetLineColor(kRed);
+      l = new TLine(xmin,ymax,xmax,ymax);
+      l->Draw();
+      l->SetLineColor(kRed);
     }   
 
   TCanvas *cpt0 = new TCanvas("cpt0", "T0 hists", 900,700);
@@ -1496,9 +1555,21 @@ void BmnTof2Raw2DigitNew::drawprep()
   cpt0->cd(1);
   Wt0->Draw();
   gPad->AddExec("exselt","select_hist()");
+  xmin = WT0min;
+  xmax = WT0max;
+  ymin = 0.;
+  ymax = Wt0->GetMaximum();
+  l = new TLine(xmin,ymin,xmin,ymax);
+  l->Draw();
+  l->SetLineColor(kRed);
+  l = new TLine(xmax,ymin,xmax,ymax);
+  l->Draw();
+  l->SetLineColor(kRed);
   cpt0->cd(2);
   Wts->Draw();
   gPad->AddExec("exselt","select_hist()");
+
+  if (1) return;
 
   TCanvas *cp1 = new TCanvas("cp1", "Leadings vs widths", 900,700);
   cp1->cd();

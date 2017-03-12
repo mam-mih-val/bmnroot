@@ -83,6 +83,7 @@ public:
     void fillEvent(TClonesArray *data, TClonesArray *sync, TClonesArray *t0, TClonesArray *tof2digit);
     void fillSlewingT0(TClonesArray *data,  TClonesArray *sync, TClonesArray *t0);
     void fillSlewing(TClonesArray *data, TClonesArray *sync, TClonesArray *t0);
+    void readSlewingLimits();
     void SlewingT0();
     void readSlewingT0();
     void Slewing();

@@ -132,6 +132,8 @@ public:
     BmnStatus wait_file(Int_t len);
     BmnStatus SlewingTOF700Init();
     BmnStatus SlewingTOF700();
+    BmnStatus PreparationTOF700Init() { return SlewingTOF700Init(); };
+    BmnStatus PreparationTOF700();
 
     void SetQue(deque<UInt_t> *v) {
         fDataQueue = v;

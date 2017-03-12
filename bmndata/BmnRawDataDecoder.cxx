@@ -548,6 +548,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
                 i += (kNSTAMPS / 2); //skip words (we've processed them)
             }
         }
+	else break;
     }
     return kBMNSUCCESS;
 }
@@ -583,6 +584,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
                 i += (ns / 2); //skip words (we've processed them)
             }
         }
+	else break;
     }
     return kBMNSUCCESS;
 }
@@ -1174,6 +1176,8 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700Init() {
 
 BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
+    fTof700Mapper->readSlewingLimits();
+
     fTof700Mapper->BookSlewing();
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
@@ -1216,6 +1220,32 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
     cout << "Slewing RPC event #" << fNevents << endl;
 
     fTof700Mapper->Slewing();
+
+    //    fRootFileIn->Close();
+
+    //    delete trigMapper;
+    //    delete tof700Mapper;
+
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::PreparationTOF700() {
+
+    for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
+        if (iEv % 5000 == 0) cout << "Preparation stage event #" << iEv << endl;
+        fTimeShifts.clear();
+
+        fRawTree->GetEntry(iEv);
+
+        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
+            //                cout << "No TimeShiftMap created" << endl;
+            continue;
+        }
+
+        fTrigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
+
+        fTof700Mapper->fillPreparation(tdc, &fTimeShifts, fT0Time, fT0Width);
+    }
 
     //    fRootFileIn->Close();
 
@@ -1270,5 +1300,4 @@ void BmnRawDataDecoder::InitMaps(){
     if (mapPar != NULL) mapPar->GetTriggerMapArray(fT0Map, nEntries);
     else cerr << "No TO map found in DB" << endl;
     delete mapPar;
-
 }

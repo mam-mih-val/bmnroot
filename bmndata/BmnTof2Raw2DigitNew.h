@@ -93,6 +93,7 @@ public:
     void fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width, TClonesArray *tof2digit);
     void fillSlewingT0(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width);
     void fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width);
+    void readSlewingLimits();
     void SlewingT0();
     void readSlewingT0();
     void Slewing();

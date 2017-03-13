@@ -14,14 +14,14 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <Rtypes.h>
+#include <TMath.h>
+
 #include "BmnDchTrackFinder.h"
 
-static Float_t workTime = 0.0;
+static Double_t workTime = 0.0;
 
 BmnDchTrackFinder::BmnDchTrackFinder(Bool_t isExp) :
-fSegmentMatching(kFALSE),
-has7DC1(kFALSE),
-has7DC2(kFALSE),
 expData(isExp) {
     fEventNo = 0;
     N = 2;
@@ -39,17 +39,20 @@ expData(isExp) {
 
     Z_dch1 = 523.45;
     Z_dch2 = 722.45;
-    Z_dch_mid = 622.95;
+    Z_dch_mid = (Z_dch1 + Z_dch2) / 2.;
+    dZ_dch_mid = Z_dch2 - Z_dch_mid; // > 0
+    dZ_dch = Z_dch2 - Z_dch1;
 
+    // Some alignment corrections
     x1_sh = 12.80;
-    x2_sh =  6.24;
-    y1_sh =  0.00;
-    y2_sh =  0.50;
+    x2_sh = 6.24;
+    y1_sh = 0.00;
+    y2_sh = 0.50;
 
     x1_slope_sh = -0.087;
-    y1_slope_sh =  0.051;
+    y1_slope_sh = 0.051;
     x2_slope_sh = -0.085;
-    y2_slope_sh =  0.058;
+    y2_slope_sh = 0.058;
 
     scale = 0.5;
 }
@@ -59,10 +62,11 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
 }
 
 void BmnDchTrackFinder::Exec(Option_t* opt) {
+    fEventNo++;
     clock_t tStart = clock();
     PrepareArraysToProcessEvent();
     if (fVerbose) cout << "======================== DCH track finder exec started ====================" << endl;
-    if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
+    if (fVerbose) cout << "Event number: " << fEventNo << endl;
 
     //temporary containers
     // Order used: va1, vb1, ua1, ub1, ya1, yb1, xa1, xb1 (dch1, 0 - 7) - va2, vb2, ua2, ub2, ya2, yb2, xa2, xb2 (dch2, 8 - 15)
@@ -133,16 +137,16 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         for (Int_t iWire = 0; iWire < nWires; iWire++) {
             Int_t start = 2 * iWire + (nPlanes / 2) * iDch;
             Int_t finish = start + 1;
-            Float_t*** coord = (iWire == 0) ? v : (iWire == 1) ? u : (iWire == 2) ? y : x;
-            Float_t*** sigma = (iWire == 0) ? sigm_v : (iWire == 1) ? sigm_u : (iWire == 2) ? sigm_y : sigm_x;
+            Double_t*** coord = (iWire == 0) ? v : (iWire == 1) ? u : (iWire == 2) ? y : x;
+            Double_t*** sigma = (iWire == 0) ? sigm_v : (iWire == 1) ? sigm_u : (iWire == 2) ? sigm_y : sigm_x;
 
             pairs[iDch][iWire] = Reconstruction(iDch + 1, wireNames[iWire], pairs[iDch][iWire], it[start], it[finish],
                     wires[start], wires[finish], times[start], times[finish], used[start], used[finish],
                     coord[iDch], sigma[iDch]);
 
             for (Int_t iLayer = 0; iLayer < nLayers; iLayer++) {
-                Float_t*** single_coord = (iWire == 0) ? v_Single : (iWire == 1) ? u_Single : (iWire == 2) ? y_Single : x_Single;
-                Float_t*** single_sigma = (iWire == 0) ? Sigm_v_single : (iWire == 1) ? Sigm_u_single : (iWire == 2) ? Sigm_y_single : Sigm_x_single;
+                Double_t*** single_coord = (iWire == 0) ? v_Single : (iWire == 1) ? u_Single : (iWire == 2) ? y_Single : x_Single;
+                Double_t*** single_sigma = (iWire == 0) ? Sigm_v_single : (iWire == 1) ? Sigm_u_single : (iWire == 2) ? Sigm_y_single : Sigm_x_single;
                 singles[iDch][iWire][iLayer] = ReconstructionSingle(iDch + 1, wireNames[iWire], layNames[iLayer],
                         singles[iDch][iWire][iLayer], it[cntr], wires[cntr], times[cntr], used[cntr], single_coord[iDch], single_sigma[iDch]);
                 cntr++;
@@ -158,24 +162,92 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
                 x[iDch], y[iDch], u[iDch], v[iDch], sigm_x[iDch], sigm_y[iDch], sigm_u[iDch], sigm_v[iDch], rh_segment[iDch], rh_sigm_segment[iDch],
                 x_Single[iDch], y_Single[iDch], Sigm_x_single[iDch], Sigm_y_single[iDch]);
 
-        FitDchSegments(iDch + 1, segment_size[iDch], rh_segment[iDch], rh_sigm_segment[iDch], params[iDch], Chi2[iDch], x_global[iDch], y_global[iDch]); // Fit found segments
+        has7DC[iDch] = FitDchSegments(iDch + 1, segment_size[iDch], rh_segment[iDch], rh_sigm_segment[iDch], params[iDch], Chi2[iDch], x_global[iDch], y_global[iDch]); // Fit found segments
         SelectLongestAndBestSegments(iDch + 1, segment_size[iDch], rh_segment[iDch], Chi2[iDch]); // Save only longest and best chi2 segments
-        CreateDchTrack(iDch + 1, Chi2[iDch], params[iDch], segment_size[iDch]); // Fill segment parameters
+        // CreateDchTrack(iDch + 1, Chi2[iDch], params[iDch], segment_size[iDch]); // Fill segment parameters                  
     }
 
     // Try to match the reconstructed segments from the two chambers
-    // Not implemented yet (TO DO A.S.A.P.)
+    SegmentsToBeMatched();
+    CreateDchTrack();
+   
     if (fVerbose) cout << "======================== DCH track finder exec finished ===================" << endl;
     clock_t tFinish = clock();
-    workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
+    workTime += ((Double_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
+}
+
+void BmnDchTrackFinder::SegmentsToBeMatched() {
+    Int_t match_dc1_seg = -1;
+    Double_t ax(0.), ay(0.), xMean(0.), yMean(0.);
+    Double_t min_distX = 20;
+    Double_t min_distY = 15;
+    Double_t min_distSQ = 225;
+
+    Double_t dx = -999;
+    Double_t dy = -999;
+    Double_t daX = -999;
+    Double_t daY = -999;
+
+    for (Int_t segdc2Nr = 0; segdc2Nr < nSegments[1]; segdc2Nr++) {
+        if (Chi2[1][segdc2Nr] > 50 || segment_size[1][segdc2Nr] < 7)
+            continue;
+
+        Double_t chi2_match = 0;
+        for (int segdc1Nr = 0; segdc1Nr < nSegments[0]; segdc1Nr++) {
+            if (Chi2[0][segdc1Nr] > 50 || segment_size[0][segdc1Nr] < 7)
+                continue;
+
+            Double_t distX = Abs(x_global[0][segdc1Nr] - x_global[1][segdc2Nr]);
+            Double_t distY = Abs(y_global[0][segdc1Nr] - y_global[1][segdc2Nr]);
+
+            if (distX < min_distX && distY < min_distY) {
+                Double_t distSQ = distX * distX + distY * distY;
+
+                chi2_match = (Abs(x_global[0][segdc1Nr] - x_global[1][segdc2Nr]) * Abs(x_global[0][segdc1Nr] - x_global[1][segdc2Nr]) / 49)
+                        + (distY * distY / 43.56) + ((params[1][0][segdc2Nr] - params[0][0][segdc1Nr] * params[1][0][segdc2Nr] - params[0][0][segdc1Nr]) / 0.0144)
+                        + (params[1][2][segdc2Nr] - params[0][2][segdc1Nr] * params[1][2][segdc2Nr] - params[0][2][segdc1Nr]) / 0.0225;
+                
+                if (distSQ < min_distSQ) {
+                    dx = x_global[1][segdc2Nr] - x_global[0][segdc1Nr];
+                    dy = y_global[1][segdc2Nr] - y_global[0][segdc1Nr];
+                    xMean = 0.5 * (x_global[0][segdc1Nr] + x_global[1][segdc2Nr]);
+                    yMean = 0.5 * (y_global[0][segdc1Nr] + y_global[1][segdc2Nr]);
+                    min_distSQ = distSQ;
+                    ax = (params[1][1][segdc2Nr] - params[0][1][segdc1Nr]) / dZ_dch;
+                    ay = (params[1][3][segdc2Nr] - params[0][3][segdc1Nr]) / dZ_dch;
+                    match_dc1_seg = segdc1Nr;
+                    daX = params[1][0][segdc2Nr] - params[0][0][segdc1Nr];
+                    daY = params[1][2][segdc2Nr] - params[0][2][segdc1Nr];
+                }
+            }
+        } // segdc1Nr
+
+        if (min_distSQ >= 225)
+            continue;
+
+        if (Abs(dx) < 10 && Abs(dy) < 10) {
+            if (Abs(daX) < 0.2 && Abs(daY) < 0.2) {
+                nSegmentsToBeMatched++;
+                leng[nSegmentsToBeMatched] = sqrt(628.65 * 628.65 + (xMean * xMean));
+                x_mid[nSegmentsToBeMatched] = xMean;
+                y_mid[nSegmentsToBeMatched] = yMean;
+                aX[nSegmentsToBeMatched] = ATan(ax);
+                aY[nSegmentsToBeMatched] = ATan(ay);
+                imp[nSegmentsToBeMatched] = -0.4332 / (ax + 0.006774);
+                Chi2_match[nSegmentsToBeMatched] = chi2_match;
+                Chi2[1][segdc2Nr] = 999; //mark dc2 seg as used for future iterations
+                Chi2[0][match_dc1_seg] = 999; //mark dch1 seg as used for future iterations
+            } // dax  day  
+        } //  dx  dy
+    } // segdc2Nr
 }
 
 Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
         Int_t pairU, Int_t pairV, Int_t pairX, Int_t pairY, Int_t single_xa, Int_t single_xb, Int_t single_ya, Int_t single_yb,
-        Float_t** x_ab, Float_t** y_ab, Float_t** u_ab, Float_t** v_ab,
-        Float_t** sigm_x_ab, Float_t** sigm_y_ab, Float_t** sigm_u_ab, Float_t** sigm_v_ab,
-        Float_t** rh_seg, Float_t** rh_sigm_seg,
-        Float_t** x_single, Float_t** y_single, Float_t** sigm_x_single, Float_t** sigm_y_single) {
+        Double_t** x_ab, Double_t** y_ab, Double_t** u_ab, Double_t** v_ab,
+        Double_t** sigm_x_ab, Double_t** sigm_y_ab, Double_t** sigm_u_ab, Double_t** sigm_v_ab,
+        Double_t** rh_seg, Double_t** rh_sigm_seg,
+        Double_t** x_single, Double_t** y_single, Double_t** sigm_x_single, Double_t** sigm_y_single) {
 
     Double_t sqrt_2 = sqrt(2.);
     Double_t isqrt_2 = 1. / sqrt_2;
@@ -184,19 +256,19 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
     for (Int_t i = 0; i < pairU; i++) {
         if (nDC_segments > 48)
             break;
-        Float_t u_coord = (u_ab[0][i] + u_ab[1][i]) / 2;
+        Double_t u_coord = (u_ab[0][i] + u_ab[1][i]) / 2;
 
         for (Int_t j = 0; j < pairV; j++) {
             if (nDC_segments > 48)
                 break;
-            Float_t v_coord = (v_ab[0][j] + v_ab[1][j]) / 2;
+            Double_t v_coord = (v_ab[0][j] + v_ab[1][j]) / 2;
             Bool_t foundX = kFALSE;
-            Float_t x_est = isqrt_2 * (v_coord - u_coord);
-            Float_t y_est = isqrt_2 * (u_coord + v_coord);
+            Double_t x_est = isqrt_2 * (v_coord - u_coord);
+            Double_t y_est = isqrt_2 * (u_coord + v_coord);
             if (pairX > 0) {
                 Double_t dX_thresh = 1.5;
                 for (Int_t k = 0; k < pairX; k++) {
-                    Float_t x_coord = (x_ab[0][k] + x_ab[1][k]) / 2;
+                    Double_t x_coord = (x_ab[0][k] + x_ab[1][k]) / 2;
                     if (nDC_segments > 48)
                         break;
                     if (Abs(x_coord - x_est) > dX_thresh)
@@ -228,7 +300,7 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
                 for (Int_t m = 0; m < pairY; m++) {
                     if (nDC_segments > 48)
                         break;
-                    Float_t y_coord = (y_ab[0][m] + y_ab[1][m]) / 2;
+                    Double_t y_coord = (y_ab[0][m] + y_ab[1][m]) / 2;
                     if (Abs(y_coord - y_est) > dY_thresh)
                         continue;
                     dY_thresh = Abs(y_coord - y_est);
@@ -246,8 +318,8 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
                     rh_sigm_seg[6][nDC_segments] = sigm_v_ab[0][j];
                     rh_sigm_seg[7][nDC_segments] = sigm_v_ab[1][j];
                     if (!foundX) {
-                        Float_t min_a = 999;
-                        Float_t min_b = 999;
+                        Double_t min_a = 999;
+                        Double_t min_b = 999;
                         for (Int_t kk = 0; kk < single_xa; kk++) {
                             if (Abs(x_single[1][kk] - x_est) > 1.5)
                                 continue; //????? 0.5 needs to be reviewed
@@ -275,8 +347,8 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
                     }//!foundX
                 }//m
                 if (foundX && !foundY) {
-                    Float_t min_a = 999;
-                    Float_t min_b = 999;
+                    Double_t min_a = 999;
+                    Double_t min_b = 999;
                     for (Int_t kk = 0; kk < single_ya; kk++) {
                         if (Abs(y_single[0][kk] - y_est) > 1.5)
                             continue; //????? 0.5 needs to be reviewed
@@ -306,10 +378,10 @@ Int_t BmnDchTrackFinder::BuildXYSegments(Int_t dchID,
 }
 
 Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, Int_t pairX, Int_t pairY, Int_t single_ua, Int_t single_ub, Int_t single_va, Int_t single_vb,
-        Float_t** x_ab, Float_t** y_ab, Float_t** u_ab, Float_t** v_ab,
-        Float_t** sigm_x_ab, Float_t** sigm_y_ab, Float_t** sigm_u_ab, Float_t** sigm_v_ab,
-        Float_t** rh_seg, Float_t** rh_sigm_seg,
-        Float_t** u_single, Float_t** v_single, Float_t** sigm_u_single, Float_t** sigm_v_single) {
+        Double_t** x_ab, Double_t** y_ab, Double_t** u_ab, Double_t** v_ab,
+        Double_t** sigm_x_ab, Double_t** sigm_y_ab, Double_t** sigm_u_ab, Double_t** sigm_v_ab,
+        Double_t** rh_seg, Double_t** rh_sigm_seg,
+        Double_t** u_single, Double_t** v_single, Double_t** sigm_u_single, Double_t** sigm_v_single) {
 
     Double_t sqrt_2 = sqrt(2.);
     Double_t isqrt_2 = 1. / sqrt_2;
@@ -319,21 +391,21 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
     for (Int_t i = 0; i < pairX; i++) {
         if (nDC_segments > 48)
             break;
-        Float_t x_coord = (x_ab[0][i] + x_ab[1][i]) / 2;
-        Float_t XU = x_coord;
-        Float_t XV = x_coord;
+        Double_t x_coord = (x_ab[0][i] + x_ab[1][i]) / 2;
+        Double_t XU = x_coord;
+        Double_t XV = x_coord;
 
         for (Int_t j = 0; j < pairY; j++) {
-            Float_t y_coord = (y_ab[0][j] + y_ab[1][j]) / 2;
-            Float_t YU = y_coord;
-            Float_t YV = y_coord;
+            Double_t y_coord = (y_ab[0][j] + y_ab[1][j]) / 2;
+            Double_t YU = y_coord;
+            Double_t YV = y_coord;
             Bool_t foundU = kFALSE;
-            Float_t u_est = isqrt_2 * (YU - XU);
-            Float_t v_est = isqrt_2 * (YV + XV);
+            Double_t u_est = isqrt_2 * (YU - XU);
+            Double_t v_est = isqrt_2 * (YV + XV);
 
             Double_t dU_thresh = 1.3;
             for (Int_t k = 0; k < pairU; k++) {
-                Float_t u_coord = (u_ab[0][k] + u_ab[1][k]) / 2;
+                Double_t u_coord = (u_ab[0][k] + u_ab[1][k]) / 2;
 
                 if (Abs(u_coord - u_est) > dU_thresh)
                     continue;
@@ -363,7 +435,7 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
             for (Int_t m = 0; m < pairV; m++) {
                 if (nDC_segments > 48)
                     break;
-                Float_t v_coord = (v_ab[0][m] + v_ab[1][m]) / 2;
+                Double_t v_coord = (v_ab[0][m] + v_ab[1][m]) / 2;
 
                 if (Abs(v_coord - v_est) > dV_thresh)
                     continue;
@@ -384,8 +456,8 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
                 rh_sigm_seg[7][nDC_segments] = sigm_v_ab[1][m];
 
                 if (!foundU) {
-                    Float_t min_a = 999;
-                    Float_t min_b = 999;
+                    Double_t min_a = 999;
+                    Double_t min_b = 999;
                     for (Int_t kk = 0; kk < single_ua; kk++) {
                         if (Abs(u_single[0][kk] - u_est) > 1.5)
                             continue; //????? 0.5 needs to be reviewed
@@ -415,8 +487,8 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
             }//m
             //            }//(pair_v2>0)
             if (!foundV && foundU) {
-                Float_t min_a = 999;
-                Float_t min_b = 999;
+                Double_t min_a = 999;
+                Double_t min_b = 999;
                 for (Int_t kk = 0; kk < single_va; kk++) {
                     if (Abs(v_single[0][kk] - v_est) > 1.5)
                         continue; //????? 0.5 needs to be reviewed
@@ -444,15 +516,16 @@ Int_t BmnDchTrackFinder::BuildUVSegments(Int_t dchID, Int_t pairU, Int_t pairV, 
     return nDC_segments;
 }
 
-void BmnDchTrackFinder::FitDchSegments(Int_t dchID, Int_t* size_seg, Float_t** rh_seg, Float_t** rh_sigm_seg, Float_t** par_ab, Float_t* chi2, Float_t* x_glob, Float_t* y_glob) {
+Bool_t BmnDchTrackFinder::FitDchSegments(Int_t dchID, Int_t* size_seg, Double_t** rh_seg, Double_t** rh_sigm_seg, Double_t** par_ab, Double_t* chi2, Double_t* x_glob, Double_t* y_glob) {
     Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
+    Bool_t hasSuffNumberOfSegments = kFALSE;
     for (Int_t j = 0; j < nDC_segments; j++) {
         Int_t worst_hit = -1;
         Double_t max_resid = 0;
 
-        Float_t _rh_seg[8];
-        Float_t _rh_sigm_seg[8];
-        Float_t _par_ab[4];
+        Double_t _rh_seg[8];
+        Double_t _rh_sigm_seg[8];
+        Double_t _par_ab[4];
 
         for (Int_t i = 0; i < 8; i++)
             if (Abs(rh_seg[i][j] + 999.) > FLT_EPSILON)
@@ -470,7 +543,7 @@ void BmnDchTrackFinder::FitDchSegments(Int_t dchID, Int_t* size_seg, Float_t** r
 
             chi2[j] = 0;
 
-            Float_t resid(LDBL_MAX);
+            Double_t resid(LDBL_MAX);
             for (Int_t i = 0; i < 8; i++) {
                 if (Abs(rh_seg[i][j] + 999.) < FLT_EPSILON)
                     continue;
@@ -499,26 +572,27 @@ void BmnDchTrackFinder::FitDchSegments(Int_t dchID, Int_t* size_seg, Float_t** r
         }
 
         // Add shifts to slopes and coords
-        Float_t x_slope_sh = (dchID == 1) ? x1_slope_sh : x2_slope_sh;
-        Float_t y_slope_sh = (dchID == 1) ? y1_slope_sh : y2_slope_sh;
-        Float_t x_sh = (dchID == 1) ? x1_sh : x2_sh;
-        Float_t y_sh = (dchID == 1) ? y1_sh : y2_sh;
+        Double_t x_slope_sh = (dchID == 1) ? x1_slope_sh : x2_slope_sh;
+        Double_t y_slope_sh = (dchID == 1) ? y1_slope_sh : y2_slope_sh;
+        Double_t x_sh = (dchID == 1) ? x1_sh : x2_sh;
+        Double_t y_sh = (dchID == 1) ? y1_sh : y2_sh;
 
         par_ab[0][j] += x_slope_sh + x_slope_sh * par_ab[0][j] * par_ab[0][j];
         par_ab[2][j] += y_slope_sh + y_slope_sh * par_ab[2][j] * par_ab[2][j];
         par_ab[1][j] += x_sh;
         par_ab[3][j] += y_sh;
 
-        x_glob[j] = par_ab[0][j]*(-99.5) + par_ab[1][j];
-        y_glob[j] = par_ab[2][j]*(-99.5) + par_ab[3][j];
+        Int_t coeff = (dchID == 1) ? 1 : -1;
+        x_glob[j] = coeff * par_ab[0][j] * dZ_dch_mid + par_ab[1][j];
+        y_glob[j] = coeff * par_ab[2][j] * dZ_dch_mid + par_ab[3][j];
 
-        Bool_t has7DC = (dchID == 1) ? has7DC1 : has7DC2;
         if (size_seg[j] > 6)
-            has7DC = kTRUE;
+            hasSuffNumberOfSegments = kTRUE;
     }
+    return hasSuffNumberOfSegments;
 }
 
-void BmnDchTrackFinder::CompareDaDb(Float_t d, Float_t& ele) {
+void BmnDchTrackFinder::CompareDaDb(Double_t d, Double_t& ele) {
     ele = (d < 0.02) ? (0.08 * 0.08) :
             (d >= 0.02 && d < 0.1) ? (0.06 * 0.06) :
             (d >= 0.1 && d < 0.4) ? (0.025 * 0.025) :
@@ -526,7 +600,7 @@ void BmnDchTrackFinder::CompareDaDb(Float_t d, Float_t& ele) {
             (0.10 * 0.10);
 }
 
-void BmnDchTrackFinder::CompareDaDb(Float_t d, Float_t& ele1, Float_t& ele2) {
+void BmnDchTrackFinder::CompareDaDb(Double_t d, Double_t& ele1, Double_t& ele2) {
     ele1 = (d < 0.02) ? (0.08 * 0.08) :
             (d >= 0.02 && d < 0.1) ? (0.06 * 0.06) :
             (d >= 0.1 && d < 0.4) ? (0.025 * 0.025) :
@@ -535,7 +609,7 @@ void BmnDchTrackFinder::CompareDaDb(Float_t d, Float_t& ele1, Float_t& ele2) {
     ele2 = ele1;
 }
 
-void BmnDchTrackFinder::SelectLongestAndBestSegments(Int_t dchID, Int_t* size_seg, Float_t** rh_seg, Float_t* chi2) {
+void BmnDchTrackFinder::SelectLongestAndBestSegments(Int_t dchID, Int_t* size_seg, Double_t** rh_seg, Double_t* chi2) {
     Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
     for (Int_t max_size = 8; max_size > 5; max_size--)
         for (Int_t it1 = 0; it1 < nDC_segments; it1++) {
@@ -555,15 +629,15 @@ void BmnDchTrackFinder::SelectLongestAndBestSegments(Int_t dchID, Int_t* size_se
         }
 }
 
-void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Float_t* chi2Arr, Float_t** parArr, Int_t* sizeArr) {
+void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Double_t* chi2Arr, Double_t** parArr, Int_t* sizeArr) {
     Int_t nDC_segments = (dchID == 1) ? nSegments[0] : nSegments[1];
     for (Int_t iSegment = 0; iSegment < nDC_segments; iSegment++) {
         if (chi2Arr[iSegment] > 50)
             continue;
         FairTrackParam trackParam;
-        Float_t z0 = (dchID == 1) ? Z_dch1 : Z_dch2;
-        Float_t x0 = parArr[1][iSegment];
-        Float_t y0 = parArr[3][iSegment];
+        Double_t z0 = (dchID == 1) ? Z_dch1 : Z_dch2;
+        Double_t x0 = parArr[1][iSegment];
+        Double_t y0 = parArr[3][iSegment];
         trackParam.SetPosition(TVector3(-x0, y0, z0));
         trackParam.SetTx(-parArr[0][iSegment]);
         trackParam.SetTy(parArr[2][iSegment]);
@@ -575,7 +649,23 @@ void BmnDchTrackFinder::CreateDchTrack(Int_t dchID, Float_t* chi2Arr, Float_t** 
     }
 }
 
-Float_t BmnDchTrackFinder::CalculateResidual(Int_t i, Int_t j, Float_t** rh_seg, Float_t** par_ab) {
+void BmnDchTrackFinder::CreateDchTrack() {
+    for (Int_t iSeg = 0; iSeg < nSegmentsToBeMatched + 1; iSeg++) {
+        FairTrackParam trackParam;
+        Double_t z0 = Z_dch_mid;
+        Double_t x0 = x_mid[iSeg];
+        Double_t y0 = y_mid[iSeg];
+        trackParam.SetPosition(TVector3(-x0, y0, z0)); // Go to right reference frame
+        trackParam.SetTx(-aX[iSeg]); // Go to right reference frame
+        trackParam.SetTy(aY[iSeg]);
+        
+        BmnDchTrack* track = new((*fDchTracks)[fDchTracks->GetEntriesFast()]) BmnDchTrack();
+        track->SetChi2(Chi2_match[iSeg]);
+        track->SetParamFirst(trackParam);
+    }
+}
+
+Double_t BmnDchTrackFinder::CalculateResidual(Int_t i, Int_t j, Double_t** rh_seg, Double_t** par_ab) {
     Double_t sqrt_2 = sqrt(2.);
     Double_t isqrt_2 = 1 / sqrt_2;
 
@@ -618,76 +708,84 @@ InitStatus BmnDchTrackFinder::Init() {
     for (Int_t iSize = 0; iSize < 8 * N; iSize++)
         z_glob[iSize] = arr2[iSize];
 
-    v = new Float_t**[nChambers];
-    u = new Float_t**[nChambers];
-    y = new Float_t**[nChambers];
-    x = new Float_t**[nChambers];
-    v_Single = new Float_t**[nChambers];
-    u_Single = new Float_t**[nChambers];
-    y_Single = new Float_t**[nChambers];
-    x_Single = new Float_t**[nChambers];
-    sigm_v = new Float_t**[nChambers];
-    sigm_u = new Float_t**[nChambers];
-    sigm_y = new Float_t**[nChambers];
-    sigm_x = new Float_t**[nChambers];
-    Sigm_v_single = new Float_t**[nChambers];
-    Sigm_u_single = new Float_t**[nChambers];
-    Sigm_y_single = new Float_t**[nChambers];
-    Sigm_x_single = new Float_t**[nChambers];
+    has7DC = new Bool_t[nChambers];
+    x_mid = new Double_t[25 * N];
+    y_mid = new Double_t[25 * N];
+    aX = new Double_t[25 * N];
+    aY = new Double_t[25 * N];
+    imp = new Double_t[25 * N];
+    leng = new Double_t[25 * N];
+    Chi2_match = new Double_t[25 * N];
+    v = new Double_t**[nChambers];
+    u = new Double_t**[nChambers];
+    y = new Double_t**[nChambers];
+    x = new Double_t**[nChambers];
+    v_Single = new Double_t**[nChambers];
+    u_Single = new Double_t**[nChambers];
+    y_Single = new Double_t**[nChambers];
+    x_Single = new Double_t**[nChambers];
+    sigm_v = new Double_t**[nChambers];
+    sigm_u = new Double_t**[nChambers];
+    sigm_y = new Double_t**[nChambers];
+    sigm_x = new Double_t**[nChambers];
+    Sigm_v_single = new Double_t**[nChambers];
+    Sigm_u_single = new Double_t**[nChambers];
+    Sigm_y_single = new Double_t**[nChambers];
+    Sigm_x_single = new Double_t**[nChambers];
     segment_size = new Int_t*[nChambers];
-    Chi2 = new Float_t*[nChambers];
-    x_global = new Float_t*[nChambers];
-    y_global = new Float_t*[nChambers];
-    params = new Float_t**[nChambers];
-    rh_segment = new Float_t**[nChambers];
-    rh_sigm_segment = new Float_t**[nChambers];
+    Chi2 = new Double_t*[nChambers];
+    x_global = new Double_t*[nChambers];
+    y_global = new Double_t*[nChambers];
+    params = new Double_t**[nChambers];
+    rh_segment = new Double_t**[nChambers];
+    rh_sigm_segment = new Double_t**[nChambers];
     for (Int_t iChamber = 0; iChamber < nChambers; iChamber++) {
-        v[iChamber] = new Float_t*[N];
-        u[iChamber] = new Float_t*[N];
-        y[iChamber] = new Float_t*[N];
-        x[iChamber] = new Float_t*[N];
-        v_Single[iChamber] = new Float_t*[N];
-        u_Single[iChamber] = new Float_t*[N];
-        y_Single[iChamber] = new Float_t*[N];
-        x_Single[iChamber] = new Float_t*[N];
-        sigm_v[iChamber] = new Float_t*[N];
-        sigm_u[iChamber] = new Float_t*[N];
-        sigm_y[iChamber] = new Float_t*[N];
-        sigm_x[iChamber] = new Float_t*[N];
-        Sigm_v_single[iChamber] = new Float_t*[N];
-        Sigm_u_single[iChamber] = new Float_t*[N];
-        Sigm_y_single[iChamber] = new Float_t*[N];
-        Sigm_x_single[iChamber] = new Float_t*[N];
+        v[iChamber] = new Double_t*[N];
+        u[iChamber] = new Double_t*[N];
+        y[iChamber] = new Double_t*[N];
+        x[iChamber] = new Double_t*[N];
+        v_Single[iChamber] = new Double_t*[N];
+        u_Single[iChamber] = new Double_t*[N];
+        y_Single[iChamber] = new Double_t*[N];
+        x_Single[iChamber] = new Double_t*[N];
+        sigm_v[iChamber] = new Double_t*[N];
+        sigm_u[iChamber] = new Double_t*[N];
+        sigm_y[iChamber] = new Double_t*[N];
+        sigm_x[iChamber] = new Double_t*[N];
+        Sigm_v_single[iChamber] = new Double_t*[N];
+        Sigm_u_single[iChamber] = new Double_t*[N];
+        Sigm_y_single[iChamber] = new Double_t*[N];
+        Sigm_x_single[iChamber] = new Double_t*[N];
         segment_size[iChamber] = new Int_t[75 * N];
-        Chi2[iChamber] = new Float_t[75 * N];
-        x_global[iChamber] = new Float_t[75 * N];
-        y_global[iChamber] = new Float_t[75 * N];
-        params[iChamber] = new Float_t*[2 * N];
-        rh_segment[iChamber] = new Float_t*[4 * N];
-        rh_sigm_segment[iChamber] = new Float_t*[4 * N];
+        Chi2[iChamber] = new Double_t[75 * N];
+        x_global[iChamber] = new Double_t[75 * N];
+        y_global[iChamber] = new Double_t[75 * N];
+        params[iChamber] = new Double_t*[2 * N];
+        rh_segment[iChamber] = new Double_t*[4 * N];
+        rh_sigm_segment[iChamber] = new Double_t*[4 * N];
         for (Int_t iDim = 0; iDim < N; iDim++) {
-            v[iChamber][iDim] = new Float_t[75 * N];
-            u[iChamber][iDim] = new Float_t[75 * N];
-            y[iChamber][iDim] = new Float_t[75 * N];
-            x[iChamber][iDim] = new Float_t[75 * N];
-            v_Single[iChamber][iDim] = new Float_t[20 * N];
-            u_Single[iChamber][iDim] = new Float_t[20 * N];
-            y_Single[iChamber][iDim] = new Float_t[20 * N];
-            x_Single[iChamber][iDim] = new Float_t[20 * N];
-            sigm_v[iChamber][iDim] = new Float_t[75 * N];
-            sigm_u[iChamber][iDim] = new Float_t[75 * N];
-            sigm_y[iChamber][iDim] = new Float_t[75 * N];
-            sigm_x[iChamber][iDim] = new Float_t[75 * N];
-            Sigm_v_single[iChamber][iDim] = new Float_t[20 * N];
-            Sigm_u_single[iChamber][iDim] = new Float_t[20 * N];
-            Sigm_y_single[iChamber][iDim] = new Float_t[20 * N];
-            Sigm_x_single[iChamber][iDim] = new Float_t[20 * N];
+            v[iChamber][iDim] = new Double_t[75 * N];
+            u[iChamber][iDim] = new Double_t[75 * N];
+            y[iChamber][iDim] = new Double_t[75 * N];
+            x[iChamber][iDim] = new Double_t[75 * N];
+            v_Single[iChamber][iDim] = new Double_t[20 * N];
+            u_Single[iChamber][iDim] = new Double_t[20 * N];
+            y_Single[iChamber][iDim] = new Double_t[20 * N];
+            x_Single[iChamber][iDim] = new Double_t[20 * N];
+            sigm_v[iChamber][iDim] = new Double_t[75 * N];
+            sigm_u[iChamber][iDim] = new Double_t[75 * N];
+            sigm_y[iChamber][iDim] = new Double_t[75 * N];
+            sigm_x[iChamber][iDim] = new Double_t[75 * N];
+            Sigm_v_single[iChamber][iDim] = new Double_t[20 * N];
+            Sigm_u_single[iChamber][iDim] = new Double_t[20 * N];
+            Sigm_y_single[iChamber][iDim] = new Double_t[20 * N];
+            Sigm_x_single[iChamber][iDim] = new Double_t[20 * N];
         }
         for (Int_t iDim = 0; iDim < 2 * N; iDim++)
-            params[iChamber][iDim] = new Float_t[75 * N];
+            params[iChamber][iDim] = new Double_t[75 * N];
         for (Int_t iDim = 0; iDim < 4 * N; iDim++) {
-            rh_segment[iChamber][iDim] = new Float_t[75 * N];
-            rh_sigm_segment[iChamber][iDim] = new Float_t[75 * N];
+            rh_segment[iChamber][iDim] = new Double_t[75 * N];
+            rh_sigm_segment[iChamber][iDim] = new Double_t[75 * N];
         }
     }
     pairs = new Int_t*[nChambers];
@@ -704,18 +802,19 @@ InitStatus BmnDchTrackFinder::Init() {
 }
 
 void BmnDchTrackFinder::PrepareArraysToProcessEvent() {
+    nSegmentsToBeMatched = -1;
     fDchTracks->Clear();
-    has7DC1 = kFALSE;
-    has7DC2 = kFALSE;
 
     // Array cleaning and initializing
-    for (Int_t iChamber = 0; iChamber < nChambers; iChamber++)
+    for (Int_t iChamber = 0; iChamber < nChambers; iChamber++) {
         for (Int_t iWire = 0; iWire < nWires; iWire++) {
             pairs[iChamber][iWire] = 0;
             for (Int_t iLayer = 0; iLayer < nLayers; iLayer++)
                 singles[iChamber][iWire][iLayer] = 0;
         }
-    for (Int_t iChamber = 0; iChamber < nChambers; iChamber++) {
+
+        has7DC[iChamber] = kFALSE;
+ 
         for (Int_t iDim1 = 0; iDim1 < 2 * N; iDim1++)
             for (Int_t iDim2 = 0; iDim2 < 75 * N; iDim2++)
                 params[iChamber][iDim1][iDim2] = -999.;
@@ -755,11 +854,26 @@ void BmnDchTrackFinder::PrepareArraysToProcessEvent() {
     }
     for (Int_t iSegment = 0; iSegment < nSegmentsMax; iSegment++)
         nSegments[iSegment] = 0;
+    for (Int_t iDim = 0; iDim < 25 * N; iDim++) {
+        x_mid[iDim] = -999.;
+        y_mid[iDim] = -999.;
+        aX[iDim] = -999.;
+        aY[iDim] = -999.;
+        leng[iDim] = -999.;
+        imp[iDim] = -999.;
+    }
 }
 
 void BmnDchTrackFinder::Finish() {
     // Delete 1d-arrays
     delete [] nSegments;
+    delete [] has7DC;
+    delete [] x_mid;
+    delete [] y_mid;
+    delete [] aX;
+    delete [] aY;
+    delete [] leng;
+    delete [] imp;
     // Delete 2d-arrays and 3d-arrays
     for (Int_t iChamber = 0; iChamber < nChambers; iChamber++) {
         delete [] x_global[iChamber];
@@ -845,12 +959,12 @@ void BmnDchTrackFinder::Finish() {
 Int_t BmnDchTrackFinder::Reconstruction(Int_t dchID, TString wire, Int_t pair, Int_t it_a, Int_t it_b,
         Double_t* wirenr_a, Double_t* wirenr_b, Double_t* time_a, Double_t* time_b,
         Bool_t* used_a, Bool_t* used_b,
-        Float_t** _ab, Float_t** sigm_ab) {
+        Double_t** _ab, Double_t** sigm_ab) {
 
     const Int_t arrIdxShift = (dchID == 2) ? 8 : 0;
     const Int_t arrIdxStart = (wire == "x") ? 0 : (wire == "y") ? 2 : (wire == "u") ? 4 : 6;
 
-    Float_t a_pm[2], b_pm[2];
+    Double_t a_pm[2], b_pm[2];
 
     for (Int_t i = 0; i < it_a; ++i)
         for (Int_t j = 0; j < it_b; ++j) {
@@ -929,7 +1043,7 @@ Int_t BmnDchTrackFinder::Reconstruction(Int_t dchID, TString wire, Int_t pair, I
 
 Int_t BmnDchTrackFinder::ReconstructionSingle(Int_t dchID, TString wire, TString lay, Int_t single, Int_t it,
         Double_t* wirenr, Double_t* time_, Bool_t* used,
-        Float_t** _single, Float_t** sigm_single) {
+        Double_t** _single, Double_t** sigm_single) {
 
     const Int_t arrIdxStart = (wire == "x") ? 0 : (wire == "y") ? 2 : (wire == "u") ? 4 : 6;
 

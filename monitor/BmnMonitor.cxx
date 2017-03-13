@@ -82,37 +82,6 @@ BmnMonitor::~BmnMonitor() {
     if (_fileList) delete _fileList;
 }
 
-void BmnMonitor::Monitor(TString dirname, TString startFile, Bool_t runCurrent) {
-    _curFile = startFile;
-    _curDir = dirname;
-    InitServer();
-    //    _inotifDir = inotify_init();
-    //    _inotifDirW = inotify_add_watch(_inotifDir, dir, IN_CREATE);
-    //    Int_t flags = fcntl(_inotifDir, F_GETFL, 0);
-    //    fcntl(_inotifDir, F_SETFL, flags | O_NONBLOCK);
-    if (!runCurrent) {
-        _curFile = "";
-        _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
-        _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
-    } else
-        if (_curFile.Length() == 0) {
-        _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
-        //        _curFile = WatchNext(_inotifDir, 1e5);
-    }
-    //    _inotifFile = inotify_init();
-    //    _inotifFileW = inotify_add_watch(_inotifFile, _curFile, IN_MODIFY);
-    InitDecoder();
-    RegisterAll();
-
-    while (kTRUE) {
-        ProcessFileRun(_curFile);
-        _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
-    }
-    //    inotify_rm_watch(_inotifDir, _inotifDirW);
-    //    close(_inotifDir);
-    //    close(_inotifFile);
-}
-
 void BmnMonitor::MonitorStream(TString dirname, TString refDir, TString decoAddr) {
     //    _curFile = startFile;
     _curDir = dirname;
@@ -241,53 +210,6 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir, TString decoAddr
     delete fRawDecoSocket;
 }
 
-BmnStatus BmnMonitor::BatchDirectory(TString dirname) {
-    _curDir = dirname;
-    struct dirent **namelist;
-    regex re("\\w+\\.data");
-    Int_t n;
-    n = scandir(dirname, &namelist, 0, versionsort);
-    if (n < 0) {
-        perror("scandir");
-        return kBMNERROR;
-    } else {
-        for (Int_t i = 0; i < n; ++i) {
-            if (regex_match(namelist[i]->d_name, re)) {
-                _curFile = TString(namelist[i]->d_name);
-                break;
-            }
-        }
-    }
-
-    InitServer();
-    InitDecoder();
-    RegisterAll();
-    n = scandir(dirname, &namelist, 0, versionsort);
-    if (n < 0) {
-        perror("scandir");
-        return kBMNERROR;
-    } else {
-        for (Int_t i = 0; i < n; ++i) {
-            if (regex_match(namelist[i]->d_name, re))
-                ProcessFileRun(TString(namelist[i]->d_name));
-            free(namelist[i]);
-        }
-        free(namelist);
-    }
-    return kBMNSUCCESS;
-}
-
-BmnStatus BmnMonitor::BatchList(TString* files, Int_t count) {
-    _curFile = files[0];
-    InitServer();
-    InitDecoder();
-    RegisterAll();
-    for (Int_t i = 0; i < count; i++) {
-        ProcessFileRun(files[i]);
-    }
-    return kBMNSUCCESS;
-}
-
 void BmnMonitor::InitServer() {
     if (gSystem->AccessPathName("auth.htdigest") != 0) {
         printf("Authorization file not found\nStarting server without authorization\n");
@@ -297,18 +219,6 @@ void BmnMonitor::InitServer() {
     fServer->SetTimer(100, kTRUE);
     fServer->SetItemField("/", "_monitoring", "2000");
     fServer->SetItemField("/", "_layout", "grid3x3");
-}
-
-void BmnMonitor::InitDecoder() {
-    rawDataDecoder = new BmnRawDataDecoder(_curDir + _curFile, 0, 5);
-    rawDataDecoder->SetTrigMapping("Trig_map_Run5.txt");
-    rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
-    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_Period5.txt", "TOF400_StripMap_Period5.txt");
-    rawDataDecoder->SetTof700Mapping("TOF700_map_period_5.txt");
-    rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
-    rawDataDecoder->InitConverter();
-    rawDataDecoder->InitDecoder();
-    fDigiTree = rawDataDecoder->GetDigiTree();
 }
 
 TString BmnMonitor::WatchNext(TString dirname, TString filename, Int_t cycleWait) {
@@ -567,7 +477,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhDCH_4show->FillFromDigi(fDigiArrays->dch);
     bhMWPC_4show->FillFromDigi(fDigiArrays->mwpc);
     fRecoTree4Show->Fill();
-    if (fEvents % 500 == 0) {
+    if (fEvents % 200 == 0) {
         // print info canvas //
         infoCanvas->Clear();
         infoCanvas->cd(1);
@@ -703,6 +613,7 @@ void BmnMonitor::threadDecodeWrapper(TString dirname, TString startFile, Bool_t 
 
     BmnOnlineDecoder *deco = new BmnOnlineDecoder();
     deco->Decode(dirname, startFile, runCurrent);
+    delete deco;
     //    deco->BatchDirectory(dirname);
 }
 

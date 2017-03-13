@@ -52,10 +52,7 @@ public:
 
     BmnMonitor();
     virtual ~BmnMonitor();
-    void Monitor(TString dir, TString startFile = "", Bool_t runCurrent = kTRUE);
     void MonitorStream(TString dir, TString refDir = "", TString decoAddr = "localhost");
-    BmnStatus BatchDirectory(TString dirname);
-    BmnStatus BatchList(TString*, Int_t count);
     void ProcessRun(TString digiName);
     void ProcessStreamRun();
     void ProcessFileRun(TString digiName);
@@ -74,7 +71,6 @@ public:
 
 private:
     void InitServer();
-    void InitDecoder();
     void ProcessDigi(Int_t iEv);
     void RegisterAll();
     void UpdateRuns();

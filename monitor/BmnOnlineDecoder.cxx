@@ -162,11 +162,9 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
         rawDataDecoder->DisposeDecoder();
         delete rawDataDecoder;
         rawDataDecoder = NULL;
-        break;// @TODO Remove
         _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
+        break;// @TODO Remove
     }
-    client->Close();
-    delete client;
     return kBMNSUCCESS;
 }
 
@@ -202,8 +200,6 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
             Accept();
             rawDataDecoder->DecodeDataToDigiIterate();
             fEvents++;
-            if (fEvents % 5 != 0) // @TODO remove
-                continue;
             mess.Reset();
             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
             mess.WriteObject(&iterDigi);

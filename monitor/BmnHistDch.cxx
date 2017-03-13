@@ -143,18 +143,18 @@ void BmnHistDch::DrawBoth() {
 void BmnHistDch::FillFromDigi(TClonesArray * DchDigits) {
     //    Int_t rid = (head) ? head->GetRunId() : -1;
     fDchHits->Clear();
-    ProcessDchDigits(DchDigits, fDchHits);
+//    ProcessDchDigits(DchDigits, fDchHits);
     for (Int_t iDig = 0; iDig < DchDigits->GetEntriesFast(); ++iDig) {
         BmnDchDigit* dig = (BmnDchDigit*) DchDigits->At(iDig);
         Int_t plane = dig->GetPlane();
         h_wires[plane]->Fill(dig->GetWireNumber());
         h_times[plane]->Fill(dig->GetTime());
     }
-    for (Int_t iHit = 0; iHit < fDchHits->GetEntriesFast(); iHit++) {
-        BmnDchHit* hit = (BmnDchHit*) fDchHits->At(iHit);
-        if (hit->GetDchId() == 1) h_DCH1->Fill(hit->GetX(), hit->GetY());
-        if (hit->GetDchId() == 2) h_DCH2->Fill(hit->GetX(), hit->GetY());
-    }
+//    for (Int_t iHit = 0; iHit < fDchHits->GetEntriesFast(); iHit++) {
+//        BmnDchHit* hit = (BmnDchHit*) fDchHits->At(iHit);
+//        if (hit->GetDchId() == 1) h_DCH1->Fill(hit->GetX(), hit->GetY());
+//        if (hit->GetDchId() == 2) h_DCH2->Fill(hit->GetX(), hit->GetY());
+//    }
 }
 
 BmnStatus BmnHistDch::LoadRefRun(TString FileName) {

@@ -38,7 +38,7 @@ int wma[NUMBER_CHAMBERS] = {3300};
 
 using namespace TMath;
 
-void BmnResultsTOF700(char *fname = "../raw/bmn_run1421_digi.root") {
+void BmnResultsTOF700(char *fname = "../raw/bmn_run1209_digi.root") {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -71,6 +71,16 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1421_digi.root") {
     TH1F *hstripsmax[NUMBER_CHAMBERS] = {0};
     TH1F *htimemax[NUMBER_CHAMBERS] = {0};
     TH1F *hdiff = 0;
+
+    TFile *f = NULL;
+    if (strlen(fname))
+    {
+	char fname_root[128], *delim = 0;
+	strcpy(fname_root, gSystem->BaseName(fname));
+	if ((delim = strrchr(fname_root, (int)'.'))) *delim = '\0';
+	strcat(fname_root, "_results.root");
+	f = new TFile(fname_root,"RECREATE","Results of BmnTOF700");
+    }
 
     for (int i = 0; i<NUMBER_CHAMBERS; i++)
     {
@@ -123,6 +133,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1421_digi.root") {
     	    Short_t plane = digit->GetPlane();
     	    Short_t strip = digit->GetStrip();
     	    Float_t time = digit->GetTime();
+//	    if (plane == 17) time -= 24.;
     	    Float_t width = digit->GetAmplitude();
 	    Float_t lrdiff = digit->GetDiff();
 //    	    if (iEv % 10 == 0) cout << "plane = " << plane << " strip = " << strip << " time = " << time << " width = " << width << endl;
@@ -158,6 +169,10 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1421_digi.root") {
     FitIn(hdiff, -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htime[i], -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htimemax[i], -0.2, +0.2);
+
+//    FitIn2Sigma(hdiff);
+//    for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn2Sigma(htime[i]);
+//    for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn2Sigma(htimemax[i]);
 
     TCanvas *ct = new TCanvas("ct", "RPC time - T0 time", 900, 900);
     ct->Divide(NDX,NDY);
@@ -226,6 +241,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1421_digi.root") {
     cdif->cd(1);
     hdiff->Draw();
     gPad->AddExec("exselt","select_hist()");
+    if (f) f->Write();
 }
 
 double FitIn2Sigma(TH1F *h)
@@ -261,7 +277,8 @@ double FitIn2Sigma(TH1F *h)
       fg->SetParameter(2,sigm);
       fg->FixParameter(2,sigm);
       h->Fit(fg, "Q0IB", "", mean-lev1*sigmw, mean+lev1*sigmw);
-      fg->ResetBit(TF1::kNotDraw);
+      fg = h->GetFunction("fg"); 
+      if (fg) fg->ResetBit(TF1::kNotDraw);
       h->SetAxisRange(mean-lev1*sigmw, mean+lev1*sigmw);
       fg->ResetBit(TF1::kNotDraw);
       if (fg->GetParameter(0) > 1.) return 100.;
@@ -279,7 +296,8 @@ double FitIn2Sigma(TH1F *h)
       fg->FixParameter(1,mean);
       fg->SetParameter(2,sigm);
       h->Fit(fg, "Q0IB", "", mean-lev1*sigmw, mean+lev1*sigmw);
-      fg->ResetBit(TF1::kNotDraw);
+      fg = h->GetFunction("fg"); 
+      if (fg) fg->ResetBit(TF1::kNotDraw);
       h->SetAxisRange(mean-lev1*sigmw, mean+lev1*sigmw);
       fg->ResetBit(TF1::kNotDraw);
       if (fg->GetParameter(0) > 1.) return 100.;
@@ -307,8 +325,8 @@ double FitIn2Sigma(TH1F *h)
   double max0 = mean+lev1*sigm;
   h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
   TF1 *ff = h->GetFunction("gaus"); 
-  mean = ff->GetParameter(1);
-  sigm = ff->GetParameter(2);
+  if (ff) mean = ff->GetParameter(1);
+  if (ff) sigm = ff->GetParameter(2);
   if (mean < min0 || mean > max0)
   {
     h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
@@ -318,13 +336,13 @@ double FitIn2Sigma(TH1F *h)
   }
   h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
   ff = h->GetFunction("gaus"); 
-  mean = ff->GetParameter(1);
-  sigm = ff->GetParameter(2);
+  if (ff) mean = ff->GetParameter(1);
+  if (ff) sigm = ff->GetParameter(2);
   h->Fit("gaus", "Q0I", "", mean-lev1*sigm, mean+lev1*sigm);
   ff = h->GetFunction("gaus"); 
-  mean = ff->GetParameter(1);
-  sigm = ff->GetParameter(2);
-  ff->ResetBit(TF1::kNotDraw);
+  if (ff) mean = ff->GetParameter(1);
+  if (ff) sigm = ff->GetParameter(2);
+  if (ff) ff->ResetBit(TF1::kNotDraw);
   mib = h->FindBin(mean-lev2*sigm);
   mab = h->FindBin(mean+lev2*sigm);
   nbi = h->GetNbinsX();
@@ -353,12 +371,13 @@ double FitIn(TH1F *h, Double_t xmin, Double_t xmax)
         return 0.;
     }
   TF1 *ff = new TF1("ff", "gaus", xmin, xmax);
-  h->Fit("ff", "QIRM");
+  h->Fit("ff", "QIRM0");
 //  h->Fit("gaus", "Q0I");
 //  ff = h->GetFunction("ff"); 
   mean = ff->GetParameter(1);
   sigm = ff->GetParameter(2);
-//  ff->ResetBit(TF1::kNotDraw);
+  ff = h->GetFunction("ff");
+  if (ff) ff->ResetBit(TF1::kNotDraw);
   mib = h->FindBin(mean-sigm);
   mab = h->FindBin(mean+sigm);
   nbi = h->GetNbinsX();

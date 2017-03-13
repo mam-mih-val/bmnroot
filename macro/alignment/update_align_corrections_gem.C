@@ -21,7 +21,7 @@ void update_align_corrections_gem(TString preAlignCorrFileName,
     TTree* preTree = (TTree*)preFile->Get("cbmsim");
   //cout <<"preTree->Print()"<< endl;
   //preTree->Print();
-    TClonesArray* preCorrs = new TClonesArray("BmnGemAlignmentCorrections");
+    TClonesArray* preCorrs = new   TClonesArray("BmnGemAlignmentCorrections");
     TBranch*    b_preCorrs = preTree->GetBranch("BmnGemAlignmentCorrections");
     b_preCorrs->SetAddress(&preCorrs);
 
@@ -78,17 +78,17 @@ void update_align_corrections_gem(TString preAlignCorrFileName,
         sumCorr->SetCorrections(preCorr->GetCorrections().X() + newCorr->GetCorrections().X(),
                                 preCorr->GetCorrections().Y() + newCorr->GetCorrections().Y(),
                                 preCorr->GetCorrections().Z() + newCorr->GetCorrections().Z());
-        cout <<"preCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<0<<" Value (in cm.) "<<TString::Format("% 14.5E", -preCorr->GetCorrections().X())<< endl;
-        cout <<"newCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<0<<" Value (in cm.) "<<TString::Format("% 14.5E", -newCorr->GetCorrections().X())<< endl;
-        cout <<"sumCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<0<<" Value (in cm.) "<<TString::Format("% 14.5E", -sumCorr->GetCorrections().X())<< endl;
+        cout <<"preCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<0<<" Value (in cm.) "<<TString::Format("% 14.11f", -preCorr->GetCorrections().X())<< endl;
+        cout <<"newCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<0<<" Value (in cm.) "<<TString::Format("% 14.11f", -newCorr->GetCorrections().X())<< endl;
+        cout <<"sumCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<0<<" Value (in cm.) "<<TString::Format("% 14.11f", -sumCorr->GetCorrections().X())<< endl;
         cout << endl;
-        cout <<"preCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<1<<" Value (in cm.) "<<TString::Format("% 14.5E", -preCorr->GetCorrections().Y())<< endl;
-        cout <<"newCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<1<<" Value (in cm.) "<<TString::Format("% 14.5E", -newCorr->GetCorrections().Y())<< endl;
-        cout <<"sumCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<1<<" Value (in cm.) "<<TString::Format("% 14.5E", -sumCorr->GetCorrections().Y())<< endl;
+        cout <<"preCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<1<<" Value (in cm.) "<<TString::Format("% 14.11f", -preCorr->GetCorrections().Y())<< endl;
+        cout <<"newCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<1<<" Value (in cm.) "<<TString::Format("% 14.11f", -newCorr->GetCorrections().Y())<< endl;
+        cout <<"sumCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<1<<" Value (in cm.) "<<TString::Format("% 14.11f", -sumCorr->GetCorrections().Y())<< endl;
         cout << endl;
-        cout <<"preCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<2<<" Value (in cm.) "<<TString::Format("% 14.5E", -preCorr->GetCorrections().Z())<< endl;
-        cout <<"newCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<2<<" Value (in cm.) "<<TString::Format("% 14.5E", -newCorr->GetCorrections().Z())<< endl;
-        cout <<"sumCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<2<<" Value (in cm.) "<<TString::Format("% 14.5E", -sumCorr->GetCorrections().Z())<< endl;
+        cout <<"preCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<2<<" Value (in cm.) "<<TString::Format("% 14.11f", -preCorr->GetCorrections().Z())<< endl;
+        cout <<"newCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<2<<" Value (in cm.) "<<TString::Format("% 14.11f", -newCorr->GetCorrections().Z())<< endl;
+        cout <<"sumCorr: Stat "<<iStat<<" Module "<<iMod<<" Param. "<<2<<" Value (in cm.) "<<TString::Format("% 14.11f", -sumCorr->GetCorrections().Z())<< endl;
         cout << endl;
         corr[iStat][iMod][0] = -sumCorr->GetCorrections().X();
         corr[iStat][iMod][1] = -sumCorr->GetCorrections().Y();

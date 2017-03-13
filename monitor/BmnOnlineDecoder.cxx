@@ -31,35 +31,6 @@ BmnOnlineDecoder::~BmnOnlineDecoder() {
     if (rawDataDecoder) delete rawDataDecoder;
 }
 
-void BmnOnlineDecoder::InitDecoder() {
-    DBG("started")
-    rawDataDecoder = new BmnRawDataDecoder();
-    Bool_t setup[9]; //array of flags to determine BM@N setup
-    //Just put "0" to exclude detector from decoding
-    setup[0] = 1; // TRIGGERS
-    setup[1] = 1; // MWPC
-    setup[2] = 0; // SILICON
-    setup[3] = 1; // GEM
-    setup[4] = 1; // TOF-400
-    setup[5] = 1; // TOF-700
-    setup[6] = 1; // DCH
-    setup[7] = 0; // ZDC
-    setup[8] = 0; // ECAL
-    rawDataDecoder->SetDetectorSetup(setup);
-    rawDataDecoder->SetRunId(1000);
-    rawDataDecoder->SetPeriodId(6);
-    rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
-    rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
-    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
-    rawDataDecoder->SetTof700Mapping("TOF700_map_period_6.txt");
-    rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
-    rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
-    rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
-    rawDataDecoder->InitConverter();
-    rawDataDecoder->InitDecoder();
-
-}
-
 void BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     DBG("started")
     //    rawDataDecoder = new BmnRawDataDecoder(file, 0, 6);
@@ -98,7 +69,7 @@ void BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
-    rawDataDecoder->InitConverter();
+    rawDataDecoder->InitConverter(fRawFileName);
     rawDataDecoder->InitDecoder();
 }
 
@@ -181,7 +152,6 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
     const size_t kWORDSIZE = sizeof (UInt_t);
     const Short_t kNBYTESINWORD = 4;
     Int_t runId = -1;
-    rawDataDecoder->ResetDecoder(_curDir + rawFileName);
     runId = rawDataDecoder->GetRunId();
 //    if (runId < 1216)
 //        return;

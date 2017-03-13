@@ -198,17 +198,8 @@ BmnRawDataDecoder::~BmnRawDataDecoder() {
 }
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
-
-    printf(ANSI_COLOR_RED "\n================ CONVERTING ================\n" ANSI_COLOR_RESET);
-
-    fRawFileIn = fopen(fRawFileName, "rb");
-    if (fRawFileIn == NULL) {
-        printf("\n!!!!!\ncannot open file %s\nConvertRawToRoot are stopped\n!!!!!\n\n", fRawFileName.Data());
+    if (InitConverter(fRawFileName) == kBMNERROR)
         return kBMNERROR;
-    }
-
-    InitConverter();
-
     fseeko64(fRawFileIn, 0, SEEK_END);
     fLengthRawFile = ftello64(fRawFileIn);
     rewind(fRawFileIn);
@@ -288,14 +279,21 @@ BmnStatus BmnRawDataDecoder::InitConverter(deque<UInt_t> *dq) {
     //    printf("RawRoot File %s\n\n", fRootFileName.Data());
 
     //    fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
-    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+//    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
 
-    InitConverter();
+    InitConverter(fRawFileName);
     return kBMNSUCCESS;
 
 }
 
-BmnStatus BmnRawDataDecoder::InitConverter() {
+BmnStatus BmnRawDataDecoder::InitConverter(TString FileName) {
+    printf(ANSI_COLOR_RED "\n================ CONVERTING ================\n" ANSI_COLOR_RESET);
+    fRawFileName = FileName;
+    fRawFileIn = fopen(fRawFileName, "rb");
+    if (fRawFileIn == NULL) {
+        printf("\n!!!!!\ncannot open file %s\nConvertRawToRoot are stopped\n!!!!!\n\n", fRawFileName.Data());
+        return kBMNERROR;
+    }
     fRawTree = new TTree("BMN_RAW", "BMN_RAW");
     sync = new TClonesArray("BmnSyncDigit");
     adc32 = new TClonesArray("BmnADCDigit");

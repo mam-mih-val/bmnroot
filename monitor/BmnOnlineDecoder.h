@@ -47,7 +47,6 @@ public:
     BmnStatus Decode(TString dirname, TString startFile, Bool_t runCurrent);
     BmnStatus BatchDirectory(TString dirname);
 private:
-    void InitDecoder();
     void InitDecoder(TString);
     void ProcessFileRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
     static TString WatchNext(TString dirname, TString filename, Int_t cycleWait);

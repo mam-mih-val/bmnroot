@@ -122,7 +122,7 @@ public:
     BmnStatus DecodeDataToDigi();
     BmnStatus DecodeDataToDigiIterate();
     BmnStatus CalcGemPedestals();
-    BmnStatus InitConverter();
+    BmnStatus InitConverter(TString FileName);
     BmnStatus InitConverter(deque<UInt_t> *dq);
     BmnStatus InitDecoder();
     void InitMaps();

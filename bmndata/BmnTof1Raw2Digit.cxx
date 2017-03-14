@@ -80,7 +80,7 @@ UShort_t BmnTof1Raw2Digit::ToGlobalChannel(UChar_t HptdcId, UChar_t channel) {
 
 //Loads mapping from the DB
 void BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
-	cout << "Loading the TOF1 Map from DB: Period " << nPeriod << ", Run " << nRun << "..." << endl;
+	cout << "Loading the TOF400 Map from DB: Period " << nPeriod << ", Run " << nRun << "..." << endl;
 	PeriodIndex = nPeriod;
 	RunIndex = nRun;
 	
@@ -89,7 +89,7 @@ void BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
 	cout << "Loading the placement map..." << std::flush;
 	UniDbDetectorParameter* pLoadedPlacement = UniDbDetectorParameter::GetDetectorParameter("TOF1", "placementmap", nPeriod, nRun);
 	if(pLoadedPlacement == 0) {
-		cout << "TOF1 Crucial error: failed to load the placement map" << endl;
+		cout << "TOF400 Crucial error: failed to load the placement map" << endl;
 	} else {
 		//Get the placement map
 		int elem_count = 0;
@@ -161,7 +161,6 @@ void BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
 					//Load the INL double array from the row
 					double * inl; int inl_elem_count;
 					curRow->GetDoubleArray(inl, inl_elem_count);
-				
 					//If the array is too big...
 					if(inl_elem_count > TOF1_BIN_NUMBER) {
 						cerr << "Number of elements in the INL array is larger than the TDC72VHL bin number." << endl;
@@ -193,7 +192,7 @@ void BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
 		delete elemArray;
 		++it;
 	}
-	cout << "Loading Tof1 mapping from the DB complete." << endl;
+	cout << "Loading Tof400 mapping from the DB complete." << endl;
 }
 
 //Load mapping from the file
@@ -431,17 +430,17 @@ void BmnTof1Raw2Digit::FillEvent(TClonesArray *data, TClonesArray *output) {
 			cout << std::hex << TDC_Serial << std::dec << rchan << ":" << ((si->GetValue()) % TOF1_BIN_NUMBER) << " - " << par->INL[rchan][(si->GetValue()) % TOF1_BIN_NUMBER] << endl;
 		}
 		*/
-		double t = (si->GetValue() + par->INL[rchan][(si->GetValue()) % TOF1_BIN_NUMBER])* TOF1_MAX_TIME / double(TOF1_BIN_NUMBER);
+		double timeFromDigit = (si->GetValue() + par->INL[rchan][(si->GetValue()) % TOF1_BIN_NUMBER])* TOF1_MAX_TIME / double(TOF1_BIN_NUMBER);
 		
 		if(si->GetLeading()) {
 			//If this is a leading TDC digit, just fill the temporary time in the BmnTof1TDCParameters.
-			par->t[rchan] = t;
+			par->t[rchan] = timeFromDigit;
 		} else {
 			//If this is NOT a leading TDC Digit...
 			if(par->t[rchan] != -1) {
 				//BmbTof1TDCParameters' temporary time (par->t[rchan]) has been already set
 				//This temporary time should store the leading time
-				if( t < (par->t[rchan]) ) {
+				if( timeFromDigit < (par->t[rchan]) ) {
 					//This is impossible:
 					//Leading value is larger than the trailing time
 					//The BmnTDCDigit array has already been sorted, so this shouldn't happen
@@ -457,7 +456,7 @@ void BmnTof1Raw2Digit::FillEvent(TClonesArray *data, TClonesArray *output) {
 					//Print where exactly the error has occured
 					cout << "Error at: " << endl;
 					cout << std::hex << si->GetSerial() << " " << int(si->GetSlot()) << " " << std::dec << int(si->GetHptdcId()) << " " << int(si->GetChannel()) << " " << (si->GetLeading()?"L":"T") << si->GetValue() << endl;					
-					cout << std::hex << TDC_Serial << std::dec << " " << rchan << " " << (par->t[rchan]) << "--" << t << endl;
+					cout << std::hex << TDC_Serial << std::dec << " " << rchan << " " << (par->t[rchan]) << "--" << timeFromDigit << endl;
 				} else {
 					//So we've got the Leading and Trail times and everything seems to be okay
 					//Find the BmnTof1Map2 mapping element, which stores the plane, strip and side.
@@ -469,7 +468,7 @@ void BmnTof1Raw2Digit::FillEvent(TClonesArray *data, TClonesArray *output) {
 					//Trailing time is just the time in current TDC Digit
 					//(See above: this piece of code is executed only if the current BmnTDCDigit is NOT leading)
 					
-					new((*output)[nOut]) BmnTof1Digit(elem->plane,elem->strip,elem->side,t,t - (par->t[rchan]));
+					new((*output)[nOut]) BmnTof1Digit(elem->plane,elem->strip,elem->side,par->t[rchan],timeFromDigit - (par->t[rchan]));
 					nOut++;
 				}
 			}

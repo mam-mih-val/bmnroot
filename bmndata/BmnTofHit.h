@@ -6,7 +6,7 @@
  */
 
 #ifndef BMNTOFHIT_H
-#define	BMNTOFHIT_H
+#define BMNTOFHIT_H
 
 #include <math.h>
 #include <iostream>
@@ -26,24 +26,23 @@ public:
     /** Constructor to use **/
     BmnTofHit(Int_t detUID, TVector3 posHit, TVector3 posHitErr, Int_t pointIndex);
 
-    Bool_t IsUsed() const {
-        return fUsing;
-    }
+    void SetLength(Double_t Length);
+    Double_t GetLength();
     
-    void SetUsing(Bool_t use) {
-        fUsing = use;
-    }
+    Bool_t IsUsed() const;
+    void SetUsing(Bool_t use);
 
     /** Destructor **/
     virtual ~BmnTofHit();
 
 private:
-    
+
     Bool_t fUsing;
+    Double_t fLength;
 
     ClassDef(BmnTofHit, 1);
 
 };
 
-#endif	/* BMNTOFHIT_H */
+#endif /* BMNTOFHIT_H */
 

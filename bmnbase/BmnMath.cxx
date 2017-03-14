@@ -531,7 +531,7 @@ TVector3 CircleBy3Hit(BmnGemTrack* track, const BmnGemStripHit* h0, const BmnGem
 }
 // Пусть пока этот крокодил поживет здесь:)
 
-void fit_seg(Float_t* z_loc, Float_t* rh_seg, Float_t* rh_sigm_seg, Float_t* par_ab, Int_t skip_first, Int_t skip_second) {
+void fit_seg(Double_t* z_loc, Double_t* rh_seg, Double_t* rh_sigm_seg, Double_t* par_ab, Int_t skip_first, Int_t skip_second) {
     Double_t sqrt_2 = sqrt(2.);
     //linear fit
     Float_t A[4][4] = {

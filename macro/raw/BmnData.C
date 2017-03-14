@@ -254,7 +254,15 @@ public:
      char str[200];
      EVENT=0;
      TRIGWORD=0;
-     sscanf(&file[strlen(file)-8],"%d",&RUN); printf("Processing run: %d\n",RUN);
+     if (sscanf(&file[strlen(file)-9],"%d",&RUN) != 1)
+     {
+        if (sscanf(&file[strlen(file)-8],"%d",&RUN) != 1)
+        {
+	    printf("Can't obtain run number from file %s\n", file);
+	    return;
+        };
+     };
+     printf("Processing run: %d\n",RUN);
      sprintf(str,"bmn_run%04d.root",RUN);
      File=new TFile(str,"recreate");
      File->SetCompressionLevel(1); //try level 2 also

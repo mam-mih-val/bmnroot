@@ -47,11 +47,7 @@ public:
     virtual void Exec(Option_t* opt);
 
     virtual void Finish();
-    
-    void SetSegmentMatching(Bool_t flag) {
-        fSegmentMatching = flag;
-    }
-    
+       
     void SetTransferFunction(TString name) {
         fTransferFunctionName = name;
     }
@@ -81,81 +77,93 @@ private:
     Double_t pol_par_dc[3][5][16]; //[polinom number][param number][plane number]
     Double_t scaling[16]; //[plane number]
     
-    Float_t scale;  //scaling for transfer function coeffs
+    Double_t scale;  //scaling for transfer function coeffs
     
-    Float_t z_loc[8];   // z local xa->vb (cm)
-    Float_t z_glob[16]; // z global dc 1 & dc 2 (cm)
-    Float_t Z_dch1; //z coord in the middle of dch1	
-    Float_t Z_dch2; //z coord in the middle of dch2
-    Float_t Z_dch_mid; //z coord between the two chambers, this z is considered the global z for the matched dch-segment
+    Double_t z_loc[8];   // z local xa->vb (cm)
+    Double_t z_glob[16]; // z global dc 1 & dc 2 (cm)
+    Double_t Z_dch1; //z coord in the middle of dch1	
+    Double_t Z_dch2; //z coord in the middle of dch2
+    Double_t Z_dch_mid; //z coord between the two chambers, this z is considered the global z for the matched dch-segment
+    Double_t dZ_dch_mid; 
+    Double_t dZ_dch;
     
-    Float_t x1_sh; 
-    Float_t x2_sh; 
-    Float_t y1_sh;
-    Float_t y2_sh;
+    Double_t x1_sh; 
+    Double_t x2_sh; 
+    Double_t y1_sh;
+    Double_t y2_sh;
     
-    Float_t x1_slope_sh;
-    Float_t y1_slope_sh; //was .05
-    Float_t x2_slope_sh;
-    Float_t y2_slope_sh; //
+    Double_t x1_slope_sh;
+    Double_t y1_slope_sh; 
+    Double_t x2_slope_sh;
+    Double_t y2_slope_sh; 
     
-    Bool_t fSegmentMatching; 
-    Bool_t has7DC1;
-    Bool_t has7DC2;
+    Bool_t* has7DC;
     
-    Float_t** x_global;
-    Float_t** y_global;
-    Float_t** Chi2;
+    Int_t nSegmentsToBeMatched;
+    
+    Double_t** x_global;
+    Double_t** y_global;
+    Double_t** Chi2;
         
-    Float_t*** v;
-    Float_t*** u;
-    Float_t*** y;
-    Float_t*** x;
-    Float_t*** v_Single;
-    Float_t*** u_Single;
-    Float_t*** y_Single;
-    Float_t*** x_Single;
-    Float_t*** sigm_v;
-    Float_t*** sigm_u;
-    Float_t*** sigm_y;
-    Float_t*** sigm_x;
-    Float_t*** Sigm_v_single;
-    Float_t*** Sigm_u_single;
-    Float_t*** Sigm_y_single;
-    Float_t*** Sigm_x_single;
-    Float_t*** params;
-    Float_t*** rh_segment;
-    Float_t*** rh_sigm_segment;
+    Double_t*** v;
+    Double_t*** u;
+    Double_t*** y;
+    Double_t*** x;
+    Double_t*** v_Single;
+    Double_t*** u_Single;
+    Double_t*** y_Single;
+    Double_t*** x_Single;
+    Double_t*** sigm_v;
+    Double_t*** sigm_u;
+    Double_t*** sigm_y;
+    Double_t*** sigm_x;
+    Double_t*** Sigm_v_single;
+    Double_t*** Sigm_u_single;
+    Double_t*** Sigm_y_single;
+    Double_t*** Sigm_x_single;
+    Double_t*** params;
+    Double_t*** rh_segment;
+    Double_t*** rh_sigm_segment;
     
     Int_t* nSegments;
     Int_t** pairs;
     Int_t** segment_size;
     Int_t*** singles;
-  
-    void CreateDchTrack(Int_t, Float_t*, Float_t**, Int_t*);
-    void SelectLongestAndBestSegments(Int_t, Int_t*, Float_t**, Float_t*);
-    void CompareDaDb(Float_t, Float_t&);
-    void CompareDaDb(Float_t, Float_t&, Float_t&);
+    
+    Double_t* x_mid; //x glob of matched segment in the z situated between the two DCH chambers
+    Double_t* y_mid; //y glob of matched segment in the z situated between the two DCH chambers
+    Double_t* aX; //x slope of the matched segment
+    Double_t* aY; //y slope of the matched segment
+    Double_t* imp; //reconstructed particle trajectory momentum 
+    Double_t* leng; //the distance from z = 0 to the global point of the matched segment
+    Double_t* Chi2_match; //chi2 of the matched seg
+      
+    void CreateDchTrack();
+    void CreateDchTrack(Int_t, Double_t*, Double_t**, Int_t*);
+    void SelectLongestAndBestSegments(Int_t, Int_t*, Double_t**, Double_t*);
+    void CompareDaDb(Double_t, Double_t&);
+    void CompareDaDb(Double_t, Double_t&, Double_t&);
     void PrepareArraysToProcessEvent();
-    void FitDchSegments(Int_t, Int_t*, Float_t**, Float_t**, Float_t**, Float_t*, Float_t*, Float_t*);
-    Float_t CalculateResidual(Int_t, Int_t, Float_t**, Float_t**);
+    Bool_t FitDchSegments(Int_t, Int_t*, Double_t**, Double_t**, Double_t**, Double_t*, Double_t*, Double_t*);
+    Double_t CalculateResidual(Int_t, Int_t, Double_t**, Double_t**);
     Int_t BuildUVSegments(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t,
-        Float_t**, Float_t**, Float_t**, Float_t**,
-        Float_t**, Float_t**, Float_t**, Float_t**,
-        Float_t**, Float_t**, Float_t**,
-        Float_t**, Float_t**, Float_t**);
+        Double_t**, Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**);
     Int_t BuildXYSegments(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t,
-        Float_t**, Float_t**, Float_t**, Float_t**,
-        Float_t**, Float_t**, Float_t**, Float_t**,
-        Float_t**, Float_t**, Float_t**,
-        Float_t**, Float_t**, Float_t**);
+        Double_t**, Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**,
+        Double_t**, Double_t**, Double_t**);
     Int_t Reconstruction(Int_t, TString, Int_t, Int_t, Int_t,
         Double_t*, Double_t*, Double_t*, Double_t*,
         Bool_t*, Bool_t*,
-        Float_t**, Float_t**);
+        Double_t**, Double_t**);
     Int_t ReconstructionSingle(Int_t, TString, TString, Int_t, Int_t,
         Double_t*, Double_t*, Bool_t*,
-        Float_t**, Float_t**);
+        Double_t**, Double_t**);
+    void SegmentsToBeMatched();
          
     ClassDef(BmnDchTrackFinder, 1)
 };

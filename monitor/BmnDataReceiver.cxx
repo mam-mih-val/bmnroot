@@ -60,7 +60,7 @@ void BmnDataReceiver::DeinitSocks() {
     {
         case SIGINT:
         {
-            isListening = false;
+            isListening = kFALSE;
             printf("SIGINT received\n");
             break;
         }
@@ -151,7 +151,7 @@ int BmnDataReceiver::ConnectRaw() {
     Int_t nbytes;
     Char_t buf[MAX_BUF_LEN];
     //signal(SIGINT, HandleSignal);
-    isListening = true;
+    isListening = kTRUE;
     while (isListening) {
         if ((nbytes = recvfrom(_sfd, buf, MAX_BUF_LEN, 0, (sockaddr*) & mcast_addr, &addrlen)) == -1) {
             close(_sfd);
@@ -159,7 +159,7 @@ int BmnDataReceiver::ConnectRaw() {
             return -1;
         }
         buf[nbytes] = '\0';
-//        printf("%s\n", buf);
+        //        printf("%s\n", buf);
         ParsePNPMsg(buf, &_dataServer);
         printf("index = %s\n", _dataServer.index);
         printf("type  = %s\n", _dataServer.type);
@@ -175,7 +175,7 @@ int BmnDataReceiver::ConnectRaw() {
     return 0;
 }
 
-int BmnDataReceiver::RecvData() {
+Int_t BmnDataReceiver::InitRecvStream() {
     //    Int_t isRaw = 1;
     //    if (zmq_setsockopt(_socket_data, ZMQ_ROUTER_RAW, &isRaw, sizeof(isRaw)) == -1)
     //        DBGERR("zmq_setsockopt of ZMQ_ROUTER_RAW")
@@ -224,24 +224,135 @@ int BmnDataReceiver::RecvData() {
         DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
         printf("rcvbuf = %d\n", rcvBuf);
     Char_t id[MAX_ADDR_LEN];
-    Int_t id_size;
-    UInt_t *buf = (UInt_t*) malloc(MAX_BUF_LEN);
+    
+    return 0;
+}
+
+void BmnDataReceiver::FreeRecvStream(){
+    freeaddrinfo(dataAddrInfo);
+}
+
+Int_t BmnDataReceiver::IterRecvStream(){
+//    while ((isListening) && (msg_len < MAX_BUF_LEN)) {
+//        id_size = zmq_recv(_socket_data, &id, sizeof (id), 0);
+//        if (id_size == -1) {
+//            printf("Receive error #%s\n", zmq_strerror(errno));
+//            if (errno == EAGAIN)
+//                usleep(MSG_TIMEOUT);
+//            else
+//                return -1;
+//        } else {
+//            printf("ID size =  %d\n Id:%x\n", id_size, id);
+//        }
+//        zmq_msg_t msg;
+//        zmq_msg_init(&msg);
+//        Int_t recv_more = 0;
+//        UInt_t *msgPtr;
+//        do {
+//            frame_size = zmq_msg_recv(&msg, _socket_data, 0); // ZMQ_DONTWAIT
+//            //frame_size = zmq_recv(_socket_data, buf, MAX_BUF_LEN, 0);
+//            if (frame_size == -1) {
+//                printf("Receive error № %d #%s\n", errno, zmq_strerror(errno));
+//                if (errno == EAGAIN)
+//                    usleep(MSG_TIMEOUT);
+//                else
+//                    return -1;
+//            } else {
+//                //                UChar_t *str = (UChar_t*) malloc((frame_size + 1) * sizeof (UChar_t));
+//                msgPtr = (UInt_t*) zmq_msg_data(&msg);
+//                //                memcpy(buf, zmq_msg_data(&msg), frame_size);
+//                //                ((mutex*)_deque_mutex)->lock();
+//                for (Int_t offset = 0; offset < frame_size; offset++)
+//                    data_queue.push_back(*(msgPtr + offset));
+//                //                ((mutex*)_deque_mutex)->unlock();
+//                //                memcpy(str, zmq_msg_data(&msg), frame_size);
+//                //                str[frame_size] = '\0';
+//                msg_len += frame_size;
+//                //                printf("Frame size =  %d\n Msg:%x\n", frame_size, str);
+//                //                free(str);
+//            }
+//            size_t opt_size = sizeof (recv_more);
+//            if (zmq_getsockopt(_socket_data, ZMQ_RCVMORE, &recv_more, &opt_size) == -1) {
+//                printf("ZMQ socket options error #%s\n", zmq_strerror(errno));
+//                return -1;
+//            }
+//            printf("ZMQ rcvmore = %d\n", recv_more);
+//
+//            zmq_msg_close(&msg);
+//        } while (recv_more);
+//    }
+    return 0;
+}
+
+Int_t BmnDataReceiver::RecvData() {
+    //    Int_t isRaw = 1;
+    //    if (zmq_setsockopt(_socket_data, ZMQ_ROUTER_RAW, &isRaw, sizeof(isRaw)) == -1)
+    //        DBGERR("zmq_setsockopt of ZMQ_ROUTER_RAW")
+    Char_t endpoint_addr[MAX_ADDR_LEN];
+    struct addrinfo hints;
+    struct addrinfo *p;
+    memset(&hints, 0, sizeof (hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    Int_t g = 0;
+    if (g = getaddrinfo(_dataServer.hostName, NULL, &hints, &dataAddrInfo) != 0) {
+        printf("getaddrinfo error: %s\n", strerror(errno));
+        return -1;
+    }
+    Char_t *ip = NULL;
+    for (p = dataAddrInfo; p != NULL; p = p->ai_next) {
+        ip = inet_ntoa(((sockaddr_in*) (p->ai_addr))->sin_addr);
+        printf("found family %d  %s addr: %s\n", p->ai_family, p->ai_canonname, ip);
+        Int_t port = 0;
+        for (auto iface : _dataServer.interfaces)
+            if (strcmp(iface.type, "Monitor output data flow") == 0) {
+                port = iface.port;
+                break;
+            }
+        snprintf(endpoint_addr, MAX_ADDR_LEN, "tcp://%s:%d", ip, port);
+        if (zmq_connect(_socket_data, endpoint_addr) != 0) {
+            DBGERR("zmq")
+            continue;
+        } else {
+            printf("%s\n", endpoint_addr);
+            break;
+        }
+    }
+    if (p == NULL) {
+        printf("Valid address not found\n");
+        return -1;
+    }
+    Int_t rcvBuf = MAX_BUF_LEN;
+    size_t vl = sizeof (rcvBuf);
+    if (zmq_setsockopt(_socket_data, ZMQ_RCVBUF, &rcvBuf, sizeof (rcvBuf)) == -1)
+        DBGERR("zmq_setsockopt of ZMQ_RCVBUF")
+        if (zmq_setsockopt(_socket_data, ZMQ_SNDBUF, &rcvBuf, sizeof (rcvBuf)) == -1)
+            DBGERR("zmq_setsockopt of ZMQ_SNDBUF")
+            rcvBuf = 0;
+    if (zmq_getsockopt(_socket_data, ZMQ_RCVBUF, &rcvBuf, &vl) == -1)
+        DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
+        printf("rcvbuf = %d\n", rcvBuf);
+//    UInt_t *buf = (UInt_t*) malloc(MAX_BUF_LEN);
+    Char_t conID[MAX_ADDR_LEN];
+    Int_t conID_size;
     Int_t msg_len = 0;
-    Int_t frame_size;
-    while (1) {
-        id_size = zmq_recv(_socket_data, &id, sizeof (id), 0);
-        if (id_size == -1) {
+    Int_t frame_size = 0;
+    isListening = kTRUE;
+    while ((isListening) && (msg_len < MAX_BUF_LEN)) {
+        conID_size = zmq_recv(_socket_data, &conID, sizeof (conID), 0);
+        if (conID_size == -1) {
             printf("Receive error #%s\n", zmq_strerror(errno));
             if (errno == EAGAIN)
                 usleep(MSG_TIMEOUT);
             else
                 return -1;
         } else {
-            printf("ID size =  %d\n Id:%x\n", id_size, id);
+            printf("ID size =  %d\n Id:%x\n", conID_size, conID);
         }
         zmq_msg_t msg;
         zmq_msg_init(&msg);
         Int_t recv_more = 0;
+        UInt_t *msgPtr;
         do {
             frame_size = zmq_msg_recv(&msg, _socket_data, 0); // ZMQ_DONTWAIT
             //frame_size = zmq_recv(_socket_data, buf, MAX_BUF_LEN, 0);
@@ -252,17 +363,18 @@ int BmnDataReceiver::RecvData() {
                 else
                     return -1;
             } else {
-                UChar_t *str = (UChar_t*) malloc((frame_size + 1) * sizeof (UChar_t));
-                memcpy(buf, zmq_msg_data(&msg), frame_size);
+                //                UChar_t *str = (UChar_t*) malloc((frame_size + 1) * sizeof (UChar_t));
+                msgPtr = (UInt_t*) zmq_msg_data(&msg);
+                //                memcpy(buf, zmq_msg_data(&msg), frame_size);
                 //                ((mutex*)_deque_mutex)->lock();
                 for (Int_t offset = 0; offset < frame_size; offset++)
-                    data_queue.push_back(*(buf + offset));
+                    data_queue.push_back(*(msgPtr + offset));
                 //                ((mutex*)_deque_mutex)->unlock();
-                memcpy(str, zmq_msg_data(&msg), frame_size);
-                str[frame_size] = '\0';
+                //                memcpy(str, zmq_msg_data(&msg), frame_size);
+                //                str[frame_size] = '\0';
                 msg_len += frame_size;
-                printf("Frame size =  %d\n Msg:%x\n", frame_size, str);
-                free(str);
+                //                printf("Frame size =  %d\n Msg:%x\n", frame_size, str);
+                //                free(str);
             }
             size_t opt_size = sizeof (recv_more);
             if (zmq_getsockopt(_socket_data, ZMQ_RCVMORE, &recv_more, &opt_size) == -1) {
@@ -271,13 +383,11 @@ int BmnDataReceiver::RecvData() {
             }
             printf("ZMQ rcvmore = %d\n", recv_more);
 
-
+            zmq_msg_close(&msg);
         } while (recv_more);
-        zmq_msg_close(&msg);
     }
-    free(buf);
-    freeaddrinfo(info);
-    DBG("finished")
+//    free(buf);
+    freeaddrinfo(dataAddrInfo);
     return 0;
 }
 

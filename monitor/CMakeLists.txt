@@ -19,7 +19,7 @@ ${BMNROOT_SOURCE_DIR}/gem
 ${BMNROOT_SOURCE_DIR}/silicon
 ${BMNROOT_SOURCE_DIR}/globaltracking
 ${BMNROOT_SOURCE_DIR}/monitor
-/usr/include/libxml2
+${XML2_INCLUDE_DIR}
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 #${BMNROOT_SOURCE_DIR}/sts

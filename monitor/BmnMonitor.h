@@ -52,12 +52,9 @@ public:
 
     BmnMonitor();
     virtual ~BmnMonitor();
-    void MonitorStream(TString dir, TString refDir = "", TString decoAddr = "localhost");
+    void MonitorStream(TString dir, TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
     void ProcessRun(TString digiName);
     void ProcessStreamRun();
-    void ProcessFileRun(TString digiName);
-    TString WatchNext(TString dirname, TString filename, Int_t cycleWait);
-    static TString WatchNext(Int_t inotifDir, Int_t cycleWait);
     static void threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent);
     static void threadCmdWrapper(string cmd);
     
@@ -78,7 +75,6 @@ private:
     BmnStatus OpenStream();
     void FinishRun();
     
-    static void threadReceiveWrapper(BmnDataReceiver * dr);
     
     deque<UInt_t> * fDataQue;
     vector<BmnRunInfo> *_fileList;
@@ -116,6 +112,7 @@ private:
     BmnOnlineDecoder *onlineDecoder;
 
     Bool_t keepWorking;
+    Int_t _webPort;
     Int_t fTest;
     Int_t fRunID;
     Int_t fEvents;
@@ -123,10 +120,6 @@ private:
     Int_t itersToUpdate;
     Int_t decoTimeout;
     
-    Int_t _inotifDir;
-    Int_t _inotifDirW;
-    Int_t _inotifFile;
-    Int_t _inotifFileW;
 
 
     ClassDef(BmnMonitor, 1)

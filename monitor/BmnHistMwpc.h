@@ -45,10 +45,11 @@ public:
     void SetDir(TFile *outFile, TTree *recoTree);
     void DrawBoth();
     void FillFromDigi(TClonesArray * DchDigits);
-    BmnStatus LoadRefRun(TString FileName);
     BmnStatus  SetRefRun(Int_t id);
 
 private:
+    vector<TString> NamesWires;
+    vector<TString> NamesTimes;
     TH1F * h_wires[MWPC_PLANES];
     TH1F * h_times[MWPC_PLANES];
     TClonesArray* MwpcHits;

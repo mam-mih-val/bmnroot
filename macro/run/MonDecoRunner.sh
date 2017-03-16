@@ -14,5 +14,6 @@ while true;
 
 do
 /opt/fairsoft/install/bin/root.exe -b -q /home/ilnur/bmnroot/macro/raw/monDecoder.C
+sleep 40
 
 done

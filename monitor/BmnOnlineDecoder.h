@@ -38,6 +38,7 @@
 #define RUN_FILE_CHECK_PERIOD    1e5
 #define DECO_SOCK_WAIT_PERIOD    5e2
 #define DECO_SOCK_WAIT_LIMIT     5e4
+#define INOTIF_BUF_LEN (255 * (sizeof(struct inotify_event) + 255))
 
 class BmnOnlineDecoder : public TNamed {
 public:
@@ -45,11 +46,16 @@ public:
     virtual ~BmnOnlineDecoder();
     BmnStatus Accept();
     BmnStatus Decode(TString dirname, TString startFile, Bool_t runCurrent);
+    BmnStatus DecodeStream();
+    BmnStatus OpenStream();
     BmnStatus BatchDirectory(TString dirname);
 private:
     void InitDecoder(TString);
-    void ProcessFileRun(TString digiName = "$VMCWORKDIR/macro/raw/bmn_run0084_digi.root");
+    void InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *dq);
+    void ProcessFileRun(TString digiName);
     static TString WatchNext(TString dirname, TString filename, Int_t cycleWait);
+    static TString WatchNext(Int_t inotifDir, Int_t cycleWait);
+    static void threadReceiveWrapper(BmnDataReceiver * dr);
     
     BmnRawDataDecoder *rawDataDecoder;
     TServerSocket *fRawDecoSocket;
@@ -59,6 +65,12 @@ private:
     TString _curFile;
     TString _curDir;
     Int_t fEvents;
+    BmnDataReceiver *dataReceiver;
+    deque<UInt_t> *dataQue;
+    Int_t _inotifDir;
+    Int_t _inotifDirW;
+    Int_t _inotifFile;
+    Int_t _inotifFileW;
     
 
     ClassDef(BmnOnlineDecoder, 1)

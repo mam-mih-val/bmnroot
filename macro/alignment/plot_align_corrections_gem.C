@@ -1,11 +1,12 @@
 // -----------------------------------------------------------------------------
 // This macro plots evolution of the new and cumulative alignment corrections
 // vs. iteration number.
-// 
+//
 //
 // Anatoly.Solomin@jinr.ru 2017-02-16
 
 #include   <map>
+#include   <string>
 #include   <utility> // for pair
 #include   <vector>
 
@@ -17,19 +18,14 @@
 
 using namespace std;
 
-void plot_align_corrections_gem(TString newAlignCorrFileListFileName,  
+void plot_align_corrections_gem(TString newAlignCorrFileListFileName,
                                 TString sumAlignCorrFileListFileName,
-                                TString alignCorrPlotsFileName)  
+                                TString alignCorrPlotsFileName)
 {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
 
-    map<pair<int, int>, int> mStatMod_Pad;
-
-  //map<pair<int, int>, int>::iterator res;
-  //m.insert(make_pair(make_pair(0, 0), "Hello"));
-  //m.insert(make_pair(make_pair(1, 0), "There"));
-  //res = m.find(make_pair(0,0));
+    map<const pair<int, int>, int> mStatMod_Pad;
 
     mStatMod_Pad[make_pair(3, 0)] =  1;
     mStatMod_Pad[make_pair(0, 0)] =  2;
@@ -42,13 +38,55 @@ void plot_align_corrections_gem(TString newAlignCorrFileListFileName,
     mStatMod_Pad[make_pair(5, 0)] =  7;
     mStatMod_Pad[make_pair(5, 1)] = 14;
 
+    int const mlpdParNr_What[30][3] = {{0, 0, 0},
+                                       {1, 0, 0},
+                                       {2, 0, 0},
+                                       {0, 1, 0},
+                                       {1, 1, 0},
+                                       {2, 1, 0},
+                                       {0, 2, 0},
+                                       {1, 2, 0},
+                                       {2, 2, 0},
+                                       {0, 3, 0},
+                                       {1, 3, 0},
+                                       {2, 3, 0},
+                                       {0, 4, 0},
+                                       {1, 4, 0},
+                                       {2, 4, 0},
+                                       {0, 4, 1},
+                                       {1, 4, 1},
+                                       {2, 4, 1},
+                                       {0, 5, 0},
+                                       {1, 5, 0},
+                                       {2, 5, 0},
+                                       {0, 5, 1},
+                                       {1, 5, 1},
+                                       {2, 5, 1},
+                                       {0, 6, 0},
+                                       {1, 6, 0},
+                                       {2, 6, 0},
+                                       {0, 6, 1},
+                                       {1, 6, 1},
+                                       {2, 6, 1}};
+
+    int n = 0;                     // number of iterations counter
+    ifstream ifstrm(newAlignCorrFileListFileName);
+    string   line;
+    while (getline(ifstrm, line)) { // this is in fact a loop over the iterations
+        n++;
+      //cout <<line<< endl;
+    }
+    ifstrm.close();
+    const Int_t nIts = n;
+    cout <<"nIts = "<<nIts<< endl; // number of iterations
+
     BmnGemStripStationSet* stationSet = new BmnGemStripStationSet_RunWinter2016(BmnGemStripConfiguration::RunWinter2016);
     const Int_t nKinds  = 2;
     const Int_t nParams = 3;
     Double_t***** itCorrs = new Double_t****[nKinds];
     for (Int_t iKind=0; iKind < nKinds; iKind++) {
         itCorrs[iKind] = new Double_t***[nParams];
-        for (Int_t Int_t iPar=0; iPar < nParams; iPar++) {
+        for (Int_t iPar=0; iPar < nParams; iPar++) {
             Int_t nStats = stationSet->GetNStations();
             itCorrs[iKind][iPar] = new Double_t**[nStats];
             for (Int_t iStat=0; iStat < nStats; iStat++) {
@@ -63,52 +101,62 @@ void plot_align_corrections_gem(TString newAlignCorrFileListFileName,
             }
         }
     }
+    Double_t**** itNewCorrErrs = new Double_t***[nParams];
+    for (Int_t iPar=0; iPar < nParams; iPar++) {
+        Int_t nStats = stationSet->GetNStations();
+        itNewCorrErrs[iPar] = new Double_t**[nStats];
+        for (Int_t iStat=0; iStat < nStats; iStat++) {
+            Int_t nModuls = stationSet->GetGemStation(iStat)->GetNModules();
+            itNewCorrErrs[iPar][iStat] = new Double_t*[nModuls];
+            for (Int_t iMod=0; iMod < nModuls; iMod++) {
+                itNewCorrErrs[iPar][iStat][iMod] = new Double_t[nIts];
+                for (Int_t iIt=0; iIt < nIts; iIt++) {
+                    itNewCorrErrs[iPar][iStat][iMod][iIt] = 0.;
+                }
+            }
+        }
+    }
+    TCanvas* canvas = new TCanvas("canvas", "Covergency of alignment", 1400, 1200);
+    canvas->Divide(7, 12, -0.01, -0.01);
     TPad* pad;
     Int_t padNr(0);
-    gStyle->SetPadTopMargin(0.01);
-    gStyle->SetPadLeftMargin(0.01);
-    gStyle->SetPadRightMargin(0.01);
-    gStyle->SetPadBottomMargin(0.01);
-    TCanvas* canvas = new TCanvas("canvas", "Covergency of alignment", 700, 1200);
+    gROOT->ForceStyle(kTRUE);
+    /*
+    gStyle->SetPadTopMargin(0.);
+    gStyle->SetPadLeftMargin(0.);
+    gStyle->SetPadRightMargin(0.);
+    gStyle->SetPadBottomMargin(0.);
+    */
+  //gStyle->SetPadBottomMargin(0.03);
+    gStyle->SetLineWidth(1);
+    gStyle->SetLineScalePS(1.0);
+    gStyle->SetTitleY(0.980);
+
+    canvas->cd(0);
     gPad->SetFillStyle(4000);
-    canvas->Divide(7, 12, 0.0001, 0.0001);
-    Int_t   nIts(0);     // actual number of iterations
-    ifstream corrFile("newAlignCorrFileListFileName");
-    while (corrFile >> fnamestr)) // this is in fact a loop over the itertations
-        ++nIts;
-    cout <<"nIts = "nIts<< endl;
-    corrFile.clear();    // clear the 'reached the EOF' state
-    corrFile.seekg(0);   // go to the beginning
+    gPad->SetTopMargin(0.001);
+    gPad->SetLeftMargin(0.001);
+    gPad->SetRightMargin(0.001);
+    gPad->SetBottomMargin(0.001);
 
-    Int_t   its[nIts];   // array with the iteration numbers
+    Double_t its[nIts];   // array with the iteration numbers
 
-    TString kinds[2] = {"new", "sum"};
+    TString kinds[] = {"new", "sum"};
     for (Int_t iKind=0; iKind < nKinds; iKind++) {
-        TString kind = kinds[iKind];
-        corrFile.open(kind+"AlignCorrFileListFileName");
+        string  fnamestrg;
+        if (kinds[iKind] == "new")
+            fnamestrg = newAlignCorrFileListFileName;
+        else
+            fnamestrg = sumAlignCorrFileListFileName;
+        cout <<"fnamestrg               = "+fnamestrg<< endl;
+        ifstream corrFileListFstr(fnamestrg.c_str());
+        fnamestrg = "";
         TString fname;
-        string  fnamestr;
         Int_t   it(-1); // iteration counter: starts with 0
 
-      //Double_t**** itCorrs = new Double_t***[nParams];
-      //for (Int_t Int_t iPar=0; iPar < nParams; iPar++) {
-      //    Int_t nStats = stationSet->GetNStations();
-      //    itCorrs[iPar] = new Double_t**[nStats];
-      //    for (Int_t iStat=0; iStat < nStats; iStat++) {
-      //        Int_t nModuls = stationSet->GetGemStation(iStat)->GetNModules();
-      //        itCorrs[iPar][iStat] = new Double_t*[nModuls];
-      //        for (Int_t iMod=0; iMod < nModuls; iMod++) {
-      //            itCorrs[iPar][iStat][iMod] = new Double_t[nIts];
-      //            for (Int_t iIt=0; iIt < nIts; iIt++) {
-      //                itCorrs[iPar][iStat][iMod][iIt] = 0.;
-      //            }
-      //        }
-      //    }
-      //}
-
-        while (corrFile >> fnamestr) { // this is in fact the main loop over the itertations
-            fname = fnamestr;
-            cout <<"fname                  = "+fname<< endl;
+        while (corrFileListFstr >> fnamestrg) { // this is in fact the main loop over the iterations
+            fname = fnamestrg;
+            cout <<"fname                   = "+fname<< endl;
             TFile* corrFile = new TFile(fname.Data());
             TTree* corrTree = (TTree*)corrFile->Get("cbmsim");
           //cout <<"corrTree->Print()"<< endl;
@@ -119,45 +167,129 @@ void plot_align_corrections_gem(TString newAlignCorrFileListFileName,
             for (Int_t iEntry=0; iEntry < (Int_t)corrTree->GetEntries(); iEntry++) {
               //cout <<"iEntry = "<<iEntry<< endl;
                 corrTree->GetEntry(iEntry);
-              //cout <<"(Int_t)corrs->GetEntriesFast() = "<<(Int_t)corrs->GetEntriesFast()<< endl;
-                if ((Int_t)corrs->GetEntriesFast() > 0) break;
+                if ((Int_t)corrs->GetEntriesFast() > 0) {
+                  //cout <<"(Int_t)corrs->GetEntriesFast() = "<<(Int_t)corrs->GetEntriesFast()<< endl;
+                    break;
+                }
             }
 
             it += 1;
-            its[it] = it; // fill array of the iteration numbers
+            its[it] = (Double_t)it + 1; // fill array of the iteration numbers (stating with 1)
+          //cout <<"its["<<it<<"] = "<<its[it]<< endl;
 
             for (Int_t iCorr=0; iCorr < (Int_t)corrs->GetEntriesFast(); iCorr++) {
-                cout <<"iCorr = "<<iCorr<< endl;
-                BmnGemAlignmentCorrections* corr = (BmnGemAlignmentCorrections*)corrs->At(iCorr);
-                Int_t iStat = corr->GetStation();
-                Int_t iMod  = corr->GetModule();
-                itCorrs[iKind][0][iStat][iMod][it] = -corr->GetCorrections().X(),
-                itCorrs[iKind][1][iStat][iMod][it] = -corr->GetCorrections().Y(),
-                itCorrs[iKind][2][iStat][iMod][it] = -corr->GetCorrections().Z());
+              //cout <<"iCorr  = "<<iCorr<< endl;
+                BmnGemAlignmentCorrections* tmp = (BmnGemAlignmentCorrections*)(corrs->UncheckedAt(iCorr));
+                Int_t iStat = tmp->GetStation();
+              //cout <<"iStat  = "<<iStat<< endl;
+                Int_t iMod  = tmp->GetModule();
+              //cout <<"iMod   = "<<iMod << endl;
+                itCorrs[iKind][0][iStat][iMod][it] = -tmp->GetCorrections().X(),
+              //cout <<"itCorrs["<<iKind<<"]["<<0<<"]["<<iStat<<"]["<<iMod<<"]["<<it<<"] = "<<TString::Format("% 14.11f", itCorrs[iKind][0][iStat][iMod][it])<< endl;
+                itCorrs[iKind][1][iStat][iMod][it] = -tmp->GetCorrections().Y(),
+              //cout <<"itCorrs["<<iKind<<"]["<<1<<"]["<<iStat<<"]["<<iMod<<"]["<<it<<"] = "<<TString::Format("% 14.11f", itCorrs[iKind][1][iStat][iMod][it])<< endl;
+                itCorrs[iKind][2][iStat][iMod][it] = -tmp->GetCorrections().Z());
+              //cout <<"itCorrs["<<iKind<<"]["<<2<<"]["<<iStat<<"]["<<iMod<<"]["<<it<<"] = "<<TString::Format("% 14.11f", itCorrs[iKind][2][iStat][iMod][it])<< endl;
+            
             }
             delete corrFile;
-            delete corrse;
+            delete corrs;
+
+            // extract millepede's parameter errors:
+            TString mlpdResFname = fname;
+            mlpdResFname = mlpdResFname.ReplaceAll(".root", ".res");
+            mlpdResFname = mlpdResFname.ReplaceAll("_it", "_xyz_it");
+            mlpdResFname = "Millepede_"+mlpdResFname;
+            cout <<"mlpdResFname  = "<< mlpdResFname<< endl;
+            ifstream ifstrmMlpdRes(mlpdResFname.Data());
+          //while (ifstrmMlpdRes >> line) {
+            getline(ifstrmMlpdRes, line);          // skip the title line
+            while (getline(ifstrmMlpdRes, line)) { // loop over lines in the Millepede<...>.res file
+              //cout <<line<< endl;
+                stringstream stgstm(line);
+                int parNr; double parVal, presigma, differ, parErr;
+                stgstm >> parNr >> parVal >> presigma;
+                if (presigma > 0.) {
+                    stgstm >> differ >> parErr; }
+                else {
+                    parErr = 0.;
+                }
+                cout <<"parNr = "<<parNr<<" parVal = "<<parVal<<" parErr = "<<parErr<< endl;
+                Int_t jPar  = mlpdParNr_What[parNr-1][0];
+                Int_t jStat = mlpdParNr_What[parNr-1][1];
+                Int_t jMod  = mlpdParNr_What[parNr-1][2];
+                itNewCorrErrs[jPar][jStat][jMod][iIt] = parErr;
+            }
         }
-        corrFile.close();
     }
+
+    ifstream ifstrm(newAlignCorrFileListFileName);
+    TString xyz[] = {"X", "Y", "Z"};
+    Double_t alCorrs[   nIts];
+    Double_t alCorrErrs[nIts];
     for (Int_t iKind=0; iKind < nKinds; iKind++) {
         for (Int_t iPar=0; iPar < nParams; iPar++) {
+            Int_t nStats = stationSet->GetNStations();
             for (Int_t iStat=0; iStat < nStats; iStat++) {
+                Int_t nModuls = stationSet->GetGemStation(iStat)->GetNModules();
                 for (Int_t iMod=0; iMod < nModuls; iMod++) {
-                    Double_t alCorrs[nIts];
+                  //Double_t alCorrs = new Double_t[nIts];
                     for (Int_t iIt=0; iIt < nIts; iIt++) {
-                        alCorrs[iIt] = itCorrs[iKind][2][iStat][iMod][it]
+                      //cout <<"itCorrs["<<iKind<<"]["<<iPar<<"]["<<iStat<<"]["<<iMod<<"]["<<iIt<<"] = "<<TString::Format("% 14.11f", itCorrs[iKind][iPar][iStat][iMod][iIt])<< endl;
+                        alCorrs[iIt] = itCorrs[iKind][iPar][iStat][iMod][iIt];
+                      //printf(" iIt %i %2.0f % 14.11f \n", iIt, its[iIt], alCorrs[iIt]);
+                        if (kinds[iKind] == "new") {
+                            if (itNewCorrErrs[iPar][iStat][iMod][iIt] > 0.)
+                                alCorrErrs[iIt] = itNewCorrErrs[iPar][iStat][iMod][iIt];
+                            else
+                                alCorrErrs[iIt] = 0.;
+                        }
+                        else {
+                           alCorrErrs[iIt] = 0.;
+                        }
                     }
-                    TGraph* gr = new TGraph(nIt, its, alCorrs);
-                    padNr =  mStatMod_Pad[make_pair(iStat, iMod)] + iPar*14 + iKind*42;
+                  //cout <<"nIts = "<<nIts<< endl;
+                    TGraphErrors* gr = new TGraphErrors(nIts, its, alCorrs, 0, alCorrErrs);
+                  //res = mStatMod_Pad.find(make_pair(iStat, iMod));
+                  //padNr =  res + iPar*14 + iKind*42;
+                  //cout <<" mStatMod_Pad[make_pair("<<iStat<<", "<<iMod<<")] = "<<mStatMod_Pad[make_pair(iStat, iMod)]<< endl;
+                    padNr =   mStatMod_Pad[make_pair(iStat, iMod)] + iPar*14 + iKind*42;
+                  //cout <<"padNr = "<<padNr<< endl;
                     canvas->cd(padNr);
-                    gr->Draw("LA");
-                    delete gr;
+                    if (kinds[iKind] == "new") {
+                        gr->SetMaximum( 0.1);
+                        gr->SetMinimum(-0.1); }
+                    else {
+                        gr->SetMaximum( 0.5);
+                        gr->SetMinimum(-0.5);
+                    }
+                    gr->SetTitle(kinds[iKind]+" "+xyz[iPar]+" corrections stat "+TString::Itoa(iStat, 10)+" mod "+TString::Itoa(iMod, 10));
+                  //gr->GetYaxis()->SetLimits(-0.01, 0.01);
+                    gr->GetXaxis()->SetLimits(-0.5,  (Double_t)nIts+0.5);
+
+                    gr->GetXaxis()->SetLabelSize(0.07);
+                    gr->GetYaxis()->SetLabelSize(0.07);
+                    gPad->SetTopMargin(   0.02 );
+                    gPad->SetLeftMargin(  0.1  );
+                    gPad->SetRightMargin( 0.001);
+                    gPad->SetBottomMargin(0.1  );
+                    gr->SetFillColor(4);
+                    gr->SetFillStyle(3010);
+
+                    gr->Draw("AL3");
+                    TLine* zerolevel = new TLine(0., 0., (Double_t)nIts, 0.);
+                    zerolevel->SetLineColor(kBlue);
+                    zerolevel->SetLineStyle(3);
+                  //gStyle->SetLineScalePS(0.5);
+                    zerolevel->Draw();
+                    canvas->Update();
+                  //canvas->Modified();
+                  //delete gr;
                 }
             }
         }
     }
-    canvas->SaveAs(alignCorrPlotsFileName);
-    canvas->SaveAs(alignCorrPlotsFileName.ReplaceAll("root", "pdf"));
-    canvas->SaveAs(alignCorrPlotsFileName.ReplaceAll("pdf",  "eps"));
+    canvas->SaveAs(alignCorrPlotsFileName.ReplaceAll("root", "pdf" ));
+    canvas->SaveAs(alignCorrPlotsFileName.ReplaceAll("pdf",  "root"));
+    canvas->SaveAs(alignCorrPlotsFileName.ReplaceAll("root", "eps" ));
 }

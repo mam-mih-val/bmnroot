@@ -29,6 +29,8 @@
 
 #include "BmnHist.h"
 #include "BmnZDCDigit.h"
+#define ZDC_ROWS    1
+#define ZDC_COLS    2
 
 
 class BmnHistZDC : public BmnHist {
@@ -43,7 +45,13 @@ public:
     BmnStatus  SetRefRun(Int_t id);
 private:
     TClonesArray* ZDCHits;
-    TH2F* h2d_ZDC;
+    TH2D* h2d_grid;
+    TH2D* h2d_profile;
+    TH1D* hx;
+    TH1D* hy;
+    TCanvas *canAmps;
+    vector<PadInfo*> canAmpsPads;
+    vector<TString> NamesAmps;
 
     ClassDef(BmnHistZDC, 1)
 };

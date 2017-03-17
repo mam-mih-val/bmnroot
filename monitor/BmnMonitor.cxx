@@ -387,7 +387,9 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhToF700->FillFromDigi(fDigiArrays->tof700);
     bhDCH->FillFromDigi(fDigiArrays->dch);
     bhMWPC->FillFromDigi(fDigiArrays->mwpc);
+//    clock_t prev = clock();
     bhZDC->FillFromDigi(fDigiArrays->zdc);
+//    printf("zdc fill %f\n", (clock() - prev)/ (double) CLOCKS_PER_SEC);
     // Fill data Tree //
     fRecoTree->Fill();
     // fill histograms what will be shown on the site//

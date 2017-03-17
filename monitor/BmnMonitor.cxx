@@ -9,6 +9,8 @@
 #include <ctime>
 #include <sys/epoll.h>
 #include <fcntl.h>
+#include <zmq.h>
+
 #include <root/TLatex.h>
 #include <root/TLegend.h>
 
@@ -36,14 +38,17 @@ BmnMonitor::BmnMonitor() {
     bhToF700 = NULL;
     bhDCH = NULL;
     bhMWPC = NULL;
+    bhZDC = NULL;
     bhTrig = NULL;
     bhGem_4show = NULL;
     bhToF400_4show = NULL;
     bhToF700_4show = NULL;
     bhDCH_4show = NULL;
     bhMWPC_4show = NULL;
+    bhZDC_4show = NULL;
     bhTrig_4show = NULL;
     rawDataDecoder = NULL;
+    _ctx = NULL;
 }
 
 BmnMonitor::~BmnMonitor() {
@@ -52,6 +57,7 @@ BmnMonitor::~BmnMonitor() {
     if (bhToF700) delete bhToF700;
     if (bhDCH) delete bhDCH;
     if (bhMWPC) delete bhMWPC;
+    if (bhZDC) delete bhZDC;
     if (bhTrig) delete bhTrig;
 
     //    delete fRecoTree;
@@ -64,6 +70,7 @@ BmnMonitor::~BmnMonitor() {
     if (bhToF700_4show) delete bhToF700_4show;
     if (bhDCH_4show) delete bhDCH_4show;
     if (bhMWPC_4show) delete bhMWPC_4show;
+    if (bhZDC_4show) delete bhZDC_4show;
     if (bhTrig_4show) delete bhTrig_4show;
     if (fServer) delete fServer;
     if (rawDataDecoder) {
@@ -71,6 +78,45 @@ BmnMonitor::~BmnMonitor() {
         delete rawDataDecoder;
     }
     if (_fileList) delete _fileList;
+    if (_ctx) {
+        zmq_ctx_destroy(_ctx);
+        _ctx = NULL;
+    }
+}
+
+void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAddr, Int_t webPort) {
+    _ctx = zmq_ctx_new();
+    _decoSocket = zmq_socket(_ctx, ZMQ_SUB);
+    if (_decoSocket == NULL) {
+        DBGERR("zmq socket")
+        return;
+    }
+    _webPort = webPort;
+    _curDir = dirname;
+    if (refDir == "")
+        _refDir = _curDir;
+    else
+        _refDir = refDir;
+    DBG("started")
+    printf("Ref dir set to %s\n", _refDir.Data());
+    InitServer();
+    RegisterAll();
+    fRawDecoAddr = decoAddr;
+    TString conStr = TString("tcp://") + fRawDecoAddr + ":5555";
+    if (zmq_connect(_decoSocket, conStr.Data()) != 0) {
+        DBGERR("zmq connect")
+        return;
+    }
+    Int_t len;
+    decoTimeout = 0;
+    keepWorking = kTRUE;
+    while (keepWorking) {
+        gSystem->ProcessEvents();
+        
+    }
+    zmq_close(_decoSocket);
+    zmq_ctx_destroy(_ctx);
+    _ctx = NULL;
 }
 
 void BmnMonitor::MonitorStream(TString dirname, TString refDir, TString decoAddr, Int_t webPort) {
@@ -203,7 +249,7 @@ void BmnMonitor::MonitorStream(TString dirname, TString refDir, TString decoAddr
         }
         mess->Clear();
         mess->Delete();
-//        delete mess;
+        //        delete mess;
         gSystem->ProcessEvents();
     }
     if (fRawDecoSocket) {
@@ -221,7 +267,7 @@ void BmnMonitor::InitServer() {
     } else
         fServer = new THttpServer(TString(cgiStr + "?auth_file=auth.htdigest&auth_domain=root").Data());
     fServer->SetTimer(100, kTRUE);
-    fServer->SetItemField("/", "_monitoring", "2000");
+    fServer->SetItemField("/", "_monitoring", "10000");
     fServer->SetItemField("/", "_layout", "grid3x3");
 }
 
@@ -249,16 +295,19 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     if (bhToF700 != NULL) delete bhToF700;
     if (bhDCH != NULL) delete bhDCH;
     if (bhMWPC != NULL) delete bhMWPC;
+    if (bhZDC != NULL) delete bhZDC;
     if (bhTrig != NULL) delete bhTrig;
-    bhGem = new BmnHistGem(refName + "GEM");
-    bhDCH = new BmnHistDch(refName + "DCH");
-    bhMWPC = new BmnHistMwpc(refName + "MWPC");
+    bhGem    = new BmnHistGem(refName + "GEM");
+    bhDCH    = new BmnHistDch(refName + "DCH");
+    bhMWPC   = new BmnHistMwpc(refName + "MWPC");
+    bhZDC    = new BmnHistZDC(refName + "ZDC");
     bhToF400 = new BmnHistToF(refName + "ToF400");
     bhToF700 = new BmnHistToF700(refName + "ToF700");
-    bhTrig = new BmnHistTrigger(refName + "Triggers");
+    bhTrig   = new BmnHistTrigger(refName + "Triggers");
     bhGem->SetDir(fHistOut, fRecoTree);
     bhDCH->SetDir(fHistOut, fRecoTree);
     bhMWPC->SetDir(fHistOut, fRecoTree);
+    bhZDC->SetDir(fHistOut, fRecoTree);
     bhToF400->SetDir(fHistOut, fRecoTree);
     bhToF700->SetDir(fHistOut, fRecoTree);
     bhTrig->SetDir(fHistOut, fRecoTree);
@@ -266,6 +315,7 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhGem_4show->SetDir(NULL, fRecoTree4Show);
     bhDCH_4show->SetDir(NULL, fRecoTree4Show);
     bhMWPC_4show->SetDir(NULL, fRecoTree4Show);
+    bhZDC_4show->SetDir(NULL, fRecoTree4Show);
     bhToF400_4show->SetDir(NULL, fRecoTree4Show);
     bhToF700_4show->SetDir(NULL, fRecoTree4Show);
     bhTrig_4show->SetDir(NULL, fRecoTree4Show);
@@ -280,38 +330,38 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhToF700_4show->Reset();
     bhDCH_4show->Reset();
     bhMWPC_4show->Reset();
+    bhZDC_4show->Reset();
     bhTrig_4show->Reset();
     bhGem_4show->Reset();
 }
 
-
 void BmnMonitor::ProcessStreamRun() {
-//    Int_t iEv = 0;
-//    BmnStatus convertResult;
-//
-//    OpenStream();
-//    RegisterAll();
-//    thread rcvThread(threadReceiveWrapper, dataReceiver);
-//
-//    while (kTRUE && iEv < 100) {
-//
-//        convertResult = rawDataDecoder->ConvertRawToRootIterate();
-//        if (convertResult == kBMNTIMEOUT) {
-//            printf("Connection timeout!");
-//            break;
-//        }
-//        rawDataDecoder->DecodeDataToDigiIterate();
-//        ProcessDigi(iEv++);
-//        fServer->ProcessRequests();
-//        gSystem->ProcessEvents();
-//    }
-//    rcvThread.join();
-//
-//    //    rawDataDecoder->DisposeDecoder();
-//    //    rawDataDecoder->DisposeConverter();
-//    delete dataReceiver;
-//    delete rawDataDecoder;
-//    FinishRun();
+    //    Int_t iEv = 0;
+    //    BmnStatus convertResult;
+    //
+    //    OpenStream();
+    //    RegisterAll();
+    //    thread rcvThread(threadReceiveWrapper, dataReceiver);
+    //
+    //    while (kTRUE && iEv < 100) {
+    //
+    //        convertResult = rawDataDecoder->ConvertRawToRootIterate();
+    //        if (convertResult == kBMNTIMEOUT) {
+    //            printf("Connection timeout!");
+    //            break;
+    //        }
+    //        rawDataDecoder->DecodeDataToDigiIterate();
+    //        ProcessDigi(iEv++);
+    //        fServer->ProcessRequests();
+    //        gSystem->ProcessEvents();
+    //    }
+    //    rcvThread.join();
+    //
+    //    //    rawDataDecoder->DisposeDecoder();
+    //    //    rawDataDecoder->DisposeConverter();
+    //    delete dataReceiver;
+    //    delete rawDataDecoder;
+    //    FinishRun();
 
 }
 
@@ -337,6 +387,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhToF700->FillFromDigi(fDigiArrays->tof700);
     bhDCH->FillFromDigi(fDigiArrays->dch);
     bhMWPC->FillFromDigi(fDigiArrays->mwpc);
+    bhZDC->FillFromDigi(fDigiArrays->zdc);
     // Fill data Tree //
     fRecoTree->Fill();
     // fill histograms what will be shown on the site//
@@ -352,6 +403,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhToF700_4show->FillFromDigi(fDigiArrays->tof700);
     bhDCH_4show->FillFromDigi(fDigiArrays->dch);
     bhMWPC_4show->FillFromDigi(fDigiArrays->mwpc);
+    bhZDC_4show->FillFromDigi(fDigiArrays->zdc);
     fRecoTree4Show->Fill();
     if (fEvents % 200 == 0) {
         // print info canvas //
@@ -381,6 +433,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         bhGem_4show->DrawBoth();
         bhDCH_4show->DrawBoth();
         bhMWPC_4show->DrawBoth();
+        bhZDC_4show->DrawBoth();
         bhTrig_4show->DrawBoth();
         bhToF400_4show->DrawBoth();
         bhToF700_4show->DrawBoth();
@@ -392,6 +445,7 @@ void BmnMonitor::RegisterAll() {
     bhGem_4show = new BmnHistGem("GEM", _curDir);
     bhDCH_4show = new BmnHistDch("DCH");
     bhMWPC_4show = new BmnHistMwpc("MWPC");
+    bhZDC_4show = new BmnHistZDC("ZDC");
     bhToF400_4show = new BmnHistToF("ToF400");
     bhToF700_4show = new BmnHistToF700("ToF700");
     bhTrig_4show = new BmnHistTrigger("Triggers");
@@ -400,6 +454,7 @@ void BmnMonitor::RegisterAll() {
     bhGem_4show->Register(fServer);
     bhDCH_4show->Register(fServer);
     bhMWPC_4show->Register(fServer);
+    bhZDC_4show->Register(fServer);
     bhToF400_4show->Register(fServer);
     bhToF700_4show->Register(fServer);
     bhTrig_4show->Register(fServer);
@@ -409,6 +464,7 @@ void BmnMonitor::RegisterAll() {
     bhGem_4show->SetRefPath(_refDir);
     bhDCH_4show->SetRefPath(_refDir);
     bhMWPC_4show->SetRefPath(_refDir);
+    bhZDC_4show->SetRefPath(_refDir);
     bhToF400_4show->SetRefPath(_refDir);
     bhToF700_4show->SetRefPath(_refDir);
     bhTrig_4show->SetRefPath(_refDir);

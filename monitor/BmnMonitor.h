@@ -35,6 +35,7 @@
 #include "BmnHistMwpc.h"
 #include "BmnHistGem.h"
 #include "BmnOnlineDecoder.h"
+#include "BmnHistZDC.h"
 
 #define RAW_DECODER_SOCKET_PORT 9090
 #define TTREE_MAX_SIZE          3e11
@@ -53,6 +54,7 @@ public:
     BmnMonitor();
     virtual ~BmnMonitor();
     void MonitorStream(TString dir, TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
+    void MonitorStreamZ(TString dir, TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
     void ProcessRun(TString digiName);
     void ProcessStreamRun();
     static void threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent);
@@ -76,6 +78,8 @@ private:
     void FinishRun();
     
     
+    void * _ctx;
+    void * _decoSocket;
     deque<UInt_t> * fDataQue;
     vector<BmnRunInfo> *_fileList;
     TString _curFile;
@@ -95,6 +99,7 @@ private:
     BmnHistToF700  *bhToF700;
     BmnHistDch     *bhDCH;
     BmnHistMwpc    *bhMWPC;
+    BmnHistZDC     *bhZDC;
     BmnHistTrigger *bhTrig;
     
     BmnHistGem     *bhGem_4show;
@@ -102,6 +107,7 @@ private:
     BmnHistToF700  *bhToF700_4show;
     BmnHistDch     *bhDCH_4show;
     BmnHistMwpc    *bhMWPC_4show;
+    BmnHistZDC     *bhZDC_4show;
     BmnHistTrigger *bhTrig_4show;
     
     TCanvas *infoCanvas;

@@ -202,7 +202,7 @@ Int_t BmnDataReceiver::InitRecvStream() {
             }
         snprintf(endpoint_addr, MAX_ADDR_LEN, "tcp://%s:%d", ip, port);
         if (zmq_connect(_socket_data, endpoint_addr) != 0) {
-            DBGERR("zmq")
+            DBGERR("zmq connect")
             continue;
         } else {
             printf("%s\n", endpoint_addr);

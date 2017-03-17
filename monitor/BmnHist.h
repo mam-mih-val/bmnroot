@@ -39,14 +39,17 @@ public:
     PadInfo() {
         current = NULL;
         ref = NULL;
+        ref2 = NULL;
     }
 
     ~PadInfo() {
         if (ref) delete ref;
         ref = NULL;
+        ref2 = NULL;
     }
     TH1* current;
     TH1* ref;
+    TH1* ref2;
 private:
     ClassDef(PadInfo, 1)
 };

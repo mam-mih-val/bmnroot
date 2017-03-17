@@ -57,6 +57,8 @@ private:
     static TString WatchNext(Int_t inotifDir, Int_t cycleWait);
     static void threadReceiveWrapper(BmnDataReceiver * dr);
     
+    void * _ctx;
+    void * _decoSocket;
     BmnRawDataDecoder *rawDataDecoder;
     TServerSocket *fRawDecoSocket;
     TSocket *client;

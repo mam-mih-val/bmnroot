@@ -47,6 +47,7 @@ BmnHistGem.cxx
 BmnHistSilicon.cxx
 BmnHistDch.cxx
 BmnHistMwpc.cxx
+BmnHistZDC.cxx
 BmnHistTrigger.cxx
 BmnHistToF.cxx
 BmnHistToF700.cxx
@@ -62,6 +63,7 @@ BmnHistGem.h
 BmnHistSilicon.h
 BmnHistDch.h
 BmnHistMwpc.h
+BmnHistZDC.h
 BmnHistTrigger.h
 BmnHistToF.h
 BmnHistToF700.h

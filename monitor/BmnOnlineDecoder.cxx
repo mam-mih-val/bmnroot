@@ -14,6 +14,7 @@
 #include <thread>
 #include <dirent.h>
 #include <sys/inotify.h>
+#include <zmq.h>
 
 #include "BmnOnlineDecoder.h"
 
@@ -23,6 +24,7 @@ BmnOnlineDecoder::BmnOnlineDecoder() {
     fRawDecoSocket->SetOption(kKeepAlive, 1);
     rawDataDecoder = NULL;
     iClients = 0;
+    _ctx = NULL;
 
 
 }
@@ -30,6 +32,10 @@ BmnOnlineDecoder::BmnOnlineDecoder() {
 BmnOnlineDecoder::~BmnOnlineDecoder() {
     fRawDecoSocket->Close();
     if (rawDataDecoder) delete rawDataDecoder;
+    if (_ctx) {
+        zmq_ctx_destroy(_ctx);
+        _ctx = NULL;
+    }
 }
 
 void BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *dq) {
@@ -47,7 +53,7 @@ void BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *d
     setup[4] = 1; // TOF-400
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
-    setup[7] = 0; // ZDC
+    setup[7] = 1; // ZDC
     setup[8] = 0; // ECAL
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
@@ -87,7 +93,7 @@ void BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     setup[4] = 1; // TOF-400
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
-    setup[7] = 0; // ZDC
+    setup[7] = 1; // ZDC
     setup[8] = 0; // ECAL
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
@@ -168,6 +174,12 @@ BmnStatus BmnOnlineDecoder::OpenStream() {
 
 BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t runCurrent) {
     DBG("started")
+//    _ctx = zmq_ctx_new();
+//    _decoSocket = zmq_socket(_ctx, ZMQ_SUB);
+//    if (zmq_bind(_decoSocket, "tcp://*:5555") != 0) {
+//        DBGERR("zmq bind")
+//        return kBMNERROR;
+//    }
     _curFile = startFile;
     _curDir = dirname;
     Accept();
@@ -190,6 +202,9 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
         _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
         break; // @TODO Remove
     }
+//    zmq_close(_decoSocket);
+//    zmq_ctx_destroy(_ctx);
+//    _ctx = NULL;
     return kBMNSUCCESS;
 }
 
@@ -201,6 +216,8 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
     Int_t lastEv = 0;
     TString nextFile;
     BmnStatus convertResult = kBMNSUCCESS;
+    Int_t zflags;
+    zflags = zflags | ZMQ_NOBLOCK;
 
     Int_t runId = -1;
     runId = rawDataDecoder->GetRunId();
@@ -224,6 +241,12 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
             mess.Reset();
             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
             mess.WriteObject(&iterDigi);
+            
+//            TBuffer t(TBuffer::kWrite);
+//            iterDigi.Streamer(t);
+//            zmq_send(_decoSocket, t.Buffer(), t.BufferSize(), zflags);
+            
+            
             for (auto cl = begin(clients); cl != end(clients); cl++) {
                 //                Int_t sel = (*cl)->Select(2, 1); // kWrite == 2
                 ////                printf("select == %d\n", sel);

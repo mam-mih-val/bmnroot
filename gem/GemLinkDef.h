@@ -24,6 +24,8 @@
 #pragma link C++ class BmnGemStripStationSet_RunSummer2016+;
 #pragma link C++ class BmnGemStripStation_RunWinter2016+;
 #pragma link C++ class BmnGemStripStationSet_RunWinter2016+;
+#pragma link C++ class BmnGemStripStation_RunSpring2017+;
+#pragma link C++ class BmnGemStripStationSet_RunSpring2017+;
 #pragma link C++ class BmnGemStripDigit+;
 #pragma link C++ class BmnGemStripDigitizer+;
 #pragma link C++ class BmnGemStripHit+;

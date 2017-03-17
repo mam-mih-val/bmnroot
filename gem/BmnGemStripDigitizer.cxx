@@ -3,6 +3,7 @@
 
 #include "BmnGemStripStationSet_RunSummer2016.h"
 #include "BmnGemStripStationSet_RunWinter2016.h"
+#include "BmnGemStripStationSet_RunSpring2017.h"
 
 static Float_t workTime = 0.0;
 static int entrys = 0;
@@ -59,6 +60,11 @@ InitStatus BmnGemStripDigitizer::Init() {
         case BmnGemStripConfiguration::RunWinter2016 :
             StationSet = new BmnGemStripStationSet_RunWinter2016(fCurrentConfig);
             cout << "   Current Configuration : RunWinter2016" << "\n";
+            break;
+
+        case BmnGemStripConfiguration::RunSpring2017 :
+            StationSet = new BmnGemStripStationSet_RunSpring2017(fCurrentConfig);
+            cout << "   Current Configuration : RunSpring2017" << "\n";
             break;
 
         default:

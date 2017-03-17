@@ -4,6 +4,7 @@
 
 #include "BmnGemStripStationSet_RunSummer2016.h"
 #include "BmnGemStripStationSet_RunWinter2016.h"
+#include "BmnGemStripStationSet_RunSpring2017.h"
 
 static Float_t workTime = 0.0;
 
@@ -81,6 +82,11 @@ InitStatus BmnGemStripHitMaker::Init() {
         case BmnGemStripConfiguration::RunWinter2016:
             StationSet = new BmnGemStripStationSet_RunWinter2016(fCurrentConfig);
             if (fVerbose) cout << "   Current Configuration : RunWinter2016" << "\n";
+            break;
+
+        case BmnGemStripConfiguration::RunSpring2017:
+            StationSet = new BmnGemStripStationSet_RunSpring2017(fCurrentConfig);
+            if (fVerbose) cout << "   Current Configuration : RunSpring2017" << "\n";
             break;
 
         default:
@@ -295,7 +301,7 @@ void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
     TClonesArray* corrs = NULL;
   //ch->SetBranchAddress("BmnGemAlignmentCorrections", &corrs); //
     t ->SetBranchAddress("BmnGemAlignmentCorrections", &corrs); //
-    
+
 
   //for (Int_t iEntry=0; iEntry < ch->GetEntries(); iEntry++) { //
     for (Int_t iEntry=0; iEntry < t ->GetEntries(); iEntry++) { //

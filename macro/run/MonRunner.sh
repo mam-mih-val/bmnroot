@@ -14,6 +14,6 @@ while true;
 
 do
 /opt/fairsoft/install/bin/root.exe -b -q /home/ilnur/bmnroot/macro/raw/monitor.C
-sleep 1
+sleep 10
 
 done

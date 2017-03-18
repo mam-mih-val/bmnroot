@@ -41,7 +41,7 @@
 #include <UniDbRun.h>
 
 // wait limit for input data (ms)
-#define WAIT_LIMIT 45000000
+#define WAIT_LIMIT 40000000
 using namespace std;
 
 class DigiArrays : public TObject {
@@ -70,22 +70,22 @@ public:
     };
 
     void Clear() {
-        if (bc1) delete bc1;
-        if (bc2) delete bc2;
-        if (bd) delete bd;
-        if (dch) delete dch;
-        if (fd) delete fd;
-        if (gem) delete gem;
-        if (header) delete header;
-        if (mwpc) delete mwpc;
-        if (silicon) delete silicon;
-        if (trigger) delete trigger;
-        if (t0) delete t0;
-        if (tof400) delete tof400;
-        if (tof700) delete tof700;
-        if (zdc) delete this->zdc;
-        if (ecal) delete this->ecal;
-        if (veto) delete veto;
+        if (bc1) {bc1->Delete();delete bc1;}
+        if (bc2) { bc2->Delete(); delete bc2;}
+        if (bd) { bd->Delete(); delete bd;}
+        if (dch) { dch->Delete(); delete dch;}
+        if (fd) { fd->Delete(); delete fd;}
+        if (gem) { gem->Delete(); delete gem;}
+        if (header) { header->Delete(); delete header;}
+        if (mwpc) { mwpc->Delete(); delete mwpc;}
+        if (silicon) { silicon->Delete(); delete silicon;}
+        if (trigger) { trigger->Delete(); delete trigger;}
+        if (t0) { t0->Delete(); delete t0;}
+        if (tof400) { tof400->Delete(); delete tof400;}
+        if (tof700) { tof700->Delete(); delete tof700;}
+        if (zdc) { zdc->Delete(); delete zdc;}
+        if (ecal) { ecal->Delete(); delete ecal;}
+        if (veto) { veto->Delete(); delete veto;}
     };
     TClonesArray *silicon; 
     TClonesArray *gem; 

@@ -37,7 +37,7 @@ include(CheckCompiler)
 
 # Set the build type. Possibilities are None, Debug, Release, 
 # RelWithDebInfo and MinSizeRel 
-# SET(CMAKE_BUILD_TYPE Debug)
+ SET(CMAKE_BUILD_TYPE Release)
 If(NOT CMAKE_BUILD_TYPE)
        Message("Set BuildType DEBUG")
        set(CMAKE_BUILD_TYPE Debug)

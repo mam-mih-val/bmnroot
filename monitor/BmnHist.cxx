@@ -79,7 +79,7 @@ BmnStatus BmnHist::LoadRefRun(Int_t refID, TString FullName, TString fTitle, vec
             continue;
             //                return kBMNERROR;
         }
-        canPads[iPad]->ref = (TH1F*) (tempH->Clone(name));
+        canPads[iPad]->ref = (TH1F*) (tempH->Clone(refName + name));
         canPads[iPad]->ref->SetLineColor(kRed);
         canPads[iPad]->ref->SetDirectory(0);
         printf("Loaded %s \n", canPads[iPad]->ref->GetName());

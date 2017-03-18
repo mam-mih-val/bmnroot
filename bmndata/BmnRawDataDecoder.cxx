@@ -279,7 +279,7 @@ BmnStatus BmnRawDataDecoder::InitConverter(deque<UInt_t> *dq) {
     //    printf("RawRoot File %s\n\n", fRootFileName.Data());
 
     //    fRunId = TString(file(fRawFileName.Length() - 8, 3)).Atoi();
-//    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+    //    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
 
     InitConverter(fRawFileName);
     return kBMNSUCCESS;
@@ -331,7 +331,7 @@ BmnStatus BmnRawDataDecoder::wait_stream(deque<UInt_t> *que, Int_t len) {
 BmnStatus BmnRawDataDecoder::wait_file(Int_t len) {
     Long_t pos = ftello64(fRawFileIn);
     Int_t t = 0;
-    Int_t dt = 10000;
+    Int_t dt = 1000000;
     while (fLengthRawFile < pos + len) {
         //        gSystem->ProcessEvents();
         usleep(dt);
@@ -346,45 +346,36 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len) {
 }
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
-    //    fRawTree->Clear();
-    //    if (wait_stream(fDataQueue, 2) == kBMNERROR)
-    //        return kBMNTIMEOUT;
-    //    fDat = fDataQueue->front();
-    //    ((mutex*) fDataMutex)->lock();
-    //    fDataQueue->pop_front();
-    //    ((mutex*) fDataMutex)->unlock();
-    //    if (fDat == kSYNC1) { //search for start of event
-    //        // read number of bytes in event
-    //        fDat = fDataQueue->front();
-    //        ((mutex*) fDataMutex)->lock();
-    //        fDataQueue->pop_front();
-    //        ((mutex*) fDataMutex)->unlock();
-    //        if (wait_stream(fDataQueue, fDat) == kBMNERROR)
-    //            return kBMNTIMEOUT;
-    //        fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
-    //        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
-    //            printf("Wrong data size: %d:  skip this event\n", fDat);
-    //            //                fread(data, kWORDSIZE, dat, fRawFileIn);
-    //            ((mutex*) fDataMutex)->lock();
-    //            fDataQueue->erase(fDataQueue->begin(), fDataQueue->begin() + fDat * kNBYTESINWORD);
-    //            ((mutex*) fDataMutex)->unlock();
-    //            return kBMNERROR;
-    //        } else {
-    //            //read array of current event data and process them
-    //            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
-    //            ((mutex*) fDataMutex)->lock();
-    //            for (Int_t iByte = 0; iByte < fDat * kNBYTESINWORD; iByte++) {
-    //                data[iByte] = fDataQueue->front();
-    //                fDataQueue->pop_front();
-    //            }
-    //            ((mutex*) fDataMutex)->unlock();
-    //            fEventId = data[0];
-    //            if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
-    //            ProcessEvent(data, fDat);
-    //            fNevents++;
-    //            fRawTree->Fill();
-    //        }
-    //    }
+//        fRawTree->Clear();
+        if (wait_stream(fDataQueue, 2) == kBMNERROR)
+            return kBMNTIMEOUT;
+        fDat = fDataQueue->front();
+        fDataQueue->pop_front();
+        if (fDat == kSYNC1) { //search for start of event
+            // read number of bytes in event
+            fDat = fDataQueue->front();
+            fDataQueue->pop_front();
+            if (wait_stream(fDataQueue, fDat) == kBMNERROR)
+                return kBMNTIMEOUT;
+            fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
+            if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
+                printf("Wrong data size: %d:  skip this event\n", fDat);
+                fDataQueue->erase(fDataQueue->begin(), fDataQueue->begin() + fDat * kNBYTESINWORD);
+                return kBMNERROR;
+            } else {
+                //read array of current event data and process them
+                if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
+                for (Int_t iByte = 0; iByte < fDat * kNBYTESINWORD; iByte++) {
+                    data[iByte] = fDataQueue->front();
+                    fDataQueue->pop_front();
+                }
+                fEventId = data[0];
+                if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+                ProcessEvent(data, fDat);
+                fNevents++;
+//                fRawTree->Fill();
+            }
+        }
     return kBMNSUCCESS;
 }
 
@@ -396,27 +387,24 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
     }
     fCurentPositionRawFile = ftello64(fRawFileIn);
     fread(&fDat, kWORDSIZE, 1, fRawFileIn);
-    if (fDat)
-        //printf("dat %d\n", fDat);
-        if (fDat == kRUNNUMBERSYNC) {
-            printf("RunNumberSync\n");
-            syncCounter++;
-            if (syncCounter > 1) {
-                cout << "Finish by SYNC" << endl;
-                return kBMNFINISH;
-            }
-            fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
-            //            fread(&fRunId, kWORDSIZE, 1, fRawFileIn);
+    if (fDat == kRUNNUMBERSYNC) {
+        printf("RunNumberSync\n");
+        syncCounter++;
+        if (syncCounter > 1) {
+            cout << "Finish by SYNC" << endl;
+            return kBMNFINISH;
         }
+        fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
+    }
     if (fDat == kSYNC1) { //search for start of event
         // read number of bytes in event
         //printf("kSYNC1\n");
         if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
         fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
-        //        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
-        //            printf("Wrong data size: %d:  skip this event\n", fDat);
-        //            fread(data, kWORDSIZE, fDat, fRawFileIn);
-        //        } else {
+        if (fDat * kNBYTESINWORD >= 1000000) { // what the constant?
+            printf("Wrong data size: %d:  skip this event\n", fDat);
+            return kBMNFINISH;
+        }
         //read array of current event data and process them
         if (wait_file(fDat * kNBYTESINWORD * kWORDSIZE) == kBMNERROR) {
             return kBMNTIMEOUT;

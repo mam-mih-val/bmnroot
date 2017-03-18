@@ -13,6 +13,8 @@
 
 #include <thread>
 #include <dirent.h>
+#include <sys/inotify.h>
+#include <zmq.h>
 
 #include "BmnOnlineDecoder.h"
 
@@ -22,6 +24,7 @@ BmnOnlineDecoder::BmnOnlineDecoder() {
     fRawDecoSocket->SetOption(kKeepAlive, 1);
     rawDataDecoder = NULL;
     iClients = 0;
+    _ctx = NULL;
 
 
 }
@@ -29,13 +32,44 @@ BmnOnlineDecoder::BmnOnlineDecoder() {
 BmnOnlineDecoder::~BmnOnlineDecoder() {
     fRawDecoSocket->Close();
     if (rawDataDecoder) delete rawDataDecoder;
+    if (_ctx) {
+        zmq_ctx_destroy(_ctx);
+        _ctx = NULL;
+    }
+}
+
+void BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *dq) {
+    DBG("started")
+    rawDataDecoder = new BmnRawDataDecoder();
+    rawDataDecoder->SetRunId(runID);
+    rawDataDecoder->SetPeriodId(periodID);
+    rawDataDecoder->InitMaps();
+    Bool_t setup[9]; //array of flags to determine BM@N setup
+    //Just put "0" to exclude detector from decoding
+    setup[0] = 1; // TRIGGERS
+    setup[1] = 1; // MWPC
+    setup[2] = 0; // SILICON
+    setup[3] = 1; // GEM
+    setup[4] = 1; // TOF-400
+    setup[5] = 1; // TOF-700
+    setup[6] = 1; // DCH
+    setup[7] = 1; // ZDC
+    setup[8] = 0; // ECAL
+    rawDataDecoder->SetDetectorSetup(setup);
+    rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
+    rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
+    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
+    rawDataDecoder->SetTof700Mapping("TOF700_map_period_6.txt");
+    rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
+    rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
+    rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
+    rawDataDecoder->InitConverter(dq);
+    rawDataDecoder->InitDecoder();
 }
 
 void BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     DBG("started")
-    //    rawDataDecoder = new BmnRawDataDecoder(file, 0, 6);
     rawDataDecoder = new BmnRawDataDecoder();
-
     Int_t runID = 0;
     if (runID < 1) {
         printf("raw file %s\n", fRawFileName.Data());
@@ -59,7 +93,7 @@ void BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     setup[4] = 1; // TOF-400
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
-    setup[7] = 0; // ZDC
+    setup[7] = 1; // ZDC
     setup[8] = 0; // ECAL
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
@@ -82,12 +116,12 @@ BmnStatus BmnOnlineDecoder::Accept() {
             break;
         client = fRawDecoSocket->Accept();
         if (client == (TSocket*) 0) {
-            DBGERR("TServerSocket")
+            DBGERR("TServerSocket");
             return kBMNERROR;
         } else {
             if (client == (TSocket*) - 1)
                 break;
-//            client->SetOption(kNoBlock, 1);
+            //            client->SetOption(kNoBlock, 1);
             clients.push_back(client);
             //            clients[iClients++] = client;
             printf("New connection accepted\n");
@@ -112,8 +146,40 @@ BmnStatus BmnOnlineDecoder::Accept() {
     return kBMNSUCCESS;
 }
 
+BmnStatus BmnOnlineDecoder::DecodeStream() {
+    Accept();
+    dataReceiver = new BmnDataReceiver();
+    dataQue = dataReceiver->GetDataQueue();
+    thread rcvThread(threadReceiveWrapper, dataReceiver);
+    
+    while (kTRUE) {
+
+    }
+
+    return kBMNSUCCESS;
+}
+
+void BmnOnlineDecoder::threadReceiveWrapper(BmnDataReceiver* dr) {
+    dr->ConnectRaw();
+}
+
+BmnStatus BmnOnlineDecoder::OpenStream() {
+    dataReceiver = new BmnDataReceiver();
+    dataQue = dataReceiver->GetDataQueue();
+    //    FILE *data_stream = istream_iterator<UInt_t>(data_queue);
+    //    istream<UInt_t> qstream(data_queue);
+    //    rdd->SetRawFileIn(data_stream);
+
+}
+
 BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t runCurrent) {
     DBG("started")
+//    _ctx = zmq_ctx_new();
+//    _decoSocket = zmq_socket(_ctx, ZMQ_SUB);
+//    if (zmq_bind(_decoSocket, "tcp://*:5555") != 0) {
+//        DBGERR("zmq bind")
+//        return kBMNERROR;
+//    }
     _curFile = startFile;
     _curDir = dirname;
     Accept();
@@ -129,32 +195,34 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
 
     while (kTRUE) {
         InitDecoder(_curDir + _curFile);
-        ProcessFileRun(_curFile);
+        ProcessFileRun(_curDir + _curFile);
         rawDataDecoder->DisposeDecoder();
         delete rawDataDecoder;
         rawDataDecoder = NULL;
         _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
-        break;// @TODO Remove
+        break; // @TODO Remove
     }
+//    zmq_close(_decoSocket);
+//    zmq_ctx_destroy(_ctx);
+//    _ctx = NULL;
     return kBMNSUCCESS;
 }
 
 void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
-    TMessage::EnableSchemaEvolutionForAll(kFALSE);
+//    TMessage::EnableSchemaEvolutionForAll(kFALSE);
     TMessage mess(kMESS_OBJECT);
-    printf("File %s \n", TString(_curDir + rawFileName).Data());
+    printf("File %s \n", TString(rawFileName).Data());
     Int_t iEv = 0;
     Int_t lastEv = 0;
     TString nextFile;
     BmnStatus convertResult = kBMNSUCCESS;
+    Int_t zflags;
+    zflags = zflags | ZMQ_NOBLOCK;
 
-    const UInt_t kRUNNUMBERSYNC = 0x236E7552;
-    const size_t kWORDSIZE = sizeof (UInt_t);
-    const Short_t kNBYTESINWORD = 4;
     Int_t runId = -1;
     runId = rawDataDecoder->GetRunId();
-//    if (runId < 1216)
-//        return;
+    //    if (runId < 1216)
+    //        return;
     printf("run id = %d\n", runId);
 
     Int_t sendRes = 0;
@@ -173,15 +241,20 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
             mess.Reset();
             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
             mess.WriteObject(&iterDigi);
+            
+//            TBuffer t(TBuffer::kWrite);
+//            iterDigi.Streamer(t);
+//            zmq_send(_decoSocket, t.Buffer(), t.BufferSize(), zflags);
+            
+            
             for (auto cl = begin(clients); cl != end(clients); cl++) {
-
-//                Int_t sel = (*cl)->Select(2, 1); // kWrite == 2
-////                printf("select == %d\n", sel);
-//                if (sel ==  - 1) { // timeout
-//                    continue;
-//                }
+                //                Int_t sel = (*cl)->Select(2, 1); // kWrite == 2
+                ////                printf("select == %d\n", sel);
+                //                if (sel ==  - 1) { // timeout
+                //                    continue;
+                //                }
                 sendRes = (*cl)->Send(mess);
-//                printf("sendRes == %d\n", sendRes);
+                //                printf("sendRes == %d\n", sendRes);
                 if (sendRes == -1) {
                     clients.erase(cl);
                     cl--;
@@ -189,7 +262,6 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
                     printf("Client disconnected\n");
                 }
             }
-            //            delete iterDigi;
         }
         if (convertResult == kBMNTIMEOUT) {
             printf("timeout\n");
@@ -223,6 +295,38 @@ TString BmnOnlineDecoder::WatchNext(TString dirname, TString filename, Int_t cyc
     }
 }
 
+TString BmnOnlineDecoder::WatchNext(Int_t inotifDir, Int_t cycleWait) {
+    TString fileName = "";
+    Char_t evBuf[INOTIF_BUF_LEN];
+    while (kTRUE) {
+        Int_t len, i = 0;
+        len = read(inotifDir, evBuf, INOTIF_BUF_LEN);
+        if ((len == -1) && (errno != EAGAIN))
+            DBG("inotify read error!")
+        else {
+            while (i < len) {
+                struct inotify_event *event = (struct inotify_event*) &evBuf[i];
+                if (event->len) {
+                    if ((event->mask & IN_CREATE) && !(event->mask & IN_ISDIR)) {
+                        fileName = TString(event->name);
+                        printf("File %s was created!\n", fileName.Data());
+                        break;
+                    }
+                }
+                i += sizeof (struct inotify_event) +event->len;
+                delete event;
+            }
+            if (cycleWait > 0)
+                usleep(cycleWait);
+            else
+                break;
+        }
+        gSystem->ProcessEvents();
+    }
+    return fileName;
+
+}
+
 BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
     _curDir = dirname;
     Accept();
@@ -237,20 +341,13 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         for (Int_t i = 0; i < n; ++i) {
             if (regex_match(namelist[i]->d_name, re)) {
                 _curFile = TString(namelist[i]->d_name);
-                break;
-            }
-        }
-    }
+                InitDecoder(_curDir + _curFile);
+                ProcessFileRun(_curFile);
+                rawDataDecoder->DisposeDecoder();
+                delete rawDataDecoder;
+                rawDataDecoder = NULL;
 
-    InitDecoder(_curDir + _curFile);
-    n = scandir(dirname, &namelist, 0, versionsort);
-    if (n < 0) {
-        perror("scandir");
-        return kBMNERROR;
-    } else {
-        for (Int_t i = 0; i < n; ++i) {
-            if (regex_match(namelist[i]->d_name, re))
-                ProcessFileRun(TString(namelist[i]->d_name));
+            }
             free(namelist[i]);
         }
         free(namelist);

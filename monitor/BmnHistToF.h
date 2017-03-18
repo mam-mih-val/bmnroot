@@ -19,6 +19,7 @@
 #include <vector>
 #include "TChain.h"
 #include "TClonesArray.h"
+#include "TGaxis.h"
 #include "TH1F.h"
 #include "TH1D.h"
 #include "TH2F.h"

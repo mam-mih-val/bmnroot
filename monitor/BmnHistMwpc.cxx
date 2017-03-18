@@ -53,17 +53,21 @@ BmnHistMwpc::BmnHistMwpc(TString title = "MWPC") {
     canTimes = new TCanvas(name, name, PAD_WIDTH * MWPC_ROWS, PAD_HEIGHT * MWPC_COLS);
     canTimes->Divide(MWPC_ROWS, MWPC_COLS);
     canTimesPads.resize(MWPC_ROWS * MWPC_COLS);
-            printf("mwpc rows %d, cols %d\n", MWPC_ROWS, MWPC_COLS);
+    NamesWires.resize(MWPC_ROWS * MWPC_COLS);
+    NamesTimes.resize(MWPC_ROWS * MWPC_COLS);
     for (Int_t rowIndex = 0; rowIndex < MWPC_ROWS; rowIndex++) {
         for (Int_t colIndex = 0; colIndex < MWPC_COLS; colIndex++) {
+            Int_t iPad = rowIndex * MWPC_COLS + colIndex;
             PadInfo *p = new PadInfo();
-            p->current = h_wires[rowIndex * MWPC_COLS + colIndex];
-            canWiresPads[rowIndex * MWPC_COLS + colIndex] = p;
+            p->current = h_wires[iPad];
+            canWiresPads[iPad] = p;
             PadInfo *pt = new PadInfo();
-            pt->current = h_times[rowIndex * MWPC_COLS + colIndex];
-            canTimesPads[rowIndex * MWPC_COLS + colIndex] = pt;
-            canTimes->GetPad(rowIndex * MWPC_COLS + colIndex + 1)->SetGrid();
-            canWires->GetPad(rowIndex * MWPC_COLS + colIndex + 1)->SetGrid();
+            pt->current = h_times[iPad];
+            canTimesPads[iPad] = pt;
+            canTimes->GetPad(iPad + 1)->SetGrid();
+            canWires->GetPad(iPad + 1)->SetGrid();
+            NamesWires[iPad] = canWiresPads[iPad]->current->GetName();
+            NamesTimes[iPad] = canTimesPads[iPad]->current->GetName();
         }
     }
 }
@@ -84,10 +88,6 @@ void BmnHistMwpc::Register(THttpServer *serv) {
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canWires);
     fServer->Register(path, canTimes);
-//    for (Int_t i = 0; i < MWPC_PLANES; ++i){
-//        fServer->Register(path, h_wires[i]);
-//        fServer->Register(path, h_times[i]);
-//    }
     fServer->Register(path, h_MWPC1);
     fServer->Register(path, h_MWPC2);
     TString cmd = "/" + fName + "/->Reset()";
@@ -137,71 +137,14 @@ void BmnHistMwpc::FillFromDigi(TClonesArray * MwpcDigits) {
     }
 }
 
-BmnStatus BmnHistMwpc::LoadRefRun(TString FileName) {
-    printf("Loading ref histos\n");
-    refFile = new TFile(refPath + FileName, "read");
-    if (refFile->IsOpen() == false) {
-        printf("Cannot open file %s !\n", FileName.Data());
-        return kBMNERROR;
-    }
-    Int_t iPad = 0;
-    TString refName = Form("ref%06d_", refID);
-    TString name;
-    for (Int_t rowIndex = 0; rowIndex < MWPC_ROWS; rowIndex++) {
-        for (Int_t colIndex = 0; colIndex < MWPC_COLS; colIndex++) {
-            iPad = rowIndex * MWPC_COLS + colIndex;
-            if (canWiresPads[iPad]->ref){
-                delete canWiresPads[iPad]->ref;
-                canWiresPads[iPad]->ref = NULL;
-            }
-            TH1F* tempH = NULL;
-            name = fTitle + "_" + Form("Plane_%d", iPad);
-            tempH = (TH1F*) refFile->Get(refName + "MWPC_hists/" + refName + name);
-            if (tempH == NULL) {
-                tempH = (TH1F*) refFile->Get(TString("MWPC_hists/") + name);
-            }
-            if (tempH == NULL) {
-                printf("Cannot load %s !\n", name.Data());
-                continue;
-//                return kBMNERROR;
-            }
-            canWiresPads[iPad]->ref = (TH1F*) (tempH->Clone(name));
-            canWiresPads[iPad]->ref->SetLineColor(kRed);
-            canWiresPads[iPad]->ref->SetDirectory(0);
-            printf("Loaded %s \n", canWiresPads[iPad]->ref->GetName());
-            if (canTimesPads[iPad]->ref){
-                delete canTimesPads[iPad]->ref;
-                canTimesPads[iPad]->ref = NULL;
-            }
-            tempH = NULL;
-            name = fTitle + "_" + Form("Plane_%d", iPad) + "_Time";
-            tempH = (TH1F*) refFile->Get(refName + "MWPC_hists/" + refName + name);
-            if (tempH == NULL) {
-                tempH = (TH1F*) refFile->Get(TString("MWPC_hists/") + name);
-            }
-            if (tempH == NULL) {
-                printf("Cannot load %s !\n", name.Data());
-                continue;
-//                return kBMNERROR;
-            }
-            canTimesPads[iPad]->ref = (TH1F*) (tempH->Clone(name));
-            canTimesPads[iPad]->ref->SetLineColor(kRed);
-            canTimesPads[iPad]->ref->SetDirectory(0);
-            printf("Loaded %s \n", canTimesPads[iPad]->ref->GetName());
-        }
-    }
-    delete refFile;
-    refFile = NULL;
-    return kBMNSUCCESS;
-}
-
 BmnStatus BmnHistMwpc::SetRefRun(Int_t id) {
     TString FileName = Form("bmn_run%04d_hist.root", id);
     printf("SetRefRun: %s\n", FileName.Data());
     if (refRunName != FileName) {
         refRunName = FileName;
         refID = id;
-        LoadRefRun(refRunName);
+        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canTimesPads, NamesTimes);
+        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canWiresPads, NamesWires);
         DrawBoth();
     }
 }

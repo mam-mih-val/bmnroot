@@ -23,6 +23,8 @@ void plot_align_corrections_gem(TString newAlignCorrFileListFileName,
                                 TString alignCorrPlotsFileName,
                                 int     runPeriod)
 {
+    TString startAlignFrom = "scratch";
+  //TString startAlignFrom = "default";
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
 
@@ -161,7 +163,7 @@ void plot_align_corrections_gem(TString newAlignCorrFileListFileName,
         }
     }
     TCanvas* canvas = new TCanvas("canvas", "Convergency of alignment", 1200, 1200);
-    canvas->Divide(6, 12, -0.01, -0.01);
+    canvas->Divide(6, 12, 0., 0.);
     TPad* pad;
     Int_t padNr(0);
     gROOT->ForceStyle(kTRUE);
@@ -170,18 +172,17 @@ void plot_align_corrections_gem(TString newAlignCorrFileListFileName,
     gStyle->SetPadLeftMargin(0.);
     gStyle->SetPadRightMargin(0.);
     gStyle->SetPadBottomMargin(0.);
+    gStyle->SetPadBottomMargin(0.03);
     */
-  //gStyle->SetPadBottomMargin(0.03);
     gStyle->SetLineWidth(1);
-    gStyle->SetLineScalePS(1.0);
     gStyle->SetTitleY(0.980);
+    gStyle->SetLineScalePS(0.5);
 
     canvas->cd(0);
-    gPad->SetFillStyle(4000);
-    gPad->SetTopMargin(0.001);
-    gPad->SetLeftMargin(0.001);
-    gPad->SetRightMargin(0.001);
-    gPad->SetBottomMargin(0.001);
+    gPad->SetTopMargin(    0.);
+    gPad->SetLeftMargin(   0.);
+    gPad->SetRightMargin(  0.);
+    gPad->SetBottomMargin( 0.);
 
     Double_t its[nIts];   // array with the iteration numbers
 
@@ -307,46 +308,117 @@ void plot_align_corrections_gem(TString newAlignCorrFileListFileName,
                       //cout <<TString::Format("alCorrErrs[              %2i] = % 14.11f", iIt, alCorrErrs[iIt])<< endl;
                     }
                   //cout <<"nIts = "<<nIts<< endl;
-                    TGraphErrors* gr = new TGraphErrors(nIts, its, alCorrs, 0, alCorrErrs);
                   //res = mStatMod_Pad.find(make_pair(iStat, iMod));
                   //padNr =  res + iPar*12 + iKind*36;
                   //cout <<"mStatMod_Pad[make_pair("<<iStat<<", "<<iMod<<")] = "<<mStatMod_Pad[make_pair(iStat, iMod)]<< endl;
                     padNr =   mStatMod_Pad[make_pair(iStat, iMod)] + iPar*12 + iKind*36;
                   //cout <<"padNr = "<<padNr<< endl;
                     canvas->cd(padNr);
+                  //pad = (TPad*)canvas->cd(padNr);
+                  //gPad->SetFrameBorderMode(0);
+                  //gPad->SetBorderMode(0);
+                  //gPad->SetBorderSize(0);
+                  //gPad->SetTopMargin(   0.01 );
+                  //gPad->SetLeftMargin(  0.08 );
+                  //gPad->SetRightMargin( 0.005);
+                  //gPad->SetBottomMargin(0.05 );
+
+                    TGraphErrors* grer = new TGraphErrors(nIts, its, alCorrs, 0, alCorrErrs);
                     if (kinds[iKind] == "new") {
-                        gr->SetMaximum( 0.1);
-                        gr->SetMinimum(-0.1); }
+                        grer->SetMaximum( 0.05);
+                        grer->SetMinimum(-0.05); }
+                    else {
+                        grer->SetMaximum( 0.5);
+                        grer->SetMinimum(-0.5);
+                    }
+                    grer->SetTitle(kinds[iKind]+" "+xyz[iPar]+" corrections starting from "+startAlignFrom+" stat "+TString::Itoa(iStat, 10)+" mod "+TString::Itoa(iMod, 10));
+
+                    grer->GetXaxis()->SetLimits(-0., (Double_t)nIts);
+                    grer->GetXaxis()->SetNdivisions(nIts);
+                  //grer->GetXaxis()->SetTitle("iteration number");
+                  //grer->GetXaxis()->SetTitleOffset(0.6);
+                  //grer->GetXaxis()->SetTitleSize(0.03);
+                  //grer->GetXaxis()->SetLabelSize(0.03);
+                  //grer->GetYaxis()->SetLabelSize(0.03);
+                    grer->SetFillStyle(1001);
+                    grer->SetFillColor(kCyan-10);
+                  //grer->Draw("3AL");
+                  //canvas->cd(padNr);
+
+                    TGraph* gr = new TGraph(nIts, its, alCorrs);
+                    if (kinds[iKind] == "new") {
+                        gr->SetMaximum( 0.05);
+                        gr->SetMinimum(-0.05); }
                     else {
                         gr->SetMaximum( 0.5);
                         gr->SetMinimum(-0.5);
                     }
-                    gr->SetTitle(kinds[iKind]+" "+xyz[iPar]+" corrections stat "+TString::Itoa(iStat, 10)+" mod "+TString::Itoa(iMod, 10));
-                  //gr->GetYaxis()->SetLimits(-0.01, 0.01);
-                    gr->GetXaxis()->SetLimits(-0.5,  (Double_t)nIts+0.5);
+                    gr->SetTitle(kinds[iKind]+" "+xyz[iPar]+" corrections starting from "+startAlignFrom+" stat "+TString::Itoa(iStat, 10)+" mod "+TString::Itoa(iMod, 10));
 
-                    gr->GetXaxis()->SetLabelSize(0.07);
-                    gr->GetYaxis()->SetLabelSize(0.07);
-                    gPad->SetTopMargin(   0.02 );
-                    gPad->SetLeftMargin(  0.1  );
-                    gPad->SetRightMargin( 0.001);
-                    gPad->SetBottomMargin(0.1  );
-                    gr->SetFillColor(4);
-                    gr->SetFillStyle(3010);
+                    gr->GetXaxis()->SetLimits(-0., (Double_t)nIts);
+                    gr->GetXaxis()->SetNdivisions(nIts);
+                  //gr->GetXaxis()->SetTitle("iteration number");
+                  //gr->GetXaxis()->SetTitleOffset(0.6);
+                  //gr->GetXaxis()->SetTitleSize(0.03);
+                  //gr->GetXaxis()->SetLabelSize(0.03);
+                  //gr->GetYaxis()->SetLabelSize(0.03);
+                    gr->SetFillStyle(4000);
+                    gr->SetFillColor(0);
+                  //gr->Draw("AL");
+                  //canvas->cd(padNr);
 
-                    gr->Draw("AL3");
+                    TMultiGraph* mg = new TMultiGraph();
+                    mg->Add(grer,"A3");
+                    mg->Add(gr,  "AL");
+                    if (kinds[iKind] == "new") {
+                        mg->SetMaximum( 0.05);
+                        mg->SetMinimum(-0.05); }
+                    else {
+                        mg->SetMaximum( 0.5);
+                        mg->SetMinimum(-0.5);
+                    }
+                    mg->SetTitle(kinds[iKind]+" "+xyz[iPar]+" corrections starting from "+startAlignFrom+" stat "+TString::Itoa(iStat, 10)+" mod "+TString::Itoa(iMod, 10));
+
+                    mg->Draw("A");
+                  //canvas->cd(padNr);
+                    gPad->Modified();
+
+                    gPad->SetFrameBorderMode(0);
+                    gPad->SetBorderMode(0);
+                    gPad->SetBorderSize(0);
+                    gPad->SetTopMargin(   0.01 );
+                    gPad->SetLeftMargin(  0.08 );
+                    gPad->SetRightMargin( 0.005);
+                  //gPad->SetBottomMargin(0.05 );
+                    gPad->SetBottomMargin(0.1 );
+
+                    mg->GetXaxis()->SetLimits(-0., (Double_t)nIts);
+                    mg->GetXaxis()->SetNdivisions(nIts);
+                    mg->GetXaxis()->SetTitle("iteration number");
+                    mg->GetXaxis()->SetTitleOffset(0.6);
+                  //mg->GetXaxis()->SetTitleSize(0.03);
+                  //mg->GetXaxis()->SetLabelSize(0.03);
+                  //mg->GetYaxis()->SetLabelSize(0.03);
+                    mg->Draw("A");
+                  //canvas->cd(padNr);
+                    gPad->Modified();
+
                     TLine* zerolevel = new TLine(0., 0., (Double_t)nIts, 0.);
                     zerolevel->SetLineColor(kBlue);
                     zerolevel->SetLineStyle(3);
-                  //gStyle->SetLineScalePS(0.5);
                     zerolevel->Draw();
-                    canvas->Update();
-                  //canvas->Modified();
+                    gPad->Modified();
+                  //canvas->cd(padNr);
+                  //gPad->Modified();
+                  //gPad->Update();
+                  //delete grer;
                   //delete gr;
+                  //delete mg;
                 }
             }
         }
     }
+    canvas->Update();
     canvas->SaveAs(alignCorrPlotsFileName.ReplaceAll("root", "pdf" ));
     canvas->SaveAs(alignCorrPlotsFileName.ReplaceAll("pdf",  "root"));
     canvas->SaveAs(alignCorrPlotsFileName.ReplaceAll("root", "eps" ));

@@ -50,7 +50,8 @@ create table run_
  start_datetime timestamp not null,
  end_datetime timestamp null,
  event_count int null check (event_count >= 0),
- field_current int null check (field_current >= 0),
+-- field_current int null check (field_current >= 0),
+ field_voltage float null,
  file_size float null check (file_size > 0),
  geometry_id int null references run_geometry(geometry_id) on update cascade,
  primary key (period_number, run_number)
@@ -79,8 +80,8 @@ create table detector_
 );
 
 -- COMPONENT PARAMETERS
--- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array, 7 - binary array, 8 - unsigned int array,
---				   9 - DCH mapping array, 10 - GEM mapping array, 11 - GEM pedestal map
+-- parameter_type: 0 - bool, 1 - int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array, 7 - binary array, 8 - unsigned int array,
+--                 9 - DCH mapping array, 10 - GEM mapping array, 11 - GEM pedestal map
 -- drop table parameter_
 create table parameter_
 (

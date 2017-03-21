@@ -106,13 +106,13 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
             exit(-2);
         }
         Double_t fieldScale =   0;
-        double map_current  = 900.0;
-        int* current_current = pCurrentRun->GetFieldCurrent();
-        if (*current_current == 0) {
+        double map_current  = 56;
+        double* field_voltage = pCurrentRun->GetFieldVoltage();
+        if (*field_voltage == 0) {
             fieldScale = 0;
             isField = kFALSE; }
         else {
-            fieldScale = (*current_current) / map_current;
+            fieldScale = (*field_voltage) / map_current;
         }
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
         magField->SetScale(fieldScale);

@@ -369,9 +369,7 @@ int write_string_to_db(string &write_string, TSQLStatement* stmt, structParseSch
     }// // cycle by schema rows because it can consist multiple writing
 
     if (schema.isUpdate)
-    {
         count = tmp_count;
-    }
 
     return 0;
 }

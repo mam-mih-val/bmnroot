@@ -4,6 +4,7 @@
 
 #include "BmnGemStripStationSet_RunSummer2016.h"
 #include "BmnGemStripStationSet_RunWinter2016.h"
+#include "BmnGemStripStationSet_RunSpring2017.h"
 
 static Float_t workTime = 0.0;
 
@@ -83,6 +84,10 @@ InitStatus BmnGemStripHitMaker::Init() {
             if (fVerbose) cout << "   Current Configuration : RunWinter2016" << "\n";
             break;
 
+        case BmnGemStripConfiguration::RunSpring2017:
+            StationSet = new BmnGemStripStationSet_RunSpring2017(fCurrentConfig);
+            if (fVerbose) cout << "   Current Configuration : RunSpring2017" << "\n";
+            break;
         default:
             StationSet = NULL;
     }
@@ -115,10 +120,10 @@ InitStatus BmnGemStripHitMaker::Init() {
         Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
         for (Int_t iMod = 0; iMod < nModul; iMod++) {
             for (Int_t iPar = 0; iPar < nParams; iPar++) {
-              //if (fVerbose) cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<                           corr[iStat][iMod][iPar] << endl; //
+              //if (fVerbose) cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<                            corr[iStat][iMod][iPar] << endl; //
                 // print alignment corrections in similar format as Millepede does. Anatoly.Solomin@jinr.ru 2017-02-21 15:12:07 //
-              //if (fVerbose) cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 14.5E", corr[iStat][iMod][iPar])<< endl; //
-                              cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 14.5E", corr[iStat][iMod][iPar])<< endl; //
+              //if (fVerbose) cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 14.11f", corr[iStat][iMod][iPar])<< endl; //
+                              cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 14.11f", corr[iStat][iMod][iPar])<< endl; //
             }
         }
     }
@@ -295,7 +300,7 @@ void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
     TClonesArray* corrs = NULL;
   //ch->SetBranchAddress("BmnGemAlignmentCorrections", &corrs); //
     t ->SetBranchAddress("BmnGemAlignmentCorrections", &corrs); //
-    
+
 
   //for (Int_t iEntry=0; iEntry < ch->GetEntries(); iEntry++) { //
     for (Int_t iEntry=0; iEntry < t ->GetEntries(); iEntry++) { //
@@ -315,7 +320,7 @@ void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
             corr[iStat][iMod][1] = -align->GetCorrections().Y(); //
             corr[iStat][iMod][2] = -align->GetCorrections().Z(); //
           //for (Int_t iPar=0; iPar < nParams; iPar++)
-          //    if (fVerbose) cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 14.5E", corr[iStat][iMod][iPar])<< endl;
+          //    if (fVerbose) cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 14.11f", corr[iStat][iMod][iPar])<< endl;
           //    if (fVerbose) cout << endl;
         }
     }

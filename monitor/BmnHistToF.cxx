@@ -32,6 +32,8 @@ BmnHistToF::BmnHistToF(TString title = "ToF") {
     histAmp = new TH1D(name, name, 4096, 0, 96);
     histAmp->GetXaxis()->SetTitle("Amplitude, ns");
     histAmp->GetYaxis()->SetTitle("Activations count");
+    TGaxis *ay = (TGaxis*)histAmp->GetYaxis();
+    ay->SetMaxDigits(2);
     name = fTitle + "_Amplitude_Specific";
     histAmpSpecific = new TH1D(name, name, 4096, 0, 96);
     histAmpSpecific->GetXaxis()->SetTitle("Amplitude, ns");
@@ -40,6 +42,7 @@ BmnHistToF::BmnHistToF(TString title = "ToF") {
     histStrip = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
     histStrip->GetXaxis()->SetTitle("Strip #");
     histStrip->GetYaxis()->SetTitle("Activations count");
+    histAmp->GetYaxis()->SetNoExponent(kFALSE);
     name = fTitle + "_StripSimult";
     histStripSimult = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
     //    histStripSimult->GetXaxis()->SetTitle("Strip count");

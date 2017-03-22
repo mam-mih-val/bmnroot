@@ -1,3 +1,24 @@
+// -----------------------------------------------------------------------------------------
+// -----  Functions to parse TXT, XML, CSV files and write the values to the database  -----
+// -----                     Created 18/08/15  by K. Gertsenberger                     -----
+// -----------------------------------------------------------------------------------------
+//
+// It uses *.xslt scheme with rules to parse given format:
+// <skip line_count=""/> - skip given count of text lines in file
+// <search name="tag name"/> - search tag with given name
+// <move down="recursively child number"/> - move to child tag recursively
+// <cycle child="parent name" table_name="database table to write parsing values" delimiter="delimeters between elements" skip="number of skipping text lines">
+//   - cycle for elements separated by delimiters and write them to the database (childs of parent with given name if it was set)
+// <element action=["skip", "update", "write", "multi", "parse"], where:
+// action="skip" - skip current element
+// action="update" column_name="database column name" type="type name"/> - update database table row with database column name being equal the cuurent element
+// action="write" column_name="database column name" type="type name"/> - convert current element to the given type (int, double, string, datetime, hex, binary) and write to the given database table column
+// action="multi"> <subelement action...> <subelement action...> ... </element>
+// action="parse" start_index="parse from start symbol" parse_type=["counter" - current element number from 1, "value:fixed_value", "parsed type name + 'int_array' or 'double_array'"] delimiter="delimeter symbol if parsed array" column_name="database column name" type="C++ type"/>
+//   - converted value from start symbol (default, 0) OR special values to write to the database table column
+// action="parse"  parse_type=["counter" - current element number from 1, "value:fixed_value"] column_name="database column name" type="type name"/> - special values to write to the database table column
+// </cycle>
+
 #ifndef UNIDBPARSER_H
 #define UNIDBPARSER_H 1
 
@@ -28,6 +49,7 @@ struct structParseRow
 
 struct structParseSchema
 {
+    // skip element
     bool isSkip;
     bool isUpdate;
     vector<structParseRow> vecRows;

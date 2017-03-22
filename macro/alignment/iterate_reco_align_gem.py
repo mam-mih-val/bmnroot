@@ -68,6 +68,7 @@ def main() :
     parser.add_option("-i", "--inf",     dest="addInfo",                default='',                                 help="additional meta-information")
     parser.add_option("-p", "--prim",    dest="isPrimary",              default='kTRUE',                            help="is primary or not")
     parser.add_option("-c", "--corr",    dest="startAlignCorrFileName", default='',                                 help="file name with the starting alignment corrections")
+    parser.add_option("-r", "--run",     dest="runPeriod",              default=6,                                  help="run period",                            type="int")
     (options, args) = parser.parse_args()
     if options.verbose :
         print "reading %s..." % options.digiFileListFileName
@@ -146,11 +147,11 @@ def main() :
     # file for storing names of files with sum corrections
     sumAlignCorrFileListFileName = newAlignCorrFileListFileName.replace('new_', 'sum_')
     print 'sumAlignCorrFileListFileName   = '+sumAlignCorrFileListFileName
-    # store names of files with new and sum corrections into respective lists/
-    with open(newAlignCorrFileListFileName, 'w') as f :
-        f.write(newAlignCorrFileName)
-    with open(sumAlignCorrFileListFileName, 'w') as f :
-        f.write(sumAlignCorrFileName)
+   ## store names of files with new and sum corrections into respective lists/
+   #with open(newAlignCorrFileListFileName, 'w') as f :
+   #    f.write(newAlignCorrFileName)
+   #with open(sumAlignCorrFileListFileName, 'w') as f :
+   #    f.write(sumAlignCorrFileName)
 
     # file for storing the plots
     alignCorrPlotsFileName = options.digiFileListFileName.replace('filelist_', '')
@@ -160,7 +161,15 @@ def main() :
         alignCorrPlotsFileName = alignCorrPlotsFileName.replace('digi.txt',                  'corr_plots.root')
     print 'alignCorrPlotsFileName         = '+alignCorrPlotsFileName
 
-    # Main loop of iterations. Note that iteration numbering starts with 1,
+    newAlignCorrFileNames = []
+    sumAlignCorrFileNames = []
+   #newAlignCorrFileNames.append(newAlignCorrFileName+'\n')
+   #sumAlignCorrFileNames.append(sumAlignCorrFileName+'\n')
+    # Main loop of iterations.
+
+    # Note that iteration numbering starts with 1,
+    # --------------------------------------------
+
     # because when things are denoted with it01, it means that they result from
     # first round of calculations:
     for iterNr in xrange(1, options.maxNumOfIterations+1) :
@@ -241,14 +250,20 @@ def main() :
         else :                                                # update sumAlignCorrFileName file and at next iteration use it
             call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/update_align_corrections_gem.C("'+preAlignCorrFileName+'", "'+newAlignCorrFileName+'", "'+sumAlignCorrFileName+'")'])
 
-        # add file names with new and sum corrections to the respective lists
-        with open(newAlignCorrFileListFileName, 'w') as f :
-            f.write(newAlignCorrFileName)
-        with open(sumAlignCorrFileListFileName, 'w') as f :
-            f.write(sumAlignCorrFileName)
+        newAlignCorrFileNames.append(newAlignCorrFileName+'\n')
+        sumAlignCorrFileNames.append(sumAlignCorrFileName+'\n')
+
+    # the iteration loop is finished
+    # add file names with new and sum corrections to the respective lists
+    with open(newAlignCorrFileListFileName, 'w') as f :
+        for fname in newAlignCorrFileNames :
+            f.write(fname)
+    with open(sumAlignCorrFileListFileName, 'w') as f :
+        for fname in sumAlignCorrFileNames :
+            f.write(fname)
 
     # plot new and sum corrections vs. iteration number, beginning with the start values of sum corrections (at the so-called 'itertaion 0')
-    call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/plot_align_corrections_gem.C("'+newAlignCorrFileListFileName+'", "'+sumAlignCorrFileListFileName+'", '+alignCorrPlotsFileName+')'])
+    call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/plot_align_corrections_gem.C("'+newAlignCorrFileListFileName+'", "'+sumAlignCorrFileListFileName+'", "'+alignCorrPlotsFileName+'", '+str(runPeriod)+')'])
 
 if __name__ == "__main__" :
     main()

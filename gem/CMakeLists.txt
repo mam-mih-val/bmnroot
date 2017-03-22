@@ -59,6 +59,8 @@ set(SRCS
   BmnGemStripStationSet_RunSummer2016.cxx
   BmnGemStripStation_RunWinter2016.cxx
   BmnGemStripStationSet_RunWinter2016.cxx
+  BmnGemStripStation_RunSpring2017.cxx
+  BmnGemStripStationSet_RunSpring2017.cxx
   BmnGemStripDigit.cxx
   BmnGemStripDigitizer.cxx
   BmnGemStripHit.cxx
@@ -89,6 +91,8 @@ set(HEADERS
   BmnGemStripStationSet_RunSummer2016.h
   BmnGemStripStation_RunWinter2016.h
   BmnGemStripStationSet_RunWinter2016.h
+  BmnGemStripStation_RunSpring2017.h
+  BmnGemStripStationSet_RunSpring2017.h
   BmnGemStripDigit.h
   BmnGemStripDigitizer.h
   BmnGemStripHit.h
@@ -100,7 +104,9 @@ set(HEADERS
 IF (SSE_FOUND)
   ADD_DEFINITIONS(-DHAVE_SSE)
   SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS "-msse -O3 -w")
-  Message(STATUS "Gem will be compiled with SSE support")
+   Message(STATUS "Gem will be compiled with SSE support")
+#  SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS "-msse -g -w")
+#  Message(STATUS "Gem will be compiled with SSE support in DEBUG mode without optimization")
 ELSE (SSE_FOUND)
   Message(STATUS "Gem will be compiled without SSE support")
   SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS "-O3 -w")

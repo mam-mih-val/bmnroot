@@ -38,12 +38,21 @@ public:
     Int_t ConnectRaw();
     Int_t Connect();
     Int_t SendHello();
+    Int_t InitRecvStream();
+    void  FreeRecvStream();
+    Int_t IterRecvStream();
     Int_t RecvData();
-    Bool_t isAddr = kFALSE;
-    deque<UInt_t> data_queue;
+
+    void SetDataQueue(deque<UInt_t> v) {
+        this->data_queue = v;
+    }
+
+    deque<UInt_t>* GetDataQueue() {
+        return &data_queue;
+    }
     
-    void *GetQueMutex(){ return _deque_mutex;}
-    void SetQueMutex(void *v){_deque_mutex = v;}
+//    void *GetQueMutex(){ return _deque_mutex;}
+//    void SetQueMutex(void *v){_deque_mutex = v;}
     
 private:
     //zmq::context_t _ctx;
@@ -65,13 +74,16 @@ private:
         vector<serverIface> interfaces;
     };
     
+    deque<UInt_t> data_queue;
     void * _ctx;
     void * _socket_mcast;
     void * _socket_data;
     Int_t _sfd;
     struct serverInfo _dataServer;
+    struct addrinfo *dataAddrInfo;
     Bool_t isListening;
-    void *_deque_mutex; // actually std::mutex
+    Bool_t isAddr = kFALSE;
+//    void *_deque_mutex; // actually std::mutex
     //static void HandleSignal(int signal);
     void InitSocks();
     void DeinitSocks();

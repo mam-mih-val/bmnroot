@@ -90,7 +90,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 #else
 #ifdef BOX
     gRandom->SetSeed(0);
-    // ------- Box Generator 
+    // ------- Box Generator
     FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
     boxGen->SetPRange(0.2, 5.0); // GeV/c //setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
@@ -157,7 +157,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
         Double_t fieldScale = 1.;
         // BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v3_ascii_Extrap.dat");
-        // Double_t fieldZ = 124.5; // field centre z position 
+        // Double_t fieldZ = 124.5; // field centre z position
         // magField->SetPosition(0., 0., fieldZ);
         magField->SetScale(fieldScale);
         fRun->SetField(magField);

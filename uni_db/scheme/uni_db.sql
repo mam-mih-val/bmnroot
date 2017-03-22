@@ -50,7 +50,8 @@ create table run_
  start_datetime timestamp not null,
  end_datetime timestamp null,
  event_count int null check (event_count >= 0),
- field_current int null check (field_current >= 0),
+-- field_current int null check (field_current >= 0),
+ field_voltage float null,
  file_size float null check (file_size > 0),
  geometry_id int null references run_geometry(geometry_id) on update cascade,
  primary key (period_number, run_number)
@@ -79,8 +80,8 @@ create table detector_
 );
 
 -- COMPONENT PARAMETERS
--- parameter_type: 0 - bool, 1-int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array, 7 - binary array, 8 - unsigned int array,
---				   9 - DCH mapping array, 10 - GEM mapping array, 11 - GEM pedestal map
+-- parameter_type: 0 - bool, 1 - int, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array, 7 - binary array, 8 - unsigned int array,
+--                 9 - DCH mapping array, 10 - GEM mapping array, 11 - GEM pedestal map
 -- drop table parameter_
 create table parameter_
 (
@@ -627,36 +628,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-CREATE OR REPLACE FUNCTION clean_large_object() RETURNS integer AS $$
-DECLARE
-  geo run_geometry%rowtype;
-  par detector_parameter%rowtype;
-  objID integer;
-BEGIN
-  EXECUTE 'CREATE TABLE lo_current_list (lo_id int)';
-  FOR geo IN SELECT * FROM run_geometry LOOP
-    objID = geo.root_geometry;
-    insert into lo_current_list(lo_id) values (objID);
-  END LOOP;
-  FOR par IN SELECT * FROM detector_parameter LOOP
-    objID = par.parameter_value;
-    insert into lo_current_list(lo_id) values (objID);
-  END LOOP;
-  
-  FOR objID IN SELECT distinct loid FROM pg_largeobject LOOP
-    IF NOT EXISTS (SELECT 1 FROM lo_current_list WHERE lo_id = objID) THEN
-      RAISE INFO 'Unused: %', objID;
-      PERFORM lo_unlink(objID);
-    END IF;
-  END LOOP;
-
-  EXECUTE 'drop table lo_current_list'; 
-  RETURN 0;
-END;
-$$ LANGUAGE plpgsql;
---select "clean_large_object"();
-
 -- drop function lo_size(int)
 CREATE OR REPLACE FUNCTION lo_size(bytea) RETURNS integer
 AS $$
@@ -699,6 +670,51 @@ begin
   return sz;
 end;
 $$ LANGUAGE 'plpgsql';
+
+CREATE OR REPLACE FUNCTION clean_large_object() RETURNS integer AS $$
+DECLARE
+  geo run_geometry%rowtype;
+  par detector_parameter%rowtype;
+  objID integer;
+BEGIN
+  EXECUTE 'CREATE TABLE lo_current_list (lo_id int)';
+  FOR geo IN SELECT * FROM run_geometry LOOP
+    objID = geo.root_geometry;
+    insert into lo_current_list(lo_id) values (objID);
+  END LOOP;
+  FOR par IN SELECT * FROM detector_parameter LOOP
+    objID = par.parameter_value;
+    insert into lo_current_list(lo_id) values (objID);
+  END LOOP;
+  
+  FOR objID IN SELECT distinct loid FROM pg_largeobject LOOP
+    IF NOT EXISTS (SELECT 1 FROM lo_current_list WHERE lo_id = objID) THEN
+      RAISE INFO 'Unused: %', objID;
+      PERFORM lo_unlink(objID);
+    END IF;
+  END LOOP;
+
+  EXECUTE 'drop table lo_current_list'; 
+  RETURN 0;
+END;
+$$ LANGUAGE plpgsql;
+--select "clean_large_object"();
+
+CREATE OR REPLACE FUNCTION clean_unused_geometry() RETURNS integer AS $$
+DECLARE
+  geometryID integer;
+BEGIN  
+  FOR geometryID IN SELECT geometry_id FROM run_geometry LOOP
+    IF NOT EXISTS (SELECT 1 FROM run_ WHERE geometry_id = geometryID) THEN
+      RAISE INFO 'Unused geometry: %', geometryID;
+      delete from run_geometry where geometry_id = geometryID;
+    END IF;
+  END LOOP;
+
+  RETURN 0;
+END;
+$$ LANGUAGE plpgsql;
+--select "clean_unused_geometry"();
 
 
 -- DEFAULT INSERTION

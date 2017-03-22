@@ -25,7 +25,7 @@ const TString names[kNPLANES] = {
 };
 
 BmnHistDch::BmnHistDch(TString title = "DCH") {
- TGaxis::SetMaxDigits(2);
+    TGaxis::SetMaxDigits(2);
     fTitle = title;
     fName = title + "_cl";
     for (Int_t i = 0; i < kNPLANES; ++i) {
@@ -73,22 +73,27 @@ BmnHistDch::BmnHistDch(TString title = "DCH") {
     canTimes = new TCanvas(name, name, PAD_WIDTH * PLANE_ROWS, PAD_HEIGHT * PLANE_COLS);
     canTimes->Divide(PLANE_ROWS, PLANE_COLS);
     canTimesPads.resize(PLANE_ROWS * PLANE_COLS);
+    NamesWires.resize(PLANE_ROWS * PLANE_COLS);
+    NamesTimes.resize(PLANE_ROWS * PLANE_COLS);
     for (Int_t rowIndex = 0; rowIndex < PLANE_ROWS; rowIndex++) {
         for (Int_t colIndex = 0; colIndex < PLANE_COLS; colIndex++) {
+            Int_t iPad = rowIndex * PLANE_COLS + colIndex;
             PadInfo *p = new PadInfo();
-            p->current = h_wires[rowIndex * PLANE_COLS + colIndex];
-            canWiresPads[rowIndex * PLANE_ROWS + colIndex] = p;
+            p->current = h_wires[iPad];
+            canWiresPads[iPad] = p;
             PadInfo *pt = new PadInfo();
-            pt->current = h_times[rowIndex * PLANE_COLS + colIndex];
-            canTimesPads[rowIndex * PLANE_COLS + colIndex] = pt;
-            canWires->GetPad(rowIndex * PLANE_COLS + colIndex + 1)->SetGrid();
-            canTimes->GetPad(rowIndex * PLANE_COLS + colIndex + 1)->SetGrid();
+            pt->current = h_times[iPad];
+            canTimesPads[iPad] = pt;
+            canWires->GetPad(iPad + 1)->SetGrid();
+            canTimes->GetPad(iPad + 1)->SetGrid();
+            NamesWires[iPad] = canWiresPads[iPad]->current->GetName();
+            NamesTimes[iPad] = canTimesPads[iPad]->current->GetName();
         }
     }
 }
 
 BmnHistDch::~BmnHistDch() {
-    for (Int_t i = 0; i < kNPLANES; ++i){
+    for (Int_t i = 0; i < kNPLANES; ++i) {
         delete h_wires[i];
         delete h_times[i];
     }
@@ -103,10 +108,10 @@ void BmnHistDch::Register(THttpServer *serv) {
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canWires);
     fServer->Register(path, canTimes);
-//    for (Int_t i = 0; i < kNPLANES; ++i){
-//        fServer->Register(path, h_wires[i]);
-//        fServer->Register(path, h_times[i]);
-//    }
+    //    for (Int_t i = 0; i < kNPLANES; ++i){
+    //        fServer->Register(path, h_wires[i]);
+    //        fServer->Register(path, h_times[i]);
+    //    }
     fServer->Register(path, h_DCH1);
     fServer->Register(path, h_DCH2);
     TString cmd = "/" + fName + "/->Reset()";
@@ -126,7 +131,7 @@ void BmnHistDch::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
     TDirectory *dir = NULL;
     if (outFile != NULL)
         dir = outFile->mkdir(fTitle + "_hists");
-    for (Int_t i = 0; i < kNPLANES; ++i){
+    for (Int_t i = 0; i < kNPLANES; ++i) {
         h_wires[i]->SetDirectory(dir);
         h_times[i]->SetDirectory(dir);
     }
@@ -141,74 +146,19 @@ void BmnHistDch::DrawBoth() {
 }
 
 void BmnHistDch::FillFromDigi(TClonesArray * DchDigits) {
-    //    Int_t rid = (head) ? head->GetRunId() : -1;
     fDchHits->Clear();
-//    ProcessDchDigits(DchDigits, fDchHits);
+    //    ProcessDchDigits(DchDigits, fDchHits);
     for (Int_t iDig = 0; iDig < DchDigits->GetEntriesFast(); ++iDig) {
         BmnDchDigit* dig = (BmnDchDigit*) DchDigits->At(iDig);
         Int_t plane = dig->GetPlane();
         h_wires[plane]->Fill(dig->GetWireNumber());
         h_times[plane]->Fill(dig->GetTime());
     }
-//    for (Int_t iHit = 0; iHit < fDchHits->GetEntriesFast(); iHit++) {
-//        BmnDchHit* hit = (BmnDchHit*) fDchHits->At(iHit);
-//        if (hit->GetDchId() == 1) h_DCH1->Fill(hit->GetX(), hit->GetY());
-//        if (hit->GetDchId() == 2) h_DCH2->Fill(hit->GetX(), hit->GetY());
-//    }
-}
-
-BmnStatus BmnHistDch::LoadRefRun(TString FileName) {
-    printf("Loading ref histos\n");
-    refFile = new TFile(refPath + FileName, "read");
-    if (refFile->IsOpen() == false) {
-        printf("Cannot open file %s !\n", FileName.Data());
-        return kBMNERROR;
-    }
-    Int_t iPad = 0;
-    TString refName = Form("ref%06d_", refID);
-    TString name;
-    for (Int_t rowIndex = 0; rowIndex < PLANE_ROWS; rowIndex++) {
-        for (Int_t colIndex = 0; colIndex < PLANE_COLS; colIndex++) {
-            iPad = rowIndex * PLANE_ROWS + colIndex;
-            delete canWiresPads[iPad]->ref;
-            canWiresPads[iPad]->ref = NULL;
-            TH1F* tempH = NULL;
-            name = fTitle + "_" + names[iPad];
-            tempH = (TH1F*) refFile->Get(refName + "DCH_hists/" + refName + name);
-            if (tempH == NULL) {
-                tempH = (TH1F*) refFile->Get(TString("DCH_hists/") + name);
-            }
-            if (tempH == NULL) {
-                printf("Cannot load %s !\n", name.Data());
-                continue;
-//                return kBMNERROR;
-            }
-            canWiresPads[iPad]->ref = (TH1F*) (tempH->Clone(name));
-            canWiresPads[iPad]->ref->SetLineColor(kRed);
-            canWiresPads[iPad]->ref->SetDirectory(0);
-            printf("Loaded %s \n", canWiresPads[iPad]->ref->GetName());
-            delete canTimesPads[iPad]->ref;
-            canTimesPads[iPad]->ref = NULL;
-            tempH = NULL;
-            name = fTitle + "_" + names[iPad] + "_Time";
-            tempH = (TH1F*) refFile->Get(refName + "DCH_hists/" + refName + name);
-            if (tempH == NULL) {
-                tempH = (TH1F*) refFile->Get(TString("DCH_hists/") + name);
-            }
-            if (tempH == NULL) {
-                printf("Cannot load %s !\n", name.Data());
-                continue;
-//                return kBMNERROR;
-            }
-            canTimesPads[iPad]->ref = (TH1F*) (tempH->Clone(name));
-            canTimesPads[iPad]->ref->SetLineColor(kRed);
-            canTimesPads[iPad]->ref->SetDirectory(0);
-            printf("Loaded %s \n", canTimesPads[iPad]->ref->GetName());
-        }
-    }
-    delete refFile;
-    refFile = NULL;
-    return kBMNSUCCESS;
+    //    for (Int_t iHit = 0; iHit < fDchHits->GetEntriesFast(); iHit++) {
+    //        BmnDchHit* hit = (BmnDchHit*) fDchHits->At(iHit);
+    //        if (hit->GetDchId() == 1) h_DCH1->Fill(hit->GetX(), hit->GetY());
+    //        if (hit->GetDchId() == 2) h_DCH2->Fill(hit->GetX(), hit->GetY());
+    //    }
 }
 
 BmnStatus BmnHistDch::SetRefRun(Int_t id) {
@@ -217,12 +167,14 @@ BmnStatus BmnHistDch::SetRefRun(Int_t id) {
     if (refRunName != FileName) {
         refRunName = FileName;
         refID = id;
-        LoadRefRun(refRunName);
+        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canTimesPads, NamesTimes);
+        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canWiresPads, NamesWires);
+        DrawBoth();
     }
 }
 
 void BmnHistDch::Reset() {
-    for (Int_t i = 0; i < kNPLANES; ++i){
+    for (Int_t i = 0; i < kNPLANES; ++i) {
         h_wires[i]->Reset();
         h_times[i]->Reset();
     }

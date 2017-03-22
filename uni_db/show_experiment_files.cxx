@@ -588,16 +588,16 @@ int main(int argc, char** argv)
 
         if (isMinField)
         {
-            sql += TString::Format("field_current >= %d", iField);
+            sql += TString::Format("field_voltage >= %d", iField);
             if (isMaxField)
-                sql += TString::Format(" AND field_current <= %d", iMaxField);
+                sql += TString::Format(" AND field_voltage <= %d", iMaxField);
         }
         else
         {
             if (isMaxField)
-                sql += TString::Format("field_current <= %d", iMaxField);
+                sql += TString::Format("field_voltage <= %d", iMaxField);
             else
-                sql += TString::Format("field_current = %d", iField);
+                sql += TString::Format("field_voltage = %d", iField);
         }
     }
     // if file size selection

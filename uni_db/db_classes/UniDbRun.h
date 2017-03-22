@@ -43,15 +43,15 @@ class UniDbRun
 	TDatime* dt_end_datetime;
 	/// event count
 	int* i_event_count;
-	/// field current
-	int* i_field_current;
+	/// field voltage
+	double* d_field_voltage;
 	/// file size
 	double* d_file_size;
 	/// geometry id
 	int* i_geometry_id;
 
 	//Constructor
-	UniDbRun(UniDbConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id);
+	UniDbRun(UniDbConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -60,7 +60,7 @@ class UniDbRun
 
 	// static class functions
 	/// add new run to the database
-	static UniDbRun* CreateRun(int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id);
+	static UniDbRun* CreateRun(int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id);
 	/// get run from the database
 	static UniDbRun* GetRun(int period_number, int run_number);
 	/// get run from the database
@@ -95,8 +95,8 @@ class UniDbRun
 	TDatime* GetEndDatetime() {if (dt_end_datetime == NULL) return NULL; else return new TDatime(*dt_end_datetime);}
 	/// get event count of the current run
 	int* GetEventCount() {if (i_event_count == NULL) return NULL; else return new int(*i_event_count);}
-	/// get field current of the current run
-	int* GetFieldCurrent() {if (i_field_current == NULL) return NULL; else return new int(*i_field_current);}
+	/// get field voltage of the current run
+	double* GetFieldVoltage() {if (d_field_voltage == NULL) return NULL; else return new double(*d_field_voltage);}
 	/// get file size of the current run
 	double* GetFileSize() {if (d_file_size == NULL) return NULL; else return new double(*d_file_size);}
 	/// get geometry id of the current run
@@ -121,8 +121,8 @@ class UniDbRun
 	int SetEndDatetime(TDatime* end_datetime);
 	/// set event count of the current run
 	int SetEventCount(int* event_count);
-	/// set field current of the current run
-	int SetFieldCurrent(int* field_current);
+	/// set field voltage of the current run
+	int SetFieldVoltage(double* field_voltage);
 	/// set file size of the current run
 	int SetFileSize(double* file_size);
 	/// set geometry id of the current run

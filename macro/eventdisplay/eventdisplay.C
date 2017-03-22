@@ -95,12 +95,12 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
             UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
             if (pCurrentRun == 0) return;
             Double_t fieldScale = 0;
-            double map_current = 900.0;
-            int* current_current = pCurrentRun->GetFieldCurrent();
-            if (current_current == NULL)
+            double map_current = 56;
+            double* field_voltage = pCurrentRun->GetFieldVoltage();
+            if (field_voltage == NULL)
                 fieldScale = 0;
             else
-                fieldScale = (*current_current) / map_current;
+                fieldScale = (*field_voltage) / map_current;
             BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v3_ascii_Extrap.dat");
             magField->SetScale(fieldScale);
             magField->Init();

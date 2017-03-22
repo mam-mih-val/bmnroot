@@ -8,7 +8,7 @@ fi
 
 export SIMPATH=/opt/fairsoft/install
 export SOURCEDIR=$CDASHUSERPATH
-export BUILDDIR=$HOME/CDASH/bmnroot_build_$(uname -n)
+export BUILDDIR=$HOME/CDASH/bmnroot_build_$(hostname -s)
 export LINUX_FLAVOUR=$(uname -o)
 export FAIRSOFT_VERSION=may16
 

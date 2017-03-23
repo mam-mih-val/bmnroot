@@ -23,6 +23,11 @@ void determine_align_corrections_gem(TString bmndstFileListFileName = "filelist_
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
+    // get run period
+    TString substr = new1AlignCorrFileListFileName("bmn_run[0-9]+");
+    substr         = substr(                              "[0-9]+");
+    int runPeriod  = substr.Atoi();
+
     FairRunAna* fRunAna = new FairRunAna();
     ifstream bmndstFiles(bmndstFileListFileName);
     cout <<"bmndstFileListFileName = "+bmndstFileListFileName<< endl;
@@ -49,8 +54,12 @@ void determine_align_corrections_gem(TString bmndstFileListFileName = "filelist_
     resultName.ReplaceAll(".root", "");
     cout <<"resultName             = "+resultName<< endl;
     BmnGemAlignment* gemAlign = new BmnGemAlignment();
+
     gemAlign->SetResultName(resultName);
-    gemAlign->SetGeometry(BmnGemStripConfiguration::RunWinter2016);
+    if (runPeriod == 5) 
+        gemAlign->SetGeometry(BmnGemStripConfiguration::RunWinter2016);
+    if (runPeriod == 6) 
+        gemAlign->SetGeometry(BmnGemStripConfiguration::RunSpring2017);
   //TString type = "target";
     // GEM stations 4, 5 and 6 consist of two separate modules that can be either fixed or not simultaneously
     //                          0      1   2   3   4   5   6

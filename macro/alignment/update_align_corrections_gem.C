@@ -39,8 +39,15 @@ void update_align_corrections_gem(TString preAlignCorrFileName,
     sumTree->Branch("BmnGemAlignmentCorrections", &sumCorrs);
   //cout <<"sumTree->Print()"<< endl;
   //sumTree->Print();
+    // get run period
+    TString substr = new1AlignCorrFileListFileName("bmn_run[0-9]+");
+    substr         = substr(                              "[0-9]+");
+    int runPeriod  = substr.Atoi();
 
-    BmnGemStripStationSet* stationSet = new BmnGemStripStationSet_RunWinter2016(BmnGemStripConfiguration::RunWinter2016);
+    if (runPeriod == 5) 
+        BmnGemStripStationSet* stationSet = new BmnGemStripStationSet_RunWinter2016(BmnGemStripConfiguration::RunWinter2016);
+    if (runPeriod == 6) 
+        BmnGemStripStationSet* stationSet = new BmnGemStripStationSet_RunWinter2016(BmnGemStripConfiguration::RunSpring2017);
     const Int_t nStat = stationSet->GetNStations();
     const Int_t nParams = 3;
     Double_t*** corr = new Double_t**[nStat];

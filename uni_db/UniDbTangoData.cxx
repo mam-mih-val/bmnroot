@@ -415,9 +415,16 @@ TObjArray* UniDbTangoData::SearchTangoIntervals(char* detector_name, char* param
     TObjArray* pTimeIntervals = new TObjArray();
     pTimeIntervals->SetOwner(kTRUE);
 
+    // if there is no points in the Tango interval then return TimeIntervals collection without any elements
+    if (tango_data->GetEntriesFast() == 0)
+    {
+        delete tango_data;
+        return pTimeIntervals;
+    }
+
     vector<int> vecStart;
     vector<bool> vecCondition;
-    TangoTimeParameter* pParameter;
+    TangoTimeParameter* pParameter = NULL;
     //cout<<"tango_data->GetEntriesFast(): "<<tango_data->GetEntriesFast()<<endl;
     for (int i = 0; i < tango_data->GetEntriesFast(); i++)
     {

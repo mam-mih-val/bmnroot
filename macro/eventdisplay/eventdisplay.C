@@ -95,7 +95,7 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
             UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
             if (pCurrentRun == 0) return;
             Double_t fieldScale = 0;
-            double map_current = 56;
+            double map_current = 55.87;
             double* field_voltage = pCurrentRun->GetFieldVoltage();
             if (field_voltage == NULL)
                 fieldScale = 0;

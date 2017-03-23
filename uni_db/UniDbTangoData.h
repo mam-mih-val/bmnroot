@@ -70,6 +70,11 @@ class TangoTimeInterval : public TObject
 class UniDbTangoData
 {
  public:
+    // empty constructor
+    UniDbTangoData(){}
+    // empty destructor
+    ~UniDbTangoData(){}
+
     // Функция SplitString разбивает строку на отдельные элементы по указанному разделителю.
     //	TString str - строка, которую будем редактировать.
     //	TString delim - разделитель.

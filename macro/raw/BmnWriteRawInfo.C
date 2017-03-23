@@ -12,20 +12,21 @@ void BmnWriteRawInfo(TString file, TString output_file = "")
     bmnloadlibs(); // load BmnRoot libraries
 
     // check input file exist and get file size
-    gSystem->ExpandPathName(fileName);
+    gSystem->ExpandPathName(file);
     if (gSystem->AccessPathName(file.Data()) == true)
     {
         cout<<endl<<"No input file was found: "<<file<<endl;
         return;
     }
     Long_t id, flags, modtime;
-    Long64_t file_size = -1;
-    gSystem->GetPathInfo(file.Data(), &id, &file_size, &flags, &modtime);
-    if (file_size <= 0)
+    Long64_t l_file_size = -1;
+    gSystem->GetPathInfo(file.Data(), &id, &l_file_size, &flags, &modtime);
+    if (l_file_size <= 0)
     {
         cout<<endl<<"Input file has zero size. Exiting..."<<endl;
         return;
     }
+	double file_size = l_file_size/1048576.0;
 
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //6 - period
 
@@ -82,7 +83,7 @@ void BmnWriteRawInfo(TString file, TString output_file = "")
         TDatime* endDate = new TDatime((Int_t)fRunHeader->GetFinishTime().GetDate(kFALSE), (Int_t)fRunHeader->GetFinishTime().GetTime(kFALSE));
         int* event_count = new int(fRunHeader->GetNEvents());
 
-        bool isRunExist = UniDbRun::CheckRunExist(decoder->GetPeriodId(), decoder->GetRunId());
+        bool isRunExist = UniDbRun::CheckRunExists(decoder->GetPeriodId(), decoder->GetRunId());
         if (isRunExist)
         {
             UniDbRun* pRun = UniDbRun::GetRun(decoder->GetPeriodId(), decoder->GetRunId());
@@ -106,7 +107,7 @@ void BmnWriteRawInfo(TString file, TString output_file = "")
         }
         else
         {
-            UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), file.Data(), "", NULL, NULL, startDate, endDate, event_count, NULL, &file_size, NULL);
+            UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), file, "", NULL, NULL, startDate, endDate, event_count, NULL, &file_size, NULL);
 
             bool isErrors = false;
             if (pRun == NULL)

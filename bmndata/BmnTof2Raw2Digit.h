@@ -2,7 +2,7 @@
 #define BMNTOF2RAW2DIGIT_H
 
 #define SLFIT0 "pol2"
-#define SLFIT "pol3"
+#define SLFIT "pol5"
 #define HPTIMEBIN 0.02344
 #define INVHPTIMEBIN 42.6666
 
@@ -152,6 +152,8 @@ private:
     float TvsW_slope[TOF2_MAX_CHAMBERS][2];
     float TvsW_parab[TOF2_MAX_CHAMBERS][2];
     float TvsW_cubic[TOF2_MAX_CHAMBERS][2];
+    float TvsW_four[TOF2_MAX_CHAMBERS][2];
+    float TvsW_five[TOF2_MAX_CHAMBERS][2];
 
     TProfile *TvsW[TOF2_MAX_CHAMBERS][2];
     TProfile *TvsWt0[TOF2_MAX_CHAMBERS][2];

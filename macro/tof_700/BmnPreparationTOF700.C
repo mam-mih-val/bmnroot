@@ -1,7 +1,7 @@
 //file: full path to raw-file
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
-void BmnPreparationTOF700(TString file = "../raw/mpd_run_Glob_1421.data", Long_t nEvents = 0, Bool_t doConvert = kFALSE) {
+void BmnPreparationTOF700(TString file = "../raw/mpd_run_Glob_1889.data", Long_t nEvents = 10000, Bool_t doConvert = kFALSE) {
   gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
   bmnloadlibs(); // load BmnRoot libraries
   BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //4 - period
@@ -29,7 +29,7 @@ void BmnPreparationTOF700(TString file = "../raw/mpd_run_Glob_1421.data", Long_t
   BmnTof2Raw2DigitNew *tof700m = decoder->GetTof700Mapper();
   tof700m->Book();
   tof700m->SetW(2500,4000);
-  tof700m->SetWT0(720,860);
+  tof700m->SetWT0(660,820);
   decoder->PreparationTOF700();  // Decode data into detector-digits using current mappings.
   tof700m->drawprep();
   delete decoder;

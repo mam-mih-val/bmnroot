@@ -40,8 +40,8 @@ void update_align_corrections_gem(TString preAlignCorrFileName,
   //cout <<"sumTree->Print()"<< endl;
   //sumTree->Print();
     // get run period
-    TString substr = new1AlignCorrFileListFileName("bmn_run[0-9]+");
-    substr         = substr(                              "[0-9]+");
+    TString substr = newAlignCorrFileName("bmn_run[0-9]+");
+    substr         = substr(                     "[0-9]+");
     int runPeriod  = substr.Atoi();
 
     if (runPeriod == 5) 

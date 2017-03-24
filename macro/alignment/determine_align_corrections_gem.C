@@ -24,8 +24,8 @@ void determine_align_corrections_gem(TString bmndstFileListFileName = "filelist_
     TStopwatch timer;
     timer.Start();
     // get run period
-    TString substr = new1AlignCorrFileListFileName("bmn_run[0-9]+");
-    substr         = substr(                              "[0-9]+");
+    TString substr = bmndstFileListFileName("bmn_run[0-9]+");
+    substr         = substr(                       "[0-9]+");
     int runPeriod  = substr.Atoi();
 
     FairRunAna* fRunAna = new FairRunAna();

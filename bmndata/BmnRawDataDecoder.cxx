@@ -765,6 +765,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     Int_t nEv = -1;
     Double_t fSize = 0.0;
     UInt_t runId = 0;
+    vector<UInt_t> startTripEvent;
+    vector<UInt_t> endTripEvent;
 
     for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 100 == 0) {
@@ -778,9 +780,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
         BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
         if (!headDAQ) continue;
-
-        UInt_t startTripEvent = 0;
-        UInt_t endTripEvent = 0;
 
         if (iEv == 0) {
 
@@ -808,24 +807,25 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             TObjArray* tango_data_gem = db_tango.SearchTangoIntervals((char*) "gem", (char*) "trip", (char*) date_start.Data(), (char*) date_end.Data(), condition, condition_value, map_channel);
             for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {
                 TObjArray* currGemTripInfo = (TObjArray*) tango_data_gem->At(i);
-                if (currGemTripInfo->GetEntriesFast() != 0) {
-                    printf("currGemTripInfo->GetEntriesFast() = %d\n", currGemTripInfo->GetEntriesFast());
+                if (currGemTripInfo->GetEntriesFast() != 0)
                     for (Int_t j = 0; j < currGemTripInfo->GetEntriesFast(); ++j) {
                         TangoTimeInterval* ti = (TangoTimeInterval*) currGemTripInfo->At(j);
-                        //add conversion time ---> event
-                        cout << "START = " << ti->start_time.AsSQLString() << endl;
-                        cout << "  END = " << ti->end_time.AsSQLString() << endl;
-                        startTripEvent = UInt_t((ti->start_time.Convert() - fRunStartTime.Convert()) / timeStep);
-                        endTripEvent = UInt_t((ti->end_time.Convert() - fRunStartTime.Convert()) / timeStep);
-                        cout << "START_EV = " << startTripEvent << endl;
-                        cout << "  END_EV = " << endTripEvent << endl;
+                        startTripEvent.push_back(UInt_t((ti->start_time.Convert() - fRunStartTime.Convert()) / timeStep));
+                        endTripEvent.push_back(UInt_t((ti->end_time.Convert() - fRunStartTime.Convert()) / timeStep));
                     }
-                }
             }
         }
 
         curEventType = headDAQ->GetType();
-        Bool_t isTripEvent = (headDAQ->GetEventId() > startTripEvent && startTripEvent < endTripEvent) ? kTRUE : kFALSE;
+
+        Bool_t isTripEvent = kFALSE;
+        for (Int_t iTrip = 0; iTrip < startTripEvent.size(); ++iTrip) {
+            if (headDAQ->GetEventId() > startTripEvent[iTrip] && headDAQ->GetEventId() < endTripEvent[iTrip]) {
+                isTripEvent = kTRUE;
+                break;
+            }
+        }
+
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig(), isTripEvent);
 
         if (fTrigMapper) fTrigMapper->FillEvent(tdc, trigger, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);

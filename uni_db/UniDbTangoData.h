@@ -71,9 +71,9 @@ class UniDbTangoData
 {
  public:
     // empty constructor
-    UniDbTangoData(){}
+    UniDbTangoData();
     // empty destructor
-    ~UniDbTangoData(){}
+    ~UniDbTangoData();
 
     // Функция SplitString разбивает строку на отдельные элементы по указанному разделителю.
     //	TString str - строка, которую будем редактировать.

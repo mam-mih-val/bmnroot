@@ -77,7 +77,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     Double_t ped = 0;
     Double_t rms = 0;
     TString dummy;
-    TString path = TString(getenv("VMCWORKDIR")) + TString("/input/GEM_pedestals.txt");
+    TString path = Form("%s/input/GEM_pedestals_%d.txt", getenv("VMCWORKDIR"), fRun);//TString(getenv("VMCWORKDIR")) + TString("/input/GEM_pedestals.txt");
 
     ifstream inFile(path.Data());
     if (!inFile.is_open())
@@ -95,7 +95,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
             }
     }
 
-    path = TString(getenv("VMCWORKDIR")) + TString("/input/GEM_noisy_Channels.txt");
+    path = Form("%s/input/GEM_noisy_Channels_%d.txt", getenv("VMCWORKDIR"), fRun);//TString(getenv("VMCWORKDIR")) + TString("/input/GEM_noisy_Channels.txt");
     ifstream noiseFile(path.Data());
     if (!noiseFile.is_open())
         cout << "Error opening map-file (" << path << ")!" << endl;
@@ -183,8 +183,13 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
             fBigMap = fMid;
         } else {
             if (gemM->hotZone % 2 == 0) {
-                if (gemM->id % 10 == 0) fBigMap = fBigL0;
-                else fBigMap = fBigR0;
+                if (gemM->id % 10 == 0) {
+                    fBigMap = fBigL0;
+                    if (gemM->station == 6) printf("fBigL0: ch = %d\n", realChannel);
+                } else {
+                    fBigMap = fBigR0;
+                    if (gemM->station == 6) printf("fBigR0: ch = %d\n", realChannel);
+                }
             } else {
                 if (gemM->id % 10 == 0) fBigMap = fBigL1;
                 else fBigMap = fBigR1;
@@ -194,6 +199,9 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
         mod = (gemM->hotZone < 2) ? 0 : 1;
         lay = fBigMap[realChannel].lay;
         strip = fBigMap[realChannel].strip;
+
+        if (gemM->station == 6 && lay > 1)
+            printf("strip = %d\n", strip);
 
         if (strip > 0) {
             BmnGemStripDigit dig;
@@ -230,7 +238,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
 }
 
 BmnStatus BmnGemRaw2Digit::CalcGemPedestals(TClonesArray *adc, TTree * tree) {
-    ofstream pedFile(Form("%s/input/GEM_pedestals.txt", getenv("VMCWORKDIR")));
+    ofstream pedFile(Form("%s/input/GEM_pedestals_%d.txt", getenv("VMCWORKDIR"), fRun));
     pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
     pedFile << "============================================" << endl;
     const UShort_t nSmpl = ADC32_N_SAMPLES;
@@ -356,7 +364,7 @@ BmnStatus BmnGemRaw2Digit::FindNoisyStrips() {
         }
     }
 
-    ofstream pedFile(Form("%s/input/GEM_noisy_Channels.txt", getenv("VMCWORKDIR")));
+    ofstream pedFile(Form("%s/input/GEM_noisy_Channels_%d.txt", getenv("VMCWORKDIR"), fRun));
     pedFile << "Serial\tCh_id\tIsNoisy" << endl;
     pedFile << "============================================" << endl;
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
@@ -449,7 +457,7 @@ BmnStatus BmnGemRaw2Digit::RecalculatePedestals() {
             }
     }
 
-    ofstream pedFile(Form("%s/input/GEM_pedestals.txt", getenv("VMCWORKDIR")));
+    ofstream pedFile(Form("%s/input/GEM_pedestals_%d.txt", getenv("VMCWORKDIR"), fRun));
     pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
     pedFile << "============================================" << endl;
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr)

@@ -235,12 +235,14 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         }
     }
 
-    printf("fPedoCounter = %d\n", fPedoCounter);
-
     fRawTree->Branch("RunHeader", &runHeaderDAQ);
     runHeaderDAQ->SetRunId(fRunId);
-    runHeaderDAQ->SetStartTime(TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns));
-    runHeaderDAQ->SetFinishTime(TTimeStamp(time_t(fTime_s), fTime_ns));
+    TTimeStamp startT = TTimeStamp(time_t(fTimeStart_s), fTimeStart_ns);
+    TTimeStamp finishT = TTimeStamp(time_t(fTime_s), fTime_ns);
+    fRunStartTime = TDatime(Int_t(startT.GetDate(kFALSE)), Int_t(startT.GetTime(kFALSE)));
+    fRunEndTime = TDatime(Int_t(finishT.GetDate(kFALSE)), Int_t(finishT.GetTime(kFALSE)));
+    runHeaderDAQ->SetStartTime(fRunStartTime);
+    runHeaderDAQ->SetFinishTime(fRunEndTime);
     runHeaderDAQ->SetNEvents(fNevents);
     fRawTree->Fill();
 
@@ -346,36 +348,36 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len) {
 }
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
-//        fRawTree->Clear();
-        if (wait_stream(fDataQueue, 2) == kBMNERROR)
-            return kBMNTIMEOUT;
+    //        fRawTree->Clear();
+    if (wait_stream(fDataQueue, 2) == kBMNERROR)
+        return kBMNTIMEOUT;
+    fDat = fDataQueue->front();
+    fDataQueue->pop_front();
+    if (fDat == kSYNC1) { //search for start of event
+        // read number of bytes in event
         fDat = fDataQueue->front();
         fDataQueue->pop_front();
-        if (fDat == kSYNC1) { //search for start of event
-            // read number of bytes in event
-            fDat = fDataQueue->front();
-            fDataQueue->pop_front();
-            if (wait_stream(fDataQueue, fDat) == kBMNERROR)
-                return kBMNTIMEOUT;
-            fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
-            if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
-                printf("Wrong data size: %d:  skip this event\n", fDat);
-                fDataQueue->erase(fDataQueue->begin(), fDataQueue->begin() + fDat * kNBYTESINWORD);
-                return kBMNERROR;
-            } else {
-                //read array of current event data and process them
-                if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
-                for (Int_t iByte = 0; iByte < fDat * kNBYTESINWORD; iByte++) {
-                    data[iByte] = fDataQueue->front();
-                    fDataQueue->pop_front();
-                }
-                fEventId = data[0];
-                if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
-                ProcessEvent(data, fDat);
-                fNevents++;
-//                fRawTree->Fill();
+        if (wait_stream(fDataQueue, fDat) == kBMNERROR)
+            return kBMNTIMEOUT;
+        fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
+        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
+            printf("Wrong data size: %d:  skip this event\n", fDat);
+            fDataQueue->erase(fDataQueue->begin(), fDataQueue->begin() + fDat * kNBYTESINWORD);
+            return kBMNERROR;
+        } else {
+            //read array of current event data and process them
+            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
+            for (Int_t iByte = 0; iByte < fDat * kNBYTESINWORD; iByte++) {
+                data[iByte] = fDataQueue->front();
+                fDataQueue->pop_front();
             }
+            fEventId = data[0];
+            if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+            ProcessEvent(data, fDat);
+            fNevents++;
+            //                fRawTree->Fill();
         }
+    }
     return kBMNSUCCESS;
 }
 
@@ -504,7 +506,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         }
         idx += payload;
     }
-    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TTimeStamp(time_t(fTime_s), fTime_ns), evType, trigType);
+    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TDatime(Int_t(TTimeStamp(time_t(fTime_s), fTime_ns).GetDate(kFALSE)), Int_t(TTimeStamp(time_t(fTime_s), fTime_ns).GetTime(kFALSE))), evType, trigType, kFALSE);
 }
 
 BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr) {
@@ -529,12 +531,12 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
                 }
 
                 TClonesArray& ar_adc = *arr;
-                if (iCh >= 0 && iCh < kNCH) {
-                    if (kNSTAMPS == ADC128_N_SAMPLES)
-                        new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC128_N_SAMPLES, val);
-                    else if (kNSTAMPS == ADC32_N_SAMPLES)
-                        new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC32_N_SAMPLES, val);
-                }
+                //if (iCh >= 0 && iCh < kNCH) {
+                if (kNSTAMPS == ADC128_N_SAMPLES) {
+                    new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC128_N_SAMPLES, val);
+                } else if (kNSTAMPS == ADC32_N_SAMPLES)
+                    new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC32_N_SAMPLES, val);
+                //}
                 i += (kNSTAMPS / 2); //skip words (we've processed them)
             }
         } else break;
@@ -760,6 +762,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         }
     }
 
+    Int_t nEv = -1;
+    Double_t fSize = 0.0;
+    UInt_t runId = 0;
+
     for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 100 == 0) {
             printf(ANSI_COLOR_BLUE "[%.2f%%]   " ANSI_COLOR_RESET, iEv * 100.0 / fNevents);
@@ -772,11 +778,59 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
         BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
         if (!headDAQ) continue;
+
+        UInt_t startTripEvent = 0;
+        UInt_t endTripEvent = 0;
+
+        if (iEv == 0) {
+
+            nEv = (Int_t) runHeaderDAQ->GetNEvents();
+            fSize = Double_t(fLengthRawFile / 1024. / 1024.);
+            runId = runHeaderDAQ->GetRunId();
+            fRunStartTime = runHeaderDAQ->GetStartTime();
+            fRunEndTime = runHeaderDAQ->GetFinishTime();
+
+            if (!UniDbRun::GetRun(fPeriodId, runId))
+                UniDbRun::CreateRun(fPeriodId, runId, TString::Format("/nica/data4mpd1/dataBMN/bmndata2/run6/raw/mpd_run_Glob_%d.data", runId), "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
+
+            //check for trip information
+            UniDbTangoData db_tango;
+            enumConditions condition = conditionEqual;
+            bool condition_value = 1;
+            int map_channel[] = {1, 3, 0, 5, 2, 6, 4};
+            TString date_start = fRunStartTime.AsSQLString(); // 1252 run
+            TString date_end = fRunEndTime.AsSQLString();
+
+            UInt_t runLength = fRunEndTime.Convert() - fRunStartTime.Convert(); //in seconds
+            Double_t timeStep = runLength * 1.0 / fNevents; //time for one event
+            printf("runLength = %d \t timeStep = %f\n", runLength, timeStep);
+
+            TObjArray* tango_data_gem = db_tango.SearchTangoIntervals((char*) "gem", (char*) "trip", (char*) date_start.Data(), (char*) date_end.Data(), condition, condition_value, map_channel);
+            for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {
+                TObjArray* currGemTripInfo = (TObjArray*) tango_data_gem->At(i);
+                if (currGemTripInfo->GetEntriesFast() != 0) {
+                    printf("currGemTripInfo->GetEntriesFast() = %d\n", currGemTripInfo->GetEntriesFast());
+                    for (Int_t j = 0; j < currGemTripInfo->GetEntriesFast(); ++j) {
+                        TangoTimeInterval* ti = (TangoTimeInterval*) currGemTripInfo->At(j);
+                        //add conversion time ---> event
+                        cout << "START = " << ti->start_time.AsSQLString() << endl;
+                        cout << "  END = " << ti->end_time.AsSQLString() << endl;
+                        startTripEvent = UInt_t((ti->start_time.Convert() - fRunStartTime.Convert()) / timeStep);
+                        endTripEvent = UInt_t((ti->end_time.Convert() - fRunStartTime.Convert()) / timeStep);
+                        cout << "START_EV = " << startTripEvent << endl;
+                        cout << "  END_EV = " << endTripEvent << endl;
+                    }
+                }
+            }
+        }
+
         curEventType = headDAQ->GetType();
-        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig());
+        Bool_t isTripEvent = (headDAQ->GetEventId() > startTripEvent && startTripEvent < endTripEvent) ? kTRUE : kFALSE;
+        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig(), isTripEvent);
 
         if (fTrigMapper) fTrigMapper->FillEvent(tdc, trigger, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
 
+        //if (t0->GetEntriesFast() != 1 || bc2->GetEntriesFast() != 1) continue;
         if (curEventType == kBMNPEDESTAL) {
             if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
             CopyDataToPedMap(adc32, fPedEvCntr);
@@ -796,41 +850,23 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
         }
 
-        if (iEv == fNevents - 1) {
-            fDigiTree->Branch("RunHeader", &runHeader);
-            if (runHeaderDAQ) {
-                UInt_t sT = runHeaderDAQ->GetStartTime().GetTime(kFALSE);
-                UInt_t fT = runHeaderDAQ->GetFinishTime().GetTime(kFALSE);
-                UInt_t sD = runHeaderDAQ->GetStartTime().GetDate(kFALSE);
-                UInt_t fD = runHeaderDAQ->GetFinishTime().GetDate(kFALSE);
-                Int_t nEv = (Int_t) runHeaderDAQ->GetNEvents();
-                TDatime sDatime(sD / 10000, sD % 10000 / 100, sD % 100, sT / 10000, sT % 10000 / 100, sT % 100);
-                TDatime fDatime(fD / 10000, fD % 10000 / 100, fD % 100, fT / 10000, fT % 10000 / 100, fT % 100);
-                Double_t fSize = Double_t(fLengthRawFile / 1024. / 1024.);
-                UInt_t runId = runHeaderDAQ->GetRunId();
-
-                runHeader->SetRunId(runId);
-                runHeader->SetStartTime(runHeaderDAQ->GetStartTime());
-                runHeader->SetFinishTime(runHeaderDAQ->GetFinishTime());
-                runHeader->SetNEvents(nEv);
-
-                printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
-                printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runId);
-                printf(ANSI_COLOR_RED "SUMMARY ===============\n" ANSI_COLOR_RESET);
-                printf("START (event 1):\t%d/%02d/%02d\t", sD / 10000, sD % 10000 / 100, sD % 100);
-                printf("%02d:%02d:%02d\n", sT / 10000, sT % 10000 / 100, sT % 100);
-                printf("FINISH (event %d):\t%d/%02d/%02d\t", fEventId, fD / 10000, fD % 10000 / 100, fD % 100);
-                printf("%02d:%02d:%02d\n", fT / 10000, fT % 10000 / 100, fT % 100);
-                printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
-
-                if (!UniDbRun::GetRun(fPeriodId, runId))
-                    UniDbRun::CreateRun(fPeriodId, runId, TString::Format("/nica/data4mpd1/dataBMN/bmndata2/run6/raw/mpd_run_Glob_%d.data", runId), "", NULL, NULL, sDatime, &fDatime, &nEv, NULL, &fSize, NULL);
-            }
-        }
         fDigiTree->Fill();
         prevEventType = curEventType;
-
     }
+
+    printf(ANSI_COLOR_RED "\n=============== RUN" ANSI_COLOR_RESET);
+    printf(ANSI_COLOR_BLUE " %04d " ANSI_COLOR_RESET, runId);
+    printf(ANSI_COLOR_RED "SUMMARY ===============\n" ANSI_COLOR_RESET);
+    printf("START (event 1):\t%s\n", fRunStartTime.AsSQLString());
+    printf("FINISH (event %d):\t%s\n", fNevents, fRunEndTime.AsSQLString());
+    printf(ANSI_COLOR_RED "================================================\n" ANSI_COLOR_RESET);
+
+    fDigiTree->Branch("RunHeader", &runHeader);
+    runHeader->SetRunId(runId);
+    runHeader->SetStartTime(fRunStartTime);
+    runHeader->SetFinishTime(fRunEndTime);
+    runHeader->SetNEvents(nEv);
+
     fDigiTree->Write();
     fDigiFileOut->Close();
     fRootFileIn->Close();
@@ -989,7 +1025,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fTof700Mapper) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
-        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig());
+        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig(), kFALSE);
         //        fDigiTree->Fill();
 
     }

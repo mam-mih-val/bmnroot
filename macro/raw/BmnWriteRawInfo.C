@@ -1,33 +1,44 @@
 // Macro to save information of raw files to the Unified Database
 // based on BmnDataToRoot.C
 // (optionally, you can save the result digi file, if output_file isn't equal "")
+//
 // Parameters:
 //file: full path to raw-file
 //output_file: full path to save the final (digi) root file, if you don't need it, please, don't set it or use ""
-
-void BmnWriteRawInfo(TString file, TString output_file = "")
+//isOnlyNew - if true then only new runs will be created in the database (no update for existing runs), otherwise - new run will be created and existing runs will be updated
+void BmnWriteRawInfo(TString file, TString output_file = "", bool isOnlyNew = false)
 {
     Int_t nEvents = 0;
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
 
     // check input file exist and get file size
-    gSystem->ExpandPathName(fileName);
+    gSystem->ExpandPathName(file);
     if (gSystem->AccessPathName(file.Data()) == true)
     {
         cout<<endl<<"No input file was found: "<<file<<endl;
         return;
     }
     Long_t id, flags, modtime;
-    Long64_t file_size = -1;
-    gSystem->GetPathInfo(file.Data(), &id, &file_size, &flags, &modtime);
-    if (file_size <= 0)
+    Long64_t l_file_size = -1;
+    gSystem->GetPathInfo(file.Data(), &id, &l_file_size, &flags, &modtime);
+    if (l_file_size <= 0)
     {
         cout<<endl<<"Input file has zero size. Exiting..."<<endl;
         return;
     }
+	double file_size = l_file_size/1048576.0;
 
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //6 - period
+
+    bool isRunExist = UniDbRun::CheckRunExists(decoder->GetPeriodId(), decoder->GetRunId());
+    // if run exists and corresponding flags were set then exit
+    if ((output_file == "") && (isOnlyNew) && (isRunExist))
+    {
+        cout<<endl<<"Run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" already exists and 'only new run' flag was set. Exiting..."<<endl;
+        delete decoder;
+        return;
+    }
 
     Bool_t setup[9]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
@@ -82,31 +93,35 @@ void BmnWriteRawInfo(TString file, TString output_file = "")
         TDatime* endDate = new TDatime((Int_t)fRunHeader->GetFinishTime().GetDate(kFALSE), (Int_t)fRunHeader->GetFinishTime().GetTime(kFALSE));
         int* event_count = new int(fRunHeader->GetNEvents());
 
-        bool isRunExist = UniDbRun::CheckRunExist(decoder->GetPeriodId(), decoder->GetRunId());
         if (isRunExist)
         {
-            UniDbRun* pRun = UniDbRun::GetRun(decoder->GetPeriodId(), decoder->GetRunId());
-
-            bool isErrors = false;
-            if (pRun == NULL) isErrors = true;
+            if (isOnlyNew)
+                cout<<"Run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" is exist (it will not updated)."<<endl;
             else
             {
-                if (pRun->SetFilePath(file.Data()) != 0) isErrors = true;
-                if (pRun->SetStartDatetime(startDate) != 0) isErrors = true;
-                if (pRun->SetEndDatetime(endDate) != 0) isErrors = true;
-                if (pRun->SetEventCount(event_count) != 0) isErrors = true;
-                if (pRun->SetFileSize(file_size) != 0) isErrors = true;
+                UniDbRun* pRun = UniDbRun::GetRun(decoder->GetPeriodId(), decoder->GetRunId());
 
-                delete pRun;
+                bool isErrors = false;
+                if (pRun == NULL) isErrors = true;
+                else
+                {
+                    if (pRun->SetFilePath(file.Data()) != 0) isErrors = true;
+                    if (pRun->SetStartDatetime(startDate) != 0) isErrors = true;
+                    if (pRun->SetEndDatetime(endDate) != 0) isErrors = true;
+                    if (pRun->SetEventCount(event_count) != 0) isErrors = true;
+                    if (pRun->SetFileSize(&file_size) != 0) isErrors = true;
+
+                    delete pRun;
+                }
+                if (isErrors)
+                    cout<<"The errors occured during run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" info updated."<<endl;
+                else
+                    cout<<"Info for run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" was updated."<<endl;
             }
-            if (isErrors)
-                cout<<"The errors occured during run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" info updated."<<endl;
-            else
-                cout<<"Info for run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" was updated."<<endl;
         }
         else
         {
-            UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), file.Data(), "", NULL, NULL, startDate, endDate, event_count, NULL, &file_size, NULL);
+            UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), file, "", NULL, NULL, startDate, endDate, event_count, NULL, &file_size, NULL);
 
             bool isErrors = false;
             if (pRun == NULL)

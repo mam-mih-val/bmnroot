@@ -44,6 +44,8 @@ public:
 	void		SetWireDelay(Double_t v) { fWireDelayLength = v; };	
 	Double_t	GetTShift(void) const {return fTS; };
 	void		SetTShift(Double_t v) { fTS = v; };
+        Double_t        GetDriftTime(void) const {return fTS; };
+        void            SetDriftTime(Double_t v) { fTS = v; };
 
   /** Modifiers **/
   //void SetTrackId(Int_t trackID) { fTrackID = trackID; }

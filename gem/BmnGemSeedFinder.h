@@ -31,7 +31,7 @@ public:
     Bool_t CalculateTrackParamsParabolicSpiral(BmnGemTrack* tr, TLorentzVector* spirPar, TVector3* linePar, Short_t q);
 
     BmnStatus FindSeeds(vector<BmnGemTrack>& cand);
-    BmnStatus FindSeedsBy3planes(vector<BmnGemTrack>& cand);
+    BmnStatus FindSeedsCombinatorics(vector<BmnGemTrack>& cand);
     BmnStatus FitSeeds(vector<BmnGemTrack> cand);
     BmnStatus CalculateTrackParamsLine(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsCircle(BmnGemTrack* tr);

@@ -38,8 +38,8 @@ class BmnGlobalTrack : public BmnTrack {
   Int_t GetDchTrackIndex()  const { return fDchTrack;  }
   Int_t GetMwpcTrackIndex() const { return fMwpcTrack; }
   
-  const BmnFitNode* GetFitNode(Int_t index) const {return &fFitNodes[index];}
-  const vector<BmnFitNode>& GetFitNodes() const {return fFitNodes;}
+  BmnFitNode* GetFitNode(Int_t index) {return &fFitNodes[index];}
+  vector<BmnFitNode>& GetFitNodes() {return fFitNodes;}
 
   /** Modifiers **/
   void SetGemTrackIndex(Int_t iGem)    { fGemTrack  = iGem;     }

@@ -70,6 +70,11 @@ class TangoTimeInterval : public TObject
 class UniDbTangoData
 {
  public:
+    // empty constructor
+    UniDbTangoData();
+    // empty destructor
+    ~UniDbTangoData();
+
     // Функция SplitString разбивает строку на отдельные элементы по указанному разделителю.
     //	TString str - строка, которую будем редактировать.
     //	TString delim - разделитель.
@@ -110,7 +115,8 @@ class UniDbTangoData
     // Функция SearchTangoParameter получает доступ к базе Tango, совершает выбор, сделанный на основе заданных параметров и дополнительных критериев.
     // Учитывая полученную информацию из базовой таблицы, извлекает название таблицы, в которой хранятся необходимые данные по параметру,
     // затем обращается к найденной таблице с данными и делает выборку по заданному временному периоду,
-    // Возвращает массив TObjArray с объектми TObjArray, содержащими TangoTimeInterval (условно TObjArray<TObjArray<TangoTimeInterval*>>), или NULL в случае ошибки.
+    // Возвращает массив TObjArray с объектами TObjArray, содержащими TangoTimeInterval (условно TObjArray<TObjArray<TangoTimeInterval*>>)
+    // в случае не найденных значений параметра - возвращает TObjArray с 0 элементов TObjArray; в случае ощибки возвращает NULL.
     // Необходимые параметры для данной функции:
     //	detector_name - название детектора (например "zdc" или "gem")
     //	parameter_name - это название физического параметра из БД Tango (например, "uset" для ZDC или "u" для GEM)

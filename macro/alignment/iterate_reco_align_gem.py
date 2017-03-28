@@ -68,7 +68,6 @@ def main() :
     parser.add_option("-i", "--inf",     dest="addInfo",                default='',                                 help="additional meta-information")
     parser.add_option("-p", "--prim",    dest="isPrimary",              default='kTRUE',                            help="is primary or not")
     parser.add_option("-c", "--corr",    dest="startAlignCorrFileName", default='',                                 help="file name with the starting alignment corrections")
-    parser.add_option("-r", "--run",     dest="runPeriod",              default=6,                                  help="run period",                            type="int")
     (options, args) = parser.parse_args()
     if options.verbose :
         print "reading %s..." % options.digiFileListFileName
@@ -263,7 +262,7 @@ def main() :
             f.write(fname)
 
     # plot new and sum corrections vs. iteration number, beginning with the start values of sum corrections (at the so-called 'itertaion 0')
-    call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/plot_align_corrections_gem.C("'+newAlignCorrFileListFileName+'", "'+sumAlignCorrFileListFileName+'", "'+alignCorrPlotsFileName+'", '+str(runPeriod)+')'])
+    call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/plot_align_corrections_gem.C("'+newAlignCorrFileListFileName+'")'])
 
 if __name__ == "__main__" :
     main()

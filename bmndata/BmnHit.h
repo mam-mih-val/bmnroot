@@ -81,6 +81,10 @@ public:
         fIndex = id;
     }
 
+    void SetLength(Double_t len) {
+        fLength = len;
+    }
+
     void SetDetId(DetectorId det) {
         fDetId = det;
     }
@@ -95,6 +99,10 @@ public:
 
     Int_t GetType() {
         return fType;
+    }
+    
+    Double_t GetLength() {
+        return fLength;
     }
 
     /** Destructor **/
@@ -117,6 +125,7 @@ private:
     /** station number. It essential for gem, mwpc**/
     Short_t fStation;
     Int_t fType; // 0 - fake, 1 - hit, -1 - undefined
+    Double_t fLength; //length from vertex to current hit
 
     ClassDef(BmnHit, 1);
 

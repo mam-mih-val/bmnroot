@@ -108,6 +108,7 @@ private:
 
     // INPUT ARRAYS
     TClonesArray* fGemTracks;
+    TClonesArray* fGemVertex;
     TClonesArray* fGemHits;
     TClonesArray* fMwpcTracks;
     TClonesArray* fMwpcHits;

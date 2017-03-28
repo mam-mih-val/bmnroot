@@ -86,8 +86,8 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
             new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", fX, fY, fZ, 0.0, 0, 1, TMatrixFSym(3));
         }
     } else if (nTracks >= 2) {
-        const Float_t z0 = -1.0;
-        const Float_t z1 = 1.0;
+        const Float_t z0 = -50.0;
+        const Float_t z1 = 50.0;
 
         Float_t l1(0.0), l2(0.0), l3(0.0), l4(0.0);
         Float_t t1(0.0), t2(0.0), t3(0.0), t4(0.0);

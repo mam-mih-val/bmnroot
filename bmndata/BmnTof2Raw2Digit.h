@@ -89,8 +89,8 @@ public:
     void Slewing();
     void readSlewing();
     void SlewingResults();
-    float slewingt0_correction(int chamber, float width, int peak);
-    float slewing_correction(int chamber, float width, int peak);
+    float slewingt0_correction(int chamber, double width, int peak);
+    float slewing_correction(int chamber, double width, int peak);
     void drawprep();
     void drawprof();
     void drawproft0();
@@ -100,6 +100,7 @@ public:
     int get_chamber_z(int chamber, float *z);
     int get_track_hits(float *xyz, float *cxyy, int *nhits, int *chamb, int *strip);
     void ReBook(int i);
+    void BookSlewingResults();
 
 private:
     char filname_base[256];
@@ -140,20 +141,20 @@ private:
     int wmaxt0[TOF2_MAX_CHAMBERS][2];
     int tmint0[TOF2_MAX_CHAMBERS][2];
     int tmaxt0[TOF2_MAX_CHAMBERS][2];
-    float TvsWt0_const[TOF2_MAX_CHAMBERS][2];
-    float TvsWt0_slope[TOF2_MAX_CHAMBERS][2];
-    float TvsWt0_parab[TOF2_MAX_CHAMBERS][2];
+    double TvsWt0_const[TOF2_MAX_CHAMBERS][2];
+    double TvsWt0_slope[TOF2_MAX_CHAMBERS][2];
+    double TvsWt0_parab[TOF2_MAX_CHAMBERS][2];
 
     int wmin[TOF2_MAX_CHAMBERS][2];
     int wmax[TOF2_MAX_CHAMBERS][2];
     int tmin[TOF2_MAX_CHAMBERS][2];
     int tmax[TOF2_MAX_CHAMBERS][2];
-    float TvsW_const[TOF2_MAX_CHAMBERS][2];
-    float TvsW_slope[TOF2_MAX_CHAMBERS][2];
-    float TvsW_parab[TOF2_MAX_CHAMBERS][2];
-    float TvsW_cubic[TOF2_MAX_CHAMBERS][2];
-    float TvsW_four[TOF2_MAX_CHAMBERS][2];
-    float TvsW_five[TOF2_MAX_CHAMBERS][2];
+    double TvsW_const[TOF2_MAX_CHAMBERS][2];
+    double TvsW_slope[TOF2_MAX_CHAMBERS][2];
+    double TvsW_parab[TOF2_MAX_CHAMBERS][2];
+    double TvsW_cubic[TOF2_MAX_CHAMBERS][2];
+    double TvsW_four[TOF2_MAX_CHAMBERS][2];
+    double TvsW_five[TOF2_MAX_CHAMBERS][2];
 
     TProfile *TvsW[TOF2_MAX_CHAMBERS][2];
     TProfile *TvsWt0[TOF2_MAX_CHAMBERS][2];

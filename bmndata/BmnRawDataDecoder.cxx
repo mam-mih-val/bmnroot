@@ -733,7 +733,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     BmnEventType curEventType = kBMNPAYLOAD;
     BmnEventType prevEventType = curEventType;
 
-    if (fTof700Mapper) fTof700Mapper->BookSlewing();
+    if (fTof700Mapper) fTof700Mapper->readSlewingLimits();
+    if (fTof700Mapper) fTof700Mapper->BookSlewingResults();
 
     if (fGemMapper) {
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
@@ -904,7 +905,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         //        fTof700Mapper->print();
         fTof700Mapper->readSlewingT0();
         fTof700Mapper->readSlewing();
-        fTof700Mapper->BookSlewing();
+        fTof700Mapper->BookSlewingResults();
     }
 
     if (fDetectorSetup[6]) {
@@ -1044,7 +1045,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fMwpcMapper) delete fMwpcMapper;
     if (fTrigMapper) delete fTrigMapper;
     if (fTof400Mapper) delete fTof400Mapper;
-    if (fTof700Mapper) delete fTof700Mapper;
+//    if (fTof700Mapper) delete fTof700Mapper;
     if (fZDCMapper) delete fZDCMapper;
     if (fECALMapper) delete fECALMapper;
 

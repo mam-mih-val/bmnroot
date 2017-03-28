@@ -12,7 +12,8 @@
 #define TOF2_MAX_CHANNELS_IN_MODULE 64
 #define TOF2_MAX_CRATES 5
 #define TOF2_MAX_SLOTS_IN_CRATE 20
-#define TOF2_MAX_CHAMBERS 24
+//#define TOF2_MAX_CHAMBERS 24
+#define TOF2_MAX_CHAMBERS 15
 #define TOF2_MAX_CHANNEL 1600
 
 //#define TOF700_TDC_TYPE (0x11) //TDC32VL
@@ -99,8 +100,8 @@ public:
     void Slewing();
     void readSlewing();
     void SlewingResults();
-    float slewingt0_correction(int chamber, float width, int peak);
-    float slewing_correction(int chamber, float width, int peak);
+    float slewingt0_correction(int chamber, double width, int peak);
+    float slewing_correction(int chamber, double width, int peak);
     void drawprep();
     void drawprof();
     void drawproft0();
@@ -112,6 +113,8 @@ public:
     void ReBook(int i);
     void Book();
     void BookSlewing();
+    void BookSlewingResults();
+    void WriteSlewingHists();
     Double_t *GetINL() { return &DNL_Table[0][0][0][0]; }
 
 private:
@@ -153,20 +156,20 @@ private:
     int wmaxt0[TOF2_MAX_CHAMBERS][2];
     int tmint0[TOF2_MAX_CHAMBERS][2];
     int tmaxt0[TOF2_MAX_CHAMBERS][2];
-    float TvsWt0_const[TOF2_MAX_CHAMBERS][2];
-    float TvsWt0_slope[TOF2_MAX_CHAMBERS][2];
-    float TvsWt0_parab[TOF2_MAX_CHAMBERS][2];
+    double TvsWt0_const[TOF2_MAX_CHAMBERS][2];
+    double TvsWt0_slope[TOF2_MAX_CHAMBERS][2];
+    double TvsWt0_parab[TOF2_MAX_CHAMBERS][2];
 
     int wmin[TOF2_MAX_CHAMBERS][2];
     int wmax[TOF2_MAX_CHAMBERS][2];
     int tmin[TOF2_MAX_CHAMBERS][2];
     int tmax[TOF2_MAX_CHAMBERS][2];
-    float TvsW_const[TOF2_MAX_CHAMBERS][2];
-    float TvsW_slope[TOF2_MAX_CHAMBERS][2];
-    float TvsW_parab[TOF2_MAX_CHAMBERS][2];
-    float TvsW_cubic[TOF2_MAX_CHAMBERS][2];
-    float TvsW_four[TOF2_MAX_CHAMBERS][2];
-    float TvsW_five[TOF2_MAX_CHAMBERS][2];
+    double TvsW_const[TOF2_MAX_CHAMBERS][2];
+    double TvsW_slope[TOF2_MAX_CHAMBERS][2];
+    double TvsW_parab[TOF2_MAX_CHAMBERS][2];
+    double TvsW_cubic[TOF2_MAX_CHAMBERS][2];
+    double TvsW_four[TOF2_MAX_CHAMBERS][2];
+    double TvsW_five[TOF2_MAX_CHAMBERS][2];
 
     TProfile *TvsW[TOF2_MAX_CHAMBERS][2];
     TProfile *TvsWt0[TOF2_MAX_CHAMBERS][2];

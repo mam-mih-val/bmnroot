@@ -6,6 +6,7 @@
 #include "TLine.h"
 #include "TCanvas.h"
 #include "TROOT.h"
+#include "TFile.h"
 #include "BmnTof2Raw2DigitNew.h"
 
 //module IDs
@@ -280,53 +281,10 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) LeadMax[i] = +5000;
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) Wcutc[i] = -1;
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) Wmaxc[i] = -1;
-/*
-    LeadMin[0] = -400;
-    LeadMin[1] = -300;
-    LeadMin[2] = -400;
-    LeadMin[3] = -120;
-
-    LeadMax[0] = -250;
-    LeadMax[1] = -150;
-    LeadMax[2] = -50;
-    LeadMax[3] = +120;
-*/
-/*
-    if (RUN < 470)
-    {
-	SetWcut(1700);
-	SetWmax(3700);
-	SetWT0min(260);
-	SetWT0max(560);
-	SetLeadMinMax(1,-400, -250);
-	SetLeadMinMax(2,-300, -150);
-	SetLeadMinMax(3,-400, -50);
-	SetLeadMinMax(4,-120, +120);
-    }
-    else
-    {
-	SetWcut(1700);
-	SetWmax(3700);
-	SetWT0min(640);
-	SetWT0max(710);
-	SetLeadMinMax(1,-350, -150);
-	SetLeadMinMax(2,-350, -150);
-	SetLeadMinMax(3,-350, +50);
-	SetLeadMinMax(4,-200, +200);
-//	SetLeadMinMax(1,-1350, +1350);
-//	SetLeadMinMax(2,-1350, +1350);
-//	SetLeadMinMax(3,-1350, +1350);
-//	SetLeadMinMax(4,-1350, +1350);
-    }
-*/
 
     T0shift = 0.;
 
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) numstrip[i] = -1;
-//    numstrip[0] = 28;
-//    numstrip[1] = 28;
-//    numstrip[2] = 15;
-//    numstrip[3] = 15;
 
 }
 void BmnTof2Raw2DigitNew::Book()
@@ -348,20 +306,25 @@ void BmnTof2Raw2DigitNew::Book()
 	sprintf(name, "Time_vs_Strip_Chamber_%.1f",idchambers[i]);
 	sprintf(title, "Time vs Strip Chamber %.1f",idchambers[i]);
 	TvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,30000, -20000., +10000.);
+	TvsS[i]->SetDirectory(0);
 	sprintf(name, "Width_vs_Strip_Chamber_%.1f",idchambers[i]);
 	sprintf(title, "Width vs Strip Chamber %.1f",idchambers[i]);
 	WvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,30000, -20000., +10000.);
+	WvsS[i]->SetDirectory(0);
     }
     for (int i=0; i<MaxPlane; i++)
     {
 	sprintf(name, "Time_vs_Width_Chamber_%.1f_all",idchambers[i]);
 	sprintf(title, "Time vs Width Chamber %.1f all",idchambers[i]);
 	TvsWall[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
+	TvsWall[i]->SetDirectory(0);
 	sprintf(name, "Time_vs_Width_Chamber_%.1f_all_max",idchambers[i]);
 	sprintf(title, "Time vs Width Chamber %.1f all, max strip",idchambers[i]);
 	TvsWallmax[i] = new TH2F(name,title,Wmax,0,Wmax,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
+	TvsWallmax[i]->SetDirectory(0);
     }
 }
+
 void BmnTof2Raw2DigitNew::BookSlewing()
 {
     char name[128], title[128];
@@ -374,10 +337,12 @@ void BmnTof2Raw2DigitNew::BookSlewing()
 	sprintf(title, "Time vs Width Chamber %.1f Peak 1",idchambers[i]);
 	if (TvsW[i][0]) delete TvsW[i][0];
 	TvsW[i][0] = new TProfile(name,title,Wcut,0,Wcut,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
+	TvsW[i][0]->SetDirectory(0);
 	sprintf(name, "Time_vs_T0_Width_Chamber_%.1f_Peak_1",idchambers[i]);
 	sprintf(title, "Time vs T0 Width Chamber %.1f Peak 1",idchambers[i]);
 	if (TvsWt0[i][0]) delete TvsWt0[i][0];
 	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
+	TvsWt0[i][0]->SetDirectory(0);
     }
     for (int i=0; i<MaxPlane; i++)
     {
@@ -385,11 +350,67 @@ void BmnTof2Raw2DigitNew::BookSlewing()
 	sprintf(title, "Time vs Width Chamber %.1f Peak 2",idchambers[i]);
 	if (TvsW[i][1]) delete TvsW[i][1];
 	TvsW[i][1] = new TProfile(name,title,(Wmax-Wcut),Wcut,Wmax,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
+	TvsW[i][1]->SetDirectory(0);
 	sprintf(name, "Time_vs_T0_Width_Chamber_%.1f_Peak_2",idchambers[i]);
 	sprintf(title, "Time vs T0 Width Chamber %.1f Peak 2",idchambers[i]);
 	if (TvsWt0[i][1]) delete TvsWt0[i][1];
 	TvsWt0[i][1] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
+	TvsWt0[i][1]->SetDirectory(0);
     }
+}
+
+void BmnTof2Raw2DigitNew::BookSlewingResults()
+{
+    char name[128], title[128];
+
+    gStyle->SetOptFit(111);
+
+    for (int i=0; i<MaxPlane; i++)
+    {
+	sprintf(name, "Time_vs_Width_Chamber_%.1f_Peak_1",idchambers[i]);
+	sprintf(title, "Time vs Width Chamber %.1f Peak 1",idchambers[i]);
+	if (TvsW[i][0]) delete TvsW[i][0];
+	TvsW[i][0] = new TProfile(name,title,Wcut,0,Wcut,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
+	TvsW[i][0]->SetDirectory(0);
+	sprintf(name, "Time_vs_T0_Width_Chamber_%.1f_Peak_1",idchambers[i]);
+	sprintf(title, "Time vs T0 Width Chamber %.1f Peak 1",idchambers[i]);
+	if (TvsWt0[i][0]) delete TvsWt0[i][0];
+	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
+	TvsWt0[i][0]->SetDirectory(0);
+    }
+    for (int i=0; i<MaxPlane; i++)
+    {
+	sprintf(name, "Time_vs_Width_Chamber_%.1f_Peak_2",idchambers[i]);
+	sprintf(title, "Time vs Width Chamber %.1f Peak 2",idchambers[i]);
+	if (TvsW[i][1]) delete TvsW[i][1];
+	TvsW[i][1] = new TProfile(name,title,(Wmax-Wcut),Wcut,Wmax,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
+	TvsW[i][1]->SetDirectory(0);
+	sprintf(name, "Time_vs_T0_Width_Chamber_%.1f_Peak_2",idchambers[i]);
+	sprintf(title, "Time vs T0 Width Chamber %.1f Peak 2",idchambers[i]);
+	if (TvsWt0[i][1]) delete TvsWt0[i][1];
+	TvsWt0[i][1] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
+	TvsWt0[i][1]->SetDirectory(0);
+    }
+}
+
+void BmnTof2Raw2DigitNew::WriteSlewingHists()
+{
+    TFile *f = NULL;
+    char filn[128];
+    sprintf(filn, "%s_slewing.root", filname_base);
+    f = new TFile(filn,"RECREATE","Slewing Results of BmnTOF700");
+    for (int i=0; i<MaxPlane; i++)
+    {
+	if (TvsW[i][0]) TvsW[i][0]->Write();
+	if (TvsWt0[i][0]) TvsWt0[i][0]->Write();
+    }
+    for (int i=0; i<MaxPlane; i++)
+    {
+	if (TvsW[i][1]) TvsW[i][1]->Write();
+	if (TvsWt0[i][1]) TvsWt0[i][1]->Write();
+    }
+    f->Close();
+    delete f;
 }
 
 
@@ -843,7 +864,7 @@ void BmnTof2Raw2DigitNew::readSlewingT0()
   {
 	printf(" slewing file error, chamber numbers are mismatched, %d != %d\n", p+1, plane);
   }
-  fscanf(fin, "Time(Width) = %f + %f*Width + %g*Width**2\n", &TvsWt0_const[p][pk], &TvsWt0_slope[p][pk], &TvsWt0_parab[p][pk]);
+  fscanf(fin, "Time(Width) = %lf + %lf*Width + %lg*Width**2\n", &TvsWt0_const[p][pk], &TvsWt0_slope[p][pk], &TvsWt0_parab[p][pk]);
   printf("Time(Width) = %f + %f*Width + %g*Width**2\n", TvsWt0_const[p][pk], TvsWt0_slope[p][pk], TvsWt0_parab[p][pk]);
 
   fscanf(fin,"Chamber #%d channel offsets (average is %f)\n", &plane, &tmean_average[pk][p]);
@@ -1112,7 +1133,7 @@ void BmnTof2Raw2DigitNew::readSlewing()
   {
 	printf(" slewing file error, chamber numbers are mismatched, %d != %d\n", p+1, plane);
   }
-  fscanf(fin, "Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3 + %g*Width**4 + %g*Width**5\n", &TvsW_const[p][pk], &TvsW_slope[p][pk], &TvsW_parab[p][pk], &TvsW_cubic[p][pk], &TvsW_four[p][pk], &TvsW_five[p][pk]);
+  fscanf(fin, "Time(Width) = %lf + %lf*Width + %lg*Width**2 + %lg*Width**3 + %lg*Width**4 + %lg*Width**5\n", &TvsW_const[p][pk], &TvsW_slope[p][pk], &TvsW_parab[p][pk], &TvsW_cubic[p][pk], &TvsW_four[p][pk], &TvsW_five[p][pk]);
   printf("Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3 + %g*Width**4 + %g*Width**5\n", TvsW_const[p][pk], TvsW_slope[p][pk], TvsW_parab[p][pk], TvsW_cubic[p][pk], TvsW_four[p][pk], TvsW_five[p][pk]);
 
   fscanf(fin,"Chamber #%d channel offsets (average is %f)\n", &plane, &tmean_average[pk][p]);
@@ -1190,9 +1211,13 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	float W1 = trail[ind]-lead[ind];
 	float W2 = trail[ind1]-lead[ind1];
 	float W = (W1+W2)/2.;
+//test!!!!
+//	if (L < LeadMin[mapa[ind].plane] || L >= LeadMax[mapa[ind].plane]) continue;
+//
 	if ((int)W1 < Wc && (int)W2 < Wc)
 	{
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
+	    TvsWt0[mapa[ind].plane][0]->Fill(t0width*INVHPTIMEBIN, L);
 	    L -= tmean[0][ind];
     	    L -= slewing_correction(mapa[ind].plane, W, 0);
 	    TvsW[mapa[ind].plane][0]->Fill(W, L);
@@ -1200,6 +1225,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	else if (W1 >= Wc && W2 >= Wc)
 	{
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
+	    TvsWt0[mapa[ind].plane][1]->Fill(t0width*INVHPTIMEBIN, L);
 	    L -= tmean[1][ind];
     	    L -= slewing_correction(mapa[ind].plane, W, 1);
 	    TvsW[mapa[ind].plane][1]->Fill(W, L);
@@ -1211,7 +1237,6 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	    L -= 0.5*(tmean[0][ind]+tmean[1][ind]);
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W2, 0);
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W1, 1);
-	    TvsW[mapa[ind].plane][1]->Fill(W, L);
 	}
 	else if (W1 < Wc && W2 > Wc)
 	{
@@ -1220,7 +1245,6 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	    L -= 0.5*(tmean[0][ind]+tmean[1][ind]);
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W1, 0);
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W2, 1);
-	    TvsW[mapa[ind].plane][1]->Fill(W, L);
 	}
 //        new(ar[tof2digit->GetEntriesFast()]) BmnTof2Digit(mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W*HPTIMEBIN,D*HPTIMEBIN);  
 //        printf("%d %d %f %f %f t0 %f t0width %f\n", mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W,D*HPTIMEBIN, t0, t0width);  
@@ -1232,13 +1256,16 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 void BmnTof2Raw2DigitNew::SlewingResults()
 {
   TProfile *prof = 0;
+  for (int it = 0; it < 2; it++)
+  {
   for (int plane = 0; plane < MaxPlane; plane++)
   {
   prof = TvsW[plane][0];
-  if (!prof) return;
+  if (it == 0) prof = TvsWt0[plane][0];
+  if (!prof) continue;
 
   int nonzero = 0;
-  for (int i=1; i<prof->GetNbinsX(); i++)
+  for (int i=1; i<=prof->GetNbinsX(); i++)
   {
     if (prof->GetBinContent(i)!=0)
     {
@@ -1252,13 +1279,14 @@ void BmnTof2Raw2DigitNew::SlewingResults()
       prof->Fit("pol0","WQ0");
       if(prof->GetFunction("pol0")) (prof->GetFunction("pol0"))->ResetBit(TF1::kNotDraw);
     }
-  else {printf(" Chamber %d slewing - too few nonzero bins = %d\n", plane+1, nonzero); }
+  else {printf(" Chamber %d slewing results (%d) - too few nonzero bins = %d\n", plane+1, it, nonzero); }
 
   prof = TvsW[plane][1];
-  if (!prof) return;
+  if (it == 0) prof = TvsWt0[plane][1];
+  if (!prof) continue;
 
   nonzero = 0;
-  for (int i=1; i<prof->GetNbinsX(); i++)
+  for (int i=1; i<=prof->GetNbinsX(); i++)
   {
     if (prof->GetBinContent(i)!=0)
     {
@@ -1272,30 +1300,31 @@ void BmnTof2Raw2DigitNew::SlewingResults()
       prof->Fit("pol0","WQ0");
       if(prof->GetFunction("pol0")) (prof->GetFunction("pol0"))->ResetBit(TF1::kNotDraw);
     }
-  else {printf(" Chamber %d slewing results - too few nonzero bins = %d\n", plane+1, nonzero); }
+  else {printf(" Chamber %d slewing results (%d) - too few nonzero bins = %d\n", plane+1, it, nonzero); }
 
   } // loop on chambers
+  } // loop on T0 and RPC cases
 
   return;
 }
 
-float BmnTof2Raw2DigitNew::slewingt0_correction(int chamber, float width, int peak)
+float BmnTof2Raw2DigitNew::slewingt0_correction(int chamber, double width, int peak)
 {
     if (chamber < 0 || chamber >= MaxPlane || peak < 0 || peak > 1) return 0.;
-    float cor = 0.;
+    double cor = 0.;
     if (TvsWt0_const[chamber][peak] != 0.) cor = TvsWt0_const[chamber][peak] + TvsWt0_slope[chamber][peak]*width + TvsWt0_parab[chamber][peak]*width*width;
     else                                   cor = (LeadMax[chamber]+LeadMin[chamber])/2;
-    return cor;
+    return (float)cor;
 }
 
-float BmnTof2Raw2DigitNew::slewing_correction(int chamber, float width, int peak)
+float BmnTof2Raw2DigitNew::slewing_correction(int chamber, double width, int peak)
 {
     if (chamber < 0 || chamber >= MaxPlane || peak < 0 || peak > 1) return 0.;
-    float cor = 0.;
+    double cor = 0.;
     if (TvsW_const[chamber][peak] != 0.) cor = TvsW_const[chamber][peak] + TvsW_slope[chamber][peak]*width + TvsW_parab[chamber][peak]*width*width + TvsW_cubic[chamber][peak]*width*width*width + \
 					       TvsW_four[chamber][peak]*width*width*width*width + TvsW_five[chamber][peak]*width*width*width*width*width;
-    else                                 cor = (LeadMax[chamber]+LeadMin[chamber])/2;
-    return cor;
+    else                                 cor = 0.;
+    return (float)cor;
 }
 
 void BmnTof2Raw2DigitNew::DNL_read()
@@ -1524,8 +1553,8 @@ void BmnTof2Raw2DigitNew::drawprep()
       gPad->AddExec("exselt","select_hist()");
       im = (TvsS[i]->ProjectionY())->GetMaximumBin();
       y  = (int)((TvsS[i]->ProjectionY())->GetBinCenter(im));
-      ymin = y - 50;
-      ymax = y + 50;
+      ymin = y - 20;
+      ymax = y + 20;
       xmin = (TvsS[i]->GetXaxis())->GetXmin();
       xmax = (TvsS[i]->GetXaxis())->GetXmax();
       l = new TLine(xmin,ymin,xmax,ymin);
@@ -1547,8 +1576,8 @@ void BmnTof2Raw2DigitNew::drawprep()
       cpp->cd(champosn[i]+1);
       im = (TvsS[i]->ProjectionY())->GetMaximumBin();
       y  = (int)((TvsS[i]->ProjectionY())->GetBinCenter(im));
-      ymin = y - 50;
-      ymax = y + 50;
+      ymin = y - 20;
+      ymax = y + 20;
       xmin = 0;
       xmax = (TvsS[i]->ProjectionY())->GetMaximum();
       TvsS[i]->ProjectionY(strcat(strcpy(filn,TvsS[i]->GetName()),"_y"), 1, 32, "D");
@@ -1660,7 +1689,7 @@ void BmnTof2Raw2DigitNew::drawprof()
       gPad->AddExec("exselt","select_hist()");
     }   
 
-  TCanvas *callbe1 = new TCanvas("callbe1", "Leadings vs widths (slewing RPC, peak2)", 900,700);
+  TCanvas *callbe1 = new TCanvas("callbe1", "Leadings vs widths (slewing RPC, peak 2)", 900,700);
   callbe1->cd();
   callbe1->Divide(NDX,NDY);
   for (i=0; i<TOF2_MAX_CHAMBERS; i++)
@@ -1675,7 +1704,7 @@ void BmnTof2Raw2DigitNew::drawprof()
 
 void BmnTof2Raw2DigitNew::drawproft0()
 {
-  TCanvas *callbe0 = new TCanvas("callbe0", "Leadings vs widths (slewing T0)", 900,700);
+  TCanvas *callbe0 = new TCanvas("callbe0", "Leadings vs widths (slewing T0, peak 1)", 900,700);
   int i;
   callbe0->cd();
   callbe0->Divide(NDX,NDY);
@@ -1686,7 +1715,7 @@ void BmnTof2Raw2DigitNew::drawproft0()
       gPad->AddExec("exselt","select_hist()");
     }   
 
-  TCanvas *callbe01 = new TCanvas("callbe01", "Leadings vs widths (slewing T0)", 900,700);
+  TCanvas *callbe01 = new TCanvas("callbe01", "Leadings vs widths (slewing T0, peak 2)", 900,700);
   callbe01->cd();
   callbe01->Divide(NDX,NDY);
   for (i=0; i<TOF2_MAX_CHAMBERS; i++)

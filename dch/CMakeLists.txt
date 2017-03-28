@@ -21,9 +21,20 @@ ${CMAKE_SOURCE_DIR}/dch
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+${CMAKE_SOURCE_DIR}/bmnfield
+${CMAKE_SOURCE_DIR}/passive
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
+
+Set(SYSTEM_INCLUDE_DIRECTORIES
+  ${ROOT_INCLUDE_DIR} 
+  ${Boost_INCLUDE_DIRS}
+  ${GEANT3_INCLUDE_DIR}
+)
+
+Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
+
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
@@ -42,10 +53,15 @@ BmnDchGeoPar.cxx
 BmnDchHitProducer.cxx
 BmnDchHitProducerTmp.cxx
 BmnDchHitProducer_exp.cxx
+#BmnDchHitProducerCalib_exp.cxx
+DchTrackCand.cxx
+DchTrackManager.cxx
+${CMAKE_SOURCE_DIR}/bmnfield/BmnNewFieldMap.cxx
 ScalarD.cxx
 ScalarI.cxx
 ScalarUI.cxx
 DchHitPlane.cxx
+${CMAKE_SOURCE_DIR}/bmndata/BmnDchRaw2Digit.cxx
 BmnDchTrackFinder.cxx
 BmnDchTrack.cxx
 )

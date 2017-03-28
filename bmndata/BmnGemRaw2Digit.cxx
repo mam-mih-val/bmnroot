@@ -76,40 +76,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     Int_t ch = 0;
     Double_t ped = 0;
     Double_t rms = 0;
-    TString dummy;
-    TString path = Form("%s/input/GEM_pedestals_%d.txt", getenv("VMCWORKDIR"), fRun);//TString(getenv("VMCWORKDIR")) + TString("/input/GEM_pedestals.txt");
-
-    ifstream inFile(path.Data());
-    if (!inFile.is_open())
-        cout << "Error opening map-file (" << path << ")!" << endl;
-    inFile >> dummy >> dummy >> dummy >> dummy;
-    inFile >> dummy;
-    while (!inFile.eof()) {
-        inFile >> hex >> ser >> dec >> ch >> ped >> rms;
-        if (!inFile.good()) break;
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            if (ser == fSerials[iCr]) {
-                //                fPedArr[iCr][ch] = BmnGemPed(ped, rms);
-                fPedVal[iCr][ch / ADC32_N_SAMPLES][ch % ADC32_N_SAMPLES] = ped;
-                fPedRms[iCr][ch / ADC32_N_SAMPLES][ch % ADC32_N_SAMPLES] = rms;
-            }
-    }
-
-    path = Form("%s/input/GEM_noisy_Channels_%d.txt", getenv("VMCWORKDIR"), fRun);//TString(getenv("VMCWORKDIR")) + TString("/input/GEM_noisy_Channels.txt");
-    ifstream noiseFile(path.Data());
-    if (!noiseFile.is_open())
-        cout << "Error opening map-file (" << path << ")!" << endl;
-    noiseFile >> dummy >> dummy >> dummy;
-    noiseFile >> dummy;
-    Bool_t isNoise;
-    while (!noiseFile.eof()) {
-        noiseFile >> hex >> ser >> dec >> ch >> isNoise;
-        if (!noiseFile.good()) break;
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            if (ser == fSerials[iCr])
-                fNoiseChannels[iCr][ch / ADC32_N_SAMPLES][ch % ADC32_N_SAMPLES] = isNoise;
-    }
-
+  
     fPedDat = new UInt_t***[fNSerials];
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
         fPedDat[iCr] = new UInt_t**[N_EV_FOR_PEDESTALS];

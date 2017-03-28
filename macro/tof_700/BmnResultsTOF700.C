@@ -1,6 +1,7 @@
 #include "TMath.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TProfile.h"
 #include "TCanvas.h"
 #include "TStyle.h"
 #include "TChain.h"
@@ -11,8 +12,17 @@
 #include "TGeoManager.h"
 
 #define NUMBER_CHAMBERS 24
+//#define DIFF_CHAMB_1 -1
 #define DIFF_CHAMB_1 9
-#define DIFF_CHAMB_2 18
+#define DIFF_CHAMB_2 10
+//#define DIFF_CHAMB_1 9
+//#define DIFF_CHAMB_2 18
+//#define STRIP_1 0
+//#define STRIP_2 31
+//#define STRIP_1 20
+//#define STRIP_2 23
+#define STRIP_1 21
+#define STRIP_2 21
 
 #if NUMBER_CHAMBERS == 15
 int champos[NUMBER_CHAMBERS] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
@@ -23,8 +33,8 @@ int wma[NUMBER_CHAMBERS] = {3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,33
 #else
 #if NUMBER_CHAMBERS == 24
 int champos[NUMBER_CHAMBERS] = {17,18, 3, 1,19, 4,23,20, 5,15,21, 6, 2,22, 9,10,11,12,13,14, 7, 8, 0,16};
-int wmi[NUMBER_CHAMBERS] = {2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500,2500};
-int wma[NUMBER_CHAMBERS] = {4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000,4000};
+int wmi[NUMBER_CHAMBERS] = {2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800,2800};
+int wma[NUMBER_CHAMBERS] = {3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200,3200};
 #define NDX 8
 #define NDY 3
 #else
@@ -38,7 +48,7 @@ int wma[NUMBER_CHAMBERS] = {3300};
 
 using namespace TMath;
 
-void BmnResultsTOF700(char *fname = "../raw/bmn_run1209_digi.root") {
+void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
 
     /* Load basic libraries */
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -70,6 +80,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1209_digi.root") {
     TH1F *hstrips[NUMBER_CHAMBERS] = {0};
     TH1F *hstripsmax[NUMBER_CHAMBERS] = {0};
     TH1F *htimemax[NUMBER_CHAMBERS] = {0};
+    TProfile *timeprof[NUMBER_CHAMBERS] = {0};
     TH1F *hdiff = 0;
 
     TFile *f = NULL;
@@ -102,11 +113,18 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1209_digi.root") {
 	sprintf(name,"Strips_rate_chamber_%d_max_strip", i+1);
 	sprintf(title,"Strips rate, chamber %d, max strip", i+1);
 	hstripsmax[i] = new TH1F(name, title, 32, 0, 32);
+	sprintf(name,"Time_profile_chamber_%d", i+1);
+	sprintf(title,"Time profile, chamber %d", i+1);
+	timeprof[i] = new TProfile(name, title, 1000, 0, 5000, -20, +20, "e");
+	wmi[i] = 3000;
+	wma[i] = 3150;
     }
 
     sprintf(name,"Time_diff_chabmers_%d_%d", DIFF_CHAMB_1, DIFF_CHAMB_2);
     sprintf(title,"Time difference, chambers %d and %d", DIFF_CHAMB_1, DIFF_CHAMB_2);
     hdiff = new TH1F(name, title, 10000, -250, 250);
+
+    Int_t nchamb1 = 0, nchamb2 = 0, nchamb12 = 0, nchamb21 = 0, nchamb12n = 0, nchamb12nn = 0;
 
     for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
 //    for (Int_t iEv = startEvent; iEv < startEvent + 10000; iEv++) {
@@ -119,12 +137,14 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1209_digi.root") {
 	float wmax[NUMBER_CHAMBERS] = {0.};
 	float tmax[NUMBER_CHAMBERS] = {-10000000.};
 	int smax[NUMBER_CHAMBERS] = {-1};
+	int smax1[NUMBER_CHAMBERS] = {-1};
 
 	for (int i = 0; i<NUMBER_CHAMBERS; i++)
 	{
 	    wmax[i] = 0.;
 	    tmax[i] = -1000000.;
 	    smax[i] = -1;
+	    smax1[i] = -1;
 	}
 
 	for (Int_t iDig = 0; iDig < tof700Digits->GetEntriesFast(); ++iDig) {
@@ -139,34 +159,58 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1209_digi.root") {
 //    	    if (iEv % 10 == 0) cout << "plane = " << plane << " strip = " << strip << " time = " << time << " width = " << width << endl;
 //    	    if (iEv % 10 == 0) cout << "wmi = " << wmi[plane] << " wma = " << wma[plane] << endl;
 	    if (plane >= NUMBER_CHAMBERS) continue;
+//	    if (plane == 18 && (strip < 20 || strip > 23) ) continue;
+//	    if (plane ==  9 && (strip < 20 || strip > 23) ) continue;
 	    hwidth[plane]->Fill(width);
-	    if (width < wmi[plane] || width > wma[plane]) continue;
+	    smax1[plane] = strip;
 	    if (width > wmax[plane])
 	    {
 		wmax[plane] = width;
 		tmax[plane] = time;
 		smax[plane] = strip;
 	    }
+	    if (width < wmi[plane] || width > wma[plane]) continue;
 	    htime[plane]->Fill(time);
 	    hstrips[plane]->Fill(strip);
 	    hlrdiff[plane]->Fill(lrdiff);
 	} // tof700Digits loop
 
+	if (DIFF_CHAMB_1 >= 0) if ((smax1[DIFF_CHAMB_1] >= STRIP_1) && (smax1[DIFF_CHAMB_1] >= STRIP_2))
+	{
+	    nchamb1++;
+	    if ((smax1[DIFF_CHAMB_2] >= 0)) nchamb12++;
+	    if ((smax1[DIFF_CHAMB_2-1] >= 0)||(smax1[DIFF_CHAMB_2] >= 0)||(smax1[DIFF_CHAMB_2+1] >= 0)) nchamb12n++;
+	    if ((smax1[DIFF_CHAMB_2-1] >= 0)||(smax1[DIFF_CHAMB_2] >= 0)||(smax1[DIFF_CHAMB_2+1] >= 0)||(smax1[8] >= 0)||(smax1[10] >= 0)) nchamb12nn++;
+	}
+	if (DIFF_CHAMB_1 >= 0) if ((smax1[DIFF_CHAMB_2] >= STRIP_1) && (smax1[DIFF_CHAMB_2] >= STRIP_2))
+	{
+	    nchamb2++;
+	    if ((smax1[DIFF_CHAMB_1] >= 0)) nchamb21++;
+	}
 	for (int i=0; i<NUMBER_CHAMBERS; i++)
 	{
 	    if (smax[i] > -1)
 	    {
+		timeprof[i]->Fill(wmax[i], tmax[i]);
+		if (wmax[i] < wmi[i] || wmax[i] > wma[i]) continue;
 		htimemax[i]->Fill(tmax[i]);
 		hstripsmax[i]->Fill(smax[i]);
 	    }
 	}
-	if ((smax[DIFF_CHAMB_1] == 21) && (smax[DIFF_CHAMB_2] == 21) )
+	if (DIFF_CHAMB_1 < 0) continue;
+	if (wmax[DIFF_CHAMB_1] < wmi[DIFF_CHAMB_1] || wmax[DIFF_CHAMB_1] > wma[DIFF_CHAMB_1]) continue;
+	if (wmax[DIFF_CHAMB_2] < wmi[DIFF_CHAMB_2] || wmax[DIFF_CHAMB_2] > wma[DIFF_CHAMB_2]) continue;
+	if ((smax[DIFF_CHAMB_1] >= STRIP_1) && (smax[DIFF_CHAMB_2] >= STRIP_1) && (smax[DIFF_CHAMB_1] <= STRIP_2) && (smax[DIFF_CHAMB_2] <= STRIP_2) )
 	{
 		hdiff->Fill(tmax[DIFF_CHAMB_1]-tmax[DIFF_CHAMB_2]);
 	}
     } // event loop
 
-    FitIn(hdiff, -0.2, +0.2);
+    if (nchamb1 > 0) printf("Efficiency (normalize to chamber %3d) = %.1f %%\n", DIFF_CHAMB_1, (float)nchamb12/nchamb1*100.);
+    if (nchamb1 > 0) printf("Efficiency (normalize to chamber %3d) = %.1f %% (3 chambers)\n", DIFF_CHAMB_1, (float)nchamb12n/nchamb1*100.);
+    if (nchamb1 > 0) printf("Efficiency (normalize to chamber %3d) = %.1f %% (5 chambers)\n", DIFF_CHAMB_1, (float)nchamb12nn/nchamb1*100.);
+    if (nchamb2 > 0) printf("Efficiency (normalize to chamber %3d) = %.1f %%\n", DIFF_CHAMB_2, (float)nchamb21/nchamb1*100.);
+    if (DIFF_CHAMB_1 >= 0) FitIn(hdiff, -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htime[i], -0.2, +0.2);
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htimemax[i], -0.2, +0.2);
 
@@ -234,6 +278,18 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1209_digi.root") {
 	hlrdiff[i]->Draw();
 	gPad->AddExec("exselt","select_hist()");
     }
+
+    TCanvas *ctim = new TCanvas("ctim", "Time Profiles", 900, 900);
+    ctim->Divide(NDX,NDY);
+    ctim->cd();
+    for (int i=0; i<NUMBER_CHAMBERS; i++)
+    {
+	ctim->cd(champos[i]+1);
+	timeprof[i]->Draw();
+	gPad->AddExec("exselt","select_hist()");
+    }
+
+    if (DIFF_CHAMB_1 < 0) return;
 
     TCanvas *cdif = new TCanvas("cdif", "Time Difference", 900, 900);
     cdif->Divide(1,1);

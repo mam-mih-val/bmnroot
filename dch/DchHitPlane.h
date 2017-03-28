@@ -38,12 +38,13 @@ public:
   TClonesArray  *fDchHitPlane5;      //! pointer to TClonesArray in Dch plane of hits
   TClonesArray  *fDchHitPlane6;      //! pointer to TClonesArray in Dch plane of hits
   TClonesArray  *fDchHitPlane7;      //! pointer to TClonesArray in Dch plane of hits
+  TClonesArray  *fDchHitPlane8;      //! pointer to TClonesArray in Dch plane of hits
   DchHitPlane();
   ~DchHitPlane();
 
   //Bool_t checkxx; 
 
-  void SetDchPlaneHit(Int_t l, Double_t x, Double_t y, Int_t m, Int_t ll, UInt_t kk, Double_t dl, Int_t jj);
+  void SetDchPlaneHit(Int_t l, Double_t x, Double_t y, Int_t m, Int_t ll, UInt_t kk, Double_t dl, Double_t tdc, Int_t jj);
   void SetDchPlaneHitsNumber(UInt_t lkji, UShort_t k);
   UInt_t GetDchPlaneHitsNumber(UShort_t k);
   ClassDef(DchHitPlane,1)      // Dch plane of hits

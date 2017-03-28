@@ -20,7 +20,8 @@ DchHitPlane::DchHitPlane() : TObject() {
   fDchHitPlane4 = new TClonesArray("ScalarI");
   fDchHitPlane5 = new TClonesArray("ScalarUI");
   fDchHitPlane6 = new TClonesArray("ScalarD");
-  fDchHitPlane7 = new TClonesArray("ScalarI");
+  fDchHitPlane7 = new TClonesArray("ScalarD");
+  fDchHitPlane8 = new TClonesArray("ScalarI");
 
 }
 
@@ -49,11 +50,14 @@ DchHitPlane::~DchHitPlane() {
   fDchHitPlane7->Delete();   
   delete fDchHitPlane7;   
   fDchHitPlane7=0;   
+  fDchHitPlane8->Delete();   
+  delete fDchHitPlane8;   
+  fDchHitPlane8=0;   
   
 }
 
 //_________________________________________________________________
-void DchHitPlane::SetDchPlaneHit(Int_t l, Double_t x, Double_t y, Int_t m, Int_t ll, UInt_t kk, Double_t dl, Int_t jj) {
+void DchHitPlane::SetDchPlaneHit(Int_t l, Double_t x, Double_t y, Int_t m, Int_t ll, UInt_t kk, Double_t dl, Double_t TDC, Int_t jj) {
 
 ScalarD* wireX = (ScalarD*)fDchHitPlane1->ConstructedAt(l);
 wireX->SetSV(x);
@@ -67,7 +71,9 @@ ScalarUI* hitwire = (ScalarUI*)fDchHitPlane5->ConstructedAt(l);
 hitwire->SetSV(kk);
 ScalarD* driftlen = (ScalarD*)fDchHitPlane6->ConstructedAt(l);
 driftlen->SetSV(dl);
-ScalarI* pointind = (ScalarI*)fDchHitPlane7->ConstructedAt(l);
+ScalarD* tdc = (ScalarD*)fDchHitPlane7->ConstructedAt(l);
+tdc->SetSV(TDC);
+ScalarI* pointind = (ScalarI*)fDchHitPlane8->ConstructedAt(l);
 pointind->SetSV(jj);
 
 }

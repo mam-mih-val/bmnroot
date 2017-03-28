@@ -65,6 +65,7 @@ private:
     TString fInputPointsBranchName;
     TString fInputDigitsBranchName;
     TString fInputDigitMatchesBranchName;
+    TString fBmnEventHeaderBranchName;
 
     TString fOutputHitsBranchName;
     TString fOutputHitMatchesBranchName;
@@ -73,6 +74,7 @@ private:
     TClonesArray* fBmnGemStripPointsArray;
     TClonesArray* fBmnGemStripDigitsArray;
     TClonesArray* fBmnGemStripDigitMatchesArray;
+    TClonesArray* fBmnEventHeader;
 
     /** Output array of Gem Hits **/
     TClonesArray* fBmnGemStripHitsArray;

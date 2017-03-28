@@ -125,6 +125,8 @@ private:
     TClonesArray* fGemSeedsArray;
 
     FairField* fField;
+    
+    Int_t** fAddresses;
 
     ClassDef(BmnGemSeedFinder, 1);
 };

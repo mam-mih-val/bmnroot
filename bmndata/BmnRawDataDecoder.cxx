@@ -803,7 +803,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
             UInt_t runLength = fRunEndTime.Convert() - fRunStartTime.Convert(); //in seconds
             Double_t timeStep = runLength * 1.0 / fNevents; //time for one event
-            printf("runLength = %d \t timeStep = %f\n", runLength, timeStep);
+            printf("Run duration = %d sec.\t TimeStep = %f sec./event\n", runLength, timeStep);
 
             TObjArray* tango_data_gem = db_tango.SearchTangoIntervals((char*) "gem", (char*) "trip", (char*) date_start.Data(), (char*) date_end.Data(), condition, condition_value, map_channel);
             for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {

@@ -5,6 +5,7 @@
 #include "BmnGemStripStationSet_RunSummer2016.h"
 #include "BmnGemStripStationSet_RunWinter2016.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
+#include "BmnEventHeader.h"
 
 static Float_t workTime = 0.0;
 
@@ -14,6 +15,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = "BmnGemStripDigit";
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
+    fBmnEventHeaderBranchName = "EventHeader";
 
     fOutputHitsBranchName = "BmnGemStripHit";
     fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
@@ -29,6 +31,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
+    fBmnEventHeaderBranchName = "EventHeader";
 
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
@@ -55,6 +58,7 @@ InitStatus BmnGemStripHitMaker::Init() {
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
+    fBmnEventHeader = (TClonesArray*) ioman->GetObject(fBmnEventHeaderBranchName);
     fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
 
     if (fVerbose) {
@@ -137,6 +141,11 @@ InitStatus BmnGemStripHitMaker::Init() {
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
     clock_t tStart = clock();
+    
+    BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
+    if (evHeader)
+        if (evHeader->GetTripWord()) return;
+    
     fBmnGemStripHitsArray->Clear();
 
     if (fHitMatching && fBmnGemStripHitMatchesArray) {

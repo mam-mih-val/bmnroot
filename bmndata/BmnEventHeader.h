@@ -3,7 +3,7 @@
 #define BMNEVENTHEADER_H
 
 #include "TNamed.h"
-#include "TTimeStamp.h"
+#include "TDatime.h"
 #include "BmnEnums.h"
 
 class BmnEventHeader : public TNamed {
@@ -14,13 +14,13 @@ private:
     /** Event Id **/
     UInt_t fEventId;
     /** Event Time**/
-    TTimeStamp fEventTime;
+    TDatime fEventTime;
     /** Event Type (payload = 0 or pedestal = 1)**/
     BmnEventType fType;
     /** Trigger Type (beam = 6 or target = 1)**/
     BmnTriggerType fTrigType;
     /** Tripped Gems (1 bit for 1 GEM module)**/
-    Long64_t fTripWord;    
+    Bool_t fTripWord;
 
 public:
 
@@ -28,7 +28,7 @@ public:
     BmnEventHeader();
 
     /** Constructor */
-    BmnEventHeader(UInt_t run, UInt_t ev, TTimeStamp time, BmnEventType type, BmnTriggerType trig);
+    BmnEventHeader(UInt_t run, UInt_t ev, TDatime time, BmnEventType type, BmnTriggerType trig, Bool_t trip);
 
     /** Get the run ID for this run*/
     UInt_t GetRunId() {
@@ -44,6 +44,11 @@ public:
     BmnTriggerType GetTrig() {
         return fTrigType;
     }
+    
+    /** Get the trip word for this event*/
+    Bool_t GetTripWord() {
+        return fTripWord;
+    }
 
     /** Get the run ID for this run*/
     UInt_t GetEventId() {
@@ -51,7 +56,7 @@ public:
     }
     
     /** Get the time for this event*/
-    TTimeStamp GetEventTime() {
+    TDatime GetEventTime() {
         return fEventTime;
     }
 
@@ -70,7 +75,7 @@ public:
     }
    
     /** Set the time for this event in */
-    void SetEventTime(TTimeStamp time) {
+    void SetEventTime(TDatime time) {
         fEventTime = time;
     }
     

@@ -10,6 +10,7 @@
 #include "BmnADCDigit.h"
 #include "BmnSyncDigit.h"
 #include "TFile.h"
+#include "TTimeStamp.h"
 #include "TTree.h"
 #include "TClonesArray.h"
 #include <iostream>
@@ -39,6 +40,7 @@
 #include <deque>
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
+#include "UniDbTangoData.h"
 
 // wait limit for input data (ms)
 #define WAIT_LIMIT 40000000
@@ -280,6 +282,8 @@ private:
     UInt_t fPedoCounter;
 
     UInt_t fRunId;
+    TDatime fRunStartTime;
+    TDatime fRunEndTime;
     UInt_t fPeriodId;
     UInt_t fEventId;
     UInt_t fNevents;

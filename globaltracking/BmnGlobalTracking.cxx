@@ -22,6 +22,7 @@ fDetConf(31), //31 means that all detectors are presented
 fMcTracks(NULL),
 fGemTracks(NULL),
 fGemHits(NULL),
+fGemVertex(NULL),
 fTof1Hits(NULL),
 fTof2Hits(NULL),
 fDchHits(NULL),
@@ -74,6 +75,11 @@ InitStatus BmnGlobalTracking::Init() {
                 cout << "Init. No GEM tracks array!" << endl;
     }
 
+    fGemVertex = (TClonesArray*) ioman->GetObject("BmnVertex");
+    if (!fGemVertex)
+        if (fVerbose)
+            cout << "Init. No BmnVertex array!" << endl;
+
     // TOF1
     if (fDet.GetDet(kTOF1)) {
         fTof1Hits = (TClonesArray*) ioman->GetObject("BmnTof1Hit");
@@ -118,9 +124,9 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
 
     if (fVerbose) cout << "\n======================== Global tracking exec started =====================\n" << endl;
 
-//    if (!fEvHead) return;
-//    fEventNo = ((BmnEventHeader*) fEvHead->At(0))->GetEventId();
-//    if (fVerbose) printf("Event number: %d\n", fEventNo);
+    //    if (!fEvHead) return;
+    //    fEventNo = ((BmnEventHeader*) fEvHead->At(0))->GetEventId();
+    //    if (fVerbose) printf("Event number: %d\n", fEventNo);
 
     clock_t tStart = clock();
     fGlobalTracks->Clear();
@@ -139,6 +145,9 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         glTr->SetNHits(gemTrack->GetNHits());
         glTr->SetNDF(gemTrack->GetNDF());
         glTr->SetChi2(gemTrack->GetChi2());
+        
+        vector<BmnFitNode> nodes(4); //MWPC, TOF1, TOF2 and DCH
+        glTr->SetFitNodes(nodes);
 
         MatchingMWPC(glTr);
         MatchingTOF(glTr, 1);
@@ -146,15 +155,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         //Refit(glTr);
     }
 
-
     //CalculateLength();
-
-    //    for (Int_t i = 0; i < fGlobalTracks->GetEntriesFast(); ++i) {
-    //        BmnGlobalTrack* globalTrack = (BmnGlobalTrack*) fGlobalTracks->At(i);
-    //        //        if ((globalTrack->GetChi2() / (globalTrack->GetNofHits() - 1)  > fChiSqCut) || (globalTrack->GetNofHits() < 6)) globalTrack->SetFlag(kBMNBAD);
-    //        //        if (globalTrack->GetNofHits() < 5) globalTrack->SetFlag(kBMNBAD);
-    //        if ((globalTrack->GetChi2() / (globalTrack->GetNHits() - 1) > fChiSqCut)) globalTrack->SetFlag(kBMNBAD);
-    //    }
 
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
@@ -235,10 +236,9 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
 //
 //}
 
-
 BmnStatus BmnGlobalTracking::MatchingMWPC(BmnGlobalTrack* tr) {
-    
-    if(!fMwpcTracks) return kBMNERROR;
+
+    if (!fMwpcTracks) return kBMNERROR;
 
     BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
 
@@ -247,7 +247,7 @@ BmnStatus BmnGlobalTracking::MatchingMWPC(BmnGlobalTrack* tr) {
     Int_t minIdx = -1;
     FairTrackParam minParUp; // updated track parameters for the closest dch track
     FairTrackParam minParPred; // predicted track parameters for the closest dch track
-    
+
     for (Int_t trIdx = 0; trIdx < fMwpcTracks->GetEntriesFast(); ++trIdx) {
         BmnTrack* mwpcTr = (BmnTrack*) fMwpcTracks->At(trIdx);
         FairTrackParam parPredict(*(tr->GetParamFirst()));
@@ -273,12 +273,9 @@ BmnStatus BmnGlobalTracking::MatchingMWPC(BmnGlobalTrack* tr) {
         tr->SetMwpcTrackIndex(minIdx);
         tr->SetNHits(tr->GetNHits() + minTrack->GetNHits());
         tr->SetNDF(tr->GetNDF() + minTrack->GetNHits()); //FIXME!
-        vector<BmnFitNode> nodes = tr->GetFitNodes();
-        BmnFitNode node;
-        node.SetUpdatedParam(&minParUp);
-        node.SetPredictedParam(&minParPred);
-        nodes.push_back(node);
-        tr->SetFitNodes(nodes);
+        BmnFitNode *node = &((tr->GetFitNodes()).at(0));
+        node->SetUpdatedParam(&minParUp);
+        node->SetPredictedParam(&minParPred);
         return kBMNSUCCESS;
     } else {
         return kBMNERROR;
@@ -293,22 +290,25 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
     if (!tofHits) return kBMNERROR;
 
     BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
-
+    
     Double_t minChiSq = DBL_MAX;
     BmnHit* minHit = NULL; // Pointer to the nearest hit
     Int_t minIdx = -1;
+    Double_t minLen = -1.0;
     FairTrackParam minParUp; // updated track parameters for closest hit
     FairTrackParam minParPred; // predicted track parameters for closest hit
     for (Int_t hitIdx = 0; hitIdx < tofHits->GetEntriesFast(); ++hitIdx) {
         BmnHit* hit = (BmnHit*) tofHits->At(hitIdx);
         FairTrackParam parPredict(*(tr->GetParamLast()));
-        kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, NULL, "field");
+        Double_t len = ((BmnGemTrack*)fGemTracks->At(tr->GetGemTrackIndex()))->GetLength();
+        kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "field");
         FairTrackParam parUpdate = parPredict;
         Double_t chi;
         kalman->Update(&parUpdate, hit, chi);
         if (chi < minChiSq) {
             minChiSq = chi;
             minHit = hit;
+            minLen = len;
             minParUp = parUpdate;
             minParPred = parPredict;
             minIdx = hitIdx;
@@ -316,7 +316,7 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
     }
 
     if (minHit != NULL) { // Check if hit was added
-        tr->SetParamLast(minParUp);
+        tr->SetParamLast(minParPred);
         tr->SetChi2(tr->GetChi2() + minChiSq);
         if (num == 1)
             tr->SetTof1HitIndex(minIdx);
@@ -324,12 +324,10 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
             tr->SetTof2HitIndex(minIdx);
         tr->SetNHits(tr->GetNHits() + 1);
         tr->SetNDF(tr->GetNDF() + 1);
-        vector<BmnFitNode> nodes = tr->GetFitNodes();
-        BmnFitNode node;
-        node.SetUpdatedParam(&minParUp);
-        node.SetPredictedParam(&minParPred);
-        nodes.push_back(node);
-        tr->SetFitNodes(nodes);
+        BmnFitNode *node = &((tr->GetFitNodes()).at(1));
+        node->SetUpdatedParam(&minParUp);
+        node->SetPredictedParam(&minParPred);
+        minHit->SetLength(minLen);
         return kBMNSUCCESS;
     } else {
         return kBMNERROR;
@@ -349,8 +347,8 @@ BmnStatus BmnGlobalTracking::CreateDchHitsFromTracks() {
 }
 
 BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr) {
-    
-    if(!fDchTracks) return kBMNERROR;
+
+    if (!fDchTracks) return kBMNERROR;
 
     BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
 
@@ -383,16 +381,13 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr) {
         tr->SetNHits(tr->GetNHits() + minTrack->GetNHits());
         tr->SetNDF(tr->GetNDF() + minTrack->GetNHits()); //FIXME!
         vector<BmnFitNode> nodes = tr->GetFitNodes();
-        BmnFitNode node;
-        node.SetUpdatedParam(&minParUp);
-        node.SetPredictedParam(&minParPred);
-        nodes.push_back(node);
-        tr->SetFitNodes(nodes);
+        BmnFitNode *node = &((tr->GetFitNodes()).at(3));
+        node->SetUpdatedParam(&minParUp);
+        node->SetPredictedParam(&minParPred);
         return kBMNSUCCESS;
     } else {
         return kBMNERROR;
     }
-
     delete kalman;
 }
 
@@ -447,12 +442,12 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
     //        if (fDet.GetDet(kDCH) && tr->GetDchHitIndex() != -1 && fDchHits) {
     //            if (RefitToDetector(tr, tr->GetDchHitIndex(), fDchHits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
     //        }
-    
+
     //TOF1 part
     if (fDet.GetDet(kTOF1) && tr->GetTof1HitIndex() != -1 && fTof1Hits) {
         if (RefitToDetector(tr, tr->GetTof1HitIndex(), fTof1Hits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
     }
-    
+
     //GEM part
     if (fDet.GetDet(kGEM) && tr->GetGemTrackIndex() != -1) {
         BmnGemTrack* gemTr = (BmnGemTrack*) fGemTracks->At(tr->GetGemTrackIndex());

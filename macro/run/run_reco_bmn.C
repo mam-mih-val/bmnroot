@@ -105,18 +105,18 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         if (pCurrentRun == 0) {
             exit(-2);
         }
-        Double_t fieldScale =   0;
-        double map_current  = 56;
-        double* field_voltage = pCurrentRun->GetFieldVoltage();
+        Double_t fieldScale = 0.0;
+        Double_t map_current  = 55.87;
+        Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
         if (*field_voltage == 0) {
             fieldScale = 0;
-            isField = kFALSE; }
-        else {
+            isField = kFALSE; 
+        } else {
             fieldScale = (*field_voltage) / map_current;
         }
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
         magField->SetScale(fieldScale);
-        magField->Init();
+        magField->Init(); 
         fRunAna->SetField(magField);
         isExp = kTRUE;
         TString targ;
@@ -175,8 +175,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunWinter2016; // config file: (GEM_RunWinter2016.root))
-  //BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017; // config file: (GEM_RunSpring2017.root))
+    
+  BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017; // config file: (GEM_RunSpring2017.root))
 
     if (!isExp) {
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
@@ -188,8 +188,6 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
     // Set name of file with the alignment corrections.
-    // Anatoly.Solomin@jinr.ru 2017-02-21 15:14:43
-    // Only in the data case, when isExp==kTRUE. Sergey.Merts@gmail.com 2017-03-01
     if (isExp) gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
@@ -220,7 +218,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     gemSF->SetTarget(isTarget);
   //gemSF->SetXRange(-5.0,  20.0);
   //gemSF->SetYRange(-4.8., -3.8);
-    gemSF->AddStationToSkip(0);
+//    gemSF->AddStationToSkip(0);
   //gemSF->AddStationToSkip(1);
   //gemSF->AddStationToSkip(2);
     fRunAna->AddTask(gemSF);

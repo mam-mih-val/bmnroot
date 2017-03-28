@@ -77,6 +77,12 @@ void UniDbTangoData::SplitString(TString str, TString delim, vector<TString> &v)
     }
 }
 
+UniDbTangoData::UniDbTangoData(){
+}
+
+UniDbTangoData::~UniDbTangoData(){
+}
+
 // перевод строки формата "DD.MM.YYYY HH:MM:SS" в класс TDatime
 TDatime UniDbTangoData::StringToDatime(TString str_time)
 {

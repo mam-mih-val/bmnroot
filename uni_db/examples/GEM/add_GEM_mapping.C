@@ -1,4 +1,4 @@
-
+#include <stdio.h>
 class GemMapStructure;
 
 int AssignMapStructure(GemMapStructure* pArray, int id, unsigned int ser, int ch_l, int ch_h, int gemId, int st, int hz) {
@@ -20,32 +20,12 @@ void add_GEM_mapping() {
 
     bool return_error = false;
 
-    const int kNitems = 23;
+    const int kNitems = 22;
 
     GemMapStructure* pValues = new GemMapStructure[kNitems];
-
-    AssignMapStructure(pValues, 0, 0x76CBA8B, 0, 2047, 0, 4, 2);
-    AssignMapStructure(pValues, 1, 0x76CD410, 0, 2047, 4, 2, 0);
-    AssignMapStructure(pValues, 2, 0x76C8320, 0, 2047, 2, 3, 0);
-    AssignMapStructure(pValues, 3, 0x76CB9C0, 0, 2047, 3, 4, 0);
-    AssignMapStructure(pValues, 4, 0x76CA266, 0, 2047, 1, 1, 0);
-    AssignMapStructure(pValues, 5, 0x76D08B9, 0, 127, 0, 4, 2);
-    AssignMapStructure(pValues, 6, 0x76D08B9, 128, 255, 4, 2, 0);
-    AssignMapStructure(pValues, 7, 0x76D08B9, 256, 383, 2, 3, 0);
-    AssignMapStructure(pValues, 8, 0x76D08B9, 384, 511, 3, 4, 0);
-    AssignMapStructure(pValues, 9, 0x76D08B9, 896, 1023, 1, 1, 0);
-    AssignMapStructure(pValues, 11, 0x76D08B9, 640, 767, 50, 6, 3);
-    AssignMapStructure(pValues, 12, 0x76D08B9, 768, 895, 51, 6, 1);
-    AssignMapStructure(pValues, 13, 0x76D08B9, 1792, 1919, 60, 5, 1);
-    AssignMapStructure(pValues, 14, 0x76D08B9, 1920, 2047, 61, 5, 3);
-    AssignMapStructure(pValues, 15, 0x76CA26F, 0, 1023, 50, 6, 2);
-    AssignMapStructure(pValues, 16, 0x76CE3EE, 0, 2047, 50, 6, 3);
-    AssignMapStructure(pValues, 17, 0x76CE3E5, 0, 2047, 51, 6, 1);
-    AssignMapStructure(pValues, 18, 0x30DCF31, 0, 1023, 51, 6, 0);
-    AssignMapStructure(pValues, 19, 0x76CA26F, 1024, 2047, 60, 5, 0);
-    AssignMapStructure(pValues, 20, 0x76C82BE, 0, 2047, 60, 5, 1);
-    AssignMapStructure(pValues, 21, 0x76CD411, 0, 2047, 61, 5, 3);
-    AssignMapStructure(pValues, 22, 0x30DCF31, 1024, 2047, 61, 5, 2);
+    
+    TString path = TString(getenv("VMCWORKDIR")) + TString("/input/");
+    ReadAndPut(path + TString("GEM_map_run6.txt"), pValues);
 
     UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_global_mapping", 6, 1, 6, 10000, pValues, kNitems);
     if (pDetectorParameter == NULL)
@@ -60,4 +40,32 @@ void add_GEM_mapping() {
         cout << "\nMacro finished with errors" << endl;
     else
         cout << "\nMacro finished successfully" << endl;
+}
+
+void ReadAndPut(TString fName, GemMapStructure* pValues) {
+    UInt_t ser = 0;
+    Int_t ch_l = 0;
+    Int_t ch_h = 0;
+    Int_t gem_id = 0;
+    Int_t stat = 0;
+    Int_t mod = 0;
+    string dummy;
+
+    ifstream inFile(fName.Data());
+    if (!inFile.is_open())
+        cout << "Error opening map-file (" << fName << ")!" << endl;
+    getline(inFile, dummy); //comment line in input file
+    getline(inFile, dummy); //comment line in input file
+    getline(inFile, dummy); //comment line in input file   
+    getline(inFile, dummy); //comment line in input file   
+    getline(inFile, dummy); //comment line in input file   
+    
+    Int_t i = 0;
+    while (!inFile.eof()) {
+        inFile >> std::hex >> ser >> std::dec >> ch_l >> ch_h >> gem_id >> stat >> mod;
+        if (!inFile.good()) break;
+        printf("%X\t%d\t%d\t%d\t%d\t%d\n", ser, ch_l, ch_h, gem_id, stat, mod);
+        AssignMapStructure(pValues, i++, ser, ch_l, ch_h, gem_id, stat, mod);
+    }
+    
 }

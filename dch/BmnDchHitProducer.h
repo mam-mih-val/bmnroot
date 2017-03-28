@@ -175,7 +175,7 @@ public:
         static const Double_t Phi_45, Phi45, Phi90;
         static const Double_t sqrt2,tg3,tg4;
         static const Double_t clusdens_Ar,clusdens_CO2,clusmean,meanpath,meanpath_Ar,meanpath_CO2;
-        static const Double_t gasDriftSpeed,wireDriftSpeed,driftTimeMax,WheelR_2,;
+        static const Double_t gasDriftSpeed,wireDriftSpeed,driftTimeMax,WheelR_2;
         static const Double_t resolution;
         static const Double_t hitErr[3];
         static const UInt_t nintervals;

@@ -56,7 +56,6 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
-    /*
     Ssiz_t indColon = inputFileName.First(':');
     Ssiz_t indDash  = inputFileName.First('-');
     // for experimental datasource
@@ -69,30 +68,9 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         Int_t run_number = number_string.Atoi();
         inputFileName.Remove(0, indColon + 1);
         cout <<"run_period = "<<run_period<<"  run_number = "<<run_number<< endl;
-    */
-    // -------------------------------------------------------------------------
-    // Extraction of run period and run number using the hand-added prefix,
-    // adapted for arbitrary run-period and run-number numbers, including
-    // leading zeros.
-    // Anatoly.Solomin@jinr.ru 2017-03-29 13:22:55
-    TPRegexp beginsWith("^run[0-9]+-[0-9]+:");
-    // for experimental datasource:
-    if (inputFileName.Contains(beginsWith)) {
-        TString            number_string;
-        TString  prefix  = inputFileName("run[0-9]+-[0-9]+:");
-        // get run period
-        number_string    = prefix(       "run[0-9]+");
-        number_string    = number_string(   "[0-9]+");
-        Int_t run_period = number_string.Atoi();
-        // get run number
-        number_string    = prefix(                "-[0-9]+");
-        number_string    = number_string(          "[0-9]+");
-        Int_t run_number = number_string.Atoi();
-        cout <<"run_period = "<<run_period<<"  run_number = "<<run_number<< endl;
-        inputFileName.ReplaceAll(prefix, "");
-    // -------------------------------------------------------------------------
+
         if ( ! CheckFileExist(inputFileName)) {
-            cout <<"Error: input file "+inputFileName+" does not exist!"<< endl;
+            cout <<"Error: digi file "+inputFileName+" does not exist!"<< endl;
             exit(-1);
         }
         // set source as raw data file
@@ -132,13 +110,13 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
         if (*field_voltage == 0) {
             fieldScale = 0;
-            isField = kFALSE; }
-        else {
+            isField = kFALSE; 
+        } else {
             fieldScale = (*field_voltage) / map_current;
         }
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
         magField->SetScale(fieldScale);
-        magField->Init();
+        magField->Init(); 
         fRunAna->SetField(magField);
         isExp = kTRUE;
         TString targ;
@@ -197,10 +175,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    if      (run_period == 5)
-        BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunWinter2016; // config file: (GEM_RunWinter2016.root))
-    else if (run_period == 6)
-        BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017; // config file: (GEM_RunSpring2017.root))
+    
+  BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017; // config file: (GEM_RunSpring2017.root))
 
     if (!isExp) {
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();

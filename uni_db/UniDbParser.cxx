@@ -1,5 +1,6 @@
 #include "UniDbParser.h"
 #include "UniDbConnection.h"
+#include "db_classes/UniDbRun.h"
 #include "db_classes/UniDbParameter.h"
 #include "db_classes/UniDbDetectorParameter.h"
 #define ONLY_DECLARATIONS
@@ -15,12 +16,20 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
+#include <algorithm>
 #include <string>
 #include <sstream>
 #include <fstream>
 #include <iostream>
 using namespace std;
 
+UniDbParser::UniDbParser()
+{
+}
+
+UniDbParser::~UniDbParser()
+{
+}
 
 int parse_cycle_statement(xmlNodePtr &cur_schema_node, vector<structParseSchema> &vecElements, int &skip_count, char &delimiter_char, int &column_count)
 {
@@ -788,7 +797,7 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
 }
 
 
-int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
+int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString schemaPath)
 {
     ifstream txtFile;
     txtFile.open(txtName, ios::in);
@@ -942,7 +951,7 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
         cout<<endl;
         */
 
-        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", run_number, run_number, pValues, size_arr); //(detector_name, parameter_name, start_run, end_run, parameter_value, size_parameter_value)
+        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("DCH1", "noise", period_number, run_number, period_number, run_number, pValues, size_arr); //(detector_name, parameter_name, start_run, end_run, parameter_value, size_parameter_value)
         if (pDetectorParameter == NULL)
             continue;
 
@@ -956,6 +965,208 @@ int UniDbParser::ParseTxtNoise2Db(TString txtName, TString schemaPath)
     delete connUniDb;
 
     return 0;
+}
+
+bool check_element(const string& str, size_t pos, string element, string element_sql, string& strFirstParticle, string& strSecondParticle, int& iError)
+{
+    size_t str_length = str.length(), element_length = element.length();
+    if ((pos + element_length) > str_length)
+        return false;
+
+    for (int i = 1; i < element_length; i++)
+    {
+        if (str[pos+i] != element[i])
+            return false;
+    }
+
+    if (((pos == 0) || (str[pos-1] == ' ')) && ((pos == (str_length-element_length)) || (str[pos+element_length] == ' ')))
+    {
+        if (strFirstParticle.empty())
+            strFirstParticle = element_sql;
+        else
+        {
+            if (strSecondParticle.empty())
+                strSecondParticle = element_sql;
+            else
+            {
+                cout<<"ERROR: more than 2 particles found"<<endl;
+                iError = 1;
+            }
+        }
+        return true;
+    }
+
+    return false;
+}
+
+// specific functions for experiments (BM@N)
+int UniDbParser::ParseElogCsv(int period_number, TString csvName, char separate_symbol)
+{
+    ifstream csvFile;
+    csvFile.open(csvName, ios::in);
+    if (!csvFile.is_open())
+    {
+        cout<<"Error: reading CSV file '"<<csvName<<"' was failed"<<endl;
+        return -1;
+    }
+
+    // run and parse CSV file, and update the fields in DB
+    int updated_count = 0;
+    string cur_line;
+    while (getline(csvFile, cur_line))
+    {
+        if (cur_line == "")
+            continue;
+
+        // parse current line
+        string trim_line = trim(cur_line);
+        istringstream line_stream(trim_line);
+
+        // parse tokens by symbol separated
+        string token, run_number = "", elog_field = "";
+        int ind = 1, iError = 0;
+        while (getline(line_stream, token, separate_symbol))
+        {
+            switch (ind)
+            {
+                case 1:
+                    run_number = token;
+                    break;
+                case 2:
+                    elog_field = token;
+                    break;
+                default:
+                {
+                    cout<<"ERROR: more then two tokens separated by '"<<separate_symbol<<"' for run_number: "<<run_number<<endl;
+                    iError = 2;
+                    break;
+                }
+            }
+            ind++;
+        }// parse tokens by symbol separated
+        if (iError != 0)
+            continue;
+
+        // is string an integer number?
+        if (!is_string_number(run_number))
+        {
+            cout<<"ERROR: run number is not number: "<<run_number<<endl;
+            continue;
+        }
+        int iRunNumber = atoi(run_number.c_str());
+
+        // parse elog field
+        // find energy
+        double dEnergy = -1;
+        string lower_field = elog_field;
+        transform(lower_field.begin(), lower_field.end(), lower_field.begin(), ::tolower);
+        size_t found, next_found;
+        found = lower_field.find("gev");
+        if (found != std::string::npos)
+        {
+            next_found = lower_field.find("gev", found+1);
+            if (next_found != std::string::npos)
+            {
+                cout<<"ERROR: more than one 'gev' found: "<<elog_field<<" for run: "<<iRunNumber<<endl;
+                continue;
+            }
+
+            string energy = elog_field.substr(0, found);
+            energy = find_last_double_number(energy);
+            if (energy.empty())
+            {
+                cout<<"ERROR: no energy before 'gev' found: "<<elog_field<<" for run: "<<iRunNumber<<endl;
+                continue;
+            }
+            dEnergy = atof(energy.c_str());
+        }
+        else
+        {
+            cout<<"ERROR: no 'gev' found: "<<elog_field<<" for run: "<<iRunNumber<<endl;
+            continue;
+        }
+
+        // parse particles: 0 - C, 1 - Cu
+        string strFirstParticle, strSecondParticle;
+        int last_sybmbol = lower_field.length() - 1;
+        lower_field.erase(remove(lower_field.begin(), lower_field.end(), '"'), lower_field.end());
+        for (int i = 0; i <= last_sybmbol; i++)
+        {
+            switch (lower_field[i])
+            {
+                case 'c':
+                {
+                    // if "C"
+                    if (!check_element(lower_field, i, "c", "C", strFirstParticle, strSecondParticle, iError))
+                    {
+                        // if Cu
+                        if (!check_element(lower_field, i, "cu", "Cu", strFirstParticle, strSecondParticle, iError))
+                        {
+                            // if C12
+                            if (!check_element(lower_field, i, "c12", "C", strFirstParticle, strSecondParticle, iError))
+                            {
+                                // if CH2
+                                if (!check_element(lower_field, i, "ch2", "C2H4", strFirstParticle, strSecondParticle, iError))
+                                {
+                                    // if C2H4
+                                    check_element(lower_field, i, "c2h4", "C2H4", strFirstParticle, strSecondParticle, iError);
+                                }
+                            }
+                        }
+                    }
+
+                    break;
+                }//case 'c':
+                case 'p':
+                {
+                    // if "Pb"
+                    check_element(lower_field, i, "pb", "Pb", strFirstParticle, strSecondParticle, iError);
+
+                    break;
+                }//case 'p':
+                case 'a':
+                {
+                    // if "Al"
+                    check_element(lower_field, i, "al", "Al", strFirstParticle, strSecondParticle, iError);
+
+                    break;
+                }//case 'a':
+            }
+
+            if (iError != 0)
+                break;
+        }
+
+        if (iError != 0) continue;
+
+        if ((strFirstParticle.empty()) && (strSecondParticle.empty()))
+        {
+            cout<<"ERROR: no particles found: "<<elog_field<<" for run: "<<iRunNumber<<endl;
+            continue;
+        }
+
+        // write to DB
+        UniDbRun* pRun = UniDbRun::GetRun(period_number, iRunNumber);
+        if  (pRun == NULL)
+        {
+            cout<<"ERROR: no Run found in DB: "<<iRunNumber<<endl;
+            continue;
+        }
+
+        if (pRun->SetEnergy(&dEnergy) != 0)
+            cout<<"ERROR: while writing Energy to DB for run: "<<iRunNumber<<endl;
+        if (pRun->SetBeamParticle((TString)strFirstParticle.c_str()) != 0)
+            cout<<"ERROR: while writing beam particle to DB for run: "<<iRunNumber<<endl;
+        if (!strSecondParticle.empty())
+            if (pRun->SetTargetParticle(new TString(strSecondParticle.c_str())) != 0)
+                cout<<"ERROR: while writing target to DB for run: "<<iRunNumber<<endl;
+
+        updated_count++;
+        delete pRun;
+    }// run CSV file
+
+    csvFile.close();
+    return updated_count;
 }
 
 // -------------------------------------------------------------------

@@ -52,7 +52,7 @@ void tango_avg_field(int period = 5, int run = 930)
 
 class UniqueRunNumber;
 // additional function for getting and writing average magnetic field for all runs of the given period/session
-void tango_avg_field_write_db(int period = 5)
+void tango_avg_field_write_db(int period = 6)
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
@@ -84,7 +84,6 @@ void tango_avg_field_write_db(int period = 5)
             continue;
         }
         TString strDateEnd = dateEnd->AsSQLString();
-        delete pRun;
 
         const char* detector_name = "bmn";
         const char* parameter_name = "ch1";
@@ -109,45 +108,11 @@ void tango_avg_field_write_db(int period = 5)
 
         cout<<"Average magnetic field for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<average_field<<" mv"<<endl;
 
-        // check if magnet exists in the database
-        if (!UniDbDetector::CheckDetectorExists("magnet"))
-        {
-            UniDbDetector* pDetector = UniDbDetector::CreateDetector("magnet", NULL);
-            if (pDetector == NULL)
-            {
-                cout << "\nMacro finished with errors" << endl;
-                return;
-            }
-
-            cout<<"The magnet was added to detectors in the database"<<endl;
-            delete pDetector;
-        }
-
-        // check if 'average_field_mv' parameter exists in the database
-        if (!UniDbParameter::CheckParameterExists("average_field_mv"))
-        {
-            UniDbParameter* pParameter = UniDbParameter::CreateParameter("average_field_mv", DoubleType);
-            if (pParameter == NULL)
-            {
-                cout << "\nMacro finished with errors" << endl;
-                return;
-            }
-
-            cout<<"The 'average_field_mv' parameter was added to the database"<<endl;
-            delete pParameter;
-        }
-
-        // writing the average magnetic field to the Unified Database
-        UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("magnet", "average_field_mv",
-                                                     run_numbers[i].period_number, run_numbers[i].run_number, run_numbers[i].period_number, run_numbers[i].run_number, average_field);
-        if (pDetectorParameter == NULL)
-        {
-            cout << "\nMacro finished with errors" << endl;
-            return;
-        }
+        // write average magnetic field to run_ in DB
+        pRun->SetFieldVoltage(&average_field);
 
         cout<<"Average magnetic field was written to the database"<<endl;
-        delete pDetectorParameter;
+        delete pRun;
     }
 
     delete run_numbers;
@@ -239,7 +204,43 @@ void compare_avg_field_graph(int period = 5)
         delete pDetectorParameter;
 
         cout<<"Run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<endl;
-        run_error[i] = 0;
+        run_error[i]/*
+                // check if magnet exists in the database
+                if (!UniDbDetector::CheckDetectorExists("magnet"))
+                {
+                    UniDbDetector* pDetector = UniDbDetector::CreateDetector("magnet", NULL);
+                    if (pDetector == NULL)
+                    {
+                        cout << "\nMacro finished with errors" << endl;
+                        return;
+                    }
+
+                    cout<<"The magnet was added to detectors in the database"<<endl;
+                    delete pDetector;
+                }
+
+                // check if 'average_field_mv' parameter exists in the database
+                if (!UniDbParameter::CheckParameterExists("average_field_mv"))
+                {
+                    UniDbParameter* pParameter = UniDbParameter::CreateParameter("average_field_mv", DoubleType);
+                    if (pParameter == NULL)
+                    {
+                        cout << "\nMacro finished with errors" << endl;
+                        return;
+                    }
+
+                    cout<<"The 'average_field_mv' parameter was added to the database"<<endl;
+                    delete pParameter;
+                }
+
+                // writing the average magnetic field to the Unified Database
+                UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("magnet", "average_field_mv",
+                                                             run_numbers[i].period_number, run_numbers[i].run_number, run_numbers[i].period_number, run_numbers[i].run_number, average_field);
+                if (pDetectorParameter == NULL)
+                {
+                    cout << "\nMacro finished with errors" << endl;
+                    return;
+                }*/ = 0;
         if (dFieldCurrent)
             cout<<"Magnetic field current from detector group: "<<*dFieldCurrent<<" A"<<endl;
         else
@@ -301,7 +302,79 @@ void compare_avg_field_graph(int period = 5)
     grN->SetMarkerStyle(2);
     grN->GetXaxis()->Set(run_count, 0, run_count-1);
 
-    for (int i = 0; i < run_count; i++)
+    for (int i = 0;/*
+             // check if magnet exists in the database
+             if (!U/*
+             // check if magnet exists in the database
+             if (!UniDbDetector::CheckDetectorExists("magnet"))
+             {
+                 UniDbDetector* pDetector = UniDbDetector::CreateDetector("magnet", NULL);
+                 if (pDetector == NULL)
+                 {
+                     cout << "\nMacro finished with errors" << endl;
+                     return;
+                 }
+
+                 cout<<"The magnet was added to detectors in the database"<<endl;
+                 delete pDetector;
+             }
+
+             // check if 'average_field_mv' parameter exists in the database
+             if (!UniDbParameter::CheckParameterExists("average_field_mv"))
+             {
+                 UniDbParameter* pParameter = UniDbParameter::CreateParameter("average_field_mv", DoubleType);
+                 if (pParameter == NULL)
+                 {
+                     cout << "\nMacro finished with errors" << endl;
+                     return;
+                 }
+
+                 cout<<"The 'average_field_mv' parameter was added to the database"<<endl;
+                 delete pParameter;
+             }
+
+             // writing the average magnetic field to the Unified Database
+             UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("magnet", "average_field_mv",
+                                                          run_numbers[i].period_number, run_numbers[i].run_number, run_numbers[i].period_number, run_numbers[i].run_number, average_field);
+             if (pDetectorParameter == NULL)
+             {
+                 cout << "\nMacro finished with errors" << endl;
+                 return;
+             }*/niDbDetector::CheckDetectorExists("magnet"))
+             {
+                 UniDbDetector* pDetector = UniDbDetector::CreateDetector("magnet", NULL);
+                 if (pDetector == NULL)
+                 {
+                     cout << "\nMacro finished with errors" << endl;
+                     return;
+                 }
+
+                 cout<<"The magnet was added to detectors in the database"<<endl;
+                 delete pDetector;
+             }
+
+             // check if 'average_field_mv' parameter exists in the database
+             if (!UniDbParameter::CheckParameterExists("average_field_mv"))
+             {
+                 UniDbParameter* pParameter = UniDbParameter::CreateParameter("average_field_mv", DoubleType);
+                 if (pParameter == NULL)
+                 {
+                     cout << "\nMacro finished with errors" << endl;
+                     return;
+                 }
+
+                 cout<<"The 'average_field_mv' parameter was added to the database"<<endl;
+                 delete pParameter;
+             }
+
+             // writing the average magnetic field to the Unified Database
+             UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("magnet", "average_field_mv",
+                                                          run_numbers[i].period_number, run_numbers[i].run_number, run_numbers[i].period_number, run_numbers[i].run_number, average_field);
+             if (pDetectorParameter == NULL)
+             {
+                 cout << "\nMacro finished with errors" << endl;
+                 return;
+             }*/ i < run_count; i++)
     {
         if (run_error[i] != 0)
             grN->GetXaxis()->SetBinLabel(i+1, (TString::Format("Error %d", run_numbers[i].run_number).Data()));
@@ -316,3 +389,41 @@ void compare_avg_field_graph(int period = 5)
 
     grN->Draw("AP");
 }
+
+/*
+// check if magnet exists in the database
+if (!UniDbDetector::CheckDetectorExists("magnet"))
+{
+    UniDbDetector* pDetector = UniDbDetector::CreateDetector("magnet", NULL);
+    if (pDetector == NULL)
+    {
+        cout << "\nMacro finished with errors" << endl;
+        return;
+    }
+
+    cout<<"The magnet was added to detectors in the database"<<endl;
+    delete pDetector;
+}
+
+// check if 'average_field_mv' parameter exists in the database
+if (!UniDbParameter::CheckParameterExists("average_field_mv"))
+{
+    UniDbParameter* pParameter = UniDbParameter::CreateParameter("average_field_mv", DoubleType);
+    if (pParameter == NULL)
+    {
+        cout << "\nMacro finished with errors" << endl;
+        return;
+    }
+
+    cout<<"The 'average_field_mv' parameter was added to the database"<<endl;
+    delete pParameter;
+}
+
+// writing the average magnetic field to the Unified Database
+UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("magnet", "average_field_mv",
+                                             run_numbers[i].period_number, run_numbers[i].run_number, run_numbers[i].period_number, run_numbers[i].run_number, average_field);
+if (pDetectorParameter == NULL)
+{
+    cout << "\nMacro finished with errors" << endl;
+    return;
+}*/

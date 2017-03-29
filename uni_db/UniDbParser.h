@@ -78,10 +78,16 @@ struct structParseSchema
 class UniDbParser
 {
  public:
+    UniDbParser();
+    ~UniDbParser();
+
     int ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate = false);
     int ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate = false);
     int ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate = false);
-    int ParseTxtNoise2Db(TString txtName, TString schemaPath);
+    int ParseTxtNoise2Db(int period_number, TString txtName, TString schemaPath);
+
+    // parse functions with specific features for BM@N
+    int ParseElogCsv(int period_number, TString csvName, char separate_symbol = ';');
 
  ClassDef(UniDbParser,1)
 };

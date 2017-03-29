@@ -2,7 +2,7 @@
 // Name        : function_set.h
 // Author      : Konstantin Gertsenberger (gertsen@jinr.ru)
 // Description : set of common C++ functions
-// Version     : 1.00
+// Version     : 1.01
 //============================================================================
 
 #ifndef FUNCTION_SET_H
@@ -33,10 +33,9 @@ string replace_home_symbol_linux(string path);
 string replace_vmc_path_linux(string path);
 // get processor core count on this machine
 int get_linux_processor_count();
+enum BATCH_SYSTEM_NAME {SGE_BATCH_SYSTEM, TORQUE_BATCH_SYSTEM, SLURM_BATCH_SYSTEM};
 // get maximum available processor count on Sun Grid Engine system
-int get_sge_processor_count();
-// get maximum available processor count on Torque batch system
-int get_torque_processor_count();
+int get_batch_processor_count(BATCH_SYSTEM_NAME batch_system, string queue_name = "");
 
 /* GLOBAL APPLICATION FUNCTIONS */
 // get application name in linux
@@ -57,6 +56,9 @@ string int_to_hex_string(int int_number);
 int hex_string_to_int(string hex_string);
 // is string an integer number?
 bool is_string_number(const string& s);
+// extract first positive number or last positive number in string (result number has string type)
+string find_first_number(string const & str); string find_first_double_number(string const & str);
+string find_last_number(string const & str); string find_last_double_number(string const & str);
 // convert array of chars to the new lowercase array
 char* convert_pchar_to_lowercase_new(char* input_char_array);
 // replace string 's' by string 'd' in text
@@ -170,67 +172,74 @@ int get_linux_processor_count()
     return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
-// get maximum available processor count on Sun Grid Engine system
-int get_sge_processor_count()
+// get maximum available processor count of the batch system for the given (default) queue
+int get_batch_processor_count(BATCH_SYSTEM_NAME batch_system, string queue_name)
 {
     int proc_count = 0;
 
     const int MAX_BUFFER = 255;
     char buffer[MAX_BUFFER];
+    string command_line, data, strDiff;
 
-    // define count of processors for all.q queue
-    string data, strDiff;
-    FILE* stream = popen("export SGE_SINGLE_LINE=1; qconf -sq all.q | grep slots", "r");
-    while (fgets(buffer, MAX_BUFFER, stream) != NULL)
-        data.append(buffer);
-    pclose(stream);
-
-    size_t found = data.find("="), found2 = string::npos;
-    while (found != string::npos)
+    //define shell command to get string with processor count for the queue
+    if (batch_system == SGE_BATCH_SYSTEM)
     {
-        found2 = data.find("]", found);
-        strDiff = data.substr(found+1, found2 - found - 1);
-        proc_count += atoi(strDiff.c_str());
-        strDiff.clear();
-
-        found = data.find("=", found2);
+    	if (queue_name == "")
+    		queue_name = "all.q";
+    	command_line = string("export SGE_SINGLE_LINE=1; qconf -sq ") + queue_name + string(" | grep slots");
+    }
+    if (batch_system == TORQUE_BATCH_SYSTEM)
+    {
+    	if (queue_name == "")
+        	queue_name = "batch";
+        command_line = string("qstat -f -Q ") + queue_name + string(" | grep max_running");
+    }
+    if (batch_system == SLURM_BATCH_SYSTEM)
+    {
+    	if (queue_name == "")
+    		queue_name = "interactive";
+    	command_line = string("scontrol show partition ") + queue_name + string(" | grep -o 'TotalCPUs=[0-9]*'");
     }
 
-    data.clear();
-
-    cout<<"SGE processor count: "<<proc_count<<endl;
-
-    return proc_count;
-}
-
-// get maximum available processor count on Torque batch system
-int get_torque_processor_count()
-{
-    int proc_count = 0;
-
-    const int MAX_BUFFER = 255;
-    char buffer[MAX_BUFFER];
-
-    // define count of processors for all.q queue
-    string data, strDiff;
-    FILE* stream = popen("qconf -sq all.q | grep slots", "r");
+    // run shell command to define batch processor count
+    FILE* stream = popen(command_line.c_str(), "r");
     while (fgets(buffer, MAX_BUFFER, stream) != NULL)
-        data.append(buffer);
+    	data.append(buffer);
     pclose(stream);
 
+    // parse result string to extract processor count
     size_t found = data.find("="), found2 = string::npos;
-    while (found != string::npos)
+    if (batch_system == SGE_BATCH_SYSTEM)
     {
-        found2 = data.find("]", found);
-        strDiff = data.substr(found+1, found2 - found - 1);
-        proc_count += atoi(strDiff.c_str());
-        strDiff.clear();
+    	while (found != string::npos)
+        {
+    		found2 = data.find("]", found);
+        	strDiff = data.substr(found+1, found2 - found - 1);
+        	proc_count += atoi(strDiff.c_str());
+        	strDiff.clear();
 
-        found = data.find("=", found2);
+        	found = data.find("=", found2);
+        }
+    }
+    if (batch_system == TORQUE_BATCH_SYSTEM)
+    {
+    	if (found != string::npos)
+        {
+    		strDiff = data.substr(found+1, data.length() - found - 1);
+    		proc_count = atoi(strDiff.c_str());
+        }
+    }
+    if (batch_system == SLURM_BATCH_SYSTEM)
+    {
+    	if (found != string::npos)
+        {
+        	strDiff = data.substr(found+1, data.length() - found - 1);
+        	proc_count = atoi(strDiff.c_str());
+        }
     }
 
-    data.clear();
-
+	data.clear();
+    //cout<<"Batch processor count: "<<proc_count<<endl;
     return proc_count;
 }
 
@@ -322,6 +331,58 @@ bool is_string_number(const string& s)
     return !s.empty() && it == s.end();
 }
 
+string find_first_number(string const & str)
+{
+	size_t const n = str.find_first_of("0123456789");
+	if (n != string::npos)
+	{
+		size_t const m = str.find_first_not_of("0123456789", n);
+	    return str.substr(n, m != string::npos ? m-n : m);
+	}
+
+	return string();
+}
+
+string find_last_number(string const & str)
+{
+	size_t const n = str.find_last_of("0123456789");
+	if (n != string::npos)
+	{
+		string temp = str.substr(0, n+1);
+		size_t const m = temp.find_last_not_of("0123456789");
+		if (m != string::npos) return temp.substr(m+1, n-m);
+		return temp;
+	}
+
+	return string();
+}
+
+string find_first_double_number(string const & str)
+{
+	size_t const n = str.find_first_of("0123456789");
+	if (n != string::npos)
+	{
+		size_t const m = str.find_first_not_of("0123456789,.", n);
+	    return str.substr(n, m != string::npos ? m-n : m);
+	}
+
+	return string();
+}
+
+string find_last_double_number(string const & str)
+{
+	size_t const n = str.find_last_of("0123456789");
+	if (n != string::npos)
+	{
+		string temp = str.substr(0, n+1);
+		size_t const m = temp.find_last_not_of("0123456789,.");
+		if (m != string::npos) return temp.substr(m+1, n-m);
+		return temp;
+	}
+
+	return string();
+}
+
 // convert array of chars to the new lowercase array
 char* convert_pchar_to_lowercase_new(char* input_char_array)
 {
@@ -344,7 +405,6 @@ char* convert_pchar_to_lowercase_new(char* input_char_array)
 void replace_string_in_text(string &text, string old_substring, string new_substring)
 {
     int start = -1;
-
     do
     {
         start = text.find(old_substring, start + 1);

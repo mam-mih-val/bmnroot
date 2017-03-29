@@ -11,8 +11,8 @@ void tango_gem_trip()
 
     const char* detector_name = "gem";
     const char* parameter_name = "trip";
-    const char* date_start = "2016-12-21 15:13:22"; // 930 run
-    const char* date_end = "2016-12-21 15:28:23";
+    const char* date_start = "2017-03-09 02:25:55"; // 1252 run
+    const char* date_end = "2017-03-09 03:01:35";
     enumConditions condition = conditionEqual;
     bool condition_value = 1;
     // map: channel -> Z-order

@@ -10,14 +10,14 @@
 
 #include <math.h>
 #include <iostream>
-#include "FairHit.h"
+#include "BmnHit.h"
 #include <TObject.h>
 
 using namespace std;
 
 // class TClonesArray;
 
-class BmnTofHit : public FairHit {
+class BmnTofHit : public BmnHit {
 public:
 
     /** Default constructor **/
@@ -26,19 +26,10 @@ public:
     /** Constructor to use **/
     BmnTofHit(Int_t detUID, TVector3 posHit, TVector3 posHitErr, Int_t pointIndex);
 
-    void SetLength(Double_t Length);
-    Double_t GetLength();
-    
-    Bool_t IsUsed() const;
-    void SetUsing(Bool_t use);
-
     /** Destructor **/
     virtual ~BmnTofHit();
 
 private:
-
-    Bool_t fUsing;
-    Double_t fLength;
 
     ClassDef(BmnTofHit, 1);
 

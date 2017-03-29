@@ -145,6 +145,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         glTr->SetNHits(gemTrack->GetNHits());
         glTr->SetNDF(gemTrack->GetNDF());
         glTr->SetChi2(gemTrack->GetChi2());
+        glTr->SetLength(gemTrack->GetLength());
         
         vector<BmnFitNode> nodes(4); //MWPC, TOF1, TOF2 and DCH
         glTr->SetFitNodes(nodes);
@@ -300,7 +301,7 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
     for (Int_t hitIdx = 0; hitIdx < tofHits->GetEntriesFast(); ++hitIdx) {
         BmnHit* hit = (BmnHit*) tofHits->At(hitIdx);
         FairTrackParam parPredict(*(tr->GetParamLast()));
-        Double_t len = ((BmnGemTrack*)fGemTracks->At(tr->GetGemTrackIndex()))->GetLength();
+        Double_t len = tr->GetLength();
         kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "field");
         FairTrackParam parUpdate = parPredict;
         Double_t chi;
@@ -328,6 +329,7 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
         node->SetUpdatedParam(&minParUp);
         node->SetPredictedParam(&minParPred);
         minHit->SetLength(minLen);
+        tr->SetLength(minLen);
         return kBMNSUCCESS;
     } else {
         return kBMNERROR;

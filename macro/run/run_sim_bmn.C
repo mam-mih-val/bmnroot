@@ -28,14 +28,12 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     // fRun->SetName("TGeant4");
     // fRun->SetGeoModel("G3Native");
 
-    //    geometry_run1(fRun); // load bmn geometry
     geometry(fRun); // load bmn geometry
 
     // Use the experiment specific MC Event header instead of the default one
     // This one stores additional information about the reaction plane
     //MpdMCEventHeader* mcHeader = new MpdMCEventHeader();
     //fRun->SetMCEventHeader(mcHeader);
-
 
     // Create and Set Event Generator
     //-------------------------------

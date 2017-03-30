@@ -182,6 +182,10 @@ Bool_t BmnFileSource::Init()
 
 
     TObjArray* fBranchList = fInChain->GetListOfBranches();
+    // if no any branches then exit (some errors occured)
+    if (fBranchList == NULL)
+        return kFALSE;
+
     LOG(DEBUG)<<"Entries in the chain "<<fBranchList->GetEntries()<<FairLogger::endl;
 
     TObject** ppObj = new TObject*[fBranchList->GetEntries()];

@@ -56,16 +56,14 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
-    Ssiz_t indColon = inputFileName.First(':');
-    Ssiz_t indDash  = inputFileName.First('-');
     // for experimental datasource
-    if ((indColon >= 0) && (indDash < indColon) && (inputFileName.BeginsWith("run"))) {
+    if (inputFileName.Contains(TPRegexp("^run[0-9]+-[0-9]+:")))
+    {
+        Ssiz_t indDash = inputFileName.First('-'), indColon = inputFileName.First(':');
         // get run period
-        TString number_string(inputFileName(3, indDash - 3));
-        Int_t run_period = number_string.Atoi();
+        Int_t run_period = TString(inputFileName(3, indDash - 3)).Atoi();
         // get run number
-        number_string = inputFileName(indDash + 1, indColon - indDash - 1);
-        Int_t run_number = number_string.Atoi();
+        Int_t run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
         inputFileName.Remove(0, indColon + 1);
 
         if ( ! CheckFileExist(inputFileName)) {

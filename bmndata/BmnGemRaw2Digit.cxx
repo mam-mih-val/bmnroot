@@ -76,7 +76,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run) {
     Int_t ch = 0;
     Double_t ped = 0;
     Double_t rms = 0;
-  
+
     fPedDat = new UInt_t***[fNSerials];
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
         fPedDat[iCr] = new UInt_t**[N_EV_FOR_PEDESTALS];
@@ -150,13 +150,10 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
             fBigMap = fMid;
         } else {
             if (gemM->hotZone % 2 == 0) {
-                if (gemM->id % 10 == 0) {
+                if (gemM->id % 10 == 0)
                     fBigMap = fBigL0;
-                    if (gemM->station == 6) printf("fBigL0: ch = %d\n", realChannel);
-                } else {
+                else
                     fBigMap = fBigR0;
-                    if (gemM->station == 6) printf("fBigR0: ch = %d\n", realChannel);
-                }
             } else {
                 if (gemM->id % 10 == 0) fBigMap = fBigL1;
                 else fBigMap = fBigR1;

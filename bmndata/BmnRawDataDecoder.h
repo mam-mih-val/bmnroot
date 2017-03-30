@@ -214,6 +214,10 @@ public:
     void SetTrigMapping(TString map) {
         fTrigMapFileName = map;
     }
+    
+    void SetSiliconMapping(TString map) {
+        fSiliconMapFileName = map;
+    }
 
     void SetTrigINLFile(TString file) {
         fTrigINLFileName = file;
@@ -314,6 +318,7 @@ private:
     TString fZDCCalibrationFileName;
     TString fECALMapFileName;
     TString fECALCalibrationFileName;
+    TString fSiliconMapFileName;
     TString fTrigMapFileName;
     TString fTrigINLFileName;
 

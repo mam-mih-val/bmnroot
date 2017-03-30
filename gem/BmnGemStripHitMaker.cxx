@@ -127,7 +127,7 @@ InitStatus BmnGemStripHitMaker::Init() {
               //if (fVerbose) cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<                            corr[iStat][iMod][iPar] << endl; //
                 // print alignment corrections in similar format as Millepede does. Anatoly.Solomin@jinr.ru 2017-02-21 15:12:07 //
               //if (fVerbose) cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 14.11f", corr[iStat][iMod][iPar])<< endl; //
-                              cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 14.11f", corr[iStat][iMod][iPar])<< endl; //
+                              cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 4.3f", corr[iStat][iMod][iPar])<< endl; //
             }
         }
     }

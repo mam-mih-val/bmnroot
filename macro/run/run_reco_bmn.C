@@ -67,7 +67,6 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         number_string = inputFileName(indDash + 1, indColon - indDash - 1);
         Int_t run_number = number_string.Atoi();
         inputFileName.Remove(0, indColon + 1);
-        cout <<"run_period = "<<run_period<<"  run_number = "<<run_number<< endl;
 
         if ( ! CheckFileExist(inputFileName)) {
             cout <<"Error: digi file "+inputFileName+" does not exist!"<< endl;
@@ -175,8 +174,12 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    
-  BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017; // config file: (GEM_RunSpring2017.root))
+
+    BmnGemStripConfiguration::GEM_CONFIG gem_config;
+    if (run_period == 6)
+        gem_config = BmnGemStripConfiguration::RunSpring2017;
+    else if (run_period == 5)
+        gem_config = BmnGemStripConfiguration::RunWinter2016;
 
     if (!isExp) {
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();

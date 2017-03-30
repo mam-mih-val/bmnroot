@@ -56,7 +56,7 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
     const Int_t nTracks = fGemTracksArray->GetEntriesFast();
     if (nTracks > 0 && nTracks < 2) { //one-track events
         //Just propagation track on Z = 0.0
-        const Float_t fZ = 0.0;
+        const Float_t fZ = -21.7; //fixed target position (NOT GOOD!)
         Float_t fX, fY;
         BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(0);
         if (track->GetFlag() != kBMNBAD) {

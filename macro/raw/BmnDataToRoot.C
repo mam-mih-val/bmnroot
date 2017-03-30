@@ -23,6 +23,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     decoder->SetDetectorSetup(setup);
     
     decoder->SetTrigMapping("Trig_map_Run6.txt");
+    decoder->SetSiliconMapping("SILICON_map_run6.txt");
     decoder->SetTrigINLFile("TRIG_INL.txt");
     // in case comment out the line decoder->SetTof400Mapping("...")  
     // the maps of TOF400 will be readed from DB (only for JINR network)

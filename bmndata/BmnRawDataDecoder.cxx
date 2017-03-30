@@ -806,14 +806,16 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             printf("Run duration = %d sec.\t TimeStep = %f sec./event\n", runLength, timeStep);
 
             TObjArray* tango_data_gem = db_tango.SearchTangoIntervals((char*) "gem", (char*) "trip", (char*) date_start.Data(), (char*) date_end.Data(), condition, condition_value, map_channel);
-            for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {
-                TObjArray* currGemTripInfo = (TObjArray*) tango_data_gem->At(i);
-                if (currGemTripInfo->GetEntriesFast() != 0)
-                    for (Int_t j = 0; j < currGemTripInfo->GetEntriesFast(); ++j) {
-                        TangoTimeInterval* ti = (TangoTimeInterval*) currGemTripInfo->At(j);
-                        startTripEvent.push_back(UInt_t((ti->start_time.Convert() - fRunStartTime.Convert()) / timeStep));
-                        endTripEvent.push_back(UInt_t((ti->end_time.Convert() - fRunStartTime.Convert()) / timeStep));
-                    }
+            if (tango_data_gem) {
+                for (Int_t i = 0; i < tango_data_gem->GetEntriesFast(); ++i) {
+                    TObjArray* currGemTripInfo = (TObjArray*) tango_data_gem->At(i);
+                    if (currGemTripInfo->GetEntriesFast() != 0)
+                        for (Int_t j = 0; j < currGemTripInfo->GetEntriesFast(); ++j) {
+                            TangoTimeInterval* ti = (TangoTimeInterval*) currGemTripInfo->At(j);
+                            startTripEvent.push_back(UInt_t((ti->start_time.Convert() - fRunStartTime.Convert()) / timeStep));
+                            endTripEvent.push_back(UInt_t((ti->end_time.Convert() - fRunStartTime.Convert()) / timeStep));
+                        }
+                }
             }
         }
 
@@ -914,7 +916,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     if (fDetectorSetup[2]) {
         silicon = new TClonesArray("BmnSiliconDigit");
         fDigiTree->Branch("SILICON", &silicon);
-        fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId);
+        fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconMapFileName);
     }
 
     if (fDetectorSetup[3]) {
@@ -1081,7 +1083,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fMwpcMapper) delete fMwpcMapper;
     if (fTrigMapper) delete fTrigMapper;
     if (fTof400Mapper) delete fTof400Mapper;
-//    if (fTof700Mapper) delete fTof700Mapper;
+    //    if (fTof700Mapper) delete fTof700Mapper;
     if (fZDCMapper) delete fZDCMapper;
     if (fECALMapper) delete fECALMapper;
 

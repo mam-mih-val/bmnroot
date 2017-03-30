@@ -48,7 +48,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     timer.Start();
     // -------------------------------------------------------------------------
     // -----   Reconstruction run   --------------------------------------------
-    FairRunAna *fRunAna = new FairRunAna();
+    FairRunAna* fRunAna = new FairRunAna();
 
     Bool_t isField  = kTRUE;  // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kFALSE; // flag for tracking (run with target or not)
@@ -221,7 +221,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     gemSF->SetTarget(isTarget);
   //gemSF->SetXRange(-5.0,  20.0);
   //gemSF->SetYRange(-4.8., -3.8);
-//    gemSF->AddStationToSkip(0);
+    if (run_period == 5) // in run 6 that staion is already skipped
+        gemSF->AddStationToSkip(0);
   //gemSF->AddStationToSkip(1);
   //gemSF->AddStationToSkip(2);
     fRunAna->AddTask(gemSF);

@@ -276,11 +276,13 @@ private:
     Bool_t fDetectorSetup[9];
 
     Int_t GetRunIdFromFile(TString name);
+    vector<UInt_t> fSiliconSerials; //list of serial id for Silicon
+    UInt_t fNSiliconSerials;
     vector<UInt_t> fGemSerials; //list of serial id for GEM
     UInt_t fNGemSerials;
-    vector<UInt_t> fZDCSerials; //list of serial id for GEM
+    vector<UInt_t> fZDCSerials; //list of serial id for ZDC
     UInt_t fNZDCSerials;
-    vector<UInt_t> fECALSerials; //list of serial id for GEM
+    vector<UInt_t> fECALSerials; //list of serial id for ECal
     UInt_t fNECALSerials;
 
     UInt_t fPedoCounter;
@@ -414,7 +416,7 @@ private:
     BmnStatus FillTimeShiftsMap();
     BmnStatus FillTimeShiftsMapNoDB(UInt_t t0serial);
 
-    BmnStatus CopyDataToPedMap(TClonesArray* adc, UInt_t ev);
+    BmnStatus CopyDataToPedMap(TClonesArray* adcGem, TClonesArray* adcSil, UInt_t ev);
 };
 
 #endif

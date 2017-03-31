@@ -14,6 +14,7 @@ ${CMAKE_SOURCE_DIR}/geobase
 ${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/bmndata
+${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/globaltracking
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/silicon
@@ -101,6 +102,7 @@ BmnRawDataDecoder.cxx
 BmnEventHeader.cxx
 BmnRunHeader.cxx
 BmnCounterTask.cxx
+BmnAdcProcessor.cxx
 BmnFitNode.h
 BmnEnums.h
 )

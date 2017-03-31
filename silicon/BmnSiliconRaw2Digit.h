@@ -14,7 +14,9 @@
 #include <vector>
 #include <UniDbDetectorParameter.h>
 #include "BmnSiliconDigit.h"
+#include "BmnAdcProcessor.h"
 
+#define ADC_N_CHANNELS 64 //number of ADC channels
 #define ADC128_N_SAMPLES 128 //number of samples in one ADC digit
 
 using namespace std;
@@ -28,9 +30,9 @@ struct BmnSiliconMapping {
     Int_t start_strip;
 };
 
-class BmnSiliconRaw2Digit {
+class BmnSiliconRaw2Digit : public BmnAdcProcessor {
 public:
-    BmnSiliconRaw2Digit(Int_t period, Int_t run, TString name);
+    BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer);
     BmnSiliconRaw2Digit();
     virtual ~BmnSiliconRaw2Digit();
 
@@ -39,13 +41,10 @@ public:
 private:
 
     vector<BmnSiliconMapping> fMap;
-    UInt_t* fCrates;
-    Int_t fPeriod;
-    Int_t fRun;
-    Int_t fNCrates;
     Int_t fEventId;
-    
-    BmnStatus ReadMapFile(TString fName);
+
+    BmnStatus ReadMapFile();
+    void ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon);
 
     ClassDef(BmnSiliconRaw2Digit, 1);
 };

@@ -12,6 +12,7 @@
 #include <fstream>
 #include <list>
 #include <map>
+#include "BmnAdcProcessor.h"
 #include <vector>
 #include <UniDbDetectorParameter.h>
 #include <UniDbDetector.h>
@@ -27,7 +28,6 @@
 #define N_CH_BUF 4096
 #define N_MODULES 2
 #define N_LAYERS 4
-#define N_EV_FOR_PEDESTALS 1000
 
 using namespace std;
 using namespace TMath;
@@ -44,19 +44,13 @@ struct BmnGemMap {
     }
 };
 
-class BmnGemRaw2Digit {
+class BmnGemRaw2Digit : public BmnAdcProcessor {
 public:
-    BmnGemRaw2Digit(Int_t period, Int_t run);
+    BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer);
     BmnGemRaw2Digit();
     virtual ~BmnGemRaw2Digit();
 
     BmnStatus FillEvent(TClonesArray *adc, TClonesArray *gem);
-    BmnStatus CalcGemPedestals(TClonesArray *adc, TTree *tree);
-    BmnStatus RecalculatePedestals();
-
-    UInt_t**** GetPedData() {
-        return fPedDat;
-    }
 
 private:
 
@@ -69,25 +63,12 @@ private:
 
     GemMapStructure* fMap;
 
-    vector<UInt_t> fSerials; //list of serial id for GEM
-
     void ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
     BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);
-    Double_t CalcCMS(Double_t* samples, Int_t size);
-    BmnStatus FindNoisyStrips();
 
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
 
-    Int_t fPeriod;
-    Int_t fRun;
-    Int_t fNSerials;
     Int_t fEventId;
-
-    UInt_t**** fPedDat; //data set to calculate pedestals
-    Float_t*** fPedVal; //set of calculated pedestals
-    Float_t*** fPedRms; // set of calculated pedestal errors
-    UInt_t*** fAdcProfiles;
-    Bool_t*** fNoiseChannels; //false = good channel, true = noisy channel
 
     ClassDef(BmnGemRaw2Digit, 1);
 };

@@ -753,10 +753,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
             if (curEventType != kBMNPEDESTAL) continue;
             if (fPedEvCntr != N_EV_FOR_PEDESTALS - 1) {
-                CopyDataToPedMap(adc32, fPedEvCntr);
+                CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
             } else {
                 fGemMapper->RecalculatePedestals();
+                fSiliconMapper->RecalculatePedestals();
                 fPedEvCntr = 0;
                 break;
             }
@@ -836,11 +837,12 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         //if (t0->GetEntriesFast() != 1 || bc2->GetEntriesFast() != 1) continue;
         if (curEventType == kBMNPEDESTAL) {
             if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
-            CopyDataToPedMap(adc32, fPedEvCntr);
+            CopyDataToPedMap(adc32, adc128, fPedEvCntr);
             fPedEvCntr++;
         } else { // payload
             if (prevEventType == kBMNPEDESTAL && fPedEvCntr == N_EV_FOR_PEDESTALS - 1) {
                 if (fGemMapper) fGemMapper->RecalculatePedestals();
+                if (fSiliconMapper) fSiliconMapper->RecalculatePedestals();
                 fPedEvCntr = 0;
             }
             if (fGemMapper) fGemMapper->FillEvent(adc32, gem);
@@ -916,13 +918,13 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     if (fDetectorSetup[2]) {
         silicon = new TClonesArray("BmnSiliconDigit");
         fDigiTree->Branch("SILICON", &silicon);
-        fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconMapFileName);
+        fSiliconMapper = new BmnSiliconRaw2Digit(fPeriodId, fRunId, fSiliconSerials);
     }
 
     if (fDetectorSetup[3]) {
         gem = new TClonesArray("BmnGemStripDigit");
         fDigiTree->Branch("GEM", &gem);
-        fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId);
+        fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials);
     }
 
     if (fDetectorSetup[4]) {
@@ -1009,12 +1011,13 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
 
     if (fCurEventType == kBMNPEDESTAL) {
         if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) return kBMNERROR; //FIX return!
-        CopyDataToPedMap(adc32, fPedEvCntr);
+        CopyDataToPedMap(adc32, adc128, fPedEvCntr);
         fPedEvCntr++;
     } else { // payload
         if (fPrevEventType == kBMNPEDESTAL) {
             if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) {
                 fGemMapper->RecalculatePedestals();
+                fSiliconMapper->RecalculatePedestals();
                 fPedEvCntr = 0;
                 fPedEnough = kTRUE;
             }
@@ -1132,21 +1135,35 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcp, UInt_t ev) {
-    if (!fGemMapper) return kBMNERROR;
-    UInt_t**** pedData = fGemMapper->GetPedData();
-    for (UInt_t iAdc = 0; iAdc < adcp->GetEntriesFast(); ++iAdc) {
-        BmnADCDigit* adcDig = (BmnADCDigit*) adcp->At(iAdc);
+BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray* adcSil, UInt_t ev) {
+    if (fGemMapper) {
+        UInt_t**** pedData = fGemMapper->GetPedData();
+        for (UInt_t iAdc = 0; iAdc < adcGem->GetEntriesFast(); ++iAdc) {
+            BmnADCDigit* adcDig = (BmnADCDigit*) adcGem->At(iAdc);
 
-        Int_t iSer = -1;
-        for (iSer = 0; iSer < fNGemSerials; ++iSer)
-            if (adcDig->GetSerial() == fGemSerials[iSer]) break;
-        if (iSer == -1) return kBMNERROR;
+            Int_t iSer = -1;
+            for (iSer = 0; iSer < fNGemSerials; ++iSer)
+                if (adcDig->GetSerial() == fGemSerials[iSer]) break;
+            if (iSer == -1) return kBMNERROR;
 
-        for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl)
-            pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
+            for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl)
+                pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
+        }
     }
+    if (fSiliconMapper) {
+        UInt_t**** pedData = fSiliconMapper->GetPedData();
+        for (UInt_t iAdc = 0; iAdc < adcSil->GetEntriesFast(); ++iAdc) {
+            BmnADCDigit* adcDig = (BmnADCDigit*) adcSil->At(iAdc);
 
+            Int_t iSer = -1;
+            for (iSer = 0; iSer < fNSiliconSerials; ++iSer)
+                if (adcDig->GetSerial() == fSiliconSerials[iSer]) break;
+            if (iSer == -1) return kBMNERROR;
+
+            for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl)
+                pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
+        }
+    }
     return kBMNSUCCESS;
 }
 
@@ -1309,6 +1326,11 @@ void BmnRawDataDecoder::InitMaps() {
         if (find(fGemSerials.begin(), fGemSerials.end(), fGemMap[i].serial) == fGemSerials.end())
             fGemSerials.push_back(fGemMap[i].serial);
     fNGemSerials = fGemSerials.size();
+
+    //FIXME!!! Move all mappings into DB to exclude explicit numbers in future!
+    fSiliconSerials.push_back(0x611D0DA);
+    fSiliconSerials.push_back(0x4E993A5);
+    fNSiliconSerials = fSiliconSerials.size();
 
     fZDCSerials.push_back(0x046f4083);
     fZDCSerials.push_back(0x046f4bb2);

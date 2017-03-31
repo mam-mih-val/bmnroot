@@ -81,6 +81,7 @@
 #pragma link C++ class BmnTof1Raw2Digit+;
 #pragma link C++ class BmnGemRaw2Digit+;
 #pragma link C++ class BmnTrigRaw2Digit+;
+#pragma link C++ class BmnAdcProcessor+;
 
 #pragma link C++ class BmnRawDataDecoder+;
 #pragma link C++ class DigiArrays+;

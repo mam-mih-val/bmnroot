@@ -19,6 +19,8 @@ ${CMAKE_SOURCE_DIR}/globaltracking
 ${CMAKE_SOURCE_DIR}/alignment
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/bmnbase
+${CMAKE_SOURCE_DIR}/mwpc
+${CMAKE_SOURCE_DIR}/dch
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -32,10 +34,13 @@ link_directories( ${LINK_DIRECTORIES})
 
 set(BMNALIGNMENT_SRCS
 BmnGemAlignment.cxx
+BmnGemAlignCorrections.cxx
 BmnGemAlignmentCorrections.cxx
-BmnDchAlignment.cxx
+BmnDchAlignCorrections.cxx
+BmnMwpcAlignCorrections.cxx
 BmnGlobalAlignment.cxx
 BmnMille.cxx
+BmnAlignCorrections.cxx
 )
 
 # fill list of header files from list of source files

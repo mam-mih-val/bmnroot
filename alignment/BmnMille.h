@@ -29,7 +29,7 @@ private:
     /// buffer size for ints and floats
 
     enum {
-        myBufferSize = 5000
+        myBufferSize = 500000
     }; ///< buffer size for ints and floats
     Int_t myBufferInt[myBufferSize]; ///< to collect labels etc.
     Float_t myBufferFloat[myBufferSize]; ///< to collect derivatives etc.

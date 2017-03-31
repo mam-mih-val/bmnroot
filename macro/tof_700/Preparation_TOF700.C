@@ -18,7 +18,7 @@ void Preparation_TOF700(char *fname="../raw/bmn_run1421.root", int RunPeriod = 6
     }
 
     BmnTof2Raw2Digit TOF2(mapping, fname);
-    TOF2.print();
+    //TOF2.print();
 
     if (RunPeriod <= 2)
     {

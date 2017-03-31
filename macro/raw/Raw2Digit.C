@@ -26,8 +26,8 @@ void Raw2Digit(char *fname="bmn_run1421.root", int RunPeriod = 6) {
 	printf("Non-existing run period number %d!", RunPeriod);
 	return;
     }
-    BmnZDCRaw2Digit  ZDC(mappingzdc, fname, "zdc_muon_calibration.txt"); ZDC.print();
-    BmnTof2Raw2Digit TOF2(mapping, fname); TOF2.print();
+    BmnZDCRaw2Digit  ZDC(mappingzdc, fname, "zdc_muon_calibration.txt"); //ZDC.print();
+    BmnTof2Raw2Digit TOF2(mapping, fname); //TOF2.print();
     TOF2.readSlewingT0();
     TOF2.readSlewing();
 

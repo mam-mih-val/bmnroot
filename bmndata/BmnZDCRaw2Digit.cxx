@@ -6,6 +6,8 @@
 #include "TRandom.h"
 #include "BmnZDCRaw2Digit.h"
 
+#define PRINT_ZDC_CALIBRATION 0
+
 static void fcn1(Int_t& npar, Double_t *gin, Double_t& f, Double_t *par, Int_t iflag);
 
 BmnZDCRaw2Digit::BmnZDCRaw2Digit(){
@@ -26,6 +28,12 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
     TString dir = getenv("VMCWORKDIR");
     TString path = dir + "/input/";
     in.open((path + mappingFile).Data());
+    if (!in.is_open())
+    {
+	printf("Loading ZDC Map from file: %s - file open error!\n", mappingFile.Data());
+	return;
+    }
+    printf("Loading ZDC Map from file: %s\n", mappingFile.Data());
     in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy>> dummy >> dummy >> dummy >> dummy;
     maxchan = 0;
     int ixmin = -1, ixmax = -1, iymin = -1, iymax = -1;
@@ -139,7 +147,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
     }
     if (!fin)
     {
-	printf("Can't open calibration file %s, use default calibration coefficients 1.\n", filn);
+	printf(" ZDC: Can't open calibration file %s, use default calibration coefficients 1.\n\n", filn);
     }
     else
     {
@@ -156,10 +164,10 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
 	};
 	fclose(fin);
     }
-    printf("%s\t%s\t%s\n", tit1, tit2, tit3);
+    if (PRINT_ZDC_CALIBRATION) printf("\n ZDC calibration coefficients\n\n%s\t%s\t%s\n\n", tit1, tit2, tit3);
     for (int i=0; i<maxchan; i++)
     {
-	printf("%d\t%f\t%f\n", i, cal[i], cale[i]);
+	if (PRINT_ZDC_CALIBRATION) printf("%d\t%f\t%f\n", i, cal[i], cale[i]);
     }
 //----------------------------------
     path1 = dir + "/input/";
@@ -167,7 +175,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
     MaxPos_max = 1000;
     if (strlen(MaxPositionFile.Data()) == 0)
     {
-	printf("\nNo cuts on samples wave max position.\n\n");
+	printf("\n ZDC: No cuts on samples wave max position.\n\n");
     }
     else
     {
@@ -175,8 +183,8 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
 	fin = fopen(filn,"r");
 	if (!fin)
 	{
-	    printf("\nCan't open samples wave max position file %s !\n", filn);
-	    printf("No cuts on samples wave max position.\n\n");
+	    printf("\n ZDC: Can't open samples wave max position file %s !\n", filn);
+	    printf(" ZDC: No cuts on samples wave max position.\n\n");
 	}
 	else
 	{
@@ -188,7 +196,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
 		{
 		    MaxPos_min = (int)(mpos - 2.*msig);
 		    MaxPos_max = (int)(mpos + 2.*msig + 0.5);
-		    printf("\nRun %d Samples wave Max position range %d - %d\n\n", runn, MaxPos_min, MaxPos_max);
+		    printf("\n ZDC: Run %d Samples wave Max position range %d - %d\n\n", runn, MaxPos_min, MaxPos_max);
 		    break;
 		}
 	    };

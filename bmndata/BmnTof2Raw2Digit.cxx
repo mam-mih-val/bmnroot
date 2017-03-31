@@ -1621,8 +1621,8 @@ void BmnTof2Raw2Digit::drawprep()
       gPad->AddExec("exselt","select_hist()");
       im = (TvsS[i]->ProjectionY())->GetMaximumBin();
       y  = (int)((TvsS[i]->ProjectionY())->GetBinCenter(im));
-      ymin = y - 50;
-      ymax = y + 50;
+      ymin = y - 60;
+      ymax = y + 60;
       xmin = (TvsS[i]->GetXaxis())->GetXmin();
       xmax = (TvsS[i]->GetXaxis())->GetXmax();
       l = new TLine(xmin,ymin,xmax,ymin);
@@ -1644,8 +1644,8 @@ void BmnTof2Raw2Digit::drawprep()
       cpp->cd(champos[i]+1);
       im = (TvsS[i]->ProjectionY())->GetMaximumBin();
       y  = (int)((TvsS[i]->ProjectionY())->GetBinCenter(im));
-      ymin = y - 50;
-      ymax = y + 50;
+      ymin = y - 60;
+      ymax = y + 60;
       xmin = 0;
       xmax = (TvsS[i]->ProjectionY())->GetMaximum();
       TvsS[i]->ProjectionY(strcat(strcpy(filn,TvsS[i]->GetName()),"_y"), 1, 32, "D");

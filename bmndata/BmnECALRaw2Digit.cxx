@@ -6,6 +6,7 @@
 #include "TRandom.h"
 #include "BmnECALRaw2Digit.h"
 
+#define PRINT_ECAL_CALIBRATION 0
 #define SHIFT 4
 
 static void fcn1(Int_t& npar, Double_t *gin, Double_t& f, Double_t *par, Int_t iflag);
@@ -28,6 +29,12 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(TString mappingFile, TString RunFile, TString
     TString dir = getenv("VMCWORKDIR");
     TString path = dir + "/input/";
     in.open((path + mappingFile).Data());
+    if (!in.is_open())
+    {
+	printf("Loading ECAL Map from file: %s - file open error!\n", mappingFile.Data());
+	return;
+    }
+    printf("Loading ECAL Map from file: %s\n", mappingFile.Data());
     in >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
     maxchan = 0;
     int ixmin = -1, ixmax = -1, iymin = -1, iymax = -1;
@@ -145,7 +152,7 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(TString mappingFile, TString RunFile, TString
     }
     if (!fin)
     {
-	printf("Can't open calibration file %s, use default calibration coefficients 1.\n", filn);
+	printf(" ECAL: Can't open calibration file %s, use default calibration coefficients 1.\n\n", filn);
     }
     else
     {
@@ -162,10 +169,10 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(TString mappingFile, TString RunFile, TString
 	};
 	fclose(fin);
     }
-    printf("%s\t%s\t%s\n", tit1, tit2, tit3);
+    if (PRINT_ECAL_CALIBRATION) printf("\n ECAL calibration coefficients\n\n%s\t%s\t%s\n\n", tit1, tit2, tit3);
     for (int i=0; i<maxchan; i++)
     {
-	printf("%d\t%f\t%f\n", i, cal[i], cale[i]);
+	if (PRINT_ECAL_CALIBRATION) printf("%d\t%f\t%f\n", i, cal[i], cale[i]);
     }
 //----------------------------------
     nevents_ecal = 0;

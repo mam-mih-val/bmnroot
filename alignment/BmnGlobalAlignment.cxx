@@ -187,7 +187,8 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
                 globTrack->GetNHits() > fMinHitsAccepted && chi2 / ndf < fChi2MaxPerNDF))
             continue;
 
-        Int_t idx[nDetectors] = {globTrack->GetGemTrackIndex(), globTrack->GetMwpcTrackIndex(), globTrack->GetDchTrackIndex()};
+        // GCC-4.4.7, to be fixed
+        Int_t idx[3] = {globTrack->GetGemTrackIndex(), globTrack->GetMwpcTrackIndex(), globTrack->GetDchTrackIndex()};
         Char_t buff[5000] = {""};
         Bool_t zhopa = kFALSE;
 

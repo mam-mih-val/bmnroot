@@ -257,7 +257,10 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
     // TANGO database connection
     TString strConnection = TString::Format("mysql://%s", TANGO_DB_HOST);
     TSQLServer* db = TSQLServer::Connect(strConnection, TANGO_DB_USERNAME, TANGO_DB_PASSWORD);
-    db->GetTables(TANGO_DB_NAME);
+    if (db == NULL) return NULL;
+
+    if (db->GetTables(TANGO_DB_NAME) == NULL)
+        return NULL;
 
     // searching for parameters with given parameter_name for detector with detector_name
     TString strStatement = TString::Format(

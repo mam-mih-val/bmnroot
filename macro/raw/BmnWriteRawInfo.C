@@ -29,7 +29,7 @@ void BmnWriteRawInfo(TString file, TString output_file = "", bool isOnlyNew = fa
     }
 	double file_size = l_file_size/1048576.0;
 
-    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //6 - period
+    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //5 - period
 
     bool isRunExist = UniDbRun::CheckRunExists(decoder->GetPeriodId(), decoder->GetRunId());
     // if run exists and corresponding flags were set then exit
@@ -55,6 +55,7 @@ void BmnWriteRawInfo(TString file, TString output_file = "", bool isOnlyNew = fa
 
     // set mapping
     decoder->SetTrigMapping("Trig_map_Run6.txt");   //e.g. "Trig_map_Run5.txt"
+    decoder->SetSiliconMapping("SILICON_map_run6.txt");
     decoder->SetTrigINLFile("TRIG_INL.txt");
     // in case comment out the line decoder->SetTof400Mapping("...")
     // the maps of TOF400 will be readed from DB (only for JINR network)
@@ -84,14 +85,15 @@ void BmnWriteRawInfo(TString file, TString output_file = "", bool isOnlyNew = fa
     {
         tree->GetEntry(0);
 
-        cout<<"Start time: "<<fRunHeader->GetStartTime().AsString("lc")<<endl;
-        cout<<"End time: "<<fRunHeader->GetFinishTime().AsString("lc")<<endl;
-        cout<<"Event count: "<<fRunHeader->GetNEvents()<<endl;
-
         // update start time, end time and event count in the Unified Database
-        TDatime startDate((Int_t)fRunHeader->GetStartTime().GetDate(kFALSE), (Int_t)fRunHeader->GetStartTime().GetTime(kFALSE));
-        TDatime* endDate = new TDatime((Int_t)fRunHeader->GetFinishTime().GetDate(kFALSE), (Int_t)fRunHeader->GetFinishTime().GetTime(kFALSE));
-        int* event_count = new int(fRunHeader->GetNEvents());
+        //TDatime startDate((Int_t)fRunHeader->GetStartTime().GetDate(kFALSE), (Int_t)fRunHeader->GetStartTime().GetTime(kFALSE));
+        TDatime startDate = fRunHeader->GetStartTime();
+        TDatime endDate = fRunHeader->GetFinishTime();
+        int event_count = fRunHeader->GetNEvents();
+
+        cout<<"Start time: "<<startDate.AsString()<<endl;
+        cout<<"End time: "<<endDate.AsString()<<endl;
+        cout<<"Event count: "<<event_count<<endl;
 
         if (isRunExist)
         {
@@ -107,8 +109,8 @@ void BmnWriteRawInfo(TString file, TString output_file = "", bool isOnlyNew = fa
                 {
                     if (pRun->SetFilePath(file.Data()) != 0) isErrors = true;
                     if (pRun->SetStartDatetime(startDate) != 0) isErrors = true;
-                    if (pRun->SetEndDatetime(endDate) != 0) isErrors = true;
-                    if (pRun->SetEventCount(event_count) != 0) isErrors = true;
+                    if (pRun->SetEndDatetime(&endDate) != 0) isErrors = true;
+                    if (pRun->SetEventCount(&event_count) != 0) isErrors = true;
                     if (pRun->SetFileSize(&file_size) != 0) isErrors = true;
 
                     delete pRun;
@@ -121,7 +123,7 @@ void BmnWriteRawInfo(TString file, TString output_file = "", bool isOnlyNew = fa
         }
         else
         {
-            UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), file, "", NULL, NULL, startDate, endDate, event_count, NULL, &file_size, NULL);
+            UniDbRun* pRun = UniDbRun::CreateRun(decoder->GetPeriodId(), decoder->GetRunId(), file, "", NULL, NULL, startDate, &endDate, &event_count, NULL, &file_size, NULL);
 
             bool isErrors = false;
             if (pRun == NULL)
@@ -134,9 +136,6 @@ void BmnWriteRawInfo(TString file, TString output_file = "", bool isOnlyNew = fa
             else
                 cout<<"Info for run "<<decoder->GetPeriodId()<<":"<<decoder->GetRunId()<<" was created."<<endl;
         }
-
-        delete event_count;
-        delete endDate;
 
         // write output digi file if required
         if (output_file != "")

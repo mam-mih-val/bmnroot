@@ -32,7 +32,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
                   TString bmndstFileName    = "$VMCWORKDIR/macro/run/bmndst.root",
                   Int_t   nStartEvent       =  0,
                   Int_t   nEvents           =  10000,
-                  Bool_t  isPrimary         =  kTRUE)        
+                  Bool_t  isPrimary         =  kTRUE, 
+                  TString alignCorrFileName = "$VMCWORKDIR/input/alignCorrsLocal_GEM.root")        
 {   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
     // ----    Debug option   --------------------------------------------------
@@ -192,7 +193,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // Set name of file with the alignment corrections (derived from database in future)
     if (isExp) gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
     // Set name of file with the alignment corrections by hands (for test purposes and iterative alignment also)
-    // if (isExp) gemHM->SetAlignmentCorrectionsFileName("$VMCWORKDIR/input/align.root");
+    // if (isExp) gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
     // ====================================================================== //

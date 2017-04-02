@@ -18,6 +18,7 @@
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripConfiguration.h"
 #include "BmnGemAlignmentCorrections.h"
+#include "BmnGemAlignCorrections.h"
 
 using namespace std;
 
@@ -58,6 +59,12 @@ public:
         // run_reco_bmn.C is alignCorrFileName = "UniDb" (case insensitive!)).
         //
         // Anatoly.Solomin@jinr.ru 2017-02-21 14:05:00
+    }
+    
+    // All the corrections should be migrated to database!
+    void SetAlignmentCorrectionsFileName(Int_t run_period, Int_t file_number) {
+        fAlignCorrFileName = (run_period == 5) ? "$VMCWORKDIR/input/alignCorrsLocal_GEM.root" : 
+            (run_period == 6) ? "$VMCWORKDIR/input/align.root" : "";      
     }
 
 private:

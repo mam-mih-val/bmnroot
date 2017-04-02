@@ -32,8 +32,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
                   TString bmndstFileName    = "$VMCWORKDIR/macro/run/bmndst.root",
                   Int_t   nStartEvent       =  0,
                   Int_t   nEvents           =  10000,
-                  Bool_t  isPrimary         =  kTRUE,
-                  TString alignCorrFileName = "$VMCWORKDIR/input/alignCorrsLocal_GEM.root")
+                  Bool_t  isPrimary         =  kTRUE)        
 {   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
     // ----    Debug option   --------------------------------------------------
@@ -57,13 +56,15 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
     // for experimental datasource
+    Int_t run_period;
+    Int_t run_number;
     if (inputFileName.Contains(TPRegexp("^run[0-9]+-[0-9]+:")))
     {
         Ssiz_t indDash = inputFileName.First('-'), indColon = inputFileName.First(':');
         // get run period
-        Int_t run_period = TString(inputFileName(3, indDash - 3)).Atoi();
+        run_period = TString(inputFileName(3, indDash - 3)).Atoi();
         // get run number
-        Int_t run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
+        run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
         inputFileName.Remove(0, indColon + 1);
 
         if ( ! CheckFileExist(inputFileName)) {
@@ -188,8 +189,10 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-    // Set name of file with the alignment corrections.
-    if (isExp) gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
+    // Set name of file with the alignment corrections (derived from database in future)
+    if (isExp) gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
+    // Set name of file with the alignment corrections by hands (for test purposes and iterative alignment also)
+    // if (isExp) gemHM->SetAlignmentCorrectionsFileName("$VMCWORKDIR/input/align.root");
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
     // ====================================================================== //

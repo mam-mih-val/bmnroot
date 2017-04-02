@@ -118,17 +118,13 @@ InitStatus BmnGemStripHitMaker::Init() {
     // Anatoly.Solomin@jinr.ru 2017-02-21 15:12:07
     ReadAlignCorrFile(fAlignCorrFileName, corr);
 
-  //if (fVerbose) cout << "Alignment corrections to be used: " << endl;
-                  cout << "Alignment corrections to be used: " << endl;
+    cout << "Obtained alignment GEM-corrections to be used: " << endl;
     for (Int_t iStat = 0; iStat < nStat; iStat++) {
         Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
         for (Int_t iMod = 0; iMod < nModul; iMod++) {
-            for (Int_t iPar = 0; iPar < nParams; iPar++) {
-              //if (fVerbose) cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<                            corr[iStat][iMod][iPar] << endl; //
+            for (Int_t iPar = 0; iPar < nParams; iPar++) 
                 // print alignment corrections in similar format as Millepede does. Anatoly.Solomin@jinr.ru 2017-02-21 15:12:07 //
-              //if (fVerbose) cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 14.11f", corr[iStat][iMod][iPar])<< endl; //
-                              cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 4.3f", corr[iStat][iMod][iPar])<< endl; //
-            }
+                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << TString::Format("% 4.4f", corr[iStat][iMod][iPar]) << endl; // 
         }
     }
 
@@ -141,11 +137,11 @@ InitStatus BmnGemStripHitMaker::Init() {
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
     clock_t tStart = clock();
-    
+
     BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
     if (evHeader)
         if (evHeader->GetTripWord()) return;
-    
+
     fBmnGemStripHitsArray->Clear();
 
     if (fHitMatching && fBmnGemStripHitMatchesArray) {
@@ -298,43 +294,48 @@ void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
     if (fname == "")
         return;
 
-    const Int_t nParams = 3; //
+    Int_t coeff = 0; // -1 for RunWinter2016, +1 for RunSpring2017 and in the future
+    TString branchName = "";
+    switch (fCurrentConfig) {
+        case BmnGemStripConfiguration::RunWinter2016:
+            coeff = -1;
+            branchName = "BmnGemAlignmentCorrections";
+            break;
 
-  //TChain* ch = new TChain("cbmsim"); //
-  //ch->Add(fname.Data()); //
-    // Instead of TChain use TTree. Anatoly.Solomin@jinr.ru 2017-03-02  12:42:07
-    TFile* f = new TFile(fname.Data()); //
-    TTree* t = (TTree*)f->Get("cbmsim"); //
+        case BmnGemStripConfiguration::RunSpring2017:
+            coeff = 1;
+            branchName = "BmnGemAlignCorrections";
+            break;
+        default:
+            StationSet = NULL;
+    }
 
+    TFile* f = new TFile(fname.Data());
+    TTree* t = (TTree*) f->Get("cbmsim");
     TClonesArray* corrs = NULL;
-  //ch->SetBranchAddress("BmnGemAlignmentCorrections", &corrs); //
-    t ->SetBranchAddress("BmnGemAlignmentCorrections", &corrs); //
+    t->SetBranchAddress(branchName.Data(), &corrs);
 
-
-  //for (Int_t iEntry=0; iEntry < ch->GetEntries(); iEntry++) { //
-    for (Int_t iEntry=0; iEntry < t ->GetEntries(); iEntry++) { //
-        if (fVerbose) cout <<"iEntry = "<<iEntry<< endl; //
-      //ch->GetEntry(iEntry); //
-        t ->GetEntry(iEntry); //
-        if (fVerbose) cout <<"corrs->GetEntriesFast() = "<<corrs->GetEntriesFast()<< endl; //
-        for (Int_t iCorr=0; iCorr < corrs->GetEntriesFast(); iCorr++) {
-            if (fVerbose) cout <<"iCorr = "<<iCorr<< endl; //
-            BmnGemAlignmentCorrections* align = (BmnGemAlignmentCorrections*)corrs->UncheckedAt(iCorr);
-          //corr[align->GetStation()][align->GetModule()][0] = -align->GetCorrections().X(); //
-          //corr[align->GetStation()][align->GetModule()][1] = -align->GetCorrections().Y(); //
-          //corr[align->GetStation()][align->GetModule()][2] = -align->GetCorrections().Z(); //
-            Int_t iStat = align->GetStation();                   //
-            Int_t iMod  = align->GetModule();                    //
-            corr[iStat][iMod][0] = -align->GetCorrections().X(); //
-            corr[iStat][iMod][1] = -align->GetCorrections().Y(); //
-            corr[iStat][iMod][2] = -align->GetCorrections().Z(); //
-          //for (Int_t iPar=0; iPar < nParams; iPar++)
-          //    if (fVerbose) cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 14.11f", corr[iStat][iMod][iPar])<< endl;
-          //    if (fVerbose) cout << endl;
+    for (Int_t iEntry = 0; iEntry < t ->GetEntries(); iEntry++) {
+        t->GetEntry(iEntry);
+        for (Int_t iCorr = 0; iCorr < corrs->GetEntriesFast(); iCorr++) {
+            if (coeff == -1) { // To be removed in future 
+                BmnGemAlignmentCorrections* align = (BmnGemAlignmentCorrections*) corrs->UncheckedAt(iCorr);
+                Int_t iStat = align->GetStation();
+                Int_t iMod = align->GetModule();
+                corr[iStat][iMod][0] = coeff * align->GetCorrections().X();
+                corr[iStat][iMod][1] = coeff * align->GetCorrections().Y();
+                corr[iStat][iMod][2] = coeff * align->GetCorrections().Z();
+            } else {
+                BmnGemAlignCorrections* align = (BmnGemAlignCorrections*) corrs->UncheckedAt(iCorr);
+                Int_t iStat = align->GetStation();
+                Int_t iMod = align->GetModule();
+                corr[iStat][iMod][0] = coeff * align->GetCorrections().X();
+                corr[iStat][iMod][1] = coeff * align->GetCorrections().Y();
+                corr[iStat][iMod][2] = coeff * align->GetCorrections().Z();
+            }
         }
     }
-  //delete ch; //
-    delete f ; //
+    delete f;
 }
 
 ClassImp(BmnGemStripHitMaker)

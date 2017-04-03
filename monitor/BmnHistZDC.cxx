@@ -70,6 +70,9 @@ BmnHistZDC::BmnHistZDC(TString title) {
 
 BmnHistZDC::~BmnHistZDC() {
     delete h2d_grid;
+    delete h2d_profile;
+    delete hx;
+    delete hy;
 }
 
 void BmnHistZDC::Register(THttpServer *serv) {
@@ -97,6 +100,9 @@ void BmnHistZDC::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
     if (outFile != NULL)
         dir = outFile->mkdir(fTitle + "_hists");
     h2d_grid->SetDirectory(dir);
+    h2d_profile->SetDirectory(dir);
+    hx->SetDirectory(dir);
+    hy->SetDirectory(dir);
 
 }
 
@@ -106,14 +112,14 @@ void BmnHistZDC::DrawBoth() {
 }
 
 void BmnHistZDC::FillFromDigi(TClonesArray * ZDCDigits) {
-    Float_t xAmp = 0;
-    Float_t yAmp = 0;
-    Float_t Amp = 0;
+    Double_t xAmp = 0;
+    Double_t yAmp = 0;
+    Double_t Amp = 0;
     for (Int_t iDig = 0; iDig < ZDCDigits->GetEntriesFast(); iDig++) {
         BmnZDCDigit* dig = (BmnZDCDigit*) ZDCDigits->At(iDig);
         Int_t ix = dig->GetIX();
         Int_t iy = dig->GetIY();
-        Float_t amp = dig->GetAmp();
+        Double_t amp = dig->GetAmp();
         Amp += amp;
         h2d_grid->Fill(ix, iy, dig->GetAmp());
         xAmp += amp * dig->GetX();
@@ -142,6 +148,9 @@ BmnStatus BmnHistZDC::SetRefRun(Int_t id) {
 
 void BmnHistZDC::Reset() {
     h2d_grid->Reset();
+    h2d_profile->Reset();
+    hx->Reset();
+    hy->Reset();
 }
 
 ClassImp(BmnHistZDC);

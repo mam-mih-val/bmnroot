@@ -23,6 +23,7 @@ BmnMonitor::BmnMonitor() {
     fRecoTree = NULL;
     fRecoTree4Show = NULL;
     fHistOut = NULL;
+    fHistOutTemp = NULL;
     fServer = NULL;
     fRawDecoSocket = NULL;
     fRunID = 0;
@@ -48,10 +49,12 @@ BmnMonitor::BmnMonitor() {
     bhZDC_4show = NULL;
     bhTrig_4show = NULL;
     rawDataDecoder = NULL;
+    fDigiArrays = NULL;
     _ctx = NULL;
 }
 
 BmnMonitor::~BmnMonitor() {
+    DBG("started")
     if (bhGem) delete bhGem;
     if (bhToF400) delete bhToF400;
     if (bhToF700) delete bhToF700;
@@ -59,11 +62,13 @@ BmnMonitor::~BmnMonitor() {
     if (bhMWPC) delete bhMWPC;
     if (bhZDC) delete bhZDC;
     if (bhTrig) delete bhTrig;
+    DBG("hists deleted")
 
-    //    delete fRecoTree;
+            //    delete fRecoTree;
     if (fHistOut != NULL)
         delete fHistOut;
-    //    fServer->Unregister(infoCanvas);
+    DBG("delete fHistOut")
+            //    fServer->Unregister(infoCanvas);
     if (infoCanvas) delete infoCanvas;
     if (bhGem_4show) delete bhGem_4show;
     if (bhToF400_4show) delete bhToF400_4show;
@@ -72,6 +77,7 @@ BmnMonitor::~BmnMonitor() {
     if (bhMWPC_4show) delete bhMWPC_4show;
     if (bhZDC_4show) delete bhZDC_4show;
     if (bhTrig_4show) delete bhTrig_4show;
+    DBG("hists_4show deleted")
     if (fServer) delete fServer;
     if (rawDataDecoder) {
         rawDataDecoder->DisposeDecoder();
@@ -85,19 +91,39 @@ BmnMonitor::~BmnMonitor() {
 }
 
 void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAddr, Int_t webPort) {
+    DBG("started")
+    fState = kBMNWAIT;
     _ctx = zmq_ctx_new();
     _decoSocket = zmq_socket(_ctx, ZMQ_SUB);
     if (_decoSocket == NULL) {
         DBGERR("zmq socket")
         return;
     }
+    if (zmq_setsockopt(_decoSocket, ZMQ_SUBSCRIBE, NULL, 0) == -1) {
+        DBGERR("zmq subscribe")
+        return;
+    }
+    Int_t rcvBuf = 0;
+    size_t vl = sizeof (rcvBuf);
+    if (zmq_getsockopt(_decoSocket, ZMQ_RCVBUF, &rcvBuf, &vl) == -1)
+        DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
+        printf("rcvbuf = %d\n", rcvBuf);
+    rcvBuf = MAX_BUF_LEN;
+    if (zmq_setsockopt(_decoSocket, ZMQ_RCVBUF, &rcvBuf, sizeof (rcvBuf)) == -1)
+        DBGERR("zmq_setsockopt of ZMQ_RCVBUF")
+        if (zmq_setsockopt(_decoSocket, ZMQ_SNDBUF, &rcvBuf, sizeof (rcvBuf)) == -1)
+            DBGERR("zmq_setsockopt of ZMQ_SNDBUF")
+            rcvBuf = 0;
+    if (zmq_getsockopt(_decoSocket, ZMQ_RCVBUF, &rcvBuf, &vl) == -1)
+        DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
+        printf("rcvbuf = %d\n", rcvBuf);
+
     _webPort = webPort;
     _curDir = dirname;
     if (refDir == "")
         _refDir = _curDir;
     else
         _refDir = refDir;
-    DBG("started")
     printf("Ref dir set to %s\n", _refDir.Data());
     InitServer();
     RegisterAll();
@@ -107,12 +133,82 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
         DBGERR("zmq connect")
         return;
     }
+    //    TBufferFile t(TBuffer::kRead);
+    zmq_msg_t msg;
+    Int_t recv_more = 0;
+    size_t opt_size = sizeof (recv_more);
+    TBufferFile t(TBuffer::kRead);
+    //    UInt_t buf[MAX_BUF_LEN / 4];
     Int_t len;
+    Int_t frame_size = 0;
     decoTimeout = 0;
     keepWorking = kTRUE;
+
     while (keepWorking) {
         gSystem->ProcessEvents();
-        
+        zmq_msg_init(&msg);
+        frame_size = zmq_msg_recv(&msg, _decoSocket, ZMQ_DONTWAIT); // ZMQ_DONTWAIT
+        if (frame_size == -1) {
+            if (errno == EAGAIN) {
+                usleep(DECO_SOCK_WAIT_PERIOD * 1000);
+                decoTimeout += DECO_SOCK_WAIT_PERIOD;
+                if ((decoTimeout > DECO_SOCK_WAIT_LIMIT) && (fState == kBMNWORK)) {
+                    FinishRun();
+                    fState = kBMNWAIT;
+                    DBG("state changed to kBMNWAIT")
+                }
+            } else {
+                printf("Receive error № %d #%s\n", errno, zmq_strerror(errno));
+                return;
+            }
+        } else {
+            decoTimeout = 0;
+            //            t.Reset();
+            //            MyTMessage t(buf, frame_size);
+            //            TBufferFile t(TBuffer::kRead, frame_size, buf);
+            t.Reset();
+            t.SetWriteMode();
+            t.SetBuffer(zmq_msg_data(&msg), zmq_msg_size(&msg));
+            //            t.WriteBuf(zmq_msg_data(&msg), zmq_msg_size(&msg));
+            t.SetReadMode();
+            fDigiArrays = (DigiArrays*) (t.ReadObject(DigiArrays::Class()));
+            //            fDigiArrays->Streamer(t);
+            if (fDigiArrays->header->GetEntriesFast() == 0) {
+                fDigiArrays->Clear();
+                delete fDigiArrays;
+                zmq_msg_close(&msg);
+                t.DetachBuffer();
+                continue;
+            }
+            BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
+            Int_t runID = head->GetRunId();
+            switch (fState) {
+                case kBMNWAIT:
+                    fRunID = runID;
+                    CreateFile(fRunID);
+                    DBG("state changed to kBMNWORK")
+                    fState = kBMNWORK;
+                    ProcessDigi(0);
+                    break;
+                case kBMNWORK:
+                    if (fRunID != runID) {
+                        FinishRun();
+//                        keepWorking = kFALSE;
+                        //break; // @TODO remove
+                        fRunID = runID;
+                        CreateFile(fRunID);
+                    }
+                    ProcessDigi(0);
+                    break;
+                default:
+                    break;
+            }
+            fDigiArrays->Clear();
+            delete fDigiArrays;
+
+        }
+        zmq_msg_close(&msg);
+        t.DetachBuffer();
     }
     zmq_close(_decoSocket);
     zmq_ctx_destroy(_ctx);
@@ -286,24 +382,28 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
         delete fRecoTree4Show;
         fRecoTree4Show = NULL;
     }
+    
+    fHistOutTemp = new TFile("tempo.root", "recreate");
+    if (fHistOutTemp)
+        printf("file tempo.root created\n");
     fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
-    fRecoTree4Show->SetDirectory(NULL); // tree will not be saved
+//    fRecoTree4Show->SetDirectory(NULL); // tree will not be saved
 
     TString refName = Form("ref%06d_", fRunID);
-    if (bhGem != NULL) delete bhGem;
-    if (bhToF400 != NULL) delete bhToF400;
-    if (bhToF700 != NULL) delete bhToF700;
-    if (bhDCH != NULL) delete bhDCH;
-    if (bhMWPC != NULL) delete bhMWPC;
-    if (bhZDC != NULL) delete bhZDC;
-    if (bhTrig != NULL) delete bhTrig;
-    bhGem    = new BmnHistGem(refName + "GEM");
-    bhDCH    = new BmnHistDch(refName + "DCH");
-    bhMWPC   = new BmnHistMwpc(refName + "MWPC");
-    bhZDC    = new BmnHistZDC(refName + "ZDC");
+//    if (bhGem != NULL) delete bhGem;
+//    if (bhToF400 != NULL) delete bhToF400;
+//    if (bhToF700 != NULL) delete bhToF700;
+//    if (bhDCH != NULL) delete bhDCH;
+//    if (bhMWPC != NULL) delete bhMWPC;
+//    if (bhZDC != NULL) delete bhZDC;
+//    if (bhTrig != NULL) delete bhTrig;
+    bhGem = new BmnHistGem(refName + "GEM");
+    bhDCH = new BmnHistDch(refName + "DCH");
+    bhMWPC = new BmnHistMwpc(refName + "MWPC");
+    bhZDC = new BmnHistZDC(refName + "ZDC");
     bhToF400 = new BmnHistToF(refName + "ToF400");
     bhToF700 = new BmnHistToF700(refName + "ToF700");
-    bhTrig   = new BmnHistTrigger(refName + "Triggers");
+    bhTrig = new BmnHistTrigger(refName + "Triggers");
     bhGem->SetDir(fHistOut, fRecoTree);
     bhDCH->SetDir(fHistOut, fRecoTree);
     bhMWPC->SetDir(fHistOut, fRecoTree);
@@ -312,20 +412,14 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhToF700->SetDir(fHistOut, fRecoTree);
     bhTrig->SetDir(fHistOut, fRecoTree);
 
-    bhGem_4show->SetDir(NULL, fRecoTree4Show);
-    bhDCH_4show->SetDir(NULL, fRecoTree4Show);
-    bhMWPC_4show->SetDir(NULL, fRecoTree4Show);
-    bhZDC_4show->SetDir(NULL, fRecoTree4Show);
-    bhToF400_4show->SetDir(NULL, fRecoTree4Show);
-    bhToF700_4show->SetDir(NULL, fRecoTree4Show);
-    bhTrig_4show->SetDir(NULL, fRecoTree4Show);
+    bhGem_4show->SetDir(fHistOutTemp, fRecoTree4Show);
+    bhDCH_4show->SetDir(fHistOutTemp, fRecoTree4Show);
+    bhMWPC_4show->SetDir(fHistOutTemp, fRecoTree4Show);
+    bhZDC_4show->SetDir(fHistOutTemp, fRecoTree4Show);
+    bhToF400_4show->SetDir(fHistOutTemp, fRecoTree4Show);
+    bhToF700_4show->SetDir(fHistOutTemp, fRecoTree4Show);
+    bhTrig_4show->SetDir(fHistOutTemp, fRecoTree4Show);
 
-    //    bhToF400->Reset();
-    //    bhToF700->Reset();
-    //    bhDCH->Reset();
-    //    bhMWPC->Reset();
-    //    bhTrig->Reset();
-    //    bhGem->Reset();
     bhToF400_4show->Reset();
     bhToF700_4show->Reset();
     bhDCH_4show->Reset();
@@ -368,45 +462,34 @@ void BmnMonitor::ProcessStreamRun() {
 void BmnMonitor::ProcessDigi(Int_t iEv) {
     //    fDigiTree->GetEntry(iEv);
     // histograms fill//
-    //    DBG("started")
     fEvents++;
     if (fDigiArrays->header == NULL) {
         printf("Wrong header!\n");
         return;
     }
     BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
-    bhTrig->FillFromDigi(
-            fDigiArrays->bc1,
-            fDigiArrays->t0,
-            fDigiArrays->bc2,
-            fDigiArrays->veto,
-            fDigiArrays->fd,
-            fDigiArrays->bd);
-    bhGem->FillFromDigi(fDigiArrays->gem);
-    bhToF400->FillFromDigi(fDigiArrays->tof400);
-    bhToF700->FillFromDigi(fDigiArrays->tof700);
-    bhDCH->FillFromDigi(fDigiArrays->dch);
+    bhTrig->FillFromDigi(fDigiArrays);
+    if (fDigiArrays->gem)    bhGem->FillFromDigi(fDigiArrays->gem);
+    if (fDigiArrays->tof400) bhToF400->FillFromDigi(fDigiArrays->tof400);
+    if (fDigiArrays->tof700) bhToF700->FillFromDigi(fDigiArrays->tof700);
+    if (fDigiArrays->dch)    bhDCH->FillFromDigi(fDigiArrays->dch);
     bhMWPC->FillFromDigi(fDigiArrays->mwpc);
-//    clock_t prev = clock();
     bhZDC->FillFromDigi(fDigiArrays->zdc);
-//    printf("zdc fill %f\n", (clock() - prev)/ (double) CLOCKS_PER_SEC);
+    //    clock_t prev = clock();
+    //    printf("zdc fill %f\n", (clock() - prev)/ (double) CLOCKS_PER_SEC);
     // Fill data Tree //
     fRecoTree->Fill();
+//    printf("fRecoTree->Fill()     %d\n", fRecoTree->Fill());
     // fill histograms what will be shown on the site//
-    bhTrig_4show->FillFromDigi(
-            fDigiArrays->bc1,
-            fDigiArrays->t0,
-            fDigiArrays->bc2,
-            fDigiArrays->veto,
-            fDigiArrays->fd,
-            fDigiArrays->bd);
-    bhGem_4show->FillFromDigi(fDigiArrays->gem);
-    bhToF400_4show->FillFromDigi(fDigiArrays->tof400);
-    bhToF700_4show->FillFromDigi(fDigiArrays->tof700);
-    bhDCH_4show->FillFromDigi(fDigiArrays->dch);
+    bhTrig_4show->FillFromDigi(fDigiArrays);
+    if (fDigiArrays->gem)    bhGem_4show->FillFromDigi(fDigiArrays->gem);
+    if (fDigiArrays->tof400) bhToF400_4show->FillFromDigi(fDigiArrays->tof400);
+    if (fDigiArrays->tof700) bhToF700_4show->FillFromDigi(fDigiArrays->tof700);
+    if (fDigiArrays->dch)    bhDCH_4show->FillFromDigi(fDigiArrays->dch);
     bhMWPC_4show->FillFromDigi(fDigiArrays->mwpc);
     bhZDC_4show->FillFromDigi(fDigiArrays->zdc);
     fRecoTree4Show->Fill();
+//    printf("fRecoTree4Show->Fill() %d\n", fRecoTree4Show->Fill());
     if (fEvents % 200 == 0) {
         // print info canvas //
         infoCanvas->Clear();
@@ -461,7 +544,6 @@ void BmnMonitor::RegisterAll() {
     bhToF700_4show->Register(fServer);
     bhTrig_4show->Register(fServer);
     fServer->Register("/", refList);
-    DBG("histograms registered")
 
     bhGem_4show->SetRefPath(_refDir);
     bhDCH_4show->SetRefPath(_refDir);
@@ -493,33 +575,29 @@ void BmnMonitor::UpdateRuns() {
 
 void BmnMonitor::FinishRun() {
     DBG("started")
-            //    bhGem->SetDir(NULL, fRecoTree);
-            //    bhToF400->SetDir(NULL, fRecoTree);
-            //    bhToF700->SetDir(NULL, fRecoTree);
-            //    bhDCH->SetDir(NULL, fRecoTree);
-            //    bhMWPC->SetDir(NULL, fRecoTree);
-            //    bhTrig->SetDir(NULL, fRecoTree);
+            fHistOut->cd();
     if (fRecoTree)
         printf("fRecoTree Write result = %d\n", fRecoTree->Write());
     if (fHistOut) {
         printf("fHistOut  Write result = %d\n", fHistOut->Write());
-        //    DBG("list deleted")
-        //            fRecoTree->Clear();
-        //    DBG("tree cleared")
-        //            delete fRecoTree;
-        //    DBG("tree deleted")
-        //    DBG("fHist closed")
-        string cmd;
-        cmd = string("chmod 775 ") + _curDir + fHistOut->GetName();
-        printf("system result = %d\n", system(cmd.c_str()));
-
-        cmd = string("hadd -f " + _curDir + "shorter.root ") + _curDir + fHistOut->GetName() +
-                string("; mv " + _curDir + "shorter.root ") + _curDir + fHistOut->GetName();
-        //           printf("system result = %d\n", system(cmd.c_str()));
-        std::thread threadHAdd(BmnMonitor::threadCmdWrapper, cmd);
-        if (threadHAdd.joinable())
-            threadHAdd.detach();
+        fHistOut->Close();
+//        string cmd;
+//        cmd = string("chmod 775 ") + _curDir + fHistOut->GetName();
+//        printf("system result = %d\n", system(cmd.c_str()));
+//
+//        cmd = string("hadd -f " + _curDir + "shorter.root ") + _curDir + fHistOut->GetName() +
+//                string("; mv " + _curDir + "shorter.root ") + _curDir + fHistOut->GetName();
+//        //           printf("system result = %d\n", system(cmd.c_str()));
+//        std::thread threadHAdd(BmnMonitor::threadCmdWrapper, cmd);
+//        if (threadHAdd.joinable())
+//            threadHAdd.detach();
     }
+    
+            fHistOutTemp->cd();
+    if (fRecoTree4Show)
+        printf("fRecoTree4Show Write result = %d\n", fRecoTree4Show->Write());
+    if (fHistOutTemp)
+        printf("fHistOutMem Write result = %d\n", fHistOutTemp->Write());
     //    bhGem->SetDir(NULL, fRecoTree);
     //    bhDCH->SetDir(NULL, fRecoTree);
     //    bhMWPC->SetDir(NULL, fRecoTree);

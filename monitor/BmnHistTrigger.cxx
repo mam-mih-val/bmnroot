@@ -12,6 +12,7 @@
  */
 
 #include "BmnHistTrigger.h"
+#include "BmnRawDataDecoder.h"
 
 BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
     fTitle = title;
@@ -103,14 +104,14 @@ BmnHistTrigger::~BmnHistTrigger() {
     delete BDEvents;
 }
 
-void BmnHistTrigger::FillFromDigi(
-        TClonesArray * BC1digits,
-        TClonesArray * SDdigits,
-        TClonesArray * BC2digits,
-        TClonesArray * VDdigits,
-        TClonesArray * FDdigits,
-        TClonesArray * BDdigits) {
+void BmnHistTrigger::FillFromDigi(DigiArrays *fDigiArrays) {
     BDEvents->Clear();
+    TClonesArray *BC1digits = fDigiArrays->bc1;
+    TClonesArray *SDdigits = fDigiArrays->t0;
+    TClonesArray *BC2digits = fDigiArrays->bc2;
+    TClonesArray *VDdigits = fDigiArrays->veto;
+    TClonesArray *FDdigits = fDigiArrays->fd;
+    TClonesArray *BDdigits = fDigiArrays->bd;
     for (Int_t digIndex = 0; digIndex < BC1digits->GetEntriesFast(); digIndex++) {
         BmnTrigDigit* td0 = (BmnTrigDigit*) BC1digits->At(digIndex);
         histBC1TimeLen->Fill(td0->GetTime());
@@ -177,16 +178,16 @@ void BmnHistTrigger::Register(THttpServer *serv) {
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canTimes);
-//    fServer->Register(path, histBC1TimeLen);
-//    fServer->Register(path, histBC2TimeLen);
-//    fServer->Register(path, histFDTimeLen);
-//    fServer->Register(path, histVDTimeLen);
-//    fServer->Register(path, histSDTimeLen);
-//    fServer->Register(path, histTriggers);
-//    fServer->Register(path, histBDChannels);
-//    fServer->Register(path, histBDSimult);
-//    fServer->Register(path, histBDTime);
-//    fServer->Register(path, histBDSpecific);
+    //    fServer->Register(path, histBC1TimeLen);
+    //    fServer->Register(path, histBC2TimeLen);
+    //    fServer->Register(path, histFDTimeLen);
+    //    fServer->Register(path, histVDTimeLen);
+    //    fServer->Register(path, histSDTimeLen);
+    //    fServer->Register(path, histTriggers);
+    //    fServer->Register(path, histBDChannels);
+    //    fServer->Register(path, histBDSimult);
+    //    fServer->Register(path, histBDTime);
+    //    fServer->Register(path, histBDSpecific);
     TString examples = TString("[") +
             histBC1TimeLen->GetTitle() + TString(",") +
             histBC2TimeLen->GetTitle() + TString(",") +

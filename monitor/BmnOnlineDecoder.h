@@ -13,7 +13,6 @@
 
 #ifndef BMNONLINEDECODER_H
 #define BMNONLINEDECODER_H 1
-#include <regex>
 //FairSoft
 #include "TNamed.h"
 #include "TFile.h"
@@ -23,6 +22,7 @@
 #include "TServerSocket.h"
 #include "TSocket.h"
 #include "TString.h"
+#include "TBuffer.h"
 // BmnRoot
 #include <BmnTrigDigit.h>
 #include <BmnTof1Digit.h>

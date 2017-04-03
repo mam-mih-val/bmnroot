@@ -1055,6 +1055,7 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     rewind(fRawFileIn);
     printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
     //    printf("RawRoot File %s\n\n", fRootFileName.Data());
+    fRawTree->Reset();
     fDigiTree->Reset();
     //    fDigiTree->Branch("EventHeader", &eventHeader);
     //    //fDigiTree->Branch("RunHeader", &runHeader);
@@ -1070,9 +1071,9 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     //    fDigiTree->Branch("TOF700", &tof700);
     //    fDigiTree->Branch("ZDC", &zdc);
     //    fDigiTree->Branch("ECAL", &ecal);
-    fRunId = GetRunIdFromFile(fRawFileName);
+//    fRunId = GetRunIdFromFile(fRawFileName);
     //    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+//    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
 }
 
 BmnStatus BmnRawDataDecoder::DisposeDecoder() {
@@ -1086,7 +1087,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fMwpcMapper) delete fMwpcMapper;
     if (fTrigMapper) delete fTrigMapper;
     if (fTof400Mapper) delete fTof400Mapper;
-    //    if (fTof700Mapper) delete fTof700Mapper;
+    if (fTof700Mapper) delete fTof700Mapper;
     if (fZDCMapper) delete fZDCMapper;
     if (fECALMapper) delete fECALMapper;
 
@@ -1099,6 +1100,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (gem) delete gem;
     if (dch) delete dch;
     if (mwpc) delete mwpc;
+    if (silicon) delete silicon;
     if (trigger) delete trigger;
     if (t0) delete t0;
     if (bc1) delete bc1;
@@ -1113,6 +1115,8 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
 
     delete eventHeader;
     delete runHeader;
+    fRawTree->Reset();
+    fDigiTree->Reset();
     return kBMNSUCCESS;
 }
 

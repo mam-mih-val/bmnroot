@@ -29,8 +29,11 @@
 
 #include "BmnHist.h"
 #include "BmnGemStripDigit.h"
-
-#define GEM_STATIONS_COUNT  7
+#include "BmnGemStripStationSet.h"
+#include "BmnGemStripConfiguration.h"
+#include "BmnGemStripStationSet_RunSpring2017.h"
+#include "BmnGemStripStationSet_RunSummer2016.h"
+#include "BmnGemStripStationSet_RunWinter2016.h"
 
 using namespace std;
 
@@ -42,7 +45,8 @@ struct histNmask{
 class BmnHistGem : public BmnHist {
 public:
 
-    BmnHistGem(TString title = "GEM", TString path = "", Bool_t createNoiseMask = false);
+    BmnHistGem(TString title = "GEM", TString path = "", Bool_t createNoiseMask = false,
+            BmnGemStripConfiguration::GEM_CONFIG config = BmnGemStripConfiguration::RunSpring2017);
     virtual ~BmnHistGem();
     void Reset();
     void Register(THttpServer *serv);
@@ -52,6 +56,8 @@ public:
     BmnStatus  SetRefRun(Int_t id);
     
 private:
+    BmnGemStripConfiguration::GEM_CONFIG gemStationConfig;
+    BmnGemStripStationSet *gemStationSet;
     vector<TString> Names;
     vector<vector<vector<TH1F*  > > > histGemStrip;
     TCanvas *canGemStrip;

@@ -26,6 +26,7 @@
 #include "TFile.h"
 #include "THttpServer.h"
 
+#include "BmnRawDataDecoder.h"
 #include "BmnHist.h"
 #include "BmnTrigDigit.h"
 #include "BmnEventHeader.h"
@@ -40,13 +41,7 @@ public:
 
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
-    void FillFromDigi(
-            TClonesArray * BC1digits,
-            TClonesArray * SDdigits,
-            TClonesArray * BC2digits,
-            TClonesArray * VDdigits,
-            TClonesArray * FDdigits,
-            TClonesArray * BDdigits);
+    void FillFromDigi(DigiArrays *fDigiArrays);
     void Reset();
     void DrawBoth();
 //    BmnStatus LoadRefRun(TString FileName);

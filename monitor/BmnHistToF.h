@@ -13,10 +13,12 @@
 
 #ifndef BMNHISTTOF_H
 #define BMNHISTTOF_H 1
-#include <TNamed.h>
+// STL
 #include <exception>
 #include <stdlib.h>
 #include <vector>
+// FairSoft
+#include <TNamed.h>
 #include "TChain.h"
 #include "TClonesArray.h"
 #include "TGaxis.h"
@@ -27,7 +29,7 @@
 #include "TFile.h"
 #include "TFolder.h"
 #include "THttpServer.h"
-
+// BmnRoot
 #include "BmnHist.h"
 #include "BmnTof1Digit.h"
 #define TOF400_PLANE_COUNT  4

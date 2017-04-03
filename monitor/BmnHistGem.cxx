@@ -13,34 +13,54 @@
 
 #include <algorithm>
 #include <numeric>
-#include <root/TNamed.h>
 
 #include "BmnHistGem.h"
 
-const UInt_t moduleCount[GEM_STATIONS_COUNT] = {1, 1, 1, 1, 2, 2, 2};
-const UInt_t layersCount[GEM_STATIONS_COUNT] = {2, 4, 4, 4, 4, 4, 4};
-const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 1100, 1119};
+//const UInt_t moduleCount[GEM_STATIONS_COUNT] = {1, 1, 1, 1, 2, 2, 2};
+//const UInt_t layersCount[GEM_STATIONS_COUNT] = {2, 4, 4, 4, 4, 4, 4};
+//const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 1100, 1119};
 #define MAX_STRIPS 1020
 
-BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : BmnHist() {
+BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask,
+        BmnGemStripConfiguration::GEM_CONFIG config) : BmnHist() {
+    sumMods = 0;
+    maxLayers = 0;
     refPath = path;
     fTitle = title;
     fName = title + "_cl";
+    gemStationConfig = config;
     TString name;
-    // Create canvas
-    sumMods = accumulate(begin(moduleCount), end(moduleCount), 0);
-    maxLayers = *max_element(begin(layersCount), end(layersCount));
-    name = fTitle + "Canvas";
-    canGemStrip = new TCanvas(name, name, PAD_WIDTH * maxLayers, PAD_HEIGHT * sumMods);
-    canGemStrip->Divide(maxLayers, sumMods);
+    switch (gemStationConfig) {
+        case BmnGemStripConfiguration::RunSummer2016:
+            gemStationSet = new BmnGemStripStationSet_RunSummer2016(gemStationConfig);
+            break;
+        case BmnGemStripConfiguration::RunWinter2016:
+            gemStationSet = new BmnGemStripStationSet_RunWinter2016(gemStationConfig);
+            break;
+        case BmnGemStripConfiguration::RunSpring2017:
+            gemStationSet = new BmnGemStripStationSet_RunSpring2017(gemStationConfig);
+            break;
+        case BmnGemStripConfiguration::None:
+            gemStationSet = new BmnGemStripStationSet_RunSpring2017(gemStationConfig);
+            break;
+        default:
+            gemStationSet = new BmnGemStripStationSet_RunSpring2017(gemStationConfig);
+            break;
+    }
     // Create histograms
-    for (Int_t stationIndex = 0; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
+    for (Int_t iStation = 0; iStation < gemStationSet->GetNStations(); iStation++) {
         vector<vector<TH1F*> > rowGEM;
-        for (Int_t moduleIndex = 0; moduleIndex < moduleCount[stationIndex]; moduleIndex++) {
+        BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
+        sumMods += st->GetNModules();
+        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
             vector<TH1F*> colGEM;
-            for (Int_t layerIndex = 0; layerIndex < layersCount[stationIndex]; layerIndex++) {
-                name = Form(fTitle + "_Station_%d_module_%d_layer_%d", stationIndex, moduleIndex, layerIndex);
-                TH1F *h = new TH1F(name, name, nStrips[stationIndex], 0, nStrips[stationIndex]);
+            BmnGemStripModule *mod = st->GetModule(iModule);
+            if (maxLayers < mod->GetNStripLayers())
+                maxLayers = mod->GetNStripLayers();
+            for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
+                BmnGemStripLayer lay = mod->GetStripLayer(iLayer);
+                name = Form(fTitle + "_Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
+                TH1F *h = new TH1F(name, name, lay.GetNStrips(), 0, lay.GetNStrips());
                 h->SetTitleSize(0.06, "XY");
                 h->SetLabelSize(0.08, "XY");
                 h->GetXaxis()->SetTitle("Strip Number");
@@ -48,21 +68,29 @@ BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : Bm
                 h->GetYaxis()->SetTitle("Activation Count");
                 h->GetYaxis()->SetTitleColor(kOrange + 10);
                 colGEM.push_back(h);
+
             }
             rowGEM.push_back(colGEM);
+
         }
         histGemStrip.push_back(rowGEM);
+
     }
+    // Create canvas
+    name = fTitle + "Canvas";
+    canGemStrip = new TCanvas(name, name, PAD_WIDTH * maxLayers, PAD_HEIGHT * sumMods);
+    canGemStrip->Divide(maxLayers, sumMods);
     Int_t modCtr = 0; // filling GEM Canvas' pads
     canGemStripPads.resize(sumMods * maxLayers);
     Names.resize(sumMods * maxLayers);
-    for (Int_t stationIndex = 1; stationIndex < GEM_STATIONS_COUNT; stationIndex++) {
-        for (Int_t moduleIndex = 0; moduleIndex < moduleCount[stationIndex]; moduleIndex++) {
-            for (Int_t layerIndex = 0; layerIndex < layersCount[stationIndex]; layerIndex++) {
-//                PadInfo<TH1F> *p = new PadInfo<TH1F>();
+    for (Int_t iStation = 0; iStation < gemStationSet->GetNStations(); iStation++) {
+        BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
+        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+            BmnGemStripModule *mod = st->GetModule(iModule);
+            for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
                 PadInfo *p = new PadInfo();
-                p->current = histGemStrip[stationIndex][moduleIndex][layerIndex];
-                Int_t iPad = modCtr * maxLayers + layerIndex;
+                p->current = histGemStrip[iStation][iModule][iLayer];
+                Int_t iPad = modCtr * maxLayers + iLayer;
                 canGemStripPads[iPad] = p;
                 canGemStrip->GetPad(iPad + 1)->SetGrid();
                 Names[iPad] = canGemStripPads[iPad]->current->GetName();
@@ -73,17 +101,18 @@ BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask) : Bm
 }
 
 BmnHistGem::~BmnHistGem() {
+    delete gemStationSet;
 }
 
-void BmnHistGem::Register(THttpServer *serv) {
+void BmnHistGem::Register(THttpServer * serv) {
     fServer = serv;
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canGemStrip);
-//    for (auto row : histGemStrip)
-//        for (auto col : row)
-//            for (auto el : col)
-//                fServer->Register(path, el);
+    //    for (auto row : histGemStrip)
+    //        for (auto col : row)
+    //            for (auto el : col)
+    //                fServer->Register(path, el);
     fServer->SetItemField(path, "_monitoring", "2000");
     fServer->SetItemField(path, "_layout", "grid3x3");
     TString cmd = "/" + fName + "/->Reset()";
@@ -99,7 +128,7 @@ void BmnHistGem::Register(THttpServer *serv) {
 
 }
 
-void BmnHistGem::SetDir(TFile *outFile, TTree *recoTree) {
+void BmnHistGem::SetDir(TFile *outFile, TTree * recoTree) {
     frecoTree = recoTree;
     TDirectory *dir = NULL;
     if (outFile != NULL)
@@ -121,7 +150,6 @@ void BmnHistGem::FillFromDigi(TClonesArray * gemDigits) {
         Int_t station = gs->GetStation();
         Int_t layer = gs->GetStripLayer();
         Int_t gemStrip = gs->GetStripNumber();
-//printf("station %d, module %d, layer %d\n", station, module, layer);
         histGemStrip[station][module][layer]->Fill(gemStrip);
     }
 }

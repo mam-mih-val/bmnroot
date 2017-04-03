@@ -23,7 +23,7 @@
 #define MAX_BUF_LEN 4194304
 #define MAX_ADDR_LEN 255
 #define MAX_PORT_LEN 7
-#define MSG_TIMEOUT       100000
+#define MSG_TIMEOUT       400000
 #define CONN_TIMEOUT     3000000
 #define DBG(a) printf("\e[1mTrace %s: %s\e[0m (%s:%d)\n", __func__, a, __FILE__, __LINE__);
 #define DBGERR(a) printf("\e[1m!!! %s error in %s: %s\e[0m (%s:%d)\n", a, __func__, strerror(errno), __FILE__, __LINE__);

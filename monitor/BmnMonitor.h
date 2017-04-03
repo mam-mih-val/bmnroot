@@ -48,6 +48,11 @@ struct BmnRunInfo {
     struct stat attr;
 };
 
+class MyTMessage : public TMessage {
+public:
+   MyTMessage(void *buf, Int_t len) : TMessage(buf, len) { }
+};
+
 class BmnMonitor : public TNamed {
 public:
 
@@ -90,6 +95,7 @@ private:
     TTree *fRecoTree;
     TTree *fRecoTree4Show;
     TFile *fHistOut;
+    TFile *fHistOutTemp;
     THttpServer * fServer;
     TSocket *fRawDecoSocket;
     DigiArrays *fDigiArrays;

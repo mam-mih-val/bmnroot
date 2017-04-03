@@ -16,7 +16,7 @@ enum enumConditions{conditionLess, conditionLessOrEqual, conditionEqual, conditi
 
 // enumeration 'enumParameterType' is corresponding parameter_type member UniDbParameter
 // 0 - boolean, 1 - integer, 2 - double, 3 - string, 4 - int+int array, 5 - int array, 6 - double array, 7 - any binary array, 8 - unsigned int array
-// 9 - array with DCH mapping, 10 - array with GEM mapping, 11 - array with GEM pedestal map
+// 9 - array with DCH mapping, 10 - array with GEM mapping, 11 - array with GEM pedestal map, 12 - array with Trigger mapping
 enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType, BinaryArrayType, UIntArrayType,   // base types
                        DchMapArrayType, GemMapArrayType, GemPedestalArrayType, TriggerMapArrayType, ErrorType = 999};                           // detector-dependent types
 

@@ -1239,7 +1239,7 @@ int UniDbRun::WriteGeometryFile(int start_period, int start_run, int end_period,
     unsigned char* buffer = new unsigned char[file_size];
     if (buffer == NULL)
     {
-        cout<<"Error: getting memory from heap"<<" was failed"<<endl;
+        cout<<"Error: getting memory from heap was failed"<<endl;
         fclose(root_file);
         return -3;
     }

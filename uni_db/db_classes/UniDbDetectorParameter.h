@@ -151,6 +151,11 @@ class UniDbDetectorParameter
     /// set end period and run of the current detector parameter
     int SetEnd(int end_period, int end_run);
 
+    /// write alignment file for runs from start_run_number to end_run_number to the database
+    static int WriteBmnAlignment(int start_period, int start_run, int end_period, int end_run, char* align_file_path);
+    /// read alignment file for selected run number from the database
+    static int ReadBmnAlignment(int period_number, int run_number, char* align_file_path);
+
 	// common function for adding common parameter value
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                unsigned char* parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type);
@@ -293,9 +298,9 @@ class UniDbDetectorParameter
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
                                                                unsigned int dc_serial, int channel, unsigned char* parameter_value, int byte_count);
     /// get Binary Array for parameter
-    int GetBinaryArray(unsigned char*& parameter_value, int& byte_count);
+    int GetBinaryArray(unsigned char*& parameter_value, size_t& byte_count);
     /// set Binary Array array for parameter
-    int SetBinaryArray(unsigned char* parameter_value, int byte_count);
+    int SetBinaryArray(unsigned char* parameter_value, size_t byte_count);
 
 	/// add new record - detector parameter value as Int+Int Array
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,

@@ -9,6 +9,7 @@
 
 #define ONLY_DECLARATIONS
 #include "../function_set.h"
+#include "TSystem.h"
 #include "UniDbDetectorParameter.h"
 
 #include <fstream>
@@ -1119,6 +1120,98 @@ int UniDbDetectorParameter::SetEnd(int end_period, int end_run)
     return 0;
 }
 
+int UniDbDetectorParameter::WriteBmnAlignment(int start_period, int start_run, int end_period, int end_run, char* align_file_path)
+{
+    TString strAlignFilePath(align_file_path);
+    gSystem->ExpandPathName(strAlignFilePath);
+    FILE* root_file = fopen(strAlignFilePath.Data(), "rb");
+    if (root_file == NULL)
+    {
+        cout<<"Error: opening root file: "<<strAlignFilePath<<" was failed"<<endl;
+        return -1;
+    }
+
+    fseek(root_file, 0, SEEK_END);
+    size_t file_size = ftell(root_file);
+    rewind(root_file);
+    if (file_size <= 0)
+    {
+        cout<<"Error: getting file size: "<<strAlignFilePath<<" was failed"<<endl;
+        fclose(root_file);
+        return -2;
+    }
+
+    unsigned char* buffer = new unsigned char[file_size];
+    if (buffer == NULL)
+    {
+        cout<<"Error: getting memory from heap was failed"<<endl;
+        fclose(root_file);
+        return -3;
+    }
+
+    size_t bytes_read = fread(buffer, 1, file_size, root_file);
+    if (bytes_read != file_size)
+    {
+        cout<<"Error: reading file: "<<strAlignFilePath<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
+        delete [] buffer;
+        fclose(root_file);
+        return -4;
+    }
+
+    fclose(root_file);
+
+    // set root alignment file's bytes for run range
+    UniDbDetectorParameter* pParameterValue = UniDbDetectorParameter::CreateDetectorParameter("BM@N", "alignment", start_period, start_run, end_period, end_run, buffer, file_size);
+    if (pParameterValue == NULL)
+    {
+        delete [] buffer;
+        return -5;
+    }
+
+    delete [] buffer;
+    delete pParameterValue;
+
+    return 0;
+}
+
+int UniDbDetectorParameter::ReadBmnAlignment(int period_number, int run_number, char* align_file_path)
+{
+    // get root alignment file's bytes for selected run
+    unsigned char* buffer = NULL;
+    size_t file_size;
+    UniDbDetectorParameter* pParameterValue = UniDbDetectorParameter::GetDetectorParameter("BM@N", "alignment", period_number, run_number);
+    if (pParameterValue == NULL)
+    {
+        return -1;
+    }
+
+    FILE* root_file = fopen(align_file_path, "wb");
+    if (root_file == NULL)
+    {
+        cout<<"Error: creating root file: "<<align_file_path<<endl;
+        delete pParameterValue;
+        return -2;
+    }
+
+    pParameterValue->GetBinaryArray(buffer, file_size);
+    size_t bytes_write = fwrite(buffer, 1, file_size, root_file);
+    delete pParameterValue;
+    if (bytes_write != file_size)
+    {
+        cout<<"Error: writing file: "<<align_file_path<<", put "<<bytes_write<<" bytes of "<<file_size<<endl;
+        delete [] buffer;
+        fclose(root_file);
+        return -3;
+    }
+
+    fclose(root_file);
+
+    if (buffer)
+        delete [] buffer;
+
+    return 0;
+}
+
 // common function for adding common parameter value
 UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run, unsigned char* p_parameter_value, Long_t size_parameter_value, enumParameterType enum_parameter_type)
 {
@@ -1763,7 +1856,7 @@ UniDbDetectorParameter* UniDbDetectorParameter::CreateDetectorParameter(TString 
 }
 
 // get value of detector parameter as binary array
-int UniDbDetectorParameter::GetBinaryArray(unsigned char*& parameter_value, int& byte_count)
+int UniDbDetectorParameter::GetBinaryArray(unsigned char*& parameter_value, size_t& byte_count)
 {
     unsigned char* p_parameter_value = GetUNC(BinaryArrayType);
     if (p_parameter_value == NULL)
@@ -1777,7 +1870,7 @@ int UniDbDetectorParameter::GetBinaryArray(unsigned char*& parameter_value, int&
 }
 
 // set value to detector parameter as binary array
-int UniDbDetectorParameter::SetBinaryArray(unsigned char* parameter_value, int byte_count)
+int UniDbDetectorParameter::SetBinaryArray(unsigned char* parameter_value, size_t byte_count)
 {
     unsigned char* p_parameter_value = new unsigned char[byte_count];
     memcpy(p_parameter_value, parameter_value, byte_count);

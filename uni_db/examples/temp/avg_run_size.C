@@ -47,10 +47,14 @@ void avg_run_size(int period)
         double file_size = (*p_file_size) * 1024;
         int event_count = *p_event_count;
         double event_size = file_size / event_count;
-        sum_size += event_size;
-        right_count++;
 
+        // don't take into account files with event size < 50 KB or > 500 KB
         if ((event_size < 50) || (event_size > 500)) cout<<red;
+        else
+        {
+            sum_size += event_size;
+            right_count++;
+        }
         cout<<"Run size for "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<" ("<<file_size/1024<<"MB/"<<event_count<<"): "<<event_size<<" KB";
         if ((event_size < 50) || (event_size > 500)) cout<<reset;
         cout<<endl;

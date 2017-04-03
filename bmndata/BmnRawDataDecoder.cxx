@@ -757,7 +757,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 fPedEvCntr++;
             } else {
                 fGemMapper->RecalculatePedestals();
-                fSiliconMapper->RecalculatePedestals();
+                if (fSiliconMapper) fSiliconMapper->RecalculatePedestals();
                 fPedEvCntr = 0;
                 break;
             }

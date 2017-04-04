@@ -39,7 +39,7 @@ BmnOnlineDecoder::~BmnOnlineDecoder() {
     }
 }
 
-void BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *dq) {
+BmnStatus BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *dq) {
     DBG("started")
     rawDataDecoder = new BmnRawDataDecoder();
     rawDataDecoder->SetRunId(runID);
@@ -65,10 +65,9 @@ void BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *d
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
     rawDataDecoder->InitConverter(dq);
-    rawDataDecoder->InitDecoder();
+    return rawDataDecoder->InitDecoder();
 }
-
-void BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
+BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     DBG("started")
     rawDataDecoder = new BmnRawDataDecoder();
     Int_t runID = 0;
@@ -79,12 +78,16 @@ void BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
         runID = atoi(idstr.c_str());
         if (runID == 0) {
             printf("!!! Error Could not detect runID\n");
-            return;
+            return kBMNERROR;
         }
     }
     rawDataDecoder->SetRunId(runID);
     rawDataDecoder->SetPeriodId(6);
-    rawDataDecoder->InitMaps();
+    if (rawDataDecoder->InitMaps() == kBMNERROR){
+        printf("InitMaps failed\n");
+        delete rawDataDecoder;
+        return kBMNERROR;
+    }
     Bool_t setup[9]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
@@ -105,7 +108,7 @@ void BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
     rawDataDecoder->InitConverter(fRawFileName);
-    rawDataDecoder->InitDecoder();
+    return rawDataDecoder->InitDecoder();
 }
 
 BmnStatus BmnOnlineDecoder::Accept() {
@@ -148,7 +151,7 @@ BmnStatus BmnOnlineDecoder::Accept() {
 }
 
 BmnStatus BmnOnlineDecoder::DecodeStream() {
-    Accept();
+//    Accept();
     dataReceiver = new BmnDataReceiver();
     dataQue = dataReceiver->GetDataQueue();
     thread rcvThread(threadReceiveWrapper, dataReceiver);
@@ -197,7 +200,7 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
     }
     _curFile = startFile;
     _curDir = dirname;
-    Accept();
+//    Accept();
 
     if (!runCurrent) {
         _curFile = "";
@@ -374,12 +377,12 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         for (Int_t i = 0; i < n; ++i) {
             if (regex_match(namelist[i]->d_name, re)) {
                 _curFile = TString(namelist[i]->d_name);
-                if (runCount++ == 0)
-                    InitDecoder(_curDir + _curFile);
-                else {
+                if (runCount == 0){
+                    if (InitDecoder(_curDir + _curFile) == kBMNERROR)
+                        continue;
+                }else {
                     Int_t runID = 0;
                     if (runID < 1) {
-                        printf("raw file %s\n", _curFile.Data());
                         string idstr = regex_replace(_curFile.Data(), re, "$1");
                         runID = atoi(idstr.c_str());
                         if (runID == 0) {
@@ -388,24 +391,24 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
                         }
                     }
 
-                    rawDataDecoder->ResetDecoder(_curFile);
+                    rawDataDecoder->ResetDecoder(_curDir + _curFile);
                     rawDataDecoder->SetRunId(runID);
                     rawDataDecoder->SetPeriodId(6);
                 }
                 ProcessFileRun(_curFile);
+                runCount++;
                 //                rawDataDecoder->DisposeDecoder();
                 //                delete rawDataDecoder;
                 //                rawDataDecoder = NULL;
-
             }
             free(namelist[i]);
         }
         free(namelist);
     }
-    for (auto cl : clients) {
-        cl->Close();
-        delete cl;
-    }
+//    for (auto cl : clients) {
+//        cl->Close();
+//        delete cl;
+//    }
     zmq_close(_decoSocket);
     zmq_ctx_destroy(_ctx);
     _ctx = NULL;

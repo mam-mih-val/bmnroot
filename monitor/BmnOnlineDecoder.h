@@ -50,8 +50,8 @@ public:
     BmnStatus OpenStream();
     BmnStatus BatchDirectory(TString dirname);
 private:
-    void InitDecoder(TString);
-    void InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *dq);
+    BmnStatus InitDecoder(TString);
+    BmnStatus InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *dq);
     void ProcessFileRun(TString digiName);
     static TString WatchNext(TString dirname, TString filename, Int_t cycleWait);
     static TString WatchNext(Int_t inotifDir, Int_t cycleWait);

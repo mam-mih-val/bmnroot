@@ -991,10 +991,7 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (bd) bd->Clear();
     eventHeader->Clear();
     //runHeader->Clear();
-    if (fTimeShifts.size() > 1e5)
-        fTimeShifts = map<UInt_t, Long64_t>();
-    else
-        fTimeShifts.clear();
+    fTimeShifts.clear();
     return kBMNSUCCESS;
 }
 
@@ -1044,6 +1041,12 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     fNevents = 0;
     syncCounter = 0;
     fRawFileName = file;
+    if (fRawFileIn){
+        fclose(fRawFileIn);
+        fRawFileIn = NULL;
+    }
+    fRunId = GetRunIdFromFile(fRawFileName);
+    printf("fRawFileName %s, fRunId %d\n", fRawFileName.Data(), fRunId);
     fRawFileIn = fopen(fRawFileName, "rb");
     if (fRawFileIn == NULL) {
         printf("\n!!!!!\ncannot open file %s\nConvertRawToRoot are stopped\n!!!!!\n\n", fRawFileName.Data());
@@ -1071,9 +1074,9 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     //    fDigiTree->Branch("TOF700", &tof700);
     //    fDigiTree->Branch("ZDC", &zdc);
     //    fDigiTree->Branch("ECAL", &ecal);
-//    fRunId = GetRunIdFromFile(fRawFileName);
+    //    fRunId = GetRunIdFromFile(fRawFileName);
     //    fRootFileName = Form("bmn_run%04d_raw.root", fRunId);
-//    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
+    //    fDigiFileName = Form("bmn_run%04d_digi.root", fRunId);
 }
 
 BmnStatus BmnRawDataDecoder::DisposeDecoder() {
@@ -1321,7 +1324,7 @@ Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
     fclose(file);
 }
 
-void BmnRawDataDecoder::InitMaps() {
+BmnStatus BmnRawDataDecoder::InitMaps() {
     Int_t fEntriesInGlobMap = 0;
     UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
     if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);
@@ -1350,7 +1353,12 @@ void BmnRawDataDecoder::InitMaps() {
 
     Int_t nEntries = 1;
     mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
-    if (mapPar != NULL) mapPar->GetTriggerMapArray(fT0Map, nEntries);
-    else cerr << "No TO map found in DB" << endl;
-    delete mapPar;
+    if (mapPar != NULL) {
+        mapPar->GetTriggerMapArray(fT0Map, nEntries);
+        delete mapPar;
+        return kBMNSUCCESS;
+    } else{
+        cerr << "No TO map found in DB" << endl;
+        return kBMNERROR;
+    }
 }

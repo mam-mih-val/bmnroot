@@ -32,9 +32,11 @@ void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst.root",
     // Restrictions on track params:
     //     globAlign->SetMinHitsAccepted(5);               // Default value is 3
     //     globAlign->SetChi2MaxPerNDF(2.);                // Cut on chi2/ndf for found tracks, default value is not limited
-    //     globAlign->SetTxMinMax(-1., 0.);
-    //     globAlign->SetTyMinMax(-0.05, 0.05);
-
+    // globAlign->SetTxMinMax(-1., +1.);
+    // globAlign->SetExclusionRangeTx(-0.02, 0.02);
+    // globAlign->SetTyMinMax(-1., +1.);
+    // globAlign->SetExclusionRangeTy(-0.02, 0.02);
+    
     // Define modules to be fixed (any character) within alignment, if necessary. 
     // st0, st1, st2, st3_modLeft(0), st3_modRight(1), st4_modLeft(0), st4_modRight(1), st5_modLeft(0), st5_modRight(1)
     globAlign->SetGemFixedRun6("", "", "", "", "", "", "", "", "");

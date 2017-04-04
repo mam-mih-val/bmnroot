@@ -25,6 +25,9 @@ BmnGlobalAlignment::~BmnGlobalAlignment() {
     delete mwpcGeo;
     delete fDetector;
     delete [] Labels;
+    system("cp millepede.res Millepede.res");
+    // Remove useless text files finalizing the code execution
+    system("rm millepede.*");
 }
 
 BmnGlobalAlignment::BmnGlobalAlignment(BmnGemStripConfiguration::GEM_CONFIG config) :
@@ -45,6 +48,12 @@ fTxMin(-LDBL_MAX),
 fTxMax(LDBL_MAX),
 fTyMin(-LDBL_MAX),
 fTyMax(LDBL_MAX),
+fTxLeft(0.),
+fTyLeft(0.),
+fTxRight(0.),
+fTyRight(0.),
+fIsExcludedTx(kFALSE),     
+fIsExcludedTy(kFALSE),     
 fMinHitsAccepted(3),
 fChi2MaxPerNDF(LDBL_MAX),
 nSelectedTracks(0),
@@ -159,12 +168,11 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
     fCurrentEvent++;
     if (fCurrentEvent % 1000 == 0)
         cout << "Event# = " << fCurrentEvent << endl;
-    // evHead = (BmnEventHeader*)
 
     // Choose a single track with min. chi2-value (in case of target run)
     Double_t Chi2Min = LDBL_MAX;
     Int_t trID = 0;
-    if (fUseTrackWithMinChi2) {
+    if (fUseTrackWithMinChi2)
         for (Int_t iGlobTrack = 0; iGlobTrack < fGlobalTracks->GetEntriesFast(); iGlobTrack++) {
             BmnGlobalTrack* globTrack = (BmnGlobalTrack*) fGlobalTracks->UncheckedAt(iGlobTrack);
             if (globTrack->GetChi2() < Chi2Min) {
@@ -172,20 +180,28 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
                 trID = iGlobTrack;
             }
         }
-    }
 
     for (Int_t iGlobTrack = 0; iGlobTrack < fGlobalTracks->GetEntriesFast(); iGlobTrack++) {
         BmnGlobalTrack* globTrack = (BmnGlobalTrack*) fGlobalTracks->UncheckedAt(iGlobTrack);
+        if (fUseTrackWithMinChi2 && iGlobTrack != trID)
+            continue;
         FairTrackParam* params = globTrack->GetParamFirst();
 
         Double_t chi2 = globTrack->GetChi2();
-        Double_t ndf = globTrack->GetNDF();
+        Int_t ndf = globTrack->GetNDF();
+        Int_t nHits = globTrack->GetNHits();
+        Double_t Tx = params->GetTx();
+        Double_t Ty = params->GetTy();
 
         // Use track constraints if necessary
-        if (!(fTxMin < params->GetTx() && params->GetTx() < fTxMax &&
-                fTyMin < params->GetTy() && params->GetTy() < fTyMax &&
-                globTrack->GetNHits() > fMinHitsAccepted && chi2 / ndf < fChi2MaxPerNDF))
+        if (Tx < fTxMin || Tx > fTxMax || Ty < fTyMin || Ty > fTyMax || nHits < fMinHitsAccepted || chi2 / ndf > fChi2MaxPerNDF)
             continue;
+        
+        // Exclude a range from the selected range of track. params (in order not to take into account tracks with almost zero values of track params.)
+        if (fIsExcludedTx && Tx > fTxLeft && Tx < fTxRight)
+            continue;
+        if (fIsExcludedTy && Ty > fTyLeft && Ty < fTyRight)
+            continue;           
 
         // GCC-4.4.7, to be fixed
         Int_t idx[3] = {globTrack->GetGemTrackIndex(), globTrack->GetMwpcTrackIndex(), globTrack->GetDchTrackIndex()};
@@ -481,8 +497,7 @@ void BmnGlobalAlignment::MakeSteerFile() {
                 for (Int_t iPar = 0; iPar < fDetector->GetGemStation(iStat)->GetNModules() * nParams; iPar++)
                     fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedGemElements[iStat][iPar / nParams]) ? -1. : fPreSigma);
                 startIdx += fDetector->GetGemStation(iStat)->GetNModules() * nParams;
-            }
-        else if (iDet == 1 || iDet == 2) // MWPC and DCH
+            } else if (iDet == 1 || iDet == 2) // MWPC and DCH
             for (Int_t iPar = startIdx + (iDet - 1) * nParams; iPar < startIdx + iDet * nParams; iPar++)
                 fprintf(steer, "%d %G %G\n", Labels[iPar], 0., (fDetectorSet[iDet] != "") ? fPreSigma : -1.);
     }

@@ -147,6 +147,22 @@ public:
                     cout << "Stat = " << iStat << " Mod = " << iMod << " isFixed (true / false) " << fixedGemElements[iStat][iMod] << endl;
     }
 
+    void SetUseTrackWithMinChi2(Bool_t flag) {
+        fUseTrackWithMinChi2 = flag;
+    }
+
+    void SetExclusionRangeTx(Double_t min, Double_t max) {
+        fIsExcludedTx = kTRUE;
+        fTxLeft = min;
+        fTxRight = max;
+    }
+
+    void SetExclusionRangeTy(Double_t min, Double_t max) {
+        fIsExcludedTy = kTRUE;
+        fTyLeft = min;
+        fTyRight = max;
+    }
+
 private:
     void PrintToFullFormat(TString, Char_t*);
     const Int_t MakeBinFile();
@@ -210,6 +226,13 @@ private:
     Double_t fTxMax;
     Double_t fTyMin;
     Double_t fTyMax;
+    // Range to be exluded in case of "beam-target" alignment...
+    Bool_t fIsExcludedTx; // do exclusion (true) or not, manipulated by SetExclusionRangeTx
+    Bool_t fIsExcludedTy; // do exclusion (true) or not, manipulated by SetExclusionRangeTy
+    Double_t fTxLeft;
+    Double_t fTxRight;
+    Double_t fTyLeft;
+    Double_t fTyRight;
 
     Int_t nSelectedTracks;
 

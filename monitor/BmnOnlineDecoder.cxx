@@ -26,8 +26,6 @@ BmnOnlineDecoder::BmnOnlineDecoder() {
     rawDataDecoder = NULL;
     iClients = 0;
     _ctx = NULL;
-
-
 }
 
 BmnOnlineDecoder::~BmnOnlineDecoder() {
@@ -72,7 +70,6 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     rawDataDecoder = new BmnRawDataDecoder();
     Int_t runID = 0;
     if (runID < 1) {
-        printf("raw file %s\n", fRawFileName.Data());
         regex re(".*mpd_run_Glob_(\\d+).data");
         string idstr = regex_replace(fRawFileName.Data(), re, "$1");
         runID = atoi(idstr.c_str());
@@ -228,20 +225,11 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
 
 void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
     TMessage mess(kMESS_OBJECT);
-    printf("File %s \n", TString(rawFileName).Data());
     Int_t iEv = 0;
     Int_t lastEv = 0;
     BmnStatus convertResult = kBMNSUCCESS;
-    Int_t zflags;
-    zflags = zflags | ZMQ_NOBLOCK;
-
     Int_t runId = -1;
     runId = rawDataDecoder->GetRunId();
-    //    if (runId < 1216)
-    //        return;
-    printf("run id = %d\n", runId);
-
-    UInt_t *buf = (UInt_t*) malloc(MAX_BUF_LEN);
     Int_t sendRes = 0;
     while (kTRUE) {
         convertResult = rawDataDecoder->ConvertRawToRootIterateFile();
@@ -258,24 +246,14 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
             mess.Reset();
             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
             mess.WriteObject(&iterDigi);
-
-            //            TBuffer t(TBuffer::kWrite);
-            //            iterDigi.Streamer(t);
             TBufferFile t(TBuffer::kWrite);
             t.Reset();
             t.WriteObject(&iterDigi);
-            //            iterDigi.Streamer(t);
-            //            t.SetReadMode();
-            //            sendRes = t.ReadBuf(buf, MAX_BUF_LEN);
-            //            sendRes = zmq_send(_decoSocket, buf, sendRes, 0);
-            sendRes = zmq_send(_decoSocket, t.Buffer(), t.Length(), 0);
+            sendRes = zmq_send(_decoSocket, t.Buffer(), t.Length(), ZMQ_NOBLOCK);
             if (sendRes == -1) {
                 printf("Send error № %d #%s\n", errno, zmq_strerror(errno));
 
             }
-            //            zmq_send(_decoSocket, mess.Buffer(), mess.BufferSize(), zflags);
-
-
 //            for (auto cl = begin(clients); cl != end(clients); cl++) {
 //                //                Int_t sel = (*cl)->Select(2, 1); // kWrite == 2
 //                ////                printf("select == %d\n", sel);
@@ -390,7 +368,6 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
                             break;
                         }
                     }
-
                     rawDataDecoder->ResetDecoder(_curDir + _curFile);
                     rawDataDecoder->SetRunId(runID);
                     rawDataDecoder->SetPeriodId(6);

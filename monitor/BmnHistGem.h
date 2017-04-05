@@ -45,7 +45,7 @@ struct histNmask{
 class BmnHistGem : public BmnHist {
 public:
 
-    BmnHistGem(TString title = "GEM", TString path = "", Bool_t createNoiseMask = false,
+    BmnHistGem(TString title = "GEM", TString path = "",
             BmnGemStripConfiguration::GEM_CONFIG config = BmnGemStripConfiguration::RunSpring2017);
     virtual ~BmnHistGem();
     void Reset();

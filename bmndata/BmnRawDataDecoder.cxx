@@ -1046,7 +1046,6 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
         fRawFileIn = NULL;
     }
     fRunId = GetRunIdFromFile(fRawFileName);
-    printf("fRawFileName %s, fRunId %d\n", fRawFileName.Data(), fRunId);
     fRawFileIn = fopen(fRawFileName, "rb");
     if (fRawFileIn == NULL) {
         printf("\n!!!!!\ncannot open file %s\nConvertRawToRoot are stopped\n!!!!!\n\n", fRawFileName.Data());
@@ -1057,7 +1056,6 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     fLengthRawFile = ftello64(fRawFileIn);
     rewind(fRawFileIn);
     printf("\nRawData File %s;\nLength RawData - %lld bytes (%.3f Mb)\n", fRawFileName.Data(), fLengthRawFile, fLengthRawFile / 1024. / 1024.);
-    //    printf("RawRoot File %s\n\n", fRootFileName.Data());
     fRawTree->Reset();
     fDigiTree->Reset();
     //    fDigiTree->Branch("EventHeader", &eventHeader);

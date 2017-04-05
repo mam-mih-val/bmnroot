@@ -19,7 +19,6 @@
 
 BmnMonitor::BmnMonitor() {
     keepWorking = kTRUE;
-    _fileList = new vector<BmnRunInfo>();
     fRecoTree = NULL;
     fRecoTree4Show = NULL;
     fHistOut = NULL;
@@ -83,7 +82,6 @@ BmnMonitor::~BmnMonitor() {
         rawDataDecoder->DisposeDecoder();
         delete rawDataDecoder;
     }
-    if (_fileList) delete _fileList;
     if (_ctx) {
         zmq_ctx_destroy(_ctx);
         _ctx = NULL;
@@ -133,13 +131,8 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
         DBGERR("zmq connect")
         return;
     }
-    //    TBufferFile t(TBuffer::kRead);
     zmq_msg_t msg;
-    Int_t recv_more = 0;
-    size_t opt_size = sizeof (recv_more);
     TBufferFile t(TBuffer::kRead);
-    //    UInt_t buf[MAX_BUF_LEN / 4];
-    Int_t len;
     Int_t frame_size = 0;
     decoTimeout = 0;
     keepWorking = kTRUE;
@@ -193,8 +186,6 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                 case kBMNWORK:
                     if (fRunID != runID) {
                         FinishRun();
-//                        keepWorking = kFALSE;
-                        //break; // @TODO remove
                         fRunID = runID;
                         CreateFile(fRunID);
                     }
@@ -429,38 +420,7 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhGem_4show->Reset();
 }
 
-void BmnMonitor::ProcessStreamRun() {
-    //    Int_t iEv = 0;
-    //    BmnStatus convertResult;
-    //
-    //    OpenStream();
-    //    RegisterAll();
-    //    thread rcvThread(threadReceiveWrapper, dataReceiver);
-    //
-    //    while (kTRUE && iEv < 100) {
-    //
-    //        convertResult = rawDataDecoder->ConvertRawToRootIterate();
-    //        if (convertResult == kBMNTIMEOUT) {
-    //            printf("Connection timeout!");
-    //            break;
-    //        }
-    //        rawDataDecoder->DecodeDataToDigiIterate();
-    //        ProcessDigi(iEv++);
-    //        fServer->ProcessRequests();
-    //        gSystem->ProcessEvents();
-    //    }
-    //    rcvThread.join();
-    //
-    //    //    rawDataDecoder->DisposeDecoder();
-    //    //    rawDataDecoder->DisposeConverter();
-    //    delete dataReceiver;
-    //    delete rawDataDecoder;
-    //    FinishRun();
-
-}
-
 void BmnMonitor::ProcessDigi(Int_t iEv) {
-    //    fDigiTree->GetEntry(iEv);
     // histograms fill//
     fEvents++;
     if (fDigiArrays->header == NULL) {
@@ -489,7 +449,6 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     bhMWPC_4show->FillFromDigi(fDigiArrays->mwpc);
     bhZDC_4show->FillFromDigi(fDigiArrays->zdc);
     fRecoTree4Show->Fill();
-//    printf("fRecoTree4Show->Fill() %d\n", fRecoTree4Show->Fill());
     if (fEvents % 200 == 0) {
         // print info canvas //
         infoCanvas->Clear();

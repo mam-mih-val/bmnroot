@@ -21,8 +21,7 @@
 //const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 1100, 1119};
 #define MAX_STRIPS 1020
 
-BmnHistGem::BmnHistGem(TString title, TString path, Bool_t createNoiseMask,
-        BmnGemStripConfiguration::GEM_CONFIG config) : BmnHist() {
+BmnHistGem::BmnHistGem(TString title, TString path, BmnGemStripConfiguration::GEM_CONFIG config) : BmnHist() {
     sumMods = 0;
     maxLayers = 0;
     refPath = path;

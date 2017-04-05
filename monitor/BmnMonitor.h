@@ -43,16 +43,6 @@
 using namespace std;
 using namespace TMath;
 
-struct BmnRunInfo {
-    TString Name;
-    struct stat attr;
-};
-
-class MyTMessage : public TMessage {
-public:
-   MyTMessage(void *buf, Int_t len) : TMessage(buf, len) { }
-};
-
 class BmnMonitor : public TNamed {
 public:
 
@@ -60,18 +50,14 @@ public:
     virtual ~BmnMonitor();
     void MonitorStream(TString dir, TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
     void MonitorStreamZ(TString dir, TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
-    void ProcessRun(TString digiName);
-    void ProcessStreamRun();
     static void threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent);
     static void threadCmdWrapper(string cmd);
     
     // Getters
     deque<UInt_t> * GetDataQue() { return fDataQue;}
-    TTree * GetDigiTree()       { return fDigiTree;}
 
     // Setters
     void SetDataQue(deque<UInt_t> * v) { fDataQue = v;}
-    void SetDigiTree(TTree * v)       { fDigiTree = v;}
 
 private:
     void InitServer();
@@ -86,12 +72,10 @@ private:
     void * _ctx;
     void * _decoSocket;
     deque<UInt_t> * fDataQue;
-    vector<BmnRunInfo> *_fileList;
     TString _curFile;
     TString _curDir;
     TString _refDir;
     TString fRawDecoAddr;
-    TTree *fDigiTree;
     TTree *fRecoTree;
     TTree *fRecoTree4Show;
     TFile *fHistOut;

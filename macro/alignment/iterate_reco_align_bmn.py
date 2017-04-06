@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Script for finding alignment corrections iteratively (only for GEMs so far)
+# Script for finding global alignment corrections iteratively.
 #
 # Reconstruct limited number of events -> run alignment -> run new
 # reconstruction of the same events using corrections obtained at the previous
@@ -36,14 +36,14 @@
 ## Not implemented yet in run_reco_bmn.C:
 ##
 ## However, if the file name is like
-## "bmn_run05_Glob_000812_digi.root", then nothing to do: the geometry will be
+## "bmn_run06_Glob_digi_001203.root", then nothing to do: the geometry will be
 ## obtained from the Unified Database automatically without any prefix, although
 ## if prefix is still used, it also works correctly.
 #
 # nStartEvent - number (start with zero) of first event to process, default: 0
 # nEvents - number of events to process
 #
-# Anatoly.Solomin@jinr.ru 2017-02-16
+# Anatoly.Solomin@jinr.ru 2017-04-05
 # -----------------------------------------------------------------------------
 #!/usr/bin/python
 import   os
@@ -62,7 +62,7 @@ def main() :
     usage = "usage: %prog [options] arg"
     parser = OptionParser(usage)
     parser.add_option("-v", "--verbose", dest="verbose",                default=True,                               help="print this to stdout")
-    parser.add_option("-l", "--list",    dest="digiFileListFileName",   default='bmn_run05_Glob_filelist_digi.txt', help="take list of digi files from file")
+    parser.add_option("-l", "--list",    dest="digiFileListFileName",   default='bmn_run06_Glob_digi_filelist.txt', help="take list of digi files from file")
     parser.add_option("-m", "--maxit",   dest="maxNumOfIterations",     default=1,                                  help="maximum number of iterations",          type="int") 
     parser.add_option("-n", "--nev",     dest="nEvents",                default=10000,                              help="number of events to process",           type="int") 
     parser.add_option("-i", "--inf",     dest="addInfo",                default='',                                 help="additional meta-information")
@@ -111,11 +111,10 @@ def main() :
         # For the machinery to work correctly, we copy the initial corrections
         # to an appropriately named file marked as '_it00'.
         # First form the name:
-        sumAlignCorrFileName = options.digiFileListFileName.replace('filelist_', '')
         if options.addInfo != '' :
-            sumAlignCorrFileName = sumAlignCorrFileName.replace('digi.txt', options.addInfo+'_sum_align_it00.root')
+            sumAlignCorrFileName = options.digiFileListFileName.replace('digi_filelist.txt', options.addInfo+'_sum_align_it00.root')
         else :
-            sumAlignCorrFileName = sumAlignCorrFileName.replace('digi.txt',                  'sum_align_it00.root')
+            sumAlignCorrFileName = options.digiFileListFileName.replace('digi_filelist.txt',                  'sum_align_it00.root')
         # and now create the file with that name:
         print 'options.startAlignCorrFileName = '+options.startAlignCorrFileName
        #os.system('cp '+options.startAlignCorrFileName+' '+sumAlignCorrFileName)
@@ -153,11 +152,10 @@ def main() :
    #    f.write(sumAlignCorrFileName)
 
     # file for storing the plots
-    alignCorrPlotsFileName = options.digiFileListFileName.replace('filelist_', '')
     if options.addInfo != '' :
-        alignCorrPlotsFileName = alignCorrPlotsFileName.replace('digi.txt', options.addInfo+'_corr_plots.root')
+        alignCorrPlotsFileName = options.digiFileListFileName.replace('digi_filelist.txt', options.addInfo+'_corr_plots.root')
     else :
-        alignCorrPlotsFileName = alignCorrPlotsFileName.replace('digi.txt',                  'corr_plots.root')
+        alignCorrPlotsFileName = options.digiFileListFileName.replace('digi_filelist.txt',                  'corr_plots.root')
     print 'alignCorrPlotsFileName         = '+alignCorrPlotsFileName
 
     newAlignCorrFileNames = []
@@ -187,18 +185,17 @@ def main() :
         # counter of total events processed for the alignment:
         nEventsTotal = 0
         for digiFileName in digiFileNames :
-           #print 'digiFileName                   = '+digiFileName
-            # Define bmndstFileName by replacing 'digi' with 'bmndst'
-            # and add addInfo and itNr,
-            # e.g. 'bmn_run05_Glob_000812_digi.root'  -->  'bmn_run05_Glob_000812_tilted_beams_bmndst_it01.root'
+            print 'digiFileName                   = '+digiFileName
+            # Derive bmndstFileName from digiFileListFileName,
+            # adding addInfo and runNumber, extracted from digiFileName:
+            # bmn_run06_Glob_tilted_beams_digi_filelist.txt  -->  'bmn_run06_Glob_tilted_beams_test_bmndst_001203_it01.root'
+            # First extract the run number:
+            runNumber = re.search('digi_([\d]+)', digiFileName).group(1)
             if options.addInfo != '' :
-                bmndstFileName = digiFileName.replace('digi', options.addInfo+'_bmndst_it'+itNr)
-               #print 'bmndstFileName                 = '+bmndstFileName
+                bmndstFileName = options.digiFileListFileName.replace('digi_filelist.txt', options.addInfo+'_bmndst_'+runNumber+'_it'+itNr+'.root')
             else :
-                bmndstFileName = digiFileName.replace('digi',                  'bmndst_it'+itNr)
-               #print 'bmndstFileName                 = '+bmndstFileName
-            bmndstFileName = re.sub(r'^run[0-9]+-[0-9]+:', '', bmndstFileName) # i.e. remove the prefix 'runN-NNN:'
-           #print 'bmndstFileName                 = '+bmndstFileName
+                bmndstFileName = options.digiFileListFileName.replace('digi_filelist.txt',                  'bmndst_'+runNumber+'_it'+itNr+'.root')
+            print 'bmndstFileName                 = '+bmndstFileName
             # and memorise it in the list that will be used during alignment:
             bmndstFileNames.append(bmndstFileName+'\n')
 
@@ -214,29 +211,34 @@ def main() :
             nEventsTotal += options.nEvents
 
         # We also prepare a file with the list of these files inside the loop.
-        # It will be used to create a chain inside the determine_align_corrections_gem.C
+        # It will be used to create a chain inside the determine_align_corrections_bmn.C
 
         # Form name of file with the list of bmndstFileName's:
         # replace digi with bmndst and add addInfo and itNr,
-        # e.g. 'bmn_run05_Glob_filelist_digi.txt'  -->  'bmn_run05_Glob_filelist_test_bmndst_it01.txt'
+        # e.g. 'bmn_run06_Glob_tilted_beams_digi_filelist.txt'  -->  'bmn_run06_Glob_tilted_beams_test_bmndst_filelist_it01.txt'
         if options.addInfo != '' :
-            bmndstFileListFileName = options.digiFileListFileName.replace('digi', options.addInfo+'_bmndst_it'+itNr)
+            bmndstFileListFileName = options.digiFileListFileName.replace('digi_filelist', options.addInfo+'_bmndst_filelist_it'+itNr)
         else :
-            bmndstFileListFileName = options.digiFileListFileName.replace('digi',                  'bmndst_it'+itNr)
-
+            bmndstFileListFileName = options.digiFileListFileName.replace('digi_filelist',                  'bmndst_filelist_it'+itNr)
+        print 'bmndstFileListFileName         = '+bmndstFileListFileName
         # create file with the list of new bmndstFileName's:
         with open(bmndstFileListFileName, 'w') as f :
             for fname in bmndstFileNames :
                 f.write(fname)
 
         # Form name of the new alignment output file:
-        newAlignCorrFileName = bmndstFileListFileName.replace('_filelist', '')
-        newAlignCorrFileName = newAlignCorrFileName.replace('bmndst', 'new_align')
+        # e.g. 'bmn_run06_Glob_tilted_beams_test_bmndst_filelist_it01.txt'  -->  'bmn_run06_Glob_tilted_beams_test_new_align_it01.root'
+        newAlignCorrFileName = bmndstFileListFileName.replace('bmndst_filelist', 'new_align')
         newAlignCorrFileName = newAlignCorrFileName.replace('.txt',   '.root')
-        # e.g. 'bmn_run05_Glob_filelist_tilted_beams_bmndst_it01.txt'  -->  'bmn_run05_Glob_tilted_beams_new_align_it01.root'
+        print 'newAlignCorrFileName           = '+newAlignCorrFileName
 
         # And now run the alignment:
-        call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/determine_align_corrections_gem.C("'+bmndstFileListFileName+'", "'+newAlignCorrFileName+'", '+str(nEventsTotal)+')'])
+        call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/determine_align_corrections_bmn.C("'+bmndstFileListFileName+'", "'+newAlignCorrFileName+'", '+str(nEventsTotal)+')'])
+        # preserve the Millepede.res result:
+        # 'bmn_run06_Glob_tilted_beams_test_new_align_it01.root'  -->  'bmn_run06_Glob_tilted_beams_test_new_align_millepede_it01.res'
+        pedeResultFileName = newAlignCorrFileName.replace('align', 'align_millepede') 
+        pedeResultFileName =   pedeResultFileName.replace('.root', '.res') 
+        call(['cp', 'Millepede.res', pedeResultFileName])
         # the already used for the reconstruction sumAlignCorrFileName
         # now becomes the previous one:
         preAlignCorrFileName =  sumAlignCorrFileName
@@ -247,7 +249,7 @@ def main() :
         if iterNr==1 and options.startAlignCorrFileName=='' : # if we started from from scratch, newAlignCorrFileName becomes also new sumAlignCorrFileName
             call(['cp', newAlignCorrFileName, sumAlignCorrFileName])
         else :                                                # update sumAlignCorrFileName file and at next iteration use it
-            call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/update_align_corrections_gem.C("'+preAlignCorrFileName+'", "'+newAlignCorrFileName+'", "'+sumAlignCorrFileName+'")'])
+            call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/update_align_corrections_bmn.C("'+preAlignCorrFileName+'", "'+newAlignCorrFileName+'", "'+sumAlignCorrFileName+'")'])
 
         newAlignCorrFileNames.append(newAlignCorrFileName+'\n')
         sumAlignCorrFileNames.append(sumAlignCorrFileName+'\n')
@@ -262,7 +264,7 @@ def main() :
             f.write(fname)
 
     # plot new and sum corrections vs. iteration number, beginning with the start values of sum corrections (at the so-called 'itertaion 0')
-    call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/plot_align_corrections_gem.C("'+newAlignCorrFileListFileName+'")'])
+    call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/plot_align_corrections_bmn.C("'+newAlignCorrFileListFileName+'")'])
 
 if __name__ == "__main__" :
     main()

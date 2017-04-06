@@ -5,16 +5,16 @@
 //
 // Anatoly.Solomin@jinr.ru 2017-02-16
 
-#include   <map>
-#include   <string>
-#include   <utility> // for pair
-#include   <vector>
+#  include   <map>
+//#include   <string>
+//#include   <utility> // for pair
+//#include   <vector>
 
-#include   <TCanvas.h>
-#include   <TClonesArray.h>
-#include   <TFile.h>
-#include   <TString.h>
-#include   <TTree.h>
+//#include   <TCanvas.h>
+//#include   <TClonesArray.h>
+//#include   <TFile.h>
+//#include   <TString.h>
+//#include   <TTree.h>
 
 using namespace std;
 
@@ -26,7 +26,7 @@ void FillItCorrsItErrs(TString       newAlignCorrFileListFileName,
                        Int_t         iKind,
                        int const     mlpdParNr_What[][3]);
 
-void plot_align_corrections_gem(TString new1AlignCorrFileListFileName,
+void plot_align_corrections_bmn(TString new1AlignCorrFileListFileName,
                                 TString new2AlignCorrFileListFileName = "")
 {
     TString sum1AlignCorrFileListFileName = new1AlignCorrFileListFileName;
@@ -120,10 +120,12 @@ void plot_align_corrections_gem(TString new1AlignCorrFileListFileName,
                                   {1, 5, 1},
                                   {2, 5, 1}};
     BmnGemStripStationSet* stationSet;
-    Int_t iStatFirst; // first station to start with
+    Int_t iStatFirst; // first GEM station to start with
+    Int_t nStations;  // number of GEM stations
     if      (runPeriod == 5) {
         stationSet = new BmnGemStripStationSet_RunWinter2016(BmnGemStripConfiguration::RunWinter2016);
         iStatFirst = 1;
+        nStations  = 7;
         mStatMod_Pad[make_pair(1, 0)] =  1;
         mStatMod_Pad[make_pair(2, 0)] =  2;
         mStatMod_Pad[make_pair(3, 0)] =  3;
@@ -137,6 +139,7 @@ void plot_align_corrections_gem(TString new1AlignCorrFileListFileName,
     else if (runPeriod == 6) {
         stationSet = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
         iStatFirst = 0;
+        nStations  = 6;
         mStatMod_Pad[make_pair(0, 0)] =  1;
         mStatMod_Pad[make_pair(1, 0)] =  2;
         mStatMod_Pad[make_pair(2, 0)] =  3;
@@ -279,8 +282,8 @@ void plot_align_corrections_gem(TString new1AlignCorrFileListFileName,
         }
     }
 
-    TCanvas* canvas = new TCanvas("canvas", "Convergency of alignment", 1200, 1200);
-    canvas->Divide(6, 12, 0., 0.);
+    TCanvas* canvas = new TCanvas("canvas", "Convergency of alignment", nStations*200, 1200);
+    canvas->Divide(nStations, 12, 0., 0.);
     TPad* pad;
     Int_t padNr(0);
     gROOT->ForceStyle(kTRUE);
@@ -363,8 +366,8 @@ void plot_align_corrections_gem(TString new1AlignCorrFileListFileName,
 
                     TGraphErrors* grer1 = new TGraphErrors(nIts, its, alCorrs1, 0, alCorrErrs1);
                     if (kinds[iKind] == "new") {
-                        grer1->SetMaximum( 0.05);
-                        grer1->SetMinimum(-0.05); }
+                        grer1->SetMaximum( 0.5 );
+                        grer1->SetMinimum(-0.5 ); }
                     else {
                         grer1->SetMaximum( 0.5);
                         grer1->SetMinimum(-0.5);
@@ -385,8 +388,8 @@ void plot_align_corrections_gem(TString new1AlignCorrFileListFileName,
 
                     TGraph* gr1 = new TGraph(nIts, its, alCorrs1);
                     if (kinds[iKind] == "new") {
-                        gr1->SetMaximum( 0.05);
-                        gr1->SetMinimum(-0.05); }
+                        gr1->SetMaximum( 0.5 );
+                        gr1->SetMinimum(-0.5 ); }
                     else {
                         gr1->SetMaximum( 0.5);
                         gr1->SetMinimum(-0.5);
@@ -407,8 +410,8 @@ void plot_align_corrections_gem(TString new1AlignCorrFileListFileName,
                     if (new2AlignCorrFileListFileName != "") {
                         TGraphErrors* grer2 = new TGraphErrors(nIts, its, alCorrs2, 0, alCorrErrs2);
                         if (kinds[iKind] == "new") {
-                            grer2->SetMaximum( 0.05);
-                            grer2->SetMinimum(-0.05); }
+                            grer2->SetMaximum( 0.5 );
+                            grer2->SetMinimum(-0.5 ); }
                         else {
                             grer2->SetMaximum( 0.5);
                             grer2->SetMinimum(-0.5);
@@ -429,8 +432,8 @@ void plot_align_corrections_gem(TString new1AlignCorrFileListFileName,
 
                         TGraph* gr2 = new TGraph(nIts, its, alCorrs2);
                         if (kinds[iKind] == "new") {
-                            gr2->SetMaximum( 0.05);
-                            gr2->SetMinimum(-0.05); }
+                            gr2->SetMaximum( 0.5 );
+                            gr2->SetMinimum(-0.5 ); }
                         else {
                             gr2->SetMaximum( 0.5);
                             gr2->SetMinimum(-0.5);
@@ -461,8 +464,8 @@ void plot_align_corrections_gem(TString new1AlignCorrFileListFileName,
                         mg->SetTitle(kinds[iKind]+" "+xyz[iPar]+" corrections starting "+new1StartAlignFrom+" and "+new2StartAlignFrom+" stat "+TString::Itoa(iStat, 10)+" mod "+TString::Itoa(iMod, 10));
                     }
                     if (kinds[iKind] == "new") {
-                        mg->SetMaximum( 0.05);
-                        mg->SetMinimum(-0.05); }
+                        mg->SetMaximum( 0.5 );
+                        mg->SetMinimum(-0.5 ); }
                     else {
                         mg->SetMaximum( 0.5);
                         mg->SetMinimum(-0.5);
@@ -579,9 +582,9 @@ void FillItCorrsItErrs(TString       newAlignCorrFileListFileName,
         TTree* corrTree = (TTree*)corrFile->Get("cbmsim");
       //cout <<"corrTree->Print()"<< endl;
       //corrTree->Print();
-      //TClonesArray* corrs = new TClonesArray("BmnGemAlignmentCorrections");
+      //TClonesArray* corrs = new TClonesArray("BmnGemAlignCorrections");
         TClonesArray* corrs = NULL;
-        corrTree->SetBranchAddress("BmnGemAlignmentCorrections",  &corrs);
+        corrTree->SetBranchAddress("BmnGemAlignCorrections",  &corrs);
 
         for (Int_t iEntry=0; iEntry < (Int_t)corrTree->GetEntries(); iEntry++) {
           //cout <<TString::Format("iEntry = % 5i", iEntry)<< endl;
@@ -596,7 +599,7 @@ void FillItCorrsItErrs(TString       newAlignCorrFileListFileName,
       //cout <<TString::Format(    "iIt    = % 2i", iIt   )<< endl;
         for (Int_t iCorr=0; iCorr < (Int_t)corrs->GetEntriesFast(); iCorr++) {
           //cout <<TString::Format("iCorr  = % 2i", iCorr)<< endl;
-            BmnGemAlignmentCorrections* tmp = (BmnGemAlignmentCorrections*)(corrs->UncheckedAt(iCorr));
+            BmnGemAlignCorrections* tmp = (BmnGemAlignCorrections*)(corrs->UncheckedAt(iCorr));
             Int_t iStat = tmp->GetStation();
           //cout <<TString::Format("iStat  = % 2i", iStat)<< endl;
             Int_t iMod  = tmp->GetModule();

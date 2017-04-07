@@ -31,6 +31,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
+    fIsExp = (!isExp) ? kFALSE : kTRUE;
     fBmnEventHeaderBranchName = "EventHeader";
 
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
@@ -122,9 +123,9 @@ InitStatus BmnGemStripHitMaker::Init() {
     for (Int_t iStat = 0; iStat < nStat; iStat++) {
         Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
         for (Int_t iMod = 0; iMod < nModul; iMod++) {
-            for (Int_t iPar = 0; iPar < nParams; iPar++) 
+            for (Int_t iPar = 0; iPar < nParams; iPar++)
                 // print alignment corrections in similar format as Millepede does. Anatoly.Solomin@jinr.ru 2017-02-21 15:12:07 //
-                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << TString::Format("% 4.4f", corr[iStat][iMod][iPar]) << endl; // 
+                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << TString::Format("% 7.4f", corr[iStat][iMod][iPar]) << endl; //
         }
     }
 
@@ -138,9 +139,11 @@ InitStatus BmnGemStripHitMaker::Init() {
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
     clock_t tStart = clock();
 
-    BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
-    if (evHeader)
-        if (evHeader->GetTripWord()) return;
+    if (fIsExp) {
+        BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
+        if (evHeader && evHeader->GetTripWord())
+            return;
+    }
 
     fBmnGemStripHitsArray->Clear();
 
@@ -291,7 +294,7 @@ void BmnGemStripHitMaker::Finish() {
 }
 
 void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
-    if (fname == "")
+    if (fname == "") // case when we do not want to use any alinment corrections
         return;
 
     Int_t coeff = 0; // -1 for RunWinter2016, +1 for RunSpring2017 and in the future
@@ -315,10 +318,10 @@ void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
     TClonesArray* corrs = NULL;
     t->SetBranchAddress(branchName.Data(), &corrs);
 
-    for (Int_t iEntry = 0; iEntry < t ->GetEntries(); iEntry++) {
+    for (Int_t iEntry = 0; iEntry < t->GetEntries(); iEntry++) {
         t->GetEntry(iEntry);
         for (Int_t iCorr = 0; iCorr < corrs->GetEntriesFast(); iCorr++) {
-            if (coeff == -1) { // To be removed in future 
+            if (coeff == -1) { // To be removed in future
                 BmnGemAlignmentCorrections* align = (BmnGemAlignmentCorrections*) corrs->UncheckedAt(iCorr);
                 Int_t iStat = align->GetStation();
                 Int_t iMod = align->GetModule();

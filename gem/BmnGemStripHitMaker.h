@@ -90,6 +90,7 @@ private:
     TClonesArray* fBmnGemStripHitMatchesArray;
 
     Bool_t fHitMatching;
+    Bool_t fIsExp; // Specify type of input data (MC or real data)
 
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 

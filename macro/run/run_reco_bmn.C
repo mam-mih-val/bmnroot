@@ -3,37 +3,35 @@
 //
 // inputFileName - input file with data.
 //
-// To process experimental data, you can use 'runN-NNN:'-like prefix
+// To process experimental data, you must use 'runN-NNN:'-like prefix
 // and then the geometry will be obtained from the Unified Database.
 //
 // bmndstFileName - output file with reconstructed data.
 //
-// nStartEvent - number (starts with zero) of first event to process, default: 0.
+// nStartEvent - number of first event to process (starts with zero), default: 0.
 //
 // nEvents - number of events to process, 0 - all events of given file will be
 // processed, default: 10000.
 //
 // isPrimary - flag needed when working with MC events, default: kTRUE.
 //
-// alignCorrFileName - input file with the current misalignments,
-// i.e. alignment corrections but with the opposite sign.
+// alignCorrFileName - argument for choosing input file with the alignment
+// corrections.
+//
+// If alignCorrFileName == 'default', (case insensitive) then corrections are
+// retrieved from UniDb according to the running period and run number.
 //
 // If alignCorrFileName == '', then no corrections are applied at all.
 //
-// IMPORTANT: for the time being, the default file name should be kept
-// up-to-date by hand here.
-//
-// NB! As soon as storage of the alignment corrections is arranged in the UniDb,
-// we will need to change this, so that the default values are taken from there.
-// Candidate for the default then can be:
-// alignCorrFileName = "UniDb" (case insensitive!)
+// If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
+// from that file.
 
 void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.root",
                   TString bmndstFileName    = "$VMCWORKDIR/macro/run/bmndst.root",
                   Int_t   nStartEvent       =  0,
                   Int_t   nEvents           =  10000,
                   Bool_t  isPrimary         =  kTRUE, 
-                  TString alignCorrFileName = "$VMCWORKDIR/input/alignCorrsLocal_GEM.root")        
+                  TString alignCorrFileName = "default")        
 {   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
     // ----    Debug option   --------------------------------------------------
@@ -174,9 +172,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-
     BmnGemStripConfiguration::GEM_CONFIG gem_config;
-    if (run_period == 6)
+    if (!isExp || run_period == 6)
         gem_config = BmnGemStripConfiguration::RunSpring2017;
     else if (run_period == 5)
         gem_config = BmnGemStripConfiguration::RunWinter2016;
@@ -190,10 +187,17 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-    // Set name of file with the alignment corrections (derived from database in future)
-    if (isExp) gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
-    // Set name of file with the alignment corrections by hands (for test purposes and iterative alignment also)
-    // if (isExp) gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
+    // Set name of file with the alignment corrections
+    if (isExp) {
+        if (alignCorrFileName.ToLower() == "default")
+            // retrieve from UniDb (default)
+            gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
+        else
+            // set explicitly, for testing purposes and for interactive alignment;
+            // in case of determining alignment corrections from scratch,
+            // set alignCorrFileName == "" (at first iteration)
+            gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
+    }
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
     // ====================================================================== //

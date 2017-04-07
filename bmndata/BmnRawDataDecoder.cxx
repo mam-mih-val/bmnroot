@@ -1078,9 +1078,6 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
 }
 
 BmnStatus BmnRawDataDecoder::DisposeDecoder() {
-    //    fDigiTree->Write();
-    //    fDigiFileOut->Close();
-
     if (fGemMap) delete fGemMap;
     if (fGemMapper) delete fGemMapper;
     if (fSiliconMapper) delete fSiliconMapper;
@@ -1116,8 +1113,6 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
 
     delete eventHeader;
     delete runHeader;
-    fRawTree->Reset();
-    fDigiTree->Reset();
     return kBMNSUCCESS;
 }
 

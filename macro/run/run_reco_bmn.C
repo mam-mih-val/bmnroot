@@ -30,8 +30,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
                   TString bmndstFileName    = "$VMCWORKDIR/macro/run/bmndst.root",
                   Int_t   nStartEvent       =  0,
                   Int_t   nEvents           =  10000,
-                  Bool_t  isPrimary         =  kTRUE, 
-                  TString alignCorrFileName = "default")        
+                  Bool_t  isPrimary         =  kTRUE,
+                  TString alignCorrFileName = "default")
 {   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
     // ----    Debug option   --------------------------------------------------
@@ -107,13 +107,13 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
         if (*field_voltage == 0) {
             fieldScale = 0;
-            isField = kFALSE; 
+            isField = kFALSE;
         } else {
             fieldScale = (*field_voltage) / map_current;
         }
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
         magField->SetScale(fieldScale);
-        magField->Init(); 
+        magField->Init();
         fRunAna->SetField(magField);
         isExp = kTRUE;
         TString targ;
@@ -189,7 +189,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     gemHM->SetCurrentConfig(gem_config);
     // Set name of file with the alignment corrections
     if (isExp) {
-        if (alignCorrFileName.ToLower() == "default")
+        TString aligncorrfilename = alignCorrFileName;
+        if (aligncorrfilename.ToLower() == "default")
             // retrieve from UniDb (default)
             gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
         else

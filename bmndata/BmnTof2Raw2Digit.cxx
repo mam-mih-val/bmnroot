@@ -832,7 +832,7 @@ void BmnTof2Raw2Digit::readSlewingLimits()
     return;
   };
   int j, lmi, lma;
-  for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
+  for (int i=0; i<MaxPlane; i++)
     {
       fscanf(finl,"\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", &j, &lmi, &lma);
       printf("\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", j, lmi, lma);
@@ -1583,22 +1583,40 @@ void BmnTof2Raw2Digit::DNL_read()
 
 #if TOF2_MAX_CHAMBERS == 15
 int champos[TOF2_MAX_CHAMBERS] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
-#define NDX 5
-#define NDY 3
 #else
 #if TOF2_MAX_CHAMBERS == 24
 int champos[TOF2_MAX_CHAMBERS] = {17,18, 3, 1,19, 4,23,20, 5,15,21, 6, 2,22, 9,10,11,12,13,14, 7, 8, 0,16};
-#define NDX 8
-#define NDY 3
 #else
 int champos[TOF2_MAX_CHAMBERS] = {0};
-#define NDX 1
-#define NDY 1
 #endif
 #endif
 
 void BmnTof2Raw2Digit::drawprep()
 {
+  int NDX;
+  int NDY;
+  if (MaxPlane == 15)
+  {
+    int champos1[] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
+    NDX = 5;
+    NDY = 3;
+    memcpy(champos, champos1, sizeof champos);
+  }
+  else if (MaxPlane == 24)
+  {
+    int champos1[] = {17,18, 3, 1,19, 4,23,20, 5,15,21, 6, 2,22, 9,10,11,12,13,14, 7, 8, 0,16};
+    NDX = 8;
+    NDY = 3;
+    memcpy(champos, champos1, sizeof champos);
+  }
+  else
+  {
+    int champos1[TOF2_MAX_CHAMBERS ] = {0};
+    NDX = 1;
+    NDY = 1;
+    memcpy(champos, champos1, sizeof champos);
+  }
+
   TLine *l = 0, *l1 = 0;
   FILE *fout = 0;
   int i, im, y;
@@ -1614,7 +1632,7 @@ void BmnTof2Raw2Digit::drawprep()
   sprintf(filn, "%s%s_slewing_limits.txt", path.Data(), filname_base);
   fout = fopen(filn,"w");
 
-  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
+  for (i=0; i<MaxPlane; i++)
     {
       cp->cd(champos[i]+1);
       TvsS[i]->Draw();
@@ -1639,7 +1657,7 @@ void BmnTof2Raw2Digit::drawprep()
   TCanvas *cpp = new TCanvas("cpp", "Leadings", 900,700);
   cpp->cd();
   cpp->Divide(NDX,NDY);
-  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
+  for (i=0; i<MaxPlane; i++)
     {
       cpp->cd(champos[i]+1);
       im = (TvsS[i]->ProjectionY())->GetMaximumBin();
@@ -1661,7 +1679,7 @@ void BmnTof2Raw2Digit::drawprep()
   TCanvas *cpw = new TCanvas("cpw", "Widths vs strip", 900,700);
   cpw->cd();
   cpw->Divide(NDX,NDY);
-  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
+  for (i=0; i<MaxPlane; i++)
     {
       cpw->cd(champos[i]+1);
       WvsS[i]->Draw();
@@ -1681,7 +1699,7 @@ void BmnTof2Raw2Digit::drawprep()
   TCanvas *cpwp = new TCanvas("cpwp", "Widths", 900,700);
   cpwp->cd();
   cpwp->Divide(NDX,NDY);
-  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
+  for (i=0; i<MaxPlane; i++)
     {
       cpwp->cd(champos[i]+1);
       ymin = Wcut;
@@ -1723,7 +1741,7 @@ void BmnTof2Raw2Digit::drawprep()
   TCanvas *cp1 = new TCanvas("cp1", "Leadings vs widths", 900,700);
   cp1->cd();
   cp1->Divide(NDX,NDY);
-  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
+  for (i=0; i<MaxPlane; i++)
     {
       cp1->cd(champos[i]+1);
       TvsWall[i]->Draw();
@@ -1734,7 +1752,7 @@ void BmnTof2Raw2Digit::drawprep()
  
   cp2->cd();
   cp2->Divide(NDX,NDY);
-  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
+  for (i=0; i<MaxPlane; i++)
     {
       cp2->cd(champos[i]+1);
       TvsWallmax[i]->Draw();
@@ -1745,12 +1763,36 @@ void BmnTof2Raw2Digit::drawprep()
 
 void BmnTof2Raw2Digit::drawprof()
 {
+  int NDX;
+  int NDY;
+  if (MaxPlane == 15)
+  {
+    int champos1[] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
+    NDX = 5;
+    NDY = 3;
+    memcpy(champos, champos1, sizeof champos);
+  }
+  else if (MaxPlane == 24)
+  {
+    int champos1[] = {17,18, 3, 1,19, 4,23,20, 5,15,21, 6, 2,22, 9,10,11,12,13,14, 7, 8, 0,16};
+    NDX = 8;
+    NDY = 3;
+    memcpy(champos, champos1, sizeof champos);
+  }
+  else
+  {
+    int champos1[TOF2_MAX_CHAMBERS ] = {0};
+    NDX = 1;
+    NDY = 1;
+    memcpy(champos, champos1, sizeof champos);
+  }
+
   TCanvas *callbe = new TCanvas("callbe", "Leadings vs widths (slewing RPC, peak 1)", 900,700);
  
   int i;
   callbe->cd();
   callbe->Divide(NDX,NDY);
-  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
+  for (i=0; i<MaxPlane; i++)
     {
       callbe->cd(champos[i]+1);
       TvsW[i][0]->Draw();
@@ -1760,7 +1802,7 @@ void BmnTof2Raw2Digit::drawprof()
   TCanvas *callbe1 = new TCanvas("callbe1", "Leadings vs widths (slewing RPC, peak2)", 900,700);
   callbe1->cd();
   callbe1->Divide(NDX,NDY);
-  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
+  for (i=0; i<MaxPlane; i++)
     {
       callbe1->cd(champos[i]+1);
       TvsW[i][1]->Draw();
@@ -1773,11 +1815,35 @@ void BmnTof2Raw2Digit::drawprof()
 
 void BmnTof2Raw2Digit::drawproft0()
 {
+  int NDX;
+  int NDY;
+  if (MaxPlane == 15)
+  {
+    int champos1[] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
+    NDX = 5;
+    NDY = 3;
+    memcpy(champos, champos1, sizeof champos);
+  }
+  else if (MaxPlane == 24)
+  {
+    int champos1[] = {17,18, 3, 1,19, 4,23,20, 5,15,21, 6, 2,22, 9,10,11,12,13,14, 7, 8, 0,16};
+    NDX = 8;
+    NDY = 3;
+    memcpy(champos, champos1, sizeof champos);
+  }
+  else
+  {
+    int champos1[TOF2_MAX_CHAMBERS] = {0};
+    NDX = 1;
+    NDY = 1;
+    memcpy(champos, champos1, sizeof champos);
+  }
+
   TCanvas *callbe0 = new TCanvas("callbe0", "Leadings vs widths (slewing T0)", 900,700);
   int i;
   callbe0->cd();
   callbe0->Divide(NDX,NDY);
-  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
+  for (i=0; i<MaxPlane; i++)
     {
       callbe0->cd(champos[i]+1);
       TvsWt0[i][0]->Draw();
@@ -1787,7 +1853,7 @@ void BmnTof2Raw2Digit::drawproft0()
   TCanvas *callbe01 = new TCanvas("callbe01", "Leadings vs widths (slewing T0)", 900,700);
   callbe01->cd();
   callbe01->Divide(NDX,NDY);
-  for (i=0; i<TOF2_MAX_CHAMBERS; i++)
+  for (i=0; i<MaxPlane; i++)
     {
       callbe01->cd(champos[i]+1);
       TvsWt0[i][1]->Draw();

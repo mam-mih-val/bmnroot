@@ -31,6 +31,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
+    fIsExp = (!isExp) ? kFALSE : kTRUE;
     fBmnEventHeaderBranchName = "EventHeader";
 
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
@@ -138,9 +139,11 @@ InitStatus BmnGemStripHitMaker::Init() {
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
     clock_t tStart = clock();
 
-    BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
-    if (evHeader)
-        if (evHeader->GetTripWord()) return;
+    if (fIsExp) {
+        BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
+        if (evHeader && evHeader->GetTripWord())
+            return;
+    }
 
     fBmnGemStripHitsArray->Clear();
 

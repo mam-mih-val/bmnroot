@@ -173,7 +173,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
     BmnGemStripConfiguration::GEM_CONFIG gem_config;
-    if (run_period == 6)
+    if (!isExp || run_period == 6)
         gem_config = BmnGemStripConfiguration::RunSpring2017;
     else if (run_period == 5)
         gem_config = BmnGemStripConfiguration::RunWinter2016;

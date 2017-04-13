@@ -13,7 +13,7 @@
 
 #include "BmnHistToF.h"
 
-BmnHistToF::BmnHistToF(TString title = "ToF") {
+BmnHistToF::BmnHistToF(TString title) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     fSelectedPlane = -1;
@@ -125,6 +125,7 @@ void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
 
         new ((*Events)[Events->GetEntriesFast()])
                 BmnTof1Digit(td->GetPlane(), td->GetStrip(), td->GetSide(), td->GetTime(), td->GetAmplitude());
+//        frecoTree->Fill();
     }
     //histSimultaneous = (*histL) * (*histR);
     Int_t s;
@@ -172,16 +173,16 @@ void BmnHistToF::Register(THttpServer *serv) {
 
 void BmnHistToF::SetDir(TFile* outFile, TTree* recoTree) {
     frecoTree = recoTree;
-    TDirectory *dir = NULL;
+    fDir = NULL;
     if (outFile != NULL)
-        dir = outFile->mkdir(fTitle + "_hists");
-    histLeadingTime->SetDirectory(dir);
-    histLeadingTimeSpecific->SetDirectory(dir);
-    histAmp->SetDirectory(dir);
-    histAmpSpecific->SetDirectory(dir);
-    histStrip->SetDirectory(dir);
-    histStripSimult->SetDirectory(dir);
-    histState->SetDirectory(dir);
+        fDir = outFile->mkdir(fTitle + "_hists");
+    histLeadingTime->SetDirectory(fDir);
+    histLeadingTimeSpecific->SetDirectory(fDir);
+    histAmp->SetDirectory(fDir);
+    histAmpSpecific->SetDirectory(fDir);
+    histStrip->SetDirectory(fDir);
+    histStripSimult->SetDirectory(fDir);
+    histState->SetDirectory(fDir);
     if (Events != NULL)
         delete Events;
     Events = new TClonesArray("BmnTof1Digit");

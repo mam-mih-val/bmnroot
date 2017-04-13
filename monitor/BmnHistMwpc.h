@@ -38,7 +38,7 @@
 
 class BmnHistMwpc : public BmnHist {
 public:
-    BmnHistMwpc(TString title);
+    BmnHistMwpc(TString title = "MWPC");
     virtual ~BmnHistMwpc();
     void Reset();
     void Register(THttpServer *serv);

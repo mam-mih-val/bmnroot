@@ -1,3 +1,14 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             *
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
+/**
+* class for event management and navigation.
+* 06.12.07 M.Al-Turany
+*/
 #ifndef FairEventManager_H
 #define FairEventManager_H
 
@@ -121,21 +132,21 @@ class FairEventManager : public TEveEventManager
     int background_color;
     // whether background color is dark
     bool isDarkColor;
-    // file name with data source
-    char* source_file_name; //!
-    // file name with data source
-    char* geo_file_name; //!
     // event count
     Long64_t fEntryCount; //!
     // whether Online of Offline mode
     bool isOnline;
     // data source: 0 - simulation data; 1 - raw detector data
-    int fDataSource;
+    int iDataSource;
 
     // Event Elements of Event Scene
     TEveElementList* EveMCPoints, *EveMCTracks, *EveRecoPoints, *EveRecoTracks;
     // ZDC module visibility flags. NULL if there are no ZDC modules to show
     bool* isZDCModule; //!
+    // require event redraw after "reco points" checkbox value is changed
+    bool fgRedrawRecoPointsReqired;
+    // current value of "reco points" checkbox
+    bool fgShowRecoPointsIsShow;
 
     // set high (80) transparency for detector geometry
     void SelectedGeometryTransparent(bool is_on);
@@ -144,6 +155,11 @@ class FairEventManager : public TEveEventManager
     // FairRunAna to init and to execute visualization tasks
     FairRunAna* fRunAna; //!
 
+    //returns loaded xml if successful of NULL if validation failed
+    bool ValidateXml(const char *XMLFileName, const char *XSDFileName);
+    //coloring method
+    enum VisualizationColoring {selectedColoring, levelColoring, defaultColoring};
+    VisualizationColoring gVisualizationColoring;
   private:
     FairRootManager* fRootManager; //!
     TGListTreeItem* fEvent; //!
@@ -159,6 +175,9 @@ class FairEventManager : public TEveEventManager
     Float_t fEvtMinEnergy; //!
     // maximum energy to cut particles by energy in selected event
     Float_t fEvtMaxEnergy; //!
+
+    // the last color indice of Color Creating from rgb triple
+    Int_t fLastUsedColor; //!
 
     // skeleton Singleton Instance
     static FairEventManager* fgRinstance; //!

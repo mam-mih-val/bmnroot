@@ -1,11 +1,20 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEOMEDIA_H
 #define FAIRGEOMEDIA_H
 
+#include "TNamed.h"                     // for TNamed
 
-#include "TNamed.h"
-#include "TString.h"
-//#include "TList.h"
+#include "Riosfwd.h"                    // for fstream
+#include "Rtypes.h"                     // for FairGeoMedia::Class, etc
+#include "TString.h"                    // for TString
 
+#include <iosfwd>                       // for fstream
 
 class FairGeoMedium;
 class TList;
@@ -29,10 +38,10 @@ class FairGeoMedia : public TNamed
     void addMedium(FairGeoMedium* m);
     FairGeoMedium* getMedium(const char*);
     TList* getListOfMedia() {return media;}
-    void read(fstream&);
+    void read(std::fstream&);
     void print();
     void list();
-    void write(fstream&);
+    void write(std::fstream&);
     void setAuthor(TString& s) {author=s;}
     void setDescription(TString& s) {description=s;}
     TString& getAuthor() {return author;}

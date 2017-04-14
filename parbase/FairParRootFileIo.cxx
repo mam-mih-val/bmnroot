@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 21/10/2004
 //*-- Modified: 21/06/2005  Denis bertini
@@ -15,29 +22,21 @@
 // It contains also a list of detector interface classes all having the common
 // base type FairDetParRootFileIo. Every detector has its own interface class.
 //////////////////////////////////////////////////////////////////////////////
-
-
 #include "FairParRootFileIo.h"
+#include "FairDetParIo.h"               // for FairDetParIo
+#include "FairRtdbRun.h"                // for FairRtdbRun
+#include "FairRuntimeDb.h"              // for FairRuntimeDb
+#include "Riosfwd.h"                    // for ostream, fstream
+#include "TCollection.h"                // for TIter
+#include "TDatime.h"                    // for TDatime
+#include "TKey.h"                       // for TKey
+#include "TList.h"                      // for TListIter, TList
+#include "TObject.h"                    // for TObject
+#include "TObjString.h"                 // for TObjString
+#include "TString.h"                    // for TString, Form
 
-#include "FairDetParIo.h"
-#include "FairRuntimeDb.h"
-#include "FairRtdbRun.h"
-
-//#include "TDirectory.h"
-//#include "TROOT.h"
-
-#include <TKey.h>
-#include <TObjString.h>
-#include <TFileMerger.h>
-
-//#include <fstream>
-//#include "stdio.h"
-#include <iostream>
-//#include <iomanip>
-
-#ifdef XROOTD
- #include "TXNetFile.h"
-#endif
+#include <stddef.h>                     // for NULL
+#include <iostream>                     // for operator<<, basic_ostream, etc
 
 using std::cout;
 using std::cerr;
@@ -50,17 +49,13 @@ ClassImp(FairParRootFileIo)
 FairParRootFile::FairParRootFile(const Text_t* fname, Option_t* option,
                                  const Text_t* ftitle, Int_t compress)
   :TNamed(fname,  ftitle),
-   run(NULL)
-   //RootFile(new TFile(fname,option,ftitle,compress))
+   run(NULL),
+   RootFile(new TFile(fname,option,ftitle,compress))
 {
 //              : TFile(fname,option,ftitle,compress) {
   // constructor opens a ROOT file
   //  RootFile=new TFile(fname,option,ftitle,compress);
   //run=0;
-    RootFile = new TFile(fname,option,ftitle,compress);
-    #ifdef XROOTD
-     if (!RootFile->IsOpen()) RootFile = new TXNetFile(fname,option,ftitle,compress);
-    #endif
 }
 //--------------------------------------------------------------------
 
@@ -98,7 +93,9 @@ void FairParRootFile::readVersions(FairRtdbRun* currentRun)
   if (run) {
     delete run;
   }
-  run=(FairRtdbRun*)RootFile->Get(((char*)currentRun->GetName()));
+
+  run=static_cast<FairRtdbRun*>(RootFile->Get((const_cast<char*>(currentRun->GetName()))));
+  //cout << "-I- FairParRootFile :: readversions " << currentRun->GetName() << " : " << run << endl;
 }
 //--------------------------------------------------------------------
 
@@ -147,7 +144,7 @@ Bool_t FairParRootFileIo::open(const Text_t* fname, Option_t* option,
   close();
   if (fMerging ) {
     // used test merging
-    fstream* f = new fstream(fname);
+    std::fstream* f = new std::fstream(fname);
     if (f->good()) {
       // check if file already exists
       option = "UPDATE";
@@ -179,7 +176,7 @@ Bool_t FairParRootFileIo::open(const TList* fnamelist, Option_t* option,
 {
   TDatime currentDate;
   TString newParFileName = "";
-  TFile*  newParFile;
+  TFile*  newParFile=0;
 
   TObjString* string;
   TListIter myIter(fnamelist);
@@ -189,7 +186,7 @@ Bool_t FairParRootFileIo::open(const TList* fnamelist, Option_t* option,
   TFile*  inFile;
 
   Int_t nofFiles = 0;
-  while((string = (TObjString*)myIter.Next())) {
+  while((string = static_cast<TObjString*>(myIter.Next()))) {
     inFile = TFile::Open(string->GetString().Data());
     if ( !inFile ) {
       cout << "-W- File \"" << string->GetString().Data() << "\" does not exist" << endl;
@@ -200,17 +197,17 @@ Bool_t FairParRootFileIo::open(const TList* fnamelist, Option_t* option,
       newParFileName = string->GetString();
       newParFileName.Replace(newParFileName.Last('/')+1,
                              newParFileName.Length(),"");
-      newParFileName = Form("%sallParams_%d_%d.root",
+      newParFileName = Form("%sallParams_%d_%06d.root",
                             newParFileName.Data(),
                             currentDate.GetDate(),
                             currentDate.GetTime());
       newParFile = new TFile(newParFileName.Data(),"RECREATE");
     }
 
-    TList* inputKeys = (TList*)inFile->GetListOfKeys();
+    TList* inputKeys = static_cast<TList*>(inFile->GetListOfKeys());
 
     TListIter keyIter(inputKeys);
-    while((inpKey = (TKey*)keyIter.Next())) {
+    while((inpKey = static_cast<TKey*>(keyIter.Next()))) {
       TObject* tempObj = inFile->Get(inpKey->GetName());
 
       newParFile->cd();
@@ -220,8 +217,11 @@ Bool_t FairParRootFileIo::open(const TList* fnamelist, Option_t* option,
 
     nofFiles++;
   }
-  newParFile->Close();
-
+  if(newParFile!=0){
+    newParFile->Close();
+  }else{
+    std::cout << "****NO file to close file = \"" << std::endl;
+  }
   std::cout << "**** merged file = \"" << newParFileName.Data() << "\"" << std::endl;
 
   return this->open(newParFileName,option,ftitle,compress);
@@ -269,7 +269,7 @@ void FairParRootFileIo::print()
     FairDetParIo* io;
     cout<<"Root file I/O "<<file->GetName()<<" is open\n";
     cout<<"detector I/Os: ";
-    while ((io=(FairDetParIo*)next())) {
+    while ((io=static_cast<FairDetParIo*>(next()))) {
       cout<<" "<<io->GetName();
     }
     cout<<'\n';

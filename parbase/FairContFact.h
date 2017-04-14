@@ -1,14 +1,22 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRCONTFACT_H
 #define FAIRCONTFACT_H
 
-#include "FairLogger.h"
+#include "TNamed.h"                     // for TNamed
 
-#include "TList.h"
-#include "TNamed.h"
+#include "Rtypes.h"                     // for Bool_t, ClassDef, etc
+#include "TList.h"                      // for TList
+#include "TString.h"                    // for TString
 
-class FairParSet;
+class FairLogger;
 class FairParIo;
-//class TList;
+class FairParSet;
 
 class FairContainer : public TNamed
 {
@@ -51,7 +59,7 @@ class FairContFact : public TNamed
 
     TList* containers;   // all parameter containers managed by this factory
     const char* getActualContext(const char* name) {
-      return ((FairContainer*)containers->FindObject(name))->getActualContext();
+      return (static_cast<FairContainer*>(containers->FindObject(name)))->getActualContext();
     }
     /** Fair Logger */
     FairLogger*  fLogger;//!

@@ -1,17 +1,14 @@
 
 #include "BmnTofHit.h"
 
-BmnTofHit::BmnTofHit() : FairHit() {
-
-}
+BmnTofHit::BmnTofHit() : BmnHit() {
+ }
 
 BmnTofHit::BmnTofHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t index)
-: FairHit(detID, pos, dpos, index) {
-    fUsing = kFALSE;
+: BmnHit(detID, pos, dpos, index){
 }
 
 BmnTofHit::~BmnTofHit() {
-
-}
+ }
 
 ClassImp(BmnTofHit)

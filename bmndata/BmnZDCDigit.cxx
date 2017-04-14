@@ -2,33 +2,24 @@
 #include "BmnZDCDigit.h"
 
 BmnZDCDigit::BmnZDCDigit(){
-   fX=-1;
-   fY=-1;
+   fIX=0;
+   fIY=0;
+   fX=0;
+   fY=0;
    fSize=0;
-   fChannel=-1;
-   fSamples=0;
+   fChannel=0;
+   fAmp=0;
 }
 
-BmnZDCDigit::BmnZDCDigit(Char_t ix,Char_t iy,Float_t x,Float_t y,Char_t size,Char_t ch,Short_t samples,UShort_t *data){
+BmnZDCDigit::BmnZDCDigit(UChar_t ix,UChar_t iy,Float_t x,Float_t y,UChar_t size,UChar_t ch,Float_t amp){
    fIX=ix;
    fIY=iy;
    fX=x;
    fY=y;
    fSize=size;
    fChannel=ch;
-   fSamples=samples;
-   fWaveform.Set(samples);
-   for(int i=0;i<samples;i++) fWaveform.AddAt(data[i],i);
+   fAmp=amp;
 }
-
-void BmnZDCDigit::SetSamples(Short_t samples){
-   fSamples=samples;
-   fWaveform.Set(samples);
-}
-void BmnZDCDigit::SetWaveform(Short_t sample,Float_t val){
-  if(sample<fSamples && sample>=0) fWaveform[sample]=val;
-}
-unsigned short *BmnZDCDigit::GetWaveform(){ return (unsigned short *)fWaveform.GetArray();}
 
 BmnZDCDigit::~BmnZDCDigit()
 {

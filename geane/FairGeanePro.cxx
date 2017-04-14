@@ -1,26 +1,35 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // Class for the interface to propagate track parameters with GEANE
 //
 // Authors: M. Al-Turany, A. Fontana, L. Lavezzi and A. Rotondi
 //
-
 #include "FairGeanePro.h"
-#include "FairTrackParP.h"
-#include "FairTrackParH.h"
-#include "FairRunAna.h"
-#include "FairField.h"
-#include "FairGeaneUtil.h"
 
-#include "TGeant3TGeo.h"
-#include "TVector3.h"
-#include "TArrayD.h"
-#include "TDatabasePDG.h"
-#include "TGeoTorus.h"
-#include "TMatrixFSym.h"
-#include "TVirtualMC.h"
-#include "TGeant3.h"
-#include "FairGeaneApplication.h"
-#include <iostream>
-#include <cmath>
+#include "FairGeaneApplication.h"       // for FairGeaneApplication
+#include "FairGeaneUtil.h"              // for FairGeaneUtil
+#include "FairTrackPar.h"               // for FairTrackPar
+#include "FairTrackParH.h"              // for FairTrackParH
+#include "FairTrackParP.h"              // for FairTrackParP
+
+#include "Riosfwd.h"                    // for ostream
+#include "TDatabasePDG.h"               // for TDatabasePDG
+#include "TGeant3.h"                    // for TGeant3, Ertrio_t
+#include "TGeoTorus.h"                  // for TGeoTorus
+#include "TMath.h"                      // for pow, ACos, Cos, sqrt
+#include "TMathBase.h"                  // for Abs
+#include "TVector3.h"                   // for TVector3, operator-, etc
+#include "TVirtualMC.h"                 // for gMC
+
+#include <stddef.h>                     // for NULL
+#include <iostream>                     // for operator<<, basic_ostream, etc
+#include <cmath>                        // IWYU pragma: keep for fabs
+// IWYU pragma: no_include <architecture/i386/math.h>
 
 using std::cout;
 using std::endl;
@@ -28,11 +37,11 @@ using std::endl;
 // -----   Default constructor   -------------------------------------------
 FairGeanePro::FairGeanePro()
   : TNamed("Geane", "Propagate Tracks"),
-    gMC3((TGeant3*) gMC),
+    gMC3(static_cast<TGeant3 *> (TVirtualMC::GetMC())),
     fPropOption(""),
     nepred(1),
     fdbPDG(TDatabasePDG::Instance()),
-    afErtrio(gMC3->fErtrio),
+    afErtrio(NULL),
     GeantCode(0),
     ProMode(0),
     VName(""),
@@ -48,12 +57,16 @@ FairGeanePro::FairGeanePro()
     fvwi(TVector3(0., 0., 0.)),
     ftrklength(0.),
     flag(0),
-    fApp(FairGeaneApplication::Instance())
+    fApp(FairGeaneApplication::Instance()),
+    fPrintErrors(kTRUE)
 {
   if(gMC3==NULL) {
     std::cerr<<"FairGeanePro::TGeant3 has not been initialized! ABORTING!"<<std::endl;
     throw;
   }
+  afErtrio = gMC3->fErtrio;
+
+
   //  nepred=1;
   xlf[0] = 0.;
   //  fdbPDG= TDatabasePDG::Instance();
@@ -148,7 +161,7 @@ Bool_t FairGeanePro::Propagate(FairTrackParH* TParam, FairTrackParH* TEnd, Int_t
       Int_t option;
       if(VEnter) { option =1; }
       else { option =2; }
-      gMC3->Eufilv(1, ein, (Char_t*)VName.Data(), &VCopyNo, &option);
+      gMC3->Eufilv(1, ein, const_cast<Char_t*>(VName.Data()), &VCopyNo, &option);
     } else if(fPropOption.Contains("L")) {
       if(fPCA == 0) {
         gMC3->Eufill(nepred, ein,xlf);
@@ -197,7 +210,7 @@ Bool_t FairGeanePro::Propagate(FairTrackParH* TParam, FairTrackParH* TEnd, Int_t
   return kTRUE;
 
 }
-Bool_t FairGeanePro::Propagate(FairTrackParP* TStart, FairTrackParH* TEnd, Int_t PDG)
+Bool_t FairGeanePro::Propagate(FairTrackParP* /*TStart*/, FairTrackParH* /*TEnd*/, Int_t /*PDG*/)
 {
   // Propagate a parabola track (SD system) and return a helix (SC system) (not used nor implemented)
   cout << "FairGeanePro::Propagate(FairTrackParP *TParam, FairTrackParH &TEnd, Int_t PDG) : (not used nor implemented)" << endl;
@@ -315,7 +328,7 @@ Bool_t FairGeanePro::Propagate(FairTrackParP* TStart, FairTrackParP* TEnd, Int_t
 }
 
 
-Bool_t FairGeanePro::Propagate(FairTrackParH* TStart, FairTrackParP* TEnd, Int_t PDG)
+Bool_t FairGeanePro::Propagate(FairTrackParH* /*TStart*/, FairTrackParP* /*TEnd*/, Int_t /*PDG*/)
 {
   // Propagate a helix track (SC system) and return a parabola (SD system) (not used nor implemented)
   cout << "FairGeanePro::Propagate(FairTrackParH *TParam, FairTrackParP &TEnd, Int_t PDG) not implemented" << endl;
@@ -437,8 +450,13 @@ Bool_t FairGeanePro::PropagateToVolume(TString VolName, Int_t CopyNo , Int_t opt
 Bool_t FairGeanePro::PropagateToLength(Float_t length)
 {
   // define final length (option "L")
-  xlf[0]=length;
-  fPropOption="LE";
+ if(length < 0) {
+     xlf[0]=-length;
+     fPropOption="BLE";
+  }else {
+     xlf[0]=length;
+     fPropOption="LE";
+  }
   ProMode=1; //need errors in representation 1 (SC)(see Geane doc)
   return kTRUE;
 }
@@ -582,9 +600,9 @@ int FairGeanePro::FindPCA(Int_t pca, Int_t PDGCode, TVector3 point, TVector3 wir
   // .. Di : distance between track and wire in the PCA
   // .. trklength : track length to add to the GEANE one
 
-  Float_t pf[3] = {point.X(), point.Y(), point.Z()};
-  Float_t w1[3] = {wire1.X(), wire1.Y(), wire1.Z()};
-  Float_t w2[3] = {wire2.X(), wire2.Y(), wire2.Z()};
+  Float_t pf[3] = {static_cast<Float_t>(point.X()), static_cast<Float_t>(point.Y()), static_cast<Float_t>(point.Z())};
+  Float_t w1[3] = {static_cast<Float_t>(wire1.X()), static_cast<Float_t>(wire1.Y()), static_cast<Float_t>(wire1.Z())};
+  Float_t w2[3] = {static_cast<Float_t>(wire2.X()), static_cast<Float_t>(wire2.Y()), static_cast<Float_t>(wire2.Z())};
 
   GeantCode=fdbPDG->ConvertPdgToGeant3(PDGCode);
 
@@ -627,7 +645,7 @@ int FairGeanePro::FindPCA(Int_t pca, Int_t PDGCode, TVector3 point, TVector3 wir
   // maximum distance calculated 2 * geometric distance
   // start point - end point (the point to which we want
   // to find the PCA)
-  Float_t stdlength[1] = {maxdistance};
+  Float_t stdlength[1] = {static_cast<Float_t>(maxdistance)};
 
   gMC3->Eufill(1, ein, stdlength);
 
@@ -652,14 +670,23 @@ int FairGeanePro::FindPCA(Int_t pca, Int_t PDGCode, TVector3 point, TVector3 wir
         || (po2[0] == po3[0] && po2[1] == po3[1] && po2[2] == po3[2])) {
       Int_t quitFlag=0;
       Track2ToPoint(TVector3(po1),TVector3(po3),TVector3(pf),vpf,Di,Le,quitFlag);
-      if(quitFlag!=0) {std::cerr<<"ABORT"<<std::endl; return 1;} //abort
+      if(quitFlag!=0) {
+        if(fPrintErrors) { std::cerr << "FairGeanePro:FindPCA: Track2ToPoint quitFlag " << quitFlag << " ABORT" << std::endl; }
+        return 1;
+      } //abort
     } else {
       Track3ToPoint(TVector3(po1),TVector3(po2),TVector3(po3),TVector3(pf),vpf,flg,Di,Le,Rad);
       if(flg==1) {
         Int_t quitFlag=0;
         Track2ToPoint(TVector3(po1),TVector3(po3),TVector3(pf),vpf,Di,Le,quitFlag);
-        if(quitFlag!=0) {std::cerr<<"ABORT"<<std::endl; return 1;} //abort
-      } else if(flg==2) {std::cerr<<"ABORT"<<std::endl; return 1;} //abort
+        if(quitFlag!=0) {
+          if(fPrintErrors) { std::cerr << "FairGeanePro:FindPCA: Track2ToPoint quitFlag " << quitFlag << " ABORT" << std::endl; }
+          return 1;
+        } //abort
+      } else if(flg==2) {
+        if(fPrintErrors) { std::cerr<<"FairGeanePro:FindPCA: Track3ToPoint flg " << flg << " ABORT"<< std::endl; }
+        return 1;
+      } //abort
     }
     // if the propagation to closest approach to a POINT  is performed
     // vwi is the point itself (with respect to which the PCA is calculated)
@@ -675,9 +702,12 @@ int FairGeanePro::FindPCA(Int_t pca, Int_t PDGCode, TVector3 point, TVector3 wir
         Int_t quitFlag=0;
         dist1<dist2?Track2ToPoint(TVector3(po1),TVector3(po3),TVector3(w1),vpf,Di,Le,quitFlag):
         Track2ToPoint(TVector3(po1),TVector3(po3),TVector3(w2),vpf,Di,Le,quitFlag);
-        if(quitFlag!=0) {std::cerr<<"ABORT"<<std::endl; return 1;} //abort
+        if(quitFlag!=0) {
+          if(fPrintErrors) { std::cerr<<"FairGeanePro:FindPCA: Track2ToPoint quitFlag " << quitFlag << " ABORT"<< std::endl; }
+          return 1;
+        } //abort
       } else if(flg==2) {
-        std::cerr<<"ABORT"<<std::endl;
+        if(fPrintErrors) { std::cerr<<"FairGeanePro:FindPCA: Track2ToLine flg " << flg << " ABORT"<< std::endl; }
         return 1;
       }
     } else {
@@ -692,9 +722,12 @@ int FairGeanePro::FindPCA(Int_t pca, Int_t PDGCode, TVector3 point, TVector3 wir
           Int_t quitFlag=0;
           dist1<dist2?Track2ToPoint(TVector3(po1),TVector3(po3),TVector3(w1),vpf,Di,Le,quitFlag):
           Track2ToPoint(TVector3(po1),TVector3(po3),TVector3(w2),vpf,Di,Le,quitFlag);
-          if(quitFlag!=0) {std::cerr<<"ABORT"<<std::endl; return 1;} //abort
+          if(quitFlag!=0) {
+            if(fPrintErrors) { std::cerr<<"FairGeanePro:FindPCA: Track2ToPoint quitFlag " << quitFlag << " ABORT"<< std::endl; }
+            return 1;
+          } //abort
         } else if(flg==2) {
-          std::cerr<<"ABORT"<<std::endl;
+          if(fPrintErrors) { std::cerr<<"FairGeanePro:FindPCA: Track2ToLine flg " << flg << " ABORT"<< std::endl; }
           return 1;
         }
       } else if(flg==2) {
@@ -703,19 +736,25 @@ int FairGeanePro::FindPCA(Int_t pca, Int_t PDGCode, TVector3 point, TVector3 wir
 
         dist1<dist2?Track3ToPoint(TVector3(po1),TVector3(po2),TVector3(po3),TVector3(w1),vpf,flg,Di,Le,Rad):
         Track3ToPoint(TVector3(po1),TVector3(po2),TVector3(po3),TVector3(w2),vpf,flg,Di,Le,Rad);
-        if(flg==2) {std::cerr<<"ABORT"<<std::endl; return 1;} //abort
+        if(flg==2) {
+          if(fPrintErrors) { std::cerr<<"FairGeanePro:FindPCA: Track3ToLine flg " << flg << " ABORT"<< std::endl; }
+          return 1;
+        } //abort
       } else if(flg==3) {
         dist1 = (vwi-TVector3(w1)).Mag();
         dist2 = (vwi-TVector3(w2)).Mag();
         Int_t quitFlag=0;
         dist1<dist2?Track2ToPoint(TVector3(po1),TVector3(po3),TVector3(w1),vpf,Di,Le,quitFlag):
         Track2ToPoint(TVector3(po1),TVector3(po3),TVector3(w2),vpf,Di,Le,quitFlag);
-        if(quitFlag!=0) {std::cerr<<"ABORT"<<std::endl; return 1;} //abort
+        if(quitFlag!=0) {
+          if(fPrintErrors) { std::cerr<<"FairGeanePro:FindPCA: Track2ToPoint quitFlag " << quitFlag << " ABORT"<< std::endl; }
+          return 1;
+        } //abort
       } else if(flg==4) {
         Track2ToLine(TVector3(po1),TVector3(po3),TVector3(w1),
                      TVector3(w2),vpf,vwi,flg,Di,Le);
         if(flg==2) {
-          std::cerr<<"ABORT"<<std::endl;
+          if(fPrintErrors) { std::cerr<<"FairGeanePro:FindPCA: Track2ToLine flg " << flg << " ABORT"<< std::endl; }
           return 1;
         }
       }
@@ -1026,7 +1065,8 @@ void FairGeanePro::Track3ToLine(TVector3 X1, TVector3 X2, TVector3 X3,
 
   // select the right solution
   dmin = 1.e+08;
-  imin=-1;
+  imin=0;  // This was set to -1 which could make problem if the indx is negative!! (MT)
+
   for(Int_t j=0; j<it; j++) {
     Pointw[0] = B[0] + sol4[j]*M[0];
     Pointw[1] = B[1] + sol4[j]*M[1];

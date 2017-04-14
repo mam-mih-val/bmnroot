@@ -17,15 +17,8 @@
 #pragma link C++ class FairHitPointSetDraw;
 #pragma link C++ class FairMCPointDraw;
 #pragma link C++ class FairTimeStampPointDraw;
-#pragma link C++ class EventData;
 #pragma link C++ class FairMCModuleDraw;
-#pragma link C++ class RawDataParser;
-#pragma link C++ class RawDataConverter;
-#pragma link C++ class RawMWPCDigitDraw;
-#pragma link C++ class BmnDigitDraw;
-#pragma link C++ class BmnHitDraw;
-#pragma link C++ class BmnTrackDraw;
-#pragma link C++ class BmnExpTrackDraw;
+#pragma link C++ class FairWebScreenshots;
 
 #endif
 

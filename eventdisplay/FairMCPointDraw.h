@@ -8,22 +8,23 @@
 #ifndef FAIRMCPOINTDRAW_H_
 #define FAIRMCPOINTDRAW_H_
 
-#include "FairPointSetDraw.h"           // for FairPointSetDraw
+#include "FairPointSetDraw.h"
 
-#include "Rtypes.h"                     // for FairMCPointDraw::Class, etc
+#include "TVector3.h"
 
-class TObject;
-class TVector3;
 
-class FairMCPointDraw: public FairPointSetDraw
+class FairMCPointDraw : public FairPointSetDraw
 {
   public:
     FairMCPointDraw();
-    FairMCPointDraw(const char* name, Color_t color ,Style_t mstyle, Int_t iVerbose = 1):FairPointSetDraw(name, color, mstyle, iVerbose) {};
+    FairMCPointDraw(const char* name, Color_t color ,Style_t mstyle, Int_t iVerbose = 1)
+        : FairPointSetDraw(name, color, mstyle, iVerbose) {}
     virtual ~FairMCPointDraw();
 
   protected:
     TVector3 GetVector(TObject* obj);
+    void AddEveElementList();
+    void RemoveEveElementList();
 
     ClassDef(FairMCPointDraw,1);
 };

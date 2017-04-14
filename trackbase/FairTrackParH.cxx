@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // Class for the representation of a track as helix (SC system)
 //
 // Authors: M. Al-Turany, A. Fontana, L. Lavezzi and A. Rotondi
@@ -7,16 +14,19 @@
 // The Helix can be constructed using the Helix parameter (1/p, lambda, phi,y_perp,z_perp) in SC reference
 // and the covariance matrix. Or using position and momentum in LAB referance.
 
-
 #include "FairTrackParH.h"
+#include "FairField.h"                  // for FairField
+#include "FairGeaneUtil.h"              // for FairGeaneUtil
+#include "FairRunAna.h"                 // for FairRunAna
+#include "FairTrackParP.h"              // for FairTrackParP
+#include "Riosfwd.h"                    // for ostream
+#include "TMath.h"                      // for pow, Sqrt, sqrt, Sin, Cos, etc
+#include "TMathBase.h"                  // for Abs, Sign
 
-#include "FairGeaneUtil.h"
-#include "FairRunAna.h"
-#include "FairField.h"
-
-#include "TMath.h"
-#include <cmath>
-#include <iostream>
+#include <iostream>                     // for operator<<, basic_ostream, etc
+#include <iomanip>
+#include <cmath>                        // IWYU pragma: keep for fabs
+// IWYU pragma: no_include <architecture/i386/math.h>
 
 using std::cout;
 using std::endl;
@@ -75,7 +85,7 @@ FairTrackParH::FairTrackParH(Double_t x, Double_t y, Double_t z,
   fQp = qp;
   Double_t P  = TMath::Abs(1/fQp);
   //fq= int (P * fQp);
-  fq = (int)TMath::Sign(1.0, fQp);
+  fq = static_cast<int>(TMath::Sign(1.0, fQp));
   for(Int_t i=0; i<15; i++)  {
     fCovMatrix[i]=CovMatrix[i];
   }
@@ -122,8 +132,9 @@ FairTrackParH::FairTrackParH(Double_t x, Double_t y, Double_t z,
   pnt[0] = fX;
   pnt[1] = fY;
   pnt[2] = fZ;
-  FairRunAna* fRun = FairRunAna::Instance();
-  fRun->GetField()->GetFieldValue(pnt, H);
+
+  GetFieldValue(pnt, H);
+
 
   CH=fq;
   FairGeaneUtil util;
@@ -216,8 +227,9 @@ FairTrackParH::FairTrackParH(TVector3 pos, TVector3 Mom, TVector3 posErr, TVecto
   pnt[0] = fX;
   pnt[1] = fY;
   pnt[2] = fZ;
-  FairRunAna* fRun = FairRunAna::Instance();
-  fRun->GetField()->GetFieldValue(pnt, H);
+
+  GetFieldValue(pnt, H);
+
 
   CH=fq;
   FairGeaneUtil util;
@@ -264,8 +276,10 @@ FairTrackParH::FairTrackParH(FairTrackParP* parab, Int_t& ierr)
   pnt[0] = xyz.X();
   pnt[1] = xyz.Y();
   pnt[2] = xyz.Z();
-  FairRunAna* fRun = FairRunAna::Instance();
-  fRun->GetField()->GetFieldValue(pnt, H);
+
+  GetFieldValue(pnt, H);
+
+
   Int_t CH  = parab->GetQ();
 
   Double_t DJ[3] = {parab->GetJVer().X(), parab->GetJVer().Y(), parab->GetJVer().Z()};
@@ -350,8 +364,9 @@ void FairTrackParH::SetTrackPar(Double_t X,  Double_t Y,  Double_t Z,
   pnt[0] = fX;
   pnt[1] = fY;
   pnt[2] = fZ;
-  FairRunAna* fRun = FairRunAna::Instance();
-  fRun->GetField()->GetFieldValue(pnt, H);
+
+  GetFieldValue(pnt, H);
+
 
   CH=fq;
   FairGeaneUtil util;
@@ -377,7 +392,7 @@ void  FairTrackParH::SetTrackPar(Double_t x,  Double_t y,  Double_t z,
   fQp = qp;
   Double_t P  = TMath::Abs(1/fQp);
 // fq= int (P * fQp);
-  fq = (int)TMath::Sign(1.0, fQp);
+  fq = static_cast<int>(TMath::Sign(1.0, fQp));
   for(Int_t i=0; i<15; i++)  {
     fCovMatrix[i]=CovMatrix[i];
 
@@ -427,8 +442,9 @@ void  FairTrackParH::SetTrackPar(Double_t x,  Double_t y,  Double_t z,
   pnt[0] = fX;
   pnt[1] = fY;
   pnt[2] = fZ;
-  FairRunAna* fRun = FairRunAna::Instance();
-  fRun->GetField()->GetFieldValue(pnt, H);
+
+  GetFieldValue(pnt, H);
+
 
   CH=fq;
   FairGeaneUtil util;
@@ -585,8 +601,9 @@ FairTrackParH::FairTrackParH(FairTrackPar& Trkbase)
   pnt[0] = fX;
   pnt[1] = fY;
   pnt[2] = fZ;
-  FairRunAna* fRun = FairRunAna::Instance();
-  fRun->GetField()->GetFieldValue(pnt, H);
+
+  GetFieldValue(pnt, H);
+
 
   CH=fq;
   FairGeaneUtil fUtil;
@@ -606,16 +623,15 @@ FairTrackParH::~FairTrackParH()
 {
 
 }
-void  FairTrackParH::Print(Option_t* option) const
+void  FairTrackParH::Print(Option_t* /*option*/) const
 {
   cout << this<< endl;
-  cout << "Position : (";
-  cout.precision(2);
-  cout << fX << ", " << fY << ", " << fZ << ")" << endl;
-  cout << "Angles : Lambda = " << fLm << ", Phi = " << fPhi << endl;
+  cout << "Position : "
+       << std::setprecision(2) << fX << ", " << fY << ", " << fZ << ")" << endl;
+  cout << std::setprecision(2) << "Angles : Lambda = " << fLm << ", Phi = " << fPhi << endl;
   cout << "q/p = " << fQp << endl;
   for(Int_t i=0; i<15; i++) {
-    cout << "fCovMatrix[" << i << "] = " <<  this << " " << fCovMatrix[i] << endl;
+    cout << std::setprecision(2) << "fCovMatrix[" << i << "] = " <<  this << " " << fCovMatrix[i] << endl;
   }
 
 }

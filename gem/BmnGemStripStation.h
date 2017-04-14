@@ -1,109 +1,89 @@
 #ifndef BMNGEMSTRIPSTATION_H
 #define	BMNGEMSTRIPSTATION_H
 
-#include "Rtypes.h"
+//#include "BmnGemStripReadoutModule.h"
+#include "BmnGemStripModule.h"
 
-#include "BmnGemStripReadoutModule.h"
+#include "TString.h"
 
 class BmnGemStripStation {
-//private:
-public:
 
-    friend class BmnGemStripStationSet;
+protected:
 
-/* Station parameters */
+    /* station parameters */
     Int_t StationNumber;
+    Int_t NModules;
 
-    Double_t XSizeStation;
-    Double_t YSizeStation;
-    Double_t ZSizeStation;
+    Double_t XSize;
+    Double_t YSize;
+    Double_t ZSize;
+
+    Double_t XPosition;
+    Double_t YPosition;
     Double_t ZPosition;
-    Double_t BeamPipeRadius;
 
-    Double_t XCenterStation;
-    Double_t YCenterStation;
+    /*Shifts of modules in each station*/
+    Double_t *XShiftOfModules;
+    Double_t *YShiftOfModules;
+    Double_t *ZShiftOfModules;
 
-/* GEM module parameters (GEM module comprises readout module + inactive frames) */
-    Double_t XSizeGemModule;
-    Double_t YSizeGemModule;
-    Double_t ZSizeGemModule;
-    Double_t dXInnerFrame;
-    Double_t dYInnerFrame;
-    Double_t dXOuterFrame;
-    Double_t dYOuterFrame;
+    Double_t BeamHoleRadius;
 
-/* Readout module parameters  */
-    Double_t ZSizeReadoutModule;
-
-    Double_t XSizeBigReadoutModule;
-    Double_t YSizeBigReadoutModule;
-
-    Double_t XSizeSmallReadoutModule[12];
-    Double_t YSizeSmallReadoutModule[12];
-
-
-    Int_t NBigReadoutModules;
-    Int_t NSmallReadoutModules;
-
-    Double_t PitchValueBigModule; // cm
-    Double_t PitchValueSmallModule; // cm
-    Double_t LowerStripWidth; //cm
-    Double_t UpperStripWidth; //cm
-    Double_t StripAngle; // minus - clochwise slope, plus - anticlockwise slope
-
-/* Parameters of readout modules */
-/*
-    Module_0 (big left-botton module)
-    Module_1 (big right-botton module)
-    Module_2 (big right-top module)
-    Module_3 (big left-top module)
-    Module_4 (inner) (small left-botton module)
-    Module_5 (inner) (small right-botton module)
-    Module_6 (inner) (small right-top module)
-    Module_7 (inner) (small left-top module)
-*/
-    Double_t XMin_ReadoutModule[8];
-    Double_t XMax_ReadoutModule[8];
-    Double_t YMin_ReadoutModule[8];
-    Double_t YMax_ReadoutModule[8];
-
-
-/* Readout modules */
-    BmnGemStripReadoutModule* ReadoutModules[8];
-
+    BmnGemStripModule **Modules; //modules in the station [array]
 
 public:
 
-    BmnGemStripStation(Int_t iStation,
-                       Double_t xsize_gem_module, Double_t ysize_gem_module,
-                       Double_t zpos_station, Double_t beamradius);
+    /* Constructor */
+    BmnGemStripStation();
 
-    virtual ~BmnGemStripStation();
+    /* Destructor */
+    virtual ~BmnGemStripStation() { }
 
+    //Getters
+    Int_t GetStationNumber() { return StationNumber; }
+    Int_t GetNModules() { return NModules; }
+    Double_t GetXSize() { return XSize; }
+    Double_t GetYSize() { return YSize; }
+    Double_t GetZSize() { return ZSize; }
+    Double_t GetXPosition() { return XPosition; }
+    Double_t GetYPosition() { return YPosition; }
+    Double_t GetZPosition() { return ZPosition; }
+    Double_t GetXShiftOfModule(Int_t module_num);
+    Double_t GetYShiftOfModule(Int_t module_num);
+    Double_t GetZShiftOfModule(Int_t module_num);
+    Double_t GetBeamHoleRadius() { return BeamHoleRadius; }
+    BmnGemStripModule* GetModule(Int_t module_num);
 
+    //Reset all data in modules of the station
+    void Reset();
 
-    Bool_t CheckPointModuleOwnership(Double_t xcoord, Double_t ycoord, Int_t readout_module);
-    Int_t GetPointModuleOwhership(Double_t xcoord, Double_t ycoord);
-    Int_t AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord, Double_t dEloss);
+    Int_t AddPointToStation(Double_t xcoord, Double_t ycoord, Double_t zcoord,
+                                    Double_t px, Double_t py, Double_t pz,
+                                    Double_t dEloss, Int_t refID);
 
     Int_t CountNAddedToStationPoints();
 
     void ProcessPointsInStation();
-
     Int_t CountNProcessedPointInStation();
 
-    BmnGemStripReadoutModule* GetReadoutModule(Int_t index);
-    Int_t GetNModules() { return NBigReadoutModules+NSmallReadoutModules; }
+    //Pure virtual methods (must be defined in derived classes) ---------------
 
-private:
-    BmnGemStripStation(const BmnGemStripStation&);
-    BmnGemStripStation& operator=(const BmnGemStripStation&);
+    //to which module in the station a point belong?
+        //zcoord - is unused usually, but if modules in the station are (x,y)-overlapped then zcoord is important
+    virtual Int_t GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord) = 0;
+
+    //--------------------------------------------------------------------------
 
     ClassDef(BmnGemStripStation, 1)
 };
 
-
-
+//Exeptions --------------------------------------------------------------------
+class Station_Exception {
+public:
+    Station_Exception(TString message) {
+        std::cout << "Station_Exception::" << message << "\n";
+    }
+};
+//------------------------------------------------------------------------------
 
 #endif
-

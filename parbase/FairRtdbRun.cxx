@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 20/10/2004
 
@@ -16,11 +23,13 @@
 //  The input versions are used during the initialisation
 //  used during the initialisation of the containers.
 ///////////////////////////////////////////////////////////////////
-
 #include "FairRtdbRun.h"
 
-#include <iostream>
-#include <iomanip>
+#include "TCollection.h"                // for TIter
+#include "TList.h"                      // for TList
+
+#include <iomanip>                      // for setw, operator<<
+#include <iostream>                     // for cout
 
 using std::cout;
 using std::ios;
@@ -69,7 +78,7 @@ FairRtdbRun::FairRtdbRun(FairRtdbRun& run)
   TList* lv=run.getParVersions();
   TIter next(lv);
   FairParVersion* pv;
-  while ((pv=(FairParVersion*)next())) {
+  while ((pv=static_cast<FairParVersion*>(next()))) {
     parVersions->Add(pv);
   }
 }
@@ -104,14 +113,14 @@ FairParVersion* FairRtdbRun::getParVersion(const Text_t* name)
 {
   // return a container version object called by the name of
   // the container
-  return (FairParVersion*)parVersions->FindObject(name);
+  return static_cast<FairParVersion*>(parVersions->FindObject(name));
 }
 
 void FairRtdbRun::resetInputVersions()
 {
   TIter next(parVersions);
   FairParVersion* v;
-  while ((v=(FairParVersion*)next())) {
+  while ((v=static_cast<FairParVersion*>(next()))) {
     v->resetInputVersions();
   }
 }
@@ -120,7 +129,7 @@ void FairRtdbRun::resetOutputVersions()
 {
   TIter next(parVersions);
   FairParVersion* v;
-  while ((v=(FairParVersion*)next())) {
+  while ((v=static_cast<FairParVersion*>(next()))) {
     v->setRootVersion(0);
   }
 }
@@ -131,7 +140,7 @@ void FairRtdbRun::print()
   cout<<"run: "<<GetName()<<'\n';
   FairParVersion* v;
   TIter next(parVersions);
-  while ((v=(FairParVersion*)next())) {
+  while ((v=static_cast<FairParVersion*>(next()))) {
     cout.setf(ios::left,ios::adjustfield);
     cout<<"  "<<setw(45)<<v->GetName();
     cout.setf(ios::right,ios::adjustfield);
@@ -141,13 +150,13 @@ void FairRtdbRun::print()
   }
 }
 
-void FairRtdbRun::write(fstream& fout)
+void FairRtdbRun::write(std::fstream& fout)
 {
   // writes the list of container versions for this run to fstream
   fout<<"run: "<<GetName()<<'\n';
   FairParVersion* v;
   TIter next(parVersions);
-  while ((v=(FairParVersion*)next())) {
+  while ((v=static_cast<FairParVersion*>(next()))) {
     fout.setf(ios::left,ios::adjustfield);
     fout<<"  "<<setw(45)<<v->GetName();
     fout.setf(ios::right,ios::adjustfield);

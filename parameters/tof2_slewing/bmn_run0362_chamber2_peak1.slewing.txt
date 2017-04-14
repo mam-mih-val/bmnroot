@@ -1,0 +1,21 @@
+**************** bmn_run0362 Chamber 2 Peak 1 Time-Width area slewing *******************************
+
+Chamber 2 slewing selected area Width-Time:      0 1700 -300 -150
+ Time(Width) = 920.274824 + -1.462060*Width + 0.000577209*Width**2
+Chamber #2 channel offsets (average is -207.250183)
+   strip 17 time shift (left+right)/2 = 0.000000
+   strip 18 time shift (left+right)/2 = 12.199478
+   strip 19 time shift (left+right)/2 = 0.914352
+   strip 20 time shift (left+right)/2 = -5.557831
+   strip 21 time shift (left+right)/2 = -3.316147
+   strip 22 time shift (left+right)/2 = -0.411804
+   strip 23 time shift (left+right)/2 = 7.340347
+   strip 24 time shift (left+right)/2 = 2.831345
+   strip 25 time shift (left+right)/2 = -2.470322
+   strip 26 time shift (left+right)/2 = 1.265579
+   strip 27 time shift (left+right)/2 = -4.176483
+   strip 28 time shift (left+right)/2 = -9.792679
+   strip 29 time shift (left+right)/2 = -7.186401
+   strip 30 time shift (left+right)/2 = -2.585526
+   strip 31 time shift (left+right)/2 = 6.147308
+   strip 32 time shift (left+right)/2 = 4.798843

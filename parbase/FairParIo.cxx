@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 20/10/2004
 
@@ -11,7 +18,12 @@
 
 #include "FairParIo.h"
 
-#include "FairDetParIo.h"
+#include "FairDetParIo.h"               // for FairDetParIo
+
+#include "TCollection.h"                // for TIter
+#include "TList.h"                      // for TList
+
+using namespace std;
 
 ClassImp(FairParIo)
 
@@ -40,7 +52,7 @@ void FairParIo::setDetParIo(FairDetParIo* detParIo)
 {
   // stores pointer of the input/output class for a detector
   // used for I/O from ROOT file or Ascii file
-  Text_t* detName=(char*)detParIo->GetName();
+  const Text_t* detName=detParIo->GetName();
   if (!detParIoList->FindObject(detName)) { detParIoList->Add(detParIo); }
 }
 
@@ -49,7 +61,7 @@ void FairParIo::setInputNumber(Int_t num)
   // sets in all detector I/Os the number of the input
   TIter next(detParIoList);
   FairDetParIo* io;
-  while ((io=(FairDetParIo*)next())) {
+  while ((io=static_cast<FairDetParIo*>(next()))) {
     io->setInputNumber(num);
   }
 }
@@ -57,7 +69,8 @@ void FairParIo::setInputNumber(Int_t num)
 FairDetParIo* FairParIo::getDetParIo(const Text_t* detName)
 {
   // returns pointer to input/output class for a detector
-  return ((FairDetParIo*)detParIoList->FindObject(detName));
+  //std::cout << " DetParIO # " << detName << detParIoList->GetEntries()  <<  std::endl;
+  return (static_cast<FairDetParIo*>(detParIoList->FindObject(detName)));
 }
 
 void FairParIo::removeDetParIo(Text_t* detName)

@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 21/10/2004
 
@@ -10,19 +17,20 @@
 // It contains pointers to the ascii file and to the interface classes for all
 // detectors defined in the actual setup.
 ///////////////////////////////////////////////////////////////////////////////
-
 #include "FairParAsciiFileIo.h"
 
-#include "FairDetParIo.h"
-#include "FairRuntimeDb.h"
+#include "FairDetParIo.h"               // for FairDetParIo
+#include "FairRuntimeDb.h"              // for FairRuntimeDb
+#include "FairLogger.h"
 
-#include "TString.h"
-#include "TObjString.h"
-#include "TList.h"
-#include "TSystem.h"
+#include "TCollection.h"                // for TIter
+#include "TList.h"                      // for TList, TListIter
+#include "TObjString.h"                 // for TObjString
+#include "TString.h"                    // for TString, operator<<
+#include "TSystem.h"                    // for TSystem, gSystem
 
-//#include <cstring>
-#include <iostream>
+#include <string.h>                     // for strcmp, NULL
+#include <iostream>                     // for cout, cerr
 
 using std::cout;
 using std::cerr;
@@ -57,7 +65,7 @@ Bool_t FairParAsciiFileIo::open(const Text_t* fname, const Text_t* status)
         <<"\n  writing state : out\n   reading state : in  \nopen  aborted \n";
     return kFALSE;
   }
-  file=new fstream();
+  file=new std::fstream();
   if(strcmp(status,"in")==0) {file->open( fname, ios::in);};
   if(strcmp(status,"out")==0) {file->open( fname, ios::out);};
   filebuf* buf = file->rdbuf();
@@ -73,15 +81,22 @@ Bool_t FairParAsciiFileIo::open(const Text_t* fname, const Text_t* status)
 
 Bool_t FairParAsciiFileIo::open(const TList* fnamelist, const Text_t* status)
 {
+  TString outFileName = gSystem->WorkingDirectory();
 
-  TString outFileName = "all_";
+  outFileName += "/all_";
   Int_t pid = gSystem->GetPid();
   outFileName += pid;
   outFileName += ".par";
   TString catCommand = "cat ";
   TObjString* string;
   TListIter myIter(fnamelist);
-  while((string = (TObjString*)myIter.Next())) {
+  while((string = static_cast<TObjString*>(myIter.Next()))) {
+    // check if the file exist
+    // if file exist return value is false
+      TString strParPath = string->GetString();
+      gSystem->ExpandPathName(strParPath);
+      if (gSystem->AccessPathName(strParPath))
+        LOG(FATAL) << "Parameter file " << strParPath << " does not exist." << FairLogger::endl;
     //    cout <<  string->GetString() <<endl;
     catCommand += string->GetString();
     catCommand += " ";
@@ -117,14 +132,14 @@ void FairParAsciiFileIo::print()
     TIter next(detParIoList);
     FairDetParIo* io;
     cout<<"detector I/Os: ";
-    while ((io=(FairDetParIo*)next())) {
+    while ((io=static_cast<FairDetParIo*>(next()))) {
       cout<<" "<<io->GetName();
     }
     cout<<'\n';
   } else { cout<<"No file open\n"; }
 }
 
-fstream* FairParAsciiFileIo::getFile()
+std::fstream* FairParAsciiFileIo::getFile()
 {
   // returns the file pointer
   return file;

@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 10/11/2003
 
@@ -8,14 +15,20 @@
 // This class is only used for conversion to the new format!
 //
 ///////////////////////////////////////////////////////////////////////////////
-
 #include "FairGeoOldAsciiIo.h"
 
-#include "FairGeoSet.h"
-#include "FairGeoNode.h"
-#include "FairGeoMedium.h"
-#include "FairGeoMedia.h"
-#include "FairGeoShapes.h"
+#include "FairGeoBasicShape.h"          // for FairGeoBasicShape
+#include "FairGeoMedia.h"               // for FairGeoMedia
+#include "FairGeoMedium.h"              // for FairGeoMedium
+#include "FairGeoNode.h"                // for FairGeoNode
+#include "FairGeoSet.h"                 // for FairGeoSet
+#include "FairGeoShapes.h"              // for FairGeoShapes
+#include "FairGeoTransform.h"           // for FairGeoTransform
+
+#include "TList.h"                      // for TList
+
+#include <string.h>                     // for strcmp, NULL
+#include <iostream>                     // for cerr, cout
 
 using std::cout;
 using std::cerr;
@@ -48,7 +61,7 @@ Bool_t FairGeoOldAsciiIo::open(const char* fname,const Text_t* status)
 {
   // Opens the file fname
   close();
-  if (!file) { file=new fstream(); }
+  if (!file) { file=new std::fstream(); }
   else { (file->clear()); }
   if (!filedir.IsNull()) { filename=filedir+"/"+fname; }
   else { filename=fname; }
@@ -115,12 +128,11 @@ Bool_t FairGeoOldAsciiIo::read(FairGeoSet* set,FairGeoMedia* media)
 {
   // Reads the geometry from file and converts it to the new format
   if (!isOpen() || writable || set==0) { return kFALSE; }
-  fstream& fin=*file;
+  std::fstream& fin=*file;
   fin.clear();
   fin.seekg(0,ios::beg);
   FairGeoNode* volu=0;
   Int_t sensitivity=0, na=0;
-  Double_t par[20];
   TList* volumes=set->getListOfVolumes();
   FairGeoShapes* pShapes=set->getShapes();
   while(!fin.eof()) {
@@ -168,10 +180,12 @@ Bool_t FairGeoOldAsciiIo::read(FairGeoSet* set,FairGeoMedia* media)
       return kFALSE;
     }
     Int_t npar = sh->getNumParam();
+    Double_t* par = new Double_t[npar](); //() after array default-initialize an array
     for (Int_t ik=0; ik<npar; ik++) {
       fin >> par[ik];
     }
     Bool_t rc=calculateShapePoints(par,volu);
+    delete[] par;
     if (!rc) {
       cerr << "Conversion for shape "<<type<<" not implemented."<<endl;
       return kFALSE;

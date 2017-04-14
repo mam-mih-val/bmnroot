@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                FairParticleGenerator header file               -----
 // -----          Created 09/07/04  by V. Friese / D.Bertini           -----
@@ -16,12 +23,11 @@
 #ifndef FAIR_PARTICLEGENERATOR_H
 #define FAIR_PARTICLEGENERATOR_H
 
+#include "FairGenerator.h"              // for FairGenerator
 
-#include "FairGenerator.h"
+#include "Rtypes.h"                     // for Double32_t, Int_t, etc
 
 class FairPrimaryGenerator;
-
-
 
 class FairParticleGenerator : public FairGenerator
 {

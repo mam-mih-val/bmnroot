@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Modified : 22/06/2003 by Ilse Koenig
 
@@ -85,7 +92,7 @@ FairGeoBasicShape* FairGeoShapes::selectShape(const TString& name)
                          };
   TString sName(name);
   if (sName.Length()==3) { sName+=" "; }
-  FairGeoBasicShape* s=(FairGeoBasicShape*)shapes->FindObject(sName);
+  FairGeoBasicShape* s=static_cast<FairGeoBasicShape*>(shapes->FindObject(sName));
   if (s) { return s; }
   Int_t no=-1;
   for(Int_t i=0; i<13; i++) {if (sName.CompareTo(allShapes[i])==0) { no=i; }}
@@ -125,7 +132,7 @@ FairGeoBasicShape* FairGeoShapes::selectShape(const TString& name)
 }
 
 
-Int_t FairGeoShapes::readPoints(fstream* pFile,FairGeoVolume* volu)
+Int_t FairGeoShapes::readPoints(std::fstream* pFile,FairGeoVolume* volu)
 {
   // reads the points of the given volume from the Ascii file
   // returns the number of points read
@@ -136,7 +143,7 @@ Int_t FairGeoShapes::readPoints(fstream* pFile,FairGeoVolume* volu)
 }
 
 
-Bool_t FairGeoShapes::writePoints(fstream* pFile,FairGeoVolume* volu)
+Bool_t FairGeoShapes::writePoints(std::fstream* pFile,FairGeoVolume* volu)
 {
   // writes the points of the given volume to the Ascii file
   // return kFALSE if the corresponding shape class is not implemented

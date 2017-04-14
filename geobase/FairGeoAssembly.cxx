@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : M. Al-Turany  21/04/2009
 
 /////////////////////////////////////////////////////////////
@@ -6,13 +13,18 @@
 //
 // class for the shape Assembly
 /////////////////////////////////////////////////////////////
-
 #include "FairGeoAssembly.h"
 
-#include "FairGeoVolume.h"
-#include "FairGeoVector.h"
+#include "FairGeoTransform.h"           // for FairGeoTransform
+#include "FairGeoVector.h"              // for FairGeoVector
+#include "FairGeoVolume.h"              // for FairGeoVolume
 
-#include "TArrayD.h"
+#include "TArrayD.h"                    // for TArrayD
+#include "TString.h"                    // for TString
+
+#include <stdio.h>                      // for printf, sprintf
+#include <string.h>                     // for strlen
+#include <ostream>                      // for fstream, etc
 
 ClassImp(FairGeoAssembly)
 
@@ -44,7 +56,7 @@ FairGeoAssembly::~FairGeoAssembly()
   }
 }
 
-Int_t FairGeoAssembly::readPoints(fstream* pFile,FairGeoVolume* volu)
+Int_t FairGeoAssembly::readPoints(std::fstream*,FairGeoVolume*)
 {
 
   //Assemblies has no parameters so just return 1;
@@ -52,14 +64,14 @@ Int_t FairGeoAssembly::readPoints(fstream* pFile,FairGeoVolume* volu)
 }
 
 
-TArrayD* FairGeoAssembly::calcVoluParam(FairGeoVolume* volu)
+TArrayD* FairGeoAssembly::calcVoluParam(FairGeoVolume*)
 {
   // nothing to calculate
 
   return param;
 }
 
-Bool_t FairGeoAssembly::writePoints(fstream* pFile,FairGeoVolume* volu)
+Bool_t FairGeoAssembly::writePoints(std::fstream* pFile,FairGeoVolume* volu)
 {
   // writes the 4 'points' decribed above to ascii file
   if (!pFile) { return kFALSE; }
@@ -84,7 +96,7 @@ void FairGeoAssembly::printPoints(FairGeoVolume* volu)
 
 
 
-void FairGeoAssembly::calcVoluPosition(FairGeoVolume* volu,
+void FairGeoAssembly::calcVoluPosition(FairGeoVolume*,
                                        const FairGeoTransform& dTC,const FairGeoTransform& mTR)
 {
   // calls the function posInMother(...) to calculate the position of the

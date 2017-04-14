@@ -1,12 +1,18 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef MAGNET_H
 #define MAGNET_H
 
-#include "TNamed.h"
-#include "TArrayI.h"
-#include "TClonesArray.h"
-#include "FairDetector.h"
-#include "FairModule.h"
+#include "FairModule.h"                 // for FairModule
 
+#include "Rtypes.h"                     // for FairMagnet::Class, Bool_t, etc
+
+#include <string>                       // for string
 
 class FairMagnet : public FairModule
 {
@@ -17,7 +23,7 @@ class FairMagnet : public FairModule
     void ConstructGeometry();
     void ConstructASCIIGeometry();
     Bool_t CheckIfSensitive(std::string name);
-    ClassDef(FairMagnet,1) //PNDMagnet
+    ClassDef(FairMagnet,1)
 
 };
 

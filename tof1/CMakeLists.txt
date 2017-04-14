@@ -4,8 +4,13 @@
 # The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
-${ROOT_INCLUDE_DIR} 
-${CMAKE_SOURCE_DIR}/base 
+${Boost_INCLUDE_DIRS}
+${ROOT_INCLUDE_DIR}
+${CMAKE_SOURCE_DIR}/base/field
+${CMAKE_SOURCE_DIR}/base/steer
+${CMAKE_SOURCE_DIR}/base/sim
+${CMAKE_SOURCE_DIR}/base/event
+${CMAKE_SOURCE_DIR}/base/source
 ${CMAKE_SOURCE_DIR}/geobase 
 ${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/fairtools
@@ -29,6 +34,9 @@ BmnTOF1ContFact.cxx
 BmnTOF1Geo.cxx 
 BmnTOF1GeoPar.cxx
 BmnTof1HitProducer.cxx
+BmnTof1HitProducerIdeal.cxx
+BmnTof1GeoUtils.cxx
+BmnTOF1TDC.cxx
 )
 
 # fill list of header files from list of source files

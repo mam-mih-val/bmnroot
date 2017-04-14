@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                FairEvtGenGenerator header file                 -----
 // -----          Created 09/10/06  by S. Spataro                      -----
@@ -76,15 +83,14 @@
 #define FAIR_EVTGENGENERATOR_H
 
 
-#include "FairGenerator.h"
-#include "TF1.h"
+#include "FairGenerator.h"              // for FairGenerator
 
-#include <fstream>
+#include "Rtypes.h"                     // for FairEvtGenGenerator::Class, etc
 
-class TDatabasePDG;
+#include <stdio.h>                      // for FILE
+
 class FairPrimaryGenerator;
-
-
+class TF1;
 
 class FairEvtGenGenerator : public FairGenerator
 {

@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Modified : 11/11/2003 by Ilse Koenig
 //*-- Modified : 28/06/99 by Ilse Koenig
@@ -21,13 +28,19 @@
 // not rotated, is identical with the laboratory system.
 //
 ///////////////////////////////////////////////////////////////////////////////
-
 #include "FairGeoTube.h"
 
-#include "FairGeoVolume.h"
-#include "FairGeoVector.h"
+#include "FairGeoTransform.h"           // for FairGeoTransform
+#include "FairGeoVector.h"              // for FairGeoVector
+#include "FairGeoVolume.h"              // for FairGeoVolume
 
-#include "TArrayD.h"
+#include "TArrayD.h"                    // for TArrayD
+#include "TMathBase.h"                  // for Abs
+#include "TString.h"                    // for TString
+
+#include <stdio.h>                      // for printf, sprintf, sscanf
+#include <string.h>                     // for strlen
+#include <ostream>                      // for basic_ostream::write
 
 ClassImp(FairGeoTube)
 
@@ -60,7 +73,7 @@ FairGeoTube::~FairGeoTube()
 }
 
 
-Int_t FairGeoTube::readPoints(fstream* pFile,FairGeoVolume* volu)
+Int_t FairGeoTube::readPoints(std::fstream* pFile,FairGeoVolume* volu)
 {
   // reads the 3 'points' decribed above from ascii file
   // if the array of points is not existing in the volume it is created and
@@ -85,7 +98,7 @@ Int_t FairGeoTube::readPoints(fstream* pFile,FairGeoVolume* volu)
 }
 
 
-Bool_t FairGeoTube::writePoints(fstream* pFile,FairGeoVolume* volu)
+Bool_t FairGeoTube::writePoints(std::fstream* pFile,FairGeoVolume* volu)
 {
   // writes the 3 'points' decribed above to ascii file
   if (!pFile) { return kFALSE; }

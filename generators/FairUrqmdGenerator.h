@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                FairUrqmdGenerator header file                  -----
 // -----          Created 11/06/04  by V. Friese / D.Bertini           -----
@@ -19,15 +26,14 @@
 #ifndef FAIRURQMDGENERATOR_H
 #define FAIRURQMDGENERATOR_H
 
+#include "FairGenerator.h"              // for FairGenerator
 
-#include "FairGenerator.h"
+#include "Rtypes.h"                     // for Int_t, Bool_t, etc
 
-#include <fstream>
-#include <map>
+#include <stdio.h>                      // for FILE
+#include <map>                          // for map
 
-class TVirtualMCStack;
 class FairPrimaryGenerator;
-
 
 class FairUrqmdGenerator : public FairGenerator
 {
@@ -42,7 +48,13 @@ class FairUrqmdGenerator : public FairGenerator
      * @param fileName The input file name
      **/
     FairUrqmdGenerator(const char* fileName);
+   
+    /** Standard constructor.
+     * @param fileName The input file name
+     * @param conversion_table name of conversion table file (from Urqmd->PDG) should use the full path to the file
+     **/
 
+    FairUrqmdGenerator(const char* fileName,  const char* conversion_table);
 
     /** Destructor. **/
     ~FairUrqmdGenerator();
@@ -55,7 +67,7 @@ class FairUrqmdGenerator : public FairGenerator
      **/
     Bool_t ReadEvent(FairPrimaryGenerator* primGen);
 
-    //Skip some events in file
+    /** Skip defined number of events in file **/
     Bool_t SkipEvents(Int_t count);
 
   private:
@@ -69,7 +81,10 @@ class FairUrqmdGenerator : public FairGenerator
     /** Private method ReadConversionTable. Reads the conversion table
         from UrQMD particle code to PDG particle code and fills the
         conversion map. Is called from the constructor. **/
-    void ReadConversionTable();
+    void ReadConversionTable(TString conversion_table="");
+
+    /** Check return value from fscanf call **/
+    void CheckReturnValue(Int_t retval);
 
     FairUrqmdGenerator(const FairUrqmdGenerator&);
     FairUrqmdGenerator& operator=(const FairUrqmdGenerator&);

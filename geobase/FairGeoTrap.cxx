@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Modified : 11/11/2003 by Ilse Koenig
 //*-- Modified : 16/05/99 by Ilse Koenig
@@ -21,15 +28,19 @@
 // created in the function calcVoluPosition(...)
 //
 /////////////////////////////////////////////////////////////
-
 #include "FairGeoTrap.h"
 
-#include "FairGeoVolume.h"
-#include "FairGeoVector.h"
+#include "FairGeoTransform.h"           // for FairGeoTransform
+#include "FairGeoVector.h"              // for FairGeoVector
+#include "FairGeoVolume.h"              // for FairGeoVolume
 
-#include "TArrayD.h"
+#include "Riosfwd.h"                    // for ostream
+#include "TArrayD.h"                    // for TArrayD
+#include "TMath.h"                      // for ATan, Pi, Sqrt, atan
+#include "TMathBase.h"                  // for Abs
+#include "TString.h"                    // for TString
 
-#include <iostream>
+#include <iostream>                     // for operator<<, cout, etc
 
 using std::cout;
 

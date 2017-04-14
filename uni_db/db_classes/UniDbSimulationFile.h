@@ -58,6 +58,10 @@ class UniDbSimulationFile
 	static UniDbSimulationFile* GetSimulationFile(int file_id);
 	/// get simulation file from the database
 	static UniDbSimulationFile* GetSimulationFile(TString file_path);
+	/// check simulation file exists in the database
+	static bool CheckSimulationFileExists(int file_id);
+	/// check simulation file exists in the database
+	static bool CheckSimulationFileExists(TString file_path);
 	/// delete simulation file from the database
 	static int DeleteSimulationFile(int file_id);
 	/// delete simulation file from the database
@@ -88,8 +92,6 @@ class UniDbSimulationFile
 	double* GetFileSize() {if (d_file_size == NULL) return NULL; else return new double(*d_file_size);}
 
 	// Setters
-	/// set file id of the current simulation file
-	int SetFileId(int file_id);
 	/// set file path of the current simulation file
 	int SetFilePath(TString file_path);
 	/// set generator name of the current simulation file

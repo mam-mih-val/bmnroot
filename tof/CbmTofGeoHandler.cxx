@@ -76,7 +76,7 @@ Int_t CbmTofGeoHandler::CheckGeometryVersion()
       // In new geometries the node name is tof_v<year><version> eg. tof_v12b
       // With this naming scheme the geometry version is completely qualified
       LOG(INFO)<< "Found TOF geometry " <<TString(node->GetName())<< FairLogger::endl;
-      if (TString(node->GetName()).EqualTo("tof2_1")) {
+      if (TString(node->GetName()).EqualTo("tof2_1") || TString(node->GetName()).EqualTo("tof2_0")) {
     	LOG(INFO)<< "Found TOF geometry v07a" << FairLogger::endl;
         fTofId = new CbmTofDetectorId_v07a();
         fGeoVersion = k07a;        

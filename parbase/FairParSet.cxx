@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 20/10/2004
 
@@ -6,22 +13,28 @@
 //
 //  Base class for all parameter containers
 /////////////////////////////////////////////////////////////
-
 #include "FairParSet.h"
 
-#include "FairRuntimeDb.h"
+#include "FairLogger.h"                 // for FairLogger, MESSAGE_ORIGIN
+#include "FairRuntimeDb.h"              // for FairRuntimeDb
 
-#include <iostream>
+#include "Riosfwd.h"                    // for ostream
+
+#include <iostream>                     // for operator<<, ostream, etc
 
 using std::cout;
 
 ClassImp(FairParSet)
 
-FairParSet::FairParSet(const char* name,const char* title,const char* context)
-  : TNamed(name,title),
+FairParSet::FairParSet(const char* name,const char* title,const char* context, Bool_t owner)
+  : TObject(),
+    fName(name),
+    fTitle(title),
     detName(""),
+    versions(),
     status(kFALSE),
     changed(kFALSE),
+    owned(owner),
     paramContext(context),
     author(""),
     description(""),
@@ -52,7 +65,7 @@ Bool_t FairParSet::init()
     } else { setInputVersion(-1,2); }
   }
   if (allFound) { return kTRUE; }
-  fLogger->Error(MESSAGE_ORIGIN, "init() %s  not initialized",GetName());
+  if (fLogger ) { fLogger->Error(MESSAGE_ORIGIN, "init() %s  not initialized",GetName()); }
   return kFALSE;
 }
 
@@ -64,7 +77,7 @@ Int_t FairParSet::write()
   // (calls internally the init function in the derived class)
   FairParIo* output=FairRuntimeDb::instance()->getOutput();
   if (output) { return write(output); }
-  fLogger->Error(MESSAGE_ORIGIN,"write() %s could not be written to output",GetName());
+  if (fLogger) { fLogger->Error(MESSAGE_ORIGIN,"write() %s could not be written to output",GetName()); }
   return -1;
 }
 
@@ -91,3 +104,59 @@ void FairParSet::resetInputVersions()
     changed=kFALSE;
   }
 }
+
+FairParSet::FairParSet(const FairParSet& from)
+  : TObject(from),
+    fName(from.fName),
+    fTitle(from.fTitle),
+    detName(from.detName),
+    versions(),
+    status(from.status),
+    changed(from.changed),
+    owned(from.owned),
+    paramContext(from.paramContext),
+    author(from.author),
+    description(from.description),
+    fLogger(FairLogger::GetLogger())
+
+{
+/*
+ fName    = from.fName;
+ fTitle   = from.fTitle;
+ detName  = from.detName;
+*/
+ for (Int_t i=0;i<3;i++) versions[i] = from.versions[i];
+/*
+ status   = from.status;
+ changed  = from.changed;
+ owned    = from.owned;
+ paramContext = from.paramContext;
+ author       = from.author;
+ description  = from.description; 
+ fLogger      = from.fLogger;
+*/
+}
+
+
+FairParSet& FairParSet::operator=(const FairParSet& from)
+{
+  if (this == &from) {return *this;}
+  
+ TObject::operator=(from);  
+ fName    = from.fName;
+ fTitle   = from.fTitle;
+ detName  = from.detName;
+ for (Int_t i=0;i<3;i++) versions[i] = from.versions[i];
+ status   = from.status;
+ changed  = from.changed;
+ owned    = from.owned;
+ paramContext = from.paramContext;
+ author       = from.author;
+ description  = from.description; 
+ fLogger      = from.fLogger;
+ 
+ return *this;
+}
+
+
+

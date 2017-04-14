@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Last modified : 10/11/03 by Ilse Koenig
 
@@ -10,6 +17,7 @@
 
 #include "FairGeoMedia.h"
 #include "FairGeoMedium.h"
+#include "FairLogger.h"
 
 #include "TList.h"
 
@@ -43,7 +51,7 @@ FairGeoMedia::~FairGeoMedia()
 FairGeoMedium* FairGeoMedia::getMedium(const char* mediumName)
 {
   // Returns the medium with name mediumName
-  return (FairGeoMedium*)media->FindObject(mediumName);
+  return static_cast<FairGeoMedium*>(media->FindObject(mediumName));
 }
 
 void FairGeoMedia::addMedium(FairGeoMedium* m)
@@ -59,7 +67,7 @@ void FairGeoMedia::list()
   cout<<"List of media:\n";
   TListIter iter(media);
   FairGeoMedium* medium;
-  while((medium=(FairGeoMedium*)iter.Next())) {
+  while((medium=static_cast<FairGeoMedium*>(iter.Next()))) {
     cout<<"  "<<medium->GetName()<<"\n";
   }
 }
@@ -73,7 +81,7 @@ void FairGeoMedia::print()
   TListIter iter(media);
   FairGeoMedium* medium;
   Int_t i=0;
-  while((medium=(FairGeoMedium*)iter.Next())) {
+  while((medium=static_cast<FairGeoMedium*>(iter.Next()))) {
     if (medium->getAutoFlag()!=0) {
       medium->print();
       i++;
@@ -84,16 +92,16 @@ void FairGeoMedia::print()
     cout<<"//----------------------------------------------\n";
     cout<<"AUTONULL\n";
     cout<<"//----------------------------------------------\n";
-    while((medium=(FairGeoMedium*)iter.Next())) {
+    while((medium=static_cast<FairGeoMedium*>(iter.Next()))) {
       if (medium->getAutoFlag()==0) { medium->print(); }
     }
   }
 }
 
-void FairGeoMedia::read(fstream& fin)
+void FairGeoMedia::read(std::fstream& fin)
 {
   // Reads the media from file
-  cout<<"-I- FairGeoMedia  Read media"<<endl;
+  LOG(INFO) << "FairGeoMedia: Read media " << FairLogger::endl;
   const Int_t maxBuf=256;
   char buf[maxBuf];
   Int_t autoflag=1;
@@ -112,7 +120,7 @@ void FairGeoMedia::read(fstream& fin)
   }
 }
 
-void FairGeoMedia::write(fstream& fout)
+void FairGeoMedia::write(std::fstream& fout)
 {
   // Writes the media to file
   if (!author.IsNull()) { fout<<"//Author:      "<<author<<'\n'; }
@@ -121,7 +129,7 @@ void FairGeoMedia::write(fstream& fout)
   TListIter iter(media);
   FairGeoMedium* medium;
   Int_t i=0;
-  while((medium=(FairGeoMedium*)iter.Next())) {
+  while((medium=static_cast<FairGeoMedium*>(iter.Next()))) {
     if (medium->getAutoFlag()!=0) {
       medium->write(fout);
       i++;
@@ -132,7 +140,7 @@ void FairGeoMedia::write(fstream& fout)
     fout<<"//----------------------------------------------\n";
     fout<<"AUTONULL\n";
     fout<<"//----------------------------------------------\n";
-    while((medium=(FairGeoMedium*)iter.Next())) {
+    while((medium=static_cast<FairGeoMedium*>(iter.Next()))) {
       if (medium->getAutoFlag()==0) { medium->write(fout); }
     }
   }

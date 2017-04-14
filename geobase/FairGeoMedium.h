@@ -1,10 +1,19 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEOMEDIUM_H
 #define FAIRGEOMEDIUM_H
 
-#include "TNamed.h"
+#include "TNamed.h"                     // for TNamed
 
-#include <fstream>
-//#include <iomanip>
+#include "Riosfwd.h"                    // for fstream
+#include "Rtypes.h"                     // for Double_t, Int_t, Bool_t, etc
+
+#include <fstream>                      // for fstream
 
 /**
  * Class for tracking medium
@@ -65,9 +74,9 @@ class FairGeoMedium  : public TNamed
     Int_t getFieldFlag() {return fldFlag;}
     Double_t getField() {return fld;}
     Double_t getEpsil() {return epsil;}
-    void read(fstream&, Int_t autoflag );
+    void read(std::fstream&, Int_t autoflag );
     void print();
-    void write (fstream&);
+    void write (std::fstream&);
     Bool_t calcRadiationLength();
   private:
     FairGeoMedium(const FairGeoMedium&);

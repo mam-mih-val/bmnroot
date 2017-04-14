@@ -4,26 +4,15 @@
 // -------------------------------------------------------------------------
 #include "FairPointSetDraw.h"
 
-#include "FairEventManager.h"           // for FairEventManager
-#include "FairRootManager.h"            // for FairRootManager
-#include "FairMCPointDraw.h"
+#include "FairRootManager.h"
 
-#include "Riosfwd.h"                    // for ostream
-#include "TClonesArray.h"               // for TClonesArray
-#include "TEveManager.h"                // for TEveManager, gEve
-#include "TEvePointSet.h"               // for TEvePointSet
-#include "TEveTreeTools.h"              // for TEvePointSelectorConsumer, etc
-#include "TNamed.h"                     // for TNamed
-#include "TString.h"                    // for Form
-#include "TVector3.h"                   // for TVector3
+#include "TEveManager.h"
+#include "TEveTreeTools.h"      // for TEvePointSelectorConsumer, etc
+#include "TString.h"            // for Form
 
-#include <stddef.h>                     // for NULL
-#include <iostream>                     // for operator<<, basic_ostream, etc
+#include <iostream>
+using namespace std;
 
-class TObject;
-
-using std::cout;
-using std::endl;
 
 // -----   Default constructor   -------------------------------------------
 FairPointSetDraw::FairPointSetDraw()
@@ -102,34 +91,11 @@ void FairPointSetDraw::Exec(Option_t* option)
       }
     }
 
-    // check: this point is instance of FairMCPointDraw class
-    FairMCPointDraw* pCheckClass = dynamic_cast<FairMCPointDraw*>(this);
-    if (pCheckClass != NULL)
-    {
-        if (fEventManager->EveMCPoints == NULL)
-        {
-            fEventManager->EveMCPoints = new TEveElementList("MC points");
-            gEve->AddElement(fEventManager->EveMCPoints, fEventManager);
-            fEventManager->EveMCPoints->SetRnrState(kFALSE);
-        }
-
-        gEve->AddElement(q, fEventManager->EveMCPoints);
-    }
-    else
-    {
-        if (fEventManager->EveRecoPoints == NULL)
-        {
-            fEventManager->EveRecoPoints = new TEveElementList("Reco points");
-            gEve->AddElement(fEventManager->EveRecoPoints, fEventManager);
-            fEventManager->EveRecoPoints->SetRnrState(kFALSE);
-        }
-
-        gEve->AddElement(q, fEventManager->EveRecoPoints);
-    }
-
-    gEve->Redraw3D(kFALSE);
-
     fq = q;
+
+    AddEveElementList();
+
+    //gEve->Redraw3D(kFALSE);
   }
 }
 
@@ -142,28 +108,25 @@ TObject* FairPointSetDraw::GetValue(TObject* obj,Int_t i)
 FairPointSetDraw::~FairPointSetDraw()
 {
 }
+
 // -------------------------------------------------------------------------
 void FairPointSetDraw::SetParContainers()
 {
-
 }
+
 // -------------------------------------------------------------------------
 /** Action after each event**/
 void FairPointSetDraw::Finish()
 {
 }
+
 // -------------------------------------------------------------------------
 void FairPointSetDraw::Reset()
 {
   if (fq != 0)
   {
     fq->Reset();
-
-    FairMCPointDraw* pCheckClass = dynamic_cast<FairMCPointDraw*>(this);
-    if (pCheckClass != NULL)
-        gEve->RemoveElement(fq, fEventManager->EveMCPoints);
-    else
-        gEve->RemoveElement(fq, fEventManager->EveRecoPoints);
+    RemoveEveElementList();
   }
 }
 

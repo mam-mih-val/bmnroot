@@ -5,14 +5,14 @@
 
 #include "Rtypes.h"
 #include "TClonesArray.h"
-//#include "TVector3.h"
 
 #include "FairTask.h"
 #include "FairMCPoint.h"
 
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"
-#include "BmnGemStripStationSet_v3.h"
+#include "BmnGemStripStationSet.h"
+#include "BmnGemStripConfiguration.h"
 
 using namespace std;
 
@@ -37,10 +37,19 @@ public:
         fOnlyPrimary = opt;
     }
 
+    void SetStripMatching(Bool_t opt = kTRUE) {
+        fStripMatching = opt;
+    }
+
+    void SetCurrentConfig(BmnGemStripConfiguration::GEM_CONFIG config) {
+        fCurrentConfig = config;
+    }
+
 private:
 
     TString fInputBranchName;
     TString fOutputDigitsBranchName;
+    TString fOutputDigitMatchesBranchName;
 
     /** Input array of Gem Points **/
     TClonesArray* fBmnGemStripPointsArray;
@@ -51,9 +60,15 @@ private:
     /** Output array of Gem Digits **/
     TClonesArray* fBmnGemStripDigitsArray;
 
-    Bool_t fOnlyPrimary;
+    /** Output array of GEM Digit Matches **/
+    TClonesArray* fBmnGemStripDigitMatchesArray;
 
-    Double_t fSmearingSigma; //cm
+    Bool_t fOnlyPrimary;
+    Bool_t fStripMatching;
+
+    BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
+
+    BmnGemStripStationSet *StationSet; //Entire GEM detector
 
     ClassDef(BmnGemStripDigitizer,1);
 };

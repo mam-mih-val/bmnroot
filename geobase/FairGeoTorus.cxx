@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : M. Al-Turany  06/11/2006
 
 /////////////////////////////////////////////////////////////
@@ -12,13 +19,18 @@
 //            Phi1 - starting phi
 //            Dphi - phi extent
 /////////////////////////////////////////////////////////////
-
 #include "FairGeoTorus.h"
 
-#include "FairGeoVolume.h"
-#include "FairGeoVector.h"
+#include "FairGeoTransform.h"           // for FairGeoTransform
+#include "FairGeoVector.h"              // for FairGeoVector
+#include "FairGeoVolume.h"              // for FairGeoVolume
 
-#include "TArrayD.h"
+#include "TArrayD.h"                    // for TArrayD
+#include "TString.h"                    // for TString
+
+#include <stdio.h>                      // for printf, sprintf, sscanf
+#include <string.h>                     // for strlen
+#include <ostream>                      // for basic_ostream::write
 
 ClassImp(FairGeoTorus)
 
@@ -50,7 +62,7 @@ FairGeoTorus::~FairGeoTorus()
   }
 }
 
-Int_t FairGeoTorus::readPoints(fstream* pFile,FairGeoVolume* volu)
+Int_t FairGeoTorus::readPoints(std::fstream* pFile,FairGeoVolume* volu)
 {
   // reads nPoints with 3 components from Ascii file
   // if the array of points is not existing in the volume it is created and
@@ -89,7 +101,7 @@ TArrayD* FairGeoTorus::calcVoluParam(FairGeoVolume* volu)
   return param;
 }
 
-Bool_t FairGeoTorus::writePoints(fstream* pFile,FairGeoVolume* volu)
+Bool_t FairGeoTorus::writePoints(std::fstream* pFile,FairGeoVolume* volu)
 {
   // writes the 4 'points' decribed above to ascii file
   if (!pFile) { return kFALSE; }
@@ -114,7 +126,7 @@ void FairGeoTorus::printPoints(FairGeoVolume* volu)
 
 
 
-void FairGeoTorus::calcVoluPosition(FairGeoVolume* volu,
+void FairGeoTorus::calcVoluPosition(FairGeoVolume*,
                                     const FairGeoTransform& dTC,const FairGeoTransform& mTR)
 {
   // calls the function posInMother(...) to calculate the position of the

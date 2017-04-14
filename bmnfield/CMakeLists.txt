@@ -4,7 +4,11 @@
 
 set(INCLUDE_DIRECTORIES
 ${ROOT_INCLUDE_DIR} 
-${CMAKE_SOURCE_DIR}/base 
+${CMAKE_SOURCE_DIR}/base/field
+${CMAKE_SOURCE_DIR}/base/steer
+${CMAKE_SOURCE_DIR}/base/sim
+${CMAKE_SOURCE_DIR}/base/event
+${CMAKE_SOURCE_DIR}/base/source
 ${CMAKE_SOURCE_DIR}/parbase 
 ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/bmnfield 
@@ -28,6 +32,7 @@ BmnFieldMapData.cxx
 #BmnFieldMapSym3.cxx     
 BmnFieldPar.cxx         
 BmnFieldCreator.cxx
+BmnSP41FieldMapCreator.cxx
 )
 
 # fill list of header files from list of source files

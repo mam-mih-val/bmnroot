@@ -1,12 +1,20 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEOASCIIIO_H
 #define FAIRGEOASCIIIO_H
 
-#include "FairGeoIo.h"
+#include "FairGeoIo.h"                  // for FairGeoIo
 
-#include "TString.h"
+#include "Riosfwd.h"                    // for fstream
+#include "Rtypes.h"                     // for Bool_t, etc
+#include "TString.h"                    // for TString
 
-#include <fstream>
-//#include <iomanip>
+#include <fstream>                      // for fstream
 
 class FairGeoSet;
 class FairGeoMedia;
@@ -21,7 +29,7 @@ class FairGeoAsciiIo: public FairGeoIo
     TString  filename;
     TString  filedir;
     Bool_t   writable;
-    fstream* file;
+    std::fstream* file;
   public:
     FairGeoAsciiIo();
     virtual ~FairGeoAsciiIo();

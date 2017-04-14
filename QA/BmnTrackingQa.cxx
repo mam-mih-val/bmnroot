@@ -20,26 +20,26 @@
 #include "CbmStsTrack.h"
 #include "BmnGemTrack.h"
 #include "BmnTrackMatch.h"
+#include "BmnMatch.h"
 #include "CbmTofHit.h"
 #include "BmnDchHit.h"
 #include "FairRunAna.h"
 #include "FairMCEventHeader.h"
 #include "TFitResult.h"
-
+#include "CbmVertex.h"
+#include "BmnMath.h"
+#include "BmnGemStripHit.h"
 #include "TH1.h"
 #include "TF1.h"
 #include "TH2F.h"
 #include "TClonesArray.h"
 #include "BmnEnums.h"
 
-#include <boost/assign/list_of.hpp>
-
 #include <fstream>
 #include <iostream>
 
 using namespace std;
 using namespace TMath;
-using boost::assign::list_of;
 using lit::Split;
 using lit::FindAndReplace;
 
@@ -52,23 +52,25 @@ fDet(),
 fMinNofPointsGem(4),
 fMinNofPointsTof(1),
 fMinNofPointsDch(1),
-fQuota(0.7),
+fQuota(0.6),
+fEtaCut(100000.0),
+fPCut(0.0),
 fUseConsecutivePointsInGem(kTRUE),
 fPRangeMin(0.),
-fPRangeMax(6.),
-fPRangeBins(100),
+fPRangeMax(5.),
+fPRangeBins(25),
 fYRangeMin(0.),
 fYRangeMax(4.),
 fYRangeBins(100),
 fEtaRangeMin(0.),
-fEtaRangeMax(5.),
-fEtaRangeBins(100),
+fEtaRangeMax(6.),
+fEtaRangeBins(50),
 fPtRangeMin(0.),
 fPtRangeMax(1.),
-fPtRangeBins(100),
-fAngleRangeMin(0.),
-fAngleRangeMax(40.),
-fAngleRangeBins(100),
+fPtRangeBins(50),
+fThetaRangeMin(0.),
+fThetaRangeMax(40.),
+fThetaRangeBins(50),
 fHeader(),
 fMcToRecoMap(),
 fMCTracks(NULL),
@@ -87,7 +89,7 @@ InitStatus BmnTrackingQa::Init() {
 
     fDet.DetermineSetup();
     cout << fDet.ToString();
-    if (fTrackCategories.empty()) FillDefaultTrackCategories();
+//    if (fTrackCategories.empty()) FillDefaultTrackCategories();
 
     CreateHistograms();
 
@@ -109,9 +111,6 @@ void BmnTrackingQa::Exec(Option_t* opt) {
     ReadEventHeader();
     fMCTrackCreator->Create();
     ProcessGem();
-    ProcessGlobal();
-    //    ProcessGlobalTracks();
-    ProcessMcTracks();
     IncreaseCounters();
 }
 
@@ -134,12 +133,12 @@ void BmnTrackingQa::ReadDataBranches() {
         Fatal("Init", "No MCTrack array!");
     }
 
-    fGlobalTracks = (TClonesArray*) ioman->GetObject("GlobalTrack");
-    fGlobalTrackMatches = (TClonesArray*) ioman->GetObject("GlobalTrackMatch");
-
-    if (NULL == fGlobalTracks) {
-        Fatal("Init", "No GlobalTrack array!");
-    }
+    //    fGlobalTracks = (TClonesArray*) ioman->GetObject("GlobalTrack");
+    //    fGlobalTrackMatches = (TClonesArray*) ioman->GetObject("GlobalTrackMatch");
+    //
+    //    if (NULL == fGlobalTracks) {
+    //        Fatal("Init", "No GlobalTrack array!");
+    //    }
 
     if (fDet.GetDet(kGEM)) {
         fGemSeeds = (TClonesArray*) ioman->GetObject("BmnGemSeeds");
@@ -166,6 +165,14 @@ void BmnTrackingQa::ReadDataBranches() {
         if (NULL == fGemPoints) {
             cout << "BmnTrackingQA::Init: No GemPoint array!" << endl;
         }
+        fGemHitMatches = (TClonesArray*) ioman->GetObject("BmnGemStripHitMatch");
+        if (NULL == fGemHitMatches) {
+            cout << "BmnTrackingQA::Init: No BmnGemStripHitMatch array!" << endl;
+        }
+        fVertex = (TClonesArray*) ioman->GetObject("BmnVertex");
+        if (NULL == fVertex) {
+            cout << "BmnTrackingQA::Init: No fVertex array!" << endl;
+        }
     }
     if (fDet.GetDet(kTOF1)) {
         fTof1Points = (TClonesArray*) ioman->GetObject("TOF1Point");
@@ -175,26 +182,6 @@ void BmnTrackingQa::ReadDataBranches() {
         fTof1Hits = (TClonesArray*) ioman->GetObject("TOF1Hit");
         if (NULL == fTof1Hits) {
             cout << "BmnTrackingQA::Init: No BmnTof1Hit array!" << endl;
-        }
-    }
-    if (fDet.GetDet(kDCH1)) {
-        fDch1Points = (TClonesArray*) ioman->GetObject("DCH1Point");
-        if (NULL == fDch1Points) {
-            cout << "BmnTrackingQA::Init: No DCH1Point array!" << endl;
-        }
-        fDch1Hits = (TClonesArray*) ioman->GetObject("BmnDch1Hit0");
-        if (NULL == fDch1Hits) {
-            cout << "BmnTrackingQA::Init: No BmnDch1Hit0 array!" << endl;
-        }
-    }
-    if (fDet.GetDet(kDCH2)) {
-        fDch2Points = (TClonesArray*) ioman->GetObject("DCH2Point");
-        if (NULL == fDch2Points) {
-            cout << "BmnTrackingQA::Init: No DCH2Point array!" << endl;
-        }
-        fDch2Hits = (TClonesArray*) ioman->GetObject("BmnDch2Hit0");
-        if (NULL == fDch2Hits) {
-            cout << "BmnTrackingQA::Init: No BmnDch2Hit0 array!" << endl;
         }
     }
     if (fDet.GetDet(kTOF)) {
@@ -215,55 +202,7 @@ void BmnTrackingQa::ReadEventHeader() {
     //    fHeader.push_back("Energy: 4 GeV/c");
     fHM->H1("Impact parameter")->Fill(evHead->GetB());
     fHM->H1("Multiplicity")->Fill(evHead->GetNPrim());
-}
-
-void BmnTrackingQa::FillDefaultTrackCategories() {
-    //   vector<string> tmp = list_of("All")("Primary")("Secondary")("Reference")
-    //         ("Electron")("Proton")("PionPlus")
-    //         ("PionMinus")("KaonPlus")("KaonMinus");
-    vector<string> tmp = list_of("All"); //("Primary")("Secondary")("Reference");
-    fTrackCategories = tmp;
-}
-
-void BmnTrackingQa::CreateH1Efficiency(const string& name, const string& parameter, const string& xTitle, Int_t nofBins, Double_t minBin, Double_t maxBin, const string& opt) {
-    assert(opt == "track" || opt == "track_pid");
-    vector<string> types = list_of("Acc")("Rec")("Eff");
-    vector<string> cat = fTrackCategories;
-
-    for (Int_t iCat = 0; iCat < cat.size(); iCat++) {
-        for (Int_t iType = 0; iType < 3; iType++) {
-            string yTitle = (types[iType] == "Eff") ? "Efficiency [%]" : "Counter";
-            string histName = name + "_" + cat[iCat] + "_" + types[iType] + "_" + parameter;
-            string histTitle = histName + ";" + xTitle + ";" + yTitle;
-            fHM->Add(histName, new TH1F(histName.c_str(), histTitle.c_str(), nofBins, minBin, maxBin));
-        }
-    }
-}
-
-void BmnTrackingQa::CreateH2Efficiency(
-        const string& name,
-        const string& parameter,
-        const string& xTitle,
-        const string& yTitle,
-        Int_t nofBinsX,
-        Double_t minBinX,
-        Double_t maxBinX,
-        Int_t nofBinsY,
-        Double_t minBinY,
-        Double_t maxBinY,
-        const string& opt) {
-    assert(opt == "track" || opt == "track_pid");
-    vector<string> types = list_of("Acc")("Rec")("Eff");
-    vector<string> cat = fTrackCategories;
-
-    for (Int_t iCat = 0; iCat < cat.size(); iCat++) {
-        for (Int_t iType = 0; iType < 3; iType++) {
-            string zTitle = (types[iType] == "Eff") ? "Efficiency [%]" : "Counter";
-            string histName = name + "_" + cat[iCat] + "_" + types[iType] + "_" + parameter;
-            string histTitle = histName + ";" + xTitle + ";" + yTitle + ";" + zTitle;
-            fHM->Add(histName, new TH2F(histName.c_str(), histTitle.c_str(), nofBinsX, minBinX, maxBinX, nofBinsY, minBinY, maxBinY));
-        }
-    }
+    fHM->H2("Impact_Mult")->Fill(evHead->GetB(), evHead->GetNPrim());
 }
 
 void BmnTrackingQa::CreateH1(const string& name, const string& xTitle, const string& yTitle, Int_t nofBins, Double_t minBin, Double_t maxBin) {
@@ -320,8 +259,7 @@ vector<string> BmnTrackingQa::CreateGlobalTrackingHistogramNames() {
     vector<string> detectors;
     if (fDet.GetDet(kGEM)) detectors.push_back("Gem");
     //    if (fDet.GetDet(kTOF1)) detectors.push_back("Tof1");
-    //    if (fDet.GetDet(kDCH1)) detectors.push_back("Dch1");
-    //    if (fDet.GetDet(kDCH2)) detectors.push_back("Dch2");
+    //    if (fDet.GetDet(kDCH1)) detectors.push_back("Dch");
     //    if (fDet.GetDet(kTOF)) detectors.push_back("Tof2");
     vector<string> names1 = CreateGlobalTrackingHistogramNames(detectors);
     set<string> names;
@@ -336,8 +274,7 @@ vector<string> BmnTrackingQa::GlobalTrackVariants() {
     vector<string> detectors;
     if (fDet.GetDet(kGEM)) detectors.push_back("Gem");
     if (fDet.GetDet(kTOF1)) detectors.push_back("Tof1");
-    if (fDet.GetDet(kDCH1)) detectors.push_back("Dch1");
-    if (fDet.GetDet(kDCH2)) detectors.push_back("Dch2");
+    if (fDet.GetDet(kDCH)) detectors.push_back("Dch");
     if (fDet.GetDet(kTOF)) detectors.push_back("Tof2");
     string name("");
     for (Int_t i = 0; i < detectors.size(); ++i) {
@@ -348,85 +285,16 @@ vector<string> BmnTrackingQa::GlobalTrackVariants() {
     return trackVariantsVector;
 }
 
-string BmnTrackingQa::LocalEfficiencyNormalization(const string& detName) {
-    set<string> trackVariants;
-    vector<string> detectors;
-    if (fDet.GetDet(kGEM)) detectors.push_back("Gem");
-    string name("");
-    for (Int_t i = 0; i < detectors.size(); i++) {
-        name += detectors[i];
-        if (detectors[i] == detName) break;
-    }
-    return name;
-}
-
 void BmnTrackingQa::CreateHistograms() {
     fDet.DetermineSetup();
 
     // Number of points distributions
-    const Float_t minNofPoints = 0.;
-    const Float_t maxNofPoints = 20.;
-    const Int_t nofBinsPoints = 20;
+    const Float_t minNofPoints = -0.5;
+    const Float_t maxNofPoints = 14.5;
+    const Int_t nofBinsPoints = 15;
 
     // Reconstruction efficiency histograms
     // Local efficiency histograms
-
-    // GEM
-    CreateH1Efficiency("hte_Gem_Gem", "Np", "Number of points", nofBinsPoints, minNofPoints, maxNofPoints, "track");
-    CreateH1Efficiency("hte_Gem_Gem", "Angle", "Polar angle [deg]", fAngleRangeBins, fAngleRangeMin, fAngleRangeMax, "track");
-
-    //    if (fDet.GetDet(kTOF1)) {
-    //        string norm = LocalEfficiencyNormalization("Tof1");
-    //        string histName = "hte_Tof1_" + norm;
-    //        CreateH1Efficiency(histName, "p", "P [GeV/c]", fPRangeBins, fPRangeMin, fPRangeMax, "track");
-    //        CreateH1Efficiency(histName, "y", "Rapidity", fYRangeBins, fYRangeMin, fYRangeMax, "track");
-    //        CreateH1Efficiency(histName, "pt", "P_{t} [GeV/c]", fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //        //    CreateEfficiencyHistogram(histName, "Np", "Number of points", nofBinsPoints, minNofPoints, maxNofPoints, "track");
-    //        CreateH1Efficiency(histName, "Angle", "Polar angle [deg]", fAngleRangeBins, fAngleRangeMin, fAngleRangeMax, "track");
-    //        CreateH2Efficiency(histName, "YPt", "Rapidity_{sim}", "Pt_{sim} [GeV/c]", 4 * fYRangeBins, fYRangeMin, fYRangeMax, 4 * fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //    }
-    //    if (fDet.GetDet(kTOF)) {
-    //        string norm = LocalEfficiencyNormalization("Tof2");
-    //        string histName = "hte_Tof2_" + norm;
-    //        CreateH1Efficiency(histName, "p", "P [GeV/c]", fPRangeBins, fPRangeMin, fPRangeMax, "track");
-    //        CreateH1Efficiency(histName, "y", "Rapidity", fYRangeBins, fYRangeMin, fYRangeMax, "track");
-    //        CreateH1Efficiency(histName, "pt", "P_{t} [GeV/c]", fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //        //    CreateEfficiencyHistogram(histName, "Np", "Number of points", nofBinsPoints, minNofPoints, maxNofPoints, "track");
-    //        CreateH1Efficiency(histName, "Angle", "Polar angle [deg]", fAngleRangeBins, fAngleRangeMin, fAngleRangeMax, "track");
-    //        CreateH2Efficiency(histName, "YPt", "Rapidity", "P_{t} [GeV/c]", fYRangeBins, fYRangeMin, fYRangeMax, fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //    }
-    //    if (fDet.GetDet(kDCH1)) {
-    //        string norm = LocalEfficiencyNormalization("Dch1");
-    //        string histName = "hte_Dch1_" + norm;
-    //        CreateH1Efficiency(histName, "p", "P [GeV/c]", fPRangeBins, fPRangeMin, fPRangeMax, "track");
-    //        CreateH1Efficiency(histName, "y", "Rapidity", fYRangeBins, fYRangeMin, fYRangeMax, "track");
-    //        CreateH1Efficiency(histName, "pt", "P_{t} [GeV/c]", fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //        //    CreateEfficiencyHistogram(histName, "Np", "Number of points", nofBinsPoints, minNofPoints, maxNofPoints, "track");
-    //        CreateH1Efficiency(histName, "Angle", "Polar angle [deg]", fAngleRangeBins, fAngleRangeMin, fAngleRangeMax, "track");
-    //        CreateH2Efficiency(histName, "YPt", "Rapidity", "P_{t} [GeV/c]", fYRangeBins, fYRangeMin, fYRangeMax, fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //    }
-    //    if (fDet.GetDet(kDCH2)) {
-    //        string norm = LocalEfficiencyNormalization("Dch2");
-    //        string histName = "hte_Dch2_" + norm;
-    //        CreateH1Efficiency(histName, "p", "P [GeV/c]", fPRangeBins, fPRangeMin, fPRangeMax, "track");
-    //        CreateH1Efficiency(histName, "y", "Rapidity", fYRangeBins, fYRangeMin, fYRangeMax, "track");
-    //        CreateH1Efficiency(histName, "pt", "P_{t} [GeV/c]", fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //        //    CreateEfficiencyHistogram(histName, "Np", "Number of points", nofBinsPoints, minNofPoints, maxNofPoints, "track");
-    //        CreateH1Efficiency(histName, "Angle", "Polar angle [deg]", fAngleRangeBins, fAngleRangeMin, fAngleRangeMax, "track");
-    //        CreateH2Efficiency(histName, "YPt", "Rapidity", "P_{t} [GeV/c]", fYRangeBins, fYRangeMin, fYRangeMax, fPtRangeBins, fPtRangeMin, fPtRangeMax, "track");
-    //    }
-
-    // Global efficiency histograms
-    vector<string> histoNames = CreateGlobalTrackingHistogramNames();
-    for (Int_t iHist = 0; iHist < histoNames.size(); iHist++) {
-        string name = histoNames[iHist];
-        string opt = "track";
-        // Tracking efficiency
-        CreateH1Efficiency(name, "p", "P [GeV/c]", fPRangeBins, fPRangeMin, fPRangeMax, opt);
-        CreateH1Efficiency(name, "y", "Rapidity", fYRangeBins, fYRangeMin, fYRangeMax, opt);
-        CreateH1Efficiency(name, "pt", "P_{t} [GeV/c]", fPtRangeBins, fPtRangeMin, fPtRangeMax, opt);
-        CreateH2Efficiency(name, "YPt", "Rapidity_{sim}", "Pt_{sim} [GeV/c]", fYRangeBins, fYRangeMin, fYRangeMax, fPtRangeBins, fPtRangeMin, fPtRangeMax, opt);
-    }
 
     // Create histograms for ghost tracks
     if (fDet.GetDet(kGEM)) CreateH1("hng_NofGhosts_Gem_Nh", "Number of hits", "Yield", nofBinsPoints, minNofPoints, maxNofPoints);
@@ -443,40 +311,52 @@ void BmnTrackingQa::CreateHistograms() {
         CreateH1("hno_NofObjects_GemHits", "GEM hits per event", "Yield", nofBinsC, 1., maxXC);
     }
     if (fDet.GetDet(kTOF1)) CreateH1("hno_NofObjects_Tof1Hits", "TOF1 hits per event", "Yield", nofBinsC, 1., maxXC);
-    if (fDet.GetDet(kDCH1)) CreateH1("hno_NofObjects_Dch1Hits", "DCH1 hits per event", "Yield", nofBinsC, 1., maxXC);
-    if (fDet.GetDet(kDCH2)) CreateH1("hno_NofObjects_Dch2Hits", "DCH2 hits per event", "Yield", nofBinsC, 1., maxXC);
+    if (fDet.GetDet(kDCH)) CreateH1("hno_NofObjects_DchHits", "DCH1 hits per event", "Yield", nofBinsC, 1., maxXC);
     if (fDet.GetDet(kTOF)) CreateH1("hno_NofObjects_Tof2Hits", "TOF2 hits per event", "Yield", nofBinsC, 1., maxXC);
 
     // Histogram stores number of events
     CreateH1("hen_EventNo_TrackingQa", "", "", 1, 0, 1.);
-    CreateH1("Impact parameter", "B, fm", "Counter", 100, 0.0, 0.0);
-    CreateH1("Multiplicity", "N_{prim}", "Counter", 100, 0.0, 0.0);
+    CreateH1("Impact parameter", "b, fm", "Counter", 50, 0.0, 0.0);
+    CreateH1("Multiplicity", "N_{prim}", "Counter", 50, 0.0, 0.0);
+    CreateH2("Impact_Mult", "b, fm", "N_{prim}", "", 50, 0.0, 0.0, 50, 0.0, 0.0);
 
     // Physics
-    CreateH2("momRes_2D_glob", "P_{sim}, GeV/c", "#Delta P / P, %", "", fPRangeBins, fPRangeMin, fPRangeMax, fPRangeBins, -50.0, 50.0);
-    CreateH2("momRes_2D_gem", "P_{sim}, GeV/c", "#Delta P / P, %", "", fPRangeBins, fPRangeMin, fPRangeMax, fPRangeBins, -50.0, 50.0);
-    CreateH2("EtaP_rec_gem", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH2("EtaP_rec_glob", "#eta_{rec}", "P_{rec}, GeV/c", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH2("momRes_2D_glob", "P_{sim}, GeV/c", "#Delta P / P, %", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, -50.0, 50.0);
+    CreateH2("momRes_2D_gem", "P_{sim}, GeV/c", "#Delta P / P, %", "", 400, fPRangeMin, fPRangeMax, 400, -10.0, 10.0);
+    CreateH2("EtaP_rec_gem", "#eta_{rec}", "P_{rec}, GeV/c", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
+    CreateH2("EtaP_rec_glob", "#eta_{rec}", "P_{rec}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
+    CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
+    CreateH2("EtaP_fakes_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
+    CreateH2("EtaP_clones_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
+    CreateH2("ThetaP_sim", "#theta_{sim}", "P_{sim}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
+    CreateH2("ThetaP_rec_gem", "#theta_{rec}", "P_{rec}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH1("momRes_1D_glob", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("momRes_1D_gem", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH2("P_rec_P_sim_gem", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH2("P_rec_P_sim_glob", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH2("Px_rec_Px_sim_gem", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax, 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax);
-    CreateH2("Py_rec_Py_sim_gem", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax, 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax);
-    CreateH2("Pz_rec_Pz_sim_gem", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * fPRangeBins, fPtRangeMin, 4, 4 * fPRangeBins, fPtRangeMin, 4);
-    CreateH2("Pt_rec_Pt_sim_gem", "P^{t}_{sim}, GeV/c", "P^{t}_{rec}, GeV/c", "", 4 * fPRangeBins, fPtRangeMin, 4, 4 * fPRangeBins, fPtRangeMin, 4);
-    CreateH2("Px_rec_Px_sim_glob", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax, 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax);
-    CreateH2("Py_rec_Py_sim_glob", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax, 4 * fPRangeBins, -fPtRangeMax, fPtRangeMax);
-    CreateH2("Pz_rec_Pz_sim_glob", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 4 * fPRangeBins, fPtRangeMin, 4, 4 * fPRangeBins, fPtRangeMin, 4);
-    CreateH2("Pt_rec_Pt_sim_glob", "P^{t}_{sim}, GeV/c", "P^{t}_{rec}, GeV/c", "", 4 * fPRangeBins, fPtRangeMin, 4, 4 * fPRangeBins, fPtRangeMin, 4);
-    CreateH2("Eta_rec_Eta_sim_gem", "#eta_{sim}", "#eta_{rec}", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
-    CreateH2("Eta_rec_Eta_sim_glob", "#eta_{sim}", "#eta_{rec}", "", 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax, 4 * fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
+    CreateH1("momRes_1D_gem", "P_{sim}, GeV/c", "#Delta P / P, #sigma, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("momRes_Mean_gem", "#Delta P / P, %", "Counter", 400, -10.0, 10.0);
+    CreateH2("P_rec_P_sim_gem", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 400, fPRangeMin, fPRangeMax, 400, fPRangeMin, fPRangeMax);
+    CreateH2("P_rec_P_sim_glob", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 400, fPRangeMin, fPRangeMax, 400, fPRangeMin, fPRangeMax);
+    CreateH2("Px_rec_Px_sim_gem", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 400, -fPtRangeMax, fPtRangeMax, 400, -fPtRangeMax, fPtRangeMax);
+    CreateH2("Py_rec_Py_sim_gem", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 400, -fPtRangeMax, fPtRangeMax, 400, -fPtRangeMax, fPtRangeMax);
+    CreateH2("Pz_rec_Pz_sim_gem", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 400, fPtRangeMin, 4, 400, fPtRangeMin, 4);
+    CreateH2("Pt_rec_Pt_sim_gem", "P^{t}_{sim}, GeV/c", "P^{t}_{rec}, GeV/c", "", 400, fPtRangeMin, 4, 400, fPtRangeMin, 4);
+    CreateH2("Px_rec_Px_sim_glob", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 400, -fPtRangeMax, fPtRangeMax, 400, -fPtRangeMax, fPtRangeMax);
+    CreateH2("Py_rec_Py_sim_glob", "P^{y}_{sim}, GeV/c", "P^{y}_{rec}, GeV/c", "", 400, -fPtRangeMax, fPtRangeMax, 400, -fPtRangeMax, fPtRangeMax);
+    CreateH2("Pz_rec_Pz_sim_glob", "P^{z}_{sim}, GeV/c", "P^{z}_{rec}, GeV/c", "", 400, fPtRangeMin, 4, 400, fPtRangeMin, 4);
+    CreateH2("Pt_rec_Pt_sim_glob", "P^{t}_{sim}, GeV/c", "P^{t}_{rec}, GeV/c", "", 400, fPtRangeMin, 4, 400, fPtRangeMin, 4);
+    CreateH2("Eta_rec_Eta_sim_gem", "#eta_{sim}", "#eta_{rec}", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fEtaRangeMin, fEtaRangeMax);
+    CreateH2("Eta_rec_Eta_sim_glob", "#eta_{sim}", "#eta_{rec}", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fEtaRangeMin, fEtaRangeMax);
 
-    CreateH2("Tx_rec_Tx_sim_gem", "T^{x}_{sim}", "T^{x}_{rec}", "", 4 * fPRangeBins, -1.0, 1.0, 4 * fPRangeBins, -1.0, 1.0);
-    CreateH2("Ty_rec_Ty_sim_gem", "T^{y}_{sim}", "T^{y}_{rec}", "", 4 * fPRangeBins, -1.0, 1.0, 4 * fPRangeBins, -1.0, 1.0);
-    CreateH2("Tx_rec_Tx_sim_glob", "T^{x}_{sim}", "T^{x}_{rec}", "", 4 * fPRangeBins, -1.0, 1.0, 4 * fPRangeBins, -1.0, 1.0);
-    CreateH2("Ty_rec_Ty_sim_glob", "T^{y}_{sim}", "T^{y}_{rec}", "", 4 * fPRangeBins, -1.0, 1.0, 4 * fPRangeBins, -1.0, 1.0);
+    CreateH2("Tx_rec_Tx_sim_gem", "T^{x}_{sim}", "T^{x}_{rec}", "", 400, -1.0, 1.0, 400, -1.0, 1.0);
+    CreateH2("Ty_rec_Ty_sim_gem", "T^{y}_{sim}", "T^{y}_{rec}", "", 400, -1.0, 1.0, 400, -1.0, 1.0);
+    CreateH2("Tx_rec_Tx_sim_glob", "T^{x}_{sim}", "T^{x}_{rec}", "", 400, -1.0, 1.0, 400, -1.0, 1.0);
+    CreateH2("Ty_rec_Ty_sim_glob", "T^{y}_{sim}", "T^{y}_{rec}", "", 400, -1.0, 1.0, 400, -1.0, 1.0);
+
+    CreateH2("Nh_sim_Eta_sim_gem", "Number of mc-points", "#eta_{sim}", "", nofBinsPoints, minNofPoints, maxNofPoints, 200, fEtaRangeMin, fEtaRangeMax);
+    CreateH2("Nh_rec_Eta_rec_gem", "Number of mc-points", "#eta_{sim}", "", nofBinsPoints, minNofPoints, maxNofPoints, 200, fEtaRangeMin, fEtaRangeMax);
+    CreateH2("Nh_sim_P_sim_gem", "Number of mc-points", "P_{sim}", "", nofBinsPoints, minNofPoints, maxNofPoints, 200, fPRangeMin, 2 * fPRangeMax);
+    CreateH2("Nh_rec_P_rec_gem", "Number of mc-points", "P_{sim}", "", nofBinsPoints, minNofPoints, maxNofPoints, 200, fPRangeMin, 2 * fPRangeMax);
+    CreateH2("Nh_sim_Theta_sim_gem", "Number of mc-points", "#theta_{sim}", "", nofBinsPoints, minNofPoints, maxNofPoints, 200, fThetaRangeMin, fThetaRangeMax);
+    CreateH2("Nh_rec_Theta_rec_gem", "Number of mc-points", "#theta_{sim}", "", nofBinsPoints, minNofPoints, maxNofPoints, 200, fThetaRangeMin, fThetaRangeMax);
 
 
     CreateH1("wellGemDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
@@ -489,15 +369,36 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("allGlobDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("EffGemDistr", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("EffGlobDistr", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("FakeGemDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("FakeGlobDistr", "P_{sim}, GeV/c", "Percent of ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("FakeGemDistr", "P_{sim}, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("FakeGlobDistr", "P_{sim}, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
 
     CreateH1("Eff_vs_P_gem", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Split_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("SplitEff_vs_P_gem", "P_{sim}, GeV/c", "Splits, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Sim_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Rec_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Ghost_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Well_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Fake_vs_P_gem", "P_{sim}, GeV/c", "Percent of ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Fake_vs_P_gem", "P_{sim}, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
+
+    CreateH1("Eff_vs_Eta_gem", "#eta_{sim}", "Efficiency, %", fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
+    CreateH1("Split_vs_Eta_gem", "#eta_{sim}", "Counter", fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
+    CreateH1("SplitEff_vs_Eta_gem", "#eta_{sim}", "Splits, %", fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
+    CreateH1("Sim_vs_Eta_gem", "#eta_{sim}", "Counter", fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
+    CreateH1("Rec_vs_Eta_gem", "#eta_{sim}", "Counter", fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
+    CreateH1("Ghost_vs_Eta_gem", "#eta_{sim}", "Counter", fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
+    CreateH1("Well_vs_Eta_gem", "#eta_{sim}", "Counter", fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
+    CreateH1("Fake_vs_Eta_gem", "#eta_{sim}", "Ghosts, %", fEtaRangeBins, fEtaRangeMin, fEtaRangeMax);
+
+    CreateH1("Eff_vs_Theta_gem", "#theta_{sim}", "Efficiency, %", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax);
+    CreateH1("Split_vs_Theta_gem", "#theta_{sim}", "Counter", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax);
+    CreateH1("SplitEff_vs_Theta_gem", "#theta_{sim}", "Splits, %", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax);
+    CreateH1("Sim_vs_Theta_gem", "#theta_{sim}", "Counter", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax);
+    CreateH1("Rec_vs_Theta_gem", "#theta_{sim}", "Counter", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax);
+    CreateH1("Ghost_vs_Theta_gem", "#theta_{sim}", "Counter", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax);
+    CreateH1("Well_vs_Theta_gem", "#theta_{sim}", "Counter", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax);
+    CreateH1("Fake_vs_Theta_gem", "#theta_{sim}", "Ghosts, %", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax);
+
     CreateH1("Ghost_vs_Nh_gem", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
     CreateH1("Well_vs_Nh_gem", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
 
@@ -506,118 +407,249 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Rec_vs_P_glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Ghost_vs_P_glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Well_vs_P_glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Fake_vs_P_glob", "P_{sim}, GeV/c", "Percent of ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Fake_vs_P_glob", "P_{sim}, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Ghost_vs_Nh_glob", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
     CreateH1("Well_vs_Nh_glob", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
 
-    //    cout << fHM->ToString();
+    CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 50, 400, -10, 10);
+    CreateH2("MomRes_vs_Length_gem", "Length, cm", "#Delta P / P, %", "", 400, 0, 400, 400, -10, 10);
+    CreateH2("Mom_vs_Chi2_gem", "#chi^{2}", "P_{rec}, GeV/c", "", 400, 0, 50, 400, fPRangeMin, fPRangeMax);
+    CreateH2("Mom_vs_Length_gem", "Length, cm", "P_{rec}, GeV/c", "", 400, 0, 400, 400, fPRangeMin, fPRangeMax);
+    CreateH1("Chi2_gem", "#chi^{2} / NDF", "Counter", 400, 0, 100);
+    CreateH1("Length_gem", "length, cm", "Counter", 400, 0, 400);
+
+    CreateH1("VertResX_gem", "#DeltaV^{0}_{x}, cm", "Counter", 100, -0.5, 0.5);
+    CreateH1("VertResY_gem", "#DeltaV^{0}_{y}, cm", "Counter", 100, -0.5, 0.5);
+    CreateH1("VertResZ_gem", "#DeltaV^{0}_{z}, cm", "Counter", 100, -2, 2);
+
+    CreateH2("Eff_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
+    CreateH2("Clones_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
+    CreateH2("Fakes_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
+
+    //for first parameters
+    CreateH1("ResX_f_gem", "Residual X, cm", "", 100, -20, 20);
+    CreateH1("ResY_f_gem", "Residual Y, cm", "", 100, -20, 20);
+    CreateH1("ResTx_f_gem", "Residual t_{x}", "", 100, -0.5, 0.5);
+    CreateH1("ResTy_f_gem", "Residual t_{y}", "", 100, -0.5, 0.5);
+    CreateH1("ResQp_f_gem", "Residual q/p, (GeV/c)^{-1}", "", 100, -10.0, 10.0);
+    CreateH1("PullX_f_gem", "Pull X", "", 100, -4.0, 4.0);
+    CreateH1("PullY_f_gem", "Pull Y", "", 100, -4.0, 4.0);
+    CreateH1("PullTx_f_gem", "Pull t_{x}", "", 100, -4.0, 4.0);
+    CreateH1("PullTy_f_gem", "Pull t_{y}", "", 100, -4.0, 4.0);
+    CreateH1("PullQp_f_gem", "Pull q/p", "", 100, -4.0, 4.0);
+    //for last parameters
+    CreateH1("ResX_l_gem", "Residual X, cm", "", 100, -20, 20);
+    CreateH1("ResY_l_gem", "Residual Y, cm", "", 100, -20, 20);
+    CreateH1("ResTx_l_gem", "Residual t_{x}", "", 100, -0.5, 0.5);
+    CreateH1("ResTy_l_gem", "Residual t_{y}", "", 100, -0.5, 0.5);
+    CreateH1("ResQp_l_gem", "Residual q/p, (GeV/c)^{-1}", "", 100, -10.0, 10.0);
+    CreateH1("PullX_l_gem", "Pull X", "", 100, -4.0, 4.0);
+    CreateH1("PullY_l_gem", "Pull Y", "", 100, -4.0, 4.0);
+    CreateH1("PullTx_l_gem", "Pull t_{x}", "", 100, -4.0, 4.0);
+    CreateH1("PullTy_l_gem", "Pull t_{y}", "", 100, -4.0, 4.0);
+    CreateH1("PullQp_l_gem", "Pull q/p", "", 100, -4.0, 4.0);
+
+    CreateH1("X_f_gem", "X, cm", "", 100, -100, 100);
+    CreateH1("Y_f_gem", "Y, cm", "", 100, -100, 100);
+    CreateH1("Tx_f_gem", "t_{x}", "", 100, -1.0, 1.0);
+    CreateH1("Ty_f_gem", "t_{y}", "", 100, -1.0, 1.0);
+    CreateH1("Qp_f_gem", "q/p, (GeV/c)^{-1}", "", 100, -20.0, 20.0);
+    CreateH1("X_l_gem", "X, cm", "", 100, -100, 100);
+    CreateH1("Y_l_gem", "Y, cm", "", 100, -100, 100);
+    CreateH1("Tx_l_gem", "t_{x}", "", 100, -1.0, 1.0);
+    CreateH1("Ty_l_gem", "t_{y}", "", 100, -1.0, 1.0);
+    CreateH1("Qp_l_gem", "q/p, (GeV/c)^{-1}", "", 100, -20.0, 20.0);
 }
 
 void BmnTrackingQa::ProcessGem() {
-    //    vector<Int_t> refs;
-    //    vector<Int_t> splits;
+    vector<Int_t> refs;
+    vector<Int_t> splits;
+
+    CbmVertex* vrt = (CbmVertex*) fVertex->At(0);
+
+    if (vrt != NULL) {
+        FairMCEventHeader* evHead = (FairMCEventHeader*) FairRootManager::Instance()->GetObject("MCEventHeader.");
+        fHM->H1("VertResX_gem")->Fill(vrt->GetX() - evHead->GetX());
+        fHM->H1("VertResY_gem")->Fill(vrt->GetY() - evHead->GetY());
+        fHM->H1("VertResZ_gem")->Fill(vrt->GetZ() - evHead->GetZ());
+    }
+
     for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
         BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
+        if (track->GetFlag() == kBMNBAD) continue;
         BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
         if (!track || !gemTrackMatch) continue;
-        if (gemTrackMatch->GetNofLinks() == 0) continue;
+        if (gemTrackMatch->GetNofLinks() == 0) continue;       
         Int_t gemMCId = gemTrackMatch->GetMatchedLink().GetIndex();
-        CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(gemMCId));
-        if (!mcTrack) continue;
-        Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
-        if (fPrimes && mcTrack->GetMotherId() != -1) continue;
-        //        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
-        //        if (it != refs.end()) {
-        //            //            cout << track->GetRef() << endl;
-        //            splits.push_back(track->GetRef());
-        //        } else
-        //            refs.push_back(track->GetRef());
-        //        cout << "\nN true hits = " << gemTrackMatch->GetNofTrueHits() << " | N wrong hits = " << gemTrackMatch->GetNofWrongHits() << " | N all hits = " << gemTrackMatch->GetNofHits() << endl;
-        //        for (Int_t i = 0; i < track->GetNHits(); ++i) {
-        //            BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
-        //            FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
-        //            cout << point->GetTrackID() << " ";
-        //        }
 
-        Float_t P_sim = mcTrack->GetP();
-        if (P_sim < 0.1) continue; //calculate efficiency only for tracks with momentum > 50 MeV/c
-        Float_t P_rec = Abs(1.0 / track->GetParamFirst()->GetQp());
-        //        Short_t pSign = (track->GetParamFirst()->GetQp() < 0.0) ? -1 : 1;
-        if (P_rec < 0.1) continue; //calculate efficiency only for tracks with momentum > 50 MeV/c
-        Float_t Px_sim = mcTrack->GetPx();
-        Float_t Py_sim = mcTrack->GetPy();
-        Float_t Pz_sim = mcTrack->GetPz();
+        if (!fMCTrackCreator->TrackExists(gemMCId)) continue;
+        const BmnMCTrack mcTrack = fMCTrackCreator->GetTrack(gemMCId);
+        const BmnMCPoint pnt = mcTrack.GetPoint(kGEM, 0);
+        const BmnMCPoint pntLast = mcTrack.GetPoint(kGEM, mcTrack.GetNofPoints(kGEM) - 1);
+        if (fPrimes && ((CbmMCTrack*) (fMCTracks->At(gemMCId)))->GetMotherId() != -1) continue;
+
+        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), gemMCId);
+        if (it != refs.end() && gemMCId != -1) {
+            splits.push_back(gemMCId);
+        } else
+            refs.push_back(gemMCId);
+
+        Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota && track->GetNHits() >= fMinNofPointsGem;
+        Float_t Px_sim = pnt.GetPx(); //mcTrack->GetPx();
+        Float_t Py_sim = pnt.GetPy(); //mcTrack->GetPy();
+        Float_t Pz_sim = pnt.GetPz(); //mcTrack->GetPz();
+        Float_t P_sim = pnt.GetP(); //Sqrt(Px_sim * Px_sim + Py_sim * Py_sim + Pz_sim * Pz_sim); //mcTrack->GetP();
+        Float_t Pt_sim = Sqrt(Px_sim * Px_sim + Pz_sim * Pz_sim);
+        Float_t Pxy_sim = Sqrt(Px_sim * Px_sim + Py_sim * Py_sim);
         Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
+        Float_t Theta_sim = ATan2(Pxy_sim, Pz_sim) * RadToDeg();
+        Int_t N_sim = mcTrack.GetNofPoints(kGEM);
+
+        Float_t P_rec = Abs(1.0 / track->GetParamFirst()->GetQp());
         Float_t Tx = track->GetParamFirst()->GetTx();
         Float_t Ty = track->GetParamFirst()->GetTy();
         Float_t Pz_rec = P_rec / Sqrt(Tx * Tx + Ty * Ty + 1);
         Float_t Px_rec = Pz_rec * Tx;
         Float_t Py_rec = Pz_rec * Ty;
+        Float_t Pxy_rec = Sqrt(Px_rec * Px_rec + Py_rec * Py_rec);
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
-        
+        Float_t Theta_rec = ATan2(Pxy_rec, Pz_rec) * RadToDeg();
+        Int_t N_rec = track->GetNHits();
+
         fHM->H1("Rec_vs_P_gem")->Fill(P_sim);
+        fHM->H1("Rec_vs_Eta_gem")->Fill(Eta_sim);
+        fHM->H1("Rec_vs_Theta_gem")->Fill(Theta_sim);
+        fHM->H2("Nh_rec_Eta_rec_gem")->Fill(N_sim, Eta_sim);
+        fHM->H2("Nh_rec_P_rec_gem")->Fill(N_sim, P_sim);
+        fHM->H2("Nh_rec_Theta_rec_gem")->Fill(N_sim, Theta_sim);
+
         if (!isTrackOk) {
             fHM->H1("Ghost_vs_P_gem")->Fill(P_sim);
-            fHM->H1("Ghost_vs_Nh_gem")->Fill(track->GetNHits());
+            fHM->H1("Ghost_vs_Eta_gem")->Fill(Eta_sim);
+            fHM->H1("Ghost_vs_Theta_gem")->Fill(Theta_sim);
+            fHM->H1("Ghost_vs_Nh_gem")->Fill(N_rec);
+            fHM->H1("Fakes_vs_EtaP_gem")->Fill(Eta_sim, P_sim);
         } else {
             fHM->H1("Well_vs_P_gem")->Fill(P_sim);
-            fHM->H1("Well_vs_Nh_gem")->Fill(track->GetNHits());
+            fHM->H1("Well_vs_Eta_gem")->Fill(Eta_sim);
+            fHM->H1("Well_vs_Theta_gem")->Fill(Theta_sim);
+            fHM->H1("Well_vs_Nh_gem")->Fill(N_rec);
 
+            Float_t chi2 = track->GetChi2() / track->GetNDF();
             fHM->H2("momRes_2D_gem")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
+            fHM->H2("MomRes_vs_Chi2_gem")->Fill(chi2, (P_sim - P_rec) / P_sim * 100.0);
+            fHM->H2("MomRes_vs_Length_gem")->Fill(track->GetLength(), (P_sim - P_rec) / P_sim * 100.0);
+            fHM->H2("Mom_vs_Chi2_gem")->Fill(chi2, P_rec);
+            fHM->H2("Mom_vs_Length_gem")->Fill(track->GetLength(), P_rec);
+            fHM->H1("Chi2_gem")->Fill(chi2);
+            fHM->H1("Length_gem")->Fill(track->GetLength());
             fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec);
             fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec);
             fHM->H2("Px_rec_Px_sim_gem")->Fill(Px_sim, Px_rec);
             fHM->H2("Py_rec_Py_sim_gem")->Fill(Py_sim, Py_rec);
-            fHM->H2("Pt_rec_Pt_sim_gem")->Fill(Sqrt(Px_sim * Px_sim + Pz_sim * Pz_sim), Pz_rec * Sqrt(1 + Tx * Tx));
+            fHM->H2("Pt_rec_Pt_sim_gem")->Fill(Pt_sim, Pz_rec * Sqrt(1 + Tx * Tx));
             fHM->H2("Tx_rec_Tx_sim_gem")->Fill(Px_sim / Pz_sim, Tx);
             fHM->H2("Ty_rec_Ty_sim_gem")->Fill(Py_sim / Pz_sim, Ty);
             fHM->H2("Pz_rec_Pz_sim_gem")->Fill(Pz_sim, Pz_rec);
             fHM->H2("EtaP_rec_gem")->Fill(Eta_rec, P_rec);
-            fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
+            fHM->H2("ThetaP_rec_gem")->Fill(Theta_rec, P_rec);
+
+            FairTrackParam* pf = track->GetParamFirst();
+            FairTrackParam* pl = track->GetParamLast();
+
+            Double_t cov[15];
+
+            pf->CovMatrix(cov);
+            //first parameters
+            fHM->H1("ResX_f_gem")->Fill(pnt.GetX() - pf->GetX());
+            fHM->H1("ResY_f_gem")->Fill(pnt.GetY() - pf->GetY());
+            fHM->H1("ResTx_f_gem")->Fill(pnt.GetTx() - pf->GetTx());
+            fHM->H1("ResTy_f_gem")->Fill(pnt.GetTy() - pf->GetTy());
+            fHM->H1("ResQp_f_gem")->Fill(pnt.GetQp() - pf->GetQp());
+            fHM->H1("PullX_f_gem")->Fill((pnt.GetX() - pf->GetX()) / Sqrt(cov[0]));
+            fHM->H1("PullY_f_gem")->Fill((pnt.GetY() - pf->GetY()) / Sqrt(cov[5]));
+            fHM->H1("PullTx_f_gem")->Fill((pnt.GetTx() - pf->GetTx()) / Sqrt(cov[9]));
+            fHM->H1("PullTy_f_gem")->Fill((pnt.GetTy() - pf->GetTy()) / Sqrt(cov[12]));
+            fHM->H1("PullQp_f_gem")->Fill((pnt.GetQp() - pf->GetQp()) / Sqrt(cov[14]));
+
+            pl->CovMatrix(cov);
+            //last parameters
+            fHM->H1("ResX_l_gem")->Fill(pntLast.GetX() - pl->GetX());
+            fHM->H1("ResY_l_gem")->Fill(pntLast.GetY() - pl->GetY());
+            fHM->H1("ResTx_l_gem")->Fill(pntLast.GetTx() - pl->GetTx());
+            fHM->H1("ResTy_l_gem")->Fill(pntLast.GetTy() - pl->GetTy());
+            fHM->H1("ResQp_l_gem")->Fill(pntLast.GetQp() - pl->GetQp());
+            fHM->H1("PullX_l_gem")->Fill((pntLast.GetX() - pl->GetX()) / Sqrt(cov[0]));
+            fHM->H1("PullY_l_gem")->Fill((pntLast.GetY() - pl->GetY()) / Sqrt(cov[5]));
+            fHM->H1("PullTx_l_gem")->Fill((pntLast.GetTx() - pl->GetTx()) / Sqrt(cov[9]));
+            fHM->H1("PullTy_l_gem")->Fill((pntLast.GetTy() - pl->GetTy()) / Sqrt(cov[12]));
+            fHM->H1("PullQp_l_gem")->Fill((pntLast.GetQp() - pl->GetQp()) / Sqrt(cov[14]));
+
+            fHM->H1("X_f_gem")->Fill(pf->GetX());
+            fHM->H1("Y_f_gem")->Fill(pf->GetY());
+            fHM->H1("Tx_f_gem")->Fill(pf->GetTx());
+            fHM->H1("Ty_f_gem")->Fill(pf->GetTy());
+            fHM->H1("Qp_f_gem")->Fill(pf->GetQp());
+
+            fHM->H1("X_l_gem")->Fill(pl->GetX());
+            fHM->H1("Y_l_gem")->Fill(pl->GetY());
+            fHM->H1("Tx_l_gem")->Fill(pl->GetTx());
+            fHM->H1("Ty_l_gem")->Fill(pl->GetTy());
+            fHM->H1("Qp_l_gem")->Fill(pl->GetQp());
         }
     }
-    Int_t momResStep = 5;
-    for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D_gem")->GetNbinsX(); iBin += momResStep) {
-        TH1D* proj = fHM->H2("momRes_2D_gem")->ProjectionY("tmp", iBin, iBin + (momResStep - 1));
-        proj->Fit("gaus", "SQww", "", 0.0, 20.0);
-        TF1 *fit = proj->GetFunction("gaus");
-        Float_t mean = (fit->GetParameter(1) < 100.0) ? fit->GetParameter(1) : 0.0;
-        fHM->H1("momRes_1D_gem")->SetBinContent(iBin, mean);
-//                fHM->H1("momRes_1D_gem")->SetBinContent(iBin, proj->GetBinCenter(proj->GetMaximumBin()));
+
+    for (Int_t i = 0; i < splits.size(); ++i) { //FIXME!!!
+        if (!fMCTrackCreator->TrackExists(i)) continue;
+        const BmnMCTrack mcTrack = fMCTrackCreator->GetTrack(i);
+        if (fPrimes && ((const CbmMCTrack*) (fMCTracks->At(i)))->GetMotherId() != -1) continue;
+        if (mcTrack.GetNofPoints(kGEM) < fMinNofPointsGem) continue;
+        const BmnMCPoint mcPoint = mcTrack.GetPoint(kGEM, 0);
+
+        Float_t Px = mcPoint.GetPx(); //mcTrack->GetPx();
+        Float_t Py = mcPoint.GetPy(); //mcTrack->GetPy();
+        Float_t Pz = mcPoint.GetPz(); //mcTrack->GetPz();
+        Float_t P =  mcPoint.GetP(); //mcTrack->GetP();
+        Float_t Pxy = Sqrt(Px * Px + Py * Py);
+        Float_t eta = 0.5 * Log((P + Pz) / (P - Pz));
+        Float_t theta = ATan2(Pxy, Pz) * RadToDeg();
+
+        fHM->H1("Split_vs_P_gem")->Fill(P);
+        fHM->H1("Split_vs_Eta_gem")->Fill(eta);
+        fHM->H1("Split_vs_Theta_gem")->Fill(theta);
+        fHM->H1("Well_vs_P_gem")->Fill(P, -1); //remove splitted tracks from efficiency
+        fHM->H1("Well_vs_Eta_gem")->Fill(eta, -1); //remove splitted tracks from efficiency
+        fHM->H1("Well_vs_Theta_gem")->Fill(theta, -1); //remove splitted tracks from efficiency
+        fHM->H2("Eff_vs_EtaP_gem")->Fill(eta, P, -1);
+        fHM->H2("Clones_vs_EtaP_gem")->Fill(eta, P);
     }
 
-    //    for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
-    //        BmnGemTrack* track = (BmnGemTrack*) (fGemTracks->At(iTrack));
-    //        CbmMCTrack* mcTrack = (CbmMCTrack*) (fMCTracks->At(track->GetRef()));
-    //        BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
-    //        vector<Int_t>::iterator it = find(refs.begin(), refs.end(), track->GetRef());
-    //        //            cout << track->GetRef() << endl;
-    //        for (Int_t i = 0; i < splits.size(); ++i) {
-    //            if (splits.at(i) == track->GetRef()) {
-    //                cout << "TRACK_ID = " << track->GetRef() << endl;
-    //                for (Int_t i = 0; i < track->GetNHits(); ++i) {
-    //                    BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
-    //                    FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
-    //                    cout << point->GetTrackID() << " ";
-    //                }
-    //                cout << endl;
-    //                track->Print();
-    //            }
-    //        }
-    //
-    //        //        cout << "\nN true hits = " << gemTrackMatch->GetNofTrueHits() << " | N wrong hits = " << gemTrackMatch->GetNofWrongHits() << " | N all hits = " << gemTrackMatch->GetNofHits() << endl;
-    //        //        for (Int_t i = 0; i < track->GetNHits(); ++i) {
-    //        //            BmnGemHit* hit = (BmnGemHit*) fGemHits->At(track->GetHitIndex(i));
-    //        //            FairMCPoint* point = (FairMCPoint*) fGemPoints->At(hit->GetRefIndex());
-    //        //            cout << point->GetTrackID() << " ";
-    //        //        }
-    //    }
-
     for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
-        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(iTrack));
-        if (mcTrack->GetNPoints(kGEM) < fMinNofPointsGem) continue;
-        if (fPrimes && mcTrack->GetMotherId() != -1) continue;
-        fHM->H1("Sim_vs_P_gem")->Fill(mcTrack->GetP());
+
+        if (!fMCTrackCreator->TrackExists(iTrack)) continue;
+        const BmnMCTrack mcTrack = fMCTrackCreator->GetTrack(iTrack);
+        if (mcTrack.GetNofPoints(kGEM) < fMinNofPointsGem) continue;
+
+        if (fPrimes && ((const CbmMCTrack*) (fMCTracks->At(iTrack)))->GetMotherId() != -1) continue;
+
+        const BmnMCPoint pnt = mcTrack.GetPoint(kGEM, 0);
+
+        Float_t Px = pnt.GetPx();
+        Float_t Py = pnt.GetPy();
+        Float_t Pz = pnt.GetPz();
+        Float_t P = pnt.GetP();
+        Float_t Pxy = Sqrt(Px * Px + Py * Py);
+        Float_t eta = 0.5 * Log((P + Pz) / (P - Pz));
+        Float_t theta = ATan2(Pxy, Pz) * RadToDeg();
+
+        fHM->H2("EtaP_sim")->Fill(eta, P);
+        fHM->H2("ThetaP_sim")->Fill(theta, P);
+        fHM->H1("Sim_vs_P_gem")->Fill(P);
+        fHM->H1("Sim_vs_Eta_gem")->Fill(eta);
+        fHM->H1("Sim_vs_Theta_gem")->Fill(theta);
+        fHM->H2("Nh_sim_Eta_sim_gem")->Fill(mcTrack.GetNofPoints(kGEM), eta);
+        fHM->H2("Nh_sim_Theta_sim_gem")->Fill(mcTrack.GetNofPoints(kGEM), theta);
+        fHM->H2("Nh_sim_P_sim_gem")->Fill(mcTrack.GetNofPoints(kGEM), P);
     }
 }
 
@@ -634,29 +666,31 @@ void BmnTrackingQa::ProcessGlobal() {
         if (fPrimes && mcTrack->GetMotherId() != -1) continue;
         //        cout << "N true hits = " << globTrackMatch->GetNofTrueHits() << " | N wrong hits = " << globTrackMatch->GetNofWrongHits() << " | N all hits = " << globTrackMatch->GetNofHits() << endl;
         Float_t P_sim = mcTrack->GetP();
-        if (P_sim < 0.1) continue; //calculate efficiency only for tracks with momentum > 50 MeV/c
+        if (P_sim < fPCut) continue; //calculate efficiency only for tracks with momentum > 100 MeV/c
         Float_t P_rec = Abs(1.0 / track->GetParamFirst()->GetQp());
-        if (P_rec < 0.1) continue; //calculate efficiency only for tracks with momentum > 50 MeV/c
+        if (P_rec < fPCut) continue; //calculate efficiency only for tracks with momentum > 100 MeV/c
         Float_t Px_sim = mcTrack->GetPx();
         Float_t Py_sim = mcTrack->GetPy();
         Float_t Pz_sim = mcTrack->GetPz();
         Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
+        if (Eta_sim > fEtaCut) continue; //exclude spectators from efficiency calculation
         Float_t Tx = track->GetParamFirst()->GetTx();
         Float_t Ty = track->GetParamFirst()->GetTy();
         Float_t Pz_rec = P_rec / Sqrt(Tx * Tx + Ty * Ty + 1);
         Float_t Px_rec = Pz_rec * Tx;
         Float_t Py_rec = Pz_rec * Ty;
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
-        
+        if (Eta_rec > fEtaCut) continue; //exclude spectators from efficiency calculation
+
         fHM->H1("Rec_vs_P_glob")->Fill(P_sim);
-        
+
         if (!isTrackOk) {
             fHM->H1("Ghost_vs_P_glob")->Fill(P_sim);
-            fHM->H1("Ghost_vs_Nh_glob")->Fill(track->GetNofHits());
+            fHM->H1("Ghost_vs_Nh_glob")->Fill(track->GetNHits());
         } else {
             fHM->H1("Well_vs_P_glob")->Fill(P_sim);
-            fHM->H1("Well_vs_Nh_glob")->Fill(track->GetNofHits());
-            
+            fHM->H1("Well_vs_Nh_glob")->Fill(track->GetNHits());
+
             fHM->H2("momRes_2D_glob")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec);
             fHM->H2("Eta_rec_Eta_sim_glob")->Fill(Eta_sim, Eta_rec);
@@ -679,171 +713,14 @@ void BmnTrackingQa::ProcessGlobal() {
         const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(iTrack));
         if (mcTrack->GetNPoints(kGEM) < fMinNofPointsGem) continue;
         if (fPrimes && mcTrack->GetMotherId() != -1) continue;
+        if (mcTrack->GetP() < fPCut) continue; //calculate efficiency only for tracks with momentum > 100 MeV/c
+        if (0.5 * Log((mcTrack->GetP() + mcTrack->GetPz()) / (mcTrack->GetP() - mcTrack->GetPz())) > fEtaCut) continue; //exclude spectators from efficiency calculation
         fHM->H1("Sim_vs_P_glob")->Fill(mcTrack->GetP());
     }
 }
 
-//void BmnTrackingQa::ProcessGlobalTracks() {
-//    // Clear all maps for MC to reco matching
-//    map<string, multimap<Int_t, Int_t> >::iterator it;
-//    for (it = fMcToRecoMap.begin(); it != fMcToRecoMap.end(); it++) {
-//        multimap<Int_t, Int_t>& mcRecoMap = (*it).second;
-//        mcRecoMap.clear();
-//        //(*it).second.clear();
-//    }
-//
-//    for (Int_t iTrack = 0; iTrack < fGlobalTracks->GetEntriesFast(); iTrack++) {
-//        const BmnGlobalTrack* globalTrack = (const BmnGlobalTrack*) (fGlobalTracks->At(iTrack));
-//        if (globalTrack->GetFlag() == kBMNBAD) continue;
-//
-//        // get track segments indices
-//        Int_t gemId = globalTrack->GetGemTrackIndex();
-//        Int_t tof1Id = globalTrack->GetTof1HitIndex();
-//        Int_t tof2Id = globalTrack->GetTof2HitIndex();
-//        Int_t dch1Id = globalTrack->GetDch1HitIndex();
-//        Int_t dch2Id = globalTrack->GetDch2HitIndex();
-//
-//        // check track segments
-//        Bool_t isGemOk = gemId > -1 && fDet.GetDet(kGEM);
-//        Bool_t isSeedOk = gemId > -1 && fDet.GetDet(kGEM);
-//        Bool_t isTof1Ok = tof1Id > -1 && fDet.GetDet(kTOF1) && fTof1Hits;
-//        Bool_t isTof2Ok = tof2Id > -1 && fDet.GetDet(kTOF) && fTof2Hits;
-//        Bool_t isDch1Ok = dch1Id > -1 && fDet.GetDet(kDCH1) && fDch1Hits;
-//        Bool_t isDch2Ok = dch2Id > -1 && fDet.GetDet(kDCH2) && fDch2Hits;
-//
-//        Float_t P_rec_glob = Abs(1.0 / globalTrack->GetParamFirst()->GetQp());
-//        Float_t Tx_glob = globalTrack->GetParamFirst()->GetTx();
-//        Float_t Ty_glob = globalTrack->GetParamFirst()->GetTy();
-//        Float_t Pz_rec_glob = P_rec_glob / Sqrt(Tx_glob * Tx_glob + Ty_glob * Ty_glob + 1);
-//        Float_t Px_rec_glob = Pz_rec_glob * Tx_glob;
-//        Float_t Py_rec_glob = Pz_rec_glob * Ty_glob;
-//        Float_t Eta_rec_glob = 0.5 * Log((P_rec_glob + Pz_rec_glob) / (P_rec_glob - Pz_rec_glob));
-//
-//        Int_t refId = globalTrack->GetRefId();
-//        if (refId < 0) continue;
-//        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(refId));
-//        Float_t P_sim = mcTrack->GetP();
-//        Float_t Px_sim = mcTrack->GetPx();
-//        Float_t Py_sim = mcTrack->GetPy();
-//        Float_t Pz_sim = mcTrack->GetPz();
-//        Float_t Eta_sim = 0.5 * Log((P_sim + Pz_sim) / (P_sim - Pz_sim));
-//
-//        Float_t Eta_rec_seed, Eta_rec_gem;
-//        Float_t P_rec_seed, P_rec_gem;
-//        if (isGemOk) {
-//            BmnGemTrack* gemTrack = (BmnGemTrack*) (fGemTracks->At(gemId));
-//            P_rec_gem = Abs(1.0 / gemTrack->GetParamFirst()->GetQp());
-//            Float_t Tx_gem = gemTrack->GetParamFirst()->GetTx();
-//            Float_t Ty_gem = gemTrack->GetParamFirst()->GetTy();
-//            Float_t Pz_rec_gem = P_rec_gem / Sqrt(Tx_gem * Tx_gem + Ty_gem * Ty_gem + 1);
-//            Float_t Px_rec_gem = Pz_rec_gem * Tx_gem;
-//            Eta_rec_gem = 0.5 * Log((P_rec_gem + Pz_rec_gem) / (P_rec_gem - Pz_rec_gem));
-//            fHM->H2("EtaP_rec_gem")->Fill(Eta_rec_gem, P_rec_gem);
-//            fHM->H2("P_rec_P_sim_gem")->Fill(P_sim, P_rec_gem);
-//            fHM->H2("Eta_rec_Eta_sim_gem")->Fill(Eta_sim, Eta_rec_gem);
-//        }
-//
-//        if (isSeedOk) {
-//            BmnGemTrack* gemSeed = (BmnGemTrack*) (fGemSeeds->At(gemId));
-//            P_rec_seed = Abs(1.0 / gemSeed->GetParamFirst()->GetQp());
-//            Float_t Tx_seed = gemSeed->GetParamFirst()->GetTx();
-//            Float_t Ty_seed = gemSeed->GetParamFirst()->GetTy();
-//            Float_t Pz_rec_seed = P_rec_seed / Sqrt(Tx_seed * Tx_seed + Ty_seed * Ty_seed + 1);
-//            Float_t Py_rec_seed = Pz_rec_seed * Ty_seed;
-//            Eta_rec_seed = 0.5 * Log((P_rec_seed + Pz_rec_seed) / (P_rec_seed - Pz_rec_seed));
-//            fHM->H2("EtaP_rec_seed")->Fill(Eta_rec_seed, P_rec_seed);
-//            fHM->H2("P_rec_P_sim_seed")->Fill(P_sim, P_rec_seed);
-//            fHM->H2("Eta_rec_Eta_sim_seed")->Fill(Eta_sim, Eta_rec_seed);
-//        }
-//
-//        //        fHM->H2("momRes_2D")->Fill(P_sim, Abs(P_sim - P_rec_glob) / P_sim * 100.0);
-//        //        fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec_glob);
-//        //        fHM->H2("Eta_rec_Eta_sim_glob")->Fill(Eta_sim, Eta_rec_glob);
-//        //        fHM->H2("Px_rec_Px_sim")->Fill(Px_sim, Px_rec_glob);
-//        //        fHM->H2("Py_rec_Py_sim")->Fill(Py_sim, Py_rec_glob);
-//        //        fHM->H2("Pz_rec_Pz_sim")->Fill(Pz_sim, Pz_rec_glob);
-//        //        fHM->H2("EtaP_rec_glob")->Fill(Eta_rec_glob, P_rec_glob);
-//        //        fHM->H2("EtaP_sim")->Fill(Eta_sim, P_sim);
-//        //        for (Int_t iBin = 0; iBin < fHM->H2("momRes_2D")->GetNbinsX(); iBin += 1) {
-//        //            fHM->H2("momRes_1D")->SetBinContent(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetMean());
-//        //            fHM->H2("momRes_1D")->SetBinError(iBin, fHM->H2("momRes_2D")->ProjectionY("tmp", iBin, iBin)->GetStdDev(1));
-//        //            //            fHM->H2("momRes_1D")->SetBinError(iBin, 0.0); //FIXME! MAKE CORRECT CALCULATION OF ERRORS! 
-//        //        }
-//
-//        // check the quality of global track ---->
-//        const BmnTrackMatch* glTrackMatch = (const BmnTrackMatch*) (fGlobalTrackMatches->At(iTrack));
-//        if (!glTrackMatch) continue;
-//        Bool_t isTrackOk = glTrackMatch->GetTrueOverAllHitsRatio() >= fQuota;
-//        if (!isTrackOk) { // ghost track
-//            fHM->H1("ghostGlobDistr")->Fill(P_sim);
-//        }
-//        fHM->H1("recoGlobDistr")->Fill(P_sim);
-//        // <---- check the quality of global track
-//
-//        //check the quality of track segments
-//        const BmnTrackMatch* gemTrackMatch;
-//        const BmnTrackMatch* gemSeedMatch;
-//        if (isGemOk) {
-//            //            cout << "N fGemMatches = " << fGemMatches->GetEntriesFast() << endl;
-//            gemTrackMatch = (const BmnTrackMatch*) (fGemMatches->At(gemId));
-//            isGemOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota; //CheckTrackQuality(stsTrackMatch, kGEM);
-//            FillTrackQualityHistograms(gemTrackMatch, kGEM);
-//            if (!isGemOk) { // ghost track
-//                Int_t nofHits = gemTrackMatch->GetNofHits();
-//                fHM->H1("hng_NofGhosts_Gem_Nh")->Fill(nofHits);
-//                fHM->H1("ghostGemDistr")->Fill(P_sim);
-//            } else {
-//                fHM->H1("wellGemDistr")->Fill(P_sim);
-//            }
-//            fHM->H1("recoGemDistr")->Fill(P_sim);
-//        }
-//
-//        // Get MC indices of track segments
-//        Int_t gemMCId = -1, tof1MCId = -1, tof2MCId = -1, dch1MCId = -1, dch2MCId = -1;
-//        if (isGemOk) {
-//            gemMCId = gemTrackMatch->GetMatchedLink().GetIndex();
-//        }
-//        if (isTof1Ok) {
-//            const BmnHit* tofHit = (const BmnHit*) (fTof1Hits->At(tof1Id));
-//            const FairMCPoint* tofPoint = (const FairMCPoint*) (fTof1Points->At(tofHit->GetRefIndex()));
-//            if (tofPoint != NULL) tof1MCId = tofPoint->GetTrackID();
-//        }
-//        if (isTof2Ok) {
-//            const BmnHit* tofHit = (const BmnHit*) (fTof2Hits->At(tof2Id));
-//            const FairMCPoint* tofPoint = (const FairMCPoint*) (fTof2Points->At(tofHit->GetRefIndex()));
-//            if (tofPoint != NULL) tof2MCId = tofPoint->GetTrackID();
-//        }
-//        if (isDch1Ok) {
-//            const BmnHit* dchHit = (const BmnHit*) (fDch1Hits->At(dch1Id));
-//            const FairMCPoint* dchPoint = (const FairMCPoint*) (fDch1Points->At(dchHit->GetRefIndex()));
-//            if (dchPoint != NULL) dch1MCId = dchPoint->GetTrackID();
-//        }
-//        if (isDch2Ok) {
-//            const BmnHit* dchHit = (const BmnHit*) (fDch2Hits->At(dch2Id));
-//            const FairMCPoint* dchPoint = (const FairMCPoint*) (fDch2Points->At(dchHit->GetRefIndex()));
-//            if (dchPoint != NULL) dch2MCId = dchPoint->GetTrackID();
-//        }
-//
-//        map<string, multimap<Int_t, Int_t> >::iterator it;
-//        for (it = fMcToRecoMap.begin(); it != fMcToRecoMap.end(); it++) {
-//            string name = (*it).first;
-//            multimap<Int_t, Int_t>& mcRecoMap = (*it).second;
-//            Bool_t gem = (name.find("Gem") != string::npos) ? isGemOk && gemMCId != -1 : kTRUE;
-//            Bool_t tof1 = (name.find("Tof1") != string::npos) ? isTof1Ok && gemMCId == tof1MCId : kTRUE;
-//            Bool_t tof2 = (name.find("Tof2") != string::npos) ? isTof2Ok && gemMCId == tof2MCId : kTRUE;
-//            Bool_t dch1 = (name.find("Dch1") != string::npos) ? isDch1Ok && gemMCId == dch1MCId : kTRUE;
-//            Bool_t dch2 = (name.find("Dch2") != string::npos) ? isDch2Ok && gemMCId == dch2MCId : kTRUE;
-//
-//            if (gem && tof1 && tof2 && dch1 && dch2) {
-//                pair<Int_t, Int_t> tmp = make_pair(gemMCId, iTrack);
-//                mcRecoMap.insert(tmp);
-//            }
-//        }
-//    }
-//}
-
 void BmnTrackingQa::FillTrackQualityHistograms(const BmnTrackMatch* trackMatch, DetectorId detId) {
-    string detName = (detId == kGEM) ? "Gem" : (detId == kTOF1) ? "Tof1" : (detId == kDCH1) ? "Dch1" : (detId == kDCH2) ? "Dch2" : (detId == kTOF) ? "Tof2" : "";
+    string detName = (detId == kGEM) ? "Gem" : (detId == kTOF1) ? "Tof1" : (detId == kDCH) ? "Dch" : (detId == kTOF) ? "Tof2" : "";
     assert(detName != "");
     string histName = "hth_" + detName + "_TrackHits";
     fHM->H1(histName + "_All")->Fill(trackMatch->GetNofHits());
@@ -851,103 +728,6 @@ void BmnTrackingQa::FillTrackQualityHistograms(const BmnTrackMatch* trackMatch, 
     fHM->H1(histName + "_Fake")->Fill(trackMatch->GetNofWrongHits());
     fHM->H1(histName + "_TrueOverAll")->Fill(trackMatch->GetTrueOverAllHitsRatio());
     fHM->H1(histName + "_FakeOverAll")->Fill(trackMatch->GetWrongOverAllHitsRatio());
-}
-
-void BmnTrackingQa::ProcessMcTracks() {
-    vector<TH1*> effHistos = fHM->H1Vector("(hte|hpe)_.*_Eff_.*");
-    Int_t nofEffHistos = effHistos.size();
-
-    Int_t nofMcTracks = fMCTracks->GetEntriesFast();
-    for (Int_t iMCTrack = 0; iMCTrack < nofMcTracks; iMCTrack++) {
-        const CbmMCTrack* mcTrack = (const CbmMCTrack*) (fMCTracks->At(iMCTrack));
-
-        // Check accepted tracks cutting on minimal number of MC points
-        if (!fMCTrackCreator->TrackExists(iMCTrack)) continue;
-
-        const BmnMCTrack& bmnMCTrack = fMCTrackCreator->GetTrack(iMCTrack);
-        //        Int_t nofPointsGem = bmnMCTrack.GetNofPointsInDifferentStations(kGEM);
-        Int_t nofPointsGem = bmnMCTrack.GetNofPoints(kGEM);
-        Int_t nofPointsTof1 = bmnMCTrack.GetNofPoints(kTOF1);
-        Int_t nofPointsTof2 = bmnMCTrack.GetNofPoints(kTOF);
-        Int_t nofPointsDch1 = bmnMCTrack.GetNofPoints(kDCH1);
-        Int_t nofPointsDch2 = bmnMCTrack.GetNofPoints(kDCH2);
-
-        //        cout << "nofPointsGem = " << nofPointsGem << " nofPointsTof1 = " << nofPointsTof1 << " nofPointsTof2 = " << nofPointsTof2 << " nofPointsDch1 = " << nofPointsDch1 << " nofPointsDch2 = " << nofPointsDch2 << endl;
-
-        // Check local tracks
-        //Bool_t gemConsecutive = (fUseConsecutivePointsInGem) ? bmnMCTrack.GetNofConsecutivePoints(kGEM) >= fMinNofPointsGem : kTRUE;
-
-        Bool_t isGemOk = nofPointsGem >= fMinNofPointsGem && fDet.GetDet(kGEM); // && gemConsecutive;
-        Bool_t isTof1Ok = nofPointsTof1 >= fMinNofPointsTof && fDet.GetDet(kTOF1);
-        Bool_t isTof2Ok = nofPointsTof2 >= fMinNofPointsTof && fDet.GetDet(kTOF);
-        Bool_t isDch1Ok = nofPointsDch1 >= fMinNofPointsDch && fDet.GetDet(kDCH1);
-        Bool_t isDch2Ok = nofPointsDch2 >= fMinNofPointsDch && fDet.GetDet(kDCH2);
-
-        // calculate polar angle
-        TVector3 mom;
-        mcTrack->GetMomentum(mom);
-        Double_t angle = abs(mom.Theta() * 180 / TMath::Pi());
-        Double_t mcP = mcTrack->GetP();
-        Double_t mcY = mcTrack->GetRapidity();
-        Double_t mcPt = mcTrack->GetPt();
-
-        // Fill parameter name to value map
-        map<string, vector<Double_t> > parMap;
-
-        vector<Double_t> tmp = list_of(mcP);
-        parMap["p"] = tmp;
-
-        vector<Double_t> tmp1 = list_of(mcY);
-        parMap["y"] = tmp1;
-
-        vector<Double_t> tmp2 = list_of(mcPt);
-        parMap["pt"] = tmp2;
-
-        vector<Double_t> tmp3 = list_of(angle);
-        parMap["Angle"] = tmp3;
-
-        vector<Double_t> tmp4 = list_of(0);
-        parMap["Np"] = tmp4; // FIXME : correct to number of points in concrete detector!
-        // Currently as a  temporary solution it is reassigned later
-
-        vector<Double_t> tmp5 = list_of(mcY)(mcPt);
-        parMap["YPt"] = tmp5;
-
-        if (isGemOk) {
-            fHM->H1("allGemDistr")->Fill(mcP);
-            fHM->H1("allGlobDistr")->Fill(mcP);
-        }
-
-        for (Int_t iHist = 0; iHist < nofEffHistos; iHist++) {
-            TH1* hist = effHistos[iHist];
-            string histName = hist->GetName();
-            vector<string> split = Split(histName, '_');
-            string effName = split[1];
-            string normName = split[2];
-            string catName = split[3];
-            string histTypeName = split[0];
-            string parName = split[5];
-            assert(parMap.count(parName) != 0);
-
-            vector<Double_t> par = list_of(0);
-            if (parName == "Np") {
-                vector<Double_t> tmp = list_of((effName == "Gem") ? nofPointsGem : (effName == "Tof1") ? nofPointsTof1 : (effName == "Tof2") ? nofPointsTof2 : (effName == "Dch1") ? nofPointsDch1 : (effName == "Dch2") ? nofPointsDch2 : 0);
-                par = tmp;
-            } else {
-                par = parMap[parName];
-            }
-
-            Bool_t gem = (normName.find("Gem") != string::npos) ? isGemOk : kTRUE;
-            Bool_t tof1 = (normName.find("Tof1") != string::npos) ? isTof1Ok : kTRUE;
-            Bool_t tof2 = (normName.find("Tof2") != string::npos) ? isTof2Ok : kTRUE;
-            Bool_t dch1 = (normName.find("Dch1") != string::npos) ? isDch1Ok : kTRUE;
-            Bool_t dch2 = (normName.find("Dch2") != string::npos) ? isDch2Ok : kTRUE;
-
-            //            Bool_t accOk = gem && tof1 && tof2 && dch1 && dch2;
-            Bool_t accOk = gem;
-            if (accOk) FillGlobalReconstructionHistos(iMCTrack, fMcToRecoMap[effName], histName, histTypeName, effName, catName, par);
-        } // Loop over efficiency histograms
-    } // Loop over MCTracks
 }
 
 void BmnTrackingQa::FillGlobalReconstructionHistos(Int_t mcId, const multimap<Int_t, Int_t>& mcMap, const string& histName, const string& histTypeName, const string& effName, const string& catName, const vector<Double_t>& par) {
@@ -983,14 +763,13 @@ void BmnTrackingQa::FillGlobalReconstructionHistos(Int_t mcId, const multimap<In
 
 void BmnTrackingQa::IncreaseCounters() {
 
-    fHM->H1("hno_NofObjects_GlobalTracks")->Fill(fGlobalTracks->GetEntriesFast());
+    //    fHM->H1("hno_NofObjects_GlobalTracks")->Fill(fGlobalTracks->GetEntriesFast());
     if (fDet.GetDet(kGEM)) {
         fHM->H1("hno_NofObjects_GemTracks")->Fill(fGemTracks->GetEntriesFast());
         fHM->H1("hno_NofObjects_GemHits")->Fill(fGemHits->GetEntriesFast());
     }
     if (fDet.GetDet(kTOF1) && fTof1Hits) fHM->H1("hno_NofObjects_Tof1Hits")->Fill(fTof1Hits->GetEntriesFast());
-    if (fDet.GetDet(kDCH1) && fDch1Hits) fHM->H1("hno_NofObjects_Dch1Hits")->Fill(fDch1Hits->GetEntriesFast());
-    if (fDet.GetDet(kDCH2) && fDch2Hits) fHM->H1("hno_NofObjects_Dch2Hits")->Fill(fDch2Hits->GetEntriesFast());
+    if (fDet.GetDet(kDCH) && fDchHits) fHM->H1("hno_NofObjects_DchHits")->Fill(fDchHits->GetEntriesFast());
     if (fDet.GetDet(kTOF) && fTof2Hits) fHM->H1("hno_NofObjects_Tof2Hits")->Fill(fTof2Hits->GetEntriesFast());
 }
 

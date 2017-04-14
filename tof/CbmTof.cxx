@@ -287,6 +287,9 @@ Bool_t CbmTof::CheckIfSensitive(std::string name)
   if (tsname.Contains("Cell")){
     return kTRUE;
   }
+  if (tsname.Contains("Gas")){
+    return kTRUE;
+  }
   return kFALSE;
 }
 

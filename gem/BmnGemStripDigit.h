@@ -31,7 +31,7 @@ public:
 private:
     Int_t fStation;
     Int_t fModule;
-    Int_t fStripLayer; // 0 - lower layer, 1 - upper layer
+    Int_t fStripLayer;
     Int_t fStripNumber;
     Double_t fStripSignal;
 

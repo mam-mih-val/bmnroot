@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 10/11/2003
 
@@ -7,13 +14,16 @@
 // Class for geometry I/O from ASCII file
 //
 ///////////////////////////////////////////////////////////////////////////////
-
 #include "FairGeoAsciiIo.h"
 
-#include "FairGeoSet.h"
-#include "FairGeoMedia.h"
-#include "FairGeoIo.h"
-#include "FairGeoInterface.h"
+#include "FairGeoInterface.h"           // for FairGeoInterface
+#include "FairGeoIo.h"                  // for FairGeoIo
+#include "FairGeoMedia.h"               // for FairGeoMedia
+#include "FairGeoSet.h"                 // for FairGeoSet
+
+#include <stdio.h>                      // for sscanf
+#include <string.h>                     // for strcmp, strlen, strtok, etc
+#include <iostream>                     // for cout
 
 using std::cout;
 using std::endl;
@@ -45,7 +55,7 @@ Bool_t FairGeoAsciiIo::open(const char* fname,const Text_t* status)
 {
   // Opens the file fname
   close();
-  if (!file) { file=new fstream(); }
+  if (!file) { file=new std::fstream(); }
   else { (file->clear()); }
   if (!filedir.IsNull()) { filename=filedir+"/"+fname; }
   else { filename=fname; }
@@ -218,7 +228,7 @@ Bool_t FairGeoAsciiIo::readDetectorSetup(FairGeoInterface* interface)
         if (set&&mod) {
           char* ss=strtok(buf,d);
           if (ss&&strlen(ss)>3) {
-            secNo=(Int_t)(ss[3]-'0')-1;
+            secNo=static_cast<Int_t>(ss[3]-'0')-1;
             for(Int_t i=0; i<maxModules&&mod; i++) {
               ss=strtok(NULL,d);
               if (ss) { sscanf(ss,"%i",&mod[i]); }

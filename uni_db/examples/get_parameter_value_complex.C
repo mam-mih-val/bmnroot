@@ -1,5 +1,3 @@
-#include "../db_structures.h"
-
 // macro for getting parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
 void get_parameter_value_complex()
 {
@@ -10,7 +8,7 @@ void get_parameter_value_complex()
     bool return_error = false;
 
     // get noise parameter values presented by IIStructure: Int+Int (slot:channel)
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "noise", 77); //(detector_name, parameter_name, run_number)
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::GetDetectorParameter("DCH1", "DCH_mapping", 1, 133);
     if (pDetectorParameter != NULL)
     {
         IIStructure* pValues;

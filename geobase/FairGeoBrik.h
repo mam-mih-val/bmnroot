@@ -1,10 +1,21 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEOBRIK_H
 #define FAIRGEOBRIK_H
 
-#include "FairGeoBasicShape.h"
+#include "FairGeoBasicShape.h"          // for FairGeoBasicShape
+
+#include "Rtypes.h"                     // for FairGeoBrik::Class, etc
+
 
 class FairGeoTransform;
 class FairGeoVolume;
+class TArrayD;
 
 class FairGeoBrik : public FairGeoBasicShape
 {

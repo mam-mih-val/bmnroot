@@ -4,8 +4,7 @@
 // -------------------------------------------------------------------------
 #include "UniDbConnection.h"
 
-#include <iostream>
-using namespace std;
+mapSQLServer* UniDbConnection::mapConnection = 0x00;
 
 // -----   Constructor with connection   ----------------------
 UniDbConnection::UniDbConnection(TSQLServer* pSQLServer)
@@ -16,39 +15,70 @@ UniDbConnection::UniDbConnection(TSQLServer* pSQLServer)
 // -------------------------------------------------------------------
 UniDbConnection* UniDbConnection::Open(UniConnectionType database_type)
 {
-    TSQLServer* pSQLServer = 0x00;
-
+    TString conString = "";
     switch (database_type)
     {
         case UNIFIED_DB:
-            pSQLServer = TSQLServer::Connect("pgsql://nc13.jinr.ru/bmn_db", BMN_DB_USERNAME, BMN_DB_PASSWORD);
+            conString = "pgsql://" + (TString)UNI_DB_HOST + "/" + (TString)UNI_DB_NAME;
             break;
         default:
-            cout<<"Incorrect database connection type!"<<endl;
+            {
+                cout<<"Error: incorrect database connection type!"<<endl;
+                return 0x00;
+            }
     }
 
-    if (pSQLServer == 0x00)
+    if (UniDbConnection::mapConnection == NULL)
+        UniDbConnection::mapConnection = new mapSQLServer();
+
+    TSQLServer* pSQLServer = 0x00;
+    itSQLServer it = UniDbConnection::mapConnection->find(conString.Data());
+    if (it != UniDbConnection::mapConnection->end())
     {
-        cout<<"Connection wasn't established"<<endl;
-        return 0x00;
+        pSQLServer = it->second;
     }
-    //else
-    //    cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
+    else
+    {
+        pSQLServer = TSQLServer::Connect(conString, UNI_DB_USERNAME, UNI_DB_PASSWORD);
+        if (pSQLServer == 0x00)
+        {
+            cout<<"Error: connection wasn't established"<<endl;
+            return 0x00;
+        }
+        //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
+
+        UniDbConnection::mapConnection->insert(pairSQLServer(conString.Data(), pSQLServer));
+    }
 
     return new UniDbConnection(pSQLServer);
 }
 
 // -------------------------------------------------------------------
-UniDbConnection* UniDbConnection::Open(TString strDBName, TString strUID, TString strPassword)
+UniDbConnection* UniDbConnection::Open(TString strDBHost, TString strDBName, TString strUID, TString strPassword)
 {
-    TSQLServer* pSQLServer = TSQLServer::Connect(strDBName, strUID, strPassword);
-    if (pSQLServer == 0x00)
+    TString conString = "pgsql://" + strDBHost + TString("/") + strDBName;
+
+    if (UniDbConnection::mapConnection == NULL)
+        UniDbConnection::mapConnection = new mapSQLServer();
+
+    TSQLServer* pSQLServer = 0x00;
+    itSQLServer it = UniDbConnection::mapConnection->find(conString.Data());
+    if (it != UniDbConnection::mapConnection->end())
     {
-        cout<<"Connection wasn't established"<<endl;
-        return 0x00;
+        pSQLServer = it->second;
     }
     else
-        cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
+    {
+        pSQLServer = TSQLServer::Connect(conString, strUID, strPassword);
+        if (pSQLServer == 0x00)
+        {
+            cout<<"Error: connection wasn't established"<<endl;
+            return 0x00;
+        }
+        //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
+
+        UniDbConnection::mapConnection->insert(pairSQLServer(conString.Data(), pSQLServer));
+    }
 
     return new UniDbConnection(pSQLServer);
 }
@@ -56,8 +86,8 @@ UniDbConnection* UniDbConnection::Open(TString strDBName, TString strUID, TStrin
 // -------------------------------------------------------------------
 UniDbConnection::~UniDbConnection()
 {
-    if (uni_db)
-        delete uni_db;
+    //if (uni_db)
+    //    delete uni_db;
 }
 
 // -------------------------------------------------------------------

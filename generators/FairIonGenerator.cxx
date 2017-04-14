@@ -1,24 +1,29 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                   FairIonGenerator source file                 -----
 // -----          Created 09/07/04  by V. Friese / D.Bertini           -----
 // -------------------------------------------------------------------------
 #include "FairIonGenerator.h"
 
-#include "FairPrimaryGenerator.h"
+#include "FairIon.h"                    // for FairIon
+#include "FairParticle.h"               // for FairParticle
+#include "FairPrimaryGenerator.h"       // for FairPrimaryGenerator
+#include "FairRunSim.h"                 // for FairRunSim
+#include "FairLogger.h"                 // for logging
 
-#include "FairIon.h"
-#include "FairRunSim.h"
+#include "Riosfwd.h"                    // for ostream
+#include "TDatabasePDG.h"               // for TDatabasePDG
+#include "TObjArray.h"                  // for TObjArray
+#include "TParticle.h"                  // for TParticle
+#include "TParticlePDG.h"               // for TParticlePDG
 
-#include "TDatabasePDG.h"
-#include "TParticlePDG.h"
-#include "TObjArray.h"
-
-#include "FairRunSim.h"
-#include "FairIon.h"
-#include <iostream>
-#include "TParticle.h"
-using std::cout;
-using std::endl;
+#include <stdio.h>                      // for NULL, sprintf
 
 // -----   Initialsisation of static variables   --------------------------
 Int_t FairIonGenerator::fgNIon = 0;
@@ -34,8 +39,9 @@ FairIonGenerator::FairIonGenerator()
    fVx(0), fVy(0), fVz(0),
    fIon(NULL),  fQ(0)
 {
-//  cout << "-W- FairIonGenerator: "
-//      << " Please do not use the default constructor! " << endl;
+//  LOG(WARNING) << "FairIonGenerator: "
+//               << " Please do not use the default constructor! " 
+//               << FairLogger::endl;
 }
 // ------------------------------------------------------------------------
 
@@ -54,7 +60,7 @@ FairIonGenerator::FairIonGenerator(const Char_t* ionName, Int_t mult,
   TObjArray* UserIons=fRun->GetUserDefIons();
   TObjArray* UserParticles=fRun->GetUserDefParticles();
   FairParticle* part=0;
-  fIon =(FairIon*) UserIons->FindObject(ionName);
+  fIon =static_cast<FairIon*>(UserIons->FindObject(ionName));
   if(fIon) {
     fgNIon++;
     fMult = mult;
@@ -66,7 +72,7 @@ FairIonGenerator::FairIonGenerator(const Char_t* ionName, Int_t mult,
     fVz   = vz;
 
   } else {
-    part= (FairParticle*)UserParticles->FindObject(ionName);
+    part= static_cast<FairParticle*>(UserParticles->FindObject(ionName));
     if(part) {
       fgNIon++;
       TParticle* particle=part->GetParticle();
@@ -80,8 +86,8 @@ FairIonGenerator::FairIonGenerator(const Char_t* ionName, Int_t mult,
     }
   }
   if(fIon==0 && part==0 ) {
-    cout << "-E- FairIonGenerator: Ion or Particle is not defined !" << endl;
-    Fatal("FairIonGenerator", "No FairRun instantised!");
+    LOG(FATAL) << "Ion or Particle is not defined !" 
+	       << FairLogger::endl;
   }
 
 }
@@ -115,10 +121,11 @@ FairIonGenerator::FairIonGenerator(Int_t z, Int_t a, Int_t q, Int_t mult,
   fIon= new FairIon(buffer, z, a, q);
   FairRunSim* run = FairRunSim::Instance();
   if ( ! run ) {
-    cout << "-E- FairIonGenerator: No FairRun instantised!" << endl;
-    Fatal("FairIonGenerator", "No FairRun instantised!");
+    LOG(ERROR) << "No FairRun instantised!" 
+	       << FairLogger::endl;
+  } else {
+    run->AddNewIon(fIon);
   }
-  run->AddNewIon(fIon);
 }
 //_________________________________________________________________________
 
@@ -156,25 +163,27 @@ Bool_t FairIonGenerator::ReadEvent(FairPrimaryGenerator* primGen)
 {
 
 // if ( ! fIon ) {
-//   cout << "-W- FairIonGenerator: No ion defined! " << endl;
+//   LOG(WARNING) << "FairIonGenerator: No ion defined! " 
+//                << FairLogger::endl;
 //   return kFALSE;
 // }
 
   TParticlePDG* thisPart =
     TDatabasePDG::Instance()->GetParticle(fIon->GetName());
   if ( ! thisPart ) {
-    cout << "-W- FairIonGenerator: Ion " << fIon->GetName()
-         << " not found in database!" << endl;
+    LOG(WARNING) << "FairIonGenerator: Ion " << fIon->GetName()
+		 << " not found in database!" << FairLogger::endl;
     return kFALSE;
   }
 
   int pdgType = thisPart->PdgCode();
 
-  cout << "-I- FairIonGenerator: Generating " << fMult << " ions of type "
-       << fIon->GetName() << " (PDG code " << pdgType << ")" << endl;
-  cout << "    Momentum (" << fPx << ", " << fPy << ", " << fPz
-       << ") Gev from vertex (" << fVx << ", " << fVy
-       << ", " << fVz << ") cm" << endl;
+  LOG(INFO) << "FairIonGenerator: Generating " << fMult << " ions of type "
+	    << fIon->GetName() << " (PDG code " << pdgType << ")" 
+	    << FairLogger::endl;
+  LOG(INFO) << "    Momentum (" << fPx << ", " << fPy << ", " << fPz
+	    << ") Gev from vertex (" << fVx << ", " << fVy
+	    << ", " << fVz << ") cm" << FairLogger::endl;
 
   for(Int_t i=0; i<fMult; i++) {
     primGen->AddTrack(pdgType, fPx, fPy, fPz, fVx, fVy, fVz);

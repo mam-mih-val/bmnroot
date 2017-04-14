@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #//*-- AUTHOR : Ilse Koenig
 //*-- Created : 21/10/2004
 
@@ -10,12 +17,16 @@
 /////////////////////////////////////////////////////////////
 
 #include "FairContFact.h"
-#include "FairRuntimeDb.h"
 
-#include "TObjString.h"
+#include "FairLogger.h"                 // for FairLogger
+#include "FairRuntimeDb.h"              // for FairRuntimeDb
 
+#include "Riosfwd.h"                    // for ostream
+#include "TCollection.h"                // for TIter
+#include "TObjString.h"                 // for TObjString
 
-#include <iostream>
+#include <string.h>                     // for strlen, NULL
+#include <iostream>                     // for operator<<, ostream, cout, etc
 
 using std::cout;
 
@@ -80,7 +91,7 @@ Bool_t FairContainer::setActualContext(const char* c)
 const char* FairContainer::getDefaultContext()
 {
   // Returns the default context
-  return ((TObjString*)contexts->At(0))->String().Data();
+  return (static_cast<TObjString*>(contexts->At(0)))->String().Data();
 }
 
 void FairContainer::print()
@@ -94,7 +105,7 @@ void FairContainer::print()
     Int_t i=0;
     TObjString* c;
     cout<<"  all contexts:"<<"\n";
-    while ((c=(TObjString*)next())) {
+    while ((c=static_cast<TObjString*>(next()))) {
       if (c->String().IsNull()) { cout<<"     \"\""; }
       else { cout<<"     "<<c->String(); }
       if (i==0) { cout<<"\t default"; }
@@ -113,7 +124,7 @@ TString FairContainer::getConcatName()
   // container is concatinated as
   //      original container name  +  _  +  actualcontext
   TString cn=fName;
-  if (!actualContext.IsNull() && actualContext!=((TObjString*)contexts->At(0))->String()) {
+  if (!actualContext.IsNull() && actualContext!=(static_cast<TObjString*>(contexts->At(0)))->String()) {
     cn+="_";
     cn+=actualContext;
   }
@@ -151,7 +162,7 @@ Bool_t FairContFact::addContext(const char* name)
   FairContainer* c=0;
   Bool_t found=kFALSE;
   TIter next(containers);
-  while ((c=(FairContainer*)next())) {
+  while ((c=static_cast<FairContainer*>(next()))) {
     if (c->setActualContext(name)) { found=kTRUE; }
   }
   return found;
@@ -164,7 +175,7 @@ FairParSet* FairContFact::getContainer(const char* name)
   // createContainer(FairContainer*), which is implemented in the derived classes
   // and calls the corresponding constructor. Then the pointer it added in the
   // runtime database.
-  FairContainer* c=(FairContainer*)(containers->FindObject(name));
+  FairContainer* c=static_cast<FairContainer*>((containers->FindObject(name)));
 
   FairParSet* cont=0;
   if (c) {
@@ -187,5 +198,5 @@ void FairContFact::print()
   cout<<"---------------------------------------------------------------------------"<<"\n";
   FairContainer* c;
   TIter next(containers);
-  while ((c=(FairContainer*)next())) { c->print(); }
+  while ((c=static_cast<FairContainer*>(next()))) { c->print(); }
 }

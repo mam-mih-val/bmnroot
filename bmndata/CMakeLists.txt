@@ -3,13 +3,23 @@
 # The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
+${Boost_INCLUDE_DIRS}
 ${ROOT_INCLUDE_DIR}
-${CMAKE_SOURCE_DIR}/base
+${CMAKE_SOURCE_DIR}/base/field
+${CMAKE_SOURCE_DIR}/base/steer
+${CMAKE_SOURCE_DIR}/base/sim
+${CMAKE_SOURCE_DIR}/base/event
+${CMAKE_SOURCE_DIR}/base/source
 ${CMAKE_SOURCE_DIR}/geobase
 ${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/bmndata
+${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/globaltracking
+${CMAKE_SOURCE_DIR}/gem
+${CMAKE_SOURCE_DIR}/silicon
+${CMAKE_SOURCE_DIR}/uni_db
+${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -45,7 +55,7 @@ CbmStsHit.cxx
 CbmStsCluster.cxx
 CbmStsTrack.cxx
 CbmTrackMatch.cxx
-CbmTrack.cxx
+BmnTrack.cxx
 CbmMvdHit.cxx
 CbmMvdHitMatch.cxx
 CbmVertex.cxx
@@ -68,17 +78,33 @@ BmnHit.cxx
 BmnMwpcDigit.cxx
 BmnTof1Digit.cxx
 BmnTof2Digit.cxx
+BmnTrigDigit.cxx
 BmnDchDigit.cxx
 BmnEcalDigit.cxx
 BmnADCDigit.cxx
 BmnTDCDigit.cxx
+BmnHRBDigit.cxx
 BmnSyncDigit.cxx
 BmnTTBDigit.cxx
+BmnMSCDigit.cxx
 BmnDchRaw2Digit.cxx
+BmnMwpcRaw2Digit.cxx
 BmnZDCRaw2Digit.cxx
+BmnECALRaw2Digit.cxx
+BmnGemRaw2Digit.cxx
+BmnTrigRaw2Digit.cxx
 BmnZDCDigit.cxx
+BmnECALDigit.cxx
 BmnTof2Raw2Digit.cxx
+BmnTof2Raw2DigitNew.cxx
 BmnTof1Raw2Digit.cxx
+BmnRawDataDecoder.cxx
+BmnEventHeader.cxx
+BmnRunHeader.cxx
+BmnCounterTask.cxx
+BmnAdcProcessor.cxx
+BmnFitNode.h
+BmnEnums.h
 )
 
 # fill list of header files from list of source files

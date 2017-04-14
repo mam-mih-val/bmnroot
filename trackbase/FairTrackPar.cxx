@@ -1,12 +1,19 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 //      Created by M. Al-Turany  06.02.2007
 // -------------------------------------------------------------------------
 
-
-
-#include <iostream>
 #include "FairTrackPar.h"
 #include "TMath.h"
+#include "FairLogger.h"
+#include "FairRunAna.h"					// for GetFieldValue
+#include "FairField.h"
 
 using namespace std;
 
@@ -68,13 +75,22 @@ FairTrackPar::~FairTrackPar() {}
 // -------------------------------------------------------------------------
 
 // -----   Public method Print   -------------------------------------------
-void FairTrackPar::Print(Option_t* option) const
+void FairTrackPar::Print(Option_t* /*option*/) const
 {
-  cout << "Position : (";
-  cout.precision(2);
-  cout << fX << ", " << fY << ", " << fZ << ")" << endl;
-  cout << "Momentum : (";
-  cout << "Px = " << fPx << ", Py = " << fPy << " Pz = " << fPz << endl;
+  gLogger->Info(MESSAGE_ORIGIN,"Position :(%f,%f,%f)",fX,fY,fZ);
+  gLogger->Info(MESSAGE_ORIGIN,"Momentum :(%f,%f,%f)",fPx,fPy,fPz);
+}
+
+void FairTrackPar::GetFieldValue(const Double_t point[3], Double_t* bField)
+{
+	FairRunAna* fRun = FairRunAna::Instance();
+	if (fRun->GetField() != 0)
+		fRun->GetField()->GetFieldValue(point, bField);
+	else {
+		bField[0] = .0;
+		bField[1] = .0;
+		bField[2] = .0;
+	}
 }
 
 ClassImp(FairTrackPar)

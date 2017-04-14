@@ -1,9 +1,19 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEOROOTBUILDER_H
 #define FAIRGEOROOTBUILDER_H
 
-#include "FairGeoBuilder.h"
+#include "FairGeoBuilder.h"             // for FairGeoBuilder
 
+#include "Rtypes.h"                     // for FairGeoRootBuilder::Class, etc
 
+class FairGeoMedium;
+class FairGeoNode;
 class TGeoManager;
 
 /**

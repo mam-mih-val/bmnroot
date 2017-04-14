@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.10"/>
-<title>Unified Database Interface: UniDbSimulationFile Class Reference</title>
+<title>The Unified Database Interface: UniDbSimulationFile Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -23,9 +23,9 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">Unified Database Interface
+   <div id="projectname">The Unified Database Interface
    </div>
-   <div id="projectbrief">C++ interface of the databases for physics experiments</div>
+   <div id="projectbrief">C++ interface of the unified database for offline physics data processing</div>
   </td>
  </tr>
  </tbody>
@@ -127,9 +127,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aa0680a76a16d21fa855e83b5c2115313"><td class="memItemLeft" align="right" valign="top">double *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_simulation_file.html#aa0680a76a16d21fa855e83b5c2115313">GetFileSize</a> ()</td></tr>
 <tr class="memdesc:aa0680a76a16d21fa855e83b5c2115313"><td class="mdescLeft">&#160;</td><td class="mdescRight">get file size of the current simulation file  <a href="#aa0680a76a16d21fa855e83b5c2115313">More...</a><br /></td></tr>
 <tr class="separator:aa0680a76a16d21fa855e83b5c2115313"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae7eac2bbe8ffc963742c0aa4ccd73677"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_simulation_file.html#ae7eac2bbe8ffc963742c0aa4ccd73677">SetFileId</a> (int file_id)</td></tr>
-<tr class="memdesc:ae7eac2bbe8ffc963742c0aa4ccd73677"><td class="mdescLeft">&#160;</td><td class="mdescRight">set file id of the current simulation file  <a href="#ae7eac2bbe8ffc963742c0aa4ccd73677">More...</a><br /></td></tr>
-<tr class="separator:ae7eac2bbe8ffc963742c0aa4ccd73677"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab91b551d92945269ab281ddf63f4e2d7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_simulation_file.html#ab91b551d92945269ab281ddf63f4e2d7">SetFilePath</a> (TString file_path)</td></tr>
 <tr class="memdesc:ab91b551d92945269ab281ddf63f4e2d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">set file path of the current simulation file  <a href="#ab91b551d92945269ab281ddf63f4e2d7">More...</a><br /></td></tr>
 <tr class="separator:ab91b551d92945269ab281ddf63f4e2d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -174,6 +171,12 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a85f908b6b2639e43d5c48ee3b347c259"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_uni_db_simulation_file.html">UniDbSimulationFile</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_simulation_file.html#a85f908b6b2639e43d5c48ee3b347c259">GetSimulationFile</a> (TString file_path)</td></tr>
 <tr class="memdesc:a85f908b6b2639e43d5c48ee3b347c259"><td class="mdescLeft">&#160;</td><td class="mdescRight">get simulation file from the database  <a href="#a85f908b6b2639e43d5c48ee3b347c259">More...</a><br /></td></tr>
 <tr class="separator:a85f908b6b2639e43d5c48ee3b347c259"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a26aa2288783d8118305d7faa0cfd60a7"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_simulation_file.html#a26aa2288783d8118305d7faa0cfd60a7">CheckSimulationFileExists</a> (int file_id)</td></tr>
+<tr class="memdesc:a26aa2288783d8118305d7faa0cfd60a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">check simulation file exists in the database  <a href="#a26aa2288783d8118305d7faa0cfd60a7">More...</a><br /></td></tr>
+<tr class="separator:a26aa2288783d8118305d7faa0cfd60a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28364a4dae100a28fd8f37d34067fc95"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_simulation_file.html#a28364a4dae100a28fd8f37d34067fc95">CheckSimulationFileExists</a> (TString file_path)</td></tr>
+<tr class="memdesc:a28364a4dae100a28fd8f37d34067fc95"><td class="mdescLeft">&#160;</td><td class="mdescRight">check simulation file exists in the database  <a href="#a28364a4dae100a28fd8f37d34067fc95">More...</a><br /></td></tr>
+<tr class="separator:a28364a4dae100a28fd8f37d34067fc95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a002ca85f4f702cc9b612549ae246ab8d"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_uni_db_simulation_file.html#a002ca85f4f702cc9b612549ae246ab8d">DeleteSimulationFile</a> (int file_id)</td></tr>
 <tr class="memdesc:a002ca85f4f702cc9b612549ae246ab8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">delete simulation file from the database  <a href="#a002ca85f4f702cc9b612549ae246ab8d">More...</a><br /></td></tr>
 <tr class="separator:a002ca85f4f702cc9b612549ae246ab8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -186,6 +189,8 @@ Static Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="_uni_db_simulation_file_8h.html">db_classes/UniDbSimulationFile.h</a> Class for the table: simulation_file </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8h_source.html#l00018">18</a> of file <a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a1320493091fcf69c14f4afc04678f165"></a>
 <div class="memitem">
@@ -208,9 +213,67 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00033">33</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="a26aa2288783d8118305d7faa0cfd60a7"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool UniDbSimulationFile::CheckSimulationFileExists </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>file_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>check simulation file exists in the database </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00310">310</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a28364a4dae100a28fd8f37d34067fc95"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool UniDbSimulationFile::CheckSimulationFileExists </td>
+          <td>(</td>
+          <td class="paramtype">TString&#160;</td>
+          <td class="paramname"><em>file_path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>check simulation file exists in the database </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00351">351</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
+</div>
+</div>
 <a class="anchor" id="a2a0cc2cd98e75c72fdae8b9356d8f541"></a>
 <div class="memitem">
 <div class="memproto">
@@ -313,6 +376,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>add new simulation file to the database </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00050">50</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a002ca85f4f702cc9b612549ae246ab8d"></a>
@@ -338,6 +403,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>delete simulation file from the database </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00392">392</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
 
 </div>
 </div>
@@ -365,6 +432,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>delete simulation file from the database </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00423">423</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="ac9cd42c78bc05c17f4a172a285d7c431"></a>
@@ -389,6 +458,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>get beam particle of the current simulation file </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8h_source.html#l00080">80</a> of file <a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a>.</p>
 
 </div>
 </div>
@@ -415,6 +486,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get centrality of the current simulation file </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8h_source.html#l00086">86</a> of file <a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a318711a4cc70199cc843b99709076539"></a>
@@ -439,6 +512,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>get energy of the current simulation file </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8h_source.html#l00084">84</a> of file <a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a>.</p>
 
 </div>
 </div>
@@ -465,6 +540,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get event count of the current simulation file </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8h_source.html#l00088">88</a> of file <a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a83ae468e1433734a06ec4f6fa19f716e"></a>
@@ -489,6 +566,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>get file desc of the current simulation file </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8h_source.html#l00090">90</a> of file <a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a>.</p>
 
 </div>
 </div>
@@ -515,6 +594,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get file id of the current simulation file </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8h_source.html#l00074">74</a> of file <a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a0238c32fa3eb5725f260d1373204784a"></a>
@@ -539,6 +620,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>get file path of the current simulation file </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8h_source.html#l00076">76</a> of file <a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a>.</p>
 
 </div>
 </div>
@@ -565,6 +648,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get file size of the current simulation file </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8h_source.html#l00092">92</a> of file <a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a88b4a9372e4aeb7f39fd789628e5d15f"></a>
@@ -589,6 +674,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>get generator name of the current simulation file </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8h_source.html#l00078">78</a> of file <a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a>.</p>
 
 </div>
 </div>
@@ -616,6 +703,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get simulation file from the database </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00164">164</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a85f908b6b2639e43d5c48ee3b347c259"></a>
@@ -642,6 +731,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get simulation file from the database </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00237">237</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a8c86ee4e3524e0888a03b011cd0fefcb"></a>
@@ -667,6 +758,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>get target particle of the current simulation file </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8h_source.html#l00082">82</a> of file <a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a8ac595359a454e5d47b47092a74d3272"></a>
@@ -683,6 +776,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>print information about current simulation file </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00875">875</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
 
 </div>
 </div>
@@ -709,6 +804,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>print all simulation files </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00454">454</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a7df02d19655134c7e2c0b78f8e19e290"></a>
@@ -726,6 +823,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>set beam particle of the current simulation file </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00594">594</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
 
 </div>
 </div>
@@ -745,6 +844,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>set centrality of the current simulation file </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00713">713</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="ad47a3adcd2e8eac374896655d9d6771b"></a>
@@ -762,6 +863,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>set energy of the current simulation file </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00671">671</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
 
 </div>
 </div>
@@ -781,6 +884,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>set event count of the current simulation file </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00748">748</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a36795164ffc5ef5c2b4c2117a17b9819"></a>
@@ -799,23 +904,7 @@ Static Public Member Functions</h2></td></tr>
 
 <p>set file desc of the current simulation file </p>
 
-</div>
-</div>
-<a class="anchor" id="ae7eac2bbe8ffc963742c0aa4ccd73677"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int UniDbSimulationFile::SetFileId </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>file_id</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>set file id of the current simulation file </p>
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00790">790</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
 
 </div>
 </div>
@@ -835,6 +924,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>set file path of the current simulation file </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00524">524</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a3532dd2b89ad250285a35b0eb3606788"></a>
@@ -852,6 +943,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>set file size of the current simulation file </p>
+
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00832">832</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
 
 </div>
 </div>
@@ -871,6 +964,8 @@ Static Public Member Functions</h2></td></tr>
 
 <p>set generator name of the current simulation file </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00559">559</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
 </div>
 </div>
 <a class="anchor" id="a35f122b2ea273decc7d627badbaf9843"></a>
@@ -889,11 +984,13 @@ Static Public Member Functions</h2></td></tr>
 
 <p>set target particle of the current simulation file </p>
 
+<p>Definition at line <a class="el" href="_uni_db_simulation_file_8cxx_source.html#l00629">629</a> of file <a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a>.</p>
+
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>db_classes/<a class="el" href="_uni_db_simulation_file_8h_source.html">UniDbSimulationFile.h</a></li>
-<li>db_classes/<a class="el" href="_uni_db_simulation_file_8cxx.html">UniDbSimulationFile.cxx</a></li>
+<li>db_classes/<a class="el" href="_uni_db_simulation_file_8cxx_source.html">UniDbSimulationFile.cxx</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

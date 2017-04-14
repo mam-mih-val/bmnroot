@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                FairAsciiGenerator header file                  -----
 // -----          Created 09/06/04  by V. Friese / D.Bertini           -----
@@ -22,15 +29,14 @@
 #ifndef FAIR_ASCIIGENERATOR_H
 #define FAIR_ASCIIGENERATOR_H
 
+#include "FairGenerator.h"              // for FairGenerator
 
-#include "FairGenerator.h"
+#include "Riosfwd.h"                    // for ifstream
+#include "Rtypes.h"                     // for FairAsciiGenerator::Class, etc
 
-#include <fstream>
+#include <fstream>                      // for ifstream
 
-class TDatabasePDG;
 class FairPrimaryGenerator;
-
-
 
 class FairAsciiGenerator : public FairGenerator
 {
@@ -61,7 +67,7 @@ class FairAsciiGenerator : public FairGenerator
 
   private:
 
-    ifstream* fInputFile;               //! Input file stream
+    std::ifstream* fInputFile;               //! Input file stream
     const Char_t* fFileName;            //! Input file Name
 
 

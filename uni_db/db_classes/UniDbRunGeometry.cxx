@@ -31,7 +31,7 @@ UniDbRunGeometry::~UniDbRunGeometry()
 		delete [] blob_root_geometry;
 }
 
-// -----   Creating new record in class table ---------------------------
+// -----   Creating new run geometry in the database  ---------------------------
 UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geometry, Long_t size_root_geometry)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -47,10 +47,10 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
 	stmt->NextIteration();
 	stmt->SetLargeObject(0, root_geometry, size_root_geometry, 0x4000000);
 
-	// inserting new record to DB
+	// inserting new run geometry to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new record to DB has been failed"<<endl;
+		cout<<"Error: inserting new run geometry to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -98,7 +98,7 @@ UniDbRunGeometry* UniDbRunGeometry::CreateRunGeometry(unsigned char* root_geomet
 	return new UniDbRunGeometry(connUniDb, tmp_geometry_id, tmp_root_geometry, tmp_sz_root_geometry);
 }
 
-// -----   Get table record from database ---------------------------
+// -----  Get run geometry from the database  ---------------------------
 UniDbRunGeometry* UniDbRunGeometry::GetRunGeometry(int geometry_id)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -112,10 +112,10 @@ UniDbRunGeometry* UniDbRunGeometry::GetRunGeometry(int geometry_id)
 		"where geometry_id = %d", geometry_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get run geometry from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from DB has been failed"<<endl;
+		cout<<"Error: getting run geometry from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -128,7 +128,7 @@ UniDbRunGeometry* UniDbRunGeometry::GetRunGeometry(int geometry_id)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: table record wasn't found"<<endl;
+		cout<<"Error: run geometry wasn't found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -147,7 +147,48 @@ UniDbRunGeometry* UniDbRunGeometry::GetRunGeometry(int geometry_id)
 	return new UniDbRunGeometry(connUniDb, tmp_geometry_id, tmp_root_geometry, tmp_sz_root_geometry);
 }
 
-// -----   Delete record from class table ---------------------------
+// -----  Check run geometry exists in the database  ---------------------------
+bool UniDbRunGeometry::CheckRunGeometryExists(int geometry_id)
+{
+	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	if (connUniDb == 0x00) return 0x00;
+
+	TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"select 1 "
+		"from run_geometry "
+		"where geometry_id = %d", geometry_id);
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	// get run geometry from the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: getting run geometry from the database has been failed"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	// extract row
+	if (!stmt->NextResultRow())
+	{
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	delete stmt;
+	delete connUniDb;
+
+	return true;
+}
+
+// -----  Delete run geometry from the database  ---------------------------
 int UniDbRunGeometry::DeleteRunGeometry(int geometry_id)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -163,10 +204,10 @@ int UniDbRunGeometry::DeleteRunGeometry(int geometry_id)
 	stmt->NextIteration();
 	stmt->SetInt(0, geometry_id);
 
-	// delete table record from DB
+	// delete run geometry from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting record from DB has been failed"<<endl;
+		cout<<"Error: deleting run geometry from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -178,7 +219,7 @@ int UniDbRunGeometry::DeleteRunGeometry(int geometry_id)
 	return 0;
 }
 
-// -----   Print all table records ---------------------------------
+// -----  Print all 'run geometrys'  ---------------------------------
 int UniDbRunGeometry::PrintAll()
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -191,10 +232,10 @@ int UniDbRunGeometry::PrintAll()
 		"from run_geometry");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get all 'run geometrys' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all records from DB has been failed"<<endl;
+		cout<<"Error: getting all 'run geometrys' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -205,17 +246,17 @@ int UniDbRunGeometry::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'run_geometry'"<<endl;
+	cout<<"Table 'run_geometry':"<<endl;
 	while (stmt->NextResultRow())
 	{
-		cout<<". geometry_id: ";
+		cout<<"geometry_id: ";
 		cout<<(stmt->GetInt(0));
-		cout<<". root_geometry: ";
+		cout<<", root_geometry: ";
 		unsigned char* tmp_root_geometry = NULL;
 		Long_t tmp_sz_root_geometry=0;
 		stmt->GetLargeObject(1, (void*&)tmp_root_geometry, tmp_sz_root_geometry);
 		cout<<(void*)tmp_root_geometry<<", binary size: "<<tmp_sz_root_geometry;
-		cout<<endl;
+		cout<<"."<<endl;
 	}
 
 	delete stmt;
@@ -246,10 +287,10 @@ int UniDbRunGeometry::SetRootGeometry(unsigned char* root_geometry, Long_t size_
 	stmt->SetLargeObject(0, root_geometry, size_root_geometry, 0x4000000);
 	stmt->SetInt(1, i_geometry_id);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run geometry has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -265,7 +306,7 @@ int UniDbRunGeometry::SetRootGeometry(unsigned char* root_geometry, Long_t size_
 	return 0;
 }
 
-// -----   Print current record ---------------------------------------
+// -----  Print current run geometry  ---------------------------------------
 void UniDbRunGeometry::Print()
 {
 	cout<<"Table 'run_geometry'";

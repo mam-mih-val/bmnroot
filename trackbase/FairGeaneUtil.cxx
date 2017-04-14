@@ -1,12 +1,24 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // ------------------------------------------------------------------
 // Version of June 10th
 // modified to work properly in q/p variables  instead of 1/p
 // ------------------------------------------------------------------
-
-#include <iostream>
 #include "FairGeaneUtil.h"
-#include "TGeoTorus.h"
-#include "TMath.h"
+
+#include "TMath.h"                      // for Sqrt, Cos, Sin, Power, sqrt, etc
+#include "TMathBase.h"                  // for Abs, Sign
+#include "TMatrixT.h"                   // for TMatrixT, etc
+#include "TMatrixTBase.h"               // for TMatrixTBase
+#include "TMatrixTUtils.h"              // for TMatrixTRow
+
+#include <string.h>                     // for memset
+#include <cmath>                        // for pow
 
 using namespace std;
 
@@ -87,7 +99,7 @@ void FairGeaneUtil::FromPtToSC(Double_t PC[3], Double_t RC[15],
 }
 
 void FairGeaneUtil::FromPtToSD(Double_t PD[3], Double_t RD[15], Double_t H[3], Int_t CH,
-                               Double_t SPU, Double_t DJ[2], Double_t DK[2],
+                               Double_t SPU, Double_t DJ[3], Double_t DK[3],
                                // output
                                Int_t& IERR, Double_t* PC, Double_t* RC)
 {
@@ -111,8 +123,8 @@ void FairGeaneUtil::FromPtToSD(Double_t PD[3], Double_t RD[15], Double_t H[3], I
 //                AND RD FOR FIXED U
 //      SPU       SIGN OF U-COMPONENT OF PARTICLE MOMENTUM
 //                spu = sign[p·(DJ x DK)]
-//      DJ[2]     UNIT VECTOR IN V-DIRECTION
-//      DK[2]     UNIT VECTOR IN W-DIRECTION    OF DETECTOR SYSTEM
+//      DJ[3]     UNIT VECTOR IN V-DIRECTION
+//      DK[3]     UNIT VECTOR IN W-DIRECTION    OF DETECTOR SYSTEM
 //
 //                         output
 //      PC[3]   (q/Pt, Lambda, Phi, Yt, Zt)
@@ -440,10 +452,10 @@ void FairGeaneUtil::FromSCToSD(Double_t PC[3], Double_t RC[15], Double_t H[3], I
 }
 
 
-void FairGeaneUtil::FromSD1ToSD2(Double_t PD1[2], Double_t RD1[15],Double_t H[2],
+void FairGeaneUtil::FromSD1ToSD2(Double_t PD1[3], Double_t RD1[15],Double_t H[3],
                                  Int_t CH, Double_t SP1,
-                                 Double_t DJ1[2], Double_t DK1[2],
-                                 Double_t DJ2[2], Double_t DK2[2],
+                                 Double_t DJ1[3], Double_t DK1[3],
+                                 Double_t DJ2[3], Double_t DK2[3],
                                  //           output
                                  Int_t& IERR, Double_t& SP2,
                                  Double_t* PD2, Double_t* RD2)
@@ -460,8 +472,8 @@ void FairGeaneUtil::FromSD1ToSD2(Double_t PD1[2], Double_t RD1[15],Double_t H[2]
 //
 //
 //                                      INPUT
-//      PD1[2]    q/P,V1',W1'
-//      H[2]      MAGNETIC FIELD
+//      PD1[3]    q/P,V1',W1'
+//      H[3]      MAGNETIC FIELD
 //      RD1(15)   ERROR MATRIX IN 1/P,V1',W1',V1,W1   (Triangular)
 //      CH        CHARGE OF PARTICLE
 //                CHARGE AND MAGNETIC FIELD ARE NEEDED
@@ -470,10 +482,10 @@ void FairGeaneUtil::FromSD1ToSD2(Double_t PD1[2], Double_t RD1[15],Double_t H[2]
 //                TO BE THE ERROR MATRIX FOR FIXED U1
 //                AND RD2 FOR FIXED U2
 //      SP1       SIGN OF U1-COMPONENT OF PARTICLE MOMENTUM     INPUT
-//      DJ1[2]    UNIT VECTOR IN V1-DIRECTION
-//      DK1[2]    UNIT VECTOR IN W1-DIRECTION    OF SYSTEM 1
-//      DJ2[2]    UNIT VECTOR IN V2-DIRECTION
-//      DK2[2]    UNIT VECTOR IN W2-DIRECTION    OF SYSTEM 2
+//      DJ1[3]    UNIT VECTOR IN V1-DIRECTION
+//      DK1[3]    UNIT VECTOR IN W1-DIRECTION    OF SYSTEM 1
+//      DJ2[3]    UNIT VECTOR IN V2-DIRECTION
+//      DK2[3]    UNIT VECTOR IN W2-DIRECTION    OF SYSTEM 2
 //
 //
 //                                 OUTPUT
@@ -1154,7 +1166,7 @@ void FairGeaneUtil::FromSCToMars(Double_t PC[3], Double_t RC[15], Double_t H[3],
 }
 
 void FairGeaneUtil::FromMarsToSD(Double_t PD[3], Double_t RD[6][6],
-                                 Double_t H[3], Int_t CH,
+                                 Double_t[3] /*H[3]*/, Int_t CH,
                                  Double_t DJ1[3], Double_t DK1[3],
                                  //  output
                                  Int_t& IERR, Double_t& SP1,
@@ -1403,7 +1415,7 @@ void FairGeaneUtil::FromMarsToSD(Double_t PD[3], Double_t RD[6][6],
 
 
 void FairGeaneUtil::FromSDToMars(Double_t PC[3], Double_t RC[15],
-                                 Double_t H[3], Int_t CH,
+                                 Double_t[3] /*H[3]*/, Int_t CH,
                                  Double_t SP1, Double_t DJ1[3], Double_t DK1[3],
                                  //  output
                                  Double_t* PD, sixMat& RD)
@@ -1469,6 +1481,7 @@ void FairGeaneUtil::FromSDToMars(Double_t PC[3], Double_t RC[15],
       Rmat[I][K] = 0.;
       Rtra[I][K] = 0.;
       AJJ[I][K] = 0.;
+      if (K < 5) RCM[I][K]=0.;
     }
   }
   for(Int_t I=0; I<6; I++) {
@@ -1478,7 +1491,7 @@ void FairGeaneUtil::FromSDToMars(Double_t PC[3], Double_t RC[15],
     Rtra[5][I] = 0.;
     AJJ[5][I]  = 0.;
   }
-
+  
   SPU = SP1;
 
   // jacobian from SD to local cartesian

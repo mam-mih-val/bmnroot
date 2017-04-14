@@ -1,17 +1,21 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                FairAsciiGenerator source file                  -----
 // -----          Created 09/06/04  by V. Friese / D.Bertini           -----
 // -------------------------------------------------------------------------
 #include "FairAsciiGenerator.h"
 
-#include "FairPrimaryGenerator.h"
+#include "FairPrimaryGenerator.h"       // for FairPrimaryGenerator
+#include "FairLogger.h"
 
-#include "TDatabasePDG.h"
-
-#include <iostream>
-
-using std::cout;
-using std::endl;
+#include <stddef.h>                     // for NULL
+#include <climits>                      // for INT_MAX
 
 // -----   Default constructor   ------------------------------------------
 FairAsciiGenerator::FairAsciiGenerator()
@@ -31,10 +35,11 @@ FairAsciiGenerator::FairAsciiGenerator(const char* fileName)
    fFileName(fileName)
 {
   //  fFileName  = fileName;
-  cout << "-I FairAsciiGenerator: Opening input file " << fileName << endl;
-  fInputFile = new ifstream(fFileName);
+  LOG(INFO) << "FairAsciiGenerator: Opening input file " 
+	    << fileName << FairLogger::endl;
+  fInputFile = new std::ifstream(fFileName);
   if ( ! fInputFile->is_open() ) {
-    Fatal("FairAsciiGenerator","Cannot open input file.");
+    LOG(FATAL) << "Cannot open input file." << FairLogger::endl;
   }
 
   // fPDG=TDatabasePDG::Instance();
@@ -58,7 +63,8 @@ Bool_t FairAsciiGenerator::ReadEvent(FairPrimaryGenerator* primGen)
 
   // Check for input file
   if ( ! fInputFile->is_open() ) {
-    cout << "-E FairAsciiGenerator: Input file not open!" << endl;
+    LOG(ERROR) << "FairAsciiGenerator: Input file not open!" 
+	       << FairLogger::endl;
     return kFALSE;
   }
 
@@ -72,18 +78,21 @@ Bool_t FairAsciiGenerator::ReadEvent(FairPrimaryGenerator* primGen)
   Double_t px = 0., py = 0., pz = 0.;
 
   // Read event header line from input file
-  *fInputFile >> ntracks >> eventID >>  vx >>  vy >>  vz;
+  *fInputFile >> ntracks;
+  if (fInputFile->fail() || ntracks < 0 || ntracks > (INT_MAX-1)) LOG(FATAL) << "Error reading the number of events from event header." << FairLogger::endl;
+  *fInputFile >> eventID >>  vx >>  vy >>  vz;
 
   // If end of input file is reached : close it and abort run
   if ( fInputFile->eof() ) {
-    cout << "-I FairAsciiGenerator: End of input file reached " << endl;
+    LOG(INFO) << "FairAsciiGenerator: End of input file reached " 
+	      << FairLogger::endl;
     CloseInput();
     return kFALSE;
   }
 
-  cout << "-I FairAsciiGenerator: Event " << eventID << ",  vertex = ("
-       << vx << "," << vy << "," << vz << ") cm,  multiplicity "
-       << ntracks << endl;
+  LOG(INFO) << "FairAsciiGenerator: Event " << eventID << ",  vertex = ("
+	    << vx << "," << vy << "," << vz << ") cm,  multiplicity "
+	    << ntracks << FairLogger::endl;
 
   // Loop over tracks in the current event
   for (Int_t itrack=0; itrack<ntracks; itrack++) {
@@ -111,8 +120,8 @@ void FairAsciiGenerator::CloseInput()
 {
   if ( fInputFile ) {
     if ( fInputFile->is_open() ) {
-      cout << "-I FairAsciiGenerator: Closing input file "
-           << fFileName << endl;
+      LOG(INFO) << "FairAsciiGenerator: Closing input file "
+		<< fFileName << FairLogger::endl;
       fInputFile->close();
     }
     delete fInputFile;

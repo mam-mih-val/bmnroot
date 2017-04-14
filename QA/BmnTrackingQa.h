@@ -89,13 +89,13 @@ public:
         fPtRangeMax = max;
     }
 
-    void SetAngleRange(
+    void SetThetaRange(
             Double_t min,
             Double_t max,
             Int_t nofBins) {
-        fAngleRangeMin = min;
-        fAngleRangeMax = max;
-        fAngleRangeBins = nofBins;
+        fThetaRangeMin = min;
+        fThetaRangeMax = max;
+        fThetaRangeBins = nofBins;
     }
 
     void SetTrackCategories(const vector<string>& trackCategories) {
@@ -115,35 +115,6 @@ private:
      * \brief Read data branches from input data files.
      */
     void ReadDataBranches();
-
-    /**
-     * \brief Fill array of track categories with default values.
-     */
-    void FillDefaultTrackCategories();
-    void FillDefaultTrackPIDCategories();
-
-
-    void CreateH1Efficiency(
-            const string& name,
-            const string& parameter,
-            const string& xTitle,
-            Int_t nofBins,
-            Double_t minBin,
-            Double_t maxBin,
-            const string& opt);
-
-    void CreateH2Efficiency(
-            const string& name,
-            const string& parameter,
-            const string& xTitle,
-            const string& yTitle,
-            Int_t nofBinsX,
-            Double_t minBinX,
-            Double_t maxBinX,
-            Int_t nofBinsY,
-            Double_t minBinY,
-            Double_t maxBinY,
-            const string& opt);
 
     void CreateH1(
             const string& name,
@@ -173,35 +144,22 @@ private:
 
     void ReadEventHeader();
 
-    string LocalEfficiencyNormalization(const string& detName);
-
     vector<string> GlobalTrackVariants();
 
 
     void CreateHistograms();
 
-//    /**
-//     * \brief Loop over the reconstructed global tracks.
-//     * Check if track is correct and fill
-//     * multimap <MC track index, reconstructed track index>.
-//     */
-//    void ProcessGlobalTracks();
+    //    /**
+    //     * \brief Loop over the reconstructed global tracks.
+    //     * Check if track is correct and fill
+    //     * multimap <MC track index, reconstructed track index>.
+    //     */
+    //    void ProcessGlobalTracks();
 
     void ProcessGem();
     void ProcessGlobal();
 
     void FillTrackQualityHistograms(const BmnTrackMatch* trackMatch, DetectorId detId);
-
-    /**
-     * \brief Loop over the MC tracks. Check track acceptance for different cases.
-     * Fill histograms of accepted and reconstructed tracks.
-     */
-    void ProcessMcTracks();
-
-    //   /**
-    //    * \brief Calculate efficiency histograms.
-    //    */
-    //   void CalculateEfficiencyHistos();
 
     /**
      * \brief Fill histograms of accepted and reconstructed tracks.
@@ -238,6 +196,8 @@ private:
     Int_t fMinNofPointsDch; // Minimal number of MCPoints in TOF
 
     Double_t fQuota; // True/all hits for track to be considered correctly reconstructed
+    Double_t fEtaCut; // threshold for pseudorapidity (cat for spectators)
+    Double_t fPCut; // threshold for momentum
 
     Bool_t fUseConsecutivePointsInGem; // Use consecutive MC points for STS normalization
     Bool_t fPrimes; //calculate efficiency only for primaries or for all particles
@@ -263,9 +223,9 @@ private:
     Double_t fEtaRangeMin; // Minimum pseudorapidity for tracks for efficiency calculation
     Double_t fEtaRangeMax; // Maximum pseudorapidity for tracks for efficiency calculation    
     Int_t fEtaRangeBins; // Number of bins for efficiency vs. pseudorapidity histogram
-    Double_t fAngleRangeMin; // Minimum polar angle [grad]
-    Double_t fAngleRangeMax; // Maximum polar angle [grad]
-    Int_t fAngleRangeBins; // Number of bins for efficiency vs. polar angle histogram
+    Double_t fThetaRangeMin; // Minimum polar angle [grad]
+    Double_t fThetaRangeMax; // Maximum polar angle [grad]
+    Int_t fThetaRangeBins; // Number of bins for efficiency vs. polar angle histogram
 
     // Pointers to data arrays
     TClonesArray* fMCTracks; // CbmMCTrack array
@@ -275,6 +235,7 @@ private:
     TClonesArray* fGemMatches; // BmnGemTrackMatch array
     TClonesArray* fGemSeeds; // BmnGemTrack array
     TClonesArray* fGemSeedMatches; // BmnGemTrackMatch array
+    TClonesArray* fGemHitMatches;
 
     TClonesArray* fGemPoints;
     TClonesArray* fGemHits;
@@ -282,10 +243,10 @@ private:
     TClonesArray* fTof1Hits;
     TClonesArray* fTof2Points;
     TClonesArray* fTof2Hits;
-    TClonesArray* fDch1Points;
-    TClonesArray* fDch1Hits;
-    TClonesArray* fDch2Points;
-    TClonesArray* fDch2Hits;
+    TClonesArray* fDchPoints;
+    TClonesArray* fDchHits;
+    
+    TClonesArray* fVertex;
 
     // Global track segment name maps to multimap <MC track index, reconstructed track index>
     map<string, multimap<Int_t, Int_t> > fMcToRecoMap;

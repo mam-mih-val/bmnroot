@@ -94,15 +94,15 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
                                                     "VALUES (?, ?, ?, ?, ?)");
 
                     TGeoMixture* pMixture = (TGeoMixture*) pMaterial;
-                    for (int i = 0; i < pMaterial->GetNelements(); i++)
+                    for (int j = 0; j < pMaterial->GetNelements(); j++)
                     {
 
                         if (stmt_insert->NextIteration())
                         {
                             stmt_insert->SetString(0, pMedium->GetName());
-                            stmt_insert->SetDouble(1, (pMixture->GetAmixt())[i]);
-                            stmt_insert->SetDouble(2, (pMixture->GetZmixt())[i]);
-                            stmt_insert->SetDouble(3, (pMixture->GetWmixt())[i]);
+                            stmt_insert->SetDouble(1, (pMixture->GetAmixt())[j]);
+                            stmt_insert->SetDouble(2, (pMixture->GetZmixt())[j]);
+                            stmt_insert->SetDouble(3, (pMixture->GetWmixt())[j]);
                         }
                     }
 
@@ -494,25 +494,25 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
                     stmt_insert->SetInt(1, dbParameterNz);
                     stmt_insert->SetDouble(2, pPgon->GetNz());
                 }
-                for (int i = 0; i < pPgon->GetNz(); i++)
+                for (int j = 0; j < pPgon->GetNz(); j++)
                 {
                     if (stmt_insert->NextIteration())
                     {
                         stmt_insert->SetInt(0, last_id);
-                        stmt_insert->SetInt(1, 100+3*i);
-                        stmt_insert->SetDouble(2, pPgon->GetZ()[i]);
+                        stmt_insert->SetInt(1, 100+3*j);
+                        stmt_insert->SetDouble(2, pPgon->GetZ()[j]);
                     }
                     if (stmt_insert->NextIteration())
                     {
                         stmt_insert->SetInt(0, last_id);
-                        stmt_insert->SetInt(1, 101+3*i);
-                        stmt_insert->SetDouble(2, pPgon->GetRmin()[i]);
+                        stmt_insert->SetInt(1, 101+3*j);
+                        stmt_insert->SetDouble(2, pPgon->GetRmin()[j]);
                     }
                     if (stmt_insert->NextIteration())
                     {
                         stmt_insert->SetInt(0, last_id);
-                        stmt_insert->SetInt(1, 102+3*i);
-                        stmt_insert->SetDouble(2, pPgon->GetRmax()[i]);
+                        stmt_insert->SetInt(1, 102+3*j);
+                        stmt_insert->SetDouble(2, pPgon->GetRmax()[j]);
                     }
                 }
 
@@ -539,25 +539,25 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
                     stmt_insert->SetInt(1, dbParameterNz);
                     stmt_insert->SetDouble(2, pPcon->GetNz());
                 }
-                for (int i = 0; i < pPcon->GetNz(); i++)
+                for (int j = 0; j < pPcon->GetNz(); j++)
                 {
                     if (stmt_insert->NextIteration())
                     {
                         stmt_insert->SetInt(0, last_id);
-                        stmt_insert->SetInt(1, 100+3*i);
-                        stmt_insert->SetDouble(2, pPcon->GetZ()[i]);
+                        stmt_insert->SetInt(1, 100+3*j);
+                        stmt_insert->SetDouble(2, pPcon->GetZ()[j]);
                     }
                     if (stmt_insert->NextIteration())
                     {
                         stmt_insert->SetInt(0, last_id);
-                        stmt_insert->SetInt(1, 101+3*i);
-                        stmt_insert->SetDouble(2, pPcon->GetRmin()[i]);
+                        stmt_insert->SetInt(1, 101+3*j);
+                        stmt_insert->SetDouble(2, pPcon->GetRmin()[j]);
                     }
                     if (stmt_insert->NextIteration())
                     {
                         stmt_insert->SetInt(0, last_id);
-                        stmt_insert->SetInt(1, 102+3*i);
-                        stmt_insert->SetDouble(2, pPcon->GetRmax()[i]);
+                        stmt_insert->SetInt(1, 102+3*j);
+                        stmt_insert->SetDouble(2, pPcon->GetRmax()[j]);
                     }
                 }
 
@@ -765,11 +765,11 @@ int UniDbGeoConverter::RecursiveNodeChanging(TSQLServer* uni_db, TGeoNode* node,
                     stmt_insert->SetDouble(2, pArb8->GetDz());
                 }
                 Double_t* vert = pArb8->GetVertices();
-                for (int i = 0; i < 8; i++)
+                for (int j = 0; j < 8; j++)
                 {
                     stmt_insert->SetInt(0, last_id);
-                    stmt_insert->SetInt(1, 100+3*i);
-                    stmt_insert->SetDouble(2, vert[3*i]);
+                    stmt_insert->SetInt(1, 100+3*j);
+                    stmt_insert->SetDouble(2, vert[3*j]);
                 }
 
                 break;

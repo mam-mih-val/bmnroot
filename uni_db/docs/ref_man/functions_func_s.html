@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.10"/>
-<title>Unified Database Interface: Class Members - Functions</title>
+<title>The Unified Database Interface: Class Members - Functions</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -23,9 +23,9 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">Unified Database Interface
+   <div id="projectname">The Unified Database Interface
    </div>
-   <div id="projectbrief">C++ interface of the databases for physics experiments</div>
+   <div id="projectbrief">C++ interface of the unified database for offline physics data processing</div>
   </td>
  </tr>
  </tbody>
@@ -103,9 +103,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 &#160;
 
 <h3><a class="anchor" id="index_s"></a>- s -</h3><ul>
+<li>Search()
+: <a class="el" href="class_uni_db_detector_parameter.html#ab31a542265ce5556c8f9f610a3dc0d35">UniDbDetectorParameter</a>
+, <a class="el" href="class_uni_db_run.html#a2b03a5e9e3526312bc8c7c42aeabc99a">UniDbRun</a>
+</li>
 <li>SetBeamParticle()
 : <a class="el" href="class_uni_db_run.html#aad3708a08370bb8c88960c8a35eb8a0c">UniDbRun</a>
 , <a class="el" href="class_uni_db_simulation_file.html#a7df02d19655134c7e2c0b78f8e19e290">UniDbSimulationFile</a>
+</li>
+<li>SetBinaryArray()
+: <a class="el" href="class_uni_db_detector_parameter.html#a3e6d7e03ac66c42851e9c10b8c967509">UniDbDetectorParameter</a>
 </li>
 <li>SetBool()
 : <a class="el" href="class_uni_db_detector_parameter.html#a6c0a96530a08a4f10e7ec2c7936193c4">UniDbDetectorParameter</a>
@@ -116,12 +123,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>SetChannel()
 : <a class="el" href="class_uni_db_detector_parameter.html#a667617b65e63b83147a86997d63b61de">UniDbDetectorParameter</a>
 </li>
-<li>SetContactPerson()
-: <a class="el" href="class_uni_db_detector.html#af33a91c962381c26f8c68aebf4947733">UniDbDetector</a>
-, <a class="el" href="class_uni_db_run_period.html#a3d78e9132c5cc7b01e3cc2d1c75c5edc">UniDbRunPeriod</a>
+<li>SetDchMapArray()
+: <a class="el" href="class_uni_db_detector_parameter.html#a2a069c609280299e712b0ffa2016a450">UniDbDetectorParameter</a>
 </li>
 <li>SetDcSerial()
-: <a class="el" href="class_uni_db_detector_parameter.html#aed1eb985bde352eadc779485687dab4f">UniDbDetectorParameter</a>
+: <a class="el" href="class_uni_db_detector_parameter.html#ac44f1277cf7c948b85b71785aa516a68">UniDbDetectorParameter</a>
 </li>
 <li>SetDescription()
 : <a class="el" href="class_uni_db_detector.html#a306f72352a9165de216632041334da0b">UniDbDetector</a>
@@ -136,10 +142,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>SetDoubleArray()
 : <a class="el" href="class_uni_db_detector_parameter.html#ad33e3a29dcbc76e86435e004f412ccd0">UniDbDetectorParameter</a>
 </li>
+<li>SetEnd()
+: <a class="el" href="class_uni_db_detector_parameter.html#a5c71905bfcefa7306a019b43ccae1638">UniDbDetectorParameter</a>
+</li>
 <li>SetEndDatetime()
 : <a class="el" href="class_uni_db_run.html#aa62c4b6e97a3aa135fd05a43eebb839b">UniDbRun</a>
 , <a class="el" href="class_uni_db_run_period.html#acb278ed9814da3ef30f83e5ef4141bac">UniDbRunPeriod</a>
-, <a class="el" href="class_uni_db_shift.html#a003507e0541950a89326b6f720268bc8">UniDbShift</a>
+</li>
+<li>SetEndPeriod()
+: <a class="el" href="class_uni_db_detector_parameter.html#a3d50351af9375a89a30035f4b6369b28">UniDbDetectorParameter</a>
 </li>
 <li>SetEndRun()
 : <a class="el" href="class_uni_db_detector_parameter.html#a51e32b47125b53ea3c0d2abad0512c51">UniDbDetectorParameter</a>
@@ -158,9 +169,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>SetFileDesc()
 : <a class="el" href="class_uni_db_simulation_file.html#a36795164ffc5ef5c2b4c2117a17b9819">UniDbSimulationFile</a>
 </li>
-<li>SetFileId()
-: <a class="el" href="class_uni_db_simulation_file.html#ae7eac2bbe8ffc963742c0aa4ccd73677">UniDbSimulationFile</a>
-</li>
 <li>SetFilePath()
 : <a class="el" href="class_uni_db_run.html#a4f7032a717713dfe65967b1b208d99f1">UniDbRun</a>
 , <a class="el" href="class_uni_db_simulation_file.html#ab91b551d92945269ab281ddf63f4e2d7">UniDbSimulationFile</a>
@@ -169,15 +177,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 : <a class="el" href="class_uni_db_run.html#a393dbda9713879ebb3b43e696503889c">UniDbRun</a>
 , <a class="el" href="class_uni_db_simulation_file.html#a3532dd2b89ad250285a35b0eb3606788">UniDbSimulationFile</a>
 </li>
-<li>SetFio()
-: <a class="el" href="class_uni_db_shift.html#ae32b96c3e912eba4501e0b2c33e86a04">UniDbShift</a>
+<li>SetGemMapArray()
+: <a class="el" href="class_uni_db_detector_parameter.html#a2745fe921fcfcb360ab60f05562c0d05">UniDbDetectorParameter</a>
+</li>
+<li>SetGemPedestalArray()
+: <a class="el" href="class_uni_db_detector_parameter.html#a5400b6c8cb6e71a3d28faaf2c4d61f0a">UniDbDetectorParameter</a>
 </li>
 <li>SetGeneratorName()
 : <a class="el" href="class_uni_db_simulation_file.html#a46150199c142494586ff288331f0e941">UniDbSimulationFile</a>
 </li>
 <li>SetGeometryId()
 : <a class="el" href="class_uni_db_run.html#a0464de51802ebecd6114741d331a5663">UniDbRun</a>
-, <a class="el" href="class_uni_db_run_geometry.html#a6b1eaeb35573ea0cefbf6d79b7a5e541">UniDbRunGeometry</a>
 </li>
 <li>SetIIArray()
 : <a class="el" href="class_uni_db_detector_parameter.html#aa2e552bb866caa22dc6fba813e96fe04">UniDbDetectorParameter</a>
@@ -188,12 +198,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>SetIntArray()
 : <a class="el" href="class_uni_db_detector_parameter.html#abfcb007beb67b5793afbf4f48b8be8aa">UniDbDetectorParameter</a>
 </li>
-<li>SetManufacturerName()
-: <a class="el" href="class_uni_db_detector.html#a5e09b120d596ca657c3c2dd21c5cf3e6">UniDbDetector</a>
-</li>
 <li>SetParameterId()
 : <a class="el" href="class_uni_db_detector_parameter.html#a7c7d491e878dcfd025d8bb860ca15a86">UniDbDetectorParameter</a>
-, <a class="el" href="class_uni_db_parameter.html#a2a3fefcbfe32836cfb3180d3e28c6f6f">UniDbParameter</a>
 </li>
 <li>SetParameterName()
 : <a class="el" href="class_uni_db_parameter.html#a642ad77a28393e0d178a8839e9d1000b">UniDbParameter</a>
@@ -205,27 +211,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 : <a class="el" href="class_uni_db_detector_parameter.html#ab4609e51b8111519c899d7609d222da6">UniDbDetectorParameter</a>
 </li>
 <li>SetPeriodNumber()
-: <a class="el" href="class_uni_db_run.html#a3473cfc38b25e172ab9a9647e7936df5">UniDbRun</a>
+: <a class="el" href="class_uni_db_run.html#aa062743631fbcd05e1162e8d91eaa38a">UniDbRun</a>
 , <a class="el" href="class_uni_db_run_period.html#afeea7243dd5b8a50df177cb87feda895">UniDbRunPeriod</a>
-, <a class="el" href="class_uni_db_shift.html#ae89d57ba18d718fbe9a6b6a711a95d26">UniDbShift</a>
-</li>
-<li>SetResponsibility()
-: <a class="el" href="class_uni_db_shift.html#a76f547bfbae83ed76336e85959831986">UniDbShift</a>
 </li>
 <li>SetRootGeometry()
-: <a class="el" href="class_uni_db_run.html#a16c1a48ca4289527a3cf9b061a469581">UniDbRun</a>
+: <a class="el" href="class_uni_db_run.html#ae24c6bed69475842bfd5edea0f36d6a9">UniDbRun</a>
 , <a class="el" href="class_uni_db_run_geometry.html#a4900585900f2a1f5150ff329fc7e8f67">UniDbRunGeometry</a>
 </li>
 <li>SetRunNumber()
 : <a class="el" href="class_uni_db_run.html#ab001af6cccb53ce0903d2ebebd77b1cd">UniDbRun</a>
 </li>
-<li>SetShiftId()
-: <a class="el" href="class_uni_db_shift.html#a469e6254edd3df8976d2a0ab2bfaea8c">UniDbShift</a>
+<li>SetStart()
+: <a class="el" href="class_uni_db_detector_parameter.html#adb1e6cb71d61e41984369a3774ae3231">UniDbDetectorParameter</a>
 </li>
 <li>SetStartDatetime()
 : <a class="el" href="class_uni_db_run.html#a935ef119099f88b89fc724faeff1148f">UniDbRun</a>
 , <a class="el" href="class_uni_db_run_period.html#afc9b895a49e9843b822cc71731b4aa03">UniDbRunPeriod</a>
-, <a class="el" href="class_uni_db_shift.html#abf69db492a840eba9866d92ec9707cec">UniDbShift</a>
+</li>
+<li>SetStartPeriod()
+: <a class="el" href="class_uni_db_detector_parameter.html#a4f117ba9d8066ee972ee8a88896af075">UniDbDetectorParameter</a>
 </li>
 <li>SetStartRun()
 : <a class="el" href="class_uni_db_detector_parameter.html#aceec8e61d455a4aaf520a8a6be525c9e">UniDbDetectorParameter</a>
@@ -237,11 +241,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 : <a class="el" href="class_uni_db_run.html#aeab05e830dca4ec9baee5d490db31c2a">UniDbRun</a>
 , <a class="el" href="class_uni_db_simulation_file.html#a35f122b2ea273decc7d627badbaf9843">UniDbSimulationFile</a>
 </li>
+<li>SetTriggerMapArray()
+: <a class="el" href="class_uni_db_detector_parameter.html#aa6ee3faf22010a2941f57aab5821c76b">UniDbDetectorParameter</a>
+</li>
+<li>SetUIntArray()
+: <a class="el" href="class_uni_db_detector_parameter.html#aa8d6a2854630b24bf3b926c481052b99">UniDbDetectorParameter</a>
+</li>
 <li>SetUNC()
 : <a class="el" href="class_uni_db_detector_parameter.html#ac5677cf97b4798428a7b8a9ef280668d">UniDbDetectorParameter</a>
-</li>
-<li>SetValueId()
-: <a class="el" href="class_uni_db_detector_parameter.html#aa64612a73fabf5b9194650179c0650ab">UniDbDetectorParameter</a>
 </li>
 </ul>
 </div><!-- contents -->

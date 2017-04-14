@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Modified : 11/11/2003 by Ilse Koenig
 //*-- Modified : 26/11/2001 by Ilse Koenig
@@ -22,13 +29,18 @@
 // not rotated, is identical with the laboratory system.
 //
 ///////////////////////////////////////////////////////////////////////////////
-
 #include "FairGeoPcon.h"
 
-#include "FairGeoVolume.h"
-#include "FairGeoVector.h"
+#include "FairGeoTransform.h"           // for FairGeoTransform
+#include "FairGeoVector.h"              // for FairGeoVector
+#include "FairGeoVolume.h"              // for FairGeoVolume
 
-#include "TArrayD.h"
+#include "TArrayD.h"                    // for TArrayD
+#include "TString.h"                    // for TString
+
+#include <stdio.h>                      // for printf, sprintf, sscanf
+#include <string.h>                     // for strlen
+#include <ostream>                      // for fstream, etc
 
 ClassImp(FairGeoPcon)
 
@@ -60,7 +72,7 @@ FairGeoPcon::~FairGeoPcon()
 }
 
 
-Int_t FairGeoPcon::readPoints(fstream* pFile,FairGeoVolume* volu)
+Int_t FairGeoPcon::readPoints(std::fstream* pFile,FairGeoVolume* volu)
 {
   // reads the 'points' decribed above from ascii file and stores them in the
   // array 'points' of the volume
@@ -75,7 +87,7 @@ Int_t FairGeoPcon::readPoints(fstream* pFile,FairGeoVolume* volu)
   if (n<=0) { return 0; }
   nPoints=n+2;
   if (volu->getNumPoints()!=nPoints) { volu->createPoints(nPoints); }
-  volu->setPoint(0,(Double_t)n,0.0,0.0);
+  volu->setPoint(0,static_cast<Double_t>(n),0.0,0.0);
   for(Int_t i=1; i<nPoints; i++) {
     pFile->getline(buf,maxbuf);
     if (i!=1) {
@@ -90,7 +102,7 @@ Int_t FairGeoPcon::readPoints(fstream* pFile,FairGeoVolume* volu)
 }
 
 
-Bool_t FairGeoPcon::writePoints(fstream* pFile,FairGeoVolume* volu)
+Bool_t FairGeoPcon::writePoints(std::fstream* pFile,FairGeoVolume* volu)
 {
   // writes the 'points' decribed above to ascii file
   if (!pFile) { return kFALSE; }
@@ -99,9 +111,11 @@ Bool_t FairGeoPcon::writePoints(fstream* pFile,FairGeoVolume* volu)
     FairGeoVector& v=*(volu->getPoint(i));
     switch(i) {
     case 0:
-      sprintf(buf,"%3i\n",(Int_t)v(0));
+      sprintf(buf,"%3i\n",static_cast<Int_t>(v(0)));
+      break;
     case 1:
       sprintf(buf,"%9.3f%10.3f\n",v(0),v(1));
+      break;
     default:
       sprintf(buf,"%9.3f%10.3f%10.3f\n",v(0),v(1),v(2));
     }
@@ -118,9 +132,11 @@ void FairGeoPcon::printPoints(FairGeoVolume* volu)
     FairGeoVector& v=*(volu->getPoint(i));
     switch(i) {
     case 0:
-      printf("%3i\n",(Int_t)v(0));
+      printf("%3i\n",static_cast<Int_t>(v(0)));
+      break;
     case 1:
       printf("%9.3f%10.3f\n",v(0),v(1));
+      break;
     default:
       printf("%9.3f%10.3f%10.3f\n",v(0),v(1),v(2));
     }

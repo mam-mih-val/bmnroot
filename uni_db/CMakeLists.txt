@@ -4,7 +4,7 @@
 
 set(INCLUDE_DIRECTORIES
 ${ROOT_INCLUDE_DIR}
-/usr/include/libxml2
+${XML2_INCLUDE_DIR}
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
@@ -13,6 +13,7 @@ include_directories(${INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
+${XML2_LIBRARY_DIR}
 )
  
 link_directories(${LINK_DIRECTORIES})
@@ -22,6 +23,7 @@ UniDbConnection.cxx
 UniDbGeoConverter.cxx
 UniDbGenerateClasses.cxx
 UniDbTangoData.cxx
+UniDbSearchCondition.cxx
 UniDbParser.cxx
 
 db_classes/UniDbRunPeriod.cxx
@@ -30,13 +32,18 @@ db_classes/UniDbRunGeometry.cxx
 db_classes/UniDbDetector.cxx
 db_classes/UniDbParameter.cxx
 db_classes/UniDbDetectorParameter.cxx
-db_classes/UniDbShift.cxx
 db_classes/UniDbSimulationFile.cxx
 )
 
 # fill list of header files from list of source files
 # by exchanging the file extension
 CHANGE_FILE_EXTENSION(*.cxx *.h UNIDB_HEADERS "${UNIDB_SRCS}")
+
+# add definitions of the possible database structures and enums
+set(UNIDB_HEADERS
+${UNIDB_HEADERS}
+db_structures.h
+)
 
 set(UNIDB_LINKDEF UniDbLinkDef.h)
 set(UNIDB_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/UniDbDict.cxx) 
@@ -51,8 +58,11 @@ add_library(UniDb SHARED ${UNIDB_SRCS})
 target_link_libraries(UniDb ${ROOT_LIBRARIES} xml2)
 set_target_properties(UniDb PROPERTIES VERSION 0.0.1 SOVERSION 0)
 
-add_executable (get_mpd_prod get_mpd_prod.cxx)
-target_link_libraries(get_mpd_prod ${ROOT_LIBRARIES})
+add_executable (show_simulation_files show_simulation_files.cxx)
+target_link_libraries(show_simulation_files ${ROOT_LIBRARIES})
+
+add_executable (show_experiment_files show_experiment_files.cxx)
+target_link_libraries(show_experiment_files ${ROOT_LIBRARIES})
 
 ################ install ###################
 install(TARGETS UniDb DESTINATION ${CMAKE_BINARY_DIR}/lib)

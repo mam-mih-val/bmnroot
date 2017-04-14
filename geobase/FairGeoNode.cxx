@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 10/11/2003
 //*---Modified: 21/06/2005 D.Bertini
@@ -8,11 +15,18 @@
 // Class to hold the basic geometry properties of a GEANT volume
 //
 ////////////////////////////////////////////////////////////////
-
 #include "FairGeoNode.h"
 
-#include "TList.h"
-#include <cmath>
+#include "FairGeoRotation.h"            // for FairGeoRotation
+#include "FairGeoVector.h"              // for FairGeoVector
+
+#include "TList.h"                      // for TList
+
+#include <cmath>                       // IWYU pragma: keep for abs
+// IWYU pragma: no_include <architecture/i386/math.h>
+#include <stdio.h>                      // for NULL, sscanf
+#include <iostream>                     // for operator<<, basic_ostream, etc
+
 using std::cout;
 using std::endl;
 
@@ -163,6 +177,7 @@ void FairGeoNode::print()
   cout<<"//----------------------------------------------------------\n";
   return;
 
+  /*
   cout<<((const char*)fName)<<'\n';
   if (pMother) { cout<<((const char*)mother)<<'\n'; }
   else { cout<<"-- unknown mother --\n"; }
@@ -177,19 +192,20 @@ void FairGeoNode::print()
   transform.getTransVector().print();
   transform.getRotMatrix().print();
   cout<<"//----------------------------------------------------------\n";
+  */
 }
 
-Bool_t FairGeoNode::write(fstream& fout)
+Bool_t FairGeoNode::write(std::fstream& fout)
 {
   // Writes all parameters of a volume to file
   fout<<fName.Data()<<'\n';
-  if (pMother) { fout<<((const char*)mother)<<'\n'; }
+  if (pMother) { fout<<(const_cast<const char*>(mother.Data()))<<'\n'; }
   else {
     Error("write","Unknown mother for %s\n",fName.Data());
     return kFALSE;
   }
   if (!copyNode) {
-    if (pShape) { fout<<((const char*)shape)<<'\n'; }
+    if (pShape) { fout<<(const_cast<const char*>(shape.Data()))<<'\n'; }
     else {
       Error("write","Unknown shape for %s\n",fName.Data());
       return kFALSE;
@@ -316,7 +332,7 @@ Bool_t FairGeoNode::calcRefPos(FairGeoVector& refPos)
     refPos=node->getTransform().transFrom(refPos);
     node=node->getMotherNode();
     if (!node) {
-      Error("calcModuleTransform","Mother volume %s not found!",node->GetName());
+      Error("calcModuleTransform","Mother of volume %s not found!",GetName());
       return kFALSE;
     }
   } while (node&&!node->isModule());

@@ -20,10 +20,13 @@
 #include "BmnHitMatchingQA.h"
 #include "TClonesArray.h"
 #include "BmnGlobalTrack.h"
-#include "CbmStsPoint.h"
 #include "CbmTofPoint.h"
 #include "BmnHit.h"
 #include "BmnGemTrack.h"
+#include "BmnDchTrack.h"
+#include "BmnDchHit.h"
+#include "BmnMwpcHit.h"
+#include "BmnMwpcTrack.h"
 #include "FairRootManager.h"
 #include "FairRunAna.h"
 #include "FairRuntimeDb.h"
@@ -37,6 +40,7 @@
 #include "TCanvas.h"
 #include "TColor.h"
 #include "TGraph.h"
+#include "BmnKalmanFilter_tmp.h"
 
 class TClonesArray;
 
@@ -82,6 +86,8 @@ public:
     const Short_t GetDetConf() const {
         return fDetConf;
     };
+    
+    BmnStatus CreateDchHitsFromTracks();
 
 private:
 
@@ -101,38 +107,29 @@ private:
     void SelectTracksForTofMerging();
 
     // INPUT ARRAYS
-    TClonesArray* fSeeds;
     TClonesArray* fGemTracks;
+    TClonesArray* fGemVertex;
     TClonesArray* fGemHits;
-    TClonesArray* fMwpc1Hits;
-    TClonesArray* fMwpc2Hits;
-    TClonesArray* fMwpc3Hits;
-    TClonesArray* fDch1Hits;
-    TClonesArray* fDch2Hits;
+    TClonesArray* fMwpcTracks;
+    TClonesArray* fMwpcHits;
+    TClonesArray* fDchTracks;
+    TClonesArray* fDchHits;
     TClonesArray* fTof1Hits;
     TClonesArray* fTof2Hits;
+    
+    TClonesArray* fEvHead;
 
     // INPUT FOR CHECKING EFFICIENCY
     TClonesArray* fGemMcPoints;
     TClonesArray* fTof1McPoints;
     TClonesArray* fTof2McPoints;
-    TClonesArray* fDch1McPoints;
-    TClonesArray* fDch2McPoints;
+    TClonesArray* fDchMcPoints;
     TClonesArray* fMcTracks;
 
     // OUTPUT ARRAYS
 
     TClonesArray* fGlobalTracks; //output BmnGlobalTrack array
 
-    // Tools
-    BmnTrackFinder* fFinder; // track finder
-    BmnHitToTrackMerger* fMerger; // hit-to-track merger
-//    BmnTrackFitter* fFitter; // track fitter
-    // track propagator
-    // Used to propagate STS track to the last STS station!!!
-    // Since this cannot be done in parallel mode!!!
-    BmnTrackPropagator* fPropagator;
-    BmnKalmanFilter* fUpdater;
 
     /*
      * Detector configuration, 5 bits:
@@ -152,8 +149,9 @@ private:
     Int_t fPDG; // PDG hypothesis
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
 
-    BmnStatus NearestHitMergeTOF(BmnGlobalTrack* tr, Int_t num);
-    BmnStatus NearestHitMergeDCH(BmnGlobalTrack* tr, Int_t num);
+    BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num);
+    BmnStatus MatchingDCH(BmnGlobalTrack* tr);
+    BmnStatus MatchingMWPC(BmnGlobalTrack* tr);
     
     BmnStatus Refit(BmnGlobalTrack* tr);
     BmnStatus EfficiencyCalculation();

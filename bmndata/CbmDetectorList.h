@@ -14,14 +14,13 @@ enum DetectorId {kREF,  // Reference plane
          kMVD,          // future BMN silicone detector
          kGEM,          // GEMS detectors
          kTOF1,         // Front Time-of-flight Detector
-         kDCH1,         // DCH1
-         kDCH2,         // DCH2
+         kDCH,         // DCH
          kTOF,          // Rear Time-of-flight Detector
          kZDC,          // ZDC
          kRECOIL,       // Recoil
-         kMWPC1,       // MWPC1         
-         kMWPC2,       // MWPC2         
-         kMWPC3,       // MWPC3         
+         kMWPC,       // MWPC
+         kBD,      // Barrel
+         kECAL,         // ECAL        
          kNOFDETS}; // Number of elements (e.g. for loops)
 
 

@@ -1,23 +1,30 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEONODE_H
 #define FAIRGEONODE_H
 
-#include "FairGeoVolume.h"
-#include "FairGeoBasicShape.h"
-//#include "FairGeoMedium.h"
-#include "FairGeoTransform.h"
+#include "FairGeoVolume.h"              // for FairGeoVolume
 
-//#include "TArrayD.h"
-//#include "TObjArray.h"
-#include "TGeoVolume.h"
+#include "FairGeoBasicShape.h"          // for FairGeoBasicShape
+#include "FairGeoMedium.h"              // for FairGeoMedium
+#include "FairGeoTransform.h"           // for FairGeoTransform
 
-//#include <fstream>
-//#include <iomanip>
+#include "Riosfwd.h"                    // for fstream
+#include "Rtypes.h"                     // for Bool_t, FairGeoNode::Class, etc
+#include "TObjArray.h"                  // for TObjArray
+#include "TString.h"                    // for TString
 
-class FairGeoMedium;
+#include <iosfwd>                       // for fstream
+
 class FairGeoVector;
 class TArrayD;
-class TObjArray;
-//class TGeoVolume;
+class TGeoVolume;
+class TList;
 
 enum EFairGeoNodeType {
   kFairGeoElement = 0,
@@ -58,10 +65,10 @@ class FairGeoNode : public FairGeoVolume
     void AddDaughter(FairGeoNode* fNode) {fDaughterList->AddLast(fNode);}
     TObjArray* GetListOfDaughters() {return fDaughterList;}
     EFairGeoNodeType getVolumeType() { return volumeType; }
-    Bool_t isTopNode() { return (Bool_t)(volumeType == kFairGeoTopNode);}
-    Bool_t isRefNode() { return (Bool_t)(volumeType == kFairGeoRefNode);}
-    Bool_t isKeepin()  { return (Bool_t)(volumeType == kFairGeoKeepin);}
-    Bool_t isModule()  { return (Bool_t)(volumeType == kFairGeoModule);}
+    Bool_t isTopNode() { return static_cast<Bool_t>((volumeType == kFairGeoTopNode));}
+    Bool_t isRefNode() { return static_cast<Bool_t>((volumeType == kFairGeoRefNode));}
+    Bool_t isKeepin()  { return static_cast<Bool_t>((volumeType == kFairGeoKeepin));}
+    Bool_t isModule()  { return static_cast<Bool_t>((volumeType == kFairGeoModule));}
     Int_t getCopyNo();
     FairGeoBasicShape* getShapePointer() { return pShape; }
     FairGeoNode* getMotherNode() {return pMother;}
@@ -93,7 +100,7 @@ class FairGeoNode : public FairGeoVolume
     Bool_t calcRefPos(FairGeoVector&);
     void clear();
     void print();
-    Bool_t write(fstream&);
+    Bool_t write(std::fstream&);
     Int_t compare(FairGeoNode&);
 
 

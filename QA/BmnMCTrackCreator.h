@@ -45,7 +45,7 @@ public:
     static BmnMCTrackCreator* Instance();
 
     /**
-     * \brief Creates array of CbmLitMCTracks for current event.
+     * \brief Creates array of BmnMCTracks for current event.
      * Has to be executed in Exec() function of the task.
      */
     void Create();
@@ -60,7 +60,7 @@ public:
     }
 
     /**
-     * \brief Return CbmLitMCTrack by its index.
+     * \brief Return BmnMCTrack by its index.
      * \param[in] mcId MC index of track.
      * \return MC track.
      */
@@ -131,8 +131,7 @@ private:
     TClonesArray* fMvdPoints;
     TClonesArray* fGemPoints;
     TClonesArray* fTof1Points;
-    TClonesArray* fDch1Points;
-    TClonesArray* fDch2Points;
+    TClonesArray* fDchPoints;
     TClonesArray* fTof2Points;
 
     // Stores created CbmLitMCTrack objects.

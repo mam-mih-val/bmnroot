@@ -1,8 +1,19 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRGEOTRANSFORM_H
 #define FAIRGEOTRANSFORM_H
 
-#include "FairGeoVector.h"
-#include "FairGeoRotation.h"
+#include "TObject.h"                    // for TObject
+
+#include "FairGeoRotation.h"            // for FairGeoRotation
+#include "FairGeoVector.h"              // for FairGeoVector
+
+#include "Rtypes.h"                     // for Double_t, etc
 
 /**
  * basic geometry transformation class
@@ -46,7 +57,8 @@ class FairGeoTransform : public TObject
 };
 
 inline FairGeoTransform::FairGeoTransform(const FairGeoTransform& t)
-  : rot(t.getRotMatrix()),
+  : TObject(t),
+    rot(t.getRotMatrix()),
     trans(t.getTransVector()),
     trans_cm(FairGeoVector(0,0,0))
 {

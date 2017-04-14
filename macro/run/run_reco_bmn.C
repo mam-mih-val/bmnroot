@@ -1,314 +1,285 @@
-// --------------------------------------------------------------------------
-// Macro for reconstruction of simulated events with standard settings
+// -----------------------------------------------------------------------------
+// Macro for reconstruction of simulated or experimental events.
 //
-// HitProducers in MVD, RICH, TRD, TOF, ECAL
-// Digitizer and HitFinder in STS
-// FAST MC for ECAL
-// STS track finding and fitting (L1 / KF)
-// TRD track finding and fitting (L1 / KF)
-// RICH ring finding (ideal) and fitting
-// Global track finding (ideal), rich assignment
-// Primary vertex finding (ideal)
-// Matching of reconstructed and MC tracks in STS, RICH and TRD
+// inputFileName - input file with data.
 //
-// V. Friese   24/02/2006
-// Version     24/04/2007 (V. Friese)
+// To process experimental data, you must use 'runN-NNN:'-like prefix
+// and then the geometry will be obtained from the Unified Database.
 //
-// --------------------------------------------------------------------------
+// bmndstFileName - output file with reconstructed data.
+//
+// nStartEvent - number of first event to process (starts with zero), default: 0.
+//
+// nEvents - number of events to process, 0 - all events of given file will be
+// processed, default: 10000.
+//
+// isPrimary - flag needed when working with MC events, default: kTRUE.
+//
+// alignCorrFileName - argument for choosing input file with the alignment
+// corrections.
+//
+// If alignCorrFileName == 'default', (case insensitive) then corrections are
+// retrieved from UniDb according to the running period and run number.
+//
+// If alignCorrFileName == '', then no corrections are applied at all.
+//
+// If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
+// from that file.
 
-
-// inFile - input file with MC data, default: evetest.root
-// nStartEvent - number (start with zero) of first event to process, default: 0
-// nEvents - number of events to process, 0 - all events of given file will be proccessed, default: 1
-// outFile - output file with reconstructed data, default: mpddst.root
-
-void run_reco_bmn(TString inFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "$VMCWORKDIR/macro/run/bmndst.root", Int_t nStartEvent = 0, Int_t nEvents = 100, Bool_t isPrimary = kTRUE, Bool_t gemCF = kFALSE) {
-    // ========================================================================
-    // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
+void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.root",
+                  TString bmndstFileName    = "$VMCWORKDIR/macro/run/bmndst.root",
+                  Int_t   nStartEvent       =  0,
+                  Int_t   nEvents           =  10000,
+                  Bool_t  isPrimary         =  kTRUE,
+                  TString alignCorrFileName = "default")
+{   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
-
-    // Parameter file
-    TString parFile = inFile;
-
-    //  Digitisation files.
-    // Add TObjectString containing the different file names to
-    // a TList which is passed as input to the FairParAsciiFileIo.
-    // The FairParAsciiFileIo will take care to create on the fly
-    // a concatenated input parameter file which is then used during
-    // the reconstruction.
-    TList *parFileList = new TList();
-    TObjString stsDigiFile = "$VMCWORKDIR/parameters/sts_v15a_gem.digi.par";
-    parFileList->Add(&stsDigiFile);
-
-    TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
-    parFileList->Add(&tofDigiFile);
-
-
-    // In general, the following parts need not be touched
-    // ========================================================================
-
-    // ----    Debug option   -------------------------------------------------
+    // ----    Debug option   --------------------------------------------------
     gDebug = 0;
-    // ------------------------------------------------------------------------
-
-    // ----  Load libraries   -------------------------------------------------
+    // -------------------------------------------------------------------------
+    // ----  Load libraries   --------------------------------------------------
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-    bmnloadlibs(); // load bmn libraries
-    // ------------------------------------------------------------------------
-
-    // -----   Timer   --------------------------------------------------------
+    bmnloadlibs(); // load BmnRoot libraries
+    // -------------------------------------------------------------------------
+    // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
-    // ------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // -----   Reconstruction run   --------------------------------------------
+    FairRunAna* fRunAna = new FairRunAna();
 
-    // -----   Reconstruction run   -------------------------------------------
-    FairRunAna *fRun = new FairRunAna();
-    fRun->SetInputFile(inFile);
-    fRun->SetOutputFile(outFile);
-    fRun->SetWriteRunInfoFile(false);
-    // ------------------------------------------------------------------------
+    Bool_t isField  = kTRUE;  // flag for tracking (to use mag.field or not)
+    Bool_t isTarget = kFALSE; // flag for tracking (run with target or not)
+    Bool_t isExp    = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
-    // =========================================================================
-    // ===             Detector Response Simulation (Digitiser)              ===
-    // ===                          (where available)                        ===
-    // =========================================================================
+    // Declare input source as simulation file or experimental data
+    FairSource* fFileSource;
+    // for experimental datasource
+    Int_t run_period;
+    Int_t run_number;
+    if (inputFileName.Contains(TPRegexp("^run[0-9]+-[0-9]+:")))
+    {
+        Ssiz_t indDash = inputFileName.First('-'), indColon = inputFileName.First(':');
+        // get run period
+        run_period = TString(inputFileName(3, indDash - 3)).Atoi();
+        // get run number
+        run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
+        inputFileName.Remove(0, indColon + 1);
 
-    /*
+        if ( ! CheckFileExist(inputFileName)) {
+            cout <<"Error: digi file "+inputFileName+" does not exist!"<< endl;
+            exit(-1);
+        }
+        // set source as raw data file
+        fFileSource = new BmnFileSource(inputFileName);
 
-        // -----   STS digitizer   -------------------------------------------------
-        Double_t threshold = 4;
-        Double_t noiseWidth = 0.01;
-        Int_t nofBits = 12;
-        Double_t electronsPerAdc = 10;
-        Double_t StripDeadTime = 0.1;
-        CbmStsDigitize* stsDigitize = new CbmStsDigitize("STS Digitiser", iVerbose);
-        stsDigitize->SetRealisticResponse();
-        stsDigitize->SetFrontThreshold(threshold);
-        stsDigitize->SetBackThreshold(threshold);
-        stsDigitize->SetFrontNoiseWidth(noiseWidth);
-        stsDigitize->SetBackNoiseWidth(noiseWidth);
-        stsDigitize->SetFrontNofBits(nofBits);
-        stsDigitize->SetBackNofBits(nofBits);
-        stsDigitize->SetFrontNofElPerAdc(electronsPerAdc);
-        stsDigitize->SetBackNofElPerAdc(electronsPerAdc);
-        stsDigitize->SetStripDeadTime(StripDeadTime);
-        //   fRun->AddTask(stsDigitize);
-        // -------------------------------------------------------------------------
+        // get geometry for run
+        TString geoFileName = "current_geo_file.root";
+        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, geoFileName.Data());
+        if (res_code != 0) {
+            cout <<"Geometry file can't be read from the database"<< endl;
+            exit(-1);
+        }
 
-        // =========================================================================
-        // ===                      STS local reconstruction                     ===
-        // =========================================================================
+        // get gGeoManager from ROOT file (if required)
+        TFile* geoFile = new TFile(geoFileName, "READ");
+        if ( ! geoFile->IsOpen()) {
+            cout <<"Error: could not open ROOT file with geometry: "+geoFileName<< endl;
+            exit(-2);
+        }
+        TList* keyList = geoFile->GetListOfKeys();
+        TIter  next(keyList);
+        TKey*  key = (TKey*)next();
+        TString className(key->GetClassName());
+        if (className.BeginsWith("TGeoManager"))
+            key->ReadObj();
+        else {
+            cout <<"Error: TGeoManager isn't top element in geometry file "+geoFileName<< endl;
+            exit(-3);
+        }
+        // set magnet field with factor corresponding to the given run
+        UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
+        if (pCurrentRun == 0) {
+            exit(-2);
+        }
+        Double_t fieldScale = 0.0;
+        Double_t map_current  = 55.87;
+        Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
+        if (*field_voltage == 0) {
+            fieldScale = 0;
+            isField = kFALSE;
+        } else {
+            fieldScale = (*field_voltage) / map_current;
+        }
+        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
+        magField->SetScale(fieldScale);
+        magField->Init();
+        fRunAna->SetField(magField);
+        isExp = kTRUE;
+        TString targ;
+        if (pCurrentRun->GetTargetParticle() == NULL) {
+            targ = "-";
+            isTarget = kFALSE; }
+        else {
+            targ = (pCurrentRun->GetTargetParticle())[0];
+            isTarget = kTRUE;
+        }
+        TString beam = pCurrentRun->GetBeamParticle();
+        cout << "\n\n|||||||||||||||| EXPERIMENTAL RUN SUMMARY ||||||||||||||||" << endl;
+        cout << "||\t\t\t\t\t\t\t||" << endl;
+        cout << "||\t\tPeriod:\t\t" << run_period << "\t\t\t||" << endl;
+        cout << "||\t\tNumber:\t\t" << run_number << "\t\t\t||" << endl;
+        cout << "||\t\tBeam:\t\t" << beam << "\t\t\t||" << endl;
+        cout << "||\t\tTarget:\t\t" << targ << "\t\t\t||" << endl;
+        cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
+        cout << "||\t\t\t\t\t\t\t||" << endl;
+        cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
+    }
+    else { // for simulated files
+        if ( ! CheckFileExist(inputFileName)) return;
+        fFileSource = new FairFileSource(inputFileName);
+    }
+    fRunAna->SetSource(fFileSource);
+    fRunAna->SetOutputFile(bmndstFileName);
+    fRunAna->SetGenerateRunInfo(false);
 
+    // "Parameter file" in the FairRoot terminology
+    TString parFileName = inputFileName;
 
-        // -----   STS Cluster Finder   --------------------------------------------
-        FairTask* stsClusterFinder = new CbmStsClusterFinder("STS Cluster Finder", iVerbose);
-        //   fRun->AddTask(stsClusterFinder);
-        // -------------------------------------------------------------------------
+    // Digitisation files.
+    // Add TObjectString file names to a TList which is passed as input to the
+    // FairParAsciiFileIo.
+    // The FairParAsciiFileIo will take care to create on the fly a
+    // concatenated input parameter file, which is then used during the
+    // reconstruction.
+    TList* parFileNameList = new TList();
+    TObjString stsDigiFile = "$VMCWORKDIR/parameters/sts_v15a_gem.digi.par";
+    parFileNameList->Add(&stsDigiFile);
 
+    TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
+    parFileNameList->Add(&tofDigiFile);
 
-        // -----   STS hit finder   ------------------------------------------------
-        FairTask* stsFindHits = new CbmStsFindHits("STS Hit Finder", iVerbose);
-        //   fRun->AddTask(stsFindHits);
-        // -------------------------------------------------------------------------
-
-
-        // -----  STS hit matching   -----------------------------------------------
-        FairTask* stsMatchHits = new CbmStsMatchHits("STS Hit Matcher", iVerbose);
-        //   fRun->AddTask(stsMatchHits);
-        // -------------------------------------------------------------------------
-
-
-        // ---  STS track finding   ------------------------------------------------
-        CbmKF* kalman = new CbmKF();
-        //   fRun->AddTask(kalman);
-        CbmL1* l1 = new CbmL1();
-        //   fRun->AddTask(l1);
-        CbmStsTrackFinder* stsTrackFinder = new CbmL1StsTrackFinder();
-        FairTask* stsFindTracks = new CbmStsFindTracks(iVerbose, stsTrackFinder);
-        //   fRun->AddTask(stsFindTracks);
-        // -------------------------------------------------------------------------
-
-
-        // ---   STS track matching   ----------------------------------------------
-        FairTask* stsMatchTracks = new CbmStsMatchTracks(iVerbose);
-        //   fRun->AddTask(stsMatchTracks);
-        // -------------------------------------------------------------------------
-
-
-        // ---   STS track fitting   -----------------------------------------------
-        CbmStsTrackFitter* stsTrackFitter = new CbmStsKFTrackFitter();
-        FairTask* stsFitTracks = new CbmStsFitTracks(stsTrackFitter, iVerbose);
-        //   fRun->AddTask(stsFitTracks);
-        // -------------------------------------------------------------------------
-
-        // ===                 End of STS local reconstruction                   ===
-        // =========================================================================
-
-
-        // =========================================================================
-        // ===                     PSD Digitization                      ===
-        // =========================================================================
-
-        CbmPsdIdealDigitizer *psddigi = new CbmPsdIdealDigitizer();
-        //   fRun->AddTask(psddigi);
-
-        CbmPsdHitProducer *psdhit = new CbmPsdHitProducer();
-        //   fRun->AddTask(psdhit);
-        CbmPsdReactionPlaneMaker *psdrp = new CbmPsdReactionPlaneMaker();
-        //   fRun->AddTask(psdrp);
-
-     */
-    //SM --->
-
-    //Temporary flag to change reconstruction chain between standard and RUN-1
-    const Bool_t kRUN1 = kFALSE;
-
+    if (isExp && iVerbose == 0) { // print only progress bar in terminal in quiet mode
+        BmnCounter* cntr = new BmnCounter(nEvents);
+        fRunAna->AddTask(cntr);
+    }
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
-
-    if (kRUN1) {
-        BmnMwpcDigitizer* mwpcDigit1 = new BmnMwpcDigitizer(1);
-        fRun->AddTask(mwpcDigit1);
-        BmnMwpcDigitizer* mwpcDigit2 = new BmnMwpcDigitizer(2);
-        fRun->AddTask(mwpcDigit2);
-        BmnMwpcDigitizer* mwpcDigit3 = new BmnMwpcDigitizer(3);
-        fRun->AddTask(mwpcDigit3);
-
-        //    BmnMwpcHitFinder* mwpcHF1 = new BmnMwpcHitFinder(1);
-        //    fRun->AddTask(mwpcHF1);
-        //    BmnMwpcHitFinder* mwpcHF2 = new BmnMwpcHitFinder(2);
-        //    fRun->AddTask(mwpcHF2);
-        //    BmnMwpcHitFinder* mwpcHF3 = new BmnMwpcHitFinder(3);
-        //    fRun->AddTask(mwpcHF3);
-
-        BmnMwpcHitProducer* mwpcHP1 = new BmnMwpcHitProducer(1);
-        fRun->AddTask(mwpcHP1);
-        BmnMwpcHitProducer* mwpcHP2 = new BmnMwpcHitProducer(2);
-        fRun->AddTask(mwpcHP2);
-        BmnMwpcHitProducer* mwpcHP3 = new BmnMwpcHitProducer(3);
-        fRun->AddTask(mwpcHP3);
-    }
-
+    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
+  //mwpcHM->SetUseDigitsInTimeBin(kFALSE);
+    fRunAna->AddTask(mwpcHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
+    BmnGemStripConfiguration::GEM_CONFIG gem_config;
+    if (!isExp || run_period == 6)
+        gem_config = BmnGemStripConfiguration::RunSpring2017;
+    else if (run_period == 5)
+        gem_config = BmnGemStripConfiguration::RunWinter2016;
 
-    if (gemCF) {
+    if (!isExp) {
         BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
+        gemDigit->SetCurrentConfig(gem_config);
         gemDigit->SetOnlyPrimary(isPrimary);
-        fRun->AddTask(gemDigit);
-        BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker();
-        fRun->AddTask(gemHM);
-    } else {
-        BmnGemHitProducer* gemHP = new BmnGemHitProducer();
-        gemHP->SetOnlyPrimary(isPrimary);
-        fRun->AddTask(gemHP);
+        gemDigit->SetStripMatching(kTRUE);
+        fRunAna->AddTask(gemDigit);
     }
-
+    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
+    gemHM->SetCurrentConfig(gem_config);
+    // Set name of file with the alignment corrections
+    if (isExp) {
+        TString aligncorrfilename = alignCorrFileName;
+        if (aligncorrfilename.ToLower() == "default")
+            // retrieve from UniDb (default)
+            gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
+        else
+            // set explicitly, for testing purposes and for interactive alignment;
+            // in case of determining alignment corrections from scratch,
+            // set alignCorrFileName == "" (at first iteration)
+            gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
+    }
+    gemHM->SetHitMatching(kTRUE);
+    fRunAna->AddTask(gemHM);
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //
-
-    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer();
-    //tof1HP->SetOnlyPrimary(kTRUE);
-    fRun->AddTask(tof1HP);
-    // ====================================================================== //
-    // ===                           DCH1 hit finder                      === //
-    // ====================================================================== //
-
-    //    BmnDchHitProducer* dch1HP = new BmnDchHitProducer(1,0,false);
-    BmnDchHitProducerTmp* dch1HP = new BmnDchHitProducerTmp(1);
-    //dch1HP->SetOnlyPrimary(kTRUE);
-    fRun->AddTask(dch1HP);
-
-    // ====================================================================== //
-    // ===                          DCH2 hit finder                       === //
-    // ====================================================================== //
-
-    //    BmnDchHitProducer* dch2HP = new BmnDchHitProducer(2,0,false);
-    BmnDchHitProducerTmp* dch2HP = new BmnDchHitProducerTmp(2);
-    //dch2HP->SetOnlyPrimary(kTRUE);
-    fRun->AddTask(dch2HP);
-
+    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
+  //tof1HP->SetOnlyPrimary(kTRUE);
+    fRunAna->AddTask(tof1HP);
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
     // ====================================================================== //
-
     CbmTofHitProducer* tof2HP = new CbmTofHitProducer("TOF HitProducer", iVerbose);
     tof2HP->SetZposition(700.);
     tof2HP->SetXshift(32.);
-    fRun->AddTask(tof2HP);
-
+  //fRunAna->AddTask(tof2HP);
     // ====================================================================== //
-    // ===                           Tracking                             === //
+    // ===                           Tracking (MWPC)                      === //
     // ====================================================================== //
+    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
+    fRunAna->AddTask(mwpcTF);
+    // ====================================================================== //
+    // ===                           Tracking (GEM)                       === //
+    // ====================================================================== //
+    BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
+    gemSF->SetUseLorentz(kTRUE);
+    gemSF->SetField(isField);
+    gemSF->SetTarget(isTarget);
+  //gemSF->SetXRange(-5.0,  20.0);
+  //gemSF->SetYRange(-4.8., -3.8);
+    if (run_period == 5) // in run 6 that staion is already skipped
+        gemSF->AddStationToSkip(0);
+  //gemSF->AddStationToSkip(1);
+  //gemSF->AddStationToSkip(2);
+    fRunAna->AddTask(gemSF);
 
-    if (kRUN1) {
-
-        //TODO: fix this branch!!!
-        BmnSeedFinder* SF = new BmnSeedFinder();
-        SF->SetMakeQA(kFALSE);
-        SF->SetRun1(kRUN1);
-        fRun->AddTask(SF);
-
-    } else {
-
-        BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
-        gemSF->SetUseLorentz(kTRUE);
-        fRun->AddTask(gemSF);
-
-        BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
-        fRun->AddTask(gemTF);
-    }
-
+    BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
+    gemTF->SetField(isField);
+    fRunAna->AddTask(gemTF);
+    // ====================================================================== //
+    // ===                     Primary vertex finding                     === //
+    // ====================================================================== //
+    BmnGemVertexFinder* vf = new BmnGemVertexFinder();
+    vf->SetField(isField);
+    fRunAna->AddTask(vf);
+    // ====================================================================== //
+    // ===                           Tracking (DCH)                       === //
+    // ====================================================================== //
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    dchTF->SetTransferFunction("pol_coord00813.txt");
+    fRunAna->AddTask(dchTF);
+    // ====================================================================== //
+    // ===                          Global Tracking                       === //
+    // ====================================================================== //
     BmnGlobalTracking* glFinder = new BmnGlobalTracking();
-    glFinder->SetRun1(kRUN1);
-    fRun->AddTask(glFinder);
-
-    // <--- SM
-
-    // -----   Primary vertex finding   ---------------------------------------
-    CbmPrimaryVertexFinder* pvFinder = new CbmPVFinderKF();
-    CbmFindPrimaryVertex* findVertex = new CbmFindPrimaryVertex(pvFinder);
-    //  fRun->AddTask(findVertex);
-    // ------------------------------------------------------------------------
-
-    // ====================================================================== //
-    // ===                         End of tracking                        === //
-    // ====================================================================== //
-
-
-    // -----  Parameter database   --------------------------------------------
-    FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
-    FairParRootFileIo* parIo1 = new FairParRootFileIo();
+    fRunAna->AddTask(glFinder);
+    // -----   Parameter database   --------------------------------------------
+    FairRuntimeDb*      rtdb   = fRunAna->GetRuntimeDb();
+    FairParRootFileIo*  parIo1 = new FairParRootFileIo();
     FairParAsciiFileIo* parIo2 = new FairParAsciiFileIo();
-    parIo1->open(parFile.Data());
-    parIo2->open(parFileList, "in");
+    parIo1->open(parFileName.Data());
+    parIo2->open(parFileNameList, "in");
     rtdb->setFirstInput(parIo1);
     rtdb->setSecondInput(parIo2);
     rtdb->setOutput(parIo1);
     rtdb->saveOutput();
-    // ------------------------------------------------------------------------
-
-
+    // -------------------------------------------------------------------------
     // -----   Initialize and run   --------------------------------------------
-    fRun->Init();
-    cout << "Starting run" << endl;
-    fRun->Run(nStartEvent, nStartEvent + nEvents);
-    // ------------------------------------------------------------------------
-
-    // -----   Finish   -------------------------------------------------------
-    //  delete fRun;
-
+    fRunAna->GetMainTask()->SetVerbose(iVerbose);
+    fRunAna->Init();
+    cout <<"Starting run"<< endl;
+    fRunAna->Run(nStartEvent, nStartEvent+nEvents);
+    // -------------------------------------------------------------------------
+    // -----   Finish   --------------------------------------------------------
     timer.Stop();
     Double_t rtime = timer.RealTime();
     Double_t ctime = timer.CpuTime();
     cout << endl << endl;
-    cout << "Macro finished successfully." << endl;
-    cout << "Output file is " << outFile << endl;
-    cout << "Parameter file is " << parFile << endl;
-    cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;
+    cout <<"Macro finished successfully."<< endl; // marker of successful execution for CDASH
+    cout <<"Output file is "+bmndstFileName<< endl;
+    cout <<"Parameter file is "+parFileName<< endl;
+    cout <<"Real time "<<rtime<<" s, CPU time "<<ctime<<" s"<< endl;
     cout << endl;
     // ------------------------------------------------------------------------
 }

@@ -1,14 +1,14 @@
 #include <Rtypes.h>
 
-// inFile - input file with generator data, default: auau.09gev.mbias.98k.ftn14
+// inFile - input file with generator data, default: dc4mb.r12 for LAQGSM event generator (deuteron - carbon target, mbias, 4 GeV)
+// outFile - output file with MC data, default: evetest.root
 // nStartEvent - for compatibility, any number
 // nEvents - number of events to transport, default: 1
-// outFile - output file with MC data, default: evetest.root
 // flag_store_FairRadLenPoint
-void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
+void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
-#define URQMD
+#define BOX
 
     TStopwatch timer;
     timer.Start();
@@ -18,9 +18,7 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
     bmnloadlibs(); // load libraries
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
-    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run1.C");
-    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run2.C");
-    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run3.C");
+    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run[NUMBER].C");
 
     // -----   Create simulation run   ----------------------------------------
     FairRunSim *fRun = new FairRunSim();
@@ -30,7 +28,6 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
     // fRun->SetName("TGeant4");
     // fRun->SetGeoModel("G3Native");
 
-    //    geometry_run1(fRun); // load bmn geometry
     geometry(fRun); // load bmn geometry
 
     // Use the experiment specific MC Event header instead of the default one
@@ -38,17 +35,8 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
     //MpdMCEventHeader* mcHeader = new MpdMCEventHeader();
     //fRun->SetMCEventHeader(mcHeader);
 
-
     // Create and Set Event Generator
     //-------------------------------
-
-    // Use the CbmUrqmdGenrator which calculates a reaction plane and
-    // rotate all particles accordingly
-    //CbmUrqmdGenerator*  urqmdGen = new CbmUrqmdGenerator(inFile);
-    //urqmdGen->SetEventPlane(0. , 360.);
-    //primGen->AddGenerator(urqmdGen);
-    //fRun->SetGenerator(primGen);
-
     FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
     fRun->SetGenerator(primGen);
 
@@ -75,6 +63,7 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
     if (!CheckFileExist(dataFile)) return;
 
     MpdUrqmdGenerator* urqmdGen = new MpdUrqmdGenerator(dataFile);
+    //urqmdGen->SetEventPlane(0. , 360.);
     primGen->AddGenerator(urqmdGen);
     if (nStartEvent > 0) urqmdGen->SkipEvents(nStartEvent);
 
@@ -99,9 +88,9 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
 #else
 #ifdef BOX
     gRandom->SetSeed(0);
-    // ------- Box Generator 
-    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 50); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(0.2, 5.05); // GeV/c //setPRange vs setPtRange
+    // ------- Box Generator
+    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
+    boxGen->SetPRange(0.2, 5.0); // GeV/c //setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // mm o cm ??
@@ -138,7 +127,7 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
         dataFile = inFile;
     else {
         dataFile = find_path_to_URQMD_files();
-        dataFile += "/../../QGSM/"; //  nc-farm
+        if (!dataFile.Contains("/home")) dataFile += "/../../QGSM/"; //  nc-farm
         dataFile += inFile;
     }
 
@@ -166,7 +155,7 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
         Double_t fieldScale = 1.;
         // BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v3_ascii_Extrap.dat");
-        // Double_t fieldZ = 124.5; // field centre z position 
+        // Double_t fieldZ = 124.5; // field centre z position
         // magField->SetPosition(0., 0., fieldZ);
         magField->SetScale(fieldScale);
         fRun->SetField(magField);
@@ -231,12 +220,10 @@ void run_sim_bmn(TString inFile = "AuAu_urqmd34_elab_4gev_b0_14fm.f14.gz", TStri
     (TDatabasePDG::Instance())->WritePDGTable(Pdg_table_name.Data());
 #endif
 
-    Bool_t file = fRun->GetWriteRunInfoFile();
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
-
-    cout << "Macro finished succesfully." << endl;
+    cout<<"Macro finished successfully."<<endl;     // marker of successfully execution for CDASH
 
     gApplication->Terminate();
 }

@@ -3,6 +3,7 @@
 //                      Generated 05-11-2015 
 // ----------------------------------------------------------------------
 
+#include "TSystem.h"
 #include "TSQLServer.h"
 #include "TSQLStatement.h"
 
@@ -14,12 +15,12 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbRun::UniDbRun(UniDbConnection* connUniDb, int run_number, int* period_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id)
+UniDbRun::UniDbRun(UniDbConnection* connUniDb, int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id)
 {
 	connectionUniDb = connUniDb;
 
-	i_run_number = run_number;
 	i_period_number = period_number;
+	i_run_number = run_number;
 	str_file_path = file_path;
 	str_beam_particle = beam_particle;
 	str_target_particle = target_particle;
@@ -27,7 +28,7 @@ UniDbRun::UniDbRun(UniDbConnection* connUniDb, int run_number, int* period_numbe
 	dt_start_datetime = start_datetime;
 	dt_end_datetime = end_datetime;
 	i_event_count = event_count;
-	i_field_current = field_current;
+	d_field_voltage = field_voltage;
 	d_file_size = file_size;
 	i_geometry_id = geometry_id;
 }
@@ -37,8 +38,6 @@ UniDbRun::~UniDbRun()
 {
 	if (connectionUniDb)
 		delete connectionUniDb;
-	if (i_period_number)
-		delete i_period_number;
 	if (str_target_particle)
 		delete str_target_particle;
 	if (d_energy)
@@ -47,16 +46,16 @@ UniDbRun::~UniDbRun()
 		delete dt_end_datetime;
 	if (i_event_count)
 		delete i_event_count;
-	if (i_field_current)
-		delete i_field_current;
+	if (d_field_voltage)
+		delete d_field_voltage;
 	if (d_file_size)
 		delete d_file_size;
 	if (i_geometry_id)
 		delete i_geometry_id;
 }
 
-// -----   Creating new record in class table ---------------------------
-UniDbRun* UniDbRun::CreateRun(int run_number, int* period_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, int* field_current, double* file_size, int* geometry_id)
+// -----   Creating new run in the database  ---------------------------
+UniDbRun* UniDbRun::CreateRun(int period_number, int run_number, TString file_path, TString beam_particle, TString* target_particle, double* energy, TDatime start_datetime, TDatime* end_datetime, int* event_count, double* field_voltage, double* file_size, int* geometry_id)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -64,16 +63,13 @@ UniDbRun* UniDbRun::CreateRun(int run_number, int* period_number, TString file_p
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"insert into run_(run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id) "
+		"insert into run_(period_number, run_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_voltage, file_size, geometry_id) "
 		"values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	stmt->SetInt(0, run_number);
-	if (period_number == NULL)
-		stmt->SetNull(1);
-	else
-		stmt->SetInt(1, *period_number);
+	stmt->SetInt(0, period_number);
+	stmt->SetInt(1, run_number);
 	stmt->SetString(2, file_path);
 	stmt->SetString(3, beam_particle);
 	if (target_particle == NULL)
@@ -93,10 +89,10 @@ UniDbRun* UniDbRun::CreateRun(int run_number, int* period_number, TString file_p
 		stmt->SetNull(8);
 	else
 		stmt->SetInt(8, *event_count);
-	if (field_current == NULL)
+	if (field_voltage == NULL)
 		stmt->SetNull(9);
 	else
-		stmt->SetInt(9, *field_current);
+		stmt->SetDouble(9, *field_voltage);
 	if (file_size == NULL)
 		stmt->SetNull(10);
 	else
@@ -106,10 +102,10 @@ UniDbRun* UniDbRun::CreateRun(int run_number, int* period_number, TString file_p
 	else
 		stmt->SetInt(11, *geometry_id);
 
-	// inserting new record to DB
+	// inserting new run to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new record to DB has been failed"<<endl;
+		cout<<"Error: inserting new run to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -117,12 +113,10 @@ UniDbRun* UniDbRun::CreateRun(int run_number, int* period_number, TString file_p
 
 	delete stmt;
 
+	int tmp_period_number;
+	tmp_period_number = period_number;
 	int tmp_run_number;
 	tmp_run_number = run_number;
-	int* tmp_period_number;
-	if (period_number == NULL) tmp_period_number = NULL;
-	else
-		tmp_period_number = new int(*period_number);
 	TString tmp_file_path;
 	tmp_file_path = file_path;
 	TString tmp_beam_particle;
@@ -145,10 +139,10 @@ UniDbRun* UniDbRun::CreateRun(int run_number, int* period_number, TString file_p
 	if (event_count == NULL) tmp_event_count = NULL;
 	else
 		tmp_event_count = new int(*event_count);
-	int* tmp_field_current;
-	if (field_current == NULL) tmp_field_current = NULL;
+	double* tmp_field_voltage;
+	if (field_voltage == NULL) tmp_field_voltage = NULL;
 	else
-		tmp_field_current = new int(*field_current);
+		tmp_field_voltage = new double(*field_voltage);
 	double* tmp_file_size;
 	if (file_size == NULL) tmp_file_size = NULL;
 	else
@@ -158,11 +152,11 @@ UniDbRun* UniDbRun::CreateRun(int run_number, int* period_number, TString file_p
 	else
 		tmp_geometry_id = new int(*geometry_id);
 
-	return new UniDbRun(connUniDb, tmp_run_number, tmp_period_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
+	return new UniDbRun(connUniDb, tmp_period_number, tmp_run_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_voltage, tmp_file_size, tmp_geometry_id);
 }
 
-// -----   Get table record from database ---------------------------
-UniDbRun* UniDbRun::GetRun(int run_number)
+// -----  Get run from the database  ---------------------------
+UniDbRun* UniDbRun::GetRun(int period_number, int run_number)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -170,15 +164,15 @@ UniDbRun* UniDbRun::GetRun(int run_number)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id "
+		"select period_number, run_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_voltage, file_size, geometry_id "
 		"from run_ "
-		"where run_number = %d", run_number);
+		"where period_number = %d and run_number = %d", period_number, run_number);
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get run from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from DB has been failed"<<endl;
+		cout<<"Error: getting run from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -191,19 +185,17 @@ UniDbRun* UniDbRun::GetRun(int run_number)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: table record wasn't found"<<endl;
+		cout<<"Error: run wasn't found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
 	}
 
+	int tmp_period_number;
+	tmp_period_number = stmt->GetInt(0);
 	int tmp_run_number;
-	tmp_run_number = stmt->GetInt(0);
-	int* tmp_period_number;
-	if (stmt->IsNull(1)) tmp_period_number = NULL;
-	else
-		tmp_period_number = new int(stmt->GetInt(1));
+	tmp_run_number = stmt->GetInt(1);
 	TString tmp_file_path;
 	tmp_file_path = stmt->GetString(2);
 	TString tmp_beam_particle;
@@ -226,10 +218,10 @@ UniDbRun* UniDbRun::GetRun(int run_number)
 	if (stmt->IsNull(8)) tmp_event_count = NULL;
 	else
 		tmp_event_count = new int(stmt->GetInt(8));
-	int* tmp_field_current;
-	if (stmt->IsNull(9)) tmp_field_current = NULL;
+	double* tmp_field_voltage;
+	if (stmt->IsNull(9)) tmp_field_voltage = NULL;
 	else
-		tmp_field_current = new int(stmt->GetInt(9));
+		tmp_field_voltage = new double(stmt->GetDouble(9));
 	double* tmp_file_size;
 	if (stmt->IsNull(10)) tmp_file_size = NULL;
 	else
@@ -241,10 +233,10 @@ UniDbRun* UniDbRun::GetRun(int run_number)
 
 	delete stmt;
 
-	return new UniDbRun(connUniDb, tmp_run_number, tmp_period_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
+	return new UniDbRun(connUniDb, tmp_period_number, tmp_run_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_voltage, tmp_file_size, tmp_geometry_id);
 }
 
-// -----   Get table record from database for unique key--------------
+// -----  Get run from the database by unique key  --------------
 UniDbRun* UniDbRun::GetRun(TString file_path)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -253,15 +245,15 @@ UniDbRun* UniDbRun::GetRun(TString file_path)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id "
+		"select period_number, run_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_voltage, file_size, geometry_id "
 		"from run_ "
 		"where lower(file_path) = lower('%s')", file_path.Data());
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get run from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting record from DB has been failed"<<endl;
+		cout<<"Error: getting run from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -274,19 +266,17 @@ UniDbRun* UniDbRun::GetRun(TString file_path)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: table record wasn't found"<<endl;
+		cout<<"Error: run wasn't found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
 	}
 
+	int tmp_period_number;
+	tmp_period_number = stmt->GetInt(0);
 	int tmp_run_number;
-	tmp_run_number = stmt->GetInt(0);
-	int* tmp_period_number;
-	if (stmt->IsNull(1)) tmp_period_number = NULL;
-	else
-		tmp_period_number = new int(stmt->GetInt(1));
+	tmp_run_number = stmt->GetInt(1);
 	TString tmp_file_path;
 	tmp_file_path = stmt->GetString(2);
 	TString tmp_beam_particle;
@@ -309,10 +299,10 @@ UniDbRun* UniDbRun::GetRun(TString file_path)
 	if (stmt->IsNull(8)) tmp_event_count = NULL;
 	else
 		tmp_event_count = new int(stmt->GetInt(8));
-	int* tmp_field_current;
-	if (stmt->IsNull(9)) tmp_field_current = NULL;
+	double* tmp_field_voltage;
+	if (stmt->IsNull(9)) tmp_field_voltage = NULL;
 	else
-		tmp_field_current = new int(stmt->GetInt(9));
+		tmp_field_voltage = new double(stmt->GetDouble(9));
 	double* tmp_file_size;
 	if (stmt->IsNull(10)) tmp_file_size = NULL;
 	else
@@ -324,11 +314,93 @@ UniDbRun* UniDbRun::GetRun(TString file_path)
 
 	delete stmt;
 
-	return new UniDbRun(connUniDb, tmp_run_number, tmp_period_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_current, tmp_file_size, tmp_geometry_id);
+	return new UniDbRun(connUniDb, tmp_period_number, tmp_run_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_voltage, tmp_file_size, tmp_geometry_id);
 }
 
-// -----   Delete record from class table ---------------------------
-int UniDbRun::DeleteRun(int run_number)
+// -----  Check run exists in the database  ---------------------------
+bool UniDbRun::CheckRunExists(int period_number, int run_number)
+{
+	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	if (connUniDb == 0x00) return 0x00;
+
+	TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"select 1 "
+		"from run_ "
+		"where period_number = %d and run_number = %d", period_number, run_number);
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	// get run from the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: getting run from the database has been failed"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	// extract row
+	if (!stmt->NextResultRow())
+	{
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	delete stmt;
+	delete connUniDb;
+
+	return true;
+}
+
+// -----  Check run exists in the database by unique key  --------------
+bool UniDbRun::CheckRunExists(TString file_path)
+{
+	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	if (connUniDb == 0x00) return 0x00;
+
+	TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"select 1 "
+		"from run_ "
+		"where lower(file_path) = lower('%s')", file_path.Data());
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	// get run from the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: getting run from the database has been failed"<<endl;
+
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	// store result of statement in buffer
+	stmt->StoreResult();
+
+	// extract row
+	if (!stmt->NextResultRow())
+	{
+		delete stmt;
+		delete connUniDb;
+		return false;
+	}
+
+	delete stmt;
+	delete connUniDb;
+
+	return true;
+}
+
+// -----  Delete run from the database  ---------------------------
+int UniDbRun::DeleteRun(int period_number, int run_number)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -337,16 +409,17 @@ int UniDbRun::DeleteRun(int run_number)
 
 	TString sql = TString::Format(
 		"delete from run_ "
-		"where run_number = $1");
+		"where period_number = $1 and run_number = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	stmt->SetInt(0, run_number);
+	stmt->SetInt(0, period_number);
+	stmt->SetInt(1, run_number);
 
-	// delete table record from DB
+	// delete run from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting record from DB has been failed"<<endl;
+		cout<<"Error: deleting run from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -358,7 +431,7 @@ int UniDbRun::DeleteRun(int run_number)
 	return 0;
 }
 
-// -----   Delete table record from database for unique key--------------
+// -----  Delete run from the database by unique key  --------------
 int UniDbRun::DeleteRun(TString file_path)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -374,10 +447,10 @@ int UniDbRun::DeleteRun(TString file_path)
 	stmt->NextIteration();
 	stmt->SetString(0, file_path);
 
-	// delete table record from DB
+	// delete run from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting record from DB has been failed"<<endl;
+		cout<<"Error: deleting run from the DataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -389,7 +462,7 @@ int UniDbRun::DeleteRun(TString file_path)
 	return 0;
 }
 
-// -----   Print all table records ---------------------------------
+// -----  Print all 'runs'  ---------------------------------
 int UniDbRun::PrintAll()
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
@@ -398,14 +471,14 @@ int UniDbRun::PrintAll()
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_current, file_size, geometry_id "
+		"select period_number, run_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_voltage, file_size, geometry_id "
 		"from run_");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get table record from DB
+	// get all 'runs' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all records from DB has been failed"<<endl;
+		cout<<"Error: getting all 'runs' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -416,50 +489,48 @@ int UniDbRun::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'run_'"<<endl;
+	cout<<"Table 'run_':"<<endl;
 	while (stmt->NextResultRow())
 	{
-		cout<<". run_number: ";
+		cout<<"period_number: ";
 		cout<<(stmt->GetInt(0));
-		cout<<". period_number: ";
-		if (stmt->IsNull(1)) cout<<"NULL";
-		else
-			cout<<stmt->GetInt(1);
-		cout<<". file_path: ";
+		cout<<", run_number: ";
+		cout<<(stmt->GetInt(1));
+		cout<<", file_path: ";
 		cout<<(stmt->GetString(2));
-		cout<<". beam_particle: ";
+		cout<<", beam_particle: ";
 		cout<<(stmt->GetString(3));
-		cout<<". target_particle: ";
+		cout<<", target_particle: ";
 		if (stmt->IsNull(4)) cout<<"NULL";
 		else
 			cout<<stmt->GetString(4);
-		cout<<". energy: ";
+		cout<<", energy: ";
 		if (stmt->IsNull(5)) cout<<"NULL";
 		else
 			cout<<stmt->GetDouble(5);
-		cout<<". start_datetime: ";
+		cout<<", start_datetime: ";
 		cout<<(stmt->GetDatime(6)).AsSQLString();
-		cout<<". end_datetime: ";
+		cout<<", end_datetime: ";
 		if (stmt->IsNull(7)) cout<<"NULL";
 		else
 			cout<<stmt->GetDatime(7).AsSQLString();
-		cout<<". event_count: ";
+		cout<<", event_count: ";
 		if (stmt->IsNull(8)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(8);
-		cout<<". field_current: ";
+		cout<<", field_voltage: ";
 		if (stmt->IsNull(9)) cout<<"NULL";
 		else
-			cout<<stmt->GetInt(9);
-		cout<<". file_size: ";
+			cout<<stmt->GetDouble(9);
+		cout<<", file_size: ";
 		if (stmt->IsNull(10)) cout<<"NULL";
 		else
 			cout<<stmt->GetDouble(10);
-		cout<<". geometry_id: ";
+		cout<<", geometry_id: ";
 		if (stmt->IsNull(11)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(11);
-		cout<<endl;
+		cout<<"."<<endl;
 	}
 
 	delete stmt;
@@ -470,6 +541,42 @@ int UniDbRun::PrintAll()
 
 
 // Setters functions
+int UniDbRun::SetPeriodNumber(int period_number)
+{
+	if (!connectionUniDb)
+	{
+		cout<<"Connection object is null"<<endl;
+		return -1;
+	}
+
+	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"update run_ "
+		"set period_number = $1 "
+		"where period_number = $2 and run_number = $3");
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	stmt->NextIteration();
+	stmt->SetInt(0, period_number);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
+
+	// write new value to the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: updating information about run has been failed"<<endl;
+
+		delete stmt;
+		return -2;
+	}
+
+	i_period_number = period_number;
+
+	delete stmt;
+	return 0;
+}
+
 int UniDbRun::SetRunNumber(int run_number)
 {
 	if (!connectionUniDb)
@@ -483,65 +590,24 @@ int UniDbRun::SetRunNumber(int run_number)
 	TString sql = TString::Format(
 		"update run_ "
 		"set run_number = $1 "
-		"where run_number = $2");
+		"where period_number = $2 and run_number = $3");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, run_number);
-	stmt->SetInt(1, i_run_number);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
 	}
 
 	i_run_number = run_number;
-
-	delete stmt;
-	return 0;
-}
-
-int UniDbRun::SetPeriodNumber(int* period_number)
-{
-	if (!connectionUniDb)
-	{
-		cout<<"Connection object is null"<<endl;
-		return -1;
-	}
-
-	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
-
-	TString sql = TString::Format(
-		"update run_ "
-		"set period_number = $1 "
-		"where run_number = $2");
-	TSQLStatement* stmt = uni_db->Statement(sql);
-
-	stmt->NextIteration();
-	if (period_number == NULL)
-		stmt->SetNull(0);
-	else
-		stmt->SetInt(0, *period_number);
-	stmt->SetInt(1, i_run_number);
-
-	// write new value to database
-	if (!stmt->Process())
-	{
-		cout<<"Error: updating the record has been failed"<<endl;
-
-		delete stmt;
-		return -2;
-	}
-
-	if (i_period_number)
-		delete i_period_number;
-	if (period_number == NULL) i_period_number = NULL;
-	else
-		i_period_number = new int(*period_number);
 
 	delete stmt;
 	return 0;
@@ -560,17 +626,18 @@ int UniDbRun::SetFilePath(TString file_path)
 	TString sql = TString::Format(
 		"update run_ "
 		"set file_path = $1 "
-		"where run_number = $2");
+		"where period_number = $2 and run_number = $3");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, file_path);
-	stmt->SetInt(1, i_run_number);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -595,17 +662,18 @@ int UniDbRun::SetBeamParticle(TString beam_particle)
 	TString sql = TString::Format(
 		"update run_ "
 		"set beam_particle = $1 "
-		"where run_number = $2");
+		"where period_number = $2 and run_number = $3");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, beam_particle);
-	stmt->SetInt(1, i_run_number);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -630,7 +698,7 @@ int UniDbRun::SetTargetParticle(TString* target_particle)
 	TString sql = TString::Format(
 		"update run_ "
 		"set target_particle = $1 "
-		"where run_number = $2");
+		"where period_number = $2 and run_number = $3");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
@@ -638,12 +706,13 @@ int UniDbRun::SetTargetParticle(TString* target_particle)
 		stmt->SetNull(0);
 	else
 		stmt->SetString(0, *target_particle);
-	stmt->SetInt(1, i_run_number);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -672,7 +741,7 @@ int UniDbRun::SetEnergy(double* energy)
 	TString sql = TString::Format(
 		"update run_ "
 		"set energy = $1 "
-		"where run_number = $2");
+		"where period_number = $2 and run_number = $3");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
@@ -680,12 +749,13 @@ int UniDbRun::SetEnergy(double* energy)
 		stmt->SetNull(0);
 	else
 		stmt->SetDouble(0, *energy);
-	stmt->SetInt(1, i_run_number);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -714,17 +784,18 @@ int UniDbRun::SetStartDatetime(TDatime start_datetime)
 	TString sql = TString::Format(
 		"update run_ "
 		"set start_datetime = $1 "
-		"where run_number = $2");
+		"where period_number = $2 and run_number = $3");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetDatime(0, start_datetime);
-	stmt->SetInt(1, i_run_number);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -749,7 +820,7 @@ int UniDbRun::SetEndDatetime(TDatime* end_datetime)
 	TString sql = TString::Format(
 		"update run_ "
 		"set end_datetime = $1 "
-		"where run_number = $2");
+		"where period_number = $2 and run_number = $3");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
@@ -757,12 +828,13 @@ int UniDbRun::SetEndDatetime(TDatime* end_datetime)
 		stmt->SetNull(0);
 	else
 		stmt->SetDatime(0, *end_datetime);
-	stmt->SetInt(1, i_run_number);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -791,7 +863,7 @@ int UniDbRun::SetEventCount(int* event_count)
 	TString sql = TString::Format(
 		"update run_ "
 		"set event_count = $1 "
-		"where run_number = $2");
+		"where period_number = $2 and run_number = $3");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
@@ -799,12 +871,13 @@ int UniDbRun::SetEventCount(int* event_count)
 		stmt->SetNull(0);
 	else
 		stmt->SetInt(0, *event_count);
-	stmt->SetInt(1, i_run_number);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -820,7 +893,7 @@ int UniDbRun::SetEventCount(int* event_count)
 	return 0;
 }
 
-int UniDbRun::SetFieldCurrent(int* field_current)
+int UniDbRun::SetFieldVoltage(double* field_voltage)
 {
 	if (!connectionUniDb)
 	{
@@ -832,31 +905,32 @@ int UniDbRun::SetFieldCurrent(int* field_current)
 
 	TString sql = TString::Format(
 		"update run_ "
-		"set field_current = $1 "
-		"where run_number = $2");
+		"set field_voltage = $1 "
+		"where period_number = $2 and run_number = $3");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	if (field_current == NULL)
+	if (field_voltage == NULL)
 		stmt->SetNull(0);
 	else
-		stmt->SetInt(0, *field_current);
-	stmt->SetInt(1, i_run_number);
+		stmt->SetDouble(0, *field_voltage);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
 	}
 
-	if (i_field_current)
-		delete i_field_current;
-	if (field_current == NULL) i_field_current = NULL;
+	if (d_field_voltage)
+		delete d_field_voltage;
+	if (field_voltage == NULL) d_field_voltage = NULL;
 	else
-		i_field_current = new int(*field_current);
+		d_field_voltage = new double(*field_voltage);
 
 	delete stmt;
 	return 0;
@@ -875,7 +949,7 @@ int UniDbRun::SetFileSize(double* file_size)
 	TString sql = TString::Format(
 		"update run_ "
 		"set file_size = $1 "
-		"where run_number = $2");
+		"where period_number = $2 and run_number = $3");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
@@ -883,12 +957,13 @@ int UniDbRun::SetFileSize(double* file_size)
 		stmt->SetNull(0);
 	else
 		stmt->SetDouble(0, *file_size);
-	stmt->SetInt(1, i_run_number);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -917,7 +992,7 @@ int UniDbRun::SetGeometryId(int* geometry_id)
 	TString sql = TString::Format(
 		"update run_ "
 		"set geometry_id = $1 "
-		"where run_number = $2");
+		"where period_number = $2 and run_number = $3");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
@@ -925,12 +1000,13 @@ int UniDbRun::SetGeometryId(int* geometry_id)
 		stmt->SetNull(0);
 	else
 		stmt->SetInt(0, *geometry_id);
-	stmt->SetInt(1, i_run_number);
+	stmt->SetInt(1, i_period_number);
+	stmt->SetInt(2, i_run_number);
 
-	// write new value to database
+	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating the record has been failed"<<endl;
+		cout<<"Error: updating information about run has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -946,18 +1022,18 @@ int UniDbRun::SetGeometryId(int* geometry_id)
 	return 0;
 }
 
-// -----   Print current record ---------------------------------------
+// -----  Print current run  ---------------------------------------
 void UniDbRun::Print()
 {
 	cout<<"Table 'run_'";
-	cout<<". run_number: "<<i_run_number<<". period_number: "<<(i_period_number == NULL? "NULL": TString::Format("%d", *i_period_number))<<". file_path: "<<str_file_path<<". beam_particle: "<<str_beam_particle<<". target_particle: "<<(str_target_particle == NULL? "NULL": *str_target_particle)<<". energy: "<<(d_energy == NULL? "NULL": TString::Format("%f", *d_energy))<<". start_datetime: "<<dt_start_datetime.AsSQLString()<<". end_datetime: "<<(dt_end_datetime == NULL? "NULL": (*dt_end_datetime).AsSQLString())<<". event_count: "<<(i_event_count == NULL? "NULL": TString::Format("%d", *i_event_count))<<". field_current: "<<(i_field_current == NULL? "NULL": TString::Format("%d", *i_field_current))<<". file_size: "<<(d_file_size == NULL? "NULL": TString::Format("%f", *d_file_size))<<". geometry_id: "<<(i_geometry_id == NULL? "NULL": TString::Format("%d", *i_geometry_id))<<endl;
+	cout<<". period_number: "<<i_period_number<<". run_number: "<<i_run_number<<". file_path: "<<str_file_path<<". beam_particle: "<<str_beam_particle<<". target_particle: "<<(str_target_particle == NULL? "NULL": *str_target_particle)<<". energy: "<<(d_energy == NULL? "NULL": TString::Format("%f", *d_energy))<<". start_datetime: "<<dt_start_datetime.AsSQLString()<<". end_datetime: "<<(dt_end_datetime == NULL? "NULL": (*dt_end_datetime).AsSQLString())<<". event_count: "<<(i_event_count == NULL? "NULL": TString::Format("%d", *i_event_count))<<". field_voltage: "<<(d_field_voltage == NULL? "NULL": TString::Format("%f", *d_field_voltage))<<". file_size: "<<(d_file_size == NULL? "NULL": TString::Format("%f", *d_file_size))<<". geometry_id: "<<(i_geometry_id == NULL? "NULL": TString::Format("%d", *i_geometry_id))<<endl;
 
 	return;
 }
 /* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
 
 // get numbers of runs existing in the Database for a selected range
-int UniDbRun::GetRunNumbers(int start_run, int end_run, int*& run_numbers)
+int UniDbRun::GetRunNumbers(int start_period, int start_run, int end_period, int end_run, UniqueRunNumber*& run_numbers)
 {
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
@@ -969,10 +1045,10 @@ int UniDbRun::GetRunNumbers(int start_run, int end_run, int*& run_numbers)
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "select run_number "
+        "select period_number, run_number "
         "from run_ "
-        "where run_number >= %d and run_number <= %d "
-        "order by run_number", start_run, end_run);
+        "where (not (((%d < period_number) or ((%d = period_number) and (%d < run_number))) or ((%d > period_number) or ((%d = period_number) and (%d > run_number))))) "
+        "order by period_number, run_number", end_period, end_period, end_run, start_period, start_period, start_run);
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     // get table record from DB
@@ -987,23 +1063,30 @@ int UniDbRun::GetRunNumbers(int start_run, int end_run, int*& run_numbers)
     // store result of statement in buffer
     stmt->StoreResult();
 
-    vector<int> vecNumbers;
+    vector<int> vecPeriods;
+    vector<int> vecRuns;
     while (stmt->NextResultRow())
-        vecNumbers.push_back(stmt->GetInt(0));
+    {
+        vecPeriods.push_back(stmt->GetInt(0));
+        vecRuns.push_back(stmt->GetInt(1));
+    }
 
     delete stmt;
     delete connUniDb;
 
-    int run_count = vecNumbers.size();
-    run_numbers = new int[run_count];
+    int run_count = vecPeriods.size();
+    run_numbers = new UniqueRunNumber[run_count];
     for (int i = 0; i < run_count; i++)
-        run_numbers[i] = vecNumbers[i];
+    {
+        run_numbers[i].period_number = vecPeriods[i];
+        run_numbers[i].run_number = vecRuns[i];
+    }
 
     return run_count;
 }
 
 // get numbers of existing runs in the Database
-int UniDbRun::GetRunNumbers(int*& run_numbers)
+int UniDbRun::GetRunNumbers(UniqueRunNumber*& run_numbers)
 {
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
@@ -1015,9 +1098,9 @@ int UniDbRun::GetRunNumbers(int*& run_numbers)
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "select run_number "
+        "select period_number, run_number "
         "from run_ "
-        "order by run_number");
+        "order by period_number, run_number");
     TSQLStatement* stmt = uni_db->Statement(sql);
 
     // get table record from DB
@@ -1032,27 +1115,33 @@ int UniDbRun::GetRunNumbers(int*& run_numbers)
     // store result of statement in buffer
     stmt->StoreResult();
 
-    vector<int> vecNumbers;
+    vector<int> vecPeriods;
+    vector<int> vecRuns;
     while (stmt->NextResultRow())
-        vecNumbers.push_back(stmt->GetInt(0));
+    {
+        vecPeriods.push_back(stmt->GetInt(0));
+        vecRuns.push_back(stmt->GetInt(1));
+    }
 
     delete stmt;
     delete connUniDb;
 
-    int run_count = vecNumbers.size();
-    run_numbers = new int[run_count];
+    int run_count = vecPeriods.size();
+    run_numbers = new UniqueRunNumber[run_count];
     for (int i = 0; i < run_count; i++)
-        run_numbers[i] = vecNumbers[i];
+    {
+        run_numbers[i].period_number = vecPeriods[i];
+        run_numbers[i].run_number = vecRuns[i];
+    }
 
     return run_count;
 }
 
-int UniDbRun::SetRootGeometry(int start_run_number, int end_run_number, unsigned char* root_geometry, Long_t size_root_geometry)
+int UniDbRun::SetRootGeometry(int start_period, int start_run, int end_period, int end_run, unsigned char* root_geometry, Long_t size_root_geometry)
 {
-    int run_count = end_run_number - start_run_number;
-    if (run_count < 0)
+    if (((end_period < start_period) or ((end_period = start_period) and (end_run < start_run))) or ((start_period > end_period) or ((start_period = end_period) and (start_run > end_run))))
     {
-        cout<<"Error: end run number should be greater or equal start run_number"<<endl;
+        cout<<"Error: end run should be after or the same as start run"<<endl;
         return -1;
     }
 
@@ -1066,14 +1155,19 @@ int UniDbRun::SetRootGeometry(int start_run_number, int end_run_number, unsigned
     int geometry_id = pGeometry->GetGeometryId();
     delete pGeometry;
 
-    for (int i = start_run_number; i <= end_run_number; i++)
-    {
-        cout<<i<<endl;
+    UniqueRunNumber* pUniqueRuns = NULL;
+    int run_count = GetRunNumbers(start_period, start_run, end_period, end_run, pUniqueRuns);
+    if (run_count < 0)
+        return -10 - run_count;
 
-        UniDbRun* pCurRun = UniDbRun::GetRun(i);
+    for (int i = 0; i < run_count; i++)
+    {        
+        cout<<"Setting geometry for run_period:run   "<<pUniqueRuns[i].period_number<<":"<<pUniqueRuns[i].run_number<<"..."<<endl;
+
+        UniDbRun* pCurRun = UniDbRun::GetRun(pUniqueRuns[i].period_number, pUniqueRuns[i].run_number);
         if (pCurRun == NULL)
         {
-            cout<<"Error: getting of run with number "<<i<<" was failed"<<endl;
+            cout<<"Error: getting of run "<<pUniqueRuns[i].period_number<<":"<<pUniqueRuns[i].run_number<<" (period:number) was failed"<<endl;
             continue;
         }
 
@@ -1082,21 +1176,23 @@ int UniDbRun::SetRootGeometry(int start_run_number, int end_run_number, unsigned
         delete pCurRun;
     }
 
+    delete [] pUniqueRuns;
+
     return 0;
 }
 
-int UniDbRun::GetRootGeometry(int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry)
+int UniDbRun::GetRootGeometry(int period_number, int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry)
 {
-    UniDbRun* pCurRun = UniDbRun::GetRun(run_number);
+    UniDbRun* pCurRun = UniDbRun::GetRun(period_number, run_number);
     if (pCurRun == NULL)
     {
-        cout<<"Error: getting of run with number "<<run_number<<" was failed"<<endl;
+        cout<<"Error: getting of run "<<period_number<<":"<<run_number<<" (period:number) was failed"<<endl;
         return -1;
     }
 
     if (pCurRun->GetGeometryId() == NULL)
     {
-        cout<<"Error: no geometry exists for run with number "<<run_number<<endl;
+        cout<<"Error: no geometry exists for run "<<period_number<<":"<<run_number<<" (period:number)"<<endl;
         return -2;
     }
 
@@ -1119,12 +1215,14 @@ int UniDbRun::GetRootGeometry(int run_number, unsigned char*& root_geometry, Lon
     return 0;
 }
 
-int UniDbRun::WriteGeometryFile(int start_run_number, int end_run_number, char* geo_file_path)
+int UniDbRun::WriteGeometryFile(int start_period, int start_run, int end_period, int end_run, char* geo_file_path)
 {
-    FILE* root_file = fopen(geo_file_path, "rb");
+    TString strGeoFilePath(geo_file_path);
+    gSystem->ExpandPathName(strGeoFilePath);
+    FILE* root_file = fopen(strGeoFilePath.Data(), "rb");
     if (root_file == NULL)
     {
-        cout<<"Error: opening root file: "<<geo_file_path<<" was failed"<<endl;
+        cout<<"Error: opening root file: "<<strGeoFilePath<<" was failed"<<endl;
         return -1;
     }
 
@@ -1133,7 +1231,7 @@ int UniDbRun::WriteGeometryFile(int start_run_number, int end_run_number, char* 
     rewind(root_file);
     if (file_size <= 0)
     {
-        cout<<"Error: getting file size: "<<geo_file_path<<" was failed"<<endl;
+        cout<<"Error: getting file size: "<<strGeoFilePath<<" was failed"<<endl;
         fclose(root_file);
         return -2;
     }
@@ -1141,7 +1239,7 @@ int UniDbRun::WriteGeometryFile(int start_run_number, int end_run_number, char* 
     unsigned char* buffer = new unsigned char[file_size];
     if (buffer == NULL)
     {
-        cout<<"Error: getting memory from heap"<<" was failed"<<endl;
+        cout<<"Error: getting memory from heap was failed"<<endl;
         fclose(root_file);
         return -3;
     }
@@ -1149,7 +1247,7 @@ int UniDbRun::WriteGeometryFile(int start_run_number, int end_run_number, char* 
     size_t bytes_read = fread(buffer, 1, file_size, root_file);
     if (bytes_read != file_size)
     {
-        cout<<"Error: reading file: "<<geo_file_path<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
+        cout<<"Error: reading file: "<<strGeoFilePath<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
         delete [] buffer;
         fclose(root_file);
         return -4;
@@ -1158,7 +1256,7 @@ int UniDbRun::WriteGeometryFile(int start_run_number, int end_run_number, char* 
     fclose(root_file);
 
     // set root geometry file's bytes for run range
-    int res_code = UniDbRun::SetRootGeometry(start_run_number, end_run_number, buffer, file_size); //(int start_run_number, int end_run_number, unsigned char* root_geometry, Long_t size_root_geometry)
+    int res_code = UniDbRun::SetRootGeometry(start_period, start_run, end_period, end_run, buffer, file_size);
     if (res_code != 0)
     {
         delete [] buffer;
@@ -1170,12 +1268,12 @@ int UniDbRun::WriteGeometryFile(int start_run_number, int end_run_number, char* 
     return 0;
 }
 
-int UniDbRun::ReadGeometryFile(int run_number, char* geo_file_path)
+int UniDbRun::ReadGeometryFile(int period_number, int run_number, char* geo_file_path)
 {
     // get root geometry file's bytes for selected run
     unsigned char* buffer = NULL;
     Long_t file_size;
-    int res_code = UniDbRun::GetRootGeometry(run_number, buffer, file_size); //(int run_number, unsigned char* root_geometry, Long_t size_root_geometry)
+    int res_code = UniDbRun::GetRootGeometry(period_number, run_number, buffer, file_size);
     if (res_code != 0)
     {
         return -1;
@@ -1203,6 +1301,171 @@ int UniDbRun::ReadGeometryFile(int run_number, char* geo_file_path)
         delete [] buffer;
 
     return 0;
+}
+
+TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
+{
+    TObjArray* arrayResult = NULL;
+
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+    {
+        cout<<"Error: connection to DB was failed"<<endl;
+        return arrayResult;
+    }
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+                "select run_number, period_number, file_path, beam_particle, target_particle, energy, start_datetime, end_datetime, event_count, field_voltage, file_size, geometry_id "
+                "from run_");
+
+    TString strCondition;
+    bool isFirst = true;
+    TIter next(&search_conditions);
+    UniDbSearchCondition* curCondition;
+    while (curCondition = (UniDbSearchCondition*) next())
+    {
+        strCondition = "";
+
+        switch (curCondition->GetColumn())
+        {
+            case columnRunNumber:       strCondition += "run_number "; break;
+            case columnPeriodNumber:    strCondition += "period_number "; break;
+            case columnFilePath:        strCondition += "lower(file_path) "; break;
+            case columnBeamParticle:    strCondition += "lower(beam_particle) "; break;
+            case columnTargetParticle:  strCondition += "lower(target_particle) "; break;
+            case columnEnergy:          strCondition += "energy "; break;
+            case columnStartDatetime:   strCondition += "start_datetime "; break;
+            case columnEndDateTime:     strCondition += "end_datetime "; break;
+            case columnEventCount:      strCondition += "event_count "; break;
+            case columnFieldVoltage:    strCondition += "field_voltage "; break;
+            case columnFileSize:        strCondition += "file_size "; break;
+            default:
+                cout<<"Error: column in the search condition wasn't defined, condition is skipped"<<endl;
+                continue;
+        }
+
+        switch (curCondition->GetCondition())
+        {
+            case conditionLess:             strCondition += "< "; break;
+            case conditionLessOrEqual:      strCondition += "<= "; break;
+            case conditionEqual:            strCondition += "= "; break;
+            case conditionNotEqual:         strCondition += "<> "; break;
+            case conditionGreater:          strCondition += "> "; break;
+            case conditionGreaterOrEqual:   strCondition += ">= "; break;
+            case conditionLike:             strCondition += "like "; break;
+            case conditionNull:             strCondition += "is null "; break;
+            default:
+                cout<<"Error: comparison operator in the search condition wasn't defined, condition is skipped"<<endl;
+                continue;
+        }
+
+        switch (curCondition->GetValueType())
+        {
+            case 0: if (curCondition->GetCondition() != conditionNull) continue; break;
+            case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
+            case 2: strCondition += Form("%u", curCondition->GetUIntValue()); break;
+            case 3: strCondition += Form("%f", curCondition->GetDoubleValue()); break;
+            case 4: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
+            case 5: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
+            default:
+                cout<<"Error: value type in the search condition wasn't found, condition is skipped"<<endl;
+                continue;
+        }
+
+        if (isFirst)
+        {
+            sql += " where ";
+            isFirst = false;
+        }
+        else
+            sql += " and ";
+
+        sql += strCondition;
+    }
+    sql += " order by period_number,run_number";
+
+    TSQLStatement* stmt = uni_db->Statement(sql);
+    //cout<<"SQL code: "<<sql<<endl;
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: getting runs from DB has been failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+
+        return arrayResult;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    // extract rows one after another
+    arrayResult = new TObjArray();
+    while (stmt->NextResultRow())
+    {
+        UniDbConnection* connRun = UniDbConnection::Open(UNIFIED_DB);
+        if (connRun == 0x00)
+        {
+            cout<<"Error: connection to DB for single run was failed"<<endl;
+            return arrayResult;
+        }
+
+        int tmp_run_number;
+        tmp_run_number = stmt->GetInt(0);
+        int tmp_period_number;
+        tmp_period_number = stmt->GetInt(1);
+        TString tmp_file_path;
+        tmp_file_path = stmt->GetString(2);
+        TString tmp_beam_particle;
+        tmp_beam_particle = stmt->GetString(3);
+        TString* tmp_target_particle;
+        if (stmt->IsNull(4)) tmp_target_particle = NULL;
+        else
+            tmp_target_particle = new TString(stmt->GetString(4));
+        double* tmp_energy;
+        if (stmt->IsNull(5)) tmp_energy = NULL;
+        else
+            tmp_energy = new double(stmt->GetDouble(5));
+        TDatime tmp_start_datetime;
+        tmp_start_datetime = stmt->GetDatime(6);
+        TDatime* tmp_end_datetime;
+        if (stmt->IsNull(7)) tmp_end_datetime = NULL;
+        else
+            tmp_end_datetime = new TDatime(stmt->GetDatime(7));
+        int* tmp_event_count;
+        if (stmt->IsNull(8)) tmp_event_count = NULL;
+        else
+            tmp_event_count = new int(stmt->GetInt(8));
+        double* tmp_field_voltage;
+        if (stmt->IsNull(9)) tmp_field_voltage = NULL;
+        else
+            tmp_field_voltage = new double(stmt->GetDouble(9));
+        double* tmp_file_size;
+        if (stmt->IsNull(10)) tmp_file_size = NULL;
+        else
+            tmp_file_size = new double(stmt->GetDouble(10));
+        int* tmp_geometry_id;
+        if (stmt->IsNull(11)) tmp_geometry_id = NULL;
+        else
+            tmp_geometry_id = new int(stmt->GetInt(11));
+
+        arrayResult->Add((TObject*) new UniDbRun(connRun, tmp_run_number, tmp_period_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_voltage, tmp_file_size, tmp_geometry_id));
+    }
+
+    delete stmt;
+
+    return arrayResult;
+}
+
+TObjArray* UniDbRun::Search(const UniDbSearchCondition& search_condition)
+{
+    TObjArray search_conditions;
+    search_conditions.Add((TObject*)&search_condition);
+
+    return Search(search_conditions);
 }
 
 // -------------------------------------------------------------------

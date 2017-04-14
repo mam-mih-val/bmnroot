@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- ö : Ilse Koenig
 //*-- Modified : 10/11/2003 by Ilse Koenig
 
@@ -8,9 +15,15 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "FairGeoMedium.h"
 
-#include <iostream>
-#include <cmath>
-#include "stdlib.h"
+#include "TString.h"                    // for TString
+
+#include <stddef.h>                     // for NULL
+#include <cmath>                        // for pow, log
+// IWYU pragma: no_include <architecture/i386/math.h>
+#include <iostream>                     // for cout
+#include <stdlib.h>                     // for abs
+#include <climits>                      // for INT_MAX
+
 using std::cout;
 using std::log;
 using std::pow;
@@ -88,7 +101,7 @@ void FairGeoMedium::setNComponents(Int_t n)
     cz=new Double_t[k];
     cw=new Double_t[k];
   }
-  weightFac=(Int_t)(n/nComponents);
+  weightFac=static_cast<Int_t>(n/nComponents);
 }
 
 Bool_t FairGeoMedium::setComponent (Int_t i,Double_t a,Double_t z,Double_t weight)
@@ -188,7 +201,7 @@ void FairGeoMedium::getMediumPar(Double_t* params)
   params[9]=0.;
 }
 
-void FairGeoMedium::read(fstream& fin, Int_t aflag )
+void FairGeoMedium::read(std::fstream& fin, Int_t aflag )
 {
   // Reads the parameters from file
   autoflag=aflag;
@@ -222,8 +235,9 @@ void FairGeoMedium::read(fstream& fin, Int_t aflag )
     minstep=-1;
   }
   fin>>n;
-  setNpckov(n);
-  if (n>0) {
+  if (n>0 && n<(INT_MAX-1)) {
+    setNpckov(n);
+//  if (n>0) {
     for(Int_t i=0; i<n; i++) {
       fin>>ppckov[i]>>absco[i]>>effic[i]>>rindex[i];
     }
@@ -254,7 +268,7 @@ void FairGeoMedium::print()
   cout<<'\n';
 }
 
-void FairGeoMedium::write (fstream& fout)
+void FairGeoMedium::write (std::fstream& fout)
 {
   // Writes the medium definition into stream
   const char* bl="  ";
@@ -310,7 +324,7 @@ Bool_t FairGeoMedium::calcRadiationLength()
     fc=az2 * (1./(1.+az2) + 0.20206 - 0.0369*az2 + 0.0083*az2*az2
               - .002F*az2*az2*az2);
     y=log(183./pow(z,1./3.)) - fc;
-    xi=(float)(log(1440./pow(z,2./3.)) / y);
+    xi=static_cast<float>(log(1440./pow(z,2./3.)) / y);
     x0i=fac*alpha/a*z*(z+xi)*y;
     x0itot+=(x0i*w);
   }

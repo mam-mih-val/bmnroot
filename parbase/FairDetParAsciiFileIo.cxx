@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 21/10/2004
 //*-- modified : 28/01/2009 by Ilse Koenig
@@ -9,17 +16,16 @@
 //
 /////////////////////////////////////////////////////////////
 
-
 #include "FairDetParAsciiFileIo.h"
-#include "FairParSet.h"
+
+#include "FairParSet.h"                 // for FairParSet
+
+#include <stdio.h>                      // for printf, sprintf
+#include <string.h>                     // for strlen, strncmp
 
 using std::ios;
 
-
-
-
-
-FairDetParAsciiFileIo::FairDetParAsciiFileIo(fstream* f)
+FairDetParAsciiFileIo::FairDetParAsciiFileIo(std::fstream* f)
   :FairDetParIo(),
    fHeader(""),
    sepLine("##############################################################################\n"),
@@ -40,11 +46,13 @@ Bool_t FairDetParAsciiFileIo::findContainer(const Text_t* name)
   Text_t buf[maxbuf];
   Text_t buf2[maxbuf];
   sprintf(buf2,"%s%s%s","[",name,"]");
+  //cout << " buf2 " <<  buf2 << endl;
   pFile->clear();
   pFile->seekg(0,ios::beg);
   while (!pFile->eof()) {
     pFile->getline(buf,maxbuf);
     if (buf[0]!='[') { continue; }
+    //cout << " buf: " <<  buf << endl;
     if (!strncmp(buf,buf2,strlen(buf2))) { break; }
   }
   if (pFile->eof()) { return kFALSE; }
@@ -151,7 +159,7 @@ void FairDetParAsciiFileIo::writeComment(FairParSet* pPar)
 
 ClassImp(FairDetParAsciiFileIo)
 /*
-FairDetParAsciiFileIo::FairDetParAsciiFileIo(fstream* f) {
+FairDetParAsciiFileIo::FairDetParAsciiFileIo(std::fstream* f) {
   // constructor
   pFile=f;
   sepLine=

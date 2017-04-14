@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 10/11/03 by Ilse Koenig
 
@@ -7,21 +14,23 @@
 // Class to create the geometry in ROOT
 //
 ///////////////////////////////////////////////////////////////////////////////
-
 #include "FairGeoRootBuilder.h"
 
-#include "FairGeoMedium.h"
-#include "FairGeoNode.h"
-#include "FairGeoTransform.h"
+#include "FairGeoMedium.h"              // for FairGeoMedium
+#include "FairGeoNode.h"                // for FairGeoNode
+#include "FairGeoRotation.h"            // for FairGeoRotation
+#include "FairGeoTransform.h"           // for FairGeoTransform
+#include "FairGeoVector.h"              // for FairGeoVector
 
-#include "TGeoManager.h"
-#include "TGeoMedium.h"
-#include "TGeoMaterial.h"
-#include "TGeoVolume.h"
-#include "TGeoMatrix.h"
-//#include "TGeoPgon.h"
-//#include "TGeoPcon.h"
-#include "TArrayD.h"
+#include "TArrayD.h"                    // for TArrayD
+#include "TGeoManager.h"                // for TGeoManager
+#include "TGeoMaterial.h"               // for TGeoMixture, TGeoMaterial
+#include "TGeoMatrix.h"                 // for TGeoCombiTrans, etc
+#include "TGeoMedium.h"                 // for TGeoMedium
+#include "TGeoVolume.h"                 // for TGeoVolume, etc
+#include "TString.h"                    // for TString
+
+#include <stdio.h>                      // for NULL, sprintf
 
 ClassImp(FairGeoRootBuilder)
 
@@ -105,7 +114,7 @@ Bool_t FairGeoRootBuilder::createNode(FairGeoNode* volu, Int_t hadFormat)
     const FairGeoRotation& rot=trans->getRotMatrix();
     const FairGeoVector& pos=trans->getTransVector();
     TGeoMatrix* tr=0;
-    if (((FairGeoRotation&)rot).isUnitMatrix()) {
+    if ((const_cast<FairGeoRotation&>(rot)).isUnitMatrix()) {
       tr=new TGeoTranslation(pos.getX(),pos.getY(),pos.getZ());
     } else {
       nRot++;
@@ -149,9 +158,9 @@ Int_t FairGeoRootBuilder::createMedium(FairGeoMedium* med)
     for(Int_t i=0; i<nComp; i++) {
       med->getComponent(i,p);
       if (weightFac>0) {
-        ((TGeoMixture*)material)->DefineElement(i,p[0],p[1],p[2]);
+        (static_cast<TGeoMixture*>(material))->DefineElement(i,p[0],p[1],p[2]);
       } else {
-        ((TGeoMixture*)material)->DefineElement(i,p[0],p[1],p[0]*p[2]/sumWeights);
+        (static_cast<TGeoMixture*>(material))->DefineElement(i,p[0],p[1],p[0]*p[2]/sumWeights);
       }
     }
   }

@@ -13,7 +13,11 @@
 #include "TObjArray.h"
 #include "TEveManager.h"
 #include "FairEventManager.h"
+#ifdef BMNROOT
 #include "CbmMCTrack.h"
+#else
+#include "FairMCTrack.h"
+#endif
 #include "TGeant3.h"
 #include "FairGeanePro.h"
 #include "FairTrajFilter.h"
@@ -26,18 +30,16 @@ using std::endl;
 // -----   Default constructor   -------------------------------------------
 FairMCStack::FairMCStack()
 {
-
 }
 // -------------------------------------------------------------------------
-
 
 // -----   Standard constructor   ------------------------------------------
 FairMCStack::FairMCStack(const char* name, Int_t iVerbose)
   : FairTask(name, iVerbose),
     fEveTrList( new TObjArray(16))
 {
-
 }
+
 // -------------------------------------------------------------------------
 InitStatus FairMCStack::Init()
 {
@@ -86,21 +88,25 @@ InitStatus FairMCStack::Init()
   else { return kERROR; }
 
 }
+
 // -------------------------------------------------------------------------
 void FairMCStack::Exec(Option_t* option)
 {
-
-  if (IsActive()) {
-
+  if (IsActive())
+  {
     if(fVerbose>1) { cout << " FairMCStack::Exec "<< endl; }
-    CbmMCTrack* tr;
     const Double_t* point;
 
     Reset();
 
     for (Int_t i=0; i<fTrackList->GetEntriesFast(); i++)  {
       if(fVerbose>2) { cout << "FairMCStack::Exec "<< i << endl; }
-      tr=(CbmMCTrack*)fTrackList->At(i);
+
+      #ifdef BMNROOT
+        CbmMCTrack* tr = (CbmMCTrack*) fTrackList->At(i);
+      #else
+        FairMCTrack* tr = (FairMCTrack*) fTrackList->At(i);
+      #endif
 
       TVector3 Ptot;
       tr->GetMomentum(Ptot);
@@ -116,7 +122,6 @@ void FairMCStack::Exec(Option_t* option)
       p1[0]=Ptot.Px();
       p1[1]=Ptot.Py();
       p1[2]=Ptot.Pz();
-
 
 
       //TParticle *P=(TParticle *)tr->GetParticle();
@@ -179,29 +184,6 @@ void FairMCStack::Exec(Option_t* option)
       }
       fTrList->AddElement(track);
       if(fVerbose>3) { cout << "track added " << track->GetName() << endl; }
-
-
-//  cout << "CurrentTrack " << fTrajFilter->GetCurrentTrk() << endl;
-
-      /*   for (Int_t n=0; n<Np; n++){
-             point=tr->GetPoint(n);
-             track->SetPoint(n,point[0],point[1],point[2]);
-             TEveVector pos= TEveVector(point[0], point[1],point[2]);
-           TEvePathMark *path = new TEvePathMark();
-         path->fV=pos ;
-         path->fTime= point[3];
-             if(n==0){
-                 TEveVector Mom= TEveVector(P->Px(), P->Py(),P->Pz());
-                 path->fP=Mom;
-             }
-             if(fVerbose>3) cout << "Path marker added " << path << endl;
-             track->AddPathMark(*path);
-             if(fVerbose>3) cout << "Path marker added " << path << endl;
-          }
-
-          fTrList->AddElement(track);
-      if(fVerbose>3)cout << "track added " << track->GetName() << endl;
-      */
     }
     //for (Int_t i=0; i<fEveTrList->GetEntriesFast(); i++) {
     //  TEveTrackList* TrListIn=( TEveTrackList*) fEveTrList->At(i);
@@ -212,6 +194,7 @@ void FairMCStack::Exec(Option_t* option)
     gEve->Redraw3D(kFALSE);
   }
 }
+
 // -----   Destructor   ----------------------------------------------------
 FairMCStack::~FairMCStack()
 {

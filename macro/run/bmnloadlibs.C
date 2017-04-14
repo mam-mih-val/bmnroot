@@ -21,23 +21,24 @@ void bmnloadlibs()
   gSystem->Load("libSts");
   gSystem->Load("libRecoil");
   gSystem->Load("libZdc");
-  gSystem->Load("libBmnKalmanFilter_tmp");
+  gSystem->Load("libEcal");
+  gSystem->Load("libBd");
   gSystem->Load("libGem");
+  gSystem->Load("libSilicon");
   gSystem->Load("libGlobalTracking");
   gSystem->Load("libTOF1");
-  gSystem->Load("libDch1");
-  gSystem->Load("libDch2");
-  gSystem->Load("libMWPC1");
-  gSystem->Load("libMWPC2");
-  gSystem->Load("libMWPC3");
+  gSystem->Load("libDch");
+  gSystem->Load("libMwpc");
   gSystem->Load("libBmnQa");
 
-  gSystem->Load("libMpdgenerators");
   gSystem->Load("libGeane");
   gSystem->Load("libKF");
   gSystem->Load("libCat");
 
   gSystem->Load("libUniDb");
+  gSystem->Load("libBmnAlignment");
+  gSystem->Load("libBmnMonitor");
+  gSystem->Load("libzmq");
 }
 
 TString find_path_to_URQMD_files ()

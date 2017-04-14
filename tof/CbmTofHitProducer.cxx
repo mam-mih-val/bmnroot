@@ -18,6 +18,7 @@
 #include "FairRunAna.h"
 #include "FairRuntimeDb.h"
 #include "FairTrackParam.h"
+#include "FairLogger.h"
 
 #include "TRandom.h"
 #include "TString.h"

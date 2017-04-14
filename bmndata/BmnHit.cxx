@@ -16,6 +16,7 @@ BmnHit::BmnHit(Int_t detID, TVector3 pos, TVector3 dpos, Int_t index)
     fDetId = kREF;
     fStation = 1;
     fType = -1;
+    fLength = -1.0;
 }
 
 BmnHit::~BmnHit() {

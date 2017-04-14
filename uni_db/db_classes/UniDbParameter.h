@@ -48,6 +48,10 @@ class UniDbParameter
 	static UniDbParameter* GetParameter(int parameter_id);
 	/// get parameter from the database
 	static UniDbParameter* GetParameter(TString parameter_name);
+	/// check parameter exists in the database
+	static bool CheckParameterExists(int parameter_id);
+	/// check parameter exists in the database
+	static bool CheckParameterExists(TString parameter_name);
 	/// delete parameter from the database
 	static int DeleteParameter(int parameter_id);
 	/// delete parameter from the database
@@ -64,8 +68,6 @@ class UniDbParameter
 	int GetParameterType() {return i_parameter_type;}
 
 	// Setters
-	/// set parameter id of the current parameter
-	int SetParameterId(int parameter_id);
 	/// set parameter name of the current parameter
 	int SetParameterName(TString parameter_name);
 	/// set parameter type of the current parameter
@@ -75,7 +77,7 @@ class UniDbParameter
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
     // enumeration 'enumParameterType' is corresponding parameter_type member UniDbParameter, you can see it in db_structures
-    // enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType, ErrorType}
+    // enum enumParameterType{BoolType, IntType, DoubleType, StringType, IIArrayType, IntArrayType, DoubleArrayType, BinaryArrayType, ErrorType}
     static bool CheckAndGetParameterID(TSQLServer* uni_db, TString parameter_name, enumParameterType enum_parameter_type, int& parameter_id);
 
  ClassDef(UniDbParameter,1);

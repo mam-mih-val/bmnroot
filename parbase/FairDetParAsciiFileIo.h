@@ -1,20 +1,29 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRDETPARASCIIFILEIO_H
 #define FAIRDETPARASCIIFILEIO_H
 
-#include <fstream>
-#include "FairDetParIo.h"
-#include "TArrayI.h"
-//#include "hgeomtransform.h"
-#include "FairParGenericSet.h"
-class FairDetGeomPar;
-class FairGeomShapes;
+#include "FairDetParIo.h"               // for FairDetParIo
+
+#include "Riosfwd.h"                    // for fstream
+#include "Rtypes.h"                     // for Text_t, Bool_t, etc
+#include "TString.h"                    // for TString
+
+#include <fstream>                      // for fstream
+
+class FairParSet;
 
 class FairDetParAsciiFileIo : public FairDetParIo
 {
   protected:
     TString fHeader;  //! header of container output in file
     TString sepLine;  //! comment line
-    fstream* pFile;   //! pointer to ascii file
+    std::fstream* pFile;   //! pointer to ascii file
 // virtual Bool_t write(HDetector*) {return kTRUE;}
     Bool_t findContainer(const Text_t* name);
     Bool_t checkAllFound(Int_t*,Int_t);
@@ -30,7 +39,7 @@ class FairDetParAsciiFileIo : public FairDetParIo
 //  void writeVolume(HGeomVolume*,HGeomShapes*);
 
   public:
-    FairDetParAsciiFileIo(fstream* f);
+    FairDetParAsciiFileIo(std::fstream* f);
     virtual ~FairDetParAsciiFileIo() {}
 //  Bool_t read(HDetGeomPar*,Int_t*);
 //  Int_t writeFile(HDetGeomPar*);

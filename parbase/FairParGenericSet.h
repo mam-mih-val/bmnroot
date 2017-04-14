@@ -1,17 +1,25 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRPARGENERICSET_H
 #define FAIRPARGENERICSET_H
 
-#include "FairParSet.h"
+#include "FairParSet.h"                 // for FairParSet
 
-class FairParamList;
-class FairDetParIo;
+#include "Rtypes.h"                     // for Bool_t, etc
+
 class FairParIo;
+class FairParamList;
 
 class FairParGenericSet : public FairParSet
 {
   public:
-    FairParGenericSet(const char* name,const char* title,const char* context)
-      : FairParSet(name,title,context) {}
+    FairParGenericSet(const char* name,const char* title,const char* context, Bool_t ownership=kFALSE)
+      : FairParSet(name,title,context,ownership) {}
     virtual ~FairParGenericSet() {}
     virtual void putParams(FairParamList*)=0;
     virtual Bool_t getParams(FairParamList*)=0;
@@ -20,6 +28,9 @@ class FairParGenericSet : public FairParSet
     Bool_t init(FairParIo* inp);
     Int_t  write(FairParIo* output);
 
+   // DB add on
+    void fill(UInt_t) {};
+    void store(UInt_t) {};
 
   protected:
     FairParGenericSet()

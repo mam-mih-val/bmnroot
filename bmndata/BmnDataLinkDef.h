@@ -36,7 +36,7 @@
 #pragma link C++ class CbmTrackMatch+;
 #pragma link C++ class CbmTofTrack+;
 #pragma link C++ class BmnTofHit+;
-#pragma link C++ class CbmTrack+;
+#pragma link C++ class BmnTrack+;
 
 #pragma link C++ class CbmMvdHit+;
 #pragma link C++ class CbmMvdHitMatch+;
@@ -59,18 +59,38 @@
 #pragma link C++ class BmnMwpcDigit+;
 #pragma link C++ class BmnTof1Digit+;
 #pragma link C++ class BmnTof2Digit+;
+#pragma link C++ class BmnTrigDigit+;
 #pragma link C++ class BmnDchDigit+;
 #pragma link C++ class BmnEcalDigit+;
 #pragma link C++ class BmnZDCDigit+;
+#pragma link C++ class BmnECALDigit+;
 
 #pragma link C++ class BmnADCDigit+;
 #pragma link C++ class BmnTDCDigit+;
+#pragma link C++ class BmnHRBDigit+;
 #pragma link C++ class BmnSyncDigit+;
 #pragma link C++ class BmnTTBDigit+;
+#pragma link C++ class BmnMSCDigit+;
 
 #pragma link C++ class BmnDchRaw2Digit+;
+#pragma link C++ class BmnMwpcRaw2Digit+;
 #pragma link C++ class BmnZDCRaw2Digit+;
+#pragma link C++ class BmnECALRaw2Digit+;
 #pragma link C++ class BmnTof2Raw2Digit+;
+#pragma link C++ class BmnTof2Raw2DigitNew+;
 #pragma link C++ class BmnTof1Raw2Digit+;
+#pragma link C++ class BmnGemRaw2Digit+;
+#pragma link C++ class BmnTrigRaw2Digit+;
+#pragma link C++ class BmnAdcProcessor+;
+
+#pragma link C++ class BmnRawDataDecoder+;
+#pragma link C++ class DigiArrays+;
+
+#pragma link C++ class BmnEventHeader+;
+#pragma link C++ class BmnRunHeader+;
+
+#pragma link C++ class BmnCounter+;
+
+#pragma link C++ class BmnFitNode+;
 
 #endif

@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                FairBoxGenerator header file                    -----
 // -----          Created 09/09/04  by Yu.Kharlov                      -----
@@ -27,9 +34,9 @@
 #ifndef FAIR_BOXGENERATOR_H
 #define FAIR_BOXGENERATOR_H
 
-#include "FairGenerator.h"
+#include "FairGenerator.h"              // for FairGenerator
 
-#include <iostream>
+#include "Rtypes.h"                     // for Double32_t, Bool_t, kTRUE, etc
 
 class FairPrimaryGenerator;
 
@@ -100,6 +107,14 @@ class FairBoxGenerator : public FairGenerator
      **@param primGen  pointer to the FairPrimaryGenerator
      **/
     virtual Bool_t ReadEvent(FairPrimaryGenerator* primGen);
+
+    /** Clone this object (used in MT mode only) */
+    virtual FairGenerator* CloneGenerator() const;
+
+  protected:
+    /** Copy constructor. **/
+    FairBoxGenerator(const FairBoxGenerator&);
+    FairBoxGenerator& operator=(const FairBoxGenerator&);
 
   private:
     Int_t      fPDGType;             // Particle type (PDG encoding)

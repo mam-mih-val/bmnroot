@@ -9,12 +9,13 @@
 #include "TString.h"
 #include "FairTask.h"
 #include "CbmTofPoint.h"
+#include "TClonesArray.h"
+#include "BmnEnums.h"
+#include "BmnMwpcDigit.h"
 
 #include "CbmTofHit.h"
 
 using namespace std;
-
-class TClonesArray;
 
 class BmnMwpcHitProducer : public FairTask {
 public:
@@ -40,22 +41,28 @@ public:
         fOnlyPrimary = opt;
     }
 
+    BmnStatus ProcessPoints();
+    BmnStatus ProcessDigits();
+
 
 private:
 
-    TString fInputBranchName;
-    TString fOutputHitsBranchName;
+    TString fInputMCBranchName;
+    TString fInputDigiBranchName;
 
-    /** Input array of Gem Points **/
+    /** Input array of MWPC Points **/
     TClonesArray* fBmnMwpcPointsArray;
+    /** Input array of MWPC Digits **/
+    TClonesArray* fBmnMwpcDigitsArray;
 
     /** Input array of MC Tracks **/
     TClonesArray* fMCTracksArray;
 
-    /** Output array of Gem Hits **/
+    /** Output array of MWPC Hits **/
     TClonesArray* fBmnMwpcHitsArray;
 
     Bool_t fOnlyPrimary;
+    TString fRunType; //"points" or "digits"
     Int_t fMwpcNum;
 
     ClassDef(BmnMwpcHitProducer, 1);

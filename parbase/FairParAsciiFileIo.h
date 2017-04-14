@@ -1,16 +1,26 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 #ifndef FAIRPARASCIFILEIIO_H
 #define FAIRPARASCIFILEIIO_H
 
-#include "FairParIo.h"
+#include "FairParIo.h"                  // for FairParIo
 
-#include <fstream>
+#include "Riosfwd.h"                    // for fstream
+#include "Rtypes.h"                     // for Bool_t, Text_t, etc
+
+#include <fstream>                      // for fstream, etc
 
 class TList;
 
 class FairParAsciiFileIo : public FairParIo
 {
   protected:
-    fstream* file;      // pointer to a file
+    std::fstream* file;      // pointer to a file
   public:
     FairParAsciiFileIo();
 
@@ -40,7 +50,7 @@ class FairParAsciiFileIo : public FairParIo
     // prints information about the file and the detector I/Os
     void print();
 
-    fstream* getFile();
+    std::fstream* getFile();
   private:
     FairParAsciiFileIo(const FairParAsciiFileIo&);
     FairParAsciiFileIo& operator=(const FairParAsciiFileIo&);

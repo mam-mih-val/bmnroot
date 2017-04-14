@@ -5,7 +5,7 @@
  **/
 
 #include "BmnGeoNavigator.h"
-
+#include "TMath.h"
 #include "BmnDefaultSettings.h"
 #include "FairTrackParam.h"
 
@@ -16,6 +16,8 @@
 
 #include <iostream>
 #include <cmath>
+
+using namespace TMath;
 
 BmnGeoNavigator::BmnGeoNavigator() {
 }
@@ -48,9 +50,9 @@ BmnStatus BmnGeoNavigator::FindIntersections(const FairTrackParam* par, Float_t 
             return kBMNERROR;
         }
         // Check for NaN values
-        if (isnan(gGeoManager->GetCurrentPoint()[0]) ||
-                isnan(gGeoManager->GetCurrentPoint()[1]) ||
-                isnan(gGeoManager->GetCurrentPoint()[2])) {
+        if (IsNaN(gGeoManager->GetCurrentPoint()[0]) ||
+                IsNaN(gGeoManager->GetCurrentPoint()[1]) ||
+                IsNaN(gGeoManager->GetCurrentPoint()[2])) {
             //         std::cout << "Error! BmnTGeoNavigator::FindIntersections: NaN values.\n";
             gGeoManager->PopDummy();
             return kBMNERROR;

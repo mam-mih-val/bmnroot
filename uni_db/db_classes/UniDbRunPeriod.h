@@ -28,11 +28,9 @@ class UniDbRunPeriod
 	TDatime dt_start_datetime;
 	/// end datetime
 	TDatime* dt_end_datetime;
-	/// contact person
-	TString* str_contact_person;
 
 	//Constructor
-	UniDbRunPeriod(UniDbConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime, TString* contact_person);
+	UniDbRunPeriod(UniDbConnection* connUniDb, int period_number, TDatime start_datetime, TDatime* end_datetime);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -41,9 +39,11 @@ class UniDbRunPeriod
 
 	// static class functions
 	/// add new run period to the database
-	static UniDbRunPeriod* CreateRunPeriod(int period_number, TDatime start_datetime, TDatime* end_datetime, TString* contact_person);
+	static UniDbRunPeriod* CreateRunPeriod(int period_number, TDatime start_datetime, TDatime* end_datetime);
 	/// get run period from the database
 	static UniDbRunPeriod* GetRunPeriod(int period_number);
+	/// check run period exists in the database
+	static bool CheckRunPeriodExists(int period_number);
 	/// delete run period from the database
 	static int DeleteRunPeriod(int period_number);
 	/// print all run periods
@@ -56,8 +56,6 @@ class UniDbRunPeriod
 	TDatime GetStartDatetime() {return dt_start_datetime;}
 	/// get end datetime of the current run period
 	TDatime* GetEndDatetime() {if (dt_end_datetime == NULL) return NULL; else return new TDatime(*dt_end_datetime);}
-	/// get contact person of the current run period
-	TString* GetContactPerson() {if (str_contact_person == NULL) return NULL; else return new TString(*str_contact_person);}
 
 	// Setters
 	/// set period number of the current run period
@@ -66,8 +64,6 @@ class UniDbRunPeriod
 	int SetStartDatetime(TDatime start_datetime);
 	/// set end datetime of the current run period
 	int SetEndDatetime(TDatime* end_datetime);
-	/// set contact person of the current run period
-	int SetContactPerson(TString* contact_person);
 	/// print information about current run period
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */

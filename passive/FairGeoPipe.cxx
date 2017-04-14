@@ -1,3 +1,10 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
 //*-- AUTHOR : Ilse Koenig
 //*-- Created : 10/11/2003
 
@@ -7,10 +14,18 @@
 // Class for geometry of support structure
 //
 /////////////////////////////////////////////////////////////
-
 #include "FairGeoPipe.h"
-#include "FairGeoLoader.h"
-#include "FairGeoInterface.h"
+
+#include "FairGeoInterface.h"           // for FairGeoInterface
+#include "FairGeoLoader.h"              // for FairGeoLoader
+
+#include "TList.h"                      // for TList
+#include "TString.h"                    // for TString
+
+#include <string.h>                     // for strcpy
+
+class FairGeoBuilder;
+class TObject;
 
 ClassImp(FairGeoPipe)
 
@@ -31,7 +46,7 @@ Bool_t  FairGeoPipe::create ( FairGeoBuilder* build )
     FairGeoLoader* loader=FairGeoLoader::Instance();
     FairGeoInterface* GeoInterface =loader->getGeoInterface();
 
-    GeoInterface->getMasterNodes()->Add( (TObject*)  getVolume("pipeCentral") );
+    GeoInterface->getMasterNodes()->Add( static_cast<TObject*>( getVolume("pipeCentral") ) );
   }
   return rc;
 }

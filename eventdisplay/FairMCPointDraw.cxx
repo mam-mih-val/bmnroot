@@ -6,29 +6,43 @@
  */
 
 #include "FairMCPointDraw.h"
+#include "FairMCPoint.h"
+#include "FairEventManager.h"
 
-#include "FairMCPoint.h"                // for FairMCPoint
-
-#include "TVector3.h"                   // for TVector3
-
-class TObject;
+#include "TEveManager.h"
 
 FairMCPointDraw::FairMCPointDraw()
 {
-  // TODO Auto-generated constructor stub
-
 }
 
 FairMCPointDraw::~FairMCPointDraw()
 {
-  // TODO Auto-generated destructor stub
 }
 
 TVector3 FairMCPointDraw::GetVector(TObject* obj)
 {
-  FairMCPoint* p = (FairMCPoint*)obj;
-  return TVector3(p->GetX(), p->GetY(), p->GetZ());
+    FairMCPoint* p = (FairMCPoint*) obj;
+    return TVector3(p->GetX(), p->GetY(), p->GetZ());
 }
 
+void FairMCPointDraw::AddEveElementList()
+{
+    if (fEventManager->EveMCPoints == NULL)
+    {
+        fEventManager->EveMCPoints = new TEveElementList("MC points");
+        gEve->AddElement(fEventManager->EveMCPoints, fEventManager);
+        fEventManager->EveMCPoints->SetRnrState(kFALSE);
+    }
+
+    gEve->AddElement(fq, fEventManager->EveMCPoints);
+
+    return;
+}
+
+void FairMCPointDraw::RemoveEveElementList()
+{
+    gEve->RemoveElement(fq, fEventManager->EveMCPoints);
+    return;
+}
 
 ClassImp(FairMCPointDraw)

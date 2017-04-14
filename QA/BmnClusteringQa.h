@@ -51,6 +51,14 @@ public:
         fOutputDir = outputDir;
     }
 
+    void SetOnlyPrimes(const Bool_t prime) {
+        fPrimes = prime;
+    }
+
+    Bool_t GetOnlyPrimes() const {
+        return fPrimes;
+    }
+
 private:
 
     Int_t GetStationId(
@@ -84,6 +92,9 @@ private:
             const TClonesArray* hitMatches,
             const string& detName,
             DetectorId detId);
+
+
+    void ReadEventHeader();
 
     /**
      *
@@ -138,6 +149,26 @@ private:
             Double_t minBin,
             Double_t maxBin);
 
+    void CreateH1(
+            const string& name,
+            const string& xTitle,
+            const string& yTitle,
+            Int_t nofBins,
+            Double_t minBin,
+            Double_t maxBin);
+
+    void CreateH2(
+            const string& name,
+            const string& xTitle,
+            const string& yTitle,
+            const string& zTitle,
+            Int_t nofBinsX,
+            Double_t minBinX,
+            Double_t maxBinX,
+            Int_t nofBinsY,
+            Double_t minBinY,
+            Double_t maxBinY);
+
     BmnHistManager* fHM; // Histogram manager
     string fOutputDir; // Output directory for results
     BmnDetectorSetup fDet; // For detector setup determination
@@ -145,34 +176,36 @@ private:
     // Pointers to data arrays
     TClonesArray* fMCTracks;
 
-//    TClonesArray* fMvdPoints; // CbmMvdPoint array
-//    TClonesArray* fMvdDigis; // CbmMvdDigi array
-//    TClonesArray* fMvdClusters; // CbmMvdClusters array
-//    TClonesArray* fMvdHits; // CbmMvdHit array
+    //    TClonesArray* fMvdPoints; // CbmMvdPoint array
+    //    TClonesArray* fMvdDigis; // CbmMvdDigi array
+    //    TClonesArray* fMvdClusters; // CbmMvdClusters array
+    //    TClonesArray* fMvdHits; // CbmMvdHit array
 
     TClonesArray* fGemPoints;
-//    TClonesArray* fGemDigis;
-//    TClonesArray* fGemClusters;
+    TClonesArray* fGemDigits;
+    //    TClonesArray* fGemClusters;
     TClonesArray* fGemHits;
-//    TClonesArray* fGemDigiMatches;
-//    TClonesArray* fGemClusterMatches;
+    TClonesArray* fGemDigitMatches;
+    //    TClonesArray* fGemClusterMatches;
     TClonesArray* fGemHitMatches;
 
-    TClonesArray* fTof1Points;
-    TClonesArray* fTof1Hits;
-    TClonesArray* fTof1HitMatches;
-    
-    TClonesArray* fTof2Points;
-    TClonesArray* fTof2Hits;
-    TClonesArray* fTof2HitMatches;
-    
-    TClonesArray* fDch1Points;
-    TClonesArray* fDch1Hits;
-    TClonesArray* fDch1HitMatches;
-    
-    TClonesArray* fDch2Points;
-    TClonesArray* fDch2Hits;
-    TClonesArray* fDch2HitMatches;
+    //    TClonesArray* fTof1Points;
+    //    TClonesArray* fTof1Hits;
+    //    TClonesArray* fTof1HitMatches;
+    //    
+    //    TClonesArray* fTof2Points;
+    //    TClonesArray* fTof2Hits;
+    //    TClonesArray* fTof2HitMatches;
+    //    
+    //    TClonesArray* fDch1Points;
+    //    TClonesArray* fDch1Hits;
+    //    TClonesArray* fDch1HitMatches;
+    //    
+    //    TClonesArray* fDch2Points;
+    //    TClonesArray* fDch2Hits;
+    //    TClonesArray* fDch2HitMatches;
+
+    Bool_t fPrimes; //calculate efficiency only for primaries or for all particles
 
     BmnClusteringQa(const BmnClusteringQa&);
     BmnClusteringQa& operator=(const BmnClusteringQa&);

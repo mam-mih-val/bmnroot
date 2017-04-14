@@ -1,10 +1,19 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             *
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
+//______________________________________________________________________________
+/** FairEventManager
+*  class for event management and navigation.
+*  M. Al-Turany 06.12.2007
+**/
 #include "FairEventManager.h"
-#include "RawMWPCDigitDraw.h"
-#include "BmnDigitDraw.h"
 #include "constants.h"
 
 #include "FairMCPointDraw.h"
-#include "FairMCModuleDraw.h"
 #include "FairMCTracks.h"
 #include "FairHitPointSetDraw.h"
 
@@ -18,8 +27,14 @@
 #include <TEveProjectionAxes.h>
 #include <TEveBrowser.h>
 
+// XML
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <libxml/xmlschemastypes.h>
+#include <unistd.h>
 #include <cerrno>
 #include <iostream>
+#include <sstream>
 using namespace std;
 
 ClassImp(FairEventManager)
@@ -33,7 +48,7 @@ FairEventManager* FairEventManager::Instance()
 
 //______________________________________________________________________________
 FairEventManager::FairEventManager()
-  :TEveEventManager("FairEventManager", ""),
+  :TEveEventManager("EventManager", ""),
    fRootManager(FairRootManager::Instance()),
    fEntry(0),
    fRunAna(FairRunAna::Instance()),
@@ -63,10 +78,11 @@ FairEventManager::FairEventManager()
    arrLevelColoring(NULL),
    background_color(1),
    isDarkColor(true),
-   source_file_name(NULL),
-   geo_file_name(NULL),
    fEntryCount(0),
-   isZDCModule(NULL)
+   isZDCModule(NULL),
+   fgShowRecoPointsIsShow(false),
+   fgRedrawRecoPointsReqired(false),
+   fLastUsedColor(2001)
 {
     fgRinstance = this;
 
@@ -83,456 +99,304 @@ FairEventManager::FairEventManager()
 // red, violet, magenta (бардовый), magenta-6 (светло-бардовый), pink (темно-розовый)
 void FairEventManager::InitColorStructure()
 {
+    TString coloring_xml_path = "$VMCWORKDIR/config/eventdisplay.xml";
+    TString coloring_xsd_path = "$VMCWORKDIR/eventdisplay/coloring.xsd";
+    gSystem->ExpandPathName(coloring_xml_path);
+    gSystem->ExpandPathName(coloring_xsd_path);
+
     cntSelectedColoring = 0;
     cntLevelColoring = 0;
 
-    if (gVisualizationColoring == levelColoring)
+    if (ValidateXml(coloring_xml_path.Data(),coloring_xsd_path.Data()) == true)
     {
-        // number of described detector levels
-        cntLevelColoring = 5;
-        arrLevelColoring = new structLevelColoring[cntLevelColoring];
-
-        // if BM@N
-        if (gCoordinateSystem == sysLaboratory)
-        {
-            // LEVEL 1
-            arrLevelColoring[0].fill_color =    "gray"; //yellow for white background
-            arrLevelColoring[0].isFillLine =    true;
-            arrLevelColoring[0].visibility =    true;
-            arrLevelColoring[0].transparency =  30;
-
-            // LEVEL 2
-            arrLevelColoring[1].fill_color =    "yellow"; //magenta for white background
-            arrLevelColoring[1].isFillLine =    true;
-            arrLevelColoring[1].visibility =    true;
-            arrLevelColoring[1].transparency =  30;
-
-            // LEVEL 3
-            arrLevelColoring[2].fill_color =    "cyan"; //green for white background
-            arrLevelColoring[2].isFillLine =    true;
-            arrLevelColoring[2].visibility =    true;
-            arrLevelColoring[2].transparency =  30;
-
-            // LEVEL 4
-            arrLevelColoring[3].fill_color =    "white"; //cyan for white background
-            arrLevelColoring[3].isFillLine =    true;
-            arrLevelColoring[3].visibility =    true;
-            arrLevelColoring[3].transparency =  30;
-
-            // LEVEL 5
-            arrLevelColoring[4].fill_color =    "green"; //blue for white background
-            arrLevelColoring[4].isFillLine =    true;
-            arrLevelColoring[4].visibility =    true;
-            arrLevelColoring[4].transparency =  30;
-        }
-        // MPD
-        else
-        {
-            // LEVEL 1
-            arrLevelColoring[0].fill_color =    "gray"; //yellow for white background
-            arrLevelColoring[0].isFillLine =    true;
-            arrLevelColoring[0].visibility =    true;
-            arrLevelColoring[0].transparency =  30;
-
-            // LEVEL 2
-            arrLevelColoring[1].fill_color =    "cyan"; //magenta for white background
-            arrLevelColoring[1].isFillLine =    true;
-            arrLevelColoring[1].visibility =    true;
-            arrLevelColoring[1].transparency =  30;
-
-            // LEVEL 3
-            arrLevelColoring[2].fill_color =    "violet"; //green for white background
-            arrLevelColoring[2].isFillLine =    true;
-            arrLevelColoring[2].visibility =    true;
-            arrLevelColoring[2].transparency =  30;
-
-            // LEVEL 4
-            arrLevelColoring[3].fill_color =    "azure"; //cyan for white background
-            arrLevelColoring[3].isFillLine =    true;
-            arrLevelColoring[3].visibility =    true;
-            arrLevelColoring[3].transparency =  30;
-
-            // LEVEL 5
-            arrLevelColoring[4].fill_color =    "green"; //blue for white background
-            arrLevelColoring[4].isFillLine =    true;
-            arrLevelColoring[4].visibility =    true;
-            arrLevelColoring[4].transparency =  30;
-        }
-
-        return;
-    }
-
-    // if BM@N selected coloring
-    if (gCoordinateSystem == sysLaboratory)
-    {
-        int i = 0;
-        cntSelectedColoring = 11;
-        arrSelectedColoring = new structSelectedColoring[cntSelectedColoring];
-
-        // MAGNET color
-        arrSelectedColoring[i].detector_name =          "Magnet";
-        arrSelectedColoring[i].detector_color =         "gray";
-        arrSelectedColoring[i].detector_transparency =  67;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-        // coil of magnet
-        arrSelectedColoring[i].detector_name =          "Coil";
-        arrSelectedColoring[i].detector_color =         "red";
-        arrSelectedColoring[i].detector_transparency =  67;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // TARGET color
-        arrSelectedColoring[i].detector_name =          "targ";
-        arrSelectedColoring[i].detector_color =         "yellow";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // PIPE color
-        arrSelectedColoring[i].detector_name =          "pipe1cave";
-        arrSelectedColoring[i].detector_color =         "orange";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // RECOIL color
-        arrSelectedColoring[i].detector_name =          "recoil01";
-        arrSelectedColoring[i].detector_color =         "khaki";
-        arrSelectedColoring[i].detector_transparency =  67;
-        arrSelectedColoring[i].isRecursiveColoring =  true;
-        i++;
-
-        // GEMS color
-        arrSelectedColoring[i].detector_name =          "GEMS";
-        arrSelectedColoring[i].detector_color =         "cyan";
-        arrSelectedColoring[i].detector_transparency =  15;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // TOF1 color
-        arrSelectedColoring[i].detector_name =          "TOFB1";
-        arrSelectedColoring[i].detector_color =         "spring";
-        arrSelectedColoring[i].detector_transparency =  15;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // DCH1 color
-        arrSelectedColoring[i].detector_name =          "dch1";
-        arrSelectedColoring[i].detector_color =         "orange+7";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // DCH2 color
-        arrSelectedColoring[i].detector_name =          "dch2";
-        arrSelectedColoring[i].detector_color =         "orange+7";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
-        // TOF2 color
-        arrSelectedColoring[i].detector_name =          "tof2";
-        arrSelectedColoring[i].detector_color =         "spring";
-        arrSelectedColoring[i].detector_transparency =  15;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-        // inner part of TOF2
-        arrSelectedColoring[i].detector_name =          "t2reg2mod";
-        arrSelectedColoring[i].detector_color =         "spring+2";
-        //arrSelectedColoring[i].detector_transparency =  29;
-        arrSelectedColoring[i].isRecursiveColoring =    true;
-        i++;
-
+        xmlNode* root_element = NULL;
+        xmlSchemaPtr schema = NULL;
+        xmlSchemaParserCtxtPtr ctxt;
+        xmlDoc* doc = xmlReadFile(coloring_xml_path.Data(), NULL, 0);
+        
         /*
-        // ZDC color
-        arrSelectedColoring[i].detector_name =          "VMDL"; //"VET0";
-        arrSelectedColoring[i].detector_color =         "yellow";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i].isRecursiveColoring =    false;
-        i++;
-        */
+         * Get the root element node
+         */
+        root_element = xmlDocGetRootElement(doc);
+        xmlAttr* root_element_attributes = root_element->properties;
+        xmlChar* value = xmlNodeListGetString(root_element->doc, root_element_attributes->children, 1);
+
+        xmlFree(root_element_attributes);
+        xmlNodePtr cur_node = root_element;
+        if (strcmp((char*)value,"default")==0)
+        {
+            cout<<"using default coloring"<<endl;
+            gVisualizationColoring = defaultColoring;
+        }
+        else
+        {          
+            if (strcmp((char*)value, "detector") == 0)
+            {
+                cntSelectedColoring = (int)xmlChildElementCount(cur_node);
+                arrSelectedColoring = new structSelectedColoring[cntSelectedColoring];
+                gVisualizationColoring = selectedColoring;
+            }
+            else
+            {
+                cntLevelColoring = (int)xmlChildElementCount(cur_node);
+                arrLevelColoring = new structLevelColoring[cntLevelColoring];
+                gVisualizationColoring = levelColoring;
+
+            }
+            cur_node = root_element->children;
+            int i=0;
+            while (cur_node)
+            {
+                if ((strcmp((char*)cur_node->name, "text") != 0) //skipping elements with no attributes
+                   && (cur_node->type != XML_COMMENT_NODE))
+                {
+                    xmlAttr* attribute = cur_node->properties;
+                    while(attribute)
+                    {
+                        xmlChar* attr_value = xmlNodeListGetString(root_element->doc, attribute->children, 1);
+                        if (strcmp((char*)value, "detector") == 0)
+                        {
+                            if (strcmp((char*)attribute->name,"name")==0) 
+                                arrSelectedColoring[i].detector_name=(char*)attr_value;
+                            if (strcmp((char*)attribute->name,"color")==0)
+                                arrSelectedColoring[i].detector_color=(char*)attr_value;
+                            if (strcmp((char*)attribute->name,"isRecursiveColoring")==0)
+                                arrSelectedColoring[i].isRecursiveColoring=(strcmp((char*)attr_value,"true")==0);                            
+                            if (strcmp((char*)attribute->name,"transparency")==0) 
+                                arrSelectedColoring[i].detector_transparency =  atoi((char*)attr_value);
+                        }
+                        else if (strcmp((char*)value, "hierarchy") == 0)
+                        {
+                            if (strcmp((char*)attribute->name,"color")==0) 
+                                arrLevelColoring[i].fill_color=(char*)attr_value;
+                            if (strcmp((char*)attribute->name,"isFillLine")==0) 
+                                arrLevelColoring[i].isFillLine=(strcmp((char*)attr_value,"true")==0);
+                            if (strcmp((char*)attribute->name,"visibility")==0) 
+                                arrLevelColoring[i].visibility=(strcmp((char*)attr_value,"true")==0);
+                            if (strcmp((char*)attribute->name,"transparency")==0) 
+                                arrLevelColoring[i].transparency=atoi((char*)attr_value);
+                        }                    
+                        attribute = attribute->next;
+                        xmlFree(attr_value);
+                    }
+                    xmlFree(attribute);
+                    i++;                
+                }
+                cur_node = cur_node->next;
+            }
+        }
+            
+        xmlFree(value);
+        xmlFree(cur_node);
+        /*
+         * free the document
+         */
+        xmlCleanupParser();
+        xmlFreeDoc(doc);
     }
-    // if MPD
     else
     {
-        int i = 0;
-        cntSelectedColoring = 13;
-        arrSelectedColoring = new structSelectedColoring[cntSelectedColoring];
-
-        // MAGNET color
-        arrSelectedColoring[i].detector_name =          "ms01yokebarrel";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // cryostat
-        arrSelectedColoring[i].detector_name =          "ms01cryostat";
-        arrSelectedColoring[i].detector_color =         "gray";
-        arrSelectedColoring[i].detector_transparency =  15;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeii";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeio";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeim";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeoi";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeom";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-        // barrel end
-        arrSelectedColoring[i].detector_name =          "ms01yokeendeoo";
-        arrSelectedColoring[i].detector_color =         "blue";
-        arrSelectedColoring[i].detector_transparency =  30;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-
-        // PIPE color
-        arrSelectedColoring[i].detector_name =          "pipe1";
-        arrSelectedColoring[i].detector_color =         "orange";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-
-        // TPC color
-        arrSelectedColoring[i].detector_name =          "tpcChamber1";
-        arrSelectedColoring[i].detector_color =         "cyan";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-
-        // TOF color
-        arrSelectedColoring[i].detector_name =          "tof1";
-        arrSelectedColoring[i].detector_color =         "spring";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-
-        // EMC color
-        arrSelectedColoring[i].detector_name =          "emc1Chamber1";
-        arrSelectedColoring[i].detector_color =         "violet";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
-
-        // ZDC color
-        arrSelectedColoring[i].detector_name =          "zdc01";
-        arrSelectedColoring[i].detector_color =         "green";
-        arrSelectedColoring[i].detector_transparency =  0;
-        arrSelectedColoring[i++].isRecursiveColoring =  true;
+        cout<<"using default coloring"<<endl;
+        gVisualizationColoring = defaultColoring;
     }
-
+    
+    //sleep(20);
     return;
 }
 
 //______________________________________________________________________________
 void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
 {
-  TEveManager::Create();
-  fRunAna->Init();
+    TEveManager::Create();
+    fRunAna->Init();
 
-  // for raw and digit root files - get gGeoManager from additional file
-  if ((!gGeoManager) && (geo_file_name))
-  {
-      TFile* f = new TFile(geo_file_name);
-      f->Get("FairBaseParSet");
-  }
+    TGeoNode* N = gGeoManager->GetTopNode();
+    TEveGeoTopNode* TNod = new TEveGeoTopNode(gGeoManager, N, visopt, vislvl, maxvisnds);
 
-  TGeoNode* N = gGeoManager->GetTopNode();
-  TEveGeoTopNode* TNod = new TEveGeoTopNode(gGeoManager, N, visopt, vislvl, maxvisnds);
+    // change color and visibility of geometry nodes
+    if (gVisualizationColoring != defaultColoring)
+    {
+        if (gVisualizationColoring == selectedColoring)
+            SelectedGeometryColoring();
+        else
+            LevelChangeNodeProperty(N, 0);
+    }
 
-  // change color and visibility of geometry nodes
-  if (gVisualizationColoring != defaultColoring)
-  {
-    if (gVisualizationColoring == selectedColoring)
-        SelectedGeometryColoring();
-    else
-        LevelChangeNodeProperty(N, 0);
-  }
+    gEve->AddGlobalElement(TNod);
+    gEve->FullRedraw3D(kTRUE);
+    fEvent = gEve->AddEvent(this);
 
-  gEve->AddGlobalElement(TNod);
-  gEve->FullRedraw3D(kTRUE);
-  fEvent = gEve->AddEvent(this);
+    // first 3D viewer
+    gEve->GetDefaultViewer()->SetElementName("3D View");
+    // display axes
+    //gEve->GetDefaultViewer()->GetGLViewer()->SetGuideState(TGLUtil::kAxesEdge, kTRUE, kFALSE, 0);
+    // switch off left and right light sources for first window
+    gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+    gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+    if (!isDarkColor)
+        gEve->GetDefaultViewer()->GetGLViewer()->UseLightColorSet();
+    gEve->GetDefaultViewer()->GetGLViewer()->SetClearColor(background_color);
 
-  // first 3D viewer
-  gEve->GetDefaultViewer()->SetElementName("3D View");
-  // switch off left and right light sources for first window
-  gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  gEve->GetDefaultViewer()->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  if (!isDarkColor)
-      gEve->GetDefaultViewer()->GetGLViewer()->UseLightColorSet();
-  gEve->GetDefaultViewer()->GetGLViewer()->SetClearColor(background_color);
+    // different views and projections for Offline mode
+    if (!isOnline)
+    {
+        // create projection managers
+        fRPhiMng = new TEveProjectionManager();
+        fRPhiMng->SetProjection(TEveProjection::kPT_RPhi);
+        gEve->AddToListTree(fRPhiMng, kFALSE);
 
-  // many views for Offline mode
-  if (!isOnline)
-  {
-  // create projection managers
-  fRPhiMng = new TEveProjectionManager();
-  fRPhiMng->SetProjection(TEveProjection::kPT_RPhi);
-  gEve->AddToListTree(fRPhiMng, kFALSE);
+        fRhoZMng = new TEveProjectionManager();
+        fRhoZMng->SetProjection(TEveProjection::kPT_RhoZ);
+        gEve->AddToListTree(fRhoZMng, kFALSE);
 
-  fRhoZMng = new TEveProjectionManager();
-  fRhoZMng->SetProjection(TEveProjection::kPT_RhoZ);
-  gEve->AddToListTree(fRhoZMng, kFALSE);
+        // create axes for viewers
+        TEveProjectionAxes* axes = new TEveProjectionAxes(fRPhiMng);
+        axes->SetMainColor(kRed);
 
-  // create axes for viewers
-  TEveProjectionAxes* axes = new TEveProjectionAxes(fRPhiMng);
-  axes->SetMainColor(kRed);
+        // add window in EventDisplay for RPhi projection
+        TEveWindowSlot *RPhiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
+        TEveWindowPack *RPhiPack = RPhiSlot->MakePack();
+        RPhiPack->SetElementName("RPhi View");
+        RPhiPack->SetShowTitleBar(kFALSE);
+        RPhiPack->NewSlot()->MakeCurrent();
+        fRPhiView = gEve->SpawnNewViewer("RPhi View", "");
+        fRPhiView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoXOY);
+        Double_t eqRPhi[4] = {0.0, 0.0, 1.0, 0.0};
+        // set clip plane and camera parameters
+        fRPhiView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
+        fRPhiView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRPhi);
+        fRPhiView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
+        fRPhiView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
+        // switch off left, right, top and bottom light sources
+        fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+        fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+        fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
+        fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
+        if (!isDarkColor)
+            fRPhiView->GetGLViewer()->UseLightColorSet();
+        fRPhiView->GetGLViewer()->SetClearColor(background_color);
+        // create scene holding projected geometry for the RPhi view
+        fRPhiGeomScene  = gEve->SpawnNewScene("RPhi Geometry", "Scene holding projected geometry for the RPhi view.");
+        // add axes for scene of RPhi view
+        fRPhiGeomScene->AddElement(axes);
+        // create scene holding projected event-data for the RPhi view
+        fRPhiEventScene = gEve->SpawnNewScene("RPhi Event Data", "Scene holding projected event-data for the RPhi view.");
+        // add both scenes to RPhi View
+        fRPhiView->AddScene(fRPhiGeomScene);
+        fRPhiView->AddScene(fRPhiEventScene);
 
-  // add window in EventDisplay for RPhi projection
-  TEveWindowSlot *RPhiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
-  TEveWindowPack *RPhiPack = RPhiSlot->MakePack();
-  RPhiPack->SetElementName("RPhi View");
-  RPhiPack->SetShowTitleBar(kFALSE);
-  RPhiPack->NewSlot()->MakeCurrent();
-  fRPhiView = gEve->SpawnNewViewer("RPhi View", "");
-  fRPhiView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoXOY);
-  Double_t eqRPhi[4] = {0.0, 0.0, 1.0, 0.0};
-  // set clip plane and camera parameters
-  fRPhiView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-  fRPhiView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRPhi);
-  fRPhiView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
-  fRPhiView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
-  // switch off left, right, top and bottom light sources
-  fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
-  fRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
-  if (!isDarkColor)
-      fRPhiView->GetGLViewer()->UseLightColorSet();
-  fRPhiView->GetGLViewer()->SetClearColor(background_color);
-  // create scene holding projected geometry for the RPhi view
-  fRPhiGeomScene  = gEve->SpawnNewScene("RPhi Geometry", "Scene holding projected geometry for the RPhi view.");
-  // add axes for scene of RPhi view
-  fRPhiGeomScene->AddElement(axes);
-  // create scene holding projected event-data for the RPhi view
-  fRPhiEventScene = gEve->SpawnNewScene("RPhi Event Data", "Scene holding projected event-data for the RPhi view.");
-  // add both scenes to RPhi View
-  fRPhiView->AddScene(fRPhiGeomScene);
-  fRPhiView->AddScene(fRPhiEventScene);
+        // add window in EvenDisplay for RhoZ projection
+        TEveWindowSlot *RhoZSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
+        TEveWindowPack *RhoZPack = RhoZSlot->MakePack();
+        RhoZPack->SetElementName("RhoZ View");
+        RhoZPack->SetShowTitleBar(kFALSE);
+        RhoZPack->NewSlot()->MakeCurrent();
+        fRhoZView = gEve->SpawnNewViewer("RhoZ View", "");
+        fRhoZView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
+        Double_t eqRhoZ[4] = {-1.0, 0.0, 0.0, 0.0};
+        // set clip plane and camera parameters
+        fRhoZView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
+        fRhoZView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRhoZ);
+        fRhoZView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
+        fRhoZView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
+        // switch off left, right and front light sources
+        fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+        fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+        fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
+        if (!isDarkColor)
+            fRhoZView->GetGLViewer()->UseLightColorSet();
+        fRhoZView->GetGLViewer()->SetClearColor(background_color);
+        // create scene holding projected geometry for the RhoZ view.
+        fRhoZGeomScene  = gEve->SpawnNewScene("RhoZ Geometry", "Scene holding projected geometry for the RhoZ view.");
+        // add axes for scene of RPhoZ view
+        fRhoZGeomScene->AddElement(axes);
+        // create scene holding projected event-data for the RhoZ view
+        fRhoZEventScene = gEve->SpawnNewScene("RhoZ Event Data", "Scene holding projected event-data for the RhoZ view.");
+        // add both scenes to RhoZView
+        fRhoZView->AddScene(fRhoZGeomScene);
+        fRhoZView->AddScene(fRhoZEventScene);
 
-  // add window in EvenDisplay for RhoZ projection
-  TEveWindowSlot *RhoZSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
-  TEveWindowPack *RhoZPack = RhoZSlot->MakePack();
-  RhoZPack->SetElementName("RhoZ View");
-  RhoZPack->SetShowTitleBar(kFALSE);
-  RhoZPack->NewSlot()->MakeCurrent();
-  fRhoZView = gEve->SpawnNewViewer("RhoZ View", "");
-  fRhoZView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
-  Double_t eqRhoZ[4] = {-1.0, 0.0, 0.0, 0.0};
-  // set clip plane and camera parameters
-  fRhoZView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-  fRhoZView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRhoZ);
-  fRhoZView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
-  fRhoZView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
-  // switch off left, right and front light sources
-  fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  fRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
-  if (!isDarkColor)
-      fRhoZView->GetGLViewer()->UseLightColorSet();
-  fRhoZView->GetGLViewer()->SetClearColor(background_color);
-  // create scene holding projected geometry for the RhoZ view.
-  fRhoZGeomScene  = gEve->SpawnNewScene("RhoZ Geometry", "Scene holding projected geometry for the RhoZ view.");
-  // add axes for scene of RPhoZ view
-  fRhoZGeomScene->AddElement(axes);
-  // create scene holding projected event-data for the RhoZ view
-  fRhoZEventScene = gEve->SpawnNewScene("RhoZ Event Data", "Scene holding projected event-data for the RhoZ view.");
-  // add both scenes to RhoZView
-  fRhoZView->AddScene(fRhoZGeomScene);
-  fRhoZView->AddScene(fRhoZEventScene);
+        // add window in EvenDisplay for MultiView
+        TEveWindowSlot *MultiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
+        TEveWindowPack *MultiPack = MultiSlot->MakePack();
+        MultiPack->SetElementName("Multi View");
+        MultiPack->SetHorizontal();
+        MultiPack->SetShowTitleBar(kFALSE);
+        MultiPack->NewSlot()->MakeCurrent();
+        fMulti3DView = gEve->SpawnNewViewer("3D View (multi)", "");
+        // switch off left and right light sources for 3D MultiView
+        fMulti3DView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+        fMulti3DView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+        if (!isDarkColor)
+            fMulti3DView->GetGLViewer()->UseLightColorSet();
+        fMulti3DView->GetGLViewer()->SetClearColor(background_color);
+        // add 3D scenes (first tab) to 3D MultiView
+        fMulti3DView->AddScene(gEve->GetGlobalScene());
+        fMulti3DView->AddScene(gEve->GetEventScene());
 
-  // add window in EvenDisplay for MultiView
-  TEveWindowSlot *MultiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
-  TEveWindowPack *MultiPack = MultiSlot->MakePack();
-  MultiPack->SetElementName("Multi View");
-  MultiPack->SetHorizontal();
-  MultiPack->SetShowTitleBar(kFALSE);
-  MultiPack->NewSlot()->MakeCurrent();
-  fMulti3DView = gEve->SpawnNewViewer("3D View (multi)", "");
-  // switch off left and right light sources for 3D MultiView
-  fMulti3DView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  fMulti3DView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  if (!isDarkColor)
-      fMulti3DView->GetGLViewer()->UseLightColorSet();
-  fMulti3DView->GetGLViewer()->SetClearColor(background_color);
-  // add 3D scenes (first tab) to 3D MultiView
-  fMulti3DView->AddScene(gEve->GetGlobalScene());
-  fMulti3DView->AddScene(gEve->GetEventScene());
+        // add slot for RPhi projection on Multi View tab
+        MultiPack = MultiPack->NewSlot()->MakePack();
+        MultiPack->SetShowTitleBar(kFALSE);
+        MultiPack->NewSlot()->MakeCurrent();
+        fMultiRPhiView = gEve->SpawnNewViewer("RPhi View (multi)", "");
+        fMultiRPhiView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoXOY);
+        // set clip plane and camera parameters
+        fMultiRPhiView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
+        fMultiRPhiView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRPhi);
+        fMultiRPhiView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
+        fMultiRPhiView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
+        // switch off left, right, top and bottom light sources
+        fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+        fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+        fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
+        fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
+        if (!isDarkColor)
+            fMultiRPhiView->GetGLViewer()->UseLightColorSet();
+        fMultiRPhiView->GetGLViewer()->SetClearColor(background_color);
+        // add RPhi scenes (second tab) to RPhi MultiView
+        fMultiRPhiView->AddScene(fRPhiGeomScene);
+        fMultiRPhiView->AddScene(fRPhiEventScene);
 
-  // add slot for RPhi projection on Multi View tab
-  MultiPack = MultiPack->NewSlot()->MakePack();
-  MultiPack->SetShowTitleBar(kFALSE);
-  MultiPack->NewSlot()->MakeCurrent();
-  fMultiRPhiView = gEve->SpawnNewViewer("RPhi View (multi)", "");
-  fMultiRPhiView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoXOY);
-  // set clip plane and camera parameters
-  fMultiRPhiView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-  fMultiRPhiView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRPhi);
-  fMultiRPhiView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
-  fMultiRPhiView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
-  // switch off left, right, top and bottom light sources
-  fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
-  fMultiRPhiView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
-  if (!isDarkColor)
-      fMultiRPhiView->GetGLViewer()->UseLightColorSet();
-  fMultiRPhiView->GetGLViewer()->SetClearColor(background_color);
-  // add RPhi scenes (second tab) to RPhi MultiView
-  fMultiRPhiView->AddScene(fRPhiGeomScene);
-  fMultiRPhiView->AddScene(fRPhiEventScene);
+        // add slot for RhoZ projection on Multi View tab
+        MultiPack->NewSlot()->MakeCurrent();
+        fMultiRhoZView = gEve->SpawnNewViewer("RhoZ View (multi)", "");
+        fMultiRhoZView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
+        // set clip plane and camera parameters
+        fMultiRhoZView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
+        fMultiRhoZView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRhoZ);
+        fMultiRhoZView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
+        fMultiRhoZView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
+        // switch off left, right and front light sources
+        fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+        fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+        fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
+        if (!isDarkColor)
+            fMultiRhoZView->GetGLViewer()->UseLightColorSet();
+        fMultiRhoZView->GetGLViewer()->SetClearColor(background_color);
+        // add RhoZ scenes (second tab) to RhoZ MultiView
+        fMultiRhoZView->AddScene(fRhoZGeomScene);
+        fMultiRhoZView->AddScene(fRhoZEventScene);
 
-  // add slot for RhoZ projection on Multi View tab
-  MultiPack->NewSlot()->MakeCurrent();
-  fMultiRhoZView = gEve->SpawnNewViewer("RhoZ View (multi)", "");
-  fMultiRhoZView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
-  // set clip plane and camera parameters
-  fMultiRhoZView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-  fMultiRhoZView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRhoZ);
-  fMultiRhoZView->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
-  fMultiRhoZView->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
-  // switch off left, right and front light sources
-  fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-  fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-  fMultiRhoZView->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
-  if (!isDarkColor)
-      fMultiRhoZView->GetGLViewer()->UseLightColorSet();
-  fMultiRhoZView->GetGLViewer()->SetClearColor(background_color);
-  // add RhoZ scenes (second tab) to RhoZ MultiView
-  fMultiRhoZView->AddScene(fRhoZGeomScene);
-  fMultiRhoZView->AddScene(fRhoZEventScene);
+        // copy geometry and event scene for RPhi and RhoZ views from global scene (3D)
+        fRPhiGeomScene->AddElement(gEve->GetGlobalScene());
+        fRPhiEventScene->AddElement(gEve->GetEventScene());
+        fRhoZGeomScene->AddElement(gEve->GetGlobalScene());
+        fRhoZEventScene->AddElement(gEve->GetEventScene());
 
-  // copy geometry and event scene for RPhi and RhoZ views from global scene (3D)
-  fRPhiGeomScene->AddElement(gEve->GetGlobalScene());
-  fRPhiEventScene->AddElement(gEve->GetEventScene());
-  fRhoZGeomScene->AddElement(gEve->GetGlobalScene());
-  fRhoZEventScene->AddElement(gEve->GetEventScene());
+        // update all scenes
+        fRPhiView->GetGLViewer()->UpdateScene(kTRUE);
+        fRhoZView->GetGLViewer()->UpdateScene(kTRUE);
+        fMulti3DView->GetGLViewer()->UpdateScene(kTRUE);
+        fMultiRPhiView->GetGLViewer()->UpdateScene(kTRUE);
+        fMultiRhoZView->GetGLViewer()->UpdateScene(kTRUE);
 
-  // update all scenes
-  fRPhiView->GetGLViewer()->UpdateScene(kTRUE);
-  fRhoZView->GetGLViewer()->UpdateScene(kTRUE);
-  fMulti3DView->GetGLViewer()->UpdateScene(kTRUE);
-  fMultiRPhiView->GetGLViewer()->UpdateScene(kTRUE);
-  fMultiRhoZView->GetGLViewer()->UpdateScene(kTRUE);
-
-  // don't change reposition camera on each update
-  fRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
-  fRhoZView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
-  fMulti3DView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
-  fMultiRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
-  fMultiRhoZView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
-  }//if (!isOnline)
+        // don't change reposition camera on each update
+        fRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
+        fRhoZView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
+        fMulti3DView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
+        fMultiRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
+        fMultiRhoZView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
+    }//if (!isOnline)
 }//FairEventManager::Init
 
 // changing of geometry color
@@ -662,6 +526,67 @@ void FairEventManager::LevelChangeNodeProperty(TGeoNode* node, int level)
     }
 }
 
+// convert string with hexadecimal presentation without "0x" to integer
+int hex_string_to_int(string hex_string)
+{
+    int x;
+    stringstream stream;
+    stream<<std::hex<<hex_string;
+    stream>>x;
+    return x;
+}
+
+//returns true if successful or false if validation failed
+bool FairEventManager::ValidateXml(const char *XMLFileName, const char *XSDFileName)
+{
+    bool ok = false;
+    xmlDoc* doc = NULL;
+    xmlSchemaPtr schema = NULL;
+    xmlSchemaParserCtxtPtr ctxt;
+    
+    ctxt = xmlSchemaNewParserCtxt(XSDFileName);
+
+    xmlSchemaSetParserErrors(ctxt, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
+    schema = xmlSchemaParse(ctxt);
+    xmlSchemaFreeParserCtxt(ctxt);
+    //xmlSchemaDump(stdout, schema); //To print schema dump
+    doc = xmlReadFile(XMLFileName, NULL, 0);
+    if (doc == NULL)
+    {
+        cout<<"error: could not parse file"<<XMLFileName<<endl;
+        ok=false;
+    }
+    else
+    {
+        xmlSchemaValidCtxtPtr cvalid;
+        int ret;
+
+        cvalid = xmlSchemaNewValidCtxt(schema);
+        xmlSchemaSetValidErrors(cvalid, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
+        ret = xmlSchemaValidateDoc(cvalid, doc);
+        if (ret == 0)
+        {
+            //cout<<XMLFileName<<" is validated"<<endl;
+            ok=true;
+        }
+        else if (ret > 0)
+        {
+            cout<<XMLFileName<<" failed to validate"<<endl;
+            ok=false;
+        }
+        else
+        {
+            cout<<XMLFileName<<" validation generated an internal error"<<endl;
+            ok=false;
+        }
+        xmlSchemaFreeValidCtxt(cvalid);
+    }
+    if(schema != NULL)
+        xmlSchemaFree(schema);
+    xmlSchemaCleanupTypes();
+    return ok;
+}
+
 // return integer value of color by color name (default, blue)
 // support following colors:
 // white, black, gray,
@@ -671,7 +596,62 @@ void FairEventManager::LevelChangeNodeProperty(TGeoNode* node, int level)
 // yellow, orange
 Int_t FairEventManager::GetColor(TString colorName)
 {
+    colorName = colorName.ReplaceAll(" ", "");
     colorName.ToLower();
+
+    // check if instead of color name we have an RGB triple
+    if (colorName.BeginsWith("rgb"))
+    {
+        // parse rgb triple
+        if (colorName < 6)
+        {
+            cout<<colorName<<" - RGB triple isn't correct. Color set to default blue"<<endl;
+            return 600;
+        }
+        TString triple = colorName(3, colorName.Length() - 3);
+        triple.Remove(TString::kLeading, '(');
+        triple.Remove(TString::kTrailing, ')');
+
+        int red_rgb = -1, green_rgb = -1, blue_rgb = -1;
+        if (triple[0] == '#')
+        {
+            if (triple < 7)
+            {
+                cout<<triple<<" - hex triple size after '#' isn't correct (should have 6 symbols). Color set to default blue"<<endl;
+                return 600;
+            }
+
+            TString str_red = triple(1,2);
+            TString str_green = triple(3,2);
+            TString str_blue = triple(5,2);
+            if ((!str_red.IsHex()) || (!str_green.IsHex()) || (!str_blue.IsHex()))
+            {
+                cout<<triple<<" - hex triple after '#' has not hex format. Color set to default blue"<<endl;
+                return 600;
+            }
+
+            red_rgb = hex_string_to_int(str_red.Data());
+            green_rgb = hex_string_to_int(str_green.Data());
+            blue_rgb = hex_string_to_int(str_blue.Data());
+        }
+        else
+        {
+            TObjArray* pRGB = triple.Tokenize(",");
+            if (pRGB->GetEntriesFast() < 3)
+            {
+                cout<<triple<<" - RGB string doesn't include color triple. Color set to default blue"<<endl;
+                return 600;
+            }
+            red_rgb = ((TObjString*)pRGB->At(0))->GetString().Atoi();
+            green_rgb = ((TObjString*)pRGB->At(1))->GetString().Atoi();
+            blue_rgb = ((TObjString*)pRGB->At(2))->GetString().Atoi();
+            delete pRGB;
+        }
+
+        Int_t ci = fLastUsedColor++;
+        new TColor(ci, red_rgb/255.0F, green_rgb/255.0F, blue_rgb/255.0F);
+        return ci;
+    }
 
     if (colorName == "white") return 0;
     else if (colorName == "black") return 1;
@@ -698,7 +678,7 @@ Int_t FairEventManager::GetColor(TString colorName)
     else if (colorName == "khaki") return 403;
     else
     {
-        std::cout<<colorName<<" not found. Color set to default blue" << std::endl;
+        cout<<colorName<<" not found. Color set to default blue"<<endl;
         return 600;
     }
 }
@@ -773,161 +753,153 @@ void FairEventManager::GotoEvent(Int_t event)
 // go to next FairRunAna event for scene data getting
 void FairEventManager::NextEvent()
 {
-    fEntry += 1;
-    fRunAna->Run((Long64_t)fEntry);
+    fRunAna->Run((Long64_t)++fEntry);
 }
 
 // go to previous FairRunAna event for scene data getting
 void FairEventManager::PrevEvent()
 {
-    fEntry -= 1;
-    fRunAna->Run((Long64_t)fEntry);
+    fRunAna->Run((Long64_t)--fEntry);
 }
 
 // return integer value of color for track by particle pdg (default, white)
 Int_t FairEventManager::Color(int pdg)
 {
-  switch (pdg)
-  {
-  case   22     :
-    return  623;    // photon
-  case   -2112  :
-    return  2 ;   // anti-neutron
-  case   -11    :
-    return  3;    // e+
-  case   -3122  :
-    return  4;   // anti-Lambda
-  case   11     :
-    return  5;    // e-
-  case   -3222  :
-    return  6;   // Sigma-
-  case   12     :
-    return  7;    // e-neutrino (NB: flavour undefined by Geant)
-  case   -3212  :
-    return  8;   // Sigma0
-  case   -13    :
-    return  9;    // mu+
-  case   -3112  :
-    return  10;   // Sigma+ (PB)*/
-  case   13     :
-    return  11;    // mu-
-  case   -3322  :
-    return  12;   // Xi0MWPCDigit
-  case   111    :
-    return  13;    // pi0
-  case   -3312  :
-    return  14;   // Xi+
-  case   211    :
-    return  15;    // pi+
-  case   -3334  :
-    return  16;   // Omega+ (PB)
-  case   -211   :
-    return  17;    // pi-
-  case   -15    :
-    return  18;   // tau+
-  case   130    :
-    return  19;   // K long
-  case   15     :
-    return  20;   // tau-
-  case   321    :
-    return  21;   // K+
-  case   411    :
-    return  22;   // D+
-  case   -321   :
-    return  23;   // K-
-  case   -411   :
-    return  24;   // D-
-  case   2112   :
-    return  25;   // n
-  case   421    :
-    return  26;   // D0
-  case   2212   :
-    return  27;   // p
-  case   -421   :
-    return  28;   // D0
-  case   -2212  :
-    return  29;   // anti-proton
-  case   431    :
-    return  30;   // Ds+
-  case   310    :
-    return  31;   // K short
-  case   -431   :
-    return  32;   // anti Ds-
-  case   221    :
-    return  33;   // eta
-  case   4122   :
-    return  34;   // Lamba_c+
-  case   3122   :
-    return  35;   // Lambda
-  case   24     :
-    return  36;   // W+
-  case   3222   :
-    return  37;   // Sigma+
-  case   -24    :
-    return  38;   // W-
-  case   3212   :
-    return  39;   // Sigma0
-  case   23     :
-    return  40;   // Z
-  case   3112   :
-    return  41;   // Sigma-
-  case   3322   :
-    return  42;   // Xi0
-  case   3312   :
-    return  43;   // Xi-
-  case   3334   :
-    return  44;   // Omega- (PB)
-  case   50000050   :
-    return  801;   // Cerenkov
-  case   1000010020  :
-    return  45;
-  case   1000010030  :
-    return  48;
-  case   1000020040   :
-    return  50;
-  case   1000020030   :
-    return  55;
-  case   0:
-    return  27;    // Rootino
-  default  :
-    return 0;
-  }//switch
+    switch (pdg)
+    {
+    case   22     :
+        return  623;    // photon
+    case   -2112  :
+        return  2 ;   // anti-neutron
+    case   -11    :
+        return  3;    // e+
+    case   -3122  :
+        return  4;   // anti-Lambda
+    case   11     :
+        return  5;    // e-
+    case   -3222  :
+        return  6;   // Sigma-
+    case   12     :
+        return  7;    // e-neutrino (NB: flavour undefined by Geant)
+    case   -3212  :
+        return  8;   // Sigma0
+    case   -13    :
+        return  9;    // mu+
+    case   -3112  :
+        return  10;   // Sigma+ (PB)*/
+    case   13     :
+        return  11;    // mu-
+    case   -3322  :
+        return  12;   // Xi0MWPCDigit
+    case   111    :
+        return  13;    // pi0
+    case   -3312  :
+        return  14;   // Xi+
+    case   211    :
+        return  15;    // pi+
+    case   -3334  :
+        return  16;   // Omega+ (PB)
+    case   -211   :
+        return  17;    // pi-
+    case   -15    :
+        return  18;   // tau+
+    case   130    :
+        return  19;   // K long
+    case   15     :
+        return  20;   // tau-
+    case   321    :
+        return  21;   // K+
+    case   411    :
+        return  22;   // D+
+    case   -321   :
+        return  23;   // K-
+    case   -411   :
+        return  24;   // D-
+    case   2112   :
+        return  25;   // n
+    case   421    :
+        return  26;   // D0
+    case   2212   :
+        return  27;   // p
+    case   -421   :
+        return  28;   // D0
+    case   -2212  :
+        return  29;   // anti-proton
+    case   431    :
+        return  30;   // Ds+
+    case   310    :
+        return  31;   // K short
+    case   -431   :
+        return  32;   // anti Ds-
+    case   221    :
+        return  33;   // eta
+    case   4122   :
+        return  34;   // Lamba_c+
+    case   3122   :
+        return  35;   // Lambda
+    case   24     :
+        return  36;   // W+
+    case   3222   :
+        return  37;   // Sigma+
+    case   -24    :
+        return  38;   // W-
+    case   3212   :
+        return  39;   // Sigma0
+    case   23     :
+        return  40;   // Z
+    case   3112   :
+        return  41;   // Sigma-
+    case   3322   :
+        return  42;   // Xi0
+    case   3312   :
+        return  43;   // Xi-
+    case   3334   :
+        return  44;   // Omega- (PB)
+    case   50000050   :
+        return  801;   // Cerenkov
+    case   1000010020  :
+        return  45;
+    case   1000010030  :
+        return  48;
+    case   1000020040   :
+        return  50;
+    case   1000020030   :
+        return  55;
+    case   0:
+        return  27;    // Rootino
+    default  :
+        return 0;
+    }//switch
 }
 
 // add particles to the PDG data base: Deuteron, Triton, Alpha, HE3; Cherenkov, FeedbackPhoton
 void FairEventManager::AddParticlesToPdgDataBase(Int_t pdg)
 {
-  TDatabasePDG* pdgDB = TDatabasePDG::Instance();
+    TDatabasePDG* pdgDB = TDatabasePDG::Instance();
 
-  const Double_t kAu2Gev=0.9314943228;
-  const Double_t khSlash = 1.0545726663e-27;
-  const Double_t kErg2Gev = 1/1.6021773349e-3;
-  const Double_t khShGev = khSlash*kErg2Gev;
-  const Double_t kYear2Sec = 3600*24*365.25;
+    const Double_t kAu2Gev = 0.9314943228;
+    const Double_t khSlash = 1.0545726663e-27;
+    const Double_t kErg2Gev = 1/1.6021773349e-3;
+    const Double_t khShGev = khSlash*kErg2Gev;
+    const Double_t kYear2Sec = 3600*24*365.25;
 
-  // Ions
-  if ( !pdgDB->GetParticle(1000010020) )
-    pdgDB->AddParticle("Deuteron","Deuteron",2*kAu2Gev+8.071e-3,kTRUE,
-                       0,3,"Ion",1000010020);
+    // Ions
+    if (!pdgDB->GetParticle(1000010020))
+        pdgDB->AddParticle("Deuteron","Deuteron", 2*kAu2Gev+8.071e-3,kTRUE, 0, 3, "Ion", 1000010020);
 
-  if ( !pdgDB->GetParticle(1000010030) )
-    pdgDB->AddParticle("Triton","Triton",3*kAu2Gev+14.931e-3,kFALSE,
-                       khShGev/(12.33*kYear2Sec),3,"Ion",1000010030);
+    if (!pdgDB->GetParticle(1000010030))
+        pdgDB->AddParticle("Triton","Triton", 3*kAu2Gev+14.931e-3, kFALSE, khShGev/(12.33*kYear2Sec), 3, "Ion", 1000010030);
 
-  if ( !pdgDB->GetParticle(1000020040) )
-    pdgDB->AddParticle("Alpha","Alpha",4*kAu2Gev+2.424e-3,kTRUE,
-                       khShGev/(12.33*kYear2Sec),6,"Ion",1000020040);
+    if (!pdgDB->GetParticle(1000020040))
+        pdgDB->AddParticle("Alpha","Alpha", 4*kAu2Gev+2.424e-3, kTRUE, khShGev/(12.33*kYear2Sec), 6, "Ion", 1000020040);
 
-  if ( !pdgDB->GetParticle(1000020030) )
-    pdgDB->AddParticle("HE3","HE3",3*kAu2Gev+14.931e-3,kFALSE,
-                       0,6,"Ion",1000020030);
+    if (!pdgDB->GetParticle(1000020030))
+        pdgDB->AddParticle("HE3","HE3", 3*kAu2Gev+14.931e-3, kFALSE, 0, 6, "Ion", 1000020030);
 
-   // Special particles
-  if ( !pdgDB->GetParticle(50000050) )
-    pdgDB->AddParticle("Cherenkov","Cherenkov",0,kFALSE,
-                       0,0,"Special",50000050);
+    // Special particles
+    if (!pdgDB->GetParticle(50000050))
+        pdgDB->AddParticle("Cherenkov","Cherenkov", 0, kFALSE, 0, 0, "Special", 50000050);
 
-  if ( !pdgDB->GetParticle(50000051) )
-    pdgDB->AddParticle("FeedbackPhoton","FeedbackPhoton",0,kFALSE,
-                       0,0,"Special",50000051);
+    if (!pdgDB->GetParticle(50000051))
+        pdgDB->AddParticle("FeedbackPhoton","FeedbackPhoton", 0, kFALSE, 0, 0, "Special", 50000051);
 }

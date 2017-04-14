@@ -15,7 +15,7 @@
 
 #include "BmnHistZDC.h"
 
-BmnHistZDC::BmnHistZDC(TString title) {
+BmnHistZDC::BmnHistZDC(TString title) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     TGaxis::SetMaxDigits(2);
@@ -69,6 +69,8 @@ BmnHistZDC::BmnHistZDC(TString title) {
 }
 
 BmnHistZDC::~BmnHistZDC() {
+    if (fDir != NULL)
+        return;
     delete h2d_grid;
     delete h2d_profile;
     delete hx;
@@ -96,13 +98,13 @@ void BmnHistZDC::Register(THttpServer *serv) {
 
 void BmnHistZDC::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
     frecoTree = recoTree;
-    TDirectory *dir = NULL;
+    fDir = NULL;
     if (outFile != NULL)
-        dir = outFile->mkdir(fTitle + "_hists");
-    h2d_grid->SetDirectory(dir);
-    h2d_profile->SetDirectory(dir);
-    hx->SetDirectory(dir);
-    hy->SetDirectory(dir);
+        fDir = outFile->mkdir(fTitle + "_hists");
+    h2d_grid->SetDirectory(fDir);
+    h2d_profile->SetDirectory(fDir);
+    hx->SetDirectory(fDir);
+    hy->SetDirectory(fDir);
 
 }
 

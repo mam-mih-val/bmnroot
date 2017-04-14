@@ -47,7 +47,7 @@ using namespace std;
 
 class BmnHistDch : public BmnHist {
 public:
-    BmnHistDch(TString title);
+    BmnHistDch(TString title = "DCH");
     virtual ~BmnHistDch();
     void Reset();
     void Register(THttpServer *serv);
@@ -62,7 +62,6 @@ private:
     TClonesArray* fDchHits;
     TH1F * h_wires[kNPLANES];
     TH1F * h_times[kNPLANES];
-    Float_t v_wires[kNPLANES][kNWIRES];
     TH2F* h_DCH1;
     TH2F* h_DCH2;
     TCanvas *canWires;

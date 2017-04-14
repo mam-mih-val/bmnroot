@@ -604,11 +604,11 @@ void FillItCorrsItErrs(TString       newAlignCorrFileListFileName,
           //cout <<TString::Format("iStat  = % 2i", iStat)<< endl;
             Int_t iMod  = tmp->GetModule();
           //cout <<TString::Format("iMod   = % 2i", iMod )<< endl;
-            itCorrs[iKind][0][iStat][iMod][iIt] = -tmp->GetCorrections().X(),
+            itCorrs[iKind][0][iStat][iMod][iIt] = tmp->GetCorrections().X(),
           //cout <<"itCorrs["<<iKind<<"]["<<0<<"]["<<iStat<<"]["<<iMod<<"]["<<iIt<<"] = "<<TString::Format("% 14.11f", itCorrs[iKind][0][iStat][iMod][iIt])<< endl;
-            itCorrs[iKind][1][iStat][iMod][iIt] = -tmp->GetCorrections().Y(),
+            itCorrs[iKind][1][iStat][iMod][iIt] = tmp->GetCorrections().Y(),
           //cout <<"itCorrs["<<iKind<<"]["<<1<<"]["<<iStat<<"]["<<iMod<<"]["<<iIt<<"] = "<<TString::Format("% 14.11f", itCorrs[iKind][1][iStat][iMod][iIt])<< endl;
-            itCorrs[iKind][2][iStat][iMod][iIt] = -tmp->GetCorrections().Z());
+            itCorrs[iKind][2][iStat][iMod][iIt] = tmp->GetCorrections().Z());
           //cout <<"itCorrs["<<iKind<<"]["<<2<<"]["<<iStat<<"]["<<iMod<<"]["<<iIt<<"] = "<<TString::Format("% 14.11f", itCorrs[iKind][2][iStat][iMod][iIt])<< endl;
         }
         delete corrFile;
@@ -617,31 +617,34 @@ void FillItCorrsItErrs(TString       newAlignCorrFileListFileName,
         if (iKind == 0) {
             // extract millepede's parameter errors:
             TString mlpdResFname = fname;
+            mlpdResFname = mlpdResFname.ReplaceAll("_it",   "_millepede_it");
             mlpdResFname = mlpdResFname.ReplaceAll(".root", ".res");
-            mlpdResFname = mlpdResFname.ReplaceAll("_it",   "_xyz_it");
-            mlpdResFname = "Millepede_"+mlpdResFname;
-          //cout <<"mlpdResFname  = "<< mlpdResFname<< endl;
+            cout <<"mlpdResFname                 = "<< mlpdResFname<< endl;
             ifstream ifstrmMlpdRes(mlpdResFname.Data());
             string   line;
+
           //while (ifstrmMlpdRes >> line) {
             getline(ifstrmMlpdRes, line);          // skip the title line
+            cout <<line<< endl;
             while (getline(ifstrmMlpdRes, line)) { // loop over lines in the Millepede<...>.res file
-              //cout <<line<< endl;
+                cout <<line<< endl;
                 stringstream stgstm(line);
                 int parNr; double parVal, presigma, differ, parErr;
                 stgstm >> parNr >> parVal >> presigma;
-                if (presigma > 0.) {
-                    stgstm >> differ >> parErr; }
-                else {
-                    parErr = 0.;
+                if (presigma > 0.) { // presima == -1. means not usable line
+                    if (abs(parVal) > 1.E-9) {
+                        stgstm >> differ >> parErr; }
+                    else {
+                        parErr = 0.;
+                    }
+                    cout <<TString::Format("parNr = %2i parVal = % 14.11f parErr = % 14.11f", parNr, parVal, parErr)<< endl;
+                    Int_t jPar  = mlpdParNr_What[parNr-1][0];
+                    Int_t jStat = mlpdParNr_What[parNr-1][1];
+                    Int_t jMod  = mlpdParNr_What[parNr-1][2];
+                    cout <<"jPar  = "<<jPar<<" jStat = "<<jStat<<" jMod  = "<<jMod<< endl;
+                    itNewCorrErrs[jPar][jStat][jMod][iIt] = parErr;
+                    cout <<"itNewCorrErrs[   "<<jPar<<"]["<<jStat<<"]["<<jMod<<"]["<<iIt<<"]              = "<<TString::Format("% 14.11f", itNewCorrErrs[jPar][jStat][jMod][iIt])<< endl;
                 }
-              //cout <<TString::Format("parNr = %2i parVal = % 14.11f parErr = % 14.11f", parNr, parVal, parErr)<< endl;
-                Int_t jPar  = mlpdParNr_What[parNr-1][0];
-                Int_t jStat = mlpdParNr_What[parNr-1][1];
-                Int_t jMod  = mlpdParNr_What[parNr-1][2];
-              //cout <<"jPar  = "<<jPar<<" jStat = "<<jStat<<" jMod  = "<<jMod<< endl;
-                itNewCorrErrs[jPar][jStat][jMod][iIt] = parErr;
-              //cout <<"itNewCorrErrs[   "<<jPar<<"]["<<jStat<<"]["<<jMod<<"]["<<iIt<<"]              = "<<TString::Format("% 14.11f", itNewCorrErrs[jPar][jStat][jMod][iIt])<< endl;
             }
         }
     }

@@ -67,9 +67,9 @@ void determine_align_corrections_bmn(TString bmndstFileListFileName = "filelist_
   // Restrictions on track params:
   //globAlign->SetMinHitsAccepted(5);               // Default value is 3
   //globAlign->SetChi2MaxPerNDF(2.);                // Cut on chi2/ndf for found tracks, default value is not limited
-  //globAlign->SetTxMinMax(-1.,  1.);
+    globAlign->SetTxMinMax(-1.,  1.);
   //globAlign->SetExclusionRangeTx(-0.02, 0.02);
-  //globAlign->SetTyMinMax(-1.,  1.);
+    globAlign->SetTyMinMax(-1.,  1.);
   //globAlign->SetExclusionRangeTy(-0.02, 0.02);
     
     // Define modules to be fixed (any character) within alignment, if necessary. 

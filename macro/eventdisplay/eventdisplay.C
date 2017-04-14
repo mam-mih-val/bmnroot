@@ -15,7 +15,7 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
 
-    // load TEve libraries
+    // load Event Display libraries
     gSystem->Load("libEve");
     gSystem->Load("libEventDisplay");
 

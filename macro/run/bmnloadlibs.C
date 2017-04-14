@@ -37,7 +37,6 @@ void bmnloadlibs()
 
   gSystem->Load("libUniDb");
   gSystem->Load("libBmnAlignment");
-  gSystem->Load("libBmnMonitor");
   gSystem->Load("libzmq");
 }
 

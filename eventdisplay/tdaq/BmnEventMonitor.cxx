@@ -5,7 +5,10 @@
 //    Created: Sep. 28 2016
 ////////////////////////////////////////////
 
-#include <BmnEventMonitor.h>
+#include "BmnEventMonitor.h"
+#include "BmnRawDataDecoder.h"
+
+#include "TBufferFile.h"
 
 #include <signal.h>
 #include <iostream>
@@ -17,34 +20,41 @@ void signal_handler(int sig) { ReceivedSignal = sig; }
 
 BmnEventMonitor::BmnEventMonitor()
 {
-    strPartitionName = "test";
-    strSamplingType = "aaa";
-    strSamplingName = "bbb";
-    iVerbose = 0;
+    strPartitionName = "mpd";
+    strSamplingType = "raw";
+    strSamplingName = "file";
 
-    events = 10000;
-    dispersion = false;
-    repetitions = 1;
-    buffer_size = 100;
-    async = 0;
-    timeout = 10000;
-    wait = 10000;
+    isDispersion = false;
+    iWait = 10000;
+    iMaxEvents = 100;
+    iRepetitions = 1;
+    iBufferSize = 100;
+    iAsync = 0;
+    iTimeout = 10000;
+
+    iVerbose = 0;
 }
 
-BmnEventMonitor::BmnEventMonitor(TString partition_name, TString sampling_type, TString sampling_name, Int_t verbose)
+BmnEventMonitor::BmnEventMonitor(TString partition_name, TString sampling_type, TString sampling_name, int max_events, Int_t verbose)
 {
     strPartitionName = partition_name;
     strSamplingType = sampling_type;
     strSamplingName = sampling_name;
-    iVerbose = verbose;
 
-    events = 10000;
-    dispersion = false;
-    repetitions = 1;
-    buffer_size = 100;
-    async = 0;
-    timeout = 10000;
-    wait = 10000;
+    iMaxEvents = max_events;
+
+    isDispersion = false;
+    iWait = 10000;
+    iRepetitions = 1;
+    iBufferSize = 100;
+    iAsync = 0;
+    iTimeout = 10000;
+
+    iVerbose = verbose;
+}
+
+BmnEventMonitor::~BmnEventMonitor()
+{
 }
 
 int BmnEventMonitor::Exec()
@@ -53,7 +63,7 @@ int BmnEventMonitor::Exec()
     try
     {
         list< pair < string, string > > list_arg;
-        //IPCCore::init(list_arg);
+        IPCCore::init(list_arg);
     }
     catch(daq::ipc::Exception& ex)
     {
@@ -91,8 +101,8 @@ int BmnEventMonitor::Exec()
     /*emon::SelectionCriteria criteria(emon::L1TriggerType((unsigned char)(int)lvl1_type, !(lvl1_type.flags() && CmdArg::GIVEN)),
                                         emon::SmartBitValue(L1_bits, L1_logic, (emon::Origin)(int)lvl1_bits_origin),
                                         emon::SmartStreamValue((const char*)stream_type, STREAM_names, STREAM_logic),
-                                        emon::StatusWord(status_word, !(status_word.flags() && CmdArg::GIVEN)));
-*/emon::SelectionCriteria criteria;
+                                        emon::StatusWord(status_word, !(status_word.flags() && CmdArg::GIVEN)));*/
+    emon::SelectionCriteria criteria;
     vector<string> address_names;
     address_names.push_back((const char *)strSamplingName.Data());
 
@@ -104,23 +114,23 @@ int BmnEventMonitor::Exec()
     signal(SIGTERM, signal_handler);
 
     unique_ptr<emon::EventIterator> it;
-    for (int i = 0; i < repetitions; i++)
+    for (int i = 0; i < iRepetitions; i++)
     {
         while (!ReceivedSignal)
         {
             try
             {
                 // Connect to the samplers
-                it.reset(new emon::EventIterator(partition, address, criteria, buffer_size, dispersion));
+                it.reset(new emon::EventIterator(partition, address, criteria, iBufferSize, isDispersion));
                 break;
             }
             catch (emon::Exception& ex)
             {
                 ers::error(ex);
-                if (wait == 0) return 1;
+                if (iWait == 0) return 1;
             }
 
-            usleep(wait * 1000);
+            usleep(iWait * 1000);
         }
         ERS_LOG("Monitoring Task started");
 
@@ -129,7 +139,7 @@ int BmnEventMonitor::Exec()
         timer.start( );
 
         int eventCount = 0;
-        while (eventCount < events)
+        while (eventCount < iMaxEvents)
         {
             if (ReceivedSignal)
             {
@@ -141,22 +151,22 @@ int BmnEventMonitor::Exec()
             // wait some time to simulate event processing in our sample application
             try
             {
-                // retrieve the event from the buffer, this either blocks (when async == 0)
-                // or it will throw NoMoreEvents (when async == 1)
+                // retrieve the event from the buffer, this either blocks (when iAsync == 0)
+                // or it will throw NoMoreEvents (when iAsync == 1)
                 // you can pass a timeout in milliseconds when in synchronous mode
                 // after the timeout, NoMoreEvents will be thrown
                 if (iVerbose > 1)
                 {
-                    if (async)
-                        clog<<"invoking tryNextEvent()...";
+                    if (iAsync)
+                        clog<<"Trying next event...";
                     else
-                        clog<<"invoking nextEvent("<<timeout<<")... ";
+                        clog<<"Waiting for next event (timeout: "<<iTimeout/1000<<" sec)... ";
                 }
 
-                if (async)
+                if (iAsync)
                     event = it->tryNextEvent();
                 else
-                    event = it->nextEvent(timeout);
+                    event = it->nextEvent(iTimeout);
 
                 if (iVerbose > 1)
                     cout<<"done"<<endl;
@@ -164,8 +174,11 @@ int BmnEventMonitor::Exec()
             catch (emon::NoMoreEvents& ex)
             {
                 // output only when in synchronous case, because in asynchronous mode this will happen way too often!
-                if (!async)
+                if (!iAsync)
+                {
                     ers::warning(ex);
+                    continue; // just keep on trying
+                }
                 else
                     continue; // We do nothing here, we just keep on trying
             }
@@ -183,37 +196,49 @@ int BmnEventMonitor::Exec()
                 return 3;
             }
 
+            unsigned int* data = (unsigned int*) event.data();
+            unsigned int event_id = data[0];
+            unsigned int event_length = data[1];
             eventCount++;
 
+            // get digit array
+            TBufferFile t(TBuffer::kRead);
+            t.Reset();
+            t.SetWriteMode();
+            t.SetBuffer((char*)&data[2], event_length);
+            t.SetReadMode();
+            DigiArrays* fDigiArrays = (DigiArrays*) (t.ReadObject(DigiArrays::Class()));
+
             if (iVerbose > 0)
-                cout<<"Event count = "<<eventCount<<" Buffer occupancy = ["<<it->eventsAvailable()<<"/"<<buffer_size<<"]"<<endl;
+                cout<<"Event count = "<<eventCount<<" Buffer occupancy = ["<<it->eventsAvailable()<<"/"<<iBufferSize<<"]"<<endl;
             if (iVerbose > 1)
             {
-                const unsigned int* data = event.data();
-
-                cout<<"Event number = "<<dec<<data[0]<<"\tEvent size = "<<dec<<event.size()<<" DWORD\tEvent data: "<<endl;
-                cout<<hex<<setfill('0');
-                for (size_t j = 1; j < event.size(); cout<<endl)
-                {
-                    cout << setw(8) << dec << j << ": "
-                         << setw(2) << hex << (( data[j] >> 24 ) & 0xff )
-                         << setw(2) << hex << (( data[j] >> 16 ) & 0xff )
-                         << setw(2) << hex << (( data[j] >>  8 ) & 0xff )
-                         << setw(2) << hex << (( data[j]       ) & 0xff ) << " ";
-                    j++;
-
-                    for ( ; j%10 && j < event.size(); j++)
-                        cout<<setw(8)<<data[j]<<" ";
-                }
-
-                cout<<dec<<endl;
-
-                usleep(10*1000000);
+                cout<<"Event id = "<<event_id<<"\tEvent length = "<<event_length<<"\tFull size = "<<event.size()<<" DWORD"<<endl;
+                //fDigiArrays->Dump();
+                //usleep(3*1000000);
             }
-        }//while (eventCount < events)
+
+            if (fDigiArrays->header->GetEntriesFast() == 0)
+            {
+                ers::warning(emon::Exception(ERS_HERE, "No Header was found for Digit Array."));
+                fDigiArrays->Clear();
+                delete fDigiArrays;
+                t.DetachBuffer();
+                continue;
+            }
+
+            // get event header
+            BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
+            Int_t runID = head->GetRunId();
+            usleep(1*1000000);
+
+            fDigiArrays->Clear();
+            delete fDigiArrays;
+            t.DetachBuffer();
+        }//while (eventCount < iMaxEvents)
 
         if (it.get())
-            ERS_LOG("End of run, monitor dropped "<<it->eventsDropped()<<" events.");
+            ERS_LOG("End of run, monitor dropped "<<it->eventsDropped()<<" iMaxEvents.");
 
         //stop the timer
         timer.stop();
@@ -224,7 +249,9 @@ int BmnEventMonitor::Exec()
 
         if (ReceivedSignal)
             break;
-    }//for (int i = 0; i < repetitions; i++)
+    }//for (int i = 0; i < iRepetitions; i++)
 
     return 0;
 }
+
+ClassImp(BmnEventMonitor)

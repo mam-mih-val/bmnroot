@@ -13,7 +13,7 @@
 
 #include "BmnHistSilicon.h"
 
-BmnHistSilicon::BmnHistSilicon() {
+BmnHistSilicon::BmnHistSilicon() : BmnHist() {
 }
 
 

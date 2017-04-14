@@ -98,6 +98,7 @@ protected:
 
     THttpServer *fServer;
     TTree *frecoTree;
+    TDirectory *fDir;
     TString refPath;
     TString refRunName;
     Int_t refID;

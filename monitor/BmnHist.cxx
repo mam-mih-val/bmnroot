@@ -16,6 +16,7 @@
 BmnHist::BmnHist() {
     refFile = NULL;
     frecoTree = NULL;
+    fDir = NULL;
 }
 
 BmnHist::~BmnHist() {

@@ -26,7 +26,8 @@
 #pragma link C++ class BmnGlobalTrackDraw;
 
 // TDAQ
-//#pragma link C++ class BmnEventMonitor+;
+#pragma link C++ class BmnEventMonitor+;
+#pragma link C++ class BmnEventPull+;
 
 #endif
 

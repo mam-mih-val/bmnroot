@@ -47,6 +47,9 @@ if (BMNROOT)
     ${CMAKE_SOURCE_DIR}/bmndata
     ${CMAKE_SOURCE_DIR}/globaltracking
     ${CMAKE_SOURCE_DIR}/gem
+    ${CMAKE_SOURCE_DIR}/uni_db
+    ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+    ${CMAKE_SOURCE_DIR}/silicon
   )
   Set(SRCS
     ${SRCS}
@@ -87,7 +90,8 @@ if (TDAQ_FOUND)
   )
   Set(SRCS
     ${SRCS} 
-    #tdaq/BmnEventMonitor.cxx
+    tdaq/BmnEventMonitor.cxx
+    tdaq/BmnEventPull.cxx
   )
 endif (TDAQ_FOUND)
 
@@ -120,10 +124,10 @@ else (BMNROOT)
 endif (BMNROOT)
 Set(LIBRARY_NAME EventDisplay)
 
-#if (TDAQ_FOUND)
-#  Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2 emon emon-dal cmdline ipc owl omniORB4 omnithread ers)
-#else (TDAQ_FOUND)
+if (TDAQ_FOUND)
+  Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2 emon emon-dal cmdline ipc owl omniORB4 omnithread ers)
+else (TDAQ_FOUND)
   Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2)
-#endif (TDAQ_FOUND)
+endif (TDAQ_FOUND)
 
 GENERATE_LIBRARY()

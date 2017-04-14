@@ -362,17 +362,16 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     fEvents = 0;
     UpdateRuns();
     TString outHistName = Form("bmn_run%04d_hist.root", runID);
-    fRecoTree = NULL;
     fHistOut = new TFile(outHistName, "recreate");
     if (fHistOut)
         printf("file %s created\n", outHistName.Data());
     fRecoTree = new TTree("BmnMon", "BmnMon");
     fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
-    if (fRecoTree4Show) {
-        fRecoTree4Show->Clear();
-        delete fRecoTree4Show;
-        fRecoTree4Show = NULL;
-    }
+//    if (fRecoTree4Show) {
+//        fRecoTree4Show->Clear();
+//        delete fRecoTree4Show;
+//        fRecoTree4Show = NULL;
+//    }
     
     fHistOutTemp = new TFile("tempo.root", "recreate");
     if (fHistOutTemp)
@@ -534,7 +533,7 @@ void BmnMonitor::UpdateRuns() {
 
 void BmnMonitor::FinishRun() {
     DBG("started")
-            fHistOut->cd();
+//            fHistOut->cd();
     if (fRecoTree)
         printf("fRecoTree Write result = %d\n", fRecoTree->Write());
     if (fHistOut) {
@@ -551,20 +550,29 @@ void BmnMonitor::FinishRun() {
 //        if (threadHAdd.joinable())
 //            threadHAdd.detach();
     }
+    if (bhGem) delete bhGem;
+    if (bhToF400) delete bhToF400;
+    if (bhToF700) delete bhToF700;
+    if (bhDCH) delete bhDCH;
+    if (bhMWPC) delete bhMWPC;
+    if (bhZDC) delete bhZDC;
+    if (bhTrig) delete bhTrig;
     
-            fHistOutTemp->cd();
+//            fHistOutTemp->cd();
     if (fRecoTree4Show)
         printf("fRecoTree4Show Write result = %d\n", fRecoTree4Show->Write());
-    if (fHistOutTemp)
+    if (fHistOutTemp){
         printf("fHistOutMem Write result = %d\n", fHistOutTemp->Write());
-    //    bhGem->SetDir(NULL, fRecoTree);
-    //    bhDCH->SetDir(NULL, fRecoTree);
-    //    bhMWPC->SetDir(NULL, fRecoTree);
-    //    bhToF400->SetDir(NULL, fRecoTree);
-    //    bhToF700->SetDir(NULL, fRecoTree);
-    //    bhTrig->SetDir(NULL, fRecoTree);
-    //            fHistOut->Close();
-    //           delete fHistOut;
+        bhGem_4show->SetDir(NULL, NULL);
+        bhDCH_4show->SetDir(NULL, NULL);
+        bhMWPC_4show->SetDir(NULL, NULL);
+        bhZDC_4show->SetDir(NULL, NULL);
+        bhToF400_4show->SetDir(NULL, NULL);
+        bhToF700_4show->SetDir(NULL, NULL);
+        bhTrig_4show->SetDir(NULL, NULL);
+                fHistOutTemp->Close();
+               delete fHistOut;
+    }
 }
 
 void BmnMonitor::threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent) {

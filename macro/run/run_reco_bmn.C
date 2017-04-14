@@ -110,6 +110,11 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
             isField = kFALSE;
         } else {
             fieldScale = (*field_voltage) / map_current;
+            // To avoid very small values of the mag. field for a correct tracking branch to be chosen when reconstructing 
+            if (fieldScale < 0.01) { 
+                fieldScale = 0.;
+                isField = kFALSE;
+            }
         }
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
         magField->SetScale(fieldScale);

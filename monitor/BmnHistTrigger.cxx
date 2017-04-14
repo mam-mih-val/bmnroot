@@ -14,7 +14,7 @@
 #include "BmnHistTrigger.h"
 #include "BmnRawDataDecoder.h"
 
-BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
+BmnHistTrigger::BmnHistTrigger(TString title) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     fSelectedBDChannel = -1;
@@ -101,6 +101,7 @@ BmnHistTrigger::BmnHistTrigger(TString title = "Triggers") {
 }
 
 BmnHistTrigger::~BmnHistTrigger() {
+    BDEvents->Clear();
     delete BDEvents;
 }
 
@@ -144,9 +145,11 @@ void BmnHistTrigger::FillFromDigi(DigiArrays *fDigiArrays) {
         histBDChannels->Fill(bd->GetMod());
         histBDTime->Fill(bd->GetTime());
         histTriggers->Fill("BD", 1);
-        new ((*BDEvents)[BDEvents->GetEntriesFast()]) BmnTrigDigit(bd->GetMod(), bd->GetTime(), bd->GetAmp());
-        if (bd->GetMod() == fSelectedBDChannel)
+        if (bd->GetMod() == fSelectedBDChannel){
             histBDSpecific->Fill(bd->GetAmp());
+        new ((*BDEvents)[BDEvents->GetEntriesFast()]) BmnTrigDigit(bd->GetMod(), bd->GetTime(), bd->GetAmp());
+//            frecoTree->Fill();
+        }
     }
     histBDSimult->Fill(bdCount);
 }
@@ -220,20 +223,20 @@ void BmnHistTrigger::Register(THttpServer *serv) {
 
 void BmnHistTrigger::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
     frecoTree = recoTree;
-    TDirectory *dir = NULL;
+    fDir = NULL;
     if (outFile != NULL)
-        dir = outFile->mkdir(fTitle + "_hists");
+        fDir = outFile->mkdir(fTitle + "_hists");
     //        dir->cd();
-    histBC1TimeLen->SetDirectory(dir);
-    histBC2TimeLen->SetDirectory(dir);
-    histFDTimeLen->SetDirectory(dir);
-    histSDTimeLen->SetDirectory(dir);
-    histVDTimeLen->SetDirectory(dir);
-    histBDChannels->SetDirectory(dir);
-    histBDSimult->SetDirectory(dir);
-    histBDTime->SetDirectory(dir);
-    histBDSpecific->SetDirectory(dir);
-    histTriggers->SetDirectory(dir);
+    histBC1TimeLen->SetDirectory(fDir);
+    histBC2TimeLen->SetDirectory(fDir);
+    histFDTimeLen->SetDirectory(fDir);
+    histSDTimeLen->SetDirectory(fDir);
+    histVDTimeLen->SetDirectory(fDir);
+    histBDChannels->SetDirectory(fDir);
+    histBDSimult->SetDirectory(fDir);
+    histBDTime->SetDirectory(fDir);
+    histBDSpecific->SetDirectory(fDir);
+    histTriggers->SetDirectory(fDir);
     if (BDEvents != NULL)
         delete BDEvents;
     BDEvents = new TClonesArray("BmnTrigDigit");
@@ -252,6 +255,8 @@ void BmnHistTrigger::Reset() {
     histBDTime->Reset();
     histBDSpecific->Reset();
     histTriggers->Reset();
+    if (BDEvents != NULL)
+        BDEvents->Clear();
 }
 
 void BmnHistTrigger::DrawBoth() {

@@ -67,7 +67,7 @@ def main() :
     parser.add_option("-n", "--nev",     dest="nEvents",                default=10000,                              help="number of events to process",           type="int") 
     parser.add_option("-i", "--inf",     dest="addInfo",                default='',                                 help="additional meta-information")
     parser.add_option("-p", "--prim",    dest="isPrimary",              default='kTRUE',                            help="is primary or not")
-    parser.add_option("-c", "--corr",    dest="startAlignCorrFileName", default='',                                 help="file name with the starting alignment corrections")
+    parser.add_option("-c", "--corr",    dest="startAlignCorrFileName", default='default',                          help="file name with the starting alignment corrections")
     (options, args) = parser.parse_args()
     if options.verbose :
         print "reading %s..." % options.digiFileListFileName

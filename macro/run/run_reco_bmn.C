@@ -110,8 +110,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
             isField = kFALSE;
         } else {
             fieldScale = (*field_voltage) / map_current;
-            // To avoid very small values of the mag. field for a correct tracking branch to be chosen when reconstructing 
-            if (fieldScale < 0.01) { 
+            // To avoid very small values of the mag. field for a correct tracking branch to be chosen when reconstructing
+            if (fieldScale < 0.01) {
                 fieldScale = 0.;
                 isField = kFALSE;
             }
@@ -194,7 +194,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     gemHM->SetCurrentConfig(gem_config);
     // Set name of file with the alignment corrections
     if (isExp) {
-        // we cannot spoil the original corrections file name in case it is
+        // we cannot spoil here the original corrections file name in case it is
         // real and contains upper case, therefore we first make a copy of it,
         // which we then send to lower
         TString aligncorrfilename = alignCorrFileName;

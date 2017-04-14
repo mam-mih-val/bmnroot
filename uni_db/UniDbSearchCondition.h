@@ -18,7 +18,7 @@ class UniDbSearchCondition
     UniDbSearchCondition(enumColumns column, enumConditions condition, double value);
     UniDbSearchCondition(enumColumns column, enumConditions condition, TString value);
     UniDbSearchCondition(enumColumns column, enumConditions condition, TDatime value);
-    ~UniDbSearchCondition(){}
+    virtual ~UniDbSearchCondition(){}
 
     // getters
     enumColumns GetColumn() {return eColumn;}
@@ -31,7 +31,7 @@ class UniDbSearchCondition
     TDatime GetDatimeValue() {return dtValue;}
 
  private:
-    UniDbSearchCondition(){}
+    UniDbSearchCondition();
 
     enumColumns eColumn;
     enumConditions eCondition;

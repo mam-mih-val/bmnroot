@@ -20,16 +20,16 @@
 #include "BmnOnlineDecoder.h"
 
 BmnOnlineDecoder::BmnOnlineDecoder() {
-//    fRawDecoSocket = new TServerSocket(RAW_DECODER_SOCKET_PORT, kTRUE);
-//    fRawDecoSocket->SetOption(kNoBlock, 1);
-//    fRawDecoSocket->SetOption(kKeepAlive, 1);
+    //    fRawDecoSocket = new TServerSocket(RAW_DECODER_SOCKET_PORT, kTRUE);
+    //    fRawDecoSocket->SetOption(kNoBlock, 1);
+    //    fRawDecoSocket->SetOption(kKeepAlive, 1);
     rawDataDecoder = NULL;
     iClients = 0;
     _ctx = NULL;
 }
 
 BmnOnlineDecoder::~BmnOnlineDecoder() {
-//    fRawDecoSocket->Close();
+    //    fRawDecoSocket->Close();
     if (rawDataDecoder) delete rawDataDecoder;
     if (_ctx) {
         zmq_ctx_destroy(_ctx);
@@ -65,6 +65,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_
     rawDataDecoder->InitConverter(dq);
     return rawDataDecoder->InitDecoder();
 }
+
 BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     DBG("started")
     rawDataDecoder = new BmnRawDataDecoder();
@@ -80,7 +81,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     }
     rawDataDecoder->SetRunId(runID);
     rawDataDecoder->SetPeriodId(6);
-    if (rawDataDecoder->InitMaps() == kBMNERROR){
+    if (rawDataDecoder->InitMaps() == kBMNERROR) {
         printf("InitMaps failed\n");
         delete rawDataDecoder;
         return kBMNERROR;
@@ -148,7 +149,7 @@ BmnStatus BmnOnlineDecoder::Accept() {
 }
 
 BmnStatus BmnOnlineDecoder::DecodeStream() {
-//    Accept();
+    //    Accept();
     dataReceiver = new BmnDataReceiver();
     dataQue = dataReceiver->GetDataQueue();
     thread rcvThread(threadReceiveWrapper, dataReceiver);
@@ -197,7 +198,7 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
     }
     _curFile = startFile;
     _curDir = dirname;
-//    Accept();
+    //    Accept();
 
     if (!runCurrent) {
         _curFile = "";
@@ -224,13 +225,11 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
 }
 
 void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
-    TMessage mess(kMESS_OBJECT);
     Int_t iEv = 0;
-    Int_t lastEv = 0;
+    Int_t lastEv = -1;
     BmnStatus convertResult = kBMNSUCCESS;
-    Int_t runId = -1;
-    runId = rawDataDecoder->GetRunId();
     Int_t sendRes = 0;
+    TBufferFile t(TBuffer::kWrite);
     while (kTRUE) {
         convertResult = rawDataDecoder->ConvertRawToRootIterateFile();
         if (convertResult == kBMNFINISH) {
@@ -240,36 +239,41 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
         lastEv = iEv;
         iEv = rawDataDecoder->GetEventId();
         if (iEv > lastEv) {
-//            Accept();
+            //            Accept();
             rawDataDecoder->DecodeDataToDigiIterate();
             fEvents++;
-            mess.Reset();
             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
-            mess.WriteObject(&iterDigi);
-            TBufferFile t(TBuffer::kWrite);
-            t.Reset();
+            if (iterDigi.header == NULL)
+                continue;
+            if (iterDigi.header->GetEntriesFast() == 0)
+                continue;
+            BmnEventHeader* head = (BmnEventHeader*) iterDigi.header->At(0);
+            if (head->GetType() != kBMNPAYLOAD)
+                continue;
             t.WriteObject(&iterDigi);
             sendRes = zmq_send(_decoSocket, t.Buffer(), t.Length(), ZMQ_NOBLOCK);
+            t.Reset();
             if (sendRes == -1) {
                 printf("Send error № %d #%s\n", errno, zmq_strerror(errno));
 
             }
-//            for (auto cl = begin(clients); cl != end(clients); cl++) {
-//                //                Int_t sel = (*cl)->Select(2, 1); // kWrite == 2
-//                ////                printf("select == %d\n", sel);
-//                //                if (sel ==  - 1) { // timeout
-//                //                    continue;
-//                //                }
-//                sendRes = (*cl)->Send(mess);
-//                //                printf("sendRes == %d\n", sendRes);
-//                if (sendRes == -1) {
-//                    clients.erase(cl);
-//                    cl--;
-//                    DBGERR("TSocket Send")
-//                    printf("Client disconnected\n");
-//                }
-//            }
         }
+
+        //            for (auto cl = begin(clients); cl != end(clients); cl++) {
+        //                //                Int_t sel = (*cl)->Select(2, 1); // kWrite == 2
+        //                ////                printf("select == %d\n", sel);
+        //                //                if (sel ==  - 1) { // timeout
+        //                //                    continue;
+        //                //                }
+        //                sendRes = (*cl)->Send(mess);
+        //                //                printf("sendRes == %d\n", sendRes);
+        //                if (sendRes == -1) {
+        //                    clients.erase(cl);
+        //                    cl--;
+        //                    DBGERR("TSocket Send")
+        //                    printf("Client disconnected\n");
+        //                }
+        //            }
         if (convertResult == kBMNTIMEOUT) {
             printf("timeout\n");
             break;
@@ -342,7 +346,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         DBGERR("zmq bind")
         return kBMNERROR;
     }
-//    Accept();
+    //    Accept();
     struct dirent **namelist;
     regex re(".*mpd_run_Glob_(\\d+).data");
     Int_t runCount = 0;
@@ -355,10 +359,10 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         for (Int_t i = 0; i < n; ++i) {
             if (regex_match(namelist[i]->d_name, re)) {
                 _curFile = TString(namelist[i]->d_name);
-                if (runCount == 0){
+                if (runCount == 0) {
                     if (InitDecoder(_curDir + _curFile) == kBMNERROR)
                         continue;
-                }else {
+                } else {
                     Int_t runID = 0;
                     if (runID < 1) {
                         string idstr = regex_replace(_curFile.Data(), re, "$1");
@@ -382,10 +386,10 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         }
         free(namelist);
     }
-//    for (auto cl : clients) {
-//        cl->Close();
-//        delete cl;
-//    }
+    //    for (auto cl : clients) {
+    //        cl->Close();
+    //        delete cl;
+    //    }
     zmq_close(_decoSocket);
     zmq_ctx_destroy(_ctx);
     _ctx = NULL;

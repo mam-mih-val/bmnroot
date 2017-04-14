@@ -24,7 +24,7 @@ const TString names[kNPLANES] = {
     "VA_2", "VB_2", "UA_2", "UB_2", "YA_2", "YB_2", "XA_2", "XB_2"
 };
 
-BmnHistDch::BmnHistDch(TString title = "DCH") {
+BmnHistDch::BmnHistDch(TString title) : BmnHist() {
     TGaxis::SetMaxDigits(2);
     fTitle = title;
     fName = title + "_cl";
@@ -93,10 +93,10 @@ BmnHistDch::BmnHistDch(TString title = "DCH") {
 }
 
 BmnHistDch::~BmnHistDch() {
-    for (Int_t i = 0; i < kNPLANES; ++i) {
-        delete h_wires[i];
-        delete h_times[i];
-    }
+    if (fDir != NULL)
+        return;
+    delete[] h_wires;
+    delete[] h_times;
     delete fDchHits;
     delete h_DCH1;
     delete h_DCH2;
@@ -128,15 +128,15 @@ void BmnHistDch::Register(THttpServer *serv) {
 
 void BmnHistDch::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
     frecoTree = recoTree;
-    TDirectory *dir = NULL;
+    fDir = NULL;
     if (outFile != NULL)
-        dir = outFile->mkdir(fTitle + "_hists");
+        fDir = outFile->mkdir(fTitle + "_hists");
     for (Int_t i = 0; i < kNPLANES; ++i) {
-        h_wires[i]->SetDirectory(dir);
-        h_times[i]->SetDirectory(dir);
+        h_wires[i]->SetDirectory(fDir);
+        h_times[i]->SetDirectory(fDir);
     }
-    h_DCH1->SetDirectory(dir);
-    h_DCH2->SetDirectory(dir);
+    h_DCH1->SetDirectory(fDir);
+    h_DCH2->SetDirectory(fDir);
 
 }
 

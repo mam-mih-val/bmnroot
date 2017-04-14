@@ -51,20 +51,17 @@ public:
     void SetAlignmentCorrectionsFileName(TString filename) {
         fAlignCorrFileName = filename;
         // filename [with its relative or absolute  path] is used as is and is
-        // taken from alignCorrFileName parameter in run_reco_bmn.C
+        // taken from alignCorrFileName parameter in macro/run/run_reco_bmn.C
         //
-        // NB! As soon as storage of the alignment corrections is arranged in
-        // the UniDb, we will need to change this, so that the default values
-        // are taken from there. Candidate for the default filename defined in
-        // run_reco_bmn.C is alignCorrFileName = "UniDb" (case insensitive!)).
-        //
-        // Anatoly.Solomin@jinr.ru 2017-02-21 14:05:00
+        // If it is == "", then no alignment corrections are used at all
+        // (see gem/BmnGemStripHitMaker.cxx).
+        // Anatoly.Solomin@jinr.ru 2017-04-14 12:03:27
     }
-    
+
     // All the corrections should be migrated to database!
     void SetAlignmentCorrectionsFileName(Int_t run_period, Int_t file_number) {
-        fAlignCorrFileName = (run_period == 5) ? "$VMCWORKDIR/input/alignCorrsLocal_GEM.root" : 
-            (run_period == 6) ? "$VMCWORKDIR/input/align.root" : "";      
+        fAlignCorrFileName = (run_period == 5) ? "$VMCWORKDIR/input/alignCorrsLocal_GEM.root" :
+                             (run_period == 6) ? "$VMCWORKDIR/input/align.root" : "";
     }
 
 private:

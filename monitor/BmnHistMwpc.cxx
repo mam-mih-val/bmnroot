@@ -14,7 +14,7 @@
 #include "BmnHistMwpc.h"
 #include "BmnHitFinderRun1.h"
 
-BmnHistMwpc::BmnHistMwpc(TString title = "MWPC") {
+BmnHistMwpc::BmnHistMwpc(TString title) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     for (Int_t i = 0; i < MWPC_PLANES; ++i){
@@ -73,6 +73,8 @@ BmnHistMwpc::BmnHistMwpc(TString title = "MWPC") {
 }
 
 BmnHistMwpc::~BmnHistMwpc() {
+    if (fDir != NULL)
+        return;
     for (Int_t i = 0; i < MWPC_PLANES; ++i){
         delete h_wires[i];
         delete h_times[i];
@@ -104,15 +106,15 @@ void BmnHistMwpc::Register(THttpServer *serv) {
 
 void BmnHistMwpc::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
     frecoTree = recoTree;
-    TDirectory *dir = NULL;
+    fDir = NULL;
     if (outFile != NULL)
-        dir = outFile->mkdir(fTitle + "_hists");
+        fDir = outFile->mkdir(fTitle + "_hists");
     for (Int_t i = 0; i < MWPC_PLANES; ++i){
-        h_wires[i]->SetDirectory(dir);
-        h_times[i]->SetDirectory(dir);
+        h_wires[i]->SetDirectory(fDir);
+        h_times[i]->SetDirectory(fDir);
     }
-    h_MWPC1->SetDirectory(dir);
-    h_MWPC2->SetDirectory(dir);
+    h_MWPC1->SetDirectory(fDir);
+    h_MWPC2->SetDirectory(fDir);
 
 }
 

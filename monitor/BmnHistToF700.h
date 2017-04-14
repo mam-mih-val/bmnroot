@@ -38,7 +38,7 @@
 
 class BmnHistToF700 : public BmnHist {
 public:
-    BmnHistToF700(TString title);
+    BmnHistToF700(TString title = "ToF700");
     virtual ~BmnHistToF700();
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);

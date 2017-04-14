@@ -20,7 +20,8 @@
 #pragma link C++ class FairWebScreenshots;
 
 // TDAQ
-//#pragma link C++ class BmnEventMonitor+;
+#pragma link C++ class BmnEventMonitor+;
+#pragma link C++ class BmnEventPull+;
 
 #endif
 

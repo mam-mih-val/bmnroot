@@ -20,10 +20,6 @@ void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst.root",
     }
     cout << "outputFileName: " + outputFileName << endl;
     fRunAna->SetOutputFile(outputFileName);
-    // resultName will be only essential part without ".root":
-    TString resultName = outputFileName;
-    resultName.ReplaceAll(".root", "");
-    cout << "resultName: " + resultName << endl;
 
     // Define GEM config. to be used: RunWinter2016 or RunSpring2017
     BmnGlobalAlignment* globAlign = new BmnGlobalAlignment(BmnGemStripConfiguration::RunSpring2017);

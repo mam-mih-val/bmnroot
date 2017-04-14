@@ -13,7 +13,7 @@
 
 #include "BmnHistToF700.h"
 
-BmnHistToF700::BmnHistToF700(TString title = "ToF700") {
+BmnHistToF700::BmnHistToF700(TString title) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     fSelectedPlane = -1;
@@ -98,12 +98,6 @@ void BmnHistToF700::FillFromDigi(TClonesArray * ToF4Digits) {
         histLeadingTime->Fill(td->GetTime());
         histAmp->Fill(td->GetAmplitude());
         histStrip->Fill(strip + td->GetPlane() * TOF2_MAX_STRIPS_IN_CHAMBER);
-//        if (td->GetPlane() == fSelectedPlane)
-//            histState->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
-        //        if (td->GetSide() == 0)
-        //            histL->Fill(strip);
-        //        else
-        //            histR->Fill(strip);
         if (
                 ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0)) &&
                 ((td->GetStrip() == fSelectedStrip) || (fSelectedStrip < 0))) {
@@ -113,14 +107,8 @@ void BmnHistToF700::FillFromDigi(TClonesArray * ToF4Digits) {
 
         new ((*Events)[Events->GetEntriesFast()])
                 BmnTof2Digit(td->GetPlane(), td->GetStrip(), td->GetTime(), td->GetAmplitude(), td->GetDiff());
+//        frecoTree->Fill();
     }
-    //histSimultaneous = (*histL) * (*histR);
-    Int_t s;
-//    histStripSimult->ResetStats();
-//    for (Int_t binIndex = 1; binIndex < TOF2_MAX_STRIPS_IN_CHAMBER; binIndex++) {
-//        s = ((histL->GetBinContent(binIndex) * histR->GetBinContent(binIndex)) != 0) ? 1 : 0;
-//        histStripSimult->AddBinContent(s);
-//    }
 }
 
 void BmnHistToF700::Register(THttpServer *serv) {
@@ -158,16 +146,16 @@ void BmnHistToF700::Register(THttpServer *serv) {
 
 void BmnHistToF700::SetDir(TFile* outFile, TTree* recoTree) {
     frecoTree = recoTree;
-    TDirectory *dir = NULL;
+    fDir = NULL;
     if (outFile != NULL)
-        dir = outFile->mkdir(fTitle + "_hists");
-    histLeadingTime->SetDirectory(dir);
-    histLeadingTimeSpecific->SetDirectory(dir);
-    histAmp->SetDirectory(dir);
-    histAmpSpecific->SetDirectory(dir);
-    histStrip->SetDirectory(dir);
-//    histStripSimult->SetDirectory(dir);
-//    histState->SetDirectory(dir);
+        fDir = outFile->mkdir(fTitle + "_hists");
+    histLeadingTime->SetDirectory(fDir);
+    histLeadingTimeSpecific->SetDirectory(fDir);
+    histAmp->SetDirectory(fDir);
+    histAmpSpecific->SetDirectory(fDir);
+    histStrip->SetDirectory(fDir);
+//    histStripSimult->SetDirectory(fDir);
+//    histState->SetDirectory(fDir);
     if (Events != NULL)
         delete Events;
     Events = new TClonesArray("BmnTof2Digit");

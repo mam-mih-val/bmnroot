@@ -189,8 +189,12 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     gemHM->SetCurrentConfig(gem_config);
     // Set name of file with the alignment corrections
     if (isExp) {
+        // we cannot spoil the original corrections file name in case it is
+        // real and contains upper case, therefore we first make a copy of it,
+        // which we then send to lower
         TString aligncorrfilename = alignCorrFileName;
-        if (aligncorrfilename.ToLower() == "default")
+        aligncorrfilename.ToLower();
+        if (aligncorrfilename == "default")
             // retrieve from UniDb (default)
             gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
         else

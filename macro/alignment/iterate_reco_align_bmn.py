@@ -43,6 +43,19 @@
 # nStartEvent - number (start with zero) of first event to process, default: 0
 # nEvents - number of events to process
 #
+# isPrimary - flag needed when working with MC events, default: kTRUE.
+#
+# alignCorrFileName - argument for choosing input file with the alignment
+# corrections.
+#
+# If alignCorrFileName == 'default', (case insensitive) then corrections are
+# retrieved from UniDb according to the running period and run number.
+#
+# If alignCorrFileName == '', then no corrections are applied at all.
+#
+# If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
+# from that file.
+#
 # Anatoly.Solomin@jinr.ru 2017-04-05
 # -----------------------------------------------------------------------------
 #!/usr/bin/python
@@ -63,8 +76,8 @@ def main() :
     parser = OptionParser(usage)
     parser.add_option("-v", "--verbose", dest="verbose",                default=True,                               help="print this to stdout")
     parser.add_option("-l", "--list",    dest="digiFileListFileName",   default='bmn_run06_Glob_digi_filelist.txt', help="take list of digi files from file")
-    parser.add_option("-m", "--maxit",   dest="maxNumOfIterations",     default=1,                                  help="maximum number of iterations",          type="int") 
-    parser.add_option("-n", "--nev",     dest="nEvents",                default=10000,                              help="number of events to process",           type="int") 
+    parser.add_option("-m", "--maxit",   dest="maxNumOfIterations",     default=1,                                  help="maximum number of iterations",          type="int")
+    parser.add_option("-n", "--nev",     dest="nEvents",                default=10000,                              help="number of events to process",           type="int")
     parser.add_option("-i", "--inf",     dest="addInfo",                default='',                                 help="additional meta-information")
     parser.add_option("-p", "--prim",    dest="isPrimary",              default='kTRUE',                            help="is primary or not")
     parser.add_option("-c", "--corr",    dest="startAlignCorrFileName", default='default',                          help="file name with the starting alignment corrections")
@@ -236,8 +249,8 @@ def main() :
         call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/determine_align_corrections_bmn.C("'+bmndstFileListFileName+'", "'+newAlignCorrFileName+'", '+str(nEventsTotal)+')'])
         # preserve the Millepede.res result:
         # 'bmn_run06_Glob_tilted_beams_test_new_align_it01.root'  -->  'bmn_run06_Glob_tilted_beams_test_new_align_millepede_it01.res'
-        pedeResultFileName = newAlignCorrFileName.replace('align', 'align_millepede') 
-        pedeResultFileName =   pedeResultFileName.replace('.root', '.res') 
+        pedeResultFileName = newAlignCorrFileName.replace('align', 'align_millepede')
+        pedeResultFileName =   pedeResultFileName.replace('.root', '.res')
         call(['cp', 'Millepede.res', pedeResultFileName])
         # the already used for the reconstruction sumAlignCorrFileName
         # now becomes the previous one:

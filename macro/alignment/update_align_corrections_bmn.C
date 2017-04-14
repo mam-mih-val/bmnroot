@@ -5,11 +5,6 @@
 //
 // Anatoly.Solomin@jinr.ru 2017-02-16
 
-//#include   <TClonesArray.h>
-//#include   <TFile.h>
-//#include   <TString.h>
-//#include   <TTree.h>
-
 void update_align_corrections_bmn(TString preAlignCorrFileName,
                                   TString newAlignCorrFileName,
                                   TString sumAlignCorrFileName)

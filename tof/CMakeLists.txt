@@ -1,4 +1,5 @@
-# Create a library called "libBmnTof" which includes the source files given in
+
+# Create a library called "libTOF" which includes the source files given in
 # the array .
 # The extension is already found.  Any number of sources could be listed here.
 
@@ -13,6 +14,7 @@ ${CMAKE_SOURCE_DIR}/base/source
 ${CMAKE_SOURCE_DIR}/geobase 
 ${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/fairtools
+${CMAKE_SOURCE_DIR}/mcstack
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/tof
 )
@@ -26,25 +28,22 @@ ${ROOT_LIBRARY_DIR}
 link_directories( ${LINK_DIRECTORIES})
 
 set(TOF_SRCS
-CbmGeoTof.cxx 
-CbmGeoTofPar.cxx 
-CbmTof.cxx 
-CbmTofContFact.cxx 
-CbmTofDetectorId.cxx
-CbmTofDetectorId_v07a.cxx
-CbmTofDetectorId_v12b.cxx
-CbmTofGeoHandler.cxx 
-CbmTofCell.cxx
-CbmTofDigiPar.cxx
-CbmTofHitProducer.cxx 
+BmnTOF.cxx 
+BmnTOFPoint.cxx  
+BmnTOFContFact.cxx  
+BmnTOFGeo.cxx 
+BmnTOFGeoPar.cxx
+BmnTofHitProducer.cxx
+BmnTofHitProducerIdeal.cxx
+BmnTofGeoUtils.cxx
 )
 
 # fill list of header files from list of source files
 # by exchanging the file extension
 CHANGE_FILE_EXTENSION(*.cxx *.h TOF_HEADERS "${TOF_SRCS}")
 
-set(TOF_LINKDEF TofLinkDef.h)
-set(TOF_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/BmnTofDict.cxx) 
+set(TOF_LINKDEF BmnTOFLinkDef.h)
+set(TOF_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/BmnTOFDict.cxx) 
 
 ROOT_GENERATE_DICTIONARY("${TOF_HEADERS}" "${TOF_LINKDEF}" "${TOF_DICTIONARY}" "${INCLUDE_DIRECTORIES}")
 
@@ -52,9 +51,10 @@ ROOT_GENERATE_DICTIONARY("${TOF_HEADERS}" "${TOF_LINKDEF}" "${TOF_DICTIONARY}" "
 set(TOF_SRCS ${TOF_SRCS} ${TOF_DICTIONARY})
 
 
-add_library(Tof SHARED ${TOF_SRCS})
-target_link_libraries(Tof ${ROOT_LIBRARIES})
-set_target_properties(Tof PROPERTIES ${FAIRROOT_LIBRARY_PROPERTIES})
+add_library(TOF SHARED ${TOF_SRCS})
+target_link_libraries(TOF ${ROOT_LIBRARIES})
+set_target_properties(TOF PROPERTIES ${FAIRROOT_LIBRARY_PROPERTIES})
+
 
 ################ install ###################
-install(TARGETS Tof DESTINATION ${CMAKE_BINARY_DIR}/lib)
+install(TARGETS TOF DESTINATION ${CMAKE_BINARY_DIR}/lib)

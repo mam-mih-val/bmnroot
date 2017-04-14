@@ -129,13 +129,13 @@ void BmnHistGem::Register(THttpServer * serv) {
 
 void BmnHistGem::SetDir(TFile *outFile, TTree * recoTree) {
     frecoTree = recoTree;
-    TDirectory *dir = NULL;
+    fDir = NULL;
     if (outFile != NULL)
-        dir = outFile->mkdir(fTitle + "_hists");
+        fDir = outFile->mkdir(fTitle + "_hists");
     for (auto row : histGemStrip)
         for (auto col : row)
             for (auto el : col)
-                el->SetDirectory(dir);
+                el->SetDirectory(fDir);
 }
 
 void BmnHistGem::DrawBoth() {

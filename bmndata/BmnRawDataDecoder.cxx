@@ -383,48 +383,50 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
 
 BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
     //        if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
-    if (wait_file(4 * kWORDSIZE) == kBMNERROR) {
-        return kBMNTIMEOUT;
-        printf("file timeout\n");
-    }
-    fCurentPositionRawFile = ftello64(fRawFileIn);
-    fread(&fDat, kWORDSIZE, 1, fRawFileIn);
-    if (fDat == kRUNNUMBERSYNC) {
-        printf("RunNumberSync\n");
-        syncCounter++;
-        if (syncCounter > 1) {
-            cout << "Finish by SYNC" << endl;
-            return kBMNFINISH;
-        }
-        fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
-    }
-    if (fDat == kSYNC1) { //search for start of event
-        // read number of bytes in event
-        //printf("kSYNC1\n");
-        if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
-        fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
-        if (fDat * kNBYTESINWORD >= 1000000) { // what the constant?
-            printf("Wrong data size: %d:  skip this event\n", fDat);
-            return kBMNFINISH;
-        }
-        //read array of current event data and process them
-        if (wait_file(fDat * kNBYTESINWORD * kWORDSIZE) == kBMNERROR) {
+    while (kTRUE) {
+        if (wait_file(4 * kWORDSIZE) == kBMNERROR) {
             return kBMNTIMEOUT;
             printf("file timeout\n");
         }
-        if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) {
-            printf("finish by length\n");
-            return kBMNFINISH;
+        fCurentPositionRawFile = ftello64(fRawFileIn);
+        fread(&fDat, kWORDSIZE, 1, fRawFileIn);
+        if (fDat == kRUNNUMBERSYNC) {
+            printf("RunNumberSync\n");
+            syncCounter++;
+            if (syncCounter > 1) {
+                cout << "Finish by SYNC" << endl;
+                return kBMNFINISH;
+            }
+            fread(&fDat, kWORDSIZE, 1, fRawFileIn); //skip word
         }
-        fEventId = data[0];
-        if (fEventId <= 0) {
-            printf("bad event #%d\n", fEventId);
-            return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+        if (fDat == kSYNC1) { //search for start of event
+            // read number of bytes in event
+            //printf("kSYNC1\n");
+            if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
+            fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
+            if (fDat * kNBYTESINWORD >= 1000000) { // what the constant?
+                printf("Wrong data size: %d:  skip this event\n", fDat);
+                return kBMNFINISH;
+            }
+            //read array of current event data and process them
+            if (wait_file(fDat * kNBYTESINWORD * kWORDSIZE) == kBMNERROR) {
+                return kBMNTIMEOUT;
+                printf("file timeout\n");
+            }
+            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) {
+                printf("finish by length\n");
+                return kBMNFINISH;
+            }
+            fEventId = data[0];
+            if (fEventId <= 0) {
+                printf("bad event #%d\n", fEventId);
+                return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
+            }
+            ProcessEvent(data, fDat);
+            fNevents++;
+            break;
+            //        fRawTree->Fill();
         }
-        ProcessEvent(data, fDat);
-        fNevents++;
-        //        fRawTree->Fill();
-        //        }
     }
     return kBMNSUCCESS;
 }
@@ -1028,10 +1030,9 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fTof700Mapper) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
+    }
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig(), kFALSE);
         //        fDigiTree->Fill();
-
-    }
     fPrevEventType = fCurEventType;
 
     return kBMNSUCCESS;
@@ -1041,7 +1042,7 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
     fNevents = 0;
     syncCounter = 0;
     fRawFileName = file;
-    if (fRawFileIn){
+    if (fRawFileIn) {
         fclose(fRawFileIn);
         fRawFileIn = NULL;
     }
@@ -1350,7 +1351,7 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
         mapPar->GetTriggerMapArray(fT0Map, nEntries);
         delete mapPar;
         return kBMNSUCCESS;
-    } else{
+    } else {
         cerr << "No TO map found in DB" << endl;
         return kBMNERROR;
     }

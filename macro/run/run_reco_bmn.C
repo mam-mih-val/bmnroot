@@ -105,16 +105,11 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         Double_t fieldScale = 0.0;
         Double_t map_current  = 55.87;
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
-        if (*field_voltage == 0) {
+        if (*field_voltage < 10) {
             fieldScale = 0;
             isField = kFALSE;
         } else {
             fieldScale = (*field_voltage) / map_current;
-            // To avoid very small values of the mag. field for a correct tracking branch to be chosen when reconstructing 
-            if (fieldScale < 0.01) { 
-                fieldScale = 0.;
-                isField = kFALSE;
-            }
         }
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
         magField->SetScale(fieldScale);
@@ -194,9 +189,6 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     gemHM->SetCurrentConfig(gem_config);
     // Set name of file with the alignment corrections
     if (isExp) {
-        // we cannot spoil the original corrections file name in case it is
-        // real and contains upper case, therefore we first make a copy of it,
-        // which we then send to lower
         TString aligncorrfilename = alignCorrFileName;
         aligncorrfilename.ToLower();
         if (aligncorrfilename == "default")
@@ -231,20 +223,21 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // ====================================================================== //
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
+    
+    Bool_t direction = kTRUE;
     BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
     gemSF->SetUseLorentz(kTRUE);
     gemSF->SetField(isField);
+    gemSF->SetDirection(direction);
     gemSF->SetTarget(isTarget);
-  //gemSF->SetXRange(-5.0,  20.0);
-  //gemSF->SetYRange(-4.8., -3.8);
-    if (run_period == 5) // in run 6 that staion is already skipped
+    if (run_period == 5)
         gemSF->AddStationToSkip(0);
-  //gemSF->AddStationToSkip(1);
-  //gemSF->AddStationToSkip(2);
     fRunAna->AddTask(gemSF);
 
     BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
     gemTF->SetField(isField);
+    gemTF->SetDirection(direction);
+    gemTF->SetDistCut(1.0);
     fRunAna->AddTask(gemTF);
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //

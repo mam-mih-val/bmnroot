@@ -22,6 +22,8 @@
 #include "BmnKalmanFilter_tmp.h"
 #include "BmnTrackFitter.h"
 #include "BmnMath.h"
+#include "BmnGemStripStationSet.h"
+#include "BmnGemStripStationSet_RunSpring2017.h"
 
 using namespace std;
 
@@ -32,8 +34,7 @@ public:
     BmnGemTrackFinder();
     virtual ~BmnGemTrackFinder();
 
-    BmnStatus NearestHitMerge(UInt_t station, BmnGemTrack* tr);
-    BmnStatus NearestHitMerge1(UInt_t station, BmnGemTrack* tr);
+    BmnStatus NearestHitMerge(UInt_t station, BmnGemTrack* tr, Bool_t goForward);
 
     BmnStatus FitSmooth(BmnGemTrack* track);
     void Smooth(BmnFitNode* thisNode, const BmnFitNode* prevNode);
@@ -53,8 +54,20 @@ public:
     void SetField(Bool_t f) {
         fIsField = f;
     }
+    
+    void SetDirection(Bool_t dir) {
+        fGoForward = dir;
+    }
+    
+    void SetDistCut(Float_t dist) {
+        fDistCut = dist;
+    }
 
 private:
+
+
+
+    BmnGemStripStationSet* fDetector;
 
     // Private Data Members ------------
     TString fHitsBranchName;
@@ -70,8 +83,9 @@ private:
     /* Track update tool */
     BmnKalmanFilter* fUpdate;
     Int_t fPDG; // PDG hypothesis
-    Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
+    Float_t fDistCut;
 
+    Bool_t fGoForward;
     Bool_t fIsField;
     FairField* fField;
     BmnKalmanFilter_tmp* fKalman;

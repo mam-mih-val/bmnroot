@@ -26,7 +26,7 @@ BmnGeoNavigator::~BmnGeoNavigator() {
 }
 
 BmnStatus BmnGeoNavigator::FindIntersections(const FairTrackParam* par, Float_t zOut, vector<BmnMaterialInfo>& inter) {
-    Bool_t downstream = zOut >= par->GetZ();
+    Bool_t downstream = zOut <= par->GetZ();
 //     std::cout << "zOut=" << zOut << " Z=" << par->GetZ() << " downstream=" << downstream << std::endl;
 
     InitTrack(par, downstream);
@@ -58,7 +58,7 @@ BmnStatus BmnGeoNavigator::FindIntersections(const FairTrackParam* par, Float_t 
             return kBMNERROR;
         }
         // Check if we currently at the output position
-        Bool_t away = (downstream) ? stepInfo.GetZpos() >= zOut : stepInfo.GetZpos() <= zOut;
+        Bool_t away = (!downstream) ? stepInfo.GetZpos() >= zOut : stepInfo.GetZpos() <= zOut;
         if (away) { //|| gGeoManager->IsNullStep()){
             gGeoManager->PopPoint();
             Float_t l = CalcLength(zOut);
@@ -85,7 +85,7 @@ void BmnGeoNavigator::InitTrack(const FairTrackParam* par, Bool_t downstream) co
     ny = unit.Y();
     nz = unit.Z();
     // Change track direction for upstream
-    if (!downstream) {
+    if (downstream) {
         nx = -nx;
         ny = -ny;
         nz = -nz;

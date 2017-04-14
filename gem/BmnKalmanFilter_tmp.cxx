@@ -816,12 +816,12 @@ BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t 
     Double_t zIn = par->GetZ();
     Double_t dz = zOut - zIn;
 
-    if (fabs(dz) < 1e-6) {
-        return kBMNSUCCESS;
-    }
+//    if (fabs(dz) < 1e-6) {
+//        return kBMNSUCCESS;
+//    }
     // Check whether upstream or downstream
     // TODO check upstream/downstream
-    Bool_t downstream = dz > 0;
+    Bool_t downstream = dz < 0;
 
     if (F != NULL) {
         F->assign(25, 0.);
@@ -837,8 +837,8 @@ BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t 
     if (nofSteps == 0) {
         stepSize = abs(dz);
     } else {
-        stepSize = 10;
-    }
+        stepSize = 10.0;
+    }   
     Double_t z = zIn;
 
 //    cout << "Z = " << zIn << " Par q/p = " << par->GetQp() << endl;

@@ -17,6 +17,8 @@
 #include "BmnEnums.h"
 #include "FairRunAna.h"
 #include "FairField.h"
+#include "BmnGemStripStationSet.h"
+#include "BmnGemStripStationSet_RunSpring2017.h"
 
 using namespace std;
 
@@ -35,7 +37,9 @@ public:
     BmnStatus FitSeeds(vector<BmnGemTrack> cand);
     BmnStatus CalculateTrackParamsLine(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsCircle(BmnGemTrack* tr);
-    
+
+    void GoToStation(vector<BmnGemStripHit*>& hits, vector<BmnGemStripHit*> *hitsOnStation, Int_t stat, vector<BmnGemTrack>& cand);
+
     void SetHitsUnused(BmnGemTrack* tr);
 
     void FillAddr();
@@ -45,10 +49,12 @@ public:
         fUseLorentz = use;
     }
 
+    BmnGemStripStationSet* fDetector;
+
     //some useful functions
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
     BmnGemStripHit* GetHit(Int_t i);
-    
+
     void SetTrs(Float_t trs) {
         kTRS = trs;
     }
@@ -69,20 +75,24 @@ public:
         fIsField = f;
     }
 
+    void SetDirection(Bool_t dir) {
+        fGoForward = dir;
+    }
+
     void SetTarget(Bool_t f) {
         fIsTarget = f;
     }
-    
+
     void SetXRange(Float_t xMin, Float_t xMax) {
         fXmax = xMax;
         fXmin = xMin;
     }
-    
+
     void SetYRange(Float_t yMin, Float_t yMax) {
         fYmax = yMax;
         fYmin = yMin;
     }
-    
+
     void AddStationToSkip(Short_t st) {
         skipStations.push_back(st);
     }
@@ -100,6 +110,7 @@ private:
     Bool_t fUseLorentz; //flag for using Lorentz filtration
     Bool_t fIsField; // run with mag.field or not
     Bool_t fIsTarget; // run with target or not
+    Bool_t fGoForward;
 
     Float_t kSIG_X;
     UInt_t kY_STEP;
@@ -112,20 +123,20 @@ private:
     Float_t fWidth;
 
     UInt_t fEventNo; // event counter
-    
+
     //ranges for seed finder
     Float_t fXmin;
     Float_t fXmax;
     Float_t fYmin;
     Float_t fYmax;
-    
+
     vector<Short_t> skipStations;
 
     TClonesArray* fGemHitsArray;
     TClonesArray* fGemSeedsArray;
 
     FairField* fField;
-    
+
     Int_t** fAddresses;
 
     ClassDef(BmnGemSeedFinder, 1);

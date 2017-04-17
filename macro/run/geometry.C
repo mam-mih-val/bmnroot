@@ -22,8 +22,8 @@ geometry(FairRunSim *fRun) {
     fRun->AddModule(magnet);
 
     // -----   Create detectors        -------------------------
-    FairDetector* tof = new CbmTof("TOF", kTRUE);
-    tof->SetGeometryFileName("tof2_v1.root");
+    FairDetector* tof = new BmnTOF("TOF", kTRUE);
+    tof->SetGeometryFileName("tof700_run6.root");
     fRun->AddModule(tof);
 
     CbmPsdv1* psd = new CbmPsdv1("PSD", kTRUE);

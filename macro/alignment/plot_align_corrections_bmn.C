@@ -6,17 +6,6 @@
 // Anatoly.Solomin@jinr.ru 2017-02-16
 
 #  include   <map>
-//#include   <string>
-//#include   <utility> // for pair
-//#include   <vector>
-
-//#include   <TCanvas.h>
-//#include   <TClonesArray.h>
-//#include   <TFile.h>
-//#include   <TString.h>
-//#include   <TTree.h>
-
-using namespace std;
 
 void CreateItCorrs    (Double_t***** itCorrs,       Int_t nKinds, Int_t nParams, Int_t nIts, BmnGemStripStationSet* stationSet);
 void CreateItCorrErrs (Double_t****  itNewCorrErrs,               Int_t nParams, Int_t nIts, BmnGemStripStationSet* stationSet);

@@ -6,7 +6,7 @@
 // end_run - end number of the run range to change single detector geometry in full geometry
 // detector_name - volume name of the detector geoemtry to replace it with new geometry
 // detector_file_path - path to the file with new subdetector geometry
-void change_1detector_geometry(int start_period, int start_run, int end_period, int end_run, char* detector_name="TOFB1", char* detector_file_path = "$VMCWORKDIR/geometry/TOFB1_v3.root")
+void change_1detector_geometry(int start_period=5, int start_run=798, int end_period=5, int end_run=1014, char* detector_name="GEM", char* detector_file_path = "$VMCWORKDIR/geometry/GEMS_RunWinter2016.root")
 {
     // load libraries
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");

@@ -7,12 +7,6 @@
 //
 // Derived from original globAlignment.C macro created by Pavel.Batyk@jinr.ru 2016-11
 
-//# include  <fstream>
-//# include  <string>
-//# include  <TString.h>
-//# include  <TStopwatch.h>
-//using namespace std;
-
 void determine_align_corrections_bmn(TString bmndstFileListFileName = "filelist_bmndst_it00.txt",
                                      TString newAlignCorrFileName   = "",
                                      UInt_t  nEvents                =  10000)
@@ -67,12 +61,12 @@ void determine_align_corrections_bmn(TString bmndstFileListFileName = "filelist_
   // Restrictions on track params:
   //globAlign->SetMinHitsAccepted(5);               // Default value is 3
   //globAlign->SetChi2MaxPerNDF(2.);                // Cut on chi2/ndf for found tracks, default value is not limited
-    globAlign->SetTxMinMax(-1.,  1.);
+  //globAlign->SetTxMinMax(-1.,  1.);
   //globAlign->SetExclusionRangeTx(-0.02, 0.02);
-    globAlign->SetTyMinMax(-1.,  1.);
+  //globAlign->SetTyMinMax(-1.,  1.);
   //globAlign->SetExclusionRangeTy(-0.02, 0.02);
-    
-    // Define modules to be fixed (any character) within alignment, if necessary. 
+
+    // Define modules to be fixed (any character) within alignment, if necessary.
     // st0, st1, st2, st3_modLeft(0), st3_modRight(1), st4_modLeft(0), st4_modRight(1), st5_modLeft(0), st5_modRight(1)
     globAlign->SetGemFixedRun6("", "", "", "", "", "", "", "", "");
     // Set of detectors in chain to be used in glob. alignment
@@ -80,7 +74,7 @@ void determine_align_corrections_bmn(TString bmndstFileListFileName = "filelist_
     // GEM tracker is included by default
     //                    "MWPC",  "DCH"
     globAlign->SetDetectors("",     "");
-    
+
     globAlign->SetPreSigma(0.001);                  // Default value is 1
     globAlign->SetAccuracy(0.001);                  // Default value is 0.001
     globAlign->SetUseRealHitErrors(kTRUE);          // Default value is false

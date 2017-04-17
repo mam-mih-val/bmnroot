@@ -13,7 +13,7 @@
 #include "CbmMvdGeoPar.h"
 #include "CbmGeoStsPar.h"
 #include "CbmGeoSttPar.h" //AZ
-#include "CbmGeoTofPar.h"
+#include "BmnTOFGeoPar.h"
 #include "FairGeoPassivePar.h"
 #include "CbmStsStation.h"
 #include "FairRuntimeDb.h"
@@ -74,7 +74,7 @@ void CbmKF::SetParContainers()
   rtdb->getContainer("FairGeoPassivePar");
   rtdb->getContainer("CbmMvdGeoPar");
   rtdb->getContainer("CbmGeoStsPar");
-  rtdb->getContainer("CbmGeoTofPar");
+  rtdb->getContainer("BmnTOFGeoPar");
   rtdb->getContainer("CbmGeoSttPar"); //AZ
   rtdb->getContainer("BmnFieldPar");
   rtdb->getContainer("CbmStsDigiPar");
@@ -271,7 +271,7 @@ InitStatus CbmKF::Init()
 
   //=== Tof material ===
     
-  CbmGeoTofPar *TofPar = reinterpret_cast<CbmGeoTofPar*>(RunDB->findContainer("CbmGeoTofPar"));
+  BmnTOFGeoPar *TofPar = reinterpret_cast<BmnTOFGeoPar*>(RunDB->findContainer("BmnTOFGeoPar"));
  
   if( TofPar ){
 

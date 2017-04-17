@@ -476,19 +476,52 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
     //--------------------------------------------------------------------------
    
     //cluster standard deviation (sigma): RMS ----------------------------------
+//    if(NStripsInCluster > 1) {
+//        for(Int_t i = 0; i < NStripsInCluster; ++i) {
+//            Double_t strip_num = cluster.Strips.at(i);
+//            Double_t signal = cluster.Signals.at(i);
+//            Double_t residual = (strip_num+0.5) - mean_strip_position;
+//            cluster_rms += residual*residual*signal;
+//        }
+//        cluster_rms /= total_cluster_signal;
+//        cluster_rms = TMath::Sqrt(cluster_rms);
+//    }
+//    else {
+//        cluster_rms = 1.0/TMath::Sqrt(12.0);
+//    }
+//    
+    
+     // AZ, STS, method2
+    Double_t sumW = total_cluster_signal;
+    Double_t sumWX = 0.;
+    Double_t sumWX2 = 0.;
     if(NStripsInCluster > 1) {
         for(Int_t i = 0; i < NStripsInCluster; ++i) {
-            Double_t strip_num = cluster.Strips.at(i);
-            Double_t signal = cluster.Signals.at(i);
-            Double_t residual = (strip_num+0.5) - mean_strip_position;
-            cluster_rms += residual*residual*signal;
+           Double_t strip_num = cluster.Strips.at(i);
+           Double_t signal = cluster.Signals.at(i);
+           sumWX += strip_num * signal;
+           sumWX2 += strip_num * strip_num * signal;
         }
-        cluster_rms /= total_cluster_signal;
-        cluster_rms = TMath::Sqrt(cluster_rms);
+        cluster_rms = (sumWX2 - sumWX * sumWX / sumW) / sumW;
     }
+ 
     else {
-        cluster_rms = 1.0/TMath::Sqrt(12.0);
+        cluster_rms = 1.0 /TMath::Sqrt(12.0);
     }
+        
+//     // AZ, STS, Real CF, method3
+//    Double_t sumW = total_cluster_signal;
+//    Double_t maxStripSignal = 0.;
+//
+//    if(NStripsInCluster > 0) {
+//        for(Int_t i = 0; i < NStripsInCluster; ++i) {
+//           Double_t signal = cluster.Signals.at(i);
+//           if (signal > maxStripSignal)
+//               maxStripSignal = signal;
+//
+//        }
+//        cluster_rms = sumW / maxStripSignal;
+//    }
     //--------------------------------------------------------------------------
 
     StripHits.push_back(mean_strip_position);

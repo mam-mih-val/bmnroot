@@ -59,6 +59,7 @@ Int_t BmnGemStripStation::AddPointToStation(Double_t xcoord, Double_t ycoord, Do
     if(module >= 0) {
         //if(ReadoutModules[module]->AddRealPointFullOne(xcoord, ycoord, zcoord, dEloss, refID)) {
         if(Modules[module]->AddRealPointFull(xcoord, ycoord, zcoord, px, py, pz, dEloss, refID)) {
+//        if(Modules[module]->AddRealPointSimple(xcoord, ycoord, zcoord, px, py, pz, dEloss, refID)) {
             return module;
         }
         else {

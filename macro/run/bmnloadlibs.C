@@ -16,7 +16,7 @@ void bmnloadlibs()
   gSystem->Load("libBmnBase");
   gSystem->Load("libBmnData");
 
-  gSystem->Load("libTof");
+  gSystem->Load("libTOF");
   gSystem->Load("libPsd");
   gSystem->Load("libSts");
   gSystem->Load("libRecoil");

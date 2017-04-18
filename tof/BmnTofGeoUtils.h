@@ -18,7 +18,7 @@ class LRectangle	// convex quadrangle
 { 
 	bool		IsInvalid;
 public:
-	enum Side_t { kRight=0,  kLeft=1, kInvalid= -1 }; 
+	enum Side_t { kUpper=0,  kLower=1, kInvalid= -1 }; 
 	
 	Int_t 		volumeUID;
 	TVector3 	A, B, C, D, center, perp;  // [cm] 

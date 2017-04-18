@@ -137,7 +137,7 @@ Bool_t BmnTofHitProducer::DoubleHitExist(Double_t val) // val - distance to the 
 void BmnTofHitProducer::Exec(Option_t* opt) 
 {
     clock_t tStart = clock();
-    if (fVerbose) cout << endl << "======================== TOF400 exec started ====================" << endl;
+    if (fVerbose) cout << endl << "======================== TOF700 exec started ====================" << endl;
 	static const TVector3 XYZ_err(fErrX, fErrY, 0.); 
 
 	aTofHits->Clear();
@@ -185,7 +185,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
         	
         		if(passed = DoubleHitExist(distance)) // check cross hit
         		{
-        			Int_t CrossUID = (side == LStrip::kRight) ? pStrip->neighboring[LStrip::kRight] : pStrip->neighboring[LStrip::kLeft];
+        			Int_t CrossUID = (side == LStrip::kUpper) ? pStrip->neighboring[LStrip::kUpper] : pStrip->neighboring[LStrip::kLower];
   			
   				if(LStrip::kInvalid  == CrossUID) continue; // last strip on module
   			
@@ -246,8 +246,8 @@ void BmnTofHitProducer::Exec(Option_t* opt)
         clock_t tFinish = clock();
         workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 
-        if (fVerbose) cout<<"Tof400  single hits= "<<nSingleHits<<", double hits= "<<nDoubleHits<<", final hits= "<<nFinally<<endl;
-        if (fVerbose) cout << "======================== TOF400 exec finished ====================" << endl;
+        if (fVerbose) cout<<"Tof700  single hits= "<<nSingleHits<<", double hits= "<<nDoubleHits<<", final hits= "<<nFinally<<endl;
+        if (fVerbose) cout << "======================== TOF700 exec finished ====================" << endl;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void BmnTofHitProducer::Finish() 
@@ -262,7 +262,7 @@ void BmnTofHitProducer::Finish()
 		gFile = ptr;
 	}
         
-    cout << "Work time of the TOF-400 hit finder: " << workTime << endl;
+    cout << "Work time of the TOF-700 hit finder: " << workTime << endl;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 // input- strip edge position & signal times; output- strip crosspoint; return false, if crosspoint outside strip 
@@ -281,8 +281,8 @@ bool BmnTofHitProducer::GetCrossPoint(const TVector3& p1, double time1, const TV
 bool BmnTofHitProducer::GetCrossPoint(const LStrip *pStrip, double dT, TVector3& crossPoint) 
 {
         TVector3 s1, s2, centr;
-        s1 = (pStrip->A + pStrip->B) * 0.5; // [cm] strip side1 end's position 
-        s2 = (pStrip->C + pStrip->D) * 0.5; // [cm] strip side2 end's position 
+        s1 = (pStrip->A + pStrip->D) * 0.5; // [cm] strip side1 end's position 
+        s2 = (pStrip->B + pStrip->C) * 0.5; // [cm] strip side2 end's position 
         centr = pStrip->center;
 	double stripLength = (s2-s1).Mag();
 	double maxDelta =   (stripLength + 1.0) * fSignalVelosity; // + 10 mm on the strip edge

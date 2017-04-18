@@ -25,7 +25,7 @@ BmnTofGeoUtils::BmnTofGeoUtils()
 
 }
 //------------------------------------------------------------------------------------------------------------------------
-void		BmnTofGeoUtils::FindNeighborStrips(TH1D* h1, TH2D* h2, bool doTest)
+void BmnTofGeoUtils::FindNeighborStrips(TH1D* h1, TH2D* h2, bool doTest)
 {
 	size_t NR = 0, NL= 0;
 	const LStrip *strip2; double  distance;
@@ -38,17 +38,17 @@ void		BmnTofGeoUtils::FindNeighborStrips(TH1D* h1, TH2D* h2, bool doTest)
 			strip2 = &(it2->second);
 	
 			// CATION: Ckeck  only left and right sides(one row strips NOW) 
-			distance = strip1->Distance(LStrip::kRight, *strip2); if(doTest)  h1->Fill(distance);		
+			distance = strip1->Distance(LStrip::kUpper, *strip2); if(doTest)  h1->Fill(distance);		
 			if(distance < 0.8) // CAUTION: constant depends on the geometry layout(see h1TestDistance histo)
 			{
-			 	strip1->neighboring[LStrip::kRight] = strip2->volumeUID; NR++;
+			 	strip1->neighboring[LStrip::kUpper] = strip2->volumeUID; NR++;
 			 	if(doTest) h2->Fill(strip1->stripID, strip2->stripID);
 			}
 			
-			distance = strip1->Distance(LStrip::kLeft, *strip2); if(doTest)  h1->Fill(distance);
+			distance = strip1->Distance(LStrip::kLower, *strip2); if(doTest)  h1->Fill(distance);
 			if(distance < 0.8) // CAUTION: constant depends on the geometry layout(see h1TestDistance histo)
 			{
-				strip1->neighboring[LStrip::kLeft] = strip2->volumeUID; NL++;
+				strip1->neighboring[LStrip::kLower] = strip2->volumeUID; NL++;
 				if(doTest) h2->Fill( strip2->stripID, strip1->stripID);	
 			}			
 
@@ -58,16 +58,16 @@ void		BmnTofGeoUtils::FindNeighborStrips(TH1D* h1, TH2D* h2, bool doTest)
 	cout<<" [BmnTofGeoUtils::FindNeighborStrips] Neighbor strips: left = "<<NL<<", right = "<<NR<<endl;
 }
 //------------------------------------------------------------------------------------------------------------------------	
-void		BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
+void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
 {
-assert(gGeoManager);
+	assert(gGeoManager);
 
 	if( !forced &&  !mStrips.empty()) return; // already parsed and filled
 
 	mStrips.clear();
 	
 //	TString stripName, pathTOF = "/cave_1/TOFB1_0";
-	TString stripName, pathTOF = "/cave_1/TOF400_0";
+	TString stripName, pathTOF = "/cave_1/TOF700_0";
 	gGeoManager->cd(pathTOF);
 	
 	Double_t *X0Y0Z0 = new Double_t[3]; X0Y0Z0[0] = X0Y0Z0[1] = X0Y0Z0[2] = 0.; // center of sensetive detector
@@ -137,7 +137,7 @@ assert(gGeoManager);
     	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTofHitProducer::ParseTGeoManager] detectors= %d, strips= %d. ", nDetectors, nStrips);
 }
 //------------------------------------------------------------------------------------------------------------------------	
-void		BmnTofGeoUtils::ParseStripsGeometry(const char *geomFile)
+void BmnTofGeoUtils::ParseStripsGeometry(const char *geomFile)
 {
 	mStrips.clear();
 
@@ -175,11 +175,11 @@ void		BmnTofGeoUtils::ParseStripsGeometry(const char *geomFile)
     	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTofHitProducer::ParseStripGeometry] detectors= %d, strips= %d. ", nchambers, nStrips);
 }
 //------------------------------------------------------------------------------------------------------------------------
-const LStrip*		BmnTofGeoUtils::FindStrip(Int_t UID) 
+const LStrip* BmnTofGeoUtils::FindStrip(Int_t UID) 
 {
 	MStripCIT cit = mStrips.find(UID);
-assert(cit != mStrips.end());
-return &(cit->second);
+	assert(cit != mStrips.end());
+	return &(cit->second);
 }
 //------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------
@@ -191,16 +191,16 @@ LRectangle::LRectangle(Int_t uid, const TVector3& a, const TVector3& b, const TV
 
 }
 //------------------------------------------------------------------------------------------------------------------------
-Double_t 	LRectangle::DistanceFromPointToLine(const TVector3* pos, const TVector3& P1,const TVector3& P2)const
+Double_t LRectangle::DistanceFromPointToLine(const TVector3* pos, const TVector3& P1,const TVector3& P2)const
 {
-assert(P1 != P2);
+    assert(P1 != P2);
 
-return   (  (*pos - P1).Cross(*pos - P2)   ).Mag() / (P2 - P1).Mag();
+    return   (  (*pos - P1).Cross(*pos - P2)   ).Mag() / (P2 - P1).Mag();
 }
 //------------------------------------------------------------------------------------------------------------------------
 Double_t 	LRectangle::DistanceFromPointToLineSegment(const TVector3* pos, const TVector3& P1,const TVector3& P2)const
 {
-assert(P1 != P2);
+	assert(P1 != P2);
 
 	TVector3 v = P2 - P1;
 	TVector3 w = (*pos) - P1;
@@ -212,32 +212,32 @@ assert(P1 != P2);
     	if( c2 <= c1 ) return ((*pos) - P2).Mag();
     	    	
     	TVector3 Pb = P1 + (c1/c2) * v;
-return ((*pos) - Pb).Mag();
+	return ((*pos) - Pb).Mag();
 }
 //------------------------------------------------------------------------------------------------------------------------
 Double_t		LRectangle::MinDistanceToEdge(const TVector3* pos, Side_t& side) const
 {	
-	double right 	= DistanceFromPointToLineSegment(pos, A, D);
-	double left 	= DistanceFromPointToLineSegment(pos, B, C);
+	double lower 	= DistanceFromPointToLineSegment(pos, A, B);
+	double upper 	= DistanceFromPointToLineSegment(pos, C, D);
 	
 	// sorting & return minimal value
-	if( right <= left )
+	if( lower <= upper )
 	{ 
-		side =  LStrip::kRight; 
-		return right;
+		side =  LStrip::kLower; 
+		return lower;
 	}		
 	 
-	side =  LStrip::kLeft;  
-return left;
+	side =  LStrip::kUpper;  
+	return upper;
 }
 //------------------------------------------------------------------------------------------------------------------------
-void 		LRectangle::Print(ostream &out, const TVector3 &point, const char* comment)const
+void LRectangle::Print(ostream &out, const TVector3 &point, const char* comment)const
 {
 	if(comment) out<<comment; 
 	out<<" ("<< point.X()<<","<<point.Y()<<","<<point.Z()<<") "; 
 }
 //------------------------------------------------------------------------------------------------------------------------
-void 		LRectangle::Dump(const char* comment, ostream& out) const 
+void LRectangle::Dump(const char* comment, ostream& out) const 
 { 
 	if(comment) out<<comment; out<<" uid="<<volumeUID<<" IsInvalid="<<IsInvalid;
 	Print(out, A, " A:"); Print(out, B, " B:"); Print(out, C, " C:"); Print(out, D, " D:");
@@ -248,19 +248,19 @@ void 		LRectangle::Dump(const char* comment, ostream& out) const
 LStrip::LStrip() 
 : LRectangle(), sectorID(kInvalid), boxID(kInvalid),  detectorID(kInvalid), stripID(kInvalid) 
 { 
-	neighboring[kRight] = kInvalid; 
-	neighboring[kLeft] = kInvalid; 
+	neighboring[kUpper] = kInvalid; 
+	neighboring[kLower] = kInvalid; 
 }
 //------------------------------------------------------------------------------------------------------------------------
 LStrip::LStrip(Int_t uid, Int_t sector, Int_t box, Int_t detector, Int_t strip) 
  : LRectangle(), sectorID(sector), boxID(box),  detectorID(detector), stripID(strip) 
 { 
 	volumeUID = uid;
-	neighboring[kRight] = kInvalid; 
-	neighboring[kLeft] = kInvalid; 
+	neighboring[kUpper] = kInvalid; 
+	neighboring[kLower] = kInvalid; 
 }	
 //------------------------------------------------------------------------------------------------------------------------
-void		LStrip::Dump(const char* comment, ostream& out) const 
+void LStrip::Dump(const char* comment, ostream& out) const 
 { 	
 	if(comment) out<<comment; 
 	out<<"  ids: "<<sectorID<<", "<<boxID<<", "<<detectorID<<", "<<stripID; 
@@ -268,7 +268,7 @@ void		LStrip::Dump(const char* comment, ostream& out) const
 	LRectangle::Dump(nullptr, out);
 }
 //------------------------------------------------------------------------------------------------------------------------	
-Double_t 	LStrip::Distance(Side_t side, const LStrip& strip) 
+Double_t LStrip::Distance(Side_t side, const LStrip& strip)
 {
 	Double_t value, min1 = 1.e+10, min2 = 1.e+10; // big value
 	
@@ -278,8 +278,8 @@ Double_t 	LStrip::Distance(Side_t side, const LStrip& strip)
 	TVector3 *p1, *p2;
 	switch(side)
 	{
-		case kRight: 	p1 = &A; p2 = &D; break;	
-		case kLeft: 	p1 = &B; p2 = &C; break;				
+		case kUpper: 	p1 = &C; p2 = &D; break;	
+		case kLower: 	p1 = &A; p2 = &B; break;				
 	};
 
 	value 	= fabs((*p1 - strip.A).Mag());	min1 = (value < min1) ? value : min1; 
@@ -292,7 +292,7 @@ Double_t 	LStrip::Distance(Side_t side, const LStrip& strip)
 	value 	= fabs((*p2 - strip.C).Mag());	min2 = (value < min2) ? value : min2;	
 	value 	= fabs((*p2 - strip.D).Mag());	min2 = (value < min2) ? value : min2;
 	
-return min1 + min2;
+	return min1 + min2;
 }	
 //------------------------------------------------------------------------------------------------------------------------
 int BmnTofGeoUtils::readGeom(const char *geomfile)

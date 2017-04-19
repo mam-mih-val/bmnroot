@@ -28,7 +28,7 @@ static Float_t workTime = 0.0;
 ClassImp(BmnTofHitProducer)
 //--------------------------------------------------------------------------------------------------------------------------------------
 BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Bool_t useMCdata, Int_t verbose, Bool_t test)
-:  BmnTofHitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(1./sqrt(12.)), fErrY(0.5), pRandom(new TRandom2), h2TestStrips(nullptr) , h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
+:  BmnTofHitProducerIdeal(name, useMCdata, verbose, test), fTimeSigma(0.100), fErrX(0.5), fErrY(1./sqrt(12.)), pRandom(new TRandom2), h2TestStrips(nullptr) , h1TestDistance(nullptr), h2TestNeighborPair(nullptr),
 	fDoINL(true), fDoSlewing(true), fSignalVelosity(0.060)
 {
 	pGeoUtils = new BmnTofGeoUtils;
@@ -37,11 +37,11 @@ BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Boo
     	if(fDoTest) 
     	{	
     		fTestFlnm = "test.BmnTofHitProducer.root";	
-    		effTestEfficiencySingleHit = new TEfficiency("TOF700_effSingleHit", "Efficiency single hit;R, cm;Side", 10000, -0.1, 1.); 						fList.Add(effTestEfficiencySingleHit);
-		effTestEfficiencyDoubleHit = new TEfficiency("TOF700_effDoubleHit", "Efficiency double hit;R, cm;Side", 10000, -0.1, 1.); 						fList.Add(effTestEfficiencyDoubleHit);
+    		effTestEfficiencySingleHit = new TEfficiency("TOF700_effSingleHit", "Efficiency single hit;R, cm;Side", 10000, -0.1, 2.); 						fList.Add(effTestEfficiencySingleHit);
+		effTestEfficiencyDoubleHit = new TEfficiency("TOF700_effDoubleHit", "Efficiency double hit;R, cm;Side", 10000, -0.1, 2.); 						fList.Add(effTestEfficiencyDoubleHit);
     	
 		h1TestDistance = new TH1D("TOF700_TestDistance", "Distance between strips;M, cm;Side", 1000, 0., 100.); 								fList.Add(h1TestDistance);
-     		h2TestStrips = new TH2D("TOF700_TestStrips", ";Z, cm;#phi, rads", 2000, -300., 300., 500, -3.5, 3.5);									fList.Add(h2TestStrips); 
+//     		h2TestStrips = new TH2D("TOF700_TestStrips", ";Z, cm;#phi, rads", 2000, -300., 300., 500, -3.5, 3.5);									fList.Add(h2TestStrips); 
      	
  		h2TestNeighborPair = new TH2D("TOF700_TestNeighborPair", "Neighbor strip pairs test;stripID1;stripID2", 100, -0.5, 49.5, 100, -0.5, 49.5);				fList.Add(h2TestNeighborPair);		
 		h2TestXYSmeared = new TH2D("TOF700_TestXYSmeared", "Smeared XY (single hit) test;#DeltaX, cm;#DeltaY, cm", 1000, -1., 1., 1000, -2., 2.);				fList.Add(h2TestXYSmeared);
@@ -49,9 +49,9 @@ BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Boo
 		h2TestXYSmearedDouble = new TH2D("TOF700_TestXYSmearedDouble", "Smeared XY (double hit) test;#DeltaX, cm;#DeltaY, cm", 1000, -2., 2., 1000, -2., 2.);			fList.Add(h2TestXYSmearedDouble);
 		h2TestXYSmearedDouble2 = new TH2D("TOF700_TestXYSmearedDouble2", "Smeared XY (double hit) test;X, cm;Y, cm", 1000, -180., 180., 1000, -180., 180.);			fList.Add(h2TestXYSmearedDouble2);
 				
-		h2TestEtaPhi = new TH2D("TOF700_TestEtaPhi", ";#eta;#phi, degree", 1000, -1.6, 1.6, 1000, -181., 181.);								fList.Add(h2TestEtaPhi);
+		h2TestEtaPhi = new TH2D("TOF700_TestEtaPhi", ";#eta;#phi, degree", 1000, -5., +5., 1000, -181., 181.);								fList.Add(h2TestEtaPhi);
 		h2TestRZ = new TH2D("TOF700_TestRZ", ";X, cm;Y, cm", 1000, -300., 300., 1000, -200., 200.);										fList.Add(h2TestRZ);
-		h2TdetIdStripId = new TH2D("TOF700_TdetIdStripId", ";stripId;detId", 100, -0.5, 99.5, 21, -0.5, 20.5);									fList.Add(h2TdetIdStripId);		
+		h2TdetIdStripId = new TH2D("TOF700_TdetIdStripId", ";stripId;detId", 100, -0.5, 99.5, 26, -0.5, 25.5);									fList.Add(h2TdetIdStripId);		
     	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -159,9 +159,11 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 			Double_t time = pRandom->Gaus(pPoint->GetTime(), fTimeSigma); // 100 ps		
 			pPoint->Position(pos);
 	
+//			const LStrip *pStrip = pGeoUtils->FindStrip(UID, pos);
 			const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+			if (pStrip == NULL) continue;
 		
-			XYZ_smeared.SetXYZ( pStrip->center.X(), pRandom->Gaus(pos.Y(), fErrY), pStrip->center.Z());
+			XYZ_smeared.SetXYZ( pRandom->Gaus(pos.X(), fErrX), pStrip->center.Y(), pStrip->center.Z());
 
 			LStrip::Side_t side;
 			Double_t distance = pStrip->MinDistanceToEdge(&pos, side); // [cm]
@@ -174,10 +176,13 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 
 			 	if(fDoTest)
 			 	{
+                        		Int_t strip = BmnTOFPoint::GetStrip(UID);
+                        		Int_t chamber = BmnTOFPoint::GetChamber(UID);
 			 		h2TestXYSmeared->Fill(pos.X() - XYZ_smeared.X(), pos.Y() - XYZ_smeared.Y());
 			 		h2TestXYSmeared2->Fill(XYZ_smeared.X(), XYZ_smeared.Y());
 			 		h2TestEtaPhi->Fill(pos.Eta(), pos.Phi()*TMath::RadToDeg());
 			 		h2TestRZ->Fill(pos.X(), pos.Y());
+                        		h2TdetIdStripId->Fill(strip, chamber);
 			 	}
 			} 
 		
@@ -190,14 +195,14 @@ void BmnTofHitProducer::Exec(Option_t* opt)
   				if(LStrip::kInvalid  == CrossUID) continue; // last strip on module
   			
   				pStrip = pGeoUtils->FindStrip(CrossUID);
-        			XYZ_smeared.SetXYZ( pStrip->center.X(), pRandom->Gaus(pos.Y(), fErrY), pStrip->center.Z());
+        			XYZ_smeared.SetXYZ( pRandom->Gaus(pos.X(), fErrX), pStrip->center.Y(), pStrip->center.Z());
         			
         			AddHit(CrossUID, XYZ_smeared, XYZ_err, pointIndex, trackID, time); 
         			nDoubleHits++;
   			
         			if(fDoTest)
         			{
-        				h2TestXYSmearedDouble->Fill((pos - XYZ_smeared).Mag(), pos.Z() - XYZ_smeared.Z());
+        				h2TestXYSmearedDouble->Fill((pos - XYZ_smeared).Mag(), pos.Y() - XYZ_smeared.Y());
         				h2TestXYSmearedDouble2->Fill(XYZ_smeared.X(), XYZ_smeared.Y());
         			}
         		}
@@ -220,7 +225,6 @@ void BmnTofHitProducer::Exec(Option_t* opt)
                             Int_t strip = BmnTOFPoint::GetStrip(UID);
                             Int_t chamber = BmnTOFPoint::GetChamber(UID);
 
-                            if(fDoTest) h2TdetIdStripId->Fill(strip, chamber);
 
                             const LStrip *pStrip = pGeoUtils->FindStrip(UID);
                             if (GetCrossPoint(pStrip, pDigit->GetDiff(), crosspoint)) // crosspoint inside strip edges

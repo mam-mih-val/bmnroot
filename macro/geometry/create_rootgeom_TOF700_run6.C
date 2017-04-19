@@ -60,16 +60,18 @@ void create_rootgeom_TOF700_run6() {
     geoFileName = geoPath + "/geometry/" + geoDetectorName + "_"+ geoDetectorVersion + ".root";
     // --------------------------------------------------------------------------  
     // Modules Y centers
+    Double_t dy = 0.;
     for (int i = 0; i < TOF2_Nmodules; i++)
     {
+	dy = (ymins[i][nstrips[i]-1] - ymaxs[i][nstrips[i]-2])/2.;
 	TOF2_X_center[i] = xcens[i][nstrips[i]-1];
-	TOF2_Y_center[i] = (ycens[i][nstrips[i]-1] + ycens[i][0]);
+	TOF2_Y_center[i] = (ycens[i][nstrips[i]-1] + ycens[i][0])/2.;
 	TOF2_Z_center[i] = zchamb[i];
 	printf("Chamber %d  Z = %f\n", i+1, TOF2_Z_center[i]);
 	XActWidthOfModule_TOF2[chtype[i]] = xmaxs[i][0] - xmins[i][0];
-	YActWidthOfModule_TOF2[chtype[i]] = ymaxs[i][nstrips[i]-1] - ymins[i][0];
+	YActWidthOfModule_TOF2[chtype[i]] = ymaxs[i][nstrips[i]-1] - ymins[i][0] + dy;
 	XWidthOfModule_TOF2[chtype[i]] = xmaxs[i][0] - xmins[i][0] + 3.0;
-	YWidthOfModule_TOF2[chtype[i]] = ymaxs[i][nstrips[i]-1] - ymins[i][0] + 3.0;
+	YWidthOfModule_TOF2[chtype[i]] = ymaxs[i][nstrips[i]-1] - ymins[i][0] + dy + 3.0;
     }
     // Container size calculations
     Double_t xmin =  10000., ymin =  10000., zmin =  10000.;
@@ -200,6 +202,7 @@ void create_rootgeom_TOF700_run6() {
     TGeoVolume *TOF2ActiveGasVolumeV[2];
     TGeoVolume *TOF2G10VolumeV[2];
 
+    int nstr[2] = {32,16};
     for (int i = 0; i<2; i++)
     {
 	TOF2ModuleS[i] = new TGeoBBox(nTOF2ModuleS[i], XWidthOfModule_TOF2[i]/2+0.001, YWidthOfModule_TOF2[i]/2+0.001, ZWidthOfModule_TOF2/2+0.001);   
@@ -224,6 +227,7 @@ void create_rootgeom_TOF700_run6() {
 	TOF2ActiveGasVolumeV[i] = new TGeoVolume(nTOF2ActiveGasVolumeV[i], TOF2ActiveGasVolumeS[i]);
 	TOF2ActiveGasVolumeV[i]->SetMedium(pMedRPCgas);
 	TOF2ActiveGasVolumeV[i]->SetLineColor(kYellow);
+	TOF2ActiveGasVolumeV[i]->Divide("ActiveGasStrip",2,nstr[i],0,-1);
     
 	TOF2G10VolumeV[i] = new TGeoVolume(nTOF2G10VolumeV[i], TOF2G10VolumeS[i]);
 	TOF2G10VolumeV[i]->SetMedium(medG10);
@@ -240,8 +244,10 @@ void create_rootgeom_TOF700_run6() {
     Int_t nm[2] = {0};
     for (int i = 0; i < TOF2_Nmodules; i++)
     {
-	TOF2Top->AddNode(TOF2ModuleV[chtype[i]], nm[chtype[i]]+1, ModulePosTOF2_trans[i]);
-	nm[chtype[i]]++;
+//	TOF2Top->AddNode(TOF2ModuleV[chtype[i]], nm[chtype[i]]+1, ModulePosTOF2_trans[i]);
+//	nm[chtype[i]]++;
+	TOF2Top->AddNode(TOF2ModuleV[chtype[i]], nm[0]+1, ModulePosTOF2_trans[i]);
+	nm[0]++;
     }
  
     top->AddNode(TOF2Top, 0);

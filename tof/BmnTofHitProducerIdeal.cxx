@@ -22,8 +22,8 @@ BmnTofHitProducerIdeal::BmnTofHitProducerIdeal(const char *name, Bool_t useMCdat
 { 
         if(fDoTest)
     	{
-    		h1TestOccup = new TH1D("TestOccup", "occupancy per strips;occupancy;Events", 100, -0.5, 99.5); 									fList.Add(h1TestOccup); 
-       		h2TestMergedTimes = new TH2D("TestMergedTimes", "Merged hits on strip times test;faster hit time, ns;slower hit time, ns", 1000, 5., 105., 1000, 5., 105.);	fList.Add(h2TestMergedTimes);	
+    		h1TestOccup = new TH1D("TOF700_TestOccup", "occupancy per strips;occupancy;Events", 100, -0.5, 99.5); 									fList.Add(h1TestOccup); 
+       		h2TestMergedTimes = new TH2D("TOF700_TestMergedTimes", "Merged hits on strip times test;faster hit time, ns;slower hit time, ns", 1000, 5., 105., 1000, 5., 105.);	fList.Add(h2TestMergedTimes);	
     	}
 }
 //------------------------------------------------------------------------------------------------------------------------

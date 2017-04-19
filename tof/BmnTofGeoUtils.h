@@ -111,6 +111,7 @@ public:
 	void			ParseTGeoManager(bool useMCinput, TH2D* h1 = nullptr, bool forced = false);
 	void			ParseStripsGeometry(const char *geomFile);
 	const LStrip*		FindStrip(Int_t UID);
+	const LStrip*		FindStrip(Int_t UID, TVector3& p);
 	int			readGeom(const char *);
 
 };

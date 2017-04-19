@@ -37,7 +37,7 @@ void BmnTofGeoUtils::FindNeighborStrips(TH1D* h1, TH2D* h2, bool doTest)
 		{
 			strip2 = &(it2->second);
 	
-			// CATION: Ckeck  only left and right sides(one row strips NOW) 
+			// CATION: Ckeck  only upper and lower sides(one horizontal strips NOW) 
 			distance = strip1->Distance(LStrip::kUpper, *strip2); if(doTest)  h1->Fill(distance);		
 			if(distance < 0.8) // CAUTION: constant depends on the geometry layout(see h1TestDistance histo)
 			{
@@ -49,7 +49,8 @@ void BmnTofGeoUtils::FindNeighborStrips(TH1D* h1, TH2D* h2, bool doTest)
 			if(distance < 0.8) // CAUTION: constant depends on the geometry layout(see h1TestDistance histo)
 			{
 				strip1->neighboring[LStrip::kLower] = strip2->volumeUID; NL++;
-				if(doTest) h2->Fill( strip2->stripID, strip1->stripID);	
+//				if(doTest) h2->Fill( strip2->stripID, strip1->stripID);	
+				if(doTest) h2->Fill( strip1->stripID, strip2->stripID);	
 			}			
 
 		}// cycle2 by strips	
@@ -180,6 +181,22 @@ const LStrip* BmnTofGeoUtils::FindStrip(Int_t UID)
 	MStripCIT cit = mStrips.find(UID);
 	assert(cit != mStrips.end());
 	return &(cit->second);
+}
+//------------------------------------------------------------------------------------------------------------------------
+const LStrip* BmnTofGeoUtils::FindStrip(Int_t UID, TVector3& p) 
+{
+	Int_t uid = UID;
+	Int_t i = (UID>>8) - 1;
+      	for ( int j = 0; j < nstrips[i]; j++ )		// strips
+	{
+	    if ((p.X() < (xmins[i][j]-0.05)) || (p.X() > (xmaxs[i][j]+0.05))) continue;
+	    if ((p.Y() < (ymins[i][j]-0.05)) || (p.Y() > (ymaxs[i][j]+0.05))) continue;
+	    uid |= (j+1);
+	    return FindStrip(uid);
+	}
+	printf("Point XYZ %f %f %f\n", p.X(), p.Y(), p.Z());
+	printf("Strip not found UID = %d (UID>>8-1) %d nstrips %d %f %f %f %f\n", UID, i, nstrips[i], xmins[i][0], xmaxs[i][0], ymins[i][0], ymaxs[i][0]);
+	return NULL;
 }
 //------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------
@@ -341,7 +358,7 @@ int BmnTofGeoUtils::readGeom(const char *geomfile)
 		ymaxs[c][ns] = ycens[c][ns] + halfywidth[c];
 //		printf("C %d S %d %f %f %f %f %f\n",ic,n,zchamb[c],xmins[c][ns],xmaxs[c][ns],ymins[c][ns],ymaxs[c][ns]);
 		}
-		printf("%s ns=%d step=%f sx=%f sy=%f x=%f y=%f z=%f\n",ic,n,step,sx,sy,x,y,z);
+//		printf("%s ns=%d step=%f sx=%f sy=%f x=%f y=%f z=%f\n",ic,n,step,sx,sy,x,y,z);
 		c++;
 		if (c >= TOF2_MAX_CHAMBERS) break;
 	}

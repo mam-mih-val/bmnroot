@@ -86,9 +86,12 @@ Bool_t BmnTOF::ProcessHits(FairVolume* vol)
 		Int_t fTrackID = gMC->GetStack()->GetCurrentTrackNumber();
 assert(fTrackID>=0);
 
-		Int_t  region=0, detector, strip; 	
+		Int_t  region = 0, detector = 0, strip = 0;
+//		Int_t  mod = 0;
 		gMC->CurrentVolOffID(0, strip);
-		gMC->CurrentVolOffID(1, detector);
+//		gMC->CurrentVolOffID(1, mod);
+		gMC->CurrentVolOffID(2, detector);
+//		cout<<"-I- BmnTOF: strip = " << strip << " chamber " << detector << " mod " << mod << "\n";
 			
 		Int_t fVolumeID = BmnTOFPoint::GetVolumeUID(region, detector, strip);
 

@@ -13,7 +13,7 @@ static Float_t workTime = 0.0;
 
 const UInt_t kNHITSFORSEED = 12; // we use for seeds only kNHITSFORSEED hits
 const UInt_t kMAXSTATIONFORSEED = 5; // we start to search seeds only from stations in range from 0 up to kMAXSTATIONFORSEED
-const Float_t kLINECHICUT = 1.0;
+const Float_t kLINECHICUT = 0.5;
 
 using namespace std;
 using namespace TMath;
@@ -578,7 +578,8 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     Float_t Cov_Qp_Qp(0.0);
     Float_t Q = (lastHit->GetX() - firstHit->GetX() > 0) ? +1 : -1; //tr->GetParamFirst()->GetQp()) > 0.0 ? +1 : -1;
     //Q *= 2; // A/Z (for deuteron and C it is equal 2)
-    Float_t S = 0.0003 * (fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
+//    Float_t S = 0.0003 * (fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
+    Float_t S = 0.0003 * (fField->GetBy(lastHit->GetX(), lastHit->GetY(), lastHit->GetZ()));
     Float_t QP = Q / S / Sqrt(R * R + B * B);
 
     for (UInt_t i = 0; i < nHits; ++i) {
@@ -688,7 +689,8 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     if (!IsParCorrect(&par)) return kBMNERROR;
 
     //update for firstParam
-    const Float_t PxzFirst = 0.0003 * fField->GetBy(fX, fY, fZ) * R; // Pt
+//    const Float_t PxzFirst = 0.0003 * fField->GetBy(fX, fY, fZ) * R; // Pt
+    const Float_t PxzFirst = PxzLast;
     if (Abs(PxzFirst) < 0.00001) return kBMNERROR;
     const Float_t PzFirst = PxzFirst / Sqrt(1 + Sqr(Tx_first));
     const Float_t PxFirst = PzFirst * Tx_first;

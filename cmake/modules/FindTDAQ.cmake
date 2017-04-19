@@ -4,6 +4,7 @@
 #  TDAQ_INCLUDE_PATH - the TDAQ include directory
 #  TDAQ_LIBRARY_PATH - the TDAQ library directory
 
+set(TDAQ_FOUND false)
 if (NOT TDAQ_SW)
   FIND_PATH(TDAQ_SW NAMES ipc_root.ref PATHS
     /tdaq/tdaq_sw
@@ -13,12 +14,12 @@ endif (NOT TDAQ_SW)
 
 if (NOT TDAQ_LIBRARY_PATH)
   FIND_PATH(TDAQ_EMON_LIBRARY_DIR NAMES libemon.so PATHS
-    ${TDAQ_SW_DIR}/emon/lib
+    ${TDAQ_SW}/emon/lib
     /tdaq/tdaq_sw/emon/lib
     NO_DEFAULT_PATH
   )
   FIND_PATH(TDAQ_IS_LIBRARY_DIR NAMES libXm.so PATHS
-    ${TDAQ_SW_DIR}/is/lib
+    ${TDAQ_SW}/is/lib
     /tdaq/tdaq_sw/is/lib
     NO_DEFAULT_PATH
   )
@@ -29,17 +30,17 @@ if (NOT TDAQ_LIBRARY_PATH)
 endif (NOT TDAQ_LIBRARY_PATH)
 
 FIND_PATH(TDAQ_SW_INCLUDE_DIR NAMES ers/ers.h PATHS
-  ${TDAQ_SW_DIR}/include
+  ${TDAQ_SW}/include
   /tdaq/tdaq_sw/include
   NO_DEFAULT_PATH
 )
 FIND_PATH(TDAQ_EMON_INCLUDE_DIR NAMES emon/emon.hh PATHS
-  ${TDAQ_SW_DIR}/emon/include
+  ${TDAQ_SW}/emon/include
   /tdaq/tdaq_sw/emon/include
   NO_DEFAULT_PATH
 )
 FIND_PATH(TDAQ_IS_INCLUDE_DIR NAMES is/is.hh PATHS
-  ${TDAQ_SW_DIR}/is/include
+  ${TDAQ_SW}/is/include
   /tdaq/tdaq_sw/is/include
   NO_DEFAULT_PATH
 )
@@ -50,7 +51,8 @@ endif (TDAQ_SW_INCLUDE_DIR AND TDAQ_EMON_INCLUDE_DIR AND TDAQ_IS_INCLUDE_DIR)
 
 
 if (TDAQ_SW AND TDAQ_INCLUDE_PATH AND TDAQ_LIBRARY_PATH)
-  set(TDAQ_FOUND TRUE)
+  set(TDAQ_FOUND true)
+  set(TDAQ_IPC_INIT_REF file:${TDAQ_SW}/ipc_root.ref)
   
   if (NOT TDAQ_FIND_QUIETLY)
     MESSAGE(STATUS "Looking for ATLAS TDAQ... found ${TDAQ_SW}")

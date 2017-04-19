@@ -163,6 +163,7 @@ class BmnPullSampling : public PullSampling
     void sampleEvent(EventChannel& cc)
     {
         DigiArrays iterDigi;
+        TBufferFile t(TBuffer::kWrite);
         bool isFoundEvent = false;
         while (!isFoundEvent)
         {
@@ -181,7 +182,6 @@ class BmnPullSampling : public PullSampling
                 continue;
             }
 
-            cout<<"EventId = "<<rawDataDecoder->GetEventId()<<", uiCurrentEvent = "<<uiCurrentEvent<<endl;
             if (uiCurrentEvent >= rawDataDecoder->GetEventId())
                 continue;
             uiCurrentEvent = rawDataDecoder->GetEventId();
@@ -198,25 +198,25 @@ class BmnPullSampling : public PullSampling
         }
 
          // write digit array to the buffer in order to send to EventChannel
-         TBufferFile t(TBuffer::kWrite);
          t.Reset();
          t.WriteObject(&iterDigi);
 
          // Create and fill the actual buffer of the current event
          UInt_t event_length = t.Length();
          iovec* event = new iovec[0];
-         UInt_t full_length = event_length + (event_length % 4);
-         event[0].iov_len = 2*sizeof(int) + full_length; // + 1 int for event number + 1 int for real size
+         int add_length = (event_length % 4), head_length = 2*sizeof(int);
+         UInt_t full_length = event_length + add_length;
+         event[0].iov_len = full_length + head_length; // + 1 int for event number + 1 int for real size
          event[0].iov_base = new caddr_t[event[0].iov_len];
-         memset(event[0].iov_base, 0, full_length);
 
-         ERS_INFO("Event "<<(rawDataDecoder->GetEventId()+1)<<" size is "<<full_length<<" ("<<event_length<<") bytes"<<" + event id + real length");
+         //ERS_INFO("Event "<<(uiCurrentEvent+1)<<" size is "<<full_length<<" ("<<event_length<<") bytes"<<" + event id + real length");
 
          // copy the buffer with digit array to event structure
          unsigned int* pUInt = (unsigned int*) event[0].iov_base;
-         pUInt[0] = rawDataDecoder->GetEventId();;
-         pUInt[1] = event_length; //rawDataDecoder->GetRunId();
+         pUInt[0] = uiCurrentEvent;
+         pUInt[1] = event_length;
          memcpy((void*)&pUInt[2], t.Buffer(), event_length);
+         if (add_length > 0) memset(((char*)(event[0].iov_base)) + event_length + head_length, 0, add_length);
 
          ERS_DEBUG(3, "Sending event to the consumer");
          cc.pushEvent(event, 1);

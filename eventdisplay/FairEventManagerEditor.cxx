@@ -49,6 +49,7 @@ FairEventManagerEditor::FairEventManagerEditor(const TGWindow* p, Int_t width, I
    fMaxEnergy(0),
    iEventNumber(-1),
    iEventCount(-1),
+   isStreamSource(false),
    iThreadState(0)
 {
     Init();
@@ -63,10 +64,17 @@ void FairEventManagerEditor::Init()
     TGVerticalFrame* fInfoFrame = CreateEditorTabSubFrame("Event Info");
     TGCompositeFrame* title1 = new TGCompositeFrame(fInfoFrame, 250, 10, kVerticalFrame | kLHintsExpandX | kFixedWidth | kOwnBackground);
 
-    // display file name
-    TString Infile = "File: ";
-    Infile += chain->GetFile()->GetName();
-    TGLabel* TFName = new TGLabel(title1, Infile.Data());
+    // display file name (or stream name if no input file)
+    TString InSource = "File: ";
+    TFile* pChainFile = chain->GetFile();
+    if (pChainFile == NULL)
+    {
+        InSource = "TDAQ stream is active";
+        isStreamSource = true;
+    }
+    else
+        InSource += pChainFile->GetName();
+    TGLabel* TFName = new TGLabel(title1, InSource.Data());
     title1->AddFrame(TFName);
 
     // textbox for Run ID and time cutting
@@ -98,7 +106,7 @@ void FairEventManagerEditor::Init()
                         TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative, TGNumberFormat::kNELLimitMinMax, 0, iEventCount-1);
     f->AddFrame(fCurrentEvent, new TGLayoutHints(kLHintsLeft, 1, 1, 1, 1));
     fCurrentEvent->Connect("ValueSet(Long_t)","FairEventManagerEditor", this, "SelectEvent()");
-    if (iEventCount< 1)
+    if (iEventCount < 1)
         fCurrentEvent->SetState(kFALSE);
 
     //Button for save image (EVE screenshot)
@@ -220,15 +228,15 @@ void FairEventManagerEditor::Init()
     // add all frame above to "event info" tab
     fInfoFrame->AddFrame(title1, new TGLayoutHints(kLHintsTop, 0, 0, 2, 0));
 
-    if (iEventCount < 1)
+    if ((iEventCount < 1) && (!isStreamSource))
     {
         fUpdate->SetEnabled(kFALSE);
         return;
     }
 
-    // read first event
     iEventNumber = 0;
-    fManager->GotoEvent(iEventNumber);
+    // read first event in offline mode
+    //fManager->GotoEvent(iEventNumber);
 
     // first time checking for active buttons
     if (fManager->EveMCPoints == NULL)
@@ -613,7 +621,8 @@ void FairEventManagerEditor::SelectEvent()
 }
 
 
-// update event display when clicking Update button
+// clicking 'Update event' or 'Start online display' button
+// Update event display or Start/Stop online event display
 void FairEventManagerEditor::UpdateEvent()
 {
     if (iThreadState == 1)
@@ -671,6 +680,7 @@ void FairEventManagerEditor::UpdateEvent()
         if ((fManager->isZDCModule) && (fShowMCPoints->IsOn()))
             par_online_display->isZDCRedraw = true;
         par_online_display->iCurrentEvent = fCurrentEvent->GetIntNumber();
+        par_online_display->isStreamSource = isStreamSource;
 
         TThread* thread_run_online = new TThread(RunOnlineDisplay, (void*)par_online_display);
         iThreadState = 1;
@@ -678,6 +688,60 @@ void FairEventManagerEditor::UpdateEvent()
 
         return;
     }
+}
+
+// thread function for Online Display
+void* RunOnlineDisplay(void* ptr)
+{
+    ThreadParam_OnlineDisplay* thread_par = (ThreadParam_OnlineDisplay*) ptr;
+    FairEventManager* fManager = thread_par->fEventManager;
+    FairEventManagerEditor* fEditor = thread_par->fManagerEditor;
+    FairRootManager* fRootManager = thread_par->fRootManager;
+    int current_event = thread_par->iCurrentEvent;
+    bool stream_source = thread_par->isStreamSource;
+    bool isZDCRedraw = thread_par->isZDCRedraw;
+
+    // get all tasks from FairRunAna
+    FairRunAna* pRun = fManager->fRunAna;
+    FairTask* pMainTask = pRun->GetMainTask();
+    TList* taskList = pMainTask->GetListOfTasks();
+
+    for (int i = current_event+1; ((stream_source) || (i < fEditor->iEventCount)); i++)
+    {
+        if (fEditor->iThreadState == 0)
+            break;
+        do
+        {
+            TThread::Sleep(0, 200000000);
+        } while ((gEve->GetGlobalScene()->GetGLScene()->IsLocked()) || (gEve->GetEventScene()->GetGLScene()->IsLocked()));
+
+        fRootManager->ReadEvent(i);
+        fManager->SetCurrentEvent(i);
+
+        // run all tasks
+        TObjLink *lnk = taskList->FirstLink();
+        while (lnk)
+        {
+            FairTask* pCurTask = (FairTask*) lnk->GetObject();
+            pCurTask->ExecuteTask("");
+            lnk = lnk->Next();
+        }
+
+        fEditor->fCurrentEvent->SetIntNumber(i);
+
+        // highlight ZDC modules if ZDC present
+        if (isZDCRedraw)
+            fEditor->RedrawZDC();
+
+        // redraw points
+        cout<<"Redrawing event #"<<i<<"..."<<endl<<endl;
+        gEve->Redraw3D();
+        //TThread::Sleep(1,0);
+        //gSystem->ProcessEvents();
+    }
+
+    fEditor->UnblockUI();
+    fEditor->iThreadState = 0;
 }
 
 void FairEventManagerEditor::SaveImage()
@@ -692,60 +756,4 @@ void FairEventManagerEditor::SaveImage()
     gEve->GetDefaultGLViewer()-> SavePicture(fi.fFilename);
 
     return;
-}
-
-// thread function for Online Display
-void* RunOnlineDisplay(void* ptr)
-{
-    ThreadParam_OnlineDisplay* thread_par = (ThreadParam_OnlineDisplay*) ptr;
-    FairEventManager* fManager = thread_par->fEventManager;
-    FairEventManagerEditor* fEditor = thread_par->fManagerEditor;
-    FairRootManager* fRootManager = thread_par->fRootManager;
-    int current_event = thread_par->iCurrentEvent;
-    bool isZDCRedraw = thread_par->isZDCRedraw;
-
-    // get all tasks from FairRunAna
-    FairRunAna* pRun = fManager->fRunAna;
-    FairTask* pMainTask = pRun->GetMainTask();
-    TList* taskList = pMainTask->GetListOfTasks();
-
-    int i;
-    for (i = current_event+1; i < fEditor->iEventCount; i++)
-    {
-        if (fEditor->iThreadState == 0)
-            break;
-        do
-        {
-            TThread::Sleep(0, 200000000);
-        } while ((gEve->GetGlobalScene()->GetGLScene()->IsLocked()) || (gEve->GetEventScene()->GetGLScene()->IsLocked()));
-
-        fRootManager->ReadEvent(i);
-        fManager->SetCurrentEvent(i);
-
-        cout<<"Current event: "<<i<<endl;
-
-        int iter = 1;
-        TObjLink *lnk = taskList->FirstLink();
-        while (lnk)
-        {
-            FairTask* pCurTask = (FairTask*) lnk->GetObject();
-            pCurTask->ExecuteTask("");
-            cout<<"Complete task: "<<iter++<<endl;
-            lnk = lnk->Next();
-        }
-
-        fEditor->fCurrentEvent->SetIntNumber(i);
-
-        // highlight ZDC modules if ZDC present
-        if (isZDCRedraw)
-            fEditor->RedrawZDC();
-
-        // redraw points
-        gEve->Redraw3D();
-        //TThread::Sleep(1,0);
-        //gSystem->ProcessEvents();
-    }
-
-    fEditor->UnblockUI();
-    fEditor->iThreadState = 0;
 }

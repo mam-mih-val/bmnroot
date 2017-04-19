@@ -1,11 +1,11 @@
 ////////////////////////////////////////////
-//    BmnEventMonitor.cxx
-//    BM@N Event Monitoring Task implementation
+//    BmnTdaqSource.cxx
+//    BM@N TDAQ Source implementation
 //    Konstantin Gertsenberger
-//    Created: Sep. 28 2016
+//    Created: Apr. 18 2017
 ////////////////////////////////////////////
 
-#include "BmnEventMonitor.h"
+#include "BmnTdaqSource.h"
 #include "BmnRawDataDecoder.h"
 #include "FairRootManager.h"
 
@@ -13,7 +13,6 @@
 
 #include <signal.h>
 #include <iostream>
-
 using namespace std;
 
 int ReceivedSignal = 0;
@@ -22,7 +21,8 @@ void signal_handler(int sig) { ReceivedSignal = sig; }
 unique_ptr<emon::EventIterator> it;
 OWLTimer timer;
 
-BmnEventMonitor::BmnEventMonitor()
+BmnTdaqSource::BmnTdaqSource()
+  : FairOnlineSource()
 {
     strPartitionName = "mpd";
     strSamplingType = "raw";
@@ -30,7 +30,6 @@ BmnEventMonitor::BmnEventMonitor()
 
     isDispersion = false;
     iWait = 10000;
-    iMaxEvents = 100;
     iRepetitions = 1;
     iBufferSize = 100;
     iAsync = 0;
@@ -38,16 +37,16 @@ BmnEventMonitor::BmnEventMonitor()
 
     iVerbose = 0;
 
-    iEventCount = 0;
+    iEventNumber = 0;
+    fEventHeader = NULL;
+    fGemDigits = NULL;
 }
 
-BmnEventMonitor::BmnEventMonitor(TString partition_name, TString sampling_type, TString sampling_name, int max_events, Int_t verbose)
+BmnTdaqSource::BmnTdaqSource(TString partition_name, TString sampling_type, TString sampling_name, Int_t verbose)
 {
     strPartitionName = partition_name;
     strSamplingType = sampling_type;
     strSamplingName = sampling_name;
-
-    iMaxEvents = max_events;
 
     isDispersion = false;
     iWait = 10000;
@@ -58,30 +57,59 @@ BmnEventMonitor::BmnEventMonitor(TString partition_name, TString sampling_type, 
 
     iVerbose = verbose;
 
-    iEventCount = 0;
+    iEventNumber = 0;
+    fEventHeader = NULL;
+    fGemDigits = NULL;
 }
 
-BmnEventMonitor::~BmnEventMonitor()
+BmnTdaqSource::BmnTdaqSource(const BmnTdaqSource& source)
+  : FairOnlineSource(source),
+    strPartitionName(source.GetPartitionName()),
+    strSamplingType(source.GetSamplingType()),
+    strSamplingName(source.GetSamplingName()),
+    isDispersion(false),
+    iWait(10000),
+    iRepetitions(1),
+    iBufferSize(1),
+    iAsync(0),
+    iTimeout(10000),
+    iVerbose(source.GetVerbose()),
+    iEventNumber(0)
 {
-    if (it.get())
-        ERS_LOG("End of run, monitor dropped "<<it->eventsDropped()<<" events.");
-
-    //stop the timer
-    timer.stop();
-    ERS_LOG("Total number of events received : "<<iEventCount);
-    ERS_LOG("Total CPU Time : "<<timer.userTime() + timer.systemTime());
-    ERS_LOG("Total Time : "<<timer.totalTime());
-    ERS_LOG("Events/second : "<<iEventCount/timer.totalTime());
 }
 
-InitStatus BmnEventMonitor::Init()
+
+BmnTdaqSource::~BmnTdaqSource()
 {
-    cout<<"HERE!!!!!"<<endl;
+}
+
+
+Bool_t BmnTdaqSource::Init()
+{
     if (iVerbose > 1)
-        cout<<"BmnEventMonitor::Init()"<<endl;
+        cout<<"BmnTdaqSource::Init()"<<endl;
 
-    fGemDigits = new TClonesArray("BmnGemDigit");
-    FairRootManager::Instance()->Register("BmnGemDigit", "GEM", fGemDigits, kFALSE);
+    /*TObject** ppObj = new TObject*[fBranchList->GetEntries()];
+    for (int i = 0; i < fBranchList->GetEntries(); i++)
+    {
+        TBranch* pBranch = (TBranch*) fBranchList->At(i);
+        TString ObjName = pBranch->GetName();
+        LOG(DEBUG)<<"Branch name "<<ObjName.Data()<<FairLogger::endl;
+
+        fCheckInputBranches[chainName]->push_back(ObjName.Data());
+        FairRootManager::Instance()->AddBranchToList(ObjName.Data());
+
+        ppObj[i] = NULL;
+        //ActivateObject(&(ppObj[i]), ObjName);
+        fInChain->SetBranchAddress(ObjName, &ppObj[i]);
+        FairRootManager::Instance()->RegisterInputObject(ObjName, ppObj[i]);
+    }*/
+
+    fEventHeader = new TClonesArray("BmnEventHeader");
+    FairRootManager::Instance()->Register("EventHeader", "Event", fEventHeader, kFALSE);
+
+    fGemDigits = new TClonesArray("BmnGemStripDigit");
+    FairRootManager::Instance()->Register("GEM", "GEMDIR", fGemDigits, kFALSE);
 
     // initialize IPC
     try
@@ -93,11 +121,11 @@ InitStatus BmnEventMonitor::Init()
     {
         //SetActive(kFALSE);
         ers::fatal(ex);
-        return kERROR;
+        return kFALSE;
     }
 
     if (iVerbose > 1)
-        cout<<"BmnEventMonitor::Init() IPC was initialized"<<endl;
+        cout<<"BmnTdaqSource::Init() IPC was initialized"<<endl;
 
     CmdArgInt		lvl1_type ('L', "lvl1-type", "type", "lvl1_trigger type (default -1)" );
     CmdArgIntList	lvl1_bits ('B', "lvl1-bits", "bits", "non-zero bits positions in the LVL1 bit pattern", CmdArg::isLIST );
@@ -153,7 +181,7 @@ InitStatus BmnEventMonitor::Init()
         catch (emon::Exception& ex)
         {
             ers::error(ex);
-            if (iWait == 0) return kERROR;
+            if (iWait == 0) return kFALSE;
         }
 
         usleep(iWait * 1000);
@@ -161,25 +189,13 @@ InitStatus BmnEventMonitor::Init()
     ERS_LOG("Monitoring Task started");
 
     // Start the timer
-    timer.start( );
+    timer.start();
 
-    return kSUCCESS;
+    return kFALSE;
 }
 
-void BmnEventMonitor::Exec(Option_t* option)
+Int_t BmnTdaqSource::ReadEvent(UInt_t)
 {
-    //if (!IsActive())
-    //    return;
-
-    if (iEventCount >= iMaxEvents)
-        return;
-
-    if (ReceivedSignal)
-    {
-        cout<<"Received signal "<<ReceivedSignal<<", exiting ... "<<endl;
-        return;
-    }
-
     emon::Event event;
     // wait some time to simulate event processing in our sample application
     try
@@ -210,29 +226,29 @@ void BmnEventMonitor::Exec(Option_t* option)
         if (!iAsync)
         {
             ers::warning(ex);
-            return; // just keep on trying
+            return 0; // just keep on trying
         }
         else
-            return; // We do nothing here, we just keep on trying
+            return 0; // We do nothing here, we just keep on trying
     }
     catch (emon::SamplerStopped& ex)
     {
         // the sampler crashed or exitted...
         ers::error(ex);
-        return;
+        return 1;
     }
     catch (emon::Exception& ex)
     {
         // we actually have to exit here, or an uncatched NotInitialized
         // exception will be thrown on deletion of the iterator
         ers::fatal(ex);
-        return;
+        return 2;
     }
 
     unsigned int* data = (unsigned int*) event.data();
     unsigned int event_id = data[0];
     unsigned int event_length = data[1];
-    iEventCount++;
+    iEventNumber++;
 
     // get digit array
     TBufferFile t(TBuffer::kRead);
@@ -240,10 +256,10 @@ void BmnEventMonitor::Exec(Option_t* option)
     t.SetWriteMode();
     t.SetBuffer((char*)&data[2], event_length);
     t.SetReadMode();
- /* DigiArrays* fDigiArrays = (DigiArrays*) (t.ReadObject(DigiArrays::Class()));
+    DigiArrays* fDigiArrays = (DigiArrays*) (t.ReadObject(DigiArrays::Class()));
 
     if (iVerbose > 0)
-        cout<<"Event count = "<<iEventCount<<" Buffer occupancy = ["<<it->eventsAvailable()<<"/"<<iBufferSize<<"]"<<endl;
+        cout<<"Event count = "<<iEventNumber<<" Buffer occupancy = ["<<it->eventsAvailable()<<"/"<<iBufferSize<<"]"<<endl;
     if (iVerbose > 1)
     {
         cout<<"Event id = "<<event_id<<"\tEvent length = "<<event_length<<"\tFull size = "<<event.size()<<" DWORD"<<endl;
@@ -257,24 +273,52 @@ void BmnEventMonitor::Exec(Option_t* option)
         fDigiArrays->Clear();
         delete fDigiArrays;
         t.DetachBuffer();
-        return;
+        return 3;
     }
 
     // get event header
-    BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
-    Int_t runID = head->GetRunId();
-    usleep(1*1000000);
+    //BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
+    //cout<<"Current Run Id: "<<head->GetRunId()<<endl;
+    cout<<"Count of BmnEventHeader: "<<fDigiArrays->header->GetEntriesFast()<<endl;
+    cout<<"Count of GEM digits: "<<fDigiArrays->gem->GetEntriesFast()<<endl;
+    cout<<"Count of TOF digits: "<<fDigiArrays->tof400->GetEntriesFast()<<endl;
+
+    // move result TClonesArray to registered TClonesArray
+    fEventHeader->Delete();
+    fGemDigits->Delete();
+    fEventHeader->AbsorbObjects(fDigiArrays->header);
+    fGemDigits->AbsorbObjects(fDigiArrays->gem);
 
     fDigiArrays->Clear();
     delete fDigiArrays;
     t.DetachBuffer();
-*/
-    return;
+
+    return 0;
 }
 
-/** Action after each event**/
-void BmnEventMonitor::Finish()
+
+void BmnTdaqSource::Close()
 {
+    if (fEventHeader)
+    {
+        fEventHeader->Delete();
+        delete fEventHeader;
+    }
+    if (fGemDigits)
+    {
+        fGemDigits->Delete();
+        delete fGemDigits;
+    }
+
+    if (it.get())
+        ERS_LOG("End of run, monitor dropped "<<it->eventsDropped()<<" events.");
+
+    //stop the timer
+    timer.stop();
+    ERS_LOG("Total number of events received : "<<iEventNumber);
+    ERS_LOG("Total CPU Time : "<<timer.userTime() + timer.systemTime());
+    ERS_LOG("Total Time : "<<timer.totalTime());
+    ERS_LOG("Events/second : "<<iEventNumber/timer.totalTime());
 }
 
-ClassImp(BmnEventMonitor)
+ClassImp(BmnTdaqSource)

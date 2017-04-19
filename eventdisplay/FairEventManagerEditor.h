@@ -24,6 +24,7 @@ struct ThreadParam_OnlineDisplay
     FairEventManagerEditor* fManagerEditor;
     FairRootManager* fRootManager;
     int iCurrentEvent;
+    bool isStreamSource;
     bool isZDCRedraw;
 };
 
@@ -81,6 +82,7 @@ class FairEventManagerEditor : public TGedFrame
 
     // event count
     int iEventCount;
+    bool isStreamSource;
     // 'Update' button
     TGTextButton* fUpdate;
     TGPictureButton* fSave;

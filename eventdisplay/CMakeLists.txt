@@ -90,8 +90,9 @@ if (TDAQ_FOUND)
   )
   Set(SRCS
     ${SRCS} 
-    tdaq/BmnEventMonitor.cxx
     tdaq/BmnEventPull.cxx
+    #tdaq/BmnEventMonitor.cxx
+    tdaq/BmnTdaqSource.cxx
   )
 endif (TDAQ_FOUND)
 
@@ -125,9 +126,9 @@ endif (BMNROOT)
 Set(LIBRARY_NAME EventDisplay)
 
 if (TDAQ_FOUND)
-  Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2 emon emon-dal cmdline ipc owl omniORB4 omnithread ers)
+  Set(DEPENDENCIES BmnData Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2 emon emon-dal cmdline ipc owl omniORB4 omnithread ers)
 else (TDAQ_FOUND)
-  Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2)
+  Set(DEPENDENCIES BmnData Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2)
 endif (TDAQ_FOUND)
 
 GENERATE_LIBRARY()

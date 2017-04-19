@@ -10,6 +10,7 @@ fNhits(0),
 fParamFirst(),
 fParamLast(),
 fFlag(0),
+fLength(0),
 fChi2(0.),
 fNDF(0),
 fB(0.),
@@ -46,7 +47,7 @@ void BmnTrack::Print() {
     fParamFirst.Print();
     cout << "PARAM LAST: " << endl;
     fParamLast.Print();
-    cout << " Chi2: " << fChi2 << ", Quality flag " << fFlag << endl;
+    cout << " Length: " << fLength << " Chi2: " << fChi2 << ", Quality flag " << fFlag << endl;
 }
 // -------------------------------------------------------------------------
 

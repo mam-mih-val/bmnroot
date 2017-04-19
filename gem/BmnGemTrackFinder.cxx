@@ -17,6 +17,7 @@
 //-----------------------------------------
 static Float_t workTime = 0.0;
 const Float_t kCHI2CUT = 100.0;
+const Int_t kNHITSFORTRTACK = 4;
 //-----------------------------------------
 
 using namespace std;
@@ -91,8 +92,10 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             for (Int_t iSt = lastHit->GetStation() - 2; iSt >= 0; iSt--)
                 NearestHitMerge(iSt, &track, fGoForward);
         }
-        if (track.GetNHits() > 2)
+        if (track.GetNHits() >= kNHITSFORTRTACK) {
+            CalculateLength(&track);
             new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(track);
+        }
     }
 
 
@@ -304,6 +307,7 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* track,
     BmnHit* minHit = NULL; // Pointer to hit with minimum chi-square
     Float_t minDist = FLT_MAX;
     Double_t minChiSq = DBL_MAX;
+    Double_t minLen = DBL_MAX;
     Int_t minIdx = -1;
     Float_t dist = 0.0;
     FairTrackParam minParUp; // updated track parameters for closest hit
@@ -315,7 +319,7 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* track,
         if (hit->GetStation() != station) continue;
 
         fKalman = new BmnKalmanFilter_tmp();
-        Double_t length = 0.0;
+        Double_t length = track->GetLength();
         vector<Double_t>* F = new vector<Double_t> (25, 0.);
         if (F != NULL) {
             F->assign(25, 0.);
@@ -326,18 +330,16 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* track,
             (*F)[24] = 1.;
         }
         FairTrackParam parPredict = (goForward) ? (*(track->GetParamFirst())) : (*(track->GetParamLast()));
-        //        printf("1\n"); parPredict.Print();
         fKalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, F, &length, "field");
-        //        printf("2\n"); parPredict.Print();
         FairTrackParam parUpdate = parPredict;
         Double_t chi;
         fKalman->Update(&parUpdate, hit, chi);
-        //        printf("3\n"); parUpdate.Print();
         dist = Dist(parPredict.GetX(), parPredict.GetY(), hit->GetX(), hit->GetY());
         if (dist < minDist && dist < fDistCut) { // Check if hit is inside validation gate and closer to the track.
             minChiSq = chi;
             minDist = dist;
             minHit = hit;
+            minLen = length;
             minIdx = iHit;
             minParUp = parUpdate;
             minParPred = parPredict;
@@ -358,9 +360,37 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* track,
         track->SetChi2(track->GetChi2() + minChiSq);
         track->SetNDF(track->GetNDF() + 1);
         track->AddHit(minIdx, minHit);
+        //track->SetLength(minLen);
         track->SortHits();
         return kBMNSUCCESS;
     } else {
         return kBMNERROR;
     }
+}
+
+Double_t BmnGemTrackFinder::CalculateLength(BmnGemTrack* tr) {
+    if (!tr) return 0.0;
+
+    vector<Float_t> X, Y, Z;
+    X.push_back(0.);
+    Y.push_back(0.);
+    Z.push_back(0.);
+    for (Int_t iGem = 0; iGem < tr->GetNHits(); iGem++) {
+        const BmnHit* hit = (BmnHit*) fGemHitArray->At(tr->GetHitIndex(iGem));
+        if (!hit) continue;
+        X.push_back(hit->GetX());
+        Y.push_back(hit->GetY());
+        Z.push_back(hit->GetZ());
+    }
+    // Calculate distances between hits
+    Float_t length = 0.;
+    for (Int_t i = 0; i < X.size() - 1; i++) {
+        Float_t dX = X[i] - X[i + 1];
+        Float_t dY = Y[i] - Y[i + 1];
+        Float_t dZ = Z[i] - Z[i + 1];
+        length += Sqrt(dX * dX + dY * dY + dZ * dZ);
+    }
+    tr->SetLength(length);
+    return length;
+
 }

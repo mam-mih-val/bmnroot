@@ -36,7 +36,7 @@ public:
     void SetUsing(Bool_t use) {
         fUsed = use;
     }
-
+    
 private:
 
     vector<BmnFitNode> fFitNodes; // Array of fit nodes    

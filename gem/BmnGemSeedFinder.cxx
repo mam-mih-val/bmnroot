@@ -97,7 +97,7 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
             fAddresses[i][j] = -1;
 
     //Just skip too big events
-    if (fGemHitsArray->GetEntriesFast() > 1000 || fGemHitsArray->GetEntriesFast() == 0) return;
+    if (fGemHitsArray->GetEntriesFast() > 100 || fGemHitsArray->GetEntriesFast() == 0) return;
 
     //GEM inefficiency ===>
     //    const Float_t eff = 1.00;
@@ -515,7 +515,7 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsLine(BmnGemTrack * tr) {
     tr->SetParamLast(parL);
     tr->SetParamFirst(parF);
     tr->SetB(Sqrt(fX * fX + fY * fY));
-    tr->SetLength(Sqrt((fX - lX) * (fX - lX) + (fY - lY) * (fY - lY) + (fZ - lZ) * (fZ - lZ)));
+    //tr->SetLength(Sqrt((fX - lX) * (fX - lX) + (fY - lY) * (fY - lY) + (fZ - lZ) * (fZ - lZ)));
     //    tr->SetChi2(Sqrt(lineParZX.Z() * lineParZX.Z() + lineParZY.Z() * lineParZY.Z())); //FIXME! Is it OK or we should use MAX of two chi2? Or maybe MIN?
     tr->SetChi2(lineParZX.Z());
     tr->SetNDF(nHits - 2); // -2 because of line fit (2 params)

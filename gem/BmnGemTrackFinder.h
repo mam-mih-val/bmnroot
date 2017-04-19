@@ -35,6 +35,7 @@ public:
     virtual ~BmnGemTrackFinder();
 
     BmnStatus NearestHitMerge(UInt_t station, BmnGemTrack* tr, Bool_t goForward);
+    Double_t CalculateLength(BmnGemTrack* tr);
 
     BmnStatus FitSmooth(BmnGemTrack* track);
     void Smooth(BmnFitNode* thisNode, const BmnFitNode* prevNode);
@@ -46,7 +47,7 @@ public:
 
     BmnStatus CheckSplitting(TClonesArray* arr);
     BmnStatus ConnectNearestSeed(BmnGemTrack* seed, TClonesArray* arr);
-
+    
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
     virtual void Finish();

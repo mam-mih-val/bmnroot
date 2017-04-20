@@ -1009,11 +1009,12 @@ Bool_t BmnGemStripModule::SearchIntersectionPoint(Double_t &x, Double_t &y, Doub
             ycoord = Tan(i_PiOver2MinusAngleRad)*xcoord + iB;
         }
     }
+    
+    x = xcoord;
+    y = ycoord;
 
     //check: a point belongs to both strip layers together
     if( StripLayers[ilayer].IsPointInsideStripLayer(xcoord, ycoord) && StripLayers[jlayer].IsPointInsideStripLayer(xcoord, ycoord) ) {
-        x = xcoord;
-        y = ycoord;
         return true;
     }
 

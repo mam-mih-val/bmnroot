@@ -41,7 +41,7 @@ public:
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
     void DrawBoth();
-    void FillFromDigi(TClonesArray * DchDigits);
+    void FillFromDigi(DigiArrays *fDigiArrays);
     BmnStatus  SetRefRun(Int_t id);
 private:
     TClonesArray* ZDCHits;

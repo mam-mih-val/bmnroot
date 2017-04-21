@@ -4,6 +4,7 @@ void monitorSep(TString dirName = "~/bmnroot/build/", TString rawFileName = "", 
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
+    gSystem->Load("libBmnMonitor");
     std::thread threadDeco(BmnMonitor::threadDecodeWrapper, dirName, rawFileName, runCurrent);
     if (threadDeco.joinable())
         threadDeco.detach();

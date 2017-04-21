@@ -33,6 +33,7 @@
 #pragma link C++ class vector<vector<int*> >+;
 #pragma link C++ class vector<vector<vector<int*> > >+;
 #pragma link C++ class vector<TSocket*>+;
+#pragma link C++ class vector<BmnHist*>+;
 
 #endif
 

@@ -48,7 +48,6 @@ public:
 
     BmnMonitor();
     virtual ~BmnMonitor();
-    void MonitorStream(TString dir, TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
     void MonitorStreamZ(TString dir, TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
     static void threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent);
     static void threadCmdWrapper(string cmd);
@@ -84,27 +83,13 @@ private:
     TSocket *fRawDecoSocket;
     DigiArrays *fDigiArrays;
 
-    BmnHistGem     *bhGem;
-    BmnHistToF     *bhToF400;
-    BmnHistToF700  *bhToF700;
-    BmnHistDch     *bhDCH;
-    BmnHistMwpc    *bhMWPC;
-    BmnHistZDC     *bhZDC;
-    BmnHistTrigger *bhTrig;
-    
-    BmnHistGem     *bhGem_4show;
-    BmnHistToF     *bhToF400_4show;
-    BmnHistToF700  *bhToF700_4show;
-    BmnHistDch     *bhDCH_4show;
-    BmnHistMwpc    *bhMWPC_4show;
-    BmnHistZDC     *bhZDC_4show;
-    BmnHistTrigger *bhTrig_4show;
+    vector < BmnHist* > bhVec;
+    vector < BmnHist* > bhVec4show;
     
     TCanvas *infoCanvas;
     TList *refList;
 
     BmnDataReceiver *dataReceiver;
-    BmnRawDataDecoder *rawDataDecoder;
     BmnOnlineDecoder *onlineDecoder;
 
     Bool_t keepWorking;

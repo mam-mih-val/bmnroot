@@ -27,6 +27,7 @@
 #include "TFolder.h"
 
 #include "BmnEventHeader.h"
+#include "DigiArrays.h"
 
 #define PAD_WIDTH   200
 #define PAD_HEIGHT  150
@@ -64,6 +65,7 @@ public:
     virtual void Register(THttpServer *serv) = 0;
     virtual void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) = 0;
     virtual void DrawBoth() = 0;
+    virtual void FillFromDigi(DigiArrays *fDigiArrays) = 0;
 //    virtual BmnStatus LoadRefRun(TString FileName) = 0;
 //    template <class HH>
     static void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads);
@@ -92,7 +94,6 @@ public:
     TString GetRefPath() const {
         return refPath;
     }
-    //    virtual void FillFromDigi(TClonesArray * digits) = 0;
 protected:
 
 

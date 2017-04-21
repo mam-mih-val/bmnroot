@@ -20,16 +20,12 @@
 #include "BmnOnlineDecoder.h"
 
 BmnOnlineDecoder::BmnOnlineDecoder() {
-    //    fRawDecoSocket = new TServerSocket(RAW_DECODER_SOCKET_PORT, kTRUE);
-    //    fRawDecoSocket->SetOption(kNoBlock, 1);
-    //    fRawDecoSocket->SetOption(kKeepAlive, 1);
     rawDataDecoder = NULL;
     iClients = 0;
     _ctx = NULL;
 }
 
 BmnOnlineDecoder::~BmnOnlineDecoder() {
-    //    fRawDecoSocket->Close();
     if (rawDataDecoder) delete rawDataDecoder;
     if (_ctx) {
         zmq_ctx_destroy(_ctx);
@@ -113,7 +109,6 @@ BmnStatus BmnOnlineDecoder::Accept() {
     if (clients.size() == MAX_CLIENTS)
         return kBMNSUCCESS;
     while (kTRUE) {
-        //        if (iClients + 1 == MAX_CLIENTS)
         if (clients.size() == MAX_CLIENTS)
             break;
         client = fRawDecoSocket->Accept();
@@ -258,22 +253,6 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
 
             }
         }
-
-        //            for (auto cl = begin(clients); cl != end(clients); cl++) {
-        //                //                Int_t sel = (*cl)->Select(2, 1); // kWrite == 2
-        //                ////                printf("select == %d\n", sel);
-        //                //                if (sel ==  - 1) { // timeout
-        //                //                    continue;
-        //                //                }
-        //                sendRes = (*cl)->Send(mess);
-        //                //                printf("sendRes == %d\n", sendRes);
-        //                if (sendRes == -1) {
-        //                    clients.erase(cl);
-        //                    cl--;
-        //                    DBGERR("TSocket Send")
-        //                    printf("Client disconnected\n");
-        //                }
-        //            }
         if (convertResult == kBMNTIMEOUT) {
             printf("timeout\n");
             break;

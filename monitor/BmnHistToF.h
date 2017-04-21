@@ -49,7 +49,7 @@ public:
     BmnStatus  SetRefRun(Int_t id);
     
     
-    void FillFromDigi(TClonesArray * digits);
+    void FillFromDigi(DigiArrays *fDigiArrays);
     void SetSelection(Int_t Plane, Int_t Strip, Int_t Side);
     
     void  SetPlane(Int_t v){ fSelectedPlane = v;}

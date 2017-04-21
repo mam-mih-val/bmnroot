@@ -15,6 +15,7 @@
 #include <numeric>
 
 #include "BmnHistGem.h"
+#include "BmnRawDataDecoder.h"
 
 //const UInt_t moduleCount[GEM_STATIONS_COUNT] = {1, 1, 1, 1, 2, 2, 2};
 //const UInt_t layersCount[GEM_STATIONS_COUNT] = {2, 4, 4, 4, 4, 4, 4};
@@ -142,7 +143,8 @@ void BmnHistGem::DrawBoth() {
     BmnHist::DrawRef(canGemStrip, &canGemStripPads);
 }
 
-void BmnHistGem::FillFromDigi(TClonesArray * gemDigits) {
+void BmnHistGem::FillFromDigi(DigiArrays *fDigiArrays) {
+    TClonesArray * gemDigits = fDigiArrays->gem;
     for (Int_t digIndex = 0; digIndex < gemDigits->GetEntriesFast(); digIndex++) {
         BmnGemStripDigit* gs = (BmnGemStripDigit*) gemDigits->At(digIndex);
         Int_t module = gs->GetModule();

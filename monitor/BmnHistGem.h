@@ -52,7 +52,7 @@ public:
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);
     void DrawBoth();
-    void FillFromDigi(TClonesArray * digits);
+    void FillFromDigi(DigiArrays *fDigiArrays);
     BmnStatus  SetRefRun(Int_t id);
     
 private:

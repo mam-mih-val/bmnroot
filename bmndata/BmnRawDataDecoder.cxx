@@ -121,6 +121,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     syncCounter = 0;
     fPedoCounter = 0;
     fGemMap = NULL;
+    fEvForPedestals = N_EV_FOR_PEDESTALS;
 }
 
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
@@ -191,6 +192,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     syncCounter = 0;
     fPedoCounter = 0;
     fGemMap = NULL;
+    fEvForPedestals = N_EV_FOR_PEDESTALS;
     InitMaps();
 }
 
@@ -754,7 +756,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             curEventType = headDAQ->GetType();
 
             if (curEventType != kBMNPEDESTAL) continue;
-            if (fPedEvCntr != N_EV_FOR_PEDESTALS - 1) {
+            if (fPedEvCntr != fEvForPedestals - 1) {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
             } else {
@@ -838,11 +840,11 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
         //if (t0->GetEntriesFast() != 1 || bc2->GetEntriesFast() != 1) continue;
         if (curEventType == kBMNPEDESTAL) {
-            if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) continue;
+            if (fPedEvCntr == fEvForPedestals - 1) continue;
             CopyDataToPedMap(adc32, adc128, fPedEvCntr);
             fPedEvCntr++;
         } else { // payload
-            if (prevEventType == kBMNPEDESTAL && fPedEvCntr == N_EV_FOR_PEDESTALS - 1) {
+            if (prevEventType == kBMNPEDESTAL && fPedEvCntr == fEvForPedestals - 1) {
                 if (fGemMapper) fGemMapper->RecalculatePedestals();
                 if (fSiliconMapper) fSiliconMapper->RecalculatePedestals();
                 fPedEvCntr = 0;
@@ -1009,12 +1011,12 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     if (fTrigMapper) fTrigMapper->FillEvent(tdc, trigger, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
 
     if (fCurEventType == kBMNPEDESTAL) {
-        if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) return kBMNERROR; //FIX return!
+        if (fPedEvCntr == fEvForPedestals - 1) return kBMNERROR; //FIX return!
         CopyDataToPedMap(adc32, adc128, fPedEvCntr);
         fPedEvCntr++;
     } else { // payload
         if (fPrevEventType == kBMNPEDESTAL) {
-            if (fPedEvCntr == N_EV_FOR_PEDESTALS - 1) {
+            if (fPedEvCntr == fEvForPedestals - 1) {
                 fGemMapper->RecalculatePedestals();
                 fSiliconMapper->RecalculatePedestals();
                 fPedEvCntr = 0;

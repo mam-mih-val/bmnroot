@@ -46,7 +46,7 @@ public:
     void DrawBoth();
     BmnStatus  SetRefRun(Int_t id);    
     
-    void FillFromDigi(TClonesArray * ToF4Digits);
+    void FillFromDigi(DigiArrays *fDigiArrays);
     void SetSelection(Int_t Plane, Int_t Strip);
     
     void  SetPlane(Int_t v){ fSelectedPlane = v;}

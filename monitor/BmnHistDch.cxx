@@ -13,6 +13,7 @@
 
 #include "BmnHistDch.h"
 #include "BmnHitFinderRun1.h"
+#include "BmnRawDataDecoder.h"
 
 
 //const Float_t angles[kNPLANES] = {
@@ -145,7 +146,8 @@ void BmnHistDch::DrawBoth() {
     BmnHist::DrawRef(canTimes, &canTimesPads);
 }
 
-void BmnHistDch::FillFromDigi(TClonesArray * DchDigits) {
+void BmnHistDch::FillFromDigi(DigiArrays *fDigiArrays) {
+    TClonesArray * DchDigits = fDigiArrays->dch;
     fDchHits->Clear();
     //    ProcessDchDigits(DchDigits, fDchHits);
     for (Int_t iDig = 0; iDig < DchDigits->GetEntriesFast(); ++iDig) {

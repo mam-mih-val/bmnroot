@@ -113,7 +113,8 @@ void BmnHistZDC::DrawBoth() {
     return;
 }
 
-void BmnHistZDC::FillFromDigi(TClonesArray * ZDCDigits) {
+void BmnHistZDC::FillFromDigi(DigiArrays *fDigiArrays) {
+    TClonesArray * ZDCDigits = fDigiArrays->zdc;
     Double_t xAmp = 0;
     Double_t yAmp = 0;
     Double_t Amp = 0;

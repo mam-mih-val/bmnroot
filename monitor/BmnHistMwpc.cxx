@@ -13,6 +13,7 @@
 
 #include "BmnHistMwpc.h"
 #include "BmnHitFinderRun1.h"
+#include "BmnRawDataDecoder.h"
 
 BmnHistMwpc::BmnHistMwpc(TString title) : BmnHist() {
     fTitle = title;
@@ -123,7 +124,8 @@ void BmnHistMwpc::DrawBoth() {
     BmnHist::DrawRef(canTimes, &canTimesPads);
 }
 
-void BmnHistMwpc::FillFromDigi(TClonesArray * MwpcDigits) {
+void BmnHistMwpc::FillFromDigi(DigiArrays *fDigiArrays) {
+    TClonesArray * MwpcDigits = fDigiArrays->mwpc;
     MwpcHits->Clear();
     ProcessMwpcDigits(MwpcDigits, MwpcHits);
     for (Int_t iDig = 0; iDig < MwpcDigits->GetEntriesFast(); ++iDig) {

@@ -12,6 +12,7 @@
  */
 
 #include "BmnHistToF.h"
+#include "BmnRawDataDecoder.h"
 
 BmnHistToF::BmnHistToF(TString title) : BmnHist() {
     fTitle = title;
@@ -93,8 +94,8 @@ BmnHistToF::~BmnHistToF() {
     delete Events;
 }
 
-void BmnHistToF::FillFromDigi(TClonesArray * ToF4Digits) {
-
+void BmnHistToF::FillFromDigi(DigiArrays *fDigiArrays) {
+    TClonesArray * ToF4Digits = fDigiArrays->tof400;
     histL->Reset();
     histR->Reset();
     histSimultaneous.Reset();

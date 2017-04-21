@@ -105,6 +105,7 @@ BmnCounterTask.cxx
 BmnAdcProcessor.cxx
 BmnFitNode.h
 BmnEnums.h
+DigiArrays.h
 )
 
 # fill list of header files from list of source files

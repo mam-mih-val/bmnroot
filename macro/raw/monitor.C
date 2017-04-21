@@ -3,6 +3,7 @@ void monitor(TString dirName = "/bmn/test/mon/", TString refDir = "/bmn/test/mon
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
+    gSystem->Load("libBmnMonitor");
     BmnMonitor *bm = new BmnMonitor();
     bm->MonitorStreamZ(dirName, refDir, decoAddr);  
     delete bm;

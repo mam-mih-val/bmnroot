@@ -30,6 +30,7 @@
 #include "BmnEventHeader.h"
 #include "BmnRunHeader.h"
 #include "BmnEnums.h"
+#include "DigiArrays.h"
 #include <bitset>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,71 +46,6 @@
 // wait limit for input data (ms)
 #define WAIT_LIMIT 40000000
 using namespace std;
-
-class DigiArrays : public TObject {
-public:
-
-    DigiArrays() {
-        gem = NULL;
-        tof400 = NULL;
-        tof700 = NULL;
-        zdc = NULL;
-        ecal = NULL;
-        dch = NULL;
-        mwpc = NULL;
-        silicon = NULL;
-        trigger = NULL;
-        t0 = NULL;
-        bc1 = NULL;
-        bc2 = NULL;
-        veto = NULL;
-        fd = NULL;
-        bd = NULL;
-        header = NULL;
-    };
-
-    ~DigiArrays() {
-    };
-
-    void Clear() {
-        if (bc1) {bc1->Delete();delete bc1;}
-        if (bc2) { bc2->Delete(); delete bc2;}
-        if (bd) { bd->Delete(); delete bd;}
-        if (dch) { dch->Delete(); delete dch;}
-        if (fd) { fd->Delete(); delete fd;}
-        if (gem) { gem->Delete(); delete gem;}
-        if (header) { header->Delete(); delete header;}
-        if (mwpc) { mwpc->Delete(); delete mwpc;}
-        if (silicon) { silicon->Delete(); delete silicon;}
-        if (trigger) { trigger->Delete(); delete trigger;}
-        if (t0) { t0->Delete(); delete t0;}
-        if (tof400) { tof400->Delete(); delete tof400;}
-        if (tof700) { tof700->Delete(); delete tof700;}
-        if (zdc) { zdc->Delete(); delete zdc;}
-        if (ecal) { ecal->Delete(); delete ecal;}
-        if (veto) { veto->Delete(); delete veto;}
-    };
-    TClonesArray *silicon; 
-    TClonesArray *gem; 
-    TClonesArray *tof400; 
-    TClonesArray *tof700; 
-    TClonesArray *zdc; 
-    TClonesArray *ecal; 
-    TClonesArray *dch; 
-    TClonesArray *mwpc; 
-    TClonesArray *trigger; 
-    TClonesArray *t0; 
-    TClonesArray *bc1; 
-    TClonesArray *bc2; 
-    TClonesArray *veto; 
-    TClonesArray *fd; 
-    TClonesArray *bd; 
-    TClonesArray *header; 
-private:
-    ClassDef(DigiArrays, 1)
-};
-
-ClassImp(DigiArrays)
 
 class BmnRawDataDecoder {
 public:
@@ -270,6 +206,14 @@ public:
         }
     }
 
+    void SetEvForPedestals(UInt_t v) {
+        this->fEvForPedestals = v;
+    }
+
+    UInt_t GetEvForPedestals() {
+        return fEvForPedestals;
+    }
+
 private:
 
     //9 bits correspond to detectors which we need to decode
@@ -392,6 +336,7 @@ private:
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
     UInt_t fPedEvCntr;
+    Int_t fEvForPedestals;
     Bool_t fPedEnough;
     GemMapStructure* fGemMap;
     TriggerMapStructure* fT0Map;

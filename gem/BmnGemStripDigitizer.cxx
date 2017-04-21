@@ -78,10 +78,10 @@ InitStatus BmnGemStripDigitizer::Init() {
 
 void BmnGemStripDigitizer::Exec(Option_t* opt) {
     clock_t tStart = clock();
-    fBmnGemStripDigitsArray->Clear();
+    fBmnGemStripDigitsArray->Delete();
 
     if (fStripMatching) {
-        fBmnGemStripDigitMatchesArray->Clear();
+        fBmnGemStripDigitMatchesArray->Delete();
     }
 
     if (!fBmnGemStripPointsArray) {

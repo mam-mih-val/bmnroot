@@ -145,10 +145,10 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
             return;
     }
 
-    fBmnGemStripHitsArray->Clear();
+    fBmnGemStripHitsArray->Delete();
 
     if (fHitMatching && fBmnGemStripHitMatchesArray) {
-        fBmnGemStripHitMatchesArray->Clear();
+        fBmnGemStripHitMatchesArray->Delete();
     }
 
     if (!fBmnGemStripDigitsArray) {

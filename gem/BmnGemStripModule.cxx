@@ -808,6 +808,18 @@ StripCluster BmnGemStripModule::MakeCluster(Int_t layer_num, Double_t xcoord, Do
     return cluster;
 }
 
+void BmnGemStripModule::SetAvalancheRadius(Double_t aval_radius) {
+    if(aval_radius >= 0.0) AvalancheRadius = aval_radius;
+    else {
+        if(Verbosity) cerr << "WARNING: BmnGemStripModule::SetAvalancheRadius(): incorrect value for AvalancheRadius! It'll be set by default!\n";
+        AvalancheRadius = 0.1; //default
+    }
+}
+
+Double_t BmnGemStripModule::GetAvalancheRadius() {
+    return AvalancheRadius;
+}
+
 void BmnGemStripModule::CalculateStripHitIntersectionPoints() {
 
     ResetIntersectionPoints();
@@ -1009,7 +1021,7 @@ Bool_t BmnGemStripModule::SearchIntersectionPoint(Double_t &x, Double_t &y, Doub
             ycoord = Tan(i_PiOver2MinusAngleRad)*xcoord + iB;
         }
     }
-    
+
     x = xcoord;
     y = ycoord;
 

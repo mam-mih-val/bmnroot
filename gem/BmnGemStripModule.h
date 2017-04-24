@@ -90,6 +90,10 @@ public:
     //seed for the random generator in the full simulation (AddRealPointFull)
     void SetAvalancheGenerationSeed(UInt_t seed) { AvalancheGenerationSeed = seed; }
     UInt_t GetAvalancheGenerationSeed() { return AvalancheGenerationSeed; }
+
+    //controls to set up the avalanche radius in the non-full simulation (AddRealPointFullOne)
+    void SetAvalancheRadius(Double_t aval_radius);
+    Double_t GetAvalancheRadius();
     //--------------------------------------------------------------------------
 
     //Methods to calculate intersection points in the module -------------------

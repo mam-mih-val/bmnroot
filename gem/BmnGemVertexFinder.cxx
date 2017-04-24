@@ -48,7 +48,7 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
     if (fVerbose) cout << "======================== Vertex finder exec started  ======================" << endl;
     if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
 
-    fVertexArray->Clear();
+    fVertexArray->Delete();
     const Int_t pdg = 211;
     Float_t vx = 0.0;
     Float_t vy = 0.0;

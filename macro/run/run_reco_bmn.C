@@ -30,7 +30,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
                   TString bmndstFileName    = "$VMCWORKDIR/macro/run/bmndst.root",
                   Int_t   nStartEvent       =  0,
                   Int_t   nEvents           =  10000,
-                  Bool_t  isPrimary         =  kTRUE,
+                  Bool_t  isPrimary         =  kFALSE,
                   TString alignCorrFileName = "default")
 {   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
@@ -49,7 +49,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     FairRunAna* fRunAna = new FairRunAna();
 
     Bool_t isField  = kTRUE;  // flag for tracking (to use mag.field or not)
-    Bool_t isTarget = kFALSE; // flag for tracking (run with target or not)
+    Bool_t isTarget = kTRUE; // flag for tracking (run with target or not)
     Bool_t isExp    = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
@@ -235,7 +235,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
     gemTF->SetField(isField);
     gemTF->SetDirection(direction);
-    gemTF->SetDistCut(1.0);
+    gemTF->SetDistCut(5.0);
     fRunAna->AddTask(gemTF);
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //

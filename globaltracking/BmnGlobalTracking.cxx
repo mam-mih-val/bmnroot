@@ -129,7 +129,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
     //    if (fVerbose) printf("Event number: %d\n", fEventNo);
 
     clock_t tStart = clock();
-    fGlobalTracks->Clear();
+    fGlobalTracks->Delete();
 
     //    CreateDchHitsFromTracks();
 

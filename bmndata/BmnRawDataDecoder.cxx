@@ -435,14 +435,14 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
 
 BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
 
-    sync->Clear();
-    tdc->Clear();
-    hrb->Clear();
+    sync->Delete();
+    tdc->Delete();
+    hrb->Delete();
     adc32->Delete();
     adc128->Delete();
     adc->Delete();
-    msc->Clear();
-    eventHeaderDAQ->Clear();
+    msc->Delete();
+    eventHeaderDAQ->Delete();
 
     if (fEventId % 100 == 0) {
         printf(ANSI_COLOR_BLUE "[%.2f%%]   " ANSI_COLOR_RESET, fCurentPositionRawFile * 100.0 / fLengthRawFile);
@@ -978,23 +978,23 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
 }
 
 BmnStatus BmnRawDataDecoder::ClearArrays() {
-    if (dch) dch->Clear();
-    if (mwpc) mwpc->Clear();
-    if (gem) gem->Clear();
-    if (silicon) silicon->Clear();
-    if (tof400) tof400->Clear();
-    if (tof700) tof700->Clear();
-    if (zdc) zdc->Clear();
-    if (ecal) ecal->Clear();
-    if (trigger) trigger->Clear();
-    if (t0) t0->Clear();
-    if (bc1) bc1->Clear();
-    if (bc2) bc2->Clear();
-    if (veto) veto->Clear();
-    if (fd) fd->Clear();
-    if (bd) bd->Clear();
-    eventHeader->Clear();
-    //runHeader->Clear();
+    if (dch) dch->Delete();
+    if (mwpc) mwpc->Delete();
+    if (gem) gem->Delete();
+    if (silicon) silicon->Delete();
+    if (tof400) tof400->Delete();
+    if (tof700) tof700->Delete();
+    if (zdc) zdc->Delete();
+    if (ecal) ecal->Delete();
+    if (trigger) trigger->Delete();
+    if (t0) t0->Delete();
+    if (bc1) bc1->Delete();
+    if (bc2) bc2->Delete();
+    if (veto) veto->Delete();
+    if (fd) fd->Delete();
+    if (bd) bd->Delete();
+    eventHeader->Delete();
+    //runHeader->Delete();
     fTimeShifts.clear();
     return kBMNSUCCESS;
 }

@@ -72,7 +72,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
     if (fVerbose) cout << "\n Event number: " << fEventNo++ << endl;
 
     clock_t tStart = clock();
-    fGemTracksArray->Clear();
+    fGemTracksArray->Delete();
     //    CheckSplitting(fGemSeedsArray); //comment tmp
 
     for (Int_t iTr = 0; iTr < fGemSeedsArray->GetEntriesFast(); ++iTr) {

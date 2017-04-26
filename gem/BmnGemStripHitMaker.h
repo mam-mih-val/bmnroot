@@ -13,6 +13,8 @@
 #include "FairTask.h"
 #include "FairMCPoint.h"
 
+#include <UniDbDetectorParameter.h>
+#include <UniDbRun.h>
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"
 #include "BmnGemStripStationSet.h"
@@ -50,18 +52,17 @@ public:
 
     void SetAlignmentCorrectionsFileName(TString filename) {
         fAlignCorrFileName = filename;
-        // filename [with its relative or absolute  path] is used as is and is
-        // taken from alignCorrFileName parameter in macro/run/run_reco_bmn.C
-        //
-        // If it is == "", then no alignment corrections are used at all
-        // (see gem/BmnGemStripHitMaker.cxx).
-        // Anatoly.Solomin@jinr.ru 2017-04-14 12:03:27
     }
 
-    // All the corrections should be migrated to database!
     void SetAlignmentCorrectionsFileName(Int_t run_period, Int_t file_number) {
-        fAlignCorrFileName = (run_period == 5) ? "$VMCWORKDIR/input/alignCorrsLocal_GEM.root" :
-                             (run_period == 6) ? "$VMCWORKDIR/input/align.root" : "";
+        if (run_period == 5)
+            fAlignCorrFileName = "$VMCWORKDIR/input/alignCorrsLocal_GEM.root";
+        else if (run_period == 6) {
+            fAlignCorrFileName = "alignment_GEM.root";
+            UniDbDetectorParameter::ReadBmnAlignment(run_period, file_number, (Char_t*) fAlignCorrFileName.Data());
+        } 
+        else
+            fAlignCorrFileName = "";
     }
 
 private:
@@ -97,7 +98,7 @@ private:
     void ReadAlignCorrFile(TString, Double_t***); // read corrections from the file
     Double_t*** corr; // array to store the corrections
 
-    ClassDef(BmnGemStripHitMaker,1);
+    ClassDef(BmnGemStripHitMaker, 1);
 };
 
 

@@ -58,6 +58,9 @@ InitStatus BmnGemTrackFinder::Init() {
     ioman->Register("BmnGemTrack", "GEM", fGemTracksArray, kTRUE);
 
     fField = FairRunAna::Instance()->GetField();
+    // Use a wider corridor by default when doing alignment
+    if (Abs(fField->GetBy(0., 0., 0.)) < FLT_EPSILON)
+        fDistCut = 2.5;
 
     fPropagator = new BmnTrackPropagator();
 

@@ -138,6 +138,7 @@ private:
     FairField* fField;
 
     Int_t** fAddresses;
+    Double_t kLINECHICUT;
 
     ClassDef(BmnGemSeedFinder, 1);
 };

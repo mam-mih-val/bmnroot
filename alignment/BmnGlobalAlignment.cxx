@@ -282,7 +282,7 @@ void BmnGlobalAlignment::Mille(Int_t idx, Int_t iDet, Char_t* buff) {
                         Double_t Z = hit->GetZ();
                         Char_t* locDerX = Form("%d %d 1. %f 0. 0. ", stat, mod, Z);
                         Char_t* locDerY = Form("%d %d 0. 0. 1. %f ", stat, mod, Z);
-                        Char_t* measX = Form("%f %f ", X, fUseRealHitErrors ? hit->GetDx() : 1.);
+                        Char_t* measX = Form("%f %f ", X, fUseRealHitErrors ? 2. * hit->GetDx() : 1.);
                         Char_t* measY = Form("%f %f ", Y, fUseRealHitErrors ? hit->GetDy() : 1.);
                         Int_t N_zeros_beg = 3 * (nModulesProcessed - 1);
                         Int_t N_zeros_end = 3 * (modGemTotal - nModulesProcessed);
@@ -564,8 +564,10 @@ void BmnGlobalAlignment::Pede() {
 }
 
 void BmnGlobalAlignment::ReadPedeOutput(ifstream& resFile) {
-    if (!resFile)
-        Fatal("BmnGlobalAlignment::ReadPedeOutput", "No input file found!!");
+    if (!resFile) {
+        cout << "BmnGlobalAlignment::ReadPedeOutput" << " No input file found!!" << endl;
+        throw; 
+    }
     resFile.ignore(numeric_limits<streamsize>::max(), '\n');
 
     const Int_t nParams = 3;

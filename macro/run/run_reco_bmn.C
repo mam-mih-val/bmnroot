@@ -31,7 +31,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
                   Int_t   nStartEvent       =  0,
                   Int_t   nEvents           =  10000,
                   Bool_t  isPrimary         =  kFALSE,
-                  TString alignCorrFileName = "default")
+                  TString alignCorrFileName = "")
 {   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
     // ----    Debug option   --------------------------------------------------
@@ -187,12 +187,9 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-    // Set name of file with the alignment corrections
-    if (isExp) {
-        TString aligncorrfilename = alignCorrFileName;
-        aligncorrfilename.ToLower();
-        if (aligncorrfilename == "default")
-            // retrieve from UniDb (default)
+
+    if (!isExp) {
+        if (alignCorrFileName == "")
             gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
         else
             // set explicitly, for testing purposes and for interactive alignment;
@@ -235,7 +232,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
     gemTF->SetField(isField);
     gemTF->SetDirection(direction);
-    gemTF->SetDistCut(5.0);
+//    gemTF->SetDistCut(1.0);
     fRunAna->AddTask(gemTF);
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //

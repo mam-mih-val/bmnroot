@@ -21,6 +21,8 @@ ${BMNROOT_SOURCE_DIR}/BmnKalmanFilter
 
 ${BMNROOT_SOURCE_DIR}/bmndata
 ${BMNROOT_SOURCE_DIR}/alignment
+${CMAKE_SOURCE_DIR}/uni_db
+${BMNROOT_SOURCE_DIR}/uni_db/db_classes
 #${BMNROOT_SOURCE_DIR}/sts
 #${BMNROOT_SOURCE_DIR}/sts/setup
 

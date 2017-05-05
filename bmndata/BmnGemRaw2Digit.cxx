@@ -121,7 +121,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
             dig.SetModule(mod);
             dig.SetStripLayer(lay);
             dig.SetStripNumber(strip);
-            dig.SetStripSignal((adcDig->GetValue())[iSmpl] / 16);
+            dig.SetStripSignal((adcDig->GetUShortValue())[iSmpl] / 16);
             candDig[iSmpl] = dig;
         }
     }

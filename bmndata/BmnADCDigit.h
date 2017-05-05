@@ -6,13 +6,13 @@
 using namespace std;
 
 class BmnADCDigit : public TObject {
-
 private:
     UInt_t fSerial;
     UInt_t fChannel;
     UInt_t fNsmpl;
-    UShort_t* fValue; //[fNsmpl]
-    
+    UShort_t* fValueU; //[fNsmpl]
+    Short_t* fValueI; //[fNsmpl]
+
 public:
 
     /** Default constructor **/
@@ -20,6 +20,7 @@ public:
 
     /** Constructor to use **/
     BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, UShort_t *iValue);
+    BmnADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, Short_t *iValue);
 
     UInt_t GetSerial() const {
         return fSerial;
@@ -28,13 +29,27 @@ public:
     UInt_t GetChannel() const {
         return fChannel;
     }
-    
+
     UInt_t GetNSamples() const {
         return fNsmpl;
     }
+
+    UShort_t *GetUShortValue() const {
+        return (UShort_t *) fValueU;
+    }
     
-    UShort_t *GetValue() const {
-        return (UShort_t *) fValue;
+    Short_t *GetShortValue() const {
+        return (Short_t *) fValueI;
+    }
+
+    void SetShortValue(Short_t *iValue) const {
+        for (Int_t i = 0; i < fNsmpl; ++i)
+            fValueI[i] = iValue[i];
+    }
+    
+    void SetUShortValue(UShort_t *iValue) const {
+        for (Int_t i = 0; i < fNsmpl; ++i)
+            fValueU[i] = iValue[i];
     }
 
     /** Destructor **/

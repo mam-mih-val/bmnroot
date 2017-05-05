@@ -35,7 +35,7 @@ public:
     BmnStatus RecalculatePedestals();
     Double_t CalcCMS(Double_t* samples, Int_t size);
 
-    UInt_t**** GetPedData() {
+    UShort_t**** GetPedData() {
         return fPedDat;
     }
     
@@ -94,7 +94,7 @@ private:
     Int_t fNChannels;
     TString fDetName; //it's used for .txt files name 
 
-    UInt_t**** fPedDat; //data set to calculate pedestals
+    UShort_t**** fPedDat; //data set to calculate pedestals
     Float_t*** fPedVal; //set of calculated pedestals
     Float_t*** fPedRms; // set of calculated pedestal errors
     UInt_t*** fAdcProfiles;

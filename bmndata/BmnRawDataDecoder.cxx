@@ -517,8 +517,12 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
     const UChar_t kNCH = 64;
     const UChar_t kNSTAMPS = nSmpl;
 
-    UShort_t val[kNSTAMPS];
-    for (Int_t i = 0; i < kNSTAMPS; ++i) val[i] = 0;
+    UShort_t valU[kNSTAMPS];
+    Short_t valI[kNSTAMPS];
+    for (Int_t i = 0; i < kNSTAMPS; ++i) {
+        valU[i] = 0;
+        valI[i] = 0;
+    }
 
     UInt_t i = 0;
     while (i < len) {
@@ -530,16 +534,24 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
                 iCh = d[i] >> 24;
                 i += 3; // skip two timestamp words (they are empty)
                 for (Int_t iWord = 0; iWord < kNSTAMPS / 2; ++iWord) {
-                    val[2 * iWord + 1] = d[i + iWord] & 0xFFFF; //take 16 lower bits and put them into corresponded cell of data-array
-                    val[2 * iWord] = (d[i + iWord] >> 16) & 0xFFFF; //take 16 higher bits and put them into corresponded cell of data-array
+                    if (fRunId > 1542 && kNSTAMPS == ADC128_N_SAMPLES) { //format for SILICON was changed during March 2017 seance
+                        valI[2 * iWord + 1] = d[i + iWord] & 0xFFFF; //take 16 lower bits and put them into corresponded cell of data-array
+                        valI[2 * iWord] = (d[i + iWord] >> 16) & 0xFFFF; //take 16 higher bits and put them into corresponded cell of data-array
+                    } else {
+                        valU[2 * iWord + 1] = d[i + iWord] & 0xFFFF; //take 16 lower bits and put them into corresponded cell of data-array
+                        valU[2 * iWord] = (d[i + iWord] >> 16) & 0xFFFF; //take 16 higher bits and put them into corresponded cell of data-array
+                    }
                 }
 
                 TClonesArray& ar_adc = *arr;
                 //if (iCh >= 0 && iCh < kNCH) {
                 if (kNSTAMPS == ADC128_N_SAMPLES) {
-                    new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC128_N_SAMPLES, val);
+                    if (fRunId > 1542)
+                        new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC128_N_SAMPLES, valI);
+                    else
+                        new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC128_N_SAMPLES, valU);
                 } else if (kNSTAMPS == ADC32_N_SAMPLES)
-                    new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC32_N_SAMPLES, val);
+                    new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC32_N_SAMPLES, valU);
                 //}
                 i += (kNSTAMPS / 2); //skip words (we've processed them)
             }
@@ -1033,8 +1045,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
     }
-        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig(), kFALSE);
-        //        fDigiTree->Fill();
+    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig(), kFALSE);
+    //        fDigiTree->Fill();
     fPrevEventType = fCurEventType;
 
     return kBMNSUCCESS;
@@ -1140,7 +1152,7 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
 
 BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray* adcSil, UInt_t ev) {
     if (fGemMapper) {
-        UInt_t**** pedData = fGemMapper->GetPedData();
+        UShort_t**** pedData = fGemMapper->GetPedData();
         for (UInt_t iAdc = 0; iAdc < adcGem->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adcGem->At(iAdc);
 
@@ -1150,11 +1162,11 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
             if (iSer == -1) return kBMNERROR;
 
             for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl)
-                pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
+                pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetUShortValue())[iSmpl] / 16;
         }
     }
     if (fSiliconMapper) {
-        UInt_t**** pedData = fSiliconMapper->GetPedData();
+        UShort_t**** pedData = fSiliconMapper->GetPedData();
         for (UInt_t iAdc = 0; iAdc < adcSil->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adcSil->At(iAdc);
 
@@ -1163,8 +1175,12 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
                 if (adcDig->GetSerial() == fSiliconSerials[iSer]) break;
             if (iSer == -1) return kBMNERROR;
 
-            for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl)
-                pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetValue())[iSmpl] / 16;
+            for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl) {
+                if (fRunId > 1542)
+                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetShortValue())[iSmpl] / 16;
+                else
+                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetUShortValue())[iSmpl] / 16;
+            }
         }
     }
     return kBMNSUCCESS;

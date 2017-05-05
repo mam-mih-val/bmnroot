@@ -366,7 +366,7 @@ void BmnECALRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t
        if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
        if (num_test >= 0 && (digit->GetSerial()) == test_id[num_test])
        {
-    	    UShort_t *samt = digit->GetValue();
+    	    UShort_t *samt = digit->GetUShortValue();
 	    int j2 = 0;
     	    for (int j1 = 0;j1<digit->GetNSamples(); j1++)
     	    {
@@ -374,7 +374,7 @@ void BmnECALRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t
 		j2 = j1;
 		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]>>SHIFT);
     	    }
-    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
+    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped)) >= 0.)
 	    {
 		if (htest[num_test]) htest[num_test]->Fill(amp);
 		log_amp[num_test] = amp;
@@ -386,7 +386,7 @@ void BmnECALRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t
        if(ind==n_rec) continue; 
        if(ecal_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
-       UShort_t *sam = digit->GetValue();
+       UShort_t *sam = digit->GetUShortValue();
        int j2 = 0;
        for (int j = 0;j<digit->GetNSamples(); j++)
        {
@@ -394,7 +394,7 @@ void BmnECALRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t
 	    j2 = j;
 	    if (SampleProf[num]) SampleProf[num]->Fill(j,sam[j2]>>SHIFT);
        }
-       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped)) >= 0.)
        {
 	    hampl->Fill(amp);
 //	    printf("chan %d amp %f coef %f\n", ecal_map_element[ind].chan, amp, cal[ecal_map_element[ind].chan]);
@@ -462,7 +462,7 @@ void BmnECALRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Floa
        if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
        if (num_test >= 0 && (digit->GetSerial()) == test_id[num_test])
        {
-    	    UShort_t *samt = digit->GetValue();
+    	    UShort_t *samt = digit->GetUShortValue();
 	    int j2 = 0;
     	    for (int j1 = 0;j1<digit->GetNSamples(); j1++)
     	    {
@@ -470,7 +470,7 @@ void BmnECALRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Floa
 		j2 = j1;
 		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]>>SHIFT);
     	    }
-    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
+    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped)) >= 0.)
 	    {
 		if (htest[num_test]) htest[num_test]->Fill(amp);
 		log_amp[num_test] = amp;
@@ -482,7 +482,7 @@ void BmnECALRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Floa
        if(ind==n_rec) continue; 
        if(ecal_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
-       UShort_t *sam = digit->GetValue();
+       UShort_t *sam = digit->GetUShortValue();
        int j2 = 0;
        for (int j1 = 0;j1<digit->GetNSamples(); j1++)
        {
@@ -490,7 +490,7 @@ void BmnECALRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Floa
 	    j2 = j1;
 	    if (SampleProf[num]) SampleProf[num]->Fill(j1,sam[j2]>>SHIFT);
        }
-       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped)) >= 0.)
        {
 	    hampl->Fill(amp);
 //	    printf("chan %d amp %f coef %f\n", ecal_map_element[ind].chan, amp, cal[ecal_map_element[ind].chan]);
@@ -517,7 +517,7 @@ void BmnECALRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ecaldigit) {
        if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
        if (num_test >= 0 && (digit->GetSerial()) == test_id[num_test])
        {
-    	    UShort_t *samt = digit->GetValue();
+    	    UShort_t *samt = digit->GetUShortValue();
 	    int j2 = 0;
     	    for (int j1 = 0;j1<digit->GetNSamples(); j1++)
     	    {
@@ -525,7 +525,7 @@ void BmnECALRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ecaldigit) {
 		j2 = j1;
 		if (TestProf[num_test]) TestProf[num_test]->Fill(j1,samt[j2]>>SHIFT);
     	    }
-    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
+    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped)) >= 0.)
 	    {
 		if (htest[num_test]) htest[num_test]->Fill(amp);
 		log_amp[num_test] = amp;
@@ -537,7 +537,7 @@ void BmnECALRaw2Digit::fillEvent(TClonesArray *data, TClonesArray *ecaldigit) {
        if(ind==n_rec) continue; 
        if(ecal_map_element[ind].used==0) continue;
        TClonesArray &ar_ecal = *ecaldigit;
-       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped)) >= 0.)
        {
 	   hampl->Fill(amp);
 	   amp *= cal[ecal_map_element[ind].chan];
@@ -559,7 +559,7 @@ void BmnECALRaw2Digit::fillAmplitudes(TClonesArray *data) {
        if (num_test < 0) num_test = is_test[digit->GetChannel()+128];
        if (num_test >= 0 && (digit->GetSerial()) == test_id[num_test])
        {
-    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
+    	    if ((amp = testwave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped)) >= 0.)
 	    {
 		log_amp[num_test] = amp;
 	    }
@@ -569,7 +569,7 @@ void BmnECALRaw2Digit::fillAmplitudes(TClonesArray *data) {
        for(ind=0;ind<n_rec;ind++) if((digit->GetSerial())==ecal_map_element[ind].id && digit->GetChannel()==(ecal_map_element[ind].adc_chan)) break;
        if(ind==n_rec) continue; 
        if(ecal_map_element[ind].used==0) continue;
-       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped)) >= 0.)
        {
 	   ecal_amp[ecal_map_element[ind].chan] = amp;
        }
@@ -719,7 +719,7 @@ int BmnECALRaw2Digit::fillCalibrateCluster(TClonesArray *data, Float_t x, Float_
        if(ind==n_rec) continue; 
        if(ecal_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
-       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped)) >= 0.)
        {
 //	    printf("chan %d amp %f coef %f\n", ecal_map_element[ind].chan, amp, cal[ecal_map_element[ind].chan]);
 	    amp_array_ecal[nevents_ecal][num] = amp*cal[ecal_map_element[ind].chan];
@@ -829,7 +829,7 @@ int BmnECALRaw2Digit::fillCalibrateNumbers(TClonesArray *data, Float_t x, Float_
        if(ind==n_rec) continue; 
        if(ecal_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
-       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped)) >= 0.)
        {
 	    amp_array_ecal[nevents_ecal][num] = amp*cal[ecal_map_element[ind].chan];
 	    pedestals_ecal[nevents_ecal][num] = ped;
@@ -908,7 +908,7 @@ int BmnECALRaw2Digit::fillCalibrateAll(TClonesArray *data, Float_t x, Float_t y,
        if(ind==n_rec) continue; 
        if(ecal_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
-       if ((amp = wave2amp(digit->GetNSamples(),digit->GetValue(), &ped)) >= 0.)
+       if ((amp = wave2amp(digit->GetNSamples(),digit->GetUShortValue(), &ped)) >= 0.)
        {
 	    amp_array_ecal[nevents_ecal][num] = amp*cal[ecal_map_element[ind].chan];
 	    pedestals_ecal[nevents_ecal][num] = ped;

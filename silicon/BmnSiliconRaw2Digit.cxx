@@ -75,7 +75,10 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         dig.SetModule(silM->module);
         dig.SetStripLayer(silM->layer);
         dig.SetStripNumber(silM->start_strip + iSmpl);
-        dig.SetStripSignal((adcDig->GetValue())[iSmpl] / 16);
+        if (GetRun() > 1542)
+            dig.SetStripSignal((adcDig->GetShortValue())[iSmpl] / 16);
+        else
+            dig.SetStripSignal((adcDig->GetUShortValue())[iSmpl] / 16);
         candDig[iSmpl] = dig;
     }
 
@@ -98,7 +101,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         BmnSiliconDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
         Double_t sig = dig->GetStripSignal() - CMS - ped;
-        Float_t threshold = 20;
+        Float_t threshold = 160;
         if (sig < threshold) continue;
         new((*silicon)[silicon->GetEntriesFast()]) BmnSiliconDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }

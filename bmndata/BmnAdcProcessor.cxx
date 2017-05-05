@@ -36,13 +36,13 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
         }
     }
 
-    fPedDat = new UInt_t***[fNSerials];
+    fPedDat = new UShort_t***[fNSerials];
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-        fPedDat[iCr] = new UInt_t**[N_EV_FOR_PEDESTALS];
+        fPedDat[iCr] = new UShort_t**[N_EV_FOR_PEDESTALS];
         for (UInt_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-            fPedDat[iCr][iEv] = new UInt_t*[fNChannels];
+            fPedDat[iCr][iEv] = new UShort_t*[fNChannels];
             for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                fPedDat[iCr][iEv][iCh] = new UInt_t[fNSamples];
+                fPedDat[iCr][iEv][iCh] = new UShort_t[fNSamples];
                 for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl)
                     fPedDat[iCr][iEv][iCh][iSmpl] = 0;
             }
@@ -132,7 +132,7 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
                 Int_t nOk = 0;
                 for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
                     if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
-                    signals[iSmpl] = fPedDat[iCr][iEv][iCh][iSmpl];
+                    signals[iSmpl] = (Short_t)fPedDat[iCr][iEv][iCh][iSmpl];
                     nOk++;
                 }
                 Double_t CMS = CalcCMS(signals, nOk);
@@ -182,7 +182,8 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
                 for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
 
                     if (fPedDat[iCr][iEv][iCh][iSmpl] == 0 || CMS == 0.0) continue;
-                    if (fPedDat[iCr][iEv][iCh][iSmpl] - CMS - fPedVal[iCr][iCh][iSmpl] > 20/*3 * fPedRms[iCr][iCh][iSmpl]*/) {
+                    Float_t thresh = (fDetName == "SILICON") ? 160 : 20;
+                    if (fPedDat[iCr][iEv][iCh][iSmpl] - CMS - fPedVal[iCr][iCh][iSmpl] > thresh/*3 * fPedRms[iCr][iCh][iSmpl]*/) {
                         fAdcProfiles[iCr][iCh][iSmpl]++;
                     }
                 }

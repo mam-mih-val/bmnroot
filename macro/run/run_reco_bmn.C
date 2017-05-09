@@ -188,7 +188,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
 
-    if (!isExp) {
+    if (isExp) {
         if (alignCorrFileName == "")
             gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
         else
@@ -225,6 +225,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     gemSF->SetField(isField);
     gemSF->SetDirection(direction);
     gemSF->SetTarget(isTarget);
+    gemSF->SetRoughVertex(TVector3(0.0, -3.5, -21.7));
+    gemSF->SetLineFitCut(0.5);
     if (run_period == 5)
         gemSF->AddStationToSkip(0);
     fRunAna->AddTask(gemSF);
@@ -232,7 +234,9 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
     gemTF->SetField(isField);
     gemTF->SetDirection(direction);
-//    gemTF->SetDistCut(1.0);
+    gemTF->SetTarget(isTarget);
+    gemTF->SetDistCut(0.5);
+    gemTF->SetNHitsCut(6);
     fRunAna->AddTask(gemTF);
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //

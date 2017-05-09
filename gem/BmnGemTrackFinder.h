@@ -55,6 +55,10 @@ public:
     void SetField(Bool_t f) {
         fIsField = f;
     }
+
+    void SetTarget(Bool_t f) {
+        fIsTarget = f;
+    }
     
     void SetDirection(Bool_t dir) {
         fGoForward = dir;
@@ -62,6 +66,10 @@ public:
     
     void SetDistCut(Float_t dist) {
         fDistCut = dist;
+    }
+    
+    void SetNHitsCut(Short_t n) {
+        fNHitsCut = n;
     }
 
 private:
@@ -85,8 +93,10 @@ private:
     BmnKalmanFilter* fUpdate;
     Int_t fPDG; // PDG hypothesis
     Float_t fDistCut;
+    Short_t fNHitsCut;
 
     Bool_t fGoForward;
+    Bool_t fIsTarget;
     Bool_t fIsField;
     FairField* fField;
     BmnKalmanFilter_tmp* fKalman;

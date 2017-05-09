@@ -55,6 +55,8 @@ public:
     Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
     BmnGemStripHit* GetHit(Int_t i);
 
+    TVector2 GetTransXY(BmnGemStripHit* hit);
+
     void SetTrs(Float_t trs) {
         kTRS = trs;
     }
@@ -97,6 +99,14 @@ public:
         skipStations.push_back(st);
     }
 
+    void SetRoughVertex(TVector3 v) {
+        fRoughVertex = v;
+    }
+    
+    void SetLineFitCut(Double_t cut) {
+        fLineFitCut = cut;
+    }
+
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
     virtual void Finish();
@@ -124,6 +134,8 @@ private:
 
     UInt_t fEventNo; // event counter
 
+    TVector3 fRoughVertex; // for correct transformation
+
     //ranges for seed finder
     Float_t fXmin;
     Float_t fXmax;
@@ -138,7 +150,7 @@ private:
     FairField* fField;
 
     Int_t** fAddresses;
-    Double_t kLINECHICUT;
+    Double_t fLineFitCut;
 
     ClassDef(BmnGemSeedFinder, 1);
 };

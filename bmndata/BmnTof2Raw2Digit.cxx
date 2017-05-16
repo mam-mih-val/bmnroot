@@ -1901,7 +1901,7 @@ int BmnTof2Raw2Digit::readGeom(char *geomfile)
 		nstrips[i] = n;
 		for (int ns=n-1; ns>=0; ns--)
 		{
-		xcens[i][ns] = x/10. + xoffs;
+		xcens[i][ns] = -x/10. + xoffs;
 		ycens[i][ns] = y/10. + yoffs - (n-ns-1)*step/10.;
 		xmins[i][ns] = xcens[i][ns] - halfxwidth[i];
 		xmaxs[i][ns] = xcens[i][ns] + halfxwidth[i];

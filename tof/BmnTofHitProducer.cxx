@@ -202,7 +202,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
   			
         			if(fDoTest)
         			{
-        				h2TestXYSmearedDouble->Fill((pos - XYZ_smeared).Mag(), pos.Y() - XYZ_smeared.Y());
+        				h2TestXYSmearedDouble->Fill((pos - XYZ_smeared).Mag(), pos.Z() - XYZ_smeared.Z());
         				h2TestXYSmearedDouble2->Fill(XYZ_smeared.X(), XYZ_smeared.Y());
         			}
         		}

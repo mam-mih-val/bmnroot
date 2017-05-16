@@ -56,7 +56,7 @@ void BmnTofGeoUtils::FindNeighborStrips(TH1D* h1, TH2D* h2, bool doTest)
 		}// cycle2 by strips	
 	}// cycle1 by strips
 	
-	cout<<" [BmnTofGeoUtils::FindNeighborStrips] Neighbor strips: left = "<<NL<<", right = "<<NR<<endl;
+	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN," [BmnTofGeoUtils::FindNeighborStrips] Neighbor strips: left = %d, right = %d. ", NL, NR);
 }
 //------------------------------------------------------------------------------------------------------------------------	
 void BmnTofGeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)

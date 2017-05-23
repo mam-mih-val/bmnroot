@@ -59,6 +59,15 @@ BmnGemStripModule::~BmnGemStripModule() {
 
 }
 
+Double_t BmnGemStripModule::GetZPositionRegistered() {
+    if(ElectronDriftDirection == ForwardZAxisEDrift) {
+        return ZStartModulePosition+DriftGapThickness*0.5;
+    }
+    else {
+        return ZStartModulePosition+ModuleThickness-DriftGapThickness*0.5;
+    }
+}
+
 void BmnGemStripModule::AddStripLayer(BmnGemStripLayer strip_layer) {
     StripLayers.push_back(strip_layer);
 

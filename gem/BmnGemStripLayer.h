@@ -110,7 +110,7 @@ public:
     Double_t CalculateStripEquationB(Double_t strip_pos);
     //--------------------------------------------------------------------------
 
-    //Clustering and hit finding methods ---------------------------------------
+    //Clustering and strip-hit finding methods ---------------------------------------
     void FindClustersAndStripHits();
     void MakeStripHit(StripCluster &cluster, vector<Double_t> &AnalyzableStrips, Int_t &curcnt);
     void SmoothStripSignal(vector<Double_t>& AnalyzableStrips, Int_t NIterations, Int_t SmoothWindow, Double_t Weight);

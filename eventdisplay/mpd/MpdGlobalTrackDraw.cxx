@@ -9,6 +9,7 @@
 #include "MpdTpcHit.h"
 #include "MpdEvent.h"
 #include "MpdTpcKalmanTrack.h"
+#include "FairEventManagerEditor.h"
 
 #include "TEveManager.h"
 #include "TEvePathMark.h"
@@ -286,6 +287,7 @@ TEveTrackList* MpdGlobalTrackDraw::GetTrGroup(TParticle* P)
             fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
             gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
             fEventManager->EveRecoTracks->SetRnrState(kFALSE);
+            fEventManager->GetEventEditor()->fShowRecoTracks->SetEnabled(kTRUE);
         }
 
         gEve->AddElement(fTrList, fEventManager->EveRecoTracks);

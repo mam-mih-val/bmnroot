@@ -16,7 +16,11 @@
 #include <dirent.h>
 #include <regex>
 
+#include "sys/timeb.h"
+
 using namespace emon;
+
+timeb tStart, tEnd;
 
 // keyboard Ctrl-C capture to exit pull sampler
 int signalSamplerReceived;
@@ -64,6 +68,8 @@ class BmnPullSampling : public PullSampling
         uiCurrentEvent = 0;
         strCurrentRaw = "";
         isNewFile = true;
+
+        ftime(&tStart);
 
         ERS_DEBUG(1, "Initialization of BmnPullSampling completed");
     }
@@ -137,6 +143,8 @@ class BmnPullSampling : public PullSampling
         rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
         rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
         rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
+
+        rawDataDecoder->SetEvForPedestals(150);
         rawDataDecoder->InitConverter(directory_name+current_file);
         rawDataDecoder->InitDecoder();
 
@@ -162,11 +170,17 @@ class BmnPullSampling : public PullSampling
      * has finished, it is guaranteed, that the event buffer passed to EventChannel may be freed. */
     void sampleEvent(EventChannel& cc)
     {
+        ftime(&tEnd);
+        int dif = 1000*((int)tEnd.time - (int)tStart.time) + (tEnd.millitm - tStart.millitm);
+        cout<<"\nNew Cycle time: "<<dif<<" ms\n";
+
         DigiArrays iterDigi;
         TBufferFile t(TBuffer::kWrite);
         bool isFoundEvent = false;
         while (!isFoundEvent)
         {
+            ftime(&tStart);
+
             if (isNewFile)
             {
                 if (AttachRawFile(strRawData, strCurrentRaw) != 0)
@@ -182,13 +196,20 @@ class BmnPullSampling : public PullSampling
                 continue;
             }
 
-            if (uiCurrentEvent >= rawDataDecoder->GetEventId())
-                continue;
-            uiCurrentEvent = rawDataDecoder->GetEventId();
+            ftime(&tEnd);
+            dif = 1000*((int)tEnd.time - (int)tStart.time) + (tEnd.millitm - tStart.millitm);
+            cout<<"ConvertRawToRootIterateFile time: "<<dif<<" ms\n";
 
+            ftime(&tStart);
+            uiCurrentEvent = rawDataDecoder->GetEventId();
             // convert one raw ROOT event to digits
             rawDataDecoder->DecodeDataToDigiIterate();
 
+            ftime(&tEnd);
+            dif = 1000*((int)tEnd.time - (int)tStart.time) + (tEnd.millitm - tStart.millitm);
+            cout<<"DecodeDataToDigiIterate time: "<<dif<<" ms\n";
+
+            ftime(&tStart);
             // get array with digits
             iterDigi = rawDataDecoder->GetDigiArraysObject();
             if ((iterDigi.header->GetEntriesFast() == 0) || (((BmnEventHeader*)iterDigi.header->At(0))->GetType() == kBMNPEDESTAL))
@@ -197,30 +218,41 @@ class BmnPullSampling : public PullSampling
             isFoundEvent = true;
         }
 
-         // write digit array to the buffer in order to send to EventChannel
-         t.Reset();
-         t.WriteObject(&iterDigi);
+        // write digit array to the buffer in order to send to EventChannel
+        t.Reset();
+        t.WriteObject(&iterDigi);
 
-         // Create and fill the actual buffer of the current event
-         UInt_t event_length = t.Length();
-         iovec* event = new iovec[0];
-         int add_length = (event_length % 4), head_length = 2*sizeof(int);
-         UInt_t full_length = event_length + add_length;
-         event[0].iov_len = full_length + head_length; // + 1 int for event number + 1 int for real size
-         event[0].iov_base = new caddr_t[event[0].iov_len];
+        // Create and fill the actual buffer of the current event
+        UInt_t event_length = t.Length();
+        iovec* event = new iovec[0];
+        int add_length = (event_length % 4), head_length = 2*sizeof(int);
+        UInt_t full_length = event_length + add_length;
+        event[0].iov_len = full_length + head_length; // + 1 int for event number + 1 int for real size
+        event[0].iov_base = new caddr_t[event[0].iov_len];
 
-         //ERS_INFO("Event "<<(uiCurrentEvent+1)<<" size is "<<full_length<<" ("<<event_length<<") bytes"<<" + event id + real length");
+        //ERS_INFO("Event "<<(uiCurrentEvent+1)<<" size is "<<full_length<<" ("<<event_length<<") bytes"<<" + event id + real length");
 
-         // copy the buffer with digit array to event structure
-         unsigned int* pUInt = (unsigned int*) event[0].iov_base;
-         pUInt[0] = uiCurrentEvent;
-         pUInt[1] = event_length;
-         memcpy((void*)&pUInt[2], t.Buffer(), event_length);
-         if (add_length > 0) memset(((char*)(event[0].iov_base)) + event_length + head_length, 0, add_length);
+        // copy the buffer with digit array to event structure
+        unsigned int* pUInt = (unsigned int*) event[0].iov_base;
+        pUInt[0] = uiCurrentEvent;
+        pUInt[1] = event_length;
+        memcpy((void*)&pUInt[2], t.Buffer(), event_length);
+        if (add_length > 0) memset(((char*)(event[0].iov_base)) + event_length + head_length, 0, add_length);
 
-         ERS_DEBUG(3, "Sending event to the consumer");
-         cc.pushEvent(event, 1);
-         ERS_DEBUG(3,"BM@N event was successfully sent");
+        ftime(&tEnd);
+        dif = 1000*((int)tEnd.time - (int)tStart.time) + (tEnd.millitm - tStart.millitm);
+        cout<<"write and memcpy time: "<<dif<<" ms\n";
+
+        ftime(&tStart);
+        ERS_DEBUG(3, "Sending event to the consumer");
+        cc.pushEvent(event, 1);
+        ERS_DEBUG(3,"BM@N event was successfully sent");
+
+        ftime(&tEnd);
+        dif = 1000*((int)tEnd.time - (int)tStart.time) + (tEnd.millitm - tStart.millitm);
+        cout<<"pushEvent time: "<<dif<<" ms\n";
+
+        ftime(&tStart);
     }
 };
 

@@ -7,6 +7,7 @@
 #include "BmnGlobalTrackDraw.h"
 #include "BmnGlobalTrack.h"
 #include "BmnGemTrack.h"
+#include "FairEventManagerEditor.h"
 
 #include "TEveManager.h"
 #include "TEvePathMark.h"
@@ -329,6 +330,7 @@ TEveTrackList* BmnGlobalTrackDraw::GetTrGroup(TParticle* P)
             fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
             gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
             fEventManager->EveRecoTracks->SetRnrState(kFALSE);
+            fEventManager->GetEventEditor()->fShowRecoTracks->SetEnabled(kTRUE);
         }
 
         gEve->AddElement(fTrList, fEventManager->EveRecoTracks);

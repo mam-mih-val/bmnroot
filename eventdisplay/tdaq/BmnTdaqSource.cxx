@@ -209,20 +209,20 @@ Int_t BmnTdaqSource::ReadEvent(UInt_t)
             if (iAsync)
                 clog<<"Trying next event...";
             else
-                clog<<"Waiting for next event (timeout: "<<iTimeout/1000<<" sec)... ";
+                clog<<"Waiting for next event...";
         }
 
         if (iAsync)
             event = it->tryNextEvent();
         else
-            event = it->nextEvent(iTimeout);
+            event = it->nextEvent(iTimeout); // timeout = iTimeout/1000 seconds
 
         if (iVerbose > 1)
             cout<<"done"<<endl;
     }
     catch (emon::NoMoreEvents& ex)
     {
-        // output only when in synchronous case, because in asynchronous mode this will happen way too often!
+        // this will happen very often in asynchronous mode
         if (!iAsync)
         {
             ers::warning(ex);

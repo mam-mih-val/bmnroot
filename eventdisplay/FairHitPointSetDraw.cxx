@@ -8,6 +8,7 @@
 #include "FairHitPointSetDraw.h"
 #include "FairHit.h"
 #include "FairEventManager.h"
+#include "FairEventManagerEditor.h"
 
 #include "TEveManager.h"
 
@@ -38,6 +39,7 @@ void FairHitPointSetDraw::AddEveElementList()
         fEventManager->EveRecoPoints = new TEveElementList("Reco points");
         gEve->AddElement(fEventManager->EveRecoPoints, fEventManager);
         fEventManager->EveRecoPoints->SetRnrState(kFALSE);
+        fEventManager->GetEventEditor()->fShowRecoPoints->SetEnabled(kTRUE);
     }
 
     gEve->AddElement(fq, fEventManager->EveRecoPoints);

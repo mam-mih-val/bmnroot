@@ -35,14 +35,13 @@ class FairEventManagerEditor : public TGedFrame
 {
   private:
     TObject* fObject;
-    FairEventManager* fManager;
+    FairEventManager* fEventManager;
     TGNumberEntry* fCurrentPDG;
     TGCheckButton* fVizPri;
     TEveGValuator* fMinEnergy, *fMaxEnergy;
     TGLabel* fEventTime;
     TGHorizontalFrame* fGeometryFrame;
     TGCheckButton* ShowMagnetButton;
-    TGCheckButton* fShowMCPoints, *fShowMCTracks, *fShowRecoPoints, *fShowRecoTracks;
 
     // current event number
     int iEventNumber;
@@ -90,6 +89,7 @@ class FairEventManagerEditor : public TGedFrame
     TGNumberEntry* fCurrentEvent;
     // 'Show Geometry' checkbox
     TGCheckButton* fGeometry;
+    TGCheckButton* fShowMCPoints, *fShowMCTracks, *fShowRecoPoints, *fShowRecoTracks;
 
     int iThreadState;
 

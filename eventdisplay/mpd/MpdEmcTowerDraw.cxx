@@ -183,6 +183,7 @@ void MpdEmcTowerDraw::Exec(Option_t* option)
             fEventManager->EveRecoPoints = new TEveElementList("Reco points");
             gEve->AddElement(fEventManager->EveRecoPoints, fEventManager);
             fEventManager->EveRecoPoints->SetRnrState(kFALSE);
+            fEventManager->GetEventEditor()->fShowRecoPoints->SetEnabled(kTRUE);
         }
         
         gEve->AddElement(q, fEventManager->EveRecoPoints);

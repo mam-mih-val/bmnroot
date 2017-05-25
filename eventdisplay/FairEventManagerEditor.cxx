@@ -30,18 +30,16 @@ using namespace std;
 
 #define MAX_ENERGY 12
 
-//______________________________________________________________________________
 // FairEventManagerEditor
 //
 // Specialization of TGedEditor for proper update propagation to
 // TEveManager.
-ClassImp(FairEventManagerEditor);
 
 //______________________________________________________________________________
 FairEventManagerEditor::FairEventManagerEditor(const TGWindow* p, Int_t width, Int_t height, UInt_t options, Pixel_t back)
   : TGedFrame(p, width, height, options | kVerticalFrame, back),
    fObject(0),
-   fManager(FairEventManager::Instance()),
+   fEventManager(FairEventManager::Instance()),
    fCurrentEvent(0),
    fCurrentPDG(0),
    fVizPri(0),
@@ -52,6 +50,7 @@ FairEventManagerEditor::FairEventManagerEditor(const TGWindow* p, Int_t width, I
    isStreamSource(false),
    iThreadState(0)
 {
+    fEventManager->SetEventEditor(this);
     Init();
 }
 
@@ -141,7 +140,7 @@ void FairEventManagerEditor::Init()
     fMinEnergy->SetValue(0);
     fMinEnergy->Connect("ValueSet(Double_t)", "FairEventManagerEditor", this, "MinEnergy()");
     title1->AddFrame(fMinEnergy, new TGLayoutHints(kLHintsTop, 1, 1, 1, 0));
-    fManager->SetMinEnergy(0);
+    fEventManager->SetMinEnergy(0);
 
     // textbox for max energy cutting
     fMaxEnergy = new TEveGValuator(title1, "Max Energy:", 90, 0);
@@ -153,7 +152,7 @@ void FairEventManagerEditor::Init()
     fMaxEnergy->SetValue(MAX_ENERGY);
     fMaxEnergy->Connect("ValueSet(Double_t)", "FairEventManagerEditor", this, "MaxEnergy()");
     title1->AddFrame(fMaxEnergy, new TGLayoutHints(kLHintsTop, 1, 1, 1, 0));
-    fManager->SetMaxEnergy(MAX_ENERGY);
+    fEventManager->SetMaxEnergy(MAX_ENERGY);
 
     fGeometryFrame = new TGHorizontalFrame(title1);
     // button: whether show detector geometry or not
@@ -177,7 +176,7 @@ void FairEventManagerEditor::Init()
     TGCheckButton* backgroundButton = new TGCheckButton(title1, "light background");
     title1->AddFrame(backgroundButton, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 5,5,1,1));
     backgroundButton->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "SwitchBackground(Bool_t)");
-    if (!fManager->isDarkColor)
+    if (!fEventManager->isDarkColor)
     {
         backgroundButton->SetOn();
         gEve->GetViewers()->SwitchColorSet();
@@ -192,13 +191,13 @@ void FairEventManagerEditor::Init()
     fShowMCPoints = new TGCheckButton(framePointsInfo, "MC points");
     framePointsInfo->AddFrame(fShowMCPoints, new TGLayoutHints(kLHintsNormal, 0,0,0,0));
     fShowMCPoints->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMCPoints(Bool_t)");
-    //fShowMCPoints->SetDisabledAndSelected(kFALSE);
+    fShowMCPoints->SetDisabledAndSelected(kFALSE);
 
     // button for show|hide reconstructed points
     fShowRecoPoints = new TGCheckButton(framePointsInfo, "Reco points");
     framePointsInfo->AddFrame(fShowRecoPoints, new TGLayoutHints(kLHintsRight, 0,0,1,0));
     fShowRecoPoints->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowRecoPoints(Bool_t)");
-    //fShowRecoPoints->SetDisabledAndSelected(kFALSE);
+    fShowRecoPoints->SetDisabledAndSelected(kFALSE);
     groupData->AddFrame(framePointsInfo, new TGLayoutHints(kLHintsNormal | kLHintsExpandX, 1,1,5,0));
 
     TGHorizontalFrame* frameTracksInfo = new TGHorizontalFrame(groupData);
@@ -206,19 +205,19 @@ void FairEventManagerEditor::Init()
     fShowMCTracks = new TGCheckButton(frameTracksInfo, "MC tracks");
     frameTracksInfo->AddFrame(fShowMCTracks, new TGLayoutHints(kLHintsNormal, 0,0,0,0));
     fShowMCTracks->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMCTracks(Bool_t)");
-    //fShowMCTracks->SetDisabledAndSelected(kFALSE);
+    fShowMCTracks->SetDisabledAndSelected(kFALSE);
 
     // button for show|hide reco tracks
     fShowRecoTracks = new TGCheckButton(frameTracksInfo, "Reco tracks");
     frameTracksInfo->AddFrame(fShowRecoTracks, new TGLayoutHints(kLHintsRight, 0,0,1,0));
     fShowRecoTracks->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowRecoTracks(Bool_t)");
-    //fShowRecoTracks->SetDisabledAndSelected(kFALSE);
+    fShowRecoTracks->SetDisabledAndSelected(kFALSE);
 
     groupData->AddFrame(frameTracksInfo, new TGLayoutHints(kLHintsNormal | kLHintsExpandX, 1,1,5,0));
     title1->AddFrame(groupData, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 3,15,1,1));
 
     // button for update of event visualization
-    if (fManager->isOnline)
+    if (fEventManager->isOnline)
         fUpdate = new TGTextButton(title1, "Start online display");
     else
         fUpdate = new TGTextButton(title1, "Update event");
@@ -236,25 +235,7 @@ void FairEventManagerEditor::Init()
 
     iEventNumber = 0;
     // read first event in offline mode
-    //fManager->GotoEvent(iEventNumber);
-
-    // first time checking for active buttons
-    if (fManager->EveMCPoints == NULL)
-        fShowMCPoints->SetDisabledAndSelected(kFALSE);
-    else
-        fShowMCPoints->SetEnabled(kTRUE);
-    if (fManager->EveMCTracks == NULL)
-        fShowMCTracks->SetDisabledAndSelected(kFALSE);
-    else
-        fShowMCTracks->SetEnabled(kTRUE);
-    if (fManager->EveRecoPoints == NULL)
-        fShowRecoPoints->SetDisabledAndSelected(kFALSE);
-    else
-        fShowRecoPoints->SetEnabled(kTRUE);
-    if (fManager->EveRecoTracks == NULL)
-        fShowRecoTracks->SetDisabledAndSelected(kFALSE);
-    else
-        fShowRecoTracks->SetEnabled(kTRUE);
+    //fEventManager->GotoEvent(iEventNumber);
 
     // display event time
     TString time;
@@ -263,11 +244,11 @@ void FairEventManagerEditor::Init()
     fEventTime->SetText(time.Data());
 
     // display and set new min and max energy limits given by event energy range
-    fMinEnergy->SetLimits(fManager->GetEvtMinEnergy(), fManager->GetEvtMaxEnergy(), 100);
-    fMinEnergy->SetValue(fManager->GetEvtMinEnergy());
+    fMinEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
+    fMinEnergy->SetValue(fEventManager->GetEvtMinEnergy());
     MinEnergy();
-    fMaxEnergy->SetLimits(fManager->GetEvtMinEnergy(), fManager->GetEvtMaxEnergy(), 100);
-    fMaxEnergy->SetValue(fManager->GetEvtMaxEnergy());
+    fMaxEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
+    fMaxEnergy->SetValue(fEventManager->GetEvtMaxEnergy());
     MaxEnergy();
 
     // update tab controls
@@ -283,28 +264,28 @@ void FairEventManagerEditor::SetModel(TObject* obj)
 // set minimum energy for particle filtering
 void FairEventManagerEditor::MinEnergy()
 {
-    fManager->SetMinEnergy(fMinEnergy->GetValue());
+    fEventManager->SetMinEnergy(fMinEnergy->GetValue());
 }
 
 // set maximum energy for particle filtering
 void FairEventManagerEditor::MaxEnergy()
 {
-    fManager->SetMaxEnergy(fMaxEnergy->GetValue());
+    fEventManager->SetMaxEnergy(fMaxEnergy->GetValue());
 }
 
 // set flag: show all particles or only primary
 void FairEventManagerEditor::DoVizPri()
 {
     if (fVizPri->IsOn())
-        fManager->SetPriOnly(kTRUE);
+        fEventManager->SetPriOnly(kTRUE);
     else
-        fManager->SetPriOnly(kFALSE);
+        fEventManager->SetPriOnly(kFALSE);
 }
 
 // select displaying particle by PDG code
 void FairEventManagerEditor::SelectPDG()
 {
-    fManager->SelectPDG(fCurrentPDG->GetIntNumber());
+    fEventManager->SelectPDG(fCurrentPDG->GetIntNumber());
 }
 
 // show or hide detector geometry
@@ -316,10 +297,10 @@ void FairEventManagerEditor::ShowGeometry(Bool_t is_show)
     gVirtualX->SetCursor(gEve->GetLTEFrame()->GetEditor()->GetId(), gVirtualX->CreateCursor(kWatch));
 
     gEve->GetGlobalScene()->SetRnrState(is_show);
-    if (!fManager->isOnline)
+    if (!fEventManager->isOnline)
     {
-        fManager->fRPhiGeomScene->SetRnrState(is_show);
-        fManager->fRhoZGeomScene->SetRnrState(is_show);
+        fEventManager->fRPhiGeomScene->SetRnrState(is_show);
+        fEventManager->fRhoZGeomScene->SetRnrState(is_show);
     }
 
     // disable Magnet show choice while hiding of detector geometry
@@ -368,7 +349,7 @@ void FairEventManagerEditor::SwitchBackground(Bool_t is_on)
 // set transparency to high value (80%)
 void FairEventManagerEditor::SwitchTransparency(Bool_t is_on)
 {
-    fManager->SelectedGeometryTransparent(is_on);
+    fEventManager->SelectedGeometryTransparent(is_on);
 
     if (gEve->GetGlobalScene()->GetRnrState())
     {
@@ -385,7 +366,7 @@ void FairEventManagerEditor::ShowMCPoints(Bool_t is_show)
     /*
     TEveElement::List_t matches;
     TPRegexp* regexp = new TPRegexp("(\\w+)Point\\b");
-    Int_t numFound = fManager->FindChildren(matches, *regexp);
+    Int_t numFound = fEventManager->FindChildren(matches, *regexp);
     if (numFound > 0)
     {
         for (TEveElement::List_i p = matches.begin(); p != matches.end(); ++p)
@@ -393,7 +374,7 @@ void FairEventManagerEditor::ShowMCPoints(Bool_t is_show)
     }
     */
 
-    TEveElement* points = fManager->FindChild("MC points");
+    TEveElement* points = fEventManager->FindChild("MC points");
     if (points == NULL)
     {
         cout<<"There is no information about MC points"<<endl;
@@ -404,7 +385,7 @@ void FairEventManagerEditor::ShowMCPoints(Bool_t is_show)
     points->SetRnrState(is_show);
 
     // highlight ZDC modules if ZDC present
-    if (fManager->isZDCModule)
+    if (fEventManager->isZDCModule)
     {
         if (is_show)
             RedrawZDC();
@@ -434,8 +415,8 @@ bool FairEventManagerEditor::RedrawZDC(bool isRedraw)
                 continue;
             //cout<<"Node: "<<child->GetName()<<". Number is equal "<<i<<endl;
 
-            child->SetVisibility(fManager->isZDCModule[i]);
-            child->VisibleDaughters(fManager->isZDCModule[i]);
+            child->SetVisibility(fEventManager->isZDCModule[i]);
+            child->VisibleDaughters(fEventManager->isZDCModule[i]);
         }
 
         for (; i < 104; i++)
@@ -445,8 +426,8 @@ bool FairEventManagerEditor::RedrawZDC(bool isRedraw)
                 continue;
             //cout<<"Node: "<<child->GetName()<<". Number is equal "<<i<<endl;
 
-            child->SetVisibility(fManager->isZDCModule[i]);
-            child->VisibleDaughters(fManager->isZDCModule[i]);
+            child->SetVisibility(fEventManager->isZDCModule[i]);
+            child->VisibleDaughters(fEventManager->isZDCModule[i]);
         }
 
         if ((isRedraw) && (gEve->GetGlobalScene()->GetRnrState()))
@@ -479,7 +460,7 @@ void FairEventManagerEditor::RestoreZDC()
                 continue;
             //cout<<"Node: "<<child->GetName()<<". Number is equal "<<i<<endl;
 
-            if (fManager->isZDCModule[i] == false)
+            if (fEventManager->isZDCModule[i] == false)
             {
                 child->SetVisibility(true);
                 child->VisibleDaughters(true);
@@ -493,7 +474,7 @@ void FairEventManagerEditor::RestoreZDC()
                 continue;
             //cout<<"Node: "<<child->GetName()<<". Number is equal "<<i<<endl;
 
-            if (fManager->isZDCModule[i] == false)
+            if (fEventManager->isZDCModule[i] == false)
             {
                 child->SetVisibility(true);
                 child->VisibleDaughters(true);
@@ -511,7 +492,7 @@ void FairEventManagerEditor::RestoreZDC()
 //______________________________________________________________________________
 void FairEventManagerEditor::ShowMCTracks(Bool_t is_show)
 {
-    TEveElement* tracks = fManager->FindChild("MC tracks");
+    TEveElement* tracks = fEventManager->FindChild("MC tracks");
     if (tracks == NULL)
     {
         cout<<"There is no information about MC tracks"<<endl;
@@ -526,7 +507,7 @@ void FairEventManagerEditor::ShowMCTracks(Bool_t is_show)
 //______________________________________________________________________________
 void FairEventManagerEditor::ShowRecoPoints(Bool_t is_show)
 {
-    TEveElement* points = fManager->FindChild("Reco points");
+    TEveElement* points = fEventManager->FindChild("Reco points");
     if (points == NULL)
     {
         cout<<"There is no information about reconstructed points"<<endl;
@@ -534,10 +515,10 @@ void FairEventManagerEditor::ShowRecoPoints(Bool_t is_show)
         return;
     }
 
-    fManager->fgShowRecoPointsIsShow = is_show;
+    fEventManager->fgShowRecoPointsIsShow = is_show;
     // exec event visualization of selected event
-    if (fManager->fgRedrawRecoPointsReqired)
-        fManager->GotoEvent(fCurrentEvent->GetIntNumber());
+    if (fEventManager->fgRedrawRecoPointsReqired)
+        fEventManager->GotoEvent(fCurrentEvent->GetIntNumber());
 
     points->SetRnrState(is_show);
     gEve->Redraw3D();
@@ -546,7 +527,7 @@ void FairEventManagerEditor::ShowRecoPoints(Bool_t is_show)
 //______________________________________________________________________________
 void FairEventManagerEditor::ShowRecoTracks(Bool_t is_show)
 {
-    TEveElement* tracks = fManager->FindChild("Reco tracks");
+    TEveElement* tracks = fEventManager->FindChild("Reco tracks");
     if (tracks == NULL)
     {
         cout<<"There is no information about reconstructed tracks"<<endl;
@@ -578,13 +559,13 @@ void FairEventManagerEditor::UnblockUI()
 void FairEventManagerEditor::SelectEvent()
 {
     // if OFFLINE mode
-    if (!fManager->isOnline)
+    if (!fEventManager->isOnline)
     {
         int iNewEvent = fCurrentEvent->GetIntNumber();
         // exec event visualization of selected event
-        fManager->GotoEvent(iNewEvent);
+        fEventManager->GotoEvent(iNewEvent);
 
-        if ((fManager->isZDCModule) && (fShowMCPoints->IsOn()))
+        if ((fEventManager->isZDCModule) && (fShowMCPoints->IsOn()))
             RedrawZDC();
 
         if (iEventNumber != iNewEvent)
@@ -598,11 +579,11 @@ void FairEventManagerEditor::SelectEvent()
             fEventTime->SetText(time.Data());
 
             // display and set new min and max energy limits given by event energy range
-            fMinEnergy->SetLimits(fManager->GetEvtMinEnergy(), fManager->GetEvtMaxEnergy(), 100);
-            fMinEnergy->SetValue(fManager->GetEvtMinEnergy());
+            fMinEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
+            fMinEnergy->SetValue(fEventManager->GetEvtMinEnergy());
             MinEnergy();
-            fMaxEnergy->SetLimits(fManager->GetEvtMinEnergy(), fManager->GetEvtMaxEnergy(), 100);
-            fMaxEnergy->SetValue(fManager->GetEvtMaxEnergy());
+            fMaxEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
+            fMaxEnergy->SetValue(fEventManager->GetEvtMaxEnergy());
             MaxEnergy();
         }
 
@@ -613,11 +594,11 @@ void FairEventManagerEditor::SelectEvent()
     }
 
     /*// update all scenes
-    fManager->fRPhiView->GetGLViewer()->UpdateScene(kTRUE);
-    fManager->fRhoZView->GetGLViewer()->UpdateScene(kTRUE);
-    fManager->fMulti3DView->GetGLViewer()->UpdateScene(kTRUE);
-    fManager->fMultiRPhiView->GetGLViewer()->UpdateScene(kTRUE);
-    fManager->fMultiRhoZView->GetGLViewer()->UpdateScene(kTRUE);*/
+    fEventManager->fRPhiView->GetGLViewer()->UpdateScene(kTRUE);
+    fEventManager->fRhoZView->GetGLViewer()->UpdateScene(kTRUE);
+    fEventManager->fMulti3DView->GetGLViewer()->UpdateScene(kTRUE);
+    fEventManager->fMultiRPhiView->GetGLViewer()->UpdateScene(kTRUE);
+    fEventManager->fMultiRhoZView->GetGLViewer()->UpdateScene(kTRUE);*/
 }
 
 
@@ -632,13 +613,13 @@ void FairEventManagerEditor::UpdateEvent()
     }
 
     // if OFFLINE mode
-    if (!fManager->isOnline)
+    if (!fEventManager->isOnline)
     {
         int iNewEvent = fCurrentEvent->GetIntNumber();
         // exec event visualization of selected event
-        fManager->GotoEvent(iNewEvent);
+        fEventManager->GotoEvent(iNewEvent);
 
-        if ((fManager->isZDCModule) && (fShowMCPoints->IsOn()))
+        if ((fEventManager->isZDCModule) && (fShowMCPoints->IsOn()))
             RedrawZDC();
 
         if (iEventNumber != iNewEvent)
@@ -652,11 +633,11 @@ void FairEventManagerEditor::UpdateEvent()
             fEventTime->SetText(time.Data());
 
             // display and set new min and max energy limits given by event energy range
-            fMinEnergy->SetLimits(fManager->GetEvtMinEnergy(), fManager->GetEvtMaxEnergy(), 100);
-            fMinEnergy->SetValue(fManager->GetEvtMinEnergy());
+            fMinEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
+            fMinEnergy->SetValue(fEventManager->GetEvtMinEnergy());
             MinEnergy();
-            fMaxEnergy->SetLimits(fManager->GetEvtMinEnergy(), fManager->GetEvtMaxEnergy(), 100);
-            fMaxEnergy->SetValue(fManager->GetEvtMaxEnergy());
+            fMaxEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
+            fMaxEnergy->SetValue(fEventManager->GetEvtMaxEnergy());
             MaxEnergy();
         }
 
@@ -673,11 +654,11 @@ void FairEventManagerEditor::UpdateEvent()
 
         // Run separate thread for Online Display
         ThreadParam_OnlineDisplay* par_online_display = new ThreadParam_OnlineDisplay();
-        par_online_display->fEventManager = fManager;
+        par_online_display->fEventManager = fEventManager;
         par_online_display->fManagerEditor = this;
         par_online_display->fRootManager = FairRootManager::Instance();
         par_online_display->isZDCRedraw = false;
-        if ((fManager->isZDCModule) && (fShowMCPoints->IsOn()))
+        if ((fEventManager->isZDCModule) && (fShowMCPoints->IsOn()))
             par_online_display->isZDCRedraw = true;
         par_online_display->iCurrentEvent = fCurrentEvent->GetIntNumber();
         par_online_display->isStreamSource = isStreamSource;
@@ -694,7 +675,7 @@ void FairEventManagerEditor::UpdateEvent()
 void* RunOnlineDisplay(void* ptr)
 {
     ThreadParam_OnlineDisplay* thread_par = (ThreadParam_OnlineDisplay*) ptr;
-    FairEventManager* fManager = thread_par->fEventManager;
+    FairEventManager* fEventManager = thread_par->fEventManager;
     FairEventManagerEditor* fEditor = thread_par->fManagerEditor;
     FairRootManager* fRootManager = thread_par->fRootManager;
     int current_event = thread_par->iCurrentEvent;
@@ -702,7 +683,7 @@ void* RunOnlineDisplay(void* ptr)
     bool isZDCRedraw = thread_par->isZDCRedraw;
 
     // get all tasks from FairRunAna
-    FairRunAna* pRun = fManager->fRunAna;
+    FairRunAna* pRun = fEventManager->fRunAna;
     FairTask* pMainTask = pRun->GetMainTask();
     TList* taskList = pMainTask->GetListOfTasks();
 
@@ -710,34 +691,42 @@ void* RunOnlineDisplay(void* ptr)
     {
         if (fEditor->iThreadState == 0)
             break;
+        cout<<"555555555555555555"<<endl;
         do
         {
             TThread::Sleep(0, 200000000);
         } while ((gEve->GetGlobalScene()->GetGLScene()->IsLocked()) || (gEve->GetEventScene()->GetGLScene()->IsLocked()));
 
+        cout<<"6666666666666666666"<<endl;
+
         fRootManager->ReadEvent(i);
-        fManager->SetCurrentEvent(i);
+        fEventManager->SetCurrentEvent(i);
 
         // run all tasks
-        TObjLink *lnk = taskList->FirstLink();
+        cout<<"1111111111111"<<endl;
+        TObjLink* lnk = taskList->FirstLink();
         while (lnk)
         {
             FairTask* pCurTask = (FairTask*) lnk->GetObject();
             pCurTask->ExecuteTask("");
             lnk = lnk->Next();
         }
+        cout<<"22222222222222222"<<endl;
 
-        fEditor->fCurrentEvent->SetIntNumber(i);
+        //fEditor->fCurrentEvent->SetIntNumber(i);
 
         // highlight ZDC modules if ZDC present
         if (isZDCRedraw)
             fEditor->RedrawZDC();
+
+        cout<<"333333333333333333333"<<endl;
 
         // redraw points
         cout<<"Redrawing event #"<<i<<"..."<<endl<<endl;
         gEve->Redraw3D();
         //TThread::Sleep(1,0);
         //gSystem->ProcessEvents();
+        cout<<"444444444444444444444444"<<endl;
     }
 
     fEditor->UnblockUI();
@@ -757,3 +746,5 @@ void FairEventManagerEditor::SaveImage()
 
     return;
 }
+
+ClassImp(FairEventManagerEditor);

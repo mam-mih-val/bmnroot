@@ -8,6 +8,7 @@
 #include "FairMCPointDraw.h"
 #include "FairMCPoint.h"
 #include "FairEventManager.h"
+#include "FairEventManagerEditor.h"
 
 #include "TEveManager.h"
 
@@ -32,6 +33,7 @@ void FairMCPointDraw::AddEveElementList()
         fEventManager->EveMCPoints = new TEveElementList("MC points");
         gEve->AddElement(fEventManager->EveMCPoints, fEventManager);
         fEventManager->EveMCPoints->SetRnrState(kFALSE);
+        fEventManager->GetEventEditor()->fShowMCPoints->SetEnabled(kTRUE);
     }
 
     gEve->AddElement(fq, fEventManager->EveMCPoints);

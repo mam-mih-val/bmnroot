@@ -1,16 +1,7 @@
-/********************************************************************************
- *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
- *                                                                              *
- *              This software is distributed under the terms of the             *
- *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
- *                  copied verbatim in the file "LICENSE"                       *
- ********************************************************************************/
-//______________________________________________________________________________
-/** FairEventManager
-*  class for event management and navigation.
-*  M. Al-Turany 06.12.2007
-**/
+// FairEventManager: class for event management and navigation.
+
 #include "FairEventManager.h"
+#include "FairEventManagerEditor.h"
 #include "constants.h"
 
 #include "FairMCPointDraw.h"
@@ -37,8 +28,6 @@
 #include <sstream>
 using namespace std;
 
-ClassImp(FairEventManager)
-
 FairEventManager* FairEventManager::fgRinstance= 0;
 //_____________________________________________________________________________
 FairEventManager* FairEventManager::Instance()
@@ -49,7 +38,7 @@ FairEventManager* FairEventManager::Instance()
 //______________________________________________________________________________
 FairEventManager::FairEventManager()
   :TEveEventManager("EventManager", ""),
-   fRootManager(FairRootManager::Instance()),
+   fEventEditor(NULL),
    fEntry(0),
    fRunAna(FairRunAna::Instance()),
    fEvent(0),
@@ -903,3 +892,5 @@ void FairEventManager::AddParticlesToPdgDataBase(Int_t pdg)
     if (!pdgDB->GetParticle(50000051))
         pdgDB->AddParticle("FeedbackPhoton","FeedbackPhoton", 0, kFALSE, 0, 0, "Special", 50000051);
 }
+
+ClassImp(FairEventManager)

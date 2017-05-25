@@ -21,8 +21,8 @@ void pull_event()
     gSystem->Load("libers");
 
     BmnEventPull pull;
-    pull.SetPartitionName("test");
-    pull.SetSamplingType("aaa");
+    pull.SetPartitionName("bmn");
+    pull.SetSamplingType("raw");
     pull.SetSamplingName("file");
     pull.Exec();
 }

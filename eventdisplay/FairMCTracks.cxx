@@ -5,6 +5,7 @@
 #include "FairMCTracks.h"
 
 #include "FairEventManager.h"           // for FairEventManager
+#include "FairEventManagerEditor.h"
 #include "FairRootManager.h"            // for FairRootManager
 #include "FairLogger.h"
 
@@ -184,6 +185,7 @@ TEveTrackList* FairMCTracks::GetTrGroup(TParticle* P)
         fEventManager->EveMCTracks = new TEveElementList("MC tracks");
         gEve->AddElement(fEventManager->EveMCTracks, fEventManager);
         fEventManager->EveMCTracks->SetRnrState(kFALSE);
+        fEventManager->GetEventEditor()->fShowMCTracks->SetEnabled(kTRUE);
     }
     gEve->AddElement(fTrList, fEventManager->EveMCTracks);
     fTrList->SetRnrLine(kTRUE);

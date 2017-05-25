@@ -59,6 +59,8 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
         else
             cout<<endl<<"Warning: File with reconstructed data wasn't found!"<<endl;
         }
+
+        break;
     // FOR EXPERIMENTAL DATA FROM RECONSTRUCTED ROOT FILE
     case 1:
     {
@@ -122,9 +124,7 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
             magField->Init();
             fRunAna->SetField(magField);
             TString targ = "-", beam = pCurrentRun->GetBeamParticle();
-            if (pCurrentRun->GetTargetParticle() == NULL)
-                isTarget = kFALSE;
-            else
+            if (pCurrentRun->GetTargetParticle() != NULL)
             {
                 isTarget = kTRUE;
                 targ = *(pCurrentRun->GetTargetParticle());
@@ -149,6 +149,8 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
         // set source as raw data file
         if (!CheckFileExist(reco_file)) return;
         fFileSource = new BmnFileSource(reco_file);
+
+        break;
     }
     // FOR EXPERIMENTAL DATA FROM DIRECTORY WITH RAW .DATA FILES
     case 2:
@@ -219,24 +221,8 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
             magField->SetScale(fieldScale);
             magField->Init();
             fRunAna->SetField(magField);
-            TString targ = "-", beam = pCurrentRun->GetBeamParticle();
-            if (pCurrentRun->GetTargetParticle() == NULL)
-                isTarget = kFALSE;
-            else
-            {
+            if (pCurrentRun->GetTargetParticle() != NULL)
                 isTarget = kTRUE;
-                targ = *(pCurrentRun->GetTargetParticle());
-            }
-
-            cout << "\n\n|||||||||||||||| EXPERIMENTAL RUN SUMMARY ||||||||||||||||" << endl;
-            cout << "||\t\t\t\t\t\t\t||" << endl;
-            cout << "||\t\tPeriod:\t\t" << run_period << "\t\t\t||" << endl;
-            cout << "||\t\tNumber:\t\t" << run_number << "\t\t\t||" << endl;
-            cout << "||\t\tBeam:\t\t" << beam << "\t\t\t||" << endl;
-            cout << "||\t\tTarget:\t\t" << targ << "\t\t\t||" << endl;
-            cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
-            cout << "||\t\t\t\t\t\t\t||" << endl;
-            cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
         }
         else
         {
@@ -246,7 +232,9 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
 
         if (!CheckFileExist(reco_file)) return;
         // set source as TDAQ Event Monitor
-        fFileSource = new BmnTdaqSource("test", "aaa", "file", 2);
+        fFileSource = new BmnTdaqSource("bmn", "raw", "file", 2);
+
+        break;
     }
     }// switch (data_source)
 
@@ -390,6 +378,7 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         gemSF->SetField(isField);
         gemSF->SetDirection(kTRUE);
         gemSF->SetTarget(isTarget);
+        gemSF->SetVerbose(3);
         fMan->AddTask(gemSF);
 
         // Tracking GEM (track finder)
@@ -397,17 +386,18 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         gemTF->SetField(isField);
         gemTF->SetDirection(kTRUE);
         gemTF->SetDistCut(1.0);
-        fMan->AddTask(gemTF);
+        gemTF->SetVerbose(3);
+        //fMan->AddTask(gemTF);
 
         // draw GEM hits
         FairHitPointSetDraw* GemHit = new FairHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
         GemHit->SetVerbose(1);
-        fMan->AddTask(GemHit);
+        //fMan->AddTask(GemHit);
 
         // draw GEM tracks
-        //BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemSeeds", "BmnGemStripHit");
-        BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
-        GemTrack->SetVerbose(1);
-        fMan->AddTask(GemTrack);
+        BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemSeed", "BmnGemStripHit");
+        //BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
+        GemTrack->SetVerbose(3);
+        //fMan->AddTask(GemTrack);
     }
 }

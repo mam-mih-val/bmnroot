@@ -7,6 +7,7 @@
 #include "BmnTrackDrawH.h"
 #include "BmnTrack.h"
 #include "FairHit.h"
+#include "FairEventManagerEditor.h"
 
 #include "TEveManager.h"
 #include "TEvePathMark.h"
@@ -51,33 +52,33 @@ BmnTrackDrawH::BmnTrackDrawH(const char* name, TString hitsBranchName, Int_t iVe
 // initialization of the track drawing task
 InitStatus BmnTrackDrawH::Init()
 {
-    if (fVerbose > 1)
+    if (fVerbose > 0)
         cout<<"BmnTrackDrawH::Init()"<<endl;
 
     fEventManager = FairEventManager::Instance();
-    if (fVerbose > 2)
+    if (fVerbose > 1)
         cout<<"BmnTrackDrawH::Init() get instance of EventManager: "<<fEventManager<<endl;
 
     FairRootManager* fManager = FairRootManager::Instance();
-    if (fVerbose > 2)
+    if (fVerbose > 1)
         cout<<"BmnTrackDrawH::Init() get instance of FairRootManager: "<<fManager<<endl;
 
     fTrackList = (TClonesArray*)fManager->GetObject(GetName());
     if(fTrackList == 0)
     {
-      cout<<"BmnTrackDrawH::Init()  branch "<<GetName()<<" Not found! Task will be deactivated "<<endl;
-      SetActive(kFALSE);
+        cout<<"BmnTrackDrawH::Init()  branch "<<GetName()<<" Not found! Task will be deactivated"<<endl;
+        SetActive(kFALSE);
     }
-    if (fVerbose > 2)
+    if (fVerbose > 1)
         cout<<"BmnTrackDrawH::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
 
     fHitList = (TClonesArray*)fManager->GetObject(fHitsBranchName);
     if(fHitList == 0)
     {
-      cout<<"BmnTrackDrawH::Init()  branch "<<fHitsBranchName<<" Not found! Task will be deactivated "<<endl;
-      SetActive(kFALSE);
+        cout<<"BmnTrackDrawH::Init()  branch "<<fHitsBranchName<<" not found! Task will be deactivated"<<endl;
+        SetActive(kFALSE);
     }
-    if (fVerbose > 2)
+    if (fVerbose > 1)
         cout<<"BmnTrackDrawH::Init() get list of hits "<<fHitList<<" from branch '"<<fHitsBranchName<<"'"<<endl;
 
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
@@ -90,9 +91,11 @@ InitStatus BmnTrackDrawH::Init()
 // -------------------------------------------------------------------------
 void BmnTrackDrawH::Exec(Option_t* option)
 {
-    if (!IsActive()) return;
-    if (fVerbose > 1)
+    if (fVerbose > 0)
         cout<<" BmnTrackDrawH::Exec "<<endl;
+
+    if (!IsActive())
+        return;
 
     Reset();
 
@@ -136,7 +139,7 @@ void BmnTrackDrawH::Exec(Option_t* option)
         Int_t Np = current_track->GetNHits();
 
         // cycle: add hits (points) to EVE path for this track
-        //cout<<"Points: "<<Np<<endl;
+        if (fVerbose > 2) cout<<"BmnTrackDrawH::Exec: number of track hits = "<<Np<<endl;
         for (Int_t n = 0; n < Np; n++)
         {
             FairHit* pHit = NULL;
@@ -146,7 +149,7 @@ void BmnTrackDrawH::Exec(Option_t* option)
 
             TEvePathMark* path = new TEvePathMark();
             TEveVector pos = TEveVector(pHit->GetX(), pHit->GetY(), pHit->GetZ());
-            //cout<<"Point: X="<<pHit->GetX()<<" Y="<<pHit->GetY()<<" Z="<<pHit->GetZ()<<endl;
+            if (fVerbose > 3) cout<<"BmnTrackDrawH::Exec: point "<<n<<": X="<<pHit->GetX()<<" Y="<<pHit->GetY()<<" Z="<<pHit->GetZ()<<endl;
             path->fV = pos;
             path->fTime = pHit->GetTimeStamp();
             if (n == 0)
@@ -158,19 +161,17 @@ void BmnTrackDrawH::Exec(Option_t* option)
             // add path marker for current EVE track
             track->AddPathMark(*path);
 
-            if (fVerbose > 3)
-                cout<<"Path marker added "<<path<<endl;
+            if (fVerbose > 3) cout<<"BmnTrackDrawH::Exec: path marker added "<<path<<endl;
         }
 
         // add track to EVE track list
         fTrList->AddElement(track);
 
-        if (fVerbose > 3)
-            cout<<"track added "<<track->GetName()<<endl;
+        if (fVerbose > 2) cout<<"BmnTrackDrawH::Exec: track was added "<<track->GetName()<<endl;
     }
 
     // redraw EVE scenes
-    gEve->Redraw3D(kFALSE);
+    //gEve->Redraw3D(kFALSE);
 }
 
 // destructor
@@ -203,7 +204,7 @@ TEveTrackList* BmnTrackDrawH::GetTrGroup(TParticle* P)
 {
     fTrList = 0;
 
-    // serch if there us existing track list for this particle (with given name)
+    // search if there us existing track list for this particle (with given name)
     for (Int_t i = 0; i < fEveTrList->GetEntriesFast(); i++)
     {
         TEveTrackList* TrListIn = (TEveTrackList*) fEveTrList->At(i);
@@ -227,6 +228,7 @@ TEveTrackList* BmnTrackDrawH::GetTrGroup(TParticle* P)
             fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
             gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
             fEventManager->EveRecoTracks->SetRnrState(kFALSE);
+            fEventManager->GetEventEditor()->fShowRecoTracks->SetEnabled(kTRUE);
         }
 
         gEve->AddElement(fTrList, fEventManager->EveRecoTracks);

@@ -1,18 +1,8 @@
-/********************************************************************************
- *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
- *                                                                              *
- *              This software is distributed under the terms of the             *
- *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
- *                  copied verbatim in the file "LICENSE"                       *
- ********************************************************************************/
-/**
-* class for event management and navigation.
-* 06.12.07 M.Al-Turany
-*/
-#ifndef FairEventManager_H
-#define FairEventManager_H
+//FairEventManager: class for event management and navigation
 
-#include "FairRootManager.h"
+#ifndef FAIREVENTMANAGER_H
+#define FAIREVENTMANAGER_H
+
 #include "FairRunAna.h"
 #include "FairTask.h"
 
@@ -23,6 +13,7 @@
 #include <TEveProjectionManager.h>
 #include "TGListTree.h"
 
+class FairEventManagerEditor;
 class FairEventManager : public TEveEventManager
 {
   public:
@@ -76,6 +67,8 @@ class FairEventManager : public TEveEventManager
     virtual void PrevEvent();               // *MENU*
     virtual void Close();
     virtual void DisplaySettings();         //  *Menu*
+
+
     void UpdateEditor();
     virtual Int_t Color(Int_t pdg);
     void AddTask(FairTask* t) { fRunAna->AddTask(t); }
@@ -96,6 +89,8 @@ class FairEventManager : public TEveEventManager
     virtual Float_t GetEvtMinEnergy() { return fEvtMinEnergy; }
     virtual Float_t GetMaxEnergy() { return fMaxEnergy; }
     virtual Float_t GetMinEnergy() { return fMinEnergy; }
+    void SetEventEditor(FairEventManagerEditor* event_editor) { fEventEditor = event_editor; }
+    FairEventManagerEditor* GetEventEditor() { return fEventEditor; }
 
     //MultiView features
     void SetDepth(Float_t d);
@@ -161,7 +156,8 @@ class FairEventManager : public TEveEventManager
     enum VisualizationColoring {selectedColoring, levelColoring, defaultColoring};
     VisualizationColoring gVisualizationColoring;
   private:
-    FairRootManager* fRootManager; //!
+    FairEventManagerEditor* fEventEditor; //!
+
     TGListTreeItem* fEvent; //!
     // current event number
     Int_t fEntry; //!

@@ -6,6 +6,7 @@
 #include "BmnTrackDrawP.h"
 #include "BmnTrack.h"
 #include "CbmStack.h"
+#include "FairEventManagerEditor.h"
 
 #include "TROOT.h"
 #include "TGeant3.h"
@@ -245,6 +246,7 @@ void BmnTrackDrawP::Exec(Option_t* option)
         fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
         gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
         fEventManager->EveRecoTracks->SetRnrState(kFALSE);
+        fEventManager->GetEventEditor()->fShowRecoTracks->SetEnabled(kTRUE);
     }
 
     // redraw EVE scenes

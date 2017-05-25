@@ -22,8 +22,8 @@ void monitor_event()
 
     BmnEventMonitor mon;
     mon.SetVerbose(2);
-    mon.SetPartitionName("test");
-    mon.SetSamplingType("aaa");
+    mon.SetPartitionName("bmn");
+    mon.SetSamplingType("raw");
     mon.SetSamplingName("file");
     mon.SetMaxEvents(10000);
     mon.Exec();

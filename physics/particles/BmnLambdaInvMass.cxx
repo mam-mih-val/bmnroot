@@ -58,6 +58,7 @@ void BmnLambdaInvMass::RecoAnalysis() {
         if (mom1 < 0. || Abs(mom1) < fMomProtMin || Abs(mom1) > fMomProtMax)
             continue;
 
+
         Double_t fact1 = 1. / Sqrt(Tx1 * Tx1 + Ty1 * Ty1 + 1);
         lPos.SetXYZM(Tx1 * fact1 * mom1, Ty1 * fact1 * mom1, mom1 * fact1, fPDG->GetParticle(2212)->Mass());
 
@@ -78,12 +79,84 @@ void BmnLambdaInvMass::RecoAnalysis() {
             // Select protons here. mom2 < 0 means a particle not to be a pion
             if (mom2 > 0. || Abs(mom2) < fMomPionMin || Abs(mom2) > fMomPionMax)
                 continue;
+            
+            mom2 *= -1.;
 
             Double_t fact2 = 1. / Sqrt(Tx2 * Tx2 + Ty2 * Ty2 + 1);
             lNeg.SetXYZM(Tx2 * fact2 * mom2, Ty2 * fact2 * mom2, mom2 * fact2, fPDG->GetParticle(-211)->Mass());
+
             fLambdaInvMass->Fill(TLorentzVector((lPos + lNeg)).Mag());
+
+            // Calculate inv. mass directly
+            Double_t mInv = Sqrt(fPDG->GetParticle(2212)->Mass() * fPDG->GetParticle(2212)->Mass() +
+                    fPDG->GetParticle(-211)->Mass() * fPDG->GetParticle(-211)->Mass() +
+                    2 * (Sqrt(fPDG->GetParticle(-211)->Mass() * fPDG->GetParticle(-211)->Mass() + mom2 * mom2) * Sqrt(fPDG->GetParticle(2212)->Mass() * fPDG->GetParticle(2212)->Mass() + mom1 * mom1)
+                    - (Tx1 * fact1 * mom1 * Tx2 * fact2 * mom2 + Ty1 * fact1 * mom1 * Ty2 * fact2 * mom2 + mom1 * fact1 * mom2 * fact2)));
+
+            // cout << mInv << endl;
+            
+            //dP and dT (dTx1, dtx2, dTy1, dTy2) (%)
+            vector <Double_t> dP;
+            vector <Double_t> dT;
+            dP.push_back(0);
+            dP.push_back(0);
+            
+            dT.push_back(0);
+            dT.push_back(0);
+            dT.push_back(0);
+            dT.push_back(0);
+            
+            // cout << CalcErrors(track1, track2, dP, dT, 0) << endl;
         }
     }
+}
+
+Double_t BmnLambdaInvMass::CalcErrors(BmnGemTrack* track1, BmnGemTrack* track2, vector <Double_t> dP, vector <Double_t> dT, Int_t errType = 0) {       
+    FairTrackParam* first1 = track1->GetParamFirst();
+    FairTrackParam* first2 = track2->GetParamFirst();
+    
+    Double_t Tx1 = first1->GetTx();
+    Double_t Ty1 = first1->GetTy();
+    Double_t Tx2 = first2->GetTx();
+    Double_t Ty2 = first2->GetTy();
+    
+    Double_t p1 = Abs(1. / first1->GetQp());
+    Double_t p2 = Abs(1. / first1->GetQp());
+    
+    Double_t dp1 = dP[0] * p1 / 100.;
+    Double_t dp2 = dP[1] * p2 / 100.;
+    
+    Double_t dTx1 = dT[0] * Abs(Tx1) / 100. ;
+    Double_t dTx2 = dT[1] * Abs(Tx2) / 100.;
+    Double_t dTy1 = dT[2] * Abs(Ty1) / 100. ;
+    Double_t dTy2 = dT[3] * Abs(Ty2) / 100.;
+    
+    Double_t m1 = fPDG->GetParticle(2212)->Mass();
+    Double_t m2 = fPDG->GetParticle(-211)->Mass();
+    
+    Double_t A1 = Tx1 * Tx1 + Ty1 * Ty1 + 1;
+    Double_t A2 = Tx2 * Tx2 + Ty2 * Ty2 + 1;
+    Double_t A1A2 = Tx1 * Tx2 + Ty1 * Ty2 + 1;
+    Double_t SA12 = Sqrt(A1 * A2);
+    
+    Double_t cosTheta = A1A2 / SA12;
+    Double_t SE1 = Sqrt(m1 * m1 + p1 * p1);
+    Double_t SE2 = Sqrt(m2 * m2 + p2 * p2);
+    
+    Double_t dMinv_dp1 = Abs(2 * p1 * SE2 / SE1 - 2 * p2 * cosTheta);
+    Double_t dMinv_dp2 = Abs(2 * p2 * SE1 / SE2 - 2 * p1 * cosTheta);
+    Double_t dMinv_dTx1 = Abs(2 * p1 * p2 * (Tx2 * SA12 - A1A2 * Tx1 * A2 / SA12) / (A1 * A2));
+    Double_t dMinv_dTx2 = Abs(2 * p1 * p2 * (Tx1 * SA12 - A1A2 * Tx2 * A2 / SA12) / (A1 * A2));
+    Double_t dMinv_dTy1 = Abs(2 * p1 * p2 * (Ty2 * SA12 - A1A2 * Ty1 * A2 / SA12) / (A1 * A2));
+    Double_t dMinv_dTy2 = Abs(2 * p1 * p2 * (Ty1 * SA12 - A1A2 * Ty2 * A2 / SA12) / (A1 * A2));
+
+    if (errType == 0)
+        return dMinv_dp1 * dp1 + dMinv_dp2 * dp2 + dMinv_dTx1 * dTx1 + dMinv_dTx2 * dTx2 + dMinv_dTy1 * dTy1 + dMinv_dTy2 * dTy2;
+
+    else
+        return Sqrt(dMinv_dp1 * dMinv_dp1 * dp1 * dp1 + dMinv_dp2 * dMinv_dp2 * dp2 * dp2 + 
+                dMinv_dTx1 * dTx1 * dMinv_dTx1 * dTx1 + dMinv_dTx2 * dTx2 * dMinv_dTx2 * dTx2 + dMinv_dTy1 * dTy1 * dMinv_dTy1 * dTy1 + 
+                dMinv_dTy2 * dTy2 * dMinv_dTy2 * dTy2);
 }
 
 void BmnLambdaInvMass::McAnalysis() {
@@ -92,21 +165,22 @@ void BmnLambdaInvMass::McAnalysis() {
         CbmMCTrack* track1 = (CbmMCTrack*) fGemTracks->UncheckedAt(iTrack);
         if (track1->GetPdgCode() != 2212)
             continue;
-        
-//        Int_t motherId1 = track1->GetMotherId();
-//              if (motherId1 != -1 and ((CbmMCTrack*) fGemTracks->UncheckedAt(motherId1))->GetPdgCode() != 3122) 
-//                  continue;
+
+        //        Int_t motherId1 = track1->GetMotherId();
+        //              if (motherId1 != -1 and ((CbmMCTrack*) fGemTracks->UncheckedAt(motherId1))->GetPdgCode() != 3122) 
+        //                  continue;
 
         Double_t Px1 = track1->GetPx();
         Double_t Py1 = track1->GetPy();
         Double_t Pz1 = track1->GetPz();
         Double_t P1 = track1->GetP();
+        cout << P1 << " " << Px1 / Pz1 << " " << Py1 / Pz1 << endl;
 
         if (P1 < fMomProtMin || P1 > fMomProtMax)
             continue;
         // Double_t y1 = track1->GetRapidity();
         lPos.SetXYZM(Px1, Py1, Pz1, fPDG->GetParticle(2212)->Mass());
-      
+
         for (Int_t jTrack = 0; jTrack < fGemTracks->GetEntriesFast(); jTrack++) {
             if (iTrack == jTrack)
                 continue;
@@ -115,15 +189,11 @@ void BmnLambdaInvMass::McAnalysis() {
             if (track2->GetPdgCode() != -211)
                 continue;
 
-            //            Int_t motherId2 = track2->GetMotherId();
-            //              if (motherId2 != -1 and ((CbmMCTrack*) fGemTracks->UncheckedAt(motherId2))->GetPdgCode() != 3122) 
-            //                  continue;
-
             Double_t Px2 = track2->GetPx();
             Double_t Py2 = track2->GetPy();
             Double_t Pz2 = track2->GetPz();
             Double_t P2 = track2->GetP();
-
+            
             if (P2 < fMomPionMin || P2 > fMomPionMax)
                 continue;
             // Double_t y2 = track2->GetRapidity();
@@ -156,7 +226,7 @@ InitStatus BmnLambdaInvMass::Init() {
         fGemHits = (TClonesArray*) ioman->GetObject(fBranchGemHits.Data());
     fGemTracks = (TClonesArray*) ioman->GetObject(fBranchGemTracks.Data());
 
-    fLambdaInvMass = new TH1F("LambdaInvMass", "#Lambda -> #pi^{-}p, Inv. mass", 500, 0., 0.);
+    fLambdaInvMass = new TH1F("LambdaInvMass", "#Lambda -> #pi^{-}p, Inv. mass", 100, 1.05, 1.3);
     fPDG = TDatabasePDG::Instance();
 
     return kSUCCESS;

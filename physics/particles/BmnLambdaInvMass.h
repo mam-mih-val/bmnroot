@@ -55,7 +55,6 @@ private:
     Double_t fMomProtMin, fMomProtMax;
     Double_t fMomPionMin, fMomPionMax;
 
-
 public:
 
     BmnLambdaInvMass() {
@@ -80,6 +79,7 @@ public:
         fMomPionMax = m2;
     }
 
+    Double_t CalcErrors(BmnGemTrack*, BmnGemTrack*, vector <Double_t>, vector <Double_t>, Int_t errType);
     ClassDef(BmnLambdaInvMass, 0)
 };
 

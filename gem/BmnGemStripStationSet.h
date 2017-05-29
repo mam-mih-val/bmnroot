@@ -3,6 +3,11 @@
 
 #include "BmnGemStripStation.h"
 
+#include "TDOMParser.h"
+#include "TXMLNode.h"
+#include "TXMLAttr.h"
+#include "TList.h"
+
 class BmnGemStripStationSet {
 
 protected:
@@ -23,8 +28,10 @@ public:
     /* Constructor */
     BmnGemStripStationSet();
 
+    BmnGemStripStationSet(TString xml_config_file);
+
     /* Destructor */
-    virtual ~BmnGemStripStationSet() { }
+    virtual ~BmnGemStripStationSet();
 
     /* Getters */
     Int_t GetNStations() { return NStations; };
@@ -46,8 +53,14 @@ public:
     void ProcessPointsInDetector();
     Int_t CountNProcessedPointsInDetector();
 
-    //to which station in the GEM detector a point belong?
+    //which station in the GEM detector does a point belong to?
     Int_t GetPointStationOwnership(Double_t zcoord);
+
+private:
+
+    Bool_t CreateConfigurationFromXMLFile(TString xml_config_file);
+    Int_t CountNumberOfStations(TXMLNode *node);
+    Bool_t ParseStation(TXMLNode *node, Int_t iStation);
 
     ClassDef(BmnGemStripStationSet, 1);
 };
@@ -56,7 +69,7 @@ public:
 class StationSet_Exception {
 public:
     StationSet_Exception(TString message) {
-        std::cout << "StationSet_Exception::" << message << "\n";
+        std::cerr << "StationSet_Exception::" << message << "\n";
     }
 };
 //------------------------------------------------------------------------------

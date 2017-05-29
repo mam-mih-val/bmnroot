@@ -48,8 +48,6 @@ public:
 
     virtual ~BmnGemStripStation_RunSpring2017();
 
-    virtual Int_t GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord);
-
 private:
     BmnGemStripStation_RunSpring2017(const BmnGemStripStation&);
     BmnGemStripStation_RunSpring2017& operator=(const BmnGemStripStation&);

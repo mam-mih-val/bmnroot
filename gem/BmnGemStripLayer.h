@@ -70,6 +70,7 @@ public:
 
     //Dead zones methods -------------------------------------------------------
     Bool_t AddDeadZone(Int_t n_points, Double_t *x_points, Double_t *y_points);
+    Bool_t AddDeadZone(DeadZoneOfStripLayer dead_zone);
     Bool_t IsPointInsideDeadZones(Double_t x, Double_t y);
     Bool_t IsPointInsideStripLayer(Double_t x, Double_t y);
 

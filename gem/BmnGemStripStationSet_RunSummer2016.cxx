@@ -62,6 +62,8 @@ BmnGemStripStationSet_RunSummer2016::~BmnGemStripStationSet_RunSummer2016() {
             GemStations[i] = NULL;
         }
     }
+    NStations = 0;
+    
     if (GemStations) {
         delete [] GemStations;
         GemStations = NULL;

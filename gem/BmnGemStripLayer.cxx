@@ -201,6 +201,16 @@ Bool_t BmnGemStripLayer::AddDeadZone(Int_t n_points, Double_t *x_points, Double_
     }
 }
 
+Bool_t BmnGemStripLayer::AddDeadZone(DeadZoneOfStripLayer dead_zone) {
+    if(dead_zone.GetNPoints() > 2) {
+        DeadZones.push_back(dead_zone);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 Bool_t BmnGemStripLayer::IsPointInsideDeadZones(Double_t x, Double_t y) {
     for(Int_t izone = 0; izone < DeadZones.size(); ++izone) {
         if(DeadZones[izone].IsInside(x,y)) return true;
@@ -474,7 +484,7 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
     if(mean_strip_position < 0.0) mean_strip_position = 0.0;
     if(mean_strip_position >= AnalyzableStrips.size()) mean_strip_position = AnalyzableStrips.size() - 0.001;
     //--------------------------------------------------------------------------
-   
+
     //cluster standard deviation (sigma): RMS ----------------------------------
 //    if(NStripsInCluster > 1) {
 //        for(Int_t i = 0; i < NStripsInCluster; ++i) {
@@ -489,8 +499,8 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
 //    else {
 //        cluster_rms = 1.0/TMath::Sqrt(12.0);
 //    }
-//    
-    
+//
+
      // AZ, STS, method2
     Double_t sumW = total_cluster_signal;
     Double_t sumWX = 0.;
@@ -504,11 +514,11 @@ void BmnGemStripLayer::FindClustersAndStripHits() {
         }
         cluster_rms = (sumWX2 - sumWX * sumWX / sumW) / sumW;
     }
- 
+
     else {
         cluster_rms = 1.0 /TMath::Sqrt(12.0);
     }
-        
+
 //     // AZ, STS, Real CF, method3
 //    Double_t sumW = total_cluster_signal;
 //    Double_t maxStripSignal = 0.;

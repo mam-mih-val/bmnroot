@@ -48,7 +48,6 @@ public:
     ElectronDriftDirectionInModule GetElectronDriftDirection() { return ElectronDriftDirection; }
 
     Double_t GetModuleThickness() { return ModuleThickness; }
-    //Double_t GetZPositionRegistered() { if(ElectronDriftDirection == ForwardZAxisEDrift) return ZStartModulePosition; else return (ZStartModulePosition+ModuleThickness); } //position for all registered point (hits)
     Double_t GetZPositionRegistered(); //position for all registered point (hits)
     //--------------------------------------------------------------------------
 

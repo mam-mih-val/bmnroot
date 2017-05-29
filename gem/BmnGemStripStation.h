@@ -1,10 +1,12 @@
 #ifndef BMNGEMSTRIPSTATION_H
 #define	BMNGEMSTRIPSTATION_H
 
-//#include "BmnGemStripReadoutModule.h"
 #include "BmnGemStripModule.h"
 
-#include "TString.h"
+#include "TDOMParser.h"
+#include "TXMLNode.h"
+#include "TXMLAttr.h"
+#include "TList.h"
 
 class BmnGemStripStation {
 
@@ -13,6 +15,13 @@ protected:
     /* station parameters */
     Int_t StationNumber;
     Int_t NModules;
+
+    Double_t XMinStation;
+    Double_t XMaxStation;
+    Double_t YMinStation;
+    Double_t YMaxStation;
+    Double_t ZMinStation;
+    Double_t ZMaxStation;
 
     Double_t XSize;
     Double_t YSize;
@@ -36,12 +45,22 @@ public:
     /* Constructor */
     BmnGemStripStation();
 
+    BmnGemStripStation(TXMLNode *stationNode, Int_t iStation,
+                       Double_t xpos_station, Double_t ypos_station, Double_t zpos_station,
+                       Double_t beamradius);
+
     /* Destructor */
-    virtual ~BmnGemStripStation() { }
+    virtual ~BmnGemStripStation();
 
     //Getters
     Int_t GetStationNumber() { return StationNumber; }
     Int_t GetNModules() { return NModules; }
+    Double_t GetXMinStation() { return XMinStation; }
+    Double_t GetXMaxStation() { return XMaxStation; }
+    Double_t GetYMinStation() { return YMinStation; }
+    Double_t GetYMaxStation() { return YMaxStation; }
+    Double_t GetZMinStation() { return ZMinStation; }
+    Double_t GetZMaxStation() { return ZMaxStation; }
     Double_t GetXSize() { return XSize; }
     Double_t GetYSize() { return YSize; }
     Double_t GetZSize() { return ZSize; }
@@ -68,11 +87,23 @@ public:
 
     //Pure virtual methods (must be defined in derived classes) ---------------
 
-    //to which module in the station a point belong?
+    //which module in the station does a point belong to?
         //zcoord - is unused usually, but if modules in the station are (x,y)-overlapped then zcoord is important
-    virtual Int_t GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord) = 0;
+    Int_t GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord);
 
     //--------------------------------------------------------------------------
+
+protected:
+    void DefineStationBorders();
+
+private:
+
+    Bool_t CreateConfigurationFromXMLNode(TXMLNode *node);
+    Int_t CountNumberOfModules(TXMLNode *node);
+    Bool_t ParseModule(TXMLNode *node, Int_t iModule);
+    BmnGemStripLayer ParseLayer(TXMLNode *node, Int_t iLayer, Int_t iModule);
+    DeadZoneOfStripLayer ParseDeadZone(TXMLNode *node, Int_t iModule);
+    Int_t CountDeadZonePoints(TXMLNode *node);
 
     ClassDef(BmnGemStripStation, 1)
 };
@@ -81,7 +112,7 @@ public:
 class Station_Exception {
 public:
     Station_Exception(TString message) {
-        std::cout << "Station_Exception::" << message << "\n";
+        std::cerr << "Station_Exception::" << message << "\n";
     }
 };
 //------------------------------------------------------------------------------

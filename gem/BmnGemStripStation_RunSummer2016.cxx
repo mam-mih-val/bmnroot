@@ -176,6 +176,9 @@ BmnGemStripStation_RunSummer2016::BmnGemStripStation_RunSummer2016(Int_t iStatio
         BuildModules_One163x45Plane();
     }
     //end assembling the station -----------------------------------------------
+
+    //define station borders and sizes
+    DefineStationBorders();
 }
 
 BmnGemStripStation_RunSummer2016::~BmnGemStripStation_RunSummer2016() {
@@ -185,6 +188,8 @@ BmnGemStripStation_RunSummer2016::~BmnGemStripStation_RunSummer2016() {
             Modules[i] = NULL;
         }
     }
+    NModules = 0;
+
     if (Modules) {
         delete [] Modules;
         Modules = NULL;
@@ -201,15 +206,6 @@ BmnGemStripStation_RunSummer2016::~BmnGemStripStation_RunSummer2016() {
         delete [] ZShiftOfModules;
         ZShiftOfModules = NULL;
     }
-}
-
-Int_t BmnGemStripStation_RunSummer2016::GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord) {
-
-    for (Int_t imodule = 0; imodule < NModules; ++imodule) {
-        if (Modules[imodule]->IsPointInsideModule(xcoord, ycoord, zcoord)) return imodule;
-    }
-
-    return -1;
 }
 //------------------------------------------------------------------------------
 

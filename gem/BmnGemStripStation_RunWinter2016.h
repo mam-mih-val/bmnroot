@@ -51,8 +51,6 @@ public:
 
     virtual ~BmnGemStripStation_RunWinter2016();
 
-    virtual Int_t GetPointModuleOwnership(Double_t xcoord, Double_t ycoord, Double_t zcoord);
-
 private:
     BmnGemStripStation_RunWinter2016(const BmnGemStripStation&);
     BmnGemStripStation_RunWinter2016& operator=(const BmnGemStripStation&);

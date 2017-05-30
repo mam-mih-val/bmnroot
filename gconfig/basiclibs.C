@@ -13,8 +13,8 @@ void basiclibs()
   gSystem->Load("libPythia6");
   gSystem->Load("libPluto");
   gSystem->Load("libPhysics");
-  gSystem->Load("libNet");  
-  gSystem->Load("libTree"); 
+  gSystem->Load("libNet");
+  gSystem->Load("libTree");
   gSystem->Load("libMinuit");
   gSystem->Load("libMathMore");
 
@@ -25,4 +25,5 @@ void basiclibs()
   gSystem->Load("libboost_regex");
 
   gSystem->Load("libGdml");
-}  
+  gSystem->Load("libXMLParser");
+}

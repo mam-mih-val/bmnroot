@@ -1,3 +1,5 @@
+#include "TSystem.h"
+
 #include "BmnGemStripDigitizer.h"
 #include "CbmMCTrack.h"
 
@@ -50,6 +52,9 @@ InitStatus BmnGemStripDigitizer::Init() {
         ioman->Register(fOutputDigitMatchesBranchName, "GEM", fBmnGemStripDigitMatchesArray, kTRUE);
     }
 
+    TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
+        gPathGemConfig += "/gem/XMLConfigs/";
+
     //Create GEM detector ------------------------------------------------------
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016 :
@@ -64,6 +69,7 @@ InitStatus BmnGemStripDigitizer::Init() {
 
         case BmnGemStripConfiguration::RunSpring2017 :
             StationSet = new BmnGemStripStationSet_RunSpring2017(fCurrentConfig);
+            //StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunString2017.xml");
             cout << "   Current Configuration : RunSpring2017" << "\n";
             break;
 

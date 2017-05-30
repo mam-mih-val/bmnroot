@@ -1,4 +1,5 @@
 #include <TChain.h>
+#include "TSystem.h"
 
 #include "BmnGemStripHitMaker.h"
 
@@ -77,6 +78,9 @@ InitStatus BmnGemStripHitMaker::Init() {
         fBmnGemStripHitMatchesArray = 0;
     }
 
+    TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
+        gPathGemConfig += "/gem/XMLConfigs/";
+
     //Create GEM detector ------------------------------------------------------
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016:
@@ -91,6 +95,7 @@ InitStatus BmnGemStripHitMaker::Init() {
 
         case BmnGemStripConfiguration::RunSpring2017:
             StationSet = new BmnGemStripStationSet_RunSpring2017(fCurrentConfig);
+            //StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunString2017.xml");
             if (fVerbose) cout << "   Current Configuration : RunSpring2017" << "\n";
             break;
         default:

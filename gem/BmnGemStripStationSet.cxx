@@ -202,6 +202,8 @@ Bool_t BmnGemStripStationSet::CreateConfigurationFromXMLFile(TString xml_config_
         node = node->GetNextNode();
     }
 
+    delete parser;
+
     return true;
 }
 

@@ -188,30 +188,7 @@ BmnGemStripStation_RunWinter2016::BmnGemStripStation_RunWinter2016(Int_t iStatio
 }
 
 BmnGemStripStation_RunWinter2016::~BmnGemStripStation_RunWinter2016() {
-    for(Int_t i = 0; i < NModules; ++i) {
-        if(Modules[i]) {
-            delete Modules[i];
-            Modules[i] = NULL;
-        }
-    }
-    NModules = 0;
 
-    if(Modules) {
-        delete [] Modules;
-        Modules = NULL;
-    }
-    if(XShiftOfModules) {
-        delete [] XShiftOfModules;
-        XShiftOfModules = NULL;
-    }
-    if(YShiftOfModules) {
-        delete [] YShiftOfModules;
-        YShiftOfModules = NULL;
-    }
-    if(ZShiftOfModules) {
-        delete [] ZShiftOfModules;
-        ZShiftOfModules = NULL;
-    }
 }
 //------------------------------------------------------------------------------
 

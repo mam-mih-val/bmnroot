@@ -39,36 +39,6 @@ BmnGemStripStationSet_RunSpring2017::BmnGemStripStationSet_RunSpring2017(BmnGemS
 
 BmnGemStripStationSet_RunSpring2017::~BmnGemStripStationSet_RunSpring2017() {
 
-    if (XStationPositions) {
-        delete [] XStationPositions;
-        XStationPositions = NULL;
-    }
-    if (YStationPositions) {
-        delete [] YStationPositions;
-        YStationPositions = NULL;
-    }
-    if (ZStationPositions) {
-        delete [] ZStationPositions;
-        ZStationPositions = NULL;
-    }
-    if (BeamHoleRadiuses) {
-        delete [] BeamHoleRadiuses;
-        BeamHoleRadiuses = NULL;
-    }
-
-    for (Int_t i = 0; i < NStations; i++) {
-        if (GemStations[i]) {
-            delete GemStations[i];
-            GemStations[i] = NULL;
-        }
-    }
-    NStations = 0;
-
-    if (GemStations) {
-        delete [] GemStations;
-        GemStations = NULL;
-    }
-
 }
 
 void BmnGemStripStationSet_RunSpring2017::DefineBeamHoleRadiuses() {

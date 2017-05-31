@@ -287,7 +287,7 @@ void BmnGemStripHitMaker::Finish() {
         for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++) {
             Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
             for (Int_t iMod = 0; iMod < nModul; iMod++) {
-                delete corr[iStat][iMod];
+                delete [] corr[iStat][iMod];
             }
             delete[] corr[iStat];
         }

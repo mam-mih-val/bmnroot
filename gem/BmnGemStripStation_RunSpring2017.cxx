@@ -167,30 +167,7 @@ BmnGemStripStation_RunSpring2017::BmnGemStripStation_RunSpring2017(Int_t iStatio
 }
 
 BmnGemStripStation_RunSpring2017::~BmnGemStripStation_RunSpring2017() {
-    for(Int_t i = 0; i < NModules; ++i) {
-        if(Modules[i]) {
-            delete Modules[i];
-            Modules[i] = NULL;
-        }
-    }
-    NModules = 0;
-
-    if(Modules) {
-        delete [] Modules;
-        Modules = NULL;
-    }
-    if(XShiftOfModules) {
-        delete [] XShiftOfModules;
-        XShiftOfModules = NULL;
-    }
-    if(YShiftOfModules) {
-        delete [] YShiftOfModules;
-        YShiftOfModules = NULL;
-    }
-    if(ZShiftOfModules) {
-        delete [] ZShiftOfModules;
-        ZShiftOfModules = NULL;
-    }
+    
 }
 //------------------------------------------------------------------------------
 

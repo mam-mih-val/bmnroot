@@ -316,6 +316,26 @@ void BmnMonitor::FinishRun() {
     }
 }
 
+static TObjArray* GetAlikeRuns(BmnEventHeader* header){
+    TString beamParticle = "C";
+    TString targetParticle = "Pb";
+    Float_t beamEnergy = 4.5;
+    TObjArray arrayConditions;
+    UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnBeamParticle, conditionEqual, beamParticle);
+    arrayConditions.Add((TObject*)searchCondition);
+    searchCondition = new UniDbSearchCondition(columnTargetParticle, conditionEqual, targetParticle);
+    arrayConditions.Add((TObject*)searchCondition);
+//    searchCondition = new UniDbSearchCondition(columnEnergy, conditionEqual, beamEnergy);
+//    arrayConditions.Add((TObject*)searchCondition);
+
+    TObjArray* refRuns = UniDbRun::Search(arrayConditions);
+
+    arrayConditions.SetOwner(kTRUE);
+    arrayConditions.Delete();
+    
+    return refRuns;
+}
+
 void BmnMonitor::threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent) {
     BmnOnlineDecoder *deco = new BmnOnlineDecoder();
     deco->Decode(dirname, startFile, runCurrent);

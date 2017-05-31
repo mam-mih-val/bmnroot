@@ -51,6 +51,7 @@ public:
     void MonitorStreamZ(TString dir, TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
     static void threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent);
     static void threadCmdWrapper(string cmd);
+    static TObjArray* GetAlikeRuns(BmnEventHeader* header);
     
     // Getters
     deque<UInt_t> * GetDataQue() { return fDataQue;}

@@ -105,46 +105,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     return rawDataDecoder->InitDecoder();
 }
 
-BmnStatus BmnOnlineDecoder::Accept() {
-    if (clients.size() == MAX_CLIENTS)
-        return kBMNSUCCESS;
-    while (kTRUE) {
-        if (clients.size() == MAX_CLIENTS)
-            break;
-        client = fRawDecoSocket->Accept();
-        if (client == (TSocket*) 0) {
-            DBGERR("TServerSocket");
-            return kBMNERROR;
-        } else {
-            if (client == (TSocket*) - 1)
-                break;
-            //            client->SetOption(kNoBlock, 1);
-            clients.push_back(client);
-            //            clients[iClients++] = client;
-            printf("New connection accepted\n");
-            client->Send("ready");
-            // Check some options of socket 0.
-            Int_t val;
-            client->GetOption(kKeepAlive, val);
-            printf("kKeepAlive: %d\n", val);
-            client->GetOption(kNoBlock, val);
-            printf("kNoBlock: %d\n", val);
-            client->GetOption(kSendBuffer, val);
-            printf("sendbuffer size: %d\n", val);
-            client->GetOption(kRecvBuffer, val);
-            printf("recvbuffer size: %d\n", val);
-            // Get the remote addresses (informational only).
-            TInetAddress adr = client->GetInetAddress();
-            adr.Print();
-            adr = client->GetLocalInetAddress();
-            adr.Print();
-        }
-    }
-    return kBMNSUCCESS;
-}
-
 BmnStatus BmnOnlineDecoder::DecodeStream() {
-    //    Accept();
     dataReceiver = new BmnDataReceiver();
     dataQue = dataReceiver->GetDataQueue();
     thread rcvThread(threadReceiveWrapper, dataReceiver);
@@ -193,7 +154,6 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
     }
     _curFile = startFile;
     _curDir = dirname;
-    //    Accept();
 
     if (!runCurrent) {
         _curFile = "";
@@ -234,7 +194,6 @@ void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
         lastEv = iEv;
         iEv = rawDataDecoder->GetEventId();
         if (iEv > lastEv) {
-            //            Accept();
             rawDataDecoder->DecodeDataToDigiIterate();
             fEvents++;
             DigiArrays iterDigi = rawDataDecoder->GetDigiArraysObject();
@@ -325,7 +284,6 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         DBGERR("zmq bind")
         return kBMNERROR;
     }
-    //    Accept();
     struct dirent **namelist;
     regex re(".*mpd_run_Glob_(\\d+).data");
     Int_t runCount = 0;

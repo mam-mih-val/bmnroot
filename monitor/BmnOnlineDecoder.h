@@ -44,7 +44,6 @@ class BmnOnlineDecoder : public TNamed {
 public:
     BmnOnlineDecoder();
     virtual ~BmnOnlineDecoder();
-    BmnStatus Accept();
     BmnStatus Decode(TString dirname, TString startFile, Bool_t runCurrent);
     BmnStatus DecodeStream();
     BmnStatus OpenStream();

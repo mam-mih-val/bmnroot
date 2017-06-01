@@ -20,7 +20,7 @@ using namespace std;
 //Each line:
 //[HEX: TDC Serial] [Channel] [Plane id] [Strip id] [Side: L or R]
 
-void add_Tof1_mapping(string placement_map_filename = "TOF400_PlaceMap_Period5_v3.txt", string main_map_filename = "TOF400_StripMap_Period5_v3.txt", int sP = 5, int sR = 419, int eP = 5, int eR = 1014)
+void add_Tof1_mapping(string placement_map_filename = "TOF400_PlaceMap_RUN6.txt", string main_map_filename = "TOF400_StripMap_RUN6.txt", int sP = 6, int sR = 1, int eP = 6, int eR = 10000)
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
@@ -47,7 +47,8 @@ void add_Tof1_mapping(string placement_map_filename = "TOF400_PlaceMap_Period5_v
     int map1Size = 0;
 
     nLines = 0;
-    ff.open(placement_map_filename.c_str(), std::fstream::in);
+    TString dir = Form("%s%s%s", getenv("VMCWORKDIR"), "/input/",placement_map_filename.c_str());
+    ff.open(dir.Data(), std::fstream::in);
     if (ff.fail())
     {
         cout << "Failed to open " << placement_map_filename << endl;
@@ -74,7 +75,8 @@ void add_Tof1_mapping(string placement_map_filename = "TOF400_PlaceMap_Period5_v
     //Load the main map
 
     nLines = 0;
-    ff.open(main_map_filename.c_str(), std::fstream::in);
+    dir = Form("%s%s%s", getenv("VMCWORKDIR"), "/input/",main_map_filename.c_str());
+    ff.open(dir.Data(), std::fstream::in);
     if (ff.fail())
     {
         cout << "Failed to open " << main_map_filename << endl;

@@ -12,7 +12,7 @@
 using namespace std;
 //add_Tof1_INL(the .ini filename, start period, start run, end period, end run)
 
-void add_Tof1_INL(TString ListOfINLFiles, int sP = 5, int sR = 419, int eP = 5, int eR = 1014)
+void add_Tof1_INL(TString ListOfINLFiles, int sP = 6, int sR = 1, int eP = 6, int eR = 10000)
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();

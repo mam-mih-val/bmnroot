@@ -37,6 +37,7 @@ BmnTof1HitProducer.cxx
 BmnTof1HitProducerIdeal.cxx
 BmnTof1GeoUtils.cxx
 BmnTOF1TDC.cxx
+BmnTOF1Detector.cxx
 )
 
 # fill list of header files from list of source files

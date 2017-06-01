@@ -11,6 +11,7 @@
 #include <TMath.h>
 #include "TChain.h"
 #include "TH1.h"
+#include "TH1F.h"
 #include "TH1S.h"
 #include "TH2S.h"
 #include "TH2F.h"
@@ -32,10 +33,11 @@ Double_t CorrPlane7Coeff_It1[5][4] = {
     {-12.28, 0.479, 0., 0.},
     {-13.14, 0.5034, 0., 0.}
 };
-Double_t CorrT0Coeff_It1[3][4] = {
+Double_t CorrT0Coeff_It1[4][4] = {
     {-5.486, 1.087, -0.07936, 0.00208},
     {10.77, -2.635, 0.1984, -0.004631},
-    {0,0,0,0}
+    {-2.163, 0.1362, 0., 0.},
+    {200, 0, 0, 0}
 };
 Int_t HitPlane2T0 = 0, HitPlane7T0 = 0, EffPlane2 = 0, EffPlane7 = 0;
 Bool_t FlagDigit[10][kNST];
@@ -171,6 +173,12 @@ ToF400DigitAnalysis_period5(TString file = "", Int_t nEvForRead = 0, Int_t Periu
     ListStat->Add(hLefRightCorelation_Plane7);
     TH2I *hPlane2Plane7Correlation = new TH2I("hPlane2Plane7Correlation", " Plane2-Plane7 Correlation", kNST, 0, kNST, kNST, 0, kNST);
     ListStat->Add(hPlane2Plane7Correlation);
+    TH1S *hNoize = new TH1S("hNoize", "hNoize", 500, 0, 50);
+    hNoize->GetXaxis()->SetTitle("MHz");
+    ListStat->Add(hNoize);
+    Int_t NEvStrip47 = 0;
+    TH1I *hNEvStrip47 = new TH1I("hNEvStrip47", "hNEvStrip47", 20, 0, 20);
+    ListStat->Add(hNEvStrip47);
 
     TList * ListT0 = new TList();
     TH1I *hHitT0PerEv = new TH1I("hHitT0PerEv", "Hit T0 Per Ev", 10, 0, 10);
@@ -272,7 +280,7 @@ ToF400DigitAnalysis_period5(TString file = "", Int_t nEvForRead = 0, Int_t Periu
     f_dt.open(NameDTFile.Data());
 
     for (Int_t iEv = 0; iEv < nEvForRead; iEv++) {
-        if (iEv % 10000 == 0) cout << "EVENT: " << iEv << endl;
+        if (iEv % 50000 == 0) cout << "EVENT: " << iEv << endl;
         eveTree->GetEntry(iEv);
         CleanTof(&Plane2);
         CleanTof(&Plane7);
@@ -287,6 +295,7 @@ ToF400DigitAnalysis_period5(TString file = "", Int_t nEvForRead = 0, Int_t Periu
         h_StripLeftMinusRight->Reset();
         h_StripLeftMinusRight_vs_Time->Reset();
         h_XYTime->Reset();
+        NEvStrip47 = 0;
         for (Int_t iDig = 0; iDig < ToF400Digits->GetEntriesFast(); ++iDig) {
             BmnTof1Digit* digTof = (BmnTof1Digit*) ToF400Digits->At(iDig);
             if (digTof->GetPlane() == 2) {
@@ -298,22 +307,18 @@ ToF400DigitAnalysis_period5(TString file = "", Int_t nEvForRead = 0, Int_t Periu
                     Plane2.sTimeL[strip] = digTof->GetTime();
                     //h_StripHit->SetBinContent(strip + 1, digTof->GetSide() + 1, digTof->GetAmplitude());
                 }
-                if (digTof->GetSide() == 1) {
-                    if (strip != 0 || strip != 8 || strip != 16 || strip != 24 || strip != 32)
-                        if (strip != 7 || strip != 15 || strip != 23 || strip != 31 || strip != 47)
-                            strip = strip + 1;
-                    if (Plane2.sStrHit[strip] == kFALSE) {
-                        Plane2.sAmpR[strip] = digTof->GetAmplitude();
-                        Plane2.sTimeR[strip] = digTof->GetTime();
-                    }
+                if (digTof->GetSide() == 1 && Plane2.sStrHit[strip] == kFALSE) {
+                    Plane2.sAmpR[strip] = digTof->GetAmplitude();
+                    Plane2.sTimeR[strip] = digTof->GetTime();
                     //h_StripHit->SetBinContent(strip + 1, digTof->GetSide() + 1, digTof->GetAmplitude());
                 }
 
                 if ((Plane2.sTimeR[strip] != 0 && Plane2.sTimeL[strip] != 0
-                        && TMath::Abs((Plane2.sTimeL[strip] - Plane2.sTimeR[strip])* 0.5) <= 2. && FlagDigit[plane][strip] == kFALSE)
-                        || strip == 0 || strip == 47)
+                        && strip != 47
+                        && TMath::Abs((Plane2.sTimeL[strip] - Plane2.sTimeR[strip]) * 0.5) <= 2.
+                        && TMath::Abs((Plane2.sAmpL[strip] - Plane2.sAmpR[strip]) * 0.5) <= 1.5
+                        && Plane2.sStrHit[strip] == kFALSE)) //
                     Plane2.sStrHit[strip] = kTRUE; //*/
-
             }
 
             if (digTof->GetPlane() == 7) {
@@ -323,6 +328,13 @@ ToF400DigitAnalysis_period5(TString file = "", Int_t nEvForRead = 0, Int_t Periu
                 if (digTof->GetSide() == 0 && Plane7.sStrHit[strip] == kFALSE) {
                     //if (digTof->GetTime() > 300. && digTof->GetTime() < 430.) {
                     Plane7.sAmpL[strip] = digTof->GetAmplitude();
+
+                    if (strip == 0) {
+                        NEvStrip47++;
+                        if (Plane7.sTimeL[strip] != 0)
+                            hNoize->Fill(1000. / (digTof->GetTime() - Plane7.sTimeL[strip]));
+                    }
+
                     Plane7.sTimeL[strip] = digTof->GetTime();
                     h_StripHit->SetBinContent(strip + 1, digTof->GetSide() + 1, digTof->GetAmplitude());
                     //if (strip == 22) cout << "L ";
@@ -336,13 +348,14 @@ ToF400DigitAnalysis_period5(TString file = "", Int_t nEvForRead = 0, Int_t Periu
                 }
 
                 if ((Plane7.sTimeR[strip] != 0 && Plane7.sTimeL[strip] != 0
+                        && strip != 47
                         && TMath::Abs((Plane7.sTimeL[strip] - Plane7.sTimeR[strip]) * 0.5) <= 2.
                         && TMath::Abs((Plane7.sAmpL[strip] - Plane7.sAmpR[strip]) * 0.5) <= 1.5
-                        && Plane7.sStrHit[strip] == kFALSE)) //*/
+                        && Plane7.sStrHit[strip] == kFALSE)) //
                     Plane7.sStrHit[strip] = kTRUE; //*/
             }
         }
-        //cout << endl;
+        hNEvStrip47->Fill(NEvStrip47);
 
         for (Int_t i = 0; i < kNST; i++) {
             if (Plane2.sStrHit[i] == kFALSE || i == 0 || i == 47) {
@@ -431,27 +444,27 @@ ToF400DigitAnalysis_period5(TString file = "", Int_t nEvForRead = 0, Int_t Periu
                 hLeftRightVsAmpRPlane7[i]->Fill(Plane7.sAmpR[i], (Plane7.sTimeL[i] - Plane7.sTimeR[i]) * 0.5);
                 hLeftRightVsAmpRPlane7[kNST]->Fill(Plane7.sAmpR[i], (Plane7.sTimeL[i] - Plane7.sTimeR[i]) * 0.5);
 
-              /*  h_StripAmp->Fill(i + 0.5, Plane7.sAmp[i]);
-                h_StripTime->Fill(i + 0.5, CalculateDt(&Plane7, &T0, i));
-                h_StripAmpL->Fill(i + 0.5, Plane7.sAmpL[i]);
-                h_StripTimeL->Fill(i + 0.5, Plane7.sTimeL[i]);
-                h_StripAmpR->Fill(i + 0.5, Plane7.sAmpR[i]);
-                h_StripTimeR->Fill(i + 0.5, Plane7.sTimeR[i]);
-                h_StripLeftMinusRight->Fill(i + 0.5, (Plane7.sTimeL[i] - Plane7.sTimeR[i]) * 0.5);
-                //h_StripLeftMinusRight_vs_Time->Fill((Plane7.sTimeL[i] - Plane7.sTimeR[i]) * 0.5, Plane7.sTime[i], Plane7.sAmp[i]);
-                h_XYTime->Fill(i, ((Plane7.sTimeL[i] - Plane7.sTimeR[i]) * 0.5 / 0.06));
+            /*      h_StripAmp->Fill(i + 0.5, Plane7.sAmp[i]);
+                  h_StripTime->Fill(i + 0.5, CalculateDt(&Plane7, &T0, i));
+                  h_StripAmpL->Fill(i + 0.5, Plane7.sAmpL[i]);
+                  h_StripTimeL->Fill(i + 0.5, Plane7.sTimeL[i]);
+                  h_StripAmpR->Fill(i + 0.5, Plane7.sAmpR[i]);
+                  h_StripTimeR->Fill(i + 0.5, Plane7.sTimeR[i]);
+                  h_StripLeftMinusRight->Fill(i + 0.5, (Plane7.sTimeL[i] - Plane7.sTimeR[i]) * 0.5);
+                  //h_StripLeftMinusRight_vs_Time->Fill((Plane7.sTimeL[i] - Plane7.sTimeR[i]) * 0.5, Plane7.sTime[i], Plane7.sAmp[i]);
+                  h_XYTime->Fill(i, ((Plane7.sTimeL[i] - Plane7.sTimeR[i]) * 0.5 / 0.06));
 
-                //*/
+                  //*/
             }
         }
         hHitStripsPerEvPlane2->Fill(Plane2.sNHits);
         hHitStripsPerEvPlane7->Fill(Plane7.sNHits);
 
-        if (Plane2.sNHits == 1 && Plane2.sAmp[23] != 0 && T0.sNHits == 1) {
+        if (Plane2.sNHits == 1 && Plane2.sAmp[5] != 0 && T0.sNHits == 1) {
             HitPlane2T0++;
             if (Plane7.sNHits != 0) EffPlane7++;
         }
-        if (Plane7.sNHits == 1 && Plane7.sAmp[23] != 0 && T0.sNHits == 1) {
+        if (Plane7.sNHits == 1 && Plane7.sAmp[42] != 0 && T0.sNHits == 1) {
             HitPlane7T0++;
             if (Plane2.sNHits != 0) EffPlane2++;
         }
@@ -463,24 +476,26 @@ ToF400DigitAnalysis_period5(TString file = "", Int_t nEvForRead = 0, Int_t Periu
 
         Double_t dt = -100.;
         Int_t MaxStr = -1;
-        if (Plane7.sNHits == 1 && T0.sNHits == 1) {
+        if (Plane7.sNHits == 1 && T0.sNHits == 1
+                && T0.sAmp >= 17.9 && T0.sAmp < 19.63) {
             MaxStr = TMath::LocMax(kNST, Plane7.sAmp);
+            //dt = Plane7->sTime[MaxStr] - T0->sTime;
             dt = CalculateDt(&Plane7, &T0, MaxStr);
             hdt[MaxStr]->Fill(dt);
             hdt_vs_AmpT0[MaxStr]->Fill(T0.sAmp, dt);
-            hdt_vs_AmpToF[MaxStr]->Fill(Plane7.sAmp[MaxStr], dt);
+            hdt_vs_AmpToF[MaxStr]->Fill(Plane7.sAmpL[MaxStr], dt);
             hdt[kNST]->Fill(dt);
             hdt_vs_AmpT0[kNST]->Fill(T0.sAmp, dt);
-            hdt_vs_AmpToF[kNST]->Fill(Plane7.sAmp[MaxStr], dt);
+            hdt_vs_AmpToF[kNST]->Fill(Plane7.sAmpL[MaxStr], dt);
         }
         Int_t iEvDig = EventHeader->GetEntriesFast();
         if (iEvDig != 1) cout << "iEvDig == " << iEvDig << endl;
         BmnEventHeader* digEvent = (BmnEventHeader*) EventHeader->At(0);
         f_dt << (digEvent->GetEventId()) << "\t" << MaxStr << "\t" << dt << endl;
 
-       /* //   if (Plane7.sNHits != 0) {
-        if (Plane7.sNHits > 2) {
-            cout << "Event# " << digEvent->GetEventId()<< endl;
+   /*     if (Plane7.sNHits != 0) {
+            // if (Plane7.sNHits > 2) {
+            cout << "Event# " << digEvent->GetEventId() << endl;
             Int_t MaxStr = TMath::LocMax(kNST, Plane7.sTime);
             //h_StripTime->GetYaxis()->SetRangeUser(-15., +15.);
             //h_StripTime->GetYaxis()->SetRangeUser(Plane7.sTime[MaxStr] - 15., Plane7.sTime[MaxStr] + 5.);
@@ -610,18 +625,19 @@ Double_t CalculateDt(ToF400Detector * Det, T0Detector * T0, Int_t Str = -1) {
     if (Str == -1) Str = TMath::LocMax(kNST, Plane7->sAmp);
     Double_t dt = Det->sTime[Str] - T0->sTime;
     //cout << " dt = " << dt << endl;
-    if (Det->sAmp[Str] < 20.46) CorrPlane7_It1 = 0;
+  /*  if (Det->sAmp[Str] < 20.46) CorrPlane7_It1 = 0;
     else if (Det->sAmp[Str] >= 20.46 && Det->sAmp[Str] < 27.25) CorrPlane7_It1 = 1;
     else if (Det->sAmp[Str] >= 27.25 && Det->sAmp[Str] < 34.81) CorrPlane7_It1 = 2;
     else if (Det->sAmp[Str] >= 34.81 && Det->sAmp[Str] < 37.11) CorrPlane7_It1 = 3;
     else if (Det->sAmp[Str] >= 37.11) CorrPlane7_It1 = 4;
     dt = dt - (CorrPlane7Coeff_It1[CorrPlane7_It1][0] + CorrPlane7Coeff_It1[CorrPlane7_It1][1] * Det->sAmp[Str] +
             CorrPlane7Coeff_It1[CorrPlane7_It1][2] * Det->sAmp[Str] * Det->sAmp[Str] +
-            CorrPlane7Coeff_It1[CorrPlane7_It1][3] * Det->sAmp[Str] * Det->sAmp[Str] * Det->sAmp[Str]);
+            CorrPlane7Coeff_It1[CorrPlane7_It1][3] * Det->sAmp[Str] * Det->sAmp[Str] * Det->sAmp[Str]); //*/
 
-    if (T0->sAmp >= 6.15 && T0->sAmp < 12.3) CorrT0_It1 = 0;
-    else if (T0->sAmp >= 12.3 && T0->sAmp < 17.14) CorrT0_It1 = 1;
-    else CorrT0_It1 = 0;
+  /*  if (T0->sAmp >= 6.15 && T0->sAmp < 12.3) CorrT0_It1 = 0; //deutron
+    else if (T0->sAmp >= 12.3 && T0->sAmp < 17.14) CorrT0_It1 = 1; //deutron
+    else if (T0->sAmp >= 17.9 && T0->sAmp < 19.63) CorrT0_It1 = 2; //C6+
+    else CorrT0_It1 = 3; //skip
     dt = dt - (CorrT0Coeff_It1[CorrT0_It1][0] + CorrT0Coeff_It1[CorrT0_It1][1] * T0->sAmp +
             CorrT0Coeff_It1[CorrT0_It1][2] * T0->sAmp * T0->sAmp +
             CorrT0Coeff_It1[CorrT0_It1][3] * T0->sAmp * T0->sAmp * T0->sAmp); //*/

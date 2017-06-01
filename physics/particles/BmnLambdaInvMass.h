@@ -13,14 +13,18 @@
 #define BMNLAMBDAINVMASS_H 1
 
 #include <iostream>
+#include <vector>
 #include "FairTask.h"
 #include <TDatabasePDG.h>
+#include <TH1I.h>
 #include <TH1F.h>
+#include <TH2F.h>
 #include <TMath.h>
 #include <TString.h>
 #include <TClonesArray.h>
 #include <TLorentzVector.h>
 #include <TVector2.h>
+#include <TF1.h>
 
 #include "BmnGemTrack.h"
 #include "CbmMCTrack.h"
@@ -42,6 +46,26 @@ private:
 
     TH1F* fLambdaInvMass;
 
+    // In order to obtain cuts
+    TH1F* fLambdaMomenta;
+    TH1F* fProtonMomenta; // Initial momenta
+    TH1F* fPionMomenta;
+
+    TH1F* fProtonTx; // Initial angles of tracks
+    TH1F* fProtonTy;
+    TH1F* fPionTx;
+    TH1F* fPionTy;
+
+    TH1F* fStartZ; // Z-position of Lambda decay
+
+    TH1F* fEtaProton;
+    TH1F* fEtaPion;
+
+    TH1I* fNhitsPerProton;
+    TH1I* fNhitsPerPion;
+    TH2F* fNhitsPerProtonVsP;
+    TH2F* fNhitsPerPionVsP;
+
     TString fBranchGemHits;
     TString fBranchGemTracks;
 
@@ -54,6 +78,24 @@ private:
     // Different kinematic cuts
     Double_t fMomProtMin, fMomProtMax;
     Double_t fMomPionMin, fMomPionMax;
+
+    Double_t fTxProtMin, fTxProtMax;
+    Double_t fTyProtMin, fTyProtMax;
+
+    Double_t fTxPionMin, fTxPionMax;
+    Double_t fTyPionMin, fTyPionMax;
+
+    Double_t fYProtMin, fYProtMax; // Cuts on rapidity values
+    Double_t fYPionMin, fYPionMax;
+
+    Bool_t fDebugCalculations; // In case of debug calculations should be equal to 1
+    Bool_t fCutsDistrOnly; // Is used in case of evetest-analysis to obtain some cuts used for further restrictions 
+
+    Double_t fInputUncertainties[6]; // dp1, dp2, dTx1, dTx2, dTy1, dTy2 
+
+    Int_t fPdgLambda;
+    Int_t fPdgProton;
+    Int_t fPdgPionMinus;
 
 public:
 
@@ -68,6 +110,15 @@ public:
 
     void RecoAnalysis();
     void McAnalysis();
+    void ObtainCuts();
+
+    void SetObtainCutsOnly(Bool_t flag) {
+        fCutsDistrOnly = flag;
+    }
+
+    void SetDebugCalculations(Bool_t flag) {
+        fDebugCalculations = flag;
+    }
 
     void SetMomProtonRange(Double_t m1, Double_t m2) {
         fMomProtMin = m1;
@@ -79,7 +130,47 @@ public:
         fMomPionMax = m2;
     }
 
-    Double_t CalcErrors(BmnGemTrack*, BmnGemTrack*, vector <Double_t>, vector <Double_t>, Int_t errType);
+    void SetTxProtonRange(Double_t min, Double_t max) {
+        fTxProtMin = min;
+        fTxProtMax = max;
+    }
+
+    void SetTyProtonRange(Double_t min, Double_t max) {
+        fTyProtMin = min;
+        fTyProtMax = max;
+    }
+
+    void SetTxPionRange(Double_t min, Double_t max) {
+        fTxPionMin = min;
+        fTxPionMax = max;
+    }
+
+    void SetTyPionRange(Double_t min, Double_t max) {
+        fTyPionMin = min;
+        fTyPionMax = max;
+    }
+
+    void SetYProtonRange(Double_t min, Double_t max) {
+        fYProtMin = min;
+        fYProtMax = max;
+    }
+
+    void SetYPionRange(Double_t min, Double_t max) {
+        fYPionMin = min;
+        fYPionMax = max;
+    }
+
+    void SetInputAccuracy(Double_t dp1, Double_t dp2, Double_t dTx1, Double_t dTx2, Double_t dTy1, Double_t dTy2) {
+        fInputUncertainties[0] = dp1;
+        fInputUncertainties[1] = dp2;
+        fInputUncertainties[2] = dTx1;
+        fInputUncertainties[3] = dTx2;
+        fInputUncertainties[4] = dTy1;
+        fInputUncertainties[5] = dTy2;
+    }
+
+    vector <Double_t> DebugCalculations(BmnGemTrack*, BmnGemTrack*, vector <Double_t>, vector <Double_t>);
+
     ClassDef(BmnLambdaInvMass, 0)
 };
 

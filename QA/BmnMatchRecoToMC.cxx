@@ -223,8 +223,8 @@ void BmnMatchRecoToMC::ReadAndCreateDataBranches() {
     fGemDigits = (TClonesArray*) ioman->GetObject("BmnGemStripDigit");
     //    fGemClusters = (TClonesArray*) ioman->GetObject("GemCluster");
     fGemHits = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
-    fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTracks");
-    fGemSeeds = (TClonesArray*) ioman->GetObject("BmnGemSeeds");
+    fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTrack");
+    fGemSeeds = (TClonesArray*) ioman->GetObject("BmnGemSeed");
     fGemDigitMatches = (TClonesArray*) ioman->GetObject("BmnGemStripDigiMatch");
     fGemHitMatches = (TClonesArray*) ioman->GetObject("BmnGemStripHitMatch");
     //    if (fGemClusters != NULL) {

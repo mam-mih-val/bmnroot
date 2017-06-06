@@ -24,7 +24,7 @@ using namespace TMath;
 BmnGemTrackFinder::BmnGemTrackFinder() :
 fPDG(2212),
 fEventNo(0),
-fNHitsCut(4),
+fNHitsCut(3),
 fDistCut(1.0) {
     fKalman = NULL;
     fGemHitArray = NULL;
@@ -76,12 +76,13 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
     clock_t tStart = clock();
     fGemTracksArray->Delete();
-    //        CheckSplitting(fGemSeedsArray); //comment tmp
+            CheckSplitting(fGemSeedsArray); //comment tmp
 
     vector<BmnGemTrack> tracks;
 
     for (Int_t iTr = 0; iTr < fGemSeedsArray->GetEntriesFast(); ++iTr) {
         BmnGemTrack* gemTrack = (BmnGemTrack*) fGemSeedsArray->At(iTr);
+        if (gemTrack->GetFlag() == -1) continue;
         BmnGemTrack track;
         track.SetParamFirst(*(gemTrack->GetParamFirst()));
         track.SetParamLast(*(gemTrack->GetParamLast()));
@@ -89,20 +90,17 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         if (fGoForward) {
             BmnGemStripHit* startHit = (BmnGemStripHit*) fGemHitArray->At(gemTrack->GetHitIndex(0));
             track.AddHit(gemTrack->GetHitIndex(0), startHit);
-            for (Int_t iSt = startHit->GetStation() + 1; iSt < fDetector->GetNStations(); ++iSt)
+            for (Int_t iSt = startHit->GetStation() + 0; iSt < fDetector->GetNStations(); ++iSt)
                 NearestHitMerge(iSt, &track, fGoForward);
         } else {
             BmnGemStripHit* lastHit = (BmnGemStripHit*) fGemHitArray->At(gemTrack->GetHitIndex(gemTrack->GetNHits() - 1));
             track.AddHit(gemTrack->GetHitIndex(gemTrack->GetNHits() - 1), lastHit);
-            for (Int_t iSt = lastHit->GetStation() - 2; iSt >= 0; iSt--)
+            for (Int_t iSt = lastHit->GetStation() - 1; iSt >= 0; iSt--)
                 NearestHitMerge(iSt, &track, fGoForward);
         }
         if (track.GetNHits() >= fNHitsCut) {
             CalculateLength(&track);
-            if (fIsTarget)
-            new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(track);
-            else
-                tracks.push_back(track);
+            tracks.push_back(track);
         }
     }
 
@@ -117,9 +115,31 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
         }
         if (minTrack != NULL)
             new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(*minTrack);
+    } else {
+        for (Int_t iTr = 0; iTr < tracks.size(); ++iTr)
+            for (Int_t jTr = iTr + 1; jTr < tracks.size(); ++jTr) {
+                Int_t nCopies = 0;
+                for (Int_t iHit = 0; iHit < tracks[iTr].GetNHits(); iHit++) {
+                    Int_t iHitIdx = tracks[iTr].GetHitIndex(iHit);
+                    for (Int_t jHit = 0; jHit < tracks[jTr].GetNHits(); jHit++) {
+                        Int_t jHitIdx = tracks[jTr].GetHitIndex(jHit);
+                        if (iHitIdx == jHitIdx)
+                            nCopies++;
+                    }
+                }
+                //                printf("nCopies = %d\n", nCopies);
+                if (nCopies > 3) {
+                    if (tracks[iTr].GetChi2() > tracks[jTr].GetChi2()) {
+                        tracks[iTr].SetFlag(-1);
+                        break;
+                    } else
+                        tracks[jTr].SetFlag(-1);
+                }
+            }
+        for (Int_t iTr = 0; iTr < tracks.size(); ++iTr)
+            if (tracks[iTr].GetFlag() != -1 && IsParCorrect(tracks[iTr].GetParamFirst()) && IsParCorrect(tracks[iTr].GetParamLast()))
+                new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tracks[iTr]);
     }
-
-
 
     //main branch! Comment tmp
     //    
@@ -273,6 +293,7 @@ BmnStatus BmnGemTrackFinder::ConnectNearestSeed(BmnGemTrack* baseSeed, TClonesAr
         baseSeed->SortHits();
         baseSeed->SetParamLast(*(minTrackRight->GetParamLast()));
         minTrackRight->SetChi2(-1.0);
+        minTrackRight->SetFlag(-1);
         return kBMNSUCCESS;
     } else {
         return kBMNERROR;
@@ -343,23 +364,27 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* track,
 
         fKalman = new BmnKalmanFilter_tmp();
         Double_t length = track->GetLength();
-        vector<Double_t>* F = NULL;
-//        vector<Double_t>* F = new vector<Double_t> (25, 0.);
-//        if (F != NULL) {
-//            F->assign(25, 0.);
-//            (*F)[0] = 1.;
-//            (*F)[6] = 1.;
-//            (*F)[12] = 1.;
-//            (*F)[18] = 1.;
-//            (*F)[24] = 1.;
-//        }
+        vector<Double_t>* F = new vector<Double_t> (25, 0.);
+        if (F != NULL) {
+            F->assign(25, 0.);
+            (*F)[0] = 1.;
+            (*F)[6] = 1.;
+            (*F)[12] = 1.;
+            (*F)[18] = 1.;
+            (*F)[24] = 1.;
+        }
         FairTrackParam parPredict = (goForward) ? (*(track->GetParamFirst())) : (*(track->GetParamLast()));
         fKalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, F, &length, "field");
         FairTrackParam parUpdate = parPredict;
         Double_t chi = 0.0;
         fKalman->Update(&parUpdate, hit, chi);
-        dist = Dist(parPredict.GetX(), parPredict.GetY(), hit->GetX(), hit->GetY());
-        if (dist < minDist && dist < fDistCut) { // Check if hit is inside validation gate and closer to the track.
+        if (chi > 1000.)
+            continue;
+        dist = Dist(parUpdate.GetX(), parUpdate.GetY(), hit->GetX(), hit->GetY());
+        //        dist = Dist(parPredict.GetX(), parPredict.GetY(), hit->GetX(), hit->GetY());
+        //        if (chi < minChiSq) { // Check if hit is inside validation gate and closer to the track.
+                if (dist < minDist && dist < fDistCut) { // Check if hit is inside validation gate and closer to the track.
+//        if (dist < minDist) { // Check if hit is inside validation gate and closer to the track.
             minChiSq = chi;
             minDist = dist;
             minHit = hit;
@@ -377,10 +402,6 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* track,
             track->SetParamLast(minParUp);
         else
             track->SetParamFirst(minParUp);
-        //        printf("Station = %d\n", station);
-        //        printf("Xh = %f <----> Xt = %f\n", minHit->GetX(), minParUp.GetX());
-        //        printf("Yh = %f <----> Yt = %f\n", minHit->GetY(), minParUp.GetY());
-        //        printf("Zh = %f <----> Zt = %f\n", minHit->GetZ(), minParUp.GetZ());
         track->SetChi2(track->GetChi2() + minChiSq);
         track->SetNDF(track->GetNDF() + 1);
         track->AddHit(minIdx, minHit);

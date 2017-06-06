@@ -302,7 +302,10 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
         BmnHit* hit = (BmnHit*) tofHits->At(hitIdx);
         FairTrackParam parPredict(*(tr->GetParamLast()));
         Double_t len = tr->GetLength();
+//        printf("hitIdx = %d\n", hitIdx);
+//        printf("BEFORE: len = %f\n", len);
         kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "field");
+//        printf("AFTER:  len = %f\n", len);
         FairTrackParam parUpdate = parPredict;
         Double_t chi;
         kalman->Update(&parUpdate, hit, chi);

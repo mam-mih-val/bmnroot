@@ -10,12 +10,14 @@
 BmnCounter::BmnCounter() :
 fEvHead(NULL),
 fIEvent(0),
+fRunId(0),
 fNEvents(0) {
 }
 
 BmnCounter::BmnCounter(Long64_t n) :
 fEvHead(NULL),
 fIEvent(0),
+fRunId(0),
 fNEvents(n) {
 }
 
@@ -37,9 +39,11 @@ InitStatus BmnCounter::Init() {
 }
 
 void BmnCounter::Exec(Option_t* opt) {
+    
+    fRunId = (fEvHead) ? ((BmnEventHeader*) fEvHead->At(0))->GetRunId() : 0;
 
     printf(ANSI_COLOR_BLUE "RUN-" ANSI_COLOR_RESET);
-    printf(ANSI_COLOR_RED "%d" ANSI_COLOR_RESET, ((BmnEventHeader*) fEvHead->At(0))->GetRunId());
+    printf(ANSI_COLOR_RED "%d" ANSI_COLOR_RESET, fRunId);
     printf(ANSI_COLOR_BLUE ": [");
 
     Float_t progress = fIEvent * 1.0 / fNEvents;

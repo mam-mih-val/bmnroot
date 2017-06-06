@@ -141,7 +141,7 @@ void BmnTrackingQa::ReadDataBranches() {
     //    }
 
     if (fDet.GetDet(kGEM)) {
-        fGemSeeds = (TClonesArray*) ioman->GetObject("BmnGemSeeds");
+        fGemSeeds = (TClonesArray*) ioman->GetObject("BmnGemSeed");
         if (NULL == fGemSeeds) {
             Fatal("Init", ": No GemSeeds array!");
         }
@@ -149,7 +149,7 @@ void BmnTrackingQa::ReadDataBranches() {
         if (NULL == fGemSeedMatches) {
             Fatal("Init", ": No BmnGemSeedMatch array!");
         }
-        fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTracks");
+        fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTrack");
         if (NULL == fGemTracks) {
             Fatal("Init", ": No GemTrack array!");
         }
@@ -413,6 +413,7 @@ void BmnTrackingQa::CreateHistograms() {
 
     CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 50, 400, -10, 10);
     CreateH2("MomRes_vs_Length_gem", "Length, cm", "#Delta P / P, %", "", 400, 0, 400, 400, -10, 10);
+    CreateH2("MomRes_vs_nHits_gem", "N_{hits}", "#Delta P / P, %", "", 10, 0, 10, 400, -10, 10);
     CreateH2("Mom_vs_Chi2_gem", "#chi^{2}", "P_{rec}, GeV/c", "", 400, 0, 50, 400, fPRangeMin, fPRangeMax);
     CreateH2("Mom_vs_Length_gem", "Length, cm", "P_{rec}, GeV/c", "", 400, 0, 400, 400, fPRangeMin, fPRangeMax);
     CreateH1("Chi2_gem", "#chi^{2} / NDF", "Counter", 400, 0, 100);
@@ -495,6 +496,8 @@ void BmnTrackingQa::ProcessGem() {
             refs.push_back(gemMCId);
 
         Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota && track->GetNHits() >= fMinNofPointsGem;
+        printf("gemTrackMatch->GetTrueOverAllHitsRatio() = %f \t track->GetNHits() = %d\n", gemTrackMatch->GetTrueOverAllHitsRatio(), track->GetNHits());
+        cout << gemTrackMatch->ToString() << endl;
         Float_t Px_sim = pnt.GetPx(); //mcTrack->GetPx();
         Float_t Py_sim = pnt.GetPy(); //mcTrack->GetPy();
         Float_t Pz_sim = pnt.GetPz(); //mcTrack->GetPz();
@@ -539,6 +542,7 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H2("momRes_2D_gem")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Chi2_gem")->Fill(chi2, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Length_gem")->Fill(track->GetLength(), (P_sim - P_rec) / P_sim * 100.0);
+            fHM->H2("MomRes_vs_nHits_gem")->Fill(track->GetNHits(), (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("Mom_vs_Chi2_gem")->Fill(chi2, P_rec);
             fHM->H2("Mom_vs_Length_gem")->Fill(track->GetLength(), P_rec);
             fHM->H1("Chi2_gem")->Fill(chi2);
@@ -769,7 +773,7 @@ void BmnTrackingQa::IncreaseCounters() {
         fHM->H1("hno_NofObjects_GemHits")->Fill(fGemHits->GetEntriesFast());
     }
     if (fDet.GetDet(kTOF1) && fTof1Hits) fHM->H1("hno_NofObjects_Tof1Hits")->Fill(fTof1Hits->GetEntriesFast());
-    if (fDet.GetDet(kDCH) && fDchHits) fHM->H1("hno_NofObjects_DchHits")->Fill(fDchHits->GetEntriesFast());
+    //if (fDet.GetDet(kDCH) && fDchHits) fHM->H1("hno_NofObjects_DchHits")->Fill(fDchHits->GetEntriesFast());
     if (fDet.GetDet(kTOF) && fTof2Hits) fHM->H1("hno_NofObjects_Tof2Hits")->Fill(fTof2Hits->GetEntriesFast());
 }
 

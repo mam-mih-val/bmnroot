@@ -4,7 +4,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class BmnLambdaInvMass++;
+#pragma link C++ class BmnLambdaAnalysis++;
 
 #endif
 

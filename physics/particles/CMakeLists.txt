@@ -7,6 +7,7 @@ ${Boost_INCLUDE_DIRS}
 ${ROOT_INCLUDE_DIR}
 ${CMAKE_SOURCE_DIR}/base
 ${CMAKE_SOURCE_DIR}/base/field
+${CMAKE_SOURCE_DIR}/bmnfield
 ${CMAKE_SOURCE_DIR}/base/steer
 ${CMAKE_SOURCE_DIR}/base/sim
 ${CMAKE_SOURCE_DIR}/base/event
@@ -33,7 +34,7 @@ ${ROOT_LIBRARY_DIR}
 link_directories( ${LINK_DIRECTORIES})
 
 set(BMNPARTICLES_SRCS
-BmnLambdaInvMass.cxx
+BmnLambdaAnalysis.cxx
 )
 
 # fill list of header files from list of source files

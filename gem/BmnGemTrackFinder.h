@@ -74,8 +74,6 @@ public:
 
 private:
 
-
-
     BmnGemStripStationSet* fDetector;
 
     // Private Data Members ------------

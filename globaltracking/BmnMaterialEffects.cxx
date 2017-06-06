@@ -31,7 +31,7 @@ BmnMaterialEffects::~BmnMaterialEffects() {
 
 BmnStatus BmnMaterialEffects::Update(FairTrackParam* par, const BmnMaterialInfo* mat, Int_t pdg, Bool_t downstream) {
     if (mat->GetLength() * mat->GetRho() < 1e-10) return kBMNSUCCESS;
-    
+
     fDownstream = downstream;
     TDatabasePDG* db = TDatabasePDG::Instance();
     TParticlePDG* particle = db->GetParticle(pdg);
@@ -42,7 +42,7 @@ BmnStatus BmnMaterialEffects::Update(FairTrackParam* par, const BmnMaterialInfo*
 
     AddEnergyLoss(par, mat);
 
-    //   AddThinScatter(par, mat);
+    AddThinScatter(par, mat);
     AddThickScatter(par, mat);
 
     return kBMNSUCCESS;
@@ -60,9 +60,9 @@ void BmnMaterialEffects::AddEnergyLoss(FairTrackParam* par, const BmnMaterialInf
         }
 
         Float_t qp = par->GetQp();
-//        cout << "QP-before = " << qp << endl;
+        //        cout << "QP-before = " << qp << endl;
         qp *= std::exp(-t);
-//        cout << "QP-after  = " << qp << endl;
+        //        cout << "QP-after  = " << qp << endl;
         par->SetQp(qp);
 
         Float_t cov = par->GetCovariance(4, 4);

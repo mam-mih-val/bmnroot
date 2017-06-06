@@ -159,7 +159,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     TObjString tofDigiFile = "$VMCWORKDIR/parameters/tof_standard.geom.par";
     parFileNameList->Add(&tofDigiFile);
 
-    if (isExp && iVerbose == 0) { // print only progress bar in terminal in quiet mode
+    if (iVerbose == 0) { // print only progress bar in terminal in quiet mode
         BmnCounter* cntr = new BmnCounter(nEvents);
         fRunAna->AddTask(cntr);
     }
@@ -167,7 +167,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
     BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
-  //mwpcHM->SetUseDigitsInTimeBin(kFALSE);
+    //mwpcHM->SetUseDigitsInTimeBin(kFALSE);
     fRunAna->AddTask(mwpcHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
@@ -203,7 +203,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
-  //tof1HP->SetOnlyPrimary(kTRUE);
+    //tof1HP->SetOnlyPrimary(kTRUE);
     fRunAna->AddTask(tof1HP);
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
@@ -218,15 +218,17 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // ====================================================================== //
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
-    
+
     Bool_t direction = kTRUE;
     BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
     gemSF->SetUseLorentz(kTRUE);
     gemSF->SetField(isField);
     gemSF->SetDirection(direction);
     gemSF->SetTarget(isTarget);
-    gemSF->SetRoughVertex(TVector3(0.0, -3.5, -21.7));
-    gemSF->SetLineFitCut(0.5);
+//    gemSF->SetRoughVertex(TVector3(0.0, -3.5, -21.7));
+    gemSF->SetRoughVertex(TVector3(0.0, 0.0, 0.0));
+    gemSF->SetLineFitCut(5.0);
+//    gemSF->SetLineFitCut(0.25);
     if (run_period == 5)
         gemSF->AddStationToSkip(0);
     fRunAna->AddTask(gemSF);
@@ -235,8 +237,9 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     gemTF->SetField(isField);
     gemTF->SetDirection(direction);
     gemTF->SetTarget(isTarget);
-    gemTF->SetDistCut(0.5);
-    gemTF->SetNHitsCut(6);
+    gemTF->SetDistCut(5.0);
+    gemTF->SetNHitsCut(4);
+//        gemTF->SetNHitsCut(6);
     fRunAna->AddTask(gemTF);
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //
@@ -277,10 +280,10 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     Double_t rtime = timer.RealTime();
     Double_t ctime = timer.CpuTime();
     cout << endl << endl;
-    cout <<"Macro finished successfully."<< endl; // marker of successful execution for CDASH
-    cout <<"Output file is "+bmndstFileName<< endl;
-    cout <<"Parameter file is "+parFileName<< endl;
-    cout <<"Real time "<<rtime<<" s, CPU time "<<ctime<<" s"<< endl;
+    cout << "Macro finished successfully." << endl; // marker of successful execution for CDASH
+    cout << "Output file is " + bmndstFileName << endl;
+    cout << "Parameter file is " + parFileName << endl;
+    cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;
     cout << endl;
     // ------------------------------------------------------------------------
 }

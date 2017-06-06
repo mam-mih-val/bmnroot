@@ -21,6 +21,7 @@ private:
     TClonesArray* fEvHead;
     Long64_t fNEvents;
     Long64_t fIEvent;
+    Int_t fRunId;
 
 public:
 

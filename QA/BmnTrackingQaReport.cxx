@@ -157,6 +157,7 @@ void BmnTrackingQaReport::Draw() {
     DrawMomResGem("Momentum resolution for GEM-tracks", "momRes_2D_gem", "momRes_1D_gem", "momRes_Mean_gem");
     DrawTwoH2("Tracks quality distributions", "MomRes_vs_Chi2_gem", "Mom_vs_Chi2_gem");
     DrawTwoH2("Momentum resolution and momentum vs. length of tracks", "MomRes_vs_Length_gem", "Mom_vs_Length_gem");
+    DrawOneH2("Momentum resolution vs. Number of hits", "MomRes_vs_nHits_gem");
     DrawTwoH1("Chi-square and length distributions", "Chi2_gem", "Length_gem", "");
 
     TString namesResPullsF[10] = {"ResX_f_gem", "ResY_f_gem", "ResTx_f_gem", "ResTy_f_gem", "ResQp_f_gem", "PullX_f_gem", "PullY_f_gem", "PullTx_f_gem", "PullTy_f_gem", "PullQp_f_gem"};

@@ -37,6 +37,8 @@ public:
         fUsed = use;
     }
     
+    void Print();
+    
 private:
 
     vector<BmnFitNode> fFitNodes; // Array of fit nodes    

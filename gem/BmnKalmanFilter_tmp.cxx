@@ -849,22 +849,17 @@ BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t 
         // Check if already at exit position
         if (z == zOut) break;
         // Update current z position
-        if (iStep != nofSteps) z = (downstream) ? z + stepSize : z - stepSize;
+        if (iStep != nofSteps) z = (!downstream) ? z + stepSize : z - stepSize;
         else z = zOut;
 
         // Get intersections with materials for this step
         vector<BmnMaterialInfo> inter;
 
-//        cout << "IN PROPAGATION \t Xt = " << par->GetX() << "\tYt = " << par->GetY() << "\tZt = " << par->GetZ() << endl;
-        
         if (fNavigator->FindIntersections(par, z, inter) == kBMNERROR) return kBMNERROR;
         
         // Loop over material layers
-//        cout << "inter.size = " << inter.size() << endl;
-        
         for (UInt_t iMat = 0; iMat < inter.size(); iMat++) {
             BmnMaterialInfo mat = inter[iMat];
-//            cout << mat.ToString();
             // Check if track parameters are correct
             if (!IsParCorrect(par)) return kBMNERROR;
             vector<Double_t>* Fnew = NULL;
@@ -883,13 +878,7 @@ BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t 
             if (F != NULL) UpdateF(*F, *Fnew); 
             if (Fnew != NULL) delete Fnew;
 
-            // Add material effects
-//            cout << "BEFORE:  " << endl;
-//            par->Print();
-            fMaterial->Update(par, &mat, pdg, downstream);
-//            cout << "AFTER :  " << endl;
-//            par->Print();
-//            cout << "Step = " << iStep << " iMat = " << iMat << " Z = " << zIn << " Par q/p = " << par->GetQp() << endl;
+            fMaterial->Update(par, &mat, pdg, !downstream);
             if (length) *length += mat.GetLength();
         }
     }

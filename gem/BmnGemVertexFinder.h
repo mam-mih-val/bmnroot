@@ -14,6 +14,8 @@
 #include "FairField.h"
 #include "CbmVertex.h"
 #include "BmnKalmanFilter_tmp.h"
+#include "BmnGemStripStationSet.h"
+#include "BmnGemStripStationSet_RunSpring2017.h"
 
 using namespace std;
 
@@ -31,6 +33,8 @@ public:
     void SetField(Bool_t f) {
         fIsField = f;
     }
+    
+    void FindVertexByVirtualPlanes();
 
 private:
 
@@ -40,6 +44,9 @@ private:
     TString fVertexBranchName;
 
     Int_t fEventNo; // event counter
+    Int_t fNTracks; // number of reco tracks in event
+    
+    BmnGemStripStationSet* fDetector;
 
     TClonesArray* fGemHitsArray;
     TClonesArray* fGemTracksArray;

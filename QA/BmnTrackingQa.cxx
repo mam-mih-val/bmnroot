@@ -48,7 +48,6 @@ FairTask("BmnTrackingQA", 1),
 fHM(NULL),
 fOutputDir("./"),
 fDet(),
-//fMinNofPointsGem(4),
 fMinNofPointsGem(4),
 fMinNofPointsTof(1),
 fMinNofPointsDch(1),
@@ -414,6 +413,7 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 50, 400, -10, 10);
     CreateH2("MomRes_vs_Length_gem", "Length, cm", "#Delta P / P, %", "", 400, 0, 400, 400, -10, 10);
     CreateH2("MomRes_vs_nHits_gem", "N_{hits}", "#Delta P / P, %", "", 10, 0, 10, 400, -10, 10);
+    CreateH2("MomRes_vs_Theta_gem", "#theta_{sim}", "#Delta P / P, %", "", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax, 400, -10, 10);
     CreateH2("Mom_vs_Chi2_gem", "#chi^{2}", "P_{rec}, GeV/c", "", 400, 0, 50, 400, fPRangeMin, fPRangeMax);
     CreateH2("Mom_vs_Length_gem", "Length, cm", "P_{rec}, GeV/c", "", 400, 0, 400, 400, fPRangeMin, fPRangeMax);
     CreateH1("Chi2_gem", "#chi^{2} / NDF", "Counter", 400, 0, 100);
@@ -496,8 +496,6 @@ void BmnTrackingQa::ProcessGem() {
             refs.push_back(gemMCId);
 
         Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota && track->GetNHits() >= fMinNofPointsGem;
-        printf("gemTrackMatch->GetTrueOverAllHitsRatio() = %f \t track->GetNHits() = %d\n", gemTrackMatch->GetTrueOverAllHitsRatio(), track->GetNHits());
-        cout << gemTrackMatch->ToString() << endl;
         Float_t Px_sim = pnt.GetPx(); //mcTrack->GetPx();
         Float_t Py_sim = pnt.GetPy(); //mcTrack->GetPy();
         Float_t Pz_sim = pnt.GetPz(); //mcTrack->GetPz();
@@ -543,6 +541,7 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H2("MomRes_vs_Chi2_gem")->Fill(chi2, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Length_gem")->Fill(track->GetLength(), (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_nHits_gem")->Fill(track->GetNHits(), (P_sim - P_rec) / P_sim * 100.0);
+            fHM->H2("MomRes_vs_Theta_gem")->Fill(Theta_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("Mom_vs_Chi2_gem")->Fill(chi2, P_rec);
             fHM->H2("Mom_vs_Length_gem")->Fill(track->GetLength(), P_rec);
             fHM->H1("Chi2_gem")->Fill(chi2);

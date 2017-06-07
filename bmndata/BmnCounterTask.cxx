@@ -39,7 +39,7 @@ InitStatus BmnCounter::Init() {
 }
 
 void BmnCounter::Exec(Option_t* opt) {
-    
+
     fRunId = (fEvHead) ? ((BmnEventHeader*) fEvHead->At(0))->GetRunId() : 0;
 
     printf(ANSI_COLOR_BLUE "RUN-" ANSI_COLOR_RESET);

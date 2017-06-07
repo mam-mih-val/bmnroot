@@ -76,7 +76,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
 
     clock_t tStart = clock();
     fGemTracksArray->Delete();
-            CheckSplitting(fGemSeedsArray); //comment tmp
+    CheckSplitting(fGemSeedsArray); //comment tmp
 
     vector<BmnGemTrack> tracks;
 
@@ -383,8 +383,8 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* track,
         dist = Dist(parUpdate.GetX(), parUpdate.GetY(), hit->GetX(), hit->GetY());
         //        dist = Dist(parPredict.GetX(), parPredict.GetY(), hit->GetX(), hit->GetY());
         //        if (chi < minChiSq) { // Check if hit is inside validation gate and closer to the track.
-                if (dist < minDist && dist < fDistCut) { // Check if hit is inside validation gate and closer to the track.
-//        if (dist < minDist) { // Check if hit is inside validation gate and closer to the track.
+        if (dist < minDist && dist < fDistCut) { // Check if hit is inside validation gate and closer to the track.
+            //        if (dist < minDist) { // Check if hit is inside validation gate and closer to the track.
             minChiSq = chi;
             minDist = dist;
             minHit = hit;

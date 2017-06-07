@@ -75,8 +75,10 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
     TString name;
     for (Int_t i = 0; i < 10; i++) {
         name = Form("Plane%d", i);
-        Plane[i] = new BmnTOF1Detector(name, kTRUE);
-        Plane[i]->SetCorrLR(CorrLR[i]);
+        Plane[i] = new BmnTOF1Detector(i, kTRUE);
+        //Plane[i]->SetCorrLR(CorrLR[i]);
+        Plane[i]->SetCorrLR("Tof400LRcorr.dat");
+        Plane[i]->SetCorrSlewing("Tof400SlewingCorr_period6.root");
     }
 
     TList *fList = new TList();
@@ -280,11 +282,11 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
 Double_t CalculateDtT0BD(BmnTrigDigit *bd, BmnTrigDigit * t0) {
     Double_t dt = bd->GetTime() - t0->GetTime();
     dt = dt - (14.55 + 0.1218 * bd->GetAmp()
-                    - 0.02473 * bd->GetAmp() * bd->GetAmp()
-                    + 0.0006237 * bd->GetAmp() * bd->GetAmp() * bd->GetAmp());
+            - 0.02473 * bd->GetAmp() * bd->GetAmp()
+            + 0.0006237 * bd->GetAmp() * bd->GetAmp() * bd->GetAmp());
     dt = dt - (1.947 - 0.5363 * t0->GetAmp()
-                    + 0.03428 * t0->GetAmp() * t0->GetAmp()
-                    - 0.0005853 * t0->GetAmp() * t0->GetAmp() * t0->GetAmp());
+            + 0.03428 * t0->GetAmp() * t0->GetAmp()
+            - 0.0005853 * t0->GetAmp() * t0->GetAmp() * t0->GetAmp());
     /*  dt = dt - (-3.412 + 0.1866 * t0->GetAmp());//*/
     return dt;
 }
@@ -295,8 +297,8 @@ Double_t CalculateDtT0BD(Double_t timeBD, Double_t ampBD, BmnTrigDigit * t0) {
             - 0.02473 * ampBD * ampBD
             + 0.0006237 * ampBD * ampBD * ampBD);
     dt = dt - (1.947 - 0.5363 * t0->GetAmp()
-                    + 0.03428 * t0->GetAmp() * t0->GetAmp()
-                    - 0.0005853 * t0->GetAmp() * t0->GetAmp() * t0->GetAmp());
+            + 0.03428 * t0->GetAmp() * t0->GetAmp()
+            - 0.0005853 * t0->GetAmp() * t0->GetAmp() * t0->GetAmp());
     //dt = dt - (-3.412 + 0.1866 * t0->GetAmp());//*/
     return dt;
 }
@@ -308,8 +310,8 @@ Double_t CalculateDtT0BC2(BmnTrigDigit *bc2, BmnTrigDigit * t0) {
             + 0.35 * bc2->GetAmp() * bc2->GetAmp()
             - 0.006571 * bc2->GetAmp() * bc2->GetAmp() * bc2->GetAmp());
     dt = dt - (1.947 - 0.5363 * t0->GetAmp()
-                    + 0.03428 * t0->GetAmp() * t0->GetAmp()
-                    - 0.0005853 * t0->GetAmp() * t0->GetAmp() * t0->GetAmp());
+            + 0.03428 * t0->GetAmp() * t0->GetAmp()
+            - 0.0005853 * t0->GetAmp() * t0->GetAmp() * t0->GetAmp());
     /*    dt = dt - (0.4034 - 0.01599 * t0->GetAmp());
         dt = dt + 0.001108; //zero for C 3.5 Gec/nuclon */
     return dt;

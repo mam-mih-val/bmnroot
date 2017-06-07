@@ -57,16 +57,16 @@ public:
 
     TVector2 GetTransXY(BmnGemStripHit* hit);
 
-    void SetTrs(Float_t trs) {
-        kTRS = trs;
+    void SetLorentzThresh(Float_t trs) {
+        fLorentzThresh = trs;
     }
 
     void SetYstep(Float_t stp) {
-        kY_STEP = stp;
+        fYstep = stp;
     }
 
     void SetSigX(Float_t sig) {
-        kSIG_X = sig;
+        fSigX = sig;
     }
 
     void SetNbins(Int_t n) {
@@ -105,6 +105,10 @@ public:
     
     void SetLineFitCut(Double_t cut) {
         fLineFitCut = cut;
+    }    
+    
+    void SetNHitsCut(Short_t n) {
+        fNHitsCut = n;
     }
 
     virtual InitStatus Init();
@@ -122,10 +126,10 @@ private:
     Bool_t fIsTarget; // run with target or not
     Bool_t fGoForward;
 
-    Float_t kSIG_X;
-    UInt_t kY_STEP;
-    Float_t kTRS;
-    UInt_t kNHITSFORFIT;
+    Float_t fSigX;
+    UInt_t fYstep;
+    Float_t fLorentzThresh;
+    UInt_t fNHitsCut;
 
     UInt_t fNBins; // number of bins in histogram  
     Float_t fMin;

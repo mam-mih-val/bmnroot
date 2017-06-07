@@ -49,15 +49,14 @@ void BmnTrackingQaReport::Create() {
     Out() << R()->DocumentBegin();
     Out() << R()->Title(0, GetTitle());
     Out() << PrintEventInfo();
-    Out() << PrintNofObjects();
     Out() << "<hr>" << endl;
     PrintCanvases();
     Out() << R()->DocumentEnd();
 }
 
 string BmnTrackingQaReport::PrintEventInfo() {
-    Out() << "<h2>Event generator: QGSM</h2>" << endl;
-    Out() << "<h2>Energy: 4 GeV/n</h2>" << endl;
+    Out() << "<h2>Event generator: QGSM</h2>" << endl; //FIXME!
+    Out() << "<h2>Energy: 4 GeV/n</h2>" << endl; //FIXME!
     if (GetOnlyPrimes()) Out() << "<h2>Results only for primaries presented</h2>" << endl;
     Out() << "<h2>Number of events: " << HM()->H1("hen_EventNo_TrackingQa")->GetEntries() << "</h2>" << endl;
     Out() << "<h2>Mean multiplicity: " << HM()->H1("Multiplicity")->GetMean() << "</h2>" << endl;
@@ -80,18 +79,6 @@ string BmnTrackingQaReport::PrintEventInfo() {
     }
     inTiming.close();
     return "<hr>";
-}
-
-string BmnTrackingQaReport::PrintNofObjects() const {
-//    vector<TH1*> histos = HM()->H1Vector("hno_NofObjects_.+");
-//    Int_t nofHistos = histos.size();
-//    string str = R()->TableBegin("Average number of objects per event", list_of("Name")("Value"));
-//    for (Int_t iHist = 0; iHist < nofHistos; iHist++) {
-//        string cellName = Split(histos[iHist]->GetName(), '_')[2];
-//        str += R()->TableRow(list_of(cellName)(NumberToString<Int_t > (histos[iHist]->GetMean())));
-//    }
-//    str += R()->TableEnd();
-//    return str;
 }
 
 void BmnTrackingQaReport::Draw() {
@@ -158,6 +145,7 @@ void BmnTrackingQaReport::Draw() {
     DrawTwoH2("Tracks quality distributions", "MomRes_vs_Chi2_gem", "Mom_vs_Chi2_gem");
     DrawTwoH2("Momentum resolution and momentum vs. length of tracks", "MomRes_vs_Length_gem", "Mom_vs_Length_gem");
     DrawOneH2("Momentum resolution vs. Number of hits", "MomRes_vs_nHits_gem");
+    DrawOneH2("Momentum resolution vs. theta", "MomRes_vs_Theta_gem");
     DrawTwoH1("Chi-square and length distributions", "Chi2_gem", "Length_gem", "");
 
     TString namesResPullsF[10] = {"ResX_f_gem", "ResY_f_gem", "ResTx_f_gem", "ResTy_f_gem", "ResQp_f_gem", "PullX_f_gem", "PullY_f_gem", "PullTx_f_gem", "PullTy_f_gem", "PullQp_f_gem"};

@@ -23,7 +23,7 @@ BmnGemStripModule::BmnGemStripModule() {
     YMinModule = 0.0;
     YMaxModule = 0.0;
 
-    AvalancheGenerationSeed = 0;
+    AvalancheGenerationSeed = 11;
     MCD = 0.0333; //mean collision distance (mean free flight path) [cm]
     AvalancheRadius = 0.10; //cm
     Gain = 1.0; //gain level (for each electron signal - in RealPointFull or for strip signal - in RealPointFullOne)
@@ -49,7 +49,7 @@ BmnGemStripModule::BmnGemStripModule(Double_t z_start_pos,
     YMinModule = 0.0;
     YMaxModule = 0.0;
 
-    AvalancheGenerationSeed = 0;
+    AvalancheGenerationSeed = 11;
     MCD = 0.0333; //mean collision distance (mean free flight path) [cm]
     AvalancheRadius = 0.10; //cm
     Gain = 1.0;

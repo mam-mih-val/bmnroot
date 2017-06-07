@@ -39,7 +39,19 @@ fDebugCalculations(kFALSE),
 fCutsDistrOnly(kFALSE),
 fKalman(NULL),
 fField(NULL) {
+    for (Int_t i = 0; i < 2; i++) {
+        Double_t val = (i == 0) ? 0. : DBL_MAX;
+        fVpVpProton[i] = val;
+        fVpVpPion[i] = val;
+        fV0ProtonPion[i] = val;
+        fV0VpDiff[i] = val;
+    }
+    
+    for (Int_t i = 0; i < 6; i++)
+        fInputUncertainties[i] = 0.;
+
     fBranchGemHits = "BmnGemStripHit";
+    fBranchVertex = "BmnVertex";
 
     // Create GEM detector ------------------------------------------------------
     switch (fGeometry) {
@@ -81,9 +93,6 @@ void BmnLambdaAnalysis::RecoAnalysis() {
                 Y1 < fYProtMin || Y1 > fYProtMax)
             continue;
 
-        Double_t A1 = 1. / Sqrt(Tx1 * Tx1 + Ty1 * Ty1 + 1);
-        lPos.SetXYZM(Tx1 * A1 * p1, Ty1 * A1 * p1, p1 * A1, fPDG->GetParticle(fPdgProton)->Mass());
-
         for (Int_t jTrack = 0; jTrack < fGemTracks->GetEntriesFast(); jTrack++) {
             if (iTrack == jTrack)
                 continue;
@@ -108,7 +117,7 @@ void BmnLambdaAnalysis::RecoAnalysis() {
             // Probably, it has to be parametrized by a straight line
             TVector2 yzVertex = SecondaryVertexY(track1->GetParamFirst(), track2->GetParamFirst());
             Double_t zVY = yzVertex.Y();
-            Double_t yV = yzVertex.X();
+            // Double_t yV = yzVertex.X();
             fzVY->Fill(zVY);
 
             // Use Kalman to estimate a possible secondary vertex in xz-plane
@@ -137,29 +146,58 @@ void BmnLambdaAnalysis::RecoAnalysis() {
             Double_t* pointsAndMinDist = new Double_t[5];
             CalculateMinDistance(protParametrizedTraject, pionParametrizedTraject, pointsAndMinDist);
 
+            // New track params. at secondary vertex (V0) and Vp to be stored here
+            FairTrackParam proton_V0, pion_V0, proton_Vp, pion_Vp;
+            vector <Double_t> geomCuts; // 
+
             // Case of overlapping extrap.curves
             if (Abs(pointsAndMinDist[4]) < FLT_EPSILON) {
+                Double_t minZ = Min(pointsAndMinDist[0], pointsAndMinDist[2]);
+                if (minZ < 0. || minZ > 30.) {
+                    delete [] pointsAndMinDist;
+                    continue;
+                }
 
-                fzVX->Fill(Min(pointsAndMinDist[0], pointsAndMinDist[2]));
+                fzVX->Fill(minZ); // minZ is a possible candidate to be the second. vertex (V0)
 
-                //                if (pointsAndMinDist[0] > 0. && pointsAndMinDist[0] < fDetector->GetGemStation(0)->GetZPosition())
-                //                    fzVX->Fill(pointsAndMinDist[0]);
-                //                if (pointsAndMinDist[2] > 0. && pointsAndMinDist[2] < fDetector->GetGemStation(0)->GetZPosition())
-                //                    fzVX->Fill(pointsAndMinDist[2]);
-                //                else
-                //                    continue;
-            } else
+                // Go to V0 ...
+                proton_V0 = KalmanTrackPropagation(track1, fPdgProton, minZ);
+                pion_V0 = KalmanTrackPropagation(track2, fPdgPionMinus, minZ);
+
+                // Go to Vp
+                Double_t Vpz = 0.; // FIXME (0. --> fEventVertex->GetZ())
+                proton_Vp = KalmanTrackPropagation(track1, fPdgProton, Vpz);
+                pion_Vp = KalmanTrackPropagation(track2, fPdgPionMinus, Vpz);
+
+                geomCuts = GeometryCuts(proton_V0, pion_V0, proton_Vp, pion_Vp);
+
+                delete [] pointsAndMinDist;
+            }// Non overlapping curves ...
+            else {
+                delete [] pointsAndMinDist;
+                continue;
+            }
+
+            // Apply geometry cuts from vector <<geomCuts>>
+            // Distance beetween Vp and Vp_prot_extrap   [0]
+            // Distance beetween Vp and Vp_prot_extrap   [1]
+            // Distance between proton and pion at V0    [2]
+            // Distance between V0 and Vp along beamline [3]
+            if (geomCuts[0] < fVpVpProton[0] || geomCuts[0] > fVpVpProton[1] ||
+                    geomCuts[1] < fVpVpPion[0] || geomCuts[1] > fVpVpPion[1] ||
+                    geomCuts[2] < fV0ProtonPion[0] || geomCuts[2] > fV0ProtonPion[1] ||
+                    geomCuts[3] < fV0VpDiff[0] || geomCuts[3] > fV0VpDiff[1])
                 continue;
 
-            // Calculate zV in XZ plane ... 
-            //            Double_t zVX = 0.5 * (bPion - bProt) / (aProt - aPion);
-            //            fzVX->Fill(zVX);
-            //            
-            //            // Calculate DCA in XZ plane ...
-            //            Double_t dcaXZ = Abs((aProt - aPion) * zVX * zVX + (bProt - bPion) * zVX + (cProt - cPion));
-            //            fDcaXZ->Fill(dcaXZ);
 
-            delete [] pointsAndMinDist;
+            // Track params. are redefined (correspond to zVX) ...
+            Tx1 = proton_V0.GetTx();
+            Ty1 = proton_V0.GetTy();
+            Tx2 = pion_V0.GetTx();
+            Ty2 = pion_V0.GetTy();
+
+            Double_t A1 = 1. / Sqrt(Tx1 * Tx1 + Ty1 * Ty1 + 1);
+            lPos.SetXYZM(Tx1 * A1 * p1, Ty1 * A1 * p1, p1 * A1, fPDG->GetParticle(fPdgProton)->Mass());
 
             p2 *= -1.; // Since in the calculations pos. mom. values should be used
 
@@ -175,6 +213,7 @@ void BmnLambdaAnalysis::RecoAnalysis() {
                 for (Int_t i = 0; i < 6; i++) {
                     if (i < 2)
                         dP.push_back(fInputUncertainties[i]);
+
                     else
                         dT.push_back(fInputUncertainties[i]);
                 }
@@ -186,11 +225,57 @@ void BmnLambdaAnalysis::RecoAnalysis() {
     }
 }
 
+vector <Double_t> BmnLambdaAnalysis::GeometryCuts(FairTrackParam proton_V0, FairTrackParam pion_V0, FairTrackParam proton_Vp, FairTrackParam pion_Vp) {
+    Double_t X = fEventVertex->GetX();
+    Double_t Y = fEventVertex->GetY();
+    Double_t Z = fEventVertex->GetZ();
+
+    X = 0.;
+    Y = 0.;
+    Z = 0.; // FIXME !!!
+    // Vp
+    TVector3 Vp(X, Y, Z);
+
+    // Secondary proton at V0
+    TVector3 protonV0(proton_V0.GetX(), proton_V0.GetY(), proton_V0.GetZ());
+    // Secondary pion at V0
+    TVector3 pionV0(pion_V0.GetX(), pion_V0.GetY(), pion_V0.GetZ());
+
+    // Secondary proton extrapolated to Vp (Vp_prot_extrap)
+    TVector3 protonVp(proton_Vp.GetX(), proton_Vp.GetY(), proton_Vp.GetZ());
+    // Secondary pion extrapolated to Vp (Vp_pion_extrap)
+    TVector3 pionVp(pion_Vp.GetX(), pion_Vp.GetY(), pion_Vp.GetZ());
+
+    // 1) 
+    // Distance beetween Vp and Vp_prot_extrap
+    Double_t protonVpVp = TVector3(protonVp - Vp).Mag();
+    fProtonVpVp->Fill(protonVpVp);
+    // 2)
+    // Distance beetween Vp and Vp_prot_extrap
+    Double_t pionVpVp = TVector3(pionVp - Vp).Mag();
+    fPionVpVp->Fill(pionVpVp);
+
+    // 3)
+    // Distance between proton and pion at V0
+    Double_t protonV0PionV0 = TVector3(protonV0 - pionV0).Mag();
+    fProtonV0PionV0->Fill(protonV0PionV0);
+
+    // 4)
+    // Distance between V0 and Vp along beamline
+    Double_t vertexDiff = proton_V0.GetZ() - Z;
+    fVertexDiff->Fill(vertexDiff);
+
+    vector <Double_t> cuts;
+    cuts.push_back(protonVpVp);
+    cuts.push_back(pionVpVp);
+    cuts.push_back(protonV0PionV0);
+    cuts.push_back(vertexDiff);
+
+    return cuts;
+}
+
 vector <TVector3> BmnLambdaAnalysis::KalmanTrackPropagation(BmnGemTrack* track, Int_t pdg) {
-    //    Double_t zSecond = 0.5 * fDetector->GetGemStation(0)->GetZPosition(); // Z-coordinate of second point  
-    //    Double_t zThird = 0.; // Z-coordinate of second point
-    //    
-    Double_t zStart = fDetector->GetGemStation(0)->GetZPosition(); // Z-coordinate of second point
+    Double_t zStart = fDetector->GetGemStation(0)->GetZPosition();
 
     FairTrackParam parPredict = *(track->GetParamFirst());
 
@@ -202,21 +287,20 @@ vector <TVector3> BmnLambdaAnalysis::KalmanTrackPropagation(BmnGemTrack* track, 
     for (Int_t iStep = 1; iStep <= Int_t(zStart); iStep++) {
         fKalman->TGeoTrackPropagate(&parPredict, zStart - Double_t(iStep), pdg, F, NULL, "field");
         pointsPerTrack.push_back(TVector3(parPredict.GetX(), parPredict.GetY(), parPredict.GetZ()));
-        // cout << parPredict.GetX() << " " << parPredict.GetY() << " " << parPredict.GetZ() << endl;
     }
 
-    // Propagation to zSecond
-    //    fKalman->TGeoTrackPropagate(&parPredict, zSecond, pdg, F, NULL, "field");
-    //    pointsPerTrack.push_back(TVector3(parPredict.GetX(), parPredict.GetY(), parPredict.GetZ())); // (x, y) @ zSecond
-    //
-    //    // Propagation to zThird
-    //    fKalman->TGeoTrackPropagate(&parPredict, zThird, pdg, F, NULL, "field");
-    //    pointsPerTrack.push_back(TVector3(parPredict.GetX(), parPredict.GetY(), parPredict.GetZ())); // (x, y) @ zThird
-
     delete F;
-
-    track->SetParamFirst(parPredict);
+    // track->SetParamFirst(parPredict);
     return pointsPerTrack;
+}
+
+FairTrackParam BmnLambdaAnalysis::KalmanTrackPropagation(BmnGemTrack* track, Int_t pdg, Double_t Z) {
+    FairTrackParam parPredict = *(track->GetParamFirst());
+    vector <Double_t>* F = new vector <Double_t> (25, 0.);
+    fKalman->TGeoTrackPropagate(&parPredict, Z, pdg, F, NULL, "field");
+    delete F;
+    // track->SetParamFirst(parPredict);
+    return parPredict;
 }
 
 vector <Double_t> BmnLambdaAnalysis::DebugCalculations(BmnGemTrack* track1, BmnGemTrack* track2, vector <Double_t> dP, vector <Double_t> dT) {
@@ -268,6 +352,7 @@ vector <Double_t> BmnLambdaAnalysis::DebugCalculations(BmnGemTrack* track1, BmnG
     vector <Double_t> res;
     res.push_back(mInv);
     res.push_back(errSq);
+
     return res;
 }
 
@@ -298,7 +383,7 @@ void BmnLambdaAnalysis::McAnalysis() {
             if (iTrack == jTrack)
                 continue;
 
-            CbmMCTrack* track2 = (CbmMCTrack*) fGemTracks->UncheckedAt(jTrack);
+            CbmMCTrack * track2 = (CbmMCTrack*) fGemTracks->UncheckedAt(jTrack);
             if (track2->GetPdgCode() != fPdgPionMinus)
                 continue;
 
@@ -317,6 +402,7 @@ void BmnLambdaAnalysis::McAnalysis() {
                     Tx2 < fTxPionMin || Tx2 > fTxPionMax ||
                     Ty2 < fTyPionMin || Ty2 > fTyPionMax ||
                     Y2 < fYPionMin || Y2 > fYPionMax || z2 > fDetector->GetGemStation(0)->GetZPosition() || z1 < 1.)
+
                 continue;
             lNeg.SetXYZM(Px2, Py2, Pz2, fPDG->GetParticle(fPdgPionMinus)->Mass());
             fLambdaInvMass->Fill(TLorentzVector((lPos + lNeg)).Mag());
@@ -344,8 +430,10 @@ InitStatus BmnLambdaAnalysis::Init() {
 
     fBranchGemTracks = (!fUseMc) ? "BmnGemTrack" : "MCTrack";
 
-    if (!fUseMc)
+    if (!fUseMc) {
         fGemHits = (TClonesArray*) ioman->GetObject(fBranchGemHits.Data());
+        fVertex = (TClonesArray*) ioman->GetObject(fBranchVertex.Data());
+    }
     fGemTracks = (TClonesArray*) ioman->GetObject(fBranchGemTracks.Data());
 
     fLambdaInvMass = new TH1F("LambdaInvMass", "#Lambda -> #pi^{-}p, Inv. mass", 100, 1.05, 1.3);
@@ -372,33 +460,24 @@ InitStatus BmnLambdaAnalysis::Init() {
 
     if (!fUseMc) {
         fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
-        fMagField->SetScale(2.);
+        fMagField->SetScale(1.3);
         fMagField->Init();
 
         FairRunAna::Instance()->SetField(fMagField);
         fField = FairRunAna::Instance()->GetField();
         fKalman = new BmnKalmanFilter_tmp();
 
-        fDcaXZ = new TH1F("dcaXZ", "dcaXZ", 100, 0., 10.);
         //        fzVX = new TH1F("zVX", "zVX", 200, 0., fDetector->GetGemStation(0)->GetZPosition());
         fzVX = new TH1F("zVX", "zVX", 500, -50., 50.);
         fzVY = new TH1F("zVY", "zVY", 500, -50., 50.);
 
         fMinDistNonOverlappedCurves = new TH1F("MinDistNonOverlappedCurves, XZ", "MinDistNonOverlappedCurves, XZ", 100, 0., 10.);
-        fMinDistOverlappedCurves = new TH1F("MinDistOverlappedCurves, XZ", "MinDistOverlappedCurves, XZ", 100, 0., 10.);
+
+        fProtonVpVp = new TH1F("fProtonVpVp", "fProtonVpVp", 100, 0., 0.);
+        fPionVpVp = new TH1F("fPionVpVp", "fPionVpVp", 100, 0., 0.);
+        fProtonV0PionV0 = new TH1F("fProtonV0PionV0", "fProtonV0PionV0", 100, 0., 0.);
+        fVertexDiff = new TH1F("fVertexDiff", "fVertexDiff", 100, 0., 0.);
     }
-
-    //    FairRunAna* ana = FairRunAna::Instance();
-    //    FairRuntimeDb* rtdb = ana->GetRuntimeDb();
-    //    FairGeoParSet* geoParSet = (FairGeoParSet*) rtdb->getListOfContainers();
-    // geoParSet->Print();
-    // FairGeoParSet* geoParSet = (FairGeoParSet*) rtdb->getContainer("BmnFieldPar");
-    //    FairBaseParSet* fieldParSet = (FairBaseParSet*) rtdb->getContainer("BmnFieldPar");
-    //    fieldParSet->Print();
-
-    //    fField = ana->GetField();
-    //    cout << fField->GetBy(0., 0., 0.) << endl;
-    //    getchar();
 
     return kSUCCESS;
 }
@@ -410,6 +489,8 @@ void BmnLambdaAnalysis::Exec(Option_t* option) {
     if (fEventCounter % 1000 == 0)
         cout << fEventCounter << endl;
 
+    fEventVertex = (CbmVertex*) fVertex->UncheckedAt(0);
+
     if (!fUseMc && !fCutsDistrOnly)
         RecoAnalysis();
     else if (fUseMc && !fCutsDistrOnly)
@@ -417,6 +498,7 @@ void BmnLambdaAnalysis::Exec(Option_t* option) {
     else if (fUseMc && fCutsDistrOnly)
         ObtainCuts();
     else {
+
         cout << "Specify analysis conditions precisely!" << endl;
         throw;
     }
@@ -432,8 +514,8 @@ void BmnLambdaAnalysis::ObtainCuts() {
         if (track->GetStartZ() > fDetector->GetGemStation(0)->GetZPosition())
             continue;
 
-        CbmMCTrack* proton = NULL;
-        CbmMCTrack* pion = NULL;
+        CbmMCTrack * proton = NULL;
+        CbmMCTrack * pion = NULL;
         // Int_t nProtons, nPions = 0;
         for (Int_t jTrack = 0; jTrack < fGemTracks->GetEntriesFast(); jTrack++) {
             CbmMCTrack* trackFromDecay = (CbmMCTrack*) fGemTracks->UncheckedAt(jTrack);
@@ -455,6 +537,7 @@ void BmnLambdaAnalysis::ObtainCuts() {
         }
 
         if (pion && proton) {
+
             fProtonMomenta->Fill(proton->GetP());
             fProtonTx->Fill(proton->GetPx() / proton->GetPz());
             fProtonTy->Fill(proton->GetPy() / proton->GetPz());
@@ -468,11 +551,11 @@ void BmnLambdaAnalysis::ObtainCuts() {
             fStartZ->Fill(pion->GetStartZ());
             fLambdaMomenta->Fill(track->GetP());
 
-            fNhitsPerProton->Fill(proton->GetNPoints(DetectorId::kGEM));
-            fNhitsPerPion->Fill(pion->GetNPoints(DetectorId::kGEM));
+            fNhitsPerProton->Fill(proton->GetNPoints(kGEM));
+            fNhitsPerPion->Fill(pion->GetNPoints(kGEM));
 
-            fNhitsPerProtonVsP->Fill(proton->GetNPoints(DetectorId::kGEM), proton->GetP());
-            fNhitsPerPionVsP->Fill(pion->GetNPoints(DetectorId::kGEM), pion->GetP());
+            fNhitsPerProtonVsP->Fill(proton->GetNPoints(kGEM), proton->GetP());
+            fNhitsPerPionVsP->Fill(pion->GetNPoints(kGEM), pion->GetP());
         }
     }
 }
@@ -490,11 +573,13 @@ void BmnLambdaAnalysis::Finish() {
         fLambdaInvMass->Write();
         fzVX->Write();
         fzVY->Write();
-        fDcaXZ->Write();
 
-        fMinDistOverlappedCurves->Write();
         fMinDistNonOverlappedCurves->Write();
 
+        fProtonVpVp->Write();
+        fPionVpVp->Write();
+        fProtonV0PionV0->Write();
+        fVertexDiff->Write();
     } else {
         fStartZ->Write();
 
@@ -526,22 +611,14 @@ void BmnLambdaAnalysis::Finish() {
 }
 
 TVector3 BmnLambdaAnalysis::FitParabola(vector <TVector3> points) {
-    //    Double_t x1 = points[0].Z();
-    //    Double_t x2 = points[1].Z();
-    //    Double_t x3 = points[2].Z();
-    //
-    //    Double_t y1 = points[0].X();
-    //    Double_t y2 = points[1].X();
-    //    Double_t y3 = points[2].X();
-    //
-    //    Double_t a = (y3 - (x3 * (y2 - y1) * x2 * y1 - x1 * y2) / (x2 - x1)) / (x3 * (x3 - x1 - x2) + x1 * x2);
-    //    Double_t b = (y2 - y1) / (x2 - x1) - a * (x1 + x2);
-    //    Double_t c = (x2 * y1 - x1 * y2) / (x2 - x1) + a * x1 * x2;
-
+    // Prevent bad fits
+    if (Abs(points[points.size() - 1].X() - points[1].X()) < FLT_EPSILON) 
+      return TVector3(0., 0., 0.);  
+    
     TGraph* tmp = new TGraph();
-    for (Int_t iSize = 0; iSize < points.size(); iSize++)
+    for (Int_t iSize = 0; iSize < points.size(); iSize++) 
         tmp->SetPoint(iSize, points[iSize].Z(), points[iSize].X());
-
+    
     TFitResultPtr fitPtr = tmp->Fit("pol2", "SQww");
     Double_t a = fitPtr->Parameter(2);
     Double_t b = fitPtr->Parameter(1);
@@ -615,8 +692,8 @@ void BmnLambdaAnalysis::CalculateMinDistance(TVector3 paramsCurv1, TVector3 para
         fMinDistNonOverlappedCurves->Fill(arr[4]);
     } else {
         if (Abs(D) < FLT_EPSILON) {
-            cout << "Something strange happens!!! D is very close to zero!" << endl;
-            throw;
+            cout << "Something strange happens!!! D is very close to zero! " << fEventCounter << endl;
+            // throw;
         }
 
         Double_t z1 = (-(b1 - b2) + Sqrt(D)) / (2 * (a1 - a2));

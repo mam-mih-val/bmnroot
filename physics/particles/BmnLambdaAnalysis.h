@@ -32,6 +32,7 @@
 #include "BmnFieldMap.h"
 #include "BmnNewFieldMap.h"
 #include "CbmMCTrack.h"
+#include "CbmVertex.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripStationSet_RunWinter2016.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
@@ -48,6 +49,9 @@ private:
 
     TClonesArray* fGemHits;
     TClonesArray* fGemTracks;
+    TClonesArray* fVertex;
+
+    CbmVertex* fEventVertex;
 
     TH1F* fLambdaInvMass;
 
@@ -70,16 +74,20 @@ private:
     TH1I* fNhitsPerPion;
     TH2F* fNhitsPerProtonVsP;
     TH2F* fNhitsPerPionVsP;
-    
-    TH1F* fDcaXZ;
+
     TH1F* fzVX;
     TH1F* fzVY;
-    
-    TH1F* fMinDistOverlappedCurves;
+
+    TH1F* fProtonVpVp;
+    TH1F* fPionVpVp;
+    TH1F* fProtonV0PionV0;
+    TH1F* fVertexDiff;
+
     TH1F* fMinDistNonOverlappedCurves;
 
     TString fBranchGemHits;
     TString fBranchGemTracks;
+    TString fBranchVertex;
 
     BmnGemStripStationSet* fDetector; // Detector geometry
     BmnGemStripConfiguration::GEM_CONFIG fGeometry;
@@ -87,7 +95,7 @@ private:
     Bool_t fUseMc; // Use evetest.root as an input file 
     TString fOutFileName; // output filename
 
-    // Different kinematic cuts
+    // Kinematic cuts
     Double_t fMomProtMin, fMomProtMax;
     Double_t fMomPionMin, fMomPionMax;
 
@@ -100,6 +108,12 @@ private:
     Double_t fYProtMin, fYProtMax; // Cuts on rapidity values
     Double_t fYPionMin, fYPionMax;
 
+    // Geometry cuts
+    Double_t fV0VpDiff[2];
+    Double_t fVpVpProton[2];
+    Double_t fVpVpPion[2];
+    Double_t fV0ProtonPion[2];
+
     Bool_t fDebugCalculations; // In case of debug calculations should be equal to 1
     Bool_t fCutsDistrOnly; // Is used in case of evetest-analysis to obtain some cuts used for further restrictions 
 
@@ -108,7 +122,7 @@ private:
     Int_t fPdgLambda;
     Int_t fPdgProton;
     Int_t fPdgPionMinus;
-    
+
     FairField* fField;
     BmnFieldMap* fMagField;
     BmnKalmanFilter_tmp* fKalman;
@@ -124,14 +138,6 @@ public:
     virtual InitStatus Init();
     virtual void Finish();
 
-    void RecoAnalysis();
-    void McAnalysis();
-    void ObtainCuts();
-    TVector3 FitParabola(vector <TVector3>);  // XZ-plane
-    void CalculateMinDistance(TVector3, TVector3, Double_t*);
-    TVector2 SecondaryVertexY(FairTrackParam*, FairTrackParam*);  // YZ-plane
-    vector <TVector3> KalmanTrackPropagation(BmnGemTrack*, Int_t);
-
     void SetObtainCutsOnly(Bool_t flag) {
         fCutsDistrOnly = flag;
     }
@@ -139,6 +145,30 @@ public:
     void SetDebugCalculations(Bool_t flag) {
         fDebugCalculations = flag;
     }
+
+    // Geometry cuts
+
+    void SetV0VpDiff(Double_t min, Double_t max) {
+        fV0VpDiff[0] = min;
+        fV0VpDiff[1] = max;
+    }
+
+    void SetVpVpProton(Double_t min, Double_t max) {
+        fVpVpProton[0] = min;
+        fVpVpProton[1] = max;
+    }
+
+    void SetVpVpPion(Double_t min, Double_t max) {
+        fVpVpPion[0] = min;
+        fVpVpPion[1] = max;
+    }
+
+    void SetV0ProtonPion(Double_t min, Double_t max) {
+        fV0ProtonPion[0] = min;
+        fV0ProtonPion[1] = max;
+    }
+
+    // Kinematical cuts
 
     void SetMomProtonRange(Double_t m1, Double_t m2) {
         fMomProtMin = m1;
@@ -190,6 +220,17 @@ public:
     }
 
     vector <Double_t> DebugCalculations(BmnGemTrack*, BmnGemTrack*, vector <Double_t>, vector <Double_t>);
+
+private:
+    void RecoAnalysis();
+    void McAnalysis();
+    void ObtainCuts();
+    TVector3 FitParabola(vector <TVector3>); // XZ-plane
+    void CalculateMinDistance(TVector3, TVector3, Double_t*);
+    TVector2 SecondaryVertexY(FairTrackParam*, FairTrackParam*); // YZ-plane
+    vector <TVector3> KalmanTrackPropagation(BmnGemTrack*, Int_t);
+    FairTrackParam KalmanTrackPropagation(BmnGemTrack* track, Int_t, Double_t);
+    vector <Double_t> GeometryCuts(FairTrackParam, FairTrackParam, FairTrackParam, FairTrackParam);
 
     ClassDef(BmnLambdaAnalysis, 0)
 };

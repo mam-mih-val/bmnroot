@@ -9,22 +9,14 @@
 #define BMNREPORT_H_
 
 #include "TObject.h"
+#include "TCanvas.h"
 #include <iostream>
 #include <string>
 #include <vector>
-class BmnReportElement;
-class TCanvas;
-using std::string;
-using std::vector;
-using std::ostream;
 
-/**
- * \enumeration ReportType
- * \brief Enumeration defines different report types.
- * \author Andrey Lebedev <andrey.lebedev@gsi.de>
- * \date 2011
- */
-enum ReportType {kCoutReport, kHtmlReport, kLatexReport, kTextReport};
+using namespace std;
+
+class BmnReportElement;
 
 /**
  * \class BmnReport
@@ -116,8 +108,7 @@ private:
     * \brief Create concrete BmnReportElement instance based on report type.
     * \param[in] reportType Type of the report to be produced.
     */
-   void CreateReportElement(
-         ReportType reportType);
+   void CreateReportElement();
 
    /**
     * \brief Delete report element. Normally should be called at the end of Create function.
@@ -127,7 +118,6 @@ private:
    string fReportName; // Name of report
    string fReportTitle; // Title of report
    string fOutputDir; // Output directory for the report files
-   ReportType fReportType; // Current report type
    BmnReportElement* fR; // Report element tool
    mutable ostream* fOut; // Output stream
 

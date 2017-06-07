@@ -30,6 +30,14 @@ BmnGemSeedFinder::BmnGemSeedFinder() : fEventNo(0) {
     fAddresses = NULL;
     fRoughVertex = TVector3(0.0, 0.0, 0.0);
     fLineFitCut = 0.5;
+    fSigX = 0.01;
+    fYstep = 5.0;
+    fLorentzThresh = 1.05;
+    fNHitsCut = 3;
+    fNBins = 1000;
+    fMin = -0.5;
+    fMax = -fMin;
+    fWidth = (fMax - fMin) / fNBins;
 }
 
 BmnGemSeedFinder::~BmnGemSeedFinder() {
@@ -54,25 +62,6 @@ InitStatus BmnGemSeedFinder::Init() {
     // Chi2 is less restricted when doing alignment
     if (!fIsField)
         fLineFitCut = 50.; // LDBL_MAX
-
-    const Int_t nIter = 5;
-    //(0.006, 6.0, 1.05); //best parameters
-    const Int_t nBins[nIter] = {2000, 2000, 2000, 1000, 1000};
-    const Float_t sigX[nIter] = {0.005, 0.1, 0.05, 0.1, 0.005};
-    const Float_t stpY[nIter] = {1.0, 4.0, 2.0, 2.0, 20.0};
-    const Float_t thrs[nIter] = {2.5, 1.1, 1.1, 1.1, 1.0};
-    const Int_t length[nIter] = {4, 4, 4, 4, 3};
-    Int_t i = 4; //(fIsTarget) ? 1 : 4;
-
-    fNBins = nBins[i];
-    fMin = -0.5;
-    fMax = -fMin;
-    fWidth = (fMax - fMin) / fNBins;
-
-    kSIG_X = sigX[i];
-    kY_STEP = stpY[i];
-    kTRS = thrs[i];
-    kNHITSFORFIT = length[i];
 
     fAddresses = new Int_t*[fNBins];
     for (Int_t i = 0; i < fNBins; ++i) {
@@ -114,12 +103,12 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     //    
 
     if (fUseLorentz) {
-        FillAddrWithLorentz(kSIG_X, kY_STEP, kTRS);
+        FillAddrWithLorentz(fSigX, fYstep, fLorentzThresh);
     } else {
         FillAddr();
     }
-//    FindSeedsCombinatorics(seeds);
-        FindSeeds(seeds);
+    //    FindSeedsCombinatorics(seeds);
+    FindSeeds(seeds);
     if (fVerbose) printf("seeds.size() = %d\n", seeds.size());
     if (seeds.size() != 0) FitSeeds(seeds);
 
@@ -267,7 +256,7 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
 
     const Int_t kNSteps = 6;
     for (Int_t iSt = 0; iSt < fDetector->GetNStations(); ++iSt)
-        for (Int_t j = Int_t(kY_STEP - 1); j < Int_t(kY_STEP); ++j) {
+        for (Int_t j = Int_t(fYstep - 1); j < Int_t(fYstep); ++j) {
             for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
                 BmnGemStripHit* hit = GetHit(iHit);
                 if (!hit) continue;
@@ -292,7 +281,7 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
                     if ((hitCntr > 1) && Abs(i - startBin) > kNSteps * maxDist) break; //condition to finish search is dist < 2 * MaxDist
                 }
                 trackCand.SortHits();
-                if (trackCand.GetNHits() < kNHITSFORFIT) continue;
+                if (trackCand.GetNHits() < fNHitsCut) continue;
                 cand.push_back(trackCand);
             }
 
@@ -321,7 +310,7 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
                     if ((hitCntr > 1) && Abs(i - startBin) > kNSteps * maxDist) break; //condition to finish search is dist < 2 * MaxDist
                 }
                 trackCand.SortHits();
-                if (trackCand.GetNHits() < kNHITSFORFIT) continue;
+                if (trackCand.GetNHits() < fNHitsCut) continue;
                 cand.push_back(trackCand);
             }
         }
@@ -518,9 +507,8 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack * tr) {
 
     //Estimation of track parameters for events with magnetic field
     const UInt_t nHits = tr->GetNHits();
-    //    if (nHits < kNHITSFORFIT) return kBMNERROR;
+    //    if (nHits < fNHitsCut) return kBMNERROR;
     BmnGemStripHit* lastHit = GetHit(tr->GetHitIndex(nHits - 1));
-    BmnGemStripHit* meanHit = GetHit(tr->GetHitIndex(1)); // three hits, so hit with index 1 is in the middle
     BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0));
     if (!firstHit || !lastHit) return kBMNERROR;
     if (!lastHit->GetFlag()) return kBMNERROR;
@@ -570,29 +558,30 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     Float_t Cov_Tx_Tx(0.0), Cov_Tx_Ty(0.0), Cov_Tx_Qp(0.0);
     Float_t Cov_Ty_Ty(0.0), Cov_Ty_Qp(0.0);
     Float_t Cov_Qp_Qp(0.0);
-    Float_t Q = (lastHit->GetX() - firstHit->GetX() > 0) ? +1 : -1; //tr->GetParamFirst()->GetQp()) > 0.0 ? +1 : -1;
+    Float_t Q = (Xc > 0) ? +1 : -1;
 
     Float_t fSum = 0.0;
     Float_t minField = FLT_MAX;
-    BmnGemStripHit* minFieldHit = NULL;
+    Float_t maxField = -FLT_MAX;
+    UInt_t nOk = 0;
     for (UInt_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = GetHit(tr->GetHitIndex(i));
         if (!hit) continue;
         if (!hit->GetFlag()) continue;
-        if (Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ())) < minField) {
-            minField = Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
-            minFieldHit = hit;
-        }
-        fSum += Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
+        Double_t f = Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
+        if (f < minField) minField = f;
+        if (f > maxField) maxField = f;
+        fSum += f;
+        nOk++;
     }
-    fSum /= nHits;
 
-//        Float_t S = 0.0003 * fSum;
-        Float_t S = 0.0003 * minField;
-//    Float_t S = 0.0003 * Abs(fField->GetBy(meanHit->GetX(), meanHit->GetY(), meanHit->GetZ()));
-//    Float_t S = 0.0003 * Abs(fField->GetBy(lastHit->GetX(), lastHit->GetY(), lastHit->GetZ()));
-//        Float_t S = 0.0003 * Abs(fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
-    //    Float_t S = 0.0003 * (fField->GetBy(lastHit->GetX(), lastHit->GetY(), lastHit->GetZ()));
+    fSum /= nOk;
+
+    Float_t S = 0.0003 * fSum;
+    //    Float_t S = 0.0003 * maxField;
+    //    Float_t S = 0.0003 * minField;
+    //    Float_t S = 0.0003 * Abs(fField->GetBy(lastHit->GetX(), lastHit->GetY(), lastHit->GetZ()));
+    //    Float_t S = 0.0003 * Abs(fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
     Float_t QP = Q / S / Sqrt(R * R + B * B);
 
     for (UInt_t i = 0; i < nHits; ++i) {

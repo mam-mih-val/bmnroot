@@ -16,6 +16,9 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Bool_t FillHist = kFALSE) {
     KillStrip(47);
     fFillHist = FillHist;
     fNPlane = NPlane;
+    fStripLength = 30; // cm
+    fSignalVelosity = 0.06; // 0.06 ns/cm
+    fMaxDelta = (fStripLength + 2.0) * fSignalVelosity; // + 20 mm on the strip edge
 
     TString Name = Form("Plane_%d", NPlane);
     if (fFillHist == kTRUE) {
@@ -47,6 +50,11 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Bool_t FillHist = kFALSE) {
         fName = Form("Hist_Right_DigitToHit_%s", Name.Data());
         hRightDigitToHit = new TH2I(fName, fName, 48, 0, 48, 40, 0, 20);
         fHistListStat->Add(hRightDigitToHit);
+
+        fName.Clear();
+        fName = Form("Hist_XY_%s", Name.Data());
+        hXY = new TH2I(fName, fName, 240, -150, 150, 120, -75, 75);
+        fHistListStat->Add(hXY);
 
         for (Int_t i = 0; i < fNStr; i++)
             gSlew[i] = NULL;
@@ -107,6 +115,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Bool_t FillHist = kFALSE) {
         hHitLR = NULL;
         hLeftDigitToHit = NULL;
         hRightDigitToHit = NULL;
+        hXY = NULL;
 
         for (Int_t i = 0; i < fNStr; i++)
             gSlew[i] = NULL;
@@ -135,9 +144,13 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Bool_t FillHist = kFALSE) {
 void BmnTOF1Detector::Clear() {
     memset(fTimeL, 0, sizeof (fTimeL));
     memset(fTimeR, 0, sizeof (fTimeR));
+    memset(fTimeLtemp, 0, sizeof (fTimeLtemp));
+    memset(fTimeRtemp, 0, sizeof (fTimeRtemp));
     memset(fTime, 0, sizeof (fTime));
     memset(fWidthL, 0, sizeof (fWidthL));
     memset(fWidthR, 0, sizeof (fWidthR));
+    memset(fWidthLtemp, 0, sizeof (fWidthLtemp));
+    memset(fWidthRtemp, 0, sizeof (fWidthRtemp));
     memset(fWidth, 0, sizeof (fWidth));
     memset(fFlagHit, 0, sizeof (fFlagHit));
     memset(fTof, 0, sizeof (fTof));
@@ -145,6 +158,9 @@ void BmnTOF1Detector::Clear() {
     memset(fDigitR, 0, sizeof (fDigitR));
     memset(fHit, 0, sizeof (fHit));
     fHit_Per_Ev = 0;
+
+    for (Int_t i = 0; i < fNStr; i++)
+        fCrossPoint[i].SetXYZ(0., 0., 0.);
 }
 
 //----------------------------------------------------------------------------------------
@@ -152,27 +168,31 @@ void BmnTOF1Detector::Clear() {
 Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
     fStrip = TofDigit->GetStrip();
     if (TofDigit->GetSide() == 0 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE) {
-        fTimeL[fStrip] = TofDigit->GetTime() - CorrLR[fStrip] * 2.;
-        fWidthL[fStrip] = TofDigit->GetAmplitude();
+        fTimeLtemp[fStrip] = TofDigit->GetTime() - CorrLR[fStrip] * 2.;
+        fWidthLtemp[fStrip] = TofDigit->GetAmplitude();
         fDigitL[fStrip]++;
     }
     if (TofDigit->GetSide() == 1 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE) {
-        fTimeR[fStrip] = TofDigit->GetTime();
-        fWidthR[fStrip] = TofDigit->GetAmplitude();
+        fTimeRtemp[fStrip] = TofDigit->GetTime();
+        fWidthRtemp[fStrip] = TofDigit->GetAmplitude();
         fDigitR[fStrip]++;
     }
 
     if (
-            fTimeR[fStrip] != 0 && fTimeL[fStrip] != 0
-            && TMath::Abs((fTimeL[fStrip] - fTimeR[fStrip]) * 0.5) <= 2. // cat for length of strip  
-            && TMath::Abs((fWidthL[fStrip] - fWidthR[fStrip]) * 0.5) <= 1.5 // cat for Amplitude correlation
+            fTimeRtemp[fStrip] != 0 && fTimeLtemp[fStrip] != 0
+            && TMath::Abs((fTimeLtemp[fStrip] - fTimeRtemp[fStrip]) * 0.5) <= fMaxDelta // cat for length of strip  
+            && TMath::Abs((fWidthLtemp[fStrip] - fWidthRtemp[fStrip]) * 0.5) <= 1.5 // cat for Amplitude correlation
             //&& fFlagHit[fStrip] == kFALSE
             )
-            if (fFlagHit[fStrip] == kFALSE) {
-                fFlagHit[fStrip] = kTRUE;
-                fHit[fStrip]++;
-            } else
-                fHit[fStrip]++;
+        if (fFlagHit[fStrip] == kFALSE) {
+            fTimeL[fStrip] = fTimeLtemp[fStrip];
+            fTimeR[fStrip] = fTimeRtemp[fStrip];
+            fWidthL[fStrip] = fWidthLtemp[fStrip];
+            fWidthR[fStrip] = fWidthRtemp[fStrip];
+            fFlagHit[fStrip] = kTRUE;
+            fHit[fStrip]++;
+        } else
+            fHit[fStrip]++;
 
     return fFlagHit[fStrip];
 }
@@ -188,6 +208,7 @@ void BmnTOF1Detector::KillStrip(Int_t NumberOfStrip) {
 Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0) {
     fT0 = T0;
     fNEvents++;
+    Bool_t flag;
     for (Int_t i = 0; i < fNStr; i++)
         if (
                 fWidthL[i] != 0 && fWidthR[i] != 0
@@ -196,6 +217,7 @@ Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0) {
             fHit_Per_Ev++;
             fWidth[i] = fWidthL[i] + fWidthR[i];
             fTime[i] = (fTimeL[i] + fTimeR[i]) * 0.5;
+            flag = GetCrossPoint(i);
             if (fT0 != NULL) fTof[i] = CalculateDt(i);
         }
 
@@ -233,6 +255,7 @@ void BmnTOF1Detector::FillHist() {
                         //&& fFlagHit[i] == kTRUE
                         ) {
                     hHitByCh->Fill(i);
+                    hXY->Fill(fCrossPoint[i].x(), fCrossPoint[i].y());
                     hTime[i]->Fill(fTime[i]);
                     hWidth[i]->Fill(fWidth[i]);
                     hDtLR[i]->Fill((fTimeL[i] - fTimeR[i]) * 0.5);
@@ -286,14 +309,15 @@ TString BmnTOF1Detector::GetName() {
 
 //----------------------------------------------------------------------------------------
 
-void BmnTOF1Detector::SetCorrLR(Double_t* Mass) {
+Bool_t BmnTOF1Detector::SetCorrLR(Double_t* Mass) {
     for (Int_t i = 0; i < 48; i++)
         CorrLR[i] = Mass[i];
+    return kTRUE;
 }
 
 //----------------------------------------------------------------------------------------
 
-void BmnTOF1Detector::SetCorrLR(TString NameFile) {
+Bool_t BmnTOF1Detector::SetCorrLR(TString NameFile) {
     char line[256];
     Int_t Pl, St;
     Double_t Temp;
@@ -314,12 +338,14 @@ void BmnTOF1Detector::SetCorrLR(TString NameFile) {
     } else {
         cout << "File " << NameFile.Data() << " for LR correction is not found" << endl;
         cout << "Check " << dir.Data() << " folder for file" << endl;
+        return kFALSE;
     }
+    return kTRUE;
 }
 
 //----------------------------------------------------------------------------------------
 
-void BmnTOF1Detector::SetCorrSlewing(TString NameFile) {
+Bool_t BmnTOF1Detector::SetCorrSlewing(TString NameFile) {
     TString PathToFile = Form("%s%s%s", getenv("VMCWORKDIR"), "/input/", NameFile.Data());
     TString name, dirname;
     TFile *f_corr = new TFile(PathToFile.Data(), "READ");
@@ -333,5 +359,69 @@ void BmnTOF1Detector::SetCorrSlewing(TString NameFile) {
     } else {
         cout << "File " << NameFile.Data() << " for Slewing correction is not found" << endl;
         cout << "Check " << PathToFile.Data() << " folder for file" << endl;
+        return kFALSE;
     }
+    return kTRUE;
+}
+
+//----------------------------------------------------------------------------------------
+
+Bool_t BmnTOF1Detector::GetCrossPoint(Int_t NStrip = 0) {
+
+    fVectorTemp.SetXYZ(0., 0., 0.);
+    if (TMath::Abs((fTimeL[NStrip] - fTimeR[NStrip]) * 0.5) >= fMaxDelta)
+        return kFALSE; // estimated position out the strip edge.
+    double dL = (fTimeL[NStrip] - fTimeR[NStrip]) * 0.5 / fSignalVelosity;
+    fVectorTemp(0) = 0;
+    fVectorTemp(1) = dL;
+    fVectorTemp(2) = 0; //TMP ALIGMENT CORRECTIONS
+    fCrossPoint[NStrip] = fCentrStrip[NStrip] + fVectorTemp;
+    return kTRUE;
+}
+
+//----------------------------------------------------------------------------------------
+
+Bool_t BmnTOF1Detector::SetGeoFile(TString NameFile) {
+
+    // get gGeoManager from ROOT file 
+    TString PathToFile = Form("%s%s%s", getenv("VMCWORKDIR"), "/macro/run/geometry_run/", NameFile.Data());
+    TFile* geoFile = new TFile(PathToFile, "READ");
+    if (!geoFile->IsOpen()) {
+        cout << "Error: could not open ROOT file with geometry: " + NameFile << endl;
+        return kFALSE;
+    }
+    TList* keyList = geoFile->GetListOfKeys();
+    TIter next(keyList);
+    TKey* key = (TKey*) next();
+    TString className(key->GetClassName());
+    if (className.BeginsWith("TGeoManager"))
+        key->ReadObj();
+    else {
+        cout << "Error: TGeoManager isn't top element in geometry file " + NameFile << endl;
+        return kFALSE;
+    }
+
+    BmnTof1GeoUtils *pGeoUtils = new BmnTof1GeoUtils();
+    pGeoUtils->ParseTGeoManager(false, NULL, true);
+
+    Int_t UID;
+    for (Int_t i = 0; i < fNStr; i++) {
+        UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, i + 1); // strip [0,47] -> [1, 48]
+        const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+        fCentrStrip[i] = pStrip->center;
+    }
+    geoFile->Close();
+    pGeoUtils->~BmnTof1GeoUtils();
+    return kTRUE;
+}
+
+//----------------------------------------------------------------------------------------
+
+Bool_t BmnTOF1Detector::GetXYZTime(Int_t NStr, TVector3 *XYZ, Double_t *ToF) {
+
+    if (fTof[NStr] == 0) return kFALSE;
+    if (NULL == XYZ && NULL == ToF) return kFALSE;
+    XYZ->SetXYZ(fCrossPoint[NStr].x(), fCrossPoint[NStr].y(), fCrossPoint[NStr].z());
+    *ToF = fTof[NStr];
+    return kTRUE;
 }

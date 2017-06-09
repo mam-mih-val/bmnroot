@@ -23,6 +23,7 @@
 #include "TDirectory.h"
 #include "TPad.h"
 #include "TClonesArray.h"
+#include "TVector3.h"
 
 Int_t CorrPlane7_It1, CorrT0_It1;
 Double_t AmpBD, TimeBD, NHitBD;
@@ -79,6 +80,7 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
         //Plane[i]->SetCorrLR(CorrLR[i]);
         Plane[i]->SetCorrLR("Tof400LRcorr.dat");
         Plane[i]->SetCorrSlewing("Tof400SlewingCorr_period6.root");
+        Plane[i]->SetGeoFile("geometry_run6.root");
     }
 
     TList *fList = new TList();
@@ -109,6 +111,9 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
 
     TH2F *h_HitRPC = new TH2F("h_HitRPC", "h_HitRPC", 96, -96, 0, 5, 0, 5);
     fListTof->Add(h_HitRPC);
+
+    TH2F *h_XYRPC = new TH2F("h_XYRPC", "h_XYRPC", 240, -150, 150, 120, -75, 75);
+    fListTof->Add(h_XYRPC);
 
     TChain *eveTree = new TChain("cbmsim");
     TString inName = Form("/home/storage/digi/%s", file.Data());
@@ -155,6 +160,12 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
                 NHitBD = 0.;
 
                 BmnTrigDigit* digT0 = (BmnTrigDigit*) T0Digits->At(0);
+
+                //--------------------------- EventHeader --------------------------------------------------
+                Int_t iEvDig = EventHeader->GetEntriesFast();
+                if (iEvDig != 1) cout << "iEvDig == " << iEvDig << endl;
+                BmnEventHeader* digEvent = (BmnEventHeader*) EventHeader->At(0);
+
                 //--------------------------- RPC --------------------------------------------------
                 for (Int_t i = 0; i < 10; i++)
                     Plane[i]->Clear();
@@ -175,8 +186,20 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
                     }
                 }
 
-                for (Int_t i = 0; i < 10; i++)
+                TVector3 XYZ;
+                XYZ.SetXYZ(0., 0., 0.);
+                Double_t ToF = 0;
+                FlagHit = kFALSE;
+                for (Int_t i = 0; i < 10; i++) {
                     Plane[i] -> FindHits(digT0);
+                    for (Int_t s = 0; s < 47; s++) {
+                        XYZ.SetXYZ(0., 0., 0.);
+                        ToF = 0;
+                        FlagHit = kFALSE;
+                        FlagHit = Plane[i]->GetXYZTime(s, &XYZ, &ToF);
+                        if (FlagHit == kTRUE) h_XYRPC -> Fill(XYZ.x(), XYZ.y());
+                    }
+                }
 
                 //--------------------------- BD --------------------------------------------------
                 for (Int_t iDig = 0; iDig < BDDigits->GetEntriesFast(); ++iDig) {
@@ -210,10 +233,6 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
                 }//*/
 
 
-                //--------------------------- EventHeader --------------------------------------------------
-                Int_t iEvDig = EventHeader->GetEntriesFast();
-                if (iEvDig != 1) cout << "iEvDig == " << iEvDig << endl;
-                BmnEventHeader* digEvent = (BmnEventHeader*) EventHeader->At(0);
 
             }// end             if (digT0->GetAmp() >= 17.3 && digT0->GetAmp() <= 19.2)
         } // end if ((T0Digits->GetEntriesFast()) == 1 && (VetoDigits->GetEntriesFast()) == 0 && (BDDigits->GetEntriesFast()) >= 2)

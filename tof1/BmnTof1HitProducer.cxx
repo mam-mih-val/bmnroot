@@ -84,9 +84,20 @@ assert(aExpDigits);
     	// Create and register output array
     	aTofHits = new TClonesArray("BmnTofHit");
     	FairRootManager::Instance()->Register("BmnTof1Hit", "TOF1", aTofHits, kTRUE);
-
-	pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);
-	pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
+        
+	fNDetectors = pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);
+        pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
+        
+        if (!fUseMCData)
+        {
+            pDetector = new BmnTOF1Detector *[fNDetectors];
+            for (Int_t i = 0; i < fNDetectors; i++){
+                pDetector[i] = new BmnTOF1Detector(i,fDoTest);
+                pDetector[i]->SetCorrLR("Tof400LRcorr.dat");
+                pDetector[i]->SetCorrSlewing("Tof400SlewingCorr_period6.root");
+                pDetector[i]->SetGeo(pGeoUtils);
+            }
+        }
 	
     	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Initialization [BmnTof1HitProducer::Init] finished succesfully.");
 
@@ -206,7 +217,7 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
 		}	// cycle by the TOF points
 	}
 	else
-	{
+	/*{
 		TVector3 crosspoint;
 				
 		// Sorting by strip UIDs
@@ -256,7 +267,8 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
 
                                     if(GetCrossPoint(pStrip, dig1->GetTime(), dig2->GetTime(), crosspoint)) // crosspoint inside strip edges
                                     {
-                                            AddHit(UID, crosspoint, XYZ_err, -1, -1, /*dig1->GetTime()*/CalculateToF(dig1, dig2, digT0)); 	
+                                            AddHit(UID, crosspoint, XYZ_err, -1, -1, CalculateToF(dig1, dig2, digT0)); 	
+                                    //        AddHit(UID, crosspoint, XYZ_err, -1, -1, dig1->GetTime()); 	
                                             nSingleHits++;
 
                                             if(fDoTest)
@@ -269,8 +281,25 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
                             }
                     }
                 }
-	}
-	
+	}//*/
+        {
+            Int_t nT0Digits = aExpDigitsT0->GetEntriesFast();
+            if (nT0Digits == 1) { // T0 digit should be
+                BmnTrigDigit* digT0 = (BmnTrigDigit*) aExpDigitsT0->At(0);
+                
+                for (Int_t i = 0; i < fNDetectors; i++)
+                    pDetector[i]->Clear();
+
+                for (Int_t iDig = 0; iDig < aExpDigits->GetEntriesFast(); ++iDig) {
+                    BmnTof1Digit* digTof = (BmnTof1Digit*) aExpDigits->At(iDig);
+                    pDetector[digTof->GetPlane()]->SetDigit(digTof);
+                }
+
+                for (Int_t i = 0; i < fNDetectors; i++)
+                    pDetector[i] -> FindHits(digT0, aTofHits);
+            }
+        }
+
 	MergeHitsOnStrip(); // save only the fastest hit in the strip
 
 	int nFinally = CompressHits(); // remove blank slotes

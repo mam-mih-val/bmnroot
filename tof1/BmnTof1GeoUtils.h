@@ -93,7 +93,7 @@ public:
 	BmnTof1GeoUtils();
 	
 	void			FindNeighborStrips(TH1D* h1 = nullptr, TH2D* h2 = nullptr, bool doTest = false);
-	void			ParseTGeoManager(bool useMCinput, TH2D* h1 = nullptr, bool forced = false);
+	Int_t			ParseTGeoManager(bool useMCinput, TH2D* h1 = nullptr, bool forced = false);
 	const LStrip*		FindStrip(Int_t UID);
 
 

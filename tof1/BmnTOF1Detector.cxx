@@ -229,6 +229,45 @@ Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0) {
 
 //----------------------------------------------------------------------------------------
 
+Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0, TClonesArray *TofHit) {
+    fT0 = T0;
+    fNEvents++;
+    Bool_t flag;
+    for (Int_t i = 0; i < fNStr; i++)
+        if (
+                fWidthL[i] != 0 && fWidthR[i] != 0
+                //&& fFlagHit[fStrip] == kTRUE
+                ) {
+            fHit_Per_Ev++;
+            fWidth[i] = fWidthL[i] + fWidthR[i];
+            fTime[i] = (fTimeL[i] + fTimeR[i]) * 0.5;
+            flag = GetCrossPoint(i);
+            if (fT0 != NULL) fTof[i] = CalculateDt(i);
+            AddHit(i, TofHit);
+        }
+
+    if (fFillHist == kTRUE)
+        FillHist();
+
+    return fHit_Per_Ev;
+}
+
+//------------------------------------------------------------------------------------------------------------------------
+
+void BmnTOF1Detector::AddHit(Int_t Str, TClonesArray *TofHit) {
+    
+    fVectorTemp.SetXYZ(0.5, 0.36, 1.); // error for point dx = 0.5 cm; dy = 1.25/SQRT(12) = 0.36 cm; dy = 1(?)cm
+    Int_t UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, Str + 1); // strip [0,47] -> [1, 48]
+    BmnTofHit *pHit = new ((*TofHit)[TofHit->GetEntriesFast()]) BmnTofHit(UID, fCrossPoint[Str], fVectorTemp, -1);
+
+    pHit->SetTimeStamp(fTof[Str]);
+    pHit->AddLink(FairLink(0x1, -1));
+    pHit->AddLink(FairLink(0x2, -1));
+    pHit->AddLink(FairLink(0x4, UID));
+}
+
+//----------------------------------------------------------------------------------------
+
 void BmnTOF1Detector::FillHist() {
     hHitPerEv->Fill(fHit_Per_Ev);
     for (Int_t i = 0; i < fNStr; i++) {
@@ -417,11 +456,23 @@ Bool_t BmnTOF1Detector::SetGeoFile(TString NameFile) {
 
 //----------------------------------------------------------------------------------------
 
-Bool_t BmnTOF1Detector::GetXYZTime(Int_t NStr, TVector3 *XYZ, Double_t *ToF) {
+Bool_t BmnTOF1Detector::SetGeo(BmnTof1GeoUtils *pGeoUtils) {
+    Int_t UID;
+    for (Int_t i = 0; i < fNStr; i++) {
+        UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, i + 1); // strip [0,47] -> [1, 48]
+        const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+        fCentrStrip[i] = pStrip->center;
+    }
+    return kTRUE;
+}
 
-    if (fTof[NStr] == 0) return kFALSE;
+//----------------------------------------------------------------------------------------
+
+Bool_t BmnTOF1Detector::GetXYZTime(Int_t Str, TVector3 *XYZ, Double_t *ToF) {
+
+    if (fTof[Str] == 0) return kFALSE;
     if (NULL == XYZ && NULL == ToF) return kFALSE;
-    XYZ->SetXYZ(fCrossPoint[NStr].x(), fCrossPoint[NStr].y(), fCrossPoint[NStr].z());
-    *ToF = fTof[NStr];
+    XYZ->SetXYZ(fCrossPoint[Str].x(), fCrossPoint[Str].y(), fCrossPoint[Str].z());
+    *ToF = fTof[Str];
     return kTRUE;
 }

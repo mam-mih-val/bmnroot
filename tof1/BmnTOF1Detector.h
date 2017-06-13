@@ -23,6 +23,7 @@
 #include "BmnRunHeader.h"
 #include "BmnTOF1Point.h"
 #include "BmnTof1GeoUtils.h"
+#include "BmnTofHit.h"
 #include "TH1I.h"
 #include "TH2I.h"
 #include "TFile.h"
@@ -77,6 +78,8 @@ private:
     void FillHist();
     Double_t CalculateDt(Int_t Str);
     Bool_t GetCrossPoint(Int_t NStrip);
+    void AddHit(Int_t Str, TClonesArray *TofHit);
+
 
 public:
     BmnTOF1Detector();
@@ -90,13 +93,15 @@ public:
     Bool_t SetDigit(BmnTof1Digit *TofDigit);
     void KillStrip(Int_t NumberOfStrip);
     Int_t FindHits(BmnTrigDigit *T0);
+    Int_t FindHits(BmnTrigDigit *T0, TClonesArray *TofHit);
     TList* GetList(Int_t n);
     TString GetName();
     Bool_t SetCorrLR(Double_t *Mass);
     Bool_t SetCorrLR(TString NameFile);
     Bool_t SetCorrSlewing(TString NameFile);
-    Bool_t SetGeoFile (TString NameFile);
-    Bool_t GetXYZTime (Int_t NStr, TVector3 *XYZ, Double_t *ToF);
+    Bool_t SetGeoFile(TString NameFile);
+    Bool_t SetGeo(BmnTof1GeoUtils *pGeoUtils);
+    Bool_t GetXYZTime(Int_t Str, TVector3 *XYZ, Double_t *ToF);
     ClassDef(BmnTOF1Detector, 2);
 
 };

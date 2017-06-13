@@ -12,6 +12,7 @@
 #include "BmnTof1GeoUtils.h"
 #include "BmnTof1Digit.h"
 #include "BmnTrigDigit.h"
+#include "BmnTOF1Detector.h"
 
 class TRandom2;
 class TEfficiency;
@@ -37,6 +38,9 @@ class BmnTof1HitProducer : public BmnTof1HitProducerIdeal
 	Bool_t 				DoubleHitExist(Double_t val);
 
 	BmnTof1GeoUtils			*pGeoUtils;
+        
+        BmnTOF1Detector                 **pDetector;
+        Int_t                           fNDetectors;
 	
 	const 	double		fSignalVelosity; // [ns/cm]
 

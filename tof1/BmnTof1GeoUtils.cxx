@@ -58,23 +58,19 @@ void		BmnTof1GeoUtils::FindNeighborStrips(TH1D* h1, TH2D* h2, bool doTest)
 	cout<<" [BmnTof1GeoUtils::FindNeighborStrips] Neighbor strips: left = "<<NL<<", right = "<<NR<<endl;
 }
 //------------------------------------------------------------------------------------------------------------------------	
-void		BmnTof1GeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
+Int_t		BmnTof1GeoUtils::ParseTGeoManager(bool useMCinput, TH2D* h1, bool forced)
 {
 assert(gGeoManager);
-
-	if( !forced &&  !mStrips.empty()) return; // already parsed and filled
-
+	if( !forced &&  !mStrips.empty()) return -1; // already parsed and filled
 	mStrips.clear();
-	
 //	TString stripName, pathTOF = "/cave_1/TOFB1_0";
 	TString stripName, pathTOF = "/cave_1/TOF400_0";
 	gGeoManager->cd(pathTOF);
-	
 	Double_t *X0Y0Z0 = new Double_t[3]; X0Y0Z0[0] = X0Y0Z0[1] = X0Y0Z0[2] = 0.; // center of sensetive detector
 	Double_t  *local = new Double_t[3], master[3],  dX, dY, dZ;
 	
 	Int_t  volumeUID, detectorID, stripID; 
-	size_t nDetectors = 0, nStrips = 0; 
+	Int_t nDetectors = 0, nStrips = 0; 
 	
 	TObjArray *array = gGeoManager->GetCurrentVolume()->GetNodes();
   	TIterator *it1 = array->MakeIterator();	
@@ -135,6 +131,7 @@ assert(gGeoManager);
     	} // detectors	
 
     	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTof1HitProducer::ParseTGeoManager] detectors= %d, strips= %d. ", nDetectors, nStrips);
+        return nDetectors;
 }
 //------------------------------------------------------------------------------------------------------------------------
 const LStrip*		BmnTof1GeoUtils::FindStrip(Int_t UID) 

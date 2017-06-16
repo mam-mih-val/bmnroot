@@ -29,6 +29,7 @@ void CbmDetectorList::GetSystemName(DetectorId det, TString& name)
         case kZDC:  name = "zdc";  break;
         case kRECOIL:  name = "recoil";  break;
         case kMWPC:  name = "MWPC";  break;
+        case kSILICON: name = "silicon"; break;
         default:    name = "unknown"; break;
     }
 }
@@ -58,6 +59,7 @@ void CbmDetectorList::GetSystemNameCaps(DetectorId det, TString& name)
         case kZDC:  name = "ZDC";  break;
         case kRECOIL:  name = "RECOIL";  break;
         case kMWPC:  name = "MWPC";  break;
+        case kSILICON: name = "SILICON"; break;
         default:    name = "UNKNOWN"; break;
   }
 }

@@ -16,7 +16,7 @@
 
 
 // -----   Default constructor   -------------------------------------------
-CbmMCTrack::CbmMCTrack() 
+CbmMCTrack::CbmMCTrack()
   : TObject(),
     fPdgCode(0),
     fMotherId(-1),
@@ -36,7 +36,7 @@ CbmMCTrack::CbmMCTrack()
 // -----   Standard constructor   ------------------------------------------
 CbmMCTrack::CbmMCTrack(Int_t pdgCode, Int_t motherId, Double_t px,
 		       Double_t py, Double_t pz, Double_t x, Double_t y,
-		       Double_t z, Double_t t, Int_t nPoints = 0) 
+		       Double_t z, Double_t t, Int_t nPoints = 0)
   : TObject(),
     fPdgCode(pdgCode),
     fMotherId(motherId),
@@ -56,7 +56,7 @@ CbmMCTrack::CbmMCTrack(Int_t pdgCode, Int_t motherId, Double_t px,
 
 
 // -----   Copy constructor   ----------------------------------------------
-CbmMCTrack::CbmMCTrack(const CbmMCTrack& track) 
+CbmMCTrack::CbmMCTrack(const CbmMCTrack& track)
   : TObject(track),
     fPdgCode(track.fPdgCode),
     fMotherId(track.fMotherId),
@@ -68,14 +68,14 @@ CbmMCTrack::CbmMCTrack(const CbmMCTrack& track)
     fStartZ(track.fStartZ),
     fStartT(track.fStartT),
     fNPoints(track.fNPoints)
-{ 
+{
   //  *this = track;
 }
 // -------------------------------------------------------------------------
 
 
 // -----   Constructor from TParticle   ------------------------------------
-CbmMCTrack::CbmMCTrack(TParticle* part) 
+CbmMCTrack::CbmMCTrack(TParticle* part)
   : TObject(),
     fPdgCode(part->GetPdgCode()),
     fMotherId(part->GetMother(0)),
@@ -152,6 +152,8 @@ Int_t CbmMCTrack::GetNPoints(DetectorId detId) const
   else if ( detId == kECAL  ) return ( (fNPoints & ( 3  << 22) ) >> 22);
   else if ( detId == kBD  ) return ( (fNPoints & ( 1  << 24) ) >> 24);
   else if ( detId == kRECOIL) return ((fNPoints & ( 63  << 25) ) >> 25);
+  else if ( detId == kMWPC) return 0;
+  else if ( detId == kSILICON) return 0;
   else {
     LOG(ERROR) << "GetNPoints: Unknown detector ID "
            << detId << FairLogger::endl;
@@ -224,8 +226,10 @@ void CbmMCTrack::SetNPoints(Int_t iDet, Int_t nPoints) {
     fNPoints = ( fNPoints & ( ~ ( 63 << 25 ) ) )  |  ( nPoints << 25 );
   }
 
-  else if ( iDet == kMWPC) {
-  }
+  else if ( iDet == kMWPC) { }
+
+  else if ( iDet == kSILICON) { }
+
   else LOG(ERROR) << "Unknown detector ID "
           << iDet << FairLogger::endl;
 

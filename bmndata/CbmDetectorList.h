@@ -7,29 +7,30 @@
 
 #ifndef CBMDETECTORLIST_H
 #define CBMDETECTORLIST_H 1
- 
+
 
 /**  BMN DetectorID enumerator  **/
 enum DetectorId {kREF,  // Reference plane
          kMVD,          // future BMN silicone detector
          kGEM,          // GEMS detectors
          kTOF1,         // Front Time-of-flight Detector
-         kDCH,         // DCH
+         kDCH,          // DCH
          kTOF,          // Rear Time-of-flight Detector
          kZDC,          // ZDC
          kRECOIL,       // Recoil
-         kMWPC,       // MWPC
-         kBD,      // Barrel
-         kECAL,         // ECAL        
+         kMWPC,         // MWPC
+         kBD,           // Barrel
+         kECAL,         // ECAL
+         kSILICON,      // Silicon
          kNOFDETS}; // Number of elements (e.g. for loops)
 
 
 /**   Data type enumerator  **/
-enum DataType {kUnknown, 
+enum DataType {kUnknown,
 	       kMCTrack,
-	       kStsPoint, 
-	       kStsDigi, 
-	       kStsCluster, 
+	       kStsPoint,
+	       kStsDigi,
+	       kStsCluster,
 	       kStsHit};
 
 
@@ -57,7 +58,7 @@ class CbmDetectorList : public TObject
 
   /**   Get system name
    *@param det   System identifier (type DetectorId)
-   *@param name  (return) System name (lower case) 
+   *@param name  (return) System name (lower case)
    **/
   static void GetSystemName(DetectorId det, TString& name);
   static void GetSystemName(Int_t det, TString& name);
@@ -65,7 +66,7 @@ class CbmDetectorList : public TObject
 
   /** Get system name in capitals
    ** @param det   System identifier (type DetectorId)
-   ** @param name  (return) System name (lower case) 
+   ** @param name  (return) System name (lower case)
    **/
   static void GetSystemNameCaps(DetectorId det, TString& name);
   static void GetSystemNameCaps(Int_t det, TString& name);

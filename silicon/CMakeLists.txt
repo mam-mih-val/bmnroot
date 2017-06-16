@@ -26,10 +26,12 @@ include_directories( ${INCLUDE_DIRECTORIES})
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
 )
- 
+
 link_directories( ${LINK_DIRECTORIES})
 
 set(SILICON_SRCS
+BmnSilicon.cxx
+BmnSiliconPoint.cxx
 BmnSiliconDigit.cxx
 BmnSiliconRaw2Digit.cxx
 )
@@ -39,7 +41,7 @@ BmnSiliconRaw2Digit.cxx
 CHANGE_FILE_EXTENSION(*.cxx *.h SILICON_HEADERS "${SILICON_SRCS}")
 
 set(SILICON_LINKDEF SiliconLinkDef.h)
-set(SILICON_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/SiliconDict.cxx) 
+set(SILICON_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/SiliconDict.cxx)
 
 ROOT_GENERATE_DICTIONARY("${SILICON_HEADERS}" "${SILICON_LINKDEF}" "${SILICON_DICTIONARY}" "${INCLUDE_DIRECTORIES}")
 

@@ -6,6 +6,8 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ class BmnSilicon+;
+#pragma link C++ class BmnSiliconPoint+;
 #pragma link C++ class BmnSiliconDigit+;
 #pragma link C++ class BmnSiliconRaw2Digit+;
 

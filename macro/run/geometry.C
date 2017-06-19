@@ -55,9 +55,13 @@ geometry(FairRunSim *fRun) {
 
     FairDetector* bd = new BmnBd("BD", kTRUE);
     bd->SetGeometryFileName("bd_v1_0.geo");
-    fRun->AddModule(bd);
+    //fRun->AddModule(bd);
 
     FairDetector* emc = new BmnEcal("EMC", kTRUE);
     emc->SetGeometryFileName("ecal_v1_0.geo");
     fRun->AddModule(emc);
+
+    FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
+    silicon->SetGeometryFileName("Silicon_v1.root");
+    //fRun->AddModule(silicon);
 }

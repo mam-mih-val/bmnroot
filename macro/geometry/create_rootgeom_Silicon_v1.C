@@ -15,7 +15,7 @@ TGeoManager* gGeoMan = NULL;
 
 const Double_t XStationPosition = 0.0;
 const Double_t YStationPosition = 0.0;
-const Double_t ZStationPosition = 0.0;
+const Double_t ZStationPosition = -0.2;
 
 //Geometry parameters (sizes, positions, shifts): all units is in cm!!!
 enum ModuleType {RIGHT_ANGLED_MODULE, BEVEL_MODULE};
@@ -484,7 +484,11 @@ void CreateSiliconModule(TGeoVolume* mother_volume, Int_t module_num, TString mo
 
     //Volumes ------------------------------------------------------------------
     //module volume
-    TGeoVolume *moduleV = new TGeoVolume("moduleV", moduleS);
+    TString module_name = "moduleV_";
+    module_name += module_num;
+
+    //TGeoVolume *moduleV = new TGeoVolume("moduleV", moduleS);
+    TGeoVolume *moduleV = new TGeoVolume(module_name, moduleS);
 
     //sensor zone volume (upper part of the module)
     TGeoVolume *sensor_zone_upper_partV = new TGeoVolume("Sensor_zone_upper_partV", sensor_zone_upper_partS);

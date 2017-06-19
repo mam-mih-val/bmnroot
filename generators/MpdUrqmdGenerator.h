@@ -62,6 +62,12 @@ class MpdUrqmdGenerator : public FairGenerator
 
     void SetEventPlane(Double_t phiMin, Double_t phiMax);
 
+    void SetXYZ (Double32_t x = 0., Double32_t y = 0., Double32_t z = 0.) {
+        fX = x;
+        fY = y;
+        fZ = z;
+    }
+
   private:
 
 #ifdef GZIP_SUPPORT
@@ -78,6 +84,8 @@ class MpdUrqmdGenerator : public FairGenerator
     Bool_t fEventPlaneSet; // Flag whether event plane angle is used
 
     const Char_t* fFileName;              //!  Input file name
+
+    Double32_t fX, fY, fZ; // Point vertex coordinates [cm]
 
     /** Private method ReadConversionTable. Reads the conversion table
         from UrQMD particle code to PDG particle code and fills the

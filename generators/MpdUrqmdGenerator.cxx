@@ -40,7 +40,8 @@ fParticleTable(),
 fFileName(NULL),
 fPhiMin(0.),
 fPhiMax(0.),
-fEventPlaneSet(kFALSE) {
+fEventPlaneSet(kFALSE),
+fX(0.), fY(0.), fZ(0.) {
 }
 // ------------------------------------------------------------------------
 
@@ -52,7 +53,8 @@ MpdUrqmdGenerator::MpdUrqmdGenerator(const char* fileName)
 : FairGenerator(),
 fInputFile(NULL),
 fParticleTable(),
-fFileName(fileName) {
+fFileName(fileName),
+fX(0.), fY(0.), fZ(0.) {
     //  fFileName = fileName;
     cout << "-I MpdUrqmdGenerator: Opening input file " << fFileName << endl;
     fInputFile = gzopen(fFileName, "rb");
@@ -273,7 +275,8 @@ Bool_t MpdUrqmdGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
         pp.SetE(ee);
 
         // Give track to PrimaryGenerator
-        primGen->AddTrack(pdgID, px, py, pz, 0., 0., 0.);
+        //primGen->AddTrack(pdgID, px, py, pz, 0., 0., 0.);
+        primGen->AddTrack(pdgID, px, py, pz, fX, fY, fZ);
 
     }
 

@@ -63,6 +63,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     if (!CheckFileExist(dataFile)) return;
 
     MpdUrqmdGenerator* urqmdGen = new MpdUrqmdGenerator(dataFile);
+    //urqmdGen->SetXYZ(0.0, 0.0, 0.0); // set vertex coordinates [cm]
     //urqmdGen->SetEventPlane(0. , 360.);
     primGen->AddGenerator(urqmdGen);
     if (nStartEvent > 0) urqmdGen->SkipEvents(nStartEvent);

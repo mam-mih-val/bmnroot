@@ -32,6 +32,7 @@ link_directories( ${LINK_DIRECTORIES})
 set(SILICON_SRCS
 BmnSilicon.cxx
 BmnSiliconPoint.cxx
+BmnSiliconLayer.cxx
 BmnSiliconDigit.cxx
 BmnSiliconRaw2Digit.cxx
 )

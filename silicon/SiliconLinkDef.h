@@ -8,6 +8,7 @@
 
 #pragma link C++ class BmnSilicon+;
 #pragma link C++ class BmnSiliconPoint+;
+#pragma link C++ class BmnSiliconLayer+;
 #pragma link C++ class BmnSiliconDigit+;
 #pragma link C++ class BmnSiliconRaw2Digit+;
 

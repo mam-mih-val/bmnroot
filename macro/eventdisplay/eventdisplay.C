@@ -290,6 +290,8 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         fMan->AddTask(PsdPoint);
         FairMCPointDraw* StsPoint = new FairMCPointDraw("StsPoint", mcPointColor, pointMarker);
         fMan->AddTask(StsPoint);
+        FairMCPointDraw* SiliconPoint = new FairMCPointDraw("SiliconPoint", mcPointColor, pointMarker);
+        fMan->AddTask(SiliconPoint);
 
         // draw MC geometry tracks
         FairMCTracks* GeoTrack = new FairMCTracks("GeoTracks");
@@ -332,7 +334,7 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         // draw MWPC hits
         FairHitPointSetDraw* MwpcHit = new FairHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
         fMan->AddTask(MwpcHit);
-        
+
         // draw GEM hits
         FairHitPointSetDraw* GemHit = new FairHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
         fMan->AddTask(GemHit);
@@ -344,12 +346,12 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         // draw MWPC tracks
         BmnTrackDrawH* MwpcTrack = new BmnTrackDrawH("MwpcMatchedTracks", "BmnMwpcHit");
         //fMan->AddTask(MwpcTrack);
-        
+
         // draw GEM tracks
         //BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemSeeds", "BmnGemStripHit");
         BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
         fMan->AddTask(GemTrack);
-        
+
         // draw DCH tracks
         BmnTrackDrawH* DchTrack = new BmnTrackDrawH("DchTracks", "BmnDchHit");
         //fMan->AddTask(DchTrack);

@@ -34,18 +34,11 @@ fTof1Points(NULL),
 fTof2Points(NULL),
 fDchPoints(NULL){
     ReadDataBranches();
-
-
-    //FIXME need or not this? --->
-//    FairRuntimeDb* db = FairRunAna::Instance()->GetRuntimeDb();
-//    fStsGeoPar = (CbmGeoStsPar*) db->getContainer("CbmGeoStsPar");
-//    fStsDigiPar = (CbmStsDigiPar*) db->getContainer("CbmStsDigiPar");
-//    fStsDigiScheme = new CbmStsDigiScheme();
-//    fStsDigiScheme->Init(fStsGeoPar, fStsDigiPar);
-    //<---
+    fDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
 }
 
 BmnMCTrackCreator::~BmnMCTrackCreator() {
+    delete fDetector;
 }
 
 BmnMCTrackCreator* BmnMCTrackCreator::Instance() {
@@ -92,7 +85,7 @@ void BmnMCTrackCreator::AddPoints(DetectorId detId, const TClonesArray* array) {
             //         stationId = fMvdStationsMap[iPoint];
             //         MvdPointCoordinatesAndMomentumToLitMCPoint(static_cast<CbmMvdPoint*>(fairPoint), &litPoint);
         } else if (detId == kGEM) {
-            stationId = fGemStationsMap[iPoint];
+            stationId = fDetector->GetPointStationOwnership(fairPoint->GetZ());
             GemPointCoordinatesAndMomentumToBmnMCPoint((CbmStsPoint*) (fairPoint), &bmnPoint);
         } else {
             stationId = 0;

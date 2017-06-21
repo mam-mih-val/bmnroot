@@ -226,6 +226,8 @@ private:
     Double_t fThetaRangeMin; // Minimum polar angle [grad]
     Double_t fThetaRangeMax; // Maximum polar angle [grad]
     Int_t fThetaRangeBins; // Number of bins for efficiency vs. polar angle histogram
+    
+    UInt_t fNHitsCut; //cut to exclude overflowed events 
 
     // Pointers to data arrays
     TClonesArray* fMCTracks; // CbmMCTrack array

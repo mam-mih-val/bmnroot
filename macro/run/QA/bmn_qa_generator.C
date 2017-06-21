@@ -2,11 +2,8 @@
 // Macro for generating QA-reports
 // --------------------------------------------------------------------------
 
-void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TString outFile = "qa.root", Int_t nStartEvent = 0, Bool_t isPrimary = kTRUE, Int_t nEvents = 1000000)
+void bmn_qa_generator(TString recoFile = "$VMCWORKDIR/macro/run/bmndst.root", TString mcFile = "$VMCWORKDIR/macro/run/evetest.root", TString outFile = "qa.root", Int_t nStartEvent = 0, Bool_t isPrimary = kFALSE, Int_t nEvents = 1000000)
 {
-
-  // Parameter file
-  TString parFile = inFile;
 
   // ----  Load libraries   -------------------------------------------------
   gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
@@ -20,9 +17,8 @@ void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TStr
   // ------------------------------------------------------------------------
 
   FairRunAna *fRun= new FairRunAna();
-  fRun->SetInputFile(inFile);
-  fRun->AddFriend("$VMCWORKDIR/macro/run/evetest.root");
-//  fRun->AddFriend("$VMCWORKDIR/macro/run/evetest100urqmd.root");
+  fRun->SetInputFile(recoFile);
+  fRun->AddFriend(mcFile);
   fRun->SetOutputFile(outFile);
   fRun->SetGeomFile("$VMCWORKDIR/macro/run/geofile_full.root");
   fRun->SetGenerateRunInfo(false);
@@ -41,15 +37,6 @@ void bmn_qa_generator(TString inFile = "$VMCWORKDIR/macro/run/bmndst.root", TStr
   fRun->AddTask(trQa);
   
   // ============ TASKS ============= //
-  
-  // -----  Parameter database   --------------------------------------------
-//  FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
-//  FairParRootFileIo* parIo1 = new FairParRootFileIo();
-//  parIo1->open(parFile.Data());
-//  rtdb->setFirstInput(parIo1);
-//  rtdb->setOutput(parIo1);
-//  rtdb->saveOutput();
-  // ------------------------------------------------------------------------
   
   // -----   Intialise and run   --------------------------------------------
   fRun->Init();

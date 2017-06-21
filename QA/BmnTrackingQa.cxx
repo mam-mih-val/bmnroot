@@ -57,7 +57,7 @@ fPCut(0.0),
 fUseConsecutivePointsInGem(kTRUE),
 fPRangeMin(0.),
 fPRangeMax(5.),
-fPRangeBins(25),
+fPRangeBins(50),
 fYRangeMin(0.),
 fYRangeMax(4.),
 fYRangeBins(100),
@@ -74,6 +74,7 @@ fHeader(),
 fMcToRecoMap(),
 fMCTracks(NULL),
 fPrimes(kFALSE),
+fNHitsCut(200),
 fGlobalTracks(NULL) {
 }
 
@@ -88,7 +89,7 @@ InitStatus BmnTrackingQa::Init() {
 
     fDet.DetermineSetup();
     cout << fDet.ToString();
-//    if (fTrackCategories.empty()) FillDefaultTrackCategories();
+    //    if (fTrackCategories.empty()) FillDefaultTrackCategories();
 
     CreateHistograms();
 
@@ -105,6 +106,7 @@ InitStatus BmnTrackingQa::Init() {
 }
 
 void BmnTrackingQa::Exec(Option_t* opt) {
+    if (fGemHits->GetEntriesFast() > fNHitsCut || fGemHits->GetEntriesFast() == 0) return;
     // Increase event counter
     fHM->H1("hen_EventNo_TrackingQa")->Fill(0.5);
     ReadEventHeader();
@@ -480,7 +482,7 @@ void BmnTrackingQa::ProcessGem() {
         if (track->GetFlag() == kBMNBAD) continue;
         BmnTrackMatch* gemTrackMatch = (BmnTrackMatch*) (fGemMatches->At(iTrack));
         if (!track || !gemTrackMatch) continue;
-        if (gemTrackMatch->GetNofLinks() == 0) continue;       
+        if (gemTrackMatch->GetNofLinks() == 0) continue;
         Int_t gemMCId = gemTrackMatch->GetMatchedLink().GetIndex();
 
         if (!fMCTrackCreator->TrackExists(gemMCId)) continue;
@@ -606,13 +608,19 @@ void BmnTrackingQa::ProcessGem() {
         if (!fMCTrackCreator->TrackExists(i)) continue;
         const BmnMCTrack mcTrack = fMCTrackCreator->GetTrack(i);
         if (fPrimes && ((const CbmMCTrack*) (fMCTracks->At(i)))->GetMotherId() != -1) continue;
-        if (mcTrack.GetNofPoints(kGEM) < fMinNofPointsGem) continue;
+        if (mcTrack.GetNofPoints(kGEM) > 7) continue;
+        vector<BmnMCPoint> points = mcTrack.GetPoints(kGEM);
+        set<Int_t> uniqStations;
+        for (Int_t iPnt = 0; iPnt < points.size(); ++iPnt)
+            uniqStations.insert(points[iPnt].GetStationId());
+        if (uniqStations.size() < fMinNofPointsGem) continue;
+
         const BmnMCPoint mcPoint = mcTrack.GetPoint(kGEM, 0);
 
         Float_t Px = mcPoint.GetPx(); //mcTrack->GetPx();
         Float_t Py = mcPoint.GetPy(); //mcTrack->GetPy();
         Float_t Pz = mcPoint.GetPz(); //mcTrack->GetPz();
-        Float_t P =  mcPoint.GetP(); //mcTrack->GetP();
+        Float_t P = mcPoint.GetP(); //mcTrack->GetP();
         Float_t Pxy = Sqrt(Px * Px + Py * Py);
         Float_t eta = 0.5 * Log((P + Pz) / (P - Pz));
         Float_t theta = ATan2(Pxy, Pz) * RadToDeg();
@@ -631,7 +639,12 @@ void BmnTrackingQa::ProcessGem() {
 
         if (!fMCTrackCreator->TrackExists(iTrack)) continue;
         const BmnMCTrack mcTrack = fMCTrackCreator->GetTrack(iTrack);
-        if (mcTrack.GetNofPoints(kGEM) < fMinNofPointsGem) continue;
+        if (mcTrack.GetNofPoints(kGEM) > 7) continue;
+        vector<BmnMCPoint> points = mcTrack.GetPoints(kGEM);
+        set<Int_t> uniqStations;
+        for (Int_t i = 0; i < points.size(); ++i)
+            uniqStations.insert(points[i].GetStationId());
+        if (uniqStations.size() < fMinNofPointsGem) continue;
 
         if (fPrimes && ((const CbmMCTrack*) (fMCTracks->At(iTrack)))->GetMotherId() != -1) continue;
 

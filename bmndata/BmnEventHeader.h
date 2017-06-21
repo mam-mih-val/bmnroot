@@ -21,7 +21,7 @@ private:
     BmnTriggerType fTrigType;
     /** Tripped Gems (1 bit for 1 GEM module)**/
     Bool_t fTripWord;
-
+    
 public:
 
     /** Default constructor */

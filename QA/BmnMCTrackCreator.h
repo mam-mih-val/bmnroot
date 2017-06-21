@@ -12,6 +12,8 @@
 #include <map>
 #include <iostream>
 #include <assert.h>
+#include "BmnGemStripStationSet.h"
+#include "BmnGemStripStationSet_RunSpring2017.h"
 
 class TClonesArray;
 class FairMCPoint;
@@ -141,6 +143,8 @@ private:
     // Map <MC point index, station index>
     //   std::map<int, int>fMvdStationsMap; // for MVD
     std::map<Int_t, Int_t>fGemStationsMap; // for GEM
+    
+    BmnGemStripStationSet* fDetector;
 
     CbmGeoStsPar* fStsGeoPar; // Geometry parameter container
     CbmStsDigiPar* fStsDigiPar; // Digitisation parameter container

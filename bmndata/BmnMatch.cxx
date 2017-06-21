@@ -22,7 +22,7 @@ BmnMatch::BmnMatch() :
 
 BmnMatch::~BmnMatch()
 {
-
+    fLinks.clear();
 }
 
 string BmnMatch::ToString() const

@@ -34,7 +34,7 @@ public:
     BmnGemTrackFinder();
     virtual ~BmnGemTrackFinder();
 
-    BmnStatus NearestHitMerge(UInt_t station, BmnGemTrack* tr, Bool_t goForward);
+    BmnStatus NearestHitMerge(UInt_t station, BmnGemTrack* tr);
     Double_t CalculateLength(BmnGemTrack* tr);
 
     BmnStatus FitSmooth(BmnGemTrack* track);

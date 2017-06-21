@@ -34,16 +34,15 @@ public:
 
     BmnStatus FindSeeds(vector<BmnGemTrack>& cand);
     BmnStatus FindSeedsCombinatorics(vector<BmnGemTrack>& cand);
-    BmnStatus FitSeeds(vector<BmnGemTrack> cand);
+    BmnStatus FindSeedsByCombinatoricsInCoridor(Int_t iCorridor, BmnGemTrack* cand);
+    BmnStatus FitSeeds(BmnGemTrack* cand);
     BmnStatus CalculateTrackParamsLine(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsCircle(BmnGemTrack* tr);
-
-    void GoToStation(vector<BmnGemStripHit*>& hits, vector<BmnGemStripHit*> *hitsOnStation, Int_t stat, vector<BmnGemTrack>& cand);
 
     void SetHitsUnused(BmnGemTrack* tr);
 
     void FillAddr();
-    void FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float_t trs);
+    void FillAddrWithLorentz();
 
     void SetUseLorentz(Bool_t use) {
         fUseLorentz = use;
@@ -130,6 +129,9 @@ private:
     UInt_t fYstep;
     Float_t fLorentzThresh;
     UInt_t fNHitsCut;
+    UInt_t fNHitsInGemCut;
+    UInt_t fNSeedsCut;
+    UInt_t fNFoundSeeds;
 
     UInt_t fNBins; // number of bins in histogram  
     Float_t fMin;

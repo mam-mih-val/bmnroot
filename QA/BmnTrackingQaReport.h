@@ -48,12 +48,6 @@ protected:
      */
     virtual void Draw();
 
-    /**
-     * \brief Return string with number of objects statistics.
-     * \return String with number of objects statistics.
-     */
-    string PrintNofObjects() const;
-
     void DrawMomResGem(const string& canvasName, TString name2d, TString nameSigma, TString nameMean);
     void DrawResAndPull(const TString canvasName, TString* inNames);
     void DrawPar(const TString canvasName, TString* inNames);

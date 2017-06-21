@@ -120,7 +120,8 @@ InitStatus BmnMatchRecoToMC::Init() {
 void BmnMatchRecoToMC::Exec(Option_t* opt) {
 
     static Int_t eventNo = 0;
-    cout << "Event #" << eventNo++ << endl;
+    if (eventNo % 100 == 0) cout << "Event #" << eventNo << endl;
+    eventNo++;
 
     if (fGemClusterMatches != NULL) fGemClusterMatches->Delete();
     //    if (fGemHitMatches != NULL) fGemHitMatches->Delete();

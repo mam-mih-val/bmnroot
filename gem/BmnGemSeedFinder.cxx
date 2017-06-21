@@ -36,6 +36,9 @@ BmnGemSeedFinder::BmnGemSeedFinder() : fEventNo(0) {
     fNHitsCut = 3;
     fNBins = 1000;
     fMin = -0.5;
+    fNSeedsCut = 2000;
+    fNFoundSeeds = 0;
+    fNHitsInGemCut = 200;
     fMax = -fMin;
     fWidth = (fMax - fMin) / fNBins;
 }
@@ -56,7 +59,7 @@ InitStatus BmnGemSeedFinder::Init() {
 
     fGemSeedsArray = new TClonesArray(fSeedsBranchName, 100); //out
     ioman->Register("BmnGemSeed", "GEM", fGemSeedsArray, kTRUE);
-
+    
     fField = FairRunAna::Instance()->GetField();
     if (!fField) Fatal("Init", "No Magnetic Field found");
     // Chi2 is less restricted when doing alignment
@@ -81,13 +84,14 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
 
     fGemSeedsArray->Delete();
+    fNFoundSeeds = 0;
 
     for (Int_t i = 0; i < fNBins; ++i)
         for (Int_t j = 0; j < fNBins; ++j)
             fAddresses[i][j] = -1;
 
     //Just skip too big events
-    if (fGemHitsArray->GetEntriesFast() > 200 || fGemHitsArray->GetEntriesFast() == 0) return;
+    if (fGemHitsArray->GetEntriesFast() > fNHitsInGemCut || fGemHitsArray->GetEntriesFast() == 0) return;
 
     //GEM inefficiency ===>
     //    const Float_t eff = 1.00;
@@ -98,24 +102,19 @@ void BmnGemSeedFinder::Exec(Option_t* opt) {
     //        }
     //    }
     // <=== GEM ineficiency
+    BmnGemTrack seeds[fNSeedsCut];
+    for (Int_t i = 0; i < fNSeedsCut; ++i) seeds[i] = BmnGemTrack();
 
-    vector<BmnGemTrack> seeds;
-    //    
+    if (fUseLorentz) FillAddrWithLorentz();
+    else FillAddr();
 
-    if (fUseLorentz) {
-        FillAddrWithLorentz(fSigX, fYstep, fLorentzThresh);
-    } else {
-        FillAddr();
-    }
     //    FindSeedsCombinatorics(seeds);
-    FindSeeds(seeds);
-    if (fVerbose) printf("seeds.size() = %d\n", seeds.size());
-    if (seeds.size() != 0) FitSeeds(seeds);
-
+    //    FindSeeds(seeds);
+    for (Int_t i = 0; i < fNBins / fYstep; ++i) FindSeedsByCombinatoricsInCoridor(i, seeds);
+    if (fVerbose) printf("seeds.size() = %d\n", fNFoundSeeds);
+    if (fNFoundSeeds != 0) FitSeeds(seeds);
     if (fVerbose) cout << "\nGEM_SEEDING: Number of found seeds: " << fGemSeedsArray->GetEntriesFast() << endl;
 
-    //    for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit)
-    //        GetHit(iHit)->SetUsing(kFALSE);
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 
@@ -131,59 +130,7 @@ void BmnGemSeedFinder::Finish() {
     delete fDetector;
 }
 
-void BmnGemSeedFinder::GoToStation(vector<BmnGemStripHit*>& hits, vector<BmnGemStripHit*> *hitsOnStation, Int_t stat, vector<BmnGemTrack>& cand) {
-    Int_t nextStat = stat + 1;
-    Int_t nStat = 4; //fDetector->GetNStations();
-
-    if (hitsOnStation[stat].size() < 1) {
-        if (stat == nStat - 1) {
-            BmnGemTrack track;
-            for (Int_t iHit = 0; iHit < hits.size(); iHit++) {
-                BmnGemStripHit* trHit = ((BmnGemStripHit*) hits.at(iHit));
-                track.AddHit(trHit->GetIndex(), trHit);
-            }
-            track.SortHits();
-            cand.push_back(track);
-            return;
-        }
-        GoToStation(hits, hitsOnStation, nextStat, cand);
-    } else {
-        for (Int_t iSize = 0; iSize < hitsOnStation[stat].size(); iSize++) {
-            BmnGemStripHit* hit = (BmnGemStripHit*) hitsOnStation[stat].at(iSize);
-            hits.push_back(hit);
-
-            if (nextStat == nStat) {
-                BmnGemTrack track;
-                for (Int_t iHit = 0; iHit < hits.size(); iHit++) {
-                    BmnGemStripHit* trHit = ((BmnGemStripHit*) hits.at(iHit));
-                    track.AddHit(trHit->GetIndex(), trHit);
-                }
-                track.SortHits();
-                cand.push_back(track);
-                hits.pop_back();
-                continue;
-            }
-            GoToStation(hits, hitsOnStation, nextStat, cand);
-            hits.pop_back();
-        }
-    }
-    nextStat--;
-}
-
 BmnStatus BmnGemSeedFinder::FindSeedsCombinatorics(vector<BmnGemTrack>& cand) {
-
-    //    //================= RECURSIVE ===========//
-    //    // Fill hits over stations
-    //    vector <BmnGemStripHit*> stat[fDetector->GetNStations()];
-    //    for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); iHit++) {
-    //        BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->UncheckedAt(iHit);
-    //        stat[hit->GetStation()].push_back(hit);
-    //    }
-    //
-    //    vector <BmnGemStripHit*> hits;
-    //    GoToStation(hits, stat, 0, cand);
-    //    //======================================//
-
 
     vector<Int_t> hitsOnStation[fDetector->GetNStations()];
 
@@ -240,6 +187,61 @@ BmnStatus BmnGemSeedFinder::FindSeedsCombinatorics(vector<BmnGemTrack>& cand) {
     return kBMNSUCCESS;
 }
 
+BmnStatus BmnGemSeedFinder::FindSeedsByCombinatoricsInCoridor(Int_t iCorridor, BmnGemTrack* cand) {
+
+    vector<Int_t> hitsOnStation[fDetector->GetNStations()];
+
+    for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
+        BmnGemStripHit* hit = GetHit(iHit);
+        if (!hit) continue;
+        if (!hit->GetFlag()) continue;
+        if (hit->GetYaddr() > fYstep * iCorridor || hit->GetYaddr() < fYstep * (iCorridor - 1)) continue;
+        for (Int_t iSt = 0; iSt < fDetector->GetNStations(); ++iSt)
+            if (hit->GetStation() == iSt) hitsOnStation[iSt].push_back(iHit);
+    }
+
+    if (fGoForward) {
+        for (Int_t iHit0 = 0; iHit0 < hitsOnStation[0].size(); ++iHit0) {
+            BmnGemStripHit* hit0 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[0].at(iHit0));
+            for (Int_t iHit1 = 0; iHit1 < hitsOnStation[1].size(); ++iHit1) {
+                BmnGemStripHit* hit1 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[1].at(iHit1));
+                for (Int_t iHit2 = 0; iHit2 < hitsOnStation[2].size(); ++iHit2) {
+                    BmnGemStripHit* hit2 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[2].at(iHit2));
+                    BmnGemTrack trCnd;
+                    trCnd.AddHit(hitsOnStation[0].at(iHit0), hit0);
+                    trCnd.AddHit(hitsOnStation[1].at(iHit1), hit1);
+                    trCnd.AddHit(hitsOnStation[2].at(iHit2), hit2);
+                    trCnd.SortHits();
+                    TVector3 lineParZY = LineFit(&trCnd, fGemHitsArray, "ZY");
+                    if (lineParZY.Z() > fLineFitCut) continue;
+                    if (fNFoundSeeds == fNSeedsCut) return kBMNERROR;
+                    cand[fNFoundSeeds++] = trCnd;
+                }
+            }
+        }
+    } else {
+        for (Int_t iHit5 = 0; iHit5 < hitsOnStation[5].size(); ++iHit5) {
+            BmnGemStripHit* hit5 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[5].at(iHit5));
+            for (Int_t iHit4 = 0; iHit4 < hitsOnStation[4].size(); ++iHit4) {
+                BmnGemStripHit* hit4 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[4].at(iHit4));
+                for (Int_t iHit3 = 0; iHit3 < hitsOnStation[3].size(); ++iHit3) {
+                    BmnGemStripHit* hit3 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[3].at(iHit3));
+                    BmnGemTrack trCnd;
+                    trCnd.AddHit(hitsOnStation[5].at(iHit5), hit5);
+                    trCnd.AddHit(hitsOnStation[4].at(iHit4), hit4);
+                    trCnd.AddHit(hitsOnStation[3].at(iHit3), hit3);
+                    trCnd.SortHits();
+                    TVector3 lineParZY = LineFit(&trCnd, fGemHitsArray, "ZY");
+                    if (lineParZY.Z() > fLineFitCut) continue;
+                    cand[fNFoundSeeds++] = trCnd;
+                }
+            }
+        }
+    }
+
+    return kBMNSUCCESS;
+}
+
 BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
 
     //    for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
@@ -276,8 +278,8 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
                 Int_t startBin = 0;
                 Int_t prevStation = iSt - 1; //number of starting station         
                 for (Int_t i = xAddr; i > 0; i--) {
-                    //                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
-                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kFALSE);
+                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
+                    //                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kFALSE);
                     if ((hitCntr > 1) && Abs(i - startBin) > kNSteps * maxDist) break; //condition to finish search is dist < 2 * MaxDist
                 }
                 trackCand.SortHits();
@@ -305,8 +307,8 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
                 Int_t startBin = 0;
                 Int_t prevStation = iSt - 1; //number of starting station
                 for (Int_t i = xAddr; i < fNBins; ++i) {
-                    //                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
-                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kFALSE);
+                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kTRUE);
+                    //                    SearchTrackCandInLine(i, yAddr, &trackCand, &hitCntr, &maxDist, &dist, &startBin, &prevStation, j, kFALSE);
                     if ((hitCntr > 1) && Abs(i - startBin) > kNSteps * maxDist) break; //condition to finish search is dist < 2 * MaxDist
                 }
                 trackCand.SortHits();
@@ -336,8 +338,7 @@ BmnStatus BmnGemSeedFinder::FindSeeds(vector<BmnGemTrack>& cand) {
     //    }
 }
 
-BmnStatus BmnGemSeedFinder::FitSeeds(vector<BmnGemTrack> cand) {
-
+BmnStatus BmnGemSeedFinder::FitSeeds(BmnGemTrack* cand) {
     //Four cases:
     //  _________________________________
     // |                |                |
@@ -349,8 +350,8 @@ BmnStatus BmnGemSeedFinder::FitSeeds(vector<BmnGemTrack> cand) {
     // |   Targ  = 1    |   Targ  = 1    |
     // |________________|________________|
 
-    for (Int_t i = 0; i < cand.size(); ++i) {
-        BmnGemTrack* trackCand = &(cand.at(i));
+    for (Int_t i = 0; i < fNFoundSeeds; ++i) {
+        BmnGemTrack* trackCand = &(cand[i]);
         if (fIsField) {
             if (CalculateTrackParamsCircle(trackCand) == kBMNERROR) {
                 trackCand->SetFlag(-1);
@@ -365,8 +366,8 @@ BmnStatus BmnGemSeedFinder::FitSeeds(vector<BmnGemTrack> cand) {
     }
 
     if (fIsTarget) {
-        for (Int_t i = 0; i < cand.size(); ++i) {
-            BmnGemTrack* trackCand = &(cand.at(i));
+        for (Int_t i = 0; i < fNFoundSeeds; ++i) {
+            BmnGemTrack* trackCand = &(cand[i]);
             //ADD check for parameters quality (chi2, length, ...)
             if (trackCand->GetFlag() == -1) continue;
             new((*fGemSeedsArray)[fGemSeedsArray->GetEntriesFast()]) BmnGemTrack(*trackCand);
@@ -374,8 +375,8 @@ BmnStatus BmnGemSeedFinder::FitSeeds(vector<BmnGemTrack> cand) {
     } else {
         Float_t minChi = 10.0; //FLT_MAX;
         //        BmnGemTrack minTrack;
-        for (Int_t i = 0; i < cand.size(); ++i) {
-            BmnGemTrack trackCand = cand.at(i);
+        for (Int_t i = 0; i < fNFoundSeeds; ++i) {
+            BmnGemTrack trackCand = cand[i];
             //if (trackCand.GetFlag() == kBMNBAD) continue;
             Float_t chi = trackCand.GetChi2(); // / trackCand.GetNDF();
             if (chi > minChi) continue;
@@ -388,6 +389,7 @@ BmnStatus BmnGemSeedFinder::FitSeeds(vector<BmnGemTrack> cand) {
         //        if (minTrack.GetNHits() != 0)
         //            new((*fGemSeedsArray)[fGemSeedsArray->GetEntriesFast()]) BmnGemTrack(minTrack);
     }
+    return kBMNSUCCESS;
 }
 
 void BmnGemSeedFinder::SearchTrackCandInLine(const Int_t i, const Int_t y, BmnGemTrack* tr, Int_t* hitCntr, Int_t* maxDist, Int_t* dist, Int_t* startBin, Int_t* prevStation, Int_t gate, Bool_t isIdeal) {
@@ -510,9 +512,11 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     //    if (nHits < fNHitsCut) return kBMNERROR;
     BmnGemStripHit* lastHit = GetHit(tr->GetHitIndex(nHits - 1));
     BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0));
-    if (!firstHit || !lastHit) return kBMNERROR;
+    BmnGemStripHit* midHit = GetHit(tr->GetHitIndex(1));
+    if (!firstHit || !lastHit || !midHit) return kBMNERROR;
     if (!lastHit->GetFlag()) return kBMNERROR;
     if (!firstHit->GetFlag()) return kBMNERROR;
+    if (!midHit->GetFlag()) return kBMNERROR;
 
     Double_t chi2circ = 0.0;
 
@@ -577,11 +581,12 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack * tr) {
 
     fSum /= nOk;
 
-    Float_t S = 0.0003 * fSum;
+//        Float_t S = 0.0003 * fSum;
     //    Float_t S = 0.0003 * maxField;
     //    Float_t S = 0.0003 * minField;
     //    Float_t S = 0.0003 * Abs(fField->GetBy(lastHit->GetX(), lastHit->GetY(), lastHit->GetZ()));
-    //    Float_t S = 0.0003 * Abs(fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
+    Float_t S = 0.0003 * Abs(fField->GetBy(midHit->GetX(), midHit->GetY(), midHit->GetZ()));
+    //        Float_t S = 0.0003 * Abs(fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
     Float_t QP = Q / S / Sqrt(R * R + B * B);
 
     for (UInt_t i = 0; i < nHits; ++i) {
@@ -647,21 +652,36 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     Cov_Ty_Qp = B * OneXQPmean - OneXmean * QPmean;
 
     FairTrackParam par;
-    par.SetCovariance(0, 0, Cov_X_X);
-    par.SetCovariance(0, 1, Cov_X_Y);
-    par.SetCovariance(0, 2, Cov_X_Tx);
-    par.SetCovariance(0, 3, Cov_X_Ty);
-    par.SetCovariance(0, 4, Cov_X_Qp);
-    par.SetCovariance(1, 1, Cov_Y_Y);
-    par.SetCovariance(1, 2, Cov_Y_Tx);
-    par.SetCovariance(1, 3, Cov_Y_Ty);
-    par.SetCovariance(1, 4, Cov_Y_Qp);
-    par.SetCovariance(2, 2, Cov_Tx_Tx);
-    par.SetCovariance(2, 3, Cov_Tx_Ty);
-    par.SetCovariance(2, 4, Cov_Tx_Qp);
-    par.SetCovariance(3, 3, Cov_Ty_Ty);
-    par.SetCovariance(3, 4, Cov_Ty_Qp);
-    par.SetCovariance(4, 4, Cov_Qp_Qp);
+    par.SetCovariance(0, 0, 1e-5);
+    par.SetCovariance(0, 1, 1e-5);
+    par.SetCovariance(0, 2, 1e-5);
+    par.SetCovariance(0, 3, 1e-5);
+    par.SetCovariance(0, 4, 1e-5);
+    par.SetCovariance(1, 1, 1e-5);
+    par.SetCovariance(1, 2, 1e-5);
+    par.SetCovariance(1, 3, 1e-5);
+    par.SetCovariance(1, 4, 1e-5);
+    par.SetCovariance(2, 2, 1e-5);
+    par.SetCovariance(2, 3, 1e-5);
+    par.SetCovariance(2, 4, 1e-5);
+    par.SetCovariance(3, 3, 1e-5);
+    par.SetCovariance(3, 4, 1e-5);
+    par.SetCovariance(4, 4, 1e-5);
+    //    par.SetCovariance(0, 0, Cov_X_X);
+    //    par.SetCovariance(0, 1, Cov_X_Y);
+    //    par.SetCovariance(0, 2, Cov_X_Tx);
+    //    par.SetCovariance(0, 3, Cov_X_Ty);
+    //    par.SetCovariance(0, 4, Cov_X_Qp);
+    //    par.SetCovariance(1, 1, Cov_Y_Y);
+    //    par.SetCovariance(1, 2, Cov_Y_Tx);
+    //    par.SetCovariance(1, 3, Cov_Y_Ty);
+    //    par.SetCovariance(1, 4, Cov_Y_Qp);
+    //    par.SetCovariance(2, 2, Cov_Tx_Tx);
+    //    par.SetCovariance(2, 3, Cov_Tx_Ty);
+    //    par.SetCovariance(2, 4, Cov_Tx_Qp);
+    //    par.SetCovariance(3, 3, Cov_Ty_Ty);
+    //    par.SetCovariance(3, 4, Cov_Ty_Qp);
+    //    par.SetCovariance(4, 4, Cov_Qp_Qp);
 
     Float_t lX = lastHit->GetX();
     Float_t lY = lastHit->GetY();
@@ -680,26 +700,12 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack * tr) {
 
     par.SetPosition(TVector3(lX, lY, lZ));
     par.SetTx(Tx_last);
-    par.SetTy(Ty_last); //par.SetTy(-B / (lX - Xc));
-    //    const Float_t PxzLast = 0.0003 * fField->GetBy(lX, lY, lZ) * R; // Pt
-    //    if (Abs(PxzLast) < 0.00001) return kBMNERROR;
-    //    const Float_t PzLast = PxzLast / Sqrt(1 + Sqr(Tx_last));
-    //    const Float_t PxLast = PzLast * Tx_last;
-    //    const Float_t PyLast = PzLast * Ty_last;
-    //    Float_t QPLast = Q / Sqrt(PxLast * PxLast + PyLast * PyLast + PzLast * PzLast);
-    //    par.SetQp(QPLast);
+    par.SetTy(Ty_last);
     par.SetQp(QP);
     tr->SetParamLast(par);
     if (!IsParCorrect(&par)) return kBMNERROR;
 
     //update for firstParam
-    //    const Float_t PxzFirst = 0.0003 * fField->GetBy(fX, fY, fZ) * R; // Pt
-    //    const Float_t PxzFirst = PxzLast;
-    //    if (Abs(PxzFirst) < 0.00001) return kBMNERROR;
-    //    const Float_t PzFirst = PxzFirst / Sqrt(1 + Sqr(Tx_first));
-    //    const Float_t PxFirst = PzFirst * Tx_first;
-    //    const Float_t PyFirst = PzFirst * Ty_first;
-    //    Float_t QPFirst = Q / Sqrt(PxFirst * PxFirst + PyFirst * PyFirst + PzFirst * PzFirst);
     par.SetPosition(TVector3(fX, fY, fZ));
     par.SetQp(QP);
     //    par.SetQp(QPFirst);
@@ -1119,43 +1125,8 @@ BmnGemStripHit * BmnGemSeedFinder::GetHit(Int_t i) {
     if (i < 0 || i > fGemHitsArray->GetEntriesFast()) return NULL;
     BmnGemStripHit* hit = (BmnGemStripHit*) fGemHitsArray->At(i);
     if (!hit) return NULL;
-
-    Bool_t skip = kFALSE;
-    for (Int_t iSkip = 0; iSkip < skipStations.size(); ++iSkip)
-        if (hit->GetStation() == skipStations.at(iSkip)) {
-            skip = kTRUE;
-            break;
-        }
-    if (skip) return NULL;
     if (hit->GetY() > fYmax || hit->GetY() < fYmin) return NULL;
     if (hit->GetX() > fXmax || hit->GetX() < fXmin) return NULL;
-    //    if (hit->GetClusterSizeInLowerLayer() == 1 && hit->GetClusterSizeInUpperLayer() == 1) return NULL;
-    //tmp!!!
-    //    if (hit->GetStation() == 1 && (hit->GetX() > 0.7 || hit->GetX() < 0.4)) return NULL;
-
-    //+/-0.5 sigma
-    //    if (hit->GetStation() == 0 && (hit->GetX() > 1.50 || hit->GetX() < 0.50)) return NULL;
-    //    if (hit->GetStation() == 1 && (hit->GetX() > 2.50 || hit->GetX() < 1.50)) return NULL;
-    //    if (hit->GetStation() == 2 && (hit->GetX() > 3.50 || hit->GetX() < 2.50)) return NULL;
-    //    if (hit->GetStation() == 3 && (hit->GetX() > 5.00 || hit->GetX() < 4.00)) return NULL;
-    //    if (hit->GetStation() == 4 && (hit->GetX() > 6.50 || hit->GetX() < 5.50)) return NULL;
-    //    if (hit->GetStation() == 5 && (hit->GetX() > 8.50 || hit->GetX() < 6.50)) return NULL;
-    //+/-1.5 sigma
-    //            if (hit->GetStation() == 3 && (hit->GetX() > 2.7 || hit->GetX() < 1.5)) return NULL;
-    //            if (hit->GetStation() == 4 && (hit->GetX() > 4.4 || hit->GetX() < 2.5)) return NULL;
-    //            if (hit->GetStation() == 5 && (hit->GetX() > 6.0 || hit->GetX() < 4.0)) return NULL;
-    //            if (hit->GetStation() == 6 && (hit->GetX() > 8.0 || hit->GetX() < 6.0)) return NULL;
-
-    //            for (Int_t j = 0; j < fGemHitsArray->GetEntriesFast(); ++j) {
-    //                BmnGemStripHit* hitJ = (BmnGemStripHit*) fGemHitsArray->At(j);
-    //                if (hitJ->GetStation() == hit->GetStation() && i != j)
-    //                    return NULL;
-    //            }
-
-    if (!hit) {
-        cout << "-W- Wrong attempting to get hit number " << i << " from fGemHitsArray, which contains " << fGemHitsArray->GetEntriesFast() << " elements" << endl;
-        return NULL;
-    }
     return hit;
 }
 
@@ -1182,16 +1153,17 @@ void BmnGemSeedFinder::FillAddr() {
     //cout << "addresses.size = " << addresses.size() << endl;
 }
 
-void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float_t trs) {
+void BmnGemSeedFinder::FillAddrWithLorentz() {
 
     //Needed for searching seeds by addresses 
-    Float_t sigma_x2 = sigma_x * sigma_x;
+    Float_t sigma_x2 = fSigX * fSigX;
 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (!hit) continue;
 
         hit->SetFlag(kFALSE); // by default hits are not filtered 
+        hit->SetDxyz(10.0, 10.0, 0.0); // just for test
 
         TVector2 XYnew = GetTransXY(hit);
 
@@ -1203,12 +1175,20 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
         hit->SetXaddr(xAddr);
         hit->SetYaddr(yAddr);
         hit->SetIndex(hitIdx);
-
     }
 
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (!hit) continue;
+
+        Bool_t skip = kFALSE;
+        for (Int_t iSkip = 0; iSkip < skipStations.size(); ++iSkip)
+            if (hit->GetStation() == skipStations.at(iSkip)) {
+                skip = kTRUE;
+                break;
+            }
+        if (skip) continue;
+
 
         Int_t yAddr = hit->GetYaddr();
         Int_t xAddr = hit->GetXaddr();
@@ -1225,13 +1205,13 @@ void BmnGemSeedFinder::FillAddrWithLorentz(Float_t sigma_x, Float_t yStep, Float
             Int_t yAddr0 = hit0->GetYaddr();
             Int_t xAddr0 = hit0->GetXaddr();
             if (yAddr0 < 0 || yAddr0 >= fNBins || xAddr0 < 0 || xAddr0 >= fNBins) continue;
-            if (Abs(yAddr0 - yAddr) > yStep) continue; //hits should be in the same Y-coridor
+            if (Abs(yAddr0 - yAddr) > fYstep) continue; //hits should be in the same Y-coridor
 
             const Float_t newX0 = GetTransXY(hit0).X();
             Float_t pot = sigma_x2 / (sigma_x2 + Sqr(newX0 - newX));
             potSum += pot;
         }
-        if (potSum >= trs) {
+        if (potSum >= fLorentzThresh) {
             hit->SetFlag(kTRUE);
             fAddresses[xAddr][yAddr] = hitIdx;
         }

@@ -228,11 +228,14 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
 //    gemSF->SetRoughVertex(TVector3(0.0, -3.5, -21.7));
     gemSF->SetRoughVertex(TVector3(0.0, 0.0, 0.0));
     gemSF->SetLineFitCut(5.0);
-//    gemSF->SetLineFitCut(0.25);
     if (run_period == 5)
         gemSF->AddStationToSkip(0);
+    gemSF->SetYstep(10.0);
+    gemSF->SetSigX(0.05);
+    gemSF->SetLorentzThresh(1.01);
+    gemSF->SetNbins(1000);
     fRunAna->AddTask(gemSF);
-
+    
     BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
     gemTF->SetField(isField);
     gemTF->SetDirection(direction);

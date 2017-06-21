@@ -485,7 +485,7 @@ TVector3 BmnLambdaAnalysis::FitParabola(vector <TVector3> points) {
     }
     delete tmp;
 
-    if (!isnan(a * b * c) && !isinf(a * b * c))
+    if (!std::isnan(a * b * c) && !std::isinf(a * b * c))
         return TVector3(a, b, c);
     else
         return TVector3(0., 0., 0.);

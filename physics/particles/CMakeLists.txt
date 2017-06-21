@@ -19,9 +19,9 @@ ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/globaltracking
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/bmnbase
-#${CMAKE_SOURCE_DIR}/mwpc
-#${CMAKE_SOURCE_DIR}/dch
 ${CMAKE_SOURCE_DIR}/physics/particles
+${CMAKE_SOURCE_DIR}/uni_db
+${BMNROOT_SOURCE_DIR}/uni_db/db_classes
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -35,6 +35,9 @@ link_directories( ${LINK_DIRECTORIES})
 
 set(BMNPARTICLES_SRCS
 BmnLambdaAnalysis.cxx
+#BmnLambdaTrack.cxx
+BmnParticlePair.cxx
+BmnParticlePairCuts.cxx
 )
 
 # fill list of header files from list of source files

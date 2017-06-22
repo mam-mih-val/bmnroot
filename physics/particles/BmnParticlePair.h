@@ -27,6 +27,10 @@ public:
     void SetInvMass(Double_t val) {
         fInvMass = val;
     }
+    
+    Double_t GetInvMass() {
+        return fInvMass;
+    }
 
 private:
     Double_t fInvMass; // Invariant mass of a considering pair

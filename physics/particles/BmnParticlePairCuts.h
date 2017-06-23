@@ -22,7 +22,7 @@ public:
 
     /** Destructor **/
     virtual ~BmnParticlePairCuts();
-    
+
     void SetV0XZ(Double_t val) {
         fV0XZ = val;
     }
@@ -47,10 +47,26 @@ public:
         fV0VpDist = val;
     }
 
+    Double_t GetV0Part1Part2() {
+        return fV0Part1Part2;
+    }
+    
+    Double_t GetV0VpDist() {
+        return fV0VpDist;
+    }
+    
+    Double_t GetVpPart1() {
+        return fVpPart1;
+    }
+    
+    Double_t GetVpPart2() {
+        return fVpPart2;
+    }
+
 private:
     Double_t fV0XZ; // Zv of V0 obtained in XZ-plane
     Double_t fV0YZ; // Zv of V0 obtained in YZ-plane
-   
+
     Double_t fVpPart1; // spatial distance between Vp and extrap. track of Part1 to Vp
     Double_t fVpPart2; // spatial distance between Vp and extrap. track of Part2 to Vp
     Double_t fV0Part1Part2; // spatial distance between the two particles at V0

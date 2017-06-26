@@ -1,9 +1,21 @@
 #include "BmnGemRaw2Digit.h"
 
 BmnGemRaw2Digit::BmnGemRaw2Digit() {
+    fSmall = NULL;
+    fMid = NULL;
+    fBigL0 = NULL;
+    fBigL1 = NULL;
+    fBigR0 = NULL;
+    fBigR1 = NULL;
 }
 
 BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) : BmnAdcProcessor(period, run, "GEM", ADC_N_CHANNELS, ADC32_N_SAMPLES, vSer) {
+    fSmall = NULL;
+    fMid = NULL;
+    fBigL0 = NULL;
+    fBigL1 = NULL;
+    fBigR0 = NULL;
+    fBigR1 = NULL;
 
     cout << "Loading GEM Map from DB: Period " << period << ", Run " << run << "..." << endl;
     
@@ -57,6 +69,13 @@ BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int
 }
 
 BmnGemRaw2Digit::~BmnGemRaw2Digit() {
+    if (fSmall) delete[] fSmall;
+    if (fMid) delete[] fMid;
+    if (fBigL0) delete[] fBigL0;
+    if (fBigL1) delete[] fBigL1;
+    if (fBigR0) delete[] fBigR0;
+    if (fBigR1) delete[] fBigR1;
+    if (fMap) delete[] fMap;
 }
 
 BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {

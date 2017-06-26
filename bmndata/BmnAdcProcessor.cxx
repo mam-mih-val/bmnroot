@@ -12,7 +12,7 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
     fNChannels = nCh;
     fNSamples = nSmpl;
     fSerials = vSer;
-    
+
     fPedVal = new Float_t**[fNSerials];
     fPedRms = new Float_t**[fNSerials];
     fAdcProfiles = new UInt_t**[fNSerials];
@@ -51,6 +51,31 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
 }
 
 BmnAdcProcessor::~BmnAdcProcessor() {
+    for (Int_t iCr = 0; iCr < fNSerials; iCr++) {
+        for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; iEv++) {
+            for (Int_t iCh = 0; iCh < fNChannels; iCh++)
+                delete[] fPedDat[iCr][iEv][iCh];
+            delete[] fPedDat[iCr][iEv];
+        }
+        delete[] fPedDat[iCr];
+    }
+    delete[] fPedDat;
+    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
+        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
+            delete[] fPedVal[iCr][iCh];
+            delete[] fPedRms[iCr][iCh];
+            delete[] fAdcProfiles[iCr][iCh];
+            delete[] fNoiseChannels[iCr][iCh];
+        }
+        delete[] fPedVal[iCr];
+        delete[] fPedRms[iCr];
+        delete[] fAdcProfiles[iCr];
+        delete[] fNoiseChannels[iCr];
+    }
+    delete[] fPedVal;
+    delete[] fPedRms;
+    delete[] fAdcProfiles;
+    delete[] fNoiseChannels;
 }
 
 BmnStatus BmnAdcProcessor::FindNoisyStrips() {
@@ -132,7 +157,7 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
                 Int_t nOk = 0;
                 for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
                     if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
-                    signals[iSmpl] = (Short_t)fPedDat[iCr][iEv][iCh][iSmpl];
+                    signals[iSmpl] = (Short_t) fPedDat[iCr][iEv][iCh][iSmpl];
                     nOk++;
                 }
                 Double_t CMS = CalcCMS(signals, nOk);

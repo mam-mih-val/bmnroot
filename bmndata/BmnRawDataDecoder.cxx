@@ -1364,6 +1364,7 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
     fNECALSerials = fECALSerials.size();
 
     Int_t nEntries = 1;
+    if (mapPar != NULL) delete mapPar;
     mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
     if (mapPar != NULL) {
         mapPar->GetTriggerMapArray(fT0Map, nEntries);

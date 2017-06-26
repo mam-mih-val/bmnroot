@@ -47,6 +47,9 @@ class BmnZDCRaw2Digit{
 public:
     BmnZDCRaw2Digit(TString mappingFile, TString runFile, TString calibrationFile = "", TString MaxPositionFile = "");
     BmnZDCRaw2Digit();
+
+    ~BmnZDCRaw2Digit();
+
     void print();
 
     void setParStep(Float_t p) { pstep = p;};

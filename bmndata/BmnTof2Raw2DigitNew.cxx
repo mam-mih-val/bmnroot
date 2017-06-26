@@ -301,7 +301,71 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 
     for (int i = 0; i < TOF2_MAX_CHAMBERS; i++) numstrip[i] = -1;
 
+    Wt0 = 0;
+    Wts = 0;
+
+    for (int i=0; i<MaxPlane; i++)
+    {
+	TvsS[i] = 0;
+	WvsS[i] = 0;
+    }
+    for (int i=0; i<MaxPlane; i++)
+    {
+	TvsWall[i] = 0;
+	TvsWallmax[i] = 0;
+    }
+    for (int i=0; i<MaxPlane; i++)
+    {
+	TvsW[i][0] = 0;
+	TvsWt0[i][0] = 0;
+    }
+    for (int i=0; i<MaxPlane; i++)
+    {
+	TvsW[i][1] = 0;
+	TvsWt0[i][1] = 0;
+    }
 }
+
+//BmnTof2Raw2DigitNew destructor
+BmnTof2Raw2DigitNew::~BmnTof2Raw2DigitNew() {
+
+    if (Wt0) delete Wt0;
+    Wt0 = 0;
+
+    if (Wts) delete Wts;
+    Wts = 0;
+
+    for (int i=0; i<MaxPlane; i++)
+    {
+	if (TvsS[i]) delete TvsS[i];
+	TvsS[i] = 0;
+	if (WvsS[i]) delete WvsS[i];
+	WvsS[i] = 0;
+    }
+    for (int i=0; i<MaxPlane; i++)
+    {
+	if (TvsWall[i]) delete TvsWall[i];
+	TvsWall[i] = 0;
+	if (TvsWallmax[i]) delete TvsWallmax[i];
+	TvsWallmax[i] = 0;
+    }
+
+    for (int i=0; i<MaxPlane; i++)
+    {
+	if (TvsW[i][0]) delete TvsW[i][0];
+	TvsW[i][0] = 0;
+	if (TvsWt0[i][0]) delete TvsWt0[i][0];
+	TvsWt0[i][0] = 0;
+    }
+    for (int i=0; i<MaxPlane; i++)
+    {
+	if (TvsW[i][1]) delete TvsW[i][1];
+	TvsW[i][1] = 0;
+	if (TvsWt0[i][1]) delete TvsWt0[i][1];
+	TvsWt0[i][1] = 0;
+    }
+}
+
 void BmnTof2Raw2DigitNew::Book()
 {
     char name[128], title[128];

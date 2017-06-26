@@ -44,6 +44,9 @@ class BmnTof2Raw2Digit{
 public:
     BmnTof2Raw2Digit(TString mappingFile, TString RunFile = "empty", UInt_t SlewingRun = 0, UInt_t SlewingChamber = 0, TString geomFile = "");
     BmnTof2Raw2Digit();
+
+    ~BmnTof2Raw2Digit();
+
     void print();
     void getEventInfo(long long *ev,long long *t1,long long *t2);
 

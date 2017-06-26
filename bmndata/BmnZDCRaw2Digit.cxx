@@ -14,6 +14,7 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(){
   n_rec=0;
   n_test=0;
 }
+
 BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString CalibrationFile, TString MaxPositionFile) {
     for (int i=0; i<MAX_CHANNELS; i++) zdc_amp[i] = -1.;
     for (int i=0; i<MAX_LOG_CHANNELS; i++) log_amp[i] = -1.;
@@ -239,6 +240,8 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
     for (int i=0; i<MAX_LOG_CHANNELS; i++) TestProf[i] = NULL;
     for (int i=0; i<n_test; i++)
     {
+      htest[i] = 0;
+      TestProf[i] = 0;
       if (test_chan[i] >= 0)
       {
 	sprintf(nam, "htest%d", i);
@@ -264,6 +267,27 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
     }
 }
 
+BmnZDCRaw2Digit::~BmnZDCRaw2Digit()
+{
+    for (int i=0; i<n_test; i++)
+    {
+      if (htest[i]) delete htest[i];
+      htest[i] = 0;
+      if (TestProf[i]) delete TestProf[i];
+      TestProf[i] = 0;
+    }
+    delete hsum_sim;
+    delete hsum_raw;
+    delete hsum;
+
+    delete hxmean;
+    delete hymean;
+
+    for (int i=0; i<n_rec; i++)
+    {
+	delete SampleProf[i];
+    }
+}
 
 void BmnZDCRaw2Digit::print() {
      printf("id#\tZDC chan\tADC_chan\tsize\tix\tiy\tx\ty\tused\n");

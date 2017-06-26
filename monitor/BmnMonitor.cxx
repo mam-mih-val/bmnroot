@@ -120,6 +120,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
             t.SetBuffer(zmq_msg_data(&msg), zmq_msg_size(&msg));
             t.SetReadMode();
             fDigiArrays = (DigiArrays*) (t.ReadObject(DigiArrays::Class()));
+            gSystem->ProcessEvents();
             if (fDigiArrays->header->GetEntriesFast() > 0) {
                 BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
                 Int_t runID = head->GetRunId();
@@ -316,7 +317,7 @@ void BmnMonitor::FinishRun() {
     }
 }
 
-static TObjArray* GetAlikeRuns(BmnEventHeader* header){
+TObjArray* BmnMonitor::GetAlikeRuns(BmnEventHeader* header){
     TString beamParticle = "C";
     TString targetParticle = "Pb";
     Float_t beamEnergy = 4.5;

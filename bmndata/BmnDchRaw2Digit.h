@@ -19,8 +19,14 @@
 class BmnDchRaw2Digit {
 public:
     BmnDchRaw2Digit(Int_t period, Int_t run);
-    BmnDchRaw2Digit() {};
-    ~BmnDchRaw2Digit() {};
+    BmnDchRaw2Digit() {
+        fMap1 = NULL;
+        fMap2 = NULL;
+    };
+    ~BmnDchRaw2Digit() {
+        if (fMap1) delete[] fMap1;
+        if (fMap2) delete[] fMap2;
+    };
     
     void FillEvent(TClonesArray *tdc, map<UInt_t, Long64_t> *ts, TClonesArray *dch, Double_t t0);
 

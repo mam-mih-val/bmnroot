@@ -48,7 +48,7 @@ class BmnGemRaw2Digit : public BmnAdcProcessor {
 public:
     BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer);
     BmnGemRaw2Digit();
-    virtual ~BmnGemRaw2Digit();
+    ~BmnGemRaw2Digit();
 
     BmnStatus FillEvent(TClonesArray *adc, TClonesArray *gem);
 

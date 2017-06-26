@@ -315,12 +315,12 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
                 }
                 ProcessFileRun(_curFile);
                 runCount++;
-                //                rawDataDecoder->DisposeDecoder();
-                //                delete rawDataDecoder;
-                //                rawDataDecoder = NULL;
             }
             free(namelist[i]);
         }
+        rawDataDecoder->DisposeDecoder();
+        delete rawDataDecoder;
+        rawDataDecoder = NULL;
         free(namelist);
     }
     //    for (auto cl : clients) {

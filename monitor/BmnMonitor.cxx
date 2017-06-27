@@ -95,9 +95,9 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
     Int_t frame_size = 0;
     decoTimeout = 0;
     keepWorking = kTRUE;
-
     while (keepWorking) {
         gSystem->ProcessEvents();
+        fServer->ProcessRequests();
         zmq_msg_init(&msg);
         frame_size = zmq_msg_recv(&msg, _decoSocket, ZMQ_DONTWAIT); // ZMQ_DONTWAIT
         if (frame_size == -1) {
@@ -107,6 +107,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                 if ((decoTimeout > DECO_SOCK_WAIT_LIMIT) && (fState == kBMNWORK)) {
                     FinishRun();
                     fState = kBMNWAIT;
+                    fServer->SetTimer(100, kFALSE);
                     DBG("state changed to kBMNWAIT")
                 }
             } else {
@@ -120,7 +121,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
             t.SetBuffer(zmq_msg_data(&msg), zmq_msg_size(&msg));
             t.SetReadMode();
             fDigiArrays = (DigiArrays*) (t.ReadObject(DigiArrays::Class()));
-            gSystem->ProcessEvents();
+//            gSystem->ProcessEvents();
             if (fDigiArrays->header->GetEntriesFast() > 0) {
                 BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
                 Int_t runID = head->GetRunId();
@@ -129,6 +130,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                         fRunID = runID;
                         CreateFile(fRunID);
                         DBG("state changed to kBMNWORK")
+                        fServer->SetTimer(0, kFALSE);
                         fState = kBMNWORK;
                         ProcessDigi(0);
                         break;
@@ -162,7 +164,7 @@ void BmnMonitor::InitServer() {
         fServer = new THttpServer(cgiStr.Data());
     } else
         fServer = new THttpServer(TString(cgiStr + "?auth_file=auth.htdigest&auth_domain=root").Data());
-    fServer->SetTimer(100, kTRUE);
+    fServer->SetTimer(0, kFALSE);
     fServer->SetItemField("/", "_monitoring", "10000");
     fServer->SetItemField("/", "_layout", "grid3x3");
 }
@@ -292,6 +294,7 @@ void BmnMonitor::FinishRun() {
     if (fHistOut) {
         printf("fHistOut  Write result = %d\n", fHistOut->Write());
         fHistOut->Close();
+        fHistOut = NULL;
         //        string cmd;
         //        cmd = string("chmod 775 ") + _curDir + fHistOut->GetName();
         //        printf("system result = %d\n", system(cmd.c_str()));
@@ -313,7 +316,7 @@ void BmnMonitor::FinishRun() {
     for (auto h : bhVec4show)
         h->SetDir(NULL, NULL);
         fHistOutTemp->Close();
-        delete fHistOut;
+        fHistOutTemp = NULL;
     }
 }
 

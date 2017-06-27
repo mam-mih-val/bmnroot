@@ -179,14 +179,14 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
     return kBMNSUCCESS;
 }
 
-void BmnOnlineDecoder::ProcessFileRun(TString rawFileName) {
+void BmnOnlineDecoder::ProcessFileRun(TString rawFileName, UInt_t timeLimit) {
     Int_t iEv = 0;
     Int_t lastEv = -1;
     BmnStatus convertResult = kBMNSUCCESS;
     Int_t sendRes = 0;
     TBufferFile t(TBuffer::kWrite);
     while (kTRUE) {
-        convertResult = rawDataDecoder->ConvertRawToRootIterateFile();
+        convertResult = rawDataDecoder->ConvertRawToRootIterateFile(timeLimit);
         if (convertResult == kBMNFINISH) {
             printf("finish\n");
             break;
@@ -313,7 +313,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
                     rawDataDecoder->SetRunId(runID);
                     rawDataDecoder->SetPeriodId(6);
                 }
-                ProcessFileRun(_curFile);
+                ProcessFileRun(_curFile, 0);
                 runCount++;
             }
             free(namelist[i]);

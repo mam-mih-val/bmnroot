@@ -51,7 +51,7 @@ public:
 private:
     BmnStatus InitDecoder(TString);
     BmnStatus InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *dq);
-    void ProcessFileRun(TString digiName);
+    void ProcessFileRun(TString digiName, UInt_t timeLimit = WAIT_LIMIT);
     static TString WatchNext(TString dirname, TString filename, Int_t cycleWait);
     static TString WatchNext(Int_t inotifDir, Int_t cycleWait);
     static void threadReceiveWrapper(BmnDataReceiver * dr);

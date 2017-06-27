@@ -1,3 +1,5 @@
+#include <root/Rtypes.h>
+
 #include "BmnTof1Raw2Digit.h"
 
 //	Written by JINR summer programme 2016 student Kurganov Alexander
@@ -186,10 +188,13 @@ void BmnTof1Raw2Digit::setRun(int nPeriod, int nRun) {
 			++res_it; ++nRow;
 		}
 		cout << endl;
-		
+		conditions.SetOwner(kTRUE);
+                conditions.Delete();
+                elemArray->SetOwner(kTRUE);
 		//Again, UniDbDetectorParameter::Search actually creates a new TObjArray
 		elemArray->Delete(); //Delete this row as soon as returned TObjArray will be set as owner in UniDbDetectorParameter::Search()
 		delete elemArray;
+                elemArray = NULL;
 		++it;
 	}
 	cout << "Loading Tof400 mapping from the DB complete." << endl;

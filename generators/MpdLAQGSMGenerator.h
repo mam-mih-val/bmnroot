@@ -69,6 +69,12 @@ struct la_tab_t {
 
   Bool_t general_fgets (char *ss, Int_t nn=250, FILE* p=0);
   Bool_t general_feof (void *p);
+    
+  void SetXYZ (Double_t x = 0., Double_t y = 0., Double_t z = 0.) {
+        fX = x;
+        fY = y;
+        fZ = z;
+  }
 
  private:
 
@@ -83,6 +89,8 @@ struct la_tab_t {
   //la_tab_t la_tab[84];                //!  list of light particles known for MpdLAQGSMGenerator
   std::vector<la_tab_t*> fLa_tab;     //!  list of light particles known for MpdLAQGSMGenerator
   Bool_t fGZ_input;                   //!  0: ascii input, 1: gzipped input
+  
+  Double_t fX, fY, fZ; // Point vertex coordinates [cm]
 	
   /** Private method CloseInput. Just for convenience. Closes the 
    ** input file properly. Called from destructor and from ReadEvent. **/

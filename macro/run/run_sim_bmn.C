@@ -1,5 +1,4 @@
 #include <Rtypes.h>
-
 // inFile - input file with generator data, default: dc4mb.r12 for LAQGSM event generator (deuteron - carbon target, mbias, 4 GeV)
 // outFile - output file with MC data, default: evetest.root
 // nStartEvent - for compatibility, any number
@@ -63,7 +62,6 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     if (!CheckFileExist(dataFile)) return;
 
     MpdUrqmdGenerator* urqmdGen = new MpdUrqmdGenerator(dataFile);
-    //urqmdGen->SetXYZ(0.0, 0.0, 0.0); // set vertex coordinates [cm]
     //urqmdGen->SetEventPlane(0. , 360.);
     primGen->AddGenerator(urqmdGen);
     if (nStartEvent > 0) urqmdGen->SkipEvents(nStartEvent);
@@ -96,7 +94,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // mm o cm ??
     primGen->AddGenerator(boxGen);
-
+    
 #else
 #ifdef HSD
     // ------- HSD/PHSD Generator
@@ -135,6 +133,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     if (!CheckFileExist(dataFile)) return;
 
     MpdLAQGSMGenerator* guGen = new MpdLAQGSMGenerator(dataFile.Data(), kFALSE);
+    // guGen->SetXYZ(0., 0., -21.7); IP = (0., 0., 0.)
     primGen->AddGenerator(guGen);
     if (nStartEvent > 0) guGen->SkipEvents(nStartEvent);
 
@@ -153,9 +152,9 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 
     // -----   Create magnetic field   ----------------------------------------
     if (isFieldMap) {
-        Double_t fieldScale = 1.;
+        Double_t fieldScale = 2.;
         // BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
-        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v3_ascii_Extrap.dat");
+        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
         // Double_t fieldZ = 124.5; // field centre z position
         // magField->SetPosition(0., 0., fieldZ);
         magField->SetScale(fieldScale);

@@ -58,7 +58,7 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
     if (fNTracks > 1)
         FindVertexByVirtualPlanes();
     else
-        new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", 0, 0, -100, 0.0, 0, fNTracks, TMatrixFSym(3));
+        new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", -1000.0, -1000.0, -1000.0, 0.0, 0, fNTracks, TMatrixFSym(3));
 
     //    if (fNTracks > 0 && fNTracks < 2) { //one-track events
     //        //Just propagation track on Z = 0.0
@@ -208,7 +208,7 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
 
-void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
+Float_t BmnGemVertexFinder::FindVZByVirtualPlanes() {
 
     fKalman = new BmnKalmanFilter_tmp();
 
@@ -216,9 +216,9 @@ void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
     vector<TVector3> Plane1Hits;
     vector<TVector3> Plane2Hits;
 
-    Float_t z0 = fDetector->GetGemStation(0)->GetZPosition();
-    Float_t z1 = 0.0;
-    Float_t z2 = -z0;
+    Float_t z0 = 0.0;//fDetector->GetGemStation(0)->GetZPosition();
+    Float_t z1 = -25.0;
+    Float_t z2 = -50.0;//-z0;
 
     for (Int_t iTr = 0; iTr < fNTracks; ++iTr) {
         BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(iTr);
@@ -235,16 +235,16 @@ void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
             (*F)[24] = 1.;
         }
 
-
-        fKalman->TGeoTrackPropagate(&par0, z0, 2212, F, NULL, "field");
+        TString propagationType = (fIsField) ? "field" : "line";
+        fKalman->TGeoTrackPropagate(&par0, z0, 2212, F, NULL, propagationType);
         TVector3 v0 = TVector3(par0.GetX(), par0.GetY(), par0.GetZ());
         Plane0Hits.push_back(v0);
 
-        fKalman->TGeoTrackPropagate(&par0, z1, 2212, F, NULL, "field");
+        fKalman->TGeoTrackPropagate(&par0, z1, 2212, F, NULL, propagationType);
         TVector3 v1 = TVector3(par0.GetX(), par0.GetY(), par0.GetZ());
         Plane1Hits.push_back(v1);
 
-        fKalman->TGeoTrackPropagate(&par0, z2, 2212, F, NULL, "field");
+        fKalman->TGeoTrackPropagate(&par0, z2, 2212, F, NULL, propagationType);
         TVector3 v2 = TVector3(par0.GetX(), par0.GetY(), par0.GetZ());
         Plane2Hits.push_back(v2);
     }
@@ -254,14 +254,13 @@ void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
     Float_t d2 = 0.0;
     Int_t nPairs = 0;
 
-    for (Int_t i = 0; i < fNTracks; ++i) {
+    for (Int_t i = 0; i < fNTracks; ++i)
         for (Int_t j = i + 1; j < fNTracks; ++j) {
             d0 += Sqrt((Plane0Hits[i].X() - Plane0Hits[j].X()) * (Plane0Hits[i].X() - Plane0Hits[j].X()) + (Plane0Hits[i].Y() - Plane0Hits[j].Y()) * (Plane0Hits[i].Y() - Plane0Hits[j].Y()));
             d1 += Sqrt((Plane1Hits[i].X() - Plane1Hits[j].X()) * (Plane1Hits[i].X() - Plane1Hits[j].X()) + (Plane1Hits[i].Y() - Plane1Hits[j].Y()) * (Plane1Hits[i].Y() - Plane1Hits[j].Y()));
             d2 += Sqrt((Plane2Hits[i].X() - Plane2Hits[j].X()) * (Plane2Hits[i].X() - Plane2Hits[j].X()) + (Plane2Hits[i].Y() - Plane2Hits[j].Y()) * (Plane2Hits[i].Y() - Plane2Hits[j].Y()));
             nPairs++;
         }
-    }
 
     d0 /= nPairs;
     d1 /= nPairs;
@@ -270,12 +269,16 @@ void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
     Float_t a = (d2 - (z2 * (d1 - d0) + z1 * d0 - z0 * d1) / (z1 - z0)) / (z2 * (z2 - z1 - z0) + z0 * z1);
     Float_t b = (d1 - d0) / (z1 - z0) - a * (z0 + z1);
 
-    Float_t vz = -0.5 * b / a;
+    return (-0.5 * b / a);
+}
 
+void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
+
+    Float_t vz = FindVZByVirtualPlanes();
     Float_t vx = 0.0;
     Float_t vy = 0.0;
     UInt_t nOk = 0;
-    
+
     for (Int_t iTr = 0; iTr < fNTracks; ++iTr) {
         BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(iTr);
         if (track->GetFlag() == kBMNBAD) continue;
@@ -291,12 +294,13 @@ void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
             (*F)[24] = 1.;
         }
 
-        fKalman->TGeoTrackPropagate(&par0, vz, 2212, F, NULL, "field");
+        TString propagationType = (fIsField) ? "field" : "line";
+        fKalman->TGeoTrackPropagate(&par0, vz, 2212, F, NULL, propagationType);
         vx += par0.GetX();
         vy += par0.GetY();
         nOk++;
     }
-    
+
     vx /= nOk;
     vy /= nOk;
 

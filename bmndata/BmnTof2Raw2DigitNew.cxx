@@ -48,7 +48,7 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     fSlewCham = SlewingChamber;
     if (SlewingRun != 0)
     {
-	sprintf((char *)&fname[strlen(filname_base) - 4], "%04d", SlewingRun);
+	sprintf((char *)&filname_base[strlen(filname_base) - 8], "%04d_raw", SlewingRun);
 	if (SlewingChamber == 0) printf("Loading TOF700 Map from file: %s , reference slewing run %d\n",mappingFile.Data(), SlewingRun);
 	else                     printf("Loading TOF700 Map from file: %s , reference slewing run %d, chamber %d\n",mappingFile.Data(), SlewingRun, SlewingChamber);
     }
@@ -304,22 +304,22 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     Wt0 = 0;
     Wts = 0;
 
-    for (int i=0; i<MaxPlane; i++)
+    for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
 	TvsS[i] = 0;
 	WvsS[i] = 0;
     }
-    for (int i=0; i<MaxPlane; i++)
+    for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
 	TvsWall[i] = 0;
 	TvsWallmax[i] = 0;
     }
-    for (int i=0; i<MaxPlane; i++)
+    for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
 	TvsW[i][0] = 0;
 	TvsWt0[i][0] = 0;
     }
-    for (int i=0; i<MaxPlane; i++)
+    for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
 	TvsW[i][1] = 0;
 	TvsWt0[i][1] = 0;
@@ -926,6 +926,7 @@ void BmnTof2Raw2DigitNew::readSlewingT0()
   else 
    sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, p+1, pk+1);
   strcat(filn, ".slewing.t0.txt");
+//  printf("T0: Plane %d peak %d file %s\n", p+1, pk+1, filn);
   FILE *fin = fopen(filn,"r");
   if (fin == NULL)
   {
@@ -1195,6 +1196,7 @@ void BmnTof2Raw2DigitNew::readSlewing()
   else
    sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, p+1, pk+1);
   strcat(filn, ".slewing.txt");
+//  printf("RPC: Plane %d peak %d file %s\n", p+1, pk+1, filn);
   FILE *fin = fopen(filn,"r");
   if (fin == NULL)
   {

@@ -324,19 +324,19 @@ BmnStatus BmnRawDataDecoder::InitConverter(TString FileName) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::wait_stream(deque<UInt_t> *que, Int_t len) {
+BmnStatus BmnRawDataDecoder::wait_stream(deque<UInt_t> *que, Int_t len, UInt_t limit) {
     Int_t t;
     Int_t dt = 10000;
     while (que->size() < len) {
         usleep(dt);
         t += dt;
-        if (t >= WAIT_LIMIT)
+        if (t >= limit)
             return kBMNERROR;
     }
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::wait_file(Int_t len) {
+BmnStatus BmnRawDataDecoder::wait_file(Int_t len, UInt_t limit) {
     Long_t pos = ftello64(fRawFileIn);
     Int_t t = 0;
     Int_t dt = 1000000;
@@ -347,7 +347,7 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len) {
         fLengthRawFile = ftello64(fRawFileIn);
         fseeko64(fRawFileIn, pos - fLengthRawFile, SEEK_CUR);
         t += dt;
-        if (t >= WAIT_LIMIT)
+        if (t >= limit)
             return kBMNERROR;
     }
     return kBMNSUCCESS;
@@ -387,10 +387,10 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
+BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile(UInt_t limit) {
     //        if (fMaxEvent > 0 && fNevents == fMaxEvent) break;
     while (kTRUE) {
-        if (wait_file(4 * kWORDSIZE) == kBMNERROR) {
+        if (wait_file(4 * kWORDSIZE, limit) == kBMNERROR) {
             return kBMNTIMEOUT;
             printf("file timeout\n");
         }
@@ -415,7 +415,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile() {
                 return kBMNFINISH;
             }
             //read array of current event data and process them
-            if (wait_file(fDat * kNBYTESINWORD * kWORDSIZE) == kBMNERROR) {
+            if (wait_file(fDat * kNBYTESINWORD * kWORDSIZE, limit) == kBMNERROR) {
                 return kBMNTIMEOUT;
                 printf("file timeout\n");
             }
@@ -1094,7 +1094,8 @@ void BmnRawDataDecoder::ResetDecoder(TString file) {
 }
 
 BmnStatus BmnRawDataDecoder::DisposeDecoder() {
-    if (fGemMap) delete fGemMap;
+    if (fGemMap) delete[] fGemMap;
+    if (fT0Map) delete[] fT0Map;
     if (fGemMapper) delete fGemMapper;
     if (fSiliconMapper) delete fSiliconMapper;
     if (fDchMapper) delete fDchMapper;
@@ -1129,6 +1130,9 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
 
     delete eventHeader;
     delete runHeader;
+    if (runHeaderDAQ) delete runHeaderDAQ;
+    if (eventHeaderDAQ) delete eventHeaderDAQ;
+    if (fRawTree) fRawTree->Delete();
     return kBMNSUCCESS;
 }
 

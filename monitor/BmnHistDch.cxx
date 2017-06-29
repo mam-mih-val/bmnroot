@@ -96,8 +96,10 @@ BmnHistDch::BmnHistDch(TString title) : BmnHist() {
 BmnHistDch::~BmnHistDch() {
     if (fDir != NULL)
         return;
-    delete[] h_wires;
-    delete[] h_times;
+    for (auto h:h_wires)
+        delete h;
+    for (auto h:h_times)
+        delete h;
     delete fDchHits;
     delete h_DCH1;
     delete h_DCH2;

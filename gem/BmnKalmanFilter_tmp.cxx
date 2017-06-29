@@ -334,8 +334,8 @@ BmnStatus BmnKalmanFilter_tmp::FillParFromVecAndCov(TMatrixD x, TMatrixD c, Fair
 BmnStatus BmnKalmanFilter_tmp::RK4TrackExtrapolate(FairTrackParam* par, Double_t zOut, vector<Double_t>* F) {
 
     Double_t zIn = par->GetZ();
-    fField = FairRunAna::Instance()->GetField(); 
-    
+    fField = FairRunAna::Instance()->GetField();
+
     vector<Double_t> xIn;
     xIn.resize(5);
     xIn[0] = par->GetX();
@@ -686,10 +686,10 @@ BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits)
     nodes[n - 1].SetSmoothedParam(nodes[n - 1].GetUpdatedParam());
 
     for (int i = n - 1; i > 0; i--) {
-//        cout << "i = " << i << endl;
-//        nodes[i].GetSmoothedParam()->Print();
+        //        cout << "i = " << i << endl;
+        //        nodes[i].GetSmoothedParam()->Print();
         if (Smooth(&nodes[i - 1], &nodes[i]) == kBMNERROR) return kBMNERROR;
-//        nodes[i].GetSmoothedParam()->Print();
+        //        nodes[i].GetSmoothedParam()->Print();
     }
 
     track->SetChi2(0.);
@@ -704,10 +704,10 @@ BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits)
     track->SetParamFirst(*parFirst);
     track->SetFitNodes(nodes);
     track->SetNDF(lit::NDF(track));
-    
-//    parFirst->Print();
-//    cout << "chi2 = " << track->GetChi2() << " | ndf = " << track->GetNDF() << " | nHits = " << track->GetNHits() << endl;
-//    cout << "chi2 / NDF = " << track->GetChi2() / track->GetNDF() << endl;
+
+    //    parFirst->Print();
+    //    cout << "chi2 = " << track->GetChi2() << " | ndf = " << track->GetNDF() << " | nHits = " << track->GetNHits() << endl;
+    //    cout << "chi2 / NDF = " << track->GetChi2() / track->GetNDF() << endl;
 
     return kBMNSUCCESS;
 }
@@ -739,7 +739,7 @@ BmnStatus BmnKalmanFilter_tmp::Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode
     vector<Double_t> temp1(25);
     Mult15On25(thisUpdC, Ft, temp1);
     Mult25On15(temp1, invPrevPredC, A);
-       
+
 
     vector<Double_t> thisUpdX;
     thisUpdX.push_back(thisNode->GetUpdatedParam()->GetX());
@@ -806,7 +806,7 @@ BmnStatus BmnKalmanFilter_tmp::Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode
     par.SetZ(thisNode->GetUpdatedParam()->GetZ());
 
     thisNode->SetSmoothedParam(&par);
-    
+
     return kBMNSUCCESS;
 }
 
@@ -816,73 +816,83 @@ BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t 
     Double_t zIn = par->GetZ();
     Double_t dz = zOut - zIn;
 
-//    if (fabs(dz) < 1e-6) {
-//        return kBMNSUCCESS;
-//    }
+    //    if (fabs(dz) < 1e-6) {
+    //        return kBMNSUCCESS;
+    //    }
     // Check whether upstream or downstream
     // TODO check upstream/downstream
     Bool_t downstream = dz < 0;
 
-    if (F != NULL) {
-        F->assign(25, 0.);
-        (*F)[0] = 1.;
-        (*F)[6] = 1.;
-        (*F)[12] = 1.;
-        (*F)[18] = 1.;
-        (*F)[24] = 1.;
-    }
+    if (type == "field") {
 
-    Int_t nofSteps = Int_t(abs(dz) / 10);
-    Double_t stepSize;
-    if (nofSteps == 0) {
-        stepSize = abs(dz);
-    } else {
-        stepSize = 10.0;
-    }   
-    Double_t z = zIn;
-
-//    cout << "Z = " << zIn << " Par q/p = " << par->GetQp() << endl;
-    //if (length) *length = 0;
-    // Loop over steps + additional step to propagate to virtual plane at zOut
-    for (Int_t iStep = 0; iStep < nofSteps + 1; iStep++) {                    //FIXME possible problems with geometry...
-        if (!IsParCorrect(par)) return kBMNERROR;
-        // Check if already at exit position
-        if (z == zOut) break;
-        // Update current z position
-        if (iStep != nofSteps) z = (!downstream) ? z + stepSize : z - stepSize;
-        else z = zOut;
-
-        // Get intersections with materials for this step
-        vector<BmnMaterialInfo> inter;
-
-        if (fNavigator->FindIntersections(par, z, inter) == kBMNERROR) return kBMNERROR;
-        
-        // Loop over material layers
-        for (UInt_t iMat = 0; iMat < inter.size(); iMat++) {
-            BmnMaterialInfo mat = inter[iMat];
-            // Check if track parameters are correct
-            if (!IsParCorrect(par)) return kBMNERROR;
-            vector<Double_t>* Fnew = NULL;
-            if (F != NULL) Fnew = new vector<Double_t > (25, 0.);
-            
-            // Extrapolate to the next boundary
-            if (type == "field") {                                              //FIXME type of extrapolating has to be depended on a magnetic field presence
-                if (RK4TrackExtrapolate(par, mat.GetZpos(), Fnew) == kBMNERROR) { //Is it possible to return error from RK4 extrapolator???
-                    return kBMNERROR; 
-                }
-            } else {
-                return kBMNERROR;
-            }
-            
-            // Update transport matrix
-            if (F != NULL) UpdateF(*F, *Fnew); 
-            if (Fnew != NULL) delete Fnew;
-
-            fMaterial->Update(par, &mat, pdg, !downstream);
-            if (length) *length += mat.GetLength();
+        if (F != NULL) {
+            F->assign(25, 0.);
+            (*F)[0] = 1.;
+            (*F)[6] = 1.;
+            (*F)[12] = 1.;
+            (*F)[18] = 1.;
+            (*F)[24] = 1.;
         }
+
+        Int_t nofSteps = Int_t(abs(dz) / 10);
+        Double_t stepSize;
+        if (nofSteps == 0) {
+            stepSize = abs(dz);
+        } else {
+            stepSize = 10.0;
+        }
+        Double_t z = zIn;
+
+        //    cout << "Z = " << zIn << " Par q/p = " << par->GetQp() << endl;
+        //if (length) *length = 0;
+        // Loop over steps + additional step to propagate to virtual plane at zOut
+        for (Int_t iStep = 0; iStep < nofSteps + 1; iStep++) { //FIXME possible problems with geometry...
+            if (!IsParCorrect(par)) return kBMNERROR;
+            // Check if already at exit position
+            if (z == zOut) break;
+            // Update current z position
+            if (iStep != nofSteps) z = (!downstream) ? z + stepSize : z - stepSize;
+            else z = zOut;
+
+            // Get intersections with materials for this step
+            vector<BmnMaterialInfo> inter;
+
+            if (fNavigator->FindIntersections(par, z, inter) == kBMNERROR) return kBMNERROR;
+
+            // Loop over material layers
+            for (UInt_t iMat = 0; iMat < inter.size(); iMat++) {
+                BmnMaterialInfo mat = inter[iMat];
+                // Check if track parameters are correct
+                if (!IsParCorrect(par)) return kBMNERROR;
+                vector<Double_t>* Fnew = NULL;
+                if (F != NULL) Fnew = new vector<Double_t > (25, 0.);
+
+                // Extrapolate to the next boundary
+                if (RK4TrackExtrapolate(par, mat.GetZpos(), Fnew) == kBMNERROR) { //Is it possible to return error from RK4 extrapolator???
+                    return kBMNERROR;
+                }
+
+                // Update transport matrix
+                if (F != NULL) UpdateF(*F, *Fnew);
+                if (Fnew != NULL) delete Fnew;
+
+                fMaterial->Update(par, &mat, pdg, !downstream);
+                if (length) *length += mat.GetLength();
+            }
+        }
+    } else if (type == "line") {
+        Float_t x0 = par->GetX();
+        Float_t y0 = par->GetY();
+        Float_t z0 = par->GetZ();
+        Float_t ty = par->GetTy();
+        Float_t tx = par->GetTx();
+        Float_t xOut = tx * (zOut - z0) + x0;
+        Float_t yOut = ty * (zOut - z0) + y0;
+        par->SetX(xOut);
+        par->SetY(yOut);
+        par->SetZ(zOut);
     }
-    
+
     if (!IsParCorrect(par)) {
         return kBMNERROR;
     } else {

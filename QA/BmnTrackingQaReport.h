@@ -59,6 +59,7 @@ protected:
     void DrawTwoH1(const TString canvasName, const TString name1, const TString name2, const TString drawOpt);
     void DrawOneH2(const TString canvasName, const TString name1);
     void DrawTwoH2(const TString canvasName, const TString name1, const TString name2);
+    void DrawThreeH1(const TString canvasName, const TString name1, const TString name2, const TString name3);
     void DrawThreeH2(const TString canvasName, const TString name1, const TString name2, const TString name3);
 
     void DrawEffGhostGem(const string& canvasName);

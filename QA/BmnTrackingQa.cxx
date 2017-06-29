@@ -421,9 +421,12 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Chi2_gem", "#chi^{2} / NDF", "Counter", 400, 0, 100);
     CreateH1("Length_gem", "length, cm", "Counter", 400, 0, 400);
 
-    CreateH1("VertResX_gem", "#DeltaV^{0}_{x}, cm", "Counter", 100, -0.5, 0.5);
-    CreateH1("VertResY_gem", "#DeltaV^{0}_{y}, cm", "Counter", 100, -0.5, 0.5);
-    CreateH1("VertResZ_gem", "#DeltaV^{0}_{z}, cm", "Counter", 100, -2, 2);
+    CreateH1("VertResX_gem", "#DeltaV_{x}, cm", "Counter", 100, -1.0, 1.0);
+    CreateH1("VertResY_gem", "#DeltaV_{y}, cm", "Counter", 100, -1.0, 1.0);
+    CreateH1("VertResZ_gem", "#DeltaV_{z}, cm", "Counter", 100, -10.0, 10.0);
+    CreateH1("VertX_gem", "V_{x}, cm", "Counter", 300, -5.0, 5.0);
+    CreateH1("VertY_gem", "V_{y}, cm", "Counter", 300, -5.0, 5.0);
+    CreateH1("VertZ_gem", "V_{z}, cm", "Counter", 300, -50.0, 50.0);
 
     CreateH2("Eff_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
     CreateH2("Clones_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
@@ -475,6 +478,9 @@ void BmnTrackingQa::ProcessGem() {
         fHM->H1("VertResX_gem")->Fill(vrt->GetX() - evHead->GetX());
         fHM->H1("VertResY_gem")->Fill(vrt->GetY() - evHead->GetY());
         fHM->H1("VertResZ_gem")->Fill(vrt->GetZ() - evHead->GetZ());
+        fHM->H1("VertX_gem")->Fill(vrt->GetX());
+        fHM->H1("VertY_gem")->Fill(vrt->GetY());
+        fHM->H1("VertZ_gem")->Fill(vrt->GetZ());
     }
 
     for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {

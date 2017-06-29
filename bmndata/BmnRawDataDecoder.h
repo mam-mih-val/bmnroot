@@ -55,7 +55,7 @@ public:
 
     BmnStatus ConvertRawToRoot();
     BmnStatus ConvertRawToRootIterate();
-    BmnStatus ConvertRawToRootIterateFile();
+    BmnStatus ConvertRawToRootIterateFile(UInt_t limit = WAIT_LIMIT);
     BmnStatus ClearArrays();
     BmnStatus DecodeDataToDigi();
     BmnStatus DecodeDataToDigiIterate();
@@ -66,8 +66,8 @@ public:
     BmnStatus InitMaps();
     void ResetDecoder(TString file);
     BmnStatus DisposeDecoder();
-    BmnStatus wait_stream(deque<UInt_t> *que, Int_t len);
-    BmnStatus wait_file(Int_t len);
+    BmnStatus wait_stream(deque<UInt_t> *que, Int_t len, UInt_t limit = WAIT_LIMIT);
+    BmnStatus wait_file(Int_t len, UInt_t limit = WAIT_LIMIT);
     BmnStatus SlewingTOF700Init();
     BmnStatus SlewingTOF700();
     BmnStatus PreparationTOF700Init() { return SlewingTOF700Init(); };

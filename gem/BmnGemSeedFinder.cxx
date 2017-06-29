@@ -59,12 +59,9 @@ InitStatus BmnGemSeedFinder::Init() {
 
     fGemSeedsArray = new TClonesArray(fSeedsBranchName, 100); //out
     ioman->Register("BmnGemSeed", "GEM", fGemSeedsArray, kTRUE);
-    
+
     fField = FairRunAna::Instance()->GetField();
     if (!fField) Fatal("Init", "No Magnetic Field found");
-    // Chi2 is less restricted when doing alignment
-    if (!fIsField)
-        fLineFitCut = 50.; // LDBL_MAX
 
     fAddresses = new Int_t*[fNBins];
     for (Int_t i = 0; i < fNBins; ++i) {
@@ -187,6 +184,27 @@ BmnStatus BmnGemSeedFinder::FindSeedsCombinatorics(vector<BmnGemTrack>& cand) {
     return kBMNSUCCESS;
 }
 
+BmnStatus BmnGemSeedFinder::SeedsByThreeStations(Int_t i0, Int_t i1, Int_t i2, vector<Int_t>* hits, BmnGemTrack* cand) {
+    for (Int_t iHit0 = 0; iHit0 < hits[i0].size(); ++iHit0) {
+        BmnGemStripHit* hit0 = (BmnGemStripHit*) fGemHitsArray->At(hits[i0].at(iHit0));
+        for (Int_t iHit1 = 0; iHit1 < hits[i1].size(); ++iHit1) {
+            BmnGemStripHit* hit1 = (BmnGemStripHit*) fGemHitsArray->At(hits[i1].at(iHit1));
+            for (Int_t iHit2 = 0; iHit2 < hits[i2].size(); ++iHit2) {
+                BmnGemStripHit* hit2 = (BmnGemStripHit*) fGemHitsArray->At(hits[i2].at(iHit2));
+                BmnGemTrack trCnd;
+                trCnd.AddHit(hits[i0].at(iHit0), hit0);
+                trCnd.AddHit(hits[i1].at(iHit1), hit1);
+                trCnd.AddHit(hits[i2].at(iHit2), hit2);
+                trCnd.SortHits();
+                TVector3 lineParZY = LineFit(&trCnd, fGemHitsArray, "ZY");
+                if (lineParZY.Z() > fLineFitCut) continue;
+                if (fNFoundSeeds == fNSeedsCut) return kBMNERROR;
+                cand[fNFoundSeeds++] = trCnd;
+            }
+        }
+    }
+}
+
 BmnStatus BmnGemSeedFinder::FindSeedsByCombinatoricsInCoridor(Int_t iCorridor, BmnGemTrack* cand) {
 
     vector<Int_t> hitsOnStation[fDetector->GetNStations()];
@@ -200,44 +218,16 @@ BmnStatus BmnGemSeedFinder::FindSeedsByCombinatoricsInCoridor(Int_t iCorridor, B
             if (hit->GetStation() == iSt) hitsOnStation[iSt].push_back(iHit);
     }
 
-    if (fGoForward) {
-        for (Int_t iHit0 = 0; iHit0 < hitsOnStation[0].size(); ++iHit0) {
-            BmnGemStripHit* hit0 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[0].at(iHit0));
-            for (Int_t iHit1 = 0; iHit1 < hitsOnStation[1].size(); ++iHit1) {
-                BmnGemStripHit* hit1 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[1].at(iHit1));
-                for (Int_t iHit2 = 0; iHit2 < hitsOnStation[2].size(); ++iHit2) {
-                    BmnGemStripHit* hit2 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[2].at(iHit2));
-                    BmnGemTrack trCnd;
-                    trCnd.AddHit(hitsOnStation[0].at(iHit0), hit0);
-                    trCnd.AddHit(hitsOnStation[1].at(iHit1), hit1);
-                    trCnd.AddHit(hitsOnStation[2].at(iHit2), hit2);
-                    trCnd.SortHits();
-                    TVector3 lineParZY = LineFit(&trCnd, fGemHitsArray, "ZY");
-                    if (lineParZY.Z() > fLineFitCut) continue;
-                    if (fNFoundSeeds == fNSeedsCut) return kBMNERROR;
-                    cand[fNFoundSeeds++] = trCnd;
-                }
-            }
-        }
-    } else {
-        for (Int_t iHit5 = 0; iHit5 < hitsOnStation[5].size(); ++iHit5) {
-            BmnGemStripHit* hit5 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[5].at(iHit5));
-            for (Int_t iHit4 = 0; iHit4 < hitsOnStation[4].size(); ++iHit4) {
-                BmnGemStripHit* hit4 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[4].at(iHit4));
-                for (Int_t iHit3 = 0; iHit3 < hitsOnStation[3].size(); ++iHit3) {
-                    BmnGemStripHit* hit3 = (BmnGemStripHit*) fGemHitsArray->At(hitsOnStation[3].at(iHit3));
-                    BmnGemTrack trCnd;
-                    trCnd.AddHit(hitsOnStation[5].at(iHit5), hit5);
-                    trCnd.AddHit(hitsOnStation[4].at(iHit4), hit4);
-                    trCnd.AddHit(hitsOnStation[3].at(iHit3), hit3);
-                    trCnd.SortHits();
-                    TVector3 lineParZY = LineFit(&trCnd, fGemHitsArray, "ZY");
-                    if (lineParZY.Z() > fLineFitCut) continue;
-                    cand[fNFoundSeeds++] = trCnd;
-                }
-            }
-        }
-    }
+    SeedsByThreeStations(0, 1, 2, hitsOnStation, cand);
+    SeedsByThreeStations(0, 1, 3, hitsOnStation, cand);
+    SeedsByThreeStations(0, 1, 4, hitsOnStation, cand);
+    SeedsByThreeStations(0, 2, 3, hitsOnStation, cand);
+    SeedsByThreeStations(0, 2, 4, hitsOnStation, cand);
+    SeedsByThreeStations(0, 3, 4, hitsOnStation, cand);
+
+    SeedsByThreeStations(1, 2, 3, hitsOnStation, cand);
+    SeedsByThreeStations(1, 2, 4, hitsOnStation, cand);
+    SeedsByThreeStations(1, 3, 4, hitsOnStation, cand);
 
     return kBMNSUCCESS;
 }
@@ -581,13 +571,14 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack * tr) {
 
     fSum /= nOk;
 
-//        Float_t S = 0.0003 * fSum;
+    Float_t S = 0.0003 * fSum;
     //    Float_t S = 0.0003 * maxField;
     //    Float_t S = 0.0003 * minField;
     //    Float_t S = 0.0003 * Abs(fField->GetBy(lastHit->GetX(), lastHit->GetY(), lastHit->GetZ()));
-    Float_t S = 0.0003 * Abs(fField->GetBy(midHit->GetX(), midHit->GetY(), midHit->GetZ()));
-    //        Float_t S = 0.0003 * Abs(fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
-    Float_t QP = Q / S / Sqrt(R * R + B * B);
+    //    Float_t S = 0.0003 * Abs(fField->GetBy(midHit->GetX(), midHit->GetY(), midHit->GetZ()));
+    //            Float_t S = 0.0003 * Abs(fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
+    //    Float_t QP = Q / S / Sqrt(R * R + B * B);
+    Float_t QP = Q / S / R;
 
     for (UInt_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = GetHit(tr->GetHitIndex(i));
@@ -667,21 +658,21 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     par.SetCovariance(3, 3, 1e-5);
     par.SetCovariance(3, 4, 1e-5);
     par.SetCovariance(4, 4, 1e-5);
-    //    par.SetCovariance(0, 0, Cov_X_X);
-    //    par.SetCovariance(0, 1, Cov_X_Y);
-    //    par.SetCovariance(0, 2, Cov_X_Tx);
-    //    par.SetCovariance(0, 3, Cov_X_Ty);
-    //    par.SetCovariance(0, 4, Cov_X_Qp);
-    //    par.SetCovariance(1, 1, Cov_Y_Y);
-    //    par.SetCovariance(1, 2, Cov_Y_Tx);
-    //    par.SetCovariance(1, 3, Cov_Y_Ty);
-    //    par.SetCovariance(1, 4, Cov_Y_Qp);
-    //    par.SetCovariance(2, 2, Cov_Tx_Tx);
-    //    par.SetCovariance(2, 3, Cov_Tx_Ty);
-    //    par.SetCovariance(2, 4, Cov_Tx_Qp);
-    //    par.SetCovariance(3, 3, Cov_Ty_Ty);
-    //    par.SetCovariance(3, 4, Cov_Ty_Qp);
-    //    par.SetCovariance(4, 4, Cov_Qp_Qp);
+    //        par.SetCovariance(0, 0, Cov_X_X);
+    //        par.SetCovariance(0, 1, Cov_X_Y);
+    //        par.SetCovariance(0, 2, Cov_X_Tx);
+    //        par.SetCovariance(0, 3, Cov_X_Ty);
+    //        par.SetCovariance(0, 4, Cov_X_Qp);
+    //        par.SetCovariance(1, 1, Cov_Y_Y);
+    //        par.SetCovariance(1, 2, Cov_Y_Tx);
+    //        par.SetCovariance(1, 3, Cov_Y_Ty);
+    //        par.SetCovariance(1, 4, Cov_Y_Qp);
+    //        par.SetCovariance(2, 2, Cov_Tx_Tx);
+    //        par.SetCovariance(2, 3, Cov_Tx_Ty);
+    //        par.SetCovariance(2, 4, Cov_Tx_Qp);
+    //        par.SetCovariance(3, 3, Cov_Ty_Ty);
+    //        par.SetCovariance(3, 4, Cov_Ty_Qp);
+    //        par.SetCovariance(4, 4, Cov_Qp_Qp);
 
     Float_t lX = lastHit->GetX();
     Float_t lY = lastHit->GetY();
@@ -1225,8 +1216,7 @@ void BmnGemSeedFinder::SetHitsUnused(BmnGemTrack * tr) {
 
 TVector2 BmnGemSeedFinder::GetTransXY(BmnGemStripHit* hit) {
     //const Float_t oneOverR = 1.0 / Sqrt(Sqr(hit->GetX()) + Sqr(hit->GetY()) + Sqr(hit->GetZ()));
-    //    const Float_t oneOverR = 1.0 / Sqrt(Sqr(hit->GetX() - fRoughVertex.X()) + Sqr(hit->GetY() - fRoughVertex.Y()) + Sqr(hit->GetZ() - fRoughVertex.Z()));
-    const Float_t oneOverR = 1.0 / Sqrt(Sqr(hit->GetX() - fRoughVertex.X()) + Sqr(hit->GetY() - fRoughVertex.Y()) + Sqr(hit->GetZ()));
+    const Float_t oneOverR = 1.0 / Sqrt(Sqr(hit->GetX() - fRoughVertex.X()) + Sqr(hit->GetY() - fRoughVertex.Y()) + Sqr(hit->GetZ() - fRoughVertex.Z()));
     //    const Float_t oneOverR = 1.0 / hit->GetZ();
     return TVector2((hit->GetX() - fRoughVertex.X()) * oneOverR, (hit->GetY() - fRoughVertex.Y()) * oneOverR);
 }

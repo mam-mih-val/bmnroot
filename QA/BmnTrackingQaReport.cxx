@@ -181,6 +181,7 @@ void BmnTrackingQaReport::Draw() {
     DrawPar("First parameters", namesParF);
     DrawPar("Last parameters", namesParL);
 
+    DrawThreeH1("Vertex", "VertX_gem", "VertY_gem", "VertZ_gem");
     DrawVertResGem("Vertex resolution", "VertResX_gem", "VertResY_gem", "VertResZ_gem");
 }
 
@@ -474,6 +475,18 @@ void BmnTrackingQaReport::DrawThreeH2(const TString canvasName, const TString na
     DrawH2(HM()->H2(name2), kLinear, kLinear, kLinear, "colz");
     canvas->cd(3);
     DrawH2(HM()->H2(name3), kLinear, kLinear, kLinear, "colz");
+}
+
+void BmnTrackingQaReport::DrawThreeH1(const TString canvasName, const TString name1, const TString name2, const TString name3) {
+    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 500);
+    canvas->SetGrid();
+    canvas->Divide(3, 1);
+    canvas->cd(1);
+    DrawH1(HM()->H1(name1), kLinear, kLinear, "", kBlue, 0.7, 0.75, 1.1, 20);
+    canvas->cd(2);
+    DrawH1(HM()->H1(name2), kLinear, kLinear, "", kBlue, 0.7, 0.75, 1.1, 20);
+    canvas->cd(3);
+    DrawH1(HM()->H1(name3), kLinear, kLinear, "", kBlue, 0.7, 0.75, 1.1, 20);
 }
 
 ClassImp(BmnTrackingQaReport)

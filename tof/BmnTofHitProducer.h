@@ -33,7 +33,7 @@ class BmnTofHitProducer : public BmnTofHitProducerIdeal
    
 	// QA test histos
 	TEfficiency			*effTestEfficiencySingleHit, *effTestEfficiencyDoubleHit; //!		
-        TH1D                		*htR, *h1TestDistance;
+        TH1D                		*htR, *h1TestDistance, *h1TestMass, *h1TestMassLong;
         TH2D   				*h2TestNeighborPair, *h2TestXYSmeared, *h2TestXYSmeared2,*h2TestXYSmearedDouble, *h2TestXYSmearedDouble2, *h2TestEtaPhi, *h2TestStrips, *h2TestRZ, *h2TdetIdStripId;
 						
 	Bool_t 				HitExist(Double_t val); 

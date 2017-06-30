@@ -35,6 +35,7 @@ public:
     }
     
     void FindVertexByVirtualPlanes();
+    Float_t FindVZByVirtualPlanes();
 
 private:
 

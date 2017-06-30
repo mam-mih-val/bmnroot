@@ -44,6 +44,7 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type);
 TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2);
 TVector3 CircleBy3Hit(BmnGemTrack* track, const TClonesArray* arr);
 TVector3 CircleBy3Hit(BmnGemTrack* track, const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2);
+TVector3 Pol2By3Hit(BmnGemTrack* track, const TClonesArray* arr);
 Float_t Sqr(Float_t x);
 Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
 Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);

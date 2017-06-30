@@ -35,6 +35,7 @@ public:
     BmnStatus FindSeeds(vector<BmnGemTrack>& cand);
     BmnStatus FindSeedsCombinatorics(vector<BmnGemTrack>& cand);
     BmnStatus FindSeedsByCombinatoricsInCoridor(Int_t iCorridor, BmnGemTrack* cand);
+    BmnStatus SeedsByThreeStations(Int_t i0, Int_t i1, Int_t i2, vector<Int_t>* hits, BmnGemTrack* cand);
     BmnStatus FitSeeds(BmnGemTrack* cand);
     BmnStatus CalculateTrackParamsLine(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsCircle(BmnGemTrack* tr);

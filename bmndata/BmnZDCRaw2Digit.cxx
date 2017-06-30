@@ -240,30 +240,38 @@ BmnZDCRaw2Digit::BmnZDCRaw2Digit(TString mappingFile, TString RunFile, TString C
     for (int i=0; i<MAX_LOG_CHANNELS; i++) TestProf[i] = NULL;
     for (int i=0; i<n_test; i++)
     {
-      htest[i] = 0;
-      TestProf[i] = 0;
+      htest[i] = NULL;
+      TestProf[i] = NULL;
       if (test_chan[i] >= 0)
       {
 	sprintf(nam, "htest%d", i);
 	sprintf(tit, "Amplitude for adc test channel %d", test_chan[i]);
 	htest[i] = new TH1F(nam, tit, 2000, 0., 16000.);
+	htest[i]->SetDirectory(0);
 	sprintf(nam, "ptest%d", i);
 	sprintf(tit, "Average sampling wave for adc test channel %d", test_chan[i]);
-	TestProf[i]   = new TProfile(nam, tit, 200, 0., 200., -100000., +100000.,"s");
+	TestProf[i] = new TProfile(nam, tit, 200, 0., 200., -100000., +100000.,"s");
+	TestProf[i]->SetDirectory(0);
       }
     }
     hsum_sim = new TH1F("hsumsim","Sum of theoretical amplitudes", 1000, 0., 100.);
+    hsum_sim->SetDirectory(0);
     hsum_raw = new TH1F("hsumraw","Sum of raw amplitudes", 2000, 0., 20000.);
+    hsum_raw->SetDirectory(0);
     hsum     = new TH1F("hsumcal","Sum of calibrated amplitudes", 1000, 0., 200.);
+    hsum->SetDirectory(0);
 
     hxmean   = new TH1F("hxmean","Shower mean X", 1000, -500., +500.);
+    hxmean->SetDirectory(0);
     hymean   = new TH1F("hymean","Shower mean Y", 1000, -500., +500.);
+    hymean->SetDirectory(0);
 
     for (int i=0; i<n_rec; i++)
     {
 	sprintf(tit, "samprof%d", zdc_map_element[i].chan+1);
 	sprintf(nam, "Average sampling wave, module %d", zdc_map_element[i].chan+1);
 	SampleProf[i]   = new TProfile(tit, nam, 200, 0., 200., -100000., +100000.,"s");
+	SampleProf[i]->SetDirectory(0);
     }
 }
 
@@ -272,9 +280,9 @@ BmnZDCRaw2Digit::~BmnZDCRaw2Digit()
     for (int i=0; i<n_test; i++)
     {
       if (htest[i]) delete htest[i];
-      htest[i] = 0;
+      htest[i] = NULL;
       if (TestProf[i]) delete TestProf[i];
-      TestProf[i] = 0;
+      TestProf[i] = NULL;
     }
     delete hsum_sim;
     delete hsum_raw;

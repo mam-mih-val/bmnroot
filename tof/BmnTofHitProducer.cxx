@@ -37,21 +37,22 @@ BmnTofHitProducer::BmnTofHitProducer(const char *name, const char *geomFile, Boo
     	if(fDoTest) 
     	{	
     		fTestFlnm = "test.BmnTofHitProducer.root";	
-    		effTestEfficiencySingleHit = new TEfficiency("TOF700_effSingleHit", "Efficiency single hit;R, cm;Side", 10000, -0.1, 2.); 						fList.Add(effTestEfficiencySingleHit);
-		effTestEfficiencyDoubleHit = new TEfficiency("TOF700_effDoubleHit", "Efficiency double hit;R, cm;Side", 10000, -0.1, 2.); 						fList.Add(effTestEfficiencyDoubleHit);
-    	
-		h1TestDistance = new TH1D("TOF700_TestDistance", "Distance between strips;M, cm;Side", 1000, 0., 100.); 								fList.Add(h1TestDistance);
-//     		h2TestStrips = new TH2D("TOF700_TestStrips", ";Z, cm;#phi, rads", 2000, -300., 300., 500, -3.5, 3.5);									fList.Add(h2TestStrips); 
+    		effTestEfficiencySingleHit = new TEfficiency("TOF700_effSingleHit", "Efficiency single hit;R, cm;Side", 10000, -0.1, 2.); 				fList.Add(effTestEfficiencySingleHit);
+		effTestEfficiencyDoubleHit = new TEfficiency("TOF700_effDoubleHit", "Efficiency double hit;R, cm;Side", 10000, -0.1, 2.); 				fList.Add(effTestEfficiencyDoubleHit);
+		h1TestDistance = new TH1D("TOF700_TestDistance", "Distance between strips;M, cm;Side", 1000, 0., 100.); 						fList.Add(h1TestDistance);
+//     		h2TestStrips = new TH2D("TOF700_TestStrips", ";Z, cm;#phi, rads", 2000, -300., 300., 500, -3.5, 3.5);							fList.Add(h1TestStrips);
      	
- 		h2TestNeighborPair = new TH2D("TOF700_TestNeighborPair", "Neighbor strip pairs test;stripID1;stripID2", 100, -0.5, 49.5, 100, -0.5, 49.5);				fList.Add(h2TestNeighborPair);		
-		h2TestXYSmeared = new TH2D("TOF700_TestXYSmeared", "Smeared XY (single hit) test;#DeltaX, cm;#DeltaY, cm", 1000, -1., 1., 1000, -2., 2.);				fList.Add(h2TestXYSmeared);
-		h2TestXYSmeared2 = new TH2D("TOF700_TestXYSmeared2", "Smeared XY (single hit) test;X, cm;Y, cm", 1000, -180., 180., 1000, -180., 180.);				fList.Add(h2TestXYSmeared2);		
-		h2TestXYSmearedDouble = new TH2D("TOF700_TestXYSmearedDouble", "Smeared XY (double hit) test;#DeltaX, cm;#DeltaY, cm", 1000, -2., 2., 1000, -2., 2.);			fList.Add(h2TestXYSmearedDouble);
-		h2TestXYSmearedDouble2 = new TH2D("TOF700_TestXYSmearedDouble2", "Smeared XY (double hit) test;X, cm;Y, cm", 1000, -180., 180., 1000, -180., 180.);			fList.Add(h2TestXYSmearedDouble2);
+ 		h2TestNeighborPair = new TH2D("TOF700_TestNeighborPair", "Neighbor strip pairs test;stripID1;stripID2", 100, -0.5, 49.5, 100, -0.5, 49.5);		fList.Add(h2TestNeighborPair);		
+		h2TestXYSmeared = new TH2D("TOF700_TestXYSmeared", "Smeared XY (single hit) test;#DeltaX, cm;#DeltaY, cm", 1000, -1., 1., 1000, -2., 2.);		fList.Add(h2TestXYSmeared);
+		h2TestXYSmeared2 = new TH2D("TOF700_TestXYSmeared2", "Smeared XY (single hit) test;X, cm;Y, cm", 1000, -180., 180., 1000, -180., 180.);			fList.Add(h2TestXYSmeared2);		
+		h2TestXYSmearedDouble = new TH2D("TOF700_TestXYSmearedDouble", "Smeared XY (double hit) test;#DeltaX, cm;#DeltaY, cm", 1000, -2., 2., 1000, -2., 2.);	fList.Add(h2TestXYSmearedDouble);
+		h2TestXYSmearedDouble2 = new TH2D("TOF700_TestXYSmearedDouble2", "Smeared XY (double hit) test;X, cm;Y, cm", 1000, -180., 180., 1000, -180., 180.);	fList.Add(h2TestXYSmearedDouble2);
 				
-		h2TestEtaPhi = new TH2D("TOF700_TestEtaPhi", ";#eta;#phi, degree", 1000, -5., +5., 1000, -181., 181.);								fList.Add(h2TestEtaPhi);
-		h2TestRZ = new TH2D("TOF700_TestRZ", ";X, cm;Y, cm", 1000, -300., 300., 1000, -200., 200.);										fList.Add(h2TestRZ);
-		h2TdetIdStripId = new TH2D("TOF700_TdetIdStripId", ";stripId;detId", 100, -0.5, 99.5, 26, -0.5, 25.5);									fList.Add(h2TdetIdStripId);		
+		h2TestEtaPhi = new TH2D("TOF700_TestEtaPhi", ";#eta;#phi, degree", 1000, -5., +5., 1000, -181., 181.);							fList.Add(h2TestEtaPhi);
+		h2TestRZ = new TH2D("TOF700_TestRZ", ";X, cm;Y, cm", 1000, -300., 300., 1000, -200., 200.);								fList.Add(h2TestRZ);
+		h2TdetIdStripId = new TH2D("TOF700_TdetIdStripId", ";stripId;detId", 100, -0.5, 99.5, 26, -0.5, 25.5);							fList.Add(h2TdetIdStripId);		
+		h1TestMass = new TH1D("TOF700_TestMass", "Mass", 500, 0., 100.); 											fList.Add(h1TestMass);
+		h1TestMassLong = new TH1D("TOF700_TestMassLong", "Mass - long tracks", 500, 0., 100.); 									fList.Add(h1TestMassLong);
     	}
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -143,7 +144,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 	aTofHits->Clear();
 		 
 	Int_t 		UID, trackID;	
-	TVector3 	pos, XYZ_smeared; 	
+	TVector3 	pos, XYZ_smeared, mom; 	
     	int		nSingleHits = 0, nDoubleHits = 0;
 	
 	if(fUseMCData)
@@ -156,9 +157,19 @@ void BmnTofHitProducer::Exec(Option_t* opt)
   
 			trackID = pPoint->GetTrackID();	
 			UID	= pPoint->GetDetectorID();
-			Double_t time = pRandom->Gaus(pPoint->GetTime(), fTimeSigma); // 100 ps		
+			Double_t time = pRandom->Gaus(pPoint->GetTime(), 0.100); // 100 ps		
+			Double_t length = pRandom->Gaus(pPoint->GetLength(), 1.); // 1 cm		
 			pPoint->Position(pos);
-	
+			pPoint->Momentum(mom);
+			Double_t p = mom.Mag();
+			Double_t cvel = 29.97925;
+			Double_t ct = cvel*time;
+			Double_t ctl = ct/length;
+			Double_t sqr = TMath::Sqrt(ctl*ctl - 1.);
+			Double_t mass = p*sqr;
+			Double_t elcut = 0.; // 0.02e-3;
+			if (pPoint->GetEnergyLoss() > elcut) h1TestMass->Fill(mass);
+			if (pPoint->GetEnergyLoss() > elcut && length > 600.) h1TestMassLong->Fill(mass);
 //			const LStrip *pStrip = pGeoUtils->FindStrip(UID, pos);
 			const LStrip *pStrip = pGeoUtils->FindStrip(UID);
 			if (pStrip == NULL) continue;

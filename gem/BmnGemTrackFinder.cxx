@@ -103,7 +103,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
             tracks.push_back(track);
         }
     }
-
+    
     if (!fIsTarget) {
         Float_t minChi = FLT_MAX;
         BmnGemTrack* minTrack = NULL;
@@ -128,7 +128,7 @@ void BmnGemTrackFinder::Exec(Option_t* opt) {
                     }
                 }
                 //                printf("nCopies = %d\n", nCopies);
-                if (nCopies > 1) {
+                if (nCopies > 0) {
                     if (Abs(tracks[iTr].GetChi2()) > Abs(tracks[jTr].GetChi2())) {
                         tracks[iTr].SetFlag(-1);
                         break;
@@ -291,20 +291,22 @@ BmnStatus BmnGemTrackFinder::NearestHitMerge(UInt_t station, BmnGemTrack* track)
     FairTrackParam minParUp; // updated track parameters for closest hit
     FairTrackParam minParPred; // predicted track parameters for closest hit
     fKalman = new BmnKalmanFilter_tmp();
-
+    Float_t stationZ = fDetector->GetGemStation(station)->GetModule(0)->GetZPositionRegistered();
+    FairTrackParam parPredict = (fGoForward) ? (*(track->GetParamFirst())) : (*(track->GetParamLast()));
+    Double_t length = track->GetLength();
+    TString propagationType = (fIsField) ? "field" : "line";
+    fKalman->TGeoTrackPropagate(&parPredict, stationZ, fPDG, NULL, &length, propagationType);
+    
     for (Int_t iHit = 0; iHit < fGemHitArray->GetEntriesFast(); ++iHit) {
         BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(iHit);
         if (!hit) continue;
         if (!hit->GetFlag()) continue;
         if (hit->GetStation() != station) continue;
-
-        Double_t length = track->GetLength();
-        FairTrackParam parPredict = (fGoForward) ? (*(track->GetParamFirst())) : (*(track->GetParamLast()));
-        fKalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &length, "field");
         FairTrackParam parUpdate = parPredict;
         Double_t chi = 0.0;
         fKalman->Update(&parUpdate, hit, chi);
-        if (Abs(chi) > 1000.)
+
+        if (Abs(chi) > 10.)
             continue;
         //        dist = Dist(parUpdate.GetX(), parUpdate.GetY(), hit->GetX(), hit->GetY());
         dist = Dist(parPredict.GetX(), parPredict.GetY(), hit->GetX(), hit->GetY());

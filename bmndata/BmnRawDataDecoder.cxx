@@ -103,6 +103,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fTof400StripMapFileName = "";
     fTof400PlaceMapFileName = "";
     fTof700MapFileName = "";
+    fTof700GeomFileName = "";
     fZDCCalibrationFileName = "";
     fZDCMapFileName = "";
     fECALCalibrationFileName = "";
@@ -159,6 +160,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     gem = NULL;
     silicon = NULL;
     fRawFileName = file;
+    fTOF700ReferenceRun = 0;
+    fTOF700ReferenceChamber = 0;
     fEventId = 0;
     fNevents = 0;
     fMaxEvent = nEvents;
@@ -174,6 +177,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fTof400StripMapFileName = "";
     fTof400PlaceMapFileName = "";
     fTof700MapFileName = "";
+    fTof700GeomFileName = "";
     fZDCCalibrationFileName = "";
     fZDCMapFileName = "";
     fECALCalibrationFileName = "";
@@ -751,9 +755,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     BmnEventType curEventType = kBMNPAYLOAD;
     BmnEventType prevEventType = curEventType;
 
-    if (fTof700Mapper) fTof700Mapper->readSlewingLimits();
-    if (fTof700Mapper) fTof700Mapper->BookSlewingResults();
-
     if (fGemMapper) {
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
             if (iEv % 100 == 0) {
@@ -956,7 +957,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     if (fDetectorSetup[5]) {
         tof700 = new TClonesArray("BmnTof2Digit");
         fDigiTree->Branch("TOF700", &tof700);
-        fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
+        fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName, fTOF700ReferenceRun, fTOF700ReferenceChamber, fTof700GeomFileName);
         //        fTof700Mapper->print();
         fTof700Mapper->readSlewingT0();
         fTof700Mapper->readSlewing();

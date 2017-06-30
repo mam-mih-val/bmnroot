@@ -107,6 +107,14 @@ public:
         return fDigiTree;
     }
 
+    void SetTOF700ReferenceRun(Int_t n) {
+        fTOF700ReferenceRun = n;
+    }
+
+    void SetTOF700ReferenceChamber(Int_t n) {
+        fTOF700ReferenceChamber = n;
+    }
+
     void SetRunId(UInt_t v) {
         fRunId = v;
     }
@@ -180,6 +188,10 @@ public:
         fTof700MapFileName = map;
     }
 
+    void SetTof700Geom(TString geom) {
+        fTof700GeomFileName = geom;
+    }
+
     void SetZDCMapping(TString map) {
         fZDCMapFileName = map;
     }
@@ -218,6 +230,10 @@ private:
 
     //9 bits correspond to detectors which we need to decode
     Bool_t fDetectorSetup[9];
+
+
+    Int_t fTOF700ReferenceRun;
+    Int_t fTOF700ReferenceChamber;
 
     Int_t GetRunIdFromFile(TString name);
     vector<UInt_t> fSiliconSerials; //list of serial id for Silicon
@@ -260,6 +276,7 @@ private:
     TString fTof400PlaceMapFileName;
     TString fTof400StripMapFileName;
     TString fTof700MapFileName;
+    TString fTof700GeomFileName;
     TString fZDCMapFileName;
     TString fZDCCalibrationFileName;
     TString fECALMapFileName;

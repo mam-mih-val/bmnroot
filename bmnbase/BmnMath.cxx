@@ -492,6 +492,32 @@ TVector3 CircleBy3Hit(BmnGemTrack* track, const TClonesArray* arr) {
 
 }
 
+TVector3 Pol2By3Hit(BmnGemTrack* track, const TClonesArray* arr) {
+    const Float_t nHits = track->GetNHits();
+    if (nHits < 3) return TVector3(0.0, 0.0, 0.0);
+    BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(track->GetHitIndex(0));
+    BmnGemStripHit* hit1 = (BmnGemStripHit*) arr->At(track->GetHitIndex(1));
+    BmnGemStripHit* hit2 = (BmnGemStripHit*) arr->At(track->GetHitIndex(2));
+
+    Float_t x0 = hit0->GetX();
+    Float_t z0 = hit0->GetZ();
+    Float_t x1 = hit1->GetX();
+    Float_t z1 = hit1->GetZ();
+    Float_t x2 = hit2->GetX();
+    Float_t z2 = hit2->GetZ();
+
+    Float_t z0_2 = z0 * z0;
+    Float_t z1_2 = z1 * z1;
+    Float_t z2_2 = z2 * z2;
+
+    Float_t B = (x2 * (z1_2 - z0_2) + x1 * (z0_2 - z2_2) + x0 * (z2_2 - z1_2)) / ((z2 - z1) * (z1 - z0) * (z0 - z2));
+    Float_t A = ((x2 - z1) - B * (z2 - z1)) / (z2_2 - z1_2);
+    Float_t C = x0 - B * z0 - A * z0_2;
+
+    return TVector3(A, B, C);
+
+}
+
 TVector3 CircleBy3Hit(BmnGemTrack* track, const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {
     Float_t x0 = h0->GetX();
     Float_t z0 = h0->GetZ();

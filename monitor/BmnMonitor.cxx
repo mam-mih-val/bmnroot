@@ -14,6 +14,7 @@
 
 #include "BmnMonitor.h"
 #include "BmnOnlineDecoder.h"
+#include "BmnHistSilicon.h"
 
 BmnMonitor::BmnMonitor() {
     keepWorking = kTRUE;
@@ -191,7 +192,7 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
 
     TString refName = Form("ref%06d_", fRunID);
     bhVec.push_back(new BmnHistGem(refName + "GEM", _curDir));
-    bhVec.push_back(new BmnHistGem(refName + "Silicon", _curDir));
+    bhVec.push_back(new BmnHistSilicon(refName + "Silicon", _curDir));
     bhVec.push_back(new BmnHistDch(refName + "DCH"));
     bhVec.push_back(new BmnHistMwpc(refName + "MWPC"));
     bhVec.push_back(new BmnHistZDC(refName + "ZDC"));
@@ -254,7 +255,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
 
 void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistGem("GEM", _curDir));
-    bhVec4show.push_back(new BmnHistGem("Silicon", _curDir));
+    bhVec4show.push_back(new BmnHistSilicon("Silicon", _curDir));
     bhVec4show.push_back(new BmnHistDch("DCH"));
     bhVec4show.push_back(new BmnHistMwpc("MWPC"));
     bhVec4show.push_back(new BmnHistZDC("ZDC"));

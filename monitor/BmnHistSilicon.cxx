@@ -39,8 +39,8 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path) : BmnHist() {
 //            break;
 //    }
     // Create histograms
-    sumMods = 1;// @TODO remove
-    maxLayers = 8;// @TODO remove
+    sumMods = 10;// @TODO remove
+    maxLayers = 2;// @TODO remove
     for (Int_t iStation = 0; iStation < 1/*gemStationSet->GetNStations()*/; iStation++) {
         vector<vector<TH1F*> > rowGEM;
 //        BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
@@ -78,9 +78,9 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path) : BmnHist() {
     Names.resize(sumMods * maxLayers);
     for (Int_t iStation = 0; iStation < 1/*gemStationSet->GetNStations()*/; iStation++) {
 //        BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
-        for (Int_t iModule = 0; iModule < 0/*st->GetNModules()*/; iModule++) {
+        for (Int_t iModule = 0; iModule < 10/*st->GetNModules()*/; iModule++) {
 //            BmnGemStripModule *mod = st->GetModule(iModule);
-            for (Int_t iLayer = 0; iLayer < 8/*mod->GetNStripLayers()*/; iLayer++) {
+            for (Int_t iLayer = 0; iLayer < 2/*mod->GetNStripLayers()*/; iLayer++) {
                 PadInfo *p = new PadInfo();
                 p->current = histSiliconStrip[iStation][iModule][iLayer];
                 Int_t iPad = modCtr * maxLayers + iLayer;

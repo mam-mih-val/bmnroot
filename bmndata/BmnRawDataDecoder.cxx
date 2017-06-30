@@ -328,10 +328,10 @@ BmnStatus BmnRawDataDecoder::wait_stream(deque<UInt_t> *que, Int_t len, UInt_t l
     Int_t t;
     Int_t dt = 10000;
     while (que->size() < len) {
+        if (t > limit)
+            return kBMNERROR;
         usleep(dt);
         t += dt;
-        if (t >= limit)
-            return kBMNERROR;
     }
     return kBMNSUCCESS;
 }
@@ -342,13 +342,13 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len, UInt_t limit) {
     Int_t dt = 1000000;
     while (fLengthRawFile < pos + len) {
         //        gSystem->ProcessEvents();
+        if (t > limit)
+            return kBMNERROR;
         usleep(dt);
         fseeko64(fRawFileIn, 0, SEEK_END);
         fLengthRawFile = ftello64(fRawFileIn);
         fseeko64(fRawFileIn, pos - fLengthRawFile, SEEK_CUR);
         t += dt;
-        if (t >= limit)
-            return kBMNERROR;
     }
     return kBMNSUCCESS;
 }

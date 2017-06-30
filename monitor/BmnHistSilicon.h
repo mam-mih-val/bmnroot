@@ -29,16 +29,29 @@
 #include "THttpServer.h"
 
 #include "BmnHist.h"
+#include "BmnSiliconDigit.h"
 
 using namespace std;
 
 class BmnHistSilicon : public BmnHist {
 public:
-    BmnHistSilicon();
+    BmnHistSilicon(TString title = "Silicon", TString path = "");
     virtual ~BmnHistSilicon();
+    void Reset();
+    void Register(THttpServer *serv);
+    void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL);
+    void DrawBoth();
+    void FillFromDigi(DigiArrays *fDigiArrays);
+    BmnStatus  SetRefRun(Int_t id);
 private:
     TCanvas *canStrip;
     vector<PadInfo*> canStripPads;
+//    BmnGemStripConfiguration::GEM_CONFIG gemStationConfig;
+//    BmnGemStripStationSet *gemStationSet;
+    vector<TString> Names;
+    vector<vector<vector<TH1F*  > > > histSiliconStrip;
+    UInt_t sumMods;
+    UInt_t maxLayers;
 
     ClassDef(BmnHistSilicon, 1)
 };

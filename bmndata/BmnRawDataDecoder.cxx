@@ -889,11 +889,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     runHeader->SetNEvents(nEv);
 
     fDigiTree->Write();
+    DisposeDecoder();
     fDigiFileOut->Close();
     fRootFileIn->Close();
-
-    DisposeDecoder();
-
+    
     return kBMNSUCCESS;
 }
 

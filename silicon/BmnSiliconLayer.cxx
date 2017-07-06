@@ -11,9 +11,9 @@ BmnSiliconLayer::BmnSiliconLayer() {
 
     Verbosity = true;
 
-    LayerZoneNumber = 0;
-    LayerID = 0;
+    ZoneID = -1;
     LayerType = LowerStripLayer;
+    FirstStripNumber = 0;
 
     XMinLayer = 0.0;
     XMaxLayer = 10.0;
@@ -22,7 +22,7 @@ BmnSiliconLayer::BmnSiliconLayer() {
 
     Pitch = 0.01; //cm
     AngleDeg = 2.5; //in degrees from a vertical line where a plus value is clockwise
-    AngleRad = AngleDeg*Pi()/180;  //in radians
+    AngleRad = AngleDeg*Pi()/180; //in radians
 
     StripOrder = LeftToRight;
 
@@ -38,16 +38,17 @@ BmnSiliconLayer::BmnSiliconLayer() {
     ClusterFindingThreshold = 0.0;
 }
 
-BmnSiliconLayer::BmnSiliconLayer(Int_t zone_number, Int_t layer_id, StripLayerType layer_type,
+BmnSiliconLayer::BmnSiliconLayer(Int_t zone_id,
+                                 StripLayerType layer_type, Int_t first_strip_number,
                                  Double_t xsize, Double_t ysize,
                                  Double_t xorig, Double_t yorig,
                                  Double_t pitch, Double_t adeg) {
 
     Verbosity = true;
 
-    LayerZoneNumber = zone_number;
-    LayerID = layer_id;
+    ZoneID = zone_id;
     LayerType = layer_type;
+    FirstStripNumber = first_strip_number;
 
     XMinLayer = xorig;
     XMaxLayer = xorig + xsize;
@@ -56,7 +57,7 @@ BmnSiliconLayer::BmnSiliconLayer(Int_t zone_number, Int_t layer_id, StripLayerTy
 
     Pitch = pitch;
     AngleDeg = adeg; //in degrees from a vertical line where a plus value is clockwise
-    AngleRad = AngleDeg*Pi()/180;  //in radians
+    AngleRad = AngleDeg*Pi()/180; //in radians
 
     StripOrder = LeftToRight;
 
@@ -234,26 +235,33 @@ Bool_t BmnSiliconLayer::IsPointInsideStripLayer(Double_t x, Double_t y) {
 }
 
 Bool_t BmnSiliconLayer::SetStripSignal(Int_t strip_num, Double_t signal) {
-    if(strip_num >= 0 && strip_num < Strips.size()) {
-        Strips[strip_num] = signal;
+    if( strip_num >= FirstStripNumber && strip_num < (Strips.size()+FirstStripNumber) ) {
+        Strips[strip_num-FirstStripNumber] = signal;
         return true;
     }
     else return false;
 }
 
 Bool_t BmnSiliconLayer::AddStripSignal(Int_t strip_num, Double_t signal) {
-    if(strip_num >= 0 && strip_num < Strips.size()) {
-        Strips[strip_num] += signal;
+    if( strip_num >= FirstStripNumber && strip_num < (Strips.size()+FirstStripNumber) ) {
+        Strips[strip_num-FirstStripNumber] += signal;
         return true;
     }
     else return false;
 }
 
 Double_t BmnSiliconLayer::GetStripSignal(Int_t strip_num) {
-    if(strip_num >= 0 && strip_num < Strips.size()) {
-        return Strips[strip_num];
+    if( strip_num >= FirstStripNumber && strip_num < (Strips.size()+FirstStripNumber) ) {
+        return Strips[strip_num-FirstStripNumber];
     }
     else return -1;
+}
+
+Double_t BmnSiliconLayer::GetStripHitPos(Int_t num) {
+    if(num >= 0 && num < StripHits.size()) {
+        return StripHits[num];
+    }
+    return -1.0;
 }
 
 Double_t BmnSiliconLayer::GetStripHitTotalSignal(Int_t num) {
@@ -325,11 +333,11 @@ Double_t BmnSiliconLayer::ConvertPointToStripPosition(Double_t x, Double_t y) {
     //where integer part - number of a strip, fractional part - position on this strip (as ratio from begin)
 
     if(StripOrder == LeftToRight) {
-        return (ConvertNormalPointToStripX(x, y)-XLeftPointOfStripNumbering)/Pitch;
+        return (ConvertNormalPointToStripX(x, y)-XLeftPointOfStripNumbering)/Pitch + FirstStripNumber;
     }
     else {
         if(StripOrder == RightToLeft) {
-            return (XRightPointOfStripNumbering-ConvertNormalPointToStripX(x, y))/Pitch;
+            return (XRightPointOfStripNumbering-ConvertNormalPointToStripX(x, y))/Pitch + FirstStripNumber;
         }
     }
 }
@@ -339,7 +347,7 @@ Double_t BmnSiliconLayer::CalculateStripEquationB(Double_t strip_pos) {
     Double_t b;
 
     if(Abs(AngleDeg) != 90.0) { //case: y=a*x+b
-        Double_t x_strip_shift = (strip_pos*Pitch)/Cos(Abs(AngleRad));
+        Double_t x_strip_shift = ((strip_pos-FirstStripNumber)*Pitch)/Cos(Abs(AngleRad));
         Double_t xcoord;
 
         if(StripOrder == LeftToRight) {
@@ -354,7 +362,7 @@ Double_t BmnSiliconLayer::CalculateStripEquationB(Double_t strip_pos) {
         }
     }
     else { //case: y=b
-        Double_t y_strip_shift = strip_pos*Pitch*Sin(AngleRad);
+        Double_t y_strip_shift = (strip_pos-FirstStripNumber)*Pitch*Sin(AngleRad);
 
         if(StripOrder == LeftToRight) {
             b = YLeftPointOfStripNumbering - y_strip_shift;
@@ -443,21 +451,21 @@ void BmnSiliconLayer::FindClustersAndStripHits() {
 
     //mean position and cluster signal -----------------------------------------
     for(Int_t i = 0; i < NStripsInCluster; ++i) {
-        Double_t strip_num = cluster.Strips.at(i);
+        Double_t strip_num = cluster.Strips.at(i) + FirstStripNumber;
         Double_t signal = cluster.Signals.at(i);
         total_cluster_signal += signal;
         mean_strip_position += (strip_num+0.5)*signal;
     }
     mean_strip_position /= total_cluster_signal;
 
-    if(mean_strip_position < 0.0) mean_strip_position = 0.0;
-    if(mean_strip_position >= AnalyzableStrips.size()) mean_strip_position = AnalyzableStrips.size() - 0.001;
+    if(mean_strip_position < FirstStripNumber) mean_strip_position = FirstStripNumber;
+    if(mean_strip_position >= AnalyzableStrips.size()+FirstStripNumber) mean_strip_position = AnalyzableStrips.size() - 0.001;
     //--------------------------------------------------------------------------
 
     //cluster standard deviation (sigma): RMS ----------------------------------
 //    if(NStripsInCluster > 1) {
 //        for(Int_t i = 0; i < NStripsInCluster; ++i) {
-//            Double_t strip_num = cluster.Strips.at(i);
+//            Double_t strip_num = cluster.Strips.at(i) + FirstStripNumber;
 //            Double_t signal = cluster.Signals.at(i);
 //            Double_t residual = (strip_num+0.5) - mean_strip_position;
 //            cluster_rms += residual*residual*signal;
@@ -470,13 +478,13 @@ void BmnSiliconLayer::FindClustersAndStripHits() {
 //    }
 //
 
-     // AZ, STS, method2
+    // AZ, STS, method2
     Double_t sumW = total_cluster_signal;
     Double_t sumWX = 0.;
     Double_t sumWX2 = 0.;
     if(NStripsInCluster > 1) {
         for(Int_t i = 0; i < NStripsInCluster; ++i) {
-           Double_t strip_num = cluster.Strips.at(i);
+           Double_t strip_num = cluster.Strips.at(i) + FirstStripNumber;
            Double_t signal = cluster.Signals.at(i);
            sumWX += strip_num * signal;
            sumWX2 += strip_num * strip_num * signal;
@@ -488,19 +496,6 @@ void BmnSiliconLayer::FindClustersAndStripHits() {
         cluster_rms = 1.0 /TMath::Sqrt(12.0);
     }
 
-//     // AZ, STS, Real CF, method3
-//    Double_t sumW = total_cluster_signal;
-//    Double_t maxStripSignal = 0.;
-//
-//    if(NStripsInCluster > 0) {
-//        for(Int_t i = 0; i < NStripsInCluster; ++i) {
-//           Double_t signal = cluster.Signals.at(i);
-//           if (signal > maxStripSignal)
-//               maxStripSignal = signal;
-//
-//        }
-//        cluster_rms = sumW / maxStripSignal;
-//    }
     //--------------------------------------------------------------------------
 
     StripHits.push_back(mean_strip_position);

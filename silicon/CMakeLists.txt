@@ -33,6 +33,7 @@ set(SILICON_SRCS
 BmnSilicon.cxx
 BmnSiliconPoint.cxx
 BmnSiliconLayer.cxx
+BmnSiliconModule.cxx
 BmnSiliconDigit.cxx
 BmnSiliconRaw2Digit.cxx
 )

@@ -21,7 +21,8 @@ public:
     //Constructors -------------------------------------------------------------
     BmnSiliconLayer();
 
-    BmnSiliconLayer(Int_t zone_number, Int_t layer_id, StripLayerType layer_type,
+    BmnSiliconLayer(Int_t zone_id,
+                    StripLayerType layer_type, Int_t first_strip_number,
                     Double_t xsize, Double_t ysize,
                     Double_t xorig, Double_t yorig,
                     Double_t pitch, Double_t adeg);
@@ -36,13 +37,16 @@ public:
     Int_t GetNStrips();
 
     void SetVerbosity(Bool_t verb) { Verbosity = verb; }
+    void SetZoneID(Int_t zone_id) { ZoneID = zone_id; }
+    void SetFirstStripNumber(Int_t first_strip_number) { FirstStripNumber = first_strip_number; }
     void SetPitch(Double_t pitch);
     void SetLayerSizes(Double_t xsize, Double_t ysize, Double_t xorig=0.0, Double_t yorig=0.0);
     void SetAngleDeg(Double_t deg); // plus - clockwise from vertical
 
     Bool_t GetVerbosity() { return Verbosity; }
-    Int_t GetZoneNumber() { return LayerZoneNumber; }
-    Int_t GetLayerID() { return LayerID; }
+    Int_t GetZoneID() { return ZoneID; }
+    Int_t GetFirstStripNumber() { return FirstStripNumber; }
+    Int_t GetLastStripNumber() { return (GetNStrips()+FirstStripNumber) - 1; }
     StripLayerType GetType() { return LayerType; }
     Double_t GetPitch() { return Pitch; }
     Double_t GetAngleDeg() { return AngleDeg; }
@@ -109,7 +113,7 @@ public:
     void SetClusterFindingThreshold(Double_t threshold) { ClusterFindingThreshold = threshold; }
     Double_t GetClusterFindingThreshold() { return ClusterFindingThreshold; }
 
-    vector<Double_t> GetSmoothStrips() { return SmoothStrips; } //for test
+    vector<Double_t> GetSmoothStrips() { return SmoothStrips; } //for test (don't forget about FirstStripNumber when you use it)
     //--------------------------------------------------------------------------
 
 private:
@@ -119,8 +123,8 @@ private:
 private:
     Bool_t Verbosity;
 
-    Int_t LayerZoneNumber; //zone number of the strip layer
-    Int_t LayerID; // layer id-number to recognize the layers linked together
+    Int_t ZoneID; // zone id-number to recognize the layers linked together
+    Int_t FirstStripNumber; // the number that a numbered strips start with
     StripLayerType LayerType; //type of the strip layer: lower or upper
 
     Double_t Pitch; // as a perpendicular to a strip
@@ -304,6 +308,7 @@ public:
         PositionResidual = 0.0;
         IsCorrect = kFALSE;
     }
+
     //Add new strip in ascending order of strip number (if cluster has strip with such number - add signal to that strip)
     void AddStrip(Int_t strip_num, Double_t strip_signal) {
         Bool_t StripNumExists = false;

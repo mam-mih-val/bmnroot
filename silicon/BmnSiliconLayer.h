@@ -124,7 +124,7 @@ private:
     Bool_t Verbosity;
 
     Int_t ZoneID; // zone id-number to recognize the layers linked together
-    Int_t FirstStripNumber; // the number that a numbered strips start with
+    Int_t FirstStripNumber; // the number that numbered strips start with
     StripLayerType LayerType; //type of the strip layer: lower or upper
 
     Double_t Pitch; // as a perpendicular to a strip

@@ -95,7 +95,7 @@ InitStatus BmnGemStripHitMaker::Init() {
 
         case BmnGemStripConfiguration::RunSpring2017:
             StationSet = new BmnGemStripStationSet_RunSpring2017(fCurrentConfig);
-            //StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunString2017.xml");
+            //StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2017.xml");
             if (fVerbose) cout << "   Current Configuration : RunSpring2017" << "\n";
             break;
         default:

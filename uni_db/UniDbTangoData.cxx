@@ -539,18 +539,22 @@ void UniDbTangoData::PrintTangoDataConsole(TObjArray* tango_data)
 {
     int def_precision = cout.precision();
     cout.precision(17);
+
+    int par_length = 0;
     for (int i = 0; i < tango_data->GetEntriesFast(); i++)
     {
         TangoTimeParameter* pParameter = (TangoTimeParameter*) tango_data->At(i);
         cout<<pParameter->parameter_time.AsSQLString()<<endl;
-        //cout<<TD->dataArray[i].parameter_length<<endl;
 
-        for (int j = 0; j < pParameter->double_parameter_value.size(); j++)
+        //cout<<TD->dataArray[i].parameter_length<<endl;
+        par_length = pParameter->double_parameter_value.size();
+        for (int j = 0; j < par_length; j++)
         {
             cout<<pParameter->double_parameter_value[j]<<"  ";
         }
         cout<<""<<endl<<endl;
     }
+
     cout.precision(def_precision);
 
     return;
@@ -559,7 +563,6 @@ void UniDbTangoData::PrintTangoDataConsole(TObjArray* tango_data)
 void UniDbTangoData::PrintTangoDataSurface(TObjArray* tango_data)
 {
     TCanvas* c1 = new TCanvas("c1", "Tango Data", 800, 600);
-
     TGraph2D* gr2 = new TGraph2D();
     gr2->SetTitle("Tango Data (surface)");
 
@@ -567,7 +570,9 @@ void UniDbTangoData::PrintTangoDataSurface(TObjArray* tango_data)
     for (int i = 0; i < tango_data->GetEntriesFast(); i++)
     {
         TangoTimeParameter* pParameter = (TangoTimeParameter*) tango_data->At(i);
+
         par_length = pParameter->double_parameter_value.size();
+        //cout<<"Parameter length = "<<par_length<<endl;
         for (int j = 0; j < par_length; j++)
         {
             int cur_time = pParameter->parameter_time.Convert();

@@ -47,8 +47,7 @@ protected:
     BmnSiliconStation();
 
     BmnSiliconStation(TXMLNode *stationNode, Int_t iStation,
-                       Double_t xpos_station, Double_t ypos_station, Double_t zpos_station,
-                       Double_t beamradius);
+                       Double_t xpos_station, Double_t ypos_station, Double_t zpos_station);
 
     /* Destructor */
     virtual ~BmnSiliconStation();

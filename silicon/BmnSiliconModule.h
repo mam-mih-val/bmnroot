@@ -4,16 +4,13 @@
 #include "Rtypes.h"
 #include "BmnSiliconLayer.h"
 
-enum ElectronDriftDirectionInModule {ForwardZAxisEDrift, BackwardZAxisEDrift};
-
 class BmnSiliconModule {
 
 public:
     //Constructors -------------------------------------------------------------
     BmnSiliconModule();
 
-    BmnSiliconModule(Double_t z_start_pos,
-                     ElectronDriftDirectionInModule edrift_direction);
+    BmnSiliconModule(Double_t z_start_pos);
     //--------------------------------------------------------------------------
 
     //Destructor
@@ -33,9 +30,6 @@ public:
 
     void SetZStartModulePosition(Double_t zpos_module) { ZStartModulePosition = zpos_module; }
     Double_t GetZStartModulePosition() { return ZStartModulePosition; }
-
-    void SetElectronDriftDirection(ElectronDriftDirectionInModule direction) { ElectronDriftDirection = direction; }
-    ElectronDriftDirectionInModule GetElectronDriftDirection() { return ElectronDriftDirection; }
 
     Double_t GetModuleThickness() { return ModuleThickness; }
     Double_t GetZPositionRegistered(); //position for all registered point (hits)
@@ -117,8 +111,6 @@ private:
 
     Double_t ZStartModulePosition;
     Double_t ModuleThickness;
-
-    ElectronDriftDirectionInModule ElectronDriftDirection;
 
     vector<BmnSiliconLayer> StripLayers;
 

@@ -14,23 +14,19 @@ BmnSiliconModule::BmnSiliconModule() {
     ZStartModulePosition = 0.0;
     ModuleThickness = 0.1; //cm
 
-    ElectronDriftDirection = ForwardZAxisEDrift;
-
     XMinModule = 0.0;
     XMaxModule = 0.0;
     YMinModule = 0.0;
     YMaxModule = 0.0;
 }
 
-BmnSiliconModule::BmnSiliconModule(Double_t z_start_pos,
-                                   ElectronDriftDirectionInModule edrift_direction) {
+BmnSiliconModule::BmnSiliconModule(Double_t z_start_pos) {
 
     Verbosity = true;
 
     ZStartModulePosition = z_start_pos;
-    ModuleThickness = 0.1; //cm
+    ModuleThickness = 0.03; //cm
 
-    ElectronDriftDirection = edrift_direction;
 
     XMinModule = 0.0;
     XMaxModule = 0.0;

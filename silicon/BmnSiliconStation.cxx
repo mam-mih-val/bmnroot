@@ -11,8 +11,7 @@ BmnSiliconStation::BmnSiliconStation()
   Modules(NULL) { }
 
 BmnSiliconStation::BmnSiliconStation(TXMLNode *stationNode, Int_t iStation,
-                                       Double_t xpos_station, Double_t ypos_station, Double_t zpos_station,
-                                       Double_t beamradius)
+                                       Double_t xpos_station, Double_t ypos_station, Double_t zpos_station)
 
 : StationNumber(iStation), NModules(0),
   XSize(0.0), YSize(0.0), ZSize(0.0),
@@ -216,8 +215,6 @@ Int_t BmnSiliconStation::CountNumberOfModules(TXMLNode *node) {
 
 Bool_t BmnSiliconStation::ParseModule(TXMLNode *node, Int_t iModule) {
 
-    ElectronDriftDirectionInModule edrift_direction = ForwardZAxisEDrift; //default
-
     if( node->HasAttributes() ) {
         TList *attrList = node->GetAttributes();
         TXMLAttr *attr = 0;
@@ -233,18 +230,10 @@ Bool_t BmnSiliconStation::ParseModule(TXMLNode *node, Int_t iModule) {
             if( strcmp(attr->GetName(), "zShift") == 0 ) {
                 ZShiftOfModules[iModule] = atof(attr->GetValue());
             }
-            if( strcmp(attr->GetName(), "driftDirection") == 0 ) {
-                if( strcmp(attr->GetValue(), "forward") == 0 ) {
-                    edrift_direction = ForwardZAxisEDrift;
-                }
-                if( strcmp(attr->GetValue(), "backward") == 0 ) {
-                    edrift_direction = BackwardZAxisEDrift;
-                }
-            }
         }
     }
 
-    Modules[iModule] = new BmnSiliconModule(ZPosition+ZShiftOfModules[iModule], edrift_direction);
+    Modules[iModule] = new BmnSiliconModule(ZPosition+ZShiftOfModules[iModule]);
 
     //Layers
     node = node->GetChildren();
@@ -268,7 +257,8 @@ BmnSiliconLayer BmnSiliconStation::ParseLayer(TXMLNode *node, Int_t iLayer, Int_
     Double_t pitch;
     Double_t xsize, ysize, xorig, yorig;
     StripNumberingDirection strip_direction;
-    StripBorderPoint left_border, right_border;
+    Double_t lx_border, ly_border; //left border
+    Double_t rx_border, ry_border; //right border
 
     if( node->HasAttributes() ) {
         TList *attrList = node->GetAttributes();
@@ -316,21 +306,17 @@ BmnSiliconLayer BmnSiliconStation::ParseLayer(TXMLNode *node, Int_t iLayer, Int_
                     strip_direction = RightToLeft;
                 }
             }
-            if( strcmp(attr->GetName(), "lborder") == 0 ) {
-                if( strcmp(attr->GetValue(), "LeftTop") == 0 ) {
-                    left_border = LeftTop;
-                }
-                if( strcmp(attr->GetValue(), "LeftBottom") == 0 ) {
-                    left_border = LeftBottom;
-                }
+            if( strcmp(attr->GetName(), "lxborder") == 0 ) {
+                lx_border = -atof(attr->GetValue()); //inverted
             }
-            if( strcmp(attr->GetName(), "rborder") == 0 ) {
-                if( strcmp(attr->GetValue(), "RightTop") == 0 ) {
-                    right_border = RightTop;
-                }
-                if( strcmp(attr->GetValue(), "RightBottom") == 0 ) {
-                    right_border = RightBottom;
-                }
+            if( strcmp(attr->GetName(), "lyborder") == 0 ) {
+                ly_border = atof(attr->GetValue());
+            }
+            if( strcmp(attr->GetName(), "rxborder") == 0 ) {
+                rx_border = -atof(attr->GetValue()); //inverted
+            }
+            if( strcmp(attr->GetName(), "ryborder") == 0 ) {
+                ry_border = atof(attr->GetValue());
             }
         }
     }
@@ -341,7 +327,11 @@ BmnSiliconLayer BmnSiliconStation::ParseLayer(TXMLNode *node, Int_t iLayer, Int_
                           pitch, adeg);
 
     layer.SetStripNumberingOrder(strip_direction);
-    layer.SetStripNumberingBorders(left_border, right_border);
+    
+    layer.SetStripNumberingBorders(XShiftOfModules[iModule]+XPosition+lx_border,
+                                   YShiftOfModules[iModule]+YPosition+ly_border,
+                                   XShiftOfModules[iModule]+XPosition+rx_border,
+                                   YShiftOfModules[iModule]+YPosition+ry_border);
 
     //Dead zones
     node = node->GetChildren();

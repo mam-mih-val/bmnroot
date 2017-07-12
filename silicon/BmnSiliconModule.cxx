@@ -12,7 +12,7 @@ BmnSiliconModule::BmnSiliconModule() {
     Verbosity = true;
 
     ZStartModulePosition = 0.0;
-    ModuleThickness = 0.1; //cm
+    ModuleThickness = 0.03; //cm
 
     XMinModule = 0.0;
     XMaxModule = 0.0;

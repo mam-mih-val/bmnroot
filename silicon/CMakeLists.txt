@@ -36,6 +36,7 @@ BmnSiliconLayer.cxx
 BmnSiliconModule.cxx
 BmnSiliconStation.cxx
 BmnSiliconStationSet.cxx
+BmnSiliconDigitizer.cxx
 BmnSiliconDigit.cxx
 BmnSiliconRaw2Digit.cxx
 )

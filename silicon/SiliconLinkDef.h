@@ -12,6 +12,7 @@
 #pragma link C++ class BmnSiliconModule+;
 #pragma link C++ class BmnSiliconStation+;
 #pragma link C++ class BmnSiliconStationSet+;
+#pragma link C++ class BmnSiliconDigitizer+;
 #pragma link C++ class BmnSiliconDigit+;
 #pragma link C++ class BmnSiliconRaw2Digit+;
 

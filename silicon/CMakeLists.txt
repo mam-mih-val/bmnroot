@@ -37,7 +37,9 @@ BmnSiliconModule.cxx
 BmnSiliconStation.cxx
 BmnSiliconStationSet.cxx
 BmnSiliconDigitizer.cxx
+BmnSiliconHitMaker.cxx
 BmnSiliconDigit.cxx
+BmnSiliconHit.cxx
 BmnSiliconRaw2Digit.cxx
 )
 

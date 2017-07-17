@@ -89,6 +89,41 @@ Double_t BmnSiliconModule::GetStripSignalInLayer(Int_t layer_num, Int_t strip_nu
     return -1;
 }
 
+Int_t BmnSiliconModule::GetFirstStripInZone(Int_t zone_id) {
+    Int_t first_strip = 1E6;
+
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            Int_t first_strip_curr_layer = StripLayers[ilayer].GetFirstStripNumber();
+            if(first_strip > first_strip_curr_layer) first_strip = first_strip_curr_layer;
+        }
+    }
+    return first_strip;
+}
+
+Int_t BmnSiliconModule::GetLastStripInZone(Int_t zone_id) {
+    Int_t last_strip = 0;
+
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            Int_t last_strip_curr_layer = StripLayers[ilayer].GetLastStripNumber();
+            if(last_strip < last_strip_curr_layer) last_strip = last_strip_curr_layer;
+        }
+    }
+    return last_strip;
+}
+
+Double_t BmnSiliconModule::GetStipSignalInZone(Int_t zone_id, Int_t strip_num) {
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            if( strip_num >= StripLayers[ilayer].GetFirstStripNumber() && strip_num <= StripLayers[ilayer].GetLastStripNumber() ) {
+                return StripLayers[ilayer].GetStripSignal(strip_num);
+            }
+        }
+    }
+    return -1;
+}
+
 void BmnSiliconModule::ResetModuleData() {
     for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
         StripLayers[ilayer].ResetLayer();

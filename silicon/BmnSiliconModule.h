@@ -46,6 +46,11 @@ public:
 
     Double_t GetStripSignalInLayer(Int_t layer_num, Int_t strip_num);
 
+    Int_t GetFirstStripInZone(Int_t zone_id);
+    Int_t GetLastStripInZone(Int_t zone_id);
+
+    Double_t GetStipSignalInZone(Int_t zone_id, Int_t strip_num);
+
     Int_t GetNStripLayers() { return StripLayers.size(); }
     BmnSiliconLayer& GetStripLayer(Int_t num) { return StripLayers.at(num); }
     vector<BmnSiliconLayer>& GetStripLayers() { return StripLayers; }

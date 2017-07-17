@@ -154,7 +154,7 @@ Bool_t BmnSiliconStationSet::CreateConfigurationFromXMLFile(TString xml_config_f
     }
 
     NStations = CountNumberOfStations(node);
-    
+
     SiliconStations = new BmnSiliconStation* [NStations];
     XStationPositions = new Double_t[NStations];
     YStationPositions = new Double_t[NStations];

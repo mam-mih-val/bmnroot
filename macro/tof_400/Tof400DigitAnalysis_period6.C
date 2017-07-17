@@ -140,7 +140,7 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
     eveTree->SetBranchAddress("EventHeader", &EventHeader);
 
     Long64_t nEvents = eveTree->GetEntries();
-    if (nEvForRead == 0) nEvForRead = nEvents;
+    if (nEvForRead == 0 || nEvForRead > nEvents) nEvForRead = nEvents;
     cout << "Will be readed " << nEvForRead << " events from " << nEvents << endl;
 
     for (Int_t iEv = 0; iEv < nEvForRead; iEv++) {
@@ -231,8 +231,6 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
                     h_dtBC2T0_vs_AmpBC2 -> Fill(digBC2->GetAmp(), dtBC2T0);
                     h_TimeBC2_vs_TimeT0->Fill(digBC2->GetTime(), digT0->GetTime());
                 }//*/
-
-
 
             }// end             if (digT0->GetAmp() >= 17.3 && digT0->GetAmp() <= 19.2)
         } // end if ((T0Digits->GetEntriesFast()) == 1 && (VetoDigits->GetEntriesFast()) == 0 && (BDDigits->GetEntriesFast()) >= 2)

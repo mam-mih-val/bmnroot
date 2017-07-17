@@ -28,17 +28,17 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Bool_t FillHist = kFALSE) {
 
         fName.Clear();
         fName = Form("Hist_HitByCh_%s", Name.Data());
-        hHitByCh = new TH1I(fName, fName, fNStr, 0, fNStr);
+        hHitByCh = new TH1I(fName, fName, fNStr + 1, -0.5, fNStr + 0.5);
         fHistListStat->Add(hHitByCh);
 
         fName.Clear();
         fName = Form("Hist_HitPerEv_%s", Name.Data());
-        hHitPerEv = new TH1I(fName, fName, fNStr, 0, fNStr);
+        hHitPerEv = new TH1I(fName, fName, fNStr + 1, -0.5, fNStr + 0.5);
         fHistListStat->Add(hHitPerEv);
 
         fName.Clear();
         fName = Form("Hist_HitLR_%s", Name.Data());
-        hHitLR = new TH2I(fName, fName, fNStr, 0, fNStr, fNStr, 0, fNStr);
+        hHitLR = new TH2S(fName, fName, fNStr, 0, fNStr, fNStr, 0, fNStr);
         fHistListStat->Add(hHitLR);
 
         fName.Clear();
@@ -56,6 +56,23 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Bool_t FillHist = kFALSE) {
         hXY = new TH2I(fName, fName, 240, -150, 150, 120, -75, 75);
         fHistListStat->Add(hXY);
 
+        hDy_near = new TH1S("hDy_near", "hDy_near", 400, -20, 20);
+        hDtime_near = new TH1S("hDtime_near", "hDtime_near", 400, -10, 10);
+        hDWidth_near = new TH1S("hDWidth_near", "hDWidth_near", 256, -28., 28.);
+        hTempDtimeDy_near = new TH2S("hTempDtimeDy_near", "hTempDtimeDy_near", 400, -10, 10, 200, -10, 10);
+        hDy_acros = new TH1S("hDy_acros", "hDy_acros", 400, -20, 20);
+        hDtime_acros = new TH1S("hDtime_acros", "hDtime_acros", 400, -10, 10);
+        hDWidth_acros = new TH1S("hDWidth_acros", "hDWidth_acros", 256, -28., 28.);
+        hTempDtimeDy_acros = new TH2S("hTempDtimeDy_acros", "hTempDtimeDy_acros", 400, -10, 10, 200, -10, 10);
+        fHistListStat->Add(hDy_near);
+        fHistListStat->Add(hDtime_near);
+        fHistListStat->Add(hDWidth_near);
+        fHistListStat->Add(hTempDtimeDy_near);
+        fHistListStat->Add(hDy_acros);
+        fHistListStat->Add(hDtime_acros);
+        fHistListStat->Add(hDWidth_acros);
+        fHistListStat->Add(hTempDtimeDy_acros);
+
         for (Int_t i = 0; i < fNStr; i++)
             gSlew[i] = NULL;
 
@@ -71,7 +88,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Bool_t FillHist = kFALSE) {
         {
             fName.Clear();
             fName = Form("Hist_dtLR_%s_str%d", Name.Data(), i);
-            hDtLR[i] = new TH1I(fName, fName, 1024, 0., 24.);
+            hDtLR[i] = new TH1I(fName, fName, 1024, -12., 12.);
             fHistListCh->Add(hDtLR[i]);
         }
 
@@ -95,7 +112,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Bool_t FillHist = kFALSE) {
         {
             fName.Clear();
             fName = Form("Hist_ToF_vs_AmpDet_%s_str%d", Name.Data(), i);
-            hDtvsWidthDet[i] = new TH2I(fName, fName, 1024, 0., 48., 1024, -24., 24.);
+            hDtvsWidthDet[i] = new TH2S(fName, fName, 1024, 0., 48., 1024, -24., 24.);
             fHistListDt->Add(hDtvsWidthDet[i]);
         }
 
@@ -103,7 +120,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Bool_t FillHist = kFALSE) {
         {
             fName.Clear();
             fName = Form("Hist_ToF_vs_AmpT0_%s_str%d", Name.Data(), i);
-            hDtvsWidthT0[i] = new TH2I(fName, fName, 1024, 0., 48., 1024, -24., 24.);
+            hDtvsWidthT0[i] = new TH2S(fName, fName, 1024, 0., 48., 1024, -24., 24.);
             fHistListDt->Add(hDtvsWidthT0[i]);
         }
 
@@ -219,6 +236,20 @@ Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0) {
             fTime[i] = (fTimeL[i] + fTimeR[i]) * 0.5;
             flag = GetCrossPoint(i);
             if (fT0 != NULL) fTof[i] = CalculateDt(i);
+            if (i > 1) {
+                if (fFlagHit[i - 1] == kTRUE) {
+                    hDy_near->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
+                    hDtime_near->Fill(fTof[i] - fTof[i - 1]);
+                    hTempDtimeDy_near->Fill(fTof[i] - fTof[i - 1], fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
+                    hDWidth_near->Fill(fWidth[i] - fWidth[i - 1]);
+                }
+                if (fFlagHit[i - 2] == kTRUE) {
+                    hDy_acros->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
+                    hDtime_acros->Fill(fTof[i] - fTof[i - 2]);
+                    hTempDtimeDy_acros->Fill(fTof[i] - fTof[i - 2], fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
+                    hDWidth_acros->Fill(fWidth[i] - fWidth[i - 2]);
+                }
+            }
         }
 
     if (fFillHist == kTRUE)
@@ -243,6 +274,20 @@ Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0, TClonesArray *TofHit) {
             fTime[i] = (fTimeL[i] + fTimeR[i]) * 0.5;
             flag = GetCrossPoint(i);
             if (fT0 != NULL) fTof[i] = CalculateDt(i);
+            if (i > 1) {
+                if (fFlagHit[i - 1] == kTRUE) {
+                    hDy_near->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
+                    hDtime_near->Fill(fTof[i] - fTof[i - 1]);
+                    hTempDtimeDy_near->Fill(fTof[i] - fTof[i - 1], fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
+                    hDWidth_near->Fill(fWidth[i] - fWidth[i - 1]);
+                }
+                if (fFlagHit[i - 2] == kTRUE) {
+                    hDy_acros->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
+                    hDtime_acros->Fill(fTof[i] - fTof[i - 2]);
+                    hTempDtimeDy_acros->Fill(fTof[i] - fTof[i - 2], fCrossPoint[i].Y() - fCrossPoint[i - 2].Y());
+                    hDWidth_acros->Fill(fWidth[i] - fWidth[i - 2]);
+                }
+            }
             AddHit(i, TofHit);
         }
 
@@ -255,7 +300,7 @@ Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0, TClonesArray *TofHit) {
 //------------------------------------------------------------------------------------------------------------------------
 
 void BmnTOF1Detector::AddHit(Int_t Str, TClonesArray *TofHit) {
-    
+
     fVectorTemp.SetXYZ(0.5, 0.36, 1.); // error for point dx = 0.5 cm; dy = 1.25/SQRT(12) = 0.36 cm; dy = 1(?)cm
     Int_t UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, Str + 1); // strip [0,47] -> [1, 48]
     BmnTofHit *pHit = new ((*TofHit)[TofHit->GetEntriesFast()]) BmnTofHit(UID, fCrossPoint[Str], fVectorTemp, -1);
@@ -325,7 +370,7 @@ Double_t BmnTOF1Detector::CalculateDt(Int_t Str = 0) {
             + 0.03428 * T0Amp * T0Amp
             - 0.0005853 * T0Amp * T0Amp * T0Amp);
 
-    if (gSlew[Str] != NULL) dt = dt - gSlew[Str]->Eval(fWidth[Str]) + 15.; // 15 ns if ToF of light for 4.5 meters
+    if (gSlew[Str] != NULL) dt = dt - gSlew[Str]->Eval(fWidth[Str]) + 21.782; // 21.782 ns is ToF of light for 6.53 meters (Distance between TOF400 and T0)
 
     return dt;
 }
@@ -387,13 +432,15 @@ Bool_t BmnTOF1Detector::SetCorrLR(TString NameFile) {
 Bool_t BmnTOF1Detector::SetCorrSlewing(TString NameFile) {
     TString PathToFile = Form("%s%s%s", getenv("VMCWORKDIR"), "/input/", NameFile.Data());
     TString name, dirname;
+    TDirectory *Dir;
     TFile *f_corr = new TFile(PathToFile.Data(), "READ");
     if (f_corr->IsOpen()) {
         dirname = Form("Plane_%d", fNPlane);
-        gDirectory->cd(dirname.Data());
+        f_corr->cd(dirname.Data());
+        Dir = f_corr-> CurrentDirectory();
         for (Int_t i = 0; i < fNStr; i++) {
             name = Form("Graph_TA_Plane%d_str%d", fNPlane, i);
-            gSlew[i] = (TGraphErrors*) gDirectory->Get(name.Data());
+            gSlew[i] = (TGraphErrors*) Dir->Get(name.Data());
         }
     } else {
         cout << "File " << NameFile.Data() << " for Slewing correction is not found" << endl;
@@ -475,4 +522,35 @@ Bool_t BmnTOF1Detector::GetXYZTime(Int_t Str, TVector3 *XYZ, Double_t *ToF) {
     XYZ->SetXYZ(fCrossPoint[Str].x(), fCrossPoint[Str].y(), fCrossPoint[Str].z());
     *ToF = fTof[Str];
     return kTRUE;
+}
+
+//----------------------------------------------------------------------------------------
+
+Bool_t BmnTOF1Detector::SaveHistToFile(TString NameFile) {
+
+    TFile *fileout = new TFile(NameFile.Data(), "UPDATE");
+    TDirectory *Dir;
+    Bool_t flag;
+
+    flag = fileout->cd("Tof400");
+    if (flag == kFALSE)
+        Dir = fileout->mkdir("Tof400");
+    else
+        Dir = fileout-> CurrentDirectory();
+    Dir->cd();
+
+    TDirectory * DirPlane;
+    TDirectory * Dir1Plane;
+    TDirectory * Dir2Plane;
+    DirPlane = Dir->mkdir(fName.Data());
+    DirPlane -> cd();
+    fHistListStat->Write();
+    Dir1Plane = DirPlane->mkdir("Detector");
+    Dir1Plane -> cd();
+    fHistListCh->Write();
+    Dir2Plane = DirPlane->mkdir("ToF");
+    Dir2Plane -> cd();
+    fHistListDt->Write();
+
+    fileout->Close();
 }

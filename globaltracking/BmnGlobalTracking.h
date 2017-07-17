@@ -88,7 +88,7 @@ public:
     };
     
     BmnStatus CreateDchHitsFromTracks();
-
+    
 private:
 
     /*
@@ -129,7 +129,7 @@ private:
     // OUTPUT ARRAYS
 
     TClonesArray* fGlobalTracks; //output BmnGlobalTrack array
-
+    
 
     /*
      * Detector configuration, 5 bits:

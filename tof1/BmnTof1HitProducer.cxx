@@ -35,7 +35,7 @@ BmnTof1HitProducer::BmnTof1HitProducer(const char *name, Bool_t useMCdata, Int_t
 	
     	if(fDoTest) 
     	{	
-    		fTestFlnm = "test.BmnTof1HitProducer.root";	
+    		fTestFlnm = "test.BmnTof400HitProducer.root";	
     		effTestEfficiencySingleHit = new TEfficiency("effSingleHit", "Efficiency single hit;R, cm;Side", 10000, -0.1, 1.); 						fList.Add(effTestEfficiencySingleHit);
 		effTestEfficiencyDoubleHit = new TEfficiency("effDoubleHit", "Efficiency double hit;R, cm;Side", 10000, -0.1, 1.); 						fList.Add(effTestEfficiencyDoubleHit);
     	
@@ -296,7 +296,7 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
                 }
 
                 for (Int_t i = 0; i < fNDetectors; i++)
-                    pDetector[i] -> FindHits(digT0, aTofHits);
+                    nSingleHits += pDetector[i] -> FindHits(digT0, aTofHits);
             }
         }
 
@@ -321,6 +321,8 @@ void 			BmnTof1HitProducer::Finish()
 		fList.Write(); 
 		file.Close();
 		gFile = ptr;
+                for (Int_t i = 0; i < fNDetectors; i++)
+                    pDetector[i] -> SaveHistToFile (fTestFlnm.Data());
 	}
         
     cout << "Work time of the TOF-400 hit finder: " << workTime << endl;

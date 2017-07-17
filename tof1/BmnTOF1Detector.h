@@ -71,9 +71,13 @@ private:
 
     TH1I *hHitByCh, *hHitPerEv;
     TH2I *hLeftDigitToHit, *hRightDigitToHit, *hXY;
-    TH2I *hHitLR, *hDtvsWidthDet[fNStr], *hDtvsWidthT0[fNStr];
+    TH2S *hHitLR, *hDtvsWidthDet[fNStr], *hDtvsWidthT0[fNStr];
     TH1I *hWidth[fNStr + 1], *hDtLR[fNStr + 1], *hTime[fNStr + 1], *hDt[fNStr + 1];
     TGraphErrors *gSlew[fNStr];
+
+    TH1S *hDy_near, *hDtime_near, *hDWidth_near;
+    TH1S *hDy_acros, *hDtime_acros, *hDWidth_acros;
+    TH2S *hTempDtimeDy_near, *hTempDtimeDy_acros;
 
     void FillHist();
     Double_t CalculateDt(Int_t Str);
@@ -102,6 +106,7 @@ public:
     Bool_t SetGeoFile(TString NameFile);
     Bool_t SetGeo(BmnTof1GeoUtils *pGeoUtils);
     Bool_t GetXYZTime(Int_t Str, TVector3 *XYZ, Double_t *ToF);
+    Bool_t SaveHistToFile(TString NameFile);
     ClassDef(BmnTOF1Detector, 2);
 
 };

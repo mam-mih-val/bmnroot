@@ -82,7 +82,7 @@ InitStatus BmnGlobalTracking::Init() {
 
     // TOF1
     if (fDet.GetDet(kTOF1)) {
-        fTof1Hits = (TClonesArray*) ioman->GetObject("BmnTof1Hit");
+        fTof1Hits = (TClonesArray*) ioman->GetObject("BmnTofHit");
         if (!fTof1Hits)
             if (fVerbose)
                 cout << "Init. No BmnTof1Hit array!" << endl;
@@ -90,7 +90,7 @@ InitStatus BmnGlobalTracking::Init() {
 
     // TOF2
     if (fDet.GetDet(kTOF)) {
-        fTof2Hits = (TClonesArray*) ioman->GetObject("BmnTof2Hit");
+        fTof2Hits = (TClonesArray*) ioman->GetObject("BmnTofHit");
         if (!fTof2Hits)
             if (fVerbose)
                 cout << "Init. No BmnTof2Hit array!" << endl;
@@ -146,7 +146,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         glTr->SetNDF(gemTrack->GetNDF());
         glTr->SetChi2(gemTrack->GetChi2());
         glTr->SetLength(gemTrack->GetLength());
-        
+
         vector<BmnFitNode> nodes(4); //MWPC, TOF1, TOF2 and DCH
         glTr->SetFitNodes(nodes);
 
@@ -291,54 +291,68 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
     if (!tofHits) return kBMNERROR;
 
     BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
-    
+
     Double_t minChiSq = DBL_MAX;
+    Double_t minDist = 0;
     BmnHit* minHit = NULL; // Pointer to the nearest hit
     Int_t minIdx = -1;
-    Double_t minLen = -1.0;
-    FairTrackParam minParUp; // updated track parameters for closest hit
-    FairTrackParam minParPred; // predicted track parameters for closest hit
+    Double_t LenPropLast = 0., LenPropFirst = 0.;
+    FairTrackParam minParPredLast; // predicted track parameters for closest hit
     for (Int_t hitIdx = 0; hitIdx < tofHits->GetEntriesFast(); ++hitIdx) {
         BmnHit* hit = (BmnHit*) tofHits->At(hitIdx);
+        if (hit->IsUsed()) continue; // skip Tof hit which used before
         FairTrackParam parPredict(*(tr->GetParamLast()));
-        Double_t len = tr->GetLength();
-//        printf("hitIdx = %d\n", hitIdx);
-//        printf("BEFORE: len = %f\n", len);
-        kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "field");
-//        printf("AFTER:  len = %f\n", len);
-        FairTrackParam parUpdate = parPredict;
-        Double_t chi;
-        kalman->Update(&parUpdate, hit, chi);
-        if (chi < minChiSq) {
-            minChiSq = chi;
+        Double_t len = 0.;
+        //printf("hitIdx = %d\n", hitIdx);
+        //printf("BEFORE: len = %f\n", len);
+        //cout << "BEFORE: Param->GetX() = " << parPredict.GetX() << endl;
+        //  BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "line");
+        BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "field");
+        if (resultPropagate == kBMNERROR) continue; // skip in case kalman error
+        //printf("AFTER:  len = %f\n", len);
+        //cout << "AFTER: Param->GetX() = " << parPredict.GetX() << endl;
+        Double_t dist = TMath::Sqrt(TMath::Power(parPredict.GetX() - hit->GetX(), 2) + TMath::Power(parPredict.GetY() - hit->GetY(), 2));
+        if (dist < minDist && dist <= 5.) {
+            minDist = dist;
             minHit = hit;
-            minLen = len;
-            minParUp = parUpdate;
-            minParPred = parPredict;
+            minParPredLast = parPredict;
             minIdx = hitIdx;
+            LenPropLast = len;
         }
     }
 
     if (minHit != NULL) { // Check if hit was added
-        tr->SetParamLast(minParPred);
-        tr->SetChi2(tr->GetChi2() + minChiSq);
-        if (num == 1)
-            tr->SetTof1HitIndex(minIdx);
-        else
-            tr->SetTof2HitIndex(minIdx);
-        tr->SetNHits(tr->GetNHits() + 1);
-        tr->SetNDF(tr->GetNDF() + 1);
-        BmnFitNode *node = &((tr->GetFitNodes()).at(1));
-        node->SetUpdatedParam(&minParUp);
-        node->SetPredictedParam(&minParPred);
-        minHit->SetLength(minLen);
-        tr->SetLength(minLen);
-        return kBMNSUCCESS;
-    } else {
-        return kBMNERROR;
-    }
+        FairTrackParam ParPredFirst(*(tr->GetParamFirst()));
+        FairTrackParam ParPredLast(*(tr->GetParamLast()));
+        ParPredFirst.SetQp(ParPredLast.GetQp());
+        Double_t LenLineLast = TMath::Sqrt(TMath::Power(ParPredLast.GetX() - minHit->GetX(), 2) + TMath::Power(ParPredLast.GetY() - minHit->GetY(), 2) + TMath::Power(ParPredLast.GetZ() - minHit->GetZ(), 2));
+        Double_t LenLineFirst = TMath::Sqrt(TMath::Power(ParPredFirst.GetX() - 0.38, 2) + TMath::Power(ParPredFirst.GetY() - (-3.77), 2) + TMath::Power(ParPredFirst.GetY() - (-21.5), 2));
+        Double_t LenLine = tr->GetLength();
+        BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&ParPredFirst, -21.5, fPDG, NULL, &LenPropFirst, "field"); // z of target -21.5
+        if (resultPropagate != kBMNERROR) { // skip in case kalman error
 
-    delete kalman;
+            if (num == 1)
+                tr->SetTof1HitIndex(minIdx);
+            else
+                tr->SetTof2HitIndex(minIdx);
+            //tr->SetNHits(tr->GetNHits() + 1);
+            //tr->SetNDF(tr->GetNDF() + 1);
+            BmnFitNode *node = &((tr->GetFitNodes()).at(1));
+            FairTrackParam parUpdate = minParPredLast;
+            kalman->Update(&parUpdate, minHit, minChiSq);
+            node->SetUpdatedParam(&parUpdate);
+            node->SetPredictedParam(&minParPredLast);
+
+            minHit->SetLength(LenPropFirst + LenLine + LenPropLast);
+            minHit->SetUsing(kTRUE);
+
+            delete kalman;
+            return kBMNSUCCESS;
+        } else {
+            delete kalman;
+            return kBMNERROR;
+        }
+    } else return kBMNERROR;
 }
 
 BmnStatus BmnGlobalTracking::CreateDchHitsFromTracks() {

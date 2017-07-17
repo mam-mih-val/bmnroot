@@ -26,8 +26,7 @@ FairHitPointSetDraw::~FairHitPointSetDraw()
 TVector3 FairHitPointSetDraw::GetVector(TObject* obj)
 {
     FairHit* hit = (FairHit*) obj;
-    if (fVerbose > 1)
-      cout<<"-I- FairHitPointSetDraw::GetVector: "<<hit->GetX()<<" "<<hit->GetY()<<" "<<hit->GetZ()<<endl;
+    if (fVerbose > 1) cout<<"-I- FairHitPointSetDraw::GetVector: "<<hit->GetX()<<" "<<hit->GetY()<<" "<<hit->GetZ()<<endl;
 
     return TVector3(hit->GetX(), hit->GetY(), hit->GetZ());
 }

@@ -25,9 +25,9 @@
 #pragma link C++ class MpdZdcTowerDraw;
 
 // TDAQ
-#pragma link C++ class BmnEventPull+;
+//#pragma link C++ class BmnEventPull+;
 //#pragma link C++ class BmnEventMonitor+;
-#pragma link C++ class BmnTdaqSource+;
+//#pragma link C++ class BmnTdaqSource+;
 
 #endif
 

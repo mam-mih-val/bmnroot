@@ -1,10 +1,7 @@
-/********************************************************************************
- *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
- *                                                                              *
- *              This software is distributed under the terms of the             *
- *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
- *                  copied verbatim in the file "LICENSE"                       *
- ********************************************************************************/
+// FairEventManagerEditor
+//
+// Specialization of TGedEditor for proper update propagation to TEveManager
+
 #include "FairEventManagerEditor.h"
 #include "FairRootManager.h"
 #include "FairRunAna.h"
@@ -16,24 +13,19 @@
 #include "TString.h"
 #include "TEveManager.h"
 #include "TEveElement.h"
-#include "TEvePointSet.h"
-#include "TVector3.h"
-#include "TObject.h"
 #include "TGWindow.h"
 #include <TGLViewer.h>
 #include <TGLScenePad.h>
 #include "TEveBrowser.h"
 #include "TEveGedEditor.h"
+#include "TGFileDialog.h"
+#include "TThread.h"
 
 #include <iostream>
+#include <vector>
 using namespace std;
 
 #define MAX_ENERGY 12
-
-// FairEventManagerEditor
-//
-// Specialization of TGedEditor for proper update propagation to
-// TEveManager.
 
 //______________________________________________________________________________
 FairEventManagerEditor::FairEventManagerEditor(const TGWindow* p, Int_t width, Int_t height, UInt_t options, Pixel_t back)
@@ -45,7 +37,7 @@ FairEventManagerEditor::FairEventManagerEditor(const TGWindow* p, Int_t width, I
    fVizPri(0),
    fMinEnergy(0),
    fMaxEnergy(0),
-   iEventNumber(-1),
+   fEventTime(NULL),
    iEventCount(-1),
    isStreamSource(false),
    iThreadState(0)
@@ -59,7 +51,7 @@ void FairEventManagerEditor::Init()
     TChain* chain = FairRootManager::Instance()->GetInChain();
 
     // create tab for event visualization
-    MakeTitle("FairEventManager  Editor");
+    MakeTitle("EventManager Editor");
     TGVerticalFrame* fInfoFrame = CreateEditorTabSubFrame("Event Info");
     TGCompositeFrame* title1 = new TGCompositeFrame(fInfoFrame, 250, 10, kVerticalFrame | kLHintsExpandX | kFixedWidth | kOwnBackground);
 
@@ -68,7 +60,7 @@ void FairEventManagerEditor::Init()
     TFile* pChainFile = chain->GetFile();
     if (pChainFile == NULL)
     {
-        InSource = "TDAQ stream is active";
+        InSource = "TDAQ Stream is used";
         isStreamSource = true;
     }
     else
@@ -89,6 +81,9 @@ void FairEventManagerEditor::Init()
     f2->AddFrame(EventTimeLabel);
     f2->AddFrame(fEventTime);
     title1->AddFrame(f2);
+    // display event time
+    TString time = TString::Format("%.2f ns", FairRootManager::Instance()->GetEventTime());
+    fEventTime->SetText(time.Data());
 
     // display event count and count of geometry nodes
     iEventCount = chain->GetEntriesFast();
@@ -105,10 +100,11 @@ void FairEventManagerEditor::Init()
                         TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative, TGNumberFormat::kNELLimitMinMax, 0, iEventCount-1);
     f->AddFrame(fCurrentEvent, new TGLayoutHints(kLHintsLeft, 1, 1, 1, 1));
     fCurrentEvent->Connect("ValueSet(Long_t)","FairEventManagerEditor", this, "SelectEvent()");
+    // if event count is 0 then deactivate the field for event number
     if (iEventCount < 1)
         fCurrentEvent->SetState(kFALSE);
 
-    //Button for save image (EVE screenshot)
+    // button for saving the current image (EVE screenshot)
     fSave = new TGPictureButton(f, gClient->GetPicture("save.xpm"), 5);
     f->AddFrame(fSave, new TGLayoutHints(kLHintsLeft| kLHintsCenterY, 1, 2, 1, 1));
     fSave->Connect("Clicked()", "FairEventManagerEditor", this, "SaveImage()");
@@ -122,7 +118,7 @@ void FairEventManagerEditor::Init()
 
     // textbox to display only particles with given PDG
     TGHorizontalFrame* f1 = new TGHorizontalFrame(title1);
-    TGLabel* L1 = new TGLabel(f1, "Select PDG :");
+    TGLabel* L1 = new TGLabel(f1, "Select PDG: ");
     f1->AddFrame(L1, new TGLayoutHints(kLHintsLeft|kLHintsCenterY, 1, 2, 1, 1));
     fCurrentPDG = new TGNumberEntry(f1, 0., 12, -1,
                       TGNumberFormat::kNESInteger, TGNumberFormat::kNEAAnyNumber, TGNumberFormat::kNELNoLimits, 0, 1);
@@ -135,7 +131,7 @@ void FairEventManagerEditor::Init()
     fMinEnergy->SetNELength(5);
     fMinEnergy->SetLabelWidth(80);
     fMinEnergy->Build();
-    fMinEnergy->SetLimits(0, MAX_ENERGY, 2501, TGNumberFormat::kNESRealOne);
+    fMinEnergy->SetLimits(0, MAX_ENERGY, 2001, TGNumberFormat::kNESRealOne);
     fMinEnergy->SetToolTip("Minimum energy of displayed tracks");
     fMinEnergy->SetValue(0);
     fMinEnergy->Connect("ValueSet(Double_t)", "FairEventManagerEditor", this, "MinEnergy()");
@@ -147,7 +143,7 @@ void FairEventManagerEditor::Init()
     fMaxEnergy->SetNELength(5);
     fMaxEnergy->SetLabelWidth(80);
     fMaxEnergy->Build();
-    fMaxEnergy->SetLimits(0, MAX_ENERGY, 2501, TGNumberFormat::kNESRealOne);
+    fMaxEnergy->SetLimits(0, MAX_ENERGY, 2001, TGNumberFormat::kNESRealOne);
     fMaxEnergy->SetToolTip("Maximum energy of displayed tracks");
     fMaxEnergy->SetValue(MAX_ENERGY);
     fMaxEnergy->Connect("ValueSet(Double_t)", "FairEventManagerEditor", this, "MaxEnergy()");
@@ -233,23 +229,8 @@ void FairEventManagerEditor::Init()
         return;
     }
 
-    iEventNumber = 0;
     // read first event in offline mode
-    //fEventManager->GotoEvent(iEventNumber);
-
-    // display event time
-    TString time;
-    time.Form("%.2f", FairRootManager::Instance()->GetEventTime());
-    time += " ns";
-    fEventTime->SetText(time.Data());
-
-    // display and set new min and max energy limits given by event energy range
-    fMinEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
-    fMinEnergy->SetValue(fEventManager->GetEvtMinEnergy());
-    MinEnergy();
-    fMaxEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
-    fMaxEnergy->SetValue(fEventManager->GetEvtMaxEnergy());
-    MaxEnergy();
+    if (!fEventManager->isOnline) fEventManager->GotoEvent(0);
 
     // update tab controls
     Update();
@@ -259,18 +240,6 @@ void FairEventManagerEditor::Init()
 void FairEventManagerEditor::SetModel(TObject* obj)
 {
     fObject = obj;
-}
-
-// set minimum energy for particle filtering
-void FairEventManagerEditor::MinEnergy()
-{
-    fEventManager->SetMinEnergy(fMinEnergy->GetValue());
-}
-
-// set maximum energy for particle filtering
-void FairEventManagerEditor::MaxEnergy()
-{
-    fEventManager->SetMaxEnergy(fMaxEnergy->GetValue());
 }
 
 // set flag: show all particles or only primary
@@ -288,6 +257,18 @@ void FairEventManagerEditor::SelectPDG()
     fEventManager->SelectPDG(fCurrentPDG->GetIntNumber());
 }
 
+//______________________________________________________________________________
+void FairEventManagerEditor::MinEnergy()
+{
+  fEventManager->SetMinEnergy(fMinEnergy->GetValue());
+}
+
+//______________________________________________________________________________
+void FairEventManagerEditor::MaxEnergy()
+{
+  fEventManager->SetMaxEnergy(fMaxEnergy->GetValue());
+}
+
 // show or hide detector geometry
 void FairEventManagerEditor::ShowGeometry(Bool_t is_show)
 {
@@ -303,7 +284,7 @@ void FairEventManagerEditor::ShowGeometry(Bool_t is_show)
         fEventManager->fRhoZGeomScene->SetRnrState(is_show);
     }
 
-    // disable Magnet show choice while hiding of detector geometry
+    // disable "Magnet Show" box after hiding of detector geometry
     if (!is_show)
         fGeometryFrame->HideFrame(ShowMagnetButton);
     else
@@ -335,9 +316,8 @@ void FairEventManagerEditor::ShowMagnet(Bool_t is_show)
     {
         gEve->GetGlobalScene()->SetRnrState(kFALSE);
         gEve->GetGlobalScene()->SetRnrState(kTRUE);
+        gEve->Redraw3D();
     }
-
-    gEve->Redraw3D();
 }
 
 // switch between light and dark background
@@ -349,15 +329,14 @@ void FairEventManagerEditor::SwitchBackground(Bool_t is_on)
 // set transparency to high value (80%)
 void FairEventManagerEditor::SwitchTransparency(Bool_t is_on)
 {
-    fEventManager->SelectedGeometryTransparent(is_on);
+    fEventManager->SetTransparentGeometry(is_on);
 
     if (gEve->GetGlobalScene()->GetRnrState())
     {
         gEve->GetGlobalScene()->SetRnrState(kFALSE);
         gEve->GetGlobalScene()->SetRnrState(kTRUE);
+        gEve->Redraw3D();
     }
-
-    gEve->Redraw3D();
 }
 
 // show|hide MC points
@@ -561,30 +540,24 @@ void FairEventManagerEditor::SelectEvent()
     // if OFFLINE mode
     if (!fEventManager->isOnline)
     {
-        int iNewEvent = fCurrentEvent->GetIntNumber();
+        int iOldEvent = fEventManager->GetCurrentEvent(), iNewEvent = fCurrentEvent->GetIntNumber();
         // exec event visualization of selected event
         fEventManager->GotoEvent(iNewEvent);
 
         if ((fEventManager->isZDCModule) && (fShowMCPoints->IsOn()))
             RedrawZDC();
 
-        if (iEventNumber != iNewEvent)
+        if (iOldEvent != iNewEvent)
         {
-            iEventNumber = iNewEvent;
-
             // display event time
-            TString time;
-            time.Form("%.2f", FairRootManager::Instance()->GetEventTime());
-            time += " ns";
+            TString time = TString::Format("%.2f ns", FairRootManager::Instance()->GetEventTime());
             fEventTime->SetText(time.Data());
 
-            // display and set new min and max energy limits given by event energy range
-            fMinEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
+            // display new min and max energy limits given by event energy range
+            fMinEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 2001);
             fMinEnergy->SetValue(fEventManager->GetEvtMinEnergy());
-            MinEnergy();
-            fMaxEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
+            fMaxEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 2001);
             fMaxEnergy->SetValue(fEventManager->GetEvtMaxEnergy());
-            MaxEnergy();
         }
 
         // update tab controls
@@ -615,30 +588,24 @@ void FairEventManagerEditor::UpdateEvent()
     // if OFFLINE mode
     if (!fEventManager->isOnline)
     {
-        int iNewEvent = fCurrentEvent->GetIntNumber();
+        int iOldEvent = fEventManager->GetCurrentEvent(), iNewEvent = fCurrentEvent->GetIntNumber();
         // exec event visualization of selected event
         fEventManager->GotoEvent(iNewEvent);
 
         if ((fEventManager->isZDCModule) && (fShowMCPoints->IsOn()))
             RedrawZDC();
 
-        if (iEventNumber != iNewEvent)
+        if (iOldEvent != iNewEvent)
         {
-            iEventNumber = iNewEvent;
-
             // display event time
-            TString time;
-            time.Form("%.2f", FairRootManager::Instance()->GetEventTime());
-            time += " ns";
+            TString time = TString::Format("%.2f ns", FairRootManager::Instance()->GetEventTime());
             fEventTime->SetText(time.Data());
 
-            // display and set new min and max energy limits given by event energy range
-            fMinEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
+            // display new min and max energy limits given by event energy range
+            fMinEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 2001);
             fMinEnergy->SetValue(fEventManager->GetEvtMinEnergy());
-            MinEnergy();
-            fMaxEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 100);
+            fMaxEnergy->SetLimits(fEventManager->GetEvtMinEnergy(), fEventManager->GetEvtMaxEnergy(), 2001);
             fMaxEnergy->SetValue(fEventManager->GetEvtMaxEnergy());
-            MaxEnergy();
         }
 
         // update tab controls

@@ -170,6 +170,7 @@ MACRO (WRITE_CONFIG_FILE filename)
 
   #KG
   Set(VMCWORKDIR ${CMAKE_SOURCE_DIR})
+  ###
 
   Set(FAIRLIBDIR ${FAIRLIBDIR})
 
@@ -219,18 +220,22 @@ MACRO (WRITE_CONFIG_FILE filename)
                   )
     ENDIF(FAIRROOTPATH)
 
-
+  #KG
   ELSE(${filename} MATCHES "[.]csh.*$")
     IF(FAIRROOTPATH)
-    configure_file(${FAIRROOTPATH}/share/fairbase/cmake/scripts/config.sh.in
-	           ${CMAKE_CURRENT_BINARY_DIR}/${filename}
-                  )
-    ELSE(FAIRROOTPATH) 
-    configure_file(${PROJECT_SOURCE_DIR}/cmake/scripts/config.sh.in
-	           ${CMAKE_CURRENT_BINARY_DIR}/${filename}
-                  )
+      IF(TDAQ_FOUND)
+        configure_file(${FAIRROOTPATH}/share/fairbase/cmake/scripts/config.sh.in.tdaq ${CMAKE_CURRENT_BINARY_DIR}/${filename})
+      ELSE(TDAQ_FOUND)
+        configure_file(${FAIRROOTPATH}/share/fairbase/cmake/scripts/config.sh.in ${CMAKE_CURRENT_BINARY_DIR}/${filename})
+      ENDIF(TDAQ_FOUND)
+    ELSE(FAIRROOTPATH)
+      IF(TDAQ_FOUND)
+        configure_file(${PROJECT_SOURCE_DIR}/cmake/scripts/config.sh.in.tdaq ${CMAKE_CURRENT_BINARY_DIR}/${filename})
+      ELSE(TDAQ_FOUND)
+        configure_file(${PROJECT_SOURCE_DIR}/cmake/scripts/config.sh.in ${CMAKE_CURRENT_BINARY_DIR}/${filename})
+      ENDIF(TDAQ_FOUND)
     ENDIF(FAIRROOTPATH)
-
+  ###
   ENDIF(${filename} MATCHES "[.]csh.*$")
 
 

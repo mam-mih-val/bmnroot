@@ -7,17 +7,15 @@
  *      Simple method to draw points derived from FairHit
  */
 
-#ifndef FAIRHITDRAW_H_
-#define FAIRHITDRAW_H_
+#ifndef FAIRHITDRAW_H
+#define FAIRHITDRAW_H
 
-#include "FairBoxSetDraw.h"             // for FairBoxSetDraw
+#include "FairBoxSetDraw.h"
+#include "Rtypes.h"
+#include "TVector3.h"
 
-#include "Rtypes.h"                     // for FairHitDraw::Class, etc
-#include "TVector3.h"                   // for TVector3
 
-class TObject;
-
-class FairHitDraw: public FairBoxSetDraw
+class FairHitDraw : public FairBoxSetDraw
 {
   public:
     FairHitDraw();
@@ -29,10 +27,9 @@ class FairHitDraw: public FairBoxSetDraw
     FairHitDraw(const char* name, Int_t iVerbose = 1);
 
   protected:
-
     TVector3 GetVector(TObject* obj);
 
     ClassDef(FairHitDraw,1);
 };
 
-#endif /* FAIRHITDRAW_H_ */
+#endif /* FAIRHITDRAW_H */

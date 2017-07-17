@@ -5,18 +5,17 @@
  *      Author: stockman
  */
 
-#ifndef FAIRHITPOINTSETDRAW_H_
-#define FAIRHITPOINTSETDRAW_H_
+#ifndef FAIRHITPOINTSETDRAW_H
+#define FAIRHITPOINTSETDRAW_H
 
 #include "FairPointSetDraw.h"
-
 #include "TVector3.h"
 
 class FairHitPointSetDraw : public FairPointSetDraw
 {
   public:
     FairHitPointSetDraw();
-    FairHitPointSetDraw(const char* name, Color_t color ,Style_t mstyle, Int_t iVerbose = 1)
+    FairHitPointSetDraw(const char* name, Color_t color, Style_t mstyle, Int_t iVerbose = 1)
         : FairPointSetDraw(name, color, mstyle, iVerbose) {}
     virtual ~FairHitPointSetDraw();
 
@@ -28,4 +27,4 @@ class FairHitPointSetDraw : public FairPointSetDraw
     ClassDef(FairHitPointSetDraw,1);
 };
 
-#endif /* FAIRHITPOINTSETDRAW_H_ */
+#endif /* FAIRHITPOINTSETDRAW_H */

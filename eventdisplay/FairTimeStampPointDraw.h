@@ -5,15 +5,13 @@
  *      Author: stockman
  */
 
-#ifndef FAIRTIMESTAMPPOINTDRAW_H_
-#define FAIRTIMESTAMPPOINTDRAW_H_
+#ifndef FAIRTIMESTAMPPOINTDRAW_H
+#define FAIRTIMESTAMPPOINTDRAW_H
 
-#include "FairBoxSetDraw.h"             // for FairBoxSetDraw
+#include "FairBoxSetDraw.h"
 
-#include "Rtypes.h"                     // for Int_t, etc
-#include "TVector3.h"                   // for TVector3
+#include "TVector3.h"
 
-class TObject;
 
 class FairTimeStampPointDraw : public FairBoxSetDraw
 {
@@ -24,9 +22,9 @@ class FairTimeStampPointDraw : public FairBoxSetDraw
 
   private:
     virtual TVector3 GetVector(TObject* obj);
-    virtual Int_t GetValue(TObject* obj,Int_t i);
+    virtual Int_t GetValue(TObject* obj, Int_t i);
 
     ClassDef(FairTimeStampPointDraw, 1);
 };
 
-#endif /* FAIRTIMESTAMPPOINTDRAW_H_ */
+#endif /* FAIRTIMESTAMPPOINTDRAW_H */

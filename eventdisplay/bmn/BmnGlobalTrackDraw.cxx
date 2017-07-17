@@ -8,6 +8,7 @@
 #include "BmnGlobalTrack.h"
 #include "BmnGemTrack.h"
 #include "FairEventManagerEditor.h"
+#include "FairLogger.h"
 
 #include "TEveManager.h"
 #include "TEvePathMark.h"
@@ -24,7 +25,6 @@ BmnGlobalTrackDraw::BmnGlobalTrackDraw()
     fTrPr(NULL),
     fEventManager(NULL),
     fEveTrList(NULL),
-    fEvent(""),
     fTrList(NULL),
     MinEnergyLimit(-1.),
     MaxEnergyLimit(-1.),
@@ -39,7 +39,6 @@ BmnGlobalTrackDraw::BmnGlobalTrackDraw(const char* name, Int_t iVerbose)
     fTrPr(NULL),
     fEventManager(NULL),
     fEveTrList(new TObjArray(16)),
-    fEvent(""),
     fTrList(NULL),
     MinEnergyLimit(-1.),
     MaxEnergyLimit(-1.),
@@ -50,21 +49,18 @@ BmnGlobalTrackDraw::BmnGlobalTrackDraw(const char* name, Int_t iVerbose)
 // initialization of the track drawing task
 InitStatus BmnGlobalTrackDraw::Init()
 {
-    if (fVerbose > 1)
-        cout<<"BmnGlobalTrackDraw::Init()"<<endl;
+    if (fVerbose > 1) cout<<"BmnGlobalTrackDraw::Init()"<<endl;
 
     FairRootManager* fManager = FairRootManager::Instance();
 
-    fTrackList = (TClonesArray*)fManager->GetObject("GlobalTrack");
+    fTrackList = (TClonesArray*) fManager->GetObject("GlobalTrack");
     if (fTrackList == 0)
     {
-        cout<<"BmnGlobalTrackDraw::Init()  branch GlobalTrack not found! Task will be deactivated"<<endl;
+        LOG(ERROR)<<"BmnGlobalTrackDraw::Init()  branch GlobalTrack not found! Task will be deactivated"<<FairLogger::endl;
         SetActive(kFALSE);
         return kERROR;
     }
-
-    if (fVerbose > 2)
-        cout<<"BmnGlobalTrackDraw::Init() get track list "<<fTrackList<<endl;
+    if (fVerbose > 2) cout<<"BmnGlobalTrackDraw::Init() get track list "<<fTrackList<<endl;
 
     fGemTrackList = (TClonesArray*) fManager->GetObject("BmnGemTracks");
     fGemHitList = (TClonesArray*) fManager->GetObject("BmnGemStripHit");
@@ -75,10 +71,8 @@ InitStatus BmnGlobalTrackDraw::Init()
     fDch2HitList = (TClonesArray*) fManager->GetObject("BmnDch2Hit0");
 
     fEventManager = FairEventManager::Instance();
-    if (fVerbose > 2)
-        cout<<"BmnGlobalTrackDraw::Init() get instance of FairEventManager "<<endl;
+    if (fVerbose > 2) cout<<"BmnGlobalTrackDraw::Init() get instance of FairEventManager "<<endl;
 
-    fEvent = "Current Event";
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
     PEnergy = 0;

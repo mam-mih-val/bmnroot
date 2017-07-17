@@ -8,6 +8,7 @@
 #include "BmnTrack.h"
 #include "FairHit.h"
 #include "FairEventManagerEditor.h"
+#include "FairLogger.h"
 
 #include "TEveManager.h"
 #include "TEvePathMark.h"
@@ -56,30 +57,26 @@ InitStatus BmnTrackDrawH::Init()
         cout<<"BmnTrackDrawH::Init()"<<endl;
 
     fEventManager = FairEventManager::Instance();
-    if (fVerbose > 1)
-        cout<<"BmnTrackDrawH::Init() get instance of EventManager: "<<fEventManager<<endl;
+    if (fVerbose > 1) cout<<"BmnTrackDrawH::Init() get instance of EventManager: "<<fEventManager<<endl;
 
     FairRootManager* fManager = FairRootManager::Instance();
-    if (fVerbose > 1)
-        cout<<"BmnTrackDrawH::Init() get instance of FairRootManager: "<<fManager<<endl;
+    if (fVerbose > 1) cout<<"BmnTrackDrawH::Init() get instance of FairRootManager: "<<fManager<<endl;
 
-    fTrackList = (TClonesArray*)fManager->GetObject(GetName());
+    fTrackList = (TClonesArray*) fManager->GetObject(GetName());
     if(fTrackList == 0)
     {
-        cout<<"BmnTrackDrawH::Init()  branch "<<GetName()<<" Not found! Task will be deactivated"<<endl;
+        LOG(ERROR)<<"BmnTrackDrawH::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
         SetActive(kFALSE);
     }
-    if (fVerbose > 1)
-        cout<<"BmnTrackDrawH::Init() get track list " <<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
+    if (fVerbose > 1) cout<<"BmnTrackDrawH::Init() get track list "<<fTrackList<<" from branch '"<<GetName()<<"'"<<endl;
 
-    fHitList = (TClonesArray*)fManager->GetObject(fHitsBranchName);
+    fHitList = (TClonesArray*) fManager->GetObject(fHitsBranchName);
     if(fHitList == 0)
     {
-        cout<<"BmnTrackDrawH::Init()  branch "<<fHitsBranchName<<" not found! Task will be deactivated"<<endl;
+        LOG(ERROR)<<"BmnTrackDrawH::Init()  branch "<<fHitsBranchName<<" not found! Task will be deactivated"<<FairLogger::endl;
         SetActive(kFALSE);
     }
-    if (fVerbose > 1)
-        cout<<"BmnTrackDrawH::Init() get list of hits "<<fHitList<<" from branch '"<<fHitsBranchName<<"'"<<endl;
+    if (fVerbose > 1) cout<<"BmnTrackDrawH::Init() get list of hits "<<fHitList<<" from branch '"<<fHitsBranchName<<"'"<<endl;
 
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();

@@ -1,15 +1,15 @@
+// Specialization of TGedEditor for proper update propagation to TEveManager.
+
 #ifndef ROOT_FAIREMCTRACKSEDITOR
 #define ROOT_FAIREMCTRACKSEDITOR
 
-#include "TGedFrame.h"                  // for TGedFrame
+#include "FairEventManager.h"
 
-#include "GuiTypes.h"                   // for Pixel_t
-#include "Rtypes.h"                     // for FairMCTracksEditor::Class, etc
-#include "TGFrame.h"                    // for EFrameType::kChildFrame
+#include "TGedFrame.h"
+#include "GuiTypes.h"   // for Pixel_t
+#include "TGFrame.h"    // for EFrameType::kChildFrame
+#include "TGWindow.h"
 
-class FairEventManager;
-class TGWindow;
-class TObject;
 
 class FairMCTracksEditor : public TGedFrame
 {
@@ -18,16 +18,16 @@ class FairMCTracksEditor : public TGedFrame
 
   protected:
     TObject* fObject;
-    FairEventManager*  fManager;
+    FairEventManager* fManager;
+
   public:
-    FairMCTracksEditor(const TGWindow* p=0, Int_t width=170, Int_t height=30,
-                       UInt_t options = kChildFrame, Pixel_t back=GetDefaultFrameBackground());
+    FairMCTracksEditor(const TGWindow* p = 0, Int_t width = 170, Int_t height = 30,
+                       UInt_t options = kChildFrame, Pixel_t back = GetDefaultFrameBackground());
     virtual ~FairMCTracksEditor() {}
 
-    virtual void SetModel( TObject* obj);
+    virtual void SetModel(TObject* obj) { fObject = obj; }
 
-
-    ClassDef(FairMCTracksEditor, 0); // Specialization of TGedEditor for proper update propagation to TEveManager.
+    ClassDef(FairMCTracksEditor, 0);
 };
 
 #endif

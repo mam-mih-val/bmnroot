@@ -1,6 +1,7 @@
 # Searching for TDAQ installation
 # Once done this will define
 #  TDAQ_FOUND - system has TDAQ framework
+#  TDAQ_SW - the TDAQ SW directory
 #  TDAQ_INCLUDE_PATH - the TDAQ include directory
 #  TDAQ_LIBRARY_PATH - the TDAQ library directory
 
@@ -52,11 +53,10 @@ endif (TDAQ_SW_INCLUDE_DIR AND TDAQ_EMON_INCLUDE_DIR AND TDAQ_IS_INCLUDE_DIR)
 
 if (TDAQ_SW AND TDAQ_INCLUDE_PATH AND TDAQ_LIBRARY_PATH)
   set(TDAQ_FOUND true)
-  set(TDAQ_IPC_INIT_REF file:${TDAQ_SW}/ipc_root.ref)
+  SET(LD_LIBRARY_PATH ${LD_LIBRARY_PATH} ${TDAQ_LIBRARY_PATH})
   
   if (NOT TDAQ_FIND_QUIETLY)
-    MESSAGE(STATUS "Looking for ATLAS TDAQ... found ${TDAQ_SW}")
-    SET(LD_LIBRARY_PATH ${LD_LIBRARY_PATH} ${TDAQ_LIBRARY_PATH})
+    MESSAGE(STATUS "Looking for ATLAS TDAQ... found ${TDAQ_SW}")  
   endif (NOT TDAQ_FIND_QUIETLY)
 else (TDAQ_SW AND TDAQ_INCLUDE_PATH AND TDAQ_LIBRARY_PATH)
   if (TDAQ_FIND_REQUIRED)

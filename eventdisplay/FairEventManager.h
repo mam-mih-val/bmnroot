@@ -13,6 +13,9 @@
 #include <TEveProjectionManager.h>
 #include "TGListTree.h"
 
+#include <vector>
+using namespace std;
+
 class FairEventManagerEditor;
 class FairEventManager : public TEveEventManager
 {
@@ -65,22 +68,23 @@ class FairEventManager : public TEveEventManager
     virtual void GotoEvent(Int_t event);    // *MENU*
     virtual void NextEvent();               // *MENU*
     virtual void PrevEvent();               // *MENU*
+    virtual void DisplaySettings();         // *MENU*
     virtual void Close();
-    virtual void DisplaySettings();         //  *Menu*
 
-
-    void UpdateEditor();
-    virtual Int_t Color(Int_t pdg);
-    void AddTask(FairTask* t) { fRunAna->AddTask(t); }
     virtual void Init(Int_t visopt = 1, Int_t vislvl = 3, Int_t maxvisnds = 10000);
-    virtual Int_t GetCurrentEvent() { return fEntry; }
+    void UpdateEditor();
+
+    // assign different colors for differrent particles
+    // return integer value of color for track by particle pdg (default, white)
+    virtual Int_t Color(Int_t pdg);
+    virtual void AddParticlesToPdgDataBase( Int_t pdg = 0 );
+
+    virtual Int_t GetCurrentEvent() { return iCurrentEvent; }
     virtual void SetPriOnly(Bool_t Pri) { fPriOnly = Pri; }
     virtual Bool_t IsPriOnly() { return fPriOnly; }
     virtual void SelectPDG(Int_t PDG) { fCurrentPDG = PDG; }
     virtual Int_t GetCurrentPDG() { return fCurrentPDG; }
-    virtual void AddParticlesToPdgDataBase( Int_t pdg = 0 );
-
-    virtual void SetCurrentEvent(Int_t event_number) { fEntry = event_number; }
+    virtual void SetCurrentEvent(Int_t event_number) { iCurrentEvent = event_number; }
     virtual void SetMaxEnergy(Float_t max) { fMaxEnergy = max; }
     virtual void SetMinEnergy(Float_t min) { fMinEnergy = min; }
     virtual void SetEvtMaxEnergy(Float_t max) { fEvtMaxEnergy = max; }
@@ -89,15 +93,9 @@ class FairEventManager : public TEveEventManager
     virtual Float_t GetEvtMinEnergy() { return fEvtMinEnergy; }
     virtual Float_t GetMaxEnergy() { return fMaxEnergy; }
     virtual Float_t GetMinEnergy() { return fMinEnergy; }
+
     void SetEventEditor(FairEventManagerEditor* event_editor) { fEventEditor = event_editor; }
     FairEventManagerEditor* GetEventEditor() { return fEventEditor; }
-
-    //MultiView features
-    void SetDepth(Float_t d);
-    void ImportGeomRPhi(TEveElement* el);
-    void ImportGeomRhoZ(TEveElement* el);
-    void ImportEventRPhi(TEveElement* el);
-    void ImportEventRhoZ(TEveElement* el);
 
     // viewer for RPhi projection
     TEveViewer* fRPhiView;
@@ -119,16 +117,14 @@ class FairEventManager : public TEveEventManager
     // scene for geometry presentation in RPhoZ plane
     TEveScene* fRhoZGeomScene;
     // scene for event presenation in RPhi plane
-    TEveScene* fRPhiEventScene;
+    //TEveScene* fRPhiEventScene;
     // scene for event presenation in RPhoZ plane
-    TEveScene* fRhoZEventScene;
+    //TEveScene* fRhoZEventScene;
 
     // background color of EVE Viewers
     int background_color;
     // whether background color is dark
     bool isDarkColor;
-    // event count
-    Long64_t fEntryCount; //!
     // whether Online of Offline mode
     bool isOnline;
     // data source: 0 - simulation data; 1 - raw detector data
@@ -138,29 +134,31 @@ class FairEventManager : public TEveEventManager
     TEveElementList* EveMCPoints, *EveMCTracks, *EveRecoPoints, *EveRecoTracks;
     // ZDC module visibility flags. NULL if there are no ZDC modules to show
     bool* isZDCModule; //!
-    // require event redraw after "reco points" checkbox value is changed
-    bool fgRedrawRecoPointsReqired;
-    // current value of "reco points" checkbox
+    // current value of "reco points" checkbox - FOR CALORIMETER TOWERS
     bool fgShowRecoPointsIsShow;
+    // require event redraw after "reco points" checkbox value is changed - FOR CALORIMETER TOWERS
+    bool fgRedrawRecoPointsReqired;
 
-    // set high (80) transparency for detector geometry
-    void SelectedGeometryTransparent(bool is_on);
+    // set high transparency for detector geometry
+    void SetTransparentGeometry(bool is_on);
     void RecursiveChangeNodeTransparent(TGeoNode* parentNode, int transparency);
 
     // FairRunAna to init and to execute visualization tasks
     FairRunAna* fRunAna; //!
+    void AddTask(FairTask* t) { fRunAna->AddTask(t); }
 
     //returns loaded xml if successful of NULL if validation failed
     bool ValidateXml(const char *XMLFileName, const char *XSDFileName);
     //coloring method
     enum VisualizationColoring {selectedColoring, levelColoring, defaultColoring};
     VisualizationColoring gVisualizationColoring;
+
   private:
     FairEventManagerEditor* fEventEditor; //!
 
     TGListTreeItem* fEvent; //!
     // current event number
-    Int_t fEntry; //!
+    Int_t iCurrentEvent; //!
     Bool_t fPriOnly; //!
     Int_t fCurrentPDG; //!
     // the most minimum particle energy for selected event
@@ -178,10 +176,9 @@ class FairEventManager : public TEveEventManager
     // skeleton Singleton Instance
     static FairEventManager* fgRinstance; //!
 
-    int cntSelectedColoring;
-    structSelectedColoring* arrSelectedColoring; //!
-    int cntLevelColoring;
-    structLevelColoring* arrLevelColoring; //!
+    // arrays with color sturctures for detector and hierarchical coloring
+    vector<structSelectedColoring*> vecSelectedColoring; //!
+    vector<structLevelColoring*> vecLevelColoring; //!
 
     FairEventManager(const FairEventManager&);
     FairEventManager& operator=(const FairEventManager&);

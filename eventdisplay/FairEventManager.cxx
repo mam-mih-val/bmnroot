@@ -4,10 +4,6 @@
 #include "FairEventManagerEditor.h"
 #include "constants.h"
 
-#include "FairMCPointDraw.h"
-#include "FairMCTracks.h"
-#include "FairHitPointSetDraw.h"
-
 #include "TDatabasePDG.h"
 #include "TEveGeoNode.h"
 #include "TEveManager.h"
@@ -22,25 +18,33 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xmlschemastypes.h>
+
 #include <unistd.h>
 #include <cerrno>
 #include <iostream>
 #include <sstream>
-using namespace std;
 
-FairEventManager* FairEventManager::fgRinstance= 0;
+FairEventManager* FairEventManager::fgRinstance = 0;
 //_____________________________________________________________________________
-FairEventManager* FairEventManager::Instance()
+FairEventManager* FairEventManager::Instance() { return fgRinstance; }
+
+// convert string with hexadecimal presentation without "0x" to integer
+int hex_string_to_int(string hex_string)
 {
-  return fgRinstance;
+    int x;
+    stringstream stream;
+    stream<<hex<<hex_string;
+    stream>>x;
+    return x;
 }
 
 //______________________________________________________________________________
 FairEventManager::FairEventManager()
-  :TEveEventManager("EventManager", ""),
+  : TEveEventManager("EventManager", ""),
    fEventEditor(NULL),
-   fEntry(0),
+   iCurrentEvent(0),
    fRunAna(FairRunAna::Instance()),
+
    fEvent(0),
    fPriOnly(kFALSE),
    fCurrentPDG(0),
@@ -48,35 +52,34 @@ FairEventManager::FairEventManager()
    fMaxEnergy(25),
    fEvtMinEnergy(0),
    fEvtMaxEnergy(12),
+
    fRPhiMng(0),
    fRhoZMng(0),
+   fRPhiView(0),
+   fRhoZView(0),
    fMulti3DView(0),
    fMultiRPhiView(0),
    fMultiRhoZView(0),
-   fRPhiView(0),
-   fRhoZView(0),
    fRPhiGeomScene(0),
    fRhoZGeomScene(0),
-   fRPhiEventScene(0),
-   fRhoZEventScene(0),
+   //fRPhiEventScene(0),
+   //fRhoZEventScene(0),
+
    EveMCPoints(NULL),
    EveMCTracks(NULL),
    EveRecoPoints(NULL),
    EveRecoTracks(NULL),
-   arrSelectedColoring(NULL),
-   arrLevelColoring(NULL),
+
    background_color(1),
    isDarkColor(true),
-   fEntryCount(0),
+
    isZDCModule(NULL),
    fgShowRecoPointsIsShow(false),
    fgRedrawRecoPointsReqired(false),
    fLastUsedColor(2001)
 {
     fgRinstance = this;
-
     AddParticlesToPdgDataBase();
-
     InitColorStructure();
 }
 
@@ -88,31 +91,26 @@ FairEventManager::FairEventManager()
 // red, violet, magenta (бардовый), magenta-6 (светло-бардовый), pink (темно-розовый)
 void FairEventManager::InitColorStructure()
 {
+    // load colors from XML file
     TString coloring_xml_path = "$VMCWORKDIR/config/eventdisplay.xml";
     TString coloring_xsd_path = "$VMCWORKDIR/eventdisplay/coloring.xsd";
     gSystem->ExpandPathName(coloring_xml_path);
     gSystem->ExpandPathName(coloring_xsd_path);
 
-    cntSelectedColoring = 0;
-    cntLevelColoring = 0;
-
-    if (ValidateXml(coloring_xml_path.Data(),coloring_xsd_path.Data()) == true)
-    {
-        xmlNode* root_element = NULL;
-        xmlSchemaPtr schema = NULL;
-        xmlSchemaParserCtxtPtr ctxt;
+    // check XML
+    if (ValidateXml(coloring_xml_path.Data(), coloring_xsd_path.Data()) == true)
+    {   
         xmlDoc* doc = xmlReadFile(coloring_xml_path.Data(), NULL, 0);
         
-        /*
-         * Get the root element node
-         */
+        /* Get the root element node */
+        xmlNode* root_element = NULL;
         root_element = xmlDocGetRootElement(doc);
         xmlAttr* root_element_attributes = root_element->properties;
         xmlChar* value = xmlNodeListGetString(root_element->doc, root_element_attributes->children, 1);
-
         xmlFree(root_element_attributes);
+
         xmlNodePtr cur_node = root_element;
-        if (strcmp((char*)value,"default")==0)
+        if (strcmp((char*)value, "default") == 0)
         {
             cout<<"using default coloring"<<endl;
             gVisualizationColoring = defaultColoring;
@@ -120,66 +118,66 @@ void FairEventManager::InitColorStructure()
         else
         {          
             if (strcmp((char*)value, "detector") == 0)
-            {
-                cntSelectedColoring = (int)xmlChildElementCount(cur_node);
-                arrSelectedColoring = new structSelectedColoring[cntSelectedColoring];
                 gVisualizationColoring = selectedColoring;
-            }
             else
-            {
-                cntLevelColoring = (int)xmlChildElementCount(cur_node);
-                arrLevelColoring = new structLevelColoring[cntLevelColoring];
                 gVisualizationColoring = levelColoring;
+            structSelectedColoring* selected_coloring;
+            structLevelColoring* level_coloring;
 
-            }
             cur_node = root_element->children;
-            int i=0;
             while (cur_node)
             {
                 if ((strcmp((char*)cur_node->name, "text") != 0) //skipping elements with no attributes
                    && (cur_node->type != XML_COMMENT_NODE))
                 {
+                    if (gVisualizationColoring == selectedColoring)
+                        selected_coloring = new structSelectedColoring();
+                    else
+                        level_coloring = new structLevelColoring();
+
                     xmlAttr* attribute = cur_node->properties;
-                    while(attribute)
+                    while (attribute)
                     {
                         xmlChar* attr_value = xmlNodeListGetString(root_element->doc, attribute->children, 1);
-                        if (strcmp((char*)value, "detector") == 0)
+                        if (gVisualizationColoring == selectedColoring)
                         {
-                            if (strcmp((char*)attribute->name,"name")==0) 
-                                arrSelectedColoring[i].detector_name=(char*)attr_value;
-                            if (strcmp((char*)attribute->name,"color")==0)
-                                arrSelectedColoring[i].detector_color=(char*)attr_value;
-                            if (strcmp((char*)attribute->name,"isRecursiveColoring")==0)
-                                arrSelectedColoring[i].isRecursiveColoring=(strcmp((char*)attr_value,"true")==0);                            
-                            if (strcmp((char*)attribute->name,"transparency")==0) 
-                                arrSelectedColoring[i].detector_transparency =  atoi((char*)attr_value);
+                            if (strcmp((char*)attribute->name,"name") == 0)
+                                selected_coloring->detector_name = (char*) attr_value;
+                            if (strcmp((char*)attribute->name,"color") == 0)
+                                selected_coloring->detector_color = (char*) attr_value;
+                            if (strcmp((char*)attribute->name,"isRecursiveColoring") == 0)
+                                selected_coloring->isRecursiveColoring = (strcmp((char*)attr_value,"true") == 0);
+                            if (strcmp((char*)attribute->name,"transparency") == 0)
+                                selected_coloring->detector_transparency =  atoi((char*)attr_value);
                         }
-                        else if (strcmp((char*)value, "hierarchy") == 0)
+                        else
                         {
-                            if (strcmp((char*)attribute->name,"color")==0) 
-                                arrLevelColoring[i].fill_color=(char*)attr_value;
-                            if (strcmp((char*)attribute->name,"isFillLine")==0) 
-                                arrLevelColoring[i].isFillLine=(strcmp((char*)attr_value,"true")==0);
-                            if (strcmp((char*)attribute->name,"visibility")==0) 
-                                arrLevelColoring[i].visibility=(strcmp((char*)attr_value,"true")==0);
-                            if (strcmp((char*)attribute->name,"transparency")==0) 
-                                arrLevelColoring[i].transparency=atoi((char*)attr_value);
+                            if (strcmp((char*)attribute->name,"color") == 0)
+                                level_coloring->fill_color = (char*) attr_value;
+                            if (strcmp((char*)attribute->name,"isFillLine") == 0)
+                                level_coloring->isFillLine = (strcmp((char*)attr_value,"true") == 0);
+                            if (strcmp((char*)attribute->name,"visibility") == 0)
+                                level_coloring->visibility = (strcmp((char*)attr_value,"true") == 0);
+                            if (strcmp((char*)attribute->name,"transparency") == 0)
+                                level_coloring->transparency = atoi((char*)attr_value);
                         }                    
                         attribute = attribute->next;
                         xmlFree(attr_value);
-                    }
+                    }// while (attribute)
                     xmlFree(attribute);
-                    i++;                
+
+                    // add color parameters to array
+                    if (gVisualizationColoring == selectedColoring)
+                        vecSelectedColoring.push_back(selected_coloring);
+                    else
+                        vecLevelColoring.push_back(level_coloring);
                 }
                 cur_node = cur_node->next;
-            }
+            }// while (cur_node)
         }
             
         xmlFree(value);
         xmlFree(cur_node);
-        /*
-         * free the document
-         */
         xmlCleanupParser();
         xmlFreeDoc(doc);
     }
@@ -189,7 +187,6 @@ void FairEventManager::InitColorStructure()
         gVisualizationColoring = defaultColoring;
     }
     
-    //sleep(20);
     return;
 }
 
@@ -230,18 +227,19 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
     if (!isOnline)
     {
         // create projection managers
-        fRPhiMng = new TEveProjectionManager();
-        fRPhiMng->SetProjection(TEveProjection::kPT_RPhi);
+        fRPhiMng = new TEveProjectionManager(TEveProjection::kPT_RPhi);
         gEve->AddToListTree(fRPhiMng, kFALSE);
 
-        fRhoZMng = new TEveProjectionManager();
-        fRhoZMng->SetProjection(TEveProjection::kPT_RhoZ);
+        fRhoZMng = new TEveProjectionManager(TEveProjection::kPT_RhoZ);
         gEve->AddToListTree(fRhoZMng, kFALSE);
 
         // create axes for viewers
-        TEveProjectionAxes* axes = new TEveProjectionAxes(fRPhiMng);
-        axes->SetMainColor(kRed);
+        TEveProjectionAxes* fAxesPhi = new TEveProjectionAxes(fRPhiMng);
+        fAxesPhi->SetMainColor(kRed);
+        TEveProjectionAxes* fAxesRho = new TEveProjectionAxes(fRhoZMng);
+        fAxesRho->SetMainColor(kRed);
 
+        Double_t eqRPhi[4] = {0, 0, 10/*1*/, 0};
         // add window in EventDisplay for RPhi projection
         TEveWindowSlot *RPhiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
         TEveWindowPack *RPhiPack = RPhiSlot->MakePack();
@@ -250,7 +248,6 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
         RPhiPack->NewSlot()->MakeCurrent();
         fRPhiView = gEve->SpawnNewViewer("RPhi View", "");
         fRPhiView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoXOY);
-        Double_t eqRPhi[4] = {0.0, 0.0, 1.0, 0.0};
         // set clip plane and camera parameters
         fRPhiView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
         fRPhiView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRPhi);
@@ -264,16 +261,20 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
         if (!isDarkColor)
             fRPhiView->GetGLViewer()->UseLightColorSet();
         fRPhiView->GetGLViewer()->SetClearColor(background_color);
-        // create scene holding projected geometry for the RPhi view
-        fRPhiGeomScene  = gEve->SpawnNewScene("RPhi Geometry", "Scene holding projected geometry for the RPhi view.");
-        // add axes for scene of RPhi view
-        fRPhiGeomScene->AddElement(axes);
-        // create scene holding projected event-data for the RPhi view
-        fRPhiEventScene = gEve->SpawnNewScene("RPhi Event Data", "Scene holding projected event-data for the RPhi view.");
-        // add both scenes to RPhi View
-        fRPhiView->AddScene(fRPhiGeomScene);
-        fRPhiView->AddScene(fRPhiEventScene);
 
+        // create scene holding projected geometry for the RPhi view
+        fRPhiGeomScene  = gEve->SpawnNewScene("RPhi", "Scene holding geometry for RPhi.");
+        // add axes for scene of RPhi view
+        fRPhiGeomScene->AddElement(fAxesPhi);
+        // add geometry scene to RPhi View
+        fRPhiView->AddScene(fRPhiGeomScene);
+        // create scene holding projected event-data for the RPhi view
+        //fRPhiEventScene = gEve->SpawnNewScene("RPhi Event Data", "Scene holding event-data for RPhi.");
+        //fRPhiView->AddScene(fRPhiEventScene);
+        fRPhiView->AddScene(gEve->GetGlobalScene());
+        fRPhiView->AddScene(gEve->GetEventScene());
+
+        Double_t eqRhoZ[4] = {-1, 0, 0, 0};
         // add window in EvenDisplay for RhoZ projection
         TEveWindowSlot *RhoZSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
         TEveWindowPack *RhoZPack = RhoZSlot->MakePack();
@@ -281,8 +282,7 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
         RhoZPack->SetShowTitleBar(kFALSE);
         RhoZPack->NewSlot()->MakeCurrent();
         fRhoZView = gEve->SpawnNewViewer("RhoZ View", "");
-        fRhoZView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
-        Double_t eqRhoZ[4] = {-1.0, 0.0, 0.0, 0.0};
+        fRhoZView->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);   
         // set clip plane and camera parameters
         fRhoZView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
         fRhoZView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, eqRhoZ);
@@ -295,15 +295,18 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
         if (!isDarkColor)
             fRhoZView->GetGLViewer()->UseLightColorSet();
         fRhoZView->GetGLViewer()->SetClearColor(background_color);
+
         // create scene holding projected geometry for the RhoZ view.
-        fRhoZGeomScene  = gEve->SpawnNewScene("RhoZ Geometry", "Scene holding projected geometry for the RhoZ view.");
+        fRhoZGeomScene  = gEve->SpawnNewScene("RhoZ", "Scene holding geometry for RhoZ.");
         // add axes for scene of RPhoZ view
-        fRhoZGeomScene->AddElement(axes);
-        // create scene holding projected event-data for the RhoZ view
-        fRhoZEventScene = gEve->SpawnNewScene("RhoZ Event Data", "Scene holding projected event-data for the RhoZ view.");
-        // add both scenes to RhoZView
+        fRhoZGeomScene->AddElement(fAxesRho);
+        // add geometry scenes to RhoZView
         fRhoZView->AddScene(fRhoZGeomScene);
-        fRhoZView->AddScene(fRhoZEventScene);
+        // create scene holding projected event-data for the RhoZ view
+        //fRhoZEventScene = gEve->SpawnNewScene("RhoZ Event Data", "Scene holding event-data for RhoZ.");
+        //fRhoZView->AddScene(fRhoZEventScene);
+        fRhoZView->AddScene(gEve->GetGlobalScene());
+        fRhoZView->AddScene(gEve->GetEventScene());
 
         // add window in EvenDisplay for MultiView
         TEveWindowSlot *MultiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
@@ -342,9 +345,12 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
         if (!isDarkColor)
             fMultiRPhiView->GetGLViewer()->UseLightColorSet();
         fMultiRPhiView->GetGLViewer()->SetClearColor(background_color);
+
         // add RPhi scenes (second tab) to RPhi MultiView
         fMultiRPhiView->AddScene(fRPhiGeomScene);
-        fMultiRPhiView->AddScene(fRPhiEventScene);
+        //fMultiRPhiView->AddScene(fRPhiEventScene);
+        fMultiRPhiView->AddScene(gEve->GetGlobalScene());
+        fMultiRPhiView->AddScene(gEve->GetEventScene());
 
         // add slot for RhoZ projection on Multi View tab
         MultiPack->NewSlot()->MakeCurrent();
@@ -362,22 +368,25 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
         if (!isDarkColor)
             fMultiRhoZView->GetGLViewer()->UseLightColorSet();
         fMultiRhoZView->GetGLViewer()->SetClearColor(background_color);
+
         // add RhoZ scenes (second tab) to RhoZ MultiView
         fMultiRhoZView->AddScene(fRhoZGeomScene);
-        fMultiRhoZView->AddScene(fRhoZEventScene);
+        //fMultiRhoZView->AddScene(fRhoZEventScene);
+        fMultiRhoZView->AddScene(gEve->GetGlobalScene());
+        fMultiRhoZView->AddScene(gEve->GetEventScene());
 
         // copy geometry and event scene for RPhi and RhoZ views from global scene (3D)
-        fRPhiGeomScene->AddElement(gEve->GetGlobalScene());
-        fRPhiEventScene->AddElement(gEve->GetEventScene());
-        fRhoZGeomScene->AddElement(gEve->GetGlobalScene());
-        fRhoZEventScene->AddElement(gEve->GetEventScene());
+        //fRPhiGeomScene->AddElement(gEve->GetGlobalScene());
+        //fRPhiEventScene->AddElement(gEve->GetEventScene());
+        //fRhoZGeomScene->AddElement(gEve->GetGlobalScene());
+        //fRhoZEventScene->AddElement(gEve->GetEventScene());
 
         // update all scenes
-        fRPhiView->GetGLViewer()->UpdateScene(kTRUE);
-        fRhoZView->GetGLViewer()->UpdateScene(kTRUE);
-        fMulti3DView->GetGLViewer()->UpdateScene(kTRUE);
-        fMultiRPhiView->GetGLViewer()->UpdateScene(kTRUE);
-        fMultiRhoZView->GetGLViewer()->UpdateScene(kTRUE);
+        //fRPhiView->GetGLViewer()->UpdateScene(kTRUE);
+        //fRhoZView->GetGLViewer()->UpdateScene(kTRUE);
+        //fMulti3DView->GetGLViewer()->UpdateScene(kTRUE);
+        //fMultiRPhiView->GetGLViewer()->UpdateScene(kTRUE);
+        //fMultiRhoZView->GetGLViewer()->UpdateScene(kTRUE);
 
         // don't change reposition camera on each update
         fRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
@@ -388,26 +397,30 @@ void FairEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
     }//if (!isOnline)
 }//FairEventManager::Init
 
-// changing of geometry color
+// setting of geometry colors for DETECTOR COLORING MODE
 void FairEventManager::SelectedGeometryColoring()
 {
     TGeoVolume* curVolume;
-    for (int i = 0; i < cntSelectedColoring; i++)
+    for (int i = 0; i < vecSelectedColoring.size(); i++)
     {
-        curVolume = gGeoManager->GetVolume(arrSelectedColoring[i].detector_name);
+        structSelectedColoring* selected_coloring = vecSelectedColoring[i];
+        curVolume = gGeoManager->GetVolume(selected_coloring->detector_name);
         if (!curVolume)
         {
-            cout<<"There is no volume with given name: "<< arrSelectedColoring[i].detector_name<<endl;
+            cout<<"There is no volume with given name: "<<selected_coloring->detector_name<<endl;
+            // delete wrong detector name from the array
+            vecSelectedColoring.erase(vecSelectedColoring.begin() + i);
+            i--;
             continue;
         }
-        Int_t curColor = GetColor(arrSelectedColoring[i].detector_color);
-        Int_t curTransparency = arrSelectedColoring[i].detector_transparency;
+        Int_t curColor = GetColor(selected_coloring->detector_color);
+        Int_t curTransparency = selected_coloring->detector_transparency;
 
         curVolume->SetFillColor(curColor);
         curVolume->SetLineColor(curColor);
         curVolume->SetTransparency(curTransparency);
 
-        if (arrSelectedColoring[i].isRecursiveColoring)
+        if (selected_coloring->isRecursiveColoring)
         {
             for (int j = 0; j < curVolume->GetNdaughters(); j++)
             {
@@ -443,40 +456,6 @@ void FairEventManager::RecursiveChangeNodeProperty(TGeoNode* node, Int_t color, 
     }
 }
 
-// set transparent geometry
-void FairEventManager::SelectedGeometryTransparent(bool is_on)
-{
-    TGeoVolume* curVolume;
-    for (int i = 0; i < cntSelectedColoring; i++)
-    {
-        curVolume = gGeoManager->GetVolume(arrSelectedColoring[i].detector_name);
-        if (!curVolume)
-        {
-            cout<<"There is no volume with given name: "<< arrSelectedColoring[i].detector_name<<endl;
-            continue;
-        }
-
-        Int_t curTransparency = 80;
-        if (!is_on)
-            curTransparency = arrSelectedColoring[i].detector_transparency;
-
-        curVolume->SetTransparency(curTransparency);
-
-        for (int j = 0; j < curVolume->GetNdaughters(); j++)
-        {
-            TGeoNode* child = curVolume->GetNode(j);
-            TGeoVolume* subVolume = child->GetVolume();
-
-            subVolume->SetTransparency(curTransparency);
-
-            if (child->GetNdaughters() != 0)
-                RecursiveChangeNodeTransparent(child, curTransparency);
-        }
-    }
-
-    return;
-}
-
 void FairEventManager::RecursiveChangeNodeTransparent(TGeoNode* node, int transparency)
 {
     for (int i = 0; i < node->GetNdaughters(); i++)
@@ -491,20 +470,77 @@ void FairEventManager::RecursiveChangeNodeTransparent(TGeoNode* node, int transp
     }
 }
 
+// set transparent geometry
+void FairEventManager::SetTransparentGeometry(bool is_on)
+{
+    switch (gVisualizationColoring)
+    {
+    case selectedColoring:
+    {
+        TGeoVolume* curVolume;
+        for (int i = 0; i < vecSelectedColoring.size(); i++)
+        {
+            structSelectedColoring* selected_coloring = vecSelectedColoring[i];
+            curVolume = gGeoManager->GetVolume(selected_coloring->detector_name);
+            if (!curVolume)
+            {
+                cout<<"There is no volume with given name: "<< selected_coloring->detector_name<<endl;
+                // delete wrong detector name from the array
+                vecSelectedColoring.erase(vecSelectedColoring.begin() + i);
+                i--;
+                continue;
+            }
+
+            Int_t curTransparency = 80;
+            if (!is_on)
+                curTransparency = selected_coloring->detector_transparency;
+
+            curVolume->SetTransparency(curTransparency);
+
+            for (int j = 0; j < curVolume->GetNdaughters(); j++)
+            {
+                TGeoNode* child = curVolume->GetNode(j);
+                TGeoVolume* subVolume = child->GetVolume();
+
+                subVolume->SetTransparency(curTransparency);
+
+                if (child->GetNdaughters() != 0)
+                    RecursiveChangeNodeTransparent(child, curTransparency);
+            }
+        }
+
+        break;
+    }
+    case levelColoring:
+    {
+        // NOT IMPLEMENTED
+        break;
+    }
+    case defaultColoring:
+    {
+        // NOT IMPLEMENTED
+        break;
+    }
+    }// switch (gVisualizationColoring)
+
+    return;
+}
+
 // hierarchical changing of nodes' properties: visibility, transparency, fill color and line color
 void FairEventManager::LevelChangeNodeProperty(TGeoNode* node, int level)
 {
-    for(int i = 0; i < node->GetNdaughters(); i++)
+    for (int i = 0; i < node->GetNdaughters(); i++)
     {
         TGeoNode* child = node->GetDaughter(i);
-        if (level < cntLevelColoring)
+        if (level < vecLevelColoring.size())
         {
             TGeoVolume* curVolume = child->GetVolume();
 
-            curVolume->SetVisibility(arrLevelColoring[level].visibility);
-            curVolume->SetTransparency(arrLevelColoring[level].transparency);
-            curVolume->SetFillColor(GetColor(arrLevelColoring[level].fill_color));
-            if (arrLevelColoring[level].isFillLine) curVolume->SetLineColor(GetColor(arrLevelColoring[level].fill_color));
+            structLevelColoring* level_coloring = vecLevelColoring[level];
+            curVolume->SetVisibility(level_coloring->visibility);
+            curVolume->SetTransparency(level_coloring->transparency);
+            curVolume->SetFillColor(GetColor(level_coloring->fill_color));
+            if (level_coloring->isFillLine) curVolume->SetLineColor(GetColor(level_coloring->fill_color));
 
             if (child->GetNdaughters() != 0)
             {
@@ -515,64 +551,49 @@ void FairEventManager::LevelChangeNodeProperty(TGeoNode* node, int level)
     }
 }
 
-// convert string with hexadecimal presentation without "0x" to integer
-int hex_string_to_int(string hex_string)
-{
-    int x;
-    stringstream stream;
-    stream<<std::hex<<hex_string;
-    stream>>x;
-    return x;
-}
-
-//returns true if successful or false if validation failed
+// validate XML file with geometry colors
+// returns true if successful or false if XML validation failed
 bool FairEventManager::ValidateXml(const char *XMLFileName, const char *XSDFileName)
 {
     bool ok = false;
-    xmlDoc* doc = NULL;
-    xmlSchemaPtr schema = NULL;
-    xmlSchemaParserCtxtPtr ctxt;
-    
-    ctxt = xmlSchemaNewParserCtxt(XSDFileName);
 
+    xmlSchemaParserCtxtPtr ctxt = xmlSchemaNewParserCtxt(XSDFileName);
     xmlSchemaSetParserErrors(ctxt, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
+
+    xmlSchemaPtr schema = NULL;
     schema = xmlSchemaParse(ctxt);
     xmlSchemaFreeParserCtxt(ctxt);
-    //xmlSchemaDump(stdout, schema); //To print schema dump
+    //xmlSchemaDump(stdout, schema);    //to print schema dump
+
+    xmlDoc* doc = NULL;
     doc = xmlReadFile(XMLFileName, NULL, 0);
     if (doc == NULL)
-    {
-        cout<<"error: could not parse file"<<XMLFileName<<endl;
-        ok=false;
-    }
+        cout<<"Error: could not parse file"<<XMLFileName<<endl;
     else
     {
-        xmlSchemaValidCtxtPtr cvalid;
-        int ret;
-
-        cvalid = xmlSchemaNewValidCtxt(schema);
+        xmlSchemaValidCtxtPtr cvalid = xmlSchemaNewValidCtxt(schema);
         xmlSchemaSetValidErrors(cvalid, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
-        ret = xmlSchemaValidateDoc(cvalid, doc);
+        int ret = xmlSchemaValidateDoc(cvalid, doc);
         if (ret == 0)
         {
             //cout<<XMLFileName<<" is validated"<<endl;
-            ok=true;
+            ok = true;
         }
         else if (ret > 0)
         {
             cout<<XMLFileName<<" failed to validate"<<endl;
-            ok=false;
         }
         else
         {
             cout<<XMLFileName<<" validation generated an internal error"<<endl;
-            ok=false;
         }
         xmlSchemaFreeValidCtxt(cvalid);
     }
-    if(schema != NULL)
+
+    if (schema != NULL)
         xmlSchemaFree(schema);
     xmlSchemaCleanupTypes();
+
     return ok;
 }
 
@@ -598,8 +619,7 @@ Int_t FairEventManager::GetColor(TString colorName)
             return 600;
         }
         TString triple = colorName(3, colorName.Length() - 3);
-        triple.Remove(TString::kLeading, '(');
-        triple.Remove(TString::kTrailing, ')');
+        triple.Remove(TString::kLeading, '('); triple.Remove(TString::kTrailing, ')');
 
         int red_rgb = -1, green_rgb = -1, blue_rgb = -1;
         if (triple[0] == '#')
@@ -673,37 +693,6 @@ Int_t FairEventManager::GetColor(TString colorName)
 }
 
 //______________________________________________________________________________
-void FairEventManager::SetDepth(Float_t d)
-{
-    fRPhiMng->SetCurrentDepth(d);
-    fRhoZMng->SetCurrentDepth(d);
-}
-
-//______________________________________________________________________________
-void FairEventManager::ImportGeomRPhi(TEveElement* el)
-{
-    fRPhiMng->ImportElements(el, fRPhiGeomScene);
-}
-
-//______________________________________________________________________________
-void FairEventManager::ImportGeomRhoZ(TEveElement* el)
-{
-    fRhoZMng->ImportElements(el, fRhoZGeomScene);
-}
-
-//______________________________________________________________________________
-void FairEventManager::ImportEventRPhi(TEveElement* el)
-{
-    fRPhiMng->ImportElements(el, fRPhiEventScene);
-}
-
-//______________________________________________________________________________
-void FairEventManager::ImportEventRhoZ(TEveElement* el)
-{
-    fRhoZMng->ImportElements(el, fRhoZEventScene);
-}
-
-//______________________________________________________________________________
 void FairEventManager::Open()
 {
 }
@@ -726,31 +715,40 @@ void FairEventManager::UpdateEditor()
 // FairEventManager destructor
 FairEventManager::~FairEventManager()
 {
-    if (arrSelectedColoring)
-        delete[] arrSelectedColoring;
-    if (arrLevelColoring)
-        delete[] arrLevelColoring;
+    if (!vecSelectedColoring.empty())
+    {
+        for (int i = 0; i < vecSelectedColoring.size(); i++)
+            delete (vecSelectedColoring[i]);
+        vecSelectedColoring.clear();
+    }
+    if (!vecLevelColoring.empty())
+    {
+        for (int i = 0; i < vecLevelColoring.size(); i++)
+            delete (vecLevelColoring[i]);
+        vecLevelColoring.clear();
+    }
 }
 
 // go to FairRunAna event with given number for scene data getting
 void FairEventManager::GotoEvent(Int_t event)
 {
-    fEntry = event;
+    iCurrentEvent = event;
     fRunAna->Run((Long64_t)event);
 }
 
 // go to next FairRunAna event for scene data getting
 void FairEventManager::NextEvent()
 {
-    fRunAna->Run((Long64_t)++fEntry);
+    fRunAna->Run((Long64_t)++iCurrentEvent);
 }
 
 // go to previous FairRunAna event for scene data getting
 void FairEventManager::PrevEvent()
 {
-    fRunAna->Run((Long64_t)--fEntry);
+    fRunAna->Run((Long64_t)--iCurrentEvent);
 }
 
+// assign different colors for differrent particles
 // return integer value of color for track by particle pdg (default, white)
 Int_t FairEventManager::Color(int pdg)
 {

@@ -73,22 +73,19 @@ MpdEmcTowerDraw::MpdEmcTowerDraw(const char* name, Double_t emcMinEnergyThreshol
 // -------------------------------------------------------------------------
 InitStatus MpdEmcTowerDraw::Init()
 {
-    if (GetVerboselvl() > 1)
-        cout<<"MpdEmcTowerDraw::Init()"<<endl;    
+    if (GetVerboselvl() > 1) cout<<"MpdEmcTowerDraw::Init()"<<endl;
 
     fEventManager = FairEventManager::Instance();
     fEventManager->fgRedrawRecoPointsReqired=kTRUE;
-    if (GetVerboselvl() > 1)
-        cout<<"MpdEmcTowerDraw::Init() get instance of EventManager: "<<fEventManager<<endl;
+    if (GetVerboselvl() > 1) cout<<"MpdEmcTowerDraw::Init() get instance of EventManager: "<<fEventManager<<endl;
 
     FairRootManager* fManager = FairRootManager::Instance();
-    if (GetVerboselvl() > 1)
-        cout<<"MpdEmcTowerDraw::Init() get instance of FairRootManager: "<<fManager<<endl;    
+    if (GetVerboselvl() > 1) cout<<"MpdEmcTowerDraw::Init() get instance of FairRootManager: "<<fManager<<endl;
 
     fDigitList = (TClonesArray*)fManager->GetObject("EmcDigit");
     if(fDigitList == 0)
     {
-        cout << "MpdEmcTowerDraw::Init()  branch EmcDigit Not found! Task will be deactivated "<< endl;
+        LOG(ERROR)<<"MpdEmcTowerDraw::Init() branch EmcDigit not found! Task will be deactivated"<<FairLogger::endl;
         SetActive(kFALSE);
     }
      
@@ -110,9 +107,8 @@ InitStatus MpdEmcTowerDraw::Init()
     SetBoxHeight(FindBoxesHeights());
     SetN3Dbins(2*GetNSectors()*GetNTubes()*GetNBoxes());//2*28*4*23*3*3
 
-    if (GetVerboselvl() > 1)
-        cout<<"MpdEmcTowerDraw::Init() number of 3d bins = "<<GetN3Dbins()<<endl;
-    //cout<<"GetName()"<<GetName()<<endl;
+    if (GetVerboselvl() > 1) cout<<"MpdEmcTowerDraw::Init() number of 3d bins = "<<GetN3Dbins()<<endl;
+
     fEneArr = new Double_t[GetN3Dbins()];
     for (Int_t i = 0; i < GetN3Dbins(); ++i)
         SetEneArr(i,0);

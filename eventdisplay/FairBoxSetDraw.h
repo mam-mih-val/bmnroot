@@ -3,7 +3,6 @@
 // -----          Created 26/03/09  by T. Stockmanns                   -----
 // -------------------------------------------------------------------------
 
-
 /** FairBoxSetDraw
  * @author T. Stockmanns
  * @since 26.3.2009
@@ -12,33 +11,25 @@
  *   to place the points.
  *   If one wants to change the color of the points one has to overwrite the method GetValue. This method takes a TObject and
  *   an integer and translates this into an integer as input for the EveBoxSet method DigitValue
- **
  **/
 
 #ifndef FAIRBOXSETDRAW_H
 #define FAIRBOXSETDRAW_H
 
-#include "FairTask.h"                   // for FairTask, InitStatus
+#include "FairTask.h"
+#include "FairTSBufferFunctional.h"
+#include "FairEventManager.h"
+#include "FairRootManager.h"
 
-#include "FairTSBufferFunctional.h"     // IWYU pragma: keep needed for cint
-
-#include "Rtypes.h"                     // for Double_t, Int_t, Bool_t, etc
+#include "TVector3.h"
+#include "TClonesArray.h"
 
 class FairBoxSet;
-class TObject;
-class TVector3;
-class TClonesArray;
-class FairEventManager;
-class FairRootManager;
-
 class FairBoxSetDraw : public FairTask
 {
-
   public:
-
     /** Default constructor **/
     FairBoxSetDraw();
-
 
     /** Standard constructor
     *@param name        Name of task
@@ -53,12 +44,9 @@ class FairBoxSetDraw : public FairTask
     virtual Double_t GetTimeWindowMinus() {return fTimeWindowMinus;}
 
     /** Set verbosity level. For this task and all of the subtasks. **/
-    virtual void SetVerbose(Int_t iVerbose) {fVerbose = iVerbose;};
-    virtual void SetBoxDimensions(Double_t x, Double_t y, Double_t z) {
-      fX = x;
-      fY = y;
-      fZ = z;
-    }
+    virtual void SetVerbose(Int_t iVerbose) {fVerbose = iVerbose;}
+
+    virtual void SetBoxDimensions(Double_t x, Double_t y, Double_t z) { fX = x; fY = y; fZ = z; }
 
     virtual void SetTimeWindowMinus(Double_t val);
     virtual void SetTimeWindowPlus(Double_t val);
@@ -73,9 +61,8 @@ class FairBoxSetDraw : public FairTask
     void Reset();
 
   protected:
-
     Int_t   fVerbose;       //  Verbosity level
-    virtual void SetParContainers() ;
+    virtual void SetParContainers();
     virtual InitStatus Init();
     /** Action after each event**/
     virtual void Finish();
@@ -85,16 +72,15 @@ class FairBoxSetDraw : public FairTask
     virtual void AddBoxes(FairBoxSet* set, TObject* obj, Int_t i = 0);
 
     TClonesArray* fList; //!
-    FairEventManager* fEventManager;   //!
+    FairEventManager* fEventManager;    //!
     FairRootManager* fManager;
-    FairBoxSet* fq;    //!
+    FairBoxSet* fq;     //!
     Double_t fX, fY, fZ;
 
     Double_t fTimeWindowPlus;
     Double_t fTimeWindowMinus;
     Double_t fStartTime;
     Bool_t fUseEventTime;
-
 
   private:
     FairBoxSetDraw(const FairBoxSetDraw&);
@@ -103,8 +89,6 @@ class FairBoxSetDraw : public FairTask
     BinaryFunctor* fStopFunctor;
 
     ClassDef(FairBoxSetDraw,1);
-
 };
-
 
 #endif

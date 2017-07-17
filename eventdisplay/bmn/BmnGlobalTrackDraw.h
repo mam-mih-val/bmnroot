@@ -65,7 +65,6 @@ class BmnGlobalTrackDraw : public FairTask
     TEveTrackPropagator* fTrPr;
     FairEventManager* fEventManager;    //!
     TObjArray* fEveTrList;
-    TString fEvent;                     //!
     TEveTrackList* fTrList;             //!
 
     Double_t MinEnergyLimit;

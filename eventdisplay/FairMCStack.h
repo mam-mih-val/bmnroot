@@ -1,59 +1,39 @@
-/********************************************************************************
- *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
- *                                                                              *
- *              This software is distributed under the terms of the             *
- *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
- *                  copied verbatim in the file "LICENSE"                       *
- ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----                      FairMCStack header file                 -----
 // -----                Created 09/10/08  by M. Al-Turany              -----
 // -------------------------------------------------------------------------
 
-
-/** FairMCStack
- * @author M. Al-Turany, Denis Bertini
- * @since 10.12.07
- *   MVD event display object
- **
- **/
-
 #ifndef FairMCStack_H
 #define FairMCStack_H
 
-
 #include "FairTask.h"
+#include "FairGeanePro.h"
+#include "FairEventManager.h"
+#include "FairTrajFilter.h"
+
 #include "TEveTrackPropagator.h"
 #include "TString.h"
+#include "TObjArray.h"
 #include "TEveTrack.h"
-class FairGeanePro;
-class TGeant3;
-class FairEventManager;
-class TObjArray;
-class FairTrajFilter;
+#include "TGeant3.h"
 
-//class TEveElementList;
+
 class FairMCStack : public FairTask
 {
-
   public:
-
     /** Default constructor **/
     FairMCStack();
-
-
-
     /** Standard constructor
     *@param name        Name of task
     *@param iVerbose    Verbosity level
     **/
     FairMCStack(const char* name, Int_t iVerbose = 1);
-
     /** Destructor **/
     virtual ~FairMCStack();
 
     /** Set verbosity level. For this task and all of the subtasks. **/
     void SetVerbose(Int_t iVerbose);
+
     /** Executed task **/
     virtual void Exec(Option_t* option);
     virtual InitStatus Init();
@@ -65,29 +45,21 @@ class FairMCStack : public FairTask
     TEveTrackList* GetTrGroup(TParticle* P);
 
   protected:
-
+    FairEventManager* fEventManager;  //!
 
     TClonesArray*  fTrackList;  //!
-    TEveTrackPropagator* fTrPr;
-    FairEventManager* fEventManager;  //!
     TObjArray* fEveTrList;
-    TString fEvent; //!
+    TEveTrackPropagator* fTrPr;
     TEveTrackList* fTrList;  //!
-    //TEveElementList *fTrackCont;
-    Float_t x1[3];
-    Float_t p1[3];
-    Float_t ein[15];
-    Float_t x2[3];
-    Float_t p2[3];
-    TGeant3* gMC3; //!
-    Double_t MinEnergyLimit;
-    Double_t MaxEnergyLimit;
+
+    Float_t x1[3], x2[3], p1[3], p2[3], ein[15];
+    TGeant3* gMC3;  //!
+    Double_t MinEnergyLimit, MaxEnergyLimit;
     Double_t PEnergy;
-    FairGeanePro* fPro;//!
-    FairTrajFilter* fTrajFilter;//!
+    FairGeanePro* fPro; //!
+    FairTrajFilter* fTrajFilter; //!
+
     ClassDef(FairMCStack,1);
-
 };
-
 
 #endif

@@ -1,15 +1,16 @@
 # Create a library called "libEventDisplay" 
-set(INCLUDE_DIRECTORIES
-${CMAKE_SOURCE_DIR}/base/event
-${CMAKE_SOURCE_DIR}/base/sim
-${CMAKE_SOURCE_DIR}/base/source
-${CMAKE_SOURCE_DIR}/base/steer
-${CMAKE_SOURCE_DIR}/geane
-${CMAKE_SOURCE_DIR}/config
-${CMAKE_SOURCE_DIR}/fairtools
-${CMAKE_SOURCE_DIR}/geobase
-${CMAKE_SOURCE_DIR}/parbase
-${CMAKE_SOURCE_DIR}/eventdisplay
+
+Set(INCLUDE_DIRECTORIES
+  ${CMAKE_SOURCE_DIR}/base/event
+  ${CMAKE_SOURCE_DIR}/base/sim
+  ${CMAKE_SOURCE_DIR}/base/source
+  ${CMAKE_SOURCE_DIR}/base/steer
+  ${CMAKE_SOURCE_DIR}/geane
+  ${CMAKE_SOURCE_DIR}/config
+  ${CMAKE_SOURCE_DIR}/fairtools
+  ${CMAKE_SOURCE_DIR}/geobase
+  ${CMAKE_SOURCE_DIR}/parbase
+  ${CMAKE_SOURCE_DIR}/eventdisplay
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -88,12 +89,14 @@ if (TDAQ_FOUND)
     ${LINK_DIRECTORIES} 
     ${TDAQ_LIBRARY_PATH}
   )
-  Set(SRCS
-    ${SRCS} 
+  if (BMNROOT)
+   Set(SRCS
+    ${SRCS}   
     tdaq/BmnEventPull.cxx
     #tdaq/BmnEventMonitor.cxx
     tdaq/BmnTdaqSource.cxx
-  )
+   )
+  endif (BMNROOT)
 endif (TDAQ_FOUND)
 
 Include_Directories(${INCLUDE_DIRECTORIES})
@@ -102,33 +105,34 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 link_directories(${LINK_DIRECTORIES})
 
 Set(HEADERS)
+if (TDAQ_FOUND)
+ Set(LINKDEF tdaq/EventDLinkDef.h)
+else (TDAQ_FOUND)
+ Set(LINKDEF EventDisplayLinkDef.h)
+endif (TDAQ_FOUND)
 if (BMNROOT)
  if (TDAQ_FOUND)
   Set(LINKDEF bmn/EventBDLinkDef.h)
  else (TDAQ_FOUND)
   Set(LINKDEF bmn/EventBLinkDef.h)
  endif (TDAQ_FOUND)
-else (BMNROOT)
- if (MPDROOT)
-  if (TDAQ_FOUND)
-   Set(LINKDEF mpd/EventMDLinkDef.h)
-  else (TDAQ_FOUND)
-   Set(LINKDEF mpd/EventMLinkDef.h)
-  endif (TDAQ_FOUND)
- else (MPDROOT)
-  if (TDAQ_FOUND)
-   Set(LINKDEF tdaq/EventDLinkDef.h)
-  else (TDAQ_FOUND)
-   Set(LINKDEF EventDisplayLinkDef.h)
-  endif (TDAQ_FOUND)
- endif (MPDROOT)
 endif (BMNROOT)
-Set(LIBRARY_NAME EventDisplay)
+if (MPDROOT)
+ if (TDAQ_FOUND)
+  Set(LINKDEF mpd/EventMDLinkDef.h)
+ else (TDAQ_FOUND)
+  Set(LINKDEF mpd/EventMLinkDef.h)
+ endif (TDAQ_FOUND)
+endif (MPDROOT)
 
 if (TDAQ_FOUND)
-  Set(DEPENDENCIES BmnData Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2 emon emon-dal cmdline ipc owl omniORB4 omnithread ers)
+  Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2 emon emon-dal cmdline ipc owl omniORB4 omnithread ers)
 else (TDAQ_FOUND)
-  Set(DEPENDENCIES BmnData Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2)
+  Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Cint Core xml2)
 endif (TDAQ_FOUND)
+if (BMNROOT)
+ Set(DEPENDENCIES BmnData ${DEPENDENCIES})
+endif (BMNROOT)
 
+Set(LIBRARY_NAME EventDisplay)
 GENERATE_LIBRARY()

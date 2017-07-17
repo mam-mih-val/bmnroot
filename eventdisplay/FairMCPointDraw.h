@@ -5,8 +5,8 @@
  *      Author: stockman
  */
 
-#ifndef FAIRMCPOINTDRAW_H_
-#define FAIRMCPOINTDRAW_H_
+#ifndef FAIRMCPOINTDRAW_H
+#define FAIRMCPOINTDRAW_H
 
 #include "FairPointSetDraw.h"
 
@@ -17,16 +17,17 @@ class FairMCPointDraw : public FairPointSetDraw
 {
   public:
     FairMCPointDraw();
-    FairMCPointDraw(const char* name, Color_t color ,Style_t mstyle, Int_t iVerbose = 1)
+    FairMCPointDraw(const char* name, Color_t color, Style_t mstyle, Int_t iVerbose = 1)
         : FairPointSetDraw(name, color, mstyle, iVerbose) {}
     virtual ~FairMCPointDraw();
 
   protected:
     TVector3 GetVector(TObject* obj);
+
     void AddEveElementList();
     void RemoveEveElementList();
 
     ClassDef(FairMCPointDraw,1);
 };
 
-#endif /* FAIRMCPOINTDRAW_H_ */
+#endif /* FAIRMCPOINTDRAW_H */

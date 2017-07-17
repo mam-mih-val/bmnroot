@@ -9,8 +9,7 @@
 // -----   Standard constructor   ------------------------------------------
 FairBoxSet::FairBoxSet(FairBoxSetDraw* drawer, const char* name, const char* t)
   : TEveBoxSet(name, t), fDraw(drawer)
-{}
+{
+}
 
 ClassImp(FairBoxSet)
-
-

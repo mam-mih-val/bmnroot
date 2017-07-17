@@ -1,8 +1,7 @@
 // -------------------------------------------------------------------------
-// -----              FairBoxSet header file                       -----
+// -----              FairBoxSet header file                           -----
 // -----          Created 26/03/09  by T. Stockmanns                   -----
 // -------------------------------------------------------------------------
-
 
 /** FairBoxSet
  * @author T. Stockmanns
@@ -12,26 +11,19 @@
  *   to place the points.
  *   If one wants to change the color of the points one has to overwrite the method GetValue. This method takes a TObject and
  *   an integer and translates this into an integer as input for the EveBoxSet method DigitValue
- **
  **/
 
 #ifndef FAIRBOXSET_H
 #define FAIRBOXSET_H
 
-#include "TEveBoxSet.h"                 // for TEveBoxSet
-
-#include "FairBoxSetDraw.h"             // for FairBoxSetDraw
-
-#include "Rtypes.h"                     // for Double_t, FairBoxSet::Class, etc
+#include "TEveBoxSet.h"
+#include "FairBoxSetDraw.h"
 
 
 class FairBoxSet : public TEveBoxSet
 {
-
   public:
-
-    /** Standard constructor
-       **/
+    /** Standard constructor **/
     FairBoxSet(FairBoxSetDraw* drawer, const char* name = "FairBoxSet", const char* t = "");
 
     void SetTimeWindowPlus(Double_t time) {fDraw->SetTimeWindowPlus(time);}
@@ -40,13 +32,8 @@ class FairBoxSet : public TEveBoxSet
     Double_t GetTimeWindowPlus() {return fDraw->GetTimeWindowPlus();}
     Double_t GetTimeWindowMinus() {return fDraw->GetTimeWindowMinus();}
 
-
     /** Destructor **/
-    virtual ~FairBoxSet() {};
-
-
-
-  protected:
+    virtual ~FairBoxSet() {}
 
   private:
     FairBoxSetDraw* fDraw;
@@ -55,8 +42,6 @@ class FairBoxSet : public TEveBoxSet
     FairBoxSet operator=(const FairBoxSet&);
 
     ClassDef(FairBoxSet,1);
-
 };
-
 
 #endif

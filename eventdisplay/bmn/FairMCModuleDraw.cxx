@@ -6,6 +6,7 @@
 #include "FairRootManager.h"
 #include "CbmPsdPoint.h"
 #include "CbmMCTrack.h"
+#include "FairLogger.h"
 
 #include "TEvePointSet.h"
 #include "TString.h"
@@ -38,25 +39,22 @@ FairMCModuleDraw::FairMCModuleDraw(const char* name, Color_t color ,Style_t msty
 // -------------------------------------------------------------------------
 InitStatus FairMCModuleDraw::Init()
 {
-  if (fVerbose > 1)
-      cout<<"FairMCModuleDraw::Init()"<<endl;
+  if (fVerbose > 1) cout<<"FairMCModuleDraw::Init()"<<endl;
 
   FairRootManager* fManager = FairRootManager::Instance();
 
-  fPointList = (TClonesArray*)fManager->GetObject(GetName());
+  fPointList = (TClonesArray*) fManager->GetObject(GetName());
   if(fPointList == 0)
   {
-    cout << "FairMCModuleDraw::Init()  branch " << GetName() << " Not found! Task will be deactivated "<< endl;
+    LOG(ERROR)<<"FairMCModuleDraw::Init() branch "<< GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
     SetActive(kFALSE);
   }
-  if (fVerbose > 2)
-      cout<<"FairMCModuleDraw::Init() get point list"<<fPointList<<endl;
+  if (fVerbose > 2) cout<<"FairMCModuleDraw::Init() get point list"<<fPointList<<endl;
 
-  fMCTracks = (TClonesArray*)fManager->GetObject("MCTrack");
+  fMCTracks = (TClonesArray*) fManager->GetObject("MCTrack");
 
   fEventManager = FairEventManager::Instance();
-  if (fVerbose > 2)
-      cout<< "FairMCModuleDraw::Init() get instance of FairEventManager " << endl;
+  if (fVerbose > 2) cout<< "FairMCModuleDraw::Init() get instance of FairEventManager " << endl;
 
   // create array for ZDC modules' visibility
   fEventManager->isZDCModule = new bool[104];
@@ -66,29 +64,28 @@ InitStatus FairMCModuleDraw::Init()
 
 void FairMCModuleDraw::Exec(Option_t* option)
 {
-  if (IsActive())
+  if (!IsActive())
+    return
+  Reset();
+
+  bool* pZDCModuleNumber = fEventManager->isZDCModule;
+  Int_t npoints = fPointList->GetEntriesFast();
+  for (int i = 0; i < npoints; i++)
   {
-    Reset();
+      CbmPsdPoint* p = (CbmPsdPoint*) fPointList->At(i);
 
-    bool* pZDCModuleNumber = fEventManager->isZDCModule;
-    Int_t npoints = fPointList->GetEntriesFast();
-    for (int i = 0; i < npoints; i++)
-    {
-        CbmPsdPoint* p = (CbmPsdPoint*) fPointList->At(i);
+      CbmMCTrack* pMCTrack = (CbmMCTrack*) fMCTracks->At(p->GetTrackID());
+      if (!pMCTrack)
+      {
+          cout<<"MCTrack is NULL for selected index"<<endl;
+          continue;
+      }
 
-        CbmMCTrack* pMCTrack = (CbmMCTrack*) fMCTracks->At(p->GetTrackID());
-        if (!pMCTrack)
-        {
-            cout<<"MCTrack is NULL for selected index"<<endl;
-            continue;
-        }
-
-        // filter only forward points
-        Double32_t start_z = pMCTrack->GetStartZ();
-        //cout<<"StartZ: "<<start_z<<cout<<endl;
-        if (start_z < 1000.0)
-            pZDCModuleNumber[p->GetModuleID()] = true;
-    }
+      // filter only forward points
+      Double32_t start_z = pMCTrack->GetStartZ();
+      //cout<<"StartZ: "<<start_z<<cout<<endl;
+      if (start_z < 1000.0)
+          pZDCModuleNumber[p->GetModuleID()] = true;
   }
 }
 

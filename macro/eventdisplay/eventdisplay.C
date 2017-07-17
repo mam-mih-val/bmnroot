@@ -280,11 +280,9 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         //fMan->AddTask(MWPC3Point);
         FairMCPointDraw* TOF1Point = new FairMCPointDraw("TOF1Point", mcPointColor, pointMarker);
         fMan->AddTask(TOF1Point);
-        FairMCPointDraw* DCH1Point = new FairMCPointDraw("DCH1Point", mcPointColor, pointMarker);
-        fMan->AddTask(DCH1Point);
-        FairMCPointDraw* DCH2Point = new FairMCPointDraw("DCH2Point", mcPointColor, pointMarker);
-        fMan->AddTask(DCH2Point);
-        FairMCPointDraw* TofPoint = new FairMCPointDraw("TofPoint", mcPointColor, pointMarker);
+        FairMCPointDraw* DCHPoint = new FairMCPointDraw("DCHPoint", mcPointColor, pointMarker);
+        fMan->AddTask(DCHPoint);
+        FairMCPointDraw* TofPoint = new FairMCPointDraw("TOFPoint", mcPointColor, pointMarker);
         fMan->AddTask(TofPoint);
         FairMCModuleDraw* PsdPoint = new FairMCModuleDraw("PsdPoint", mcPointColor, pointMarker);
         fMan->AddTask(PsdPoint);
@@ -304,13 +302,11 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         // DST hits
         FairHitPointSetDraw* BmnGemHit = new FairHitPointSetDraw("BmnGemStripHit", recoPointColor, pointMarker); // new FairHitDraw("BmnGemStripHit", 1); //in box view
         fMan->AddTask(BmnGemHit);
-        FairHitPointSetDraw* TOF1Hit = new FairHitPointSetDraw("TOF1Hit", recoPointColor, pointMarker);
-        fMan->AddTask(TOF1Hit);
-        FairHitPointSetDraw* BmnDch1Hit = new FairHitPointSetDraw("BmnDchHit_1", recoPointColor, pointMarker);
-        fMan->AddTask(BmnDch1Hit);
-        FairHitPointSetDraw* BmnDch2Hit = new FairHitPointSetDraw("BmnDchHit_2", recoPointColor, pointMarker);
-        fMan->AddTask(BmnDch2Hit);
-        FairHitPointSetDraw* BmnTof2Hit = new FairHitPointSetDraw("BmnTof2Hit", recoPointColor, pointMarker);
+        FairHitPointSetDraw* BmnTof1Hit = new FairHitPointSetDraw("BmnTof1Hit", recoPointColor, pointMarker);
+        fMan->AddTask(BmnTof1Hit);
+        FairHitPointSetDraw* BmnDchHit = new FairHitPointSetDraw("BmnDchHit", recoPointColor, pointMarker);
+        fMan->AddTask(BmnDchHit);
+        FairHitPointSetDraw* BmnTof2Hit = new FairHitPointSetDraw("BmnTofHit", recoPointColor, pointMarker);
         fMan->AddTask(BmnTof2Hit);
 
         // DST tracks

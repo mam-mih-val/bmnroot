@@ -201,14 +201,7 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     geoBuild->createMedium(mFiberGlass);
     pMedFiberGlass = gGeoManager->GetMedium("fiberglass");
     if ( ! pMedFiberGlass  ) Fatal("Main", "Medium fiberglass not found");
-
-    //arco27020 medium
-    FairGeoMedium* mArCO27030 = geoMedia->getMedium("arco27030");
-    if ( ! mArCO27030  ) Fatal("Main", "FairMedium arco27030 not found");
-    geoBuild->createMedium(mArCO27030);
-    pMedArCO27030= gGeoManager->GetMedium("arco27030");
-    if ( ! pMedArCO27030  ) Fatal("Main", "Medium arco27030 not found");
-
+    
     //copper medium
     FairGeoMedium* mCopper = geoMedia->getMedium("copper");
     if ( ! mCopper  ) Fatal("Main", "FairMedium copper not found");

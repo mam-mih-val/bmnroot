@@ -4,35 +4,29 @@
 
 //#define DEBUG_ZDC_TOWERS
 #include "MpdZdcTowerDraw.h"
-#include "TEveManager.h"                // for TEveManager, gEve
-#include "TEvePointSet.h"               // for TEvePointSet
-#include "TEveTreeTools.h"              // for TEvePointSelectorConsumer, etc
-#include "TGeoManager.h"
 #include "MpdZdcDigi.h"
-#include "MpdZdcDigiScheme.h"
-#include "FairEventManagerEditor.h"
 
-#include "TEveProjections.h"
+#include "FairEventManagerEditor.h"
+#include "FairLogger.h"
+
+#include "TEveManager.h"    // for gEve
+#include "TEveTreeTools.h"  // for TEvePointSelectorConsumer
+#include "TGeoManager.h"    // for gGeoManager
 #include "TEveCaloData.h"
 #include "TEveCalo.h"
-#include "TEveBrowser.h"
 #include "TEveViewer.h"
+#include "TGeoBBox.h"
 #include "TH2F.h"
 #include "TRandom.h"
+//#include <TMath.h>
 
-#include "TGeoBBox.h"
-
-#include <TMath.h>
-
-#include <assert.h>
 #include <iostream>
 using namespace std;
-using namespace TMath;
 
 // -----   Default constructor   -------------------------------------------
 MpdZdcTowerDraw::MpdZdcTowerDraw()
   : FairTask("MpdZdcTowerDraw", 0),
-    fVerboselvl(0),
+    fVerbose(0),
     fShadow(kFALSE),
     fResetRequiredFlag(kFALSE),
     fDigitList(NULL),
@@ -46,7 +40,7 @@ MpdZdcTowerDraw::MpdZdcTowerDraw()
 // -----   Standard constructor   ------------------------------------------
 MpdZdcTowerDraw::MpdZdcTowerDraw(const char* name, Double_t zdcMinEnergyThreshold, Bool_t shadow, Int_t verbose)
   : FairTask(name, verbose),
-    fVerboselvl(verbose),
+    fVerbose(verbose),
     fShadow(shadow),
     fResetRequiredFlag(kFALSE),
     fDigitList(NULL),

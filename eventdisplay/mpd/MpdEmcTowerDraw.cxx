@@ -4,33 +4,29 @@
 
 //#define DEBUG_EMC_TOWERS
 #include "MpdEmcTowerDraw.h"
-#include "TEveManager.h"                // for TEveManager, gEve
-#include "TEvePointSet.h"               // for TEvePointSet
-#include "TEveTreeTools.h"              // for TEvePointSelectorConsumer, etc
-#include "TGeoManager.h"
-#include "MpdEmcGeoPar.h"
-#include "MpdEmcDigit.h"
-#include "FairEventManagerEditor.h"
-
-#include "FairRunSim.h"
 #include "MpdEmc.h"
+#include "MpdEmcDigit.h"
 
-#include <TGeoArb8.h>
-#include <TGeoTube.h>
+#include "FairEventManagerEditor.h"
+#include "FairRunSim.h"
+
+#include "TEveManager.h"    // for gEve
+#include "TGeoManager.h"    // for gGeoManager
+#include "TEveTreeTools.h"  // for TEvePointSelectorConsumer
+#include "TGeoArb8.h"       // for TGeoTrap
 #include <TMath.h>
-#include <TROOT.h>
+#include <TROOT.h>          // for gROOT
 #include <TStopwatch.h>
 
-#include <assert.h>
+//#include <assert.h>
 #include <iostream>
 using namespace std;
-using namespace TMath;
 
 // -----   Default constructor   -------------------------------------------
 MpdEmcTowerDraw::MpdEmcTowerDraw()
   : FairTask("MpdEmcTowerDraw", 0),
     fEmcMinEnergyThreshold(0),
-    fVerboselvl(0),
+    fVerbose(0),
     fDigitList(NULL),
     fEventManager(NULL),
     fResetRequiredFlag(kFALSE),
@@ -52,7 +48,7 @@ MpdEmcTowerDraw::MpdEmcTowerDraw()
 MpdEmcTowerDraw::MpdEmcTowerDraw(const char* name, Double_t emcMinEnergyThreshold, Int_t verbose)
   : FairTask(name, verbose),
     fEmcMinEnergyThreshold(emcMinEnergyThreshold),
-    fVerboselvl(verbose),
+    fVerbose(verbose),
     fDigitList(NULL),
     fEventManager(NULL),
     fResetRequiredFlag(kFALSE),
@@ -87,26 +83,28 @@ InitStatus MpdEmcTowerDraw::Init()
     {
         LOG(ERROR)<<"MpdEmcTowerDraw::Init() branch EmcDigit not found! Task will be deactivated"<<FairLogger::endl;
         SetActive(kFALSE);
+        return kERROR;
     }
      
     SetRMinEmc(GetEmcGeoPar()->GetRmin() * 0.1);
     SetRMaxEmc(GetEmcGeoPar()->GetRmax() * 0.1);    
-    SetNBoxes(GetEmcGeoPar()->GetNModInSuperModByZ()*GetEmcGeoPar()->GetNModInSuperModByPhi());
-    SetNTubes(GetEmcGeoPar()->GetNsupMod()*GetEmcGeoPar()->GetNrows());
-    SetNSectors(GetEmcGeoPar()->GetNsec());    
-    SetNRowsByPhi(GetEmcGeoPar()->GetNsupMod());//4
-    SetNRowsByZ(GetEmcGeoPar()->GetNrows());//23
-    SetLenSuperModule(GetEmcGeoPar()->GetLengthOfSuperModuleByZ());//12(cm)   
-    SetLenSector(GetEmcGeoPar()->GetLength());//276(cm)
-    SetNRowInSuperModByPhi(GetEmcGeoPar()->GetNModInSuperModByPhi());//3
-    SetNRowInSuperModByZ(GetEmcGeoPar()->GetNModInSuperModByZ());//3
-    SetNMiddleBoxesInSuperMod((GetNRowInSuperModByPhi()-2)*GetNRowInSuperModByZ());//3
-    //values of PHI1 and PHI2 are taken from emc_tr_400_3.geo:
-    SetSector1StartAngle(83.5714285714*DegToRad());
-    SetSector1EndAngle(96.4285714286*DegToRad());
-    SetBoxHeight(FindBoxesHeights());
-    SetN3Dbins(2*GetNSectors()*GetNTubes()*GetNBoxes());//2*28*4*23*3*3
+    SetNBoxes(GetEmcGeoPar()->GetNModInSuperModByZ() * GetEmcGeoPar()->GetNModInSuperModByPhi());
+    SetNTubes(GetEmcGeoPar()->GetNsupMod() * GetEmcGeoPar()->GetNrows());
+    SetNSectors(GetEmcGeoPar()->GetNsec());
+    SetNRowsByPhi(GetEmcGeoPar()->GetNsupMod()); //4
+    SetNRowsByZ(GetEmcGeoPar()->GetNrows()); //23
+    SetLenSuperModule(GetEmcGeoPar()->GetLengthOfSuperModuleByZ()); //12(cm)
+    SetLenSector(GetEmcGeoPar()->GetLength()); //276(cm)
+    SetNRowInSuperModByPhi(GetEmcGeoPar()->GetNModInSuperModByPhi()); //3
+    SetNRowInSuperModByZ(GetEmcGeoPar()->GetNModInSuperModByZ()); //3
+    SetNMiddleBoxesInSuperMod((GetNRowInSuperModByPhi()-2) * GetNRowInSuperModByZ()); //3
 
+    //values of PHI1 and PHI2 are taken from emc_tr_400_3.geo:
+    SetSector1StartAngle(83.5714285714*TMath::DegToRad());
+    SetSector1EndAngle(96.4285714286*TMath::DegToRad());
+    SetBoxHeight(FindBoxesHeights());
+
+    SetN3Dbins(2*GetNSectors()*GetNTubes()*GetNBoxes()); //2*28*4*23*3*3
     if (GetVerboselvl() > 1) cout<<"MpdEmcTowerDraw::Init() number of 3d bins = "<<GetN3Dbins()<<endl;
 
     fEneArr = new Double_t[GetN3Dbins()];
@@ -120,73 +118,74 @@ InitStatus MpdEmcTowerDraw::Init()
 
 void MpdEmcTowerDraw::Exec(Option_t* option)
 {   
-    if (IsActive())
-    {   
-        Reset();
-        if (GetVerboselvl() > 1)
-            cout<<"MpdEmcTowerDraw::Exec() current visibility level = "<<gGeoManager->GetVisLevel()<<endl;             
-        if (fEventManager->fgShowRecoPointsIsShow)
+    if (!IsActive())
+        return;
+
+    Reset();
+    if (GetVerboselvl() > 1) cout<<"MpdEmcTowerDraw::Exec() current visibility level = "<<gGeoManager->GetVisLevel()<<endl;
+
+    if (fEventManager->fgShowRecoPointsIsShow)
+    {
+        if (gGeoManager->GetVisLevel() == 6)
         {
-            if (gGeoManager->GetVisLevel()==6)
+            //only if the boxes are visible
+            FillEnergyLossArray();
+
+            //cut off energies under threshold
+            if (GetEmcMinEnergyThreshold() != 0)
+                for (UInt_t i = 0; i < GetN3Dbins(); i++)
+                    if (GetEneArrValue(i) < GetEmcMinEnergyThreshold()) SetEneArr(i, 0);
+
+            //search for maximum bin
+            for (UInt_t i = 0; i < GetN3Dbins(); i++)
             {
-                //only if the boxes are visible     
-                FillEnergyLossArray();
-                //cut off energies under threshold
-                if (GetEmcMinEnergyThreshold()!=0)
-                    for (UInt_t i = 0; i < GetN3Dbins(); ++i) {           
-                        if (GetEneArrValue(i) < GetEmcMinEnergyThreshold()) SetEneArr(i,0);            
-                    }
-                //search for maximum bin
-                for (UInt_t i = 0; i < GetN3Dbins(); ++i) { 
-                    Double_t E = GetEneArrValue(i);                 
-                    if (E > GetMaxE()) SetMaxE(E);
-                }
-
-                if (GetVerboselvl() > 1)
-                    cout << "MpdEmcTowerDraw::Exec() maxE = " << GetMaxE() << endl;
-
-                DrawBoxTowers();   
-                gGeoManager->cd("/cave_1/emc1EmptyChamber1_1"); 
-                TGeoNode *chamberNode = gGeoManager->GetCurrentNode();
-                chamberNode->GetVolume()->SetTransparency(60);
-                //gGeoManager->cd("/cave_1/emc1EmptyChamber2_1"); 
-                //chamberNode = gGeoManager->GetCurrentNode();
-                //chamberNode->GetVolume()->SetTransparency(60);
-                //FairDetector *Emc1= new MpdEmc("EMC1", kTRUE);
-                //Emc1->SetGeometryFileName("emc_tr_400_3.geo");
-                //((TEveElement*)Emc1)->SetRnrState(kFALSE);
-                //FairRunSim::Instance()->AddModule(Emc1);
-                //gEve->AddGlobalElement(gsre);
-
-                //TEveElement* Emc1Elem = gsre->FindChild("EMC1");
-                //elTRD->SetRnrState(kFALSE);
-                SetResetRequiredFlag(kTRUE);
+                Double_t E = GetEneArrValue(i);
+                if (E > GetMaxE()) SetMaxE(E);
             }
+
+            if (GetVerboselvl() > 1) cout<<"MpdEmcTowerDraw::Exec() maxE = "<<GetMaxE()<<endl;
+
+            DrawBoxTowers();
+            gGeoManager->cd("/cave_1/emc1EmptyChamber1_1");
+            TGeoNode *chamberNode = gGeoManager->GetCurrentNode();
+            chamberNode->GetVolume()->SetTransparency(60);
+            //gGeoManager->cd("/cave_1/emc1EmptyChamber2_1");
+            //chamberNode = gGeoManager->GetCurrentNode();
+            //chamberNode->GetVolume()->SetTransparency(60);
+            //FairDetector *Emc1= new MpdEmc("EMC1", kTRUE);
+            //Emc1->SetGeometryFileName("emc_tr_400_3.geo");
+            //((TEveElement*)Emc1)->SetRnrState(kFALSE);
+            //FairRunSim::Instance()->AddModule(Emc1);
+            //gEve->AddGlobalElement(gsre);
+
+            //TEveElement* Emc1Elem = gsre->FindChild("EMC1");
+            //elTRD->SetRnrState(kFALSE);
+            SetResetRequiredFlag(kTRUE);
         }
-        else
-        {
-            if (GetResetRequiredFlag())
-            {
-                ResetBoxTowers();
-                SetResetRequiredFlag(kFALSE);
-            }
-        }
-        TEvePointSet* q = new TEvePointSet(GetName(), fDigitList->GetEntriesFast(), TEvePointSelectorConsumer::kTVT_XYZ);
-        q->SetOwnIds(kTRUE);
-        
-        if (fEventManager->EveRecoPoints == NULL)
-        {
-            fEventManager->EveRecoPoints = new TEveElementList("Reco points");
-            gEve->AddElement(fEventManager->EveRecoPoints, fEventManager);
-            fEventManager->EveRecoPoints->SetRnrState(kFALSE);
-            fEventManager->GetEventEditor()->fShowRecoPoints->SetEnabled(kTRUE);
-        }
-        
-        gEve->AddElement(q, fEventManager->EveRecoPoints);
-        
-        gEve->FullRedraw3D();
-        fq = q;
     }
+    else
+    {
+        if (GetResetRequiredFlag())
+        {
+            ResetBoxTowers();
+            SetResetRequiredFlag(kFALSE);
+        }
+    }
+    TEvePointSet* q = new TEvePointSet(GetName(), fDigitList->GetEntriesFast(), TEvePointSelectorConsumer::kTVT_XYZ);
+    q->SetOwnIds(kTRUE);
+
+    if (fEventManager->EveRecoPoints == NULL)
+    {
+        fEventManager->EveRecoPoints = new TEveElementList("Reco points");
+        gEve->AddElement(fEventManager->EveRecoPoints, fEventManager);
+        fEventManager->EveRecoPoints->SetRnrState(kFALSE);
+        fEventManager->GetEventEditor()->fShowRecoPoints->SetEnabled(kTRUE);
+    }
+    gEve->AddElement(q, fEventManager->EveRecoPoints);
+
+    fq = q;
+
+    gEve->FullRedraw3D();
 }
 
 void MpdEmcTowerDraw::FillEnergyLossArray()
@@ -410,7 +409,8 @@ TString MpdEmcTowerDraw::FindPathN3DbinBoxId(UInt_t id)
     UInt_t sectorId  = id / (GetNBoxes() * GetNTubes())+1;
     id -= ((sectorId-1) * GetNBoxes() * GetNTubes());
     UInt_t tubeId = id / GetNBoxes() +1;
-    UInt_t boxId = id % GetNBoxes() +1;   
+    UInt_t boxId = id % GetNBoxes() +1;
+
     //for bt_ boxes (side boxes) we shift the id by the number of middle boxes (3)
     if (boxId>GetNMiddleBoxesInSuperMod())
         return Form("/cave_1/emc1Chamber1_1/emc1ChH_%d/emc1Sector_%d/emc1Tube_%d/emc1Module_1/emc1_bt_box_%d",chHId,sectorId,tubeId,boxId - GetNMiddleBoxesInSuperMod());
@@ -420,58 +420,61 @@ TString MpdEmcTowerDraw::FindPathN3DbinBoxId(UInt_t id)
 
 TString MpdEmcTowerDraw::FindBoxPathZPhiWithGeoManager(Double_t r, Double_t z, Double_t phi)
 {
-    Double_t x = r*Cos(phi);
-    Double_t y = r*Sin(phi);    
+    Double_t x = r*TMath::Cos(phi);
+    Double_t y = r*TMath::Sin(phi);
     gGeoManager->FindNode(x,y,z); 
-    TString path(gGeoManager->GetPath());    
-    if  (gGeoManager->cd(path))
+
+    TString path(gGeoManager->GetPath());
+    if (gGeoManager->cd(path))
     {
         gGeoManager->CdUp();
         return gGeoManager->GetPath();
     }
+
     return "";
 }
 
 TString MpdEmcTowerDraw::FindBoxPathZPhi(Double_t z, Double_t phi)
 {
-    UInt_t chHId = (z>0)? 2:1;//current ChH id                
+    UInt_t chHId = (z > 0)? 2 : 1;//current ChH id
     Double_t phiAbs; // current angle from starting angle PHI1 of the first sector (emc1Sector_1), radians 0 
     // (clockwise in emc1ChH_1, counterclockwise in emc1ChH_2)
-    if (chHId==1)  
-        phiAbs = phi>GetSector1StartAngle()?(phi-GetSector1StartAngle()):(TwoPi()+(phi-GetSector1StartAngle()));
+    if (chHId == 1)
+        phiAbs = phi>GetSector1StartAngle() ? phi-GetSector1StartAngle() : (TMath::TwoPi()+(phi-GetSector1StartAngle()));
     else        
-        phiAbs = phi>GetSector1EndAngle()?(TwoPi()-(phi-GetSector1EndAngle())):(GetSector1EndAngle()-phi);
+        phiAbs = phi>GetSector1EndAngle() ? (TMath::TwoPi()-(phi-GetSector1EndAngle())) : (GetSector1EndAngle()-phi);
     
-    UInt_t sectorId = UInt_t(phiAbs/ TwoPi() * GetNSectors())+1;
+    UInt_t sectorId = UInt_t (phiAbs / TMath::TwoPi() * GetNSectors()) + 1;
     //finding tube id
     //phiT - current angle between PHI1 of the beginning of sector and Phi angle
-    Double_t phiT = phiAbs - TwoPi()*(sectorId-1)/GetNSectors();
+    Double_t phiT = phiAbs - TMath::TwoPi()*(sectorId-1)/GetNSectors();
     ///  current id of the row by phi in sector
-    Double_t rowIdByPhi = UInt_t(GetNRowsByPhi()*GetNSectors() * phiT/(TwoPi()))+1;
+    Double_t rowIdByPhi = UInt_t(GetNRowsByPhi()*GetNSectors() * phiT/(TMath::TwoPi()))+1;
     UInt_t tubeId;
-    if (chHId==1)
-        tubeId = UInt_t((GetLenSector()-Abs(z))/GetLenSuperModule())+(rowIdByPhi-1)*GetNRowsByZ()+1;
+    if (chHId == 1)
+        tubeId = UInt_t((GetLenSector()-TMath::Abs(z))/GetLenSuperModule())+(rowIdByPhi-1)*GetNRowsByZ()+1;
     else
-        tubeId = UInt_t(Abs(z)/GetLenSuperModule())+(rowIdByPhi-1)*GetNRowsByZ()+1;
+        tubeId = UInt_t(TMath::Abs(z)/GetLenSuperModule())+(rowIdByPhi-1)*GetNRowsByZ()+1;
     
     //finding box id
     UInt_t boxId;
-    Double_t phiB = phiT - TwoPi()*(rowIdByPhi-1)/(GetNSectors()*GetNRowsByPhi());
-    UInt_t supModRowIdByPhi = UInt_t(GetNRowInSuperModByPhi()*GetNSectors()*GetNRowsByPhi()*phiB/(TwoPi()))+1;
+    Double_t phiB = phiT - TMath::TwoPi()*(rowIdByPhi-1)/(GetNSectors()*GetNRowsByPhi());
+    UInt_t supModRowIdByPhi = UInt_t(GetNRowInSuperModByPhi()*GetNSectors()*GetNRowsByPhi()*phiB/(TMath::TwoPi()))+1;
     UInt_t supModRowIdByZ;
     Double_t tubeZ = (tubeId-UInt_t((tubeId-1)/GetNRowsByZ())*GetNRowsByZ()-1)*GetLenSuperModule();
     if (chHId==1)
-        supModRowIdByZ = UInt_t((GetLenSector()-Abs(z)-tubeZ)/GetLenSuperModule()*GetNRowInSuperModByZ())+1;
+        supModRowIdByZ = UInt_t((GetLenSector()-TMath::Abs(z)-tubeZ)/GetLenSuperModule()*GetNRowInSuperModByZ())+1;
     else
-        supModRowIdByZ = UInt_t((Abs(z) - tubeZ)/GetLenSuperModule()*GetNRowInSuperModByZ())+1;
+        supModRowIdByZ = UInt_t((TMath::Abs(z) - tubeZ)/GetLenSuperModule()*GetNRowInSuperModByZ())+1;
     
-    if(supModRowIdByPhi==1)//bt_ box 1-3
+    if (supModRowIdByPhi == 1)//bt_ box 1-3
         boxId=supModRowIdByZ+GetNMiddleBoxesInSuperMod();
     else 
         if(supModRowIdByPhi==GetNRowInSuperModByPhi())//bt_box 4-6
             boxId=supModRowIdByZ+GetNRowInSuperModByZ()+GetNMiddleBoxesInSuperMod();
         else//middle boxes 1-3
             boxId=UInt_t(GetNMiddleBoxesInSuperMod()/GetNRowInSuperModByZ())*(supModRowIdByPhi-2)+supModRowIdByZ;
+
     //for bt_ boxes (side boxes) we shift the id by the number of middle boxes (3)
     if (boxId>GetNMiddleBoxesInSuperMod())
         return Form("/cave_1/emc1Chamber1_1/emc1ChH_%d/emc1Sector_%d/emc1Tube_%d/emc1Module_1/emc1_bt_box_%d",chHId,sectorId,tubeId,boxId - GetNMiddleBoxesInSuperMod());

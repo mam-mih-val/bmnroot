@@ -56,12 +56,10 @@ BmnDchHitProducer_exp.cxx
 #BmnDchHitProducerCalib_exp.cxx
 DchTrackCand.cxx
 DchTrackManager.cxx
-${CMAKE_SOURCE_DIR}/bmnfield/BmnNewFieldMap.cxx
 ScalarD.cxx
 ScalarI.cxx
 ScalarUI.cxx
 DchHitPlane.cxx
-${CMAKE_SOURCE_DIR}/bmndata/BmnDchRaw2Digit.cxx
 BmnDchTrackFinder.cxx
 BmnDchTrack.cxx
 )

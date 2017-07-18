@@ -7,15 +7,12 @@
 
 #include "FairTask.h"
 #include "FairEventManager.h"
-#include "TEvePointSet.h"               // for TEvePointSet
+#include "TEvePointSet.h"
 #include "MpdEmcGeoPar.h"
 
-#include <TObject.h>
 #include <TString.h>
 #include <TClonesArray.h>
-#include <TMath.h>
 
-using namespace TMath;
 
 class MpdEmcTowerDraw : public FairTask
 {
@@ -33,7 +30,7 @@ class MpdEmcTowerDraw : public FairTask
     /** Destructor **/
     virtual ~MpdEmcTowerDraw();
     /** Set verbosity level. For this task and all of the subtasks. **/
-    void SetVerbose(UInt_t verboselvl) { fVerboselvl = verboselvl; }
+    void SetVerbose(UInt_t verboselvl) { fVerbose = verboselvl; }
     /** Executed task **/
     virtual void Exec(Option_t* option);
     void Reset();
@@ -58,7 +55,7 @@ class MpdEmcTowerDraw : public FairTask
     MpdEmcGeoPar* GetEmcGeoPar() { return fGeoPar; } ///< pointer to emc geo parameters
     Double_t GetEmcMinEnergyThreshold() const { return fEmcMinEnergyThreshold; }
     Bool_t GetResetRequiredFlag() const { return fResetRequiredFlag; }
-    UInt_t GetVerboselvl() const { return fVerboselvl; }
+    UInt_t GetVerboselvl() const { return fVerbose; }
     Double_t GetRMinEmc() const { return fRMinEmc; }
     Double_t GetRMaxEmc() const { return fRMaxEmc; }
     Double_t GetBoxHeight() const { return fBoxHeight; }
@@ -101,7 +98,7 @@ class MpdEmcTowerDraw : public FairTask
 
   private:   
     Double_t fEmcMinEnergyThreshold;///< min energy threshold
-    Int_t fVerboselvl; ///< Verbosity level    
+    Int_t fVerbose; ///< Verbosity level
     Bool_t fResetRequiredFlag; ///< flag true is box sizes are adjusted
     Double_t fRMinEmc; ///< Inner radius, cm
     Double_t fRMaxEmc; ///< Outer radius -> module + front plastic and end plastic, cm

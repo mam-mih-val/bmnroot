@@ -29,19 +29,31 @@ public:
 
     void ProcessDigits();
 
+    void SetHitMatching(Bool_t opt = kTRUE) {
+        fHitMatching = opt;
+    }
+
 private:
 
     TString fInputPointsBranchName;
     TString fInputDigitsBranchName;
+    TString fInputDigitMatchesBranchName;
 
     TString fOutputHitsBranchName;
+    TString fOutputHitMatchesBranchName;
 
     /** Input array of Silicon Points **/
     TClonesArray* fBmnSiliconPointsArray;
     TClonesArray* fBmnSiliconDigitsArray;
+    TClonesArray* fBmnSiliconDigitMatchesArray;
 
     /** Output array of Silicon Hits **/
     TClonesArray* fBmnSiliconHitsArray;
+
+    /** Output array of Silicon Hit Matches **/
+    TClonesArray* fBmnSiliconHitMatchesArray;
+
+    Bool_t fHitMatching;
 
     BmnSiliconStationSet *StationSet; //Entire Silicon detector
 

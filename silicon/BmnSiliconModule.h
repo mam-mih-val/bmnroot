@@ -3,6 +3,7 @@
 
 #include "Rtypes.h"
 #include "BmnSiliconLayer.h"
+#include "BmnMatch.h"
 
 class BmnSiliconModule {
 
@@ -40,16 +41,23 @@ public:
 
     Bool_t SetStripSignalInLayer(Int_t layer_num, Int_t strip_num, Double_t signal);
     Bool_t AddStripSignalInLayer(Int_t layer_num, Int_t strip_num, Double_t signal);
+    Bool_t SetStripMatchInLayer(Int_t layer_num, Int_t strip_num, BmnMatch strip_match);
 
     Bool_t SetStripSignalInLayerByZoneId(Int_t zone_id, Int_t strip_num, Double_t signal);
     Bool_t AddStripSignalInLayerByZoneId(Int_t zone_id, Int_t strip_num, Double_t signal);
 
+    Bool_t SetStripMatchInLayerByZoneId(Int_t zone_id, Int_t strip_num, BmnMatch strip_match);
+    Bool_t AddStripMatchInLayerByZoneId(Int_t zone_id, Int_t strip_num, Double_t weight, Int_t refID);
+
     Double_t GetStripSignalInLayer(Int_t layer_num, Int_t strip_num);
+    BmnMatch GetStripMatchInLayer(Int_t layer_num, Int_t strip_num);
 
     Int_t GetFirstStripInZone(Int_t zone_id);
     Int_t GetLastStripInZone(Int_t zone_id);
 
-    Double_t GetStipSignalInZone(Int_t zone_id, Int_t strip_num);
+    Double_t GetStripSignalInZone(Int_t zone_id, Int_t strip_num);
+
+    BmnMatch GetStripMatchInZone(Int_t zone_id, Int_t strip_num);
 
     Int_t GetNStripLayers() { return StripLayers.size(); }
     BmnSiliconLayer& GetStripLayer(Int_t num) { return StripLayers.at(num); }
@@ -95,6 +103,7 @@ public:
     Int_t GetIntersectionPoint_UpperLayerClusterSize(Int_t indx) { return IntersectionPoints_UpperLayerClusterSize.at(indx); } //cluster size in the upper layer
     Double_t GetIntersectionPoint_LowerLayerSripPosition(Int_t indx) { return IntersectionPoints_LowerLayerStripPosition.at(indx); } //strip position in the lower layer
     Double_t GetIntersectionPoint_UpperLayerSripPosition(Int_t indx) { return IntersectionPoints_UpperLayerStripPosition.at(indx); } //strip position in the upper layer
+    BmnMatch GetIntersectionPointMatch(Int_t indx) { return IntersectionPointMatches.at(indx); } //Intersection point match
 
     void ResetIntersectionPoints();
     //--------------------------------------------------------------------------
@@ -133,6 +142,7 @@ private:
     vector<Double_t> IntersectionPoints_LowerLayerStripPosition; //strip position in the lower layer for each intersection point
     vector<Double_t> IntersectionPoints_UpperLayerStripPosition; //strip position in the upper layer for each intersection point
 
+    vector<BmnMatch> IntersectionPointMatches;
 
     ClassDef(BmnSiliconModule, 1);
 };

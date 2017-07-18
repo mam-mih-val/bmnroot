@@ -7,12 +7,15 @@
 
 static Float_t workTime = 0.0;
 
-BmnSiliconHitMaker::BmnSiliconHitMaker() {
+BmnSiliconHitMaker::BmnSiliconHitMaker()
+: fHitMatching(kTRUE) {
 
     fInputPointsBranchName = "SiliconPoint";
     fInputDigitsBranchName = "BmnSiliconDigit";
+    fInputDigitMatchesBranchName = "BmnSiliconDigitMatch";
 
     fOutputHitsBranchName = "BmnSiliconHit";
+    fOutputHitMatchesBranchName = "BmnSiliconHitMatch";
 
     fVerbose = 1;
 
@@ -30,9 +33,22 @@ InitStatus BmnSiliconHitMaker::Init() {
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnSiliconDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
+    fBmnSiliconDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
+
+    if (fVerbose) {
+        if (fBmnSiliconDigitMatchesArray) cout << "  Strip matching information exists!\n";
+        else cout << "  Strip matching information doesn`t exist!\n";
+    }
 
     fBmnSiliconHitsArray = new TClonesArray(fOutputHitsBranchName);
     ioman->Register(fOutputHitsBranchName, "SILICON", fBmnSiliconHitsArray, kTRUE);
+
+    if (fHitMatching && fBmnSiliconDigitMatchesArray) {
+        fBmnSiliconHitMatchesArray = new TClonesArray("BmnMatch");
+        ioman->Register(fOutputHitMatchesBranchName, "SILICON", fBmnSiliconHitMatchesArray, kTRUE);
+    } else {
+        fBmnSiliconHitMatchesArray = 0;
+    }
 
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
         gPathSiliconConfig += "/silicon/XMLConfigs/";
@@ -54,6 +70,10 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
 
     fBmnSiliconHitsArray->Delete();
 
+    if (fHitMatching && fBmnSiliconHitMatchesArray) {
+        fBmnSiliconHitMatchesArray->Delete();
+    }
+
     if (!fBmnSiliconDigitsArray) {
         Error("BmnSiliconHitMaker::Exec()", " !!! Unknown branch name !!! ");
         return;
@@ -72,12 +92,14 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
     FairMCPoint* MCPoint;
     BmnSiliconDigit* digit;
+    BmnMatch *strip_match;
 
     BmnSiliconStation* station;
     BmnSiliconModule* module;
 
     //Loading digits ---------------------------------------------------------------
     Int_t AddedDigits = 0;
+    Int_t AddedStripDigitMatches = 0;
 
     for (UInt_t idigit = 0; idigit < fBmnSiliconDigitsArray->GetEntriesFast(); idigit++) {
         digit = (BmnSiliconDigit*) fBmnSiliconDigitsArray->At(idigit);
@@ -85,9 +107,15 @@ void BmnSiliconHitMaker::ProcessDigits() {
         module = station->GetModule(digit->GetModule());
 
         if (module->SetStripSignalInLayerByZoneId(digit->GetStripLayer(), digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
+
+        if (fBmnSiliconDigitMatchesArray) {
+            strip_match = (BmnMatch*) fBmnSiliconDigitMatchesArray->At(idigit);
+            if (module->SetStripMatchInLayerByZoneId(digit->GetStripLayer(), digit->GetStripNumber(), *strip_match)) AddedStripDigitMatches++;
+        }
     }
 
     if (fVerbose) cout << "   Processed strip digits  : " << AddedDigits << "\n";
+    if (fVerbose && fBmnSiliconDigitMatchesArray) cout << "   Added strip digit matches  : " << AddedStripDigitMatches << "\n";
     //------------------------------------------------------------------------------
 
     //Processing digits
@@ -96,11 +124,13 @@ void BmnSiliconHitMaker::ProcessDigits() {
     Int_t NCalculatedPoints = StationSet->CountNProcessedPointsInDetector();
     if (fVerbose) cout << "   Calculated points  : " << NCalculatedPoints << "\n";
 
+    Int_t clear_matched_points_cnt = 0; // points with the only one match-indexes
+
     for (Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
-        BmnSiliconStation *station = StationSet->GetSiliconStation(iStation);
+        station = StationSet->GetSiliconStation(iStation);
 
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
-            BmnSiliconModule *module = station->GetModule(iModule);
+            module = station->GetModule(iModule);
             Double_t z = module->GetZPositionRegistered();
 
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
@@ -114,6 +144,26 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 Double_t z_err = 0.0;
 
                 Int_t RefMCIndex = 0;
+
+                //hit matching (define RefMCIndex)) ----------------------------
+                BmnMatch match = module->GetIntersectionPointMatch(iPoint);
+
+                Int_t most_probably_index = -1;
+                Double_t max_weight = 0;
+
+                Int_t n_links = match.GetNofLinks();
+                if (n_links == 1) clear_matched_points_cnt++;
+                for (Int_t ilink = 0; ilink < n_links; ilink++) {
+                    Int_t index = match.GetLink(ilink).GetIndex();
+                    Double_t weight = match.GetLink(ilink).GetWeight();
+                    if (weight > max_weight) {
+                        max_weight = weight;
+                        most_probably_index = index;
+                    }
+                }
+
+                RefMCIndex = most_probably_index;
+                //--------------------------------------------------------------
 
                 //Add hit ------------------------------------------------------
                 x *= -1; // invert to global X
@@ -130,9 +180,17 @@ void BmnSiliconHitMaker::ProcessDigits() {
                 hit->SetStripPositionInLowerLayer(module->GetIntersectionPoint_LowerLayerSripPosition(iPoint)); //strip position (lower layer |||)
                 hit->SetStripPositionInUpperLayer(module->GetIntersectionPoint_UpperLayerSripPosition(iPoint)); //strip position (upper layer ///or\\\)
                 //--------------------------------------------------------------
+
+                //hit matching -------------------------------------------------
+                if (fHitMatching && fBmnSiliconHitMatchesArray) {
+                    new ((*fBmnSiliconHitMatchesArray)[fBmnSiliconHitMatchesArray->GetEntriesFast()])
+                            BmnMatch(module->GetIntersectionPointMatch(iPoint));
+                }
+                //--------------------------------------------------------------
             }
         }
     }
+    if (fVerbose) cout << "   N clear matches with MC-points = " << clear_matched_points_cnt << "\n";
     //------------------------------------------------------------------------------
     StationSet->Reset();
 }

@@ -3,6 +3,8 @@
 
 #include "Rtypes.h"
 
+#include "BmnMatch.h"
+
 #include <vector>
 
 using namespace std;
@@ -87,6 +89,14 @@ public:
     Double_t GetStripSignal(Int_t strip_num); //signal of strip_num-strip
     //--------------------------------------------------------------------------
 
+    //Strip matches controls ---------------------------------------------------
+    Bool_t SetStripMatch(Int_t strip_num, BmnMatch strip_match);
+    Bool_t AddLinkToStripMatch(Int_t strip_num, Double_t weight, Int_t refID);
+
+    BmnMatch GetStripMatch(Int_t strip_num); //match of strip_num-strip
+    void ResetStripMatches();
+    //--------------------------------------------------------------------------
+
     //Strip hits ---------------------------------------------------------------
     Int_t GetNStripHits() { return StripHits.size(); } //number of hits at the layer
     Double_t GetStripHitPos(Int_t num); //hit position
@@ -147,6 +157,9 @@ private:
 
     //Strip layer implementation
     vector<Double_t> Strips;
+
+    //Strip matches
+    vector<BmnMatch> StripMatches; //ID-point matches for all strips
 
     //Strip hits (It is filled after cluster finding and fitting) --------------
     vector<Double_t> StripHits; //positions of strip hits

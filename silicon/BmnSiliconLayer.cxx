@@ -84,6 +84,9 @@ void BmnSiliconLayer::InitializeLayer() {
     Strips.clear();
     Strips.resize(NStrips, 0.0);
 
+    //strip matches
+    ResetStripMatches();
+
     //strip hits
     ResetStripHits();
 }
@@ -255,6 +258,36 @@ Double_t BmnSiliconLayer::GetStripSignal(Int_t strip_num) {
         return Strips[strip_num-FirstStripNumber];
     }
     else return -1;
+}
+
+Bool_t BmnSiliconLayer::SetStripMatch(Int_t strip_num, BmnMatch strip_match) {
+    if( strip_num >= FirstStripNumber && strip_num < (StripMatches.size()+FirstStripNumber) ) {
+        StripMatches[strip_num-FirstStripNumber] = strip_match;
+        return true;
+    }
+    else return false;
+}
+
+Bool_t BmnSiliconLayer::AddLinkToStripMatch(Int_t strip_num, Double_t weight, Int_t refID) {
+    if( strip_num >= FirstStripNumber && strip_num < (StripMatches.size()+FirstStripNumber) ) {
+        StripMatches[strip_num-FirstStripNumber].AddLink(weight, refID);
+        return true;
+    }
+    else return false;
+}
+
+BmnMatch BmnSiliconLayer::GetStripMatch(Int_t strip_num) {
+    if( strip_num >= FirstStripNumber && strip_num < (StripMatches.size()+FirstStripNumber) ) {
+        return StripMatches[strip_num-FirstStripNumber];
+    }
+    else return BmnMatch(); //return an empty match
+}
+
+void BmnSiliconLayer::ResetStripMatches() {
+    Int_t NStrips = GetNStrips();
+
+    StripMatches.clear();
+    StripMatches.resize(NStrips, BmnMatch());
 }
 
 Double_t BmnSiliconLayer::GetStripHitPos(Int_t num) {

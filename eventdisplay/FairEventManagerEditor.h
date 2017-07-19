@@ -36,6 +36,8 @@ class FairEventManagerEditor : public TGedFrame
     TEveGValuator* fMinEnergy, *fMaxEnergy;
     TGHorizontalFrame* fGeometryFrame;
     TGCheckButton* ShowMagnetButton;
+    // whether magnet volume was found to use the special checkbov for visibility
+    bool isMagnetFound;
 
   public:
     FairEventManagerEditor(const TGWindow* p = 0, Int_t width = 170, Int_t height = 30,

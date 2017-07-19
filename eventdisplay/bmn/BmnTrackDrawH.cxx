@@ -88,17 +88,16 @@ InitStatus BmnTrackDrawH::Init()
 // -------------------------------------------------------------------------
 void BmnTrackDrawH::Exec(Option_t* option)
 {
-    if (fVerbose > 0)
-        cout<<" BmnTrackDrawH::Exec "<<endl;
+    if (fVerbose > 0) cout<<" BmnTrackDrawH::Exec "<<endl;
 
     if (!IsActive())
         return;
 
     Reset();
 
+    if (fVerbose > 1) cout<<" BmnTrackDrawH::Exec: the number of tracks is "<<fTrackList->GetEntriesFast()<<endl;
+
     BmnTrack* current_track;
-    if (fVerbose > 1)
-        cout<<" BmnTrackDrawH::Exec: the number of tracks is "<<fTrackList->GetEntriesFast()<<endl;
     for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
     {
         if (fVerbose > 2)
@@ -192,7 +191,6 @@ void BmnTrackDrawH::Reset()
         TEveTrackList*  ele = (TEveTrackList*) fEveTrList->At(i);
         gEve->RemoveElement(ele, fEventManager->EveRecoTracks);
     }
-
     fEveTrList->Clear();
 }
 
@@ -217,6 +215,7 @@ TEveTrackList* BmnTrackDrawH::GetTrGroup(TParticle* P)
     {
         fTrPr = new TEveTrackPropagator();
         fTrList = new  TEveTrackList(P->GetName(), fTrPr);
+        // set track color by particle PDG from FairEventManager
         fTrList->SetMainColor(fEventManager->Color(P->GetPdgCode()));
         fEveTrList->Add(fTrList);
 
@@ -227,7 +226,6 @@ TEveTrackList* BmnTrackDrawH::GetTrGroup(TParticle* P)
             fEventManager->EveRecoTracks->SetRnrState(kFALSE);
             fEventManager->GetEventEditor()->fShowRecoTracks->SetEnabled(kTRUE);
         }
-
         gEve->AddElement(fTrList, fEventManager->EveRecoTracks);
         fTrList->SetRnrLine(kTRUE);
     }

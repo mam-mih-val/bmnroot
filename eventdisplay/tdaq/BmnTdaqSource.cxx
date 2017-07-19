@@ -40,6 +40,8 @@ BmnTdaqSource::BmnTdaqSource()
     iEventNumber = 0;
     fEventHeader = NULL;
     fGemDigits = NULL;
+    fTof1Digits = NULL;
+    fT0Digits = NULL;
 }
 
 BmnTdaqSource::BmnTdaqSource(TString partition_name, TString sampling_type, TString sampling_name, Int_t verbose)
@@ -60,6 +62,8 @@ BmnTdaqSource::BmnTdaqSource(TString partition_name, TString sampling_type, TStr
     iEventNumber = 0;
     fEventHeader = NULL;
     fGemDigits = NULL;
+    fTof1Digits = NULL;
+    fT0Digits = NULL;
 }
 
 BmnTdaqSource::BmnTdaqSource(const BmnTdaqSource& source)
@@ -110,6 +114,12 @@ Bool_t BmnTdaqSource::Init()
 
     fGemDigits = new TClonesArray("BmnGemStripDigit");
     FairRootManager::Instance()->Register("GEM", "GEMDIR", fGemDigits, kFALSE);
+
+    fTof1Digits = new TClonesArray("BmnTof1Digit");
+    FairRootManager::Instance()->Register("TOF400", "TOFDIR", fTof1Digits, kFALSE);
+
+    fT0Digits = new TClonesArray("BmnTrigDigit");
+    FairRootManager::Instance()->Register("T0", "T0DIR", fT0Digits, kFALSE);
 
     // initialize IPC
     try
@@ -279,15 +289,19 @@ Int_t BmnTdaqSource::ReadEvent(UInt_t)
     // get event header
     //BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
     //cout<<"Current Run Id: "<<head->GetRunId()<<endl;
-    cout<<"Count of BmnEventHeader: "<<fDigiArrays->header->GetEntriesFast()<<endl;
+    //cout<<"Count of BmnEventHeader: "<<fDigiArrays->header->GetEntriesFast()<<endl;
     cout<<"Count of GEM digits: "<<fDigiArrays->gem->GetEntriesFast()<<endl;
     cout<<"Count of TOF digits: "<<fDigiArrays->tof400->GetEntriesFast()<<endl;
 
     // move result TClonesArray to registered TClonesArray
     fEventHeader->Delete();
     fGemDigits->Delete();
+    fTof1Digits->Delete();
+    fT0Digits->Delete();
     fEventHeader->AbsorbObjects(fDigiArrays->header);
     fGemDigits->AbsorbObjects(fDigiArrays->gem);
+    fTof1Digits->AbsorbObjects(fDigiArrays->tof400);
+    fT0Digits->AbsorbObjects(fDigiArrays->t0);
 
     fDigiArrays->Clear();
     delete fDigiArrays;
@@ -308,6 +322,16 @@ void BmnTdaqSource::Close()
     {
         fGemDigits->Delete();
         delete fGemDigits;
+    }
+    if (fTof1Digits)
+    {
+        fTof1Digits->Delete();
+        delete fTof1Digits;
+    }
+    if (fT0Digits)
+    {
+        fT0Digits->Delete();
+        delete fT0Digits;
     }
 
     if (it.get())

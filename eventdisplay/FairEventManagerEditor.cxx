@@ -32,6 +32,7 @@ FairEventManagerEditor::FairEventManagerEditor(const TGWindow* p, Int_t width, I
   : TGedFrame(p, width, height, options | kVerticalFrame, back),
    fObject(0),
    fEventManager(FairEventManager::Instance()),
+   isMagnetFound(false),
    fCurrentEvent(0),
    fCurrentPDG(0),
    fVizPri(0),
@@ -157,10 +158,15 @@ void FairEventManagerEditor::Init()
     fGeometry->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowGeometry(Bool_t)");
     fGeometry->SetOn();
     // button: whether show magnet or not
-    ShowMagnetButton = new TGCheckButton(fGeometryFrame, "show magnet");
-    fGeometryFrame->AddFrame(ShowMagnetButton, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,1,1));
-    ShowMagnetButton->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMagnet(Bool_t)");
-    ShowMagnetButton->SetOn();
+    TGeoVolume* magnet = gGeoManager->FindVolumeFast("Magnet");
+    if (magnet)
+    {
+        isMagnetFound = true;
+        ShowMagnetButton = new TGCheckButton(fGeometryFrame, "show magnet");
+        fGeometryFrame->AddFrame(ShowMagnetButton, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,1,1));
+        ShowMagnetButton->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMagnet(Bool_t)");
+        ShowMagnetButton->SetOn();
+    }
     title1->AddFrame(fGeometryFrame);
 
     // button for high transparency of detectors' geometry to highlight event objects
@@ -285,10 +291,13 @@ void FairEventManagerEditor::ShowGeometry(Bool_t is_show)
     }
 
     // disable "Magnet Show" box after hiding of detector geometry
-    if (!is_show)
-        fGeometryFrame->HideFrame(ShowMagnetButton);
-    else
-        fGeometryFrame->ShowFrame(ShowMagnetButton);
+    if (isMagnetFound)
+    {
+        if (!is_show)
+            fGeometryFrame->HideFrame(ShowMagnetButton);
+        else
+            fGeometryFrame->ShowFrame(ShowMagnetButton);
+    }
 
     gEve->Redraw3D();
 
@@ -658,19 +667,15 @@ void* RunOnlineDisplay(void* ptr)
     {
         if (fEditor->iThreadState == 0)
             break;
-        cout<<"555555555555555555"<<endl;
         do
         {
             TThread::Sleep(0, 200000000);
         } while ((gEve->GetGlobalScene()->GetGLScene()->IsLocked()) || (gEve->GetEventScene()->GetGLScene()->IsLocked()));
 
-        cout<<"6666666666666666666"<<endl;
-
         fRootManager->ReadEvent(i);
         fEventManager->SetCurrentEvent(i);
 
         // run all tasks
-        cout<<"1111111111111"<<endl;
         TObjLink* lnk = taskList->FirstLink();
         while (lnk)
         {
@@ -678,7 +683,6 @@ void* RunOnlineDisplay(void* ptr)
             pCurTask->ExecuteTask("");
             lnk = lnk->Next();
         }
-        cout<<"22222222222222222"<<endl;
 
         //fEditor->fCurrentEvent->SetIntNumber(i);
 
@@ -686,14 +690,12 @@ void* RunOnlineDisplay(void* ptr)
         if (isZDCRedraw)
             fEditor->RedrawZDC();
 
-        cout<<"333333333333333333333"<<endl;
 
         // redraw points
         cout<<"Redrawing event #"<<i<<"..."<<endl<<endl;
         gEve->Redraw3D();
         //TThread::Sleep(1,0);
         //gSystem->ProcessEvents();
-        cout<<"444444444444444444444444"<<endl;
     }
 
     fEditor->UnblockUI();

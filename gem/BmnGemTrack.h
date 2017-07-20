@@ -20,11 +20,11 @@ public:
         return fUsed;
     }
 
-    const BmnFitNode* GetFitNode(Int_t index) const {
+    BmnFitNode* GetFitNode(Int_t index) {
         return &fFitNodes[index];
     }
 
-    const vector<BmnFitNode>& GetFitNodes() const {
+    vector<BmnFitNode>& GetFitNodes() {
         return fFitNodes;
     }
 

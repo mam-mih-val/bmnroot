@@ -10,6 +10,8 @@ BmnKalmanFilter_tmp::BmnKalmanFilter_tmp() {
 }
 
 BmnKalmanFilter_tmp::~BmnKalmanFilter_tmp() {
+    delete fMaterial;
+    delete fNavigator;
 }
 
 BmnStatus BmnKalmanFilter_tmp::Prediction(FairTrackParam* par, Double_t zOut, BmnFitNode& node) {
@@ -688,7 +690,8 @@ BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits)
     for (int i = n - 1; i > 0; i--) {
         //        cout << "i = " << i << endl;
         //        nodes[i].GetSmoothedParam()->Print();
-        if (Smooth(&nodes[i - 1], &nodes[i]) == kBMNERROR) return kBMNERROR;
+        //        if (Smooth(&nodes[i - 1], &nodes[i]) == kBMNERROR) return kBMNERROR;
+        Smooth(&nodes[i - 1], &nodes[i]);
         //        nodes[i].GetSmoothedParam()->Print();
     }
 
@@ -697,13 +700,14 @@ BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits)
         BmnGemHit* hit = (BmnGemHit*) hits->At(track->GetHitIndex(i));
         Double_t chi2Hit = lit::ChiSq(nodes[i].GetSmoothedParam(), hit);
         nodes[i].SetChiSqSmoothed(chi2Hit);
-        track->SetChi2(track->GetChi2() + chi2Hit);
+        //track->SetChi2(track->GetChi2() + chi2Hit);
     }
 
     FairTrackParam* parFirst = nodes[0].GetSmoothedParam();
-    track->SetParamFirst(*parFirst);
+    if (parFirst->GetQp() != 0.0)
+        track->SetParamFirst(*parFirst);
     track->SetFitNodes(nodes);
-    track->SetNDF(lit::NDF(track));
+    //    track->SetNDF(lit::NDF(track));
 
     //    parFirst->Print();
     //    cout << "chi2 = " << track->GetChi2() << " | ndf = " << track->GetNDF() << " | nHits = " << track->GetNHits() << endl;
@@ -716,6 +720,9 @@ BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits)
 // this Node (k) , prevNode (k+1)
 
 BmnStatus BmnKalmanFilter_tmp::Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode) {
+
+    if (thisNode->GetPredictedParam()->GetQp() == 0.0) return kBMNERROR;
+    if (prevNode->GetPredictedParam()->GetQp() == 0.0) return kBMNERROR;
 
     Double_t cov1[15];
     prevNode->GetPredictedParam()->CovMatrix(cov1);

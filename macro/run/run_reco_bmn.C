@@ -26,13 +26,13 @@
 // If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
 // from that file.
 
-void run_reco_bmn(TString inputFileName     = "run6-1233:vazmin/bmn_run1233_digi.root",
-                  TString bmndstFileName    = "bmndst_1233.root",
-                  Int_t   nStartEvent       =  0,
-                  Int_t   nEvents           =  1000,
-                  Bool_t  isPrimary         =  kFALSE,
-                  TString alignCorrFileName = "")
-{   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
+void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
+        TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
+        Int_t nStartEvent = 0,
+        Int_t nEvents = 1000,
+        Bool_t isPrimary = kFALSE,
+        TString alignCorrFileName = "") {
+    // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
     // ----    Debug option   --------------------------------------------------
     gDebug = 0;
@@ -219,16 +219,11 @@ void run_reco_bmn(TString inputFileName     = "run6-1233:vazmin/bmn_run1233_digi
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
 
-    Bool_t direction = kTRUE;
     BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
-    gemSF->SetUseLorentz(kTRUE);
     gemSF->SetField(isField);
-    gemSF->SetDirection(direction);
     gemSF->SetTarget(isTarget);
-    if (isExp)
-        gemSF->SetRoughVertex(TVector3(0.0, -3.5, -21.7));
-    else
-        gemSF->SetRoughVertex(TVector3(0.0, 0.0, 0.0));
+    TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, 0.0);
+    gemSF->SetRoughVertex(vAppr);
     gemSF->SetLineFitCut(5.0);
     gemSF->SetYstep(10.0);
     gemSF->SetSigX(0.05);
@@ -241,7 +236,6 @@ void run_reco_bmn(TString inputFileName     = "run6-1233:vazmin/bmn_run1233_digi
 
     BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
     gemTF->SetField(isField);
-    gemTF->SetDirection(direction);
     gemTF->SetTarget(isTarget);
     gemTF->SetDistCut(5.0);
     gemTF->SetNHitsCut(4);
@@ -259,6 +253,7 @@ void run_reco_bmn(TString inputFileName     = "run6-1233:vazmin/bmn_run1233_digi
     // ====================================================================== //
     BmnGemVertexFinder* vf = new BmnGemVertexFinder();
     vf->SetField(isField);
+    vf->SetVertexApproximation(-21.7);
     fRunAna->AddTask(vf);
     // ====================================================================== //
     // ===                           Tracking (DCH)                       === //

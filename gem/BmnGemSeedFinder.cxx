@@ -15,7 +15,7 @@ using namespace std;
 using namespace TMath;
 
 BmnGemSeedFinder::BmnGemSeedFinder() : fEventNo(0) {
-    fUseLorentz = kFALSE;
+    fUseLorentz = kTRUE;
     fGoForward = kTRUE;
     fIsField = kFALSE;
     fIsTarget = kTRUE;
@@ -38,7 +38,7 @@ BmnGemSeedFinder::BmnGemSeedFinder() : fEventNo(0) {
     fMin = -0.5;
     fNSeedsCut = 2000;
     fNFoundSeeds = 0;
-    fNHitsInGemCut = 200;
+    fNHitsInGemCut = 1000;
     fMax = -fMin;
     fWidth = (fMax - fMin) / fNBins;
 }
@@ -217,7 +217,7 @@ BmnStatus BmnGemSeedFinder::FindSeedsByCombinatoricsInCoridor(Int_t iCorridor, B
         for (Int_t iSt = 0; iSt < fDetector->GetNStations(); ++iSt)
             if (hit->GetStation() == iSt) hitsOnStation[iSt].push_back(iHit);
     }
-
+         
     SeedsByThreeStations(0, 1, 2, hitsOnStation, cand);
     SeedsByThreeStations(0, 1, 3, hitsOnStation, cand);
     SeedsByThreeStations(0, 1, 4, hitsOnStation, cand);
@@ -343,7 +343,8 @@ BmnStatus BmnGemSeedFinder::FitSeeds(BmnGemTrack* cand) {
     for (Int_t i = 0; i < fNFoundSeeds; ++i) {
         BmnGemTrack* trackCand = &(cand[i]);
         if (fIsField) {
-            if (CalculateTrackParamsCircle(trackCand) == kBMNERROR) {
+//            if (CalculateTrackParamsCircle(trackCand) == kBMNERROR) {
+            if (CalculateTrackParamsPol2(trackCand) == kBMNERROR) {
                 trackCand->SetFlag(-1);
                 continue;
             }
@@ -708,6 +709,109 @@ BmnStatus BmnGemSeedFinder::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     return kBMNSUCCESS;
 }
 
+BmnStatus BmnGemSeedFinder::CalculateTrackParamsPol2(BmnGemTrack *tr) {
+
+    const UInt_t nHits = tr->GetNHits();
+    BmnGemStripHit* lastHit = GetHit(tr->GetHitIndex(nHits - 1));
+    BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0));
+    BmnGemStripHit* midHit = GetHit(tr->GetHitIndex(1));
+    if (!firstHit || !lastHit || !midHit) return kBMNERROR;
+    if (!lastHit->GetFlag()) return kBMNERROR;
+    if (!firstHit->GetFlag()) return kBMNERROR;
+    if (!midHit->GetFlag()) return kBMNERROR;
+
+    TVector3 lineParZY = LineFit(tr, fGemHitsArray, "ZY");
+    if (lineParZY.Z() > fLineFitCut) return kBMNERROR;
+
+    TVector3 Pol2ParZX = Pol2By3Hit(tr, fGemHitsArray);
+    tr->SetChi2(0.0);
+    tr->SetNDF(0);
+
+    const Float_t A = Pol2ParZX.X();
+    const Float_t B = Pol2ParZX.Y();
+    const Float_t C = Pol2ParZX.Z();
+    
+    const Float_t R = Power(1 - (2 * A * firstHit->GetZ() + B) * (2 * A * firstHit->GetZ() + B), 1.5) / Abs(2 * A); //radii of trajectory in the first hit position  
+//    printf("R = %f\n", R);
+    fField = FairRunAna::Instance()->GetField();
+    const Float_t Q = (A > 0) ? +1 : -1;
+
+    Float_t fSum = 0.0;
+    Float_t minField = FLT_MAX;
+    Float_t maxField = -FLT_MAX;
+    UInt_t nOk = 0;
+    for (UInt_t i = 0; i < nHits; ++i) {
+        BmnGemStripHit* hit = GetHit(tr->GetHitIndex(i));
+        if (!hit) continue;
+        if (!hit->GetFlag()) continue;
+        Double_t f = Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
+        if (f < minField) minField = f;
+        if (f > maxField) maxField = f;
+        fSum += f;
+        nOk++;
+    }
+
+    fSum /= nOk;
+
+//    Float_t S = 0.0003 * fSum;
+    //    Float_t S = 0.0003 * maxField;
+    //    Float_t S = 0.0003 * minField;
+        Float_t S = 0.0003 * Abs(fField->GetBy(lastHit->GetX(), lastHit->GetY(), lastHit->GetZ()));
+    //    Float_t S = 0.0003 * Abs(fField->GetBy(midHit->GetX(), midHit->GetY(), midHit->GetZ()));
+//                Float_t S = 0.0003 * Abs(fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
+    //    Float_t QP = Q / S / Sqrt(R * R + B * B);
+        
+    Float_t QP = Q / S / R;
+//    printf("R = %f \t P = %f\n", R, 1 / QP);
+
+    FairTrackParam par;
+    par.SetCovariance(0, 0, 1e-5);
+    par.SetCovariance(0, 1, 1e-5);
+    par.SetCovariance(0, 2, 1e-5);
+    par.SetCovariance(0, 3, 1e-5);
+    par.SetCovariance(0, 4, 1e-5);
+    par.SetCovariance(1, 1, 1e-5);
+    par.SetCovariance(1, 2, 1e-5);
+    par.SetCovariance(1, 3, 1e-5);
+    par.SetCovariance(1, 4, 1e-5);
+    par.SetCovariance(2, 2, 1e-5);
+    par.SetCovariance(2, 3, 1e-5);
+    par.SetCovariance(2, 4, 1e-5);
+    par.SetCovariance(3, 3, 1e-5);
+    par.SetCovariance(3, 4, 1e-5);
+    par.SetCovariance(4, 4, 1e-5);
+
+    Float_t lX = lastHit->GetX();
+    Float_t lY = lastHit->GetY();
+    Float_t lZ = lastHit->GetZ();
+
+    Float_t fX = firstHit->GetX();
+    Float_t fY = firstHit->GetY();
+    Float_t fZ = firstHit->GetZ();
+
+    Float_t Tx_first = 2 * A * fZ + B;
+    Float_t Tx_last = 2 * A * lZ + B;
+    Float_t Ty_last = lineParZY.X();
+    Float_t Ty_first = lineParZY.X();
+
+    par.SetPosition(TVector3(lX, lY, lZ));
+    par.SetTx(Tx_last);
+    par.SetTy(Ty_last);
+    par.SetQp(QP);
+    tr->SetParamLast(par);
+    if (!IsParCorrect(&par)) return kBMNERROR;
+
+    //update for firstParam
+    par.SetPosition(TVector3(fX, fY, fZ));
+    par.SetQp(QP);
+    par.SetTx(Tx_first);
+    par.SetTy(Ty_first);
+    tr->SetParamFirst(par);
+    if (!IsParCorrect(&par)) return kBMNERROR;
+
+    return kBMNSUCCESS;
+}
+
 Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack * tr) {
     //Needed for start approximation of track parameters
 
@@ -905,7 +1009,7 @@ Bool_t BmnGemSeedFinder::CalculateTrackParamsSpiral(BmnGemTrack * tr) {
     //    const Float_t k = 2.99792458 * 10e-4;
     //    Float_t dTxdz = (-1.0 / fR / sinThetaF) * (b * b + fR * fR) / Sqr(b * cosThetaF - fR * sinThetaF);
     //    
-    //    Float_t qpTmp = dTxdz / k / Ax;   
+    //    Float_t qpTmp = dTxdz / k / Ax;
     Float_t QPFirst = q / Sqrt(PxFirst * PxFirst + PyFirst * PyFirst + PzFirst * PzFirst);
 
     //    cout << QPFirst << " " << qpTmp << endl;
@@ -1153,8 +1257,7 @@ void BmnGemSeedFinder::FillAddrWithLorentz() {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (!hit) continue;
 
-        hit->SetFlag(kFALSE); // by default hits are not filtered 
-        hit->SetDxyz(10.0, 10.0, 0.0); // just for test
+        hit->SetFlag(kFALSE); // by default hits are not filtered
 
         TVector2 XYnew = GetTransXY(hit);
 

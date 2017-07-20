@@ -82,7 +82,7 @@ InitStatus BmnGlobalTracking::Init() {
 
     // TOF1
     if (fDet.GetDet(kTOF1)) {
-        fTof1Hits = (TClonesArray*) ioman->GetObject("BmnTofHit");
+        fTof1Hits = (TClonesArray*) ioman->GetObject("BmnTof1Hit");
         if (!fTof1Hits)
             if (fVerbose)
                 cout << "Init. No BmnTof1Hit array!" << endl;

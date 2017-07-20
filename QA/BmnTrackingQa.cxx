@@ -424,9 +424,9 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("VertResX_gem", "#DeltaV_{x}, cm", "Counter", 100, -1.0, 1.0);
     CreateH1("VertResY_gem", "#DeltaV_{y}, cm", "Counter", 100, -1.0, 1.0);
     CreateH1("VertResZ_gem", "#DeltaV_{z}, cm", "Counter", 100, -10.0, 10.0);
-    CreateH1("VertX_gem", "V_{x}, cm", "Counter", 300, -5.0, 5.0);
-    CreateH1("VertY_gem", "V_{y}, cm", "Counter", 300, -5.0, 5.0);
-    CreateH1("VertZ_gem", "V_{z}, cm", "Counter", 300, -50.0, 50.0);
+    CreateH1("VertX_gem", "V_{x}, cm", "Counter", 300, -2.0, 2.0);
+    CreateH1("VertY_gem", "V_{y}, cm", "Counter", 300, -2.0, 2.0);
+    CreateH1("VertZ_gem", "V_{z}, cm", "Counter", 300, -40.0, 10.0);
 
     CreateH2("Eff_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
     CreateH2("Clones_vs_EtaP_gem", "#eta_{sim}", "P_{sim, GeV/c}", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);

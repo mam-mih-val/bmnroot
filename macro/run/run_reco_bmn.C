@@ -26,10 +26,10 @@
 // If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
 // from that file.
 
-void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.root",
-                  TString bmndstFileName    = "$VMCWORKDIR/macro/run/bmndst.root",
+void run_reco_bmn(TString inputFileName     = "run6-1233:vazmin/bmn_run1233_digi.root",
+                  TString bmndstFileName    = "bmndst_1233.root",
                   Int_t   nStartEvent       =  0,
-                  Int_t   nEvents           =  10000,
+                  Int_t   nEvents           =  1000,
                   Bool_t  isPrimary         =  kFALSE,
                   TString alignCorrFileName = "")
 {   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
@@ -57,8 +57,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // for experimental datasource
     Int_t run_period;
     Int_t run_number;
-    if (inputFileName.Contains(TPRegexp("^run[0-9]+-[0-9]+:")))
-    {
+    Double_t fieldScale = 0.;
+    if (inputFileName.Contains(TPRegexp("^run[0-9]+-[0-9]+:"))) {
         Ssiz_t indDash = inputFileName.First('-'), indColon = inputFileName.First(':');
         // get run period
         run_period = TString(inputFileName(3, indDash - 3)).Atoi();
@@ -66,8 +66,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
         inputFileName.Remove(0, indColon + 1);
 
-        if ( ! CheckFileExist(inputFileName)) {
-            cout <<"Error: digi file "+inputFileName+" does not exist!"<< endl;
+        if (!CheckFileExist(inputFileName)) {
+            cout << "Error: digi file " + inputFileName + " does not exist!" << endl;
             exit(-1);
         }
         // set source as raw data file
@@ -77,24 +77,24 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         TString geoFileName = "current_geo_file.root";
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, geoFileName.Data());
         if (res_code != 0) {
-            cout <<"Geometry file can't be read from the database"<< endl;
+            cout << "Geometry file can't be read from the database" << endl;
             exit(-1);
         }
 
         // get gGeoManager from ROOT file (if required)
         TFile* geoFile = new TFile(geoFileName, "READ");
-        if ( ! geoFile->IsOpen()) {
-            cout <<"Error: could not open ROOT file with geometry: "+geoFileName<< endl;
+        if (!geoFile->IsOpen()) {
+            cout << "Error: could not open ROOT file with geometry: " + geoFileName << endl;
             exit(-2);
         }
         TList* keyList = geoFile->GetListOfKeys();
-        TIter  next(keyList);
-        TKey*  key = (TKey*)next();
+        TIter next(keyList);
+        TKey* key = (TKey*) next();
         TString className(key->GetClassName());
         if (className.BeginsWith("TGeoManager"))
             key->ReadObj();
         else {
-            cout <<"Error: TGeoManager isn't top element in geometry file "+geoFileName<< endl;
+            cout << "Error: TGeoManager isn't top element in geometry file " + geoFileName << endl;
             exit(-3);
         }
         // set magnet field with factor corresponding to the given run
@@ -102,8 +102,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         if (pCurrentRun == 0) {
             exit(-2);
         }
-        Double_t fieldScale = 0.0;
-        Double_t map_current  = 55.87;
+        Double_t map_current = 55.87;
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
         if (*field_voltage < 10) {
             fieldScale = 0;
@@ -119,7 +118,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         TString targ;
         if (pCurrentRun->GetTargetParticle() == NULL) {
             targ = "-";
-            isTarget = kFALSE; }
+            isTarget = kFALSE; 
+        }
         else {
             targ = (pCurrentRun->GetTargetParticle())[0];
             isTarget = kTRUE;
@@ -134,9 +134,9 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
-    }
+    } 
     else { // for simulated files
-        if ( ! CheckFileExist(inputFileName)) return;
+        if (!CheckFileExist(inputFileName)) return;
         fFileSource = new FairFileSource(inputFileName);
     }
     fRunAna->SetSource(fFileSource);
@@ -225,25 +225,35 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     gemSF->SetField(isField);
     gemSF->SetDirection(direction);
     gemSF->SetTarget(isTarget);
-//    gemSF->SetRoughVertex(TVector3(0.0, -3.5, -21.7));
-    gemSF->SetRoughVertex(TVector3(0.0, 0.0, 0.0));
+    if (isExp)
+        gemSF->SetRoughVertex(TVector3(0.0, -3.5, -21.7));
+    else
+        gemSF->SetRoughVertex(TVector3(0.0, 0.0, 0.0));
     gemSF->SetLineFitCut(5.0);
-    if (run_period == 5)
-        gemSF->AddStationToSkip(0);
     gemSF->SetYstep(10.0);
     gemSF->SetSigX(0.05);
     gemSF->SetLorentzThresh(1.01);
     gemSF->SetNbins(1000);
+   
+    if (run_period == 5)
+        gemSF->AddStationToSkip(0);
     fRunAna->AddTask(gemSF);
-    
+
     BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
     gemTF->SetField(isField);
     gemTF->SetDirection(direction);
     gemTF->SetTarget(isTarget);
     gemTF->SetDistCut(5.0);
     gemTF->SetNHitsCut(4);
-//        gemTF->SetNHitsCut(6);
     fRunAna->AddTask(gemTF);
+
+    // Resid. analysis
+    if (isExp) {
+        BmnGemResiduals* residAnal = new BmnGemResiduals(fieldScale);
+        // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
+        fRunAna->AddTask(residAnal); 
+    }
+
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //
     // ====================================================================== //
@@ -262,8 +272,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     BmnGlobalTracking* glFinder = new BmnGlobalTracking();
     fRunAna->AddTask(glFinder);
     // -----   Parameter database   --------------------------------------------
-    FairRuntimeDb*      rtdb   = fRunAna->GetRuntimeDb();
-    FairParRootFileIo*  parIo1 = new FairParRootFileIo();
+    FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
+    FairParRootFileIo* parIo1 = new FairParRootFileIo();
     FairParAsciiFileIo* parIo2 = new FairParAsciiFileIo();
     parIo1->open(parFileName.Data());
     parIo2->open(parFileNameList, "in");
@@ -275,8 +285,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // -----   Initialize and run   --------------------------------------------
     fRunAna->GetMainTask()->SetVerbose(iVerbose);
     fRunAna->Init();
-    cout <<"Starting run"<< endl;
-    fRunAna->Run(nStartEvent, nStartEvent+nEvents);
+    cout << "Starting run" << endl;
+    fRunAna->Run(nStartEvent, nStartEvent + nEvents);
     // -------------------------------------------------------------------------
     // -----   Finish   --------------------------------------------------------
     timer.Stop();

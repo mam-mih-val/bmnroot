@@ -41,6 +41,8 @@ BmnMwpcAlignCorrections.cxx
 BmnGlobalAlignment.cxx
 BmnMille.cxx
 BmnAlignCorrections.cxx
+BmnGemResiduals.cxx
+BmnResiduals.cxx
 )
 
 # fill list of header files from list of source files

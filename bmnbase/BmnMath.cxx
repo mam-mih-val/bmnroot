@@ -339,6 +339,73 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
     return TVector3(a, b, chi2);
 }
 
+void LineFit(Double_t& par1, Double_t& par2, BmnGemTrack* track, TClonesArray* arr, Int_t type, Int_t idSkip) {
+
+    //Weighted Least Square Method//
+    Float_t Xi = 0.0, Yi = 0.0; // coordinates of current track point
+    Float_t a = 0.0, b = 0.0; // parameters of line: y = a * x + b
+
+    Float_t Si = 0.0; // sigma
+    Float_t Wi = 0.0; // weight = 1 / sigma^2
+    Float_t SumW = 0.0; // sum of weights
+    Float_t SumWX = 0.0; // sum of (weight * x)
+    Float_t SumWY = 0.0; // sum of (weight * y)
+    Float_t SumWXY = 0.0; // sum of (weight * x * y)
+    Float_t SumWX2 = 0.0; // sum of (weight * x * x)
+
+    const Float_t nHits = track->GetNHits();
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+
+        if (i == idSkip)
+            continue;
+
+        else if (type == 1) {
+            Xi = hit->GetZ();
+            Yi = hit->GetX();
+            Si = hit->GetDx();
+        } else {
+            Xi = hit->GetZ();
+            Yi = hit->GetY();
+            Si = hit->GetDy();
+        }
+
+        Wi = 1.0 / Si / Si;
+        SumW += Wi;
+        SumWXY += Wi * Xi * Yi;
+        SumWX += Wi * Xi;
+        SumWX2 += Wi * Xi * Xi;
+        SumWY += Wi * Yi;
+    }
+
+    a = (SumW * SumWXY - SumWX * SumWY) / (SumW * SumWX2 - SumWX * SumWX);
+    b = (SumWX2 * SumWY - SumWX * SumWXY) / (SumW * SumWX2 - SumWX * SumWX);
+
+    Float_t chi2 = 0.0;
+
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+
+        if (i == idSkip)
+            continue;
+
+        if (type == 1) {
+            Xi = hit->GetZ();
+            Yi = hit->GetX();
+            Si = hit->GetDx();
+        } else {
+            Xi = hit->GetZ();
+            Yi = hit->GetY();
+            Si = hit->GetDy();
+        }
+
+        chi2 += ((Yi - a * Xi - b) / Si) * ((Yi - a * Xi - b) / Si);
+    }
+
+    par1 = a;
+    par2 = b;
+}
+
 TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) {
 
     //Weighted Least Square Method//

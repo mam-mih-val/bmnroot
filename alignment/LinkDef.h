@@ -12,5 +12,7 @@
 #pragma link C++ class BmnGlobalAlignment++;
 #pragma link C++ class BmnMille++;
 #pragma link C++ class BmnAlignCorrections++;
+#pragma link C++ class BmnResiduals++;
+#pragma link C++ class BmnGemResiduals++;
 #endif
 

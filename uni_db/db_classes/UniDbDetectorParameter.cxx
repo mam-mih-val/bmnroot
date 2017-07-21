@@ -1120,14 +1120,15 @@ int UniDbDetectorParameter::SetEnd(int end_period, int end_run)
     return 0;
 }
 
-int UniDbDetectorParameter::WriteBmnAlignment(int start_period, int start_run, int end_period, int end_run, char* align_file_path)
+// write ROOT file with binary detector parameter (with given detector and parameter names) to the database from start run_number to end run_number
+int UniDbDetectorParameter::WriteRootFile(int start_period, int start_run, int end_period, int end_run, const char* detector_name, const char* parameter_name, const char* root_file_path)
 {
-    TString strAlignFilePath(align_file_path);
-    gSystem->ExpandPathName(strAlignFilePath);
-    FILE* root_file = fopen(strAlignFilePath.Data(), "rb");
+    TString strRootFilePath(root_file_path);
+    gSystem->ExpandPathName(strRootFilePath);
+    FILE* root_file = fopen(strRootFilePath.Data(), "rb");
     if (root_file == NULL)
     {
-        cout<<"Error: opening root file: "<<strAlignFilePath<<" was failed"<<endl;
+        cout<<"Error: opening root file: "<<strRootFilePath<<" was failed"<<endl;
         return -1;
     }
 
@@ -1136,7 +1137,7 @@ int UniDbDetectorParameter::WriteBmnAlignment(int start_period, int start_run, i
     rewind(root_file);
     if (file_size <= 0)
     {
-        cout<<"Error: getting file size: "<<strAlignFilePath<<" was failed"<<endl;
+        cout<<"Error: getting file size: "<<strRootFilePath<<" was failed"<<endl;
         fclose(root_file);
         return -2;
     }
@@ -1152,7 +1153,7 @@ int UniDbDetectorParameter::WriteBmnAlignment(int start_period, int start_run, i
     size_t bytes_read = fread(buffer, 1, file_size, root_file);
     if (bytes_read != file_size)
     {
-        cout<<"Error: reading file: "<<strAlignFilePath<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
+        cout<<"Error: reading file: "<<strRootFilePath<<", got "<<bytes_read<<" bytes of "<<file_size<<endl;
         delete [] buffer;
         fclose(root_file);
         return -4;
@@ -1160,8 +1161,8 @@ int UniDbDetectorParameter::WriteBmnAlignment(int start_period, int start_run, i
 
     fclose(root_file);
 
-    // set root alignment file's bytes for run range
-    UniDbDetectorParameter* pParameterValue = UniDbDetectorParameter::CreateDetectorParameter("BM@N", "alignment", start_period, start_run, end_period, end_run, buffer, file_size);
+    // set root file's bytes for run range
+    UniDbDetectorParameter* pParameterValue = UniDbDetectorParameter::CreateDetectorParameter(detector_name, parameter_name, start_period, start_run, end_period, end_run, buffer, file_size);
     if (pParameterValue == NULL)
     {
         delete [] buffer;
@@ -1174,21 +1175,20 @@ int UniDbDetectorParameter::WriteBmnAlignment(int start_period, int start_run, i
     return 0;
 }
 
-int UniDbDetectorParameter::ReadBmnAlignment(int period_number, int run_number, char* align_file_path)
+// read ROOT file with binary detector parameter (with given detector and parameter names) from the database for a selected run number
+int UniDbDetectorParameter::ReadRootFile(int period_number, int run_number, const char* detector_name, const char* parameter_name, const char* root_file_path)
 {
-    // get root alignment file's bytes for selected run
+    // get root file's bytes for selected run
     unsigned char* buffer = NULL;
     size_t file_size;
-    UniDbDetectorParameter* pParameterValue = UniDbDetectorParameter::GetDetectorParameter("BM@N", "alignment", period_number, run_number);
+    UniDbDetectorParameter* pParameterValue = UniDbDetectorParameter::GetDetectorParameter(detector_name, parameter_name, period_number, run_number);
     if (pParameterValue == NULL)
-    {
         return -1;
-    }
 
-    FILE* root_file = fopen(align_file_path, "wb");
+    FILE* root_file = fopen(root_file_path, "wb");
     if (root_file == NULL)
     {
-        cout<<"Error: creating root file: "<<align_file_path<<endl;
+        cout<<"Error: creating root file: "<<root_file_path<<endl;
         delete pParameterValue;
         return -2;
     }
@@ -1198,7 +1198,7 @@ int UniDbDetectorParameter::ReadBmnAlignment(int period_number, int run_number, 
     delete pParameterValue;
     if (bytes_write != file_size)
     {
-        cout<<"Error: writing file: "<<align_file_path<<", put "<<bytes_write<<" bytes of "<<file_size<<endl;
+        cout<<"Error: writing file: "<<root_file_path<<", put "<<bytes_write<<" bytes of "<<file_size<<endl;
         delete [] buffer;
         fclose(root_file);
         return -3;

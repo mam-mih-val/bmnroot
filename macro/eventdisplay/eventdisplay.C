@@ -128,13 +128,11 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
             }
 
             cout << "\n\n|||||||||||||||| EXPERIMENTAL RUN SUMMARY ||||||||||||||||" << endl;
-            cout << "||\t\t\t\t\t\t\t||" << endl;
             cout << "||\t\tPeriod:\t\t" << run_period << "\t\t\t||" << endl;
             cout << "||\t\tNumber:\t\t" << run_number << "\t\t\t||" << endl;
             cout << "||\t\tBeam:\t\t" << beam << "\t\t\t||" << endl;
             cout << "||\t\tTarget:\t\t" << targ << "\t\t\t||" << endl;
             cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
-            cout << "||\t\t\t\t\t\t\t||" << endl;
             cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
         }
         else
@@ -365,6 +363,7 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         gemHM->SetCurrentConfig(gem_config);
         gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
         gemHM->SetHitMatching(kTRUE);
+        gemHM->SetVerbose(0);
         fMan->AddTask(gemHM);
 
         // Tracking GEM (seed finder)
@@ -373,20 +372,28 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         gemSF->SetField(isField);
         gemSF->SetDirection(kTRUE);
         gemSF->SetTarget(isTarget);
-        gemSF->SetVerbose(3);
+        gemSF->SetRoughVertex(TVector3(0.0, -3.5, -21.7));
+        gemSF->SetLineFitCut(5.0);
+        gemSF->SetYstep(10.0);
+        gemSF->SetSigX(0.05);
+        gemSF->SetLorentzThresh(1.01);
+        gemSF->SetNbins(1000);
+        gemSF->SetVerbose(1);
         fMan->AddTask(gemSF);
 
         // Tracking GEM (track finder)
         BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
         gemTF->SetField(isField);
         gemTF->SetDirection(kTRUE);
-        gemTF->SetDistCut(1.0);
-        gemTF->SetVerbose(3);
-        fMan->AddTask(gemTF);
+        gemTF->SetTarget(isTarget);
+        gemTF->SetDistCut(5.0);
+        gemTF->SetNHitsCut(4);
+        gemTF->SetVerbose(1);
+        //fMan->AddTask(gemTF);
 
         // TOF-400 hit finder
         BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", false, 0/*iVerbose*/, kTRUE);
-        fMan->AddTask(tof1HP);
+        //fMan->AddTask(tof1HP);
 
         // draw GEM hits
         FairHitPointSetDraw* GemHit = new FairHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
@@ -396,12 +403,12 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         // draw TOF-400 hits
         FairHitPointSetDraw* Tof1Hit = new FairHitPointSetDraw("BmnTof1Hit", expPointColor, pointMarker);
         //Tof1Hit->SetVerbose(1);
-        fMan->AddTask(Tof1Hit);
+        //fMan->AddTask(Tof1Hit);
 
         // draw GEM tracks
         BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemSeed", "BmnGemStripHit");
         //BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
-        GemTrack->SetVerbose(3);
+        GemTrack->SetVerbose(1);
         fMan->AddTask(GemTrack);
     }
 }

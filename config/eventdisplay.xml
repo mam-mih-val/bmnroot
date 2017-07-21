@@ -15,7 +15,7 @@
     <subdetector name="TOF400" color="RGB(167,0,225)" transparency="15" isRecursiveColoring="true"/> <!--violet-->
     <subdetector name="tof1DetPlateV" color="RGB(167,0,225)" transparency="90" isRecursiveColoring="true"/> <!--violet-->
     <subdetector name="DCH" color="RGB(0,170,225)" transparency="30" isRecursiveColoring="true"/> <!--cyan-->
-    <subdetector name="tof700" color="RGB(167,0,225)" transparency="15" isRecursiveColoring="true"/> <!--violet-->
+    <subdetector name="tof2" color="RGB(167,0,225)" transparency="15" isRecursiveColoring="true"/> <!--violet-->
     <subdetector name="VMDL" color="RGB(170,225,0)" transparency="0" isRecursiveColoring="true"/> <!--yellow-->
     <subdetector name="UMDL" color="RGB(0,170,225)" transparency="0" isRecursiveColoring="true"/> <!--cyan-->
 </coloring>

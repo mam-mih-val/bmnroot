@@ -293,7 +293,7 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
     BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
 
     Double_t minChiSq = DBL_MAX;
-    Double_t minDist = 0;
+    Double_t minDist = DBL_MAX;
     BmnHit* minHit = NULL; // Pointer to the nearest hit
     Int_t minIdx = -1;
     Double_t LenPropLast = 0., LenPropFirst = 0.;

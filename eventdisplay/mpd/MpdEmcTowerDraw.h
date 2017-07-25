@@ -25,12 +25,12 @@ class MpdEmcTowerDraw : public FairTask
     *@param emcMinEnergyThreshold minimal energy threshold 
     *@param verbose    Verbosity level   
     **/
-    MpdEmcTowerDraw(const char* name, Double_t emcMinEnergyThreshold = 0, Int_t verbose = 1);
+    MpdEmcTowerDraw(const char* name, Double_t emcMinEnergyThreshold = 0, Int_t verbose = 0);
 
     /** Destructor **/
     virtual ~MpdEmcTowerDraw();
     /** Set verbosity level. For this task and all of the subtasks. **/
-    void SetVerbose(UInt_t verboselvl) { fVerbose = verboselvl; }
+    void SetVerbose(UInt_t verbose) { fVerbose = verbose; }
     /** Executed task **/
     virtual void Exec(Option_t* option);
     void Reset();
@@ -55,7 +55,7 @@ class MpdEmcTowerDraw : public FairTask
     MpdEmcGeoPar* GetEmcGeoPar() { return fGeoPar; } ///< pointer to emc geo parameters
     Double_t GetEmcMinEnergyThreshold() const { return fEmcMinEnergyThreshold; }
     Bool_t GetResetRequiredFlag() const { return fResetRequiredFlag; }
-    UInt_t GetVerboselvl() const { return fVerbose; }
+    UInt_t GetVerbose() const { return fVerbose; }
     Double_t GetRMinEmc() const { return fRMinEmc; }
     Double_t GetRMaxEmc() const { return fRMaxEmc; }
     Double_t GetBoxHeight() const { return fBoxHeight; }

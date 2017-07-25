@@ -267,7 +267,7 @@ Int_t BmnTdaqSource::ReadEvent(UInt_t)
     if (iVerbose > 0) cout<<"Event count = "<<iEventNumber<<" Buffer occupancy = ["<<it->eventsAvailable()<<"/"<<iBufferSize<<"]"<<endl;
     if (iVerbose > 1)
     {
-        cout<<"Event id = "<<event_id<<"\tEvent length = "<<event_length<<"\tFull size = "<<event.size()<<" DWORD"<<endl;
+        cout<<"Event id = "<<event_id<<"\tEvent length = "<<event_length<<endl;
         //fDigiArrays->Dump();
         //usleep(3*1000000);
     }

@@ -135,7 +135,7 @@ class BmnPullSampling : public PullSampling
         setup[5] = 1; // TOF-700
         setup[6] = 1; // DCH
         setup[7] = 1; // ZDC
-        setup[8] = 0; // ECAL
+        setup[8] = 1; // ECAL
         rawDataDecoder->SetDetectorSetup(setup);
         rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
         rawDataDecoder->SetSiliconMapping("SILICON_map_run6.txt");
@@ -148,7 +148,7 @@ class BmnPullSampling : public PullSampling
         rawDataDecoder->SetECALCalibration("");
         rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
 
-        rawDataDecoder->SetEvForPedestals(200);
+        rawDataDecoder->SetEvForPedestals(150);
         rawDataDecoder->InitConverter(directory_name+current_file);
         rawDataDecoder->InitDecoder();
 

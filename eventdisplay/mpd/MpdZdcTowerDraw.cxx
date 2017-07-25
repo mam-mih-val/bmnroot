@@ -18,7 +18,6 @@
 #include "TGeoBBox.h"
 #include "TH2F.h"
 #include "TRandom.h"
-//#include <TMath.h>
 
 #include <iostream>
 using namespace std;
@@ -53,15 +52,15 @@ MpdZdcTowerDraw::MpdZdcTowerDraw(const char* name, Double_t zdcMinEnergyThreshol
 // -------------------------------------------------------------------------
 InitStatus MpdZdcTowerDraw::Init()
 {
-    if (GetVerboselvl() > 1) cout<<"MpdZdcTowerDraw::Init()"<<endl;
+    if (fVerbose > 0) cout<<"MpdZdcTowerDraw::Init()"<<endl;
 
     fEventManager = FairEventManager::Instance();
-    if (GetVerboselvl() > 1) cout<<"MpdZdcTowerDraw::Init() get instance of EventManager: "<<fEventManager<<endl;
+    if (fVerbose > 1) cout<<"MpdZdcTowerDraw::Init() get instance of EventManager: "<<fEventManager<<endl;
 
     fEventManager->fgRedrawRecoPointsReqired = kTRUE;
 
     FairRootManager* fManager = FairRootManager::Instance();
-    if (GetVerboselvl() > 1) cout<<"MpdZdcTowerDraw::Init() get instance of FairRootManager: "<<fManager<<endl;
+    if (fVerbose > 1) cout<<"MpdZdcTowerDraw::Init() get instance of FairRootManager: "<<fManager<<endl;
 
     fDigitList = (TClonesArray*) fManager->GetObject("ZdcDigi");
     if (fDigitList == 0)
@@ -74,7 +73,7 @@ InitStatus MpdZdcTowerDraw::Init()
     SetModuleZLen(40);
     
     fEneArr = new Double_t[GetNumModules()*2];
-    for (Int_t i = 0; i < GetNumModules()*2; ++i)
+    for (Int_t i = 0; i < GetNumModules()*2; i++)
         SetEneArr(i,0);
     
     fq = 0;
@@ -87,26 +86,26 @@ void MpdZdcTowerDraw::Exec(Option_t* option)
     if (IsActive())
     {   
         Reset();
-        if (GetVerboselvl() > 1) cout<<"MpdZdcTowerDraw::Exec() current visibility level = "<<gGeoManager->GetVisLevel()<<endl;
+        if (fVerbose > 0) cout<<"MpdZdcTowerDraw::Exec() current visibility level = "<<gGeoManager->GetVisLevel()<<endl;
 
         if (fEventManager->fgShowRecoPointsIsShow)
         {
             UInt_t fNhits = fDigitList->GetEntriesFast();
-            if (GetVerboselvl() > 1)
-                cout<<"MpdZdcTowerDraw::Exec() Number of ZDC hits = " << fNhits << endl;  
-            for (Int_t i = 0; i < GetNumModules()*2; ++i)
-                    SetEneArr(i,0);
-            for (UInt_t iPnt = 0; iPnt < fNhits; ++iPnt) {
-                UInt_t iCur;
+            if (fVerbose > 0) cout<<"MpdZdcTowerDraw::Exec() Number of ZDC hits = " << fNhits << endl;
+
+            for (Int_t i = 0; i < GetNumModules()*2; i++)
+                SetEneArr(i,0);
+
+            for (UInt_t iPnt = 0; iPnt < fNhits; iPnt++)
+            {
                 MpdZdcDigi* dgt = (MpdZdcDigi*) fDigitList->At(iPnt);
-                //dgt->Print();
                 //cout<<"GetELoss() = "<<dgt->GetELoss()<<endl;
 
                 //cout<<"GetDetectorID() = "<<dgt->GetDetectorID()<<endl;
                 //cout<<"GetModuleID() = "<<dgt->GetModuleID()<<endl;                
-                iCur =GetNumModules()*(dgt->GetDetectorID()-1)+dgt->GetModuleID()-1;
+                UInt_t iCur = GetNumModules() * (dgt->GetDetectorID()-1) + dgt->GetModuleID()-1;
                 //cout<<"iCur = " <<iCur<<endl;
-                SetEneArr(iCur,GetEneArrValue(iCur)+dgt->GetELoss());
+                SetEneArr(iCur, GetEneArrValue(iCur) + dgt->GetELoss());
             }
             
             //cut off energies under threshold
@@ -117,14 +116,13 @@ void MpdZdcTowerDraw::Exec(Option_t* option)
             
             //search for maximum bin
             SetMaxE(0);
-            for (UInt_t i = 0; i < 2*GetNumModules(); ++i) { 
-                Double_t E = GetEneArrValue(i); 
+            for (UInt_t i = 0; i < 2*GetNumModules(); i++)
+            {
+                Double_t E = GetEneArrValue(i);
                 //cout<<"E = "<<E<<endl;
                 if (E > GetMaxE()) SetMaxE(E);
             }
-
-            if (GetVerboselvl() > 1)
-                cout << "MpdZdcTowerDraw::Exec() maxE = " << GetMaxE() << endl;
+            if (fVerbose > 0) cout<<"MpdZdcTowerDraw::Exec() maxE = "<<GetMaxE()<<endl;
                         
             DrawTowers();
             
@@ -202,17 +200,20 @@ void MpdZdcTowerDraw::Exec(Option_t* option)
         else
         {
             if (GetResetRequiredFlag())
-            {               
-                for (Int_t i = 0; i < GetNumModules()*2; ++i)
+            {
+                for (Int_t i = 0; i < GetNumModules()*2; i++)
                     SetEneArr(i,1);
+
                 SetMaxE(1);
                 DrawTowers();
-                 for (Int_t i = 0; i < GetNumModules()*2; ++i)
+                for (Int_t i = 0; i < GetNumModules()*2; i++)
                     SetEneArr(i,0);
+
                 SetMaxE(0);
                 SetResetRequiredFlag(kFALSE);
             }
         }
+
         TEvePointSet* q = new TEvePointSet(GetName(), fDigitList->GetEntriesFast(), TEvePointSelectorConsumer::kTVT_XYZ);
         q->SetOwnIds(kTRUE);
         
@@ -223,7 +224,6 @@ void MpdZdcTowerDraw::Exec(Option_t* option)
             fEventManager->EveRecoPoints->SetRnrState(kFALSE);
             fEventManager->GetEventEditor()->fShowRecoPoints->SetEnabled(kTRUE);
         }
-        
         gEve->AddElement(q, fEventManager->EveRecoPoints); 
 
         fq = q;
@@ -235,70 +235,68 @@ void MpdZdcTowerDraw::Exec(Option_t* option)
 void MpdZdcTowerDraw::DrawTowers()
 {
     gGeoManager->cd("/cave_1");
-    TGeoNode *caveNode = gGeoManager->GetCurrentNode();
+    TGeoNode* caveNode = gGeoManager->GetCurrentNode();
     
-    for (UInt_t zdcId = 0; zdcId < 2; ++zdcId) {
-        gGeoManager->cd(Form("/cave_1/zdc01_%d",zdcId+1)); 
-        TGeoNode *zdcNode = gGeoManager->GetCurrentNode();
-        TGeoVolume *zdcVolumeClone = zdcNode->GetVolume()->CloneVolume();               
-        TObjArray *zdcArr= zdcNode->GetVolume()->GetNodes();
+    for (UInt_t zdcId = 0; zdcId < 2; zdcId++)
+    {
+        gGeoManager->cd(Form("/cave_1/zdc01_%d", zdcId+1));
+        TGeoNode* zdcNode = gGeoManager->GetCurrentNode();
+        TGeoVolume* zdcVolumeClone = zdcNode->GetVolume()->CloneVolume();
+        TObjArray* zdcArr= zdcNode->GetVolume()->GetNodes();
         
-        for (UInt_t module = 0; module < zdcNode->GetVolume()->GetNdaughters(); ++module) {        
-            TGeoNode *moduleNode = (TGeoNode*)(zdcArr->UncheckedAt(module));    
-            TGeoNode*	moduleNodeCopy;
-            if(GetShadowFlag())
+        for (UInt_t module = 0; module < zdcNode->GetVolume()->GetNdaughters(); module++)
+        {
+            TGeoNode* moduleNode = (TGeoNode*) zdcArr->UncheckedAt(module);
+
+            TGeoNode* moduleNodeCopy;
+            if (GetShadowFlag())
             {
                 RecursiveChangeNodeTransparent(moduleNode, 0);
                 moduleNodeCopy =  moduleNode->MakeCopyNode();
             }
             
-            UInt_t iCur = zdcId*GetNumModules()+moduleNode->GetNumber()-1;
-            TGeoBBox *box = (TGeoBBox*)moduleNode->GetVolume()->GetShape()->Clone();
-            TGeoVolume *moduleVolumeCopyInit = moduleNode->GetVolume()->MakeCopyVolume((TGeoShape*)box);
+            UInt_t iCur = zdcId * GetNumModules() + moduleNode->GetNumber()-1;
+            TGeoBBox* box = (TGeoBBox*) moduleNode->GetVolume()->GetShape()->Clone();
             //cout<<"GetEneArrValue(iCur) = "<< GetEneArrValue(iCur)<<"; box->GetName() = "<<box->GetName()<<"; moduleNode->GetMotherVolume()->GetName() = "<<moduleNode->GetMotherVolume()->GetName()<<"; moduleNode->GetName() = "<<moduleNode->GetName()<<"; moduleNode->GetNumber() = "<<moduleNode->GetNumber()<<"; iCur = "<<iCur<<endl;
                                         
             TGeoMatrix* mat =moduleNode->GetMatrix()->MakeClone();
-            //TGeoMatrix* mat1 =moduleNode->GetMatrix()->MakeClone();
-            if (GetEneArrValue(iCur)!=0)
+            if (GetEneArrValue(iCur) != 0)
             {                 
-                box->SetBoxDimensions(box->GetDX(), box->GetDY(), GetModuleZLen()*GetEneArrValue(iCur)/GetMaxE());                                                
-                ((TGeoTranslation*)mat)->SetDz(GetModuleZLen()*GetEneArrValue(iCur)/GetMaxE()-GetModuleZLen());                       
+                box->SetBoxDimensions(box->GetDX(), box->GetDY(), GetModuleZLen() * GetEneArrValue(iCur) / GetMaxE());
+                ((TGeoTranslation*)mat)->SetDz(GetModuleZLen() * GetEneArrValue(iCur) / GetMaxE() - GetModuleZLen());
             }
             
-            zdcVolumeClone->RemoveNode(moduleNode); 
-            TGeoVolume *moduleVolumeCopy = moduleNode->GetVolume()->MakeCopyVolume((TGeoShape*)box);
+            zdcVolumeClone->RemoveNode(moduleNode);
+            TGeoVolume* moduleVolumeCopy = moduleNode->GetVolume()->MakeCopyVolume((TGeoShape*)box);
             moduleVolumeCopy->SetVisibility(kTRUE);
-            if (GetEneArrValue(iCur)==0)            
+            if (GetEneArrValue(iCur) == 0)
                 moduleVolumeCopy->SetVisibility(kFALSE);            
                 
             //the internal structure of Module does note alow to change it's shape, so we delete it for the towers visualization                         
-            TObjArray *arr = moduleVolumeCopy->GetNodes();
+            TObjArray* arr = moduleVolumeCopy->GetNodes();
             UInt_t count = moduleVolumeCopy->GetNdaughters();
-            for (UInt_t sa = 0; sa < count; ++sa) {
-                TGeoNode *node = (TGeoNode*)(arr->UncheckedAt(0));
+            for (UInt_t sa = 0; sa < count; sa++)
+            {
+                TGeoNode* node = (TGeoNode*) arr->UncheckedAt(0);
                 moduleVolumeCopy->RemoveNode(node);
-            }  
-            
-            if(GetShadowFlag())
+            }
+            if (GetShadowFlag())
                 RecursiveChangeNodeTransparent(moduleNodeCopy, 98);
             
             zdcVolumeClone->AddNode(moduleVolumeCopy, moduleNode->GetNumber(),mat);
-            
-            
             if(GetShadowFlag())
                 zdcVolumeClone->AddNode(moduleNodeCopy->GetVolume(), moduleNode->GetNumber(),moduleNode->GetMatrix());
-            
         }
 
-        caveNode->GetVolume()->AddNode(zdcVolumeClone,zdcNode->GetNumber(),zdcNode->GetMatrix());                
-        caveNode->GetVolume()->RemoveNode(zdcNode); 
+        caveNode->GetVolume()->AddNode(zdcVolumeClone, zdcNode->GetNumber(), zdcNode->GetMatrix());
+        caveNode->GetVolume()->RemoveNode(zdcNode);
         //zdcNode->GetVolume()->SetInvisible();//VisibleDaughters(kTRUE);
         //zdcNode->SetVisibility(kFALSE);
         //zdcNode->VisibleDaughters(kTRUE);
         //RecursiveChangeNodeTransparent(zdcNode, 80);
         //RecursiveChangeNodeTransparent(zdcNode, 0);
-        
-    }           
+    }
+
     SetResetRequiredFlag(kTRUE);
 }
 

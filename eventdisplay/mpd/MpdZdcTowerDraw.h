@@ -21,7 +21,7 @@ class MpdZdcTowerDraw : public FairTask
     *@param name        Name of task
     *@param verbose    Verbosity level   
     **/
-    MpdZdcTowerDraw(const char* name,Double_t zdcMinEnergyThreshold = 0, Bool_t shadow = kFALSE,  Int_t verbose = 1);
+    MpdZdcTowerDraw(const char* name,Double_t zdcMinEnergyThreshold = 0, Bool_t shadow = kFALSE,  Int_t verbose = 0);
 
     /** Destructor **/
     virtual ~MpdZdcTowerDraw();
@@ -44,7 +44,7 @@ class MpdZdcTowerDraw : public FairTask
     void DrawTowers(); ///< adjust towers heights
     
     /** Accessors **/
-    UInt_t GetVerboselvl() const { return fVerbose; }
+    UInt_t GetVerbose() const { return fVerbose; }
     Bool_t GetShadowFlag() const { return fShadow; }
     Bool_t GetResetRequiredFlag() const { return fResetRequiredFlag; }
     Double_t GetEneArrValue(UInt_t i) const { return fEneArr[i]; }

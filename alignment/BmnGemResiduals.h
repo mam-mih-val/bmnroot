@@ -11,6 +11,7 @@
 #include <TFitResult.h>
 #include "FairTask.h"
 #include "FairRootManager.h"
+#include "FairEventHeader.h"
 
 #include  "BmnGemStripStationSet.h"
 #include  "BmnGemStripStationSet_RunWinter2016.h"
@@ -27,46 +28,62 @@ using namespace TMath;
 class BmnGemResiduals : public FairTask {
 public:
 
-    BmnGemResiduals() {};
-    BmnGemResiduals(Double_t);
-    virtual ~BmnGemResiduals() {};
+    BmnGemResiduals() {
+    };
+    BmnGemResiduals(Int_t, Int_t, Double_t);
+
+    virtual ~BmnGemResiduals() {
+    };
 
     virtual InitStatus Init();
 
     virtual void Exec(Option_t* opt);
 
     virtual void Finish();
-    
+
     void SetUseDistance(Bool_t flag) {
         if (flag)
             isResid = kFALSE;
     }
 
-   
-private:
-    void Residuals();
-    void Distances();
+    void SetPrintResToFile(TString fileName) {
+        isPrintToFile = kTRUE;
+        outRes = fopen(fileName.Data(), "w");
+    }
+
+  private:
+    void ResidualsAndDistances();
     
+    Int_t fPeriod;
+    Int_t fNumber;
+
     Bool_t fDebug;
-        
+
     Bool_t isField;
     Bool_t isResid; // true --> resid, false --> dist
-    
+
     TString fBranchGemHits;
     TString fBranchGemTracks;
     TString fBranchResiduals;
-    
+    TString fBranchFairEventHeader;
+
     TClonesArray* fGemTracks;
     TClonesArray* fGemHits;
-    
+
     TClonesArray* fGemResiduals;
-      
+    
+    FairEventHeader* fFairEventHeader;
+
     BmnGemStripStationSet* fDetector; // Detector geometry
     BmnGemStripConfiguration::GEM_CONFIG fGeometry;
-    
+
     // tmp histos to fit resid. 
     TH1F* hRes[6][2][2]; // stat -- mod -- resX (Y)
-  
+
+    Bool_t isPrintToFile;
+    Bool_t isMergedDigits; // file with merged digits from different files
+    FILE* outRes;
+
     ClassDef(BmnGemResiduals, 1)
 };
 

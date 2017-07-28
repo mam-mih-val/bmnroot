@@ -60,8 +60,8 @@ private:
     Double_t fWidthL[fNStr], fWidthR[fNStr], fWidthLtemp[fNStr], fWidthRtemp[fNStr], fWidth[fNStr];
     Double_t fTof[fNStr];
     Double_t fDoubleTemp, fMaxDelta;
-    Int_t fHit_Per_Ev, fNEvents, fStrip;
-    Bool_t fFlagHit[fNStr], fKilled[fNStr], fFillHist;
+    Int_t fHit_Per_Ev, fNEvents, fStrip, fFillHist;
+    Bool_t fFlagHit[fNStr], fKilled[fNStr];
     Double_t CorrLR[fNStr];
     Double_t fDigitL[fNStr], fDigitR[fNStr], fHit[fNStr];
     TVector3 fCentrStrip[fNStr], fCrossPoint[fNStr], fVectorTemp;
@@ -70,7 +70,7 @@ private:
     TList *fHistListStat, *fHistListCh, *fHistListDt;
 
     TH1I *hHitByCh, *hHitPerEv;
-    TH2I *hLeftDigitToHit, *hRightDigitToHit, *hXY;
+    TH2I *hXY;
     TH2S *hHitLR, *hDtvsWidthDet[fNStr], *hDtvsWidthT0[fNStr];
     TH1I *hWidth[fNStr + 1], *hDtLR[fNStr + 1], *hTime[fNStr + 1], *hDt[fNStr + 1];
     TGraphErrors *gSlew[fNStr];
@@ -88,7 +88,7 @@ private:
 public:
     BmnTOF1Detector();
 
-    BmnTOF1Detector(Int_t NPlane, Bool_t FillHist);
+    BmnTOF1Detector(Int_t NPlane, Int_t FillHistLevel); // FillHistLevel=0-don"t fill, FillHistLevel=1-fill statistic, FillHistLevel>1-fill all
 
     virtual ~BmnTOF1Detector() {
     };
@@ -106,6 +106,7 @@ public:
     Bool_t SetGeoFile(TString NameFile);
     Bool_t SetGeo(BmnTof1GeoUtils *pGeoUtils);
     Bool_t GetXYZTime(Int_t Str, TVector3 *XYZ, Double_t *ToF);
+    Double_t GetWidth(Int_t Str);
     Bool_t SaveHistToFile(TString NameFile);
     ClassDef(BmnTOF1Detector, 2);
 

@@ -34,6 +34,7 @@ fDchMcPoints(NULL),
 fEvHead(NULL),
 fPDG(2212),
 fChiSqCut(100.),
+fVertex(NULL),
 fEventNo(0) {
 }
 
@@ -135,6 +136,13 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
 
     if (!fGemTracks) return;
 
+    if (fGemVertex) {
+        if (fGemVertex->GetEntriesFast() > 0)
+            fVertex = (CbmVertex*) fGemVertex->At(0);
+        else
+            fVertex = NULL;
+    }
+
     for (Int_t i = 0; i < fGemTracks->GetEntriesFast(); ++i) {
         BmnGemTrack* gemTrack = (BmnGemTrack*) fGemTracks->At(i);
         new((*fGlobalTracks)[i]) BmnGlobalTrack();
@@ -151,7 +159,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         glTr->SetFitNodes(nodes);
 
         MatchingMWPC(glTr);
-        MatchingTOF(glTr, 1);
+        MatchingTOF(glTr, 1, i);
         MatchingDCH(glTr);
         //Refit(glTr);
     }
@@ -285,7 +293,7 @@ BmnStatus BmnGlobalTracking::MatchingMWPC(BmnGlobalTrack* tr) {
     delete kalman;
 }
 
-BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
+BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t trIndex) {
 
     TClonesArray* tofHits = (num == 1 && fTof1Hits) ? fTof1Hits : (num == 2 && fTof2Hits) ? fTof2Hits : NULL;
     if (!tofHits) return kBMNERROR;
@@ -304,14 +312,16 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
         FairTrackParam parPredict(*(tr->GetParamLast()));
         Double_t len = 0.;
         //printf("hitIdx = %d\n", hitIdx);
-        //printf("BEFORE: len = %f\n", len);
-        //cout << "BEFORE: Param->GetX() = " << parPredict.GetX() << endl;
-        //  BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "line");
+        //printf("BEFORE: len = %f.3\t", len);
+        //printf("Param->GetX() = %.2f\n", parPredict.GetX());
+        //BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "line");
         BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "field");
         if (resultPropagate == kBMNERROR) continue; // skip in case kalman error
-        //printf("AFTER:  len = %f\n", len);
-        //cout << "AFTER: Param->GetX() = " << parPredict.GetX() << endl;
         Double_t dist = TMath::Sqrt(TMath::Power(parPredict.GetX() - hit->GetX(), 2) + TMath::Power(parPredict.GetY() - hit->GetY(), 2));
+        //printf("AFTER:  len = %.3f\t", len);
+        //printf("Param->GetX() = %.2f\t", parPredict.GetX());
+        //printf ("Distanc = %.3f\n", dist);
+        //getchar();
         if (dist < minDist && dist <= 5.) {
             minDist = dist;
             minHit = hit;
@@ -325,25 +335,22 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
         FairTrackParam ParPredFirst(*(tr->GetParamFirst()));
         FairTrackParam ParPredLast(*(tr->GetParamLast()));
         ParPredFirst.SetQp(ParPredLast.GetQp());
-        Double_t LenLineLast = TMath::Sqrt(TMath::Power(ParPredLast.GetX() - minHit->GetX(), 2) + TMath::Power(ParPredLast.GetY() - minHit->GetY(), 2) + TMath::Power(ParPredLast.GetZ() - minHit->GetZ(), 2));
-        Double_t LenLineFirst = TMath::Sqrt(TMath::Power(ParPredFirst.GetX() - 0.38, 2) + TMath::Power(ParPredFirst.GetY() - (-3.77), 2) + TMath::Power(ParPredFirst.GetY() - (-21.5), 2));
-        Double_t LenLine = tr->GetLength();
-        BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&ParPredFirst, -21.5, fPDG, NULL, &LenPropFirst, "field"); // z of target -21.5
+        Double_t LenTrack = tr->GetLength();
+        Double_t zTarget = -21.7; // z of target by default
+        if (fVertex)
+            zTarget = fVertex->GetZ();
+        BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&ParPredFirst, zTarget, fPDG, NULL, &LenPropFirst, "field");
         if (resultPropagate != kBMNERROR) { // skip in case kalman error
 
             if (num == 1)
                 tr->SetTof1HitIndex(minIdx);
             else
                 tr->SetTof2HitIndex(minIdx);
-            //tr->SetNHits(tr->GetNHits() + 1);
-            //tr->SetNDF(tr->GetNDF() + 1);
-            BmnFitNode *node = &((tr->GetFitNodes()).at(1));
-            FairTrackParam parUpdate = minParPredLast;
-            kalman->Update(&parUpdate, minHit, minChiSq);
-            node->SetUpdatedParam(&parUpdate);
-            node->SetPredictedParam(&minParPredLast);
 
-            minHit->SetLength(LenPropFirst + LenLine + LenPropLast);
+            minHit->SetIndex(trIndex);
+            //    printf("LenFirst = %.3f;  LenTrack = %.3f;  LenLast = %.3f\n", LenPropFirst, LenTrack, LenPropLast);
+            minHit->SetLength(LenPropFirst + LenTrack + LenPropLast); // length from target to Tof hit
+            //    printf("Writed length = %.3f\n", minHit->GetLength());
             minHit->SetUsing(kTRUE);
 
             delete kalman;

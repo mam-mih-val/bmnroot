@@ -41,6 +41,7 @@
 #include "TColor.h"
 #include "TGraph.h"
 #include "BmnKalmanFilter_tmp.h"
+#include "CbmVertex.h"
 
 class TClonesArray;
 
@@ -148,8 +149,10 @@ private:
 
     Int_t fPDG; // PDG hypothesis
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
+    
+    CbmVertex *fVertex; // vertex information
 
-    BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num);
+    BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t trIndex);
     BmnStatus MatchingDCH(BmnGlobalTrack* tr);
     BmnStatus MatchingMWPC(BmnGlobalTrack* tr);
     

@@ -79,7 +79,7 @@ InitStatus BmnGemStripHitMaker::Init() {
     }
 
     TString gPathGemConfig = gSystem->Getenv("VMCWORKDIR");
-        gPathGemConfig += "/gem/XMLConfigs/";
+    gPathGemConfig += "/gem/XMLConfigs/";
 
     //Create GEM detector ------------------------------------------------------
     switch (fCurrentConfig) {
@@ -144,9 +144,11 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     clock_t tStart = clock();
 
     if (fIsExp) {
-        BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
-        if (evHeader && evHeader->GetTripWord())
-            return;
+        if (fBmnEventHeader) {
+            BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
+            if (evHeader && evHeader->GetTripWord())
+                return;
+        }
     }
 
     fBmnGemStripHitsArray->Delete();
@@ -252,7 +254,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 x += corr[iStation][iModule][0];
                 y += corr[iStation][iModule][1];
-
+           
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
                         BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
 
@@ -281,8 +283,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
 }
 
 void BmnGemStripHitMaker::Finish() {
-    if (fAlignCorrFileName != "")
-        system(TString("rm " + fAlignCorrFileName).Data());
+    //    if (fAlignCorrFileName != "")
+    //        system(TString("rm " + fAlignCorrFileName).Data());
     if (StationSet) {
         for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++) {
             Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();

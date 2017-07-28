@@ -1,8 +1,9 @@
-// -------------------------------------------------------------------------
-// -----                    BmnFieldMap source file                    -----
-// -----                   Created 03/02/2015  by P. Batyuk            -----
-// -----                        JINR, batyuk@jinr.ru                   -----
-// -------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------
+// -----                    BmnFieldMap header file                    -------- ----
+// -----                   Created 03/02/2015  by P. Batyuk            -------------
+// ----- Modified 28/07/2016  by A. Zelenov   (Summer student practice - 2017)------
+// -----                        JINR, batyuk@jinr.ru                   -------------
+// ---------------------------------------------------------------------------------
 
 #include "BmnFieldMap.h"
 #include "FairRun.h"
@@ -13,11 +14,13 @@
 #include "TArrayF.h"
 #include "TFile.h"
 #include "TMath.h"
+#include "TTree.h"
 #include "FairRunSim.h"
 #include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 
 BmnFieldMap::BmnFieldMap()
 : FairField(),
@@ -224,7 +227,7 @@ BmnFieldMap::~BmnFieldMap() {
 }
 
 void BmnFieldMap::Init() {
-    if (fFileName.EndsWith(".root")) ReadRootFile(fFileName, fName);
+    if (fFileName.EndsWith(".root")) ReadRootFile(fFileName);
     else if (fFileName.EndsWith(".dat")) ReadAsciiFile(fFileName);
 
     else {
@@ -307,7 +310,7 @@ void BmnFieldMap::Print() {
     if (fType == 2) type = "Map sym2";
     if (fType == 3) type = "Map sym3";
     cout << "======================================================" << endl;
-    std::cout.precision(4);
+    cout.precision(4);
     cout << showpoint;
     cout << "----  " << fTitle << " : " << fName << endl;
     cout << "----" << endl;
@@ -435,38 +438,87 @@ void BmnFieldMap::ReadAsciiFile(const char* fileName) {
     mapFile.close();
 }
 
-void BmnFieldMap::ReadRootFile(const char* fileName,
-        const char* mapName) {
-
-    // Store gFile pointer
-    TFile* oldFile = gFile;
+void BmnFieldMap::ReadRootFile(const char* fileName) {
+    TString *type = 0;
+    coordinate_info_t X;
+    coordinate_info_t Y;
+    coordinate_info_t Z;
+    vector <Double_t> *read_Field = NULL;
 
     // Open root file
     LOG(INFO) << "BmnFieldMap: Reading field map from ROOT file "
             << fileName << FairLogger::endl;
     TFile* file = new TFile(fileName, "READ");
+
     if (!(file->IsOpen())) {
         LOG(ERROR) << "BmnFieldMap:ReadRootFile: Could not open file!" << FairLogger::endl;
         LOG(FATAL) << "BmnFieldMap:ReadRootFile: Could not open file!" << FairLogger::endl;
     }
+  
+    TTree *tree = (TTree*) file->Get("Main_info");
+    TTree *t = (TTree*) file->Get("Field_map");
+    tree->SetBranchAddress("Field_type", &type);
+    tree->SetBranchAddress("Main_info_X", &X);
+    tree->SetBranchAddress("Main_info_Y", &Y);
+    tree->SetBranchAddress("Main_info_Z", &Z);
+    t->SetBranchAddress("field_map", &read_Field);
 
-    // Get the field data object
-    BmnFieldMapData* data = NULL;
-    file->GetObject(mapName, data);
-    if (!data) {
-        cout << "-E- BmnFieldMap::ReadRootFile: data object " << fileName
-                << " not found in file! " << endl;
-        exit(-1);
+    tree->GetEntry(0);
+    Int_t iType = 0;
+
+    if (*type == "nosym") iType = 1;
+    if (*type == "sym2") iType = 2;
+    if (*type == "sym3") iType = 3;
+    if (fType != iType) {
+        cout << "-E- BmnFieldMap::ReadRootFile: Incompatible map types!"
+                << endl;
+        cout << "    Field map is of type " << fType
+                << " but map on file is of type " << iType << endl;
+        Fatal("ReadRootFile", "Incompatible map types");
     }
 
-    // Get the field parameters
-    SetField(data);
+    fNx = X.N;
+    fXmin = X.min;
+    fXmax = X.max;
+    fXstep = X.step;
 
-    // Close the root file and delete the data object
-    file->Close();
-    delete data;
-    if (oldFile) oldFile->cd();
+    fNy = Y.N;
+    fYmin = Y.min;
+    fYmax = Y.max;
+    fYstep = Y.step;
 
+    fNz = Z.N;
+    fZmin = Z.min;
+    fZmax = Z.max;
+    fZstep = Z.step;
+
+    fBx = new TArrayF(fNx * fNy * fNz);
+    fBy = new TArrayF(fNx * fNy * fNz);
+    fBz = new TArrayF(fNx * fNy * fNz);
+
+    Double_t factor = fScale; 
+    Int_t nTot = fNx * fNy * fNz;
+    Int_t index = 0;
+    div_t modul;
+    Int_t iDiv = TMath::Nint(nTot / 100.);
+
+    for (Int_t ix = 0; ix < fNx; ix++) {
+        for (Int_t iy = 0; iy < fNy; iy++) {
+            for (Int_t iz = 0; iz < fNz; iz++) {
+                modul = div(index, iDiv);
+                if (modul.rem == 0) {
+                    Double_t perc = TMath::Nint(100. * index / nTot);
+                }
+                index = ix * fNy * fNz + iy * fNz + iz;
+                t->GetEntry(index);
+                vector <Double_t> v = (*read_Field);
+                fBx->AddAt(factor*v[0], index);
+                fBy->AddAt(factor*v[1], index);
+                fBz->AddAt(factor*v[2], index);
+            } // z-Loop
+        } // y-Loop
+    } // x-Loop
+    delete file;
 }
 
 void BmnFieldMap::SetField(const BmnFieldMapData* data) {

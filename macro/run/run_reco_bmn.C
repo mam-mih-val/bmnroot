@@ -1,3 +1,7 @@
+#include <TVector3.h>
+#include <TString.h>
+#include <TFile.h>
+#include <TKey.h>
 // -----------------------------------------------------------------------------
 // Macro for reconstruction of simulated or experimental events.
 //
@@ -204,7 +208,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
     //tof1HP->SetOnlyPrimary(kTRUE);
-    fRunAna->AddTask(tof1HP);
+    if (isExp)
+        fRunAna->AddTask(tof1HP);
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
     // ====================================================================== //
@@ -218,11 +223,10 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
-
+    TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, 0.0);
     BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
     gemSF->SetField(isField);
-    gemSF->SetTarget(isTarget);
-    TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, 0.0);
+    gemSF->SetTarget(isTarget);    
     gemSF->SetRoughVertex(vAppr);
     gemSF->SetLineFitCut(5.0);
     gemSF->SetYstep(10.0);
@@ -243,7 +247,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
     // Resid. analysis
     if (isExp) {
-        BmnGemResiduals* residAnal = new BmnGemResiduals(fieldScale);
+        BmnGemResiduals* residAnal = new BmnGemResiduals(run_period, run_number, fieldScale);
+        // residAnal->SetPrintResToFile("file.txt");              
         // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
         fRunAna->AddTask(residAnal); 
     }
@@ -253,7 +258,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     BmnGemVertexFinder* vf = new BmnGemVertexFinder();
     vf->SetField(isField);
-    vf->SetVertexApproximation(-21.7);
+    vf->SetVertexApproximation(vAppr.Z());
     fRunAna->AddTask(vf);
     // ====================================================================== //
     // ===                           Tracking (DCH)                       === //

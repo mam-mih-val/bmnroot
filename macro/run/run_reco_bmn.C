@@ -258,7 +258,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     BmnGemVertexFinder* vf = new BmnGemVertexFinder();
     vf->SetField(isField);
-    vf->SetVertexApproximation(vAppr.Z());
+    // vf->SetVertexApproximation(vAppr.Z());
+    vf->SetVertexApproximation(vAppr);
     fRunAna->AddTask(vf);
     // ====================================================================== //
     // ===                           Tracking (DCH)                       === //

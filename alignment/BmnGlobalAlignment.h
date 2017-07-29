@@ -39,13 +39,16 @@
 #include  "BmnGemStripStationSet_RunWinter2016.h"
 #include  "BmnGemStripStationSet_RunSpring2017.h"
 
+#include "BmnGemResiduals.h"
+#include "BmnResiduals.h"
+
 using namespace std;
 using namespace TMath;
 
 class BmnGlobalAlignment : public FairTask {
 public:
 
-    BmnGlobalAlignment(BmnGemStripConfiguration::GEM_CONFIG);
+    BmnGlobalAlignment(BmnGemStripConfiguration::GEM_CONFIG, TString);
     virtual ~BmnGlobalAlignment();
 
     virtual InitStatus Init();
@@ -174,6 +177,7 @@ private:
 
     static Int_t fCurrentEvent;
     static Int_t trackCounter;
+    Int_t fRunId;
 
     BmnMwpcGeometry* mwpcGeo;
     BmnGemStripStationSet* fDetector; // Detector geometry
@@ -200,6 +204,8 @@ private:
     TString fBranchDchTracks;
 
     TString fBranchGlobalTracks;
+    TString fBranchGemResiduals;
+    TString fBranchFairEventHeader;
 
     TClonesArray* fMwpcHits;
     TClonesArray* fGemHits;
@@ -211,10 +217,13 @@ private:
     TClonesArray* fDchTracks;
 
     TClonesArray* fGlobalTracks;
+    TClonesArray* fGemResiduals;
 
     FILE* fin_txt;
     TString fRecoFileName;
     TChain* fChain;
+    
+    FairEventHeader* fFairEventHeader;
 
     Bool_t fUseRealHitErrors; // errors are taken from hit finder algorithm
     Bool_t fUseTrackWithMinChi2; // in case of target select track with minimal value of chi2

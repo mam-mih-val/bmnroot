@@ -2,8 +2,7 @@
 
 //void LambdaAnal(UInt_t nEvents = 1e4, TString input = "/nfs/lambda_QGSM/test/bmndst_fact13_100kEv.root", TString output = "test_dst1.root") {
 
-void LambdaAnal(UInt_t nEvents = 1e6, TString input = "/nfs/QGSM_SIMULATIONS/evetest_start999000_nev1000.root", TString output = "testLambda2NEW.root") {
-    //void LambdaAnal(UInt_t nEvents = 3e4, TString input = "/nfs/lambda_BOX/bmndst_lambda_BOX.root", TString output = "test_dst1.root") {
+void LambdaAnal(UInt_t nEvents = 1e6, TString input = "bmndst.root", TString output = "test.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
@@ -16,22 +15,23 @@ void LambdaAnal(UInt_t nEvents = 1e6, TString input = "/nfs/QGSM_SIMULATIONS/eve
 
     BmnLambdaAnalysis* lambda = new BmnLambdaAnalysis(BmnGemStripConfiguration::RunSpring2017);
     // lambda->SetDebugCalculations(kTRUE);
+    // lambda->SetUseRealVertex(kTRUE); // equal to false by default
 
     // Geometry cuts [from, to]-range is acceptable
-    lambda->SetVpVpProton(0.1, 100.0);
-    lambda->SetVpVpPion(0.1, 100.0);
-    lambda->SetV0ProtonPion(0.0, 1.0);
+    lambda->SetVpVpParticle1(0.1, 100.0);
+    lambda->SetVpVpParticle2(0.1, 100.0);
+    lambda->SetV0Particle1Particle2(0.0, 1.0);
     lambda->SetV0VpDiff(1.0, 30.0);
 
     // Kinematic cuts, if necessary. [from, to]-range is acceptable
-    lambda->SetMomProtonRange(0.1, 5.);
-    lambda->SetMomPionRange(0.1, 5.);
+    lambda->SetMomParticle1Range(0.1, 5.);
+    lambda->SetMomParticle2Range(0.1, 5.);
     //    lambda->SetTxProtonRange();
     //    lambda->SetTxPionRange();
     //    lambda->SetTyProtonRange();
     //    lambda->SetTyPionRange();
-    lambda->SetYProtonRange(0.0, 3.0); // Cuts on rapidity
-    lambda->SetYPionRange(0.0, 3.0);
+    lambda->SetYParticle1Range(0.0, 3.0); // Cuts on rapidity
+    lambda->SetYParticle2Range(0.0, 3.0);
     fRunAna->AddTask(lambda);
 
     fRunAna->Init();

@@ -37,6 +37,10 @@ public:
         fRoughVertex = f;
     }
     
+    void SetVertexApproximation(TVector3 vertex) {
+        fRoughVertex3D = vertex;
+    }
+    
     void FindVertexByVirtualPlanes();
     Float_t FindVZByVirtualPlanes(Float_t z_0, Float_t range);
 
@@ -60,6 +64,7 @@ private:
     FairField* fField;
     BmnKalmanFilter_tmp* fKalman;
     Float_t fRoughVertex;
+    TVector3 fRoughVertex3D;
 
     ClassDef(BmnGemVertexFinder, 1);
 };

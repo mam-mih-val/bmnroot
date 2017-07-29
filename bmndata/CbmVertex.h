@@ -47,7 +47,7 @@ class CbmVertex : public TNamed
    **/
   CbmVertex(const char* name, const char* title, 
 	    Double_t x, Double_t y, Double_t z, Double_t chi2,
-	    Int_t ndf, Int_t nTracks, const TMatrixFSym& covMat);
+	    Int_t ndf, Int_t nTracks, const TMatrixFSym& covMat, TVector3 roughVertex);
 
 
   /** Destructor **/
@@ -62,6 +62,9 @@ class CbmVertex : public TNamed
   Double_t GetX()    const { return fX;       };  // x position [cm]
   Double_t GetY()    const { return fY;       };  // y position [cm]
   Double_t GetZ()    const { return fZ;       };  // z posiiton [cm]
+  Double_t GetRoughX()    const { return fRoughX;};  // x position [cm]
+  Double_t GetRoughY()    const { return fRoughY;};  // y position [cm]
+  Double_t GetRoughZ()    const { return fRoughZ;};  // z posiiton [cm]
   Double_t GetChi2() const { return fChi2;    };  // chi2
   Int_t GetNDF()     const { return fNDF;     };  // nof degrees of freedom
   Int_t GetNTracks() const { return fNTracks; };  // nof tracks used
@@ -88,6 +91,8 @@ class CbmVertex : public TNamed
 		    
 
  private:
+  /* Position of rough vertex*/
+  Double32_t fRoughX, fRoughY, fRoughZ;  
 
   /** Position coordinates  [cm] **/
   Double32_t fX, fY, fZ;

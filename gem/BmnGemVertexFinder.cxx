@@ -16,6 +16,8 @@ BmnGemVertexFinder::BmnGemVertexFinder() : fEventNo(0) {
     fGemTracksArray = NULL;
     fKalman = NULL;
     fNTracks = 0;
+    fRoughVertex = 0.;
+    fRoughVertex3D.SetXYZ(0., 0., 0.);
     fIsField = kTRUE;
     fField = NULL;
     fHitsBranchName = "BmnGemStripHit";
@@ -56,9 +58,13 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
     fVertexArray->Delete();
 
     fNTracks = fGemTracksArray->GetEntriesFast();
-
-    if (fNTracks > 1) FindVertexByVirtualPlanes();
-
+    
+    if (fNTracks > 1) 
+        FindVertexByVirtualPlanes();
+    // To prevent crash caused by uninitialized TClonesArray due to unsufficient number of tracks when reading event by event in user's code
+    else
+        new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", -1000., -1000., -1000., 0.0, 0, fNTracks, TMatrixFSym(3), fRoughVertex3D);
+    
     if (fVerbose) cout << "\n======================== Vertex finder exec finished ======================" << endl;
 
     clock_t tFinish = clock();
@@ -134,7 +140,7 @@ Float_t BmnGemVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
 
 void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
 
-    Float_t vz = FindVZByVirtualPlanes(fRoughVertex, 50.0);
+    Float_t vz = FindVZByVirtualPlanes(fRoughVertex3D.Z(), 50.0);
     Float_t vx = 0.0;
     Float_t vy = 0.0;
     UInt_t nOk = 0;
@@ -155,8 +161,13 @@ void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
     vx /= nOk;
     vy /= nOk;
 
-   if (Abs(vz - fRoughVertex) < 2.5) //2.5 - the best range from MC simulations and reconstruction (by A.Zelenow) 
-       new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", vx, vy, vz, 0.0, 0, fNTracks, TMatrixFSym(3));
+    // 2.5 - the best range from MC simulations and reconstruction (by A.Zelenow)
+    Double_t VX = (Abs(vz - fRoughVertex3D.Z()) < 2.5) ? vx : -1000.;
+    Double_t VY = (Abs(vz - fRoughVertex3D.Z()) < 2.5) ? vy : -1000.;
+    Double_t VZ = (Abs(vz - fRoughVertex3D.Z()) < 2.5) ? vz : -1000.;
+
+    new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", VX, VY, VZ, 0.0, 0, fNTracks, TMatrixFSym(3), fRoughVertex3D);
+   
     delete fKalman;
 }
 

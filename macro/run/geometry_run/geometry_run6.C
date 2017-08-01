@@ -34,8 +34,8 @@ geometry(FairRunSim *fRun)
     dch->SetGeometryFileName("DCH_RunWinter2016.root");
     fRun->AddModule(dch);
 
-    FairDetector* tof2 = new CbmTof("TOF", kTRUE);
-    tof2->SetGeometryFileName("tof2_v1.root");
+    FairDetector* tof2 = new BmnTOF("TOF", kTRUE);
+    tof2->SetGeometryFileName("tof700_run6.root");
     fRun->AddModule(tof2);
 
     FairDetector* emc = new BmnEcal("EMC", kTRUE);

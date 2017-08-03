@@ -76,6 +76,12 @@ public:
     Bool_t AddRealPointSimple(Double_t x, Double_t y, Double_t z,
                               Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID);
 
+    Bool_t AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
+                               Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID);
+
+
+    //make a strip cluster from a single point (with gauss smearing)
+    StripCluster MakeCluster(Int_t layer_num, Double_t xcoord, Double_t ycoord, Double_t signal, Double_t radius);
     //--------------------------------------------------------------------------
 
     //Methods to calculate intersection points in the module -------------------

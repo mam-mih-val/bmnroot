@@ -49,7 +49,7 @@ public:
 class BmnTof2Raw2DigitNew{
 
 public:
-    BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile = "empty", UInt_t SlewingRun = 0, UInt_t SlewingChamber = 0, TString geomFile="TOF700_geometry_v2.txt");
+    BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile = "empty", UInt_t SlewingRun = 0, UInt_t SlewingChamber = 0, TString geomFile="TOF700_geometry_run6.txt");
     BmnTof2Raw2DigitNew();
 
     ~BmnTof2Raw2DigitNew();

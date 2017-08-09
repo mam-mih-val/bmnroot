@@ -154,7 +154,7 @@ Bool_t BmnSiliconStationSet::CreateConfigurationFromXMLFile(TString xml_config_f
     }
 
     NStations = CountNumberOfStations(node);
-    
+
     SiliconStations = new BmnSiliconStation* [NStations];
     XStationPositions = new Double_t[NStations];
     YStationPositions = new Double_t[NStations];
@@ -172,7 +172,7 @@ Bool_t BmnSiliconStationSet::CreateConfigurationFromXMLFile(TString xml_config_f
     Int_t currentStationNum = 0;
     while(node) {
         if( strcmp(node->GetNodeName(), "Station") == 0 ) {
-            Bool_t parse_status = ParseStation(node, currentStationNum);
+            parse_status = ParseStation(node, currentStationNum);
             if(!parse_status) return false;
             currentStationNum++;
         }

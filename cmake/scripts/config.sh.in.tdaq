@@ -52,10 +52,11 @@ fi
 export TDAQ_SW=@TDAQ_SW@
 export EMON_SW=$TDAQ_SW/emon
 export IS_SW=$TDAQ_SW/is
+export OMNI_SW=$TDAQ_SW/omni
 export BOOST_LIBS=$TDAQ_SW/../boost-libs
 export TDAQ_JBASE=$TDAQ_SW/share/lib
-export PATH=$EMON_SW/bin:$IS_SW/bin:$TDAQ_SW/share/bin:$PATH
-export TDAQ_LIBRARY_PATH=$EMON_SW/lib:$IS_SW/lib/
+export PATH=$EMON_SW/bin:$IS_SW/bin:$OMNI_SW/bin:$TDAQ_SW/share/bin:$PATH
+export TDAQ_LIBRARY_PATH=$EMON_SW/lib:$IS_SW/lib/:$OMNI_SW/lib/
 export LD_LIBRARY_PATH=$TDAQ_LIBRARY_PATH:$BOOST_LIBS:$LD_LIBRARY_PATH
 export TDAQ_IPC_INIT_REF=file:$TDAQ_SW/ipc_root.ref
 export TDAQ_PYTHONPATH=$TDAQ_SW/share/bin:$TDAQ_SW/share/lib/python:$TDAQ_LIBRARY_PATH

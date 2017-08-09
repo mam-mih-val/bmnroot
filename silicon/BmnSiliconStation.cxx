@@ -111,7 +111,8 @@ Int_t BmnSiliconStation::AddPointToStation(Double_t xcoord, Double_t ycoord, Dou
     Int_t module = GetPointModuleOwnership(xcoord, ycoord, zcoord);
 
     if(module >= 0) {
-        if(Modules[module]->AddRealPointSimple(xcoord, ycoord, zcoord, px, py, pz, dEloss, refID)) {
+        //if(Modules[module]->AddRealPointSimple(xcoord, ycoord, zcoord, px, py, pz, dEloss, refID)) {
+        if(Modules[module]->AddRealPointFullOne(xcoord, ycoord, zcoord, px, py, pz, dEloss, refID)) {
             return module;
         }
         else {
@@ -327,7 +328,7 @@ BmnSiliconLayer BmnSiliconStation::ParseLayer(TXMLNode *node, Int_t iLayer, Int_
                           pitch, adeg);
 
     layer.SetStripNumberingOrder(strip_direction);
-    
+
     layer.SetStripNumberingBorders(XShiftOfModules[iModule]+XPosition+lx_border,
                                    YShiftOfModules[iModule]+YPosition+ly_border,
                                    XShiftOfModules[iModule]+XPosition+rx_border,

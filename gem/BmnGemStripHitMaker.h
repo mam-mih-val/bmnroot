@@ -59,7 +59,7 @@ public:
             fAlignCorrFileName = "$VMCWORKDIR/input/alignCorrsLocal_GEM.root";
         else if (run_period == 6) {
             fAlignCorrFileName = "alignment_GEM.root";
-            UniDbDetectorParameter::ReadBmnAlignment(run_period, file_number, (Char_t*) fAlignCorrFileName.Data());
+            UniDbDetectorParameter::ReadRootFile(run_period, file_number, "BM@N", "alignment", (Char_t*) fAlignCorrFileName.Data());
         } 
         else
             fAlignCorrFileName = "";

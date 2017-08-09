@@ -1028,7 +1028,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fPedEvCntr++;
     } else { // payload
         if (fPrevEventType == kBMNPEDESTAL) {
-            if (fPedEvCntr == fEvForPedestals - 1) {
+            if (fPedEvCntr >= fEvForPedestals - 1) {
                 fGemMapper->RecalculatePedestals();
                 fSiliconMapper->RecalculatePedestals();
                 fPedEvCntr = 0;

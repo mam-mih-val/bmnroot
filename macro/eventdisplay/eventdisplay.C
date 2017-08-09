@@ -11,7 +11,7 @@
 //      sim_run_info - run number in 'runN-NN' format, e.g. "run6-1" to obtain BM@N geometry from the Unified Database
 //      reco_file - path to the directory with raw '*.data' files, e.g. "/tdaq/data/" (last slash is required)
 // is_online: false (default) - use Offline Mode (manual switching of events); true - use Online Mode (continious view events)
-//void eventdisplay(char* sim_run_info = "run3-642", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 1, bool is_online = false)
+//void eventdisplay(char* sim_run_info = "run3-642", char* reco_file = "$VMCWORKDIR/macro/run/bmn_run642.root", int data_source = 1, bool is_online = false)
 //void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "/tdaq/data/", int data_source = 2, bool is_online = true)
 void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
 {
@@ -73,9 +73,6 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
             // get run number
             run_number = TString(strRunInfo(indDash+1, strRunInfo.Length() - indDash-1)).Atoi();
 
-            // get run number
-            run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
-
             // get geometry for run
             TString root_file_path = "current_geo_file.root";
             Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, root_file_path.Data());
@@ -131,13 +128,11 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
             }
 
             cout << "\n\n|||||||||||||||| EXPERIMENTAL RUN SUMMARY ||||||||||||||||" << endl;
-            cout << "||\t\t\t\t\t\t\t||" << endl;
             cout << "||\t\tPeriod:\t\t" << run_period << "\t\t\t||" << endl;
             cout << "||\t\tNumber:\t\t" << run_number << "\t\t\t||" << endl;
             cout << "||\t\tBeam:\t\t" << beam << "\t\t\t||" << endl;
             cout << "||\t\tTarget:\t\t" << targ << "\t\t\t||" << endl;
             cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
-            cout << "||\t\t\t\t\t\t\t||" << endl;
             cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
         }
         else
@@ -368,6 +363,7 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         gemHM->SetCurrentConfig(gem_config);
         gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
         gemHM->SetHitMatching(kTRUE);
+        gemHM->SetVerbose(0);
         fMan->AddTask(gemHM);
 
         // Tracking GEM (seed finder)
@@ -376,26 +372,43 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         gemSF->SetField(isField);
         gemSF->SetDirection(kTRUE);
         gemSF->SetTarget(isTarget);
-        gemSF->SetVerbose(3);
+        gemSF->SetRoughVertex(TVector3(0.0, -3.5, -21.7));
+        gemSF->SetLineFitCut(5.0);
+        gemSF->SetYstep(10.0);
+        gemSF->SetSigX(0.05);
+        gemSF->SetLorentzThresh(1.01);
+        gemSF->SetNbins(1000);
+        gemSF->SetVerbose(1);
         fMan->AddTask(gemSF);
 
         // Tracking GEM (track finder)
         BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
         gemTF->SetField(isField);
         gemTF->SetDirection(kTRUE);
-        gemTF->SetDistCut(1.0);
-        gemTF->SetVerbose(3);
+        gemTF->SetTarget(isTarget);
+        gemTF->SetDistCut(5.0);
+        gemTF->SetNHitsCut(4);
+        gemTF->SetVerbose(1);
         //fMan->AddTask(gemTF);
+
+        // TOF-400 hit finder
+        BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", false, 0/*iVerbose*/, kTRUE);
+        //fMan->AddTask(tof1HP);
 
         // draw GEM hits
         FairHitPointSetDraw* GemHit = new FairHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
         GemHit->SetVerbose(1);
-        //fMan->AddTask(GemHit);
+        fMan->AddTask(GemHit);
+
+        // draw TOF-400 hits
+        FairHitPointSetDraw* Tof1Hit = new FairHitPointSetDraw("BmnTof1Hit", expPointColor, pointMarker);
+        //Tof1Hit->SetVerbose(1);
+        //fMan->AddTask(Tof1Hit);
 
         // draw GEM tracks
         BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemSeed", "BmnGemStripHit");
         //BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
-        GemTrack->SetVerbose(3);
-        //fMan->AddTask(GemTrack);
+        GemTrack->SetVerbose(1);
+        fMan->AddTask(GemTrack);
     }
 }

@@ -40,7 +40,7 @@ FairPointSetDraw::FairPointSetDraw(const char* name, Color_t color, Style_t msty
 // -------------------------------------------------------------------------
 InitStatus FairPointSetDraw::Init()
 {
-  if (fVerbose > 1) cout<<"FairPointSetDraw::Init()"<<endl;
+  if (fVerbose > 0) cout<<"FairPointSetDraw::Init()"<<endl;
 
   FairRootManager* fManager = FairRootManager::Instance();
 
@@ -50,10 +50,10 @@ InitStatus FairPointSetDraw::Init()
     LOG(ERROR)<<"FairPointSetDraw::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
     SetActive(kFALSE);
   }
-  if (fVerbose > 2) cout<<"FairPointSetDraw::Init() get point list "<<fPointList<<endl;
+  if (fVerbose > 1) cout<<"FairPointSetDraw::Init() get point list "<<fPointList<<endl;
 
   fEventManager = FairEventManager::Instance();
-  if (fVerbose > 2) cout<<"FairPointSetDraw::Init() get instance of FairEventManager"<<endl;
+  if (fVerbose > 1) cout<<"FairPointSetDraw::Init() get instance of FairEventManager"<<endl;
 
   fq = 0;
 
@@ -62,19 +62,20 @@ InitStatus FairPointSetDraw::Init()
 
 void FairPointSetDraw::Exec(Option_t* /*option*/)
 {
+  if (fVerbose > 0) cout<<"FairPointSetDraw::Exec()"<<endl;
   if (!IsActive())
     return;
 
   Reset();
 
   Int_t npoints = fPointList->GetEntriesFast();
+  if (fVerbose > 0) cout<<"FairPointSetDraw::Exec() the number of points is "<<fPointList->GetEntries()<<endl;
 
   TEvePointSet* q = new TEvePointSet(GetName(), npoints, TEvePointSelectorConsumer::kTVT_XYZ);
   q->SetOwnIds(kTRUE);
   q->SetMarkerColor(fColor);
   q->SetMarkerSize(1.5);
   q->SetMarkerStyle(fStyle);
-  //cout<<"fPointList: "<<fPointList<<" "<<fPointList->GetEntries()<<endl;
 
   for (Int_t i = 0; i < npoints; i++)
   {
@@ -84,7 +85,9 @@ void FairPointSetDraw::Exec(Option_t* /*option*/)
         TVector3 vec(GetVector(p));
         q->SetNextPoint(vec.X(), vec.Y(), vec.Z());
         q->SetPointId(GetValue(p, i));
+        if (fVerbose > 2) cout<<"FairPointSetDraw::Exec() add point to EVE set: "<<i<<endl;
     }
+    else cout<<"CRITICAL ERROR: FairPointSetDraw::Exec() point is not TObject"<<endl;
   }
 
   fq = q;

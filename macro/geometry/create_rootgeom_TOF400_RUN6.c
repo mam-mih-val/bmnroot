@@ -145,18 +145,18 @@ void MakeBMNROOT_TOFv3()
     double tofZshift = tofZgap + DetZsize;
 
     // first box
-    topTof->AddNode(vDetector, 1, new TGeoTranslation("t1", +tofX+55.2, 0 + 2 * DetYsize - 2 * tofYoverlap, tofZ_1box + tofZshift)); // right side, x > 0
-    topTof->AddNode(vDetector, 2, new TGeoTranslation("t1", +tofX+55.2, 0 + DetYsize - tofYoverlap, tofZ_1box));
-    topTof->AddNode(vDetector, 3, new TGeoTranslation("t1", +tofX+55.2, 0, tofZ_1box + tofZshift));
-    topTof->AddNode(vDetector, 4, new TGeoTranslation("t1", +tofX+55.2, 0 - DetYsize + tofYoverlap, tofZ_1box));
-    topTof->AddNode(vDetector, 5, new TGeoTranslation("t1", +tofX+55.2, 0 - 2 * DetYsize + 2 * tofYoverlap, tofZ_1box + tofZshift));
+    topTof->AddNode(vDetector, 1, new TGeoTranslation("t1", +tofX+55.2+27.17, -3.48 + 2 * DetYsize - 2 * tofYoverlap, tofZ_1box + tofZshift)); // right side, x > 0
+    topTof->AddNode(vDetector, 2, new TGeoTranslation("t1", +tofX+55.2+27.17, -3.48 + DetYsize - tofYoverlap, tofZ_1box));
+    topTof->AddNode(vDetector, 3, new TGeoTranslation("t1", +tofX+55.2+27.17, -3.48, tofZ_1box + tofZshift));
+    topTof->AddNode(vDetector, 4, new TGeoTranslation("t1", +tofX+55.2+27.17, -3.48 - DetYsize + tofYoverlap, tofZ_1box));
+    topTof->AddNode(vDetector, 5, new TGeoTranslation("t1", +tofX+55.2+27.17, -3.48 - 2 * DetYsize + 2 * tofYoverlap, tofZ_1box + tofZshift));
 
     //second box
-    topTof->AddNode(vDetector, 6, new TGeoTranslation("t1", +tofX, 0 + 2 * DetYsize - 2 * tofYoverlap, tofZ_2box + tofZshift)); // right side, x > 0
-    topTof->AddNode(vDetector, 7, new TGeoTranslation("t1", +tofX, 0 + DetYsize - tofYoverlap, tofZ_2box));
-    topTof->AddNode(vDetector, 8, new TGeoTranslation("t1", +tofX, 0, tofZ_2box + tofZshift));
-    topTof->AddNode(vDetector, 9, new TGeoTranslation("t1", +tofX, 0 - DetYsize + tofYoverlap, tofZ_2box));
-    topTof->AddNode(vDetector, 10, new TGeoTranslation("t1", +tofX, 0 - 2 * DetYsize + 2 * tofYoverlap, tofZ_2box + tofZshift));
+    topTof->AddNode(vDetector, 6, new TGeoTranslation("t1", +tofX+32.96, -3.48 + 2 * DetYsize - 2 * tofYoverlap, tofZ_2box + tofZshift)); // right side, x > 0
+    topTof->AddNode(vDetector, 7, new TGeoTranslation("t1", +tofX+32.96, -3.48 + DetYsize - tofYoverlap, tofZ_2box));
+    topTof->AddNode(vDetector, 8, new TGeoTranslation("t1", +tofX+32.96, -3.48, tofZ_2box + tofZshift));
+    topTof->AddNode(vDetector, 9, new TGeoTranslation("t1", +tofX+32.96, -3.48 - DetYsize + tofYoverlap, tofZ_2box));
+    topTof->AddNode(vDetector, 10, new TGeoTranslation("t1", +tofX+32.96, -3.48 - 2 * DetYsize + 2 * tofYoverlap, tofZ_2box + tofZshift));
 
     //topTof->AddNode(vDetector, 4, new TGeoTranslation("t1",  -tofX,  0., tofZ + tofZshift)); // left side, x < 0
     //topTof->AddNode(vDetector, 5, new TGeoTranslation("t1",  -tofX,  +DetYsize -tofYoverlap, tofZ - tofZshift));  

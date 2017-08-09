@@ -9,7 +9,9 @@
 #include "MpdTpcHit.h"
 #include "MpdEvent.h"
 #include "MpdTpcKalmanTrack.h"
+
 #include "FairEventManagerEditor.h"
+#include "FairLogger.h"
 
 #include "TEveManager.h"
 #include "TEvePathMark.h"
@@ -101,7 +103,6 @@ void MpdGlobalTrackDraw::Exec(Option_t* /*option*/)
     Reset();
 
     MpdTrack* tr;
-
     for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
     {
         if (fVerbose > 2) cout<<"FairMCTracks::Exec "<<i<<endl;
@@ -161,17 +162,14 @@ void MpdGlobalTrackDraw::Exec(Option_t* /*option*/)
         PEnergy = energy;
         MinEnergyLimit = TMath::Min(PEnergy, MinEnergyLimit);
         MaxEnergyLimit = TMath::Max(PEnergy, MaxEnergyLimit);
-        if (fVerbose > 2)
-            cout<<"MinEnergyLimit "<<MinEnergyLimit<<" MaxEnergyLimit "<<MaxEnergyLimit<<endl;
+        if (fVerbose > 2) cout<<"MinEnergyLimit "<<MinEnergyLimit<<" MaxEnergyLimit "<<MaxEnergyLimit<<endl;
 
         // skip secondary tracks if primary flag is set
         if (fEventManager->IsPriOnly() && (!isPrimary))
             continue;
-
         // skip particles with unequal PDG if PDG number is set
         if ((fEventManager->GetCurrentPDG() != 0) && (fEventManager->GetCurrentPDG() != particlePDG))
             continue;
-
         // skip tracks whose energy doesn't lie in selected limits
         if (fVerbose > 2)
             cout<<"PEnergy "<<PEnergy<<" Min "<<fEventManager->GetMinEnergy()<<" Max "<<fEventManager->GetMaxEnergy()<<endl;
@@ -222,7 +220,7 @@ void MpdGlobalTrackDraw::Exec(Option_t* /*option*/)
     fEventManager->SetEvtMinEnergy(MinEnergyLimit);
 
     // redraw EVE scenes
-    gEve->Redraw3D(kFALSE);
+    //gEve->Redraw3D(kFALSE);
 }
 
 // destructor
@@ -246,7 +244,6 @@ void MpdGlobalTrackDraw::Reset()
         TEveTrackList*  ele = (TEveTrackList*) fEveTrList->At(i);
         gEve->RemoveElement(ele, fEventManager->EveRecoTracks);
     }
-
     fEveTrList->Clear();
 }
 

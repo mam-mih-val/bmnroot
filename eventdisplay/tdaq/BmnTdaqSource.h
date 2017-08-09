@@ -19,7 +19,6 @@
 
 #include "FairOnlineSource.h"
 
-#include <TObject.h>
 #include <TString.h>
 
 class BmnTdaqSource : public FairOnlineSource
@@ -84,10 +83,14 @@ class BmnTdaqSource : public FairOnlineSource
     // current event number (event count received from TDAQ)
     int     iEventNumber;
 
-    // array for gem digits to transfer it to the next tasks
-    TClonesArray* fGemDigits;       //!
     // Event Header in TClonesArray
     TClonesArray* fEventHeader;     //!
+    // array for gem digits to transfer it to the next tasks
+    TClonesArray* fGemDigits;       //!
+    // array for tof-400 digits to transfer it to the next tasks
+    TClonesArray* fTof1Digits;      //!
+    // array for T0 to transfer it to the next tasks
+    TClonesArray* fT0Digits;        //!
 
     BmnTdaqSource& operator=(const BmnTdaqSource&);
     

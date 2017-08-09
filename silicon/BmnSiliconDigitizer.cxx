@@ -6,13 +6,14 @@
 
 
 static Float_t workTime = 0.0;
-static int entrys = 0;
+static int entries = 0;
 
 BmnSiliconDigitizer::BmnSiliconDigitizer()
-: fOnlyPrimary(kFALSE) {
+: fOnlyPrimary(kFALSE), fStripMatching(kTRUE) {
 
     fInputBranchName = "SiliconPoint";
     fOutputDigitsBranchName = "BmnSiliconDigit";
+    fOutputDigitMatchesBranchName = "BmnSiliconDigitMatch";
 
     fVerbose = 1;
 
@@ -29,6 +30,9 @@ InitStatus BmnSiliconDigitizer::Init() {
 
     if (fVerbose && fOnlyPrimary) cout << "  Only primary particles are processed!!! " << endl;
 
+    if (fVerbose && fStripMatching) cout << "  Strip Matching is activated!!! " << endl;
+    else cout << "  Strip matching is deactivated!!! " << endl;
+
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnSiliconPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
@@ -37,12 +41,17 @@ InitStatus BmnSiliconDigitizer::Init() {
     fBmnSiliconDigitsArray = new TClonesArray(fOutputDigitsBranchName);
     ioman->Register(fOutputDigitsBranchName, "SILICON", fBmnSiliconDigitsArray, kTRUE);
 
+    if (fStripMatching) {
+        fBmnSiliconDigitMatchesArray = new TClonesArray("BmnMatch");
+        ioman->Register(fOutputDigitMatchesBranchName, "SILICON", fBmnSiliconDigitMatchesArray, kTRUE);
+    }
+
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
         gPathSiliconConfig += "/silicon/XMLConfigs/";
 
-    //Create Silicon detector ------------------------------------------------------
+    //Create Silicon detector --------------------------------------------------
 
-    //StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
+    StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
     cout << "   Current Configuration : RunSpring2017" << "\n";
 
     //--------------------------------------------------------------------------
@@ -55,20 +64,24 @@ void BmnSiliconDigitizer::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fBmnSiliconDigitsArray->Delete();
 
+    if (fStripMatching) {
+        fBmnSiliconDigitMatchesArray->Delete();
+    }
+
     if (!fBmnSiliconPointsArray) {
-        Error("BmnGemStripDigitizer::Exec()", " !!! Unknown branch name !!! ");
+        Error("BmnSiliconDigitizer::Exec()", " !!! Unknown branch name !!! ");
         return;
     }
 
     if (fVerbose) {
-        cout << "\n BmnSiliconDigitizer::Exec(), event = " << entrys << "\n";
+        cout << "\n BmnSiliconDigitizer::Exec(), event = " << entries << "\n";
         cout << " BmnSiliconDigitizer::Exec(), Number of BmnSiliconPoints = " << fBmnSiliconPointsArray->GetEntriesFast() << "\n";
     }
 
     ProcessMCPoints();
 
     if (fVerbose) cout << " BmnSiliconDigitizer::Exec() finished\n\n";
-    entrys++;
+    entries++;
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
@@ -113,17 +126,42 @@ void BmnSiliconDigitizer::ProcessMCPoints() {
 
         for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnSiliconModule *module = station->GetModule(iModule);
+            vector<Int_t> processed_zones;
 
             for (Int_t iLayer = 0; iLayer < module->GetNStripLayers(); ++iLayer) {
                 BmnSiliconLayer layer = module->GetStripLayer(iLayer);
 
-                for (Int_t iStrip = 0; iStrip < layer.GetNStrips(); ++iStrip) {
-                    new ((*fBmnSiliconDigitsArray)[fBmnSiliconDigitsArray->GetEntriesFast()])
-                            BmnSiliconDigit(iStation, iModule, iLayer, iStrip, layer.GetStripSignal(iStrip));
+                Int_t zone_id = layer.GetZoneID();
+
+                Bool_t is_processed_zone = false;
+                for(Int_t iz = 0; iz < processed_zones.size(); ++iz) {
+                    if(zone_id == processed_zones[iz]) is_processed_zone = true;
+                }
+
+                if(!is_processed_zone) {
+                    Int_t first_strip_in_zone = module->GetFirstStripInZone(zone_id);
+                    Int_t last_strip_in_zone = module->GetLastStripInZone(zone_id);
+
+                    for(Int_t iStrip = first_strip_in_zone; iStrip < last_strip_in_zone+1; ++iStrip) {
+                        Double_t signal = module->GetStripSignalInZone(zone_id, iStrip);
+
+                        new ((*fBmnSiliconDigitsArray)[fBmnSiliconDigitsArray->GetEntriesFast()])
+                            BmnSiliconDigit(iStation, iModule, zone_id, iStrip, signal); // zone_id == layer_num !!!!!!
+
+                        if (fStripMatching) {
+                            new ((*fBmnSiliconDigitMatchesArray)[fBmnSiliconDigitMatchesArray->GetEntriesFast()])
+                                BmnMatch(module->GetStripMatchInZone(zone_id, iStrip));
+                        }
+                    }
+
+                    processed_zones.push_back(zone_id);
                 }
             }
         }
     }
+
+
+
     StationSet->Reset();
 }
 

@@ -151,10 +151,12 @@ class UniDbDetectorParameter
     /// set end period and run of the current detector parameter
     int SetEnd(int end_period, int end_run);
 
-    /// write alignment file for runs from start_run_number to end_run_number to the database
-    static int WriteBmnAlignment(int start_period, int start_run, int end_period, int end_run, char* align_file_path);
-    /// read alignment file for selected run number from the database
-    static int ReadBmnAlignment(int period_number, int run_number, char* align_file_path);
+    /// write ROOT file with binary detector parameter (with given detector and parameter names)
+    /// to the database from start run_number to end run_number
+    static int WriteRootFile(int start_period, int start_run, int end_period, int end_run, const char* detector_name, const char* parameter_name, const char* root_file_path);
+    /// read ROOT file with binary detector parameter (with given detector and parameter names)
+    /// from the database for a selected run number
+    static int ReadRootFile(int period_number, int run_number, const char* detector_name, const char* parameter_name, const char* root_file_path);
 
 	// common function for adding common parameter value
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,

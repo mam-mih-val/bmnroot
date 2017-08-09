@@ -48,7 +48,7 @@ CbmVertex::CbmVertex(const char* name, const char* title)
 CbmVertex::CbmVertex(const char* name, const char* title,
 		     Double_t x, Double_t y, Double_t z, Double_t chi2,
 		     Int_t ndf, Int_t nTracks, 
-		     const TMatrixFSym& covMat) 
+		     const TMatrixFSym& covMat, TVector3 roughVertex) 
   : TNamed(name, title),
     fX(x),
     fY(y),
@@ -67,6 +67,9 @@ CbmVertex::CbmVertex(const char* name, const char* title,
   fNDF     = ndf;
   fNTracks = nTracks;
   */
+  fRoughX = roughVertex.X();
+  fRoughY = roughVertex.Y();
+  fRoughZ = roughVertex.Z();
   Int_t index = 0;
   for (Int_t i=0; i<3; i++) {
     for (Int_t j=i; j<3; j++) fCovMatrix[index++] = covMat[i][j];

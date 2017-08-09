@@ -1,6 +1,9 @@
 #include "BmnSiliconModule.h"
 
 #include "TMath.h"
+#include "TRandom.h"
+#include "TF1.h"
+#include "TH1F.h"
 
 #include <iostream>
 
@@ -62,6 +65,13 @@ Bool_t BmnSiliconModule::AddStripSignalInLayer(Int_t layer_num, Int_t strip_num,
     return false;
 }
 
+Bool_t BmnSiliconModule::SetStripMatchInLayer(Int_t layer_num, Int_t strip_num, BmnMatch strip_match) {
+    if( layer_num >= 0 && layer_num < StripLayers.size() ) {
+        return StripLayers[layer_num].SetStripMatch(strip_num, strip_match);
+    }
+    return false;
+}
+
 Bool_t BmnSiliconModule::SetStripSignalInLayerByZoneId(Int_t zone_id, Int_t strip_num, Double_t signal) {
     Int_t n_layers_the_same_id = 0;
     for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
@@ -82,11 +92,84 @@ Bool_t BmnSiliconModule::AddStripSignalInLayerByZoneId(Int_t zone_id, Int_t stri
     return (Bool_t)n_layers_the_same_id;
 }
 
+Bool_t BmnSiliconModule::SetStripMatchInLayerByZoneId(Int_t zone_id, Int_t strip_num, BmnMatch strip_match) {
+    Int_t n_layers_the_same_id = 0;
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            if(StripLayers[ilayer].SetStripMatch(strip_num, strip_match)) n_layers_the_same_id++;
+        }
+    }
+    return (Bool_t)n_layers_the_same_id;
+}
+
+Bool_t BmnSiliconModule::AddStripMatchInLayerByZoneId(Int_t zone_id, Int_t strip_num, Double_t weight, Int_t refID) {
+    Int_t n_layers_the_same_id = 0;
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            if(StripLayers[ilayer].AddLinkToStripMatch(strip_num, weight, refID)) n_layers_the_same_id++;
+        }
+    }
+    return (Bool_t)n_layers_the_same_id;
+}
+
 Double_t BmnSiliconModule::GetStripSignalInLayer(Int_t layer_num, Int_t strip_num) {
     if( layer_num >= 0 && layer_num < StripLayers.size() ) {
         return StripLayers[layer_num].GetStripSignal(strip_num);
     }
     return -1;
+}
+
+BmnMatch BmnSiliconModule::GetStripMatchInLayer(Int_t layer_num, Int_t strip_num) {
+    if( layer_num >= 0 && layer_num < StripLayers.size() ) {
+        return StripLayers[layer_num].GetStripMatch(strip_num);
+    }
+    return BmnMatch();
+}
+
+Int_t BmnSiliconModule::GetFirstStripInZone(Int_t zone_id) {
+    Int_t first_strip = 1E6;
+
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            Int_t first_strip_curr_layer = StripLayers[ilayer].GetFirstStripNumber();
+            if(first_strip > first_strip_curr_layer) first_strip = first_strip_curr_layer;
+        }
+    }
+    return first_strip;
+}
+
+Int_t BmnSiliconModule::GetLastStripInZone(Int_t zone_id) {
+    Int_t last_strip = 0;
+
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            Int_t last_strip_curr_layer = StripLayers[ilayer].GetLastStripNumber();
+            if(last_strip < last_strip_curr_layer) last_strip = last_strip_curr_layer;
+        }
+    }
+    return last_strip;
+}
+
+Double_t BmnSiliconModule::GetStripSignalInZone(Int_t zone_id, Int_t strip_num) {
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            if( strip_num >= StripLayers[ilayer].GetFirstStripNumber() && strip_num <= StripLayers[ilayer].GetLastStripNumber() ) {
+                return StripLayers[ilayer].GetStripSignal(strip_num);
+            }
+        }
+    }
+    return -1;
+}
+
+BmnMatch BmnSiliconModule::GetStripMatchInZone(Int_t zone_id, Int_t strip_num) {
+    for(Int_t ilayer = 0; ilayer < StripLayers.size(); ++ilayer) {
+        if( (StripLayers[ilayer].GetZoneID() == zone_id) ) {
+            if( strip_num >= StripLayers[ilayer].GetFirstStripNumber() && strip_num <= StripLayers[ilayer].GetLastStripNumber() ) {
+                return StripLayers[ilayer].GetStripMatch(strip_num);
+            }
+        }
+    }
+    return BmnMatch();
 }
 
 void BmnSiliconModule::ResetModuleData() {
@@ -137,6 +220,10 @@ Bool_t BmnSiliconModule::AddRealPointSimple(Double_t x, Double_t y, Double_t z,
             Int_t zone_id = StripLayers[ilayer].GetZoneID();
 
             AddStripSignalInLayerByZoneId(zone_id, (Int_t)strip_pos, signal);
+
+            //strip match
+            AddStripMatchInLayerByZoneId(zone_id, (Int_t)strip_pos, 1.0, refID);
+
         }
         //----------------------------------------------------------------------
 
@@ -149,6 +236,332 @@ Bool_t BmnSiliconModule::AddRealPointSimple(Double_t x, Double_t y, Double_t z,
         if(Verbosity) cerr << "WARNING: BmnSiliconModule::AddRealPointSimple(): Point (" << x << " : " << y << ") is out of the readout plane or inside a dead zone\n";
         return false;
     }
+}
+
+//Add single point with Gaussian smearing
+Bool_t BmnSiliconModule::AddRealPointFullOne(Double_t x, Double_t y, Double_t z,
+                               Double_t px, Double_t py, Double_t pz, Double_t signal, Int_t refID) {
+
+    if( IsPointInsideModule(x, y) ) {
+
+        if(signal <= 0.0) signal = 1e-16;
+
+        Double_t AvalancheRadius = 0.01; //cm
+
+        Double_t radius = AvalancheRadius;
+        if(radius <= 0.0) return false;
+
+        gRandom->SetSeed(0);
+
+        Int_t cycle_cnt = 0;
+        while(true) {
+            radius = gRandom->Gaus(AvalancheRadius, 0.005);
+            if(radius > AvalancheRadius/2.0  && radius < AvalancheRadius*2.0 && radius > 0.0) break;
+            cycle_cnt++;
+
+            if(cycle_cnt > 5) {
+                radius = AvalancheRadius;
+                break;
+            }
+        }
+
+        //Make strip cluster in each strip layer -------------------------------
+        Int_t n_strip_layers = StripLayers.size();
+        vector<StripCluster> cluster_layers(n_strip_layers, StripCluster());
+
+        for(Int_t ilayer = 0; ilayer < n_strip_layers; ++ilayer) {
+            if( !StripLayers[ilayer].IsPointInsideStripLayer(x,y) ) continue;
+            cluster_layers[ilayer] = MakeCluster(ilayer, x, y, signal, radius);
+        }
+        //----------------------------------------------------------------------
+
+        //Add the correct clusters to the strip layers -------------------------
+        for(Int_t ilayer = 0; ilayer < n_strip_layers; ++ilayer) {
+            for(Int_t ielement = 0; ielement < cluster_layers[ilayer].Strips.size(); ++ielement) {
+                Int_t strip_num = cluster_layers[ilayer].Strips.at(ielement);
+                Double_t strip_signal = cluster_layers[ilayer].Signals.at(ielement);
+                Int_t zone_id = StripLayers[ilayer].GetZoneID();
+                AddStripSignalInLayerByZoneId(zone_id, strip_num, strip_signal);
+            }
+        }
+        //----------------------------------------------------------------------
+
+        //Fill strip matches ---------------------------------------------------
+        for(Int_t ilayer = 0; ilayer < n_strip_layers; ++ilayer) {
+            for(Int_t ielement = 0; ielement < cluster_layers[ilayer].Strips.size(); ++ielement) {
+                Int_t strip_num = cluster_layers[ilayer].Strips.at(ielement);
+                Double_t strip_signal = cluster_layers[ilayer].Signals.at(ielement);
+                Int_t zone_id = StripLayers[ilayer].GetZoneID();
+                AddStripMatchInLayerByZoneId(zone_id, strip_num, 1.0, refID);
+            }
+        }
+        //----------------------------------------------------------------------
+
+        RealPointsX.push_back(x);
+        RealPointsY.push_back(y);
+
+        return true;
+    }
+    else {
+        if(Verbosity) cerr << "WARNING: BmnSiliconModule::AddRealPointFullOne(): Point (" << x << " : " << y << " : " << z << ") is out of the readout plane or inside a dead zone\n";
+        return false;
+    }
+}
+
+StripCluster BmnSiliconModule::MakeCluster(Int_t layer_num, Double_t xcoord, Double_t ycoord, Double_t signal, Double_t radius) {
+
+    Double_t ClusterDistortion = 0.0; //signal variation (0.1 is 10%)
+
+    Double_t Gain = 1.0;
+
+    StripCluster cluster;
+
+    if(radius <= 0.0) return cluster;
+
+    Double_t Pitch = StripLayers[layer_num].GetPitch();
+
+    Double_t RadiusInZones = radius/Pitch;
+    Double_t Sigma = RadiusInZones/3.33;
+
+    TF1 gausF("gausF", "gaus", -4*Sigma, 4*Sigma);
+    gausF.SetParameter(0, 1.0); // constant (altitude)
+    gausF.SetParameter(1, 0.0); // mean (center position)
+    gausF.SetParameter(2, Sigma); //sigma
+
+    Double_t SCluster = gausF.Integral(-4*Sigma, 4*Sigma); //square of the one side distribution (more exactly)
+
+    TRandom rand(0);
+    Double_t var_level = ClusterDistortion; //signal variation (0.1 is 10%)
+
+    Int_t NStripsInLayer = StripLayers[layer_num].GetNStrips();
+    Int_t FirstStripInLayer = StripLayers[layer_num].GetFirstStripNumber();
+    Int_t LastStripInLayer = StripLayers[layer_num].GetLastStripNumber();
+
+    if(NStripsInLayer == 0) return cluster;
+
+    Double_t CenterZonePos = StripLayers[layer_num].ConvertPointToStripPosition(xcoord, ycoord);
+
+    if( CenterZonePos < FirstStripInLayer || CenterZonePos >= LastStripInLayer+1 ) return cluster;
+
+
+    gausF.SetParameter(1, CenterZonePos);
+    Double_t total_signal = 0.0;
+
+    Double_t LeftZonePos = CenterZonePos - RadiusInZones;
+    Double_t RightZonePos = CenterZonePos + RadiusInZones;
+    Double_t OutLeftBorder = 0.0;
+    Double_t OutRightBorder = 0.0;
+
+    if(LeftZonePos < FirstStripInLayer)  {
+        OutLeftBorder = LeftZonePos;
+        LeftZonePos = FirstStripInLayer;
+    }
+    if(RightZonePos < FirstStripInLayer) {
+        OutRightBorder = RightZonePos;
+        RightZonePos = FirstStripInLayer;
+    }
+    if(LeftZonePos >= LastStripInLayer+1) {
+        OutLeftBorder = LeftZonePos;
+        LeftZonePos = LastStripInLayer+1 - 0.001;
+    }
+    if(RightZonePos >= LastStripInLayer+1) {
+        OutRightBorder = RightZonePos;
+        RightZonePos = LastStripInLayer+1 - 0.001;
+    }
+
+    Double_t h = 0.0;
+    Double_t dist = 0.0;
+
+    //avalanche is inside of the one strip
+    if((Int_t)LeftZonePos == (Int_t)RightZonePos) {
+
+        Int_t NumCurrentZone = (Int_t) LeftZonePos;
+
+        h = RightZonePos - LeftZonePos;
+        if(h < 0.0) h = 0.0;
+
+        Double_t xp = LeftZonePos + dist;
+        Double_t S  = gausF.Integral(xp, xp+h);
+        Double_t Energy = (signal*Gain)*(S/SCluster);
+        Energy += rand.Gaus(0.0, var_level*Energy);
+        if(Energy < 0.0) Energy = 0.0;
+
+        if(NumCurrentZone >= FirstStripInLayer && NumCurrentZone < LastStripInLayer+1 && Energy > 0.0) {
+            cluster.AddStrip(NumCurrentZone, Energy);
+            total_signal += Energy;
+        }
+
+        dist += h;
+
+    }
+    else {
+        //left border strip
+        Int_t NumCurrentZone = (Int_t) LeftZonePos;
+
+        h = ((Int_t)LeftZonePos + 1) - LeftZonePos;
+        if(h < 0.0) h = 0.0;
+
+        Double_t xp = LeftZonePos + dist;
+        Double_t S  = gausF.Integral(xp, xp+h);
+        Double_t Energy = (signal*Gain)*(S/SCluster);
+        Energy += rand.Gaus(0.0, var_level*Energy);
+        if(Energy < 0.0) Energy = 0.0;
+
+        if(NumCurrentZone >= FirstStripInLayer && NumCurrentZone < LastStripInLayer+1 && Energy > 0.0) {
+            cluster.AddStrip(NumCurrentZone, Energy);
+            total_signal += Energy;
+        }
+
+        dist += h;
+
+        //inner strips
+        for(Int_t i = (Int_t)LeftZonePos + 1; i < (Int_t)RightZonePos; ++i) {
+
+            NumCurrentZone = i;
+
+            h = 1.0;
+
+            xp = LeftZonePos + dist;
+            S  = gausF.Integral(xp, xp+h);
+            Energy = (signal*Gain)*(S/SCluster);
+            Energy += rand.Gaus(0.0, var_level*Energy);
+            if(Energy < 0.0) Energy = 0.0;
+
+            if(NumCurrentZone >= FirstStripInLayer && NumCurrentZone < LastStripInLayer+1 && Energy > 0.0) {
+                cluster.AddStrip(NumCurrentZone, Energy);
+                total_signal += Energy;
+            }
+
+            dist += h;
+        }
+        //right border strip
+        NumCurrentZone = (Int_t)RightZonePos;
+
+        h = RightZonePos - (Int_t)RightZonePos;
+        if(h < 0.0) h = 0.0;
+
+        xp = LeftZonePos + dist;
+        S  = gausF.Integral(xp, xp+h);
+        Energy = (signal*Gain)*(S/SCluster);
+        Energy += rand.Gaus(0.0, var_level*Energy);
+        if(Energy < 0.0) Energy = 0.0;
+
+        if(NumCurrentZone >= FirstStripInLayer && NumCurrentZone < LastStripInLayer+1 && Energy > 0.0) {
+            cluster.AddStrip(NumCurrentZone, Energy);
+            total_signal += Energy;
+        }
+
+        dist += h;
+    }
+
+    if (cluster.GetClusterSize() <= 0) {
+        return cluster;
+    }
+
+    //find the mean value of the avalanche position (fitting by gaus function)
+    Double_t mean_fit_pos = 0.0;
+
+    Int_t NOutLeftBins = 0;
+    Int_t NOutRightBins = 0;
+    if(OutLeftBorder != 0.0) {
+        NOutLeftBins = (Int_t)(fabs(OutLeftBorder)) + 1;
+    }
+    if(OutRightBorder != 0.0) {
+        NOutRightBins = (Int_t)(OutRightBorder - RightZonePos) + 1;
+    }
+
+    Int_t begin_strip_num = cluster.Strips.at(0);
+    Int_t last_strip_num = cluster.Strips.at(cluster.GetClusterSize()-1);
+    Int_t nstrips = last_strip_num - begin_strip_num + 1;
+
+    TH1F hist("hist_for_fit", "hist_for_fit", nstrips+NOutLeftBins+NOutRightBins, begin_strip_num-NOutLeftBins, last_strip_num+1+NOutRightBins);
+    Int_t hist_index = 0;
+
+    for(Int_t i = 0; i < cluster.GetClusterSize(); ++i) {
+        Double_t value = cluster.Signals.at(i);
+        hist.SetBinContent(hist_index+1+NOutLeftBins, value);
+        hist_index++;
+    }
+
+    //on the left border
+    if(NOutLeftBins > 0.0) {
+        Double_t first = OutLeftBorder;
+        Double_t last = (Int_t)OutLeftBorder;
+        Double_t S = gausF.Integral(first, last);
+        Double_t Energy = (signal*Gain)*(S/SCluster);
+        Energy += rand.Gaus(0.0, var_level*Energy);
+        if(Energy < 0.0) Energy = 0.0;
+        Double_t value = Energy;
+        hist.SetBinContent(1, value);
+        dist = 0.0;
+
+        for(Int_t i = 1; i < NOutLeftBins; ++i) {
+            h = 1.0;
+            first = (Int_t)OutLeftBorder+dist;
+            last = first + h;
+            S = gausF.Integral(first, last);
+            Energy = (signal*Gain)*(S/SCluster);
+            Energy += rand.Gaus(0.0, var_level*Energy);
+            if(Energy < 0.0) Energy = 0.0;
+            value = Energy;
+            hist.SetBinContent(1+i, value);
+            dist += h;
+        }
+    }
+
+    //on the right border
+    if(NOutRightBins > 0.0) {
+        dist = 0.0;
+        for(Int_t i = hist_index; i < hist_index+NOutRightBins-1; ++i) {
+            h = 1.0;
+            Double_t first = NStripsInLayer+dist;
+            Double_t last = first + h;
+            Double_t S = gausF.Integral(first, last);
+            Double_t Energy = (signal*Gain)*(S/SCluster);
+            Energy += rand.Gaus(0.0, var_level*Energy);
+            if(Energy < 0.0) Energy = 0.0;
+            Double_t value = Energy;
+            hist.SetBinContent(1+i, value);
+            dist += h;
+        }
+
+        Double_t first = (Int_t)OutRightBorder;
+        Double_t last = first + (OutRightBorder - (Int_t)OutRightBorder);
+        Double_t S = gausF.Integral(first, last);
+        Double_t Energy = (signal*Gain)*(S/SCluster);
+        Energy += rand.Gaus(0.0, var_level*Energy);
+        if(Energy < 0.0) Energy = 0.0;
+        Double_t value = Energy;
+        hist.SetBinContent(hist_index+NOutRightBins, value);
+    }
+
+    TF1* gausFitFunction = 0;
+        TString fit_params = "WQ0";
+
+    #ifdef DRAW_REAL_CLUSTER_HISTOGRAMS
+        fit_params = "WQ";
+    #endif
+
+    if(nstrips > 1) {
+        hist.Fit("gaus", fit_params); //Q - quit mode (without information on the screen); 0 - not draw
+        gausFitFunction = hist.GetFunction("gaus");
+        if(gausFitFunction) {
+            mean_fit_pos = gausFitFunction->GetParameter(1);
+        }
+        else {
+            mean_fit_pos = hist.GetMean();
+        }
+    }
+    else {
+        mean_fit_pos = hist.GetMean();
+    }
+
+    cluster.MeanPosition = mean_fit_pos;
+    cluster.TotalSignal = total_signal;
+    cluster.PositionResidual = mean_fit_pos - CenterZonePos; //residual between mean and origin positions (lower cluster): residual = finded(current) - orig(average)
+
+    cluster.IsCorrect = true; // set correct status of the cluster
+    return cluster;
 }
 
 void BmnSiliconModule::CalculateStripHitIntersectionPoints() {
@@ -253,6 +666,17 @@ void BmnSiliconModule::CalculateStripHitIntersectionPoints() {
                         IntersectionPointsXErrors.push_back(xcoord_err);
                         IntersectionPointsYErrors.push_back(ycoord_err);
                         //------------------------------------------------------
+
+                        //intersection matching ----------------------------------------
+                        BmnMatch iStripMatch = StripLayers[ilayer].GetStripMatch((Int_t)iStripHitPos);
+                        BmnMatch jStripMatch = StripLayers[jlayer].GetStripMatch((Int_t)jStripHitPos);
+
+                        BmnMatch intersection_match;
+                        intersection_match.AddLink(iStripMatch);
+                        intersection_match.AddLink(jStripMatch);
+
+                        IntersectionPointMatches.push_back(intersection_match);
+                        //--------------------------------------------------------------
 
                         //Additional information about the intersection ------------
                             //cluster size (number strips) in both strip layers for each intersection
@@ -362,6 +786,7 @@ void BmnSiliconModule::ResetIntersectionPoints() {
     IntersectionPoints_UpperLayerClusterSize.clear();
     IntersectionPoints_LowerLayerStripPosition.clear();
     IntersectionPoints_UpperLayerStripPosition.clear();
+    IntersectionPointMatches.clear();
 }
 
 void BmnSiliconModule::DefineModuleBorders() {

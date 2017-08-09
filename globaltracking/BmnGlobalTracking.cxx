@@ -34,6 +34,7 @@ fDchMcPoints(NULL),
 fEvHead(NULL),
 fPDG(2212),
 fChiSqCut(100.),
+fVertex(NULL),
 fEventNo(0) {
 }
 
@@ -90,7 +91,7 @@ InitStatus BmnGlobalTracking::Init() {
 
     // TOF2
     if (fDet.GetDet(kTOF)) {
-        fTof2Hits = (TClonesArray*) ioman->GetObject("BmnTof2Hit");
+        fTof2Hits = (TClonesArray*) ioman->GetObject("BmnTofHit");
         if (!fTof2Hits)
             if (fVerbose)
                 cout << "Init. No BmnTof2Hit array!" << endl;
@@ -135,6 +136,13 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
 
     if (!fGemTracks) return;
 
+    if (fGemVertex) {
+        if (fGemVertex->GetEntriesFast() > 0)
+            fVertex = (CbmVertex*) fGemVertex->At(0);
+        else
+            fVertex = NULL;
+    }
+
     for (Int_t i = 0; i < fGemTracks->GetEntriesFast(); ++i) {
         BmnGemTrack* gemTrack = (BmnGemTrack*) fGemTracks->At(i);
         new((*fGlobalTracks)[i]) BmnGlobalTrack();
@@ -146,12 +154,12 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         glTr->SetNDF(gemTrack->GetNDF());
         glTr->SetChi2(gemTrack->GetChi2());
         glTr->SetLength(gemTrack->GetLength());
-        
+
         vector<BmnFitNode> nodes(4); //MWPC, TOF1, TOF2 and DCH
         glTr->SetFitNodes(nodes);
 
         MatchingMWPC(glTr);
-        MatchingTOF(glTr, 1);
+        MatchingTOF(glTr, 1, i);
         MatchingDCH(glTr);
         //Refit(glTr);
     }
@@ -285,60 +293,73 @@ BmnStatus BmnGlobalTracking::MatchingMWPC(BmnGlobalTrack* tr) {
     delete kalman;
 }
 
-BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num) {
+BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t trIndex) {
 
     TClonesArray* tofHits = (num == 1 && fTof1Hits) ? fTof1Hits : (num == 2 && fTof2Hits) ? fTof2Hits : NULL;
     if (!tofHits) return kBMNERROR;
 
     BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
-    
+
     Double_t minChiSq = DBL_MAX;
+    Double_t minDist = DBL_MAX;
     BmnHit* minHit = NULL; // Pointer to the nearest hit
     Int_t minIdx = -1;
-    Double_t minLen = -1.0;
-    FairTrackParam minParUp; // updated track parameters for closest hit
-    FairTrackParam minParPred; // predicted track parameters for closest hit
+    Double_t LenPropLast = 0., LenPropFirst = 0.;
+    FairTrackParam minParPredLast; // predicted track parameters for closest hit
     for (Int_t hitIdx = 0; hitIdx < tofHits->GetEntriesFast(); ++hitIdx) {
         BmnHit* hit = (BmnHit*) tofHits->At(hitIdx);
+        if (hit->IsUsed()) continue; // skip Tof hit which used before
         FairTrackParam parPredict(*(tr->GetParamLast()));
-        Double_t len = tr->GetLength();
-//        printf("hitIdx = %d\n", hitIdx);
-//        printf("BEFORE: len = %f\n", len);
-        kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "field");
-//        printf("AFTER:  len = %f\n", len);
-        FairTrackParam parUpdate = parPredict;
-        Double_t chi;
-        kalman->Update(&parUpdate, hit, chi);
-        if (chi < minChiSq) {
-            minChiSq = chi;
+        Double_t len = 0.;
+        //printf("hitIdx = %d\n", hitIdx);
+        //printf("BEFORE: len = %f.3\t", len);
+        //printf("Param->GetX() = %.2f\n", parPredict.GetX());
+        //BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "line");
+        BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "field");
+        if (resultPropagate == kBMNERROR) continue; // skip in case kalman error
+        Double_t dist = TMath::Sqrt(TMath::Power(parPredict.GetX() - hit->GetX(), 2) + TMath::Power(parPredict.GetY() - hit->GetY(), 2));
+        //printf("AFTER:  len = %.3f\t", len);
+        //printf("Param->GetX() = %.2f\t", parPredict.GetX());
+        //printf ("Distanc = %.3f\n", dist);
+        //getchar();
+        if (dist < minDist && dist <= 5.) {
+            minDist = dist;
             minHit = hit;
-            minLen = len;
-            minParUp = parUpdate;
-            minParPred = parPredict;
+            minParPredLast = parPredict;
             minIdx = hitIdx;
+            LenPropLast = len;
         }
     }
 
     if (minHit != NULL) { // Check if hit was added
-        tr->SetParamLast(minParPred);
-        tr->SetChi2(tr->GetChi2() + minChiSq);
-        if (num == 1)
-            tr->SetTof1HitIndex(minIdx);
-        else
-            tr->SetTof2HitIndex(minIdx);
-        tr->SetNHits(tr->GetNHits() + 1);
-        tr->SetNDF(tr->GetNDF() + 1);
-        BmnFitNode *node = &((tr->GetFitNodes()).at(1));
-        node->SetUpdatedParam(&minParUp);
-        node->SetPredictedParam(&minParPred);
-        minHit->SetLength(minLen);
-        tr->SetLength(minLen);
-        return kBMNSUCCESS;
-    } else {
-        return kBMNERROR;
-    }
+        FairTrackParam ParPredFirst(*(tr->GetParamFirst()));
+        FairTrackParam ParPredLast(*(tr->GetParamLast()));
+        ParPredFirst.SetQp(ParPredLast.GetQp());
+        Double_t LenTrack = tr->GetLength();
+        Double_t zTarget = -21.7; // z of target by default
+        if (fVertex)
+            zTarget = fVertex->GetZ();
+        BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&ParPredFirst, zTarget, fPDG, NULL, &LenPropFirst, "field");
+        if (resultPropagate != kBMNERROR) { // skip in case kalman error
 
-    delete kalman;
+            if (num == 1)
+                tr->SetTof1HitIndex(minIdx);
+            else
+                tr->SetTof2HitIndex(minIdx);
+
+            minHit->SetIndex(trIndex);
+            //    printf("LenFirst = %.3f;  LenTrack = %.3f;  LenLast = %.3f\n", LenPropFirst, LenTrack, LenPropLast);
+            minHit->SetLength(LenPropFirst + LenTrack + LenPropLast); // length from target to Tof hit
+            //    printf("Writed length = %.3f\n", minHit->GetLength());
+            minHit->SetUsing(kTRUE);
+
+            delete kalman;
+            return kBMNSUCCESS;
+        } else {
+            delete kalman;
+            return kBMNERROR;
+        }
+    } else return kBMNERROR;
 }
 
 BmnStatus BmnGlobalTracking::CreateDchHitsFromTracks() {

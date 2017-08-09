@@ -24,13 +24,15 @@ BmnGlobalAlignment::~BmnGlobalAlignment() {
     delete [] fDetectorSet;
     delete mwpcGeo;
     delete fDetector;
-    delete [] Labels;
-    system("cp millepede.res Millepede.res");
-    // Remove useless text files finalizing the code execution
-    system("rm millepede.*");
+    if (Labels) {
+        delete [] Labels;
+        system("cp millepede.res Millepede.res");
+        // Remove useless text files finalizing the code execution
+        system("rm millepede.*");
+    }
 }
 
-BmnGlobalAlignment::BmnGlobalAlignment(BmnGemStripConfiguration::GEM_CONFIG config) :
+BmnGlobalAlignment::BmnGlobalAlignment(BmnGemStripConfiguration::GEM_CONFIG config, TString inFileName) :
 fMwpcHits(NULL),
 fGemHits(NULL),
 fTof1Hits(NULL),
@@ -52,8 +54,8 @@ fTxLeft(0.),
 fTyLeft(0.),
 fTxRight(0.),
 fTyRight(0.),
-fIsExcludedTx(kFALSE),     
-fIsExcludedTy(kFALSE),     
+fIsExcludedTx(kFALSE),
+fIsExcludedTy(kFALSE),
 fMinHitsAccepted(3),
 fChi2MaxPerNDF(LDBL_MAX),
 nSelectedTracks(0),
@@ -69,7 +71,9 @@ fNGL(0),
 fNLC(4),
 fOutlierdownweighting(0),
 fDwfractioncut(0.0),
-fDebug(kFALSE) {
+fDebug(kFALSE),
+Labels(NULL) {
+    fRecoFileName = inFileName;  
     nDetectors = 3;
     fDetectorSet = new TString[nDetectors]();
 
@@ -115,6 +119,9 @@ fDebug(kFALSE) {
     fBranchGemAlignCorr = "BmnGemAlignCorrections";
     fBranchTofAlignCorr = "BmnTofAlignCorrections";
     fBranchDchAlignCorr = "BmnDchAlignCorrections";
+
+    fBranchGemResiduals = "BmnResiduals";
+    fBranchFairEventHeader = "EventHeader.";
 }
 
 InitStatus BmnGlobalAlignment::Init() {
@@ -132,7 +139,15 @@ InitStatus BmnGlobalAlignment::Init() {
 
     cout << "Use detectors: MWPC - " << isUsedMwpc << " GEM - " <<
             isUsedGem << " DCH - " << isUsedDch << endl;
-
+   
+    TChain* chain = new TChain("cbmsim");
+    chain->Add(fRecoFileName.Data());
+    FairEventHeader* evHeader = NULL;
+    chain->SetBranchAddress(fBranchFairEventHeader.Data(), &evHeader);
+    chain->GetEntry(0);
+    fRunId = evHeader->GetRunId();
+    delete chain;
+       
     FairRootManager* ioman = FairRootManager::Instance();
 
     fMwpcHits = (TClonesArray*) ioman->GetObject(fBranchMwpcHits.Data());
@@ -148,6 +163,10 @@ InitStatus BmnGlobalAlignment::Init() {
 
     fGlobalTracks = (TClonesArray*) ioman->GetObject(fBranchGlobalTracks.Data());
 
+    fFairEventHeader = (FairEventHeader*) ioman->GetObject(fBranchFairEventHeader.Data());
+       
+    fGemResiduals = (TClonesArray*) ioman->GetObject(fBranchGemResiduals.Data());
+
     fMwpcAlignCorr = new TClonesArray(fBranchMwpcAlignCorr.Data());
     fGemAlignCorr = new TClonesArray(fBranchGemAlignCorr.Data());
     fTofAlignCorr = new TClonesArray(fBranchTofAlignCorr.Data());
@@ -159,17 +178,29 @@ InitStatus BmnGlobalAlignment::Init() {
     ioman->Register(fBranchDchAlignCorr.Data(), "DCH", fDchAlignCorr, kTRUE);
 
     fChain = ioman->GetInChain();
-    fRecoFileName = ioman->GetInFile()->GetName();
     fin_txt = fopen("alignment.txt", "w");
     return kSUCCESS;
 }
 
 void BmnGlobalAlignment::Exec(Option_t* opt) {
+    fFairEventHeader->SetMCEntryNumber(fCurrentEvent);
+    fFairEventHeader->SetRunId(fRunId);
     fCurrentEvent++;
     if (fCurrentEvent % 1000 == 0)
         cout << "Event# = " << fCurrentEvent << endl;
 
-    // Choose a single track with min. chi2-value (in case of target run)
+    Bool_t isEventRequestedType = kFALSE;
+    // To be used for rough alignment (1205 + 1233 in RUN6)
+    // 2 tracks simultaneously and Tx1 * Tx2 < 0
+    Int_t nGemTracksInEvent = 2;
+    if (fGemTracks->GetEntriesFast() == nGemTracksInEvent) {
+        Double_t Tx1 = ((BmnGemTrack*) fGemTracks->UncheckedAt(0))->GetParamFirst()->GetTx();
+        Double_t Tx2 = ((BmnGemTrack*) fGemTracks->UncheckedAt(1))->GetParamFirst()->GetTx();
+        if (Tx1 * Tx2 < 0.)
+            isEventRequestedType = kTRUE;
+    } 
+  
+    // Choose a single track with min. chi2-value if necessary (in case of target run)
     Double_t Chi2Min = LDBL_MAX;
     Int_t trID = 0;
     if (fUseTrackWithMinChi2)
@@ -181,7 +212,10 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
             }
         }
 
+    Bool_t isMerged = (fFairEventHeader->GetRunId() == 0) ? kTRUE : kFALSE;
     for (Int_t iGlobTrack = 0; iGlobTrack < fGlobalTracks->GetEntriesFast(); iGlobTrack++) {
+        if (isMerged && !isEventRequestedType)
+            break;
         BmnGlobalTrack* globTrack = (BmnGlobalTrack*) fGlobalTracks->UncheckedAt(iGlobTrack);
         if (fUseTrackWithMinChi2 && iGlobTrack != trID)
             continue;
@@ -192,16 +226,17 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         Int_t nHits = globTrack->GetNHits();
         Double_t Tx = params->GetTx();
         Double_t Ty = params->GetTy();
+        cout << fCurrentEvent << " " << Tx << " " << Ty << endl;
 
         // Use track constraints if necessary
         if (Tx < fTxMin || Tx > fTxMax || Ty < fTyMin || Ty > fTyMax || nHits < fMinHitsAccepted || chi2 / ndf > fChi2MaxPerNDF)
             continue;
-        
+
         // Exclude a range from the selected range of track. params (in order not to take into account tracks with almost zero values of track params.)
         if (fIsExcludedTx && Tx > fTxLeft && Tx < fTxRight)
             continue;
         if (fIsExcludedTy && Ty > fTyLeft && Ty < fTyRight)
-            continue;           
+            continue;
 
         // GCC-4.4.7, to be fixed
         Int_t idx[3] = {globTrack->GetGemTrackIndex(), globTrack->GetMwpcTrackIndex(), globTrack->GetDchTrackIndex()};
@@ -233,6 +268,7 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         cout << "Num. of tracks to be used: " << nSelectedTracks << endl;
         Pede();
     }
+    getchar();
 }
 
 void BmnGlobalAlignment::PrintToFullFormat(TString detName, Char_t* buff) {
@@ -282,8 +318,15 @@ void BmnGlobalAlignment::Mille(Int_t idx, Int_t iDet, Char_t* buff) {
                         Double_t Z = hit->GetZ();
                         Char_t* locDerX = Form("%d %d 1. %f 0. 0. ", stat, mod, Z);
                         Char_t* locDerY = Form("%d %d 0. 0. 1. %f ", stat, mod, Z);
-                        Char_t* measX = Form("%f %f ", X, fUseRealHitErrors ? 2. * hit->GetDx() : 1.);
+
+                        // Extract residuals ...
+                        //                        Double_t resX = ((BmnResiduals*) fGemResiduals->UncheckedAt(iHit))->GetResiduals().X(); 
+                        //                        Double_t resY = ((BmnResiduals*) fGemResiduals->UncheckedAt(iHit))->GetResiduals().Y(); 
+
+                        Char_t* measX = Form("%f %f ", X, fUseRealHitErrors ? hit->GetDx() : 1.);
                         Char_t* measY = Form("%f %f ", Y, fUseRealHitErrors ? hit->GetDy() : 1.);
+                        // Char_t* measX = Form("%f %f ", X, fUseRealHitErrors ? Abs(resX) : 1.);
+                        // Char_t* measY = Form("%f %f ", Y, fUseRealHitErrors ? Abs(resY) : 1.);
                         Int_t N_zeros_beg = 3 * (nModulesProcessed - 1);
                         Int_t N_zeros_end = 3 * (modGemTotal - nModulesProcessed);
 
@@ -566,7 +609,7 @@ void BmnGlobalAlignment::Pede() {
 void BmnGlobalAlignment::ReadPedeOutput(ifstream& resFile) {
     if (!resFile) {
         cout << "BmnGlobalAlignment::ReadPedeOutput" << " No input file found!!" << endl;
-        throw; 
+        throw;
     }
     resFile.ignore(numeric_limits<streamsize>::max(), '\n');
 

@@ -123,6 +123,7 @@ class BmnPullSampling : public PullSampling
 
         /** create BmnRawDataDecoder instance **/
         rawDataDecoder = new BmnRawDataDecoder(directory_name+current_file, 0, iRunPeriod);
+        cout<<"Raw file "<<directory_name+current_file<<" is used now."<<endl;
         // set mapping for decoder
         Bool_t setup[9]; //array of flags to determine BM@N setup
         //Just put "0" to exclude detector from decoding
@@ -134,14 +135,17 @@ class BmnPullSampling : public PullSampling
         setup[5] = 1; // TOF-700
         setup[6] = 1; // DCH
         setup[7] = 1; // ZDC
-        setup[8] = 0; // ECAL
+        setup[8] = 1; // ECAL
         rawDataDecoder->SetDetectorSetup(setup);
         rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
+        rawDataDecoder->SetSiliconMapping("SILICON_map_run6.txt");
         rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
         rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
         rawDataDecoder->SetTof700Mapping("TOF700_map_period_6.txt");
         rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
         rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
+        rawDataDecoder->SetECALMapping("ECAL_map_period_5.txt");
+        rawDataDecoder->SetECALCalibration("");
         rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
 
         rawDataDecoder->SetEvForPedestals(150);
@@ -209,9 +213,11 @@ class BmnPullSampling : public PullSampling
             dif = 1000*((int)tEnd.time - (int)tStart.time) + (tEnd.millitm - tStart.millitm);
             cout<<"DecodeDataToDigiIterate time: "<<dif<<" ms\n";
 
+
             ftime(&tStart);
             // get array with digits
             iterDigi = rawDataDecoder->GetDigiArraysObject();
+            cout<<"GEM digits: "<<iterDigi.gem->GetEntries()<<endl;
             if ((iterDigi.header->GetEntriesFast() == 0) || (((BmnEventHeader*)iterDigi.header->At(0))->GetType() == kBMNPEDESTAL))
                 continue;
 
@@ -247,6 +253,8 @@ class BmnPullSampling : public PullSampling
         ERS_DEBUG(3, "Sending event to the consumer");
         cc.pushEvent(event, 1);
         ERS_DEBUG(3,"BM@N event was successfully sent");
+        delete [] ((caddr_t*)event[0].iov_base);
+        delete [] event;
 
         ftime(&tEnd);
         dif = 1000*((int)tEnd.time - (int)tStart.time) + (tEnd.millitm - tStart.millitm);
@@ -289,7 +297,7 @@ class BmnPullSamplingFactory : public PullSamplingFactory
     PullSampling* startSampling(const SelectionCriteria& criteria)
         throw (BadCriteria, NoResources)
     {
-        ERS_DEBUG(1, "Factory creating new PullSampling object with criteria: " << criteria);
+        ERS_DEBUG(1, "Factory creating new PullSampling object with criteria: "<<criteria);
         return new BmnPullSampling(criteria, strRawData, iRunPeriod, iWaitFileSec);
     }
 };

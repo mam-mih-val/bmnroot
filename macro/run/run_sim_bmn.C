@@ -1,4 +1,7 @@
 #include <Rtypes.h>
+#include <TString.h>
+#include <TRandom.h>
+#include <TFile.h>
 // inFile - input file with generator data, default: dc4mb.r12 for LAQGSM event generator (deuteron - carbon target, mbias, 4 GeV)
 // outFile - output file with MC data, default: evetest.root
 // nStartEvent - for compatibility, any number
@@ -151,10 +154,11 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     fRun->SetOutputFile(outFile.Data());
 
     // -----   Create magnetic field   ----------------------------------------
+    BmnFieldMap* magField = NULL;
     if (isFieldMap) {
         Double_t fieldScale = 2.;
-        // BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
-        BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
+        // magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
+        magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
         // Double_t fieldZ = 124.5; // field centre z position
         // magField->SetPosition(0., 0., fieldZ);
         magField->SetScale(fieldScale);
@@ -170,7 +174,8 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     fRun->SetRadLenRegister(flag_store_FairRadLenPoint); // radiation length manager
 
     fRun->Init();
-    if (isFieldMap) magField->Print();
+    if (isFieldMap) 
+        magField->Print();
 
 
     // Trajectories Visualization (TGeoManager only)

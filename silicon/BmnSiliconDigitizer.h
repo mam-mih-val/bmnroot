@@ -35,6 +35,10 @@ public:
         fOnlyPrimary = opt;
     }
 
+    void SetStripMatching(Bool_t opt = kTRUE) {
+        fStripMatching = opt;
+    }
+
 private:
 
     TString fInputBranchName;
@@ -50,7 +54,11 @@ private:
     /** Output array of Silicon Digits **/
     TClonesArray* fBmnSiliconDigitsArray;
 
+    /** Output array of Silicon Digit Matches **/
+    TClonesArray* fBmnSiliconDigitMatchesArray;
+
     Bool_t fOnlyPrimary;
+    Bool_t fStripMatching;
 
     BmnSiliconStationSet *StationSet; //Entire Silicon detector
 

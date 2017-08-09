@@ -332,9 +332,7 @@ void BmnSilicon::ExpandNodeForGdml(TGeoNode* node) {
 //--- Check if Sensitive -------------------------------------------------------
 Bool_t BmnSilicon::CheckIfSensitive(std::string name) {
     TString tsname = name;
-    cout << "++++NAME = " << name << "\n";
     if(tsname.Contains("Sensor")) {
-        cout << "  true\n";
         return kTRUE;
     }
     return kFALSE;

@@ -1,8 +1,9 @@
-// -------------------------------------------------------------------------
-// -----                    BmnFieldMap header file                    -----
-// -----                   Created 03/02/2015  by P. Batyuk            -----
-// -----                        JINR, batyuk@jinr.ru                   -----
-// -------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------
+// -----                    BmnFieldMap header file                    -------- ----
+// -----                   Created 03/02/2015  by P. Batyuk            -------------
+// ----- Modified 28/07/2016  by A. Zelenov   (Summer student practice - 2017)------
+// -----                        JINR, batyuk@jinr.ru                   -------------
+// ---------------------------------------------------------------------------------
 #ifndef BMNFIELDMAP_H
 #define BMNFIELDMAP_H 1
 
@@ -22,6 +23,13 @@ class BmnFieldPar;
 
 
 using namespace std;
+
+typedef struct {
+    Int_t N;
+    Float_t min;
+    Float_t max;
+    Float_t step;
+} coordinate_info_t;
 
 class BmnFieldMap : public FairField {
 public:
@@ -55,7 +63,7 @@ public:
             Double_t& dx, Double_t& dy, Double_t& dz) {
         cout << "XYZ, To be implemented in BmnNewFieldMap";
         return 0.;
-    }; 
+    };
 
 
     /** Write the field map to an ASCII file **/
@@ -174,7 +182,7 @@ protected:
     void ReadAsciiFile(const char* fileName);
 
     /** Read field map from a ROOT file **/
-    void ReadRootFile(const char* fileName, const char* mapName);
+    void ReadRootFile(const char* fileName);
 
     /** Set field parameters and data **/
     void SetField(const BmnFieldMapData* data);

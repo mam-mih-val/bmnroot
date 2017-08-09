@@ -9,6 +9,7 @@
 #include "CbmGlobalTrack.h"
 #include "BmnGemStripHit.h"
 #include "TMath.h"
+#include "TGraph.h"
 #include "TF1.h"
 #include "TArc.h"
 #include "TLine.h"
@@ -18,6 +19,7 @@
 #include "Math/BrentRootFinder.h"
 #include <iostream>
 #include <cmath>
+#include "TFitResult.h"
 
 using namespace TMath;
 
@@ -339,6 +341,73 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
     return TVector3(a, b, chi2);
 }
 
+void LineFit(Double_t& par1, Double_t& par2, BmnGemTrack* track, TClonesArray* arr, Int_t type, Int_t idSkip) {
+
+    //Weighted Least Square Method//
+    Float_t Xi = 0.0, Yi = 0.0; // coordinates of current track point
+    Float_t a = 0.0, b = 0.0; // parameters of line: y = a * x + b
+
+    Float_t Si = 0.0; // sigma
+    Float_t Wi = 0.0; // weight = 1 / sigma^2
+    Float_t SumW = 0.0; // sum of weights
+    Float_t SumWX = 0.0; // sum of (weight * x)
+    Float_t SumWY = 0.0; // sum of (weight * y)
+    Float_t SumWXY = 0.0; // sum of (weight * x * y)
+    Float_t SumWX2 = 0.0; // sum of (weight * x * x)
+
+    const Float_t nHits = track->GetNHits();
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+
+        if (i == idSkip)
+            continue;
+
+        else if (type == 1) {
+            Xi = hit->GetZ();
+            Yi = hit->GetX();
+            Si = hit->GetDx();
+        } else {
+            Xi = hit->GetZ();
+            Yi = hit->GetY();
+            Si = hit->GetDy();
+        }
+
+        Wi = 1.0 / Si / Si;
+        SumW += Wi;
+        SumWXY += Wi * Xi * Yi;
+        SumWX += Wi * Xi;
+        SumWX2 += Wi * Xi * Xi;
+        SumWY += Wi * Yi;
+    }
+
+    a = (SumW * SumWXY - SumWX * SumWY) / (SumW * SumWX2 - SumWX * SumWX);
+    b = (SumWX2 * SumWY - SumWX * SumWXY) / (SumW * SumWX2 - SumWX * SumWX);
+
+    Float_t chi2 = 0.0;
+
+    for (Int_t i = 0; i < nHits; ++i) {
+        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetHitIndex(i));
+
+        if (i == idSkip)
+            continue;
+
+        if (type == 1) {
+            Xi = hit->GetZ();
+            Yi = hit->GetX();
+            Si = hit->GetDx();
+        } else {
+            Xi = hit->GetZ();
+            Yi = hit->GetY();
+            Si = hit->GetDy();
+        }
+
+        chi2 += ((Yi - a * Xi - b) / Si) * ((Yi - a * Xi - b) / Si);
+    }
+
+    par1 = a;
+    par2 = b;
+}
+
 TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) {
 
     //Weighted Least Square Method//
@@ -493,7 +562,7 @@ TVector3 CircleBy3Hit(BmnGemTrack* track, const TClonesArray* arr) {
 }
 
 TVector3 Pol2By3Hit(BmnGemTrack* track, const TClonesArray* arr) {
-    const Float_t nHits = track->GetNHits();
+    const Int_t nHits = track->GetNHits();
     if (nHits < 3) return TVector3(0.0, 0.0, 0.0);
     BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(track->GetHitIndex(0));
     BmnGemStripHit* hit1 = (BmnGemStripHit*) arr->At(track->GetHitIndex(1));
@@ -511,11 +580,29 @@ TVector3 Pol2By3Hit(BmnGemTrack* track, const TClonesArray* arr) {
     Float_t z2_2 = z2 * z2;
 
     Float_t B = (x2 * (z1_2 - z0_2) + x1 * (z0_2 - z2_2) + x0 * (z2_2 - z1_2)) / ((z2 - z1) * (z1 - z0) * (z0 - z2));
-    Float_t A = ((x2 - z1) - B * (z2 - z1)) / (z2_2 - z1_2);
+    Float_t A = ((x2 - x1) - B * (z2 - z1)) / (z2_2 - z1_2);
     Float_t C = x0 - B * z0 - A * z0_2;
 
     return TVector3(A, B, C);
 
+}
+
+void DrawHits(BmnGemTrack* track, const TClonesArray* arr) {
+    const Int_t nHits = track->GetNHits();
+    Float_t z[nHits];
+    Float_t x[nHits];
+    for (Int_t i = 0; i < nHits; ++i) {
+        z[i] = ((BmnGemStripHit*) arr->At(track->GetHitIndex(i)))->GetZ();
+        x[i] = ((BmnGemStripHit*) arr->At(track->GetHitIndex(i)))->GetX();
+    }
+    TCanvas* c = new TCanvas("c", "c", 1000, 1000);
+    TGraph* gr = new TGraph(nHits, z, x);
+    gr->Fit("pol2");
+    gr->Draw("AL*");
+    c->Update();
+    getchar();
+    delete gr;
+    delete c;
 }
 
 TVector3 CircleBy3Hit(BmnGemTrack* track, const BmnGemStripHit* h0, const BmnGemStripHit* h1, const BmnGemStripHit* h2) {

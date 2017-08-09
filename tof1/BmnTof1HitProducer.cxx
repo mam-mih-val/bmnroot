@@ -35,7 +35,7 @@ BmnTof1HitProducer::BmnTof1HitProducer(const char *name, Bool_t useMCdata, Int_t
 	
     	if(fDoTest) 
     	{	
-    		fTestFlnm = "test.BmnTof1HitProducer.root";	
+    		fTestFlnm = "test.BmnTof400HitProducer.root";	
     		effTestEfficiencySingleHit = new TEfficiency("effSingleHit", "Efficiency single hit;R, cm;Side", 10000, -0.1, 1.); 						fList.Add(effTestEfficiencySingleHit);
 		effTestEfficiencyDoubleHit = new TEfficiency("effDoubleHit", "Efficiency double hit;R, cm;Side", 10000, -0.1, 1.); 						fList.Add(effTestEfficiencyDoubleHit);
     	
@@ -92,7 +92,9 @@ assert(aExpDigits);
         {
             pDetector = new BmnTOF1Detector *[fNDetectors];
             for (Int_t i = 0; i < fNDetectors; i++){
-                pDetector[i] = new BmnTOF1Detector(i,fDoTest);
+                Int_t DoTestForDetector = 0;
+                if (fDoTest == kTRUE) DoTestForDetector = 1; // Level of Histograms filling (0-don't fill, 1-low, 2-high)
+                pDetector[i] = new BmnTOF1Detector(i,DoTestForDetector);
                 pDetector[i]->SetCorrLR("Tof400LRcorr.dat");
                 pDetector[i]->SetCorrSlewing("Tof400SlewingCorr_period6.root");
                 pDetector[i]->SetGeo(pGeoUtils);
@@ -217,71 +219,6 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
 		}	// cycle by the TOF points
 	}
 	else
-	/*{
-		TVector3 crosspoint;
-				
-		// Sorting by strip UIDs
-		typedef multimap<Int_t, BmnTof1Digit*> Tmap;
-		Tmap 	mDigits;
-                
-                Int_t nT0Digits = aExpDigitsT0->GetEntriesFast();
-                if (nT0Digits == 1){                               // T0 digit should be
-                    BmnTrigDigit* digT0 = (BmnTrigDigit*) aExpDigitsT0->At(0);
-
-                    for(Int_t digitIndex = 0, nTofDigits = aExpDigits->GetEntriesFast(); digitIndex < nTofDigits; digitIndex++ )  // cycle by TOF digits
-                    {
-                            BmnTof1Digit *pDigit = (BmnTof1Digit*) aExpDigits->UncheckedAt(digitIndex);		
-                            if(fVerbose > 2) pDigit->print(); 	
-                            if (pDigit->GetStrip() == 0 || pDigit->GetStrip() == 47) continue; // skip noise strips
-                            UID =  BmnTOF1Point::GetVolumeUID(0, pDigit->GetPlane() + 1, pDigit->GetStrip() + 1); // strip [0,47] -> [1, 48]
-                            mDigits.insert(make_pair(UID, pDigit));				
-                    }
-
-                    // Looking for digit pairs on both sides of same strip
-                    size_t counter;
-                    for(Tmap::iterator it = mDigits.begin(), itEnd = mDigits.end(); it != itEnd;  it = mDigits.upper_bound(it->first))
-                    {
-                            UID = it->first;
-                            counter = mDigits.count(UID); // hash(detId, stripId)
-
-                            if(counter != 2) continue; // now can be ONLY ONE digit at the strip side  1 + 1 == 2
-                            BmnTof1Digit *dig1, *dig2;
-                            if (it->second->GetSide() == 0 ){
-                                dig1 = it->second;
-                                dig2 = (++it)->second;
-                            }
-                            else {
-                                dig2 = it->second;
-                                dig1 = (++it)->second;
-                            }
-                            Short_t side1 = dig1->GetSide(), side2 = dig2->GetSide();
-
-                            if(side1 != side2) // digits on different sides of same strip
-                            {
-                                    Int_t  strip =	BmnTOF1Point::GetStrip(UID);
-                                    Int_t det = BmnTOF1Point::GetModule(UID);
-
-                                    if(fDoTest) h2TdetIdStripId->Fill(strip, det);
-
-                                    const LStrip *pStrip = pGeoUtils->FindStrip(UID);
-
-                                    if(GetCrossPoint(pStrip, dig1->GetTime(), dig2->GetTime(), crosspoint)) // crosspoint inside strip edges
-                                    {
-                                            AddHit(UID, crosspoint, XYZ_err, -1, -1, CalculateToF(dig1, dig2, digT0)); 	
-                                    //        AddHit(UID, crosspoint, XYZ_err, -1, -1, dig1->GetTime()); 	
-                                            nSingleHits++;
-
-                                            if(fDoTest)
-                                            {
-                                                    h2TestXYSmeared2->Fill(crosspoint.X(), crosspoint.Y());
-                                                    TVector3 stripCenter(pStrip->center);
-                                                    h2TestRZ->Fill(stripCenter.X(), stripCenter.Y());
-                                            }			
-                                    }					
-                            }
-                    }
-                }
-	}//*/
         {
             Int_t nT0Digits = aExpDigitsT0->GetEntriesFast();
             if (nT0Digits == 1) { // T0 digit should be
@@ -296,7 +233,7 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
                 }
 
                 for (Int_t i = 0; i < fNDetectors; i++)
-                    pDetector[i] -> FindHits(digT0, aTofHits);
+                    nSingleHits += pDetector[i] -> FindHits(digT0, aTofHits);
             }
         }
 
@@ -321,6 +258,8 @@ void 			BmnTof1HitProducer::Finish()
 		fList.Write(); 
 		file.Close();
 		gFile = ptr;
+                for (Int_t i = 0; i < fNDetectors; i++)
+                    pDetector[i] -> SaveHistToFile (fTestFlnm.Data());
 	}
         
     cout << "Work time of the TOF-400 hit finder: " << workTime << endl;

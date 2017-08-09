@@ -39,6 +39,7 @@ public:
     BmnStatus FitSeeds(BmnGemTrack* cand);
     BmnStatus CalculateTrackParamsLine(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsCircle(BmnGemTrack* tr);
+    BmnStatus CalculateTrackParamsPol2(BmnGemTrack* tr);
 
     void SetHitsUnused(BmnGemTrack* tr);
 

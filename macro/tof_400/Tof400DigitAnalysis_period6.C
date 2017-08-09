@@ -25,21 +25,7 @@
 #include "TClonesArray.h"
 #include "TVector3.h"
 
-Int_t CorrPlane7_It1, CorrT0_It1;
 Double_t AmpBD, TimeBD, NHitBD;
-Double_t CorrPlane7Coeff_It1[5][4] = {
-    {12.24, -3.919, 0.2624, -0.005153},
-    {-122.9, 14.84, -0.6158, 0.008724},
-    {-12.34, 0.482, 0., 0.},
-    {-12.28, 0.479, 0., 0.},
-    {-13.14, 0.5034, 0., 0.}
-};
-Double_t CorrT0Coeff_It1[4][4] = {
-    {-5.486, 1.087, -0.07936, 0.00208},
-    {10.77, -2.635, 0.1984, -0.004631},
-    {-2.163, 0.1362, 0., 0.},
-    {200, 0, 0, 0}
-};
 
 Double_t CorrLR[10][48] = {0.};
 
@@ -49,6 +35,7 @@ Int_t XforHit = 0, YforHit = 0;
 
 
 class BmnTrigDigit;
+class BmnTOF1Detector;
 
 void
 Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periud = 5) {
@@ -76,11 +63,12 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
     TString name;
     for (Int_t i = 0; i < 10; i++) {
         name = Form("Plane%d", i);
-        Plane[i] = new BmnTOF1Detector(i, kTRUE);
+        Plane[i] = new BmnTOF1Detector(i, 2);
         //Plane[i]->SetCorrLR(CorrLR[i]);
         Plane[i]->SetCorrLR("Tof400LRcorr.dat");
         Plane[i]->SetCorrSlewing("Tof400SlewingCorr_period6.root");
-        Plane[i]->SetGeoFile("geometry_run6.root");
+        Plane[i]->SetGeoFile("geofile_full.root");
+    //    Plane[i]->SetGeoFile("geometry_run6.root");
     }
 
     TList *fList = new TList();
@@ -108,6 +96,21 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
     fList->Add(h_TimeBC2_vs_TimeT0);
     TH1I *h_dtBC2T0_Corr = new TH1I("h_dtBC2T0_Corr", "h_dtBC2T0_Corr", 1024, -6., 6.);
     fList->Add(h_dtBC2T0_Corr);
+
+    TH2I *hCrosing = new TH2I("hCrosing", "hCrosing", 48, 0, 48, 48, 0, 48);
+    fList->Add(hCrosing);
+    TH1I *hCrosingDx = new TH1I("hCrosingDx", "hCrosingDx", 48, 0., 60.);
+    fList->Add(hCrosingDx);
+    TH1I *hCrosingDy = new TH1I("hCrosingDy", "hCrosingDy", 120, -30., 30.);
+    fList->Add(hCrosingDy);
+    TH1I *hCrosingDr = new TH1I("hCrosingDr", "hCrosingDr", 600, 0., 60.);
+    fList->Add(hCrosingDr);
+    TH1I *hCrosingDt = new TH1I("hCrosingDt", "hCrosingDt", 1024, -12., 12.);
+    fList->Add(hCrosingDt);
+    TH2I *hCrosingWidth_Width = new TH2I("hCrosingWidth_Width", "hCrosingWidth_Width", 1024, 12, 60, 1024, 12, 60);
+    fList->Add(hCrosingWidth_Width);
+    TH1I *hCrosingDwidth = new TH1I("hCrosingDwidth", "hCrosingDwidth", 512, -12., 12.);
+    fList->Add(hCrosingDwidth);
 
     TH2F *h_HitRPC = new TH2F("h_HitRPC", "h_HitRPC", 96, -96, 0, 5, 0, 5);
     fListTof->Add(h_HitRPC);
@@ -140,7 +143,7 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
     eveTree->SetBranchAddress("EventHeader", &EventHeader);
 
     Long64_t nEvents = eveTree->GetEntries();
-    if (nEvForRead == 0) nEvForRead = nEvents;
+    if (nEvForRead == 0 || nEvForRead > nEvents) nEvForRead = nEvents;
     cout << "Will be readed " << nEvForRead << " events from " << nEvents << endl;
 
     for (Int_t iEv = 0; iEv < nEvForRead; iEv++) {
@@ -200,6 +203,7 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
                         if (FlagHit == kTRUE) h_XYRPC -> Fill(XYZ.x(), XYZ.y());
                     }
                 }
+                CrossingDet(Plane[2], Plane[7], hCrosing, hCrosingDx, hCrosingDy, hCrosingDr, hCrosingDt);
 
                 //--------------------------- BD --------------------------------------------------
                 for (Int_t iDig = 0; iDig < BDDigits->GetEntriesFast(); ++iDig) {
@@ -231,8 +235,6 @@ Tof400DigitAnalysis_period6(TString file = "", Int_t nEvForRead = 0, Int_t Periu
                     h_dtBC2T0_vs_AmpBC2 -> Fill(digBC2->GetAmp(), dtBC2T0);
                     h_TimeBC2_vs_TimeT0->Fill(digBC2->GetTime(), digT0->GetTime());
                 }//*/
-
-
 
             }// end             if (digT0->GetAmp() >= 17.3 && digT0->GetAmp() <= 19.2)
         } // end if ((T0Digits->GetEntriesFast()) == 1 && (VetoDigits->GetEntriesFast()) == 0 && (BDDigits->GetEntriesFast()) >= 2)
@@ -336,28 +338,29 @@ Double_t CalculateDtT0BC2(BmnTrigDigit *bc2, BmnTrigDigit * t0) {
     return dt;
 }
 
-/*
-Double_t CalculateDt(ToF400Detector * Det, T0Detector * T0, Int_t Str = -1)
-{
-
-    if (Str == -1) Str = TMath::LocMax(kNST, Plane7->sAmp);
-    Double_t dt = Det->sTime[Str] - T0->sTime;
-    //cout << " dt = " << dt << endl;
-      if (Det->sAmp[Str] < 20.46) CorrPlane7_It1 = 0;
-      else if (Det->sAmp[Str] >= 20.46 && Det->sAmp[Str] < 27.25) CorrPlane7_It1 = 1;
-      else if (Det->sAmp[Str] >= 27.25 && Det->sAmp[Str] < 34.81) CorrPlane7_It1 = 2;
-      else if (Det->sAmp[Str] >= 34.81 && Det->sAmp[Str] < 37.11) CorrPlane7_It1 = 3;
-      else if (Det->sAmp[Str] >= 37.11) CorrPlane7_It1 = 4;
-      dt = dt - (CorrPlane7Coeff_It1[CorrPlane7_It1][0] + CorrPlane7Coeff_It1[CorrPlane7_It1][1] * Det->sAmp[Str] +
-              CorrPlane7Coeff_It1[CorrPlane7_It1][2] * Det->sAmp[Str] * Det->sAmp[Str] +
-              CorrPlane7Coeff_It1[CorrPlane7_It1][3] * Det->sAmp[Str] * Det->sAmp[Str] * Det->sAmp[Str]); //
-
-      if (T0->sAmp >= 6.15 && T0->sAmp < 12.3) CorrT0_It1 = 0; //deutron
-      else if (T0->sAmp >= 12.3 && T0->sAmp < 17.14) CorrT0_It1 = 1; //deutron
-      else if (T0->sAmp >= 17.9 && T0->sAmp < 19.63) CorrT0_It1 = 2; //C6+
-      else CorrT0_It1 = 3; //skip
-      dt = dt - (CorrT0Coeff_It1[CorrT0_It1][0] + CorrT0Coeff_It1[CorrT0_It1][1] * T0->sAmp +
-              CorrT0Coeff_It1[CorrT0_It1][2] * T0->sAmp * T0->sAmp +
-              CorrT0Coeff_It1[CorrT0_It1][3] * T0->sAmp * T0->sAmp * T0->sAmp); //
-    return dt;
-}//*/
+void CrossingDet(BmnTOF1Detector *Det1, BmnTOF1Detector *Det2, TH2 *hD1D2, TH1 *hDx, TH1 *hDy, TH1 *hDr, TH1 *hDt) {
+    TVector3 XyzD1, XyzD2;
+    Double_t ToF1 = 0, ToF2 = 0, dT = 0.;
+    for (Int_t iD1 = 0; iD1 < 12; iD1++) {
+        XyzD1.SetXYZ(0., 0., 0.);
+        ToF1 = 0;
+        if (Det1->GetXYZTime(iD1, &XyzD1, &ToF1))
+            for (Int_t iD2 = 36; iD2 < 48; iD2++) {
+                XyzD2.SetXYZ(0., 0., 0.);
+                ToF2 = 0.;
+                if (Det2->GetXYZTime(iD2, &XyzD2, &ToF2)) {
+                    hD1D2->Fill(iD1, iD2);
+                    Double_t dX = XyzD1.x() - XyzD2.x();
+                    Double_t dY = XyzD1.y() - XyzD2.y();
+                    Double_t dR = TMath::Sqrt(dX * dX + dY * dY);
+                    hDx->Fill(dX);
+                    hDy->Fill(dY);
+                    hDr->Fill(dR);
+                    hDt->Fill(ToF1 - ToF2);
+                    hCrosingWidth_Width->Fill(Det1->GetWidth(iD1), Det2->GetWidth(iD2));
+                    hCrosingDwidth->Fill(Det1->GetWidth(iD1) - Det2->GetWidth(iD2));
+                    //     cout << 3 << endl;
+                }
+            }
+    }
+}

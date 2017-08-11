@@ -303,6 +303,8 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         fMan->AddTask(BmnDchHit);
         FairHitPointSetDraw* BmnTof2Hit = new FairHitPointSetDraw("BmnTofHit", recoPointColor, pointMarker);
         fMan->AddTask(BmnTof2Hit);
+        FairHitPointSetDraw* BmnSiliconHit = new FairHitPointSetDraw("BmnSiliconHit", recoPointColor, pointMarker);
+        fMan->AddTask(BmnSiliconHit);
 
         // DST tracks
         BmnGlobalTrackDraw* BmnGlobalTrack = new BmnGlobalTrackDraw("GlobalTrack");

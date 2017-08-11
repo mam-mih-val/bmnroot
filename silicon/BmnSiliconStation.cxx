@@ -7,6 +7,7 @@ BmnSiliconStation::BmnSiliconStation()
   ZMinStation(0.0), ZMaxStation(0.0),
   XSize(0.0), YSize(0.0), ZSize(0.0),
   XPosition(0.0), YPosition(0.0), ZPosition(0.0),
+  RotationAngleDeg(0.0), RotationCenterX(0.0), RotationCenterY(0.0),
   XShiftOfModules(NULL), YShiftOfModules(NULL), ZShiftOfModules(NULL),
   Modules(NULL) { }
 
@@ -19,6 +20,7 @@ BmnSiliconStation::BmnSiliconStation(TXMLNode *stationNode, Int_t iStation,
   YMinStation(0.0), YMaxStation(0.0),
   ZMinStation(0.0), ZMaxStation(0.0),
   XPosition(xpos_station), YPosition(ypos_station), ZPosition(zpos_station),
+  RotationAngleDeg(0.0), RotationCenterX(0.0), RotationCenterY(0.0),
   XShiftOfModules(NULL), YShiftOfModules(NULL), ZShiftOfModules(NULL),
   Modules(NULL) {
 
@@ -188,6 +190,25 @@ Bool_t BmnSiliconStation::CreateConfigurationFromXMLNode(TXMLNode *node) {
         ZShiftOfModules[i] = 0.0;
     }
 
+    //for station rotation parameters
+    if( node->HasAttributes() ) {
+        TList *attrList = node->GetAttributes();
+        TXMLAttr *attr = 0;
+        TIter next(attrList);
+
+        while( attr = (TXMLAttr*)next() ) {
+            if( strcmp(attr->GetName(), "rotAngleDeg") == 0 ) {
+                RotationAngleDeg = atof(attr->GetValue());
+            }
+            if( strcmp(attr->GetName(), "rotCenterX") == 0 ) {
+                RotationCenterX = atof(attr->GetValue());
+            }
+            if( strcmp(attr->GetName(), "rotCenterY") == 0 ) {
+                RotationCenterY = atof(attr->GetValue());
+            }
+        }
+    }
+
     node = node->GetChildren();
     Int_t currentModuleNum = 0;
     while(node) {
@@ -235,6 +256,7 @@ Bool_t BmnSiliconStation::ParseModule(TXMLNode *node, Int_t iModule) {
     }
 
     Modules[iModule] = new BmnSiliconModule(ZPosition+ZShiftOfModules[iModule]);
+    Modules[iModule]->SetModuleRotation(RotationAngleDeg, RotationCenterX, RotationCenterY);
 
     //Layers
     node = node->GetChildren();

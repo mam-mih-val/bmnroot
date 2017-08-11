@@ -34,6 +34,11 @@ public:
 
     Double_t GetModuleThickness() { return ModuleThickness; }
     Double_t GetZPositionRegistered(); //position for all registered point (hits)
+
+    Bool_t SetModuleRotation(Double_t angleDeg, Double_t rot_center_x, Double_t rot_center_y); //angle is counter-clockwise
+    Double_t GetModuleRotationAngleDeg() { return ModuleRotationAlgleDeg; }
+    Double_t GetModuleRotationCenterX() { return ModuleRotationCenterX; }
+    Double_t GetModuleRotationCenterY() { return ModuleRotationCenterY; }
     //--------------------------------------------------------------------------
 
     //Strip layers controls ----------------------------------------------------
@@ -91,6 +96,13 @@ public:
     Bool_t SearchIntersectionPoint(Double_t &x, Double_t &y, Double_t strip_pos_layerA, Double_t strip_pos_layerB, Int_t layerA_index, Int_t layerB_index);
     //--------------------------------------------------------------------------
 
+    //coordinate transformation (for module rotation) --------------------------
+    Double_t ConvertGlobalToLocalX(Double_t xglob, Double_t yglob);
+    Double_t ConvertGlobalToLocalY(Double_t xglob, Double_t yglob);
+    Double_t ConvertLocalToGlobalX(Double_t xloc, Double_t yloc);
+    Double_t ConvertLocalToGlobalY(Double_t xloc, Double_t yloc);
+    //--------------------------------------------------------------------------
+
     //Added (real) points ------------------------------------------------------
     Int_t GetNRealPoints() {return RealPointsX.size();} //quantity of added points
     Double_t GetRealPointX(Int_t indx) { return RealPointsX.at(indx); } //X-coord of i-added point
@@ -131,6 +143,11 @@ private:
 
     Double_t ZStartModulePosition;
     Double_t ModuleThickness;
+
+    Double_t ModuleRotationAlgleDeg; //module rotation angle is counter-clockwise
+    Double_t ModuleRotationAlgleRad;
+    Double_t ModuleRotationCenterX;
+    Double_t ModuleRotationCenterY;
 
     vector<BmnSiliconLayer> StripLayers;
 

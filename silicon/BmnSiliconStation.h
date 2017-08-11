@@ -34,6 +34,10 @@ protected:
     Double_t YPosition;
     Double_t ZPosition;
 
+    Double_t RotationAngleDeg; //rotation angle (deg) for the station (counter-clockwise)
+    Double_t RotationCenterX; //x-rotation center for the station
+    Double_t RotationCenterY; //y-rotation center for the station
+
     /*Shifts of modules in each station*/
     Double_t *XShiftOfModules;
     Double_t *YShiftOfModules;

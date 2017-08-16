@@ -1,7 +1,7 @@
 //file: full path to raw-file
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
-void BmnSlewingTOF700(TString file = "../raw/mpd_run_Glob_1889.data", Long_t nEvents = 0, Bool_t doConvert = kFALSE) {
+void BmnSlewingTOF700(TString file = "/data/mpd_run_Glob_1881.data", Long_t nEvents = 0, Bool_t doConvert = kFALSE) {
   gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
   bmnloadlibs(); // load BmnRoot libraries
   BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //4 - period
@@ -29,10 +29,11 @@ void BmnSlewingTOF700(TString file = "../raw/mpd_run_Glob_1889.data", Long_t nEv
   BmnTof2Raw2DigitNew *tof700m = decoder->GetTof700Mapper();
   tof700m->SetW(2800,4000);
   tof700m->SetWT0(720,820);
-  decoder->SlewingTOF700();  // Decode data into detector-digits using current mappings.
-  tof700m->drawproft0();
-  tof700m->drawprof();
+  decoder->SlewingTOF700();  // obtain slewing parameters
   tof700m->WriteSlewingHists();
+  // draw quality control histogram - comment if not neccessary
+  //tof700m->drawproft0();
+  //tof700m->drawprof();
   delete decoder;
 }
 

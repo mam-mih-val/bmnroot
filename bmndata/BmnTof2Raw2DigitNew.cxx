@@ -1596,6 +1596,31 @@ void BmnTof2Raw2DigitNew::DNL_read()
  }
 }
 
+void BmnTof2Raw2DigitNew::writeSlewingLimits()
+{
+  FILE *fout = 0;
+  int i, im, y;
+  float ymin, ymax, xmin, xmax;
+  TString dir = getenv("VMCWORKDIR");
+  TString path = dir + "/parameters/tof2_slewing/";
+  char filn[128];
+  sprintf(filn, "%s%s_slewing_limits.txt", path.Data(), filname_base);
+  fout = fopen(filn,"w");
+
+  for (i=0; i<MaxPlane; i++)
+    {
+      im = (TvsS[i]->ProjectionY())->GetMaximumBin();
+      y  = (int)((TvsS[i]->ProjectionY())->GetBinCenter(im));
+      ymin = y - 60;
+      ymax = y + 60;
+      xmin = (TvsS[i]->GetXaxis())->GetXmin();
+      xmax = (TvsS[i]->GetXaxis())->GetXmax();
+      fprintf(fout,"\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", i+1, (int)ymin, (int)ymax);
+      if (PRINT_TIME_LIMITS) printf("\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", i+1, (int)ymin, (int)ymax);
+    }   
+  fclose(fout);
+}
+
 #if TOF2_MAX_CHAMBERS == 15
 int champosn[TOF2_MAX_CHAMBERS] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
 #else
@@ -1640,7 +1665,7 @@ void BmnTof2Raw2DigitNew::drawprep()
   TString path = dir + "/parameters/tof2_slewing/";
   char filn[128];
   sprintf(filn, "%s%s_slewing_limits.txt", path.Data(), filname_base);
-  fout = fopen(filn,"w");
+//  fout = fopen(filn,"w");
 
   TCanvas *cp = new TCanvas("cp", "Leadings vs strip", 900,700);
   cp->cd();
@@ -1662,10 +1687,10 @@ void BmnTof2Raw2DigitNew::drawprep()
       l = new TLine(xmin,ymax,xmax,ymax);
       l->Draw();
       l->SetLineColor(kRed);
-      fprintf(fout,"\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", i+1, (int)ymin, (int)ymax);
-      if (PRINT_TIME_LIMITS) printf("\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", i+1, (int)ymin, (int)ymax);
+//      fprintf(fout,"\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", i+1, (int)ymin, (int)ymax);
+//      if (PRINT_TIME_LIMITS) printf("\t\tTOF2.SetLeadMinMax(%d, %d,%d);\n", i+1, (int)ymin, (int)ymax);
     }   
-  fclose(fout);
+//  fclose(fout);
 
   TCanvas *cpp = new TCanvas("cpp", "Leadings", 900,700);
   cpp->cd();

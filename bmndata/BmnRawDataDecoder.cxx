@@ -1314,6 +1314,8 @@ BmnStatus BmnRawDataDecoder::PreparationTOF700() {
         fTof700Mapper->fillPreparation(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
 
+    fTof700Mapper->writeSlewingLimits();
+
     //    fRootFileIn->Close();
 
     //    delete trigMapper;

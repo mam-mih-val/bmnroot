@@ -122,7 +122,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString targ;
         if (pCurrentRun->GetTargetParticle() == NULL) {
             targ = "-";
-            isTarget = kFALSE; 
+            isTarget = kFALSE;
         }
         else {
             targ = (pCurrentRun->GetTargetParticle())[0];
@@ -138,7 +138,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
-    } 
+    }
     else { // for simulated files
         if (!CheckFileExist(inputFileName)) return;
         fFileSource = new FairFileSource(inputFileName);
@@ -173,6 +173,15 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
     //mwpcHM->SetUseDigitsInTimeBin(kFALSE);
     fRunAna->AddTask(mwpcHM);
+    // ====================================================================== //
+    // ===                         Silicon hit finder                     === //
+    // ====================================================================== //
+    BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
+    siliconDigit->SetOnlyPrimary(isPrimary);
+    fRunAna->AddTask(siliconDigit);
+
+    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker();
+    fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
@@ -226,14 +235,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, 0.0);
     BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
     gemSF->SetField(isField);
-    gemSF->SetTarget(isTarget);    
+    gemSF->SetTarget(isTarget);
     gemSF->SetRoughVertex(vAppr);
     gemSF->SetLineFitCut(5.0);
     gemSF->SetYstep(10.0);
     gemSF->SetSigX(0.05);
     gemSF->SetLorentzThresh(1.01);
     gemSF->SetNbins(1000);
-   
+
     if (run_period == 5)
         gemSF->AddStationToSkip(0);
     fRunAna->AddTask(gemSF);
@@ -248,9 +257,9 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // Resid. analysis
     if (isExp) {
         BmnGemResiduals* residAnal = new BmnGemResiduals(run_period, run_number, fieldScale);
-        // residAnal->SetPrintResToFile("file.txt");              
+        // residAnal->SetPrintResToFile("file.txt");
         // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
-        fRunAna->AddTask(residAnal); 
+        fRunAna->AddTask(residAnal);
     }
 
     // ====================================================================== //

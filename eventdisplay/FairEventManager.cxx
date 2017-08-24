@@ -861,7 +861,7 @@ Int_t FairEventManager::Color(int pdg)
     case   1000020030   :
         return  55;
     case   0:
-        return  27;    // Rootino
+        return  391;    // Rootino
     default  :
         return 0;
     }//switch

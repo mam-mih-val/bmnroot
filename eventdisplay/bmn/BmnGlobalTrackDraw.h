@@ -57,10 +57,8 @@ class BmnGlobalTrackDraw : public FairTask
     TClonesArray*  fTof1HitList;     //!
     // TOF2 hits collection
     TClonesArray*  fTof2HitList;     //!
-    // DCH1 hits collection
-    TClonesArray*  fDch1HitList;     //!
-    // DCH2 hits collection
-    TClonesArray*  fDch2HitList;     //!
+    // DCH hits collection
+    TClonesArray*  fDchHitList;     //!
     // EVE track propagator
     TEveTrackPropagator* fTrPr;
     FairEventManager* fEventManager;    //!

@@ -47,4 +47,8 @@ geometry(FairRunSim *fRun)
     zdc->SetZposition(1000.);
     zdc->SetHole(1); // 0 for no hole
     fRun->AddModule(zdc);
+
+    FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
+    silicon->SetGeometryFileName("Silicon_v1.root");
+    fRun->AddModule(silicon);
 }

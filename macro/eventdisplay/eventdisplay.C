@@ -11,7 +11,7 @@
 //      sim_run_info - run number in 'runN-NN' format, e.g. "run6-1" to obtain BM@N geometry from the Unified Database
 //      reco_file - path to the directory with raw '*.data' files, e.g. "/tdaq/data/" (last slash is required)
 // is_online: false (default) - use Offline Mode (manual switching of events); true - use Online Mode (continious view events)
-//void eventdisplay(char* sim_run_info = "run3-642", char* reco_file = "$VMCWORKDIR/macro/run/bmn_run642.root", int data_source = 1, bool is_online = false)
+//void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "$VMCWORKDIR/macro/run/bmn_run1220.root", int data_source = 1, bool is_online = false)
 //void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "/tdaq/data/", int data_source = 2, bool is_online = true)
 void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
 {
@@ -254,25 +254,21 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
     fMan->Init();
 }
 
-// set FairRunAna tasks depending from data source and on/offline mode
+// set FairRunAna drawing tasks depending from data source and on/offline mode
 class FairEventManager;
 void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_number, bool isField, bool isTarget)
 {
     Style_t pointMarker = kFullDotSmall;
     Color_t mcPointColor = kRed, recoPointColor = kBlack, expPointColor = kRed;
 
-    // FOR SIMULATION : set drawing tasks
+    // FOR SIMULATION
     if (data_source == 0)
     {
         // draw MC points
-        FairMCPointDraw* RecoilPoint = new FairMCPointDraw("RecoilPoint", mcPointColor, pointMarker);
-        fMan->AddTask(RecoilPoint);
-        //FairMCPointDraw* MWPC1Point = new FairMCPointDraw("MWPC1Point", mcPointColor, pointMarker);
-        //fMan->AddTask(MWPC1Point);
-        //FairMCPointDraw* MWPC2Point = new FairMCPointDraw("MWPC2Point", mcPointColor, pointMarker);
-        //fMan->AddTask(MWPC2Point);
-        //FairMCPointDraw* MWPC3Point = new FairMCPointDraw("MWPC3Point", mcPointColor, pointMarker);
-        //fMan->AddTask(MWPC3Point);
+        //FairMCPointDraw* RecoilPoint = new FairMCPointDraw("RecoilPoint", mcPointColor, pointMarker);
+        //fMan->AddTask(RecoilPoint);
+        FairMCPointDraw* MWPCPoint = new FairMCPointDraw("MWPCPoint", mcPointColor, pointMarker);
+        fMan->AddTask(MWPCPoint);
         FairMCPointDraw* TOF1Point = new FairMCPointDraw("TOF1Point", mcPointColor, pointMarker);
         fMan->AddTask(TOF1Point);
         FairMCPointDraw* DCHPoint = new FairMCPointDraw("DCHPoint", mcPointColor, pointMarker);
@@ -289,8 +285,7 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         // draw MC geometry tracks
         FairMCTracks* GeoTrack = new FairMCTracks("GeoTracks");
         fMan->AddTask(GeoTrack);
-
-        // or draw MC tracks by Geane - not implemented yet
+        // OR draw MC tracks by Geane - not implemented yet
         //FairMCStack* MCTrack = new FairMCStack("MCTrack");
         //fMan->AddTask(MCTrack);
 
@@ -307,8 +302,8 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         fMan->AddTask(BmnSiliconHit);
 
         // DST tracks
-        BmnGlobalTrackDraw* BmnGlobalTrack = new BmnGlobalTrackDraw("GlobalTrack");
-        //fMan->AddTask(BmnGlobalTrack);
+        BmnGlobalTrackDraw* BmnGlobalTrack = new BmnGlobalTrackDraw("BmnGlobalTrack");
+        fMan->AddTask(BmnGlobalTrack);
 
         // save EventDisplay Screenshot
         //FairWebScreenshots* WebScreenshots = new FairWebScreenshots("WebScreenshots", "/var/www/html/events"); // for WEB-page
@@ -321,42 +316,46 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         return;
     }
 
-    // FOR EXPERIMENTAL DATA FROM RECONSTRUCTED ROOT FILE : set drawing tasks
+    // FOR EXPERIMENTAL DATA FROM RECONSTRUCTED ROOT FILE
     if (data_source == 1)
     {
         // draw MWPC hits
         FairHitPointSetDraw* MwpcHit = new FairHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
         fMan->AddTask(MwpcHit);
-
+        // draw Silicon hits
+        FairHitPointSetDraw* SiliconHit = new FairHitPointSetDraw("BmnSiliconHit", expPointColor, pointMarker);
+        fMan->AddTask(SiliconHit);
         // draw GEM hits
         FairHitPointSetDraw* GemHit = new FairHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
         fMan->AddTask(GemHit);
-
         // draw DCH hits
         FairHitPointSetDraw* DchHit = new FairHitPointSetDraw("BmnDchHit", expPointColor, pointMarker);
         fMan->AddTask(DchHit);
+        // draw TOF1 hits
+        FairHitPointSetDraw* Tof1Hit = new FairHitPointSetDraw("BmnTof1Hit", expPointColor, pointMarker);
+        fMan->AddTask(Tof1Hit);
+        // draw TOF2 hits
+        FairHitPointSetDraw* Tof2Hit = new FairHitPointSetDraw("BmnTofHit", expPointColor, pointMarker);
+        fMan->AddTask(Tof2Hit);
 
         // draw MWPC tracks
-        BmnTrackDrawH* MwpcTrack = new BmnTrackDrawH("MwpcMatchedTracks", "BmnMwpcHit");
-        //fMan->AddTask(MwpcTrack);
-
+        BmnTrackDrawH* MwpcTrack = new BmnTrackDrawH("BmnMwpcTrack", "BmnMwpcHit");
+        fMan->AddTask(MwpcTrack);
         // draw GEM tracks
-        //BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemSeeds", "BmnGemStripHit");
+        //BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemSeed", "BmnGemStripHit");
         BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
         fMan->AddTask(GemTrack);
-
         // draw DCH tracks
-        BmnTrackDrawH* DchTrack = new BmnTrackDrawH("DchTracks", "BmnDchHit");
+        //BmnTrackDrawH* DchTrack = new BmnTrackDrawH("BmnDchTrack", "BmnDchHit");
         //fMan->AddTask(DchTrack);
 
         //FairGeane* Geane = new FairGeane();
         //fMan->AddTask(Geane);
-
         //CbmTrackDraw* MwpcTrack = new CbmTrackDraw("MwpcMatchedTracks");
         //fMan->AddTask(MwpcTrack);
     }
 
-    // FOR EXPERIMENTAL DATA FROM DIRECTORY WITH .DATA FILES : set drawing tasks
+    // FOR EXPERIMENTAL DATA FROM DIRECTORY WITH .DATA FILES
     if (data_source == 2)
     {
         // GEM hit finder
@@ -395,7 +394,7 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
 
         // TOF-400 hit finder
         BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", false, 0/*iVerbose*/, kTRUE);
-        //fMan->AddTask(tof1HP);
+        fMan->AddTask(tof1HP);
 
         // draw GEM hits
         FairHitPointSetDraw* GemHit = new FairHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
@@ -404,10 +403,10 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
 
         // draw TOF-400 hits
         FairHitPointSetDraw* Tof1Hit = new FairHitPointSetDraw("BmnTof1Hit", expPointColor, pointMarker);
-        //Tof1Hit->SetVerbose(1);
-        //fMan->AddTask(Tof1Hit);
+        Tof1Hit->SetVerbose(1);
+        fMan->AddTask(Tof1Hit);
 
-        // draw GEM tracks
+        // draw GEM seeds or tracks
         BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemSeed", "BmnGemStripHit");
         //BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
         GemTrack->SetVerbose(1);

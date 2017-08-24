@@ -176,11 +176,13 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
-    siliconDigit->SetOnlyPrimary(isPrimary);
-    fRunAna->AddTask(siliconDigit);
+    if (!isExp) {
+        BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
+        siliconDigit->SetOnlyPrimary(isPrimary);
+        fRunAna->AddTask(siliconDigit);
+    }
 
-    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker();
+    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
     fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //

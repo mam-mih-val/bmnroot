@@ -18,6 +18,7 @@ class BmnSiliconHitMaker : public FairTask {
 public:
 
     BmnSiliconHitMaker();
+    BmnSiliconHitMaker(Bool_t isExp);
 
     virtual ~BmnSiliconHitMaker();
 

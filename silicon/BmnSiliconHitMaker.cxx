@@ -22,6 +22,21 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
     StationSet = NULL;
 }
 
+BmnSiliconHitMaker::BmnSiliconHitMaker(Bool_t isExp)
+: fHitMatching(kTRUE) {
+
+    fInputPointsBranchName = "SiliconPoint";
+    fInputDigitsBranchName = (!isExp) ? "BmnSiliconDigit" : "SILICON";
+    fInputDigitMatchesBranchName = "BmnSiliconDigitMatch";
+
+    fOutputHitsBranchName = "BmnSiliconHit";
+    fOutputHitMatchesBranchName = "BmnSiliconHitMatch";
+
+    fVerbose = 1;
+
+    StationSet = NULL;
+}
+
 BmnSiliconHitMaker::~BmnSiliconHitMaker() {
 
 }

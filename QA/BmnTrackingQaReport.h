@@ -48,11 +48,12 @@ protected:
      */
     virtual void Draw();
 
-    void DrawMomResGem(const string& canvasName, TString name2d, TString nameSigma, TString nameMean);
+    void DrawMomResGem(const string& canvasName, TString name2d, TString nameSigma, TString nameMean, TString nameAver);
     void DrawResAndPull(const TString canvasName, TString* inNames);
+    void DrawHitRes(TString axis);
     void DrawPar(const TString canvasName, TString* inNames);
     void DrawVertResGem(const string& canvasName, TString name1dX, TString name1dY, TString name1dZ);
-    void FillAndFitSlice(TString name2d, TString name1d);
+    void FillAndFitSlice(TString nameSigma, TString nameMean, TString name2d);
     void DrawMuSigma(TVirtualPad* pad, TH1* h);
    
     void DrawOneH1(const TString canvasName, const TString name1, const TString drawOpt);

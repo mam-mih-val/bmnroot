@@ -97,6 +97,10 @@ void BmnTrackingQaReport::Draw() {
     TString thetaNamesOut[3] = {"Eff_vs_Theta_gem", "Fake_vs_Theta_gem", "SplitEff_vs_Theta_gem"};
     DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs theta per event for GEM TRACKS", thetaNamesIn, thetaNamesOut);
 
+    TString nhNamesIn[5] = {"Sim_vs_Nh_gem", "Rec_vs_Nh_gem", "Well_vs_Nh_gem", "Ghost_vs_Nh_gem", "Split_vs_Nh_gem"};
+    TString nhNamesOut[3] = {"Eff_vs_Nh_gem", "Fake_vs_Nh_gem", "SplitEff_vs_Nh_gem"};
+    DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs Nh per event for GEM TRACKS", nhNamesIn, nhNamesOut);
+
     DrawNhitsGem("Distribution of GEM RECO-tracks vs number of hits per track");
 
     DrawTwoH2("Distribution of GEM reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Pseudorapidity", "Nh_sim_Eta_sim_gem", "Nh_rec_Eta_rec_gem");
@@ -141,15 +145,15 @@ void BmnTrackingQaReport::Draw() {
     DrawOneH2("Pseudorapidity_reco vs Pseudorapidity_mc for GEM-tracks", "Eta_rec_Eta_sim_gem");
     DrawTwoH2("Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GEM-tracks", "Tx_rec_Tx_sim_gem", "Ty_rec_Ty_sim_gem");
     DrawThreeH2("Reco vs MC for X-, Y- and Z-component of Momentum for GEM-tracks", "Px_rec_Px_sim_gem", "Py_rec_Py_sim_gem", "Pz_rec_Pz_sim_gem");
-    DrawMomResGem("Momentum resolution for GEM-tracks", "momRes_2D_gem", "momRes_1D_gem", "momRes_Mean_gem");
+    DrawMomResGem("Momentum resolution for GEM-tracks", "momRes_2D_gem", "momRes_1D_gem", "momMean_1D_gem", "momRes_Mean_gem");
     DrawTwoH2("Tracks quality distributions", "MomRes_vs_Chi2_gem", "Mom_vs_Chi2_gem");
     DrawTwoH2("Momentum resolution and momentum vs. length of tracks", "MomRes_vs_Length_gem", "Mom_vs_Length_gem");
     DrawOneH2("Momentum resolution vs. Number of hits", "MomRes_vs_nHits_gem");
     DrawOneH2("Momentum resolution vs. theta", "MomRes_vs_Theta_gem");
     DrawTwoH1("Chi-square and length distributions", "Chi2_gem", "Length_gem", "");
 
-    TString namesResPullsF[10] = {"ResX_f_gem", "ResY_f_gem", "ResTx_f_gem", "ResTy_f_gem", "ResQp_f_gem", "PullX_f_gem", "PullY_f_gem", "PullTx_f_gem", "PullTy_f_gem", "PullQp_f_gem"};
-    TString namesResPullsL[10] = {"ResX_l_gem", "ResY_l_gem", "ResTx_l_gem", "ResTy_l_gem", "ResQp_l_gem", "PullX_l_gem", "PullY_l_gem", "PullTx_l_gem", "PullTy_l_gem", "PullQp_l_gem"};
+    TString namesResPullsF[15] = {"ResX_f_gem", "ResY_f_gem", "ResTx_f_gem", "ResTy_f_gem", "ResQp_f_gem", "ErrX_f_gem", "ErrY_f_gem", "ErrTx_f_gem", "ErrTy_f_gem", "ErrQp_f_gem", "PullX_f_gem", "PullY_f_gem", "PullTx_f_gem", "PullTy_f_gem", "PullQp_f_gem"};
+    TString namesResPullsL[15] = {"ResX_l_gem", "ResY_l_gem", "ResTx_l_gem", "ResTy_l_gem", "ResQp_l_gem", "ErrX_l_gem", "ErrY_l_gem", "ErrTx_l_gem", "ErrTy_l_gem", "ErrQp_l_gem", "PullX_l_gem", "PullY_l_gem", "PullTx_l_gem", "PullTy_l_gem", "PullQp_l_gem"};
 
     //    string str = R()->TableBegin("Residuals and Pulls, Mean", list_of("")("X")("Y")("Tx")("Ty")("q/p")("X")("Y")("Tx")("Ty")("q/p"));
     //    
@@ -172,6 +176,9 @@ void BmnTrackingQaReport::Draw() {
     //    str += R()->TableRow(strMeanF);
     //    str += R()->TableRow(strMeanF);
     //    str += R()->TableEnd();
+
+    DrawHitRes("X");
+    DrawHitRes("Y");
 
     DrawResAndPull("Residuals and Pulls for first parameters", namesResPullsF);
     DrawResAndPull("Residuals and Pulls for last parameters", namesResPullsL);
@@ -203,15 +210,15 @@ void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames,
     canvas->Divide(2, 1);
     canvas->cd(1);
     HM()->H1(sim)->Sumw2();
-//    HM()->H1(sim)->Scale(1. / nofEvents);
+    //    HM()->H1(sim)->Scale(1. / nofEvents);
     HM()->H1(rec)->Sumw2();
-//    HM()->H1(rec)->Scale(1. / nofEvents);
+    //    HM()->H1(rec)->Scale(1. / nofEvents);
     HM()->H1(well)->Sumw2();
-//    HM()->H1(well)->Scale(1. / nofEvents);
+    //    HM()->H1(well)->Scale(1. / nofEvents);
     HM()->H1(ghost)->Sumw2();
-//    HM()->H1(ghost)->Scale(1. / nofEvents);
+    //    HM()->H1(ghost)->Scale(1. / nofEvents);
     HM()->H1(split)->Sumw2();
-//    HM()->H1(split)->Scale(1. / nofEvents);
+    //    HM()->H1(split)->Scale(1. / nofEvents);
 
     HM()->H1(sim)->SetMinimum(0.0);
     HM()->H1(well)->SetMinimum(0.0);
@@ -237,9 +244,13 @@ void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames,
     labels2.push_back("Clones");
 
     //    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
-    for (Int_t i = 0; i < HM()->H2(sim)->GetXaxis()->GetNbins(); ++i) {
-        printf("%f / %f = %f\n", HM()->H1(sim)->GetBinContent(i), HM()->H1(well)->GetBinContent(i), HM()->H1(well)->GetBinContent(i) * 100.0 / HM()->H1(sim)->GetBinContent(i));
-    }
+    //    for (Int_t i = 0; i < HM()->H2(sim)->GetXaxis()->GetNbins(); ++i) {
+    //printf("%f / %f = %f\n", HM()->H1(sim)->GetBinContent(i), HM()->H1(well)->GetBinContent(i), HM()->H1(well)->GetBinContent(i) * 100.0 / HM()->H1(sim)->GetBinContent(i));
+    //        Float_t vEff = HM()->H1(well)->GetBinContent(i) * 100.0 / HM()->H1(sim)->GetBinContent(i);
+    //        if (vEff > 100.0)
+    //            vEff = HM()->H1(sim)->GetBinContent(i) * 100.0 / HM()->H1(well)->GetBinContent(i);
+    //        HM()->H1(eff)->SetBinContent(i, vEff);
+    //    }
 
     HM()->H1(eff)->Divide(HM()->H1(well), HM()->H1(sim), 1., 1., "B");
     HM()->H1(eff)->Scale(100.0);
@@ -320,30 +331,35 @@ void BmnTrackingQaReport::DrawEventsInfo(const string& canvasName) {
     DrawH2(HM()->H2("Impact_Mult"), kLinear, kLinear, kLinear, "colz");
 }
 
-void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d, TString nameSigma, TString nameMean) {
-    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1500, 500);
+void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d, TString nameSigma, TString nameMean, TString nameAver) {
+    TCanvas* canvas = CreateCanvas(canvasName.c_str(), canvasName.c_str(), 1600, 400);
     canvas->SetGrid();
-    canvas->Divide(3, 1);
+    canvas->Divide(4, 1);
     canvas->cd(1);
     DrawH2(HM()->H2(name2d), kLinear, kLinear, kLinear, "colz");
 
     canvas->cd(2);
-    FillAndFitSlice(nameSigma, name2d);
+    FillAndFitSlice(nameSigma, nameMean, name2d);
     HM()->H1(nameSigma)->SetMaximum(10.0);
     HM()->H1(nameSigma)->SetMinimum(0.0);
     DrawH1(HM()->H1(nameSigma), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
 
     canvas->cd(3);
+    HM()->H1(nameMean)->SetMaximum(10.0);
+    HM()->H1(nameMean)->SetMinimum(-10.0);
+    DrawH1(HM()->H1(nameMean), kLinear, kLinear, "PE1", kRed, 0.7, 0.75, 1.1, 20);
+
+    canvas->cd(4);
     TH1D* projY = HM()->H2(name2d)->ProjectionY("tmp1");
     for (Int_t iBin = 0; iBin < projY->GetNbinsX(); ++iBin) {
-        HM()->H1(nameMean)->SetBinContent(iBin, projY->GetBinContent(iBin));
+        HM()->H1(nameAver)->SetBinContent(iBin, projY->GetBinContent(iBin));
     }
 
-    DrawH1(HM()->H1(nameMean), kLinear, kLinear, "", kBlue, 0.7, 0.75, 1.1, 20);
-    HM()->H1(nameMean)->Fit("gaus", "RQWW", "", -10, 10);
-    HM()->H1(nameMean)->SetMaximum(HM()->H1(nameMean)->GetMaximum() * 1.05);
-    TF1 *fit = HM()->H1(nameMean)->GetFunction("gaus");
-    TPaveStats* ps = new TPaveStats(3.0, HM()->H1(nameMean)->GetMaximum() / 1.5, 10.0, HM()->H1(nameMean)->GetMaximum());
+    DrawH1(HM()->H1(nameAver), kLinear, kLinear, "", kBlue, 0.7, 0.75, 1.1, 20);
+    HM()->H1(nameAver)->Fit("gaus", "RQWW", "", -10, 10);
+    HM()->H1(nameAver)->SetMaximum(HM()->H1(nameAver)->GetMaximum() * 1.05);
+    TF1 *fit = HM()->H1(nameAver)->GetFunction("gaus");
+    TPaveStats* ps = new TPaveStats(3.0, HM()->H1(nameAver)->GetMaximum() / 1.5, 10.0, HM()->H1(nameAver)->GetMaximum());
     ps->SetFillColor(0);
     ps->SetShadowColor(0);
     ps->AddText(Form("#mu = %2.2f", fit->GetParameter(1)));
@@ -352,11 +368,11 @@ void BmnTrackingQaReport::DrawMomResGem(const string& canvasName, TString name2d
 }
 
 void BmnTrackingQaReport::DrawResAndPull(const TString canvasName, TString* inNames) {
-    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 600);
+    TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 1500, 1000);
     canvas->SetGrid();
-    canvas->Divide(5, 2);
+    canvas->Divide(5, 3);
 
-    for (Int_t i = 0; i < 10; ++i) {
+    for (Int_t i = 0; i < 15; ++i) {
         canvas->cd(i + 1);
         HM()->H1(inNames[i])->Fit("gaus", "RQWW", "", -4, 4);
         DrawH1(HM()->H1(inNames[i]), kLinear, kLog, "", kBlue, 0.7, 0.75, 1.1, 20);
@@ -385,8 +401,8 @@ void BmnTrackingQaReport::DrawPar(const TString canvasName, TString* inNames) {
     }
 }
 
-void BmnTrackingQaReport::FillAndFitSlice(TString name1d, TString name2d) {
-    Int_t nBins = HM()->H1(name1d)->GetXaxis()->GetNbins();
+void BmnTrackingQaReport::FillAndFitSlice(TString nameSigma, TString nameMean, TString name2d) {
+    Int_t nBins = HM()->H1(nameSigma)->GetXaxis()->GetNbins();
     Int_t momResStep = HM()->H2(name2d)->GetNbinsX() / nBins;
     Int_t bin = 0;
     for (Int_t iBin = 0; iBin < HM()->H2(name2d)->GetNbinsX(); iBin += momResStep) {
@@ -395,8 +411,12 @@ void BmnTrackingQaReport::FillAndFitSlice(TString name1d, TString name2d) {
         TF1 *fit = proj->GetFunction("gaus");
         Float_t sigma = fit->GetParameter(2);
         Float_t sigmaError = fit->GetParError(2);
-        HM()->H1(name1d)->SetBinContent(bin, sigma);
-        HM()->H1(name1d)->SetBinError(bin, sigmaError);
+        Float_t mean = fit->GetParameter(1);
+        Float_t meanError = fit->GetParError(1);
+        HM()->H1(nameSigma)->SetBinContent(bin, sigma);
+        HM()->H1(nameSigma)->SetBinError(bin, sigmaError);
+        HM()->H1(nameMean)->SetBinContent(bin, mean);
+        HM()->H1(nameMean)->SetBinError(bin, meanError);
         bin++;
     }
 }
@@ -453,6 +473,17 @@ void BmnTrackingQaReport::DrawOneH2(const TString canvasName, const TString name
     TCanvas* canvas = CreateCanvas(canvasName.Data(), canvasName.Data(), 500, 500);
     canvas->SetGrid();
     DrawH2(HM()->H2(name1), kLinear, kLinear, kLinear, "colz");
+}
+
+void BmnTrackingQaReport::DrawHitRes(TString axis) {
+    TString name = Form("%s Residuals between hits and tracks", axis.Data());
+    TCanvas* canvas = CreateCanvas(name.Data(), name.Data(), 1200, 800);
+    canvas->SetGrid();
+    canvas->Divide(3, 2);
+    for (Int_t i = 0; i < 6; ++i) {
+        canvas->cd(i + 1);
+        DrawH1(HM()->H1(Form("Res%s_%dst", axis.Data(), i)), kLinear, kLog, "", kRed, 0.7, 0.75, 1.1, 20);
+    }
 }
 
 void BmnTrackingQaReport::DrawTwoH2(const TString canvasName, const TString name1, const TString name2) {

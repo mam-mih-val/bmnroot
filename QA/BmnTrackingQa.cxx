@@ -56,13 +56,13 @@ fEtaCut(100000.0),
 fPCut(0.0),
 fUseConsecutivePointsInGem(kTRUE),
 fPRangeMin(0.),
-fPRangeMax(5.),
+fPRangeMax(15.),
 fPRangeBins(50),
 fYRangeMin(0.),
 fYRangeMax(4.),
 fYRangeBins(100),
 fEtaRangeMin(0.),
-fEtaRangeMax(6.),
+fEtaRangeMax(8.),
 fEtaRangeBins(50),
 fPtRangeMin(0.),
 fPtRangeMax(1.),
@@ -74,7 +74,7 @@ fHeader(),
 fMcToRecoMap(),
 fMCTracks(NULL),
 fPrimes(kFALSE),
-fNHitsCut(200),
+fNHitsCut(1000),
 fGlobalTracks(NULL) {
 }
 
@@ -142,14 +142,7 @@ void BmnTrackingQa::ReadDataBranches() {
     //    }
 
     if (fDet.GetDet(kGEM)) {
-        fGemSeeds = (TClonesArray*) ioman->GetObject("BmnGemSeed");
-        if (NULL == fGemSeeds) {
-            Fatal("Init", ": No GemSeeds array!");
-        }
-        fGemSeedMatches = (TClonesArray*) ioman->GetObject("BmnGemSeedMatch");
-        if (NULL == fGemSeedMatches) {
-            Fatal("Init", ": No BmnGemSeedMatch array!");
-        }
+        
         fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTrack");
         if (NULL == fGemTracks) {
             Fatal("Init", ": No GemTrack array!");
@@ -323,7 +316,7 @@ void BmnTrackingQa::CreateHistograms() {
 
     // Physics
     CreateH2("momRes_2D_glob", "P_{sim}, GeV/c", "#Delta P / P, %", "", 4 * fPRangeBins, fPRangeMin, fPRangeMax, 4 * fPRangeBins, -50.0, 50.0);
-    CreateH2("momRes_2D_gem", "P_{sim}, GeV/c", "#Delta P / P, %", "", 400, fPRangeMin, fPRangeMax, 400, -10.0, 10.0);
+    CreateH2("momRes_2D_gem", "P_{sim}, GeV/c", "#Delta P / P, %", "", 100, fPRangeMin, fPRangeMax, 100, -10.0, 10.0);
     CreateH2("EtaP_rec_gem", "#eta_{rec}", "P_{rec}, GeV/c", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_rec_glob", "#eta_{rec}", "P_{rec}, GeV/c", "", 400, fEtaRangeMin, fEtaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("EtaP_sim", "#eta_{sim}", "P_{sim}, GeV/c", "", 50, fEtaRangeMin, fEtaRangeMax, 50, fPRangeMin, fPRangeMax);
@@ -332,8 +325,9 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("ThetaP_sim", "#theta_{sim}", "P_{sim}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("ThetaP_rec_gem", "#theta_{rec}", "P_{rec}, GeV/c", "", 400, fThetaRangeMin, fThetaRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH1("momRes_1D_glob", "P_{sim}, GeV/c", "#LT#Delta P / P#GT, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("momRes_1D_gem", "P_{sim}, GeV/c", "#Delta P / P, #sigma, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("momRes_Mean_gem", "#Delta P / P, %", "Counter", 400, -10.0, 10.0);
+    CreateH1("momRes_1D_gem", "P_{sim}, GeV/c", "#Delta P / P, #sigma, %", fPRangeBins / 2, fPRangeMin, fPRangeMax);
+    CreateH1("momMean_1D_gem", "P_{sim}, GeV/c", "#Delta P / P, #mu, %", fPRangeBins / 2, fPRangeMin, fPRangeMax);
+    CreateH1("momRes_Mean_gem", "#Delta P / P, %", "Counter", 100, -10.0, 10.0);
     CreateH2("P_rec_P_sim_gem", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 400, fPRangeMin, fPRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("P_rec_P_sim_glob", "P_{sim}, GeV/c", "P_{rec}, GeV/c", "", 400, fPRangeMin, fPRangeMax, 400, fPRangeMin, fPRangeMax);
     CreateH2("Px_rec_Px_sim_gem", "P^{x}_{sim}, GeV/c", "P^{x}_{rec}, GeV/c", "", 400, -fPtRangeMax, fPtRangeMax, 400, -fPtRangeMax, fPtRangeMax);
@@ -400,8 +394,14 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Well_vs_Theta_gem", "#theta_{sim}", "Counter", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax);
     CreateH1("Fake_vs_Theta_gem", "#theta_{sim}", "Ghosts, %", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax);
 
+    CreateH1("Eff_vs_Nh_gem", "Number of hits", "Efficiency, %", nofBinsPoints, minNofPoints, maxNofPoints);
     CreateH1("Ghost_vs_Nh_gem", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
+    CreateH1("SplitEff_vs_Nh_gem", "Number of hits", "Splits, %", nofBinsPoints, minNofPoints, maxNofPoints);
+    CreateH1("Split_vs_Nh_gem", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
+    CreateH1("Sim_vs_Nh_gem", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
+    CreateH1("Rec_vs_Nh_gem", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
     CreateH1("Well_vs_Nh_gem", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
+    CreateH1("Fake_vs_Nh_gem", "Number of hits", "Ghosts, %", nofBinsPoints, minNofPoints, maxNofPoints);
 
     CreateH1("Eff_vs_P_glob", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Sim_vs_P_glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
@@ -412,13 +412,13 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Ghost_vs_Nh_glob", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
     CreateH1("Well_vs_Nh_glob", "Number of hits", "Counter", nofBinsPoints, minNofPoints, maxNofPoints);
 
-    CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 50, 400, -10, 10);
+    CreateH2("MomRes_vs_Chi2_gem", "#chi^{2}", "#Delta P / P, %", "", 400, 0, 10, 400, -10, 10);
     CreateH2("MomRes_vs_Length_gem", "Length, cm", "#Delta P / P, %", "", 400, 0, 400, 400, -10, 10);
     CreateH2("MomRes_vs_nHits_gem", "N_{hits}", "#Delta P / P, %", "", 10, 0, 10, 400, -10, 10);
     CreateH2("MomRes_vs_Theta_gem", "#theta_{sim}", "#Delta P / P, %", "", fThetaRangeBins, fThetaRangeMin, fThetaRangeMax, 400, -10, 10);
-    CreateH2("Mom_vs_Chi2_gem", "#chi^{2}", "P_{rec}, GeV/c", "", 400, 0, 50, 400, fPRangeMin, fPRangeMax);
+    CreateH2("Mom_vs_Chi2_gem", "#chi^{2}", "P_{rec}, GeV/c", "", 400, 0, 10, 400, fPRangeMin, fPRangeMax);
     CreateH2("Mom_vs_Length_gem", "Length, cm", "P_{rec}, GeV/c", "", 400, 0, 400, 400, fPRangeMin, fPRangeMax);
-    CreateH1("Chi2_gem", "#chi^{2} / NDF", "Counter", 400, 0, 100);
+    CreateH1("Chi2_gem", "#chi^{2} / NDF", "Counter", 400, 0, 10);
     CreateH1("Length_gem", "length, cm", "Counter", 400, 0, 400);
 
     CreateH1("VertResX_gem", "#DeltaV_{x}, cm", "Counter", 100, -1.0, 1.0);
@@ -438,6 +438,11 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("ResTx_f_gem", "Residual t_{x}", "", 100, -0.5, 0.5);
     CreateH1("ResTy_f_gem", "Residual t_{y}", "", 100, -0.5, 0.5);
     CreateH1("ResQp_f_gem", "Residual q/p, (GeV/c)^{-1}", "", 100, -10.0, 10.0);
+    CreateH1("ErrX_f_gem", "Error X, cm", "", 100, -1, 1);
+    CreateH1("ErrY_f_gem", "Error Y, cm", "", 100, -1, 1);
+    CreateH1("ErrTx_f_gem", "Error t_{x}", "", 100, -0.1, 0.1);
+    CreateH1("ErrTy_f_gem", "Error t_{y}", "", 100, -0.1, 0.1);
+    CreateH1("ErrQp_f_gem", "Error q/p, (GeV/c)^{-1}", "", 100, -1.0, 1.0);
     CreateH1("PullX_f_gem", "Pull X", "", 100, -4.0, 4.0);
     CreateH1("PullY_f_gem", "Pull Y", "", 100, -4.0, 4.0);
     CreateH1("PullTx_f_gem", "Pull t_{x}", "", 100, -4.0, 4.0);
@@ -449,6 +454,11 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("ResTx_l_gem", "Residual t_{x}", "", 100, -0.5, 0.5);
     CreateH1("ResTy_l_gem", "Residual t_{y}", "", 100, -0.5, 0.5);
     CreateH1("ResQp_l_gem", "Residual q/p, (GeV/c)^{-1}", "", 100, -10.0, 10.0);
+    CreateH1("ErrX_l_gem", "Error X, cm", "", 100, -1, 1);
+    CreateH1("ErrY_l_gem", "Error Y, cm", "", 100, -1, 1);
+    CreateH1("ErrTx_l_gem", "Error t_{x}", "", 100, -0.1, 0.1);
+    CreateH1("ErrTy_l_gem", "Error t_{y}", "", 100, -0.1, 0.1);
+    CreateH1("ErrQp_l_gem", "Error q/p, (GeV/c)^{-1}", "", 100, -1.0, 1.0);
     CreateH1("PullX_l_gem", "Pull X", "", 100, -4.0, 4.0);
     CreateH1("PullY_l_gem", "Pull Y", "", 100, -4.0, 4.0);
     CreateH1("PullTx_l_gem", "Pull t_{x}", "", 100, -4.0, 4.0);
@@ -465,19 +475,28 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH1("Tx_l_gem", "t_{x}", "", 100, -1.0, 1.0);
     CreateH1("Ty_l_gem", "t_{y}", "", 100, -1.0, 1.0);
     CreateH1("Qp_l_gem", "q/p, (GeV/c)^{-1}", "", 100, -20.0, 20.0);
+    
+    //hits residuals
+    for (Int_t iSt = 0; iSt < 6; ++iSt) {
+        CreateH1(Form("ResX_%dst", iSt), "ResX, cm", "Counter", 400, -0.1, 0.1);
+        CreateH1(Form("ResY_%dst", iSt), "ResY, cm", "Counter", 400, -1, 1);
+    }
 }
 
 void BmnTrackingQa::ProcessGem() {
     vector<Int_t> refs;
     vector<Int_t> splits;
 
-    CbmVertex* vrt = (CbmVertex*) fVertex->At(0);
+    CbmVertex* vrt = (fVertex == NULL) ? NULL : (CbmVertex*) fVertex->At(0);
 
     if (vrt != NULL) {
         FairMCEventHeader* evHead = (FairMCEventHeader*) FairRootManager::Instance()->GetObject("MCEventHeader.");
-        fHM->H1("VertResX_gem")->Fill(vrt->GetX() - evHead->GetX());
-        fHM->H1("VertResY_gem")->Fill(vrt->GetY() - evHead->GetY());
-        fHM->H1("VertResZ_gem")->Fill(vrt->GetZ() - evHead->GetZ());
+//        fHM->H1("VertResX_gem")->Fill(vrt->GetX() - evHead->GetX());
+//        fHM->H1("VertResY_gem")->Fill(vrt->GetY() - evHead->GetY());
+//        fHM->H1("VertResZ_gem")->Fill(vrt->GetZ() - evHead->GetZ());
+        fHM->H1("VertResX_gem")->Fill(vrt->GetX() - 0.0);
+        fHM->H1("VertResY_gem")->Fill(vrt->GetY() - 0.0);
+        fHM->H1("VertResZ_gem")->Fill(vrt->GetZ() + 21.7);
         fHM->H1("VertX_gem")->Fill(vrt->GetX());
         fHM->H1("VertY_gem")->Fill(vrt->GetY());
         fHM->H1("VertZ_gem")->Fill(vrt->GetZ());
@@ -528,6 +547,7 @@ void BmnTrackingQa::ProcessGem() {
         fHM->H1("Rec_vs_P_gem")->Fill(P_sim);
         fHM->H1("Rec_vs_Eta_gem")->Fill(Eta_sim);
         fHM->H1("Rec_vs_Theta_gem")->Fill(Theta_sim);
+        fHM->H1("Rec_vs_Nh_gem")->Fill(N_rec);
         fHM->H2("Nh_rec_Eta_rec_gem")->Fill(N_sim, Eta_sim);
         fHM->H2("Nh_rec_P_rec_gem")->Fill(N_sim, P_sim);
         fHM->H2("Nh_rec_Theta_rec_gem")->Fill(N_sim, Theta_sim);
@@ -577,6 +597,11 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("ResTx_f_gem")->Fill(pnt.GetTx() - pf->GetTx());
             fHM->H1("ResTy_f_gem")->Fill(pnt.GetTy() - pf->GetTy());
             fHM->H1("ResQp_f_gem")->Fill(pnt.GetQp() - pf->GetQp());
+            fHM->H1("ErrX_f_gem")->Fill(Sqrt(cov[0]));
+            fHM->H1("ErrY_f_gem")->Fill(Sqrt(cov[5]));
+            fHM->H1("ErrTx_f_gem")->Fill(Sqrt(cov[9]));
+            fHM->H1("ErrTy_f_gem")->Fill(Sqrt(cov[12]));
+            fHM->H1("ErrQp_f_gem")->Fill(Sqrt(cov[14]));
             fHM->H1("PullX_f_gem")->Fill((pnt.GetX() - pf->GetX()) / Sqrt(cov[0]));
             fHM->H1("PullY_f_gem")->Fill((pnt.GetY() - pf->GetY()) / Sqrt(cov[5]));
             fHM->H1("PullTx_f_gem")->Fill((pnt.GetTx() - pf->GetTx()) / Sqrt(cov[9]));
@@ -590,6 +615,11 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("ResTx_l_gem")->Fill(pntLast.GetTx() - pl->GetTx());
             fHM->H1("ResTy_l_gem")->Fill(pntLast.GetTy() - pl->GetTy());
             fHM->H1("ResQp_l_gem")->Fill(pntLast.GetQp() - pl->GetQp());
+            fHM->H1("ErrX_l_gem")->Fill(Sqrt(cov[0]));
+            fHM->H1("ErrY_l_gem")->Fill(Sqrt(cov[5]));
+            fHM->H1("ErrTx_l_gem")->Fill(Sqrt(cov[9]));
+            fHM->H1("ErrTy_l_gem")->Fill(Sqrt(cov[12]));
+            fHM->H1("ErrQp_l_gem")->Fill(Sqrt(cov[14]));
             fHM->H1("PullX_l_gem")->Fill((pntLast.GetX() - pl->GetX()) / Sqrt(cov[0]));
             fHM->H1("PullY_l_gem")->Fill((pntLast.GetY() - pl->GetY()) / Sqrt(cov[5]));
             fHM->H1("PullTx_l_gem")->Fill((pntLast.GetTx() - pl->GetTx()) / Sqrt(cov[9]));
@@ -607,6 +637,20 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("Tx_l_gem")->Fill(pl->GetTx());
             fHM->H1("Ty_l_gem")->Fill(pl->GetTy());
             fHM->H1("Qp_l_gem")->Fill(pl->GetQp());
+            
+            for (Int_t iHit = 0; iHit < track->GetNHits(); ++iHit) {
+                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetHitIndex(iHit));
+                Double_t hX = hit->GetX();
+                Double_t hY = hit->GetY();
+                Int_t st = hit->GetStation();
+                BmnFitNode* node = track->GetFitNode(st);
+//                Double_t tX = node->GetSmoothedParam()->GetX();
+//                Double_t tY = node->GetSmoothedParam()->GetY();
+                Double_t tX = node->GetUpdatedParam()->GetX();
+                Double_t tY = node->GetUpdatedParam()->GetY();
+                fHM->H1(Form("ResX_%dst", st))->Fill(tX - hX);
+                fHM->H1(Form("ResY_%dst", st))->Fill(tY - hY);
+            }            
         }
     }
 
@@ -614,7 +658,6 @@ void BmnTrackingQa::ProcessGem() {
         if (!fMCTrackCreator->TrackExists(i)) continue;
         const BmnMCTrack mcTrack = fMCTrackCreator->GetTrack(i);
         if (fPrimes && ((const CbmMCTrack*) (fMCTracks->At(i)))->GetMotherId() != -1) continue;
-        if (mcTrack.GetNofPoints(kGEM) > 7) continue;
         vector<BmnMCPoint> points = mcTrack.GetPoints(kGEM);
         set<Int_t> uniqStations;
         for (Int_t iPnt = 0; iPnt < points.size(); ++iPnt)
@@ -634,6 +677,7 @@ void BmnTrackingQa::ProcessGem() {
         fHM->H1("Split_vs_P_gem")->Fill(P);
         fHM->H1("Split_vs_Eta_gem")->Fill(eta);
         fHM->H1("Split_vs_Theta_gem")->Fill(theta);
+        fHM->H1("Split_vs_Nh_gem")->Fill(mcTrack.GetNofPoints(kGEM), -1);
         fHM->H1("Well_vs_P_gem")->Fill(P, -1); //remove splitted tracks from efficiency
         fHM->H1("Well_vs_Eta_gem")->Fill(eta, -1); //remove splitted tracks from efficiency
         fHM->H1("Well_vs_Theta_gem")->Fill(theta, -1); //remove splitted tracks from efficiency
@@ -643,9 +687,8 @@ void BmnTrackingQa::ProcessGem() {
 
     for (Int_t iTrack = 0; iTrack < fMCTracks->GetEntriesFast(); iTrack++) {
 
-        if (!fMCTrackCreator->TrackExists(iTrack)) continue;
+        if (!fMCTrackCreator->TrackExists(iTrack)) continue; //?
         const BmnMCTrack mcTrack = fMCTrackCreator->GetTrack(iTrack);
-        if (mcTrack.GetNofPoints(kGEM) > 7) continue;
         vector<BmnMCPoint> points = mcTrack.GetPoints(kGEM);
         set<Int_t> uniqStations;
         for (Int_t i = 0; i < points.size(); ++i)
@@ -669,6 +712,7 @@ void BmnTrackingQa::ProcessGem() {
         fHM->H1("Sim_vs_P_gem")->Fill(P);
         fHM->H1("Sim_vs_Eta_gem")->Fill(eta);
         fHM->H1("Sim_vs_Theta_gem")->Fill(theta);
+        fHM->H1("Sim_vs_Nh_gem")->Fill(mcTrack.GetNofPoints(kGEM));
         fHM->H2("Nh_sim_Eta_sim_gem")->Fill(mcTrack.GetNofPoints(kGEM), eta);
         fHM->H2("Nh_sim_Theta_sim_gem")->Fill(mcTrack.GetNofPoints(kGEM), theta);
         fHM->H2("Nh_sim_P_sim_gem")->Fill(mcTrack.GetNofPoints(kGEM), P);

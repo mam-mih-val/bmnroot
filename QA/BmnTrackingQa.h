@@ -204,7 +204,7 @@ private:
 
     // Minimal number of hits in track to be considered as accepted.
     // This is needed because the definition of the correctly reconstructed track
-    // is 70% of hits in the reconstructed track are from the same MC track.
+    // is 60% of hits in the reconstructed track are from the same MC track.
     // But this can lead to the situation when a reconstructed track has 4 hits,
     // all of them from the same MC track, which means that the track is correctly
     // reconstructed. BUT the real MC track has 12 points(hits). This is especially

@@ -14,7 +14,7 @@ fUsed(kFALSE) {
 BmnGemTrack::~BmnGemTrack() {
 }
 
-void BmnGemTrack::Print() {    
+void BmnGemTrack::Print() {
     printf("\n==== TRACK INFORMATION ====\n");
     printf("Number of hits: %d\n", GetNHits());
     printf("Chi^2: \t\t%3.2f\n", GetChi2());

@@ -53,6 +53,7 @@ set(SRCS
   BmnGemSeedFinderQA.cxx
   BmnGemTrackFinderQA.cxx
   BmnGemTrackFinder.cxx
+  BmnGemTracking.cxx
   BmnGemStripLayer.cxx
   BmnGemStripModule.cxx
   BmnGemStripStation.cxx
@@ -85,6 +86,7 @@ set(HEADERS
   BmnGemSeedFinderQA.h
   BmnGemTrackFinderQA.h
   BmnGemTrackFinder.h
+  BmnGemTracking.h
   BmnGemStripLayer.h
   BmnGemStripModule.h
   BmnGemStripStation.h

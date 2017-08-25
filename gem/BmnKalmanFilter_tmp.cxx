@@ -700,7 +700,7 @@ BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits)
         BmnGemHit* hit = (BmnGemHit*) hits->At(track->GetHitIndex(i));
         Double_t chi2Hit = lit::ChiSq(nodes[i].GetSmoothedParam(), hit);
         nodes[i].SetChiSqSmoothed(chi2Hit);
-        //track->SetChi2(track->GetChi2() + chi2Hit);
+        track->SetChi2(track->GetChi2() + chi2Hit);
     }
 
     FairTrackParam* parFirst = nodes[0].GetSmoothedParam();

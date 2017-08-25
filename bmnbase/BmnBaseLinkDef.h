@@ -11,6 +11,7 @@
 #pragma link C++ class CbmPrimaryVertexFinder+;
 #pragma link C++ class CbmFindPrimaryVertex+;
 #pragma link C++ class BmnFileSource+;
+#pragma link C++ class FitWLSQ+;
 
 #endif
 

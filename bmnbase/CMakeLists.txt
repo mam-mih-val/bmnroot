@@ -39,6 +39,7 @@ CbmPrimaryVertexFinder.cxx
 CbmFindPrimaryVertex.cxx
 BmnFileSource.cxx
 BmnMath.cxx
+FitWLSQ.cxx
 )
 
 Set(HEADERS)

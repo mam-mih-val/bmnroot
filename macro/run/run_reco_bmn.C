@@ -52,9 +52,9 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
 
-    Bool_t isField  = kTRUE;  // flag for tracking (to use mag.field or not)
+    Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kTRUE; // flag for tracking (run with target or not)
-    Bool_t isExp    = kFALSE; // flag for hit finder (to create digits or take them from data-file)
+    Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
@@ -123,8 +123,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         if (pCurrentRun->GetTargetParticle() == NULL) {
             targ = "-";
             isTarget = kFALSE;
-        }
-        else {
+        } else {
             targ = (pCurrentRun->GetTargetParticle())[0];
             isTarget = kTRUE;
         }
@@ -138,8 +137,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
-    }
-    else { // for simulated files
+    } else { // for simulated files
         if (!CheckFileExist(inputFileName)) return;
         fFileSource = new FairFileSource(inputFileName);
     }
@@ -234,26 +232,11 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
-    TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, 0.0);
-    BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
-    gemSF->SetField(isField);
-    gemSF->SetTarget(isTarget);
-    gemSF->SetRoughVertex(vAppr);
-    gemSF->SetLineFitCut(5.0);
-    gemSF->SetYstep(10.0);
-    gemSF->SetSigX(0.05);
-    gemSF->SetLorentzThresh(1.01);
-    gemSF->SetNbins(1000);
-
-    if (run_period == 5)
-        gemSF->AddStationToSkip(0);
-    fRunAna->AddTask(gemSF);
-
-    BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
-    gemTF->SetField(isField);
+    BmnGemTracking* gemTF = new BmnGemTracking();
     gemTF->SetTarget(isTarget);
-    gemTF->SetDistCut(5.0);
-    gemTF->SetNHitsCut(4);
+    gemTF->SetField(isField);
+    TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, -21.7);
+    gemTF->SetRoughVertex(vAppr);
     fRunAna->AddTask(gemTF);
 
     // Resid. analysis
@@ -269,7 +252,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     BmnGemVertexFinder* vf = new BmnGemVertexFinder();
     vf->SetField(isField);
-    // vf->SetVertexApproximation(vAppr.Z());
     vf->SetVertexApproximation(vAppr);
     fRunAna->AddTask(vf);
     // ====================================================================== //

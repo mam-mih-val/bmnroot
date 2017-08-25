@@ -12,10 +12,6 @@
 #pragma link C++ class BmnGemGas+;
 #pragma link C++ class BmnGemDigitizerQAHistograms+;
 #pragma link C++ class BmnGemTrack+;
-#pragma link C++ class BmnGemSeedFinder+;
-#pragma link C++ class BmnGemSeedFinderQA+;
-#pragma link C++ class BmnGemTrackFinderQA+;
-#pragma link C++ class BmnGemTrackFinder+;
 #pragma link C++ class BmnGemStripLayer+;
 #pragma link C++ class BmnGemStripModule+;
 #pragma link C++ class BmnGemStripStation+;

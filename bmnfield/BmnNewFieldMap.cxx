@@ -18,7 +18,7 @@ BmnNewFieldMap::BmnNewFieldMap()
 
 BmnNewFieldMap::BmnNewFieldMap(const char* mapName)
 : BmnFieldMap(mapName) {
-    fType = 1;
+  fType = 1;
 }
 
 BmnNewFieldMap::BmnNewFieldMap(BmnFieldPar* fieldPar)
@@ -27,7 +27,7 @@ BmnNewFieldMap::BmnNewFieldMap(BmnFieldPar* fieldPar)
 }
 
 BmnNewFieldMap::~BmnNewFieldMap() {
-
+    
 }
 
 Double_t BmnNewFieldMap::GetBx(Double_t x, Double_t y, Double_t z) {

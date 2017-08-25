@@ -49,10 +49,6 @@ set(SRCS
   BmnGemGas.cxx
   BmnManageQA.cxx
   BmnGemDigitizerQAHistograms.cxx
-  BmnGemSeedFinder.cxx
-  BmnGemSeedFinderQA.cxx
-  BmnGemTrackFinderQA.cxx
-  BmnGemTrackFinder.cxx
   BmnGemTracking.cxx
   BmnGemStripLayer.cxx
   BmnGemStripModule.cxx
@@ -82,10 +78,6 @@ set(HEADERS
   BmnGemGas.h
   BmnManageQA.h
   BmnGemDigitizerQAHistograms.h
-  BmnGemSeedFinder.h
-  BmnGemSeedFinderQA.h
-  BmnGemTrackFinderQA.h
-  BmnGemTrackFinder.h
   BmnGemTracking.h
   BmnGemStripLayer.h
   BmnGemStripModule.h

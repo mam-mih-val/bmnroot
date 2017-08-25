@@ -17,7 +17,6 @@
 #include "BmnKalmanFilter.h"
 #include "BmnFitNode.h"
 #include "BmnGemHit.h"
-#include "BmnGemTrackFinderQA.h"
 #include "BmnKalmanFilter_tmp.h"
 #include "BmnTrackFitter.h"
 #include "BmnMath.h"

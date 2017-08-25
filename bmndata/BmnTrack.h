@@ -75,6 +75,10 @@ public:
     FairTrackParam* GetParamLast() {
         return &fParamLast;
     }
+    
+    Double_t GetP() {
+        return 1.0 / fParamFirst.GetQp();
+    }
 
     /** Modifiers  **/
     void SetParamFirst(FairTrackParam& par) {
@@ -131,7 +135,7 @@ private:
     /** Track length **/
     Float_t fLength;
     
-    /** Track length **/
+    /** Number of hits on track **/
     Float_t fNhits;
 
     /** Maps from hit z position to hit index. STL map is used because it

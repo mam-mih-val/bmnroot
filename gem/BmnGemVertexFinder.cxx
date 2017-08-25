@@ -134,6 +134,7 @@ Float_t BmnGemVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
         Float_t a = fit_func->GetParameter(2);
         z_0 = -b / (2 * a);
         range /= 2;
+        delete vertex;
     }
     return (minZ);
 }
@@ -161,10 +162,11 @@ void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
     vx /= nOk;
     vy /= nOk;
 
-    // 2.5 - the best range from MC simulations and reconstruction (by A.Zelenow)
-    Double_t VX = (Abs(vz - fRoughVertex3D.Z()) < 2.5) ? vx : -1000.;
-    Double_t VY = (Abs(vz - fRoughVertex3D.Z()) < 2.5) ? vy : -1000.;
-    Double_t VZ = (Abs(vz - fRoughVertex3D.Z()) < 2.5) ? vz : -1000.;
+    Double_t range = 10.0;//2.5
+    // 2.5 - the best range from MC simulations and reconstruction (by A.Zelenoff)
+    Double_t VX = (Abs(vz - fRoughVertex3D.Z()) < range) ? vx : -1000.;
+    Double_t VY = (Abs(vz - fRoughVertex3D.Z()) < range) ? vy : -1000.;
+    Double_t VZ = (Abs(vz - fRoughVertex3D.Z()) < range) ? vz : -1000.;
 
     new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", VX, VY, VZ, 0.0, 0, fNTracks, TMatrixFSym(3), fRoughVertex3D);
    
@@ -177,3 +179,4 @@ void BmnGemVertexFinder::Finish() {
     outFile << "Vertex Finder Time: " << workTime;
     cout << "Work time of the GEM vertex finder: " << workTime << endl;
 }
+

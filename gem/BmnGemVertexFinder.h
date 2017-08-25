@@ -32,15 +32,15 @@ public:
     void SetField(Bool_t f) {
         fIsField = f;
     }
-    
+
     void SetVertexApproximation(Float_t f) {
         fRoughVertex = f;
     }
-    
+
     void SetVertexApproximation(TVector3 vertex) {
         fRoughVertex3D = vertex;
     }
-    
+
     void FindVertexByVirtualPlanes();
     Float_t FindVZByVirtualPlanes(Float_t z_0, Float_t range);
 
@@ -53,7 +53,7 @@ private:
 
     Int_t fEventNo; // event counter
     Int_t fNTracks; // number of reco tracks in event
-    
+
     BmnGemStripStationSet* fDetector;
 
     TClonesArray* fGemHitsArray;
@@ -71,4 +71,5 @@ private:
 
 
 #endif /* BMNGEMVERTEXFINDER_H */
+
 

@@ -23,7 +23,7 @@ class FairMCModuleDraw : public FairTask
     *@param name        Name of task
     *@param iVerbose    Verbosity level
     **/
-    FairMCModuleDraw(const char* name, Color_t color ,Style_t mstyle, Int_t iVerbose = 1);
+    FairMCModuleDraw(const char* name, Color_t color ,Style_t mstyle, Int_t iVerbose = 0);
 
     /** Destructor **/
     virtual ~FairMCModuleDraw();

@@ -16,7 +16,9 @@
 #include <vector>
 using namespace std;
 
+enum ElementList {MCPointList, MCTrackList, RecoPointList, RecoTrackList};  // enum for Event Element lists
 class FairEventManagerEditor;
+
 class FairEventManager : public TEveEventManager
 {
   public:
@@ -97,16 +99,8 @@ class FairEventManager : public TEveEventManager
     void SetEventEditor(FairEventManagerEditor* event_editor) { fEventEditor = event_editor; }
     FairEventManagerEditor* GetEventEditor() { return fEventEditor; }
 
-    // viewer for RPhi projection
-    TEveViewer* fRPhiView;
-    // viewer for RPhoZ projection
-    TEveViewer* fRhoZView;
-    // 3D view in multi-viewer
-    TEveViewer* fMulti3DView;
-    // RPhi projection in multi-viewer
-    TEveViewer* fMultiRPhiView;
-    // RPhoZ projection in multi-viewer
-    TEveViewer* fMultiRhoZView;
+    // VIEWERS for RPhi and RPhoZ projections, 3D view in multi-viewer, RPhi and RPhoZ projections in multi-viewer
+    TEveViewer *fRPhiView, *fRhoZView, *fMulti3DView, *fMultiRPhiView, *fMultiRhoZView;
 
     // projection manager for RPhi view
     TEveProjectionManager* fRPhiMng;
@@ -132,6 +126,8 @@ class FairEventManager : public TEveEventManager
 
     // Event Elements of Event Scene
     TEveElementList* EveMCPoints, *EveMCTracks, *EveRecoPoints, *EveRecoTracks;
+    void AddEventElement(TEveElement* element, ElementList element_list);
+
     // ZDC module visibility flags. NULL if there are no ZDC modules to show
     bool* isZDCModule; //!
     // current value of "reco points" checkbox - FOR CALORIMETER TOWERS

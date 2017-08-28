@@ -28,16 +28,7 @@ TVector3 FairMCPointDraw::GetVector(TObject* obj)
 
 void FairMCPointDraw::AddEveElementList()
 {
-    if (fEventManager->EveMCPoints == NULL)
-    {
-        fEventManager->EveMCPoints = new TEveElementList("MC points");
-        gEve->AddElement(fEventManager->EveMCPoints, fEventManager);
-        fEventManager->EveMCPoints->SetRnrState(kFALSE);
-        fEventManager->GetEventEditor()->fShowMCPoints->SetEnabled(kTRUE);
-    }
-
-    gEve->AddElement(fq, fEventManager->EveMCPoints);
-
+    fEventManager->AddEventElement(fq, MCPointList);
     return;
 }
 

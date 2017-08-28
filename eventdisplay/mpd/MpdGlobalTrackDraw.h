@@ -26,7 +26,7 @@ class MpdGlobalTrackDraw : public FairTask
     MpdGlobalTrackDraw();
 
     // constructor: @name - name of task, @iVerbose- verbosity level
-    MpdGlobalTrackDraw(const char* name, Int_t iVerbose = 1);
+    MpdGlobalTrackDraw(const char* name, Int_t iVerbose = 0);
 
     // destructor
     virtual ~MpdGlobalTrackDraw();

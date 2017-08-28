@@ -1,3 +1,5 @@
+<unidbparser_schema>
+
 <search name="table"/>
 <move down="1"/>
 <cycle child="tr" table_name="run_" skip="1">
@@ -13,3 +15,5 @@
  <element action="skip"/>
  <element action="skip"/>
 </cycle>
+
+</unidbparser_schema>

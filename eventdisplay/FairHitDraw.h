@@ -24,7 +24,7 @@ class FairHitDraw : public FairBoxSetDraw
       *@param name        Name of task
       *@param iVerbose    Verbosity level
       **/
-    FairHitDraw(const char* name, Int_t iVerbose = 1);
+    FairHitDraw(const char* name, Int_t iVerbose = 0);
 
   protected:
     TVector3 GetVector(TObject* obj);

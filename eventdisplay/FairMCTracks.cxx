@@ -193,14 +193,7 @@ TEveTrackList* FairMCTracks::GetTrGroup(TParticle* P)
     fTrList->SetRnrLine(kTRUE);
     fEveTrList->Add(fTrList);
 
-    if (fEventManager->EveMCTracks == NULL)
-    {
-        fEventManager->EveMCTracks = new TEveElementList("MC tracks");
-        gEve->AddElement(fEventManager->EveMCTracks, fEventManager);
-        fEventManager->EveMCTracks->SetRnrState(kFALSE);
-        fEventManager->GetEventEditor()->fShowMCTracks->SetEnabled(kTRUE);
-    }
-    gEve->AddElement(fTrList, fEventManager->EveMCTracks);
+    fEventManager->AddEventElement(fTrList, MCTrackList);
   }
 
   return fTrList;

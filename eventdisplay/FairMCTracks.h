@@ -31,7 +31,7 @@ class FairMCTracks : public FairTask
     *@param name        Name of task
     *@param iVerbose    Verbosity level
     **/
-    FairMCTracks(const char* name, Int_t iVerbose = 1);
+    FairMCTracks(const char* name, Int_t iVerbose = 0);
 
     /** Destructor **/
     virtual ~FairMCTracks();

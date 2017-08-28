@@ -383,10 +383,11 @@ int write_string_to_db(string &write_string, TSQLStatement* stmt, structParseSch
     return 0;
 }
 
+// recursive search for a node in XML document from root node by given node name
 xmlNodePtr findNodeByName(xmlNodePtr rootnode, const char* nodename)
 {
     xmlNodePtr node = rootnode;
-    if(node == NULL)
+    if (node == NULL)
     {
         cout<<"XML document is empty!"<<endl;
         return NULL;
@@ -394,7 +395,13 @@ xmlNodePtr findNodeByName(xmlNodePtr rootnode, const char* nodename)
 
     while (node != NULL)
     {
-        if (strcmp((char*)node->name, nodename) == 0)
+        if (node->type != XML_ELEMENT_NODE)
+        {
+            node = node->next;
+            continue;
+        }
+
+        if ((node->name != NULL) && (strcmp((char*)node->name, nodename) == 0))
             return node;
         else
         {
@@ -431,6 +438,24 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
         return - 2;
     }
 
+    xmlNodePtr cur_xml_node = xmlDocGetRootElement(docXML);
+    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
+    if (!cur_schema_node)
+    {
+        cout<<"Error: schema of XML parsing is empty"<<endl;
+        xmlFreeDoc(docXML);
+        xmlFreeDoc(docSchema);
+        return -4;
+    }
+    if (strcmp((char*)cur_schema_node->name, "unidbparser_schema") != 0)
+    {
+        cout<<"Error: it is not UniDbParser schema"<<endl;
+        xmlFreeDoc(docXML);
+        xmlFreeDoc(docSchema);
+        return -5;
+    }
+    cur_schema_node = cur_schema_node->children;
+
     // open connection to database
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
@@ -439,11 +464,8 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
         xmlFreeDoc(docSchema);
         return -3;
     }
-
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
-    xmlNodePtr cur_xml_node = xmlDocGetRootElement(docXML);
-    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
     string strTableName = "";
     // parse SCHEMA file
     while (cur_schema_node)
@@ -460,8 +482,16 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
         if (strcmp((char*)cur_schema_node->name, "search") == 0)
         {
             string strSearchName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"name");
-            // go the XML node with given name
+            // search for XML node with given name and move cursor to the new position
             cur_xml_node = findNodeByName(cur_xml_node, strSearchName.c_str());
+            if (cur_xml_node == NULL)
+            {
+                cout<<"Error: end of the XML document was reached while parsing (search for)"<<endl;
+                delete connUniDb;
+                xmlFreeDoc(docXML);
+                xmlFreeDoc(docSchema);
+                return -8;
+            }
 
             cout<<"Current node after search: "<<(char*)cur_xml_node->name<<endl;
         }
@@ -476,7 +506,21 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
 
                     int count = atoi((char*)value);
                     for (int i = 0; i < count; i++)
+                    {
                         cur_xml_node = cur_xml_node->children;
+                        if (cur_xml_node->type != XML_ELEMENT_NODE)
+                            cur_xml_node = cur_xml_node->next;
+
+                        if (cur_xml_node == NULL)
+                        {
+                            cout<<"Error: end of the XML document was reached while parsing (move - down)"<<endl;
+                            xmlFree(value);
+                            delete connUniDb;
+                            xmlFreeDoc(docXML);
+                            xmlFreeDoc(docSchema);
+                            return -6;
+                        }
+                    }
 
                     xmlFree(value);
                 }// if attribute name is "down"
@@ -491,13 +535,20 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
         {
             TString strChildName = (char*)xmlGetProp(cur_schema_node, (unsigned char*)"child");
 
+            // parse CYCLE attributes to vector of Elements
             int skip_count, column_count; char delimiter_char;
             vector<structParseSchema> vecElements;
-
-            // parse CYCLE attributes to vector of Elements
             parse_cycle_statement(cur_schema_node, vecElements, skip_count, delimiter_char, column_count);
 
             // prepare SQL query for TXT cycle
+            if (column_count == 0)
+            {
+                cout<<"Error: no columns were chosen for insert or update"<<endl;
+                delete connUniDb;
+                xmlFreeDoc(docXML);
+                xmlFreeDoc(docSchema);
+                return -7;
+            }
             TString sql = prepare_sql_code(vecElements, strTableName, isUpdate);
             cout<<"SQL code: "<<sql<<endl;
 
@@ -527,8 +578,10 @@ int UniDbParser::ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate)
 
                 int i = 0;
                 // cycle for XML child elements
+                cout<<"Cur node: "<<cur_xml_node->name<<endl;
                 for (xmlNodePtr cycle_child = cur_xml_node->children; cycle_child; cycle_child = cycle_child->next, i++)
                 {
+                    cout<<"cycle_child node: "<<cycle_child->name<<endl;
                     structParseSchema schema = vecElements[i];
                     if (schema.isSkip)
                         continue;
@@ -563,7 +616,6 @@ int UniDbParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
         cout<<"Error: reading CSV file '"<<csvName<<"' was failed"<<endl;
         return -1;
     }
-    string cur_line;
 
     // read schema
     xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
@@ -573,16 +625,29 @@ int UniDbParser::ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate)
         return - 2;
     }
 
+    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
+    if (!cur_schema_node)
+    {
+        cout<<"Error: schema of XML parsing is empty"<<endl;
+        xmlFreeDoc(docSchema);
+        return -4;
+    }
+    if (strcmp((char*)cur_schema_node->name, "unidbparser_schema") != 0)
+    {
+        cout<<"Error: it is not UniDbParser schema"<<endl;
+        xmlFreeDoc(docSchema);
+        return -5;
+    }
+    cur_schema_node = cur_schema_node->children;
+
     // open connection to database
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
         return -3;
-
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
-    string strTableName = "";
     // parse SCHEMA file
-    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
+    string strTableName = "", cur_line;
     while (cur_schema_node)
     {
         //cout<<"Current schema node: "<<cur_schema_node->name<<endl;
@@ -687,6 +752,21 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
         return - 2;
     }
 
+    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
+    if (!cur_schema_node)
+    {
+        cout<<"Error: schema of XML parsing is empty"<<endl;
+        xmlFreeDoc(docSchema);
+        return -4;
+    }
+    if (strcmp((char*)cur_schema_node->name, "unidbparser_schema") != 0)
+    {
+        cout<<"Error: it is not UniDbParser schema"<<endl;
+        xmlFreeDoc(docSchema);
+        return -5;
+    }
+    cur_schema_node = cur_schema_node->children;
+
     // open connection to database
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
@@ -696,7 +776,6 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
 
     // parse SCHEMA file
     string strTableName = "", cur_line;
-    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
     while (cur_schema_node)
     {
         cout<<"Current schema node: "<<cur_schema_node->name<<endl;
@@ -815,6 +894,21 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
         return - 2;
     }
 
+    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
+    if (!cur_schema_node)
+    {
+        cout<<"Error: schema of XML parsing is empty"<<endl;
+        xmlFreeDoc(docSchema);
+        return -4;
+    }
+    if (strcmp((char*)cur_schema_node->name, "unidbparser_schema") != 0)
+    {
+        cout<<"Error: it is not UniDbParser schema"<<endl;
+        xmlFreeDoc(docSchema);
+        return -5;
+    }
+    cur_schema_node = cur_schema_node->children;
+
     // open connection to database
     UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connUniDb == 0x00)
@@ -823,7 +917,6 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
     // parse SCHEMA file
     string strTableName = "";
     int skip_line_count = 0;
-    xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
     while (cur_schema_node)
     {
         // parse table name if exists

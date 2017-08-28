@@ -35,7 +35,7 @@ class FairBoxSetDraw : public FairTask
     *@param name        Name of task
     *@param iVerbose    Verbosity level
     **/
-    FairBoxSetDraw(const char* name, Int_t iVerbose = 1);
+    FairBoxSetDraw(const char* name, Int_t iVerbose = 0);
 
     /** Destructor **/
     virtual ~FairBoxSetDraw();

@@ -27,7 +27,7 @@ class FairMCStack : public FairTask
     *@param name        Name of task
     *@param iVerbose    Verbosity level
     **/
-    FairMCStack(const char* name, Int_t iVerbose = 1);
+    FairMCStack(const char* name, Int_t iVerbose = 0);
     /** Destructor **/
     virtual ~FairMCStack();
 

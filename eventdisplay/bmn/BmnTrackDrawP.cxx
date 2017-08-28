@@ -241,13 +241,7 @@ void BmnTrackDrawP::Exec(Option_t* option)
              cout<<"track added "<<track->GetName()<<endl;
     }
 
-    if (fEventManager->EveRecoTracks == NULL)
-    {
-        fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
-        gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
-        fEventManager->EveRecoTracks->SetRnrState(kFALSE);
-        fEventManager->GetEventEditor()->fShowRecoTracks->SetEnabled(kTRUE);
-    }
+    fEventManager->AddEventElement(fTrList, RecoTrackList);
 
     // redraw EVE scenes
     gEve->Redraw3D(kFALSE);

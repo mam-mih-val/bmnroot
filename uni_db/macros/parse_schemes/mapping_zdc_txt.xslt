@@ -1,3 +1,5 @@
+<unidbparser_schema>
+
 <cycle table_name="map_2dim" delimiter="\t" skip="1">
  <element action="multi">
   <subelement action="write" column_name="serial_hex" type="string"/> 
@@ -11,3 +13,5 @@
  <element action="write" column_name="y" type="int"/>
  <element action="write" column_name="is_connected" type="int"/>
 </cycle>
+
+</unidbparser_schema>

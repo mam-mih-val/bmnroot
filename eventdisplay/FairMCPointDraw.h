@@ -17,7 +17,7 @@ class FairMCPointDraw : public FairPointSetDraw
 {
   public:
     FairMCPointDraw();
-    FairMCPointDraw(const char* name, Color_t color, Style_t mstyle, Int_t iVerbose = 1)
+    FairMCPointDraw(const char* name, Color_t color, Style_t mstyle, Int_t iVerbose = 0)
         : FairPointSetDraw(name, color, mstyle, iVerbose) {}
     virtual ~FairMCPointDraw();
 

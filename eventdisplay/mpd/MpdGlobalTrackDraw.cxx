@@ -270,17 +270,9 @@ TEveTrackList* MpdGlobalTrackDraw::GetTrGroup(TParticle* P)
         fTrList = new  TEveTrackList(P->GetName(), fTrPr);
         fTrList->SetMainColor(fEventManager->Color(P->GetPdgCode()));
         fEveTrList->Add(fTrList);
-
-        if (fEventManager->EveRecoTracks == NULL)
-        {
-            fEventManager->EveRecoTracks = new TEveElementList("Reco tracks");
-            gEve->AddElement(fEventManager->EveRecoTracks, fEventManager);
-            fEventManager->EveRecoTracks->SetRnrState(kFALSE);
-            fEventManager->GetEventEditor()->fShowRecoTracks->SetEnabled(kTRUE);
-        }
-
-        gEve->AddElement(fTrList, fEventManager->EveRecoTracks);
         fTrList->SetRnrLine(kTRUE);
+
+        fEventManager->AddEventElement(fTrList, RecoTrackList);
     }
 
     return fTrList;

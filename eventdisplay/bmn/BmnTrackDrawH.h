@@ -28,7 +28,7 @@ class BmnTrackDrawH : public FairTask
     *@param name        Name of task and branch with BmnTrack* collection
     *@param iVerbose    Verbosity level
     **/
-    BmnTrackDrawH(const char* name, TString hitsBranchName, Int_t iVerbose = 1);
+    BmnTrackDrawH(const char* name, TString hitsBranchName, Int_t iVerbose = 0);
 
     /** Destructor **/
     virtual ~BmnTrackDrawH();

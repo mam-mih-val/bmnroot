@@ -26,7 +26,7 @@ class BmnGlobalTrackDraw : public FairTask
     BmnGlobalTrackDraw();
 
     // constructor: @name - name of task, @iVerbose- verbosity level
-    BmnGlobalTrackDraw(const char* name, Int_t iVerbose = 1);
+    BmnGlobalTrackDraw(const char* name, Int_t iVerbose = 0);
 
     // destructor
     virtual ~BmnGlobalTrackDraw();
@@ -65,8 +65,7 @@ class BmnGlobalTrackDraw : public FairTask
     TObjArray* fEveTrList;
     TEveTrackList* fTrList;             //!
 
-    Double_t MinEnergyLimit;
-    Double_t MaxEnergyLimit;
+    Double_t MinEnergyLimit, MaxEnergyLimit;
     Double_t PEnergy;
 
   private:

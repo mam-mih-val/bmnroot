@@ -33,16 +33,7 @@ TVector3 FairHitPointSetDraw::GetVector(TObject* obj)
 
 void FairHitPointSetDraw::AddEveElementList()
 {
-    if (fEventManager->EveRecoPoints == NULL)
-    {
-        fEventManager->EveRecoPoints = new TEveElementList("Reco points");
-        gEve->AddElement(fEventManager->EveRecoPoints, fEventManager);
-        fEventManager->EveRecoPoints->SetRnrState(kFALSE);
-        fEventManager->GetEventEditor()->fShowRecoPoints->SetEnabled(kTRUE);
-    }
-
-    gEve->AddElement(fq, fEventManager->EveRecoPoints);
-
+    fEventManager->AddEventElement(fq, RecoPointList);
     return;
 }
 

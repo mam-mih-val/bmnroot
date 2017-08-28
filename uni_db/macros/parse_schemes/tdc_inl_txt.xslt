@@ -1,3 +1,5 @@
+<unidbparser_schema>
+
 <cycle table_name="detector_parameter" delimiter="\t">
  <element action="multi">
   <subelement action="parse" parse_type="value:TOF1" column_name="detector_name" type="string"/>
@@ -9,3 +11,5 @@
   <subelement action="parse" parse_type="double_array" delimiter=" " column_name="parameter_value" type="binary"/>
  </element>
 </cycle>
+
+</unidbparser_schema>

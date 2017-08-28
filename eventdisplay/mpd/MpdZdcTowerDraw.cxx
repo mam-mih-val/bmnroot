@@ -217,14 +217,7 @@ void MpdZdcTowerDraw::Exec(Option_t* option)
         TEvePointSet* q = new TEvePointSet(GetName(), fDigitList->GetEntriesFast(), TEvePointSelectorConsumer::kTVT_XYZ);
         q->SetOwnIds(kTRUE);
         
-        if (fEventManager->EveRecoPoints == NULL)
-        {
-            fEventManager->EveRecoPoints = new TEveElementList("Reco points");
-            gEve->AddElement(fEventManager->EveRecoPoints, fEventManager);
-            fEventManager->EveRecoPoints->SetRnrState(kFALSE);
-            fEventManager->GetEventEditor()->fShowRecoPoints->SetEnabled(kTRUE);
-        }
-        gEve->AddElement(q, fEventManager->EveRecoPoints); 
+        fEventManager->AddEventElement(q, RecoPointList);
 
         fq = q;
 

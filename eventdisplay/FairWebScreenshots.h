@@ -32,7 +32,7 @@ class FairWebScreenshots : public FairTask
     //*@param name        Name of task
     //*@outputDir         Output directory
     //*@param iVerbose    Verbosity level
-    FairWebScreenshots(const char* name, char* output_dir, bool isWebServer = false, Int_t iVerbose = 1);
+    FairWebScreenshots(const char* name, char* output_dir, bool isWebServer = false, Int_t iVerbose = 0);
 
     // Destructor 
     virtual ~FairWebScreenshots();

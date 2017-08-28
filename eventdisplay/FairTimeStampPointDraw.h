@@ -17,7 +17,7 @@ class FairTimeStampPointDraw : public FairBoxSetDraw
 {
   public:
     FairTimeStampPointDraw();
-    FairTimeStampPointDraw(const char* name, Int_t iVerbose = 1);
+    FairTimeStampPointDraw(const char* name, Int_t iVerbose = 0);
     virtual ~FairTimeStampPointDraw();
 
   private:

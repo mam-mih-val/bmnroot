@@ -1,5 +1,6 @@
-// macro for getting average magnetic field for 930 run (5-th session)
-void tango_avg_field(int period = 5, int run = 930)
+// macro for getting average magnetic field for a given run (930 run of 5-th session by default)
+// returns average magnetic field coefficient (in case of errors the return value <= -1)
+double tango_avg_field(int period = 5, int run = 930)
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
@@ -12,7 +13,7 @@ void tango_avg_field(int period = 5, int run = 930)
     if (pRun == NULL)
     {
         cout<<"Macro finished with errors: no experimental run was found for given numbers"<<endl;
-        exit(-1);
+        return -1;
     }
 
     TString strDateStart = pRun->GetStartDatetime().AsSQLString();
@@ -21,7 +22,7 @@ void tango_avg_field(int period = 5, int run = 930)
     {
         cout<<"Macro finished with errors: no end datetime in the database for this run"<<endl;
         delete pRun;
-        exit(-2);
+        return -2;
     }
     TString strDateEnd = dateEnd->AsSQLString();
     delete pRun;
@@ -33,20 +34,24 @@ void tango_avg_field(int period = 5, int run = 930)
     if (tango_data == NULL)
     {
         cout<<"Macro finished with errors: return data is null"<<endl;
-        exit(-3);
+        return -3;
     }
 
     vector<double> vec_average = db_tango.GetAverageTangoData(tango_data);
     if (vec_average.empty())
     {
         cout<<"Macro finished with errors: Tango data is empty or average value is wrong"<<endl;
-        exit(-4);
+        return -4;
     }
     double average_field = vec_average[0];
     delete tango_data;
 
-    cout<<"Average magnetic field for run "<<period<<"-"<<run<<": "<<average_field<<" mv"<<endl;
-    cout<<"Macro finished successfully"<<endl;
+    double average_current = average_field * 900 / 55.87;
+    double average_coeff = average_field / 55.87;
+    cout<<"Average magnetic field from TangoDB for run "<<period<<"-"<<run<<": "<<average_field<<" mv. Calculated current: "
+        <<average_current<<" A. Ratio: "<<average_coeff<<endl<<"Macro finished successfully"<<endl;
+
+    return average_coeff;
 }
 
 

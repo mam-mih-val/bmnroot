@@ -1,0 +1,4 @@
+#!/bin/bash
+root -l tof700_tracks_results_aclic.C\($1\)
+#gdb --args root.exe -l tof700_tracks_results_aclic.C\($1\)
+#valgrind root.exe -l tof700_tracks_results_aclic.C\($1\)

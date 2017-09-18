@@ -2,6 +2,7 @@
 #define	BMNGEMSTRIPSTATIONSET_H
 
 #include "BmnGemStripStation.h"
+#include "BmnStripData.h"
 
 #include "TDOMParser.h"
 #include "TXMLNode.h"
@@ -64,14 +65,5 @@ private:
 
     ClassDef(BmnGemStripStationSet, 1);
 };
-
-//Exeptions --------------------------------------------------------------------
-class StationSet_Exception {
-public:
-    StationSet_Exception(TString message) {
-        std::cerr << "StationSet_Exception::" << message << "\n";
-    }
-};
-//------------------------------------------------------------------------------
 
 #endif

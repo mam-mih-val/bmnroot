@@ -2,6 +2,7 @@
 #define BMNSILICONSTATIONSET_H
 
 #include "BmnSiliconStation.h"
+#include "BmnStripData.h"
 
 #include "TDOMParser.h"
 #include "TXMLNode.h"
@@ -63,15 +64,6 @@ private:
     ClassDef(BmnSiliconStationSet, 1);
 
 };
-
-//Exeptions --------------------------------------------------------------------
-class StationSet_Exception {
-public:
-    StationSet_Exception(TString message) {
-        std::cerr << "StationSet_Exception::" << message << "\n";
-    }
-};
-//------------------------------------------------------------------------------
 
 #endif /* BMNSILICONSTATIONSET_H */
 

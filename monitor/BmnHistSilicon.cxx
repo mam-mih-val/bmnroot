@@ -39,13 +39,13 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path) : BmnHist() {
 //            break;
 //    }
     // Create histograms
-    sumMods = 10;// @TODO remove
+    sumMods = 8;// @TODO remove
     maxLayers = 2;// @TODO remove
     for (Int_t iStation = 0; iStation < 1/*gemStationSet->GetNStations()*/; iStation++) {
         vector<vector<TH1F*> > rowGEM;
 //        BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
 //        sumMods += st->GetNModules();
-        for (Int_t iModule = 0; iModule < 10/*st->GetNModules()*/; iModule++) {
+        for (Int_t iModule = 0; iModule < 8/*st->GetNModules()*/; iModule++) {
             vector<TH1F*> colGEM;
 //            BmnGemStripModule *mod = st->GetModule(iModule);
 //            if (maxLayers < mod->GetNStripLayers())
@@ -78,7 +78,7 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path) : BmnHist() {
     Names.resize(sumMods * maxLayers);
     for (Int_t iStation = 0; iStation < 1/*gemStationSet->GetNStations()*/; iStation++) {
 //        BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
-        for (Int_t iModule = 0; iModule < 10/*st->GetNModules()*/; iModule++) {
+        for (Int_t iModule = 0; iModule < 8/*st->GetNModules()*/; iModule++) {
 //            BmnGemStripModule *mod = st->GetModule(iModule);
             for (Int_t iLayer = 0; iLayer < 2/*mod->GetNStripLayers()*/; iLayer++) {
                 PadInfo *p = new PadInfo();

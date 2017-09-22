@@ -72,7 +72,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         BmnSiliconDigit dig;
         dig.SetStation(0);
-        dig.SetModule(silM->module);
+        dig.SetModule(silM->module - 1); // temp because in txt numeration from 0
         dig.SetStripLayer(silM->layer);
         dig.SetStripNumber(silM->start_strip + iSmpl);
         if (GetRun() > 1542)

@@ -37,7 +37,6 @@
 #include "BmnOnlineDecoder.h"
 #include "BmnHistZDC.h"
 
-#define RAW_DECODER_SOCKET_PORT 9090
 #define TTREE_MAX_SIZE          3e11
 
 using namespace std;

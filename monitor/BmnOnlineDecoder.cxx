@@ -148,7 +148,8 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
     if (zmq_getsockopt(_decoSocket, ZMQ_RCVBUF, &rcvBuf, &vl) == -1)
         DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
         printf("rcvbuf = %d\n", rcvBuf);
-    if (zmq_bind(_decoSocket, "tcp://*:5555") != 0) {
+    TString localDecoStr = Form("tcp://*:%s", RAW_DECODER_SOCKET_PORT);
+    if (zmq_bind(_decoSocket, localDecoStr.Data()) != 0) {
         DBGERR("zmq bind")
         return kBMNERROR;
     }
@@ -226,7 +227,7 @@ TString BmnOnlineDecoder::WatchNext(TString dirname, TString filename, Int_t cyc
     Int_t n;
     TString ret;
     while (kTRUE) {
-        n = scandir(dirname, &namelist, 0, versionsort);
+        n = scandir(dirname.Data(), &namelist, 0, versionsort);
         if (n < 0)
             perror("scandir");
         else {
@@ -280,7 +281,8 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
     _curDir = dirname;
     _ctx = zmq_ctx_new();
     _decoSocket = zmq_socket(_ctx, ZMQ_PUB);
-    if (zmq_bind(_decoSocket, "tcp://*:5555") != 0) {
+    TString localDecoStr = Form("tcp://*:%s", RAW_DECODER_SOCKET_PORT);
+    if (zmq_bind(_decoSocket, localDecoStr.Data()) != 0) {
         DBGERR("zmq bind")
         return kBMNERROR;
     }

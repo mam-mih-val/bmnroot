@@ -86,7 +86,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
     InitServer();
     RegisterAll();
     fRawDecoAddr = decoAddr;
-    TString conStr = TString("tcp://") + fRawDecoAddr + ":5555";
+    TString conStr = Form("tcp://%s:%d", fRawDecoAddr.Data(), RAW_DECODER_SOCKET_PORT);
     if (zmq_connect(_decoSocket, conStr.Data()) != 0) {
         DBGERR("zmq connect")
         return;

@@ -32,15 +32,15 @@
 
 #pragma link C++ namespace BmnGemStripConfiguration;
 #pragma link C++ enum ElectronDriftDirectionInModule;
-#pragma link C++ enum StripNumberingDirection;
-#pragma link C++ enum StripBorderPoint;
-#pragma link C++ enum StripLayerType;
+//#pragma link C++ enum StripNumberingDirection;
+//#pragma link C++ enum StripBorderPoint;
+//#pragma link C++ enum StripLayerType;
 
-#pragma link C++ class DeadZoneOfStripLayer;
-#pragma link C++ class vector<DeadZoneOfStripLayer>;
-#pragma link C++ class vector<StripCluster>; //test
-#pragma link C++ class vector<vector<StripCluster> >; //test
-#pragma link C++ class vector<BmnGemStripLayer>; //test
-#pragma link C++ class StripCluster; //test
+//#pragma link C++ class DeadZoneOfStripLayer;
+//#pragma link C++ class vector<DeadZoneOfStripLayer>;
+//#pragma link C++ class vector<StripCluster>; //test
+//#pragma link C++ class vector<vector<StripCluster> >; //test
+//#pragma link C++ class vector<BmnGemStripLayer>; //test
+//#pragma link C++ class StripCluster; //test
 
 #endif

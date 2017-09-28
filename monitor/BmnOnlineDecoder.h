@@ -32,7 +32,7 @@
 #include <BmnRawDataDecoder.h>
 #include "BmnEventHeader.h"
 
-#define RAW_DECODER_SOCKET_PORT 9090
+#define RAW_DECODER_SOCKET_PORT 5555
 #define RUN_FILE_CHECK_PERIOD    1e5
 #define MAX_CLIENTS               20
 #define RUN_FILE_CHECK_PERIOD    1e5

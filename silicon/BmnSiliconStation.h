@@ -3,6 +3,7 @@
 
 #include "Rtypes.h"
 #include "BmnSiliconModule.h"
+#include "BmnStripData.h"
 
 #include "TDOMParser.h"
 #include "TXMLNode.h"
@@ -107,14 +108,6 @@ private:
     Int_t CountDeadZonePoints(TXMLNode *node);
 
     ClassDef(BmnSiliconStation, 1);
-};
-
-//Exeptions --------------------------------------------------------------------
-class Station_Exception {
-public:
-    Station_Exception(TString message) {
-        std::cerr << "Station_Exception::" << message << "\n";
-    }
 };
 
 #endif /* BMNSILICONSTATION_H */

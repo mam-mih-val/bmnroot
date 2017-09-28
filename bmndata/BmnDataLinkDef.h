@@ -92,5 +92,6 @@
 #pragma link C++ class BmnCounter+;
 
 #pragma link C++ class BmnFitNode+;
+#pragma link C++ class BmnIdentifiableTrack+;
 
 #endif

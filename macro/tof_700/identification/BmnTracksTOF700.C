@@ -25,10 +25,13 @@
 #include "BmnDchDigit.h"
 #include "BmnTof2Digit.h"
 #include "BmnTof2Raw2DigitNew.h"
+#include "BmnIdentifiableTrack.h"
 
 #include <stdlib.h>
 
 #endif
+
+#define WRITE_TO_TREE_ONLY
 
 #define NUMBER_CHAMBERS 24
 #define IN_WIDTH_LIMITS 1
@@ -67,6 +70,7 @@ int nhi = 0;
 int nhit[NUMBER_CHAMBERS] = {0};
 int nhits[NUMBER_CHAMBERS][32] = {{0}};
 float tof[NUMBER_CHAMBERS][32] = {{0.}};
+float tofWidths[NUMBER_CHAMBERS][32] = {{0.}};
 
 using namespace std;
 using namespace TMath;
@@ -137,6 +141,13 @@ void BmnTracksTOF700(int runId = 1889) {
 	strcat(fname_root, "_results.root");
 	f = new TFile(fname_root,"RECREATE","Results of BmnTOF700");
     }
+    
+    TClonesArray *bmnIdentifiableTracks = new TClonesArray("BmnIdentifiableTrack");
+    
+    TFile *f_out = new TFile(Form("BmnIdentifiableTracks%d.root", runId), "RECREATE");
+    TTree *t_out = new TTree("cbmsim", "test_bmn");
+    
+    t_out->Branch("BmnIdentifiableTracks", &bmnIdentifiableTracks);
 
     TH1F *hntr = new TH1F("hntr","Number of tracks", 100,0,100);
     TH1F *hntr0 = new TH1F("hntr0","Number of good tracks", 100,0,100);
@@ -191,6 +202,7 @@ void BmnTracksTOF700(int runId = 1889) {
 //	tof700Digits->Clear();
 //	tracks->Clear();
 //	mtracks->Clear();
+        bmnIdentifiableTracks->Clear();
 
         bmnTree->GetEntry(iEv);
 
@@ -247,6 +259,7 @@ void BmnTracksTOF700(int runId = 1889) {
 	    nhit[plane]++;
 	    nhits[plane][strip]++;
 	    tof[plane][strip] = time;
+            tofWidths[plane][strip] = width;
 	    istr[plane] = strip;
 	    TOF2->get_strip_xyz(plane, strip, &x, &y, &z);
 	    hxytof->Fill(x,y);
@@ -357,13 +370,34 @@ void BmnTracksTOF700(int runId = 1889) {
 //		    hmass->Fill(mass);
 //		    if (ic == CHA) if (nhit[CHA] == 1) if (is == STR3) hmass->Fill(mass);
 		    if (ic == CHA || CHA < 0) hmass->Fill(mass);
+                    
+                    BmnIdentifiableTrack *bmnIdentifiableTrack = new((*bmnIdentifiableTracks)
+                            [bmnIdentifiableTracks->GetEntriesFast()])BmnIdentifiableTrack();
+                    bmnIdentifiableTrack->SetMassQ(mass);
+                    bmnIdentifiableTrack->SetBeta(beta);
+                    bmnIdentifiableTrack->SetLength(le);
+                    bmnIdentifiableTrack->SetPq(p);
+                    bmnIdentifiableTrack->SetTime((tof[ic][is])+21.628370);
+                    bmnIdentifiableTrack->SetTOF700Plane(ic);
+                    bmnIdentifiableTrack->SetTOF700Strip(is);
+                    bmnIdentifiableTrack->SetTOF700Amplitude(tofWidths[ic][is]);
+                    bmnIdentifiableTrack->SetTOF700StripHits(nhits[ic][is]);
 		}
 	    }
 	} // tracks loop
 	hntr0->Fill(ntr0);
+        t_out->Fill();
     } // event loop
 
     if (f) f->Write();
+    
+#ifdef WRITE_TO_TREE_ONLY
+    f_out->cd();
+    t_out->Write();
+    f_out->Close();
+    
+    return;
+#endif
 
     TLine *l = 0;
 

@@ -103,6 +103,7 @@ BmnEventHeader.cxx
 BmnRunHeader.cxx
 BmnCounterTask.cxx
 BmnAdcProcessor.cxx
+BmnIdentifiableTrack.cxx
 BmnFitNode.h
 BmnEnums.h
 DigiArrays.h

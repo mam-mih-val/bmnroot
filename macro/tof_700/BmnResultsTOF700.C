@@ -12,17 +12,30 @@
 #include "TGeoManager.h"
 
 #define NUMBER_CHAMBERS 24
+#define IN_WIDTH_LIMITS 1
+
+// No stack chambers
 //#define DIFF_CHAMB_1 -1
+//#define DIFF_CHAMB_2 -1
+
+// Stack chambers for run period 6
 #define DIFF_CHAMB_1 9
-#define DIFF_CHAMB_2 10
-//#define DIFF_CHAMB_1 9
-//#define DIFF_CHAMB_2 18
+#define DIFF_CHAMB_2 18
+
 //#define STRIP_1 0
 //#define STRIP_2 31
-//#define STRIP_1 20
+//#define STRIP_1_2 0
+//#define STRIP_2_2 31
+
+//#define STRIP_1 21
 //#define STRIP_2 23
+//#define STRIP_1_2 21
+//#define STRIP_2_2 23
+
 #define STRIP_1 21
 #define STRIP_2 21
+#define STRIP_1_2 21
+#define STRIP_2_2 21
 
 #if NUMBER_CHAMBERS == 15
 int champos[NUMBER_CHAMBERS] = {5,10,1,6,11,2,7,12,3,8,13,4,9,14,0};
@@ -82,6 +95,9 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
     TH1F *htimemax[NUMBER_CHAMBERS] = {0};
     TProfile *timeprof[NUMBER_CHAMBERS] = {0};
     TH1F *hdiff = 0;
+    TH2F *htvst = 0;
+    TH2F *htvss1 = 0, *htvss2 = 0, *hsvss = 0;
+    TH1F *htimemax1 = 0, *htimemax2 = 0;
 
     TFile *f = NULL;
     if (strlen(fname))
@@ -120,14 +136,37 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
 	wma[i] = 3150;
     }
 
-    sprintf(name,"Time_diff_chabmers_%d_%d", DIFF_CHAMB_1, DIFF_CHAMB_2);
+    sprintf(name,"Time_diff_chambers_%d_%d", DIFF_CHAMB_1, DIFF_CHAMB_2);
     sprintf(title,"Time difference, chambers %d and %d", DIFF_CHAMB_1, DIFF_CHAMB_2);
-    hdiff = new TH1F(name, title, 10000, -250, 250);
+    hdiff = new TH1F(name, title, 10000, -200, 200);
+
+    sprintf(name,"Time_vs_time_chambers_%d_%d", DIFF_CHAMB_1, DIFF_CHAMB_2);
+    sprintf(title,"Time vs Time, chambers %d and %d", DIFF_CHAMB_1, DIFF_CHAMB_2);
+    htvst = new TH2F(name, title, 1000, -20, 20, 1000, -20, 20);
+
+    sprintf(name,"Time_chamber_%d_max_strip_both", DIFF_CHAMB_1+1);
+    sprintf(title,"Time, chamber %d, max strip, both chamber", DIFF_CHAMB_1+1);
+    htimemax1 = new TH1F(name, title, 2000, -50, 50);
+
+    sprintf(name,"Time_chamber_%d_max_strip_both", DIFF_CHAMB_2+1);
+    sprintf(title,"Time, chamber %d, max strip, both chamber", DIFF_CHAMB_2+1);
+    htimemax2 = new TH1F(name, title, 2000, -50, 50);
+
+    sprintf(name,"Time_vs_strip_chamber_%d", DIFF_CHAMB_1+1);
+    sprintf(title,"Time vs strip, chamber %d", DIFF_CHAMB_1+1);
+    htvss1 = new TH2F(name, title, 32, 0, 32, 2000, -50, 50);
+
+    sprintf(name,"Time_vs_strip_chamber_%d", DIFF_CHAMB_2+1);
+    sprintf(title,"Time vs strip, chamber %d", DIFF_CHAMB_2+1);
+    htvss2 = new TH2F(name, title, 32, 0, 32, 2000, -50, 50);
+
+    sprintf(name,"Strip_vs_strip_chambers_%d_%d _", DIFF_CHAMB_1+1, DIFF_CHAMB_2+1);
+    sprintf(title,"Strip vs strip, chambers %d and %d", DIFF_CHAMB_1+1, DIFF_CHAMB_2+1);
+    hsvss = new TH2F(name, title, 32, 0, 32, 32, 0, 32);
 
     Int_t nchamb1 = 0, nchamb2 = 0, nchamb12 = 0, nchamb21 = 0, nchamb12n = 0, nchamb12nn = 0;
 
     for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
-//    for (Int_t iEv = startEvent; iEv < startEvent + 10000; iEv++) {
         bmnTree->GetEntry(iEv);
 
         if (iEv % 10000 == 0)
@@ -153,14 +192,12 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
     	    Short_t plane = digit->GetPlane();
     	    Short_t strip = digit->GetStrip();
     	    Float_t time = digit->GetTime();
-//	    if (plane == 17) time -= 24.;
     	    Float_t width = digit->GetAmplitude();
 	    Float_t lrdiff = digit->GetDiff();
 //    	    if (iEv % 10 == 0) cout << "plane = " << plane << " strip = " << strip << " time = " << time << " width = " << width << endl;
 //    	    if (iEv % 10 == 0) cout << "wmi = " << wmi[plane] << " wma = " << wma[plane] << endl;
 	    if (plane >= NUMBER_CHAMBERS) continue;
-//	    if (plane == 18 && (strip < 20 || strip > 23) ) continue;
-//	    if (plane ==  9 && (strip < 20 || strip > 23) ) continue;
+//	    if (lrdiff < -0.5 || lrdiff > 0.5) continue;
 	    hwidth[plane]->Fill(width);
 	    smax1[plane] = strip;
 	    if (width > wmax[plane])
@@ -169,7 +206,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
 		tmax[plane] = time;
 		smax[plane] = strip;
 	    }
-	    if (width < wmi[plane] || width > wma[plane]) continue;
+	    if (IN_WIDTH_LIMITS) if (width < wmi[plane] || width > wma[plane]) continue;
 	    htime[plane]->Fill(time);
 	    hstrips[plane]->Fill(strip);
 	    hlrdiff[plane]->Fill(lrdiff);
@@ -182,7 +219,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
 	    if ((smax1[DIFF_CHAMB_2-1] >= 0)||(smax1[DIFF_CHAMB_2] >= 0)||(smax1[DIFF_CHAMB_2+1] >= 0)) nchamb12n++;
 	    if ((smax1[DIFF_CHAMB_2-1] >= 0)||(smax1[DIFF_CHAMB_2] >= 0)||(smax1[DIFF_CHAMB_2+1] >= 0)||(smax1[8] >= 0)||(smax1[10] >= 0)) nchamb12nn++;
 	}
-	if (DIFF_CHAMB_1 >= 0) if ((smax1[DIFF_CHAMB_2] >= STRIP_1) && (smax1[DIFF_CHAMB_2] >= STRIP_2))
+	if (DIFF_CHAMB_1 >= 0) if ((smax1[DIFF_CHAMB_2] >= STRIP_1_2) && (smax1[DIFF_CHAMB_2] >= STRIP_2_2))
 	{
 	    nchamb2++;
 	    if ((smax1[DIFF_CHAMB_1] >= 0)) nchamb21++;
@@ -192,17 +229,24 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
 	    if (smax[i] > -1)
 	    {
 		timeprof[i]->Fill(wmax[i], tmax[i]);
-		if (wmax[i] < wmi[i] || wmax[i] > wma[i]) continue;
+		if (IN_WIDTH_LIMITS) if (wmax[i] < wmi[i] || wmax[i] > wma[i]) continue;
 		htimemax[i]->Fill(tmax[i]);
 		hstripsmax[i]->Fill(smax[i]);
 	    }
 	}
 	if (DIFF_CHAMB_1 < 0) continue;
-	if (wmax[DIFF_CHAMB_1] < wmi[DIFF_CHAMB_1] || wmax[DIFF_CHAMB_1] > wma[DIFF_CHAMB_1]) continue;
-	if (wmax[DIFF_CHAMB_2] < wmi[DIFF_CHAMB_2] || wmax[DIFF_CHAMB_2] > wma[DIFF_CHAMB_2]) continue;
-	if ((smax[DIFF_CHAMB_1] >= STRIP_1) && (smax[DIFF_CHAMB_2] >= STRIP_1) && (smax[DIFF_CHAMB_1] <= STRIP_2) && (smax[DIFF_CHAMB_2] <= STRIP_2) )
+	if (IN_WIDTH_LIMITS) if (wmax[DIFF_CHAMB_1] < wmi[DIFF_CHAMB_1] || wmax[DIFF_CHAMB_1] > wma[DIFF_CHAMB_1]) continue;
+	if (IN_WIDTH_LIMITS) if (wmax[DIFF_CHAMB_2] < wmi[DIFF_CHAMB_2] || wmax[DIFF_CHAMB_2] > wma[DIFF_CHAMB_2]) continue;
+	if (smax[DIFF_CHAMB_1] >= 0) htvss1->Fill(smax[DIFF_CHAMB_1],tmax[DIFF_CHAMB_1]);
+	if (smax[DIFF_CHAMB_2] >= 0) htvss2->Fill(smax[DIFF_CHAMB_2],tmax[DIFF_CHAMB_2]);
+	if (smax[DIFF_CHAMB_1] >= 0 && smax[DIFF_CHAMB_2] >= 0) hsvss->Fill(smax[DIFF_CHAMB_2],smax[DIFF_CHAMB_1]);
+	if ((smax[DIFF_CHAMB_1] >= STRIP_1) && (smax[DIFF_CHAMB_2] >= STRIP_1_2) && (smax[DIFF_CHAMB_1] <= STRIP_2) && (smax[DIFF_CHAMB_2] <= STRIP_2_2) )
 	{
-		hdiff->Fill(tmax[DIFF_CHAMB_1]-tmax[DIFF_CHAMB_2]);
+		htvst->Fill(tmax[DIFF_CHAMB_2],tmax[DIFF_CHAMB_1]);
+		htimemax1->Fill(tmax[DIFF_CHAMB_1]);
+		htimemax2->Fill(tmax[DIFF_CHAMB_2]);
+//		if ((tmax[DIFF_CHAMB_1] > 0.3) && (tmax[DIFF_CHAMB_2] < 0.3) )
+		    hdiff->Fill(tmax[DIFF_CHAMB_1]-tmax[DIFF_CHAMB_2]);
 	}
     } // event loop
 
@@ -215,6 +259,8 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
     for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn(htimemax[i], -0.2, +0.2);
 
 //    FitIn2Sigma(hdiff);
+//    FitIn2Sigma(htimemax1);
+//    FitIn2Sigma(htimemax2);
 //    for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn2Sigma(htime[i]);
 //    for (int i=0; i<NUMBER_CHAMBERS; i++) FitIn2Sigma(htimemax[i]);
 
@@ -292,11 +338,38 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
     if (DIFF_CHAMB_1 < 0) return;
 
     TCanvas *cdif = new TCanvas("cdif", "Time Difference", 900, 900);
-    cdif->Divide(1,1);
+    cdif->Divide(2,2);
     cdif->cd();
     cdif->cd(1);
     hdiff->Draw();
     gPad->AddExec("exselt","select_hist()");
+    cdif->cd(2);
+    htimemax1->Draw();
+    gPad->AddExec("exselt","select_hist()");
+    cdif->cd(3);
+    htvst->Draw();
+    gPad->AddExec("exselt","select_hist()");
+    cdif->cd(4);
+    htimemax2->Draw();
+    gPad->AddExec("exselt","select_hist()");
+
+    TCanvas *cstr = new TCanvas("cstr", "Time vs Strip", 900, 900);
+    cstr->Divide(1,2);
+    cstr->cd();
+    cstr->cd(1);
+    htvss1->Draw();
+    gPad->AddExec("exselt","select_hist()");
+    cstr->cd(2);
+    htvss2->Draw();
+    gPad->AddExec("exselt","select_hist()");
+
+    TCanvas *cstrstr = new TCanvas("cstrstr", "Strip vs strip", 900, 900);
+    cstrstr->Divide(1,1);
+    cstrstr->cd();
+    cstrstr->cd(1);
+    hsvss->Draw();
+    gPad->AddExec("exselt","select_hist()");
+
     if (f) f->Write();
 }
 

@@ -129,6 +129,7 @@ void BmnTrackDrawH::Exec(Option_t* option)
         TEveTrack* track = new TEveTrack(P, particlePDG, fTrPr);
         // set line color corresponding PDG particle code
         track->SetLineColor(fEventManager->Color(particlePDG));
+        track->SetLineWidth(2);
 
         Int_t Np = current_track->GetNHits();
 

@@ -33,7 +33,7 @@ void tango_gem_u(char* date_start = "2016-12-21 12:20:00", char* date_end = "201
     cout<<"Macro finished successfully"<<endl;
 }
 
-// for given run
+// for a given run
 void tango_gem_u(int period, int run)
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");

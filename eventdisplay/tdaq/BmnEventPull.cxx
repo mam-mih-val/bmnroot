@@ -140,6 +140,8 @@ class BmnPullSampling : public PullSampling
         rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
         rawDataDecoder->SetSiliconMapping("SILICON_map_run6.txt");
         rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
+        // in case comment out the line decoder->SetTof400Mapping("...")
+        // the maps of TOF400 will be readed from DB (only for JINR network)
         rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
         rawDataDecoder->SetTof700Mapping("TOF700_map_period_6.txt");
         rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");

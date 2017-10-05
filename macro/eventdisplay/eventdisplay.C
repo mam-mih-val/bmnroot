@@ -29,12 +29,11 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
     FairRunAna* fRunAna = new FairRunAna();
 
     int run_period = -1, run_number = -1;
-    bool isTarget = false, isField = false;
+    bool isTarget = false, isField = true;
     FairSource* fFileSource = NULL;
-    switch (data_source)
-    {
+
     // FOR SIMULATION : set source of events to display and addtiional parameters
-    case 0:
+    if (data_source == 0)
     {
         // check file existence with MC data and detector geometry
         if (!CheckFileExist(sim_run_info))
@@ -58,11 +57,10 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
             ((FairFileSource*)fFileSource)->AddFriend(reco_file);
         else
             cout<<endl<<"Warning: File with reconstructed data wasn't found!"<<endl;
-        }
-
-        break;
-    // FOR EXPERIMENTAL DATA FROM RECONSTRUCTED ROOT FILE
-    case 1:
+    }
+    // FOR EXPERIMENTAL DATA
+    // FROM RECONSTRUCTED ROOT FILE (data_source == 1), FROM DIRECTORY WITH RAW .DATA FILES (data_source == 2)
+    else
     {
         TString strRunInfo(sim_run_info);
         Ssiz_t indDash = strRunInfo.First('-');
@@ -86,7 +84,7 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
             TFile* geoFile = new TFile(root_file_path, "READ");
             if (!geoFile->IsOpen())
             {
-                cout << "Error: could not open ROOT file with geometry!" << endl;
+                cout<<"Error: could not open ROOT file with geometry!"<<endl;
                 return;
             }
             TList* keyList = geoFile->GetListOfKeys();
@@ -97,7 +95,7 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
                 key->ReadObj();
             else
             {
-                cout << "Error: TGeoManager isn't top element in geometry file " << root_file_path << endl;
+                cout<<"Error: TGeoManager isn't top element in geometry file "<<root_file_path<<endl;
                 return;
             }
 
@@ -141,97 +139,27 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
             return;
         }
 
+        if (!CheckFileExist(reco_file)) return;
+
         // set source as raw data file
-        if (!CheckFileExist(reco_file)) return;
-        fFileSource = new BmnFileSource(reco_file);
-
-        break;
-    }
-    // FOR EXPERIMENTAL DATA FROM DIRECTORY WITH RAW .DATA FILES
-    case 2:
-    {
-        // load TDAQ
-        gSystem->Load("libemon");
-        gSystem->Load("libemon-dal");
-        gSystem->Load("libcmdline");
-        gSystem->Load("libipc");
-        gSystem->Load("libowl");
-        gSystem->Load("libomniORB4");
-        gSystem->Load("libomnithread");
-        gSystem->Load("libers");
-
-        TString strRunInfo(sim_run_info);
-        Ssiz_t indDash = strRunInfo.First('-');
-        if ((indDash > 0) && (strRunInfo.BeginsWith("run")))
-        {
-            // get run period
-            run_period = TString(strRunInfo(3, indDash - 3)).Atoi();
-            // get run number
-            run_number = TString(strRunInfo(indDash+1, strRunInfo.Length() - indDash-1)).Atoi();
-
-            // get geometry for run
-            TString root_file_path = "current_geo_file.root";
-            Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, root_file_path.Data());
-            if (res_code != 0)
-            {
-                cout << "\nGeometry couldn't' be read from the database" << endl;
-                return;
-            }
-
-            // get gGeoManager from ROOT file (if required)
-            TFile* geoFile = new TFile(root_file_path, "READ");
-            if (!geoFile->IsOpen())
-            {
-                cout << "Error: could not open ROOT file with geometry!" << endl;
-                return;
-            }
-            TList* keyList = geoFile->GetListOfKeys();
-            TIter next(keyList);
-            TKey* key = (TKey*) next();
-            TString className(key->GetClassName());
-            if (className.BeginsWith("TGeoManager"))
-                key->ReadObj();
-            else
-            {
-                cout << "Error: TGeoManager isn't top element in geometry file " << root_file_path << endl;
-                return;
-            }
-
-            // set magnet field with factor corresponding the given run (for GEANE)
-            UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
-            if (pCurrentRun == 0)
-                return;
-
-            Double_t fieldScale = 0.0;
-            Double_t map_current  = 55.87;
-            Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
-            if ((field_voltage == NULL) || (*field_voltage < 10))
-            {
-                fieldScale = 0;
-                isField = kFALSE;
-            }
-            else
-                fieldScale = (*field_voltage) / map_current;
-            BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
-            magField->SetScale(fieldScale);
-            magField->Init();
-            fRunAna->SetField(magField);
-            if (pCurrentRun->GetTargetParticle() != NULL)
-                isTarget = kTRUE;
-        }
-        else
-        {
-            cout<<"Error: run info wasn't found!"<<endl;
-            return;
-        }
-
-        if (!CheckFileExist(reco_file)) return;
+        if (data_source == 1)
+            fFileSource = new BmnFileSource(reco_file);
         // set source as TDAQ Event Monitor
-        fFileSource = new BmnTdaqSource("bmn", "raw", "file", 2);
+        if (data_source == 2)
+        {
+            // load TDAQ
+            gSystem->Load("libemon");
+            gSystem->Load("libemon-dal");
+            gSystem->Load("libcmdline");
+            gSystem->Load("libipc");
+            gSystem->Load("libowl");
+            gSystem->Load("libomniORB4");
+            gSystem->Load("libomnithread");
+            gSystem->Load("libers");
 
-        break;
+            fFileSource = new BmnTdaqSource("bmn", "raw", "file", 2);
+        }
     }
-    }// switch (data_source)
 
     if (fFileSource != NULL) fRunAna->SetSource(fFileSource);
 
@@ -264,7 +192,7 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
     // FOR SIMULATION
     if (data_source == 0)
     {
-        // draw MC points
+        // draw MC Points
         //FairMCPointDraw* RecoilPoint = new FairMCPointDraw("RecoilPoint", mcPointColor, pointMarker);
         //fMan->AddTask(RecoilPoint);
         FairMCPointDraw* MWPCPoint = new FairMCPointDraw("MWPCPoint", mcPointColor, pointMarker);
@@ -282,14 +210,14 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         FairMCPointDraw* SiliconPoint = new FairMCPointDraw("SiliconPoint", mcPointColor, pointMarker);
         fMan->AddTask(SiliconPoint);
 
-        // draw MC geometry tracks
+        // draw MC Geometry Tracks
         FairMCTracks* GeoTrack = new FairMCTracks("GeoTracks");
         fMan->AddTask(GeoTrack);
         // OR draw MC tracks by Geane - not implemented yet
         //FairMCStack* MCTrack = new FairMCStack("MCTrack");
         //fMan->AddTask(MCTrack);
 
-        // DST hits
+        // draw Reconstructed Detector Hits
         FairHitPointSetDraw* BmnGemHit = new FairHitPointSetDraw("BmnGemStripHit", recoPointColor, pointMarker); // new FairHitDraw("BmnGemStripHit", 1); //in box view
         fMan->AddTask(BmnGemHit);
         FairHitPointSetDraw* BmnTof1Hit = new FairHitPointSetDraw("BmnTof1Hit", recoPointColor, pointMarker);
@@ -301,7 +229,7 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         FairHitPointSetDraw* BmnSiliconHit = new FairHitPointSetDraw("BmnSiliconHit", recoPointColor, pointMarker);
         fMan->AddTask(BmnSiliconHit);
 
-        // DST tracks
+        // draw Reconstructed Global Tracks
         BmnGlobalTrackDraw* BmnGlobalTrack = new BmnGlobalTrackDraw("BmnGlobalTrack");
         fMan->AddTask(BmnGlobalTrack);
 
@@ -319,35 +247,38 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
     // FOR EXPERIMENTAL DATA FROM RECONSTRUCTED ROOT FILE
     if (data_source == 1)
     {
-        // draw MWPC hits
+        // draw MWPC Hits
         FairHitPointSetDraw* MwpcHit = new FairHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
         fMan->AddTask(MwpcHit);
-        // draw Silicon hits
+        // draw Silicon Hits
         FairHitPointSetDraw* SiliconHit = new FairHitPointSetDraw("BmnSiliconHit", expPointColor, pointMarker);
         fMan->AddTask(SiliconHit);
-        // draw GEM hits
+        // draw GEM Hits
         FairHitPointSetDraw* GemHit = new FairHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
         fMan->AddTask(GemHit);
-        // draw DCH hits
+        // draw DCH Hits
         FairHitPointSetDraw* DchHit = new FairHitPointSetDraw("BmnDchHit", expPointColor, pointMarker);
         fMan->AddTask(DchHit);
-        // draw TOF1 hits
+        // draw TOF1 Hits
         FairHitPointSetDraw* Tof1Hit = new FairHitPointSetDraw("BmnTof1Hit", expPointColor, pointMarker);
         fMan->AddTask(Tof1Hit);
-        // draw TOF2 hits
+        // draw TOF2 Hits
         FairHitPointSetDraw* Tof2Hit = new FairHitPointSetDraw("BmnTofHit", expPointColor, pointMarker);
         fMan->AddTask(Tof2Hit);
 
-        // draw MWPC tracks
+        // draw MWPC Tracks
         BmnTrackDrawH* MwpcTrack = new BmnTrackDrawH("BmnMwpcTrack", "BmnMwpcHit");
         fMan->AddTask(MwpcTrack);
-        // draw GEM tracks
-        //BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemSeed", "BmnGemStripHit");
+        // draw GEM Tracks
         BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
         fMan->AddTask(GemTrack);
-        // draw DCH tracks
+        // draw DCH Tracks
         //BmnTrackDrawH* DchTrack = new BmnTrackDrawH("BmnDchTrack", "BmnDchHit");
         //fMan->AddTask(DchTrack);
+
+        // draw Reconstructed Global Tracks
+        BmnGlobalTrackDraw* BmnGlobalTrack = new BmnGlobalTrackDraw("BmnGlobalTrack");
+        fMan->AddTask(BmnGlobalTrack);
 
         //FairGeane* Geane = new FairGeane();
         //fMan->AddTask(Geane);
@@ -359,7 +290,11 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
     if (data_source == 2)
     {
         // GEM hit finder
-        BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;
+        BmnGemStripConfiguration::GEM_CONFIG gem_config;
+        if (run_period == 6)
+            gem_config = BmnGemStripConfiguration::RunSpring2017;
+        else if (run_period == 5)
+            gem_config = BmnGemStripConfiguration::RunWinter2016;
         BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(true);
         gemHM->SetCurrentConfig(gem_config);
         gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
@@ -367,30 +302,14 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         gemHM->SetVerbose(0);
         fMan->AddTask(gemHM);
 
-        // Tracking GEM (seed finder)
-        BmnGemSeedFinder* gemSF = new BmnGemSeedFinder();
-        gemSF->SetUseLorentz(kTRUE);
-        gemSF->SetField(isField);
-        gemSF->SetDirection(kTRUE);
-        gemSF->SetTarget(isTarget);
-        gemSF->SetRoughVertex(TVector3(0.0, -3.5, -21.7));
-        gemSF->SetLineFitCut(5.0);
-        gemSF->SetYstep(10.0);
-        gemSF->SetSigX(0.05);
-        gemSF->SetLorentzThresh(1.01);
-        gemSF->SetNbins(1000);
-        gemSF->SetVerbose(1);
-        fMan->AddTask(gemSF);
-
-        // Tracking GEM (track finder)
-        BmnGemTrackFinder* gemTF = new BmnGemTrackFinder();
-        gemTF->SetField(isField);
-        gemTF->SetDirection(kTRUE);
+        // Tracking GEM
+        BmnGemTracking* gemTF = new BmnGemTracking();
         gemTF->SetTarget(isTarget);
-        gemTF->SetDistCut(5.0);
-        gemTF->SetNHitsCut(4);
+        gemTF->SetField(isField);
+        TVector3 vAppr = TVector3(0.0, -3.5, -21.7);
+        gemTF->SetRoughVertex(vAppr);
         gemTF->SetVerbose(1);
-        //fMan->AddTask(gemTF);
+        fMan->AddTask(gemTF);
 
         // TOF-400 hit finder
         BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", false, 0/*iVerbose*/, kTRUE);
@@ -407,8 +326,7 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         fMan->AddTask(Tof1Hit);
 
         // draw GEM seeds or tracks
-        BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemSeed", "BmnGemStripHit");
-        //BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
+        BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
         GemTrack->SetVerbose(1);
         fMan->AddTask(GemTrack);
     }

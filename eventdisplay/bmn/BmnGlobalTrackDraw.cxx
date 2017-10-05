@@ -122,6 +122,7 @@ void BmnGlobalTrackDraw::Exec(Option_t* option)
         TEveTrack* track = new TEveTrack(P, particlePDG, fTrPr);
         // set line color corresponding PDG particle code
         track->SetLineColor(fEventManager->Color(particlePDG));
+        track->SetLineWidth(2);
 
         // get GEM track for global track
         BmnGemTrack* pGemTrack = (BmnGemTrack*) fGemTrackList->UncheckedAt(tr->GetGemTrackIndex());

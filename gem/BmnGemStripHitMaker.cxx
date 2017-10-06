@@ -7,6 +7,7 @@
 #include "BmnGemStripStationSet_RunWinter2016.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include "BmnEventHeader.h"
+#include "FairRunAna.h"
 
 static Float_t workTime = 0.0;
 
@@ -22,6 +23,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
 
     fVerbose = 1;
+    fField = NULL;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
     StationSet = NULL;
@@ -41,6 +43,7 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
     fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
 
     fVerbose = 1;
+    fField = NULL;
 
     fCurrentConfig = BmnGemStripConfiguration::None;
     StationSet = NULL;
@@ -132,6 +135,9 @@ InitStatus BmnGemStripHitMaker::Init() {
                 cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << TString::Format("% 7.4f", corr[iStat][iMod][iPar]) << endl; //
         }
     }
+    
+    fField = FairRunAna::Instance()->GetField();
+    if (!fField) Fatal("Init", "No Magnetic Field found");
 
     //--------------------------------------------------------------------------
 
@@ -142,7 +148,8 @@ InitStatus BmnGemStripHitMaker::Init() {
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
     clock_t tStart = clock();
-
+    
+    fField = FairRunAna::Instance()->GetField();
     if (fIsExp) {
         if (fBmnEventHeader) {
             BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
@@ -218,7 +225,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
             z += corr[iStation][iModule][2]; //alignment implementation
 
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
-
+            
             for (Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
@@ -254,6 +261,12 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 x += corr[iStation][iModule][0];
                 y += corr[iStation][iModule][1];
+                                
+                if (fIsExp) {
+                    Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
+                    Double_t ls = GetLorentzByField(Abs(fField->GetBy(x, y, z)), iStation) * sign;
+                    x += ls;
+                }
            
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
                         BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);

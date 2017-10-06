@@ -15,6 +15,7 @@
 
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
+#include "FairField.h"
 #include "BmnGemStripDigit.h"
 #include "BmnGemStripHit.h"
 #include "BmnGemStripStationSet.h"
@@ -60,9 +61,18 @@ public:
         else if (run_period == 6) {
             fAlignCorrFileName = "alignment_GEM.root";
             UniDbDetectorParameter::ReadRootFile(run_period, file_number, "BM@N", "alignment", (Char_t*) fAlignCorrFileName.Data());
-        } 
+        }
         else
             fAlignCorrFileName = "";
+    }
+
+    Double_t GetLorentzByField(Double_t By, Int_t station) { //By in kGs
+        const Int_t nStation = 6;
+
+        Double_t p0[nStation] = {-0.00130114, 0.000724722, 0.000545885, -0.000127976, 0.000654366, 0.000850249};
+        Double_t p1[nStation] = {0.034723, 0.0175508, 0.0258856, 0.0300613, 0.0150505, 0.0272029};
+        Double_t p2[nStation] = {-0.00113774, 0.000707385, 0.000521317, -0.000209771, 0.00078009, -0.00011422};
+        return p0[station] + p1[station] * By + p2[station] * By * By;
     }
 
 private:
@@ -97,6 +107,8 @@ private:
     TString fAlignCorrFileName; // a file with geometry corrections
     void ReadAlignCorrFile(TString, Double_t***); // read corrections from the file
     Double_t*** corr; // array to store the corrections
+
+    FairField* fField;
 
     ClassDef(BmnGemStripHitMaker, 1);
 };

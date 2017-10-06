@@ -35,6 +35,10 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
     fIsExp = (!isExp) ? kFALSE : kTRUE;
+    fT0Branch = "T0";
+    fVetoBranch = "VETO";
+    fBC2Branch = "BC2";
+    fBDBranch = "BD";
     fBmnEventHeaderBranchName = "EventHeader";
 
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
@@ -61,6 +65,13 @@ InitStatus BmnGemStripHitMaker::Init() {
     if (!fCurrentConfig) Fatal("BmnGemStripHitMaker::Init()", " !!! Current GEM config is not set !!! ");
 
     FairRootManager* ioman = FairRootManager::Instance();
+    // Done to check trigger conditions when exp. data processing...
+    if (fIsExp) {
+        fT0Array = (TClonesArray*) ioman->GetObject(fT0Branch.Data());
+        fVetoArray = (TClonesArray*) ioman->GetObject(fVetoBranch.Data());
+        fBC2Array = (TClonesArray*) ioman->GetObject(fBC2Branch.Data());
+        fBDArray = (TClonesArray*) ioman->GetObject(fBDBranch.Data());
+    }
 
     fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
     fBmnEventHeader = (TClonesArray*) ioman->GetObject(fBmnEventHeaderBranchName);
@@ -135,7 +146,7 @@ InitStatus BmnGemStripHitMaker::Init() {
                 cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << TString::Format("% 7.4f", corr[iStat][iMod][iPar]) << endl; //
         }
     }
-    
+
     fField = FairRunAna::Instance()->GetField();
     if (!fField) Fatal("Init", "No Magnetic Field found");
 
@@ -148,14 +159,28 @@ InitStatus BmnGemStripHitMaker::Init() {
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
     clock_t tStart = clock();
-    
+
     fField = FairRunAna::Instance()->GetField();
-    if (fIsExp) {
-        if (fBmnEventHeader) {
-            BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
-            if (evHeader && evHeader->GetTripWord())
+    // Event separation by triggers ...
+    if (fIsExp && fBmnEventHeader) {
+        BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
+        if (!evHeader)
+            return;
+        if (evHeader->GetTripWord())
+            return;
+        BmnTriggerType trigType = evHeader->GetTrig();
+        if (trigType == kBMNMINBIAS) {
+            if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < 1)
                 return;
         }
+        
+        else if (trigType == kBMNBEAM) {
+            if (fVetoArray->GetEntriesFast() > 1 || fBDArray->GetEntriesFast() > 0)
+                return;
+        }
+        
+        else
+            return;
     }
 
     fBmnGemStripHitsArray->Delete();
@@ -225,7 +250,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
             z += corr[iStation][iModule][2]; //alignment implementation
 
             Int_t NIntersectionPointsInModule = module->GetNIntersectionPoints();
-            
+
             for (Int_t iPoint = 0; iPoint < NIntersectionPointsInModule; ++iPoint) {
                 Double_t x = module->GetIntersectionPointX(iPoint);
                 Double_t y = module->GetIntersectionPointY(iPoint);
@@ -261,13 +286,13 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 x += corr[iStation][iModule][0];
                 y += corr[iStation][iModule][1];
-                                
+
                 if (fIsExp) {
                     Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
                     Double_t ls = GetLorentzByField(Abs(fField->GetBy(x, y, z)), iStation) * sign;
                     x += ls;
                 }
-           
+
                 new ((*fBmnGemStripHitsArray)[fBmnGemStripHitsArray->GetEntriesFast()])
                         BmnGemStripHit(0, TVector3(x, y, z), TVector3(x_err, y_err, z_err), RefMCIndex);
 

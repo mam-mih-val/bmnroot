@@ -17,8 +17,6 @@
 // nEvents - number of events to process, 0 - all events of given file will be
 // processed, default: 10000.
 //
-// isPrimary - flag needed when working with MC events, default: kTRUE.
-//
 // alignCorrFileName - argument for choosing input file with the alignment
 // corrections.
 //
@@ -34,7 +32,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
         Int_t nEvents = 1000,
-        Bool_t isPrimary = kFALSE,
         TString alignCorrFileName = "") {
     // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
@@ -174,14 +171,10 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    if (!isExp) {
-        BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
-        siliconDigit->SetOnlyPrimary(isPrimary);
-        fRunAna->AddTask(siliconDigit);
-    }
-
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
-    fRunAna->AddTask(siliconHM);
+    if (!isExp) 
+        fRunAna->AddTask(siliconHM);
+    
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
@@ -191,13 +184,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     else if (run_period == 5)
         gem_config = BmnGemStripConfiguration::RunWinter2016;
 
-    if (!isExp) {
-        BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
-        gemDigit->SetCurrentConfig(gem_config);
-        gemDigit->SetOnlyPrimary(isPrimary);
-        gemDigit->SetStripMatching(kTRUE);
-        fRunAna->AddTask(gemDigit);
-    }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
 

@@ -81,6 +81,11 @@ private:
     TString fInputDigitsBranchName;
     TString fInputDigitMatchesBranchName;
     TString fBmnEventHeaderBranchName;
+    
+    TString fT0Branch;
+    TString fVetoBranch;
+    TString fBC2Branch;
+    TString fBDBranch;
 
     TString fOutputHitsBranchName;
     TString fOutputHitMatchesBranchName;
@@ -90,6 +95,11 @@ private:
     TClonesArray* fBmnGemStripDigitsArray;
     TClonesArray* fBmnGemStripDigitMatchesArray;
     TClonesArray* fBmnEventHeader;
+    
+    TClonesArray* fT0Array;
+    TClonesArray* fVetoArray;
+    TClonesArray* fBC2Array;
+    TClonesArray* fBDArray;
 
     /** Output array of Gem Hits **/
     TClonesArray* fBmnGemStripHitsArray;

@@ -95,7 +95,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     boxGen->SetPRange(0.2, 5.0); // GeV/c //setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
     boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
-    boxGen->SetXYZ(0., 0., 0.); // mm o cm ??
+    boxGen->SetXYZ(0., 0., -21.7); // Approximate position of target (RunSpring2017)
     primGen->AddGenerator(boxGen);
     
 #else
@@ -172,6 +172,19 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 
     fRun->SetStoreTraj(kTRUE);
     fRun->SetRadLenRegister(flag_store_FairRadLenPoint); // radiation length manager
+    
+    // SI-Digitizer
+    BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
+    siliconDigit->SetOnlyPrimary(kFALSE);
+    fRun->AddTask(siliconDigit);
+     
+    // GEM-Digitizer
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;  // RunWinter2016  
+    BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
+    gemDigit->SetCurrentConfig(gem_config);
+    gemDigit->SetOnlyPrimary(kFALSE);
+    gemDigit->SetStripMatching(kTRUE);
+    fRun->AddTask(gemDigit);
 
     fRun->Init();
     if (isFieldMap) 
@@ -202,14 +215,6 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     //AZ output->open(parFile.Data());
     output->open(gFile);
     rtdb->setOutput(output);
-
-    /*MpdMultiFieldPar* Par = (MpdMultiFieldPar*) rtdb->getContainer("MpdMultiFieldPar");
-    if (fField)
-      Par->SetParameters(fField);
-    Par->setInputVersion(fRun->GetRunId(),1);
-    Par->setChanged();
-    // Par->printParams();
-     */
 
     rtdb->saveOutput();
     rtdb->print();

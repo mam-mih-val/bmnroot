@@ -69,9 +69,11 @@ public:
     Double_t GetLorentzByField(Double_t By, Int_t station) { //By in kGs
         const Int_t nStation = 6;
 
-        Double_t p0[nStation] = {-0.00130114, 0.000724722, 0.000545885, -0.000127976, 0.000654366, 0.000850249};
-        Double_t p1[nStation] = {0.034723, 0.0175508, 0.0258856, 0.0300613, 0.0150505, 0.0272029};
-        Double_t p2[nStation] = {-0.00113774, 0.000707385, 0.000521317, -0.000209771, 0.00078009, -0.00011422};
+        //parabolic coefficients are gotten from fits indepedend for each station.
+        //shifts for fit gotten from IterateLorentz.C macro
+        Double_t p0[nStation] = {-0.142402, 0.0785986, 0.0591568, -0.0137718, 0.0712004, 0.093149};
+        Double_t p1[nStation] = {0.090507, -0.00764583, 0.0070895, 0.0343746, -0.00760665, -0.00253474};
+        Double_t p2[nStation] = {-0.0058462, 0.00274913, 0.00195576, -0.000538933, 0.00249631, 0.00221692};
         return p0[station] + p1[station] * By + p2[station] * By * By;
     }
 

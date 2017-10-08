@@ -774,9 +774,13 @@ hist_new->Scale(-1.);
 TSpectrum *s = new TSpectrum(10,1.);
 Int_t nfound = s->Search(hist_new,2,"nobackground");
 cout<<"number of inflection points = "<<nfound<<endl;
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
+Float_t *xpeaks = s->GetPositionX();
+#else
 Double_t *xpeaks = s->GetPositionX();
+#endif
 if(nfound==2){
- inflX2 = xpeaks[nfound-1]; //right inflection point
+ inflX2 = (Double_t)xpeaks[nfound-1]; //right inflection point
 }else if(nfound>2){
  inflX2 = 0.5*(xpeaks[nfound-1]+xpeaks[nfound-2]);
 }

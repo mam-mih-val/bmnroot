@@ -86,7 +86,7 @@ public:
   void DchAlignmentData(const DchTrackCand *dchTrCand1, const DchTrackCand *dchTrCand2, TClonesArray* &fDchTrCand1Align, TClonesArray* &fDchTrCand2Align, UInt_t &eventNum1track, const TMatrixD C0, const UShort_t Iter, Double_t &sumDeltaPhi);  
   Bool_t TracksDirectionTest(const TMatrix dch1Mat,const TMatrix dch2Mat, const TMatrixD C0, Double_t &delPhi);
   UShort_t RunTypeToNumber(TString runType);
-  Double_t SetMeanDeltaPhi(Double_t meandelphi){meanDeltaPhi = meandelphi;};
+  void SetMeanDeltaPhi(Double_t meandelphi) {meanDeltaPhi = meandelphi;}
   
   ClassDef(DchTrackManagerSim,1)      // Dch Track Manager 
   

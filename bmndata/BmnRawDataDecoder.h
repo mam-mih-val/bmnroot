@@ -216,6 +216,8 @@ public:
         for (Int_t i = 0; i < 9; ++i) {
             fDetectorSetup[i] = setup[i];
         }
+
+        return kBMNSUCCESS;
     }
 
     void SetEvForPedestals(UInt_t v) {

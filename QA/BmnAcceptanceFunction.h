@@ -269,7 +269,7 @@ public:
 //      if (NULL == stsMatch || NULL == richMatch) return false;
 //
 //      if (stsMatch->GetMatchedLink().GetIndex() == richMatch->GetMatchedLink().GetIndex()) return true;
-//      return false;
+      return false;
    }
 
    static Bool_t WrongMatchPiSuppAcceptanceFunction(

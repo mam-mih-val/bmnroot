@@ -6,7 +6,9 @@
 #include "TObject.h"
 #include "TArrayI.h"
 
-#include <fstream> 
+#include <fstream>
+
+using namespace std;
 
 class FairParSet;
 

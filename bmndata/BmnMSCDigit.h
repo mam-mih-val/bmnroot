@@ -31,7 +31,7 @@ public:
     }
 
     UInt_t GetTime() const {
-        fTime;
+        return fTime;
     }
 
     /** Destructor **/

@@ -14,12 +14,7 @@
 #include <vector>
 #include <set>
 
-using std::vector;
-using std::map;
-using std::set;
-using std::stringstream;
-using std::string;
-using std::endl;
+using namespace std;
 
 /**
  * \class BmnMCTrack
@@ -204,7 +199,7 @@ private:
    string PointsToString(
          DetectorId detId,
          const string& detName) const {
-//      stringstream ss;
+      stringstream ss;
 //      ss << detName << " np=" << GetNofPoints(detId) << " npds=" << GetNofPointsInDifferentStations(detId)
 //    		  << " ncp=" << GetNofConsecutivePoints(detId) << " points=(";
 //      for (Int_t i = 0; i < GetNofPoints(detId); i++) {
@@ -212,7 +207,7 @@ private:
 //         //ss << GetPoint(detId, i);
 //      }
 //      ss << ") ";
-//      return ss.str();
+      return ss.str();
    }
 
 public:

@@ -128,7 +128,9 @@ public:
             TString st4_1, TString st5_0, TString st5_1) {
 
         const Int_t nModulMax = 2; // To be fixed         
-        TString gems[fDetector->GetNStations()][nModulMax];
+        TString** gems = new TString*[fDetector->GetNStations()];
+        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
+            gems[iStat] = new TString[nModulMax];
         gems[0][0] = st0_0;
         gems[1][0] = st1_0;
         gems[2][0] = st2_0;

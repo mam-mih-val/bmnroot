@@ -19,8 +19,7 @@
 #include <iostream>
 #include <fstream>
 
-using std::cout;
-using std::endl;
+using namespace std;
 
 
 // -----   Default constructor   -------------------------------------------

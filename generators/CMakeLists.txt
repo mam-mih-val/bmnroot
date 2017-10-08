@@ -17,7 +17,6 @@ ENDIF(${req_gcc_major_vers} MATCHES "4" AND NOT ${req_gcc_minor_vers} MATCHES "0
 
 set(INCLUDE_DIRECTORIES
 ${ROOT_INCLUDE_DIR}
-${PLUTO_INCLUDE_DIR} 
 ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/geobase
 ${CMAKE_SOURCE_DIR}/base/steer
@@ -28,6 +27,9 @@ ${CMAKE_SOURCE_DIR}/generators
 ${CMAKE_SOURCE_DIR}/base/source
 ${CMAKE_SOURCE_DIR}/config
 )
+if(PLUTO_FOUND)
+set(INCLUDE_DIRECTORIES ${INCLUDE_DIRECTORIES} ${PLUTO_INCLUDE_DIR})
+EndIf(PLUTO_FOUND)
 
 include_directories(${INCLUDE_DIRECTORIES})
 
@@ -44,7 +46,6 @@ FairBoxGenerator.cxx
 FairIonGenerator.cxx
 FairParticleGenerator.cxx
 FairShieldGenerator.cxx
-FairPlutoReactionGenerator.cxx
 FairUrqmdGenerator.cxx
 FairEvtGenGenerator.cxx
 
@@ -52,7 +53,6 @@ MpdMCEventHeader.cxx
 MpdLAQGSMGenerator.cxx
 MpdHypYPtGenerator.cxx
 MpdRainGenerator.cxx
-MpdPlutoGenerator.cxx
 MpdPHSDGenerator.cxx
 MpdUrqmdGenerator.cxx
 MpdGetNumEvents.cxx
@@ -60,11 +60,14 @@ MpdHistoGenerator.cxx
 Mpd3fdGenerator.cxx
 MpdVHLLEGenerator.cxx
 )
+if(PLUTO_FOUND)
+set(SRCS ${SRCS} FairPlutoReactionGenerator.cxx MpdPlutoGenerator.cxx)
+EndIf(PLUTO_FOUND)
 
 Set(HEADERS )
 Set(LINKDEF GenLinkDef.h)
 Set(LIBRARY_NAME Gen)
-Set(DEPENDENCIES Base EG MathCore Physics RIO Cint Core)
+Set(DEPENDENCIES Base EG MathCore Physics RIO Core)
 
 GENERATE_LIBRARY()
 

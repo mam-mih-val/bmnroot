@@ -103,7 +103,7 @@ public:
   void DchAlignmentData(const DchTrackCand *dchTrCand1, const DchTrackCand *dchTrCand2, TClonesArray* &fDchTrCand1Align, TClonesArray* &fDchTrCand2Align, UInt_t &eventNum1track, const TMatrixD C0, const UShort_t Iter, const XYZVector XYZ1, Double_t &sumDeltaPhi);  
   Bool_t TracksDirectionTest(const TMatrix dch1Mat,const TMatrix dch2Mat, const TMatrixD C0, const XYZVector XYZ1, Double_t &delPhi);
   UShort_t RunTypeToNumber(TString runType);
-  Double_t SetMeanDeltaPhi(Double_t meandelphi){meanDeltaPhi = meandelphi;};
+  void SetMeanDeltaPhi(Double_t meandelphi) {meanDeltaPhi = meandelphi;}
   void FillAngles(const TGraph2DErrors* dchtrgr, const Double_t *parFitL);
   
   ClassDef(DchTrackManager,1)      // Dch Track Manager 

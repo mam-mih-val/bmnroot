@@ -15,8 +15,7 @@
 #include "CbmPsdReactionPlaneMaker.h"
 #include "CbmPsdHit.h"
 
-using std::cout;
-using std::endl;
+using namespace std;
 
 
 // -----   Default constructor   -------------------------------------------

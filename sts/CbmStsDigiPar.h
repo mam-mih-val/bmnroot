@@ -26,12 +26,12 @@
 #include <fstream>
 #include <map>
 
+using namespace std;
+
 
 class TString;
 class FairParIo;
 class CbmStsStationDigiPar;
-
-
 
 
 class CbmStsDigiPar : public FairParSet 
@@ -90,20 +90,13 @@ class CbmStsDigiPar : public FairParSet
 
   TObjArray* fStations;           // Array of CbmStsStationPar
 
-  std::map<Int_t, Int_t> fStationMap;  //! Map from station ID to index
+  map<Int_t, Int_t> fStationMap;  //! Map from station ID to index
 
   CbmStsDigiPar(const CbmStsDigiPar&);
   CbmStsDigiPar operator=(const CbmStsDigiPar&);
 
   ClassDef(CbmStsDigiPar,1);
-
-
 };
 
 
 #endif
-
-
-
-
-

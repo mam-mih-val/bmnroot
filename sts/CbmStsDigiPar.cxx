@@ -15,8 +15,6 @@
 
 #include <iostream>
 
-using std::cout;
-using std::endl;
 
 // -----   Standard constructor   ------------------------------------------
 CbmStsDigiPar::CbmStsDigiPar(const char* name, const char* title,

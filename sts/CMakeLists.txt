@@ -3,8 +3,6 @@
 # The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
-${Boost_INCLUDE_DIRS}
-${ROOT_INCLUDE_DIR}
 ${CMAKE_SOURCE_DIR}/base/field
 ${CMAKE_SOURCE_DIR}/base/steer
 ${CMAKE_SOURCE_DIR}/base/sim
@@ -19,15 +17,22 @@ ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/sts
 )
 
-include_directories( ${INCLUDE_DIRECTORIES})
+Set(SYSTEM_INCLUDE_DIRECTORIES
+ ${Boost_INCLUDE_DIRS}
+ ${ROOT_INCLUDE_DIR}
+)
+
+include_directories(${INCLUDE_DIRECTORIES})
+Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
 )
  
-link_directories( ${LINK_DIRECTORIES})
+link_directories(${LINK_DIRECTORIES})
 
-set(SRCS_SETUP
+# List of source files
+set(SRCS
 #setup/CbmStsAddress.cxx
 #setup/CbmStsElement.cxx
 #setup/CbmStsModule.cxx
@@ -36,11 +41,7 @@ set(SRCS_SETUP
 #setup/CbmStsSensorType.cxx
 #setup/CbmStsSensorTypeDssd.cxx
 #setup/CbmStsSetup.cxx
-)
 
-
-set(STS_SRCS
-${SRCS_SETUP}
 CbmGeoSts.cxx 
 CbmGeoStsPar.cxx 
 CbmSts.cxx 
@@ -77,25 +78,12 @@ CbmStsReconstructionQa.cxx
 )
 
 #AZ - debug
-SET_SOURCE_FILES_PROPERTIES(${STS_SRCS} PROPERTIES COMPILE_FLAGS
+SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS
   "-g -O0 ")
 
-# fill list of header files from list of source files
-# by exchanging the file extension
-CHANGE_FILE_EXTENSION(*.cxx *.h STS_HEADERS "${STS_SRCS}")
+Set(HEADERS)
+Set(LINKDEF StsLinkDef.h)
+Set(LIBRARY_NAME Sts)
+Set(DEPENDENCIES Core BmnBase)
 
-set(STS_LINKDEF StsLinkDef.h)
-set(STS_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/BmnStsDict.cxx) 
-
-ROOT_GENERATE_DICTIONARY("${STS_HEADERS}" "${STS_LINKDEF}" "${STS_DICTIONARY}" "${INCLUDE_DIRECTORIES}")
-
-
-set(STS_SRCS ${STS_SRCS} ${STS_DICTIONARY})
-
-
-add_library(Sts SHARED ${STS_SRCS})
-target_link_libraries(Sts ${ROOT_LIBRARIES})
-set_target_properties(Sts PROPERTIES ${FAIRROOT_LIBRARY_PROPERTIES})
-
-################ install ###################
-install(TARGETS Sts DESTINATION ${CMAKE_BINARY_DIR}/lib)
+GENERATE_LIBRARY()

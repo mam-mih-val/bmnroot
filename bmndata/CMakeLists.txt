@@ -3,8 +3,6 @@
 # The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
-${Boost_INCLUDE_DIRS}
-${ROOT_INCLUDE_DIR}
 ${CMAKE_SOURCE_DIR}/base/field
 ${CMAKE_SOURCE_DIR}/base/steer
 ${CMAKE_SOURCE_DIR}/base/sim
@@ -22,15 +20,22 @@ ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
 
-include_directories( ${INCLUDE_DIRECTORIES})
+Set(SYSTEM_INCLUDE_DIRECTORIES
+ ${Boost_INCLUDE_DIRS}
+ ${ROOT_INCLUDE_DIR} 
+)
+
+include_directories(${INCLUDE_DIRECTORIES})
+Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
 )
  
-link_directories( ${LINK_DIRECTORIES})
+link_directories(${LINK_DIRECTORIES})
 
-set(BMNDATA_SRCS
+# List of source files
+set(SRCS
 CbmBaseHit.cxx
 CbmHit.cxx
 CbmPixelHit.cxx
@@ -109,22 +114,9 @@ BmnEnums.h
 DigiArrays.h
 )
 
-# fill list of header files from list of source files
-# by exchanging the file extension
-CHANGE_FILE_EXTENSION(*.cxx *.h BMNDATA_HEADERS "${BMNDATA_SRCS}")
+Set(HEADERS)
+Set(LINKDEF BmnDataLinkDef.h)
+Set(LIBRARY_NAME BmnData)
+Set(DEPENDENCIES Core Base)
 
-set(BMNDATA_LINKDEF BmnDataLinkDef.h)
-set(BMNDATA_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/BmnDataDict.cxx) 
-
-ROOT_GENERATE_DICTIONARY("${BMNDATA_HEADERS}" "${BMNDATA_LINKDEF}" "${BMNDATA_DICTIONARY}" "${INCLUDE_DIRECTORIES}")
-
-
-set(BMNDATA_SRCS ${BMNDATA_SRCS} ${BMNDATA_DICTIONARY})
-
-
-add_library(BmnData SHARED ${BMNDATA_SRCS})
-target_link_libraries(BmnData ${ROOT_LIBRARIES})
-set_target_properties(BmnData PROPERTIES VERSION 0.0.1 SOVERSION 0)
-
-################ install ###################
-install(TARGETS BmnData DESTINATION ${CMAKE_BINARY_DIR}/lib)
+GENERATE_LIBRARY()

@@ -10,7 +10,6 @@
 #include "CbmVertex.h"
 #include "CbmMvdHit.h"
 
-#include "TClonesArray.h"
 #include "TMath.h"
 
 #include <iostream>

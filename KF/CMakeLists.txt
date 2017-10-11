@@ -3,8 +3,6 @@
 # The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
-${Boost_INCLUDE_DIRS}
-${ROOT_INCLUDE_DIR} 
 ${CMAKE_SOURCE_DIR}/base/field
 ${CMAKE_SOURCE_DIR}/base/steer
 ${CMAKE_SOURCE_DIR}/base/sim
@@ -28,7 +26,13 @@ ${CMAKE_SOURCE_DIR}/KF/KFParticle
 ${CMAKE_SOURCE_DIR}/KF/KFParticlesFinder
 )
 
+Set(SYSTEM_INCLUDE_DIRECTORIES
+ ${Boost_INCLUDE_DIRS}
+ ${ROOT_INCLUDE_DIR}
+)
+
 include_directories(${INCLUDE_DIRECTORIES})
+Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
@@ -36,7 +40,8 @@ ${ROOT_LIBRARY_DIR}
  
 link_directories(${LINK_DIRECTORIES})
 
-set(KF_SRCS
+# List of source files
+set(SRCS
 CbmKF.cxx 
 CbmKFFieldMath.cxx 
 CbmKFHit.cxx 
@@ -78,7 +83,7 @@ KFQA/KFMCParticle.cxx
 KFParticlesFinder/CbmKFParticleDatabase.cxx
 )
 
-set(KF_HEADERS
+set(HEADERS
 CbmKF.h 
 CbmKFFieldMath.h
 CbmKFHit.h
@@ -121,27 +126,16 @@ ADD_DEFINITIONS(-Wall -Wabi -Wsign-promo  -Wno-pmf-conversions -Wctor-dtor-priva
 IF (SSE_FOUND)
   Message(STATUS "KF will be compiled with SSE support")
   ADD_DEFINITIONS(-DHAVE_SSE)
-  SET_SOURCE_FILES_PROPERTIES(${KF_SRCS} PROPERTIES COMPILE_FLAGS 
+  SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS 
   "-msse -O3")
 ELSE (SSE_FOUND)
   MESSAGE(STATUS "KF will be compiled without SSE support")
-  SET_SOURCE_FILES_PROPERTIES(${KF_SRCS} PROPERTIES COMPILE_FLAGS 
+  SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS 
   "-O3")
 ENDIF (SSE_FOUND)
 
+Set(LINKDEF KFLinkDef.h)
+Set(LIBRARY_NAME KF)
+Set(DEPENDENCIES Core Base)
 
-set(KF_LINKDEF KFLinkDef.h)
-set(KF_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/BmnKFDict.cxx) 
-
-ROOT_GENERATE_DICTIONARY("${KF_HEADERS}" "${KF_LINKDEF}" "${KF_DICTIONARY}" "${INCLUDE_DIRECTORIES}")
-
-
-set(KF_SRCS ${KF_SRCS} ${KF_DICTIONARY})
-
-
-add_library(KF SHARED ${KF_SRCS})
-target_link_libraries(KF ${ROOT_LIBRARIES})
-set_target_properties(KF PROPERTIES ${FAIRROOT_LIBRARY_PROPERTIES})
-
-################ install ###################
-install(TARGETS KF DESTINATION ${CMAKE_BINARY_DIR}/lib)
+GENERATE_LIBRARY()

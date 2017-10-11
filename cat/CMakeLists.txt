@@ -3,8 +3,6 @@
 # The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
-${Boost_INCLUDE_DIRS}
-${ROOT_INCLUDE_DIR}
 ${CMAKE_SOURCE_DIR}/base/field
 ${CMAKE_SOURCE_DIR}/base/steer
 ${CMAKE_SOURCE_DIR}/base/sim
@@ -27,7 +25,13 @@ ${CMAKE_SOURCE_DIR}/cat/OffLineInterface
 ${CMAKE_SOURCE_DIR}/cat/ParticleFinder
 )
 
+Set(SYSTEM_INCLUDE_DIRECTORIES
+ ${Boost_INCLUDE_DIRS}
+ ${ROOT_INCLUDE_DIR}
+)
+
 include_directories(${INCLUDE_DIRECTORIES})
+Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
@@ -35,8 +39,8 @@ ${ROOT_LIBRARY_DIR}
  
 link_directories(${LINK_DIRECTORIES})
 
-
-set(CAT_SRCS
+# List of source files
+set(SRCS
 CbmL1.cxx 
 CbmL1Performance.cxx 
 CbmL1ReadEvent.cxx
@@ -56,11 +60,7 @@ ParticleFinder/CbmL1PFFitter.cxx
 ParticleFinder/CbmL1PFMCParticle.cxx
 )
 
-# fill list of header files from list of source files
-# by exchanging the file extension
-#CHANGE_FILE_EXTENSION(*.cxx *.h CAT_HEADERS "${CAT_SRCS}")
-
-set(CAT_HEADERS
+set(HEADERS
 CbmL1.h
 CbmL1MCTrack.h
 CbmL1MCPoint.h
@@ -76,28 +76,17 @@ ADD_DEFINITIONS(-Wall -Wabi -Wsign-promo  -Wno-pmf-conversions -Wctor-dtor-priva
 
 IF (SSE_FOUND)
   ADD_DEFINITIONS(-DHAVE_SSE)
-  SET_SOURCE_FILES_PROPERTIES(${CAT_SRCS} PROPERTIES COMPILE_FLAGS 
+  SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS 
   "-msse -O3")
   Message(STATUS "CAT will be compiled with SSE support")
 ELSE (SSE_FOUND)
   Message(STATUS "CAT will be compiled without SSE support")
-  SET_SOURCE_FILES_PROPERTIES(${CAT_SRCS} PROPERTIES COMPILE_FLAGS 
+  SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS 
   "-O3")
 ENDIF (SSE_FOUND)
 
-set(CAT_LINKDEF CatLinkDef.h)
-set(CAT_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/BmnCatDict.cxx) 
+Set(LINKDEF CatLinkDef.h)
+Set(LIBRARY_NAME Cat)
+Set(DEPENDENCIES KF Sts BmnBase BmnData Base)
 
-ROOT_GENERATE_DICTIONARY("${CAT_HEADERS}" "${CAT_LINKDEF}" "${CAT_DICTIONARY}" "${INCLUDE_DIRECTORIES}")
-
-
-set(CAT_SRCS ${CAT_SRCS} ${CAT_DICTIONARY})
-
-
-add_library(Cat SHARED ${CAT_SRCS})
-target_link_libraries(Cat ${ROOT_LIBRARIES})
-set_target_properties(Cat PROPERTIES ${FAIRROOT_LIBRARY_PROPERTIES})
-
-################ install ###################
-install(TARGETS Cat DESTINATION ${CMAKE_BINARY_DIR}/lib)
-
+GENERATE_LIBRARY()

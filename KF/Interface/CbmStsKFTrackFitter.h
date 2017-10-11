@@ -4,6 +4,7 @@
 #include "CbmKFStsHit.h"
 
 #include "CbmStsTrackFitter.h"
+#include "TClonesArray.h"
 
 #include <vector>
 

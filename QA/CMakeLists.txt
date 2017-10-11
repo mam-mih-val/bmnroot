@@ -3,8 +3,6 @@
 # The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
-${ROOT_INCLUDE_DIR}
-${Boost_INCLUDE_DIRS}
 ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/base/field
 ${CMAKE_SOURCE_DIR}/base/steer
@@ -18,18 +16,26 @@ ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/globaltracking
 ${CMAKE_SOURCE_DIR}/QA
+${CMAKE_SOURCE_DIR}/QA/report
 ${CMAKE_SOURCE_DIR}/sts
 )
 
-include_directories( ${INCLUDE_DIRECTORIES})
+Set(SYSTEM_INCLUDE_DIRECTORIES
+ ${Boost_INCLUDE_DIRS}
+ ${ROOT_INCLUDE_DIR}
+)
+
+include_directories(${INCLUDE_DIRECTORIES})
+Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
 )
  
-link_directories( ${LINK_DIRECTORIES})
+link_directories(${LINK_DIRECTORIES})
 
-set(BMNQA_SRCS
+# List of source files
+set(SRCS
 BmnTrackingQa.cxx
 BmnClusteringQa.cxx
 BmnUtils.cxx
@@ -56,28 +62,13 @@ If ( ${ROOT_HAS_GDML} STREQUAL yes )
   Add_Definitions(-DROOT_HAS_GDML)
 EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
-
-# fill list of header files from list of source files
-# by exchanging the file extension
-CHANGE_FILE_EXTENSION(*.cxx *.h BMNQA_HEADERS "${BMNQA_SRCS}")
-
-set(BMNQA_LINKDEF BmnQALinkDef.h)
-set(BMNQA_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/BmnQaDict.cxx) 
-
-ROOT_GENERATE_DICTIONARY("${BMNQA_HEADERS}" "${BMNQA_LINKDEF}" "${BMNQA_DICTIONARY}" "${INCLUDE_DIRECTORIES}")
-
-
-set(BMNQA_SRCS ${BMNQA_SRCS} ${BMNQA_DICTIONARY})
+Set(HEADERS)
+Set(LINKDEF BmnQALinkDef.h)
+Set(LIBRARY_NAME BmnQa)
+Set(DEPENDENCIES Core Base)
 
 If ( ${ROOT_HAS_GDML} STREQUAL yes )
  Set (DEPENDENCIES ${DEPENDENCIES} Gdml)
 EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
 
-add_library(BmnQa SHARED ${BMNQA_SRCS})
-target_link_libraries(BmnQa ${ROOT_LIBRARIES})
-set_target_properties(BmnQa PROPERTIES ${FAIRROOT_LIBRARY_PROPERTIES})
-
-################ install ###################
-install(TARGETS BmnQa DESTINATION ${CMAKE_BINARY_DIR}/lib)
-
-
+GENERATE_LIBRARY()

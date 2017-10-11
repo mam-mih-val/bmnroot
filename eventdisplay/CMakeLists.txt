@@ -135,4 +135,5 @@ if (BMNROOT)
 endif (BMNROOT)
 
 Set(LIBRARY_NAME EventDisplay)
+
 GENERATE_LIBRARY()

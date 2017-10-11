@@ -9,7 +9,13 @@ ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
 
+Set(SYSTEM_INCLUDE_DIRECTORIES
+ ${ROOT_INCLUDE_DIR}
+ ${XML2_INCLUDE_DIR}
+)
+
 include_directories(${INCLUDE_DIRECTORIES})
+Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
@@ -18,7 +24,8 @@ ${XML2_LIBRARY_DIR}
  
 link_directories(${LINK_DIRECTORIES})
 
-set(UNIDB_SRCS
+# List of source files
+set(SRCS
 UniDbConnection.cxx
 UniDbGeoConverter.cxx
 UniDbGenerateClasses.cxx
@@ -35,28 +42,28 @@ db_classes/UniDbDetectorParameter.cxx
 db_classes/UniDbSimulationFile.cxx
 )
 
-# fill list of header files from list of source files
-# by exchanging the file extension
-CHANGE_FILE_EXTENSION(*.cxx *.h UNIDB_HEADERS "${UNIDB_SRCS}")
+set(HEADERS
+UniDbConnection.h
+UniDbGeoConverter.h
+UniDbGenerateClasses.h
+UniDbTangoData.h
+UniDbSearchCondition.h
+UniDbParser.h
 
+db_classes/UniDbRunPeriod.h
+db_classes/UniDbRun.h
+db_classes/UniDbRunGeometry.h
+db_classes/UniDbDetector.h
+db_classes/UniDbParameter.h
+db_classes/UniDbDetectorParameter.h
+db_classes/UniDbSimulationFile.h
 # add definitions of the possible database structures and enums
-set(UNIDB_HEADERS
-${UNIDB_HEADERS}
 db_structures.h
 )
 
-set(UNIDB_LINKDEF UniDbLinkDef.h)
-set(UNIDB_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/UniDbDict.cxx) 
-
-ROOT_GENERATE_DICTIONARY("${UNIDB_HEADERS}" "${UNIDB_LINKDEF}" "${UNIDB_DICTIONARY}" "${INCLUDE_DIRECTORIES}")
-
-
-set(UNIDB_SRCS ${UNIDB_SRCS} ${UNIDB_DICTIONARY})
-
-
-add_library(UniDb SHARED ${UNIDB_SRCS})
-target_link_libraries(UniDb ${ROOT_LIBRARIES} xml2)
-set_target_properties(UniDb PROPERTIES VERSION 0.0.1 SOVERSION 0)
+Set(LINKDEF UniDbLinkDef.h)
+Set(LIBRARY_NAME UniDb)
+Set(DEPENDENCIES Core Base xml2)
 
 add_executable (show_simulation_files show_simulation_files.cxx)
 target_link_libraries(show_simulation_files ${ROOT_LIBRARIES})
@@ -64,5 +71,4 @@ target_link_libraries(show_simulation_files ${ROOT_LIBRARIES})
 add_executable (show_experiment_files show_experiment_files.cxx)
 target_link_libraries(show_experiment_files ${ROOT_LIBRARIES})
 
-################ install ###################
-install(TARGETS UniDb DESTINATION ${CMAKE_BINARY_DIR}/lib)
+GENERATE_LIBRARY()

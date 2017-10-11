@@ -1,6 +1,6 @@
 // construct detector geometry
-
-geometry(FairRunSim *fRun) {
+void geometry(FairRunSim *fRun)
+{
     // Set Material file Name
     fRun->SetMaterials("media.geo");
 

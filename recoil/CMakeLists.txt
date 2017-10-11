@@ -4,8 +4,6 @@
 # The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
-${Boost_INCLUDE_DIRS}
-${ROOT_INCLUDE_DIR}
 ${CMAKE_SOURCE_DIR}/base/field
 ${CMAKE_SOURCE_DIR}/base/steer
 ${CMAKE_SOURCE_DIR}/base/sim
@@ -19,15 +17,22 @@ ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/recoil
 )
 
-include_directories( ${INCLUDE_DIRECTORIES})
+Set(SYSTEM_INCLUDE_DIRECTORIES
+ ${Boost_INCLUDE_DIRS}
+ ${ROOT_INCLUDE_DIR}
+)
+
+include_directories(${INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
 )
  
-link_directories( ${LINK_DIRECTORIES})
+link_directories(${LINK_DIRECTORIES})
+Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
-set(RECOIL_SRCS
+# List of source files
+set(SRCS
 BmnRecoil.cxx 
 BmnRecoilPoint.cxx  
 BmnRecoilContFact.cxx  
@@ -35,23 +40,9 @@ BmnRecoilGeo.cxx
 BmnRecoilGeoPar.cxx
 )
 
-# fill list of header files from list of source files
-# by exchanging the file extension
-CHANGE_FILE_EXTENSION(*.cxx *.h RECOIL_HEADERS "${RECOIL_SRCS}")
+Set(HEADERS)
+Set(LINKDEF BmnRecoilLinkDef.h)
+Set(LIBRARY_NAME Recoil)
+Set(DEPENDENCIES Core Base)
 
-set(RECOIL_LINKDEF BmnRecoilLinkDef.h)
-set(RECOIL_DICTIONARY ${CMAKE_CURRENT_BINARY_DIR}/BmnRecoilDict.cxx) 
-
-ROOT_GENERATE_DICTIONARY("${RECOIL_HEADERS}" "${RECOIL_LINKDEF}" "${RECOIL_DICTIONARY}" "${INCLUDE_DIRECTORIES}")
-
-
-set(RECOIL_SRCS ${RECOIL_SRCS} ${RECOIL_DICTIONARY})
-
-
-add_library(Recoil SHARED ${RECOIL_SRCS})
-target_link_libraries(Recoil ${ROOT_LIBRARIES})
-set_target_properties(Recoil PROPERTIES ${FAIRROOT_LIBRARY_PROPERTIES})
-
-
-################ install ###################
-install(TARGETS Recoil DESTINATION ${CMAKE_BINARY_DIR}/lib)
+GENERATE_LIBRARY()

@@ -1,10 +1,6 @@
 # Create a library called "libGlobalTracking".
 
 Set(INCLUDE_DIRECTORIES
-${BASE_INCLUDE_DIRECTORIES}
-${ROOT_INCLUDE_DIR}
-${Boost_INCLUDE_DIRS}
-
 ${BMNROOT_SOURCE_DIR}/base
 ${CMAKE_SOURCE_DIR}/base/field
 ${CMAKE_SOURCE_DIR}/base/steer
@@ -20,22 +16,23 @@ ${BMNROOT_SOURCE_DIR}/gem
 ${BMNROOT_SOURCE_DIR}/dch
 ${BMNROOT_SOURCE_DIR}/mwpc
 ${BMNROOT_SOURCE_DIR}/globaltracking
-#${BMNROOT_SOURCE_DIR}/sts
-#${BMNROOT_SOURCE_DIR}/sts/setup
-
-#${BMNROOT_SOURCE_DIR}/KF
-#${BMNROOT_SOURCE_DIR}/KF/Interface
 )
 
-include_directories( ${INCLUDE_DIRECTORIES})
+Set(SYSTEM_INCLUDE_DIRECTORIES
+ ${Boost_INCLUDE_DIRS}
+ ${ROOT_INCLUDE_DIR}
+)
+
+include_directories(${INCLUDE_DIRECTORIES})
+Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 Set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
-${FAIRROOT_LIBRARY_DIR}
 )
 
-link_directories( ${LINK_DIRECTORIES})
+link_directories(${LINK_DIRECTORIES})
 
+# List of source files
 Set(SRCS
     BmnDetectorSetup.cxx
     BmnGlobalTrackingQA.cxx
@@ -77,11 +74,9 @@ If (Boost_FOUND)
   set(DEFINITIONS BOOST_FOUND)
 EndIf (Boost_FOUND)
 
-Set(LINKDEF  GlobalTrackingLinkDef.h)
+Set(LINKDEF GlobalTrackingLinkDef.h)
 Set(LIBRARY_NAME GlobalTracking)
-Set(DEPENDENCIES
-    KF Sts BmnBase BmnData Base
-)
+Set(DEPENDENCIES KF Sts BmnBase BmnData Base)
 
 GENERATE_LIBRARY()
 

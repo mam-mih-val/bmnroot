@@ -73,7 +73,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
         if (runID == 0) {
             printf("!!! Error Could not detect runID\n");
             return kBMNERROR;
-        }
+    }
     }
     rawDataDecoder->SetRunId(runID);
     rawDataDecoder->SetPeriodId(6);
@@ -148,7 +148,7 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
     if (zmq_getsockopt(_decoSocket, ZMQ_RCVBUF, &rcvBuf, &vl) == -1)
         DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
         printf("rcvbuf = %d\n", rcvBuf);
-    TString localDecoStr = Form("tcp://*:%s", RAW_DECODER_SOCKET_PORT);
+    TString localDecoStr = Form("tcp://*:%d", RAW_DECODER_SOCKET_PORT);
     if (zmq_bind(_decoSocket, localDecoStr.Data()) != 0) {
         DBGERR("zmq bind")
         return kBMNERROR;
@@ -281,7 +281,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
     _curDir = dirname;
     _ctx = zmq_ctx_new();
     _decoSocket = zmq_socket(_ctx, ZMQ_PUB);
-    TString localDecoStr = Form("tcp://*:%s", RAW_DECODER_SOCKET_PORT);
+    TString localDecoStr = Form("tcp://*:%d", RAW_DECODER_SOCKET_PORT);
     if (zmq_bind(_decoSocket, localDecoStr.Data()) != 0) {
         DBGERR("zmq bind")
         return kBMNERROR;

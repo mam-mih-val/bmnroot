@@ -3,6 +3,8 @@
 
 #include "TNamed.h"
 
+#define ADC_SAMPLING_LIMIT 256
+
 using namespace std;
 
 class BmnADCDigit : public TObject {

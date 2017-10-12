@@ -27,6 +27,9 @@ const UInt_t kTDC64V = 0x10; //DCH
 const UInt_t kTDC64VHLE = 0x53;
 const UInt_t kTDC72VHL = 0x12;
 const UInt_t kTDC32VL = 0x11;
+const UInt_t kTQDC16 = 0x09;
+const UInt_t kTQDC16VS = 0x56;
+const UInt_t kTQDC16VS_ETH = 0xD6;
 const UInt_t kTRIG = 0xA;
 const UInt_t kMSC = 0xF;
 const UInt_t kUT24VE = 0x49;
@@ -79,6 +82,8 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fDigiFileOut = NULL;
     sync = NULL;
     tdc = NULL;
+    tqdc_tdc = NULL;
+    tqdc_adc = NULL;
     hrb = NULL;
     adc32 = NULL;
     adc128 = NULL;
@@ -148,6 +153,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     sync = NULL;
     hrb = NULL;
     tdc = NULL;
+    tqdc_tdc = NULL;
+    tqdc_adc = NULL;
     adc32 = NULL;
     adc128 = NULL;
     adc = NULL;
@@ -265,6 +272,8 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     delete adc;
     delete hrb;
     delete tdc;
+    delete tqdc_tdc;
+    delete tqdc_adc;
     delete msc;
 
     return kBMNSUCCESS;
@@ -308,6 +317,8 @@ BmnStatus BmnRawDataDecoder::InitConverter(TString FileName) {
     adc128 = new TClonesArray("BmnADCDigit");
     adc = new TClonesArray("BmnADCDigit");
     tdc = new TClonesArray("BmnTDCDigit");
+    tqdc_adc = new TClonesArray("BmnADCDigit");
+    tqdc_tdc = new TClonesArray("BmnTDCDigit");
     hrb = new TClonesArray("BmnHRBDigit");
     msc = new TClonesArray("BmnMSCDigit");
     eventHeaderDAQ = new TClonesArray("BmnEventHeader");
@@ -318,6 +329,8 @@ BmnStatus BmnRawDataDecoder::InitConverter(TString FileName) {
     fRawTree->Branch("ADC128", &adc128);
     fRawTree->Branch("ADC", &adc);
     fRawTree->Branch("TDC", &tdc);
+    fRawTree->Branch("TQDC_ADC", &tqdc_adc);
+    fRawTree->Branch("TQDC_TDC", &tqdc_tdc);
     fRawTree->Branch("HRB", &hrb);
     fRawTree->Branch("MSC", &msc);
     fRawTree->Branch("EventHeader", &eventHeaderDAQ);
@@ -441,6 +454,8 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
 
     sync->Delete();
     tdc->Delete();
+    tqdc_adc->Delete();
+    tqdc_tdc->Delete();
     hrb->Delete();
     adc32->Delete();
     adc128->Delete();
@@ -461,6 +476,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         UInt_t serial = d[idx++];
         UInt_t id = (d[idx] >> 24);
         UInt_t payload = (d[idx++] & 0xFFFFFF) / kNBYTESINWORD;
+        printf("serial %d id %d \n", serial, id);
 
         if (payload > 20000) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
@@ -617,6 +633,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
             case kMODHEADER:
                 modId = (d[i] >> 16) & 0x7F;
                 slot = (d[i] >> 23) & 0x1F;
+                printf("modheader: serial %d slot %d  modid %d idx %d\n", serial, slot, modId);
                 break;
             default: //data
             {
@@ -626,6 +643,9 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                     case kTDC72VHL:
                     case kTDC32VL:
                         FillTDC(d, serial, slot, modId, i);
+                        break;
+                    case kTQDC16VS:
+                        FillTQDC(d, serial, slot, modId, i);
                         break;
                     case kMSC:
                         FillMSC(d, serial, i); //empty now
@@ -687,6 +707,52 @@ BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt
     return kBMNSUCCESS;
 }
 
+BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
+//    printf("serial %d slot %d  modid %d idx %d\n", serial, slot, modId, idx);
+    UInt_t type = d[idx] >> 28;
+    UInt_t trigTimestamp = 0;
+    UInt_t adcTimestamp = 0;
+    UInt_t iSampl = 0;
+    UInt_t channel = 0;
+    Short_t valI[ADC_SAMPLING_LIMIT];
+    Bool_t inADC = kFALSE;
+    if (type == 6) {
+        printf("TQDC Error: %d\n", d[idx++] & 0xF); // @TODO logging
+        return kBMNSUCCESS;
+    }
+    while (type != kMODTRAILER) {
+        UInt_t mode = (d[idx] >> 26) & 0x3;
+//        printf("type %d mode %d\n", type, mode);
+        if (!inADC) {
+            if ((mode == 0) && (type == 4 || type == 5)) {
+                UInt_t rcdata = (d[idx] >> 24) & 0x3;
+                channel = (d[idx] >> 19) & 0x1F;
+                UInt_t time = 4 * (d[idx] & 0x7FF) + rcdata; // in 25 ps
+                new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time);
+                printf("TDC: type %d channel %d time %d \n", type, channel, time);
+            } else if ((type == 4) && (mode == 2)) {
+                channel = (d[idx] >> 19) & 0x1F;
+                trigTimestamp = d[idx++] & 0xFF;
+                adcTimestamp = d[idx] & 0xFF;
+                inADC = kTRUE;
+                printf("ADC: channel %d trigTimestamp %d  adcTimestamp %d\n", channel, trigTimestamp, adcTimestamp);
+            }
+        } else {
+            if ((type == 5) && (mode == 2) && (iSampl < ADC_SAMPLING_LIMIT)) {
+                Short_t val = d[idx] & 0xFF;
+//                printf("\tiSampl %d val %d\n", iSampl, val);
+                valI[iSampl++] = val;
+            } else {
+                new((*tqdc_adc)[tqdc_adc->GetEntriesFast()]) BmnADCDigit(serial, channel, iSampl, valI);
+                inADC = kFALSE;
+                iSampl = 0;
+            }
+        }
+        type = d[++idx] >> 28;
+    }
+    return kBMNSUCCESS;
+}
+
 BmnStatus BmnRawDataDecoder::FillSYNC(UInt_t *d, UInt_t serial, UInt_t & idx) {
     UInt_t d0 = d[idx + 0];
     UInt_t d1 = d[idx + 1];
@@ -734,6 +800,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     }
     fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
     tdc = new TClonesArray("BmnTDCDigit");
+    tqdc_adc = new TClonesArray("BmnADCDigit");
+    tqdc_tdc = new TClonesArray("BmnTDCDigit");
     hrb = new TClonesArray("BmnHRBDigit");
     sync = new TClonesArray("BmnSyncDigit");
     adc32 = new TClonesArray("BmnADCDigit");
@@ -742,6 +810,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     eventHeaderDAQ = new TClonesArray("BmnEventHeader");
     runHeaderDAQ = new BmnRunHeader();
     fRawTree->SetBranchAddress("TDC", &tdc);
+    fRawTree->SetBranchAddress("TQDC_ADC", &tqdc_adc);
+    fRawTree->SetBranchAddress("TQDC_TDC", &tqdc_tdc);
     fRawTree->SetBranchAddress("HRB", &hrb);
     fRawTree->SetBranchAddress("SYNC", &sync);
     fRawTree->SetBranchAddress("ADC32", &adc32);
@@ -893,7 +963,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     DisposeDecoder();
     fDigiFileOut->Close();
     fRootFileIn->Close();
-    
+
     return kBMNSUCCESS;
 }
 
@@ -1110,6 +1180,8 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     delete adc128;
     delete adc;
     delete tdc;
+    delete tqdc_adc;
+    delete tqdc_tdc;
 
     if (gem) delete gem;
     if (dch) delete dch;

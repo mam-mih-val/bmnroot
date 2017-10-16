@@ -150,7 +150,7 @@ void BmnGlobalTracking::Exec(Option_t* opt) {
         glTr->SetParamFirst(*(gemTrack->GetParamFirst()));
         glTr->SetParamLast(*(gemTrack->GetParamLast()));
         glTr->SetGemTrackIndex(i);
-        glTr->SetNHits(gemTrack->GetNHits());
+        glTr->SetNHits(gemTrack->GetNGemHits());
         glTr->SetNDF(gemTrack->GetNDF());
         glTr->SetChi2(gemTrack->GetChi2());
         glTr->SetLength(gemTrack->GetLength());
@@ -280,8 +280,8 @@ BmnStatus BmnGlobalTracking::MatchingMWPC(BmnGlobalTrack* tr) {
         tr->SetParamFirst(minParUp);
         tr->SetChi2(tr->GetChi2() + minChiSq);
         tr->SetMwpcTrackIndex(minIdx);
-        tr->SetNHits(tr->GetNHits() + minTrack->GetNHits());
-        tr->SetNDF(tr->GetNDF() + minTrack->GetNHits()); //FIXME!
+        tr->SetNHits(tr->GetNGemHits() + minTrack->GetNGemHits());
+        tr->SetNDF(tr->GetNDF() + minTrack->GetNGemHits()); //FIXME!
         BmnFitNode *node = &((tr->GetFitNodes()).at(0));
         node->SetUpdatedParam(&minParUp);
         node->SetPredictedParam(&minParPred);
@@ -404,8 +404,8 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr) {
         tr->SetParamLast(minParUp);
         tr->SetChi2(tr->GetChi2() + minChiSq);
         tr->SetDchTrackIndex(minIdx);
-        tr->SetNHits(tr->GetNHits() + minTrack->GetNHits());
-        tr->SetNDF(tr->GetNDF() + minTrack->GetNHits()); //FIXME!
+        tr->SetNHits(tr->GetNGemHits() + minTrack->GetNGemHits());
+        tr->SetNDF(tr->GetNDF() + minTrack->GetNGemHits()); //FIXME!
         vector<BmnFitNode> nodes = tr->GetFitNodes();
         BmnFitNode *node = &((tr->GetFitNodes()).at(3));
         node->SetUpdatedParam(&minParUp);
@@ -454,8 +454,8 @@ BmnStatus BmnGlobalTracking::RefitToDetector(BmnGlobalTrack* tr, Int_t hitId, TC
 
 BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
 
-    vector<BmnFitNode> nodes(tr->GetNHits());
-    Int_t nodeIdx = tr->GetNHits() - 1;
+    vector<BmnFitNode> nodes(tr->GetNGemHits());
+    Int_t nodeIdx = tr->GetNGemHits() - 1;
     FairTrackParam par = *(tr->GetParamLast());
     //    FairTrackParam par = *(tr->GetParamFirst());
 
@@ -477,7 +477,7 @@ BmnStatus BmnGlobalTracking::Refit(BmnGlobalTrack* tr) {
     //GEM part
     if (fDet.GetDet(kGEM) && tr->GetGemTrackIndex() != -1) {
         BmnGemTrack* gemTr = (BmnGemTrack*) fGemTracks->At(tr->GetGemTrackIndex());
-        for (Int_t i = gemTr->GetNHits() - 1; i >= 0; --i) {
+        for (Int_t i = gemTr->GetNGemHits() - 1; i >= 0; --i) {
             if (RefitToDetector(tr, i, fGemHits, &par, &nodeIdx, &nodes) == kBMNERROR) return kBMNERROR;
         }
     }
@@ -508,8 +508,8 @@ void BmnGlobalTracking::CalculateLength() {
         if (glTr->GetGemTrackIndex() > -1) {
             if (!isRUN1) {
                 const BmnGemTrack* gemTr = (BmnGemTrack*) fGemTracks->At(glTr->GetGemTrackIndex());
-                for (Int_t iGem = 0; iGem < gemTr->GetNHits(); iGem++) {
-                    const BmnHit* hit = (BmnHit*) fGemHits->At(gemTr->GetHitIndex(iGem));
+                for (Int_t iGem = 0; iGem < gemTr->GetNGemHits(); iGem++) {
+                    const BmnHit* hit = (BmnHit*) fGemHits->At(gemTr->GetGemHitIndex(iGem));
                     if (!hit) continue;
                     X.push_back(hit->GetX());
                     Y.push_back(hit->GetY());

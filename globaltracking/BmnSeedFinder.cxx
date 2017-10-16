@@ -351,15 +351,15 @@ UInt_t BmnSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, Bool
 
         trackCand.SortHits();
         Int_t nHitsForCand = 4; //((gate * 2 + 1) > 4) ? 4 : 5;
-        if (trackCand.GetNHits() < nHitsForCand) { // don't fit track by circle with less then 4 hits
-            for (Int_t i = 0; i < trackCand.GetNHits(); ++i) {
+        if (trackCand.GetNGemHits() < nHitsForCand) { // don't fit track by circle with less then 4 hits
+            for (Int_t i = 0; i < trackCand.GetNGemHits(); ++i) {
                 BmnHit * hit = (BmnHit*) fSeedHits.at(trackCand.GetHitIndex(i));
                 hit->SetUsing(kFALSE);
             }
             continue;
         }
         vector<BmnHit*> hitsInTrack;
-        for (Int_t i = 0; i < trackCand.GetNHits(); ++i) {
+        for (Int_t i = 0; i < trackCand.GetNGemHits(); ++i) {
             BmnHit* hit = (BmnHit*) fSeedHits.at(trackCand.GetHitIndex(i));
             hitsInTrack.push_back(hit);
         }
@@ -372,7 +372,7 @@ UInt_t BmnSeedFinder::SearchTrackCandidates(Int_t startStation, Int_t gate, Bool
             if(isRUN1) {
                 new((*fSeedsArray)[fSeedsArray->GetEntriesFast()]) BmnGlobalTrack();
                 BmnGlobalTrack* glTr = (BmnGlobalTrack*) fSeedsArray->At(fSeedsArray->GetEntriesFast() - 1);
-                glTr->SetNofHits(trackCand.GetNHits());
+                glTr->SetNofHits(trackCand.GetNGemHits());
                 glTr->SetNDF(trackCand.GetNDF());
                 for (Int_t i = 0; i < hitsInTrack.size(); ++i) {
                     BmnHit* hit = (BmnHit*) hitsInTrack.at(i);

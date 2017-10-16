@@ -308,7 +308,7 @@ void BmnGlobalAlignment::Mille(Int_t idx, Int_t iDet, Char_t* buff) {
                 nModulesProcessed++;
                 Int_t iHit;
                 for (iHit = 0; iHit < track->GetNHits(); iHit++) {
-                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetHitIndex(iHit));
+                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
                     Short_t stat = hit->GetStation();
                     Int_t mod = hit->GetModule();
                     TString zeroEnd = "", zeroBeg = "";
@@ -364,7 +364,7 @@ void BmnGlobalAlignment::Mille(Int_t idx, Int_t iDet, Char_t* buff) {
         Double_t Tx = track->GetParamFirst()->GetTx();
         Double_t Ty = track->GetParamFirst()->GetTy();
 
-        BmnMwpcHit* hit0 = (BmnMwpcHit*) fMwpcHits->UncheckedAt(track->GetHitIndex(0));
+        BmnMwpcHit* hit0 = (BmnMwpcHit*) fMwpcHits->UncheckedAt(track->GetGemHitIndex(0));
         Double_t X = hit0->GetX() + Tx * zMid;
         Double_t Y = hit0->GetY() + Ty * zMid;
         Double_t Z = zMid;

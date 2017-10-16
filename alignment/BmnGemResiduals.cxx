@@ -89,7 +89,7 @@ void BmnGemResiduals::ResidualsAndDistances() {
         Double_t zFirst = track->GetParamFirst()->GetZ();
 
         for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
-            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetHitIndex(iHit));
+            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetGemHitIndex(iHit));
 
             Double_t xRes = 0., yRes = 0.;
             if (isResid) {

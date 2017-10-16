@@ -522,7 +522,7 @@ void BmnTrackingQa::ProcessGem() {
         } else
             refs.push_back(gemMCId);
 
-        Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota && track->GetNHits() >= fMinNofPointsGem;
+        Bool_t isTrackOk = gemTrackMatch->GetTrueOverAllHitsRatio() >= fQuota && track->GetNGemHits() >= fMinNofPointsGem;
         Float_t Px_sim = pnt.GetPx(); //mcTrack->GetPx();
         Float_t Py_sim = pnt.GetPy(); //mcTrack->GetPy();
         Float_t Pz_sim = pnt.GetPz(); //mcTrack->GetPz();
@@ -542,7 +542,7 @@ void BmnTrackingQa::ProcessGem() {
         Float_t Pxy_rec = Sqrt(Px_rec * Px_rec + Py_rec * Py_rec);
         Float_t Eta_rec = 0.5 * Log((P_rec + Pz_rec) / (P_rec - Pz_rec));
         Float_t Theta_rec = ATan2(Pxy_rec, Pz_rec) * RadToDeg();
-        Int_t N_rec = track->GetNHits();
+        Int_t N_rec = track->GetNGemHits();
 
         fHM->H1("Rec_vs_P_gem")->Fill(P_sim);
         fHM->H1("Rec_vs_Eta_gem")->Fill(Eta_sim);
@@ -568,7 +568,7 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H2("momRes_2D_gem")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Chi2_gem")->Fill(chi2, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Length_gem")->Fill(track->GetLength(), (P_sim - P_rec) / P_sim * 100.0);
-            fHM->H2("MomRes_vs_nHits_gem")->Fill(track->GetNHits(), (P_sim - P_rec) / P_sim * 100.0);
+            fHM->H2("MomRes_vs_nHits_gem")->Fill(track->GetNGemHits(), (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("MomRes_vs_Theta_gem")->Fill(Theta_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("Mom_vs_Chi2_gem")->Fill(chi2, P_rec);
             fHM->H2("Mom_vs_Length_gem")->Fill(track->GetLength(), P_rec);
@@ -638,8 +638,8 @@ void BmnTrackingQa::ProcessGem() {
             fHM->H1("Ty_l_gem")->Fill(pl->GetTy());
             fHM->H1("Qp_l_gem")->Fill(pl->GetQp());
             
-            for (Int_t iHit = 0; iHit < track->GetNHits(); ++iHit) {
-                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetHitIndex(iHit));
+            for (Int_t iHit = 0; iHit < track->GetNGemHits(); ++iHit) {
+                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetGemHitIndex(iHit));
                 Double_t hX = hit->GetX();
                 Double_t hY = hit->GetY();
                 Int_t st = hit->GetStation();
@@ -752,10 +752,10 @@ void BmnTrackingQa::ProcessGlobal() {
 
         if (!isTrackOk) {
             fHM->H1("Ghost_vs_P_glob")->Fill(P_sim);
-            fHM->H1("Ghost_vs_Nh_glob")->Fill(track->GetNHits());
+            fHM->H1("Ghost_vs_Nh_glob")->Fill(track->GetNGemHits());
         } else {
             fHM->H1("Well_vs_P_glob")->Fill(P_sim);
-            fHM->H1("Well_vs_Nh_glob")->Fill(track->GetNHits());
+            fHM->H1("Well_vs_Nh_glob")->Fill(track->GetNGemHits());
 
             fHM->H2("momRes_2D_glob")->Fill(P_sim, (P_sim - P_rec) / P_sim * 100.0);
             fHM->H2("P_rec_P_sim_glob")->Fill(P_sim, P_rec);

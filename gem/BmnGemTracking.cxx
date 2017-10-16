@@ -12,6 +12,7 @@
 #include "CbmStsPoint.h"
 #include "FairRunAna.h"
 #include "BmnGemStripHit.h"
+#include "BmnSiliconHit.h"
 #include "BmnMatrixMath.h"
 #include "BmnKalmanFilter_tmp.h"
 #include "TFitResult.h"
@@ -42,22 +43,27 @@ BmnGemTracking::BmnGemTracking() {
     fNHitsCut = 4;
     fNBins = 1000;
     fMin = -0.5;
-    fNSeedsCut = 2000;
-    fNHitsInGemCut = 1000;
+    fNSeedsCut = 5000;
+    fNHitsInGemCut = 10000; //300;
     fMax = -fMin;
     fWidth = (fMax - fMin) / fNBins;
-    fDistCut = 5.0;
+    fGemDistCut = 5.0;
+    fSilDistCut = 1.0;
     fKalman = new BmnKalmanFilter_tmp();
     fGemTracksArray = NULL;
     fField = NULL;
     fGoForward = kTRUE;
-    fHitsBranchName = "BmnGemStripHit";
+    fGemHitsBranchName = "BmnGemStripHit";
+    fSilHitsBranchName = "BmnSiliconHit";
     fTracksBranchName = "BmnGemTrack";
+    fGemDetector = NULL;
+    fSilDetector = NULL;
 }
 
 BmnGemTracking::~BmnGemTracking() {
     delete fKalman;
-    delete fDetector;
+    delete fGemDetector;
+    delete fSilDetector;
 }
 
 InitStatus BmnGemTracking::Init() {
@@ -70,15 +76,19 @@ InitStatus BmnGemTracking::Init() {
         Fatal("Init", "FairRootManager is not instantiated");
     }
 
-    fGemHitsArray = (TClonesArray*) ioman->GetObject(fHitsBranchName); //in
-    if (!fGemHitsArray) Fatal("Init", "No input hits array");
+    fGemHitsArray = (TClonesArray*) ioman->GetObject(fGemHitsBranchName); //in
+    //if (!fGemHitsArray) Fatal("Init", "No input hits array");
+
+    fSilHitsArray = (TClonesArray*) ioman->GetObject(fSilHitsBranchName); //in
+    //if (!fSilHitsArray) Fatal("Init", "No input hits array");
+
     fGemTracksArray = new TClonesArray(fTracksBranchName, 100); //out
     ioman->Register("BmnGemTrack", "GEM", fGemTracksArray, kTRUE);
 
     fField = FairRunAna::Instance()->GetField();
     if (!fField) Fatal("Init", "No Magnetic Field found");
     // Use a wider corridor by default when doing alignment
-    if (Abs(fField->GetBy(0., 0., 0.)) < FLT_EPSILON) fDistCut = 2.5;
+    if (Abs(fField->GetBy(0., 0., 0.)) < FLT_EPSILON) fGemDistCut = 2.5;
 
     fAddresses = new Int_t*[fNBins];
     for (Int_t i = 0; i < fNBins; ++i) {
@@ -88,7 +98,8 @@ InitStatus BmnGemTracking::Init() {
         }
     }
 
-    fDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
+    fGemDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
+    fSilDetector = new BmnSiliconStationSet("/home/merz/BMN/26_01_16/silicon/XMLConfigs/SiliconRunSpring2017.xml");
 
     if (fVerbose) cout << "======================== GEM tracking init finished ===================" << endl;
 }
@@ -101,7 +112,7 @@ void BmnGemTracking::Exec(Option_t* opt) {
     clock_t tStart = clock();
     fGemTracksArray->Delete();
     fYstep = 3;
-    fDistCut = 5.0;
+    fGemDistCut = 5.0;
     fLineFitCut = 0.5;
 
     for (Int_t i = 0; i < fNBins; ++i)
@@ -120,7 +131,7 @@ void BmnGemTracking::Exec(Option_t* opt) {
         if (br == 0) break;
         fYstep *= 3;
         fLineFitCut /= 2;
-        fDistCut /= 5;
+        fGemDistCut /= 5;
     }
 
     clock_t tFinish = clock();
@@ -148,24 +159,31 @@ Int_t BmnGemTracking::Tracking(vector<BmnGemTrack>& seeds) {
         BmnGemTrack track;
         track.SetParamFirst(*(gemTrack->GetParamFirst()));
         track.SetParamLast(*(gemTrack->GetParamLast()));
-        vector<BmnFitNode> nodes(fDetector->GetNStations());
+
+        vector<BmnFitNode> nodes(fGemDetector->GetNStations());
         track.SetFitNodes(nodes);
 
         if (fGoForward) {
-            BmnGemStripHit* startHit = GetHit(gemTrack->GetHitIndex(0));
-            if (!startHit) continue;
-            track.AddHit(gemTrack->GetHitIndex(0), startHit);
-            for (Int_t iSt = startHit->GetStation(); iSt < fDetector->GetNStations(); ++iSt)
-                NearestHitMerge(iSt, &track);
-            for (Int_t iSt = startHit->GetStation(); iSt >= 0; iSt--)
-                NearestHitMerge(iSt, &track);
+            BmnGemStripHit* hit0 = GetHit(gemTrack->GetGemHitIndex(0));
+            BmnGemStripHit* hit1 = GetHit(gemTrack->GetGemHitIndex(1));
+            BmnGemStripHit* hit2 = GetHit(gemTrack->GetGemHitIndex(2));
+            if (!hit0 || !hit1 || !hit2) continue;
+            track.AddGemHit(gemTrack->GetGemHitIndex(0), hit0);
+            track.AddGemHit(gemTrack->GetGemHitIndex(1), hit1);
+            track.AddGemHit(gemTrack->GetGemHitIndex(2), hit2);
+
+            for (Int_t iSt = hit2->GetStation() + 1; iSt < fGemDetector->GetNStations(); ++iSt)
+                NearestHitMergeGem(iSt, &track);
+            for (Int_t iSt = hit0->GetStation() - 1; iSt >= 0; iSt--)
+                NearestHitMergeGem(iSt, &track);
+            if (fSilHitsArray) NearestHitMergeSil(0, &track);
         } else {
-            BmnGemStripHit* lastHit = GetHit(gemTrack->GetHitIndex(gemTrack->GetNHits() - 1));
-            track.AddHit(gemTrack->GetHitIndex(gemTrack->GetNHits() - 1), lastHit);
+            BmnGemStripHit* lastHit = GetHit(gemTrack->GetGemHitIndex(gemTrack->GetNGemHits() - 1));
+            track.AddGemHit(gemTrack->GetGemHitIndex(gemTrack->GetNGemHits() - 1), lastHit);
             for (Int_t iSt = lastHit->GetStation() - 1; iSt >= 0; iSt--)
-                NearestHitMerge(iSt, &track);
+                NearestHitMergeGem(iSt, &track);
         }
-        if (track.GetNHits() >= fNHitsCut) {
+        if (track.GetNGemHits() >= fNHitsCut) {
             CalculateLength(&track);
 
             //            if (track.GetParamLast()->GetZ() < 40) printf("OOOOPS!\n");
@@ -188,10 +206,10 @@ Int_t BmnGemTracking::Tracking(vector<BmnGemTrack>& seeds) {
         for (Int_t iTr = 0; iTr < tracks.size(); ++iTr)
             for (Int_t jTr = iTr + 1; jTr < tracks.size(); ++jTr) {
                 Int_t nCopies = 0;
-                for (Int_t iHit = 0; iHit < tracks[iTr].GetNHits(); iHit++) {
-                    Int_t iHitIdx = tracks[iTr].GetHitIndex(iHit);
-                    for (Int_t jHit = 0; jHit < tracks[jTr].GetNHits(); jHit++) {
-                        Int_t jHitIdx = tracks[jTr].GetHitIndex(jHit);
+                for (Int_t iHit = 0; iHit < tracks[iTr].GetNGemHits(); iHit++) {
+                    Int_t iHitIdx = tracks[iTr].GetGemHitIndex(iHit);
+                    for (Int_t jHit = 0; jHit < tracks[jTr].GetNGemHits(); jHit++) {
+                        Int_t jHitIdx = tracks[jTr].GetGemHitIndex(jHit);
                         if (iHitIdx == jHitIdx)
                             nCopies++;
                     }
@@ -245,6 +263,29 @@ void BmnGemTracking::FillAddrWithLorentz() {
         hit->SetFlag(kTRUE);
     }
 
+    if (fSilHitsArray)
+        for (Int_t hitIdx = 0; hitIdx < fSilHitsArray->GetEntriesFast(); ++hitIdx) {
+            BmnSiliconHit* hit = (BmnSiliconHit*) fSilHitsArray->At(hitIdx);
+            if (!hit) continue;
+            if (hit->IsUsed()) continue;
+
+            //        hit->SetFlag(kFALSE); // by default hits are not filtered 
+            //        //hit->SetDxyz(hit->GetDx() * 2, hit->GetDy() * 2, 0.0); // just for test
+            //        //        hit->SetDxyz(1.0, 1.0, 1.0); // just for test
+            //
+            //        TVector2 XYnew = GetTransXY(hit);
+            //
+            //        Int_t xAddr = ceil((XYnew.X() - fMin) / fWidth);
+            //        Int_t yAddr = ceil((XYnew.Y() - fMin) / fWidth);
+            //        ULong_t addr = yAddr * fNBins + xAddr;
+            //
+            //        hit->SetAddr(addr);
+            //        hit->SetXaddr(xAddr);
+            //        hit->SetYaddr(yAddr);
+            //        hit->SetIndex(hitIdx);
+            hit->SetFlag(kTRUE);
+        }
+
     //    for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
     //        BmnGemStripHit* hit = GetHit(hitIdx);
     //        if (!hit) continue;
@@ -288,12 +329,12 @@ void BmnGemTracking::FillAddrWithLorentz() {
 
 BmnStatus BmnGemTracking::RefitTrack(BmnGemTrack* track) {
 
-    const Short_t nHits = track->GetNHits();
+    const Short_t nHits = track->GetNGemHits();
 
     Double_t *xx = new Double_t[nHits];
     Double_t *yy = new Double_t[nHits];
 
-    BmnGemStripHit* firstHit = (BmnGemStripHit*) fGemHitsArray->At(track->GetHitIndex(0));
+    BmnGemStripHit* firstHit = (BmnGemStripHit*) fGemHitsArray->At(track->GetGemHitIndex(0));
 
     Double_t fSum = 0.0;
     Double_t minField = FLT_MAX;
@@ -304,7 +345,7 @@ BmnStatus BmnGemTracking::RefitTrack(BmnGemTrack* track) {
     Double_t C = 0;
 
     for (Int_t iHit = 0; iHit < nHits; ++iHit) {
-        BmnGemStripHit *hit = (BmnGemStripHit*) fGemHitsArray->At(track->GetHitIndex(iHit));
+        BmnGemStripHit *hit = (BmnGemStripHit*) fGemHitsArray->At(track->GetGemHitIndex(iHit));
         if (!hit) continue;
         if (!hit->GetFlag()) continue;
         Double_t f = Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
@@ -317,7 +358,7 @@ BmnStatus BmnGemTracking::RefitTrack(BmnGemTrack* track) {
     }
     Double_t chi2 = 0.0;
     TVector3 circPar = CircleFit(track, fGemHitsArray, chi2);
-    //    printf("chi^2 / NDF = %f\n", chi2 / (track->GetNHits() - 3));
+    //    printf("chi^2 / NDF = %f\n", chi2 / (track->GetNGemHits() - 3));
 
 
     //    FitWLSQ *fit = new FitWLSQ(xx, 0.3, 0.9, 0.9, (Int_t) nHits, 3, true, true, 4);
@@ -345,7 +386,7 @@ BmnStatus BmnGemTracking::RefitTrack(BmnGemTrack* track) {
     const Double_t QP = Q / S / R;
 
     track->SetChi2(chi2);
-    track->SetNDF(track->GetNHits() - 3);
+    track->SetNDF(track->GetNGemHits() - 3);
     track->GetParamFirst()->SetQp(QP);
 
     //    delete fit;
@@ -357,27 +398,31 @@ BmnStatus BmnGemTracking::RefitTrack(BmnGemTrack* track) {
 
 BmnStatus BmnGemTracking::FindSeedsByCombinatoricsInCoridor(Int_t iCorridor, vector<BmnGemTrack>& cand) {
 
-    vector<Int_t> hitsOnStation[fDetector->GetNStations()];
+    vector<Int_t> hitsOnStation[fGemDetector->GetNStations()];
 
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
         BmnGemStripHit* hit = GetHit(iHit);
         if (!hit) continue;
         if (!hit->GetFlag()) continue;
         if (hit->GetYaddr() > fYstep * iCorridor || hit->GetYaddr() < fYstep * (iCorridor - 1)) continue;
-        for (Int_t iSt = 0; iSt < fDetector->GetNStations(); ++iSt)
+        for (Int_t iSt = 0; iSt < fGemDetector->GetNStations(); ++iSt)
             if (hit->GetStation() == iSt) hitsOnStation[iSt].push_back(iHit);
     }
 
     SeedsByThreeStations(0, 1, 2, hitsOnStation, cand);
-    SeedsByThreeStations(0, 1, 3, hitsOnStation, cand);
-    SeedsByThreeStations(0, 1, 4, hitsOnStation, cand);
-    SeedsByThreeStations(0, 2, 3, hitsOnStation, cand);
-    SeedsByThreeStations(0, 2, 4, hitsOnStation, cand);
-    SeedsByThreeStations(0, 3, 4, hitsOnStation, cand);
+    //    SeedsByThreeStations(0, 1, 3, hitsOnStation, cand);
+    //    SeedsByThreeStations(0, 1, 4, hitsOnStation, cand);
+    //    SeedsByThreeStations(0, 2, 3, hitsOnStation, cand);
+    //    SeedsByThreeStations(0, 2, 4, hitsOnStation, cand);
+    //    SeedsByThreeStations(0, 3, 4, hitsOnStation, cand);
 
     SeedsByThreeStations(1, 2, 3, hitsOnStation, cand);
-    SeedsByThreeStations(1, 2, 4, hitsOnStation, cand);
-    SeedsByThreeStations(1, 3, 4, hitsOnStation, cand);
+    //    SeedsByThreeStations(1, 2, 4, hitsOnStation, cand);
+    //    SeedsByThreeStations(1, 3, 4, hitsOnStation, cand);
+
+    SeedsByThreeStations(2, 3, 4, hitsOnStation, cand);
+
+    SeedsByThreeStations(3, 4, 5, hitsOnStation, cand);
 
     return kBMNSUCCESS;
 }
@@ -414,10 +459,10 @@ BmnStatus BmnGemTracking::FitSeeds(vector<BmnGemTrack>& cand) {
 
 BmnStatus BmnGemTracking::CalculateTrackParamsPol2(BmnGemTrack *tr) {
 
-    const UInt_t nHits = tr->GetNHits();
-    BmnGemStripHit* lastHit = GetHit(tr->GetHitIndex(nHits - 1));
-    BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0));
-    BmnGemStripHit* midHit = GetHit(tr->GetHitIndex(1));
+    const UInt_t nHits = tr->GetNGemHits();
+    BmnGemStripHit* lastHit = GetHit(tr->GetGemHitIndex(nHits - 1));
+    BmnGemStripHit* firstHit = GetHit(tr->GetGemHitIndex(0));
+    BmnGemStripHit* midHit = GetHit(tr->GetGemHitIndex(1));
     if (!firstHit || !lastHit || !midHit) return kBMNERROR;
     if (!lastHit->GetFlag()) return kBMNERROR;
     if (!firstHit->GetFlag()) return kBMNERROR;
@@ -444,7 +489,7 @@ BmnStatus BmnGemTracking::CalculateTrackParamsPol2(BmnGemTrack *tr) {
     Double_t maxField = -FLT_MAX;
     UInt_t nOk = 0;
     for (UInt_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = GetHit(tr->GetHitIndex(i));
+        BmnGemStripHit* hit = GetHit(tr->GetGemHitIndex(i));
         if (!hit) continue;
         if (!hit->GetFlag()) continue;
         Double_t f = Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
@@ -518,12 +563,12 @@ BmnStatus BmnGemTracking::CalculateTrackParamsPol2(BmnGemTrack *tr) {
 BmnStatus BmnGemTracking::CalculateTrackParamsCircle(BmnGemTrack * tr) {
 
     //Estimation of track parameters for events with magnetic field
-    const UInt_t nHits = tr->GetNHits();
+    const UInt_t nHits = tr->GetNGemHits();
     //    if (nHits < fNHitsCut) return kBMNERROR;
     //cout << "I'm trying to get hit index!!! N_hits = " << nHits <<  endl;
-    BmnGemStripHit* lastHit = GetHit(tr->GetHitIndex(nHits - 1));
-    BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0));
-    BmnGemStripHit* midHit = GetHit(tr->GetHitIndex(1));
+    BmnGemStripHit* lastHit = GetHit(tr->GetGemHitIndex(nHits - 1));
+    BmnGemStripHit* firstHit = GetHit(tr->GetGemHitIndex(0));
+    BmnGemStripHit* midHit = GetHit(tr->GetGemHitIndex(1));
     if (!firstHit || !lastHit || !midHit) return kBMNERROR;
     if (!lastHit->GetFlag()) return kBMNERROR;
     if (!firstHit->GetFlag()) return kBMNERROR;
@@ -566,7 +611,7 @@ BmnStatus BmnGemTracking::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     Double_t maxField = -FLT_MAX;
     UInt_t nOk = 0;
     for (UInt_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = GetHit(tr->GetHitIndex(i));
+        BmnGemStripHit* hit = GetHit(tr->GetGemHitIndex(i));
         if (!hit) continue;
         if (!hit->GetFlag()) continue;
         Double_t f = Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
@@ -598,7 +643,7 @@ BmnStatus BmnGemTracking::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     Double_t sumYTx = 0.0;
 
     for (UInt_t i = 0; i < nHits; ++i) {
-        BmnGemStripHit* hit = GetHit(tr->GetHitIndex(i));
+        BmnGemStripHit* hit = GetHit(tr->GetGemHitIndex(i));
         if (!hit) continue;
         if (!hit->GetFlag()) continue;
         Double_t Xi = hit->GetX();
@@ -720,9 +765,9 @@ BmnStatus BmnGemTracking::CalculateTrackParamsCircle(BmnGemTrack * tr) {
 BmnStatus BmnGemTracking::CalculateTrackParamsLine(BmnGemTrack * tr) {
 
     //Estimation of track parameters for events w/o magnetic field
-    const UInt_t nHits = tr->GetNHits();
-    BmnGemStripHit* lastHit = GetHit(tr->GetHitIndex(nHits - 1));
-    BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0));
+    const UInt_t nHits = tr->GetNGemHits();
+    BmnGemStripHit* lastHit = GetHit(tr->GetGemHitIndex(nHits - 1));
+    BmnGemStripHit* firstHit = GetHit(tr->GetGemHitIndex(0));
     if (!firstHit || !lastHit) return kBMNERROR;
     if (!lastHit->GetFlag()) return kBMNERROR;
     if (!firstHit->GetFlag()) return kBMNERROR;
@@ -797,8 +842,9 @@ BmnStatus BmnGemTracking::CalculateTrackParamsLine(BmnGemTrack * tr) {
 }
 
 void BmnGemTracking::SetHitsUsing(BmnGemTrack* tr, Bool_t use) {
-    for (Int_t i = 0; i < tr->GetNHits(); ++i) {
-        GetHit(tr->GetHitIndex(i))->SetUsing(use);
+    for (Int_t i = 0; i < tr->GetNGemHits(); ++i) {
+        BmnGemStripHit* hit = GetHit(tr->GetGemHitIndex(i));
+        if (hit) hit->SetUsing(use);
     }
 }
 
@@ -817,9 +863,9 @@ BmnStatus BmnGemTracking::SeedsByThreeStations(Int_t i0, Int_t i1, Int_t i2, vec
             for (Int_t iHit2 = 0; iHit2 < hits[i2].size(); ++iHit2) {
                 BmnGemStripHit* hit2 = GetHit(hits[i2].at(iHit2));
                 BmnGemTrack trCnd;
-                trCnd.AddHit(hits[i0].at(iHit0), hit0);
-                trCnd.AddHit(hits[i1].at(iHit1), hit1);
-                trCnd.AddHit(hits[i2].at(iHit2), hit2);
+                trCnd.AddGemHit(hits[i0].at(iHit0), hit0);
+                trCnd.AddGemHit(hits[i1].at(iHit1), hit1);
+                trCnd.AddGemHit(hits[i2].at(iHit2), hit2);
                 trCnd.SortHits();
                 TVector3 lineParZY = LineFit(&trCnd, fGemHitsArray, "ZY");
                 if (lineParZY.Z() > fLineFitCut) continue;
@@ -838,7 +884,7 @@ BmnGemStripHit* BmnGemTracking::GetHit(Int_t i) {
     return hit;
 }
 
-BmnStatus BmnGemTracking::NearestHitMerge(UInt_t station, BmnGemTrack* track) {
+BmnStatus BmnGemTracking::NearestHitMergeGem(UInt_t station, BmnGemTrack* track) {
 
     BmnHit* minHit = NULL; // Pointer to hit with minimum chi-square
     Double_t minDist = FLT_MAX;
@@ -848,13 +894,14 @@ BmnStatus BmnGemTracking::NearestHitMerge(UInt_t station, BmnGemTrack* track) {
     Double_t dist = 0.0;
     FairTrackParam minParUp; // updated track parameters for closest hit
     FairTrackParam minParPred; // predicted track parameters for closest hit
-    Double_t stationZ = fDetector->GetGemStation(station)->GetModule(0)->GetZPositionRegistered();
+    Double_t stationZ = fGemDetector->GetGemStation(station)->GetModule(0)->GetZPositionRegistered();
     //    FairTrackParam parPredict = (fGoForward) ? (*(track->GetParamFirst())) : (*(track->GetParamLast()));
     FairTrackParam parPredict = *(track->GetParamFirst());
     Bool_t goForward = (parPredict.GetZ() < stationZ);
     Double_t length = track->GetLength();
     TString propagationType = (fIsField) ? "field" : "line";
-    fKalman->TGeoTrackPropagate(&parPredict, stationZ, fPDG, NULL, &length, propagationType);
+
+    if (fKalman->TGeoTrackPropagate(&parPredict, stationZ, fPDG, NULL, &length, propagationType) == kBMNERROR) return kBMNERROR;
 
     for (Int_t iHit = 0; iHit < fGemHitsArray->GetEntriesFast(); ++iHit) {
         BmnGemStripHit* hit = (BmnGemStripHit*) GetHit(iHit);
@@ -863,14 +910,14 @@ BmnStatus BmnGemTracking::NearestHitMerge(UInt_t station, BmnGemTrack* track) {
         if (hit->GetStation() != station) continue;
         FairTrackParam parUpdate = parPredict;
         Double_t chi = 0.0;
-        fKalman->Update(&parUpdate, hit, chi);
+        if (fKalman->Update(&parUpdate, hit, chi) == kBMNERROR) continue;
 
         //        if (Abs(chi) > 10.)
         //            continue;
         //        dist = Dist(parUpdate.GetX(), parUpdate.GetY(), hit->GetX(), hit->GetY());
         dist = Dist(parPredict.GetX(), parPredict.GetY(), hit->GetX(), hit->GetY());
         //        if (chi < minChiSq) { // Check if hit is inside validation gate and closer to the track.
-        if (dist < minDist && dist < fDistCut) { // Check if hit is inside validation gate and closer to the track.
+        if (dist < minDist && dist < fGemDistCut) { // Check if hit is inside validation gate and closer to the track.
             //        if (dist < minDist) { // Check if hit is inside validation gate and closer to the track.
             minChiSq = chi;
             minDist = dist;
@@ -890,13 +937,81 @@ BmnStatus BmnGemTracking::NearestHitMerge(UInt_t station, BmnGemTrack* track) {
             track->SetParamFirst(minParUp);
         track->SetChi2(Abs(track->GetChi2()) + Abs(minChiSq));
         track->SetNDF(track->GetNDF() + 1);
-        track->AddHit(minIdx, minHit);
+        track->AddGemHit(minIdx, minHit);
         //track->SetLength(minLen);
         track->SortHits();
         //        minHit->SetFlag(kFALSE);
         BmnFitNode* node = track->GetFitNode(station);
         node->SetUpdatedParam(&minParUp);
         node->SetPredictedParam(&minParPred);
+        return kBMNSUCCESS;
+    } else {
+        return kBMNERROR;
+    }
+}
+
+BmnStatus BmnGemTracking::NearestHitMergeSil(UInt_t station, BmnGemTrack* track) {
+
+    BmnHit* minHit = NULL; // Pointer to hit with minimum chi-square
+    Double_t minDist = FLT_MAX;
+    Double_t minChiSq = DBL_MAX;
+    Double_t minLen = DBL_MAX;
+    Int_t minIdx = -1;
+    Double_t dist = 0.0;
+    FairTrackParam minParUp; // updated track parameters for closest hit
+    FairTrackParam minParPred; // predicted track parameters for closest hit
+    Double_t stationZ = fSilDetector->GetSiliconStation(station)->GetModule(0)->GetZPositionRegistered();
+    //    FairTrackParam parPredict = (fGoForward) ? (*(track->GetParamFirst())) : (*(track->GetParamLast()));
+    FairTrackParam parPredict = *(track->GetParamFirst());
+    Bool_t goForward = (parPredict.GetZ() < stationZ);
+    Double_t length = track->GetLength();
+    TString propagationType = (fIsField) ? "field" : "line";
+    if (fKalman->TGeoTrackPropagate(&parPredict, stationZ, fPDG, NULL, &length, propagationType) == kBMNERROR) return kBMNERROR;
+
+    for (Int_t iHit = 0; iHit < fSilHitsArray->GetEntriesFast(); ++iHit) {
+        BmnSiliconHit* hit = (BmnSiliconHit*) fSilHitsArray->At(iHit);
+        if (!hit) continue;
+        if (hit->IsUsed()) continue;
+        if (!hit->GetFlag()) continue;
+        if (hit->GetStation() != station) continue;
+        FairTrackParam parUpdate = parPredict;
+        Double_t chi = 0.0;
+        if (fKalman->Update(&parUpdate, hit, chi) == kBMNERROR) continue;
+
+        //        if (Abs(chi) > 10.)
+        //            continue;
+        //        dist = Dist(parUpdate.GetX(), parUpdate.GetY(), hit->GetX(), hit->GetY());
+        dist = Dist(parPredict.GetX(), parPredict.GetY(), hit->GetX(), hit->GetY());
+        //        printf("dist = %f\n", dist);
+        //        if (chi < minChiSq) { // Check if hit is inside validation gate and closer to the track.
+        if (dist < minDist && dist < fSilDistCut) { // Check if hit is inside validation gate and closer to the track.
+            //        if (dist < minDist) { // Check if hit is inside validation gate and closer to the track.
+            minChiSq = chi;
+            minDist = dist;
+            minHit = hit;
+            minLen = length;
+            minIdx = iHit;
+            minParUp = parUpdate;
+            minParPred = parPredict;
+        }
+    }
+
+    if (minHit != NULL) {
+        //        printf("OK\n");
+
+        if (goForward)
+            track->SetParamLast(minParUp);
+        else
+            track->SetParamFirst(minParUp);
+        track->SetChi2(Abs(track->GetChi2()) + Abs(minChiSq));
+        track->SetNDF(track->GetNDF() + 1);
+        track->AddSilHit(minIdx, minHit);
+        //track->SetLength(minLen);
+        track->SortHits();
+        //        minHit->SetFlag(kFALSE);
+        //        BmnFitNode* node = track->GetFitNode(station);
+        //        node->SetUpdatedParam(&minParUp);
+        //        node->SetPredictedParam(&minParPred);
         return kBMNSUCCESS;
     } else {
         return kBMNERROR;
@@ -910,8 +1025,8 @@ Double_t BmnGemTracking::CalculateLength(BmnGemTrack* tr) {
     X.push_back(0.);
     Y.push_back(0.);
     Z.push_back(0.);
-    for (Int_t iGem = 0; iGem < tr->GetNHits(); iGem++) {
-        BmnGemStripHit* hit = GetHit(tr->GetHitIndex(iGem));
+    for (Int_t iGem = 0; iGem < tr->GetNGemHits(); iGem++) {
+        BmnGemStripHit* hit = GetHit(tr->GetGemHitIndex(iGem));
         if (!hit) continue;
         X.push_back(hit->GetX());
         Y.push_back(hit->GetY());
@@ -929,128 +1044,3 @@ Double_t BmnGemTracking::CalculateLength(BmnGemTrack* tr) {
     return length;
 
 }
-
-//FIXME: add this function to tracking and recalculate Lorentz Shifts with it!
-//
-//BmnStatus BmnGemSeedFinder::CalculateTrackParamsPol2_fixR(BmnGemTrack* tr) {
-//    const UInt_t nHits = tr->GetNHits();
-//    BmnGemStripHit* lastHit = GetHit(tr->GetHitIndex(nHits - 1));
-//    BmnGemStripHit* firstHit = GetHit(tr->GetHitIndex(0));
-//    BmnGemStripHit* midHit = GetHit(tr->GetHitIndex(1));
-//    if (!firstHit || !lastHit || !midHit) return kBMNERROR;
-//    if (!lastHit->GetFlag()) return kBMNERROR;
-//    if (!firstHit->GetFlag()) return kBMNERROR;
-//    if (!midHit->GetFlag()) return kBMNERROR;
-//
-//
-//    TVector3 lineParZY = LineFit(tr, fGemHitsArray, "ZY");
-//    if (lineParZY.Z() > fLineFitCut) return kBMNERROR;
-//
-//    Float_t fSum = 0.0;
-//    Float_t minField = FLT_MAX;
-//    Float_t maxField = -FLT_MAX;
-//    UInt_t nOk = 0;
-//    TGraph gr;
-//    for (UInt_t i = 0; i < nHits; ++i) {
-//        BmnGemStripHit* hit = GetHit(tr->GetHitIndex(i));
-//        if (!hit) continue;
-//        if (!hit->GetFlag()) continue;
-//        Double_t f = Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
-//        gr.SetPoint(i, hit->GetZ(), hit->GetX());
-//        if (f < minField) minField = f;
-//        if (f > maxField) maxField = f;
-//        fSum += f;
-//        nOk++;
-//    }
-//
-//    fSum /= nOk;
-//
-//    //    Float_t S = 0.0003 * fSum;
-//    //    Float_t S = 0.0003 * maxField;
-//    //    Float_t S = 0.0003 * minField;
-//    Float_t S = 0.0003 * Abs(fField->GetBy(lastHit->GetX(), lastHit->GetY(), lastHit->GetZ()));
-//    //    Float_t S = 0.0003 * Abs(fField->GetBy(midHit->GetX(), midHit->GetY(), midHit->GetZ()));
-//    //    Float_t S = 0.0003 * Abs(fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
-//    //    Float_t QP = Q / S / Sqrt(R * R + B * B);
-//
-//    UniDbRun* pCurrentRun = UniDbRun::GetRun(fPeriodNumber, fRunNumber);
-//
-//    Float_t z0 = 0.0;
-//    Float_t mProt = 0.938;
-//    Float_t beamEnergy = *(pCurrentRun->GetEnergy());
-//    Float_t momIdeal = 2 * Sqrt((beamEnergy + mProt) * (beamEnergy + mProt) - mProt * mProt);
-//
-//    Double_t R_ideal = momIdeal / S;
-//    TString formula = Form("[0] + x * [1] + x * x * TMath::Power(1 - [1] * [1], 1.5) / 2.0 / %3.3f", R_ideal);
-//    //    TString formula = Form("[0] + x * (TMath::Sqrt(1 - TMath::Power(2 * [1] * %3.3f, 2.0 / 3.0)) - [1] * %3.3f) + [1] * x * x", R_ideal, z0);
-//    //    printf("formula = %s\n", formula.Data());
-//    TF1 *fit_func = new TF1("parabFixR", formula.Data());
-//    gr.Fit("parabFixR", "QFW");
-//
-//    //    printf("fit_func(0.0) = %f\n", fit_func(0.0));
-//    //    printf("fit_func(32.7) = %f\n", fit_func(32.7));
-//    //    printf("fit_func(100.0) = %f\n", fit_func(100.0));
-//
-//
-//
-//    //    TVector3 Pol2ParZX = Pol2By3Hit(tr, fGemHitsArray);
-//    tr->SetChi2(0.0);
-//    tr->SetNDF(0);
-//    //
-//    const Float_t par1 = gr.GetFunction("parabFixR")->GetParameter(1);
-//    //
-//    //    const Float_t R = Power(1 - (2 * A * firstHit->GetZ() + B) * (2 * A * firstHit->GetZ() + B), 1.5) / Abs(2 * A); //radii of trajectory in the first hit position  
-//    //    //    printf("R = %f\n", R);
-//    //    fField = FairRunAna::Instance()->GetField();
-//    //    const Float_t Q = (A > 0) ? +1 : -1;
-//    Float_t QP = 1.0 / S / R_ideal;
-//    //    printf("S = %f \t R = %f \t P = %f\n", S / 0.0003, R, 1 / QP);
-//    delete fit_func;
-//
-//    FairTrackParam par;
-//    par.SetCovariance(0, 0, 1e-5);
-//    par.SetCovariance(0, 1, 1e-5);
-//    par.SetCovariance(0, 2, 1e-5);
-//    par.SetCovariance(0, 3, 1e-5);
-//    par.SetCovariance(0, 4, 1e-5);
-//    par.SetCovariance(1, 1, 1e-5);
-//    par.SetCovariance(1, 2, 1e-5);
-//    par.SetCovariance(1, 3, 1e-5);
-//    par.SetCovariance(1, 4, 1e-5);
-//    par.SetCovariance(2, 2, 1e-5);
-//    par.SetCovariance(2, 3, 1e-5);
-//    par.SetCovariance(2, 4, 1e-5);
-//    par.SetCovariance(3, 3, 1e-5);
-//    par.SetCovariance(3, 4, 1e-5);
-//    par.SetCovariance(4, 4, 1e-5);
-//
-//    Float_t lX = lastHit->GetX();
-//    Float_t lY = lastHit->GetY();
-//    Float_t lZ = lastHit->GetZ();
-//
-//    Float_t fX = firstHit->GetX();
-//    Float_t fY = firstHit->GetY();
-//    Float_t fZ = firstHit->GetZ();
-//
-//    Float_t Tx_first = (par1 + Power(1 - par1 * par1, 1.5) / R_ideal) * fZ;
-//    Float_t Tx_last = (par1 + Power(1 - par1 * par1, 1.5) / R_ideal) * lZ;
-//    Float_t Ty_last = lineParZY.X();
-//    Float_t Ty_first = lineParZY.X();
-//
-//    par.SetPosition(TVector3(lX, lY, lZ));
-//    par.SetTx(Tx_last);
-//    par.SetTy(Ty_last);
-//    par.SetQp(QP);
-//    tr->SetParamLast(par);
-//    if (!IsParCorrect(&par)) return kBMNERROR;
-//
-//    //update for firstParam
-//    par.SetPosition(TVector3(fX, fY, fZ));
-//    par.SetQp(QP);
-//    par.SetTx(Tx_first);
-//    par.SetTy(Ty_first);
-//    tr->SetParamFirst(par);
-//    if (!IsParCorrect(&par)) return kBMNERROR;
-//
-//    return kBMNSUCCESS;
-//}

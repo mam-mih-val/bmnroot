@@ -47,7 +47,6 @@ public:
 private:
 
     // Private Data Members ------------
-    TString fHitsBranchName;
     TString fTracksBranchName;
     TString fVertexBranchName;
 
@@ -56,7 +55,6 @@ private:
 
     BmnGemStripStationSet* fDetector;
 
-    TClonesArray* fGemHitsArray;
     TClonesArray* fGemTracksArray;
     TClonesArray* fVertexArray;
 

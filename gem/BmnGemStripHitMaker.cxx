@@ -168,19 +168,19 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
             return;
         if (evHeader->GetTripWord())
             return;
-        BmnTriggerType trigType = evHeader->GetTrig();
-        if (trigType == kBMNMINBIAS) {
-            if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < 1)
-                return;
-        }
-        
-        else if (trigType == kBMNBEAM) {
-            if (fVetoArray->GetEntriesFast() > 1 || fBDArray->GetEntriesFast() > 0)
-                return;
-        }
-        
-        else
-            return;
+//        BmnTriggerType trigType = evHeader->GetTrig();
+//        if (trigType == kBMNMINBIAS) {
+//            if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < 1)
+//                return;
+//        }
+//        
+//        else if (trigType == kBMNBEAM) {
+//            if (fVetoArray->GetEntriesFast() > 1 || fBDArray->GetEntriesFast() > 0)
+//                return;
+//        }
+//        
+//        else
+//            return;
     }
 
     fBmnGemStripHitsArray->Delete();

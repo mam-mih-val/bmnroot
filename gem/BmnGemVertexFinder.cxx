@@ -12,7 +12,6 @@ using namespace TMath;
 
 BmnGemVertexFinder::BmnGemVertexFinder() : fEventNo(0) {
 
-    fGemHitsArray = NULL;
     fGemTracksArray = NULL;
     fKalman = NULL;
     fNTracks = 0;
@@ -20,7 +19,6 @@ BmnGemVertexFinder::BmnGemVertexFinder() : fEventNo(0) {
     fRoughVertex3D.SetXYZ(0., 0., 0.);
     fIsField = kTRUE;
     fField = NULL;
-    fHitsBranchName = "BmnGemStripHit";
     fTracksBranchName = "BmnGemTrack";
     fVertexBranchName = "BmnVertex";
 }
@@ -38,7 +36,6 @@ InitStatus BmnGemVertexFinder::Init() {
         Fatal("Init", "FairRootManager is not instantiated");
     }
 
-    fGemHitsArray = (TClonesArray*) ioman->GetObject(fHitsBranchName); //in
     fGemTracksArray = (TClonesArray*) ioman->GetObject(fTracksBranchName); //in
     fVertexArray = new TClonesArray("CbmVertex", 100); //out
     ioman->Register(fVertexBranchName, "GEM", fVertexArray, kTRUE);

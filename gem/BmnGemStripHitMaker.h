@@ -75,6 +75,7 @@ public:
         Double_t p1[nStation] = {0.090507, -0.00764583, 0.0070895, 0.0343746, -0.00760665, -0.00253474};
         Double_t p2[nStation] = {-0.0058462, 0.00274913, 0.00195576, -0.000538933, 0.00249631, 0.00221692};
         return p0[station] + p1[station] * By + p2[station] * By * By;
+//        return 0;
     }
 
 private:

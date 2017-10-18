@@ -87,6 +87,10 @@ public:
     const Short_t GetDetConf() const {
         return fDetConf;
     };
+
+    void SetField(Bool_t f) {
+        fIsField = f;
+    }
     
     BmnStatus CreateDchHitsFromTracks();
     
@@ -131,6 +135,7 @@ private:
 
     TClonesArray* fGlobalTracks; //output BmnGlobalTrack array
     
+    Bool_t fIsField; // run with mag.field or not
 
     /*
      * Detector configuration, 5 bits:

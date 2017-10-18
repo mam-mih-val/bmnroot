@@ -185,8 +185,6 @@ Int_t BmnGemTracking::Tracking(vector<BmnGemTrack>& seeds) {
         }
         if (track.GetNGemHits() >= fNHitsCut) {
             CalculateLength(&track);
-
-            //            if (track.GetParamLast()->GetZ() < 40) printf("OOOOPS!\n");
             tracks.push_back(track);
         }
     }
@@ -227,7 +225,7 @@ Int_t BmnGemTracking::Tracking(vector<BmnGemTrack>& seeds) {
             if (tracks[iTr].GetFlag() != -1 && IsParCorrect(tracks[iTr].GetParamFirst()) && IsParCorrect(tracks[iTr].GetParamLast())) {
                 //if (RefitTrack(&tracks[iTr]) == kBMNERROR) continue;
                 //                fKalman = new BmnKalmanFilter_tmp();
-                //                fKalman->FitSmooth(&tracks[iTr], fGemHitsArray);
+//                fKalman->FitSmooth(&tracks[iTr], fGemHitsArray);
                 //                delete fKalman;
                 new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(tracks[iTr]);
                 SetHitsUsing(&tracks[iTr], kTRUE);
@@ -410,18 +408,8 @@ BmnStatus BmnGemTracking::FindSeedsByCombinatoricsInCoridor(Int_t iCorridor, vec
     }
 
     SeedsByThreeStations(0, 1, 2, hitsOnStation, cand);
-    //    SeedsByThreeStations(0, 1, 3, hitsOnStation, cand);
-    //    SeedsByThreeStations(0, 1, 4, hitsOnStation, cand);
-    //    SeedsByThreeStations(0, 2, 3, hitsOnStation, cand);
-    //    SeedsByThreeStations(0, 2, 4, hitsOnStation, cand);
-    //    SeedsByThreeStations(0, 3, 4, hitsOnStation, cand);
-
     SeedsByThreeStations(1, 2, 3, hitsOnStation, cand);
-    //    SeedsByThreeStations(1, 2, 4, hitsOnStation, cand);
-    //    SeedsByThreeStations(1, 3, 4, hitsOnStation, cand);
-
     SeedsByThreeStations(2, 3, 4, hitsOnStation, cand);
-
     SeedsByThreeStations(3, 4, 5, hitsOnStation, cand);
 
     return kBMNSUCCESS;

@@ -263,7 +263,7 @@ FairTrackParam BmnKalmanFilter_tmp::Filtration(BmnGemTrack* tr, TClonesArray* hi
 
 }
 
-TMatrixD BmnKalmanFilter_tmp::Transport(FairTrackParam* par, Double_t zOut, TString type) {
+TMatrixD BmnKalmanFilter_tmp::Transport(FairTrackParam* par, Double_t zOut, Bool_t isField) {
     TMatrixD F(5, 5); //transport matrix
     F.UnitMatrix();
     Double_t z0 = par->GetZ();
@@ -285,9 +285,8 @@ TMatrixD BmnKalmanFilter_tmp::Transport(FairTrackParam* par, Double_t zOut, TStr
     Double_t Ay = Sqrt(1 + tx * tx + ty * ty) * ((1 + ty * ty) * Bx - tx * ty * By - tx * Bz);
     const Double_t k = 2.99792458e-4;
 
-    if (type.Contains("line")) {
-
-    } else if (type.Contains("pol2")) {
+    if (!isField) {
+    } else { //pol2
         F[0][4] = k * Ax * s * s / 2.0;
         F[1][4] = k * Ay * s * s / 2.0;
         F[2][4] = k * Ax * s;
@@ -817,7 +816,7 @@ BmnStatus BmnKalmanFilter_tmp::Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, TString type) {
+BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, Bool_t isField) {
 
     if (!IsParCorrect(par)) return kBMNERROR;
     Double_t zIn = par->GetZ();
@@ -830,7 +829,7 @@ BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t 
     // TODO check upstream/downstream
     Bool_t downstream = dz < 0;
 
-    if (type == "field") {
+    if (isField) {
 
         if (F != NULL) {
             F->assign(25, 0.);
@@ -887,7 +886,7 @@ BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t 
                 if (length) *length += mat.GetLength();
             }
         }
-    } else if (type == "line") {
+    } else { //line extrapolation
         Float_t x0 = par->GetX();
         Float_t y0 = par->GetY();
         Float_t z0 = par->GetZ();

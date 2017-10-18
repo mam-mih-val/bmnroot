@@ -165,6 +165,6 @@ private:
 
     Int_t** fAddresses;
     Double_t fLineFitCut;
-
+    
     ClassDef(BmnGemTracking, 1);
 };

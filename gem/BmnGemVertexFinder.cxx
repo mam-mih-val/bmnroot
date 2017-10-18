@@ -89,15 +89,13 @@ Float_t BmnGemVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
             dist[iPlane] = 0.0;
         }
 
-        TString propagationType = (fIsField) ? "field" : "line";
-
         for (Int_t iTr = 0; iTr < fNTracks; ++iTr) {
             BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(iTr);
             if (track->GetFlag() == kBMNBAD) continue;
             FairTrackParam par0 = *(track->GetParamFirst());
 
             for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
-                fKalman->TGeoTrackPropagate(&par0, zPlane[iPlane], 2212, NULL, NULL, propagationType);
+                fKalman->TGeoTrackPropagate(&par0, zPlane[iPlane], 2212, NULL, NULL, fIsField);
                 PlaneHits[iPlane].push_back(TVector3(par0.GetX(), par0.GetY(), par0.GetZ()));
             }
         }
@@ -148,8 +146,7 @@ void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
         if (track->GetFlag() == kBMNBAD) continue;
         FairTrackParam par0 = *(track->GetParamFirst());
 
-        TString propagationType = (fIsField) ? "field" : "line";
-        fKalman->TGeoTrackPropagate(&par0, vz, 2212, NULL, NULL, propagationType);
+        fKalman->TGeoTrackPropagate(&par0, vz, 2212, NULL, NULL, fIsField);
         vx += par0.GetX();
         vy += par0.GetY();
         track->SetB(Sqrt(par0.GetX() * par0.GetX() + par0.GetY() * par0.GetY())); //impact parameter

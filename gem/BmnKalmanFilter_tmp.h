@@ -34,7 +34,7 @@ public:
     BmnStatus Prediction(FairTrackParam* par, Double_t dZ, BmnFitNode& node);
     BmnStatus Correction(FairTrackParam* par, BmnHit* hit, Double_t &chi2, BmnFitNode& node);
     FairTrackParam Filtration(BmnGemTrack* tr, TClonesArray* hits);
-    TMatrixD Transport(FairTrackParam* par, Double_t zOut, TString type); //transport matrix generation
+    TMatrixD Transport(FairTrackParam* par, Double_t zOut, Bool_t isField); //transport matrix generation
     BmnStatus AddFitNode(BmnFitNode node);
     vector<BmnFitNode> GetFitNodes() const {return fFitNodes;};
     TMatrixD FillVecFromPar(const FairTrackParam* par);
@@ -52,7 +52,7 @@ public:
     BmnStatus FitSmooth(BmnGemTrack* track, TClonesArray* hits);
     BmnStatus Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode);
     
-    BmnStatus TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, TString type);
+    BmnStatus TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, Bool_t isField);
     
 private:
     vector<BmnFitNode> fFitNodes;

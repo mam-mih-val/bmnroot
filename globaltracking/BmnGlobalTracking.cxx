@@ -32,6 +32,7 @@ fTof1McPoints(NULL),
 fTof2McPoints(NULL),
 fDchMcPoints(NULL),
 fEvHead(NULL),
+fIsField(kTRUE),
 fPDG(2212),
 fChiSqCut(100.),
 fVertex(NULL),
@@ -260,7 +261,7 @@ BmnStatus BmnGlobalTracking::MatchingMWPC(BmnGlobalTrack* tr) {
     for (Int_t trIdx = 0; trIdx < fMwpcTracks->GetEntriesFast(); ++trIdx) {
         BmnTrack* mwpcTr = (BmnTrack*) fMwpcTracks->At(trIdx);
         FairTrackParam parPredict(*(tr->GetParamFirst()));
-        kalman->TGeoTrackPropagate(&parPredict, mwpcTr->GetParamLast()->GetZ(), fPDG, NULL, NULL, "field");
+        kalman->TGeoTrackPropagate(&parPredict, mwpcTr->GetParamLast()->GetZ(), fPDG, NULL, NULL, fIsField);
         FairTrackParam parUpdate = parPredict;
         Double_t chi = 0.0;
         BmnMwpcGeometry geo;
@@ -314,8 +315,7 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t tr
         //printf("hitIdx = %d\n", hitIdx);
         //printf("BEFORE: len = %f.3\t", len);
         //printf("Param->GetX() = %.2f\n", parPredict.GetX());
-        //BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "line");
-        BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, "field");
+        BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&parPredict, hit->GetZ(), fPDG, NULL, &len, fIsField);
         if (resultPropagate == kBMNERROR) continue; // skip in case kalman error
         Double_t dist = TMath::Sqrt(TMath::Power(parPredict.GetX() - hit->GetX(), 2) + TMath::Power(parPredict.GetY() - hit->GetY(), 2));
         //printf("AFTER:  len = %.3f\t", len);
@@ -339,7 +339,7 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t tr
         Double_t zTarget = -21.7; // z of target by default
         if (fVertex)
             zTarget = fVertex->GetZ();
-        BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&ParPredFirst, zTarget, fPDG, NULL, &LenPropFirst, "field");
+        BmnStatus resultPropagate = kalman->TGeoTrackPropagate(&ParPredFirst, zTarget, fPDG, NULL, &LenPropFirst, fIsField);
         if (resultPropagate != kBMNERROR) { // skip in case kalman error
 
             if (num == 1)
@@ -386,7 +386,7 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr) {
     for (Int_t trIdx = 0; trIdx < fDchTracks->GetEntriesFast(); ++trIdx) {
         BmnTrack* dchTr = (BmnTrack*) fDchTracks->At(trIdx);
         FairTrackParam parPredict(*(tr->GetParamLast()));
-        kalman->TGeoTrackPropagate(&parPredict, dchTr->GetParamFirst()->GetZ(), fPDG, NULL, NULL, "field");
+        kalman->TGeoTrackPropagate(&parPredict, dchTr->GetParamFirst()->GetZ(), fPDG, NULL, NULL, fIsField);
         FairTrackParam parUpdate = parPredict;
         Double_t chi;
         BmnDchHit hit(1, TVector3(dchTr->GetParamFirst()->GetX(), dchTr->GetParamFirst()->GetY(), dchTr->GetParamFirst()->GetZ()), TVector3(0.5 / Sqrt(12.0), 0.5 / Sqrt(12.0), 1.0 / Sqrt(12.0)), 0); //tmp hit for updating track parameters
@@ -426,7 +426,7 @@ BmnStatus BmnGlobalTracking::RefitToDetector(BmnGlobalTrack* tr, Int_t hitId, TC
         Float_t Ze = hit->GetZ();
         Double_t length = 0;
         vector<Double_t> F(25);
-        if (kalman->TGeoTrackPropagate(par, Ze, 2212, &F, &length, TString("field")) == kBMNERROR) {
+        if (kalman->TGeoTrackPropagate(par, Ze, 2212, &F, &length, fIsField) == kBMNERROR) {
             tr->SetFlag(kBMNBAD);
             return kBMNERROR;
         }

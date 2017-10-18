@@ -12,7 +12,7 @@ class TH2D;
 class TClonesArray;
 
 //------------------------------------------------------------------------------------------------------------------------
-class LRectangle	// convex quadrangle
+class LRectangle1	// convex quadrangle
 { 
 	bool		IsInvalid;
 public:
@@ -21,8 +21,8 @@ public:
 	Int_t 		volumeUID;
 	TVector3 	A, B, C, D, center, perp;  // [cm] 
 	
-	LRectangle() : IsInvalid(true), volumeUID(kInvalid){};
-	LRectangle(Int_t uid, const TVector3& a, const TVector3& b, const TVector3& c, const TVector3& d, bool check = false);
+	LRectangle1() : IsInvalid(true), volumeUID(kInvalid){};
+	LRectangle1(Int_t uid, const TVector3& a, const TVector3& b, const TVector3& c, const TVector3& d, bool check = false);
 	
     void	 	GetInteriorAngle(int vertexIndex) const {;} // FIXME
 	TVector3	GetCenter() const{ return (A+B+C+D) * 0.25;}
@@ -62,29 +62,29 @@ public:
 	}
 };
 //------------------------------------------------------------------------------------------------------------------------
-class LStrip : public LRectangle
+class LStrip1 : public LRectangle1
 {
 public:
  	Int_t 		sectorID, boxID, detectorID, stripID; 
  	Int_t 		neighboring[2]; // dim same as  Side_t enum
  	
- 	LStrip();
-  	LStrip(Int_t uid, Int_t sector, Int_t box, Int_t detector, Int_t strip);
+ 	LStrip1();
+  	LStrip1(Int_t uid, Int_t sector, Int_t box, Int_t detector, Int_t strip);
  	
 	void 		SetIDs(Int_t uid, Int_t sector, Int_t box, Int_t  detector, Int_t  strip){ volumeUID = uid; sectorID = sector; boxID = box; detectorID = detector; stripID = strip;}	
 	
-	inline bool	IsSameDetector(const LStrip& strip)const{ return ( sectorID == strip.sectorID && boxID == strip.boxID && detectorID == strip.detectorID);}
-	inline bool 	operator==(const LStrip& rhs){ return ( sectorID == rhs.sectorID && boxID == rhs.boxID && detectorID == rhs.detectorID && stripID == rhs.stripID);}
-	inline bool 	operator!=(const LStrip& rhs){ return !((*this) == rhs);}
+	inline bool	IsSameDetector(const LStrip1& strip)const{ return ( sectorID == strip.sectorID && boxID == strip.boxID && detectorID == strip.detectorID);}
+	inline bool 	operator==(const LStrip1& rhs){ return ( sectorID == rhs.sectorID && boxID == rhs.boxID && detectorID == rhs.detectorID && stripID == rhs.stripID);}
+	inline bool 	operator!=(const LStrip1& rhs){ return !((*this) == rhs);}
 	
 
 	void		Dump(const char* comment = nullptr, ostream& out = std::cout) const;
-	Double_t 	Distance(Side_t side, const LStrip& strip);
+	Double_t 	Distance(Side_t side, const LStrip1& strip);
 };
 //------------------------------------------------------------------------------------------------------------------------
 class BmnTof1GeoUtils 
 {
-typedef std::map<Int_t, LStrip> 	MStripType; // pair<detectorUID, Strip parameters>
+typedef std::map<Int_t, LStrip1> 	MStripType; // pair<detectorUID, Strip parameters>
 typedef MStripType::const_iterator	MStripCIT;
 typedef MStripType::iterator		MStripIT;
 
@@ -94,7 +94,7 @@ public:
 	
 	void			FindNeighborStrips(TH1D* h1 = nullptr, TH2D* h2 = nullptr, bool doTest = false);
 	Int_t			ParseTGeoManager(bool useMCinput, TH2D* h1 = nullptr, bool forced = false);
-	const LStrip*		FindStrip(Int_t UID);
+	const LStrip1*		FindStrip(Int_t UID);
 
 
 };

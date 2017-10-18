@@ -49,14 +49,14 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0) {
         hXY = new TH2I(fName, fName, 240, -150, 150, 120, -75, 75);
         fHistListStat->Add(hXY);
 
-        hDy_near = new TH1S(Form("hDy_near_%s",fName.Data()), Form("hDy_near_%s",fName.Data()), 400, -20, 20);
-        hDtime_near = new TH1S(Form("hDtime_near_%s",fName.Data()), Form("hDtime_near_%s",fName.Data()), 400, -10, 10);
-        hDWidth_near = new TH1S(Form("hDWidth_near_%s",fName.Data()), Form("hDWidth_near_%s",fName.Data()), 256, -28., 28.);
-        hTempDtimeDy_near = new TH2S(Form("hTempDtimeDy_near_%s",fName.Data()), Form("hTempDtimeDy_near_%s",fName.Data()), 400, -10, 10, 200, -10, 10);
-        hDy_acros = new TH1S(Form("hDy_acros_%s",fName.Data()), Form("hDy_acros_%s",fName.Data()), 400, -20, 20);
-        hDtime_acros = new TH1S(Form("hDtime_acros_%s",fName.Data()), Form("hDtime_acros_%s",fName.Data()), 400, -10, 10);
-        hDWidth_acros = new TH1S(Form("hDWidth_acros_%s",fName.Data()), Form("hDWidth_acros_%s",fName.Data()), 256, -28., 28.);
-        hTempDtimeDy_acros = new TH2S(Form("hTempDtimeDy_acros_%s",fName.Data()), Form("hTempDtimeDy_acros_%s",fName.Data()), 400, -10, 10, 200, -10, 10);
+        hDy_near = new TH1S(Form("hDy_near_%s", fName.Data()), Form("hDy_near_%s", fName.Data()), 400, -20, 20);
+        hDtime_near = new TH1S(Form("hDtime_near_%s", fName.Data()), Form("hDtime_near_%s", fName.Data()), 400, -10, 10);
+        hDWidth_near = new TH1S(Form("hDWidth_near_%s", fName.Data()), Form("hDWidth_near_%s", fName.Data()), 256, -28., 28.);
+        hTempDtimeDy_near = new TH2S(Form("hTempDtimeDy_near_%s", fName.Data()), Form("hTempDtimeDy_near_%s", fName.Data()), 400, -10, 10, 200, -10, 10);
+        hDy_acros = new TH1S(Form("hDy_acros_%s", fName.Data()), Form("hDy_acros_%s", fName.Data()), 400, -20, 20);
+        hDtime_acros = new TH1S(Form("hDtime_acros_%s", fName.Data()), Form("hDtime_acros_%s", fName.Data()), 400, -10, 10);
+        hDWidth_acros = new TH1S(Form("hDWidth_acros_%s", fName.Data()), Form("hDWidth_acros_%s", fName.Data()), 256, -28., 28.);
+        hTempDtimeDy_acros = new TH2S(Form("hTempDtimeDy_acros_%s", fName.Data()), Form("hTempDtimeDy_acros_%s", fName.Data()), 400, -10, 10, 200, -10, 10);
         fHistListStat->Add(hDy_near);
         fHistListStat->Add(hDtime_near);
         fHistListStat->Add(hDWidth_near);
@@ -472,8 +472,10 @@ Bool_t BmnTOF1Detector::SetGeoFile(TString NameFile) {
     Int_t UID;
     for (Int_t i = 0; i < fNStr; i++) {
         UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, i + 1); // strip [0,47] -> [1, 48]
-        const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+        const LStrip1 *pStrip = pGeoUtils->FindStrip(UID);
         fCentrStrip[i] = pStrip->center;
+        if (fNPlane >= 5) fCentrStrip[i].SetX(fCentrStrip[i].X()+5.5); // for field run only
+        else fCentrStrip[i].SetX(fCentrStrip[i].X()+2.5);
     }
     geoFile->Close();
     pGeoUtils->~BmnTof1GeoUtils();
@@ -486,8 +488,10 @@ Bool_t BmnTOF1Detector::SetGeo(BmnTof1GeoUtils *pGeoUtils) {
     Int_t UID;
     for (Int_t i = 0; i < fNStr; i++) {
         UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, i + 1); // strip [0,47] -> [1, 48]
-        const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+        const LStrip1 *pStrip = pGeoUtils->FindStrip(UID);
         fCentrStrip[i] = pStrip->center;
+//        if (fNPlane >= 5) fCentrStrip[i].SetX(fCentrStrip[i].X()+5.5); // for field run only
+//        else fCentrStrip[i].SetX(fCentrStrip[i].X()+2.5);
     }
     return kTRUE;
 }

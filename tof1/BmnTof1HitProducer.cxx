@@ -171,11 +171,11 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
 			Double_t time = pRandom->Gaus(pPoint->GetTime(), fTimeSigma); // 100 ps		
 			pPoint->Position(pos);
 	
-			const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+			const LStrip1 *pStrip = pGeoUtils->FindStrip(UID);
 		
 			XYZ_smeared.SetXYZ( pStrip->center.X(), pRandom->Gaus(pos.Y(), fErrY), pStrip->center.Z());
 
-			LStrip::Side_t side;
+			LStrip1::Side_t side;
 			Double_t distance = pStrip->MinDistanceToEdge(&pos, side); // [cm]
 
 			bool passed;
@@ -197,9 +197,9 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
         	
         		if(passed = DoubleHitExist(distance)) // check cross hit
         		{
-        			Int_t CrossUID = (side == LStrip::kRight) ? pStrip->neighboring[LStrip::kRight] : pStrip->neighboring[LStrip::kLeft];
+        			Int_t CrossUID = (side == LStrip1::kRight) ? pStrip->neighboring[LStrip1::kRight] : pStrip->neighboring[LStrip1::kLeft];
   			
-  				if(LStrip::kInvalid  == CrossUID) continue; // last strip on module
+  				if(LStrip1::kInvalid  == CrossUID) continue; // last strip on module
   			
   				pStrip = pGeoUtils->FindStrip(CrossUID);
         			XYZ_smeared.SetXYZ( pStrip->center.X(), pRandom->Gaus(pos.Y(), fErrY), pStrip->center.Z());
@@ -278,7 +278,7 @@ bool			BmnTof1HitProducer::GetCrossPoint(const TVector3& p1, double time1, const
 return true;	
 }
 
-bool			BmnTof1HitProducer::GetCrossPoint(const LStrip *pStrip, double time1, double time2, TVector3& crossPoint) 
+bool			BmnTof1HitProducer::GetCrossPoint(const LStrip1 *pStrip, double time1, double time2, TVector3& crossPoint) 
 {
         TVector3 s1, s2, centr;
         s1 = (pStrip->A + pStrip->B) * 0.5; // [cm] strip side1 end's position 

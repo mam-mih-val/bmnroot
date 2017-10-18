@@ -28,27 +28,27 @@ BmnTof1GeoUtils::BmnTof1GeoUtils()
 void		BmnTof1GeoUtils::FindNeighborStrips(TH1D* h1, TH2D* h2, bool doTest)
 {
 	size_t NR = 0, NL= 0;
-	const LStrip *strip2; double  distance;
+	const LStrip1 *strip2; double  distance;
 	for(MStripIT it1 = mStrips.begin(), itEnd1 = mStrips.end(); it1 != itEnd1; it1++) // cycle1 by strips
 	{
-		LStrip *strip1 = &(it1->second);
+		LStrip1 *strip1 = &(it1->second);
 		
 		for(MStripCIT it2 = mStrips.begin(), itEnd2 = mStrips.end(); it2 != itEnd2; it2++) // cycle2 by strips
 		{
 			strip2 = &(it2->second);
 	
 			// CATION: Ckeck  only left and right sides(one row strips NOW) 
-			distance = strip1->Distance(LStrip::kRight, *strip2); if(doTest)  h1->Fill(distance);		
+			distance = strip1->Distance(LStrip1::kRight, *strip2); if(doTest)  h1->Fill(distance);		
 			if(distance < 0.8) // CAUTION: constant depends on the geometry layout(see h1TestDistance histo)
 			{
-			 	strip1->neighboring[LStrip::kRight] = strip2->volumeUID; NR++;
+			 	strip1->neighboring[LStrip1::kRight] = strip2->volumeUID; NR++;
 			 	if(doTest) h2->Fill(strip1->stripID, strip2->stripID);
 			}
 			
-			distance = strip1->Distance(LStrip::kLeft, *strip2); if(doTest)  h1->Fill(distance);
+			distance = strip1->Distance(LStrip1::kLeft, *strip2); if(doTest)  h1->Fill(distance);
 			if(distance < 0.8) // CAUTION: constant depends on the geometry layout(see h1TestDistance histo)
 			{
-				strip1->neighboring[LStrip::kLeft] = strip2->volumeUID; NL++;
+				strip1->neighboring[LStrip1::kLeft] = strip2->volumeUID; NL++;
 				if(doTest) h2->Fill( strip2->stripID, strip1->stripID);	
 			}			
 
@@ -101,7 +101,7 @@ assert(gGeoManager);
       			
       			volumeUID = BmnTOF1Point::GetVolumeUID(0, detectorID, stripID);   // regionID == 0 now 			
       			
-      			LStrip stripData(volumeUID, 0, 0, detectorID, stripID);
+      			LStrip1 stripData(volumeUID, 0, 0, detectorID, stripID);
 			stripData.center.SetXYZ(master[0], master[1], master[2]);   	
       			
       			// edges on the front plate of the strips. perp along Z.
@@ -134,7 +134,7 @@ assert(gGeoManager);
         return nDetectors;
 }
 //------------------------------------------------------------------------------------------------------------------------
-const LStrip*		BmnTof1GeoUtils::FindStrip(Int_t UID) 
+const LStrip1*		BmnTof1GeoUtils::FindStrip(Int_t UID) 
 {
 	MStripCIT cit = mStrips.find(UID);
 assert(cit != mStrips.end());
@@ -143,21 +143,21 @@ return &(cit->second);
 //------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------
-LRectangle::LRectangle(Int_t uid, const TVector3& a, const TVector3& b, const TVector3& c, const TVector3& d, bool check) 
+LRectangle1::LRectangle1(Int_t uid, const TVector3& a, const TVector3& b, const TVector3& c, const TVector3& d, bool check) 
 : IsInvalid(false), volumeUID(uid), A(a), B(b), C(c), D(d)
 {
 	if(check) CheckInValid();
 
 }
 //------------------------------------------------------------------------------------------------------------------------
-Double_t 	LRectangle::DistanceFromPointToLine(const TVector3* pos, const TVector3& P1,const TVector3& P2)const
+Double_t 	LRectangle1::DistanceFromPointToLine(const TVector3* pos, const TVector3& P1,const TVector3& P2)const
 {
 assert(P1 != P2);
 
 return   (  (*pos - P1).Cross(*pos - P2)   ).Mag() / (P2 - P1).Mag();
 }
 //------------------------------------------------------------------------------------------------------------------------
-Double_t 	LRectangle::DistanceFromPointToLineSegment(const TVector3* pos, const TVector3& P1,const TVector3& P2)const
+Double_t 	LRectangle1::DistanceFromPointToLineSegment(const TVector3* pos, const TVector3& P1,const TVector3& P2)const
 {
 assert(P1 != P2);
 
@@ -174,7 +174,7 @@ assert(P1 != P2);
 return ((*pos) - Pb).Mag();
 }
 //------------------------------------------------------------------------------------------------------------------------
-Double_t		LRectangle::MinDistanceToEdge(const TVector3* pos, Side_t& side) const
+Double_t		LRectangle1::MinDistanceToEdge(const TVector3* pos, Side_t& side) const
 {	
 	double right 	= DistanceFromPointToLineSegment(pos, A, D);
 	double left 	= DistanceFromPointToLineSegment(pos, B, C);
@@ -182,21 +182,21 @@ Double_t		LRectangle::MinDistanceToEdge(const TVector3* pos, Side_t& side) const
 	// sorting & return minimal value
 	if( right <= left )
 	{ 
-		side =  LStrip::kRight; 
+		side =  LStrip1::kRight; 
 		return right;
 	}		
 	 
-	side =  LStrip::kLeft;  
+	side =  LStrip1::kLeft;  
 return left;
 }
 //------------------------------------------------------------------------------------------------------------------------
-void 		LRectangle::Print(ostream &out, const TVector3 &point, const char* comment)const
+void 		LRectangle1::Print(ostream &out, const TVector3 &point, const char* comment)const
 {
 	if(comment) out<<comment; 
 	out<<" ("<< point.X()<<","<<point.Y()<<","<<point.Z()<<") "; 
 }
 //------------------------------------------------------------------------------------------------------------------------
-void 		LRectangle::Dump(const char* comment, ostream& out) const 
+void 		LRectangle1::Dump(const char* comment, ostream& out) const 
 { 
 	if(comment) out<<comment; out<<" uid="<<volumeUID<<" IsInvalid="<<IsInvalid;
 	Print(out, A, " A:"); Print(out, B, " B:"); Print(out, C, " C:"); Print(out, D, " D:");
@@ -204,30 +204,30 @@ void 		LRectangle::Dump(const char* comment, ostream& out) const
 //------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------
-LStrip::LStrip() 
-: LRectangle(), sectorID(kInvalid), boxID(kInvalid),  detectorID(kInvalid), stripID(kInvalid) 
+LStrip1::LStrip1() 
+: LRectangle1(), sectorID(kInvalid), boxID(kInvalid),  detectorID(kInvalid), stripID(kInvalid) 
 { 
 	neighboring[kRight] = kInvalid; 
 	neighboring[kLeft] = kInvalid; 
 }
 //------------------------------------------------------------------------------------------------------------------------
-LStrip::LStrip(Int_t uid, Int_t sector, Int_t box, Int_t detector, Int_t strip) 
- : LRectangle(), sectorID(sector), boxID(box),  detectorID(detector), stripID(strip) 
+LStrip1::LStrip1(Int_t uid, Int_t sector, Int_t box, Int_t detector, Int_t strip) 
+ : LRectangle1(), sectorID(sector), boxID(box),  detectorID(detector), stripID(strip) 
 { 
 	volumeUID = uid;
 	neighboring[kRight] = kInvalid; 
 	neighboring[kLeft] = kInvalid; 
 }	
 //------------------------------------------------------------------------------------------------------------------------
-void		LStrip::Dump(const char* comment, ostream& out) const 
+void		LStrip1::Dump(const char* comment, ostream& out) const 
 { 	
 	if(comment) out<<comment; 
 	out<<"  ids: "<<sectorID<<", "<<boxID<<", "<<detectorID<<", "<<stripID; 
 	
-	LRectangle::Dump(nullptr, out);
+	LRectangle1::Dump(nullptr, out);
 }
 //------------------------------------------------------------------------------------------------------------------------	
-Double_t 	LStrip::Distance(Side_t side, const LStrip& strip) 
+Double_t 	LStrip1::Distance(Side_t side, const LStrip1& strip) 
 {
 	Double_t value, min1 = 1.e+10, min2 = 1.e+10; // big value
 	

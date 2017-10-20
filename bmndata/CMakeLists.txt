@@ -84,9 +84,11 @@ BmnMwpcDigit.cxx
 BmnTof1Digit.cxx
 BmnTof2Digit.cxx
 BmnTrigDigit.cxx
+BmnTrigWaveDigit.cxx
 BmnDchDigit.cxx
 BmnEcalDigit.cxx
 BmnADCDigit.cxx
+BmnADCSRCDigit.cxx
 BmnTDCDigit.cxx
 BmnHRBDigit.cxx
 BmnSyncDigit.cxx

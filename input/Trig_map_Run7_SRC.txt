@@ -1,0 +1,16 @@
+
+           Det         Serial      Slot     Channel
+===================================================
+      TQDC_BC1     0x046F0C75        00           0 
+      TQDC_BC2     0x046F0C75        00           1 
+      TQDC_BC3     0x046F0C75        00           2 
+      TQDC_BC4     0x046F0C75        00           3 
+       TQDC_VC     0x046F0C75        00           4 
+  TQDC_X1_Left     0x046F0C75        00           5
+ TQDC_X1_Right     0x046F0C75        00           6
+  TQDC_X2_Left     0x046F0C75        00           7
+ TQDC_X2_Right     0x046F0C75        00           8
+  TQDC_Y1_Left     0x046F0C75        00           9
+ TQDC_Y1_Right     0x046F0C75        00          10
+  TQDC_Y2_Left     0x046F0C75        00          11
+ TQDC_Y2_Right     0x046F0C75        00          12

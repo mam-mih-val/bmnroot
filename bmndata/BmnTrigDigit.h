@@ -1,5 +1,5 @@
 #ifndef BMNTRIGDIGIT_H
-#define BMNTRIGDIGIT_H
+#define BMNTRIGDIGIT_H 
 
 #include "TNamed.h"
 
@@ -41,7 +41,7 @@ public:
     /** Destructor **/
     virtual ~BmnTrigDigit();
 
-private:
+protected:
 
     Short_t fMod; //inner channel (for Barrel 40 channels, for T0, BC1, BC2, VC, FD only one)
     Double_t fTime;

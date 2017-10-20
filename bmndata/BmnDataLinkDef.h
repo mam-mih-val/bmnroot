@@ -85,6 +85,9 @@
 
 #pragma link C++ class BmnRawDataDecoder+;
 #pragma link C++ class DigiArrays+;
+#pragma link C++ class vector<TClonesArray*>+;
+#pragma link C++ class BmnADCSRCDigit+;
+#pragma link C++ class BmnTrigWaveDigit+;
 
 #pragma link C++ class BmnEventHeader+;
 #pragma link C++ class BmnRunHeader+;

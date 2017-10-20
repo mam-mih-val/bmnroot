@@ -4,6 +4,22 @@
 const UShort_t kNCHANNELS = 8; // number of channels in one HPTDC
 
 BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile) {
+    readMap(mappingFile);
+    readINLCorrections(INLFile);
+    //==================================================//
+}
+
+BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *digiTree) {
+    readMap(mappingFile);
+    //    fDir = digiTree->mkdir(dirName.Data());
+    for (BmnTrigMapping record : fMap) {
+        TClonesArray *ar = new TClonesArray(BmnTrigWaveDigit::Class_Name());
+        digiTree->Branch(record.name.Data(), &ar);
+        trigArrays.push_back(ar);
+    }
+}
+
+BmnStatus BmnTrigRaw2Digit::readMap(TString mappingFile){
     fMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + mappingFile;
     printf("Reading Triggers mapping file ...\n");
     //========== read mapping file            ==========//
@@ -30,9 +46,8 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile) {
         fMap.push_back(record);
     }
     fMapFile.close();
-    readINLCorrections(INLFile);
-    //==================================================//
 }
+
 
 BmnStatus BmnTrigRaw2Digit::readINLCorrections(TString INLFile) {
     for (int i = 0; i < 72; i++)
@@ -88,7 +103,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *trigger, 
                 Int_t iMod = tM.name.Contains("_0") ? 0 : (tM.name.Contains("_1")) ? 1 : -1; //FIXME!!! add "module" into map for T0, FD, BC, VC and use it here without checking name!
                 if (tM.name == "T0_0" || tM.name == "T0_1") {
                     t0time = tL; //ns
-    		    if (t0width) *t0width = tT - tL;
+                    if (t0width) *t0width = tT - tL;
                     TClonesArray& ar_t0 = *t0;
                     if (t0) new(ar_t0[t0->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
                 } else if (tM.name == "TRIGGER") {
@@ -116,6 +131,39 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *trigger, 
             }
         }
     }
+}
+
+BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
+    for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
+        BmnTrigMapping tM = fMap[iMap];
+        Short_t iMod = 0;
+        Short_t iTime = 0;
+        Short_t iAmp = 0;
+        for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
+            BmnTDCDigit* tdcDig1 = (BmnTDCDigit*) tdc->At(iTdc);
+            iTime = tdcDig1->GetValue();
+            UInt_t iChannel = tdcDig1->GetChannel();
+//            if (tdcDig1->GetSerial() != tM.serial || tdcDig1->GetSlot() != tM.slot) continue;
+            if (iChannel != tM.channel) continue;
+            for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); iAdc++){
+                BmnADCSRCDigit *adcDig = (BmnADCSRCDigit*)adc->At(iAdc);
+                if (iChannel == adcDig->GetChannel()){
+                    TClonesArray *trigAr = trigArrays[iMap];
+                    if (trigAr)
+                        new ((*trigAr)[trigAr->GetEntriesFast()])
+                                BmnTrigWaveDigit(iMod, iTime, iAmp, adcDig);
+                    break;
+                }
+            }
+            // @TODO What if corresponding adc digit not found??
+        }
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnTrigRaw2Digit::ClearArrays() {
+    for (TClonesArray *ar : trigArrays)
+        ar->Delete();
 }
 
 ClassImp(BmnTrigRaw2Digit)

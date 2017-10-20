@@ -3,12 +3,12 @@
 
 #include "TNamed.h"
 
-#define ADC_SAMPLING_LIMIT 256
+#define ADC_SAMPLING_LIMIT 128
 
 using namespace std;
 
 class BmnADCDigit : public TObject {
-private:
+protected:
     UInt_t fSerial;
     UInt_t fChannel;
     UInt_t fNsmpl;

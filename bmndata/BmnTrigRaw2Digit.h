@@ -5,12 +5,14 @@
 #include "BmnEnums.h"
 #include "TString.h"
 #include "TClonesArray.h"
+#include "TTree.h"
 #include "BmnTDCDigit.h"
 #include <iostream>
 #include <fstream>
 #include <map>
 #include <vector>
 #include "BmnTrigDigit.h"
+#include "BmnTrigWaveDigit.h"
 #include "TMath.h"
 
 #define HPTIMEBIN 0.02344
@@ -30,15 +32,23 @@ struct BmnTrigMapping {
 class BmnTrigRaw2Digit {
 public:
     BmnTrigRaw2Digit(TString mappingFile, TString INLFile);
+    BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *digiTree);
     BmnTrigRaw2Digit();
-    ~BmnTrigRaw2Digit() {};
+
+    ~BmnTrigRaw2Digit() {
+        for (TClonesArray *ar : trigArrays)
+            delete ar;
+    };
 
     vector<BmnTrigMapping> GetMap() const {
         return fMap;
     }
 
     BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *trigger, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time, Double_t *t0width = NULL);
+    BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *adc);
     BmnStatus readINLCorrections(TString INLFile);
+    BmnStatus readMap(TString mappingFile);
+    BmnStatus ClearArrays();
 
 private:
 
@@ -48,7 +58,12 @@ private:
     TString fMapFileName;
     TString fINLFileName;
     Float_t fINLTable[72][1024];
-
+//    TDirectory *fDir;
+    vector<TClonesArray*> trigArrays;
+    //    TString trigNames[13] = {
+    //        "BC1", "BC2", "BC3", "BC4", "VC",
+    //        "X1_Left", "X1_Right", "X2_Left", "X2_Right",
+    //        "Y1_Left", "Y1_Right", "Y2_Left", "Y2_Right"};
 
     ClassDef(BmnTrigRaw2Digit, 1);
 };

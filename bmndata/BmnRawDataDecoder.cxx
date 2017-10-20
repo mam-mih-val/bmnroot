@@ -117,6 +117,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fGemMapper = NULL;
     fDchMapper = NULL;
     fTrigMapper = NULL;
+    fTrigSRCMapper = NULL;
     fTof400Mapper = NULL;
     fTof700Mapper = NULL;
     fZDCMapper = NULL;
@@ -193,6 +194,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fGemMapper = NULL;
     fDchMapper = NULL;
     fTrigMapper = NULL;
+    fTrigSRCMapper = NULL;
     fTof400Mapper = NULL;
     fTof700Mapper = NULL;
     fZDCMapper = NULL;
@@ -317,7 +319,7 @@ BmnStatus BmnRawDataDecoder::InitConverter(TString FileName) {
     adc128 = new TClonesArray("BmnADCDigit");
     adc = new TClonesArray("BmnADCDigit");
     tdc = new TClonesArray("BmnTDCDigit");
-    tqdc_adc = new TClonesArray("BmnADCDigit");
+    tqdc_adc = new TClonesArray("BmnADCSRCDigit");
     tqdc_tdc = new TClonesArray("BmnTDCDigit");
     hrb = new TClonesArray("BmnHRBDigit");
     msc = new TClonesArray("BmnMSCDigit");
@@ -476,8 +478,6 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         UInt_t serial = d[idx++];
         UInt_t id = (d[idx] >> 24);
         UInt_t payload = (d[idx++] & 0xFFFFFF) / kNBYTESINWORD;
-        printf("serial %d id %d \n", serial, id);
-
         if (payload > 20000) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
             break;
@@ -633,7 +633,6 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
             case kMODHEADER:
                 modId = (d[i] >> 16) & 0x7F;
                 slot = (d[i] >> 23) & 0x1F;
-                printf("modheader: serial %d slot %d  modid %d idx %d\n", serial, slot, modId);
                 break;
             default: //data
             {
@@ -708,42 +707,48 @@ BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt
 }
 
 BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
-//    printf("serial %d slot %d  modid %d idx %d\n", serial, slot, modId, idx);
+//        printf("serial 0x%08X slot %d  modid 0x%X\n", serial, slot, modId);
     UInt_t type = d[idx] >> 28;
-    UInt_t trigTimestamp = 0;
-    UInt_t adcTimestamp = 0;
+    UShort_t trigTimestamp = 0;
+    UShort_t adcTimestamp = 0;
     UInt_t iSampl = 0;
     UInt_t channel = 0;
     Short_t valI[ADC_SAMPLING_LIMIT];
     Bool_t inADC = kFALSE;
     if (type == 6) {
-        printf("TQDC Error: %d\n", d[idx++] & 0xF); // @TODO logging
+        fprintf(stderr, "TQDC Error: %d\n", d[idx++] & 0xF); // @TODO logging
         return kBMNSUCCESS;
     }
     while (type != kMODTRAILER) {
         UInt_t mode = (d[idx] >> 26) & 0x3;
-//        printf("type %d mode %d\n", type, mode);
         if (!inADC) {
+//            printf("type %d mode %d\n", type, mode);
             if ((mode == 0) && (type == 4 || type == 5)) {
                 UInt_t rcdata = (d[idx] >> 24) & 0x3;
                 channel = (d[idx] >> 19) & 0x1F;
                 UInt_t time = 4 * (d[idx] & 0x7FF) + rcdata; // in 25 ps
                 new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time);
-                printf("TDC: type %d channel %d time %d \n", type, channel, time);
+//                printf("TDC: type %d channel %d time %d \n", type, channel, time);
             } else if ((type == 4) && (mode == 2)) {
                 channel = (d[idx] >> 19) & 0x1F;
                 trigTimestamp = d[idx++] & 0xFF;
                 adcTimestamp = d[idx] & 0xFF;
                 inADC = kTRUE;
-                printf("ADC: channel %d trigTimestamp %d  adcTimestamp %d\n", channel, trigTimestamp, adcTimestamp);
+//                printf("ADC: channel %d trigTimestamp %d  adcTimestamp %d\n", channel, trigTimestamp, adcTimestamp);
+            } else if ((type == 2) && (mode == 0)) {
+                UInt_t iEv = (d[idx] >> 12) & 0xC;
+//                printf("TDC ev header: %d\n", iEv);
+            } else if ((type == 3) && (mode == 0)) {
+                UInt_t iEv = (d[idx] >> 12) & 0xC;
+//                printf("TDC ev trailer: %d\n", iEv);
             }
         } else {
             if ((type == 5) && (mode == 2) && (iSampl < ADC_SAMPLING_LIMIT)) {
                 Short_t val = d[idx] & 0xFF;
-//                printf("\tiSampl %d val %d\n", iSampl, val);
+                //                printf("\tiSampl %d val %d\n", iSampl, val);
                 valI[iSampl++] = val;
             } else {
-                new((*tqdc_adc)[tqdc_adc->GetEntriesFast()]) BmnADCDigit(serial, channel, iSampl, valI);
+                new((*tqdc_adc)[tqdc_adc->GetEntriesFast()]) BmnADCSRCDigit(serial, channel, iSampl, valI, trigTimestamp, adcTimestamp);
                 inADC = kFALSE;
                 iSampl = 0;
             }
@@ -800,7 +805,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     }
     fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
     tdc = new TClonesArray("BmnTDCDigit");
-    tqdc_adc = new TClonesArray("BmnADCDigit");
+    tqdc_adc = new TClonesArray("BmnADCSRCDigit");
     tqdc_tdc = new TClonesArray("BmnTDCDigit");
     hrb = new TClonesArray("BmnHRBDigit");
     sync = new TClonesArray("BmnSyncDigit");
@@ -920,6 +925,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig(), isTripEvent);
 
         if (fTrigMapper) fTrigMapper->FillEvent(tdc, trigger, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
+        if (fTrigSRCMapper) fTrigSRCMapper->FillEvent(tqdc_tdc, tqdc_adc);
 
         //if (t0->GetEntriesFast() != 1 || bc2->GetEntriesFast() != 1) continue;
         if (curEventType == kBMNPEDESTAL) {
@@ -993,6 +999,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fDigiTree->Branch("FD", &fd);
         fDigiTree->Branch("BD", &bd);
         fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
+        fTrigSRCMapper = new BmnTrigRaw2Digit("Trig_map_Run7_SRC.txt", "", fDigiTree);
     }
 
     if (fDetectorSetup[1]) {
@@ -1075,6 +1082,10 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (veto) veto->Delete();
     if (fd) fd->Delete();
     if (bd) bd->Delete();
+//    if (fTrigMapper)
+//        fTrigMapper->ClearArrays();
+    if (fTrigSRCMapper)
+        fTrigSRCMapper->ClearArrays();
     eventHeader->Delete();
     //runHeader->Delete();
     fTimeShifts.clear();
@@ -1091,6 +1102,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     fCurEventType = headDAQ->GetType();
 
     if (fTrigMapper) fTrigMapper->FillEvent(tdc, trigger, t0, bc1, bc2, veto, fd, bd, fT0Time, &fT0Width);
+    if (fTrigSRCMapper) fTrigSRCMapper->FillEvent(tqdc_tdc, tqdc_adc);
 
     if (fCurEventType == kBMNPEDESTAL) {
         if (fPedEvCntr == fEvForPedestals - 1) return kBMNERROR; //FIX return!
@@ -1170,6 +1182,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fDchMapper) delete fDchMapper;
     if (fMwpcMapper) delete fMwpcMapper;
     if (fTrigMapper) delete fTrigMapper;
+    if (fTrigSRCMapper) delete fTrigSRCMapper;
     if (fTof400Mapper) delete fTof400Mapper;
     if (fTof700Mapper) delete fTof700Mapper;
     if (fZDCMapper) delete fZDCMapper;

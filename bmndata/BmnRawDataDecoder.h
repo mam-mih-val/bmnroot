@@ -8,6 +8,7 @@
 #include "BmnTDCDigit.h"
 #include "BmnHRBDigit.h"
 #include "BmnADCDigit.h"
+#include "BmnADCSRCDigit.h"
 #include "BmnSyncDigit.h"
 #include "TFile.h"
 #include "TTimeStamp.h"
@@ -350,6 +351,7 @@ private:
     BmnDchRaw2Digit *fDchMapper;
     BmnMwpcRaw2Digit *fMwpcMapper;
     BmnTrigRaw2Digit *fTrigMapper;
+    BmnTrigRaw2Digit *fTrigSRCMapper;
     BmnTof1Raw2Digit *fTof400Mapper;
     BmnTof2Raw2DigitNew *fTof700Mapper;
     BmnZDCRaw2Digit *fZDCMapper;

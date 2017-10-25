@@ -49,6 +49,10 @@ public:
     BmnStatus readINLCorrections(TString INLFile);
     BmnStatus readMap(TString mappingFile);
     BmnStatus ClearArrays();
+    
+    vector<TClonesArray*> *GetTrigArrays(){
+        return &trigArrays;
+    }
 
 private:
 

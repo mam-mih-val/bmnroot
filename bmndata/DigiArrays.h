@@ -14,6 +14,7 @@
 #ifndef DIGIARRAYS_H
 #define DIGIARRAYS_H 1
 
+#include <vector>
 #include "TTree.h"
 #include "TClonesArray.h"
 
@@ -37,9 +38,15 @@ public:
         fd = NULL;
         bd = NULL;
         header = NULL;
+        trigLen = 0;
+        trigAr = NULL;
+//        for (TClonesArray* ar : trigAr){
+//            ar = NULL;
+//        }
     };
 
     ~DigiArrays() {
+        delete[] trigAr;
     };
 
     void Clear() {
@@ -59,7 +66,19 @@ public:
         if (zdc) { zdc->Delete(); delete zdc;}
         if (ecal) { ecal->Delete(); delete ecal;}
         if (veto) { veto->Delete(); delete veto;}
+//        for (TClonesArray *ar : (*trigAr)){
+        for (Int_t i = 0; i < trigLen; i++){
+            TClonesArray *ar = trigAr[i];
+            if (ar){
+//                printf("ar 0x%x \n", ar);
+//                printf("name %s\n ", ar->GetName());
+//                printf("entriesfast %d\n ", ar->GetEntriesFast());
+                ar->Clear("C");
+                delete ar;
+            }
+        }
     };
+    Int_t trigLen;
     TClonesArray *silicon; 
     TClonesArray *gem; 
     TClonesArray *tof400; 
@@ -75,7 +94,9 @@ public:
     TClonesArray *veto; 
     TClonesArray *fd; 
     TClonesArray *bd; 
-    TClonesArray *header; 
+    TClonesArray *header;//->
+    TClonesArray **trigAr;//[trigLen]
+//    std::vector<TClonesArray*> *trigAr;
 private:
     ClassDef(DigiArrays, 1)
 };

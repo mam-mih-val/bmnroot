@@ -6,7 +6,6 @@ const UShort_t kNCHANNELS = 8; // number of channels in one HPTDC
 BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile) {
     readMap(mappingFile);
     readINLCorrections(INLFile);
-    //==================================================//
 }
 
 BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *digiTree) {
@@ -137,11 +136,11 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
     for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
         BmnTrigMapping tM = fMap[iMap];
         Short_t iMod = 0;
-        Short_t iTime = 0;
+        Double_t time = 0;
         Short_t iAmp = 0;
         for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
             BmnTDCDigit* tdcDig1 = (BmnTDCDigit*) tdc->At(iTdc);
-            iTime = tdcDig1->GetValue();
+            time = tdcDig1->GetValue() * 0.025;
             UInt_t iChannel = tdcDig1->GetChannel();
 //            if (tdcDig1->GetSerial() != tM.serial || tdcDig1->GetSlot() != tM.slot) continue;
             if (iChannel != tM.channel) continue;
@@ -151,7 +150,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
                     TClonesArray *trigAr = trigArrays[iMap];
                     if (trigAr)
                         new ((*trigAr)[trigAr->GetEntriesFast()])
-                                BmnTrigWaveDigit(iMod, iTime, iAmp, adcDig);
+                                BmnTrigWaveDigit(iMod, time, iAmp, adcDig);
                     break;
                 }
             }
@@ -163,7 +162,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
 
 BmnStatus BmnTrigRaw2Digit::ClearArrays() {
     for (TClonesArray *ar : trigArrays)
-        ar->Delete();
+        ar->Clear("C");
 }
 
 ClassImp(BmnTrigRaw2Digit)

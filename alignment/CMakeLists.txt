@@ -21,6 +21,9 @@ ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/mwpc
 ${CMAKE_SOURCE_DIR}/dch
+${CMAKE_SOURCE_DIR}/bmnfield
+${CMAKE_SOURCE_DIR}/uni_db
+${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})

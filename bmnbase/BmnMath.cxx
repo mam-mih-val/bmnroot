@@ -73,7 +73,7 @@ namespace lit {
 
     Int_t NDF(const BmnGemTrack* track) {
         Int_t ndf = 0;
-        for (Int_t i = 0; i < track->GetNGemHits(); i++)
+        for (Int_t i = 0; i < track->GetNHits(); i++)
             ndf += 2;
         ndf -= 5;
         return ndf;
@@ -144,7 +144,7 @@ TVector3 SpiralFit(BmnGemTrack* tr, const TClonesArray* arr) {
     Float_t xv = hit0->GetX();
     Float_t zv = hit0->GetZ();
     Float_t Thetav = ATan2(xv, zv) * RadToDeg();
-    const Float_t kN = (Abs(Thetav) < 90) ? 3 : tr->GetNGemHits();
+    const Float_t kN = (Abs(Thetav) < 90) ? 3 : tr->GetNHits();
 
     Float_t sumRTheta = 0.0;
     Float_t sumTheta = 0.0;
@@ -196,7 +196,7 @@ Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* ar
         Float_t a = par->X();
         Float_t b = par->Y();
         Float_t sum = 0.0;
-        for (Int_t i = 0; i < tr->GetNGemHits(); ++i) {
+        for (Int_t i = 0; i < tr->GetNHits(); ++i) {
             BmnHit* hit = (BmnHit*) arr->At(tr->GetGemHitIndex(i));
             Float_t x = hit->GetX();
             Float_t z = hit->GetZ();
@@ -211,7 +211,7 @@ Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* ar
         Float_t Zc = par->Y();
         Float_t R = par->Z();
         Float_t sum = 0.0;
-        for (Int_t i = 0; i < tr->GetNGemHits(); ++i) {
+        for (Int_t i = 0; i < tr->GetNHits(); ++i) {
             BmnHit* hit = (BmnHit*) arr->At(tr->GetGemHitIndex(i));
             Float_t x = hit->GetX();
             Float_t z = hit->GetZ();
@@ -256,7 +256,7 @@ TVector3 LineFit(BmnTrack* track, const TClonesArray* arr, TString type) {
   //  TH2F* h_Hits = new TH2F("h_Hits", "h_Hits", 400, 0.0, 250.0, 400, -10.0, 10.0);
   //  TH2F* h_HitsAll = new TH2F("h_HitsAll", "h_HitsAll", 400, 0.0, 250.0, 400, -10.0, 10.0);
 
-    const Float_t nHits = track->GetNGemHits();
+    const Float_t nHits = track->GetNHits();
 
 //    for (Int_t iHit = 0; iHit < arr->GetEntriesFast(); iHit++) {
 //        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(iHit);
@@ -355,7 +355,7 @@ void LineFit(Double_t& par1, Double_t& par2, BmnGemTrack* track, TClonesArray* a
     Float_t SumWXY = 0.0; // sum of (weight * x * y)
     Float_t SumWX2 = 0.0; // sum of (weight * x * x)
 
-    const Float_t nHits = track->GetNGemHits();
+    const Float_t nHits = track->GetNHits();
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetGemHitIndex(i));
 
@@ -428,7 +428,7 @@ TVector3 CircleFit(BmnGemTrack* track, const TClonesArray* arr, Double_t &chi2) 
 
 //        TH2F* h_Hits = new TH2F("h_Hits", "h_Hits", 400, 0.0, 250.0, 400, -10.0, 10.0);
 
-    const Float_t nHits = track->GetNGemHits();
+    const Float_t nHits = track->GetNHits();
     for (Int_t i = 0; i < nHits; ++i) {
         BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetGemHitIndex(i));
         //Use Z and X coordinates of hits to fit in ZX plane
@@ -529,7 +529,7 @@ Float_t Sqr(Float_t x) {
 }
 
 TVector3 CircleBy3Hit(BmnGemTrack* track, const TClonesArray* arr) {
-    const Float_t nHits = track->GetNGemHits();
+    const Float_t nHits = track->GetNHits();
     if (nHits < 3) return TVector3(0.0, 0.0, 0.0);
     BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(track->GetGemHitIndex(0));
     BmnGemStripHit* hit1 = (BmnGemStripHit*) arr->At(track->GetGemHitIndex(1));
@@ -562,7 +562,7 @@ TVector3 CircleBy3Hit(BmnGemTrack* track, const TClonesArray* arr) {
 }
 
 TVector3 Pol2By3Hit(BmnGemTrack* track, const TClonesArray* arr) {
-    const Int_t nHits = track->GetNGemHits();
+    const Int_t nHits = track->GetNHits();
     if (nHits < 3) return TVector3(0.0, 0.0, 0.0);
     BmnGemStripHit* hit0 = (BmnGemStripHit*) arr->At(track->GetGemHitIndex(0));
     BmnGemStripHit* hit1 = (BmnGemStripHit*) arr->At(track->GetGemHitIndex(1));
@@ -588,7 +588,7 @@ TVector3 Pol2By3Hit(BmnGemTrack* track, const TClonesArray* arr) {
 }
 
 void DrawHits(BmnGemTrack* track, const TClonesArray* arr) {
-    const Int_t nHits = track->GetNGemHits();
+    const Int_t nHits = track->GetNHits();
     Float_t z[nHits];
     Float_t x[nHits];
     for (Int_t i = 0; i < nHits; ++i) {
@@ -804,4 +804,20 @@ void fit_seg(Double_t* z_loc, Double_t* rh_seg, Double_t* rh_sigm_seg, Double_t*
             par_ab[i1] += b[i1][j1] * f[j1];
         }
     }
+}
+
+void Pol2Fit(BmnGemTrack* track, const TClonesArray* arr, Double_t &A, Double_t &B, Double_t &C, Int_t idSkip) {
+    const Float_t nHits = track->GetNHits();
+    TGraph* gr = new TGraph(nHits - 1);
+    Int_t iPoint = 0;
+    for (Int_t i = 0; i < nHits; ++i) {
+        if (i == idSkip) continue;
+        BmnGemStripHit* hit = (BmnGemStripHit*) arr->At(track->GetGemHitIndex(i));
+        gr->SetPoint(iPoint++, hit->GetZ(), hit->GetX());
+    }    
+    TFitResultPtr ptr = gr->Fit("pol2", "SQ");
+    delete gr;
+    A = ptr->Parameter(2);
+    B = ptr->Parameter(1);
+    C = ptr->Parameter(0);
 }

@@ -58,9 +58,13 @@ public:
     void SetIsMergedDigits(Bool_t flag) {
         isMergedDigits = flag;
     }
-    
+
     Bool_t GetIsMergedDigits() {
         return isMergedDigits;
+    }
+
+    Int_t GetHitId() {
+        return fHitId;
     }
 
 private:

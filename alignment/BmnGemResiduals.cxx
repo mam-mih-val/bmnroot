@@ -8,10 +8,10 @@ fDebug(kFALSE),
 outRes(NULL),
 isPrintToFile(kFALSE),
 isMergedDigits(kFALSE),
-fGeometry(BmnGemStripConfiguration::RunSpring2017) {  
+fGeometry(BmnGemStripConfiguration::RunSpring2017) {
     fPeriod = run_period;
     fNumber = run_number;
-    
+
     if (Abs(fieldScale) > DBL_EPSILON)
         isField = kTRUE;
 
@@ -58,10 +58,6 @@ InitStatus BmnGemResiduals::Init() {
 
 void BmnGemResiduals::Exec(Option_t* opt) {
     fFairEventHeader->SetRunId((isMergedDigits) ? 0 : fNumber);
-    
-    if (isField)
-        return;
-
     fGemResiduals->Delete();
     ResidualsAndDistances();
 }
@@ -90,22 +86,37 @@ void BmnGemResiduals::ResidualsAndDistances() {
 
         for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
             BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetGemHitIndex(iHit));
+            Double_t x = hit->GetX();
+            Double_t y = hit->GetY();
+            Double_t z = hit->GetZ();
 
             Double_t xRes = 0., yRes = 0.;
-            if (isResid) {
-                xRes = hit->GetX() - (xFirst + tx * (hit->GetZ() - zFirst));
-                yRes = hit->GetY() - (yFirst + ty * (hit->GetZ() - zFirst));
-            } else {
+            if (!isField) {
+                if (isResid) {
+                    xRes = x - (xFirst + tx * (z - zFirst));
+                    yRes = y - (yFirst + ty * (z - zFirst));
+                } else {
+                    Double_t a = 0., b = 0.;
+                    LineFit(a, b, track, fGemHits, 1, iHit); // bmnbase/BmnMath.h
+                    xRes = x - (a * z + b);
+                    LineFit(a, b, track, fGemHits, 2, iHit);
+                    yRes = y - (a * z + b);
+                }
+            }
+            else {
+                isResid = kFALSE;
+                Double_t A = 0., B = 0., C = 0.;
+                Pol2Fit(track, fGemHits, A, B, C, iHit); // XZ-plane
+                xRes = x - A * z * z - B * z - C;
+
                 Double_t a = 0., b = 0.;
-                LineFit(a, b, track, fGemHits, 1, iHit); // bmnbase/BmnMath.h
-                xRes = hit->GetX() - (a * hit->GetZ() + b);
                 LineFit(a, b, track, fGemHits, 2, iHit);
-                yRes = hit->GetY() - (a * hit->GetZ() + b);
+                yRes = y - (a * z + b); // YZ-plane               
             }
 
             BmnResiduals* resid = new((*fGemResiduals)[fGemResiduals->GetEntriesFast()]) BmnResiduals(hit->GetStation(), hit->GetModule(), xRes, yRes, 0., isField, isResid);
             resid->SetTrackId(iTrack);
-            resid->SetHitId(iHit);
+            resid->SetHitId(track->GetGemHitIndex(iHit));
             resid->SetIsMergedDigits(isMergedDigits);
 
             hRes[hit->GetStation()][hit->GetModule()][0]->Fill(xRes);
@@ -115,8 +126,6 @@ void BmnGemResiduals::ResidualsAndDistances() {
 }
 
 void BmnGemResiduals::Finish() {
-    if (isField)
-        return;
     if (isPrintToFile) {
         for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
             for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStat)->GetNModules(); iMod++) {
@@ -135,5 +144,4 @@ void BmnGemResiduals::Finish() {
     }
     if (outRes)
         fclose(outRes);
-
 }

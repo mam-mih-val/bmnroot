@@ -22,6 +22,7 @@
 #pragma link C++ class BmnHistToF++;
 #pragma link C++ class BmnHistToF700++;
 #pragma link C++ class BmnHistTrigger++;
+#pragma link C++ class BmnHistSrc++;
 
 #pragma link C++ class vector<TH1F>+;
 #pragma link C++ class vector<vector<TH1F> >+;
@@ -34,6 +35,7 @@
 #pragma link C++ class vector<vector<vector<int*> > >+;
 #pragma link C++ class vector<TSocket*>+;
 #pragma link C++ class vector<BmnHist*>+;
+#pragma link C++ class vector<BmnTrigWaveDigit*>+;
 
 #endif
 

@@ -28,7 +28,7 @@ BmnTrigWaveDigit::BmnTrigWaveDigit(BmnTrigDigit* trig, BmnADCSRCDigit* adc) :
             adc->GetSerial(), adc->GetChannel(), adc->GetNSamples(),
             adc->GetShortValue(), adc->GetTrigTimestamp(), adc->GetAdcTimestamp()
             ) */{
-    Short_t *iValue;
+    Short_t *iValue = adc->GetShortValue();
     fNsmpl = adc->GetNSamples();
     fValueI = new Short_t[fNsmpl];
     for (Int_t i = 0; i < fNsmpl; ++i)
@@ -43,7 +43,7 @@ BmnADCSRCDigit(
             adc->GetSerial(), adc->GetChannel(), adc->GetNSamples(),
             adc->GetShortValue(), adc->GetTrigTimestamp(), adc->GetAdcTimestamp()
             )*/{
-    Short_t *iValue;
+    Short_t *iValue = adc->GetShortValue();
     fNsmpl = adc->GetNSamples();
     fValueI = new Short_t[fNsmpl];
     for (Int_t i = 0; i < fNsmpl; ++i)

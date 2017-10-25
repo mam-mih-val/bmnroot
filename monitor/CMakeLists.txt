@@ -52,6 +52,7 @@ BmnHistZDC.cxx
 BmnHistTrigger.cxx
 BmnHistToF.cxx
 BmnHistToF700.cxx
+BmnHistSrc.cxx
 )
 
 If (Boost_FOUND)

@@ -129,6 +129,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fPedoCounter = 0;
     fGemMap = NULL;
     fEvForPedestals = N_EV_FOR_PEDESTALS;
+    fExpSetup = kBMNSETUP;
 }
 
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
@@ -206,6 +207,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fPedoCounter = 0;
     fGemMap = NULL;
     fEvForPedestals = N_EV_FOR_PEDESTALS;
+    fExpSetup = kBMNSETUP;
     InitMaps();
 }
 
@@ -999,8 +1001,10 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fDigiTree->Branch("FD", &fd);
         fDigiTree->Branch("BD", &bd);
         fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
-        fTrigSRCMapper = new BmnTrigRaw2Digit("Trig_map_Run7_SRC.txt", "", fDigiTree);
     }
+    
+    if (fDetectorSetup[9])
+        fTrigSRCMapper = new BmnTrigRaw2Digit("Trig_map_Run7_SRC.txt", "", fDigiTree);
 
     if (fDetectorSetup[1]) {
         mwpc = new TClonesArray("BmnMwpcDigit");

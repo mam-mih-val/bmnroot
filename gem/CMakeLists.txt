@@ -1,45 +1,41 @@
 # Create a library called "libGem".
 
 set(INCLUDE_DIRECTORIES
-${BASE_INCLUDE_DIRECTORIES}
-${ROOT_INCLUDE_DIR}
-${Boost_INCLUDE_DIRS}
-
-${BMNROOT_SOURCE_DIR}/base
+${CMAKE_SOURCE_DIR}/base
 ${CMAKE_SOURCE_DIR}/base/field
 ${CMAKE_SOURCE_DIR}/base/steer
 ${CMAKE_SOURCE_DIR}/base/sim
 ${CMAKE_SOURCE_DIR}/base/event
 ${CMAKE_SOURCE_DIR}/base/source
-${BMNROOT_SOURCE_DIR}/parbase
-${BMNROOT_SOURCE_DIR}/fairtools
-${BMNROOT_SOURCE_DIR}/globaltracking
-${BMNROOT_SOURCE_DIR}/gem
-${BMNROOT_SOURCE_DIR}/silicon
-${BMNROOT_SOURCE_DIR}/bmnfield
-${BMNROOT_SOURCE_DIR}/bmnbase
-${BMNROOT_SOURCE_DIR}/BmnKalmanFilter
-
-${BMNROOT_SOURCE_DIR}/bmndata
-${BMNROOT_SOURCE_DIR}/alignment
+${CMAKE_SOURCE_DIR}/parbase
+${CMAKE_SOURCE_DIR}/fairtools
+${CMAKE_SOURCE_DIR}/globaltracking
+${CMAKE_SOURCE_DIR}/gem
+${CMAKE_SOURCE_DIR}/silicon
+${CMAKE_SOURCE_DIR}/bmnfield
+${CMAKE_SOURCE_DIR}/bmnbase
+${CMAKE_SOURCE_DIR}/BmnKalmanFilter
+${CMAKE_SOURCE_DIR}/bmndata
+${CMAKE_SOURCE_DIR}/alignment
 ${CMAKE_SOURCE_DIR}/uni_db
-${BMNROOT_SOURCE_DIR}/uni_db/db_classes
-#${BMNROOT_SOURCE_DIR}/sts
-#${BMNROOT_SOURCE_DIR}/sts/setup
-
-#${BMNROOT_SOURCE_DIR}/KF
-#${BMNROOT_SOURCE_DIR}/KF/Interface
+${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
 
-include_directories( ${INCLUDE_DIRECTORIES})
+Set(SYSTEM_INCLUDE_DIRECTORIES
+ ${Boost_INCLUDE_DIRS}
+ ${ROOT_INCLUDE_DIR}
+)
+
+include_directories(${INCLUDE_DIRECTORIES})
+Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
-${FAIRROOT_LIBRARY_DIR}
 )
 
-link_directories( ${LINK_DIRECTORIES})
+link_directories(${LINK_DIRECTORIES})
 
+# List of source files
 set(SRCS
   BmnGemHit.cxx
   BmnGemTrack.cxx
@@ -69,35 +65,6 @@ set(SRCS
   BmnGemVertexFinder.cxx
 )
 
-set(HEADERS
-  BmnGemHit.h
-  BmnGemTrack.h
-  BmnGemHitProducer.h
-  BmnGemGeo.h
-  BmnGemDigit.h
-  BmnGemDigitizerTask.h
-  BmnGemGas.h
-  BmnManageQA.h
-  BmnGemDigitizerQAHistograms.h
-  BmnGemTracking.h
-  BmnGemStripLayer.h
-  BmnGemStripModule.h
-  BmnGemStripStation.h
-  BmnGemStripStationSet.h
-  BmnGemStripStation_RunSummer2016.h
-  BmnGemStripStationSet_RunSummer2016.h
-  BmnGemStripStation_RunWinter2016.h
-  BmnGemStripStationSet_RunWinter2016.h
-  BmnGemStripStation_RunSpring2017.h
-  BmnGemStripStationSet_RunSpring2017.h
-  BmnGemStripDigit.h
-  BmnGemStripDigitizer.h
-  BmnGemStripHit.h
-  BmnGemStripHitMaker.h
-  BmnKalmanFilter_tmp.h
-  BmnGemVertexFinder.h
-)
-
 IF (SSE_FOUND)
   ADD_DEFINITIONS(-DHAVE_SSE)
   SET_SOURCE_FILES_PROPERTIES(${SRCS} PROPERTIES COMPILE_FLAGS "-msse -O3 -w")
@@ -124,11 +91,9 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-set(LINKDEF  GemLinkDef.h)
+Set(HEADERS)
+set(LINKDEF GemLinkDef.h)
 Set(LIBRARY_NAME Gem)
-Set(DEPENDENCIES
-    KF Sts BmnBase BmnData Base
-)
+Set(DEPENDENCIES KF Sts BmnBase BmnData Base)
 
 GENERATE_LIBRARY()
-

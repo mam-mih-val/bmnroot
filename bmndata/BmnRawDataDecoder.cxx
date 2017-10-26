@@ -744,7 +744,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
             }
         } else {
             if ((type == 5) && (mode == 2) && (iSampl < ADC_SAMPLING_LIMIT)) {
-                Short_t val = d[idx] & 0xFF;
+                Short_t val = d[idx] & 0x3FFF;
                 //                printf("\tiSampl %d val %d\n", iSampl, val);
                 valI[iSampl++] = val;
             } else {

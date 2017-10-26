@@ -65,13 +65,13 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_
 
 BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     DBG("started")
-    rawDataDecoder = new BmnRawDataDecoder();
-    Int_t runID = 0;
+    rawDataDecoder = new BmnRawDataDecoder(fRawFileName);
+    Int_t runID = rawDataDecoder->GetRunId();
     if (runID < 1) {
         regex re(".*mpd_run_.*_(\\d+).data");
         string idstr = regex_replace(fRawFileName.Data(), re, "$1");
         runID = atoi(idstr.c_str());
-        runID = 1234; // @TODO remove
+//        runID = 1234; // @TODO remove
         if (runID == 0) {
             printf("!!! Error Could not detect runID\n");
             return kBMNERROR;
@@ -167,9 +167,21 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
         if (_curFile.Length() == 0) {
         _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
     }
+        InitDecoder(_curDir + _curFile);
 
     while (kTRUE) {
-        InitDecoder(_curDir + _curFile);
+            regex re(".*mpd_run_.*_(\\d+).data");
+                    Int_t runID = 0; //@TODO remove 
+                    if (runID < 1) {
+                        string idstr = regex_replace(_curFile.Data(), re, "$1");
+                        runID = atoi(idstr.c_str());
+                        if (runID == 0) {
+                            printf("!!! Error Could not detect runID\n");
+                            break;
+                        }
+                    }
+                    rawDataDecoder->ResetDecoder(_curDir + _curFile);
+                    rawDataDecoder->SetRunId(runID);
         ProcessFileRun(_curDir + _curFile);
         rawDataDecoder->DisposeDecoder();
         delete rawDataDecoder;
@@ -290,7 +302,8 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         return kBMNERROR;
     }
     struct dirent **namelist;
-    regex re(".*mpd_run_.*_(\\d+).data");
+    const regex re(".*mpd_run_.*_(\\d+).data");
+//    TPRegexp rre(".*mpd_run_.*_(\\d+).data");
     Int_t runCount = 0;
     Int_t n;
     n = scandir(dirname, &namelist, 0, versionsort);
@@ -307,8 +320,13 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
                 } else {
                     Int_t runID = 0;
                     if (runID < 1) {
-                        string idstr = regex_replace(_curFile.Data(), re, "$1");
+                        const char repl[] = "$1";
+                        const char *fname = _curFile.Data();
+                        string idstr = regex_replace(fname, re, repl);
+//                        TObjArray *subStr = rre.Match()
+//                        string idstr = rre.Substitute(_curFile.Data(), "$1");
                         runID = atoi(idstr.c_str());
+                        
                         if (runID == 0) {
                             printf("!!! Error Could not detect runID\n");
                             break;

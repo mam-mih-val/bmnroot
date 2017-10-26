@@ -106,4 +106,4 @@ private:
     ClassDef(BmnMwpcGeometry, 1);
 };
 
-#endif 
+#endif

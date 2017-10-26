@@ -101,6 +101,14 @@ public:
         d.fd = fd;
         d.bd = bd;
         d.header = eventHeader;
+        if (fTrigSRCMapper){
+//            d.trigAr = fTrigSRCMapper->GetTrigArrays();
+            vector<TClonesArray*>* ta = fTrigSRCMapper->GetTrigArrays();
+            d.trigLen = ta->size();
+            d.trigAr = new TClonesArray*[d.trigLen];
+            for (Int_t i = 0; i < d.trigLen; i++)
+                d.trigAr[i] = (*ta)[i];
+        }
         return d;
     }
 
@@ -214,7 +222,7 @@ public:
     }
 
     BmnStatus SetDetectorSetup(Bool_t* setup) {
-        for (Int_t i = 0; i < 9; ++i) {
+        for (Int_t i = 0; i < 10; ++i) {
             fDetectorSetup[i] = setup[i];
         }
 
@@ -229,10 +237,18 @@ public:
         return fEvForPedestals;
     }
 
+    void SetFExpSetup(BmnSetup v) {
+        this->fExpSetup = v;
+    }
+
+    BmnSetup GetFExpSetup() const {
+        return fExpSetup;
+    }
+
 private:
 
     //9 bits correspond to detectors which we need to decode
-    Bool_t fDetectorSetup[9];
+    Bool_t fDetectorSetup[10];
 
 
     Int_t fTOF700ReferenceRun;
@@ -358,6 +374,7 @@ private:
     BmnECALRaw2Digit *fECALMapper;
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
+    BmnSetup fExpSetup;
     UInt_t fPedEvCntr;
     Int_t fEvForPedestals;
     Bool_t fPedEnough;

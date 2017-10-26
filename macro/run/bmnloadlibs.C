@@ -1,14 +1,17 @@
+#include "../../gconfig/basiclibs.C"
 
 void bmnloadlibs()
 {
   // Load basic libraries
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
   gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
+#endif
   basiclibs();
   // Load other libraries  
+  gSystem->Load("libBase");
   gSystem->Load("libFairTools");
   gSystem->Load("libGeoBase");
   gSystem->Load("libParBase");
-  gSystem->Load("libBase");
   gSystem->Load("libBmnField");
   gSystem->Load("libPassive");
   gSystem->Load("libGen");

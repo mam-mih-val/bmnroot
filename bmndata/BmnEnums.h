@@ -79,4 +79,12 @@ enum BmnWorkerState {
     kBMNRECON = 2,
 };
 
+/**
+ * \enum Define experimental setup
+ */
+enum BmnSetup {
+    kBMNSETUP = 0,
+    kSRCSETUP = 1,
+};
+
 #endif /* BMNENUMS_H_ */

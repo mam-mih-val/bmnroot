@@ -39,7 +39,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_
     rawDataDecoder->SetRunId(runID);
     rawDataDecoder->SetPeriodId(periodID);
     rawDataDecoder->InitMaps();
-    Bool_t setup[9]; //array of flags to determine BM@N setup
+    Bool_t setup[10]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
     setup[1] = 1; // MWPC
@@ -50,6 +50,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
     setup[8] = 0; // ECAL
+    setup[9] = 1; // TQDC
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
@@ -67,13 +68,14 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     rawDataDecoder = new BmnRawDataDecoder();
     Int_t runID = 0;
     if (runID < 1) {
-        regex re(".*mpd_run_Glob_(\\d+).data");
+        regex re(".*mpd_run_.*_(\\d+).data");
         string idstr = regex_replace(fRawFileName.Data(), re, "$1");
         runID = atoi(idstr.c_str());
+        runID = 1234; // @TODO remove
         if (runID == 0) {
             printf("!!! Error Could not detect runID\n");
             return kBMNERROR;
-    }
+        }
     }
     rawDataDecoder->SetRunId(runID);
     rawDataDecoder->SetPeriodId(6);
@@ -82,7 +84,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
         delete rawDataDecoder;
         return kBMNERROR;
     }
-    Bool_t setup[9]; //array of flags to determine BM@N setup
+    Bool_t setup[10]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
     setup[1] = 1; // MWPC
@@ -93,6 +95,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
     setup[8] = 0; // ECAL
+    setup[9] = 1; // TQDC
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
@@ -287,7 +290,7 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
         return kBMNERROR;
     }
     struct dirent **namelist;
-    regex re(".*mpd_run_Glob_(\\d+).data");
+    regex re(".*mpd_run_.*_(\\d+).data");
     Int_t runCount = 0;
     Int_t n;
     n = scandir(dirname, &namelist, 0, versionsort);
@@ -320,9 +323,11 @@ BmnStatus BmnOnlineDecoder::BatchDirectory(TString dirname) {
             }
             free(namelist[i]);
         }
-        rawDataDecoder->DisposeDecoder();
-        delete rawDataDecoder;
-        rawDataDecoder = NULL;
+        if (rawDataDecoder) {
+            rawDataDecoder->DisposeDecoder();
+            delete rawDataDecoder;
+            rawDataDecoder = NULL;
+        }
         free(namelist);
     }
     //    for (auto cl : clients) {

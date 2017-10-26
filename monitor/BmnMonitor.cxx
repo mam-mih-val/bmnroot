@@ -15,6 +15,7 @@
 #include "BmnMonitor.h"
 #include "BmnOnlineDecoder.h"
 #include "BmnHistSilicon.h"
+#include "BmnHistSrc.h"
 
 BmnMonitor::BmnMonitor() {
     keepWorking = kTRUE;
@@ -74,9 +75,9 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
     Int_t rcvBuf = MAX_BUF_LEN;
     if (zmq_setsockopt(_decoSocket, ZMQ_RCVBUF, &rcvBuf, sizeof (rcvBuf)) == -1)
         DBGERR("zmq_setsockopt of ZMQ_RCVBUF")
-    if (zmq_setsockopt(_decoSocket, ZMQ_SNDBUF, &rcvBuf, sizeof (rcvBuf)) == -1)
-        DBGERR("zmq_setsockopt of ZMQ_SNDBUF")
-    _webPort = webPort;
+        if (zmq_setsockopt(_decoSocket, ZMQ_SNDBUF, &rcvBuf, sizeof (rcvBuf)) == -1)
+            DBGERR("zmq_setsockopt of ZMQ_SNDBUF")
+            _webPort = webPort;
     _curDir = dirname;
     if (refDir == "")
         _refDir = _curDir;
@@ -122,7 +123,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
             t.SetBuffer(zmq_msg_data(&msg), zmq_msg_size(&msg));
             t.SetReadMode();
             fDigiArrays = (DigiArrays*) (t.ReadObject(DigiArrays::Class()));
-//            gSystem->ProcessEvents();
+            //            gSystem->ProcessEvents();
             if (fDigiArrays->header->GetEntriesFast() > 0) {
                 BmnEventHeader* head = (BmnEventHeader*) fDigiArrays->header->At(0);
                 Int_t runID = head->GetRunId();
@@ -131,7 +132,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                         fRunID = runID;
                         CreateFile(fRunID);
                         DBG("state changed to kBMNWORK")
-                        fServer->SetTimer(0, kFALSE);
+                        fServer->SetTimer(0, kTRUE);
                         fState = kBMNWORK;
                         ProcessDigi(0);
                         break;
@@ -199,9 +200,10 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistToF(refName + "ToF400"));
     bhVec.push_back(new BmnHistToF700(refName + "ToF700"));
     bhVec.push_back(new BmnHistTrigger(refName + "Triggers"));
+    bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir));
     for (auto h : bhVec)
         h->SetDir(fHistOut, fRecoTree);
-    for (auto h : bhVec4show){
+    for (auto h : bhVec4show) {
         h->SetDir(fHistOutTemp, fRecoTree4Show);
         h->Reset();
     }
@@ -214,8 +216,8 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     for (auto h : bhVec)
         if (h)
             h->FillFromDigi(fDigiArrays);
-//    //    clock_t prev = clock();
-//    //    printf("zdc fill %f\n", (clock() - prev)/ (double) CLOCKS_PER_SEC);
+    //    //    clock_t prev = clock();
+    //    //    printf("zdc fill %f\n", (clock() - prev)/ (double) CLOCKS_PER_SEC);
     // Fill data Tree //
     fRecoTree->Fill();
     // fill histograms what will be shown on the site//
@@ -262,10 +264,11 @@ void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistToF("ToF400"));
     bhVec4show.push_back(new BmnHistToF700("ToF700"));
     bhVec4show.push_back(new BmnHistTrigger("Triggers"));
+    bhVec4show.push_back(new BmnHistSrc("SRC", _curDir));
 
     fServer->Register("/", infoCanvas);
     fServer->Register("/", refList);
-    for (auto h : bhVec4show){
+    for (auto h : bhVec4show) {
         h->Register(fServer);
         h->SetRefPath(_refDir);
     }
@@ -316,30 +319,30 @@ void BmnMonitor::FinishRun() {
         printf("fRecoTree4Show Write result = %d\n", fRecoTree4Show->Write());
     if (fHistOutTemp) {
         printf("fHistOutMem Write result = %d\n", fHistOutTemp->Write());
-    for (auto h : bhVec4show)
-        h->SetDir(NULL, NULL);
+        for (auto h : bhVec4show)
+            h->SetDir(NULL, NULL);
         fHistOutTemp->Close();
         fHistOutTemp = NULL;
     }
 }
 
-TObjArray* BmnMonitor::GetAlikeRuns(BmnEventHeader* header){
+TObjArray* BmnMonitor::GetAlikeRuns(BmnEventHeader* header) {
     TString beamParticle = "C";
     TString targetParticle = "Pb";
     Float_t beamEnergy = 4.5;
     TObjArray arrayConditions;
     UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnBeamParticle, conditionEqual, beamParticle);
-    arrayConditions.Add((TObject*)searchCondition);
+    arrayConditions.Add((TObject*) searchCondition);
     searchCondition = new UniDbSearchCondition(columnTargetParticle, conditionEqual, targetParticle);
-    arrayConditions.Add((TObject*)searchCondition);
-//    searchCondition = new UniDbSearchCondition(columnEnergy, conditionEqual, beamEnergy);
-//    arrayConditions.Add((TObject*)searchCondition);
+    arrayConditions.Add((TObject*) searchCondition);
+    //    searchCondition = new UniDbSearchCondition(columnEnergy, conditionEqual, beamEnergy);
+    //    arrayConditions.Add((TObject*)searchCondition);
 
     TObjArray* refRuns = UniDbRun::Search(arrayConditions);
 
     arrayConditions.SetOwner(kTRUE);
     arrayConditions.Delete();
-    
+
     return refRuns;
 }
 

@@ -1,5 +1,8 @@
 #include "TH1.h"
 
+#ifndef FITWLSQ_H
+#define FITWLSQ_H 1
+
 //
 //Advanced refit for tracks by Andrey Moshkin
 //
@@ -62,3 +65,5 @@ private:
 	Bool_t LH_INI;
 	Int_t RB_TYPE;
 };
+
+#endif

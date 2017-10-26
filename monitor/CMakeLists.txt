@@ -16,9 +16,9 @@ ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/bmnfield
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/silicon
+${CMAKE_SOURCE_DIR}/dch
 ${CMAKE_SOURCE_DIR}/globaltracking
 ${CMAKE_SOURCE_DIR}/monitor
-
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
@@ -29,11 +29,11 @@ Set(SYSTEM_INCLUDE_DIRECTORIES
  ${XML2_INCLUDE_DIR}
 )
 
-include_directories(${SYSTEM_INCLUDE_DIRECTORIES})
 include_directories(${INCLUDE_DIRECTORIES})
+include_directories(${SYSTEM_INCLUDE_DIRECTORIES})
 
 Set(LINK_DIRECTORIES
-${ROOT_LIBRARY_DIR}
+ ${ROOT_LIBRARY_DIR}
 )
 
 link_directories(${LINK_DIRECTORIES})
@@ -60,9 +60,9 @@ If (Boost_FOUND)
 EndIf (Boost_FOUND)
 
 Set(HEADERS)
-Set(LINKDEF LinkDef.h)
+Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES KF Sts BmnBase BmnData Base)
+Set(DEPENDENCIES Dch KF Sts BmnBase BmnData Base)
 
 GENERATE_LIBRARY()
 

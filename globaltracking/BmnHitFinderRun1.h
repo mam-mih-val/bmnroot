@@ -14,6 +14,7 @@
 #include "TF1.h"
 #include "TH1F.h"
 #include "BmnEnums.h"
+#include "DCHgeometryconstants_bmn.h"
 
 using namespace std;
 using namespace TMath;
@@ -44,13 +45,13 @@ const Float_t ZLength_DCH1 = 20.0;
 const Float_t ZLength_DCH1ActiveVolume = 0.6;
 const Float_t HoleSize_DCH1 = 12.0;
 
-const Float_t SideLengthOfOctagon = 120.0;
-const Float_t InnerRadiusOfOctagon = (2.414 * SideLengthOfOctagon) / 2.0;
+//const Float_t SideLengthOfOctagon = 120.0;
+//const Float_t InnerRadiusOfOctagon = (2.414 * SideLengthOfOctagon) / 2.0;
 
 const UInt_t nWires = 240; // 0 - 255
 const UInt_t nPlanes = 16; // 0 - 15const 
 #define MaxRadiusOfActiveVolume  120.0
-const Float_t MinRadiusOfActiveVolume = 12.0;
+//const Float_t MinRadiusOfActiveVolume = 12.0;
 const Float_t WireStep = 2.0 * MaxRadiusOfActiveVolume / nWires;
 const Float_t HalfStep = WireStep / 2.0;
 
@@ -173,9 +174,9 @@ inline void ProcessDchDigits(TClonesArray* digits, TClonesArray * hitsArray) {
     vector<BmnDchDigit*> vb1;
     vector<BmnDchDigit*> vb2;
 
-    //    const Float_t errX = kWireStep / Sqrt(12.0);
-    //    const Float_t errY = kWireStep / Sqrt(12.0);
-    //    const Float_t errZ = 1.0 / Sqrt(12.0); // zStep = 1.0 cm
+    //    const Float_t errX = kWireStep / TMath::Sqrt(12.0);
+    //    const Float_t errY = kWireStep / TMath::Sqrt(12.0);
+    //    const Float_t errZ = 1.0 / TMath::Sqrt(12.0); // zStep = 1.0 cm
     //    TVector3 errors = TVector3(errX, errY, errZ); //FIXME!!! Calculate by formulae
 
     for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); ++iDig) {
@@ -341,14 +342,14 @@ inline vector<TVector3> CreateHitsByTwoPlanes(vector<BmnMwpcDigit*> x, vector<Bm
 }
 
 inline Float_t dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2) {
-    return Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+    return TMath::Sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 }
 
 inline void CreateMwpcHits(vector<TVector3> pos, TClonesArray* hits, Short_t mwpcId) {
 
-    const Float_t errX = kWireStep / Sqrt(12.0);
-    const Float_t errY = kWireStep / Sqrt(12.0);
-    const Float_t errZ = 1.0 / Sqrt(12.0); // zStep = 1.0 cm
+    const Float_t errX = kWireStep / TMath::Sqrt(12.0);
+    const Float_t errY = kWireStep / TMath::Sqrt(12.0);
+    const Float_t errZ = 1.0 / TMath::Sqrt(12.0); // zStep = 1.0 cm
     TVector3 errors = TVector3(errX, errY, errZ); //FIXME!!! Calculate by formulae
 
     TVector3 globMwpcPos;

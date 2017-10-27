@@ -49,7 +49,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
-    setup[8] = 0; // ECAL
+    setup[8] = 1; // ECAL
     setup[9] = 1; // TQDC
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
@@ -59,6 +59,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
+    rawDataDecoder->SetECALMapping("ECAL_map_period_5.txt");
     rawDataDecoder->InitConverter(dq);
     return rawDataDecoder->InitDecoder();
 }
@@ -95,7 +96,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
-    setup[8] = 0; // ECAL
+    setup[8] = 1; // ECAL
     setup[9] = 1; // TQDC
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
@@ -105,6 +106,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
+    rawDataDecoder->SetECALMapping("ECAL_map_period_5.txt");
     rawDataDecoder->InitConverter(fRawFileName);
     return rawDataDecoder->InitDecoder();
 }

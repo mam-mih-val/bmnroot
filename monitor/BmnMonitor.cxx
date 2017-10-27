@@ -197,6 +197,7 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistDch(refName + "DCH"));
     bhVec.push_back(new BmnHistMwpc(refName + "MWPC"));
     bhVec.push_back(new BmnHistZDC(refName + "ZDC"));
+    bhVec.push_back(new BmnHistECAL(refName + "ECAL"));
     bhVec.push_back(new BmnHistToF(refName + "ToF400"));
     bhVec.push_back(new BmnHistToF700(refName + "ToF700"));
     bhVec.push_back(new BmnHistTrigger(refName + "Triggers"));
@@ -261,6 +262,7 @@ void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistDch("DCH"));
     bhVec4show.push_back(new BmnHistMwpc("MWPC"));
     bhVec4show.push_back(new BmnHistZDC("ZDC"));
+    bhVec4show.push_back(new BmnHistECAL("ECAL"));
     bhVec4show.push_back(new BmnHistToF("ToF400"));
     bhVec4show.push_back(new BmnHistToF700("ToF700"));
     bhVec4show.push_back(new BmnHistTrigger("Triggers"));

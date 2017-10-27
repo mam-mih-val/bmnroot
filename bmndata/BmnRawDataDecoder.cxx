@@ -746,13 +746,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
             }
         } else {
             if ((type == 5) && (mode == 2) && (iSampl < ADC_SAMPLING_LIMIT)) {
-<<<<<<< HEAD
-                Short_t val = d[idx] & 0x3FFF;
-                //                printf("\tiSampl %d val %d\n", iSampl, val);
-=======
                 Short_t val = ((d[idx] >> 2) & 0x3FFF) - 2000; // offset binary
-//                                printf("\tiSampl %d val %d\n", iSampl, val);
->>>>>>> 5bdc572e9b91ff7bcfc01c32a2046b58d2fd660a
                 valI[iSampl++] = val;
             } else {
                 new((*tqdc_adc)[tqdc_adc->GetEntriesFast()]) BmnADCSRCDigit(serial, channel, iSampl, valI, trigTimestamp, adcTimestamp);

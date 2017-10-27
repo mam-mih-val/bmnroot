@@ -99,7 +99,8 @@ InitStatus BmnGemTracking::Init() {
     }
 
     fGemDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
-    fSilDetector = new BmnSiliconStationSet("/home/merz/BMN/26_01_16/silicon/XMLConfigs/SiliconRunSpring2017.xml");
+    TString gPathSiliconConfig = TString(gSystem->Getenv("VMCWORKDIR")) + "/silicon/XMLConfigs/SiliconRunSpring2017.xml";
+    fSilDetector = new BmnSiliconStationSet(gPathSiliconConfig);
 
     if (fVerbose) cout << "======================== GEM tracking init finished ===================" << endl;
 }

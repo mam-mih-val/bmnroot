@@ -11,10 +11,24 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #include <iconv.h>
+#include <TGraph.h>
+#include <TStyle.h>
 #include "BmnGlobalAlignment.h"
 
 Int_t BmnGlobalAlignment::fCurrentEvent = 0;
 Int_t BmnGlobalAlignment::trackCounter = 0;
+
+void BmnGlobalAlignment::Finish() {
+    if (fIsField) {
+        delete fKalman;
+        delete fMagField;
+
+        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
+            fTxGemStation[iStat]->Fit("gaus", "SQww");
+            fTxGemStation[iStat]->Write();
+        }
+    }
+}
 
 BmnGlobalAlignment::~BmnGlobalAlignment() {
     for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
@@ -72,8 +86,12 @@ fNLC(4),
 fOutlierdownweighting(0),
 fDwfractioncut(0.0),
 fDebug(kFALSE),
+fIsField(kFALSE),
+fMagField(NULL),
+fField(NULL),
+fKalman(NULL),
 Labels(NULL) {
-    fRecoFileName = inFileName;  
+    fRecoFileName = inFileName;
     nDetectors = 3;
     fDetectorSet = new TString[nDetectors]();
 
@@ -139,7 +157,7 @@ InitStatus BmnGlobalAlignment::Init() {
 
     cout << "Use detectors: MWPC - " << isUsedMwpc << " GEM - " <<
             isUsedGem << " DCH - " << isUsedDch << endl;
-   
+
     TChain* chain = new TChain("cbmsim");
     chain->Add(fRecoFileName.Data());
     FairEventHeader* evHeader = NULL;
@@ -147,7 +165,15 @@ InitStatus BmnGlobalAlignment::Init() {
     chain->GetEntry(0);
     fRunId = evHeader->GetRunId();
     delete chain;
-       
+
+    Double_t fieldVolt = 0.;
+    Double_t map_current = 55.87;
+    if (fRunId != 0) {
+        UniDbRun* runInfo = UniDbRun::GetRun(6, fRunId);
+        fieldVolt = *runInfo->GetFieldVoltage();
+        fIsField = (fieldVolt > 10.) ? kTRUE : kFALSE;
+    }
+
     FairRootManager* ioman = FairRootManager::Instance();
 
     fMwpcHits = (TClonesArray*) ioman->GetObject(fBranchMwpcHits.Data());
@@ -164,7 +190,7 @@ InitStatus BmnGlobalAlignment::Init() {
     fGlobalTracks = (TClonesArray*) ioman->GetObject(fBranchGlobalTracks.Data());
 
     fFairEventHeader = (FairEventHeader*) ioman->GetObject(fBranchFairEventHeader.Data());
-       
+
     fGemResiduals = (TClonesArray*) ioman->GetObject(fBranchGemResiduals.Data());
 
     fMwpcAlignCorr = new TClonesArray(fBranchMwpcAlignCorr.Data());
@@ -179,10 +205,39 @@ InitStatus BmnGlobalAlignment::Init() {
 
     fChain = ioman->GetInChain();
     fin_txt = fopen("alignment.txt", "w");
+
+    fCanv = new TCanvas("c1", "c1", 1200, 800);
+    fCanv->Divide(2, 1);
+
+    // Read current geometry (RunSpring2017) from database 
+    Char_t* geoFileName = (Char_t*) "current_geo_file.root";
+    // 1242 is an arbitrary file from period 6
+    Int_t res_code = UniDbRun::ReadGeometryFile(6, 1242, geoFileName);
+    if (res_code != 0) {
+        cout << "Geometry file can't be read from the database" << endl;
+        exit(-1);
+    }
+    TGeoManager::Import(geoFileName);
+
+    if (fIsField) {
+        fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
+        fMagField->SetScale(fieldVolt / map_current);
+        fMagField->Init();
+
+        FairRunAna::Instance()->SetField(fMagField);
+        fField = FairRunAna::Instance()->GetField();
+        fKalman = new BmnKalmanFilter_tmp();
+
+        fTxGemStation = new TH1F*[fDetector->GetNStations()];
+        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
+            fTxGemStation[iStat] = new TH1F(Form("Tx-distrib. over Stat %d", iStat), Form("Tx-distrib. over Stat %d", iStat), 100., 0., 0.);
+
+    }
     return kSUCCESS;
 }
 
 void BmnGlobalAlignment::Exec(Option_t* opt) {
+    // cout << endl;
     fFairEventHeader->SetMCEntryNumber(fCurrentEvent);
     fFairEventHeader->SetRunId(fRunId);
     fCurrentEvent++;
@@ -198,8 +253,8 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         Double_t Tx2 = ((BmnGemTrack*) fGemTracks->UncheckedAt(1))->GetParamFirst()->GetTx();
         if (Tx1 * Tx2 < 0.)
             isEventRequestedType = kTRUE;
-    } 
-  
+    }
+
     // Choose a single track with min. chi2-value if necessary (in case of target run)
     Double_t Chi2Min = LDBL_MAX;
     Int_t trID = 0;
@@ -220,13 +275,13 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         if (fUseTrackWithMinChi2 && iGlobTrack != trID)
             continue;
         FairTrackParam* params = globTrack->GetParamFirst();
+//        FairTrackParam* paramsLast = globTrack->GetParamLast();
 
         Double_t chi2 = globTrack->GetChi2();
         Int_t ndf = globTrack->GetNDF();
         Int_t nHits = globTrack->GetNHits();
         Double_t Tx = params->GetTx();
         Double_t Ty = params->GetTy();
-        cout << fCurrentEvent << " " << Tx << " " << Ty << endl;
 
         // Use track constraints if necessary
         if (Tx < fTxMin || Tx > fTxMax || Ty < fTyMin || Ty > fTyMax || nHits < fMinHitsAccepted || chi2 / ndf > fChi2MaxPerNDF)
@@ -243,12 +298,22 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         Char_t buff[5000] = {""};
         Bool_t zhopa = kFALSE;
 
+        //        if (paramsLast->GetZ() > 200.)
+        //            cout << params->GetZ() << " " << paramsLast->GetZ() << endl;
+
         for (Int_t iDet = 0; iDet < nDetectors; iDet++) {
             TString detName = (iDet == 0) ? "GEM" : (iDet == 1) ? "MWPC" : (iDet == 2) ? "DCH" : "";
             if (fDetectorSet[iDet] != "")
                 if (idx[iDet] != -1) {
                     sprintf(buff, "%s%s\n", buff, detName.Data());
-                    Mille(idx[iDet], iDet, buff);
+                    if (!fIsField)
+                        MilleNoFieldRuns(idx[iDet], iDet, buff);
+                    else {
+                        if (!MilleFieldRuns(idx[iDet], iDet, buff)) {
+                            sprintf(buff, "%s", "");
+                            break;
+                        }
+                    }
                 } else {
                     zhopa = kTRUE;
                     break;
@@ -266,13 +331,17 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         MakeBinFile();
         MakeSteerFile();
         cout << "Num. of tracks to be used: " << nSelectedTracks << endl;
-        Pede();
+        // Pede();
     }
     getchar();
 }
 
 void BmnGlobalAlignment::PrintToFullFormat(TString detName, Char_t* buff) {
-    Int_t zeroLoc = fNLC;
+    // 2 means two directions (x, y) with values to be depended on presence of MagField
+    // fIsMagField --> (YZ-plane: Y0, Ty (2); XZ-plane: c (1), Tx^{i} i = 0 .. 5 (6). Totally: 2 and 7)  
+    const Int_t nCases = 2;
+    Int_t zeroLoc[nCases] = {(!fIsField) ? fNLC : 2, (!fIsField) ? fNLC : 2};
+    // Int_t zeroLoc[nCases] = {(!fIsField) ? fNLC : 6, (!fIsField) ? fNLC : 2};
     Int_t zeroGem = 0;
     Int_t zeroMwpc = 3; // To be fixed !!!
     Int_t zeroDch = 3; // To be fixed !!!
@@ -281,17 +350,237 @@ void BmnGlobalAlignment::PrintToFullFormat(TString detName, Char_t* buff) {
     for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
         zeroGem += 3 * fDetector->GetGemStation(iStat)->GetNModules();
 
-    Int_t zeroTot = zeroLoc + zeroGem + zeroMwpc + zeroDch + nMeas;
-    TString zeroLine = "";
-    for (Int_t iZero = 0; iZero < zeroTot; iZero++)
-        zeroLine += "0. ";
+    Int_t zeroTot[nCases] = {zeroLoc[0] + zeroGem + zeroMwpc + zeroDch + nMeas, zeroLoc[1] + zeroGem + zeroMwpc + zeroDch + nMeas};
+    TString zeroLine[nCases] = {"", ""};
+
+    for (Int_t iCase = 0; iCase < nCases; iCase++)
+        for (Int_t iZero = 0; iZero < zeroTot[iCase]; iZero++)
+            zeroLine[iCase] += "0. ";
 
     sprintf(buff, "%s%s\n", buff, detName.Data());
-    for (Int_t iRow = 0; iRow < 2; iRow++)
-        sprintf(buff, "%s%s\n", buff, zeroLine.Data());
+    for (Int_t iRow = 0; iRow < nCases; iRow++)
+        sprintf(buff, "%s%s\n", buff, zeroLine[iRow].Data());
 }
 
-void BmnGlobalAlignment::Mille(Int_t idx, Int_t iDet, Char_t* buff) {
+FairTrackParam BmnGlobalAlignment::UseKalman(BmnGemTrack* track, Int_t iHit, Int_t sign) {
+    const Double_t delta = 1.; // in cm.
+    FairTrackParam* zToBePredicted = track->GetParamFirst();
+    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
+
+    fKalman->TGeoTrackPropagate(zToBePredicted, hit->GetZ() + sign * delta, 2212, NULL, NULL, "field");
+
+    FairTrackParam parUpdate = *zToBePredicted;
+    Double_t chi = 0.0;
+    fKalman->Update(&parUpdate, hit, chi);
+
+    //    return *zToBePredicted;
+    return parUpdate;
+}
+
+Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
+    Int_t modGemTotal = 0;
+    TString mwpcPart = "0.0 0.0 0.0";
+    TString dchPart = mwpcPart;
+
+    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
+        modGemTotal += fDetector->GetGemStation(iStat)->GetNModules();
+
+    if (iDet == 0) {
+        BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(idx);
+        // cout << "Nhits = " << track->GetNHits() << endl;
+
+        // Fit track in XZ-plane to extract local. params.
+        TGraph xzTrackProfile, yzTrackProfile;
+        Int_t currPoint = 0;
+        for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
+            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
+            xzTrackProfile.SetPoint(currPoint, hit->GetZ(), hit->GetX());
+            yzTrackProfile.SetPoint(currPoint, hit->GetZ(), hit->GetY());
+            currPoint++;
+        }
+        TFitResultPtr fitRes = xzTrackProfile.Fit("pol2", "SQww");
+        TFitResultPtr fitResY = yzTrackProfile.Fit("pol1", "Sww");
+        if (Bool_t(fitRes->Status())) // kFALSE returned by Status() means a converged fit
+            return kFALSE;
+
+        Double_t fitParams[fitRes->NPar()] = {fitRes->Parameter(0), fitRes->Parameter(1), fitRes->Parameter(2)}; // c, b, a
+        // Double_t zPol2Vertex = -fitParams[1] / (2 * fitParams[2]);
+        // cout << "zPol2Vertex = " << zPol2Vertex << endl;
+        fCanv->cd(1);
+        xzTrackProfile.Draw("AP*");
+        fCanv->cd(1)->Modified();
+        fCanv->cd(2);
+        yzTrackProfile.Draw("AP*");
+        fCanv->cd(2)->Modified();
+        fCanv->Update();
+        fCanv->Draw(); // getchar();
+  //      delete xzTrackProfile;
+
+        // Calculate derivatives (dx(z) / dTx^{i}) of loc. params
+        Double_t locDer[fDetector->GetNStations()];
+        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
+            locDer[iStat] = 0.;
+
+        Bool_t posHitsPredict[track->GetNHits()];
+        for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++)
+            posHitsPredict[iHit] = kTRUE;
+
+        Double_t Tx[track->GetNHits()]; // Array to store obtained Tx at Z-hit positions
+
+        for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
+            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
+            FairTrackParam zLeft = UseKalman(track, iHit, -1);
+            FairTrackParam zRight = UseKalman(track, iHit, +1);
+            FairTrackParam zCurrentHit = UseKalman(track, iHit, 0);
+
+            Tx[iHit] = zCurrentHit.GetTx();
+
+            // Check quality of obtained prediction
+            // cout << iHit << " " << Abs(zCurrentHit.GetX() - hit->GetX()) << endl;
+            if (Abs(zCurrentHit.GetX() - hit->GetX()) < 0.5) {
+                posHitsPredict[iHit] = kFALSE;
+                // break;
+            }
+
+            // Make a parabolic fit for x(z) and a linear one for Tx(z) @ zCurrent, zLeft and zRight (3 points)
+            // to estimate dx(z) / dTx(z) --> locDers
+            const Int_t nPoints = 3;
+            FairTrackParam paramsAtDiffZ[nPoints] = {zLeft, zCurrentHit, zRight};
+
+            TGraph xZ, txZ;
+            currPoint = 0;
+            for (Int_t iPoint = 0; iPoint < nPoints; iPoint++) {
+                xZ.SetPoint(currPoint, paramsAtDiffZ[iPoint].GetZ(), paramsAtDiffZ[iPoint].GetX());
+                txZ.SetPoint(currPoint, paramsAtDiffZ[iPoint].GetZ(), paramsAtDiffZ[iPoint].GetTx());
+                currPoint++;
+            }
+
+            TFitResultPtr fitResX = xZ.Fit("pol2", "SQww");
+            TFitResultPtr fitResTx = txZ.Fit("pol1", "SQww");
+
+            if (Bool_t(fitResX->Status()) || Bool_t(fitResTx->Status())) // kFALSE returned by Status() means a converged fit
+                return kFALSE;
+
+            Double_t fitParamsPol2[fitResX->NPar()] = {fitResX->Parameter(0), fitResX->Parameter(1), fitResX->Parameter(2)}; // c, b, a (y = ax^2 + bx +c)
+            Double_t fitParamsPol1[fitResTx->NPar()] = {fitResTx->Parameter(0), fitResTx->Parameter(1)}; // b, k (y = kx + b)
+
+            //            locDer[hit->GetStation()] = (2 * fitParamsPol2[2] * zCurrentHit.GetZ() + fitParamsPol2[1]) / fitParamsPol1[1];
+            //           locDer[hit->GetStation()] = (zRight.GetX() - zLeft.GetX()) / (zRight.GetTx() - zLeft.GetTx());
+            locDer[hit->GetStation()] = hit->GetZ() + fitParams[1] / (2 * fitParams[2]);
+            //           cout << (zRight.GetX() - zLeft.GetX()) / (zRight.GetTx() - zLeft.GetTx()) << " " << 
+            //                   ((2 * fitParamsPol2[2] * zCurrentHit.GetZ() + fitParamsPol2[1]) / fitParamsPol1[1]) << endl;
+            //          Int_t stat = hit->GetStation();
+            //           Double_t z = hit->GetZ();
+            // locDer[stat] = z + zPol2Vertex;
+
+
+
+            //            locDer[stat] = paramsNew.GetTx() / (2 * fitParams[2]);
+            if (std::isnan(locDer[hit->GetStation()])
+                    //  || Abs(locDer[hit->GetStation()]) > 500.
+                    )
+                return kFALSE;
+            fTxGemStation[hit->GetStation()]->Fill(zCurrentHit.GetTx());
+        }
+
+        Bool_t isGoodTrack = kTRUE; // reject track or not
+        for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++)
+            if (!posHitsPredict[iHit]) {
+                isGoodTrack = kFALSE;
+                break;
+            }
+
+        if (isGoodTrack) {
+            for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
+                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
+                FairTrackParam zLeft = UseKalman(track, iHit, -1);
+                FairTrackParam zRight = UseKalman(track, iHit, +1);
+                FairTrackParam zCurrentHit = UseKalman(track, iHit, 0);
+
+                /// Debug info ...
+                cout << hit->GetStation() << " zCurr = " << zCurrentHit.GetZ() <<
+                        " xCurr = " << zCurrentHit.GetX() <<
+                        " TxCurr = " << zCurrentHit.GetTx() <<
+                        " zR = " << zRight.GetZ() << " zL = " << zLeft.GetZ() <<
+                        " xR = " << zRight.GetX() << " xL = " << zLeft.GetX() << " TxR = " << zRight.GetTx() << " TxL = " << zLeft.GetTx() <<
+                        " der. = " << locDer[hit->GetStation()] << " xHit = " << hit->GetX() << endl;
+                /// ...  
+            }
+        }
+
+        // Prepare string with the calculated loc. derivatives
+        TString locDerNullString = "";
+        TString locDerString = "";
+        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
+            locDerString += TString::Format("%f ", locDer[iStat]);
+            locDerNullString += TString::Format("%f ", 0.);
+        }
+
+        Int_t nModulesProcessed = 0;
+        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
+            Int_t nMod = fDetector->GetGemStation(iStat)->GetNModules();
+            for (Int_t iMod = 0; iMod < nMod; iMod++) {
+                nModulesProcessed++;
+                Int_t iHit;
+                for (iHit = 0; iHit < track->GetNHits(); iHit++) {
+                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
+                    Short_t stat = hit->GetStation();
+                    Int_t mod = hit->GetModule();
+                    TString zeroEnd = "", zeroBeg = "";
+                    if (stat == iStat && mod == iMod) {
+                        Double_t X = hit->GetX();
+                        Double_t Y = hit->GetY();
+                        Double_t Z = hit->GetZ();
+                        Char_t* locDerX = Form("%d %d %G %f ", stat, mod, 1., locDer[iStat]);
+                        //Char_t* locDerX = Form("%d %d %s", stat, mod, locDerString.Data());
+                        // Char_t* locDerY = Form("%d %d %G %s %G %G ", stat, mod, 0., locDerNullString.Data(), 1., Z);
+                        Char_t* locDerY = Form("%d %d %G %f ", stat, mod, 1., Z);
+
+                        // cout << locDerX << endl;
+                        // cout << locDerY << endl;
+                        Char_t* measX = Form(" %f %f ", X, fUseRealHitErrors ? hit->GetDx() : 1.);
+                        Char_t* measY = Form(" %f %f ", Y, fUseRealHitErrors ? hit->GetDy() : 1.);
+
+                        Int_t N_zeros_beg = 3 * (nModulesProcessed - 1);
+                        Int_t N_zeros_end = 3 * (modGemTotal - nModulesProcessed);
+
+                        //                        Char_t* globDerX = Form(" 1. 0. %f", 2 * fitParams[2] * Z + fitParams[1]);
+                        Char_t* globDerX = Form(" 1. 0. %f", Tx[iHit]);
+                        Char_t* globDerY = Form(" 0. 1. %f", track->GetParamFirst()->GetTy());
+
+                        for (Int_t i = 0; i < N_zeros_beg; i++)
+                            zeroBeg += "0. ";
+                        for (Int_t i = 0; i < N_zeros_end; i++)
+                            zeroEnd += "0. ";
+                        sprintf(buff, "%s%s%s %s %s%s %s %s\n", buff, locDerX, zeroBeg.Data(), globDerX, zeroEnd.Data(), mwpcPart.Data(), dchPart.Data(), measX);
+                        sprintf(buff, "%s%s%s %s %s%s %s %s\n", buff, locDerY, zeroBeg.Data(), globDerY, zeroEnd.Data(), mwpcPart.Data(), dchPart.Data(), measY);
+
+                        break;
+                    }
+                }
+                if (iHit == track->GetNHits()) {
+                    TString zeroLine = "";
+                    for (Int_t iModTot = 0; iModTot < 3 * modGemTotal; iModTot++)
+                        zeroLine += "0. ";
+
+                    zeroLine += mwpcPart + " " + dchPart;
+
+                    for (Int_t iRow = 0; iRow < 2; iRow++) {
+                        if (iRow == 0)
+                            sprintf(buff, "%s%d %d 0. 0. %s 0. 0.\n", buff, iStat, iMod, zeroLine.Data()); // local = 7 -> zeroLine -> meas -> dmeas
+                            // sprintf(buff, "%s%d %d 0. 0. 0. 0. 0. 0. %s 0. 0.\n", buff, iStat, iMod, zeroLine.Data()); // local = 7 -> zeroLine -> meas -> dmeas
+                        else
+                            sprintf(buff, "%s%d %d 0. 0. %s 0. 0.\n", buff, iStat, iMod, zeroLine.Data()); // local = 2 -> zeroLine -> meas -> dmeas
+                    }
+                }
+            }
+        }
+        //getchar();
+    }
+    return kTRUE;
+}
+
+void BmnGlobalAlignment::MilleNoFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
     Int_t modGemTotal = 0;
     TString mwpcPart = "0.0 0.0 0.0";
     TString dchPart = mwpcPart;
@@ -439,7 +728,7 @@ const Int_t BmnGlobalAlignment::MakeBinFile() {
 
     TString detName, coordName;
     Int_t stat, mod;
-    Double_t DerGl[dimLabel], DerLc[fNLC];
+    Double_t DerGl[dimLabel]; //, DerLc[fNLC];
     Double_t rMeasure, dMeasure;
 
     // Loop over selected tracks
@@ -453,14 +742,19 @@ const Int_t BmnGlobalAlignment::MakeBinFile() {
         for (Int_t iStation = 0; iStation < fDetector->GetNStations(); iStation++) {
             for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStation)->GetNModules(); iMod++) {
                 for (Int_t iLine = 0; iLine < 2; iLine++) {
+                    Int_t nElements = (!fIsField) ? fNLC : (iLine == 0) ? 2 : 2;
+                    // Int_t nElements = (!fIsField) ? fNLC : (iLine == 0) ? 6 : 2;
+                    Double_t DerLc[nElements];
+                    for (Int_t iElement = 0; iElement < nElements; iElement++)
+                        DerLc[iElement] = 0.;
                     coordName = (iLine == 0) ? " x = " : " y = ";
                     fout_txt >> stat >> mod;
-                    for (Int_t iVar = 0; iVar < fNLC; iVar++)
+                    for (Int_t iVar = 0; iVar < nElements; iVar++)
                         fout_txt >> DerLc[iVar];
                     for (Int_t iVar = 0; iVar < dimLabel; iVar++)
                         fout_txt >> DerGl[iVar];
                     fout_txt >> rMeasure >> dMeasure;
-                    Mille->mille(fNLC, DerLc, dimLabel, DerGl, Labels, rMeasure, dMeasure);
+                    Mille->mille(nElements, DerLc, dimLabel, DerGl, Labels, rMeasure, dMeasure);
                     if (fDebug)
                         cout << "Stat: " << stat << " Mod: " << mod << coordName << rMeasure << " " << dMeasure << endl;
                 }
@@ -471,16 +765,21 @@ const Int_t BmnGlobalAlignment::MakeBinFile() {
         for (Int_t iDet = 0; iDet < 2; iDet++) {
             fout_txt >> detName;
             if (fDebug)
-                cout << detName << endl;
+                cout << detName << " " << endl;
 
             for (Int_t iLine = 0; iLine < 2; iLine++) {
+                Int_t nElements = (!fIsField) ? fNLC : (iLine == 0) ? 2 : 2;
+                // Int_t nElements = (!fIsField) ? fNLC : (iLine == 0) ? 6 : 2;
+                Double_t DerLc[nElements];
+                for (Int_t iElement = 0; iElement < nElements; iElement++)
+                    DerLc[iElement] = 0.;
                 coordName = (iLine == 0) ? " x = " : " y = ";
-                for (Int_t iVar = 0; iVar < fNLC; iVar++)
+                for (Int_t iVar = 0; iVar < nElements; iVar++)
                     fout_txt >> DerLc[iVar];
                 for (Int_t iVar = 0; iVar < dimLabel; iVar++)
                     fout_txt >> DerGl[iVar];
                 fout_txt >> rMeasure >> dMeasure;
-                Mille->mille(fNLC, DerLc, dimLabel, DerGl, Labels, rMeasure, dMeasure);
+                Mille->mille(nElements, DerLc, dimLabel, DerGl, Labels, rMeasure, dMeasure);
                 if (fDebug)
                     cout << coordName << rMeasure << " " << dMeasure << endl;
             }

@@ -9,9 +9,10 @@ void BmnDataToRoot(TString file="/ceph/bmn/test/data/src/mpd_run_SRC_061.data", 
     bmnloadlibs(); // load BmnRoot libraries
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //5 - period
     
-    Bool_t setup[9]; //array of flags to determine BM@N setup
+    Bool_t setup[10]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
+<<<<<<< HEAD
     setup[1] = 0; // MWPC
     setup[2] = 0; // SILICON
     setup[3] = 0; // GEM
@@ -20,6 +21,17 @@ void BmnDataToRoot(TString file="/ceph/bmn/test/data/src/mpd_run_SRC_061.data", 
     setup[6] = 0; // DCH
     setup[7] = 0; // ZDC
     setup[8] = 0; // ECAL
+=======
+    setup[1] = 1; // MWPC
+    setup[2] = 1; // SILICON
+    setup[3] = 1; // GEM
+    setup[4] = 1; // TOF-400
+    setup[5] = 1; // TOF-700
+    setup[6] = 1; // DCH
+    setup[7] = 1; // ZDC
+    setup[8] = 1; // ECAL
+    setup[9] = 1; // TQDC
+>>>>>>> 5bdc572e9b91ff7bcfc01c32a2046b58d2fd660a
     decoder->SetDetectorSetup(setup);
     
     decoder->SetTrigMapping("Trig_map_Run6.txt");

@@ -1,13 +1,14 @@
-#include <Rtypes.h>
-#include <TString.h>
-#include <TRandom.h>
-#include <TFile.h>
+#include "../../gem/BmnGemStripConfiguration.h"
+
+#include "bmnloadlibs.C"
+#include "geometry.C"
+
 // inFile - input file with generator data, default: dc4mb.r12 for LAQGSM event generator (deuteron - carbon target, mbias, 4 GeV)
 // outFile - output file with MC data, default: evetest.root
 // nStartEvent - for compatibility, any number
 // nEvents - number of events to transport, default: 1
 // flag_store_FairRadLenPoint
-void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 1,
+void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
 #define BOX
@@ -16,11 +17,15 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     timer.Start();
     gDebug = 0;
 
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+#endif
     bmnloadlibs(); // load libraries
 
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
     //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run[NUMBER].C");
+#endif
 
     // -----   Create simulation run   ----------------------------------------
     FairRunSim *fRun = new FairRunSim();
@@ -179,7 +184,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     fRun->AddTask(siliconDigit);
      
     // GEM-Digitizer
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;  // RunWinter2016  
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;  // RunWinter2016
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
     gemDigit->SetOnlyPrimary(kFALSE);

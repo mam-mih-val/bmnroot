@@ -1,21 +1,21 @@
 # Create a library called "libGlobalTracking".
 
 Set(INCLUDE_DIRECTORIES
-${BMNROOT_SOURCE_DIR}/base
+${CMAKE_SOURCE_DIR}/base
 ${CMAKE_SOURCE_DIR}/base/field
 ${CMAKE_SOURCE_DIR}/base/steer
 ${CMAKE_SOURCE_DIR}/base/sim
 ${CMAKE_SOURCE_DIR}/base/event
 ${CMAKE_SOURCE_DIR}/base/source
-${BMNROOT_SOURCE_DIR}/parbase
-${BMNROOT_SOURCE_DIR}/fairtools
-${BMNROOT_SOURCE_DIR}/bmnbase
-${BMNROOT_SOURCE_DIR}/bmndata
-${BMNROOT_SOURCE_DIR}/bmnfield
-${BMNROOT_SOURCE_DIR}/gem
-${BMNROOT_SOURCE_DIR}/dch
-${BMNROOT_SOURCE_DIR}/mwpc
-${BMNROOT_SOURCE_DIR}/globaltracking
+${CMAKE_SOURCE_DIR}/parbase
+${CMAKE_SOURCE_DIR}/fairtools
+${CMAKE_SOURCE_DIR}/bmnbase
+${CMAKE_SOURCE_DIR}/bmndata
+${CMAKE_SOURCE_DIR}/bmnfield
+${CMAKE_SOURCE_DIR}/gem
+${CMAKE_SOURCE_DIR}/dch
+${CMAKE_SOURCE_DIR}/mwpc
+${CMAKE_SOURCE_DIR}/globaltracking
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES

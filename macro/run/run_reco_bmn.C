@@ -1,7 +1,3 @@
-#include <TVector3.h>
-#include <TString.h>
-#include <TFile.h>
-#include <TKey.h>
 // -----------------------------------------------------------------------------
 // Macro for reconstruction of simulated or experimental events.
 //
@@ -28,6 +24,10 @@
 // If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
 // from that file.
 
+#include "../../gem/BmnGemStripConfiguration.h"
+
+#include "bmnloadlibs.C"
+
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
@@ -39,7 +39,9 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     gDebug = 0;
     // -------------------------------------------------------------------------
     // ----  Load libraries   --------------------------------------------------
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+#endif
     bmnloadlibs(); // load BmnRoot libraries
     // -------------------------------------------------------------------------
     // -----   Timer   ---------------------------------------------------------
@@ -56,10 +58,11 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
     // for experimental datasource
-    Int_t run_period;
-    Int_t run_number;
+    Int_t run_period, run_number;
     Double_t fieldScale = 0.;
-    if (inputFileName.Contains(TPRegexp("^run[0-9]+-[0-9]+:"))) {
+    TPRegexp run_prefix("^run[0-9]+-[0-9]+:");
+    if (inputFileName.Contains(run_prefix))
+    {
         Ssiz_t indDash = inputFileName.First('-'), indColon = inputFileName.First(':');
         // get run period
         run_period = TString(inputFileName(3, indDash - 3)).Atoi();
@@ -76,7 +79,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
         // get geometry for run
         TString geoFileName = "current_geo_file.root";
-        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, geoFileName.Data());
+        Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
             cout << "Geometry file can't be read from the database" << endl;
             exit(-1);
@@ -172,7 +175,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
-    if (!isExp) 
+    if (!isExp)
         fRunAna->AddTask(siliconHM);
     
     // ====================================================================== //

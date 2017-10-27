@@ -89,7 +89,6 @@ vector <Double_t> BmnLambdaAnalysis::GeometryCuts(FairTrackParam proton_V0, Fair
         Z = (!fIsUseRealVertex) ? fEventVertex->GetRoughZ() : fEventVertex->GetZ();
     }
     TVector3 Vp(X, Y, Z);
-
     // Secondary proton at V0
     TVector3 protonV0(proton_V0.GetX(), proton_V0.GetY(), proton_V0.GetZ());
     // Secondary pion at V0
@@ -461,7 +460,7 @@ InitStatus BmnLambdaAnalysis::Init() {
 
     fPDG = TDatabasePDG::Instance();
 
-    fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.dat");
+    fMagField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
     fMagField->SetScale(1.3);
     fMagField->Init();
 
@@ -509,7 +508,6 @@ void BmnLambdaAnalysis::Exec(Option_t* option) {
 // -------------------------------------------------------------------
 
 void BmnLambdaAnalysis::Finish() {
-    // hArmenPodol->Write();
     delete fKalman;
     delete fMagField;
     cout << "\n-I- [BmnLambdaAnalysis::Finish] " << endl;

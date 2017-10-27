@@ -2,7 +2,7 @@
 
 //void LambdaAnal(UInt_t nEvents = 1e4, TString input = "/nfs/lambda_QGSM/test/bmndst_fact13_100kEv.root", TString output = "test_dst1.root") {
 
-void LambdaAnal(UInt_t nEvents = 1e6, TString input = "bmndst.root", TString output = "test.root") {
+void LambdaAnal(UInt_t nEvents = 1e6, TString input = "/nfs/QGSM_SIMULATIONS/evetest_start0_nev1000.root", TString output = "test.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
@@ -14,8 +14,9 @@ void LambdaAnal(UInt_t nEvents = 1e6, TString input = "bmndst.root", TString out
     fRunAna->SetOutputFile(output);
 
     BmnLambdaAnalysis* lambda = new BmnLambdaAnalysis(BmnGemStripConfiguration::RunSpring2017);
+    lambda->SetParticlePDG(+211, -211);
     // lambda->SetDebugCalculations(kTRUE);
-    // lambda->SetUseRealVertex(kTRUE); // equal to false by default
+    lambda->SetUseRealVertex(kTRUE); // equal to false by default
 
     // Geometry cuts [from, to]-range is acceptable
     lambda->SetVpVpParticle1(0.1, 100.0);

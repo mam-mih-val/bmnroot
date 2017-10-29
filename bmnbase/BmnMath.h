@@ -52,5 +52,6 @@ Float_t NewtonSolver(Float_t A0, Float_t A1, Float_t A2, Float_t A22);
 Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
 
 void fit_seg(Double_t*, Double_t*, Double_t*, Double_t*, Int_t, Int_t);
+void Pol2Fit(BmnGemTrack*, const TClonesArray*, Double_t&, Double_t&, Double_t&, Int_t);
 
 #endif /*BMNMATH_H_*/

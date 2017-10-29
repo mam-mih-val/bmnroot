@@ -23,6 +23,8 @@
 #include "TSocket.h"
 #include "TString.h"
 #include "TBuffer.h"
+#include <root/TPRegexp.h>
+#include "TObjString.h"
 // BmnRoot
 #include <BmnTrigDigit.h>
 #include <BmnTof1Digit.h>
@@ -55,6 +57,7 @@ private:
     static TString WatchNext(TString dirname, TString filename, Int_t cycleWait);
     static TString WatchNext(Int_t inotifDir, Int_t cycleWait);
     static void threadReceiveWrapper(BmnDataReceiver * dr);
+    static Int_t GetRunIdFromName(TString name);
     
     void * _ctx;
     void * _decoSocket;

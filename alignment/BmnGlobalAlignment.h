@@ -16,8 +16,12 @@
 #include <fstream>
 #include <sstream>
 #include <TMath.h>
+#include <TCanvas.h>
 #include <TNamed.h>
 #include <TClonesArray.h>
+#include <TFitResult.h>
+#include <TFitResultPtr.h>
+#include <TGeoManager.h>
 #include <TString.h>
 #include "FairTask.h"
 #include "FairRootManager.h"
@@ -42,6 +46,13 @@
 #include "BmnGemResiduals.h"
 #include "BmnResiduals.h"
 
+#include <UniDbDetectorParameter.h>
+#include <UniDbRun.h>
+#include "BmnKalmanFilter_tmp.h"
+#include "BmnFieldMap.h"
+#include "BmnNewFieldMap.h"
+#include "FairField.h"
+
 using namespace std;
 using namespace TMath;
 
@@ -55,8 +66,7 @@ public:
 
     virtual void Exec(Option_t* opt);
 
-    virtual void Finish() {
-    };
+    virtual void Finish();
 
     void SetDetectors(TString det1, TString det2) {
         fDetectorSet[0] = "YES";
@@ -172,13 +182,16 @@ private:
     void PrintToFullFormat(TString, Char_t*);
     const Int_t MakeBinFile();
     void MakeSteerFile();
-    void Mille(Int_t, Int_t, Char_t*);
+    void MilleNoFieldRuns(Int_t, Int_t, Char_t*);
+    Bool_t MilleFieldRuns(Int_t, Int_t, Char_t*);
     void Pede();
     void ReadPedeOutput(ifstream&);
     void ExtractCorrValues(ifstream&, Double_t*);
+    FairTrackParam UseKalman(BmnGemTrack*, Int_t, Int_t);
 
     static Int_t fCurrentEvent;
     static Int_t trackCounter;
+    Bool_t fIsField;
     Int_t fRunId;
 
     BmnMwpcGeometry* mwpcGeo;
@@ -270,6 +283,15 @@ private:
     Int_t* Labels; //array containing a fixed param. number for each detector. 
     // GEMs: 1 - 27; MWPC: 28 - 30; DCH: 31 - 33
 
+    TCanvas* fCanv;
+    
+    FairField* fField;
+    BmnFieldMap* fMagField;
+    BmnKalmanFilter_tmp* fKalman;
+    
+    // Some supplementary histos to be, probably, removed in future
+    TH1F** fTxGemStation;
+    
     ClassDef(BmnGlobalAlignment, 1)
 };
 

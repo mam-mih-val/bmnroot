@@ -178,8 +178,8 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
         rawDataDecoder->DisposeDecoder();
         delete rawDataDecoder;
         rawDataDecoder = NULL;
+                break; // @TODO Remove
         _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
-        //        break; // @TODO Remove
     }
     zmq_close(_decoSocket);
     zmq_ctx_destroy(_ctx);

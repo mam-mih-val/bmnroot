@@ -38,15 +38,13 @@ public:
         fd = NULL;
         bd = NULL;
         header = NULL;
-        trigLen = 0;
         trigAr = NULL;
-//        for (TClonesArray* ar : trigAr){
-//            ar = NULL;
-//        }
     };
 
     ~DigiArrays() {
-        delete[] trigAr;
+//        delete[] trigAr;
+//        if (trigAr)
+//            delete trigAr;
     };
 
     void Clear() {
@@ -66,19 +64,14 @@ public:
         if (zdc) { zdc->Delete(); delete zdc;}
         if (ecal) { ecal->Delete(); delete ecal;}
         if (veto) { veto->Delete(); delete veto;}
-//        for (TClonesArray *ar : (*trigAr)){
-        for (Int_t i = 0; i < trigLen; i++){
-            TClonesArray *ar = trigAr[i];
+        for (TClonesArray *ar : (*trigAr)){
             if (ar){
-//                printf("ar 0x%x \n", ar);
-//                printf("name %s\n ", ar->GetName());
-//                printf("entriesfast %d\n ", ar->GetEntriesFast());
                 ar->Clear("C");
                 delete ar;
             }
         }
+        delete trigAr;
     };
-    Int_t trigLen;
     TClonesArray *silicon; 
     TClonesArray *gem; 
     TClonesArray *tof400; 
@@ -95,8 +88,7 @@ public:
     TClonesArray *fd; 
     TClonesArray *bd; 
     TClonesArray *header;//->
-    TClonesArray **trigAr;//[trigLen]
-//    std::vector<TClonesArray*> *trigAr;
+    std::vector<TClonesArray*> *trigAr;
 private:
     ClassDef(DigiArrays, 1)
 };

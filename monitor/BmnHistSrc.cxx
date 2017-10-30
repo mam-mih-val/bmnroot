@@ -26,7 +26,7 @@ BmnHistSrc::BmnHistSrc(TString title, TString path) : BmnHist() {
     }
     for (Int_t iRow = 0; iRow < SRC_ROWS; iRow++) { // 1 column - sampling summed
         name = fTitle + "_" + trigNames[iRow].Data() + "_Sampling";
-        TH1F *h = new TH1F(name, name, 700, 0, 700);
+        TH1F *h = new TH1F(name, name, 255, 0, 255);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("Amplitude, ");
@@ -97,7 +97,8 @@ void BmnHistSrc::DrawBoth() {
 }
 
 void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
-    vector<TClonesArray*> *trigAr = new vector<TClonesArray*>(fDigiArrays->trigAr, fDigiArrays->trigAr + fDigiArrays->trigLen);
+//    vector<TClonesArray*> *trigAr = new vector<TClonesArray*>(fDigiArrays->trigAr, fDigiArrays->trigAr + fDigiArrays->trigLen);
+    vector<TClonesArray*> *trigAr = fDigiArrays->trigAr;
     for (UInt_t iTrig = 0; iTrig < trigAr->size(); iTrig++) {
         for (Int_t digIndex = 0; digIndex < (*trigAr)[iTrig]->GetEntriesFast(); digIndex++) {
             BmnTrigWaveDigit *tw = (BmnTrigWaveDigit*) (*trigAr)[iTrig]->At(digIndex);

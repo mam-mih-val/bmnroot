@@ -13,6 +13,8 @@
 
 #include <algorithm>
 #include <numeric>
+#include <root/TNamed.h>
+#include <root/TH1.h>
 
 #include "BmnHistGem.h"
 #include "BmnRawDataDecoder.h"
@@ -81,7 +83,7 @@ BmnHistGem::BmnHistGem(TString title, TString path, BmnGemStripConfiguration::GE
     canGemStrip = new TCanvas(name, name, PAD_WIDTH * maxLayers, PAD_HEIGHT * sumMods);
     canGemStrip->Divide(maxLayers, sumMods);
     Int_t modCtr = 0; // filling GEM Canvas' pads
-    canGemStripPads.resize(sumMods * maxLayers);
+    canStripPads.resize(sumMods * maxLayers);
     Names.resize(sumMods * maxLayers);
     for (Int_t iStation = 0; iStation < gemStationSet->GetNStations(); iStation++) {
         BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
@@ -91,9 +93,9 @@ BmnHistGem::BmnHistGem(TString title, TString path, BmnGemStripConfiguration::GE
                 PadInfo *p = new PadInfo();
                 p->current = histGemStrip[iStation][iModule][iLayer];
                 Int_t iPad = modCtr * maxLayers + iLayer;
-                canGemStripPads[iPad] = p;
+                canStripPads[iPad] = p;
                 canGemStrip->GetPad(iPad + 1)->SetGrid();
-                Names[iPad] = canGemStripPads[iPad]->current->GetName();
+                Names[iPad] = canStripPads[iPad]->current->GetName();
             }
             modCtr++;
         }
@@ -140,7 +142,7 @@ void BmnHistGem::SetDir(TFile *outFile, TTree * recoTree) {
 }
 
 void BmnHistGem::DrawBoth() {
-    BmnHist::DrawRef(canGemStrip, &canGemStripPads);
+    BmnHist::DrawRef(canGemStrip, &canStripPads);
 }
 
 void BmnHistGem::FillFromDigi(DigiArrays *fDigiArrays) {
@@ -161,7 +163,7 @@ BmnStatus BmnHistGem::SetRefRun(Int_t id) {
         printf("SetRefRun: %s\n", FileName.Data());
         refRunName = FileName;
         refID = id;
-        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canGemStripPads, Names);
+        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canStripPads, Names);
         DrawBoth();
     }
 }

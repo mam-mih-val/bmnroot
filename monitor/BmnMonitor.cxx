@@ -109,6 +109,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                 if ((decoTimeout > DECO_SOCK_WAIT_LIMIT) && (fState == kBMNWORK)) {
                     FinishRun();
                     fState = kBMNWAIT;
+                            keepWorking = false;
                     fServer->SetTimer(100, kFALSE);
                     DBG("state changed to kBMNWAIT")
                 }
@@ -278,7 +279,7 @@ void BmnMonitor::RegisterAll() {
 
 void BmnMonitor::UpdateRuns() {
     struct dirent **namelist;
-    regex re(".*bmn_run0*(\\d+)_hist.root");
+    TPRegexp re(".*bmn_run0*(\\d+)_hist.root");
     Int_t n;
     refList->Clear();
     n = scandir(_refDir, &namelist, 0, versionsort);
@@ -286,9 +287,9 @@ void BmnMonitor::UpdateRuns() {
         perror("scandir");
     else {
         for (Int_t i = 0; i < n; ++i) {
-            if (regex_match(namelist[i]->d_name, re))
-                refList->Add(new TObjString(
-                    TString(regex_replace(namelist[i]->d_name, re, "$1"))));
+            TObjArray *subStr = re.MatchS(namelist[i]->d_name);
+            if (subStr->GetEntriesFast() > 1)
+                refList->Add((TObjString*) subStr->At(1));
             free(namelist[i]);
         }
         free(namelist);

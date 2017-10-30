@@ -62,7 +62,7 @@ private:
     vector<vector<vector<TH1F*  > > > histGemStrip;
     TCanvas *canGemStrip;
 //    vector<PadInfo<TH1>*> canGemStripPads;
-    vector<PadInfo*> canGemStripPads;
+    vector<PadInfo*> canStripPads;
     UInt_t sumMods;
     UInt_t maxLayers;
 

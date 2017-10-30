@@ -101,8 +101,8 @@ BmnHistTrigger::BmnHistTrigger(TString title) : BmnHist() {
 }
 
 BmnHistTrigger::~BmnHistTrigger() {
-//    BDEvents->Clear();
-//    delete BDEvents;
+    BDEvents->Clear();
+    delete BDEvents;
 }
 
 void BmnHistTrigger::FillFromDigi(DigiArrays *fDigiArrays) {

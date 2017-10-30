@@ -46,6 +46,7 @@ public:
     ~PadInfo() {
         if (current) delete current;
         if (ref) delete ref;
+        current = NULL;
         ref = NULL;
         ref2 = NULL;
     }

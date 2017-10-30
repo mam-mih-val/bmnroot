@@ -104,10 +104,11 @@ public:
         if (fTrigSRCMapper){
 //            d.trigAr = fTrigSRCMapper->GetTrigArrays();
             vector<TClonesArray*>* ta = fTrigSRCMapper->GetTrigArrays();
-            d.trigLen = ta->size();
-            d.trigAr = new TClonesArray*[d.trigLen];
-            for (Int_t i = 0; i < d.trigLen; i++)
-                d.trigAr[i] = (*ta)[i];
+//            d.trigLen = ta->size();
+//            d.trigAr = new TClonesArray*[d.trigLen];
+//            for (Int_t i = 0; i < d.trigLen; i++)
+//                d.trigAr[i] = (*ta)[i];
+            d.trigAr = ta;
         }
         return d;
     }

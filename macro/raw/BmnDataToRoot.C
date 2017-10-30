@@ -3,7 +3,7 @@
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
 
-void BmnDataToRoot(TString file="/ceph/bmn/test/data/src/mpd_run_SRC_061.data", Long_t nEvents = 0, Bool_t doConvert = kTRUE)
+void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
 {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries

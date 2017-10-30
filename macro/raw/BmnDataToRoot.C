@@ -5,7 +5,7 @@
 
 void BmnDataToRoot(TString file="/ceph/bmn/test/data/src/mpd_run_SRC_061.data", Long_t nEvents = 0, Bool_t doConvert = kTRUE)
 {
-    gROOT->LoadMacro("/nica/mpd7/segarrae/bmnroot/macro/run/bmnloadlibs.C");
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //5 - period
     

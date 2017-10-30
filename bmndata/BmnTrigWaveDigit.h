@@ -27,7 +27,15 @@ public:
     UInt_t GetNSamples() const {
         return fNsmpl;
     }
-    
+   
+    UInt_t GetADC() const {
+	int spectra = 0;
+	for (Int_t i = 0; i < fNsmpl; ++i)
+		spectra += fValueI[i];
+	return spectra;
+    }    
+
+
     Short_t *GetShortValue() const {
         return (Short_t *) fValueI;
     }

@@ -403,8 +403,11 @@ Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
         if (Bool_t(fitRes->Status())) // kFALSE returned by Status() means a converged fit
             return kFALSE;
 
-        Double_t fitParams[fitRes->NPar()] = {fitRes->Parameter(0), fitRes->Parameter(1), fitRes->Parameter(2)}; // c, b, a
-        // Double_t zPol2Vertex = -fitParams[1] / (2 * fitParams[2]);
+        Double_t fitParams[fitRes->NPar()]; // c, b, a
+	for (Int_t iPar = 0; iPar < fitRes->NPar(); iPar++)
+	  fitParams[iPar] = fitRes->Parameter(iPar);
+	
+	// Double_t zPol2Vertex = -fitParams[1] / (2 * fitParams[2]);
         // cout << "zPol2Vertex = " << zPol2Vertex << endl;
         fCanv->cd(1);
         xzTrackProfile.Draw("AP*");
@@ -461,8 +464,14 @@ Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
             if (Bool_t(fitResX->Status()) || Bool_t(fitResTx->Status())) // kFALSE returned by Status() means a converged fit
                 return kFALSE;
 
-            Double_t fitParamsPol2[fitResX->NPar()] = {fitResX->Parameter(0), fitResX->Parameter(1), fitResX->Parameter(2)}; // c, b, a (y = ax^2 + bx +c)
-            Double_t fitParamsPol1[fitResTx->NPar()] = {fitResTx->Parameter(0), fitResTx->Parameter(1)}; // b, k (y = kx + b)
+            Double_t fitParamsPol2[fitResX->NPar()]; // = {fitResX->Parameter(0), fitResX->Parameter(1), fitResX->Parameter(2)}; // c, b, a (y = ax^2 + bx +c)
+            Double_t fitParamsPol1[fitResTx->NPar()]; // = {fitResTx->Parameter(0), fitResTx->Parameter(1)}; // b, k (y = kx + b)
+	    
+	    for (Int_t iPar = 0; iPar < fitResX->NPar(); iPar++)
+	      fitParamsPol2[iPar] = fitResX->Parameter(iPar);
+	    
+	    for (Int_t iPar = 0; iPar < fitResTx->NPar(); iPar++)
+	      fitParamsPol1[iPar] = fitResTx->Parameter(iPar);
 
             //            locDer[hit->GetStation()] = (2 * fitParamsPol2[2] * zCurrentHit.GetZ() + fitParamsPol2[1]) / fitParamsPol1[1];
             //           locDer[hit->GetStation()] = (zRight.GetX() - zLeft.GetX()) / (zRight.GetTx() - zLeft.GetTx());

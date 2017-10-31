@@ -1,3 +1,4 @@
+#include "../run/bmnloadlibs.C"
 // common EVENT DISPLAY macro for simulated and experimental data
 //
 // data source: 0 - event display for simulatated data (it shows both MC and reconstructed simulated data):
@@ -18,7 +19,9 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
     gDebug = 0;
 
     // load main and detectors libraries
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+#endif
     bmnloadlibs();
 
     // load Event Display libraries

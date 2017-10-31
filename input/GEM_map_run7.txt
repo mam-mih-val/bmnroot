@@ -1,4 +1,3 @@
-
 //GEM_id: the second digit 0=left, 1=right;
 //Module: 0=00 (mod0,hotZone), 1=01 (mod0,bigZone), 2=10 (mod1,hotZone), 3=11 (mod1,bigZone)
 //For middle GEMs Module = 0 or 2 

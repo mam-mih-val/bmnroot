@@ -138,7 +138,7 @@ void BmnTrackDrawH::Exec(Option_t* option)
         for (Int_t n = 0; n < Np; n++)
         {
             FairHit* pHit = NULL;
-            pHit = (FairHit*) fHitList->UncheckedAt(current_track->GetGemHitIndex(n));
+            pHit = (FairHit*) fHitList->UncheckedAt(current_track->GetHitIndex(n));
 
             track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
 

@@ -13,6 +13,7 @@
 #include <iostream>
 #include <assert.h>
 #include "BmnGemStripStationSet.h"
+#include "BmnSiliconStationSet.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
 
 class TClonesArray;
@@ -131,20 +132,22 @@ private:
 
     TClonesArray* fMCTracks;
     TClonesArray* fMvdPoints;
+    TClonesArray* fSilPoints;
     TClonesArray* fGemPoints;
     TClonesArray* fTof1Points;
     TClonesArray* fDchPoints;
     TClonesArray* fTof2Points;
 
     // Stores created CbmLitMCTrack objects.
-    // std::map<MC track index, CbmLitMCTrack object>.
+    // std::map<MC track index, BmnMCTrack object>.
     std::map<Int_t, BmnMCTrack> fBmnMCTracks;
 
     // Map <MC point index, station index>
     //   std::map<int, int>fMvdStationsMap; // for MVD
     std::map<Int_t, Int_t>fGemStationsMap; // for GEM
     
-    BmnGemStripStationSet* fDetector;
+    BmnGemStripStationSet* fGemDetector;
+    BmnSiliconStationSet* fSilDetector;
 
     CbmGeoStsPar* fStsGeoPar; // Geometry parameter container
     CbmStsDigiPar* fStsDigiPar; // Digitisation parameter container

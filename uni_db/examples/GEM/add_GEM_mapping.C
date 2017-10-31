@@ -20,14 +20,14 @@ void add_GEM_mapping() {
 
     bool return_error = false;
 
-    const int kNitems = 22;
+    const int kNitems = 28;
 
     GemMapStructure* pValues = new GemMapStructure[kNitems];
     
     TString path = TString(getenv("VMCWORKDIR")) + TString("/input/");
-    ReadAndPut(path + TString("GEM_map_run6.txt"), pValues);
+    ReadAndPut(path + TString("GEM_map_run7.txt"), pValues);
 
-    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_global_mapping", 6, 1, 6, 10000, pValues, kNitems);
+    UniDbDetectorParameter* pDetectorParameter = UniDbDetectorParameter::CreateDetectorParameter("GEM", "GEM_global_mapping", 7, 1, 7, 10000, pValues, kNitems);
     if (pDetectorParameter == NULL)
         return_error = true;
 

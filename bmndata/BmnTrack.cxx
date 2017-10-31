@@ -5,11 +5,8 @@
 
 BmnTrack::BmnTrack()
 : TObject(),
-fGemHits(),
-fSilHits(),
+fHits(),
 fNhits(0),
-fNGemHits(0),
-fNSilHits(0),
 fParamFirst(),
 fParamLast(),
 fFlag(0),
@@ -17,8 +14,7 @@ fLength(0),
 fChi2(0.),
 fNDF(0),
 fB(0.),
-fGemHitMap(),
-fSilHitMap() {
+fHitMap() {
 
 }
 // -------------------------------------------------------------------------
@@ -26,8 +22,7 @@ fSilHitMap() {
 //// -----   Destructor   ----------------------------------------------------
 
 BmnTrack::~BmnTrack() {
-    fGemHitMap.clear();
-    fSilHitMap.clear();
+    fHitMap.clear();
 }
 
 // -------------------------------------------------------------------------
@@ -36,12 +31,8 @@ BmnTrack::~BmnTrack() {
 
 // -----   Public method AddStsHit   ---------------------------------------
 
-void BmnTrack::AddGemHit(Int_t hitIndex, FairHit* hit) {
-    fGemHitMap[hit->GetZ()] = hitIndex;
-}
-
-void BmnTrack::AddSilHit(Int_t hitIndex, FairHit* hit) {
-    fSilHitMap[hit->GetZ()] = hitIndex;
+void BmnTrack::AddHit(Int_t hitIndex, FairHit* hit) {
+    fHitMap[hit->GetZ()] = hitIndex;
 }
 
 // -------------------------------------------------------------------------
@@ -50,8 +41,7 @@ void BmnTrack::AddSilHit(Int_t hitIndex, FairHit* hit) {
 // -----   Public method Print   -------------------------------------------
 
 void BmnTrack::Print() {
-    cout << " Number of attached GEM hits : " << fGemHits.GetSize() << endl;
-    cout << " Number of attached SILICON hits : " << fSilHits.GetSize() << endl;
+    cout << " Number of attached GEM hits : " << fHits.GetSize() << endl;
     cout << "PARAM FIRST: " << endl;
     fParamFirst.Print();
     cout << "PARAM LAST: " << endl;
@@ -69,24 +59,14 @@ void BmnTrack::SortHits() {
     Int_t index = 0;
     map<Float_t, Int_t>::iterator it;
 
-    fGemHits.Reset();
-    fGemHits.Set(fGemHitMap.size());
+    fHits.Reset();
+    fHits.Set(fHitMap.size());
     index = 0;
-    for (it = fGemHitMap.begin(); it != fGemHitMap.end(); it++) {
-        fGemHits[index] = it->second;
+    for (it = fHitMap.begin(); it != fHitMap.end(); it++) {
+        fHits[index] = it->second;
         index++;
     }
-    fNGemHits = fGemHits.GetSize();
-    
-    fSilHits.Reset();
-    fSilHits.Set(fSilHitMap.size());
-    index = 0;
-    for (it = fSilHitMap.begin(); it != fSilHitMap.end(); it++) {
-        fSilHits[index] = it->second;
-        index++;
-    }
-    fNSilHits = fSilHits.GetSize();
-    fNhits = fNGemHits + fNSilHits;
+    fNhits = fHits.GetSize();
 }
 // -------------------------------------------------------------------------
 

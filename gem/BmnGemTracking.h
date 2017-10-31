@@ -12,16 +12,12 @@
 #include "TArc.h"
 #include "TMath.h"
 #include "TVector3.h"
-#include "TCanvas.h"
 #include "FairTrackParam.h"
-#include "BmnKalmanFilter.h"
 #include "BmnFitNode.h"
-#include "BmnGemHit.h"
 #include "BmnKalmanFilter_tmp.h"
 #include "BmnTrackFitter.h"
 #include "BmnMath.h"
 #include "BmnGemStripStationSet.h"
-#include "BmnSiliconStationSet.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include "FitWLSQ.h"
 
@@ -45,7 +41,6 @@ public:
     BmnStatus CalculateTrackParamsCircle(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsPol2(BmnGemTrack *tr);
     BmnStatus NearestHitMergeGem(UInt_t station, BmnGemTrack* tr);
-    BmnStatus NearestHitMergeSil(UInt_t station, BmnGemTrack* tr);
     Double_t CalculateLength(BmnGemTrack* tr);
     void SetHitsUsing(BmnGemTrack* tr, Bool_t use);
     void FillAddrWithLorentz();
@@ -115,19 +110,15 @@ public:
 private:
 
     BmnGemStripStationSet* fGemDetector;
-    BmnSiliconStationSet* fSilDetector;
     TString fGemHitsBranchName;
-    TString fSilHitsBranchName;
     TString fTracksBranchName;
 
     TClonesArray* fGemTracksArray;
     TClonesArray* fGemHitsArray;
-    TClonesArray* fSilHitsArray;
     BmnKalmanFilter_tmp* fKalman;
 
     Int_t fPDG; // PDG hypothesis
     Double_t fGemDistCut;
-    Double_t fSilDistCut;
 
     Bool_t fIsField; // run with mag.field or not
     Bool_t fIsTarget; // run with target or not

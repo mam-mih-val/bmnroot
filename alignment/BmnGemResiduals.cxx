@@ -85,7 +85,7 @@ void BmnGemResiduals::ResidualsAndDistances() {
         Double_t zFirst = track->GetParamFirst()->GetZ();
 
         for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
-            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetGemHitIndex(iHit));
+            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetHitIndex(iHit));
             Double_t x = hit->GetX();
             Double_t y = hit->GetY();
             Double_t z = hit->GetZ();
@@ -116,7 +116,7 @@ void BmnGemResiduals::ResidualsAndDistances() {
 
             BmnResiduals* resid = new((*fGemResiduals)[fGemResiduals->GetEntriesFast()]) BmnResiduals(hit->GetStation(), hit->GetModule(), xRes, yRes, 0., isField, isResid);
             resid->SetTrackId(iTrack);
-            resid->SetHitId(track->GetGemHitIndex(iHit));
+            resid->SetHitId(track->GetHitIndex(iHit));
             resid->SetIsMergedDigits(isMergedDigits);
 
             hRes[hit->GetStation()][hit->GetModule()][0]->Fill(xRes);

@@ -25,8 +25,7 @@ public:
     virtual ~BmnTrack();
 
     /** Associate a FairHit to the track **/
-    void AddGemHit(Int_t hitIndex, FairHit* Hit);
-    void AddSilHit(Int_t hitIndex, FairHit* Hit);
+    void AddHit(Int_t hitIndex, FairHit* Hit);
 
     /** Public method Print
      ** Output to screen 
@@ -44,21 +43,9 @@ public:
     Int_t GetNHits() const {
         return fNhits;
     }
-    
-    Int_t GetNGemHits() const {
-        return fNGemHits;
-    }
-    
-    Int_t GetNSilHits() const {
-        return fNSilHits;
-    }
 
-    Int_t GetGemHitIndex(Int_t iHit) const {
-        return fGemHits.At(iHit);
-    }
-    
-    Int_t GetSilHitIndex(Int_t iHit) const {
-        return fSilHits.At(iHit);
+    Int_t GetHitIndex(Int_t iHit) const {
+        return fHits.At(iHit);
     }
 
     Int_t GetFlag() const {
@@ -118,14 +105,6 @@ public:
         fNhits = n;
     }
     
-    void SetNGemHits(Int_t n) {
-        fNGemHits = n;
-    }
-    
-    void SetNSilHits(Int_t n) {
-        fNSilHits = n;
-    }
-
     void SetB(Double_t b) {
         fB = b;
     }
@@ -137,8 +116,7 @@ public:
 private:
 
     /** Array containing the indices of the STS hits attached to the track **/
-    TArrayI fGemHits;
-    TArrayI fSilHits;
+    TArrayI fHits;
 
     /** Track parameters at first and last fitted hit **/
     FairTrackParam fParamFirst;
@@ -159,15 +137,12 @@ private:
     
     /** Number of hits on track **/
     Int_t fNhits;
-    Int_t fNGemHits;
-    Int_t fNSilHits;
 
     /** Maps from hit z position to hit index. STL map is used because it
      ** is automatically sorted. Temporary only; not for storage.
      ** The Hit index arrays will be filled by the method SortHits.
      **/
-    map<Float_t, Int_t> fGemHitMap; //! 
-    map<Float_t, Int_t> fSilHitMap; //! 
+    map<Float_t, Int_t> fHitMap; //!
 
     ClassDef(BmnTrack, 1);
 

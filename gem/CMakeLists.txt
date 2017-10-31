@@ -37,12 +37,10 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-  BmnGemHit.cxx
   BmnGemTrack.cxx
   BmnGemHitProducer.cxx
   BmnGemGeo.cxx
   BmnGemDigit.cxx
-  BmnGemDigitizerTask.cxx
   BmnGemGas.cxx
   BmnManageQA.cxx
   BmnGemDigitizerQAHistograms.cxx

@@ -77,7 +77,7 @@ void add_GEM_local_mapping() {
     ReadAndPut(path + TString("GEM_Y1_Big_Left_period_5.txt"), Y1_big_l);
     ReadAndPut(path + TString("GEM_Y1_Big_Right_period_5.txt"), Y1_big_r);
     
-    UInt_t period = 6;
+    UInt_t period = 7;
     UInt_t runMin = 1;
     UInt_t runMax = 1e4;
 

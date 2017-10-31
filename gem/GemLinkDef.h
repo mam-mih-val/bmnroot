@@ -4,11 +4,9 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class BmnGemHit+;
 #pragma link C++ class BmnGemHitProducer+;
 #pragma link C++ class BmnGemGeo+;
 #pragma link C++ class BmnGemDigit+;
-#pragma link C++ class BmnGemDigitizerTask+;
 #pragma link C++ class BmnGemGas+;
 #pragma link C++ class BmnGemDigitizerQAHistograms+;
 #pragma link C++ class BmnGemTrack+;

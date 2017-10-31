@@ -31,6 +31,7 @@ class BmnGlobalTrack : public BmnTrack {
 
   /** Accessors **/
   Int_t GetGemTrackIndex()  const { return fGemTrack;  }
+  Int_t GetSilHitIndex()    const { return fSilHit;    }
   Int_t GetTof1HitIndex()   const { return fTof1Hit;   }
   Int_t GetTof2HitIndex()   const { return fTof2Hit;   }
   Int_t GetDch1HitIndex()   const { return fDch1Hit;   }
@@ -43,6 +44,7 @@ class BmnGlobalTrack : public BmnTrack {
 
   /** Modifiers **/
   void SetGemTrackIndex(Int_t iGem)    { fGemTrack  = iGem;     }
+  void SetSilHitIndex(Int_t iSilHit)   { fSilHit   = iSilHit;   }
   void SetTof1HitIndex(Int_t iTof1Hit) { fTof1Hit   = iTof1Hit; }
   void SetTof2HitIndex(Int_t iTof2Hit) { fTof2Hit   = iTof2Hit; }
   void SetDch1HitIndex(Int_t iDch1Hit) { fDch1Hit   = iDch1Hit; }
@@ -61,6 +63,7 @@ class BmnGlobalTrack : public BmnTrack {
 
   /** Indices of local parts of global track **/
   Int_t fGemTrack;
+  Int_t fSilHit;
   Int_t fTof1Hit;
   Int_t fTof2Hit;
   Int_t fDch1Hit;

@@ -132,7 +132,7 @@ void BmnGlobalTrackDraw::Exec(Option_t* option)
         Int_t n;
         for (n = 0; n < Np; n++)
         {
-            FairHit* pHit = (FairHit*) fGemHitList->UncheckedAt(pGemTrack->GetGemHitIndex(n));
+            FairHit* pHit = (FairHit*) fGemHitList->UncheckedAt(pGemTrack->GetHitIndex(n));
 
             track->SetPoint(n, pHit->GetX(), pHit->GetY(), pHit->GetZ());
 

@@ -89,25 +89,45 @@ void BmnTrackingQaReport::Draw() {
     TString pNamesOut[3] = {"Eff_vs_P_gem", "Fake_vs_P_gem", "SplitEff_vs_P_gem"};
     DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for GEM TRACKS", pNamesIn, pNamesOut);
 
+    TString pNamesInGlob[5] = {"Sim_vs_P_glob", "Rec_vs_P_glob", "Well_vs_P_glob", "Ghost_vs_P_glob", "Split_vs_P_glob"};
+    TString pNamesOutGlob[3] = {"Eff_vs_P_glob", "Fake_vs_P_glob", "SplitEff_vs_P_glob"};
+    DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for GLOBAL TRACKS", pNamesInGlob, pNamesOutGlob);
+
     TString etaNamesIn[5] = {"Sim_vs_Eta_gem", "Rec_vs_Eta_gem", "Well_vs_Eta_gem", "Ghost_vs_Eta_gem", "Split_vs_Eta_gem"};
     TString etaNamesOut[3] = {"Eff_vs_Eta_gem", "Fake_vs_Eta_gem", "SplitEff_vs_Eta_gem"};
     DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs Pseudorapidity per event for GEM TRACKS", etaNamesIn, etaNamesOut);
+
+    TString etaNamesInGlob[5] = {"Sim_vs_Eta_glob", "Rec_vs_Eta_glob", "Well_vs_Eta_glob", "Ghost_vs_Eta_glob", "Split_vs_Eta_glob"};
+    TString etaNamesOutGlob[3] = {"Eff_vs_Eta_glob", "Fake_vs_Eta_glob", "SplitEff_vs_Eta_glob"};
+    DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs Pseudorapidity per event for GLOBAL TRACKS", etaNamesInGlob, etaNamesOutGlob);
 
     TString thetaNamesIn[5] = {"Sim_vs_Theta_gem", "Rec_vs_Theta_gem", "Well_vs_Theta_gem", "Ghost_vs_Theta_gem", "Split_vs_Theta_gem"};
     TString thetaNamesOut[3] = {"Eff_vs_Theta_gem", "Fake_vs_Theta_gem", "SplitEff_vs_Theta_gem"};
     DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs theta per event for GEM TRACKS", thetaNamesIn, thetaNamesOut);
 
+    TString thetaNamesInGlob[5] = {"Sim_vs_Theta_glob", "Rec_vs_Theta_glob", "Well_vs_Theta_glob", "Ghost_vs_Theta_glob", "Split_vs_Theta_glob"};
+    TString thetaNamesOutGlob[3] = {"Eff_vs_Theta_glob", "Fake_vs_Theta_glob", "SplitEff_vs_Theta_glob"};
+    DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs theta per event for GLOBAL TRACKS", thetaNamesInGlob, thetaNamesOutGlob);
+
     TString nhNamesIn[5] = {"Sim_vs_Nh_gem", "Rec_vs_Nh_gem", "Well_vs_Nh_gem", "Ghost_vs_Nh_gem", "Split_vs_Nh_gem"};
     TString nhNamesOut[3] = {"Eff_vs_Nh_gem", "Fake_vs_Nh_gem", "SplitEff_vs_Nh_gem"};
     DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs Nh per event for GEM TRACKS", nhNamesIn, nhNamesOut);
 
+    TString nhNamesInGlob[5] = {"Sim_vs_Nh_glob", "Rec_vs_Nh_glob", "Well_vs_Nh_glob", "Ghost_vs_Nh_glob", "Split_vs_Nh_glob"};
+    TString nhNamesOutGlob[3] = {"Eff_vs_Nh_glob", "Fake_vs_Nh_glob", "SplitEff_vs_Nh_glob"};
+    DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs Nh per event for GLOBAL TRACKS", nhNamesInGlob, nhNamesOutGlob);
+
     DrawNhitsGem("Distribution of GEM RECO-tracks vs number of hits per track");
 
     DrawTwoH2("Distribution of GEM reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Pseudorapidity", "Nh_sim_Eta_sim_gem", "Nh_rec_Eta_rec_gem");
+    DrawTwoH2("Distribution of GLOBAL reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Pseudorapidity", "Nh_sim_Eta_sim_glob", "Nh_rec_Eta_rec_glob");
     DrawTwoH2("Distribution of GEM reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Momentum", "Nh_sim_P_sim_gem", "Nh_rec_P_rec_gem");
+    DrawTwoH2("Distribution of GLOBAL reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Momentum", "Nh_sim_P_sim_glob", "Nh_rec_P_rec_glob");
     DrawTwoH2("Distribution of GEM reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Theta", "Nh_sim_Theta_sim_gem", "Nh_rec_Theta_rec_gem");
+    DrawTwoH2("Distribution of GLOBAL reconstructable MC-tracks (left) and MC-tracks corresponded to reconstructed tracks (right) vs number of MC-points and Theta", "Nh_sim_Theta_sim_glob", "Nh_rec_Theta_rec_glob");
 
     DrawTwoH2("Distribution of MC-tracks and GEM-tracks in Pseudorapidity and Momentum", "EtaP_sim", "EtaP_rec_gem");
+    DrawTwoH2("Distribution of MC-tracks and GLOBAL-tracks in Pseudorapidity and Momentum", "EtaP_sim", "EtaP_rec_glob");
 
     for (Int_t i = 0; i < HM()->H2("EtaP_sim")->GetXaxis()->GetNbins(); ++i) {
         for (Int_t j = 0; j < HM()->H2("EtaP_sim")->GetYaxis()->GetNbins(); ++j) {
@@ -136,57 +156,84 @@ void BmnTrackingQaReport::Draw() {
             HM()->H2("Fakes_vs_EtaP_gem")->SetBinContent(i, j, content);
         }
     }
+    for (Int_t i = 0; i < HM()->H2("EtaP_sim")->GetXaxis()->GetNbins(); ++i) {
+        for (Int_t j = 0; j < HM()->H2("EtaP_sim")->GetYaxis()->GetNbins(); ++j) {
+            Float_t nom = HM()->H2("EtaP_rec_glob")->GetBinContent(i, j);
+            Float_t denom = HM()->H2("EtaP_sim")->GetBinContent(i, j);
+            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
+            if (content > 100.0) content = 100.0;
+            HM()->H2("Eff_vs_EtaP_glob")->SetBinContent(i, j, content);
+        }
+    }
+    for (Int_t i = 0; i < HM()->H2("EtaP_rec_glob")->GetXaxis()->GetNbins(); ++i) {
+        for (Int_t j = 0; j < HM()->H2("EtaP_rec_glob")->GetYaxis()->GetNbins(); ++j) {
+            Float_t nom = HM()->H2("Clones_vs_EtaP_glob")->GetBinContent(i, j);
+            Float_t denom = HM()->H2("EtaP_rec_glob")->GetBinContent(i, j);
+            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
+            if (content > 100.0) content = 100.0;
+            HM()->H2("Clones_vs_EtaP_glob")->SetBinContent(i, j, content);
+        }
+    }
+    for (Int_t i = 0; i < HM()->H2("EtaP_rec_glob")->GetXaxis()->GetNbins(); ++i) {
+        for (Int_t j = 0; j < HM()->H2("EtaP_rec_glob")->GetYaxis()->GetNbins(); ++j) {
+            Float_t nom = HM()->H2("Fakes_vs_EtaP_glob")->GetBinContent(i, j);
+            Float_t denom = HM()->H2("EtaP_rec_glob")->GetBinContent(i, j);
+            Float_t content = (denom < 0.001) ? 0.0 : nom / denom * 100.0;
+            if (content > 100.0) content = 100.0;
+            HM()->H2("Fakes_vs_EtaP_glob")->SetBinContent(i, j, content);
+        }
+    }
 
-    DrawThreeH2("Distribution of Efficiency, Ghosts and Clones in Pseudorapidity and Momentum", "Eff_vs_EtaP_gem", "Clones_vs_EtaP_gem", "Fakes_vs_EtaP_gem");
+    DrawThreeH2("Distribution of Efficiency, Ghosts and Clones in Pseudorapidity and Momentum GEM", "Eff_vs_EtaP_gem", "Clones_vs_EtaP_gem", "Fakes_vs_EtaP_gem");
+    DrawThreeH2("Distribution of Efficiency, Ghosts and Clones in Pseudorapidity and Momentum GLOBAL", "Eff_vs_EtaP_glob", "Clones_vs_EtaP_glob", "Fakes_vs_EtaP_glob");
 
     DrawTwoH2("Distribution of MC-tracks and GEM-tracks in theta and Momentum", "ThetaP_sim", "ThetaP_rec_gem");
-    DrawTwoH2("P_reco vs P_mc for GEM-tracks", "P_rec_P_sim_gem", "Pt_rec_Pt_sim_gem");
-
-    DrawOneH2("Pseudorapidity_reco vs Pseudorapidity_mc for GEM-tracks", "Eta_rec_Eta_sim_gem");
-    DrawTwoH2("Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GEM-tracks", "Tx_rec_Tx_sim_gem", "Ty_rec_Ty_sim_gem");
-    DrawThreeH2("Reco vs MC for X-, Y- and Z-component of Momentum for GEM-tracks", "Px_rec_Px_sim_gem", "Py_rec_Py_sim_gem", "Pz_rec_Pz_sim_gem");
-    DrawMomResGem("Momentum resolution for GEM-tracks", "momRes_2D_gem", "momRes_1D_gem", "momMean_1D_gem", "momRes_Mean_gem");
-    DrawTwoH2("Tracks quality distributions", "MomRes_vs_Chi2_gem", "Mom_vs_Chi2_gem");
-    DrawTwoH2("Momentum resolution and momentum vs. length of tracks", "MomRes_vs_Length_gem", "Mom_vs_Length_gem");
-    DrawOneH2("Momentum resolution vs. Number of hits", "MomRes_vs_nHits_gem");
-    DrawOneH2("Momentum resolution vs. theta", "MomRes_vs_Theta_gem");
-    DrawTwoH1("Chi-square and length distributions", "Chi2_gem", "Length_gem", "");
-
-    TString namesResPullsF[15] = {"ResX_f_gem", "ResY_f_gem", "ResTx_f_gem", "ResTy_f_gem", "ResQp_f_gem", "ErrX_f_gem", "ErrY_f_gem", "ErrTx_f_gem", "ErrTy_f_gem", "ErrQp_f_gem", "PullX_f_gem", "PullY_f_gem", "PullTx_f_gem", "PullTy_f_gem", "PullQp_f_gem"};
-    TString namesResPullsL[15] = {"ResX_l_gem", "ResY_l_gem", "ResTx_l_gem", "ResTy_l_gem", "ResQp_l_gem", "ErrX_l_gem", "ErrY_l_gem", "ErrTx_l_gem", "ErrTy_l_gem", "ErrQp_l_gem", "PullX_l_gem", "PullY_l_gem", "PullTx_l_gem", "PullTy_l_gem", "PullQp_l_gem"};
-
-    //    string str = R()->TableBegin("Residuals and Pulls, Mean", list_of("")("X")("Y")("Tx")("Ty")("q/p")("X")("Y")("Tx")("Ty")("q/p"));
-    //    
-    //    vector<string> strMeanF;
-    //    vector<string> strMeanL;
-    //    vector<string> strStdDevF;
-    //    vector<string> strStdDevL;
-    //    strMeanF.push_back("First");
-    //    strMeanL.push_back("Last");
-    //    strStdDevF.push_back("First");
-    //    strStdDevL.push_back("Last");
-    //    for (Int_t i = 0; i < 10; ++i) {
-    //        strMeanF.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsF[i])->GetMean()));
-    //        strMeanL.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsL[i])->GetMean()));
-    //        strStdDevF.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsF[i])->GetStdDev()));
-    //        strStdDevL.push_back(NumberToString<Float_t > (HM()->H1(namesResPullsL[i])->GetStdDev()));
-    //    }
-    //    str += R()->TableRow(strMeanF);
-    //    str += R()->TableRow(strMeanF);
-    //    str += R()->TableRow(strMeanF);
-    //    str += R()->TableRow(strMeanF);
-    //    str += R()->TableEnd();
+    DrawTwoH2("Distribution of MC-tracks and GLOBAL-tracks in theta and Momentum", "ThetaP_sim", "ThetaP_rec_glob");
+    DrawTwoH2("P_reco vs P_mc for GEM", "P_rec_P_sim_gem", "Pt_rec_Pt_sim_gem");
+    DrawTwoH2("P_reco vs P_mc for GLOBAL", "P_rec_P_sim_glob", "Pt_rec_Pt_sim_glob");
+    DrawOneH2("Pseudorapidity_reco vs Pseudorapidity_mc GEM", "Eta_rec_Eta_sim_gem");
+    DrawOneH2("Pseudorapidity_reco vs Pseudorapidity_mc GLOBAL", "Eta_rec_Eta_sim_glob");
+    DrawTwoH2("Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GEM", "Tx_rec_Tx_sim_gem", "Ty_rec_Ty_sim_gem");
+    DrawTwoH2("Tx_reco vs Tx_mc (left) and Ty_reco vs Ty_mc (right) for GLOBAL", "Tx_rec_Tx_sim_glob", "Ty_rec_Ty_sim_glob");
+    DrawThreeH2("Reco vs MC for X-, Y- and Z-component of Momentum for GEM", "Px_rec_Px_sim_gem", "Py_rec_Py_sim_gem", "Pz_rec_Pz_sim_gem");
+    DrawThreeH2("Reco vs MC for X-, Y- and Z-component of Momentum for GLOBAL", "Px_rec_Px_sim_glob", "Py_rec_Py_sim_glob", "Pz_rec_Pz_sim_glob");
+    DrawMomResGem("Momentum resolution for GEM", "momRes_2D_gem", "momRes_1D_gem", "momMean_1D_gem", "momRes_Mean_gem");
+    DrawMomResGem("Momentum resolution for GLOBAL", "momRes_2D_glob", "momRes_1D_glob", "momMean_1D_glob", "momRes_Mean_glob");
+    DrawTwoH2("Tracks quality distributions GEM", "MomRes_vs_Chi2_gem", "Mom_vs_Chi2_gem");
+    DrawTwoH2("Tracks quality distributions GLOBAL", "MomRes_vs_Chi2_glob", "Mom_vs_Chi2_glob");
+    DrawTwoH2("Momentum resolution and momentum vs. length of tracks GEM", "MomRes_vs_Length_gem", "Mom_vs_Length_gem");
+    DrawTwoH2("Momentum resolution and momentum vs. length of tracks GLOBAL", "MomRes_vs_Length_glob", "Mom_vs_Length_glob");
+    DrawOneH2("Momentum resolution vs. Number of hits GEM", "MomRes_vs_nHits_gem");
+    DrawOneH2("Momentum resolution vs. Number of hits GLOBAL", "MomRes_vs_nHits_glob");
+    DrawOneH2("Momentum resolution vs. theta GEM", "MomRes_vs_Theta_gem");
+    DrawOneH2("Momentum resolution vs. theta GLOBAL", "MomRes_vs_Theta_glob");
+    DrawTwoH1("Chi-square and length distributions GEM", "Chi2_gem", "Length_gem", "");
+    DrawTwoH1("Chi-square and length distributions GLOBAL", "Chi2_glob", "Length_glob", "");
 
     DrawHitRes("X");
     DrawHitRes("Y");
 
-    DrawResAndPull("Residuals and Pulls for first parameters", namesResPullsF);
-    DrawResAndPull("Residuals and Pulls for last parameters", namesResPullsL);
+    TString namesResPullsF_gem[15] = {"ResX_f_gem", "ResY_f_gem", "ResTx_f_gem", "ResTy_f_gem", "ResQp_f_gem", "ErrX_f_gem", "ErrY_f_gem", "ErrTx_f_gem", "ErrTy_f_gem", "ErrQp_f_gem", "PullX_f_gem", "PullY_f_gem", "PullTx_f_gem", "PullTy_f_gem", "PullQp_f_gem"};
+    TString namesResPullsL_gem[15] = {"ResX_l_gem", "ResY_l_gem", "ResTx_l_gem", "ResTy_l_gem", "ResQp_l_gem", "ErrX_l_gem", "ErrY_l_gem", "ErrTx_l_gem", "ErrTy_l_gem", "ErrQp_l_gem", "PullX_l_gem", "PullY_l_gem", "PullTx_l_gem", "PullTy_l_gem", "PullQp_l_gem"};
+
+    DrawResAndPull("Residuals and Pulls for first parameters GEM", namesResPullsF_gem);
+    DrawResAndPull("Residuals and Pulls for last parameters GEM", namesResPullsL_gem);
+
+    TString namesResPullsF_glob[15] = {"ResX_f_glob", "ResY_f_glob", "ResTx_f_glob", "ResTy_f_glob", "ResQp_f_glob", "ErrX_f_glob", "ErrY_f_glob", "ErrTx_f_glob", "ErrTy_f_glob", "ErrQp_f_glob", "PullX_f_glob", "PullY_f_glob", "PullTx_f_glob", "PullTy_f_glob", "PullQp_f_glob"};
+    TString namesResPullsL_glob[15] = {"ResX_l_glob", "ResY_l_glob", "ResTx_l_glob", "ResTy_l_glob", "ResQp_l_glob", "ErrX_l_glob", "ErrY_l_glob", "ErrTx_l_glob", "ErrTy_l_glob", "ErrQp_l_glob", "PullX_l_glob", "PullY_l_glob", "PullTx_l_glob", "PullTy_l_glob", "PullQp_l_glob"};
+
+    DrawResAndPull("Residuals and Pulls for first parameters GLOBAL", namesResPullsF_glob);
+    DrawResAndPull("Residuals and Pulls for last parameters GLOBAL", namesResPullsL_glob);
 
     TString namesParF[5] = {"X_f_gem", "Y_f_gem", "Tx_f_gem", "Ty_f_gem", "Qp_f_gem"};
     TString namesParL[5] = {"X_l_gem", "Y_l_gem", "Tx_l_gem", "Ty_l_gem", "Qp_l_gem"};
-    DrawPar("First parameters", namesParF);
-    DrawPar("Last parameters", namesParL);
+    DrawPar("First parameters GEM", namesParF);
+    DrawPar("Last parameters GEM", namesParL);
+
+    TString namesParF_glob[5] = {"X_f_glob", "Y_f_glob", "Tx_f_glob", "Ty_f_glob", "Qp_f_glob"};
+    TString namesParL_glob[5] = {"X_l_glob", "Y_l_glob", "Tx_l_glob", "Ty_l_glob", "Qp_l_glob"};
+    DrawPar("First parameters GLOBAL", namesParF_glob);
+    DrawPar("Last parameters GLOBAL", namesParL_glob);
 
     DrawThreeH1("Vertex", "VertX_gem", "VertY_gem", "VertZ_gem");
     DrawVertResGem("Vertex resolution", "VertResX_gem", "VertResY_gem", "VertResZ_gem");

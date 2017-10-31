@@ -97,7 +97,7 @@ void BmnMwpcTrackFinder::SingleHitInChamber(vector <BmnMwpcTrack>& cand, Int_t m
         }
         map <Double_t, BmnMwpcHit*>::iterator it = distToHits.begin();
 
-        cand[iCand].AddGemHit(it->second->GetHitId(), it->second);
+        cand[iCand].AddHit(it->second->GetHitId(), it->second);
         cand[iCand].SortHits();
 
         finalTracks.push_back(cand[iCand]);
@@ -142,8 +142,8 @@ Int_t BmnMwpcTrackFinder::FindSeeds(vector <BmnMwpcTrack>& cand, Int_t mwpcId) {
 
                 if (hit2->GetZ() > Zc) {
                     BmnMwpcTrack trackCand;
-                    trackCand.AddGemHit(iHit, hit1);
-                    trackCand.AddGemHit(jHit, hit2);
+                    trackCand.AddHit(iHit, hit1);
+                    trackCand.AddHit(jHit, hit2);
                     trackCand.SortHits();
                     cand.push_back(trackCand);
                 }
@@ -152,8 +152,8 @@ Int_t BmnMwpcTrackFinder::FindSeeds(vector <BmnMwpcTrack>& cand, Int_t mwpcId) {
     }
 
     for (Int_t iSize = 0; iSize < cand.size(); iSize++) {
-        BmnMwpcHit* hit1 = (BmnMwpcHit*) fBmnMwpcHitsArray->UncheckedAt(cand[iSize].GetGemHitIndex(0));
-        BmnMwpcHit* hit2 = (BmnMwpcHit*) fBmnMwpcHitsArray->UncheckedAt(cand[iSize].GetGemHitIndex(1));
+        BmnMwpcHit* hit1 = (BmnMwpcHit*) fBmnMwpcHitsArray->UncheckedAt(cand[iSize].GetHitIndex(0));
+        BmnMwpcHit* hit2 = (BmnMwpcHit*) fBmnMwpcHitsArray->UncheckedAt(cand[iSize].GetHitIndex(1));
 
         Double_t x1 = hit1->GetX();
         Double_t y1 = hit1->GetY();
@@ -192,9 +192,9 @@ BmnStatus BmnMwpcTrackFinder::FitFoundTracks(vector <BmnMwpcTrack> cand) {
 
 BmnStatus BmnMwpcTrackFinder::CalculateTrackParamsLine(BmnMwpcTrack* tr) {
     //Estimation of track parameters for events w/o magnetic field
-    UInt_t nHits = tr->GetNGemHits();
-    BmnMwpcHit* lastHit = (BmnMwpcHit*) fBmnMwpcHitsArray->UncheckedAt(tr->GetGemHitIndex(nHits - 1));
-    BmnMwpcHit* firstHit = (BmnMwpcHit*) fBmnMwpcHitsArray->UncheckedAt(tr->GetGemHitIndex(0));
+    UInt_t nHits = tr->GetNHits();
+    BmnMwpcHit* lastHit = (BmnMwpcHit*) fBmnMwpcHitsArray->UncheckedAt(tr->GetHitIndex(nHits - 1));
+    BmnMwpcHit* firstHit = (BmnMwpcHit*) fBmnMwpcHitsArray->UncheckedAt(tr->GetHitIndex(0));
     if (!firstHit || !lastHit)
         return kBMNERROR;
 

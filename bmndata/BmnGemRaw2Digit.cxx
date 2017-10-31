@@ -131,9 +131,6 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
         lay = fBigMap[realChannel].lay;
         strip = fBigMap[realChannel].strip;
 
-        if (gemM->station == 6 && lay > 1)
-            printf("strip = %d\n", strip);
-
         if (strip > 0) {
             BmnGemStripDigit dig;
             dig.SetStation(gemM->station);

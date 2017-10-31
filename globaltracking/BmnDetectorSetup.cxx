@@ -44,6 +44,7 @@ Bool_t BmnDetectorSetup::CheckDetectorPresence(const std::string& name) const {
 }
 
 void BmnDetectorSetup::DetermineSetup() {
+    fDet[kSILICON] = CheckDetectorPresence("SILICON");
     fDet[kMWPC] = CheckDetectorPresence("MWPC");
     fDet[kGEM] = CheckDetectorPresence("GEM");
     fDet[kDCH] = CheckDetectorPresence("DCH");
@@ -55,6 +56,7 @@ string BmnDetectorSetup::ToString() const {
     string str = "-I- BMN detector setup information: \n";
     str += "  Tracking detectors found in setup: ";
     if (fDet.find(kMWPC)->second) str += "MWPC ";
+    if (fDet.find(kSILICON)->second) str += "SILICON ";
     if (fDet.find(kGEM)->second) str += "GEM ";
     if (fDet.find(kTOF1)->second) str += "TOF400 ";
     if (fDet.find(kDCH)->second) str += "DCH ";

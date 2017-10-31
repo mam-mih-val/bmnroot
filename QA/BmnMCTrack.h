@@ -31,6 +31,7 @@ public:
    BmnMCTrack() {
       // Initialize all maps
       fPoints[kMVD];
+      fPoints[kSILICON];
       fPoints[kGEM];
       fPoints[kTOF1];
       fPoints[kDCH];

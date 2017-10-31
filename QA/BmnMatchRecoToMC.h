@@ -109,11 +109,13 @@ private:
     
     void MatchGlobalTracks(
             const TClonesArray* gemHitMatches,
+            const TClonesArray* silHitMatches,
             const TClonesArray* tof1HitMatches,
             const TClonesArray* tof2HitMatches,
             const TClonesArray* dch1HitMatches,
             const TClonesArray* dch2HitMatches,
             const TClonesArray* gemPoints,
+            const TClonesArray* silPoints,
             const TClonesArray* tof1Points,
             const TClonesArray* tof2Points,
             const TClonesArray* dch1Points,
@@ -123,18 +125,7 @@ private:
             TClonesArray* trackMatches);
 
     // Pointers to data arrays
-
-    // SILICON
-    TClonesArray* fSilPoints;
-    TClonesArray* fSilDigits;
-    TClonesArray* fSilClusters;
-    TClonesArray* fSilHits;
-    TClonesArray* fSilTracks;
-    TClonesArray* fSilDigitMatches;
-    TClonesArray* fSilClusterMatches;
-    TClonesArray* fSilHitMatches;
-    TClonesArray* fSilTrackMatches;
-    
+   
     // GEM
     TClonesArray* fGemPoints; // BmnStsPoint array
     TClonesArray* fGemDigits; // BmnStsDigi array
@@ -145,7 +136,15 @@ private:
     TClonesArray* fGemClusterMatches; // Output BmnMatch array
     TClonesArray* fGemHitMatches; // Output BmnMatch array
     TClonesArray* fGemTrackMatches; // Output BmnTrackMatchNew array
-    
+
+    // SILICON
+    TClonesArray* fSilPoints;
+    TClonesArray* fSilDigits;
+    TClonesArray* fSilClusters;
+    TClonesArray* fSilHits;
+    TClonesArray* fSilDigitMatches;
+    TClonesArray* fSilClusterMatches;
+    TClonesArray* fSilHitMatches;    
     
     // TOF1
     TClonesArray* fTof1Points; // BmnStsPoint array

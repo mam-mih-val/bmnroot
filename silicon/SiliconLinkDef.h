@@ -17,5 +17,6 @@
 #pragma link C++ class BmnSiliconDigit+;
 #pragma link C++ class BmnSiliconHit+;
 #pragma link C++ class BmnSiliconRaw2Digit+;
+#pragma link C++ class BmnSiliconTrack+;
 
 #endif

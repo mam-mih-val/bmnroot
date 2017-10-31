@@ -168,19 +168,19 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
             return;
         if (evHeader->GetTripWord())
             return;
-//        BmnTriggerType trigType = evHeader->GetTrig();
-//        if (trigType == kBMNMINBIAS) {
-//            if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < 1)
-//                return;
-//        }
-//        
-//        else if (trigType == kBMNBEAM) {
-//            if (fVetoArray->GetEntriesFast() > 1 || fBDArray->GetEntriesFast() > 0)
-//                return;
-//        }
-//        
-//        else
-//            return;
+        //        BmnTriggerType trigType = evHeader->GetTrig();
+        //        if (trigType == kBMNMINBIAS) {
+        //            if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < 1)
+        //                return;
+        //        }
+        //        
+        //        else if (trigType == kBMNBEAM) {
+        //            if (fVetoArray->GetEntriesFast() > 1 || fBDArray->GetEntriesFast() > 0)
+        //                return;
+        //        }
+        //        
+        //        else
+        //            return;
     }
 
     fBmnGemStripHitsArray->Delete();
@@ -244,7 +244,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
     for (Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet->GetGemStation(iStation);
 
-        for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
+        for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {        
             BmnGemStripModule *module = station->GetModule(iModule);
             Double_t z = module->GetZPositionRegistered();
             z += corr[iStation][iModule][2]; //alignment implementation

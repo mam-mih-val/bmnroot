@@ -365,7 +365,7 @@ void BmnGlobalAlignment::PrintToFullFormat(TString detName, Char_t* buff) {
 FairTrackParam BmnGlobalAlignment::UseKalman(BmnGemTrack* track, Int_t iHit, Int_t sign) {
     const Double_t delta = 1.; // in cm.
     FairTrackParam* zToBePredicted = track->GetParamFirst();
-    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
+    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetHitIndex(iHit));
 
     fKalman->TGeoTrackPropagate(zToBePredicted, hit->GetZ() + sign * delta, 2212, NULL, NULL, "field");
 
@@ -393,7 +393,7 @@ Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
         TGraph xzTrackProfile, yzTrackProfile;
         Int_t currPoint = 0;
         for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
-            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
+            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetHitIndex(iHit));
             xzTrackProfile.SetPoint(currPoint, hit->GetZ(), hit->GetX());
             yzTrackProfile.SetPoint(currPoint, hit->GetZ(), hit->GetY());
             currPoint++;
@@ -431,7 +431,7 @@ Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
         Double_t Tx[track->GetNHits()]; // Array to store obtained Tx at Z-hit positions
 
         for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
-            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
+            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetHitIndex(iHit));
             FairTrackParam zLeft = UseKalman(track, iHit, -1);
             FairTrackParam zRight = UseKalman(track, iHit, +1);
             FairTrackParam zCurrentHit = UseKalman(track, iHit, 0);
@@ -501,7 +501,7 @@ Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
 
         if (isGoodTrack) {
             for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
-                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
+                BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetHitIndex(iHit));
                 FairTrackParam zLeft = UseKalman(track, iHit, -1);
                 FairTrackParam zRight = UseKalman(track, iHit, +1);
                 FairTrackParam zCurrentHit = UseKalman(track, iHit, 0);
@@ -532,7 +532,7 @@ Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
                 nModulesProcessed++;
                 Int_t iHit;
                 for (iHit = 0; iHit < track->GetNHits(); iHit++) {
-                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
+                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetHitIndex(iHit));
                     Short_t stat = hit->GetStation();
                     Int_t mod = hit->GetModule();
                     TString zeroEnd = "", zeroBeg = "";
@@ -606,7 +606,7 @@ void BmnGlobalAlignment::MilleNoFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
                 nModulesProcessed++;
                 Int_t iHit;
                 for (iHit = 0; iHit < track->GetNHits(); iHit++) {
-                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetGemHitIndex(iHit));
+                    BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->UncheckedAt(track->GetHitIndex(iHit));
                     Short_t stat = hit->GetStation();
                     Int_t mod = hit->GetModule();
                     TString zeroEnd = "", zeroBeg = "";
@@ -662,7 +662,7 @@ void BmnGlobalAlignment::MilleNoFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
         Double_t Tx = track->GetParamFirst()->GetTx();
         Double_t Ty = track->GetParamFirst()->GetTy();
 
-        BmnMwpcHit* hit0 = (BmnMwpcHit*) fMwpcHits->UncheckedAt(track->GetGemHitIndex(0));
+        BmnMwpcHit* hit0 = (BmnMwpcHit*) fMwpcHits->UncheckedAt(track->GetHitIndex(0));
         Double_t X = hit0->GetX() + Tx * zMid;
         Double_t Y = hit0->GetY() + Ty * zMid;
         Double_t Z = zMid;

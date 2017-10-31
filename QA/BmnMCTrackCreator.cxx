@@ -32,13 +32,16 @@ fMvdPoints(NULL),
 fGemPoints(NULL),
 fTof1Points(NULL),
 fTof2Points(NULL),
-fDchPoints(NULL){
+fDchPoints(NULL) {
     ReadDataBranches();
-    fDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
+    TString gPathSiliconConfig = TString(gSystem->Getenv("VMCWORKDIR")) + "/silicon/XMLConfigs/SiliconRunSpring2017.xml";
+    fSilDetector = new BmnSiliconStationSet(gPathSiliconConfig);
+    fGemDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
 }
 
 BmnMCTrackCreator::~BmnMCTrackCreator() {
-    delete fDetector;
+    delete fGemDetector;
+    delete fSilDetector;
 }
 
 BmnMCTrackCreator* BmnMCTrackCreator::Instance() {
@@ -50,13 +53,14 @@ void BmnMCTrackCreator::Create() {
     FillStationMaps();
     fBmnMCTracks.clear();
     //AddPoints(kMVD, fMvdPoints);
+    AddPoints(kSILICON, fSilPoints);
     AddPoints(kGEM, fGemPoints);
     AddPoints(kTOF1, fTof1Points);
     AddPoints(kDCH, fDchPoints);
     AddPoints(kTOF, fTof2Points);
     std::map<Int_t, BmnMCTrack>::iterator it;
-//    for (it = fBmnMCTracks.begin(); it != fBmnMCTracks.end(); it++)
-//        it->second.CalculateNofConsecutivePoints();
+    //    for (it = fBmnMCTracks.begin(); it != fBmnMCTracks.end(); it++)
+    //        it->second.CalculateNofConsecutivePoints();
 
     //   std::cout << "BmnMCTrackCreator: nof MC tracks=" << fLitMCTracks.size() << std::endl;
     //   std::map<Int_t, BmnMCTrack>::iterator it;
@@ -68,6 +72,7 @@ void BmnMCTrackCreator::ReadDataBranches() {
     FairRootManager* ioman = FairRootManager::Instance();
     fMCTracks = (TClonesArray*) ioman->GetObject("MCTrack");
     //   fMvdPoints = (TClonesArray*) ioman->GetObject("MvdPoint");
+    fSilPoints = (TClonesArray*) ioman->GetObject("SiliconPoint");
     fGemPoints = (TClonesArray*) ioman->GetObject("StsPoint");
     fTof1Points = (TClonesArray*) ioman->GetObject("TOF1Point");
     fTof2Points = (TClonesArray*) ioman->GetObject("TofPoint");
@@ -84,8 +89,11 @@ void BmnMCTrackCreator::AddPoints(DetectorId detId, const TClonesArray* array) {
         if (detId == kMVD) {
             //         stationId = fMvdStationsMap[iPoint];
             //         MvdPointCoordinatesAndMomentumToLitMCPoint(static_cast<CbmMvdPoint*>(fairPoint), &litPoint);
+        } else if (detId == kSILICON) {
+            stationId = fSilDetector->GetPointStationOwnership(fairPoint->GetZ());
+            FairMCPointCoordinatesAndMomentumToBmnMCPoint(fairPoint, &bmnPoint);
         } else if (detId == kGEM) {
-            stationId = fDetector->GetPointStationOwnership(fairPoint->GetZ());
+            stationId = fGemDetector->GetPointStationOwnership(fairPoint->GetZ());
             GemPointCoordinatesAndMomentumToBmnMCPoint((CbmStsPoint*) (fairPoint), &bmnPoint);
         } else {
             stationId = 0;
@@ -168,20 +176,20 @@ void BmnMCTrackCreator::FillStationMaps() {
         //        }
         //<---
 
-//        for (Int_t iPoint = 0; iPoint < fGemPoints->GetEntriesFast(); iPoint++) {
-//            const CbmStsPoint* point = (const CbmStsPoint*) (fGemPoints->At(iPoint));
-//            Float_t xin = point->GetXIn();
-//            Float_t yin = point->GetYIn();
-//            Float_t zin = point->GetZIn();
-//            gGeoManager->FindNode(xin, yin, zin);
-//            TGeoNode* curNode = gGeoManager->GetCurrentNode(); // only needed for old geometries
-//            CbmStsSensor* sensor = (fStsDigiScheme->IsNewGeometry()) ?
-//                    fStsDigiScheme->GetSensorByName(fStsDigiScheme->GetCurrentPath()) :
-//                    fStsDigiScheme->GetSensorByName(curNode->GetName());
-//            if (sensor != NULL) {
-//                Int_t stationId = sensor->GetStationNr() - 1;
-//                fGemStationsMap[iPoint] = stationId;
-//            }
-//        }
+        //        for (Int_t iPoint = 0; iPoint < fGemPoints->GetEntriesFast(); iPoint++) {
+        //            const CbmStsPoint* point = (const CbmStsPoint*) (fGemPoints->At(iPoint));
+        //            Float_t xin = point->GetXIn();
+        //            Float_t yin = point->GetYIn();
+        //            Float_t zin = point->GetZIn();
+        //            gGeoManager->FindNode(xin, yin, zin);
+        //            TGeoNode* curNode = gGeoManager->GetCurrentNode(); // only needed for old geometries
+        //            CbmStsSensor* sensor = (fStsDigiScheme->IsNewGeometry()) ?
+        //                    fStsDigiScheme->GetSensorByName(fStsDigiScheme->GetCurrentPath()) :
+        //                    fStsDigiScheme->GetSensorByName(curNode->GetName());
+        //            if (sensor != NULL) {
+        //                Int_t stationId = sensor->GetStationNr() - 1;
+        //                fGemStationsMap[iPoint] = stationId;
+        //            }
+        //        }
     } // end GEM
 }

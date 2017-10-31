@@ -12,6 +12,7 @@ ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/bmnfield
+${CMAKE_SOURCE_DIR}/silicon
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/dch
 ${CMAKE_SOURCE_DIR}/mwpc

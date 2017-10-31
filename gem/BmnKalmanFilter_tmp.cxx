@@ -143,7 +143,7 @@ FairTrackParam BmnKalmanFilter_tmp::Filtration(BmnGemTrack* tr, TClonesArray* hi
     vector<BmnFitNode> fitNodes = tr->GetFitNodes();
     Int_t nNodes = fitNodes.size();
 
-    //    cout << "nodes = " << nNodes << " | hits = " << tr->GetNGemHits() << endl;
+    //    cout << "nodes = " << nNodes << " | hits = " << tr->GetNHits() << endl;
 
     FairTrackParam outputPar;
 
@@ -152,7 +152,7 @@ FairTrackParam BmnKalmanFilter_tmp::Filtration(BmnGemTrack* tr, TClonesArray* hi
         BmnFitNode* prevNode = &(fitNodes.at(i + 1));
         BmnFitNode* currNode = &(fitNodes.at(i));
 
-        BmnHit* hit = (BmnHit*) hits->At(tr->GetGemHitIndex(i));
+        BmnHit* hit = (BmnHit*) hits->At(tr->GetHitIndex(i));
         //        cout << "x = " << hit->GetX() << " y = " << hit->GetY() << " z = " << hit->GetZ() << endl;
         const FairTrackParam* prevPredPar = prevNode->GetPredictedParam();
         const FairTrackParam* prevCorrPar = prevNode->GetUpdatedParam();
@@ -681,7 +681,7 @@ void BmnKalmanFilter_tmp::UpdateF(vector<Double_t>& F, const vector<Double_t>& n
 
 BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits) { //FIXME
 
-    const Int_t n = track->GetNGemHits();
+    const Int_t n = track->GetNHits();
 
     vector<BmnFitNode> nodes = track->GetFitNodes();
     nodes[n - 1].SetSmoothedParam(nodes[n - 1].GetUpdatedParam());
@@ -696,7 +696,7 @@ BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits)
 
     track->SetChi2(0.);
     for (int i = 0; i < n; i++) {
-        BmnGemHit* hit = (BmnGemHit*) hits->At(track->GetGemHitIndex(i));
+        BmnGemStripHit* hit = (BmnGemStripHit*) hits->At(track->GetHitIndex(i));
         Double_t chi2Hit = lit::ChiSq(nodes[i].GetSmoothedParam(), hit);
         nodes[i].SetChiSqSmoothed(chi2Hit);
         track->SetChi2(track->GetChi2() + chi2Hit);
@@ -709,7 +709,7 @@ BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits)
     //    track->SetNDF(lit::NDF(track));
 
     //    parFirst->Print();
-    //    cout << "chi2 = " << track->GetChi2() << " | ndf = " << track->GetNDF() << " | nHits = " << track->GetNGemHits() << endl;
+    //    cout << "chi2 = " << track->GetChi2() << " | ndf = " << track->GetNDF() << " | nHits = " << track->GetNHits() << endl;
     //    cout << "chi2 / NDF = " << track->GetChi2() / track->GetNDF() << endl;
 
     return kBMNSUCCESS;

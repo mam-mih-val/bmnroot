@@ -2,7 +2,7 @@
 #define BMNMATH_H_
 
 #include "FairTrackParam.h"
-#include "BmnGemHit.h"
+#include "BmnGemStripHit.h"
 #include "BmnGemTrack.h"
 #include "BmnGemStripHit.h"
 #include "TLorentzVector.h"
@@ -28,7 +28,7 @@ Float_t ChiSq(const FairTrackParam* par, const CbmHit* hit);
  * @return chi square contribution for this strip hit */
 Float_t ChiSq(const FairTrackParam* par, const CbmStripHit* hit);
 
-Float_t ChiSq(const FairTrackParam* par, const BmnGemHit* hit);
+Float_t ChiSq(const FairTrackParam* par, const BmnGemStripHit* hit);
 
 Int_t NDF(const BmnGemTrack* track);
 

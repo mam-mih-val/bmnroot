@@ -236,9 +236,12 @@ private:
     TClonesArray* fGemTracks; // BmnGemTrack array
     TClonesArray* fGemMatches; // BmnGemTrackMatch array
     TClonesArray* fGemHitMatches;
+    TClonesArray* fSilHitMatches;
 
     TClonesArray* fGemPoints;
     TClonesArray* fGemHits;
+    TClonesArray* fSilPoints;
+    TClonesArray* fSilHits;
     TClonesArray* fTof1Points;
     TClonesArray* fTof1Hits;
     TClonesArray* fTof2Points;

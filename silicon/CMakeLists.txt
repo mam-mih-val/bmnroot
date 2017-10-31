@@ -45,6 +45,7 @@ BmnSiliconHitMaker.cxx
 BmnSiliconDigit.cxx
 BmnSiliconHit.cxx
 BmnSiliconRaw2Digit.cxx
+BmnSiliconTrack.cxx
 )
 
 Set(HEADERS)

@@ -12,8 +12,6 @@
 #define BmnGlobalTracking_H_
 
 #include "FairTask.h"
-#include "BmnTrackFinder.h"
-//#include "BmnTrackFitter.h"
 #include "BmnTrackPropagator.h"
 #include "BmnHitToTrackMerger.h"
 #include "BmnGlobalTrackingQA.h"
@@ -23,6 +21,7 @@
 #include "CbmTofPoint.h"
 #include "BmnHit.h"
 #include "BmnGemTrack.h"
+#include "BmnSiliconHit.h"
 #include "BmnDchTrack.h"
 #include "BmnDchHit.h"
 #include "BmnMwpcHit.h"
@@ -42,6 +41,8 @@
 #include "TGraph.h"
 #include "BmnKalmanFilter_tmp.h"
 #include "CbmVertex.h"
+#include "BmnSiliconStationSet.h"
+
 
 class TClonesArray;
 
@@ -115,6 +116,7 @@ private:
     TClonesArray* fGemTracks;
     TClonesArray* fGemVertex;
     TClonesArray* fGemHits;
+    TClonesArray* fSilHits;
     TClonesArray* fMwpcTracks;
     TClonesArray* fMwpcHits;
     TClonesArray* fDchTracks;
@@ -132,7 +134,6 @@ private:
     TClonesArray* fMcTracks;
 
     // OUTPUT ARRAYS
-
     TClonesArray* fGlobalTracks; //output BmnGlobalTrack array
     
     Bool_t fIsField; // run with mag.field or not
@@ -160,6 +161,7 @@ private:
     BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t trIndex);
     BmnStatus MatchingDCH(BmnGlobalTrack* tr);
     BmnStatus MatchingMWPC(BmnGlobalTrack* tr);
+    BmnStatus MatchingSil(BmnGlobalTrack* tr);
     
     BmnStatus Refit(BmnGlobalTrack* tr);
     BmnStatus EfficiencyCalculation();

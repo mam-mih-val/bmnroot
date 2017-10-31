@@ -15,7 +15,6 @@
 #include "CbmStripHit.h"
 #include "CbmTofHit.h"
 #include "CbmStsHit.h"
-#include "BmnGemHit.h"
 #include "BmnDchHit.h"
 #include "BmnHit.h"
 

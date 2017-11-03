@@ -834,7 +834,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     BmnEventType curEventType = kBMNPAYLOAD;
     BmnEventType prevEventType = curEventType;
 
-    if (fGemMapper) {
+    if (fGemMapper || fSiliconMapper) {
         for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
             if (iEv % 100 == 0) {
                 printf(ANSI_COLOR_BLUE "[%.2f%%]   " ANSI_COLOR_RESET, iEv * 100.0 / fNevents);
@@ -852,7 +852,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
             } else {
-                fGemMapper->RecalculatePedestals();
+                if (fGemMapper) fGemMapper->RecalculatePedestals();
                 if (fSiliconMapper) fSiliconMapper->RecalculatePedestals();
                 fPedEvCntr = 0;
                 break;

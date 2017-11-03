@@ -710,8 +710,8 @@ BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt
 
 BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
 //        printf("serial 0x%08X slot %d  modid 0x%X\n", serial, slot, modId);
-    UInt_t type = d[idx] >> 28;
-    UShort_t trigTimestamp = 0;
+    UInt_t type = d[idx] >> 28;								// good
+    UShort_t trigTimestamp = 0;								
     UShort_t adcTimestamp = 0;
     UInt_t iSampl = 0;
     UInt_t channel = 0;
@@ -722,12 +722,12 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
         return kBMNSUCCESS;
     }
     while (type != kMODTRAILER) {
-        UInt_t mode = (d[idx] >> 26) & 0x3;
+        UInt_t mode = (d[idx] >> 26) & 0x3;						// good
         if (!inADC) {
 //            printf("type %d mode %d\n", type, mode);
-            if ((mode == 0) && (type == 4 || type == 5)) {
-                UInt_t rcdata = (d[idx] >> 24) & 0x3;
-                channel = (d[idx] >> 19) & 0x1F;
+            if ((mode == 0) && (type == 4 || type == 5)) {				// good
+                UInt_t rcdata = ( (d[idx] >> 24) & 0x3 ) << 19;				// fixed					
+                channel = (d[idx] >> 19) & 0x1F;					// i think ok...
                 UInt_t time = 4 * (d[idx] & 0x7FF) + rcdata; // in 25 ps
                 new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time);
 //                printf("TDC: type %d channel %d time %d \n", type, channel, time);
@@ -745,10 +745,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
 //                printf("TDC ev trailer: %d\n", iEv);
             }
         } else {
-            if ((type == 5) && (mode == 2) && (iSampl < ADC_SAMPLING_LIMIT)) {
-            //if( (mode==1) && (iSampl < ADC_SAMPLING_LIMIT) ){
-	        //Short_t val = ((d[idx] >> 2) & 0x3FFF); // offset binary
-                //Short_t val = ( (d[idx]) & (1<<13) ) - (1 << 13);
+            if ((type == 5) && ( (mode == 2) || (mode ==1) ) && (iSampl < ADC_SAMPLING_LIMIT)) {
 		Short_t val =  (d[idx] & ((1<<14)-1)) - (1<<(14-1));
 		valI[iSampl++] = val;
             } else {

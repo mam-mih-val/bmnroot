@@ -11,7 +11,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     
     Bool_t setup[10]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
-    setup[0] = 1; // TRIGGERS
+    setup[0] = 0; // TRIGGERS
     setup[1] = 0; // MWPC
     setup[2] = 0; // SILICON
     setup[3] = 0; // GEM

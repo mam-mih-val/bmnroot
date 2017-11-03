@@ -28,13 +28,19 @@ public:
         return fNsmpl;
     }
    
-    UInt_t GetADC() const {
+    int GetIntegral() const {
 	int spectra = 0;
 	for (Int_t i = 0; i < fNsmpl; ++i)
 		spectra += fValueI[i];
 	return spectra;
     }    
-
+    
+    int GetPeak() const {
+	int peak = -100000;
+	for (Int_t i = 0; i < fNsmpl; ++i)
+		if ( fValueI[i] > peak ) peak = fValueI[i];
+	return peak;
+    }
 
     Short_t *GetShortValue() const {
         return (Short_t *) fValueI;

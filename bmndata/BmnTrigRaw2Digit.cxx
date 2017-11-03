@@ -146,7 +146,9 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
             if (iChannel != tM.channel) continue;
             for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); iAdc++){
                 BmnADCSRCDigit *adcDig = (BmnADCSRCDigit*)adc->At(iAdc);
-                if (iChannel == adcDig->GetChannel()){
+            //    UInt_t iChannel = adcDig->GetChannel();
+	    //	  if (iChannel != tM.channel) continue;
+		if (iChannel == adcDig->GetChannel()){
                     TClonesArray *trigAr = trigArrays[iMap];
                     if (trigAr)
                         new ((*trigAr)[trigAr->GetEntriesFast()])

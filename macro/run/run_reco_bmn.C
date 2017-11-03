@@ -31,7 +31,7 @@
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
-        Int_t nEvents = 1000,
+        Int_t nEvents = 0,
         TString alignCorrFileName = "") {
     // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;

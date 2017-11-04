@@ -15,7 +15,6 @@
 #include "BmnMatrixMath.h"
 #include "BmnKalmanFilter_tmp.h"
 #include "TFitResult.h"
-#include "BmnGemStripStationSet_RunWinter2016.h"
 
 //-----------------------------------------
 static Double_t workTime = 0.0;
@@ -92,7 +91,6 @@ InitStatus BmnGemTracking::Init() {
     }
 
     fGemDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
-//    fGemDetector = new BmnGemStripStationSet_RunWinter2016(BmnGemStripConfiguration::RunWinter2016);
 
     if (fVerbose) cout << "======================== GEM tracking init finished ===================" << endl;
 }
@@ -237,7 +235,7 @@ void BmnGemTracking::FillAddrWithLorentz() {
     for (Int_t hitIdx = 0; hitIdx < fGemHitsArray->GetEntriesFast(); ++hitIdx) {
         BmnGemStripHit* hit = GetHit(hitIdx);
         if (!hit) continue;
-        
+
         hit->SetFlag(kFALSE); // by default hits are not filtered 
         //hit->SetDxyz(hit->GetDx() * 2, hit->GetDy() * 2, 0.0); // just for test
         //        hit->SetDxyz(1.0, 1.0, 1.0); // just for test

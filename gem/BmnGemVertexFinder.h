@@ -5,7 +5,6 @@
 #include "TClonesArray.h"
 #include "TString.h"
 #include "BmnGemTrack.h"
-#include "BmnGlobalTrack.h"
 #include "BmnGemStripHit.h"
 #include "TMath.h"
 #include "TVector3.h"
@@ -34,6 +33,10 @@ public:
         fIsField = f;
     }
 
+    void SetVertexApproximation(Float_t f) {
+        fRoughVertex = f;
+    }
+
     void SetVertexApproximation(TVector3 vertex) {
         fRoughVertex3D = vertex;
     }
@@ -44,8 +47,7 @@ public:
 private:
 
     // Private Data Members ------------
-    TString fGemTracksBranchName;
-    TString fGlobalTracksBranchName;
+    TString fTracksBranchName;
     TString fVertexBranchName;
 
     Int_t fEventNo; // event counter
@@ -53,13 +55,13 @@ private:
 
     BmnGemStripStationSet* fDetector;
 
-    TClonesArray* fGlobalTracksArray;
     TClonesArray* fGemTracksArray;
     TClonesArray* fVertexArray;
 
     Bool_t fIsField;
     FairField* fField;
     BmnKalmanFilter_tmp* fKalman;
+    Float_t fRoughVertex;
     TVector3 fRoughVertex3D;
 
     ClassDef(BmnGemVertexFinder, 1);

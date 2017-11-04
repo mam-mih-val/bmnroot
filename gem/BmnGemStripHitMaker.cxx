@@ -158,32 +158,30 @@ InitStatus BmnGemStripHitMaker::Init() {
 }
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
-
-    if (fVerbose) cout << "\nBmnGemStripHitMaker::Exec()\n ";
     clock_t tStart = clock();
 
     fField = FairRunAna::Instance()->GetField();
     // Event separation by triggers ...
-//    if (fIsExp && fBmnEventHeader) {
-//        BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
-//        if (!evHeader)
-//            return;
-//        if (evHeader->GetTripWord())
-//            return;
-//        //        BmnTriggerType trigType = evHeader->GetTrig();
-//        //        if (trigType == kBMNMINBIAS) {
-//        //            if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < 1)
-//        //                return;
-//        //        }
-//        //        
-//        //        else if (trigType == kBMNBEAM) {
-//        //            if (fVetoArray->GetEntriesFast() > 1 || fBDArray->GetEntriesFast() > 0)
-//        //                return;
-//        //        }
-//        //        
-//        //        else
-//        //            return;
-//    }
+    if (fIsExp && fBmnEventHeader) {
+        BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
+        if (!evHeader)
+            return;
+        if (evHeader->GetTripWord())
+            return;
+        //        BmnTriggerType trigType = evHeader->GetTrig();
+        //        if (trigType == kBMNMINBIAS) {
+        //            if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < 1)
+        //                return;
+        //        }
+        //        
+        //        else if (trigType == kBMNBEAM) {
+        //            if (fVetoArray->GetEntriesFast() > 1 || fBDArray->GetEntriesFast() > 0)
+        //                return;
+        //        }
+        //        
+        //        else
+        //            return;
+    }
 
     fBmnGemStripHitsArray->Delete();
 

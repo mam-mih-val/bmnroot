@@ -13,14 +13,13 @@ using namespace TMath;
 BmnGemVertexFinder::BmnGemVertexFinder() : fEventNo(0) {
 
     fGemTracksArray = NULL;
-    fGlobalTracksArray = NULL;
     fKalman = NULL;
     fNTracks = 0;
+    fRoughVertex = 0.;
     fRoughVertex3D.SetXYZ(0., 0., 0.);
     fIsField = kTRUE;
     fField = NULL;
-    fGlobalTracksBranchName = "BmnGlobalTrack";
-    fGemTracksBranchName = "BmnGemTrack";
+    fTracksBranchName = "BmnGemTrack";
     fVertexBranchName = "BmnVertex";
 }
 
@@ -37,8 +36,7 @@ InitStatus BmnGemVertexFinder::Init() {
         Fatal("Init", "FairRootManager is not instantiated");
     }
 
-    fGemTracksArray = (TClonesArray*) ioman->GetObject(fGemTracksBranchName); //in
-    fGlobalTracksArray = (TClonesArray*) ioman->GetObject(fGlobalTracksBranchName); //in
+    fGemTracksArray = (TClonesArray*) ioman->GetObject(fTracksBranchName); //in
     fVertexArray = new TClonesArray("CbmVertex", 100); //out
     ioman->Register(fVertexBranchName, "GEM", fVertexArray, kTRUE);
 
@@ -57,13 +55,13 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
     fVertexArray->Delete();
 
     fNTracks = fGemTracksArray->GetEntriesFast();
-
-    if (fNTracks > 1)
+    
+    if (fNTracks > 1) 
         FindVertexByVirtualPlanes();
-        // To prevent crash caused by uninitialized TClonesArray due to unsufficient number of tracks when reading event by event in user's code
+    // To prevent crash caused by uninitialized TClonesArray due to unsufficient number of tracks when reading event by event in user's code
     else
         new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", -1000., -1000., -1000., 0.0, 0, fNTracks, TMatrixFSym(3), fRoughVertex3D);
-
+    
     if (fVerbose) cout << "\n======================== Vertex finder exec finished ======================" << endl;
 
     clock_t tFinish = clock();
@@ -75,7 +73,7 @@ Float_t BmnGemVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
     fKalman = new BmnKalmanFilter_tmp();
 
     const Int_t nPlanes = 5;
-    Float_t minZ = fRoughVertex3D.Z();
+    Float_t minZ = 0;
 
     while (range >= 0.1) {
         Float_t zMax = z_0 + range;
@@ -92,9 +90,8 @@ Float_t BmnGemVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
         }
 
         for (Int_t iTr = 0; iTr < fNTracks; ++iTr) {
-            BmnGlobalTrack* track = (BmnGlobalTrack*) fGlobalTracksArray->At(iTr);
-            //            BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(iTr);
-            //            if (track->GetFlag() == kBMNBAD) continue;
+            BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(iTr);
+            if (track->GetFlag() == kBMNBAD) continue;
             FairTrackParam par0 = *(track->GetParamFirst());
 
             for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
@@ -145,9 +142,8 @@ void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
     UInt_t nOk = 0;
 
     for (Int_t iTr = 0; iTr < fNTracks; ++iTr) {
-        //        BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(iTr);
-        BmnGlobalTrack* track = (BmnGlobalTrack*) fGlobalTracksArray->At(iTr);
-        //        if (track->GetFlag() == kBMNBAD) continue;
+        BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(iTr);
+        if (track->GetFlag() == kBMNBAD) continue;
         FairTrackParam par0 = *(track->GetParamFirst());
 
         fKalman->TGeoTrackPropagate(&par0, vz, 2212, NULL, NULL, fIsField);
@@ -160,14 +156,14 @@ void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
     vx /= nOk;
     vy /= nOk;
 
-    Double_t range = 50.0; //2.5
+    Double_t range = 10.0;//2.5
     // 2.5 - the best range from MC simulations and reconstruction (by A.Zelenoff)
     Double_t VX = (Abs(vz - fRoughVertex3D.Z()) < range) ? vx : -1000.;
     Double_t VY = (Abs(vz - fRoughVertex3D.Z()) < range) ? vy : -1000.;
     Double_t VZ = (Abs(vz - fRoughVertex3D.Z()) < range) ? vz : -1000.;
 
     new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", VX, VY, VZ, 0.0, 0, fNTracks, TMatrixFSym(3), fRoughVertex3D);
-
+   
     delete fKalman;
 }
 

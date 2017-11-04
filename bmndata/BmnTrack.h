@@ -144,7 +144,7 @@ private:
      **/
     map<Float_t, Int_t> fHitMap; //!
 
-    ClassDef(BmnTrack, 2);
+    ClassDef(BmnTrack, 1);
 
 };
 

@@ -208,7 +208,7 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
 
                     if (fPedDat[iCr][iEv][iCh][iSmpl] == 0 || CMS == 0.0) continue;
                     Float_t thresh = (fDetName == "SILICON") ? 160 : 20;
-                    if (fPedDat[iCr][iEv][iCh][iSmpl] - CMS - fPedVal[iCr][iCh][iSmpl] > thresh/*3 * fPedRms[iCr][iCh][iSmpl]*/) {
+                    if (Abs(fPedDat[iCr][iEv][iCh][iSmpl] - CMS - fPedVal[iCr][iCh][iSmpl]) > thresh/*3 * fPedRms[iCr][iCh][iSmpl]*/) {
                         fAdcProfiles[iCr][iCh][iSmpl]++;
                     }
                 }

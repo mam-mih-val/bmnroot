@@ -3,6 +3,7 @@
 
 //#include <pthread.h>
 #include <sys/stat.h>
+#include <arpa/inet.h> /* For ntohl for Big Endian LAND. */
 
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
@@ -37,6 +38,7 @@ const UInt_t kADC64VE = 0xD4;
 const UInt_t kADC64WR = 0xCA;
 const UInt_t kHRB = 0xC2;
 const UInt_t kFVME = 0xD1;
+const UInt_t kLAND = 0xDA;
 const UInt_t kU40VE_RC = 0x4C;
 
 //event type trigger
@@ -88,6 +90,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     adc32 = NULL;
     adc128 = NULL;
     adc = NULL;
+    tacquila = NULL;
     msc = NULL;
     dch = NULL;
     mwpc = NULL;
@@ -97,6 +100,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     ecal = NULL;
     gem = NULL;
     silicon = NULL;
+    land = NULL;
     fRootFileName = "";
     fRawFileName = "";
     fDigiFileName = "";
@@ -113,6 +117,9 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fZDCMapFileName = "";
     fECALCalibrationFileName = "";
     fECALMapFileName = "";
+    fLANDMapFileName = "";
+    fLANDClockFileName = "";
+    fLANDTCalFileName = "";
     fDat = 0;
     fGemMapper = NULL;
     fDchMapper = NULL;
@@ -122,6 +129,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fTof700Mapper = NULL;
     fZDCMapper = NULL;
     fECALMapper = NULL;
+    fLANDMapper = NULL;
     fDataQueue = NULL;
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
@@ -160,6 +168,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     adc32 = NULL;
     adc128 = NULL;
     adc = NULL;
+    tacquila = NULL;
     msc = NULL;
     dch = NULL;
     tof400 = NULL;
@@ -168,6 +177,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     ecal = NULL;
     gem = NULL;
     silicon = NULL;
+    land = NULL;
     fRawFileName = file;
     fTOF700ReferenceRun = 0;
     fTOF700ReferenceChamber = 0;
@@ -191,6 +201,9 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fZDCMapFileName = "";
     fECALCalibrationFileName = "";
     fECALMapFileName = "";
+    fLANDMapFileName = "";
+    fLANDClockFileName = "";
+    fLANDTCalFileName = "";
     fDat = 0;
     fGemMapper = NULL;
     fDchMapper = NULL;
@@ -200,6 +213,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fTof700Mapper = NULL;
     fZDCMapper = NULL;
     fECALMapper = NULL;
+    fLANDMapper = NULL;
     fDataQueue = NULL;
     fTimeStart_s = 0;
     fTimeStart_ns = 0;
@@ -274,6 +288,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     delete adc32;
     delete adc128;
     delete adc;
+    delete tacquila;
     delete hrb;
     delete tdc;
     delete tqdc_tdc;
@@ -320,6 +335,7 @@ BmnStatus BmnRawDataDecoder::InitConverter(TString FileName) {
     adc32 = new TClonesArray("BmnADCDigit");
     adc128 = new TClonesArray("BmnADCDigit");
     adc = new TClonesArray("BmnADCDigit");
+    tacquila = new TClonesArray("BmnTacquilaDigit");
     tdc = new TClonesArray("BmnTDCDigit");
     tqdc_adc = new TClonesArray("BmnADCSRCDigit");
     tqdc_tdc = new TClonesArray("BmnTDCDigit");
@@ -332,6 +348,7 @@ BmnStatus BmnRawDataDecoder::InitConverter(TString FileName) {
     fRawTree->Branch("ADC32", &adc32);
     fRawTree->Branch("ADC128", &adc128);
     fRawTree->Branch("ADC", &adc);
+    fRawTree->Branch("Tacquila", &tacquila);
     fRawTree->Branch("TDC", &tdc);
     fRawTree->Branch("TQDC_ADC", &tqdc_adc);
     fRawTree->Branch("TQDC_TDC", &tqdc_tdc);
@@ -464,6 +481,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     adc32->Delete();
     adc128->Delete();
     adc->Delete();
+    tacquila->Delete();
     msc->Delete();
     eventHeaderDAQ->Delete();
 
@@ -529,6 +547,9 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             case kHRB:
                 Process_HRB(&data[idx], payload, serial);
                 break;
+	    case kLAND:
+	        Process_Tacquila(&data[idx], payload);
+	        break;
         }
         idx += payload;
     }
@@ -691,6 +712,93 @@ BmnStatus BmnRawDataDecoder::Process_HRB(UInt_t *d, UInt_t len, UInt_t serial) {
     return kBMNSUCCESS;
 }
 
+BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
+  /* LAND Tacquila data in big endian. */
+  uint32_t *p32 = d;
+
+  /* 64-bit TRLO II timestamp. */
+  p32 += 2;
+
+  /*
+   * 6 scalers:
+   * 0: laniic3 m=1.
+   * 1: laniic3 m=2.
+   * 2: laniic6 m=1.
+   * 3: laniic6 m=2.
+   * 4: JINR DAQ trigger.
+   * 5: ---
+   */
+  p32 += 6;
+
+  /*
+   * Tacquila data!
+   * We have 2 chains of 10 Tacquila cards each.
+   */
+  for (unsigned chain = 0; chain < 2; ++chain) {
+    uint32_t header = ntohl(*p32++);
+#define TACQUILA_PRINT_HEADER << "(header=" << header << ")" <<
+    unsigned count = header & 0xff;
+    if (count & 1) {
+      cerr << __FILE__ << ':' << __LINE__ << ": Odd data count forbidden "
+	TACQUILA_PRINT_HEADER ".\n";
+      return kBMNFINISH;
+    }
+    unsigned gtb = (header >> 24) & 0xf;
+    if (chain != gtb) {
+      cerr << __FILE__ << ':' << __LINE__ << ": GTB=" << gtb << "!=" << chain
+	<< " forbidden " TACQUILA_PRINT_HEADER ".\n";
+      return kBMNFINISH;
+    }
+    unsigned sam = header >> 28;
+    if (5 != sam) {
+      cerr << __FILE__ << ':' << __LINE__ << ": SAM=" << sam << "!=5 "
+	"forbidden " TACQUILA_PRINT_HEADER ".\n";
+      return kBMNFINISH;
+    }
+    unsigned tac, clock;
+    for (unsigned i = 0; i < count; ++i) {
+      uint32_t u32 = ntohl(*p32++);
+#define TACQUILA_PRINT_DATA << "(data=" << std::hex << u32 << std::dec << ")" <<
+      /*
+       * Channels 0..15 are normal, 16 = common stop,
+       * anything else is bogus.
+       */
+      unsigned channel = (u32 >> 22) & 0x1f;
+      if (channel > 16) {
+	cerr << __FILE__ << ':' << __LINE__ << ": Channel=" << channel <<
+	  ">16 forbidden " TACQUILA_PRINT_DATA ".\n";
+	return kBMNFINISH;
+      }
+      /* 10 + 10 Tacquila cards used for LAND. */
+      unsigned module = u32 >> 27;
+      if (module > 10) {
+	cerr << __FILE__ << ':' << __LINE__ << ": Module=" << module <<
+	  ">10 forbidden " TACQUILA_PRINT_DATA ".\n";
+	return kBMNFINISH;
+      }
+      unsigned be_qdc = 1 & i;
+      unsigned is_qdc = 1 & (u32 >> 21);
+      if (be_qdc != is_qdc) {
+	cerr << __FILE__ << ':' << __LINE__ << ": TDC/QDC word mismatch "
+	  TACQUILA_PRINT_DATA ".\n";
+	return kBMNFINISH;
+      }
+      if (0 == (1 & i)) {
+	/* Tacqcuila measures reverse time. */
+	tac = 0xfff - (u32 & 0xfff);
+	clock = 0x3f - ((u32 >> 12) & 0x3f);
+      } else {
+	/* QDC:s are not reversed :) */
+	unsigned qdc = u32 & 0xfff;
+	TClonesArray &ar_tacquila = *tacquila;
+	new(ar_tacquila[tacquila->GetEntriesFast()])
+	  BmnTacquilaDigit(sam, gtb, module, channel, tac, clock, qdc);
+      }
+    }
+  }
+  return kBMNSUCCESS;
+}
+
 BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
     UInt_t type = d[idx] >> 28;
     while (type != kMODTRAILER) { //data will be finished when module trailer appears 
@@ -813,6 +921,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     adc32 = new TClonesArray("BmnADCDigit");
     adc128 = new TClonesArray("BmnADCDigit");
     adc = new TClonesArray("BmnADCDigit");
+    tacquila = new TClonesArray("BmnTacquilaDigit");
     eventHeaderDAQ = new TClonesArray("BmnEventHeader");
     runHeaderDAQ = new BmnRunHeader();
     fRawTree->SetBranchAddress("TDC", &tdc);
@@ -823,6 +932,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     fRawTree->SetBranchAddress("ADC32", &adc32);
     fRawTree->SetBranchAddress("ADC128", &adc128);
     fRawTree->SetBranchAddress("ADC", &adc);
+    fRawTree->SetBranchAddress("Tacquila", &tacquila);
     fRawTree->SetBranchAddress("EventHeader", &eventHeaderDAQ);
     fRawTree->SetBranchAddress("RunHeader", &runHeaderDAQ);
 
@@ -947,6 +1057,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fTof700Mapper) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
             if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
+            if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
         }
 
         fDigiTree->Fill();
@@ -1064,6 +1175,13 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         //        fECALMapper->print();
     }
 
+    if (fDetectorSetup[10]) {
+        land = new TClonesArray("BmnLANDDigit");
+        fDigiTree->Branch("LAND", &land);
+	fLANDMapper = new BmnLANDRaw2Digit(fLANDMapFileName,
+	    fLANDClockFileName, fLANDTCalFileName);
+    }
+
     fPedEvCntr = 0; // counter for pedestal events between two spills
     fPedEnough = kFALSE;
     return kBMNSUCCESS;
@@ -1078,6 +1196,7 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (tof700) tof700->Delete();
     if (zdc) zdc->Delete();
     if (ecal) ecal->Delete();
+    if (land) land->Delete();
     if (trigger) trigger->Delete();
     if (t0) t0->Delete();
     if (bc1) bc1->Delete();
@@ -1129,6 +1248,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fTof700Mapper) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
+        if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
     }
     new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig(), kFALSE);
     //        fDigiTree->Fill();
@@ -1190,11 +1310,13 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (fTof700Mapper) delete fTof700Mapper;
     if (fZDCMapper) delete fZDCMapper;
     if (fECALMapper) delete fECALMapper;
+    if (fLANDMapper) delete fLANDMapper;
 
     delete sync;
     delete adc32;
     delete adc128;
     delete adc;
+    delete tacquila;
     delete tdc;
     delete tqdc_adc;
     delete tqdc_tdc;
@@ -1214,6 +1336,7 @@ BmnStatus BmnRawDataDecoder::DisposeDecoder() {
     if (tof700) delete tof700;
     if (zdc) delete zdc;
     if (ecal) delete ecal;
+    if (land) delete land;
 
     delete eventHeader;
     delete runHeader;

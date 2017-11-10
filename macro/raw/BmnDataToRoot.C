@@ -9,7 +9,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     bmnloadlibs(); // load BmnRoot libraries
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //5 - period
     
-    Bool_t setup[10]; //array of flags to determine BM@N setup
+    Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 0; // TRIGGERS
     setup[1] = 0; // MWPC
@@ -20,7 +20,8 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     setup[6] = 0; // DCH
     setup[7] = 0; // ZDC
     setup[8] = 0; // ECAL
-    setup[9] = 1; // TQDC
+    setup[9] = 0; // TQDC
+    setup[10] = 1; // LAND
     decoder->SetDetectorSetup(setup);
     
     decoder->SetTrigMapping("Trig_map_Run6.txt");
@@ -35,6 +36,9 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     decoder->SetECALMapping("ECAL_map_period_5.txt");
     decoder->SetECALCalibration("");
     decoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
+    decoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
+    decoder->SetLANDPedestal("r0030_land_clock.hh");
+    decoder->SetLANDTCal("r0030_land_tcal.hh");
     if (doConvert) decoder->ConvertRawToRoot(); // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
     decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.
 

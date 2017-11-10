@@ -771,9 +771,9 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
       }
       /* 10 + 10 Tacquila cards used for LAND. */
       unsigned module = u32 >> 27;
-      if (module > 10) {
+      if (module < 1 || module > 10) {
 	cerr << __FILE__ << ':' << __LINE__ << ": Module=" << module <<
-	  ">10 forbidden " TACQUILA_PRINT_DATA ".\n";
+	  " forbidden " TACQUILA_PRINT_DATA ".\n";
 	return kBMNFINISH;
       }
       unsigned be_qdc = 1 & i;
@@ -792,7 +792,7 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
 	unsigned qdc = u32 & 0xfff;
 	TClonesArray &ar_tacquila = *tacquila;
 	new(ar_tacquila[tacquila->GetEntriesFast()])
-	  BmnTacquilaDigit(sam, gtb, module, channel, tac, clock, qdc);
+	  BmnTacquilaDigit(sam, gtb, module - 1, channel, tac, clock, qdc);
       }
     }
   }

@@ -231,9 +231,6 @@ BmnLANDRaw2Digit::BmnLANDRaw2Digit(TString a_map_filename, TString
       default: break;
     }
     auto &tcal_vec = m_tcal[tacq.crate][tacq.module][tacq_channel];
-/*if (0 == tcal_vec.size()) {
-printf("%u: %u %u %u %u : %u %u %u %u\n", line_no, land_plane, land_bar, land_tcal, land_side, tacq.crate, tacq.module, tacq.channel, tacq_channel);
-}*/
     if (tcal_vec.size() > 0 && tcal_vec.back().tdc > tdc) {
       /* land02 dups channel-17 tcal for every channel. */
       if (16 != tacq_channel) {

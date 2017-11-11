@@ -15,7 +15,7 @@ class BmnTacquilaDigit: public TObject {
     UInt_t GetTdc() const;
     UInt_t GetClock() const;
     UInt_t GetQdc() const;
-    UInt_t GetTCal() const;
+    Float_t GetTCal() const;
     Float_t GetTime() const;
 
     void SetTime(BmnTacquilaDigit const &);

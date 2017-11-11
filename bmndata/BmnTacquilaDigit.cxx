@@ -62,6 +62,11 @@ UInt_t BmnTacquilaDigit::GetQdc() const
   return fQdc;
 }
 
+Float_t BmnTacquilaDigit::GetTCal() const
+{
+  return fTCal;
+}
+
 Float_t BmnTacquilaDigit::GetTime() const
 {
   return fTime;
@@ -69,7 +74,7 @@ Float_t BmnTacquilaDigit::GetTime() const
 
 void BmnTacquilaDigit::SetTime(BmnTacquilaDigit const &a_c17)
 {
-  fTime = fTCal + (1000 * fClock / TACQUILA_CLOCK_MHZ) - a_c17.fTCal;
+  fTime = fTCal + (1000. * fClock / TACQUILA_CLOCK_MHZ) - a_c17.fTCal;
 }
 
 void BmnTacquilaDigit::SetTCal(Float_t tcal)

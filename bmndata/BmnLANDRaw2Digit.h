@@ -1,7 +1,6 @@
 #ifndef BMNLANDRAW2DIGIT_H
 #define	BMNLANDRAW2DIGIT_H 
 
-#include <TRandom.h>
 #include "BmnLANDDigit.h"
 #include "BmnTacquilaDigit.h"
 
@@ -43,7 +42,6 @@ class BmnLANDRaw2Digit{
     std::vector<TCal> m_tcal[TACQ_CRATE_N][TACQ_MODULE_N][TACQ_CHANNEL_N + 1];
     BmnTacquilaDigit const *m_c17[TACQ_CRATE_N][TACQ_MODULE_N];
     BmnTacquilaDigit const *m_builder[LAND_PLANE_N][LAND_BAR_N][LAND_SIDE_N];
-    TRandom m_random;
 
     ClassDef(BmnLANDRaw2Digit, 1);
 };

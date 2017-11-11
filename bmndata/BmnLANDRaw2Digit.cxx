@@ -40,8 +40,7 @@ BmnLANDRaw2Digit::BmnLANDRaw2Digit(TString a_map_filename, TString
   m_ped(),
   m_tcal(),
   m_c17(),
-  m_builder(),
-  m_random()
+  m_builder()
 {
   /*
    * Read mapping.
@@ -275,7 +274,7 @@ void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
    * clearing on a specific value of the counter, but whatever...
    */
   for (int i = 0; i < tacquila_array->GetEntriesFast(); i++) {
-    auto *tacquila = reinterpret_cast<BmnTacquilaDigit const *>(
+    auto *tacquila = reinterpret_cast<BmnTacquilaDigit *>(
 	tacquila_array->At(i));
     if (16 == tacquila->GetChannel()) {
       continue;
@@ -321,6 +320,7 @@ void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
 	"), corrupt data.\n";
       continue;
     }
+    tacquila->SetTime(*c17);
     m_builder[pmt.plane][pmt.bar][pmt.side] = tacquila;
     if (m_builder[pmt.plane][pmt.bar][1 - pmt.side]) {
       /* Aha, we have both sides of a bar! Muy excellente! */
@@ -367,8 +367,8 @@ void BmnLANDRaw2Digit::SetTCal(BmnTacquilaDigit &a_tacquila)
   }
   auto const &l = tcal_vec.at(left);
   auto const &r = tcal_vec.at(left + 1);
-  /* TODO: This ok? */
-  a_tacquila.SetTCal(m_random.Uniform(l.t_ns, r.t_ns));
+  float t = tdc > l.tdc ? tdc - l.tdc : 0;
+  a_tacquila.SetTCal(t * (r.t_ns - l.t_ns) / (r.tdc - l.tdc) + l.t_ns);
 }
 
 ClassImp(BmnLANDRaw2Digit)

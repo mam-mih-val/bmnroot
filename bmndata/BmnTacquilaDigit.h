@@ -16,21 +16,30 @@ class BmnTacquilaDigit: public TObject {
     UInt_t GetClock() const;
     UInt_t GetQdc() const;
     Float_t GetTCal() const;
-    Float_t GetTime() const;
+    Float_t GetTDiff() const;
 
-    void SetTime(BmnTacquilaDigit const &);
     void SetTCal(Float_t);
+    void SetTDiff(BmnTacquilaDigit const &);
 
   private:
+    /* Always 5 at JINR. */
     UInt_t fSam;
+    /* Two Tacquila crates, so 0 or 1. */
     UInt_t fGtb;
+    /* 0..9. */
     UInt_t fModule;
+    /* 0..15 = normal channel, 16 = common stop. */
     UInt_t fChannel;
+    /* Raw TDC. */
     UInt_t fTdc;
+    /* Long range TDC clock. */
     UInt_t fClock;
+    /* RAW QDC. */
     UInt_t fQdc;
+    /* Calibrated TDC fine-time. */
     Float_t fTCal;
-    Float_t fTime;
+    /* tcal + clock * 25 ns - tcal(ch=17). */
+    Float_t fTDiff;
 
     ClassDef(BmnTacquilaDigit, 1);
 };

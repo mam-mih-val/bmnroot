@@ -235,6 +235,9 @@ public:
     void SetLANDTCal(TString tcal) {
       fLANDTCalFileName = tcal;
     }
+    void SetLANDDiffSync(TString diff_sync) {
+      fLANDDiffSyncFileName = diff_sync;
+    }
 
     TString GetRootFileName() {
         return fRootFileName;
@@ -322,6 +325,7 @@ private:
     TString fLANDMapFileName;
     TString fLANDClockFileName;
     TString fLANDTCalFileName;
+    TString fLANDDiffSyncFileName;
     TString fSiliconMapFileName;
     TString fTrigMapFileName;
     TString fTrigINLFileName;

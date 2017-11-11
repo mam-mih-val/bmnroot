@@ -11,7 +11,8 @@ BmnTacquilaDigit::BmnTacquilaDigit():
   fTdc(-1),
   fClock(-1),
   fQdc(-1),
-  fTime(-1)
+  fTCal(-1),
+  fTDiff(-1)
 {
 }
 
@@ -24,7 +25,8 @@ BmnTacquilaDigit::BmnTacquilaDigit(UInt_t sam, UInt_t gtb, UInt_t module,
   fTdc(tdc),
   fClock(clock),
   fQdc(qdc),
-  fTime(-1)
+  fTCal(-1),
+  fTDiff(-1)
 {
 }
 
@@ -67,19 +69,19 @@ Float_t BmnTacquilaDigit::GetTCal() const
   return fTCal;
 }
 
-Float_t BmnTacquilaDigit::GetTime() const
+Float_t BmnTacquilaDigit::GetTDiff() const
 {
-  return fTime;
-}
-
-void BmnTacquilaDigit::SetTime(BmnTacquilaDigit const &a_c17)
-{
-  fTime = fTCal + (1000. * fClock / TACQUILA_CLOCK_MHZ) - a_c17.fTCal;
+  return fTDiff;
 }
 
 void BmnTacquilaDigit::SetTCal(Float_t tcal)
 {
   fTCal = tcal;
+}
+
+void BmnTacquilaDigit::SetTDiff(BmnTacquilaDigit const &a_c17)
+{
+  fTDiff = fTCal + (1000. * fClock / TACQUILA_CLOCK_MHZ) - a_c17.fTCal;
 }
 
 ClassImp(BmnTacquilaDigit)

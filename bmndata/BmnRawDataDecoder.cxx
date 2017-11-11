@@ -120,6 +120,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fLANDMapFileName = "";
     fLANDClockFileName = "";
     fLANDTCalFileName = "";
+    fLANDDiffSyncFileName = "";
     fDat = 0;
     fGemMapper = NULL;
     fDchMapper = NULL;
@@ -204,6 +205,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fLANDMapFileName = "";
     fLANDClockFileName = "";
     fLANDTCalFileName = "";
+    fLANDDiffSyncFileName = "";
     fDat = 0;
     fGemMapper = NULL;
     fDchMapper = NULL;
@@ -1179,7 +1181,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         land = new TClonesArray("BmnLANDDigit");
         fDigiTree->Branch("LAND", &land);
 	fLANDMapper = new BmnLANDRaw2Digit(fLANDMapFileName,
-	    fLANDClockFileName, fLANDTCalFileName);
+	    fLANDClockFileName, fLANDTCalFileName, fLANDDiffSyncFileName);
     }
 
     fPedEvCntr = 0; // counter for pedestal events between two spills

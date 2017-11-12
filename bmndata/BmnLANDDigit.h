@@ -10,7 +10,7 @@ class BmnLANDDigit: public TNamed
   public:
     BmnLANDDigit();
     BmnLANDDigit(UChar_t, UChar_t, BmnTacquilaDigit const &, BmnTacquilaDigit
-	const &, Float_t, Float_t, Float_t, Float_t);
+	const &, Float_t, Float_t, Float_t, Float_t, Float_t);
     virtual ~BmnLANDDigit();
 
     Float_t GetBarPosition() const;

@@ -26,7 +26,7 @@ BmnLANDDigit::BmnLANDDigit():
 
 BmnLANDDigit::BmnLANDDigit(UChar_t plane, UChar_t bar, BmnTacquilaDigit const
     &a_tacq0, BmnTacquilaDigit const &a_tacq1, Float_t a_time0, Float_t
-    a_time1, Float_t a_energy0, Float_t a_energy1):
+    a_time1, Float_t a_energy0, Float_t a_energy1, Float_t a_position):
   fPlane(plane),
   fBar(bar),
   fGlobBar(plane * 20 + bar),
@@ -42,7 +42,7 @@ BmnLANDDigit::BmnLANDDigit(UChar_t plane, UChar_t bar, BmnTacquilaDigit const
   fEnergy0(a_energy0),
   fEnergy1(a_energy1),
   fEnergy(sqrt(a_energy0 * a_energy1)),
-  fPosition(),
+  fPosition(a_position),
   fX(),
   fY()
 {
@@ -51,7 +51,6 @@ BmnLANDDigit::BmnLANDDigit(UChar_t plane, UChar_t bar, BmnTacquilaDigit const
   COPY_BOTH(Tdc);
   COPY_BOTH(Qdc);
   COPY_BOTH(TDiff);
-  fPosition = fTime1 - fTime0;
   fX = IsVertical() ? GetBarPosition() : fPosition;
   fY = IsVertical() ? fPosition : GetBarPosition();
 }
@@ -62,7 +61,7 @@ BmnLANDDigit::~BmnLANDDigit()
 
 Float_t BmnLANDDigit::GetBarPosition() const
 {
-  return 0.1 * (fBar - 9.5);
+  return 10 * (fBar - 9.5);
 }
 
 Bool_t  BmnLANDDigit::IsVertical() const

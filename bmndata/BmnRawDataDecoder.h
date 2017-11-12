@@ -238,6 +238,9 @@ public:
     void SetLANDDiffSync(TString diff_sync) {
       fLANDDiffSyncFileName = diff_sync;
     }
+    void SetLANDVScint(TString vscint) {
+      fLANDVScintFileName = vscint;
+    }
 
     TString GetRootFileName() {
         return fRootFileName;
@@ -326,6 +329,7 @@ private:
     TString fLANDClockFileName;
     TString fLANDTCalFileName;
     TString fLANDDiffSyncFileName;
+    TString fLANDVScintFileName;
     TString fSiliconMapFileName;
     TString fTrigMapFileName;
     TString fTrigINLFileName;

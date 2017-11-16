@@ -237,13 +237,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     }
 
     // ====================================================================== //
-    // ===                     Primary vertex finding                     === //
-    // ====================================================================== //
-    BmnGemVertexFinder* vf = new BmnGemVertexFinder();
-    vf->SetField(isField);
-    vf->SetVertexApproximation(vAppr);
-    fRunAna->AddTask(vf);
-    // ====================================================================== //
     // ===                           Tracking (DCH)                       === //
     // ====================================================================== //
     BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
@@ -253,7 +246,15 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ===                          Global Tracking                       === //
     // ====================================================================== //
     BmnGlobalTracking* glFinder = new BmnGlobalTracking();
+    glFinder->SetField(isField);
     fRunAna->AddTask(glFinder);
+    // ====================================================================== //
+    // ===                     Primary vertex finding                     === //
+    // ====================================================================== //
+    BmnGemVertexFinder* vf = new BmnGemVertexFinder();
+    vf->SetField(isField);
+    vf->SetVertexApproximation(vAppr);
+    fRunAna->AddTask(vf);   
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
     FairParRootFileIo* parIo1 = new FairParRootFileIo();

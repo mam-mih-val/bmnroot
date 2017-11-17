@@ -1,5 +1,5 @@
-#include "db_settings.h"
 #include "UniDbTangoData.h"
+#include "UniDbConnection.h"
 
 #include <TSQLServer.h>
 #include <TSQLStatement.h>
@@ -48,215 +48,26 @@ TangoTimeInterval::~TangoTimeInterval()
 }
 ClassImp(TangoTimeInterval);
 
-void UniDbTangoData::SplitString(TString str, TString delim, vector<TString> &v)
-{
-    v.clear();
+// CLASS UniDbTangoData
+UniDbTangoData::UniDbTangoData() {}
 
-    int stringLength = str.Length();
-    int delimLength = delim.Length();
+UniDbTangoData::~UniDbTangoData() {}
 
-    int stop = 1;
-    TString temp = "";
-    while (stop != -1)
-    {
-        stop = str.First(delim);
-        if (stop != -1)
-        {
-            temp = str(0, stop);
-            TSubString newString = str(stop+delimLength, stringLength);
-            str = newString;
-            stringLength = str.Length();
-        }
-        else
-        {
-            stringLength = str.Length();
-            temp = str(0, stringLength);
-        }
-
-        v.push_back(temp);
-    }
-}
-
-UniDbTangoData::UniDbTangoData(){
-}
-
-UniDbTangoData::~UniDbTangoData(){
-}
-
-// перевод строки формата "DD.MM.YYYY HH:MM:SS" в класс TDatime
-TDatime UniDbTangoData::StringToDatime(TString str_time)
-{
-    tm tmp;
-    sscanf(str_time.Data(), "%2d.%2d.%4d %2d:%2d:%2d", &tmp.tm_mday, &tmp.tm_mon, &tmp.tm_year, &tmp.tm_hour, &tmp.tm_min, &tmp.tm_sec);
-    TDatime ttime (tmp.tm_year, tmp.tm_mon, tmp.tm_mday, tmp.tm_hour, tmp.tm_min, tmp.tm_sec);
-
-    return ttime;
-}
-
-// перевод строки формата "DD.MM.YYYY HH:MM:SS" в стандартный формат time_t
-int UniDbTangoData::StringToTime(TString str_time)
-{
-    tm tmp;
-    sscanf(str_time.Data(),"%2d.%2d.%4d %2d:%2d:%2d", &tmp.tm_mday, &tmp.tm_mon, &tmp.tm_year, &tmp.tm_hour, &tmp.tm_min, &tmp.tm_sec);
-    TDatime ttime (tmp.tm_year, tmp.tm_mon, tmp.tm_mday, tmp.tm_hour, tmp.tm_min, tmp.tm_sec);
-
-    return ttime.Convert();
-}
-
-
-vector<CSVElement>* UniDbTangoData::GetCSVData(string filename)
-{
-    ifstream fin(filename.c_str());
-    if (!fin.is_open())
-    {
-        cout<<"Error was occured while opening the file!\n";
-        return NULL;
-    }
-
-    vector<CSVElement>* zdcXY = new vector<CSVElement>();
-    vector<TString> elements;
-    TString temp, ttemp, delim = ";";
-    string s;
-    while (!fin.eof())
-    {
-        getline(fin, s);
-        if (!s.empty())
-        {
-            temp = s;
-            SplitString(temp, delim, elements);
-
-            temp = "";
-            temp = elements.at(0);
-            int n = temp.Length();
-            ttemp = temp(1, n-2);
-
-            if (ttemp == "DB_Portal_Pos.PsA")
-            {
-                CSVElement par;
-                par.varName = "ZDC_X";
-                temp = "";
-                ttemp = "";
-                temp = elements.at(1);
-                int n_in = temp.Length();
-                ttemp = temp(1, n_in-2);
-                par.runTime = StringToDatime(ttemp);
-                temp = "";
-                temp = elements.at(2);
-                par.varValue = temp.Atoi();
-
-                zdcXY->push_back(par);
-            }
-            if (ttemp == "DB_Klet_Pos.PsA")
-            {
-                CSVElement par;
-                par.varName = "ZDC_Y";
-                temp = "";
-                ttemp = "";
-                temp = elements.at(1);
-                int n_in = temp.Length();
-                ttemp = temp(1, n_in-2);
-                par.runTime = StringToDatime(ttemp);
-                temp = "";
-                temp = elements.at(2);
-                par.varValue = temp.Atoi();
-
-                zdcXY->push_back(par);
-            }
-        }
-    }
-
-    fin.close();
-    elements.clear();
-
-    return zdcXY;
-}
-
-void UniDbTangoData::PrintCSVData(vector<CSVElement>* zdcXY, bool isGraphicPresentation, bool isTimeCut, TDatime* start_time, TDatime* end_time)
-{
-    if (isTimeCut)
-    {
-        if ((start_time == NULL) || (end_time == NULL))
-        {
-            cout<<"Error: Start and end cut time can't be equal NULL"<<endl;
-            return;
-        }
-    }
-
-    // if console presentation
-    if (!isGraphicPresentation)
-    {
-        for (int i = 0; i < zdcXY->size(); i++)
-        {
-            if ((!isTimeCut) || ((zdcXY->at(i).runTime.Convert() >= start_time->Convert()) && (zdcXY->at(i).runTime.Convert() <= end_time->Convert())))
-                cout<< zdcXY->at(i).varName<<" "<<zdcXY->at(i).runTime.AsSQLString()<<" "<<zdcXY->at(i).varValue<<" "<<endl;
-        }
-
-        return;
-    }// if console presentation
-
-    // if multigraph presentation
-    const int N = (int) zdcXY->size()/2;
-    int x[N], y[N], xx[N], yy[N];
-
-    int count = 0;
-    for (int i = 0; i < zdcXY->size(); i++)
-    {
-        if (zdcXY->at(i).varName == "ZDC_X")
-        {
-            int cur_time = zdcXY->at(i).runTime.Convert();
-            if ((!isTimeCut) || ((cur_time > start_time->Convert()) && (cur_time <= end_time->Convert())))
-            {
-                x[count] = cur_time;
-                y[count] = zdcXY->at(i).varValue;
-                count++;
-            }
-        }
-        if (zdcXY->at(i).varName == "ZDC_Y")
-        {
-            int cur_time = zdcXY->at(i).runTime.Convert();
-            if ((!isTimeCut) || ((cur_time > start_time->Convert()) && (cur_time <= end_time->Convert())))
-            {
-                xx[count] = cur_time;
-                yy[count] = zdcXY->at(i).varValue;
-            }
-        }
-    }
-
-    TCanvas *c1 = new TCanvas("c1", "Coord X and Y", 800, 600);
-
-    TGraph* gr1 = new TGraph(count, x, y);
-    TGraph* gr2 = new TGraph(count, xx, yy);
-
-    gr1->SetMarkerColor(2); // красный - Х
-    gr2->SetMarkerColor(3); // зеленый - Y
-
-    TMultiGraph* mg = new TMultiGraph();
-    mg->Add(gr1);
-    mg->Add(gr2);
-    mg->Draw("ap");
-
-    //формирование оси с отрезками времени
-    mg->GetXaxis()->SetTimeDisplay(1);
-    mg->GetXaxis()->SetNdivisions(-503);
-    mg->GetXaxis()->SetTimeFormat("%Y.%m.%d %H:%M");
-    mg->GetXaxis()->SetTimeOffset(0,"gmt");
-
-    gr1->SetMarkerStyle(21);
-    gr2->SetMarkerStyle(21);
-
-    TLegend* leg = new TLegend(.7, .9, .9, 1.);
-    leg->AddEntry(gr1,"x coordinate","p");
-    leg->AddEntry(gr2,"y coordinate","p");
-    leg->Draw();
-
-    return;
-}
-
+// Function GetTangoParameter gets hardware data from the Tango database (MySQL connection defined in 'uni_db/db_settings.h' file).
+// First, name of the target table with required parameter is extracted from the Tango Base Table,
+// then required data are selected from the target table corresponding the given time interval.
+// Parameters:
+//	detector_name - name of the detector (e.g. "zdc" or "gem")
+//	parameter_name - name of physical parameter stored in Tango (e.g. "uset" for ZDC or "u" for GEM)
+//	date_start - time from which to start reading the parameter, format: "YYYY-MM-DD HH:MM:SS" (e.g. "2015-03-13 23:00:00")
+//	date_end - end time of parameter reading, the same format (e.g. "2015-03-13 24:00:00")
+// Returns TobjArray with TangoTimeParameter objects (i.e. conditionally TObjArray<TangoTimeParameter*>), or NULL in case errors.
 TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end)
 {
     // TANGO database connection
-    TString strConnection = TString::Format("mysql://%s", TANGO_DB_HOST);
-    TSQLServer* db = TSQLServer::Connect(strConnection, TANGO_DB_USERNAME, TANGO_DB_PASSWORD);
+    UniDbConnection* connUniDb = UniDbConnection::Open(TANGO_DB);
+    if (connUniDb == 0x00) return NULL;
+    TSQLServer* db = connUniDb->GetSQLServer();
     if (db == NULL) return NULL;
 
     if (db->GetTables(TANGO_DB_NAME) == NULL)
@@ -269,8 +80,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
     TSQLStatement* stmt_select = db->Statement(strStatement);
     if (!stmt_select->Process())
     {
-            cout<<"Error: getting info about parameter from Tango has been failed"<<endl;
-
+            cout<<"Error: getting info about parameter from Tango has been failed: detector_name = "<<detector_name<<", parameter_name = "<<parameter_name<<endl;
             delete stmt_select;
             delete db;
             return NULL;
@@ -291,6 +101,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
     //cout<<"Data table name - "<<table_name<<endl;
     delete stmt_select;
 
+    // parse parameter type, support for array_devdouble, array_devboolean, scalar_devdouble
     Tango_Parameter_Type par_type;
     if ((data_type == "array_devdouble_rw") || (data_type == "array_devdouble_ro"))
         par_type = Tango_Double_Array;
@@ -319,13 +130,12 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
     else
         query_data = TString::Format("SELECT data_time, value_r FROM %s WHERE att_conf_id=\"%d\" and data_time>=\"%s\" and data_time<=\"%s\" ORDER BY data_time",
                                       table_name.Data(), data_id, date_start, date_end);
-
     //cout<<"Query data: "<<query_data<<endl;
+
     stmt_select = db->Statement(query_data);
     if (!stmt_select->Process())
     {
             cout<<"Error: getting info about parameter values from Tango has been failed"<<endl;
-
             delete stmt_select;
             delete db;
             return NULL;
@@ -335,8 +145,8 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
 
     // write data to the result array
     TObjArray* tango_data = new TObjArray();
+    tango_data->SetName(TString::Format("'%s' parameter for %s detector", parameter_name, detector_name));
     tango_data->SetOwner(kTRUE);
-    int i = 0;
     while (stmt_select->NextResultRow())
     {
         TDatime datetime = stmt_select->GetTimestamp(0);
@@ -362,8 +172,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
             delete db;
             return NULL;
         }
-
-        //if (i++ == 0) cout<<"Parameter length: "<<i_par_len<<" (real: "<<i_real_par_len<<"). Number of time points: "<<stmt_select->GetNumAffectedRows()/i_par_len<<"."<<endl;
 
         TangoTimeParameter* par = new TangoTimeParameter(datetime, par_type);
         //cout<<par.parameter_time.AsString()<<endl;
@@ -403,7 +211,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
             }
 
         }
-         //cout<<par.bool_parameter_value.size().size()<<endl;
+        //cout<<par.bool_parameter_value.size().size()<<endl;
         //cout<<par.double_parameter_value.size().size()<<endl;
 
         tango_data->Add(par);
@@ -415,16 +223,30 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
     return tango_data;
 }
 
-// now it works only if channel count is constant during given time period
+// Function SearchTangoIntervals gets time intervals for defined condition on parameter, from the Tango database (MySQL connection defined in 'uni_db/db_settings.h' file).
+// NOTE: now it works only if channel count is constant during given time period
+// First, name of the target table with required parameter is extracted from the Tango Base Table,
+// then time intervals are selected from the target table corresponding the given condition and time interval.
+// Parameters:
+//	detector_name - name of the detector (e.g. "zdc" or "gem")
+//	parameter_name - name of physical parameter stored in Tango (e.g. "uset" for ZDC or "u" for GEM)
+//      date_start - time from which to start searching for time intervals satisfied the condition, format: "YYYY-MM-DD HH:MM:SS" (e.g. "2015-03-13 23:00:00")
+//	date_end - end time of searching time intervals, the same format (e.g. "2015-03-13 24:00:00")
+//      condition - condition of time interval sampling, default: conditionEqual (the possible list in 'uni_db/db_structures.h')
+//      value - boolean value for the condition with which the comparison is performed, default: true
+//      mapChannel - array of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; NULL - if not used
+// Returns common TObjArray with TObjArray objects containing TangoTimeInterval (i.e. conditionally TObjArray<TObjArray<TangoTimeInterval*>>),
+// if no intervals found - returns the common TObjArray with zero TObjArray elements; in case of errors - returns NULL
 TObjArray* UniDbTangoData::SearchTangoIntervals(char* detector_name, char* parameter_name, char* date_start, char* date_end, enumConditions condition, bool value, int* mapChannel)
 {
+    // get Tango parameter values for the given time period
     TObjArray* tango_data = GetTangoParameter(detector_name, parameter_name, date_start, date_end);
     if (tango_data == NULL) return NULL;
 
     TObjArray* pTimeIntervals = new TObjArray();
     pTimeIntervals->SetOwner(kTRUE);
 
-    // if there is no points in the Tango interval then return TimeIntervals collection without any elements
+    // if there is no points in the Tango period then return empty common TObjArray (without any elements)
     if (tango_data->GetEntriesFast() == 0)
     {
         delete tango_data;
@@ -535,6 +357,8 @@ TObjArray* UniDbTangoData::SearchTangoIntervals(char* detector_name, char* param
     return pTimeIntervals;
 }
 
+// Function PrintTangoDataConsole display hardware data obtained from Tango, e.g. ZDC voltage in time interval, in console
+//      tango_data - TObjArray with TangoTimeParameter objects obtained from 'GetTangoParameter' function
 void UniDbTangoData::PrintTangoDataConsole(TObjArray* tango_data)
 {
     int def_precision = cout.precision();
@@ -549,22 +373,23 @@ void UniDbTangoData::PrintTangoDataConsole(TObjArray* tango_data)
         //cout<<TD->dataArray[i].parameter_length<<endl;
         par_length = pParameter->double_parameter_value.size();
         for (int j = 0; j < par_length; j++)
-        {
             cout<<pParameter->double_parameter_value[j]<<"  ";
-        }
         cout<<""<<endl<<endl;
     }
 
     cout.precision(def_precision);
-
     return;
 }
 
-void UniDbTangoData::PrintTangoDataSurface(TObjArray* tango_data)
+// Function PrintTangoDataSurface display hardware vector data obtained from Tango, e.g. ZDC voltage in time interval, graphically as 2D Surface Graph
+// Parameters:
+//  tango_data - TObjArray with TangoTimeParameter objects obtained from 'GetTangoParameter' function
+//  y_axis - label of Y axis
+void UniDbTangoData::PrintTangoDataSurface(TObjArray* tango_data, const char* y_axis)
 {
     TCanvas* c1 = new TCanvas("c1", "Tango Data", 800, 600);
-    TGraph2D* gr2 = new TGraph2D();
-    gr2->SetTitle("Tango Data (surface)");
+    TGraph2D* tango_graph = new TGraph2D();
+    tango_graph->SetTitle(tango_data->GetName());
 
     int par_length = 0;
     for (int i = 0; i < tango_data->GetEntriesFast(); i++)
@@ -578,54 +403,56 @@ void UniDbTangoData::PrintTangoDataSurface(TObjArray* tango_data)
             int cur_time = pParameter->parameter_time.Convert();
             double value = pParameter->double_parameter_value[j];
             //cout<<x<<" "<<y<<" "<<z<<endl;
-            gr2->SetPoint(i*par_length+j, cur_time, j+1, value);
+            tango_graph->SetPoint(i*par_length+j, cur_time, j+1, value);
         }
     }
 
-    gr2->Draw("SURF1");
+    tango_graph->Draw("SURF1");
     gPad->Update();
 
-    gr2->GetXaxis()->SetTitle("time");
-    gr2->GetXaxis()->CenterTitle();
-    gr2->GetXaxis()->SetTitleOffset(1.9);
-    gr2->GetXaxis()->SetLabelSize(0.025);
-    gr2->GetXaxis()->SetLabelOffset(0.009);
-    gr2->GetXaxis()->SetNdivisions(-503);
+    tango_graph->GetXaxis()->SetTitle("time");
+    tango_graph->GetXaxis()->CenterTitle();
+    tango_graph->GetXaxis()->SetTitleOffset(1.9);
+    tango_graph->GetXaxis()->SetLabelSize(0.025);
+    tango_graph->GetXaxis()->SetLabelOffset(0.009);
+    tango_graph->GetXaxis()->SetNdivisions(-503);
 
-    gr2->GetYaxis()->SetTitle("index");
-    gr2->GetYaxis()->CenterTitle();
-    gr2->GetYaxis()->SetTitleOffset(1.9);
-    gr2->GetYaxis()->SetLabelSize(0.025);
-    gr2->GetYaxis()->SetLabelOffset(0.001);
-    gr2->GetYaxis()->CenterLabels();
-    gr2->GetYaxis()->SetNdivisions(par_length+1, 0, 0);
+    tango_graph->GetYaxis()->SetTitle(y_axis);
+    tango_graph->GetYaxis()->CenterTitle();
+    tango_graph->GetYaxis()->SetTitleOffset(1.9);
+    tango_graph->GetYaxis()->SetLabelSize(0.025);
+    tango_graph->GetYaxis()->SetLabelOffset(0.001);
+    tango_graph->GetYaxis()->CenterLabels();
+    tango_graph->GetYaxis()->SetNdivisions(par_length+1, 0, 0);
 
-    gr2->GetZaxis()->SetLabelSize(0.025);
+    tango_graph->GetZaxis()->SetLabelSize(0.025);
 
     // form X-axis with time ticks
-    gr2->GetXaxis()->SetTimeDisplay(1);
-    gr2->GetXaxis()->SetTimeFormat("%Y.%m.%d %H:%M");
-    gr2->GetXaxis()->SetTimeOffset(0,"local");
+    tango_graph->GetXaxis()->SetTimeDisplay(1);
+    tango_graph->GetXaxis()->SetTimeFormat("%Y.%m.%d %H:%M");
+    tango_graph->GetXaxis()->SetTimeOffset(0,"local");
 
     c1->Modified();
 
     return;
 }
 
-void UniDbTangoData::PrintTangoDataMulti3D(TObjArray* tango_data)
+// Function PrintTangoDataMulti3D display hardware vector data obtained from Tango, e.g. ZDC voltage in time interval, graphically as a set of Line Graphs
+// Parameter: tango_data - TObjArray with TangoTimeParameter objects obtained from 'GetTangoParameter' function
+void UniDbTangoData::PrintTangoDataMultiGraph(TObjArray* tango_data, const char* y_axis, bool is3D)
 {
     TCanvas* c1 = new TCanvas("c1", "Tango Data", 800, 600);
 
     int par_length = ((TangoTimeParameter*)tango_data->At(0))->double_parameter_value.size();
-    TGraph* gr = new TGraph[par_length]();
+    TGraph* tango_graphs = new TGraph[par_length]();
     gRandom->SetSeed();
     for (int j = 0; j < par_length; j++)
     {
         Int_t color = gRandom->Integer(50);
         if ((color == 0) || (color == 10) || ((color > 16) && (color < 20))) color += 20;
-        gr[j].SetLineColor(color);
-        gr[j].SetTitle(TString::Format("%d", j));
-        gr[j].SetLineWidth(3);
+        tango_graphs[j].SetLineColor(color);
+        tango_graphs[j].SetTitle(TString::Format("%d", j));
+        tango_graphs[j].SetLineWidth(3);
     }
 
     for (int i = 0; i < tango_data->GetEntriesFast(); i++)
@@ -634,30 +461,59 @@ void UniDbTangoData::PrintTangoDataMulti3D(TObjArray* tango_data)
         par_length = pParameter->double_parameter_value.size();
         for (int j = 0; j < par_length; j++)
         {
-            //int cur_time = TD->dataArray[i].parameter_time.Convert();
+            int cur_time = pParameter->parameter_time.Convert();
             double value = pParameter->double_parameter_value[j];
-            gr[j].SetPoint(i, i, value);
+            tango_graphs[j].SetPoint(i, cur_time, value);
         }
     }
 
-    TMultiGraph* mg = new TMultiGraph();
-    mg->SetTitle("Tango Data (multigraph)");
+    TMultiGraph* tango_multi = new TMultiGraph();
+    tango_multi->SetTitle(tango_data->GetName());
     for (int j = 0; j < par_length; j++)
-        mg->Add(&gr[j]);
+        tango_multi->Add(&tango_graphs[j]);
 
-    mg->Draw("AL3D");
+    TString draw_par = "AL";
+    if (is3D) draw_par += "3D";
+    tango_multi->Draw(draw_par.Data());
     gPad->Update();
 
+    if (!is3D)
+    {
+        tango_multi->GetXaxis()->SetTitle("time");
+        tango_multi->GetXaxis()->CenterTitle();
+        tango_multi->GetXaxis()->SetTitleOffset(1.3);
+        tango_multi->GetXaxis()->SetLabelSize(0.025);
+        tango_multi->GetXaxis()->SetLabelOffset(0.009);
+        tango_multi->GetXaxis()->SetNdivisions(-503);
+        // form X-axis with time ticks
+        tango_multi->GetXaxis()->SetTimeDisplay(1);
+        tango_multi->GetXaxis()->SetTimeFormat("%Y.%m.%d %H:%M");
+        tango_multi->GetXaxis()->SetTimeOffset(0,"local");
+
+        tango_multi->GetYaxis()->SetTitle(y_axis);
+        tango_multi->GetYaxis()->CenterTitle();
+        tango_multi->GetYaxis()->SetTitleOffset(1.3);
+        tango_multi->GetYaxis()->SetLabelSize(0.025);
+        tango_multi->GetYaxis()->SetLabelOffset(0.001);
+        tango_multi->GetYaxis()->CenterLabels();
+        //gr->GetYaxis()->SetNdivisions(10, 0, 0);
+    }
+
     c1->Modified();
+
     return;
 }
 
-void UniDbTangoData::PrintTangoIntervalConsole(TObjArray* tango_data, TString channel_name)
+// Function PrintTangoIntervalConsole displays in console time intervals obtained from Tango for defined condition
+// Parameters:
+//  tango_intervals - TObjArray with TObjArray objects containing TangoTimeInterval objects obtained from 'SearchTangoIntervals' function
+//  channel_name - name of the dimension to display on the screen, default: Channel
+void UniDbTangoData::PrintTangoIntervalConsole(TObjArray* tango_intervals, TString channel_name)
 {
-    for (int i = 0; i < tango_data->GetEntriesFast(); i++)
+    for (int i = 0; i < tango_intervals->GetEntriesFast(); i++)
     {
         cout<<channel_name.Data()<<" "<<i<<":"<<endl;
-        TObjArray* pChannel = (TObjArray*) tango_data->At(i);
+        TObjArray* pChannel = (TObjArray*) tango_intervals->At(i);
         for (int j = 0; j < pChannel->GetEntriesFast(); j++)
         {
             TangoTimeInterval* pInterval = (TangoTimeInterval*) pChannel->At(j);
@@ -672,6 +528,7 @@ void UniDbTangoData::PrintTangoIntervalConsole(TObjArray* tango_data, TString ch
     return;
 }
 
+// return average value for Tango data array (result vector with size greater than 1 is used in case of many channels)
 vector<double> UniDbTangoData::GetAverageTangoData(TObjArray* tango_data)
 {
     vector<double> result;

@@ -9,21 +9,27 @@ mapSQLServer* UniDbConnection::mapConnection = 0x00;
 // -----   Constructor with connection   ----------------------
 UniDbConnection::UniDbConnection(TSQLServer* pSQLServer)
 {
-    uni_db = pSQLServer;
+    server_db = pSQLServer;
 }
 
 // -------------------------------------------------------------------
-UniDbConnection* UniDbConnection::Open(UniConnectionType database_type)
+UniDbConnection* UniDbConnection::Open(UniConnectionType connection_type)
 {
     TString conString = "";
-    switch (database_type)
+    switch (connection_type)
     {
         case UNIFIED_DB:
-            conString = "pgsql://" + (TString)UNI_DB_HOST + "/" + (TString)UNI_DB_NAME;
+            conString = TString::Format("pgsql://%s/%s", UNI_DB_HOST, UNI_DB_NAME);
+            break;
+        case TANGO_DB:
+            conString = TString::Format("mysql://%s/%s", TANGO_DB_HOST, TANGO_DB_NAME);
+            break;
+        case ELOG_DB:
+            conString = TString::Format("pgsql://%s/%s", ELOG_DB_HOST, ELOG_DB_NAME);
             break;
         default:
             {
-                cout<<"Error: incorrect database connection type!"<<endl;
+                cout<<"ERROR: incorrect database connection type!"<<endl;
                 return 0x00;
             }
     }
@@ -39,10 +45,21 @@ UniDbConnection* UniDbConnection::Open(UniConnectionType database_type)
     }
     else
     {
-        pSQLServer = TSQLServer::Connect(conString, UNI_DB_USERNAME, UNI_DB_PASSWORD);
+        switch (connection_type)
+        {
+            case UNIFIED_DB:
+                pSQLServer = TSQLServer::Connect(conString, UNI_DB_USERNAME, UNI_DB_PASSWORD);
+                break;
+            case TANGO_DB:
+                pSQLServer = TSQLServer::Connect(conString, TANGO_DB_USERNAME, TANGO_DB_PASSWORD);
+                break;
+            case ELOG_DB:
+                pSQLServer = TSQLServer::Connect(conString, ELOG_DB_USERNAME, ELOG_DB_PASSWORD);
+                break;
+        }
         if (pSQLServer == 0x00)
         {
-            cout<<"Error: connection wasn't established"<<endl;
+            cout<<"ERROR: connection wasn't established"<<endl;
             return 0x00;
         }
         //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
@@ -54,9 +71,24 @@ UniDbConnection* UniDbConnection::Open(UniConnectionType database_type)
 }
 
 // -------------------------------------------------------------------
-UniDbConnection* UniDbConnection::Open(TString strDBHost, TString strDBName, TString strUID, TString strPassword)
+UniDbConnection* UniDbConnection::Open(UniDbType database_type, const char* strDBHost, const char* strDBName, const char* strUID, const char* strPassword)
 {
-    TString conString = "pgsql://" + strDBHost + TString("/") + strDBName;
+    char* db_type;
+    switch (database_type)
+    {
+        case MYSQL_DB:
+            db_type = (char*)"mysql";
+            break;
+        case POSTGRESQL_DB:
+            db_type = (char*)"pgsql";
+            break;
+        default:
+            {
+                cout<<"ERROR: incorrect database type!"<<endl;
+                return 0x00;
+            }
+    }
+    TString conString = TString::Format("%s://%s/%s", db_type, strDBHost, strDBName);
 
     if (UniDbConnection::mapConnection == NULL)
         UniDbConnection::mapConnection = new mapSQLServer();
@@ -72,7 +104,7 @@ UniDbConnection* UniDbConnection::Open(TString strDBHost, TString strDBName, TSt
         pSQLServer = TSQLServer::Connect(conString, strUID, strPassword);
         if (pSQLServer == 0x00)
         {
-            cout<<"Error: connection wasn't established"<<endl;
+            cout<<"ERROR: connection wasn't established"<<endl;
             return 0x00;
         }
         //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;

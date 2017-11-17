@@ -14,6 +14,7 @@
 #include "TDatime.h"
 
 #include "UniDbConnection.h"
+#include "db_structures.h"
 
 class UniDbRunPeriod
 {
@@ -67,6 +68,15 @@ class UniDbRunPeriod
 	/// print information about current run period
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+
+        /// get numbers of runs existing in the Database for a selected period
+        /// \param[in] start_period start period number for selected run numbers' range
+        /// \param[in] start_run start run number for selected run numbers' range
+        /// \param[in] end_period end period number for selected run numbers' range
+        /// \param[in] end_run end run number for selected run numbers' range
+        /// \param[out] run pairs (period number+run numbers) of the really existing runs for a selected range (from start to end)
+        /// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
+        static int GetRunNumbers(int period_number, UniqueRunNumber*& run_numbers);
 
  ClassDef(UniDbRunPeriod,1);
 };

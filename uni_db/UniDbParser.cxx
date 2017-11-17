@@ -1060,7 +1060,7 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
     return 0;
 }
 
-bool check_element(const string& str, size_t pos, string element, string element_sql, string& strFirstParticle, string& strSecondParticle, int& iError)
+bool check_element(const string& str, size_t pos, string element)
 {
     size_t str_length = str.length(), element_length = element.length();
     if ((pos + element_length) > str_length)
@@ -1072,28 +1072,32 @@ bool check_element(const string& str, size_t pos, string element, string element
             return false;
     }
 
-    if (((pos == 0) || (str[pos-1] == ' ')) && ((pos == (str_length-element_length)) || (str[pos+element_length] == ' ')))
+    if (((pos == 0) || (str[pos-1] == ' ') || (str[pos-1] == ',') || (str[pos-1] == '.')) &&
+       ((pos == (str_length-element_length)) || (str[pos+element_length] == ' ') || (str[pos+element_length] == ',') || (str[pos+element_length] == '.')))
     {
-        if (strFirstParticle.empty())
-            strFirstParticle = element_sql;
-        else
-        {
-            if (strSecondParticle.empty())
-                strSecondParticle = element_sql;
-            else
-            {
-                cout<<"ERROR: more than 2 particles found"<<endl;
-                iError = 1;
-            }
-        }
         return true;
     }
 
     return false;
 }
 
+// convert string "Day  DD Mon YYYY HH:MM:SS +ZZZZ" to TDatime without zone, e.g. "Fri  20 Feb 2015 12:03:41 +0300"
+TDatime stringToDatime(string str_time)
+{
+    tm tmbuf[1] = {{0}};
+
+    //tm tmbuf;
+    //sscanf(str_time.Data(), "%2d.%2d.%4d %2d:%2d:%2d", &tmbuf.tm_mday, &tmbuf.tm_mon, &tmbuf.tm_year, &tmbuf.tm_hour, &tmbuf.tm_min, &tmbuf.tm_sec);
+    //str>>get_time(&tmbuf, "%a %d %b %Y %H:%M:%S +");
+    strptime(str_time.c_str(), "%a  %d %b %Y %H:%M:%S %z", tmbuf);
+    TDatime ttime(tmbuf->tm_year, tmbuf->tm_mon+1, tmbuf->tm_mday, tmbuf->tm_hour, tmbuf->tm_min, tmbuf->tm_sec);
+
+    return ttime;
+}
+
+
 // specific functions for experiments (BM@N)
-int UniDbParser::ParseElogCsv(int period_number, TString csvName, char separate_symbol)
+int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
 {
     ifstream csvFile;
     csvFile.open(csvName, ios::in);
@@ -1103,161 +1107,704 @@ int UniDbParser::ParseElogCsv(int period_number, TString csvName, char separate_
         return -1;
     }
 
+    UniDbConnection* connUni = UniDbConnection::Open(ELOG_DB);
+    if (connUni == 0x00) return 0x00;
+    TSQLServer* elog_server = connUni->GetSQLServer();
+    if (elog_server == 0x00)
+    {
+        cout<<"ERROR: ELOG connection wasn't established"<<endl;
+        return -2;
+    }
+    //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
+    TSQLStatement* stmt = NULL;
+
     // run and parse CSV file, and update the fields in DB
-    int updated_count = 0;
+    int skip_line = 1, updated_count = 0;
     string cur_line;
     while (getline(csvFile, cur_line))
     {
         if (cur_line == "")
             continue;
+        if (skip_line > 0)
+        {
+            skip_line--;
+            continue;
+        }
 
         // parse current line
         string trim_line = trim(cur_line);
         istringstream line_stream(trim_line);
 
         // parse tokens by symbol separated
-        string token, run_number = "", elog_field = "";
-        int ind = 1, iError = 0;
+        string token, record_id = "", record_date = "", author = "", record_type = "", subject = "", run_number = "", shift_leader = "", trigger_info = "",
+                      daq_status = "", magnet_field = "", beam = "", record_comment = "";
+        int index = 0, iError = 0;
         while (getline(line_stream, token, separate_symbol))
         {
-            switch (ind)
+            switch (index)
             {
+                case 0:
+                    record_id = token;
+                    break;
                 case 1:
-                    run_number = token;
+                    record_date = token;
                     break;
                 case 2:
-                    elog_field = token;
+                    author = trim(token, "\"");
+                    break;
+                case 3:
+                    record_type = trim(token, "\"");
+                    break;
+                case 4:
+                    break;
+                case 5:
+                    subject = trim(token, "\"");
+                    break;
+                case 6:
+                    run_number = trim(token, "\"");
+                    break;
+                case 7:
+                    shift_leader = trim(token, "\"");
+                    break;
+                case 8:
+                    trigger_info = trim(token, "\"");
+                    break;
+                case 9:
+                    daq_status = trim(token, "\"");
+                    break;
+                case 10:
+                    magnet_field = trim(token, "\"");
+                    break;
+                case 11:
+                    beam = trim(token, "\"");
+                    break;
+                case 12:
+                    record_comment = trim(token, "\"");
                     break;
                 default:
                 {
-                    cout<<"ERROR: more then two tokens separated by '"<<separate_symbol<<"' for run_number: "<<run_number<<endl;
+                    cout<<"ERROR: more tokens separated by '"<<separate_symbol<<"' for record_id: "<<record_id<<endl;
                     iError = 2;
                     break;
                 }
             }
-            ind++;
+            index++;
         }// parse tokens by symbol separated
         if (iError != 0)
             continue;
 
-        // is string an integer number?
-        if (!is_string_number(run_number))
+        int iRecordId = -1, iAuthor = -1, iRecordType = -1, iRunNumber = -1, iLastRunNumber = -1, iShiftLeader = -1, iTriggerInfo = -1;
+        // RECORD ID
+        if (!is_string_number(record_id))
         {
-            cout<<"ERROR: run number is not number: "<<run_number<<endl;
+            cout<<"ERROR: record id is not number: "<<record_id<<endl;
             continue;
         }
-        int iRunNumber = atoi(run_number.c_str());
-
-        // parse elog field
-        // find energy
-        double dEnergy = -1;
-        string lower_field = elog_field;
-        transform(lower_field.begin(), lower_field.end(), lower_field.begin(), ::tolower);
-        size_t found, next_found;
-        found = lower_field.find("gev");
-        if (found != std::string::npos)
+        iRecordId = atoi(record_id.c_str());
+        if (iRecordId < 1)
         {
-            next_found = lower_field.find("gev", found+1);
-            if (next_found != std::string::npos)
+            cout<<"ERROR: record id should be greater zero: "<<iRecordId<<endl;
+            continue;
+        }
+
+        cout<<"RECORD ID: "<<iRecordId<<endl;
+
+        // RECORD DATE
+        if (record_date == "")
+        {
+            cout<<"ERROR: record date is empty: "<<record_date<<endl;
+            continue;
+        }
+        TDatime dtRecordDate = stringToDatime(record_date);
+
+        // AUTHOR
+        TString strAuthorLower = author;
+        strAuthorLower.ToLower();
+        if ((strAuthorLower == "shift") || (strAuthorLower == "none"))
+            author = "";
+        if (author != "")
+        {
+            TString sql_author = TString::Format(
+                                    "select person_id "
+                                    "from person_ "
+                                    "where position(lower(person_name) in lower('%s')) > 0", author.c_str());
+            stmt = elog_server->Statement(sql_author);
+
+            if (!stmt->Process())
             {
-                cout<<"ERROR: more than one 'gev' found: "<<elog_field<<" for run: "<<iRunNumber<<endl;
+                cout<<"ERROR: getting author from the database has been failed: "<<author<<endl;
+                delete stmt;
                 continue;
             }
 
-            string energy = elog_field.substr(0, found);
-            energy = find_last_double_number(energy);
-            if (energy.empty())
+            // store result of statement in buffer
+            stmt->StoreResult();
+
+            // extract row
+            if (!stmt->NextResultRow())
             {
-                cout<<"ERROR: no energy before 'gev' found: "<<elog_field<<" for run: "<<iRunNumber<<endl;
+                cout<<"ERROR: author wasn't found in the database: "<<author<<endl;
+                delete stmt;
                 continue;
             }
-            dEnergy = atof(energy.c_str());
+
+            iAuthor = stmt->GetInt(0);
+            delete stmt;
+        }
+
+        // TYPE
+        string subject_lower = subject, type_lower = record_type;
+        transform(subject_lower.begin(), subject_lower.end(), subject_lower.begin(), ::tolower);
+        transform(type_lower.begin(), type_lower.end(), type_lower.begin(), ::tolower);
+
+        size_t ind;
+        if (type_lower == "other")
+        {
+            ind = subject_lower.find("new run");
+            if (ind != string::npos)
+            {
+                record_type = "new run";
+                if (subject_lower.length() == 7)
+                    subject = "";
+            }
+        }
+        TString sql_type = TString::Format(
+                               "select type_id "
+                                "from type_ "
+                                "where lower(type_text) = lower('%s')", record_type.c_str());
+        stmt = elog_server->Statement(sql_type);
+
+        if (!stmt->Process())
+        {
+            cout<<"ERROR: getting type from the database has been failed: "<<record_type<<endl;
+            delete stmt;
+            continue;
+        }
+
+        // store result of statement in buffer
+        stmt->StoreResult();
+
+        // extract row
+        if (!stmt->NextResultRow())
+        {
+            cout<<"ERROR: type wasn't found in the database: "<<record_type<<endl;
+            delete stmt;
+            continue;
+        }
+
+        iRecordType = stmt->GetInt(0);
+        delete stmt;
+
+        // RUN NUMBER
+        string strRunNumber = run_number, strLastRunNumber = "";
+        transform(strRunNumber.begin(), strRunNumber.end(), strRunNumber.begin(), ::tolower);
+        if (strRunNumber == "none") strRunNumber = "";
+
+        if (strRunNumber != "")
+        {
+            if (strRunNumber.substr(0,3) == "run")
+                strRunNumber = strRunNumber.substr(3);
+            ind = strRunNumber.find_first_of('-');
+            if (ind != string::npos)
+            {
+                strLastRunNumber = strRunNumber.substr(ind+1);
+                if (!is_string_number(strLastRunNumber))
+                {
+                    cout<<"ERROR: last run number is not number: "<<run_number<<endl;
+                    continue;
+                }
+                iLastRunNumber = atoi(strLastRunNumber.c_str());
+                if (iLastRunNumber < 1)
+                {
+                    cout<<"ERROR: last run number should be greater than zero: "<<iLastRunNumber<<endl;
+                    continue;
+                }
+                strRunNumber = strRunNumber.substr(0,ind);
+            }
+
+            if (!is_string_number(strRunNumber))
+            {
+                cout<<"ERROR: run number is not number: "<<run_number<<endl;
+                continue;
+            }
+            iRunNumber = atoi(strRunNumber.c_str());
+            if (iRunNumber < 1)
+            {
+                cout<<"ERROR: run number should be greater than zero: "<<iRunNumber<<endl;
+                continue;
+            }
+
+            if ((iLastRunNumber > 0) && (iLastRunNumber <= iRunNumber))
+            {
+                cout<<"ERROR: last run number ("<<iLastRunNumber<<") should be greater than first run number ("<<iRunNumber<<")."<<endl;
+                continue;
+            }
+        }
+
+        // SHIFT_LEADER
+        TString strLeaderLower = shift_leader;
+        strLeaderLower.ToLower();
+        if ((strLeaderLower == "shift") || (strLeaderLower == "none"))
+            shift_leader = "";
+        if (shift_leader != "")
+        {
+            TString sql_leader = TString::Format(
+                                    "select person_id "
+                                    "from person_ "
+                                    "where position(lower(person_name) in lower('%s')) > 0", shift_leader.c_str());
+            stmt = elog_server->Statement(sql_leader);
+
+            if (!stmt->Process())
+            {
+                cout<<"ERROR: getting shift leader from the database has been failed: "<<shift_leader<<endl;
+                delete stmt;
+                continue;
+            }
+
+            // store result of statement in buffer
+            stmt->StoreResult();
+
+            // extract row
+            if (!stmt->NextResultRow())
+            {
+                cout<<"ERROR: shift leader wasn't found in the database: "<<shift_leader<<endl;
+                delete stmt;
+                continue;
+            }
+
+            iShiftLeader = stmt->GetInt(0);
+            delete stmt;
+        }
+
+        // TRIGGER
+        TString strTriggerLower = trigger_info;
+        strTriggerLower.ToLower();
+        if (strTriggerLower == "none")
+            trigger_info = "";
+        if (trigger_info != "")
+        {
+            TString sql_trigger = TString::Format(
+                                    "select trigger_id "
+                                    "from trigger_ "
+                                    "where lower(trigger_info) = lower('%s')", trigger_info.c_str());
+            stmt = elog_server->Statement(sql_trigger);
+
+            if (!stmt->Process())
+            {
+                cout<<"ERROR: getting trigger from the database has been failed: "<<trigger_info<<endl;
+                delete stmt;
+                continue;
+            }
+
+            // store result of statement in buffer
+            stmt->StoreResult();
+
+            // extract row
+            if (!stmt->NextResultRow())
+            {
+                cout<<"ERROR: trigger wasn't found in the database: "<<trigger_info<<endl;
+                delete stmt;
+                continue;
+            }
+
+            iTriggerInfo = stmt->GetInt(0);
+            delete stmt;
+        }
+
+        // MAGNET FIELD
+        // search for SP-41, SP-57, VKM2 and magnetic field in mvolt
+        size_t beg_pos, end_pos;
+        string field_lower = magnet_field, sp41 = "", sp57 = "", vkm2 = "", field_mv = "";
+        int iSP41 = -1, iSP57 = -1, iVKM2 = -1;
+        double dVoltage = -1;
+        transform(field_lower.begin(), field_lower.end(), field_lower.begin(), ::tolower);
+        // replace sp41 by sp-41 and sp57 by sp-57
+        replace_string_in_text(field_lower, "sp41", "sp-41");
+        replace_string_in_text(field_lower, "sp57", "sp-57");
+        ind = field_lower.find("sp-41");
+        if (ind != string::npos)
+        {
+            beg_pos = ind + 5;
+            sp41 = find_first_number(field_lower, beg_pos, end_pos);
         }
         else
         {
-            cout<<"ERROR: no 'gev' found: "<<elog_field<<" for run: "<<iRunNumber<<endl;
-            continue;
+            beg_pos = 0;
+            sp41 = find_first_number(field_lower, beg_pos, end_pos);
+        }
+        if (sp41 != "")
+        {
+            iSP41 = atoi(sp41.c_str());
+            if (iSP41 < 0)
+            {
+                cout<<"ERROR: SP-41 field can't be negative: "<<iSP41<<endl;
+                continue;
+            }
         }
 
-        // parse particles: 0 - C, 1 - Cu
-        string strFirstParticle, strSecondParticle;
-        int last_sybmbol = lower_field.length() - 1;
-        lower_field.erase(remove(lower_field.begin(), lower_field.end(), '"'), lower_field.end());
-        for (int i = 0; i <= last_sybmbol; i++)
+        ind = field_lower.find("sp-57");
+        if (ind != string::npos)
         {
-            switch (lower_field[i])
+            beg_pos = ind + 5;
+            sp57 = find_first_number(field_lower, beg_pos, end_pos);
+        }
+        if (sp57 != "")
+        {
+            iSP57 = atoi(sp57.c_str());
+            if (iSP57 < 0)
             {
-                case 'c':
+                cout<<"ERROR: SP-57 field can't be negative: "<<iSP57<<endl;
+                continue;
+            }
+        }
+
+        ind = field_lower.find("vkm2");
+        if (ind != string::npos)
+        {
+            beg_pos = ind + 4;
+            vkm2 = find_first_number(field_lower, beg_pos, end_pos);
+        }
+        if (vkm2 != "")
+        {
+            iVKM2 = atoi(vkm2.c_str());
+            if (iVKM2 < 0)
+            {
+                cout<<"ERROR: VKM2 field can't be negative: "<<iVKM2<<endl;
+                continue;
+            }
+        }
+
+        ind = field_lower.find("mv");
+        if (ind != string::npos)
+        {
+            end_pos = ind - 1;
+            field_mv = find_last_double_number(field_lower, beg_pos, end_pos);
+            if (field_mv.empty())
+            {
+                cout<<"ERROR: no field voltage before 'mv' found: "<<field_lower<<" for record id: "<<record_id<<endl;
+                continue;
+            }
+        }
+        if (field_mv != "")
+        {
+            dVoltage = atof(field_mv.c_str());
+            if (dVoltage < -1)
+            {
+                cout<<"ERROR: VKM2 field can't be less or equal -1: "<<dVoltage<<endl;
+                continue;
+            }
+        }
+
+        // BEAM
+        // find energy
+        double dEnergy = -1;
+        string beam_lower = beam;
+        transform(beam_lower.begin(), beam_lower.end(), beam_lower.begin(), ::tolower);
+        size_t found, next_found;
+        found = beam_lower.find("gev");
+        if (found != std::string::npos)
+        {
+            next_found = beam_lower.find("gev", found+1);
+            if (next_found != std::string::npos)
+            {
+                cout<<"ERROR: more than one 'gev' found: "<<beam<<" for record id: "<<record_id<<endl;
+                continue;
+            }
+
+            end_pos = found - 1;
+            string energy = find_last_double_number(beam_lower, beg_pos, end_pos);
+            if (energy.empty())
+            {
+                cout<<"ERROR: no energy before 'gev' found: "<<beam<<" for record id: "<<record_id<<endl;
+                continue;
+            }
+            dEnergy = atof(energy.c_str());
+            if (dEnergy <= 0)
+            {
+                cout<<"ERROR: energy should be greater than 0: "<<dEnergy<<endl;
+                continue;
+            }
+        }
+
+        // parse particles: beam - d or C; target - C|C12, Al, Cu, Pb, C2H4|CH2
+        string strBeam = "", strTarget = "", strTargetWidth = "";
+        double dTargetWidth = -1;
+        /*do
+        {
+            ind = beam_lower.find("c");
+            if (ind != string::npos)
+            {
+                if (((ind == 0) || (beam_lower[ind-1] == " ") || (beam_lower[ind-1] == ",") || (beam_lower[ind-1] == ".")) &&
+                   ((ind == beam_lower.length()-1) || (beam_lower[ind+1] == " ") || (beam_lower[ind+1] == ",") || (beam_lower[ind+1] == ".")))
+                    strBeam = "C";
+            }
+        } while ((ind != string::npos) && (strBeam != ""));*/
+        for (int i = 0; i < beam_lower.length(); i++)
+        {
+            if (strBeam.empty())
+            {
+                switch (beam_lower[i])
                 {
-                    // if "C"
-                    if (!check_element(lower_field, i, "c", "C", strFirstParticle, strSecondParticle, iError))
+                    case 'c':
                     {
-                        // if Cu
-                        if (!check_element(lower_field, i, "cu", "Cu", strFirstParticle, strSecondParticle, iError))
+                        // if "C"
+                        if (check_element(beam_lower, i, "c"))
+                            strBeam = "C";
+
+                        break;
+                    }//case 'c':
+                    case 'd':
+                    {
+                        // if "d"
+                        if (check_element(beam_lower, i, "d"))
+                            strBeam = "d";
+
+                        break;
+                    }//case 'd':
+                }
+            }
+            else
+            {
+                switch (beam_lower[i])
+                {
+                    case 'c':
+                    {
+                        // if "C"
+                        if (check_element(beam_lower, i, "c"))
                         {
-                            // if C12
-                            if (!check_element(lower_field, i, "c12", "C", strFirstParticle, strSecondParticle, iError))
+                            strTarget = "C";
+                        }
+                        else
+                        {
+                            // if Cu
+                            if (check_element(beam_lower, i, "cu"))
                             {
-                                // if CH2
-                                if (!check_element(lower_field, i, "ch2", "C2H4", strFirstParticle, strSecondParticle, iError))
+                                strTarget = "Cu";
+                            }
+                            else
+                            {
+                                // if C12
+                                if (check_element(beam_lower, i, "c12"))
                                 {
-                                    // if C2H4
-                                    check_element(lower_field, i, "c2h4", "C2H4", strFirstParticle, strSecondParticle, iError);
+                                    strTarget = "C";
+                                }
+                                else
+                                {
+                                    // if CH2
+                                    if (check_element(beam_lower, i, "ch2"))
+                                    {
+                                        strTarget = "C2H4";
+                                    }
+                                    else
+                                    {
+                                        // if C2H4
+                                        if (check_element(beam_lower, i, "c2h4"))
+                                        {
+                                            strTarget = "C2H4";
+                                        }
+                                    }
                                 }
                             }
                         }
+
+                        break;
                     }
+                    case 'p':
+                    {
+                        // if "Pb"
+                        if (check_element(beam_lower, i, "pb"))
+                            strTarget = "Pb";
 
-                    break;
-                }//case 'c':
-                case 'p':
+                        break;
+                    }//case 'p':
+                    case 'a':
+                    {
+                        // if "Al"
+                        if (check_element(beam_lower, i, "al"))
+                            strTarget = "Al";
+
+                        break;
+                    }//case 'a':
+                }// switch (beam_lower[i])
+            }// else if (strBeam.empty())
+
+            if (strTarget != "")
+            {
+                ind = beam_lower.find("mm", i);
+                if (ind != string::npos)
                 {
-                    // if "Pb"
-                    check_element(lower_field, i, "pb", "Pb", strFirstParticle, strSecondParticle, iError);
-
-                    break;
-                }//case 'p':
-                case 'a':
+                    end_pos = ind - 1;
+                    strTargetWidth = find_last_double_number(beam_lower, beg_pos, end_pos);
+                    cout<<"strTargetWidth: "<<strTargetWidth<<endl;
+                    if (strTargetWidth.empty())
+                    {
+                        cout<<"ERROR: no target width before 'mm' found: "<<beam_lower<<" for record id: "<<record_id<<endl;
+                        continue;
+                    }
+                }
+                if (strTargetWidth != "")
                 {
-                    // if "Al"
-                    check_element(lower_field, i, "al", "Al", strFirstParticle, strSecondParticle, iError);
+                    dTargetWidth = atof(strTargetWidth.c_str());
+                    cout<<"dTargetWidth: "<<dTargetWidth<<endl;
+                    if (dTargetWidth < 0)
+                    {
+                        cout<<"ERROR: target field can't be less or equal 0: "<<dTargetWidth<<endl;
+                        break;
+                    }
+                }
 
-                    break;
-                }//case 'a':
-            }
-
-            if (iError != 0)
                 break;
+            }
         }
 
-        if (iError != 0) continue;
-
-        if ((strFirstParticle.empty()) && (strSecondParticle.empty()))
+        TString strComment = "";
+        if (subject != "")
         {
-            cout<<"ERROR: no particles found: "<<elog_field<<" for run: "<<iRunNumber<<endl;
-            continue;
+            strComment += TString::Format("%s", subject.c_str());
+            if (record_comment != "") strComment +=". ";
         }
+        strComment += record_comment;
 
-        // write to DB
-        UniDbRun* pRun = UniDbRun::GetRun(period_number, iRunNumber);
-        if  (pRun == NULL)
+        do{
+        // FORM INSERT STATEMENT
+        TString sql_insert = TString::Format(
+                "insert into log_record(record_date, author, record_type, record_type_old, run_number, "
+                "shift_leader, trigger_config, daq_status, sp_41, field_comment, magnet_field, "
+                "beam, energy, target, target_width, beam_old, record_comment, subject_old, record_comment_old) "
+                "values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)");
+        stmt = elog_server->Statement(sql_insert);
+        stmt->NextIteration();
+        int cur_index = 0;
+        stmt->SetDatime(cur_index++, dtRecordDate);
+        //stmt->SetString(cur_index++, record_date.c_str());
+        if (iAuthor < 0)
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetInt(cur_index++, iAuthor);
+        /*if (author == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, author.c_str());*/
+        if (iRecordType < 0)
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetInt(cur_index++, iRecordType);
+        if (record_type == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, record_type.c_str());
+        if (iRunNumber < 0)
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetInt(cur_index++, iRunNumber);
+        /*if (run_number == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, run_number.c_str());*/
+        if (iShiftLeader < 0)
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetInt(cur_index++, iShiftLeader);
+        /*if (shift_leader == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, shift_leader.c_str());*/
+        if (iTriggerInfo < 0)
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetInt(cur_index++, iTriggerInfo);
+        /*if (trigger_info == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, trigger_info.c_str());*/
+        if (daq_status == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, daq_status.c_str());
+        //stmt->SetString(cur_index++, daq_status.c_str());
+        if (iSP41 < 0)
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetInt(cur_index++, iSP41);
+        TString strFieldComment = "";
+        int iter = 0;
+        if (dVoltage > -1)
         {
-            cout<<"ERROR: no Run found in DB: "<<iRunNumber<<endl;
-            continue;
+            strFieldComment += TString::Format("SP-41 = %smv", field_mv.c_str());
+            iter++;
         }
+        if (iSP57 >= 0)
+        {
+            if (iter > 0) strFieldComment += ", ";
+            strFieldComment += TString::Format("SP-57 = %dA", iSP57);
+            iter++;
+        }
+        if (iVKM2 >= 0)
+        {
+            if (iter > 0) strFieldComment += ", ";
+            strFieldComment += TString::Format("VKM2 = %dA", iVKM2);
+            iter++;
+        }
+        if (strFieldComment == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, strFieldComment);
+        if (magnet_field == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, magnet_field.c_str());
+        if (strBeam == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, strBeam.c_str());
+        if (dEnergy <= 0)
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetDouble(cur_index++, dEnergy);
+        if (strTarget == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, strTarget.c_str());
+        cout<<dTargetWidth<<endl;
+        if (dTargetWidth <= 0)
+            stmt->SetNull(cur_index++);
+        else
+        {
+            cout<<"One more: "<<dTargetWidth<<endl;
+            stmt->SetDouble(cur_index++, (Double_t)dTargetWidth);
+        }
+        if (beam == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, beam.c_str());
+        if (strComment == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, strComment);
+        if (subject == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, subject.c_str());
+        if (record_comment == "")
+            stmt->SetNull(cur_index++);
+        else
+            stmt->SetString(cur_index++, record_comment.c_str());
 
-        if (pRun->SetEnergy(&dEnergy) != 0)
-            cout<<"ERROR: while writing Energy to DB for run: "<<iRunNumber<<endl;
-        if (pRun->SetBeamParticle((TString)strFirstParticle.c_str()) != 0)
-            cout<<"ERROR: while writing beam particle to DB for run: "<<iRunNumber<<endl;
-        if (!strSecondParticle.empty())
-            if (pRun->SetTargetParticle(new TString(strSecondParticle.c_str())) != 0)
-                cout<<"ERROR: while writing target to DB for run: "<<iRunNumber<<endl;
+        // inserting new ELog record to the ELog Database
+        if (!stmt->Process())
+        {
+                cout<<"Error: inserting new Elog record to the ELog Database has been failed"<<endl;
+                delete stmt;
+                return -3;
+        }
+        delete stmt;
 
         updated_count++;
-        delete pRun;
+        if (iLastRunNumber > 0) iRunNumber++;
+        } while ((iLastRunNumber > 0) && (iRunNumber <= iLastRunNumber));
     }// run CSV file
 
+    delete elog_server;
     csvFile.close();
     return updated_count;
 }

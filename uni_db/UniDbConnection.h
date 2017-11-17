@@ -6,7 +6,7 @@
 /** UniDbConnection.h
  *@author K.Gertsenberger <gertsen@jinr.ru>
  **
- ** Class for connection to databases on PGSQL
+ ** Class for connection to BM@N and MPD databases
  **/
 
 #ifndef UNIDBCONNECTION_H
@@ -20,7 +20,8 @@
 #include <iostream>
 using namespace std;
 
-enum UniConnectionType{UNIFIED_DB};
+enum UniDbType{MYSQL_DB, POSTGRESQL_DB};
+enum UniConnectionType{UNIFIED_DB, TANGO_DB, ELOG_DB};
 
 typedef map<string, TSQLServer*> mapSQLServer;
 typedef pair<string, TSQLServer*> pairSQLServer;
@@ -29,7 +30,7 @@ typedef map<string, TSQLServer*>::iterator itSQLServer;
 class UniDbConnection
 {
  private:
-    TSQLServer* uni_db;
+    TSQLServer* server_db;
 
     UniDbConnection(TSQLServer* pSQLServer);
 
@@ -39,11 +40,10 @@ class UniDbConnection
  public:
     virtual ~UniDbConnection(); // Destructor
 
-    static UniDbConnection* Open(UniConnectionType database_type);
-    static UniDbConnection* Open(TString strDBHost = UNI_DB_HOST, TString strDBName = UNI_DB_NAME, TString strUID = UNI_DB_USERNAME, TString strPassword = UNI_DB_PASSWORD);
+    static UniDbConnection* Open(UniConnectionType connection_type);
+    static UniDbConnection* Open(UniDbType database_type, const char* strDBHost, const char* strDBName, const char* strUID, const char* strPassword);
 
-    TSQLServer* GetSQLServer(){return uni_db;}
-
+    TSQLServer* GetSQLServer() {return server_db;}
 
  ClassDef(UniDbConnection,1)
 };

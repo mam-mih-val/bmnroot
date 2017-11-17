@@ -369,5 +369,58 @@ void UniDbRunPeriod::Print()
 }
 /* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
 
+// get numbers of runs existing in the Database for a selected period
+int UniDbRunPeriod::GetRunNumbers(int period_number, UniqueRunNumber*& run_numbers)
+{
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+    {
+        cout<<"Error: connection to DB was failed"<<endl;
+        return -1;
+    }
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "select period_number, run_number "
+        "from run_ "
+        "where period_number = %d "
+        "order by period_number, run_number", period_number);
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: getting run numbers from DB has been failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+        return -2;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    vector<int> vecPeriods;
+    vector<int> vecRuns;
+    while (stmt->NextResultRow())
+    {
+        vecPeriods.push_back(stmt->GetInt(0));
+        vecRuns.push_back(stmt->GetInt(1));
+    }
+
+    delete stmt;
+    delete connUniDb;
+
+    int run_count = vecPeriods.size();
+    run_numbers = new UniqueRunNumber[run_count];
+    for (int i = 0; i < run_count; i++)
+    {
+        run_numbers[i].period_number = vecPeriods[i];
+        run_numbers[i].run_number = vecRuns[i];
+    }
+
+    return run_count;
+}
+
 // -------------------------------------------------------------------
 ClassImp(UniDbRunPeriod);

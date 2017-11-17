@@ -1,6 +1,6 @@
 // macro for getting average magnetic field for a given run (930 run of 5-th session by default)
 // returns average magnetic field coefficient (in case of errors the return value <= -1)
-double tango_avg_field(int period = 5, int run = 930)
+double tango_avg_field(int period = 6, int run = 1886)
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
@@ -64,7 +64,7 @@ void tango_avg_field_write_db(int period = 6)
     gSystem->Load("libUniDb");
 
     UniqueRunNumber* run_numbers;
-    int run_count = UniDbRun::GetRunNumbers(period, 1, period, 100000, run_numbers);
+    int run_count = UniDbPeriodRun::GetRunNumbers(period, run_numbers);
     if (run_count <= 0)
         return;
 
@@ -124,8 +124,72 @@ void tango_avg_field_write_db(int period = 6)
     cout<<"Macro finished successfully"<<endl;
 }
 
-// additional function to compare magnetic field value (current, A) of the run info and average magnetic field (voltage, mv) from the Tango
-void compare_avg_field(int period = 5)
+// additional function for displaying  magnetic field for the given period of tjme from start run to end run
+// if period_end == -1 and run_end == -1 then only magnetic field for one run will be showed
+// if period_end == -1 and run_end != -1 then the end period is the same as begin period
+void show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end = -1, int run_end = -1)
+{
+    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
+    basiclibs();
+    gSystem->Load("libUniDb");
+
+    UniDbTangoData db_tango;
+
+    // get time of the begin run
+    UniDbRun* pRunBegin = UniDbRun::GetRun(period_begin, run_begin);
+    if (pRunBegin == NULL)
+    {
+        cout<<"Macro finished with errors: no experimental run was found - "<<period_begin<<":"<<run_begin<<" (period:run)"<<endl;
+        return -1;
+    }
+    TString strDateStart = pRunBegin->GetStartDatetime().AsSQLString();
+
+    TDatime* dateEnd = NULL;
+    if ((period_end == -1) && (run_end == -1))
+        dateEnd = pRunBegin->GetEndDatetime();
+    else
+    {
+        if (period_end == -1) period_end = period_begin;
+
+        // get time of the end run
+        UniDbRun* pRunEnd = UniDbRun::GetRun(period_end, run_end);
+        if (pRunEnd == NULL)
+        {
+            cout<<"Macro finished with errors: no experimental run was found - "<<period_end<<":"<<run_end<<" (period:run)"<<endl;
+            delete pRunBegin;
+            return -1;
+        }
+        dateEnd = pRunEnd->GetEndDatetime();
+        delete pRunEnd;
+    }
+
+    if (dateEnd == NULL)
+    {
+        cout<<"Macro finished with errors: no end datetime in the database for this run"<<endl;
+        delete pRunBegin;
+        return -2;
+    }
+    TString strDateEnd = dateEnd->AsSQLString();
+    delete pRunBegin;
+
+    // get Tango data
+    const char* detector_name = "bmn";
+    const char* parameter_name = "ch1";
+    TObjArray* tango_data = db_tango.GetTangoParameter(detector_name, parameter_name, strDateStart.Data(), strDateEnd.Data());
+    if (tango_data == NULL)
+    {
+        cout<<"Macro finished with errors: return Tango data is null"<<endl;
+        return -3;
+    }
+
+    // print
+    db_tango.PrintTangoDataMultiGraph(tango_data, "hall sensor voltage, mv");
+
+    delete tango_data;
+}
+
+// additional function to compare magnetic field value (current, A) from ELog database and average magnetic field (voltage, mv) from the Tango
+void compare_avg_field(int period = 6)
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
@@ -173,7 +237,7 @@ void compare_avg_field(int period = 5)
 }
 
 // additional function to compare magnetic field value (current, A) of the run info and average magnetic field (voltage, mv) from the Tango and show in TGraph object
-void compare_avg_field_graph(int period = 5)
+void compare_avg_field_graph(int period = 6)
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();

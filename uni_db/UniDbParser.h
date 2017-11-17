@@ -86,8 +86,8 @@ class UniDbParser
     int ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate = false);
     int ParseTxtNoise2Db(int period_number, TString txtName, TString schemaPath);
 
-    // parse functions with specific features for BM@N
-    int ParseElogCsv(int period_number, TString csvName, char separate_symbol = ';');
+    // save ELOG to with specific features for BM@N
+    int ConvertElogCsv(TString csvName = "parse_schemes/elog.csv", char separate_symbol = ';');
 
  ClassDef(UniDbParser,1)
 };

@@ -1,5 +1,5 @@
 /****************************************************************************
-           Class can be used to get hardware detector data
+           This interface can be used to get hardware detector data
              from Tango (Slow Control System) database
 ****************************************************************************/
 
@@ -48,7 +48,6 @@ class TangoTimeParameter : public TObject
   ClassDef(TangoTimeParameter,1);
 };
 
-
 class TangoTimeInterval : public TObject
 {
   public:
@@ -67,6 +66,7 @@ class TangoTimeInterval : public TObject
   ClassDef(TangoTimeInterval,1);
 };
 
+// class used to get hardware detector data from Tango database and to display results in console or graphs
 class UniDbTangoData
 {
  public:
@@ -75,65 +75,46 @@ class UniDbTangoData
     // empty destructor
     ~UniDbTangoData();
 
-    // Функция SplitString разбивает строку на отдельные элементы по указанному разделителю.
-    //	TString str - строка, которую будем редактировать.
-    //	TString delim - разделитель.
-    //	vector<TString> v - массив, в который заносятся отдельные элементы строки
-    void SplitString(TString str, TString delim, vector<TString> &v);
-
-    // Функция StringToTime конвертирует строковое значение вида "DD.MM.YYYY HH:MM:SS" в time_t
-    int StringToTime(TString str_time);
-
-    // Функция StringToTime конвертирует строковое значение вида "DD.MM.YYYY HH:MM:SS" в TDatime
-    TDatime StringToDatime(TString str_time);
-
-    // Функция GetCSVData считывает данные CSV файла, заносит их в структуру и возвращает указатель на нее
-    // примечание: в таблицах CSV строки со временем сохранены в виде "DD.MM.YYYY HH:MM:SS", а в таблице запусков "Run1 summary table" - "YYYY-MM-DD HH:MM:SS".
-    //	string filename - путь к файлу (например, Signals31.csv (run502.data 32944 строк))
-    vector<CSVElement>* GetCSVData(string filename);
-
-    // Функция PrintZDCXY выводит значения координат и время для массива данных
-    //	CSVData *zdcXY - указатель на структуру.
-    //  isGraphicPresentation: false - вывод в консоль,
-    //      true - графическое представление (по оси Х откладываются отрезки времени, по оси Y - соответствующие координаты х и y калориметра)
-    //  isTimeCut - выборка по времени данных из переданного массива
-    //	TDatime* start_time - начало выборки по времени (например "2015-03-12 22:22:27" (строка 6132))
-    //	TDatime* end_time - конец выборки по времени (например "2015-03-12 22:28:36" (строка 6881))
-    void PrintCSVData(vector<CSVElement>* zdcXY, bool isGraphicPresentation=false, bool isTimeCut=false, TDatime* start_time=NULL, TDatime* end_time=NULL);
-
-    // Функция GetTangoParameter получает доступ к базе Tango, совершает выбор, сделанный на основе заданных параметров.
-    // Учитывая полученную информацию из базовой таблицы, извлекает название таблицы, в которой хранятся необходимые данные по параметру,
-    // затем обращается к найденной таблице с данными и делает выборку по заданному временному периоду.
-    // Возвращает массив TobjArray с объектами TangoTimeParameter (т.е. условно TObjArray<TangoTimeParameter*>), или NULL в случае ошибки.
-    // Необходимые параметры для данной функции:
-    //	detector_name - название детектора (например "zdc" или "gem")
-    //	parameter_name - это название физического параметра из БД Tango (например, "uset" для ZDC или "u" для GEM)
-    //	date_start - время, с которого начать считывать параметр (например, "2015-03-13 23:00:00")
-    //	date_end - время окончания считавания параметра (например, "2015-03-13 24:00:00")
+    // Function GetTangoParameter gets hardware data from the Tango database (MySQL connection defined in 'uni_db/db_settings.h' file).
+    // Parameters:
+    //	detector_name - name of the detector (e.g. "zdc" or "gem")
+    //	parameter_name - name of physical parameter stored in Tango (e.g. "uset" for ZDC or "u" for GEM)
+    //	date_start - time from which to start reading the parameter, format: "YYYY-MM-DD HH:MM:SS" (e.g. "2015-03-13 23:00:00")
+    //	date_end - end time of parameter reading, the same format (e.g. "2015-03-13 24:00:00")
+    // Returns TObjArray with TangoTimeParameter objects (i.e. conditionally TObjArray<TangoTimeParameter*>), or NULL in case errors.
     TObjArray* GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end);
 
-    // Функция SearchTangoParameter получает доступ к базе Tango, совершает выбор, сделанный на основе заданных параметров и дополнительных критериев.
-    // Учитывая полученную информацию из базовой таблицы, извлекает название таблицы, в которой хранятся необходимые данные по параметру,
-    // затем обращается к найденной таблице с данными и делает выборку по заданному временному периоду,
-    // Возвращает массив TObjArray с объектами TObjArray, содержащими TangoTimeInterval (условно TObjArray<TObjArray<TangoTimeInterval*>>)
-    // в случае не найденных значений параметра - возвращает TObjArray с 0 элементов TObjArray; в случае ощибки возвращает NULL.
-    // Необходимые параметры для данной функции:
-    //	detector_name - название детектора (например "zdc" или "gem")
-    //	parameter_name - это название физического параметра из БД Tango (например, "uset" для ZDC или "u" для GEM)
-    //	date_start - время, с которого начать считывать параметр (например, "2015-03-13 23:00:00")
-    //	date_end - время окончания считавания параметра (например, "2015-03-13 24:00:00")
-    //  condition - условие выборки периодов времени
-    //  value - значения для условия выборки, с которым происходит сравнение
-    //  mapChannel - массив целочисленных значений для изменения порядка TObjArray-ев в результирующем массиве, если, например, каналы идут в другой последоватлеьности
+    // Function SearchTangoIntervals gets time intervals for defined condition on parameter, from the Tango database (MySQL connection defined in 'uni_db/db_settings.h' file).
+    // NOTE: now it works only if channel count is constant during given time period
+    // Parameters:
+    //  detector_name - name of the detector (e.g. "zdc" or "gem")
+    //  parameter_name - name of physical parameter stored in Tango (e.g. "uset" for ZDC or "u" for GEM)
+    //  date_start - time from which to start searching for time intervals satisfied the condition, format: "YYYY-MM-DD HH:MM:SS" (e.g. "2015-03-13 23:00:00")
+    //	date_end - end time of searching time intervals, the same format (e.g. "2015-03-13 24:00:00")
+    //  condition - condition of time interval sampling, default: conditionEqual (the possible list in 'uni_db/db_structures.h')
+    //  value - boolean value for the condition with which the comparison is performed, default: true
+    //  mapChannel - array of integer values (map) to change the order of result TObjArray-s in the common result array, if, for example, channels go in a different sequence; NULL - if not used
+    // Returns common TObjArray with TObjArray objects containing TangoTimeInterval (i.e. conditionally TObjArray<TObjArray<TangoTimeInterval*>>),
+    // if no intervals found - returns the common TObjArray with zero TObjArray elements; in case of errors - returns NULL
     TObjArray* SearchTangoIntervals(char* detector_name, char* parameter_name, char* date_start, char* date_end,  enumConditions condition = conditionEqual, bool value = true, int* mapChannel = NULL);
 
-    // Функции PrintTangoData[Console,Surface,MultiGraph] выполняет вывод данных из заполненной ранее структуры
-    // в консоль, графически как поверхность или графически в виде набора графиков,
-    // на которых показано, как изменяются данные, например, напряжение на башнях ZDC в течении заданного периода.
+    // Function PrintTangoDataConsole displays hardware data obtained from Tango, e.g. ZDC voltage in time interval, in console
+    // Parameter: tango_data - TObjArray with TangoTimeParameter objects obtained from 'GetTangoParameter' function
     void PrintTangoDataConsole(TObjArray* tango_data);
-    void PrintTangoDataSurface(TObjArray* tango_data);
-    void PrintTangoDataMulti3D(TObjArray* tango_data);
-    void PrintTangoIntervalConsole(TObjArray* tango_data, TString channel_name = "Channel");
+    // Function PrintTangoDataSurface displays hardware vector data obtained from Tango, e.g. ZDC voltage in time interval, graphically as 2D Surface Graph
+    // Parameters:
+    //  tango_data - TObjArray with TangoTimeParameter objects obtained from 'GetTangoParameter' function
+    //  y_axis - label of Y axis
+    void PrintTangoDataSurface(TObjArray* tango_data, const char* y_axis = "parameter");
+    // Function PrintTangoDataMulti3D displays hardware vector data obtained from Tango, e.g. ZDC voltage in time interval, graphically as a set of Line Graphs
+    // Parameter: tango_data - TObjArray with TangoTimeParameter objects obtained from 'GetTangoParameter' function
+    void PrintTangoDataMultiGraph(TObjArray* tango_data, const char* y_axis = "parameter", bool is3D = false);
+
+    // Function PrintTangoIntervalConsole displays in console time intervals obtained from Tango for defined condition
+    // Parameters:
+    //  tango_intervals - TObjArray with TObjArray objects containing TangoTimeInterval objects obtained from 'SearchTangoIntervals' function
+    //  channel_name - name of the dimension to display on the screen, default: Channel
+    void PrintTangoIntervalConsole(TObjArray* tango_intervals, TString channel_name = "Channel");
 
     // return average value for Tango data array (result vector with size greater than 1 is used in case of many channels)
     vector<double> GetAverageTangoData(TObjArray* tango_data);
@@ -142,4 +123,3 @@ class UniDbTangoData
 };
 
 #endif
-

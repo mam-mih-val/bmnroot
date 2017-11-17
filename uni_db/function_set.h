@@ -2,7 +2,7 @@
 // Name        : function_set.h
 // Author      : Konstantin Gertsenberger (gertsen@jinr.ru)
 // Description : set of common C++ functions
-// Version     : 1.01
+// Version     : 1.02
 //============================================================================
 
 #ifndef FUNCTION_SET_H
@@ -57,12 +57,19 @@ int hex_string_to_int(string hex_string);
 // is string an integer number?
 bool is_string_number(const string& s);
 // extract first positive number or last positive number in string (result number has string type)
-string find_first_number(string const & str); string find_first_double_number(string const & str);
-string find_last_number(string const & str); string find_last_double_number(string const & str);
+string find_first_number(string const &str); string find_first_double_number(string const &str);
+string find_last_number(string const &str); string find_last_double_number(string const &str);
+// extract first positive number or last positive number in string (result number has string type)
+// beg_pos - position of the first character in the string to be considered in the search for find_first...; returns position of number (string::npos, if not found)
+// end_pos - position of the last character in the string to be considered in the search for find_last...; returns position of number (string::npos, if not found)
+string find_first_number(string const &str, size_t &beg_pos, size_t &end_pos); string find_first_double_number(string const &str, size_t &beg_pos, size_t &end_pos);
+string find_last_number(string const &str, size_t &beg_pos, size_t &end_pos); string find_last_double_number(string const &str, size_t &beg_pos, size_t &end_pos);
 // convert array of chars to the new lowercase array
 char* convert_pchar_to_lowercase_new(char* input_char_array);
 // replace string 's' by string 'd' in text
 void replace_string_in_text(string &text, string s, string d);
+// replace char 'find' in string (char* str) by another char 'replace'; return number of replacement
+int replace_char(char*& str, char find, char replace);
 // return string without leading and trailing spaces and tabs
 string trim(const string& str, const string& whitespace = " \t\r");
 // return string changing whitespaces and tabs by single whitespace
@@ -331,56 +338,116 @@ bool is_string_number(const string& s)
     return !s.empty() && it == s.end();
 }
 
-string find_first_number(string const & str)
+string find_first_number(string const &str)
 {
-	size_t const n = str.find_first_of("0123456789");
-	if (n != string::npos)
-	{
-		size_t const m = str.find_first_not_of("0123456789", n);
-	    return str.substr(n, m != string::npos ? m-n : m);
-	}
+    size_t const n = str.find_first_of("0123456789");
+    if (n != string::npos)
+    {
+        size_t const m = str.find_first_not_of("0123456789", n);
+        return str.substr(n, m != string::npos ? m-n : m);
+    }
 
-	return string();
+    return string();
 }
 
-string find_last_number(string const & str)
+string find_last_number(string const &str)
 {
-	size_t const n = str.find_last_of("0123456789");
-	if (n != string::npos)
-	{
-		string temp = str.substr(0, n+1);
-		size_t const m = temp.find_last_not_of("0123456789");
-		if (m != string::npos) return temp.substr(m+1, n-m);
-		return temp;
-	}
+    size_t const n = str.find_last_of("0123456789");
+    if (n != string::npos)
+    {
+        string temp = str.substr(0, n+1);
+        size_t const m = temp.find_last_not_of("0123456789");
+        if (m != string::npos) return temp.substr(m+1, n-m);
+        return temp;
+    }
 
-	return string();
+    return string();
 }
 
-string find_first_double_number(string const & str)
+string find_first_double_number(string const &str)
 {
-	size_t const n = str.find_first_of("0123456789");
-	if (n != string::npos)
-	{
-		size_t const m = str.find_first_not_of("0123456789,.", n);
-	    return str.substr(n, m != string::npos ? m-n : m);
-	}
+    size_t const n = str.find_first_of("0123456789");
+    if (n != string::npos)
+    {
+        size_t const m = str.find_first_not_of("0123456789,.", n);
+        return str.substr(n, m != string::npos ? m-n : m);
+    }
 
-	return string();
+    return string();
 }
 
-string find_last_double_number(string const & str)
+string find_last_double_number(string const &str)
 {
-	size_t const n = str.find_last_of("0123456789");
-	if (n != string::npos)
-	{
-		string temp = str.substr(0, n+1);
-		size_t const m = temp.find_last_not_of("0123456789,.");
-		if (m != string::npos) return temp.substr(m+1, n-m);
-		return temp;
-	}
+    size_t const n = str.find_last_of("0123456789");
+    if (n != string::npos)
+    {
+        string temp = str.substr(0, n+1);
+        size_t const m = temp.find_last_not_of("0123456789,.");
+        if (m != string::npos) return temp.substr(m+1, n-m);
+        return temp;
+    }
 
-	return string();
+    return string();
+}
+
+string find_first_number(string const &str, size_t &beg_pos, size_t &end_pos)
+{
+    beg_pos = str.find_first_of("0123456789", beg_pos);
+    if (beg_pos != string::npos)
+    {
+        size_t const m = str.find_first_not_of("0123456789", beg_pos);
+        end_pos = (m != string::npos ? m-1 : str.length()-1);
+        return str.substr(beg_pos, m != string::npos ? m-beg_pos : m);
+    }
+
+    end_pos = string::npos;
+    return string();
+}
+
+string find_last_number(string const &str, size_t &beg_pos, size_t &end_pos)
+{
+    end_pos = str.find_last_of("0123456789", end_pos);
+    if (end_pos != string::npos)
+    {
+        string temp = str.substr(0, end_pos + 1);
+        size_t const m = temp.find_last_not_of("0123456789");
+        beg_pos = (m != string::npos ? m+1 : 1);
+        if (m != string::npos) return temp.substr(m+1, end_pos-m);
+        return temp;
+    }
+
+    beg_pos = string::npos;
+    return string();
+}
+
+string find_first_double_number(string const &str, size_t &beg_pos, size_t &end_pos)
+{
+    beg_pos = str.find_first_of("0123456789", beg_pos);
+    if (beg_pos != string::npos)
+    {
+        size_t const m = str.find_first_not_of("0123456789,.", beg_pos);
+        end_pos = (m != string::npos ? m-1 : str.length()-1);
+        return str.substr(beg_pos, m != string::npos ? m-beg_pos : m);
+    }
+
+    end_pos = string::npos;
+    return string();
+}
+
+string find_last_double_number(string const &str, size_t &beg_pos, size_t &end_pos)
+{
+    end_pos = str.find_last_of("0123456789", end_pos);
+    if (end_pos != string::npos)
+    {
+        string temp = str.substr(0, end_pos+1);
+        size_t const m = temp.find_last_not_of("0123456789,.");
+        beg_pos = (m != string::npos ? m+1 : 1);
+        if (m != string::npos) return temp.substr(m+1, end_pos-m);
+        return temp;
+    }
+
+    beg_pos = string::npos;
+    return string();
 }
 
 // convert array of chars to the new lowercase array
@@ -412,6 +479,21 @@ void replace_string_in_text(string &text, string old_substring, string new_subst
             text.replace(start, old_substring.length(), new_substring.c_str());
     }
     while (start > -1);
+}
+
+// replace char 'find' in string (char* str) by another char 'replace'; return number of replacement
+int replace_char(char*& str, char find, char replace)
+{
+    int replace_count = 0;
+    char* cur_pos = strchr(str, find);
+    while (cur_pos)
+    {
+        *cur_pos = replace;
+        replace_count++;
+        cur_pos = strchr(cur_pos, find);
+    }
+
+    return replace_count;
 }
 
 // return string without leading and trailing spaces and tabs

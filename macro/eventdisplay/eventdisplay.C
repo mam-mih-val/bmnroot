@@ -76,7 +76,7 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
 
             // get geometry for run
             TString root_file_path = "current_geo_file.root";
-            Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, root_file_path.Data());
+            Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*)root_file_path.Data());
             if (res_code != 0)
             {
                 cout << "\nGeometry couldn't' be read from the database" << endl;

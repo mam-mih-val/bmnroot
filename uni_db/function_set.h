@@ -2,7 +2,7 @@
 // Name        : function_set.h
 // Author      : Konstantin Gertsenberger (gertsen@jinr.ru)
 // Description : set of common C++ functions
-// Version     : 1.02
+// Version     : 1.03
 //============================================================================
 
 #ifndef FUNCTION_SET_H
@@ -56,14 +56,14 @@ string int_to_hex_string(int int_number);
 int hex_string_to_int(string hex_string);
 // is string an integer number?
 bool is_string_number(const string& s);
-// extract first positive number or last positive number in string (result number has string type)
-string find_first_number(string const &str); string find_first_double_number(string const &str);
-string find_last_number(string const &str); string find_last_double_number(string const &str);
-// extract first positive number or last positive number in string (result number has string type)
-// beg_pos - position of the first character in the string to be considered in the search for find_first...; returns position of number (string::npos, if not found)
-// end_pos - position of the last character in the string to be considered in the search for find_last...; returns position of number (string::npos, if not found)
-string find_first_number(string const &str, size_t &beg_pos, size_t &end_pos); string find_first_double_number(string const &str, size_t &beg_pos, size_t &end_pos);
-string find_last_number(string const &str, size_t &beg_pos, size_t &end_pos); string find_last_double_number(string const &str, size_t &beg_pos, size_t &end_pos);
+// extract first number or last number in string, only positive number by default (result number has string type)
+string find_first_number(string const &str, bool isOnlyPositive = true);   string find_first_double_number(string const &str, bool isOnlyPositive = true);
+string find_last_number(string const &str, bool isOnlyPositive = true);    string find_last_double_number(string const &str, bool isOnlyPositive = true);
+// extract first number or last number in string, only positive number by default (result number has string type)
+// beg_pos - position of the first character in the string to be assigned before the search for find_first...; returns position of number (string::npos, if not found)
+// end_pos - position of the last character in the string to be assigned before the search for find_last...; returns position of number (string::npos, if not found)
+string find_first_number(string const &str, size_t &beg_pos, size_t &end_pos, bool isOnlyPositive = true); string find_first_double_number(string const &str, size_t &beg_pos, size_t &end_pos, bool isOnlyPositive = true);
+string find_last_number(string const &str, size_t &beg_pos, size_t &end_pos, bool isOnlyPositive = true);  string find_last_double_number(string const &str, size_t &beg_pos, size_t &end_pos, bool isOnlyPositive = true);
 // convert array of chars to the new lowercase array
 char* convert_pchar_to_lowercase_new(char* input_char_array);
 // replace string 's' by string 'd' in text
@@ -338,65 +338,82 @@ bool is_string_number(const string& s)
     return !s.empty() && it == s.end();
 }
 
-string find_first_number(string const &str)
+// 8 following functions: extract first number or last number in string, only positive number by default (result number has string type)
+string find_first_number(string const &str, bool isOnlyPositive)
 {
-    size_t const n = str.find_first_of("0123456789");
+    size_t n = str.find_first_of("0123456789");
     if (n != string::npos)
     {
-        size_t const m = str.find_first_not_of("0123456789", n);
+        size_t m = str.find_first_not_of("0123456789", n);
+        if ((!isOnlyPositive) && (n > 0) && ((str[n-1] == '+') || (str[n-1] == '-')))
+            n--;
         return str.substr(n, m != string::npos ? m-n : m);
     }
 
     return string();
 }
 
-string find_last_number(string const &str)
+string find_last_number(string const &str, bool isOnlyPositive)
 {
-    size_t const n = str.find_last_of("0123456789");
+    size_t n = str.find_last_of("0123456789");
     if (n != string::npos)
     {
         string temp = str.substr(0, n+1);
-        size_t const m = temp.find_last_not_of("0123456789");
-        if (m != string::npos) return temp.substr(m+1, n-m);
+        size_t m = temp.find_last_not_of("0123456789");
+        if (m != string::npos)
+        {
+            if ((!isOnlyPositive) && ((str[m] == '+') || (str[m] == '-')))
+                m--;
+            return temp.substr(m+1, n-m);
+        }
         return temp;
     }
 
     return string();
 }
 
-string find_first_double_number(string const &str)
+string find_first_double_number(string const &str, bool isOnlyPositive)
 {
-    size_t const n = str.find_first_of("0123456789");
+    size_t n = str.find_first_of("0123456789");
     if (n != string::npos)
     {
-        size_t const m = str.find_first_not_of("0123456789,.", n);
+        size_t m = str.find_first_not_of("0123456789,.", n);
+        if ((!isOnlyPositive) && (n > 0) && ((str[n-1] == '+') || (str[n-1] == '-')))
+            n--;
         return str.substr(n, m != string::npos ? m-n : m);
     }
 
     return string();
 }
 
-string find_last_double_number(string const &str)
+string find_last_double_number(string const &str, bool isOnlyPositive)
 {
-    size_t const n = str.find_last_of("0123456789");
+    size_t n = str.find_last_of("0123456789");
     if (n != string::npos)
     {
         string temp = str.substr(0, n+1);
-        size_t const m = temp.find_last_not_of("0123456789,.");
-        if (m != string::npos) return temp.substr(m+1, n-m);
+        size_t m = temp.find_last_not_of("0123456789,.");
+        if (m != string::npos)
+        {
+            if ((!isOnlyPositive) && ((str[m] == '+') || (str[m] == '-')))
+                m--;
+            return temp.substr(m+1, n-m);
+        }
         return temp;
     }
 
     return string();
 }
 
-string find_first_number(string const &str, size_t &beg_pos, size_t &end_pos)
+string find_first_number(string const &str, size_t &beg_pos, size_t &end_pos, bool isOnlyPositive)
 {
     beg_pos = str.find_first_of("0123456789", beg_pos);
     if (beg_pos != string::npos)
     {
-        size_t const m = str.find_first_not_of("0123456789", beg_pos);
+        size_t m = str.find_first_not_of("0123456789", beg_pos);
         end_pos = (m != string::npos ? m-1 : str.length()-1);
+        if ((!isOnlyPositive) && (beg_pos > 0) && ((str[beg_pos-1] == '+') || (str[beg_pos-1] == '-')))
+            beg_pos--;
         return str.substr(beg_pos, m != string::npos ? m-beg_pos : m);
     }
 
@@ -404,15 +421,20 @@ string find_first_number(string const &str, size_t &beg_pos, size_t &end_pos)
     return string();
 }
 
-string find_last_number(string const &str, size_t &beg_pos, size_t &end_pos)
+string find_last_number(string const &str, size_t &beg_pos, size_t &end_pos, bool isOnlyPositive)
 {
     end_pos = str.find_last_of("0123456789", end_pos);
     if (end_pos != string::npos)
     {
         string temp = str.substr(0, end_pos + 1);
-        size_t const m = temp.find_last_not_of("0123456789");
-        beg_pos = (m != string::npos ? m+1 : 1);
-        if (m != string::npos) return temp.substr(m+1, end_pos-m);
+        size_t m = temp.find_last_not_of("0123456789");
+        beg_pos = (m != string::npos ? m+1 : 0);
+        if (m != string::npos)
+        {
+            if ((!isOnlyPositive) && ((str[m] == '+') || (str[m] == '-')))
+                beg_pos--;
+            return temp.substr(beg_pos, end_pos-beg_pos+1);
+        }
         return temp;
     }
 
@@ -420,13 +442,15 @@ string find_last_number(string const &str, size_t &beg_pos, size_t &end_pos)
     return string();
 }
 
-string find_first_double_number(string const &str, size_t &beg_pos, size_t &end_pos)
+string find_first_double_number(string const &str, size_t &beg_pos, size_t &end_pos, bool isOnlyPositive)
 {
     beg_pos = str.find_first_of("0123456789", beg_pos);
     if (beg_pos != string::npos)
     {
-        size_t const m = str.find_first_not_of("0123456789,.", beg_pos);
+        size_t m = str.find_first_not_of("0123456789,.", beg_pos);
         end_pos = (m != string::npos ? m-1 : str.length()-1);
+        if ((!isOnlyPositive) && (beg_pos > 0) && ((str[beg_pos-1] == '+') || (str[beg_pos-1] == '-')))
+            beg_pos--;
         return str.substr(beg_pos, m != string::npos ? m-beg_pos : m);
     }
 
@@ -434,15 +458,20 @@ string find_first_double_number(string const &str, size_t &beg_pos, size_t &end_
     return string();
 }
 
-string find_last_double_number(string const &str, size_t &beg_pos, size_t &end_pos)
+string find_last_double_number(string const &str, size_t &beg_pos, size_t &end_pos, bool isOnlyPositive)
 {
     end_pos = str.find_last_of("0123456789", end_pos);
     if (end_pos != string::npos)
     {
         string temp = str.substr(0, end_pos+1);
-        size_t const m = temp.find_last_not_of("0123456789,.");
-        beg_pos = (m != string::npos ? m+1 : 1);
-        if (m != string::npos) return temp.substr(m+1, end_pos-m);
+        size_t m = temp.find_last_not_of("0123456789,.");
+        beg_pos = (m != string::npos ? m+1 : 0);
+        if (m != string::npos)
+        {
+            if ((!isOnlyPositive) && ((str[m] == '+') || (str[m] == '-')))
+                beg_pos--;
+            return temp.substr(beg_pos, end_pos-beg_pos+1);
+        }
         return temp;
     }
 

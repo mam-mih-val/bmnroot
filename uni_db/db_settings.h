@@ -11,9 +11,9 @@ const char* const TANGO_DB_PASSWORD = "tangompd";       // option for DB adninis
 const char* const TANGO_DB_NAME = "hdbpp";              // option for DB adninistrator only
 const char* const TANGO_DB_HOST = "10.18.11.66";        // option for DB adninistrator only
 
-const char* const ELOG_DB_USERNAME = "";         // option for DB adninistrator only
-const char* const ELOG_DB_PASSWORD = "";   // option for DB adninistrator only
-const char* const ELOG_DB_NAME = "bmn_elog";             // option for DB adninistrator only
+const char* const ELOG_DB_USERNAME = "elog_reader";     // option for DB adninistrator only
+const char* const ELOG_DB_PASSWORD = "reader_pass";     // option for DB adninistrator only
+const char* const ELOG_DB_NAME = "bmn_elog";            // option for DB adninistrator only
 const char* const ELOG_DB_HOST = "vm221-53.jinr.ru";    // option for DB adninistrator only
 
 #endif // DB_SETTINGS_H

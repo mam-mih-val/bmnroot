@@ -1072,8 +1072,8 @@ bool check_element(const string& str, size_t pos, string element)
             return false;
     }
 
-    if (((pos == 0) || (str[pos-1] == ' ') || (str[pos-1] == ',') || (str[pos-1] == '.')) &&
-       ((pos == (str_length-element_length)) || (str[pos+element_length] == ' ') || (str[pos+element_length] == ',') || (str[pos+element_length] == '.')))
+    if (((pos == 0) || (str[pos-1] == ' ') || (str[pos-1] == ',') || (str[pos-1] == '.') || (str[pos-1] == ')')) &&
+       ((pos == (str_length-element_length)) || (str[pos+element_length] == ' ') || (str[pos+element_length] == ',') || (str[pos+element_length] == '.') || (str[pos+element_length] == '(')))
     {
         return true;
     }
@@ -1263,7 +1263,7 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
             ind = subject_lower.find("new run");
             if (ind != string::npos)
             {
-                record_type = "new run";
+                type_lower = "new run";
                 if (subject_lower.length() == 7)
                     subject = "";
             }
@@ -1271,7 +1271,7 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
         TString sql_type = TString::Format(
                                "select type_id "
                                 "from type_ "
-                                "where lower(type_text) = lower('%s')", record_type.c_str());
+                                "where lower(type_text) = lower('%s')", type_lower.c_str());
         stmt = elog_server->Statement(sql_type);
 
         if (!stmt->Process())
@@ -1446,17 +1446,10 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
         if (ind != string::npos)
         {
             beg_pos = ind + 5;
-            sp57 = find_first_number(field_lower, beg_pos, end_pos);
+            sp57 = find_first_number(field_lower, beg_pos, end_pos, false);
         }
         if (sp57 != "")
-        {
             iSP57 = atoi(sp57.c_str());
-            if (iSP57 < 0)
-            {
-                cout<<"ERROR: SP-57 field can't be negative: "<<iSP57<<endl;
-                continue;
-            }
-        }
 
         ind = field_lower.find("vkm2");
         if (ind != string::npos)
@@ -1481,7 +1474,7 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
             field_mv = find_last_double_number(field_lower, beg_pos, end_pos);
             if (field_mv.empty())
             {
-                cout<<"ERROR: no field voltage before 'mv' found: "<<field_lower<<" for record id: "<<record_id<<endl;
+                cout<<"ERROR: no field voltage before 'mV' found: "<<field_lower<<" for record id: "<<record_id<<endl;
                 continue;
             }
         }
@@ -1635,7 +1628,6 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
                 {
                     end_pos = ind - 1;
                     strTargetWidth = find_last_double_number(beam_lower, beg_pos, end_pos);
-                    cout<<"strTargetWidth: "<<strTargetWidth<<endl;
                     if (strTargetWidth.empty())
                     {
                         cout<<"ERROR: no target width before 'mm' found: "<<beam_lower<<" for record id: "<<record_id<<endl;
@@ -1645,7 +1637,6 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
                 if (strTargetWidth != "")
                 {
                     dTargetWidth = atof(strTargetWidth.c_str());
-                    cout<<"dTargetWidth: "<<dTargetWidth<<endl;
                     if (dTargetWidth < 0)
                     {
                         cout<<"ERROR: target field can't be less or equal 0: "<<dTargetWidth<<endl;
@@ -1668,10 +1659,10 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
         do{
         // FORM INSERT STATEMENT
         TString sql_insert = TString::Format(
-                "insert into log_record(record_date, author, record_type, record_type_old, run_number, "
-                "shift_leader, trigger_config, daq_status, sp_41, field_comment, magnet_field, "
-                "beam, energy, target, target_width, beam_old, record_comment, subject_old, record_comment_old) "
-                "values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)");
+                "insert into log_record(record_date, author, record_type, run_number, "
+                "shift_leader, trigger_config, daq_status, sp_41, field_comment, "
+                "beam, energy, target, target_width, record_comment) "
+                "values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)");
         stmt = elog_server->Statement(sql_insert);
         stmt->NextIteration();
         int cur_index = 0;
@@ -1689,10 +1680,10 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
             stmt->SetNull(cur_index++);
         else
             stmt->SetInt(cur_index++, iRecordType);
-        if (record_type == "")
+        /*if (record_type == "")
             stmt->SetNull(cur_index++);
         else
-            stmt->SetString(cur_index++, record_type.c_str());
+            stmt->SetString(cur_index++, record_type.c_str());*/
         if (iRunNumber < 0)
             stmt->SetNull(cur_index++);
         else
@@ -1730,10 +1721,10 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
         int iter = 0;
         if (dVoltage > -1)
         {
-            strFieldComment += TString::Format("SP-41 = %smv", field_mv.c_str());
+            strFieldComment += TString::Format("SP-41 = %smV", field_mv.c_str());
             iter++;
         }
-        if (iSP57 >= 0)
+        if (sp57 != "")
         {
             if (iter > 0) strFieldComment += ", ";
             strFieldComment += TString::Format("SP-57 = %dA", iSP57);
@@ -1749,10 +1740,10 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
             stmt->SetNull(cur_index++);
         else
             stmt->SetString(cur_index++, strFieldComment);
-        if (magnet_field == "")
+        /*if (magnet_field == "")
             stmt->SetNull(cur_index++);
         else
-            stmt->SetString(cur_index++, magnet_field.c_str());
+            stmt->SetString(cur_index++, magnet_field.c_str());*/
         if (strBeam == "")
             stmt->SetNull(cur_index++);
         else
@@ -1765,30 +1756,26 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
             stmt->SetNull(cur_index++);
         else
             stmt->SetString(cur_index++, strTarget.c_str());
-        cout<<dTargetWidth<<endl;
         if (dTargetWidth <= 0)
             stmt->SetNull(cur_index++);
         else
-        {
-            cout<<"One more: "<<dTargetWidth<<endl;
             stmt->SetDouble(cur_index++, (Double_t)dTargetWidth);
-        }
-        if (beam == "")
+        /*if (beam == "")
             stmt->SetNull(cur_index++);
         else
-            stmt->SetString(cur_index++, beam.c_str());
+            stmt->SetString(cur_index++, beam.c_str());*/
         if (strComment == "")
             stmt->SetNull(cur_index++);
         else
             stmt->SetString(cur_index++, strComment);
-        if (subject == "")
+        /*if (subject == "")
             stmt->SetNull(cur_index++);
         else
             stmt->SetString(cur_index++, subject.c_str());
         if (record_comment == "")
             stmt->SetNull(cur_index++);
         else
-            stmt->SetString(cur_index++, record_comment.c_str());
+            stmt->SetString(cur_index++, record_comment.c_str());*/
 
         // inserting new ELog record to the ELog Database
         if (!stmt->Process())

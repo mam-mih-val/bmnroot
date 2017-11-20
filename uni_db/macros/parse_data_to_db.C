@@ -8,12 +8,13 @@ void parse_data_to_db()
     bmnloadlibs(); // load main libraries
 
     //(TString fileName, TString schemaPath, bool isUpdate = false)
-    UniDbParser pars;
-    //pars.ParseTxt2Db("parse_schemes/0168fdca_PRPC20g_A.dat", "parse_schemes/tdc_inl_txt.xslt");
-    //pars.ParseTxt2Db("parse_schemes/zdc_map.txt", "parse_schemes/mapping_zdc_txt.xslt");
-    pars.ParseXml2Db("parse_schemes/run_info.xml", "parse_schemes/run_info_xml.xslt");
-    //pars.ParseCsv2Db("parse_schemes/run3_log.csv", "parse_schemes/run_info_csv.xslt", true);
-    //pars.ParseTxtNoise2Db("parse_schemes/noise_run1_2.txt", "parse_schemes/noise_txt.xslt");
+    UniDbParser parser;
+    //parser.ParseTxt2Db("parse_schemes/0168fdca_PRPC20g_A.dat", "parse_schemes/tdc_inl_txt.xslt");
+    //parser.ParseTxt2Db("parse_schemes/zdc_map.txt", "parse_schemes/mapping_zdc_txt.xslt");
+    parser.ParseXml2Db("parse_schemes/run_info.xml", "parse_schemes/run_info_xml.xslt");
+    //parser.ParseCsv2Db("parse_schemes/run3_log.csv", "parse_schemes/run_info_csv.xslt", true);
+    //parser.ParseTxtNoise2Db("parse_schemes/noise_run1_2.txt", "parse_schemes/noise_txt.xslt");
+    //parser.ConvertElogCsv("parse_schemes/elog.csv", ';');
 
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();

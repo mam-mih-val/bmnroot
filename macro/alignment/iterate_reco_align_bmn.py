@@ -43,8 +43,6 @@
 # nStartEvent - number (start with zero) of first event to process, default: 0
 # nEvents - number of events to process
 #
-# isPrimary - flag needed when working with MC events, default: kTRUE.
-#
 # alignCorrFileName - argument for choosing input file with the alignment
 # corrections.
 #
@@ -79,7 +77,6 @@ def main() :
     parser.add_option("-m", "--maxit",   dest="maxNumOfIterations",     default=1,                                  help="maximum number of iterations",          type="int")
     parser.add_option("-n", "--nev",     dest="nEvents",                default=10000,                              help="number of events to process",           type="int")
     parser.add_option("-i", "--inf",     dest="addInfo",                default='',                                 help="additional meta-information")
-    parser.add_option("-p", "--prim",    dest="isPrimary",              default='kTRUE',                            help="is primary or not")
     parser.add_option("-c", "--corr",    dest="startAlignCorrFileName", default='default',                          help="file name with the starting alignment corrections")
     (options, args) = parser.parse_args()
     if options.verbose :
@@ -198,6 +195,7 @@ def main() :
         # counter of total events processed for the alignment:
         nEventsTotal = 0
         for digiFileName in digiFileNames :
+            print 'reconstruction starting'
             print 'digiFileName                   = '+digiFileName
             # Derive bmndstFileName from digiFileListFileName,
             # adding addInfo and runNumber, extracted from digiFileName:
@@ -215,14 +213,13 @@ def main() :
             # run the reconstruction
             print 'digiFileName                   = '+digiFileName
             print 'bmndstFileName                 = '+bmndstFileName
-            print 'str(0)                         = '+str(0)
-            print 'str(options.nEvents)           = '+str(options.nEvents)
-            print 'options.isPrimary              = '+options.isPrimary
+            print 'startng event                  = '+str(0)
+            print 'number of events to process    = '+str(options.nEvents)
             print 'sumAlignCorrFileName           = '+sumAlignCorrFileName
-            call(['root', '-l', '-q', '$VMCWORKDIR/macro/run/run_reco_bmn.C("'+digiFileName+'", "'+bmndstFileName+'", '+str(0)+', '+str(options.nEvents)+', '+options.isPrimary+', "'+sumAlignCorrFileName+'")'])
+            call(['root', '-l', '-q', '$VMCWORKDIR/macro/run/run_reco_bmn.C("'+digiFileName+'", "'+bmndstFileName+'", '+str(0)+', '+str(options.nEvents)+', "'+sumAlignCorrFileName+'")'])
             # count total number of events processed for the alignment:
             nEventsTotal += options.nEvents
-
+            print 'reconstruction ended'
         # We also prepare a file with the list of these files inside the loop.
         # It will be used to create a chain inside the determine_align_corrections_bmn.C
 
@@ -246,11 +243,14 @@ def main() :
         print 'newAlignCorrFileName           = '+newAlignCorrFileName
 
         # And now run the alignment:
+        print 'alignment starting'
         call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/determine_align_corrections_bmn.C("'+bmndstFileListFileName+'", "'+newAlignCorrFileName+'", '+str(nEventsTotal)+')'])
+        print 'alignment ended'
         # preserve the Millepede.res result:
         # 'bmn_run06_Glob_tilted_beams_test_new_align_it01.root'  -->  'bmn_run06_Glob_tilted_beams_test_new_align_millepede_it01.res'
         pedeResultFileName = newAlignCorrFileName.replace('align', 'align_millepede')
         pedeResultFileName =   pedeResultFileName.replace('.root', '.res')
+        print 'pedeResultFileName             = '+newAlignCorrFileName
         call(['cp', 'Millepede.res', pedeResultFileName])
         # the already used for the reconstruction sumAlignCorrFileName
         # now becomes the previous one:
@@ -261,8 +261,11 @@ def main() :
         print 'sumAlignCorrFileName           = '+sumAlignCorrFileName
         if iterNr==1 and options.startAlignCorrFileName=='' : # if we started from from scratch, newAlignCorrFileName becomes also new sumAlignCorrFileName
             call(['cp', newAlignCorrFileName, sumAlignCorrFileName])
+            print 'cp newAlignCorrFileName sumAlignCorrFileName'
         else :                                                # update sumAlignCorrFileName file and at next iteration use it
+            print 'update_align_corrections_bmn.C starting'
             call(['root', '-l', '-q', '$VMCWORKDIR/macro/alignment/update_align_corrections_bmn.C("'+preAlignCorrFileName+'", "'+newAlignCorrFileName+'", "'+sumAlignCorrFileName+'")'])
+            print 'update_align_corrections_bmn.C ended'
 
         newAlignCorrFileNames.append(newAlignCorrFileName+'\n')
         sumAlignCorrFileNames.append(sumAlignCorrFileName+'\n')

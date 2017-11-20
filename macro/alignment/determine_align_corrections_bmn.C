@@ -7,11 +7,16 @@
 //
 // Derived from original globAlignment.C macro created by Pavel.Batyk@jinr.ru 2016-11
 
+#include "../../gem/BmnGemStripConfiguration.h"
+#include "../run/bmnloadlibs.C"
+
 void determine_align_corrections_bmn(TString bmndstFileListFileName = "filelist_bmndst_it00.txt",
                                      TString newAlignCorrFileName   = "",
                                      UInt_t  nEvents                =  10000)
 {
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+#endif
     bmnloadlibs(); // load BmnRoot libraries
     if ( ! CheckFileExist(bmndstFileListFileName) ) return;
     if (newAlignCorrFileName == "") return;
@@ -36,6 +41,12 @@ void determine_align_corrections_bmn(TString bmndstFileListFileName = "filelist_
     bmndstFiles >> fnamestr;
     // because fstream produces string, while we need TString, we reassign:
     fname = fnamestr;
+    // at least one input bmndst file name needs to be passed to
+    // BmnGlobalAlignment to determine fRunId = evHeader->GetRunId(); from the
+    // first event in that file, and therefore we memorize name of the first
+    // file in the list to use it in construting the
+    // BmnGlobalAlignment* globAlign object:
+    TString firstBmndstFileName = fname;
     cout <<"fname                          = "+fname<< endl;
     FairSource* fFileSource = new BmnFileSource(fname);
     // the rest of the files should be AddFile'ed to form a chain in the BmnFileSource object:
@@ -55,7 +66,7 @@ void determine_align_corrections_bmn(TString bmndstFileListFileName = "filelist_
         gem_config = BmnGemStripConfiguration::RunSpring2017;
     else if (run_period == 5)
         gem_config = BmnGemStripConfiguration::RunWinter2016;
-    BmnGlobalAlignment* globAlign = new BmnGlobalAlignment(gem_config);
+    BmnGlobalAlignment* globAlign = new BmnGlobalAlignment(gem_config, firstBmndstFileName);
     globAlign->SetDebug(kTRUE);                     // Default is false
 
   // Restrictions on track params:

@@ -14,13 +14,13 @@ static Float_t workTime = 0.0;
 BmnGemStripHitMaker::BmnGemStripHitMaker()
 : fHitMatching(kTRUE), fAlignCorrFileName("") {
 
-    fInputPointsBranchName = "StsPoint";
-    fInputDigitsBranchName = "BmnGemStripDigit";
+    fInputPointsBranchName       = "StsPoint";
+    fInputDigitsBranchName       = "BmnGemStripDigit";
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
-    fBmnEventHeaderBranchName = "EventHeader";
+    fBmnEventHeaderBranchName    = "EventHeader";
 
-    fOutputHitsBranchName = "BmnGemStripHit";
-    fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
+    fOutputHitsBranchName        = "BmnGemStripHit";
+    fOutputHitMatchesBranchName  = "BmnGemStripHitMatch";
 
     fVerbose = 1;
     fField = NULL;
@@ -35,16 +35,16 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
     fIsExp = (!isExp) ? kFALSE : kTRUE;
-    fT0Branch = "T0";
+    fT0Branch   = "T0";
     fVetoBranch = "VETO";
-    fBC2Branch = "BC2";
-    fBDBranch = "BD";
-    fBmnEventHeaderBranchName = "EventHeader";
+    fBC2Branch  = "BC2";
+    fBDBranch   = "BD";
+    fBmnEventHeaderBranchName    = "EventHeader";
 
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
-    fOutputHitsBranchName = "BmnGemStripHit";
-    fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
+    fOutputHitsBranchName        = "BmnGemStripHit";
+    fOutputHitMatchesBranchName  = "BmnGemStripHitMatch";
 
     fVerbose = 1;
     fField = NULL;
@@ -67,10 +67,10 @@ InitStatus BmnGemStripHitMaker::Init() {
     FairRootManager* ioman = FairRootManager::Instance();
     // Done to check trigger conditions when exp. data processing...
     if (fIsExp) {
-        fT0Array = (TClonesArray*) ioman->GetObject(fT0Branch.Data());
+        fT0Array   = (TClonesArray*) ioman->GetObject(fT0Branch.Data());
         fVetoArray = (TClonesArray*) ioman->GetObject(fVetoBranch.Data());
-        fBC2Array = (TClonesArray*) ioman->GetObject(fBC2Branch.Data());
-        fBDArray = (TClonesArray*) ioman->GetObject(fBDBranch.Data());
+        fBC2Array  = (TClonesArray*) ioman->GetObject(fBC2Branch.Data());
+        fBDArray   = (TClonesArray*) ioman->GetObject(fBDBranch.Data());
     }
 
     fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
@@ -132,21 +132,24 @@ InitStatus BmnGemStripHitMaker::Init() {
     }
 
     // NB! When fAlignCorrFileName == "", i.e. is empty string, no alinment
-    // corrections are used at all, they remain to be simply zeros (just
-    // immediate return from ReadAlignCorrFile); this is used when e.g. we want
-    // to run alignment from scratch.
+    // corrections are used at all, they remain to be simply zeros; this is used
+    // when e.g. we want to run alignment from scratch.
+    // Otherwise, fAlignCorrFileName is assigned in the run_reco_bmn.C
+    // using SetAlignmentCorrectionsFileName (in BmnGemStripHitMaker.h)
     // Anatoly.Solomin@jinr.ru 2017-02-21 15:12:07
-    ReadAlignCorrFile(fAlignCorrFileName, corr);
+    // Anatoly.Solomin@jinr.ru 2017-11-18 13:06:30
+    if (fAlignCorrFileName != "") {
+        ReadAlignCorrFile(fAlignCorrFileName, corr);
 
-    cout << "Obtained alignment GEM-corrections to be used: " << endl;
-    for (Int_t iStat = 0; iStat < nStat; iStat++) {
+    }
+    cout <<"GEM-alignment corrections in use:" << endl;
+    for (Int_t iStat=0; iStat !=nStat; iStat++) {
         Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
-        for (Int_t iMod = 0; iMod < nModul; iMod++) {
-            for (Int_t iPar = 0; iPar < nParams; iPar++)
-                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << TString::Format("% 7.4f", corr[iStat][iMod][iPar]) << endl; //
+        for (Int_t iMod=0; iMod !=nModul; iMod++) {
+            for (Int_t iPar=0; iPar !=nParams; iPar++)
+                cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 7.4f", corr[iStat][iMod][iPar])<< endl; //
         }
     }
-
     fField = FairRunAna::Instance()->GetField();
     if (!fField) Fatal("Init", "No Magnetic Field found");
 
@@ -175,12 +178,12 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
 //        //            if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < 1)
 //        //                return;
 //        //        }
-//        //        
+//        //
 //        //        else if (trigType == kBMNBEAM) {
 //        //            if (fVetoArray->GetEntriesFast() > 1 || fBDArray->GetEntriesFast() > 0)
 //        //                return;
 //        //        }
-//        //        
+//        //
 //        //        else
 //        //            return;
 //    }
@@ -246,7 +249,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
     for (Int_t iStation = 0; iStation < StationSet->GetNStations(); ++iStation) {
         BmnGemStripStation *station = StationSet->GetGemStation(iStation);
 
-        for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {        
+        for (Int_t iModule = 0; iModule < station->GetNModules(); ++iModule) {
             BmnGemStripModule *module = station->GetModule(iModule);
             Double_t z = module->GetZPositionRegistered();
             z += corr[iStation][iModule][2]; //alignment implementation
@@ -323,17 +326,18 @@ void BmnGemStripHitMaker::ProcessDigits() {
 }
 
 void BmnGemStripHitMaker::Finish() {
-    //    if (fAlignCorrFileName != "")
-    //        system(TString("rm " + fAlignCorrFileName).Data());
+    // NB! normally, the following should never be used, except, maybe some tests:
+  //if (fAlignCorrFileName != "")
+  //    system(TString("rm "+fAlignCorrFileName).Data());
     if (StationSet) {
         for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++) {
             Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
             for (Int_t iMod = 0; iMod < nModul; iMod++) {
                 delete [] corr[iStat][iMod];
             }
-            delete[] corr[iStat];
+            delete [] corr[iStat];
         }
-        delete[] corr;
+        delete [] corr;
 
         delete StationSet;
         StationSet = NULL;
@@ -342,8 +346,10 @@ void BmnGemStripHitMaker::Finish() {
 }
 
 void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
-    if (fname == "") // case when we do not want to use any alinment corrections
-        return;
+    // NB! the following is not needed, because in case fname == "" we simply
+    // do not call this function at all:
+  //if (fname == "") // case when we do not use any alignment corrections
+  //    return;
 
     Int_t coeff = 0; // -1 for RunWinter2016, +1 for RunSpring2017 and in the future
     TString branchName = "";
@@ -357,6 +363,7 @@ void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
             coeff = 1;
             branchName = "BmnGemAlignCorrections";
             break;
+
         default:
             StationSet = NULL;
     }

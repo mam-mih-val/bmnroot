@@ -7,9 +7,11 @@ void generate_cxx_from_db()
 
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load main libraries
+    gSystem->Load("libUniDb");
 
     UniDbGenerateClasses gen;
-    int res = gen.GenerateClasses("", "UniDb", true); //(TString connection_string, TString class_prefix, bool isOnlyUpdate)
+    int res = gen.GenerateClasses(UNIFIED_DB, "UniDb", true); //(UniConnectionType connection_type, TString class_prefix, bool isOnlyUpdate)
+    //int res = gen.GenerateClasses(ELOG_DB, "UniDb", true);
 
     if (res == 0)
         cout<<"\nGenerating C++ classes has completed successfully"<<endl;

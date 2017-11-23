@@ -71,15 +71,15 @@ UniDbConnection* UniDbConnection::Open(UniConnectionType connection_type)
 }
 
 // -------------------------------------------------------------------
-UniDbConnection* UniDbConnection::Open(UniDbType database_type, const char* strDBHost, const char* strDBName, const char* strUID, const char* strPassword)
+UniDbConnection* UniDbConnection::Open(enumDBMS database_type, const char* strDBHost, const char* strDBName, const char* strUID, const char* strPassword)
 {
     char* db_type;
     switch (database_type)
     {
-        case MYSQL_DB:
+        case MySQL:
             db_type = (char*)"mysql";
             break;
-        case POSTGRESQL_DB:
+        case PgSQL:
             db_type = (char*)"pgsql";
             break;
         default:

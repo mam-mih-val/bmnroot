@@ -34,6 +34,7 @@
 #pragma link C++ struct enumColumns;
 #pragma link C++ struct enumConditions;
 #pragma link C++ struct enumParameterType;
+#pragma link C++ struct UniConnectionType;
 
 #endif
 

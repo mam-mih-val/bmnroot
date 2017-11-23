@@ -3,7 +3,6 @@
 // -----                  Created 18/08/15 by K. Gertsenberger         -----
 // -------------------------------------------------------------------------
 #include "UniDbGenerateClasses.h"
-#include "UniDbConnection.h"
 #include "function_set.h"
 
 #include "TSQLServer.h"
@@ -16,8 +15,6 @@
 #include <fstream>
 #include <iostream>
 using namespace std;
-
-enum enumDBMS{MySQL, PgSQL};
 
 // -----   Constructor   -------------------------------
 UniDbGenerateClasses::UniDbGenerateClasses()
@@ -103,14 +100,9 @@ UniDbGenerateClasses::~UniDbGenerateClasses()
 // ----------------------------------------------------z
 
 // -----  generate C++ classess - wrappers for DB tables  -------------------------------
-int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString class_prefix, bool isOnlyUpdate)
+int UniDbGenerateClasses::GenerateClasses(UniConnectionType connection_type, TString class_prefix, bool isOnlyUpdate)
 {
-    UniDbConnection* connectionUniDb;
-    if (connection_string == "")
-        connectionUniDb = UniDbConnection::Open(UNIFIED_DB);
-    //else
-    //    connectionUniDb = UniDbConnection::Open(connection_string);
-
+    UniDbConnection* connectionUniDb = UniDbConnection::Open(connection_type);
     if (connectionUniDb == 0x00)
     {
         cout<<"Error: connection to the database can't be established"<<endl;
@@ -134,7 +126,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
     int res_code = create_directory(strClassDir.Data());
     if (res_code < 0)
     {
-        cout<<"Critical error: creating of the directory '"<<strClassDir<<"' was failed"<<endl;
+        cout<<"CRITICAL ERROR: creating of the directory '"<<strClassDir<<"' was failed, error code: "<<res_code<<endl;
         return -11;
     }
     strClassDir += "/";
@@ -766,7 +758,7 @@ int UniDbGenerateClasses::GenerateClasses(TString connection_string, TString cla
         }
 
         // PRINT VALUES -DECLARATION
-        hFile<<(TString::Format("\t/// print information about current %s\n", strTableNameSpace.Data())).Data();
+        hFile<<(TString::Format("\n\t/// print information about current %s\n", strTableNameSpace.Data())).Data();
         hFile<<"\tvoid Print();\n";
         hFile<<"\t/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */\n";
 

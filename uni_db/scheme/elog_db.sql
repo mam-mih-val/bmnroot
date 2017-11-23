@@ -32,7 +32,7 @@ create table trigger_
  trigger_info varchar(60) unique not null
 );
 
-create table log_record
+create table elog_record
 (
  record_id serial primary key,
  record_date timestamp not null default now(),
@@ -48,12 +48,12 @@ create table log_record
  energy float null check (energy > 0),
  target varchar(10) null references target_(target),
  target_width float null,
- record_comment text,
+ record_comment text
 );
 
 create table attachment_
 (
- record_id int not null references log_record(record_id),
+ record_id int not null references elog_record(record_id),
  attachment_number int not null,	-- start with 1
  file_name varchar(255) not null,
  file_data bytea not null,

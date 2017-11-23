@@ -580,19 +580,22 @@ int check_directory_exist(const char* path)
         return 0;
 }
 
-// check and create directory if not exists: 0 - not existed before, 1 - existed, -1 - errno error, -2 - cannot access
+// check and create directory if not exists: 0 - not existed before, 1 - existed, -1 - errno error
 int create_directory(const char* path)
 {
-    struct stat info;
+    struct stat info = {0};
 
-    if (stat(path, &info) != 0)
-        return -2;
-    else if (info.st_mode & S_IFDIR)
-        return 1;
-    else
+    if (stat(path, &info) == -1)
     {
         int status = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         return status;
+    }
+    else
+    {
+        if (info.st_mode & S_IFDIR)
+            return 1;
+
+        return -2;
     }
 }
 

@@ -20,7 +20,7 @@
 #include <iostream>
 using namespace std;
 
-enum UniDbType{MYSQL_DB, POSTGRESQL_DB};
+enum enumDBMS{MySQL, PgSQL};
 enum UniConnectionType{UNIFIED_DB, TANGO_DB, ELOG_DB};
 
 typedef map<string, TSQLServer*> mapSQLServer;
@@ -41,7 +41,7 @@ class UniDbConnection
     virtual ~UniDbConnection(); // Destructor
 
     static UniDbConnection* Open(UniConnectionType connection_type);
-    static UniDbConnection* Open(UniDbType database_type, const char* strDBHost, const char* strDBName, const char* strUID, const char* strPassword);
+    static UniDbConnection* Open(enumDBMS database_type, const char* strDBHost, const char* strDBName, const char* strUID, const char* strPassword);
 
     TSQLServer* GetSQLServer() {return server_db;}
 

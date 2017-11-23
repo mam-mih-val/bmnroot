@@ -1,16 +1,18 @@
 // -------------------------------------------------------------------------
-// -----                      UniDbGenerateClasses header file         -----
+// -----                    UniDbGenerateClasses header file           -----
 // -----                  Created 18/08/15  by K. Gertsenberger        -----
 // -------------------------------------------------------------------------
 
 /** UniDbGenerateClasses.h
  *@author K.Gertsenberger <gertsen@jinr.ru>
  **
- ** Class for generating MPD DB classes
+ ** Class for generating DB classes
  **/
 
 #ifndef UNIDBGENERATECLASSES_H
 #define UNIDBGENERATECLASSES_H 1
+
+#include "UniDbConnection.h"
 
 #include "TString.h"
 #include "TObjArray.h"
@@ -64,7 +66,7 @@ class UniDbGenerateClasses
     virtual ~UniDbGenerateClasses();    // Destructor
 
     // generate C++ classess - wrappers for DB tables
-    int GenerateClasses(TString connection_string = "", TString class_prefix = "UniDb", bool isOnlyUpdate = true);
+    int GenerateClasses(UniConnectionType connection_type, TString class_prefix = "UniDb", bool isOnlyUpdate = true);
 
     TObjArray* arrTableJoin;
 

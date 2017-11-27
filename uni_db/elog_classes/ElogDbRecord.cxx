@@ -1,29 +1,29 @@
 // ----------------------------------------------------------------------
-//                    UniDbElogRecord cxx file 
-//                      Generated 23-11-2017 
+//                    ElogDbRecord cxx file 
+//                      Generated 27-11-2017 
 // ----------------------------------------------------------------------
 
 #include "TSQLServer.h"
 #include "TSQLStatement.h"
 
-#include "UniDbElogRecord.h"
+#include "ElogDbRecord.h"
 
 #include <iostream>
 using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-UniDbElogRecord::UniDbElogRecord(UniDbConnection* connUniDb, int record_id, TDatime record_date, int* author, int record_type, int* run_number, int* shift_leader, int* trigger_config, TString* daq_status, int* sp_41, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment)
+ElogDbRecord::ElogDbRecord(UniDbConnection* connUniDb, int record_id, TDatime record_date, int* author_id, int type_id, int* run_number, int* shift_leader_id, int* trigger_id, TString* daq_status, int* sp_41, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment)
 {
 	connectionUniDb = connUniDb;
 
 	i_record_id = record_id;
 	dt_record_date = record_date;
-	i_author = author;
-	i_record_type = record_type;
+	i_author_id = author_id;
+	i_type_id = type_id;
 	i_run_number = run_number;
-	i_shift_leader = shift_leader;
-	i_trigger_config = trigger_config;
+	i_shift_leader_id = shift_leader_id;
+	i_trigger_id = trigger_id;
 	str_daq_status = daq_status;
 	i_sp_41 = sp_41;
 	str_field_comment = field_comment;
@@ -35,18 +35,18 @@ UniDbElogRecord::UniDbElogRecord(UniDbConnection* connUniDb, int record_id, TDat
 }
 
 // -----   Destructor   -------------------------------------------------
-UniDbElogRecord::~UniDbElogRecord()
+ElogDbRecord::~ElogDbRecord()
 {
 	if (connectionUniDb)
 		delete connectionUniDb;
-	if (i_author)
-		delete i_author;
+	if (i_author_id)
+		delete i_author_id;
 	if (i_run_number)
 		delete i_run_number;
-	if (i_shift_leader)
-		delete i_shift_leader;
-	if (i_trigger_config)
-		delete i_trigger_config;
+	if (i_shift_leader_id)
+		delete i_shift_leader_id;
+	if (i_trigger_id)
+		delete i_trigger_id;
 	if (str_daq_status)
 		delete str_daq_status;
 	if (i_sp_41)
@@ -65,74 +65,75 @@ UniDbElogRecord::~UniDbElogRecord()
 		delete str_record_comment;
 }
 
-// -----   Creating new elog record in the database  ---------------------------
-UniDbElogRecord* UniDbElogRecord::CreateElogRecord(int* author, int record_type, int* run_number, int* shift_leader, int* trigger_config, TString* daq_status, int* sp_41, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment)
+// -----   Creating new record in the database  ---------------------------
+ElogDbRecord* ElogDbRecord::CreateRecord(TDatime record_date, int* author_id, int type_id, int* run_number, int* shift_leader_id, int* trigger_id, TString* daq_status, int* sp_41, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"insert into elog_record(author, record_type, run_number, shift_leader, trigger_config, daq_status, sp_41, field_comment, beam, energy, target, target_width, record_comment) "
-		"values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)");
+		"insert into record_(record_date, author_id, type_id, run_number, shift_leader_id, trigger_id, daq_status, sp_41, field_comment, beam, energy, target, target_width, record_comment) "
+		"values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	if (author == NULL)
-		stmt->SetNull(0);
+	stmt->SetDatime(0, record_date);
+	if (author_id == NULL)
+		stmt->SetNull(1);
 	else
-		stmt->SetInt(0, *author);
-	stmt->SetInt(1, record_type);
+		stmt->SetInt(1, *author_id);
+	stmt->SetInt(2, type_id);
 	if (run_number == NULL)
-		stmt->SetNull(2);
-	else
-		stmt->SetInt(2, *run_number);
-	if (shift_leader == NULL)
 		stmt->SetNull(3);
 	else
-		stmt->SetInt(3, *shift_leader);
-	if (trigger_config == NULL)
+		stmt->SetInt(3, *run_number);
+	if (shift_leader_id == NULL)
 		stmt->SetNull(4);
 	else
-		stmt->SetInt(4, *trigger_config);
-	if (daq_status == NULL)
+		stmt->SetInt(4, *shift_leader_id);
+	if (trigger_id == NULL)
 		stmt->SetNull(5);
 	else
-		stmt->SetString(5, *daq_status);
-	if (sp_41 == NULL)
+		stmt->SetInt(5, *trigger_id);
+	if (daq_status == NULL)
 		stmt->SetNull(6);
 	else
-		stmt->SetInt(6, *sp_41);
-	if (field_comment == NULL)
+		stmt->SetString(6, *daq_status);
+	if (sp_41 == NULL)
 		stmt->SetNull(7);
 	else
-		stmt->SetString(7, *field_comment);
-	if (beam == NULL)
+		stmt->SetInt(7, *sp_41);
+	if (field_comment == NULL)
 		stmt->SetNull(8);
 	else
-		stmt->SetString(8, *beam);
-	if (energy == NULL)
+		stmt->SetString(8, *field_comment);
+	if (beam == NULL)
 		stmt->SetNull(9);
 	else
-		stmt->SetDouble(9, *energy);
-	if (target == NULL)
+		stmt->SetString(9, *beam);
+	if (energy == NULL)
 		stmt->SetNull(10);
 	else
-		stmt->SetString(10, *target);
-	if (target_width == NULL)
+		stmt->SetDouble(10, *energy);
+	if (target == NULL)
 		stmt->SetNull(11);
 	else
-		stmt->SetDouble(11, *target_width);
-	if (record_comment == NULL)
+		stmt->SetString(11, *target);
+	if (target_width == NULL)
 		stmt->SetNull(12);
 	else
-		stmt->SetString(12, *record_comment);
+		stmt->SetDouble(12, *target_width);
+	if (record_comment == NULL)
+		stmt->SetNull(13);
+	else
+		stmt->SetString(13, *record_comment);
 
-	// inserting new elog record to the Database
+	// inserting new record to the Database
 	if (!stmt->Process())
 	{
-		cout<<"Error: inserting new elog record to the Database has been failed"<<endl;
+		cout<<"Error: inserting new record to the Database has been failed"<<endl;
 		delete stmt;
 		delete connUniDb;
 		return 0x00;
@@ -141,8 +142,8 @@ UniDbElogRecord* UniDbElogRecord::CreateElogRecord(int* author, int record_type,
 	delete stmt;
 
 	// getting last inserted ID
-	int record_date;
-	TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('elog_record','record_date'))");
+	int record_id;
+	TSQLStatement* stmt_last = uni_db->Statement("SELECT currval(pg_get_serial_sequence('record_','record_id'))");
 
 	// process getting last id
 	if (stmt_last->Process())
@@ -159,7 +160,7 @@ UniDbElogRecord* UniDbElogRecord::CreateElogRecord(int* author, int record_type,
 		}
 		else
 		{
-			record_date = stmt_last->GetInt(0);
+			record_id = stmt_last->GetInt(0);
 			delete stmt_last;
 		}
 	}
@@ -174,24 +175,24 @@ UniDbElogRecord* UniDbElogRecord::CreateElogRecord(int* author, int record_type,
 	tmp_record_id = record_id;
 	TDatime tmp_record_date;
 	tmp_record_date = record_date;
-	int* tmp_author;
-	if (author == NULL) tmp_author = NULL;
+	int* tmp_author_id;
+	if (author_id == NULL) tmp_author_id = NULL;
 	else
-		tmp_author = new int(*author);
-	int tmp_record_type;
-	tmp_record_type = record_type;
+		tmp_author_id = new int(*author_id);
+	int tmp_type_id;
+	tmp_type_id = type_id;
 	int* tmp_run_number;
 	if (run_number == NULL) tmp_run_number = NULL;
 	else
 		tmp_run_number = new int(*run_number);
-	int* tmp_shift_leader;
-	if (shift_leader == NULL) tmp_shift_leader = NULL;
+	int* tmp_shift_leader_id;
+	if (shift_leader_id == NULL) tmp_shift_leader_id = NULL;
 	else
-		tmp_shift_leader = new int(*shift_leader);
-	int* tmp_trigger_config;
-	if (trigger_config == NULL) tmp_trigger_config = NULL;
+		tmp_shift_leader_id = new int(*shift_leader_id);
+	int* tmp_trigger_id;
+	if (trigger_id == NULL) tmp_trigger_id = NULL;
 	else
-		tmp_trigger_config = new int(*trigger_config);
+		tmp_trigger_id = new int(*trigger_id);
 	TString* tmp_daq_status;
 	if (daq_status == NULL) tmp_daq_status = NULL;
 	else
@@ -225,27 +226,27 @@ UniDbElogRecord* UniDbElogRecord::CreateElogRecord(int* author, int record_type,
 	else
 		tmp_record_comment = new TString(*record_comment);
 
-	return new UniDbElogRecord(connUniDb, tmp_record_id, tmp_record_date, tmp_author, tmp_record_type, tmp_run_number, tmp_shift_leader, tmp_trigger_config, tmp_daq_status, tmp_sp_41, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment);
+	return new ElogDbRecord(connUniDb, tmp_record_id, tmp_record_date, tmp_author_id, tmp_type_id, tmp_run_number, tmp_shift_leader_id, tmp_trigger_id, tmp_daq_status, tmp_sp_41, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment);
 }
 
-// -----  Get elog record from the database  ---------------------------
-UniDbElogRecord* UniDbElogRecord::GetElogRecord(int record_id)
+// -----  Get record from the database  ---------------------------
+ElogDbRecord* ElogDbRecord::GetRecord(int record_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select record_id, record_date, author, record_type, run_number, shift_leader, trigger_config, daq_status, sp_41, field_comment, beam, energy, target, target_width, record_comment "
-		"from elog_record "
+		"select record_id, record_date, author_id, type_id, run_number, shift_leader_id, trigger_id, daq_status, sp_41, field_comment, beam, energy, target, target_width, record_comment "
+		"from record_ "
 		"where record_id = %d", record_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get elog record from the database
+	// get record from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting elog record from the database has been failed"<<endl;
+		cout<<"Error: getting record from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -258,7 +259,7 @@ UniDbElogRecord* UniDbElogRecord::GetElogRecord(int record_id)
 	// extract row
 	if (!stmt->NextResultRow())
 	{
-		cout<<"Error: elog record wasn't found in the database"<<endl;
+		cout<<"Error: record wasn't found in the database"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -269,24 +270,24 @@ UniDbElogRecord* UniDbElogRecord::GetElogRecord(int record_id)
 	tmp_record_id = stmt->GetInt(0);
 	TDatime tmp_record_date;
 	tmp_record_date = stmt->GetDatime(1);
-	int* tmp_author;
-	if (stmt->IsNull(2)) tmp_author = NULL;
+	int* tmp_author_id;
+	if (stmt->IsNull(2)) tmp_author_id = NULL;
 	else
-		tmp_author = new int(stmt->GetInt(2));
-	int tmp_record_type;
-	tmp_record_type = stmt->GetInt(3);
+		tmp_author_id = new int(stmt->GetInt(2));
+	int tmp_type_id;
+	tmp_type_id = stmt->GetInt(3);
 	int* tmp_run_number;
 	if (stmt->IsNull(4)) tmp_run_number = NULL;
 	else
 		tmp_run_number = new int(stmt->GetInt(4));
-	int* tmp_shift_leader;
-	if (stmt->IsNull(5)) tmp_shift_leader = NULL;
+	int* tmp_shift_leader_id;
+	if (stmt->IsNull(5)) tmp_shift_leader_id = NULL;
 	else
-		tmp_shift_leader = new int(stmt->GetInt(5));
-	int* tmp_trigger_config;
-	if (stmt->IsNull(6)) tmp_trigger_config = NULL;
+		tmp_shift_leader_id = new int(stmt->GetInt(5));
+	int* tmp_trigger_id;
+	if (stmt->IsNull(6)) tmp_trigger_id = NULL;
 	else
-		tmp_trigger_config = new int(stmt->GetInt(6));
+		tmp_trigger_id = new int(stmt->GetInt(6));
 	TString* tmp_daq_status;
 	if (stmt->IsNull(7)) tmp_daq_status = NULL;
 	else
@@ -322,27 +323,27 @@ UniDbElogRecord* UniDbElogRecord::GetElogRecord(int record_id)
 
 	delete stmt;
 
-	return new UniDbElogRecord(connUniDb, tmp_record_id, tmp_record_date, tmp_author, tmp_record_type, tmp_run_number, tmp_shift_leader, tmp_trigger_config, tmp_daq_status, tmp_sp_41, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment);
+	return new ElogDbRecord(connUniDb, tmp_record_id, tmp_record_date, tmp_author_id, tmp_type_id, tmp_run_number, tmp_shift_leader_id, tmp_trigger_id, tmp_daq_status, tmp_sp_41, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment);
 }
 
-// -----  Check elog record exists in the database  ---------------------------
-bool UniDbElogRecord::CheckElogRecordExists(int record_id)
+// -----  Check record exists in the database  ---------------------------
+bool ElogDbRecord::CheckRecordExists(int record_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
 		"select 1 "
-		"from elog_record "
+		"from record_ "
 		"where record_id = %d", record_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get elog record from the database
+	// get record from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting elog record from the database has been failed"<<endl;
+		cout<<"Error: getting record from the database has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -366,26 +367,26 @@ bool UniDbElogRecord::CheckElogRecordExists(int record_id)
 	return true;
 }
 
-// -----  Delete elog record from the database  ---------------------------
-int UniDbElogRecord::DeleteElogRecord(int record_id)
+// -----  Delete record from the database  ---------------------------
+int ElogDbRecord::DeleteRecord(int record_id)
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"delete from elog_record "
+		"delete from record_ "
 		"where record_id = $1");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetInt(0, record_id);
 
-	// delete elog record from the dataBase
+	// delete record from the dataBase
 	if (!stmt->Process())
 	{
-		cout<<"Error: deleting elog record from the dataBase has been failed"<<endl;
+		cout<<"Error: deleting record from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -397,23 +398,23 @@ int UniDbElogRecord::DeleteElogRecord(int record_id)
 	return 0;
 }
 
-// -----  Print all 'elog records'  ---------------------------------
-int UniDbElogRecord::PrintAll()
+// -----  Print all 'records'  ---------------------------------
+int ElogDbRecord::PrintAll()
 {
-	UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
 
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select record_id, record_date, author, record_type, run_number, shift_leader, trigger_config, daq_status, sp_41, field_comment, beam, energy, target, target_width, record_comment "
-		"from elog_record");
+		"select record_id, record_date, author_id, type_id, run_number, shift_leader_id, trigger_id, daq_status, sp_41, field_comment, beam, energy, target, target_width, record_comment "
+		"from record_");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
-	// get all 'elog records' from the database
+	// get all 'records' from the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: getting all 'elog records' from the dataBase has been failed"<<endl;
+		cout<<"Error: getting all 'records' from the dataBase has been failed"<<endl;
 
 		delete stmt;
 		delete connUniDb;
@@ -424,28 +425,28 @@ int UniDbElogRecord::PrintAll()
 	stmt->StoreResult();
 
 	// print rows
-	cout<<"Table 'elog_record':"<<endl;
+	cout<<"Table 'record_':"<<endl;
 	while (stmt->NextResultRow())
 	{
 		cout<<"record_id: ";
 		cout<<(stmt->GetInt(0));
 		cout<<", record_date: ";
 		cout<<(stmt->GetDatime(1)).AsSQLString();
-		cout<<", author: ";
+		cout<<", author_id: ";
 		if (stmt->IsNull(2)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(2);
-		cout<<", record_type: ";
+		cout<<", type_id: ";
 		cout<<(stmt->GetInt(3));
 		cout<<", run_number: ";
 		if (stmt->IsNull(4)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(4);
-		cout<<", shift_leader: ";
+		cout<<", shift_leader_id: ";
 		if (stmt->IsNull(5)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(5);
-		cout<<", trigger_config: ";
+		cout<<", trigger_id: ";
 		if (stmt->IsNull(6)) cout<<"NULL";
 		else
 			cout<<stmt->GetInt(6);
@@ -492,7 +493,7 @@ int UniDbElogRecord::PrintAll()
 
 
 // Setters functions
-int UniDbElogRecord::SetAuthor(int* author)
+int ElogDbRecord::SetRecordDate(TDatime record_date)
 {
 	if (!connectionUniDb)
 	{
@@ -503,38 +504,73 @@ int UniDbElogRecord::SetAuthor(int* author)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
-		"set author = $1 "
+		"update record_ "
+		"set record_date = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	if (author == NULL)
+	stmt->SetDatime(0, record_date);
+	stmt->SetInt(1, i_record_id);
+
+	// write new value to the database
+	if (!stmt->Process())
+	{
+		cout<<"Error: updating information about record has been failed"<<endl;
+
+		delete stmt;
+		return -2;
+	}
+
+	dt_record_date = record_date;
+
+	delete stmt;
+	return 0;
+}
+
+int ElogDbRecord::SetAuthorId(int* author_id)
+{
+	if (!connectionUniDb)
+	{
+		cout<<"Connection object is null"<<endl;
+		return -1;
+	}
+
+	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
+
+	TString sql = TString::Format(
+		"update record_ "
+		"set author_id = $1 "
+		"where record_id = $2");
+	TSQLStatement* stmt = uni_db->Statement(sql);
+
+	stmt->NextIteration();
+	if (author_id == NULL)
 		stmt->SetNull(0);
 	else
-		stmt->SetInt(0, *author);
+		stmt->SetInt(0, *author_id);
 	stmt->SetInt(1, i_record_id);
 
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
 	}
 
-	if (i_author)
-		delete i_author;
-	if (author == NULL) i_author = NULL;
+	if (i_author_id)
+		delete i_author_id;
+	if (author_id == NULL) i_author_id = NULL;
 	else
-		i_author = new int(*author);
+		i_author_id = new int(*author_id);
 
 	delete stmt;
 	return 0;
 }
 
-int UniDbElogRecord::SetRecordType(int record_type)
+int ElogDbRecord::SetTypeId(int type_id)
 {
 	if (!connectionUniDb)
 	{
@@ -545,31 +581,31 @@ int UniDbElogRecord::SetRecordType(int record_type)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
-		"set record_type = $1 "
+		"update record_ "
+		"set type_id = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	stmt->SetInt(0, record_type);
+	stmt->SetInt(0, type_id);
 	stmt->SetInt(1, i_record_id);
 
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
 	}
 
-	i_record_type = record_type;
+	i_type_id = type_id;
 
 	delete stmt;
 	return 0;
 }
 
-int UniDbElogRecord::SetRunNumber(int* run_number)
+int ElogDbRecord::SetRunNumber(int* run_number)
 {
 	if (!connectionUniDb)
 	{
@@ -580,7 +616,7 @@ int UniDbElogRecord::SetRunNumber(int* run_number)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
+		"update record_ "
 		"set run_number = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -595,7 +631,7 @@ int UniDbElogRecord::SetRunNumber(int* run_number)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -611,7 +647,7 @@ int UniDbElogRecord::SetRunNumber(int* run_number)
 	return 0;
 }
 
-int UniDbElogRecord::SetShiftLeader(int* shift_leader)
+int ElogDbRecord::SetShiftLeaderId(int* shift_leader_id)
 {
 	if (!connectionUniDb)
 	{
@@ -622,38 +658,38 @@ int UniDbElogRecord::SetShiftLeader(int* shift_leader)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
-		"set shift_leader = $1 "
+		"update record_ "
+		"set shift_leader_id = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	if (shift_leader == NULL)
+	if (shift_leader_id == NULL)
 		stmt->SetNull(0);
 	else
-		stmt->SetInt(0, *shift_leader);
+		stmt->SetInt(0, *shift_leader_id);
 	stmt->SetInt(1, i_record_id);
 
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
 	}
 
-	if (i_shift_leader)
-		delete i_shift_leader;
-	if (shift_leader == NULL) i_shift_leader = NULL;
+	if (i_shift_leader_id)
+		delete i_shift_leader_id;
+	if (shift_leader_id == NULL) i_shift_leader_id = NULL;
 	else
-		i_shift_leader = new int(*shift_leader);
+		i_shift_leader_id = new int(*shift_leader_id);
 
 	delete stmt;
 	return 0;
 }
 
-int UniDbElogRecord::SetTriggerConfig(int* trigger_config)
+int ElogDbRecord::SetTriggerId(int* trigger_id)
 {
 	if (!connectionUniDb)
 	{
@@ -664,38 +700,38 @@ int UniDbElogRecord::SetTriggerConfig(int* trigger_config)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
-		"set trigger_config = $1 "
+		"update record_ "
+		"set trigger_id = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	if (trigger_config == NULL)
+	if (trigger_id == NULL)
 		stmt->SetNull(0);
 	else
-		stmt->SetInt(0, *trigger_config);
+		stmt->SetInt(0, *trigger_id);
 	stmt->SetInt(1, i_record_id);
 
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
 	}
 
-	if (i_trigger_config)
-		delete i_trigger_config;
-	if (trigger_config == NULL) i_trigger_config = NULL;
+	if (i_trigger_id)
+		delete i_trigger_id;
+	if (trigger_id == NULL) i_trigger_id = NULL;
 	else
-		i_trigger_config = new int(*trigger_config);
+		i_trigger_id = new int(*trigger_id);
 
 	delete stmt;
 	return 0;
 }
 
-int UniDbElogRecord::SetDaqStatus(TString* daq_status)
+int ElogDbRecord::SetDaqStatus(TString* daq_status)
 {
 	if (!connectionUniDb)
 	{
@@ -706,7 +742,7 @@ int UniDbElogRecord::SetDaqStatus(TString* daq_status)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
+		"update record_ "
 		"set daq_status = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -721,7 +757,7 @@ int UniDbElogRecord::SetDaqStatus(TString* daq_status)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -737,7 +773,7 @@ int UniDbElogRecord::SetDaqStatus(TString* daq_status)
 	return 0;
 }
 
-int UniDbElogRecord::SetSp41(int* sp_41)
+int ElogDbRecord::SetSp41(int* sp_41)
 {
 	if (!connectionUniDb)
 	{
@@ -748,7 +784,7 @@ int UniDbElogRecord::SetSp41(int* sp_41)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
+		"update record_ "
 		"set sp_41 = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -763,7 +799,7 @@ int UniDbElogRecord::SetSp41(int* sp_41)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -779,7 +815,7 @@ int UniDbElogRecord::SetSp41(int* sp_41)
 	return 0;
 }
 
-int UniDbElogRecord::SetFieldComment(TString* field_comment)
+int ElogDbRecord::SetFieldComment(TString* field_comment)
 {
 	if (!connectionUniDb)
 	{
@@ -790,7 +826,7 @@ int UniDbElogRecord::SetFieldComment(TString* field_comment)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
+		"update record_ "
 		"set field_comment = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -805,7 +841,7 @@ int UniDbElogRecord::SetFieldComment(TString* field_comment)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -821,7 +857,7 @@ int UniDbElogRecord::SetFieldComment(TString* field_comment)
 	return 0;
 }
 
-int UniDbElogRecord::SetBeam(TString* beam)
+int ElogDbRecord::SetBeam(TString* beam)
 {
 	if (!connectionUniDb)
 	{
@@ -832,7 +868,7 @@ int UniDbElogRecord::SetBeam(TString* beam)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
+		"update record_ "
 		"set beam = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -847,7 +883,7 @@ int UniDbElogRecord::SetBeam(TString* beam)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -863,7 +899,7 @@ int UniDbElogRecord::SetBeam(TString* beam)
 	return 0;
 }
 
-int UniDbElogRecord::SetEnergy(double* energy)
+int ElogDbRecord::SetEnergy(double* energy)
 {
 	if (!connectionUniDb)
 	{
@@ -874,7 +910,7 @@ int UniDbElogRecord::SetEnergy(double* energy)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
+		"update record_ "
 		"set energy = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -889,7 +925,7 @@ int UniDbElogRecord::SetEnergy(double* energy)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -905,7 +941,7 @@ int UniDbElogRecord::SetEnergy(double* energy)
 	return 0;
 }
 
-int UniDbElogRecord::SetTarget(TString* target)
+int ElogDbRecord::SetTarget(TString* target)
 {
 	if (!connectionUniDb)
 	{
@@ -916,7 +952,7 @@ int UniDbElogRecord::SetTarget(TString* target)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
+		"update record_ "
 		"set target = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -931,7 +967,7 @@ int UniDbElogRecord::SetTarget(TString* target)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -947,7 +983,7 @@ int UniDbElogRecord::SetTarget(TString* target)
 	return 0;
 }
 
-int UniDbElogRecord::SetTargetWidth(double* target_width)
+int ElogDbRecord::SetTargetWidth(double* target_width)
 {
 	if (!connectionUniDb)
 	{
@@ -958,7 +994,7 @@ int UniDbElogRecord::SetTargetWidth(double* target_width)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
+		"update record_ "
 		"set target_width = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -973,7 +1009,7 @@ int UniDbElogRecord::SetTargetWidth(double* target_width)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -989,7 +1025,7 @@ int UniDbElogRecord::SetTargetWidth(double* target_width)
 	return 0;
 }
 
-int UniDbElogRecord::SetRecordComment(TString* record_comment)
+int ElogDbRecord::SetRecordComment(TString* record_comment)
 {
 	if (!connectionUniDb)
 	{
@@ -1000,7 +1036,7 @@ int UniDbElogRecord::SetRecordComment(TString* record_comment)
 	TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"update elog_record "
+		"update record_ "
 		"set record_comment = $1 "
 		"where record_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -1015,7 +1051,7 @@ int UniDbElogRecord::SetRecordComment(TString* record_comment)
 	// write new value to the database
 	if (!stmt->Process())
 	{
-		cout<<"Error: updating information about elog record has been failed"<<endl;
+		cout<<"Error: updating information about record has been failed"<<endl;
 
 		delete stmt;
 		return -2;
@@ -1031,15 +1067,15 @@ int UniDbElogRecord::SetRecordComment(TString* record_comment)
 	return 0;
 }
 
-// -----  Print current elog record  ---------------------------------------
-void UniDbElogRecord::Print()
+// -----  Print current record  ---------------------------------------
+void ElogDbRecord::Print()
 {
-	cout<<"Table 'elog_record'";
-	cout<<". record_id: "<<i_record_id<<". record_date: "<<dt_record_date.AsSQLString()<<". author: "<<(i_author == NULL? "NULL": TString::Format("%d", *i_author))<<". record_type: "<<i_record_type<<". run_number: "<<(i_run_number == NULL? "NULL": TString::Format("%d", *i_run_number))<<". shift_leader: "<<(i_shift_leader == NULL? "NULL": TString::Format("%d", *i_shift_leader))<<". trigger_config: "<<(i_trigger_config == NULL? "NULL": TString::Format("%d", *i_trigger_config))<<". daq_status: "<<(str_daq_status == NULL? "NULL": *str_daq_status)<<". sp_41: "<<(i_sp_41 == NULL? "NULL": TString::Format("%d", *i_sp_41))<<". field_comment: "<<(str_field_comment == NULL? "NULL": *str_field_comment)<<". beam: "<<(str_beam == NULL? "NULL": *str_beam)<<". energy: "<<(d_energy == NULL? "NULL": TString::Format("%f", *d_energy))<<". target: "<<(str_target == NULL? "NULL": *str_target)<<". target_width: "<<(d_target_width == NULL? "NULL": TString::Format("%f", *d_target_width))<<". record_comment: "<<(str_record_comment == NULL? "NULL": *str_record_comment)<<endl;
+	cout<<"Table 'record_'";
+	cout<<". record_id: "<<i_record_id<<". record_date: "<<dt_record_date.AsSQLString()<<". author_id: "<<(i_author_id == NULL? "NULL": TString::Format("%d", *i_author_id))<<". type_id: "<<i_type_id<<". run_number: "<<(i_run_number == NULL? "NULL": TString::Format("%d", *i_run_number))<<". shift_leader_id: "<<(i_shift_leader_id == NULL? "NULL": TString::Format("%d", *i_shift_leader_id))<<". trigger_id: "<<(i_trigger_id == NULL? "NULL": TString::Format("%d", *i_trigger_id))<<". daq_status: "<<(str_daq_status == NULL? "NULL": *str_daq_status)<<". sp_41: "<<(i_sp_41 == NULL? "NULL": TString::Format("%d", *i_sp_41))<<". field_comment: "<<(str_field_comment == NULL? "NULL": *str_field_comment)<<". beam: "<<(str_beam == NULL? "NULL": *str_beam)<<". energy: "<<(d_energy == NULL? "NULL": TString::Format("%f", *d_energy))<<". target: "<<(str_target == NULL? "NULL": *str_target)<<". target_width: "<<(d_target_width == NULL? "NULL": TString::Format("%f", *d_target_width))<<". record_comment: "<<(str_record_comment == NULL? "NULL": *str_record_comment)<<endl;
 
 	return;
 }
 /* END OF GENERATED CLASS PART (SHOULDN'T BE CHANGED MANUALLY) */
 
 // -------------------------------------------------------------------
-ClassImp(UniDbElogRecord);
+ClassImp(ElogDbRecord);

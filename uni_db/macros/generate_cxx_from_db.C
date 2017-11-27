@@ -10,8 +10,8 @@ void generate_cxx_from_db()
     gSystem->Load("libUniDb");
 
     UniDbGenerateClasses gen;
-    int res = gen.GenerateClasses(UNIFIED_DB, "UniDb", true); //(UniConnectionType connection_type, TString class_prefix, bool isOnlyUpdate)
-    //int res = gen.GenerateClasses(ELOG_DB, "UniDb", true);
+    int res = gen.GenerateClasses(UNIFIED_DB, "db_classes/UniDb", true); //(UniConnectionType connection_type, TString class_prefix, bool isOnlyUpdate)
+    //int res = gen.GenerateClasses(ELOG_DB, "elog_classes/ElogDb", true);
 
     if (res == 0)
         cout<<"\nGenerating C++ classes has completed successfully"<<endl;

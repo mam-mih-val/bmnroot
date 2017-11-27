@@ -23,6 +23,14 @@
 #pragma link C++ class UniDbDetectorParameter+;
 #pragma link C++ class UniDbSimulationFile+;
 
+#pragma link C++ class ElogDbPerson+;
+#pragma link C++ class ElogDbType+;
+#pragma link C++ class ElogDbTrigger+;
+#pragma link C++ class ElogDbBeam+;
+#pragma link C++ class ElogDbTarget+;
+#pragma link C++ class ElogDbRecord+;
+#pragma link C++ class ElogDbAttachment+;
+
 // the database structures
 #pragma link C++ struct UniqueRunNumber++;
 #pragma link C++ struct IIStructure++;

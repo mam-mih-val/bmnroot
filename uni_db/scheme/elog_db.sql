@@ -1,7 +1,6 @@
+-- createlang -d bmn_elog plpgsql;
 -- drop database bmn_elog;
 create database bmn_elog;
-
---createlang -d bmn_elog plpgsql;
 
 create table person_
 (
@@ -32,15 +31,15 @@ create table trigger_
  trigger_info varchar(60) unique not null
 );
 
-create table elog_record
+create table record_
 (
  record_id serial primary key,
  record_date timestamp not null default now(),
- author int null references person_(person_id),
- record_type int not null references type_(type_id),
+ author_id int null references person_(person_id),
+ type_id int not null references type_(type_id),
  run_number int null,
- shift_leader int null references person_(person_id),
- trigger_config int null references trigger_(trigger_id) on update cascade,
+ shift_leader_id int null references person_(person_id),
+ trigger_id int null references trigger_(trigger_id) on update cascade,
  daq_status varchar(70) null,
  sp_41 int null,
  field_comment varchar(70) null,

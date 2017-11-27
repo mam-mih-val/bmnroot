@@ -65,8 +65,12 @@ class UniDbGenerateClasses
     UniDbGenerateClasses();             // Constructor
     virtual ~UniDbGenerateClasses();    // Destructor
 
-    // generate C++ classess - wrappers for DB tables
-    int GenerateClasses(UniConnectionType connection_type, TString class_prefix = "UniDb", bool isOnlyUpdate = true);
+    // Generate C++ classess - wrappers for DB tables
+    // Parameters:
+    //      connection_type - database from enumeration;
+    //      class_prefix - prefix with directory name and prefix of classes' names
+    //      isOnlyUpdate - whether only update of the existing classes or create new ones
+    int GenerateClasses(UniConnectionType connection_type, TString class_prefix = "db_classes/UniDb", bool isOnlyUpdate = true);
 
     TObjArray* arrTableJoin;
 

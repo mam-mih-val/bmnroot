@@ -84,6 +84,8 @@ int create_directory(const char* path);
 string get_file_name(string path);
 // get file name with extension from path
 string get_file_name_with_ext(string path);
+// get directory path without last slash from file path
+string get_directory_path(string file_path);
 
 /*  TIME FUNCTIONS  */
 // get current date as string
@@ -603,13 +605,13 @@ int create_directory(const char* path)
 string get_file_name(string path)
 {
     // Remove directory if present.
-    size_t last_slash_idx = path.find_last_of("/");
-    if (string::npos != last_slash_idx)
+    size_t last_slash_idx = path.find_last_of("\\/");
+    if (last_slash_idx != string::npos)
         path.erase(0, last_slash_idx + 1);
 
     // Remove extension if present.
     size_t period_idx = path.rfind('.');
-    if (string::npos != period_idx)
+    if (period_idx != string::npos)
         path.erase(period_idx);
 
     return path;
@@ -619,11 +621,24 @@ string get_file_name(string path)
 string get_file_name_with_ext(string path)
 {
     // Remove directory if present.
-    size_t last_slash_idx = path.find_last_of("/");
-    if (string::npos != last_slash_idx)
+    size_t last_slash_idx = path.find_last_of("\\/");
+    if (last_slash_idx != string::npos)
         path.erase(0, last_slash_idx + 1);
 
     return path;
+}
+
+// get directory path without last slash from file path
+string get_directory_path(string file_path)
+{
+    string directory = "";
+    const size_t last_slash_idx = file_path.find_last_of("\\/");
+    if (last_slash_idx != string::npos)
+        directory = file_path.substr(0, last_slash_idx);
+    else
+        directory = file_path;
+
+    return directory;
 }
 
 

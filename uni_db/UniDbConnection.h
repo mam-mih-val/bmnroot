@@ -45,6 +45,17 @@ class UniDbConnection
 
     TSQLServer* GetSQLServer() {return server_db;}
 
+    static const char* DbToString(UniConnectionType v)
+    {
+        switch (v)
+        {
+            case UNIFIED_DB:    return "UNIFIED_DB";
+            case TANGO_DB:      return "TANGO_DB";
+            case ELOG_DB:       return "ELOG_DB";
+            default:            return "[Unknown DB type]";
+        }
+    }
+
  ClassDef(UniDbConnection,1)
 };
 

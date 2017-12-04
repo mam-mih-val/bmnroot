@@ -63,7 +63,7 @@ EndIf (Boost_FOUND)
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES Dch KF Sts BmnBase BmnData Base)
+Set(DEPENDENCIES Dch KF Sts BmnBase BmnData Base Gem)
 
 GENERATE_LIBRARY()
 

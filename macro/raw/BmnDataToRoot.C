@@ -1,3 +1,4 @@
+#include "../run/bmnloadlibs.C"
 
 //file: full path to raw-file
 //nEvents: if 0 then decode all events
@@ -5,13 +6,15 @@
 
 void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
 {
+#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+#endif
     bmnloadlibs(); // load BmnRoot libraries
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //5 - period
     
     Bool_t setup[10]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
-    setup[0] = 0; // TRIGGERS
+    setup[0] = 1; // TRIGGERS
     setup[1] = 0; // MWPC
     setup[2] = 0; // SILICON
     setup[3] = 0; // GEM

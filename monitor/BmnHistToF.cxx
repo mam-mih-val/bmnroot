@@ -46,12 +46,12 @@ BmnHistToF::BmnHistToF(TString title) : BmnHist() {
     histAmp->GetYaxis()->SetNoExponent(kFALSE);
     name = fTitle + "_StripSimult";
     histStripSimult = new TH1I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT);
-    //    histStripSimult->GetXaxis()->SetTitle("Strip count");
-    //    histStripSimult->GetYaxis()->SetTitle("Activations count");
+    histStripSimult->GetXaxis()->SetTitle("Strip count");
+    histStripSimult->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_State";
     histState = new TH2F(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT, 2, 0, 2);
-    histStrip->GetXaxis()->SetTitle("Strip #");
-    histStrip->GetYaxis()->SetTitle("Side");
+    histState->GetXaxis()->SetTitle("Strip #");
+    histState->GetYaxis()->SetTitle("Side");
 
     histSimultaneous.SetDirectory(0);
     histL->SetDirectory(0);
@@ -84,7 +84,6 @@ BmnHistToF::BmnHistToF(TString title) : BmnHist() {
             ax->SetTitleOffset(1.8);
             ax->SetTitleFont(62);
             ax = canTimesPads[iPad]->current->GetXaxis();
-            ax->SetTitleColor(kOrange + 10);
         }
 }
 
@@ -116,17 +115,17 @@ void BmnHistToF::FillFromDigi(DigiArrays *fDigiArrays) {
             histL->Fill(strip);
         else
             histR->Fill(strip);
-        if (
-                ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0)) &&
-                ((td->GetStrip() == fSelectedStrip) || (fSelectedStrip < 0)) &&
-                ((td->GetSide() == fSelectedSide) || (fSelectedSide < 0))) {
-            histAmpSpecific->Fill(td->GetAmplitude());
-            histLeadingTimeSpecific->Fill(td->GetTime());
-        }
+//        if (
+//                ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0)) &&
+//                ((td->GetStrip() == fSelectedStrip) || (fSelectedStrip < 0)) &&
+//                ((td->GetSide() == fSelectedSide) || (fSelectedSide < 0))) {
+//            histAmpSpecific->Fill(td->GetAmplitude());
+//            histLeadingTimeSpecific->Fill(td->GetTime());
+//        }
 
         new ((*Events)[Events->GetEntriesFast()])
                 BmnTof1Digit(td->GetPlane(), td->GetStrip(), td->GetSide(), td->GetTime(), td->GetAmplitude());
-//        frecoTree->Fill();
+        //        frecoTree->Fill();
     }
     //histSimultaneous = (*histL) * (*histR);
     Int_t s;
@@ -213,13 +212,13 @@ void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
         histAmpSpecific->SetTitle("Amplitude For: " + command);
         TString direction = "fAmplitude>>" + TString(histAmpSpecific->GetName());
 //        TCanvas *c1 = new TCanvas("c1");
-        frecoTree->Draw(direction, command, "");
+        frecoTree->Draw(direction.Data(), command.Data(), "");
         histLeadingTimeSpecific->Reset();
         histLeadingTimeSpecific->SetTitle("Leading Time For: " + command);
         direction = "fTime>>" + TString(histLeadingTimeSpecific->GetName());
         //        TDirectory *d = gDirectory->GetDirectory();
         //        TDirectory()
-        frecoTree->Draw(direction, command, "goff");
+        frecoTree->Draw(direction.Data(), command.Data(), "goff");
 //        delete c1;
     }
 }

@@ -26,7 +26,7 @@ BmnHistSrc::BmnHistSrc(TString title, TString path) : BmnHist() {
     }
     for (Int_t iRow = 0; iRow < SRC_ROWS; iRow++) { // 1 column - sampling summed
         name = fTitle + "_" + trigNames[iRow].Data() + "_Sampling";
-        TH1F *h = new TH1F(name, name, 255, 0, 255);
+        TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT, 0, ADC_SAMPLING_LIMIT);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("Amplitude, ");

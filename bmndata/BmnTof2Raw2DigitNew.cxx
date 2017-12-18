@@ -9,9 +9,17 @@
 #include "TFile.h"
 #include "BmnTof2Raw2DigitNew.h"
 
+#define EQUAL_MAXIMA 1
+#define FIT_MAXIMA 0
+#define EQUAL_AVERAGE 1
+#define CABLE_OFFSETS 1
+#define TRUE_OFFSETS 1
+#define ALL_CORRECTIONS 1
+#define DRAW_OFFSETS 0
 #define PRINT_TIME_LIMITS 0
 #define PRINT_SLEWING_RESULTS 0
 #define PRINT_SLEWING_PARAMETERS 0
+#define PRINT_EQUALIZATION_RESULTS 0
 
 //module IDs
 const UInt_t kTDC64VHLE = 0x53;
@@ -161,6 +169,8 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 		ntmean[1][n_rec] = 0;
 		tmean[0][n_rec] = 0.;
 		tmean[1][n_rec] = 0.;
+		ntmeane[n_rec] = 0;
+		tmeane[n_rec] = 0.;
 		nrec[crate][slot][chan] = n_rec;
 		n_rec++;
 	      }
@@ -182,6 +192,8 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 		ntmean[1][n_rec] = 0;
 		tmean[0][n_rec] = 0.;
 		tmean[1][n_rec] = 0.;
+		ntmeane[n_rec] = 0;
+		tmeane[n_rec] = 0.;
 		nrec[crate][slot][chan] = n_rec;
 		n_rec++;
 	      }
@@ -206,6 +218,8 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 		ntmean[1][n_rec] = 0;
 		tmean[0][n_rec] = 0.;
 		tmean[1][n_rec] = 0.;
+		ntmeane[n_rec] = 0;
+		tmeane[n_rec] = 0.;
 		nrec[crate][slot][chan] = n_rec;
 		n_rec++;
 	      }
@@ -230,6 +244,8 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
 		ntmean[1][n_rec] = 0;
 		tmean[0][n_rec] = 0.;
 		tmean[1][n_rec] = 0.;
+		ntmeane[n_rec] = 0;
+		tmeane[n_rec] = 0.;
 		nrec[crate][slot][chan] = n_rec;
 		n_rec++;
 		if (n_rec >= TOF2_MAX_CHANNEL) break;
@@ -248,6 +264,32 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     if (n_rec) MaxPlane++;
     in.close();
 
+// read channels offsets
+    for (int c=0; c<10; c++)
+	for (int i=0; i<25; i++)
+	{
+	    for (int j=0; j<64; j++)
+		    chtima[c][i][j] = 0.;
+	}
+    poffsets  = 0;
+    poffsets1 = 0;
+    poffsets2 = 0;
+    if (CABLE_OFFSETS)
+    {
+	poffsets = new TH2F("poffsets","Offset corrections",32,0,32,200,-100,100);
+	poffsets->SetMarkerStyle(21);
+	poffsets->SetMarkerColor(kRed);
+	if (!ALL_CORRECTIONS)
+	{
+	    poffsets1 = new TH2F("poffsets1","Offset corrections",32,0,32,200,-100,100);
+	    poffsets1->SetMarkerStyle(20);
+	    poffsets1->SetMarkerColor(kGreen);
+	    poffsets2 = new TH2F("poffsets1","Offset corrections",32,0,32,200,-100,100);
+	    poffsets2->SetMarkerStyle(22);
+	    poffsets2->SetMarkerColor(kBlue);
+	}
+	if(Offsets_read()) return;
+    }
     readGeom((char *)geomFile.Data());
 
     for(int ind=0;ind<n_rec;ind++){ 
@@ -318,11 +360,13 @@ BmnTof2Raw2DigitNew::BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile, U
     {
 	TvsW[i][0] = 0;
 	TvsWt0[i][0] = 0;
+	TvsSm[i][0] = 0;
     }
     for (int i=0; i<TOF2_MAX_CHAMBERS; i++)
     {
 	TvsW[i][1] = 0;
 	TvsWt0[i][1] = 0;
+	TvsSm[i][1] = 0;
     }
 }
 
@@ -356,6 +400,8 @@ BmnTof2Raw2DigitNew::~BmnTof2Raw2DigitNew() {
 	TvsW[i][0] = 0;
 	if (TvsWt0[i][0]) delete TvsWt0[i][0];
 	TvsWt0[i][0] = 0;
+	if (TvsSm[i][0]) delete TvsSm[i][0];
+	TvsSm[i][0] = 0;
     }
     for (int i=0; i<MaxPlane; i++)
     {
@@ -363,7 +409,115 @@ BmnTof2Raw2DigitNew::~BmnTof2Raw2DigitNew() {
 	TvsW[i][1] = 0;
 	if (TvsWt0[i][1]) delete TvsWt0[i][1];
 	TvsWt0[i][1] = 0;
+	if (TvsSm[i][1]) delete TvsSm[i][1];
+	TvsSm[i][1] = 0;
     }
+}
+
+void BmnTof2Raw2DigitNew::InitEqualization()
+{
+	char name[128], title[128];
+	for (int i=0; i<TOF2_MAX_CHANNEL; i++)
+	{
+		ntmeane[i] = 0;
+		tmeane[i] = 0.;
+	}
+	for (int i=0; i<MaxPlane; i++)
+	{
+		sprintf(name, "Time_vs_Strip_Chamber_%.1f_Both Peaks_Maxima",idchambers[i]);
+		sprintf(title, "Time vs Strip Chamber %.1f Both Peaks Maxima",idchambers[i]);
+		if (TvsSm[i][0]) delete TvsSm[i][0];
+		TvsSm[i][0] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER, (LeadMax[i]-LeadMin[i]), -(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2);
+		TvsSm[i][0]->SetDirectory(0);
+	}
+}
+
+int BmnTof2Raw2DigitNew::Offsets_read()
+{
+   int numch[3200] = {0};
+   int numcab[3200] = {0};
+   char foname[128];
+   FILE *fin = 0;
+   TString dir = getenv("VMCWORKDIR");
+   TString path = dir + "/input/TOF700_channel_offsets.dat";
+   strcpy(foname, path.Data());
+   fin = fopen(foname,"r");
+   if (fin == NULL)
+   {
+    printf("Can't open file %s!\n", foname);
+    return 1;
+   }
+
+   int n = 0, i = 0, j = 0, k = 0, idcr = 0, kold = -1;
+   float idch = 777., idchold = -1.;
+   double cht = 777., sum  = 0., tim[32] = {0.};
+   int ni = 0, nl = 0, nc = 0;
+   printf("\n     ********** Corrections table **************************\n\n");
+   while((ni=fscanf(fin, "Chamber %f Crate %d(0x%x) Slot %d Channel %d Offset %lf\n", &idch, &i, &idcr, &j, &k, &cht)) == 6)
+   {
+    numch[(int)(idch*10.)] = 1;
+    chtima[i][j][k] = cht;
+    if (TRUE_OFFSETS) chtima[i][j][k] = cht - (-30.61 + 1.915*(k%32));
+    n++;
+//    printf("%s\n",line);
+//    printf("ni = %d, n = %d\n", ni, n);
+//    printf("n = %d ni = %d idch = %.1f i = %d idcr = 0x%0x j = %d k = %d offset = %f\n", n, ni, idch, i, idcr, j, k, cht);
+    if (idchold != -1.)
+    {
+      if ( idch != idchold || nl >= 32 )
+      {
+        numcab[(int)(idchold*10.)]++;
+	if ( idchold != 19.3f || 0)
+	{
+	if ( (kold == 31 && (idchold == 19.2f || idchold == 18.2f || idchold == 16.2f)) || ALL_CORRECTIONS)
+	for (int l=0;l<nl;l++)
+	{
+	    tim[l] = tim[l] - sum/nl;
+	    if (ALL_CORRECTIONS) poffsets->Fill(l,tim[l]);
+	    else
+	    {
+		 if ( idchold == 19.2f ) poffsets->Fill(l,tim[l]);
+		 if ( idchold == 18.2f ) poffsets1->Fill(l,tim[l]);
+		 if ( idchold == 16.2f ) poffsets2->Fill(l,tim[l]);
+	    }
+	}
+	}
+	if ( idchold != 19.3f || 0)
+	{
+	    if (kold < 32)
+	     printf("          Chamber %.1f (01-32) average = %f\n", idchold, nl > 0 ? sum/nl : 0.);
+	    else
+	     printf("          Chamber %.1f (33-64) average = %f\n", idchold, nl > 0 ? sum/nl : 0.);
+	}
+	sum = 0.;
+	nl = 0;
+	if ( idchold != 19.3f ) nc++;
+      }
+    }
+    sum += chtima[i][j][k];
+    if (nl < 32) tim[nl] = chtima[i][j][k];
+    nl++;
+    idchold = idch;
+    kold = k;
+   };
+//   printf("ni = %d idch = %f i = %d idcr = 0x%0x j = %d k = %d offset = %f\n", ni, idch, i, idcr, j, k, cht);
+   fclose(fin);
+   int ndch = 0;
+   for (i=0; i<3200; i++) if (numch[i] > 0) ndch++;
+   printf("\n     *******************************************************\n");
+   printf("Number of lines with channel offsets %d, cables %d, chambers %d\n\n", n, nc, ndch);
+   if (DRAW_OFFSETS)
+   {
+    if (ALL_CORRECTIONS) poffsets->Draw();
+    else
+    {
+	poffsets->Draw();
+	poffsets1->Draw("same");
+	poffsets2->Draw("same");
+    }
+    gPad->Update();
+   }
+   return 0;
 }
 
 void BmnTof2Raw2DigitNew::Book()
@@ -388,7 +542,7 @@ void BmnTof2Raw2DigitNew::Book()
 	TvsS[i]->SetDirectory(0);
 	sprintf(name, "Width_vs_Strip_Chamber_%.1f",idchambers[i]);
 	sprintf(title, "Width vs Strip Chamber %.1f",idchambers[i]);
-	WvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,30000, -20000., +10000.);
+	WvsS[i] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,10000, 0., +10000.);
 	WvsS[i]->SetDirectory(0);
     }
     for (int i=0; i<MaxPlane; i++)
@@ -422,6 +576,11 @@ void BmnTof2Raw2DigitNew::BookSlewing()
 	if (TvsWt0[i][0]) delete TvsWt0[i][0];
 	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
 	TvsWt0[i][0]->SetDirectory(0);
+	sprintf(name, "Time_vs_Strip_Chamber_%.1f_Peak_1_Maxima",idchambers[i]);
+	sprintf(title, "Time vs Strip Chamber %.1f Peak 1 Maxima",idchambers[i]);
+	if (TvsSm[i][0]) delete TvsSm[i][0];
+	TvsSm[i][0] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,30000, -20000., +10000.);
+	TvsSm[i][0]->SetDirectory(0);
     }
     for (int i=0; i<MaxPlane; i++)
     {
@@ -435,6 +594,11 @@ void BmnTof2Raw2DigitNew::BookSlewing()
 	if (TvsWt0[i][1]) delete TvsWt0[i][1];
 	TvsWt0[i][1] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
 	TvsWt0[i][1]->SetDirectory(0);
+	sprintf(name, "Time_vs_Strip_Chamber_%.1f_Peak_2_Maxima",idchambers[i]);
+	sprintf(title, "Time vs Strip Chamber %.1f Peak 2 Maxima",idchambers[i]);
+	if (TvsSm[i][1]) delete TvsSm[i][1];
+	TvsSm[i][1] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,30000, -20000., +10000.);
+	TvsSm[i][1]->SetDirectory(0);
     }
 }
 
@@ -482,11 +646,13 @@ void BmnTof2Raw2DigitNew::WriteSlewingHists()
     {
 	if (TvsW[i][0]) TvsW[i][0]->Write();
 	if (TvsWt0[i][0]) TvsWt0[i][0]->Write();
+	if (TvsSm[i][0]) TvsSm[i][0]->Write();
     }
     for (int i=0; i<MaxPlane; i++)
     {
 	if (TvsW[i][1]) TvsW[i][1]->Write();
 	if (TvsWt0[i][1]) TvsWt0[i][1]->Write();
+	if (TvsSm[i][1]) TvsSm[i][1]->Write();
     }
     f->Close();
     delete f;
@@ -499,30 +665,40 @@ void BmnTof2Raw2DigitNew::ReBook(int i)
     int Wc = Wcut, Wm = Wmax;
     if (Wcutc[i] >= 0.) Wc = Wcutc[i];
     if (Wmaxc[i] >= 0.) Wm = Wmaxc[i];
-    delete TvsW[i][0];
+    if (TvsW[i][0]) delete TvsW[i][0];
 	sprintf(name, "Time_vs_Width_Chamber_%.1f_Peak_1",idchambers[i]);
 	sprintf(title, "Time vs Width Chamber %.1f Peak 1",idchambers[i]);
 	TvsW[i][0] = new TProfile(name,title,Wc,0,Wc,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
-    delete TvsWt0[i][0];
+    if (TvsWt0[i][0]) delete TvsWt0[i][0];
 	sprintf(name, "Time_vs_T0_Width_Chamber_%.1f_Peak_1",idchambers[i]);
 	sprintf(title, "Time vs T0 Width Chamber %.1f Peak 1",idchambers[i]);
 	TvsWt0[i][0] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
-    delete TvsWall[i];
+    if (TvsWall[i]) delete TvsWall[i];
 	sprintf(name, "Time_vs_Width_Chamber_%.1f_all",idchambers[i]);
 	sprintf(title, "Time vs Width Chamber %.1f all",idchambers[i]);
 	TvsWall[i] = new TH2F(name,title,Wm,0,Wm,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
-    delete TvsWallmax[i];
+    if (TvsWallmax[i]) delete TvsWallmax[i];
 	sprintf(name, "Time_vs_Width_Chamber_%.1f_all_max",idchambers[i]);
 	sprintf(title, "Time vs Width Chamber %.1f all, max strip",idchambers[i]);
 	TvsWallmax[i] = new TH2F(name,title,Wm,0,Wm,LeadMax[i]-LeadMin[i],LeadMin[i],LeadMax[i]);
-    delete TvsW[i][1];
+    if (TvsW[i][1]) delete TvsW[i][1];
 	sprintf(name, "Time_vs_Width_Chamber_%.1f_Peak_2",idchambers[i]);
 	sprintf(title, "Time vs Width Chamber %.1f Peak 2",idchambers[i]);
 	TvsW[i][1] = new TProfile(name,title,(Wm-Wc),Wc,Wm,-(LeadMax[i]-LeadMin[i])/2,+(LeadMax[i]-LeadMin[i])/2,"e");
-    delete TvsWt0[i][1];
+    if (TvsWt0[i][1]) delete TvsWt0[i][1];
 	sprintf(name, "Time_vs_T0_Width_Chamber_%.1f_Peak_2",idchambers[i]);
 	sprintf(title, "Time vs T0 Width Chamber %.1f Peak 2",idchambers[i]);
 	TvsWt0[i][1] = new TProfile(name,title,(WT0max-WT0min),WT0min,WT0max,LeadMin[i],LeadMax[i],"e");
+    if (TvsSm[i][0]) delete TvsSm[i][0];
+	sprintf(name, "Time_vs_Strip_Chamber_%.1f_Peak_1_Maxima",idchambers[i]);
+	sprintf(title, "Time vs Strip Chamber %.1f Peak 1 Maxima",idchambers[i]);
+	TvsSm[i][0] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,30000, -20000., +10000.);
+	TvsSm[i][0]->SetDirectory(0);
+    if (TvsSm[i][1]) delete TvsSm[i][1];
+	sprintf(name, "Time_vs_Strip_Chamber_%.1f_Peak_2_Maxima",idchambers[i]);
+	sprintf(title, "Time vs Strip Chamber %.1f Peak 2 Maxima",idchambers[i]);
+	TvsSm[i][1] = new TH2F(name,title,TOF2_MAX_STRIPS_IN_CHAMBER,0,TOF2_MAX_STRIPS_IN_CHAMBER,30000, -20000., +10000.);
+	TvsSm[i][1]->SetDirectory(0);
 //    printf("c %d wc %d wm %d wt1 %d wt2 %d lmi %d lma %d\n", i, Wcut, Wmax, WT0min, WT0max, LeadMin[i], LeadMax[i]);
 }
 
@@ -574,7 +750,7 @@ void BmnTof2Raw2DigitNew::fillPreparation(TClonesArray *data, map<UInt_t,Long64_
     float lead[TOF2_MAX_CHANNEL];
     float trail[TOF2_MAX_CHANNEL];
     memset(lead,0,TOF2_MAX_CHANNEL*sizeof(float));
-    memset(trail,0,TOF2_MAX_CHANNEL*sizeof(int));
+    memset(trail,0,TOF2_MAX_CHANNEL*sizeof(float));
     for (int i = 0; i < data->GetEntriesFast(); i++) {
        BmnTDCDigit *digit = (BmnTDCDigit*) data->At(i);
        int type = digit->GetType();
@@ -596,8 +772,9 @@ void BmnTof2Raw2DigitNew::fillPreparation(TClonesArray *data, map<UInt_t,Long64_
        int crate = mapa[ind].crate;
        int slot = mapa[ind].slot;
        int dnl = digit->GetValue() & 0x3FF;
-       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
-       if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
+       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - chtima[crate][slot][chan] - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
+       //if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
+       if(digit->GetLeading()) {if (lead[ind] == 0) lead[ind]=tm;} else {if (trail[ind] == 0) trail[ind]=tm;} 
 //       printf("%d %d %d %d %d\n", i, mapa[ind].slot, mapa[ind].chan, digit->GetValue(), T0raw);
     }
 
@@ -670,8 +847,9 @@ void BmnTof2Raw2DigitNew::fillSlewingT0(TClonesArray *data, map<UInt_t,Long64_t>
        int crate = mapa[ind].crate;
        int slot = mapa[ind].slot;
        int dnl = digit->GetValue() & 0x3FF;
-       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
-       if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
+       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - chtima[crate][slot][chan] - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
+       //if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
+       if(digit->GetLeading()) {if (lead[ind] == 0) lead[ind]=tm;} else {if (trail[ind] == 0) trail[ind]=tm;} 
 //       if(digit->GetLeading()) printf("       t0 %f\n", t0*1024./25.); 
 //       if (tm > 100000.) printf("%d %d %d %d %f %d %d %f\n", i, mapa[ind].slot, mapa[ind].chan, digit->GetValue(),DNL_Table[crate][slot][chan][dnl], t0, ts_diff, tm);
 //       printf("%d %d %d %d %f %f %lld %f\n", i, mapa[ind].slot, mapa[ind].chan, digit->GetValue(),DNL_Table[crate][slot][chan][dnl], t0, ts_diff, tm);
@@ -699,6 +877,7 @@ void BmnTof2Raw2DigitNew::fillSlewingT0(TClonesArray *data, map<UInt_t,Long64_t>
 	    TvsWt0[mapa[ind].plane][0]->Fill(t0width*INVHPTIMEBIN, L);
 	    tmean[0][ind] += L;
 	    ntmean[0][ind]++;
+	    TvsSm[mapa[ind].plane][0]->Fill(mapa[ind].strip, L);
 //	    if (ntmean[0][ind] == 1) printf("%d %d %f %f %f %f %d %f\n",ind,ind1,lead[ind],lead[ind1],L, tmean[0][ind], ts_diff, t0width);
 	}
 	else if ((int)W1 >= Wc && (int)W2 >= Wc && (int)W1 < Wm && (int)W2 < Wm)
@@ -706,6 +885,7 @@ void BmnTof2Raw2DigitNew::fillSlewingT0(TClonesArray *data, map<UInt_t,Long64_t>
 	    TvsWt0[mapa[ind].plane][1]->Fill(t0width*INVHPTIMEBIN, L);
 	    tmean[1][ind] += L;
 	    ntmean[1][ind]++;
+	    TvsSm[mapa[ind].plane][1]->Fill(mapa[ind].strip, L);
 //	    if (ntmean[1][ind] == 1) printf("%d %d %f %f %f %f %d %f\n",ind,ind1,lead[ind],lead[ind1],L, tmean[1][ind], ts_diff, t0width);
         }
 	}
@@ -720,6 +900,10 @@ void BmnTof2Raw2DigitNew::SlewingT0()
   Double_t par1 = 0.;
   Double_t par2 = 0.;
   Double_t par3 = 0.;
+  TH1D *proj = 0;
+  char namp[64];
+  int ncon = 0;
+  double mpos = 0.;
   TF1 *f_TW = 0;
   int nonzero = 0;
   FILE *fout = 0;
@@ -775,7 +959,28 @@ void BmnTof2Raw2DigitNew::SlewingT0()
 	ip = mapa[ind].plane;
 	if (ip != plane) continue;
 //	printf("** ip %d is %d nt %d t %f\n",ip,is,ntmean[0][ind],tmean[0][ind]);
-	if (ntmean[0][ind])
+	is = mapa[ind].strip;
+	if (EQUAL_MAXIMA)
+	{
+	    sprintf(namp,"Maxima_chamber_%d_strip_%d",ip+1,is+1);
+	    proj = TvsSm[ip][0]->ProjectionY(namp,is+1,is+1);
+	    mpos = proj->GetBinCenter(proj->GetMaximumBin());
+	    ncon = proj->GetBinContent(proj->GetMaximumBin());
+//	    printf("Chamber %d strip %d max %d at %f\n", ip,is,ncon,mpos);
+	    if (ncon > 100)
+	    {
+		tmean[0][ind] = mpos;
+		tmean_average[0][plane] += mpos;
+		na++;
+	    }
+	    else if (ntmean[0][ind])
+	    {
+		tmean[0][ind] /= (float)ntmean[0][ind];
+		tmean_average[0][plane] += tmean[0][ind];
+		na++;
+	    }
+	}
+	else if (ntmean[0][ind])
 	{
 	    tmean[0][ind] /= (float)ntmean[0][ind];
 	    tmean_average[0][plane] += tmean[0][ind];
@@ -849,7 +1054,28 @@ peak2:
 	if (mapa[ind].pair < 0) continue;
 	ip = mapa[ind].plane;
 	if (ip != plane) continue;
-	if (ntmean[1][ind])
+	is = mapa[ind].strip;
+	if (EQUAL_MAXIMA)
+	{
+	    sprintf(namp,"Maxima_chamber_%d_strip_%d",ip+1,is+1);
+	    proj = TvsSm[ip][1]->ProjectionY(namp,is+1,is+1);
+	    mpos = proj->GetBinCenter(proj->GetMaximumBin());
+	    ncon = proj->GetBinContent(proj->GetMaximumBin());
+//	    printf("Chamber %d strip %d max %d at %f\n", ip,is,ncon,mpos);
+	    if (ncon > 100)
+	    {
+		tmean[1][ind] = mpos;
+		tmean_average[1][plane] += mpos;
+		na++;
+	    }
+	    else if (ntmean[1][ind])
+	    {
+		tmean[1][ind] /= (float)ntmean[1][ind];
+		tmean_average[1][plane] += tmean[1][ind];
+		na++;
+	    }
+	}
+	else if (ntmean[1][ind])
 	{
 	    tmean[1][ind] /= (float)ntmean[1][ind];
 	    tmean_average[1][plane] += tmean[1][ind];
@@ -914,42 +1140,59 @@ void BmnTof2Raw2DigitNew::readSlewingT0()
   Int_t plane, dummy;
   TString dir = getenv("VMCWORKDIR");
   TString path = dir + "/parameters/tof2_slewing/";
-  char filn[128], line[256], line1[256];
+  char filn[128], filn0[128], line[256], line1[256];
   for (int p = 0; p < MaxPlane; p++)
   {
   for (int pk = 0; pk < 2; pk++)
   {
   //printf("\nread for chamber %d maxchambers %d peak %d\n", p+1, MaxPlane, pk+1);
-  sprintf(filn, "%s", filname_base);
+  //sprintf(filn, "%s", filname_base);
   if (fSlewCham > 0)
+  {
    sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, fSlewCham, pk+1);
+   sprintf(filn0, "%s%s_chamber%d_peak%d", path.Data(), filname_base, p+1, pk+1);
+   strcat(filn0, ".slewing.t0.txt");
+  }
   else 
    sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, p+1, pk+1);
   strcat(filn, ".slewing.t0.txt");
 //  printf("T0: Plane %d peak %d file %s\n", p+1, pk+1, filn);
   FILE *fin = fopen(filn,"r");
+  FILE *fin0 = 0;
+  if (fSlewCham > 0) fin0 = fopen(filn0,"r");
   if (fin == NULL)
   {
     printf(" T0 slewing file %s not found!\n", filn);
     printf(" Continue without T0 slewing!\n");
     continue;
   }
+  if (fin0 == NULL)
+  {
+    printf(" T0 slewing file %s not found!\n", filn0);
+    printf(" Continue without T0 slewing!\n");
+    continue;
+  }
   fgets(line, 255, fin);
   fgets(line1, 255, fin);
+  if (fSlewCham > 0) fgets(line, 255, fin0);
+  if (fSlewCham > 0) fgets(line1, 255, fin0);
   if (PRINT_SLEWING_PARAMETERS) printf("\n**************** %s Chamber %d Peak %d Time-Width area T0 slewing (read) ******************************\n\n", filname_base, p+1, pk+1);
   int ni = fscanf(fin, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", &plane, &wmint0[p][pk], &wmaxt0[p][pk], &tmint0[p][pk], &tmaxt0[p][pk]);
   if (ni != 5) continue;
+  if (fSlewCham > 0) fgets(line, 255, fin0);
   if (PRINT_SLEWING_PARAMETERS) printf("Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane, wmint0[p][pk], wmaxt0[p][pk], tmint0[p][pk], tmaxt0[p][pk]);
-  if (plane != (p+1))
+  if (plane != (p+1) && fSlewCham == 0)
   {
 	printf(" slewing file error, chamber numbers are mismatched, %d != %d\n", p+1, plane);
   }
   fscanf(fin, "Time(Width) = %lf + %lf*Width + %lg*Width**2\n", &TvsWt0_const[p][pk], &TvsWt0_slope[p][pk], &TvsWt0_parab[p][pk]);
+  if (fSlewCham > 0) fgets(line, 255, fin0);
   if (PRINT_SLEWING_PARAMETERS) printf("Time(Width) = %f + %f*Width + %g*Width**2\n", TvsWt0_const[p][pk], TvsWt0_slope[p][pk], TvsWt0_parab[p][pk]);
 
   fscanf(fin,"Chamber #%d channel offsets (average is %f)\n", &plane, &tmean_average[pk][p]);
+  if (fSlewCham > 0) fscanf(fin0,"Chamber #%d channel offsets (average is %f)\n", &plane, &tmean_average[pk][p]);
   if (PRINT_SLEWING_PARAMETERS) printf("Chamber #%d channel offsets (average is %f)\n", plane, tmean_average[pk][p]);
-  if (plane != (p+1))
+  if (plane != (p+1) && fSlewCham == 0)
   {
 	printf(" slewing file error, chamber numbers are mismatched, %d != %d\n", p+1, plane);
   }
@@ -961,8 +1204,9 @@ void BmnTof2Raw2DigitNew::readSlewingT0()
     if (ip != (plane-1)) continue;
     is = mapa[ind].strip;
     fscanf(fin,"   strip %d time shift (left+right)/2 = %f\n", &is1, &tmean[pk][ind]);
+    if (fSlewCham > 0) fscanf(fin0,"   strip %d time shift (left+right)/2 = %f\n", &is1, &tmean[pk][ind]);
     if (PRINT_SLEWING_PARAMETERS) printf("   strip %d time shift (left+right)/2 = %f\n", is, tmean[pk][ind]);
-    if (is != is1)
+    if (is != is1 && fSlewCham == 0)
     {
 	printf(" slewing file error, strip numbers are mismatched, %d != %d\n", is, is1);
     }
@@ -999,8 +1243,9 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
        int crate = mapa[ind].crate;
        int slot = mapa[ind].slot;
        int dnl = digit->GetValue() & 0x3FF;
-       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
-       if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
+       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - chtima[crate][slot][chan] - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
+       //if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
+       if(digit->GetLeading()) {if (lead[ind] == 0) lead[ind]=tm;} else {if (trail[ind] == 0) trail[ind]=tm;} 
     }
     int Wc = Wcut;
     int Wm = Wmax;
@@ -1019,13 +1264,14 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
 	float W1 = trail[ind]-lead[ind];
 	float W2 = trail[ind1]-lead[ind1];
 	float W = (W1+W2)/2.;
+//	printf("Plane %d Strip %d Lead %f Width %f\n", mapa[ind].plane, mapa[ind].strip, L, W);
 	if (L >= LeadMin[mapa[ind].plane] && L < LeadMax[mapa[ind].plane])
 	if ((int)W1 < Wc && (int)W2 < Wc)
 	{
 //            if (mapa[ind].plane == 0) printf(" peak 1 l1 %f W %f\n",L,W);
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
 //            if (mapa[ind].plane == 0) printf(" peak 1 l2 %f\n",L);
-	    L -= tmean[0][ind];
+	    if (EQUAL_AVERAGE) L -= tmean[0][ind];
 //            if (mapa[ind].plane == 0) printf(" peak 1 l3 %f\n",L);
 	    TvsW[mapa[ind].plane][0]->Fill(W, L);
 	}
@@ -1034,7 +1280,7 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
 //            if (mapa[ind].plane == 0) printf(" peak 2 l1 %f W %f\n",L,W);
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
 //            if (mapa[ind].plane == 0) printf(" peak 2 l2 %f\n",L);
-	    L -= tmean[1][ind];
+	    if (EQUAL_AVERAGE) L -= tmean[1][ind];
 //            if (mapa[ind].plane == 0) printf(" peak 2 l3 %f\n",L);
 	    TvsW[mapa[ind].plane][1]->Fill(W, L);
         }
@@ -1185,41 +1431,58 @@ void BmnTof2Raw2DigitNew::readSlewing()
   Int_t plane, dummy;
   TString dir = getenv("VMCWORKDIR");
   TString path = dir + "/parameters/tof2_slewing/";
-  char filn[128], line[256], line1[256];
+  char filn[128], filn0[128], line[256], line1[256];
   for (int p = 0; p < MaxPlane; p++)
   {
   for (int pk = 0; pk < 2; pk++)
   {
   sprintf(filn, "%s", filname_base);
   if (fSlewCham > 0)
+  {
    sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, fSlewCham, pk+1);
+   sprintf(filn0, "%s%s_chamber%d_peak%d", path.Data(), filname_base, p+1, pk+1);
+   strcat(filn0, ".slewing.txt");
+  }
   else
    sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, p+1, pk+1);
   strcat(filn, ".slewing.txt");
 //  printf("RPC: Plane %d peak %d file %s\n", p+1, pk+1, filn);
   FILE *fin = fopen(filn,"r");
+  FILE *fin0 = 0;
+  if (fSlewCham > 0) fin0 = fopen(filn0,"r");
   if (fin == NULL)
   {
     printf(" Slewing file %s not found!\n", filn);
     printf(" Continue without slewing!\n");
     continue;
   }
+  if (fin0 == NULL)
+  {
+    printf(" Slewing file %s not found!\n", filn0);
+    printf(" Continue without slewing!\n");
+    continue;
+  }
   fgets(line, 255, fin);
+  if (fSlewCham > 0) fgets(line, 255, fin0);
   fgets(line1, 255, fin);
+  fgets(line1, 255, fin0);
   if (PRINT_SLEWING_PARAMETERS) printf("**************** %s Chamber %d Peak %d Time-Width area RPC slewing (read) ******************************\n\n", filname_base, p+1, pk+1);
   int ni = fscanf(fin, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", &plane, &wmin[p][pk], &wmax[p][pk], &tmin[p][pk], &tmax[p][pk]);
   if (ni != 5) continue;
+  if (fSlewCham > 0) fgets(line, 255, fin0);
   if (PRINT_SLEWING_PARAMETERS) printf("Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane, wmin[p][pk], wmax[p][pk], tmin[p][pk], tmax[p][pk]);
-  if (plane != (p+1))
+  if (plane != (p+1) && fSlewCham == 0)
   {
 	printf(" slewing file error, chamber numbers are mismatched, %d != %d\n", p+1, plane);
   }
   fscanf(fin, "Time(Width) = %lf + %lf*Width + %lg*Width**2 + %lg*Width**3 + %lg*Width**4 + %lg*Width**5\n", &TvsW_const[p][pk], &TvsW_slope[p][pk], &TvsW_parab[p][pk], &TvsW_cubic[p][pk], &TvsW_four[p][pk], &TvsW_five[p][pk]);
+  if (fSlewCham > 0) fgets(line, 255, fin0);
   if (PRINT_SLEWING_PARAMETERS) printf("Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3 + %g*Width**4 + %g*Width**5\n", TvsW_const[p][pk], TvsW_slope[p][pk], TvsW_parab[p][pk], TvsW_cubic[p][pk], TvsW_four[p][pk], TvsW_five[p][pk]);
 
-  fscanf(fin,"Chamber #%d channel offsets (average is %f)\n", &plane, &tmean_average[pk][p]);
-  if (PRINT_SLEWING_PARAMETERS) printf("Chamber #%d channel offsets (average is %f)\n", plane, tmean_average[pk][p]);
-  if (plane != (p+1))
+  fscanf(fin,"Chamber #%d channel offsets (average is %f)\n", &plane, &tmeane_average[p]);
+  if (fSlewCham > 0) fscanf(fin0,"Chamber #%d channel offsets (average is %f)\n", &plane, &tmeane_average[p]);
+  if (PRINT_SLEWING_PARAMETERS) printf("Chamber #%d channel offsets (average is %f)\n", plane, tmeane_average[p]);
+  if (plane != (p+1) && fSlewCham == 0)
   {
 	printf(" slewing file error, chamber numbers are mismatched, %d != %d\n", p+1, plane);
   }
@@ -1231,14 +1494,16 @@ void BmnTof2Raw2DigitNew::readSlewing()
     ip = mapa[ind].plane;
     if (ip != (plane-1)) continue;
     is = mapa[ind].strip;
-    fscanf(fin,"   strip %d time shift (left+right)/2 = %f\n", &is1, &tmean[pk][ind]);
-    if (PRINT_SLEWING_PARAMETERS) printf("   strip %d time shift (left+right)/2 = %f\n", is, tmean[pk][ind]);
-    if (is != is1)
+    fscanf(fin,"   strip %d time shift (left+right)/2 = %f\n", &is1, &tmeane[ind]);
+    if (fSlewCham > 0) fscanf(fin0,"   strip %d time shift (left+right)/2 = %f\n", &is1, &tmeane[ind]);
+    if (PRINT_SLEWING_PARAMETERS) printf("   strip %d time shift (left+right)/2 = %f\n", is, tmeane[ind]);
+    if (is != is1 && fSlewCham == 0)
     {
 	printf(" slewing file error, strip numbers are mismatched, %d != %d\n", is, is1);
     }
   }
   fclose(fin);
+  if (fSlewCham > 0) fclose(fin0);
   } // loop on width peaks
   } // loop on chambers
 }
@@ -1270,9 +1535,10 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
        int crate = mapa[ind].crate;
        int slot = mapa[ind].slot;
        int dnl = digit->GetValue() & 0x3FF;
-       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
+       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - chtima[crate][slot][chan] - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
 //       printf("tm %f c %d s %d cor %f ts_diff %lld\n",tm, crate, slot, DNL_Table[crate][slot][chan][dnl], ts_diff);
-       if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
+       //if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
+       if(digit->GetLeading()) {if (lead[ind] == 0) lead[ind]=tm;} else {if (trail[ind] == 0) trail[ind]=tm;} 
     }
 //    printf("n_rec = %d\n", n_rec);
     int Wc = Wcut;
@@ -1299,7 +1565,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	{
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
 	    TvsWt0[mapa[ind].plane][0]->Fill(t0width*INVHPTIMEBIN, L);
-	    L -= tmean[0][ind];
+	    if (EQUAL_AVERAGE) L -= tmean[0][ind];
     	    L -= slewing_correction(mapa[ind].plane, W, 0);
 	    TvsW[mapa[ind].plane][0]->Fill(W, L);
 	}
@@ -1307,7 +1573,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	{
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
 	    TvsWt0[mapa[ind].plane][1]->Fill(t0width*INVHPTIMEBIN, L);
-	    L -= tmean[1][ind];
+	    if (EQUAL_AVERAGE) L -= tmean[1][ind];
     	    L -= slewing_correction(mapa[ind].plane, W, 1);
 	    TvsW[mapa[ind].plane][1]->Fill(W, L);
         }
@@ -1315,7 +1581,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	{
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
-	    L -= 0.5*(tmean[0][ind]+tmean[1][ind]);
+	    if (EQUAL_AVERAGE) L -= 0.5*(tmean[0][ind]+tmean[1][ind]);
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W2, 0);
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W1, 1);
 	}
@@ -1323,10 +1589,11 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 	{
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
-	    L -= 0.5*(tmean[0][ind]+tmean[1][ind]);
+	    if (EQUAL_AVERAGE) L -= 0.5*(tmean[0][ind]+tmean[1][ind]);
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W1, 0);
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W2, 1);
 	}
+	L -= tmeane[ind];
 //        new(ar[tof2digit->GetEntriesFast()]) BmnTof2Digit(mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W*HPTIMEBIN,D*HPTIMEBIN);  
 //        printf("%d %d %f %f %f t0 %f t0width %f\n", mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W,D*HPTIMEBIN, t0, t0width);  
         new((*tof2digit)[tof2digit->GetEntriesFast()]) BmnTof2Digit(mapa[ind].plane,mapa[ind].strip,L*HPTIMEBIN,W,D*HPTIMEBIN);  
@@ -1385,6 +1652,211 @@ void BmnTof2Raw2DigitNew::SlewingResults()
 
   } // loop on chambers
   } // loop on T0 and RPC cases
+
+  return;
+}
+
+void BmnTof2Raw2DigitNew::fillEqualization(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width) {
+    Long64_t ts_diff = 0L;
+    float lead[TOF2_MAX_CHANNEL];
+    float trail[TOF2_MAX_CHANNEL];
+    memset(lead,0,TOF2_MAX_CHANNEL*sizeof(float));
+    memset(trail,0,TOF2_MAX_CHANNEL*sizeof(int));
+    for (int i = 0; i < data->GetEntriesFast(); i++) {
+       BmnTDCDigit *digit = (BmnTDCDigit*) data->At(i);
+       int type = digit->GetType();
+       int tdcnum = digit->GetHptdcId();
+       int chanin = digit->GetChannel();
+       int chan = -1;
+       if      (type == kTDC32VL)     chan = get_ch_tdc32vl(tdcnum,chanin*4);
+       else if (type == kTDC64VHLE)   chan = get_ch_tdc64vhle(tdcnum,chanin*4);
+       else continue;
+       if (chan < 0) continue;
+       map<UInt_t,Long64_t>::iterator it = ts->find(digit->GetSerial());
+       if (it == ts->end()) continue;
+       ts_diff = it->second;
+       int nc = numcrate((digit->GetSerial())&0xFFFFFF);
+       if (nc < 0) continue;
+       int ind = nrec[nc][digit->GetSlot()][chan]; 
+       if(ind==-1) continue; 
+       int crate = mapa[ind].crate;
+       int slot = mapa[ind].slot;
+       int dnl = digit->GetValue() & 0x3FF;
+       float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - chtima[crate][slot][chan] - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
+//       printf("tm %f c %d s %d cor %f ts_diff %lld\n",tm, crate, slot, DNL_Table[crate][slot][chan][dnl], ts_diff);
+       //if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
+       if(digit->GetLeading()) {if (lead[ind] == 0) lead[ind]=tm;} else {if (trail[ind] == 0) trail[ind]=tm;} 
+    }
+//    printf("n_rec = %d\n", n_rec);
+    int Wc = Wcut;
+    int Wm = Wmax;
+    for(int ind=0;ind<n_rec;ind++){ 
+       int ind1 = mapa[ind].pair;
+       if (ind1 < 0) continue;
+       if(lead[ind1]==0 || trail[ind1]==0) continue;
+       if(lead[ind]!=0 && trail[ind]!=0){
+//    printf("Ok!\n");
+	Wc = Wcut;
+	if (Wcutc[mapa[ind].plane] >= 0.) Wc = Wcutc[mapa[ind].plane];
+	Wm = Wmax;
+	if (Wmaxc[mapa[ind].plane] >= 0.) Wm = Wmaxc[mapa[ind].plane];
+	float L = (lead[ind1]+lead[ind])/2.;
+	float D = (lead[ind1]-lead[ind])/2.;
+	float W1 = trail[ind]-lead[ind];
+	float W2 = trail[ind1]-lead[ind1];
+	float W = (W1+W2)/2.;
+//test!!!!
+//
+	if (L >= LeadMin[mapa[ind].plane] && L < LeadMax[mapa[ind].plane])
+	{
+	if ((int)W1 < Wc && (int)W2 < Wc)
+	{
+    	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
+	    if (EQUAL_AVERAGE) L -= tmean[0][ind];
+    	    L -= slewing_correction(mapa[ind].plane, W, 0);
+	}
+	else if (W1 >= Wc && W2 >= Wc)
+	{
+    	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
+	    if (EQUAL_AVERAGE) L -= tmean[1][ind];
+    	    L -= slewing_correction(mapa[ind].plane, W, 1);
+        }
+	else if (W1 >= Wc && W2 < Wc)
+	{
+    	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
+    	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
+	    if (EQUAL_AVERAGE) L -= 0.5*(tmean[0][ind]+tmean[1][ind]);
+    	    L -= 0.5*slewing_correction(mapa[ind].plane, W2, 0);
+    	    L -= 0.5*slewing_correction(mapa[ind].plane, W1, 1);
+	}
+	else if (W1 < Wc && W2 > Wc)
+	{
+    	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
+    	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
+	    if (EQUAL_AVERAGE) L -= 0.5*(tmean[0][ind]+tmean[1][ind]);
+    	    L -= 0.5*slewing_correction(mapa[ind].plane, W1, 0);
+    	    L -= 0.5*slewing_correction(mapa[ind].plane, W2, 1);
+	}
+	else
+	{
+	    continue;
+	}
+	tmeane[ind] += L;
+	ntmeane[ind]++;
+	TvsSm[mapa[ind].plane][0]->Fill(mapa[ind].strip, L);
+	}
+       }
+    }
+}
+
+void BmnTof2Raw2DigitNew::Equalization()
+{
+  TH1D *proj = 0;
+  TF1 *gr = 0;
+  char namp[64], namf[64];
+  int ncon = 0;
+  double mpos = 0.;
+  FILE *fout = 0;
+  TString dir = getenv("VMCWORKDIR");
+  TString path = dir + "/parameters/tof2_slewing/";
+  for (int plane = 0; plane < MaxPlane; plane++)
+  {
+  for (int pk = 0; pk < 2; pk++)
+  {
+  char filn[128], filn1[128], command[256];
+  sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, plane+1, pk+1);
+  strcpy(filn1,filn);
+  strcat(filn, ".slewing.txt");
+  strcat(filn1, ".slewing_saved.txt");
+  sprintf(command, "cp -p %s %s", filn, filn1);
+  system(command);
+  fout = fopen(filn,"w");
+  if (PRINT_EQUALIZATION_RESULTS) printf("**************** %s Chamber %d Peak %d Time-Width area RPC slewing (write) ******************************\n\n", filname_base, plane+1, pk+1);
+  fprintf(fout, "**************** %s Chamber %d Peak %d Time-Width area slewing *******************************\n\n", filname_base, plane+1, pk+1);
+
+  if (pk==0)
+  {
+    if (PRINT_EQUALIZATION_RESULTS) printf("Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane+1, 0, Wcut, LeadMin[plane], LeadMax[plane]);
+    fprintf(fout, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane+1, 0, Wcut, LeadMin[plane], LeadMax[plane]);
+  }
+  else
+  {
+    if (PRINT_EQUALIZATION_RESULTS) printf("Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane+1, Wcut, Wmax, LeadMin[plane], LeadMax[plane]);
+    fprintf(fout, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", plane+1, Wcut, Wmax, LeadMin[plane], LeadMax[plane]);
+  }
+  if (PRINT_EQUALIZATION_RESULTS) printf(" Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3 + %g*Width**4 + %g*Width**5\n",  TvsW_const[plane][pk], TvsW_slope[plane][pk], TvsW_parab[plane][pk], TvsW_cubic[plane][pk], TvsW_four[plane][pk], TvsW_five[plane][pk]);
+  fprintf(fout, " Time(Width) = %f + %f*Width + %g*Width**2 + %g*Width**3 + %g*Width**4 + %g*Width**5\n",  TvsW_const[plane][pk], TvsW_slope[plane][pk], TvsW_parab[plane][pk], TvsW_cubic[plane][pk], TvsW_four[plane][pk], TvsW_five[plane][pk]);
+
+  int ip, is;
+  int na = 0;
+  if (pk==0)
+  {
+  tmeane_average[plane] = 0.;
+  for (int ind=0; ind<n_rec; ind++)
+  {
+	if (mapa[ind].pair < 0) continue;
+	ip = mapa[ind].plane;
+	if (ip != plane) continue;
+	is = mapa[ind].strip;
+	//printf("** ip %d is %d nt %d t %f\n",ip,is,ntmeane[ind],tmeane[ind]);
+	sprintf(namp,"Maxima_chamber_%d_strip_%d_equalization",ip+1,is+1);
+	proj = TvsSm[ip][0]->ProjectionY(namp,is+1,is+1);
+	if (EQUAL_MAXIMA)
+	{
+	    mpos = proj->GetBinCenter(proj->GetMaximumBin());
+	    ncon = proj->GetBinContent(proj->GetMaximumBin());
+	    //printf("Chamber %d strip %d max %d at %f\n", ip,is,ncon,mpos);
+	    if (ncon > 100)
+	    {
+		if (FIT_MAXIMA)
+		{
+		    sprintf(namf,"gaus%dstrip%d",ip+1,is+1);
+		    gr = new TF1(namf,"gaus",mpos-4.,mpos+4.);
+		    proj->Fit(namf,"R");
+		    tmeane[ind] = proj->GetFunction(namf)->GetParameter(1);
+		}
+		else tmeane[ind] = mpos;
+		tmeane_average[plane] += tmeane[ind];
+		na++;
+	    }
+	    else if (ntmeane[ind] > 0)
+	    {
+//		tmeane[ind] /= (float)ntmeane[ind];
+		tmeane[ind] = proj->GetMean();
+		tmeane_average[plane] += tmeane[ind];
+		na++;
+	    }
+	    else tmeane[ind] = 0.;
+	}
+	else if (ntmeane[ind] > 0)
+	{
+//	    tmeane[ind] /= (float)ntmeane[ind];
+	    tmeane[ind] = proj->GetMean();
+	    tmeane_average[plane] += tmeane[ind];
+	    na++;
+	}
+	else tmeane[ind] = 0.;
+	//printf("!! ip %d is %d nt %d t %f na %d\n",ip,is,ntmeane[ind],tmeane[ind],na);
+  }
+  if (na) tmeane_average[plane] /= (float)na;
+  }
+  fprintf(fout,"Chamber #%d channel offsets (average is %f)\n", plane+1, tmeane_average[plane]);
+  if (PRINT_EQUALIZATION_RESULTS) printf("Chamber #%d channel offsets (average is %f)\n", plane+1, tmeane_average[plane]);
+  for (int ind=0; ind<n_rec; ind++)
+  {
+    if (mapa[ind].pair < 0) continue;
+    ip = mapa[ind].plane;
+    if (ip != plane) continue;
+    is = mapa[ind].strip;
+    fprintf(fout,"   strip %d time shift (left+right)/2 = %f\n", is, tmeane[ind]-tmeane_average[plane]);
+    if (PRINT_EQUALIZATION_RESULTS) printf("   strip %d time shift (left+right)/2 = %f\n", is, tmeane[ind]-tmeane_average[plane]);
+  }
+
+  fclose(fout);
+
+  } // loop on peaks
+
+  } // loop on chambers
 
   return;
 }

@@ -1376,6 +1376,29 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     fTof700Mapper->Slewing();
 
+    fTof700Mapper->readSlewing();
+
+    fTof700Mapper->InitEqualization();
+
+    for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
+        if (iEv % 5000 == 0) cout << "Equalization RPC strips event #" << iEv << endl;
+        fTimeShifts.clear();
+
+        fRawTree->GetEntry(iEv);
+
+        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
+            //                cout << "No TimeShiftMap created" << endl;
+            continue;
+        }
+
+        fTrigMapper->FillEvent(tdc, NULL, NULL, NULL, NULL, NULL, NULL, NULL, fT0Time, &fT0Width);
+
+        fTof700Mapper->fillEqualization(tdc, &fTimeShifts, fT0Time, fT0Width);
+    }
+    cout << "Equalization RPC strips event #" << fNevents << endl;
+
+    fTof700Mapper->Equalization();
+
     //    fRootFileIn->Close();
 
     //    delete trigMapper;

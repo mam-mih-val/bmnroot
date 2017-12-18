@@ -97,6 +97,7 @@ public:
     void fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width, TClonesArray *tof2digit);
     void fillSlewingT0(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width);
     void fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width);
+    void fillEqualization(TClonesArray *data, map<UInt_t,Long64_t> *ts, Double_t t0, Double_t t0width);
     void writeSlewingLimits();
     void readSlewingLimits();
     void SlewingT0();
@@ -104,11 +105,14 @@ public:
     void Slewing();
     void readSlewing();
     void SlewingResults();
+    void InitEqualization();
+    void Equalization();
     float slewingt0_correction(int chamber, double width, int peak);
     float slewing_correction(int chamber, double width, int peak);
     void drawprep();
     void drawprof();
     void drawproft0();
+    int Offsets_read();
     int readGeom(char *geomFile);
     int printGeom();
     int get_strip_xyz(int chamber, int strip, float *x, float *y, float *z);
@@ -144,6 +148,7 @@ private:
     float idchambers[TOF2_MAX_CHAMBERS]; 
     int numslots[TOF2_MAX_CRATES*TOF2_MAX_SLOTS_IN_CRATE]; 
     int idcrates[TOF2_MAX_CRATES], numcrates[TOF2_MAX_CRATES]; 
+    double chtima[10][25][64];
 
     int numcrate(int id);
     int nrec[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE][TOF2_MAX_CHANNELS_IN_SLOT];
@@ -151,6 +156,9 @@ private:
     float tmean[2][TOF2_MAX_CHANNEL];
     int ntmean[2][TOF2_MAX_CHANNEL];
     float tmean_average[2][TOF2_MAX_CHAMBERS];
+    float tmeane[TOF2_MAX_CHANNEL];
+    int ntmeane[TOF2_MAX_CHANNEL];
+    float tmeane_average[TOF2_MAX_CHAMBERS];
 
     double DNL_Table[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE][72][1024];
     int dnltype[TOF2_MAX_CRATES][TOF2_MAX_SLOTS_IN_CRATE];
@@ -175,8 +183,10 @@ private:
     double TvsW_four[TOF2_MAX_CHAMBERS][2];
     double TvsW_five[TOF2_MAX_CHAMBERS][2];
 
+    TH2F *poffsets, *poffsets1, *poffsets2;
     TProfile *TvsW[TOF2_MAX_CHAMBERS][2];
     TProfile *TvsWt0[TOF2_MAX_CHAMBERS][2];
+    TH2F *TvsSm[TOF2_MAX_CHAMBERS][2];
 
     TH2F *TvsS[TOF2_MAX_CHAMBERS];
     TH2F *WvsS[TOF2_MAX_CHAMBERS];

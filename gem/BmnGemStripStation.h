@@ -37,6 +37,11 @@ protected:
     Double_t *YShiftOfModules;
     Double_t *ZShiftOfModules;
 
+    Double_t *DriftGapThicknessOfModules;
+    Double_t *FTransfGapThicknessOfModules;
+    Double_t *STransfGapThicknessOfModules;
+    Double_t *InductionGapThicknessOfModules;
+
     Double_t BeamHoleRadius;
 
     BmnGemStripModule **Modules; //modules in the station [array]
@@ -71,6 +76,12 @@ public:
     Double_t GetXShiftOfModule(Int_t module_num);
     Double_t GetYShiftOfModule(Int_t module_num);
     Double_t GetZShiftOfModule(Int_t module_num);
+
+    Double_t GetDriftGapThicknessOfModule(Int_t module_num);
+    Double_t GetFTransfGapThicknessOfModule(Int_t module_num);
+    Double_t GetSTransfGapThicknessOfModule(Int_t module_num);
+    Double_t GetInductionGapThicknessOfModule(Int_t module_num);
+
     Double_t GetBeamHoleRadius() { return BeamHoleRadius; }
     BmnGemStripModule* GetModule(Int_t module_num);
 

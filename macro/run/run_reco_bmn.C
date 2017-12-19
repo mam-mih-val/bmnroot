@@ -27,12 +27,11 @@
 #include "../../gem/BmnGemStripConfiguration.h"
 #include "bmnloadlibs.C"
 
-void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.root",
-                  TString bmndstFileName    = "$VMCWORKDIR/macro/run/bmndst.root",
-                  Int_t   nStartEvent       =  0,
-                  Int_t   nEvents           =  10000,
-                  TString alignCorrFileName = "default")
-{   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
+void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
+        TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
+        Int_t nStartEvent = 0,
+        Int_t nEvents = 10000,
+        TString alignCorrFileName = "default") { // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
     // ----    Debug option   --------------------------------------------------
     gDebug = 0;
@@ -50,9 +49,9 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
 
-    Bool_t isField  = kTRUE;  // flag for tracking (to use mag.field or not)
+    Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kFALSE; // flag for tracking (run with target or not)
-    Bool_t isExp    = kFALSE; // flag for hit finder (to create digits or take them from data-file)
+    Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
@@ -60,8 +59,7 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     Int_t run_period, run_number;
     Double_t fieldScale = 0.;
     TPRegexp run_prefix("^run[0-9]+-[0-9]+:");
-    if (inputFileName.Contains(run_prefix))
-    {
+    if (inputFileName.Contains(run_prefix)) {
         Ssiz_t indDash = inputFileName.First('-'), indColon = inputFileName.First(':');
         // get run period
         run_period = TString(inputFileName(3, indDash - 3)).Atoi();
@@ -69,8 +67,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
         inputFileName.Remove(0, indColon + 1);
 
-        if ( ! CheckFileExist(inputFileName)) {
-            cout <<"Error: digi file "+inputFileName+" does not exist!"<< endl;
+        if (!CheckFileExist(inputFileName)) {
+            cout << "Error: digi file " + inputFileName + " does not exist!" << endl;
             exit(-1);
         }
         // set source as raw data file
@@ -80,24 +78,24 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         TString geoFileName = "current_geo_file.root";
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
-            cout <<"Geometry file can't be read from the database"<< endl;
+            cout << "Geometry file can't be read from the database" << endl;
             exit(-1);
         }
 
         // get gGeoManager from ROOT file (if required)
         TFile* geoFile = new TFile(geoFileName, "READ");
-        if ( ! geoFile->IsOpen()) {
-            cout <<"Error: could not open ROOT file with geometry: "+geoFileName<< endl;
+        if (!geoFile->IsOpen()) {
+            cout << "Error: could not open ROOT file with geometry: " + geoFileName << endl;
             exit(-2);
         }
         TList* keyList = geoFile->GetListOfKeys();
-        TIter  next(keyList);
-        TKey*  key = (TKey*)next();
+        TIter next(keyList);
+        TKey* key = (TKey*) next();
         TString className(key->GetClassName());
         if (className.BeginsWith("TGeoManager"))
             key->ReadObj();
         else {
-            cout <<"Error: TGeoManager isn't top element in geometry file "+geoFileName<< endl;
+            cout << "Error: TGeoManager isn't top element in geometry file " + geoFileName << endl;
             exit(-3);
         }
         // set magnet field with factor corresponding to the given run
@@ -109,8 +107,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
         if (*field_voltage < 10) {
             fieldScale = 0;
-            isField = kFALSE; }
-        else {
+            isField = kFALSE;
+        } else {
             fieldScale = (*field_voltage) / map_current;
         }
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
@@ -121,8 +119,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         TString targ;
         if (pCurrentRun->GetTargetParticle() == NULL) {
             targ = "-";
-            isTarget = kFALSE; }
-        else {
+            isTarget = kFALSE;
+        } else {
             targ = (pCurrentRun->GetTargetParticle())[0];
             isTarget = kTRUE;
         }
@@ -136,9 +134,8 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
         cout << "||\t\tField scale:\t" << setprecision(4) << fieldScale << "\t\t\t||" << endl;
         cout << "||\t\t\t\t\t\t\t||" << endl;
         cout << "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n\n" << endl;
-    }
-    else { // for simulated files
-        if ( ! CheckFileExist(inputFileName)) return;
+    } else { // for simulated files
+        if (!CheckFileExist(inputFileName)) return;
         fFileSource = new FairFileSource(inputFileName);
     }
     fRunAna->SetSource(fFileSource);
@@ -165,9 +162,9 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
-//  BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
-//  mwpcHM->SetUseDigitsInTimeBin(kFALSE);
-//  fRunAna->AddTask(mwpcHM);
+    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
+    mwpcHM->SetUseDigitsInTimeBin(kFALSE);
+    fRunAna->AddTask(mwpcHM);
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
@@ -206,21 +203,22 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //
-//  BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
-////tof1HP->SetOnlyPrimary(kTRUE);
-//  if (isExp)
-//      fRunAna->AddTask(tof1HP);
+    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
+    //tof1HP->SetOnlyPrimary(kTRUE);
+    if (isExp)
+        fRunAna->AddTask(tof1HP);
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
     // ====================================================================== //
-//  BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run6.txt", !isExp, iVerbose, kTRUE);
-//  fRunAna->AddTask(tof2HP);
-//
+    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run6.txt", !isExp, iVerbose, kTRUE);
+    if (isExp)
+        fRunAna->AddTask(tof2HP);
+
     // ====================================================================== //
     // ===                           Tracking (MWPC)                      === //
     // ====================================================================== //
-//  BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
-//  fRunAna->AddTask(mwpcTF);
+    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
+    fRunAna->AddTask(mwpcTF);
     // ====================================================================== //
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
@@ -233,10 +231,23 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // Residual analysis
     if (isExp) {
         BmnGemResiduals* residAnal = new BmnGemResiduals(run_period, run_number, fieldScale);
-      //residAnal->SetPrintResToFile("file.txt");
-      //residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
+        //residAnal->SetPrintResToFile("file.txt");
+        //residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
         fRunAna->AddTask(residAnal);
     }
+
+    // ====================================================================== //
+    // ===                           Tracking (DCH)                       === //
+    // ====================================================================== //
+    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    dchTF->SetTransferFunction("pol_coord00813.txt");
+    fRunAna->AddTask(dchTF);
+    // ====================================================================== //
+    // ===                          Global Tracking                       === //
+    // ====================================================================== //
+    BmnGlobalTracking* globalTF = new BmnGlobalTracking();
+    fRunAna->AddTask(globalTF);
+
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //
     // ====================================================================== //
@@ -244,20 +255,10 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     gemVF->SetField(isField);
     gemVF->SetVertexApproximation(vAppr);
     fRunAna->AddTask(gemVF);
-    // ====================================================================== //
-    // ===                           Tracking (DCH)                       === //
-    // ====================================================================== //
-//  BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
-//  dchTF->SetTransferFunction("pol_coord00813.txt");
-//  fRunAna->AddTask(dchTF);
-    // ====================================================================== //
-    // ===                          Global Tracking                       === //
-    // ====================================================================== //
-//  BmnGlobalTracking* globalTF = new BmnGlobalTracking();
-//  fRunAna->AddTask(globalTF);
+
     // -----   Parameter database   --------------------------------------------
-    FairRuntimeDb*      rtdb   = fRunAna->GetRuntimeDb();
-    FairParRootFileIo*  parIo1 = new FairParRootFileIo();
+    FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
+    FairParRootFileIo* parIo1 = new FairParRootFileIo();
     FairParAsciiFileIo* parIo2 = new FairParAsciiFileIo();
     parIo1->open(inputFileName.Data());
     parIo2->open(parFileNameList, "in");
@@ -269,18 +270,18 @@ void run_reco_bmn(TString inputFileName     = "$VMCWORKDIR/macro/run/evetest.roo
     // -----   Initialize and run   --------------------------------------------
     fRunAna->GetMainTask()->SetVerbose(iVerbose);
     fRunAna->Init();
-    cout <<"Starting run"<< endl;
-    fRunAna->Run(nStartEvent, nStartEvent+nEvents);
+    cout << "Starting run" << endl;
+    fRunAna->Run(nStartEvent, nStartEvent + nEvents);
     // -------------------------------------------------------------------------
     // -----   Finish   --------------------------------------------------------
     timer.Stop();
     Double_t rtime = timer.RealTime();
     Double_t ctime = timer.CpuTime();
     cout << endl << endl;
-    cout <<"Macro finished successfully."<< endl; // marker of successful execution for CDASH
-    cout <<"Input  file is "+inputFileName<< endl;
-    cout <<"Output file is "+bmndstFileName<< endl;
-    cout <<"Real time "<<rtime<<" s, CPU time "<<ctime<<" s"<< endl;
+    cout << "Macro finished successfully." << endl; // marker of successful execution for CDASH
+    cout << "Input  file is " + inputFileName << endl;
+    cout << "Output file is " + bmndstFileName << endl;
+    cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;
     cout << endl;
     // ------------------------------------------------------------------------
 }

@@ -8,6 +8,7 @@ BmnGemStripStation::BmnGemStripStation()
   XSize(0.0), YSize(0.0), ZSize(0.0),
   XPosition(0.0), YPosition(0.0), ZPosition(0.0),
   XShiftOfModules(NULL), YShiftOfModules(NULL), ZShiftOfModules(NULL),
+  DriftGapThicknessOfModules(NULL), FTransfGapThicknessOfModules(NULL), STransfGapThicknessOfModules(NULL), InductionGapThicknessOfModules(NULL),
   BeamHoleRadius(0.0),
   Modules(NULL) { }
 
@@ -22,6 +23,7 @@ BmnGemStripStation::BmnGemStripStation(TXMLNode *stationNode, Int_t iStation,
   ZMinStation(0.0), ZMaxStation(0.0),
   XPosition(xpos_station), YPosition(ypos_station), ZPosition(zpos_station),
   XShiftOfModules(NULL), YShiftOfModules(NULL), ZShiftOfModules(NULL),
+  DriftGapThicknessOfModules(NULL), FTransfGapThicknessOfModules(NULL), STransfGapThicknessOfModules(NULL), InductionGapThicknessOfModules(NULL),
   BeamHoleRadius(beamradius),
   Modules(NULL) {
 
@@ -63,6 +65,23 @@ BmnGemStripStation::~BmnGemStripStation() {
         delete [] ZShiftOfModules;
         ZShiftOfModules = NULL;
     }
+
+    if (DriftGapThicknessOfModules) {
+        delete [] DriftGapThicknessOfModules;
+        DriftGapThicknessOfModules = NULL;
+    }
+    if (FTransfGapThicknessOfModules) {
+        delete [] FTransfGapThicknessOfModules;
+        FTransfGapThicknessOfModules = NULL;
+    }
+    if (STransfGapThicknessOfModules) {
+        delete [] STransfGapThicknessOfModules;
+        STransfGapThicknessOfModules = NULL;
+    }
+    if (InductionGapThicknessOfModules) {
+        delete [] InductionGapThicknessOfModules;
+        InductionGapThicknessOfModules = NULL;
+    }
 }
 
 Double_t BmnGemStripStation::GetXShiftOfModule(Int_t module_num) {
@@ -89,6 +108,42 @@ Double_t BmnGemStripStation::GetZShiftOfModule(Int_t module_num) {
     }
     else {
         throw(Station_Exception("Error in the function GetZShiftOfModule()"));
+    }
+}
+
+Double_t BmnGemStripStation::GetDriftGapThicknessOfModule(Int_t module_num) {
+    if(DriftGapThicknessOfModules && module_num >= 0 && module_num < NModules) {
+        return DriftGapThicknessOfModules[module_num];
+    }
+    else {
+        throw(Station_Exception("Error in the function GetDriftGapThicknessOfModule()"));
+    }
+}
+
+Double_t BmnGemStripStation::GetFTransfGapThicknessOfModule(Int_t module_num) {
+    if(FTransfGapThicknessOfModules && module_num >= 0 && module_num < NModules) {
+        return FTransfGapThicknessOfModules[module_num];
+    }
+    else {
+        throw(Station_Exception("Error in the function GetFTransfGapThicknessOfModule()"));
+    }
+}
+
+Double_t BmnGemStripStation::GetSTransfGapThicknessOfModule(Int_t module_num) {
+    if(STransfGapThicknessOfModules && module_num >= 0 && module_num < NModules) {
+        return STransfGapThicknessOfModules[module_num];
+    }
+    else {
+        throw(Station_Exception("Error in the function GetSTransfGapThicknessOfModule()"));
+    }
+}
+
+Double_t BmnGemStripStation::GetInductionGapThicknessOfModule(Int_t module_num) {
+    if(InductionGapThicknessOfModules && module_num >= 0 && module_num < NModules) {
+        return InductionGapThicknessOfModules[module_num];
+    }
+    else {
+        throw(Station_Exception("Error in the function GetInductionGapThicknessOfModule()"));
     }
 }
 
@@ -185,12 +240,22 @@ Bool_t BmnGemStripStation::CreateConfigurationFromXMLNode(TXMLNode *node) {
     YShiftOfModules = new Double_t[NModules];
     ZShiftOfModules = new Double_t[NModules];
 
+    DriftGapThicknessOfModules = new Double_t[NModules];
+    FTransfGapThicknessOfModules = new Double_t[NModules];
+    STransfGapThicknessOfModules = new Double_t[NModules];
+    InductionGapThicknessOfModules = new Double_t[NModules];
+
     //default values
     for(Int_t i = 0; i < NModules; ++i) {
         Modules[i] = 0; //zero-pointer
         XShiftOfModules[i] = 0.0;
         YShiftOfModules[i] = 0.0;
         ZShiftOfModules[i] = 0.0;
+
+        DriftGapThicknessOfModules[i] = 0.3;
+        FTransfGapThicknessOfModules[i] = 0.25;
+        STransfGapThicknessOfModules[i] = 0.2;
+        InductionGapThicknessOfModules[i] = 0.15;
     }
 
     node = node->GetChildren();
@@ -246,10 +311,25 @@ Bool_t BmnGemStripStation::ParseModule(TXMLNode *node, Int_t iModule) {
                     edrift_direction = BackwardZAxisEDrift;
                 }
             }
+
+            if( strcmp(attr->GetName(), "gap_drift_thick") == 0 ) {
+                DriftGapThicknessOfModules[iModule] = atof(attr->GetValue());
+            }
+            if( strcmp(attr->GetName(), "gap_ftransf_thick") == 0 ) {
+                FTransfGapThicknessOfModules[iModule] = atof(attr->GetValue());
+            }
+            if( strcmp(attr->GetName(), "gap_stransf_thick") == 0 ) {
+                STransfGapThicknessOfModules[iModule] = atof(attr->GetValue());
+            }
+            if( strcmp(attr->GetName(), "gap_induct_thick") == 0 ) {
+                InductionGapThicknessOfModules[iModule] = atof(attr->GetValue());
+            }
         }
     }
 
-    Modules[iModule] = new BmnGemStripModule(ZPosition+ZShiftOfModules[iModule], edrift_direction);
+    Modules[iModule] = new BmnGemStripModule(ZPosition+ZShiftOfModules[iModule], edrift_direction,
+                                             DriftGapThicknessOfModules[iModule], FTransfGapThicknessOfModules[iModule],
+                                             STransfGapThicknessOfModules[iModule], InductionGapThicknessOfModules[iModule]);
 
     //Layers
     node = node->GetChildren();

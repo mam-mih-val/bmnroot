@@ -29,10 +29,11 @@ void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst.root",
     // Define GEM config. to be used: RunWinter2016 or RunSpring2017
     BmnGlobalAlignment* globAlign = new BmnGlobalAlignment(BmnGemStripConfiguration::RunSpring2017, recoFileName);
     // globAlign->SetDebug(kTRUE); // default is false
+    // globAlign->SetUsePrimaryVertex(kTRUE); // default is false
 
     // Restrictions on track params:
-    //     globAlign->SetMinHitsAccepted(5);               // Default value is 3
-    //     globAlign->SetChi2MaxPerNDF(2.);                // Cut on chi2/ndf for found tracks, default value is not limited
+    // globAlign->SetMinHitsAccepted(5);               // Default value is 3
+    // globAlign->SetChi2MaxPerNDF(2.);                // Cut on chi2/ndf for found tracks, default value is not limited
     // globAlign->SetTxMinMax(-1., +1.);
     // globAlign->SetExclusionRangeTx(-0.02, 0.02);
     // globAlign->SetTyMinMax(-1., +1.);
@@ -47,10 +48,7 @@ void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst.root",
     // A non-empty string means that the det. subsystem is used in the procedure
     // GEM tracker is included by default
     //                   "MWPC", "DCH"
-    globAlign->SetDetectors("",     "");
-  //globAlign->SetDetectors("MWPC", "DCH");
-  //globAlign->SetDetectors("MWPC", "");
-  //globAlign->SetDetectors("",     "DCH");
+    globAlign->SetDetectors("", "", "");
     
     globAlign->SetPreSigma(0.001); // Default value is 1
     globAlign->SetAccuracy(0.001); // Default value is 0.001

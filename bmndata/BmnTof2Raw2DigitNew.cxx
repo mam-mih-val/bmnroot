@@ -1140,13 +1140,13 @@ void BmnTof2Raw2DigitNew::readSlewingT0()
   Int_t plane, dummy;
   TString dir = getenv("VMCWORKDIR");
   TString path = dir + "/parameters/tof2_slewing/";
-  char filn[128], filn0[128], line[256], line1[256];
+  char filn[256], filn0[256], line[256], line1[256];
+  //printf("%s %s\n", path.Data(), filname_base);
   for (int p = 0; p < MaxPlane; p++)
   {
   for (int pk = 0; pk < 2; pk++)
   {
   //printf("\nread for chamber %d maxchambers %d peak %d\n", p+1, MaxPlane, pk+1);
-  //sprintf(filn, "%s", filname_base);
   if (fSlewCham > 0)
   {
    sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, fSlewCham, pk+1);
@@ -1157,6 +1157,7 @@ void BmnTof2Raw2DigitNew::readSlewingT0()
    sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, p+1, pk+1);
   strcat(filn, ".slewing.t0.txt");
 //  printf("T0: Plane %d peak %d file %s\n", p+1, pk+1, filn);
+  //printf("%s %s\n", filn, filn0);
   FILE *fin = fopen(filn,"r");
   FILE *fin0 = 0;
   if (fSlewCham > 0) fin0 = fopen(filn0,"r");
@@ -1166,7 +1167,7 @@ void BmnTof2Raw2DigitNew::readSlewingT0()
     printf(" Continue without T0 slewing!\n");
     continue;
   }
-  if (fin0 == NULL)
+  if (fin0 == NULL && fSlewCham > 0)
   {
     printf(" T0 slewing file %s not found!\n", filn0);
     printf(" Continue without T0 slewing!\n");
@@ -1212,6 +1213,7 @@ void BmnTof2Raw2DigitNew::readSlewingT0()
     }
   }
   fclose(fin);
+  if (fSlewCham > 0) fclose(fin0);
   } // loop on width peaks
   } // loop on chambers
 }
@@ -1436,7 +1438,7 @@ void BmnTof2Raw2DigitNew::readSlewing()
   {
   for (int pk = 0; pk < 2; pk++)
   {
-  sprintf(filn, "%s", filname_base);
+  //sprintf(filn, "%s", filname_base);
   if (fSlewCham > 0)
   {
    sprintf(filn, "%s%s_chamber%d_peak%d", path.Data(), filname_base, fSlewCham, pk+1);
@@ -1456,7 +1458,7 @@ void BmnTof2Raw2DigitNew::readSlewing()
     printf(" Continue without slewing!\n");
     continue;
   }
-  if (fin0 == NULL)
+  if (fin0 == NULL && fSlewCham > 0)
   {
     printf(" Slewing file %s not found!\n", filn0);
     printf(" Continue without slewing!\n");
@@ -1465,7 +1467,7 @@ void BmnTof2Raw2DigitNew::readSlewing()
   fgets(line, 255, fin);
   if (fSlewCham > 0) fgets(line, 255, fin0);
   fgets(line1, 255, fin);
-  fgets(line1, 255, fin0);
+  if (fSlewCham > 0) fgets(line1, 255, fin0);
   if (PRINT_SLEWING_PARAMETERS) printf("**************** %s Chamber %d Peak %d Time-Width area RPC slewing (read) ******************************\n\n", filname_base, p+1, pk+1);
   int ni = fscanf(fin, "Chamber %d slewing selected area Width-Time:      %d %d %d %d\n", &plane, &wmin[p][pk], &wmax[p][pk], &tmin[p][pk], &tmax[p][pk]);
   if (ni != 5) continue;

@@ -304,7 +304,7 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         if (fIsExcludedTy && Ty > fTyLeft && Ty < fTyRight)
             continue;
 
-        Int_t idx[nDetectors] = {globTrack->GetGemTrackIndex(), globTrack->GetMwpcTrackIndex(), globTrack->GetDchTrackIndex(), globTrack->GetGemTrackIndex()};
+        Int_t idx [] {globTrack->GetGemTrackIndex(), globTrack->GetMwpcTrackIndex(), globTrack->GetDchTrackIndex(), globTrack->GetGemTrackIndex()};
         // 3 means vertex, GEM-track params. required
         Char_t buff[5000] = {""};
         Bool_t zhopa = kFALSE;

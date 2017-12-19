@@ -23,23 +23,24 @@ BmnGemStripModule::BmnGemStripModule() {
     YMinModule = 0.0;
     YMaxModule = 0.0;
 
-    AvalancheGenerationSeed = 11;
+    AvalancheGenerationSeed = 0;
     MCD = 0.0333; //mean collision distance (mean free flight path) [cm]
     AvalancheRadius = 0.10; //cm
     Gain = 1.0; //gain level (for each electron signal - in RealPointFull or for strip signal - in RealPointFullOne)
 }
 
 BmnGemStripModule::BmnGemStripModule(Double_t z_start_pos,
-                                     ElectronDriftDirectionInModule edrift_direction) {
+                                     ElectronDriftDirectionInModule edrift_direction,
+                                     Double_t DriftGap, Double_t FTransferGap, Double_t STransferGap, Double_t InductionGap) {
 
     Verbosity = true;
 
     ZStartModulePosition = z_start_pos;
 
-    DriftGapThickness = 0.3; //cm
-    FirstTransferGapThickness = 0.25; //cm
-    SecondTransferGapThickness = 0.2; //cm
-    InductionGapThickness = 0.15; //cm
+    DriftGapThickness = DriftGap; //cm
+    FirstTransferGapThickness = FTransferGap; //cm
+    SecondTransferGapThickness = STransferGap; //cm
+    InductionGapThickness = InductionGap; //cm
     ModuleThickness = DriftGapThickness + FirstTransferGapThickness + SecondTransferGapThickness + InductionGapThickness; //cm
 
     ElectronDriftDirection = edrift_direction;

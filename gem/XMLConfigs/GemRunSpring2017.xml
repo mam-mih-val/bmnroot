@@ -13,7 +13,7 @@
     <Station xPosition="-1.5" yPosition="-4.5" zPosition="32.7" beamHole="0.0">
 
         <!-- module 0 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward">
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
                 <DeadZone>
                     <DeadPoint x="33.0" y="-20.5" />
@@ -40,7 +40,7 @@
     <Station xPosition="-1.5" yPosition="-4.5" zPosition="64.5" beamHole="0.0">
 
         <!-- module 0 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward">
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftBottom" rborder="RightTop">
                 <DeadZone>
                     <DeadPoint x="33.0" y="10.5" />
@@ -67,7 +67,7 @@
     <Station xPosition="-1.5" yPosition="-4.5" zPosition="96.5" beamHole="0.0">
 
         <!-- module 0 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward">
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
                 <DeadZone>
                     <DeadPoint x="33.0" y="-20.5" />
@@ -94,7 +94,7 @@
     <Station xPosition="0.0" yPosition="-4.5" zPosition="128.5" beamHole="0.0">
 
         <!-- module 0 -->
-        <Module xShift="-5.3" yShift="0.0" zShift="0.0" driftDirection="backward">
+        <Module xShift="-5.3" yShift="0.0" zShift="0.0" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="66.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
                 <DeadZone>
                     <DeadPoint x="15.0" y="-20.5" />
@@ -116,7 +116,7 @@
         </Module>
 
         <!-- module 1 -->
-        <Module xShift="-1.7" yShift="0.2" zShift="2.5" driftDirection="backward">
+        <Module xShift="-1.7" yShift="0.2" zShift="2.5" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftBottom" rborder="RightTop">
                 <DeadZone>
                     <DeadPoint x="0.0" y="10.5" />
@@ -143,7 +143,7 @@
     <Station xPosition="0.0" yPosition="-6.9" zPosition="161.1" beamHole="4.0">
 
         <!-- module 0 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward">
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
                 <DeadZone>
                     <DeadPoint x="40.0" y="-22.5" />
@@ -184,7 +184,7 @@
         </Module>
 
         <!-- module 1 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward">
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom">
                 <DeadZone>
                     <DeadPoint x="0.0" y="-22.5" />
@@ -230,7 +230,7 @@
     <Station xPosition="0.0" yPosition="-6.9" zPosition="193.1" beamHole="4.0">
 
         <!-- module 0 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward">
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="81.6" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
                 <DeadZone>
                     <DeadPoint x="40.0" y="-22.5" />
@@ -271,7 +271,7 @@
         </Module>
 
         <!-- module 1 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward">
+        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="backward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="0.0" yorig="-22.5" xsize="81.6" ysize="45.0" stripDirection="RightToLeft" lborder="LeftBottom" rborder="RightTop">
                 <DeadZone>
                     <DeadPoint x="0.0" y="-22.5" />

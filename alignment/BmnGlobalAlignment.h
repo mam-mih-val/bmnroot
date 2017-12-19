@@ -68,10 +68,11 @@ public:
 
     virtual void Finish();
 
-    void SetDetectors(TString det1, TString det2) {
+    void SetDetectors(TString det1, TString det2, TString vertex) {
         fDetectorSet[0] = "YES";
         fDetectorSet[1] = det1;
         fDetectorSet[2] = det2;
+        fDetectorSet[3] = vertex;
     }
 
     void SetUseRealHitErrors(Bool_t flag) {
@@ -178,6 +179,14 @@ public:
         fTyRight = max;
     }
 
+    void SetRoughPrimaryVertex(TVector3 Vp) {
+        fRoughVertex = Vp;
+    }
+
+    void SetUsePrimaryVertex(Bool_t flag) {
+        fUseVp = flag;
+    }
+
 private:
     void PrintToFullFormat(TString, Char_t*);
     const Int_t MakeBinFile();
@@ -237,7 +246,7 @@ private:
     FILE* fin_txt;
     TString fRecoFileName;
     TChain* fChain;
-    
+
     FairEventHeader* fFairEventHeader;
 
     Bool_t fUseRealHitErrors; // errors are taken from hit finder algorithm
@@ -284,14 +293,20 @@ private:
     // GEMs: 1 - 27; MWPC: 28 - 30; DCH: 31 - 33
 
     TCanvas* fCanv;
-    
+
     FairField* fField;
     BmnFieldMap* fMagField;
     BmnKalmanFilter_tmp* fKalman;
-    
+
     // Some supplementary histos to be, probably, removed in future
     TH1F** fTxGemStation;
+
+    Bool_t fUseVp;
+    TVector3 fRoughVertex;
     
+    TString fBranchVertex;
+    TClonesArray* fVertex;
+
     ClassDef(BmnGlobalAlignment, 1)
 };
 

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>DCH detectors</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+            inframe_hist{
+                draggable: true;
+                allowfullscreen: allowfullscreen;
+                align-content: center;
+                width: 100vw; 
+                height: 56.25vw;
+                /*width: max-content;*/
+
+            }
+            hist_table{
+                align-self: stretch;
+                align-content: center;
+                width: 100%;
+                height: 100%;
+
+            }
+        </style>
+        <link rel="stylesheet" type="text/css" href="../css/tabs.css" media="screen" />
+        <link rel="stylesheet" type="text/css" href="../css/menu.css" media="screen" />
+        <script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>
+        <script type="text/javascript" src="../scripts/BMTools.js"></script>
+        <script>
+            var loco = window.location;
+            var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
+            var path = path0 + "DCH/";
+            function ResetDchHist() {
+                var filename = path + "Reset/cmd.json";
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", filename, true);
+                xhr.withCredentials = true;
+                xhr.send();
+            }
+//            window.onload = setInterval("reloadIFrame();", 2000);
+//            body.onload = createGemTable();
+            function reloadIFrame() {
+                var tc = document.getElementById("trig_counter");
+                var temp = tc.src;
+                tc.src = "";
+                tc.src = temp;
+            }
+            var names = [
+                "VA_1", "VB_1", "UA_1", "UB_1", "YA_1", "YB_1", "XA_1", "XB_1",
+                "VA_2", "VB_2", "UA_2", "UB_2", "YA_2", "YB_2", "XA_2", "XB_2"
+            ];
+            function createDchTable() {
+                var dch1 = document.getElementById("h_DCH1");
+                dch1.src = path + "DCH_h_DCH1/draw.htm?monitoring=10000&opt=colz";
+                var dch2 = document.getElementById("h_DCH2");
+                dch2.src = path + "DCH_h_DCH2/draw.htm?monitoring=10000&opt=colz";
+//                var kNPLANES = 16;
+//                for (var iPlane = 0; iPlane < kNPLANES / 4; iPlane++) {
+//                    createRow(iPlane, kNPLANES);
+//                }
+//                var infoFrame2 = document.getElementById("infoCan");
+//                infoFrame2.src = path0 + "infoCanvas" + "/draw.htm?nobrowser&monitoring=2000";
+                drawInfo();
+            }
+            function createRow(iPlane, kNPLANES) {
+                var gd = document.getElementById("DCH_div");
+                var gtbl = document.createElement("table");
+                gtbl.name = "hist_table";
+                gd.appendChild(gtbl);
+                var tr = document.createElement('tr');
+                for (var iLayer = 0; iLayer < 4; iLayer++) {
+                    var td = document.createElement('td');
+                    var ifr = document.createElement("iframe");
+                    ifr.style = "width: 24vw;height: 16vw;";
+                    ifr.src = path + "DCH_" + names[iPlane * 4 + iLayer];
+                    ifr.src += "/draw.htm?monitoring=2000";
+                    td.appendChild(ifr);
+                    tr.appendChild(td);
+                }
+                gtbl.appendChild(tr);
+            }
+            function drawInfo() {
+                setTimeout(drawInfo, 10000);
+                var refPath = path0 + "refList" + "/root.json";
+                FillRefSelector(refPath, "refSelector");
+                var filename = path0 + "infoCanvas" + "/root.json";
+                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+                    JSROOT.redraw("infoC", obj, "");
+                }).send(null);
+
+                var filename = path + "DCHCanvasWires" + "/root.json";
+                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+                    JSROOT.redraw("wireTableC", obj, "");
+                }).send(null);
+                var filename = path + "DCHCanvasTimes" + "/root.json";
+                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+                    JSROOT.redraw("timeTableC", obj, "");
+                }).send(null);
+            }
+            function SetRefRun() {
+                var runName = document.getElementById("refInput").value;
+                var cmd = path + "SetRefRun/cmd.json";
+                cmd = cmd + "?" + "arg1=" + runName;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", cmd, true);
+                xhr.withCredentials = true;
+                xhr.send();
+                JSROOT.cleanup("wireTableC");
+                JSROOT.cleanup("timeTableC");
+            }
+        </script>
+        <style>
+        </style>
+    </head>
+    <body onload="createDchTable()">
+        <ul >
+            <li><a href="../index.html"> <h3>Welcome to the BM@N Experiment</h3></a></li>
+            <li><a href="../trigger_detectors/index.html"><h3>Triggers</h3></a></li>
+            <li><a href="../gem_detectors/index.html"><h3>GEM</h3></a></li>
+            <li><a href="../Silicon/index.html"><h3>Silicon</h3></a></li>
+            <li><a href="../ToF400_detector/index.html"><h3>ToF400</h3></a></li>
+            <li><a href="../ToF700_detector/index.html"><h3>ToF700</h3></a></li>
+            <li><a href="../DCH_detectors/index.html"><h3>DCH</h3></a></li>
+            <li><a href="../MWPC_detectors/index.html"><h3>MWPC</h3></a></li>
+            <li><a href="../ZDC/index.html"><h3>ZDC</h3></a></li>
+            <li><a href="../ECAL/index.html"><h3>ECAL</h3></a></li>
+            <li><a href="../SRC/index.html"><h3>SRC</h3></a></li>
+            <li><a href="../msc/index.html"><h3>MSC</h3></a></li>
+        </ul>
+        <div id="total_counter" align="center">
+            <h1>BM@N DCHs</h1>    
+            <!--<iframe id="infoCan" ></iframe>-->             
+        </div>
+        <div align="center">
+            <div id="infoC" style="width: 20vw;"> </div>
+        </div>
+        <button onclick="ResetDchHist()"> 
+            <img src="../img/reset.png" width="200">
+        </button>
+        <table>
+            <tr>
+            <tb>
+                <input type="text" name="refInput" id="refInput" list="refSelector">
+                <datalist id="refSelector" autocomplete="on"></datalist>
+            </tb>
+            <tb>
+                <button onclick="SetRefRun()"> 
+                    Select Reference Run
+                </button>
+            </tb>
+
+        </tr>
+    </table>
+
+    <div class="tabs">
+        <!--        <input type="radio" name="inset" value="" id="tab_1" checked>
+                <label for="tab_1">2D Profile</label>-->
+
+        <input type="radio" name="inset" value="" id="tab_2" checked>
+        <label for="tab_2">Wires</label>
+
+        <input type="radio" name="inset" value="" id="tab_3">
+        <label for="tab_3">Times</label>
+
+        <div id="txt_1">
+            <table>
+                <tr>
+                <tb>
+                    <iframe id="h_DCH1" style = "width: 48vw;height: 48vw;"> </iframe>
+                </tb>
+                </tr>
+                <tr>
+                <tb>
+                    <iframe id="h_DCH2" style = "width: 48vw;height: 48vw;"> </iframe>
+                </tb>
+                </tr>
+            </table>
+        </div>
+        <div id="txt_2">
+            <div align="center">
+                <div id="wireTableC" style="width: 98vw;"> </div>
+            </div>
+        </div>
+        <div id="txt_3">
+            <div align="center">
+                <div id="timeTableC" style="width: 98vw;"> </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="DCH_div" >
+    </div>
+</body>
+</html>

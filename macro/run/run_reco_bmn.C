@@ -3,12 +3,10 @@
 //
 // inputFileName - input file with data.
 //
-// To process experimental data, you must add by hand a 'run06-001203:'-like prefix,
-// unless the file name already contains 'run06-001203'-like substring somewhere
-// (but the prefix prevails in the latter case, if it is still prepended),
-// and then the geometry, etc. will be obtained from the Unified Database.
+// To process experimental data, you must use 'runN-NNN:'-like prefix
+// and then the geometry will be obtained from the Unified Database.
 //
-// bmndstFileName - output file with the reconstructed data.
+// bmndstFileName - output file with reconstructed data.
 //
 // nStartEvent - number of first event to process (starts with zero), default: 0.
 //
@@ -18,7 +16,7 @@
 // alignCorrFileName - argument for choosing input file with the alignment
 // corrections.
 //
-// If alignCorrFileName == 'default', (case sensitive) then corrections are
+// If alignCorrFileName == 'default', (case insensitive) then corrections are
 // retrieved from UniDb according to the running period and run number.
 //
 // If alignCorrFileName == '', then no corrections are applied at all.
@@ -60,27 +58,17 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // for experimental datasource
     Int_t run_period, run_number;
     Double_t fieldScale = 0.;
-    if (inputFileName.Contains("bmn_run")) {
-        TPRegexp run_prefix("^run[0-9]+-[0-9]+:"); // to catch 'run06-001203:'-like prefix when it is prepended by hand
-        TPRegexp run_regexp( "run[0-9]+-[0-9]+" ); // to catch 'run06-001203' in 'bmn_run06-001203_Glob_digi.root'-like names
-        // ---------------------------------------------------------------------
-        if (inputFileName.Contains(run_prefix)) {
-            Ssiz_t indDash = inputFileName.First('-'), indColon = inputFileName.First(':');
-            // get run period
-            run_period = TString(inputFileName(3, indDash - 3)).Atoi();
-            // get run number
-            run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
-            inputFileName.Remove(0, indColon + 1); }
-        else if (!inputFileName.Contains(run_prefix) && inputFileName.Contains(run_regexp)) {
-            TString runPeriod = inputFileName("run[0-9]+"), runNumber = inputFileName("-[0-9]+");
-            run_period = TString(runPeriod("[0-9]+")).Atoi();
-            run_number = TString(runNumber("[0-9]+")).Atoi(); }
-        else {
-            cout <<"Error: digi file name: "+inputFileName+" is not recognized!"<< endl;
-            exit(-1);
-        }
-        cout <<"input        file: "+inputFileName<< endl;
+    TPRegexp run_prefix("^run[0-9]+-[0-9]+:");
+    if (inputFileName.Contains(run_prefix)) {
+        Ssiz_t indDash = inputFileName.First('-'), indColon = inputFileName.First(':');
+        // get run period
+        run_period = TString(inputFileName(3, indDash - 3)).Atoi();
+        // get run number
+        run_number = TString(inputFileName(indDash + 1, indColon - indDash - 1)).Atoi();
+        inputFileName.Remove(0, indColon + 1);
+
         if (!CheckFileExist(inputFileName)) {
+            cout << "Error: digi file " + inputFileName + " does not exist!" << endl;
             exit(-1);
         }
         // set source as raw data file

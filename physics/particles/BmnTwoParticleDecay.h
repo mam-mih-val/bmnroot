@@ -1,16 +1,16 @@
 // @(#)bmnroot/physics/particles:$Id$
-// Author: Pavel Batyuk <pavel.batyuk@jinr.ru> 2017-04-14
+// Author: Pavel Batyuk <pavel.batyuk@jinr.ru> 2017-12-27
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// BmnLambdaAnalysis                                                           //
+// BmnTwoParticleDecay                                                        //
 //                                                                            //
-//  A supplementary class for Lambda-reconstruction                           //
+//  A supplementary class for two-body decay reconstruction                   //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef BMNLAMBDAINVMASS_H
-#define BMNLAMBDAINVMASS_H 1
+#ifndef BMNTWOPARTICLEDECAY_H
+#define BMNTWOPARTICLEDECAY_H 1
 
 #include <iostream>
 #include <vector>
@@ -28,7 +28,7 @@
 #include <TVector3.h>
 #include <TF1.h>
 #include <TFitResult.h>
-#include "BmnGemTrack.h"
+#include "BmnGlobalTrack.h"
 #include "BmnFieldMap.h"
 #include "BmnNewFieldMap.h"
 #include "CbmMCTrack.h"
@@ -42,29 +42,37 @@
 #include "BmnParticlePair.h"
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
+#include "BmnTrackMatch.h"
 
 using namespace std;
 using namespace TMath;
 
-class BmnLambdaAnalysis : public FairTask {
+class BmnTwoParticleDecay : public FairTask {
 private:
+    Int_t fRunPeriod; // run period (5, 6 ...) 6 is set by default
+    Int_t fRunId; // runID
     UInt_t fEventCounter; //! event counter
     TDatabasePDG* fPDG; //!  PDG database
 
-    TClonesArray* fGemHits;
-    TClonesArray* fGemTracks;
+    TClonesArray* fGemPoints;
+    TClonesArray* fGlobalTracks;
+    TClonesArray* fMCTracks;
+    TClonesArray* fGlobalMatches;
     TClonesArray* fVertex;
-    TVector3 fMcVertex;
 
+    TVector3 fMcVertex;
     CbmVertex* fEventVertex;
 
-    TString fBranchGemHits;
-    TString fBranchGemTracks;
+    TString fBranchGemPoints;
+    TString fBranchGlobalTracks;
+    TString fBranchMCTracks;
+    TString fBranchGlobalMatch;
     TString fBranchVertex;
 
     BmnGemStripStationSet* fDetector; // Detector geometry
     BmnGemStripConfiguration::GEM_CONFIG fGeometry;
 
+    Bool_t fSiRequired; // select glob. tracks with at least one silicon hit
     Bool_t fUseMc; // Use evetest.root as an input file 
     Bool_t fIsUseRealVertex;
     TString fOutFileName; // output filename
@@ -73,40 +81,40 @@ private:
     Double_t fMom[2][2]; // [2] --> (proton, pion), [2] --> (min, max)
     Double_t fTx[2][2];
     Double_t fTy[2][2];
-    Double_t fY[2][2]; // Cuts on rapidity 
+    Double_t fEta[2][2]; // Cuts on pseudorapidity 
 
     // Geometry cuts
     Double_t fVertexCuts[3][2]; // [3] --> (x, y, z), [2] --> (min, max)
 
-    Double_t fV0VpDiff[2]; // [2] --> (min, max)
-    Double_t fVpVpParticle1[2];
-    Double_t fVpVpParticle2[2];
-    Double_t fV0Particle1Particle2[2];
-
-    Bool_t fDebugCalculations; // In case of debug calculations should be equal to 1
-
-    Double_t fInputUncertainties[6]; // dp1, dp2, dTx1, dTx2, dTy1, dTy2 
-
-    Int_t fPdgParticle1;
-    Int_t fPdgParticle2;
+    Double_t fPath[2];
+    Double_t fDCA[2][2]; // [2] --> (proton, pion), [2] --> (min, max)
+    Double_t fDCA12[2];
 
     FairField* fField;
     BmnFieldMap* fMagField;
     BmnKalmanFilter_tmp* fKalman;
 
     TClonesArray* fParticlePair;
-    TClonesArray* fParticlePairCuts;
 
-    Int_t fPDG1, fPDG2;
+    Int_t fPDG1, fPDG2, fPDGDecay, fPdgParticle1, fPdgParticle2;
+    Double_t fLeftInvMass, fRightInvMass;
+  
+    Int_t fN, fN2, fN3, fN4;
+    
+    TH1F** hSim;
+    TH1F** hReco;
+    
+    TH2F** h2Sim;
+    TH2F** h2Reco; 
 
-    // TH2F* hArmenPodol;
-
+    TH2F*** h3Sim;
+ 
 public:
 
-    BmnLambdaAnalysis() {
+    BmnTwoParticleDecay() {
     };
-    BmnLambdaAnalysis(BmnGemStripConfiguration::GEM_CONFIG);
-    virtual ~BmnLambdaAnalysis();
+    BmnTwoParticleDecay(BmnGemStripConfiguration::GEM_CONFIG, Int_t r = 1209);
+    virtual ~BmnTwoParticleDecay();
 
     virtual void Exec(Option_t * option);
     virtual InitStatus Init();
@@ -114,10 +122,6 @@ public:
 
     void SetUseRealVertex(Bool_t flag) {
         fIsUseRealVertex = flag;
-    }
-
-    void SetDebugCalculations(Bool_t flag) {
-        fDebugCalculations = flag;
     }
 
     // Geometry cuts
@@ -131,38 +135,7 @@ public:
         fVertexCuts[2][1] = zMax;
     }
 
-    void SetV0VpDiff(Double_t min, Double_t max) {
-        fV0VpDiff[0] = min;
-        fV0VpDiff[1] = max;
-    }
-
-    void SetVpVpParticle1(Double_t min, Double_t max) {
-        fVpVpParticle1[0] = min;
-        fVpVpParticle1[1] = max;
-    }
-
-    void SetVpVpParticle2(Double_t min, Double_t max) {
-        fVpVpParticle2[0] = min;
-        fVpVpParticle2[1] = max;
-    }
-
-    void SetV0Particle1Particle2(Double_t min, Double_t max) {
-        fV0Particle1Particle2[0] = min;
-        fV0Particle1Particle2[1] = max;
-    }
-
     // Kinematical cuts
-
-    void SetMomParticle1Range(Double_t min, Double_t max) {
-        fMom[0][0] = min;
-        fMom[0][1] = max;
-    }
-
-    void SetMomParticle2Range(Double_t min, Double_t max) {
-        fMom[1][0] = min;
-        fMom[1][1] = max;
-    }
-
     void SetTxParticle1Range(Double_t min, Double_t max) {
         fTx[0][0] = min;
         fTx[0][1] = max;
@@ -183,48 +156,54 @@ public:
         fTy[1][1] = max;
     }
 
-    void SetYParticle1Range(Double_t min, Double_t max) {
-        fY[0][0] = min;
-        fY[0][1] = max;
-    }
-
-    void SetYParticle2Range(Double_t min, Double_t max) {
-        fY[1][0] = min;
-        fY[1][1] = max;
-    }
-
-    void SetInputAccuracy(Double_t dp1, Double_t dp2, Double_t dTx1, Double_t dTx2, Double_t dTy1, Double_t dTy2) {
-        fInputUncertainties[0] = dp1;
-        fInputUncertainties[1] = dp2;
-        fInputUncertainties[2] = dTx1;
-        fInputUncertainties[3] = dTx2;
-        fInputUncertainties[4] = dTy1;
-        fInputUncertainties[5] = dTy2;
-    }
-
-    vector <Double_t> DebugCalculations(BmnGemTrack*, BmnGemTrack*, vector <Double_t>, vector <Double_t>);
-
     void SetParticlePDG(Int_t pdg1, Int_t pdg2) {
         fPDG1 = pdg1;
         fPDG2 = pdg2;
     }
 
+    void SetSiRequired(Bool_t flag) {
+        fSiRequired = flag;
+    }
+
+    void SetCuts(Double_t kin[][2], Double_t geom[][2]) {
+        for (Int_t i = 0; i < 4; i++)
+            for (Int_t j = 0; j < 2; j++) {
+                if (i < 2) {
+                    fMom[i][j] = kin[i][j];
+                    fDCA[i][j] = geom[i][j];
+                } else {
+                    fEta[i - 2][j] = kin[i][j];
+                    if (i == 2)
+                        fDCA12[j] = geom[i][j];
+                    else
+                        fPath[j] = geom[i][j];
+                }
+            }
+    }
+
 private:
     void Analysis();
-    void FindFirstPointOnMCTrack(Int_t, BmnGemTrack*, Int_t);
+    void FindFirstPointOnMCTrack(Int_t, BmnGlobalTrack*, Int_t);
     TVector3 FitParabola(vector <TVector3>); // XZ-plane
     void CalculateMinDistance(TVector3, TVector3, Double_t*);
     TVector2 SecondaryVertexY(FairTrackParam*, FairTrackParam*); // YZ-plane
-    vector <TVector3> KalmanTrackPropagation(BmnGemTrack*, Int_t);
-    FairTrackParam KalmanTrackPropagation(BmnGemTrack* track, Int_t, Double_t);
-    vector <Double_t> GeometryCuts(FairTrackParam, FairTrackParam, FairTrackParam, FairTrackParam);
-    Bool_t CheckTrack(BmnGemTrack*, Int_t);
+    vector <TVector3> KalmanTrackPropagation(BmnGlobalTrack*, Int_t);
+    FairTrackParam KalmanTrackPropagation(BmnGlobalTrack* track, Int_t, Double_t);
+    vector <Double_t> GeomTopology(FairTrackParam, FairTrackParam, FairTrackParam, FairTrackParam);
+    Bool_t CheckTrack(BmnGlobalTrack*, Int_t, Double_t&, Double_t&);
+
+    void CalculateReconstuctableParticles(); // to be used in case of MC-data
+
+    inline Int_t recoToMcIdx(Int_t iTrack) {
+        BmnTrackMatch* globTrackMatch = (BmnTrackMatch*) (fGlobalMatches->UncheckedAt(iTrack));
+        return globTrackMatch->GetMatchedLink().GetIndex();
+    }
 
     inline Int_t CheckSign(Double_t val) {
         return (val > 0) ? 1 : ((val < 0) ? -1 : 0);
     }
 
-    ClassDef(BmnLambdaAnalysis, 0)
+    ClassDef(BmnTwoParticleDecay, 0)
 };
 
 #endif

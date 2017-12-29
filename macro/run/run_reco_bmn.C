@@ -205,14 +205,12 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
     //tof1HP->SetOnlyPrimary(kTRUE);
-    if (isExp)
-        fRunAna->AddTask(tof1HP);
+    fRunAna->AddTask(tof1HP);
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
     // ====================================================================== //
     BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run6.txt", !isExp, iVerbose, kTRUE);
-    if (isExp)
-        fRunAna->AddTask(tof2HP);
+    fRunAna->AddTask(tof2HP);
 
     // ====================================================================== //
     // ===                           Tracking (MWPC)                      === //

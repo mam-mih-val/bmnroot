@@ -161,6 +161,8 @@ InitStatus BmnGemStripHitMaker::Init() {
 }
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
+    if (!fBmnGemStripDigitsArray)
+        return;
 
     if (fVerbose) cout << "\nBmnGemStripHitMaker::Exec()\n ";
     clock_t tStart = clock();
@@ -194,10 +196,7 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
         fBmnGemStripHitMatchesArray->Delete();
     }
 
-    if (!fBmnGemStripDigitsArray) {
-        Error("BmnGemStripHitMaker::Exec()", " !!! Unknown branch name !!! ");
-        return;
-    }
+    
 
     if (fVerbose) cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripDigits = " << fBmnGemStripDigitsArray->GetEntriesFast() << "\n";
 

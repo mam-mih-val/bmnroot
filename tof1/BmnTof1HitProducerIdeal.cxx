@@ -42,13 +42,13 @@ InitStatus	BmnTof1HitProducerIdeal::Init()
 	{
     		aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF1Point");
     		aMcTracks = (TClonesArray*) FairRootManager::Instance()->GetObject("MCTrack");
-assert(aMcPoints);
-assert(aMcTracks);
+//assert(aMcPoints);
+//assert(aMcTracks);
 	}
 	else
 	{
     		aExpDigits = (TClonesArray*) FairRootManager::Instance()->GetObject("bmn_tof400");
-assert(aExpDigits);	
+//assert(aExpDigits);	
 	}
 	
         // Create and register output array
@@ -60,8 +60,15 @@ assert(aExpDigits);
 return kSUCCESS;
 }
 //------------------------------------------------------------------------------------------------------------------------
-void 		BmnTof1HitProducerIdeal::Exec(Option_t* opt) 
-{
+void 		BmnTof1HitProducerIdeal::Exec(Option_t* opt) {
+    if (fUseMCData) {
+        if (!aMcPoints || !aMcTracks)
+            return;
+    }
+    else
+        if (!aExpDigits || !aExpDigitsT0)
+        return;
+        
 	static const TVector3 XYZ_err(0., 0., 0.); // FIXME:
 
 	aTofHits->Clear();

@@ -53,6 +53,8 @@ InitStatus BmnMwpcHitFinder::Init() {
 }
 
 void BmnMwpcHitFinder::Exec(Option_t* opt) {
+    if (!fBmnMwpcDigitArray)
+        return;
     clock_t tStart = clock();
     if (fVerbose) cout << "\n======================== MWPC hit finder exec started =====================\n" << endl;
     if (fVerbose) cout << "Event number: " << fEventNo++ << endl;

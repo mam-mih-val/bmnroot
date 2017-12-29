@@ -72,15 +72,15 @@ InitStatus BmnTofHitProducer::Init()
 	{
     		aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOFPoint");
     		aMcTracks = (TClonesArray*) FairRootManager::Instance()->GetObject("MCTrack");
-		assert(aMcPoints);
-		assert(aMcTracks);
+		//assert(aMcPoints);
+		//assert(aMcTracks);
 	}
 	else
 	{
     		aExpDigits = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF700");
-		assert(aExpDigits);	
+		//assert(aExpDigits);	
                 aExpDigitsT0 = (TClonesArray*) FairRootManager::Instance()->GetObject("T0");
-		assert(aExpDigits);
+		//assert(aExpDigits);
 	}
 	
     	// Create and register output array
@@ -137,6 +137,9 @@ Bool_t BmnTofHitProducer::DoubleHitExist(Double_t val) // val - distance to the 
 //--------------------------------------------------------------------------------------------------------------------------------------
 void BmnTofHitProducer::Exec(Option_t* opt) 
 {
+    if (!aExpDigits || !aExpDigitsT0)
+        return;
+    
     clock_t tStart = clock();
     if (fVerbose) cout << endl << "======================== TOF700 exec started ====================" << endl;
 	static const TVector3 XYZ_err(fErrX, fErrY, 0.); 

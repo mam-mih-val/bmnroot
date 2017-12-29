@@ -62,6 +62,8 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
 }
 
 void BmnDchTrackFinder::Exec(Option_t* opt) {
+    if (!fBmnDchDigitsArray)
+        return;
     fEventNo++;
     clock_t tStart = clock();
     PrepareArraysToProcessEvent();
@@ -682,7 +684,7 @@ InitStatus BmnDchTrackFinder::Init() {
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnDchDigitsArray = (TClonesArray*) ioman->GetObject(InputDigitsBranchName);
-
+    
     fDchTracks = new TClonesArray(tracksDch.Data());
     ioman->Register(tracksDch.Data(), "DCH", fDchTracks, kTRUE);
 

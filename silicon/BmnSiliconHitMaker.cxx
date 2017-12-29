@@ -81,17 +81,14 @@ InitStatus BmnSiliconHitMaker::Init() {
 }
 
 void BmnSiliconHitMaker::Exec(Option_t* opt) {
+    if (!fBmnSiliconDigitsArray)
+        return;
     clock_t tStart = clock();
 
     fBmnSiliconHitsArray->Delete();
 
     if (fHitMatching && fBmnSiliconHitMatchesArray) {
         fBmnSiliconHitMatchesArray->Delete();
-    }
-
-    if (!fBmnSiliconDigitsArray) {
-        Error("BmnSiliconHitMaker::Exec()", " !!! Unknown branch name !!! ");
-        return;
     }
 
     if (fVerbose) cout << " BmnSiliconHitMaker::Exec(), Number of BmnSiliconDigits = " << fBmnSiliconDigitsArray->GetEntriesFast() << "\n";

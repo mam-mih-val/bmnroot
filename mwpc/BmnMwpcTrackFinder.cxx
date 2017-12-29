@@ -30,6 +30,8 @@ BmnMwpcTrackFinder::~BmnMwpcTrackFinder() {
 }
 
 void BmnMwpcTrackFinder::Exec(Option_t* opt) {
+    if (!fBmnMwpcTracksArray)
+        return;
     clock_t tStart = clock();
     if (fVerbose) cout << "\n======================== MWPC track finder exec started ===================\n" << endl;
     if (fVerbose) cout << "Event number: " << fEventNo++ << endl;

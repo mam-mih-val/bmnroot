@@ -70,15 +70,15 @@ InitStatus 		BmnTof1HitProducer::Init()
 	{
     		aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF1Point");
     		aMcTracks = (TClonesArray*) FairRootManager::Instance()->GetObject("MCTrack");
-assert(aMcPoints);
-assert(aMcTracks);
+//assert(aMcPoints);
+//assert(aMcTracks);
 	}
 	else
 	{
     		aExpDigits = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF400");
-assert(aExpDigits);	
+//assert(aExpDigits);	
                 aExpDigitsT0 = (TClonesArray*) FairRootManager::Instance()->GetObject("T0");
-assert(aExpDigits);
+//assert(aExpDigits);
 	}
 	
     	// Create and register output array
@@ -146,8 +146,15 @@ Bool_t 		BmnTof1HitProducer::DoubleHitExist(Double_t val) // val - distance to t
   return false;	
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
-void 		BmnTof1HitProducer::Exec(Option_t* opt) 
-{
+void 		BmnTof1HitProducer::Exec(Option_t* opt) {
+    if (fUseMCData) {
+        if (!aMcPoints || !aMcTracks)
+            return;
+    } 
+    else
+        if (!aExpDigits || !aExpDigitsT0)
+        return;
+    
     clock_t tStart = clock();
     if (fVerbose) cout << endl << "======================== TOF400 exec started ====================" << endl;
 	static const TVector3 XYZ_err(fErrX, fErrY, 0.); 
@@ -248,20 +255,20 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt)
         if (fVerbose) cout << "======================== TOF400 exec finished ====================" << endl;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
-void 			BmnTof1HitProducer::Finish() 
-{
-  	if(fDoTest)
-    	{
-      		FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTof1HitProducer::Finish] Update  %s file. ", fTestFlnm.Data());
-		TFile *ptr = gFile;
-		TFile file(fTestFlnm.Data(), "RECREATE");
-		fList.Write(); 
-		file.Close();
-		gFile = ptr;
-                for (Int_t i = 0; i < fNDetectors; i++)
-                    pDetector[i] -> SaveHistToFile (fTestFlnm.Data());
-	}
-        
+
+void BmnTof1HitProducer::Finish() {
+    if (fDoTest) {
+        FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTof1HitProducer::Finish] Update  %s file. ", fTestFlnm.Data());
+        TFile *ptr = gFile;
+        TFile file(fTestFlnm.Data(), "RECREATE");
+        fList.Write();
+        file.Close();
+        gFile = ptr;
+        if (!fUseMCData) 
+            for (Int_t i = 0; i < fNDetectors; i++)
+                pDetector[i] -> SaveHistToFile(fTestFlnm.Data());
+    }
+
     cout << "Work time of the TOF-400 hit finder: " << workTime << endl;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------

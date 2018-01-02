@@ -8,7 +8,9 @@
 #include "BmnTDCDigit.h"
 #include "BmnHRBDigit.h"
 #include "BmnADCDigit.h"
+#include "BmnTacquilaDigit.h"
 #include "BmnADCSRCDigit.h"
+#include "BmnLANDDigit.h"
 #include "BmnSyncDigit.h"
 #include "TFile.h"
 #include "TTimeStamp.h"
@@ -27,6 +29,7 @@
 #include "BmnTof2Raw2DigitNew.h"
 #include "BmnZDCRaw2Digit.h"
 #include "BmnECALRaw2Digit.h"
+#include "BmnLANDRaw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
 #include "BmnEventHeader.h"
 #include "BmnRunHeader.h"
@@ -91,6 +94,7 @@ public:
         d.tof700 = tof700;
         d.zdc = zdc;
         d.ecal = ecal;
+        d.land = land;
         d.dch = dch;
         d.mwpc = mwpc;
         d.trigger = trigger;
@@ -165,6 +169,10 @@ public:
         return fECALMapper;
     }
 
+    BmnLANDRaw2Digit *GetLANDMapper() {
+        return fLANDMapper;
+    }
+
     void SetTrigMapping(TString map) {
         fTrigMapFileName = map;
     }
@@ -218,12 +226,28 @@ public:
         fECALCalibrationFileName = cal;
     }
 
+    void SetLANDMapping(TString map) {
+      fLANDMapFileName = map;
+    }
+    void SetLANDPedestal(TString clock) {
+      fLANDClockFileName = clock;
+    }
+    void SetLANDTCal(TString tcal) {
+      fLANDTCalFileName = tcal;
+    }
+    void SetLANDDiffSync(TString diff_sync) {
+      fLANDDiffSyncFileName = diff_sync;
+    }
+    void SetLANDVScint(TString vscint) {
+      fLANDVScintFileName = vscint;
+    }
+
     TString GetRootFileName() {
         return fRootFileName;
     }
 
     BmnStatus SetDetectorSetup(Bool_t* setup) {
-        for (Int_t i = 0; i < 10; ++i) {
+        for (Int_t i = 0; i < 11; ++i) {
             fDetectorSetup[i] = setup[i];
         }
 
@@ -249,7 +273,7 @@ public:
 private:
 
     //9 bits correspond to detectors which we need to decode
-    Bool_t fDetectorSetup[10];
+    Bool_t fDetectorSetup[11];
 
 
     Int_t fTOF700ReferenceRun;
@@ -301,6 +325,11 @@ private:
     TString fZDCCalibrationFileName;
     TString fECALMapFileName;
     TString fECALCalibrationFileName;
+    TString fLANDMapFileName;
+    TString fLANDClockFileName;
+    TString fLANDTCalFileName;
+    TString fLANDDiffSyncFileName;
+    TString fLANDVScintFileName;
     TString fSiliconMapFileName;
     TString fTrigMapFileName;
     TString fTrigINLFileName;
@@ -328,6 +357,7 @@ private:
     TClonesArray *adc128; //sts
     TClonesArray *adc; //zdc & ecal
     TClonesArray *hrb;
+    TClonesArray *tacquila; // LAND.
     TClonesArray *tdc;
     TClonesArray *tqdc_tdc;
     TClonesArray *tqdc_adc;
@@ -344,6 +374,7 @@ private:
     TClonesArray *tof700;
     TClonesArray *zdc;
     TClonesArray *ecal;
+    TClonesArray *land;
     TClonesArray *dch;
     TClonesArray *mwpc;
     TClonesArray *trigger;
@@ -373,6 +404,7 @@ private:
     BmnTof2Raw2DigitNew *fTof700Mapper;
     BmnZDCRaw2Digit *fZDCMapper;
     BmnECALRaw2Digit *fECALMapper;
+    BmnLANDRaw2Digit *fLANDMapper;
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
     BmnSetup fExpSetup;
@@ -393,6 +425,7 @@ private:
     BmnStatus Process_ADC64WR(UInt_t *data, UInt_t len, UInt_t serial, TClonesArray *arr);
     BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnEventType &ped, BmnTriggerType &trig);
     BmnStatus Process_HRB(UInt_t *data, UInt_t len, UInt_t serial);
+    BmnStatus Process_Tacquila(UInt_t *data, UInt_t len);
     BmnStatus FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);

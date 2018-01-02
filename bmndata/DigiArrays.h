@@ -27,6 +27,7 @@ public:
         tof700 = NULL;
         zdc = NULL;
         ecal = NULL;
+        land = NULL;
         dch = NULL;
         mwpc = NULL;
         silicon = NULL;
@@ -63,6 +64,7 @@ public:
         if (tof700) { tof700->Delete(); delete tof700;}
         if (zdc) { zdc->Delete(); delete zdc;}
         if (ecal) { ecal->Delete(); delete ecal;}
+        if (land) { land->Delete(); delete land;}
         if (veto) { veto->Delete(); delete veto;}
         for (TClonesArray *ar : (*trigAr)){
             if (ar){
@@ -78,6 +80,7 @@ public:
     TClonesArray *tof700; 
     TClonesArray *zdc; 
     TClonesArray *ecal; 
+    TClonesArray *land; 
     TClonesArray *dch; 
     TClonesArray *mwpc; 
     TClonesArray *trigger; 

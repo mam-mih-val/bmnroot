@@ -16,6 +16,7 @@
 #define TRUE_OFFSETS 1
 #define ALL_CORRECTIONS 1
 #define DRAW_OFFSETS 0
+#define PRINT_CORRECTIONS 0
 #define PRINT_TIME_LIMITS 0
 #define PRINT_SLEWING_RESULTS 0
 #define PRINT_SLEWING_PARAMETERS 0
@@ -452,10 +453,10 @@ int BmnTof2Raw2DigitNew::Offsets_read()
    float idch = 777., idchold = -1.;
    double cht = 777., sum  = 0., tim[32] = {0.};
    int ni = 0, nl = 0, nc = 0;
-   printf("\n     ********** Corrections table **************************\n\n");
+   if (PRINT_CORRECTIONS) printf("\n     ********** Corrections table **************************\n\n");
    while((ni=fscanf(fin, "Chamber %f Crate %d(0x%x) Slot %d Channel %d Offset %lf\n", &idch, &i, &idcr, &j, &k, &cht)) == 6)
    {
-    numch[(int)(idch*10.)] = 1;
+    numch[(int)(idch*10.+0.1)] = 1;
     chtima[i][j][k] = cht;
     if (TRUE_OFFSETS) chtima[i][j][k] = cht - (-30.61 + 1.915*(k%32));
     n++;
@@ -482,7 +483,7 @@ int BmnTof2Raw2DigitNew::Offsets_read()
 	    }
 	}
 	}
-	if ( idchold != 19.3f || 0)
+	if ( (idchold != 19.3f && PRINT_CORRECTIONS) || 0)
 	{
 	    if (kold < 32)
 	     printf("          Chamber %.1f (01-32) average = %f\n", idchold, nl > 0 ? sum/nl : 0.);
@@ -500,12 +501,48 @@ int BmnTof2Raw2DigitNew::Offsets_read()
     idchold = idch;
     kold = k;
    };
+//last card
+   if ( nl > 0 )
+   {
+        numcab[(int)(idchold*10.)]++;
+	if ( idchold != 19.3f || 0)
+	{
+	 if ( (kold == 31 && (idchold == 19.2f || idchold == 18.2f || idchold == 16.2f)) || ALL_CORRECTIONS)
+	 {
+	  for (int l=0;l<nl;l++)
+	  {
+	    tim[l] = tim[l] - sum/nl;
+	    if (ALL_CORRECTIONS)
+	    {
+		poffsets->Fill(l,tim[l]);
+	    }
+	    else
+	    {
+		 if ( idchold == 19.2f ) poffsets->Fill(l,tim[l]);
+		 if ( idchold == 18.2f ) poffsets1->Fill(l,tim[l]);
+		 if ( idchold == 16.2f ) poffsets2->Fill(l,tim[l]);
+	    }
+	  }
+	 }
+	}
+	if ( (idchold != 19.3f && PRINT_CORRECTIONS) || 0)
+	{
+	    if (kold < 32)
+	     printf("          Chamber %.1f (01-32) average = %f\n", idchold, nl > 0 ? sum/nl : 0.);
+	    else
+	     printf("          Chamber %.1f (33-64) average = %f\n", idchold, nl > 0 ? sum/nl : 0.);
+	}
+	sum = 0.;
+	nl = 0;
+	if ( idchold != 19.3f ) nc++;
+   }
+//
 //   printf("ni = %d idch = %f i = %d idcr = 0x%0x j = %d k = %d offset = %f\n", ni, idch, i, idcr, j, k, cht);
    fclose(fin);
    int ndch = 0;
    for (i=0; i<3200; i++) if (numch[i] > 0) ndch++;
-   printf("\n     *******************************************************\n");
-   printf("Number of lines with channel offsets %d, cables %d, chambers %d\n\n", n, nc, ndch);
+   if (PRINT_CORRECTIONS) printf("\n     *******************************************************\n");
+   if (PRINT_CORRECTIONS) printf("Number of lines with channel offsets %d, cables %d, chambers %d\n\n", n, nc, ndch);
    if (DRAW_OFFSETS)
    {
     if (ALL_CORRECTIONS) poffsets->Draw();

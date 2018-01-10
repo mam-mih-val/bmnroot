@@ -74,6 +74,13 @@ InitStatus BmnGemStripHitMaker::Init() {
     }
 
     fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
+    if (!fBmnGemStripDigitsArray)
+    {
+      cout<<"BmnGemStripHitMaker::Init(): branch "<<fInputDigitsBranchName<<" not found! Task will be deactivated"<<endl;
+      SetActive(kFALSE);
+      return kERROR;
+    }
+
     fBmnEventHeader = (TClonesArray*) ioman->GetObject(fBmnEventHeaderBranchName);
     fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
 
@@ -161,7 +168,7 @@ InitStatus BmnGemStripHitMaker::Init() {
 }
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
-    if (!fBmnGemStripDigitsArray)
+    if (!IsActive())
         return;
 
     if (fVerbose) cout << "\nBmnGemStripHitMaker::Exec()\n ";

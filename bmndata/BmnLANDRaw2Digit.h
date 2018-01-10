@@ -15,6 +15,12 @@ class BmnLANDRaw2Digit{
   public:
     BmnLANDRaw2Digit(TString, TString, TString, TString, TString);
     void fillEvent(TClonesArray const *, TClonesArray *);
+    struct TCal {
+      TCal(): tdc(-1), t_ns(-1) {}
+      TCal(UShort_t a_tdc, Float_t a_t_ns): tdc(a_tdc), t_ns(a_t_ns) {}
+      UShort_t tdc;
+      Float_t t_ns;
+    };
 
   private:
     void SetTCal(BmnTacquilaDigit &);
@@ -33,12 +39,6 @@ class BmnLANDRaw2Digit{
     struct Pedestal {
       Pedestal(): ped(0) {}
       Float_t ped;
-    };
-    struct TCal {
-      TCal(): tdc(-1), t_ns(-1) {}
-      TCal(UShort_t a_tdc, Float_t a_t_ns): tdc(a_tdc), t_ns(a_t_ns) {}
-      UShort_t tdc;
-      Float_t t_ns;
     };
     struct DiffSync {
       DiffSync(): time_diff(0), time_sync(0), energy_diff0(1), energy_diff1(1),

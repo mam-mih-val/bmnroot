@@ -69,16 +69,36 @@ InitStatus 		BmnTof1HitProducer::Init()
 	if(fUseMCData)
 	{
     		aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF1Point");
+                if (!aMcPoints)
+                {
+                  cout<<"BmnTof1HitProducer::Init(): branch TOF1Point not found! Task will be deactivated"<<endl;
+                  SetActive(kFALSE);
+                  return kERROR;
+                }
     		aMcTracks = (TClonesArray*) FairRootManager::Instance()->GetObject("MCTrack");
-//assert(aMcPoints);
-//assert(aMcTracks);
+                if (!aMcTracks)
+                {
+                  cout<<"BmnTof1HitProducer::Init(): branch MCTrack not found! Task will be deactivated"<<endl;
+                  SetActive(kFALSE);
+                  return kERROR;
+                }
 	}
 	else
 	{
     		aExpDigits = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF400");
-//assert(aExpDigits);	
+                if (!aExpDigits)
+                {
+                  cout<<"BmnTof1HitProducer::Init(): branch TOF400 not found! Task will be deactivated"<<endl;
+                  SetActive(kFALSE);
+                  return kERROR;
+                }
                 aExpDigitsT0 = (TClonesArray*) FairRootManager::Instance()->GetObject("T0");
-//assert(aExpDigits);
+                if (!aExpDigitsT0)
+                {
+                  cout<<"BmnTof1HitProducer::Init(): branch T0 not found! Task will be deactivated"<<endl;
+                  SetActive(kFALSE);
+                  return kERROR;
+                }
 	}
 	
     	// Create and register output array
@@ -147,15 +167,10 @@ Bool_t 		BmnTof1HitProducer::DoubleHitExist(Double_t val) // val - distance to t
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void 		BmnTof1HitProducer::Exec(Option_t* opt) {
-    if (fUseMCData) {
-        if (!aMcPoints || !aMcTracks)
-            return;
-    } 
-    else
-        if (!aExpDigits || !aExpDigitsT0)
+    if (!IsActive())
         return;
-    
     clock_t tStart = clock();
+
     if (fVerbose) cout << endl << "======================== TOF400 exec started ====================" << endl;
 	static const TVector3 XYZ_err(fErrX, fErrY, 0.); 
 

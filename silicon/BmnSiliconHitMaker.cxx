@@ -48,6 +48,12 @@ InitStatus BmnSiliconHitMaker::Init() {
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnSiliconDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
+    if (!fBmnSiliconDigitsArray)
+    {
+      cout<<"BmnSiliconHitMaker::Init(): branch "<<fInputDigitsBranchName<<" not found! Task will be deactivated"<<endl;
+      SetActive(kFALSE);
+      return kERROR;
+    }
     fBmnSiliconDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
 
     if (fVerbose) {
@@ -81,7 +87,7 @@ InitStatus BmnSiliconHitMaker::Init() {
 }
 
 void BmnSiliconHitMaker::Exec(Option_t* opt) {
-    if (!fBmnSiliconDigitsArray)
+    if (!IsActive())
         return;
     clock_t tStart = clock();
 

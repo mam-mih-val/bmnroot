@@ -41,14 +41,29 @@ InitStatus	BmnTofHitProducerIdeal::Init()
 	if(fUseMCData)
 	{
     		aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOFPoint");
+                if (!aMcPoints)
+                {
+                  cout<<"BmnTofHitProducerIdeal::Init(): branch TOFPoint not found! Task will be deactivated"<<endl;
+                  SetActive(kFALSE);
+                  return kERROR;
+                }
     		aMcTracks = (TClonesArray*) FairRootManager::Instance()->GetObject("MCTrack");
-assert(aMcPoints);
-assert(aMcTracks);
+                if (!aMcTracks)
+                {
+                  cout<<"BmnTofHitProducerIdeal::Init(): branch MCTrack not found! Task will be deactivated"<<endl;
+                  SetActive(kFALSE);
+                  return kERROR;
+                }
 	}
 	else
 	{
     		aExpDigits = (TClonesArray*) FairRootManager::Instance()->GetObject("bmn_tof700");
-assert(aExpDigits);	
+                if (!aExpDigits)
+                {
+                  cout<<"BmnTofHitProducerIdeal::Init(): branch bmn_tof700 not found! Task will be deactivated"<<endl;
+                  SetActive(kFALSE);
+                  return kERROR;
+                }
 	}
 	
         // Create and register output array
@@ -57,12 +72,15 @@ assert(aExpDigits);
 
         FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnTofHitProducerIdeal::Init] Initialization finished succesfully.");
 
-return kSUCCESS;
+    return kSUCCESS;
 }
 //------------------------------------------------------------------------------------------------------------------------
 void 		BmnTofHitProducerIdeal::Exec(Option_t* opt) 
 {
-	static const TVector3 XYZ_err(0., 0., 0.); // FIXME:
+    if (!IsActive())
+        return;
+
+    static const TVector3 XYZ_err(0., 0., 0.); // FIXME:
 
 	aTofHits->Clear();
 

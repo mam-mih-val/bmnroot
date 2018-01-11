@@ -10,8 +10,9 @@
 #include "BmnTof2Raw2DigitNew.h"
 
 #define EQUAL_MAXIMA 1
-#define FIT_MAXIMA 0
-#define EQUAL_AVERAGE 1
+#define FIT_MAXIMA 1
+#define EQUAL_AVERAGE_T0 1
+#define EQUAL_AVERAGE 0
 #define CABLE_OFFSETS 1
 #define TRUE_OFFSETS 1
 #define ALL_CORRECTIONS 1
@@ -1310,7 +1311,7 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
 //            if (mapa[ind].plane == 0) printf(" peak 1 l1 %f W %f\n",L,W);
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
 //            if (mapa[ind].plane == 0) printf(" peak 1 l2 %f\n",L);
-	    if (EQUAL_AVERAGE) L -= tmean[0][ind];
+	    if (EQUAL_AVERAGE_T0) L -= tmean[0][ind];
 //            if (mapa[ind].plane == 0) printf(" peak 1 l3 %f\n",L);
 	    TvsW[mapa[ind].plane][0]->Fill(W, L);
 	}
@@ -1319,7 +1320,7 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
 //            if (mapa[ind].plane == 0) printf(" peak 2 l1 %f W %f\n",L,W);
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
 //            if (mapa[ind].plane == 0) printf(" peak 2 l2 %f\n",L);
-	    if (EQUAL_AVERAGE) L -= tmean[1][ind];
+	    if (EQUAL_AVERAGE_T0) L -= tmean[1][ind];
 //            if (mapa[ind].plane == 0) printf(" peak 2 l3 %f\n",L);
 	    TvsW[mapa[ind].plane][1]->Fill(W, L);
         }
@@ -1842,16 +1843,26 @@ void BmnTof2Raw2DigitNew::Equalization()
 	proj = TvsSm[ip][0]->ProjectionY(namp,is+1,is+1);
 	if (EQUAL_MAXIMA)
 	{
-	    mpos = proj->GetBinCenter(proj->GetMaximumBin());
-	    ncon = proj->GetBinContent(proj->GetMaximumBin());
+	    int mbin = proj->GetMaximumBin();
+	    int nbin = proj->GetNbinsX();
+	    mpos = proj->GetBinCenter(mbin);
+	    ncon = proj->GetBinContent(mbin);
 	    //printf("Chamber %d strip %d max %d at %f\n", ip,is,ncon,mpos);
 	    if (ncon > 100)
 	    {
-		if (FIT_MAXIMA)
+		int nonzero = 0;
+		int zflag   = 0;
+		for (int ib=((mbin-5)>0? (mbin-5):1);ib<=((mbin+5)<nbin? (mbin+5):nbin);ib++)
+		{
+		    if (proj->GetBinContent(ib)>0.) nonzero++;
+		    else { zflag = 1; break; }
+		}
+		if (FIT_MAXIMA && zflag == 0 && nonzero >= 5)
 		{
 		    sprintf(namf,"gaus%dstrip%d",ip+1,is+1);
-		    gr = new TF1(namf,"gaus",mpos-4.,mpos+4.);
-		    proj->Fit(namf,"R");
+		    //if (gr) delete gr;
+		    gr = new TF1(namf,"gaus",mpos-5.,mpos+5.);
+		    proj->Fit(namf,"QR");
 		    tmeane[ind] = proj->GetFunction(namf)->GetParameter(1);
 		}
 		else tmeane[ind] = mpos;

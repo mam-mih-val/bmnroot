@@ -30,8 +30,9 @@ BmnMwpcTrackFinder::~BmnMwpcTrackFinder() {
 }
 
 void BmnMwpcTrackFinder::Exec(Option_t* opt) {
-    if (!fBmnMwpcTracksArray)
+    if (!IsActive())
         return;
+
     clock_t tStart = clock();
     if (fVerbose) cout << "\n======================== MWPC track finder exec started ===================\n" << endl;
     if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
@@ -113,9 +114,17 @@ InitStatus BmnMwpcTrackFinder::Init() {
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnMwpcHitsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
+    if (!fBmnMwpcHitsArray)
+    {
+      cout<<"BmnMwpcTrackFinder::Init(): branch "<<fInputBranchName<<" not found! Task will be deactivated"<<endl;
+      SetActive(kFALSE);
+      return kERROR;
+    }
 
     fBmnMwpcTracksArray = new TClonesArray(fOutputBranchName.Data());
     ioman->Register(fOutputBranchName.Data(), "MWPC", fBmnMwpcTracksArray, kTRUE);
+
+    return kSUCCESS;
 }
 
 void BmnMwpcTrackFinder::Finish() {

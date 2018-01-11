@@ -73,6 +73,12 @@ InitStatus BmnGemTracking::Init() {
     }
 
     fGemHitsArray = (TClonesArray*) ioman->GetObject(fGemHitsBranchName); //in
+    if (!fGemHitsArray)
+    {
+      cout<<"BmnGemTracking::Init(): branch "<<fGemHitsBranchName<<" not found! Task will be deactivated"<<endl;
+      SetActive(kFALSE);
+      return kERROR;
+    }
   
     fGemTracksArray = new TClonesArray(fTracksBranchName, 100); //out
     ioman->Register("BmnGemTrack", "GEM", fGemTracksArray, kTRUE);
@@ -92,9 +98,13 @@ InitStatus BmnGemTracking::Init() {
     //    fGemDetector = new BmnGemStripStationSet_RunWinter2016(BmnGemStripConfiguration::RunWinter2016);
 
     if (fVerbose) cout << "======================== GEM tracking init finished ===================" << endl;
+
+    return kSUCCESS;
 }
 
 void BmnGemTracking::Exec(Option_t* opt) {
+    if (!IsActive())
+        return;
 
     if (fVerbose) cout << "\n======================== GEM tracking exec started ====================" << endl;
     if (fVerbose) cout << "\n Event number: " << fEventNo << endl;
@@ -109,7 +119,7 @@ void BmnGemTracking::Exec(Option_t* opt) {
         for (Int_t j = 0; j < fNBins; ++j)
             fAddresses[i][j] = -1;
 
-    if (!fGemHitsArray || fGemHitsArray->GetEntriesFast() > fNHitsInGemCut || fGemHitsArray->GetEntriesFast() == 0) 
+    if (fGemHitsArray->GetEntriesFast() > fNHitsInGemCut || fGemHitsArray->GetEntriesFast() == 0)
         return;
 
     FillAddrWithLorentz();

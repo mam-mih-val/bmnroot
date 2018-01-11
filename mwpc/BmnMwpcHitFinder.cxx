@@ -44,6 +44,13 @@ InitStatus BmnMwpcHitFinder::Init() {
 
     FairRootManager* ioman = FairRootManager::Instance();
     fBmnMwpcDigitArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
+    if (!fBmnMwpcDigitArray)
+    {
+      cout<<"BmnMwpcHitFinder::Init(): branch "<<fInputBranchName<<" not found! Task will be deactivated"<<endl;
+      SetActive(kFALSE);
+      return kERROR;
+    }
+
     fBmnMwpcHitArray = new TClonesArray(fOutputBranchName);
     ioman->Register(fOutputBranchName.Data(), "MWPC", fBmnMwpcHitArray, kTRUE);
 
@@ -53,8 +60,9 @@ InitStatus BmnMwpcHitFinder::Init() {
 }
 
 void BmnMwpcHitFinder::Exec(Option_t* opt) {
-    if (!fBmnMwpcDigitArray)
+    if (!IsActive())
         return;
+
     clock_t tStart = clock();
     if (fVerbose) cout << "\n======================== MWPC hit finder exec started =====================\n" << endl;
     if (fVerbose) cout << "Event number: " << fEventNo++ << endl;

@@ -82,7 +82,7 @@ class UniDbTangoData
     //	date_start - time from which to start reading the parameter, format: "YYYY-MM-DD HH:MM:SS" (e.g. "2015-03-13 23:00:00")
     //	date_end - end time of parameter reading, the same format (e.g. "2015-03-13 24:00:00")
     // Returns TObjArray with TangoTimeParameter objects (i.e. conditionally TObjArray<TangoTimeParameter*>), or NULL in case errors.
-    TObjArray* GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end);
+    TObjArray* GetTangoParameter(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end);
 
     // Function SearchTangoIntervals gets time intervals for defined condition on parameter, from the Tango database (MySQL connection defined in 'uni_db/db_settings.h' file).
     // NOTE: now it works only if channel count is constant during given time period

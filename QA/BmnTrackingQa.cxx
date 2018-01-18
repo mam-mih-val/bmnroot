@@ -370,27 +370,22 @@ void BmnTrackingQa::CreateHistograms() {
     CreateH2("Nh_sim_Theta_sim_glob", "Number of mc-points", "#theta_{sim}", "", nofBinsPoints, minNofPoints, maxNofPoints, 200, fThetaRangeMin, fThetaRangeMax);
     CreateH2("Nh_rec_Theta_rec_glob", "Number of mc-points", "#theta_{sim}", "", nofBinsPoints, minNofPoints, maxNofPoints, 200, fThetaRangeMin, fThetaRangeMax);
 
-    CreateH1("wellGemDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("wellGlobDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("ghostGemDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("ghostGlobDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("recoGemDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("recoGlobDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("allGemDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("allGlobDistr", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("EffGemDistr", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("EffGlobDistr", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("FakeGemDistr", "P_{sim}, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("FakeGlobDistr", "P_{sim}, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
-
-    CreateH1("Eff_vs_P_gem", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Split_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("SplitEff_vs_P_gem", "P_{sim}, GeV/c", "Splits, %", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Sim_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Rec_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Ghost_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Well_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
-    CreateH1("Fake_vs_P_gem", "P_{sim}, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Eff_vs_P_gem", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, 5.0);
+    CreateH1("Eff_vs_P_gem_Wide", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Split_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, 5.0);
+    CreateH1("Split_vs_P_gem_Wide", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("SplitEff_vs_P_gem", "P_{sim}, GeV/c", "Splits, %", fPRangeBins, fPRangeMin, 5.0);
+    CreateH1("SplitEff_vs_P_gem_Wide", "P_{sim}, GeV/c", "Splits, %", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Sim_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, 5.0);
+    CreateH1("Sim_vs_P_gem_Wide", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Rec_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, 5.0);
+    CreateH1("Rec_vs_P_gem_Wide", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Ghost_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, 5.0);
+    CreateH1("Ghost_vs_P_gem_Wide", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Well_vs_P_gem", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, 5.0);
+    CreateH1("Well_vs_P_gem_Wide", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
+    CreateH1("Fake_vs_P_gem", "P_{sim}, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, 5.0);
+    CreateH1("Fake_vs_P_gem_Wide", "P_{sim}, GeV/c", "Ghosts, %", fPRangeBins, fPRangeMin, fPRangeMax);
 
     CreateH1("Eff_vs_P_glob", "P_{sim}, GeV/c", "Efficiency, %", fPRangeBins, fPRangeMin, fPRangeMax);
     CreateH1("Split_vs_P_glob", "P_{sim}, GeV/c", "Counter", fPRangeBins, fPRangeMin, fPRangeMax);
@@ -646,6 +641,7 @@ void BmnTrackingQa::ProcessGem() {
         Int_t N_rec = track->GetNHits();
 
         fHM->H1("Rec_vs_P_gem")->Fill(P_sim);
+        fHM->H1("Rec_vs_P_gem_Wide")->Fill(P_sim);
         fHM->H1("Rec_vs_Eta_gem")->Fill(Eta_sim);
         fHM->H1("Rec_vs_Theta_gem")->Fill(Theta_sim);
         fHM->H1("Rec_vs_Nh_gem")->Fill(N_rec);
@@ -655,12 +651,14 @@ void BmnTrackingQa::ProcessGem() {
 
         if (!isTrackOk) {
             fHM->H1("Ghost_vs_P_gem")->Fill(P_sim);
+            fHM->H1("Ghost_vs_P_gem_Wide")->Fill(P_sim);
             fHM->H1("Ghost_vs_Eta_gem")->Fill(Eta_sim);
             fHM->H1("Ghost_vs_Theta_gem")->Fill(Theta_sim);
             fHM->H1("Ghost_vs_Nh_gem")->Fill(N_rec);
             fHM->H1("Fakes_vs_EtaP_gem")->Fill(Eta_sim, P_sim);
         } else {
             fHM->H1("Well_vs_P_gem")->Fill(P_sim);
+            fHM->H1("Well_vs_P_gem_Wide")->Fill(P_sim);
             fHM->H1("Well_vs_Eta_gem")->Fill(Eta_sim);
             fHM->H1("Well_vs_Theta_gem")->Fill(Theta_sim);
             fHM->H1("Well_vs_Nh_gem")->Fill(N_rec);
@@ -776,10 +774,12 @@ void BmnTrackingQa::ProcessGem() {
         Float_t theta = ATan2(Pxy, Pz) * RadToDeg();
 
         fHM->H1("Split_vs_P_gem")->Fill(P);
+        fHM->H1("Split_vs_P_gem_Wide")->Fill(P);
         fHM->H1("Split_vs_Eta_gem")->Fill(eta);
         fHM->H1("Split_vs_Theta_gem")->Fill(theta);
         fHM->H1("Split_vs_Nh_gem")->Fill(mcTrack.GetNofPoints(kGEM) + mcTrack.GetNofPoints(kSILICON), -1);
         fHM->H1("Well_vs_P_gem")->Fill(P, -1); //remove splitted tracks from efficiency
+        fHM->H1("Well_vs_P_gem_Wide")->Fill(P, -1); //remove splitted tracks from efficiency
         fHM->H1("Well_vs_Eta_gem")->Fill(eta, -1); //remove splitted tracks from efficiency
         fHM->H1("Well_vs_Theta_gem")->Fill(theta, -1); //remove splitted tracks from efficiency
         fHM->H2("Eff_vs_EtaP_gem")->Fill(eta, P, -1);
@@ -811,6 +811,7 @@ void BmnTrackingQa::ProcessGem() {
         fHM->H2("EtaP_sim")->Fill(eta, P);
         fHM->H2("ThetaP_sim")->Fill(theta, P);
         fHM->H1("Sim_vs_P_gem")->Fill(P);
+        fHM->H1("Sim_vs_P_gem_Wide")->Fill(P);
         fHM->H1("Sim_vs_Eta_gem")->Fill(eta);
         fHM->H1("Sim_vs_Theta_gem")->Fill(theta);
         Int_t nHits = mcTrack.GetNofPoints(kGEM);

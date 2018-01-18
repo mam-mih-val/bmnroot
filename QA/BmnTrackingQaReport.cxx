@@ -88,6 +88,10 @@ void BmnTrackingQaReport::Draw() {
     TString pNamesIn[5] = {"Sim_vs_P_gem", "Rec_vs_P_gem", "Well_vs_P_gem", "Ghost_vs_P_gem", "Split_vs_P_gem"};
     TString pNamesOut[3] = {"Eff_vs_P_gem", "Fake_vs_P_gem", "SplitEff_vs_P_gem"};
     DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for GEM TRACKS", pNamesIn, pNamesOut);
+    
+    TString pNamesInWide[5] = {"Sim_vs_P_gem_Wide", "Rec_vs_P_gem_Wide", "Well_vs_P_gem_Wide", "Ghost_vs_P_gem_Wide", "Split_vs_P_gem_Wide"};
+    TString pNamesOutWide[3] = {"Eff_vs_P_gem_Wide", "Fake_vs_P_gem_Wide", "SplitEff_vs_P_gem_Wide"};
+    DrawEffGem("Distribution of MC-tracks, reco-tracks, fakes and clones vs P_sim per event for GEM TRACKS in wide momentum range", pNamesIn, pNamesOut);
 
     TString pNamesInGlob[5] = {"Sim_vs_P_glob", "Rec_vs_P_glob", "Well_vs_P_glob", "Ghost_vs_P_glob", "Split_vs_P_glob"};
     TString pNamesOutGlob[3] = {"Eff_vs_P_glob", "Fake_vs_P_glob", "SplitEff_vs_P_glob"};
@@ -289,15 +293,6 @@ void BmnTrackingQaReport::DrawEffGem(const TString canvasName, TString* inNames,
     labels2.push_back("Efficiency");
     labels2.push_back("Ghosts");
     labels2.push_back("Clones");
-
-    //    HM()->H1("EffGemDistr")->Divide(HM()->H1("recoGemDistr"), HM()->H1("allGemDistr"), 1., 1., "B");
-    //    for (Int_t i = 0; i < HM()->H2(sim)->GetXaxis()->GetNbins(); ++i) {
-    //printf("%f / %f = %f\n", HM()->H1(sim)->GetBinContent(i), HM()->H1(well)->GetBinContent(i), HM()->H1(well)->GetBinContent(i) * 100.0 / HM()->H1(sim)->GetBinContent(i));
-    //        Float_t vEff = HM()->H1(well)->GetBinContent(i) * 100.0 / HM()->H1(sim)->GetBinContent(i);
-    //        if (vEff > 100.0)
-    //            vEff = HM()->H1(sim)->GetBinContent(i) * 100.0 / HM()->H1(well)->GetBinContent(i);
-    //        HM()->H1(eff)->SetBinContent(i, vEff);
-    //    }
 
     HM()->H1(eff)->Divide(HM()->H1(well), HM()->H1(sim), 1., 1., "B");
     HM()->H1(eff)->Scale(100.0);

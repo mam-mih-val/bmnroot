@@ -822,9 +822,6 @@ BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t 
     Double_t zIn = par->GetZ();
     Double_t dz = zOut - zIn;
 
-    //    if (fabs(dz) < 1e-6) {
-    //        return kBMNSUCCESS;
-    //    }
     // Check whether upstream or downstream
     // TODO check upstream/downstream
     Bool_t downstream = dz < 0;

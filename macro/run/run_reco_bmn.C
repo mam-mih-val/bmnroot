@@ -169,8 +169,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
-    if (!isExp)
-        fRunAna->AddTask(siliconHM);
+    fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
@@ -244,6 +243,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ===                          Global Tracking                       === //
     // ====================================================================== //
     BmnGlobalTracking* globalTF = new BmnGlobalTracking();
+    globalTF->SetField(isField);
     fRunAna->AddTask(globalTF);
 
     // ====================================================================== //

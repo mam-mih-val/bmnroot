@@ -551,9 +551,9 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             case kHRB:
                 Process_HRB(&data[idx], payload, serial);
                 break;
-	    case kLAND:
-	        Process_Tacquila(&data[idx], payload);
-	        break;
+            case kLAND:
+                Process_Tacquila(&data[idx], payload);
+                break;
         }
         idx += payload;
     }
@@ -580,29 +580,34 @@ BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t seria
             while (iCh < kNCH - 1 && i < len) {
                 iCh = d[i] >> 24;
                 i += 3; // skip two timestamp words (they are empty)
-                for (Int_t iWord = 0; iWord < kNSTAMPS / 2; ++iWord) {
-                    if (fRunId > 1542 && kNSTAMPS == ADC128_N_SAMPLES) { //format for SILICON was changed during March 2017 seance
-                        valI[2 * iWord + 1] = d[i + iWord] & 0xFFFF; //take 16 lower bits and put them into corresponded cell of data-array
-                        valI[2 * iWord] = (d[i + iWord] >> 16) & 0xFFFF; //take 16 higher bits and put them into corresponded cell of data-array
-                    } else {
-                        valU[2 * iWord + 1] = d[i + iWord] & 0xFFFF; //take 16 lower bits and put them into corresponded cell of data-array
-                        valU[2 * iWord] = (d[i + iWord] >> 16) & 0xFFFF; //take 16 higher bits and put them into corresponded cell of data-array
-                    }
-                }
-
                 TClonesArray& ar_adc = *arr;
-                //if (iCh >= 0 && iCh < kNCH) {
-                if (kNSTAMPS == ADC128_N_SAMPLES) {
-                    if (fRunId > 1542)
-                        new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC128_N_SAMPLES, valI);
-                    else
-                        new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC128_N_SAMPLES, valU);
-                } else if (kNSTAMPS == ADC32_N_SAMPLES)
-                    new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ADC32_N_SAMPLES, valU);
-                //}
-                i += (kNSTAMPS / 2); //skip words (we've processed them)
+
+                if (fRunId > GetBoundaryRun(kNSTAMPS)) {
+                    TakeDataWordShort(kNSTAMPS, d, i, valI);
+                    new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, kNSTAMPS, valI);
+                } else {
+                    TakeDataWordUShort(kNSTAMPS, d, i, valU);
+                    new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, kNSTAMPS, valU);
+                }
+                i += (kNSTAMPS / 2); //skip words (we've processed them above)
             }
         } else break;
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::TakeDataWordShort(UChar_t n, UInt_t *d, UInt_t i, Short_t* valI) {
+    for (Int_t iWord = 0; iWord < n / 2; ++iWord) {
+        valI[2 * iWord + 1] = d[i + iWord] & 0xFFFF; //take 16 lower bits and put them into corresponded cell of data-array
+        valI[2 * iWord] = (d[i + iWord] >> 16) & 0xFFFF; //take 16 higher bits and put them into corresponded cell of data-array
+    }
+    return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::TakeDataWordUShort(UChar_t n, UInt_t *d, UInt_t i, UShort_t* valU) {
+    for (Int_t iWord = 0; iWord < n / 2; ++iWord) {
+        valU[2 * iWord + 1] = d[i + iWord] & 0xFFFF; //take 16 lower bits and put them into corresponded cell of data-array
+        valU[2 * iWord] = (d[i + iWord] >> 16) & 0xFFFF; //take 16 higher bits and put them into corresponded cell of data-array
     }
     return kBMNSUCCESS;
 }
@@ -717,90 +722,90 @@ BmnStatus BmnRawDataDecoder::Process_HRB(UInt_t *d, UInt_t len, UInt_t serial) {
 }
 
 BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
-  /* LAND Tacquila data in big endian. */
-  uint32_t *p32 = d;
+    /* LAND Tacquila data in big endian. */
+    uint32_t *p32 = d;
 
-  /* 64-bit TRLO II timestamp. */
-  p32 += 2;
+    /* 64-bit TRLO II timestamp. */
+    p32 += 2;
 
-  /*
-   * 6 scalers:
-   * 0: laniic3 m=1.
-   * 1: laniic3 m=2.
-   * 2: laniic6 m=1.
-   * 3: laniic6 m=2.
-   * 4: JINR DAQ trigger.
-   * 5: ---
-   */
-  p32 += 6;
+    /*
+     * 6 scalers:
+     * 0: laniic3 m=1.
+     * 1: laniic3 m=2.
+     * 2: laniic6 m=1.
+     * 3: laniic6 m=2.
+     * 4: JINR DAQ trigger.
+     * 5: ---
+     */
+    p32 += 6;
 
-  /*
-   * Tacquila data!
-   * We have 2 chains of 10 Tacquila cards each.
-   */
-  for (unsigned chain = 0; chain < 2; ++chain) {
-    uint32_t header = ntohl(*p32++);
+    /*
+     * Tacquila data!
+     * We have 2 chains of 10 Tacquila cards each.
+     */
+    for (unsigned chain = 0; chain < 2; ++chain) {
+        uint32_t header = ntohl(*p32++);
 #define TACQUILA_PRINT_HEADER << "(header=" << header << ")" <<
-    unsigned count = header & 0xff;
-    if (count & 1) {
-      cerr << __FILE__ << ':' << __LINE__ << ": Odd data count forbidden "
-	TACQUILA_PRINT_HEADER ".\n";
-      return kBMNFINISH;
-    }
-    unsigned gtb = (header >> 24) & 0xf;
-    if (chain != gtb) {
-      cerr << __FILE__ << ':' << __LINE__ << ": GTB=" << gtb << "!=" << chain
-	<< " forbidden " TACQUILA_PRINT_HEADER ".\n";
-      return kBMNFINISH;
-    }
-    unsigned sam = header >> 28;
-    if (5 != sam) {
-      cerr << __FILE__ << ':' << __LINE__ << ": SAM=" << sam << "!=5 "
-	"forbidden " TACQUILA_PRINT_HEADER ".\n";
-      return kBMNFINISH;
-    }
-    unsigned tac, clock;
-    for (unsigned i = 0; i < count; ++i) {
-      uint32_t u32 = ntohl(*p32++);
+        unsigned count = header & 0xff;
+        if (count & 1) {
+            cerr << __FILE__ << ':' << __LINE__ << ": Odd data count forbidden "
+                    TACQUILA_PRINT_HEADER ".\n";
+            return kBMNFINISH;
+        }
+        unsigned gtb = (header >> 24) & 0xf;
+        if (chain != gtb) {
+            cerr << __FILE__ << ':' << __LINE__ << ": GTB=" << gtb << "!=" << chain
+                    << " forbidden " TACQUILA_PRINT_HEADER ".\n";
+            return kBMNFINISH;
+        }
+        unsigned sam = header >> 28;
+        if (5 != sam) {
+            cerr << __FILE__ << ':' << __LINE__ << ": SAM=" << sam << "!=5 "
+                    "forbidden " TACQUILA_PRINT_HEADER ".\n";
+            return kBMNFINISH;
+        }
+        unsigned tac, clock;
+        for (unsigned i = 0; i < count; ++i) {
+            uint32_t u32 = ntohl(*p32++);
 #define TACQUILA_PRINT_DATA << "(data=" << std::hex << u32 << std::dec << ")" <<
-      /*
-       * Channels 0..15 are normal, 16 = common stop,
-       * anything else is bogus.
-       */
-      unsigned channel = (u32 >> 22) & 0x1f;
-      if (channel > 16) {
-	cerr << __FILE__ << ':' << __LINE__ << ": Channel=" << channel <<
-	  ">16 forbidden " TACQUILA_PRINT_DATA ".\n";
-	return kBMNFINISH;
-      }
-      /* 10 + 10 Tacquila cards used for LAND. */
-      unsigned module = u32 >> 27;
-      if (module < 1 || module > 10) {
-	cerr << __FILE__ << ':' << __LINE__ << ": Module=" << module <<
-	  " forbidden " TACQUILA_PRINT_DATA ".\n";
-	return kBMNFINISH;
-      }
-      unsigned be_qdc = 1 & i;
-      unsigned is_qdc = 1 & (u32 >> 21);
-      if (be_qdc != is_qdc) {
-	cerr << __FILE__ << ':' << __LINE__ << ": TDC/QDC word mismatch "
-	  TACQUILA_PRINT_DATA ".\n";
-	return kBMNFINISH;
-      }
-      if (0 == (1 & i)) {
-	/* Tacqcuila measures reverse time. */
-	tac = 0xfff - (u32 & 0xfff);
-	clock = 0x3f - ((u32 >> 12) & 0x3f);
-      } else {
-	/* QDC:s are not reversed :) */
-	unsigned qdc = u32 & 0xfff;
-	TClonesArray &ar_tacquila = *tacquila;
-	new(ar_tacquila[tacquila->GetEntriesFast()])
-	  BmnTacquilaDigit(sam, gtb, module - 1, channel, tac, clock, qdc);
-      }
+            /*
+             * Channels 0..15 are normal, 16 = common stop,
+             * anything else is bogus.
+             */
+            unsigned channel = (u32 >> 22) & 0x1f;
+            if (channel > 16) {
+                cerr << __FILE__ << ':' << __LINE__ << ": Channel=" << channel <<
+                        ">16 forbidden " TACQUILA_PRINT_DATA ".\n";
+                return kBMNFINISH;
+            }
+            /* 10 + 10 Tacquila cards used for LAND. */
+            unsigned module = u32 >> 27;
+            if (module < 1 || module > 10) {
+                cerr << __FILE__ << ':' << __LINE__ << ": Module=" << module <<
+                        " forbidden " TACQUILA_PRINT_DATA ".\n";
+                return kBMNFINISH;
+            }
+            unsigned be_qdc = 1 & i;
+            unsigned is_qdc = 1 & (u32 >> 21);
+            if (be_qdc != is_qdc) {
+                cerr << __FILE__ << ':' << __LINE__ << ": TDC/QDC word mismatch "
+                        TACQUILA_PRINT_DATA ".\n";
+                return kBMNFINISH;
+            }
+            if (0 == (1 & i)) {
+                /* Tacqcuila measures reverse time. */
+                tac = 0xfff - (u32 & 0xfff);
+                clock = 0x3f - ((u32 >> 12) & 0x3f);
+            } else {
+                /* QDC:s are not reversed :) */
+                unsigned qdc = u32 & 0xfff;
+                TClonesArray &ar_tacquila = *tacquila;
+                new(ar_tacquila[tacquila->GetEntriesFast()])
+                        BmnTacquilaDigit(sam, gtb, module - 1, channel, tac, clock, qdc);
+            }
+        }
     }
-  }
-  return kBMNSUCCESS;
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
@@ -821,9 +826,9 @@ BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt
 }
 
 BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
-//        printf("serial 0x%08X slot %d  modid 0x%X\n", serial, slot, modId);
-    UInt_t type = d[idx] >> 28;								// good
-    UShort_t trigTimestamp = 0;								
+    //        printf("serial 0x%08X slot %d  modid 0x%X\n", serial, slot, modId);
+    UInt_t type = d[idx] >> 28; // good
+    UShort_t trigTimestamp = 0;
     UShort_t adcTimestamp = 0;
     UInt_t iSampl = 0;
     UInt_t channel = 0;
@@ -834,32 +839,32 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
         return kBMNSUCCESS;
     }
     while (type != kMODTRAILER) {
-        UInt_t mode = (d[idx] >> 26) & 0x3;						// good
+        UInt_t mode = (d[idx] >> 26) & 0x3; // good
         if (!inADC) {
-//            printf("type %d mode %d\n", type, mode);
-            if ((mode == 0) && (type == 4 || type == 5)) {				// good
-                UInt_t rcdata = ( (d[idx] >> 24) & 0x3 ) << 19;				// fixed					
-                channel = (d[idx] >> 19) & 0x1F;					// i think ok...
+            //            printf("type %d mode %d\n", type, mode);
+            if ((mode == 0) && (type == 4 || type == 5)) { // good
+                UInt_t rcdata = ((d[idx] >> 24) & 0x3) << 19; // fixed					
+                channel = (d[idx] >> 19) & 0x1F; // i think ok...
                 UInt_t time = 4 * (d[idx] & 0x7FF) + rcdata; // in 25 ps
                 new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time);
-//                printf("TDC: type %d channel %d time %d \n", type, channel, time);
+                //                printf("TDC: type %d channel %d time %d \n", type, channel, time);
             } else if ((type == 4) && (mode == 2)) {
                 channel = (d[idx] >> 19) & 0x1F;
                 trigTimestamp = d[idx++] & 0xFF;
                 adcTimestamp = d[idx] & 0xFF;
                 inADC = kTRUE;
-//                printf("ADC: channel %d trigTimestamp %d  adcTimestamp %d\n", channel, trigTimestamp, adcTimestamp);
+                //                printf("ADC: channel %d trigTimestamp %d  adcTimestamp %d\n", channel, trigTimestamp, adcTimestamp);
             } else if ((type == 2) && (mode == 0)) {
                 UInt_t iEv = (d[idx] >> 12) & 0xC;
-//                printf("TDC ev header: %d\n", iEv);
+                //                printf("TDC ev header: %d\n", iEv);
             } else if ((type == 3) && (mode == 0)) {
                 UInt_t iEv = (d[idx] >> 12) & 0xC;
-//                printf("TDC ev trailer: %d\n", iEv);
+                //                printf("TDC ev trailer: %d\n", iEv);
             }
         } else {
-            if ((type == 5) && ( (mode == 2) || (mode ==1) ) && (iSampl < ADC_SAMPLING_LIMIT)) {
-		Short_t val =  (d[idx] & ((1<<14)-1)) - (1<<(14-1));
-		valI[iSampl++] = val;
+            if ((type == 5) && ((mode == 2) || (mode == 1)) && (iSampl < ADC_SAMPLING_LIMIT)) {
+                Short_t val = (d[idx] & ((1 << 14) - 1)) - (1 << (14 - 1));
+                valI[iSampl++] = val;
             } else {
                 new((*tqdc_adc)[tqdc_adc->GetEntriesFast()]) BmnADCSRCDigit(serial, channel, iSampl, valI, trigTimestamp, adcTimestamp);
                 inADC = kFALSE;
@@ -1116,7 +1121,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fDigiTree->Branch("BD", &bd);
         fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
     }
-    
+
     if (fDetectorSetup[9])
         fTrigSRCMapper = new BmnTrigRaw2Digit("Trig_map_Run7_SRC.txt", "", fDigiTree);
 
@@ -1182,9 +1187,9 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     if (fDetectorSetup[10]) {
         land = new TClonesArray("BmnLANDDigit");
         fDigiTree->Branch("LAND", &land);
-	fLANDMapper = new BmnLANDRaw2Digit(fLANDMapFileName,
-	    fLANDClockFileName, fLANDTCalFileName, fLANDDiffSyncFileName,
-	    fLANDVScintFileName);
+        fLANDMapper = new BmnLANDRaw2Digit(fLANDMapFileName,
+                fLANDClockFileName, fLANDTCalFileName, fLANDDiffSyncFileName,
+                fLANDVScintFileName);
     }
 
     fPedEvCntr = 0; // counter for pedestal events between two spills
@@ -1209,8 +1214,8 @@ BmnStatus BmnRawDataDecoder::ClearArrays() {
     if (veto) veto->Delete();
     if (fd) fd->Delete();
     if (bd) bd->Delete();
-//    if (fTrigMapper)
-//        fTrigMapper->ClearArrays();
+    //    if (fTrigMapper)
+    //        fTrigMapper->ClearArrays();
     if (fTrigSRCMapper)
         fTrigSRCMapper->ClearArrays();
     eventHeader->Delete();
@@ -1372,7 +1377,7 @@ BmnStatus BmnRawDataDecoder::FillTimeShiftsMap() {
 
 BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray* adcSil, UInt_t ev) {
     if (fGemMapper) {
-        UShort_t**** pedData = fGemMapper->GetPedData();
+        Double_t**** pedData = fGemMapper->GetPedData();
         for (UInt_t iAdc = 0; iAdc < adcGem->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adcGem->At(iAdc);
 
@@ -1382,11 +1387,14 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
             if (iSer == -1) return kBMNERROR;
 
             for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl)
-                pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetUShortValue())[iSmpl] / 16;
+                if (fRunId > GetBoundaryRun(ADC32_N_SAMPLES))
+                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetShortValue())[iSmpl] / 16;
+                else
+                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetUShortValue())[iSmpl] / 16;
         }
     }
     if (fSiliconMapper) {
-        UShort_t**** pedData = fSiliconMapper->GetPedData();
+        Double_t**** pedData = fSiliconMapper->GetPedData();
         for (UInt_t iAdc = 0; iAdc < adcSil->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adcSil->At(iAdc);
 
@@ -1396,10 +1404,10 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
             if (iSer == -1) return kBMNERROR;
 
             for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl) {
-                if (fRunId > 1542)
-                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetShortValue())[iSmpl] / 16;
+                if (fRunId > GetBoundaryRun(ADC128_N_SAMPLES))
+                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetShortValue())[iSmpl] / 16;
                 else
-                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (adcDig->GetUShortValue())[iSmpl] / 16;
+                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetUShortValue())[iSmpl] / 16;
             }
         }
     }

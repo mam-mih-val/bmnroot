@@ -291,7 +291,7 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         if (fIsExcludedTy && Ty > fTyLeft && Ty < fTyRight)
             continue;
 
-        Int_t idx[nDetectors] = {globTrack->GetGemTrackIndex(), globTrack->GetMwpcTrackIndex(), globTrack->GetDchTrackIndex(),
+        Int_t idx[] = {globTrack->GetGemTrackIndex(), globTrack->GetMwpcTrackIndex(), globTrack->GetDchTrackIndex(),
             globTrack->GetGemTrackIndex(), globTrack->GetSilHitIndex()};
 
         Char_t buff[5000] = {""};

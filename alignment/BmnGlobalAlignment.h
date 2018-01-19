@@ -33,6 +33,7 @@
 #include  "BmnMwpcHit.h"
 #include  "BmnDchHit.h"
 #include  "BmnGemStripHit.h"
+#include  "BmnSiliconHit.h"
 #include  "BmnDchTrack.h"
 #include  "BmnMille.h"
 #include  "BmnMwpcAlignCorrections.h"
@@ -68,11 +69,12 @@ public:
 
     virtual void Finish();
 
-    void SetDetectors(TString det1, TString det2, TString vertex) {
+    void SetDetectors(TString det1, TString det2, TString vertex, TString silicon) {
         fDetectorSet[0] = "YES";
         fDetectorSet[1] = det1;
         fDetectorSet[2] = det2;
         fDetectorSet[3] = vertex;
+        fDetectorSet[4] = silicon;
     }
 
     void SetUseRealHitErrors(Bool_t flag) {
@@ -191,7 +193,7 @@ private:
     void PrintToFullFormat(TString, Char_t*);
     const Int_t MakeBinFile();
     void MakeSteerFile();
-    void MilleNoFieldRuns(Int_t, Int_t, Char_t*);
+    void MilleNoFieldRuns(BmnGlobalTrack*, Int_t, Int_t, Char_t*);
     Bool_t MilleFieldRuns(Int_t, Int_t, Char_t*);
     void Pede();
     void ReadPedeOutput(ifstream&);
@@ -219,6 +221,7 @@ private:
     TString* fDetectorSet;
 
     TString fBranchMwpcHits;
+    TString fBranchSiHits;
     TString fBranchGemHits;
     TString fBranchTof1Hits;
     TString fBranchDchHits;
@@ -232,6 +235,7 @@ private:
     TString fBranchFairEventHeader;
 
     TClonesArray* fMwpcHits;
+    TClonesArray* fSiHits;
     TClonesArray* fGemHits;
     TClonesArray* fTof1Hits;
     TClonesArray* fDchHits;
@@ -290,16 +294,13 @@ private:
 
     Bool_t fDebug;
     Int_t* Labels; //array containing a fixed param. number for each detector. 
-    // GEMs: 1 - 27; MWPC: 28 - 30; DCH: 31 - 33
+    // GEMs: 1 - 27; MWPC: 28 - 30; DCH: 31 - 33; VERTEX: 34 - 36; SILICON: 37 - 39
 
     TCanvas* fCanv;
 
     FairField* fField;
     BmnFieldMap* fMagField;
     BmnKalmanFilter_tmp* fKalman;
-
-    // Some supplementary histos to be, probably, removed in future
-    TH1F** fTxGemStation;
 
     Bool_t fUseVp;
     TVector3 fRoughVertex;

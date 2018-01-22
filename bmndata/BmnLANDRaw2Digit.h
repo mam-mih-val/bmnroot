@@ -3,6 +3,7 @@
 
 #include "BmnLANDDigit.h"
 #include "BmnTacquilaDigit.h"
+#include "TClonesArray.h"
 
 #define LAND_PLANE_N 6
 #define LAND_BAR_N 20

@@ -107,20 +107,24 @@ InitStatus 		BmnTof1HitProducer::Init()
         
 	fNDetectors = pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);
         pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
-        
-        if (!fUseMCData)
-        {
+
+        if (!fUseMCData) {
             pDetector = new BmnTOF1Detector *[fNDetectors];
-            for (Int_t i = 0; i < fNDetectors; i++){
+            TString NameFileLRcorrection, NameFileSlewingCorrection, NameFileTimeShiftCorrection;
+            NameFileLRcorrection = Form("TOF400_LRCorr_Period_%i", NPeriod);
+            NameFileSlewingCorrection = Form("TOF400_SlewingCorr_Period_%i", NPeriod);
+            NameFileTimeShiftCorrection = Form("TOF400_TimeShiftCorr_Period_%i", NPeriod);
+            for (Int_t i = 0; i < fNDetectors; i++) {
                 Int_t DoTestForDetector = 0;
                 if (fDoTest == kTRUE) DoTestForDetector = 1; // Level of Histograms filling (0-don't fill, 1-low, 2-high)
-                pDetector[i] = new BmnTOF1Detector(i,DoTestForDetector);
-                pDetector[i]->SetCorrLR("Tof400LRcorr.dat");
-                pDetector[i]->SetCorrSlewing("Tof400SlewingCorr_period6.root");
+                pDetector[i] = new BmnTOF1Detector(i, DoTestForDetector);
+                pDetector[i]->SetCorrLR(NameFileLRcorrection);
+                pDetector[i]->SetCorrSlewing(NameFileSlewingCorrection);
+                pDetector[i]->SetCorrTimeShift(NameFileTimeShiftCorrection);
                 pDetector[i]->SetGeo(pGeoUtils);
             }
         }
-	
+    
     	FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "Initialization [BmnTof1HitProducer::Init] finished succesfully.");
 
 return kSUCCESS;

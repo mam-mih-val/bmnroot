@@ -13,13 +13,13 @@ using namespace std;
 
 /* GENERATED CLASS MEMBERS (SHOULDN'T BE CHANGED MANUALLY) */
 // -----   Constructor with database connection   -----------------------
-ElogDbPerson::ElogDbPerson(UniDbConnection* connUniDb, int person_id, TString person_name, int is_shift_leader)
+ElogDbPerson::ElogDbPerson(UniDbConnection* connUniDb, int person_id, TString person_name, int is_active)
 {
 	connectionUniDb = connUniDb;
 
 	i_person_id = person_id;
 	str_person_name = person_name;
-	i_is_shift_leader = is_shift_leader;
+	i_is_active = is_active;
 }
 
 // -----   Destructor   -------------------------------------------------
@@ -30,7 +30,7 @@ ElogDbPerson::~ElogDbPerson()
 }
 
 // -----   Creating new person in the database  ---------------------------
-ElogDbPerson* ElogDbPerson::CreatePerson(TString person_name, int is_shift_leader)
+ElogDbPerson* ElogDbPerson::CreatePerson(TString person_name, int is_active)
 {
 	UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
 	if (connUniDb == 0x00) return 0x00;
@@ -38,13 +38,13 @@ ElogDbPerson* ElogDbPerson::CreatePerson(TString person_name, int is_shift_leade
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"insert into person_(person_name, is_shift_leader) "
+		"insert into person_(person_name, is_active) "
 		"values ($1, $2)");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
 	stmt->SetString(0, person_name);
-	stmt->SetInt(1, is_shift_leader);
+	stmt->SetInt(1, is_active);
 
 	// inserting new person to the Database
 	if (!stmt->Process())
@@ -91,10 +91,10 @@ ElogDbPerson* ElogDbPerson::CreatePerson(TString person_name, int is_shift_leade
 	tmp_person_id = person_id;
 	TString tmp_person_name;
 	tmp_person_name = person_name;
-	int tmp_is_shift_leader;
-	tmp_is_shift_leader = is_shift_leader;
+	int tmp_is_active;
+	tmp_is_active = is_active;
 
-	return new ElogDbPerson(connUniDb, tmp_person_id, tmp_person_name, tmp_is_shift_leader);
+	return new ElogDbPerson(connUniDb, tmp_person_id, tmp_person_name, tmp_is_active);
 }
 
 // -----  Get person from the database  ---------------------------
@@ -106,7 +106,7 @@ ElogDbPerson* ElogDbPerson::GetPerson(int person_id)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select person_id, person_name, is_shift_leader "
+		"select person_id, person_name, is_active "
 		"from person_ "
 		"where person_id = %d", person_id);
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -138,12 +138,12 @@ ElogDbPerson* ElogDbPerson::GetPerson(int person_id)
 	tmp_person_id = stmt->GetInt(0);
 	TString tmp_person_name;
 	tmp_person_name = stmt->GetString(1);
-	int tmp_is_shift_leader;
-	tmp_is_shift_leader = stmt->GetInt(2);
+	int tmp_is_active;
+	tmp_is_active = stmt->GetInt(2);
 
 	delete stmt;
 
-	return new ElogDbPerson(connUniDb, tmp_person_id, tmp_person_name, tmp_is_shift_leader);
+	return new ElogDbPerson(connUniDb, tmp_person_id, tmp_person_name, tmp_is_active);
 }
 
 // -----  Get person from the database by unique key  --------------
@@ -155,7 +155,7 @@ ElogDbPerson* ElogDbPerson::GetPerson(TString person_name)
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select person_id, person_name, is_shift_leader "
+		"select person_id, person_name, is_active "
 		"from person_ "
 		"where lower(person_name) = lower('%s')", person_name.Data());
 	TSQLStatement* stmt = uni_db->Statement(sql);
@@ -187,12 +187,12 @@ ElogDbPerson* ElogDbPerson::GetPerson(TString person_name)
 	tmp_person_id = stmt->GetInt(0);
 	TString tmp_person_name;
 	tmp_person_name = stmt->GetString(1);
-	int tmp_is_shift_leader;
-	tmp_is_shift_leader = stmt->GetInt(2);
+	int tmp_is_active;
+	tmp_is_active = stmt->GetInt(2);
 
 	delete stmt;
 
-	return new ElogDbPerson(connUniDb, tmp_person_id, tmp_person_name, tmp_is_shift_leader);
+	return new ElogDbPerson(connUniDb, tmp_person_id, tmp_person_name, tmp_is_active);
 }
 
 // -----  Check person exists in the database  ---------------------------
@@ -348,7 +348,7 @@ int ElogDbPerson::PrintAll()
 	TSQLServer* uni_db = connUniDb->GetSQLServer();
 
 	TString sql = TString::Format(
-		"select person_id, person_name, is_shift_leader "
+		"select person_id, person_name, is_active "
 		"from person_");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
@@ -373,7 +373,7 @@ int ElogDbPerson::PrintAll()
 		cout<<(stmt->GetInt(0));
 		cout<<", person_name: ";
 		cout<<(stmt->GetString(1));
-		cout<<", is_shift_leader: ";
+		cout<<", is_active: ";
 		cout<<(stmt->GetInt(2));
 		cout<<"."<<endl;
 	}
@@ -421,7 +421,7 @@ int ElogDbPerson::SetPersonName(TString person_name)
 	return 0;
 }
 
-int ElogDbPerson::SetIsShiftLeader(int is_shift_leader)
+int ElogDbPerson::SetIsActive(int is_active)
 {
 	if (!connectionUniDb)
 	{
@@ -433,12 +433,12 @@ int ElogDbPerson::SetIsShiftLeader(int is_shift_leader)
 
 	TString sql = TString::Format(
 		"update person_ "
-		"set is_shift_leader = $1 "
+		"set is_active = $1 "
 		"where person_id = $2");
 	TSQLStatement* stmt = uni_db->Statement(sql);
 
 	stmt->NextIteration();
-	stmt->SetInt(0, is_shift_leader);
+	stmt->SetInt(0, is_active);
 	stmt->SetInt(1, i_person_id);
 
 	// write new value to the database
@@ -450,7 +450,7 @@ int ElogDbPerson::SetIsShiftLeader(int is_shift_leader)
 		return -2;
 	}
 
-	i_is_shift_leader = is_shift_leader;
+	i_is_active = is_active;
 
 	delete stmt;
 	return 0;
@@ -460,7 +460,7 @@ int ElogDbPerson::SetIsShiftLeader(int is_shift_leader)
 void ElogDbPerson::Print()
 {
 	cout<<"Table 'person_'";
-	cout<<". person_id: "<<i_person_id<<". person_name: "<<str_person_name<<". is_shift_leader: "<<i_is_shift_leader<<endl;
+	cout<<". person_id: "<<i_person_id<<". person_name: "<<str_person_name<<". is_active: "<<i_is_active<<endl;
 
 	return;
 }

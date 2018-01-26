@@ -6,7 +6,7 @@ create table person_
 (
  person_id serial primary key,
  person_name varchar(30) unique not null,
- is_shift_leader boolean not null default false
+ is_active boolean not null default true
 );
 
 create table beam_
@@ -34,25 +34,27 @@ create table trigger_
 create table record_
 (
  record_id serial primary key,
- record_date timestamp not null default now(),
- author_id int null references person_(person_id),
- type_id int not null references type_(type_id),
- run_number int null,
+ record_date timestamp(0) not null default now(),
  shift_leader_id int null references person_(person_id),
+ type_id int not null references type_(type_id),
+ period_number int null,
+ run_number int null,
  trigger_id int null references trigger_(trigger_id) on update cascade,
  daq_status varchar(70) null,
  sp_41 int null,
+ sp_57 int null,
+ vkm2 int null,
  field_comment varchar(70) null,
- beam varchar(10) null references beam_(beam),
+ beam varchar(10) null references beam_(beam) on update cascade,
  energy float null check (energy > 0),
- target varchar(10) null references target_(target),
+ target varchar(10) null references target_(target) on update cascade,
  target_width float null,
  record_comment text
 );
 
 create table attachment_
 (
- record_id int not null references elog_record(record_id),
+ record_id int not null references record_(record_id),
  attachment_number int not null,	-- start with 1
  file_name varchar(255) not null,
  file_data bytea not null,

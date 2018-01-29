@@ -160,6 +160,11 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         fRunAna->AddTask(cntr);
     }
     // ====================================================================== //
+    // ===                           Check Triggers                       === //
+    // ====================================================================== //
+    BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp);
+    // fRunAna->AddTask(triggs);  
+    // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
     BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
@@ -225,14 +230,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     gemTF->SetField(isField);
     TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, -21.7);
     gemTF->SetRoughVertex(vAppr);
-    fRunAna->AddTask(gemTF);
-    // Residual analysis
-    if (isExp) {
-        BmnGemResiduals* residAnal = new BmnGemResiduals(run_period, run_number, fieldScale);
-        //residAnal->SetPrintResToFile("file.txt");
-        //residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
-        fRunAna->AddTask(residAnal);
-    }
+    fRunAna->AddTask(gemTF);  
 
     // ====================================================================== //
     // ===                           Tracking (DCH)                       === //
@@ -254,6 +252,16 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     gemVF->SetField(isField);
     gemVF->SetVertexApproximation(vAppr);
     fRunAna->AddTask(gemVF);
+    
+    // Residual analysis
+    if (isExp) {
+        BmnGemResiduals* residAnalGem = new BmnGemResiduals(run_period, run_number, fieldScale);
+        // residAnal->SetPrintResToFile("file.txt");
+        // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
+        fRunAna->AddTask(residAnalGem);
+        BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
+        fRunAna->AddTask(residAnalSi);
+    }
 
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();

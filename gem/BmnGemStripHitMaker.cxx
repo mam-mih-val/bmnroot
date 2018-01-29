@@ -12,15 +12,14 @@
 static Float_t workTime = 0.0;
 
 BmnGemStripHitMaker::BmnGemStripHitMaker()
-: fHitMatching(kTRUE), fAlignCorrFileName("") {
+: fHitMatching(kTRUE), fAlignCorrFileName(""), fRunId(-1) {
 
-    fInputPointsBranchName       = "StsPoint";
-    fInputDigitsBranchName       = "BmnGemStripDigit";
+    fInputPointsBranchName = "StsPoint";
+    fInputDigitsBranchName = "BmnGemStripDigit";
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
-    fBmnEventHeaderBranchName    = "EventHeader";
 
-    fOutputHitsBranchName        = "BmnGemStripHit";
-    fOutputHitMatchesBranchName  = "BmnGemStripHitMatch";
+    fOutputHitsBranchName = "BmnGemStripHit";
+    fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
 
     fVerbose = 1;
     fField = NULL;
@@ -30,21 +29,18 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
 }
 
 BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
-: fHitMatching(kTRUE), fAlignCorrFileName("") {
+: fHitMatching(kTRUE), fAlignCorrFileName(""), fRunId(-1) {
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
-    fIsExp = (!isExp) ? kFALSE : kTRUE;
-    fT0Branch   = "T0";
-    fVetoBranch = "VETO";
-    fBC2Branch  = "BC2";
-    fBDBranch   = "BD";
-    fBmnEventHeaderBranchName    = "EventHeader";
-
+    fIsExp = isExp;
+   
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
-    fOutputHitsBranchName        = "BmnGemStripHit";
-    fOutputHitMatchesBranchName  = "BmnGemStripHitMatch";
+    fOutputHitsBranchName = "BmnGemStripHit";
+    fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
+    
+    fBmnEvQualityBranchName = "BmnEventQuality";
 
     fVerbose = 1;
     fField = NULL;
@@ -65,14 +61,7 @@ InitStatus BmnGemStripHitMaker::Init() {
     if (!fCurrentConfig) Fatal("BmnGemStripHitMaker::Init()", " !!! Current GEM config is not set !!! ");
 
     FairRootManager* ioman = FairRootManager::Instance();
-    // Done to check trigger conditions when exp. data processing...
-    if (fIsExp) {
-        fT0Array   = (TClonesArray*) ioman->GetObject(fT0Branch.Data());
-        fVetoArray = (TClonesArray*) ioman->GetObject(fVetoBranch.Data());
-        fBC2Array  = (TClonesArray*) ioman->GetObject(fBC2Branch.Data());
-        fBDArray   = (TClonesArray*) ioman->GetObject(fBDBranch.Data());
-    }
-
+   
     fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
     if (!fBmnGemStripDigitsArray) {
         cout << "BmnGemStripHitMaker::Init(): branch " << fInputDigitsBranchName << " not found! Task will be deactivated" << endl;
@@ -80,7 +69,6 @@ InitStatus BmnGemStripHitMaker::Init() {
         return kERROR;
     }
 
-    fBmnEventHeader = (TClonesArray*) ioman->GetObject(fBmnEventHeaderBranchName);
     fBmnGemStripDigitMatchesArray = (TClonesArray*) ioman->GetObject(fInputDigitMatchesBranchName);
 
     if (fVerbose) {
@@ -161,49 +149,34 @@ InitStatus BmnGemStripHitMaker::Init() {
 
     //--------------------------------------------------------------------------
 
+    fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
+    
     if (fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n";
 
     return kSUCCESS;
 }
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
-    if (!IsActive())
-        return;
-
-    if (fVerbose) cout << "\nBmnGemStripHitMaker::Exec()\n ";
-    clock_t tStart = clock();
-
-    fField = FairRunAna::Instance()->GetField();
-    // Event separation by triggers ...
-    //    if (fIsExp && fBmnEventHeader) {
-    //        BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
-    //        if (!evHeader)
-    //            return;
-    //        if (evHeader->GetTripWord())
-    //            return;
-    //        //        BmnTriggerType trigType = evHeader->GetTrig();
-    //        //        if (trigType == kBMNMINBIAS) {
-    //        //            if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < 1)
-    //        //                return;
-    //        //        }
-    //        //
-    //        //        else if (trigType == kBMNBEAM) {
-    //        //            if (fVetoArray->GetEntriesFast() > 1 || fBDArray->GetEntriesFast() > 0)
-    //        //                return;
-    //        //        }
-    //        //
-    //        //        else
-    //        //            return;
-    //    }
-
+    // Event separation by triggers ...    
+    if (fIsExp && fBmnEvQuality) {
+        BmnEventQuality* evQual = (BmnEventQuality*) fBmnEvQuality->UncheckedAt(0);
+        if (!evQual->GetIsGoodEvent())
+            return;
+    } 
     fBmnGemStripHitsArray->Delete();
 
     if (fHitMatching && fBmnGemStripHitMatchesArray) {
         fBmnGemStripHitMatchesArray->Delete();
     }
 
+    if (!IsActive() || fBmnGemStripDigitsArray->GetEntriesFast() > 400)
+        return;
 
+    if (fVerbose) cout << "\nBmnGemStripHitMaker::Exec()\n ";
+    clock_t tStart = clock();
 
+    fField = FairRunAna::Instance()->GetField();   
+  
     if (fVerbose) cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripDigits = " << fBmnGemStripDigitsArray->GetEntriesFast() << "\n";
 
     ProcessDigits();

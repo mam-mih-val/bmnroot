@@ -16,6 +16,7 @@ ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/silicon
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+${CMAKE_SOURCE_DIR}/alignment
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES

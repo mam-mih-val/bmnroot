@@ -34,7 +34,7 @@ and open the template in the editor.
         <script>
             var loco = window.location;
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
-            var path = path0 + "Silicon/";
+            var path = path0 + "LAND/";
             function ResetHist() {
                 var filename = path + "Reset/cmd.json";
                 var xhr = new XMLHttpRequest();
@@ -43,38 +43,6 @@ and open the template in the editor.
                 xhr.send();
             }
 //            window.onload = setInterval("reloadIFrame();", 2000);
-//            body.onload = createSiliconTable();
-            function reloadIFrame() {
-                var tc = document.getElementById("trig_counter");
-                var temp = tc.src;
-                tc.src = "";
-                tc.src = temp;
-            }
-            function createTable() {
-                var moduleCount = [8];
-                moduleCount.forEach(createRow);
-//                drawInfo();
-            }
-            function createRow(item, i, arr) {
-                var layerCount = [2, 2, 2, 2, 2, 2, 2, 2];
-                var gd = document.getElementById("Silicon_div");
-                var gtbl = document.createElement("table");
-                gtbl.name = "hist_table";
-                gd.appendChild(gtbl);
-                for (var iMod = 0; iMod < item; iMod++) {
-                    var tr = document.createElement('tr');
-                    for (var iLayer = 0; iLayer < layerCount[i]; iLayer++) {
-                        var td = document.createElement('td');
-                        var ifr = document.createElement("iframe");
-                        ifr.style = "width: 24vw;height: 18vw;";
-                        ifr.src = path + "Silicon_Station_" + i + "_module_" + iMod + "_layer_" + iLayer;
-                        ifr.src += "/draw.htm?monitoring=2000";
-                        td.appendChild(ifr);
-                        tr.appendChild(td);
-                    }
-                    gtbl.appendChild(tr);
-                }
-            }
             function drawInfo() {
                 setTimeout(drawInfo, 10000);
 //                var infoFrame2 = document.getElementById("infoCan");
@@ -87,7 +55,7 @@ and open the template in the editor.
                 var refPath = path0 + "refList" + "/root.json";
                 FillRefSelector(refPath, "refSelector");
 
-                var filename = path + "SiliconCanvas" + "/root.json";
+                var filename = path + "LANDCanvas" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("SiliconTableC", obj, "");
                 }).send(null);
@@ -121,7 +89,7 @@ and open the template in the editor.
             <li><a href="../msc/index.html"><h3>MSC</h3></a></li>
         </ul>
         <div id="total_counter" align="center">
-            <h1>BM@N Silicons</h1>  
+            <h1>BM@N SRC LAND</h1>
             <!--<iframe id="infoCan" ></iframe>--> 
         </div>
         <div align="center">

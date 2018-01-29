@@ -14,6 +14,7 @@ void parse_data_to_db()
     parser.ParseXml2Db("parse_schemes/run_info.xml", "parse_schemes/run_info_xml.xslt");
     //parser.ParseCsv2Db("parse_schemes/run3_log.csv", "parse_schemes/run_info_csv.xslt", true);
     //parser.ParseTxtNoise2Db("parse_schemes/noise_run1_2.txt", "parse_schemes/noise_txt.xslt");
+    //parser.ParseDb2Db();
     //parser.ConvertElogCsv("parse_schemes/elog.csv", ';');
 
     timer.Stop();

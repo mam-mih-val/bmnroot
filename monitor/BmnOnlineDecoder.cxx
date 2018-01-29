@@ -39,7 +39,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_
     rawDataDecoder->SetRunId(runID);
     rawDataDecoder->SetPeriodId(periodID);
     rawDataDecoder->InitMaps();
-    Bool_t setup[10]; //array of flags to determine BM@N setup
+    Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
     setup[1] = 1; // MWPC
@@ -51,6 +51,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_
     setup[7] = 1; // ZDC
     setup[8] = 1; // ECAL
     setup[9] = 1; // TQDC
+    setup[10] = 1; // LAND
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
@@ -60,6 +61,11 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
     rawDataDecoder->SetECALMapping("ECAL_map_period_5.txt");
+    rawDataDecoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
+    rawDataDecoder->SetLANDPedestal("r0030_land_clock.hh");
+    rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
+    rawDataDecoder->SetLANDDiffSync("r352_cosmic1.hh");
+    rawDataDecoder->SetLANDVScint("neuland_sync_2.txt");
     rawDataDecoder->InitConverter(dq);
     return rawDataDecoder->InitDecoder();
 }
@@ -81,12 +87,12 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
         rawDataDecoder->SetRunId(runID);
     }
     rawDataDecoder->SetPeriodId(6);
-    if (rawDataDecoder->InitMaps() == kBMNERROR) {
+    /*if (rawDataDecoder->InitMaps() == kBMNERROR) {
         printf("InitMaps failed\n");
         delete rawDataDecoder;
         return kBMNERROR;
-    }
-    Bool_t setup[10]; //array of flags to determine BM@N setup
+    }*/
+    Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
     setup[1] = 1; // MWPC
@@ -98,6 +104,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     setup[7] = 1; // ZDC
     setup[8] = 1; // ECAL
     setup[9] = 1; // TQDC
+    setup[10] = 1; // LAND
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
@@ -107,6 +114,11 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
     rawDataDecoder->SetECALMapping("ECAL_map_period_5.txt");
+    rawDataDecoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
+    rawDataDecoder->SetLANDPedestal("r0030_land_clock.hh");
+    rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
+    rawDataDecoder->SetLANDDiffSync("r352_cosmic1.hh");
+    rawDataDecoder->SetLANDVScint("neuland_sync_2.txt");
     rawDataDecoder->InitConverter(fRawFileName);
     return rawDataDecoder->InitDecoder();
 }

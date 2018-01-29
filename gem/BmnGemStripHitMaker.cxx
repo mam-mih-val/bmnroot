@@ -74,11 +74,10 @@ InitStatus BmnGemStripHitMaker::Init() {
     }
 
     fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
-    if (!fBmnGemStripDigitsArray)
-    {
-      cout<<"BmnGemStripHitMaker::Init(): branch "<<fInputDigitsBranchName<<" not found! Task will be deactivated"<<endl;
-      SetActive(kFALSE);
-      return kERROR;
+    if (!fBmnGemStripDigitsArray) {
+        cout << "BmnGemStripHitMaker::Init(): branch " << fInputDigitsBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
     }
 
     fBmnEventHeader = (TClonesArray*) ioman->GetObject(fBmnEventHeaderBranchName);
@@ -149,12 +148,12 @@ InitStatus BmnGemStripHitMaker::Init() {
         ReadAlignCorrFile(fAlignCorrFileName, corr);
 
     }
-    cout <<"GEM-alignment corrections in use:" << endl;
-    for (Int_t iStat=0; iStat !=nStat; iStat++) {
+    cout << "GEM-alignment corrections in use:" << endl;
+    for (Int_t iStat = 0; iStat != nStat; iStat++) {
         Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
-        for (Int_t iMod=0; iMod !=nModul; iMod++) {
-            for (Int_t iPar=0; iPar !=nParams; iPar++)
-                cout <<"Stat "<<iStat<<" Module "<<iMod<<" Param. "<<iPar<<" Value (in cm.) "<<TString::Format("% 7.4f", corr[iStat][iMod][iPar])<< endl; //
+        for (Int_t iMod = 0; iMod != nModul; iMod++) {
+            for (Int_t iPar = 0; iPar != nParams; iPar++)
+                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << TString::Format("% 7.4f", corr[iStat][iMod][iPar]) << endl; //
         }
     }
     fField = FairRunAna::Instance()->GetField();
@@ -176,26 +175,26 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
 
     fField = FairRunAna::Instance()->GetField();
     // Event separation by triggers ...
-//    if (fIsExp && fBmnEventHeader) {
-//        BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
-//        if (!evHeader)
-//            return;
-//        if (evHeader->GetTripWord())
-//            return;
-//        //        BmnTriggerType trigType = evHeader->GetTrig();
-//        //        if (trigType == kBMNMINBIAS) {
-//        //            if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < 1)
-//        //                return;
-//        //        }
-//        //
-//        //        else if (trigType == kBMNBEAM) {
-//        //            if (fVetoArray->GetEntriesFast() > 1 || fBDArray->GetEntriesFast() > 0)
-//        //                return;
-//        //        }
-//        //
-//        //        else
-//        //            return;
-//    }
+    //    if (fIsExp && fBmnEventHeader) {
+    //        BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->At(0);
+    //        if (!evHeader)
+    //            return;
+    //        if (evHeader->GetTripWord())
+    //            return;
+    //        //        BmnTriggerType trigType = evHeader->GetTrig();
+    //        //        if (trigType == kBMNMINBIAS) {
+    //        //            if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < 1)
+    //        //                return;
+    //        //        }
+    //        //
+    //        //        else if (trigType == kBMNBEAM) {
+    //        //            if (fVetoArray->GetEntriesFast() > 1 || fBDArray->GetEntriesFast() > 0)
+    //        //                return;
+    //        //        }
+    //        //
+    //        //        else
+    //        //            return;
+    //    }
 
     fBmnGemStripHitsArray->Delete();
 
@@ -203,7 +202,7 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
         fBmnGemStripHitMatchesArray->Delete();
     }
 
-    
+
 
     if (fVerbose) cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripDigits = " << fBmnGemStripDigitsArray->GetEntriesFast() << "\n";
 
@@ -298,7 +297,7 @@ void BmnGemStripHitMaker::ProcessDigits() {
                 x += corr[iStation][iModule][0];
                 y += corr[iStation][iModule][1];
 
-                if (fIsExp) {
+                if (fIsExp && Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
                     Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
                     Double_t ls = GetLorentzByField(Abs(fField->GetBy(x, y, z)), iStation) * sign;
                     x += ls;
@@ -333,8 +332,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
 void BmnGemStripHitMaker::Finish() {
     // NB! normally, the following should never be used, except, maybe some tests:
-  //if (fAlignCorrFileName != "")
-  //    system(TString("rm "+fAlignCorrFileName).Data());
+    //if (fAlignCorrFileName != "")
+    //    system(TString("rm "+fAlignCorrFileName).Data());
     if (StationSet) {
         for (Int_t iStat = 0; iStat < StationSet->GetNStations(); iStat++) {
             Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
@@ -354,8 +353,8 @@ void BmnGemStripHitMaker::Finish() {
 void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
     // NB! the following is not needed, because in case fname == "" we simply
     // do not call this function at all:
-  //if (fname == "") // case when we do not use any alignment corrections
-  //    return;
+    //if (fname == "") // case when we do not use any alignment corrections
+    //    return;
 
     Int_t coeff = 0; // -1 for RunWinter2016, +1 for RunSpring2017 and in the future
     TString branchName = "";

@@ -74,8 +74,13 @@ public:
     BmnStatus wait_file(Int_t len, UInt_t limit = WAIT_LIMIT);
     BmnStatus SlewingTOF700Init();
     BmnStatus SlewingTOF700();
-    BmnStatus PreparationTOF700Init() { return SlewingTOF700Init(); };
+
+    BmnStatus PreparationTOF700Init() {
+        return SlewingTOF700Init();
+    };
     BmnStatus PreparationTOF700();
+    BmnStatus TakeDataWordShort(UChar_t n, UInt_t *d, UInt_t i, Short_t* valI);
+    BmnStatus TakeDataWordUShort(UChar_t n, UInt_t *d, UInt_t i, UShort_t* valU);
 
     void SetQue(deque<UInt_t> *v) {
         fDataQueue = v;
@@ -105,13 +110,13 @@ public:
         d.fd = fd;
         d.bd = bd;
         d.header = eventHeader;
-        if (fTrigSRCMapper){
-//            d.trigAr = fTrigSRCMapper->GetTrigArrays();
+        if (fTrigSRCMapper) {
+            //            d.trigAr = fTrigSRCMapper->GetTrigArrays();
             vector<TClonesArray*>* ta = fTrigSRCMapper->GetTrigArrays();
-//            d.trigLen = ta->size();
-//            d.trigAr = new TClonesArray*[d.trigLen];
-//            for (Int_t i = 0; i < d.trigLen; i++)
-//                d.trigAr[i] = (*ta)[i];
+            //            d.trigLen = ta->size();
+            //            d.trigAr = new TClonesArray*[d.trigLen];
+            //            for (Int_t i = 0; i < d.trigLen; i++)
+            //                d.trigAr[i] = (*ta)[i];
             d.trigAr = ta;
         }
         return d;
@@ -176,7 +181,7 @@ public:
     void SetTrigMapping(TString map) {
         fTrigMapFileName = map;
     }
-    
+
     void SetSiliconMapping(TString map) {
         fSiliconMapFileName = map;
     }
@@ -227,19 +232,23 @@ public:
     }
 
     void SetLANDMapping(TString map) {
-      fLANDMapFileName = map;
+        fLANDMapFileName = map;
     }
+
     void SetLANDPedestal(TString clock) {
-      fLANDClockFileName = clock;
+        fLANDClockFileName = clock;
     }
+
     void SetLANDTCal(TString tcal) {
-      fLANDTCalFileName = tcal;
+        fLANDTCalFileName = tcal;
     }
+
     void SetLANDDiffSync(TString diff_sync) {
-      fLANDDiffSyncFileName = diff_sync;
+        fLANDDiffSyncFileName = diff_sync;
     }
+
     void SetLANDVScint(TString vscint) {
-      fLANDVScintFileName = vscint;
+        fLANDVScintFileName = vscint;
     }
 
     TString GetRootFileName() {
@@ -268,6 +277,13 @@ public:
 
     BmnSetup GetFExpSetup() const {
         return fExpSetup;
+    }
+
+    UInt_t GetBoundaryRun(UInt_t nSmpl) {
+        //format for SILICON data was changed during March 2017 seance (run 1542)
+        //format for GEM was changed after March 2017 seance (run 1992)
+        //so we have to use this crutch.
+        return (nSmpl == 128) ? 1542 : 1992;
     }
 
 private:

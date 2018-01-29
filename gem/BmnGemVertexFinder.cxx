@@ -33,12 +33,16 @@ InitStatus BmnGemVertexFinder::Init() {
 
     //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
-    if (NULL == ioman) {
-        Fatal("Init", "FairRootManager is not instantiated");
-    }
+    if (NULL == ioman) Fatal("Init", "FairRootManager is not instantiated");
 
     fGemTracksArray = (TClonesArray*) ioman->GetObject(fGemTracksBranchName); //in
     fGlobalTracksArray = (TClonesArray*) ioman->GetObject(fGlobalTracksBranchName); //in
+    if (!fGlobalTracksArray) {
+        cout << "BmnGemVertexFinder::Init(): branch " << fGlobalTracksBranchName << " not found! Task will be deactivated" << endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
+
     fVertexArray = new TClonesArray("CbmVertex", 100); //out
     ioman->Register(fVertexBranchName, "GEM", fVertexArray, kTRUE);
 
@@ -49,6 +53,8 @@ InitStatus BmnGemVertexFinder::Init() {
 }
 
 void BmnGemVertexFinder::Exec(Option_t* opt) {
+    if (!IsActive())
+        return;
     clock_t tStart = clock();
 
     if (fVerbose) cout << "======================== Vertex finder exec started  ======================" << endl;
@@ -160,7 +166,7 @@ void BmnGemVertexFinder::FindVertexByVirtualPlanes() {
     vx /= nOk;
     vy /= nOk;
 
-    Double_t range = 50.0; //2.5
+    Double_t range = 50.0;
     // 2.5 - the best range from MC simulations and reconstruction (by A.Zelenoff)
     Double_t VX = (Abs(vz - fRoughVertex3D.Z()) < range) ? vx : -1000.;
     Double_t VY = (Abs(vz - fRoughVertex3D.Z()) < range) ? vy : -1000.;

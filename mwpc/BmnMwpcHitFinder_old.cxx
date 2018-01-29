@@ -5,7 +5,7 @@
 //                                                                            //
 // BmnMwpcHitFinder                                                           //
 //                                                                            //
-// Implementation of an algorithm developed by                                //
+// Implementation of an algorithm developed by                                // 
 // S. Merts and P. Batyuk                                                     //
 // to the BmnRoot software                                                    //
 //                                                                            //
@@ -23,16 +23,16 @@ using namespace std;
 using namespace TMath;
 
 BmnMwpcHitFinder::BmnMwpcHitFinder(Bool_t isExp) :
-  fEventNo(0),
-  fUseDigitsInTimeBin(kTRUE),
-  expData(isExp) {
-  fInputBranchName = "MWPC";
-  fOutputBranchName = "BmnMwpcHit";
-  thDist = 1.;
-  nInputDigits = 3;
-  nTimeSamples = 3;
-  kBig = 100;
-  }
+fEventNo(0),
+fUseDigitsInTimeBin(kTRUE),
+expData(isExp) {
+    fInputBranchName = "MWPC";
+    fOutputBranchName = "BmnMwpcHit";
+    thDist = 1.;
+    nInputDigits = 3;
+    nTimeSamples = 3;
+    kBig = 100;
+}
 
 BmnMwpcHitFinder::~BmnMwpcHitFinder() {
 
@@ -141,8 +141,6 @@ InitStatus BmnMwpcHitFinder::Init() {
 
     ind_best_Ch1 = new Int_t[5];
     ind_best_Ch2 = new Int_t[5];
-    Chi2_ndf_Ch1 = new Double_t[kBig];
-    Chi2_ndf_Ch2 = new Double_t[kBig];
     Chi2_ndf_best_Ch1 = new Double_t[5];
     Chi2_ndf_best_Ch2 = new Double_t[5];
     
@@ -235,7 +233,6 @@ void BmnMwpcHitFinder::PrepareArraysToProcessEvent(){
 	for(Int_t jj=0; jj<4; jj++){
 	  A[ii][jj] = 0.;
 	  b[ii][jj] = 0.;
-	}
       }
       
       for(Int_t iPlane=0; iPlane<kNPlanes; iPlane++){
@@ -253,6 +250,7 @@ void BmnMwpcHitFinder::PrepareArraysToProcessEvent(){
 	Chi2_ndf_Ch1[iBig] = 0;
 	Chi2_ndf_Ch2[iBig] = 0;
       }
+
 }
 
 void BmnMwpcHitFinder::Exec(Option_t* opt) {
@@ -262,6 +260,13 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
     PrepareArraysToProcessEvent();
     if (fVerbose) cout << "\n======================== MWPC hit finder exec started =====================\n" << endl;
     if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
+
+
+    
+//vector <BmnMwpcDigit*> digits[kNChambers][kNPlanes];
+//  vector <BmnMwpcDigit*> digits_filtered[kNChambers][kNPlanes];
+
+
     cout<<"NWires = "<<kNWires<<", NPlanes = "<<kNPlanes<<endl;
     
     Short_t wn, pn, ts, pl;
@@ -321,14 +326,15 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
     }// iDigit
     
     //    for (Int_t iChamber = 0; iChamber < kNChambers; iChamber++) {
+      for(Int_t iCase=0; iCase < 8; iCase ++){
+	SegmentFinder(1, Wires_Ch1, clust_Ch1, XVU_Ch1, Nhits_Ch1, iw_Ch1, Nseg_Ch1, wire_Ch1, xuv_Ch1, kMinHits, iCase, kBig);
 
-          for(Int_t iCase=0; iCase < 8; iCase ++){
-	    SegmentFinder(1, Wires_Ch1, clust_Ch1, XVU_Ch1, Nhits_Ch1, iw_Ch1, Nseg_Ch1, wire_Ch1, xuv_Ch1, kMinHits, iCase, kBig);
-	//      	SegmentFinder(2, Wires_Ch2, clust_Ch2, XVU_Ch2, Nhits_Ch2, iw_Ch2, Nseg_Ch2, wire_Ch2, xuv_Ch2, kMinHits, iCase, kBig);
+	
+	SegmentFinder(1, Wires_Ch2, clust_Ch2, XVU_Ch2, Nhits_Ch2, iw_Ch2, Nseg_Ch2, wire_Ch2, xuv_Ch2, kMinHits, iCase, kBig);
       }
-	  /*	  
-      if(Nseg_Ch1 > 0) ProcessSegments(1, sigma, dw_half, kZ1_loc, kMinHits, Nseg_Ch1, Nhits_Ch1, Wires_Ch1, clust_Ch1, XVU_Ch1, Nbest_Ch1, ind_best_Ch1, Chi2_ndf_Ch1, Chi2_ndf_best_Ch1, par_ab_Ch1, A, kNPlanes, ipl, XVU, XVU_cl, kChi2_Max);
-	  */
+      
+      if(Nseg_Ch1 > 0) ProcessSegments(1, sigma, dw_half, kZ1_loc, kMinHits, Nseg_Ch1, Nhits_Ch1, Wires_Ch1, clust_Ch1, XVU_Ch1, Nbest_Ch1, ind_best_Ch1, Chi2_ndf_Ch1, Chi2_ndf_best_Ch1, par_ab_Ch1, A, kNPlanes, ipl, XVU, XVU_cl);
+
       // create a track and put in into TClonesArray:
       
       
@@ -348,6 +354,7 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
+
 
 void SegmentFinder(Int_t chNum, Int_t** wires_Ch, Int_t **clust_Ch, Float_t **XVU_Ch, Int_t *Nhits_Ch, Int_t *iw_Ch, Int_t &Nseg, Int_t **wires_glob, Float_t **xuv_glob, Int_t minHits, Short_t code, Int_t kBig) {
   //xuv_glob     - coordinates of all hits
@@ -788,8 +795,7 @@ void BmnMwpcHitFinder::ProcessSegments(
 		     Int_t nPlanes,
 		     Int_t* ipl,
 		     Float_t* XVU,
-		     Float_t* XVU_cl,
-		     Double_t kChi2_Max) {
+		     Float_t* XVU_cl) {
 
   Float_t delta = (chNum == 3) ? 1.125 : 0.75; //0.5;
 
@@ -987,11 +993,11 @@ void BmnMwpcHitFinder::ProcessSegments(
 		  Double_t F[4] = {0,0,0,0};//free coef 
 
 		  if (Nhits_Ch[iseg] == nPlanes) //case 6-point segment
-		    FillFitMatrix(A, z_loc, sigm2, h6, kNPlanes);
+		    FillFitMatrix(A, z_loc, sigm2, h6);
 		  else
-		    FillFitMatrix(A, z_loc, sigm2, h , kNPlanes);
+		    FillFitMatrix(A, z_loc, sigm2, h);
 
-		  FillFreeCoefVector(F, XVU, z_loc, sigm2, h, kNPlanes);
+		  FillFreeCoefVector(F, XVU, z_loc, sigm2, h);
 		  // FillFreeCoefVector(F, XVU, iseg, z_loc, sigm2, h);
 
 		  Double_t A0[4][4];
@@ -1065,7 +1071,7 @@ void BmnMwpcHitFinder::ProcessSegments(
       if (Nhits_Ch[iseg] > 4)
 	Chi2_ndf_Ch[iseg] = Chi2_ndf_Ch[iseg] / (Nhits_Ch[iseg] - 4);
 
-      if (Chi2_ndf_Ch[iseg] > kChi2_Max) {
+      if (Chi2_ndf_Ch[iseg] > Chi2_Max) {
 	if (Nhits_Ch[iseg] <= Min_hits) { Nhits_Ch[iseg] = 0; continue;}
 	else  { //reject most distant point
 	  Float_t Max_dev = 0;
@@ -1223,7 +1229,7 @@ void BmnMwpcHitFinder::ProcessSegments(
 
 }// ProcessSegments
 
-void BmnMwpcHitFinder::FillFitMatrix(Double_t** A, Float_t* z, Float_t* sigm2, Int_t* h, Int_t nPlanes) {
+void BmnMwpcHitFinder::FillFitMatrix(Double_t** A, Float_t* z, Float_t* sigm2, Int_t* h) {
 
   //out1<<" in FillFitMatrix "<<endl;
 
@@ -1252,7 +1258,7 @@ void BmnMwpcHitFinder::FillFitMatrix(Double_t** A, Float_t* z, Float_t* sigm2, I
     A[3][3] += 3.0 * (0.5 * h[2] / sigm2[2] + 0.5 * h[1] / sigm2[1] + 0.5 * h[5] / sigm2[5] + 0.5 * h[4] / sigm2[4]);
 }
 
-void BmnMwpcHitFinder::FillFreeCoefVector(Double_t* F, Float_t* XVU_Ch, Float_t* z, Float_t* sigm2, Int_t* h, Int_t nPlanes) {
+void BmnMwpcHitFinder::FillFreeCoefVector(Double_t F[4], Float_t XVU_Ch[nPlanes], Float_t z[nPlanes], Float_t sigm2[nPlanes], Int_t h[nPlanes]) {
     // F - vector to be filled
     // XVU_Ch - coordinates of segment in chamber (Is it correct definition?)
     // segIdx - index of current segment
@@ -1315,58 +1321,194 @@ void BmnMwpcHitFinder::InverseMatrix(Double_t** A, Double_t** b) {
     //end inverse
 }
 
+
+void BmnMwpcHitFinder::CreateMwpcHits(vector <TVector3> pos, TClonesArray* hits, Short_t mwpcId) {
+    Double_t kWireStep = fMwpcGeometry->GetWireStep();
+    TVector3 errors(kWireStep / Sqrt(12.0), kWireStep / Sqrt(12.0), 1.0 / Sqrt(12.0));
+
+    for (Int_t iSize = 0; iSize < pos.size(); iSize++) {
+        BmnMwpcHit* hit = new((*hits)[hits->GetEntriesFast()]) BmnMwpcHit(0, pos.at(iSize), errors, -1);
+        hit->SetMwpcId(mwpcId);
+    }
+}
+
+vector <BmnMwpcDigit*> BmnMwpcHitFinder::CheckDigits(vector <BmnMwpcDigit*> digitsIn) {
+    vector <BmnMwpcDigit*> digitsOut;
+    if (digitsIn.size() > nInputDigits)
+        return digitsOut;
+
+    // Mark digits with the same wire number to work with one having a minimum time 
+    for (Int_t iSize = 0; iSize < digitsIn.size(); iSize++) {
+        for (Int_t jSize = 0; jSize < digitsIn.size(); jSize++) {
+            if (iSize == jSize)
+                continue;
+            if (digitsIn[iSize]->GetWireNumber() != digitsIn[jSize]->GetWireNumber())
+                continue;
+            if (digitsIn[iSize]->GetTime() > digitsIn[jSize]->GetTime())
+                digitsIn[iSize]->SetUsing(kTRUE);
+            else
+                digitsIn[jSize]->SetUsing(kTRUE);
+        }
+    }
+
+    vector <BmnMwpcDigit*> digitsOrderedInTime;
+
+    map <UInt_t, BmnMwpcDigit*> digitsToBeOrderedInTime;
+    for (Int_t iSize = 0; iSize < digitsIn.size(); iSize++) {
+        if (digitsIn[iSize]->IsUsed())
+            continue;
+        digitsToBeOrderedInTime.insert(pair <UInt_t, BmnMwpcDigit*> (digitsIn[iSize]->GetTime(), digitsIn[iSize]));
+    }
+
+    for (map <UInt_t, BmnMwpcDigit*>::iterator it = digitsToBeOrderedInTime.begin(); it != digitsToBeOrderedInTime.end(); it++)
+        digitsOrderedInTime.push_back(it->second);
+
+    for (Int_t iDigit = 0; iDigit < digitsOrderedInTime.size(); iDigit++) {
+        BmnMwpcDigit* dI = digitsOrderedInTime[iDigit];
+        vector <BmnMwpcDigit*> buffer;
+        buffer.push_back(dI);
+
+        FindNeighbour(dI, digitsOrderedInTime, buffer);
+
+        if (buffer.size() == 1)
+            digitsOut.push_back(dI); //just copy digit 
+        else {
+            Float_t sumWires = 0.0;
+            Float_t sumTimes = 0.0;
+            for (Int_t iDigiInBuffer = 0; iDigiInBuffer < buffer.size(); iDigiInBuffer++) {
+                BmnMwpcDigit* digi = buffer[iDigiInBuffer];
+                sumWires += digi->GetWireNumber();
+                sumTimes += digi->GetTime();
+            }
+            BmnMwpcDigit averDigi(dI->GetPlane(), sumWires / buffer.size(), sumTimes / buffer.size(), dI->GetRefId());
+            digitsOut.push_back(&averDigi);
+        }
+    }
+    return digitsOut;
+}
+
+void BmnMwpcHitFinder::FindNeighbour(BmnMwpcDigit* digiStart, vector <BmnMwpcDigit*> digits, vector <BmnMwpcDigit*> buffer) {
+    for (Int_t iDigit = 0; iDigit < digits.size(); iDigit++) {
+        BmnMwpcDigit* digi = digits[iDigit];
+        if (digi->IsUsed())
+            continue;
+
+        if (Abs((Int_t) digiStart->GetWireNumber() - (Int_t) digi->GetWireNumber()) < 2) {
+            digi->SetUsing(kTRUE);
+            buffer.push_back(digi);
+            FindNeighbour(digi, digits, buffer);
+        }
+    }
+}
+
+vector <TVector3> BmnMwpcHitFinder::CreateHitsBy3Planes(vector <BmnMwpcDigit*> x, vector <BmnMwpcDigit*> u, vector <BmnMwpcDigit*> v, Float_t zPos) {
+    vector <TVector3> hits;
+    if (x.size() == 0 || u.size() == 0 || v.size() == 0)
+        return hits;
+
+    vector <TVector3> xu;
+    vector <TVector3> xv;
+    vector <TVector3> uv;
+
+    FindPairs(x, u, xu);
+    FindPairs(x, v, xv);
+    FindPairs(u, v, uv);
+
+    Double_t mag = 0.;
+    for (Int_t iXU = 0; iXU < xu.size(); iXU++)
+        for (Int_t iXV = 0; iXV < xv.size(); iXV++) {
+            if (Abs(xu[iXU].Mag() - xv[iXV].Mag()) > thDist)
+                continue;
+            for (Int_t iUV = 0; iUV < uv.size(); iUV++) {
+                if (Abs(xu[iXU].Mag() - uv[iUV].Mag()) > thDist)
+                    continue;
+                if (Abs(xv[iXV].Mag() - uv[iUV].Mag()) > thDist)
+                    continue;
+                Float_t xAv = (xu[iXU].X() + xv[iXV].X() + uv[iUV].X()) / 3.0;
+                Float_t yAv = (xu[iXU].Y() + xv[iXV].Y() + uv[iUV].Y()) / 3.0;
+
+                // Remove totally duplicated hits if occurred
+                TVector3 hitCandidate(xAv, yAv, zPos);
+                if (Abs(hitCandidate.Mag() - mag) < LDBL_EPSILON)
+                    continue;
+                else
+                    mag = hitCandidate.Mag();
+                hits.push_back(hitCandidate);
+            }
+        }
+    return hits;
+}
+
+void BmnMwpcHitFinder::FindPairs(vector <BmnMwpcDigit*> in1, vector <BmnMwpcDigit*> in2, vector <TVector3>& out) {
+    Short_t kTimeBin = fMwpcGeometry->GetTimeBin();
+    for (Int_t iIn1 = 0; iIn1 < in1.size(); iIn1++) {
+        BmnMwpcDigit* digX = (BmnMwpcDigit*) in1[iIn1];
+        for (Int_t iIn2 = 0; iIn2 < in2.size(); iIn2++) {
+            BmnMwpcDigit* digU = (BmnMwpcDigit*) in2[iIn2];
+            if (fUseDigitsInTimeBin && Abs((Int_t) digX->GetTime() - (Int_t) digU->GetTime()) > nTimeSamples * kTimeBin)
+                continue;
+            out.push_back(CalcHitPosByTwoDigits(digX, digU));
+        }
+    }
+}
+
+TVector3 BmnMwpcHitFinder::CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ) {
+  //Short_t kNPlanes = fMwpcGeometry->GetNPlanes();
+    //    Short_t kNWires = fMwpcGeometry->GetNWires();
+    Double_t kPlaneWidth = fMwpcGeometry->GetPlaneWidth();
+    UInt_t dWireI = dI->GetWireNumber();
+    UInt_t dWireJ = dJ->GetWireNumber();
+    Short_t localPlaneI = dI->GetPlane() % kNPlanes;
+    Short_t localPlaneJ = dJ->GetPlane() % kNPlanes;
+
+    Double_t xI = kPlaneWidth * (dWireI * 1.0 / kNWires - 0.5); //local X by wire number
+    Double_t xJ = kPlaneWidth * (dWireJ * 1.0 / kNWires - 0.5); //local X by wire number
+    Double_t aI; //rotation angle by plane number
+    Double_t aJ; //rotation angle by plane number
+
+    DefineCoordinateAngle(localPlaneI, xI, aI);
+    DefineCoordinateAngle(localPlaneJ, xJ, aJ);
+
+    Float_t xGlob = (xI * Sin(aJ) - xJ * Sin(aI)) / Sin(aJ - aI);
+    Float_t yGlob = (xI * Cos(aJ) - xJ * Cos(aI)) / Sin(aJ - aI);
+
+    TVector3 pos(xGlob, yGlob, 0.);
+    return pos;
+}
+
 void BmnMwpcHitFinder::Finish() {
     delete fMwpcGeometry;
-
-    // delete 1d arrays:
-    delete [] kPln;
-    delete [] kZ1_loc;
-    delete [] kZ2_loc;
-    delete [] iw;
-    delete [] iw_Ch1;
-    delete [] iw_Ch2;
-    delete [] ind_best_Ch1;
-    delete [] ind_best_Ch2;
-    delete [] Nhits_Ch1;
-    delete [] Nhits_Ch2;
-    delete [] Chi2_ndf_Ch1;
-    delete [] Chi2_ndf_Ch2;
-    delete [] Chi2_ndf_best_Ch1;
-    delete [] Chi2_ndf_best_Ch2;
-    delete [] sigm2;
-    delete [] h;
-    delete [] h6;
-    delete [] ipl;
-    delete [] XVU;
-    delete [] XVU_cl;
-
-    // delete 2d arrays:
-    for(Int_t iWire=0; iWire< kNWires; iWire++){
-      delete [] wire_Ch1[iWire];
-      delete [] wire_Ch2[iWire];
-      delete [] xuv_Ch1[iWire];
-      delete [] xuv_Ch2[iWire];
-    }
-
-    for(Int_t ii=0; ii<4; ii++){
-      delete [] par_ab_Ch1[ii];
-      delete [] par_ab_Ch2[ii];
-      delete [] A[ii];
-      delete [] b[ii];
-    }
-
-    for(Int_t iPl=0; iPl<kNPlanes; iPl++){
-      delete [] Wires_Ch1[iPl];
-      delete [] Wires_Ch2[iPl];
-      delete [] clust_Ch1[iPl];
-      delete [] clust_Ch2[iPl];
-      delete [] XVU_Ch1[iPl];
-      delete [] XVU_Ch2[iPl];
-    }
-    
     cout << "Work time of the MWPC hit finder: " << workTime << " s" << endl;
 }
 
+void BmnMwpcHitFinder::DefineCoordinateAngle(Short_t localPlane, Double_t& x, Double_t& a) {
+    Double_t kAngleStep = fMwpcGeometry->GetAngleStep();
+    switch (localPlane) {
+        case 2:
+            x = -x;
+            a = 0.0;
+            break;
+        case 4:
+            x = x;
+            a = -kAngleStep;
+            break;
+        case 3:
+            x = -x;
+            a = +kAngleStep;
+            break;
+        case 5:
+            x = x;
+            a = 0.0;
+            break;
+        case 1:
+            x = -x;
+            a = -kAngleStep;
+            break;
+        case 0:
+            x = x;
+            a = +kAngleStep;
+            break;
+    }
+}
+
 ClassImp(BmnMwpcHitFinder)
-
-

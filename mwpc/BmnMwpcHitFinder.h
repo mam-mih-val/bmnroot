@@ -86,6 +86,84 @@ private:
     
     BmnMwpcGeometry* fMwpcGeometry;
 
+    Short_t kNChambers;
+    Short_t kNPlanes;
+    Short_t kNWires;
+
+    Int_t kMinHits;
+    Double_t kChi2_Max;
+
+    Float_t kX1_sh;
+    Float_t kY1_sh;
+    Float_t kX1_slope_sh;
+    Float_t kY1_slope_sh;
+
+    Float_t kX2_sh;
+    Float_t kY2_sh;
+    Float_t kX2_slope_sh;
+    Float_t kY2_slope_sh;
+
+    Float_t dw;
+    Float_t dw_half;
+    Double_t sq3;
+    Double_t sq12;
+    Double_t sigma;
+
+    Int_t Nbest_Ch1;
+    Int_t Nbest_Ch2;
+    Int_t Nseg_Ch1;
+    Int_t Nseg_Ch2;
+    
+    Int_t kBig;
+
+    Int_t *kPln;
+    Float_t *kZ1_loc;
+    Float_t *kZ2_loc;
+
+    Int_t *iw;
+    Int_t *iw_Ch1;
+    Int_t *iw_Ch2;
+
+    Int_t **wire_Ch1;
+    Int_t **wire_Ch2;
+    Float_t **xuv_Ch1;
+    Float_t **xuv_Ch2;
+
+    Int_t *ind_best_Ch1;
+    Int_t *ind_best_Ch2;    
+    Int_t **Wires_Ch1;
+    Int_t **Wires_Ch2;    
+    Int_t **clust_Ch1;
+    Int_t **clust_Ch2;
+    Float_t **XVU_Ch1;
+    Float_t **XVU_Ch2;    
+    Int_t *Nhits_Ch1;
+    Int_t *Nhits_Ch2;    
+
+    Double_t *Chi2_ndf_Ch1;
+    Double_t **par_ab_Ch1;
+    Double_t *Chi2_ndf_Ch2;
+    Double_t **par_ab_Ch2;
+    Double_t *Chi2_ndf_best_Ch1;
+    Double_t *Chi2_ndf_best_Ch2;    
+
+    Double_t **A;
+    Float_t *sigm2;
+    Int_t *h;
+    Int_t *h6;
+    Int_t *ipl;
+    Float_t *XVU;
+    Float_t *XVU_cl;
+    Double_t **b;
+    
+    //functions for Vasilisa method:
+    void PrepareArraysToProcessEvent();
+    void SegmentFinder(Int_t, Int_t**, Int_t**, Float_t**, Int_t*, Int_t*, Int_t&, Int_t**, Float_t**, Int_t, Short_t, Int_t);
+    void ProcessSegments(Int_t, Double_t, Float_t, Float_t*, Int_t, Int_t, Int_t*, Int_t**, Int_t**, Float_t**, Int_t, Int_t*,  Double_t*, Double_t*, Double_t**, Double_t**, Int_t, Int_t*, Float_t*, Float_t*, Double_t);
+    void FillFitMatrix(Double_t**, Float_t*, Float_t*, Int_t*, Int_t);
+    void FillFreeCoefVector(Double_t*, Float_t*, Float_t*, Float_t*, Int_t*, Int_t);
+    void InverseMatrix(Double_t**, Double_t**);
+    
     ClassDef(BmnMwpcHitFinder, 1);
 
 };

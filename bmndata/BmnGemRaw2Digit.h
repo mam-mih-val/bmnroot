@@ -17,8 +17,6 @@
 #include <UniDbDetectorParameter.h>
 #include <UniDbDetector.h>
 
-#define ADC_N_CHANNELS 64 //number of ADC channels
-#define ADC32_N_SAMPLES 32 //number of samples in one ADC digit
 #define N_CH_IN_CRATE 2048 //number of channels in one crate (64ch x 32smpl))
 #define N_CH_IN_SMALL_GEM 512 //number of channels in small GEM stations (sum of all redout channels)
 #define N_CH_IN_MID_GEM 2176 //number of channels in middle GEM stations (sum of all redout channels)

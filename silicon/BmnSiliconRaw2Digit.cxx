@@ -18,6 +18,7 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
 BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
     UInt_t ser = 0;
     Int_t ch = 0;
+    Int_t mod_adc = 0;
     Int_t mod = 0;
     Int_t start = 0;
     TString type = "";
@@ -32,7 +33,7 @@ BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
     getline(inFile, dummy); //comment line in input file
 
     while (!inFile.eof()) {
-        inFile >> ch >> mod >> type >> std::hex >> ser >> std::dec >> start;
+        inFile >> ch >> mod_adc >> mod >> type >> std::hex >> ser >> std::dec >> start;
         if (!inFile.good()) break;
         BmnSiliconMapping record;
         record.layer = (type == "X") ? 0 : 1;
@@ -72,17 +73,18 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         BmnSiliconDigit dig;
         dig.SetStation(0);
-        dig.SetModule(silM->module - 1);
+        dig.SetModule(silM->module);
         dig.SetStripLayer(silM->layer);
         dig.SetStripNumber(silM->start_strip + iSmpl);
-        if (GetRun() > 1542)
-            dig.SetStripSignal((adcDig->GetShortValue())[iSmpl] / 16);
+        if (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES))
+            dig.SetStripSignal((Double_t)((adcDig->GetShortValue())[iSmpl] / 16));
         else
-            dig.SetStripSignal((adcDig->GetUShortValue())[iSmpl] / 16);
+            dig.SetStripSignal((Double_t)((adcDig->GetUShortValue())[iSmpl] / 16));
         candDig[iSmpl] = dig;
     }
 
     Double_t signals[nSmpl];
+    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) signals[iSmpl] = 0.0;
     Int_t nOk = 0;
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStripSignal() == 0) continue;
@@ -92,7 +94,8 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     Double_t CMS = CalcCMS(signals, nOk);
 
     Bool_t*** nc = GetNoiseChannels();
-    Float_t*** vPed = GetPedestals();
+    Double_t*** vPed = GetPedestals();
+    Double_t*** vPedRMS = GetPedestalsRMS();
 
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
@@ -101,7 +104,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         BmnSiliconDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
         Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
-        Float_t threshold = 160;
+        Double_t threshold = 7 * vPedRMS[iSer][ch][iSmpl];//50;//120;//160;
         if (sig < threshold) continue;
         new((*silicon)[silicon->GetEntriesFast()]) BmnSiliconDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }

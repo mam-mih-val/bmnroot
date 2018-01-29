@@ -37,7 +37,7 @@ BmnGemTracking::BmnGemTracking() {
     fAddresses = NULL;
     fRoughVertex = TVector3(0.0, 0.0, -21.7);
     fLineFitCut = 0.5;
-    fSigX = 0.01;
+    fSigX = 0.05;
     fYstep = 3;
     fLorentzThresh = 1.01;
     fNHitsCut = 4;
@@ -113,7 +113,7 @@ void BmnGemTracking::Exec(Option_t* opt) {
     fGemTracksArray->Delete();
     fYstep = 3;
     fGemDistCut = 5.0;
-    fLineFitCut = 0.5;
+    fLineFitCut = 50.0;
 
     for (Int_t i = 0; i < fNBins; ++i)
         for (Int_t j = 0; j < fNBins; ++j)
@@ -127,7 +127,8 @@ void BmnGemTracking::Exec(Option_t* opt) {
     for (int j = 0;; j++) {
         vector<BmnGemTrack> seeds;
         for (Int_t i = 0; i < fNBins / fYstep; ++i) FindSeedsByCombinatoricsInCoridor(i, seeds);
-        if (seeds.size() != 0 && seeds.size() < fNSeedsCut) FitSeeds(seeds);
+        if (seeds.size() < 1 || seeds.size() > fNSeedsCut) break;
+        FitSeeds(seeds);
         Int_t br = Tracking(seeds);
         //printf("[%d] ==> %d\n", j, br);
         if (br == 0) break;
@@ -408,17 +409,6 @@ BmnStatus BmnGemTracking::FindSeedsByCombinatoricsInCoridor(Int_t iCorridor, vec
 }
 
 BmnStatus BmnGemTracking::FitSeeds(vector<BmnGemTrack>& cand) {
-    //Four cases:
-    //  _________________________________
-    // |                |                |
-    // |   Field = 0    |   Field = 1    |
-    // |   Targ  = 0    |   Targ  = 0    |
-    // |________________|________________|
-    // |                |                |
-    // |   Field = 0    |   Field = 1    |
-    // |   Targ  = 1    |   Targ  = 1    |
-    // |________________|________________|
-
     for (Int_t i = 0; i < cand.size(); ++i) {
         BmnGemTrack* trackCand = &(cand[i]); 
         if (fIsField) {

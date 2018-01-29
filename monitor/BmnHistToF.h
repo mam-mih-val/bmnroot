@@ -47,8 +47,7 @@ public:
     void Reset();
     void DrawBoth();
     BmnStatus  SetRefRun(Int_t id);
-    
-    
+        
     void FillFromDigi(DigiArrays *fDigiArrays);
     void SetSelection(Int_t Plane, Int_t Strip, Int_t Side);
     

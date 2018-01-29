@@ -1,5 +1,4 @@
 #include "UniDbParser.h"
-#include "UniDbConnection.h"
 #include "db_classes/UniDbRun.h"
 #include "db_classes/UniDbParameter.h"
 #include "db_classes/UniDbDetectorParameter.h"
@@ -1060,6 +1059,135 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
     return 0;
 }
 
+int UniDbParser::ParseDb2Db()
+{
+    TSQLServer* source_db = TSQLServer::Connect("pgsql://vm221-53.jinr.ru/bmn_elog", "login", "password");
+    if (source_db == 0x00)
+    {
+        cout<<"ERROR: source database connection wasn't established"<<endl;
+        return -1;
+    }
+
+    TString sql_source = TString::Format(
+        "select record_id, field_comment "
+        "from record_");
+    TSQLStatement* stmt_source = source_db->Statement(sql_source);
+     //cout<<"SQL code: "<<sql<<endl;
+
+    // get record from the database
+    if (!stmt_source->Process())
+    {
+        cout<<"Error: getting records from the database has been failed"<<endl;
+
+        delete stmt_source;
+        delete source_db;
+
+        return -2;
+    }
+
+    // store result of statement in buffer
+    stmt_source->StoreResult();
+
+    TSQLServer* dest_db = TSQLServer::Connect("pgsql://vm221-53.jinr.ru/bmn_elog", "login", "password");
+    if (dest_db == 0x00)
+    {
+        cout<<"ERROR: destination database connection wasn't established"<<endl;
+        return -3;
+    }
+
+    // extract rows one after another
+    while (stmt_source->NextResultRow())
+    {
+        if (stmt_source->IsNull(1)) continue;
+
+        int record_id = stmt_source->GetInt(0);
+        TString field_comment = stmt_source->GetString(1);
+
+        // search for SP-57 and VKM2 magnetic field in A
+        size_t beg_pos, end_pos;
+        string field_lower(field_comment.Data()), sp57 = "", vkm2 = "";
+        int iField = -1;
+        transform(field_lower.begin(), field_lower.end(), field_lower.begin(), ::tolower);
+
+        size_t ind = field_lower.find("sp-57");
+        if (ind != string::npos)
+        {
+            beg_pos = ind + 5;
+            sp57 = find_first_number(field_lower, beg_pos, end_pos, false);
+            iField = atoi(sp57.c_str());
+
+            if (field_lower[end_pos+1] != 'a')
+            {
+                cout<<"ERROR: field is not ended with A"<<field_lower<<endl;
+                continue;
+            }
+
+            TString sql_dest = TString::Format(
+                "update record_ "
+                "set sp_57 = $1 "
+                "where record_id = $2");
+            TSQLStatement* stmt_dest = dest_db->Statement(sql_dest);
+
+            stmt_dest->NextIteration();
+            stmt_dest->SetInt(0, iField);
+            stmt_dest->SetInt(1, record_id);
+
+            // write new value to the database
+            if (!stmt_dest->Process())
+            {
+                cout<<"Error: updating information has been failed"<<endl;
+
+                delete stmt_dest;
+                continue;
+            }
+
+            ind = end_pos;
+            delete stmt_dest;
+        }
+        else
+            ind = 0;
+
+        ind = field_lower.find("vkm2", ind);
+        if (ind != string::npos)
+        {
+            beg_pos = ind + 4;
+            vkm2 = find_first_number(field_lower, beg_pos, end_pos, false);
+            iField = atoi(vkm2.c_str());
+
+            if (field_lower[end_pos+1] != 'a')
+            {
+                cout<<"ERROR: field is not ended with A"<<field_lower<<endl;
+                continue;
+            }
+
+            TString sql_dest = TString::Format(
+                "update record_ "
+                "set vkm2 = $1 "
+                "where record_id = $2");
+            TSQLStatement* stmt_dest = dest_db->Statement(sql_dest);
+
+            stmt_dest->NextIteration();
+            stmt_dest->SetInt(0, iField);
+            stmt_dest->SetInt(1, record_id);
+
+            // write new value to the database
+            if (!stmt_dest->Process())
+            {
+                cout<<"Error: updating information has been failed"<<endl;
+
+                delete stmt_dest;
+                continue;
+            }
+
+            delete stmt_dest;
+        }
+    }
+
+    delete stmt_source;
+    delete source_db;
+    delete dest_db;
+}
+
 bool check_element(const string& str, size_t pos, string element)
 {
     size_t str_length = str.length(), element_length = element.length();
@@ -1108,7 +1236,7 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
     }
 
     UniDbConnection* connUni = UniDbConnection::Open(ELOG_DB);
-    if (connUni == 0x00) return 0x00;
+    if (connUni == 0x00) return -1;
     TSQLServer* elog_server = connUni->GetSQLServer();
     if (elog_server == 0x00)
     {

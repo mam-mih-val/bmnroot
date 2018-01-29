@@ -79,9 +79,11 @@ InitStatus BmnGlobalTracking::Init() {
             if (fVerbose)
                 cout << "Init. No BmnGemStripHit array!" << endl;
         fGemTracks = (TClonesArray*) ioman->GetObject("BmnGemTrack");
-        if (!fGemTracks)
-            if (fVerbose)
-                cout << "Init. No GEM tracks array!" << endl;
+        if (!fGemTracks) {
+            cout << "BmnGlobalTracking::Init(): branch " << "BmnGemTrack" << " not found! Task will be deactivated" << endl;
+            SetActive(kFALSE);
+            return kERROR;
+        }
     }
 
     // Vertex
@@ -131,6 +133,9 @@ InitStatus BmnGlobalTracking::Init() {
 }
 
 void BmnGlobalTracking::Exec(Option_t* opt) {
+    
+    if (!IsActive())
+        return;
 
     if (fVerbose) cout << "\n======================== Global tracking exec started =====================\n" << endl;
 

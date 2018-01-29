@@ -1404,6 +1404,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
 
     // extract rows one after another
     arrayResult = new TObjArray();
+    arrayResult->SetOwner(kTRUE);
     while (stmt->NextResultRow())
     {
         UniDbConnection* connRun = UniDbConnection::Open(UNIFIED_DB);

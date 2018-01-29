@@ -22,6 +22,8 @@
 #ifndef UNIDBPARSER_H
 #define UNIDBPARSER_H 1
 
+#include "UniDbConnection.h"
+
 #include "TString.h"
 
 #include <vector>
@@ -81,12 +83,18 @@ class UniDbParser
     UniDbParser();
     ~UniDbParser();
 
+    // common parsing functions for the most cases
     int ParseXml2Db(TString xmlName, TString schemaPath, bool isUpdate = false);
     int ParseCsv2Db(TString csvName, TString schemaPath, bool isUpdate = false);
     int ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate = false);
+
+    // parse text file not in a common format (should be rewritten to a common case later)
     int ParseTxtNoise2Db(int period_number, TString txtName, TString schemaPath);
 
-    // save ELOG to with specific features for BM@N
+    // parse DB fields to write to other fields (temporary function)
+    int ParseDb2Db();
+
+    // save text ELOG of the BM@N experiemnt in CSV format to new Elog DB (temporary function)
     int ConvertElogCsv(TString csvName = "parse_schemes/elog.csv", char separate_symbol = ';');
 
  ClassDef(UniDbParser,1)

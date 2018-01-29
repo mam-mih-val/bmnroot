@@ -53,6 +53,16 @@ public:
     vector<TClonesArray*> *GetTrigArrays(){
         return &trigArrays;
     }
+    
+    BmnTrigMapping GetT0Map(){
+        for (BmnTrigMapping tM : fMap){
+            if (tM.name == "T0_0" || tM.name == "T0_1")
+                return tM;
+        }
+        BmnTrigMapping tMno;
+        tMno.serial = 0;
+        return tMno;
+    }
 
 private:
 

@@ -153,12 +153,15 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
                 BmnGemStripLayer layer = module->GetStripLayer(iLayer);
 
                 for (Int_t iStrip = 0; iStrip < layer.GetNStrips(); ++iStrip) {
-                    new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
-                            BmnGemStripDigit(iStation, iModule, iLayer, iStrip, layer.GetStripSignal(iStrip));
+                    Double_t signal = layer.GetStripSignal(iStrip);
+                    if(signal > 0.0) {
+                        new ((*fBmnGemStripDigitsArray)[fBmnGemStripDigitsArray->GetEntriesFast()])
+                                BmnGemStripDigit(iStation, iModule, iLayer, iStrip, signal);
 
-                    if (fStripMatching) {
-                        new ((*fBmnGemStripDigitMatchesArray)[fBmnGemStripDigitMatchesArray->GetEntriesFast()])
-                                BmnMatch(layer.GetStripMatch(iStrip));
+                        if (fStripMatching) {
+                            new ((*fBmnGemStripDigitMatchesArray)[fBmnGemStripDigitMatchesArray->GetEntriesFast()])
+                                    BmnMatch(layer.GetStripMatch(iStrip));
+                        }
                     }
                 }
             }

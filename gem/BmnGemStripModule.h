@@ -3,6 +3,7 @@
 
 #include "BmnMatch.h"
 #include "BmnGemStripLayer.h"
+#include "BmnGemStripMedium.h"
 
 #include "TMath.h"
 

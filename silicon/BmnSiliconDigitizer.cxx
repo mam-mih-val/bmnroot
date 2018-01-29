@@ -145,12 +145,14 @@ void BmnSiliconDigitizer::ProcessMCPoints() {
                     for(Int_t iStrip = first_strip_in_zone; iStrip < last_strip_in_zone+1; ++iStrip) {
                         Double_t signal = module->GetStripSignalInZone(zone_id, iStrip);
 
-                        new ((*fBmnSiliconDigitsArray)[fBmnSiliconDigitsArray->GetEntriesFast()])
-                            BmnSiliconDigit(iStation, iModule, zone_id, iStrip, signal); // zone_id == layer_num !!!!!!
+                        if(signal > 0.0) {
+                            new ((*fBmnSiliconDigitsArray)[fBmnSiliconDigitsArray->GetEntriesFast()])
+                                BmnSiliconDigit(iStation, iModule, zone_id, iStrip, signal); // zone_id == layer_num !!!!!!
 
-                        if (fStripMatching) {
-                            new ((*fBmnSiliconDigitMatchesArray)[fBmnSiliconDigitMatchesArray->GetEntriesFast()])
-                                BmnMatch(module->GetStripMatchInZone(zone_id, iStrip));
+                            if (fStripMatching) {
+                                new ((*fBmnSiliconDigitMatchesArray)[fBmnSiliconDigitMatchesArray->GetEntriesFast()])
+                                    BmnMatch(module->GetStripMatchInZone(zone_id, iStrip));
+                            }
                         }
                     }
 

@@ -61,6 +61,7 @@ set(SRCS
   BmnGemStripHitMaker.cxx
   BmnKalmanFilter_tmp.cxx
   BmnGemVertexFinder.cxx
+  BmnGemStripMedium.cxx
 )
 
 IF (SSE_FOUND)

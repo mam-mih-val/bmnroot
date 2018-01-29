@@ -27,8 +27,10 @@
 #pragma link C++ class BmnKalmanFilter_tmp+;
 #pragma link C++ class BmnGemVertexFinder+;
 #pragma link C++ class BmnGemTracking+;
+#pragma link C++ class BmnGemStripMedium+;
 
 #pragma link C++ namespace BmnGemStripConfiguration;
+#pragma link C++ namespace BmnGemStripMediumConfiguration;
 #pragma link C++ enum ElectronDriftDirectionInModule;
 //#pragma link C++ enum StripNumberingDirection;
 //#pragma link C++ enum StripBorderPoint;

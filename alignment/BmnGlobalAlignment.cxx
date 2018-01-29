@@ -28,13 +28,14 @@ void BmnGlobalAlignment::Finish() {
 }
 
 BmnGlobalAlignment::~BmnGlobalAlignment() {
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
         delete [] fixedGemElements[iStat];
     delete [] fixedGemElements;
 
     delete [] fDetectorSet;
     delete mwpcGeo;
-    delete fDetector;
+    delete fDetectorGEM;
+    delete fDetectorSI;
     if (Labels) {
         delete [] Labels;
         system("cp millepede.res Millepede.res");
@@ -43,7 +44,7 @@ BmnGlobalAlignment::~BmnGlobalAlignment() {
     }
 }
 
-BmnGlobalAlignment::BmnGlobalAlignment(BmnGemStripConfiguration::GEM_CONFIG config, TString inFileName) :
+BmnGlobalAlignment::BmnGlobalAlignment(TString inFileName) :
 fMwpcHits(NULL),
 fGemHits(NULL),
 fTof1Hits(NULL),
@@ -71,7 +72,6 @@ fMinHitsAccepted(3),
 fChi2MaxPerNDF(LDBL_MAX),
 nSelectedTracks(0),
 fUseRealHitErrors(kFALSE),
-fGeometry(config),
 fNumOfIterations(50000),
 fAccuracy(1e-3),
 fPreSigma(1.),
@@ -90,36 +90,6 @@ fKalman(NULL),
 Labels(NULL),
 fUseVp(kTRUE) {
     fRecoFileName = inFileName;
-    nDetectors = 5; // GEM + MWPC + DCH + PRIMARY_VERTEX_INFO + SILICON
-    fDetectorSet = new TString[nDetectors]();
-
-    // Create GEM detector ------------------------------------------------------
-    switch (fGeometry) {
-        case BmnGemStripConfiguration::RunWinter2016:
-            fDetector = new BmnGemStripStationSet_RunWinter2016(fGeometry);
-            cout << "   Current Configuration : RunWinter2016" << "\n";
-            break;
-
-        case BmnGemStripConfiguration::RunSpring2017:
-            fDetector = new BmnGemStripStationSet_RunSpring2017(fGeometry);
-            cout << "   Current Configuration : RunSpring2017" << "\n";
-            break;
-
-        default:
-            fDetector = NULL;
-    }
-
-    fixedGemElements = new Bool_t*[fDetector->GetNStations()];
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
-        fixedGemElements[iStat] = new Bool_t[fDetector->GetGemStation(iStat)->GetNModules()];
-    }
-
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-        for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStat)->GetNModules(); iMod++)
-            fixedGemElements[iStat][iMod] = kFALSE;
-
-    // Initialize MWPC geometry
-    mwpcGeo = new BmnMwpcGeometry();
 
     fBranchMwpcHits = "BmnMwpcHit";
     fBranchSiHits = "BmnSiliconHit";
@@ -136,38 +106,21 @@ fUseVp(kTRUE) {
     fBranchGemAlignCorr = "BmnGemAlignCorrections";
     fBranchTofAlignCorr = "BmnTofAlignCorrections";
     fBranchDchAlignCorr = "BmnDchAlignCorrections";
+    fBranchSiAlignCorr = "BmnSiliconAlignCorrections";
 
     fBranchGemResiduals = "BmnResiduals";
     fBranchFairEventHeader = "EventHeader.";
 
     fBranchVertex = "BmnVertex";
 
-    fRoughVertex.SetXYZ(0., -3.5, -21.7); // Vp defined by default
+    CreateDetectorGeometries();
 }
 
 InitStatus BmnGlobalAlignment::Init() {
     cout << " BmnGlobalAlignment::Init() " << endl;
-    Bool_t isUsedMwpc = kTRUE, isUsedGem = kTRUE, isUsedDch = kTRUE,
-            isUsedVertex = kTRUE, isUsedSi = kTRUE;
-
-    if (fDetectorSet[0] == "")
-        isUsedGem = kFALSE;
-
-    if (fDetectorSet[1] == "")
-        isUsedMwpc = kFALSE;
-
-    if (fDetectorSet[2] == "")
-        isUsedDch = kFALSE;
-
-    if (fDetectorSet[3] == "")
-        isUsedVertex = kFALSE;
-
-    if (fDetectorSet[4] == "")
-        isUsedSi = kFALSE;
-
-    cout << "Use detectors: MWPC - " << isUsedMwpc << " GEM - " <<
-            isUsedGem << " DCH - " << isUsedDch << " PRIMARY_VERTEX - " << isUsedVertex <<
-            " SILICON - " << isUsedSi << endl;
+    cout << "Use detectors: MWPC - " << fDetectorSet[1] << " GEM - " <<
+            fDetectorSet[0] << " DCH - " << fDetectorSet[2] << " PRIMARY_VERTEX - " << fDetectorSet[3] <<
+            " SILICON - " << fDetectorSet[4] << endl;
 
     TChain* chain = new TChain("cbmsim");
     chain->Add(fRecoFileName.Data());
@@ -178,9 +131,11 @@ InitStatus BmnGlobalAlignment::Init() {
     delete chain;
 
     Double_t fieldVolt = 0.;
-    Double_t map_current = 55.87;
+    UniDbRun* runInfo = NULL;
     if (fRunId != 0) {
-        UniDbRun* runInfo = UniDbRun::GetRun(6, fRunId);
+        runInfo = UniDbRun::GetRun(6, fRunId);
+        if (!runInfo)
+            throw;
         fieldVolt = *runInfo->GetFieldVoltage();
         fIsField = (fieldVolt > 10.) ? kTRUE : kFALSE;
     }
@@ -208,12 +163,12 @@ InitStatus BmnGlobalAlignment::Init() {
 
     fMwpcAlignCorr = new TClonesArray(fBranchMwpcAlignCorr.Data());
     fGemAlignCorr = new TClonesArray(fBranchGemAlignCorr.Data());
-    fTofAlignCorr = new TClonesArray(fBranchTofAlignCorr.Data());
     fDchAlignCorr = new TClonesArray(fBranchDchAlignCorr.Data());
+    fSiAlignCorr = new TClonesArray(fBranchSiAlignCorr.Data());
 
     ioman->Register(fBranchMwpcAlignCorr.Data(), "MWPC", fMwpcAlignCorr, kTRUE);
     ioman->Register(fBranchGemAlignCorr.Data(), "GEM", fGemAlignCorr, kTRUE);
-    // ioman->Register(fBranchTofAlignCorr.Data(), "TOF", fTofAlignCorr, kTRUE);
+    ioman->Register(fBranchSiAlignCorr.Data(), "SI", fSiAlignCorr, kTRUE);
     ioman->Register(fBranchDchAlignCorr.Data(), "DCH", fDchAlignCorr, kTRUE);
 
     fChain = ioman->GetInChain();
@@ -222,7 +177,7 @@ InitStatus BmnGlobalAlignment::Init() {
     fCanv = new TCanvas("c1", "c1", 1200, 800);
     fCanv->Divide(2, 1);
 
-    // Read current geometry (RunSpring2017) from database 
+    // Read current geometry (RunSpring2017) from database
     Char_t* geoFileName = (Char_t*) "current_geo_file.root";
     Int_t res_code = UniDbRun::ReadGeometryFile(6, fRunId, geoFileName);
     if (res_code != 0) {
@@ -294,13 +249,13 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
         Int_t idx[] = {globTrack->GetGemTrackIndex(), globTrack->GetMwpcTrackIndex(), globTrack->GetDchTrackIndex(),
             globTrack->GetGemTrackIndex(), globTrack->GetSilHitIndex()};
 
-        Char_t buff[5000] = {""};
+        Char_t buff[50000] = {""};
         Bool_t zhopa = kFALSE;
 
         for (Int_t iDet = 0; iDet < nDetectors; iDet++) {
             TString detName = (iDet == 0) ? "GEM" : (iDet == 1) ? "MWPC" : (iDet == 2) ? "DCH" :
                     (iDet == 3) ? "VERTEX" : (iDet == 4) ? "SILICON" : "";
-            if (fDetectorSet[iDet] != "")
+            if (fDetectorSet[iDet])
                 if (idx[iDet] != -1) {
                     sprintf(buff, "%s%s\n", buff, detName.Data());
                     if (!fIsField)
@@ -334,7 +289,7 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
 
 void BmnGlobalAlignment::PrintToFullFormat(TString detName, Char_t* buff) {
     // 2 means two directions (x, y) with values to be depended on presence of MagField
-    // fIsMagField --> (YZ-plane: Y0, Ty (2); XZ-plane: c (1), Tx^{i} i = 0 .. 5 (6). Totally: 2 and 7)  
+    // fIsMagField --> (YZ-plane: Y0, Ty (2); XZ-plane: c (1), Tx^{i} i = 0 .. 5 (6). Totally: 2 and 7)
     const Int_t nCases = 2;
     Int_t zeroLoc[nCases] = {(!fIsField) ? fNLC : 2, (!fIsField) ? fNLC : 2};
     // Int_t zeroLoc[nCases] = {(!fIsField) ? fNLC : 6, (!fIsField) ? fNLC : 2};
@@ -342,11 +297,14 @@ void BmnGlobalAlignment::PrintToFullFormat(TString detName, Char_t* buff) {
     Int_t zeroMwpc = 3; // To be fixed !!!
     Int_t zeroDch = 3; // To be fixed !!!
     Int_t zeroVertex = 3; // To be fixed !!!
-    Int_t zeroSi = 3; // To be fixed !!!
+    Int_t zeroSi = 0;
     Int_t nMeas = 2;
 
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-        zeroGem += 3 * fDetector->GetGemStation(iStat)->GetNModules();
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+        zeroGem += 3 * fDetectorGEM->GetGemStation(iStat)->GetNModules();
+
+    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+        zeroSi += 3 * fDetectorSI->GetSiliconStation(iStat)->GetNModules();
 
     Int_t zeroTot[nCases] = {zeroLoc[0] + zeroGem + zeroMwpc + zeroDch + zeroVertex + zeroSi + nMeas, zeroLoc[1] + zeroGem + zeroMwpc + zeroDch + zeroVertex + zeroSi + nMeas};
     TString zeroLine[nCases] = {"", ""};
@@ -380,8 +338,8 @@ Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
     TString mwpcPart = "0.0 0.0 0.0";
     TString dchPart = mwpcPart;
 
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-        modGemTotal += fDetector->GetGemStation(iStat)->GetNModules();
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+        modGemTotal += fDetectorGEM->GetGemStation(iStat)->GetNModules();
 
     if (iDet == 0) {
         BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(idx);
@@ -418,8 +376,8 @@ Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
         //      delete xzTrackProfile;
 
         // Calculate derivatives (dx(z) / dTx^{i}) of loc. params
-        Double_t locDer[fDetector->GetNStations()];
-        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
+        Double_t locDer[fDetectorGEM->GetNStations()];
+        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
             locDer[iStat] = 0.;
 
         Bool_t posHitsPredict[track->GetNHits()];
@@ -474,7 +432,7 @@ Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
             //            locDer[hit->GetStation()] = (2 * fitParamsPol2[2] * zCurrentHit.GetZ() + fitParamsPol2[1]) / fitParamsPol1[1];
             //           locDer[hit->GetStation()] = (zRight.GetX() - zLeft.GetX()) / (zRight.GetTx() - zLeft.GetTx());
             locDer[hit->GetStation()] = hit->GetZ() + fitParams[1] / (2 * fitParams[2]);
-            //           cout << (zRight.GetX() - zLeft.GetX()) / (zRight.GetTx() - zLeft.GetTx()) << " " << 
+            //           cout << (zRight.GetX() - zLeft.GetX()) / (zRight.GetTx() - zLeft.GetTx()) << " " <<
             //                   ((2 * fitParamsPol2[2] * zCurrentHit.GetZ() + fitParamsPol2[1]) / fitParamsPol1[1]) << endl;
             //          Int_t stat = hit->GetStation();
             //           Double_t z = hit->GetZ();
@@ -510,21 +468,21 @@ Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
                         " zR = " << zRight.GetZ() << " zL = " << zLeft.GetZ() <<
                         " xR = " << zRight.GetX() << " xL = " << zLeft.GetX() << " TxR = " << zRight.GetTx() << " TxL = " << zLeft.GetTx() <<
                         " der. = " << locDer[hit->GetStation()] << " xHit = " << hit->GetX() << endl;
-                /// ...  
+                /// ...
             }
         }
 
         // Prepare string with the calculated loc. derivatives
         TString locDerNullString = "";
         TString locDerString = "";
-        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
+        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++) {
             locDerString += TString::Format("%f ", locDer[iStat]);
             locDerNullString += TString::Format("%f ", 0.);
         }
 
         Int_t nModulesProcessed = 0;
-        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
-            Int_t nMod = fDetector->GetGemStation(iStat)->GetNModules();
+        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++) {
+            Int_t nMod = fDetectorGEM->GetGemStation(iStat)->GetNModules();
             for (Int_t iMod = 0; iMod < nMod; iMod++) {
                 nModulesProcessed++;
                 Int_t iHit;
@@ -587,19 +545,23 @@ Bool_t BmnGlobalAlignment::MilleFieldRuns(Int_t idx, Int_t iDet, Char_t* buff) {
 
 void BmnGlobalAlignment::MilleNoFieldRuns(BmnGlobalTrack* glTrack, Int_t idx, Int_t iDet, Char_t* buff) {
     Int_t modGemTotal = 0;
+    Int_t modSiTotal = 0;
+
     TString mwpcPart = "0.0 0.0 0.0";
     TString dchPart = "0.0 0.0 0.0";
     TString vertexPart = "0.0 0.0 0.0";
-    TString siPart = "0.0 0.0 0.0";
 
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-        modGemTotal += fDetector->GetGemStation(iStat)->GetNModules();
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+        modGemTotal += fDetectorGEM->GetGemStation(iStat)->GetNModules();
+
+    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+        modSiTotal += fDetectorSI->GetSiliconStation(iStat)->GetNModules();
 
     if (iDet == 0) {
         BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(idx);
         Int_t nModulesProcessed = 0;
-        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
-            Int_t nMod = fDetector->GetGemStation(iStat)->GetNModules();
+        for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++) {
+            Int_t nMod = fDetectorGEM->GetGemStation(iStat)->GetNModules();
             for (Int_t iMod = 0; iMod < nMod; iMod++) {
                 nModulesProcessed++;
                 Int_t iHit;
@@ -628,6 +590,11 @@ void BmnGlobalAlignment::MilleNoFieldRuns(BmnGlobalTrack* glTrack, Int_t idx, In
                             zeroBeg += "0. ";
                         for (Int_t i = 0; i < N_zeros_end; i++)
                             zeroEnd += "0. ";
+
+                        TString siPart = "";
+                        for (Int_t iModTot = 0; iModTot < 3 * modSiTotal; iModTot++)
+                            siPart += "0. ";
+
                         sprintf(buff, "%s%s%s %s %s%s %s %s %s %s\n", buff, locDerX, zeroBeg.Data(), globDerX, zeroEnd.Data(), mwpcPart.Data(), dchPart.Data(), vertexPart.Data(),
                                 siPart.Data(), measX);
                         sprintf(buff, "%s%s%s %s %s%s %s %s %s %s\n", buff, locDerY, zeroBeg.Data(), globDerY, zeroEnd.Data(), mwpcPart.Data(), dchPart.Data(), vertexPart.Data(),
@@ -640,7 +607,13 @@ void BmnGlobalAlignment::MilleNoFieldRuns(BmnGlobalTrack* glTrack, Int_t idx, In
                     for (Int_t iModTot = 0; iModTot < 3 * modGemTotal; iModTot++)
                         zeroLine += "0. ";
 
-                    zeroLine += mwpcPart + " " + dchPart + " " + vertexPart + " " + siPart;
+                    zeroLine += mwpcPart + " " + dchPart + " " + vertexPart + " ";
+
+                    TString siPart = "";
+                    for (Int_t iModTot = 0; iModTot < 3 * modSiTotal; iModTot++)
+                        siPart += "0. ";
+
+                    zeroLine += siPart;
 
                     for (Int_t iRow = 0; iRow < 2; iRow++)
                         sprintf(buff, "%s%d %d 0. 0. 0. 0. %s 0. 0.\n", buff, iStat, iMod, zeroLine.Data()); // local = 4 -> zeroLine -> meas -> dmeas
@@ -728,21 +701,54 @@ void BmnGlobalAlignment::MilleNoFieldRuns(BmnGlobalTrack* glTrack, Int_t idx, In
 
     // SILICON
     if (iDet == 4) {
-        BmnSiliconHit* hit = (BmnSiliconHit*) fSiHits->UncheckedAt(idx);
+        Int_t nModulesProcessed = 0;
+        for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
+            for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++) {
+                nModulesProcessed++;
+                BmnSiliconHit* hit = (BmnSiliconHit*) fSiHits->UncheckedAt(idx);
+                Int_t stat = hit->GetStation();
+                Int_t mod = hit->GetModule();
+                TString zeroEnd = "", zeroBeg = "";
+                if (stat == iStat && mod == iMod) {
+                    Char_t* locDerX = Form("%d %d 1. %f 0. 0. ", hit->GetStation(), hit->GetModule(), hit->GetZ());
+                    Char_t* locDerY = Form("%d %d 0. 0. 1. %f ", hit->GetStation(), hit->GetModule(), hit->GetZ());
 
-        Char_t* locDerX = Form("1. %f 0. 0. ", hit->GetZ());
-        Char_t* locDerY = Form("0. 0. 1. %f ", hit->GetZ());
-        Char_t* globDerX = Form("1. 0. %f", glTrack->GetParamFirst()->GetTx());
-        Char_t* globDerY = Form("0. 1. %f", glTrack->GetParamFirst()->GetTy());
-        Char_t* measX = Form("%f %f ", hit->GetX(), fUseRealHitErrors ? hit->GetDx() : 1.);
-        Char_t* measY = Form("%f %f ", hit->GetY(), fUseRealHitErrors ? hit->GetDy() : 1.);
+                    Int_t N_zeros_beg = 3 * (nModulesProcessed - 1);
+                    Int_t N_zeros_end = 3 * (modSiTotal - nModulesProcessed);
 
-        TString zeroLine = "";
-        for (Int_t i = 0; i < 3 * modGemTotal; i++)
-            zeroLine += "0. ";
+                    Char_t* globDerX = Form("1. 0. %f", glTrack->GetParamFirst()->GetTx());
+                    Char_t* globDerY = Form("0. 1. %f", glTrack->GetParamFirst()->GetTy());
 
-        sprintf(buff, "%s%s%s %s %s %s %s %s\n", buff, locDerX, zeroLine.Data(), mwpcPart.Data(), dchPart.Data(), vertexPart.Data(), globDerX, measX);
-        sprintf(buff, "%s%s%s %s %s %s %s %s\n", buff, locDerY, zeroLine.Data(), mwpcPart.Data(), dchPart.Data(), vertexPart.Data(), globDerY, measY);
+                    for (Int_t i = 0; i < N_zeros_beg; i++)
+                        zeroBeg += "0. ";
+                    for (Int_t i = 0; i < N_zeros_end; i++)
+                        zeroEnd += "0. ";
+
+                    Char_t* measX = Form("%f %f", hit->GetX(), fUseRealHitErrors ? hit->GetDx() : 1.);
+                    Char_t* measY = Form("%f %f", hit->GetY(), fUseRealHitErrors ? hit->GetDy() : 1.);
+
+                    TString zeroLineFromGem = "";
+                    for (Int_t i = 0; i < 3 * modGemTotal; i++)
+                        zeroLineFromGem += "0. ";
+                    sprintf(buff, "%s%s%s %s %s %s %s %s %s %s\n", buff, locDerX, zeroLineFromGem.Data(), mwpcPart.Data(), dchPart.Data(), vertexPart.Data(), zeroBeg.Data(),
+                            globDerX, zeroEnd.Data(), measX);
+                    sprintf(buff, "%s%s%s %s %s %s %s %s %s %s\n", buff, locDerY, zeroLineFromGem.Data(), mwpcPart.Data(), dchPart.Data(), vertexPart.Data(), zeroBeg.Data(),
+                            globDerY, zeroEnd.Data(), measY);
+                } else {
+                    TString zeroLine = "";
+                    for (Int_t iModTot = 0; iModTot < 3 * modGemTotal; iModTot++)
+                        zeroLine += "0. ";
+
+                    zeroLine += mwpcPart + " " + dchPart + " " + vertexPart + " ";
+
+                    for (Int_t iModTot = 0; iModTot < 3 * modSiTotal; iModTot++)
+                        zeroLine += "0. ";
+
+                    for (Int_t iRow = 0; iRow < 2; iRow++)
+                        sprintf(buff, "%s%d %d 0. 0. 0. 0. %s 0. 0.\n", buff, iStat, iMod, zeroLine.Data()); // local = 4 -> zeroLine -> meas -> dmeas
+                }
+            }
+        }
     }
 }
 
@@ -754,8 +760,8 @@ const Int_t BmnGlobalAlignment::MakeBinFile() {
     const Int_t ngl_per_subdetector = 3; // x, y and z corrs to each det. subsyst. (GEM, MWPC, DCH, PRIMARY_VERTEX, SILICON at the moment)
     // GEM
     Int_t gem = 0;
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-        gem += ngl_per_subdetector * fDetector->GetGemStation(iStat)->GetNModules();
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+        gem += ngl_per_subdetector * fDetectorGEM->GetGemStation(iStat)->GetNModules();
 
     // MWPC
     Int_t mwpc = ngl_per_subdetector;
@@ -763,11 +769,13 @@ const Int_t BmnGlobalAlignment::MakeBinFile() {
     // DCH
     Int_t dch = ngl_per_subdetector;
 
-    // VERTEX 
+    // VERTEX
     Int_t vertex = ngl_per_subdetector;
 
-    // SILICON 
-    Int_t silicon = ngl_per_subdetector;
+    // SILICON
+    Int_t silicon = 0;
+    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+        silicon += ngl_per_subdetector * fDetectorSI->GetSiliconStation(iStat)->GetNModules();
 
     const Int_t dimLabel = gem + mwpc + dch + vertex + silicon;
     Labels = new Int_t[dimLabel];
@@ -782,15 +790,14 @@ const Int_t BmnGlobalAlignment::MakeBinFile() {
     Double_t rMeasure, dMeasure;
 
     // Loop over selected tracks
-    // fDebug = false;
     for (Int_t iTrack = 0; iTrack < nSelectedTracks; iTrack++) {
         // Read GEM info
         fout_txt >> detName;
         if (fDebug)
             cout << detName << endl;
 
-        for (Int_t iStation = 0; iStation < fDetector->GetNStations(); iStation++) {
-            for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStation)->GetNModules(); iMod++) {
+        for (Int_t iStation = 0; iStation < fDetectorGEM->GetNStations(); iStation++) {
+            for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStation)->GetNModules(); iMod++) {
                 for (Int_t iLine = 0; iLine < 2; iLine++) {
                     Int_t nElements = (!fIsField) ? fNLC : (iLine == 0) ? 2 : 2;
                     // Int_t nElements = (!fIsField) ? fNLC : (iLine == 0) ? 6 : 2;
@@ -811,8 +818,8 @@ const Int_t BmnGlobalAlignment::MakeBinFile() {
             }
         }
 
-        // Read MWPC, DCH, VERTEX and SILICON info
-        for (Int_t iDet = 0; iDet < nDetectors - 1; iDet++) {
+        // Read MWPC, DCH, VERTEX
+        for (Int_t iDet = 0; iDet < 3; iDet++) {
             fout_txt >> detName;
             if (fDebug)
                 cout << detName << " " << endl;
@@ -832,6 +839,36 @@ const Int_t BmnGlobalAlignment::MakeBinFile() {
                 Mille->mille(nElements, DerLc, dimLabel, DerGl, Labels, rMeasure, dMeasure);
                 if (fDebug)
                     cout << coordName << rMeasure << " " << dMeasure << endl;
+            }
+        }
+
+        // Read SILICON
+        fout_txt >> detName;
+        if (fDebug)
+            cout << detName << endl;
+
+        for (Int_t iStation = 0; iStation < fDetectorSI->GetNStations(); iStation++) {
+            for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStation)->GetNModules(); iMod++) {
+                for (Int_t iLine = 0; iLine < 2; iLine++) {
+                    Int_t nElements = (!fIsField) ? fNLC : (iLine == 0) ? 2 : 2;
+                    Double_t DerLc[nElements];
+                    for (Int_t iElement = 0; iElement < nElements; iElement++)
+                        DerLc[iElement] = 0.;
+                    coordName = (iLine == 0) ? " x = " : " y = ";
+                    fout_txt >> stat >> mod;
+
+                    for (Int_t iVar = 0; iVar < nElements; iVar++)
+                        fout_txt >> DerLc[iVar];
+
+                    for (Int_t iVar = 0; iVar < dimLabel; iVar++)
+                        fout_txt >> DerGl[iVar];
+
+                    fout_txt >> rMeasure >> dMeasure;
+                    Mille->mille(nElements, DerLc, dimLabel, DerGl, Labels, rMeasure, dMeasure);
+                    Mille->mille(nElements, DerLc, dimLabel, DerGl, Labels, rMeasure, dMeasure);
+                    if (fDebug)
+                        cout << "Stat: " << stat << " Mod: " << mod << coordName << rMeasure << " " << dMeasure << endl;
+                }
             }
         }
         Mille->end();
@@ -860,55 +897,50 @@ void BmnGlobalAlignment::MakeSteerFile() {
     fprintf(steer, "dwfractioncut %G\n", fDwfractioncut);
     fprintf(steer, "Parameter\n");
 
-    // Add new det. idx. if necessary
-    const Int_t nDets = nDetectors;
-    const Int_t nBounds = 2;
-
-    // Reserved labels for det. subsystems: GEM, MWPC, DCH, VERTEX and SILICON (0, 1, 2, 3, 4)
-    Int_t** idxBound = new Int_t*[nDets];
-    for (Int_t iDet = 0; iDet < nDets; iDet++)
-        idxBound[iDet] = new Int_t[nBounds];
-
-    Int_t parCounter = 0;
+    Int_t parCounterGem = 0;
+    Int_t parCounterSi = 0;
     const Int_t nParams = 3;
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-        for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStat)->GetNModules(); iMod++)
-            parCounter++;
 
-    idxBound[0][0] = Labels[0];
-    idxBound[0][1] = nParams * parCounter;
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++)
+            parCounterGem++;
 
-    idxBound[1][0] = idxBound[0][1] + 1;
-    idxBound[1][1] = idxBound[1][0] + (nParams - 1);
-
-    idxBound[2][0] = idxBound[1][1] + 1;
-    idxBound[2][1] = idxBound[2][0] + (nParams - 1);
-
-    idxBound[3][0] = idxBound[2][1] + 1;
-    idxBound[3][1] = idxBound[3][0] + (nParams - 1);
-
-    idxBound[4][0] = idxBound[3][1] + 1;
-    idxBound[4][1] = idxBound[4][0] + (nParams - 1);
+    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+        for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++)
+            parCounterSi++;
 
     Int_t startIdx = 0;
-    for (Int_t iDet = 0; iDet < nDets; iDet++) {
-        if (iDet == 0) // Process GEMs to mark fixed stations if exist
-            for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
-                for (Int_t iPar = 0; iPar < fDetector->GetGemStation(iStat)->GetNModules() * nParams; iPar++)
+    for (Int_t iDet = 0; iDet < nDetectors; iDet++) {
+        if (iDet == 0) {// Process GEMs to mark fixed stations if exist
+            for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++) {
+                for (Int_t iPar = 0; iPar < fDetectorGEM->GetGemStation(iStat)->GetNModules() * nParams; iPar++)
                     fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedGemElements[iStat][iPar / nParams]) ? -1. : fPreSigma);
-                startIdx += fDetector->GetGemStation(iStat)->GetNModules() * nParams;
-            } else if (iDet == 1 || iDet == 2 || iDet == 3 || iDet == 4) // MWPC, DCH, VERTEX and SILICON
-            for (Int_t iPar = startIdx + (iDet - 1) * nParams; iPar < startIdx + iDet * nParams; iPar++)
-                fprintf(steer, "%d %G %G\n", Labels[iPar], 0., (fDetectorSet[iDet] != "") ? fPreSigma : -1.);
+                startIdx += fDetectorGEM->GetGemStation(iStat)->GetNModules() * nParams;
+            }
+        } 
+        
+        else if (iDet == 4) { // Process SILICON to mark fixed modules if exist
+            for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
+                for (Int_t iPar = 0; iPar < fDetectorSI->GetSiliconStation(iStat)->GetNModules() * nParams; iPar++)
+                    fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedSiElements[iStat][iPar / nParams]) ? -1. : fPreSigma);
+            }
+        } 
+        
+        else if (iDet == 1 || iDet == 2 || iDet == 3) {// MWPC, DCH, VERTEX
+            //  if (iDet == 1) startIdx -= nParams;
+            for (Int_t iPar = 0; iPar < nParams; iPar++)
+                fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fDetectorSet[iDet]) ? fPreSigma : -1.);
+            startIdx += nParams;
+        }
     }
 
     // GEMs
     // 1. Calculate center-of-gravity along Z-axis
     Double_t zSum = 0.;
     Int_t modCounter = 0;
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-        for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStat)->GetNModules(); iMod++) {
-            zSum += fDetector->GetGemStation(iStat)->GetModule(iMod)->GetZStartModulePosition();
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
+            zSum += fDetectorGEM->GetGemStation(iStat)->GetModule(iMod)->GetZStartModulePosition();
             modCounter++;
         }
     Double_t zC = zSum / modCounter;
@@ -919,9 +951,9 @@ void BmnGlobalAlignment::MakeSteerFile() {
         deltaZ[iMod] = 0.;
 
     modCounter = 0;
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-        for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStat)->GetNModules(); iMod++) {
-            deltaZ[modCounter] = fDetector->GetGemStation(iStat)->GetModule(iMod)->GetZStartModulePosition() - zC;
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
+            deltaZ[modCounter] = fDetectorGEM->GetGemStation(iStat)->GetModule(iMod)->GetZStartModulePosition() - zC;
             modCounter++;
         }
 
@@ -941,7 +973,7 @@ void BmnGlobalAlignment::MakeSteerFile() {
             modCounter = 0;
             for (Int_t iPar = 0; iPar < dim; iPar++) {
                 // Remember: this condition is used for GEMs only
-                if (Labels[iPar] > idxBound[0][1])
+                if (Labels[iPar] > nParams * parCounterGem)
                     break;
 
                 if (Labels[iPar] % 3 == iStep + 1) {
@@ -974,8 +1006,8 @@ void BmnGlobalAlignment::ReadPedeOutput(ifstream& resFile) {
     Double_t* corrs = new Double_t[nParams];
 
     // Read GEMs
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++) {
-        for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStat)->GetNModules(); iMod++) {
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++) {
+        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
             ExtractCorrValues(resFile, corrs);
             BmnGemAlignCorrections* gemCorrs = new((*fGemAlignCorr)[fGemAlignCorr->GetEntriesFast()]) BmnGemAlignCorrections();
             gemCorrs->SetStation(iStat);
@@ -985,17 +1017,19 @@ void BmnGlobalAlignment::ReadPedeOutput(ifstream& resFile) {
     }
 
     // Read MWPC and DCH
-    for (Int_t iDet = 0; iDet < 2; iDet++) {
+    for (Int_t iDet = 0; iDet < nDetectors - 1; iDet++) {
         ExtractCorrValues(resFile, corrs);
         if (iDet == 0) {
             BmnMwpcAlignCorrections* mwpcCorrs = new((*fMwpcAlignCorr)[fMwpcAlignCorr->GetEntriesFast()]) BmnMwpcAlignCorrections();
             mwpcCorrs->SetCorrections(corrs);
-        } else {
+        } else if (iDet == 1) {
             BmnDchAlignCorrections* dchCorrs = new((*fDchAlignCorr)[fDchAlignCorr->GetEntriesFast()]) BmnDchAlignCorrections();
             dchCorrs->SetCorrections(corrs);
+        } else if (iDet == 3) {
+            BmnSiliconAlignCorrections* siCorrs = new((*fSiAlignCorr)[fSiAlignCorr->GetEntriesFast()]) BmnSiliconAlignCorrections();
+            siCorrs->SetCorrections(corrs);
         }
     }
-
     delete [] corrs;
 }
 
@@ -1022,3 +1056,44 @@ void BmnGlobalAlignment::ExtractCorrValues(ifstream& resFile, Double_t* corrs) {
         corrs[idx] = -parValue.Atof();
     }
 }
+
+void BmnGlobalAlignment::CreateDetectorGeometries() {
+    nDetectors = 5; // GEM + MWPC + DCH + PRIMARY_VERTEX_INFO + SILICON
+    fDetectorSet = new Bool_t[nDetectors]();
+
+    /// MWPC
+    mwpcGeo = new BmnMwpcGeometry();
+
+    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
+    TString confSi = "SiliconRunSpring2017.xml"; // FIXME for RUN7 (should be got from the BM@N UniDb)
+    TString confGem = "GemRunSpring2017.xml";
+
+    /// SI
+    TString gPathSiliconConfig = gPathConfig + "/silicon/XMLConfigs/";
+    fDetectorSI = new BmnSiliconStationSet(gPathSiliconConfig + confSi);
+
+    // Define fixed elements of SI-detector...
+    fixedSiElements = new Bool_t*[fDetectorSI->GetNStations()];
+    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
+        fixedSiElements[iStat] = new Bool_t[fDetectorSI->GetSiliconStation(iStat)->GetNModules()];
+    }
+
+    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+        for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++)
+            fixedSiElements[iStat][iMod] = kFALSE;
+
+    /// GEM
+    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    fDetectorGEM = new BmnGemStripStationSet(gPathGemConfig + confGem);
+
+    // Define fixed elements of GEM-detector...
+    fixedGemElements = new Bool_t*[fDetectorGEM->GetNStations()];
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++) {
+        fixedGemElements[iStat] = new Bool_t[fDetectorGEM->GetGemStation(iStat)->GetNModules()];
+    }
+
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++)
+            fixedGemElements[iStat][iMod] = kFALSE;
+}
+

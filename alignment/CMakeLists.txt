@@ -45,10 +45,12 @@ BmnGemAlignCorrections.cxx
 BmnGemAlignmentCorrections.cxx
 BmnDchAlignCorrections.cxx
 BmnMwpcAlignCorrections.cxx
+BmnSiliconAlignCorrections.cxx
 BmnGlobalAlignment.cxx
 BmnMille.cxx
 BmnAlignCorrections.cxx
 BmnGemResiduals.cxx
+BmnSiResiduals.cxx
 BmnResiduals.cxx
 )
 

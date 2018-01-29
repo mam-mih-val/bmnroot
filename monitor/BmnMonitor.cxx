@@ -13,9 +13,6 @@
 #include <root/TLegend.h>
 
 #include "BmnMonitor.h"
-#include "BmnOnlineDecoder.h"
-#include "BmnHistSilicon.h"
-#include "BmnHistSrc.h"
 
 BmnMonitor::BmnMonitor() {
     keepWorking = kTRUE;
@@ -203,6 +200,7 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistToF700(refName + "ToF700"));
     bhVec.push_back(new BmnHistTrigger(refName + "Triggers"));
     bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir));
+    bhVec.push_back(new BmnHistLAND(refName + "LAND"));
     for (auto h : bhVec)
         h->SetDir(fHistOut, fRecoTree);
     for (auto h : bhVec4show) {
@@ -268,6 +266,7 @@ void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistToF700("ToF700"));
     bhVec4show.push_back(new BmnHistTrigger("Triggers"));
     bhVec4show.push_back(new BmnHistSrc("SRC", _curDir));
+    bhVec4show.push_back(new BmnHistLAND("LAND"));
 
     fServer->Register("/", infoCanvas);
     fServer->Register("/", refList);

@@ -62,7 +62,7 @@ private:
     Double_t fDoubleTemp, fMaxDelta;
     Int_t fHit_Per_Ev, fNEvents, fStrip, fFillHist;
     Bool_t fFlagHit[fNStr], fKilled[fNStr];
-    Double_t CorrLR[fNStr];
+    Double_t CorrLR[fNStr], CorrTimeShift[fNStr];
     Double_t fDigitL[fNStr], fDigitR[fNStr], fHit[fNStr];
     TVector3 fCentrStrip[fNStr], fCrossPoint[fNStr], fVectorTemp;
     BmnTrigDigit *fT0;
@@ -103,6 +103,7 @@ public:
     Bool_t SetCorrLR(Double_t *Mass);
     Bool_t SetCorrLR(TString NameFile);
     Bool_t SetCorrSlewing(TString NameFile);
+    Bool_t SetCorrTimeShift (TString NameFile);
     Bool_t SetGeoFile(TString NameFile);
     Bool_t SetGeo(BmnTof1GeoUtils *pGeoUtils);
     Bool_t GetXYZTime(Int_t Str, TVector3 *XYZ, Double_t *ToF);

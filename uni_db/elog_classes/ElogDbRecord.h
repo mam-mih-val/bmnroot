@@ -12,6 +12,7 @@
 
 #include "TString.h"
 #include "TDatime.h"
+#include "TObjArray.h"
 
 #include "UniDbConnection.h"
 
@@ -26,20 +27,24 @@ class ElogDbRecord
 	int i_record_id;
 	/// record date
 	TDatime dt_record_date;
-	/// author id
-	int* i_author_id;
-	/// type id
-	int i_type_id;
-	/// run number
-	int* i_run_number;
 	/// shift leader id
 	int* i_shift_leader_id;
+	/// type id
+	int i_type_id;
+	/// period number
+	int* i_period_number;
+	/// run number
+	int* i_run_number;
 	/// trigger id
 	int* i_trigger_id;
 	/// daq status
 	TString* str_daq_status;
 	/// sp 41
 	int* i_sp_41;
+	/// sp 57
+	int* i_sp_57;
+	/// vkm2
+	int* i_vkm2;
 	/// field comment
 	TString* str_field_comment;
 	/// beam
@@ -54,7 +59,7 @@ class ElogDbRecord
 	TString* str_record_comment;
 
 	//Constructor
-	ElogDbRecord(UniDbConnection* connUniDb, int record_id, TDatime record_date, int* author_id, int type_id, int* run_number, int* shift_leader_id, int* trigger_id, TString* daq_status, int* sp_41, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment);
+	ElogDbRecord(UniDbConnection* connUniDb, int record_id, TDatime record_date, int* shift_leader_id, int type_id, int* period_number, int* run_number, int* trigger_id, TString* daq_status, int* sp_41, int* sp_57, int* vkm2, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -63,7 +68,7 @@ class ElogDbRecord
 
 	// static class functions
 	/// add new record to the database
-	static ElogDbRecord* CreateRecord(TDatime record_date, int* author_id, int type_id, int* run_number, int* shift_leader_id, int* trigger_id, TString* daq_status, int* sp_41, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment);
+	static ElogDbRecord* CreateRecord(TDatime record_date, int* shift_leader_id, int type_id, int* period_number, int* run_number, int* trigger_id, TString* daq_status, int* sp_41, int* sp_57, int* vkm2, TString* field_comment, TString* beam, double* energy, TString* target, double* target_width, TString* record_comment);
 	/// get record from the database
 	static ElogDbRecord* GetRecord(int record_id);
 	/// check record exists in the database
@@ -78,20 +83,24 @@ class ElogDbRecord
 	int GetRecordId() {return i_record_id;}
 	/// get record date of the current record
 	TDatime GetRecordDate() {return dt_record_date;}
-	/// get author id of the current record
-	int* GetAuthorId() {if (i_author_id == NULL) return NULL; else return new int(*i_author_id);}
-	/// get type id of the current record
-	int GetTypeId() {return i_type_id;}
-	/// get run number of the current record
-	int* GetRunNumber() {if (i_run_number == NULL) return NULL; else return new int(*i_run_number);}
 	/// get shift leader id of the current record
 	int* GetShiftLeaderId() {if (i_shift_leader_id == NULL) return NULL; else return new int(*i_shift_leader_id);}
+	/// get type id of the current record
+	int GetTypeId() {return i_type_id;}
+	/// get period number of the current record
+	int* GetPeriodNumber() {if (i_period_number == NULL) return NULL; else return new int(*i_period_number);}
+	/// get run number of the current record
+	int* GetRunNumber() {if (i_run_number == NULL) return NULL; else return new int(*i_run_number);}
 	/// get trigger id of the current record
 	int* GetTriggerId() {if (i_trigger_id == NULL) return NULL; else return new int(*i_trigger_id);}
 	/// get daq status of the current record
 	TString* GetDaqStatus() {if (str_daq_status == NULL) return NULL; else return new TString(*str_daq_status);}
 	/// get sp 41 of the current record
 	int* GetSp41() {if (i_sp_41 == NULL) return NULL; else return new int(*i_sp_41);}
+	/// get sp 57 of the current record
+	int* GetSp57() {if (i_sp_57 == NULL) return NULL; else return new int(*i_sp_57);}
+	/// get vkm2 of the current record
+	int* GetVkm2() {if (i_vkm2 == NULL) return NULL; else return new int(*i_vkm2);}
 	/// get field comment of the current record
 	TString* GetFieldComment() {if (str_field_comment == NULL) return NULL; else return new TString(*str_field_comment);}
 	/// get beam of the current record
@@ -108,20 +117,24 @@ class ElogDbRecord
 	// Setters
 	/// set record date of the current record
 	int SetRecordDate(TDatime record_date);
-	/// set author id of the current record
-	int SetAuthorId(int* author_id);
-	/// set type id of the current record
-	int SetTypeId(int type_id);
-	/// set run number of the current record
-	int SetRunNumber(int* run_number);
 	/// set shift leader id of the current record
 	int SetShiftLeaderId(int* shift_leader_id);
+	/// set type id of the current record
+	int SetTypeId(int type_id);
+	/// set period number of the current record
+	int SetPeriodNumber(int* period_number);
+	/// set run number of the current record
+	int SetRunNumber(int* run_number);
 	/// set trigger id of the current record
 	int SetTriggerId(int* trigger_id);
 	/// set daq status of the current record
 	int SetDaqStatus(TString* daq_status);
 	/// set sp 41 of the current record
 	int SetSp41(int* sp_41);
+	/// set sp 57 of the current record
+	int SetSp57(int* sp_57);
+	/// set vkm2 of the current record
+	int SetVkm2(int* vkm2);
 	/// set field comment of the current record
 	int SetFieldComment(TString* field_comment);
 	/// set beam of the current record
@@ -138,6 +151,9 @@ class ElogDbRecord
 	/// print information about current record
 	void Print();
 	/* END OF PUBLIC GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
+
+    /// get array of ElogDbRecord-s for a given run from the database
+    static TObjArray* GetRecords(int period_number, int run_number);
 
  ClassDef(ElogDbRecord,1);
 };

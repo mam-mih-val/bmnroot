@@ -82,7 +82,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
     {
             cout<<"Error: getting info about parameter from Tango has been failed: detector_name = "<<detector_name<<", parameter_name = "<<parameter_name<<endl;
             delete stmt_select;
-            delete db;
             return NULL;
     }
 
@@ -91,7 +90,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
     {
         cout<<"Error: There is no parameter '"<<parameter_name<<"' for "<<detector_name<<" detector"<<endl;
         delete stmt_select;
-        delete db;
         return NULL;
     }
 
@@ -116,7 +114,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
             else
             {
                 cout<<"Error: This Tango type is not supported: '"<<data_type<<"'"<<endl;
-                delete db;
                 return NULL;
             }
         }
@@ -137,7 +134,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
     {
             cout<<"Error: getting info about parameter values from Tango has been failed"<<endl;
             delete stmt_select;
-            delete db;
             return NULL;
     }
 
@@ -158,7 +154,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
             cout<<"Error: Parameter length can't be equal 0"<<endl;
             delete tango_data;
             delete stmt_select;
-            delete db;
             return NULL;
         }
 
@@ -169,7 +164,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
             cout<<"Error: Real parameter length can't be equal 0"<<endl;
             delete tango_data;
             delete stmt_select;
-            delete db;
             return NULL;
         }
 
@@ -189,7 +183,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
                 cout<<"Error: idx should be equal index of the parameter array"<<endl;
                 delete tango_data;
                 delete stmt_select;
-                delete db;
                 return NULL;
             }
 
@@ -218,7 +211,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
     }
 
     delete stmt_select;
-    delete db;
 
     return tango_data;
 }

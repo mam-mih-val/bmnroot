@@ -24,6 +24,7 @@
 #pragma link C++ class BmnHistToF700++;
 #pragma link C++ class BmnHistTrigger++;
 #pragma link C++ class BmnHistSrc++;
+#pragma link C++ class BmnHistLAND++;
 
 #pragma link C++ class vector<TH1F>+;
 #pragma link C++ class vector<vector<TH1F> >+;

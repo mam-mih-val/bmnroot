@@ -102,7 +102,7 @@ void BmnHistToF::FillFromDigi(DigiArrays *fDigiArrays) {
     for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++) {
         BmnTof1Digit *td = (BmnTof1Digit *) ToF4Digits->At(digIndex);
         Int_t strip = td->GetStrip();
-        if ((strip == 0) || (strip == 47))
+        if ((strip == 0) || (strip == (TOF400_STRIP_COUNT-1))) // noisy
             continue;
         histLeadingTime->Fill(td->GetTime());
         histAmp->Fill(td->GetAmplitude());

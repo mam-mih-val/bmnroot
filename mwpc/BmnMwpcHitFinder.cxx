@@ -62,7 +62,6 @@ InitStatus BmnMwpcHitFinder::Init() {
 
     kMinHits = 4;
     kChi2_Max = 20.;
-
     
     kX1_sh = 1.775;
     kY1_sh = 8.25;
@@ -322,8 +321,9 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
     
     //    for (Int_t iChamber = 0; iChamber < kNChambers; iChamber++) {
 
-          for(Int_t iCase=0; iCase < 8; iCase ++){
-	    SegmentFinder(1, Wires_Ch1, clust_Ch1, XVU_Ch1, Nhits_Ch1, iw_Ch1, Nseg_Ch1, wire_Ch1, xuv_Ch1, kMinHits, iCase, kBig);
+          for(Int_t iCase=1; iCase < 9; iCase ++){
+	    SegmentFinder(1, Wires_Ch1, clust_Ch1, XVU_Ch1, kMinHits);
+	    //SegmentFinder(1, Wires_Ch1, clust_Ch1, XVU_Ch1, Nhits_Ch1, iw_Ch1, Nseg_Ch1, wire_Ch1, xuv_Ch1, kMinHits, iCase, kBig);
 	//      	SegmentFinder(2, Wires_Ch2, clust_Ch2, XVU_Ch2, Nhits_Ch2, iw_Ch2, Nseg_Ch2, wire_Ch2, xuv_Ch2, kMinHits, iCase, kBig);
       }
 	  /*	  
@@ -348,11 +348,11 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
-
+/*
 void SegmentFinder(Int_t chNum, Int_t** wires_Ch, Int_t **clust_Ch, Float_t **XVU_Ch, Int_t *Nhits_Ch, Int_t *iw_Ch, Int_t &Nseg, Int_t **wires_glob, Float_t **xuv_glob, Int_t minHits, Short_t code, Int_t kBig) {
   //xuv_glob     - coordinates of all hits
   //wires_glob   - wires of all hits
-  Float_t delta = (chNum == 3) ? 1.125 : 0.75; //0.5; //condition for the nearest "lighted" wires
+    Float_t delta = (chNum == 3) ? 1.125 : 0.75; //0.5; //condition for the nearest "lighted" wires
    Int_t cntr_sumWW_x =  95 ;//center wires Wx1+Wx2 due to x-slope
    Int_t min_sumWW_x =  (chNum == 3) ? 3 : 2; //min sum of wires to 95 
 
@@ -374,7 +374,7 @@ void SegmentFinder(Int_t chNum, Int_t** wires_Ch, Int_t **clust_Ch, Float_t **XV
   // 8  {X+, V+, U-}
   
   Int_t x = 0, v = 1, u = 2 , x1 = 3, v1 = 4, u1 = 5;//MK
-
+  
   switch (code) {
   case 1:
     x = 0;
@@ -445,7 +445,7 @@ void SegmentFinder(Int_t chNum, Int_t** wires_Ch, Int_t **clust_Ch, Float_t **XV
 
   if (Nseg > kBig - 2)return;// MP
 
-  if (iw_Ch[x] > 0) {
+    if (iw_Ch[x] > 0) {
     for (Int_t ix = 0; ix < iw_Ch[x]; ix++) {
       if (iw_Ch[v] > 0) {
 	for (Int_t iv = 0; iv < iw_Ch[v]; iv++) {
@@ -766,7 +766,28 @@ void SegmentFinder(Int_t chNum, Int_t** wires_Ch, Int_t **clust_Ch, Float_t **XV
     }//ix
     if (Nseg > kBig - 2)return;//MP
   }//iw_Ch[x]
+
+  
 }//SegmentFinder
+*/
+
+void BmnMwpcHitFinder::SegmentFinder(Int_t chNum, Int_t **wires_Ch, Int_t**clust_Ch, Float_t** XVU_Ch, Int_t minHits){
+
+  //xuv_glob     - coordinates of all hits
+  //wires_glob   - wires of all hits
+  Float_t delta = (chNum == 3) ? 1.125 : 0.75; //0.5; //condition for the nearest "lighted" wires
+   Int_t cntr_sumWW_x =  95 ;//center wires Wx1+Wx2 due to x-slope
+   Int_t min_sumWW_x =  (chNum == 3) ? 3 : 2; //min sum of wires to 95 
+
+     Int_t min_sumWW =  (chNum == 3) ? 3 : 2; //min sum of wires to 95  //wide UV
+
+  Int_t cntr_sumWW =  95 ;//center wires W1+W2 due to u,v-slope
+  //Int_t min_sumWW =  2 ; //min sum of wires to 95 //narrow UV
+
+  Int_t minHits4_5= minHits;
+
+}
+
 
 void BmnMwpcHitFinder::ProcessSegments(
 		     Int_t chNum,

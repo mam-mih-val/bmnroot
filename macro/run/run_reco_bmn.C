@@ -168,8 +168,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
-    fRunAna->AddTask(siliconHM);
+    //    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
+    //fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
@@ -198,19 +198,19 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         }
     }
     gemHM->SetHitMatching(kTRUE);
-    fRunAna->AddTask(gemHM);
+    //fRunAna->AddTask(gemHM);
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //
     BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
     tof1HP->SetPeriod(run_period);
     //tof1HP->SetOnlyPrimary(kTRUE);
-    fRunAna->AddTask(tof1HP);
+    //    fRunAna->AddTask(tof1HP);
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
     // ====================================================================== //
     BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run6.txt", !isExp, iVerbose, kTRUE);
-    fRunAna->AddTask(tof2HP);
+    //fRunAna->AddTask(tof2HP);
 
     // ====================================================================== //
     // ===                           Tracking (MWPC)                      === //
@@ -231,7 +231,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         BmnGemResiduals* residAnal = new BmnGemResiduals(run_period, run_number, fieldScale);
         //residAnal->SetPrintResToFile("file.txt");
         //residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
-        fRunAna->AddTask(residAnal);
+	//  fRunAna->AddTask(residAnal);
     }
 
     // ====================================================================== //
@@ -245,7 +245,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     BmnGlobalTracking* globalTF = new BmnGlobalTracking();
     globalTF->SetField(isField);
-    fRunAna->AddTask(globalTF);
+    //fRunAna->AddTask(globalTF);
 
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //
@@ -253,7 +253,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     BmnGemVertexFinder* gemVF = new BmnGemVertexFinder();
     gemVF->SetField(isField);
     gemVF->SetVertexApproximation(vAppr);
-    fRunAna->AddTask(gemVF);
+    //fRunAna->AddTask(gemVF);
 
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();

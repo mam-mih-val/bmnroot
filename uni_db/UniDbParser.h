@@ -25,6 +25,7 @@
 #include "UniDbConnection.h"
 
 #include "TString.h"
+#include "TDatime.h"
 
 #include <vector>
 using namespace std;
@@ -77,6 +78,16 @@ struct structParseSchema
     }
 };
 
+// temporary structure for beam spill
+struct BeamSpillStructure
+{
+    TDatime spill_end;
+    int beam_daq;
+    int beam_all;
+    int trigger_daq;
+    int trigger_all;
+};
+
 class UniDbParser
 {
  public:
@@ -93,6 +104,9 @@ class UniDbParser
 
     // parse DB fields to write to other fields (temporary function)
     int ParseDb2Db();
+
+    // parse text file with beam spill to the C++ structure (temporary function)
+    vector<BeamSpillStructure*> ParseTxt2Struct(TString txtName, int& result_code);
 
     // save text ELOG of the BM@N experiemnt in CSV format to new Elog DB (temporary function)
     int ConvertElogCsv(TString csvName = "parse_schemes/elog.csv", char separate_symbol = ';');

@@ -9,7 +9,6 @@
 #include "TSQLResult.h"
 #include "TSQLRow.h"
 #include "TSQLStatement.h"
-#include "TDatime.h"
 
 // XML
 #include <libxml/parser.h>
@@ -1188,6 +1187,85 @@ int UniDbParser::ParseDb2Db()
     delete dest_db;
 }
 
+// parse text file with beam spill to the C++ structure (temporary function)
+vector<BeamSpillStructure*> UniDbParser::ParseTxt2Struct(TString txtName, int& result_code)
+{
+    vector<BeamSpillStructure*> beam_spill;
+    ifstream txtFile;
+    txtFile.open(txtName, ios::in);
+    if (!txtFile.is_open())
+    {
+        cout<<"Error: reading TXT file '"<<txtName<<"' was failed"<<endl;
+        result_code = -1;
+        return vector<BeamSpillStructure*>();
+    }
+
+    string cur_line;
+    while (getline(txtFile, cur_line))
+    {
+        // parse fields
+        string reduce_line = reduce(cur_line);
+        //cout<<"Current line "<<reduce_line<<endl;
+
+        TString strDate = "", strTime = "", strSpillEnd = "";
+        int iBeamDaq  = -1, iBeamAll = -1, iTriggerDaq  = -1, iTriggerAll = -1;
+        istringstream line_stream(reduce_line);
+        int num = 1;
+        string token;
+        // parse tokens by space separated
+        while (getline(line_stream, token, ' '))
+        {
+            switch (num)
+            {
+                case 1:
+                    strDate = token.c_str();
+                    break;
+                case 2:
+                    strTime = token.c_str();
+                    break;
+                case 3:
+                    iBeamDaq = atoi(token.c_str());
+                    break;
+                case 4:
+                    iBeamAll = atoi(token.c_str());
+                    break;
+                case 5:
+                    iTriggerDaq = atoi(token.c_str());
+                    break;
+                case 6:
+                    iTriggerAll = atoi(token.c_str());
+                    break;
+                default:
+                    cout<<"Error: field count is wrong for line: '"<<reduce_line<<endl;
+                    result_code = -2;
+                    return vector<BeamSpillStructure*>();
+            }
+
+            num++;
+        }
+        strSpillEnd = TString::Format("%s %s", strDate.Data(), strTime.Data());
+
+        tm tmbuf[1] = {{0}};
+        strptime(strSpillEnd.Data(), "%d.%m.%Y %H:%M:%S", tmbuf);
+        TDatime dtSpillEnd(tmbuf->tm_year, tmbuf->tm_mon+1, tmbuf->tm_mday, tmbuf->tm_hour, tmbuf->tm_min, tmbuf->tm_sec);
+
+        // write to vector
+        BeamSpillStructure* st = new BeamSpillStructure();
+        st->spill_end = TDatime(dtSpillEnd);
+        st->beam_daq = iBeamDaq;
+        st->beam_all = iBeamAll;
+        st->trigger_daq = iTriggerDaq;
+        st->trigger_all = iTriggerAll;
+        //cout<<"Spill End: "<<st->spill_end.AsSQLString()<<". Beam DAQ: "<<st->beam_daq<<". Beam All: "<<st->beam_all<<". Trigger DAQ: "<<st->trigger_daq<<". Trigger All: "<<st->trigger_all<<endl;
+        beam_spill.push_back(st);
+    }
+
+    txtFile.close();
+
+    result_code = 0;
+    return beam_spill;
+}
+
 bool check_element(const string& str, size_t pos, string element)
 {
     size_t str_length = str.length(), element_length = element.length();
@@ -1209,7 +1287,7 @@ bool check_element(const string& str, size_t pos, string element)
     return false;
 }
 
-// convert string "Day  DD Mon YYYY HH:MM:SS +ZZZZ" to TDatime without zone, e.g. "Fri  20 Feb 2015 12:03:41 +0300"
+// convert datetime string "Day  DD Mon YYYY HH:MM:SS +ZZZZ" to TDatime without zone, e.g. "Fri  20 Feb 2015 12:03:41 +0300"
 TDatime stringToDatime(string str_time)
 {
     tm tmbuf[1] = {{0}};

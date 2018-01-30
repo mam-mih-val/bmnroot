@@ -1,6 +1,10 @@
 #ifndef DB_STRUCTURES_H
 #define DB_STRUCTURES_H
 
+/* TO DO: make an abstract class ParameterValue with virtual functions: GetLength(), GetType(), mb.: Write(), Read()
+ * and inherited classes, such as: BoolValue, IntValue, etc. instead of below structures
+ */
+
 struct UniqueRunNumber
 {
     int period_number;

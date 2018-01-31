@@ -89,6 +89,9 @@ InitStatus BmnMwpcHitFinder::Init() {
     kZ1_loc = new Float_t[kNPlanes];
     kZ2_loc = new Float_t[kNPlanes];
 
+    dX_i = new Float_t[kNPlanes];
+    z2 = new Float_t[kNPlanes];
+
     kPln = new Int_t[kNPlanes * kNChambers];
     iw = new Int_t[kNPlanes * kNChambers];
     iw_Ch1 = new Int_t[kNPlanes];
@@ -196,6 +199,8 @@ void BmnMwpcHitFinder::PrepareArraysToProcessEvent(){
 	ipl[iPl] = 6;
 	XVU[iPl] = 0;
 	XVU_cl[iPl] = 0;
+	dX_i[iPl] = 0;
+	z2[iPl] = 0;
       }
 
       for(Int_t iPl2=0; iPl2<kNPlanes*kNChambers; iPl2++){
@@ -810,7 +815,8 @@ void BmnMwpcHitFinder::ProcessSegments(
 		     Int_t* ipl,
 		     Float_t* XVU,
 		     Float_t* XVU_cl,
-		     Double_t kChi2_Max) {
+		     Double_t kChi2_Max,
+		     Float_t *dX_i) {
 
   Float_t delta = (chNum == 3) ? 1.125 : 0.75; //0.5;
 
@@ -1008,9 +1014,9 @@ void BmnMwpcHitFinder::ProcessSegments(
 		  Double_t F[4] = {0,0,0,0};//free coef 
 
 		  if (Nhits_Ch[iseg] == nPlanes) //case 6-point segment
-		    FillFitMatrix(A, z_loc, sigm2, h6, kNPlanes);
+		    FillFitMatrix(A, z_loc, sigm2, h6, kNPlanes, z2);
 		  else
-		    FillFitMatrix(A, z_loc, sigm2, h , kNPlanes);
+		    FillFitMatrix(A, z_loc, sigm2, h , kNPlanes, z2);
 
 		  FillFreeCoefVector(F, XVU, z_loc, sigm2, h, kNPlanes);
 		  // FillFreeCoefVector(F, XVU, iseg, z_loc, sigm2, h);
@@ -1045,7 +1051,7 @@ void BmnMwpcHitFinder::ProcessSegments(
 		    }
 		  } 
 
-		  Float_t dX_i[nPlanes] = {0,0,0, 0,0,0};
+		  //		  Float_t dX_i[nPlanes] = {0,0,0, 0,0,0};
 		  Double_t Chi2_curr_iseg = 0;
 		 
 		  for (Int_t i1 = 0; i1 < nPlanes; i1++) {
@@ -1244,7 +1250,7 @@ void BmnMwpcHitFinder::ProcessSegments(
 
 }// ProcessSegments
 
-void BmnMwpcHitFinder::FillFitMatrix(Double_t** A, Float_t* z, Float_t* sigm2, Int_t* h, Int_t nPlanes) {
+void BmnMwpcHitFinder::FillFitMatrix(Double_t** A, Float_t* z, Float_t* sigm2, Int_t* h, Int_t nPlanes, Float_t *z2) {
 
   //out1<<" in FillFitMatrix "<<endl;
 
@@ -1253,7 +1259,14 @@ void BmnMwpcHitFinder::FillFitMatrix(Double_t** A, Float_t* z, Float_t* sigm2, I
     // sigm2 - square of sigma
     // h - array to include/exclude planes (h[i] = 0 or 1)
 
-    Float_t z2[nPlanes] = {z[0] * z[0], z[1] * z[1], z[2] * z[2], z[3] * z[3], z[4] * z[4], z[5] * z[5]}; //cm
+  //    Float_t z2[nPlanes] = {z[0] * z[0], z[1] * z[1], z[2] * z[2], z[3] * z[3], z[4] * z[4], z[5] * z[5]}; //cm
+  z2[0] = z[0]*z[0];
+  z2[1] = z[1]*z[1];
+  z2[2] = z[2]*z[2];
+  z2[3] = z[3]*z[3];
+  z2[4] = z[4]*z[4];
+  z2[5] = z[5]*z[5];
+
 
     A[0][0] += 2 * z2[0] * h[0] / sigm2[0] + z2[2] * h[2] / (2 * sigm2[2]) + z2[1] * h[1] / (2 * sigm2[1]) + 2 * z2[3] * h[3] / sigm2[3] + z2[5] * h[5] / (2 * sigm2[5]) + z2[4] * h[4] / (2 * sigm2[4]); //Ax
     A[0][1] += 2 * z[0] * h[0] / sigm2[0] + z[2] * h[2] / (2 * sigm2[2]) + z[1] * h[1] / (2 * sigm2[1]) + 2 * z[3] * h[3] / (sigm2[3]) + z[5] * h[5] / (2 * sigm2[5]) + z[4] * h[4] / (2 * sigm2[4]); //Bx
@@ -1360,6 +1373,8 @@ void BmnMwpcHitFinder::Finish() {
     delete [] ipl;
     delete [] XVU;
     delete [] XVU_cl;
+    delete [] dX_i;
+    delete [] z2;
 
     // delete 2d arrays:
     for(Int_t iWire=0; iWire< kNWires; iWire++){

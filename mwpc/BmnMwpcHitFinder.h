@@ -155,13 +155,15 @@ private:
     Float_t *XVU;
     Float_t *XVU_cl;
     Double_t **b;
-    
+    Float_t *dX_i;
+    Float_t *z2;
+
     //functions for Vasilisa method:
     void PrepareArraysToProcessEvent();
     //    void SegmentFinder(Int_t, Int_t**, Int_t**, Float_t**, Int_t*, Int_t*, Int_t&, Int_t**, Float_t**, Int_t, Short_t, Int_t);
     void SegmentFinder(Int_t, Int_t**, Int_t**, Float_t**, Int_t);
-    void ProcessSegments(Int_t, Double_t, Float_t, Float_t*, Int_t, Int_t, Int_t*, Int_t**, Int_t**, Float_t**, Int_t, Int_t*,  Double_t*, Double_t*, Double_t**, Double_t**, Int_t, Int_t*, Float_t*, Float_t*, Double_t);
-    void FillFitMatrix(Double_t**, Float_t*, Float_t*, Int_t*, Int_t);
+    void ProcessSegments(Int_t, Double_t, Float_t, Float_t*, Int_t, Int_t, Int_t*, Int_t**, Int_t**, Float_t**, Int_t, Int_t*,  Double_t*, Double_t*, Double_t**, Double_t**, Int_t, Int_t*, Float_t*, Float_t*, Double_t, Float_t*);
+    void FillFitMatrix(Double_t**, Float_t*, Float_t*, Int_t*, Int_t, Float_t*);
     void FillFreeCoefVector(Double_t*, Float_t*, Float_t*, Float_t*, Int_t*, Int_t);
     void InverseMatrix(Double_t**, Double_t**);
     

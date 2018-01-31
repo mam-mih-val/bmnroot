@@ -4,7 +4,7 @@
 
 // print summary information about beam spill for a given 'run' in a 'period'
 // if 'run' parameter is zero or absent then all runs in the period will be shown
-void run_beam_info(int period, int run = 0)
+void run_beam_info(int period, int run = 0, TString target = "")
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
@@ -21,27 +21,57 @@ void run_beam_info(int period, int run = 0)
     }
 
     UniqueRunNumber* run_numbers = NULL;
+    TObjArray* pRunArray = NULL;
     int run_count = 1;
     if (run == 0)
     {
-        run_count = UniDbRunPeriod::GetRunNumbers(period, run_numbers);
-        if (run_count <= 0)
+        if (target == "")
         {
-            cout<<"Macro finished with errors: no runs exists in the given period #"<<period<<endl;
-            exit(-2);
+            run_count = UniDbRunPeriod::GetRunNumbers(period, run_numbers);
+            if (run_count <= 0)
+            {
+                cout<<"Macro finished with errors: no runs exists in the given period #"<<period<<endl;
+                exit(-2);
+            }
+        }
+        else
+        {
+            // select only with a given condition, e.g. target particle
+            TObjArray arrayConditions;
+            arrayConditions.SetOwner(kTRUE);
+
+            UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnPeriodNumber, conditionEqual, period);
+            arrayConditions.Add((TObject*) searchCondition);
+            searchCondition = new UniDbSearchCondition(columnTargetParticle, conditionEqual, target);   // one can choose any condition: beam, energy...
+            arrayConditions.Add((TObject*) searchCondition);
+
+            pRunArray = UniDbRun::Search(arrayConditions);
+            run_count = pRunArray->GetEntriesFast();
+            if (run_count <= 0)
+            {
+                cout<<"Macro finished with errors: no runs exists for the given target: "<<target<<endl;
+                exit(-3);
+            }
+            arrayConditions.Delete();
         }
     }
 
+    Long64_t totalBeamDaq = 0, totalBeamAll = 0, totalTriggerDaq = 0, totalTriggerAll = 0;
     for (int i = 0; i < run_count; i++)
     {
         if (run_numbers != NULL) run = run_numbers[i].run_number;
+        if (pRunArray != NULL) run = ((UniDbRun*) pRunArray->At(i))->GetRunNumber();
 
         // get run time
         UniDbRun* pRun = UniDbRun::GetRun(period, run);
         if (pRun == NULL)
         {
-            cout<<"Macro finished with errors: no experimental run was found for given numbers"<<endl;
-            exit(-3);
+            cout<<"Macro finished with errors: no experimental run was found "<<period<<" : "<<run<<" / "<<((UniDbRun*) pRunArray->At(i))->GetRunNumber()<<endl;
+            if (run_numbers != NULL)
+                delete [] run_numbers;
+            if (pRunArray != NULL)
+                delete pRunArray;
+            exit(-4);
         }
 
         TDatime dtStart = pRun->GetStartDatetime();
@@ -50,7 +80,11 @@ void run_beam_info(int period, int run = 0)
         {
             cout<<"Macro finished with errors: no end datetime in the database for this run"<<endl;
             delete pRun;
-            exit(-4);
+            if (run_numbers != NULL)
+                delete [] run_numbers;
+            if (pRunArray != NULL)
+                delete pRunArray;
+            exit(-5);
         }
         TDatime dtEnd = *dateEnd;
         delete pRun;
@@ -114,11 +148,24 @@ void run_beam_info(int period, int run = 0)
                 sumBeamDaq += curBeamDaq; sumBeamAll += curBeamAll;
                 sumTriggerDaq += curTriggerDaq; sumTriggerAll += curTriggerAll;
             }//if (st->spill_end > dtStart)
-        }
+        }//for (int ind = 0; ind < beam_spill.size(); ind++)
+
+        totalBeamDaq += sumBeamDaq; totalBeamAll += sumBeamAll;
+        totalTriggerDaq += sumTriggerDaq; totalTriggerAll += sumTriggerAll;
 
         cout<<endl<<"Run #"<<run<<endl
            <<"sumBeamDaq: "<<sumBeamDaq<<". sumBeamAll: "<<sumBeamAll<<". sumTriggerDaq: "<<sumTriggerDaq<<". sumTriggerAll: "<<sumTriggerAll<<endl<<endl;
     }
+
+    if (run_count > 1)
+        cout<<endl<<"Total count for all runs:"<<endl
+           <<"totalBeamDaq: "<<totalBeamDaq<<". totalBeamAll: "<<totalBeamAll<<". totalTriggerDaq: "<<totalTriggerDaq<<". totalTriggerAll: "<<totalTriggerAll<<endl<<endl;
+
+    // cleaning memory after work
+    if (run_numbers != NULL)
+        delete [] run_numbers;
+    if (pRunArray != NULL)
+        delete pRunArray;
 
     cout<<"Macro finished successfully"<<endl;
 }

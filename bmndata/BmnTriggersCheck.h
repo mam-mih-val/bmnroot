@@ -1,5 +1,5 @@
-#ifndef BMNSETUPTRIGGERS_H
-#define BMNSETUPTRIGGERS_H 1
+#ifndef BMNTRIGGERSCHECK_H
+#define BMNTRIGGERSCHECK_H 1
 
 #include "FairTask.h"
 #include "FairRootManager.h"

@@ -16,6 +16,7 @@ ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/globaltracking
 ${CMAKE_SOURCE_DIR}/alignment
 ${CMAKE_SOURCE_DIR}/gem
+${CMAKE_SOURCE_DIR}/silicon
 ${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/mwpc
 ${CMAKE_SOURCE_DIR}/dch
@@ -44,10 +45,12 @@ BmnGemAlignCorrections.cxx
 BmnGemAlignmentCorrections.cxx
 BmnDchAlignCorrections.cxx
 BmnMwpcAlignCorrections.cxx
+BmnSiliconAlignCorrections.cxx
 BmnGlobalAlignment.cxx
 BmnMille.cxx
 BmnAlignCorrections.cxx
 BmnGemResiduals.cxx
+BmnSiResiduals.cxx
 BmnResiduals.cxx
 )
 

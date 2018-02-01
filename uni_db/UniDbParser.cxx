@@ -1,5 +1,4 @@
 #include "UniDbParser.h"
-#include "UniDbConnection.h"
 #include "db_classes/UniDbRun.h"
 #include "db_classes/UniDbParameter.h"
 #include "db_classes/UniDbDetectorParameter.h"
@@ -10,7 +9,6 @@
 #include "TSQLResult.h"
 #include "TSQLRow.h"
 #include "TSQLStatement.h"
-#include "TDatime.h"
 
 // XML
 #include <libxml/parser.h>
@@ -1060,6 +1058,214 @@ int UniDbParser::ParseTxtNoise2Db(int period_number, TString txtName, TString sc
     return 0;
 }
 
+int UniDbParser::ParseDb2Db()
+{
+    TSQLServer* source_db = TSQLServer::Connect("pgsql://vm221-53.jinr.ru/bmn_elog", "login", "password");
+    if (source_db == 0x00)
+    {
+        cout<<"ERROR: source database connection wasn't established"<<endl;
+        return -1;
+    }
+
+    TString sql_source = TString::Format(
+        "select record_id, field_comment "
+        "from record_");
+    TSQLStatement* stmt_source = source_db->Statement(sql_source);
+     //cout<<"SQL code: "<<sql<<endl;
+
+    // get record from the database
+    if (!stmt_source->Process())
+    {
+        cout<<"Error: getting records from the database has been failed"<<endl;
+
+        delete stmt_source;
+        delete source_db;
+
+        return -2;
+    }
+
+    // store result of statement in buffer
+    stmt_source->StoreResult();
+
+    TSQLServer* dest_db = TSQLServer::Connect("pgsql://vm221-53.jinr.ru/bmn_elog", "login", "password");
+    if (dest_db == 0x00)
+    {
+        cout<<"ERROR: destination database connection wasn't established"<<endl;
+        return -3;
+    }
+
+    // extract rows one after another
+    while (stmt_source->NextResultRow())
+    {
+        if (stmt_source->IsNull(1)) continue;
+
+        int record_id = stmt_source->GetInt(0);
+        TString field_comment = stmt_source->GetString(1);
+
+        // search for SP-57 and VKM2 magnetic field in A
+        size_t beg_pos, end_pos;
+        string field_lower(field_comment.Data()), sp57 = "", vkm2 = "";
+        int iField = -1;
+        transform(field_lower.begin(), field_lower.end(), field_lower.begin(), ::tolower);
+
+        size_t ind = field_lower.find("sp-57");
+        if (ind != string::npos)
+        {
+            beg_pos = ind + 5;
+            sp57 = find_first_number(field_lower, beg_pos, end_pos, false);
+            iField = atoi(sp57.c_str());
+
+            if (field_lower[end_pos+1] != 'a')
+            {
+                cout<<"ERROR: field is not ended with A"<<field_lower<<endl;
+                continue;
+            }
+
+            TString sql_dest = TString::Format(
+                "update record_ "
+                "set sp_57 = $1 "
+                "where record_id = $2");
+            TSQLStatement* stmt_dest = dest_db->Statement(sql_dest);
+
+            stmt_dest->NextIteration();
+            stmt_dest->SetInt(0, iField);
+            stmt_dest->SetInt(1, record_id);
+
+            // write new value to the database
+            if (!stmt_dest->Process())
+            {
+                cout<<"Error: updating information has been failed"<<endl;
+
+                delete stmt_dest;
+                continue;
+            }
+
+            ind = end_pos;
+            delete stmt_dest;
+        }
+        else
+            ind = 0;
+
+        ind = field_lower.find("vkm2", ind);
+        if (ind != string::npos)
+        {
+            beg_pos = ind + 4;
+            vkm2 = find_first_number(field_lower, beg_pos, end_pos, false);
+            iField = atoi(vkm2.c_str());
+
+            if (field_lower[end_pos+1] != 'a')
+            {
+                cout<<"ERROR: field is not ended with A"<<field_lower<<endl;
+                continue;
+            }
+
+            TString sql_dest = TString::Format(
+                "update record_ "
+                "set vkm2 = $1 "
+                "where record_id = $2");
+            TSQLStatement* stmt_dest = dest_db->Statement(sql_dest);
+
+            stmt_dest->NextIteration();
+            stmt_dest->SetInt(0, iField);
+            stmt_dest->SetInt(1, record_id);
+
+            // write new value to the database
+            if (!stmt_dest->Process())
+            {
+                cout<<"Error: updating information has been failed"<<endl;
+
+                delete stmt_dest;
+                continue;
+            }
+
+            delete stmt_dest;
+        }
+    }
+
+    delete stmt_source;
+    delete source_db;
+    delete dest_db;
+}
+
+// parse text file with beam spill to the C++ structure (temporary function)
+vector<BeamSpillStructure*> UniDbParser::ParseTxt2Struct(TString txtName, int& result_code)
+{
+    vector<BeamSpillStructure*> beam_spill;
+    ifstream txtFile;
+    txtFile.open(txtName, ios::in);
+    if (!txtFile.is_open())
+    {
+        cout<<"Error: reading TXT file '"<<txtName<<"' was failed"<<endl;
+        result_code = -1;
+        return vector<BeamSpillStructure*>();
+    }
+
+    string cur_line;
+    while (getline(txtFile, cur_line))
+    {
+        // parse fields
+        string reduce_line = reduce(cur_line);
+        //cout<<"Current line "<<reduce_line<<endl;
+
+        TString strDate = "", strTime = "", strSpillEnd = "";
+        int iBeamDaq  = -1, iBeamAll = -1, iTriggerDaq  = -1, iTriggerAll = -1;
+        istringstream line_stream(reduce_line);
+        int num = 1;
+        string token;
+        // parse tokens by space separated
+        while (getline(line_stream, token, ' '))
+        {
+            switch (num)
+            {
+                case 1:
+                    strDate = token.c_str();
+                    break;
+                case 2:
+                    strTime = token.c_str();
+                    break;
+                case 3:
+                    iBeamDaq = atoi(token.c_str());
+                    break;
+                case 4:
+                    iBeamAll = atoi(token.c_str());
+                    break;
+                case 5:
+                    iTriggerDaq = atoi(token.c_str());
+                    break;
+                case 6:
+                    iTriggerAll = atoi(token.c_str());
+                    break;
+                default:
+                    cout<<"Error: field count is wrong for line: '"<<reduce_line<<endl;
+                    result_code = -2;
+                    return vector<BeamSpillStructure*>();
+            }
+
+            num++;
+        }
+        strSpillEnd = TString::Format("%s %s", strDate.Data(), strTime.Data());
+
+        tm tmbuf[1] = {{0}};
+        strptime(strSpillEnd.Data(), "%d.%m.%Y %H:%M:%S", tmbuf);
+        TDatime dtSpillEnd(tmbuf->tm_year, tmbuf->tm_mon+1, tmbuf->tm_mday, tmbuf->tm_hour, tmbuf->tm_min, tmbuf->tm_sec);
+
+        // write to vector
+        BeamSpillStructure* st = new BeamSpillStructure();
+        st->spill_end = TDatime(dtSpillEnd);
+        st->beam_daq = iBeamDaq;
+        st->beam_all = iBeamAll;
+        st->trigger_daq = iTriggerDaq;
+        st->trigger_all = iTriggerAll;
+        //cout<<"Spill End: "<<st->spill_end.AsSQLString()<<". Beam DAQ: "<<st->beam_daq<<". Beam All: "<<st->beam_all<<". Trigger DAQ: "<<st->trigger_daq<<". Trigger All: "<<st->trigger_all<<endl;
+        beam_spill.push_back(st);
+    }
+
+    txtFile.close();
+
+    result_code = 0;
+    return beam_spill;
+}
+
 bool check_element(const string& str, size_t pos, string element)
 {
     size_t str_length = str.length(), element_length = element.length();
@@ -1081,7 +1287,7 @@ bool check_element(const string& str, size_t pos, string element)
     return false;
 }
 
-// convert string "Day  DD Mon YYYY HH:MM:SS +ZZZZ" to TDatime without zone, e.g. "Fri  20 Feb 2015 12:03:41 +0300"
+// convert datetime string "Day  DD Mon YYYY HH:MM:SS +ZZZZ" to TDatime without zone, e.g. "Fri  20 Feb 2015 12:03:41 +0300"
 TDatime stringToDatime(string str_time)
 {
     tm tmbuf[1] = {{0}};
@@ -1108,7 +1314,7 @@ int UniDbParser::ConvertElogCsv(TString csvName, char separate_symbol)
     }
 
     UniDbConnection* connUni = UniDbConnection::Open(ELOG_DB);
-    if (connUni == 0x00) return 0x00;
+    if (connUni == 0x00) return -1;
     TSQLServer* elog_server = connUni->GetSQLServer();
     if (elog_server == 0x00)
     {

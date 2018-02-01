@@ -52,7 +52,7 @@ InitStatus BmnGemResiduals::Init() {
 
     fGemResiduals = new TClonesArray(fBranchResiduals.Data());
 
-    ioman->Register("BmnResiduals", "RESID", fGemResiduals, kTRUE);
+    ioman->Register("BmnGemResiduals", "RESID", fGemResiduals, kTRUE);
     if (TString(ioman->GetInFile()->GetName()).Contains("merge"))
         isMergedDigits = kTRUE;
 }

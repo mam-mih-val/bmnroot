@@ -26,10 +26,8 @@ void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst.root",
     cout << "outputFileName: " + outputFileName << endl;
     fRunAna->SetOutputFile(outputFileName);
 
-    // Define GEM config. to be used: RunWinter2016 or RunSpring2017
-    BmnGlobalAlignment* globAlign = new BmnGlobalAlignment(BmnGemStripConfiguration::RunSpring2017, recoFileName);
-    // globAlign->SetDebug(kTRUE); // default is false
-    // globAlign->SetUsePrimaryVertex(kTRUE); // default is false
+    BmnGlobalAlignment* globAlign = new BmnGlobalAlignment(recoFileName);
+    globAlign->SetDebug(kTRUE); // default is false
 
     // Restrictions on track params:
     // globAlign->SetMinHitsAccepted(5);               // Default value is 3
@@ -37,24 +35,28 @@ void globAlignment(UInt_t nEvents = 1e6, TString recoFileName = "bmndst.root",
     // globAlign->SetTxMinMax(-1., +1.);
     // globAlign->SetExclusionRangeTx(-0.02, 0.02);
     // globAlign->SetTyMinMax(-1., +1.);
-    // globAlign->SetExclusionRangeTy(-0.02, 0.02);
-    globAlign->SetTxMinMax(-1.,   0.  );
-    globAlign->SetTyMinMax(-0.05, 0.05);
+    // globAlign->SetExclusionRangeTy(-0.02, 0.02);   
+    //globAlign->SetTxMinMax(-1.,   0.  );
+    //globAlign->SetTyMinMax(-0.05, 0.05);
+    
+    //                      "GEM",  MWPC", "DCH",  "Vp",  "SILICON"
+    globAlign->SetDetectors(kTRUE, kFALSE, kFALSE, kFALSE, kTRUE);
     
     // Define modules to be fixed (any character) within alignment, if necessary. 
     // st0, st1, st2, st3_modLeft(0), st3_modRight(1), st4_modLeft(0), st4_modRight(1), st5_modLeft(0), st5_modRight(1)
-    globAlign->SetGemFixedRun6("", "", "", "", "", "", "", "", "");
+    globAlign->SetGemFixedRun6(kFALSE, kFALSE, kFALSE, kFALSE, kFALSE, kFALSE, kFALSE, kFALSE, kFALSE);
     // Set of detectors in chain to be used in glob. alignment
     // A non-empty string means that the det. subsystem is used in the procedure
     // GEM tracker is included by default
-    //                   "MWPC", "DCH"
-    globAlign->SetDetectors("", "", "");
+   
+    // Si-modules with numbers 0 and 4 did not work in RUN6
+    globAlign->SetSiFixedRun6(kTRUE, kFALSE, kFALSE, kFALSE, kTRUE, kFALSE, kFALSE, kFALSE);
     
     globAlign->SetPreSigma(0.001); // Default value is 1
     globAlign->SetAccuracy(0.001); // Default value is 0.001
-    globAlign->SetUseRealHitErrors(kTRUE); // Default value is false
+    // globAlign->SetUseRealHitErrors(kTRUE); // Default value is false
     // globAlign->SetUseTrackWithMinChi2(kTRUE);       // Default value is false
-    globAlign->SetUseRegularization(kTRUE); // Default value is false
+    // globAlign->SetUseRegularization(kTRUE); // Default value is false
     // globAlign->SetHugecut(200.);                    // Default value is 50
     // globAlign->SetChisqcut(5., 2.);                 // Default value is (0., 0.)
     // globAlign->SetEntriesPerParam(100);             // Default value is 10

@@ -16,9 +16,6 @@
 #include "BmnSiliconDigit.h"
 #include "BmnAdcProcessor.h"
 
-#define ADC_N_CHANNELS 64 //number of ADC channels
-#define ADC128_N_SAMPLES 128 //number of samples in one ADC digit
-
 using namespace std;
 using namespace TMath;
 

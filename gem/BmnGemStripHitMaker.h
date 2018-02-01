@@ -22,6 +22,7 @@
 #include "BmnGemStripConfiguration.h"
 #include "BmnGemAlignmentCorrections.h"
 #include "BmnGemAlignCorrections.h"
+#include <BmnEventQuality.h>
 
 using namespace std;
 
@@ -90,12 +91,6 @@ private:
     TString fInputPointsBranchName;
     TString fInputDigitsBranchName;
     TString fInputDigitMatchesBranchName;
-    TString fBmnEventHeaderBranchName;
-
-    TString fT0Branch;
-    TString fVetoBranch;
-    TString fBC2Branch;
-    TString fBDBranch;
 
     TString fOutputHitsBranchName;
     TString fOutputHitMatchesBranchName;
@@ -104,12 +99,6 @@ private:
     TClonesArray* fBmnGemStripPointsArray;
     TClonesArray* fBmnGemStripDigitsArray;
     TClonesArray* fBmnGemStripDigitMatchesArray;
-    TClonesArray* fBmnEventHeader;
-
-    TClonesArray* fT0Array;
-    TClonesArray* fVetoArray;
-    TClonesArray* fBC2Array;
-    TClonesArray* fBDArray;
 
     /** Output array of Gem Hits **/
     TClonesArray* fBmnGemStripHitsArray;
@@ -118,6 +107,7 @@ private:
     TClonesArray* fBmnGemStripHitMatchesArray;
 
     Bool_t fHitMatching;
+    UInt_t fRunId;
     Bool_t fIsExp; // Specify type of input data (MC or real data)
 
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
@@ -129,6 +119,9 @@ private:
     Double_t*** corr; // array to store the corrections
 
     FairField* fField;
+    
+    TString fBmnEvQualityBranchName;
+    TClonesArray* fBmnEvQuality;
 
     ClassDef(BmnGemStripHitMaker, 1);
 };

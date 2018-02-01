@@ -101,4 +101,7 @@
 #pragma link C++ class BmnFitNode+;
 #pragma link C++ class BmnIdentifiableTrack+;
 
+#pragma link C++ class BmnTriggersCheck+;
+#pragma link C++ class BmnEventQuality+;
+
 #endif

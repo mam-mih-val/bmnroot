@@ -117,6 +117,8 @@ BmnIdentifiableTrack.cxx
 BmnFitNode.h
 BmnEnums.h
 DigiArrays.h
+BmnTriggersCheck.cxx
+BmnEventQuality.cxx
 )
 
 Set(HEADERS)

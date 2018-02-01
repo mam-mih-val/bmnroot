@@ -23,9 +23,7 @@ void fitInvSpectrum(Char_t* fileName = "reco.root") {
     cout << "#recorded entries = " << out->GetEntries() << endl;
 
     TClonesArray* particlePair = NULL;
-    TClonesArray* particlePairCuts = NULL;
     out->SetBranchAddress("ParticlePair", &particlePair);
-    out->SetBranchAddress("ParticlePairCuts", &particlePairCuts);
 
     Double_t rB = 1.16;
     TH1F* invMassSpectrum = new TH1F("invMassSpectrum", "invMassSpectrum", 50, 1.07, rB);
@@ -35,13 +33,13 @@ void fitInvSpectrum(Char_t* fileName = "reco.root") {
 
         for (Int_t iPair = 0; iPair < particlePair->GetEntriesFast(); iPair++) {
             BmnParticlePair* pair = (BmnParticlePair*) particlePair->UncheckedAt(iPair);
-            Double_t V0VpDist = pair->GetV0VpDist(); 
-            Double_t V0ProtPionDist = pair->GetV0Part1Part2(); 
-            Double_t VpProt = pair->GetVpPart1();
-            Double_t VpPion = pair->GetVpPart2();
+            Double_t V0VpDist = pair->GetPath("X"); 
+            Double_t V0ProtPionDist = pair->GetDCA12("X"); 
+            Double_t VpProt = pair->GetDCA1();
+            Double_t VpPion = pair->GetDCA2();
             
-            if (VpPion < 0.4) 
-                continue;
+//            if (VpPion < 0.4) 
+//                continue;
             invMassSpectrum->Fill(pair->GetInvMass());
         }
     }

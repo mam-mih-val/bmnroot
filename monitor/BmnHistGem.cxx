@@ -147,6 +147,8 @@ void BmnHistGem::DrawBoth() {
 
 void BmnHistGem::FillFromDigi(DigiArrays *fDigiArrays) {
     TClonesArray * gemDigits = fDigiArrays->gem;
+    if (!gemDigits)
+        return;
     for (Int_t digIndex = 0; digIndex < gemDigits->GetEntriesFast(); digIndex++) {
         BmnGemStripDigit* gs = (BmnGemStripDigit*) gemDigits->At(digIndex);
         Int_t module = gs->GetModule();

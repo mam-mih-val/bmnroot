@@ -14,7 +14,7 @@
 #include "TRandom.h"
 #include "BmnGemStripHit.h"
 #include "BmnMatrixMath.h"
-#include "BmnKalmanFilter_tmp.h"
+#include "BmnKalmanFilter.h"
 #include "TFitResult.h"
 #include "BmnGemStripStationSet_RunWinter2016.h"
 
@@ -49,7 +49,7 @@ BmnGemTracking::BmnGemTracking() {
     fMax = -fMin;
     fWidth = (fMax - fMin) / fNBins;
     fGemDistCut = 1.0;
-    fKalman = new BmnKalmanFilter_tmp();
+    fKalman = new BmnKalmanFilter();
     fGemTracksArray = NULL;
     fField = NULL;
     fGoForward = kTRUE;

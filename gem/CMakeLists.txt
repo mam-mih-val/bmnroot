@@ -59,7 +59,7 @@ set(SRCS
   BmnGemStripDigitizer.cxx
   BmnGemStripHit.cxx
   BmnGemStripHitMaker.cxx
-  BmnKalmanFilter_tmp.cxx
+  BmnKalmanFilter.cxx
   BmnGemVertexFinder.cxx
   BmnGemStripMedium.cxx
 )

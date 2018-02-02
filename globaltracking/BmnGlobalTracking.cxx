@@ -191,7 +191,7 @@ BmnStatus BmnGlobalTracking::MatchingMWPC(BmnGlobalTrack* tr) {
 
     if (!fMwpcTracks) return kBMNERROR;
 
-    BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
+    BmnKalmanFilter* kalman = new BmnKalmanFilter();
 
     Double_t minChiSq = DBL_MAX;
     BmnTrack* minTrack = NULL; // Pointer to the nearest track
@@ -240,7 +240,7 @@ BmnStatus BmnGlobalTracking::MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t tr
     TClonesArray* tofHits = (num == 1 && fTof1Hits) ? fTof1Hits : (num == 2 && fTof2Hits) ? fTof2Hits : NULL;
     if (!tofHits) return kBMNERROR;
 
-    BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
+    BmnKalmanFilter* kalman = new BmnKalmanFilter();
 
     Double_t minChiSq = DBL_MAX;
     Double_t minDist = DBL_MAX;
@@ -310,7 +310,7 @@ BmnStatus BmnGlobalTracking::MatchingSil(BmnGlobalTrack* tr) {
 
     Double_t distCut = 1.0;
 
-    BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
+    BmnKalmanFilter* kalman = new BmnKalmanFilter();
 
     Double_t minDist = DBL_MAX;
     BmnHit* minHit = NULL; // Pointer to the nearest hit
@@ -368,7 +368,7 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr) {
 
     if (!fDchTracks) return kBMNERROR;
 
-    BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
+    BmnKalmanFilter* kalman = new BmnKalmanFilter();
 
     Double_t minChiSq = DBL_MAX;
     BmnTrack* minTrack = NULL; // Pointer to the nearest track
@@ -411,7 +411,7 @@ BmnStatus BmnGlobalTracking::MatchingDCH(BmnGlobalTrack* tr) {
 
 BmnStatus BmnGlobalTracking::RefitToDetector(BmnGlobalTrack* tr, Int_t hitId, TClonesArray* hitArr, FairTrackParam* par, Int_t* nodeIdx, vector<BmnFitNode>* nodes) {
 
-    BmnKalmanFilter_tmp* kalman = new BmnKalmanFilter_tmp();
+    BmnKalmanFilter* kalman = new BmnKalmanFilter();
 
     if (tr->GetTof2HitIndex() != -1) {
         BmnHit* hit = (BmnHit*) hitArr->At(hitId);

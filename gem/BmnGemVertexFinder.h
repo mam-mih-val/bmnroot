@@ -13,7 +13,7 @@
 #include "FairRunAna.h"
 #include "FairField.h"
 #include "CbmVertex.h"
-#include "BmnKalmanFilter_tmp.h"
+#include "BmnKalmanFilter.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
 
@@ -59,7 +59,7 @@ private:
 
     Bool_t fIsField;
     FairField* fField;
-    BmnKalmanFilter_tmp* fKalman;
+    BmnKalmanFilter* fKalman;
     TVector3 fRoughVertex3D;
 
     ClassDef(BmnGemVertexFinder, 1);

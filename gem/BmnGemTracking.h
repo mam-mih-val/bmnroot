@@ -14,7 +14,7 @@
 #include "TVector3.h"
 #include "FairTrackParam.h"
 #include "BmnFitNode.h"
-#include "BmnKalmanFilter_tmp.h"
+#include "BmnKalmanFilter.h"
 #include "BmnMath.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
@@ -116,7 +116,7 @@ private:
 
     TClonesArray* fGemTracksArray;
     TClonesArray* fGemHitsArray;
-    BmnKalmanFilter_tmp* fKalman;
+    BmnKalmanFilter* fKalman;
 
     Int_t fPDG; // PDG hypothesis
     Double_t fGemDistCut;

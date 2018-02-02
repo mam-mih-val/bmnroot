@@ -534,7 +534,7 @@ InitStatus BmnTwoParticleDecay::Init() {
 
     FairRunAna::Instance()->SetField(fMagField);
     fField = FairRunAna::Instance()->GetField();
-    fKalman = new BmnKalmanFilter_tmp();
+    fKalman = new BmnKalmanFilter();
 
     fPdgParticle1 = fPDG1;
     fPdgParticle2 = fPDG2;

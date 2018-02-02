@@ -32,7 +32,7 @@
 #include <vector>
 #include <string>
 #include "BmnDetectorSetup.h"
-#include "BmnKalmanFilter_tmp.h"
+#include "BmnKalmanFilter.h"
 #include "CbmVertex.h"
 #include "BmnSiliconStationSet.h"
 #include "TH1F.h"

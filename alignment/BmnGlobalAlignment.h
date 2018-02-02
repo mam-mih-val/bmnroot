@@ -44,7 +44,7 @@
 #include <BmnGemStripStationSet.h>
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
-#include <BmnKalmanFilter_tmp.h>
+#include <BmnKalmanFilter.h>
 #include <BmnFieldMap.h>
 #include <BmnNewFieldMap.h>
 #include <FairField.h>
@@ -328,7 +328,7 @@ private:
 
     FairField* fField;
     BmnFieldMap* fMagField;
-    BmnKalmanFilter_tmp* fKalman;
+    BmnKalmanFilter* fKalman;
 
     Bool_t fUseVp;
     TVector3 fRoughVertex;

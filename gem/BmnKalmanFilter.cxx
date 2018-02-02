@@ -1,20 +1,20 @@
 
-#include "BmnKalmanFilter_tmp.h"
+#include "BmnKalmanFilter.h"
 
 using namespace std;
 using namespace TMath;
 
-BmnKalmanFilter_tmp::BmnKalmanFilter_tmp() {
+BmnKalmanFilter::BmnKalmanFilter() {
     fMaterial = new BmnMaterialEffects();
     fNavigator = new BmnGeoNavigator();
 }
 
-BmnKalmanFilter_tmp::~BmnKalmanFilter_tmp() {
+BmnKalmanFilter::~BmnKalmanFilter() {
     delete fMaterial;
     delete fNavigator;
 }
 
-BmnStatus BmnKalmanFilter_tmp::Prediction(FairTrackParam* par, Double_t zOut, BmnFitNode& node) {
+BmnStatus BmnKalmanFilter::Prediction(FairTrackParam* par, Double_t zOut, BmnFitNode& node) {
 
     //        cout << "Pred\n";
 
@@ -64,7 +64,7 @@ BmnStatus BmnKalmanFilter_tmp::Prediction(FairTrackParam* par, Double_t zOut, Bm
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnKalmanFilter_tmp::Correction(FairTrackParam* par, BmnHit* hit, Double_t &chi2, BmnFitNode& node) {
+BmnStatus BmnKalmanFilter::Correction(FairTrackParam* par, BmnHit* hit, Double_t &chi2, BmnFitNode& node) {
 
 
     if (!IsParCorrect(par)) {
@@ -137,7 +137,7 @@ BmnStatus BmnKalmanFilter_tmp::Correction(FairTrackParam* par, BmnHit* hit, Doub
     return kBMNSUCCESS;
 }
 
-FairTrackParam BmnKalmanFilter_tmp::Filtration(BmnGemTrack* tr, TClonesArray* hits) {
+FairTrackParam BmnKalmanFilter::Filtration(BmnGemTrack* tr, TClonesArray* hits) {
 
     //    cout << "Smoothing started\n";
     vector<BmnFitNode> fitNodes = tr->GetFitNodes();
@@ -263,7 +263,7 @@ FairTrackParam BmnKalmanFilter_tmp::Filtration(BmnGemTrack* tr, TClonesArray* hi
 
 }
 
-TMatrixD BmnKalmanFilter_tmp::Transport(FairTrackParam* par, Double_t zOut, Bool_t isField) {
+TMatrixD BmnKalmanFilter::Transport(FairTrackParam* par, Double_t zOut, Bool_t isField) {
     TMatrixD F(5, 5); //transport matrix
     F.UnitMatrix();
     Double_t z0 = par->GetZ();
@@ -296,13 +296,13 @@ TMatrixD BmnKalmanFilter_tmp::Transport(FairTrackParam* par, Double_t zOut, Bool
     return F;
 }
 
-BmnStatus BmnKalmanFilter_tmp::AddFitNode(BmnFitNode node) {
+BmnStatus BmnKalmanFilter::AddFitNode(BmnFitNode node) {
     fFitNodes.push_back(node);
 
     return kBMNSUCCESS;
 }
 
-TMatrixD BmnKalmanFilter_tmp::FillVecFromPar(const FairTrackParam* par) {
+TMatrixD BmnKalmanFilter::FillVecFromPar(const FairTrackParam* par) {
     TMatrixD out(5, 1);
     out[0][0] = par->GetX();
     out[1][0] = par->GetY();
@@ -312,7 +312,7 @@ TMatrixD BmnKalmanFilter_tmp::FillVecFromPar(const FairTrackParam* par) {
     return out;
 }
 
-TMatrixD BmnKalmanFilter_tmp::FillCovFromPar(const FairTrackParam* par) {
+TMatrixD BmnKalmanFilter::FillCovFromPar(const FairTrackParam* par) {
     TMatrixD out(5, 5);
     for (Int_t i = 0; i < 5; ++i)
         for (Int_t j = 0; j < 5; ++j)
@@ -320,7 +320,7 @@ TMatrixD BmnKalmanFilter_tmp::FillCovFromPar(const FairTrackParam* par) {
     return out;
 }
 
-BmnStatus BmnKalmanFilter_tmp::FillParFromVecAndCov(TMatrixD x, TMatrixD c, FairTrackParam* par) {
+BmnStatus BmnKalmanFilter::FillParFromVecAndCov(TMatrixD x, TMatrixD c, FairTrackParam* par) {
     par->SetX(x[0][0]);
     par->SetY(x[1][0]);
     par->SetTx(x[2][0]);
@@ -332,7 +332,7 @@ BmnStatus BmnKalmanFilter_tmp::FillParFromVecAndCov(TMatrixD x, TMatrixD c, Fair
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnKalmanFilter_tmp::RK4TrackExtrapolate(FairTrackParam* par, Double_t zOut, vector<Double_t>* F) {
+BmnStatus BmnKalmanFilter::RK4TrackExtrapolate(FairTrackParam* par, Double_t zOut, vector<Double_t>* F) {
 
     Double_t zIn = par->GetZ();
     fField = FairRunAna::Instance()->GetField();
@@ -375,7 +375,7 @@ BmnStatus BmnKalmanFilter_tmp::RK4TrackExtrapolate(FairTrackParam* par, Double_t
     return kBMNSUCCESS;
 }
 
-void BmnKalmanFilter_tmp::RK4Order(const vector<Double_t>& xIn, Double_t zIn, vector<Double_t>& xOut, Double_t zOut, vector<Double_t>& derivs) {
+void BmnKalmanFilter::RK4Order(const vector<Double_t>& xIn, Double_t zIn, vector<Double_t>& xOut, Double_t zOut, vector<Double_t>& derivs) {
     const Double_t fC = 0.000299792458;
 
     Double_t coef[4] = {0.0, 0.5, 0.5, 1.0};
@@ -532,7 +532,7 @@ void BmnKalmanFilter_tmp::RK4Order(const vector<Double_t>& xIn, Double_t zIn, ve
     // end calculation of the derivatives
 }
 
-void BmnKalmanFilter_tmp::TransportC(const vector<Double_t>& cIn, const vector<Double_t>& F, vector<Double_t>& cOut) {
+void BmnKalmanFilter::TransportC(const vector<Double_t>& cIn, const vector<Double_t>& F, vector<Double_t>& cOut) {
     // F*C*Ft
     Double_t A = cIn[2] + F[2] * cIn[9] + F[3] * cIn[10] + F[4] * cIn[11];
     Double_t B = cIn[3] + F[2] * cIn[10] + F[3] * cIn[12] + F[4] * cIn[13];
@@ -569,11 +569,11 @@ void BmnKalmanFilter_tmp::TransportC(const vector<Double_t>& cIn, const vector<D
     cOut[14] = cIn[14];
 }
 
-Double_t BmnKalmanFilter_tmp::CalcOut(Double_t in, const Double_t k[4]) {
+Double_t BmnKalmanFilter::CalcOut(Double_t in, const Double_t k[4]) {
     return in + k[0] / 6. + k[1] / 3. + k[2] / 3. + k[3] / 6.;
 }
 
-BmnStatus BmnKalmanFilter_tmp::Update(FairTrackParam* par, const BmnHit* hit, Double_t& chiSq) {
+BmnStatus BmnKalmanFilter::Update(FairTrackParam* par, const BmnHit* hit, Double_t& chiSq) {
 
     //   vector<Double_t> cIn = par->GetCovMatrix();
     Double_t cIn[15];
@@ -669,7 +669,7 @@ BmnStatus BmnKalmanFilter_tmp::Update(FairTrackParam* par, const BmnHit* hit, Do
     return kBMNSUCCESS;
 }
 
-void BmnKalmanFilter_tmp::UpdateF(vector<Double_t>& F, const vector<Double_t>& newF) {
+void BmnKalmanFilter::UpdateF(vector<Double_t>& F, const vector<Double_t>& newF) {
     vector<Double_t> A(25);
     Mult25(newF, F, A);
     F.assign(A.begin(), A.end());
@@ -679,7 +679,7 @@ void BmnKalmanFilter_tmp::UpdateF(vector<Double_t>& F, const vector<Double_t>& n
 
 //++++++++++++++++++++++++++++SMOOTHER++++++++++++++++++++++++++++++++++++//
 
-BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits) { //FIXME
+BmnStatus BmnKalmanFilter::FitSmooth(BmnGemTrack* track, TClonesArray* hits) { //FIXME
 
     const Int_t n = track->GetNHits();
 
@@ -718,7 +718,7 @@ BmnStatus BmnKalmanFilter_tmp::FitSmooth(BmnGemTrack* track, TClonesArray* hits)
 // We are going in the upstream direction
 // this Node (k) , prevNode (k+1)
 
-BmnStatus BmnKalmanFilter_tmp::Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode) {
+BmnStatus BmnKalmanFilter::Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode) {
 
     if (thisNode->GetPredictedParam()->GetQp() == 0.0) return kBMNERROR;
     if (prevNode->GetPredictedParam()->GetQp() == 0.0) return kBMNERROR;
@@ -816,7 +816,7 @@ BmnStatus BmnKalmanFilter_tmp::Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnKalmanFilter_tmp::TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, Bool_t isField) {
+BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, Bool_t isField) {
 
     if (!IsParCorrect(par)) return kBMNERROR;
     Double_t zIn = par->GetZ();

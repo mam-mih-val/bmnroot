@@ -1,11 +1,11 @@
 /* 
- * File:   BmnKalmanFilter_tmp.h
+ * File:   BmnKalmanFilter.h
  *
  * Created on July 29, 2015, 9:48 AM
  */
 
-#ifndef BMNKALMANFILTER_TMP_H
-#define	BMNKALMANFILTER_TMP_H
+#ifndef BmnKalmanFilter_H
+#define	BmnKalmanFilter_H
 
 #include "BmnEnums.h"
 #include "FairTrackParam.h"
@@ -23,13 +23,13 @@
 #include "BmnGeoNavigator.h"
 #include "BmnMaterialEffects.h"
 
-class BmnKalmanFilter_tmp {
+class BmnKalmanFilter {
 public:
     /* Constructor */
-    BmnKalmanFilter_tmp();
+    BmnKalmanFilter();
 
     /* Destructor */
-    virtual ~BmnKalmanFilter_tmp();
+    virtual ~BmnKalmanFilter();
 
     BmnStatus Prediction(FairTrackParam* par, Double_t dZ, BmnFitNode& node);
     BmnStatus Correction(FairTrackParam* par, BmnHit* hit, Double_t &chi2, BmnFitNode& node);
@@ -62,5 +62,5 @@ private:
 
 };
 
-#endif	/* BMNKALMANFILTER_TMP_H */
+#endif	/* BmnKalmanFilter_H */
 

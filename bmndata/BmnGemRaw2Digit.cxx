@@ -75,7 +75,7 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     if (fBigL1) delete[] fBigL1;
     if (fBigR0) delete[] fBigR0;
     if (fBigR1) delete[] fBigR1;
-    if (fMap) delete[] fMap;
+    if (fMap) delete[] fMap;    
 }
 
 BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
@@ -137,10 +137,8 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
             dig.SetModule(mod);
             dig.SetStripLayer(lay);
             dig.SetStripNumber(strip);
-            if (GetRun() > GetBoundaryRun(ADC32_N_SAMPLES))
-                dig.SetStripSignal((Double_t) ((adcDig->GetShortValue())[iSmpl] / 16));
-            else
-                dig.SetStripSignal((Double_t) ((adcDig->GetUShortValue())[iSmpl] / 16));
+            Double_t sig = (GetRun() > GetBoundaryRun(ADC32_N_SAMPLES)) ? ((Double_t) ((adcDig->GetShortValue())[iSmpl] / 16)) : ((Double_t) ((adcDig->GetUShortValue())[iSmpl] / 16));
+            dig.SetStripSignal(sig);
             candDig[iSmpl] = dig;
         }
     }
@@ -166,8 +164,8 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
         Double_t ped = vPed[iSer][ch][iSmpl];
         Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
         //        Double_t sig = dig->GetStripSignal() - CMS - ped;
-        Float_t threshold = 7 * vPedRMS[iSer][ch][iSmpl];//20;
-        if (sig < threshold) continue;
+        Float_t threshold = 20;//7 * vPedRMS[iSer][ch][iSmpl];//20;
+        if (sig < threshold || sig == 0.0) continue;  //FIXME: check cases with sig == 0
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }
 }

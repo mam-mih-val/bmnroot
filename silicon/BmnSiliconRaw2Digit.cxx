@@ -76,10 +76,8 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         dig.SetModule(silM->module);
         dig.SetStripLayer(silM->layer);
         dig.SetStripNumber(silM->start_strip + iSmpl);
-        if (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES))
-            dig.SetStripSignal((Double_t)((adcDig->GetShortValue())[iSmpl] / 16));
-        else
-            dig.SetStripSignal((Double_t)((adcDig->GetUShortValue())[iSmpl] / 16));
+        Double_t sig = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES)) ? ((Double_t) ((adcDig->GetShortValue())[iSmpl] / 16)) : ((Double_t) ((adcDig->GetUShortValue())[iSmpl] / 16));
+        dig.SetStripSignal(sig);
         candDig[iSmpl] = dig;
     }
 
@@ -104,8 +102,8 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         BmnSiliconDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
         Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
-        Double_t threshold = 7 * vPedRMS[iSer][ch][iSmpl];//50;//120;//160;
-        if (sig < threshold) continue;
+        Double_t threshold = 7 * vPedRMS[iSer][ch][iSmpl]; //50;//120;//160;
+        if (sig < threshold || sig == 0.0) continue;
         new((*silicon)[silicon->GetEntriesFast()]) BmnSiliconDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }
 

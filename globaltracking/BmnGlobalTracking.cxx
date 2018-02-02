@@ -6,7 +6,6 @@
  **/
 
 #include "BmnGlobalTracking.h"
-#include "TH1F.h"
 #include "BmnEventHeader.h"
 #include "BmnMwpcGeometry.h"
 using namespace TMath;

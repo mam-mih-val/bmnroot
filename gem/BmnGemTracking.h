@@ -15,7 +15,6 @@
 #include "FairTrackParam.h"
 #include "BmnFitNode.h"
 #include "BmnKalmanFilter_tmp.h"
-#include "BmnTrackFitter.h"
 #include "BmnMath.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"

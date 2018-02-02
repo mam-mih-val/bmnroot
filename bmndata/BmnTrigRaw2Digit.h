@@ -33,7 +33,7 @@ class BmnTrigRaw2Digit {
 public:
     BmnTrigRaw2Digit(TString mappingFile, TString INLFile);
     BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *digiTree);
-    BmnTrigRaw2Digit();
+    BmnTrigRaw2Digit(){}
 
     ~BmnTrigRaw2Digit() {
         for (TClonesArray *ar : trigArrays)

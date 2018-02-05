@@ -17,7 +17,7 @@
 
 
 #ifndef CBMMAGFIELDMAPDATA_H
-#define CBMMAGFIELDMAPDATA
+#define CBMMAGFIELDMAPDATA_H
 
 
 #include "TNamed.h"

@@ -34,7 +34,7 @@ BmnFieldContFact.cxx
 BmnFieldMap.cxx
 BmnFieldMapCreator.cxx         
 BmnFieldMapData.cxx     
-#BmnFieldMapSym3.cxx     
+BmnFieldMapSym3.cxx     
 BmnFieldPar.cxx         
 BmnFieldCreator.cxx
 BmnSP41FieldMapCreator.cxx

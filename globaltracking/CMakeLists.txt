@@ -36,38 +36,18 @@ link_directories(${LINK_DIRECTORIES})
 # List of source files
 Set(SRCS
     BmnDetectorSetup.cxx
-    BmnGlobalTrackingQA.cxx
-    BmnManageQA.cxx
-    BmnTrackFinder.cxx
-    BmnHitToTrackMerger.cxx
-    BmnKalmanFilter.cxx
-    BmnTrackExtrapolator.cxx
-    BmnTrackPropagator.cxx
     BmnMatrixMath.cxx
     BmnGeoNavigator.cxx
     BmnMaterialEffects.cxx
-    BmnTrackSelector.cxx
     BmnGlobalTracking.cxx
-    BmnHitMatchingQA.cxx
 )
 
 Set(HEADERS
     BmnDetectorSetup.h
-    BmnGlobalTrackingQA.h
-    BmnManageQA.h  
-    BmnTrackFinder.h
-    BmnHitToTrackMerger.h
-    BmnKalmanFilter.h
-    BmnTrackExtrapolator.h
-    BmnTrackPropagator.h
     BmnMatrixMath.h
-    BmnDefaultSettings.h
     BmnGeoNavigator.h
-    BmnMaterialInfo.h
     BmnMaterialEffects.h
-    BmnTrackSelector.h
     BmnGlobalTracking.h
-    BmnHitMatchingQA.h
     BmnHitFinderRun1.h
 )
 

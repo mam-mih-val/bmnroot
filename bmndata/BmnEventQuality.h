@@ -27,7 +27,7 @@ public:
 
 private:
     Bool_t fIsGoodEvent;
-    ClassDef(BmnEventQuality, 1)
+    ClassDef(BmnEventQuality, 1);
 };
 
 #endif

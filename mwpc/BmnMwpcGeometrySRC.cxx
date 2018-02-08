@@ -12,7 +12,7 @@
 #include "BmnMwpcGeometrySRC.h"
 
 BmnMwpcGeometrySRC::BmnMwpcGeometrySRC() :
-fDebug(kTRUE) {
+fDebug(kFALSE) {
     fNChambers = 4;
     fNPlanes = 6;
     fTimeBin = 8;
@@ -58,7 +58,7 @@ fDebug(kTRUE) {
             zPlanePos[iChamber][iPlane] = zLeft[iChamber] + fSpaceLeft + iPlane * fPlaneStep;
 
 
-    cout<<"it was: zRight = "<< -(186.+22.)<<", zRight1 = "<<-(186.+22.)-fChamberWidth-140.5<<endl;
+    //    cout<<"it was: zRight = "<< -(186.+22.)<<", zRight1 = "<<-(186.+22.)-fChamberWidth-140.5<<endl;
     // Check built geometry
     if (fDebug)
         for (Int_t iChamber = 0; iChamber < fNChambers; iChamber++) {

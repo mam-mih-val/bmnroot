@@ -5,7 +5,7 @@
 //                                                                            //
 // BmnMwpcHitFinder                                                           //
 //                                                                            //
-// Implementation of an algorithm developed by                                //
+// Implementation of an algorithm developed by                                // 
 // S. Merts and P. Batyuk                                                     //
 // to the BmnRoot software                                                    //
 //                                                                            //
@@ -23,16 +23,16 @@ using namespace std;
 using namespace TMath;
 
 BmnMwpcHitFinder::BmnMwpcHitFinder(Bool_t isExp) :
-  fEventNo(0),
-  fUseDigitsInTimeBin(kTRUE),
-  expData(isExp) {
-  fInputBranchName = "MWPC";
-  fOutputBranchName = "BmnMwpcHit";
-  thDist = 1.;
-  nInputDigits = 3;
-  nTimeSamples = 3;
-  kBig = 100;
-  }
+fEventNo(0),
+fUseDigitsInTimeBin(kTRUE),
+expData(isExp) {
+    fInputBranchName = "MWPC";
+    fOutputBranchName = "BmnMwpcHit";
+    thDist = 1.;
+    nInputDigits = 3;
+    nTimeSamples = 3;
+    kBig = 100;
+}
 
 BmnMwpcHitFinder::~BmnMwpcHitFinder() {
 
@@ -62,6 +62,7 @@ InitStatus BmnMwpcHitFinder::Init() {
 
     kMinHits = 4;
     kChi2_Max = 20.;
+
     
     kX1_sh = 1.775;
     kY1_sh = 8.25;
@@ -88,9 +89,6 @@ InitStatus BmnMwpcHitFinder::Init() {
     
     kZ1_loc = new Float_t[kNPlanes];
     kZ2_loc = new Float_t[kNPlanes];
-
-    dX_i = new Float_t[kNPlanes];
-    z2 = new Float_t[kNPlanes];
 
     kPln = new Int_t[kNPlanes * kNChambers];
     iw = new Int_t[kNPlanes * kNChambers];
@@ -143,8 +141,6 @@ InitStatus BmnMwpcHitFinder::Init() {
 
     ind_best_Ch1 = new Int_t[5];
     ind_best_Ch2 = new Int_t[5];
-    Chi2_ndf_Ch1 = new Double_t[kBig];
-    Chi2_ndf_Ch2 = new Double_t[kBig];
     Chi2_ndf_best_Ch1 = new Double_t[5];
     Chi2_ndf_best_Ch2 = new Double_t[5];
     
@@ -199,8 +195,6 @@ void BmnMwpcHitFinder::PrepareArraysToProcessEvent(){
 	ipl[iPl] = 6;
 	XVU[iPl] = 0;
 	XVU_cl[iPl] = 0;
-	dX_i[iPl] = 0;
-	z2[iPl] = 0;
       }
 
       for(Int_t iPl2=0; iPl2<kNPlanes*kNChambers; iPl2++){
@@ -239,7 +233,6 @@ void BmnMwpcHitFinder::PrepareArraysToProcessEvent(){
 	for(Int_t jj=0; jj<4; jj++){
 	  A[ii][jj] = 0.;
 	  b[ii][jj] = 0.;
-	}
       }
       
       for(Int_t iPlane=0; iPlane<kNPlanes; iPlane++){
@@ -257,6 +250,7 @@ void BmnMwpcHitFinder::PrepareArraysToProcessEvent(){
 	Chi2_ndf_Ch1[iBig] = 0;
 	Chi2_ndf_Ch2[iBig] = 0;
       }
+
 }
 
 void BmnMwpcHitFinder::Exec(Option_t* opt) {
@@ -266,6 +260,13 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
     PrepareArraysToProcessEvent();
     if (fVerbose) cout << "\n======================== MWPC hit finder exec started =====================\n" << endl;
     if (fVerbose) cout << "Event number: " << fEventNo++ << endl;
+}
+
+    
+//vector <BmnMwpcDigit*> digits[kNChambers][kNPlanes];
+//  vector <BmnMwpcDigit*> digits_filtered[kNChambers][kNPlanes];
+
+/*
     cout<<"NWires = "<<kNWires<<", NPlanes = "<<kNPlanes<<endl;
     
     Short_t wn, pn, ts, pl;
@@ -325,15 +326,15 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
     }// iDigit
     
     //    for (Int_t iChamber = 0; iChamber < kNChambers; iChamber++) {
+      for(Int_t iCase=0; iCase < 8; iCase ++){
+	SegmentFinder(1, Wires_Ch1, clust_Ch1, XVU_Ch1, Nhits_Ch1, iw_Ch1, Nseg_Ch1, wire_Ch1, xuv_Ch1, kMinHits, iCase, kBig);
 
-          for(Int_t iCase=1; iCase < 9; iCase ++){
-	    SegmentFinder(1, Wires_Ch1, clust_Ch1, XVU_Ch1, kMinHits);
-	    //SegmentFinder(1, Wires_Ch1, clust_Ch1, XVU_Ch1, Nhits_Ch1, iw_Ch1, Nseg_Ch1, wire_Ch1, xuv_Ch1, kMinHits, iCase, kBig);
-	//      	SegmentFinder(2, Wires_Ch2, clust_Ch2, XVU_Ch2, Nhits_Ch2, iw_Ch2, Nseg_Ch2, wire_Ch2, xuv_Ch2, kMinHits, iCase, kBig);
+	
+	SegmentFinder(1, Wires_Ch2, clust_Ch2, XVU_Ch2, Nhits_Ch2, iw_Ch2, Nseg_Ch2, wire_Ch2, xuv_Ch2, kMinHits, iCase, kBig);
       }
-	  /*	  
-      if(Nseg_Ch1 > 0) ProcessSegments(1, sigma, dw_half, kZ1_loc, kMinHits, Nseg_Ch1, Nhits_Ch1, Wires_Ch1, clust_Ch1, XVU_Ch1, Nbest_Ch1, ind_best_Ch1, Chi2_ndf_Ch1, Chi2_ndf_best_Ch1, par_ab_Ch1, A, kNPlanes, ipl, XVU, XVU_cl, kChi2_Max);
-	  */
+      
+      if(Nseg_Ch1 > 0) ProcessSegments(1, sigma, dw_half, kZ1_loc, kMinHits, Nseg_Ch1, Nhits_Ch1, Wires_Ch1, clust_Ch1, XVU_Ch1, Nbest_Ch1, ind_best_Ch1, Chi2_ndf_Ch1, Chi2_ndf_best_Ch1, par_ab_Ch1, A, kNPlanes, ipl, XVU, XVU_cl);
+
       // create a track and put in into TClonesArray:
       
       
@@ -346,18 +347,19 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
         CreateMwpcHits(CreateHitsBy3Planes(digits_filtered[iChamber][3], digits_filtered[iChamber][4], digits_filtered[iChamber][5],
 	fMwpcGeometry->GetZPlanePos(iChamber, 4)), fBmnMwpcHitArray, iChamber);*/
 
-
+/*
       
       //    }
     if (fVerbose) cout << "\n======================== MWPC hit finder exec finished ====================" << endl;
     clock_t tFinish = clock();
     workTime += ((Float_t) (tFinish - tStart)) / CLOCKS_PER_SEC;
 }
-/*
+*/
+
 void SegmentFinder(Int_t chNum, Int_t** wires_Ch, Int_t **clust_Ch, Float_t **XVU_Ch, Int_t *Nhits_Ch, Int_t *iw_Ch, Int_t &Nseg, Int_t **wires_glob, Float_t **xuv_glob, Int_t minHits, Short_t code, Int_t kBig) {
   //xuv_glob     - coordinates of all hits
   //wires_glob   - wires of all hits
-    Float_t delta = (chNum == 3) ? 1.125 : 0.75; //0.5; //condition for the nearest "lighted" wires
+  Float_t delta = (chNum == 3) ? 1.125 : 0.75; //0.5; //condition for the nearest "lighted" wires
    Int_t cntr_sumWW_x =  95 ;//center wires Wx1+Wx2 due to x-slope
    Int_t min_sumWW_x =  (chNum == 3) ? 3 : 2; //min sum of wires to 95 
 
@@ -379,7 +381,7 @@ void SegmentFinder(Int_t chNum, Int_t** wires_Ch, Int_t **clust_Ch, Float_t **XV
   // 8  {X+, V+, U-}
   
   Int_t x = 0, v = 1, u = 2 , x1 = 3, v1 = 4, u1 = 5;//MK
-  
+
   switch (code) {
   case 1:
     x = 0;
@@ -450,7 +452,7 @@ void SegmentFinder(Int_t chNum, Int_t** wires_Ch, Int_t **clust_Ch, Float_t **XV
 
   if (Nseg > kBig - 2)return;// MP
 
-    if (iw_Ch[x] > 0) {
+  if (iw_Ch[x] > 0) {
     for (Int_t ix = 0; ix < iw_Ch[x]; ix++) {
       if (iw_Ch[v] > 0) {
 	for (Int_t iv = 0; iv < iw_Ch[v]; iv++) {
@@ -771,33 +773,12 @@ void SegmentFinder(Int_t chNum, Int_t** wires_Ch, Int_t **clust_Ch, Float_t **XV
     }//ix
     if (Nseg > kBig - 2)return;//MP
   }//iw_Ch[x]
-
-  
 }//SegmentFinder
-*/
-
-void BmnMwpcHitFinder::SegmentFinder(Int_t chNum, Int_t **wires_Ch, Int_t**clust_Ch, Float_t** XVU_Ch, Int_t minHits){
-
-  //xuv_glob     - coordinates of all hits
-  //wires_glob   - wires of all hits
-  Float_t delta = (chNum == 3) ? 1.125 : 0.75; //0.5; //condition for the nearest "lighted" wires
-   Int_t cntr_sumWW_x =  95 ;//center wires Wx1+Wx2 due to x-slope
-   Int_t min_sumWW_x =  (chNum == 3) ? 3 : 2; //min sum of wires to 95 
-
-     Int_t min_sumWW =  (chNum == 3) ? 3 : 2; //min sum of wires to 95  //wide UV
-
-  Int_t cntr_sumWW =  95 ;//center wires W1+W2 due to u,v-slope
-  //Int_t min_sumWW =  2 ; //min sum of wires to 95 //narrow UV
-
-  Int_t minHits4_5= minHits;
-
-}
-
 
 void BmnMwpcHitFinder::ProcessSegments(
 		     Int_t chNum,
-		     Double_t sigma_, 
-		     Float_t dw_half_,
+		     Double_t sigma, 
+		     Float_t dw_half,
 		     Float_t *z_loc,
 		     Int_t Min_hits,
 		     Int_t Nseg,
@@ -810,17 +791,15 @@ void BmnMwpcHitFinder::ProcessSegments(
 		     Double_t *Chi2_ndf_Ch,
 		     Double_t *Chi2_ndf_best_Ch,
 		     Double_t **par_ab_Ch,
-		     Double_t **A_,
+		     Double_t **A,
 		     Int_t nPlanes,
-		     Int_t* ipl_,
-		     Float_t* XVU_,
-		     Float_t* XVU_cl_,
-		     Double_t kChi2_Max_,
-		     Float_t *dX_i_) {
+		     Int_t* ipl,
+		     Float_t* XVU,
+		     Float_t* XVU_cl) {
 
   Float_t delta = (chNum == 3) ? 1.125 : 0.75; //0.5;
 
-  Float_t sigma2 = sigma_ * sigma_;
+  Float_t sigma2 = sigma * sigma;
   //  Float_t sigm2[nPlanes] = {sigma2, sigma2, sigma2, sigma2, sigma2, sigma2};
 
   //  Int_t h6[nPlanes] = {1, 1, 1, 1, 1, 1};   
@@ -838,14 +817,14 @@ void BmnMwpcHitFinder::ProcessSegments(
       // Int_t h[nPlanes] = {0, 0, 0, 0, 0, 0};
       Int_t max_i[7] = {0, 0, 0, 0, 0, 0,   0};
       Int_t min_i[7] = {0, 0, 0, 0, 0, 0,   0};
-      //      Int_t ipl_[nPlanes] = {6, 6, 6, 6, 6, 6};
+      //      Int_t ipl[nPlanes] = {6, 6, 6, 6, 6, 6};
       Int_t ifirst = -1;
       Int_t ilast =  6;
       if ( Nhits_Ch[iseg] > 4) {
 	for (Int_t i = 0; i < nPlanes; i++){
 	  if (Wires_Ch[i][iseg] > -1) { h[i] = 1;
-	    if ( clust_Ch[i][iseg] ==  3) {min_i[i]= -2; 	max_i[i]= 2; ilast--; ipl_[ilast] = i;}
-	    if ( clust_Ch[i][iseg] ==  0) {min_i[i]=  0; 	max_i[i]= 0; ifirst++; ipl_[ifirst] = i;}
+	    if ( clust_Ch[i][iseg] ==  3) {min_i[i]= -2; 	max_i[i]= 2; ilast--; ipl[ilast] = i;}
+	    if ( clust_Ch[i][iseg] ==  0) {min_i[i]=  0; 	max_i[i]= 0; ifirst++; ipl[ifirst] = i;}
 	    if (i>1 && i<5 ){
 	      if ( clust_Ch[i][iseg] == -1) {min_i[i]= -2;   max_i[i]= 0;  }
 	      if ( clust_Ch[i][iseg] ==  1) {min_i[i]=  0;   max_i[i]= 2;  }
@@ -858,23 +837,23 @@ void BmnMwpcHitFinder::ProcessSegments(
       
 	for (Int_t i = 0; i < nPlanes; i++){
 	  if (Wires_Ch[i][iseg] < 0 ) continue;
-	  if ( abs(clust_Ch[i][iseg]) == 1) { ifirst++; ipl_[ifirst] = i;}
+	  if ( abs(clust_Ch[i][iseg]) == 1) { ifirst++; ipl[ifirst] = i;}
 	}
       }// Nhits_Ch[iseg] > 4 
       else { for (Int_t i = 0; i < nPlanes; i++){ 
 	  if (Wires_Ch[i][iseg] > -1)  h[i] = 1;
-	  ipl_[i]=i;
+	  ipl[i]=i;
 	}
       }
       /*
         ::out1<<" iseg "<<iseg<<" clust_Ch "<<clust_Ch[0][iseg] <<" "<<clust_Ch[1][iseg] <<" "<<clust_Ch[2][iseg] <<" "<<clust_Ch[3][iseg] <<" "<<clust_Ch[4][iseg]<<" "<<clust_Ch[5][iseg]
 	    <<" Wires_Ch "<<Wires_Ch[0][iseg]<<" "<<Wires_Ch[1][iseg]<<" "<<Wires_Ch[2][iseg]<<" "<<Wires_Ch[3][iseg]<<" "<<Wires_Ch[4][iseg]<<" "<<Wires_Ch[5][iseg]
 	   <<" XVU_Ch "<<XVU_Ch[0][iseg]<<" "<<XVU_Ch[1][iseg]<<" "<<XVU_Ch[2][iseg]<<" "<<XVU_Ch[3][iseg]<<" "<<XVU_Ch[4][iseg]<<" "<<XVU_Ch[5][iseg]
-	    <<" ipl "<< ipl_[0] <<" "<< ipl_[1] <<" "<< ipl_[2] <<" "<< ipl_[3] <<" "<< ipl_[4] <<" "<< ipl_[5] <<endl;
+	    <<" ipl "<< ipl[0] <<" "<< ipl[1] <<" "<< ipl[2] <<" "<< ipl[3] <<" "<< ipl[4] <<" "<< ipl[5] <<endl;
      //  */
 
       //linear fit
-      //      Double_t A_[4][4]; //coef matrix
+      //      Double_t A[4][4]; //coef matrix
       Double_t F[4]; //free coef 
       
       Float_t dX[nPlanes];
@@ -884,142 +863,142 @@ void BmnMwpcHitFinder::ProcessSegments(
       Double_t par_ab_curr[4];
       Double_t par_ab_cl[4];
       
-      for (Int_t i10 = min_i[ipl_[0]]; i10 <= max_i[ipl_[0]] ; i10++){ 
-	//-?	if ( ipl_[0] == 6 ) continue;
-	if ( h[ipl_[0]] == 1){
-	  XVU_[ipl_[0]] = XVU_Ch[ipl_[0]][iseg] + dw_half_*i10 ;
-	  sigm2[ipl_[0]] = sigma2 ;
-	  if ( i10 == -1 || i10 == 1 )  sigm2[ipl_[0]] = 0.5*sigma2 ;
+      for (Int_t i10 = min_i[ipl[0]]; i10 <= max_i[ipl[0]] ; i10++){ 
+	//-?	if ( ipl[0] == 6 ) continue;
+	if ( h[ipl[0]] == 1){
+	  XVU[ipl[0]] = XVU_Ch[ipl[0]][iseg] + dw_half*i10 ;
+	  sigm2[ipl[0]] = sigma2 ;
+	  if ( i10 == -1 || i10 == 1 )  sigm2[ipl[0]] = 0.5*sigma2 ;
 	}
-	for (Int_t i2 = min_i[ipl_[1]]; i2 <= max_i[ipl_[1]] ; i2++){ 
-	  //-?	 if ( ipl_[1] == 6 ) continue;
-	  //-?	 XVU_[ipl_[1]] = XVU_Ch[ipl_[1]][iseg];
-	 if ( h[ipl_[1]] == 1){
-	    XVU_[ipl_[1]] = XVU_Ch[ipl_[1]][iseg] + dw_half_*i2 ;
-	    if ( ( (ipl_[0] < 3 && ipl_[1] > 2) || (ipl_[0] > 2 && ipl_[1] < 3) ) &&  abs(ipl_[0] - ipl_[1]) == 3 ){//conjugated coord
-	      if ( ipl_[0] + ipl_[1] >3   ) {
-		//			::out1<<" ipl_[0] "<<ipl_[0]<<" ipl_[1] "<<ipl_[1]<<endl;
-		if ( fabs(XVU_[ipl_[0]] - XVU_[ipl_[1]]) > 3*dw_half_ ) continue;
-		//			::out1<<"     i2 "<<i2<<" XVU_-i2 "<<XVU_[ipl_[1]]<<" XVU_-conj "<<XVU_Ch[ipl_[0]]<<endl;
+	for (Int_t i2 = min_i[ipl[1]]; i2 <= max_i[ipl[1]] ; i2++){ 
+	  //-?	 if ( ipl[1] == 6 ) continue;
+	  //-?	 XVU[ipl[1]] = XVU_Ch[ipl[1]][iseg];
+	 if ( h[ipl[1]] == 1){
+	    XVU[ipl[1]] = XVU_Ch[ipl[1]][iseg] + dw_half*i2 ;
+	    if ( ( (ipl[0] < 3 && ipl[1] > 2) || (ipl[0] > 2 && ipl[1] < 3) ) &&  abs(ipl[0] - ipl[1]) == 3 ){//conjugated coord
+	      if ( ipl[0] + ipl[1] >3   ) {
+		//			::out1<<" ipl[0] "<<ipl[0]<<" ipl[1] "<<ipl[1]<<endl;
+		if ( fabs(XVU[ipl[0]] - XVU[ipl[1]]) > 3*dw_half ) continue;
+		//			::out1<<"     i2 "<<i2<<" XVU-i2 "<<XVU[ipl[1]]<<" XVU-conj "<<XVU_Ch[ipl[0]]<<endl;
 	      }
 	    }//conjugated coord
-	    sigm2[ipl_[1]] = sigma2 ;
-	    if ( i2 == -1 || i2 == 1 )  sigm2[ipl_[1]] = 0.5*sigma2 ;
+	    sigm2[ipl[1]] = sigma2 ;
+	    if ( i2 == -1 || i2 == 1 )  sigm2[ipl[1]] = 0.5*sigma2 ;
 	 }
-	  for (Int_t i3 = min_i[ipl_[2]]; i3 <= max_i[ipl_[2]] ; i3++){ 
-	    //-?	    if ( ipl_[2] == 6 ) continue;
-	    //-?	    XVU_[ipl_[2]] = XVU_Ch[ipl_[2]][iseg];
-	    if ( h[ipl_[2]] == 1){
-	      XVU_[ipl_[2]] = XVU_Ch[ipl_[2]][iseg] + dw_half_*i3 ;
+	  for (Int_t i3 = min_i[ipl[2]]; i3 <= max_i[ipl[2]] ; i3++){ 
+	    //-?	    if ( ipl[2] == 6 ) continue;
+	    //-?	    XVU[ipl[2]] = XVU_Ch[ipl[2]][iseg];
+	    if ( h[ipl[2]] == 1){
+	      XVU[ipl[2]] = XVU_Ch[ipl[2]][iseg] + dw_half*i3 ;
 	      Bool_t conj_bad = 0;//conjugated coord
 	      for (Int_t ic=0; ic<2 ; ic++){
-		if ( ( (ipl_[ic] < 3 && ipl_[2] > 2) || (ipl_[ic] > 2 && ipl_[2] < 3) ) &&  abs(ipl_[ic] - ipl_[2]) == 3 ){
-		  if ( ipl_[ic] + ipl_[2] >3  ) {
-		    //		      ::out1<<" ipl_[ic] "<<ipl_[ic]<<" ipl_[2] "<<ipl_[2]<<endl;
-		    if ( fabs(XVU_[ipl_[ic]] - XVU_[ipl_[2]]) > 3*dw_half_ ) { conj_bad = 1; break;
-		      //		        ::out1<<"     i3 "<<i3<<" XVU_-i3 "<<XVU_[ipl_[2]]<<" XVU_-conj "<<XVU_Ch[ipl_[ic]]<<endl;
+		if ( ( (ipl[ic] < 3 && ipl[2] > 2) || (ipl[ic] > 2 && ipl[2] < 3) ) &&  abs(ipl[ic] - ipl[2]) == 3 ){
+		  if ( ipl[ic] + ipl[2] >3  ) {
+		    //		      ::out1<<" ipl[ic] "<<ipl[ic]<<" ipl[2] "<<ipl[2]<<endl;
+		    if ( fabs(XVU[ipl[ic]] - XVU[ipl[2]]) > 3*dw_half ) { conj_bad = 1; break;
+		      //		        ::out1<<"     i3 "<<i3<<" XVU-i3 "<<XVU[ipl[2]]<<" XVU-conj "<<XVU_Ch[ipl[ic]]<<endl;
 		    }
 		  }
 		 
 		}
 	      }
 	      if (  conj_bad ) continue; //conjugated coord
-	      sigm2[ipl_[2]] = sigma2 ;
-	      if ( i3 == -1 || i3 == 1 )  sigm2[ipl_[2]] = 0.5*sigma2 ;
+	      sigm2[ipl[2]] = sigma2 ;
+	      if ( i3 == -1 || i3 == 1 )  sigm2[ipl[2]] = 0.5*sigma2 ;
 	    }
-	    for (Int_t i4 = min_i[ipl_[3]]; i4 <= max_i[ipl_[3]] ; i4++){ 
-	      //-?	      if ( ipl_[3] == 6 ) continue;
-	      //-?	      XVU_[ipl_[3]] = XVU_Ch[ipl_[3]][iseg];
-	      if ( h[ipl_[3]] == 1){
-		XVU_[ipl_[3]] = XVU_Ch[ipl_[3]][iseg] + dw_half_*i4 ;
+	    for (Int_t i4 = min_i[ipl[3]]; i4 <= max_i[ipl[3]] ; i4++){ 
+	      //-?	      if ( ipl[3] == 6 ) continue;
+	      //-?	      XVU[ipl[3]] = XVU_Ch[ipl[3]][iseg];
+	      if ( h[ipl[3]] == 1){
+		XVU[ipl[3]] = XVU_Ch[ipl[3]][iseg] + dw_half*i4 ;
 		Bool_t conj_bad = 0;//conjugated coord
 		for (Int_t ic=0; ic < 3 ; ic++){
-		  if ( ( (ipl_[ic] < 3 && ipl_[3] > 2) || (ipl_[ic] > 2 && ipl_[3] < 3) ) &&  abs(ipl_[ic] - ipl_[3]) == 3 ){
-		    if ( ipl_[ic] + ipl_[3] >3  ) {
-		      //		         ::out1<<" ipl_[ic] "<<ipl_[ic]<<" ipl_[3] "<<ipl_[3]<<endl;
-		      if ( fabs(XVU_[ipl_[ic]] - XVU_[ipl_[3]]) > 3*dw_half_ )  { conj_bad = 1; break;
-			//			  ::out1<<"     i4 "<<i4<<" XVU_-i4 "<<XVU_[ipl_[3]]<<" XVU_-conj "<<XVU_Ch[ipl_[ic]]<<endl;
+		  if ( ( (ipl[ic] < 3 && ipl[3] > 2) || (ipl[ic] > 2 && ipl[3] < 3) ) &&  abs(ipl[ic] - ipl[3]) == 3 ){
+		    if ( ipl[ic] + ipl[3] >3  ) {
+		      //		         ::out1<<" ipl[ic] "<<ipl[ic]<<" ipl[3] "<<ipl[3]<<endl;
+		      if ( fabs(XVU[ipl[ic]] - XVU[ipl[3]]) > 3*dw_half )  { conj_bad = 1; break;
+			//			  ::out1<<"     i4 "<<i4<<" XVU-i4 "<<XVU[ipl[3]]<<" XVU-conj "<<XVU_Ch[ipl[ic]]<<endl;
 		      }
 		    }
 		    
 		  }
 		}
 		if (  conj_bad ) continue; //conjugated coord
-		sigm2[ipl_[3]] = sigma2 ;
-		if ( i4 == -1 || i4 == 1 )  sigm2[ipl_[3]] = 0.5*sigma2 ;
+		sigm2[ipl[3]] = sigma2 ;
+		if ( i4 == -1 || i4 == 1 )  sigm2[ipl[3]] = 0.5*sigma2 ;
 	      }
-	      for (Int_t i5 = min_i[ipl_[4]]; i5 <= max_i[ipl_[4]] ; i5++){ 
-		//-?		if ( ipl_[4] == 6 ) continue;
-		//-?		XVU_[ipl_[4]] = XVU_Ch[ipl_[4]][iseg];
-		if ( h[ipl_[4]] == 1){
-		  XVU_[ipl_[4]] = XVU_Ch[ipl_[4]][iseg] + dw_half_*i5 ;
+	      for (Int_t i5 = min_i[ipl[4]]; i5 <= max_i[ipl[4]] ; i5++){ 
+		//-?		if ( ipl[4] == 6 ) continue;
+		//-?		XVU[ipl[4]] = XVU_Ch[ipl[4]][iseg];
+		if ( h[ipl[4]] == 1){
+		  XVU[ipl[4]] = XVU_Ch[ipl[4]][iseg] + dw_half*i5 ;
 		  Bool_t conj_bad = 0;//conjugated coord
 		  for (Int_t ic=0; ic < 4 ; ic++){
-		    if ( ( (ipl_[ic] < 3 && ipl_[4] > 2) || (ipl_[ic] > 2 && ipl_[4] < 3) ) &&  abs(ipl_[ic] - ipl_[4]) == 3 ){
-		      if ( ipl_[ic] + ipl_[4] >3  ) {
-			//				::out1<<" ipl_[ic] "<<ipl_[ic]<<" ipl_[4] "<<ipl_[4]<<endl;
-			if ( fabs(XVU_[ipl_[ic]] - XVU_[ipl_[4]]) > 3*dw_half_ )  { conj_bad = 1; break;
-			  //			  	  ::out1<<"     i5 "<<i5<<" XVU_-i5 "<<XVU_[ipl_[4]]<<" XVU_-conj "<<XVU_Ch[ipl_[ic]]<<endl;
+		    if ( ( (ipl[ic] < 3 && ipl[4] > 2) || (ipl[ic] > 2 && ipl[4] < 3) ) &&  abs(ipl[ic] - ipl[4]) == 3 ){
+		      if ( ipl[ic] + ipl[4] >3  ) {
+			//				::out1<<" ipl[ic] "<<ipl[ic]<<" ipl[4] "<<ipl[4]<<endl;
+			if ( fabs(XVU[ipl[ic]] - XVU[ipl[4]]) > 3*dw_half )  { conj_bad = 1; break;
+			  //			  	  ::out1<<"     i5 "<<i5<<" XVU-i5 "<<XVU[ipl[4]]<<" XVU-conj "<<XVU_Ch[ipl[ic]]<<endl;
 			}
 		      }
 		     
 		    }
 		  }
 		  if (  conj_bad ) continue; //conjugated coord
-		  sigm2[ipl_[4]] = sigma2 ;
-		  if ( i5 == -1 || i5 == 1 )  sigm2[ipl_[4]] = 0.5*sigma2 ;
+		  sigm2[ipl[4]] = sigma2 ;
+		  if ( i5 == -1 || i5 == 1 )  sigm2[ipl[4]] = 0.5*sigma2 ;
 		}
 		//??	Double_t Chi2_i6 = 999;
-		for (Int_t i6 = min_i[ipl_[5]]; i6 <= max_i[ipl_[5]] ; i6++){ 
-		  //-?		  if ( ipl_[5] == 6 ) continue;
-		  //-?		  XVU_[ipl_[5]] = XVU_Ch[ipl_[5]][iseg];
-		  if ( h[ipl_[5]] == 1){
-		    XVU_[ipl_[5]] = XVU_Ch[ipl_[5]][iseg] + dw_half_*i6 ;
+		for (Int_t i6 = min_i[ipl[5]]; i6 <= max_i[ipl[5]] ; i6++){ 
+		  //-?		  if ( ipl[5] == 6 ) continue;
+		  //-?		  XVU[ipl[5]] = XVU_Ch[ipl[5]][iseg];
+		  if ( h[ipl[5]] == 1){
+		    XVU[ipl[5]] = XVU_Ch[ipl[5]][iseg] + dw_half*i6 ;
 		    Bool_t conj_bad = 0;//conjugated coord
 		    Float_t conj =0;
 		    for (Int_t ic=0; ic < 5 ; ic++){
-		      if ( ( (ipl_[ic] < 3 && ipl_[5] > 2) || (ipl_[ic] > 2 && ipl_[5] < 3) ) &&  abs(ipl_[ic] - ipl_[5]) == 3 ){
-			if ( ipl_[ic] + ipl_[5] >3  ) {
-			  //			  	  ::out1<<" ipl_[ic] "<<ipl_[ic]<<" ipl_[5] "<<ipl_[5]<<endl;
-			  if ( fabs(XVU_[ipl_[ic]] - XVU_[ipl_[5]]) > 3*dw_half_ ) { conj=(XVU_[ipl_[ic]] - XVU_[ipl_[5]]); conj_bad = 1; break;
-			    //			    	     ::out1<<"     i6 "<<i6<<" XVU_-i6 "<<XVU_[ipl_[5]]<<" XVU_-conj "<<XVU_Ch[ipl_[ic]]<<endl;
+		      if ( ( (ipl[ic] < 3 && ipl[5] > 2) || (ipl[ic] > 2 && ipl[5] < 3) ) &&  abs(ipl[ic] - ipl[5]) == 3 ){
+			if ( ipl[ic] + ipl[5] >3  ) {
+			  //			  	  ::out1<<" ipl[ic] "<<ipl[ic]<<" ipl[5] "<<ipl[5]<<endl;
+			  if ( fabs(XVU[ipl[ic]] - XVU[ipl[5]]) > 3*dw_half ) { conj=(XVU[ipl[ic]] - XVU[ipl[5]]); conj_bad = 1; break;
+			    //			    	     ::out1<<"     i6 "<<i6<<" XVU-i6 "<<XVU[ipl[5]]<<" XVU-conj "<<XVU_Ch[ipl[ic]]<<endl;
 			  }
 			}
 		
 		      }
 		    }
 		    if (  conj_bad ) continue; //conjugated coord
-		    sigm2[ipl_[5]] = sigma2 ;
-		    if ( i6 == -1 || i6 == 1 )  sigm2[ipl_[5]] = 0.5*sigma2 ;
+		    sigm2[ipl[5]] = sigma2 ;
+		    if ( i6 == -1 || i6 == 1 )  sigm2[ipl[5]] = 0.5*sigma2 ;
 		  }
 		
-		  //		   ::out1<<" XVU_ "<<XVU_[0]<< " "<<XVU_[1]<<" "<<XVU_[2]<<" "<<XVU_[3]<<" "<<XVU_[4]<<" "<<XVU_[5]<<" sigm2 "<<sigm2[0]<<" "<<sigm2[1]<<" "<<sigm2[2]<<" "<<sigm2[3]<<" "<<sigm2[4]<<" "<<sigm2[5]<<" ii "<<i10<<i2<<i3<<i4<<i5<<i6<<endl;
+		  //		   ::out1<<" XVU "<<XVU[0]<< " "<<XVU[1]<<" "<<XVU[2]<<" "<<XVU[3]<<" "<<XVU[4]<<" "<<XVU[5]<<" sigm2 "<<sigm2[0]<<" "<<sigm2[1]<<" "<<sigm2[2]<<" "<<sigm2[3]<<" "<<sigm2[4]<<" "<<sigm2[5]<<" ii "<<i10<<i2<<i3<<i4<<i5<<i6<<endl;
 
 		  Float_t xx = 0;
 		  Int_t ii = 0;
-		  if ( h[0] == 1 ){ ii = ii +1; xx = xx + XVU_[0]; }
-		  if ( h[3] == 1 ){ ii = ii +1; xx = xx + XVU_[3]; xx = xx / ii; }
+		  if ( h[0] == 1 ){ ii = ii +1; xx = xx + XVU[0]; }
+		  if ( h[3] == 1 ){ ii = ii +1; xx = xx + XVU[3]; xx = xx / ii; }
 		  Float_t uu = 0;
 		  ii = 0;
-		  if ( h[2] == 1 ){ ii = ii +1; uu = uu + XVU_[2]; }
-		  if ( h[5] == 1 ){ ii = ii +1; uu = uu + XVU_[5]; uu = uu / ii; }
+		  if ( h[2] == 1 ){ ii = ii +1; uu = uu + XVU[2]; }
+		  if ( h[5] == 1 ){ ii = ii +1; uu = uu + XVU[5]; uu = uu / ii; }
 		  Float_t vv = 0;
 		  ii = 0;
-		  if ( h[1] == 1 ){ ii = ii +1; vv = vv + XVU_[1]; }
-		  if ( h[4] == 1 ){ ii = ii +1; vv = vv + XVU_[4]; vv = vv / ii; }
+		  if ( h[1] == 1 ){ ii = ii +1; vv = vv + XVU[1]; }
+		  if ( h[4] == 1 ){ ii = ii +1; vv = vv + XVU[4]; vv = vv / ii; }
 		 
 		  if ( fabs (xx -uu -vv) > delta ) continue;//??
 
-		  //       		  Double_t A_[4][4] = {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};//coef matrix
+		  //       		  Double_t A[4][4] = {{0,0,0,0},{0,0,0,0},{0,0,0,0},{0,0,0,0}};//coef matrix
 		  Double_t F[4] = {0,0,0,0};//free coef 
 
 		  if (Nhits_Ch[iseg] == nPlanes) //case 6-point segment
-		    FillFitMatrix(A_, z_loc, sigm2, h6, kNPlanes, z2);
+		    FillFitMatrix(A, z_loc, sigm2, h6);
 		  else
-		    FillFitMatrix(A_, z_loc, sigm2, h , kNPlanes, z2);
+		    FillFitMatrix(A, z_loc, sigm2, h);
 
-		  FillFreeCoefVector(F, XVU_, z_loc, sigm2, h, kNPlanes);
-		  // FillFreeCoefVector(F, XVU_, iseg, z_loc, sigm2, h);
+		  FillFreeCoefVector(F, XVU, z_loc, sigm2, h);
+		  // FillFreeCoefVector(F, XVU, iseg, z_loc, sigm2, h);
 
 		  Double_t A0[4][4];
 		  for (Int_t i1 = 0; i1 < 4; i1++)
@@ -1027,7 +1006,7 @@ void BmnMwpcHitFinder::ProcessSegments(
 		      A0[i1][j1] = A[i1][j1];
 
 		  //		  Double_t b[4][4];
-		  InverseMatrix(A_, b);
+		  InverseMatrix(A, b);
 
 		  Double_t sum;
 		  Double_t A1[4][4];
@@ -1051,15 +1030,15 @@ void BmnMwpcHitFinder::ProcessSegments(
 		    }
 		  } 
 
-		  //		  Float_t dX_i[nPlanes] = {0,0,0, 0,0,0};
+		  Float_t dX_i[nPlanes] = {0,0,0, 0,0,0};
 		  Double_t Chi2_curr_iseg = 0;
 		 
 		  for (Int_t i1 = 0; i1 < nPlanes; i1++) {
 		    if (Wires_Ch[i1][iseg]>-1) {
-		      if (i1 == 0 || i1 == 3) dX_i_[i1] = XVU_[i1] - par_ab_curr[0] * z_loc[i1] - par_ab_curr[1];
-		      if (i1 == 2 || i1 == 5) dX_i_[i1] = XVU_[i1] - 0.5 * (par_ab_curr[0] + sq3 * par_ab_curr[2]) * z_loc[i1] - 0.5 * (par_ab_curr[1] + sq3 * par_ab_curr[3]);
-		      if (i1 == 1 || i1 == 4) dX_i_[i1] = XVU_[i1] - 0.5 * (par_ab_curr[0] - sq3 * par_ab_curr[2]) * z_loc[i1] - 0.5 * (par_ab_curr[1] - sq3 * par_ab_curr[3]);
-		      Chi2_curr_iseg =  Chi2_curr_iseg + dX_i_[i1] * dX_i_[i1] / sigm2[i1];//??
+		      if (i1 == 0 || i1 == 3) dX_i[i1] = XVU[i1] - par_ab_curr[0] * z_loc[i1] - par_ab_curr[1];
+		      if (i1 == 2 || i1 == 5) dX_i[i1] = XVU[i1] - 0.5 * (par_ab_curr[0] + sq3 * par_ab_curr[2]) * z_loc[i1] - 0.5 * (par_ab_curr[1] + sq3 * par_ab_curr[3]);
+		      if (i1 == 1 || i1 == 4) dX_i[i1] = XVU[i1] - 0.5 * (par_ab_curr[0] - sq3 * par_ab_curr[2]) * z_loc[i1] - 0.5 * (par_ab_curr[1] - sq3 * par_ab_curr[3]);
+		      Chi2_curr_iseg =  Chi2_curr_iseg + dX_i[i1] * dX_i[i1] / sigm2[i1];//??
 		    } 
 		  }//i1
 		  		 
@@ -1072,8 +1051,8 @@ void BmnMwpcHitFinder::ProcessSegments(
 		  if ( Chi2_curr_iseg < Chi2_min_iseg) {
 		    Chi2_min_iseg = Chi2_curr_iseg;
 		    for (Int_t i1 = 0; i1 < nPlanes; i1++) {
-		      dX[i1] = dX_i_[i1];
-		      XVU_cl_[i1] = XVU_[i1];
+		      dX[i1] = dX_i[i1];
+		      XVU_cl[i1] = XVU[i1];
 		       if (i1 > 3) continue;
 		      par_ab_cl[i1] =  par_ab_curr[i1];
 		    //????
@@ -1092,7 +1071,7 @@ void BmnMwpcHitFinder::ProcessSegments(
       if (Nhits_Ch[iseg] > 4)
 	Chi2_ndf_Ch[iseg] = Chi2_ndf_Ch[iseg] / (Nhits_Ch[iseg] - 4);
 
-      if (Chi2_ndf_Ch[iseg] > kChi2_Max_) {
+      if (Chi2_ndf_Ch[iseg] > Chi2_Max) {
 	if (Nhits_Ch[iseg] <= Min_hits) { Nhits_Ch[iseg] = 0; continue;}
 	else  { //reject most distant point
 	  Float_t Max_dev = 0;
@@ -1110,7 +1089,7 @@ void BmnMwpcHitFinder::ProcessSegments(
       else {
 	//	::out1<<" Ch= "<<chNum<<" iseg "<<iseg<<" Nhits(aft.i10) "<<Nhits_Ch[iseg]<<" Chi2/n "<<Chi2_ndf_Ch[iseg]<<" XVU_Ch "<<XVU_Ch[0][iseg]<<" "<<XVU_Ch[1][iseg]<<" "<<XVU_Ch[2][iseg]<<" "<<XVU_Ch[3][iseg]<<" "<<XVU_Ch[4][iseg]<<" "<<XVU_Ch[5][iseg]<<endl;
 	for (Int_t i1 = 0; i1 < nPlanes; i1++) {
-	  XVU_Ch[i1][iseg] = XVU_cl_[i1];
+	  XVU_Ch[i1][iseg] = XVU_cl[i1];
 	  if (i1 > 3) continue;
 	  par_ab_Ch[i1][iseg] =  par_ab_cl[i1];
 	}
@@ -1168,7 +1147,7 @@ void BmnMwpcHitFinder::ProcessSegments(
 		 if (x_cross + v_cross + u_cross > 0) Nhits_Ch[iseg] = 0;
 	    */
 
-	    if( fabs(XVU_Ch[i1][iseg] - XVU_Ch[i1][iseg_best]) < 3*dw_half_ ) Nhits_Ch[iseg] = 0;
+	    if( fabs(XVU_Ch[i1][iseg] - XVU_Ch[i1][iseg_best]) < 3*dw_half ) Nhits_Ch[iseg] = 0;
 	  }
 	}
       }// iseg
@@ -1203,7 +1182,7 @@ void BmnMwpcHitFinder::ProcessSegments(
 	    if (iseg == ind_best_Ch[0] || iseg == iseg_best2) continue;
 	    for (Int_t i1 = 0; i1 < nPlanes; i1++) {
 	      if (Wires_Ch[i1][iseg]>-1) {
-		if( fabs(XVU_Ch[i1][iseg] - XVU_Ch[i1][iseg_best2]) < 3*dw_half_ ) Nhits_Ch[iseg] = 0;
+		if( fabs(XVU_Ch[i1][iseg] - XVU_Ch[i1][iseg_best2]) < 3*dw_half ) Nhits_Ch[iseg] = 0;
 	      }
 	    }
 	  }//iseg
@@ -1238,7 +1217,7 @@ void BmnMwpcHitFinder::ProcessSegments(
 	   if (iseg == ind_best_Ch[0] || iseg == ind_best_Ch[1] || iseg == iseg_best3)continue;
 	    for (Int_t i1 = 0; i1 < nPlanes; i1++) {
 	      if (Wires_Ch[i1][iseg]>-1) {
-		if( fabs(XVU_Ch[i1][iseg] - XVU_Ch[i1][iseg_best3]) < 3*dw_half_ ) Nhits_Ch[iseg] = 0;
+		if( fabs(XVU_Ch[i1][iseg] - XVU_Ch[i1][iseg_best3]) < 3*dw_half ) Nhits_Ch[iseg] = 0;
 	      }
 	    }
 	  }
@@ -1250,57 +1229,50 @@ void BmnMwpcHitFinder::ProcessSegments(
 
 }// ProcessSegments
 
-void BmnMwpcHitFinder::FillFitMatrix(Double_t** AA, Float_t* z, Float_t* sigm2_, Int_t* h_, Int_t nPlanes, Float_t *z2_) {
+void BmnMwpcHitFinder::FillFitMatrix(Double_t** A, Float_t* z, Float_t* sigm2, Int_t* h) {
 
   //out1<<" in FillFitMatrix "<<endl;
 
-    // AA - matrix to be filled
+    // A - matrix to be filled
     // z - local z-positions of planes(layers)
     // sigm2 - square of sigma
-    // h_ - array to include/exclude planes (h_[i] = 0 or 1)
+    // h - array to include/exclude planes (h[i] = 0 or 1)
 
-  //    Float_t z2_[nPlanes] = {z[0] * z[0], z[1] * z[1], z[2] * z[2], z[3] * z[3], z[4] * z[4], z[5] * z[5]}; //cm
-  z2_[0] = z[0]*z[0];
-  z2_[1] = z[1]*z[1];
-  z2_[2] = z[2]*z[2];
-  z2_[3] = z[3]*z[3];
-  z2_[4] = z[4]*z[4];
-  z2_[5] = z[5]*z[5];
+    Float_t z2[nPlanes] = {z[0] * z[0], z[1] * z[1], z[2] * z[2], z[3] * z[3], z[4] * z[4], z[5] * z[5]}; //cm
 
-
-    AA[0][0] += 2 * z2_[0] * h_[0] / sigm2_[0] + z2_[2] * h_[2] / (2 * sigm2_[2]) + z2_[1] * h_[1] / (2 * sigm2_[1]) + 2 * z2_[3] * h_[3] / sigm2_[3] + z2_[5] * h_[5] / (2 * sigm2_[5]) + z2_[4] * h_[4] / (2 * sigm2_[4]); //Ax
-    AA[0][1] += 2 * z[0] * h_[0] / sigm2_[0] + z[2] * h_[2] / (2 * sigm2_[2]) + z[1] * h_[1] / (2 * sigm2_[1]) + 2 * z[3] * h_[3] / (sigm2_[3]) + z[5] * h_[5] / (2 * sigm2_[5]) + z[4] * h_[4] / (2 * sigm2_[4]); //Bx
-    AA[0][2] += sq3 * (z2_[2] * h_[2] / (2 * sigm2_[2]) - z2_[1] * h_[1] / (2 * sigm2_[1]) + z2_[5] * h_[5] / (2 * sigm2_[5]) - z2_[4] * h_[4] / (2 * sigm2_[4])); //Ay
-    AA[0][3] += sq3 * (z[2] * h_[2] / (2 * sigm2_[2]) - z[1] * h_[1] / (2 * sigm2_[1]) + z[5] * h_[5] / (2 * sigm2_[5]) - z[4] * h_[4] / (2 * sigm2_[4])); //By
-    AA[1][0] = A[0][1];
-    AA[1][1] += 2 * h_[0] / sigm2_[0] + 0.5 * h_[2] / sigm2_[2] + 0.5 * h_[1] / sigm2_[1] + 2 * h_[3] / sigm2_[3] + 0.5 * h_[5] / sigm2_[5] + 0.5 * h_[4] / sigm2_[4];
-    AA[1][2] += sq3 * (z[2] * h_[2] / sigm2_[2] - z[1] * h_[1] / sigm2_[1] + z[5] * h_[5] / sigm2_[5] - z[4] * h_[4] / sigm2_[4]) * 0.5;
-    AA[1][3] += sq3 * (h_[2] / sigm2_[2] - h_[1] / sigm2_[1] + h_[5] / sigm2_[5] - h_[4] / sigm2_[4]) * 0.5;
-    AA[2][0] = A[0][2];
-    AA[2][1] = A[1][2];
-    AA[2][2] += 3.0 * (z2_[2] * h_[2] / sigm2_[2] + z2_[1] * h_[1] / sigm2_[1] + z2_[5] * h_[5] / sigm2_[5] + z2_[4] * h_[4] / sigm2_[4]) * 0.5;
-    AA[2][3] += 3.0 * (z[2] * h_[2] / sigm2_[2] + z[1] * h_[1] / sigm2_[1] + z[5] * h_[5] / sigm2_[5] + z[4] * h_[4] / sigm2_[4]) * 0.5;
-    AA[3][0] = A[0][3];
-    AA[3][1] = A[1][3];
-    AA[3][2] = A[2][3];
-    AA[3][3] += 3.0 * (0.5 * h_[2] / sigm2_[2] + 0.5 * h_[1] / sigm2_[1] + 0.5 * h_[5] / sigm2_[5] + 0.5 * h_[4] / sigm2_[4]);
+    A[0][0] += 2 * z2[0] * h[0] / sigm2[0] + z2[2] * h[2] / (2 * sigm2[2]) + z2[1] * h[1] / (2 * sigm2[1]) + 2 * z2[3] * h[3] / sigm2[3] + z2[5] * h[5] / (2 * sigm2[5]) + z2[4] * h[4] / (2 * sigm2[4]); //Ax
+    A[0][1] += 2 * z[0] * h[0] / sigm2[0] + z[2] * h[2] / (2 * sigm2[2]) + z[1] * h[1] / (2 * sigm2[1]) + 2 * z[3] * h[3] / (sigm2[3]) + z[5] * h[5] / (2 * sigm2[5]) + z[4] * h[4] / (2 * sigm2[4]); //Bx
+    A[0][2] += sq3 * (z2[2] * h[2] / (2 * sigm2[2]) - z2[1] * h[1] / (2 * sigm2[1]) + z2[5] * h[5] / (2 * sigm2[5]) - z2[4] * h[4] / (2 * sigm2[4])); //Ay
+    A[0][3] += sq3 * (z[2] * h[2] / (2 * sigm2[2]) - z[1] * h[1] / (2 * sigm2[1]) + z[5] * h[5] / (2 * sigm2[5]) - z[4] * h[4] / (2 * sigm2[4])); //By
+    A[1][0] = A[0][1];
+    A[1][1] += 2 * h[0] / sigm2[0] + 0.5 * h[2] / sigm2[2] + 0.5 * h[1] / sigm2[1] + 2 * h[3] / sigm2[3] + 0.5 * h[5] / sigm2[5] + 0.5 * h[4] / sigm2[4];
+    A[1][2] += sq3 * (z[2] * h[2] / sigm2[2] - z[1] * h[1] / sigm2[1] + z[5] * h[5] / sigm2[5] - z[4] * h[4] / sigm2[4]) * 0.5;
+    A[1][3] += sq3 * (h[2] / sigm2[2] - h[1] / sigm2[1] + h[5] / sigm2[5] - h[4] / sigm2[4]) * 0.5;
+    A[2][0] = A[0][2];
+    A[2][1] = A[1][2];
+    A[2][2] += 3.0 * (z2[2] * h[2] / sigm2[2] + z2[1] * h[1] / sigm2[1] + z2[5] * h[5] / sigm2[5] + z2[4] * h[4] / sigm2[4]) * 0.5;
+    A[2][3] += 3.0 * (z[2] * h[2] / sigm2[2] + z[1] * h[1] / sigm2[1] + z[5] * h[5] / sigm2[5] + z[4] * h[4] / sigm2[4]) * 0.5;
+    A[3][0] = A[0][3];
+    A[3][1] = A[1][3];
+    A[3][2] = A[2][3];
+    A[3][3] += 3.0 * (0.5 * h[2] / sigm2[2] + 0.5 * h[1] / sigm2[1] + 0.5 * h[5] / sigm2[5] + 0.5 * h[4] / sigm2[4]);
 }
 
-void BmnMwpcHitFinder::FillFreeCoefVector(Double_t* F, Float_t* XVU_Ch, Float_t* z, Float_t* sigm2_, Int_t* h_, Int_t nPlanes) {
+void BmnMwpcHitFinder::FillFreeCoefVector(Double_t F[4], Float_t XVU_Ch[nPlanes], Float_t z[nPlanes], Float_t sigm2[nPlanes], Int_t h[nPlanes]) {
     // F - vector to be filled
     // XVU_Ch - coordinates of segment in chamber (Is it correct definition?)
     // segIdx - index of current segment
     // z - local z-positions of planes(layers)
-    // sigm2_ - square of sigma
-    // h_ - array to include/exclude planes (h_[i] = 0 or 1)
+    // sigm2 - square of sigma
+    // h - array to include/exclude planes (h[i] = 0 or 1)
 
-    F[0] += 2 * XVU_Ch[0] * z[0] * h_[0] / sigm2_[0] + XVU_Ch[1] * z[1] * h_[1] / sigm2_[1] + XVU_Ch[2] * z[2] * h_[2] / sigm2_[2] + 2 * XVU_Ch[3] * z[3] * h_[3] / sigm2_[3] + XVU_Ch[4] * z[4] * h_[4] / sigm2_[4] + XVU_Ch[5] * z[5] * h_[5] / sigm2_[5];
-    F[1] += 2 * XVU_Ch[0] * h_[0] / sigm2_[0] + XVU_Ch[1] * h_[1] / sigm2_[1] + XVU_Ch[2] * h_[2] / sigm2_[2] + 2 * XVU_Ch[3] * h_[3] / sigm2_[3] + XVU_Ch[4] * h_[4] / sigm2_[4] + XVU_Ch[5] * h_[5] / sigm2_[5];
-    F[2] += sq3 * (-XVU_Ch[1] * z[1] * h_[1] / sigm2_[1] + XVU_Ch[2] * z[2] * h_[2] / sigm2_[2] - XVU_Ch[4] * z[4] * h_[4] / sigm2_[4] + XVU_Ch[5] * z[5] * h_[5] / sigm2_[5]);
-    F[3] += sq3 * (-XVU_Ch[1] * h_[1] / sigm2_[1] + XVU_Ch[2] * h_[2] / sigm2_[2] - XVU_Ch[4] * h_[4] / sigm2_[4] + XVU_Ch[5] * h_[5] / sigm2_[5]);
+    F[0] += 2 * XVU_Ch[0] * z[0] * h[0] / sigm2[0] + XVU_Ch[1] * z[1] * h[1] / sigm2[1] + XVU_Ch[2] * z[2] * h[2] / sigm2[2] + 2 * XVU_Ch[3] * z[3] * h[3] / sigm2[3] + XVU_Ch[4] * z[4] * h[4] / sigm2[4] + XVU_Ch[5] * z[5] * h[5] / sigm2[5];
+    F[1] += 2 * XVU_Ch[0] * h[0] / sigm2[0] + XVU_Ch[1] * h[1] / sigm2[1] + XVU_Ch[2] * h[2] / sigm2[2] + 2 * XVU_Ch[3] * h[3] / sigm2[3] + XVU_Ch[4] * h[4] / sigm2[4] + XVU_Ch[5] * h[5] / sigm2[5];
+    F[2] += sq3 * (-XVU_Ch[1] * z[1] * h[1] / sigm2[1] + XVU_Ch[2] * z[2] * h[2] / sigm2[2] - XVU_Ch[4] * z[4] * h[4] / sigm2[4] + XVU_Ch[5] * z[5] * h[5] / sigm2[5]);
+    F[3] += sq3 * (-XVU_Ch[1] * h[1] / sigm2[1] + XVU_Ch[2] * h[2] / sigm2[2] - XVU_Ch[4] * h[4] / sigm2[4] + XVU_Ch[5] * h[5] / sigm2[5]);
 }
 
-void BmnMwpcHitFinder::InverseMatrix(Double_t** AA, Double_t** b_) {
+void BmnMwpcHitFinder::InverseMatrix(Double_t** A, Double_t** b) {
     /**** Gaussian algorithm for 4x4 matrix inversion ****/
 
 
@@ -1310,99 +1282,233 @@ void BmnMwpcHitFinder::InverseMatrix(Double_t** AA, Double_t** b_) {
     // Set b to I
     for (Int_t i1 = 0; i1 < 4; i1++)
         for (Int_t j1 = 0; j1 < 4; j1++)
-            if (i1 == j1) b_[i1][j1] = 1.0;
-            else b_[i1][j1] = 0.0;
+            if (i1 == j1) b[i1][j1] = 1.0;
+            else b[i1][j1] = 0.0;
 
     for (Int_t i1 = 0; i1 < 4; i1++) {
         for (Int_t j1 = i1 + 1; j1 < 4; j1++) {
-            if (fabs(AA[i1][i1]) < fabs(AA[j1][i1])) {
-                for (Int_t l1 = 0; l1 < 4; l1++) temp[l1] = AA[i1][l1];
-                for (Int_t l1 = 0; l1 < 4; l1++) AA[i1][l1] = AA[j1][l1];
-                for (Int_t l1 = 0; l1 < 4; l1++) AA[j1][l1] = temp[l1];
-                for (Int_t l1 = 0; l1 < 4; l1++) temp[l1] = b_[i1][l1];
-                for (Int_t l1 = 0; l1 < 4; l1++) b_[i1][l1] = b_[j1][l1];
-                for (Int_t l1 = 0; l1 < 4; l1++) b_[j1][l1] = temp[l1];
+            if (fabs(A[i1][i1]) < fabs(A[j1][i1])) {
+                for (Int_t l1 = 0; l1 < 4; l1++) temp[l1] = A[i1][l1];
+                for (Int_t l1 = 0; l1 < 4; l1++) A[i1][l1] = A[j1][l1];
+                for (Int_t l1 = 0; l1 < 4; l1++) A[j1][l1] = temp[l1];
+                for (Int_t l1 = 0; l1 < 4; l1++) temp[l1] = b[i1][l1];
+                for (Int_t l1 = 0; l1 < 4; l1++) b[i1][l1] = b[j1][l1];
+                for (Int_t l1 = 0; l1 < 4; l1++) b[j1][l1] = temp[l1];
             }
         }
-        factor = AA[i1][i1];
+        factor = A[i1][i1];
         for (Int_t j1 = 4 - 1; j1>-1; j1--) {
-            b_[i1][j1] /= factor;
-            AA[i1][j1] /= factor;
+            b[i1][j1] /= factor;
+            A[i1][j1] /= factor;
         }
         for (Int_t j1 = i1 + 1; j1 < 4; j1++) {
-            factor = -AA[j1][i1];
+            factor = -A[j1][i1];
             for (Int_t k1 = 0; k1 < 4; k1++) {
-                AA[j1][k1] += AA[i1][k1] * factor;
-                b_[j1][k1] += b_[i1][k1] * factor;
+                A[j1][k1] += A[i1][k1] * factor;
+                b[j1][k1] += b[i1][k1] * factor;
             }
         }
     } // i1
     for (Int_t i1 = 3; i1 > 0; i1--) {
         for (Int_t j1 = i1 - 1; j1>-1; j1--) {
-            factor = -AA[j1][i1];
+            factor = -A[j1][i1];
             for (Int_t k1 = 0; k1 < 4; k1++) {
-                AA[j1][k1] += AA[i1][k1] * factor;
-                b_[j1][k1] += b_[i1][k1] * factor;
+                A[j1][k1] += A[i1][k1] * factor;
+                b[j1][k1] += b[i1][k1] * factor;
             }
         }
     } // i1
     //end inverse
 }
 
+
+void BmnMwpcHitFinder::CreateMwpcHits(vector <TVector3> pos, TClonesArray* hits, Short_t mwpcId) {
+    Double_t kWireStep = fMwpcGeometry->GetWireStep();
+    TVector3 errors(kWireStep / Sqrt(12.0), kWireStep / Sqrt(12.0), 1.0 / Sqrt(12.0));
+
+    for (Int_t iSize = 0; iSize < pos.size(); iSize++) {
+        BmnMwpcHit* hit = new((*hits)[hits->GetEntriesFast()]) BmnMwpcHit(0, pos.at(iSize), errors, -1);
+        hit->SetMwpcId(mwpcId);
+    }
+}
+
+vector <BmnMwpcDigit*> BmnMwpcHitFinder::CheckDigits(vector <BmnMwpcDigit*> digitsIn) {
+    vector <BmnMwpcDigit*> digitsOut;
+    if (digitsIn.size() > nInputDigits)
+        return digitsOut;
+
+    // Mark digits with the same wire number to work with one having a minimum time 
+    for (Int_t iSize = 0; iSize < digitsIn.size(); iSize++) {
+        for (Int_t jSize = 0; jSize < digitsIn.size(); jSize++) {
+            if (iSize == jSize)
+                continue;
+            if (digitsIn[iSize]->GetWireNumber() != digitsIn[jSize]->GetWireNumber())
+                continue;
+            if (digitsIn[iSize]->GetTime() > digitsIn[jSize]->GetTime())
+                digitsIn[iSize]->SetUsing(kTRUE);
+            else
+                digitsIn[jSize]->SetUsing(kTRUE);
+        }
+    }
+
+    vector <BmnMwpcDigit*> digitsOrderedInTime;
+
+    map <UInt_t, BmnMwpcDigit*> digitsToBeOrderedInTime;
+    for (Int_t iSize = 0; iSize < digitsIn.size(); iSize++) {
+        if (digitsIn[iSize]->IsUsed())
+            continue;
+        digitsToBeOrderedInTime.insert(pair <UInt_t, BmnMwpcDigit*> (digitsIn[iSize]->GetTime(), digitsIn[iSize]));
+    }
+
+    for (map <UInt_t, BmnMwpcDigit*>::iterator it = digitsToBeOrderedInTime.begin(); it != digitsToBeOrderedInTime.end(); it++)
+        digitsOrderedInTime.push_back(it->second);
+
+    for (Int_t iDigit = 0; iDigit < digitsOrderedInTime.size(); iDigit++) {
+        BmnMwpcDigit* dI = digitsOrderedInTime[iDigit];
+        vector <BmnMwpcDigit*> buffer;
+        buffer.push_back(dI);
+
+        FindNeighbour(dI, digitsOrderedInTime, buffer);
+
+        if (buffer.size() == 1)
+            digitsOut.push_back(dI); //just copy digit 
+        else {
+            Float_t sumWires = 0.0;
+            Float_t sumTimes = 0.0;
+            for (Int_t iDigiInBuffer = 0; iDigiInBuffer < buffer.size(); iDigiInBuffer++) {
+                BmnMwpcDigit* digi = buffer[iDigiInBuffer];
+                sumWires += digi->GetWireNumber();
+                sumTimes += digi->GetTime();
+            }
+            BmnMwpcDigit averDigi(dI->GetPlane(), sumWires / buffer.size(), sumTimes / buffer.size(), dI->GetRefId());
+            digitsOut.push_back(&averDigi);
+        }
+    }
+    return digitsOut;
+}
+
+void BmnMwpcHitFinder::FindNeighbour(BmnMwpcDigit* digiStart, vector <BmnMwpcDigit*> digits, vector <BmnMwpcDigit*> buffer) {
+    for (Int_t iDigit = 0; iDigit < digits.size(); iDigit++) {
+        BmnMwpcDigit* digi = digits[iDigit];
+        if (digi->IsUsed())
+            continue;
+
+        if (Abs((Int_t) digiStart->GetWireNumber() - (Int_t) digi->GetWireNumber()) < 2) {
+            digi->SetUsing(kTRUE);
+            buffer.push_back(digi);
+            FindNeighbour(digi, digits, buffer);
+        }
+    }
+}
+
+vector <TVector3> BmnMwpcHitFinder::CreateHitsBy3Planes(vector <BmnMwpcDigit*> x, vector <BmnMwpcDigit*> u, vector <BmnMwpcDigit*> v, Float_t zPos) {
+    vector <TVector3> hits;
+    if (x.size() == 0 || u.size() == 0 || v.size() == 0)
+        return hits;
+
+    vector <TVector3> xu;
+    vector <TVector3> xv;
+    vector <TVector3> uv;
+
+    FindPairs(x, u, xu);
+    FindPairs(x, v, xv);
+    FindPairs(u, v, uv);
+
+    Double_t mag = 0.;
+    for (Int_t iXU = 0; iXU < xu.size(); iXU++)
+        for (Int_t iXV = 0; iXV < xv.size(); iXV++) {
+            if (Abs(xu[iXU].Mag() - xv[iXV].Mag()) > thDist)
+                continue;
+            for (Int_t iUV = 0; iUV < uv.size(); iUV++) {
+                if (Abs(xu[iXU].Mag() - uv[iUV].Mag()) > thDist)
+                    continue;
+                if (Abs(xv[iXV].Mag() - uv[iUV].Mag()) > thDist)
+                    continue;
+                Float_t xAv = (xu[iXU].X() + xv[iXV].X() + uv[iUV].X()) / 3.0;
+                Float_t yAv = (xu[iXU].Y() + xv[iXV].Y() + uv[iUV].Y()) / 3.0;
+
+                // Remove totally duplicated hits if occurred
+                TVector3 hitCandidate(xAv, yAv, zPos);
+                if (Abs(hitCandidate.Mag() - mag) < LDBL_EPSILON)
+                    continue;
+                else
+                    mag = hitCandidate.Mag();
+                hits.push_back(hitCandidate);
+            }
+        }
+    return hits;
+}
+
+void BmnMwpcHitFinder::FindPairs(vector <BmnMwpcDigit*> in1, vector <BmnMwpcDigit*> in2, vector <TVector3>& out) {
+    Short_t kTimeBin = fMwpcGeometry->GetTimeBin();
+    for (Int_t iIn1 = 0; iIn1 < in1.size(); iIn1++) {
+        BmnMwpcDigit* digX = (BmnMwpcDigit*) in1[iIn1];
+        for (Int_t iIn2 = 0; iIn2 < in2.size(); iIn2++) {
+            BmnMwpcDigit* digU = (BmnMwpcDigit*) in2[iIn2];
+            if (fUseDigitsInTimeBin && Abs((Int_t) digX->GetTime() - (Int_t) digU->GetTime()) > nTimeSamples * kTimeBin)
+                continue;
+            out.push_back(CalcHitPosByTwoDigits(digX, digU));
+        }
+    }
+}
+
+TVector3 BmnMwpcHitFinder::CalcHitPosByTwoDigits(BmnMwpcDigit* dI, BmnMwpcDigit* dJ) {
+  //Short_t kNPlanes = fMwpcGeometry->GetNPlanes();
+    //    Short_t kNWires = fMwpcGeometry->GetNWires();
+    Double_t kPlaneWidth = fMwpcGeometry->GetPlaneWidth();
+    UInt_t dWireI = dI->GetWireNumber();
+    UInt_t dWireJ = dJ->GetWireNumber();
+    Short_t localPlaneI = dI->GetPlane() % kNPlanes;
+    Short_t localPlaneJ = dJ->GetPlane() % kNPlanes;
+
+    Double_t xI = kPlaneWidth * (dWireI * 1.0 / kNWires - 0.5); //local X by wire number
+    Double_t xJ = kPlaneWidth * (dWireJ * 1.0 / kNWires - 0.5); //local X by wire number
+    Double_t aI; //rotation angle by plane number
+    Double_t aJ; //rotation angle by plane number
+
+    DefineCoordinateAngle(localPlaneI, xI, aI);
+    DefineCoordinateAngle(localPlaneJ, xJ, aJ);
+
+    Float_t xGlob = (xI * Sin(aJ) - xJ * Sin(aI)) / Sin(aJ - aI);
+    Float_t yGlob = (xI * Cos(aJ) - xJ * Cos(aI)) / Sin(aJ - aI);
+
+    TVector3 pos(xGlob, yGlob, 0.);
+    return pos;
+}
+
 void BmnMwpcHitFinder::Finish() {
     delete fMwpcGeometry;
-
-    // delete 1d arrays:
-    delete [] kPln;
-    delete [] kZ1_loc;
-    delete [] kZ2_loc;
-    delete [] iw;
-    delete [] iw_Ch1;
-    delete [] iw_Ch2;
-    delete [] ind_best_Ch1;
-    delete [] ind_best_Ch2;
-    delete [] Nhits_Ch1;
-    delete [] Nhits_Ch2;
-    delete [] Chi2_ndf_Ch1;
-    delete [] Chi2_ndf_Ch2;
-    delete [] Chi2_ndf_best_Ch1;
-    delete [] Chi2_ndf_best_Ch2;
-    delete [] sigm2;
-    delete [] h;
-    delete [] h6;
-    delete [] ipl;
-    delete [] XVU;
-    delete [] XVU_cl;
-    delete [] dX_i;
-    delete [] z2;
-
-    // delete 2d arrays:
-    for(Int_t iWire=0; iWire< kNWires; iWire++){
-      delete [] wire_Ch1[iWire];
-      delete [] wire_Ch2[iWire];
-      delete [] xuv_Ch1[iWire];
-      delete [] xuv_Ch2[iWire];
-    }
-
-    for(Int_t ii=0; ii<4; ii++){
-      delete [] par_ab_Ch1[ii];
-      delete [] par_ab_Ch2[ii];
-      delete [] A[ii];
-      delete [] b[ii];
-    }
-
-    for(Int_t iPl=0; iPl<kNPlanes; iPl++){
-      delete [] Wires_Ch1[iPl];
-      delete [] Wires_Ch2[iPl];
-      delete [] clust_Ch1[iPl];
-      delete [] clust_Ch2[iPl];
-      delete [] XVU_Ch1[iPl];
-      delete [] XVU_Ch2[iPl];
-    }
-    
     cout << "Work time of the MWPC hit finder: " << workTime << " s" << endl;
 }
 
+void BmnMwpcHitFinder::DefineCoordinateAngle(Short_t localPlane, Double_t& x, Double_t& a) {
+    Double_t kAngleStep = fMwpcGeometry->GetAngleStep();
+    switch (localPlane) {
+        case 2:
+            x = -x;
+            a = 0.0;
+            break;
+        case 4:
+            x = x;
+            a = -kAngleStep;
+            break;
+        case 3:
+            x = -x;
+            a = +kAngleStep;
+            break;
+        case 5:
+            x = x;
+            a = 0.0;
+            break;
+        case 1:
+            x = -x;
+            a = -kAngleStep;
+            break;
+        case 0:
+            x = x;
+            a = +kAngleStep;
+            break;
+    }
+}
+
 ClassImp(BmnMwpcHitFinder)
-
-

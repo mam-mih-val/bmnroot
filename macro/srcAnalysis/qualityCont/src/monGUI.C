@@ -106,10 +106,10 @@ void MyMainFrame::DoNext(){
 
 	if( (graph >-1) && (graph<3)){
 
-		TFile *inFile_curr_TQDC = new TFile("output/det_histos_curr_TQDC_BCs.root");
-		TFile *inFile_ref_TQDC = new TFile("output/det_histos_ref_TQDC_BCs.root");
-		TFile *inFile_curr_TDC = new TFile("output/det_histos_curr_TDC_BCs.root");
-		TFile *inFile_ref_TDC = new TFile("output/det_histos_ref_TDC_BCs.root");
+		TFile *inFile_curr_TQDC = new TFile("../output/det_histos_curr_TQDC_BCs.root");
+		TFile *inFile_ref_TQDC = new TFile("../output/det_histos_ref_TQDC_BCs.root");
+		TFile *inFile_curr_TDC = new TFile("../output/det_histos_curr_TDC_BCs.root");
+		TFile *inFile_ref_TDC = new TFile("../output/det_histos_ref_TDC_BCs.root");
 		
 		TH1D * hist_TQDC = (TH1D*) inFile_curr_TQDC->Get(choice);
 		TH1D * hist_TDC  = (TH1D*) inFile_curr_TDC->Get(choice);
@@ -232,16 +232,16 @@ void MyMainFrame::DoNext(){
 	}
 	if( (graph < 15) && (graph>2)){
 		if ( graph < 7 ){
-			TFile *inFile_curr_TQDC = new TFile("output/det_histos_curr_TQDC_BCs.root");
-			TFile *inFile_ref_TQDC = new TFile("output/det_histos_ref_TQDC_BCs.root");
-			TFile *inFile_curr_TDC = new TFile("output/det_histos_curr_TDC_BCs.root");
-			TFile *inFile_ref_TDC = new TFile("output/det_histos_ref_TDC_BCs.root");
+			TFile *inFile_curr_TQDC = new TFile("../output/det_histos_curr_TQDC_BCs.root");
+			TFile *inFile_ref_TQDC = new TFile("../output/det_histos_ref_TQDC_BCs.root");
+			TFile *inFile_curr_TDC = new TFile("../output/det_histos_curr_TDC_BCs.root");
+			TFile *inFile_ref_TDC = new TFile("../output/det_histos_ref_TDC_BCs.root");
 		}
 		else{
-			TFile *inFile_curr_TQDC = new TFile("output/det_histos_curr_TQDC_Arms.root");
-			TFile *inFile_ref_TQDC = new TFile("output/det_histos_ref_TQDC_Arms.root");
-			TFile *inFile_curr_TDC = new TFile("output/det_histos_curr_TDC_Arms.root");
-			TFile *inFile_ref_TDC = new TFile("output/det_histos_ref_TDC_Arms.root");
+			TFile *inFile_curr_TQDC = new TFile("../output/det_histos_curr_TQDC_Arms.root");
+			TFile *inFile_ref_TQDC = new TFile("../output/det_histos_ref_TQDC_Arms.root");
+			TFile *inFile_curr_TDC = new TFile("../output/det_histos_curr_TDC_Arms.root");
+			TFile *inFile_ref_TDC = new TFile("../output/det_histos_ref_TDC_Arms.root");
 		}
 		c1->Divide(3,2);
 		for (int i=0;i<6;i++){

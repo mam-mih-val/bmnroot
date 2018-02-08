@@ -244,7 +244,10 @@ void BCs_TQDC_digitize(TString file, TString outFileName, int startEvent, int st
 		if ( beam == 1 ) coinScalars->Fill( 1 );
 		if ( ifBC1 == 1 ) coinScalars->Fill( 2 );
 		if ( ifBC2 == 1 ) coinScalars->Fill( 3 );
-		if ( pair == 1 ) coinScalars->Fill( 4 );
+		if ( pair == 1 ){
+			coinScalars->Fill( 4 );
+			moduleEff->Fill( 0 );
+		}
 		if ( leftArm == 1) coinScalars->Fill( 5 );
 		if ( rightArm == 1) coinScalars->Fill( 6 );
 		if ( X1 == 1) coinScalars->Fill( 7 );

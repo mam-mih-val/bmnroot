@@ -64,6 +64,7 @@
 #pragma link C++ class BmnEcalDigit+;
 #pragma link C++ class BmnZDCDigit+;
 #pragma link C++ class BmnECALDigit+;
+#pragma link C++ class BmnLANDDigit+;
 
 #pragma link C++ class BmnADCDigit+;
 #pragma link C++ class BmnTDCDigit+;
@@ -71,6 +72,7 @@
 #pragma link C++ class BmnSyncDigit+;
 #pragma link C++ class BmnTTBDigit+;
 #pragma link C++ class BmnMSCDigit+;
+#pragma link C++ class BmnTacquilaDigit+;
 
 #pragma link C++ class BmnDchRaw2Digit+;
 #pragma link C++ class BmnMwpcRaw2Digit+;
@@ -82,6 +84,7 @@
 #pragma link C++ class BmnGemRaw2Digit+;
 #pragma link C++ class BmnTrigRaw2Digit+;
 #pragma link C++ class BmnAdcProcessor+;
+#pragma link C++ class BmnLANDRaw2Digit+;
 
 #pragma link C++ class BmnRawDataDecoder+;
 #pragma link C++ class DigiArrays+;
@@ -97,5 +100,8 @@
 
 #pragma link C++ class BmnFitNode+;
 #pragma link C++ class BmnIdentifiableTrack+;
+
+#pragma link C++ class BmnTriggersCheck+;
+#pragma link C++ class BmnEventQuality+;
 
 #endif

@@ -88,6 +88,7 @@ BmnTrigWaveDigit.cxx
 BmnDchDigit.cxx
 BmnEcalDigit.cxx
 BmnADCDigit.cxx
+BmnTacquilaDigit.cxx
 BmnADCSRCDigit.cxx
 BmnTDCDigit.cxx
 BmnHRBDigit.cxx
@@ -98,10 +99,12 @@ BmnDchRaw2Digit.cxx
 BmnMwpcRaw2Digit.cxx
 BmnZDCRaw2Digit.cxx
 BmnECALRaw2Digit.cxx
+BmnLANDRaw2Digit.cxx
 BmnGemRaw2Digit.cxx
 BmnTrigRaw2Digit.cxx
 BmnZDCDigit.cxx
 BmnECALDigit.cxx
+BmnLANDDigit.cxx
 BmnTof2Raw2Digit.cxx
 BmnTof2Raw2DigitNew.cxx
 BmnTof1Raw2Digit.cxx
@@ -114,6 +117,8 @@ BmnIdentifiableTrack.cxx
 BmnFitNode.h
 BmnEnums.h
 DigiArrays.h
+BmnEventQuality.cxx
+BmnTriggersCheck.cxx
 )
 
 Set(HEADERS)

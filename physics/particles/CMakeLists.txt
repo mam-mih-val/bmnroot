@@ -38,10 +38,8 @@ link_directories( ${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-BmnLambdaAnalysis.cxx
-#BmnLambdaTrack.cxx
+BmnTwoParticleDecay.cxx
 BmnParticlePair.cxx
-BmnParticlePairCuts.cxx
 )
 
 Set(HEADERS)

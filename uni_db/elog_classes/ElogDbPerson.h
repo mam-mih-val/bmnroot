@@ -26,11 +26,11 @@ class ElogDbPerson
 	int i_person_id;
 	/// person name
 	TString str_person_name;
-	/// is shift leader
-	int i_is_shift_leader;
+	/// is active
+	int i_is_active;
 
 	//Constructor
-	ElogDbPerson(UniDbConnection* connUniDb, int person_id, TString person_name, int is_shift_leader);
+	ElogDbPerson(UniDbConnection* connUniDb, int person_id, TString person_name, int is_active);
 	/* END OF PRIVATE GENERATED PART (SHOULDN'T BE CHANGED MANUALLY) */
 
  public:
@@ -39,7 +39,7 @@ class ElogDbPerson
 
 	// static class functions
 	/// add new person to the database
-	static ElogDbPerson* CreatePerson(TString person_name, int is_shift_leader);
+	static ElogDbPerson* CreatePerson(TString person_name, int is_active);
 	/// get person from the database
 	static ElogDbPerson* GetPerson(int person_id);
 	/// get person from the database
@@ -60,14 +60,14 @@ class ElogDbPerson
 	int GetPersonId() {return i_person_id;}
 	/// get person name of the current person
 	TString GetPersonName() {return str_person_name;}
-	/// get is shift leader of the current person
-	int GetIsShiftLeader() {return i_is_shift_leader;}
+	/// get is active of the current person
+	int GetIsActive() {return i_is_active;}
 
 	// Setters
 	/// set person name of the current person
 	int SetPersonName(TString person_name);
-	/// set is shift leader of the current person
-	int SetIsShiftLeader(int is_shift_leader);
+	/// set is active of the current person
+	int SetIsActive(int is_active);
 
 	/// print information about current person
 	void Print();

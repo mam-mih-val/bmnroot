@@ -343,14 +343,38 @@ InitStatus 		BmnDchHitProducer_exp::InitDch()
 
     //Get ROOT Manager
         FairRootManager* ioman = FairRootManager::Instance();
-
-  	if(ioman==0){ Error("BmnDchHitProducer_exp::Init","FairRootManager XUINJA"); return kERROR; }
+        if (ioman == 0)
+        {
+            cout<<"BmnDchHitProducer_exp::InitDch(): FairRootManager is null! Task will be deactivated"<<endl;
+            SetActive(kFALSE);
+            return kERROR;
+        }
         fBmnDchPointsArray = (TClonesArray*) ioman->GetObject(fInputBranchName);
+        if (!fBmnDchPointsArray)
+        {
+            cout<<"BmnDchHitProducer_exp::InitDch(): branch "<<fInputBranchName<<" not found! Task will be deactivated"<<endl;
+            SetActive(kFALSE);
+            return kERROR;
+        }
+
         //if(checkGraphs){
          fBmnDchPointsArray2 = (TClonesArray*) ioman->GetObject(fInputBranchName2);
+         if (!fBmnDchPointsArray2)
+         {
+             cout<<"BmnDchHitProducer_exp::InitDch(): branch "<<fInputBranchName2<<" not found! Task will be deactivated"<<endl;
+             SetActive(kFALSE);
+             return kERROR;
+         }
         //}
+
         fMCTracksArray = (TClonesArray*) ioman->GetObject("MCTrack");
-  	if(!fBmnDchPointsArray || !fBmnDchPointsArray2 || !fMCTracksArray){ Error("BmnDchHitProducer_exp::Init","Branch not found!"); return kERROR; }
+        if (!fMCTracksArray)
+        {
+            cout<<"BmnDchHitProducer_exp::InitDch(): branch MCTrack not found! Task will be deactivated"<<endl;
+            SetActive(kFALSE);
+            return kERROR;
+        }
+
   	// Create and register output array
         TString folder = TString("DCH");
         TString str0; 
@@ -370,8 +394,7 @@ InitStatus 		BmnDchHitProducer_exp::InitDch()
 
         cout << " Initialization finished succesfully. " << endl;
 	
-return kSUCCESS;
-
+    return kSUCCESS;
 }
 //------------------------------------------------------------------------------------------------------------------------
 void			BmnDchHitProducer_exp::Rotate(UShort_t proj, Double_t x, Double_t y, Double_t& xRot, Double_t& yRot, Bool_t back)
@@ -856,7 +879,10 @@ return (int)(wirePos + 1000.*uid);  // one wire
 //------------------------------------------------------------------------------------------------------------------------
 void 			BmnDchHitProducer_exp::ExecDch(Option_t* opt) 
 {
-      if(checkGraphs){	
+    if (!IsActive())
+        return;
+
+    if(checkGraphs){
         hXYZcombhits = new TGraph2D(); 
         hXYZcombhits->SetNameTitle("hXYZcombhits","Hits in DCH");
         TString str;
@@ -932,18 +958,6 @@ void 			BmnDchHitProducer_exp::ExecDch(Option_t* opt)
         Int_t jjgr=0; 
         cout.precision(5);
 
-        if(idch==0){
-         if (!fBmnDchPointsArray) {
-          Error("BmnDchHitProducer_exp::Init()", " !!! Unknown branch name !!! ");
-          return;
-         }
-        }
-        if(idch==1){
-         if (!fBmnDchPointsArray2) {
-          Error("BmnDchHitProducer_exp::Init()", " !!! Unknown branch name !!! ");
-          return;
-         }
-        }
 	for(Int_t i = 0; i < nDchPoint; i++ )  // <---Loop over the DCH points
 	//for(Int_t i = imin; i < imax; i++ )  // <---Loop over the DCH points
 	{

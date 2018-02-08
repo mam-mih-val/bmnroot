@@ -62,7 +62,7 @@ UniDbTangoData::~UniDbTangoData() {}
 //	date_start - time from which to start reading the parameter, format: "YYYY-MM-DD HH:MM:SS" (e.g. "2015-03-13 23:00:00")
 //	date_end - end time of parameter reading, the same format (e.g. "2015-03-13 24:00:00")
 // Returns TobjArray with TangoTimeParameter objects (i.e. conditionally TObjArray<TangoTimeParameter*>), or NULL in case errors.
-TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* parameter_name, char* date_start, char* date_end)
+TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end)
 {
     // TANGO database connection
     UniDbConnection* connUniDb = UniDbConnection::Open(TANGO_DB);
@@ -82,7 +82,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
     {
             cout<<"Error: getting info about parameter from Tango has been failed: detector_name = "<<detector_name<<", parameter_name = "<<parameter_name<<endl;
             delete stmt_select;
-            delete db;
             return NULL;
     }
 
@@ -91,7 +90,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
     {
         cout<<"Error: There is no parameter '"<<parameter_name<<"' for "<<detector_name<<" detector"<<endl;
         delete stmt_select;
-        delete db;
         return NULL;
     }
 
@@ -116,7 +114,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
             else
             {
                 cout<<"Error: This Tango type is not supported: '"<<data_type<<"'"<<endl;
-                delete db;
                 return NULL;
             }
         }
@@ -137,7 +134,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
     {
             cout<<"Error: getting info about parameter values from Tango has been failed"<<endl;
             delete stmt_select;
-            delete db;
             return NULL;
     }
 
@@ -158,7 +154,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
             cout<<"Error: Parameter length can't be equal 0"<<endl;
             delete tango_data;
             delete stmt_select;
-            delete db;
             return NULL;
         }
 
@@ -169,7 +164,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
             cout<<"Error: Real parameter length can't be equal 0"<<endl;
             delete tango_data;
             delete stmt_select;
-            delete db;
             return NULL;
         }
 
@@ -189,7 +183,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
                 cout<<"Error: idx should be equal index of the parameter array"<<endl;
                 delete tango_data;
                 delete stmt_select;
-                delete db;
                 return NULL;
             }
 
@@ -218,7 +211,6 @@ TObjArray* UniDbTangoData::GetTangoParameter(char* detector_name, char* paramete
     }
 
     delete stmt_select;
-    delete db;
 
     return tango_data;
 }

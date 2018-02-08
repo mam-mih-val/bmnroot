@@ -1404,6 +1404,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
 
     // extract rows one after another
     arrayResult = new TObjArray();
+    arrayResult->SetOwner(kTRUE);
     while (stmt->NextResultRow())
     {
         UniDbConnection* connRun = UniDbConnection::Open(UNIFIED_DB);
@@ -1452,7 +1453,7 @@ TObjArray* UniDbRun::Search(const TObjArray& search_conditions)
         else
             tmp_geometry_id = new int(stmt->GetInt(11));
 
-        arrayResult->Add((TObject*) new UniDbRun(connRun, tmp_run_number, tmp_period_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_voltage, tmp_file_size, tmp_geometry_id));
+        arrayResult->Add((TObject*) new UniDbRun(connRun, tmp_period_number, tmp_run_number, tmp_file_path, tmp_beam_particle, tmp_target_particle, tmp_energy, tmp_start_datetime, tmp_end_datetime, tmp_event_count, tmp_field_voltage, tmp_file_size, tmp_geometry_id));
     }
 
     delete stmt;

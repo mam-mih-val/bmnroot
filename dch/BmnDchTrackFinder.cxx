@@ -62,6 +62,9 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
 }
 
 void BmnDchTrackFinder::Exec(Option_t* opt) {
+    if (!IsActive())
+        return;
+
     fEventNo++;
     clock_t tStart = clock();
     PrepareArraysToProcessEvent();
@@ -677,12 +680,23 @@ Double_t BmnDchTrackFinder::CalculateResidual(Int_t i, Int_t j, Double_t** rh_se
 
 InitStatus BmnDchTrackFinder::Init() {
     if (!expData)
-        return kERROR;
+    {
+      cout<<"BmnDchTrackFinder::Init(): simulation data is not supported! Task will be deactivated"<<endl;
+      SetActive(kFALSE);
+      return kERROR;
+    }
+
     if (fVerbose) cout << "BmnDchTrackFinder::Init()" << endl;
     FairRootManager* ioman = FairRootManager::Instance();
 
     fBmnDchDigitsArray = (TClonesArray*) ioman->GetObject(InputDigitsBranchName);
-
+    if (!fBmnDchDigitsArray)
+    {
+      cout<<"BmnDchTrackFinder::Init(): branch "<<InputDigitsBranchName<<" not found! Task will be deactivated"<<endl;
+      SetActive(kFALSE);
+      return kERROR;
+    }
+    
     fDchTracks = new TClonesArray(tracksDch.Data());
     ioman->Register(tracksDch.Data(), "DCH", fDchTracks, kTRUE);
 
@@ -798,6 +812,7 @@ InitStatus BmnDchTrackFinder::Init() {
             singles[iChamber][iWire] = new Int_t[nLayers];
     }
     nSegments = new Int_t[nSegmentsMax];
+
     return kSUCCESS;
 }
 

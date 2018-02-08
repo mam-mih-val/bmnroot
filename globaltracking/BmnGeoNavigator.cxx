@@ -6,7 +6,6 @@
 
 #include "BmnGeoNavigator.h"
 #include "TMath.h"
-#include "BmnDefaultSettings.h"
 #include "FairTrackParam.h"
 
 #include "TGeoManager.h"
@@ -104,7 +103,7 @@ BmnMaterialInfo BmnGeoNavigator::MakeStep(Float_t step) const {
     matInfo.SetName(gGeoManager->GetCurrentNode()->GetName());
 
     if (step == 0.) {
-        gGeoManager->FindNextBoundaryAndStep(BmnDefaultSettings::MAXIMUM_TGEO_NAVIGATION_DISTANCE);
+        gGeoManager->FindNextBoundaryAndStep(25.);
     } else {
         gGeoManager->SetStep(step);
         gGeoManager->Step(kFALSE);

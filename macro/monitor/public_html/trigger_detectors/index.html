@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Trigger detectors</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+            inframe_hist{
+                draggable: true;
+                allowfullscreen: allowfullscreen;
+                align-content: center;
+                width: 100vw; 
+                height: 56.25vw;
+                /*width: max-content;*/
+
+            }
+            hist_trig_table{
+                align-self: stretch;
+                align-content: center;
+                width: 100%;
+                height: 100%;
+
+            }
+        </style>
+        <link rel="stylesheet" type="text/css" href="../css/tabs.css" media="screen" />
+        <link rel="stylesheet" type="text/css" href="../css/menu.css" media="screen" />
+        <script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>
+        <script type="text/javascript" src="../scripts/BMTools.js"></script>
+        <script>
+            var loco = window.location;
+            var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
+            var path = path0 + "Triggers/";
+            var refList;
+            function ResetTrigHist() {
+                var filename = path + "Reset/cmd.json";
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", filename, true);
+                xhr.withCredentials = true;
+                xhr.send();
+            }
+            function ChangeBDChannel() {
+                var iChannel = document.getElementById("BDChannelText").value;
+                var filename = path + "ChangeBDChannel/cmd.json";
+                filename = filename + "?" + "arg1=" + iChannel;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", filename, true);
+                xhr.withCredentials = true;
+                xhr.send();
+            }
+//            window.onload = "drawInfo()";
+
+            function drawInfo() {
+                setTimeout(drawInfo, 10000);
+                var filename = path0 + "infoCanvas" + "/root.json";
+                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+                    JSROOT.redraw("infoC", obj, "");
+                }).send(null);
+                var refPath = path0 + "refList" + "/root.json";
+                FillRefSelector(refPath, "refSelector");
+                var filename = path + "TriggersCanvasTimes" + "/root.json";
+                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+                    JSROOT.redraw("timeTableC", obj, "");
+                }).send(null);
+            }
+            function SetRefRun() {
+                var runName = document.getElementById("refInput").value;
+                var cmd = path + "SetRefRun/cmd.json";
+                cmd = cmd + "?" + "arg1=" + runName;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", cmd, true);
+                xhr.withCredentials = true;
+                xhr.send();
+                JSROOT.cleanup("timeTableC");
+            }
+        </script>
+    </head>
+    <body onload="drawInfo()">
+        <ul >
+            <li><a href="../index.html"> <h3>Welcome to the BM@N Experiment</h3></a></li>
+            <li><a href="../trigger_detectors/index.html"><h3>Triggers</h3></a></li>
+            <li><a href="../gem_detectors/index.html"><h3>GEM</h3></a></li>
+            <li><a href="../Silicon/index.html"><h3>Silicon</h3></a></li>
+            <li><a href="../ToF400_detector/index.html"><h3>ToF400</h3></a></li>
+            <li><a href="../ToF700_detector/index.html"><h3>ToF700</h3></a></li>
+            <li><a href="../DCH_detectors/index.html"><h3>DCH</h3></a></li>
+            <li><a href="../MWPC_detectors/index.html"><h3>MWPC</h3></a></li>
+            <li><a href="../ZDC/index.html"><h3>ZDC</h3></a></li>
+            <li><a href="../ECAL/index.html"><h3>ECAL</h3></a></li>
+            <li><a href="../SRC/index.html"><h3>SRC Triggers</h3></a></li>
+            <li><a href="../LAND/index.html"><h3>LAND</h3></a></li>
+            <li><a href="../msc/index.html"><h3>MSC</h3></a></li>
+        </ul>
+        <div align="center">
+            <h1>BM@N Triggers</h1>          
+        </div>
+        <div align="center">
+            <div id="infoC" style="width: 20vw;"> </div>
+        </div>
+        <!--style="visibility:hidden;display:none"-->
+        <button onclick="ResetTrigHist()"> 
+            <img src="../img/reset.png" width="200">
+        </button>
+        <table>
+            <tr>
+            <tb>
+                <input type="text" name="refInput" id="refInput" list="refSelector">
+                <datalist id="refSelector" autocomplete="on"></datalist>
+            </tb>
+            <tb>
+                <button onclick="SetRefRun()"> 
+                    Select Reference Run
+                </button>
+            </tb>
+
+        </tr>
+    </table>
+
+    <div align="center">
+        <div id="timeTableC" style="width: 98vw;"> </div>
+    </div>
+</body>
+</html>

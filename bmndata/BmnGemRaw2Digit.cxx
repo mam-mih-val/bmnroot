@@ -18,7 +18,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) :
     fBigR1 = NULL;
 
     cout << "Loading GEM Map from DB: Period " << period << ", Run " << run << "..." << endl;
-    
+
     fEventId = 0;
 
     fSmall = new BmnGemMap[N_CH_BUF];
@@ -32,10 +32,10 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) :
     fEntriesInGlobMap = 0;
     if (mapPar != NULL) mapPar->GetGemMapArray(fMap, fEntriesInGlobMap);
     delete mapPar;
-//    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
-//        if (find(fSerials.begin(), fSerials.end(), fMap[i].serial) == fSerials.end())
-//            fSerials.push_back(fMap[i].serial);
-    
+    //    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
+    //        if (find(fSerials.begin(), fSerials.end(), fMap[i].serial) == fSerials.end())
+    //            fSerials.push_back(fMap[i].serial);
+
     ReadMap("GEM_X_small", fSmall, 0, 0);
     ReadMap("GEM_Y_small", fSmall, 1, 0);
 
@@ -54,7 +54,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) :
     ReadMap("GEM_Y0_Big_Right", fBigR0, 3, 0);
 
     ReadMap("GEM_X1_Big_Right", fBigR1, 0, 0);
-    ReadMap("GEM_Y1_Big_Right", fBigR1, 1, 0);    
+    ReadMap("GEM_Y1_Big_Right", fBigR1, 1, 0);
 }
 
 BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod) {
@@ -75,7 +75,7 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     if (fBigL1) delete[] fBigL1;
     if (fBigR0) delete[] fBigR0;
     if (fBigR1) delete[] fBigR1;
-    if (fMap) delete[] fMap;
+    if (fMap) delete[] fMap;    
 }
 
 BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
@@ -137,7 +137,8 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
             dig.SetModule(mod);
             dig.SetStripLayer(lay);
             dig.SetStripNumber(strip);
-            dig.SetStripSignal((adcDig->GetUShortValue())[iSmpl] / 16);
+            Double_t sig = (GetRun() > GetBoundaryRun(ADC32_N_SAMPLES)) ? ((Double_t) ((adcDig->GetShortValue())[iSmpl] / 16)) : ((Double_t) ((adcDig->GetUShortValue())[iSmpl] / 16));
+            dig.SetStripSignal(sig);
             candDig[iSmpl] = dig;
         }
     }
@@ -152,17 +153,19 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
     Double_t CMS = CalcCMS(signals, nOk);
 
     Bool_t*** nc = GetNoiseChannels();
-    Float_t*** vPed = GetPedestals();
-    
+    Double_t*** vPed = GetPedestals();
+    Double_t*** vPedRMS = GetPedestalsRMS();
+
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
 
         if (nc[iSer][ch][iSmpl]) continue;
         BmnGemStripDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
-        Double_t sig = dig->GetStripSignal() - CMS - ped;
-        Float_t threshold = 20;
-        if (sig < threshold) continue;
+        Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
+        //        Double_t sig = dig->GetStripSignal() - CMS - ped;
+        Float_t threshold = 20;//7 * vPedRMS[iSer][ch][iSmpl];//20;
+        if (sig < threshold || sig == 0.0) continue;  //FIXME: check cases with sig == 0
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }
 }

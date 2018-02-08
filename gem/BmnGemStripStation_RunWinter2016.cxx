@@ -197,7 +197,14 @@ void BmnGemStripStation_RunWinter2016::BuildModules_One10x10Plane() {
     Modules = new BmnGemStripModule* [NModules];
 
     //module
-    Modules[0] = new BmnGemStripModule(ZPosition + ZShiftOfModules[0], EDriftDirection);
+    Double_t DriftGapThickness = 0.3;
+    Double_t FirstTransferGapThickness = 0.25;
+    Double_t SecondTransferGapThickness = 0.2;
+    Double_t InductionGapThickness = 0.15;
+
+    Modules[0] = new BmnGemStripModule(ZPosition + ZShiftOfModules[0], EDriftDirection,
+                                       DriftGapThickness, FirstTransferGapThickness,
+                                       SecondTransferGapThickness, InductionGapThickness);
 
         //lower strip layer --------------------------------------------------------
         BmnGemStripLayer lower_layer(0, LowerStripLayer,
@@ -230,7 +237,14 @@ void BmnGemStripStation_RunWinter2016::BuildModules_One66x41Plane() {
     Modules = new BmnGemStripModule* [NModules];
 
     //module
-    Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection);
+    Double_t DriftGapThickness = 0.3;
+    Double_t FirstTransferGapThickness = 0.25;
+    Double_t SecondTransferGapThickness = 0.2;
+    Double_t InductionGapThickness = 0.15;
+
+    Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection,
+                                       DriftGapThickness, FirstTransferGapThickness,
+                                       SecondTransferGapThickness, InductionGapThickness);
 
     //zone 0 (big) -------------------------------------------------------------
 
@@ -363,7 +377,14 @@ void BmnGemStripStation_RunWinter2016::BuildModules_Two66x41Plane() {
 
     //module 0 (left)
     {
-        Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection);
+        Double_t DriftGapThickness = 0.3;
+        Double_t FirstTransferGapThickness = 0.25;
+        Double_t SecondTransferGapThickness = 0.2;
+        Double_t InductionGapThickness = 0.15;
+
+        Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection,
+                                           DriftGapThickness, FirstTransferGapThickness,
+                                           SecondTransferGapThickness, InductionGapThickness);
 
         //zone 0 (big) -------------------------------------------------------------
 
@@ -449,7 +470,14 @@ void BmnGemStripStation_RunWinter2016::BuildModules_Two66x41Plane() {
 
     //module 1 (right)
     {
-        Modules[1] = new BmnGemStripModule(ZPosition+ZShiftOfModules[1], EDriftDirection);
+        Double_t DriftGapThickness = 0.3;
+        Double_t FirstTransferGapThickness = 0.25;
+        Double_t SecondTransferGapThickness = 0.2;
+        Double_t InductionGapThickness = 0.15;
+
+        Modules[1] = new BmnGemStripModule(ZPosition+ZShiftOfModules[1], EDriftDirection,
+                                           DriftGapThickness, FirstTransferGapThickness,
+                                           SecondTransferGapThickness, InductionGapThickness);
 
         //zone 0 (big) -------------------------------------------------------------
 
@@ -540,7 +568,14 @@ void BmnGemStripStation_RunWinter2016::BuildModules_One163x45Plane() {
 
 //module 0 (left) --------------------------------------------------------------
     {
-        Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection);
+        Double_t DriftGapThickness = 0.3;
+        Double_t FirstTransferGapThickness = 0.25;
+        Double_t SecondTransferGapThickness = 0.2;
+        Double_t InductionGapThickness = 0.15;
+
+        Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection,
+                                           DriftGapThickness, FirstTransferGapThickness,
+                                           SecondTransferGapThickness, InductionGapThickness);
 
             //zone 0 (big) ---------------------------------------------------------
 
@@ -730,7 +765,14 @@ void BmnGemStripStation_RunWinter2016::BuildModules_One163x45Plane() {
 
 //module 1 (right) --------------------------------------------------------------
     {
-        Modules[1] = new BmnGemStripModule(ZPosition+ZShiftOfModules[1], EDriftDirection);
+        Double_t DriftGapThickness = 0.3;
+        Double_t FirstTransferGapThickness = 0.25;
+        Double_t SecondTransferGapThickness = 0.2;
+        Double_t InductionGapThickness = 0.15;
+
+        Modules[1] = new BmnGemStripModule(ZPosition+ZShiftOfModules[1], EDriftDirection,
+                                           DriftGapThickness, FirstTransferGapThickness,
+                                           SecondTransferGapThickness, InductionGapThickness);
 
             //zone 0 (big) ---------------------------------------------------------
 

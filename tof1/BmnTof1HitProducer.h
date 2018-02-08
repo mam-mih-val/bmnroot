@@ -28,6 +28,8 @@ class BmnTof1HitProducer : public BmnTof1HitProducerIdeal
    
    	Bool_t			fDoINL;
    	Bool_t			fDoSlewing;   	
+        
+        Int_t                   NPeriod;
    
 	// QA test histos
 	TEfficiency			*effTestEfficiencySingleHit, *effTestEfficiencyDoubleHit; //!		
@@ -73,6 +75,11 @@ public:
 		buf+=", fDoINL="; buf+=fDoINL; buf+=", fDoSlewing="; buf+=fDoSlewing;		
 		return buf;
 	}
+        
+        void                    SetPeriod (Int_t p)
+        {
+                NPeriod = p;
+        }
 	
 ClassDef(BmnTof1HitProducer, 2);
 };

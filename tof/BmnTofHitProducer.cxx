@@ -71,16 +71,36 @@ InitStatus BmnTofHitProducer::Init()
 	if(fUseMCData)
 	{
     		aMcPoints = (TClonesArray*) FairRootManager::Instance()->GetObject("TOFPoint");
+                if (!aMcPoints)
+                {
+                  cout<<"BmnTofHitProducer::Init(): branch TOFPoint not found! Task will be deactivated"<<endl;
+                  SetActive(kFALSE);
+                  return kERROR;
+                }
     		aMcTracks = (TClonesArray*) FairRootManager::Instance()->GetObject("MCTrack");
-		assert(aMcPoints);
-		assert(aMcTracks);
+                if (!aMcTracks)
+                {
+                  cout<<"BmnTofHitProducer::Init(): branch MCTrack not found! Task will be deactivated"<<endl;
+                  SetActive(kFALSE);
+                  return kERROR;
+                }
 	}
 	else
 	{
     		aExpDigits = (TClonesArray*) FairRootManager::Instance()->GetObject("TOF700");
-		assert(aExpDigits);	
+                if (!aExpDigits)
+                {
+                  cout<<"BmnTofHitProducer::Init(): branch TOF700 not found! Task will be deactivated"<<endl;
+                  SetActive(kFALSE);
+                  return kERROR;
+                }
                 aExpDigitsT0 = (TClonesArray*) FairRootManager::Instance()->GetObject("T0");
-		assert(aExpDigits);
+                if (!aExpDigitsT0)
+                {
+                  cout<<"BmnTofHitProducer::Init(): branch T0 not found! Task will be deactivated"<<endl;
+                  SetActive(kFALSE);
+                  return kERROR;
+                }
 	}
 	
     	// Create and register output array
@@ -137,6 +157,9 @@ Bool_t BmnTofHitProducer::DoubleHitExist(Double_t val) // val - distance to the 
 //--------------------------------------------------------------------------------------------------------------------------------------
 void BmnTofHitProducer::Exec(Option_t* opt) 
 {
+    if (!IsActive())
+        return;
+    
     clock_t tStart = clock();
     if (fVerbose) cout << endl << "======================== TOF700 exec started ====================" << endl;
 	static const TVector3 XYZ_err(fErrX, fErrY, 0.); 

@@ -32,8 +32,6 @@ BmnGemStripStation_RunSpring2017::BmnGemStripStation_RunSpring2017(Int_t iStatio
             UpperLayerStripAngle = +15.0;
             LowerLayerPitch = 0.08;
             UpperLayerPitch = 0.08;
-            ZSizeModuleWithFrames = 2.3;
-            ZSizeModule = 0.9;
             EDriftDirection = ForwardZAxisEDrift;
             NModules = 1; //Number of modules in the station
             break;
@@ -43,8 +41,6 @@ BmnGemStripStation_RunSpring2017::BmnGemStripStation_RunSpring2017(Int_t iStatio
             UpperLayerStripAngle = -15.0;
             LowerLayerPitch = 0.08;
             UpperLayerPitch = 0.08;
-            ZSizeModuleWithFrames = 2.3;
-            ZSizeModule = 0.9;
             EDriftDirection = BackwardZAxisEDrift;
             NModules = 1; //Number of modules in the station
             break;
@@ -54,8 +50,6 @@ BmnGemStripStation_RunSpring2017::BmnGemStripStation_RunSpring2017(Int_t iStatio
             UpperLayerStripAngle = +15.0;
             LowerLayerPitch = 0.08;
             UpperLayerPitch = 0.08;
-            ZSizeModuleWithFrames = 2.3;
-            ZSizeModule = 0.9;
             EDriftDirection = ForwardZAxisEDrift;
             NModules = 1; //Number of modules in the station
             break;
@@ -65,8 +59,6 @@ BmnGemStripStation_RunSpring2017::BmnGemStripStation_RunSpring2017(Int_t iStatio
             UpperLayerStripAngle = -15.0;
             LowerLayerPitch = 0.08;
             UpperLayerPitch = 0.08;
-            ZSizeModuleWithFrames = 2.3;
-            ZSizeModule = 0.9;
             EDriftDirection = BackwardZAxisEDrift;
             NModules = 2; //Number of modules in the station
             break;
@@ -76,8 +68,6 @@ BmnGemStripStation_RunSpring2017::BmnGemStripStation_RunSpring2017(Int_t iStatio
             UpperLayerStripAngle = +15.0;
             LowerLayerPitch = 0.08;
             UpperLayerPitch = 0.08;
-            ZSizeModuleWithFrames = 3.9;
-            ZSizeModule = 0.9;
             EDriftDirection = ForwardZAxisEDrift;
             NModules = 2; //Number of modules in the station
             break;
@@ -87,8 +77,6 @@ BmnGemStripStation_RunSpring2017::BmnGemStripStation_RunSpring2017(Int_t iStatio
             UpperLayerStripAngle = -15.0;
             LowerLayerPitch = 0.08;
             UpperLayerPitch = 0.08;
-            ZSizeModuleWithFrames = 3.9;
-            ZSizeModule = 0.9;
             EDriftDirection = BackwardZAxisEDrift;
             NModules = 2; //Number of modules in the station
             break;
@@ -141,23 +129,14 @@ BmnGemStripStation_RunSpring2017::BmnGemStripStation_RunSpring2017(Int_t iStatio
     //Assembling a station -----------------------------------------------------
 
     if(StationNumber >= 0 && StationNumber <= 2) {
-        XSize = XModuleSize_Plane66x41;
-        YSize = YModuleSize_Plane66x41;
-        ZSize = ZSizeModule;
         BuildModules_One66x41Plane();
     }
 
     if(StationNumber == 3) {
-        XSize = 2*XModuleSize_Plane66x41;
-        YSize = YModuleSize_Plane66x41;
-        ZSize = ZSizeModule;
         BuildModules_Two66x41Plane();
     }
 
     if(StationNumber >= 4 && StationNumber <= 5) {
-        XSize = 2*XModuleSize_Plane163x45;
-        YSize = YModuleSize_Plane163x45;
-        ZSize = ZSizeModule;
         BuildModules_One163x45Plane();
     }
     //end assembling the station -----------------------------------------------
@@ -167,7 +146,7 @@ BmnGemStripStation_RunSpring2017::BmnGemStripStation_RunSpring2017(Int_t iStatio
 }
 
 BmnGemStripStation_RunSpring2017::~BmnGemStripStation_RunSpring2017() {
-    
+
 }
 //------------------------------------------------------------------------------
 
@@ -175,8 +154,15 @@ void BmnGemStripStation_RunSpring2017::BuildModules_One66x41Plane() {
 
     Modules = new BmnGemStripModule* [NModules];
 
+    Double_t DriftGapThickness = 0.3;
+    Double_t FirstTransferGapThickness = 0.25;
+    Double_t SecondTransferGapThickness = 0.2;
+    Double_t InductionGapThickness = 0.15;
+
     //module
-    Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection);
+    Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection,
+                                       DriftGapThickness, FirstTransferGapThickness,
+                                       SecondTransferGapThickness, InductionGapThickness);
 
     //zone 0 (big) -------------------------------------------------------------
 
@@ -309,7 +295,14 @@ void BmnGemStripStation_RunSpring2017::BuildModules_Two66x41Plane() {
 
     //module 0 (left)
     {
-        Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection);
+        Double_t DriftGapThickness = 0.5;
+        Double_t FirstTransferGapThickness = 0.25;
+        Double_t SecondTransferGapThickness = 0.2;
+        Double_t InductionGapThickness = 0.15;
+
+        Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection,
+                                           DriftGapThickness, FirstTransferGapThickness,
+                                           SecondTransferGapThickness, InductionGapThickness);
 
         //zone 0 (big) -------------------------------------------------------------
 
@@ -395,7 +388,14 @@ void BmnGemStripStation_RunSpring2017::BuildModules_Two66x41Plane() {
 
     //module 1 (right)
     {
-        Modules[1] = new BmnGemStripModule(ZPosition+ZShiftOfModules[1], EDriftDirection);
+        Double_t DriftGapThickness = 0.3;
+        Double_t FirstTransferGapThickness = 0.25;
+        Double_t SecondTransferGapThickness = 0.2;
+        Double_t InductionGapThickness = 0.15;
+
+        Modules[1] = new BmnGemStripModule(ZPosition+ZShiftOfModules[1], EDriftDirection,
+                                           DriftGapThickness, FirstTransferGapThickness,
+                                           SecondTransferGapThickness, InductionGapThickness);
 
         //zone 0 (big) -------------------------------------------------------------
 
@@ -486,7 +486,14 @@ void BmnGemStripStation_RunSpring2017::BuildModules_One163x45Plane() {
 
 //module 0 (left) --------------------------------------------------------------
     {
-        Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection);
+        Double_t DriftGapThickness = 0.3;
+        Double_t FirstTransferGapThickness = 0.25;
+        Double_t SecondTransferGapThickness = 0.2;
+        Double_t InductionGapThickness = 0.15;
+
+        Modules[0] = new BmnGemStripModule(ZPosition+ZShiftOfModules[0], EDriftDirection,
+                                           DriftGapThickness, FirstTransferGapThickness,
+                                           SecondTransferGapThickness, InductionGapThickness);
 
             //zone 0 (big) ---------------------------------------------------------
 
@@ -674,9 +681,16 @@ void BmnGemStripStation_RunSpring2017::BuildModules_One163x45Plane() {
     }
 //--------------------------------------------------------------------------
 
-//module 1 (right) --------------------------------------------------------------
+//module 1 (right) -------------------------------------------------------------
     {
-        Modules[1] = new BmnGemStripModule(ZPosition+ZShiftOfModules[1], EDriftDirection);
+        Double_t DriftGapThickness = 0.3;
+        Double_t FirstTransferGapThickness = 0.25;
+        Double_t SecondTransferGapThickness = 0.2;
+        Double_t InductionGapThickness = 0.15;
+        
+        Modules[1] = new BmnGemStripModule(ZPosition+ZShiftOfModules[1], EDriftDirection,
+                                           DriftGapThickness, FirstTransferGapThickness,
+                                           SecondTransferGapThickness, InductionGapThickness);
 
             //zone 0 (big) ---------------------------------------------------------
 

@@ -3,6 +3,7 @@
 
 #include "BmnMatch.h"
 #include "BmnGemStripLayer.h"
+#include "BmnGemStripMedium.h"
 
 #include "TMath.h"
 
@@ -23,7 +24,8 @@ public:
     BmnGemStripModule();
 
     BmnGemStripModule(Double_t z_start_pos,
-                      ElectronDriftDirectionInModule edrift_direction);
+                      ElectronDriftDirectionInModule edrift_direction,
+                      Double_t DriftGap, Double_t FTransferGap, Double_t STransferGap, Double_t InductionGap);
     //--------------------------------------------------------------------------
 
     //Destructor

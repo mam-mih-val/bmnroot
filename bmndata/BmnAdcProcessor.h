@@ -21,7 +21,10 @@
 #include <UniDbDetectorParameter.h>
 #include <UniDbDetector.h>
 
-#define N_EV_FOR_PEDESTALS 1000
+#define N_EV_FOR_PEDESTALS 500
+#define ADC_N_CHANNELS 64 //number of ADC channels
+#define ADC128_N_SAMPLES 128 //number of samples in one ADC digit //silicon
+#define ADC32_N_SAMPLES 32 //number of samples in one ADC digit //gem
 
 using namespace std;
 using namespace TMath;
@@ -35,50 +38,61 @@ public:
     BmnStatus RecalculatePedestals();
     Double_t CalcCMS(Double_t* samples, Int_t size);
 
-    UShort_t**** GetPedData() {
+    Double_t**** GetPedData() {
         return fPedDat;
     }
-    
+
     void SetNSerials(Int_t n) {
         fNSerials = n;
     }
-    
+
     void SetNSamples(Int_t n) {
         fNSamples = n;
     }
-    
+
     void SetNChannels(Int_t n) {
         fNChannels = n;
     }
-    
+
     Bool_t IsChannelNoisy(Int_t ser, Int_t ch, Int_t smpl) {
         return fNoiseChannels[ser][ch][smpl];
     }
-    
-    Float_t GetPedestal(Int_t ser, Int_t ch, Int_t smpl) {
+
+    Double_t GetPedestal(Int_t ser, Int_t ch, Int_t smpl) {
         return fPedVal[ser][ch][smpl];
     }
-    
+
     Bool_t*** GetNoiseChannels() {
         return fNoiseChannels;
     }
-    
-    Float_t*** GetPedestals() {
+
+    Double_t*** GetPedestals() {
         return fPedVal;
     }
-    
+
+    Double_t*** GetPedestalsRMS() {
+        return fPedRms;
+    }
+
     Int_t GetPeriod() {
         return fPeriod;
     }
-    
+
     Int_t GetRun() {
         return fRun;
     }
-    
+
     vector<UInt_t> GetSerials() {
         return fSerials;
     }
-    
+
+    UInt_t GetBoundaryRun(UInt_t nSmpl) {
+        //format for SILICON data was changed during March 2017 seance (run 1542)
+        //format for GEM was changed after March 2017 seance (run 1992)
+        //so we have to use this crutch.
+        return (nSmpl == 128) ? 1542 : 1992;
+    }
+
 
 private:
 
@@ -94,9 +108,9 @@ private:
     Int_t fNChannels;
     TString fDetName; //it's used for .txt files name 
 
-    UShort_t**** fPedDat; //data set to calculate pedestals
-    Float_t*** fPedVal; //set of calculated pedestals
-    Float_t*** fPedRms; // set of calculated pedestal errors
+    Double_t**** fPedDat; //data set to calculate pedestals
+    Double_t*** fPedVal; //set of calculated pedestals
+    Double_t*** fPedRms; // set of calculated pedestal errors
     UInt_t*** fAdcProfiles;
     Bool_t*** fNoiseChannels; //false = good channel, true = noisy channel
 

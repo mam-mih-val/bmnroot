@@ -12,7 +12,7 @@ public:
 
     BmnResiduals();
 
-    BmnResiduals(Int_t, Int_t, Double_t, Double_t, Double_t, Bool_t, Bool_t);
+    BmnResiduals(Int_t, Int_t, Double_t, Double_t, Double_t, Bool_t, Bool_t flag = kTRUE);
 
     virtual ~BmnResiduals() {
     };

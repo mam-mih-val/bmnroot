@@ -1,8 +1,7 @@
 #include <TString.h>
 
-//void LambdaAnal(UInt_t nEvents = 1e4, TString input = "/nfs/lambda_QGSM/test/bmndst_fact13_100kEv.root", TString output = "test_dst1.root") {
-
-void LambdaAnal(UInt_t nEvents = 1e6, TString input = "/nfs/QGSM_SIMULATIONS/evetest_start0_nev1000.root", TString output = "test.root") {
+// Macro to be used for Lambda0->Pi- + p reconstruction
+void LambdaAnal(UInt_t nEvents, Int_t runNumb, TString input, TString output) {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
@@ -13,26 +12,21 @@ void LambdaAnal(UInt_t nEvents = 1e6, TString input = "/nfs/QGSM_SIMULATIONS/eve
     fRunAna->SetSource(fFileSource);
     fRunAna->SetOutputFile(output);
 
-    BmnLambdaAnalysis* lambda = new BmnLambdaAnalysis(BmnGemStripConfiguration::RunSpring2017);
-    lambda->SetParticlePDG(+211, -211);
-    // lambda->SetDebugCalculations(kTRUE);
+    BmnTwoParticleDecay* lambda = new BmnTwoParticleDecay(BmnGemStripConfiguration::RunSpring2017, runNumb);
     lambda->SetUseRealVertex(kTRUE); // equal to false by default
+    //lambda->SetSiRequired(kTRUE); // equal to false by default
 
-    // Geometry cuts [from, to]-range is acceptable
-    lambda->SetVpVpParticle1(0.1, 100.0);
-    lambda->SetVpVpParticle2(0.1, 100.0);
-    lambda->SetV0Particle1Particle2(0.0, 1.0);
-    lambda->SetV0VpDiff(1.0, 30.0);
+    // Geometry cuts if necessary, [from, to]-range is acceptable
+    // lambda->SetVpVpParticle1(0., 100.);
+    // lambda->SetVpVpParticle2(0., 100.);
+    // lambda->SetV0Particle1Particle2(0., 1.);
+    // lambda->SetV0VpDiff(0., 30.);
 
-    // Kinematic cuts, if necessary. [from, to]-range is acceptable
-    lambda->SetMomParticle1Range(0.1, 5.);
-    lambda->SetMomParticle2Range(0.1, 5.);
-    //    lambda->SetTxProtonRange();
-    //    lambda->SetTxPionRange();
-    //    lambda->SetTyProtonRange();
-    //    lambda->SetTyPionRange();
-    lambda->SetYParticle1Range(0.0, 3.0); // Cuts on rapidity
-    lambda->SetYParticle2Range(0.0, 3.0);
+    // Kinematic cuts, if necessary, [from, to]-range is acceptable
+    // lambda->SetMomParticle1Range(0., 5.);
+    // lambda->SetMomParticle2Range(0., 5.);
+    // lambda->SetYParticle1Range(0., 3.); // Cuts on rapidity
+    // lambda->SetYParticle2Range(0., 3.);
     fRunAna->AddTask(lambda);
 
     fRunAna->Init();

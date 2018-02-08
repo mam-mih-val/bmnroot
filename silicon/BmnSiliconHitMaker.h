@@ -12,9 +12,12 @@
 #include "BmnSiliconStation.h"
 #include "BmnSiliconModule.h"
 #include "BmnSiliconLayer.h"
+#include <UniDbDetectorParameter.h>
+#include <UniDbRun.h>
+#include <BmnSiliconAlignCorrections.h>
+#include <BmnEventQuality.h>
 
 class BmnSiliconHitMaker : public FairTask {
-
 public:
 
     BmnSiliconHitMaker();
@@ -32,6 +35,19 @@ public:
 
     void SetHitMatching(Bool_t opt = kTRUE) {
         fHitMatching = opt;
+    }
+
+    void SetAlignmentCorrectionsFileName(TString filename) {
+        fAlignCorrFileName = filename;
+    }
+
+    void SetAlignmentCorrectionsFileName(Int_t run_period, Int_t file_number) {
+        if (run_period == 6) {
+            fAlignCorrFileName = "alignment_SI.root";
+            UniDbDetectorParameter::ReadRootFile(run_period, file_number, "BM@N", "alignment", (Char_t*) fAlignCorrFileName.Data());
+        }
+        else
+            fAlignCorrFileName = "";
     }
 
 private:
@@ -57,8 +73,15 @@ private:
     Bool_t fHitMatching;
 
     BmnSiliconStationSet *StationSet; //Entire Silicon detector
+    TString fAlignCorrFileName; // a file with geometry corrections
+    void ReadAlignCorrFile(TString, Double_t***); // read corrections from the file
+    Double_t*** corr; // array to store the corrections
+    
+    Bool_t fIsExp;
+    TString fBmnEvQualityBranchName;
+    TClonesArray* fBmnEvQuality;
 
-    ClassDef(BmnSiliconHitMaker,1);
+    ClassDef(BmnSiliconHitMaker, 1);
 };
 
 #endif /* BMNSILICONHITMAKER_H */

@@ -12,10 +12,6 @@
 #define BmnGlobalTracking_H_
 
 #include "FairTask.h"
-#include "BmnTrackPropagator.h"
-#include "BmnHitToTrackMerger.h"
-#include "BmnGlobalTrackingQA.h"
-#include "BmnHitMatchingQA.h"
 #include "TClonesArray.h"
 #include "BmnGlobalTrack.h"
 #include "CbmTofPoint.h"
@@ -36,12 +32,12 @@
 #include <vector>
 #include <string>
 #include "BmnDetectorSetup.h"
-#include "TCanvas.h"
-#include "TColor.h"
-#include "TGraph.h"
-#include "BmnKalmanFilter_tmp.h"
+#include "BmnKalmanFilter.h"
 #include "CbmVertex.h"
 #include "BmnSiliconStationSet.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TGraph.h"
 
 
 class TClonesArray;
@@ -157,7 +153,7 @@ private:
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
     
     CbmVertex *fVertex; // vertex information
-
+    
     BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t trIndex);
     BmnStatus MatchingDCH(BmnGlobalTrack* tr);
     BmnStatus MatchingMWPC(BmnGlobalTrack* tr);
@@ -168,8 +164,7 @@ private:
     
     BmnStatus Run1GlobalTrackFinder();
     BmnStatus FillHoughHistogram(TH1F* h, TGraph* orig, TH2F* cm, TGraph* seeds, TClonesArray* arr);
-
-    void IdChecker(Int_t refId, Int_t hitId, TVector3 pos, BmnHitMatchingQA* hist);
+    
     void FillIndexMap(map<Int_t, Int_t> &indexes, Int_t id);
 
     BmnGlobalTracking(const BmnGlobalTracking&);

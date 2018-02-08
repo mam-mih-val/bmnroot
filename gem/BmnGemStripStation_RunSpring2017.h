@@ -11,9 +11,6 @@ private:
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;
 
 /* Readout module parameters */
-    Double_t ZSizeModuleWithFrames;
-    Double_t ZSizeModule;
-
     Double_t LowerLayerStripAngle; //angle from a vertical line where a plus value - clockwise
     Double_t UpperLayerStripAngle; //angle from a vertical line where a plus value - clockwise
     Double_t LowerLayerPitch; //cm

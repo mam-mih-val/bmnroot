@@ -1,5 +1,4 @@
 #include "../../gem/BmnGemStripConfiguration.h"
-
 #include "bmnloadlibs.C"
 #include "geometry.C"
 
@@ -102,7 +101,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., -21.7); // Approximate position of target (RunSpring2017)
     primGen->AddGenerator(boxGen);
-    
+
 #else
 #ifdef HSD
     // ------- HSD/PHSD Generator
@@ -177,14 +176,15 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 
     fRun->SetStoreTraj(kTRUE);
     fRun->SetRadLenRegister(flag_store_FairRadLenPoint); // radiation length manager
-    
+
     // SI-Digitizer
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
     siliconDigit->SetOnlyPrimary(kFALSE);
     fRun->AddTask(siliconDigit);
-     
+
     // GEM-Digitizer
-    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;  // RunWinter2016
+    BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;
+    BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARCO2_70_30_E_1000_2500_3750_6300_B_0_0T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
     gemDigit->SetOnlyPrimary(kFALSE);
@@ -192,7 +192,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     fRun->AddTask(gemDigit);
 
     fRun->Init();
-    if (isFieldMap) 
+    if (isFieldMap)
         magField->Print();
 
 

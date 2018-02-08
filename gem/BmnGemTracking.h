@@ -14,8 +14,7 @@
 #include "TVector3.h"
 #include "FairTrackParam.h"
 #include "BmnFitNode.h"
-#include "BmnKalmanFilter_tmp.h"
-#include "BmnTrackFitter.h"
+#include "BmnKalmanFilter.h"
 #include "BmnMath.h"
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
@@ -40,7 +39,7 @@ public:
     BmnStatus CalculateTrackParamsLine(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsCircle(BmnGemTrack* tr);
     BmnStatus CalculateTrackParamsPol2(BmnGemTrack *tr);
-    BmnStatus NearestHitMergeGem(UInt_t station, BmnGemTrack* tr);
+    BmnStatus NearestHitMergeGem(UInt_t station, BmnGemTrack* tr, Bool_t& wasSkipped);
     Double_t CalculateLength(BmnGemTrack* tr);
     void SetHitsUsing(BmnGemTrack* tr, Bool_t use);
     void FillAddrWithLorentz();
@@ -48,6 +47,8 @@ public:
     BmnGemStripHit* GetHit(Int_t i);
     BmnStatus RefitTrack(BmnGemTrack* track);
     TVector2 GetTransXY(BmnGemStripHit* hit);
+    BmnStatus SortTracks(vector<BmnGemTrack>& inTracks, vector<BmnGemTrack>& sortedTracks);
+    BmnStatus CheckSharedHits(vector<BmnGemTrack>& sortedTracks);
 
     void SetLorentzThresh(Double_t trs) {
         fLorentzThresh = trs;
@@ -115,7 +116,7 @@ private:
 
     TClonesArray* fGemTracksArray;
     TClonesArray* fGemHitsArray;
-    BmnKalmanFilter_tmp* fKalman;
+    BmnKalmanFilter* fKalman;
 
     Int_t fPDG; // PDG hypothesis
     Double_t fGemDistCut;
@@ -156,6 +157,8 @@ private:
 
     Int_t** fAddresses;
     Double_t fLineFitCut;
+    
+    vector<Int_t>* fHitsOnStation;
     
     ClassDef(BmnGemTracking, 1);
 };

@@ -23,23 +23,23 @@ BmnGemStripModule::BmnGemStripModule() {
     YMinModule = 0.0;
     YMaxModule = 0.0;
 
-    AvalancheGenerationSeed = 11;
-    MCD = 0.0333; //mean collision distance (mean free flight path) [cm]
+    AvalancheGenerationSeed = 0;
     AvalancheRadius = 0.10; //cm
     Gain = 1.0; //gain level (for each electron signal - in RealPointFull or for strip signal - in RealPointFullOne)
 }
 
 BmnGemStripModule::BmnGemStripModule(Double_t z_start_pos,
-                                     ElectronDriftDirectionInModule edrift_direction) {
+                                     ElectronDriftDirectionInModule edrift_direction,
+                                     Double_t DriftGap, Double_t FTransferGap, Double_t STransferGap, Double_t InductionGap) {
 
     Verbosity = true;
 
     ZStartModulePosition = z_start_pos;
 
-    DriftGapThickness = 0.3; //cm
-    FirstTransferGapThickness = 0.25; //cm
-    SecondTransferGapThickness = 0.2; //cm
-    InductionGapThickness = 0.15; //cm
+    DriftGapThickness = DriftGap; //cm
+    FirstTransferGapThickness = FTransferGap; //cm
+    SecondTransferGapThickness = STransferGap; //cm
+    InductionGapThickness = InductionGap; //cm
     ModuleThickness = DriftGapThickness + FirstTransferGapThickness + SecondTransferGapThickness + InductionGapThickness; //cm
 
     ElectronDriftDirection = edrift_direction;
@@ -50,7 +50,6 @@ BmnGemStripModule::BmnGemStripModule(Double_t z_start_pos,
     YMaxModule = 0.0;
 
     AvalancheGenerationSeed = 0;
-    MCD = 0.0333; //mean collision distance (mean free flight path) [cm]
     AvalancheRadius = 0.10; //cm
     Gain = 1.0;
 }
@@ -227,6 +226,9 @@ Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
 
         while(current_length < track_length) {
 
+            //Reading the MCD value (mean collision distance = mean free flight path) [cm]
+            MCD = BmnGemStripMedium::GetInstance().MCD;
+
             current_step = gRandom->Exp(MCD);
             current_length += current_step;
 
@@ -251,13 +253,25 @@ Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
 
         //Mean electron shift along x-axis (under the influence of the Lorentz force)
         Double_t xmean; // the dependence fitted by polynomial: f(x) = (p0 + p1*x + p2*x^2 + p3*x^3)
-            Double_t p0_xmean = +0.000118365;
-            Double_t p1_xmean = +0.0551321;
-            Double_t p2_xmean = +0.110804;
-            Double_t p3_xmean = -0.0530758;
 
         //Sigma electron smearing
-        Double_t sigma; //depends on the distance from current z-position to the readout plane
+        Double_t sigma; // the dependence fitted by polynomial: f(x) = (p0 + p1*x + p2*x^2 + p3*x^3+ p4*x^4 + p5*x^5)
+
+        //cout << "$$$ BmnGemStripMedium::GetInstance().NameOfCurrentMedium = " << BmnGemStripMedium::GetInstance().NameOfCurrentMedium << "\n"; //test cout
+
+        //Reading the medium configuration -------------------------------------
+        Double_t p0_xmean = BmnGemStripMedium::GetInstance().p0_xmean;
+        Double_t p1_xmean = BmnGemStripMedium::GetInstance().p1_xmean;
+        Double_t p2_xmean = BmnGemStripMedium::GetInstance().p2_xmean;
+        Double_t p3_xmean = BmnGemStripMedium::GetInstance().p3_xmean;
+
+        Double_t p0_sigma = BmnGemStripMedium::GetInstance().p0_sigma;
+        Double_t p1_sigma = BmnGemStripMedium::GetInstance().p1_sigma;
+        Double_t p2_sigma = BmnGemStripMedium::GetInstance().p2_sigma;
+        Double_t p3_sigma = BmnGemStripMedium::GetInstance().p3_sigma;
+        Double_t p4_sigma = BmnGemStripMedium::GetInstance().p4_sigma;
+        Double_t p5_sigma = BmnGemStripMedium::GetInstance().p5_sigma;
+        //----------------------------------------------------------------------
 
         //Strip cluster in each strip layer
         Int_t n_strip_layers = StripLayers.size();
@@ -281,22 +295,9 @@ Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
             }
             //------------------------------------------------------------------
 
+            //polynomials
             xmean = p0_xmean + p1_xmean*zdist + p2_xmean*zdist*zdist + p3_xmean*zdist*zdist*zdist;
-            xmean = 0; // no xmean - no shift effect //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-            //Condition: beacause we have piecewise fitting function (different polynomials on each gap)
-            if(zdist < 0.1) {
-                sigma = std::sqrt(0.000663416*zdist);
-            }
-            if(zdist >= 0.1 && zdist < 0.3) {
-                sigma = 0.003897 + 0.045375*zdist + (-0.03355)*zdist*zdist;
-            }
-            if(zdist >= 0.3 && zdist < 0.6) {
-                sigma = 0.004095 + 0.0424*zdist + (-0.026)*zdist*zdist;
-            }
-            if(zdist >= 0.6) {
-                sigma = 0.0118343 + 0.0200945*zdist + (-0.010325)*zdist*zdist;
-            }
+            sigma = p0_sigma + p1_sigma*zdist + p2_sigma*zdist*zdist + p3_sigma*zdist*zdist*zdist + p4_sigma*zdist*zdist*zdist*zdist + p5_sigma*zdist*zdist*zdist*zdist*zdist;
 
             //Number of electrons in the current collision
             Int_t n_electrons_cluster = gRandom->Landau(1.027, 0.11);
@@ -355,13 +356,13 @@ Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
                         //StripLayers[ilayer].AddStripSignal((Int_t)strip_pos, 1.0); //Instead of 1.0 we can use Gain in future
                         cluster_layers[ilayer].AddStrip((Int_t)strip_pos, 1.0); //Instead of 1.0 we can use Gain in future
                     }
-
+/*
 //Electron points on the readout (testing) -------------------------------------
-                    /*XElectronPos.push_back(x_readout);
+                    XElectronPos.push_back(x_readout);
                     YElectronPos.push_back(y_readout);
-                    ElectronSignal.push_back(1.0);*/
+                    ElectronSignal.push_back(1.0);
 //------------------------------------------------------------------------------
-
+*/
                 }
             }
         }
@@ -413,9 +414,9 @@ Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
             cluster_layers[ilayer].PositionResidual = cluster_layers[ilayer].MeanPosition - cluster_layers[ilayer].OriginPosition;
         }
         //----------------------------------------------------------------------
-
+/*
 //Testing ----------------------------------------------------------------------
-        /*if(AddedClusters.size() == 0) {
+        if(AddedClusters.size() == 0) {
             for(Int_t ilayer = 0; ilayer < n_strip_layers; ++ilayer) {
                 AddedClusters.push_back(vector<StripCluster>());
             }
@@ -423,9 +424,9 @@ Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
 
         for(Int_t ilayer = 0; ilayer < n_strip_layers; ++ilayer) {
             AddedClusters[ilayer].push_back(cluster_layers[ilayer]);
-        }*/
+        }
 //------------------------------------------------------------------------------
-
+*/
         //Add the correct clusters to the strip layers -------------------------
         for(Int_t ilayer = 0; ilayer < n_strip_layers; ++ilayer) {
             for(Int_t ielement = 0; ielement < cluster_layers[ilayer].Strips.size(); ++ielement) {

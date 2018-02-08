@@ -13,18 +13,18 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
     fNSamples = nSmpl;
     fSerials = vSer;
 
-    fPedVal = new Float_t**[fNSerials];
-    fPedRms = new Float_t**[fNSerials];
+    fPedVal = new Double_t**[fNSerials];
+    fPedRms = new Double_t**[fNSerials];
     fAdcProfiles = new UInt_t**[fNSerials];
     fNoiseChannels = new Bool_t**[fNSerials];
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-        fPedVal[iCr] = new Float_t*[fNChannels];
-        fPedRms[iCr] = new Float_t*[fNChannels];
+        fPedVal[iCr] = new Double_t*[fNChannels];
+        fPedRms[iCr] = new Double_t*[fNChannels];
         fAdcProfiles[iCr] = new UInt_t*[fNChannels];
         fNoiseChannels[iCr] = new Bool_t*[fNChannels];
         for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-            fPedVal[iCr][iCh] = new Float_t[fNSamples];
-            fPedRms[iCr][iCh] = new Float_t[fNSamples];
+            fPedVal[iCr][iCh] = new Double_t[fNSamples];
+            fPedRms[iCr][iCh] = new Double_t[fNSamples];
             fAdcProfiles[iCr][iCh] = new UInt_t[fNSamples];
             fNoiseChannels[iCr][iCh] = new Bool_t[fNSamples];
             for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl) {
@@ -36,13 +36,13 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
         }
     }
 
-    fPedDat = new UShort_t***[fNSerials];
+    fPedDat = new Double_t***[fNSerials];
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-        fPedDat[iCr] = new UShort_t**[N_EV_FOR_PEDESTALS];
+        fPedDat[iCr] = new Double_t**[N_EV_FOR_PEDESTALS];
         for (UInt_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-            fPedDat[iCr][iEv] = new UShort_t*[fNChannels];
+            fPedDat[iCr][iEv] = new Double_t*[fNChannels];
             for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                fPedDat[iCr][iEv][iCh] = new UShort_t[fNSamples];
+                fPedDat[iCr][iEv][iCh] = new Double_t[fNSamples];
                 for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl)
                     fPedDat[iCr][iEv][iCh][iSmpl] = 0;
             }
@@ -79,11 +79,11 @@ BmnAdcProcessor::~BmnAdcProcessor() {
 }
 
 BmnStatus BmnAdcProcessor::FindNoisyStrips() {
-    const Short_t kNBUNCHES = 8;
+    const Short_t kNBUNCHES = 16;
     const Short_t kNSAMPLES = fNSamples / kNBUNCHES;
     const Short_t kNITER = 4;
-    const Float_t coeff[kNITER] = {2, 2, 2, 2};
-
+    Float_t coeff[kNITER];
+    for (Short_t i = 0; i < kNITER; ++i) coeff[i] = 1.5;
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
         for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
             Bool_t channelOk[fNSamples];
@@ -157,7 +157,7 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
                 Int_t nOk = 0;
                 for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
                     if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
-                    signals[iSmpl] = (Short_t) fPedDat[iCr][iEv][iCh][iSmpl];
+                    signals[iSmpl] = fPedDat[iCr][iEv][iCh][iSmpl];
                     nOk++;
                 }
                 Double_t CMS = CalcCMS(signals, nOk);
@@ -197,6 +197,7 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
         for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
             for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
                 Double_t signals[nSmpl];
+                for (Int_t i = 0; i < nSmpl; ++i) signals[i] = 0.0;
                 Int_t nOk = 0;
                 for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
                     if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
@@ -207,10 +208,11 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
                 for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
 
                     if (fPedDat[iCr][iEv][iCh][iSmpl] == 0 || CMS == 0.0) continue;
-                    Float_t thresh = (fDetName == "SILICON") ? 160 : 20;
-                    if (Abs(fPedDat[iCr][iEv][iCh][iSmpl] - CMS - fPedVal[iCr][iCh][iSmpl]) > thresh/*3 * fPedRms[iCr][iCh][iSmpl]*/) {
-                        fAdcProfiles[iCr][iCh][iSmpl]++;
-                    }
+                    Float_t thresh = (fDetName == "SILICON") ? 120 : 20; //7 * fPedRms[iCr][iCh][iSmpl];
+                    //                    Double_t thresh = 7 * fPedRms[iCr][iCh][iSmpl];
+                    Double_t sig = Abs(fPedDat[iCr][iEv][iCh][iSmpl] - CMS - fPedVal[iCr][iCh][iSmpl]);
+                    if (sig < thresh || sig == 0.0) continue;
+                    fAdcProfiles[iCr][iCh][iSmpl]++;
                 }
             }
     }
@@ -231,7 +233,7 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
 
 Double_t BmnAdcProcessor::CalcCMS(Double_t* samples, Int_t size) {
 
-    const UShort_t kNITER = 4;
+    const UShort_t kNITER = 10;
     Double_t CMS = 0.0;
     UInt_t nStr = size;
     Double_t upd[size];

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
+#include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
 #include <istream>
@@ -57,8 +57,11 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
     char line[256];
     Int_t Pl, St;
     Double_t Temp;
-    TString NameCallFile = "/home/laskaris/bmnroot/input/TOF400_LRCorr_Period_6.dat";
-    cout << "Opening Tof400LRcorr.dat\n";
+    
+    TString path = getenv("VMCWORKDIR");    
+
+    TString NameCallFile = path + "/input/TOF400_LRCorr_Period_6.dat";
+    
     f_call.open(NameCallFile.Data());
     f_call.getline(line, 256);
     f_call.getline(line, 256);
@@ -74,10 +77,11 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
         //TString name = Form("Plane%d", i);
         Plane[i] = new BmnTOF1Detector(i, 2);
         //Plane[i]->SetCorrLR(CorrLR[i]);
-        Plane[i]->SetCorrLR("Tof400LRcorr.dat");
+        Plane[i]->SetCorrLR("TOF400_LRCorr_Period_6.dat");
         Plane[i]->SetCorrSlewing("TOF400_SlewingCorr_Period_6.root");
         //Plane[i]->SetGeoFile("geofile_full.root");
-        Plane[i]->SetGeoFile("geometry_run6.root");
+        //Plane[i]->SetGeoFile("geometry_run6.root");
+        Plane[i]->SetGeoFile("geofile_full.root");
     }
 	cout << "Loaded input files...\n";
     TList *fList = new TList();
@@ -92,7 +96,7 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
     /////////////////////////////////////////////
 
     TChain *eveTree = new TChain("cbmsim");
-    TString inName = Form("/home/laskaris/data-bmn/digi-decoded/%s", file.Data());
+    TString inName = Form("/nica/mpd16/bmndata3/run6/root/digi/bmn_run%s_digi.root", file.Data());
     //inName = file;
     cout << "Open file " << inName << endl << endl;
     eveTree->Add(inName);
@@ -277,7 +281,7 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
 				v1.SetXYZT(v.X(),v.Y(),v.Z(),TMath::Sqrt(pow(v.P(),2) + pow(mp,2)));
 				nStripsL++;
 			}
-			else
+			else //if (i>=10)
 			{
 				P_2_boost[0]=P_[0];
 				P_2_boost[1]=P_[1];
@@ -359,7 +363,7 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
     cout << "TimeCPU/Event = " << timer.CpuTime() / (Double_t) nEvForRead * 1000. << " ms/Event" << endl;
 
     ofstream f_time;
-    TString NameTimeFile = "Tof400An_Time.dat";
+    TString NameTimeFile = "output/Tof400An_Time.dat";
     //TString NameCallFile = file;
     //Point = NameCallFile.First('.');
     //NameCallFile.Replace(Point, 15, "_LRcorr.dat");
@@ -370,12 +374,7 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
 
     timer.Reset();
     timer.Start();
-    TString outName = file;
-    Int_t Point = outName.First('.');
-    outName.Replace(Point, 15, "_TofAn6_test.root");
-    outName = Form("output/%s", outName.Data());
-    cout << "Save data to " << outName.Data() << endl;
-    TFile *fileout = new TFile(outName.Data(), "RECREATE");
+    TFile *fileout = new TFile("output/"+file+"_TofAn6_test.root", "RECREATE");
 
     TDirectory *Dir;
     Dir = fileout->mkdir("ToF");

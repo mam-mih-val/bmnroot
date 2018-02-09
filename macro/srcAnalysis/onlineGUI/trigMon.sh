@@ -1,10 +1,7 @@
 #!/bin/bash
 
-#TODO:
-# 1) fix hack about doing the DIGI2 file and REF2 file for the TDC b/c we don't have TDC and TQDC data...
-
 # Defining directories to be used
-MONDIR=$VMCWORKDIR"/macro/srcAnalysis/qualityCont"
+MONDIR=$VMCWORKDIR"/macro/srcAnalysis/onlineGUI"
 OUTPUT=$MONDIR"/output"
 DIGITIZER=$VMCWORKDIR"/macro/raw"
 
@@ -24,7 +21,7 @@ echo "==========================================================="
 echo ""
 echo "FINISHED DECODING"
 echo ""
-mv bmn_run1234_* $VMCWORKDIR/macro/srcAnalysis/qualityCont/output/ > $VMCWORKDIR/macro/srcAnalysis/qualityCont/output/out.dat
+mv bmn_run1234_* $OUTPUT > $OUTPUT/out.dat
 
 
 # Now analyze that 1 digi file for all of the detectors

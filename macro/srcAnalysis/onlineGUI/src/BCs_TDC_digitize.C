@@ -1,6 +1,3 @@
-/*TODO once we have real data files:
-1) DO I WANT TO TAKE ALL EVENTS IN THE WINDOW??
-*/
 #include "TVector3.h"
 #include <time.h>
 void BCs_TDC_digitize(TString file, TString outFileName, int startEvent, int stopEvent){
@@ -22,11 +19,13 @@ void BCs_TDC_digitize(TString file, TString outFileName, int startEvent, int sto
 	TH1D * hits_BC1 = new TH1D("hits_BC1","",10,0,10);
         TH1D * hits_BC2 = new TH1D("hits_BC2","",10,0,10);
         TH1D * hits_BC3 = new TH1D("hits_BC3","",10,0,10);
+	TH1D * hits_BC4 = new TH1D("htis_BC4","",10,0,10);
         TH1D * hits_VC = new TH1D("hits_VC","",10,0,10);
 
 	TH1D * TDC_BC1 = new TH1D("TDC_BC1","",200,-1e3,1e3);
 	TH1D * TDC_BC2 = new TH1D("TDC_BC2","",200,-1e3,1e3);
 	TH1D * TDC_BC3 = new TH1D("TDC_BC3","",200,-1e3,1e3);
+	TH1D * TDC_BC4 = new TH1D("TDC_BC4","",200,-1e3,1e3);
 	TH1D * TDC_VC  = new TH1D("TDC_VC" ,"",200,-1e3,1e3);
 
 	TH1D * moduleEff = new TH1D("moduleEff","",2,0,2);
@@ -38,6 +37,7 @@ void BCs_TDC_digitize(TString file, TString outFileName, int startEvent, int sto
 	TClonesArray * BC1 = new TClonesArray("BmnTrigDigit");
 	TClonesArray * BC2 = new TClonesArray("BmnTrigDigit");
 	//TClonesArray * BC3 = new TClonesArray("BmnTrigDigit");
+	//TClonesArray * BC4 = new TClonesArray("BmnTrigDigit");
 	TClonesArray * VC = new TClonesArray("BmnTrigDigit");
 	
 	time_t startT = time(NULL);
@@ -51,6 +51,7 @@ void BCs_TDC_digitize(TString file, TString outFileName, int startEvent, int sto
 	rootTree->GetBranch("BC1")->SetAutoDelete(kFALSE);
 	rootTree->GetBranch("BC2")->SetAutoDelete(kFALSE);
 	//rootTree->GetBranch("BC3")->SetAutoDelete(kFALSE);
+	//rootTree->GetBranch("BC4")->SetAutoDelete(kFALSE);
 	rootTree->GetBranch("VETO")->SetAutoDelete(kFALSE);
 
 	//rootTree->GetBranch("X1_Left")->SetAutoDelete(kFALSE);
@@ -67,6 +68,7 @@ void BCs_TDC_digitize(TString file, TString outFileName, int startEvent, int sto
 	rootTree->SetBranchAddress("BC1", &BC1);
 	rootTree->SetBranchAddress("BC2", &BC2);
 	//rootTree->SetBranchAddress("BC3", &BC3);
+	//rootTree->SetBranchAddress("BC4", &BC4);
 	rootTree->SetBranchAddress("VETO", &VC);
 
 	//rootTree->SetBranchAddress("X1_Left", &X1_left);
@@ -86,6 +88,9 @@ void BCs_TDC_digitize(TString file, TString outFileName, int startEvent, int sto
                 cout << "WARNING: reference and current runs may have different normalization\n";
         }
 	// For each entry
+	double triggerTime = 0.;
+	int ifBC1, ifBC2, ifBC3, ifBC4, ifVC, ifX1L, ifX1R, ifX2L, ifX2R, ifY1L, ifY1R, ifY2L, ifY2R;
+	bool beam, X1, X2, Y1, Y2, leftArm, rightArm, pair, trig;
 	for (Int_t i = startEvent; i < stopEvent; i++){
 		if (i%1000==0) cout << "\tWorking on entry " << i << "\n";
 		EventHead->Clear();
@@ -93,6 +98,7 @@ void BCs_TDC_digitize(TString file, TString outFileName, int startEvent, int sto
 		BC1->Clear();
 		BC2->Clear();
 		//BC3->Clear();
+		//BC4->Clear();
 		VC->Clear();
 		//X1_left->Clear();
 		//X1_right->Clear();
@@ -119,11 +125,12 @@ void BCs_TDC_digitize(TString file, TString outFileName, int startEvent, int sto
 		} 
 
 		BmnTrigDigit * signal_T0 = (BmnTrigDigit*) T0->At(0);
-		double triggerTime = 0;
+		triggerTime = 0;
 		
 		BmnTrigDigit * signal_BC1 = (BmnTrigDigit*) BC1->At(0);
 		BmnTrigDigit * signal_BC2 = (BmnTrigDigit*) BC2->At(0);
 		//BmnTrigDigit * signal_BC3 = (BmnTrigDigit*) BC3->At(0);
+		//BmnTrigDigit * signal_BC4 = (BmnTrigDigit*) BC4->At(0);
 		BmnTrigDigit * signal_VC  = (BmnTrigDigit*) VC->At(0);
 
 		//BmnTrigDigit * signal_X1_left = (BmnTrigDigit*) X1_left->At(0);
@@ -136,18 +143,19 @@ void BCs_TDC_digitize(TString file, TString outFileName, int startEvent, int sto
 		//BmnTrigDigit * signal_Y2_left = (BmnTrigDigit*) Y2_left->At(0);
 		//BmnTrigDigit * signal_Y2_right = (BmnTrigDigit*) Y2_right->At(0);
 
-		int ifBC1 = BC1->GetEntriesFast();
-		int ifBC2 = BC2->GetEntriesFast();
-		//int ifBC3 = BC3->GetEntriesFast();
-		int ifVC = VC->GetEntriesFast();		
-		//int ifX1L = X1_left->GetEntriesFast();
-                //int ifX1R = X1_right->GetEntriesFast();
-                //int ifX2L = X2_left->GetEntriesFast();
-                //int ifX2R = X2_right->GetEntriesFast();
-                //int ifY1L = Y1_left->GetEntriesFast();
-                //int ifY1R = Y1_right->GetEntriesFast();
-                //int ifY2L = Y2_left->GetEntriesFast();
-                //int ifY2R = Y2_right->GetEntriesFast();		
+		ifBC1 = BC1->GetEntriesFast();
+		ifBC2 = BC2->GetEntriesFast();
+		//ifBC3 = BC3->GetEntriesFast();
+		//ifBC4 = BC4->GetEntriesFast();
+		ifVC = VC->GetEntriesFast();		
+		//ifX1L = X1_left->GetEntriesFast();
+                //ifX1R = X1_right->GetEntriesFast();
+                //ifX2L = X2_left->GetEntriesFast();
+                //ifX2R = X2_right->GetEntriesFast();
+                //ifY1L = Y1_left->GetEntriesFast();
+                //ifY1R = Y1_right->GetEntriesFast();
+                //ifY2L = Y2_left->GetEntriesFast();
+                //ifY2R = Y2_right->GetEntriesFast();		
 
 		// Getting all TQDC entries
 		if (T0->GetEntriesFast() > 0) triggerTime = signal_T0->GetTime();
@@ -165,6 +173,11 @@ void BCs_TDC_digitize(TString file, TString outFileName, int startEvent, int sto
 		//	hits_BC3->Fill( ifBC3 );
 		//	trigScalars->Fill( 2 );
 		//	TDC_BC3->Fill( triggerTime - signal_BC3->GetTime() );
+		//}
+		//if (ifBC4 > 0){
+		//	hits_BC4->Fill( ifBC4 );
+		//	trigScalars->Fill( 3 );
+		//	TDC_BC4->Fill( triggerTime - signal_BC4->GetTime() );
 		//}
 		if (ifVC  > 0){
 			hits_VC->Fill( ifVC );
@@ -195,18 +208,17 @@ void BCs_TDC_digitize(TString file, TString outFileName, int startEvent, int sto
 		//if (ifY2R > 0){
 		//	trigScalars->Fill(11 );
 		//}
-                bool beam = ifBC1 && ifBC2;
-                //bool X1 = ifX1L || ifX1R;
-                //bool X2 = ifX2L || ifX2R;
+                beam = ifBC1 && ifBC2;
+                //X1 = ifX1L || ifX1R;
+                //X2 = ifX2L || ifX2R;
         
-                //bool Y1 = ifY1L && ifY1R;
-                //bool Y2 = ifY2L && ifY2R;           
+                //Y1 = ifY1L && ifY1R;
+                //Y2 = ifY2L && ifY2R;           
 
-                //bool leftArm = X1 && Y1;
-                //bool rightArm = X2 && Y2;
-                //bool pair = leftArm || rightArm;
-
-                //bool trig = beam && pair;
+                //leftArm = X1 && Y1;
+                //rightArm = X2 && Y2;
+                //pair = leftArm || rightArm;
+                //trig = beam && pair;
 		//if ( trig == 1){
 		//	  moduleEff->Fill( 1 );
                 //        coinScalars->Fill( 0 );

@@ -354,6 +354,7 @@ void BmnData(char *file){
    int ev;
    if((ev=D.process_event())<0) break;
    if((ev%10000)==1)printf("%d\n",ev-1);
+   if((ev>50000)) break;
   }
 }
 

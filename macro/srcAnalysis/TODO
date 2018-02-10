@@ -8,3 +8,11 @@ For onlineGUI:
 
 For quality check:
 # 1) Add macros for US -- look at correlations of TQDC and TDC widths, other detectors, etc..
+
+For ToF400:
+# 1) George commit your path fixes
+# 2) Add calibration macro to extract gamma peak
+# 3) 
+
+For A-2:
+# 1) 

@@ -1,7 +1,7 @@
 #include "BmnADCDigit.h"
 
 BmnADCDigit::BmnADCDigit() {
-    fSerial = 0;;
+    fSerial = 0;
     fChannel = 0;
     fNsmpl = 0;
     fValueU = new UShort_t[fNsmpl];

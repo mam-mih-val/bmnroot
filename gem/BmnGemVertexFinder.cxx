@@ -78,7 +78,7 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
 
 Float_t BmnGemVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
 
-    fKalman = new BmnKalmanFilter_tmp();
+    fKalman = new BmnKalmanFilter();
 
     const Int_t nPlanes = 5;
     Float_t minZ = fRoughVertex3D.Z();

@@ -5,7 +5,6 @@
  **/
 #include "BmnMaterialEffects.h"
 
-#include "BmnDefaultSettings.h"
 #include "FairTrackParam.h"
 #include "BmnMaterialInfo.h"
 
@@ -312,7 +311,7 @@ Float_t BmnMaterialEffects::PairProduction(const FairTrackParam* par, const BmnM
 }
 
 Float_t BmnMaterialEffects::BetheBlochSimple(const BmnMaterialInfo* mat) const {
-    return BmnDefaultSettings::ENERGY_LOSS_CONST * mat->GetZ() / mat->GetA();
+    return 0.00354 * mat->GetZ() / mat->GetA();
 }
 
 Float_t BmnMaterialEffects::MPVEnergyLoss(const FairTrackParam* par, const BmnMaterialInfo* mat) const {

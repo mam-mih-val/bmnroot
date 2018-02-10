@@ -100,6 +100,7 @@ private:
     
     Double_t fChamberWidth;
     Double_t fDistanceBetweenMWPC;
+    Double_t fZofMWPC[4];
     
     Bool_t fDebug;
     

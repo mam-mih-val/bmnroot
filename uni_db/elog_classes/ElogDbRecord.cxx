@@ -1213,11 +1213,11 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
     TSQLServer* uni_db = connUniDb->GetSQLServer();
 
     TString sql = TString::Format(
-        "select record_id, record_date, author_id, type_id, period_number, run_number, shift_leader_id, trigger_id, daq_status, sp_41, field_comment, beam, energy, target, target_width, record_comment "
+        "select record_id, record_date, shift_leader_id, type_id, period_number, run_number, trigger_id, daq_status, sp_41, sp_57, vkm2, field_comment, beam, energy, target, target_width, record_comment "
         "from record_ "
         "where period_number = %d and run_number = %d", period_number, run_number);
     TSQLStatement* stmt = uni_db->Statement(sql);
-     //cout<<"SQL code: "<<sql<<endl;
+    //cout<<"SQL code: "<<sql<<endl;
 
     // get record from the database
     if (!stmt->Process())

@@ -70,6 +70,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0) {
         Int_t istart = 49;
         if (fFillHist == 1) istart = 48;
         if (fFillHist == 2) istart = 0;
+	
         for (Int_t i = istart; i < fNStr + 1; i++) //
         {
             fName.Clear();
@@ -77,7 +78,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0) {
             hTime[i] = new TH1I(fName, fName, 2000, 0, 1000);
             fHistListCh->Add(hTime[i]);
         }
-
+//std::cout << "Made it this far!\n";
         for (Int_t i = istart; i < fNStr + 1; i++) //
         {
             fName.Clear();
@@ -85,7 +86,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0) {
             hDtLR[i] = new TH1I(fName, fName, 1024, -12., 12.);
             fHistListCh->Add(hDtLR[i]);
         }
-
+//std::cout << "Made it this far!\n";
         for (Int_t i = istart; i < fNStr + 1; i++) //
         {
             fName.Clear();
@@ -93,7 +94,7 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0) {
             hWidth[i] = new TH1I(fName, fName, 1024, 12., 60.);
             fHistListCh->Add(hWidth[i]);
         }
-
+//std::cout << "Made it this far!\n";
         for (Int_t i = istart; i < fNStr + 1; i++) //
         {
             fName.Clear();
@@ -101,24 +102,28 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0) {
             hDt[i] = new TH1I(fName, fName, 1024, -24., 24.);
             fHistListDt->Add(hDt[i]);
         }
-
+//std::cout << "Made it this far!\n";
         for (Int_t i = istart; i < fNStr + 1; i++) //
+      //for (Int_t i = istart; i < fNStr; i++)
         {
             fName.Clear();
             fName = Form("Hist_ToF_vs_AmpDet_%s_str%d", Name.Data(), i);
             hDtvsWidthDet[i] = new TH2S(fName, fName, 1024, 0., 48., 1024, -24., 24.);
             fHistListDt->Add(hDtvsWidthDet[i]);
         }
-
+//std::cout << "Made it this far!\n";
         for (Int_t i = istart; i < fNStr + 1; i++) //
+	//for (Int_t i = istart; i < fNStr; i++)
         {
+	    //cout << "In last loop, iteration " << i << "\n";
             fName.Clear();
             fName = Form("Hist_ToF_vs_AmpT0_%s_str%d", Name.Data(), i);
+	    //cout << fName << "\n";
             hDtvsWidthT0[i] = new TH2S(fName, fName, 1024, 0., 48., 1024, -24., 24.);
+	    //cout << hDtvsWidthT0[i] << "\n";
             fHistListDt->Add(hDtvsWidthT0[i]);
         }
-
-
+//std::cout << "Made it this far!\n";
     } else {
 
         hHitByCh = NULL;
@@ -358,7 +363,7 @@ Double_t BmnTOF1Detector::CalculateDt(Int_t Str = 0) {
 //----------------------------------------------------------------------------------------
 
 TList* BmnTOF1Detector::GetList(Int_t n = 0) {
-    if (fFillHist == kTRUE) {
+    if (fFillHist >0) {
         if (n == 0) return fHistListStat;
         if (n == 1) return fHistListCh;
         if (n == 2) return fHistListDt;

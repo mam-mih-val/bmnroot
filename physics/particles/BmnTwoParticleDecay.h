@@ -38,7 +38,7 @@
 #include "BmnGemStripStationSet_RunWinter2016.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include "BmnGemStripHit.h"
-#include "BmnKalmanFilter_tmp.h"
+#include "BmnKalmanFilter.h"
 #include "BmnParticlePair.h"
 #include <UniDbDetectorParameter.h>
 #include <UniDbRun.h>
@@ -92,7 +92,7 @@ private:
 
     FairField* fField;
     BmnFieldMap* fMagField;
-    BmnKalmanFilter_tmp* fKalman;
+    BmnKalmanFilter* fKalman;
 
     TClonesArray* fParticlePair;
 

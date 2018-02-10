@@ -1,17 +1,18 @@
+#include "../../macro/run/bmnloadlibs.C"
+
 void test_db()
 {
     TStopwatch timer;
     timer.Start();
     gDebug = 0;
 
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load main libraries
 
-    UniDbConnection* connectionUniDb = UniDbConnection::Open(0);
+    UniDbConnection* connectionUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connectionUniDb == 0x00)
     {
         cout<<"Error: connection to the database can't be established"<<endl;
-        return -1;
+        return;
     }
 
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();

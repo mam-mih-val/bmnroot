@@ -9,6 +9,7 @@
 #include "TFile.h"
 #include "BmnTof2Raw2DigitNew.h"
 
+#define TOZERO 1
 #define EQUAL_MAXIMA 1
 #define FIT_MAXIMA 1
 #define EQUAL_AVERAGE_T0 1
@@ -1942,8 +1943,16 @@ void BmnTof2Raw2DigitNew::Equalization()
     ip = mapa[ind].plane;
     if (ip != plane) continue;
     is = mapa[ind].strip;
-    fprintf(fout,"   strip %d time shift (left+right)/2 = %f\n", is, tmeane[ind]-tmeane_average[plane]);
-    if (PRINT_EQUALIZATION_RESULTS) printf("   strip %d time shift (left+right)/2 = %f\n", is, tmeane[ind]-tmeane_average[plane]);
+    if (TOZERO)
+    {
+	fprintf(fout,"   strip %d time shift (left+right)/2 = %f\n", is, tmeane[ind]);
+	if (PRINT_EQUALIZATION_RESULTS) printf("   strip %d time shift (left+right)/2 = %f\n", is, tmeane[ind]);
+    }
+    else
+    {
+	fprintf(fout,"   strip %d time shift (left+right)/2 = %f\n", is, tmeane[ind]-tmeane_average[plane]);
+	if (PRINT_EQUALIZATION_RESULTS) printf("   strip %d time shift (left+right)/2 = %f\n", is, tmeane[ind]-tmeane_average[plane]);
+    }
   }
 
   fclose(fout);

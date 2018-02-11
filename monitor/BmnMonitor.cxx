@@ -30,6 +30,8 @@ BmnMonitor::BmnMonitor() {
     infoCanvas = new TCanvas(name, name);
     refList = new TList();
     refList->SetName("refList");
+    refTable = new TList();
+    refTable->SetName("refTable");
     fDigiArrays = NULL;
     _ctx = NULL;
 }
@@ -106,7 +108,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                 if ((decoTimeout > DECO_SOCK_WAIT_LIMIT) && (fState == kBMNWORK)) {
                     FinishRun();
                     fState = kBMNWAIT;
-                            keepWorking = false;
+//                    keepWorking = false;
                     fServer->SetTimer(100, kFALSE);
                     DBG("state changed to kBMNWAIT")
                 }
@@ -270,6 +272,7 @@ void BmnMonitor::RegisterAll() {
 
     fServer->Register("/", infoCanvas);
     fServer->Register("/", refList);
+//    fServer->Register("/", refTable);
     for (auto h : bhVec4show) {
         h->Register(fServer);
         h->SetRefPath(_refDir);
@@ -290,9 +293,29 @@ void BmnMonitor::UpdateRuns() {
             if (subStr->GetEntriesFast() > 1)
                 refList->Add((TObjString*) subStr->At(1));
             free(namelist[i]);
+            subStr->Clear("C");
         }
         free(namelist);
     }
+    TObjArray* refRuns = BmnMonitor::GetAlikeRunsByUniDB(fPeriodID, fRunID);
+    if (refRuns == NULL) {
+        fprintf(stderr, "Ref list is empty!\n");
+        return;
+    }
+    refTable->Clear();
+    for (Int_t iRun = 0; iRun < refRuns->GetEntriesFast(); iRun++) {
+        UniDbRun* run = (UniDbRun*) refRuns->At(iRun);
+        BmnRunInfo* runInfo = new BmnRunInfo(run);
+        refTable->Add((TObject*) runInfo);
+        printf("run %04d Energy %f Voltage %f Beam %s Target %s Date %d\n",
+                run->GetRunNumber(),
+                run->GetEnergy() ? *run->GetEnergy() : -1,
+                run->GetFieldVoltage() ? *run->GetFieldVoltage() : -1,
+                run->GetBeamParticle().Data(),
+                run->GetTargetParticle() ? (*run->GetTargetParticle()).Data(): "",
+                run->GetStartDatetime().GetDate());
+    }
+    refRuns->Delete();
 }
 
 void BmnMonitor::FinishRun() {
@@ -328,23 +351,85 @@ void BmnMonitor::FinishRun() {
     }
 }
 
-TObjArray* BmnMonitor::GetAlikeRuns(BmnEventHeader* header) {
-    TString beamParticle = "C";
-    TString targetParticle = "Pb";
-    Float_t beamEnergy = 4.5;
+TObjArray* BmnMonitor::GetAlikeRunsByElog(Int_t periodID, Int_t runID) {
+    TPRegexp reElementName(".*(\\w+).*");
+    TString beamParticle = "";
+    TString targetParticle = "";
+    Double_t beamEnergy = 0;
+    Double_t I_SP41 = 0;
+    TObjArray* recs = ElogDbRecord::GetRecords(periodID, runID);
+    if (recs == NULL) {
+        fprintf(stderr, "Run not found in ELOG!\n");
+        return NULL;
+    }
+    for (Int_t iRec = 0; iRec < recs->GetEntriesFast(); iRec++) {
+        ElogDbRecord* rec = (ElogDbRecord*) recs->At(iRec);
+        TObjArray *strings = reElementName.MatchS(rec->GetBeam()->Data());
+        if (strings->GetEntriesFast() > 1)
+            beamParticle = ((TObjString*) strings->At(1))->GetString();
+        strings->Clear("C");
+        strings = reElementName.MatchS(rec->GetTarget()->Data());
+        if (strings->GetEntriesFast() > 1)
+            targetParticle = ((TObjString*) strings->At(1))->GetString();
+        strings->Clear("C");
+        beamEnergy = *rec->GetEnergy() > 0 ? *rec->GetEnergy() : 0;
+        I_SP41 = *rec->GetSp41() > 0 ? *rec->GetSp41() : 0;
+    }
+    if (beamParticle == "" || targetParticle == "" || beamEnergy == 0 || I_SP41 == 0) {
+        fprintf(stderr, "Not enough run data in ELOG!\n");
+        return NULL;
+    }
+    printf("search  Energy %f I %f beam %s target %s\n\n", beamEnergy, I_SP41, beamParticle.Data(), targetParticle.Data());
     TObjArray arrayConditions;
     UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnBeamParticle, conditionEqual, beamParticle);
     arrayConditions.Add((TObject*) searchCondition);
     searchCondition = new UniDbSearchCondition(columnTargetParticle, conditionEqual, targetParticle);
     arrayConditions.Add((TObject*) searchCondition);
-    //    searchCondition = new UniDbSearchCondition(columnEnergy, conditionEqual, beamEnergy);
-    //    arrayConditions.Add((TObject*)searchCondition);
+    searchCondition = new UniDbSearchCondition(columnEnergy, conditionEqual, beamEnergy);
+    arrayConditions.Add((TObject*) searchCondition);
+    //    searchCondition = new UniDbSearchCondition(colu, conditionEqual, beamEnergy);
+    //    arrayConditions.Add((TObject*) searchCondition);
 
     TObjArray* refRuns = UniDbRun::Search(arrayConditions);
-
     arrayConditions.SetOwner(kTRUE);
     arrayConditions.Delete();
+    for (Int_t iRun = 0; iRun < refRuns->GetEntriesFast(); iRun++) {
+        UniDbRun* run = (UniDbRun*) refRuns->At(iRun);
+        printf("run %04d Energy %f Voltage %f Date %d\n", run->GetRunNumber(), *run->GetEnergy(), *run->GetFieldVoltage(), run->GetStartDatetime().GetDate());
+    }
+    refRuns->Delete();
+}
 
+TObjArray* BmnMonitor::GetAlikeRunsByUniDB(Int_t periodID, Int_t runID) {
+    UniDbRun* curRun = UniDbRun::GetRun(periodID, runID);
+    if (curRun == NULL) {
+        fprintf(stderr, "Run %d not found in UniDB!\n", runID);
+        return NULL;
+    }
+    TObjArray arrayConditions;
+    TString beamParticle = curRun->GetBeamParticle();
+    UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnBeamParticle, conditionEqual, beamParticle);
+    arrayConditions.Add((TObject*) searchCondition);
+    if (curRun->GetTargetParticle() != NULL) {
+        TString targetParticle = *curRun->GetTargetParticle();
+        searchCondition = new UniDbSearchCondition(columnTargetParticle, conditionEqual, targetParticle);
+        arrayConditions.Add((TObject*) searchCondition);
+    }
+    if (curRun->GetEnergy() != NULL) {
+        Double_t beamEnergy = *curRun->GetEnergy();
+        searchCondition = new UniDbSearchCondition(columnEnergy, conditionEqual, beamEnergy);
+        arrayConditions.Add((TObject*) searchCondition);
+    }
+    if (curRun->GetFieldVoltage() != NULL) {
+        Double_t V_SP41 = *curRun->GetFieldVoltage();
+        searchCondition = new UniDbSearchCondition(columnFieldVoltage, conditionLessOrEqual, V_SP41 * 1.15);
+        arrayConditions.Add((TObject*) searchCondition);
+        searchCondition = new UniDbSearchCondition(columnFieldVoltage, conditionGreaterOrEqual, V_SP41 * 0.85);
+        arrayConditions.Add((TObject*) searchCondition);
+    }
+    TObjArray* refRuns = UniDbRun::Search(arrayConditions);
+    arrayConditions.SetOwner(kTRUE);
+    arrayConditions.Delete();
     return refRuns;
 }
 

@@ -52,7 +52,7 @@ TH1D             *NumberOfTOF2Hits;
 TH1D             *LostFit;
 TH1D             *DCHNHits;
 TH1D             *GEMNHits;
-const Bool_t histoOutput=true;
+const Bool_t histoOutput=false;
 //=================================================
 
 //some variables for efficiency calculation

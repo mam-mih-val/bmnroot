@@ -160,7 +160,7 @@ const Double_t matchCut=12.5;
 const Int_t  trackNHitsCut=8;
 const Bool_t useDriftDistance=true;
 const Int_t  hitsArraySize=12*4;
-const Bool_t histoOutput=true;
+const Bool_t histoOutput=false;
 
 BmnDchTrackFinder::BmnDchTrackFinder(Bool_t isExp) :
 expData(isExp) {

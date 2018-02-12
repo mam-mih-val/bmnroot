@@ -31,7 +31,7 @@ void run_reco_bmn_real(TString inputFileName = "run6-1587:/home/andrem/data/bmn_
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
         Int_t nEvents = 5000,
-        TString alignCorrFileName = "default") { // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
+        TString alignCorrFileName = "default") { // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)    Int_t iVerbose = 0;
     Int_t iVerbose = 0;
     // ----    Debug option   --------------------------------------------------
     gDebug = 0;
@@ -50,7 +50,7 @@ void run_reco_bmn_real(TString inputFileName = "run6-1587:/home/andrem/data/bmn_
     FairRunAna* fRunAna = new FairRunAna();
 
     Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
-    Bool_t isTarget = kTRUE; // flag for tracking (run with target or not)
+    Bool_t isTarget = kFALSE; // flag for tracking (run with target or not)
     Bool_t isExp = kTRUE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
@@ -173,8 +173,8 @@ void run_reco_bmn_real(TString inputFileName = "run6-1587:/home/andrem/data/bmn_
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
-    fRunAna->AddTask(siliconHM);
+    //BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
+    //fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //

@@ -27,7 +27,7 @@
 #include "../../gem/BmnGemStripConfiguration.h"
 #include "bmnloadlibs.C"
 
-void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
+void run_reco_bmn_real(TString inputFileName = "run6-1587:/home/andrem/data/bmn_run1587_digi.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
         Int_t nEvents = 5000,
@@ -50,8 +50,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     FairRunAna* fRunAna = new FairRunAna();
 
     Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
-    Bool_t isTarget = kFALSE; // flag for tracking (run with target or not)
-    Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
+    Bool_t isTarget = kTRUE; // flag for tracking (run with target or not)
+    Bool_t isExp = kTRUE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
@@ -241,7 +241,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                          Global Tracking                       === //
     // ====================================================================== //
-    BmnGlobalTracking* globalTF = new BmnGlobalTracking();
+    BmnGlobalTracking* globalTF = new BmnGlobalTracking(isExp);
     globalTF->SetField(isField);
     fRunAna->AddTask(globalTF);
 

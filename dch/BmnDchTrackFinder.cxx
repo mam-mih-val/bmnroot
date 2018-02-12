@@ -4028,14 +4028,19 @@ InitStatus BmnDchTrackFinder::Init() {
       return kERROR;
     }*/
 
+    TString dir1 = getenv("VMCWORKDIR");
+    dir1 += "/input/";
+
 	Int_t time;
 	float dist=0.;
   	for(Int_t i=0;i<16;i++)
   	{
   		char line[50];
-  		char inFileName[10];
-		sprintf(inFileName,"../../input/rt%d.txt",i);
-	    ifstream input(inFileName);
+  		char inFileName1[10];
+  		TString inFileName;
+		sprintf(inFileName1,"rt%d.txt",i);
+	    inFileName=dir1+inFileName1;
+		ifstream input(inFileName);
 	    if (!input.is_open()) // если файл не открыт
 	        cout << "Файл не может быть открыт!\n"; // сообщить об этом
 	    else

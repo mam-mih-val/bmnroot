@@ -90,7 +90,7 @@
 #pragma link C++ class DigiArrays+;
 #pragma link C++ class vector<TClonesArray*>+;
 //#pragma link C++ class vector<BmnTrigModule>+;
-#pragma link C++ class BmnADCSRCDigit+;
+#pragma link C++ class BmnTQDCADCDigit+;
 #pragma link C++ class BmnTrigWaveDigit+;
 
 #pragma link C++ class BmnEventHeader+;

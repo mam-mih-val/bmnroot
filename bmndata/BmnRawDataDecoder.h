@@ -9,7 +9,7 @@
 #include "BmnHRBDigit.h"
 #include "BmnADCDigit.h"
 #include "BmnTacquilaDigit.h"
-#include "BmnADCSRCDigit.h"
+#include "BmnTQDCADCDigit.h"
 #include "BmnLANDDigit.h"
 #include "BmnSyncDigit.h"
 #include "TFile.h"
@@ -102,23 +102,16 @@ public:
         d.land = land;
         d.dch = dch;
         d.mwpc = mwpc;
-        d.trigger = trigger;
-        d.t0 = t0;
-        d.bc1 = bc1;
-        d.bc2 = bc2;
-        d.veto = veto;
-        d.fd = fd;
-        d.bd = bd;
         d.header = eventHeader;
-        if (fTrigSRCMapper) {
-            //            d.trigAr = fTrigSRCMapper->GetTrigArrays();
-            vector<TClonesArray*>* ta = fTrigSRCMapper->GetTrigArrays();
-            //            d.trigLen = ta->size();
-            //            d.trigAr = new TClonesArray*[d.trigLen];
-            //            for (Int_t i = 0; i < d.trigLen; i++)
-            //                d.trigAr[i] = (*ta)[i];
-            d.trigAr = ta;
-        }
+//        if (fTrigSRCMapper) {
+//            //            d.trigAr = fTrigSRCMapper->GetTrigArrays();
+//            vector<TClonesArray*>* ta = fTrigSRCMapper->GetTrigArrays();
+//            //            d.trigLen = ta->size();
+//            //            d.trigAr = new TClonesArray*[d.trigLen];
+//            //            for (Int_t i = 0; i < d.trigLen; i++)
+//            //                d.trigAr[i] = (*ta)[i];
+//            d.trigAr = ta;
+//        }
         return d;
     }
 
@@ -271,12 +264,12 @@ public:
         return fEvForPedestals;
     }
 
-    void SetFExpSetup(BmnSetup v) {
-        this->fExpSetup = v;
+    void SetBmnSetup(BmnSetup v) {
+        this->fBmnSetup = v;
     }
 
-    BmnSetup GetFExpSetup() const {
-        return fExpSetup;
+    BmnSetup GetBmnSetup() const {
+        return fBmnSetup;
     }
 
     UInt_t GetBoundaryRun(UInt_t nSmpl) {
@@ -393,13 +386,7 @@ private:
     TClonesArray *land;
     TClonesArray *dch;
     TClonesArray *mwpc;
-    TClonesArray *trigger;
-    TClonesArray *t0;
-    TClonesArray *bc1;
-    TClonesArray *bc2;
-    TClonesArray *veto;
-    TClonesArray *fd;
-    TClonesArray *bd;
+
     //header array
     TClonesArray *eventHeader;
     BmnRunHeader *runHeader;
@@ -415,7 +402,6 @@ private:
     BmnDchRaw2Digit *fDchMapper;
     BmnMwpcRaw2Digit *fMwpcMapper;
     BmnTrigRaw2Digit *fTrigMapper;
-    BmnTrigRaw2Digit *fTrigSRCMapper;
     BmnTof1Raw2Digit *fTof400Mapper;
     BmnTof2Raw2DigitNew *fTof700Mapper;
     BmnZDCRaw2Digit *fZDCMapper;
@@ -423,7 +409,7 @@ private:
     BmnLANDRaw2Digit *fLANDMapper;
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
-    BmnSetup fExpSetup;
+    BmnSetup fBmnSetup;
     UInt_t fPedEvCntr;
     Int_t fEvForPedestals;
     Bool_t fPedEnough;
@@ -436,6 +422,7 @@ private:
     Double_t fT0Time; //ns
     Double_t fT0Width; //ns
 
+    BmnStatus GetT0Info(Double_t& t0time, Double_t &t0width);
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
     BmnStatus Process_ADC64VE(UInt_t *data, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr);
     BmnStatus Process_ADC64WR(UInt_t *data, UInt_t len, UInt_t serial, TClonesArray *arr);

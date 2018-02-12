@@ -21,15 +21,15 @@ void add_DCH_mapping() {
     Bool_t return_error = kFALSE;
 
     const int kNitems1 = 120;
-    const int kNitems2 = 72;
+    const int kNitems2 = 100;
 
     DchMapStructure* pValues1 = new DchMapStructure[kNitems1];
     DchMapStructure* pValues2 = new DchMapStructure[kNitems2];
     TString path = TString(getenv("VMCWORKDIR")) + TString("/input/");
-    ReadAndPut(path + TString("DCH_map_Run6.txt"), pValues1, pValues2);
+    ReadAndPut(path + TString("DCH_map_Run7.txt"), pValues1, pValues2);
 
-    UniDbDetectorParameter::CreateDetectorParameter("DCH1", "DCH_mapping", 6, 1, 6, 10000, pValues1, kNitems1);
-    UniDbDetectorParameter::CreateDetectorParameter("DCH2", "DCH_mapping", 6, 1, 6, 10000, pValues2, kNitems2);
+    UniDbDetectorParameter::CreateDetectorParameter("DCH1", "DCH_mapping", 7, 1, 7, 10000, pValues1, kNitems1);
+    UniDbDetectorParameter::CreateDetectorParameter("DCH2", "DCH_mapping", 7, 1, 7, 10000, pValues2, kNitems2);
 
     delete [] pValues1;
     delete [] pValues2;
@@ -84,7 +84,7 @@ void ReadAndPut(TString fName, DchMapStructure* pValues1, DchMapStructure* pValu
             if (name == planes[j])
                 break;
         planeId = j;
-        printf("%s\t%d\t%d\t%d\t%d\t%d\t%d\n", name.Data(), planeId, group, ser, slot, ch_l, ch_h);
+        printf("%s\t%d\t%d\t0x%x\t%d\t%d\t%d\n", name.Data(), planeId, group, ser, slot, ch_l, ch_h);
         if (planeId / 8 == 0)
             AssignMapStructure(pValues1, i1++, planeId, group, ser, slot, ch_l, ch_h);
         else

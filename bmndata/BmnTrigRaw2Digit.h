@@ -24,9 +24,11 @@ using namespace TMath;
 
 struct BmnTrigMapping {
     TString name;
+    UInt_t module;
     UInt_t serial;
     Short_t slot;
     Short_t channel;
+    TClonesArray* branchRef;
 };
 
 class BmnTrigRaw2Digit {
@@ -44,7 +46,7 @@ public:
         return fMap;
     }
 
-    BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *trigger, TClonesArray *t0, TClonesArray *bc1, TClonesArray *bc2, TClonesArray *veto, TClonesArray *fd, TClonesArray *bd, Double_t& t0time, Double_t *t0width = NULL);
+    BmnStatus FillEvent(TClonesArray *tdc);
     BmnStatus FillEvent(TClonesArray *tdc, TClonesArray *adc);
     BmnStatus readINLCorrections(TString INLFile);
     BmnStatus readMap(TString mappingFile);
@@ -63,10 +65,15 @@ public:
         tMno.serial = 0;
         return tMno;
     }
+    
+    void SetSetup(BmnSetup stp) {
+        fSetup = stp;
+    }
 
 private:
 
     vector<BmnTrigMapping> fMap;
+    BmnSetup fSetup;
     ifstream fMapFile;
     ifstream fINLFile;
     TString fMapFileName;

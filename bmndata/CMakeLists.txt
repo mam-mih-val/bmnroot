@@ -89,7 +89,7 @@ BmnDchDigit.cxx
 BmnEcalDigit.cxx
 BmnADCDigit.cxx
 BmnTacquilaDigit.cxx
-BmnADCSRCDigit.cxx
+BmnTQDCADCDigit.cxx
 BmnTDCDigit.cxx
 BmnHRBDigit.cxx
 BmnSyncDigit.cxx

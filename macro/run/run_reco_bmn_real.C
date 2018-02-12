@@ -30,7 +30,7 @@
 void run_reco_bmn_real(TString inputFileName = "run6-1587:/home/andrem/data/bmn_run1587_digi.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
-        Int_t nEvents = 5000,
+        Int_t nEvents = 10000,
         TString alignCorrFileName = "default") { // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)    Int_t iVerbose = 0;
     Int_t iVerbose = 0;
     // ----    Debug option   --------------------------------------------------

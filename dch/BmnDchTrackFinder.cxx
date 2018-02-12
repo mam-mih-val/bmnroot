@@ -4034,7 +4034,7 @@ InitStatus BmnDchTrackFinder::Init() {
   	{
   		char line[50];
   		char inFileName[10];
-		sprintf(inFileName,"rt%d.txt",i);
+		sprintf(inFileName,"../../input/rt%d.txt",i);
 	    ifstream input(inFileName);
 	    if (!input.is_open()) // если файл не открыт
 	        cout << "Файл не может быть открыт!\n"; // сообщить об этом

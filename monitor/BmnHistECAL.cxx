@@ -119,6 +119,8 @@ void BmnHistECAL::DrawBoth() {
 
 void BmnHistECAL::FillFromDigi(DigiArrays *fDigiArrays) {
     TClonesArray * digits = fDigiArrays->ecal;
+    if (!digits)
+        return;
     Double_t xAmp = 0;
     Double_t yAmp = 0;
     Double_t Amp = 0;

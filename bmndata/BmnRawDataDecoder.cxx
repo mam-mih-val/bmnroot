@@ -506,6 +506,8 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
             break;
         }
+//        clock_t start = clock();
+//        clock_t end;
         switch (id) {
             case kADC64VE:
             {
@@ -519,6 +521,8 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                     Process_ADC64VE(&data[idx], payload, serial, 32, adc32);
                 else //silicon
                     Process_ADC64VE(&data[idx], payload, serial, 128, adc128);
+//                end = clock();
+//                printf("spent %f for adc64ve\n", (double) (end - start) / CLOCKS_PER_SEC);
                 break;
             }
             case kADC64WR:
@@ -543,16 +547,24 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                     if (isECAL)
                         Process_ADC64WR(&data[idx], payload, serial, adc);
                 }
+//                end = clock();
+//                printf("spent %f for adc64wr\n", (double) (end - start) / CLOCKS_PER_SEC);
                 break;
             }
             case kFVME:
                 Process_FVME(&data[idx], payload, serial, evType, trigType);
+//                end = clock();
+//                printf("spent %f for fvme\n", (double) (end - start) / CLOCKS_PER_SEC);
                 break;
             case kHRB:
                 Process_HRB(&data[idx], payload, serial);
+//                end = clock();
+//                printf("spent %f for hrb\n", (double) (end - start) / CLOCKS_PER_SEC);
                 break;
             case kLAND:
                 Process_Tacquila(&data[idx], payload);
+//                end = clock();
+//                printf("spent %f for tacquila\n", (double) (end - start) / CLOCKS_PER_SEC);
                 break;
         }
         idx += payload;
@@ -710,14 +722,13 @@ BmnStatus BmnRawDataDecoder::Process_HRB(UInt_t *d, UInt_t len, UInt_t serial) {
         for (Int_t iWord = 0; iWord < nWords; ++iWord) {
             UInt_t word32 = d[3 + iWord + iSmpl * nWords];
             for (Int_t iCh = 0; iCh < 32; ++iCh) {
-                if ((bitset<32>(word32))[iCh]) {
+                if (word32 & BIT(iCh)) {
                     TClonesArray &ar_hrb = *hrb;
                     new(ar_hrb[hrb->GetEntriesFast()]) BmnHRBDigit(serial, iCh + 32 * iWord, iSmpl, tH, tL);
                 }
             }
         }
     }
-
     return kBMNSUCCESS;
 }
 
@@ -1120,14 +1131,14 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fDigiTree->Branch("FD", &fd);
         fDigiTree->Branch("BD", &bd);
         fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
-        if (fT0Map == NULL){
+        if (fT0Map == NULL) {
             BmnTrigMapping tm = fTrigMapper->GetT0Map();
             printf("T0 serial 0x%X got from trig mapping\n", tm.serial);
-            if (tm.serial > 0){
+            if (tm.serial > 0) {
                 fT0Map = new TriggerMapStructure();
                 fT0Map->channel = tm.channel;
-                fT0Map->serial  = tm.serial;
-                fT0Map->slot    = tm.slot;
+                fT0Map->serial = tm.serial;
+                fT0Map->slot = tm.slot;
             }
         }
     }
@@ -1253,8 +1264,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     } else { // payload
         if (fPrevEventType == kBMNPEDESTAL) {
             if (fPedEvCntr >= fEvForPedestals - 1) {
-                fGemMapper->RecalculatePedestals();
-                fSiliconMapper->RecalculatePedestals();
+                if (fGemMapper) fGemMapper->RecalculatePedestals();
+                if (fSiliconMapper) fSiliconMapper->RecalculatePedestals();
                 fPedEvCntr = 0;
                 fPedEnough = kTRUE;
             }

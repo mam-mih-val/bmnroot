@@ -42,10 +42,14 @@ BmnHistMwpc::BmnHistMwpc(TString title) : BmnHist() {
     }
     TString name;
     MwpcHits = new TClonesArray("BmnMwpcHit");
+    name = fTitle + "_h_MWPC0";
+    h_MWPC0 = new TH2F(name, "MWPC #0", 200, -20, 20, 200, -20, 20);
     name = fTitle + "_h_MWPC1";
     h_MWPC1 = new TH2F(name, "MWPC #1", 200, -20, 20, 200, -20, 20);
     name = fTitle + "_h_MWPC2";
     h_MWPC2 = new TH2F(name, "MWPC #2", 200, -20, 20, 200, -20, 20);
+    name = fTitle + "_h_MWPC3";
+    h_MWPC3 = new TH2F(name, "MWPC #3", 200, -20, 20, 200, -20, 20);
     name = fTitle + "CanvasWires";
     canWires = new TCanvas(name, name, PAD_WIDTH * MWPC_ROWS, PAD_HEIGHT * MWPC_COLS);
     canWires->Divide(MWPC_ROWS, MWPC_COLS);
@@ -81,8 +85,10 @@ BmnHistMwpc::~BmnHistMwpc() {
         delete h_times[i];
     }
     delete MwpcHits;
+    delete h_MWPC0;
     delete h_MWPC1;
     delete h_MWPC2;
+    delete h_MWPC3;
 }
 
 void BmnHistMwpc::Register(THttpServer *serv) {
@@ -91,8 +97,10 @@ void BmnHistMwpc::Register(THttpServer *serv) {
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canWires);
     fServer->Register(path, canTimes);
+    fServer->Register(path, h_MWPC0);
     fServer->Register(path, h_MWPC1);
     fServer->Register(path, h_MWPC2);
+    fServer->Register(path, h_MWPC3);
     TString cmd = "/" + fName + "/->Reset()";
     fServer->SetItemField(path.Data(), "_monitoring", "2000");
     fServer->SetItemField(path.Data(), "_layout", "grid3x3");
@@ -114,8 +122,10 @@ void BmnHistMwpc::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
         h_wires[i]->SetDirectory(fDir);
         h_times[i]->SetDirectory(fDir);
     }
+    h_MWPC0->SetDirectory(fDir);
     h_MWPC1->SetDirectory(fDir);
     h_MWPC2->SetDirectory(fDir);
+    h_MWPC3->SetDirectory(fDir);
 
 }
 
@@ -125,19 +135,23 @@ void BmnHistMwpc::DrawBoth() {
 }
 
 void BmnHistMwpc::FillFromDigi(DigiArrays *fDigiArrays) {
-    TClonesArray * MwpcDigits = fDigiArrays->mwpc;
+    TClonesArray * digits = fDigiArrays->mwpc;
+    if (!digits)
+        return;
     MwpcHits->Clear();
-    ProcessMwpcDigits(MwpcDigits, MwpcHits);
-    for (Int_t iDig = 0; iDig < MwpcDigits->GetEntriesFast(); ++iDig) {
-        BmnMwpcDigit* dig = (BmnMwpcDigit*) MwpcDigits->At(iDig);
+    ProcessMwpcDigits(digits, MwpcHits);
+    for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); ++iDig) {
+        BmnMwpcDigit* dig = (BmnMwpcDigit*) digits->At(iDig);
         Int_t plane = dig->GetPlane();
         h_wires[plane]->Fill(dig->GetWireNumber());
         h_times[plane]->Fill(dig->GetTime());
     }
     for (Int_t iHit = 0; iHit < MwpcHits->GetEntriesFast(); ++iHit) {
         BmnMwpcHit* hit = (BmnMwpcHit*) MwpcHits->At(iHit);
-        if (hit->GetMwpcId() == 0) h_MWPC1->Fill(hit->GetX(), hit->GetY());
-        if (hit->GetMwpcId() == 1) h_MWPC2->Fill(hit->GetX(), hit->GetY());
+        if (hit->GetMwpcId() == 0) h_MWPC0->Fill(hit->GetX(), hit->GetY());
+        if (hit->GetMwpcId() == 1) h_MWPC1->Fill(hit->GetX(), hit->GetY());
+        if (hit->GetMwpcId() == 2) h_MWPC2->Fill(hit->GetX(), hit->GetY());
+        if (hit->GetMwpcId() == 3) h_MWPC3->Fill(hit->GetX(), hit->GetY());
     }
 }
 
@@ -158,8 +172,10 @@ void BmnHistMwpc::Reset() {
         h_wires[i]->Reset();
         h_times[i]->Reset();
     }
+    h_MWPC0->Reset();
     h_MWPC1->Reset();
     h_MWPC2->Reset();
+    h_MWPC3->Reset();
 }
 
 

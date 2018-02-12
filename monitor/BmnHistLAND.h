@@ -28,7 +28,7 @@
 // BmnRoot
 #include "BmnHist.h"
 #include "BmnLANDDigit.h"
-#define BAR_COUNT   200
+#define BAR_COUNT   120
 #define TOF_MIN    -100
 #define TOF_MAX     100
 #define CANVAS_ROWS   3

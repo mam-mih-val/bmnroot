@@ -627,6 +627,7 @@ Bool_t FitWLSQ::Fit(Double_t *y) {
     Double_t sumwrb;
     Double_t *yyf;
 
+	Status=false;
     yyf = new Double_t[NPoints];
     if (LH_INI) {
         stat = Initial(y);
@@ -679,6 +680,7 @@ Bool_t FitWLSQ::Fit(Double_t *y) {
     numItera = itera;
     //CovarianceMatrixPrint();
     delete[] yyf;
+	Status=kTRUE;
     return kTRUE;
 }
 

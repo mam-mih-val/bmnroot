@@ -26,11 +26,18 @@
 // If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
 // from that file.
 
+<<<<<<< HEAD
 //void run_reco_src(TString inputFileName     = "run6-1902:/nica/mpd16/bmndata3/run6/root/digi/bmn_run1902_digi.root",
 void run_reco_src(TString inputFileName     = "run6-1902:../raw/bmn_run1234_digi.root",
                   TString bmndstFileName    = "$VMCWORKDIR/macro/run/srcdst.root",
                   Int_t   nStartEvent       =  0,
 		  Int_t   nEvents	    = 10000,
+=======
+void run_reco_src(TString inputFileName     = "run6-1792:$VMCWORKDIR/macro/raw/data-Decoded/bmn_run1792_digi.root",
+                  TString bmndstFileName    = "$VMCWORKDIR/macro/run/srcdigits.root",
+                  Int_t   nStartEvent       =  0,
+                  Int_t   nEvents           =  10000,
+>>>>>>> 47f2cca76359dea9d04555831c2fe58f8410c9cd
                   Bool_t  isPrimary         =  kFALSE, 
                   TString alignCorrFileName = "")        
 {   // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)

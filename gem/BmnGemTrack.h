@@ -39,6 +39,12 @@ public:
     
     void Print();
     
+    //AM 7.08.2017
+    vector<Double_t> parabolaParameters;
+    vector<Double_t> lineParameters;
+    double covP[3][3]; // parabola covariance matrix
+    double covL[2][2]; // line covariance matrix
+
 private:
 
     vector<BmnFitNode> fFitNodes; // Array of fit nodes    

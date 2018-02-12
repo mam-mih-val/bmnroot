@@ -37,6 +37,7 @@ set(SRCS
 BmnMwpcHitProducer.cxx
 BmnMwpcHitFinder.cxx
 BmnMwpcGeometry.cxx
+BmnMwpcGeometrySRC.cxx
 BmnMwpcTrack.cxx
 BmnMwpcTrackFinder.cxx
 BmnMwpc.cxx

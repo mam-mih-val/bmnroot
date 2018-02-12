@@ -53,8 +53,10 @@ private:
     TH1F * h_wires[MWPC_PLANES];
     TH1F * h_times[MWPC_PLANES];
     TClonesArray* MwpcHits;
+    TH2F* h_MWPC0;
     TH2F* h_MWPC1;
     TH2F* h_MWPC2;
+    TH2F* h_MWPC3;
     TCanvas *canWires;
     TCanvas *canTimes;
     vector<PadInfo*> canWiresPads;

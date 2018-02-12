@@ -1,16 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   BmnHistZDC.cxx
- * Author: ilnur
- * 
- * Created on March 17, 2017, 2:48 PM
- */
-
 #include <root/TGaxis.h>
 
 #include "BmnHistZDC.h"
@@ -114,12 +101,14 @@ void BmnHistZDC::DrawBoth() {
 }
 
 void BmnHistZDC::FillFromDigi(DigiArrays *fDigiArrays) {
-    TClonesArray * ZDCDigits = fDigiArrays->zdc;
+    TClonesArray * digits = fDigiArrays->zdc;
+    if (!digits)
+        return;
     Double_t xAmp = 0;
     Double_t yAmp = 0;
     Double_t Amp = 0;
-    for (Int_t iDig = 0; iDig < ZDCDigits->GetEntriesFast(); iDig++) {
-        BmnZDCDigit* dig = (BmnZDCDigit*) ZDCDigits->At(iDig);
+    for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); iDig++) {
+        BmnZDCDigit* dig = (BmnZDCDigit*) digits->At(iDig);
         Int_t ix = dig->GetIX();
         Int_t iy = dig->GetIY();
         Double_t amp = dig->GetAmp();

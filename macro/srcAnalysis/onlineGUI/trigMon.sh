@@ -8,7 +8,8 @@ DIGITIZER=$VMCWORKDIR"/macro/raw"
 rm output/*.root > $OUTPUT/out.dat
 read -p 'Current Run Number: ' runNum
 
-scp corsi@nc3.jinr.ru:/nica/mpd16/bmndata3/run6/raw/mpd_run_Glob_${runNum}.data ./output/
+scp segarrae@nc3.jinr.ru:/ceph/bmn/test/data/src/mpd_run_SRC_${runNum}.data ./output/
+
 FILE=$OUTPUT'/mpd_run_SRC_'${runNum}'.data'
 echo "Reading File: "${FILE}
 

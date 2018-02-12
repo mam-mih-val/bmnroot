@@ -21,7 +21,6 @@
 
 BmnOnlineDecoder::BmnOnlineDecoder() {
     rawDataDecoder = NULL;
-    iClients = 0;
     _ctx = NULL;
 }
 
@@ -96,8 +95,8 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
     setup[1] = 1; // MWPC
-    setup[2] = 1; // SILICON
-    setup[3] = 1; // GEM
+    setup[2] = 0; // SILICON
+    setup[3] = 0; // GEM
     setup[4] = 1; // TOF-400
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
@@ -190,7 +189,7 @@ BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t ru
         rawDataDecoder->DisposeDecoder();
         delete rawDataDecoder;
         rawDataDecoder = NULL;
-                break; // @TODO Remove
+//                break; // @TODO Remove
         _curFile = WatchNext(_curDir, _curFile, RUN_FILE_CHECK_PERIOD);
     }
     zmq_close(_decoSocket);

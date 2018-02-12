@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /* 
  * File:   BmnHistToF700.cxx
  * Author: ilnur
@@ -88,14 +82,16 @@ BmnHistToF700::~BmnHistToF700() {
 }
 
 void BmnHistToF700::FillFromDigi(DigiArrays *fDigiArrays) {
-    TClonesArray * ToF4Digits = fDigiArrays->tof700;
+    TClonesArray * digits = fDigiArrays->tof700;
+    if (!digits)
+        return;
     histL->Reset();
     histR->Reset();
     histSimultaneous.Reset();
 //    histState->Reset();
     Events->Clear();
-    for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++) {
-        BmnTof2Digit *td = (BmnTof2Digit *) ToF4Digits->At(digIndex);
+    for (Int_t digIndex = 0; digIndex < digits->GetEntriesFast(); digIndex++) {
+        BmnTof2Digit *td = (BmnTof2Digit *) digits->At(digIndex);
         Int_t strip = td->GetStrip();
         histLeadingTime->Fill(td->GetTime());
         histAmp->Fill(td->GetAmplitude());

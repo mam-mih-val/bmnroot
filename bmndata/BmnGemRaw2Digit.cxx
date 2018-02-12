@@ -32,6 +32,10 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) :
     fEntriesInGlobMap = 0;
     if (mapPar != NULL) mapPar->GetGemMapArray(fMap, fEntriesInGlobMap);
     delete mapPar;
+    for (Int_t iMap = 0; iMap < fEntriesInGlobMap; ++iMap) {
+        GemMapStructure gemM = fMap[iMap];
+        
+    }
     //    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
     //        if (find(fSerials.begin(), fSerials.end(), fMap[i].serial) == fSerials.end())
     //            fSerials.push_back(fMap[i].serial);

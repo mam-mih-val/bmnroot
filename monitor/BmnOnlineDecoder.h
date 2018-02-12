@@ -36,7 +36,6 @@
 
 #define RAW_DECODER_SOCKET_PORT 5555
 #define RUN_FILE_CHECK_PERIOD    1e5
-#define MAX_CLIENTS               20
 #define RUN_FILE_CHECK_PERIOD    1e5
 #define DECO_SOCK_WAIT_PERIOD    5e2
 #define DECO_SOCK_WAIT_LIMIT     5e4
@@ -62,10 +61,6 @@ private:
     void * _ctx;
     void * _decoSocket;
     BmnRawDataDecoder *rawDataDecoder;
-    TServerSocket *fRawDecoSocket;
-    TSocket *client;
-    vector <TSocket*> clients;//[MAX_CLIENTS];
-    Int_t iClients;
     TString _curFile;
     TString _curDir;
     Int_t fEvents;

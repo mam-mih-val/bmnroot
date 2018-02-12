@@ -94,13 +94,15 @@ BmnHistToF::~BmnHistToF() {
 }
 
 void BmnHistToF::FillFromDigi(DigiArrays *fDigiArrays) {
-    TClonesArray * ToF4Digits = fDigiArrays->tof400;
+    TClonesArray * digits = fDigiArrays->tof400;
+    if (!digits)
+        return;
     histL->Reset();
     histR->Reset();
     histSimultaneous.Reset();
     Events->Clear();
-    for (Int_t digIndex = 0; digIndex < ToF4Digits->GetEntriesFast(); digIndex++) {
-        BmnTof1Digit *td = (BmnTof1Digit *) ToF4Digits->At(digIndex);
+    for (Int_t digIndex = 0; digIndex < digits->GetEntriesFast(); digIndex++) {
+        BmnTof1Digit *td = (BmnTof1Digit *) digits->At(digIndex);
         Int_t strip = td->GetStrip();
         if ((strip == 0) || (strip == (TOF400_STRIP_COUNT-1))) // noisy
             continue;

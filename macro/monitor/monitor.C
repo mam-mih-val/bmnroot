@@ -6,6 +6,7 @@ void monitor(TString dirName = "/bmn/test/mon/", TString refDir = "/bmn/test/mon
     bmnloadlibs();
     gSystem->Load("libBmnMonitor");
     BmnMonitor *bm = new BmnMonitor();
+    bm->SetPeriodID(6);
     bm->MonitorStreamZ(dirName, refDir, decoAddr);  
     delete bm;
 }

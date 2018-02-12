@@ -138,6 +138,8 @@ void BmnHistSilicon::DrawBoth() {
 
 void BmnHistSilicon::FillFromDigi(DigiArrays *fDigiArrays) {
     TClonesArray * gemDigits = fDigiArrays->silicon;
+    if (!gemDigits)
+        return;
     for (Int_t digIndex = 0; digIndex < gemDigits->GetEntriesFast(); digIndex++) {
         BmnSiliconDigit* gs = (BmnSiliconDigit*) gemDigits->At(digIndex);
         Int_t module = gs->GetModule();

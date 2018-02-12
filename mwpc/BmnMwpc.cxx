@@ -48,7 +48,7 @@ BmnMwpc::BmnMwpc(const char* name, Bool_t active)
 {  
 	fPointCollection = new TClonesArray("BmnMwpcPoint");
 	fPosIndex = 0;
-    fVerboseLevel = 1;
+	fVerboseLevel = 1;
 	ResetParameters();
 }
 //------------------------------------------------------------------------------------------------------------------------

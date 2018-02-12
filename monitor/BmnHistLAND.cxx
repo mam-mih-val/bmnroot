@@ -20,12 +20,12 @@ BmnHistLAND::BmnHistLAND(TString title) : BmnHist() {
     name = fTitle + "_Energy_vs_Bar_0";
     Q0vsBar = new TH2F(name, name, BAR_COUNT, 0, BAR_COUNT, 100, 0, 100);
     Q0vsBar->GetXaxis()->SetTitle("Bar");
-    Q0vsBar->GetYaxis()->SetTitle("Energy");
+    Q0vsBar->GetYaxis()->SetTitle("Energy, MeV");
     Q0vsBar->SetOption("colz");
     name = fTitle + "_Energy_vs_Bar_1";
     Q1vsBar = new TH2F(name, name, BAR_COUNT, 0, BAR_COUNT, 100, 0, 100);
     Q1vsBar->GetXaxis()->SetTitle("Bar");
-    Q1vsBar->GetYaxis()->SetTitle("Energy");
+    Q1vsBar->GetYaxis()->SetTitle("Energy, MeV");
     Q1vsBar->SetOption("colz");
     name = fTitle + "_Time_vs_Bar_0";
     T0vsBar = new TH2F(name, name, BAR_COUNT, 0, BAR_COUNT, 100, 0, 300);
@@ -45,7 +45,7 @@ BmnHistLAND::BmnHistLAND(TString title) : BmnHist() {
     name = fTitle + "_ToF_spectra";
     QvsToF = new TH2F(name, name, 200, TOF_MIN, TOF_MAX, 100, 0, 100);
     QvsToF->GetXaxis()->SetTitle("Time");
-    QvsToF->GetYaxis()->SetTitle("Energy");
+    QvsToF->GetYaxis()->SetTitle("Energy, MeV");
     QvsToF->SetOption("colz");
     name = fTitle + "Canvas";
     can = new TCanvas(name, name, PAD_WIDTH * CANVAS_COLS, PAD_HEIGHT * CANVAS_ROWS);
@@ -66,10 +66,12 @@ BmnHistLAND::BmnHistLAND(TString title) : BmnHist() {
         if (canPads[iPad]->current) {
             Names.push_back(canPads[iPad]->current->GetName());
             canPads[iPad]->current->SetTitleSize(0.06, "XY");
-            canPads[iPad]->current->SetLabelSize(0.08, "XY");
+            canPads[iPad]->current->SetLabelSize(0.06, "XY");
+            //canPads[iPad]->current->SetLabelOffset(0, "XY");
+            canPads[iPad]->current->SetTitleOffset(0.8, "XY");
             TAxis *ax = canPads[iPad]->current->GetYaxis();
             ax->SetTitleColor(kOrange + 10);
-            ax->SetTitleOffset(1.8);
+            ax->SetTitleOffset(0.7);
             ax->SetTitleFont(62);
             ax = canPads[iPad]->current->GetXaxis();
             ax->SetTitleColor(kOrange + 10);

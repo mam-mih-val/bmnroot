@@ -40,6 +40,7 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 Set(SRCS
+BmnRunInfo.cxx
 BmnMonitor.cxx
 BmnDataReceiver.cxx
 BmnOnlineDecoder.cxx

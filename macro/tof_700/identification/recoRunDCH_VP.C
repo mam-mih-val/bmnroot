@@ -301,9 +301,6 @@ void recoRunDCH_VP(Int_t runId = 1700) {
     TChain *bmnTree = 0;
     bmnTree = new TChain("cbmsim");
     //Int_t rcode = bmnTree->Add(TString::Format("digi/bmn_run%04d_digi.root", runId),0);
-    //Int_t rcode = bmnTree->Add(TString::Format("bmn_run%04d_digi.root", runId),0);
-    //Int_t rcode = bmnTree->Add(TString::Format("../../raw/bmn_run%04d_digi.root", runId),0);
-    Int_t rcode = bmnTree->Add(TString::Format("/nica/mpd16/bmndata3/run6/root/digi/bmn_run%04d_digi.root", runId),0);
     if ( rcode == 0)
     {
 	delete bmnTree;

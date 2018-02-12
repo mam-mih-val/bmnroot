@@ -298,7 +298,7 @@ Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0, TClonesArray *TofHit) {
 
 void BmnTOF1Detector::AddHit(Int_t Str, TClonesArray *TofHit) {
 
-    fVectorTemp.SetXYZ(0.7, 0.36, 1.); // error for point dx = 0.7 cm; dy = 1.25/SQRT(12) = 0.36 cm; dy = 1(?)cm
+    fVectorTemp.SetXYZ(0.5, 0.36, 1.); // error for point dx = 0.5 cm; dy = 1.25/SQRT(12) = 0.36 cm; dy = 1(?)cm
     Int_t UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, Str + 1); // strip [0,47] -> [1, 48]
     BmnTofHit *pHit = new ((*TofHit)[TofHit->GetEntriesFast()]) BmnTofHit(UID, fCrossPoint[Str], fVectorTemp, -1);
 
@@ -355,7 +355,7 @@ Double_t BmnTOF1Detector::CalculateDt(Int_t Str = 0) {
             + 0.03428 * T0Amp * T0Amp
             - 0.0005853 * T0Amp * T0Amp * T0Amp);
 
-    if (gSlew[Str] != NULL) dt = dt - gSlew[Str]->Eval(fWidth[Str]) + CorrTimeShift[Str]; // 21.782 ns is ToF of light for 6.53 meters (Distance between TOF400 and T0)
+    if (gSlew[Str] != NULL) dt = dt - gSlew[Str]->Eval(fWidth[Str]) + CorrTimeShift[Str]; // CorrTimeShift is ToF for Gamma
 
     return dt;
 }
@@ -437,30 +437,6 @@ Bool_t BmnTOF1Detector::SetCorrSlewing(TString NameFile) {
 
 //----------------------------------------------------------------------------------------
 
-Bool_t BmnTOF1Detector::SetCorrTimeShift(TString NameFile) {
-    char line[256];
-    Int_t Pl, St;
-    Double_t Temp;
-    ifstream f_corr;
-    TString dir = Form("%s%s%s", getenv("VMCWORKDIR"), "/input/", NameFile.Data());
-    f_corr.open(dir);
-    f_corr.getline(line, 256);
-    f_corr.getline(line, 256);
-    if (f_corr.is_open() == kTRUE) {
-        while (!f_corr.eof()) {
-            f_corr >> Pl >> St >> Temp;
-            if (Pl == fNPlane)
-                f_corr >> CorrTimeShift[St];
-        }
-    } else {
-        cout << "File " << NameFile.Data() << " for TimeShift correction is not found" << endl;
-        cout << "Check " << dir.Data() << " folder for file" << endl;
-        return kFALSE;
-    }
-    return kTRUE;
-}
-//----------------------------------------------------------------------------------------
-
 Bool_t BmnTOF1Detector::GetCrossPoint(Int_t NStrip = 0) {
 
     fVectorTemp.SetXYZ(0., 0., 0.);
@@ -504,6 +480,8 @@ Bool_t BmnTOF1Detector::SetGeoFile(TString NameFile) {
         UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, i + 1); // strip [0,47] -> [1, 48]
         const LStrip1 *pStrip = pGeoUtils->FindStrip(UID);
         fCentrStrip[i] = pStrip->center;
+        if (fNPlane >= 5) fCentrStrip[i].SetX(fCentrStrip[i].X()+5.5); // for field run only
+        else fCentrStrip[i].SetX(fCentrStrip[i].X()+2.5);
     }
     geoFile->Close();
     pGeoUtils->~BmnTof1GeoUtils();
@@ -518,8 +496,8 @@ Bool_t BmnTOF1Detector::SetGeo(BmnTof1GeoUtils *pGeoUtils) {
         UID = BmnTOF1Point::GetVolumeUID(0, fNPlane + 1, i + 1); // strip [0,47] -> [1, 48]
         const LStrip1 *pStrip = pGeoUtils->FindStrip(UID);
         fCentrStrip[i] = pStrip->center;
-        //        if (fNPlane >= 5) fCentrStrip[i].SetX(fCentrStrip[i].X()+5.5); // for field run only
-        //        else fCentrStrip[i].SetX(fCentrStrip[i].X()+2.5);
+//        if (fNPlane >= 5) fCentrStrip[i].SetX(fCentrStrip[i].X()+5.5); // for field run only
+//        else fCentrStrip[i].SetX(fCentrStrip[i].X()+2.5);
     }
     return kTRUE;
 }

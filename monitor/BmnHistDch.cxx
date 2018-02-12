@@ -149,11 +149,13 @@ void BmnHistDch::DrawBoth() {
 }
 
 void BmnHistDch::FillFromDigi(DigiArrays *fDigiArrays) {
-    TClonesArray * DchDigits = fDigiArrays->dch;
+    TClonesArray * digits = fDigiArrays->dch;
+    if (!digits)
+        return;
     fDchHits->Clear();
     //    ProcessDchDigits(DchDigits, fDchHits);
-    for (Int_t iDig = 0; iDig < DchDigits->GetEntriesFast(); ++iDig) {
-        BmnDchDigit* dig = (BmnDchDigit*) DchDigits->At(iDig);
+    for (Int_t iDig = 0; iDig < digits->GetEntriesFast(); ++iDig) {
+        BmnDchDigit* dig = (BmnDchDigit*) digits->At(iDig);
         Int_t plane = dig->GetPlane();
         h_wires[plane]->Fill(dig->GetWireNumber());
         h_times[plane]->Fill(dig->GetTime());

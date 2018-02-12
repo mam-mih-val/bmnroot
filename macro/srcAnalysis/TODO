@@ -1,0 +1,18 @@
+For onlineGUI:
+# 1) Add pedestal measures for trigger detectors
+# 1) ADD SSH PATH FOR TRIG COMP
+# 2) Add BC4 and others once TDC mapping is done
+# 3) Fix reference histogram
+# 4) Possibly add beam quality check -- ratio of BC2/VC, BC1/BC2, MWPC plot?
+# 5) Should other detectors be here?? Maybe just for beam check
+
+For quality check:
+# 1) Add macros for US -- look at correlations of TQDC and TDC widths, other detectors, etc..
+
+For ToF400:
+# 1) George commit your path fixes
+# 2) Add calibration macro to extract gamma peak
+# 3) 
+
+For A-2:
+# 1) 

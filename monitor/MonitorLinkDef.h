@@ -5,14 +5,11 @@
 #pragma link off all functions;
 #pragma link C++ nestedclasses;
 
+#pragma link C++ class BmnRunInfo++;
 #pragma link C++ class BmnDataReceiver++;
 #pragma link C++ class BmnMonitor++;
 #pragma link C++ class BmnOnlineDecoder++;
 #pragma link C++ class BmnHist++;
-//#pragma link C++ function BmnHist::DrawRef<TH1F>(TCanvas*, vector<PadInfo<TH1F>*>*)++;
-//#pragma link C++ class PadInfo<TH1>++;
-//#pragma link C++ class PadInfo<TH1F>++;
-//#pragma link C++ class PadInfo<TH1I>++;
 #pragma link C++ class PadInfo++;
 #pragma link C++ class BmnHistGem++;
 #pragma link C++ class BmnHistSilicon++;

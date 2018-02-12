@@ -14,15 +14,394 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+
 #include <Rtypes.h>
 #include <TMath.h>
 
-#include "BmnDchTrackFinder.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "FairLogger.h"
 
+#include "BmnDchTrackFinder.h"
+#include "../base/event/FairMCPoint.h"
+#include "../bmnbase/FitWLSQ.h"
 static Double_t workTime = 0.0;
+TString 		  fhTestFlnm;
+TList			  fhList;
+TH1D             *dxu1a;
+TH1D             *dxuv1a;
+TH1D             *dxyuv1a;
+TH1D             *dxv1a;
+TH1D             *dyu1a;
+TH1D             *dyuv1a;
+TH1D             *dyxuv1a;
+TH1D             *dyv1a;
+TH1D             *duv1a;
+TH1D             *dxu2a;
+TH1D             *dxv2a;
+TH1D             *dyu2a;
+TH1D             *dyv2a;
+TH1D             *duv2a;
+TH1D             *dxu1b;
+TH1D             *dxuv1b;
+TH1D             *dxyuv1b;
+TH1D             *dxv1b;
+TH1D             *dyu1b;
+TH1D             *dyuv1b;
+TH1D             *dyxuv1b;
+TH1D             *dyv1b;
+TH1D             *duv1b;
+TH1D             *dxu2b;
+TH1D             *dxv2b;
+TH1D             *dyu2b;
+TH1D             *dyv2b;
+TH1D             *duv2b;
+TH1D             *GDist;
+TH1D             *dtime[16];
+TH1D             *occup[16];
+TH1D             *xwired[16];
+TH1D             *ywired[16];
+TH1D             *xywired[16];
+TH1D             *yxwired[16];
+TH1D             *XResid;
+TH1D             *YResid;
+TH1D             *FITXResid;
+TH1D             *FITYResid;
+TH1D             *FITXMCResid;
+TH1D             *FITYMCResid;
+TH1D             *FITXRMS;
+TH1D             *FITYRMS;
+TH1D             *XResid1;
+TH1D             *YResid1;
+TH1D             *FITXResid1;
+TH1D             *FITYResid1;
+TH1D             *FITXMCResid1;
+TH1D             *FITYMCResid1;
+TH1D             *FITXRMS1;
+TH1D             *FITYRMS1;
+TH1D             *Problems;
+TH1D             *Ntrack;
+TH1D             *Ntrack1;
+TH1D             *Ntrack2;
+TH1D             *Ncluster1;
+TH1D             *Ncluster2;
+TH1D             *lrh;
+TH1D             *lrhg;
+TH1D             *lrhi;
+TH1D             *XResid0;
+TH1D             *YResid0;
+TH1D             *XResid90;
+TH1D             *YResid90;
+TH1D             *XResidu;
+TH1D             *YResidu;
+TH1D             *XResidv;
+TH1D             *YResidv;
+TH1D             *XResid0g;
+TH1D             *YResid0g;
+TH1D             *XResid90g;
+TH1D             *YResid90g;
+TH1D             *XResidug;
+TH1D             *YResidug;
+TH1D             *XResidvg;
+TH1D             *YResidvg;
+TH2D             *rtI;
+TH2D             *rt;
+TH1D             *rtr[115];
+TH2D             *rtg;
+TH1D             *rtrg[115];
+TH1D             *XResid2;
+TH1D             *YResid2;
+TH1D             *FITXResid2;
+TH1D             *FITYResid2;
+TH1D             *FITYResidy;
+TH1D             *FITYResidv;
+TH1D             *FITYResidu;
+TH1D             *FITXMCResid2;
+TH1D             *FITYMCResid2;
+TH1D             *FITXRMS2;
+TH1D             *FITYRMS2;
+TH1D             *XResid3;
+TH1D             *YResid3;
+TH1D             *XResid4;
+TH1D             *YResid4;
+
+const Int_t xai[2]={0,8};
+const Int_t xbi[2]={1,9};
+const Int_t yai[2]={2,10};
+const Int_t ybi[2]={3,11};
+const Int_t uai[2]={4,12};
+const Int_t ubi[2]={5,13};
+const Int_t vai[2]={6,14};
+const Int_t vbi[2]={7,15};
+Float_t zl_glob[16] = {9.3, 8.1, 3.5, 2.3, -2.3, -3.5, -8.1, -9.3, 9.3, 8.1, 3.5, 2.3, -2.3, -3.5, -8.1, -9.3};
+Float_t angle[16] = {0, 0, 90, 90, -45, -45, 45, 45, 0, 0, 90, 90, -45, -45, 45, 45};
+Float_t startX[16] = {119, 118.5, 119, 118.5, 119, 118.5, 119, 118.5, 119, 118.5, 119, 118.5, 119, 118.5, 119, 118.5};
+
+const Double_t tanpipeangle = 0.3/5.7 ; // tangent of pipe angle
+const Float_t Z_dch_mid = 637.7; //z coord between the two chambers, this z is considered the global z for the matched dch segment
+const Double_t DCH1_Ypos = 0.0;
+const Double_t DCH1_Zpos = 538.2; //cm
+const Double_t DCH1_Xpos = DCH1_Zpos*tanpipeangle;
+const Double_t DCH2_Ypos = 0.0;
+const Double_t DCH2_Zpos = 737.2; //cm
+const Double_t DCH2_Xpos = DCH2_Zpos*tanpipeangle;
+const Double_t HoleSize_DCH = 12.0;
+const Double_t SideLengthOfOctagon = 120.0;
+const Double_t sin45 = 0.707106781;
+const Double_t cos45 = 0.707106781;
+const Double_t sin_45 = -0.707106781;
+const Double_t cos_45 = 0.707106781;
+const Double_t maxDistance = 3.6;//1.2;
+const Double_t distCutCluster = 10;
+const Double_t driftVelocity=4.5;
+const Double_t DCHResolution=0.5; //0.015 если включено время дрейфа!!!???
+const Double_t  DEG2RAD=3.14159/180;
+const Double_t matchCut=12.5;
+const Int_t  trackNHitsCut=8;
+const Bool_t useDriftDistance=true;
+const Int_t  hitsArraySize=12*4;
+const Bool_t histoOutput=false;
 
 BmnDchTrackFinder::BmnDchTrackFinder(Bool_t isExp) :
 expData(isExp) {
+	if(histoOutput){
+		fhTestFlnm = "test.BmnDCHTracking.root";	
+		dxu1a = new TH1D("dxu1a","dxu1a",8000,-30,30);
+		dxuv1a = new TH1D("dxuv1a","dxuv1a",8000,-30,30);
+		dxyuv1a = new TH1D("dxyuv1a","dxyuv1a",8000,-30,30);
+		dxv1a = new TH1D("dxv1a","dxv1a",8000,-30,30);
+		dyu1a = new TH1D("dyu1a","dyu1a",8000,-30,30);
+		dyuv1a = new TH1D("dyuv1a","dyuv1a",8000,-30,30);
+		dyxuv1a = new TH1D("dyxuv1a","dyxuv1a",8000,-30,30);
+		dyv1a = new TH1D("dyv1a","dyv1a",8000,-30,30);
+		duv1a = new TH1D("duv1a","duv1a",8000,-30,30);
+		dxu2a = new TH1D("dxu2a","dxu2a",8000,-30,30);
+		dxv2a = new TH1D("dxv2a","dxv2a",8000,-30,30);
+		dyu2a = new TH1D("dyu2a","dyu2a",8000,-30,30);
+		dyv2a = new TH1D("dyv2a","dyv2a",8000,-30,30);
+		duv2a = new TH1D("duv2a","duv2a",8000,-30,30);
+		dxu1b = new TH1D("dxu1b","dxu1b",8000,-30,30);
+		dxuv1b = new TH1D("dxuv1b","dxuv1b",8000,-30,30);
+		dxyuv1b = new TH1D("dxyuv1b","dxyuv1b",8000,-30,30);
+		dxv1b = new TH1D("dxv1b","dxv1b",8000,-30,30);
+		dyu1b = new TH1D("dyu1b","dyu1b",8000,-30,30);
+		dyuv1b = new TH1D("dyuv1b","dyuv1b",8000,-30,30);
+		dyxuv1b = new TH1D("dyxuv1b","dyxuv1b",8000,-30,30);
+		dyv1b = new TH1D("dyv1b","dyv1b",8000,-30,30);
+		duv1b = new TH1D("duv1b","duv1b",8000,-30,30);	
+		dxu2b = new TH1D("dxu2b","dxu2b",8000,-30,30);
+		dxv2b = new TH1D("dxv2b","dxv2b",8000,-30,30);
+		dyu2b = new TH1D("dyu2b","dyu2b",8000,-30,30);
+		dyv2b = new TH1D("dyv2b","dyv2b",8000,-30,30);
+		duv2b = new TH1D("duv2b","duv2b",8000,-30,30);
+		GDist = new TH1D("GDist","DCH track include distances",2000,-10,10);
+		XResid = new TH1D("XResid","DCH xoz residuals",2000,-10,10);
+		YResid = new TH1D("YResid","DCH yoz residuals",2000,-10,10);
+		FITXResid = new TH1D("FITXResid","DCH xoz fit residuals",2000,-10,10);
+		FITYResid = new TH1D("FITYResid","DCH yoz fit residuals",2000,-10,10);
+		FITXMCResid = new TH1D("FITXMCResid","DCH xoz fit-MC residuals",2000,-10,10);
+		FITYMCResid = new TH1D("FITYMCResid","DCH yoz fit-MC residuals",2000,-10,10);
+		FITXRMS = new TH1D("FITXRMS","DCH xoz fit chi2",2000,-10,10);
+		FITYRMS = new TH1D("FITYRMS","DCH yoz fit chi2",2000,-10,10);
+		XResid1 = new TH1D("XResid1","DCH xoz residuals(z wire)",2000,-2,2);
+		YResid1 = new TH1D("YResid1","DCH yoz residuals(z wire)",2000,-2,2);
+		FITXResid1 = new TH1D("FITXResid1","DCH xoz fit residuals(z wire)",2000,-2,2);
+		FITYResid1 = new TH1D("FITYResid1","DCH yoz fit residuals(z wire)",2000,-2,2);
+		FITXMCResid1 = new TH1D("FITXMCResid1","DCH xoz fit-MC residuals(z wire)",2000,-2,2);
+		FITYMCResid1 = new TH1D("FITYMCResid1","DCH yoz fit-MC residuals(z wire)",2000,-2,2);
+		FITXRMS1 = new TH1D("FITXRMS1","DCH xoz fit chi2(z wire)",2000,-2,2);
+		FITYRMS1 = new TH1D("FITYRMS1","DCH yoz fit chi2(z wire)",2000,-2,2);
+		Problems = new TH1D("Problems","Problems",20,0,20);
+		Ntrack = new TH1D("Ntrack","Ntrack",30,0,30);
+		Ntrack1 = new TH1D("Ntrack1","Ntrack1",20,0,20);
+		Ntrack2 = new TH1D("Ntrack2","Ntrack2",20,0,20);
+		Ncluster1 = new TH1D("Ncluster1","Ncluster1",20,0,20);
+		Ncluster2 = new TH1D("Ncluster2","Ncluster2",20,0,20);
+		lrh = new TH1D("lr","lr",4000,-5,5);
+		lrhg = new TH1D("lrG","lrG",4000,-5,5);
+		lrhi = new TH1D("lrI","lrI",4000,-5,5);
+		XResid0 = new TH1D("XResid0","DCH xoz residuals(z wire)",2000,-10,10);
+		YResid0 = new TH1D("YResid0","DCH yoz residuals(z wire)",2000,-10,10);
+		XResid90 = new TH1D("XResid90","DCH xoz residuals(z wire)",2000,-10,10);	
+		YResid90 = new TH1D("YResid90","DCH yoz residuals(z wire)",2000,-10,10);
+		XResidu = new TH1D("XResidu","DCH xoz residuals(z wire)",2000,-10,10);
+		YResidu = new TH1D("YResidu","DCH yoz residuals(z wire)",2000,-10,10);
+		XResidv = new TH1D("XResidv","DCH xoz residuals(z wire)",2000,-10,10);
+		YResidv = new TH1D("YResidv","DCH yoz residuals(z wire)",2000,-10,10);
+		XResid0g = new TH1D("XResid0g","DCH xoz residuals(z wire)",2000,-10,10);
+		YResid0g = new TH1D("YResid0g","DCH yoz residuals(z wire)",2000,-10,10);
+		XResid90g = new TH1D("XResid90g","DCH xoz residuals(z wire)",2000,-10,10);
+		YResid90g = new TH1D("YResid90g","DCH yoz residuals(z wire)",2000,-10,10);
+		XResidug = new TH1D("XResidug","DCH xoz residuals(z wire)",2000,-10,10);
+		YResidug = new TH1D("YResidug","DCH yoz residuals(z wire)",2000,-10,10);
+		XResidvg = new TH1D("XResidvg","DCH xoz residuals(z wire)",2000,-10,10);
+		YResidvg = new TH1D("YResidvg","DCH yoz residuals(z wire)",2000,-10,10);
+		rtI = new TH2D("rtI","rtI",2500,-1250,1250,1000,0,1);
+		rt = new TH2D("rt","rt",2500,-1250,1250,1000,0,1);
+		char str[5];
+		for(Int_t i=0;i<115;i++){
+			sprintf(str,"rt%d",i);
+			rtr[i] = new TH1D(str,str,1000,0,1);
+		}
+		rtg = new TH2D("rtG","rtG",2500,-1250,1250,1000,0,1);
+		char strG[6];
+		for(Int_t i=0;i<115;i++){
+			sprintf(strG,"rtG%d",i);
+			rtrg[i] = new TH1D(strG,strG,1000,0,1);
+		}
+		char strdt[10];
+		char strdt2[30];
+		for(Int_t i=0;i<16;i++){
+			sprintf(strdt,"dtime%d",i);
+			sprintf(strdt2,"drift time layer %d",i);
+			dtime[i] = new TH1D(strdt,strdt2,4000,-2000,2000);
+		}
+		for(Int_t i=0;i<16;i++){
+			sprintf(strdt,"occup%d",i);
+			sprintf(strdt2,"occup%d",i);
+			occup[i] = new TH1D(strdt,strdt2,257,0,256);
+		}
+		for(Int_t i=0;i<16;i++){
+			sprintf(strdt,"ywired%d",i);
+			sprintf(strdt2,"ywired%d",i);
+			ywired[i] = new TH1D(strdt,strdt2,1300,-130,130);
+		}
+		for(Int_t i=0;i<16;i++){
+			sprintf(strdt,"xwired%d",i);
+			sprintf(strdt2,"xwired%d",i);
+			xwired[i] = new TH1D(strdt,strdt2,1300,-130,130);
+		}
+		for(Int_t i=0;i<16;i++){
+			sprintf(strdt,"xywired%d",i);
+			sprintf(strdt2,"xywired%d",i);
+			xywired[i] = new TH1D(strdt,strdt2,1300,-130,130);
+		}
+		for(Int_t i=0;i<16;i++){
+			sprintf(strdt,"yxwired%d",i);
+			sprintf(strdt2,"yxwired%d",i);
+			yxwired[i] = new TH1D(strdt,strdt2,1300,-130,130);
+		}
+		XResid3 = new TH1D("XResid3","DCH match xoz residuals(z wire)",2000,-10,10);
+		YResid3 = new TH1D("YResid3","DCH math yoz residuals(z wire)",2000,-10,10);
+		XResid4 = new TH1D("XResid4","DCH match xoz residuals(z wire)",2000,-10,10);
+		YResid4 = new TH1D("YResid4","DCH math yoz residuals(z wire)",2000,-10,10);
+		XResid2 = new TH1D("XResid2","DCH xoz residuals(z wire)",2000,-2,2);
+		YResid2 = new TH1D("YResid2","DCH yoz residuals(z wire)",2000,-2,2);
+		FITXResid2 = new TH1D("FITXResid2","DCH xoz fit residuals(z wire)",2000,-2,2);
+		FITYResid2 = new TH1D("FITYResid2","DCH yoz fit residuals(z wire)",2000,-2,2);
+		FITYResidy = new TH1D("FITYResidy","DCH yoz fit residuals(z wire)",2000,-2,2);
+		FITYResidu = new TH1D("FITYResidu","DCH yoz fit residuals(z wire)",2000,-2,2);
+		FITYResidv = new TH1D("FITYResidv","DCH yoz fit residuals(z wire)",2000,-2,2);
+		FITXMCResid2 = new TH1D("FITXMCResid2","DCH xoz fit-MC residuals(z wire)",2000,-2,2);
+		FITYMCResid2 = new TH1D("FITYMCResid2","DCH yoz fit-MC residuals(z wire)",2000,-2,2);
+		FITXRMS2 = new TH1D("FITXRMS2","DCH xoz fit chi2(z wire)",2000,-2,2);
+		FITYRMS2 = new TH1D("FITYRMS2","DCH yoz fit chi2(z wire)",2000,-2,2);
+
+		fhList.Add(dxu1a);
+		fhList.Add(dxuv1a);
+		fhList.Add(dxyuv1a);
+		fhList.Add(dxv1a);
+		fhList.Add(dyu1a);
+		fhList.Add(dyuv1a);
+		fhList.Add(dyxuv1a);
+		fhList.Add(dyv1a);
+		fhList.Add(duv1a);
+		fhList.Add(dxu2a);
+		fhList.Add(dxv2a);
+		fhList.Add(dyu2a);
+		fhList.Add(dyv2a);
+		fhList.Add(duv2a);
+		fhList.Add(dxu1b);
+		fhList.Add(dxuv1b);
+		fhList.Add(dxyuv1b);
+		fhList.Add(dxv1b);
+		fhList.Add(dyu1b);
+		fhList.Add(dyuv1b);
+		fhList.Add(dyxuv1b);
+		fhList.Add(dyv1b);
+		fhList.Add(duv1b);
+		fhList.Add(dxu2b);
+		fhList.Add(dxv2b);
+		fhList.Add(dyu2b);
+		fhList.Add(dyv2b);
+		fhList.Add(duv2b);
+		fhList.Add(GDist);
+		fhList.Add(XResid);
+		fhList.Add(YResid);
+		fhList.Add(FITXResid);
+		fhList.Add(FITYResid);
+		fhList.Add(FITXMCResid);
+		fhList.Add(FITYMCResid);
+		fhList.Add(FITXRMS);
+		fhList.Add(FITYRMS);
+		fhList.Add(XResid1);
+		fhList.Add(YResid1);
+		fhList.Add(FITXResid1);
+		fhList.Add(FITYResid1);
+		fhList.Add(FITXMCResid1);
+		fhList.Add(FITYMCResid1);
+		fhList.Add(FITXRMS1);
+		fhList.Add(FITYRMS1);
+		fhList.Add(XResid2);
+		fhList.Add(YResid2);
+		fhList.Add(FITXResid2);
+		fhList.Add(FITYResid2);
+		fhList.Add(FITYResidy);	
+		fhList.Add(FITYResidu);
+		fhList.Add(FITYResidv);
+		fhList.Add(FITXMCResid2);
+		fhList.Add(FITYMCResid2);
+		fhList.Add(FITXRMS2);
+		fhList.Add(FITYRMS2);
+		fhList.Add(XResid3);
+		fhList.Add(YResid3);
+		fhList.Add(XResid4);
+		fhList.Add(YResid4);
+		fhList.Add(Problems);
+		fhList.Add(Ntrack);
+		fhList.Add(Ntrack1);
+		fhList.Add(Ntrack2);
+		fhList.Add(Ncluster1);
+		fhList.Add(Ncluster2);
+		fhList.Add(lrh);
+		fhList.Add(lrhg);
+		fhList.Add(lrhi);
+		fhList.Add(XResid0);
+		fhList.Add(YResid0);
+		fhList.Add(XResid90);
+		fhList.Add(YResid90);
+		fhList.Add(XResidu);
+		fhList.Add(YResidu);
+		fhList.Add(XResidv);
+		fhList.Add(YResidv);
+		fhList.Add(XResid0g);
+		fhList.Add(YResid0g);
+		fhList.Add(XResid90g);
+		fhList.Add(YResid90g);
+		fhList.Add(XResidug);
+		fhList.Add(YResidug);
+		fhList.Add(XResidvg);
+		fhList.Add(YResidvg);
+		fhList.Add(rtI);
+		fhList.Add(rt);
+		for(Int_t i=0;i<16;i++)
+			fhList.Add(dtime[i]);
+		for(Int_t i=0;i<16;i++)
+			fhList.Add(occup[i]);
+		for(Int_t i=0;i<16;i++)
+			fhList.Add(xwired[i]);
+		for(Int_t i=0;i<16;i++)
+			fhList.Add(ywired[i]);
+		for(Int_t i=0;i<16;i++)
+			fhList.Add(xywired[i]);
+		for(Int_t i=0;i<16;i++)
+			fhList.Add(yxwired[i]);
+		for(Int_t i=0;i<110;i++)
+			fhList.Add(rtr[i]);
+		fhList.Add(rtg);
+		for(Int_t i=0;i<110;i++)
+			fhList.Add(rtrg[i]);
+	}
     fEventNo = 0;
     N = 2;
     tracksDch = "BmnDchTrack";
@@ -61,9 +440,2972 @@ BmnDchTrackFinder::~BmnDchTrackFinder() {
 
 }
 
+void BmnDchTrackFinder::RotatePoint(Double_t xc, Double_t yc, Double_t x1, Double_t y1, Double_t* xW, Double_t* yW, Int_t angleP) {
+	Double_t xt;
+	Double_t yt;
+	if(angleP==-45){
+		xt=xc+(x1-xc)*cos45-(y1-yc)*sin45;
+		yt=yc+(x1-xc)*sin45+(y1-yc)*cos45;
+	}
+	if(angleP==45){
+		xt=xc+(x1-xc)*cos_45-(y1-yc)*sin_45;
+		yt=yc+(x1-xc)*sin_45+(y1-yc)*cos_45;
+	}
+  	*xW=xt;
+  	*yW=yt;
+}
+UChar_t  BmnDchTrackFinder::GetPlane(Double_t z){
+  Double_t zp=0;
+  Double_t min=10000000000;
+  UChar_t plane=100;
+  for(Int_t iPlane=0;iPlane<16;iPlane++){
+    if(iPlane<8)
+      zp = zl_glob[iPlane] +DCH1_Zpos;
+    else
+      zp= zl_glob[iPlane] +DCH2_Zpos;
+    if(Abs(z-zp)<min){
+      min = Abs(z-zp);
+      plane = iPlane;
+    }
+  }
+  return plane;
+}
+Double_t BmnDchTrackFinder::Distance(Double_t x1,Double_t y1,Double_t x2,Double_t y2,Double_t x0,Double_t y0)
+{
+	return Abs((y2-y1)*x0 - (x2-x1)*y0 + x2*y1 - y2*x1)/Sqrt((y2-y1)*(y2-y1)+(x2-x1)*(x2-x1));
+}
+
+void BmnDchTrackFinder::GetCoordinatesWirePoint(UChar_t plane, Double_t xT, Double_t yT, Int_t iWire, Double_t* xW, Double_t* yW, Double_t ddist)
+{
+	if(angle[plane]==0){  
+	  Double_t x1 = DCH1_Xpos + startX[plane] - iWire;
+	  if(plane>7)
+		  x1 = DCH2_Xpos + startX[plane] - iWire;
+	  if(useDriftDistance){
+		  if(xT<x1) //left
+			  x1-=ddist;
+		  else //right
+			  x1+=ddist;
+	  }
+	  *xW=x1;
+	  *yW=yT;
+  }
+  if(angle[plane]==90){  
+	  Double_t y1 = startX[plane] - iWire;
+	  if(plane>7)
+		  y1 = startX[plane] - iWire;
+	  if(useDriftDistance){
+		  if(yT<y1) //left
+			  y1-=ddist;
+		  else //right
+			  y1+=ddist;
+	  }
+	  *yW=y1;
+	  *xW=xT;
+  }
+  if(angle[plane]==45){  
+
+	  Double_t x1 = DCH1_Xpos + startX[plane] - iWire;
+	  if(plane>7)
+		  x1 = DCH2_Xpos + startX[plane] - iWire;
+  	
+	  Double_t xT1,yT1;
+	  if(plane>7)
+		  RotatePoint(DCH2_Xpos, 0, xT, yT, &xT1, &yT1, -45);
+	  else
+		  RotatePoint(DCH1_Xpos, 0, xT, yT, &xT1, &yT1, -45);
+
+	  
+	  Double_t y1 = yT1; 
+
+	  if(useDriftDistance){
+		  if(xT1<x1) //left
+			  x1-=ddist;
+		  else //right
+			  x1+=ddist;
+	  }
+  	
+	Double_t xW1,yW1;
+  	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, x1, y1, &xW1, &yW1, 45);
+	else
+		RotatePoint(DCH1_Xpos, 0, x1, y1, &xW1, &yW1, 45);
+
+  	*xW=xW1;
+  	*yW=yW1;
+  }
+  if(angle[plane]==-45){
+	  Double_t x1 = DCH1_Xpos + startX[plane] - iWire;
+	  if(plane>7)
+		  x1 = DCH2_Xpos + startX[plane] - iWire;
+
+	  Double_t xT1,yT1;
+	  if(plane>7)
+		  RotatePoint(DCH2_Xpos, 0, xT, yT, &xT1, &yT1, 45);
+	  else
+		  RotatePoint(DCH1_Xpos, 0, xT, yT, &xT1, &yT1, 45);
+
+	  Double_t y1 = yT1; 
+  	
+	  if(useDriftDistance)
+	  {
+		  if(xT1<x1) //left
+			  x1-=ddist;
+		  else //right
+			  x1+=ddist;
+	  }
+  	
+	  Double_t xW1,yW1;
+	  if(plane>7)
+		  RotatePoint(DCH2_Xpos, 0, x1, y1, &xW1, &yW1, -45);
+	  else
+		  RotatePoint(DCH1_Xpos, 0, x1, y1, &xW1, &yW1, -45);
+
+	  *xW=xW1;
+	  *yW=yW1;
+  }
+}
+	
+Double_t BmnDchTrackFinder::GetDistance(UChar_t plane, Double_t xD, Double_t yD, Int_t iWire)
+{
+  Double_t distance;
+  if(angle[plane]==0){
+    Double_t xPos = DCH1_Xpos + startX[plane] - iWire;
+    if(plane>7)
+      xPos = DCH2_Xpos + startX[plane] - iWire;
+    distance=Abs(xD-xPos);
+  }
+  if(angle[plane]==90){
+    Double_t yPos = startX[plane] - iWire;
+    distance=Abs(yD-yPos);
+  }
+  if(angle[plane]==45){
+  	Double_t x1 = DCH1_Xpos + startX[plane] - iWire;
+  	if(plane>7)
+  		x1 = DCH2_Xpos + startX[plane] - iWire;
+  	Double_t x2=x1;
+  	Double_t y1 = -startX[plane];
+  	Double_t y2 = startX[plane];
+  	
+	Double_t xW,yW;
+  	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, x1, y1, &xW, &yW, 45);
+	else
+		RotatePoint(DCH1_Xpos, 0, x1, y1, &xW, &yW, 45);
+  	x1 = xW;
+  	y1 = yW; 
+	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, x2, y2, &xW, &yW, 45);
+	else
+		RotatePoint(DCH1_Xpos, 0, x2, y2, &xW, &yW, 45);
+  	x2 = xW;
+  	y2 = yW;
+  	
+    distance = Distance(x1,y1,x2,y2,xD,yD);
+  }
+  if(angle[plane]==-45){
+  	Double_t x1 = DCH1_Xpos + startX[plane] - iWire;
+  	if(plane>7)
+  		x1 = DCH2_Xpos + startX[plane] - iWire;
+  	Double_t x2=x1;
+  	Double_t y1 = -startX[plane];
+  	Double_t y2 = startX[plane];
+  	
+	Double_t xW,yW;
+  	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, x1, y1, &xW, &yW, -45);
+	else
+		RotatePoint(DCH1_Xpos, 0, x1, y1, &xW, &yW, -45);
+  	x1 = xW;
+  	y1 = yW; 
+  	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, x2, y2, &xW, &yW, -45);
+	else
+		RotatePoint(DCH1_Xpos, 0, x2, y2, &xW, &yW, -45);
+  	x2 = xW;
+  	y2 = yW;
+  	
+    distance = Distance(x1,y1,x2,y2,xD,yD);
+  }
+  return distance;
+}
+Short_t  BmnDchTrackFinder::GetClosestWireNumber(UChar_t plane, Double_t xD, Double_t yD, Double_t *dist) 
+{
+  Double_t xmin=10000000000;
+  Double_t ymin=10000000000;
+  Double_t dmin=10000000000;
+  Short_t rWire=-1;
+  
+  for(Int_t iWire=0;iWire<240;iWire++){
+    if(angle[plane]==0){
+    	Double_t xPos = DCH1_Xpos + startX[plane] - iWire;
+    	if(plane>7)
+    		xPos = DCH2_Xpos + startX[plane] - iWire;
+    	if(Abs(xD-xPos)< xmin){
+    		xmin=Abs(xD-xPos);
+    		rWire=iWire;
+    		dmin=xmin;
+      }	
+    }	
+    if(angle[plane]==90){
+    	Double_t yPos = startX[plane] - iWire;
+    	if(Abs(yD-yPos)< ymin){
+    		ymin=Abs(yD-yPos);
+    		rWire=iWire;
+    		dmin=ymin;
+      }
+    }	
+    if(angle[plane]==45){
+    	Double_t x1 = DCH1_Xpos + startX[plane] - iWire;
+    	if(plane>7)
+    		x1 = DCH2_Xpos + startX[plane] - iWire;
+    	Double_t x2=x1;
+    	Double_t y1 = -startX[plane];
+    	Double_t y2 = startX[plane];
+    	
+    	Double_t xW;
+    	Double_t yW;
+    	if(plane>7)
+    		RotatePoint(DCH2_Xpos, 0, x1, y1, &xW, &yW, 45);
+    	else
+    		RotatePoint(DCH1_Xpos, 0, x1, y1, &xW, &yW, 45);
+    	
+        x1 = xW;
+    	y1 = yW; 
+
+    	if(plane>7)
+    		RotatePoint(DCH2_Xpos, 0, x2, y2, &xW, &yW, 45);
+    	else
+    		RotatePoint(DCH1_Xpos, 0, x2, y2, &xW, &yW, 45);
+    	x2 = xW;
+    	y2 = yW;
+    	
+    	
+    	Double_t d = Distance(x1,y1,x2,y2,xD,yD);
+    	if(d<dmin){
+    		dmin=d;
+    		rWire=iWire;
+    	}
+    }
+    if(angle[plane]==-45){
+    	Double_t x1 = DCH1_Xpos + startX[plane] - iWire;
+    	if(plane>7)
+    		x1 = DCH2_Xpos + startX[plane] - iWire;
+    	Double_t x2=x1;
+    	Double_t y1 = -startX[plane];
+    	Double_t y2 = startX[plane];
+    	
+    	Double_t xW;
+    	Double_t yW;
+    	if(plane>7)
+    		RotatePoint(DCH2_Xpos, 0, x1, y1, &xW, &yW, -45);
+    	else
+    		RotatePoint(DCH1_Xpos, 0, x1, y1, &xW, &yW, -45);
+    	
+    	x1 = xW;
+    	y1 = yW; 
+
+    	if(plane>7)
+    		RotatePoint(DCH2_Xpos, 0, x2, y2, &xW, &yW, -45);
+    	else
+    		RotatePoint(DCH1_Xpos, 0, x2, y2, &xW, &yW, -45);
+    	x2 = xW;
+    	y2 = yW;
+    	
+    	Double_t d = Distance(x1,y1,x2,y2,xD,yD);
+    	if(d<dmin){
+    		dmin=d;
+    		rWire=iWire;
+    	}
+    }	
+  }		
+  if(Abs(dmin)>0.5)
+	  return -1;
+  *dist=dmin;
+  return rWire;
+}
+Double_t  BmnDchTrackFinder::GetTime(Double_t* distance)
+{
+  return ((*distance*10000.0)/driftVelocity);
+}
+Int_t  BmnDchTrackFinder::GetRTIndex(Double_t time)
+{
+  if(!expData)
+	  return (Int_t) (time/10.);
+  else{
+	  Double_t fTime = time;
+	  if((fTime+400)>0)
+		  fTime+=400;
+	  else
+		  fTime=0;
+	  return (Int_t) (fTime/10.);
+  }
+}
+Double_t  BmnDchTrackFinder::GetDDistance(Double_t time, Int_t plane)
+{
+  if(!expData)
+	  return (driftVelocity*time)/10000;
+  else
+	  return rtRel[plane][(Int_t) ((time+2000)/10)];
+}
+Bool_t BmnDchTrackFinder::CheckPointGEO(Int_t plane, Double_t xD, Double_t yD, Double_t z)
+{
+  Double_t x1;
+  Double_t x2;
+  Double_t xmin;
+  Double_t xmax;
+  Double_t y1;
+  x1 = DCH1_Xpos -90.5;
+  xmin = DCH1_Xpos -120;
+  if(plane>7){
+    x1 = DCH2_Xpos -90.5;
+    xmin = DCH2_Xpos -120;
+  }
+  x2 = DCH1_Xpos + 90.5;
+  xmax = DCH1_Xpos + 120;
+  if(plane>7){
+    x2 = DCH2_Xpos + 90.5;
+    xmax = DCH2_Xpos + 120;
+  }
+	
+  if(xD>xmin && xD<xmax){
+    if(xD>x1 && xD<x2){
+      if(Abs(yD)<120)
+	return true;
+    }
+    
+    if(xD<=x1){
+      if(yD>0)
+	y1=120-(Abs(x1)- Abs(xD));
+      else
+	y1=-120+(Abs(x1)- Abs(xD));
+      if(Abs(yD)<Abs(y1))
+	return true;
+    }
+    
+    if(xD>=x2){
+      if(yD>0)
+	y1=120-(Abs(x2)- Abs(xD));
+      else
+	y1=-120+(Abs(x2)- Abs(xD));
+      if(Abs(yD)<Abs(y1))
+	return true;
+    }
+  }
+  cout << "MC Point x: " << xD << " y: " << yD << " out of DCH range " 
+       << xmin << " " << xmax << " " << plane << " " << DCH1_Xpos << " " << DCH2_Xpos<<  endl;
+  return false;
+}
+
+
+void BmnDchTrackFinder::GetTrWPoints(Int_t idx1, Double_t xTr, Double_t yTr, Double_t* xr, Double_t* yr, Double_t xMC, Double_t yMC){
+  Double_t x1,y1;
+  Double_t xMCR,yMCR;
+  Double_t  ddist = GetDDistance(digisDCH[idx1]->GetTime(),digisDCH[idx1]->GetPlane());
+  Int_t plane = digisDCH[idx1]->GetPlane();
+  Int_t iWire = digisDCH[idx1]->GetWireNumber();
+  
+  if(!expData){
+	  if(angle[plane]==0){
+		  yMCR=yMC;
+		  xMCR=xMC;
+	  }
+	  if(angle[plane]==90){
+		  yMCR=yMC;
+		  xMCR=xMC;
+	  }
+	  if(angle[plane]==45){
+		  	if(plane>7)
+				RotatePoint(DCH2_Xpos, 0, xMC, yMC, &xMCR, &yMCR, -45);
+			else
+				RotatePoint(DCH1_Xpos, 0, xMC, yMC, &xMCR, &yMCR, -45);
+	  }
+	  if(angle[plane]==-45){
+		  	if(plane>7)
+				RotatePoint(DCH2_Xpos, 0, xMC, yMC, &xMCR, &yMCR, 45);
+			else
+				RotatePoint(DCH1_Xpos, 0, xMC, yMC, &xMCR, &yMCR, 45);
+	  }
+  }
+  
+  if(!useDriftDistance)
+	  ddist=0;
+  if(angle[plane]==0){
+    x1 = DCH1_Xpos + startX[plane] - iWire;
+    if(plane>7)
+      x1 = DCH2_Xpos + startX[plane] - iWire;
+    if(x1<xTr)
+    	x1+=ddist;
+    else
+    	x1-=ddist;
+    
+    y1=yTr;
+  }
+  if(angle[plane]==90){
+    y1 = startX[plane] - iWire;
+    if(y1<yTr)
+    	y1+=ddist;
+    else
+    	y1-=ddist;
+    x1=xTr;
+  }
+  if(angle[plane]==45){
+  	Double_t xRot,yRot;
+  	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, xTr, yTr, &xRot, &yRot, -45);
+	else
+		RotatePoint(DCH1_Xpos, 0, xTr, yTr, &xRot, &yRot, -45);
+	x1 = DCH1_Xpos + startX[plane] - iWire;
+  	if(plane>7)
+  		x1 = DCH2_Xpos + startX[plane] - iWire;
+    if(x1<xRot)
+    	x1+=ddist;
+    else
+    	x1-=ddist;
+  	y1 = yRot;
+  	
+	Double_t xW,yW;
+  	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, x1, y1, &xW, &yW, 45);
+	else
+		RotatePoint(DCH1_Xpos, 0, x1, y1, &xW, &yW, 45);
+  	x1 = xW;
+  	y1 = yW; 
+   }
+  if(angle[plane]==-45){
+  	Double_t xRot,yRot;
+  	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, xTr, yTr, &xRot, &yRot, 45);
+	else
+		RotatePoint(DCH1_Xpos, 0, xTr, yTr, &xRot, &yRot, 45);
+  	x1 = DCH1_Xpos + startX[plane] - iWire;
+  	if(plane>7)
+  		x1 = DCH2_Xpos + startX[plane] - iWire;
+    if(x1<xRot)
+    	x1+=ddist;
+    else
+    	x1-=ddist;
+  	y1 = yRot;
+  	
+	Double_t xW,yW;
+	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, x1, y1, &xW, &yW, -45);
+	else
+		RotatePoint(DCH1_Xpos, 0, x1, y1, &xW, &yW, -45);
+  	x1 = xW;
+  	y1 = yW; 
+  }
+  *xr=x1;
+  *yr=y1;
+}
+
+Double_t BmnDchTrackFinder::GetCoordinateByTwoPoints(Double_t x1, Double_t x2, Double_t z1, Double_t z2, Double_t zc){
+	return x1+(zc-z1)*((x2-x1)/(z2-z1));
+}
+Bool_t BmnDchTrackFinder::CombInitial(Int_t* clIa, Double_t* zz, Double_t* parx, Double_t *pary){  
+	Double_t x1l,y1l,x1r,y1r,x2l,y2l,x2r,y2r,x1,xop1,xop2,yop1,yop2;
+	Double_t xRot,yRot;
+
+	for(Int_t ii=0;ii<4;ii++){
+		Double_t  ddist = GetDDistance(digisDCH[clIa[ii]]->GetTime(),digisDCH[clIa[ii]]->GetPlane());
+		Int_t plane = digisDCH[clIa[ii]]->GetPlane();
+		Int_t iWire = digisDCH[clIa[ii]]->GetWireNumber();
+	
+		if(ii==0 && clIa[ii]!=-1){
+			x1l = DCH1_Xpos + startX[plane] - iWire;
+			if(plane>7)
+				x1l = DCH2_Xpos + startX[plane] - iWire;
+			x1r = x1l+ddist;
+			x1l -= ddist;
+		}
+
+		if(ii==1 && clIa[ii]!=-1){
+			x2l = DCH1_Xpos + startX[plane] - iWire;
+			if(plane>7)
+				x2l = DCH2_Xpos + startX[plane] - iWire;
+			x2r = x1l+ddist;
+			x2l -= ddist;
+		}
+		
+		if(ii==2 && clIa[ii]!=-1){
+			y1l = startX[plane] - iWire;
+			y1r = y1l+ddist;
+			y1l -= ddist;
+		}
+		
+		if(ii==3 && clIa[ii]!=-1){
+			y2l = startX[plane] - iWire;
+			y2r = y1l+ddist;
+			y2l -= ddist;
+		}
+	}
+	Double_t resids[16];
+	for(Int_t icombx=0;icombx<4;icombx++){
+		for(Int_t icomby=0;icomby<4;icomby++){
+			if(icombx==0){
+				xop1=x1l;
+				xop2=x2l;
+			}
+			if(icombx==1){
+				xop1=x1l;
+				xop2=x2r;
+			}
+			if(icombx==2){
+				xop1=x1r;
+				xop2=x2l;
+			}
+			if(icombx==3){
+				xop1=x1r;
+				xop2=x2r;
+			}
+			if(icomby==0){
+				yop1=y1l;
+				yop2=y2l;
+			}
+			if(icomby==1){
+				yop1=y1l;
+				yop2=y2r;
+			}
+		    if(icomby==2){
+				yop1=y1r;
+				yop2=y2l;
+			}
+			if(icomby==3){
+				yop1=y1r;
+				yop2=y2r;
+			}
+			for(Int_t ii=4;ii<8;ii++){
+
+				Double_t xTr = GetCoordinateByTwoPoints(xop1, xop2, zz[0], zz[1], zz[ii]);
+				Double_t yTr = GetCoordinateByTwoPoints(yop1, yop2, zz[2], zz[3], zz[ii]);
+				Double_t  ddist = GetDDistance(digisDCH[clIa[ii]]->GetTime(),digisDCH[clIa[ii]]->GetPlane());
+				Int_t plane = digisDCH[clIa[ii]]->GetPlane();
+				Int_t iWire = digisDCH[clIa[ii]]->GetWireNumber();
+	
+				if(angle[plane]==45){
+					if(plane>7)
+						RotatePoint(DCH2_Xpos, 0, xTr, yTr, &xRot, &yRot, -45);
+					else
+						RotatePoint(DCH1_Xpos, 0, xTr, yTr, &xRot, &yRot, -45);
+					x1 = DCH1_Xpos + startX[plane] - iWire;
+					if(plane>7)
+						x1 = DCH2_Xpos + startX[plane] - iWire;
+					if(x1<xRot)
+						x1+=ddist;
+					else
+						x1-=ddist;
+					resids[icombx*4+icomby] +=Abs(xRot-x1);
+				}
+				if(angle[plane]==-45){
+					if(plane>7)
+						RotatePoint(DCH2_Xpos, 0, xTr, yTr, &xRot, &yRot, 45);
+					else
+						RotatePoint(DCH1_Xpos, 0, xTr, yTr, &xRot, &yRot, 45);
+					x1 = DCH1_Xpos + startX[plane] - iWire;
+					if(plane>7)
+						x1 = DCH2_Xpos + startX[plane] - iWire;
+					if(x1<xRot)
+						x1+=ddist;
+					else
+						x1-=ddist;
+				}
+				resids[icombx*4+icomby] +=Abs(xRot-x1);
+			}
+		}
+	}
+	Double_t minx=0;
+	Double_t miny=0;
+	Double_t minv=10000000;
+	for(Int_t icombx=0;icombx<4;icombx++){
+		for(Int_t icomby=0;icomby<4;icomby++){
+			if(resids[icombx*4+icomby]<minv){
+				minv=resids[icombx*4+icomby];
+				minx = icombx;
+				miny = icomby;
+			}
+		}
+	}
+	Double_t x2,y1,y2;
+	if(minx==0){
+		x1=x1l;
+		x2=x2l;
+	}
+	if(minx==1){
+		x1=x1l;
+		x2=x2r;
+	}
+	if(minx==2){
+		x1=x1r;
+		x2=x2l;
+	}
+	if(minx==3){
+		x1=x1r;
+		x2=x2r;
+	}
+	if(miny==0){
+		y1=y1l;
+		y2=y2l;
+	}
+	if(miny==1){
+		y1=y1l;
+		y2=y2r;
+	}
+	if(miny==2){
+		y1=y1r;
+		y2=y2l;
+	}
+	if(miny==3){
+		y1=y1r;
+		y2=y2r;
+	}
+	parx[0]=x1-zz[0]*((x2-x1)/(zz[1]-zz[0]));
+	parx[1]=(x2-x1)/(zz[1]-zz[0]);
+	pary[0]=y1-zz[2]*(y2-y1)/(zz[3]-zz[2]);
+	pary[1]=(y2-y1)/(zz[3]-zz[2]);
+	return true;
+}
+
+void BmnDchTrackFinder::FillLR(Int_t idx1, Double_t xTr, Double_t yTr, Double_t xMC, Double_t yMC, Int_t global){
+  Double_t x1,y1;
+  Double_t xMCR,yMCR;
+  Double_t  ddist = GetDDistance(digisDCH[idx1]->GetTime(),digisDCH[idx1]->GetPlane());
+  Int_t plane = digisDCH[idx1]->GetPlane();
+  Int_t iWire = digisDCH[idx1]->GetWireNumber();
+  
+  if(!expData){
+	  if(angle[plane]==0){
+		  yMCR=yMC;
+		  xMCR=xMC;
+	  }
+	  if(angle[plane]==90){
+		  yMCR=yMC;
+		  xMCR=xMC;
+	  }
+	  if(angle[plane]==45){
+		  	if(plane>7)
+				RotatePoint(DCH2_Xpos, 0, xMC, yMC, &xMCR, &yMCR, -45);
+			else
+				RotatePoint(DCH1_Xpos, 0, xMC, yMC, &xMCR, &yMCR, -45);
+	  }
+	  if(angle[plane]==-45){
+		  	if(plane>7)
+				RotatePoint(DCH2_Xpos, 0, xMC, yMC, &xMCR, &yMCR, 45);
+			else
+				RotatePoint(DCH1_Xpos, 0, xMC, yMC, &xMCR, &yMCR, 45);
+	  }
+  }
+  
+  if(!useDriftDistance)
+	  ddist=0;
+  if(angle[plane]==0){
+    x1 = DCH1_Xpos + startX[plane] - iWire;
+    if(plane>7)
+      x1 = DCH2_Xpos + startX[plane] - iWire;
+    if(!expData){
+    	if(x1<xTr && x1<xMCR){
+    		if(global==0)
+    			lrhi->Fill(0);
+    		if(global==1)
+    			lrh->Fill(0);
+    		if(global==2)
+    			lrhg->Fill(0);
+    	}
+    	if(x1>xTr && x1>xMCR){
+    		if(global==0)
+    			lrhi->Fill(0);
+    		if(global==1)
+    			lrh->Fill(0);
+    		if(global==2)
+    			lrhg->Fill(0);
+    	}
+    	if(x1>xTr && x1<xMCR){
+    		if(global==0)
+    			lrhi->Fill(-1);
+    		if(global==1){
+    			lrh->Fill(-1);
+    			XResid0->Fill(x1-ddist-xMCR);
+    		}
+			if(global==2){
+    			lrhg->Fill(-1);
+    			XResid0g->Fill(x1-ddist-xMCR);
+    		}
+    	}
+    	if(x1<xTr && x1>xMCR){
+    		if(global==0)
+    			lrhi->Fill(1);
+    		if(global==1){
+    			lrh->Fill(1);
+    			XResid0->Fill(x1+ddist-xMCR);
+    		}
+			if(global==2){
+    			lrhg->Fill(1);
+    			XResid0g->Fill(x1+ddist-xMCR);
+    		}
+    	}
+    }
+  }
+  if(angle[plane]==90){
+    y1 = startX[plane] - iWire;
+    if(!expData){
+    	if(y1<yTr && y1<yMCR){
+    		if(global==0)
+    			lrhi->Fill(0);
+    		if(global==1)
+    			lrh->Fill(0);
+       		if(global==2)
+    			lrhg->Fill(0);
+    	}
+    	if(y1>yTr && y1>yMCR){
+    		if(global==0)
+    			lrhi->Fill(0);
+    		if(global==1)
+    			lrh->Fill(0);
+    		if(global==2)
+    			lrhg->Fill(0);
+    	}
+    	if(y1>yTr && y1<yMCR){
+    		if(global==0)
+    			lrhi->Fill(-2);
+    		if(global==1){
+    			lrh->Fill(-2);
+    			YResid90->Fill(y1-ddist-yMCR);
+    		}
+    		if(global==2){
+    			lrhg->Fill(-2);
+    			YResid90g->Fill(y1-ddist-yMCR);
+    		}
+    	}
+    	if(y1<yTr && y1>yMCR){
+    		if(global==0)
+    			lrhi->Fill(2);
+    		if(global==1){
+    			lrh->Fill(2);
+    			YResid90->Fill(y1+ddist-yMCR);
+    		}
+    		if(global==2){
+    			lrhg->Fill(2);
+    			YResid90g->Fill(y1+ddist-yMCR);
+    		}
+    	}
+    }
+  }
+  if(angle[plane]==45){
+  	Double_t xRot,yRot;
+  	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, xTr, yTr, &xRot, &yRot, -45);
+	else
+		RotatePoint(DCH1_Xpos, 0, xTr, yTr, &xRot, &yRot, -45);
+	x1 = DCH1_Xpos + startX[plane] - iWire;
+  	if(plane>7)
+  		x1 = DCH2_Xpos + startX[plane] - iWire;
+    if(!expData){
+    	if(x1<xRot && x1<xMCR){
+    		if(global==0)
+    			lrhi->Fill(0);
+    		if(global==1)
+    			lrh->Fill(0);
+    		if(global==2)
+    			lrhg->Fill(0);
+    	}
+    	if(x1>xRot && x1>xMCR){
+    		if(global==0)
+    			lrhi->Fill(0);
+    		if(global==1)
+    			lrh->Fill(0);
+    		if(global==2)
+    			lrhg->Fill(0);
+    	}
+    	if(x1>xRot && x1<xMCR){
+    		if(global==0)
+    			lrhi->Fill(-3);
+    		if(global==1){
+    			lrh->Fill(-3);
+    			XResidu->Fill(x1-ddist-xMCR);
+    		}
+    		if(global==2){
+    			lrhg->Fill(-3);
+    			XResidug->Fill(x1-ddist-xMCR);   			
+    		}
+    	}
+    	if(x1<xRot && x1>xMCR){
+    		if(global==0)
+    			lrhi->Fill(3);
+    		if(global==1){
+    			lrh->Fill(3);
+    			XResidu->Fill(x1+ddist-xMCR);
+    		}
+    		if(global==2){
+    			lrhg->Fill(3);
+    			XResidug->Fill(x1+ddist-xMCR);    			
+    		}
+    	}
+    }
+  }
+  if(angle[plane]==-45){
+  	Double_t xRot,yRot;
+  	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, xTr, yTr, &xRot, &yRot, 45);
+	else
+		RotatePoint(DCH1_Xpos, 0, xTr, yTr, &xRot, &yRot, 45);
+  	x1 = DCH1_Xpos + startX[plane] - iWire;
+  	if(plane>7)
+  		x1 = DCH2_Xpos + startX[plane] - iWire;
+    if(!expData){
+    	if(x1<xRot && x1<xMCR){
+    		if(global==0)
+    			lrhi->Fill(0);
+    		if(global==1)
+    			lrh->Fill(0);
+    		if(global==2)
+    			lrhg->Fill(0);
+    	}
+    	if(x1>xRot && x1>xMCR){
+    		if(global==0)
+    			lrhi->Fill(0);
+    		if(global==1)
+    			lrh->Fill(0);
+    		if(global==2)
+    			lrhg->Fill(0);
+    	}
+    	if(x1>xRot && x1<xMCR){
+    		if(global==0)
+    			lrhi->Fill(-4);
+    		if(global==1){
+    			lrh->Fill(-4);
+    			XResidv->Fill(x1-ddist-xMCR);
+    		}
+    		if(global==2){
+    			lrhg->Fill(-4);
+    			XResidvg->Fill(x1-ddist-xMCR);
+    		}
+    	}
+    	if(x1<xRot && x1>xMCR){
+    		if(global==0)
+    			lrhi->Fill(4);
+    		if(global==1){
+    			lrh->Fill(4);
+    			XResidv->Fill(x1+ddist-xMCR);
+    		}
+    		if(global==2){
+    			lrhg->Fill(4);
+    			XResidvg->Fill(x1+ddist-xMCR);
+    		}
+    	}
+    }
+  }
+}
+
+void BmnDchTrackFinder::GetBEPoints(Int_t idx1, Double_t* x1r, Double_t* y1r, Double_t* x2r, Double_t* y2r, Int_t lr){
+  Double_t x1,x2,y1,y2;
+  Double_t  ddist = lr*GetDDistance(digisDCH[idx1]->GetTime(),digisDCH[idx1]->GetPlane());
+  Int_t plane = digisDCH[idx1]->GetPlane();
+  Int_t iWire = digisDCH[idx1]->GetWireNumber();
+  if(angle[plane]==0){
+    x1 = DCH1_Xpos + startX[plane] - iWire;
+    if(plane>7)
+      x1 = DCH2_Xpos + startX[plane] - iWire;
+    x1+=ddist;
+    x2=x1;
+    y1=-startX[plane];
+    y2=startX[plane];
+  }
+  if(angle[plane]==90){
+    y1 = startX[plane] - iWire;
+    y1+=ddist;
+    y2=y1;
+    x1=-startX[plane];
+    x2=startX[plane];
+  }
+  if(angle[plane]==45){
+  	x1 = DCH1_Xpos + startX[plane] - iWire;
+  	if(plane>7)
+  		x1 = DCH2_Xpos + startX[plane] - iWire;
+    x1+=ddist;
+ 	  x2=x1;
+  	y1 = -startX[plane];
+  	y2 = startX[plane];
+	Double_t xW,yW;
+  	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, x1, y1, &xW, &yW, 45);
+	else
+		RotatePoint(DCH1_Xpos, 0, x1, y1, &xW, &yW, 45);
+  	x1 = xW;
+  	y1 = yW; 
+	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, x2, y2, &xW, &yW, 45);
+	else
+		RotatePoint(DCH1_Xpos, 0, x2, y2, &xW, &yW, 45);
+  	x2 = xW;
+  	y2 = yW;
+   }
+  if(angle[plane]==-45){
+  	x1 = DCH1_Xpos + startX[plane] - iWire;
+  	if(plane>7)
+  		x1 = DCH2_Xpos + startX[plane] - iWire;
+    x1+=ddist;
+  	x2=x1;
+  	y1 = -startX[plane];
+  	y2 = startX[plane];
+  	
+	Double_t xW,yW;
+	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, x1, y1, &xW, &yW, -45);
+	else
+		RotatePoint(DCH1_Xpos, 0, x1, y1, &xW, &yW, -45);
+  	x1 = xW;
+  	y1 = yW; 
+ 	if(plane>7)
+		RotatePoint(DCH2_Xpos, 0, x2, y2, &xW, &yW, -45);
+	else
+		RotatePoint(DCH1_Xpos, 0, x2, y2, &xW, &yW, -45);
+  	x2 = xW;
+  	y2 = yW;
+  }
+  *x1r=x1;
+  *x2r=x2;
+  *y1r=y1;
+  *y2r=y2;
+}
+void BmnDchTrackFinder::LRQA(Int_t* clI, Double_t* parx, Double_t* pary, Double_t *zz11x, Double_t *zz11y, FairMCPoint* pnt1, FairMCPoint* pnt2, Int_t global){
+	Double_t xT; 
+	Double_t yT;
+	Double_t xMC; 
+	Double_t yMC;
+	for(Int_t ii=0;ii<6;ii++){
+		if(clI[ii]!=-1 && clI[ii+2]!=-1){
+			if(ii<2){
+				xT = parx[1]*zz11x[ii] + parx[0];
+				yT = pary[1]*zz11x[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11x[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11x[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				if(histoOutput)
+					FillLR(clI[ii], xT, yT, xMC, yMC, global);
+
+				xT = parx[1]*zz11y[ii] + parx[0];
+				yT = pary[1]*zz11y[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				if(histoOutput)
+					FillLR(clI[ii+2], xT, yT, xMC, yMC, global);
+			}
+			else{
+				xT = parx[1]*zz11y[ii] + parx[0];
+				yT = pary[1]*zz11y[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				if(histoOutput)
+					FillLR(clI[ii+2], xT, yT, xMC, yMC, global);
+			}
+		}
+	}
+}
+
+Bool_t BmnDchTrackFinder::FitIteraGlobal(Int_t* clIa, Int_t* clIb, Double_t* parx, Double_t* pary, Double_t* parx1, Double_t* pary1, Double_t *zz11x, Double_t *zz11y, Double_t *zz21x, Double_t *zz21y, Bool_t fillHisto, FairMCPoint* pnt1, FairMCPoint* pnt2, Int_t sp, Double_t *chi2x, Double_t *chi2y){
+	Double_t xT; 
+	Double_t yT;
+	Double_t xMC=0.; 
+	Double_t yMC=0.;
+	Double_t xr; 
+	Double_t yr;
+
+	vector<Double_t> xf; 
+	vector<Double_t> yf; 
+	vector<Double_t> zf; 
+	vector<Double_t> zyf; 
+	
+	for(Int_t ii=0;ii<6;ii++){
+		if(ii<2){
+			if(clIa[ii]!=-1 && clIa[ii+2]!=-1){
+				xT = parx[1]*zz11x[ii] + parx[0];
+				yT = pary[1]*zz11x[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11x[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11x[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clIa[ii], xT, yT, &xr, &yr, xMC, yMC);
+				xf.push_back(xr);
+				zf.push_back(zz11x[ii]);
+
+				xT = parx[1]*zz11y[ii] + parx[0];
+				yT = pary[1]*zz11y[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clIa[ii+2], xT, yT, &xr, &yr, xMC, yMC);
+				yf.push_back(yr);
+				zyf.push_back(zz11y[ii]);
+			}
+		}
+		else{
+			if(clIa[ii+2]!=-1){
+				xT = parx[1]*zz11y[ii] + parx[0];
+				yT = pary[1]*zz11y[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clIa[ii+2], xT, yT, &xr, &yr, xMC, yMC);
+				xf.push_back(xr);
+				zf.push_back(zz11x[ii]);
+				yf.push_back(yr);
+				zyf.push_back(zz11y[ii]);
+			}
+		}
+	}
+
+	for(Int_t ii=0;ii<6;ii++){
+		if(ii<2){
+			if(clIb[ii]!=-1 && clIb[ii+2]!=-1){
+				xT = parx[1]*zz21x[ii] + parx[0];
+				yT = pary[1]*zz21x[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz21x[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz21x[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clIb[ii], xT, yT, &xr, &yr, xMC, yMC);
+				xf.push_back(xr);
+				zf.push_back(zz21x[ii]);
+
+				xT = parx[1]*zz21y[ii] + parx[0];
+				yT = pary[1]*zz21y[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz21y[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz21y[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clIb[ii+2], xT, yT, &xr, &yr, xMC, yMC);
+				yf.push_back(yr);
+				zyf.push_back(zz21y[ii]);
+			}
+		}
+		else{
+			if(clIb[ii+2]!=-1){
+				xT = parx[1]*zz21y[ii] + parx[0];
+				yT = pary[1]*zz21y[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz21y[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz21y[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clIb[ii+2], xT, yT, &xr, &yr, xMC, yMC);
+				xf.push_back(xr);
+				zf.push_back(zz21x[ii]);
+				yf.push_back(yr);
+				zyf.push_back(zz21y[ii]);
+			}
+		}
+	}
+	Double_t xx11[xf.size()];
+	Double_t yy11[yf.size()];
+	Double_t zzx11[zf.size()];
+	Double_t zzy11[zyf.size()];
+	std::copy(xf.begin(), xf.end(), xx11);
+	std::copy(yf.begin(), yf.end(), yy11);
+	std::copy(zf.begin(), zf.end(), zzx11);
+	std::copy(zyf.begin(), zyf.end(), zzy11);
+	
+	Int_t sizeA = zf.size();
+	if(zyf.size()<zf.size())
+		sizeA=zyf.size();
+		
+	FitWLSQ *fit11x = new FitWLSQ(zzx11,0.1,10*0.1, 0.9, (int) zf.size(),2,false,false,6);
+	FitWLSQ *fit11y = new FitWLSQ(zzy11,0.1,10*0.1, 0.9, (int) zyf.size(),2,false,false,6);
+	//FitWLSQ *fit11x = new FitWLSQ(zzx11,0.03,10*0.02, 0.9, (int) zf.size(),2,true,true,3);
+	//FitWLSQ *fit11y = new FitWLSQ(zzy11,0.03,10*0.02, 0.9, (int) zyf.size(),2,true,true,3);
+	if(fit11x->Fit(xx11) && fit11y->Fit(yy11)){
+		*chi2x = fit11x->WLSQRms(xx11);
+		*chi2y = fit11y->WLSQRms(yy11);
+		parx1[0]=fit11x->param[0];
+		parx1[1]=fit11x->param[1];
+		pary1[0]=fit11y->param[0];
+		pary1[1]=fit11y->param[1];
+		if(fillHisto && histoOutput){
+			FITXRMS2->Fill(fit11x->WLSQRms(xx11));
+			FITYRMS2->Fill(fit11y->WLSQRms(yy11));
+			for(Int_t ii=0; ii<sizeA; ii++){
+				if(fit11x->wrb[ii]!=0) {
+					FITXResid2->Fill(fit11x->param[1]*zzx11[ii] + fit11x->param[0] - xx11[ii]);
+				}
+				if(fit11y->wrb[ii]!=0) {
+					FITYResid2->Fill(fit11y->param[1]*zzy11[ii] + fit11y->param[0] - yy11[ii]);
+					if(ii==0 || ii==1 || ii==6 || ii==7)
+						FITYResidy->Fill(fit11y->param[1]*zzy11[ii] + fit11y->param[0] - yy11[ii]);
+					if(ii==2 || ii==3 || ii==8 || ii==9)
+						FITYResidu->Fill(fit11y->param[1]*zzy11[ii] + fit11y->param[0] - yy11[ii]);
+					if(ii==4 || ii==5 || ii==10 || ii==11)
+						FITYResidv->Fill(fit11y->param[1]*zzy11[ii] + fit11y->param[0] - yy11[ii]);
+				}
+				if(!expData){
+					Double_t xTr;
+					Double_t yTr;
+					Double_t zTrx;
+					Double_t zTry;
+				
+					zTrx = zzx11[ii];
+					zTry = zzy11[ii];
+					xTr=pnt1->GetX()+(zTrx-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yTr=pnt1->GetY()+(zTry-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+					if(fit11x->wrb[ii]!=0){
+						FITXMCResid2->Fill(fit11x->param[1]*zzx11[ii] + fit11x->param[0] - xTr);
+					}
+					if(fit11y->wrb[ii]!=0){
+						FITYMCResid2->Fill(fit11y->param[1]*zzy11[ii] + fit11y->param[0] - yTr);
+					}
+					if(fit11x->wrb[ii]!=0)
+						XResid2->Fill(xx11[ii] - xTr);
+					if(fit11y->wrb[ii]!=0)
+						YResid2->Fill(yy11[ii] - yTr);
+				}
+				Double_t dt=0;
+				Double_t mdist=0;
+				switch (ii){
+					case 0 : 
+						dt = digisDCH[clIa[0]]->GetTime();    
+						mdist=GetDistance(digisDCH[clIa[0]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+								fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIa[0]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clIa[0]]->GetTime(),digisDCH[clIa[0]]->GetPlane())-mdist)<0.1)
+								rtg->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtrg[GetRTIndex(dt)]->Fill(mdist);
+						}
+						dt = digisDCH[clIa[2]]->GetTime();    
+						mdist=GetDistance(digisDCH[clIa[2]]->GetPlane(), fit11x->param[1]*zzy11[ii] + fit11x->param[0], 
+								fit11y->param[1]*zzy11[ii] + fit11y->param[0], digisDCH[clIa[2]]->GetWireNumber()); 
+						if(fit11y->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clIa[2]]->GetTime(),digisDCH[clIa[2]]->GetPlane())-mdist)<0.1)
+								rtg->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtrg[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+					case 1 : 
+						dt = digisDCH[clIa[1]]->GetTime();    
+						mdist=GetDistance(digisDCH[clIa[1]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+								fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIa[1]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clIa[1]]->GetTime(),digisDCH[clIa[1]]->GetPlane())-mdist)<0.1)
+								rtg->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtrg[GetRTIndex(dt)]->Fill(mdist);
+						}
+						dt = digisDCH[clIa[3]]->GetTime();    
+						mdist=GetDistance(digisDCH[clIa[3]]->GetPlane(), fit11x->param[1]*zzy11[ii] + fit11x->param[0], 
+								fit11y->param[1]*zzy11[ii] + fit11y->param[0], digisDCH[clIa[3]]->GetWireNumber()); 
+						if(fit11y->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clIa[3]]->GetTime(),digisDCH[clIa[3]]->GetPlane())-mdist)<0.1)
+								rtg->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtrg[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+					case 2 : 
+						dt = digisDCH[clIa[4]]->GetTime();    
+						mdist=GetDistance(digisDCH[clIa[4]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+								fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIa[4]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clIa[4]]->GetTime(),digisDCH[clIa[4]]->GetPlane())-mdist)<0.1)
+								rtg->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtrg[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+					case 3 : 
+						dt = digisDCH[clIa[5]]->GetTime();    
+						mdist=GetDistance(digisDCH[clIa[5]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+								fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIa[5]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clIa[5]]->GetTime(),digisDCH[clIa[5]]->GetPlane())-mdist)<0.1)
+								rtg->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtrg[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+					case 4 : 
+						dt = digisDCH[clIa[6]]->GetTime();    
+						mdist=GetDistance(digisDCH[clIa[6]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+								fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIa[6]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clIa[6]]->GetTime(),digisDCH[clIa[6]]->GetPlane())-mdist)<0.1)
+								rtg->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtrg[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+					case 5 : 
+						dt = digisDCH[clIa[7]]->GetTime();    
+						mdist=GetDistance(digisDCH[clIa[7]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+								fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIa[7]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clIa[7]]->GetTime(),digisDCH[clIa[7]]->GetPlane())-mdist)<0.1)
+								rtg->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtrg[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+					case 6 : 
+						if(clIb[0]!=-1){
+							dt = digisDCH[clIb[0]]->GetTime();    
+							mdist=GetDistance(digisDCH[clIb[0]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+									fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIb[0]]->GetWireNumber()); 
+							if(fit11x->wrb[ii]!=0){
+								if(Abs(GetDDistance(digisDCH[clIb[0]]->GetTime(),digisDCH[clIb[0]]->GetPlane())-mdist)<0.1)
+									rtg->Fill(dt,mdist);
+								if(GetRTIndex(dt)<115)
+									rtrg[GetRTIndex(dt)]->Fill(mdist);
+							}
+						}
+						if(clIb[2]!=-1){
+							dt = digisDCH[clIb[2]]->GetTime();    
+							mdist=GetDistance(digisDCH[clIb[2]]->GetPlane(), fit11x->param[1]*zzy11[ii] + fit11x->param[0], 
+									fit11y->param[1]*zzy11[ii] + fit11y->param[0], digisDCH[clIb[2]]->GetWireNumber()); 
+							if(fit11y->wrb[ii]!=0){
+								if(Abs(GetDDistance(digisDCH[clIb[2]]->GetTime(),digisDCH[clIb[2]]->GetPlane())-mdist)<0.1)
+									rtg->Fill(dt,mdist);
+								if(GetRTIndex(dt)<115)
+									rtrg[GetRTIndex(dt)]->Fill(mdist);
+							}
+						}
+						break;
+					case 7 : 
+						if(clIb[1]!=-1){
+							dt = digisDCH[clIb[1]]->GetTime();    
+							mdist=GetDistance(digisDCH[clIb[1]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+									fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIb[1]]->GetWireNumber()); 
+							if(fit11x->wrb[ii]!=0){
+								if(Abs(GetDDistance(digisDCH[clIb[1]]->GetTime(),digisDCH[clIb[1]]->GetPlane())-mdist)<0.1)
+									rtg->Fill(dt,mdist);
+								if(GetRTIndex(dt)<115)
+									rtrg[GetRTIndex(dt)]->Fill(mdist);
+							}
+						}
+						if(clIb[3]!=-1){
+							dt = digisDCH[clIb[3]]->GetTime();    
+							mdist=GetDistance(digisDCH[clIb[3]]->GetPlane(), fit11x->param[1]*zzy11[ii] + fit11x->param[0], 
+									fit11y->param[1]*zzy11[ii] + fit11y->param[0], digisDCH[clIb[3]]->GetWireNumber()); 
+							if(fit11y->wrb[ii]!=0){
+								if(Abs(GetDDistance(digisDCH[clIb[3]]->GetTime(),digisDCH[clIb[3]]->GetPlane())-mdist)<0.1)
+									rtg->Fill(dt,mdist);
+								if(GetRTIndex(dt)<115)
+									rtrg[GetRTIndex(dt)]->Fill(mdist);
+							}
+						}
+						break;
+					case 8 : 
+						if(clIb[4]!=-1){
+							dt = digisDCH[clIb[4]]->GetTime();    
+							mdist=GetDistance(digisDCH[clIb[4]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+									fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIb[4]]->GetWireNumber()); 
+							if(fit11x->wrb[ii]!=0){
+								if(Abs(GetDDistance(digisDCH[clIb[4]]->GetTime(),digisDCH[clIb[4]]->GetPlane())-mdist)<0.1)
+									rtg->Fill(dt,mdist);
+								if(GetRTIndex(dt)<115)
+									rtrg[GetRTIndex(dt)]->Fill(mdist);
+							}
+						}
+						break;
+					case 9 : 
+						if(clIb[5]!=-1){
+							dt = digisDCH[clIb[5]]->GetTime();    
+							mdist=GetDistance(digisDCH[clIb[5]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+									fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIb[5]]->GetWireNumber()); 
+							if(fit11x->wrb[ii]!=0){
+								if(Abs(GetDDistance(digisDCH[clIb[5]]->GetTime(),digisDCH[clIb[5]]->GetPlane())-mdist)<0.1)
+									rtg->Fill(dt,mdist);
+								if(GetRTIndex(dt)<115)
+									rtrg[GetRTIndex(dt)]->Fill(mdist);
+							}
+						}
+						break;
+					case 10 : 
+						if(clIb[6]!=-1){
+							dt = digisDCH[clIb[6]]->GetTime();    
+							mdist=GetDistance(digisDCH[clIb[6]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+									fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIb[6]]->GetWireNumber()); 
+							if(fit11x->wrb[ii]!=0){
+								if(Abs(GetDDistance(digisDCH[clIb[6]]->GetTime(),digisDCH[clIb[6]]->GetPlane())-mdist)<0.1)
+									rtg->Fill(dt,mdist);
+								if(GetRTIndex(dt)<115)
+									rtrg[GetRTIndex(dt)]->Fill(mdist);
+							}
+						}
+						break;
+					case 11 : 
+						if(clIb[7]!=-1){
+							dt = digisDCH[clIb[7]]->GetTime();    
+							mdist=GetDistance(digisDCH[clIb[7]]->GetPlane(), fit11x->param[1]*zzx11[ii] + fit11x->param[0], 
+									fit11y->param[1]*zzx11[ii] + fit11y->param[0], digisDCH[clIb[7]]->GetWireNumber()); 
+							if(fit11x->wrb[ii]!=0){
+								if(Abs(GetDDistance(digisDCH[clIb[7]]->GetTime(),digisDCH[clIb[7]]->GetPlane())-mdist)<0.1)
+									rtg->Fill(dt,mdist);
+								if(GetRTIndex(dt)<115)
+									rtrg[GetRTIndex(dt)]->Fill(mdist);
+							}
+						}
+						break;
+				}					  
+			}
+		}
+		delete fit11x;
+		delete fit11y;
+		return true;
+	}
+	if(!fit11x->Status && fillHisto && histoOutput){
+		Problems->Fill(sp);
+	}
+	if(!fit11y->Status && fillHisto && histoOutput){
+		Problems->Fill(sp+1);
+	}
+	delete fit11x;
+	delete fit11y;
+	return false;
+}
+
+void BmnDchTrackFinder::InitialHisto(Int_t* clI, Double_t* parx, Double_t* pary, Double_t *zz11x, Double_t *zz11y, FairMCPoint* pnt1, FairMCPoint* pnt2){
+	Double_t xT; 
+	Double_t yT;
+	Double_t xMC=0.; 
+	Double_t yMC=0.;
+	Double_t xr; 
+	Double_t yr;
+
+	vector<Double_t> xf; 
+	vector<Double_t> yf; 
+	vector<Double_t> zf; 
+	vector<Double_t> zyf; 
+	
+	for(Int_t ii=0;ii<6;ii++){
+		if(clI[ii]!=-1 && clI[ii+2]!=-1){
+			if(ii<2){
+				xT = parx[1]*zz11x[ii] + parx[0];
+				yT = pary[1]*zz11x[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11x[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11x[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clI[ii], xT, yT, &xr, &yr, xMC, yMC);
+				xf.push_back(xr);
+				zf.push_back(zz11x[ii]);
+
+				xT = parx[1]*zz11y[ii] + parx[0];
+				yT = pary[1]*zz11y[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clI[ii+2], xT, yT, &xr, &yr, xMC, yMC);
+				yf.push_back(yr);
+				zyf.push_back(zz11y[ii]);
+			}
+			else{
+				xT = parx[1]*zz11y[ii] + parx[0];
+				yT = pary[1]*zz11y[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clI[ii+2], xT, yT, &xr, &yr, xMC, yMC);
+				xf.push_back(xr);
+				zf.push_back(zz11x[ii]);
+				yf.push_back(yr);
+				zyf.push_back(zz11y[ii]);
+			}
+		}
+	}
+
+	Double_t xx11[xf.size()];
+	Double_t yy11[yf.size()];
+	Double_t zzx11[zf.size()];
+	Double_t zzy11[zyf.size()];
+	std::copy(xf.begin(), xf.end(), xx11);
+	std::copy(yf.begin(), yf.end(), yy11);
+	std::copy(zf.begin(), zf.end(), zzx11);
+	std::copy(zyf.begin(), zyf.end(), zzy11);
+	
+	Int_t sizeA = zf.size();
+	if(zyf.size()<zf.size())
+		sizeA=zyf.size();
+			
+	for(Int_t ii=0; ii<sizeA; ii++){
+		if(histoOutput){
+			FITXResid->Fill(parx[1]*zz11x[ii] + parx[0] - xx11[ii]);
+			FITYResid->Fill(pary[1]*zz11y[ii] + pary[0] - yy11[ii]);
+		}
+		if(!expData){
+			Double_t xTr;
+			Double_t yTr;
+			Double_t zTrx;
+			Double_t zTry;
+				
+			zTrx = zz11x[ii];
+			zTry = zz11y[ii];
+			xTr=pnt1->GetX()+(zTrx-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+			yTr=pnt1->GetY()+(zTry-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+			if(histoOutput){
+				FITXMCResid->Fill(parx[1]*zz11x[ii] + parx[0] - xTr);
+				FITYMCResid->Fill(pary[1]*zz11y[ii] + pary[0] - yTr);
+				XResid->Fill(xx11[ii] - xTr);
+				YResid->Fill(yy11[ii] - yTr);
+			}
+		}
+	}
+}
+
+Bool_t BmnDchTrackFinder::FitItera(Int_t* clI, Double_t* parx, Double_t* pary, Double_t* parx1, Double_t* pary1, Double_t *zz11x, Double_t *zz11y, Bool_t fillHisto, FairMCPoint* pnt1, FairMCPoint* pnt2, Int_t sp, Double_t *chi2x, Double_t *chi2y){
+	Double_t xT; 
+	Double_t yT;
+	Double_t xMC=0.; 
+	Double_t yMC=0.;
+	Double_t xr; 
+	Double_t yr;
+
+	vector<Double_t> xf; 
+	vector<Double_t> yf; 
+	vector<Double_t> zf; 
+	vector<Double_t> zyf; 
+	
+	for(Int_t ii=0;ii<6;ii++){
+		if(clI[ii]!=-1 && clI[ii+2]!=-1){
+			if(ii<2){
+				xT = parx[1]*zz11x[ii] + parx[0];
+				yT = pary[1]*zz11x[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11x[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11x[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clI[ii], xT, yT, &xr, &yr, xMC, yMC);
+				xf.push_back(xr);
+				zf.push_back(zz11x[ii]);
+
+				xT = parx[1]*zz11y[ii] + parx[0];
+				yT = pary[1]*zz11y[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clI[ii+2], xT, yT, &xr, &yr, xMC, yMC);
+				yf.push_back(yr);
+				zyf.push_back(zz11y[ii]);
+			}
+			else{
+				xT = parx[1]*zz11y[ii] + parx[0];
+				yT = pary[1]*zz11y[ii] + pary[0]; 
+				if(!expData) {
+					xMC=pnt1->GetX()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yMC=pnt1->GetY()+(zz11y[ii]-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+				}
+				GetTrWPoints(clI[ii+2], xT, yT, &xr, &yr, xMC, yMC);
+				xf.push_back(xr);
+				zf.push_back(zz11x[ii]);
+				yf.push_back(yr);
+				zyf.push_back(zz11y[ii]);
+			}
+		}
+	}
+
+	Double_t xx11[xf.size()];
+	Double_t yy11[yf.size()];
+	Double_t zzx11[zf.size()];
+	Double_t zzy11[zyf.size()];
+	std::copy(xf.begin(), xf.end(), xx11);
+	std::copy(yf.begin(), yf.end(), yy11);
+	std::copy(zf.begin(), zf.end(), zzx11);
+	std::copy(zyf.begin(), zyf.end(), zzy11);
+	
+	Int_t sizeA = zf.size();
+	if(zyf.size()<zf.size())
+		sizeA=zyf.size();
+	
+	FitWLSQ *fit11x = new FitWLSQ(zzx11,0.1,10*0.1, 0.9, (int) zf.size(),2,false,false,6);
+	FitWLSQ *fit11y = new FitWLSQ(zzy11,0.1,10*0.1, 0.9, (int) zyf.size(),2,false,false,6);
+	//FitWLSQ *fit11x = new FitWLSQ(zzx11,0.03,10*0.03, 0.9, (int) zf.size(),2,true,true,2);
+	//FitWLSQ *fit11y = new FitWLSQ(zzy11,0.03,10*0.03, 0.9, (int) zyf.size(),2,true,true,2);
+	if(fit11x->Fit(xx11) && fit11y->Fit(yy11)){
+		*chi2x = fit11x->WLSQRms(xx11);
+		*chi2y = fit11y->WLSQRms(yy11);
+		parx1[0]=fit11x->param[0];
+		parx1[1]=fit11x->param[1];
+		pary1[0]=fit11y->param[0];
+		pary1[1]=fit11y->param[1];
+		if(fillHisto && histoOutput){
+			FITXRMS1->Fill(fit11x->WLSQRms(xx11));
+			FITYRMS1->Fill(fit11y->WLSQRms(yy11));
+			for(Int_t ii=0; ii<sizeA; ii++){
+				if(fit11x->wrb[ii]!=0)
+					FITXResid1->Fill(fit11x->param[1]*zz11x[ii] + fit11x->param[0] - xx11[ii]);
+				if(fit11y->wrb[ii]!=0)
+					FITYResid1->Fill(fit11y->param[1]*zz11y[ii] + fit11y->param[0] - yy11[ii]);
+				if(!expData){
+					Double_t xTr;
+					Double_t yTr;
+					Double_t zTrx;
+					Double_t zTry;
+				
+					zTrx = zz11x[ii];
+					zTry = zz11y[ii];
+					xTr=pnt1->GetX()+(zTrx-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+					yTr=pnt1->GetY()+(zTry-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+					if(fit11x->wrb[ii]!=0)
+						FITXMCResid1->Fill(fit11x->param[1]*zz11x[ii] + fit11x->param[0] - xTr);
+					if(fit11y->wrb[ii]!=0)
+						FITYMCResid1->Fill(fit11y->param[1]*zz11y[ii] + fit11y->param[0] - yTr);
+					if(fit11x->wrb[ii]!=0)
+						XResid1->Fill(xx11[ii] - xTr);
+					if(fit11y->wrb[ii]!=0)
+						YResid1->Fill(yy11[ii] - yTr);
+				}		  
+				Double_t dt=0;
+				Double_t mdist=0;
+				switch (ii){
+					case 0 : 
+						dt = digisDCH[clI[0]]->GetTime();    
+						mdist=GetDistance(digisDCH[clI[0]]->GetPlane(), fit11x->param[1]*zz11x[ii] + fit11x->param[0], 
+								fit11y->param[1]*zz11x[ii] + fit11y->param[0], digisDCH[clI[0]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clI[0]]->GetTime(),digisDCH[clI[0]]->GetPlane())-mdist)<0.1)
+								rt->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtr[GetRTIndex(dt)]->Fill(mdist);
+						}
+						dt = digisDCH[clI[2]]->GetTime();    
+						mdist=GetDistance(digisDCH[clI[2]]->GetPlane(), fit11x->param[1]*zz11y[ii] + fit11x->param[0], 
+								fit11y->param[1]*zz11y[ii] + fit11y->param[0], digisDCH[clI[2]]->GetWireNumber()); 
+						if(fit11y->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clI[2]]->GetTime(),digisDCH[clI[2]]->GetPlane())-mdist)<0.1)
+								rt->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtr[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+					case 1 : 
+						dt = digisDCH[clI[1]]->GetTime();    
+						mdist=GetDistance(digisDCH[clI[1]]->GetPlane(), fit11x->param[1]*zz11x[ii] + fit11x->param[0], 
+								fit11y->param[1]*zz11x[ii] + fit11y->param[0], digisDCH[clI[1]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clI[1]]->GetTime(),digisDCH[clI[1]]->GetPlane())-mdist)<0.1)
+								rt->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtr[GetRTIndex(dt)]->Fill(mdist);
+						}
+						dt = digisDCH[clI[3]]->GetTime();    
+						mdist=GetDistance(digisDCH[clI[3]]->GetPlane(), fit11x->param[1]*zz11y[ii] + fit11x->param[0], 
+								fit11y->param[1]*zz11y[ii] + fit11y->param[0], digisDCH[clI[3]]->GetWireNumber()); 
+						if(fit11y->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clI[3]]->GetTime(),digisDCH[clI[3]]->GetPlane())-mdist)<0.1)
+								rt->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtr[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+					case 2 : 
+						dt = digisDCH[clI[4]]->GetTime();    
+						mdist=GetDistance(digisDCH[clI[4]]->GetPlane(), fit11x->param[1]*zz11x[ii] + fit11x->param[0], 
+								fit11y->param[1]*zz11x[ii] + fit11y->param[0], digisDCH[clI[4]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clI[4]]->GetTime(),digisDCH[clI[4]]->GetPlane())-mdist)<0.1)
+								rt->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtr[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+					case 3 : 
+						dt = digisDCH[clI[5]]->GetTime();    
+						mdist=GetDistance(digisDCH[clI[5]]->GetPlane(), fit11x->param[1]*zz11x[ii] + fit11x->param[0], 
+								fit11y->param[1]*zz11x[ii] + fit11y->param[0], digisDCH[clI[5]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clI[5]]->GetTime(),digisDCH[clI[5]]->GetPlane())-mdist)<0.1)
+								rt->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtr[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+					case 4 : 
+						dt = digisDCH[clI[6]]->GetTime();    
+						mdist=GetDistance(digisDCH[clI[6]]->GetPlane(), fit11x->param[1]*zz11x[ii] + fit11x->param[0], 
+								fit11y->param[1]*zz11x[ii] + fit11y->param[0], digisDCH[clI[6]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clI[6]]->GetTime(),digisDCH[clI[6]]->GetPlane())-mdist)<0.1)
+								rt->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtr[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+					case 5 : 
+						dt = digisDCH[clI[7]]->GetTime();    
+						mdist=GetDistance(digisDCH[clI[7]]->GetPlane(), fit11x->param[1]*zz11x[ii] + fit11x->param[0], 
+								fit11y->param[1]*zz11x[ii] + fit11y->param[0], digisDCH[clI[7]]->GetWireNumber()); 
+						if(fit11x->wrb[ii]!=0){
+							if(Abs(GetDDistance(digisDCH[clI[7]]->GetTime(),digisDCH[clI[7]]->GetPlane())-mdist)<0.1)
+								rt->Fill(dt,mdist);
+							if(GetRTIndex(dt)<115)
+								rtr[GetRTIndex(dt)]->Fill(mdist);
+						}
+						break;
+				}					  
+			}
+		}
+		delete fit11x;
+		delete fit11y;
+		return true;
+	}
+	if(!fit11x->Status && fillHisto && histoOutput){
+		Problems->Fill(sp);
+	}
+	if(!fit11y->Status && fillHisto && histoOutput){
+		Problems->Fill(sp+1);
+	}
+	delete fit11x;
+	delete fit11y;
+	return false;
+}
+
+void BmnDchTrackFinder::GetClusterHitsArray(Cluster* cluster, Int_t* ret){
+	for(Int_t iha=0;iha<cluster->hits.size();iha++){
+        if(digisDCH[cluster->hits[iha]]->GetPlane()==xai[0] || digisDCH[cluster->hits[iha]]->GetPlane()==xai[1])
+        	ret[0]=cluster->hits[iha];
+        if(digisDCH[cluster->hits[iha]]->GetPlane()==xbi[0] || digisDCH[cluster->hits[iha]]->GetPlane()==xbi[1])
+        	ret[1]=cluster->hits[iha];
+        if(digisDCH[cluster->hits[iha]]->GetPlane()==yai[0] || digisDCH[cluster->hits[iha]]->GetPlane()==yai[1])
+        	ret[2]=cluster->hits[iha];
+        if(digisDCH[cluster->hits[iha]]->GetPlane()==ybi[0] || digisDCH[cluster->hits[iha]]->GetPlane()==ybi[1])
+        	ret[3]=cluster->hits[iha];
+        if(digisDCH[cluster->hits[iha]]->GetPlane()==uai[0] || digisDCH[cluster->hits[iha]]->GetPlane()==uai[1])
+        	ret[4]=cluster->hits[iha];
+        if(digisDCH[cluster->hits[iha]]->GetPlane()==ubi[0] || digisDCH[cluster->hits[iha]]->GetPlane()==ubi[1])
+        	ret[5]=cluster->hits[iha];
+        if(digisDCH[cluster->hits[iha]]->GetPlane()==vai[0] || digisDCH[cluster->hits[iha]]->GetPlane()==vai[1])
+        	ret[6]=cluster->hits[iha];
+        if(digisDCH[cluster->hits[iha]]->GetPlane()==vbi[0] || digisDCH[cluster->hits[iha]]->GetPlane()==vbi[1])
+        	ret[7]=cluster->hits[iha];
+	}
+}
+void BmnDchTrackFinder::RecoDCHCluster(){
+  Point3DC p;
+  //Combine a and b clusters 
+	if(aC.size()==0){
+		//cout << "empty A cluster" << endl;
+		return;
+	}
+	if(bC.size()==0){
+		//cout << "empty B cluster" << endl;
+		return;
+	}
+	for(Int_t ia = 0; ia< aC.size(); ia++){
+		//bubble_sort
+		for (Int_t idx_i = 0; idx_i < aC[ia]->hits.size() - 1; idx_i++){
+			for (std::size_t idx_j = 0; idx_j < aC[ia]->hits.size() - idx_i - 1; idx_j++){
+				if (digisDCH[aC[ia]->hits[idx_j + 1]]->GetPlane() < digisDCH[aC[ia]->hits[idx_j]]->GetPlane()){
+					std::swap(aC[ia]->hits[idx_j], aC[ia]->hits[idx_j + 1]);
+				}
+			}
+		}
+	}
+	for(Int_t ib = 0; ib< bC.size(); ib++){
+		//bubble_sort
+		for (Int_t idx_i = 0; idx_i < bC[ib]->hits.size() - 1; idx_i++){
+			for (std::size_t idx_j = 0; idx_j < bC[ib]->hits.size() - idx_i - 1; idx_j++){
+				if (digisDCH[bC[ib]->hits[idx_j + 1]]->GetPlane() < digisDCH[bC[ib]->hits[idx_j]]->GetPlane()){
+					std::swap(bC[ib]->hits[idx_j], bC[ib]->hits[idx_j + 1]);
+				}
+			}
+		}
+	}
+    Double_t xc;
+    Double_t yc;
+    Double_t zz1[hitsArraySize];
+	Double_t zz11[8];
+	Double_t zz11x[6];
+	Double_t zz11y[6];
+	Double_t zz2[hitsArraySize];
+	Double_t zz21x[6];
+	Double_t zz21y[6];
+	Double_t zz21[8];
+	
+    zz11[0] =  zl_glob[xai[0]] + DCH1_Zpos;
+	zz11[1] =  zl_glob[xbi[0]] + DCH1_Zpos;
+	zz11[2] =  zl_glob[yai[0]] + DCH1_Zpos;
+	zz11[3] =  zl_glob[ybi[0]] + DCH1_Zpos;
+	zz11[4] =  zl_glob[uai[0]] + DCH1_Zpos;
+	zz11[5] =  zl_glob[ubi[0]] + DCH1_Zpos;
+	zz11[6] =  zl_glob[vai[0]] + DCH1_Zpos;
+	zz11[7] =  zl_glob[vbi[0]] + DCH1_Zpos;
+
+	zz11x[0] =  zl_glob[xai[0]] + DCH1_Zpos;
+	zz11x[1] =  zl_glob[xbi[0]] + DCH1_Zpos;
+	zz11x[2] =  zl_glob[uai[0]] + DCH1_Zpos;
+	zz11x[3] =  zl_glob[ubi[0]] + DCH1_Zpos;
+	zz11x[4] =  zl_glob[vai[0]] + DCH1_Zpos;
+	zz11x[5] =  zl_glob[vbi[0]] + DCH1_Zpos;
+	zz11y[0] =  zl_glob[yai[0]] + DCH1_Zpos;
+	zz11y[1] =  zl_glob[ybi[0]] + DCH1_Zpos;
+	zz11y[2] =  zl_glob[uai[0]] + DCH1_Zpos;
+	zz11y[3] =  zl_glob[ubi[0]] + DCH1_Zpos;
+	zz11y[4] =  zl_glob[vai[0]] + DCH1_Zpos;
+	zz11y[5] =  zl_glob[vbi[0]] + DCH1_Zpos;
+	  
+	zz1[0] =  zl_glob[xai[0]] + DCH1_Zpos + (zl_glob[yai[0]]-zl_glob[xai[0]])/2.;  //axy
+	zz1[1] =  zl_glob[xbi[0]] + DCH1_Zpos + (zl_glob[ybi[0]]-zl_glob[xbi[0]])/2.;  //bxy
+	zz1[2] =  zl_glob[yai[0]] + DCH1_Zpos + (zl_glob[uai[0]]-zl_glob[yai[0]])/2.;  //ayu
+	zz1[3] =  zl_glob[ybi[0]] + DCH1_Zpos + (zl_glob[ubi[0]]-zl_glob[ybi[0]])/2.;  //byu
+	zz1[4] =  zl_glob[uai[0]] + DCH1_Zpos + (zl_glob[vai[0]]-zl_glob[uai[0]])/2.;  //auv
+	zz1[5] =  zl_glob[ubi[0]] + DCH1_Zpos + (zl_glob[vbi[0]]-zl_glob[ubi[0]])/2.;  //buv
+
+    zz21[0] =  zl_glob[xai[1]] + DCH2_Zpos;
+	zz21[1] =  zl_glob[xbi[1]] + DCH2_Zpos;
+	zz21[2] =  zl_glob[yai[1]] + DCH2_Zpos;
+	zz21[3] =  zl_glob[ybi[1]] + DCH2_Zpos;
+	zz21[4] =  zl_glob[uai[1]] + DCH2_Zpos;
+	zz21[5] =  zl_glob[ubi[1]] + DCH2_Zpos;
+	zz21[6] =  zl_glob[vai[1]] + DCH2_Zpos;
+	zz21[7] =  zl_glob[vbi[1]] + DCH2_Zpos;
+
+	zz21x[0] =  zl_glob[xai[1]] + DCH2_Zpos;
+	zz21x[1] =  zl_glob[xbi[1]] + DCH2_Zpos;
+	zz21x[2] =  zl_glob[uai[1]] + DCH2_Zpos;
+	zz21x[3] =  zl_glob[ubi[1]] + DCH2_Zpos;
+	zz21x[4] =  zl_glob[vai[1]] + DCH2_Zpos;
+	zz21x[5] =  zl_glob[vbi[1]] + DCH2_Zpos;
+	zz21y[0] =  zl_glob[yai[1]] + DCH2_Zpos;
+	zz21y[1] =  zl_glob[ybi[1]] + DCH2_Zpos;
+	zz21y[2] =  zl_glob[uai[1]] + DCH2_Zpos;
+	zz21y[3] =  zl_glob[ubi[1]] + DCH2_Zpos;
+	zz21y[4] =  zl_glob[vai[1]] + DCH2_Zpos;
+	zz21y[5] =  zl_glob[vbi[1]] + DCH2_Zpos;
+	  
+	zz2[0] =  zl_glob[xai[1]] + DCH2_Zpos + (zl_glob[yai[1]]-zl_glob[xai[1]])/2.;  //axy
+	zz2[1] =  zl_glob[xbi[1]] + DCH2_Zpos + (zl_glob[ybi[1]]-zl_glob[xbi[1]])/2.;  //bxy
+	zz2[2] =  zl_glob[yai[1]] + DCH2_Zpos + (zl_glob[uai[1]]-zl_glob[yai[1]])/2.;  //ayu
+	zz2[3] =  zl_glob[ybi[1]] + DCH2_Zpos + (zl_glob[ubi[1]]-zl_glob[ybi[1]])/2.;  //byu
+	zz2[4] =  zl_glob[uai[1]] + DCH2_Zpos + (zl_glob[vai[1]]-zl_glob[uai[1]])/2.; //auv
+	zz2[5] =  zl_glob[ubi[1]] + DCH2_Zpos + (zl_glob[vbi[1]]-zl_glob[ubi[1]])/2;  //buv
+	  
+    fDchTracks->Delete();
+	for(Int_t ia = 0; ia< aC.size(); ia++){     
+		Int_t clI[8]={-1,};
+		
+		GetClusterHitsArray(aC[ia], clI);
+	  
+		FairMCPoint* pnt1;
+		FairMCPoint* pnt2;
+		Double_t mcmin=1000;
+		Double_t mcmax=-1000;
+		if(!expData) {
+			Int_t iMCTrack = digisDCH[clI[0]]->GetRefId();
+			for (Int_t iPoint = 0; iPoint < fBmnDchPointsArray->GetEntriesFast(); iPoint++) {
+				FairMCPoint* pnt = (FairMCPoint*) fBmnDchPointsArray->At(iPoint);       
+				if(pnt->GetTrackID()==iMCTrack){
+					if(pnt->GetZ()<mcmin){
+						mcmin=pnt->GetZ();
+						pnt1= (FairMCPoint*) fBmnDchPointsArray->At(iPoint);
+					}
+					if(pnt->GetZ()>mcmax){
+						mcmax=pnt->GetZ();
+						pnt2= (FairMCPoint*) fBmnDchPointsArray->At(iPoint);
+					}
+				}
+			}
+		}
+		
+		Double_t parx[2],pary[2];
+		if(CombInitial(clI, zz11, parx, pary)){
+			if(histoOutput){
+				LRQA(clI, parx, pary, zz11x, zz11y, pnt1, pnt2, 0);
+				InitialHisto(clI, parx, pary, zz11x, zz11y, pnt1, pnt2);
+			}
+			for(Int_t i=0;i<8;i++){
+				if(clI[i]==-1)
+					continue;
+				Double_t dt = digisDCH[clI[i]]->GetTime();    
+				Double_t mdist=GetDistance(digisDCH[clI[i]]->GetPlane(), parx[1]*zz11[i] + parx[0], pary[1]*zz11[i] + pary[0], digisDCH[clI[i]]->GetWireNumber()); 
+				if(Abs(GetDDistance(digisDCH[clI[i]]->GetTime(),digisDCH[clI[i]]->GetPlane())-mdist)<0.1 && histoOutput)
+					rtI->Fill(dt,mdist);
+			}
+
+			Double_t parx1[2],pary1[2];
+			Double_t chi2x,chi2y;
+			Double_t chi2xc=0,chi2yc=0;
+			Int_t iItera=0;
+			do{
+				iItera++;
+				if(FitItera(clI, parx, pary, parx1, pary1, zz11x, zz11y, false, pnt1, pnt2, 7, &chi2x, &chi2y)){
+					if((chi2x<0.00001 && chi2y<0.00001) || (Abs(chi2x-chi2xc)/chi2xc < 0.001 &&  Abs(chi2x-chi2xc)/chi2xc < 0.001) ){
+						FitItera(clI, parx, pary, parx1, pary1, zz11x, zz11y, true, pnt1, pnt2, 7, &chi2x, &chi2y);
+						LRQA(clI, parx, pary, zz11x, zz11y, pnt1, pnt2, 1);
+						break;
+					}
+					if(iItera>50)
+						break;
+				}
+				else{
+					break;
+				}
+				parx[0]=parx1[0];
+				parx[1]=parx1[1];
+				pary[0]=pary1[0];
+				pary[1]=pary1[1];
+				chi2xc=chi2x;
+				chi2yc=chi2y;
+			}while(1);
+			//if(iItera>50)
+			//	cout << "Bad A Cluster Itera: " << iItera << " chi2x: " << chi2x << " " << chi2xc << " chi2y: " << chi2y << " " << chi2yc << " " << Abs(chi2x-chi2xc)/chi2xc << " " << Abs(chi2x-chi2xc)/chi2xc << endl;
+			aC[ia]->parx[0]=parx1[0];
+			aC[ia]->parx[1]=parx1[1];
+			aC[ia]->pary[0]=pary1[0];
+			aC[ia]->pary[1]=pary1[1];
+		}
+	}
+	for(Int_t ib = 0; ib< bC.size(); ib++){
+		
+		Int_t clI[8]={-1,};	
+		GetClusterHitsArray(bC[ib], clI);
+		FairMCPoint* pnt1;
+		FairMCPoint* pnt2;
+		Double_t mcmin=1000;
+		Double_t mcmax=-1000;
+		if(!expData) {
+			Int_t iMCTrack = digisDCH[clI[0]]->GetRefId();
+			for (Int_t iPoint = 0; iPoint < fBmnDchPointsArray->GetEntriesFast(); iPoint++) {
+				FairMCPoint* pnt = (FairMCPoint*) fBmnDchPointsArray->At(iPoint);       
+				if(pnt->GetTrackID()==iMCTrack){
+					if(pnt->GetZ()<mcmin){
+						mcmin=pnt->GetZ();
+						pnt1= (FairMCPoint*) fBmnDchPointsArray->At(iPoint);
+					}
+					if(pnt->GetZ()>mcmax){
+						mcmax=pnt->GetZ();
+						pnt2= (FairMCPoint*) fBmnDchPointsArray->At(iPoint);
+					}
+				}
+			}
+		}
+		Double_t parx[2],pary[2];
+		if(CombInitial(clI, zz21, parx, pary)){
+		//if(InitialFit(clI, parx, pary, zz2, true, pnt1, pnt2, 5)){
+			LRQA(clI, parx, pary, zz21x, zz21y, pnt1, pnt2, 0);
+			InitialHisto(clI, parx, pary, zz11x, zz11y, pnt1, pnt2);
+			////////////////////////////////////////////
+			for(Int_t i=0;i<8;i++){
+				if(clI[i]==-1)
+					continue;
+				Double_t dt = digisDCH[clI[i]]->GetTime();    
+				Double_t mdist=GetDistance(digisDCH[clI[i]]->GetPlane(), parx[1]*zz21[i] + parx[0], pary[1]*zz21[i] + pary[0], digisDCH[clI[i]]->GetWireNumber()); 
+				if(Abs(GetDDistance(digisDCH[clI[i]]->GetTime(),digisDCH[clI[i]]->GetPlane())-mdist)<0.1 && histoOutput)
+					rtI->Fill(dt,mdist);
+			}
+			////////////////////////////////////////////
+			Double_t parx1[2],pary1[2];
+			Double_t chi2x,chi2y;
+			Double_t chi2xc=0,chi2yc=0;
+			Int_t iItera=0;
+			do{
+				iItera++;
+				if(FitItera(clI, parx, pary, parx1, pary1, zz21x, zz21y, false, pnt1, pnt2, 9, &chi2x, &chi2y)){
+					if((chi2x<0.00001 && chi2y<0.00001) || (Abs(chi2x-chi2xc)/chi2xc < 0.001 &&  Abs(chi2x-chi2xc)/chi2xc < 0.001) ){
+						FitItera(clI, parx, pary, parx1, pary1, zz21x, zz21y, true, pnt1, pnt2, 9, &chi2x, &chi2y);
+						LRQA(clI, parx, pary, zz21x, zz21y, pnt1, pnt2, 1);
+						break;
+					}
+					if(iItera>50)
+						break;
+				}
+				else{
+					break;
+				}
+				parx[0]=parx1[0];
+				parx[1]=parx1[1];
+				pary[0]=pary1[0];
+				pary[1]=pary1[1];
+				chi2xc=chi2x;
+				chi2yc=chi2y;
+			}while(1);
+			//if(iItera>50)
+			//	cout << "Bad B Cluster Itera: " << iItera << " chi2x: " << chi2x << " " << chi2xc << " chi2y: " << chi2y << " " << chi2yc << " " << Abs(chi2x-chi2xc)/chi2xc << " " << Abs(chi2x-chi2xc)/chi2xc << endl;
+			bC[ib]->parx[0]=parx1[0];
+			bC[ib]->parx[1]=parx1[1];
+			bC[ib]->pary[0]=pary1[0];
+			bC[ib]->pary[1]=pary1[1];
+		}
+	}
+	//Match segmets
+	vector<BmnDchTrack*> vtrk;
+	for(Int_t ia = 0; ia< aC.size(); ia++){     
+		Double_t xmin=10000;
+		Double_t ymin=10000;
+		Double_t zm = (DCH2_Zpos - DCH1_Zpos)/2 + DCH1_Zpos;
+		Double_t x1 = aC[ia]->parx[1]*zm + aC[ia]->parx[0];
+		Double_t y1 = aC[ia]->pary[1]*zm + aC[ia]->pary[0];
+		Int_t iBi=-1;
+		for(Int_t ib = 0; ib< bC.size(); ib++){
+			Double_t x2 = bC[ib]->parx[1]*zm + bC[ib]->parx[0];
+			Double_t y2 = bC[ib]->pary[1]*zm + bC[ib]->pary[0];
+			if(Abs(x2-x1)<Abs(xmin) && Abs(y2-y1)<Abs(ymin) && Abs(x2-x1)<matchCut && Abs(y2-y1)< matchCut){
+				xmin = x2-x1;
+				ymin = y2-y1;
+				iBi=ib;
+			}
+		}
+		if(histoOutput){
+			if(xmin!=10000 && ymin!=10000){
+				XResid4->Fill(xmin);
+				YResid4->Fill(ymin);
+			}
+			if(iBi!=-1){
+				if(Abs(xmin)<5 && Abs(ymin)<5){
+					XResid3->Fill(xmin);
+					YResid3->Fill(ymin);
+				}
+			}	
+		}
+		Int_t clIa[8]={-1,};	
+		Int_t clIb[8]={-1,};	
+		GetClusterHitsArray(aC[ia], clIa);
+		if(iBi!=-1)
+			GetClusterHitsArray(bC[iBi], clIb);		
+			
+		FairMCPoint* pnt1;
+		FairMCPoint* pnt2;
+		Double_t mcmin=1000;
+		Double_t mcmax=-1000;
+		if(!expData) {
+			Int_t iMCTrack = digisDCH[clIa[0]]->GetRefId();
+			for (Int_t iPoint = 0; iPoint < fBmnDchPointsArray->GetEntriesFast(); iPoint++) {
+				FairMCPoint* pnt = (FairMCPoint*) fBmnDchPointsArray->At(iPoint);       
+				if(pnt->GetTrackID()==iMCTrack){
+					if(pnt->GetZ()<mcmin){
+						mcmin=pnt->GetZ();
+						pnt1= (FairMCPoint*) fBmnDchPointsArray->At(iPoint);
+					}
+					if(pnt->GetZ()>mcmax){
+						mcmax=pnt->GetZ();
+						pnt2= (FairMCPoint*) fBmnDchPointsArray->At(iPoint);
+					}
+				}
+			}
+		}
+		Double_t parx[2],pary[2];
+		Double_t parx1[2],pary1[2];
+		Double_t chi2x,chi2y;
+		Double_t chi2xc=0,chi2yc=0;
+		Int_t iItera=0;
+		parx[0]=aC[ia]->parx[0];
+		parx[1]=aC[ia]->parx[1];
+		pary[0]=aC[ia]->pary[0];
+		pary[1]=aC[ia]->pary[1];
+		do{
+			iItera++;
+			if(FitIteraGlobal(clIa, clIb, parx, pary, parx1, pary1, zz11x, zz11y, zz21x, zz21y, false, pnt1, pnt2, 13, &chi2x, &chi2y)){
+				if((chi2x<0.00001 && chi2y<0.00001) || (Abs(chi2x-chi2xc)/chi2xc < 0.001 &&  Abs(chi2x-chi2xc)/chi2xc < 0.001) ){
+					FitIteraGlobal(clIa, clIb, parx, pary, parx1, pary1, zz11x, zz11y, zz21x, zz21y, true, pnt1, pnt2, 13, &chi2x, &chi2y);
+					LRQA(clIa, parx, pary, zz11x, zz11y, pnt1, pnt2, 2);
+					LRQA(clIb, parx, pary, zz21x, zz21y, pnt1, pnt2, 2);
+					break;
+				}
+				if(iItera>50)
+					break;
+			}
+			else{
+				break;
+			}
+			parx[0]=parx1[0];
+			parx[1]=parx1[1];
+			pary[0]=pary1[0];
+			pary[1]=pary1[1];
+			chi2xc=chi2x;
+			chi2yc=chi2y;
+		}while(1);
+		//if(iItera>50)
+		//	cout << "Bad Global Itera: " << iItera << " chi2x: " << chi2x << " " << chi2xc << " chi2y: " << chi2y << " " << chi2yc << " " << Abs(chi2x-chi2xc)/chi2xc << " " << Abs(chi2x-chi2xc)/chi2xc << endl;
+		//else{
+			BmnDchTrack* track = new BmnDchTrack();
+			track->xozParameters.push_back(parx[0]);
+			track->xozParameters.push_back(parx[1]);
+			track->yozParameters.push_back(pary[0]);
+			track->yozParameters.push_back(pary[1]);
+			track->SetNHits(0);
+			vtrk.push_back(track);
+		//}
+	}      
+    //!!!??? вот это внимательно проверить !!!??? отсев гостов
+    for (Int_t iDig = 0; iDig < fBmnDchDigitsArray->GetEntriesFast(); ++iDig) {
+	    BmnDchDigit* digit = (BmnDchDigit*) fBmnDchDigitsArray->UncheckedAt(iDig);	    
+	    Double_t mdist=1000;
+	    Int_t minIdx=-1;
+	    for(Int_t trIdx = 0; trIdx < vtrk.size(); ++trIdx) {
+	    	BmnDchTrack* dchTr = vtrk[trIdx];
+	    	Double_t zh=zl_glob[digit->GetPlane()] + DCH1_Zpos;
+			if(digit->GetPlane()>7)
+				zh=zl_glob[digit->GetPlane()] + DCH2_Zpos;
+	    	Double_t dist=GetDistance(digit->GetPlane(), dchTr->xozParameters[1]*zh + dchTr->xozParameters[0], 
+					dchTr->yozParameters[1]*zh + dchTr->yozParameters[0], digit->GetWireNumber());
+	    	if(dist<mdist){// && dist<1.5){
+	    		mdist=dist;
+	    		minIdx=trIdx;
+	    	}
+	    }
+	    if(minIdx!=-1){
+	    	digit->SetRefId(minIdx);
+	    	vtrk[minIdx]->SetNHits(vtrk[minIdx]->GetNHits()+1);
+	    }
+	}
+	Int_t idTrack=0;
+    //!!!??? вот это внимательно проверить !!!???
+	for(Int_t trIdx = 0; trIdx < vtrk.size(); ++trIdx) {
+    	if(vtrk[trIdx]->GetNHits()>7){
+    	    for (Int_t iDig = 0; iDig < fBmnDchDigitsArray->GetEntriesFast(); ++iDig) {
+    	    	BmnDchDigit* digit = (BmnDchDigit*) fBmnDchDigitsArray->UncheckedAt(iDig);
+    	    	if(digit->GetRefId()==trIdx)
+    	    		digit->SetRefId(idTrack);
+    	    }
+			new((*fDchTracks)[idTrack]) BmnDchTrack();
+			BmnDchTrack* track = (BmnDchTrack*) fDchTracks->At(idTrack);
+			track->xozParameters.push_back(vtrk[trIdx]->xozParameters[0]);
+			track->xozParameters.push_back(vtrk[trIdx]->xozParameters[1]);
+			track->yozParameters.push_back(vtrk[trIdx]->yozParameters[0]);
+			track->yozParameters.push_back(vtrk[trIdx]->yozParameters[1]);
+			track->xrms = vtrk[trIdx]->xrms;
+			track->yrms = vtrk[trIdx]->yrms;
+			track->SetNHits(vtrk[trIdx]->GetNHits());
+    		idTrack++;
+    	}
+    }
+}
+Double_t BmnDchTrackFinder::LinePropagation(Double_t y1, Double_t x1, Double_t y2, Double_t x2, Double_t xs){
+	return y1+(xs-x1)*((y2-y1)/(x2-x1));
+}
+void BmnDchTrackFinder::GetWirePairBE(Int_t idx1, Int_t idx2, Double_t* x1b, Double_t* x1e, Double_t* y1b, Double_t* y1e, Double_t* x2b, Double_t* x2e, Double_t* y2b, Double_t* y2e, Int_t lr){
+	Int_t lr1,lr2;
+	if(lr==0){
+		lr1=-1;
+		lr2=-1;
+	}
+    if(lr==1){
+    	lr1=-1;
+    	lr2=1;
+    }
+    if(lr==2){
+    	lr1=1;
+    	lr2=-1;
+    }
+    if(lr==3){
+    	lr1=1;
+    	lr2=1;
+    }
+	GetBEPoints(idx1,x1b,y1b,x1e,y1e, lr1);
+	GetBEPoints(idx2,x2b,y2b,x2e,y2e, lr2);
+}
+void BmnDchTrackFinder::ClustersPreparationRT(){
+    aC.clear();
+	bC.clear();
+	pairxa.clear();
+	pairxb.clear();
+	pairya.clear();
+	pairyb.clear();
+	pairua.clear();
+	pairub.clear();
+	pairva.clear();
+	pairvb.clear();
+	vector<RecoCluster*> rc1; 
+	vector<RecoCluster*> rc2; 
+	vector<RecoCluster*> rc1x; 
+	vector<RecoCluster*> rc2x; 
+	vector<RecoCluster*> rc1y; 
+	vector<RecoCluster*> rc2y; 
+	for(Int_t plane=0;plane<16;plane+=2){
+		for(Int_t iDig=0;iDig<planes[plane].size(); iDig++){
+			Int_t wire1 = digisDCH[planes[plane][iDig]]->GetWireNumber();
+			for(Int_t iDig1=0;iDig1<planes[plane+1].size(); iDig1++){
+				Int_t wire2 = digisDCH[planes[plane+1][iDig1]]->GetWireNumber();
+				if(Abs(wire1-wire2)<2){
+					if(plane==xai[0])
+						pairxa.push_back(new PointPair(iDig,iDig1));
+					if(plane==xai[1])
+						pairxb.push_back(new PointPair(iDig,iDig1));
+					if(plane==yai[0])
+						pairya.push_back(new PointPair(iDig,iDig1));
+					if(plane==yai[1])
+						pairyb.push_back(new PointPair(iDig,iDig1));
+					if(plane==uai[0])
+						pairua.push_back(new PointPair(iDig,iDig1));
+					if(plane==uai[1])
+						pairub.push_back(new PointPair(iDig,iDig1));
+					if(plane==vai[0])
+						pairva.push_back(new PointPair(iDig,iDig1));
+					if(plane==vai[1])
+						pairvb.push_back(new PointPair(iDig,iDig1));
+				}
+			}	
+		}		
+	}	
+	Double_t zx1,zx2,zy1,zy2,zu1,zu2,zv1,zv2;
+    for(Int_t ix1 = 0; ix1<pairxa.size();ix1++){
+    	Double_t x1b,x1e,y1b,y1e;
+    	Double_t x2b,x2e,y2b,y2e;
+    	Double_t mdiff=1000;
+		Double_t x1bbk,x2bbk,y1bbk,y2bbk,zx1bk,zx2bk,xuabk,xubbk,yuabk,yubbk,zu1bk,zu2bk,xvabk,xvbbk,yvabk,yvbbk,zv1bk,zv2bk;
+		Int_t lribk,lrubk,lrvbk,idx1x,idx2x,idx1u,idx2u,idx1v,idx2v;
+    	for(Int_t lri=0;lri<4;lri++){
+    		GetWirePairBE(planes[xai[0]][pairxa[ix1]->idx1], planes[xbi[0]][pairxa[ix1]->idx2], &x1b, &x1e, &y1b, &y1e, &x2b, &x2e, &y2b, &y2e, lri);
+    		zx1 = zl_glob[digisDCH[planes[xai[0]][pairxa[ix1]->idx1]]->GetPlane()] + DCH1_Zpos;
+    		zx2 = zl_glob[digisDCH[planes[xbi[0]][pairxa[ix1]->idx2]]->GetPlane()] + DCH1_Zpos;
+    		for(Int_t iu1 = 0; iu1<pairua.size();iu1++){
+    			for(Int_t lru=0;lru<4;lru++){
+    	        	Double_t x1bu,x1eu,y1bu,y1eu;
+    	        	Double_t x2bu,x2eu,y2bu,y2eu;
+    	    		GetWirePairBE(planes[uai[0]][pairua[iu1]->idx1], planes[ubi[0]][pairua[iu1]->idx2], &x1bu, &x1eu, &y1bu, &y1eu, &x2bu, &x2eu, &y2bu, &y2eu, lru);
+    	    		Int_t plane1 = digisDCH[planes[uai[0]][pairua[iu1]->idx1]]->GetPlane();
+    	    	    Double_t zp1 = zl_glob[plane1] + DCH1_Zpos;
+    	    	    zu1=zp1;
+    	    	    Double_t xua = LinePropagation(x1b, zl_glob[xai[0]] + DCH1_Zpos, x2b, zl_glob[xbi[0]] + DCH1_Zpos, zp1);
+    	    		Double_t yua = LinePropagation(y1bu,x1bu,y1eu,x1eu,xua);
+    	    		if(Abs(xua)>150 && Abs(yua)>150)
+    	    			continue;
+					
+					Int_t plane2 = digisDCH[planes[ubi[0]][pairua[iu1]->idx2]]->GetPlane();
+    	    	    Double_t zp2 = zl_glob[plane2] + DCH1_Zpos;
+    	    	    zu2=zp2;
+    	    	    Double_t xub = LinePropagation(x1b, zl_glob[xai[0]] + DCH1_Zpos, x2b, zl_glob[xbi[0]] + DCH1_Zpos, zp2);
+    	    	    Double_t yub = LinePropagation(y2bu,x2bu,y2eu,x2eu,xub);
+    	    		if(Abs(xub)>150 && Abs(yub)>150)
+    	    			continue;
+    	    		
+					for(Int_t iv1 = 0; iv1<pairva.size();iv1++){
+    	    			for(Int_t lrv=0;lrv<4;lrv++){
+    	    				Double_t x1bv,x1ev,y1bv,y1ev;
+    	    				Double_t x2bv,x2ev,y2bv,y2ev;
+    	    				GetWirePairBE(planes[vai[0]][pairva[iv1]->idx1], planes[vbi[0]][pairva[iv1]->idx2], &x1bv, &x1ev, &y1bv, &y1ev, &x2bv, &x2ev, &y2bv, &y2ev, lrv);
+    	    				plane1 = digisDCH[planes[vai[0]][pairva[iv1]->idx1]]->GetPlane();
+    	    				zp1 = zl_glob[plane1] + DCH1_Zpos;
+    	    				zv1=zp1;
+    	    				Double_t xva = LinePropagation(x1b, zl_glob[xai[0]] + DCH1_Zpos, x2b, zl_glob[xbi[0]] + DCH1_Zpos, zp1);
+    	    				Double_t yva = LinePropagation(y1bv,x1bv,y1ev,x1ev,xva);
+    	    	    		if(Abs(xva)>150 && Abs(yva)>150)
+    	    	    			continue;
+
+    	    				plane2 = digisDCH[planes[vbi[0]][pairva[iv1]->idx2]]->GetPlane();
+    	    				zp2 = zl_glob[plane2] + DCH1_Zpos;
+    	    				zv2=zp2;
+    	    				Double_t xvb = LinePropagation(x1b, zl_glob[xai[0]] + DCH1_Zpos, x2b, zl_glob[xbi[0]] + DCH1_Zpos, zp2);
+    	    				Double_t yvb = LinePropagation(y2bv,x2bv,y2ev,x2ev,xvb);
+    	    	    		if(Abs(xvb)>150 && Abs(yvb)>150)
+    	    	    			continue;
+
+    	    	    		if(Abs((yva-yua)-(yvb-yub))<mdiff){
+    	    	    			mdiff=Abs((yva-yua)-(yvb-yub)); 
+    	    	    			
+    	    	    			x1bbk=x1b;
+    	    	    			x2bbk=x2b;
+    	    	    			y1bbk=-1;
+    	    	    			y2bbk=-1;
+    	    	    			zx1bk=zx1;
+    	    	    			zx2bk=zx2;
+    	    	    			xuabk=xua;
+    	    	    			xubbk=xub;
+    	    	    			yuabk=yua;
+    	    	    			yubbk=yub;
+    	    	    			zu1bk=zu1;
+    	    	    			zu2bk=zu2;
+    	    	    			xvabk=xva;
+    	    	    			xvbbk=xvb;
+    	    	    			yvabk=yva;
+    	    	    			yvbbk=yvb;
+    	    	    			zv1bk=zv1;
+    	    	    			zv2bk=zv2;
+    	    	    			
+    	    	    			lribk=lri;
+    	    	    			lrubk=lru;
+    	    	    			lrvbk=lrv;
+    	    	    			idx1x=planes[xai[0]][pairxa[ix1]->idx1];
+    	    	    			idx2x=planes[xbi[0]][pairxa[ix1]->idx2];
+    	    	    			idx1u=planes[uai[0]][pairua[iu1]->idx1];
+    	    	    			idx2u=planes[ubi[0]][pairua[iu1]->idx2];
+    	    	    			idx1v=planes[vai[0]][pairva[iv1]->idx1];
+    	    	    			idx2v=planes[vbi[0]][pairva[iv1]->idx2];
+    	    	    		}
+    	    			}
+    	    		}
+    	    	}
+    		}
+    	}
+    	if(mdiff!=1000){
+			RecoCluster *rc= new RecoCluster();
+			rc->hits.push_back(new RecoPoint3D(x1bbk,y1bbk,zx1bk,idx1x,lribk));
+			rc->hits.push_back(new RecoPoint3D(x2bbk,y2bbk,zx2bk,idx2x,lribk));
+			rc->hits.push_back(new RecoPoint3D(xuabk,yuabk,zu1bk,idx1u,lrubk));
+			rc->hits.push_back(new RecoPoint3D(xubbk,yubbk,zu2bk,idx2u,lrubk));
+			rc->hits.push_back(new RecoPoint3D(xvabk,yvabk,zv1bk,idx1v,lrvbk));
+			rc->hits.push_back(new RecoPoint3D(xvbbk,yvbbk,zv2bk,idx2v,lrvbk));
+			rc1x.push_back(rc);
+			if(histoOutput){
+				dxu1a->Fill(x1bbk-xuabk);
+				dxu1b->Fill(x2bbk-xubbk);
+				dxv1a->Fill(x1bbk-xvabk);
+				duv1a->Fill(xuabk-xvabk);
+				dxuv1a->Fill((x1bbk-xuabk) -(xuabk-xvabk));
+				dxyuv1a->Fill((y1bbk-yuabk) -(yuabk-yvabk));
+				dxv1b->Fill(x2bbk-xvbbk);
+				duv1b->Fill(xubbk-xvbbk);
+				dxuv1b->Fill((x2bbk-xubbk) -(xubbk-xvbbk));
+				dxyuv1b->Fill((y2bbk-yubbk) -(yubbk-yvbbk));
+				xwired[0]->Fill(x1bbk);
+				xwired[1]->Fill(x2bbk);
+				xwired[4]->Fill(xuabk);
+				xwired[5]->Fill(xubbk);
+				xwired[6]->Fill(xvabk);
+				xwired[7]->Fill(xvbbk);
+				yxwired[4]->Fill(yuabk);
+				yxwired[5]->Fill(yubbk);
+				yxwired[6]->Fill(yvabk);
+				yxwired[7]->Fill(yvbbk);
+			}
+    	}
+	}
+
+    for(Int_t ix1 = 0; ix1<pairya.size();ix1++){
+    	Double_t x1b,x1e,y1b,y1e;
+    	Double_t x2b,x2e,y2b,y2e;
+    	Double_t mdiff=1000;
+		Double_t x1bbk,x2bbk,y1bbk,y2bbk,zx1bk,zx2bk,xuabk,xubbk,yuabk,yubbk,zu1bk,zu2bk,xvabk,xvbbk,yvabk,yvbbk,zv1bk,zv2bk;
+		Int_t lribk,lrubk,lrvbk,idx1x,idx2x,idx1u,idx2u,idx1v,idx2v;
+    	for(Int_t lri=0;lri<4;lri++){
+    		GetWirePairBE(planes[yai[0]][pairya[ix1]->idx1], planes[ybi[0]][pairya[ix1]->idx2], &x1b, &x1e, &y1b, &y1e, &x2b, &x2e, &y2b, &y2e, lri);
+    		zy1 = zl_glob[digisDCH[planes[yai[0]][pairya[ix1]->idx1]]->GetPlane()] + DCH1_Zpos;
+    		zy2 = zl_glob[digisDCH[planes[ybi[0]][pairya[ix1]->idx2]]->GetPlane()] + DCH1_Zpos;
+    		for(Int_t iu1 = 0; iu1<pairua.size();iu1++){
+    	    	for(Int_t lru=0;lru<4;lru++){
+    	        	Double_t x1bu,x1eu,y1bu,y1eu;
+    	        	Double_t x2bu,x2eu,y2bu,y2eu;
+    	    		GetWirePairBE(planes[uai[0]][pairua[iu1]->idx1], planes[ubi[0]][pairua[iu1]->idx2], &x1bu, &x1eu, &y1bu, &y1eu, &x2bu, &x2eu, &y2bu, &y2eu, lru);
+    	    		Int_t plane1 = digisDCH[planes[uai[0]][pairua[iu1]->idx1]]->GetPlane();
+    	    	    Double_t zp1 = zl_glob[plane1] + DCH1_Zpos;
+    	    	    zu1=zp1;
+    	    	    Double_t yua = LinePropagation(y1b, zl_glob[yai[0]] + DCH1_Zpos, y2b, zl_glob[ybi[0]] + DCH1_Zpos, zp1);
+    	    		Double_t xua = LinePropagation(x1bu,y1bu,x1eu,y1eu,yua);
+    	    		if(Abs(xua)>150 && Abs(yua)>150)
+    	    			continue;
+    	    		Int_t plane2 = digisDCH[planes[ubi[0]][pairua[iu1]->idx2]]->GetPlane();
+    	    	    Double_t zp2 = zl_glob[plane2] + DCH1_Zpos;
+    	    	    zu2=zp2;
+    	    	    Double_t yub = LinePropagation(y1b, zl_glob[yai[0]] + DCH1_Zpos, y2b, zl_glob[ybi[0]] + DCH1_Zpos, zp2);
+    	    	    Double_t xub = LinePropagation(x2bu,y2bu,x2eu,y2eu,yub);
+    	    		if(Abs(xub)>150 && Abs(yub)>150)
+    	    			continue;
+    	    		for(Int_t iv1 = 0; iv1<pairva.size();iv1++){
+    	    			for(Int_t lrv=0;lrv<4;lrv++){
+    	    				Double_t x1bv,x1ev,y1bv,y1ev;
+    	    				Double_t x2bv,x2ev,y2bv,y2ev;
+    	    				GetWirePairBE(planes[vai[0]][pairva[iv1]->idx1], planes[vbi[0]][pairva[iv1]->idx2], &x1bv, &x1ev, &y1bv, &y1ev, &x2bv, &x2ev, &y2bv, &y2ev, lrv);
+    	    				plane1 = digisDCH[planes[vai[0]][pairva[iv1]->idx1]]->GetPlane();
+    	    				zp1 = zl_glob[plane1] + DCH1_Zpos;
+    	    				zv1=zp1;
+    	    				Double_t yva = LinePropagation(y1b, zl_glob[yai[0]] + DCH1_Zpos, y2b, zl_glob[ybi[0]] + DCH1_Zpos, zp1);
+    	    				Double_t xva = LinePropagation(x1bv,y1bv,x1ev,y1ev,yva);;
+    	    	    		if(Abs(xva)>150 && Abs(yva)>150)
+    	    	    			continue;
+    	    				plane2 = digisDCH[planes[vbi[0]][pairva[iv1]->idx2]]->GetPlane();
+    	    				zp2 = zl_glob[plane2] + DCH1_Zpos;
+    	    				zv2=zp2;
+    	    				Double_t yvb = LinePropagation(y1b, zl_glob[yai[0]] + DCH1_Zpos, y2b, zl_glob[ybi[0]] + DCH1_Zpos, zp2);
+    	    				Double_t xvb = LinePropagation(x2bv,y2bv,x2ev,y2ev,yvb);
+    	    	    		if(Abs(xvb)>150 && Abs(yvb)>150)
+    	    	    			continue;
+    	    	    		if(Abs((yva-yua)-(yvb-yub))<mdiff){
+    	    	    			mdiff=Abs((yva-yua)-(yvb-yub));
+    	    	    			
+    	    	    			x1bbk=-1;
+    	    	    			x2bbk=-1;
+    	    	    			y1bbk=y1b;
+    	    	    			y2bbk=y2b;
+    	    	    			zx1bk=zx1;
+    	    	    			zx2bk=zx2;
+    	    	    			xuabk=xua;
+    	    	    			xubbk=xub;
+    	    	    			yuabk=yua;
+    	    	    			yubbk=yub;
+    	    	    			zu1bk=zu1;
+    	    	    			zu2bk=zu2;
+    	    	    			xvabk=xva;
+    	    	    			xvbbk=xvb;
+    	    	    			yvabk=yva;
+    	    	    			yvbbk=yvb;
+    	    	    			zv1bk=zv1;
+    	    	    			zv2bk=zv2;
+    	    	    			
+    	    	    			lribk=lri;
+    	    	    			lrubk=lru;
+    	    	    			lrvbk=lrv;
+    	    	    			idx1x=planes[yai[0]][pairya[ix1]->idx1];
+    	    	    			idx2x=planes[ybi[0]][pairya[ix1]->idx2];
+    	    	    			idx1u=planes[uai[0]][pairua[iu1]->idx1];
+    	    	    			idx2u=planes[ubi[0]][pairua[iu1]->idx2];
+    	    	    			idx1v=planes[vai[0]][pairva[iv1]->idx1];
+    	    	    			idx2v=planes[vbi[0]][pairva[iv1]->idx2];
+    	    	    		}
+    	    			}
+    	    		}
+    	    	}
+    		}
+    	}
+    	if(mdiff!=1000){
+			RecoCluster *rc= new RecoCluster();
+			rc->hits.push_back(new RecoPoint3D(x1bbk,y1bbk,zx1bk,idx1x,lribk));
+			rc->hits.push_back(new RecoPoint3D(x2bbk,y2bbk,zx2bk,idx2x,lribk));
+			rc->hits.push_back(new RecoPoint3D(xuabk,yuabk,zu1bk,idx1u,lrubk));
+			rc->hits.push_back(new RecoPoint3D(xubbk,yubbk,zu2bk,idx2u,lrubk));
+			rc->hits.push_back(new RecoPoint3D(xvabk,yvabk,zv1bk,idx1v,lrvbk));
+			rc->hits.push_back(new RecoPoint3D(xvbbk,yvbbk,zv2bk,idx2v,lrvbk));
+			rc1y.push_back(rc);
+			if(histoOutput){
+				dyu1a->Fill(y1bbk-yuabk);
+				dyu1b->Fill(y2bbk-yubbk);
+				dyv1a->Fill(y1bbk-yvabk);
+				duv1a->Fill(yuabk-yvabk);
+				dyuv1a->Fill((y1bbk-yuabk) - (yuabk-yvabk));
+				dyxuv1a->Fill((x1bbk-xuabk) - (xuabk-xvabk));
+				dyv1b->Fill(y2bbk-yvbbk);
+				duv1b->Fill(yubbk-yvbbk);
+				dyuv1b->Fill((y2bbk-yubbk)-(yubbk-yvbbk));
+				dyxuv1b->Fill((x2bbk-xubbk)-(xubbk-xvbbk));
+				ywired[2]->Fill(y1bbk);
+				ywired[3]->Fill(y2bbk);
+				ywired[4]->Fill(yuabk);
+				ywired[5]->Fill(yubbk);
+				ywired[6]->Fill(yvabk);
+				ywired[7]->Fill(yvbbk);
+				xywired[4]->Fill(xuabk);
+				xywired[5]->Fill(xubbk);
+				xywired[6]->Fill(xvabk);
+				xywired[7]->Fill(xvbbk);   		
+			}
+    	}
+	}
+	for(Int_t ix1 = 0; ix1<pairxb.size();ix1++){
+    	Double_t x1b,x1e,y1b,y1e;
+    	Double_t x2b,x2e,y2b,y2e;
+    	Double_t mdiff=1000;
+		Double_t x1bbk,x2bbk,y1bbk,y2bbk,zx1bk,zx2bk,xuabk,xubbk,yuabk,yubbk,zu1bk,zu2bk,xvabk,xvbbk,yvabk,yvbbk,zv1bk,zv2bk;
+		Int_t lribk,lrubk,lrvbk,idx1x,idx2x,idx1u,idx2u,idx1v,idx2v;
+    	for(Int_t lri=0;lri<4;lri++){
+    		GetWirePairBE(planes[xai[1]][pairxb[ix1]->idx1], planes[xbi[1]][pairxb[ix1]->idx2], &x1b, &x1e, &y1b, &y1e, &x2b, &x2e, &y2b, &y2e, lri);
+    		zx1 = zl_glob[digisDCH[planes[xai[1]][pairxb[ix1]->idx1]]->GetPlane()] + DCH2_Zpos;
+    		zx2 = zl_glob[digisDCH[planes[xbi[1]][pairxb[ix1]->idx2]]->GetPlane()] + DCH2_Zpos;
+    		for(Int_t iu1 = 0; iu1<pairub.size();iu1++){
+    	    	for(Int_t lru=0;lru<4;lru++){
+    	        	Double_t x1bu,x1eu,y1bu,y1eu;
+    	        	Double_t x2bu,x2eu,y2bu,y2eu;
+    	    		GetWirePairBE(planes[uai[1]][pairub[iu1]->idx1], planes[ubi[1]][pairub[iu1]->idx2], &x1bu, &x1eu, &y1bu, &y1eu, &x2bu, &x2eu, &y2bu, &y2eu, lru);
+    	    		Int_t plane1 = digisDCH[planes[uai[1]][pairub[iu1]->idx1]]->GetPlane();
+    	    	    Double_t zp1 = zl_glob[plane1] + DCH2_Zpos;
+    	    	    zu1=zp1;
+    	    	    Double_t xua = LinePropagation(x1b, zl_glob[xai[1]] + DCH2_Zpos, x2b, zl_glob[xbi[1]] + DCH2_Zpos, zp1);
+    	    	    Double_t yua = LinePropagation(y1bu,x1bu,y1eu,x1eu,xua);
+    	    		if(Abs(xua)>150 && Abs(yua)>150)
+    	    			continue;
+    	    		Int_t plane2 = digisDCH[planes[ubi[1]][pairub[iu1]->idx2]]->GetPlane();
+    	    	    Double_t zp2 = zl_glob[plane2] + DCH2_Zpos;
+    	    	    zu2=zp2;
+    	    	    Double_t xub = LinePropagation(x1b, zl_glob[xai[1]] + DCH2_Zpos, x2b, zl_glob[xbi[1]] + DCH2_Zpos, zp2);
+    	    	    Double_t yub = LinePropagation(y2bu,x2bu,y2eu,x2eu,xub);
+    	    		if(Abs(xub)>150 && Abs(yub)>150)
+    	    			continue;
+    	    		for(Int_t iv1 = 0; iv1<pairvb.size();iv1++){
+    	    			for(Int_t lrv=0;lrv<4;lrv++){
+    	    				Double_t x1bv,x1ev,y1bv,y1ev;
+    	    				Double_t x2bv,x2ev,y2bv,y2ev;
+    	    				GetWirePairBE(planes[vai[1]][pairvb[iv1]->idx1], planes[vbi[1]][pairvb[iv1]->idx2], &x1bv, &x1ev, &y1bv, &y1ev, &x2bv, &x2ev, &y2bv, &y2ev, lrv);
+    	    				plane1 = digisDCH[planes[vai[1]][pairvb[iv1]->idx1]]->GetPlane();
+    	    				zp1 = zl_glob[plane1] + DCH2_Zpos;
+    	    				zv1=zp1;
+    	    				Double_t xva = LinePropagation(x1b, zl_glob[xai[1]] + DCH2_Zpos, x2b, zl_glob[xbi[1]] + DCH2_Zpos, zp1);
+    	    				Double_t yva = LinePropagation(y1bv,x1bv,y1ev,x1ev,xva);
+    	    	    		if(Abs(xva)>150 && Abs(yva)>150)
+    	    	    			continue;
+    	    				plane2 = digisDCH[planes[vbi[1]][pairvb[iv1]->idx2]]->GetPlane();
+    	    				zp2 = zl_glob[plane2] + DCH2_Zpos;
+    	    				zv2=zp2;
+    	    				Double_t xvb = LinePropagation(x1b, zl_glob[xai[1]] + DCH2_Zpos, x2b, zl_glob[xbi[1]] + DCH2_Zpos, zp2);
+    	    				Double_t yvb = LinePropagation(y2bv,x2bv,y2ev,x2ev,xvb);
+    	    	    		if(Abs(xvb)>150 && Abs(yvb)>150)
+    	    	    			continue;
+    	    	    		if(Abs((yva-yua)-(yvb-yub))<mdiff){
+    	    	    			mdiff=Abs((yva-yua)-(yvb-yub));
+    	    	    			
+    	    	    			x1bbk=x1b;
+    	    	    			x2bbk=x2b;
+    	    	    			y1bbk=-1;
+    	    	    			y2bbk=-1;
+    	    	    			zx1bk=zx1;
+    	    	    			zx2bk=zx2;
+    	    	    			xuabk=xua;
+    	    	    			xubbk=xub;
+    	    	    			yuabk=yua;
+    	    	    			yubbk=yub;
+    	    	    			zu1bk=zu1;
+    	    	    			zu2bk=zu2;
+    	    	    			xvabk=xva;
+    	    	    			xvbbk=xvb;
+    	    	    			yvabk=yva;
+    	    	    			yvbbk=yvb;
+    	    	    			zv1bk=zv1;
+    	    	    			zv2bk=zv2;
+    	    	    			
+    	    	    			lribk=lri;
+    	    	    			lrubk=lru;
+    	    	    			lrvbk=lrv;
+    	    	    			idx1x=planes[xai[1]][pairxb[ix1]->idx1];
+    	    	    			idx2x=planes[xbi[1]][pairxb[ix1]->idx2];
+    	    	    			idx1u=planes[uai[1]][pairub[iu1]->idx1];
+    	    	    			idx2u=planes[ubi[1]][pairub[iu1]->idx2];
+    	    	    			idx1v=planes[vai[1]][pairvb[iv1]->idx1];
+    	    	    			idx2v=planes[vbi[1]][pairvb[iv1]->idx2];
+    	    	    		}
+    	    			}
+    	    		}
+    	    	}
+    		}
+    	}
+    	if(mdiff!=1000){
+			RecoCluster *rc= new RecoCluster();
+			rc->hits.push_back(new RecoPoint3D(x1bbk,y1bbk,zx1bk,idx1x,lribk));
+			rc->hits.push_back(new RecoPoint3D(x2bbk,y2bbk,zx2bk,idx2x,lribk));
+			rc->hits.push_back(new RecoPoint3D(xuabk,yuabk,zu1bk,idx1u,lrubk));
+			rc->hits.push_back(new RecoPoint3D(xubbk,yubbk,zu2bk,idx2u,lrubk));
+			rc->hits.push_back(new RecoPoint3D(xvabk,yvabk,zv1bk,idx1v,lrvbk));
+			rc->hits.push_back(new RecoPoint3D(xvbbk,yvbbk,zv2bk,idx2v,lrvbk));
+			rc2x.push_back(rc);
+			if(histoOutput){
+				dxu2a->Fill(x1bbk-xuabk);
+				dxu2b->Fill(x2bbk-xubbk);
+				dxv2a->Fill(x1bbk-xvabk);
+				duv2a->Fill(xuabk-xvabk);
+				dxv2b->Fill(x2bbk-xvbbk);
+				duv2b->Fill(xubbk-xvbbk);
+				xwired[8]->Fill(x1bbk);
+				xwired[9]->Fill(x2bbk);
+				xwired[12]->Fill(xuabk);
+				xwired[13]->Fill(xubbk);
+				xwired[14]->Fill(xvabk);
+				xwired[15]->Fill(xvbbk);
+				yxwired[12]->Fill(yuabk);
+				yxwired[13]->Fill(yubbk);
+				yxwired[14]->Fill(yvabk);
+				yxwired[15]->Fill(yvbbk); 
+			}
+    	}
+	}
+	for(Int_t ix1 = 0; ix1<pairyb.size();ix1++){
+    	Double_t x1b,x1e,y1b,y1e;
+    	Double_t x2b,x2e,y2b,y2e;
+    	Double_t mdiff=1000;
+		Double_t x1bbk,x2bbk,y1bbk,y2bbk,zx1bk,zx2bk,xuabk,xubbk,yuabk,yubbk,zu1bk,zu2bk,xvabk,xvbbk,yvabk,yvbbk,zv1bk,zv2bk;
+		Int_t lribk,lrubk,lrvbk,idx1x,idx2x,idx1u,idx2u,idx1v,idx2v;
+    	for(Int_t lri=0;lri<4;lri++){
+    		GetWirePairBE(planes[yai[1]][pairyb[ix1]->idx1], planes[ybi[1]][pairyb[ix1]->idx2], &x1b, &x1e, &y1b, &y1e, &x2b, &x2e, &y2b, &y2e, lri);
+    		zy1 = zl_glob[digisDCH[planes[yai[1]][pairyb[ix1]->idx1]]->GetPlane()] + DCH2_Zpos;
+    		zy2 = zl_glob[digisDCH[planes[ybi[1]][pairyb[ix1]->idx2]]->GetPlane()] + DCH2_Zpos;
+    		for(Int_t iu1 = 0; iu1<pairub.size();iu1++){
+    	    	for(Int_t lru=0;lru<4;lru++){
+    	        	Double_t x1bu,x1eu,y1bu,y1eu;
+    	        	Double_t x2bu,x2eu,y2bu,y2eu;
+    	    		GetWirePairBE(planes[uai[1]][pairub[iu1]->idx1], planes[ubi[1]][pairub[iu1]->idx2], &x1bu, &x1eu, &y1bu, &y1eu, &x2bu, &x2eu, &y2bu, &y2eu, lru);
+    	    		Int_t plane1 = digisDCH[planes[uai[1]][pairub[iu1]->idx1]]->GetPlane();
+    	    	    Double_t zp1 = zl_glob[plane1] + DCH2_Zpos;
+    	    	    zu1=zp1;
+    	    	    Double_t yua = LinePropagation(y1b, zl_glob[yai[1]] + DCH2_Zpos, y2b, zl_glob[ybi[1]] + DCH2_Zpos, zp1);
+    	    		Double_t xua = LinePropagation(x1bu,y1bu,x1eu,y1eu,yua);
+    	    		if(Abs(xua)>150 && Abs(yua)>150)
+    	    			continue;
+    	    		Int_t plane2 = digisDCH[planes[ubi[1]][pairub[iu1]->idx2]]->GetPlane();
+    	    	    Double_t zp2 = zl_glob[plane2] + DCH2_Zpos;
+    	    	    zu2=zp2;
+    	    	    Double_t yub = LinePropagation(y1b, zl_glob[yai[1]] + DCH2_Zpos, y2b, zl_glob[ybi[1]] + DCH2_Zpos, zp2);
+    	    	    Double_t xub = LinePropagation(x2bu,y2bu,x2eu,y2eu,yub);
+    	    		if(Abs(xub)>150 && Abs(yub)>150)
+    	    			continue;
+    	    		for(Int_t iv1 = 0; iv1<pairvb.size();iv1++){
+    	    			for(Int_t lrv=0;lrv<4;lrv++){
+    	    				Double_t x1bv,x1ev,y1bv,y1ev;
+    	    				Double_t x2bv,x2ev,y2bv,y2ev;
+    	    				GetWirePairBE(planes[vai[1]][pairvb[iv1]->idx1], planes[vbi[1]][pairvb[iv1]->idx2], &x1bv, &x1ev, &y1bv, &y1ev, &x2bv, &x2ev, &y2bv, &y2ev, lrv);
+    	    				plane1 = digisDCH[planes[vai[1]][pairvb[iv1]->idx1]]->GetPlane();
+    	    				zp1 = zl_glob[plane1] + DCH2_Zpos;
+    	    				zv1=zp1;
+    	    				Double_t yva = LinePropagation(y1b, zl_glob[yai[1]] + DCH2_Zpos, y2b, zl_glob[ybi[1]] + DCH2_Zpos, zp1);
+    	    				Double_t xva = LinePropagation(x1bv,y1bv,x1ev,y1ev,yva);;
+    	    	    		if(Abs(xva)>150 && Abs(yva)>150)
+    	    	    			continue;
+    	    				plane2 = digisDCH[planes[vbi[1]][pairvb[iv1]->idx2]]->GetPlane();
+    	    				zp2 = zl_glob[plane2] + DCH2_Zpos;
+    	    				zv2=zp2;
+    	    				Double_t yvb = LinePropagation(y1b, zl_glob[yai[1]] + DCH2_Zpos, y2b, zl_glob[ybi[1]] + DCH2_Zpos, zp2);
+    	    				Double_t xvb = LinePropagation(x2bv,y2bv,x2ev,y2ev,yvb);
+    	    	    		if(Abs(xvb)>150 && Abs(yvb)>150)
+    	    	    			continue;
+    	    	    		if(Abs((yva-yua)-(yvb-yub))<mdiff){
+    	    	    			mdiff=Abs((yva-yua)-(yvb-yub));
+    	    	    			
+    	    	    			x1bbk=-1;
+    	    	    			x2bbk=-1;
+    	    	    			y1bbk=y1b;
+    	    	    			y2bbk=y2b;
+    	    	    			zx1bk=zx1;
+    	    	    			zx2bk=zx2;
+    	    	    			xuabk=xua;
+    	    	    			xubbk=xub;
+    	    	    			yuabk=yua;
+    	    	    			yubbk=yub;
+    	    	    			zu1bk=zu1;
+    	    	    			zu2bk=zu2;
+    	    	    			xvabk=xva;
+    	    	    			xvbbk=xvb;
+    	    	    			yvabk=yva;
+    	    	    			yvbbk=yvb;
+    	    	    			zv1bk=zv1;
+    	    	    			zv2bk=zv2;
+    	    	    			
+    	    	    			lribk=lri;
+    	    	    			lrubk=lru;
+    	    	    			lrvbk=lrv;
+    	    	    			idx1x=planes[yai[1]][pairyb[ix1]->idx1];
+    	    	    			idx2x=planes[ybi[1]][pairyb[ix1]->idx2];
+    	    	    			idx1u=planes[uai[1]][pairub[iu1]->idx1];
+    	    	    			idx2u=planes[ubi[1]][pairub[iu1]->idx2];
+    	    	    			idx1v=planes[vai[1]][pairvb[iv1]->idx1];
+    	    	    			idx2v=planes[vbi[1]][pairvb[iv1]->idx2];
+    	    	    		}
+    	    			}
+    	    		}
+    	    	}
+    		}
+    	}
+    	if(mdiff!=1000){
+			RecoCluster *rc= new RecoCluster();
+			rc->hits.push_back(new RecoPoint3D(x1bbk,y1bbk,zx1bk,idx1x,lribk));
+			rc->hits.push_back(new RecoPoint3D(x2bbk,y2bbk,zx2bk,idx2x,lribk));
+			rc->hits.push_back(new RecoPoint3D(xuabk,yuabk,zu1bk,idx1u,lrubk));
+			rc->hits.push_back(new RecoPoint3D(xubbk,yubbk,zu2bk,idx2u,lrubk));
+			rc->hits.push_back(new RecoPoint3D(xvabk,yvabk,zv1bk,idx1v,lrvbk));
+			rc->hits.push_back(new RecoPoint3D(xvbbk,yvbbk,zv2bk,idx2v,lrvbk));
+			rc2y.push_back(rc);
+			if(histoOutput){
+				dyu2a->Fill(y1bbk-yuabk);
+				dyu2b->Fill(y2bbk-yubbk);
+				dyv2a->Fill(y1bbk-yvabk);
+				duv2a->Fill(yuabk-yvabk);
+				dyv2b->Fill(y2bbk-yvbbk);
+				duv2b->Fill(yubbk-yvbbk);
+				ywired[10]->Fill(y1bbk);
+				ywired[11]->Fill(y2bbk);
+				ywired[12]->Fill(yuabk);
+				ywired[13]->Fill(yubbk);
+				ywired[14]->Fill(yvabk);
+				ywired[15]->Fill(yvbbk);
+				xywired[12]->Fill(xuabk);
+				xywired[13]->Fill(xubbk);
+				xywired[14]->Fill(xvabk);
+				xywired[15]->Fill(xvbbk);   		
+			}
+    	}   	
+	}
+	for (Int_t iSegmentX = 0; iSegmentX < rc1x.size(); iSegmentX++) {
+		RecoCluster* segX = rc1x[iSegmentX];	
+		Double_t mdifx=10000;
+		Double_t mdify=10000;
+		Int_t iy=-1;
+		for (Int_t iSegmentY = 0; iSegmentY < rc1y.size(); iSegmentY++) {
+			RecoCluster* segY = rc1y[iSegmentY];
+			Double_t difx=0;
+			Double_t dify=0;
+			difx += Abs(segX->hits[2]->x - segY->hits[2]->x);
+			difx += Abs(segX->hits[3]->x - segY->hits[3]->x);
+			difx += Abs(segX->hits[4]->x - segY->hits[4]->x);
+			difx += Abs(segX->hits[5]->x - segY->hits[5]->x);
+			dify += Abs(segX->hits[2]->y - segY->hits[2]->y);
+			dify += Abs(segX->hits[3]->y - segY->hits[3]->y);
+			dify += Abs(segX->hits[4]->y - segY->hits[4]->y);
+			dify += Abs(segX->hits[5]->y - segY->hits[5]->y);
+			if(mdifx>difx && mdify>dify){
+			    mdifx=difx;
+				mdify=dify;
+				iy=iSegmentY;
+			}
+		}
+	}
+}
+void BmnDchTrackFinder::ClustersPreparation(){
+	Bool_t hasHits=true;
+	for(Int_t plane=0;plane<8;plane++)
+		if(planes[plane].size()==0)
+			hasHits=false;
+	if(histoOutput){
+		if(hasHits)
+			Ntrack1->Fill(1);
+		else{
+			Ntrack1->Fill(0);
+			Problems->Fill(1);
+		}	
+	}
+
+	Bool_t hasHits2=true;
+	for(Int_t plane=8;plane<16;plane++){
+		if(planes[plane].size()==0)
+			hasHits2=false;
+	}
+	if(histoOutput){
+		if(hasHits2)
+			Ntrack2->Fill(1);
+		else{
+			Ntrack2->Fill(0);
+			Problems->Fill(2);
+		}
+	}
+
+    aC.clear();
+	bC.clear();
+	for(Int_t plane=0;plane<16;plane+=2){
+		for(Int_t iDig=0;iDig<planes[plane].size(); iDig++){
+			Int_t wire1 = digisDCH[planes[plane][iDig]]->GetWireNumber();
+			for(Int_t iDig1=0;iDig1<planes[plane+1].size(); iDig1++){
+				Int_t wire2 = digisDCH[planes[plane+1][iDig1]]->GetWireNumber();
+				if(Abs(wire1-wire2)<2){
+					if(plane==xai[0])
+						pairxa.push_back(new PointPair(iDig,iDig1));
+					if(plane==xai[1])
+						pairxb.push_back(new PointPair(iDig,iDig1));
+					if(plane==yai[0])
+						pairya.push_back(new PointPair(iDig,iDig1));
+					if(plane==yai[1])
+						pairyb.push_back(new PointPair(iDig,iDig1));
+					if(plane==uai[0])
+						pairua.push_back(new PointPair(iDig,iDig1));
+					if(plane==uai[1])
+						pairub.push_back(new PointPair(iDig,iDig1));
+					if(plane==vai[0])
+						pairva.push_back(new PointPair(iDig,iDig1));
+					if(plane==vai[1])
+						pairvb.push_back(new PointPair(iDig,iDig1));
+				}
+			}	
+		}		
+	}	
+	std::vector<PointPair*> xa;
+	for(Int_t ix1 = 0; ix1<pairxa.size();ix1++){
+		for(Int_t iy1 = 0; iy1<pairya.size();iy1++){
+			xa.push_back(new PointPair(ix1,iy1));
+		}
+	}
+    std::vector<PointPair*> xb;
+	for(Int_t ix1 = 0; ix1<pairxb.size();ix1++){
+		for(Int_t iy1 = 0; iy1<pairyb.size();iy1++){
+			xb.push_back(new PointPair(ix1,iy1));
+		}
+	}
+	for(Int_t i = 0; i<xa.size();i++){
+		
+		Cluster *c = new Cluster();
+		c->hits.push_back(planes[xai[0]][pairxa[xa[i]->idx1]->idx1]);
+		c->hits.push_back(planes[xbi[0]][pairxa[xa[i]->idx1]->idx2]);
+		c->hits.push_back(planes[yai[0]][pairya[xa[i]->idx2]->idx1]);
+		c->hits.push_back(planes[ybi[0]][pairya[xa[i]->idx2]->idx2]);
+		
+		UChar_t planeX = digisDCH[planes[xai[0]][pairxa[xa[i]->idx1]->idx1]]->GetPlane();
+		Int_t iWireX = digisDCH[planes[xai[0]][pairxa[xa[i]->idx1]->idx1]]->GetWireNumber();
+		UChar_t planeY = digisDCH[planes[yai[0]][pairya[xa[i]->idx2]->idx1]]->GetPlane(); //!!!???
+		Int_t iWireY = digisDCH[planes[yai[0]][pairya[xa[i]->idx2]->idx1]]->GetWireNumber();
+		Double_t yPos = startX[planeY] - iWireY;
+	    Double_t xPos = DCH1_Xpos + startX[planeX] - iWireX;
+		
+	    UChar_t planeX1 = digisDCH[planes[xbi[0]][pairxa[xa[i]->idx1]->idx2]]->GetPlane();
+		Int_t iWireX1 = digisDCH[planes[xbi[0]][pairxa[xa[i]->idx1]->idx2]]->GetWireNumber();
+		UChar_t planeY1 = digisDCH[planes[ybi[0]][pairya[xa[i]->idx2]->idx2]]->GetPlane();
+		Int_t iWireY1 = digisDCH[planes[ybi[0]][pairya[xa[i]->idx2]->idx2]]->GetWireNumber();
+		Double_t yPos1 = startX[planeY1] - iWireY1;
+	    Double_t xPos1 = DCH1_Xpos + startX[planeX1] - iWireX1;
+	    
+	    if(xPos<xPos1){
+	    	c->xmin=xPos;
+	    	c->xmax=xPos1;
+	    }
+	    else{
+	    	c->xmin=xPos1;
+	    	c->xmax=xPos;    	
+	    }
+		if(yPos<yPos1){
+			c->ymin=yPos;
+			c->ymax=yPos1;
+		}
+		else{
+			c->ymin=yPos1;
+			c->ymax=yPos;
+		}
+
+	    Double_t mDist=10000;
+	    Int_t iM =-1;
+	    for(Int_t iu = 0; iu<pairua.size();iu++){
+			UChar_t uplane=digisDCH[planes[uai[0]][pairua[iu]->idx1]]->GetPlane();
+			Int_t uwire=digisDCH[planes[uai[0]][pairua[iu]->idx1]]->GetWireNumber();
+			Double_t dist = Abs(GetDistance(uplane, xPos, yPos, uwire));
+			if(dist < mDist && dist<distCutCluster){
+				mDist=dist;
+				iM=iu;
+			}
+		}
+	    if(iM!=-1 && mDist<3.) {
+	    	c->hits.push_back(planes[uai[0]][pairua[iM]->idx1]);
+	    	c->hits.push_back(planes[ubi[0]][pairua[iM]->idx2]);
+	    }
+		
+	    mDist=10000;
+	    iM =-1;
+	    for(Int_t iv = 0; iv<pairva.size();iv++){
+			UChar_t vplane=digisDCH[planes[vai[0]][pairva[iv]->idx1]]->GetPlane();
+			Int_t vwire=digisDCH[planes[vai[0]][pairva[iv]->idx1]]->GetWireNumber();
+			Double_t dist = Abs(GetDistance(vplane, xPos, yPos, vwire));
+			if(dist < mDist && dist<distCutCluster){
+				mDist=dist;
+				iM=iv;
+			}
+		}
+	    if(iM!=-1 && mDist<3.) {
+	    	c->hits.push_back(planes[vai[0]][pairva[iM]->idx1]);
+	    	c->hits.push_back(planes[vbi[0]][pairva[iM]->idx2]);
+	    }
+		if(c->hits.size()>=trackNHitsCut)
+			aC.push_back(c);
+	} 
+	for(Int_t i = 0; i<xb.size();i++){
+		
+		Cluster *c = new Cluster();	
+	    
+		c->hits.push_back(planes[xai[1]][pairxb[xb[i]->idx1]->idx1]);
+		c->hits.push_back(planes[xbi[1]][pairxb[xb[i]->idx1]->idx2]);
+		c->hits.push_back(planes[yai[1]][pairyb[xb[i]->idx2]->idx1]);
+		c->hits.push_back(planes[ybi[1]][pairyb[xb[i]->idx2]->idx2]);
+
+		UChar_t planeX = digisDCH[planes[xai[1]][pairxb[xb[i]->idx1]->idx1]]->GetPlane();
+		Int_t iWireX = digisDCH[planes[xai[1]][pairxb[xb[i]->idx1]->idx1]]->GetWireNumber();
+		UChar_t planeY = digisDCH[planes[yai[1]][pairyb[xb[i]->idx2]->idx1]]->GetPlane();
+		Int_t iWireY = digisDCH[planes[yai[1]][pairyb[xb[i]->idx2]->idx1]]->GetWireNumber();
+		Double_t yPos = startX[planeY] - iWireY;
+		Double_t xPos = DCH2_Xpos + startX[planeX] - iWireX;
+
+		UChar_t planeX1 = digisDCH[planes[xbi[1]][pairxb[xb[i]->idx1]->idx2]]->GetPlane();
+		Int_t iWireX1 = digisDCH[planes[xbi[1]][pairxb[xb[i]->idx1]->idx2]]->GetWireNumber();
+		UChar_t planeY1 = digisDCH[planes[ybi[1]][pairyb[xb[i]->idx2]->idx2]]->GetPlane();
+		Int_t iWireY1 = digisDCH[planes[ybi[1]][pairyb[xb[i]->idx2]->idx2]]->GetWireNumber();
+		Double_t yPos1 = startX[planeY1] - iWireY1;
+		Double_t xPos1 = DCH2_Xpos + startX[planeX1] - iWireX1;
+
+	    if(xPos<xPos1){
+	    	c->xmin=xPos;
+	    	c->xmax=xPos1;
+	    }
+	    else{
+	    	c->xmin=xPos1;
+	    	c->xmax=xPos;    	
+	    }
+		if(yPos<yPos1){
+			c->ymin=yPos;
+			c->ymax=yPos1;
+		}
+		else{
+			c->ymin=yPos1;
+			c->ymax=yPos;
+		}
+		
+		Double_t mDist=10000;
+	    Int_t iM =-1;
+	    for(Int_t iu = 0; iu<pairub.size();iu++){
+			UChar_t uplane=digisDCH[planes[uai[1]][pairub[iu]->idx1]]->GetPlane();
+			Int_t uwire=digisDCH[planes[uai[1]][pairub[iu]->idx1]]->GetWireNumber();
+			Double_t dist = Abs(GetDistance(uplane, xPos, yPos, uwire));
+			if(dist < mDist && dist<distCutCluster){
+				mDist=dist;
+				iM=iu;
+			}
+		}
+	    
+	    if(iM!=-1 && mDist<3.) {
+			c->hits.push_back(planes[uai[1]][pairub[iM]->idx1]);
+			c->hits.push_back(planes[ubi[1]][pairub[iM]->idx2]);
+	    }
+		
+	    mDist=10000;
+	    iM =-1;
+	    for(Int_t iv = 0; iv<pairvb.size();iv++){
+			UChar_t vplane=digisDCH[planes[vai[1]][pairvb[iv]->idx1]]->GetPlane();
+			Int_t vwire=digisDCH[planes[vai[1]][pairvb[iv]->idx1]]->GetWireNumber();
+			Double_t dist = Abs(GetDistance(vplane, xPos, yPos, vwire));
+			if(dist < mDist && dist<distCutCluster){
+				mDist=dist;
+				iM=iv;
+			}
+		}
+	    if(iM!=-1 && mDist<3.) {
+			c->hits.push_back(planes[vai[1]][pairvb[iM]->idx1]);
+			c->hits.push_back(planes[vbi[1]][pairvb[iM]->idx2]);
+	    }
+	    if(c->hits.size()>=trackNHitsCut)
+			bC.push_back(c);
+	}
+	if(histoOutput){
+		if(hasHits)
+			Ncluster1->Fill(aC.size());		
+		if(hasHits2)
+			Ncluster2->Fill(bC.size());		
+	}
+	if(aC.size()==0){
+		if(hasHits){
+			//cout << "cluster A recognition problem" << endl;
+			if(histoOutput)
+				Problems->Fill(3);
+		}
+	}
+	if(bC.size()==0){
+		if(hasHits2){
+			//cout << "cluster B recognition problem" << endl;
+			if(histoOutput)
+				Problems->Fill(4);
+		}
+	}
+}	
+
+Bool_t BmnDchTrackFinder::PrepareDigitsFromMC(){
+	
+  digisDCH.clear();
+  
+  
+  if(!fBmnDchPointsArray->GetEntriesFast() && histoOutput){// no points in DCH
+	  Problems->Fill(0);
+    return false;
+  }
+  
+   if(histoOutput)
+	Ntrack->Fill(fMCTracks->GetEntriesFast());
+  
+  FairMCPoint* pnt1=NULL; 
+  FairMCPoint* pnt2=NULL;
+  Double_t min=100000000;
+  Double_t max=-100000000;
+  
+  cout << "++++++++++Number of MC tracks: " << fMCTracks->GetEntriesFast() << endl;
+  
+  for (Int_t iMCTrack=0; iMCTrack<fMCTracks->GetEntriesFast(); iMCTrack++) {
+    min=100000000;
+    max=-100000000;
+    pnt1=NULL;
+    pnt2=NULL;
+    for (Int_t iPoint = 0; iPoint < fBmnDchPointsArray->GetEntriesFast(); iPoint++) {
+      FairMCPoint* pnt = (FairMCPoint*) fBmnDchPointsArray->At(iPoint);       
+      if(pnt->GetTrackID()==iMCTrack){
+    	  if(pnt->GetZ()<min){
+    		  min=pnt->GetZ();
+    		  pnt1= (FairMCPoint*) fBmnDchPointsArray->At(iPoint);
+    	  }
+    	  if(pnt->GetZ()>max){
+    		  max=pnt->GetZ();
+    		  pnt2= (FairMCPoint*) fBmnDchPointsArray->At(iPoint);
+    	  }
+      }
+    }
+
+    if(!pnt1 || !pnt2)
+      continue;
+    
+    for(Int_t plane = 0; plane<16;plane++){
+      Double_t dist;
+      Int_t wire;
+      Double_t time;
+      Double_t xTr;
+      Double_t yTr;
+      Double_t zTr;
+      
+      if(plane<8)
+    	  zTr = zl_glob[plane] +DCH1_Zpos;
+      else
+    	  zTr= zl_glob[plane] + DCH2_Zpos;
+      
+      xTr=pnt1->GetX()+(zTr-pnt1->GetZ())*((pnt2->GetX()-pnt1->GetX())/(pnt2->GetZ()-pnt1->GetZ()));
+      yTr=pnt1->GetY()+(zTr-pnt1->GetZ())*((pnt2->GetY()-pnt1->GetY())/(pnt2->GetZ()-pnt1->GetZ()));
+      
+      if(!CheckPointGEO(plane,xTr,yTr,zTr))
+    	  continue;
+      wire = (Int_t) GetClosestWireNumber(plane,xTr,yTr,&dist);
+      
+      Int_t add = abs(rand()%(300-0))+0;
+      Double_t dAdd = (add - 150)/10000.;
+      if((dist+dAdd)>0 && (dist+dAdd)<0.5)
+    	  dist+=dAdd;
+      
+      if(wire==-1)
+    	  continue;
+      time = GetTime(&dist);   	
+	  if(histoOutput)
+		GDist->Fill(dist);
+   	  digisDCH.push_back(new BmnDchDigit(plane,wire,time,iMCTrack)); //iMCTrack->pnt1->GetTrackID()
+   	  planes[plane].push_back(digisDCH.size()-1);
+      Double_t xT, yT;
+      GetCoordinatesWirePoint(digisDCH[digisDCH.size()-1]->GetPlane(), xTr,yTr, digisDCH[digisDCH.size()-1]->GetWireNumber() ,&xT, &yT,GetDDistance(digisDCH[digisDCH.size()-1]->GetTime(),digisDCH[digisDCH.size()-1]->GetPlane()));
+    }
+  }
+  if(digisDCH.size()>0){   	
+    for (Int_t iPoint = 0; iPoint < digisDCH.size(); iPoint++) {
+      new((*fBmnDchDigitsArray)[iPoint]) BmnDchDigit();
+      BmnDchDigit* digit = (BmnDchDigit*) fBmnDchDigitsArray->At(iPoint);
+      digit->SetPlane(digisDCH[iPoint]->GetPlane());
+      digit->SetWireNumber(digisDCH[iPoint]->GetWireNumber());
+      digit->SetTime(digisDCH[iPoint]->GetTime());
+      digit->SetRefId(digisDCH[iPoint]->GetRefId());
+    }
+  }
+}
 void BmnDchTrackFinder::Exec(Option_t* opt) {
+  
     if (!IsActive())
         return;
+  for(Int_t i=0; i<16; i++)
+	planes[i].clear();
+  pairxa.clear();
+  pairxb.clear();
+  pairya.clear();
+  pairyb.clear();
+  pairua.clear();
+  pairub.clear();
+  pairva.clear();
+  pairvb.clear();
+
+  if(!expData)
+    PrepareDigitsFromMC();
+  else{
+    if(fBmnDchDigitsArray->GetEntriesFast()<5){
+      return ;
+    }
+    digisDCH.clear();
+    for(Int_t ip=0;ip<16;ip++){
+    	planes[ip].clear();
+    }
+    for (Int_t iDig = 0; iDig < fBmnDchDigitsArray->GetEntriesFast(); ++iDig) {
+      BmnDchDigit* digit = (BmnDchDigit*) fBmnDchDigitsArray->UncheckedAt(iDig);
+      digisDCH.push_back(digit);
+      planes[digit->GetPlane()].push_back(digisDCH.size()-1);
+    }
+  }
+  for (Int_t iDig = 0; iDig < fBmnDchDigitsArray->GetEntriesFast(); ++iDig) {
+        BmnDchDigit* digit = (BmnDchDigit*) fBmnDchDigitsArray->UncheckedAt(iDig);
+		if(histoOutput){
+			dtime[digit->GetPlane()]->Fill(digit->GetTime());
+			occup[digit->GetPlane()]->Fill(digit->GetWireNumber());
+		}
+  }
+  //ClustersPreparationRT();
+  //return;
+  ClustersPreparation();
+  RecoDCHCluster();
+  return;
 
     fEventNo++;
     clock_t tStart = clock();
@@ -89,7 +3431,7 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
         }
     }
 
-    Bool_t goodEv = kTRUE;
+    Bool_t goodEv = kTRUE; 
     Bool_t written = kFALSE;
 
     for (Int_t iDig = 0; iDig < fBmnDchDigitsArray->GetEntriesFast(); ++iDig) {
@@ -679,26 +4021,65 @@ Double_t BmnDchTrackFinder::CalculateResidual(Int_t i, Int_t j, Double_t** rh_se
 }
 
 InitStatus BmnDchTrackFinder::Init() {
-    if (!expData)
+    /*if (!expData)
     {
       cout<<"BmnDchTrackFinder::Init(): simulation data is not supported! Task will be deactivated"<<endl;
       SetActive(kFALSE);
       return kERROR;
-    }
+    }*/
 
-    if (fVerbose) cout << "BmnDchTrackFinder::Init()" << endl;
-    FairRootManager* ioman = FairRootManager::Instance();
+    TString dir1 = getenv("VMCWORKDIR");
+    dir1 += "/input/";
 
+	Int_t time;
+	float dist=0.;
+  	for(Int_t i=0;i<16;i++)
+  	{
+  		char line[50];
+  		char inFileName1[10];
+  		TString inFileName;
+		sprintf(inFileName1,"rt%d.txt",i);
+	    inFileName=dir1+inFileName1;
+		ifstream input(inFileName);
+	    if (!input.is_open()) // если файл не открыт
+	        cout << "Файл не может быть открыт!\n"; // сообщить об этом
+	    else
+	    {
+	    	while ( input.getline(line,50) ){
+	    		sscanf(line, "%d %f", &time, &dist);
+	    		rtRel[i][time]=dist;
+	    	}
+	    }
+	    input.close();
+  	}
+	FairRootManager* ioman = FairRootManager::Instance();
+  	if (!ioman)
+  		Fatal("Init", "FairRootManager is not instantiated");
+  
+  if (!expData){
+    fBmnDchDigitsArray = new TClonesArray("BmnDchDigit", 10000);
+    ioman->Register("BmnDchDigit", "DCH", fBmnDchDigitsArray, kTRUE);
+    fMCTracks = (TClonesArray*) ioman->GetObject("MCTrack");
+    fBmnDchPointsArray = (TClonesArray*) ioman->GetObject("DCHPoint");
+    fMCPointArray = (TClonesArray*) ioman->GetObject("StsPoint");
+  }
+  else{
     fBmnDchDigitsArray = (TClonesArray*) ioman->GetObject(InputDigitsBranchName);
-    if (!fBmnDchDigitsArray)
-    {
-      cout<<"BmnDchTrackFinder::Init(): branch "<<InputDigitsBranchName<<" not found! Task will be deactivated"<<endl;
-      SetActive(kFALSE);
-      return kERROR;
-    }
-    
+  }
+  fDchTracks = new TClonesArray("BmnDchTrack", 10000);
+  ioman->Register("BmnDchTrack", "DCH", fDchTracks, kTRUE);
+  fDchHits = new TClonesArray("BmnDchHit", 10000);
+  ioman->Register("BmnDchHit", "DCH", fDchTracks, kTRUE);
+  if (!expData)
+    return kSUCCESS;
+  if (fVerbose) cout << "BmnDchTrackFinder::Init()" << endl;
+  
+  return kSUCCESS;
+
+    // Create and register track arrays
     fDchTracks = new TClonesArray(tracksDch.Data());
     ioman->Register(tracksDch.Data(), "DCH", fDchTracks, kTRUE);
+
 
     ifstream fin;
     TString dir = getenv("VMCWORKDIR");
@@ -880,8 +4261,20 @@ void BmnDchTrackFinder::PrepareArraysToProcessEvent() {
 }
 
 void BmnDchTrackFinder::Finish() {
-    // Delete 1d-arrays
-    delete [] nSegments;
+	digisDCH.clear();	
+	//===============================================================================================================
+	TFile *ptr = gFile;
+	if(histoOutput){
+		FairLogger::GetLogger()->Info(MESSAGE_ORIGIN, "[BmnDCHTrackFinder::Finish] Update  %s file. ", fhTestFlnm.Data());
+		TFile file(fhTestFlnm.Data(), "RECREATE");
+		fhList.Write(); 
+		file.Close();
+	}
+	//===============================================================================================================
+	return;
+	// Delete 1d-arrays
+    
+	delete [] nSegments;
     delete [] has7DC;
     delete [] x_mid;
     delete [] y_mid;

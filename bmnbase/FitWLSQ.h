@@ -16,8 +16,12 @@ public:
 	Double_t param[3]; // fit parameters
 	Double_t cov[3][3]; // covariance matrix
 	Int_t numItera;
+	Double_t *wrb;  // robust weights
+	Bool_t Status;
 
 	Bool_t Fit(Double_t *y);
+
+	Double_t WLSQRms(Double_t *pdY);
 
 private:
 	Double_t det3(Double_t a[3][3]);
@@ -38,8 +42,6 @@ private:
 
 	Double_t WLSQGet(Double_t dX);
 
-	Double_t WLSQRms(Double_t *pdY);
-
 	Bool_t par_check(Double_t *par, Double_t *par1);
 
 	void RB(Double_t *yy, Int_t);
@@ -54,7 +56,6 @@ private:
 
 	Double_t *sigmaF;  // weights
 	Double_t *w;  // weights
-	Double_t *wrb;  // robust weights
 	Double_t *x;  // x coordinats
 	Double_t sigma_k; // robust sigma
 	Double_t Sigma1;

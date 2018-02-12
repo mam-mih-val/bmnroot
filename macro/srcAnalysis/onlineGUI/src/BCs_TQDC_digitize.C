@@ -1,14 +1,6 @@
-/* TODO: things to change about this file when we have real data stream
-1) DO I WANT TO TAKE ALL EVENTS IN A WINDOW??
-*/
 #include "TVector3.h"
 #include <time.h>
 void BCs_TQDC_digitize(TString file, TString outFileName, int startEvent, int stopEvent){
-	// this macro will take in a _digi.root file
-	// and write out ADC spectra of all our trigger
-	// detectors, 2D correlations between PMTs
-	// on the same detector, and TDC histograms
-	// relative to BC2.
 
 	gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
 	bmnloadlibs(); // load BmnRoot libraries
@@ -106,6 +98,10 @@ void BCs_TQDC_digitize(TString file, TString outFileName, int startEvent, int st
 		cout << "WARNING: reference and current runs may have different normalization\n";
 	}
 	// For each entry
+	double triggerTime = 0.;
+	int ifBC1, ifBC2, ifBC3, ifBC4, ifVC;
+	int ifX1L, ifX1R, ifX2L, ifX2R, ifY1L, ifY1R, ifY2L, ifY2R;
+	bool beam, X1, X2, Y1, Y2, leftArm, rightArm, pair, trig;
 	for (Int_t i = startEvent; i < stopEvent; i++){
 		if (i%1000==0) cout << "\tWorking on entry " << i << "\n";
 		EventHead->Clear();
@@ -138,7 +134,7 @@ void BCs_TQDC_digitize(TString file, TString outFileName, int startEvent, int st
 			endT = time.Convert();
 		} 
 		BmnTrigDigit * signal_T0 = (BmnTrigDigit*) T0->At(0);
-		double triggerTime = 0;		
+		triggerTime = 0;		
 
 		BmnTrigWaveDigit * signal_BC1 = (BmnTrigWaveDigit*) BC1->At(0);
 		BmnTrigWaveDigit * signal_BC2 = (BmnTrigWaveDigit*) BC2->At(0);
@@ -155,18 +151,18 @@ void BCs_TQDC_digitize(TString file, TString outFileName, int startEvent, int st
 		BmnTrigWaveDigit * signal_Y2_left = (BmnTrigWaveDigit*) Y2_left->At(0);
 		BmnTrigWaveDigit * signal_Y2_right = (BmnTrigWaveDigit*) Y2_right->At(0);
 		
-		int ifBC1 = BC1->GetEntriesFast();
-		int ifBC2 = BC2->GetEntriesFast();
-		int ifBC3 = BC3->GetEntriesFast();
-		int ifVC  = VC ->GetEntriesFast();
-		int ifX1L = X1_left->GetEntriesFast();
-		int ifX1R = X1_right->GetEntriesFast();
-		int ifX2L = X2_left->GetEntriesFast();
-		int ifX2R = X2_right->GetEntriesFast();
-		int ifY1L = Y1_left->GetEntriesFast();
-		int ifY1R = Y1_right->GetEntriesFast();
-		int ifY2L = Y2_left->GetEntriesFast();
-		int ifY2R = Y2_right->GetEntriesFast();
+		ifBC1 = BC1->GetEntriesFast();
+		ifBC2 = BC2->GetEntriesFast();
+		ifBC3 = BC3->GetEntriesFast();
+		ifVC  = VC ->GetEntriesFast();
+		ifX1L = X1_left->GetEntriesFast();
+		ifX1R = X1_right->GetEntriesFast();
+		ifX2L = X2_left->GetEntriesFast();
+		ifX2R = X2_right->GetEntriesFast();
+		ifY1L = Y1_left->GetEntriesFast();
+		ifY1R = Y1_right->GetEntriesFast();
+		ifY2L = Y2_left->GetEntriesFast();
+		ifY2R = Y2_right->GetEntriesFast();
 
 		if (T0->GetEntriesFast() > 0) triggerTime = signal_T0->GetTime() ;
 		// Getting all TQDC entries
@@ -224,19 +220,18 @@ void BCs_TQDC_digitize(TString file, TString outFileName, int startEvent, int st
 		}
 
 		// TQDC boolean operations to figure out TQDC efficiency
-		bool beam = ifBC1 && ifBC2;
-
-		bool X1 = ifX1L || ifX1R;
-		bool X2 = ifX2L || ifX2R;
+		beam = ifBC1 && ifBC2;
+		X1 = ifX1L || ifX1R;
+		X2 = ifX2L || ifX2R;
 	
-		bool Y1 = ifY1L && ifY1R;
-		bool Y2 = ifY2L && ifY2R;		
+		Y1 = ifY1L && ifY1R;
+		Y2 = ifY2L && ifY2R;		
 
-		bool leftArm = X1 && Y1;
-		bool rightArm = X2 && Y2;
-		bool pair = leftArm || rightArm;
+		leftArm = X1 && Y1;
+		rightArm = X2 && Y2;
+		pair = leftArm || rightArm;
 
-		bool trig = beam && pair;
+		trig = beam && pair;
 		if ( trig == 1){
 			moduleEff->Fill( 0 );
 			coinScalars->Fill( 0 );

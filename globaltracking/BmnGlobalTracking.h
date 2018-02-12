@@ -1,5 +1,4 @@
-/**
- * \file BmnGlobalTracking.h
+/* * \file BmnGlobalTracking.h
  * \author Sergey Merts <Sergey.Merts@gmail.com>
  * \date 2014
  * \brief BMN task for global track reconstruction.
@@ -50,6 +49,7 @@ public:
      * \brief Constructor.
      */
     BmnGlobalTracking();
+    BmnGlobalTracking(Bool_t);
 
     /**
      * \brief Destructor.
@@ -93,6 +93,15 @@ public:
     
 private:
 
+    //AM 7.08
+    Bool_t expData;
+    TClonesArray* fGemHitArray;
+    BmnGemStripHit * GetGemHit(Int_t i);
+    BmnStatus MatchGemDCH(BmnGlobalTrack* tr);
+    BmnStatus MatchDCHTOF(BmnGlobalTrack* tr,Int_t num);
+    BmnStatus MatchDCHMPWC(BmnGlobalTrack* tr);
+    void FitDCHTracks();
+    void FitGemTracks();
     /*
      * \brief Calculate length of the global track
      */
@@ -128,8 +137,16 @@ private:
     TClonesArray* fTof2McPoints;
     TClonesArray* fDchMcPoints;
     TClonesArray* fMcTracks;
-
+    
+    TClonesArray* fMCTracks;
+    TClonesArray* fBmnMPWCPointsArray;
+    TClonesArray* fBmnTOFPointsArray;
+    TClonesArray* fBmnTOF1PointsArray;
+	TClonesArray* fBmnDchPointsArray;
+	TClonesArray* fBmnGemPointsArray;
+    
     // OUTPUT ARRAYS
+
     TClonesArray* fGlobalTracks; //output BmnGlobalTrack array
     
     Bool_t fIsField; // run with mag.field or not
@@ -153,7 +170,7 @@ private:
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
     
     CbmVertex *fVertex; // vertex information
-    
+
     BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t trIndex);
     BmnStatus MatchingDCH(BmnGlobalTrack* tr);
     BmnStatus MatchingMWPC(BmnGlobalTrack* tr);
@@ -164,7 +181,7 @@ private:
     
     BmnStatus Run1GlobalTrackFinder();
     BmnStatus FillHoughHistogram(TH1F* h, TGraph* orig, TH2F* cm, TGraph* seeds, TClonesArray* arr);
-    
+
     void FillIndexMap(map<Int_t, Int_t> &indexes, Int_t id);
 
     BmnGlobalTracking(const BmnGlobalTracking&);

@@ -27,7 +27,9 @@
 #include "BmnDataReceiver.h"
 #include <BmnRawDataDecoder.h>
 #include "BmnEventHeader.h"
+#include "elog_classes/ElogDbRecord.h"
 // BmnRoot Monitor
+#include "BmnRunInfo.h"
 #include "BmnHistToF.h"
 #include "BmnHistToF700.h"
 #include "BmnHistTrigger.h"
@@ -55,13 +57,22 @@ public:
     void MonitorStreamZ(TString dir, TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
     static void threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent);
     static void threadCmdWrapper(string cmd);
-    static TObjArray* GetAlikeRuns(BmnEventHeader* header);
+    static TObjArray* GetAlikeRunsByElog(Int_t periodID, Int_t rinID);
+    static TObjArray* GetAlikeRunsByUniDB(Int_t periodID, Int_t rinID);
     
     // Getters
     deque<UInt_t> * GetDataQue() { return fDataQue;}
 
     // Setters
     void SetDataQue(deque<UInt_t> * v) { fDataQue = v;}
+
+    void SetPeriodID(Int_t v) {
+        this->fPeriodID = v;
+    }
+
+    Int_t GetPeriodID() const {
+        return fPeriodID;
+    }
 
 private:
     void InitServer();
@@ -93,6 +104,7 @@ private:
     
     TCanvas *infoCanvas;
     TList *refList;
+    TList *refTable;
 
     BmnDataReceiver *dataReceiver;
     BmnOnlineDecoder *onlineDecoder;
@@ -100,6 +112,7 @@ private:
     Bool_t keepWorking;
     Int_t _webPort;
     Int_t fTest;
+    Int_t fPeriodID;
     Int_t fRunID;
     Int_t fEvents;
     BmnWorkerState fState;

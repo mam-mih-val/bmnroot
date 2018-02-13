@@ -207,8 +207,8 @@ void run_reco_src(TString inputFileName = "run6-1309:$VMCWORKDIR/macro/raw/data-
     // ====================================================================== //
     // ===                           Trigger hit finder                      === //
     // ====================================================================== //
-    BmnTriggersCheck* bc = new BmnTriggersCheck(kTRUE);
-    fRunAna->AddTask(bc);
+    //BmnSRCTriggersCheck* srcTriggers = new BmnSRCTriggersCheck(kTRUE);
+    //fRunAna->AddTask(srcTriggers);
     
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //

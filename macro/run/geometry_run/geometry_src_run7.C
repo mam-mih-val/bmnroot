@@ -49,9 +49,9 @@ void geometry_src_run7(FairRunSim *fRun)
     //dch->SetGeometryFileName("DCH_RunWinter2016.root");
     //fRun->AddModule(dch);
 
-    //FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
-    //mwpc->SetGeometryFileName("MWPC_SRC2018.root");
-    //fRun->AddModule(mwpc);
+    FairDetector* mwpc = new BmnMwpc("MWPC", kTRUE);
+    mwpc->SetGeometryFileName("MWPC_SRC2018.root");
+    fRun->AddModule(mwpc);
 
     //FairDetector* bd = new BmnBd("BD", kTRUE);
     //bd->SetGeometryFileName("bd_v1_0.geo");

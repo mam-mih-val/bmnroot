@@ -80,6 +80,8 @@ void create_rootgeom_MWPC_SRC2018() {
     const Double_t YSizeOfActiveVolume = BCsize;
     const Double_t ZSizeOfActiveVolume = GapZsize * NofPlanes; // cm
 
+    const Double_t ZLengthChamber = ZSizeOfActiveVolume + 1.;
+    
     // -------   Load media from media file   -----------------------------------
     FairGeoLoader* geoLoad = new FairGeoLoader("TGeo", "FairGeoLoader");
     FairGeoInterface* geoFace = geoLoad->getGeoInterface();
@@ -112,12 +114,12 @@ void create_rootgeom_MWPC_SRC2018() {
     TGeoMedium* pMedArCO27030 = gGeoMan->GetMedium("arco27030");
     if (!pMedArCO27030) Fatal("Main", "Medium arco27030 not found");
 
-    FairGeoMedium* mMWPCgas = geoMedia->getMedium("DCH_MWPC_gas");
+    /*    FairGeoMedium* mMWPCgas = geoMedia->getMedium("DCH_MWPC_gas");
     if (!mMWPCgas) Fatal("Main", "FairMedium DCH_MWPC_gas not found");
     geoBuild->createMedium(mMWPCgas);
     TGeoMedium* pMWPCgas = gGeoMan->GetMedium("DCH_MWPC_gas");
     if (!pMWPCgas) Fatal("Main", "Medium DCH_MWPC_gas not found");
-    
+    */
     // --------------------------------------------------------------------------
 
     // --------------   Create geometry and top volume  -------------------------

@@ -1,4 +1,5 @@
 #include "../run/bmnloadlibs.C"
+#include "../../bmndata/BmnEnums.h"
 
 //file: full path to raw-file
 //nEvents: if 0 then decode all events
@@ -11,6 +12,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
 #endif
     bmnloadlibs(); // load BmnRoot libraries
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //5 - period
+    decoder->SetBmnSetup(kBMNSETUP);
     
     Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
@@ -23,11 +25,10 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
     setup[8] = 0; // ECAL
-    setup[9] = 1; // TQDC
-    setup[10] = 1; // LAND
+    setup[9] = 0; // LAND
     decoder->SetDetectorSetup(setup);
     
-    decoder->SetTrigMapping("Trig_map_Run6.txt");
+    decoder->SetTrigMapping((decoder->GetBmnSetup() == kBMNSETUP) ? "Trig_map_Run6.txt" : "Trig_map_Run7_SRC.txt");
     decoder->SetSiliconMapping("SILICON_map_run6.txt");
     decoder->SetTrigINLFile("TRIG_INL.txt");
     // in case comment out the line decoder->SetTof400Mapping("...")  

@@ -27,8 +27,8 @@
 #include "../../gem/BmnGemStripConfiguration.h"
 #include "bmnloadlibs.C"
 
-void run_reco_src(TString inputFileName = "run6-1309:$VMCWORKDIR/macro/raw/data-Decoded/bmn_run1309_digi.root",
-        TString bmndstFileName = "$VMCWORKDIR/macro/run/srcdigits.root",
+void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
+        TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
         Int_t nEvents = 10000,
         TString alignCorrFileName = "default") { // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
@@ -163,7 +163,7 @@ void run_reco_src(TString inputFileName = "run6-1309:$VMCWORKDIR/macro/raw/data-
     // ===                           Check Triggers                       === //
     // ====================================================================== //
     BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp);
-    fRunAna->AddTask(triggs);  
+    fRunAna->AddTask(triggs);
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
@@ -199,7 +199,7 @@ void run_reco_src(TString inputFileName = "run6-1309:$VMCWORKDIR/macro/raw/data-
             // scratch, set alignCorrFileName == "" (at first iteration) and it
             // will be properly used in BmnGemStripHitMaker.cxx, i.e. the input
             // alignment corrections will be set to zeros
-    //        gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
+    //       gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
     //    }
     //}
     //gemHM->SetHitMatching(kTRUE);
@@ -222,7 +222,6 @@ void run_reco_src(TString inputFileName = "run6-1309:$VMCWORKDIR/macro/raw/data-
     // ====================================================================== //
     //BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run6.txt", !isExp, iVerbose, kTRUE);
     //fRunAna->AddTask(tof2HP);
-
     // ====================================================================== //
     // ===                           Tracking (MWPC)                      === //
     // ====================================================================== //
@@ -237,7 +236,6 @@ void run_reco_src(TString inputFileName = "run6-1309:$VMCWORKDIR/macro/raw/data-
     //TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, -21.7);
     //gemTF->SetRoughVertex(vAppr);
     //fRunAna->AddTask(gemTF);  
-
     // ====================================================================== //
     // ===                           Tracking (DCH)                       === //
     // ====================================================================== //
@@ -250,7 +248,6 @@ void run_reco_src(TString inputFileName = "run6-1309:$VMCWORKDIR/macro/raw/data-
     //BmnGlobalTracking* globalTF = new BmnGlobalTracking();
     //globalTF->SetField(isField);
     //fRunAna->AddTask(globalTF);
-
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //
     // ====================================================================== //

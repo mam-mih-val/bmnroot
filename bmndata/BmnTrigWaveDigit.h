@@ -15,14 +15,14 @@
 #define BMNTRIGWAVEDIGIT_H
 
 #include "BmnTrigDigit.h"
-#include "BmnADCSRCDigit.h"
+#include "BmnTQDCADCDigit.h"
 
 
 class BmnTrigWaveDigit: public BmnTrigDigit /*, public BmnADCSRCDigit */ {
 public:
     BmnTrigWaveDigit();
-    BmnTrigWaveDigit(BmnTrigDigit *trigDigit, BmnADCSRCDigit *adcDigit);
-    BmnTrigWaveDigit(Short_t iMod, Double_t iTime, Double_t iAmp, BmnADCSRCDigit *adcDigit);
+    BmnTrigWaveDigit(BmnTrigDigit *trigDigit, BmnTQDCADCDigit *adcDigit);
+    BmnTrigWaveDigit(Short_t iMod, Double_t iTime, Double_t iAmp, BmnTQDCADCDigit *adcDigit);
     
     UInt_t GetNSamples() const {
         return fNsmpl;

@@ -22,7 +22,7 @@ BmnTrigWaveDigit::BmnTrigWaveDigit() : BmnTrigDigit()/*, BmnADCSRCDigit() */{
     fAdcTimestamp = 0;
 }
 
-BmnTrigWaveDigit::BmnTrigWaveDigit(BmnTrigDigit* trig, BmnADCSRCDigit* adc) :
+BmnTrigWaveDigit::BmnTrigWaveDigit(BmnTrigDigit* trig, BmnTQDCADCDigit* adc) :
     BmnTrigDigit(trig->GetMod(), trig->GetTime(), trig->GetAmp())/*,
     BmnADCSRCDigit(
             adc->GetSerial(), adc->GetChannel(), adc->GetNSamples(),
@@ -37,7 +37,7 @@ BmnTrigWaveDigit::BmnTrigWaveDigit(BmnTrigDigit* trig, BmnADCSRCDigit* adc) :
     fAdcTimestamp = adc->GetAdcTimestamp();
 }
 
-BmnTrigWaveDigit::BmnTrigWaveDigit(Short_t iMod, Double_t iTime, Double_t iAmp, BmnADCSRCDigit* adc) :
+BmnTrigWaveDigit::BmnTrigWaveDigit(Short_t iMod, Double_t iTime, Double_t iAmp, BmnTQDCADCDigit* adc) :
    BmnTrigDigit(iMod, iTime, iAmp)/*,
 BmnADCSRCDigit(
             adc->GetSerial(), adc->GetChannel(), adc->GetNSamples(),

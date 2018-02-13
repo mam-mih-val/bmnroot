@@ -163,47 +163,53 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ===                           Check Triggers                       === //
     // ====================================================================== //
     BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp);
-    // fRunAna->AddTask(triggs);  
+    fRunAna->AddTask(triggs);
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
-    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
-    mwpcHM->SetUseDigitsInTimeBin(kFALSE);
-    fRunAna->AddTask(mwpcHM);
+    //BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
+    //mwpcHM->SetUseDigitsInTimeBin(kFALSE);
+    //fRunAna->AddTask(mwpcHM);
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
-    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
-    fRunAna->AddTask(siliconHM);
+    //BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
+    //fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    BmnGemStripConfiguration::GEM_CONFIG gem_config;
-    if (!isExp || run_period == 6)
-        gem_config = BmnGemStripConfiguration::RunSpring2017;
-    else if (run_period == 5) {
-        gem_config = BmnGemStripConfiguration::RunWinter2016;
-    }
-    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
-    gemHM->SetCurrentConfig(gem_config);
+    //BmnGemStripConfiguration::GEM_CONFIG gem_config;
+    //if (!isExp || run_period == 6)
+    //    gem_config = BmnGemStripConfiguration::RunSpring2017;
+    //else if (run_period == 5) {
+    //    gem_config = BmnGemStripConfiguration::RunWinter2016;
+    //}
+    //BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
+    //gemHM->SetCurrentConfig(gem_config);
     // Set name of file with the alignment corrections for GEMs using one of the
     // two variants of the SetAlignmentCorrectionsFileName function defined in
     // BmnGemStripHitMaker.h
-    if (isExp) {
-        if (alignCorrFileName == "default")
+    //if (isExp) {
+    //    if (alignCorrFileName == "default")
             // retrieve from UniDb (default)
-            gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
-        else {
+    //        gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
+    //    else {
             // set explicitly, for testing purposes and for interactive
             // alignment; in case of determining alignment corrections from
             // scratch, set alignCorrFileName == "" (at first iteration) and it
             // will be properly used in BmnGemStripHitMaker.cxx, i.e. the input
             // alignment corrections will be set to zeros
-            gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
-        }
-    }
-    gemHM->SetHitMatching(kTRUE);
-    fRunAna->AddTask(gemHM);
+    //       gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
+    //    }
+    //}
+    //gemHM->SetHitMatching(kTRUE);
+    //fRunAna->AddTask(gemHM);
+    // ====================================================================== //
+    // ===                           Trigger hit finder                      === //
+    // ====================================================================== //
+    BmnTriggersCheck* bc = new BmnTriggersCheck(kTRUE);
+    fRunAna->AddTask(bc);
+    
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //
@@ -214,54 +220,51 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
     // ====================================================================== //
-    BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run6.txt", !isExp, iVerbose, kTRUE);
-    fRunAna->AddTask(tof2HP);
-
+    //BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run6.txt", !isExp, iVerbose, kTRUE);
+    //fRunAna->AddTask(tof2HP);
     // ====================================================================== //
     // ===                           Tracking (MWPC)                      === //
     // ====================================================================== //
-    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
-    fRunAna->AddTask(mwpcTF);
+    //BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
+    //fRunAna->AddTask(mwpcTF);
     // ====================================================================== //
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
-    BmnGemTracking* gemTF = new BmnGemTracking();
-    gemTF->SetTarget(isTarget);
-    gemTF->SetField(isField);
-    TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, -21.7);
-    gemTF->SetRoughVertex(vAppr);
-    fRunAna->AddTask(gemTF);  
-
+    //BmnGemTracking* gemTF = new BmnGemTracking();
+    //gemTF->SetTarget(isTarget);
+    //gemTF->SetField(isField);
+    //TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, -21.7);
+    //gemTF->SetRoughVertex(vAppr);
+    //fRunAna->AddTask(gemTF);  
     // ====================================================================== //
     // ===                           Tracking (DCH)                       === //
     // ====================================================================== //
-    BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
-    dchTF->SetTransferFunction("pol_coord00813.txt");
-    fRunAna->AddTask(dchTF);
+    //BmnDchTrackFinder* dchTF = new BmnDchTrackFinder(isExp);
+    //dchTF->SetTransferFunction("pol_coord00813.txt");
+    //fRunAna->AddTask(dchTF);
     // ====================================================================== //
     // ===                          Global Tracking                       === //
     // ====================================================================== //
-    BmnGlobalTracking* globalTF = new BmnGlobalTracking();
-    globalTF->SetField(isField);
-    fRunAna->AddTask(globalTF);
-
+    //BmnGlobalTracking* globalTF = new BmnGlobalTracking();
+    //globalTF->SetField(isField);
+    //fRunAna->AddTask(globalTF);
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //
     // ====================================================================== //
-    BmnGemVertexFinder* gemVF = new BmnGemVertexFinder();
-    gemVF->SetField(isField);
-    gemVF->SetVertexApproximation(vAppr);
-    fRunAna->AddTask(gemVF);
+    //BmnGemVertexFinder* gemVF = new BmnGemVertexFinder();
+    //gemVF->SetField(isField);
+    //gemVF->SetVertexApproximation(vAppr);
+    //fRunAna->AddTask(gemVF);
     
     // Residual analysis
-    if (isExp) {
-        BmnGemResiduals* residAnalGem = new BmnGemResiduals(run_period, run_number, fieldScale);
+    //if (isExp) {
+    //    BmnGemResiduals* residAnalGem = new BmnGemResiduals(run_period, run_number, fieldScale);
         // residAnal->SetPrintResToFile("file.txt");
         // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
-        fRunAna->AddTask(residAnalGem);
-        BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
-        fRunAna->AddTask(residAnalSi);
-    }
+    //    fRunAna->AddTask(residAnalGem);
+    //    BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
+    //    fRunAna->AddTask(residAnalSi);
+    //}
 
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();

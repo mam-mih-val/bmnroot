@@ -25,11 +25,11 @@ BmnHistSrc::BmnHistSrc(TString title, TString path) : BmnHist() {
         hists[iRow][0] = h;
     }
     for (Int_t iRow = 0; iRow < SRC_ROWS; iRow++) { // 1 column - sampling summed
-        name = fTitle + "_" + trigNames[iRow].Data() + "_Sampling";
+        name = fTitle + "_" + trigNames[iRow].Data() + "_QDC";
         TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT, 0, ADC_SAMPLING_LIMIT);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
-        h->GetXaxis()->SetTitle("Amplitude, ");
+        h->GetXaxis()->SetTitle("QDC Channel, ");
         h->GetXaxis()->SetTitleColor(kOrange + 10);
         h->GetYaxis()->SetTitle("Activation Count");
         h->GetYaxis()->SetTitleColor(kOrange + 10);
@@ -104,11 +104,12 @@ void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
             BmnTrigWaveDigit *tw = (BmnTrigWaveDigit*) (*trigAr)[iTrig]->At(digIndex);
 //            Short_t module = tw->GetMod();
             Double_t time = tw->GetTime();
-            UInt_t nSmpl = tw->GetNSamples();
-            Short_t *sampling = tw->GetShortValue();
+	    hists[iTrig][1]->Fill(tw->GetIntegral());
+            //UInt_t nSmpl = tw->GetNSamples();
+            //Short_t *sampling = tw->GetShortValue();
             hists[iTrig][0]->Fill(time);
-            for (UInt_t iSmpl = 0; iSmpl < nSmpl; iSmpl++)
-                hists[iTrig][1]->Fill(sampling[iSmpl]);
+            //for (UInt_t iSmpl = 0; iSmpl < nSmpl; iSmpl++)
+            //    hists[iTrig][1]->Fill(sampling[iSmpl]);
         }
     }
 }

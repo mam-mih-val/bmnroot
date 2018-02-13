@@ -90,6 +90,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
     TH1F *htime[NUMBER_CHAMBERS] = {0};
     TH1F *hwidth[NUMBER_CHAMBERS] = {0};
     TH1F *hlrdiff[NUMBER_CHAMBERS] = {0};
+    TH2F *hlrdiff_vs_strip[NUMBER_CHAMBERS] = {0};
     TH1F *hstrips[NUMBER_CHAMBERS] = {0};
     TH1F *hstripsmax[NUMBER_CHAMBERS] = {0};
     TH1F *htimemax[NUMBER_CHAMBERS] = {0};
@@ -113,13 +114,16 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
     {
 	sprintf(name,"Time_chamber_%d", i+1);
 	sprintf(title,"Time, chamber %d", i+1);
-	htime[i] = new TH1F(name, title, 2000, -50, 50);
+	htime[i] = new TH1F(name, title, 2000, -200, 200);
 	sprintf(name,"Width_chamber_%d", i+1);
 	sprintf(title,"Width, chamber %d", i+1);
 	hwidth[i] = new TH1F(name, title, 2500, 0, 5000);
 	sprintf(name,"LR-Diff_chamber_%d", i+1);
 	sprintf(title,"LR-Diff, chamber %d", i+1);
 	hlrdiff[i] = new TH1F(name, title, 200, -5, 5);
+	sprintf(name,"LR-Diff_vs_strip_chamber_%d", i+1);
+	sprintf(title,"LR-Diff_vs_strip, chamber %d", i+1);
+	hlrdiff_vs_strip[i] = new TH2F(name, title, 200, -5, 5,32,0,32);
 	sprintf(name,"Strips_rate_chamber_%d", i+1);
 	sprintf(title,"Strips rate, chamber %d", i+1);
 	hstrips[i] = new TH1F(name, title, 32, 0, 32);
@@ -131,7 +135,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
 	hstripsmax[i] = new TH1F(name, title, 32, 0, 32);
 	sprintf(name,"Time_profile_chamber_%d", i+1);
 	sprintf(title,"Time profile, chamber %d", i+1);
-	timeprof[i] = new TProfile(name, title, 1000, 0, 5000, -20, +20, "e");
+	timeprof[i] = new TProfile(name, title, 1000, 0, 5000, -200, +200, "e");
 	wmi[i] = 3000;
 	wma[i] = 3150;
     }
@@ -165,7 +169,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
     hsvss = new TH2F(name, title, 32, 0, 32, 32, 0, 32);
 
     Int_t nchamb1 = 0, nchamb2 = 0, nchamb12 = 0, nchamb21 = 0, nchamb12n = 0, nchamb12nn = 0;
-
+    //nEvents=10000;
     for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
         bmnTree->GetEntry(iEv);
 
@@ -210,6 +214,7 @@ void BmnResultsTOF700(char *fname = "../raw/bmn_run1889_digi.root") {
 	    htime[plane]->Fill(time);
 	    hstrips[plane]->Fill(strip);
 	    hlrdiff[plane]->Fill(lrdiff);
+	    hlrdiff_vs_strip[plane]->Fill(lrdiff,strip);
 	} // tof700Digits loop
 
 	if (DIFF_CHAMB_1 >= 0) if ((smax1[DIFF_CHAMB_1] >= STRIP_1) && (smax1[DIFF_CHAMB_1] >= STRIP_2))

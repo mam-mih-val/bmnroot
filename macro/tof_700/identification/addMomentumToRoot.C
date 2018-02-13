@@ -213,7 +213,7 @@ void addMomentumToRoot(Int_t runId = 1889) {
 
 //void addMomentumToRoot(TString inFileGem = "", TString inFileDch = "") {
 
-    TString inFileGem = Form("%d.root", runId);
+    TString inFileGem = Form("../../run/bmndst_%d.root", runId);
     TString inFileDch = Form("bmn_reco_DCH_run%d.root", runId);
 
     if ((inFileGem == "") || (inFileDch == "")) {
@@ -279,7 +279,8 @@ void addMomentumToRoot(Int_t runId = 1889) {
     TClonesArray *eventHeaderGem = (TClonesArray *) FairRootManager::Instance()->GetObject("BmnEventHeader");
 #endif
 
-    TChain* in1 = new TChain("BMN_ALLDIGIT");
+    //TChain* in1 = new TChain("BMN_ALLDIGIT");
+    TChain* in1 = new TChain("cbmsim");
     TChain* in2 = new TChain("cbmsim");
 
     //    cout << "Enter bmndst root file name" << endl;
@@ -314,9 +315,11 @@ void addMomentumToRoot(Int_t runId = 1889) {
     TClonesArray* dch1TracksOut = new TClonesArray("BmnTrack");
     TClonesArray* dch1TracksGemPar = new TClonesArray("BmnTrack");
 
-    in1->SetBranchAddress("StsHit", &hits);
+    //in1->SetBranchAddress("StsHit", &hits);
+    in1->SetBranchAddress("BmnGemStripHit", &hits);//AC
     //in1->SetBranchAddress("StsTrack", &tracks);
-    in1->SetBranchAddress("ExtrapCbmStsTrackSM", &tracks);
+    //in1->SetBranchAddress("ExtrapCbmStsTrackSM", &tracks);
+    in1->SetBranchAddress("BmnGemTrack", &tracks);//AC
     //in1->SetBranchAddress("EventHeader.", &eventHeaderGem);
     in1->SetBranchAddress("EventHeaderBmn", &eventHeaderGem);
     in2->SetBranchAddress("EventHeader", &eventHeader);
@@ -344,7 +347,10 @@ void addMomentumToRoot(Int_t runId = 1889) {
     return;
 #endif
 
-    const Int_t nEv = in2->GetEntries();
+
+    const Int_t nEv1 = in1->GetEntries();
+    const Int_t nEv2 = in2->GetEntries();
+    const Int_t nEv = min(nEv1,nEv2);
     //    const Int_t nEv = 10000;
     //    vector<Int_t> evVector;
     vector < Double_t> dxVector;
@@ -441,7 +447,7 @@ void addMomentumToRoot(Int_t runId = 1889) {
 	Int_t nGem = tracks->GetEntriesFast();
 	Int_t nDch = Tracks->GetEntriesFast();
         for (Int_t iTrGem = 0; iTrGem < nGem; ++iTrGem) {
-
+cout<< "first loop on gem tracks" <<endl;
             CbmStsTrack *track = (CbmStsTrack*) tracks->UncheckedAt(iTrGem);
 
 #ifdef USE_DOFIT

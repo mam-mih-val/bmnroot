@@ -25,7 +25,7 @@ class BmnLANDHitProducer : public FairTask
 protected:
 	TClonesArray		*aExpDigits;   // Exp input
 	TClonesArray		*aExpDigitsT0;
-	TClonesArray		*aTofHits;     //! output
+	TClonesArray		*aLandHits;     //! output
 	
 	Bool_t			fOnlyPrimary;
 	Bool_t			fUseMCData;

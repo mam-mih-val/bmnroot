@@ -6,7 +6,7 @@
  */
 
 /*
-TODO: add slewing, fix global position, fix error in position
+TODO: add slewing, make sure that spacing of layers is only thickness of bars 10cm, add T0
 
 BmnLandHit->GetDetectorID()  			returns plane of LAND (5 = veto, 0-4 = LAND)
 BmnLandHit->GetRefIndex()			returns bar index in plane (0-20)

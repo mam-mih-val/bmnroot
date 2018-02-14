@@ -51,7 +51,7 @@ static Float_t workTime = 0.0;
 ClassImp(BmnLANDHitProducer)
 	//--------------------------------------------------------------------------------------------------------------------------------------
 BmnLANDHitProducer::BmnLANDHitProducer(const char *name, Bool_t useMCdata, Int_t verbose, Bool_t test)
-	:  FairTask(name,verbose),aExpDigits(nullptr), fOnlyPrimary(false), fUseMCData(false), aTofHits(nullptr){
+	:  FairTask(name,verbose),aExpDigits(nullptr), fOnlyPrimary(false), fUseMCData(false), aLandHits(nullptr){
 		//	pGeoUtils = new BmnTof1GeoUtils;
 
 	}
@@ -83,8 +83,8 @@ InitStatus 		BmnLANDHitProducer::Init()
 	}
 	
 
-	aTofHits = new TClonesArray("BmnLANDHit");
-	FairRootManager::Instance()->Register("BmnLandHit", "LAND", aTofHits, kTRUE);
+	aLandHits = new TClonesArray("BmnLANDHit");
+	FairRootManager::Instance()->Register("BmnLandHit", "LAND", aLandHits, kTRUE);
 	
 	if (!fUseMCData) {
 		TString vScintMap = "neuland_sync_2.txt";
@@ -108,33 +108,45 @@ void 		BmnLANDHitProducer::Exec(Option_t* opt) {
 	if (fVerbose) cout << endl << "======================== LAND exec started ====================" << endl;
 	
 
-	aTofHits->Clear();
+	aLandHits->Clear();
 
 	TVector3 	pos, poslab, dpos; 	
 	Int_t nT0Digits = aExpDigitsT0->GetEntriesFast();
 	
 
-	float dPlane=10; //spacing bwt planes tmp
+	float dPlane=10.; //spacing bwt planes tmp
 	
-	//if (nT0Digits == 1) { // T0 digit should be
+	//if (nT0Digits == 1) { // T0 digit should exist and only be len 1
 		BmnTrigDigit* digT0 = (BmnTrigDigit*) aExpDigitsT0->At(0);
 
 		for (Int_t iDig = 0; iDig < aExpDigits->GetEntriesFast(); ++iDig) {
-			BmnLANDDigit* digTof = (BmnLANDDigit*) aExpDigits->At(iDig);
+			BmnLANDDigit* digLand = (BmnLANDDigit*) aExpDigits->At(iDig);
 			
-			int p = digTof->GetPlane();
-			int b = digTof->GetBar();		
+			int p = digLand->GetPlane();
+			int b = digLand->GetBar();		
 			
-			//cout << "output: " << digTof->GetX() << " " << digTof-> GetY() << " " << p << " " << b <<" " << m_vscint[digTof->GetPlane()][digTof->GetBar()].vscint <<" " << digTof->GetTime() << " " << digTof->GetEnergy() << "\n"; 
-			pos.SetXYZ(digTof->GetX(),digTof->GetY(),digTof->GetPlane()*dPlane);
-			dpos.SetXYZ(digTof->GetX(), 100./sqrt(12.) , 100./sqrt(12.));			
+			//cout << "output: " << digLand->GetX() << " " << digLand-> GetY() << " " << p << " " << b <<" " << m_vscint[digLand->GetPlane()][digLand->GetBar()].vscint <<" " << digLand->GetTime() << " " << digLand->GetEnergy() << "\n"; 
+			pos.SetXYZ(digLand->GetX(),digLand->GetY(),(p*dPlane+5.));
+			
+			// Assume t res is 500ps for now
+			float xerr = m_vscint[p][b].vscint*sqrt(2.0)*0.5;
+			float yerr = 10./sqrt(12.);
+			float zerr = 10./sqrt(12.);		
+				// now need to transform error to lab frame
+			float lab_xerr = pow(pow(xerr,2)*pow(TMath::Cos(5.2*TMath::DegToRad()),2) + pow(yerr,2)*pow(TMath::Sin(5.2*TMath::DegToRad()),2),0.5);
+			float lab_yerr = pow(pow(xerr,2)*pow(TMath::Sin(5.2*TMath::DegToRad()),2) + pow(yerr,2)*pow(TMath::Cos(5.2*TMath::DegToRad()),2),0.5);
 
-			poslab.SetXYZ(pos.X(),pos.Y(),pos.Z()+14250);
+			dpos.SetXYZ(lab_xerr , lab_yerr,zerr);			
+
+			poslab.SetXYZ(pos.X()-130.9,pos.Y(),pos.Z()+1425.0);
 			poslab.RotateZ(5.2*TMath::DegToRad());
 			
-    			BmnLANDHit *pHit = new ((*aTofHits)[aTofHits->GetEntriesFast()]) BmnLANDHit(digTof->GetPlane(), digTof->GetBar(), poslab, dpos,digTof->GetTime(), digTof->GetEnergy());
-			pHit->SetTimeStamp(digTof->GetTime());
-			pHit->SetEnergy(digTof->GetEnergy());
+    			BmnLANDHit *pHit = new ((*aLandHits)[aLandHits->GetEntriesFast()]) BmnLANDHit(digLand->GetPlane(), digLand->GetBar(), poslab, dpos,digLand->GetTime(), digLand->GetEnergy());
+		
+			// TODO: apply slewing correction for T0 time
+			//pHit->SetTimeStamp(digLand->GetTime()-digT0->GetTime());
+			pHit->SetTimeStamp(digLand->GetTime());
+			pHit->SetEnergy(digLand->GetEnergy());
 			}
 		
 	//}

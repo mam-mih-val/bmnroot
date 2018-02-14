@@ -437,6 +437,31 @@ Bool_t BmnTOF1Detector::SetCorrSlewing(TString NameFile) {
 
 //----------------------------------------------------------------------------------------
 
+Bool_t BmnTOF1Detector::SetCorrTimeShift(TString NameFile) {
+    char line[256];
+    Int_t Pl, St;
+    Double_t Temp;
+    ifstream f_corr;
+    TString dir = Form("%s%s%s", getenv("VMCWORKDIR"), "/input/", NameFile.Data());
+    f_corr.open(dir);
+    f_corr.getline(line, 256);
+    f_corr.getline(line, 256);
+    if (f_corr.is_open() == kTRUE) {
+        while (!f_corr.eof()) {
+            f_corr >> Pl >> St >> Temp;
+            if (Pl == fNPlane)
+                f_corr >> CorrTimeShift[St];
+        }
+    } else {
+        cout << "File " << NameFile.Data() << " for TimeShift correction is not found" << endl;
+        cout << "Check " << dir.Data() << " folder for file" << endl;
+        return kFALSE;
+    }
+    return kTRUE;
+}
+
+//----------------------------------------------------------------------------------------
+
 Bool_t BmnTOF1Detector::GetCrossPoint(Int_t NStrip = 0) {
 
     fVectorTemp.SetXYZ(0., 0., 0.);

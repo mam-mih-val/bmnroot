@@ -1,8 +1,8 @@
 /* 
  * File:   BmnLANDHit.h
- * Author: merz
+ * Author: segarra
  *
- * Created on October 24, 2014, 10:58 AM
+ * Created on Feb 14, 2018, 10:51 AM
  */
 
 #ifndef BMNLANDHIT_H
@@ -23,18 +23,24 @@ public:
     BmnLANDHit();
 
     /** Constructor to use **/
-    BmnLANDHit(Int_t plane, Int_t bar, TVector3 posHit, Float_t time, Float_t energy );
+    BmnLANDHit(Int_t plane, Int_t bar, TVector3 posHit, TVector3 dpos, Float_t time, Float_t energy );
 
     /** Destructor **/
     virtual ~BmnLANDHit();
-    Float_t GetEnergy(){return fenergy;};
-    SetEnergy(float energy){fenergy=energy;};
+    
+    Float_t GetEnergy() const{
+	return fenergy;
+    }
+
+    void SetEnergy(Float_t energy) {
+	fenergy = energy;
+    }
 
 private:
 
-    ClassDef(BmnLANDHit, 1);
     Float_t fenergy;
+    ClassDef(BmnLANDHit, 1);
 };
 
-#endif /* BMNTOFHIT_H */
+#endif /* BMNLANDHIT_H */
 

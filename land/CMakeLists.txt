@@ -39,6 +39,6 @@ BmnLANDHitProducer.cxx
 Set(HEADERS)
 Set(LINKDEF BmnLANDLinkDef.h)
 Set(LIBRARY_NAME LAND)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES Core Base BmnData)
 
 GENERATE_LIBRARY()

@@ -163,8 +163,8 @@ void run_reco_src(TString inputFileName = "",
     // ====================================================================== //
     // ===                           Check Triggers                       === //
     // ====================================================================== //
-    BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp);
-    fRunAna->AddTask(triggs);
+    //BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp);
+    //fRunAna->AddTask(triggs);
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
@@ -214,10 +214,15 @@ void run_reco_src(TString inputFileName = "",
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //
-    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
-    tof1HP->SetPeriod(run_period);
+    //BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
+    //tof1HP->SetPeriod(run_period);
     //tof1HP->SetOnlyPrimary(kTRUE);
-    fRunAna->AddTask(tof1HP);
+    //fRunAna->AddTask(tof1HP);
+    // ====================================================================== //
+    // ===                           LAND hit finder                      === //
+    // ====================================================================== //
+    BmnLANDHitProducer* land = new BmnLANDHitProducer("LAND", !isExp, iVerbose, kTRUE);
+    fRunAna->AddTask(land);
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
     // ====================================================================== //

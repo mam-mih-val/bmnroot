@@ -1316,5 +1316,199 @@ TObjArray* ElogDbRecord::GetRecords(int period_number, int run_number)
     return arrayResult;
 }
 
+TObjArray* ElogDbRecord::Search(const TObjArray& search_conditions)
+{
+    TObjArray* arrayResult = NULL;
+
+    UniDbConnection* connUniDb = UniDbConnection::Open(ELOG_DB);
+    if (connUniDb == 0x00)
+    {
+        cout<<"Error: connection to DB was failed"<<endl;
+        return arrayResult;
+    }
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+                "select record_id, record_date, shift_leader_id, r.type_id, period_number, run_number, r.trigger_id, daq_status, sp_41, sp_57, vkm2, field_comment, beam, energy, target, target_width, record_comment "
+                "from record_ r left join person_ p on r.shift_leader_id = p.person_id "
+                "left join type_ t on r.type_id = t.type_id "
+                "left join trigger_ tr on r.trigger_id = tr.trigger_id ");
+
+    TString strCondition;
+    bool isFirst = true;
+    TIter next(&search_conditions);
+    UniDbSearchCondition* curCondition;
+    while (curCondition = (UniDbSearchCondition*) next())
+    {
+        strCondition = "";
+
+        switch (curCondition->GetColumn())
+        {
+            case columnRecordDate:      strCondition += "record_date "; break;
+            case columnShiftLeader:     strCondition += "lower(person_name) "; break;
+            case columnType:            strCondition += "lower(type_text) "; break;
+            case columnRunNumber:       strCondition += "run_number "; break;
+            case columnPeriodNumber:    strCondition += "period_number "; break;
+            case columnTrigger:         strCondition += "lower(trigger_info) "; break;
+            case columnDaqStatus:       strCondition += "lower(daq_status) "; break;
+            case columnSp41:            strCondition += "sp_41 "; break;
+            case columnSp57:            strCondition += "sp_57 "; break;
+            case columnVkm2:            strCondition += "vkm2 "; break;
+            case columnBeamParticle:    strCondition += "lower(beam) "; break;
+            case columnEnergy:          strCondition += "energy "; break;
+            case columnTargetParticle:  strCondition += "lower(target) "; break;
+            default:
+                cout<<"Error: column in the search condition wasn't defined, condition is skipped"<<endl;
+                continue;
+        }
+
+        switch (curCondition->GetCondition())
+        {
+            case conditionLess:             strCondition += "< "; break;
+            case conditionLessOrEqual:      strCondition += "<= "; break;
+            case conditionEqual:            strCondition += "= "; break;
+            case conditionNotEqual:         strCondition += "<> "; break;
+            case conditionGreater:          strCondition += "> "; break;
+            case conditionGreaterOrEqual:   strCondition += ">= "; break;
+            case conditionLike:             strCondition += "like "; break;
+            case conditionNull:             strCondition += "is null "; break;
+            default:
+                cout<<"Error: comparison operator in the search condition wasn't defined, condition is skipped"<<endl;
+                continue;
+        }
+
+        switch (curCondition->GetValueType())
+        {
+            case 0: if (curCondition->GetCondition() != conditionNull) continue; break;
+            case 1: strCondition += Form("%d", curCondition->GetIntValue()); break;
+            case 2: strCondition += Form("%u", curCondition->GetUIntValue()); break;
+            case 3: strCondition += Form("%f", curCondition->GetDoubleValue()); break;
+            case 4: strCondition += Form("lower('%s')", curCondition->GetStringValue().Data()); break;
+            case 5: strCondition += Form("'%s'", curCondition->GetDatimeValue().AsSQLString()); break;
+            default:
+                cout<<"Error: value type in the search condition wasn't found, condition is skipped"<<endl;
+                continue;
+        }
+
+        if (isFirst)
+        {
+            sql += " where ";
+            isFirst = false;
+        }
+        else
+            sql += " and ";
+
+        sql += strCondition;
+    }
+    sql += " order by record_date";
+
+    TSQLStatement* stmt = uni_db->Statement(sql);
+    //cout<<"SQL code: "<<sql<<endl;
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"Error: getting ELOG records from DB has been failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+
+        return arrayResult;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    // extract rows one after another
+    arrayResult = new TObjArray();
+    arrayResult->SetOwner(kTRUE);
+    while (stmt->NextResultRow())
+    {
+        UniDbConnection* connRun = UniDbConnection::Open(ELOG_DB);
+        if (connRun == 0x00)
+        {
+            cout<<"Error: connection to DB for single record was failed"<<endl;
+            return arrayResult;
+        }
+
+        int tmp_record_id;
+        tmp_record_id = stmt->GetInt(0);
+        TDatime tmp_record_date;
+        tmp_record_date = stmt->GetDatime(1);
+        int* tmp_shift_leader_id;
+        if (stmt->IsNull(2)) tmp_shift_leader_id = NULL;
+        else
+            tmp_shift_leader_id = new int(stmt->GetInt(2));
+        int tmp_type_id;
+        tmp_type_id = stmt->GetInt(3);
+        int* tmp_period_number;
+        if (stmt->IsNull(4)) tmp_period_number = NULL;
+        else
+            tmp_period_number = new int(stmt->GetInt(4));
+        int* tmp_run_number;
+        if (stmt->IsNull(5)) tmp_run_number = NULL;
+        else
+            tmp_run_number = new int(stmt->GetInt(5));
+        int* tmp_trigger_id;
+        if (stmt->IsNull(6)) tmp_trigger_id = NULL;
+        else
+            tmp_trigger_id = new int(stmt->GetInt(6));
+        TString* tmp_daq_status;
+        if (stmt->IsNull(7)) tmp_daq_status = NULL;
+        else
+            tmp_daq_status = new TString(stmt->GetString(7));
+        int* tmp_sp_41;
+        if (stmt->IsNull(8)) tmp_sp_41 = NULL;
+        else
+            tmp_sp_41 = new int(stmt->GetInt(8));
+        int* tmp_sp_57;
+        if (stmt->IsNull(9)) tmp_sp_57 = NULL;
+        else
+            tmp_sp_57 = new int(stmt->GetInt(9));
+        int* tmp_vkm2;
+        if (stmt->IsNull(10)) tmp_vkm2 = NULL;
+        else
+            tmp_vkm2 = new int(stmt->GetInt(10));
+        TString* tmp_field_comment;
+        if (stmt->IsNull(11)) tmp_field_comment = NULL;
+        else
+            tmp_field_comment = new TString(stmt->GetString(11));
+        TString* tmp_beam;
+        if (stmt->IsNull(12)) tmp_beam = NULL;
+        else
+            tmp_beam = new TString(stmt->GetString(12));
+        double* tmp_energy;
+        if (stmt->IsNull(13)) tmp_energy = NULL;
+        else
+            tmp_energy = new double(stmt->GetDouble(13));
+        TString* tmp_target;
+        if (stmt->IsNull(14)) tmp_target = NULL;
+        else
+            tmp_target = new TString(stmt->GetString(14));
+        double* tmp_target_width;
+        if (stmt->IsNull(15)) tmp_target_width = NULL;
+        else
+            tmp_target_width = new double(stmt->GetDouble(15));
+        TString* tmp_record_comment;
+        if (stmt->IsNull(16)) tmp_record_comment = NULL;
+        else
+            tmp_record_comment = new TString(stmt->GetString(16));
+
+        arrayResult->Add((TObject*) new ElogDbRecord(connUniDb, tmp_record_id, tmp_record_date, tmp_shift_leader_id, tmp_type_id, tmp_period_number, tmp_run_number, tmp_trigger_id, tmp_daq_status, tmp_sp_41, tmp_sp_57, tmp_vkm2, tmp_field_comment, tmp_beam, tmp_energy, tmp_target, tmp_target_width, tmp_record_comment));
+    }
+
+    delete stmt;
+
+    return arrayResult;
+}
+
+TObjArray* ElogDbRecord::Search(const UniDbSearchCondition& search_condition)
+{
+    TObjArray search_conditions;
+    search_conditions.Add((TObject*)&search_condition);
+
+    return Search(search_conditions);
+}
+
 // -------------------------------------------------------------------
 ClassImp(ElogDbRecord);

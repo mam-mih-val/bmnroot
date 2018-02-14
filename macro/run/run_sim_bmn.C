@@ -7,7 +7,7 @@
 // nStartEvent - for compatibility, any number
 // nEvents - number of events to transport, default: 1
 // flag_store_FairRadLenPoint
-void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10000,
+void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString outFile = "$VMCWORKDIR/macro/run/evetest.root", Int_t nStartEvent = 0, Int_t nEvents = 10,
         Bool_t flag_store_FairRadLenPoint = kFALSE, Bool_t isFieldMap = kTRUE) {
 
 #define BOX
@@ -95,18 +95,11 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 #ifdef BOX
     gRandom->SetSeed(0);
     // ------- Box Generator
-    //FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
-    //boxGen->SetPRange(0.2, 5.0); // GeV/c //setPRange vs setPtRange
-    //boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
-    //boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
-    //boxGen->SetXYZ(0., 0., -21.7); // Approximate position of target (RunSpring2017)
-    //primGen->AddGenerator(boxGen);
-
-    FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 13 = muon; 1 = multipl. 2212
-    boxGen->SetPRange(10.0, 12.0); // GeV/c //setPRange vs setPtRange
-    boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree] 0 360
-    boxGen->SetThetaRange(5, 15); // Polar angle in lab system range [degree]
-    boxGen->SetXYZ(0., 0., 0.); // mm o cm ??
+    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
+    boxGen->SetPRange(0.2, 5.0); // GeV/c //setPRange vs setPtRange
+    boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
+    boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
+    boxGen->SetXYZ(0., 0., -21.7); // Approximate position of target (RunSpring2017)
     primGen->AddGenerator(boxGen);
 
 #else

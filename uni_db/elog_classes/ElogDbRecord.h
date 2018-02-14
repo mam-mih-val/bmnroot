@@ -15,6 +15,7 @@
 #include "TObjArray.h"
 
 #include "UniDbConnection.h"
+#include "UniDbSearchCondition.h"
 
 class ElogDbRecord
 {
@@ -154,6 +155,11 @@ class ElogDbRecord
 
     /// get array of ElogDbRecord-s for a given run from the database
     static TObjArray* GetRecords(int period_number, int run_number);
+
+    /// get ELOG records corresponding to the specified single condition
+    static TObjArray* Search(const UniDbSearchCondition& search_condition);
+    /// get ELOG records corresponding to the specified (vector) conditions
+    static TObjArray* Search(const TObjArray& search_conditions);
 
  ClassDef(ElogDbRecord,1);
 };

@@ -133,25 +133,25 @@ class UniDbRun
 
 	// static class functions (added by user request)
 	/// get numbers of runs existing in the Database for a selected range
-        /// \param[in] start_period start period number for selected run numbers' range
-        /// \param[in] start_run start run number for selected run numbers' range
-        /// \param[in] end_period end period number for selected run numbers' range
-        /// \param[in] end_run end run number for selected run numbers' range
-        /// \param[out] run pairs (period number+run numbers) of the really existing runs for a selected range (from start to end)
+    /// \param[in] start_period start period number for selected run numbers' range
+    /// \param[in] start_run start run number for selected run numbers' range
+    /// \param[in] end_period end period number for selected run numbers' range
+    /// \param[in] end_run end run number for selected run numbers' range
+    /// \param[out] run pairs (period number+run numbers) of the really existing runs for a selected range (from start to end)
 	/// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
-        static int GetRunNumbers(int start_period, int start_run, int end_period, int end_run, UniqueRunNumber*& run_numbers);
+    static int GetRunNumbers(int start_period, int start_run, int end_period, int end_run, UniqueRunNumber*& run_numbers);
 	/// get all numbers of existing runs in the Database
-        /// \param[out] run_numbers pairs (period number+run numbers) of the really existing runs for a selected range (from start to end)
+    /// \param[out] run_numbers pairs (period number+run numbers) of the really existing runs for a selected range (from start to end)
 	/// \return size of 'run_numbers' array. if size < 0, return value corresponds to error number
-        static int GetRunNumbers(UniqueRunNumber*& run_numbers);
+    static int GetRunNumbers(UniqueRunNumber*& run_numbers);
 	/// set geometry binary data (geometry file's data) for runs from start_run_number to end_run_number
-        static int SetRootGeometry(int start_period, int start_run, int end_period, int end_run, unsigned char* root_geometry, Long_t size_root_geometry);
+    static int SetRootGeometry(int start_period, int start_run, int end_period, int end_run, unsigned char* root_geometry, Long_t size_root_geometry);
 	/// get geometry binary data (geometry file's data) for selected run number
-        static int GetRootGeometry(int period_number, int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry);
+    static int GetRootGeometry(int period_number, int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry);
 	/// write geometry file for runs from start_run_number to end_run_number to the database
-        static int WriteGeometryFile(int start_period, int start_run, int end_period, int end_run, char* geo_file_path);
+    static int WriteGeometryFile(int start_period, int start_run, int end_period, int end_run, char* geo_file_path);
 	/// read geometry file for selected run number from the database
-        static int ReadGeometryFile(int period_number, int run_number, char* geo_file_path);
+    static int ReadGeometryFile(int period_number, int run_number, char* geo_file_path);
 	/// get runs corresponding to the specified single condition
 	static TObjArray* Search(const UniDbSearchCondition& search_condition);
 	/// get runs corresponding to the specified (vector) conditions

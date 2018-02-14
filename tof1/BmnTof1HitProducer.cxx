@@ -106,7 +106,7 @@ InitStatus 		BmnTof1HitProducer::Init()
     	FairRootManager::Instance()->Register("BmnTof1Hit", "TOF1", aTofHits, kTRUE);
         
 	fNDetectors = pGeoUtils->ParseTGeoManager(fUseMCData, h2TestStrips, true);
-        pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
+	 pGeoUtils->FindNeighborStrips(h1TestDistance, h2TestNeighborPair, fDoTest);
         if (!fUseMCData) {
             pDetector = new BmnTOF1Detector *[fNDetectors];
             TString NameFileLRcorrection, NameFileSlewingCorrection, NameFileTimeShiftCorrection;
@@ -258,7 +258,7 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt) {
                 }
 
                 for (Int_t i = 0; i < fNDetectors; i++)
-                    nSingleHits += pDetector[i] -> FindHits(digT0, aTofHits);
+		     nSingleHits += pDetector[i] -> FindHits(digT0, aTofHits);
             }
         }
 

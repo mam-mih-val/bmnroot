@@ -27,12 +27,13 @@
 #include "../../gem/BmnGemStripConfiguration.h"
 #include "bmnloadlibs.C"
 
-void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
-        TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
+void run_reco_src(TString inputFileName = "",
+        TString bmndstFileName = "",
         Int_t nStartEvent = 0,
-        Int_t nEvents = 10000,
+        Int_t nEvents = 10000, 
         TString alignCorrFileName = "default") { // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
-    Int_t iVerbose = 0;
+	
+	Int_t iVerbose = 0;
     // ----    Debug option   --------------------------------------------------
     gDebug = 0;
     // -------------------------------------------------------------------------
@@ -294,4 +295,4 @@ void run_reco_src(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     cout << "Real time " << rtime << " s, CPU time " << ctime << " s" << endl;
     cout << endl;
     // ------------------------------------------------------------------------
-}
+} 

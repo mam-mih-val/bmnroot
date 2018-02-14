@@ -442,6 +442,7 @@ void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
       auto const &tacquila0 = *m_builder[det.plane][det.bar][0];
       auto const &tacquila1 = *m_builder[det.plane][det.bar][1];
       auto const &diff_sync = m_diff_sync[det.plane][det.bar];
+      // TODO : add slewing correction
       Float_t time0 = tacquila0.GetTDiff() + diff_sync.time_diff -
 	diff_sync.time_sync;
       Float_t time1 = tacquila1.GetTDiff() - diff_sync.time_diff -

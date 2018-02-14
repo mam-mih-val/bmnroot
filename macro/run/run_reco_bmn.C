@@ -266,7 +266,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
         fRunAna->AddTask(residAnalSi);
     }
-
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
     FairParRootFileIo* parIo1 = new FairParRootFileIo();

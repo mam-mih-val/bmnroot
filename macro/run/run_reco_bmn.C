@@ -165,6 +165,11 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp);
     // fRunAna->AddTask(triggs);  
     // ====================================================================== //
+    // ===			     LAND hit finder			  === //
+    // ====================================================================== //
+    BmnLANDHitProducer* land = new BmnLANDHitProducer("LAND", !isExp, iVerbose, kTRUE);
+    fRunAna->AddTask(land);
+    // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
     BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
@@ -216,7 +221,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     BmnTofHitProducer* tof2HP = new BmnTofHitProducer("TOF", "TOF700_geometry_run6.txt", !isExp, iVerbose, kTRUE);
     fRunAna->AddTask(tof2HP);
-
     // ====================================================================== //
     // ===                           Tracking (MWPC)                      === //
     // ====================================================================== //

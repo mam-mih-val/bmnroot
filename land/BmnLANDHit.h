@@ -5,6 +5,19 @@
  * Created on Feb 14, 2018, 10:51 AM
  */
 
+/*
+TODO: add slewing, fix global position, fix error in position
+
+BmnLandHit->GetDetectorID()  			returns plane of LAND (5 = veto, 0-4 = LAND)
+BmnLandHit->GetRefIndex()			returns bar index in plane (0-20)
+BmnLandHit->GetX() / GetY() / GetZ()		returns global position of LAND in lab frame
+BmnLandHit->GetTimeStamp()			returns time rel to T0 with slewing corr
+BmnLandHit->GetEnergy()				returns calibrated energy deposit for hit
+BmnLandHit->GetDx() / GetDy() / GetDz()		returns error in position calculation
+
+*/
+
+
 #ifndef BMNLANDHIT_H
 #define BMNLANDHIT_H
 

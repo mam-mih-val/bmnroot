@@ -63,7 +63,7 @@ public:
     BmnStatus ClearArrays();
     BmnStatus DecodeDataToDigi();
     BmnStatus DecodeDataToDigiIterate();
-    BmnStatus CalcGemPedestals();
+    BmnStatus CalcGemPedestals(){return kBMNSUCCESS;}
     BmnStatus InitConverter(TString FileName);
     BmnStatus InitConverter(deque<UInt_t> *dq);
     BmnStatus InitDecoder();

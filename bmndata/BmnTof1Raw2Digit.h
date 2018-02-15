@@ -60,7 +60,7 @@ class BmnTof1Raw2Digit {
 		void setINLFromFile(std::string INLFile);	//Load INL from an INI file
 		void saveINLToFile(std::string INLFile, unsigned int TDCSerial); //Save INL for TDCSerial to an INI file
 		
-		void print(); //Prints some info
+		void print(){} //Prints some info
 		
 		void FillEvent(TClonesArray *data, TClonesArray *tof1digit); //
 		

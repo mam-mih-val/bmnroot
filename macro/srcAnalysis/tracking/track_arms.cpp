@@ -103,10 +103,18 @@ int main(int argc, char ** argv)
 	  BmnMwpcHit * thisHit = (BmnMwpcHit*)mwpcData->At(m);
 
 	  // Sort by z position (eventually do this by module ID)
-	  if ((thisHit->GetZ()<-300.)&&(thisHit->GetZ()>-400.)) 
+
+	  // This is for George's simulated data
+	  if ((thisHit->GetZ()<-90.)&&(thisHit->GetZ()>-110.)) 
 	    mwpcUHits.push_back(TVector3(thisHit->GetX(),thisHit->GetY(),thisHit->GetZ())); 
-	  else if ((thisHit->GetZ()<-200.)&&(thisHit->GetZ()>-300.))
+	  else if ((thisHit->GetZ()<-40.)&&(thisHit->GetZ()>-60.))
 	    mwpcDHits.push_back(TVector3(thisHit->GetX(),thisHit->GetY(),thisHit->GetZ()));
+
+	  //if ((thisHit->GetZ()<-300.)&&(thisHit->GetZ()>-400.)) 
+	  // mwpcUHits.push_back(TVector3(thisHit->GetX(),thisHit->GetY(),thisHit->GetZ())); 
+	  //else if ((thisHit->GetZ()<-200.)&&(thisHit->GetZ()>-300.))
+	  //  mwpcDHits.push_back(TVector3(thisHit->GetX(),thisHit->GetY(),thisHit->GetZ()));
+	  
 	}
 
       // Loop over ToF hits, sort
@@ -193,7 +201,7 @@ int main(int argc, char ** argv)
 		bestRSlope=yslope;
 	      }
 	  }
-
+      
       // We require at least a beam arm
       if (!((bestMUIndex < 0)||(bestMDIndex < 0)))
 	{      

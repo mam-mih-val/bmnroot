@@ -193,8 +193,8 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 			Double_t elcut = 0.; // 0.02e-3;
 			if (pPoint->GetEnergyLoss() > elcut) h1TestMass->Fill(mass);
 			if (pPoint->GetEnergyLoss() > elcut && length > 600.) h1TestMassLong->Fill(mass);
-//			const LStrip *pStrip = pGeoUtils->FindStrip(UID, pos);
-			const LStrip *pStrip = pGeoUtils->FindStrip(UID);
+			const LStrip *pStrip = pGeoUtils->FindStrip(UID, pos);
+//			const LStrip *pStrip = pGeoUtils->FindStrip(UID);
 			if (pStrip == NULL) continue;
 		
 			XYZ_smeared.SetXYZ( pRandom->Gaus(pos.X(), fErrX), pStrip->center.Y(), pStrip->center.Z());

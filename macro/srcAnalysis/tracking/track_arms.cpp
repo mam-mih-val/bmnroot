@@ -25,10 +25,10 @@ double residual(const double *xx);
 
 int main(int argc, char ** argv)
 {
-  if (argc !=2)
+  if (argc !=3)
     {
       cerr << "Wrong number of arguments. Instead use\n"
-	   << "\ttrack_arms /path/to/run/reco/file\n";
+	   << "\ttrack_arms /path/to/run/reco/file /path/to/output/file\n";
       return -1;
     }
 
@@ -38,7 +38,7 @@ int main(int argc, char ** argv)
   myMin.SetMaxIterations(100000);
   myMin.SetTolerance(0.001);
   
-  // Set up the file
+  // Set up the input file
   TFile * infile = NULL;
   infile = new TFile(argv[1]);
   if (!infile)
@@ -51,7 +51,18 @@ int main(int argc, char ** argv)
     {
       cerr << "Successfully opened file " << argv[1] << " and saved it to address " << infile << "\n";
     }
-  
+
+  // Set up the output file
+  TFile * outfile = new TFile(argv[2],"RECREATE");
+  TTree * outtree = new TTree("tracked","Output tree for the track_arms program");
+  double outVX,outVY,outVZ;
+  int totalArms, success;
+  outtree->Branch("vx",&outVX,"vx/D");
+  outtree->Branch("vy",&outVY,"vy/D");
+  outtree->Branch("vz",&outVZ,"vz/D");
+  outtree->Branch("n",&totalArms,"n/I");
+  outtree->Branch("fit",&success,"fit/I");
+
   // Set up the tree
   TClonesArray * tofData = new TClonesArray("BmnTofHit");
   TClonesArray * mwpcData = new TClonesArray("BmnMwpcHit");
@@ -79,6 +90,10 @@ int main(int argc, char ** argv)
 	cerr << "Working on event " << event << "\n";
 
       intree->GetEvent(event);
+
+      // Initialize values for this event
+      totalArms=0;
+      success=0; // will be set to true (1) on successful minimization
 
       // Loop over MWPC hits, sort
       vector<TVector3> mwpcUHits;
@@ -180,70 +195,72 @@ int main(int argc, char ** argv)
 	  }
 
       // We require at least a beam arm
-      if ((bestMUIndex < 0)||(bestMDIndex < 0))
-	continue;
-      SRCEvent thisEvent(mwpcUHits[bestMUIndex],mwpcDHits[bestMDIndex]);
-      
-      // Determine if we have other tracking arms
-      int totalArms=1;
-      bool hasLeftArm=((bestGLIndex >= 0) && (bestTLIndex >= 0));
-      if (hasLeftArm)
-	{
-	  thisEvent.addArm(gemLHits[bestGLIndex] ,tofLHits[bestTLIndex]);
+      if (!((bestMUIndex < 0)||(bestMDIndex < 0)))
+	{      
 	  totalArms++;
+	  SRCEvent thisEvent(mwpcUHits[bestMUIndex],mwpcDHits[bestMDIndex]);
+	  
+	  // Determine if we have other tracking arms
+	  bool hasLeftArm=((bestGLIndex >= 0) && (bestTLIndex >= 0));
+	  if (hasLeftArm)
+	    {
+	      thisEvent.addArm(gemLHits[bestGLIndex] ,tofLHits[bestTLIndex]);
+	      totalArms++;
+	    }
+	  bool hasRightArm=((bestGRIndex >= 0) && (bestTRIndex >= 0));
+	  if (hasRightArm)
+	    {
+	      thisEvent.addArm(gemRHits[bestGRIndex] ,tofRHits[bestTRIndex]);
+	      totalArms++;
+	    }
+	  
+	  // We require at least one additional arm for tracking
+	  if (totalArms >= 2)
+	    {
+	  
+	      // Set the current event pointer so that the residuals function can find the data
+	      currentEvent=&thisEvent;
+	      
+	      // Set up the functor based on the number of available arms
+	      ROOT::Math::Functor myFunctor(&residual,3+totalArms*2);
+	      myMin.SetFunction(myFunctor);
+	      myMin.SetVariable(0,"vx",0.01,0.01);
+	      myMin.SetVariable(1,"vy",0.01,0.01);
+	      myMin.SetVariable(2,"vz",0.01,0.01);
+	      for (int i=0 ; i<totalArms ; i++)
+		{
+		  // Initial slope guess
+		  double mx = (thisEvent.armList[i].hits[1].X() - thisEvent.armList[i].hits[0].X())
+		    /(thisEvent.armList[i].hits[1].Z() - thisEvent.armList[i].hits[0].Z());
+		  char temp[10];
+		  sprintf(temp,"mx%d",i);
+		  myMin.SetVariable(3+2*i + 0,temp,mx,0.001);
+		  
+		  double my = (thisEvent.armList[i].hits[1].Y() - thisEvent.armList[i].hits[0].Y())
+		    /(thisEvent.armList[i].hits[1].Z() - thisEvent.armList[i].hits[0].Z());
+		  sprintf(temp,"my%d",i);
+		  myMin.SetVariable(3+2*i + 1,temp,my,0.001);	  
+		}
+	      
+	      // Do the minimization
+	      success = myMin.Minimize() ? 1:0;
+	      const double * fitRes = myMin.X();
+	      
+	      outVX=fitRes[0];
+	      outVY=fitRes[1];
+	      outVZ=fitRes[2];
+	      TVector3 pBeam(fitRes[3],fitRes[4],1.);
+	      vector<TVector3> tracks;
+	      for (int i=1 ; i<totalArms ; i++)
+		tracks.push_back(TVector3(fitRes[3+2*i + 0],fitRes[3+2*i + 1],1.));
+	    }
 	}
-      bool hasRightArm=((bestGRIndex >= 0) && (bestTRIndex >= 0));
-      if (hasRightArm)
-	{
-	  thisEvent.addArm(gemRHits[bestGRIndex] ,tofRHits[bestTRIndex]);
-	  totalArms++;
-	}
-      
-      // We require at least one additional arm for tracking
-      if (totalArms < 2)
-	continue;
-
-      // Set the current event pointer so that the residuals function can find the data
-      currentEvent=&thisEvent;
-
-      // Set up the functor based on the number of available arms
-      ROOT::Math::Functor myFunctor(&residual,3+totalArms*2);
-      myMin.SetFunction(myFunctor);
-      myMin.SetVariable(0,"vx",0.,0.01);
-      myMin.SetVariable(1,"vy",0.,0.01);
-      myMin.SetVariable(2,"vz",0.,0.01);
-      myMin.SetVariable(3,"mxb",0.,0.001);
-      myMin.SetVariable(4,"myb",0.,0.001);
-      for (int i=1 ; i<totalArms ; i++)
-	{
-	  // Initial slope guess
-	  double mx = (thisEvent.armList[i].hits[1].X() - thisEvent.armList[i].hits[0].X())
-	    /(thisEvent.armList[i].hits[1].Z() - thisEvent.armList[i].hits[0].Z());
-	  char temp[10];
-	  sprintf(temp,"mx%d",i);
-	  myMin.SetVariable(3+2*i + 0,temp,mx,0.001);
-
-	  double my = (thisEvent.armList[i].hits[1].Y() - thisEvent.armList[i].hits[0].Y())
-	    /(thisEvent.armList[i].hits[1].Z() - thisEvent.armList[i].hits[0].Z());
-	  sprintf(temp,"my%d",i);
-	  myMin.SetVariable(3+2*i + 1,temp,my,0.001);	  
-	}
-
-      // Do the minimization
-      myMin.Minimize();
-      const double * fitRes = myMin.X();
-
-      TVector3 vRec(fitRes[0],fitRes[1],fitRes[2]);
-      TVector3 pBeam(fitRes[3],fitRes[4],1.);
-      vector<TVector3> tracks;
-      for (int i=1 ; i<totalArms ; i++)
-	tracks.push_back(TVector3(fitRes[3+2*i + 0],fitRes[3+2*i + 1],1.));
-      
-      for (int i=0 ; i<9 ; i++)
-	cout << fitRes[i] << " ";
-      cout << "\n";
+      outtree->Fill();
     }
-  
+
+  infile->Close();
+  outtree->Write();
+  outfile->Close();
   return 0;
 }
 

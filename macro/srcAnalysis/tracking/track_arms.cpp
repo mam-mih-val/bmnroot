@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <cstdio>
+#include <cstdlib>
 
 #include "TFile.h"
 #include "TTree.h"
@@ -35,8 +37,6 @@ int main(int argc, char ** argv)
   myMin.SetMaxFunctionCalls(1000000);
   myMin.SetMaxIterations(100000);
   myMin.SetTolerance(0.001);
-  ROOT::Math::Functor myFunctor(&residual,9);
-  myMin.SetFunction(myFunctor);
   
   // Set up the file
   TFile * infile = NULL;
@@ -179,39 +179,66 @@ int main(int argc, char ** argv)
 	      }
 	  }
 
-      if ((bestMUIndex < 0)||(bestMDIndex < 0)||(bestGLIndex < 0)||(bestGRIndex < 0)||(bestTLIndex < 0)||(bestTRIndex < 0))
+      // We require at least a beam arm
+      if ((bestMUIndex < 0)||(bestMDIndex < 0))
 	continue;
-      
-      // Fit this combination of hits
       SRCEvent thisEvent(mwpcUHits[bestMUIndex],mwpcDHits[bestMDIndex]);
-      thisEvent.addArm(gemLHits[bestGLIndex] ,tofLHits[bestTLIndex]);
-      thisEvent.addArm(gemRHits[bestGRIndex] ,tofRHits[bestTRIndex]);
-			 
-      //SRCEvent thisEvent(TVector3(0.,0.,-100.),TVector3(0.,0.,-50.),
-      //			 TVector3(50.,0.,100.),TVector3(125.,0.,250.),
-      //			 TVector3(-50.,0.,100.),TVector3(-125.,0.,250.));
-			 
-      currentEvent=&thisEvent;
       
-      // Calculate physics vectors
+      // Determine if we have other tracking arms
+      int totalArms=1;
+      bool hasLeftArm=((bestGLIndex >= 0) && (bestTLIndex >= 0));
+      if (hasLeftArm)
+	{
+	  thisEvent.addArm(gemLHits[bestGLIndex] ,tofLHits[bestTLIndex]);
+	  totalArms++;
+	}
+      bool hasRightArm=((bestGRIndex >= 0) && (bestTRIndex >= 0));
+      if (hasRightArm)
+	{
+	  thisEvent.addArm(gemRHits[bestGRIndex] ,tofRHits[bestTRIndex]);
+	  totalArms++;
+	}
+      
+      // We require at least one additional arm for tracking
+      if (totalArms < 2)
+	continue;
+
+      // Set the current event pointer so that the residuals function can find the data
+      currentEvent=&thisEvent;
+
+      // Set up the functor based on the number of available arms
+      ROOT::Math::Functor myFunctor(&residual,3+totalArms*2);
+      myMin.SetFunction(myFunctor);
       myMin.SetVariable(0,"vx",0.,0.01);
       myMin.SetVariable(1,"vy",0.,0.01);
       myMin.SetVariable(2,"vz",0.,0.01);
       myMin.SetVariable(3,"mxb",0.,0.001);
       myMin.SetVariable(4,"myb",0.,0.001);
-      myMin.SetVariable(5,"mxl",0.577,0.001);
-      myMin.SetVariable(6,"myl",0.,0.001);
-      myMin.SetVariable(7,"mxr",-0.577,0.001);
-      myMin.SetVariable(8,"myr",0.,0.001);
-      myMin.Minimize();
+      for (int i=1 ; i<totalArms ; i++)
+	{
+	  // Initial slope guess
+	  double mx = (thisEvent.armList[i].hits[1].X() - thisEvent.armList[i].hits[0].X())
+	    /(thisEvent.armList[i].hits[1].Z() - thisEvent.armList[i].hits[0].Z());
+	  char temp[10];
+	  sprintf(temp,"mx%d",i);
+	  myMin.SetVariable(3+2*i + 0,temp,mx,0.001);
 
+	  double my = (thisEvent.armList[i].hits[1].Y() - thisEvent.armList[i].hits[0].Y())
+	    /(thisEvent.armList[i].hits[1].Z() - thisEvent.armList[i].hits[0].Z());
+	  sprintf(temp,"my%d",i);
+	  myMin.SetVariable(3+2*i + 1,temp,my,0.001);	  
+	}
+
+      // Do the minimization
+      myMin.Minimize();
       const double * fitRes = myMin.X();
 
       TVector3 vRec(fitRes[0],fitRes[1],fitRes[2]);
       TVector3 pBeam(fitRes[3],fitRes[4],1.);
-      TVector3 pLeft(fitRes[5],fitRes[6],1.);
-      TVector3 pRight(fitRes[7],fitRes[8],1.);
-
+      vector<TVector3> tracks;
+      for (int i=1 ; i<totalArms ; i++)
+	tracks.push_back(TVector3(fitRes[3+2*i + 0],fitRes[3+2*i + 1],1.));
+      
       for (int i=0 ; i<9 ; i++)
 	cout << fitRes[i] << " ";
       cout << "\n";

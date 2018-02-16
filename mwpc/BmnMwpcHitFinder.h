@@ -29,11 +29,19 @@
 #include  "BmnMwpcDigit.h"
 #include  "BmnMwpcGeometry.h"
 #include  "FairTask.h"
+#include "TList.h"
+
+#include "TH1D.h"
+#include "TH2D.h"
+
+class TH1D;
+class TH2D;
 
 using namespace std;
 
 class BmnMwpcHitFinder : public FairTask {
 public:
+	
 
     /** Default constructor **/
     BmnMwpcHitFinder() {};
@@ -68,7 +76,8 @@ private:
     TClonesArray* fBmnMwpcDigitArray;
     
     /** Output array of MWPC hits **/
-    TClonesArray* fBmnMwpcHitArray; 
+    // TClonesArray* fBmnMwpcHitArray; 
+     TClonesArray* fBmnMwpcTracksArray; 
     
     vector <BmnMwpcDigit*> CheckDigits(vector <BmnMwpcDigit*>);
     void FindNeighbour(BmnMwpcDigit*, vector <BmnMwpcDigit*>, vector<BmnMwpcDigit*>);
@@ -86,10 +95,16 @@ private:
     
     BmnMwpcGeometry* fMwpcGeometry;
 
+    TList fList,gList,tList;
+
+    TH1D  *hNp_best_ch1, *hNp_best_ch2,  *hNbest_Ch1,  *hNbest_Ch2;
+
     Short_t kNChambers;
     Short_t kNPlanes;
     Short_t kNWires;
-
+    
+    Float_t kZmid1;
+    Float_t kZmid2;
     Int_t kMinHits;
     Double_t kChi2_Max;
 
@@ -113,12 +128,15 @@ private:
     Int_t Nbest_Ch2;
     Int_t Nseg_Ch1;
     Int_t Nseg_Ch2;
+    Int_t Nbest_Ch12_gl;
     
     Int_t kBig;
 
     Int_t *kPln;
     Float_t *kZ1_loc;
     Float_t *kZ2_loc;
+    Float_t *z_gl1;
+    Float_t *z_gl2;
 
     Int_t *iw;
     Int_t *iw_Ch1;
@@ -130,7 +148,10 @@ private:
     Float_t **xuv_Ch2;
 
     Int_t *ind_best_Ch1;
-    Int_t *ind_best_Ch2;    
+    Int_t *ind_best_Ch2; 
+    Int_t *best_Ch1_gl;
+    Int_t *best_Ch2_gl;
+   
     Int_t **Wires_Ch1;
     Int_t **Wires_Ch2;    
     Int_t **clust_Ch1;
@@ -144,25 +165,55 @@ private:
     Double_t **par_ab_Ch1;
     Double_t *Chi2_ndf_Ch2;
     Double_t **par_ab_Ch2;
+    Double_t **par_ab_Ch1_2;
     Double_t *Chi2_ndf_best_Ch1;
-    Double_t *Chi2_ndf_best_Ch2;    
+    Double_t *Chi2_ndf_best_Ch2; 
+    Double_t *Chi2_match;
+    Double_t *Chi2_ndf_Ch1_2;
 
-    Double_t **A;
+    
     Float_t *sigm2;
     Int_t *h;
     Int_t *h6;
     Int_t *ipl;
-    Float_t *XVU;
-    Float_t *XVU_cl;
-    Double_t **b;
-    Float_t *dX_i;
+    Double_t **matrA;
+    Double_t **matrb;
+    //  Double_t **A1;
+    //  Double_t **b1;
+    // Double_t **A2;
+    // Double_t **b2;
+    
+    Float_t *XVU1;
+    Float_t *XVU2;
+    Float_t *XVU_cl1;
+    Float_t *XVU_cl2;
+    Float_t *dX_i1;
+    Float_t *dX_i2;
     Float_t *z2;
 
     //functions for Vasilisa method:
     void PrepareArraysToProcessEvent();
-    //    void SegmentFinder(Int_t, Int_t**, Int_t**, Float_t**, Int_t*, Int_t*, Int_t&, Int_t**, Float_t**, Int_t, Short_t, Int_t);
-    void SegmentFinder(Int_t, Int_t**, Int_t**, Float_t**, Int_t);
-    void ProcessSegments(Int_t, Double_t, Float_t, Float_t*, Int_t, Int_t, Int_t*, Int_t**, Int_t**, Float_t**, Int_t, Int_t*,  Double_t*, Double_t*, Double_t**, Double_t**, Int_t, Int_t*, Float_t*, Float_t*, Double_t, Float_t*);
+
+    void SegmentFinder(Int_t, Int_t**, Int_t**, Float_t**, Int_t*, Int_t* , Int_t &, Int_t **, Float_t **, Int_t, Short_t , Int_t);
+
+    void ProcessSegments(Int_t,Double_t ,Float_t , Float_t *,Int_t ,Int_t & ,Int_t *,Int_t **,Int_t **,Float_t **,Int_t & ,Int_t *,  Double_t *, Double_t *, Double_t **, Double_t **,Double_t **, Int_t ,Int_t* , Float_t*,  Float_t* , Double_t ,Float_t *);
+
+    void SegmentParamAlignment();
+
+    void SegmentMatching(Int_t &, Int_t &, Double_t **, Double_t **, Float_t, Float_t, Int_t *, Int_t *,   Int_t *,  Int_t *, Int_t &, Double_t *);
+
+    void SegmentFit(Float_t *, Float_t *, 
+		    Float_t*, 
+		    Int_t &,
+		    Int_t *, Int_t *, Int_t *, Int_t *, 
+		    Double_t **, Double_t *, 
+		    Int_t *, Int_t *, Int_t **, Int_t **,
+		    Double_t **, Double_t **,
+		    Float_t *, Float_t *
+		    );
+
+
+
     void FillFitMatrix(Double_t**, Float_t*, Float_t*, Int_t*, Int_t, Float_t*);
     void FillFreeCoefVector(Double_t*, Float_t*, Float_t*, Float_t*, Int_t*, Int_t);
     void InverseMatrix(Double_t**, Double_t**);

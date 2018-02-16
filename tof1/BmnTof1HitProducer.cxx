@@ -254,7 +254,8 @@ void 		BmnTof1HitProducer::Exec(Option_t* opt) {
 
                 for (Int_t iDig = 0; iDig < aExpDigits->GetEntriesFast(); ++iDig) {
                     BmnTof1Digit* digTof = (BmnTof1Digit*) aExpDigits->At(iDig);
-                    pDetector[digTof->GetPlane()]->SetDigit(digTof);
+                    //cout << "SETTING PLANE " << digTof->GetPlane() << "\n";
+			pDetector[digTof->GetPlane()]->SetDigit(digTof);
                 }
 
                 for (Int_t i = 0; i < fNDetectors; i++)

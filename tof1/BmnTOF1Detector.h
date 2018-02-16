@@ -72,7 +72,8 @@ private:
     TH1I *hHitByCh, *hHitPerEv;
     TH2I *hXY;
     TH2S *hHitLR, *hDtvsWidthDet[fNStr], *hDtvsWidthT0[fNStr];
-    TH1I *hWidth[fNStr + 1], *hDtLR[fNStr + 1], *hTime[fNStr + 1], *hDt[fNStr + 1];
+    TH1I *hWidth[fNStr + 1], *hTime[fNStr + 1];
+    TH1D * hDtLR[fNStr + 1], *hDt[fNStr + 1], *hToF[fNStr + 1];
     TGraphErrors *gSlew[fNStr];
 
     TH1S *hDy_near, *hDtime_near, *hDWidth_near;

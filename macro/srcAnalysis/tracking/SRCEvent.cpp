@@ -1,15 +1,15 @@
 #include "SRCEvent.h"
 
-SRCEvent::SRCEvent(TVector3 buHit, TVector3 bdHit, TVector3 lgHit, TVector3 ltHit, TVector3 rgHit, TVector3 rtHit)
+SRCEvent::SRCEvent(TVector3 buHit, TVector3 bdHit)
 {
-  bHits[0]=buHit;
-  bHits[1]=bdHit;
-  lHits[0]=lgHit;
-  lHits[1]=ltHit;
-  rHits[0]=rgHit;
-  rHits[1]=rtHit;
+  addArm(buHit,bdHit);
 }
 
 SRCEvent::~SRCEvent()
 {
+}
+
+void SRCEvent::addArm(TVector3 h1, TVector3 h2)
+{
+  armList.push_back(SRCArm(h1,h2));
 }

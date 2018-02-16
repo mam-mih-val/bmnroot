@@ -183,10 +183,10 @@ int main(int argc, char ** argv)
 	continue;
       
       // Fit this combination of hits
-      SRCEvent thisEvent(mwpcUHits[bestMUIndex],mwpcDHits[bestMDIndex],
-			 gemLHits[bestGLIndex] ,tofLHits[bestTLIndex],
-			 gemRHits[bestGRIndex] ,tofRHits[bestTRIndex]);
-
+      SRCEvent thisEvent(mwpcUHits[bestMUIndex],mwpcDHits[bestMDIndex]);
+      thisEvent.addArm(gemLHits[bestGLIndex] ,tofLHits[bestTLIndex]);
+      thisEvent.addArm(gemRHits[bestGRIndex] ,tofRHits[bestTRIndex]);
+			 
       //SRCEvent thisEvent(TVector3(0.,0.,-100.),TVector3(0.,0.,-50.),
       //			 TVector3(50.,0.,100.),TVector3(125.,0.,250.),
       //			 TVector3(-50.,0.,100.),TVector3(-125.,0.,250.));
@@ -231,23 +231,18 @@ double closestApproachSq(TVector3 &v, TVector3 &x0, double mx, double my)
 
 double residual(const double *xx)
 {
+  int nArms=currentEvent->armList.size();
   double res=0.;
   TVector3 vertex(xx[0],xx[1],xx[2]);
-  double mxBeam=xx[3];
-  double myBeam=xx[4];
-  double mxLeft=xx[5];
-  double myLeft=xx[6];
-  double mxRight=xx[7];
-  double myRight=xx[8];
   
-  for (int i=0 ; i<2 ; i++)
-    res += closestApproachSq(vertex,currentEvent->bHits[i],mxBeam,myBeam);
+  for (int a=0 ; a<nArms ; a++)
+    {
+      double mx=xx[3 + 2*a + 0];
+      double my=xx[3 + 2*a + 1];
 
-  for (int i=0 ; i<2 ; i++)
-    res += closestApproachSq(vertex,currentEvent->lHits[i],mxLeft,myLeft);
-
-  for (int i=0 ; i<2 ; i++)
-    res += closestApproachSq(vertex,currentEvent->rHits[i],mxRight,myRight);
+      for (int i=0 ; i<2 ; i++)
+	res += closestApproachSq(vertex,currentEvent->armList[a].hits[i],mx,my);
+    }
 
   return res;
 }

@@ -2,16 +2,23 @@
 #define __SRCEVENT_H__
 
 #include "TVector3.h"
+#include <vector>
 
+class SRCArm
+{
+ public:
+  SRCArm(TVector3 h1, TVector3 h2) { hits[0]=h1; hits[1]=h2; }
+  TVector3 hits[2];
+};
 
 class SRCEvent
 {
  public:
-  SRCEvent(TVector3 buHit, TVector3 bdHit, TVector3 lgHit, TVector3 ltHit, TVector3 rgHit, TVector3 rtHit);
+  SRCEvent(TVector3 buHit, TVector3 bdHit);
   ~SRCEvent();
-  TVector3 bHits[2];
-  TVector3 lHits[2];
-  TVector3 rHits[2];
+
+  std::vector<SRCArm> armList;
+  void addArm(TVector3 h1, TVector3 h2);
 };
 
 #endif

@@ -29,7 +29,7 @@ class KFMCParticle: public TObject
   void AddDaughter( int i );
   int  NDaughters() const { return fDaughterIds.size(); };
   const std::vector<int>&  GetDaughterIds() const { return fDaughterIds; };
-  void FindCommonMC();
+  void FindCommonMC(){}
 
   void SetPDG(int pdg) {fPDG = pdg;}
   void SetMCTrackID(int id) {fMCTrackID = id;}
@@ -41,8 +41,8 @@ class KFMCParticle: public TObject
   bool IsReconstructable() const {return fIsReconstructable;}
   void SetAsReconstructable() { fIsReconstructable = 1;}
   
-  void CalculateIsReconstructable(unsigned int NDaughters = 2);
-  void CalculateIsRecRec(unsigned int NDaughters = 2);
+  void CalculateIsReconstructable(unsigned int NDaughters = 2){}
+  void CalculateIsRecRec(unsigned int NDaughters = 2){}
   
  private: //data
   std::vector<int> fDaughterIds;

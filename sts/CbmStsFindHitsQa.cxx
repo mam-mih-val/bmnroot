@@ -133,6 +133,44 @@ CbmStsFindHitsQa::CbmStsFindHitsQa(Bool_t visualizeBool, Int_t iVerbose)
 }
 // -------------------------------------------------------------------------
 
+CbmStsFindHitsQa::CbmStsFindHitsQa(Int_t iVerbose)
+  : FairTask("STSFindHitsQa", iVerbose), 
+  fOnlineAnalysis(0),
+  fGeoPar(NULL),
+  fDigiPar(NULL),
+  fDigiScheme(NULL),
+  fMCTracks(NULL),          // MCtrack
+  fStsPoints(NULL),          // StsPoints
+  fStsHits(NULL),          // StsHits
+  fMatches(NULL),          // StsTrackMatch
+  fStsClusters(NULL),          // StsCluster
+  fStsDigis(NULL),          // StsDigi
+  fNStations(0),
+  fNEvents(0),
+  fTime1(0.),
+
+  fhHitFindingEfficiency(),
+  fhEffIncAng(),
+  fhEffMom(),
+  fhEffPdgSec(),
+  fhEffPdgPrim(),
+  fhHitPointPull(),
+  fhHitPointCorr(),
+  fHistoList(),
+  fTimer(),
+  fNofHits(),
+  fNofPointsPrim(),
+  fNofPointsSec(),
+  fNofRecoPrim(),
+  fNofRecoSec(),
+  fNofPointsMomSum(),
+  fNofRecoPointsMomSum(),
+  recoCanvas()
+{  
+  fDigiScheme = new CbmStsDigiScheme();
+}
+// -------------------------------------------------------------------------
+
 
 
 // -----   Constructor with name   -----------------------------------------

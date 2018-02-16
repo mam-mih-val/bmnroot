@@ -1,0 +1,21 @@
+LRCorrection: For each strip, take time_left - time_right 
+and simply make all of these distributions centered around 0
+
+This is done by running:
+1) REMOVE any TOF400_LRCorr file from bmnroot/input directory
+
+2) On the ToF400 data, run_reco_src.C with only TOF400 and turning the fTest parameter to TRUE. you also need to change DoTestForDetector = 2 in BmnTof1HitProducer.cxx
+
+2) After running, this will output an additional file test.BmnTof400HitProducter.root file which has for each plane for each strip, a histogram for LRcorrection. For 200,000 trigger events, roughly each strip has 400 events. We'll need 3000!
+
+3) Move the test.BmnTof400HitProducer.root to the macro/srcAnalysis/tof400/ directory.
+
+4) Now on test.BmnTof400HitProducer.root, we will run the SRC_LRCorrection macro which produces a txt file with the LR correction shifts for each plane and each strip
+
+4) In LRCorrection macro, we MAY need to adjust the minimum depending on how large the grass is in each strip in the output of test.BmnTof400HitProducer.root
+
+5) The output is LR_CorrectionHistograms.root and shows for each plane, for each strip, what the distribution looks like before the shift (before it should be symmetric around 0)
+
+6) Move the output TOF400_LRCorr_Period_SRC.dat to bmnroot/input directory
+
+7) you should repeat steps 2-5 (make sure in run_reco execution, it can find the correct file path to the new LRCorr.dat file) to make sure that there are NO MORE corrections needed (i.e. the output of the macro should be all zeros!)

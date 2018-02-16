@@ -1,0 +1,18 @@
+TimeShiftCorr: For each strip, take (timeL+timeR)*0.5 - T0 and get the mean ToF for each strip. This SHOULD be about 16.5ns for every strip if it's a gamma flash run. We calculate this for each strip, find where the gamma peak is in time and give a shift to make it 16.5ns. This is then the true ToF in the ToF400 detector for each strip
+
+This is done by running:
+1) REMOVE any TOF400_TimeShiftCorr file from bmnroot/input directory
+
+2) On the ToF400 data, run_reco_src.C with only TOF400 and turning the fTest parameter to TRUE. you also need to change DoTestForDetector = 2 in BmnTof1HitProducer.cxx
+
+3) After running, this will produce an additional file test.BmnTof400HitProducer.root file which has for each plane for each strip, 2 histograms: Plane_0/ToF/Hist_Dt and Plane_0/ToF/Hist_ToF -- Hist_Dt and Hist_ToF BETTER BE THE SAME AT THIS STAGE!!! If not, you didn't do step 1
+
+4) If upon inspection of Hist_Dt, you need to rebin the histogram, you can edit BmnTOF1Detector.cxx (filling hDt and hToF) to edit bins or ranges if it's out of range
+
+5) Now move test.BmnTof400HitProducer.root to macro/srcAnalysis/tof400 directory and run the SRC_TimeShiftCorrection macro, which produces a txt file with the ShiftTimeCorr for each plane and each strip
+
+6) The output of the macro is the text file for the shifts as well as a root file to show the quality of the fitting. DEPENDING ON REAL DATA, THE FIT MIGHT NEED TO CHANGE (also could depend on the bin width)! Currently it just takes 1 sigma to the left of the peak (motivation b/c rise might be distorted and have contamination from other particles 
+
+7) Move the output text file to bmnroot/input directory
+
+8) Repeat step 2, and now look at Hist_ToF -- the gamma peak should be at ~16.5ns. Hist_Dt should still peak around 0ns. The output textfile you moved to input directory should have the shift AROUND 16ns. 

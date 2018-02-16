@@ -30,7 +30,7 @@
 void run_reco_src(TString inputFileName = "",
         TString bmndstFileName = "",
         Int_t nStartEvent = 0,
-        Int_t nEvents = 10000, 
+        Int_t nEvents = 200000, 
         TString alignCorrFileName = "default") { // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
 	
 	Int_t iVerbose = 0;
@@ -214,10 +214,10 @@ void run_reco_src(TString inputFileName = "",
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //
-    //BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
-    //tof1HP->SetPeriod(run_period);
+    BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", !isExp, iVerbose, kTRUE);
+    tof1HP->SetPeriod(run_period);
     //tof1HP->SetOnlyPrimary(kTRUE);
-    //fRunAna->AddTask(tof1HP);
+    fRunAna->AddTask(tof1HP);
     // ====================================================================== //
     // ===                           LAND hit finder                      === //
     // ====================================================================== //

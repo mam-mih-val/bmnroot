@@ -12,20 +12,20 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
 #endif
     bmnloadlibs(); // load BmnRoot libraries
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //5 - period
-    decoder->SetBmnSetup(kBMNSETUP);
+    decoder->SetBmnSetup(kSRCSETUP);
     
     Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
-    setup[1] = 1; // MWPC
-    setup[2] = 1; // SILICON
+    setup[1] = 0; // MWPC
+    setup[2] = 0; // SILICON
     setup[3] = 0; // GEM
     setup[4] = 1; // TOF-400
-    setup[5] = 1; // TOF-700
-    setup[6] = 1; // DCH
-    setup[7] = 1; // ZDC
+    setup[5] = 0; // TOF-700
+    setup[6] = 0; // DCH
+    setup[7] = 0; // ZDC
     setup[8] = 0; // ECAL
-    setup[9] = 0; // LAND
+    setup[9] = 1; // LAND
     decoder->SetDetectorSetup(setup);
     
     decoder->SetTrigMapping((decoder->GetBmnSetup() == kBMNSETUP) ? "Trig_map_Run6.txt" : "Trig_map_Run7_SRC.txt");

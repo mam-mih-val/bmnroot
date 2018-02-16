@@ -64,6 +64,16 @@ Float_t BmnLANDDigit::GetBarPosition() const
   return 10 * (fBar - 9.5);
 }
 
+Bool_t BmnLANDDigit::IsT0() const
+{
+  return T0_PLANE == fPlane;
+}
+
+Bool_t BmnLANDDigit::IsValid() const
+{
+  return -1 != fPlane;
+}
+
 Bool_t  BmnLANDDigit::IsVertical() const
 {
   return 5 == fPlane || 0 == (1 & fPlane);
@@ -154,6 +164,14 @@ Float_t BmnLANDDigit::GetEnergy(Char_t a_i) const
 	    std::cerr << __func__ << ": Invalid energy ID=" << a_i << ".\n";
 	      return -1;
   }
+}
+
+void BmnLANDDigit::SetT0(BmnTacquilaDigit const &a_tacq)
+{
+  fPlane = T0_PLANE;
+  fTdc0 = a_tacq.GetTdc();
+  fQdc0 = a_tacq.GetQdc();
+  fTDiff0 = a_tacq.GetTDiff();
 }
 
 ClassImp(BmnLANDDigit)

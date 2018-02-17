@@ -82,7 +82,8 @@ InitStatus 		BmnLANDHitProducer::Init()
 		return kERROR;
 	}
 	
-
+	fLANDGeometry = new BmnLANDGeometry();
+	
 	aLandHits = new TClonesArray("BmnLANDHit");
 	FairRootManager::Instance()->Register("BmnLandHit", "LAND", aLandHits, kTRUE);
 	
@@ -138,8 +139,10 @@ void 		BmnLANDHitProducer::Exec(Option_t* opt) {
 
 			dpos.SetXYZ(lab_xerr , lab_yerr,zerr);			
 
-			poslab.SetXYZ(pos.X()-130.9,pos.Y(),pos.Z()+1425.0);
-			poslab.RotateZ(5.2*TMath::DegToRad());
+			//			poslab.SetXYZ(pos.X()-130.9,pos.Y(),pos.Z()+1425.0);
+			poslab.SetXYZ(pos.X() - fLANDGeometry->GetGlobalX(), pos.Y(), pos.Z() + fLANDGeometry->GetGlobalZ());
+			//	poslab.RotateZ(5.2*TMath::DegToRad());
+			poslab.RotateZ(fLANDGeometry->GetGlobalAngle()*TMath::DegToRad());
 			
     			BmnLANDHit *pHit = new ((*aLandHits)[aLandHits->GetEntriesFast()]) BmnLANDHit(digLand->GetPlane(), digLand->GetBar(), poslab, dpos,digLand->GetTime(), digLand->GetEnergy());
 		
@@ -173,6 +176,7 @@ void BmnLANDHitProducer::Finish() {
 				pDetector[i] -> SaveHistToFile(fTestFlnm.Data());
 	}*/
 
+        delete fLANDGeometry;
 	cout << "Work time of the LAND hit finder: " << workTime << endl;
 }
 

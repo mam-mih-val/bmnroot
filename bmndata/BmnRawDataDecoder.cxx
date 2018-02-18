@@ -1450,6 +1450,9 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Slewing T0 event #" << iEv << endl;
+
+	fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
@@ -1465,7 +1468,9 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+	if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillSlewingT0(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1478,6 +1483,9 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Slewing RPC event #" << iEv << endl;
+
+	fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
@@ -1493,7 +1501,9 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+	if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillSlewing(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1507,6 +1517,9 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Equalization RPC strips event #" << iEv << endl;
+
+	fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
@@ -1522,7 +1535,9 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+	if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillEqualization(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1542,6 +1557,9 @@ BmnStatus BmnRawDataDecoder::PreparationTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Preparation stage event #" << iEv << endl;
+
+	fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
@@ -1557,7 +1575,9 @@ BmnStatus BmnRawDataDecoder::PreparationTOF700() {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+	if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillPreparation(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1636,12 +1656,12 @@ BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {
     vector<TClonesArray*>* trigArr = fTrigMapper->GetTrigArrays();
     for (auto ar : *trigArr) {
         if (fPeriodId > 6) {
-            if (ar->GetName() == "BC2") {
+            if (strstr(ar->GetName(),"BC2") && ar->GetEntriesFast()) {
                 t0time = ((BmnTrigDigit*) (ar->At(0)))->GetTime();
                 t0width = ((BmnTrigDigit*) (ar->At(0)))->GetAmp();
             }
         } else {
-            if (ar->GetName() == "T0") {
+            if (strstr(ar->GetName(),"T0") && ar->GetEntriesFast()) {
                 t0time = ((BmnTrigDigit*) (ar->At(0)))->GetTime();
                 t0width = ((BmnTrigDigit*) (ar->At(0)))->GetAmp();
             }

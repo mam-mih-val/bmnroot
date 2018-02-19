@@ -36,6 +36,7 @@ link_directories(${LINK_DIRECTORIES})
 set(SRCS
 BmnMwpcHitProducer.cxx
 BmnMwpcHitFinder.cxx
+BmnMwpcHitFinderSRC.cxx
 BmnMwpcGeometry.cxx
 BmnMwpcGeometrySRC.cxx
 BmnMwpcTrack.cxx

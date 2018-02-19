@@ -209,6 +209,8 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
         h->SetDir(fHistOutTemp, fRecoTree4Show);
         h->Reset();
     }
+
+    return kBMNSUCCESS;
 }
 
 void BmnMonitor::ProcessDigi(Int_t iEv) {
@@ -398,6 +400,8 @@ TObjArray* BmnMonitor::GetAlikeRunsByElog(Int_t periodID, Int_t runID) {
         printf("run %04d Energy %f Voltage %f Date %d\n", run->GetRunNumber(), *run->GetEnergy(), *run->GetFieldVoltage(), run->GetStartDatetime().GetDate());
     }
     refRuns->Delete();
+
+    return NULL; // FIXME
 }
 
 TObjArray* BmnMonitor::GetAlikeRunsByUniDB(Int_t periodID, Int_t runID) {

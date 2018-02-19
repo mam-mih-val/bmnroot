@@ -177,6 +177,8 @@ BmnStatus BmnHistDch::SetRefRun(Int_t id) {
         BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canWiresPads, NamesWires);
         DrawBoth();
     }
+
+    return kBMNSUCCESS;
 }
 
 void BmnHistDch::Reset() {

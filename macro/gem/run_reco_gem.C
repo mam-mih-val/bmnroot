@@ -17,8 +17,9 @@
 //
 // --------------------------------------------------------------------------
 #include <TGDMLParse.h>
+#include "../run/bmnloadlibs.C"
 
-void run_reco_gem(TString mcFile = "mc.root", Int_t nEvents = 2) {
+void run_reco_gem(TString mcFile = "mc.root", Int_t nEvents = 10000) {
 
   // ========================================================================
   //          Adjust this part according to your requirements
@@ -34,7 +35,8 @@ void run_reco_gem(TString mcFile = "mc.root", Int_t nEvents = 2) {
   // Parameter file
   //TString parFile = "data/AuAu_urqmd_3.3p1_4.0_gev__10000_ev__mbias__seed_0_params.root";
   TString dir = "./"; // Output directory
-  TString inFile = dir + mcFile; // MC transport file
+  TString inFile = /*dir +*/ mcFile; // MC transport file
+  
   TString scriptFile = TString(gSystem->Getenv("MCFILE"));
   if (scriptFile != "") inFile = dir + scriptFile;
   TString parFile = inFile;
@@ -78,7 +80,12 @@ void run_reco_gem(TString mcFile = "mc.root", Int_t nEvents = 2) {
   timer.Start();
   // ------------------------------------------------------------------------
 
-
+  // ----  Load libraries   --------------------------------------------------
+  #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
+      gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
+  #endif
+      bmnloadlibs(); // load BmnRoot libraries
+/*
   // ----  Load libraries   -------------------------------------------------
   gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
   basiclibs();
@@ -108,13 +115,17 @@ void run_reco_gem(TString mcFile = "mc.root", Int_t nEvents = 2) {
   gSystem->Load("libMinuit2"); // Nedded for rich ellipse fitter
   // ------------------------------------------------------------------------
 
+*/
+  //AC added
+  FairSource* fFileSource;
+  fFileSource = new BmnFileSource(inFile); 
 
   // -----   Reconstruction run   -------------------------------------------
   FairRunAna *run = new FairRunAna();
-  run->SetInputFile(inFile);
+  //run->SetInputFile(inFile);
+  run->SetInputFile(fFileSource);
   run->SetOutputFile(outFile);
   // ------------------------------------------------------------------------
-
 
 
 

@@ -103,7 +103,7 @@ public:
     Bool_t SetCorrLR(Double_t *Mass);
     Bool_t SetCorrLR(TString NameFile);
     Bool_t SetCorrSlewing(TString NameFile);
-    Bool_t SetCorrTimeShift (TString NameFile) { return kFALSE; } //FIXME
+    Bool_t SetCorrTimeShift (TString NameFile); //FIXME
     Bool_t SetGeoFile(TString NameFile);
     Bool_t SetGeo(BmnTof1GeoUtils *pGeoUtils);
     Bool_t GetXYZTime(Int_t Str, TVector3 *XYZ, Double_t *ToF);

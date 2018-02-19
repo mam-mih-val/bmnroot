@@ -80,8 +80,8 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
         Plane[i]->SetCorrLR("TOF400_LRCorr_Period_6.dat");
         Plane[i]->SetCorrSlewing("TOF400_SlewingCorr_Period_6.root");
         //Plane[i]->SetGeoFile("geofile_full.root");
-        //Plane[i]->SetGeoFile("geometry_run6.root");
-        Plane[i]->SetGeoFile("geofile_full.root");
+        Plane[i]->SetGeoFile("geometry_run6.root");
+        //Plane[i]->SetGeoFile("geofile_full.root");
     }
 	cout << "Loaded input files...\n";
     TList *fList = new TList();
@@ -96,7 +96,7 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
     /////////////////////////////////////////////
 
     TChain *eveTree = new TChain("cbmsim");
-    TString inName = Form("/nica/mpd16/bmndata3/run6/root/digi/bmn_run%s_digi.root", file.Data());
+    TString inName = Form("../../raw/data-Decoded/bmn_run%s_digi.root", file.Data());
     //inName = file;
     cout << "Open file " << inName << endl << endl;
     eveTree->Add(inName);
@@ -206,13 +206,13 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
 	}	
         eveTree->GetEntry(iEv);
 
-        if ((T0Digits->GetEntriesFast()) == 1 && 
-	    (VetoDigits->GetEntriesFast()) == 0 && 
+        if (T0Digits->GetEntriesFast() > 0){ 
+	    //(VetoDigits->GetEntriesFast()) == 0 && 
 	    /*(BC1Digits->GetEntriesFast()) == 1 &&*/
-	    (BC2Digits->GetEntriesFast()) == 1 ) {
+	    //(BC2Digits->GetEntriesFast()) == 1 ) {
 	
             BmnTrigDigit* digT0 = (BmnTrigDigit*) T0Digits->At(0);
-            if (digT0->GetAmp() >= 17.3 && digT0->GetAmp() <= 19.2) {
+            //if (digT0->GetAmp() >= 17.3 && digT0->GetAmp() <= 19.2) {
 		
                 BmnTrigDigit* digT0 = (BmnTrigDigit*) T0Digits->At(0);
 
@@ -253,7 +253,7 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
 
                         FlagHit = Plane[i]->GetXYZTime(strip, &XYZ, &ToF);
 
-                        if (FlagHit == kTRUE) {
+                        //if (FlagHit == kTRUE) {
 			//cout<<XYZ.x()<<" "<<XYZ.y()<<" "<<XYZ.z()<<endl;
 			d=sqrt(pow(XYZ.x(),2) + pow(XYZ.y(),2) + pow(XYZ.z(),2) )/100.; //in meters 
 			P = sqrt( pow(mp,2) / (pow(ToF/(3.3*d),2) - 1) );
@@ -300,7 +300,7 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
 
 			h_XYRPC -> Fill(XYZ.x(), XYZ.y());
 			
-			}//end of kTRUE	
+			//}//end of kTRUE	
                     }//end of s strips
                 }//end of i planes 
 
@@ -349,7 +349,7 @@ void tof(TString file = "", Int_t nEvForRead = 0) {
 			//} // end of cut 	
 		} // end of if nStripsL, nStripsR
 
-            }// end if (digT0->GetAmp() >= 17.3 && digT0->GetAmp() <= 19.2)
+            //}// end if (digT0->GetAmp() >= 17.3 && digT0->GetAmp() <= 19.2)
         } // end if ((T0Digits->GetEntriesFast()) == 1 && (VetoDigits->GetEntriesFast()) == 0)
     } // end for (Int_t iEv = 0; iEv < nEvForRead; iEv++)
 

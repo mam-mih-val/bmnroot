@@ -1423,13 +1423,19 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700Init() {
     }
     fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
     tdc = new TClonesArray("BmnTDCDigit");
+    tqdc_adc = new TClonesArray("BmnTQDCADCDigit");
+    tqdc_tdc = new TClonesArray("BmnTDCDigit");
     sync = new TClonesArray("BmnSyncDigit");
     fRawTree->SetBranchAddress("TDC", &tdc);
     fRawTree->SetBranchAddress("SYNC", &sync);
+    fRawTree->SetBranchAddress("TQDC_ADC", &tqdc_adc);
+    fRawTree->SetBranchAddress("TQDC_TDC", &tqdc_tdc);
 
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
-    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
+    fDigiTree = new TTree("cbmsim", "bmn_digit");
+
+    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName, fDigiTree);
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     //    fTof700Mapper->print();
 
@@ -1444,20 +1450,27 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Slewing T0 event #" << iEv << endl;
+
+	fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
+        FillTimeShiftsMap();
+
+        //if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
             //                cout << "No TimeShiftMap created" << endl;
-            continue;
-        }
+            //continue;
+        //}
 
         if (fTrigMapper) {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+	if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillSlewingT0(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1470,20 +1483,27 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Slewing RPC event #" << iEv << endl;
+
+	fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
+        FillTimeShiftsMap();
+
+        //if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
             //                cout << "No TimeShiftMap created" << endl;
-            continue;
-        }
+            //continue;
+        //}
 
         if (fTrigMapper) {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+	if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillSlewing(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1497,20 +1517,27 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Equalization RPC strips event #" << iEv << endl;
+
+	fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
+        FillTimeShiftsMap();
+
+        //if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
             //                cout << "No TimeShiftMap created" << endl;
-            continue;
-        }
+            //continue;
+        //}
 
         if (fTrigMapper) {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+	if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillEqualization(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1530,20 +1557,27 @@ BmnStatus BmnRawDataDecoder::PreparationTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Preparation stage event #" << iEv << endl;
+
+	fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
+        FillTimeShiftsMap();
+
+        //if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
             //                cout << "No TimeShiftMap created" << endl;
-            continue;
-        }
+            //continue;
+        //}
 
         if (fTrigMapper) {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+	if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillPreparation(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1622,12 +1656,12 @@ BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {
     vector<TClonesArray*>* trigArr = fTrigMapper->GetTrigArrays();
     for (auto ar : *trigArr) {
         if (fPeriodId > 6) {
-            if (ar->GetName() == "BC2") {
+            if (strstr(ar->GetName(),"BC2") && ar->GetEntriesFast()) {
                 t0time = ((BmnTrigDigit*) (ar->At(0)))->GetTime();
                 t0width = ((BmnTrigDigit*) (ar->At(0)))->GetAmp();
             }
         } else {
-            if (ar->GetName() == "T0") {
+            if (strstr(ar->GetName(),"T0") && ar->GetEntriesFast()) {
                 t0time = ((BmnTrigDigit*) (ar->At(0)))->GetTime();
                 t0width = ((BmnTrigDigit*) (ar->At(0)))->GetAmp();
             }

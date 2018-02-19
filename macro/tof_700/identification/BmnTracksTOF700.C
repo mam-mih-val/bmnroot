@@ -84,7 +84,8 @@ void BmnTracksTOF700(int runId = 1889) {
 //    printf("In BmnTracksTOF700!\n");
     char fname[132];
     /* Load basic libraries */
-    sprintf(fname, "./bmn_reco_DCH_GEM_run%d.root", runId);
+    //sprintf(fname, "./bmn_reco_DCH_GEM_run%d.root", runId);
+    sprintf(fname, "./bmn_reco_DCH_run%d.root", runId);//AC
 #if defined(__CINT__)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load bmn libraries
@@ -108,7 +109,7 @@ void BmnTracksTOF700(int runId = 1889) {
     TOF2 = new BmnTof2Raw2DigitNew(mapping, fname, 0, 0, "TOF700_geometry_run6_gem.txt");
 
     TClonesArray *tof700Digits = NULL, *eventHeader = NULL;
-    TClonesArray *tracks = NULL, *mtracks = NULL, *dchits = NULL;
+    TClonesArray *tracks = NULL,  *mtracks = NULL, *dchits = NULL;
     TChain *bmnTree = new TChain("cbmsim");
     if (bmnTree->Add(fname) == 0)
     {
@@ -132,6 +133,12 @@ void BmnTracksTOF700(int runId = 1889) {
 
     gStyle->SetOptFit(111);
 
+    TClonesArray *bmnIdentifiableTracks = new TClonesArray("BmnIdentifiableTrack");
+    TFile *f_out = new TFile(Form("BmnIdentifiableTracks%d.root", runId), "RECREATE");
+    TTree *t_out = new TTree("cbmsim", "test_bmn");
+    
+    t_out->Branch("BmnIdentifiableTracks", &bmnIdentifiableTracks);
+    
     TFile *f = NULL;
     if (strlen(fname))
     {
@@ -142,12 +149,7 @@ void BmnTracksTOF700(int runId = 1889) {
 	f = new TFile(fname_root,"RECREATE","Results of BmnTOF700");
     }
     
-    TClonesArray *bmnIdentifiableTracks = new TClonesArray("BmnIdentifiableTrack");
     
-    TFile *f_out = new TFile(Form("BmnIdentifiableTracks%d.root", runId), "RECREATE");
-    TTree *t_out = new TTree("cbmsim", "test_bmn");
-    
-    t_out->Branch("BmnIdentifiableTracks", &bmnIdentifiableTracks);
 
     TH1F *hntr = new TH1F("hntr","Number of tracks", 100,0,100);
     TH1F *hntr0 = new TH1F("hntr0","Number of good tracks", 100,0,100);
@@ -176,13 +178,14 @@ void BmnTracksTOF700(int runId = 1889) {
     h1xytrtof1->SetLineColor(kRed);
     h1xytrtof2->SetLineColor(kBlue);
     h1xytrtof3->SetLineColor(kGreen);
-    TH1F *htoftr = new TH1F("htoftr","TOF of tracks with TOF700 hits", 400,-10,30);
-    TH1F *htof = new TH1F("htof","TOF for hits", 400,-10,30);
+    TH1F *htoftr = new TH1F("htoftr","TOF of tracks with TOF700 hits", 1000,-200,200);
+    TH1F *htof = new TH1F("htof","TOF for hits", 1000,-200,200);
     TH1F *hntof = new TH1F("hntof","Number of hits", 100,0,100);
     TH1F *hntof0 = new TH1F("hntof0","Number of good hits", 100,0,100);
     TH2F *hxytof = new TH2F("hxytof","XY TOF700 hits", 1000,-100,100,1000,-100,100);
     TH2F *hpbeta = new TH2F("hpbeta","Beta vs momentum", 200,-100,100,400,0,1);;
     TH2F *hptime = new TH2F("hptime","Time vs momentum", 200,-100,100,200,-5,5);;
+    TH2F *hangletime = new TH2F("hangletime","Time vs angle", 1400,-12,12,2000,-200,200);;
     TH1F *hmass = new TH1F("hmass", "Mass", 1000,-50,50);
 
     TH1F *hstr = new TH1F("hstr","Strips", 32,0,32);
@@ -274,20 +277,22 @@ void BmnTracksTOF700(int runId = 1889) {
 	float beta = 1., mass = 1., cvel = 29.97925;
 	int nh = 0, hchamb[100] = {0}, hstrip[100] = {0};
 	int ntr = mtracks->GetEntriesFast();
+	//int ntr = tracks->GetEntriesFast();//AC
 	int ntr0 = 0;
 	hntr->Fill(ntr);
 	for (Int_t iTr = 0; iTr < ntr; ++iTr) {
     	    BmnTrack *track = (BmnTrack*) mtracks->At(iTr);
+    	    //BmnTrack *track = (BmnTrack*) tracks->At(iTr); //AC
     	    if (track == NULL) continue;
 	    ntr0++;
     	    Float_t le = track->GetLength();
-//   printf("Length = %f\n", l);
+//   printf("Length = %f\n", le);
     	    Float_t p = track->GetParamFirst()->GetQp();
 //    	    Float_t p = track->GetB()*6.;
 	    p = 1./p;
 	    hptr->Fill(p); // GeV/c
 // for beam run
-	    if (beamrun) if (p < 60./6. || p > 67./6.) continue;
+//	    if (beamrun) if (p < 60./6. || p > 67./6.) continue;
 	    hltr->Fill(le); // cm
 	    // get xyz and cxyz here
     	    xyz[0] = track->GetParamFirst()->GetX();
@@ -361,6 +366,7 @@ void BmnTracksTOF700(int runId = 1889) {
 
 //		    p += 0.8;
 		    hptime->Fill(p,tof[ic][is]);
+		    hangletime->Fill(tx*TMath::RadToDeg(),tof[ic][is]);
 		    hpbeta->Fill(p,beta);
 		    if (beta < 0.7) continue;
 		    if (fabs(p) < 3.0) continue;
@@ -382,14 +388,14 @@ void BmnTracksTOF700(int runId = 1889) {
                     bmnIdentifiableTrack->SetTOF700Strip(is);
                     bmnIdentifiableTrack->SetTOF700Amplitude(tofWidths[ic][is]);
                     bmnIdentifiableTrack->SetTOF700StripHits(nhits[ic][is]);
-		}
-	    }
+		} //good hit
+	    }//hit loop
 	} // tracks loop
 	hntr0->Fill(ntr0);
         t_out->Fill();
     } // event loop
 
-    if (f) f->Write();
+    if (f) {f->Write();}
     
 #ifdef WRITE_TO_TREE_ONLY
     f_out->cd();

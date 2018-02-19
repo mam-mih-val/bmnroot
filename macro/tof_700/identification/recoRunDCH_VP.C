@@ -296,11 +296,11 @@ void fit_seg(float *rh_seg, float *rh_sigm_seg, float *par_ab, int skip_first, i
     }
 }//fit_seg
 
-void recoRunDCH_VP(Int_t runId = 1889) {
+void recoRunDCH_VP(Int_t runId = 1700) {
 
     TChain *bmnTree = 0;
     bmnTree = new TChain("cbmsim");
-    Int_t rcode = bmnTree->Add(TString::Format("bmn_run%04d_digi.root", runId),0);
+    Int_t rcode = bmnTree->Add(TString::Format("digi/bmn_run%04d_digi.root", runId),0);
     if ( rcode == 0)
     {
 	delete bmnTree;
@@ -379,6 +379,7 @@ void recoRunDCH_VP(Int_t runId = 1889) {
     int skipped_ev = 0;
     int poss = 0;
     int imposs = 0;
+    //nEvents=100000;
     for (Int_t iEv = startEvent; iEv < startEvent + nEvents; iEv++) {
 
         eventHeader->Clear();

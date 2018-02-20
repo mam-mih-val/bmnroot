@@ -100,7 +100,7 @@ public:
             Double_t p2[nStation] = {0.0, 0.0399, -0.0563, -0.0006, 0.0024, -0.0016, 0.0026};
             return p0[station] + p1[station] * By + p2[station] * By * By;
         }
-        //        return 0;
+        return 0;
     }
 
 private:

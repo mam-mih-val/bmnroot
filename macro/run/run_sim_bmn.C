@@ -1,4 +1,3 @@
-#include "../../gem/BmnGemStripConfiguration.h"
 #include "bmnloadlibs.C"
 #include "geometry.C"
 

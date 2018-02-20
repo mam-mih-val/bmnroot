@@ -30,6 +30,7 @@
 #pragma link C++ class BmnGemStripMedium+;
 
 #pragma link C++ namespace BmnGemStripConfiguration;
+#pragma link C++ enum BmnGemStripConfiguration::GEM_CONFIG;
 #pragma link C++ namespace BmnGemStripMediumConfiguration;
 #pragma link C++ enum ElectronDriftDirectionInModule;
 //#pragma link C++ enum StripNumberingDirection;

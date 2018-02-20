@@ -445,7 +445,7 @@ void BmnMwpcHitFinderSRC::Exec(Option_t* opt) {
       }
       
       for (Int_t ise = 0; ise < Nbest_Ch2; ise++) {
-	cout<<" Ch2 ise "<<ise<<" ind "<<ind_best_Ch2[ise]<<" Chi2 "<<Chi2_ndf_best_Ch2[ise]<<endl;
+	cout<<" Ch2 ise "<<ise<<" ind "<<ind_best_Ch2[ise]<<" Chi2 "<<Chi2_ndf_best_Ch2[ise]<<endl;	
       }
       cout<<endl;
 	  

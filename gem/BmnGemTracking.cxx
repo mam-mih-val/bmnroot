@@ -225,7 +225,7 @@ Int_t BmnGemTracking::Tracking(vector<BmnGemTrack>& seeds) {
                 SetHitsUsing(&sortedTracks[iTr], kTRUE);
                 num_of_tracks++;
             }
-    }
+        }
     return num_of_tracks;
 }
 
@@ -246,23 +246,23 @@ BmnStatus BmnGemTracking::CheckSharedHits(vector<BmnGemTrack>& sortedTracks) {
     const Int_t kNSharedHits = 0; //FIXME!!! Which cut is better
 
     for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr) {
-        BmnGemTrack tr = sortedTracks.at(iTr);
-        if (tr.GetFlag() == -1) continue;
+        BmnGemTrack* tr = &(sortedTracks.at(iTr));
+        if (tr->GetFlag() == -1) continue;
 
         Int_t nofSharedHits = 0;
-        Int_t nofHits = tr.GetNHits();
+        Int_t nofHits = tr->GetNHits();
         for (Int_t iHit = 0; iHit < nofHits; iHit++)
-            if (hitsId.find(tr.GetHitIndex(iHit)) != hitsId.end()) {
+            if (hitsId.find(tr->GetHitIndex(iHit)) != hitsId.end()) {
                 nofSharedHits++;
                 if (nofSharedHits > kNSharedHits) {
-                    tr.SetFlag(-1);
+                    tr->SetFlag(-1);
                     break;
                 }
             }
-        if (tr.GetFlag() == -1) continue;
+        if (tr->GetFlag() == -1) continue;
 
         for (Int_t iHit = 0; iHit < nofHits; iHit++)
-            hitsId.insert(tr.GetHitIndex(iHit));
+            hitsId.insert(tr->GetHitIndex(iHit));
     }
     hitsId.clear();
 }

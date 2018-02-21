@@ -39,6 +39,7 @@ BmnMwpcHitFinder.cxx
 BmnMwpcHitFinderSRC.cxx
 BmnMwpcGeometry.cxx
 BmnMwpcGeometrySRC.cxx
+BmnMwpcSegment.cxx
 BmnMwpcTrack.cxx
 BmnMwpcTrackFinder.cxx
 BmnMwpc.cxx

@@ -73,12 +73,14 @@ private:
     TString fInputBranchName;
     TString fOutputBranchName;
     TString fOutputBranchName1;
+    TString fOutputBranchName2;
     
     /** Input array of MWPC digits **/
     TClonesArray* fBmnMwpcDigitArray;
     
     /** Output array of MWPC hits **/
      TClonesArray* fBmnMwpcHitArray; 
+     TClonesArray* fBmnMwpcSegmentsArray; 
      TClonesArray* fBmnMwpcTracksArray; 
     
     vector <BmnMwpcDigit*> CheckDigits(vector <BmnMwpcDigit*>);
@@ -99,7 +101,7 @@ private:
 
     TList fList,gList,tList;
 
-    TH1D  *hNp_best_ch1, *hNp_best_ch2,  *hNbest_Ch1,  *hNbest_Ch2;
+    TH1D  *hNp_best_ch1, *hNp_best_ch2,  *hNbest_Ch1,  *hNbest_Ch2, *hChi2_ch1_2;
 
     Short_t kNChambers;
     Short_t kNPlanes;
@@ -107,6 +109,9 @@ private:
     
     Float_t kZmid1;
     Float_t kZmid2;
+    Float_t ZCh1;
+    Float_t ZCh2;
+    Float_t kZ_to_pole;
     Int_t kMinHits;
     Double_t kChi2_Max;
 
@@ -140,6 +145,10 @@ private:
     Float_t *z_gl1;
     Float_t *z_gl2;
 
+    Float_t *shift1;
+    Float_t *shift2;
+    Float_t *shift1_2;
+    
     Int_t *iw;
     Int_t *iw_Ch1;
     Int_t *iw_Ch2;
@@ -153,6 +162,7 @@ private:
     Int_t *ind_best_Ch2; 
     Int_t *best_Ch1_gl;
     Int_t *best_Ch2_gl;
+    Int_t *ind_best_Ch1_2;
    
     Int_t **Wires_Ch1;
     Int_t **Wires_Ch2;    
@@ -200,19 +210,11 @@ private:
 
     void ProcessSegments(Int_t,Double_t ,Float_t , Float_t *,Int_t ,Int_t & ,Int_t *,Int_t **,Int_t **,Float_t **,Int_t & ,Int_t *,  Double_t *, Double_t *, Double_t **, Double_t **,Double_t **, Int_t ,Int_t* , Float_t*,  Float_t* , Double_t ,Float_t *);
 
-    void SegmentParamAlignment();
+    void SegmentParamAlignment(Int_t &, Int_t *, Double_t **, Float_t *);
 
     void SegmentMatching(Int_t &, Int_t &, Double_t **, Double_t **, Float_t, Float_t, Int_t *, Int_t *,   Int_t *,  Int_t *, Int_t &, Double_t *);
 
-    void SegmentFit(Float_t *, Float_t *, 
-		    Float_t*, 
-		    Int_t &,
-		    Int_t *, Int_t *, Int_t *, Int_t *, 
-		    Double_t **, Double_t *, 
-		    Int_t *, Int_t *, Int_t **, Int_t **,
-		    Double_t **, Double_t **,
-		    Float_t *, Float_t *
-		    );
+    void SegmentFit(Float_t *, Float_t *,  Float_t*,  Int_t &, Int_t *, Int_t *, Int_t *, Int_t *,  Double_t **, Double_t *, Int_t *, Int_t *, Int_t **, Int_t **, Double_t **, Double_t **, Float_t *, Float_t *, Int_t *, Int_t *, Int_t * );
 
 
 

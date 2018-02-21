@@ -145,6 +145,7 @@ BmnStatus BmnOnlineDecoder::OpenStream() {
     //    istream<UInt_t> qstream(data_queue);
     //    rdd->SetRawFileIn(data_stream);
 
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnOnlineDecoder::Decode(TString dirname, TString startFile, Bool_t runCurrent) {
@@ -261,6 +262,8 @@ TString BmnOnlineDecoder::WatchNext(TString dirname, TString filename, Int_t cyc
         gSystem->ProcessEvents();
         usleep(cycleWait);
     }
+
+    return ret;
 }
 
 TString BmnOnlineDecoder::WatchNext(Int_t inotifDir, Int_t cycleWait) {

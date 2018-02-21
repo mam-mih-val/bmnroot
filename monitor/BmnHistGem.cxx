@@ -168,6 +168,8 @@ BmnStatus BmnHistGem::SetRefRun(Int_t id) {
         BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canStripPads, Names);
         DrawBoth();
     }
+
+    return kBMNSUCCESS;
 }
 
 void BmnHistGem::Reset() {

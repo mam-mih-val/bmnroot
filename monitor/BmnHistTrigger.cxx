@@ -266,6 +266,8 @@ BmnStatus BmnHistTrigger::SetRefRun(Int_t id) {
         BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canTimesPads, Names);
         DrawBoth();
     }
+
+    return kBMNSUCCESS;
 }
 
 ClassImp(BmnHistTrigger);

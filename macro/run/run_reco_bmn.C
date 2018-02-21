@@ -24,7 +24,6 @@
 // If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
 // from that file.
 
-#include "../../gem/BmnGemStripConfiguration.h"
 #include "bmnloadlibs.C"
 
 void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",

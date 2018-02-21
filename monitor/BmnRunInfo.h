@@ -33,51 +33,51 @@ public:
 
 	// Setters
 	/// set period number of the current run
-	Int_t SetPeriodNumber(Int_t period_number){
+    void SetPeriodNumber(Int_t period_number){
             i_period_number = period_number;
         }
 	/// set run number of the current run
-	Int_t SetRunNumber(Int_t run_number){
+    void SetRunNumber(Int_t run_number){
             i_run_number = run_number;
         }
 	/// set file path of the current run
-	Int_t SetFilePath(TString file_path){
+    void SetFilePath(TString file_path){
             str_file_path = file_path;
         }
 	/// set beam particle of the current run
-	Int_t SetBeamParticle(TString beam_particle){
+    void SetBeamParticle(TString beam_particle){
             str_beam_particle = beam_particle;
         }
 	/// set target particle of the current run
-	Int_t SetTargetParticle(TString target_particle){
+    void SetTargetParticle(TString target_particle){
             str_target_particle = target_particle;
         }
 	/// set energy of the current run
-	Int_t SetEnergy(Double_t energy){
+    void SetEnergy(Double_t energy){
             d_energy = energy;
         }
 //	/// set start datetime of the current run
-//	Int_t SetStartDatetime(TDatime start_datetime){
+//	void SetStartDatetime(TDatime start_datetime){
 //            dt_start_datetime = start_datetime;
 //        }
 //	/// set end datetime of the current run
-//	Int_t SetEndDatetime(TDatime end_datetime){
+//	void SetEndDatetime(TDatime end_datetime){
 //            dt_end_datetime = end_datetime;
 //        }
 	/// set event count of the current run
-	Int_t SetEventCount(Int_t event_count){
+    void SetEventCount(Int_t event_count){
             i_event_count = event_count;
         }
 	/// set field voltage of the current run
-	Int_t SetFieldVoltage(Double_t field_voltage){
+    void SetFieldVoltage(Double_t field_voltage){
             d_field_voltage = field_voltage;
         }
 	/// set geometry id of the current run
-	Int_t SetGeometryId(Int_t geometry_id){
+    void SetGeometryId(Int_t geometry_id){
             i_geometry_id = geometry_id;
         }
 	/// set geometry id of the current run
-	Int_t SetTriggerId(Int_t trigger_id){
+    void SetTriggerId(Int_t trigger_id){
             i_trigger_id = trigger_id;
         }
 private:

@@ -57,7 +57,7 @@ EndIf (Boost_FOUND)
 
 Set(LINKDEF GlobalTrackingLinkDef.h)
 Set(LIBRARY_NAME GlobalTracking)
-Set(DEPENDENCIES KF Sts BmnBase BmnData Base)
+Set(DEPENDENCIES Gem KF Sts BmnBase BmnData Base)
 
 GENERATE_LIBRARY()
 

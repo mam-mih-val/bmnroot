@@ -13,85 +13,14 @@ BmnHistTrigger::BmnHistTrigger(TString title) : BmnHist() {
     fName = title + "_cl";
     fSelectedBDChannel = -1;
     BDEvents = new TClonesArray("BmnTrigDigit");
-    TString name;
-    name = fTitle + "_BC1_Time";
-    histBC1TimeLen = new TH1D(name, name, 300, 0, 1000);
-    //                histBC1TimeLen->SetTitleSize(0.08, "XY");
-    //                histBC1TimeLen->SetLabelSize(0.08, "XY");
-    //                histBC1TimeLen->SetLabelColor(kOrange+5, "XY");
-    histBC1TimeLen->GetXaxis()->SetTitle("Time, ns");
-    histBC1TimeLen->GetYaxis()->SetTitle("Activation Count");
-    name = fTitle + "_BC2_Time";
-    histBC2TimeLen = new TH1D(name, name, 300, 0, 1000);
-    histBC2TimeLen->GetXaxis()->SetTitle("Time, ns");
-    histBC2TimeLen->GetYaxis()->SetTitle("Activation Count");
-    name = fTitle + "_FD_Time";
-    histFDTimeLen = new TH1D(name, name, 300, 0, 1000);
-    histFDTimeLen->GetXaxis()->SetTitle("Time, ns");
-    histFDTimeLen->GetYaxis()->SetTitle("Activation Count");
-    name = fTitle + "_T0_Time";
-    histSDTimeLen = new TH1D(name, name, 300, 0, 1000);
-    histSDTimeLen->GetXaxis()->SetTitle("Time, ns");
-    histSDTimeLen->GetYaxis()->SetTitle("Activation Count");
-    name = fTitle + "_VETO_Time";
-    histVDTimeLen = new TH1D(name, name, 300, 0, 1000);
-    histVDTimeLen->GetXaxis()->SetTitle("Time, ns");
-    histVDTimeLen->GetYaxis()->SetTitle("Activation Count");
-    name = fTitle + "_BD_Channels";
-    histBDChannels = new TH1I(name, name, BD_CHANNELS, 0, BD_CHANNELS);
-    histBDChannels->GetXaxis()->SetTitle("Channel #");
-    histBDChannels->GetYaxis()->SetTitle("Activation Count");
-    name = fTitle + "_BD_Simultaneous";
-    histBDSimult = new TH1I(name, name, 10, 0, 10);
-    histBDSimult->GetXaxis()->SetTitle("Channels #");
-    histBDSimult->GetYaxis()->SetTitle("Activation Count");
-    name = fTitle + "_BD_Time";
-    histBDTime = new TH1I(name, name, 300, 0, 1000);
-    histBDTime->GetXaxis()->SetTitle("Time, ns");
-    histBDTime->GetYaxis()->SetTitle("Activation Count");
-    name = fTitle + "_BD_Specific_Channel";
-    histBDSpecific = new TH1D(name, name, 300, 0, 1000);
-    histBDSpecific->GetXaxis()->SetTitle("Time, ns");
-    histBDSpecific->GetYaxis()->SetTitle("Activation Count");
-    TString triggerNames[6] = {"BC1", "T0", "BC2", "VD", "FD", "BD"};
-    name = fTitle + "_Counter";
-    histTriggers = new TH1I(name, name, 6, 0, 6);
-    histTriggers->GetXaxis()->SetTitle("Trigger Name");
-    histTriggers->GetYaxis()->SetTitle("Activation Count");
-    TAxis* xa = histTriggers->GetXaxis();
-    for (Int_t i = 0; i < sizeof (triggerNames) / sizeof (*triggerNames); i++) {
-        xa->SetBinLabel(i + 1, triggerNames[i]);
-    }
-    name = fTitle + "CanvasTimes";
-    canTimes = new TCanvas(name, name, PAD_WIDTH * TRIG_ROWS, PAD_HEIGHT * TRIG_COLS);
-    canTimes->Divide(TRIG_ROWS, TRIG_COLS);
-    canTimesPads.resize(TRIG_ROWS * TRIG_COLS);
-    for (Int_t iPad = 0; iPad < TRIG_ROWS * TRIG_COLS; iPad++) {
-        PadInfo* p = new PadInfo();
-        canTimesPads[iPad] = p;
-        canTimes->GetPad(iPad + 1)->SetGrid();
-    }
-    canTimesPads[0]->current = histTriggers;
-    canTimesPads[1]->current = histBDChannels;
-    canTimesPads[2]->current = histBDSimult;
-    canTimesPads[3]->current = histBC1TimeLen;
-    canTimesPads[4]->current = histBC2TimeLen;
-    canTimesPads[5]->current = histFDTimeLen;
-    canTimesPads[6]->current = histVDTimeLen;
-    canTimesPads[7]->current = histSDTimeLen;
-    canTimesPads[8]->current = histBDTime;
-    for (Int_t iPad = 0; iPad < canTimesPads.size(); iPad++)
-        if (canTimesPads[iPad]->current) {
-            Names.push_back(canTimesPads[iPad]->current->GetName());
-            canTimesPads[iPad]->current->SetTitleSize(0.06, "XY");
-            canTimesPads[iPad]->current->SetLabelSize(0.08, "XY");
-            TAxis *ax = canTimesPads[iPad]->current->GetYaxis();
-            ax->SetTitleColor(kOrange + 10);
-            ax->SetTitleOffset(1.8);
-            ax->SetTitleFont(62);
-            ax = canTimesPads[iPad]->current->GetXaxis();
-            ax->SetTitleColor(kOrange + 10);
-        }
+    can2d = NULL;
+    canTimes = NULL;
+    histBDTimeByChannel = NULL;
+    histTrigTimeByChannel = NULL;
+    histBDChannels = NULL;
+    histBDSimult = NULL;
+    histBDSpecific = NULL;
+    histTriggers = NULL;
 }
 
 BmnHistTrigger::~BmnHistTrigger() {
@@ -99,50 +28,147 @@ BmnHistTrigger::~BmnHistTrigger() {
     delete BDEvents;
 }
 
+void BmnHistTrigger::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
+    printf("Init BM@N triggers histograms\n");
+    TString name;
+    fCols = TRIG_COLS;
+    const Int_t rows4Barrel = 1;
+    const Int_t rows4Summary = 1;
+    fRows = trigAr->size() / fCols + rows4Barrel + 1;
+    Int_t trigCount = trigAr->size();
+    for (Int_t i = 0; i < trigCount; ++i) {
+        trigNames.push_back(TString(trigAr->at(i)->GetName()));
+        name = fTitle + "_" + trigNames.back() + "_Time";
+        TH1I* h = new TH1I(name, name, 300, 0, 1000);
+        hists.push_back(h);
+    }
+    name = fTitle + "CanvasTimesByChannel";
+    can2d = new TCanvas(name, name, PAD_WIDTH * fCols, PAD_HEIGHT * rows4Barrel);
+    can2d->Divide(fCols, rows4Summary);
+    can2dPads.resize(fCols * rows4Summary);
+    for (Int_t iPad = 0; iPad < rows4Summary * fCols; iPad++) {
+        PadInfo* p = new PadInfo();
+        can2dPads[iPad] = p;
+        can2d->GetPad(iPad + 1)->SetGrid();
+    }
+    name = fTitle + "CanvasTimes";
+    canTimes = new TCanvas(name, name, PAD_WIDTH * fCols, PAD_HEIGHT * fRows);
+    canTimes->Divide(fCols, fRows);
+    canTimesPads.resize(fCols * fRows);
+    histNames.resize(fCols * fRows);
+    for (Int_t iPad = 0; iPad < fRows * fCols; iPad++) {
+        PadInfo* p = new PadInfo();
+        canTimesPads[iPad] = p;
+        canTimes->GetPad(iPad + 1)->SetGrid();
+    }
+    name = fTitle + "_BD_Channels";
+    histBDChannels = new TH1I(name, name, BD_CHANNELS, 0, BD_CHANNELS);
+    histBDChannels->GetXaxis()->SetTitle("Channel #");
+    histBDChannels->GetYaxis()->SetTitle("Activation Count");
+    name = fTitle + "_BD_Time_by_Channels";
+    histBDTimeByChannel = new TH2I(name, name, BD_CHANNELS, 0, BD_CHANNELS, 300, 0, 1000);
+    histBDTimeByChannel->GetXaxis()->SetTitle("Channel #");
+    histBDTimeByChannel->GetYaxis()->SetTitle("Time, ns");
+    name = fTitle + "_BD_Simultaneous";
+    histBDSimult = new TH1I(name, name, 10, 0, 10);
+    histBDSimult->GetXaxis()->SetTitle("Channels #");
+    histBDSimult->GetYaxis()->SetTitle("Activation Count");
+    //    name = fTitle + "_BD_Specific_Channel";
+    //    histBDSpecific = new TH1I(name, name, 300, 0, 1000);
+    //    histBDSpecific->GetXaxis()->SetTitle("Time, ns");
+    //    histBDSpecific->GetYaxis()->SetTitle("Activation Count");
+    name = fTitle + "_Counter";
+    histTriggers = new TH1I(name, name, trigCount, 0, trigCount);
+    histTriggers->GetXaxis()->SetTitle("Trigger Name");
+    histTriggers->GetYaxis()->SetTitle("Activation Count");
+    TAxis* xaTriggers = histTriggers->GetXaxis();
+    name = fTitle + "_Times_by_Trigger";
+    histTrigTimeByChannel = new TH2I(name, name, trigCount, 0, trigCount, 300, 0, 1000);
+    histTrigTimeByChannel->GetXaxis()->SetTitle("Trigger Name");
+    histTrigTimeByChannel->GetYaxis()->SetTitle("Time, ns");
+    TAxis* xaTrigTimes = histTrigTimeByChannel->GetXaxis();
+    for (Int_t i = 0; i < trigCount; ++i) {
+        xaTriggers->SetBinLabel(i + 1, trigNames[i]);
+        xaTrigTimes->SetBinLabel(i + 1, trigNames[i]);
+    }
+    canTimesPads[0]->current = histTriggers;
+    canTimesPads[1]->current = histBDChannels;
+    canTimesPads[2]->current = histBDSimult;
+    can2dPads[0]->current = histTrigTimeByChannel;
+    can2dPads[0]->opt = "colz";
+    can2dPads[1]->current = histBDTimeByChannel;
+    can2dPads[1]->opt = "colz";
+    for (Int_t i = 0; i < trigCount; ++i) {
+        canTimesPads[i + rows4Barrel * fCols]->current = hists[i];
+    hists[i]->GetYaxis()->SetTitle("Activation Count");
+    hists[i]->GetXaxis()->SetTitle("Time, ns");
+    }
+    for (Int_t iPad = 0; iPad < canTimesPads.size(); ++iPad) {
+        PadInfo* pad = canTimesPads[iPad];
+        TH1* h = pad->current;
+        if (h) {
+            h->SetTitleSize(0.06, "XY");
+            h->SetLabelSize(0.08, "XY");
+            TAxis *ax = h->GetYaxis();
+            ax->SetTitleColor(kOrange + 10);
+            ax->SetTitleOffset(1.1);
+            ax->SetTitleFont(62);
+            ax = h->GetXaxis();
+            ax->SetTitleColor(kOrange + 10);
+            histNames[iPad] = h->GetName();
+        }
+    }
+    for (PadInfo *pad : can2dPads) {
+        TH1* h = pad->current;
+        if (h) {
+            h->SetTitleSize(0.06, "XY");
+            h->SetLabelSize(0.08, "XY");
+            TAxis *ax = h->GetYaxis();
+            ax->SetTitleColor(kOrange + 10);
+            ax->SetTitleOffset(1.1);
+            ax->SetTitleFont(62);
+            ax = h->GetXaxis();
+            ax->SetTitleColor(kOrange + 10);
+        }
+    }
+}
+
 void BmnHistTrigger::FillFromDigi(DigiArrays *fDigiArrays) {
-    BDEvents->Clear();
-    TClonesArray *BC1digits = fDigiArrays->bc1;
-    TClonesArray *SDdigits = fDigiArrays->t0;
-    TClonesArray *BC2digits = fDigiArrays->bc2;
-    TClonesArray *VDdigits = fDigiArrays->veto;
-    TClonesArray *FDdigits = fDigiArrays->fd;
-    TClonesArray *BDdigits = fDigiArrays->bd;
-    for (Int_t digIndex = 0; digIndex < BC1digits->GetEntriesFast(); digIndex++) {
-        BmnTrigDigit* td0 = (BmnTrigDigit*) BC1digits->At(digIndex);
-        histBC1TimeLen->Fill(td0->GetTime());
-        histTriggers->Fill("BC1", 1);
-    }
-    for (Int_t digIndex = 0; digIndex < SDdigits->GetEntriesFast(); digIndex++) {
-        BmnTrigDigit* td1 = (BmnTrigDigit*) SDdigits->At(digIndex);
-        histSDTimeLen->Fill(td1->GetTime());
-        histTriggers->Fill("T0", 1);
-    }
-    for (Int_t digIndex = 0; digIndex < BC2digits->GetEntriesFast(); digIndex++) {
-        BmnTrigDigit* td2 = (BmnTrigDigit*) BC2digits->At(digIndex);
-        histBC2TimeLen->Fill(td2->GetTime());
-        histTriggers->Fill("BC2", 1);
-    }
-    for (Int_t digIndex = 0; digIndex < VDdigits->GetEntriesFast(); digIndex++) {
-        BmnTrigDigit* tv = (BmnTrigDigit*) VDdigits->At(digIndex);
-        histVDTimeLen->Fill(tv->GetTime());
-        histTriggers->Fill("VD", 1);
-    }
-    for (Int_t digIndex = 0; digIndex < FDdigits->GetEntriesFast(); digIndex++) {
-        BmnTrigDigit* td3 = (BmnTrigDigit*) FDdigits->At(digIndex);
-        histFDTimeLen->Fill(td3->GetTime());
-        histTriggers->Fill("FD", 1);
+    vector<TClonesArray*> *trigAr = fDigiArrays->trigAr;
+    if (trigAr == NULL)
+        return;
+    if (trigAr->size() == 0)
+        return;
+    if (canTimes == NULL) {
+        InitHistsFromArr(trigAr);
+        if (isShown) Register(fServer);
+        SetDir(fDir);
     }
     Int_t bdCount = 0;
-    for (Int_t digIndex = 0; digIndex < BDdigits->GetEntriesFast(); digIndex++) {
-        bdCount++;
-        BmnTrigDigit* bd = (BmnTrigDigit*) BDdigits->At(digIndex);
-        histBDChannels->Fill(bd->GetMod());
-        histBDTime->Fill(bd->GetTime());
-        histTriggers->Fill("BD", 1);
-        if (bd->GetMod() == fSelectedBDChannel){
-            histBDSpecific->Fill(bd->GetAmp());
-        new ((*BDEvents)[BDEvents->GetEntriesFast()]) BmnTrigDigit(bd->GetMod(), bd->GetTime(), bd->GetAmp());
-//            frecoTree->Fill();
+    BDEvents->Clear();
+    for (auto &ar : *trigAr) {
+        const char* arName = ar->GetName();
+        Bool_t isBarrel = !strcmp(arName, "BD");
+        for (Int_t i = 0; i < trigNames.size(); ++i) {
+            if (!strcmp(arName, trigNames[i].Data())) {
+                for (Int_t digIndex = 0; digIndex < ar->GetEntriesFast(); digIndex++) {
+                    BmnTrigDigit* td = (BmnTrigDigit*) ar->At(digIndex);
+                    histTriggers->Fill(arName, 1);
+                    histTrigTimeByChannel->Fill(arName, td->GetTime(), 1);
+                    hists[i]->Fill(td->GetTime());
+                    if (isBarrel) {
+                        bdCount++;
+                        histBDChannels->Fill(td->GetMod());
+                        histBDTimeByChannel->Fill(td->GetMod(), td->GetTime(), 1);
+                        //                if (bd->GetMod() == fSelectedBDChannel) {
+                        //                    histBDSpecific->Fill(bd->GetAmp());
+                        //                    new ((*BDEvents)[BDEvents->GetEntriesFast()]) BmnTrigDigit(bd->GetMod(), bd->GetTime(), bd->GetAmp());
+                        //                    //            frecoTree->Fill();
+                        //                }
+                    }
+                }
+                break;
+            }
         }
     }
     histBDSimult->Fill(bdCount);
@@ -161,6 +187,7 @@ void BmnHistTrigger::SetBDChannel(Int_t iSelChannel) {
         command = Form("fMod == %d", fSelectedBDChannel);
     if (iSelChannel == -1)
         title = Form("BD for All Channels");
+
     else
         title = "BD Time Length For: " + command;
     histBDSpecific->SetTitle(title);
@@ -170,31 +197,16 @@ void BmnHistTrigger::SetBDChannel(Int_t iSelChannel) {
 
 }
 
-void BmnHistTrigger::Register(THttpServer *serv) {
+void BmnHistTrigger::Register(THttpServer * serv) {
+    isShown = kTRUE;
     fServer = serv;
+    if (canTimes == NULL)
+
+        return;
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canTimes);
-    //    fServer->Register(path, histBC1TimeLen);
-    //    fServer->Register(path, histBC2TimeLen);
-    //    fServer->Register(path, histFDTimeLen);
-    //    fServer->Register(path, histVDTimeLen);
-    //    fServer->Register(path, histSDTimeLen);
-    //    fServer->Register(path, histTriggers);
-    //    fServer->Register(path, histBDChannels);
-    //    fServer->Register(path, histBDSimult);
-    //    fServer->Register(path, histBDTime);
-    //    fServer->Register(path, histBDSpecific);
-    TString examples = TString("[") +
-            histBC1TimeLen->GetTitle() + TString(",") +
-            histBC2TimeLen->GetTitle() + TString(",") +
-            histFDTimeLen->GetTitle() + TString(",") +
-            histVDTimeLen->GetTitle() + TString(",") +
-            histSDTimeLen->GetTitle() + TString(",") +
-            histBDSpecific->GetTitle() + TString("]");
-    fServer->SetItemField(path.Data(), "_monitoring", "2000");
-    fServer->SetItemField(path.Data(), "_layout", "grid3x2");
-    fServer->SetItemField(path, "_drawitem", examples);
+    fServer->Register(path, can2d);
 
     TString cmd = "/" + fName + "/->SetRefRun(%arg1%)";
     TString cmdTitle = path + "SetRefRun";
@@ -218,43 +230,51 @@ void BmnHistTrigger::Register(THttpServer *serv) {
 void BmnHistTrigger::SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) {
     frecoTree = recoTree;
     fDir = NULL;
-    if (outFile != NULL)
+    if (outFile)
         fDir = outFile->mkdir(fTitle + "_hists");
     //        dir->cd();
-    histBC1TimeLen->SetDirectory(fDir);
-    histBC2TimeLen->SetDirectory(fDir);
-    histFDTimeLen->SetDirectory(fDir);
-    histSDTimeLen->SetDirectory(fDir);
-    histVDTimeLen->SetDirectory(fDir);
-    histBDChannels->SetDirectory(fDir);
-    histBDSimult->SetDirectory(fDir);
-    histBDTime->SetDirectory(fDir);
-    histBDSpecific->SetDirectory(fDir);
-    histTriggers->SetDirectory(fDir);
-    if (BDEvents != NULL)
+    if (BDEvents)
         delete BDEvents;
     BDEvents = new TClonesArray("BmnTrigDigit");
-    if (recoTree != NULL)
+    if (recoTree)
         recoTree->Branch(fTitle + "_BD", &BDEvents);
+    if (!canTimes)
+        return;
+    SetDir(fDir);
+}
+
+void BmnHistTrigger::SetDir(TDirectory * Dir) {
+    for (auto el : hists) {
+        if (el)
+            el->SetDirectory(fDir);
+    }
+    histBDChannels->SetDirectory(fDir);
+    histBDSimult->SetDirectory(fDir);
+    //    histBDSpecific->SetDirectory(fDir);
+    histTriggers->SetDirectory(fDir);
+    histBDTimeByChannel->SetDirectory(fDir);
+    histTrigTimeByChannel->SetDirectory(fDir);
 }
 
 void BmnHistTrigger::Reset() {
-    histBC1TimeLen->Reset();
-    histBC2TimeLen->Reset();
-    histSDTimeLen->Reset();
-    histVDTimeLen->Reset();
-    histFDTimeLen->Reset();
-    histBDChannels->Reset();
-    histBDSimult->Reset();
-    histBDTime->Reset();
-    histBDSpecific->Reset();
-    histTriggers->Reset();
+    for (auto el : hists) {
+        if (el)
+            el->Reset();
+    }
+    if (histBDChannels) histBDChannels->Reset();
+    if (histBDSimult) histBDSimult->Reset();
+    //    if (histBDSpecific) histBDSpecific->Reset();
+    if (histTriggers) histTriggers->Reset();
+    if (histBDTimeByChannel) histBDTimeByChannel->Reset();
+    if (histTrigTimeByChannel) histTrigTimeByChannel->Reset();
+
     if (BDEvents != NULL)
         BDEvents->Clear();
 }
 
 void BmnHistTrigger::DrawBoth() {
-    BmnHist::DrawRef(canTimes, &canTimesPads);
+    if (canTimes) BmnHist::DrawRef(canTimes, &canTimesPads);
+    if (can2d) BmnHist::DrawRef(can2d, &can2dPads);
 }
 
 BmnStatus BmnHistTrigger::SetRefRun(Int_t id) {
@@ -263,7 +283,7 @@ BmnStatus BmnHistTrigger::SetRefRun(Int_t id) {
         printf("SetRefRun: %s\n", FileName.Data());
         refRunName = FileName;
         refID = id;
-        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canTimesPads, Names);
+        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canTimesPads, histNames);
         DrawBoth();
     }
 

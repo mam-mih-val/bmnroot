@@ -36,6 +36,7 @@ and open the template in the editor.
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
             var path = path0 + "MWPC/";
             var planesInRow = 4;
+            var stationsCount = 4;
             function ResetHist() {
                 var filename = path + "Reset/cmd.json";
                 var xhr = new XMLHttpRequest();
@@ -52,10 +53,10 @@ and open the template in the editor.
                 tc.src = temp;
             }
             function createTable() {
-                var mwpc1 = document.getElementById("h_MWPC1");
-                mwpc1.src = path + "MWPC_h_MWPC1/draw.htm?monitoring=10000&opt=colz";
-                var mwpc2 = document.getElementById("h_MWPC2");
-                mwpc2.src = path + "MWPC_h_MWPC2/draw.htm?monitoring=10000&opt=colz";
+                for (var i = 0; i < stationsCount; i++) {
+                    var mwpc = document.getElementById("h_MWPC"+i);
+                    mwpc.src = path + "MWPC_h_MWPC"+i+"/draw.htm?monitoring=10000&opt=colz";
+                }
 //                var kNPLANES = 12;
 //                var gd = document.getElementById("MWPC_div");
 //                var gtbl = document.createElement("table");
@@ -162,14 +163,20 @@ and open the template in the editor.
         <div id="txt_1">
             <table>
                 <tr>
-                <tb>
-                    <iframe id="h_MWPC1" style = "width: 48vw;height: 48vw;"> </iframe>
-                </tb>
+                <td>
+                    <iframe id="h_MWPC0" style = "width: 48vw;height: 48vw;"> </iframe>
+                </td>
+                    <td>
+                        <iframe id="h_MWPC1" style = "width: 48vw;height: 48vw;"> </iframe>
+                    </td>
                 </tr>
                 <tr>
-                <tb>
+                <td>
                     <iframe id="h_MWPC2" style = "width: 48vw;height: 48vw;"> </iframe>
-                </tb>
+                </td>
+                <td>
+                    <iframe id="h_MWPC3" style = "width: 48vw;height: 48vw;"> </iframe>
+                </td>
                 </tr>
             </table>
         </div>

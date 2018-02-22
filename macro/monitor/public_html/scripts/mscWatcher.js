@@ -1,5 +1,6 @@
 
     const http = require('http');
+    var jsroot = require("jsroot");
 
     const hostname = '127.0.0.1';
     const port = 3000;
@@ -8,6 +9,7 @@
     var dataHost = '10.18.11.32';
     var dataPort = 33306;
     var strBuf = '';
+    var nbinsX = 8192;
     var t = 0;
     var runs = 0;
     var d3 = require('d3');
@@ -16,31 +18,31 @@
     var date = new Date();
     var htext = null;
     function makeHist(obj) {
-        var binCount = 4096;
-        var width = 1200;
-        var height = 900;
+        var time = new Date().getTime();
+        var binCount = 8192;
+        var width = 1280;
+        var height = 720;
         var max = binCount;//d3.max(nums);
         var min = 1;//d3.min(nums);
         var wScale = d3.scaleLinear().domain([min, max]).range([0, width]);
         var document = jsdom.jsdom();
-
-        for (var iChannel = 1; iChannel <= 4; iChannel++) {
+           /* "fNbins" : 6,
+            "fXmin" : 0,
+            "fXmax" : 6,*/
+        /*for (var iChannel = 1; iChannel <= 4; iChannel++) {
             var chName = 'channel ' + iChannel;
             var nums = obj.DAQ.histPlot[chName];
             var h = document.createElement("H1");
             var t = document.createTextNode(chName);
             h.appendChild(t);
+            console.log('nums len ' + nums.length)
             document.body.appendChild(h);
             var svg = d3.select(document.body).append("svg")
                 .attr("height", "100%")
                 .attr("width", "100%");
-            //nums[2000] = 20;
-            //nums[4095] = 40;
             var maxy = d3.max(nums)+ 10;
             var miny = 1;
             var hScale = d3.scaleLog().domain([miny, maxy]).range([0, height]);
-            /*var xAxis = d3.svg.axis().scale(wScale);
-            var yAxis = d3.svg.axis().scale(hScale).orient("left");*/
             var xAxis = d3.axisBottom()
                 .scale(wScale);
             var yAxis = d3.axisRight()
@@ -80,68 +82,27 @@
                 .attr("height", function (d, i) {
                     return hScale(d)
                 })
-                .attr("width", "3")
+                .attr("width", "1")
                 .attr("x", function (d, i) {
                     return wScale(i)
                 })
                 .attr("y", function (d, i) {
                     return height - hScale(d)
-                })
-                .attr("stroke", "black")
-                .attr("stroke-width", "1")
-                .style('width', function (d, i) {
-                    return wScale(i) + 'px';
-                });
+                });*/
 
-            /*
-            var html = document.querySelector("svg").parentNode.innerHTML;
-            var XMLSerializer = require('xmldom').XMLSerializer;
-            svgData = new XMLSerializer().serializeToString( svg );
-            //sap.saveSvgAsPng(svgData, "diagram.png", {scale: 0.5});
-            //var svg = document.querySelector( "svg" );
-            //var svgData = new XMLSerializer().serializeToString( svg );
-           html = document.querySelector("svg").parentNode.innerHTML;
-            //console.log(html)
-
-            //var canvas = d3.select(document.body).append("canvas");
-            var canvas = document.createElement("canvas");
-            canvas.width = 800;//document.querySelector("svg").parentNode.attr("width");
-            canvas.height = 600;//svg.height;//d3.select("svg").attr("height");
-            console.log('svg width ' + svg.width);
-            console.log('can className ' + canvas.className);
-
-            var ctx = canvas.getContext("2d");
-            console.log('ctx ' + ctx)
-
-            var img = document.createElement( "img" );
-            img.setAttribute( "src", "data:image/svg+xml;base64," + svgData.toString('base64') );
-
-            //img.onload = function() {
-                ctx.drawImage( img, 0, 0 );
-
-                var canvasdata = canvas.toDataURL("image/png");
-
-                console.log(canvasdata)
-                var pngimg = '<img src="'+canvasdata+'">';
-                d3.select("#pngdataurl").html(pngimg);
-
-                var a = document.createElement("a");
-
-                a.download = "name"+".png";
-                a.href = canvasdata;
-                console.log(a.click())
-            //};
-*/
-            time = new Date().getTime() - time;
+        /*    time = new Date().getTime() - time;
             console.log('time spent = ', time);
-        }
+        }*/
+
+        time = new Date().getTime() - time;
+        console.log('time spent = ', time);
         var docText = jsdom.serializeDocument(document);
         return docText;
     }
     var client;
     var timeoutData;
     var timeoutParse;
-    var strQue = Array();
+    var strQue = [];
     function conn(){
         client = new net.Socket();
         client.connect(dataPort, dataHost, function () {
@@ -196,25 +157,170 @@
                 str = null;
                 t = 0;
                 htext = makeHist(obj);
+
+                //hist.fArray = obj.DAQ.histPlot["channel 1"];
+                hist.fName = "qq";
+                hist.fTitle = "qq";
+                //hist.fXaxis.fTimeDisplay = true;
+                hist.fXaxis.fTitleColor = 810;
+                hist.fXaxis.fLineColor = 602;
+                hist.fXaxis.fFillStyle = 1001;
                 break;
                 //console.log(htext);
                 //console.log('parsed ' + obj.DAQ.histPlot.histogramStep)
                 // console.log('parsed ' + obj.DAQ.histPlot["channel 1"])
             }
         }
-        timeoutData = setTimeout(doParse, 3000);
+        timeoutData = setTimeout(doParse, 100);
     }
 
+
+    var hist = jsroot.CreateHistogram("TH1I", nbinsX);
+var strhis = '{\n' +
+    '  "_typename" : "TH1F",\n' +
+    '  "fUniqueID" : 0,\n' +
+    '  "fBits" : 50331656,\n' +
+    '  "fName" : "GEM_Station_0_module_0_layer_0",\n' +
+    '  "fTitle" : "GEM_Station_0_module_0_layer_0",\n' +
+    '  "fLineColor" : 602,\n' +
+    '  "fLineStyle" : 1,\n' +
+    '  "fLineWidth" : 1,\n' +
+    '  "fFillColor" : 0,\n' +
+    '  "fFillStyle" : 1001,\n' +
+    '  "fMarkerColor" : 1,\n' +
+    '  "fMarkerStyle" : 1,\n' +
+    '  "fMarkerSize" : 1,\n' +
+    '  "fNcells" : 827,\n' +
+    '  "fXaxis" : {\n' +
+    '    "_typename" : "TAxis",\n' +
+    '    "fUniqueID" : 0,\n' +
+    '    "fBits" : 50331648,\n' +
+    '    "fName" : "xaxis",\n' +
+    '    "fTitle" : "Strip Number",\n' +
+    '    "fNdivisions" : 510,\n' +
+    '    "fAxisColor" : 1,\n' +
+    '    "fLabelColor" : 1,\n' +
+    '    "fLabelFont" : 42,\n' +
+    '    "fLabelOffset" : 0.005,\n' +
+    '    "fLabelSize" : 0.08,\n' +
+    '    "fTickLength" : 0.03,\n' +
+    '    "fTitleOffset" : 1,\n' +
+    '    "fTitleSize" : 0.06,\n' +
+    '    "fTitleColor" : 810,\n' +
+    '    "fTitleFont" : 42,\n' +
+    '    "fNbins" : 825,\n' +
+    '    "fXmin" : 0,\n' +
+    '    "fXmax" : 825,\n' +
+    '    "fXbins" : [],\n' +
+    '    "fFirst" : 0,\n' +
+    '    "fLast" : 0,\n' +
+    '    "fBits2" : 0,\n' +
+    '    "fTimeDisplay" : false,\n' +
+    '    "fTimeFormat" : "",\n' +
+    '    "fLabels" : null,\n' +
+    '    "fModLabs" : null\n' +
+    '  },\n' +
+    '  "fYaxis" : {\n' +
+    '    "_typename" : "TAxis",\n' +
+    '    "fUniqueID" : 0,\n' +
+    '    "fBits" : 50331648,\n' +
+    '    "fName" : "yaxis",\n' +
+    '    "fTitle" : "Activation Count",\n' +
+    '    "fNdivisions" : 510,\n' +
+    '    "fAxisColor" : 1,\n' +
+    '    "fLabelColor" : 1,\n' +
+    '    "fLabelFont" : 42,\n' +
+    '    "fLabelOffset" : 0.005,\n' +
+    '    "fLabelSize" : 0.08,\n' +
+    '    "fTickLength" : 0.03,\n' +
+    '    "fTitleOffset" : 0,\n' +
+    '    "fTitleSize" : 0.06,\n' +
+    '    "fTitleColor" : 810,\n' +
+    '    "fTitleFont" : 42,\n' +
+    '    "fNbins" : 1,\n' +
+    '    "fXmin" : 0,\n' +
+    '    "fXmax" : 1,\n' +
+    '    "fXbins" : [],\n' +
+    '    "fFirst" : 0,\n' +
+    '    "fLast" : 0,\n' +
+    '    "fBits2" : 0,\n' +
+    '    "fTimeDisplay" : false,\n' +
+    '    "fTimeFormat" : "",\n' +
+    '    "fLabels" : null,\n' +
+    '    "fModLabs" : null\n' +
+    '  },\n' +
+    '  "fZaxis" : {\n' +
+    '    "_typename" : "TAxis",\n' +
+    '    "fUniqueID" : 0,\n' +
+    '    "fBits" : 50331648,\n' +
+    '    "fName" : "zaxis",\n' +
+    '    "fTitle" : "",\n' +
+    '    "fNdivisions" : 510,\n' +
+    '    "fAxisColor" : 1,\n' +
+    '    "fLabelColor" : 1,\n' +
+    '    "fLabelFont" : 42,\n' +
+    '    "fLabelOffset" : 0.005,\n' +
+    '    "fLabelSize" : 0.035,\n' +
+    '    "fTickLength" : 0.03,\n' +
+    '    "fTitleOffset" : 1,\n' +
+    '    "fTitleSize" : 0.035,\n' +
+    '    "fTitleColor" : 1,\n' +
+    '    "fTitleFont" : 42,\n' +
+    '    "fNbins" : 1,\n' +
+    '    "fXmin" : 0,\n' +
+    '    "fXmax" : 1,\n' +
+    '    "fXbins" : [],\n' +
+    '    "fFirst" : 0,\n' +
+    '    "fLast" : 0,\n' +
+    '    "fBits2" : 0,\n' +
+    '    "fTimeDisplay" : false,\n' +
+    '    "fTimeFormat" : "",\n' +
+    '    "fLabels" : null,\n' +
+    '    "fModLabs" : null\n' +
+    '  },\n' +
+    '  "fBarOffset" : 0,\n' +
+    '  "fBarWidth" : 1000,\n' +
+    '  "fEntries" : 0,\n' +
+    '  "fTsumw" : 0,\n' +
+    '  "fTsumw2" : 0,\n' +
+    '  "fTsumwx" : 0,\n' +
+    '  "fTsumwx2" : 0,\n' +
+    '  "fMaximum" : -1111,\n' +
+    '  "fMinimum" : -1111,\n' +
+    '  "fNormFactor" : 0,\n' +
+    '  "fContour" : [],\n' +
+    '  "fSumw2" : [],\n' +
+    '  "fOption" : "",\n' +
+    '  "fFunctions" : {\n' +
+    '    "_typename" : "TList",\n' +
+    '    "name" : "TList",\n' +
+    '    "arr" : [],\n' +
+    '    "opt" : []\n' +
+    '  },\n' +
+    '  "fBufferSize" : 0,\n' +
+    '  "fBuffer" : [],\n' +
+    '  "fBinStatErrOpt" : 0,\n' +
+    '  "fArray" : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]\n' +
+    '}';
+    //var hist = JSON.parse(strhis);
     conn();
-    timeoutData = setInterval(getData, 3000);
-    timeoutParse = setTimeout(doParse, 5000);
+    timeoutData = setInterval(getData, 1000);
+    timeoutParse = setTimeout(doParse, 100);
 
     const server = http.createServer((req, res) => {
-        console.log('Run ' + runs++);
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/html');
-        if (htext != null)
-            res.end(htext);
+        //console.log('Request: ', req);
+        console.log("req");
+    res.statusCode = 200;
+    //res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0, proxy-revalidate, s-maxage=0');
+    res.writeHead(200, {"Content-Type": "application/json"});
+       if (hist != null) {
+           var str = JSON.stringify(hist, null, '\t');
+           //res.setHeader('Content-Type', 'application/json');
+           //res.setHeader('Content-Length', str.length);
+           //res.writeHead(200, {'Content-Type': 'text/plain'});
+           res.write(strhis);
+           res.end();
+       }
         else
             res.end();
     });

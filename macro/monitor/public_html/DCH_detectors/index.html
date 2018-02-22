@@ -88,6 +88,7 @@ and open the template in the editor.
                 setTimeout(drawInfo, 10000);
                 var refPath = path0 + "refList" + "/root.json";
                 FillRefSelector(refPath, "refSelector");
+                //FillRefTable(path0 + "refTable" + "/root.json", "refTable");
                 var filename = path0 + "infoCanvas" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
@@ -153,6 +154,9 @@ and open the template in the editor.
                 <button onclick="SetRefRun()"> 
                     Select Reference Run
                 </button>
+            </tb>
+            <tb>
+                <ul class="styleRefTable" id="refTable">
             </tb>
 
         </tr>

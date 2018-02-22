@@ -698,7 +698,7 @@ BmnStatus BmnRawDataDecoder::Process_HRB(UInt_t *d, UInt_t len, UInt_t serial) {
         for (Int_t iWord = 0; iWord < nWords; ++iWord) {
             UInt_t word32 = d[3 + iWord + iSmpl * nWords];
             for (Int_t iCh = 0; iCh < 32; ++iCh) {
-                if ((bitset<32>(word32))[iCh]) {
+                if (word32 & BIT(iCh)) {
                     TClonesArray &ar_hrb = *hrb;
                     new(ar_hrb[hrb->GetEntriesFast()]) BmnHRBDigit(serial, iCh + 32 * iWord, iSmpl, tH, tL);
                 }
@@ -1215,7 +1215,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     }
     GetT0Info(fT0Time, fT0Width);
 
-    if (fCurEventType == kBMNPEDESTAL) {
+    if ((fCurEventType == kBMNPEDESTAL) && fGemMapper) {
         if (fPedEvCntr == fEvForPedestals - 1) return kBMNERROR; //FIX return!
         CopyDataToPedMap(adc32, adc128, fPedEvCntr);
         fPedEvCntr++;
@@ -1604,8 +1604,6 @@ Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
         if (word == kRUNNUMBERSYNC) {
             fread(&word, kWORDSIZE, 1, file); //skip word
             fread(&runId, kWORDSIZE, 1, file);
-            if (runId < 1000) // @TODO remove
-                return 1234;
             return runId;
         }
     }

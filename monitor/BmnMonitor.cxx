@@ -93,6 +93,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
     }
     zmq_msg_t msg;
     TBufferFile t(TBuffer::kRead);
+    t.SetReadMode();
     Int_t frame_size = 0;
     decoTimeout = 0;
     keepWorking = kTRUE;
@@ -119,9 +120,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
         } else {
             decoTimeout = 0;
             t.Reset();
-            t.SetWriteMode();
             t.SetBuffer(zmq_msg_data(&msg), zmq_msg_size(&msg));
-            t.SetReadMode();
             fDigiArrays = (DigiArrays*) (t.ReadObject(DigiArrays::Class()));
             //            gSystem->ProcessEvents();
             if (fDigiArrays->header->GetEntriesFast() > 0) {
@@ -274,7 +273,7 @@ void BmnMonitor::RegisterAll() {
 
     fServer->Register("/", infoCanvas);
     fServer->Register("/", refList);
-//    fServer->Register("/", refTable);
+    fServer->Register("/", refTable);
     for (auto h : bhVec4show) {
         h->Register(fServer);
         h->SetRefPath(_refDir);
@@ -293,9 +292,9 @@ void BmnMonitor::UpdateRuns() {
         for (Int_t i = 0; i < n; ++i) {
             TObjArray *subStr = re.MatchS(namelist[i]->d_name);
             if (subStr->GetEntriesFast() > 1)
-                refList->Add((TObjString*) subStr->At(1));
+                refList->Add((TObjString*) subStr->At(1)->Clone());
             free(namelist[i]);
-            subStr->Clear("C");
+            delete subStr;
         }
         free(namelist);
     }

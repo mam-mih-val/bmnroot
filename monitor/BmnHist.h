@@ -53,6 +53,7 @@ public:
     TH1* current;
     TH1* ref;
     TH1* ref2;
+    TString opt;
 private:
     ClassDef(PadInfo, 1)
 };
@@ -98,7 +99,7 @@ public:
     }
 protected:
 
-
+    Bool_t isShown = kFALSE;
     THttpServer *fServer;
     TTree *frecoTree;
     TDirectory *fDir;

@@ -48,20 +48,30 @@ public:
     }
 
 private:
-    vector<TString> Names;
+    void InitHistsFromArr(vector<TClonesArray*> *trigAr);
+    void SetDir(TDirectory *Dir);
+    Int_t fRows = 0;
+    Int_t fCols = 0;
+    vector<TString> histNames;
+    vector<TString> trigNames;
     TClonesArray *BDEvents;
-    TH1D *histBC1TimeLen;
-    TH1D *histBC2TimeLen;
-    TH1D *histSDTimeLen;
-    TH1D *histVDTimeLen;
-    TH1D *histFDTimeLen;
+//    TH1D *histBC1TimeLen;
+//    TH1D *histBC2TimeLen;
+//    TH1D *histSDTimeLen;
+//    TH1D *histVDTimeLen;
+//    TH1D *histFDTimeLen;
+//    TH1I *histBDTime;
+    TH2I *histBDTimeByChannel;
+    TH2I *histTrigTimeByChannel;
     TH1I *histBDChannels;
     TH1I *histBDSimult;
-    TH1I *histBDTime;
-    TH1D *histBDSpecific;
+    TH1I *histBDSpecific;
     TH1I *histTriggers;
     TCanvas *canTimes;
+    TCanvas *can2d;
+    vector<TH1I*> hists;
     vector<PadInfo*> canTimesPads;
+    vector<PadInfo*> can2dPads;
     Int_t fSelectedBDChannel;
 
     ClassDef(BmnHistTrigger, 1)

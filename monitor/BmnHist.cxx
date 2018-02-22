@@ -30,21 +30,22 @@ void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
     for (Int_t iPad = 0; iPad < canGemStripPads->size(); iPad++) {
         TVirtualPad *pad = canGemStrip->cd(iPad + 1);
         pad->Clear();
-        if (!canGemStripPads->at(iPad)) continue;
-        if (canGemStripPads->at(iPad)->current) {
-            maxy = canGemStripPads->at(iPad)->current->GetBinContent(canGemStripPads->at(iPad)->current->GetMaximumBin());
-            canGemStripPads->at(iPad)->current->Draw();
-            if (canGemStripPads->at(iPad)->ref != NULL) {
-                k = (canGemStripPads->at(iPad)->ref->Integral() > 0) ?
-                        canGemStripPads->at(iPad)->current->Integral() /
-                        (Double_t) canGemStripPads->at(iPad)->ref->Integral() : 1;
+        PadInfo* info = canGemStripPads->at(iPad);
+        if (!info) continue;
+        if (info->current) {
+            maxy = info->current->GetBinContent(info->current->GetMaximumBin());
+            info->current->Draw(info->opt.Data());
+            if (info->ref != NULL) {
+                k = (info->ref->Integral() > 0) ?
+                        info->current->Integral() /
+                        (Double_t) info->ref->Integral() : 1;
                 if (k == 0) k = 1;
-                if (canGemStripPads->at(iPad)->ref->Integral() > 0)
-                    canGemStripPads->at(iPad)->ref->DrawNormalized("same hist", canGemStripPads->at(iPad)->current->Integral());
-                k = k * canGemStripPads->at(iPad)->ref->GetBinContent(canGemStripPads->at(iPad)->ref->GetMaximumBin());
+                if (info->ref->Integral() > 0)
+                    info->ref->DrawNormalized("same hist", info->current->Integral());
+                k = k * info->ref->GetBinContent(info->ref->GetMaximumBin());
                 if (maxy < k)
                     maxy = k;
-                canGemStripPads->at(iPad)->current->GetYaxis()->SetRangeUser(0, maxy * 1.05);
+                info->current->GetYaxis()->SetRangeUser(0, maxy * 1.05);
             }
         }
         //        pad->Update();

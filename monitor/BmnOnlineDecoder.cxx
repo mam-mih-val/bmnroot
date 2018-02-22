@@ -22,6 +22,7 @@
 BmnOnlineDecoder::BmnOnlineDecoder() {
     rawDataDecoder = NULL;
     _ctx = NULL;
+    fBmnSetup = kBMNSETUP;
 }
 
 BmnOnlineDecoder::~BmnOnlineDecoder() {
@@ -30,43 +31,6 @@ BmnOnlineDecoder::~BmnOnlineDecoder() {
         zmq_ctx_destroy(_ctx);
         _ctx = NULL;
     }
-}
-
-BmnStatus BmnOnlineDecoder::InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *dq) {
-    DBG("started")
-    rawDataDecoder = new BmnRawDataDecoder();
-    rawDataDecoder->SetRunId(runID);
-    rawDataDecoder->SetPeriodId(periodID);
-    rawDataDecoder->InitMaps();
-    Bool_t setup[11]; //array of flags to determine BM@N setup
-    //Just put "0" to exclude detector from decoding
-    setup[0] = 1; // TRIGGERS
-    setup[1] = 1; // MWPC
-    setup[2] = 1; // SILICON
-    setup[3] = 1; // GEM
-    setup[4] = 1; // TOF-400
-    setup[5] = 1; // TOF-700
-    setup[6] = 1; // DCH
-    setup[7] = 1; // ZDC
-    setup[8] = 1; // ECAL
-    setup[9] = 1; // TQDC
-    setup[10] = 1; // LAND
-    rawDataDecoder->SetDetectorSetup(setup);
-    rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
-    rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
-    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
-    rawDataDecoder->SetTof700Mapping("TOF700_map_period_6.txt");
-    rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
-    rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
-    rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
-    rawDataDecoder->SetECALMapping("ECAL_map_period_5.txt");
-    rawDataDecoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
-    rawDataDecoder->SetLANDPedestal("r0030_land_clock.hh");
-    rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
-    rawDataDecoder->SetLANDDiffSync("r352_cosmic1.hh");
-    rawDataDecoder->SetLANDVScint("neuland_sync_2.txt");
-    rawDataDecoder->InitConverter(dq);
-    return rawDataDecoder->InitDecoder();
 }
 
 BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
@@ -95,17 +59,17 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
     setup[1] = 1; // MWPC
-    setup[2] = 0; // SILICON
+    setup[2] = 1; // SILICON
     setup[3] = 0; // GEM
     setup[4] = 1; // TOF-400
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
-    setup[8] = 1; // ECAL
-    setup[9] = 1; // TQDC
-    setup[10] = 1; // LAND
+    setup[8] = 0; // ECAL
+    setup[9] = 1; // LAND
     rawDataDecoder->SetDetectorSetup(setup);
-    rawDataDecoder->SetTrigMapping("Trig_map_Run6.txt");
+    rawDataDecoder->SetBmnSetup(fBmnSetup);
+    rawDataDecoder->SetTrigMapping((rawDataDecoder->GetBmnSetup() == kBMNSETUP) ? "Trig_map_Run6.txt" : "Trig_map_Run7_SRC.txt");
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
     rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
     rawDataDecoder->SetTof700Mapping("TOF700_map_period_6.txt");

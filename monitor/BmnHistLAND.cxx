@@ -83,6 +83,8 @@ BmnHistLAND::~BmnHistLAND() {
 
 void BmnHistLAND::FillFromDigi(DigiArrays *fDigiArrays) {
     TClonesArray * digits = fDigiArrays->land;
+    if (!digits)
+        return;
     for (Int_t digIndex = 0; digIndex < digits->GetEntriesFast(); digIndex++) {
         BmnLANDDigit *dig = (BmnLANDDigit *) digits->At(digIndex);
         Q0vsBar->Fill(dig->GetGlobBar(), dig->GetEnergy(0));

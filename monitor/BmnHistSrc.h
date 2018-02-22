@@ -16,6 +16,7 @@
 #include "THttpServer.h"
 
 #include "BmnHist.h"
+#include "BmnTDCDigit.h"
 #include "BmnTrigWaveDigit.h"
 
 #define SRC_ROWS 13
@@ -36,16 +37,22 @@ public:
     BmnStatus  SetRefRun(Int_t id);
     
 private:
+    void InitHistsFromArr(vector<TClonesArray*> *trigAr);
+    void SetDir(TDirectory *Dir);
     vector<TString> Names;
     vector<vector<TH1F*> > hists;
     TCanvas *canvas;
     vector<PadInfo*> canPads;
-    const TString trigNames[13] = 
-    {
-        "BC1", "BC2", "BC3", "BC4", "VC",
-        "X1_Left", "X1_Right", "X2_Left", "X2_Right",
-        "Y1_Left", "Y1_Right", "Y2_Left", "Y2_Right"
-    };
+    Int_t fSrcRows = 0;
+    Int_t fSrcCols = 0;
+    vector<TString> trigNames;
+//    const TString trigNames[13] = 
+//    {
+//        "BC1", "BC2", "BC3", "BC4", "VC",
+//        "X1_Left", "X1_Right", "X2_Left", "X2_Right",
+//        "Y1_Left", "Y1_Right", "Y2_Left", "Y2_Right"
+//    };
+    //BmnTrigRaw2Digit fTrigMapper;
 
     ClassDef(BmnHistSrc, 1)
 };

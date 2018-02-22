@@ -5,7 +5,6 @@
 #include "TMath.h"
 #include "TGeoShape.h"
 #include "TGeoBBox.h"
-#include "../../gem/BmnGemStripConfiguration.h"
 
 using namespace TMath;
 
@@ -13,18 +12,40 @@ using namespace TMath;
 TGeoManager* gGeoMan = NULL;
 
 //Set Parameters of GEMS
-const Int_t nStations = BmnGemStationPositions_RunSpring2017::NStations;      //stations in the detector
-const Int_t nMaxModules = BmnGemStationPositions_RunSpring2017::NMaxModules;    //max. number of modules in a station
 
-//Positions of stations in the detector
-Double_t XStationPositions[nStations];
-Double_t YStationPositions[nStations];
-Double_t ZStationPositions[nStations];
+const Int_t NStations = 6;      //stations in the detector
+const Int_t NMaxModules = 2;    //max. number of modules in a station
 
-//Shifts of modules in the stations
-Double_t XModuleShifts[nStations][nMaxModules];
-Double_t YModuleShifts[nStations][nMaxModules];
-Double_t ZModuleShifts[nStations][nMaxModules];
+//(X-Y-Z)Positions of stations
+    const Double_t XStationPositions[NStations] = { -1.5, -1.5, -1.5, +0.0, +0.0, +0.0 };
+    const Double_t YStationPositions[NStations] = { +0.0-4.5, +0.0-4.5, +0.0-4.5, +0.0-4.5, -2.4-4.5, -2.4-4.5 };
+    const Double_t ZStationPositions[NStations] = { 32.0+0.7, 63.8+0.7, 95.8+0.7, 127.8+0.7, 159.6+1.5, 191.6+1.5 }; //All z-positions are start pos. of the sensitive vol.
+
+    //(X-Y-Z)Shifts of modules in each station
+    const Double_t XModuleShifts[NStations][NMaxModules] = {
+        {0.0},
+        {0.0},
+        {0.0},
+        {-5.3, -1.7},
+        {0.0, 0.0},
+        {0.0, 0.0}
+    };
+    const Double_t YModuleShifts[NStations][NMaxModules] = {
+        {0.0},
+        {0.0},
+        {0.0},
+        {0.0, 0.2},
+        {0.0, 0.0},
+        {0.0, 0.0}
+    };
+    const Double_t ZModuleShifts[NStations][NMaxModules] = {
+        {0.0},          //station 0 (66x41)
+        {0.0},          //station 1
+        {0.0},          //station 2
+        {0.0, 2.5},    //station 3 (2 modules of 66x41)
+        {0.0, 0.0},     //station 4 (163x45): module0 + module1
+        {0.0, 0.0}      //station 5 (163x45): module0 + module1
+    };
 
 //GEM plane sizes (66x41 type) -------------------------------------------------
 const Double_t XModuleSize_Station66x41 = 66.0;
@@ -69,24 +90,35 @@ TGeoMedium *pMedArCO27030 = 0;
 class FairGeoMedia;
 class FairGeoBuilder;
 
-void SetStationPositionsAndModuleShifts() {
+//function declaration
+void CreateStation_One66x41Plane(TGeoVolume* mother_volume, TString station_name,
+                                 Double_t x_position, Double_t y_position, Double_t z_position,
+                                 Double_t x_shift_mod0, Double_t y_shift_mod0, Double_t z_shift_mod0,
+                                 Bool_t IsInverted);
+
+void CreateStation_Two66x41Plane(TGeoVolume* mother_volume, TString station_name,
+                                 Double_t x_position, Double_t y_position, Double_t z_position,
+                                 Double_t x_shift_mod0, Double_t y_shift_mod0, Double_t z_shift_mod0,
+                                 Double_t x_shift_mod1, Double_t y_shift_mod1, Double_t z_shift_mod1);
+
+void CreateStation_One163x45Plane(TGeoVolume* mother_volume, TString station_name,
+                                  Double_t x_position, Double_t y_position, Double_t z_position,
+                                  Double_t x_shift_mod0, Double_t y_shift_mod0, Double_t z_shift_mod0,
+                                  Double_t x_shift_mod1, Double_t y_shift_mod1, Double_t z_shift_mod1,
+                                  Double_t hole_radius_with_frame, Bool_t IsInverted);
+
+
+
+void PrintStationPositionsAndModuleShifts() {
 
     cout << "Positions of stations and shifts of modules (cm):\n";
 
-    for(Int_t iStation = 0; iStation < nStations; ++iStation) {
-        XStationPositions[iStation] = BmnGemStationPositions_RunSpring2017::XStationPositions[iStation];
-        YStationPositions[iStation] = BmnGemStationPositions_RunSpring2017::YStationPositions[iStation];
-        ZStationPositions[iStation] = BmnGemStationPositions_RunSpring2017::ZStationPositions[iStation];
-
+    for(Int_t iStation = 0; iStation < NStations; ++iStation) {
         cout << "XStationPosition[" << iStation << "] = " << XStationPositions[iStation] << "\n";
         cout << "YStationPosition[" << iStation << "] = " << YStationPositions[iStation] << "\n";
         cout << "ZStationPosition[" << iStation << "] = " << ZStationPositions[iStation] << "\n";
 
-        for(Int_t iModule = 0; iModule < nMaxModules; ++iModule) {
-            XModuleShifts[iStation][iModule] = BmnGemStationPositions_RunSpring2017::XModuleShifts[iStation][iModule];
-            YModuleShifts[iStation][iModule] = BmnGemStationPositions_RunSpring2017::YModuleShifts[iStation][iModule];
-            ZModuleShifts[iStation][iModule] = BmnGemStationPositions_RunSpring2017::ZModuleShifts[iStation][iModule];
-
+        for(Int_t iModule = 0; iModule < NMaxModules; ++iModule) {
             cout << "   XModuleShifts[" << iStation << "][" << iModule << "] = " << XModuleShifts[iStation][iModule] << "\n";
             cout << "   YModuleShifts[" << iStation << "][" << iModule << "] = " << YModuleShifts[iStation][iModule] << "\n";
             cout << "   ZModuleShifts[" << iStation << "][" << iModule << "] = " << ZModuleShifts[iStation][iModule] << "\n";
@@ -128,10 +160,6 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
 
 void create_rootgeom_GEMS_RunSpring2017() {
 
-    // Load the necessary FairRoot libraries
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-    bmnloadlibs(); // load libraries
-
     // ----  set working directory  --------------------------------------------
     TString gPath = gSystem->Getenv("VMCWORKDIR");
 
@@ -167,8 +195,8 @@ void create_rootgeom_GEMS_RunSpring2017() {
     TGeoVolume* GEMS = new TGeoVolumeAssembly(geoDetectorName);
     GEMS->SetMedium(pMedAir);
 
-    //Set positions of GEM stations
-    SetStationPositionsAndModuleShifts();
+    //Print positions of GEM stations
+    PrintStationPositionsAndModuleShifts();
 
     //station composing
     CreateStation_One66x41Plane(GEMS, "station0",
@@ -188,7 +216,7 @@ void create_rootgeom_GEMS_RunSpring2017() {
 
     CreateStation_Two66x41Plane(GEMS, "station3",
                                 XStationPositions[3], YStationPositions[3], ZStationPositions[3],
-                                XModuleShifts[3][0], YModuleShifts[3][0], ZModuleShifts[3][],
+                                XModuleShifts[3][0], YModuleShifts[3][0], ZModuleShifts[3][0],
                                 XModuleShifts[3][1], YModuleShifts[3][1], ZModuleShifts[3][1]);
 
     CreateStation_One163x45Plane(GEMS, "station4",
@@ -313,7 +341,9 @@ void CreateStation_One66x41Plane(TGeoVolume* mother_volume, TString station_name
     if(IsInverted) {
         comp_frame_center_position->ReflectY(true);
     }
-    comp_frame_center_position->SetTranslation(module_position->GetTranslation());
+    const Double_t *pos =  module_position->GetTranslation();
+    comp_frame_center_position->SetTranslation(pos[0], pos[1], pos[2]);
+    //comp_frame_center_position->SetTranslation(module_position->GetTranslation());
 
     //station assembling
     moduleV->AddNode(hot_zoneV, 0, hot_zone_trans);
@@ -323,9 +353,8 @@ void CreateStation_One66x41Plane(TGeoVolume* mother_volume, TString station_name
     //composite_frameV->AddNode(vertical_inner_frameV, 0, left_inner_frame_position);
     //composite_frameV->AddNode(horizontal_inner_frameV, 0, bottom_inner_frame_position);
 
+	stationA->AddNode(composite_frameV, 0, comp_frame_center_position);
     stationA->AddNode(moduleV, 0, module_position);
-
-    stationA->AddNode(composite_frameV, 0, comp_frame_center_position);
 
     //Station position
     Double_t station_shift = dZSensitiveVolume_Station66x41*0.5;
@@ -428,12 +457,16 @@ void CreateStation_Two66x41Plane(TGeoVolume* mother_volume, TString station_name
     //frame positions in the station
     TGeoCombiTrans *comp_frame_position_left = new TGeoCombiTrans();
     comp_frame_position_left->ReflectX(true);
-    comp_frame_position_left->SetTranslation(module_position_left->GetTranslation());
+	const Double_t *pos_left =  module_position_left->GetTranslation();
+    comp_frame_position_left->SetTranslation(pos_left[0], pos_left[1], pos_left[2]);
+    //comp_frame_position_left->SetTranslation(module_position_left->GetTranslation());
 
 
     TGeoCombiTrans *comp_frame_position_right = new TGeoCombiTrans();
     comp_frame_position_right->ReflectY(true);
-    comp_frame_position_right->SetTranslation(module_position_right->GetTranslation());
+	const Double_t *pos_right =  module_position_right->GetTranslation();
+    comp_frame_position_right->SetTranslation(pos_right[0], pos_right[1], pos_right[2]);
+    //comp_frame_position_right->SetTranslation(module_position_right->GetTranslation());
 
     //station assembling
     moduleV->AddNode(hot_zoneV, 0, hot_zone_trans);
@@ -443,11 +476,11 @@ void CreateStation_Two66x41Plane(TGeoVolume* mother_volume, TString station_name
     //composite_frameV->AddNode(vertical_inner_frameV, 0, left_inner_frame_position);
     //composite_frameV->AddNode(horizontal_inner_frameV, 0, bottom_inner_frame_position);
 
+	stationA->AddNode(composite_frameV, 0, comp_frame_position_left);
+    stationA->AddNode(composite_frameV, 1, comp_frame_position_right);
+
     stationA->AddNode(moduleV, 0, module_position_left);
     stationA->AddNode(moduleV, 1, module_position_right);
-
-    stationA->AddNode(composite_frameV, 0, comp_frame_position_left);
-    stationA->AddNode(composite_frameV, 1, comp_frame_position_right);
 
     //Station position
     Double_t station_shift = dZSensitiveVolume_Station66x41*0.5;
@@ -611,11 +644,22 @@ void CreateStation_One163x45Plane(TGeoVolume* mother_volume, TString station_nam
     TGeoCombiTrans *upper_frame_trans = new TGeoCombiTrans();
     upper_frame_trans->SetTranslation(0.0, 0.0, 0.0);
 
-    //station assembling
+    //frames
+
+	composite_frameV->AddNode(vertical_frameV, 0, left_frame_position);
+    composite_frameV->AddNode(vertical_frameV, 1, right_frame_position);
+    composite_frameV->AddNode(horizontal_long_frameV, 0, top_long_frame_position);
+    composite_frameV->AddNode(horizontal_short_frameV, 0, left_bottom_short_frame_position);
+    composite_frameV->AddNode(horizontal_short_frameV, 1, right_bottom_short_frame_position);
+    composite_frameV->AddNode(circle_inner_frameV, 0, new TGeoTranslation(0, -YOuterZoneSize*0.5, 0.0));
+
+	stationA->AddNode(composite_frameV, 0, upper_frame_trans);
+
+	//station assembling
     module_with_slope_inner_zoneV->AddNode(slope_inner_zoneV, 0, slope_inner_zone_position);
     module_with_rect_inner_zoneV->AddNode(rectangle_inner_zoneV, 0, rect_inner_zone_position);
 
-    if(IsInverted) {
+	if(IsInverted) {
         stationA->AddNode(module_with_rect_inner_zoneV, 0, left_module_position);
         stationA->AddNode(module_with_slope_inner_zoneV, 1, right_module_position);
     }
@@ -623,16 +667,6 @@ void CreateStation_One163x45Plane(TGeoVolume* mother_volume, TString station_nam
         stationA->AddNode(module_with_slope_inner_zoneV, 0, left_module_position);
         stationA->AddNode(module_with_rect_inner_zoneV, 1, right_module_position);
     }
-
-    //frames
-    composite_frameV->AddNode(vertical_frameV, 0, left_frame_position);
-    composite_frameV->AddNode(vertical_frameV, 1, right_frame_position);
-    composite_frameV->AddNode(horizontal_long_frameV, 0, top_long_frame_position);
-    composite_frameV->AddNode(horizontal_short_frameV, 0, left_bottom_short_frame_position);
-    composite_frameV->AddNode(horizontal_short_frameV, 1, right_bottom_short_frame_position);
-    composite_frameV->AddNode(circle_inner_frameV, 0, new TGeoTranslation(0, -YOuterZoneSize*0.5, 0.0));
-
-    stationA->AddNode(composite_frameV, 0, upper_frame_trans);
 
     //Station position
     Double_t station_shift = 0.0;

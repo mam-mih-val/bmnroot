@@ -244,7 +244,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                          Global Tracking                       === //
     // ====================================================================== //
-    BmnGlobalTracking* globalTF = new BmnGlobalTracking();
+    BmnGlobalTracking* globalTF = new BmnGlobalTracking(isExp);
     globalTF->SetField(isField);
     fRunAna->AddTask(globalTF);
 

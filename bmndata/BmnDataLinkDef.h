@@ -40,7 +40,6 @@
 
 #pragma link C++ class CbmMvdHit+;
 #pragma link C++ class CbmMvdHitMatch+;
-#pragma link C++ class CbmVertex+;
 #pragma link C++ class CbmGlobalTrack+;
 #pragma link C++ class CbmPsdPoint+;
 #pragma link C++ class CbmPsdHit+;

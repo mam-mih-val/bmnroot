@@ -36,17 +36,11 @@ link_directories(${LINK_DIRECTORIES})
 # List of source files
 Set(SRCS
     BmnDetectorSetup.cxx
-    BmnMatrixMath.cxx
-    BmnGeoNavigator.cxx
-    BmnMaterialEffects.cxx
     BmnGlobalTracking.cxx
 )
 
 Set(HEADERS
     BmnDetectorSetup.h
-    BmnMatrixMath.h
-    BmnGeoNavigator.h
-    BmnMaterialEffects.h
     BmnGlobalTracking.h
     BmnHitFinderRun1.h
 )

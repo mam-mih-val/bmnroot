@@ -69,6 +69,7 @@ public:
     virtual void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) = 0;
     virtual void DrawBoth() = 0;
     virtual void FillFromDigi(DigiArrays *fDigiArrays) = 0;
+    virtual void ClearRefRun() = 0;
 //    virtual BmnStatus LoadRefRun(TString FileName) = 0;
 //    template <class HH>
     static void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads);

@@ -29,7 +29,6 @@ BmnHistTrigger::~BmnHistTrigger() {
 }
 
 void BmnHistTrigger::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
-    printf("Init BM@N triggers histograms\n");
     TString name;
     fCols = TRIG_COLS;
     const Int_t rows4Barrel = 1;
@@ -100,8 +99,8 @@ void BmnHistTrigger::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     can2dPads[1]->opt = "colz";
     for (Int_t i = 0; i < trigCount; ++i) {
         canTimesPads[i + rows4Barrel * fCols]->current = hists[i];
-    hists[i]->GetYaxis()->SetTitle("Activation Count");
-    hists[i]->GetXaxis()->SetTitle("Time, ns");
+        hists[i]->GetYaxis()->SetTitle("Activation Count");
+        hists[i]->GetXaxis()->SetTitle("Time, ns");
     }
     for (Int_t iPad = 0; iPad < canTimesPads.size(); ++iPad) {
         PadInfo* pad = canTimesPads[iPad];
@@ -286,8 +285,14 @@ BmnStatus BmnHistTrigger::SetRefRun(Int_t id) {
         BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canTimesPads, histNames);
         DrawBoth();
     }
-
     return kBMNSUCCESS;
+}
+
+void BmnHistTrigger::ClearRefRun() {
+    for (auto pad : canTimesPads){
+        if (pad->ref) delete pad->ref;
+        pad->ref = NULL;
+    }
 }
 
 ClassImp(BmnHistTrigger);

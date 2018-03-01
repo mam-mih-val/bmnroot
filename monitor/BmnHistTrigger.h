@@ -38,7 +38,7 @@ public:
     void FillFromDigi(DigiArrays *fDigiArrays);
     void Reset();
     void DrawBoth();
-//    BmnStatus LoadRefRun(TString FileName);
+    void ClearRefRun();
     BmnStatus  SetRefRun(Int_t id);
 
     void SetBDChannel(Int_t iSelChannel);

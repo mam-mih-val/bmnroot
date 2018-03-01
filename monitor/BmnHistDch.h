@@ -54,6 +54,7 @@ public:
     void SetDir(TFile *outFile, TTree *recoTree);
     void FillFromDigi(DigiArrays *fDigiArrays);
     void DrawBoth();
+    void ClearRefRun();
     BmnStatus  SetRefRun(Int_t id);
 
 private:

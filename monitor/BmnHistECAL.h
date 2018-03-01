@@ -29,6 +29,7 @@ public:
     void SetDir(TFile *outFile, TTree *recoTree);
     void DrawBoth();
     void FillFromDigi(DigiArrays *fDigiArrays);
+    void ClearRefRun();
     BmnStatus  SetRefRun(Int_t id);
 private:
     TClonesArray* ZDCHits;

@@ -143,8 +143,14 @@ BmnStatus BmnHistLAND::SetRefRun(Int_t id) {
         BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canPads, Names);
         DrawBoth();
     }
-
     return kBMNSUCCESS;
+}
+
+void BmnHistLAND::ClearRefRun() {
+    for (auto pad : canPads){
+        if (pad->ref) delete pad->ref;
+        pad->ref = NULL;
+    }
 }
 
 ClassImp(BmnHistLAND);

@@ -181,6 +181,17 @@ BmnStatus BmnHistDch::SetRefRun(Int_t id) {
     return kBMNSUCCESS;
 }
 
+void BmnHistDch::ClearRefRun() {
+    for (auto pad : canTimesPads){
+        if (pad->ref) delete pad->ref;
+        pad->ref = NULL;
+    }
+    for (auto pad : canWiresPads){
+        if (pad->ref) delete pad->ref;
+        pad->ref = NULL;
+    }
+}
+
 void BmnHistDch::Reset() {
     for (Int_t i = 0; i < kNPLANES; ++i) {
         h_wires[i]->Reset();

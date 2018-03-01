@@ -169,6 +169,17 @@ BmnStatus BmnHistMwpc::SetRefRun(Int_t id) {
     return kBMNSUCCESS;
 }
 
+void BmnHistMwpc::ClearRefRun() {
+    for (auto pad : canTimesPads){
+        if (pad->ref) delete pad->ref;
+        pad->ref = NULL;
+    }
+    for (auto pad : canWiresPads){
+        if (pad->ref) delete pad->ref;
+        pad->ref = NULL;
+    }
+}
+
 void BmnHistMwpc::Reset() {
     for (Int_t i = 0; i < MWPC_PLANES; ++i){
         h_wires[i]->Reset();

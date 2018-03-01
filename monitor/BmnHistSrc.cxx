@@ -12,7 +12,6 @@ BmnHistSrc::~BmnHistSrc() {
 }
 
 void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
-    printf("Init SRC triggers histograms\n");
     fSrcCols = SRC_COLS;
     fSrcRows = trigAr->size() / 2;
     for (Int_t i = 0; i < fSrcRows; ++i)
@@ -166,6 +165,13 @@ BmnStatus BmnHistSrc::SetRefRun(Int_t id) {
     }
 
     return kBMNSUCCESS;
+}
+
+void BmnHistSrc::ClearRefRun() {
+    for (auto pad : canPads){
+        if (pad->ref) delete pad->ref;
+        pad->ref = NULL;
+    }
 }
 
 void BmnHistSrc::Reset() {

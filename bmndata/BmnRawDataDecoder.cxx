@@ -271,7 +271,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     fRawTree->Fill();
 
     fCurentPositionRawFile = ftello64(fRawFileIn);
-    printf("Readed %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
+    printf("Read %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
 
     fRawTree->Write();
     fRootFileOut->Close();

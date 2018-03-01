@@ -163,6 +163,13 @@ BmnStatus BmnHistSilicon::SetRefRun(Int_t id) {
     return kBMNSUCCESS;
 }
 
+void BmnHistSilicon::ClearRefRun() {
+    for (auto pad : canStripPads){
+        if (pad->ref) delete pad->ref;
+        pad->ref = NULL;
+    }
+}
+
 void BmnHistSilicon::Reset() {
     for (auto row : histSiliconStrip)
         for (auto col : row)

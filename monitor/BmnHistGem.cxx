@@ -69,6 +69,7 @@ BmnHistGem::BmnHistGem(TString title, TString path, BmnGemStripConfiguration::GE
                 h->GetXaxis()->SetTitleColor(kOrange + 10);
                 h->GetYaxis()->SetTitle("Activation Count");
                 h->GetYaxis()->SetTitleColor(kOrange + 10);
+                h->GetYaxis()->SetTitleOffset(1.0);
                 colGEM.push_back(h);
 
             }
@@ -170,6 +171,13 @@ BmnStatus BmnHistGem::SetRefRun(Int_t id) {
     }
 
     return kBMNSUCCESS;
+}
+
+void BmnHistGem::ClearRefRun() {
+    for (auto pad : canStripPads){
+        if (pad->ref) delete pad->ref;
+        pad->ref = NULL;
+    }
 }
 
 void BmnHistGem::Reset() {

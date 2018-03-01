@@ -3,7 +3,7 @@
 
 #include "UniDbRun.h"
 
-class BmnRunInfo {
+class BmnRunInfo : public TObject {
 public:
     BmnRunInfo();
     BmnRunInfo(UniDbRun* orig);
@@ -105,6 +105,8 @@ private:
 	Int_t i_geometry_id;
 	/// trigger id
 	Int_t i_trigger_id;
+        
+    ClassDef(BmnRunInfo, 1)
 
 };
 

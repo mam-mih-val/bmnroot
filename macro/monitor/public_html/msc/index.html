@@ -29,18 +29,20 @@ and open the template in the editor.
         </style>
         <link rel="stylesheet" type="text/css" href="../css/tabs.css" media="screen" />
         <link rel="stylesheet" type="text/css" href="../css/menu.css" media="screen" />
-        <script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRootCore.min.js?2d&io"></script>
+        <!--<script type="text/javascript" src="../root.app/jsrootsys/scripts/JSRootCore.js?2d"></script>-->
+        <script type="text/javascript" src="https://root.cern/js/latest/scripts/JSRootCore.js" type="text/javascript"></script>
+   <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js" data-main="../scripts/jsr/JSRootCore.js"></script>-->
         <script type="text/javascript" src="../scripts/BMTools.js"></script>
         <script>
             function drawH() {
-                setTimeout(drawH, 11000);
+                setTimeout(drawH, 4000);
                 var loco = window.location;
                 var path0 = loco.protocol + "//" + loco.hostname;
                 //var filename = "/msc2/root.app/infoCanvas/root.json";
                 //var filename = "bmn-mon.jinr.ru/root.app/infoCanvas/root.json";
-                var filename = '/msc1';
+                //var filename = '/root.app/MWPC/MWPCCanvasWires/root.json';
                 //alert(filename)
-                var xhr = new XMLHttpRequest();
+                /*var xhr = new XMLHttpRequest();
                 xhr.open("GET", filename, true);
                 xhr.withCredentials = true;
                 xhr.onreadystatechange = function() {
@@ -58,16 +60,30 @@ and open the template in the editor.
                         }
                     }
                 };
-                xhr.send();
-
-                JSROOT.NewHttpRequest(filename, 'object', function (obj2) {
-                    try {
-                        //alert(obj2._typename)
-                        JSROOT.redraw("infoC", obj2, "");
-                    }catch (e) {
-                        alert(e);
+                xhr.send();*/
+                try {
+                    for (var i = 0; i < 4; i++) {
+                        var filename = '/msc1?histid=' + i;
+                        let divid = 'msc_' + i;
+                        JSROOT.NewHttpRequest(filename, 'object', function (obj2) {
+                            try {
+                                JSROOT.redraw(divid, obj2, "");
+                            } catch (e) {
+                                alert(e);
+                            }
+                        }).send();
                     }
-                }).send();
+                } catch (e2) {
+                    alert(e2);
+                }
+                /*requirejs(['JSRootPainter'], function(jsroot) {
+                            alert('qq');
+                    jsroot.NewHttpRequest(filename, 'object', function(obj) {
+                            alert(obj);
+                            alert(obj['_typename'])
+                        jsroot.draw("msc_0", obj, "hist");
+                    }).send();
+                });*/
             }
         </script>
     </head>
@@ -93,28 +109,28 @@ and open the template in the editor.
         <div align="center">
             <div id="infoC" style="width: 20vw;"> </div>
         </div>
-        <!--style="visibility:hidden;display:none"-->
-        <button onclick="ResetTrigHist()"> 
-            <img src="../img/reset.png" width="200">
-        </button>
-        <table>
-            <tr>
-            <tb>
-                <input type="text" name="refInput" id="refInput" list="refSelector">
-                <datalist id="refSelector" autocomplete="on"></datalist>
-            </tb>
-            <tb>
-                <button onclick="SetRefRun()"> 
-                    Select Reference Run
-                </button>
-            </tb>
-
-        </tr>
-    </table>
 
     <div align="center">
         <div id="timeTableC" style="width: 98vw;"> </div>
-        <div id="msc" style="width: 98vw;"> </div>
+        <div id="msc" style="width: 98vw;">
+            <table>
+                <tr>
+                <td>
+                    <div id="msc_0" style = "width: 48vw;height: 24vw;"> </div>
+                </td>
+                <td>
+                    <div id="msc_1" style = "width: 48vw;height: 24vw;"> </div>
+                </td>
+                </tr>
+                <tr>
+                <td>
+                    <div id="msc_2" style = "width: 48vw;height: 24vw;"> </div>
+                </td>
+                <td>
+                    <div id="msc_3" style = "width: 48vw;height: 24vw;"> </div>
+                </td>
+                </tr>
+            </table> </div>
     </div>
 </body>
 </html>

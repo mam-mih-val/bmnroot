@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iterator>
 #include <regex>
+#include <exception>
 // FairROOT
 #include <TNamed.h>
 #include "TFile.h"
@@ -103,7 +104,7 @@ private:
     vector < BmnHist* > bhVec4show;
     
     TCanvas *infoCanvas;
-    TList *refList;
+//    TList *refList;
     TList *refTable;
 
     BmnDataReceiver *dataReceiver;

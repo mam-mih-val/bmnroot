@@ -12,14 +12,15 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
 #endif
     bmnloadlibs(); // load BmnRoot libraries
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //5 - period
-    decoder->SetBmnSetup(kBMNSETUP);
-    
+//    decoder->SetBmnSetup(kSRCSETUP);
+    decoder->SetBmnSetup(kBMNSETUP); // use kSRCSETUP for Short-Range Correlation program 
+
     Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
     setup[1] = 1; // MWPC
     setup[2] = 1; // SILICON
-    setup[3] = 0; // GEM
+    setup[3] = 1; // GEM
     setup[4] = 1; // TOF-400
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
@@ -27,12 +28,11 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     setup[8] = 0; // ECAL
     setup[9] = 0; // LAND
     decoder->SetDetectorSetup(setup);
-    
+
     decoder->SetTrigMapping((decoder->GetBmnSetup() == kBMNSETUP) ? "Trig_map_Run6.txt" : "Trig_map_Run7_SRC.txt");
-    decoder->SetSiliconMapping("SILICON_map_run6.txt");
     decoder->SetTrigINLFile("TRIG_INL.txt");
     // in case comment out the line decoder->SetTof400Mapping("...")  
-    // the maps of TOF400 will be readed from DB (only for JINR network)
+    // the maps of TOF400 will be read from DB (only for JINR network)
     decoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
     decoder->SetTof700Mapping("TOF700_map_period_6.txt");
     decoder->SetZDCMapping("ZDC_map_period_5.txt");

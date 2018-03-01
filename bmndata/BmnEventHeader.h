@@ -2,9 +2,12 @@
 #ifndef BMNEVENTHEADER_H
 #define BMNEVENTHEADER_H
 
+#include <map>
 #include "TNamed.h"
 #include "TDatime.h"
 #include "BmnEnums.h"
+
+using namespace std;
 
 class BmnEventHeader : public TNamed {
 private:
@@ -21,7 +24,16 @@ private:
     BmnTriggerType fTrigType;
     /** Tripped Gems (1 bit for 1 GEM module)**/
     Bool_t fTripWord;
-    
+    /** Time shifts between T0-crate and others
+     * first - crate serial ID
+     * second - time shift (ns)
+     **/
+    map<UInt_t, Long64_t> fTimeShift;
+    /** T0 information for current event**/
+    Double_t fStartSignalTime; //ns
+    Double_t fStartSignalWidth; //ns
+
+
 public:
 
     /** Default constructor */
@@ -30,21 +42,24 @@ public:
     /** Constructor */
     BmnEventHeader(UInt_t run, UInt_t ev, TDatime time, BmnEventType type, BmnTriggerType trig, Bool_t trip);
 
+    /** Constructor */
+    BmnEventHeader(UInt_t run, UInt_t ev, TDatime time, BmnEventType type, BmnTriggerType trig, Bool_t trip, map<UInt_t, Long64_t> ts);
+
     /** Get the run ID for this run*/
     UInt_t GetRunId() {
         return fRunId;
     }
-    
+
     /** Get the type of this event*/
     BmnEventType GetType() {
         return fType;
     }
-    
+
     /** Get the type of this event*/
     BmnTriggerType GetTrig() {
         return fTrigType;
     }
-    
+
     /** Get the trip word for this event*/
     Bool_t GetTripWord() {
         return fTripWord;
@@ -54,7 +69,7 @@ public:
     UInt_t GetEventId() {
         return fEventId;
     }
-    
+
     /** Get the time for this event*/
     TDatime GetEventTime() {
         return fEventTime;
@@ -73,12 +88,12 @@ public:
     void SetEventId(UInt_t evid) {
         fEventId = evid;
     }
-   
+
     /** Set the time for this event in */
     void SetEventTime(TDatime time) {
         fEventTime = time;
     }
-    
+
     /** Set the type for this event
      * @param type : type (0 or 1)
      */
@@ -86,12 +101,17 @@ public:
         fType = type;
     }
 
+    void SetStartSignalInfo(Double_t time, Double_t width) {
+        fStartSignalTime = time;
+        fStartSignalWidth = width;
+    }
+
     /**
      * Destructor
      */
     virtual ~BmnEventHeader();
 
-    ClassDef(BmnEventHeader, 3)
+    ClassDef(BmnEventHeader, 4)
 
 };
 #endif /* BMNEVENTHEADER_H */

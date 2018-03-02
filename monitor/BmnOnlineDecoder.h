@@ -55,6 +55,12 @@ public:
     BmnSetup GetBmnSetup() const {
         return fBmnSetup;
     }
+    void SetPeriodID(Int_t v) {
+        this->fPeriodID = v;
+    }
+    Int_t GetPeriodID() const {
+        return fPeriodID;
+    }
 private:
     BmnStatus InitDecoder(TString);
     void ProcessFileRun(TString digiName, UInt_t timeLimit = WAIT_LIMIT);
@@ -70,6 +76,7 @@ private:
     TString _curFile;
     TString _curDir;
     Int_t fEvents;
+    Int_t fPeriodID;
     BmnDataReceiver *dataReceiver;
     deque<UInt_t> *dataQue;
     Int_t _inotifDir;

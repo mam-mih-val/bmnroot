@@ -106,6 +106,7 @@ private:
     TCanvas *infoCanvas;
 //    TList *refList;
     TList *refTable;
+    BmnRunInfo *CurRun;
 
     BmnDataReceiver *dataReceiver;
     BmnOnlineDecoder *onlineDecoder;

@@ -13,47 +13,30 @@
 
 #include "BmnHistSilicon.h"
 
-BmnHistSilicon::BmnHistSilicon(TString title, TString path) : BmnHist() {
+BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID) : BmnHist(PeriodID) {
     sumMods = 0;
     maxLayers = 0;
     refPath = path;
     fTitle = title;
     fName = title + "_cl";
-//    gemStationConfig = config;
     TString name;
-//    switch (gemStationConfig) {
-//        case BmnGemStripConfiguration::RunSummer2016:
-//            gemStationSet = new BmnGemStripStationSet_RunSummer2016(gemStationConfig);
-//            break;
-//        case BmnGemStripConfiguration::RunWinter2016:
-//            gemStationSet = new BmnGemStripStationSet_RunWinter2016(gemStationConfig);
-//            break;
-//        case BmnGemStripConfiguration::RunSpring2017:
-//            gemStationSet = new BmnGemStripStationSet_RunSpring2017(gemStationConfig);
-//            break;
-//        case BmnGemStripConfiguration::None:
-//            gemStationSet = new BmnGemStripStationSet_RunSpring2017(gemStationConfig);
-//            break;
-//        default:
-//            gemStationSet = new BmnGemStripStationSet_RunSpring2017(gemStationConfig);
-//            break;
-//    }
-    // Create histograms
-    sumMods = 8;// @TODO remove
-    maxLayers = 2;// @TODO remove
-    for (Int_t iStation = 0; iStation < 1/*gemStationSet->GetNStations()*/; iStation++) {
+    TString xmlConfFileName = fPeriodID == 7 ? "SiliconRunSpring2018dummy.xml" : "SiliconRunSpring2017.xml";
+    xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/silicon/XMLConfigs/" + xmlConfFileName;
+    printf("xmlConfFileName %s\n", xmlConfFileName.Data());
+    BmnSiliconStationSet* stationSet = new BmnSiliconStationSet(xmlConfFileName);
+    for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
         vector<vector<TH1F*> > rowGEM;
-//        BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
-//        sumMods += st->GetNModules();
-        for (Int_t iModule = 0; iModule < 8/*st->GetNModules()*/; iModule++) {
+        BmnSiliconStation* st = stationSet->GetSiliconStation(iStation);
+        sumMods += st->GetNModules();
+        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
             vector<TH1F*> colGEM;
-//            BmnGemStripModule *mod = st->GetModule(iModule);
-//            if (maxLayers < mod->GetNStripLayers())
-//                maxLayers = mod->GetNStripLayers();
-            for (Int_t iLayer = 0; iLayer < 2/*mod->GetNStripLayers()*/; iLayer++) {
-//                BmnGemStripLayer lay = mod->GetStripLayer(iLayer);
+            BmnSiliconModule *mod = st->GetModule(iModule);
+            if (maxLayers < mod->GetNStripLayers())
+                maxLayers = mod->GetNStripLayers();
+            for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
+                BmnSiliconLayer lay = mod->GetStripLayer(iLayer);
                 name = Form(fTitle + "_Station_%d_module_%d_layer_%d", iStation, iModule, iLayer);
-                TH1F *h = new TH1F(name, name, 700/*lay.GetNStrips()*/, 0, 700/*lay.GetNStrips()*/);
+                TH1F *h = new TH1F(name, name, lay.GetNStrips(), 0, lay.GetNStrips());
                 h->SetTitleSize(0.06, "XY");
                 h->SetLabelSize(0.08, "XY");
                 h->GetXaxis()->SetTitle("Strip Number");
@@ -61,7 +44,6 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path) : BmnHist() {
                 h->GetYaxis()->SetTitle("Activation Count");
                 h->GetYaxis()->SetTitleColor(kOrange + 10);
                 colGEM.push_back(h);
-
             }
             rowGEM.push_back(colGEM);
 
@@ -76,11 +58,11 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path) : BmnHist() {
     Int_t modCtr = 0; // filling GEM Canvas' pads
     canStripPads.resize(sumMods * maxLayers);
     Names.resize(sumMods * maxLayers);
-    for (Int_t iStation = 0; iStation < 1/*gemStationSet->GetNStations()*/; iStation++) {
-//        BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
-        for (Int_t iModule = 0; iModule < 8/*st->GetNModules()*/; iModule++) {
-//            BmnGemStripModule *mod = st->GetModule(iModule);
-            for (Int_t iLayer = 0; iLayer < 2/*mod->GetNStripLayers()*/; iLayer++) {
+    for (Int_t iStation = 0; iStation < stationSet->GetNStations(); iStation++) {
+        BmnSiliconStation * st = stationSet->GetSiliconStation(iStation);
+        for (Int_t iModule = 0; iModule < st->GetNModules(); iModule++) {
+            BmnSiliconModule *mod = st->GetModule(iModule);
+            for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
                 PadInfo *p = new PadInfo();
                 p->current = histSiliconStrip[iStation][iModule][iLayer];
                 Int_t iPad = modCtr * maxLayers + iLayer;

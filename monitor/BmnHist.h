@@ -62,7 +62,7 @@ ClassImp(PadInfo)
 class BmnHist : public TNamed {
 public:
 
-    BmnHist();
+    BmnHist(Int_t periodID = 7);
     virtual ~BmnHist();
     virtual void Reset() = 0;
     virtual void Register(THttpServer *serv) = 0;
@@ -98,6 +98,15 @@ public:
     TString GetRefPath() const {
         return refPath;
     }
+
+    void SetperiodID(Int_t v) {
+        this->fPeriodID = v;
+    }
+
+    Int_t GetperiodID() const {
+        return fPeriodID;
+    }
+    
 protected:
 
     Bool_t isShown = kFALSE;
@@ -108,6 +117,7 @@ protected:
     TString refRunName;
     Int_t refID;
     TFile *refFile;
+    Int_t fPeriodID;
 
     ClassDef(BmnHist, 1)
 

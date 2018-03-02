@@ -45,8 +45,7 @@ struct histNmask{
 class BmnHistGem : public BmnHist {
 public:
 
-    BmnHistGem(TString title = "GEM", TString path = "",
-            BmnGemStripConfiguration::GEM_CONFIG config = BmnGemStripConfiguration::RunSpring2017);
+    BmnHistGem(TString title = "GEM", TString path = "", Int_t periodID = 7);
     virtual ~BmnHistGem();
     void Reset();
     void Register(THttpServer *serv);

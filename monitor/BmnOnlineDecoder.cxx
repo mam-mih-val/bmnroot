@@ -60,12 +60,12 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     setup[0] = 1; // TRIGGERS
     setup[1] = 1; // MWPC
     setup[2] = 1; // SILICON
-    setup[3] = 0; // GEM
+    setup[3] = 1; // GEM
     setup[4] = 1; // TOF-400
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
-    setup[8] = 0; // ECAL
+    setup[8] = 1; // ECAL
     setup[9] = 1; // LAND
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);

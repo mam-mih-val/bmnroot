@@ -24,32 +24,17 @@
 //const UInt_t nStrips[GEM_STATIONS_COUNT] = {256, 825, 825, 825, 825, 1100, 1119};
 #define MAX_STRIPS 1020
 
-BmnHistGem::BmnHistGem(TString title, TString path, BmnGemStripConfiguration::GEM_CONFIG config) : BmnHist() {
+BmnHistGem::BmnHistGem(TString title, TString path, Int_t PeriodID) : BmnHist(PeriodID) {
     sumMods = 0;
     maxLayers = 0;
     refPath = path;
     fTitle = title;
     fName = title + "_cl";
-    gemStationConfig = config;
     TString name;
-    switch (gemStationConfig) {
-        case BmnGemStripConfiguration::RunSummer2016:
-            gemStationSet = new BmnGemStripStationSet_RunSummer2016(gemStationConfig);
-            break;
-        case BmnGemStripConfiguration::RunWinter2016:
-            gemStationSet = new BmnGemStripStationSet_RunWinter2016(gemStationConfig);
-            break;
-        case BmnGemStripConfiguration::RunSpring2017:
-            gemStationSet = new BmnGemStripStationSet_RunSpring2017(gemStationConfig);
-            break;
-        case BmnGemStripConfiguration::None:
-            gemStationSet = new BmnGemStripStationSet_RunSpring2017(gemStationConfig);
-            break;
-        default:
-            gemStationSet = new BmnGemStripStationSet_RunSpring2017(gemStationConfig);
-            break;
-    }
-    // Create histograms
+    TString xmlConfFileName = fPeriodID == 7 ? "GemRunSpring2018dummy.xml" : "GemRunSpring2017.xml";
+    xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/gem/XMLConfigs/" + xmlConfFileName;
+    printf("xmlConfFileName %s\n", xmlConfFileName.Data());
+    gemStationSet = new BmnGemStripStationSet(xmlConfFileName);
     for (Int_t iStation = 0; iStation < gemStationSet->GetNStations(); iStation++) {
         vector<vector<TH1F*> > rowGEM;
         BmnGemStripStation * st = gemStationSet->GetGemStation(iStation);
@@ -150,6 +135,7 @@ void BmnHistGem::FillFromDigi(DigiArrays *fDigiArrays) {
     TClonesArray * gemDigits = fDigiArrays->gem;
     if (!gemDigits)
         return;
+    printf("gemDigits->GetEntriesFast() %d\n", gemDigits->GetEntriesFast());
     for (Int_t digIndex = 0; digIndex < gemDigits->GetEntriesFast(); digIndex++) {
         BmnGemStripDigit* gs = (BmnGemStripDigit*) gemDigits->At(digIndex);
         Int_t module = gs->GetModule();

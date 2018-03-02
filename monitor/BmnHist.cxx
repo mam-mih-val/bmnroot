@@ -13,10 +13,11 @@
 
 #include "BmnHist.h"
 
-BmnHist::BmnHist() {
+BmnHist::BmnHist(Int_t PeriodID) {
     refFile = NULL;
     frecoTree = NULL;
     fDir = NULL;
+    fPeriodID = PeriodID;
 }
 
 BmnHist::~BmnHist() {

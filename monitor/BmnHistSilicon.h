@@ -30,12 +30,13 @@
 
 #include "BmnHist.h"
 #include "BmnSiliconDigit.h"
+#include "BmnSiliconStationSet.h"
 
 using namespace std;
 
 class BmnHistSilicon : public BmnHist {
 public:
-    BmnHistSilicon(TString title = "Silicon", TString path = "");
+    BmnHistSilicon(TString title = "Silicon", TString path = "", Int_t periodID = 7);
     virtual ~BmnHistSilicon();
     void Reset();
     void Register(THttpServer *serv);
@@ -51,6 +52,9 @@ private:
 //    BmnGemStripStationSet *gemStationSet;
     vector<TString> Names;
     vector<vector<vector<TH1F*  > > > histSiliconStrip;
+    UInt_t nStations;
+    UInt_t nMods;
+    UInt_t nLayers;
     UInt_t sumMods;
     UInt_t maxLayers;
 

@@ -34,6 +34,7 @@ BmnMonitor::BmnMonitor() {
     refTable->SetName("refTable");
     fDigiArrays = NULL;
     _ctx = NULL;
+    CurRun = new BmnRunInfo();
 }
 
 BmnMonitor::~BmnMonitor() {
@@ -195,8 +196,8 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     //    fRecoTree4Show->SetDirectory(NULL); // tree will not be saved
 
     TString refName = Form("ref%06d_", fRunID);
-    bhVec.push_back(new BmnHistGem(refName + "GEM", _curDir));
-    bhVec.push_back(new BmnHistSilicon(refName + "Silicon", _curDir));
+    bhVec.push_back(new BmnHistGem(refName + "GEM", _curDir, fPeriodID));
+    bhVec.push_back(new BmnHistSilicon(refName + "Silicon", _curDir, fPeriodID));
     bhVec.push_back(new BmnHistDch(refName + "DCH"));
     bhVec.push_back(new BmnHistMwpc(refName + "MWPC"));
     bhVec.push_back(new BmnHistZDC(refName + "ZDC"));
@@ -206,8 +207,9 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistTrigger(refName + "Triggers"));
     bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir));
     bhVec.push_back(new BmnHistLAND(refName + "LAND"));
-    for (auto h : bhVec)
+    for (auto h : bhVec){
         h->SetDir(fHistOut, fRecoTree);
+    }
     for (auto h : bhVec4show) {
         h->SetDir(fHistOutTemp, fRecoTree4Show);
         h->ClearRefRun();
@@ -264,8 +266,8 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
 }
 
 void BmnMonitor::RegisterAll() {
-    bhVec4show.push_back(new BmnHistGem("GEM", _curDir));
-    bhVec4show.push_back(new BmnHistSilicon("Silicon", _curDir));
+    bhVec4show.push_back(new BmnHistGem("GEM", _curDir, fPeriodID));
+    bhVec4show.push_back(new BmnHistSilicon("Silicon", _curDir, fPeriodID));
     bhVec4show.push_back(new BmnHistDch("DCH"));
     bhVec4show.push_back(new BmnHistMwpc("MWPC"));
     bhVec4show.push_back(new BmnHistZDC("ZDC"));

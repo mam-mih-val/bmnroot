@@ -1218,7 +1218,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     }
     GetT0Info(fT0Time, fT0Width);
 
-    if ((fCurEventType == kBMNPEDESTAL) && fGemMapper) {
+    if (fCurEventType == kBMNPEDESTAL) {
         if (fPedEvCntr == fEvForPedestals - 1) return kBMNERROR; //FIX return!
         CopyDataToPedMap(adc32, adc128, fPedEvCntr);
         fPedEvCntr++;
@@ -1372,16 +1372,19 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
         for (UInt_t iAdc = 0; iAdc < adcSil->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adcSil->At(iAdc);
 
-            Int_t iSer = -1;
-            for (iSer = 0; iSer < fNSiliconSerials; ++iSer)
-                if (adcDig->GetSerial() == fSiliconSerials[iSer]) break;
-            if (iSer == -1) return kBMNERROR;
-
-            for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl) {
-                if (fRunId > GetBoundaryRun(ADC128_N_SAMPLES))
-                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetShortValue())[iSmpl] / 16;
-                else
-                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetUShortValue())[iSmpl] / 16;
+            for (Int_t iSer = 0; iSer < fNSiliconSerials; ++iSer) {
+                //printf("iSer = %d     adcDig->GetSerial() =  %X     fSiliconSerials[iSer] = %X\n", iSer, adcDig->GetSerial(), fSiliconSerials[iSer]);
+                if (adcDig->GetSerial() == fSiliconSerials[iSer]) {
+                    for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl) {
+                        if (fRunId > GetBoundaryRun(ADC128_N_SAMPLES))
+                            pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetShortValue())[iSmpl] / 16;
+                        else {
+                            //printf("ser %d   n = %d\n", iSer, fNSiliconSerials);
+                            pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetUShortValue())[iSmpl] / 16;
+                        }
+                    }
+                    break;
+                }
             }
         }
     }

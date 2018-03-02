@@ -1,40 +1,40 @@
 // -------------------------------------------------------------------------
-// -----                      FairPointSetDraw header file                    -----
+// -----                      MpdPointSetDraw header file                    -----
 // -----          Created 10/12/07  by M. Al-Turany                    -----
 // -------------------------------------------------------------------------
 
-/** FairPointSetDraw
+/** MpdPointSetDraw
  * @author M. Al-Turany
  * @since 03.01.08
  *   Task to display MC points
  **
  **/
 
-#ifndef FAIRPOINTSETDRAW_H
-#define FAIRPOINTSETDRAW_H
+#ifndef MpdPointSetDraw_H
+#define MpdPointSetDraw_H
 
 #include "FairTask.h"
-#include "FairEventManager.h"
+#include "MpdEventManager.h"
 
 #include "TClonesArray.h"
 #include "TVector3.h"
 #include "TEvePointSet.h"
 
 
-class FairPointSetDraw : public FairTask
+class MpdPointSetDraw : public FairTask
 {
   public:
     /** Default constructor **/
-    FairPointSetDraw();
+    MpdPointSetDraw();
 
     /** Standard constructor
     *@param name        Name of task
     *@param iVerbose    Verbosity level
     **/
-    FairPointSetDraw(const char* name, Color_t color, Style_t mstyle, Int_t iVerbose = 0);
+    MpdPointSetDraw(const char* name, Color_t color, Style_t mstyle, Int_t iVerbose = 0);
 
     /** Destructor **/
-    virtual ~FairPointSetDraw();
+    virtual ~MpdPointSetDraw();
 
     /** Set verbosity level. For this task and all of the subtasks. **/
     void SetVerbose(Int_t iVerbose) {fVerbose = iVerbose;}
@@ -57,7 +57,7 @@ class FairPointSetDraw : public FairTask
 
     // Verbosity level
     Int_t fVerbose;
-    FairEventManager* fEventManager;    //!
+    MpdEventManager* fEventManager;    //!
     TClonesArray* fPointList;           //!
     TEvePointSet* fq;                   //!
 
@@ -65,10 +65,10 @@ class FairPointSetDraw : public FairTask
     Style_t fStyle;                     //!
 
   private:
-    FairPointSetDraw(const FairPointSetDraw&);
-    FairPointSetDraw& operator=(const FairPointSetDraw&);
+    MpdPointSetDraw(const MpdPointSetDraw&);
+    MpdPointSetDraw& operator=(const MpdPointSetDraw&);
 
-    ClassDef(FairPointSetDraw,1);
+    ClassDef(MpdPointSetDraw,1);
 };
 
 #endif

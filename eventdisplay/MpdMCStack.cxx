@@ -1,9 +1,9 @@
 // -------------------------------------------------------------------------
-// -----                        FairMCStack source file                  -----
+// -----                        MpdMCStack source file                  -----
 // -----                  Created 09/10/08  by M. Al-Turany            -----
 // -------------------------------------------------------------------------
 
-#include "FairMCStack.h"
+#include "MpdMCStack.h"
 #ifdef BMNROOT
 #include "CbmMCTrack.h"
 #else
@@ -23,37 +23,37 @@ using namespace std;
 
 
 // -----   Default constructor   -------------------------------------------
-FairMCStack::FairMCStack()
+MpdMCStack::MpdMCStack()
 {
 }
 
 // -----   Standard constructor   ------------------------------------------
-FairMCStack::FairMCStack(const char* name, Int_t iVerbose)
+MpdMCStack::MpdMCStack(const char* name, Int_t iVerbose)
   : FairTask(name, iVerbose),
    fEveTrList(new TObjArray(16))
 {
 }
 
 // -------------------------------------------------------------------------
-InitStatus FairMCStack::Init()
+InitStatus MpdMCStack::Init()
 {
   if (fVerbose > 1)
-      cout<<"FairMCStack::Init()"<<endl;
+      cout<<"MpdMCStack::Init()"<<endl;
 
   FairRootManager* fManager = FairRootManager::Instance();
 
   fTrackList = (TClonesArray*) fManager->GetObject("MCTrack");
   if (fTrackList == 0)
   {
-    LOG(ERROR)<<"FairMCStack::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
+    LOG(ERROR)<<"MpdMCStack::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
     SetActive(kFALSE);
   }
   if (fVerbose > 2)
-      cout<<"FairMCStack::Init() get track list"<<fTrackList<<endl;
+      cout<<"MpdMCStack::Init() get track list"<<fTrackList<<endl;
 
-  fEventManager = FairEventManager::Instance();
+  fEventManager = MpdEventManager::Instance();
   if (fVerbose > 2)
-      cout<<"FairMCStack::Init() get instance of FairEventManager"<<endl;
+      cout<<"MpdMCStack::Init() get instance of MpdEventManager"<<endl;
 
   MinEnergyLimit = fEventManager->GetEvtMinEnergy();
   MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
@@ -82,16 +82,16 @@ InitStatus FairMCStack::Init()
 }
 
 // -------------------------------------------------------------------------
-void FairMCStack::Exec(Option_t* /*option*/)
+void MpdMCStack::Exec(Option_t* /*option*/)
 {
   if (IsActive())
   {
-    if (fVerbose > 1) cout<<"FairMCStack::Exec"<<endl;
+    if (fVerbose > 1) cout<<"MpdMCStack::Exec"<<endl;
     Reset();
 
     for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
     {
-      if (fVerbose > 2) cout<<"FairMCStack::Exec "<<i<<endl;
+      if (fVerbose > 2) cout<<"MpdMCStack::Exec "<<i<<endl;
 
       #ifdef BMNROOT
         CbmMCTrack* tr = (CbmMCTrack*) fTrackList->At(i);
@@ -186,22 +186,22 @@ void FairMCStack::Exec(Option_t* /*option*/)
 }
 
 // -----   Destructor   ----------------------------------------------------
-FairMCStack::~FairMCStack()
+MpdMCStack::~MpdMCStack()
 {
 }
 
 // -------------------------------------------------------------------------
-void FairMCStack::SetParContainers()
+void MpdMCStack::SetParContainers()
 {
 }
 
 // -------------------------------------------------------------------------
-void FairMCStack::Finish()
+void MpdMCStack::Finish()
 {
 }
 
 // -------------------------------------------------------------------------
-void FairMCStack::Reset()
+void MpdMCStack::Reset()
 {
   for (Int_t i = 0; i < fEveTrList->GetEntriesFast(); i++)
   {
@@ -211,7 +211,7 @@ void FairMCStack::Reset()
   fEveTrList->Clear();
 }
 
-TEveTrackList* FairMCStack::GetTrGroup(TParticle* P)
+TEveTrackList* MpdMCStack::GetTrGroup(TParticle* P)
 {
   fTrList = 0;
   for (Int_t i = 0; i < fEveTrList->GetEntriesFast(); i++)
@@ -239,4 +239,4 @@ TEveTrackList* FairMCStack::GetTrGroup(TParticle* P)
   return fTrList;
 }
 
-ClassImp(FairMCStack)
+ClassImp(MpdMCStack)

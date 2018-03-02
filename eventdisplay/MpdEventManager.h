@@ -1,10 +1,11 @@
-//FairEventManager: class for event management and navigation
+//MpdEventManager: class for event management and navigation
 
-#ifndef FAIREVENTMANAGER_H
-#define FAIREVENTMANAGER_H
+#ifndef MpdEventManager_H
+#define MpdEventManager_H
 
 #include "FairRunAna.h"
 #include "FairTask.h"
+#include "FairXMLNode.h"
 
 #include <TEveViewer.h>
 #include "TEveEventManager.h"
@@ -12,14 +13,15 @@
 #include <TGeoNode.h>
 #include <TEveProjectionManager.h>
 #include "TGListTree.h"
+#include <TEveProjectionAxes.h>
 
 #include <vector>
 using namespace std;
 
 enum ElementList {MCPointList, MCTrackList, RecoPointList, RecoTrackList};  // enum for Event Element lists
-class FairEventManagerEditor;
+class MpdEventManagerEditor;
 
-class FairEventManager : public TEveEventManager
+class MpdEventManager : public TEveEventManager
 {
   public:
     struct structSelectedColoring
@@ -62,15 +64,15 @@ class FairEventManager : public TEveEventManager
         }
     };
 
-    static FairEventManager* Instance();
-    FairEventManager();
-    virtual ~FairEventManager();
-
+    static MpdEventManager* Instance();
+    MpdEventManager();
+    virtual ~MpdEventManager();
+    virtual void SetXMLConfig(TString xml_config){fXMLConfig = xml_config;};
     virtual void Open();
     virtual void GotoEvent(Int_t event);    // *MENU*
     virtual void NextEvent();               // *MENU*
     virtual void PrevEvent();               // *MENU*
-    virtual void DisplaySettings();         // *MENU*
+    virtual void DisplaySettings();         // *Menu*
     virtual void Close();
 
     virtual void Init(Int_t visopt = 1, Int_t vislvl = 3, Int_t maxvisnds = 10000);
@@ -95,25 +97,14 @@ class FairEventManager : public TEveEventManager
     virtual Float_t GetEvtMinEnergy() { return fEvtMinEnergy; }
     virtual Float_t GetMaxEnergy() { return fMaxEnergy; }
     virtual Float_t GetMinEnergy() { return fMinEnergy; }
+    virtual void SetRPhiPlane(Double_t a, Double_t b, Double_t c, Double_t d);
+    virtual void SetRhoZPlane(Double_t a, Double_t b, Double_t c, Double_t d);
 
-    void SetEventEditor(FairEventManagerEditor* event_editor) { fEventEditor = event_editor; }
-    FairEventManagerEditor* GetEventEditor() { return fEventEditor; }
+    TEveScene* GetRhoZScene() {return fRhoZGeomScene;};
+    TEveScene* GetRPhiScene() {return fRPhiGeomScene;};
 
-    // VIEWERS for RPhi and RPhoZ projections, 3D view in multi-viewer, RPhi and RPhoZ projections in multi-viewer
-    TEveViewer *fRPhiView, *fRhoZView, *fMulti3DView, *fMultiRPhiView, *fMultiRhoZView;
-
-    // projection manager for RPhi view
-    TEveProjectionManager* fRPhiMng;
-    // projection manager for RPho view
-    TEveProjectionManager* fRhoZMng;
-    // scene for geometry presentation in RPhi plane
-    TEveScene* fRPhiGeomScene;
-    // scene for geometry presentation in RPhoZ plane
-    TEveScene* fRhoZGeomScene;
-    // scene for event presenation in RPhi plane
-    //TEveScene* fRPhiEventScene;
-    // scene for event presenation in RPhoZ plane
-    //TEveScene* fRhoZEventScene;
+    void SetEventEditor(MpdEventManagerEditor* event_editor) { fEventEditor = event_editor; }
+    MpdEventManagerEditor* GetEventEditor() { return fEventEditor; }
 
     // background color of EVE Viewers
     int background_color;
@@ -149,8 +140,41 @@ class FairEventManager : public TEveEventManager
     enum VisualizationColoring {selectedColoring, levelColoring, defaultColoring};
     VisualizationColoring gVisualizationColoring;
 
+ protected:
+  TEveViewer* GetRPhiView() const {return fRPhiView;};
+  TEveViewer *GetRhoZView() const {return fRhoZView;};
+  TEveViewer *GetMultiView() const {return fMulti3DView;};
+  TEveViewer *GetMultiRPhiView() const { return fMultiRPhiView;};
+  TEveViewer *GetMultiRhoZView() const {return fMultiRhoZView;};
+  TEveProjectionManager* GetRhoZProjManager() const {return fRhoZMng;};
+  TEveProjectionManager* GetRPhiProjManager() const {return fRPhiMng;};
+  TEveProjectionAxes *GetRPhiAxes() const { return fAxesPhi;};
+  TEveProjectionAxes *GetRhoZAxes() const {return fAxesRho;};
+  virtual void LoadXMLSettings();
+  void LoadXMLDetector(TGeoNode *node, FairXMLNode *xml, Int_t depth=0);
+  Int_t StringToColor(TString color) const;
+
   private:
-    FairEventManagerEditor* fEventEditor; //!
+    MpdEventManagerEditor* fEventEditor; //!
+
+    Double_t fRPhiPlane[4];	//!
+    Double_t fRhoZPlane[4]; //!
+    // VIEWERS for RPhi and RPhoZ projections, 3D view in multi-viewer, RPhi and RPhoZ projections in multi-viewer
+    TEveViewer *fRPhiView, *fRhoZView, *fMulti3DView, *fMultiRPhiView, *fMultiRhoZView;
+    // projection manager for RPhi view
+    TEveProjectionManager* fRPhiMng;
+    // projection manager for RPho view
+    TEveProjectionManager* fRhoZMng;
+    // scene for geometry presentation in RPhi plane
+    TEveScene* fRPhiGeomScene;
+    // scene for geometry presentation in RPhoZ plane
+    TEveScene* fRhoZGeomScene;
+    // scene for event presenation in RPhi plane
+    //TEveScene* fRPhiEventScene;
+    // scene for event presenation in RPhoZ plane
+    //TEveScene* fRhoZEventScene;
+    TEveProjectionAxes *fAxesPhi;
+    TEveProjectionAxes *fAxesRho;
 
     TGListTreeItem* fEvent; //!
     // current event number
@@ -169,15 +193,18 @@ class FairEventManager : public TEveEventManager
     // the last color indice of Color Creating from rgb triple
     Int_t fLastUsedColor; //!
 
-    // skeleton Singleton Instance
-    static FairEventManager* fgRinstance; //!
+    TString fXMLConfig;
+    map<int,int> fPDGToColor;
 
     // arrays with color sturctures for detector and hierarchical coloring
     vector<structSelectedColoring*> vecSelectedColoring; //!
     vector<structLevelColoring*> vecLevelColoring; //!
 
-    FairEventManager(const FairEventManager&);
-    FairEventManager& operator=(const FairEventManager&);
+    // skeleton Singleton Instance
+    static MpdEventManager* fgRinstance; //!
+    MpdEventManager(const MpdEventManager&);
+    MpdEventManager& operator=(const MpdEventManager&);
+    void SetViewers(TEveViewer* RPhi, TEveViewer* RhoZ);
 
     // get color id by color name
     Int_t GetColor(TString colorName);
@@ -188,7 +215,7 @@ class FairEventManager : public TEveEventManager
     void SelectedGeometryColoring();
     void RecursiveChangeNodeProperty(TGeoNode* parentNode, Int_t color, int transparency);
 
-    ClassDef(FairEventManager,1);
+    ClassDef(MpdEventManager,1);
 };
 
 #endif

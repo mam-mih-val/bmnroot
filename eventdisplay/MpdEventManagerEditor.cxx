@@ -1,8 +1,8 @@
-// FairEventManagerEditor
+// MpdEventManagerEditor
 //
 // Specialization of TGedEditor for proper update propagation to TEveManager
 
-#include "FairEventManagerEditor.h"
+#include "MpdEventManagerEditor.h"
 #include "FairRootManager.h"
 #include "FairRunAna.h"
 
@@ -28,10 +28,10 @@ using namespace std;
 #define MAX_ENERGY 12
 
 //______________________________________________________________________________
-FairEventManagerEditor::FairEventManagerEditor(const TGWindow* p, Int_t width, Int_t height, UInt_t options, Pixel_t back)
+MpdEventManagerEditor::MpdEventManagerEditor(const TGWindow* p, Int_t width, Int_t height, UInt_t options, Pixel_t back)
   : TGedFrame(p, width, height, options | kVerticalFrame, back),
    fObject(0),
-   fEventManager(FairEventManager::Instance()),
+   fEventManager(MpdEventManager::Instance()),
    isMagnetFound(false),
    fCurrentEvent(0),
    fCurrentPDG(0),
@@ -47,9 +47,10 @@ FairEventManagerEditor::FairEventManagerEditor(const TGWindow* p, Int_t width, I
     Init();
 }
 
-void FairEventManagerEditor::Init()
+void MpdEventManagerEditor::Init()
 {
-    TChain* chain = FairRootManager::Instance()->GetInChain();
+    FairRootManager* fRootManager = FairRootManager::Instance();
+    TChain* chain = fRootManager->GetInChain();
 
     // create tab for event visualization
     MakeTitle("EventManager Editor");
@@ -61,7 +62,7 @@ void FairEventManagerEditor::Init()
     TFile* pChainFile = chain->GetFile();
     if (pChainFile == NULL)
     {
-        InSource = "TDAQ Stream is used";
+        InSource = "Data Stream is used";
         isStreamSource = true;
     }
     else
@@ -100,7 +101,7 @@ void FairEventManagerEditor::Init()
     fCurrentEvent = new TGNumberEntry(f, 0., 6, -1,
                         TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative, TGNumberFormat::kNELLimitMinMax, 0, iEventCount-1);
     f->AddFrame(fCurrentEvent, new TGLayoutHints(kLHintsLeft, 1, 1, 1, 1));
-    fCurrentEvent->Connect("ValueSet(Long_t)","FairEventManagerEditor", this, "SelectEvent()");
+    fCurrentEvent->Connect("ValueSet(Long_t)","MpdEventManagerEditor", this, "SelectEvent()");
     // if event count is 0 then deactivate the field for event number
     if (iEventCount < 1)
         fCurrentEvent->SetState(kFALSE);
@@ -108,13 +109,13 @@ void FairEventManagerEditor::Init()
     // button for saving the current image (EVE screenshot)
     fSave = new TGPictureButton(f, gClient->GetPicture("save.xpm"), 5);
     f->AddFrame(fSave, new TGLayoutHints(kLHintsLeft| kLHintsCenterY, 1, 2, 1, 1));
-    fSave->Connect("Clicked()", "FairEventManagerEditor", this, "SaveImage()");
+    fSave->Connect("Clicked()", "MpdEventManagerEditor", this, "SaveImage()");
     title1->AddFrame(f);
 
     // checkbox to display only primary particles in event
     fVizPri = new TGCheckButton(title1, "Primary Only");
     AddFrame(fVizPri, new TGLayoutHints(kLHintsTop, 3, 1, 1, 0));
-    fVizPri->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "DoVizPri()");
+    fVizPri->Connect("Toggled(Bool_t)", "MpdEventManagerEditor", this, "DoVizPri()");
     title1->AddFrame(fVizPri);
 
     // textbox to display only particles with given PDG
@@ -124,7 +125,7 @@ void FairEventManagerEditor::Init()
     fCurrentPDG = new TGNumberEntry(f1, 0., 12, -1,
                       TGNumberFormat::kNESInteger, TGNumberFormat::kNEAAnyNumber, TGNumberFormat::kNELNoLimits, 0, 1);
     f1->AddFrame(fCurrentPDG, new TGLayoutHints(kLHintsLeft, 1, 1, 1, 1));
-    fCurrentPDG->Connect("ValueSet(Long_t)","FairEventManagerEditor", this, "SelectPDG()");
+    fCurrentPDG->Connect("ValueSet(Long_t)","MpdEventManagerEditor", this, "SelectPDG()");
     title1->AddFrame(f1);
 
     // textbox for min energy cutting
@@ -135,7 +136,7 @@ void FairEventManagerEditor::Init()
     fMinEnergy->SetLimits(0, MAX_ENERGY, 2001, TGNumberFormat::kNESRealOne);
     fMinEnergy->SetToolTip("Minimum energy of displayed tracks");
     fMinEnergy->SetValue(0);
-    fMinEnergy->Connect("ValueSet(Double_t)", "FairEventManagerEditor", this, "MinEnergy()");
+    fMinEnergy->Connect("ValueSet(Double_t)", "MpdEventManagerEditor", this, "MinEnergy()");
     title1->AddFrame(fMinEnergy, new TGLayoutHints(kLHintsTop, 1, 1, 1, 0));
     fEventManager->SetMinEnergy(0);
 
@@ -147,7 +148,7 @@ void FairEventManagerEditor::Init()
     fMaxEnergy->SetLimits(0, MAX_ENERGY, 2001, TGNumberFormat::kNESRealOne);
     fMaxEnergy->SetToolTip("Maximum energy of displayed tracks");
     fMaxEnergy->SetValue(MAX_ENERGY);
-    fMaxEnergy->Connect("ValueSet(Double_t)", "FairEventManagerEditor", this, "MaxEnergy()");
+    fMaxEnergy->Connect("ValueSet(Double_t)", "MpdEventManagerEditor", this, "MaxEnergy()");
     title1->AddFrame(fMaxEnergy, new TGLayoutHints(kLHintsTop, 1, 1, 1, 0));
     fEventManager->SetMaxEnergy(MAX_ENERGY);
 
@@ -155,7 +156,7 @@ void FairEventManagerEditor::Init()
     // button: whether show detector geometry or not
     fGeometry = new TGCheckButton(fGeometryFrame, "show geometry");
     fGeometryFrame->AddFrame(fGeometry, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,1,1));
-    fGeometry->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowGeometry(Bool_t)");
+    fGeometry->Connect("Toggled(Bool_t)", "MpdEventManagerEditor", this, "ShowGeometry(Bool_t)");
     fGeometry->SetOn();
     // button: whether show magnet or not
     TGeoVolume* magnet = gGeoManager->FindVolumeFast("Magnet");
@@ -164,7 +165,7 @@ void FairEventManagerEditor::Init()
         isMagnetFound = true;
         ShowMagnetButton = new TGCheckButton(fGeometryFrame, "show magnet");
         fGeometryFrame->AddFrame(ShowMagnetButton, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,1,1));
-        ShowMagnetButton->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMagnet(Bool_t)");
+        ShowMagnetButton->Connect("Toggled(Bool_t)", "MpdEventManagerEditor", this, "ShowMagnet(Bool_t)");
         ShowMagnetButton->SetOn();
     }
     title1->AddFrame(fGeometryFrame);
@@ -172,12 +173,12 @@ void FairEventManagerEditor::Init()
     // button for high transparency of detectors' geometry to highlight event objects
     TGCheckButton* fTransparency = new TGCheckButton(title1, "high transparency");
     title1->AddFrame(fTransparency, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 5,5,1,1));
-    fTransparency->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "SwitchTransparency(Bool_t)");
+    fTransparency->Connect("Toggled(Bool_t)", "MpdEventManagerEditor", this, "SwitchTransparency(Bool_t)");
 
     // button for switching from black to white background
     TGCheckButton* backgroundButton = new TGCheckButton(title1, "light background");
     title1->AddFrame(backgroundButton, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 5,5,1,1));
-    backgroundButton->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "SwitchBackground(Bool_t)");
+    backgroundButton->Connect("Toggled(Bool_t)", "MpdEventManagerEditor", this, "SwitchBackground(Bool_t)");
     if (!fEventManager->isDarkColor)
     {
         backgroundButton->SetOn();
@@ -192,13 +193,13 @@ void FairEventManagerEditor::Init()
     // button for show|hide MC points
     fShowMCPoints = new TGCheckButton(framePointsInfo, "MC points");
     framePointsInfo->AddFrame(fShowMCPoints, new TGLayoutHints(kLHintsNormal, 0,0,0,0));
-    fShowMCPoints->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMCPoints(Bool_t)");
+    fShowMCPoints->Connect("Toggled(Bool_t)", "MpdEventManagerEditor", this, "ShowMCPoints(Bool_t)");
     fShowMCPoints->SetDisabledAndSelected(kFALSE);
 
     // button for show|hide reconstructed points
     fShowRecoPoints = new TGCheckButton(framePointsInfo, "Reco points");
     framePointsInfo->AddFrame(fShowRecoPoints, new TGLayoutHints(kLHintsRight, 0,0,1,0));
-    fShowRecoPoints->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowRecoPoints(Bool_t)");
+    fShowRecoPoints->Connect("Toggled(Bool_t)", "MpdEventManagerEditor", this, "ShowRecoPoints(Bool_t)");
     fShowRecoPoints->SetDisabledAndSelected(kFALSE);
     groupData->AddFrame(framePointsInfo, new TGLayoutHints(kLHintsNormal | kLHintsExpandX, 1,1,5,0));
 
@@ -206,13 +207,13 @@ void FairEventManagerEditor::Init()
     // button for show|hide MC tracks
     fShowMCTracks = new TGCheckButton(frameTracksInfo, "MC tracks");
     frameTracksInfo->AddFrame(fShowMCTracks, new TGLayoutHints(kLHintsNormal, 0,0,0,0));
-    fShowMCTracks->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowMCTracks(Bool_t)");
+    fShowMCTracks->Connect("Toggled(Bool_t)", "MpdEventManagerEditor", this, "ShowMCTracks(Bool_t)");
     fShowMCTracks->SetDisabledAndSelected(kFALSE);
 
     // button for show|hide reco tracks
     fShowRecoTracks = new TGCheckButton(frameTracksInfo, "Reco tracks");
     frameTracksInfo->AddFrame(fShowRecoTracks, new TGLayoutHints(kLHintsRight, 0,0,1,0));
-    fShowRecoTracks->Connect("Toggled(Bool_t)", "FairEventManagerEditor", this, "ShowRecoTracks(Bool_t)");
+    fShowRecoTracks->Connect("Toggled(Bool_t)", "MpdEventManagerEditor", this, "ShowRecoTracks(Bool_t)");
     fShowRecoTracks->SetDisabledAndSelected(kFALSE);
 
     groupData->AddFrame(frameTracksInfo, new TGLayoutHints(kLHintsNormal | kLHintsExpandX, 1,1,5,0));
@@ -224,7 +225,7 @@ void FairEventManagerEditor::Init()
     else
         fUpdate = new TGTextButton(title1, "Update event");
     title1->AddFrame(fUpdate, new TGLayoutHints(kLHintsRight | kLHintsExpandX, 3,15,1,1));
-    fUpdate->Connect("Clicked()", "FairEventManagerEditor", this, "UpdateEvent()");
+    fUpdate->Connect("Clicked()", "MpdEventManagerEditor", this, "UpdateEvent()");
 
     // add all frame above to "event info" tab
     fInfoFrame->AddFrame(title1, new TGLayoutHints(kLHintsTop, 0, 0, 2, 0));
@@ -243,13 +244,13 @@ void FairEventManagerEditor::Init()
 }
 
 //______________________________________________________________________________
-void FairEventManagerEditor::SetModel(TObject* obj)
+void MpdEventManagerEditor::SetModel(TObject* obj)
 {
     fObject = obj;
 }
 
 // set flag: show all particles or only primary
-void FairEventManagerEditor::DoVizPri()
+void MpdEventManagerEditor::DoVizPri()
 {
     if (fVizPri->IsOn())
         fEventManager->SetPriOnly(kTRUE);
@@ -258,25 +259,25 @@ void FairEventManagerEditor::DoVizPri()
 }
 
 // select displaying particle by PDG code
-void FairEventManagerEditor::SelectPDG()
+void MpdEventManagerEditor::SelectPDG()
 {
     fEventManager->SelectPDG(fCurrentPDG->GetIntNumber());
 }
 
 //______________________________________________________________________________
-void FairEventManagerEditor::MinEnergy()
+void MpdEventManagerEditor::MinEnergy()
 {
   fEventManager->SetMinEnergy(fMinEnergy->GetValue());
 }
 
 //______________________________________________________________________________
-void FairEventManagerEditor::MaxEnergy()
+void MpdEventManagerEditor::MaxEnergy()
 {
   fEventManager->SetMaxEnergy(fMaxEnergy->GetValue());
 }
 
 // show or hide detector geometry
-void FairEventManagerEditor::ShowGeometry(Bool_t is_show)
+void MpdEventManagerEditor::ShowGeometry(Bool_t is_show)
 {
     // set cursor HourClock
     gVirtualX->SetCursor(gEve->GetMainWindow()->GetId(), gVirtualX->CreateCursor(kWatch));
@@ -286,8 +287,8 @@ void FairEventManagerEditor::ShowGeometry(Bool_t is_show)
     gEve->GetGlobalScene()->SetRnrState(is_show);
     if (!fEventManager->isOnline)
     {
-        fEventManager->fRPhiGeomScene->SetRnrState(is_show);
-        fEventManager->fRhoZGeomScene->SetRnrState(is_show);
+        fEventManager->GetRPhiScene()->SetRnrState(is_show);
+        fEventManager->GetRhoZScene()->SetRnrState(is_show);
     }
 
     // disable "Magnet Show" box after hiding of detector geometry
@@ -309,7 +310,7 @@ void FairEventManagerEditor::ShowGeometry(Bool_t is_show)
 }
 
 // show or hide magnet
-void FairEventManagerEditor::ShowMagnet(Bool_t is_show)
+void MpdEventManagerEditor::ShowMagnet(Bool_t is_show)
 {
     TGeoVolume* magnet = gGeoManager->FindVolumeFast("Magnet");
     if (!magnet)
@@ -330,13 +331,13 @@ void FairEventManagerEditor::ShowMagnet(Bool_t is_show)
 }
 
 // switch between light and dark background
-void FairEventManagerEditor::SwitchBackground(Bool_t is_on)
+void MpdEventManagerEditor::SwitchBackground(Bool_t is_on)
 {
     gEve->GetViewers()->SwitchColorSet();
 }
 
 // set transparency to high value (80%)
-void FairEventManagerEditor::SwitchTransparency(Bool_t is_on)
+void MpdEventManagerEditor::SwitchTransparency(Bool_t is_on)
 {
     fEventManager->SetTransparentGeometry(is_on);
 
@@ -349,7 +350,7 @@ void FairEventManagerEditor::SwitchTransparency(Bool_t is_on)
 }
 
 // show|hide MC points
-void FairEventManagerEditor::ShowMCPoints(Bool_t is_show)
+void MpdEventManagerEditor::ShowMCPoints(Bool_t is_show)
 {
     /*
     TEveElement::List_t matches;
@@ -385,7 +386,7 @@ void FairEventManagerEditor::ShowMCPoints(Bool_t is_show)
     gEve->Redraw3D();
 }
 
-bool FairEventManagerEditor::RedrawZDC(bool isRedraw)
+bool MpdEventManagerEditor::RedrawZDC(bool isRedraw)
 {
     TGeoVolume* curVolume = gGeoManager->GetVolume("VETO");
     if (!curVolume)
@@ -430,7 +431,7 @@ bool FairEventManagerEditor::RedrawZDC(bool isRedraw)
     return false;
 }
 
-void FairEventManagerEditor::RestoreZDC()
+void MpdEventManagerEditor::RestoreZDC()
 {
     TGeoVolume* curVolume = gGeoManager->GetVolume("VETO");
     if (!curVolume)
@@ -478,7 +479,7 @@ void FairEventManagerEditor::RestoreZDC()
 }
 
 //______________________________________________________________________________
-void FairEventManagerEditor::ShowMCTracks(Bool_t is_show)
+void MpdEventManagerEditor::ShowMCTracks(Bool_t is_show)
 {
     TEveElement* tracks = fEventManager->FindChild("MC tracks");
     if (tracks == NULL)
@@ -493,7 +494,7 @@ void FairEventManagerEditor::ShowMCTracks(Bool_t is_show)
 }
 
 //______________________________________________________________________________
-void FairEventManagerEditor::ShowRecoPoints(Bool_t is_show)
+void MpdEventManagerEditor::ShowRecoPoints(Bool_t is_show)
 {
     TEveElement* points = fEventManager->FindChild("Reco points");
     if (points == NULL)
@@ -513,7 +514,7 @@ void FairEventManagerEditor::ShowRecoPoints(Bool_t is_show)
 }
 
 //______________________________________________________________________________
-void FairEventManagerEditor::ShowRecoTracks(Bool_t is_show)
+void MpdEventManagerEditor::ShowRecoTracks(Bool_t is_show)
 {
     TEveElement* tracks = fEventManager->FindChild("Reco tracks");
     if (tracks == NULL)
@@ -527,7 +528,7 @@ void FairEventManagerEditor::ShowRecoTracks(Bool_t is_show)
     gEve->Redraw3D();
 }
 
-void FairEventManagerEditor::BlockUI()
+void MpdEventManagerEditor::BlockUI()
 {
     //fCurrentEvent->SetState(kFALSE);
     //fUpdate->SetEnabled(kFALSE);
@@ -535,7 +536,7 @@ void FairEventManagerEditor::BlockUI()
     //fGeometry->SetEnabled(kFALSE);
 }
 
-void FairEventManagerEditor::UnblockUI()
+void MpdEventManagerEditor::UnblockUI()
 {
     //fCurrentEvent->SetState(kTRUE);
     //fUpdate->SetEnabled(kTRUE);
@@ -544,7 +545,7 @@ void FairEventManagerEditor::UnblockUI()
 }
 
 // update event display when setting event number in textbox
-void FairEventManagerEditor::SelectEvent()
+void MpdEventManagerEditor::SelectEvent()
 {
     // if OFFLINE mode
     if (!fEventManager->isOnline)
@@ -586,7 +587,7 @@ void FairEventManagerEditor::SelectEvent()
 
 // clicking 'Update event' or 'Start online display' button
 // Update event display or Start/Stop online event display
-void FairEventManagerEditor::UpdateEvent()
+void MpdEventManagerEditor::UpdateEvent()
 {
     if (iThreadState == 1)
     {
@@ -651,8 +652,8 @@ void FairEventManagerEditor::UpdateEvent()
 void* RunOnlineDisplay(void* ptr)
 {
     ThreadParam_OnlineDisplay* thread_par = (ThreadParam_OnlineDisplay*) ptr;
-    FairEventManager* fEventManager = thread_par->fEventManager;
-    FairEventManagerEditor* fEditor = thread_par->fManagerEditor;
+    MpdEventManager* fEventManager = thread_par->fEventManager;
+    MpdEventManagerEditor* fEditor = thread_par->fManagerEditor;
     FairRootManager* fRootManager = thread_par->fRootManager;
     int current_event = thread_par->iCurrentEvent;
     bool stream_source = thread_par->isStreamSource;
@@ -702,7 +703,7 @@ void* RunOnlineDisplay(void* ptr)
     fEditor->iThreadState = 0;
 }
 
-void FairEventManagerEditor::SaveImage()
+void MpdEventManagerEditor::SaveImage()
 {
     const char* filetypes[] = {"PNG", "*.png", "JPG", "*.jpg", 0, 0};
     TGFileInfo fi;
@@ -716,4 +717,4 @@ void FairEventManagerEditor::SaveImage()
     return;
 }
 
-ClassImp(FairEventManagerEditor);
+ClassImp(MpdEventManagerEditor);

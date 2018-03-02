@@ -7,7 +7,7 @@
 #include "MpdEmc.h"
 #include "MpdEmcDigit.h"
 
-#include "FairEventManagerEditor.h"
+#include "MpdEventManagerEditor.h"
 #include "FairRunSim.h"
 
 #include "TEveManager.h"    // for gEve
@@ -71,7 +71,7 @@ InitStatus MpdEmcTowerDraw::Init()
 {
     if (fVerbose > 0) cout<<"MpdEmcTowerDraw::Init()"<<endl;
 
-    fEventManager = FairEventManager::Instance();
+    fEventManager = MpdEventManager::Instance();
     fEventManager->fgRedrawRecoPointsReqired = kTRUE;
     if (fVerbose > 1) cout<<"MpdEmcTowerDraw::Init() get instance of EventManager: "<<fEventManager<<endl;
 

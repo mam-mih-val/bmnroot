@@ -1,7 +1,7 @@
 // -------------------------------------------------------------------------
-// -----                    FairWebScreenshots source file             -----
+// -----                    MpdWebScreenshots source file             -----
 // -------------------------------------------------------------------------
-#include "FairWebScreenshots.h"
+#include "MpdWebScreenshots.h"
 
 #include "TEveManager.h"
 #include "TGLViewer.h"
@@ -17,16 +17,16 @@
 using namespace std;
 
 // -----   Default constructor (private)  ----------------------------------
-FairWebScreenshots::FairWebScreenshots()
-    : FairTask("FairWebScreenshots", 0)
+MpdWebScreenshots::MpdWebScreenshots()
+    : FairTask("MpdWebScreenshots", 0)
 {}
 
 // -----   Destructor   ----------------------------------------------------
-FairWebScreenshots::~FairWebScreenshots()
+MpdWebScreenshots::~MpdWebScreenshots()
 {}
 
 // -----   Standard constructor   ------------------------------------------
-FairWebScreenshots::FairWebScreenshots(const char* name, char* output_dir, bool isWebServer, Int_t iVerbose)
+MpdWebScreenshots::MpdWebScreenshots(const char* name, char* output_dir, bool isWebServer, Int_t iVerbose)
     : FairTask(name, iVerbose)
 {
     outputDir = output_dir;
@@ -46,31 +46,31 @@ FairWebScreenshots::FairWebScreenshots(const char* name, char* output_dir, bool 
 }
 
 //--------------------------------------------------------------------------
-void FairWebScreenshots::SetFormatFiles(int i_format_files)
+void MpdWebScreenshots::SetFormatFiles(int i_format_files)
 {
     iFormatFiles = i_format_files;
 }
 //--------------------------------------------------------------------------
-void FairWebScreenshots::SetPort(int NumberPort)
+void MpdWebScreenshots::SetPort(int NumberPort)
 {
     web_port = NumberPort;
 }
 //--------------------------------------------------------------------------
-void FairWebScreenshots::SetMultiFiles(bool is_multi_files)
+void MpdWebScreenshots::SetMultiFiles(bool is_multi_files)
 {
     isMultiFiles = is_multi_files;
 }
 
 // -------------------------------------------------------------------------
-InitStatus FairWebScreenshots::Init()
+InitStatus MpdWebScreenshots::Init()
 {
     if (fVerbose > 1)
-        cout<<"FairWebScreenshots::Init()"<<endl;
+        cout<<"MpdWebScreenshots::Init()"<<endl;
 
     if (!IsActive())
         return kERROR;
 
-    fMan = FairEventManager::Instance();
+    fMan = MpdEventManager::Instance();
 
     // start web server if required
     if (isWeb && (!isWebStarted))
@@ -92,7 +92,7 @@ InitStatus FairWebScreenshots::Init()
 }
 
 // -------------------------------------------------------------------------
-void FairWebScreenshots::Exec(Option_t* option)
+void MpdWebScreenshots::Exec(Option_t* option)
 {
     // redraw event display to capture current event
     gEve->Redraw3D();
@@ -120,15 +120,15 @@ void FairWebScreenshots::Exec(Option_t* option)
 }
 
 // -------------------------------------------------------------------------
-void FairWebScreenshots::SetParContainers()
+void MpdWebScreenshots::SetParContainers()
 {}
 
 // -------------------------------------------------------------------------
-void FairWebScreenshots::Finish()
+void MpdWebScreenshots::Finish()
 {}
 
 // -------------------------------------------------------------------------
-int FairWebScreenshots::daemonize()
+int MpdWebScreenshots::daemonize()
 {
 	pid_t pid;
 	// already a daemon
@@ -160,12 +160,12 @@ int FairWebScreenshots::daemonize()
 	return 0;
 }
 
-int FairWebScreenshots::sendString(const char *message, int socket)
+int MpdWebScreenshots::sendString(const char *message, int socket)
 {
 	return send(socket, message, strlen(message), 0);
 }
 
-void FairWebScreenshots::sendHeader(const char* Status_code, char* Content_Type, int TotalSize, int socket)
+void MpdWebScreenshots::sendHeader(const char* Status_code, char* Content_Type, int TotalSize, int socket)
 {
 	char *head = (char*)"\r\nHTTP/1.1 ";
 	char *content_head = (char*)"\r\nContent-Type: ";
@@ -216,7 +216,7 @@ void FairWebScreenshots::sendHeader(const char* Status_code, char* Content_Type,
 }
 
 // send file
-void FairWebScreenshots::sendFile(FILE* fp, int connecting_socket)
+void MpdWebScreenshots::sendFile(FILE* fp, int connecting_socket)
 {
 	int current_char = 0;
 	do
@@ -228,7 +228,7 @@ void FairWebScreenshots::sendFile(FILE* fp, int connecting_socket)
 	while (current_char != EOF);
 }
 
-int FairWebScreenshots::scan(char *input, char *output, int start, int max)
+int MpdWebScreenshots::scan(char *input, char *output, int start, int max)
 {
 	if (start >= strlen(input))
 		return -1;
@@ -265,7 +265,7 @@ int FairWebScreenshots::scan(char *input, char *output, int start, int max)
 	return i;
 }
 
-int FairWebScreenshots::checkMime(char *extension, char *mime_type)
+int MpdWebScreenshots::checkMime(char *extension, char *mime_type)
 {
 	char *current_word = (char*)malloc(600);
 	char *word_holder = (char*)malloc(600);
@@ -314,7 +314,7 @@ int FairWebScreenshots::checkMime(char *extension, char *mime_type)
 	return 0;
 }
 
-int FairWebScreenshots::getHttpVersion(char *input, char *output)
+int MpdWebScreenshots::getHttpVersion(char *input, char *output)
 {
 	char *filename = (char*)malloc(100);
 	int start = scan(input, filename, 4, 100);
@@ -341,7 +341,7 @@ int FairWebScreenshots::getHttpVersion(char *input, char *output)
 	return -1;
 }
 
-int FairWebScreenshots::GetExtension(char *input, char *output, int max)
+int MpdWebScreenshots::GetExtension(char *input, char *output, int max)
 {
 	int in_position = 0;
 	int appended_position = 0;
@@ -370,7 +370,7 @@ int FairWebScreenshots::GetExtension(char *input, char *output, int max)
 	return -1;
 }
 
-int FairWebScreenshots::Content_Lenght(FILE *fp)
+int MpdWebScreenshots::Content_Lenght(FILE *fp)
 {
 	fseek(fp, 0, SEEK_END);
 	int filesize = ftell(fp);
@@ -380,7 +380,7 @@ int FairWebScreenshots::Content_Lenght(FILE *fp)
 }
 
 // IF NOT EXISTS - RETURN -1. IF EXISTS - RETURN 1
-int FairWebScreenshots::handleHttpGET(char *input, TString output_dir, int connecting_socket)
+int MpdWebScreenshots::handleHttpGET(char *input, TString output_dir, int connecting_socket)
 {
 	char *filename = (char*)malloc(200 * sizeof(char));
 	char *path = (char*)malloc(1000 * sizeof(char));
@@ -491,7 +491,7 @@ int FairWebScreenshots::handleHttpGET(char *input, TString output_dir, int conne
 }
 
 // IF NOT VALID REQUEST - RETURN -1. IF VALID REQUEST - RETURN 1. IF GET - RETURN 2. IF HEAD - RETURN 0.
-int FairWebScreenshots::getRequestType(char *input)
+int MpdWebScreenshots::getRequestType(char *input)
 {
 	int type = -1;
 	if (strlen(input) > 0)
@@ -514,7 +514,7 @@ int FairWebScreenshots::getRequestType(char *input)
 	return type;
 }
 
-int FairWebScreenshots::receive(int connecting_socket, TString output_dir)
+int MpdWebScreenshots::receive(int connecting_socket, TString output_dir)
 {
 	char buffer[BUFFER_SIZE];
 	memset(buffer,'\0', BUFFER_SIZE);
@@ -540,7 +540,7 @@ int FairWebScreenshots::receive(int connecting_socket, TString output_dir)
 	return 1;
 }
 
-int FairWebScreenshots::acceptConnection(int currentSocket, TString output_dir)
+int MpdWebScreenshots::acceptConnection(int currentSocket, TString output_dir)
 {
 	sockaddr_storage connectorSocket;
 	socklen_t addressSize = sizeof(connectorSocket);
@@ -568,7 +568,7 @@ int FairWebScreenshots::acceptConnection(int currentSocket, TString output_dir)
 	while (-1 != waitpid(-1, NULL, WNOHANG));
 }
 
-int FairWebScreenshots::start(int webPort, TString output_dir)
+int MpdWebScreenshots::start(int webPort, TString output_dir)
 {
 	// Create a socket and assign currentSocket to the descriptor
 	int currentSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -601,7 +601,7 @@ int FairWebScreenshots::start(int webPort, TString output_dir)
 		acceptConnection(currentSocket, output_dir);
 }
 
-int FairWebScreenshots::start_server(void* ptr)
+int MpdWebScreenshots::start_server(void* ptr)
 {
 	www_thread_par* pPar = (www_thread_par*)ptr;
 	int webPort = pPar->web_port;
@@ -665,4 +665,4 @@ int FairWebScreenshots::start_server(void* ptr)
 	return 0;
 }
 
-ClassImp(FairWebScreenshots)
+ClassImp(MpdWebScreenshots)

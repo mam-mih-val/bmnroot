@@ -9,7 +9,7 @@
 #define BMNTRACKDRAWP_H
 
 #include "FairTask.h"
-#include "FairEventManager.h"
+#include "MpdEventManager.h"
 #include "FairGeanePro.h"
 #include "TEveTrack.h"
 #include "FairTrajFilter.h"
@@ -48,7 +48,7 @@ class BmnTrackDrawP : public FairTask
     void InitGeant3();
 
   protected:
-    FairEventManager* fEventManager;//!
+    MpdEventManager* fEventManager;//!
     TClonesArray*  fTrackList;      //!
     TEveTrackList* fTrList;         //!
 

@@ -7,7 +7,7 @@
 #define FAIRMCMODULEDRAW_H
 
 #include "FairTask.h"
-#include "FairEventManager.h"
+#include "MpdEventManager.h"
 
 #include "TClonesArray.h"
 #include "TObject.h"
@@ -44,7 +44,7 @@ protected:
 
     // Verbosity level
     Int_t   fVerbose;
-    FairEventManager* fEventManager; //!
+    MpdEventManager* fEventManager; //!
     TClonesArray* fPointList; //!
     TClonesArray* fMCTracks; //!
 

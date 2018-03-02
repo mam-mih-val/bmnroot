@@ -9,7 +9,7 @@
 #define BMNTRACKDRAWH_H
 
 #include "FairTask.h"
-#include "FairEventManager.h"
+#include "MpdEventManager.h"
 
 #include "TEveTrackPropagator.h"
 #include "TEveTrack.h"
@@ -55,7 +55,7 @@ class BmnTrackDrawH : public FairTask
 
     // EVE track propagator
     TEveTrackPropagator* fTrPr;
-    FairEventManager* fEventManager;    //!
+    MpdEventManager* fEventManager;    //!
     TObjArray* fEveTrList;              //!
     TEveTrackList* fTrList;             //!
     Double_t MinEnergyLimit;

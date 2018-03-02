@@ -1,13 +1,13 @@
 // -------------------------------------------------------------------------
-// -----                 FairWebScreenshots header file                -----
+// -----                 MpdWebScreenshots header file                -----
 // -----                Created 11/12/15  by K. Smirnov                -----
 // ------------------------------------------------------------------------- 
 
-#ifndef FAIRWEBSCREENSHOTS_H
-#define FAIRWEBSCREENSHOTS_H
+#ifndef MpdWebScreenshots_H
+#define MpdWebScreenshots_H
 
 #include "FairTask.h"
-#include "FairEventManager.h"           // for FairEventManager
+#include "MpdEventManager.h"           // for MpdEventManager
 
 #include "TString.h"
 
@@ -25,17 +25,17 @@ struct www_thread_par
 };
 
 
-class FairWebScreenshots : public FairTask
+class MpdWebScreenshots : public FairTask
 {    
   public:
     // Standard constructor
     //*@param name        Name of task
     //*@outputDir         Output directory
     //*@param iVerbose    Verbosity level
-    FairWebScreenshots(const char* name, char* output_dir, bool isWebServer = false, Int_t iVerbose = 0);
+    MpdWebScreenshots(const char* name, char* output_dir, bool isWebServer = false, Int_t iVerbose = 0);
 
     // Destructor 
-    virtual ~FairWebScreenshots();
+    virtual ~MpdWebScreenshots();
 
     // Set verbosity level. For this task and all of the subtasks. 
     void SetVerbose(Int_t iVerbose) { fVerbose = iVerbose; }
@@ -55,9 +55,9 @@ class FairWebScreenshots : public FairTask
     
   private:
     // Default constructor
-    FairWebScreenshots();
-    FairWebScreenshots(const FairWebScreenshots&);
-    FairWebScreenshots& operator=(const FairWebScreenshots&);
+    MpdWebScreenshots();
+    MpdWebScreenshots(const MpdWebScreenshots&);
+    MpdWebScreenshots& operator=(const MpdWebScreenshots&);
 
     static int daemonize();
     static int sendString(const char *message, int socket);
@@ -76,7 +76,7 @@ class FairWebScreenshots : public FairTask
     static int start(int webPort, TString output_dir);
 	static int start_server(void * ptr);
 
-   FairEventManager* fMan;
+   MpdEventManager* fMan;
 
    // 0 - PNG, 1 -JPG, 2 - both types
    int iFormatFiles;
@@ -90,7 +90,7 @@ class FairWebScreenshots : public FairTask
    bool isWebStarted;
    bool isWeb;
 
- ClassDef(FairWebScreenshots,1);
+ ClassDef(MpdWebScreenshots,1);
 };
 
 #endif

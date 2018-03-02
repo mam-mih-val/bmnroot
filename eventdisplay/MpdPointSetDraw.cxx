@@ -1,8 +1,8 @@
 ﻿// -------------------------------------------------------------------------
-// -----                        FairPointSetDraw source file                  -----
+// -----                        MpdPointSetDraw source file                  -----
 // -----                  Created 03/01/08  by M. Al-Turany            -----
 // -------------------------------------------------------------------------
-#include "FairPointSetDraw.h"
+#include "MpdPointSetDraw.h"
 #include "FairRootManager.h"
 #include "FairLogger.h"
 
@@ -14,8 +14,8 @@
 using namespace std;
 
 // -----   Default constructor   -------------------------------------------
-FairPointSetDraw::FairPointSetDraw()
-  : FairTask("FairPointSetDraw", 0),
+MpdPointSetDraw::MpdPointSetDraw()
+  : FairTask("MpdPointSetDraw", 0),
     fVerbose(0),
     fPointList(NULL),
     fEventManager(NULL),
@@ -26,7 +26,7 @@ FairPointSetDraw::FairPointSetDraw()
 }
 
 // -----   Standard constructor   ------------------------------------------
-FairPointSetDraw::FairPointSetDraw(const char* name, Color_t color, Style_t mstyle, Int_t iVerbose)
+MpdPointSetDraw::MpdPointSetDraw(const char* name, Color_t color, Style_t mstyle, Int_t iVerbose)
   : FairTask(name, iVerbose),
     fVerbose(iVerbose),
     fPointList(NULL),
@@ -38,38 +38,38 @@ FairPointSetDraw::FairPointSetDraw(const char* name, Color_t color, Style_t msty
 }
 
 // -------------------------------------------------------------------------
-InitStatus FairPointSetDraw::Init()
+InitStatus MpdPointSetDraw::Init()
 {
-  if (fVerbose > 0) cout<<"FairPointSetDraw::Init()"<<endl;
+  if (fVerbose > 0) cout<<"MpdPointSetDraw::Init()"<<endl;
 
   FairRootManager* fManager = FairRootManager::Instance();
 
   fPointList = (TClonesArray*) fManager->GetObject(GetName());
   if (fPointList == 0)
   {
-    LOG(ERROR)<<"FairPointSetDraw::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
+    LOG(ERROR)<<"MpdPointSetDraw::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
     SetActive(kFALSE);
   }
-  if (fVerbose > 1) cout<<"FairPointSetDraw::Init() get point list "<<fPointList<<endl;
+  if (fVerbose > 1) cout<<"MpdPointSetDraw::Init() get point list "<<fPointList<<endl;
 
-  fEventManager = FairEventManager::Instance();
-  if (fVerbose > 1) cout<<"FairPointSetDraw::Init() get instance of FairEventManager"<<endl;
+  fEventManager = MpdEventManager::Instance();
+  if (fVerbose > 1) cout<<"MpdPointSetDraw::Init() get instance of MpdEventManager"<<endl;
 
   fq = 0;
 
   return kSUCCESS;
 }
 
-void FairPointSetDraw::Exec(Option_t* /*option*/)
+void MpdPointSetDraw::Exec(Option_t* /*option*/)
 {
-  if (fVerbose > 0) cout<<"FairPointSetDraw::Exec()"<<endl;
+  if (fVerbose > 0) cout<<"MpdPointSetDraw::Exec()"<<endl;
   if (!IsActive())
     return;
 
   Reset();
 
   Int_t npoints = fPointList->GetEntriesFast();
-  if (fVerbose > 0) cout<<"FairPointSetDraw::Exec() the number of points is "<<fPointList->GetEntries()<<endl;
+  if (fVerbose > 0) cout<<"MpdPointSetDraw::Exec() the number of points is "<<fPointList->GetEntries()<<endl;
 
   TEvePointSet* q = new TEvePointSet(GetName(), npoints, TEvePointSelectorConsumer::kTVT_XYZ);
   q->SetOwnIds(kTRUE);
@@ -85,9 +85,9 @@ void FairPointSetDraw::Exec(Option_t* /*option*/)
         TVector3 vec(GetVector(p));
         q->SetNextPoint(vec.X(), vec.Y(), vec.Z());
         q->SetPointId(GetValue(p, i));
-        if (fVerbose > 2) cout<<"FairPointSetDraw::Exec() add point to EVE set: "<<i<<endl;
+        if (fVerbose > 2) cout<<"MpdPointSetDraw::Exec() add point to EVE set: "<<i<<endl;
     }
-    else cout<<"CRITICAL ERROR: FairPointSetDraw::Exec() point is not TObject"<<endl;
+    else cout<<"CRITICAL ERROR: MpdPointSetDraw::Exec() point is not TObject"<<endl;
   }
 
   fq = q;
@@ -97,28 +97,28 @@ void FairPointSetDraw::Exec(Option_t* /*option*/)
   //gEve->Redraw3D(kFALSE);
 }
 
-TObject* FairPointSetDraw::GetValue(TObject* /*obj*/, Int_t i)
+TObject* MpdPointSetDraw::GetValue(TObject* /*obj*/, Int_t i)
 {
   return new TNamed(Form("Point %d", i),"");
 }
 
 // -----   Destructor   ----------------------------------------------------
-FairPointSetDraw::~FairPointSetDraw()
+MpdPointSetDraw::~MpdPointSetDraw()
 {
 }
 
 // -------------------------------------------------------------------------
-void FairPointSetDraw::SetParContainers()
+void MpdPointSetDraw::SetParContainers()
 {
 }
 
 /** Action after each event**/
-void FairPointSetDraw::Finish()
+void MpdPointSetDraw::Finish()
 {
 }
 
 // -------------------------------------------------------------------------
-void FairPointSetDraw::Reset()
+void MpdPointSetDraw::Reset()
 {
   if (fq != 0)
   {
@@ -127,4 +127,4 @@ void FairPointSetDraw::Reset()
   }
 }
 
-ClassImp(FairPointSetDraw);
+ClassImp(MpdPointSetDraw);

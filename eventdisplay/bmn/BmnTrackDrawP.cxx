@@ -6,7 +6,7 @@
 #include "BmnTrackDrawP.h"
 #include "BmnTrack.h"
 #include "CbmStack.h"
-#include "FairEventManagerEditor.h"
+#include "MpdEventManagerEditor.h"
 
 #include "TROOT.h"
 #include "TGeant3.h"
@@ -54,7 +54,7 @@ InitStatus BmnTrackDrawP::Init()
     if (fVerbose > 1)
         cout<<"BmnTrackDrawP::Init()"<<endl;
 
-    fEventManager = FairEventManager::Instance();
+    fEventManager = MpdEventManager::Instance();
     if (fVerbose > 2)
         cout<<"BmnTrackDrawP::Init() get instance of EventManager"<<endl;
 

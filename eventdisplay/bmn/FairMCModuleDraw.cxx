@@ -53,8 +53,8 @@ InitStatus FairMCModuleDraw::Init()
 
   fMCTracks = (TClonesArray*) fManager->GetObject("MCTrack");
 
-  fEventManager = FairEventManager::Instance();
-  if (fVerbose > 2) cout<< "FairMCModuleDraw::Init() get instance of FairEventManager " << endl;
+  fEventManager = MpdEventManager::Instance();
+  if (fVerbose > 2) cout<< "FairMCModuleDraw::Init() get instance of MpdEventManager " << endl;
 
   // create array for ZDC modules' visibility
   fEventManager->isZDCModule = new bool[104];

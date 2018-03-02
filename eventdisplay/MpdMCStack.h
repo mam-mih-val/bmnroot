@@ -1,14 +1,14 @@
 // -------------------------------------------------------------------------
-// -----                      FairMCStack header file                 -----
+// -----                      MpdMCStack header file                 -----
 // -----                Created 09/10/08  by M. Al-Turany              -----
 // -------------------------------------------------------------------------
 
-#ifndef FairMCStack_H
-#define FairMCStack_H
+#ifndef MpdMCStack_H
+#define MpdMCStack_H
 
 #include "FairTask.h"
 #include "FairGeanePro.h"
-#include "FairEventManager.h"
+#include "MpdEventManager.h"
 #include "FairTrajFilter.h"
 
 #include "TEveTrackPropagator.h"
@@ -18,18 +18,18 @@
 #include "TGeant3.h"
 
 
-class FairMCStack : public FairTask
+class MpdMCStack : public FairTask
 {
   public:
     /** Default constructor **/
-    FairMCStack();
+    MpdMCStack();
     /** Standard constructor
     *@param name        Name of task
     *@param iVerbose    Verbosity level
     **/
-    FairMCStack(const char* name, Int_t iVerbose = 0);
+    MpdMCStack(const char* name, Int_t iVerbose = 0);
     /** Destructor **/
-    virtual ~FairMCStack();
+    virtual ~MpdMCStack();
 
     /** Set verbosity level. For this task and all of the subtasks. **/
     void SetVerbose(Int_t iVerbose);
@@ -45,7 +45,7 @@ class FairMCStack : public FairTask
     TEveTrackList* GetTrGroup(TParticle* P);
 
   protected:
-    FairEventManager* fEventManager;  //!
+    MpdEventManager* fEventManager;  //!
 
     TClonesArray*  fTrackList;  //!
     TObjArray* fEveTrList;
@@ -59,7 +59,7 @@ class FairMCStack : public FairTask
     FairGeanePro* fPro; //!
     FairTrajFilter* fTrajFilter; //!
 
-    ClassDef(FairMCStack,1);
+    ClassDef(MpdMCStack,1);
 };
 
 #endif

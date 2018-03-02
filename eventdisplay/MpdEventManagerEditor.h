@@ -1,20 +1,20 @@
 // Specialization of TGedEditor for proper update propagation to TEveManager
 
-#ifndef ROOT_FAIREVENTMANAGEREDITOR
-#define ROOT_FAIREVENTMANAGEREDITOR
+#ifndef ROOT_MpdEventManagerEDITOR
+#define ROOT_MpdEventManagerEDITOR
 
-#include "FairEventManager.h"
+#include "MpdEventManager.h"
 
 #include "TGedFrame.h"
 #include "TGNumberEntry.h"
 #include "TGLabel.h"
 #include "TEveGValuators.h"
 
-class FairEventManagerEditor;
+class MpdEventManagerEditor;
 struct ThreadParam_OnlineDisplay
 {
-    FairEventManager* fEventManager;
-    FairEventManagerEditor* fManagerEditor;
+    MpdEventManager* fEventManager;
+    MpdEventManagerEditor* fManagerEditor;
     FairRootManager* fRootManager;
     int iCurrentEvent;
     bool isStreamSource;
@@ -24,11 +24,14 @@ struct ThreadParam_OnlineDisplay
 // multithread functions
 void* RunOnlineDisplay(void* ptr);
 
-class FairEventManagerEditor : public TGedFrame
+class MpdEventManagerEditor : public TGedFrame
 {
-  private:
+    MpdEventManagerEditor(const MpdEventManagerEditor&);              // Not implemented
+    MpdEventManagerEditor& operator=(const MpdEventManagerEditor&);   // Not implemented
+
+  protected:
     TObject* fObject;
-    FairEventManager* fEventManager;
+    MpdEventManager* fEventManager;
 
     TGLabel* fEventTime;
     TGNumberEntry* fCurrentPDG;
@@ -40,11 +43,10 @@ class FairEventManagerEditor : public TGedFrame
     bool isMagnetFound;
 
   public:
-    FairEventManagerEditor(const TGWindow* p = 0, Int_t width = 170, Int_t height = 30,
+    MpdEventManagerEditor(const TGWindow* p = 0, Int_t width = 170, Int_t height = 30,
                            UInt_t options = kChildFrame, Pixel_t back = GetDefaultFrameBackground());
-    FairEventManagerEditor(const FairEventManagerEditor&);
-    FairEventManagerEditor& operator=(const FairEventManagerEditor&);
-    virtual ~FairEventManagerEditor() {}
+
+    virtual ~MpdEventManagerEditor() {}
 
     virtual void Init();
     void SetModel(TObject* obj);
@@ -88,7 +90,7 @@ class FairEventManagerEditor : public TGedFrame
     TGCheckButton* fGeometry;
     TGCheckButton* fShowMCPoints, *fShowMCTracks, *fShowRecoPoints, *fShowRecoTracks;
 
-    ClassDef(FairEventManagerEditor, 0);
+    ClassDef(MpdEventManagerEditor, 0);
 };
 
 #endif

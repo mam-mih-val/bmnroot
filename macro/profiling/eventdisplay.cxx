@@ -1,4 +1,39 @@
+#if !defined(__CLING__) || defined(__MAKECLING__)
+// ROOT includes
+#include "TString.h"
+#include "TStopwatch.h"
+#include "TSystem.h"
+#include "TROOT.h"
+#include "TPRegexp.h"
+#include "TKey.h"
+
+// Fair includes
+#include "FairRunAna.h"
+#include "FairSource.h"
+#include "FairRuntimeDb.h"
+#include "FairParRootFileIo.h"
+#include "MpdEventManager.h"
+#include "MpdMCPointDraw.h"
+#include "MpdHitPointSetDraw.h"
+#include "MpdMCTracks.h"
+#include "FairFileSource.h"
+#include "FairMCModuleDraw.h"
+
+// BM@N includes
+#include "BmnFieldMap.h"
+#include "BmnTrackDrawH.h"
+#include "BmnGlobalTrackDraw.h"
+#include "UniDbRun.h"
+#include "BmnFileSource.h"
+#include "CbmPsdPoint.h"
+#include "BmnNewFieldMap.h"
+
+#include <iostream>
+using namespace std;
+#endif
+
 #include "../run/bmnloadlibs.C"
+
 void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_number, bool isField, bool isTarget);
 
 // common EVENT DISPLAY macro for simulated and experimental data
@@ -19,16 +54,6 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
 void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
 {
     gDebug = 0;
-
-    // load main and detectors libraries
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-#endif
-    bmnloadlibs();
-
-    // load Event Display libraries
-    gSystem->Load("libEve");
-    gSystem->Load("libEventDisplay");
 
     // CREATE FairRunAna
     FairRunAna* fRunAna = new FairRunAna();
@@ -334,4 +359,9 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         GemTrack->SetVerbose(1);
         fMan->AddTask(GemTrack);
     }*/
+}
+
+int main(int argc, char** arg)
+{
+   eventdisplay();
 }

@@ -1,19 +1,19 @@
 // -------------------------------------------------------------------------
-// -----                      FairMCTracks header file                 -----
+// -----                      MpdMCTracks header file                 -----
 // -----                Created 10/12/07  by M. Al-Turany              -----
 // -------------------------------------------------------------------------
 
-/** FairMCTracks
+/** MpdMCTracks
  * @author M. Al-Turany
  * @since 10.12.07
  **
  **/
 
-#ifndef FAIRMCTRACKS_H
-#define FAIRMCTRACKS_H
+#ifndef MpdMCTracks_H
+#define MpdMCTracks_H
 
 #include "FairTask.h"
-#include "FairEventManager.h"
+#include "MpdEventManager.h"
 
 #include "TEveTrack.h"
 #include "TEveTrackPropagator.h"
@@ -22,19 +22,19 @@
 #include "TClonesArray.h"
 
 
-class FairMCTracks : public FairTask
+class MpdMCTracks : public FairTask
 {
   public:
     /** Default constructor **/
-    FairMCTracks();
+    MpdMCTracks();
     /** Standard constructor
     *@param name        Name of task
     *@param iVerbose    Verbosity level
     **/
-    FairMCTracks(const char* name, Int_t iVerbose = 0);
+    MpdMCTracks(const char* name, Int_t iVerbose = 0);
 
     /** Destructor **/
-    virtual ~FairMCTracks();
+    virtual ~MpdMCTracks();
 
     /** Set verbosity level. For this task and all of the subtasks. **/
     void SetVerbose(Int_t iVerbose) {fVerbose = iVerbose;}
@@ -51,7 +51,7 @@ class FairMCTracks : public FairTask
   protected:
     TClonesArray*  fTrackList;  //!
     TEveTrackPropagator* fTrPr;
-    FairEventManager* fEventManager;  //!
+    MpdEventManager* fEventManager;  //!
     TObjArray* fEveTrList;
     TEveTrackList* fTrList;  //!
 
@@ -60,10 +60,10 @@ class FairMCTracks : public FairTask
     Double_t PEnergy;
 
   private:
-    FairMCTracks(const FairMCTracks&);
-    FairMCTracks& operator=(const FairMCTracks&);
+    MpdMCTracks(const MpdMCTracks&);
+    MpdMCTracks& operator=(const MpdMCTracks&);
 
-    ClassDef(FairMCTracks,1);
+    ClassDef(MpdMCTracks,1);
 };
 
 #endif

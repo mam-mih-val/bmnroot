@@ -1,10 +1,10 @@
 // -------------------------------------------------------------------------
-// -----                        FairMCTracks source file                  -----
+// -----                        MpdMCTracks source file                  -----
 // -----                  Created 10/12/07  by M. Al-Turany            -----
 // -------------------------------------------------------------------------
-#include "FairMCTracks.h"
+#include "MpdMCTracks.h"
 
-#include "FairEventManagerEditor.h"
+#include "MpdEventManagerEditor.h"
 #include "FairRootManager.h"
 #include "FairLogger.h"
 
@@ -21,8 +21,8 @@ using namespace std;
 
 
 // -----   Default constructor   -------------------------------------------
-FairMCTracks::FairMCTracks()
-  : FairTask("FairMCTracks", 0),
+MpdMCTracks::MpdMCTracks()
+  : FairTask("MpdMCTracks", 0),
     fTrackList(NULL),
     fTrPr(NULL),
     fEventManager(NULL),
@@ -35,7 +35,7 @@ FairMCTracks::FairMCTracks()
 }
 
 // -----   Standard constructor   ------------------------------------------
-FairMCTracks::FairMCTracks(const char* name, Int_t iVerbose)
+MpdMCTracks::MpdMCTracks(const char* name, Int_t iVerbose)
   : FairTask(name, iVerbose),
     fTrackList(NULL),
     fTrPr(NULL),
@@ -49,26 +49,26 @@ FairMCTracks::FairMCTracks(const char* name, Int_t iVerbose)
 }
 
 // -----   Destructor   ----------------------------------------------------
-FairMCTracks::~FairMCTracks()
+MpdMCTracks::~MpdMCTracks()
 {
 }
 
 // -------------------------------------------------------------------------
-InitStatus FairMCTracks::Init()
+InitStatus MpdMCTracks::Init()
 {
-  LOG(DEBUG)<<"FairMCTracks::Init()"<<FairLogger::endl;
+  LOG(DEBUG)<<"MpdMCTracks::Init()"<<FairLogger::endl;
 
   FairRootManager* fManager = FairRootManager::Instance();
-  fEventManager = FairEventManager::Instance();
-  LOG(DEBUG1) <<  "FairMCTracks::Init() get instance of FairEventManager " << FairLogger::endl;
+  fEventManager = MpdEventManager::Instance();
+  LOG(DEBUG1) <<  "MpdMCTracks::Init() get instance of MpdEventManager " << FairLogger::endl;
 
   fTrackList = (TClonesArray*) fManager->GetObject("GeoTracks");
   if (fTrackList == 0)
   {
-    LOG(ERROR)<<"FairMCTracks::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
+    LOG(ERROR)<<"MpdMCTracks::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
     SetActive(kFALSE);
   }
-  LOG(DEBUG1)<<"FairMCTracks::Init() get track list "<<fTrackList<<FairLogger::endl;
+  LOG(DEBUG1)<<"MpdMCTracks::Init() get track list "<<fTrackList<<FairLogger::endl;
 
   MinEnergyLimit = fEventManager->GetEvtMinEnergy();
   MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
@@ -79,11 +79,11 @@ InitStatus FairMCTracks::Init()
 }
 
 // -------------------------------------------------------------------------
-void FairMCTracks::Exec(Option_t* /*option*/)
+void MpdMCTracks::Exec(Option_t* /*option*/)
 {
   if (!IsActive())
       return;
-  LOG(DEBUG1)<<"FairMCTracks::Exec"<<FairLogger::endl;
+  LOG(DEBUG1)<<"MpdMCTracks::Exec"<<FairLogger::endl;
 
   Reset();
 
@@ -91,7 +91,7 @@ void FairMCTracks::Exec(Option_t* /*option*/)
   const Double_t* point;
   for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
   {
-    LOG(DEBUG3)<<"FairMCTracks::Exec "<<i<<FairLogger::endl;
+    LOG(DEBUG3)<<"MpdMCTracks::Exec "<<i<<FairLogger::endl;
     tr = (TGeoTrack*) fTrackList->At(i);
 
     TParticle* P = (TParticle*) tr->GetParticle();
@@ -151,17 +151,17 @@ void FairMCTracks::Exec(Option_t* /*option*/)
 }
 
 // -------------------------------------------------------------------------
-void FairMCTracks::SetParContainers()
+void MpdMCTracks::SetParContainers()
 {
 }
 
 // -------------------------------------------------------------------------
-void FairMCTracks::Finish()
+void MpdMCTracks::Finish()
 {
 }
 
 // -------------------------------------------------------------------------
-void FairMCTracks::Reset()
+void MpdMCTracks::Reset()
 {
   for (Int_t i = 0; i < fEveTrList->GetEntriesFast(); i++)
   {
@@ -171,7 +171,7 @@ void FairMCTracks::Reset()
   fEveTrList->Clear();
 }
 
-TEveTrackList* FairMCTracks::GetTrGroup(TParticle* P)
+TEveTrackList* MpdMCTracks::GetTrGroup(TParticle* P)
 {
   fTrList = 0;
   for (Int_t i = 0; i < fEveTrList->GetEntriesFast(); i++)
@@ -188,7 +188,7 @@ TEveTrackList* FairMCTracks::GetTrGroup(TParticle* P)
   {
     fTrPr = new TEveTrackPropagator();
     fTrList = new TEveTrackList(P->GetName(), fTrPr);
-    // set track color by particle PDG from FairEventManager
+    // set track color by particle PDG from MpdEventManager
     fTrList->SetMainColor(fEventManager->Color(P->GetPdgCode()));
     fTrList->SetRnrLine(kTRUE);
     fEveTrList->Add(fTrList);
@@ -199,4 +199,4 @@ TEveTrackList* FairMCTracks::GetTrGroup(TParticle* P)
   return fTrList;
 }
 
-ClassImp(FairMCTracks)
+ClassImp(MpdMCTracks)

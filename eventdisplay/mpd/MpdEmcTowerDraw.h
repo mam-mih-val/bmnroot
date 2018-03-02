@@ -6,7 +6,7 @@
 #define EMCTOWERDRAW_H
 
 #include "FairTask.h"
-#include "FairEventManager.h"
+#include "MpdEventManager.h"
 #include "TEvePointSet.h"
 #include "MpdEmcGeoPar.h"
 
@@ -37,7 +37,7 @@ class MpdEmcTowerDraw : public FairTask
 
   protected:    
     TClonesArray* fDigitList; //!
-    FairEventManager* fEventManager; //! 
+    MpdEventManager* fEventManager; //! 
     TEvePointSet* fq;    //!
     
     virtual InitStatus Init();

@@ -6,7 +6,7 @@
 #define ZDCTOWERDRAW_H
 
 #include "FairTask.h"
-#include "FairEventManager.h"
+#include "MpdEventManager.h"
 #include "TEvePointSet.h"
 #include <TClonesArray.h>
 
@@ -34,7 +34,7 @@ class MpdZdcTowerDraw : public FairTask
 
   protected:    
     TClonesArray* fDigitList; //!
-    FairEventManager* fEventManager; //! 
+    MpdEventManager* fEventManager; //! 
     TEvePointSet* fq;    //!
     
     virtual InitStatus Init();

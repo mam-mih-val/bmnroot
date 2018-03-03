@@ -28,6 +28,7 @@ public:
     void Register(THttpServer *serv);
     void SetDir(TFile *outFile, TTree *recoTree);
     void DrawBoth();
+    void ClearRefRun();
     void FillFromDigi(DigiArrays *fDigiArrays);
     BmnStatus  SetRefRun(Int_t id);
 private:

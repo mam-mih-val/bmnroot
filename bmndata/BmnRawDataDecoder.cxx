@@ -35,6 +35,7 @@ const UInt_t kTRIG = 0xA;
 const UInt_t kMSC = 0xF;
 const UInt_t kUT24VE = 0x49;
 const UInt_t kADC64VE = 0xD4;
+const UInt_t kADC64VE_XGE = 0xD9;
 const UInt_t kADC64WR = 0xCA;
 const UInt_t kHRB = 0xC2;
 const UInt_t kFVME = 0xD1;
@@ -214,7 +215,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fGemMap = NULL;
     fEvForPedestals = N_EV_FOR_PEDESTALS;
     fBmnSetup = kBMNSETUP;
-    InitMaps();
+    //    InitMaps();
 }
 
 BmnRawDataDecoder::~BmnRawDataDecoder() {
@@ -270,7 +271,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
     fRawTree->Fill();
 
     fCurentPositionRawFile = ftello64(fRawFileIn);
-    printf("Readed %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
+    printf("Read %d events; %lld bytes (%.3f Mb)\n\n", fNevents, fCurentPositionRawFile, fCurentPositionRawFile / 1024. / 1024.);
 
     fRawTree->Write();
     fRootFileOut->Close();
@@ -495,6 +496,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             break;
         }
         switch (id) {
+            case kADC64VE_XGE:
             case kADC64VE:
             {
                 Bool_t isGem = kFALSE;
@@ -698,7 +700,7 @@ BmnStatus BmnRawDataDecoder::Process_HRB(UInt_t *d, UInt_t len, UInt_t serial) {
         for (Int_t iWord = 0; iWord < nWords; ++iWord) {
             UInt_t word32 = d[3 + iWord + iSmpl * nWords];
             for (Int_t iCh = 0; iCh < 32; ++iCh) {
-                if ((bitset<32>(word32))[iCh]) {
+                if (word32 & BIT(iCh)) {
                     TClonesArray &ar_hrb = *hrb;
                     new(ar_hrb[hrb->GetEntriesFast()]) BmnHRBDigit(serial, iCh + 32 * iWord, iSmpl, tH, tL);
                 }
@@ -1030,13 +1032,14 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             }
         }
 
-        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig(), isTripEvent);
-
         if (fTrigMapper) {
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
             fTrigMapper->FillEvent(tdc);
         }
         GetT0Info(fT0Time, fT0Width);
+        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig(), isTripEvent, fTimeShifts);
+        BmnEventHeader* evHdr = (BmnEventHeader*) eventHeader->At(eventHeader->GetEntriesFast() - 1);
+        evHdr->SetStartSignalInfo(fT0Time, fT0Width);
 
         //if (t0->GetEntriesFast() != 1 || bc2->GetEntriesFast() != 1) continue;
         if (curEventType == kBMNPEDESTAL) {
@@ -1125,7 +1128,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     if (fDetectorSetup[3]) {
         gem = new TClonesArray("BmnGemStripDigit");
         fDigiTree->Branch("GEM", &gem);
-        fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials);
+        fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials, fGemMapFileName);
     }
 
     if (fDetectorSetup[4]) {
@@ -1369,16 +1372,19 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
         for (UInt_t iAdc = 0; iAdc < adcSil->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adcSil->At(iAdc);
 
-            Int_t iSer = -1;
-            for (iSer = 0; iSer < fNSiliconSerials; ++iSer)
-                if (adcDig->GetSerial() == fSiliconSerials[iSer]) break;
-            if (iSer == -1) return kBMNERROR;
-
+            for (Int_t iSer = 0; iSer < fNSiliconSerials; ++iSer) {
+                //printf("iSer = %d     adcDig->GetSerial() =  %X     fSiliconSerials[iSer] = %X\n", iSer, adcDig->GetSerial(), fSiliconSerials[iSer]);
+                if (adcDig->GetSerial() == fSiliconSerials[iSer]) {
             for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl) {
                 if (fRunId > GetBoundaryRun(ADC128_N_SAMPLES))
                     pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetShortValue())[iSmpl] / 16;
-                else
+                        else {
+                            //printf("ser %d   n = %d\n", iSer, fNSiliconSerials);
                     pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetUShortValue())[iSmpl] / 16;
+            }
+        }
+                    break;
+    }
             }
         }
     }
@@ -1423,13 +1429,19 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700Init() {
     }
     fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
     tdc = new TClonesArray("BmnTDCDigit");
+    tqdc_adc = new TClonesArray("BmnTQDCADCDigit");
+    tqdc_tdc = new TClonesArray("BmnTDCDigit");
     sync = new TClonesArray("BmnSyncDigit");
     fRawTree->SetBranchAddress("TDC", &tdc);
     fRawTree->SetBranchAddress("SYNC", &sync);
+    fRawTree->SetBranchAddress("TQDC_ADC", &tqdc_adc);
+    fRawTree->SetBranchAddress("TQDC_TDC", &tqdc_tdc);
 
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
-    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName);
+    fDigiTree = new TTree("cbmsim", "bmn_digit");
+
+    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName, fDigiTree);
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     //    fTof700Mapper->print();
 
@@ -1444,20 +1456,27 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Slewing T0 event #" << iEv << endl;
+
+        fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
-            //                cout << "No TimeShiftMap created" << endl;
-            continue;
-        }
+        FillTimeShiftsMap();
+
+        //if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
+        //                cout << "No TimeShiftMap created" << endl;
+        //continue;
+        //}
 
         if (fTrigMapper) {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+        if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillSlewingT0(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1470,20 +1489,27 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Slewing RPC event #" << iEv << endl;
+
+        fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
-            //                cout << "No TimeShiftMap created" << endl;
-            continue;
-        }
+        FillTimeShiftsMap();
+
+        //if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
+        //                cout << "No TimeShiftMap created" << endl;
+        //continue;
+        //}
 
         if (fTrigMapper) {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+        if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillSlewing(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1497,20 +1523,27 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Equalization RPC strips event #" << iEv << endl;
+
+        fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
-            //                cout << "No TimeShiftMap created" << endl;
-            continue;
-        }
+        FillTimeShiftsMap();
+
+        //if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
+        //                cout << "No TimeShiftMap created" << endl;
+        //continue;
+        //}
 
         if (fTrigMapper) {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+        if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillEqualization(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1530,20 +1563,27 @@ BmnStatus BmnRawDataDecoder::PreparationTOF700() {
 
     for (Int_t iEv = 0; iEv < fNevents; ++iEv) {
         if (iEv % 5000 == 0) cout << "Preparation stage event #" << iEv << endl;
+
+        fTrigMapper->ClearArrays();
+
         fTimeShifts.clear();
 
         fRawTree->GetEntry(iEv);
 
-        if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
-            //                cout << "No TimeShiftMap created" << endl;
-            continue;
-        }
+        FillTimeShiftsMap();
+
+        //if (FillTimeShiftsMapNoDB(0x6EA9711) == kBMNERROR) {
+        //                cout << "No TimeShiftMap created" << endl;
+        //continue;
+        //}
 
         if (fTrigMapper) {
             fTrigMapper->FillEvent(tdc);
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
+        if (fT0Time == 0.) continue;
 
         fTof700Mapper->fillPreparation(tdc, &fTimeShifts, fT0Time, fT0Width);
     }
@@ -1570,8 +1610,6 @@ Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
         if (word == kRUNNUMBERSYNC) {
             fread(&word, kWORDSIZE, 1, file); //skip word
             fread(&runId, kWORDSIZE, 1, file);
-            if (runId < 1000) // @TODO remove
-                return 1234;
             return runId;
         }
     }
@@ -1579,58 +1617,97 @@ Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
 }
 
 BmnStatus BmnRawDataDecoder::InitMaps() {
-    Int_t fEntriesInGlobMap = 0;
-    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
-    if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);
+//    Int_t fEntriesInGlobMap = 0;
+//    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
+//    if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);
+//
+//    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
+//        if (find(fGemSerials.begin(), fGemSerials.end(), fGemMap[i].serial) == fGemSerials.end())
+//            fGemSerials.push_back(fGemMap[i].serial);
+//    fNGemSerials = fGemSerials.size();
+    string dummy;
+    UInt_t ser = 0;
+    set<UInt_t> seials;
+    TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fGemMapFileName;
+    ifstream inFile(name.Data());
+    if (!inFile.is_open())
+        cout << "Error opening map-file (" << name << ")!" << endl;
+    for (Int_t i = 0; i < 5; ++i) getline(inFile, dummy); //comment line in input file
 
-    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
-        if (find(fGemSerials.begin(), fGemSerials.end(), fGemMap[i].serial) == fGemSerials.end())
-            fGemSerials.push_back(fGemMap[i].serial);
+    while (!inFile.eof()) {
+        inFile >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy;
+        if (!inFile.good()) break;
+        seials.insert(ser);
+    }
+    for (auto s : seials) fGemSerials.push_back(s);
     fNGemSerials = fGemSerials.size();
+    printf("fNGemSerials = %d\n", fNGemSerials);
 
-    //FIXME!!! Move all mappings into DB to exclude explicit numbers in future!
-    fSiliconSerials.push_back(0x611D0DA);
-    fSiliconSerials.push_back(0x4E993A5);
+    seials.clear();
+    name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fSiliconMapFileName;
+    ifstream inFileSil(name.Data());
+    if (!inFileSil.is_open())
+        cout << "Error opening map-file (" << name << ")!" << endl;
+    for (Int_t i = 0; i < 4; ++i) getline(inFileSil, dummy); //comment line in input file
+
+    while (!inFileSil.eof()) {
+        inFileSil >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
+        if (!inFileSil.good()) break;
+        seials.insert(ser);
+    }
+    for (auto s : seials) fSiliconSerials.push_back(s);
     fNSiliconSerials = fSiliconSerials.size();
 
     fZDCSerials.push_back(0x046f4083);
     fZDCSerials.push_back(0x046f4bb2);
     fNZDCSerials = fZDCSerials.size();
 
-    fECALSerials.push_back(0x07A8DEEE);
-    fECALSerials.push_back(0x07A92F52);
-    fECALSerials.push_back(0x07A8DEE2);
-    fECALSerials.push_back(0x07A8DFCA);
-    fECALSerials.push_back(0x07A8DED7);
-    fECALSerials.push_back(0x06E9E55A);
+    seials.clear();
+    name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fECALMapFileName;
+    ifstream inFileECAL(name.Data());
+    printf("ECal name = %s\n", name.Data());
+    if (!inFileECAL.is_open())
+        cout << "Error opening map-file (" << name << ")!" << endl;
+    for (Int_t i = 0; i < 2; ++i) getline(inFileECAL, dummy); //comment line in input file
+
+    while (!inFileECAL.eof()) {
+        inFileECAL >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy;
+        if (!inFileECAL.good()) break;
+        seials.insert(ser);
+    }
+    for (auto s : seials) fECALSerials.push_back(s);
     fNECALSerials = fECALSerials.size();
 
-    Int_t nEntries = 1;
-    if (mapPar != NULL) delete mapPar;
-    mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
-    if (mapPar != NULL) {
-        mapPar->GetTriggerMapArray(fT0Map, nEntries);
-        delete mapPar;
-        return kBMNSUCCESS;
-    } else {
-        cerr << "No TO map found in DB" << endl;
-        return kBMNERROR;
-    }
+//    Int_t nEntries = 1;
+//    if (mapPar != NULL) delete mapPar;
+//    mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
+//    if (mapPar != NULL) {
+//        mapPar->GetTriggerMapArray(fT0Map, nEntries);
+//        delete mapPar;
+//        return kBMNSUCCESS;
+//    } else {
+//        cerr << "No TO map found in DB" << endl;
+//        return kBMNERROR;
+//    }
 }
 
 BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {
     vector<TClonesArray*>* trigArr = fTrigMapper->GetTrigArrays();
     for (auto ar : *trigArr) {
+        BmnTrigDigit* dig = (BmnTrigDigit*) ar->At(0);
         if (fPeriodId > 6) {
-            if (ar->GetName() == "BC2") {
-                t0time = ((BmnTrigDigit*) (ar->At(0)))->GetTime();
-                t0width = ((BmnTrigDigit*) (ar->At(0)))->GetAmp();
+            if (strstr(ar->GetName(), "BC2") && ar->GetEntriesFast()) {
+                t0time = dig->GetTime();
+                t0width = dig->GetAmp();
+                return kBMNSUCCESS;
             }
         } else {
-            if (ar->GetName() == "T0") {
-                t0time = ((BmnTrigDigit*) (ar->At(0)))->GetTime();
-                t0width = ((BmnTrigDigit*) (ar->At(0)))->GetAmp();
+            if (strstr(ar->GetName(), "T0") && ar->GetEntriesFast()) {
+                t0time = dig->GetTime();
+                t0width = dig->GetAmp();
+                return kBMNSUCCESS;
             }
         }
     }
+    return kBMNERROR;
 }

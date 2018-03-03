@@ -26,20 +26,20 @@ set(LINK_DIRECTORIES
 )
 
 set(SRCS
-FairEventManager.cxx  
-FairMCTracks.cxx
-FairMCStack.cxx
-FairEventManagerEditor.cxx
-FairMCTracksEditor.cxx
-FairBoxSet.cxx
-FairBoxSetDraw.cxx
-FairBoxSetEditor.cxx
-FairPointSetDraw.cxx
-FairMCPointDraw.cxx
-FairHitDraw.cxx
-FairHitPointSetDraw.cxx
-FairTimeStampPointDraw.cxx
-FairWebScreenshots.cxx
+MpdEventManager.cxx  
+MpdMCTracks.cxx
+MpdMCStack.cxx
+MpdEventManagerEditor.cxx
+MpdMCTracksEditor.cxx
+MpdBoxSet.cxx
+MpdBoxSetDraw.cxx
+MpdBoxSetEditor.cxx
+MpdPointSetDraw.cxx
+MpdMCPointDraw.cxx
+MpdHitDraw.cxx
+MpdHitPointSetDraw.cxx
+FairXMLNode.cxx
+MpdWebScreenshots.cxx
 )
 
 if (BMNROOT)
@@ -131,7 +131,7 @@ else (TDAQ_FOUND)
   Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Core xml2)
 endif (TDAQ_FOUND)
 if (BMNROOT)
- Set(DEPENDENCIES BmnData ${DEPENDENCIES})
+ Set(DEPENDENCIES Geane BmnData ${DEPENDENCIES})
 endif (BMNROOT)
 
 Set(LIBRARY_NAME EventDisplay)

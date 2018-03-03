@@ -2,6 +2,7 @@
 
 BmnSiliconRaw2Digit::BmnSiliconRaw2Digit() {
     fEventId = -1;
+    fMapFileName = "";
 }
 
 BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) : BmnAdcProcessor(period, run, "SILICON", ADC_N_CHANNELS, ADC128_N_SAMPLES, vSer) {
@@ -9,6 +10,7 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
     cout << "Loading SILICON Map from FILE: Period " << period << ", Run " << run << "..." << endl;
 
     fEventId = 0;
+    fMapFileName = Form("SILICON_map_run%d.txt", period);
     ReadMapFile();
 }
 
@@ -17,30 +19,33 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
 
 BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
     UInt_t ser = 0;
-    Int_t ch = 0;
+    Int_t ch_lo = 0;
+    Int_t ch_hi = 0;
     Int_t mod_adc = 0;
     Int_t mod = 0;
-    Int_t start = 0;
-    TString type = "";
+    Int_t lay = 0;
+    Int_t station = 0;
     string dummy;
 
-    TString fMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/SILICON_map_run6.txt");
-
-    ifstream inFile(fMapFileName.Data());
+    TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fMapFileName;
+    ifstream inFile(name.Data());
     if (!inFile.is_open())
-        cout << "Error opening map-file (" << fMapFileName << ")!" << endl;
+        cout << "Error opening map-file (" << name << ")!" << endl;
+    getline(inFile, dummy); //comment line in input file
+    getline(inFile, dummy); //comment line in input file
     getline(inFile, dummy); //comment line in input file
     getline(inFile, dummy); //comment line in input file
 
     while (!inFile.eof()) {
-        inFile >> ch >> mod_adc >> mod >> type >> std::hex >> ser >> std::dec >> start;
+        inFile >> std::hex >> ser >> std::dec >> ch_lo >> ch_hi >> mod_adc >> mod >> lay >> station;
         if (!inFile.good()) break;
         BmnSiliconMapping record;
-        record.layer = (type == "X") ? 0 : 1;
+        record.layer = lay;
         record.serial = ser;
         record.module = mod;
-        record.channel = ch;
-        record.start_strip = start;
+        record.channel_low = ch_lo;
+        record.channel_high = ch_hi;
+        record.station = station;
         fMap.push_back(record);
     }
 }
@@ -51,9 +56,8 @@ BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silico
         BmnSiliconMapping tM = fMap[iMap];
         for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
-            if (adcDig->GetSerial() == tM.serial && adcDig->GetChannel() == tM.channel) {
+            if (adcDig->GetSerial() == tM.serial && (adcDig->GetChannel() >= tM.channel_low && adcDig->GetChannel() <= tM.channel_high)) {
                 ProcessDigit(adcDig, &tM, silicon);
-                break;
             }
         }
     }
@@ -72,10 +76,10 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
 
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         BmnSiliconDigit dig;
-        dig.SetStation(0);
+        dig.SetStation(silM->station);
         dig.SetModule(silM->module);
         dig.SetStripLayer(silM->layer);
-        dig.SetStripNumber(silM->start_strip + iSmpl);
+        dig.SetStripNumber((ch - silM->channel_low) * nSmpl + 1 + iSmpl);
         Double_t sig = (GetRun() > GetBoundaryRun(ADC128_N_SAMPLES)) ? ((Double_t) ((adcDig->GetShortValue())[iSmpl] / 16)) : ((Double_t) ((adcDig->GetUShortValue())[iSmpl] / 16));
         dig.SetStripSignal(sig);
         candDig[iSmpl] = dig;

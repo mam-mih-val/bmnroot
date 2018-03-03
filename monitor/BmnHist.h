@@ -53,6 +53,7 @@ public:
     TH1* current;
     TH1* ref;
     TH1* ref2;
+    TString opt;
 private:
     ClassDef(PadInfo, 1)
 };
@@ -61,13 +62,14 @@ ClassImp(PadInfo)
 class BmnHist : public TNamed {
 public:
 
-    BmnHist();
+    BmnHist(Int_t periodID = 7);
     virtual ~BmnHist();
     virtual void Reset() = 0;
     virtual void Register(THttpServer *serv) = 0;
     virtual void SetDir(TFile *outFile = NULL, TTree *recoTree = NULL) = 0;
     virtual void DrawBoth() = 0;
     virtual void FillFromDigi(DigiArrays *fDigiArrays) = 0;
+    virtual void ClearRefRun() = 0;
 //    virtual BmnStatus LoadRefRun(TString FileName) = 0;
 //    template <class HH>
     static void DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads);
@@ -96,9 +98,18 @@ public:
     TString GetRefPath() const {
         return refPath;
     }
+
+    void SetperiodID(Int_t v) {
+        this->fPeriodID = v;
+    }
+
+    Int_t GetperiodID() const {
+        return fPeriodID;
+    }
+    
 protected:
 
-
+    Bool_t isShown = kFALSE;
     THttpServer *fServer;
     TTree *frecoTree;
     TDirectory *fDir;
@@ -106,6 +117,7 @@ protected:
     TString refRunName;
     Int_t refID;
     TFile *refFile;
+    Int_t fPeriodID;
 
     ClassDef(BmnHist, 1)
 

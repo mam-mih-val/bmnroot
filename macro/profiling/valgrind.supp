@@ -1,0 +1,17 @@
+# MPDRoot Suppressions
+# valgrind run: 
+{
+   obj1
+   Memcheck:Cond
+   fun:_ZN7TObjectC1Ev
+}
+{
+   obj2
+   Memcheck:Cond
+   fun:_ZN7TObjectC1ERKS_
+}
+{
+   gas1_root5_mpd
+   Memcheck:Cond
+   fun:_ZN6TpcGasC1ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEd
+}

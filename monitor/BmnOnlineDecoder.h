@@ -49,9 +49,20 @@ public:
     BmnStatus DecodeStream();
     BmnStatus OpenStream();
     BmnStatus BatchDirectory(TString dirname);
+    void SetBmnSetup(BmnSetup v) {
+        this->fBmnSetup = v;
+    }
+    BmnSetup GetBmnSetup() const {
+        return fBmnSetup;
+    }
+    void SetPeriodID(Int_t v) {
+        this->fPeriodID = v;
+    }
+    Int_t GetPeriodID() const {
+        return fPeriodID;
+    }
 private:
     BmnStatus InitDecoder(TString);
-    BmnStatus InitDecoder(Int_t periodID, Int_t runID, deque<UInt_t> *dq);
     void ProcessFileRun(TString digiName, UInt_t timeLimit = WAIT_LIMIT);
     static TString WatchNext(TString dirname, TString filename, Int_t cycleWait);
     static TString WatchNext(Int_t inotifDir, Int_t cycleWait);
@@ -60,10 +71,12 @@ private:
     
     void * _ctx;
     void * _decoSocket;
+    BmnSetup fBmnSetup;
     BmnRawDataDecoder *rawDataDecoder;
     TString _curFile;
     TString _curDir;
     Int_t fEvents;
+    Int_t fPeriodID;
     BmnDataReceiver *dataReceiver;
     deque<UInt_t> *dataQue;
     Int_t _inotifDir;

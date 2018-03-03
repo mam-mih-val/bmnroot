@@ -9,7 +9,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit() {
     fBigR1 = NULL;
 }
 
-BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) : BmnAdcProcessor(period, run, "GEM", ADC_N_CHANNELS, ADC32_N_SAMPLES, vSer) {
+BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString mapFileName) : BmnAdcProcessor(period, run, "GEM", ADC_N_CHANNELS, ADC32_N_SAMPLES, vSer) {
     fSmall = NULL;
     fMid = NULL;
     fBigL0 = NULL;
@@ -17,7 +17,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) :
     fBigR0 = NULL;
     fBigR1 = NULL;
 
-    cout << "Loading GEM Map from DB: Period " << period << ", Run " << run << "..." << endl;
+    cout << "Loading GEM Map: Period " << period << ", Run " << run << "..." << endl;
 
     fEventId = 0;
 
@@ -28,13 +28,42 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) :
     fBigR0 = new BmnGemMap[N_CH_BUF];
     fBigR1 = new BmnGemMap[N_CH_BUF];
 
-    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", period, run);
-    fEntriesInGlobMap = 0;
-    if (mapPar != NULL) mapPar->GetGemMapArray(fMap, fEntriesInGlobMap);
-    delete mapPar;
+//    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", period, run);
+//    fEntriesInGlobMap = 0;
+//    if (mapPar != NULL) mapPar->GetGemMapArray(fMap, fEntriesInGlobMap);
+//    delete mapPar;
     //    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
     //        if (find(fSerials.begin(), fSerials.end(), fMap[i].serial) == fSerials.end())
     //            fSerials.push_back(fMap[i].serial);
+    
+    string dummy;
+    UInt_t id = 0;
+    UInt_t ser = 0;
+    UInt_t ch_lo = 0;
+    UInt_t ch_hi = 0;
+    UInt_t station = 0;
+    UInt_t hot = 0;
+//    TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + TString(Form("GEM_map_run%d_SRC.txt", period));
+    TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + mapFileName;
+    printf("%s\n", name.Data());
+    ifstream inFile(name.Data());
+    if (!inFile.is_open())
+        cout << "Error opening map-file (" << name << ")!" << endl;
+    for (Int_t i = 0; i < 5; ++i) getline(inFile, dummy); //comment line in input file
+
+    while (!inFile.eof()) {
+        inFile >> std::hex >> ser >> std::dec >> ch_lo >> ch_hi >> id >> station >> hot;
+        if (!inFile.good()) break;
+        GemMapStructure record;
+        record.channel_high = ch_hi;
+        record.serial = ser;
+        record.channel_low = ch_lo;
+        record.station = station;
+        record.hotZone = hot;
+        record.id = id;
+        fMap.push_back(record);
+    } 
+    fEntriesInGlobMap = fMap.size();
 
     ReadMap("GEM_X_small", fSmall, 0, 0);
     ReadMap("GEM_Y_small", fSmall, 1, 0);
@@ -75,7 +104,7 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     if (fBigL1) delete[] fBigL1;
     if (fBigR0) delete[] fBigR0;
     if (fBigR1) delete[] fBigR1;
-    if (fMap) delete[] fMap;    
+//    if (fMap) delete[] fMap;
 }
 
 BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
@@ -122,8 +151,10 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
                 else
                     fBigMap = fBigR0;
             } else {
-                if (gemM->id % 10 == 0) fBigMap = fBigL1;
-                else fBigMap = fBigR1;
+                if (gemM->id % 10 == 0) 
+                    fBigMap = fBigL1;
+                else 
+                    fBigMap = fBigR1;
                 if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
             }
         }
@@ -164,8 +195,8 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
         Double_t ped = vPed[iSer][ch][iSmpl];
         Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
         //        Double_t sig = dig->GetStripSignal() - CMS - ped;
-        Float_t threshold = 20;//7 * vPedRMS[iSer][ch][iSmpl];//20;
-        if (sig < threshold || sig == 0.0) continue;  //FIXME: check cases with sig == 0
+        Float_t threshold = 15 + 4 * vPedRMS[iSer][ch][iSmpl];//20;
+        if (sig < threshold || sig == 0.0) continue; //FIXME: check cases with sig == 0
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }
 }

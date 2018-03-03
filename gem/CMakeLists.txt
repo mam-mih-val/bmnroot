@@ -62,6 +62,7 @@ set(SRCS
   BmnKalmanFilter.cxx
   BmnGemVertexFinder.cxx
   BmnGemStripMedium.cxx
+  BmnMaterialEffects.cxx
 )
 
 IF (SSE_FOUND)
@@ -93,6 +94,6 @@ endif()
 Set(HEADERS)
 set(LINKDEF GemLinkDef.h)
 Set(LIBRARY_NAME Gem)
-Set(DEPENDENCIES KF Sts BmnBase BmnData Base)
+Set(DEPENDENCIES KF Sts BmnBase Base)
 
 GENERATE_LIBRARY()

@@ -42,8 +42,6 @@ and open the template in the editor.
                 xhr.withCredentials = true;
                 xhr.send();
             }
-//            window.onload = setInterval("reloadIFrame();", 2000);
-//            body.onload = createGemTable();
             function reloadIFrame() {
                 var tc = document.getElementById("trig_counter");
                 var temp = tc.src;
@@ -59,35 +57,13 @@ and open the template in the editor.
                 dch1.src = path + "DCH_h_DCH1/draw.htm?monitoring=10000&opt=colz";
                 var dch2 = document.getElementById("h_DCH2");
                 dch2.src = path + "DCH_h_DCH2/draw.htm?monitoring=10000&opt=colz";
-//                var kNPLANES = 16;
-//                for (var iPlane = 0; iPlane < kNPLANES / 4; iPlane++) {
-//                    createRow(iPlane, kNPLANES);
-//                }
-//                var infoFrame2 = document.getElementById("infoCan");
-//                infoFrame2.src = path0 + "infoCanvas" + "/draw.htm?nobrowser&monitoring=2000";
                 drawInfo();
-            }
-            function createRow(iPlane, kNPLANES) {
-                var gd = document.getElementById("DCH_div");
-                var gtbl = document.createElement("table");
-                gtbl.name = "hist_table";
-                gd.appendChild(gtbl);
-                var tr = document.createElement('tr');
-                for (var iLayer = 0; iLayer < 4; iLayer++) {
-                    var td = document.createElement('td');
-                    var ifr = document.createElement("iframe");
-                    ifr.style = "width: 24vw;height: 16vw;";
-                    ifr.src = path + "DCH_" + names[iPlane * 4 + iLayer];
-                    ifr.src += "/draw.htm?monitoring=2000";
-                    td.appendChild(ifr);
-                    tr.appendChild(td);
-                }
-                gtbl.appendChild(tr);
             }
             function drawInfo() {
                 setTimeout(drawInfo, 10000);
                 var refPath = path0 + "refList" + "/root.json";
                 FillRefSelector(refPath, "refSelector");
+                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
                 var filename = path0 + "infoCanvas" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
@@ -153,6 +129,9 @@ and open the template in the editor.
                 <button onclick="SetRefRun()"> 
                     Select Reference Run
                 </button>
+            </tb>
+            <tb>
+                <select class="styleRefTable" id="refTable" onchange="makeSelection()">
             </tb>
 
         </tr>

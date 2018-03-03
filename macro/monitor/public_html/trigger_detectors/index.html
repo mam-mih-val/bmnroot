@@ -62,6 +62,10 @@ and open the template in the editor.
                 }).send(null);
                 var refPath = path0 + "refList" + "/root.json";
                 FillRefSelector(refPath, "refSelector");
+                var filename = path + "TriggersCanvasTimesByChannel" + "/root.json";
+                JSROOT.NewHttpRequest(filename, 'object', function (obj) {
+                    JSROOT.redraw("timeChannelTableC", obj, "");
+                }).send(null);
                 var filename = path + "TriggersCanvasTimes" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeTableC", obj, "");
@@ -121,6 +125,7 @@ and open the template in the editor.
     </table>
 
     <div align="center">
+        <div id="timeChannelTableC" style="width: 98vw;"> </div>
         <div id="timeTableC" style="width: 98vw;"> </div>
     </div>
 </body>

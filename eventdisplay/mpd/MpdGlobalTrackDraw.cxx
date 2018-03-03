@@ -10,7 +10,7 @@
 #include "MpdEvent.h"
 #include "MpdTpcKalmanTrack.h"
 
-#include "FairEventManagerEditor.h"
+#include "MpdEventManagerEditor.h"
 #include "FairLogger.h"
 
 #include "TEveManager.h"
@@ -81,8 +81,8 @@ InitStatus MpdGlobalTrackDraw::Init()
         SetActive(kFALSE);
     }
 
-    fEventManager = FairEventManager::Instance();
-    if (fVerbose > 2) cout<<"MpdGlobalTrackDraw::Init() get instance of FairEventManager"<<endl;
+    fEventManager = MpdEventManager::Instance();
+    if (fVerbose > 2) cout<<"MpdGlobalTrackDraw::Init() get instance of MpdEventManager"<<endl;
 
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
@@ -105,7 +105,7 @@ void MpdGlobalTrackDraw::Exec(Option_t* /*option*/)
     MpdTrack* tr;
     for (Int_t i = 0; i < fTrackList->GetEntriesFast(); i++)
     {
-        if (fVerbose > 2) cout<<"FairMCTracks::Exec "<<i<<endl;
+        if (fVerbose > 2) cout<<"MpdMCTracks::Exec "<<i<<endl;
 
         tr = (MpdTrack*)fTrackList->At(i);
 

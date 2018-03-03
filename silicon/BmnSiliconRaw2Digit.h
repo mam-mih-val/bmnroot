@@ -23,8 +23,9 @@ struct BmnSiliconMapping {
     Short_t layer; //X = 0 or X' = 1
     UInt_t serial;
     Short_t module;
-    Short_t channel;
-    Int_t start_strip;
+    Short_t channel_low;
+    Short_t channel_high;
+    Short_t station;
 };
 
 class BmnSiliconRaw2Digit : public BmnAdcProcessor {
@@ -34,11 +35,16 @@ public:
     virtual ~BmnSiliconRaw2Digit();
 
     BmnStatus FillEvent(TClonesArray *adc, TClonesArray *sts);
+    vector<UInt_t> GetSerials() {
+        return fSerials;
+    }
 
 private:
 
+    vector<UInt_t> fSerials;
     vector<BmnSiliconMapping> fMap;
     Int_t fEventId;
+    TString fMapFileName;
 
     BmnStatus ReadMapFile();
     void ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon);

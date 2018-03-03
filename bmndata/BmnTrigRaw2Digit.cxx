@@ -27,6 +27,7 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *
                     break;
                 }
     }
+    readINLCorrections(INLFile);
 }
 
 BmnStatus BmnTrigRaw2Digit::readMap(TString mappingFile) {

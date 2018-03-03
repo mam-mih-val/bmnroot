@@ -11,10 +11,12 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
 #endif
     bmnloadlibs(); // load BmnRoot libraries
-    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //5 - period
-    decoder->SetBmnSetup(kSRCSETUP);
-    
-    Bool_t setup[11]; //array of flags to determine BM@N setup
+    UInt_t period = 7;
+    BmnSetup stp = kSRCSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
+    BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, period);
+    decoder->SetBmnSetup(stp);
+
+    Bool_t setup[10]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
     setup[1] = 0; // MWPC
@@ -27,12 +29,14 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     setup[8] = 0; // ECAL
     setup[9] = 0; // LAND
     decoder->SetDetectorSetup(setup);
-    
-    decoder->SetTrigMapping((decoder->GetBmnSetup() == kBMNSETUP) ? "Trig_map_Run6.txt" : "Trig_map_Run7_SRC.txt");
-    decoder->SetSiliconMapping("SILICON_map_run6.txt");
+
+    TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
+    decoder->SetTrigMapping(TString("Trig_map_Run") + PeriodSetupExt);
     decoder->SetTrigINLFile("TRIG_INL.txt");
+    decoder->SetSiliconMapping("SILICON_map_run7.txt");
+    decoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
     // in case comment out the line decoder->SetTof400Mapping("...")  
-    // the maps of TOF400 will be readed from DB (only for JINR network)
+    // the maps of TOF400 will be read from DB (only for JINR network)
     decoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
     decoder->SetTof700Mapping("TOF700_map_period_6.txt");
     decoder->SetZDCMapping("ZDC_map_period_5.txt");
@@ -45,6 +49,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     decoder->SetLANDTCal("r0030_land_tcal.hh");
     decoder->SetLANDDiffSync("r352_cosmic1.hh");
     decoder->SetLANDVScint("neuland_sync_2.txt");
+    decoder->InitMaps();
     if (doConvert) decoder->ConvertRawToRoot(); // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
     decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.
 

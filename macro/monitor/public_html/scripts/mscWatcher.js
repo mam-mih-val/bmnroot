@@ -1,220 +1,160 @@
 
-    const http = require('http');
+const http = require('http');
+const url = require('url');
+var jsroot = require("jsroot");
 
-    const hostname = '127.0.0.1';
-    const port = 3000;
+const hostname = '127.0.0.1';
+const port = 3000;
 
-    var net = require('net');
-    var dataHost = '10.18.11.32';
-    var dataPort = 33306;
-    var strBuf = '';
-    var t = 0;
-    var runs = 0;
-    var d3 = require('d3');
-    var jsdom = require('jsdom');
-    var sap = require('save-svg-as-png');
-    var date = new Date();
-    var htext = null;
-    function makeHist(obj) {
-        var binCount = 4096;
-        var width = 1200;
-        var height = 900;
-        var max = binCount;//d3.max(nums);
-        var min = 1;//d3.min(nums);
-        var wScale = d3.scaleLinear().domain([min, max]).range([0, width]);
-        var document = jsdom.jsdom();
+var net = require('net');
+var dataHost = '10.18.11.32';
+var dataPort = 33306;
+var strBuf = '';
+var nbinsX = 8192;
+var t = 0;
+var runs = 0;
+//var d3 = require('d3');
+//var jsdom = require('jsdom');
+var date = new Date();
+var htext = null;
+function makeHist(obj) {
+    var time = new Date().getTime();
+    var binCount = 8192;
+    var width = 1280;
+    var height = 720;
+    var max = binCount;
+    var min = 1;
+    var wScale = d3.scaleLinear().domain([min, max]).range([0, width]);
+    var document = jsdom.jsdom();
+    time = new Date().getTime() - time;
+    console.log('time spent = ', time);
+    var docText = jsdom.serializeDocument(document);
+    return docText;
+}
 
-        for (var iChannel = 1; iChannel <= 4; iChannel++) {
-            var chName = 'channel ' + iChannel;
-            var nums = obj.DAQ.histPlot[chName];
-            var h = document.createElement("H1");
-            var t = document.createTextNode(chName);
-            h.appendChild(t);
-            document.body.appendChild(h);
-            var svg = d3.select(document.body).append("svg")
-                .attr("height", "100%")
-                .attr("width", "100%");
-            //nums[2000] = 20;
-            //nums[4095] = 40;
-            var maxy = d3.max(nums)+ 10;
-            var miny = 1;
-            var hScale = d3.scaleLog().domain([miny, maxy]).range([0, height]);
-            /*var xAxis = d3.svg.axis().scale(wScale);
-            var yAxis = d3.svg.axis().scale(hScale).orient("left");*/
-            var xAxis = d3.axisBottom()
-                .scale(wScale);
-            var yAxis = d3.axisRight()
-                .scale(hScale);
-            svg.append("g")
-                .attr("transform", "translate(0," + width -10  + ")")
-                .call(xAxis);
-            svg.append("g")
-                //.attr("transform", "translate(" + height -100 + ", 0)")
-                .call(yAxis);
-                //Draw a grid
-            var yAxisGrid = yAxis
-                .tickSize(width, 0)
-                .tickFormat("")
-                //.orient("right")
+var client;
+var timeoutData;
+var timeoutParse;
+var strQue = [];
 
-            var xAxisGrid = xAxis
-                .tickSize(height, 0)
-                .tickFormat("")
-                //.orient("top")
+function conn() {
+    client = new net.Socket();
+    client.connect(dataPort, dataHost, function () {
+        strBuf = '';
+        t = 0;
+        console.log('CONNECTED TO: ' + dataHost + ':' + dataPort);
+    });
+    client.on('data', function (data) {
+        strQue.push(data);
+        //console.log('DATA: ' + t++ + ' fragment: \n' + data);
+    });
+    client.on('end', function () {
+        //client.destroy();
+        console.log('end message');
+    });
+    client.on('close', function () {
+        client.destroy();
+        console.log('Connection closed');
+        setTimeout(conn, 3000);
+    });
+    client.on('error', function () {
+        client.destroy();
+        console.log('Connection error');
+        //setTimeout(conn(), 3000);
+    });
+    /*client.on('\n', function () {
+        console.log('str ' + strBuf)
+        alert('str ' + strBuf)
+        if (strBuf.length == 0)
+            return;
+        alert('end')
+        console.log('end');
+        //client.destroy();
+    });*/
+}
+function getData() {
+    client.write('a');
+    //timeoutData = setInterval(getData, 10000);
+}
 
-            svg.append("g")
-                .classed('y', true)
-                .classed('axis', true)
-                .call(yAxisGrid);
-
-            svg.append("g")
-                .classed('x', true)
-                .classed('axis', true)
-                .call(xAxisGrid);
-
-            var time = new Date().getTime();
-
-            svg.selectAll("rect")
-                .data(nums)
-                .enter().append("rect")
-                .attr("height", function (d, i) {
-                    return hScale(d)
-                })
-                .attr("width", "3")
-                .attr("x", function (d, i) {
-                    return wScale(i)
-                })
-                .attr("y", function (d, i) {
-                    return height - hScale(d)
-                })
-                .attr("stroke", "black")
-                .attr("stroke-width", "1")
-                .style('width', function (d, i) {
-                    return wScale(i) + 'px';
-                });
-
-            /*
-            var html = document.querySelector("svg").parentNode.innerHTML;
-            var XMLSerializer = require('xmldom').XMLSerializer;
-            svgData = new XMLSerializer().serializeToString( svg );
-            //sap.saveSvgAsPng(svgData, "diagram.png", {scale: 0.5});
-            //var svg = document.querySelector( "svg" );
-            //var svgData = new XMLSerializer().serializeToString( svg );
-           html = document.querySelector("svg").parentNode.innerHTML;
-            //console.log(html)
-
-            //var canvas = d3.select(document.body).append("canvas");
-            var canvas = document.createElement("canvas");
-            canvas.width = 800;//document.querySelector("svg").parentNode.attr("width");
-            canvas.height = 600;//svg.height;//d3.select("svg").attr("height");
-            console.log('svg width ' + svg.width);
-            console.log('can className ' + canvas.className);
-
-            var ctx = canvas.getContext("2d");
-            console.log('ctx ' + ctx)
-
-            var img = document.createElement( "img" );
-            img.setAttribute( "src", "data:image/svg+xml;base64," + svgData.toString('base64') );
-
-            //img.onload = function() {
-                ctx.drawImage( img, 0, 0 );
-
-                var canvasdata = canvas.toDataURL("image/png");
-
-                console.log(canvasdata)
-                var pngimg = '<img src="'+canvasdata+'">';
-                d3.select("#pngdataurl").html(pngimg);
-
-                var a = document.createElement("a");
-
-                a.download = "name"+".png";
-                a.href = canvasdata;
-                console.log(a.click())
-            //};
-*/
-            time = new Date().getTime() - time;
-            console.log('time spent = ', time);
-        }
-        var docText = jsdom.serializeDocument(document);
-        return docText;
-    }
-    var client;
-    var timeoutData;
-    var timeoutParse;
-    var strQue = Array();
-    function conn(){
-        client = new net.Socket();
-        client.connect(dataPort, dataHost, function () {
+function doParse() {
+    var time = new Date().getTime();
+    while (strQue.length > 0) {
+        var chunk = strQue.shift();
+        strBuf += chunk;
+        var str = chunk.toString();
+        console.log('   last ' + str[str.length - 1])
+        //var regex = '([^\\n]+)\\n(.*)';
+        if (str[str.length - 1] == '\n') {
+            //console.log(strBuf);
+            var obj = JSON.parse(strBuf);
             strBuf = '';
+            str = null;
             t = 0;
-            console.log('CONNECTED TO: ' + dataHost + ':' + dataPort);
-        });
-        client.on('data', function (data) {
-            strQue.push(data);
-            //console.log('DATA: ' + t++ + ' fragment: \n' + data);
-        });
-        client.on('end', function () {
-            //client.destroy();
-            console.log('end message');
-        });
-        client.on('close', function () {
-            client.destroy();
-            console.log('Connection closed');
-            setTimeout(conn, 3000);
-        });
-        client.on('error', function () {
-            client.destroy();
-            console.log('Connection error');
-            //setTimeout(conn(), 3000);
-        });
-        /*client.on('\n', function () {
-            console.log('str ' + strBuf)
-            alert('str ' + strBuf)
-            if (strBuf.length == 0)
-                return;
-            alert('end')
-            console.log('end');
-            //client.destroy();
-        });*/
-    }
-    function getData() {
-        client.write('a');
-        //timeoutData = setInterval(getData, 10000);
-    }
-
-    function doParse() {
-        while (strQue.length > 0){
-            var chunk = strQue.shift();
-            strBuf += chunk;
-            var str = chunk.toString();
-            //console.log('   last ' + str[str.length - 1])
-            //var regex = '([^\\n]+)\\n(.*)';
-            if (str[str.length - 1] == '\n') {
-                //console.log(strBuf);
-                var obj = JSON.parse(strBuf);
-                strBuf = '';
-                str = null;
-                t = 0;
-                htext = makeHist(obj);
-                break;
-                //console.log(htext);
-                //console.log('parsed ' + obj.DAQ.histPlot.histogramStep)
-                // console.log('parsed ' + obj.DAQ.histPlot["channel 1"])
+            //htext = makeHist(obj);
+            if (hists.length >= 4)
+            for (var i = 0; i < 4; i++) {
+                hists[i].fArray = obj.DAQ.histPlot['channel ' + (i + 1).toString()];
+                //console.log(hist.fArray);
             }
+            console.log(obj);
+            //console.log('parsed ' + obj.DAQ.histPlot.histogramStep)
+            //console.log('parsed ' + obj.DAQ.histPlot["channel 1"])
+            break;
         }
-        timeoutData = setTimeout(doParse, 3000);
     }
+    time = new Date().getTime() - time;
+    //console.log('time spent = ', time);
+    timeoutData = setTimeout(doParse, 100);
+}
 
+var hists = [];
+for (var i = 0; i < 4; i++){
+    var hist = jsroot.CreateHistogram('TH1I', nbinsX);
+    hist.fName = 'Channel '+ (i+1);
+    hist.fTitle = hist.fName;
+    hist.fXaxis.fTitle = 'Time';
+    hist.fXaxis.fTitleColor = 810;
+    hist.fXaxis.fLabelSize = 0.04;
+    hist.fXaxis.fTitleSize = 0.06;
+    hist.fYaxis.fTitleOffset = 0.1;
+    hist.fXaxis.fLineColor = 602;
+    hist.fXaxis.fFillStyle = 1001;
+
+    hist.fYaxis.fTitle = 'Amplitude';
+    hist.fYaxis.fLabelOffset = 0.005;
+    hist.fYaxis.fLabelSize = 0.04;
+    hist.fYaxis.fTickLength = 0.03;
+    hist.fYaxis.fTitleOffset = 0.3;
+    hist.fYaxis.fTitleSize = 0.06;
+    hist.fYaxis.fTitleColor = 810;
+    //hist.fYaxis.fTitleFont" : 42,
+    hists.push(hist);
+}
+    var canv = jsroot.Create('TCanvas');
+    //var hist = JSON.parse(strhis);
     conn();
-    timeoutData = setInterval(getData, 3000);
-    timeoutParse = setTimeout(doParse, 5000);
+    timeoutData = setInterval(getData, 1000);
+    timeoutParse = setTimeout(doParse, 100);
 
     const server = http.createServer((req, res) => {
-        console.log('Run ' + runs++);
+        //console.log('Request: ', req);
+        var query = url.parse(req.url, true).query;
+        console.log("req");
+        console.log(query);
+        var hid = query['histid'];
+        if (hid === undefined)
+            hid = 0;
         res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/html');
-        if (htext != null)
-            res.end(htext);
+        res.writeHead(200, {"Content-Type": "application/json"});
+        if ((hists.length >= hid) && (hists[hid] != null)) {
+            var str = JSON.stringify(hists[hid], null, '\t');
+            //res.setHeader('Content-Type', 'application/json');
+            // res.setHeader('Content-Length', str.length);
+            // res.writeHead(200, {'Content-Type': 'text/plain'});
+            res.write(str);
+            res.end();
+        }
         else
             res.end();
     });

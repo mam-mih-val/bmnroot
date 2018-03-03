@@ -29,3 +29,4 @@ BmnRunInfo::BmnRunInfo(UniDbRun* orig) {
 BmnRunInfo::~BmnRunInfo() {
 }
 
+ClassImp(BmnRunInfo);

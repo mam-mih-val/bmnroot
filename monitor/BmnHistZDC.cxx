@@ -138,6 +138,13 @@ BmnStatus BmnHistZDC::SetRefRun(Int_t id) {
     return kBMNSUCCESS;
 }
 
+void BmnHistZDC::ClearRefRun() {
+    for (auto pad : canAmpsPads){
+        if (pad->ref) delete pad->ref;
+        pad->ref = NULL;
+    }
+}
+
 void BmnHistZDC::Reset() {
     h2d_grid->Reset();
     h2d_profile->Reset();

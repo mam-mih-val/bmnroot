@@ -15,7 +15,7 @@ TGeoManager* gGeoMan = NULL;
 
 const Double_t XStationPosition = 0.0;
 const Double_t YStationPosition = 0.0;
-const Double_t ZStationPosition = -0.2;
+const Double_t ZStationPosition = 0.0;
 
 //Geometry parameters (sizes, positions, shifts): all units is in cm!!!
 enum ModuleType {RIGHT_ANGLED_MODULE, BEVEL_MODULE};
@@ -45,14 +45,14 @@ Double_t YModulesPositions[NModules]; // in bm@n coordinate system
 
 
 Double_t ZModulesPositions[NModules]; // in bm@n coordinate system
-   ZModulesPositions[0] = 2.24;
-   ZModulesPositions[1] = 0.71;
-   ZModulesPositions[2] = 2.02;
-   ZModulesPositions[3] = 0.49;
-   ZModulesPositions[4] = 0.0;
-   ZModulesPositions[5] = 1.53;
-   ZModulesPositions[6] = 0.22;
-   ZModulesPositions[7] = 1.75;
+   ZModulesPositions[0] = 3.31;
+   ZModulesPositions[1] = 1.78;
+   ZModulesPositions[2] = 3.09;
+   ZModulesPositions[3] = 1.56;
+   ZModulesPositions[4] = 2.05;
+   ZModulesPositions[5] = 3.58;
+   ZModulesPositions[6] = 2.27;
+   ZModulesPositions[7] = 3.80;
 
 ModuleType ModulesTypes[NModules];
     ModulesTypes[0] = RIGHT_ANGLED_MODULE;
@@ -201,7 +201,7 @@ void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
     geoBuild->createMedium(mFiberGlass);
     pMedFiberGlass = gGeoManager->GetMedium("fiberglass");
     if ( ! pMedFiberGlass  ) Fatal("Main", "Medium fiberglass not found");
-    
+
     //copper medium
     FairGeoMedium* mCopper = geoMedia->getMedium("copper");
     if ( ! mCopper  ) Fatal("Main", "FairMedium copper not found");

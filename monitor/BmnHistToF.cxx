@@ -248,6 +248,14 @@ BmnStatus BmnHistToF::SetRefRun(Int_t id) {
         BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canTimesPads, Names);
         DrawBoth();
     }
+    return kBMNSUCCESS;
+}
+
+void BmnHistToF::ClearRefRun() {
+    for (auto pad : canTimesPads){
+        if (pad->ref) delete pad->ref;
+        pad->ref = NULL;
+    }
 }
 
 ClassImp(BmnHistToF);

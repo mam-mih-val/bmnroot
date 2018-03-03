@@ -31,67 +31,84 @@ public:
         dch = NULL;
         mwpc = NULL;
         silicon = NULL;
-        trigger = NULL;
-        t0 = NULL;
-        bc1 = NULL;
-        bc2 = NULL;
-        veto = NULL;
-        fd = NULL;
-        bd = NULL;
         header = NULL;
         trigAr = NULL;
+        trigSrcAr = NULL;
     };
 
     ~DigiArrays() {
-//        delete[] trigAr;
-//        if (trigAr)
-//            delete trigAr;
     };
 
     void Clear() {
-        if (bc1) {bc1->Delete();delete bc1;}
-        if (bc2) { bc2->Delete(); delete bc2;}
-        if (bd) { bd->Delete(); delete bd;}
-        if (dch) { dch->Delete(); delete dch;}
-        if (fd) { fd->Delete(); delete fd;}
-        if (gem) { gem->Delete(); delete gem;}
-        if (header) { header->Delete(); delete header;}
-        if (mwpc) { mwpc->Delete(); delete mwpc;}
-        if (silicon) { silicon->Delete(); delete silicon;}
-        if (trigger) { trigger->Delete(); delete trigger;}
-        if (t0) { t0->Delete(); delete t0;}
-        if (tof400) { tof400->Delete(); delete tof400;}
-        if (tof700) { tof700->Delete(); delete tof700;}
-        if (zdc) { zdc->Delete(); delete zdc;}
-        if (ecal) { ecal->Delete(); delete ecal;}
-        if (land) { land->Delete(); delete land;}
-        if (veto) { veto->Delete(); delete veto;}
-        for (TClonesArray *ar : (*trigAr)){
-            if (ar){
-                ar->Clear("C");
-                delete ar;
-            }
+        if (dch) {
+            dch->Delete();
+            delete dch;
         }
-        delete trigAr;
+        if (gem) {
+            gem->Delete();
+            delete gem;
+        }
+        if (header) {
+            header->Delete();
+            delete header;
+        }
+        if (mwpc) {
+            mwpc->Delete();
+            delete mwpc;
+        }
+        if (silicon) {
+            silicon->Delete();
+            delete silicon;
+        }
+        if (tof400) {
+            tof400->Delete();
+            delete tof400;
+        }
+        if (tof700) {
+            tof700->Delete();
+            delete tof700;
+        }
+        if (zdc) {
+            zdc->Delete();
+            delete zdc;
+        }
+        if (ecal) {
+            ecal->Delete();
+            delete ecal;
+        }
+        if (land) {
+            land->Delete();
+            delete land;
+        }
+        if (trigAr) {
+            for (TClonesArray *ar : (*trigAr))
+                if (ar) {
+                    ar->Clear("C");
+                    delete ar;
+                }
+            delete trigAr;
+        }
+        if (trigSrcAr) {
+            for (TClonesArray *ar : (*trigSrcAr))
+                if (ar) {
+                    ar->Clear("C");
+                    delete ar;
+                }
+            delete trigSrcAr;
+        }
     };
-    TClonesArray *silicon; 
-    TClonesArray *gem; 
-    TClonesArray *tof400; 
-    TClonesArray *tof700; 
-    TClonesArray *zdc; 
-    TClonesArray *ecal; 
-    TClonesArray *land; 
-    TClonesArray *dch; 
-    TClonesArray *mwpc; 
-    TClonesArray *trigger; 
-    TClonesArray *t0; 
-    TClonesArray *bc1; 
-    TClonesArray *bc2; 
-    TClonesArray *veto; 
-    TClonesArray *fd; 
-    TClonesArray *bd; 
-    TClonesArray *header;//->
+    TClonesArray *silicon;
+    TClonesArray *gem;
+    TClonesArray *tof400;
+    TClonesArray *tof700;
+    TClonesArray *zdc;
+    TClonesArray *ecal;
+    TClonesArray *land;
+    TClonesArray *dch;
+    TClonesArray *mwpc;
     std::vector<TClonesArray*> *trigAr;
+    std::vector<TClonesArray*> *trigSrcAr;
+    TClonesArray *header; //->
 private:
     ClassDef(DigiArrays, 1)
 };

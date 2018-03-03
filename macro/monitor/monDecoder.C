@@ -5,6 +5,11 @@ void monDecoder(TString dirName = "/bmn/run/current/", TString rawFileName = "",
 #endif
     bmnloadlibs();
     gSystem->Load("libBmnMonitor");
-    BmnMonitor::threadDecodeWrapper(dirName, rawFileName, runCurrent);
+//    BmnMonitor::threadDecodeWrapper(dirName, rawFileName, runCurrent);
+    
+    BmnOnlineDecoder *deco = new BmnOnlineDecoder();
+    deco->SetBmnSetup(kBMNSETUP);
+    deco->Decode(dirname, rawFileName, runCurrent);
+    delete deco;
 }
 

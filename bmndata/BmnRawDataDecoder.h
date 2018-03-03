@@ -103,15 +103,13 @@ public:
         d.dch = dch;
         d.mwpc = mwpc;
         d.header = eventHeader;
-//        if (fTrigSRCMapper) {
-//            //            d.trigAr = fTrigSRCMapper->GetTrigArrays();
-//            vector<TClonesArray*>* ta = fTrigSRCMapper->GetTrigArrays();
-//            //            d.trigLen = ta->size();
-//            //            d.trigAr = new TClonesArray*[d.trigLen];
-//            //            for (Int_t i = 0; i < d.trigLen; i++)
-//            //                d.trigAr[i] = (*ta)[i];
-//            d.trigAr = ta;
-//        }
+        d.trigAr = NULL;
+        d.trigSrcAr = NULL;
+        if (fTrigMapper)
+            if (fBmnSetup == kBMNSETUP)
+                d.trigAr = fTrigMapper->GetTrigArrays();
+            else
+                d.trigSrcAr = fTrigMapper->GetTrigArrays();
         return d;
     }
 

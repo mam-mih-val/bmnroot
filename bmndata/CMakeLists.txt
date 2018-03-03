@@ -63,7 +63,6 @@ CbmTrackMatch.cxx
 BmnTrack.cxx
 CbmMvdHit.cxx
 CbmMvdHitMatch.cxx
-CbmVertex.cxx
 CbmGlobalTrack.cxx
 CbmPsdPoint.cxx
 CbmPsdHit.cxx
@@ -124,6 +123,6 @@ BmnTriggersCheck.cxx
 Set(HEADERS)
 Set(LINKDEF BmnDataLinkDef.h)
 Set(LIBRARY_NAME BmnData)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES Gem Silicon Minuit Core Base)
 
 GENERATE_LIBRARY()

@@ -7,7 +7,7 @@
 #include "BmnGlobalTrackDraw.h"
 #include "BmnGlobalTrack.h"
 #include "BmnGemTrack.h"
-#include "FairEventManagerEditor.h"
+#include "MpdEventManagerEditor.h"
 #include "FairLogger.h"
 
 #include "TEveManager.h"
@@ -69,8 +69,8 @@ InitStatus BmnGlobalTrackDraw::Init()
     fTof2HitList = (TClonesArray*) fManager->GetObject("BmnTofHit");
     fDchHitList = (TClonesArray*) fManager->GetObject("BmnDchHit");
 
-    fEventManager = FairEventManager::Instance();
-    if (fVerbose > 1) cout<<"BmnGlobalTrackDraw::Init() get instance of FairEventManager "<<endl;
+    fEventManager = MpdEventManager::Instance();
+    if (fVerbose > 1) cout<<"BmnGlobalTrackDraw::Init() get instance of MpdEventManager "<<endl;
 
     MinEnergyLimit = fEventManager->GetEvtMinEnergy();
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();

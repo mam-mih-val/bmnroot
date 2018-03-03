@@ -36,17 +36,11 @@ link_directories(${LINK_DIRECTORIES})
 # List of source files
 Set(SRCS
     BmnDetectorSetup.cxx
-    BmnMatrixMath.cxx
-    BmnGeoNavigator.cxx
-    BmnMaterialEffects.cxx
     BmnGlobalTracking.cxx
 )
 
 Set(HEADERS
     BmnDetectorSetup.h
-    BmnMatrixMath.h
-    BmnGeoNavigator.h
-    BmnMaterialEffects.h
     BmnGlobalTracking.h
     BmnHitFinderRun1.h
 )
@@ -57,7 +51,7 @@ EndIf (Boost_FOUND)
 
 Set(LINKDEF GlobalTrackingLinkDef.h)
 Set(LIBRARY_NAME GlobalTracking)
-Set(DEPENDENCIES KF Sts BmnBase BmnData Base)
+Set(DEPENDENCIES Gem KF Sts BmnBase BmnData Base)
 
 GENERATE_LIBRARY()
 

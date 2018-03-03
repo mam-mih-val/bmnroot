@@ -8,9 +8,9 @@ DIGITIZER=$VMCWORKDIR"/macro/raw"
 rm output/*.root > $OUTPUT/out.dat
 read -p 'Current Run Number: ' runNum
 
-scp segarrae@nc3.jinr.ru:/ceph/bmn/test/data/src/mpd_run_SRC_${runNum}.data ./output/
+scp segarrae@nc3.jinr.ru:/ceph/bmn/run/current/mpd_run_trigCode_${runNum}.data ./output/
 
-FILE=$OUTPUT'/mpd_run_SRC_'${runNum}'.data'
+FILE=$OUTPUT'/mpd_run_trigCode_'${runNum}'.data'
 echo "Reading File: "${FILE}
 
 # First analyze the raw binary file that we collected and create the digi file

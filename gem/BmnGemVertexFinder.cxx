@@ -36,6 +36,12 @@ InitStatus BmnGemVertexFinder::Init() {
     if (NULL == ioman) Fatal("Init", "FairRootManager is not instantiated");
 
     fGemTracksArray = (TClonesArray*) ioman->GetObject(fGemTracksBranchName); //in
+    if (!fGemTracksArray)
+    {
+        cout<<"BmnGemVertexFinder::Init(): branch "<<fGemTracksBranchName<<" not found! Task will be deactivated"<<endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
     fGlobalTracksArray = (TClonesArray*) ioman->GetObject(fGlobalTracksBranchName); //in
     if (!fGlobalTracksArray) {
         cout << "BmnGemVertexFinder::Init(): branch " << fGlobalTracksBranchName << " not found! Task will be deactivated" << endl;
@@ -50,6 +56,8 @@ InitStatus BmnGemVertexFinder::Init() {
     fDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
 
     if (fVerbose) cout << "=========================== Vertex finder init finished ===================" << endl;
+
+    return kSUCCESS;
 }
 
 void BmnGemVertexFinder::Exec(Option_t* opt) {

@@ -7,7 +7,7 @@
 #include "BmnTrackDrawH.h"
 #include "BmnTrack.h"
 #include "FairHit.h"
-#include "FairEventManagerEditor.h"
+#include "MpdEventManagerEditor.h"
 #include "FairLogger.h"
 
 #include "TEveManager.h"
@@ -55,7 +55,7 @@ InitStatus BmnTrackDrawH::Init()
 {
     if (fVerbose > 0) cout<<"BmnTrackDrawH::Init()"<<endl;
 
-    fEventManager = FairEventManager::Instance();
+    fEventManager = MpdEventManager::Instance();
     if (fVerbose > 1) cout<<"BmnTrackDrawH::Init() get instance of EventManager: "<<fEventManager<<endl;
 
     FairRootManager* fManager = FairRootManager::Instance();
@@ -214,7 +214,7 @@ TEveTrackList* BmnTrackDrawH::GetTrGroup(TParticle* P)
     {
         fTrPr = new TEveTrackPropagator();
         fTrList = new  TEveTrackList(P->GetName(), fTrPr);
-        // set track color by particle PDG from FairEventManager
+        // set track color by particle PDG from MpdEventManager
         fTrList->SetMainColor(fEventManager->Color(P->GetPdgCode()));
         fEveTrList->Add(fTrList);
         fTrList->SetRnrLine(kTRUE);

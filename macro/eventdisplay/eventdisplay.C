@@ -1,4 +1,6 @@
 #include "../run/bmnloadlibs.C"
+void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_number, bool isField, bool isTarget);
+
 // common EVENT DISPLAY macro for simulated and experimental data
 //
 // data source: 0 - event display for simulatated data (it shows both MC and reconstructed simulated data):
@@ -14,7 +16,7 @@
 // is_online: false (default) - use Offline Mode (manual switching of events); true - use Online Mode (continious view events)
 //void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "$VMCWORKDIR/macro/run/bmn_run1220.root", int data_source = 1, bool is_online = false)
 //void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "/tdaq/data/", int data_source = 2, bool is_online = true)
-void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
+void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
 {
     gDebug = 0;
 
@@ -160,14 +162,14 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
             gSystem->Load("libomnithread");
             gSystem->Load("libers");
 
-            fFileSource = new BmnTdaqSource("bmn", "raw", "file", 2);
+            //fFileSource = new BmnTdaqSource("bmn", "raw", "file", 2);
         }
     }
 
     if (fFileSource != NULL) fRunAna->SetSource(fFileSource);
 
     // Create Event Manager
-    FairEventManager* fMan = new FairEventManager();
+    MpdEventManager* fMan = new MpdEventManager();
     fMan->isOnline = is_online;
     fMan->iDataSource = data_source;
 
@@ -181,13 +183,12 @@ void eventdisplay(char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", cha
     fMan->background_color = 17;
     fMan->isDarkColor = false;
 
-    // FairEventManager::Init(Int_t visopt = 1, Int_t vislvl = 3, Int_t maxvisnds = 10000)
+    // MpdEventManager::Init(Int_t visopt = 1, Int_t vislvl = 3, Int_t maxvisnds = 10000)
     fMan->Init();
 }
 
 // set FairRunAna drawing tasks depending from data source and on/offline mode
-class FairEventManager;
-void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_number, bool isField, bool isTarget)
+void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_number, bool isField, bool isTarget)
 {
     Style_t pointMarker = kFullDotSmall;
     Color_t mcPointColor = kRed, recoPointColor = kBlack, expPointColor = kRed;
@@ -196,40 +197,40 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
     if (data_source == 0)
     {
         // draw MC Points
-        //FairMCPointDraw* RecoilPoint = new FairMCPointDraw("RecoilPoint", mcPointColor, pointMarker);
+        //MpdMCPointDraw* RecoilPoint = new MpdMCPointDraw("RecoilPoint", mcPointColor, pointMarker);
         //fMan->AddTask(RecoilPoint);
-        FairMCPointDraw* MWPCPoint = new FairMCPointDraw("MWPCPoint", mcPointColor, pointMarker);
+        MpdMCPointDraw* MWPCPoint = new MpdMCPointDraw("MWPCPoint", mcPointColor, pointMarker);
         fMan->AddTask(MWPCPoint);
-        FairMCPointDraw* TOF1Point = new FairMCPointDraw("TOF1Point", mcPointColor, pointMarker);
+        MpdMCPointDraw* TOF1Point = new MpdMCPointDraw("TOF1Point", mcPointColor, pointMarker);
         fMan->AddTask(TOF1Point);
-        FairMCPointDraw* DCHPoint = new FairMCPointDraw("DCHPoint", mcPointColor, pointMarker);
+        MpdMCPointDraw* DCHPoint = new MpdMCPointDraw("DCHPoint", mcPointColor, pointMarker);
         fMan->AddTask(DCHPoint);
-        FairMCPointDraw* TofPoint = new FairMCPointDraw("TOFPoint", mcPointColor, pointMarker);
+        MpdMCPointDraw* TofPoint = new MpdMCPointDraw("TOFPoint", mcPointColor, pointMarker);
         fMan->AddTask(TofPoint);
         FairMCModuleDraw* PsdPoint = new FairMCModuleDraw("PsdPoint", mcPointColor, pointMarker);
         fMan->AddTask(PsdPoint);
-        FairMCPointDraw* StsPoint = new FairMCPointDraw("StsPoint", mcPointColor, pointMarker);
+        MpdMCPointDraw* StsPoint = new MpdMCPointDraw("StsPoint", mcPointColor, pointMarker);
         fMan->AddTask(StsPoint);
-        FairMCPointDraw* SiliconPoint = new FairMCPointDraw("SiliconPoint", mcPointColor, pointMarker);
+        MpdMCPointDraw* SiliconPoint = new MpdMCPointDraw("SiliconPoint", mcPointColor, pointMarker);
         fMan->AddTask(SiliconPoint);
 
         // draw MC Geometry Tracks
-        FairMCTracks* GeoTrack = new FairMCTracks("GeoTracks");
+        MpdMCTracks* GeoTrack = new MpdMCTracks("GeoTracks");
         fMan->AddTask(GeoTrack);
         // OR draw MC tracks by Geane - not implemented yet
-        //FairMCStack* MCTrack = new FairMCStack("MCTrack");
+        //MpdMCStack* MCTrack = new MpdMCStack("MCTrack");
         //fMan->AddTask(MCTrack);
 
         // draw Reconstructed Detector Hits
-        FairHitPointSetDraw* BmnGemHit = new FairHitPointSetDraw("BmnGemStripHit", recoPointColor, pointMarker); // new FairHitDraw("BmnGemStripHit", 1); //in box view
+        MpdHitPointSetDraw* BmnGemHit = new MpdHitPointSetDraw("BmnGemStripHit", recoPointColor, pointMarker); // new MpdHitDraw("BmnGemStripHit", 1); //in box view
         fMan->AddTask(BmnGemHit);
-        FairHitPointSetDraw* BmnTof1Hit = new FairHitPointSetDraw("BmnTof1Hit", recoPointColor, pointMarker);
+        MpdHitPointSetDraw* BmnTof1Hit = new MpdHitPointSetDraw("BmnTof1Hit", recoPointColor, pointMarker);
         fMan->AddTask(BmnTof1Hit);
-        FairHitPointSetDraw* BmnDchHit = new FairHitPointSetDraw("BmnDchHit", recoPointColor, pointMarker);
+        MpdHitPointSetDraw* BmnDchHit = new MpdHitPointSetDraw("BmnDchHit", recoPointColor, pointMarker);
         fMan->AddTask(BmnDchHit);
-        FairHitPointSetDraw* BmnTof2Hit = new FairHitPointSetDraw("BmnTofHit", recoPointColor, pointMarker);
+        MpdHitPointSetDraw* BmnTof2Hit = new MpdHitPointSetDraw("BmnTofHit", recoPointColor, pointMarker);
         fMan->AddTask(BmnTof2Hit);
-        FairHitPointSetDraw* BmnSiliconHit = new FairHitPointSetDraw("BmnSiliconHit", recoPointColor, pointMarker);
+        MpdHitPointSetDraw* BmnSiliconHit = new MpdHitPointSetDraw("BmnSiliconHit", recoPointColor, pointMarker);
         fMan->AddTask(BmnSiliconHit);
 
         // draw Reconstructed Global Tracks
@@ -237,8 +238,8 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         fMan->AddTask(BmnGlobalTrack);
 
         // save EventDisplay Screenshot
-        //FairWebScreenshots* WebScreenshots = new FairWebScreenshots("WebScreenshots", "/var/www/html/events"); // for WEB-page
-        //FairWebScreenshots* WebScreenshots = new FairWebScreenshots("WebScreenshots","screenshots"); // folder to save the screenshots
+        //MpdWebScreenshots* WebScreenshots = new MpdWebScreenshots("WebScreenshots", "/var/www/html/events"); // for WEB-page
+        //MpdWebScreenshots* WebScreenshots = new MpdWebScreenshots("WebScreenshots","screenshots"); // folder to save the screenshots
         //WebScreenshots->SetFormatFiles(0); // 0 -.png, 1 -.jpg, 2 -.jpg and .png
         //WebScreenshots->SetMultiFiles(0); //0 - the same file (event.png), 1 - multiple files (event_nnn.png)
         //WebScreenshots->SetPort(8016); // 8016 by default
@@ -251,22 +252,22 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
     if (data_source == 1)
     {
         // draw MWPC Hits
-        FairHitPointSetDraw* MwpcHit = new FairHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
+        MpdHitPointSetDraw* MwpcHit = new MpdHitPointSetDraw("BmnMwpcHit", expPointColor, pointMarker);
         fMan->AddTask(MwpcHit);
         // draw Silicon Hits
-        FairHitPointSetDraw* SiliconHit = new FairHitPointSetDraw("BmnSiliconHit", expPointColor, pointMarker);
+        MpdHitPointSetDraw* SiliconHit = new MpdHitPointSetDraw("BmnSiliconHit", expPointColor, pointMarker);
         fMan->AddTask(SiliconHit);
         // draw GEM Hits
-        FairHitPointSetDraw* GemHit = new FairHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
+        MpdHitPointSetDraw* GemHit = new MpdHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
         fMan->AddTask(GemHit);
         // draw DCH Hits
-        FairHitPointSetDraw* DchHit = new FairHitPointSetDraw("BmnDchHit", expPointColor, pointMarker);
+        MpdHitPointSetDraw* DchHit = new MpdHitPointSetDraw("BmnDchHit", expPointColor, pointMarker);
         fMan->AddTask(DchHit);
         // draw TOF1 Hits
-        FairHitPointSetDraw* Tof1Hit = new FairHitPointSetDraw("BmnTof1Hit", expPointColor, pointMarker);
+        MpdHitPointSetDraw* Tof1Hit = new MpdHitPointSetDraw("BmnTof1Hit", expPointColor, pointMarker);
         fMan->AddTask(Tof1Hit);
         // draw TOF2 Hits
-        FairHitPointSetDraw* Tof2Hit = new FairHitPointSetDraw("BmnTofHit", expPointColor, pointMarker);
+        MpdHitPointSetDraw* Tof2Hit = new MpdHitPointSetDraw("BmnTofHit", expPointColor, pointMarker);
         fMan->AddTask(Tof2Hit);
 
         // draw MWPC Tracks
@@ -288,7 +289,7 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         //CbmTrackDraw* MwpcTrack = new CbmTrackDraw("MwpcMatchedTracks");
         //fMan->AddTask(MwpcTrack);
     }
-
+/*
     // FOR EXPERIMENTAL DATA FROM DIRECTORY WITH .DATA FILES
     if (data_source == 2)
     {
@@ -315,16 +316,16 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         fMan->AddTask(gemTF);
 
         // TOF-400 hit finder
-        BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", false, 0/*iVerbose*/, kTRUE);
+        BmnTof1HitProducer* tof1HP = new BmnTof1HitProducer("TOF1", false, 0, kTRUE);
         fMan->AddTask(tof1HP);
 
         // draw GEM hits
-        FairHitPointSetDraw* GemHit = new FairHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
+        MpdHitPointSetDraw* GemHit = new MpdHitPointSetDraw("BmnGemStripHit", expPointColor, pointMarker);
         GemHit->SetVerbose(1);
         fMan->AddTask(GemHit);
 
         // draw TOF-400 hits
-        FairHitPointSetDraw* Tof1Hit = new FairHitPointSetDraw("BmnTof1Hit", expPointColor, pointMarker);
+        MpdHitPointSetDraw* Tof1Hit = new MpdHitPointSetDraw("BmnTof1Hit", expPointColor, pointMarker);
         Tof1Hit->SetVerbose(1);
         fMan->AddTask(Tof1Hit);
 
@@ -332,5 +333,5 @@ void SetTasks(FairEventManager* fMan, int data_source, int run_period, int run_n
         BmnTrackDrawH* GemTrack = new BmnTrackDrawH("BmnGemTrack", "BmnGemStripHit");
         GemTrack->SetVerbose(1);
         fMan->AddTask(GemTrack);
-    }
+    }*/
 }

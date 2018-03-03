@@ -8,7 +8,7 @@ and open the template in the editor.
     Author     : ilnur
 */
 
-
+/* Main navigation menu */
 ul {
     list-style-type: none;
     margin: 0;
@@ -41,4 +41,21 @@ li a:hover {
 
 .bar:hover {
     fill: #003366
+}
+
+/* Reference list */
+ul.styleRefTable {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    align-content: center;
+    align-self: center;
+    align-items: center;
+    background-color: darkslategrey;
+    color: darkkhaki;
+    overflow: hidden;
+}
+ul.styleRefTable > li > a{
+    display: block;
+    color: coral;
 }

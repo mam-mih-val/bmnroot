@@ -5,7 +5,6 @@
 #pragma link off all functions;
 
 #pragma link C++ class BmnDetectorSetup+;
-#pragma link C++ class BmnGeoNavigator+;
-#pragma link C++ class BmnMaterialEffects+;
 #pragma link C++ class BmnGlobalTracking+;
+
 #endif

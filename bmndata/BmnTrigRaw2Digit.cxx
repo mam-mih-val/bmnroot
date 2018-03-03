@@ -27,12 +27,12 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *
                     break;
                 }
     }
-    readINLCorrections(INLFile);
+    //readINLCorrections(INLFile);
 }
 
 BmnStatus BmnTrigRaw2Digit::readMap(TString mappingFile) {
     fMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + mappingFile;
-    printf("Reading Triggers mapping file ...\n");
+    printf("Reading Triggers mapping file %s...\n", fMapFileName.Data());
     //========== read mapping file            ==========//
     fMapFile.open((fMapFileName).Data());
     if (!fMapFile.is_open()) {

@@ -20,12 +20,12 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     setup[1] = 0; // MWPC
     setup[2] = 0; // SILICON
     setup[3] = 0; // GEM
-    setup[4] = 1; // TOF-400
+    setup[4] = 0; // TOF-400
     setup[5] = 0; // TOF-700
     setup[6] = 0; // DCH
     setup[7] = 0; // ZDC
     setup[8] = 0; // ECAL
-    setup[9] = 1; // LAND
+    setup[9] = 0; // LAND
     decoder->SetDetectorSetup(setup);
     
     decoder->SetTrigMapping((decoder->GetBmnSetup() == kBMNSETUP) ? "Trig_map_Run6.txt" : "Trig_map_Run7_SRC.txt");

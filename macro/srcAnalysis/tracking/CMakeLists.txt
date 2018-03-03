@@ -31,3 +31,6 @@ link_directories(${LINK_DIRECTORIES})
 
 add_executable(track_arms track_arms.cpp SRCEvent.cpp)
 target_link_libraries(track_arms BmnData Silicon TOF1 UniDb Gem GlobalTracking KF Mwpc Dch ${ROOT_LIBRARIES} XMLParser Minuit Spectrum GenVector MathMore)
+
+add_executable(src_physics src_physics.cpp)
+target_link_libraries(src_physics ${ROOT_LIBRARIES} )

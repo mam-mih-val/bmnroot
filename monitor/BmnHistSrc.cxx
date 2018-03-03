@@ -23,7 +23,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
 
     for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 0 column - Time histograms from TDC by TQDC
         name = fTitle + "_" + trigNames[iRow].Data() + "_Leading_Time";
-        TH1F *h = new TH1F(name, name, 140, -7000, 7000);
+        TH1F *h = new TH1F(name, name, 1400, -7000, 7000);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("Time, ns");
@@ -35,7 +35,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     }
     for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 1 column - sampling summed
         name = fTitle + "_" + trigNames[iRow].Data() + "_QDC";
-        TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT, -ADC_SAMPLING_LIMIT, ADC_SAMPLING_LIMIT);
+        TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT*2/100, -ADC_SAMPLING_LIMIT, ADC_SAMPLING_LIMIT);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("QDC Channel, ");
@@ -47,7 +47,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     }
     for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 2 column - Time histograms from TDC
         name = fTitle + "_" + trigNames[iRow].Data() + "_Leading_Time(TDC)";
-        TH1F *h = new TH1F(name, name, 140, -7000, 7000);
+        TH1F *h = new TH1F(name, name, 1400, -7000, 7000);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("Time, ns");

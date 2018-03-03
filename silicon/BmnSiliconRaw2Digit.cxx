@@ -106,7 +106,7 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         BmnSiliconDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
         Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
-        Double_t threshold = 120 * vPedRMS[iSer][ch][iSmpl]; //50;//120;//160;
+        Double_t threshold = 120;// * vPedRMS[iSer][ch][iSmpl]; //50;//120;//160;
         if (sig < threshold || sig == 0.0) continue;
         new((*silicon)[silicon->GetEntriesFast()]) BmnSiliconDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }

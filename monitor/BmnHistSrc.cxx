@@ -143,11 +143,11 @@ void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
                 //    hists[iTrig][1]->Fill(sampling[iSmpl]);
             }
         }
-        if (cl == BmnTDCDigit::Class()) {
+        if (cl == BmnTrigDigit::Class()) {
             for (Int_t digIndex = 0; digIndex < (*trigAr)[iTrig]->GetEntriesFast(); digIndex++) {
                 BmnTDCDigit *td = (BmnTDCDigit*) (*trigAr)[iTrig]->At(digIndex);
                 Double_t time = td->GetValue();
-                hists[iTrig][2]->Fill(time);
+                hists[iTrig - fSrcRows][2]->Fill(time);
             }
         }
     }

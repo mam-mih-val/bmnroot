@@ -7,7 +7,7 @@ const hostname = '127.0.0.1';
 const port = 3000;
 
 var net = require('net');
-var dataHost = '10.18.11.32';
+var dataHost = '10.18.11.32';//'bmn-msc1.he.jinr.ru';//'10.18.10.26';//'10.18.11.32';
 var dataPort = 33306;
 var strBuf = '';
 var nbinsX = 8192;
@@ -15,9 +15,9 @@ var t = 0;
 var runs = 0;
 //var d3 = require('d3');
 //var jsdom = require('jsdom');
-var date = new Date();
-var htext = null;
-function makeHist(obj) {
+
+
+/*function makeHist(obj) {
     var time = new Date().getTime();
     var binCount = 8192;
     var width = 1280;
@@ -30,7 +30,7 @@ function makeHist(obj) {
     console.log('time spent = ', time);
     var docText = jsdom.serializeDocument(document);
     return docText;
-}
+}*/
 
 var client;
 var timeoutData;
@@ -83,7 +83,7 @@ function doParse() {
         var chunk = strQue.shift();
         strBuf += chunk;
         var str = chunk.toString();
-        console.log('   last ' + str[str.length - 1])
+        //console.log('   last ' + str[str.length - 1])
         //var regex = '([^\\n]+)\\n(.*)';
         if (str[str.length - 1] == '\n') {
             //console.log(strBuf);
@@ -95,9 +95,13 @@ function doParse() {
             if (hists.length >= 4)
             for (var i = 0; i < 4; i++) {
                 hists[i].fArray = obj.DAQ.histPlot['channel ' + (i + 1).toString()];
+                //hists[i].fArray['200'] = 1000;
+                hists[i].fArray.push(0);
+                //hists[i].fArray.unshift(0);
+
                 //console.log(hist.fArray);
             }
-            console.log(obj);
+            //console.log(obj);
             //console.log('parsed ' + obj.DAQ.histPlot.histogramStep)
             //console.log('parsed ' + obj.DAQ.histPlot["channel 1"])
             break;
@@ -111,8 +115,10 @@ function doParse() {
 var hists = [];
 for (var i = 0; i < 4; i++){
     var hist = jsroot.CreateHistogram('TH1I', nbinsX);
+    //his.
     hist.fName = 'Channel '+ (i+1);
     hist.fTitle = hist.fName;
+    hist.fEntries = 8193;
     hist.fXaxis.fTitle = 'Time';
     hist.fXaxis.fTitleColor = 810;
     hist.fXaxis.fLabelSize = 0.04;
@@ -134,7 +140,7 @@ for (var i = 0; i < 4; i++){
     var canv = jsroot.Create('TCanvas');
     //var hist = JSON.parse(strhis);
     conn();
-    timeoutData = setInterval(getData, 1000);
+    timeoutData = setInterval(getData, 220);
     timeoutParse = setTimeout(doParse, 100);
 
     const server = http.createServer((req, res) => {

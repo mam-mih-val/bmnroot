@@ -57,11 +57,12 @@ and open the template in the editor.
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
 
-                var filename = path + "ZDCCanvasAmplitudes" + "/root.json";
+                filename = path + "ZDCCanvasAmplitudes" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeTableC", obj, "");
                 }).send(null);
                 var refPath = path0 + "refList" + "/root.json";
+                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
                 FillRefSelector(refPath, "refSelector");
             }
             function SetRefRun() {
@@ -114,6 +115,9 @@ and open the template in the editor.
                     Select Reference Run
                 </button>
             </tb>
+                <tb>
+                    <select class="styleRefTable" id="refTable" onchange="makeSelection()">
+                </tb>
 
         </tr>
     </table>

@@ -68,11 +68,12 @@ and open the template in the editor.
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
                 var refPath = path0 + "refList" + "/root.json";
-                FillRefSelector(refPath, "refSelector");
                 var filename = path + "ToF700CanvasTimes" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeTableC", obj, "");
                 }).send(null);
+                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
+                FillRefSelector(refPath, "refSelector");
             }
             function SetRefRun() {
                 var runName = document.getElementById("refInput").value;
@@ -149,6 +150,9 @@ and open the template in the editor.
                     <button onclick="SetRefRun()" style="width: 20vw;height: 2vw;"> 
                         <h3> Select Reference Run</h3>
                     </button>
+                </th>
+                <th>
+                    <select class="styleRefTable" id="refTable" onchange="makeSelection()">
                 </th>
 
             </tr>

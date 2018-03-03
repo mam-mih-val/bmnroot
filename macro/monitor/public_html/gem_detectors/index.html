@@ -50,31 +50,6 @@ and open the template in the editor.
                 tc.src = "";
                 tc.src = temp;
             }
-            function createGemTable() {
-                var moduleCount = [1, 1, 1, 1, 2, 2, 2];
-                moduleCount.forEach(createGemRow);
-//                drawInfo();
-            }
-            function createGemRow(item, i, arr) {
-                var layerCount = [2, 4, 4, 4, 4, 4, 4];
-                var gd = document.getElementById("GEM_div");
-                var gtbl = document.createElement("table");
-                gtbl.name = "hist_table";
-                gd.appendChild(gtbl);
-                for (var iMod = 0; iMod < item; iMod++) {
-                    var tr = document.createElement('tr');
-                    for (var iLayer = 0; iLayer < layerCount[i]; iLayer++) {
-                        var td = document.createElement('td');
-                        var ifr = document.createElement("iframe");
-                        ifr.style = "width: 24vw;height: 18vw;";
-                        ifr.src = path + "GEM_Station_" + i + "_module_" + iMod + "_layer_" + iLayer;
-                        ifr.src += "/draw.htm?monitoring=2000";
-                        td.appendChild(ifr);
-                        tr.appendChild(td);
-                    }
-                    gtbl.appendChild(tr);
-                }
-            }
             function drawInfo() {
                 setTimeout(drawInfo, 10000);
 //                var infoFrame2 = document.getElementById("infoCan");
@@ -85,12 +60,13 @@ and open the template in the editor.
                 }).send(null);
 
                 var refPath = path0 + "refList" + "/root.json";
-                FillRefSelector(refPath, "refSelector");
 
-                var filename = path + "GEMCanvas" + "/root.json";
+                filename = path + "GEMCanvas" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("gemTableC", obj, "");
                 }).send(null);
+                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
+                FillRefSelector(refPath, "refSelector");
             }
             function SetRefRun() {
                 var runName = document.getElementById("refInput").value;
@@ -146,6 +122,9 @@ and open the template in the editor.
                 Select Reference Run
             </button>
         </tb>
+            <tb>
+                <select class="styleRefTable" id="refTable" onchange="makeSelection()">
+            </tb>
 
     </tr>
 </table>

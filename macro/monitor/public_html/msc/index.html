@@ -35,7 +35,7 @@ and open the template in the editor.
         <script type="text/javascript" src="../scripts/BMTools.js"></script>
         <script>
             function drawH() {
-                setTimeout(drawH, 4000);
+                setTimeout(drawH, 50);
                 var loco = window.location;
                 var path0 = loco.protocol + "//" + loco.hostname;
                 //var filename = "/msc2/root.app/infoCanvas/root.json";
@@ -67,7 +67,7 @@ and open the template in the editor.
                         let divid = 'msc_' + i;
                         JSROOT.NewHttpRequest(filename, 'object', function (obj2) {
                             try {
-                                JSROOT.redraw(divid, obj2, "");
+                                JSROOT.redraw(divid, obj2, "logx logy");
                             } catch (e) {
                                 alert(e);
                             }

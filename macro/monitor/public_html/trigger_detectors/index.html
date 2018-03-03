@@ -61,15 +61,16 @@ and open the template in the editor.
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
                 var refPath = path0 + "refList" + "/root.json";
-                FillRefSelector(refPath, "refSelector");
-                var filename = path + "TriggersCanvasTimesByChannel" + "/root.json";
+                filename = path + "TriggersCanvasTimesByChannel" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeChannelTableC", obj, "");
                 }).send(null);
-                var filename = path + "TriggersCanvasTimes" + "/root.json";
+                filename = path + "TriggersCanvasTimes" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeTableC", obj, "");
                 }).send(null);
+                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
+                FillRefSelector(refPath, "refSelector");
             }
             function SetRefRun() {
                 var runName = document.getElementById("refInput").value;
@@ -120,6 +121,9 @@ and open the template in the editor.
                     Select Reference Run
                 </button>
             </tb>
+                <tb>
+                    <select class="styleRefTable" id="refTable" onchange="makeSelection()">
+                </tb>
 
         </tr>
     </table>

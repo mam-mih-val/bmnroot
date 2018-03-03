@@ -53,12 +53,13 @@ and open the template in the editor.
                 }).send(null);
 
                 var refPath = path0 + "refList" + "/root.json";
-                FillRefSelector(refPath, "refSelector");
 
-                var filename = path + "LANDCanvas" + "/root.json";
+                filename = path + "LANDCanvas" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("SiliconTableC", obj, "");
                 }).send(null);
+                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
+                FillRefSelector(refPath, "refSelector");
             }
             function SetRefRun() {
                 var runName = document.getElementById("refInput").value;
@@ -114,6 +115,9 @@ and open the template in the editor.
                 Select Reference Run
             </button>
         </tb>
+            <tb>
+                <select class="styleRefTable" id="refTable" onchange="makeSelection()">
+            </tb>
 
     </tr>
 </table>

@@ -16,10 +16,12 @@ TQDC_Y2_Left    0           0x076D2E12        13          11
 TQDC_Y2_Right   0           0x076D2E12        13          12
 BC1             0           0x076D2E12        10	  23
 BC1             1           0x076D2E12        10          19
-BC2		0           0x076D2E12        10	  14
+BC2		0           0x076D2E12        10	   9
+BC2		1           0x076D2E12        10	  14
 BC3		0           0x076D2E12        10	  15
 BC3		1           0x076D2E12        10	  22
-BC4             0           0x076D2E12        10	  10
+BC4             0           0x076D2E12        10	   0
+BC4             1           0x076D2E12        10	  10
 VC		0           0x076D2E12        10	  18
 X1_Left		0	    0x076D2E12        10	  11
 X1_Right	0	    0x076D2E12        10	  11

@@ -136,7 +136,7 @@ void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
                 BmnTrigWaveDigit *tw = (BmnTrigWaveDigit*) (*trigAr)[iTrig]->At(digIndex);
                 //            Short_t module = tw->GetMod();
                 Double_t time = tw->GetTime();
-                hists[iTrig][1]->Fill(tw->GetIntegral());
+                hists[iTrig][1]->Fill(tw->GetPeak());
                 //UInt_t nSmpl = tw->GetNSamples();
                 //Short_t *sampling = tw->GetShortValue();
                 hists[iTrig][0]->Fill(time);

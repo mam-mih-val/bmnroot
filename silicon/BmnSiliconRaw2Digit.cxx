@@ -2,6 +2,7 @@
 
 BmnSiliconRaw2Digit::BmnSiliconRaw2Digit() {
     fEventId = -1;
+    fMapFileName = "";
 }
 
 BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer) : BmnAdcProcessor(period, run, "SILICON", ADC_N_CHANNELS, ADC128_N_SAMPLES, vSer) {

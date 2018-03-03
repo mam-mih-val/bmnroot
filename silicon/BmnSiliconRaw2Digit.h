@@ -35,9 +35,13 @@ public:
     virtual ~BmnSiliconRaw2Digit();
 
     BmnStatus FillEvent(TClonesArray *adc, TClonesArray *sts);
+    vector<UInt_t> GetSerials() {
+        return fSerials;
+    }
 
 private:
 
+    vector<UInt_t> fSerials;
     vector<BmnSiliconMapping> fMap;
     Int_t fEventId;
     TString fMapFileName;

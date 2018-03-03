@@ -44,7 +44,7 @@ struct BmnGemMap {
 
 class BmnGemRaw2Digit : public BmnAdcProcessor {
 public:
-    BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer);
+    BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, TString mapFileName);
     BmnGemRaw2Digit();
     ~BmnGemRaw2Digit();
 
@@ -58,8 +58,10 @@ private:
     BmnGemMap* fBigL1;
     BmnGemMap* fBigR0;
     BmnGemMap* fBigR1;
+    
+    TString fMapFileName;
 
-    GemMapStructure* fMap;
+    vector<GemMapStructure> fMap;
 
     void ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
     BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);

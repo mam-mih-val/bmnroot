@@ -215,7 +215,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fGemMap = NULL;
     fEvForPedestals = N_EV_FOR_PEDESTALS;
     fBmnSetup = kBMNSETUP;
-    InitMaps();
+    //    InitMaps();
 }
 
 BmnRawDataDecoder::~BmnRawDataDecoder() {
@@ -1128,7 +1128,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     if (fDetectorSetup[3]) {
         gem = new TClonesArray("BmnGemStripDigit");
         fDigiTree->Branch("GEM", &gem);
-        fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials);
+        fGemMapper = new BmnGemRaw2Digit(fPeriodId, fRunId, fGemSerials, fGemMapFileName);
     }
 
     if (fDetectorSetup[4]) {
@@ -1375,16 +1375,16 @@ BmnStatus BmnRawDataDecoder::CopyDataToPedMap(TClonesArray* adcGem, TClonesArray
             for (Int_t iSer = 0; iSer < fNSiliconSerials; ++iSer) {
                 //printf("iSer = %d     adcDig->GetSerial() =  %X     fSiliconSerials[iSer] = %X\n", iSer, adcDig->GetSerial(), fSiliconSerials[iSer]);
                 if (adcDig->GetSerial() == fSiliconSerials[iSer]) {
-                    for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl) {
-                        if (fRunId > GetBoundaryRun(ADC128_N_SAMPLES))
-                            pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetShortValue())[iSmpl] / 16;
+            for (UInt_t iSmpl = 0; iSmpl < adcDig->GetNSamples(); ++iSmpl) {
+                if (fRunId > GetBoundaryRun(ADC128_N_SAMPLES))
+                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetShortValue())[iSmpl] / 16;
                         else {
                             //printf("ser %d   n = %d\n", iSer, fNSiliconSerials);
-                            pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetUShortValue())[iSmpl] / 16;
-                        }
-                    }
+                    pedData[iSer][ev][adcDig->GetChannel()][iSmpl] = (Double_t) (adcDig->GetUShortValue())[iSmpl] / 16;
+            }
+        }
                     break;
-                }
+    }
             }
         }
     }
@@ -1617,43 +1617,78 @@ Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
 }
 
 BmnStatus BmnRawDataDecoder::InitMaps() {
-    Int_t fEntriesInGlobMap = 0;
-    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
-    if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);
+//    Int_t fEntriesInGlobMap = 0;
+//    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", fPeriodId, fRunId);
+//    if (mapPar != NULL) mapPar->GetGemMapArray(fGemMap, fEntriesInGlobMap);
+//
+//    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
+//        if (find(fGemSerials.begin(), fGemSerials.end(), fGemMap[i].serial) == fGemSerials.end())
+//            fGemSerials.push_back(fGemMap[i].serial);
+//    fNGemSerials = fGemSerials.size();
+    string dummy;
+    UInt_t ser = 0;
+    set<UInt_t> seials;
+    TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fGemMapFileName;
+    ifstream inFile(name.Data());
+    if (!inFile.is_open())
+        cout << "Error opening map-file (" << name << ")!" << endl;
+    for (Int_t i = 0; i < 5; ++i) getline(inFile, dummy); //comment line in input file
 
-    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
-        if (find(fGemSerials.begin(), fGemSerials.end(), fGemMap[i].serial) == fGemSerials.end())
-            fGemSerials.push_back(fGemMap[i].serial);
+    while (!inFile.eof()) {
+        inFile >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy;
+        if (!inFile.good()) break;
+        seials.insert(ser);
+    }
+    for (auto s : seials) fGemSerials.push_back(s);
     fNGemSerials = fGemSerials.size();
+    printf("fNGemSerials = %d\n", fNGemSerials);
 
-    //FIXME!!! Move all mappings into DB to exclude explicit numbers in future!
-    fSiliconSerials.push_back(0x611D0DA);
-    fSiliconSerials.push_back(0x4E993A5);
+    seials.clear();
+    name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fSiliconMapFileName;
+    ifstream inFileSil(name.Data());
+    if (!inFileSil.is_open())
+        cout << "Error opening map-file (" << name << ")!" << endl;
+    for (Int_t i = 0; i < 4; ++i) getline(inFileSil, dummy); //comment line in input file
+
+    while (!inFileSil.eof()) {
+        inFileSil >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
+        if (!inFileSil.good()) break;
+        seials.insert(ser);
+    }
+    for (auto s : seials) fSiliconSerials.push_back(s);
     fNSiliconSerials = fSiliconSerials.size();
 
     fZDCSerials.push_back(0x046f4083);
     fZDCSerials.push_back(0x046f4bb2);
     fNZDCSerials = fZDCSerials.size();
 
-    fECALSerials.push_back(0x07A8DEEE);
-    fECALSerials.push_back(0x07A92F52);
-    fECALSerials.push_back(0x07A8DEE2);
-    fECALSerials.push_back(0x07A8DFCA);
-    fECALSerials.push_back(0x07A8DED7);
-    fECALSerials.push_back(0x06E9E55A);
+    seials.clear();
+    name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fECALMapFileName;
+    ifstream inFileECAL(name.Data());
+    printf("ECal name = %s\n", name.Data());
+    if (!inFileECAL.is_open())
+        cout << "Error opening map-file (" << name << ")!" << endl;
+    for (Int_t i = 0; i < 2; ++i) getline(inFileECAL, dummy); //comment line in input file
+
+    while (!inFileECAL.eof()) {
+        inFileECAL >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy;
+        if (!inFileECAL.good()) break;
+        seials.insert(ser);
+    }
+    for (auto s : seials) fECALSerials.push_back(s);
     fNECALSerials = fECALSerials.size();
 
-    Int_t nEntries = 1;
-    if (mapPar != NULL) delete mapPar;
-    mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
-    if (mapPar != NULL) {
-        mapPar->GetTriggerMapArray(fT0Map, nEntries);
-        delete mapPar;
-        return kBMNSUCCESS;
-    } else {
-        cerr << "No TO map found in DB" << endl;
-        return kBMNERROR;
-    }
+//    Int_t nEntries = 1;
+//    if (mapPar != NULL) delete mapPar;
+//    mapPar = UniDbDetectorParameter::GetDetectorParameter("T0", "T0_global_mapping", fPeriodId, fRunId);
+//    if (mapPar != NULL) {
+//        mapPar->GetTriggerMapArray(fT0Map, nEntries);
+//        delete mapPar;
+//        return kBMNSUCCESS;
+//    } else {
+//        cerr << "No TO map found in DB" << endl;
+//        return kBMNERROR;
+//    }
 }
 
 BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {

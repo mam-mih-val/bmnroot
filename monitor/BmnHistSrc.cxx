@@ -1,4 +1,3 @@
-
 #include "BmnHistSrc.h"
 
 BmnHistSrc::BmnHistSrc(TString title, TString path) : BmnHist() {
@@ -36,7 +35,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     }
     for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 1 column - sampling summed
         name = fTitle + "_" + trigNames[iRow].Data() + "_QDC";
-        TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT, 0, ADC_SAMPLING_LIMIT);
+        TH1F *h = new TH1F(name, name, ADC_SAMPLING_LIMIT, -ADC_SAMPLING_LIMIT, ADC_SAMPLING_LIMIT);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("QDC Channel, ");

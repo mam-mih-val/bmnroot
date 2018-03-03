@@ -7,10 +7,18 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TVector3.h"
+#include "TLorentzVector.h"
 #include "TH1.h"
 #include "TH2.h"
 
 using namespace std;
+
+const double mP=0.938272;
+const double Ac12=12.;
+const double mC12 = 11.1770; // 12 * 931.494028
+const double Pbeam = 3.5 * Ac12; //GeV/c 
+const double Ebeam = sqrt(Pbeam*Pbeam + mC12 * mC12);
+const TLorentzVector protonAtRest(0.,0.,0.,mP);
 
 int main(int argc, char ** argv)
 {
@@ -59,6 +67,7 @@ int main(int argc, char ** argv)
   TFile * outfile = new TFile(argv[2],"RECREATE");
   TH2D * h2VertexProfileXY = new TH2D("vertexXY","Vertices;X [cm]; Y [cm]; Counts",100,-10.,10.,100,-10.,10.);
   TH2D * h2VertexProfileZY = new TH2D("vertexZY","Vertices;Z [cm]; Y [cm]; Counts",100,-50.,50.,100,-10.,10.);
+  TH2D * h2MandelstamTU = new TH2D("t_vs_u","Mandelstam Variables;t [GeV^2];u [GeV^2]Counts",100,-20.,20.,100,-20.,20.);
 
   for (int event=0 ; event <nEvents ; event++)
     {
@@ -74,14 +83,32 @@ int main(int argc, char ** argv)
       h2VertexProfileXY->Fill(vx,vy);
       h2VertexProfileZY->Fill(vz,vy);
 
+      // Figure out the Lorentz Boost based on the beam direction
+      TVector3 pBeam(beamMX,beamMY,1.);
+      pBeam.SetMag(Pbeam);
+      TLorentzVector vc12_ForReconstructions(pBeam, Ebeam);
+
+      // The lab frame proton momentum vectors
+      TLorentzVector p1Lab(pArmX[0],pArmY[0],pArmZ[0],sqrt(mP*mP + pArmX[0]*pArmX[0] + pArmY[0]*pArmY[0] + pArmZ[0]*pArmZ[0]));
+      TLorentzVector p2Lab(pArmX[1],pArmY[1],pArmZ[1],sqrt(mP*mP + pArmX[1]*pArmX[1] + pArmY[1]*pArmY[1] + pArmZ[1]*pArmZ[1]));
+
+      double t = (p2Lab - protonAtRest).Mag2();
+      double u = (p1Lab - protonAtRest).Mag2();
+      h2MandelstamTU->Fill(t,u);
       
-      
+      // The CM frame proton momentum vectors
+      TLorentzVector p1CM = p1Lab;
+      p1CM.Boost(-vc12_ForReconstructions.BoostVector());
+      TLorentzVector p2CM = p2Lab;
+      p2CM.Boost(-vc12_ForReconstructions.BoostVector());
+
     }
 
   infile->Close();
   outfile->cd();
   h2VertexProfileXY->Write();
   h2VertexProfileZY->Write();
+  h2MandelstamTU->Write();
   outfile->Close();
   
   return 0;

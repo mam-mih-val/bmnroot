@@ -1231,9 +1231,8 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
                 fPedEnough = kTRUE;
             }
         }
-        if ((fGemMapper) && (fPedEnough))
-            fGemMapper->FillEvent(adc32, gem);
-        if (fSiliconMapper) fSiliconMapper->FillEvent(adc128, silicon);
+        if ((fGemMapper) && (fPedEnough)) fGemMapper->FillEvent(adc32, gem);
+        if ((fSiliconMapper) && (fPedEnough)) fSiliconMapper->FillEvent(adc128, silicon);
         if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
         if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
         if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, tof400);
@@ -1247,6 +1246,17 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
     fPrevEventType = fCurEventType;
 
     return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::FinishRun() {
+    Double_t fSize = Double_t(fLengthRawFile / 1024. / 1024.);
+    fRunStartTime = runHeaderDAQ->GetStartTime();
+    fRunEndTime = runHeaderDAQ->GetFinishTime();
+    Int_t nEv = fNevents;
+    
+    if (!UniDbRun::GetRun(fPeriodId, fRunId))
+        UniDbRun::CreateRun(fPeriodId, fRunId, fRawFileName, "", NULL, NULL, fRunStartTime, &fRunEndTime, &nEv, NULL, &fSize, NULL);
+
 }
 
 void BmnRawDataDecoder::ResetDecoder(TString file) {

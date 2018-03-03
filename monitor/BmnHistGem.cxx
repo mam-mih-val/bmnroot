@@ -135,7 +135,6 @@ void BmnHistGem::FillFromDigi(DigiArrays *fDigiArrays) {
     TClonesArray * gemDigits = fDigiArrays->gem;
     if (!gemDigits)
         return;
-    printf("gemDigits->GetEntriesFast() %d\n", gemDigits->GetEntriesFast());
     for (Int_t digIndex = 0; digIndex < gemDigits->GetEntriesFast(); digIndex++) {
         BmnGemStripDigit* gs = (BmnGemStripDigit*) gemDigits->At(digIndex);
         Int_t module = gs->GetModule();

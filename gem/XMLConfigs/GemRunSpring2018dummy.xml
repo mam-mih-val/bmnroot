@@ -28,22 +28,6 @@
             <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
         </Module>
 
-        <!-- module 2 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
-        <!-- module 3 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
     </Station>
 
 <!-- Station 1 -->
@@ -58,22 +42,6 @@
         </Module>
 
         <!-- module 1 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
-        <!-- module 2 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
-        <!-- module 3 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
             <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
@@ -102,22 +70,6 @@
             <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
         </Module>
 
-        <!-- module 2 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
-        <!-- module 3 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
     </Station>
 
 <!-- Station 3 -->
@@ -132,22 +84,6 @@
         </Module>
 
         <!-- module 1 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
-        <!-- module 2 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
-        <!-- module 3 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
             <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
@@ -176,22 +112,6 @@
             <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
         </Module>
 
-        <!-- module 2 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
-        <!-- module 3 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
     </Station>
 
 <!-- Station 5 -->
@@ -206,22 +126,6 @@
         </Module>
 
         <!-- module 1 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
-        <!-- module 2 -->
-        <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
-            <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-            <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
-        </Module>
-
-        <!-- module 3 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
             <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
@@ -250,7 +154,12 @@
             <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
         </Module>
 
-        <!-- module 2 -->
+    </Station>
+
+<!-- Station 7 -->
+    <Station xPosition="-1.5" yPosition="-4.5" zPosition="32.7" beamHole="0.0">
+
+        <!-- module 0 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
             <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
@@ -258,7 +167,7 @@
             <Layer zoneNumber="1" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="15.0" ysize="10.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
         </Module>
 
-        <!-- module 3 -->
+        <!-- module 1 -->
         <Module xShift="0.0" yShift="0.0" zShift="0.0" driftDirection="forward" gap_drift_thick ="0.3" gap_ftransf_thick ="0.25" gap_stransf_thick ="0.2" gap_induct_thick ="0.15">
             <Layer zoneNumber="0" type="lower" stripAngle="0.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>
             <Layer zoneNumber="0" type="upper" stripAngle="15.0" pitch="0.08" xorig="33.0" yorig="-20.5" xsize="66.0" ysize="41.0" stripDirection="LeftToRight" lborder="LeftTop" rborder="RightBottom"></Layer>

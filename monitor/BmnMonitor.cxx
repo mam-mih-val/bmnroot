@@ -28,8 +28,8 @@ BmnMonitor::BmnMonitor() {
     itersToUpdate = 1000;
     TString name = "infoCanvas";
     infoCanvas = new TCanvas(name, name);
-//    refList = new TList();
-//    refList->SetName("refList");
+    refList = new TList();
+    refList->SetName("refList");
     refTable = new TList();
     refTable->SetName("refTable");
     fDigiArrays = NULL;
@@ -279,7 +279,7 @@ void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistLAND("LAND"));
 
     fServer->Register("/", infoCanvas);
-//    fServer->Register("/", refList);
+    fServer->Register("/", refList);
     fServer->Register("/", refTable);
     for (auto h : bhVec4show) {
         h->Register(fServer);

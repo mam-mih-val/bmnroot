@@ -104,7 +104,7 @@ private:
     vector < BmnHist* > bhVec4show;
     
     TCanvas *infoCanvas;
-//    TList *refList;
+    TList *refList;
     TList *refTable;
     BmnRunInfo *CurRun;
 

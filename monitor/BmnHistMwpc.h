@@ -31,10 +31,12 @@
 #include "BmnMwpcDigit.h"
 #include "BmnEventHeader.h"
 
-#define MWPC_PLANES 12
+//#define MWPC_PLANES 12
+#define MWPC_STATIONS 4
+#define MWPC_MODS 6
 #define MWPC_WIRES 96
-#define MWPC_ROWS    4
-#define MWPC_COLS    (MWPC_PLANES/MWPC_ROWS)
+//#define MWPC_ROWS    4
+//#define MWPC_COLS    (MWPC_PLANES/MWPC_ROWS)
 
 class BmnHistMwpc : public BmnHist {
 public:
@@ -51,8 +53,10 @@ public:
 private:
     vector<TString> NamesWires;
     vector<TString> NamesTimes;
-    TH1F * h_wires[MWPC_PLANES];
-    TH1F * h_times[MWPC_PLANES];
+//    TH1F * h_wires[MWPC_PLANES];
+//    TH1F * h_times[MWPC_PLANES];
+    vector<vector<TH1F* > > h_wires;
+    vector<vector<TH1F* > > h_times;
     TClonesArray* MwpcHits;
     TH2F* h_MWPC0;
     TH2F* h_MWPC1;

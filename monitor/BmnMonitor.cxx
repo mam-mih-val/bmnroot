@@ -235,7 +235,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     for (auto h : bhVec4show)
         if (h)
             h->FillFromDigi(fDigiArrays);
-    fRecoTree4Show->Fill();
+    //fRecoTree4Show->Fill();
     if (fEvents % 200 == 0) {
         // print info canvas //
         infoCanvas->Clear();

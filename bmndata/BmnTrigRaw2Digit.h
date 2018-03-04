@@ -55,9 +55,13 @@ public:
         return &trigArrays;
     }
     
-    BmnTrigMapping GetT0Map(){
+    BmnTrigMapping GetT0Map(){        
         for (BmnTrigMapping tM : fMap){
             if (tM.name == "T0")
+                return tM;
+        }
+        for (BmnTrigMapping tM : fMap){
+            if (tM.name == "BC2")
                 return tM;
         }
         BmnTrigMapping tMno;

@@ -350,17 +350,18 @@ void BmnMonitor::FinishRun() {
     for (auto h : bhVec)
         if (h) delete h;
     bhVec.clear();
-    if (fRecoTree4Show)
-        printf("fRecoTree4Show Write result = %d\n", fRecoTree4Show->Write());
-    if (fHistOutTemp) {
-        printf("fHistOutMem Write result = %d\n", fHistOutTemp->Write());
-        for (auto h : bhVec4show)
-            h->SetDir(NULL, NULL);
-        printf("SetDir\n");
-        fHistOutTemp->Close();
-        printf("fHistOutMem closed\n");
-        fHistOutTemp = NULL;
-    }
+//    if (fRecoTree4Show){
+//        printf("fRecoTree4Show Write result = %d\n", fRecoTree4Show->Write());
+//    }
+//    if (fHistOutTemp) {
+//        printf("fHistOutMem Write result = %d\n", fHistOutTemp->Write());
+//        for (auto h : bhVec4show)
+//            h->SetDir(NULL, NULL);
+//        printf("SetDir\n");
+//        fHistOutTemp->Close();
+//        printf("fHistOutMem closed\n");
+//        fHistOutTemp = NULL;
+//    }
 }
 
 TObjArray* BmnMonitor::GetAlikeRunsByElog(Int_t periodID, Int_t runID) {

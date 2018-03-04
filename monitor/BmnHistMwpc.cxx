@@ -46,7 +46,7 @@ BmnHistMwpc::BmnHistMwpc(TString title) : BmnHist() {
         vector<TH1F*> row;
         vector<TH1F*> rowTimes;
         for (Int_t iStation = 0; iStation < MWPC_STATIONS; iStation++) {
-            name = Form(fTitle + "Wires_Station_%d_module_%d", iModule, iStation);
+            name = Form(fTitle + "Wires_Station_%d_module_%d", iStation, iModule);
             TH1F *h = new TH1F(name, name, MWPC_WIRES, 0, MWPC_WIRES);
             h->SetTitleSize(0.06, "XY");
             h->SetLabelSize(0.08, "XY");

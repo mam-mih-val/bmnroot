@@ -292,23 +292,23 @@ void BmnMonitor::RegisterAll() {
 }
 
 void BmnMonitor::UpdateRuns() {
-    struct dirent **namelist;
-    TPRegexp re(".*bmn_run0*(\\d+)_hist.root");
-    Int_t n;
-    refList->Clear();
-    n = scandir(_refDir, &namelist, 0, versionsort);
-    if (n < 0)
-        perror("scandir");
-    else {
-        for (Int_t i = 0; i < n; ++i) {
-            TObjArray *subStr = re.MatchS(namelist[i]->d_name);
-            if (subStr->GetEntriesFast() > 1)
-                refList->Add((TObjString*) subStr->At(1));
-            free(namelist[i]);
-            subStr->Clear();
-        }
-        free(namelist);
-    }
+//    struct dirent **namelist;
+//    TPRegexp re(".*bmn_run0*(\\d+)_hist.root");
+//    Int_t n;
+//    refList->Clear();
+//    n = scandir(_refDir, &namelist, 0, versionsort);
+//    if (n < 0)
+//        perror("scandir");
+//    else {
+//        for (Int_t i = 0; i < n; ++i) {
+//            TObjArray *subStr = re.MatchS(namelist[i]->d_name);
+//            if (subStr->GetEntriesFast() > 1)
+//                refList->Add((TObjString*) subStr->At(1));
+//            free(namelist[i]);
+//            subStr->Clear();
+//        }
+//        free(namelist);
+//    }
 
     TObjArray* refRuns = BmnMonitor::GetAlikeRunsByUniDB(fPeriodID, fRunID);
     if (refRuns == NULL) {

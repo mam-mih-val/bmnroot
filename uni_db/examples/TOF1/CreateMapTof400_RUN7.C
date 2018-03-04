@@ -16,7 +16,7 @@ void CreateMapTof400_RUN7(std::string placementMapFile = "TOF400_PlaceMap_RUN7.t
     //Int_t MapR[24] = {21, 0, 15, 18, 20, 23, 14, 17, 19, 22, 13, 16, 6, 3, 12, 9, 5, 2, 11, 8, 4, 1, 10, 7};
 
     //UInt_t crate = 0x01690454;
-    UInt_t crate = 0x07a8de99;
+    UInt_t crate = 0x06ea9711;
     static const Int_t kNSlot = 23;
     UInt_t slot[kNSlot] = {0.};
     slot[1] = 0x076cad53;
@@ -122,7 +122,7 @@ void CreateMapTof400_RUN7(std::string placementMapFile = "TOF400_PlaceMap_RUN7.t
     ffStrip.close();
     // 
 
-    crate = 0x076d4265;
+    crate = 0x76d3027;
     slot[1] = 0x076ccf6e;
     slot[2] = 0x06e9da91;
     slot[3] = 0x076caef6;

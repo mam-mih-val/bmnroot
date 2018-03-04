@@ -301,7 +301,7 @@ void BmnMonitor::UpdateRuns() {
             if (subStr->GetEntriesFast() > 1)
                 refList->Add((TObjString*) subStr->At(1));
             free(namelist[i]);
-            subStr->Clear("C");
+            subStr->Clear();
         }
         free(namelist);
     }

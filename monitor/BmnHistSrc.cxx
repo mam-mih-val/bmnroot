@@ -23,7 +23,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
 
     for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 0 column - Time histograms from TDC by TQDC
         name = fTitle + "_" + trigNames[iRow].Data() + "_Leading_Time";
-        TH1F *h = new TH1F(name, name, 1400, -7000, 7000);
+        TH1F *h = new TH1F(name, name, 1400, -1000, 2000);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("Time, ns");
@@ -47,7 +47,7 @@ void BmnHistSrc::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     }
     for (Int_t iRow = 0; iRow < fSrcRows; iRow++) { // 2 column - Time histograms from TDC
         name = fTitle + "_" + trigNames[iRow].Data() + "_Leading_Time(TDC)";
-        TH1F *h = new TH1F(name, name, 1400, -7000, 7000);
+        TH1F *h = new TH1F(name, name, 1400, -1000, 2000);
         h->SetTitleSize(0.06, "XY");
         h->SetLabelSize(0.08, "XY");
         h->GetXaxis()->SetTitle("Time, ns");
@@ -145,8 +145,8 @@ void BmnHistSrc::FillFromDigi(DigiArrays *fDigiArrays) {
         }
         if (cl == BmnTrigDigit::Class()) {
             for (Int_t digIndex = 0; digIndex < (*trigAr)[iTrig]->GetEntriesFast(); digIndex++) {
-                BmnTDCDigit *td = (BmnTDCDigit*) (*trigAr)[iTrig]->At(digIndex);
-                Double_t time = td->GetValue();
+                BmnTrigDigit *td = (BmnTrigDigit*) (*trigAr)[iTrig]->At(digIndex);
+                Double_t time = td->GetTime();
                 hists[iTrig - fSrcRows][2]->Fill(time);
             }
         }

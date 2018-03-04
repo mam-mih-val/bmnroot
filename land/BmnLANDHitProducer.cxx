@@ -117,7 +117,7 @@ void 		BmnLANDHitProducer::Exec(Option_t* opt) {
 
 	float dPlane=10.; //spacing bwt planes tmp
 	
-	if (nT0Digits == 1) //{  T0 digit should exist and only be len 1
+	//if (nT0Digits == 1) //{  T0 digit should exist and only be len 1
 		BmnTrigDigit* digT0 = (BmnTrigDigit*) aExpDigitsT0->At(0);
 
 		for (Int_t iDig = 0; iDig < aExpDigits->GetEntriesFast(); ++iDig) {

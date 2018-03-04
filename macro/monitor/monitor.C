@@ -1,4 +1,4 @@
-#include "../run/bmnloadlibs.C"
+#include "/home/ilnur/bmnroot/macro/run/bmnloadlibs.C"
 void monitor(Int_t periodID = 7, TString dirName = "/bmn/test/mon/", TString refDir = "/bmn/test/mon/", TString decoAddr = "localhost") {
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");

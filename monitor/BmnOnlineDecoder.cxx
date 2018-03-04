@@ -70,12 +70,12 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
-    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
+    rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN7.txt", "TOF400_StripMap_RUN7.txt");
     rawDataDecoder->SetTof700Mapping("TOF700_map_period_6.txt");
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
-    rawDataDecoder->SetECALMapping("ECAL_map_period_5.txt");
+    rawDataDecoder->SetECALMapping("ECAL_map_period_7.txt");
     rawDataDecoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
     rawDataDecoder->SetLANDPedestal("r0030_land_clock.hh");
     rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");

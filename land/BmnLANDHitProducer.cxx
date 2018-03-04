@@ -117,7 +117,7 @@ void 		BmnLANDHitProducer::Exec(Option_t* opt) {
 
 	float dPlane=10.; //spacing bwt planes tmp
 	
-	//if (nT0Digits == 1) //{  T0 digit should exist and only be len 1
+	if (nT0Digits == 1) //{  T0 digit should exist and only be len 1
 		BmnTrigDigit* digT0 = (BmnTrigDigit*) aExpDigitsT0->At(0);
 
 		for (Int_t iDig = 0; iDig < aExpDigits->GetEntriesFast(); ++iDig) {
@@ -149,8 +149,8 @@ void 		BmnLANDHitProducer::Exec(Option_t* opt) {
     			BmnLANDHit *pHit = new ((*aLandHits)[aLandHits->GetEntriesFast()]) BmnLANDHit(digLand->GetPlane(), digLand->GetBar(), poslab, dpos,digLand->GetTime(), digLand->GetEnergy());
 		
 			// TODO: apply slewing correction for T0 time
-			//pHit->SetTimeStamp(digLand->GetTime()-digT0->GetTime());
-			pHit->SetTimeStamp(digLand->GetTime());
+			pHit->SetTimeStamp(digLand->GetTime()-digT0->GetTime());
+			//pHit->SetTimeStamp(digLand->GetTime());
 			pHit->SetEnergy(digLand->GetEnergy());
 			}
 		

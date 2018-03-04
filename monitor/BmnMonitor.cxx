@@ -263,6 +263,9 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         infoCanvas->Update();
         for (auto h : bhVec4show)
             h->DrawBoth();
+        if (fEvents % 2000 == 0)
+            if (refTable->GetEntries() == 0)
+                UpdateRuns();
     }
 }
 
@@ -280,7 +283,7 @@ void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistLAND("LAND"));
 
     fServer->Register("/", infoCanvas);
-    fServer->Register("/", refList);
+    //fServer->Register("/", refList);
     fServer->Register("/", refTable);
     for (auto h : bhVec4show) {
         h->Register(fServer);

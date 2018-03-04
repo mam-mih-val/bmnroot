@@ -74,7 +74,6 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     rawDataDecoder->SetTof700Mapping("TOF700_map_period_6.txt");
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
-    rawDataDecoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
     rawDataDecoder->SetECALMapping("ECAL_map_period_7.txt");
     rawDataDecoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
     rawDataDecoder->SetLANDPedestal("r0030_land_clock.hh");
@@ -86,6 +85,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
     rawDataDecoder->SetTrigMapping(TString("Trig_map_Run") + PeriodSetupExt);
     rawDataDecoder->SetSiliconMapping("SILICON_map_run7.txt");
     rawDataDecoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
+    rawDataDecoder->SetMwpcMapping(TString("MWPC_map_period") + PeriodSetupExt);
     rawDataDecoder->InitMaps();
     rawDataDecoder->InitConverter(fRawFileName);
     return rawDataDecoder->InitDecoder();

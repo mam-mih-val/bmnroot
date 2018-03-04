@@ -177,7 +177,6 @@ void BmnHistMwpc::FillFromDigi(DigiArrays *fDigiArrays) {
         Int_t plane = dig->GetPlane();
         h_wires[plane][station]->Fill(dig->GetWireNumber());
         h_times[plane][station]->Fill(dig->GetTime());
-            printf("plane %d  station %d\n", plane, station);
     }
 //    for (Int_t iHit = 0; iHit < MwpcHits->GetEntriesFast(); ++iHit) {
 //        BmnMwpcHit* hit = (BmnMwpcHit*) MwpcHits->At(iHit);

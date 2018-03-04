@@ -189,7 +189,7 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     //        delete fRecoTree4Show;
     //        fRecoTree4Show = NULL;
     //    }
-    fHistOutTemp = new TFile("tempo.root", "recreate");
+//    fHistOutTemp = new TFile("tempo.root", "recreate");
     if (fHistOutTemp)
         printf("file tempo.root created\n");
     fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
@@ -211,7 +211,8 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
         h->SetDir(fHistOut, fRecoTree);
     }
     for (auto h : bhVec4show) {
-        h->SetDir(fHistOutTemp, fRecoTree4Show);
+//        h->SetDir(fHistOutTemp, fRecoTree4Show);
+        h->SetDir(NULL, NULL);
         h->ClearRefRun();
         h->Reset();
     }
@@ -355,7 +356,9 @@ void BmnMonitor::FinishRun() {
         printf("fHistOutMem Write result = %d\n", fHistOutTemp->Write());
         for (auto h : bhVec4show)
             h->SetDir(NULL, NULL);
+        printf("SetDir\n");
         fHistOutTemp->Close();
+        printf("fHistOutMem closed\n");
         fHistOutTemp = NULL;
     }
 }

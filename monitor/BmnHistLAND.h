@@ -29,8 +29,10 @@
 #include "BmnHist.h"
 #include "BmnLANDDigit.h"
 #define BAR_COUNT   120
-#define TOF_MIN    -100
-#define TOF_MAX     100
+#define TOF_MIN    -200
+#define TOF_MAX     200
+#define Q_MAX      4000
+#define T_MAX      4000
 #define CANVAS_ROWS   3
 #define CANVAS_COLS   2
 

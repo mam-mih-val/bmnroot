@@ -432,6 +432,7 @@ void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
       tacquila->SetTDiff(*c17);
       t0->SetT0(*tacquila);
       // TODO: Where to do slewing/walk correction?
+      // Looks like T0 has no walk in Tacquila?
       continue;
     }
     auto const &det = m_tacq2det[gtb_i][module_i][channel_i];
@@ -454,11 +455,10 @@ void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
       auto const &tacquila0 = *m_builder[det.plane][det.bar][0];
       auto const &tacquila1 = *m_builder[det.plane][det.bar][1];
       auto const &diff_sync = m_diff_sync[det.plane][det.bar];
-      // TODO : add slewing correction
       Float_t time0 = tacquila0.GetTDiff() + diff_sync.time_diff -
-	diff_sync.time_sync;
+	diff_sync.time_sync + GetWalk(tacquila0.GetQdc());
       Float_t time1 = tacquila1.GetTDiff() - diff_sync.time_diff -
-	diff_sync.time_sync;
+	diff_sync.time_sync + GetWalk(tacquila0.GetQdc());
       Float_t energy0 = (tacquila0.GetQdc() - m_ped[det.plane][det.bar][0].ped)
 	* diff_sync.energy_diff0 * diff_sync.energy_sync;
       Float_t energy1 = (tacquila1.GetQdc() - m_ped[det.plane][det.bar][1].ped)
@@ -470,6 +470,14 @@ void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
 	  position);
     }
   }
+}
+
+// Fitted walk-curve to all LAND PMT:s.
+Double_t BmnLANDRaw2Digit::GetWalk(Double_t a_qdc) const
+{
+  Double_t p1 = 1500;    // +-0.2238
+  Double_t p2 = 0.00075; // +-2.355e-5
+  return p1 * pow(a_qdc, p2) - (p1 * pow(400, p2));
 }
 
 void BmnLANDRaw2Digit::SetTCal(BmnTacquilaDigit &a_tacquila)

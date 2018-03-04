@@ -12,14 +12,19 @@ BmnMwpcRaw2Digit::BmnMwpcRaw2Digit(TString mapName) {
 
     TString dummy;
     UInt_t ser;
-    UInt_t plane;
+    Short_t station;
+    Short_t plane;
 
-    fMapFile >> dummy >> dummy;
+    fMapFile >> dummy >> dummy >> dummy;
     fMapFile >> dummy;
     while (!fMapFile.eof()) {
-        fMapFile >> dec >> plane >> hex >> ser;
+        fMapFile >> hex >> ser >> dec >> station >> plane;
         if (!fMapFile.good()) break;
-        mapping.insert(pair<UInt_t, UInt_t>(ser, plane));
+        BmnMwpcMapping record;
+        record.serial = ser;
+        record.station = station;
+        record.plane = plane;
+        fMap.push_back(record);
     }
     fMapFile.close();
     //==================================================//
@@ -28,11 +33,14 @@ BmnMwpcRaw2Digit::BmnMwpcRaw2Digit(TString mapName) {
 
 void BmnMwpcRaw2Digit::FillEvent(TClonesArray *hrb, TClonesArray *mwpc) {
 
-    for (Int_t iDig = 0; iDig < hrb->GetEntriesFast(); ++iDig) {        
+    for (Int_t iDig = 0; iDig < hrb->GetEntriesFast(); ++iDig) {
         BmnHRBDigit *dig = (BmnHRBDigit*) hrb->At(iDig);
-        map<UInt_t, UInt_t>::iterator it = mapping.find(dig->GetSerial());
-        if (it == mapping.end()) continue;
-        new((*mwpc)[mwpc->GetEntriesFast()]) BmnMwpcDigit(it->second, dig->GetChannel(), dig->GetSample() * 8); // dig->GetSample() * 8 -- convert to ns
+        for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
+            BmnMwpcMapping tM = fMap[iMap];
+            if (dig->GetSerial() == tM.serial) {
+                new((*mwpc)[mwpc->GetEntriesFast()]) BmnMwpcDigit(tM.station, tM.plane, dig->GetChannel(), dig->GetSample() * 8); // dig->GetSample() * 8 -- convert to ns
+            }
+        }
     }
 }
 

@@ -19,15 +19,15 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     Bool_t setup[10]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
-    setup[1] = 0; // MWPC
-    setup[2] = 0; // SILICON
-    setup[3] = 0; // GEM
-    setup[4] = 0; // TOF-400
-    setup[5] = 0; // TOF-700
-    setup[6] = 0; // DCH
-    setup[7] = 0; // ZDC
-    setup[8] = 0; // ECAL
-    setup[9] = 0; // LAND
+    setup[1] = 1; // MWPC
+    setup[2] = 1; // SILICON
+    setup[3] = 1; // GEM
+    setup[4] = 1; // TOF-400
+    setup[5] = 1; // TOF-700
+    setup[6] = 1; // DCH
+    setup[7] = 1; // ZDC
+    setup[8] = 1; // ECAL
+    setup[9] = 1; // LAND
     decoder->SetDetectorSetup(setup);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
@@ -37,13 +37,13 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     decoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
     // in case comment out the line decoder->SetTof400Mapping("...")  
     // the maps of TOF400 will be read from DB (only for JINR network)
-    decoder->SetTof400Mapping("TOF400_PlaceMap_RUN6.txt", "TOF400_StripMap_RUN6.txt");
+    decoder->SetTof400Mapping("TOF400_PlaceMap_RUN7.txt", "TOF400_StripMap_RUN7.txt");
     decoder->SetTof700Mapping("TOF700_map_period_6.txt");
     decoder->SetZDCMapping("ZDC_map_period_5.txt");
     decoder->SetZDCCalibration("zdc_muon_calibration.txt");
     decoder->SetECALMapping("ECAL_map_period_5.txt");
     decoder->SetECALCalibration("");
-    decoder->SetMwpcMapping("MWPC_mapping_period_5.txt");
+    decoder->SetMwpcMapping(TString("MWPC_map_period") + PeriodSetupExt);
     decoder->SetLANDMapping("land_mapping_jinr_triplex.txt");
     decoder->SetLANDPedestal("r0030_land_clock.hh");
     decoder->SetLANDTCal("r0030_land_tcal.hh");

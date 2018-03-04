@@ -17,13 +17,20 @@
 
 #define N_WIRES_MWPC 96
 
+struct BmnMwpcMapping {
+    UInt_t serial;
+    Short_t station;
+    Short_t plane;
+};
+
 class BmnMwpcRaw2Digit {
 
 private:
     
     TString fMapFileName;
     ifstream fMapFile;
-    map<UInt_t, UInt_t> mapping;
+    
+    vector<BmnMwpcMapping> fMap;
 
 public:
     BmnMwpcRaw2Digit(TString mapName);

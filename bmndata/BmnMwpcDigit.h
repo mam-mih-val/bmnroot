@@ -20,17 +20,18 @@ public:
     BmnMwpcDigit();
 
     /** Constructor to use **/
-    BmnMwpcDigit(UInt_t iPlane, UInt_t iWire, UInt_t iTime, Int_t refId);
-    BmnMwpcDigit(UInt_t iPlane, UInt_t iWire, UInt_t iTime);
+    BmnMwpcDigit(Short_t iStation, Short_t iPlane, Int_t iWire, UInt_t iTime);
 
-    UInt_t  GetPlane() const {return fPlane;}
-    UInt_t  GetWireNumber() const {return fWire;}
+    Short_t  GetStation() const {return fStation;}
+    Short_t  GetPlane() const {return fPlane;}
+    Int_t  GetWireNumber() const {return fWire;}
     UInt_t  GetTime() const {return fTime;}
     Int_t  GetRefId() const {return fRef;}
     Int_t  IsUsed() const {return fUse;}
 
-    void SetPlane(UInt_t _tmp) {fPlane = _tmp;}
-    void SetWireNumber(UInt_t _tmp) {fWire = _tmp;}
+    void SetStation(Short_t _tmp) {fStation = _tmp;}
+    void SetPlane(Short_t _tmp) {fPlane = _tmp;}
+    void SetWireNumber(Int_t _tmp) {fWire = _tmp;}
     void SetTime(UInt_t _tmp) {fTime = _tmp;}
     void SetRefId(Int_t _tmp) {fRef = _tmp;}
     void SetUsing(Bool_t _tmp) {fUse = _tmp;}
@@ -40,8 +41,9 @@ public:
 
 private:
 
-    UInt_t fPlane;
-    UInt_t fWire;
+    Short_t fStation;
+    Short_t fPlane;
+    Int_t fWire;
     UInt_t fTime; //ns
     Int_t   fRef;
     Bool_t  fUse;

@@ -136,6 +136,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
             if (nearestDig != NULL) {
                 Double_t tL = (tdcDig1->GetValue() + fINLTable[rChannel1][tdcDig1->GetValue() % 1024]) * 24.0 / 1024;
                 Double_t tT = (nearestDig->GetValue() + fINLTable[rChannel1][nearestDig->GetValue() % 1024]) * 24.0 / 1024;
+//                printf("OK:   tT = %f    tL = %f\n", tT, tL);
                 new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
             }
         }

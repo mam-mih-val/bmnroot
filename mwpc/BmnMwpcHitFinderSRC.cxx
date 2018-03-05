@@ -37,6 +37,7 @@ BmnMwpcHitFinderSRC::BmnMwpcHitFinderSRC(Bool_t isExp) :
   nInputDigits = 3;
   nTimeSamples = 3;
   kBig = 100;
+  fPeriodNum = 6;
   }
 
 BmnMwpcHitFinderSRC::~BmnMwpcHitFinderSRC() {
@@ -65,7 +66,7 @@ InitStatus BmnMwpcHitFinderSRC::Init() {
   fBmnMwpcTracksArray = new TClonesArray(fOutputBranchName2);
   ioman->Register(fOutputBranchName2.Data(), "MWPC", fBmnMwpcTracksArray, kTRUE);
 
-  fMwpcGeometry = new BmnMwpcGeometry();
+  fMwpcGeometry = new BmnMwpcGeometrySRC(6);
   kNChambers = fMwpcGeometry->GetNChambers();
   kNPlanes = fMwpcGeometry->GetNPlanes(); // 6
   kNWires = fMwpcGeometry->GetNWires();
@@ -125,7 +126,7 @@ InitStatus BmnMwpcHitFinderSRC::Init() {
   dX_i2 = new Float_t[kNPlanes];
   z2 = new Float_t[kNPlanes];
 
-  kPln = new Int_t[kNPlanes * kNChambers];
+  kPln = new Int_t*[kNChambers];
   iw = new Int_t[kNPlanes * kNChambers];
   iw_Ch1 = new Int_t[kNPlanes];
   iw_Ch2 = new Int_t[kNPlanes];
@@ -157,6 +158,7 @@ InitStatus BmnMwpcHitFinderSRC::Init() {
     par_ab_Ch1_2[ii] = new Double_t[5];
     matrA[ii] = new Double_t[4];
     matrb[ii] = new Double_t[4];         
+    kPln[ii] = new Int_t[kNPlanes];
   }
 
   Wires_Ch1 = new Int_t*[kNPlanes];
@@ -192,7 +194,7 @@ InitStatus BmnMwpcHitFinderSRC::Init() {
     //  Ch :                     1                                    2
     //                      v+  u-  x-  v-  u+  x+         v+  u-  x-   v-  u+  x+
     //    kPln[12] =      {  4,  5,  0,  1,  2,  3,         7, 11,  6,  10,  8,  9 };  //run6-II   r.1397-last
-    kPln[0] = 4;
+    /*    kPln[0] = 4;
     kPln[1] = 5;
     kPln[2] = 0;
     kPln[3] = 1;
@@ -205,11 +207,49 @@ InitStatus BmnMwpcHitFinderSRC::Init() {
     kPln[9] = 10;
     kPln[10] = 8;
     kPln[11] = 9;
-    
+    */
     //                           x-    v-    u+    x+    v+    u-   // canonical order
     //    kZ1_loc[6] = {-0.5,  0.5,  1.5,  2.5, -2.5, -1.5}; //cm   run5  
     //    kZ2_loc[6] = {-0.5,  0.5,  1.5,  2.5, -2.5, -1.5}; //cm   run5, run6
+
+    for(Int_t i=0; i<4; i++){
+      for(Int_t j=0; j<6; j++){
+	if(fPeriodNum == 6){
+	  kPln[0][0] = 4;
+	  kPln[0][1] = 5;
+	  kPln[0][2] = 0;
+	  kPln[0][3] = 1;
+	  kPln[0][4] = 2;
+	  kPln[0][5] = 3;//{4,5,0,1,2,3,  7,11,6,10,9,8,  0,0,0,0,0,0,  0,0,0,0,0,0};
+	
+	  kPln[1][0] = 7;
+	  kPln[1][1] = 11;
+	  kPln[1][2] = 6;
+	  kPln[1][3] = 10;
+	  kPln[1][4] = 9;
+	  kPln[1][5] = 8;//{4,5,0,1,2,3,  7,11,6,10,9,8,  0,0,0,0,0,0,  0,0,0,0,0,0};
+	}
+	if(fPeriodNum == 7){
+	  kPln[0][0] = 4;
+	  kPln[0][1] = 5;
+	  kPln[0][2] = 0;
+	  kPln[0][3] = 1;
+	  kPln[0][4] = 2;
+	  kPln[0][5] = 3;//{4,5,0,1,2,3,  7,11,6,10,9,8,  0,0,0,0,0,0,  0,0,0,0,0,0};
+
+	  kPln[1][0] = 7;
+	  kPln[1][1] = 11;
+	  kPln[1][2] = 6;
+	  kPln[1][3] = 10;
+	  kPln[1][4] = 9;
+	  kPln[1][5] = 8;//{4,5,0,1,2,3,  7,11,6,10,9,8,  0,0,0,0,0,0,  0,0,0,0,0,0};
+	}
+      }
+    }
+
     
+    //    kPln = fMwpcGeometry->GetKpl();
+
     for(int ii=0; ii<6; ii++){
       kZ1_loc[ii] = -0.5 + ii;
       kZ2_loc[ii] = -0.5 + ii;
@@ -370,7 +410,7 @@ void BmnMwpcHitFinderSRC::Exec(Option_t* opt) {
       //  cout<<"++++++++"<<endl;
       //  cout<<"wn = "<<wn<<", pl = "<<pl<<", ts = "<<ts<<endl;
 	// digits[digit->GetPlane() / kNPlanes][digit->GetPlane() % kNPlanes].push_back(digit);
-      pn = kPln[pl];
+      //      pn = kPln[pl];
 
       Bool_t repeat = 0;
       Int_t pn0 = 6;

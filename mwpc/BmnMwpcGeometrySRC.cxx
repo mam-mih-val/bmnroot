@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "BmnMwpcGeometrySRC.h"
 
-BmnMwpcGeometrySRC::BmnMwpcGeometrySRC() :
+BmnMwpcGeometrySRC::BmnMwpcGeometrySRC(Int_t periodNum) :
 fDebug(kFALSE) {
     fNChambers = 4;
     fNPlanes = 6;
@@ -40,6 +40,7 @@ fDebug(kFALSE) {
                          1 2 3 4 5 6                                              1 2 3 4 5 6
     
      */
+
 
     zLeft[3] = fGlobalZdiff + 418.6; //zRight[1] - fChamberWidth;
     zRight[3] = zLeft[3] + fChamberWidth;

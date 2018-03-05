@@ -149,7 +149,7 @@ class UniDbRun
 	/// get geometry binary data (geometry file's data) for selected run number
     static int GetRootGeometry(int period_number, int run_number, unsigned char*& root_geometry, Long_t& size_root_geometry);
 	/// write geometry file for runs from start_run_number to end_run_number to the database
-    static int WriteGeometryFile(int start_period, int start_run, int end_period, int end_run, char* geo_file_path);
+    static int WriteGeometryFile(int start_period, int start_run, int end_period, int end_run, const char* geo_file_path);
 	/// read geometry file for selected run number from the database
     static int ReadGeometryFile(int period_number, int run_number, char* geo_file_path);
 	/// get runs corresponding to the specified single condition

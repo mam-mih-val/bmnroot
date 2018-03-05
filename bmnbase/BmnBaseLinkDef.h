@@ -15,5 +15,9 @@
 #pragma link C++ class FitWLSQ+;
 #pragma link C++ class BmnGeoNavigator+;
 
-#endif
+#pragma link C++ class BmnTrack+;
+#pragma link C++ class BmnHit+;
+#pragma link C++ class BmnLink+;
+#pragma link C++ class BmnMatch+;
 
+#endif

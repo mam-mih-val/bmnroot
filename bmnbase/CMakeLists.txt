@@ -43,6 +43,10 @@ set(SRCS
  BmnMatrixMath.cxx
  FitWLSQ.cxx
  BmnGeoNavigator.cxx
+ BmnTrack.cxx
+ BmnHit.cxx
+ BmnLink.cxx
+ BmnMatch.cxx
 )
 
 Set(HEADERS)

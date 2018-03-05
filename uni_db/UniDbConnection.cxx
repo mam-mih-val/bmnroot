@@ -59,7 +59,7 @@ UniDbConnection* UniDbConnection::Open(UniConnectionType connection_type)
         }
         if (pSQLServer == 0x00)
         {
-            cout<<"ERROR: connection wasn't established"<<endl;
+            cout<<"ERROR: database connection was not established (m.b. wrong login or password)"<<endl;
             return 0x00;
         }
         //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;
@@ -104,7 +104,7 @@ UniDbConnection* UniDbConnection::Open(enumDBMS database_type, const char* strDB
         pSQLServer = TSQLServer::Connect(conString, strUID, strPassword);
         if (pSQLServer == 0x00)
         {
-            cout<<"ERROR: connection wasn't established"<<endl;
+            cout<<"ERROR: database connection was not established (m.b. wrong login or password)"<<endl;
             return 0x00;
         }
         //cout<<"Server info: "<<pSQLServer->ServerInfo()<<endl;

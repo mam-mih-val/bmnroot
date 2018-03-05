@@ -36,7 +36,6 @@
 #pragma link C++ class CbmTrackMatch+;
 #pragma link C++ class CbmTofTrack+;
 #pragma link C++ class BmnTofHit+;
-#pragma link C++ class BmnTrack+;
 
 #pragma link C++ class CbmMvdHit+;
 #pragma link C++ class CbmMvdHitMatch+;
@@ -49,11 +48,7 @@
 #pragma link C++ class CbmGeoSttPar+;
 
 #pragma link C++ class BmnMwpcHit+;
-#pragma link C++ class BmnLink+;
-#pragma link C++ class BmnMatch+;
 #pragma link C++ class BmnTrackMatch+;
-
-#pragma link C++ class BmnHit+;
 
 #pragma link C++ class BmnMwpcDigit+;
 #pragma link C++ class BmnTof1Digit+;

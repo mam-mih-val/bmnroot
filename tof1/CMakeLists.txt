@@ -12,6 +12,7 @@ ${CMAKE_SOURCE_DIR}/geobase
 ${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/mcstack
+${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/tof1
 )
@@ -47,6 +48,6 @@ BmnTOF1Detector.cxx
 Set(HEADERS)
 Set(LINKDEF BmnTOF1LinkDef.h)
 Set(LIBRARY_NAME TOF1)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES BmnData Core Base)
 
 GENERATE_LIBRARY()

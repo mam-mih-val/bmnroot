@@ -1215,7 +1215,7 @@ int UniDbRun::GetRootGeometry(int period_number, int run_number, unsigned char*&
     return 0;
 }
 
-int UniDbRun::WriteGeometryFile(int start_period, int start_run, int end_period, int end_run, char* geo_file_path)
+int UniDbRun::WriteGeometryFile(int start_period, int start_run, int end_period, int end_run, const char* geo_file_path)
 {
     TString strGeoFilePath(geo_file_path);
     gSystem->ExpandPathName(strGeoFilePath);

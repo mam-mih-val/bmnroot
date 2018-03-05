@@ -1,9 +1,10 @@
 #include <stdio.h>
-// macro for writing ROOT file with detector geometry to the database
-// e.g. root 'set_root_geometry.C("$VMCWORKDIR/macro/run/geometry_run/geometry_run5.root", 5, 1, 5, 10000)'
-void set_root_geometry(char* root_file_path, int start_period, int start_run, int end_period, int end_run)
+#include "../../gconfig/basiclibs.C"
+
+// macro for writing ROOT file with full detector geometry to the Unified Database
+// e.g. root 'write_geometry_to_db.C("$VMCWORKDIR/macro/run/geometry_run/geometry_src_run7.root", 7, 1, 7, 10000)'
+void write_geometry_to_db(const char* root_file_path, int start_period, int start_run, int end_period, int end_run)
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
     gSystem->Load("libUniDb");
 

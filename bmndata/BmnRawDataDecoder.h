@@ -111,7 +111,6 @@ public:
     BmnStatus DecodeDataToDigi();
     BmnStatus DecodeDataToDigiIterate();
     BmnStatus FinishRun();
-    BmnStatus CalcGemPedestals();
     BmnStatus InitConverter(TString FileName);
     BmnStatus InitConverter();
     BmnStatus InitConverter(deque<UInt_t> *dq);

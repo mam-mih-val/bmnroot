@@ -43,6 +43,7 @@
 #define DAQ_ADDR     "bmn-daq"  //"bmn-hrb-3.jinr.ru"
 #define DAQ_IP         "10.18.11.200"//"10.18.11.193"
 #define DAQ_PORT               32999
+#define MPD_EVENT_HEAD_WORDS       3 // sync + payload leght + iEv
 
 using namespace std;
 
@@ -95,7 +96,8 @@ private:
     deque<UInt_t> data_queue;
     void * _socket_mcast;
     void * _socket_data;
-    UInt_t buf[MAX_BUF_LEN];
+    Byte_t buf[MAX_BUF_LEN];
+//    UInt_t buf[MAX_BUF_LEN];
 
     ClassDef(BmnOnlineDecoder, 1)
 };

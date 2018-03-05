@@ -52,10 +52,12 @@ BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
 
 BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silicon) {
     fEventId++;
+//            printf("adc->GetEntriesFast() %x\n", adc->GetEntriesFast());
     for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
         BmnSiliconMapping tM = fMap[iMap];
         for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+//            printf("adcDig->GetSerial() %x\n", adcDig->GetSerial());
             if (adcDig->GetSerial() == tM.serial && (adcDig->GetChannel() >= tM.channel_low && adcDig->GetChannel() <= tM.channel_high)) {
                 ProcessDigit(adcDig, &tM, silicon);
             }

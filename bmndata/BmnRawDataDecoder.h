@@ -50,6 +50,8 @@
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
 const UInt_t kSYNC2 = 0x4A624A62;
+const UInt_t kRUNSTARTSYNC = 0x72617453;
+const UInt_t kRUNSTOPSYNC = 0x706F7453;
 const UInt_t kRUNNUMBERSYNC = 0x236E7552;
 const size_t kWORDSIZE = sizeof (UInt_t);
 const Short_t kNBYTESINWORD = 4;

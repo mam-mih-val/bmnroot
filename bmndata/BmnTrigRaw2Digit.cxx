@@ -110,7 +110,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
         BmnTrigMapping tM = fMap[iMap];
         Short_t iMod = tM.module;
         TClonesArray *trigAr = tM.branchRef;
-
+//        printf("tdc->GetEntriesFast() %d\n", tdc->GetEntriesFast());
         for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
             BmnTDCDigit* tdcDig1 = (BmnTDCDigit*) tdc->At(iTdc);
             if (tdcDig1->GetSerial() != tM.serial || tdcDig1->GetSlot() != tM.slot) continue;

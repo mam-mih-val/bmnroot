@@ -194,7 +194,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         if (fDat == kSYNC1) { //search for start of event
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
-            printf("fDat = %d\n", fDat);
             fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
             if (fDat >= 100000) { // what the constant?
                 printf("Wrong data size: %d:  skip this event\n", fDat);
@@ -448,6 +447,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     while (idx < len) {
         UInt_t serial = d[idx++];
         UInt_t id = (d[idx] >> 24);
+//        printf("id %x\n", id);
         UInt_t payload = (d[idx++] & 0xFFFFFF) / kNBYTESINWORD;
         if (payload > 2000000) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
@@ -464,9 +464,9 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                         break;
                     }
                 if (isGem)
-                    Process_ADC64VE(&data[idx], payload, serial, 32, adc32);
+                    Process_ADC64VE(&d[idx], payload, serial, 32, adc32);
                 else //silicon
-                    Process_ADC64VE(&data[idx], payload, serial, 128, adc128);
+                    Process_ADC64VE(&d[idx], payload, serial, 128, adc128);
                 break;
             }
             case kADC64WR:
@@ -479,7 +479,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                     }
                 };
                 if (isZDC)
-                    Process_ADC64WR(&data[idx], payload, serial, adc);
+                    Process_ADC64WR(&d[idx], payload, serial, adc);
                 else {
                     Bool_t isECAL = kFALSE;
                     for (Int_t iSer = 0; (iSer < fNECALSerials); ++iSer) {
@@ -489,18 +489,18 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                         }
                     };
                     if (isECAL)
-                        Process_ADC64WR(&data[idx], payload, serial, adc);
+                        Process_ADC64WR(&d[idx], payload, serial, adc);
                 }
                 break;
             }
             case kFVME:
-                Process_FVME(&data[idx], payload, serial, evType, trigType);
+                Process_FVME(&d[idx], payload, serial, evType, trigType);
                 break;
             case kHRB:
-                Process_HRB(&data[idx], payload, serial);
+                Process_HRB(&d[idx], payload, serial);
                 break;
             case kLAND:
-                Process_Tacquila(&data[idx], payload);
+                Process_Tacquila(&d[idx], payload);
                 break;
         }
         idx += payload;
@@ -601,6 +601,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
     UInt_t type = 0;
     for (UInt_t i = 0; i < len; i++) {
         type = d[i] >> 28;
+//        printf("type %x\n", type);
         switch (type) {
             case kEVHEADER:
             case kEVTRAILER:
@@ -612,6 +613,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                 break;
             case kMODHEADER:
                 modId = (d[i] >> 16) & 0x7F;
+//                printf("modid %x\n", modId);
                 slot = (d[i] >> 23) & 0x1F;
                 break;
             default: //data
@@ -758,6 +760,7 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
 
 BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
     UInt_t type = d[idx] >> 28;
+//    printf("fiiltdc\n");
     while (type != kMODTRAILER) { //data will be finished when module trailer appears 
         if (type == 4 || type == 5) { // 4 - leading, 5 - trailing
             UInt_t tdcId = (d[idx] >> 24) & 0xF;
@@ -765,6 +768,7 @@ BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt
             UInt_t channel = (modId == kTDC64V) ? (d[idx] >> 19) & 0x1F : (d[idx] >> 21) & 0x7;
             //if (modId == kTDC64V && tdcId == 2) channel += 32;
             TClonesArray &ar_tdc = *tdc;
+//            printf("qq\n");
             new(ar_tdc[tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, tdcId, time);
         }
         idx++; //go to the next DATA-word

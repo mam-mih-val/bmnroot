@@ -76,7 +76,8 @@ void run_reco_src(TString inputFileName = "",
         fFileSource = new BmnFileSource(inputFileName);
 
         // get geometry for run
-        TString geoFileName = "current_geo_file.root";
+        //TString geoFileName = "current_geo_file.root";
+        TString geoFileName = "geofile_full.root";
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
             cout << "Geometry file can't be read from the database" << endl;
@@ -208,8 +209,9 @@ void run_reco_src(TString inputFileName = "",
     // ====================================================================== //
     // ===                           Trigger hit finder                      === //
     // ====================================================================== //
-    //BmnSRCTriggersCheck* srcTriggers = new BmnSRCTriggersCheck(kTRUE);
-    //fRunAna->AddTask(srcTriggers);
+    BmnSRCTriggersCheck* srcTriggers = new BmnSRCTriggersCheck(kTRUE);
+   
+    fRunAna->AddTask(srcTriggers);
     
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
@@ -221,8 +223,8 @@ void run_reco_src(TString inputFileName = "",
     // ====================================================================== //
     // ===                           LAND hit finder                      === //
     // ====================================================================== //
-    BmnLANDHitProducer* land = new BmnLANDHitProducer("LAND", !isExp, iVerbose, kTRUE);
-    fRunAna->AddTask(land);
+    //BmnLANDHitProducer* land = new BmnLANDHitProducer("LAND", !isExp, iVerbose, kTRUE);
+    //fRunAna->AddTask(land);
     // ====================================================================== //
     // ===                           TOF2 hit finder                      === //
     // ====================================================================== //

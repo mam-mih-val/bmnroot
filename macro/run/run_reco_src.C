@@ -53,7 +53,7 @@ void run_reco_src(TString inputFileName = "",
     Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
     Bool_t isTarget = kFALSE; // flag for tracking (run with target or not)
     Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
-
+    cout << "here\n";
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
     // for experimental datasource

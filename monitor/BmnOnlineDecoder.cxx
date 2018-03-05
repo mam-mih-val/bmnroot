@@ -16,7 +16,7 @@
 #include <dirent.h>
 #include <sys/inotify.h>
 #include <zmq.h>
-#include <root/RtypesCore.h>
+//#include <root/RtypesCore.h>
 
 #include "BmnOnlineDecoder.h"
 
@@ -329,6 +329,7 @@ void BmnOnlineDecoder::ProcessStream() {
                                     evExit = kTRUE;
                                     break;
                                 }
+                                rawDataDecoder->SetRunId(runID);
                             }
                         }
                     }

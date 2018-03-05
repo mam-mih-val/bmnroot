@@ -5,54 +5,6 @@
 #include <sys/stat.h>
 #include <arpa/inet.h> /* For ntohl for Big Endian LAND. */
 
-/***************** SET OF DAQ CONSTANTS *****************/
-const UInt_t kSYNC1 = 0x2A502A50;
-const UInt_t kSYNC2 = 0x4A624A62;
-const UInt_t kRUNNUMBERSYNC = 0x236E7552;
-const size_t kWORDSIZE = sizeof (UInt_t);
-const Short_t kNBYTESINWORD = 4;
-
-//FVME data types
-const UInt_t kMODDATAMAX = 0x7;
-const UInt_t kMODHEADER = 0x8;
-const UInt_t kMODTRAILER = 0x9;
-const UInt_t kEVHEADER = 0xA;
-const UInt_t kEVTRAILER = 0xB;
-const UInt_t kSPILLHEADER = 0xC;
-const UInt_t kSPILLTRAILER = 0xD;
-const UInt_t kSTATUS = 0xE;
-const UInt_t kPADDING = 0xF;
-
-//module ID
-const UInt_t kTDC64V = 0x10; //DCH
-const UInt_t kTDC64VHLE = 0x53;
-const UInt_t kTDC72VHL = 0x12;
-const UInt_t kTDC32VL = 0x11;
-const UInt_t kTQDC16 = 0x09;
-const UInt_t kTQDC16VS = 0x56;
-const UInt_t kTQDC16VS_ETH = 0xD6;
-const UInt_t kTRIG = 0xA;
-const UInt_t kMSC = 0xF;
-const UInt_t kUT24VE = 0x49;
-const UInt_t kADC64VE = 0xD4;
-const UInt_t kADC64VE_XGE = 0xD9;
-const UInt_t kADC64WR = 0xCA;
-const UInt_t kHRB = 0xC2;
-const UInt_t kFVME = 0xD1;
-const UInt_t kLAND = 0xDA;
-const UInt_t kU40VE_RC = 0x4C;
-
-//event type trigger
-const UInt_t kEVENTTYPESLOT = 12;
-const UInt_t kGEMTRIGTYPE = 3;
-const UInt_t kTRIGBEAM = 6;
-const UInt_t kTRIGMINBIAS = 1;
-
-#define ANSI_COLOR_RED   "\x1b[91m"
-#define ANSI_COLOR_BLUE  "\x1b[94m"
-#define ANSI_COLOR_RESET "\x1b[0m"
-/********************************************************/
-
 using namespace std;
 
 class UniDbRun;
@@ -242,6 +194,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         if (fDat == kSYNC1) { //search for start of event
             // read number of bytes in event
             if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
+            printf("fDat = %d\n", fDat);
             fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
             if (fDat >= 100000) { // what the constant?
                 printf("Wrong data size: %d:  skip this event\n", fDat);
@@ -323,6 +276,10 @@ BmnStatus BmnRawDataDecoder::InitConverter(TString FileName) {
         printf("\n!!!!!\ncannot open file %s\nConvertRawToRoot are stopped\n!!!!!\n\n", fRawFileName.Data());
         return kBMNERROR;
     }
+    return InitConverter();
+}
+
+BmnStatus BmnRawDataDecoder::InitConverter(){
     fRawTree = new TTree("BMN_RAW", "BMN_RAW");
     sync = new TClonesArray("BmnSyncDigit");
     adc32 = new TClonesArray("BmnADCDigit");
@@ -380,37 +337,38 @@ BmnStatus BmnRawDataDecoder::wait_file(Int_t len, UInt_t limit) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate() {
+BmnStatus BmnRawDataDecoder::ConvertRawToRootIterate(UInt_t *buf, UInt_t len) {
     //        fRawTree->Clear();
-    if (wait_stream(fDataQueue, 2) == kBMNERROR)
-        return kBMNTIMEOUT;
-    fDat = fDataQueue->front();
-    fDataQueue->pop_front();
-    if (fDat == kSYNC1) { //search for start of event
-        // read number of bytes in event
-        fDat = fDataQueue->front();
-        fDataQueue->pop_front();
-        if (wait_stream(fDataQueue, fDat) == kBMNERROR)
-            return kBMNTIMEOUT;
-        fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
-        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
-            printf("Wrong data size: %d:  skip this event\n", fDat);
-            fDataQueue->erase(fDataQueue->begin(), fDataQueue->begin() + fDat * kNBYTESINWORD);
-            return kBMNERROR;
-        } else {
-            //read array of current event data and process them
-            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
-            for (Int_t iByte = 0; iByte < fDat * kNBYTESINWORD; iByte++) {
-                data[iByte] = fDataQueue->front();
-                fDataQueue->pop_front();
-            }
-            fEventId = data[0];
+//    if (wait_stream(fDataQueue, 2) == kBMNERROR)
+//        return kBMNTIMEOUT;
+//    fDat = fDataQueue->front();
+//    fDataQueue->pop_front();
+//    if (fDat == kSYNC1) { //search for start of event
+//        // read number of bytes in event
+//        fDat = fDataQueue->front();
+//        fDataQueue->pop_front();
+//        if (wait_stream(fDataQueue, fDat) == kBMNERROR)
+//            return kBMNTIMEOUT;
+//        fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
+//        if (fDat * kNBYTESINWORD >= 100000) { // what the constant?
+//            printf("Wrong data size: %d:  skip this event\n", fDat);
+//            fDataQueue->erase(fDataQueue->begin(), fDataQueue->begin() + fDat * kNBYTESINWORD);
+//            return kBMNERROR;
+//        } else {
+//            //read array of current event data and process them
+//            if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
+//            for (Int_t iByte = 0; iByte < fDat * kNBYTESINWORD; iByte++) {
+//                data[iByte] = fDataQueue->front();
+//                fDataQueue->pop_front();
+//            }
+            fEventId = buf[0];
+//            printf("EventID = %d\n", fEventId);
             if (fEventId <= 0) return kBMNERROR; // continue; // skip bad events (it is possible, but what about 0?) 
-            ProcessEvent(data, fDat);
+            ProcessEvent(buf, len);
             fNevents++;
             //                fRawTree->Fill();
-        }
-    }
+//        }
+//    }
     return kBMNSUCCESS;
 }
 
@@ -491,7 +449,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         UInt_t serial = d[idx++];
         UInt_t id = (d[idx] >> 24);
         UInt_t payload = (d[idx++] & 0xFFFFFF) / kNBYTESINWORD;
-        if (payload > 20000) {
+        if (payload > 2000000) {
             printf("[WARNING] Event %d:\n serial = 0x%06X\n id = Ox%02X\n payload = %d\n", fEventId, serial, id, payload);
             break;
         }

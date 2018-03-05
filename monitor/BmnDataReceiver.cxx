@@ -322,16 +322,16 @@ Int_t BmnDataReceiver::RecvData() {
         printf("Valid address not found\n");
         return -1;
     }
-    Int_t rcvBuf = MAX_BUF_LEN;
-    size_t vl = sizeof (rcvBuf);
-    if (zmq_setsockopt(_socket_data, ZMQ_RCVBUF, &rcvBuf, sizeof (rcvBuf)) == -1)
+    Int_t rcvBufLen = MAX_BUF_LEN;
+    size_t vl = sizeof (rcvBufLen);
+    if (zmq_setsockopt(_socket_data, ZMQ_RCVBUF, &rcvBufLen, sizeof (rcvBufLen)) == -1)
         DBGERR("zmq_setsockopt of ZMQ_RCVBUF")
-        if (zmq_setsockopt(_socket_data, ZMQ_SNDBUF, &rcvBuf, sizeof (rcvBuf)) == -1)
+        if (zmq_setsockopt(_socket_data, ZMQ_SNDBUF, &rcvBufLen, sizeof (rcvBufLen)) == -1)
             DBGERR("zmq_setsockopt of ZMQ_SNDBUF")
-            rcvBuf = 0;
-    if (zmq_getsockopt(_socket_data, ZMQ_RCVBUF, &rcvBuf, &vl) == -1)
+            rcvBufLen = 0;
+    if (zmq_getsockopt(_socket_data, ZMQ_RCVBUF, &rcvBufLen, &vl) == -1)
         DBGERR("zmq_getsockopt of ZMQ_RCVBUF")
-        printf("rcvbuf = %d\n", rcvBuf);
+        printf("rcvbuf = %d\n", rcvBufLen);
 //    UInt_t *buf = (UInt_t*) malloc(MAX_BUF_LEN);
     Char_t conID[MAX_ADDR_LEN];
     Int_t conID_size;

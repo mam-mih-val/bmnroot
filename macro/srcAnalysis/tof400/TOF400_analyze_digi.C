@@ -18,11 +18,11 @@ void TOF400_analyze_digi(TString infile, int startEvent, int stopEvent){
 
 	rootTree->GetBranch("EventHeader")->SetAutoDelete(kFALSE);
 	rootTree->GetBranch("TOF400")->SetAutoDelete(kFALSE);
-	rootTree->GetBranch("BC2")->SetAutoDelete(kFALSE);
+	rootTree->GetBranch("T0")->SetAutoDelete(kFALSE);
 
 	rootTree->SetBranchAddress("EventHeader", &EventHead);
 	rootTree->SetBranchAddress("TOF400", &ToF400);
-	rootTree->SetBranchAddress("BC2", &T0);
+	rootTree->SetBranchAddress("T0", &T0);
 
 
 	// For ToF400 plotting:

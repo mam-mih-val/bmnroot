@@ -13,7 +13,7 @@
 #include "BmnTof2Digit.h"
 #include "BmnTrigDigit.h"
 
-#define TOF2_MAX_CHAMBERS 24
+#define TOF2_MAX_CHAMBERS 60
 #define TOF2_MAX_STRIPS_IN_CHAMBER 32
 
 class TRandom2;

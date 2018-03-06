@@ -1399,23 +1399,40 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700Init() {
     } else {
         printf("\nInput root file: %s;\n", fRootFileName.Data());
     }
-    fRawTree = (TTree *) fRootFileIn->Get("BMN_RAW");
+    fRawTree = (TTree *)fRootFileIn->Get("BMN_RAW");
     tdc = new TClonesArray("BmnTDCDigit");
     tqdc_adc = new TClonesArray("BmnTQDCADCDigit");
     tqdc_tdc = new TClonesArray("BmnTDCDigit");
     sync = new TClonesArray("BmnSyncDigit");
+    eventHeaderDAQ = new TClonesArray("BmnEventHeader");
+    runHeaderDAQ = new BmnRunHeader();
+    hrb = new TClonesArray("BmnHRBDigit");
+    adc32 = new TClonesArray("BmnADCDigit");
+    adc128 = new TClonesArray("BmnADCDigit");
+    adc = new TClonesArray("BmnADCDigit");
+    tacquila = new TClonesArray("BmnTacquilaDigit");
     fRawTree->SetBranchAddress("TDC", &tdc);
     fRawTree->SetBranchAddress("SYNC", &sync);
     fRawTree->SetBranchAddress("TQDC_ADC", &tqdc_adc);
     fRawTree->SetBranchAddress("TQDC_TDC", &tqdc_tdc);
+    fRawTree->SetBranchAddress("SYNC", &sync);
+    fRawTree->SetBranchAddress("EventHeader", &eventHeaderDAQ);
+    fRawTree->SetBranchAddress("RunHeader", &runHeaderDAQ);
+    fRawTree->SetBranchAddress("HRB", &hrb);
+    fRawTree->SetBranchAddress("ADC32", &adc32);
+    fRawTree->SetBranchAddress("ADC128", &adc128);
+    fRawTree->SetBranchAddress("ADC", &adc);
+    fRawTree->SetBranchAddress("Tacquila", &tacquila);
 
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
+
+    InitDecoder();
 
     fDigiTree = new TTree("cbmsim", "bmn_digit");
 
     fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName, fDigiTree);
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
-    //    fTof700Mapper->print();
+    //fTof700Mapper->print();
 
     return kBMNSUCCESS;
 }
@@ -1586,6 +1603,14 @@ Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {
         }
     }
     fclose(file);
+    if (runId <= 0)
+    {
+	Int_t run = 0;
+	//sscanf(&(((char *)name.Data())[strlen(name.Data())-9]), "%d", &run);
+	run = ((TString)name(name.Length()-9,name.Length()-5)).Atoi();
+	return run;
+    }
+    else return runId;
 }
 
 BmnStatus BmnRawDataDecoder::InitMaps() {

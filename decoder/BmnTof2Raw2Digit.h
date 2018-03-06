@@ -12,8 +12,8 @@
 #define TOF2_MAX_CHANNELS_IN_MODULE 64
 #define TOF2_MAX_CRATES 5
 #define TOF2_MAX_SLOTS_IN_CRATE 20
-#define TOF2_MAX_CHAMBERS 24
-#define TOF2_MAX_CHANNEL 1600
+#define TOF2_MAX_CHAMBERS 60
+#define TOF2_MAX_CHANNEL 4000
 
 #include "TString.h"
 #include "TProfile.h"

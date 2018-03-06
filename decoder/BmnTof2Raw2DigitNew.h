@@ -13,8 +13,8 @@
 #define TOF2_MAX_CRATES 5
 #define TOF2_MAX_SLOTS_IN_CRATE 20
 //#define TOF2_MAX_CHAMBERS 24
-#define TOF2_MAX_CHAMBERS 24
-#define TOF2_MAX_CHANNEL 1600
+#define TOF2_MAX_CHAMBERS 60
+#define TOF2_MAX_CHANNEL 4000
 
 //#define TOF700_TDC_TYPE (0x11) //TDC32VL
 #define TOF700_TDC_TYPE (0x53) //TDC64VHLE
@@ -49,7 +49,7 @@ public:
 class BmnTof2Raw2DigitNew{
 
 public:
-    BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile = "empty", UInt_t SlewingRun = 0, UInt_t SlewingChamber = 0, TString geomFile="TOF700_geometry_run6.txt");
+    BmnTof2Raw2DigitNew(TString mappingFile, TString RunFile = "empty", UInt_t SlewingRun = 0, UInt_t SlewingChamber = 0, TString geomFile="TOF700_geometry_run7.txt");
     BmnTof2Raw2DigitNew();
 
     ~BmnTof2Raw2DigitNew();
@@ -125,8 +125,13 @@ public:
     void WriteSlewingHists();
     Double_t *GetINL() { return &DNL_Table[0][0][0][0]; }
 
+    void SetSlewingReference(Int_t chamber, Int_t refrun, Int_t refchamber);
+
 private:
     char filname_base[256];
+    char filname_slewing[TOF2_MAX_CHAMBERS][256];
+    int chamber_slewing[TOF2_MAX_CHAMBERS];
+    int type_slewing[TOF2_MAX_CHAMBERS];
     int fSlewCham;
     int n_rec;
     Bmn_Tof2_map_element_new mapa[TOF2_MAX_CHANNEL];

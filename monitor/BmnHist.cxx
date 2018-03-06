@@ -46,8 +46,8 @@ void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
                 k = k * info->ref->GetBinContent(info->ref->GetMaximumBin());
                 if (maxy < k)
                     maxy = k;
-                info->current->GetYaxis()->SetRangeUser(0, maxy * 1.05);
             }
+            info->current->GetYaxis()->SetRangeUser(0, maxy * 1.05);
         }
         //        pad->Update();
         pad->Modified();
@@ -58,7 +58,7 @@ void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
 
 BmnStatus BmnHist::LoadRefRun(Int_t refID, TString FullName, TString fTitle, vector<PadInfo*> canPads, vector<TString> Names) {
     printf("Loading ref histos\n");
-//    TString FileName = Form("bmn_run%04d_hist.root", refID);
+    //    TString FileName = Form("bmn_run%04d_hist.root", refID);
     TFile *refFile = new TFile(FullName, "read");
     if (refFile->IsOpen() == false) {
         printf("Cannot open file %s !\n", FullName.Data());

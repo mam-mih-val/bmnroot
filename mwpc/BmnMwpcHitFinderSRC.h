@@ -183,8 +183,6 @@ private:
   Double_t *Chi2_ndf_Ch1_2;
 
   Float_t *sigm2;
-  //  Int_t *h;
-  // Int_t *h6;
   Int_t *ipl;
   Double_t **matrA;
   Double_t **matrb;

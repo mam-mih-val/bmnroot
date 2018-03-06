@@ -76,7 +76,7 @@ InitStatus BmnMwpcHitFinderSRC::Init() {
   ZCh1 = Ch1Cent.Z();
   ZCh2 = Ch2Cent.Z();
   cout<< endl;
-  cout<<" ZCh1 "<<Ch1Cent.Z()<<" ZCh2 "<<Ch2Cent.Z()<<endl;
+  //  cout<<" ZCh1 "<<Ch1Cent.Z()<<" ZCh2 "<<Ch2Cent.Z()<<endl;
   cout<<"  dZ(ch1-ch2) = "<< -( Ch1Cent.Z()-Ch2Cent.Z() )<<endl;
       
   kZmid1 = -75.75; // ( Ch1Cent.Z()-Ch2Cent.Z() )*0.5;// -75.75; //ch1 loc   //cm // fMWPCGeometry->GetChamberCenter();

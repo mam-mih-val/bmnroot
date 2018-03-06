@@ -15,14 +15,16 @@ using std::flush;
 
 
 // -----   Default constructor   -------------------------------------------
-CbmStsPoint::CbmStsPoint() 
-  : FairMCPoint(), 
+CbmStsPoint::CbmStsPoint()
+  : FairMCPoint(),
     fX_out(0.),
     fY_out(0.),
     fZ_out(0.),
     fPx_out(0.),
     fPy_out(0.),
-    fPz_out(0.)
+    fPz_out(0.),
+    fStation(-1),
+    fModule(-1)
 {
 }
 // -------------------------------------------------------------------------
@@ -30,17 +32,19 @@ CbmStsPoint::CbmStsPoint()
 
 
 // -----   Standard constructor   ------------------------------------------
-CbmStsPoint::CbmStsPoint(Int_t trackID, Int_t detID, TVector3 posIn, 
+CbmStsPoint::CbmStsPoint(Int_t trackID, Int_t detID, TVector3 posIn,
 			 TVector3 posOut, TVector3 momIn, TVector3 momOut,
 			 Double_t tof, Double_t length, Double_t eLoss,
-			 Int_t eventId) 
+			 Int_t eventId)
   : FairMCPoint(trackID, detID, posIn, momIn, tof, length, eLoss, eventId),
     fX_out(posOut.X()),
     fY_out(posOut.Y()),
     fZ_out(posOut.Z()),
     fPx_out(momOut.Px()),
     fPy_out(momOut.Py()),
-    fPz_out(momOut.Pz())
+    fPz_out(momOut.Pz()),
+    fStation(-1),
+    fModule(-1)
 {
   SetLink(FairLink(kMCTrack, trackID));
 }
@@ -56,17 +60,19 @@ CbmStsPoint::~CbmStsPoint() { }
 
 // -----   Copy constructor with event and epoch time   --------------------
 CbmStsPoint::CbmStsPoint(const CbmStsPoint& point, Int_t eventId,
-			 Double_t eventTime, Double_t epochTime) 
+			 Double_t eventTime, Double_t epochTime)
   : FairMCPoint(point),
     fX_out(point.fX_out),
     fY_out(point.fY_out),
     fZ_out(point.fZ_out),
     fPx_out(point.fPx_out),
     fPy_out(point.fPy_out),
-    fPz_out(point.fPz_out)
+    fPz_out(point.fPz_out),
+    fStation(point.fStation),
+    fModule(point.fModule)
 {
   //  *this = point;
-  if ( eventId > 0 ) fEventId = eventId; 
+  if ( eventId > 0 ) fEventId = eventId;
   fTime = point.GetTime() + eventTime - epochTime;
 }
 // -------------------------------------------------------------------------
@@ -83,9 +89,10 @@ void CbmStsPoint::Info(FairLogLevel level) const {
   LOG(level) << "          OUT Position (" << fX_out << ", " << fY_out
              << ", " << fZ_out << ") cm" << FairLogger::endl;
   LOG(level) << "    Momentum (" << fPx << ", " << fPy << ", " << fPz
-             << ") GeV" << endl;
+             << ") GeV" << FairLogger::endl;
   LOG(level) << "    Time " << fTime << " ns,  Length " << fLength
-             << " cm,  Energy loss " << fELoss*1.0e06 << " keV"
+             << " cm,  Energy loss " << fELoss*1.0e06 << " keV" <<  FairLogger::endl;
+  LOG(level) << "    StationNum " << fStation << ", ModuleNum " << fModule
              << FairLogger::endl;
 }
 // -------------------------------------------------------------------------

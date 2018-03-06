@@ -2,6 +2,7 @@
 
 #include "BmnGemStripDigitizer.h"
 #include "CbmMCTrack.h"
+#include "CbmStsPoint.h"
 
 #include "BmnGemStripStationSet_RunSummer2016.h"
 #include "BmnGemStripStationSet_RunWinter2016.h"
@@ -135,6 +136,9 @@ void BmnGemStripDigitizer::ProcessMCPoints() {
 
         Double_t dEloss = GemStripPoint->GetEnergyLoss()*1e6; // in keV
         Int_t refId = ipoint;
+
+        Int_t mc_station_num = ((CbmStsPoint*)GemStripPoint)->GetStation();
+        Int_t mc_module_num = ((CbmStsPoint*)GemStripPoint)->GetModule();
 
         StationSet->AddPointToDetector(x, y, z, px, py, pz, dEloss, refId);
     }

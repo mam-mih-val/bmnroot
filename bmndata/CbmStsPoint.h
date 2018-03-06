@@ -22,7 +22,7 @@
 
 class TVector3;
 
-class CbmStsPoint : public FairMCPoint 
+class CbmStsPoint : public FairMCPoint
 {
 
  public:
@@ -43,13 +43,13 @@ class CbmStsPoint : public FairMCPoint
    *@param eLoss    Energy deposit [GeV]
    *@param eventId  MC event identifier
    **/
-  CbmStsPoint(Int_t trackID, Int_t detID, TVector3 posIn, 
+  CbmStsPoint(Int_t trackID, Int_t detID, TVector3 posIn,
 	      TVector3 posOut, TVector3 momIn, TVector3 momOut,
 	      Double_t tof, Double_t length, Double_t eLoss,
 	      Int_t eventId = 0);
 
 
-  /** Copy constructor with event and epoch time 
+  /** Copy constructor with event and epoch time
    ** Re-calculates time w.r.t. epoch time start
    *@param eventId     MC event identifier (negative values keep original event ID)
    *@param eventTime   MC event time [ns]
@@ -57,7 +57,7 @@ class CbmStsPoint : public FairMCPoint
    **/
   CbmStsPoint(const CbmStsPoint& point,
 	      Int_t    eventId   = -1,
-	      Double_t eventTime = 0., 
+	      Double_t eventTime = 0.,
 	      Double_t epochTime = 0.);
 
 
@@ -78,6 +78,8 @@ class CbmStsPoint : public FairMCPoint
   void PositionIn(TVector3& pos)  { pos.SetXYZ(fX, fY, fZ); }
   void PositionOut(TVector3& pos) { pos.SetXYZ(fX_out,fY_out,fZ_out); }
   void MomentumOut(TVector3& mom) { mom.SetXYZ(fPx_out,fPy_out,fPz_out); }
+  Int_t GetStation() const { return fStation; }
+  Int_t GetModule() const { return fModule; }
 
 
   /** Point coordinates at given z from linear extrapolation **/
@@ -96,6 +98,8 @@ class CbmStsPoint : public FairMCPoint
 	  //SetLink(kMCTrack, id);
 	  FairMCPoint::SetTrackID(id);
   };
+  void SetStation(Int_t station) { fStation = station; }
+  void SetModule(Int_t module) { fModule = module; }
 
   /** Output to screen **/
   virtual void Print(const Option_t* opt = "") const { }
@@ -107,6 +111,8 @@ class CbmStsPoint : public FairMCPoint
 
   Double32_t fX_out,  fY_out,  fZ_out;
   Double32_t fPx_out, fPy_out, fPz_out;
+  Int_t fStation;
+  Int_t fModule;
 
 
 

@@ -41,11 +41,11 @@ using std::endl;
 // -----   Default constructor   -------------------------------------------
 CbmSts::CbmSts()
   : FairDetector("STS", kTRUE, kGEM),
-  fTrackID(0),   
-  fVolumeID(0), 
+  fTrackID(0),
+  fVolumeID(0),
   fDetectorId(0),
-  fPosIn(0.,0.,0.,0.), 
-  fPosOut(0.,0.,0.,0.), 
+  fPosIn(0.,0.,0.,0.),
+  fPosOut(0.,0.,0.,0.),
   fMomIn(0.,0.,0.,0.),
   fMomOut(0.,0.,0.,0.),
   fTime(0.),
@@ -71,13 +71,13 @@ CbmSts::CbmSts()
 
 
 // -----   Standard constructor   ------------------------------------------
-CbmSts::CbmSts(const char* name, Bool_t active) 
+CbmSts::CbmSts(const char* name, Bool_t active)
   : FairDetector(name, active, kGEM),
-  fTrackID(0),   
-  fVolumeID(0), 
+  fTrackID(0),
+  fVolumeID(0),
   fDetectorId(0),
-  fPosIn(0.,0.,0.,0.), 
-  fPosOut(0.,0.,0.,0.), 
+  fPosIn(0.,0.,0.,0.),
+  fPosOut(0.,0.,0.,0.),
   fMomIn(0.,0.,0.,0.),
   fMomOut(0.,0.,0.,0.),
   fTime(0.),
@@ -117,18 +117,39 @@ CbmSts::~CbmSts() {
 
 // -----   Public method ProcessHits  --------------------------------------
 Bool_t CbmSts::ProcessHits(FairVolume* vol) {
-  //    cout << " -I process hit called for:" <<  vol->GetName() << endl;
-  // Set parameters at entrance of volume. Reset ELoss.
 
-  //  if ( vol ) {
-  //      cout << " Name Id:copy "
-  //          << vol->getName() << " : " << vol->getMCid() << " : " << vol->getCopyNo() << endl;
-  //      Int_t copyNo=0;
-  //      cout << " Geant: " << gMC->CurrentVolID(copyNo) << ":" << copyNo << endl;
-  //  }
+    // Determine station and module numbers for the current hit ----------------
+    Int_t stationNum = -1; // current station number (default)
+    Int_t moduleNum = -1; // current module number (default)
 
+    TGeoNode *currentNode = gGeoManager->GetMother(0);
+    TString currentNodeName = currentNode->GetName();
 
- 
+    if(currentNodeName.Contains("hot_zone_Sensor") || currentNodeName.Contains("inner_zone_Sensor")) {
+        currentNode = gGeoManager->GetMother(1);
+        currentNodeName = currentNode->GetName();
+    }
+
+    if( currentNodeName.Contains("module_Sensor_") ) {
+        TString trimPattern = "module_Sensor_";
+        moduleNum = atoi(currentNodeName.Remove(0, trimPattern.Length()));
+        currentNode = gGeoManager->GetMother(1);
+        currentNodeName = currentNode->GetName();
+    }
+
+    TString currentVolumeName = currentNode->GetVolume()->GetName();
+
+    if( currentVolumeName.Contains("station") ) {
+        TString trimPattern = "station";
+        stationNum = atoi(currentVolumeName.Remove(0, trimPattern.Length()));
+    }
+
+    //cout << "stationNum = " << stationNum << "\n";
+    //cout << "moduleNum = " << moduleNum << "\n";
+
+    // -------------------------------------------------------------------------
+
+    // Set parameters at entrance of volume. Reset ELoss.
     if ( gMC->IsTrackEntering() ) {
     fELoss  = 0.;
     fTime   = gMC->TrackTime() * 1.0e09;
@@ -149,37 +170,37 @@ Bool_t CbmSts::ProcessHits(FairVolume* vol) {
     gMC->TrackPosition(fPosOut);
     gMC->TrackMomentum(fMomOut);
     if (fELoss == 0. ) return kFALSE;
-    
+
     if (gMC->IsTrackExiting()) {
       const Double_t* oldpos;
       const Double_t* olddirection;
       Double_t newpos[3];
       Double_t newdirection[3];
       Double_t safety;
-      
+
       gGeoManager->FindNode(fPosOut.X(),fPosOut.Y(),fPosOut.Z());
       oldpos = gGeoManager->GetCurrentPoint();
       olddirection = gGeoManager->GetCurrentDirection();
-      
+
 //       cout << "1st direction: " << olddirection[0] << "," << olddirection[1] << "," << olddirection[2] << endl;
 
       for (Int_t i=0; i<3; i++){
 	newdirection[i] = -1*olddirection[i];
       }
-      
+
       gGeoManager->SetCurrentDirection(newdirection);
       TGeoNode *bla = gGeoManager->FindNextBoundary(2);
       safety = gGeoManager->GetSafeDistance();
 
 
       gGeoManager->SetCurrentDirection(-newdirection[0],-newdirection[1],-newdirection[2]);
-      
+
       for (Int_t i=0; i<3; i++){
 	newpos[i] = oldpos[i] - (3*safety*olddirection[i]);
       }
 
       /*if ( fPosIn.Z() < 30. && newpos[2] > 30.02 ) {
-	cerr << "2nd direction: " << olddirection[0] << "," << olddirection[1] << "," << olddirection[2] 
+	cerr << "2nd direction: " << olddirection[0] << "," << olddirection[1] << "," << olddirection[2]
 	     << " with safety = " << safety << endl;
 	cerr << "oldpos = " << oldpos[0] << "," << oldpos[1] << "," << oldpos[2] << endl;
 	cerr << "newpos = " << newpos[0] << "," << newpos[1] << "," << newpos[2] << endl;
@@ -195,12 +216,12 @@ Bool_t CbmSts::ProcessHits(FairVolume* vol) {
 	   TVector3(fPosOut.X(),  fPosOut.Y(),  fPosOut.Z()),
 	   TVector3(fMomIn.Px(),  fMomIn.Py(),  fMomIn.Pz()),
 	   TVector3(fMomOut.Px(), fMomOut.Py(), fMomOut.Pz()),
-	   fTime, fLength, fELoss);
-    
+	   fTime, fLength, fELoss, stationNum, moduleNum);
+
     // Increment number of StsPoints for this track
     CbmStack* stack = (CbmStack*) gMC->GetStack();
     stack->AddPoint(kGEM);
-    
+
     ResetParameters();
   }
 
@@ -269,7 +290,7 @@ TClonesArray* CbmSts::GetCollection(Int_t iColl) const {
 // -----   Public method Print   ----------------------------------------------
 void CbmSts::Print() const {
   Int_t nHits = fStsCollection->GetEntriesFast();
-  cout << "-I- CbmSts: " << nHits << " points registered in this event." 
+  cout << "-I- CbmSts: " << nHits << " points registered in this event."
        << endl;
 }
 // ----------------------------------------------------------------------------
@@ -312,13 +333,13 @@ void CbmSts::ConstructGeometry()
   TString fileName = GetGeometryFileName();
   if ( fileName.EndsWith(".root") ) {
     gLogger->Info(MESSAGE_ORIGIN,
-		  "Constructing STS geometry from ROOT file %s", 
+		  "Constructing STS geometry from ROOT file %s",
 		  fileName.Data());
     ConstructRootGeometry();
   }
   else if ( fileName.EndsWith(".geo") ) {
     gLogger->Info(MESSAGE_ORIGIN,
-		  "Constructing STS geometry from ASCII file %s", 
+		  "Constructing STS geometry from ASCII file %s",
 		  fileName.Data());
     ConstructAsciiGeometry();
   }
@@ -337,7 +358,7 @@ void CbmSts::ConstructGeometry()
 
 // -----   ConstructAsciiGeometry   -------------------------------------------
 void CbmSts::ConstructAsciiGeometry() {
-  
+
   FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
   FairGeoInterface* geoFace = geoLoad->getGeoInterface();
   CbmGeoSts*       stsGeo  = new CbmGeoSts();
@@ -475,17 +496,26 @@ Bool_t CbmSts::CheckIfSensitive(std::string name) {
 
 // -----   Private method AddHit   --------------------------------------------
 CbmStsPoint* CbmSts::AddHit(Int_t trackID, Int_t detID, TVector3 posIn,
-			    TVector3 posOut, TVector3 momIn, 
-			    TVector3 momOut, Double_t time, 
-			    Double_t length, Double_t eLoss) {
+			    TVector3 posOut, TVector3 momIn,
+			    TVector3 momOut, Double_t time,
+			    Double_t length, Double_t eLoss,
+                            Int_t stationNum, Int_t moduleNum) {
   TClonesArray& clref = *fStsCollection;
   Int_t size = clref.GetEntriesFast();
-  if (fVerboseLevel>1) 
-    cout << "-I- CbmSts: Adding Point at (" << posIn.X() << ", " << posIn.Y() 
+  if (fVerboseLevel>1)
+    cout << "-I- CbmSts: Adding Point at (" << posIn.X() << ", " << posIn.Y()
 	 << ", " << posIn.Z() << ") cm,  detector " << detID << ", track "
 	 << trackID << ", energy loss " << eLoss*1e06 << " keV" << endl;
-  return new(clref[size]) CbmStsPoint(trackID, detID, posIn, posOut,
-				      momIn, momOut, time, length, eLoss);
+
+//  return new(clref[size]) CbmStsPoint(trackID, detID, posIn, posOut,
+//				      momIn, momOut, time, length, eLoss);
+  new(clref[size]) CbmStsPoint(trackID, detID, posIn, posOut,
+                               momIn, momOut, time, length, eLoss);
+
+  CbmStsPoint *hit = (CbmStsPoint*) clref.At(clref.GetEntriesFast() - 1);
+  hit->SetStation(stationNum);
+  hit->SetModule(moduleNum);
+  return hit;
 }
 // ----------------------------------------------------------------------------
 

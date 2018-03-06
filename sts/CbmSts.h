@@ -118,7 +118,7 @@ class CbmSts : public FairDetector
    ** @since 11.06.2012
    **/
   virtual void ConstructGeometry();
-   
+
 
 
   /** Construct the geometry from an ASCII geometry file.
@@ -168,9 +168,10 @@ class CbmSts : public FairDetector
      ** Adds a StsPoint to the HitCollection
      **/
     CbmStsPoint* AddHit(Int_t trackID, Int_t detID, TVector3 posIn,
-			TVector3 pos_out, TVector3 momIn, 
-			TVector3 momOut, Double_t time, 
-			Double_t length, Double_t eLoss);
+			TVector3 pos_out, TVector3 momIn,
+			TVector3 momOut, Double_t time,
+			Double_t length, Double_t eLoss,
+                        Int_t stationNum, Int_t moduleNum);
 
     //Int_t GetCurrentDetectorId();
 
@@ -199,4 +200,4 @@ inline void CbmSts::ResetParameters() {
 };
 
 
-#endif 
+#endif

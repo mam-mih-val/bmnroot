@@ -4,7 +4,7 @@
 void BmnPreparationTOF700(TString file = "/data/mpd_run_Glob_1881.data", Long_t nEvents = 0, Bool_t doConvert = kFALSE) {
   gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
   bmnloadlibs(); // load BmnRoot libraries
-  BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 6); //4 - period
+  BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, 7); //4 - period
 
   Bool_t setup[9]; //array of flags to determine BM@N setup
   //Just put "0" to exclude detector from decoding
@@ -19,20 +19,20 @@ void BmnPreparationTOF700(TString file = "/data/mpd_run_Glob_1881.data", Long_t 
   setup[8] = 0; // ECAL
   decoder->SetDetectorSetup(setup);
 
-  decoder->SetTrigMapping("Trig_map_Run6.txt");
+  decoder->SetTrigMapping("Trig_map_Run7_SRC.txt");
   decoder->SetTrigINLFile("TRIG_INL.txt");
-  decoder->SetTof700Mapping("TOF700_map_period_6.txt");
+  decoder->SetTof700Mapping("TOF700_map_period_7.txt");
 
   if(doConvert) decoder->ConvertRawToRoot();  // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
 
   decoder->PreparationTOF700Init();  // Decode data into detector-digits using current mappings.
   BmnTof2Raw2DigitNew *tof700m = decoder->GetTof700Mapper();
   tof700m->Book();
-  tof700m->SetW(2800,4000);
-  tof700m->SetWT0(720,820);
+  tof700m->SetW(2650,5000);
+  tof700m->SetWT0(720,990);
   decoder->PreparationTOF700();  // Analyze TOF700 data for slewing time limits.
   // draw quality control histogram - comment if not neccessary
-  //tof700m->drawprep();
+  tof700m->drawprep();
   delete decoder;
 }
 

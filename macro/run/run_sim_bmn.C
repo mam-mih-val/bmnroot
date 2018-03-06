@@ -22,7 +22,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometrySRC2018.C");
+    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_src_run7.C");
 #endif
 
     // -----   Create simulation run   ----------------------------------------

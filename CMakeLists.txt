@@ -202,6 +202,7 @@ add_subdirectory (uni_db)
 add_subdirectory (macro)
 #add_subdirectory (monitor)
 add_subdirectory (physics/particles)
+add_subdirectory (macro/srcAnalysis/tracking)
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/CMakeLists.txt")
  add_subdirectory (macro/mpd_scheduler)

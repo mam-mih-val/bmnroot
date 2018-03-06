@@ -76,8 +76,8 @@ void run_reco_src(TString inputFileName = "",
         fFileSource = new BmnFileSource(inputFileName);
 
         // get geometry for run
-        //TString geoFileName = "current_geo_file.root";
-        TString geoFileName = "geofile_full.root";
+        TString geoFileName = "current_geo_file.root";
+        //TString geoFileName = "geofile_full.root";
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
             cout << "Geometry file can't be read from the database" << endl;
@@ -169,9 +169,9 @@ void run_reco_src(TString inputFileName = "",
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
-    //BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
-    //mwpcHM->SetUseDigitsInTimeBin(kFALSE);
-    //fRunAna->AddTask(mwpcHM);
+    BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
+    mwpcHM->SetUseDigitsInTimeBin(kFALSE);
+    fRunAna->AddTask(mwpcHM);
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
@@ -180,38 +180,37 @@ void run_reco_src(TString inputFileName = "",
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
-    //BmnGemStripConfiguration::GEM_CONFIG gem_config;
-    //if (!isExp || run_period == 6)
-    //    gem_config = BmnGemStripConfiguration::RunSpring2017;
-    //else if (run_period == 5) {
-    //    gem_config = BmnGemStripConfiguration::RunWinter2016;
-    //}
-    //BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
-    //gemHM->SetCurrentConfig(gem_config);
-    // Set name of file with the alignment corrections for GEMs using one of the
-    // two variants of the SetAlignmentCorrectionsFileName function defined in
-    // BmnGemStripHitMaker.h
-    //if (isExp) {
-    //    if (alignCorrFileName == "default")
-            // retrieve from UniDb (default)
-    //        gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
-    //    else {
-            // set explicitly, for testing purposes and for interactive
-            // alignment; in case of determining alignment corrections from
-            // scratch, set alignCorrFileName == "" (at first iteration) and it
-            // will be properly used in BmnGemStripHitMaker.cxx, i.e. the input
-            // alignment corrections will be set to zeros
-    //       gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
-    //    }
-    //}
-    //gemHM->SetHitMatching(kTRUE);
-    //fRunAna->AddTask(gemHM);
+   BmnGemStripConfiguration::GEM_CONFIG gem_config;
+   if (!isExp || run_period == 6)
+       gem_config = BmnGemStripConfiguration::RunSpring2017;
+   else if (run_period == 5) {
+       gem_config = BmnGemStripConfiguration::RunWinter2016;
+   }
+   BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
+   gemHM->SetCurrentConfig(gem_config);
+    //Set name of file with the alignment corrections for GEMs using one of the
+    //two variants of the SetAlignmentCorrectionsFileName function defined in
+    //BmnGemStripHitMaker.h
+   if (isExp) {
+       if (alignCorrFileName == "default")
+         // retrieve from UniDb (default)
+           gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
+       else {
+         // set explicitly, for testing purposes and for interactive
+         // alignment; in case of determining alignment corrections from
+         // scratch, set alignCorrFileName == "" (at first iteration) and it
+         // will be properly used in BmnGemStripHitMaker.cxx, i.e. the input
+         // alignment corrections will be set to zeros
+          gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
+       }
+   }
+   gemHM->SetHitMatching(kTRUE);
+   fRunAna->AddTask(gemHM);
     // ====================================================================== //
     // ===                           Trigger hit finder                      === //
     // ====================================================================== //
-    BmnSRCTriggersCheck* srcTriggers = new BmnSRCTriggersCheck(kTRUE);
-   
-    fRunAna->AddTask(srcTriggers);
+    //BmnSRCTriggersCheck* srcTriggers = new BmnSRCTriggersCheck(kTRUE); 
+    //fRunAna->AddTask(srcTriggers);
     
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
@@ -233,8 +232,8 @@ void run_reco_src(TString inputFileName = "",
     // ====================================================================== //
     // ===                           Tracking (MWPC)                      === //
     // ====================================================================== //
-    //BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
-    //fRunAna->AddTask(mwpcTF);
+    BmnMwpcTrackFinder* mwpcTF = new BmnMwpcTrackFinder(isExp);
+    fRunAna->AddTask(mwpcTF);
     // ====================================================================== //
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //

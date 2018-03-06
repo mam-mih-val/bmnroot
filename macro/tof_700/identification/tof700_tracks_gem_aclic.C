@@ -12,7 +12,6 @@ void tof700_tracks_gem_aclic(int runnum = 1882)
   includePath        += "-I${VMCWORKDIR}/fairtools ";
   includePath        += "-I${VMCWORKDIR}/geobase ";
   includePath        += "-I${VMCWORKDIR}/parbase ";
-  includePath        += "-I${VMCWORKDIR}/bmnbase ";
   includePath        += "-I${VMCWORKDIR}/bmndata ";
   includePath        += "-I${VMCWORKDIR}/base/source ";
   includePath        += "-I${VMCWORKDIR}/uni_db/db_classes ";

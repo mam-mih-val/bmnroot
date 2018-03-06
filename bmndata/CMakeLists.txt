@@ -3,19 +3,16 @@
 # The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
-${CMAKE_SOURCE_DIR}/base/field
-${CMAKE_SOURCE_DIR}/base/steer
-${CMAKE_SOURCE_DIR}/base/sim
 ${CMAKE_SOURCE_DIR}/base/event
+${CMAKE_SOURCE_DIR}/base/field
+${CMAKE_SOURCE_DIR}/base/sim
 ${CMAKE_SOURCE_DIR}/base/source
+${CMAKE_SOURCE_DIR}/base/steer
 ${CMAKE_SOURCE_DIR}/geobase
-${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/fairtools
-${CMAKE_SOURCE_DIR}/bmnbase
+${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/globaltracking
-${CMAKE_SOURCE_DIR}/gem
-${CMAKE_SOURCE_DIR}/silicon
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
@@ -90,35 +87,54 @@ BmnHRBDigit.cxx
 BmnSyncDigit.cxx
 BmnTTBDigit.cxx
 BmnMSCDigit.cxx
-BmnDchRaw2Digit.cxx
-BmnMwpcRaw2Digit.cxx
-BmnZDCRaw2Digit.cxx
-BmnECALRaw2Digit.cxx
-BmnLANDRaw2Digit.cxx
-BmnGemRaw2Digit.cxx
-BmnTrigRaw2Digit.cxx
 BmnZDCDigit.cxx
 BmnECALDigit.cxx
 BmnLANDDigit.cxx
-BmnTof2Raw2Digit.cxx
-BmnTof2Raw2DigitNew.cxx
-BmnTof1Raw2Digit.cxx
-BmnRawDataDecoder.cxx
 BmnEventHeader.cxx
 BmnRunHeader.cxx
 BmnCounterTask.cxx
-BmnAdcProcessor.cxx
 BmnIdentifiableTrack.cxx
 BmnFitNode.h
 BmnEnums.h
 DigiArrays.h
 BmnEventQuality.cxx
-BmnTriggersCheck.cxx
+BmnGemStripHit.cxx
+BmnGemTrack.cxx
+ cbm/CbmVertex.cxx
+ cbm/CbmStsTrackFinder.cxx
+ cbm/CbmStsTrackFitter.cxx
+ cbm/CbmTofMerger.cxx
+ cbm/CbmTrackMerger.cxx
+ cbm/CbmPrimaryVertexFinder.cxx
+ cbm/CbmFindPrimaryVertex.cxx
+ math/BmnMath.cxx
+ math/BmnMatrixMath.cxx
+ math/FitWLSQ.cxx
+ BmnFileSource.cxx
+ BmnGeoNavigator.cxx
+ BmnTrack.cxx
+ BmnHit.cxx
+ BmnLink.cxx
+ BmnMatch.cxx
 )
 
 Set(HEADERS)
+
+EXEC_PROGRAM( ${ROOT_CONFIG_EXECUTABLE} 
+    ARGS "--has-gdml"
+    OUTPUT_VARIABLE ROOT_HAS_GDML )
+
+If ( ${ROOT_HAS_GDML} STREQUAL yes )
+  Message(STATUS "Build CbmModule with Gdml support")
+  Add_Definitions(-DROOT_HAS_GDML)
+EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
+
+If ( ${ROOT_HAS_GDML} STREQUAL yes )
+ Set (DEPENDENCIES ${DEPENDENCIES} Gdml)
+EndIf ( ${ROOT_HAS_GDML} STREQUAL yes )
+
 Set(LINKDEF BmnDataLinkDef.h)
 Set(LIBRARY_NAME BmnData)
-Set(DEPENDENCIES Gem Silicon BmnBase Minuit Core Base)
+Set(DEPENDENCIES Minuit Core Base)
 
 GENERATE_LIBRARY()

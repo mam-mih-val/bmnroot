@@ -13,9 +13,10 @@ ${CMAKE_SOURCE_DIR}/globaltracking
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/silicon
 ${CMAKE_SOURCE_DIR}/bmnfield
-${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/BmnKalmanFilter
 ${CMAKE_SOURCE_DIR}/bmndata
+${CMAKE_SOURCE_DIR}/bmndata/cbm
+${CMAKE_SOURCE_DIR}/bmndata/math
 ${CMAKE_SOURCE_DIR}/alignment
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
@@ -37,7 +38,6 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 set(SRCS
-  BmnGemTrack.cxx
   BmnGemHitProducer.cxx
   BmnGemGeo.cxx
   BmnGemDigit.cxx
@@ -57,7 +57,6 @@ set(SRCS
   BmnGemStripStationSet_RunSpring2017.cxx
   BmnGemStripDigit.cxx
   BmnGemStripDigitizer.cxx
-  BmnGemStripHit.cxx
   BmnGemStripHitMaker.cxx
   BmnKalmanFilter.cxx
   BmnGemVertexFinder.cxx
@@ -94,6 +93,6 @@ endif()
 Set(HEADERS)
 set(LINKDEF GemLinkDef.h)
 Set(LIBRARY_NAME Gem)
-Set(DEPENDENCIES KF Sts BmnBase Base)
+Set(DEPENDENCIES KF Sts BmnData Base)
 
 GENERATE_LIBRARY()

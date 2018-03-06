@@ -11,13 +11,13 @@ ${CMAKE_SOURCE_DIR}/base/event
 ${CMAKE_SOURCE_DIR}/base/source
 ${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/fairtools
-${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/bmnfield
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/silicon
 ${CMAKE_SOURCE_DIR}/dch
 ${CMAKE_SOURCE_DIR}/globaltracking
+${CMAKE_SOURCE_DIR}/decoder
 ${CMAKE_SOURCE_DIR}/monitor
 ${CMAKE_SOURCE_DIR}/uni_db
 ${CMAKE_SOURCE_DIR}/uni_db/db_classes
@@ -65,7 +65,6 @@ EndIf (Boost_FOUND)
 Set(HEADERS)
 Set(LINKDEF MonitorLinkDef.h)
 Set(LIBRARY_NAME BmnMonitor)
-Set(DEPENDENCIES Dch KF Sts BmnBase BmnData Base Gem)
+Set(DEPENDENCIES Dch KF Sts BmnData Base Gem)
 
 GENERATE_LIBRARY()
-

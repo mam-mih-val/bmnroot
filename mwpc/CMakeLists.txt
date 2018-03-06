@@ -10,10 +10,10 @@ ${CMAKE_SOURCE_DIR}/base/event
 ${CMAKE_SOURCE_DIR}/base/source
 ${CMAKE_SOURCE_DIR}/geobase 
 ${CMAKE_SOURCE_DIR}/parbase
-${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/fairtools
 ${CMAKE_SOURCE_DIR}/mcstack
 ${CMAKE_SOURCE_DIR}/bmndata
+${CMAKE_SOURCE_DIR}/bmndata/math
 ${CMAKE_SOURCE_DIR}/mwpc
 ${CMAKE_SOURCE_DIR}/gem
 )

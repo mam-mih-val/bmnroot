@@ -23,8 +23,8 @@
 #include "FairLogger.h"
 
 #include "BmnDchTrackFinder.h"
-#include "../base/event/FairMCPoint.h"
-#include "../bmnbase/FitWLSQ.h"
+#include "FairMCPoint.h"
+#include "FitWLSQ.h"
 static Double_t workTime = 0.0;
 TString 		  fhTestFlnm;
 TList			  fhList;

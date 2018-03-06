@@ -8,7 +8,6 @@ set(INCLUDE_DIRECTORIES
   ${CMAKE_SOURCE_DIR}/parbase
   ${CMAKE_SOURCE_DIR}/fairtools
   ${CMAKE_SOURCE_DIR}/bmndata
-  ${CMAKE_SOURCE_DIR}/bmnbase
   ${CMAKE_SOURCE_DIR}/globaltracking
   ${CMAKE_SOURCE_DIR}/gem
   ${CMAKE_SOURCE_DIR}/silicon

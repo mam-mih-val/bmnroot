@@ -16,7 +16,6 @@ void bmnloadlibs()
   gSystem->Load("libPassive");
   gSystem->Load("libGen");
   gSystem->Load("libTrkBase");
-  gSystem->Load("libBmnBase");
   gSystem->Load("libBmnData");
 
   gSystem->Load("libTOF");

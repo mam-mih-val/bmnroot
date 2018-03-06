@@ -9,14 +9,17 @@ ${CMAKE_SOURCE_DIR}/base/event
 ${CMAKE_SOURCE_DIR}/base/source
 ${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/fairtools
-${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/bmndata
+${CMAKE_SOURCE_DIR}/bmndata/cbm
+${CMAKE_SOURCE_DIR}/bmndata/math
 ${CMAKE_SOURCE_DIR}/bmnfield
 ${CMAKE_SOURCE_DIR}/silicon
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/dch
 ${CMAKE_SOURCE_DIR}/mwpc
 ${CMAKE_SOURCE_DIR}/globaltracking
+${CMAKE_SOURCE_DIR}/uni_db
+${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -35,14 +38,18 @@ link_directories(${LINK_DIRECTORIES})
 
 # List of source files
 Set(SRCS
-    BmnDetectorSetup.cxx
-    BmnGlobalTracking.cxx
+ BmnDetectorSetup.cxx
+ BmnGlobalTracking.cxx
+ #BmnSRCTriggersCheck.cxx
+ BmnTriggersCheck.cxx
 )
 
 Set(HEADERS
-    BmnDetectorSetup.h
-    BmnGlobalTracking.h
-    BmnHitFinderRun1.h
+ BmnDetectorSetup.h
+ BmnGlobalTracking.h
+ #BmnSRCTriggersCheck.h - compilation failed
+ BmnTriggersCheck.h
+ BmnHitFinderRun1.h
 )
 
 If (Boost_FOUND)
@@ -51,7 +58,7 @@ EndIf (Boost_FOUND)
 
 Set(LINKDEF GlobalTrackingLinkDef.h)
 Set(LIBRARY_NAME GlobalTracking)
-Set(DEPENDENCIES Gem KF Sts BmnBase BmnData Base)
+Set(DEPENDENCIES Gem KF Sts BmnData Base)
 
 GENERATE_LIBRARY()
 

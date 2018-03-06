@@ -36,6 +36,8 @@
 #pragma link C++ class CbmTrackMatch+;
 #pragma link C++ class CbmTofTrack+;
 #pragma link C++ class BmnTofHit+;
+#pragma link C++ class BmnGemStripHit+;
+#pragma link C++ class BmnGemTrack+;
 
 #pragma link C++ class CbmMvdHit+;
 #pragma link C++ class CbmMvdHitMatch+;
@@ -68,19 +70,6 @@
 #pragma link C++ class BmnMSCDigit+;
 #pragma link C++ class BmnTacquilaDigit+;
 
-#pragma link C++ class BmnDchRaw2Digit+;
-#pragma link C++ class BmnMwpcRaw2Digit+;
-#pragma link C++ class BmnZDCRaw2Digit+;
-#pragma link C++ class BmnECALRaw2Digit+;
-#pragma link C++ class BmnTof2Raw2Digit+;
-#pragma link C++ class BmnTof2Raw2DigitNew+;
-#pragma link C++ class BmnTof1Raw2Digit+;
-#pragma link C++ class BmnGemRaw2Digit+;
-#pragma link C++ class BmnTrigRaw2Digit+;
-#pragma link C++ class BmnAdcProcessor+;
-#pragma link C++ class BmnLANDRaw2Digit+;
-
-#pragma link C++ class BmnRawDataDecoder+;
 #pragma link C++ class DigiArrays+;
 #pragma link C++ class vector<TClonesArray*>+;
 //#pragma link C++ class vector<BmnTrigModule>+;
@@ -95,7 +84,22 @@
 #pragma link C++ class BmnFitNode+;
 #pragma link C++ class BmnIdentifiableTrack+;
 
-#pragma link C++ class BmnTriggersCheck+;
 #pragma link C++ class BmnEventQuality+;
+
+#pragma link C++ class CbmVertex+;
+#pragma link C++ class CbmStsTrackFitter+;
+#pragma link C++ class CbmStsTrackFinder+;
+#pragma link C++ class CbmTofMerger+;
+#pragma link C++ class CbmTrackMerger+;
+#pragma link C++ class CbmPrimaryVertexFinder+;
+#pragma link C++ class CbmFindPrimaryVertex+;
+#pragma link C++ class BmnFileSource+;
+#pragma link C++ class FitWLSQ+;
+#pragma link C++ class BmnGeoNavigator+;
+
+#pragma link C++ class BmnTrack+;
+#pragma link C++ class BmnHit+;
+#pragma link C++ class BmnLink+;
+#pragma link C++ class BmnMatch+;
 
 #endif

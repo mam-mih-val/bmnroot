@@ -11,8 +11,8 @@ ${CMAKE_SOURCE_DIR}/base/source
 ${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/geobase
 ${CMAKE_SOURCE_DIR}/fairtools
-${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/bmndata
+${CMAKE_SOURCE_DIR}/bmndata/cbm
 ${CMAKE_SOURCE_DIR}/sts
 ${CMAKE_SOURCE_DIR}/tof
 ${CMAKE_SOURCE_DIR}/KF
@@ -87,6 +87,6 @@ ENDIF (SSE_FOUND)
 
 Set(LINKDEF CatLinkDef.h)
 Set(LIBRARY_NAME Cat)
-Set(DEPENDENCIES KF Sts BmnBase BmnData Base)
+Set(DEPENDENCIES KF Sts BmnData Base)
 
 GENERATE_LIBRARY()

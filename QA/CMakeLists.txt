@@ -9,10 +9,11 @@ ${CMAKE_SOURCE_DIR}/base/steer
 ${CMAKE_SOURCE_DIR}/base/sim
 ${CMAKE_SOURCE_DIR}/base/event
 ${CMAKE_SOURCE_DIR}/base/source
-${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/geobase
 ${CMAKE_SOURCE_DIR}/bmndata
+${CMAKE_SOURCE_DIR}/bmndata/cbm
+${CMAKE_SOURCE_DIR}/bmndata/math
 ${CMAKE_SOURCE_DIR}/gem
 ${CMAKE_SOURCE_DIR}/silicon
 ${CMAKE_SOURCE_DIR}/globaltracking

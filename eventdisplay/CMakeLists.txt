@@ -45,7 +45,6 @@ MpdWebScreenshots.cxx
 if (BMNROOT)
   Set(INCLUDE_DIRECTORIES
     ${INCLUDE_DIRECTORIES}
-    ${CMAKE_SOURCE_DIR}/bmnbase
     ${CMAKE_SOURCE_DIR}/bmndata
     ${CMAKE_SOURCE_DIR}/globaltracking
     ${CMAKE_SOURCE_DIR}/gem

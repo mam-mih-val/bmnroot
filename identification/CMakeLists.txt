@@ -11,7 +11,6 @@ ${CMAKE_SOURCE_DIR}/base/event
 ${CMAKE_SOURCE_DIR}/base/source
 ${CMAKE_SOURCE_DIR}/parbase
 ${CMAKE_SOURCE_DIR}/fairtools
-${CMAKE_SOURCE_DIR}/bmnbase
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/bmnfield
 ${CMAKE_SOURCE_DIR}/gem
@@ -44,6 +43,6 @@ EndIf (Boost_FOUND)
 Set(HEADERS)
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME BmnIdentification)
-Set(DEPENDENCIES BmnBase BmnData Base)
+Set(DEPENDENCIES BmnData Base)
 
 GENERATE_LIBRARY()

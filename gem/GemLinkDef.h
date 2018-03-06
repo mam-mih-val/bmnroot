@@ -9,7 +9,6 @@
 #pragma link C++ class BmnGemDigit+;
 #pragma link C++ class BmnGemGas+;
 #pragma link C++ class BmnGemDigitizerQAHistograms+;
-#pragma link C++ class BmnGemTrack+;
 #pragma link C++ class BmnGemStripLayer+;
 #pragma link C++ class BmnGemStripModule+;
 #pragma link C++ class BmnGemStripStation+;
@@ -22,7 +21,6 @@
 #pragma link C++ class BmnGemStripStationSet_RunSpring2017+;
 #pragma link C++ class BmnGemStripDigit+;
 #pragma link C++ class BmnGemStripDigitizer+;
-#pragma link C++ class BmnGemStripHit+;
 #pragma link C++ class BmnGemStripHitMaker+;
 #pragma link C++ class BmnKalmanFilter+;
 #pragma link C++ class BmnGemVertexFinder+;

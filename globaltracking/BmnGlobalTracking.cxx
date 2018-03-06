@@ -9,7 +9,7 @@
 #include "TH1F.h"
 #include "BmnEventHeader.h"
 #include "BmnMwpcGeometry.h"
-#include "../bmnbase/FitWLSQ.h"
+#include "FitWLSQ.h"
 using namespace TMath;
 //============================================Histo
 TString 		  fTestFlnm;

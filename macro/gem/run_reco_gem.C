@@ -96,7 +96,6 @@ void run_reco_gem(TString mcFile = "mc.root", Int_t nEvents = 10000) {
   //gSystem->Load("libCbmBase");
   //gSystem->Load("libCbmData");
   //gSystem->Load("libField");
-  gSystem->Load("libBmnBase");
   gSystem->Load("libBmnData");
   gSystem->Load("libBmnField");
   gSystem->Load("libGen");

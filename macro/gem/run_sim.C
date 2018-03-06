@@ -86,7 +86,6 @@ gRandom->SetSeed(1);
   gSystem->Load("libBase");  
   //gSystem->Load("libMCStack");
   //gSystem->Load("libCbmBase");
-  gSystem->Load("libBmnBase");
   //gSystem->Load("libCbmData");
   gSystem->Load("libBmnData");
   //gSystem->Load("libCbmGenerators");

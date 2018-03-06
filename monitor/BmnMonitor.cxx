@@ -256,7 +256,8 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         TLatex Tl;
         Tl.SetTextAlign(23);
         Tl.SetTextSize(0.16);
-        Tl.DrawLatex(0.5, 0.9, Form("Run: %04d", head->GetRunId()));
+        TString shownID = head->GetRunId() == UNKNOWN_RUNID ? " o_O" : TString::UItoa(head->GetRunId(), 10);
+        Tl.DrawLatex(0.5, 0.9, Form("Run: %s", shownID.Data()));
         Tl.DrawLatex(0.5, 0.6, Form("Event: %d", head->GetEventId()));
         Tl.DrawLatex(0.5, 0.3, Form("Run Type: %s", runType.Data()));
         Tl.Draw();

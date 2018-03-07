@@ -5,7 +5,7 @@
 //nEvents: if 0 then decode all events
 //doConvert: convert RAW --> ROOT before decoding or use file converted before
 
-void BmnDataToRoot(TString file, Long_t nEvents = 10000, Bool_t doConvert = kTRUE)
+void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
 {
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");

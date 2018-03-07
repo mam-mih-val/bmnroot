@@ -1426,11 +1426,27 @@ BmnStatus BmnRawDataDecoder::SlewingTOF700Init() {
 
     fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
 
-    InitDecoder();
-
     fDigiTree = new TTree("cbmsim", "bmn_digit");
 
-    fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName, fDigiTree);
+    eventHeader = new TClonesArray("BmnEventHeader");
+    runHeader = new BmnRunHeader();
+    fDigiTree->Branch("EventHeader", &eventHeader);
+    fNevents = (fMaxEvent > fRawTree->GetEntries() || fMaxEvent == 0) ? fRawTree->GetEntries() : fMaxEvent;
+
+        fTrigMapper = new BmnTrigRaw2Digit(fTrigMapFileName, fTrigINLFileName, fDigiTree);
+        if (fT0Map == NULL) {
+            BmnTrigMapping tm = fTrigMapper->GetT0Map();
+            printf("T0 serial 0x%X got from trig mapping\n", tm.serial);
+            if (tm.serial > 0) {
+                fT0Map = new TriggerMapStructure();
+                fT0Map->channel = tm.channel;
+                fT0Map->serial = tm.serial;
+                fT0Map->slot = tm.slot;
+            }
+        }
+        fTrigMapper->SetSetup(fBmnSetup);
+
+
     fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName);
     //fTof700Mapper->print();
 
@@ -1693,13 +1709,14 @@ BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {
     for (auto ar : *trigArr) {
         BmnTrigDigit* dig = (BmnTrigDigit*) ar->At(0);
         if (fPeriodId > 6) {
-            if (strstr(ar->GetName(), "BC2") && ar->GetEntriesFast()) {
+            if (!strcmp(ar->GetName(), "BC2") && ar->GetEntriesFast()) {
                 t0time = dig->GetTime();
                 t0width = dig->GetAmp();
+//		printf(" t0 %f t0w %f n %d\n", t0time, t0width, ar->GetEntriesFast());
                 return kBMNSUCCESS;
             }
         } else {
-            if (strstr(ar->GetName(), "T0") && ar->GetEntriesFast()) {
+            if (!strcmp(ar->GetName(), "T0") && ar->GetEntriesFast()) {
                 t0time = dig->GetTime();
                 t0width = dig->GetAmp();
                 return kBMNSUCCESS;

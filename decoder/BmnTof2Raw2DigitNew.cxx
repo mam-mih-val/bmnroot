@@ -14,7 +14,7 @@
 #define FIT_MAXIMA 1
 #define EQUAL_AVERAGE_T0 1
 #define EQUAL_AVERAGE 0
-#define CABLE_OFFSETS 1
+#define CABLE_OFFSETS 0
 #define TRUE_OFFSETS 1
 #define ALL_CORRECTIONS 1
 #define DRAW_OFFSETS 0
@@ -862,7 +862,7 @@ void BmnTof2Raw2DigitNew::fillPreparation(TClonesArray *data, map<UInt_t,Long64_
        float tm =  (digit->GetValue()+DNL_Table[crate][slot][chan][dnl]) - chtima[crate][slot][chan] - (t0 - ts_diff)*INVHPTIMEBIN + T0shift;
        //if(digit->GetLeading()) lead[ind]=tm; else trail[ind]=tm; 
        if(digit->GetLeading()) {if (lead[ind] == 0) lead[ind]=tm;} else {if (trail[ind] == 0) trail[ind]=tm;} 
-       //printf("#%d slot %d chan %d t %d inl %f t0 %f\n", i, mapa[ind].slot, mapa[ind].chan, digit->GetValue(), DNL_Table[crate][slot][chan][dnl], chtima[crate][slot][chan], t0);
+//       printf("#%d slot %d chan %d td %d inl %f chtima %f t0 %f ts %ld t %f\n", i, mapa[ind].slot, mapa[ind].chan, digit->GetValue(), DNL_Table[crate][slot][chan][dnl], chtima[crate][slot][chan], t0, ts_diff, tm);
     }
 
     int Wc = Wcut;
@@ -2295,7 +2295,7 @@ void BmnTof2Raw2DigitNew::DNL_read()
      pos = 0;
      sscanf(&atext[post],"%d= %n", &ch, &pos);
      post += pos;
-     if (ch != n)
+     if (ch != n && 0)
      {
         if (nerr < 2)
         {

@@ -694,11 +694,6 @@ isobutan           -2  12.01 1.008  6.  1.  2.7e-3  4  10
                    0  0  20.  .001
                    0
 
-// Gas mixture for DCH and MWPC: 75% Ar + 22.5% isobutan(C_4 H_10) + isopropil alcohol (C_4 H_7 OH)  -- mass ratio
-DCH_MWPC_gas      4 39.948 12.01 1.008 15.99 18. 6. 1. 8. 0.0019 0.75 0.203 0.042 0.005
-		  0 0 20. 0.001
-		  0
-
 sulfurhexafluoride -2  32.06 19. 16. 9. 2.7e-3 1 6
                    0  0  20.  .001
                    0

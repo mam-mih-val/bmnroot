@@ -18,22 +18,22 @@ BmnHistLAND::BmnHistLAND(TString title) : BmnHist() {
     fName = title + "_cl";
     TString name;
     name = fTitle + "_Energy_vs_Bar_0";
-    Q0vsBar = new TH2F(name, name, BAR_COUNT, 0, BAR_COUNT, 100, 0, Q_MAX);
+    Q0vsBar = new TH2F(name, name, BAR_COUNT, 0, BAR_COUNT, 100, 0, 100);
     Q0vsBar->GetXaxis()->SetTitle("Bar");
     Q0vsBar->GetYaxis()->SetTitle("Energy, MeV");
     Q0vsBar->SetOption("colz");
     name = fTitle + "_Energy_vs_Bar_1";
-    Q1vsBar = new TH2F(name, name, BAR_COUNT, 0, BAR_COUNT, 100, 0, Q_MAX);
+    Q1vsBar = new TH2F(name, name, BAR_COUNT, 0, BAR_COUNT, 100, 0, 100);
     Q1vsBar->GetXaxis()->SetTitle("Bar");
     Q1vsBar->GetYaxis()->SetTitle("Energy, MeV");
     Q1vsBar->SetOption("colz");
     name = fTitle + "_Time_vs_Bar_0";
-    T0vsBar = new TH2F(name, name, BAR_COUNT, 0, BAR_COUNT, 100, 0, T_MAX);
+    T0vsBar = new TH2F(name, name, BAR_COUNT, 0, BAR_COUNT, 100, 0, 300);
     T0vsBar->GetXaxis()->SetTitle("Bar");
     T0vsBar->GetYaxis()->SetTitle("Time");
     T0vsBar->SetOption("colz");
     name = fTitle + "_Time_vs_Bar_1";
-    T1vsBar = new TH2F(name, name, BAR_COUNT, 0, BAR_COUNT, 100, 0, T_MAX);
+    T1vsBar = new TH2F(name, name, BAR_COUNT, 0, BAR_COUNT, 100, 0, 300);
     T1vsBar->GetXaxis()->SetTitle("Bar");
     T1vsBar->GetYaxis()->SetTitle("Time");
     T1vsBar->SetOption("colz");
@@ -43,7 +43,7 @@ BmnHistLAND::BmnHistLAND(TString title) : BmnHist() {
     TDiffvsBar->GetYaxis()->SetTitle("Time");
     TDiffvsBar->SetOption("colz");
     name = fTitle + "_ToF_spectra";
-    QvsToF = new TH2F(name, name, 200, TOF_MIN, TOF_MAX, 100, 0, Q_MAX);
+    QvsToF = new TH2F(name, name, 200, TOF_MIN, TOF_MAX, 100, 0, 100);
     QvsToF->GetXaxis()->SetTitle("Time");
     QvsToF->GetYaxis()->SetTitle("Energy, MeV");
     QvsToF->SetOption("colz");
@@ -85,18 +85,14 @@ void BmnHistLAND::FillFromDigi(DigiArrays *fDigiArrays) {
     TClonesArray * digits = fDigiArrays->land;
     if (!digits)
         return;
-    BmnLANDDigit *t0 = (BmnLANDDigit *) digits->At(0);
-    if (!t0->IsT0()) {
-      return;
-    }
-    for (Int_t digIndex = 1; digIndex < digits->GetEntriesFast(); digIndex++) {
+    for (Int_t digIndex = 0; digIndex < digits->GetEntriesFast(); digIndex++) {
         BmnLANDDigit *dig = (BmnLANDDigit *) digits->At(digIndex);
         Q0vsBar->Fill(dig->GetGlobBar(), dig->GetEnergy(0));
         Q1vsBar->Fill(dig->GetGlobBar(), dig->GetEnergy(1));
         T0vsBar->Fill(dig->GetGlobBar(), dig->GetTime(0));
         T1vsBar->Fill(dig->GetGlobBar(), dig->GetTime(1));
         TDiffvsBar->Fill(dig->GetGlobBar(), dig->GetTime(1) - dig->GetTime(0));
-        QvsToF->Fill(dig->GetTime() - t0->GetTime(), dig->GetEnergy());
+        QvsToF->Fill(dig->GetTime() - dig->GetTime(), dig->GetEnergy());
     }
 }
 

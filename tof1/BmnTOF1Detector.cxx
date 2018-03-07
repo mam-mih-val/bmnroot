@@ -9,8 +9,7 @@ BmnTOF1Detector::BmnTOF1Detector() {
 
 BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0) {
     Clear();
-   //cout << "****************************INITIALIZING STUFF\n";
-	 memset(fKilled, 0, sizeof (fKilled));
+    memset(fKilled, 0, sizeof (fKilled));
     memset(CorrLR, 0, sizeof (CorrLR));
     memset(CorrTimeShift, 0, sizeof (CorrTimeShift));
     fNEvents = 0;
@@ -100,14 +99,14 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0) {
         {
             fName.Clear();
             fName = Form("Hist_Dt_%s_str%d", Name.Data(), i);
-            hDt[i] = new TH1D(fName, fName, 512, -2400., 4800.);
+            hDt[i] = new TH1D(fName, fName, 512, -24., 24.);
             fHistListDt->Add(hDt[i]);
         }
 	for (Int_t i = istart; i < fNStr + 1; i++)
 	{
 	    fName.Clear();
 	    fName = Form("Hist_ToF_%s_str%d", Name.Data(), i);
-	    hToF[i] = new TH1D(fName, fName, 1024, -3600., 6000.);
+	    hToF[i] = new TH1D(fName, fName, 1024, -36., 60.);
 	    fHistListDt->Add(hToF[i]);
 	}
 //std::cout << "Made it this far!\n";
@@ -193,31 +192,31 @@ Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
     //cout << " Plane = " << TofDigit->GetPlane() << "; Strip " << TofDigit->GetStrip() << "; Side " << TofDigit->GetSide() << "; Time " << TofDigit->GetTime() << "; Amp " << TofDigit->GetAmplitude() << endl;
     if (TofDigit->GetSide() == 0 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE) {
 	fTimeLtemp[fStrip] = TofDigit->GetTime() - 2.*CorrLR[fStrip];
-	//cout << "\t\tSetting Shift: strip # " << fStrip << " shift val " << CorrLR[fStrip] << " curr timeL " << TofDigit->GetTime() << " shifted timeL " << fTimeLtemp[fStrip] <<  "\n";
+	//cout << "Setting Shift: strip # " << fStrip << " shift val " << CorrLR[fStrip] << " curr timeL " << TofDigit->GetTime() << " shifted timeL " << fTimeLtemp[fStrip] <<  "\n";
         fWidthLtemp[fStrip] = TofDigit->GetAmplitude();
         fDigitL[fStrip]++;
     }
-    if (TofDigit->GetSide() == 1){// && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE) {
+    if (TofDigit->GetSide() == 1 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE) {
         fTimeRtemp[fStrip] = TofDigit->GetTime() ;
-	//cout << "\t\tSetting Shift: strip # " << fStrip << " shift val " << CorrLR[fStrip] << " curr timeR " << TofDigit->GetTime() << " shifted timeR " << fTimeRtemp[fStrip] <<  "\n";
+	//cout << "Setting Shift: strip # " << fStrip << " shift val " << CorrLR[fStrip] << " curr timeR " << TofDigit->GetTime() << " shifted timeR " << fTimeRtemp[fStrip] <<  "\n";
         fWidthRtemp[fStrip] = TofDigit->GetAmplitude();
         fDigitR[fStrip]++;
     }
     if (
-            fTimeRtemp[fStrip] != 0 || fTimeLtemp[fStrip] != 0
-            //&& TMath::Abs((fTimeLtemp[fStrip] - fTimeRtemp[fStrip]) * 0.5) <= fMaxDelta // cat for length of strip  
-            //&& TMath::Abs((fWidthLtemp[fStrip] - fWidthRtemp[fStrip]) * 0.5) <= 1.5 // cat for Amplitude correlation
+            fTimeRtemp[fStrip] != 0 && fTimeLtemp[fStrip] != 0
+            && TMath::Abs((fTimeLtemp[fStrip] - fTimeRtemp[fStrip]) * 0.5) <= fMaxDelta // cat for length of strip  
+            && TMath::Abs((fWidthLtemp[fStrip] - fWidthRtemp[fStrip]) * 0.5) <= 1.5 // cat for Amplitude correlation
             //&& fFlagHit[fStrip] == kFALSE
-            ){
-        //if (fFlagHit[fStrip] == kFALSE) {
-            //cout << "\t\tBefore set variable: " << fTimeL[fStrip] << " " << fTimeR[fStrip] << "\n";
+            )
+        if (fFlagHit[fStrip] == kFALSE) {
+            //cout << "Before set variable: " << fTimeL[fStrip] << " " << fTimeR[fStrip] << "\n";
 	    fTimeL[fStrip] = fTimeLtemp[fStrip];
             fTimeR[fStrip] = fTimeRtemp[fStrip];
             fWidthL[fStrip] = fWidthLtemp[fStrip];
             fWidthR[fStrip] = fWidthRtemp[fStrip];
             fFlagHit[fStrip] = kTRUE;
             fHit[fStrip]++;
-            //cout << "\t\tAfter set " << fTimeL[fStrip] << " " << fTimeR[fStrip] << " " << fWidthL[fStrip] << " " << fWidthR[fStrip] << "\n";
+            //cout << "After set variable: " << fTimeL[fStrip] << " " << fTimeR[fStrip] << "\n";
         } else
             fHit[fStrip]++;
 
@@ -243,7 +242,7 @@ Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0) {
                 ) {
             fHit_Per_Ev++;
             fWidth[i] = fWidthL[i] + fWidthR[i];
-	fTime[i] = (fTimeL[i] + fTimeR[i]) * 0.5;
+            fTime[i] = (fTimeL[i] + fTimeR[i]) * 0.5;
             flag = GetCrossPoint(i);
             if (fT0 != NULL) fTof[i] = CalculateDt(i);
             if (i > 1 && fFillHist > 0) {
@@ -276,12 +275,11 @@ Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0, TClonesArray *TofHit) {
     Bool_t flag;
     for (Int_t i = 0; i < fNStr; i++)
         if (
-                fWidthL[i] != 0 || fWidthR[i] != 0
+                fWidthL[i] != 0 && fWidthR[i] != 0
                 //&& fFlagHit[fStrip] == kTRUE
                 ) {
             fHit_Per_Ev++;
             fWidth[i] = fWidthL[i] + fWidthR[i];
-        	//cout << "\t\tCandidate event on strip: " << i << " with width: " << fWidth[i] << "\n";    
             fTime[i] = (fTimeL[i] + fTimeR[i]) * 0.5;
             flag = GetCrossPoint(i);
             if (fT0 != NULL) fTof[i] = CalculateDt(i);

@@ -82,8 +82,7 @@ InitStatus 		BmnLANDHitProducer::Init()
 		return kERROR;
 	}
 	
-	fLANDGeometry = new BmnLANDGeometry();
-	
+
 	aLandHits = new TClonesArray("BmnLANDHit");
 	FairRootManager::Instance()->Register("BmnLandHit", "LAND", aLandHits, kTRUE);
 	
@@ -117,7 +116,7 @@ void 		BmnLANDHitProducer::Exec(Option_t* opt) {
 
 	float dPlane=10.; //spacing bwt planes tmp
 	
-	//if (nT0Digits == 1) //{  T0 digit should exist and only be len 1
+	//if (nT0Digits == 1) { // T0 digit should exist and only be len 1
 		BmnTrigDigit* digT0 = (BmnTrigDigit*) aExpDigitsT0->At(0);
 
 		for (Int_t iDig = 0; iDig < aExpDigits->GetEntriesFast(); ++iDig) {
@@ -130,10 +129,8 @@ void 		BmnLANDHitProducer::Exec(Option_t* opt) {
 			pos.SetXYZ(digLand->GetX(),digLand->GetY(),(p*dPlane+5.));
 			
 			// Assume t res is 500ps for now
-			//float xerr = m_vscint[p][b].vscint*sqrt(2.0)*0.5;
-			//float yerr = 10./sqrt(12.);
-			float xerr = digLand->IsVertical() ? 10/sqrt(12.) : m_vscint[p][b].vscint*sqrt(2.0)*0.5;
-			float yerr = digLand->IsVertical() ? m_vscint[p][b].vscint*sqrt(2.0)*0.5 : 10./sqrt(12.);
+			float xerr = m_vscint[p][b].vscint*sqrt(2.0)*0.5;
+			float yerr = 10./sqrt(12.);
 			float zerr = 10./sqrt(12.);		
 				// now need to transform error to lab frame
 			float lab_xerr = pow(pow(xerr,2)*pow(TMath::Cos(5.2*TMath::DegToRad()),2) + pow(yerr,2)*pow(TMath::Sin(5.2*TMath::DegToRad()),2),0.5);
@@ -141,16 +138,14 @@ void 		BmnLANDHitProducer::Exec(Option_t* opt) {
 
 			dpos.SetXYZ(lab_xerr , lab_yerr,zerr);			
 
-			//			poslab.SetXYZ(pos.X()-130.9,pos.Y(),pos.Z()+1425.0);
-			poslab.SetXYZ(pos.X() - fLANDGeometry->GetGlobalX(), pos.Y(), pos.Z() + fLANDGeometry->GetGlobalZ());
-			//	poslab.RotateZ(5.2*TMath::DegToRad());
-			poslab.RotateZ(fLANDGeometry->GetGlobalAngle()*TMath::DegToRad());
+			poslab.SetXYZ(pos.X()-130.9,pos.Y(),pos.Z()+1425.0);
+			poslab.RotateZ(5.2*TMath::DegToRad());
 			
     			BmnLANDHit *pHit = new ((*aLandHits)[aLandHits->GetEntriesFast()]) BmnLANDHit(digLand->GetPlane(), digLand->GetBar(), poslab, dpos,digLand->GetTime(), digLand->GetEnergy());
 		
 			// TODO: apply slewing correction for T0 time
-			pHit->SetTimeStamp(digLand->GetTime()-digT0->GetTime());
-			//pHit->SetTimeStamp(digLand->GetTime());
+			//pHit->SetTimeStamp(digLand->GetTime()-digT0->GetTime());
+			pHit->SetTimeStamp(digLand->GetTime());
 			pHit->SetEnergy(digLand->GetEnergy());
 			}
 		
@@ -178,7 +173,6 @@ void BmnLANDHitProducer::Finish() {
 				pDetector[i] -> SaveHistToFile(fTestFlnm.Data());
 	}*/
 
-        delete fLANDGeometry;
 	cout << "Work time of the LAND hit finder: " << workTime << endl;
 }
 

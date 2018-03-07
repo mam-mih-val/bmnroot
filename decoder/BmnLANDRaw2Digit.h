@@ -24,7 +24,6 @@ class BmnLANDRaw2Digit{
     };
 
   private:
-    Double_t GetWalk(Double_t) const;
     void SetTCal(BmnTacquilaDigit &);
     struct TacquilaRef {
       TacquilaRef(): crate(-1), module(-1), channel(-1) {}

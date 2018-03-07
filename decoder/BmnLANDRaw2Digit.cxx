@@ -359,11 +359,7 @@ BmnLANDRaw2Digit::BmnLANDRaw2Digit(TString a_map_filename, TString
 void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
     TClonesArray *land_array)
 {
-  /* Reserve the first array entry for T0. */
-  TClonesArray &ar_land = *land_array;
-  auto t0 = new (ar_land[0]) BmnLANDDigit;
-
-  /* Clear and find common stop channels ("channel 17"). */
+  /* First clear and find common stop channels ("channel 17"). */
   for (size_t crate_i = 0; crate_i < LENGTH(m_c17); ++crate_i) {
     for (size_t module_i = 0; module_i < LENGTH(m_c17[crate_i]); ++module_i) {
       m_c17[crate_i][module_i] = nullptr;
@@ -372,13 +368,12 @@ void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
   for (int i = 0; i < tacquila_array->GetEntriesFast(); i++) {
     auto *tacquila = reinterpret_cast<BmnTacquilaDigit *>(
 	tacquila_array->At(i));
-    /* And let's apply tcal to all channels while we're here... */
+    /* And let's apply tcal while we're here... */
     SetTCal(*tacquila);
     if (16 == tacquila->GetChannel()) {
       m_c17[tacquila->GetGtb()][tacquila->GetModule()] = tacquila;
     }
   }
-
   /* Now let's clear and look at the normal channels 0..15. */
   for (size_t plane_i = 0; plane_i < LENGTH(m_builder); ++plane_i) {
     for (size_t bar_i = 0; bar_i < LENGTH(m_builder[plane_i]); ++bar_i) {
@@ -408,7 +403,6 @@ void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
      * SAM is always on VME address 0x05000000, so SAM=5.
      * GTB 0 = Tacquila crate 0, same for 1.
      * The rest follows the mapping file.
-     * T0 is connected to GTB1 Tacq=5 ch=15 (starting at 0).
      */
     unsigned int gtb_i = tacquila->GetGtb();
     if (gtb_i >= LENGTH(m_tacq2det)) {
@@ -425,14 +419,6 @@ void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
     if (channel_i >= LENGTH(m_tacq2det[gtb_i][module_i])) {
       std::cerr << __func__ << ": Invalid channel=" << channel_i <<
 	", corrupt data.\n";
-      continue;
-    }
-    /* Hard-wired T0. */
-    if (1 == gtb_i && 5 == module_i && 15 == channel_i) {
-      tacquila->SetTDiff(*c17);
-      t0->SetT0(*tacquila);
-      // TODO: Where to do slewing/walk correction?
-      // Looks like T0 has no walk in Tacquila?
       continue;
     }
     auto const &det = m_tacq2det[gtb_i][module_i][channel_i];
@@ -452,13 +438,15 @@ void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
     m_builder[det.plane][det.bar][det.side] = tacquila;
     if (m_builder[det.plane][det.bar][1 - det.side]) {
       /* Aha, we have both sides of a bar! Muy excellente! */
+      TClonesArray &ar_land = *land_array;
       auto const &tacquila0 = *m_builder[det.plane][det.bar][0];
       auto const &tacquila1 = *m_builder[det.plane][det.bar][1];
       auto const &diff_sync = m_diff_sync[det.plane][det.bar];
+      // TODO : add slewing correction
       Float_t time0 = tacquila0.GetTDiff() + diff_sync.time_diff -
-	diff_sync.time_sync + GetWalk(tacquila0.GetQdc());
+	diff_sync.time_sync;
       Float_t time1 = tacquila1.GetTDiff() - diff_sync.time_diff -
-	diff_sync.time_sync + GetWalk(tacquila0.GetQdc());
+	diff_sync.time_sync;
       Float_t energy0 = (tacquila0.GetQdc() - m_ped[det.plane][det.bar][0].ped)
 	* diff_sync.energy_diff0 * diff_sync.energy_sync;
       Float_t energy1 = (tacquila1.GetQdc() - m_ped[det.plane][det.bar][1].ped)
@@ -470,14 +458,6 @@ void BmnLANDRaw2Digit::fillEvent(TClonesArray const *tacquila_array,
 	  position);
     }
   }
-}
-
-// Fitted walk-curve to all LAND PMT:s.
-Double_t BmnLANDRaw2Digit::GetWalk(Double_t a_qdc) const
-{
-  Double_t p1 = 1500;    // +-0.2238
-  Double_t p2 = 0.00075; // +-2.355e-5
-  return p1 * pow(a_qdc, p2) - (p1 * pow(400, p2));
 }
 
 void BmnLANDRaw2Digit::SetTCal(BmnTacquilaDigit &a_tacquila)

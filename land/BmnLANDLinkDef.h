@@ -5,7 +5,6 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class  BmnLANDGeometry+;
 #pragma link C++ class  BmnLANDHit+;
 #pragma link C++ class  BmnLANDHitProducer+;
 

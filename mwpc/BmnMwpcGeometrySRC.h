@@ -25,7 +25,7 @@ class BmnMwpcGeometrySRC : public TNamed {
 public:
 
     /** Default constructor **/
-    BmnMwpcGeometrySRC(Int_t periodNum);
+    BmnMwpcGeometrySRC();
 
     /** Destructor **/
     virtual ~BmnMwpcGeometrySRC();
@@ -79,7 +79,7 @@ public:
     Double_t GetZLeft(Int_t chamber) {
         return zLeft[chamber];
     }
-
+ 
 private:
 
     Short_t fNChambers;
@@ -97,9 +97,7 @@ private:
     Double_t zPlanePos[4][6];
     Double_t zRight[4];
     Double_t zLeft[4];
-
-    //    Int_t fkPl[4][6];
-
+    
     Double_t fChamberWidth;
     //    Double_t fDistanceBetweenMWPC;
     Double_t fGlobalZdiff;

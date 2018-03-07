@@ -8,17 +8,12 @@ class BmnTacquilaDigit;
 class BmnLANDDigit: public TNamed
 {
   public:
-    enum {
-      T0_PLANE = 100
-    };
     BmnLANDDigit();
     BmnLANDDigit(UChar_t, UChar_t, BmnTacquilaDigit const &, BmnTacquilaDigit
 	const &, Float_t, Float_t, Float_t, Float_t, Float_t);
     virtual ~BmnLANDDigit();
 
     Float_t GetBarPosition() const;
-    Bool_t IsT0() const;
-    Bool_t IsValid() const;
     Bool_t IsVertical() const;
 
     UChar_t GetPlane() const;
@@ -32,7 +27,6 @@ class BmnLANDDigit: public TNamed
     Float_t GetTDiff(Char_t) const;
     Float_t GetTime(Char_t = -1) const;
     Float_t GetEnergy(Char_t = -1) const;
-    void SetT0(BmnTacquilaDigit const &);
 
 private:
     /* 0..4 = LAND, 5 = VETO. */
@@ -47,7 +41,7 @@ private:
     UShort_t fQdc0, fQdc1;
     /* tcal + clock - cal(17). */
     Float_t fTDiff0, fTDiff1;
-    /* Synchronized time. */
+    /* Calibrated time. */
     Float_t fTime0, fTime1, fTime;
     /* Calibrated energy. */
     Float_t fEnergy0, fEnergy1, fEnergy;

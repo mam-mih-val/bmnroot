@@ -116,8 +116,6 @@ BmnGemTrack.cxx
  BmnHit.cxx
  BmnLink.cxx
  BmnMatch.cxx
-BmnTriggersCheck.cxx
-BmnSRCTriggersCheck.cxx
 )
 
 Set(HEADERS)

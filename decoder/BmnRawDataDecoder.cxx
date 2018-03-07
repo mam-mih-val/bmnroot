@@ -1221,11 +1221,6 @@ BmnStatus BmnRawDataDecoder::FinishRun() {
 
 }
 
-//BmnStatus BmnRawDataDecoder::CalcGemPedestals()
-//{
-//return kBMNSUCCESS;
-//}
-
 void BmnRawDataDecoder::ResetDecoder(TString file) {
     fNevents = 0;
     syncCounter = 0;

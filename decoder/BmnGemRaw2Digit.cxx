@@ -28,14 +28,14 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
     fBigR0 = new BmnGemMap[N_CH_BUF];
     fBigR1 = new BmnGemMap[N_CH_BUF];
 
-//    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", period, run);
-//    fEntriesInGlobMap = 0;
-//    if (mapPar != NULL) mapPar->GetGemMapArray(fMap, fEntriesInGlobMap);
-//    delete mapPar;
+    //    UniDbDetectorParameter* mapPar = UniDbDetectorParameter::GetDetectorParameter("GEM", "GEM_global_mapping", period, run);
+    //    fEntriesInGlobMap = 0;
+    //    if (mapPar != NULL) mapPar->GetGemMapArray(fMap, fEntriesInGlobMap);
+    //    delete mapPar;
     //    for (Int_t i = 0; i < fEntriesInGlobMap; ++i)
     //        if (find(fSerials.begin(), fSerials.end(), fMap[i].serial) == fSerials.end())
     //            fSerials.push_back(fMap[i].serial);
-    
+
     string dummy;
     UInt_t id = 0;
     UInt_t ser = 0;
@@ -43,7 +43,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
     UInt_t ch_hi = 0;
     UInt_t station = 0;
     UInt_t hot = 0;
-//    TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + TString(Form("GEM_map_run%d_SRC.txt", period));
+    //    TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + TString(Form("GEM_map_run%d_SRC.txt", period));
     TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + mapFileName;
     printf("%s\n", name.Data());
     ifstream inFile(name.Data());
@@ -62,7 +62,7 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
         record.hotZone = hot;
         record.id = id;
         fMap.push_back(record);
-    } 
+    }
     fEntriesInGlobMap = fMap.size();
 
     ReadMap("GEM_X_small", fSmall, 0, 0);
@@ -104,7 +104,7 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     if (fBigL1) delete[] fBigL1;
     if (fBigR0) delete[] fBigR0;
     if (fBigR1) delete[] fBigR1;
-//    if (fMap) delete[] fMap;
+    //    if (fMap) delete[] fMap;
 }
 
 BmnStatus BmnGemRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray * gem) {
@@ -146,20 +146,22 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
             fBigMap = fMid;
         } else {
             if (gemM->hotZone % 2 == 0) {
+                if (gemM->channel_low == 0)
+                    realChannel += 1024;
                 if (gemM->id % 10 == 0)
                     fBigMap = fBigL0;
                 else
                     fBigMap = fBigR0;
             } else {
-                if (gemM->id % 10 == 0) 
+                if (gemM->id % 10 == 0)
                     fBigMap = fBigL1;
-                else 
+                else
                     fBigMap = fBigR1;
                 if (gemM->channel_high - gemM->channel_low < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
             }
         }
-        mod = (gemM->hotZone < 2) ? 0 : 1;
         lay = fBigMap[realChannel].lay;
+        mod = gemM->hotZone >> 1;
         strip = fBigMap[realChannel].strip;
 
         if (strip > 0) {
@@ -195,7 +197,7 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
         Double_t ped = vPed[iSer][ch][iSmpl];
         Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
         //        Double_t sig = dig->GetStripSignal() - CMS - ped;
-        Float_t threshold = 15 + 4 * vPedRMS[iSer][ch][iSmpl];//20;
+        Float_t threshold = 15 + 4 * vPedRMS[iSer][ch][iSmpl]; //20;
         if (sig < threshold || sig == 0.0) continue; //FIXME: check cases with sig == 0
         new((*gem)[gem->GetEntriesFast()]) BmnGemStripDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
     }

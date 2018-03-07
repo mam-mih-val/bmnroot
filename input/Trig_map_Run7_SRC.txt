@@ -3,7 +3,7 @@ Det            Mod              Serial      Slot     Channel
 TQDC_BC1        0           0x076D2E12        13           0 
 TQDC_BC2        0           0x076D2E12        14           1 
 TQDC_BC3        0           0x076D2E12        13           2 
-TQDC_BC4        0           0x076D2E12        14           3 
+TQDC_BC4        0           0x076D2E12        13           3 
 TQDC_VC         0           0x076D2E12        13           4 
 TQDC_X1_Left    0           0x076D2E12        13           5
 TQDC_X1_Right   0           0x076D2E12        13           6

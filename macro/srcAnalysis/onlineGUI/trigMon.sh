@@ -17,7 +17,7 @@ echo "Reading File: "${FILE}
 
 # First analyze the raw binary file that we collected and create the digi file
 cd $WORKDIR"/macro/raw"
-root -l -b -q "BmnDataToRoot.C(\"$FILE\",10000,kTRUE)"
+root -l -b -q "BmnDataToRoot.C(\"$FILE\", 10000)"
 echo ""
 echo "==========================================================="
 echo ""
@@ -51,7 +51,7 @@ CURR_Others=$OUTPUT'/det_histos_curr_other.root'
 #read -p 'Ending event [-1 = all; typical 10,000]: ' stopEvent
 
 # 	Doing the analysis for our trigger detectors, on the current run
-root -l -b -q   "BCs_TQDC_digitize.C(\"$DIGI\",\"$CURR_TQDC_BCs\",0,10000)"
+#root -l -b -q   "BCs_TQDC_digitize.C(\"$DIGI\",\"$CURR_TQDC_BCs\",0,10000)"
 #root -l -b -q    "BCs_TDC_digitize.C(\"$DIGI\",\"$CURR_TDC_BCs\",$startEvent,$stopEvent)"
 #root -l -b -q "Arms_TQDC_digitize.C(\"$DIGI\",\"$CURR_TQDC_Arms\",$startEvent,$stopEvent)"
 #root -l -b -q  "Arms_TDC_digitize.C(\"$DIGI\",\"$CURR_TDC_Arms\",$startEvent,$stopEvent)"

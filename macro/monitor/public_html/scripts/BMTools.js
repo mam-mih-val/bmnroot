@@ -46,7 +46,4 @@ function makeSelection() {
     refInput.value = id;
 }
 
-function () {
-    
-}
 

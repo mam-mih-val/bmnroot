@@ -42,7 +42,7 @@
 #define DECO_SOCK_WAIT_LIMIT     5e4
 #define INOTIF_BUF_LEN (255 * (sizeof(struct inotify_event) + 255))
 #define DAQ_ADDR     "bmn-daq"  //"bmn-hrb-3.jinr.ru"
-#define DAQ_IP         "10.18.11.193"//"10.18.11.200"//
+#define DAQ_IP         "10.18.11.200"//"10.18.11.193"//
 #define DAQ_PORT               32999
 #define MPD_EVENT_HEAD_WORDS       3 // sync + payload lenght + iEv
 #define UNKNOWN_RUNID           9999

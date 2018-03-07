@@ -61,8 +61,8 @@ and open the template in the editor.
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeTableC", obj, "");
                 }).send(null);
-                var refPath = path0 + "refList" + "/root.json";
                 FillRefTable(path0 + "refTable" + "/root.json", "refTable");
+                var refPath = path0 + "refList" + "/root.json";
                 FillRefSelector(refPath, "refSelector");
             }
             function SetRefRun() {

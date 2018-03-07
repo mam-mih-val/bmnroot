@@ -111,10 +111,17 @@ and open the template in the editor.
                 <div id="infoC" style="width: 20vw;"> </div>
             </div>
         </div>
-
+ <br/>
+        <table>
+        <tr>
+        <th>
         <button onclick="ResetToFHist()"> 
             <img src="../img/reset.png" width="200">
         </button>
+        </th>
+        <th>
+        </th>
+        <th>
         <table>
             <tr>
                 <th>
@@ -152,23 +159,26 @@ and open the template in the editor.
                 </th>
             </tr>
             <tr>
-                <tb>
+                <th>
                     Run Index
-                </tb>
-                <tb>
+                </th>
+                <th>
                     <input type="text" name="refInput" id="refInput" list="refSelector">
                     <datalist id="refSelector" autocomplete="on"></datalist>
-                </tb>
-                <tb>
-                    <button onclick="SetRefRun()" style="width: 20vw;height: 2vw;"> 
+                </th>
+                <th>
+                    <button onclick="SetRefRun()" style="width: 20vw;height: 3vw;"> 
                         <h3> Select Reference Run</h3>
                     </button>
-                </tb>
-                <tb>
+                </th>
+                <th>
                     <select class="styleRefTable" id="refTable" onchange="makeSelection()">
-                </tb>
+                </th>
 
             </tr>
+        </table>
+        </th>
+        </tr>
         </table>
 
         <div align="center">

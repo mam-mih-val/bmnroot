@@ -83,15 +83,13 @@ and open the template in the editor.
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
-
-                var refPath = path0 + "refList" + "/root.json";
-                //FillRefSelector(refPath, "refSelector");
-
                 filename = path + "SRCCanvas" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("srcTableC", obj, "");
                 }).send(null);
-                //FillRefTable(path0 + "refTable" + "/root.json", "refTable");
+                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
+                var refPath = path0 + "refList" + "/root.json";
+                FillRefSelector(refPath, "refSelector");
             }
             function SetRefRun() {
                 var runName = document.getElementById("refInput").value;

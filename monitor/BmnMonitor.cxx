@@ -115,7 +115,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                     //FinishRun();
                     fState = kBMNWAIT;
                     //                    keepWorking = false;
-                    fServer->SetTimer(10, kFALSE);
+                    fServer->SetTimer(50, kFALSE);
                     DBG("state changed to kBMNWAIT")
                 }
             } else {
@@ -171,7 +171,7 @@ void BmnMonitor::InitServer() {
         fServer = new THttpServer(cgiStr.Data());
     } else
         fServer = new THttpServer(TString(cgiStr + "?auth_file=auth.htdigest&auth_domain=root").Data());
-    fServer->SetTimer(0, kFALSE);
+    fServer->SetTimer(50, kFALSE);
     fServer->SetItemField("/", "_monitoring", "10000");
     fServer->SetItemField("/", "_layout", "grid3x3");
 }

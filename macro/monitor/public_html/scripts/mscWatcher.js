@@ -80,38 +80,43 @@ function getData() {
     //timeoutData = setInterval(getData, 10000);
 }
 
-var chLst = [0, 2, 4, 5];
+//var chLst = [0, 2, 4, 5];
 
 function doParse() {
     var time = new Date().getTime();
-    while (strQue.length > 0) {
-        var chunk = strQue.shift();
-        strBuf += chunk;
-        var str = chunk.toString();
-        //console.log('   last ' + str[str.length - 1])
-        //var regex = '([^\\n]+)\\n(.*)';
-        if (str[str.length - 1] == '\n') {
-            //console.log(strBuf);
-            var obj = JSON.parse(strBuf);
-            strBuf = '';
-            str = null;
-            t = 0;
-            stepH = obj.DAQ.histogramStep; // obtain value of histogram step
-            //htext = makeHist(obj);
-            if (hists.length >= 4)
-            for (var i = 0; i < 4; i++) {
-                hists[i].fArray = obj.DAQ.histPlot['channel ' + (chLst[i]).toString()];  // now channels in JSON are counted from 0
-                //hists[i].fArray['200'] = 1000;
-                hists[i].fArray.push(0);
-                //hists[i].fArray.unshift(0);
+    try {
+        while (strQue.length > 0) {
+            var chunk = strQue.shift();
+            strBuf += chunk;
+            var str = chunk.toString();
+            //console.log('   last ' + str[str.length - 1])
+            //var regex = '([^\\n]+)\\n(.*)';
+            if (str[str.length - 1] == '\n') {
+                //console.log(strBuf);
+                var obj = JSON.parse(strBuf);
+                strBuf = '';
+                str = null;
+                t = 0;
+                stepH = obj.DAQ.histogramStep; // obtain value of histogram step
+                //htext = makeHist(obj);
+                if (hists.length >= 4)
+                    for (var i = 0; i < 4; i++) {
+                        hists[i].fArray = obj.DAQ.histPlot['channel ' + (i).toString()];  // now channels in JSON are counted from 0
+                        //hists[i].fArray['200'] = 1000;
+                        hists[i].fArray.push(0);
+                        //hists[i].fArray.unshift(0);
 
-                //console.log(hist.fArray);
+                        //console.log(hist.fArray);
+                    }
+                //console.log(obj);
+                //console.log('parsed ' + obj.DAQ.histPlot.histogramStep)
+                //console.log('parsed ' + obj.DAQ.histPlot["channel 1"])
+                break;
             }
-            //console.log(obj);
-            //console.log('parsed ' + obj.DAQ.histPlot.histogramStep)
-            //console.log('parsed ' + obj.DAQ.histPlot["channel 1"])
-            break;
         }
+    }
+    catch (er){
+        console.log("Catched error "+ er);
     }
     time = new Date().getTime() - time;
     //console.log('time spent = ', time);
@@ -120,16 +125,16 @@ function doParse() {
 
 var hists = [];
 
-for (var i = 0; i < 4; i++){
+for (var i = 0; i < 8; i++){
     var hist = jsroot.CreateHistogram('TH1I', (nbinsX * stepH * unTime)); // numder of bins or maximal value of X?
     //his.
-    var named = 'BC1';
-    if(i == 0) named = named;
-    if(i == 1) named = 'SCR Trigger';
-    if(i == 2) named = 'Trigger Busy';
-    if(i == 3) named = 'Interaction Trigger';
-    
-    hist.fName = 'Channel '+ chLst[i] + ':   ' + named;
+    var named = ' ';
+    if(i == 0) named = 'BC1';
+    if(i == 2) named = 'SCR Trigger';
+    if(i == 4) named = 'Trigger Busy';
+    if(i == 5) named = 'Interaction Trigger';
+
+    hist.fName = 'Channel '+ i + ':   ' + named;
     hist.fTitle = hist.fName;
     hist.fEntries = 8193;
     hist.fXaxis.fTitle = 'Time between hits, ns';

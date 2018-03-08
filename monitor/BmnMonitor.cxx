@@ -152,6 +152,8 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                     default:
                         break;
                 }
+            } else {
+                printf("No header??\n");
             }
             fDigiArrays->Clear();
             delete fDigiArrays;

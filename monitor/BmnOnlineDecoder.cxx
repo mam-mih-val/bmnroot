@@ -16,6 +16,7 @@
 #include <dirent.h>
 #include <sys/inotify.h>
 #include <zmq.h>
+#include <root/RtypesCore.h>
 
 #include "BmnOnlineDecoder.h"
 
@@ -240,15 +241,23 @@ void BmnOnlineDecoder::ProcessStream() {
     Int_t sendRes = 0;
     TBufferFile t(TBuffer::kWrite);
     UInt_t syncCounter = 0;
-    //isListening = kTRUE;
-    while (/*(isListening) &&*/ (msg_len < MAX_BUF_LEN)) {
+    Bool_t isListening = kTRUE;
+    while ((isListening) && (msg_len < MAX_BUF_LEN)) {
         conID_size = zmq_recv(_socket_data, &conID, sizeof (conID), 0);
         if (conID_size == -1) {
-            printf("Receive error #%s\n", zmq_strerror(errno));
-            if (errno == EAGAIN)
-                usleep(MSG_TIMEOUT);
-            else
-                break;
+            printf("Receive error #%d : %s\n", errno, zmq_strerror(errno));
+            switch (errno) {
+                case EAGAIN:
+                    usleep(MSG_TIMEOUT);
+                    break;
+                case EINTR:
+                    isListening = kFALSE;
+                    printf("Exit!\n");
+                    continue;
+                    break;
+                default:
+                    break;
+            }
         } else {
             //            printf("ID size =  %d\n Id:%x\n", conID_size, conID);
         }
@@ -262,10 +271,18 @@ void BmnOnlineDecoder::ProcessStream() {
             //frame_size = zmq_recv(_socket_data, buf, MAX_BUF_LEN, 0);
             if (frame_size == -1) {
                 printf("Receive error № %d #%s\n", errno, zmq_strerror(errno));
-                if (errno == EAGAIN)
-                    usleep(MSG_TIMEOUT);
-                else
-                    break;
+                switch (errno) {
+                    case EAGAIN:
+                        usleep(MSG_TIMEOUT);
+                        break;
+                    case EINTR:
+                        isListening = kFALSE;
+                        printf("Exit!\n");
+                        continue;
+                        break;
+                    default:
+                        break;
+                }
             } else {
                 //                UChar_t *str = (UChar_t*) malloc((frame_size + 1) * sizeof (UChar_t));
                 //                msgPtr = (UInt_t*) zmq_msg_data(&msg);
@@ -391,6 +408,7 @@ void BmnOnlineDecoder::ProcessStream() {
                                 evExit = kTRUE;
                                 break;
                             }
+                        rawDataDecoder->SetRunId(fRunID);
                         //                    printf("captured enough\n");
                         //                    UInt_t *p = &buf[++i];
                         //                        i++;

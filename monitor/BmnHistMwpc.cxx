@@ -115,10 +115,6 @@ BmnHistMwpc::~BmnHistMwpc() {
     for (auto row : h_times)
         for (auto el : row)
             delete el;
-    for (auto pad : canTimesPads)
-        if (pad) delete pad;
-    for (auto pad : canWiresPads)
-        if (pad) delete pad;
     delete MwpcHits;
     delete h_MWPC0;
     delete h_MWPC1;

@@ -22,7 +22,7 @@
 
 class BmnHistECAL : public BmnHist {
 public:
-    BmnHistECAL(TString title = "ECAL");
+    BmnHistECAL(TString title, TString path = "");
     virtual ~BmnHistECAL();
     void Reset();
     void Register(THttpServer *serv);

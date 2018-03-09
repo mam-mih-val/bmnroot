@@ -637,6 +637,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                     case kU40VE_RC:
                         if (fPeriodId > 4 && type == kGEMTRIGTYPE && slot == kEVENTTYPESLOT) {
                             trType = ((d[i] & 0x7) == kTRIGMINBIAS) ? kBMNMINBIAS : kBMNBEAM;
+                            printf("trType %d\n", trType);
                             evType = ((d[i] & 0x8) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
                             if (evType == kBMNPEDESTAL)
                                 fPedoCounter++;

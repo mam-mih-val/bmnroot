@@ -181,7 +181,7 @@ void BmnMonitor::InitServer() {
 BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     fEvents = 0;
     UpdateRuns();
-    TString outHistName = Form("bmn_run%04d_hist.root", runID);
+    TString outHistName = Form("%s\\bmn_run%04d_hist.root", _curDir.Data(), runID);
     fHistOut = new TFile(outHistName, "recreate");
     if (fHistOut)
         printf("file %s created\n", outHistName.Data());
@@ -201,15 +201,15 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     TString refName = Form("ref%06d_", fRunID);
     bhVec.push_back(new BmnHistGem(refName + "GEM", _curDir, fPeriodID));
     bhVec.push_back(new BmnHistSilicon(refName + "Silicon", _curDir, fPeriodID));
-    bhVec.push_back(new BmnHistDch(refName + "DCH"));
-    bhVec.push_back(new BmnHistMwpc(refName + "MWPC"));
-    bhVec.push_back(new BmnHistZDC(refName + "ZDC"));
-    bhVec.push_back(new BmnHistECAL(refName + "ECAL"));
-    bhVec.push_back(new BmnHistToF(refName + "ToF400"));
-    bhVec.push_back(new BmnHistToF700(refName + "ToF700"));
-    bhVec.push_back(new BmnHistTrigger(refName + "Triggers"));
+    bhVec.push_back(new BmnHistDch(refName + "DCH", _curDir));
+    bhVec.push_back(new BmnHistMwpc(refName + "MWPC", _curDir));
+    bhVec.push_back(new BmnHistZDC(refName + "ZDC", _curDir));
+    bhVec.push_back(new BmnHistECAL(refName + "ECAL", _curDir));
+    bhVec.push_back(new BmnHistToF(refName + "ToF400", _curDir));
+    bhVec.push_back(new BmnHistToF700(refName + "ToF700", _curDir));
+    bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir));
     bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir));
-    bhVec.push_back(new BmnHistLAND(refName + "LAND"));
+    bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
     for (auto h : bhVec){
         h->SetDir(fHistOut, fRecoTree);
     }
@@ -276,15 +276,15 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
 void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistGem("GEM", _curDir, fPeriodID));
     bhVec4show.push_back(new BmnHistSilicon("Silicon", _curDir, fPeriodID));
-    bhVec4show.push_back(new BmnHistDch("DCH"));
-    bhVec4show.push_back(new BmnHistMwpc("MWPC"));
-    bhVec4show.push_back(new BmnHistZDC("ZDC"));
-    bhVec4show.push_back(new BmnHistECAL("ECAL"));
-    bhVec4show.push_back(new BmnHistToF("ToF400"));
-    bhVec4show.push_back(new BmnHistToF700("ToF700"));
-    bhVec4show.push_back(new BmnHistTrigger("Triggers"));
+    bhVec4show.push_back(new BmnHistDch("DCH", _curDir));
+    bhVec4show.push_back(new BmnHistMwpc("MWPC", _curDir));
+    bhVec4show.push_back(new BmnHistZDC("ZDC", _curDir));
+    bhVec4show.push_back(new BmnHistECAL("ECAL", _curDir));
+    bhVec4show.push_back(new BmnHistToF("ToF400", _curDir));
+    bhVec4show.push_back(new BmnHistToF700("ToF700", _curDir));
+    bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir));
     bhVec4show.push_back(new BmnHistSrc("SRC", _curDir));
-    bhVec4show.push_back(new BmnHistLAND("LAND"));
+    bhVec4show.push_back(new BmnHistLAND("LAND", _curDir));
 
     fServer->Register("/", infoCanvas);
     //fServer->Register("/", refList);
@@ -320,6 +320,7 @@ void BmnMonitor::UpdateRuns() {
         return;
     }
     refTable->Clear();
+    
     for (Int_t iRun = 0; iRun < refRuns->GetEntriesFast(); iRun++) {
         UniDbRun* run = (UniDbRun*) refRuns->At(iRun);
         BmnRunInfo* runInfo = new BmnRunInfo(run);

@@ -40,7 +40,7 @@
 
 class BmnHistMwpc : public BmnHist {
 public:
-    BmnHistMwpc(TString title = "MWPC");
+    BmnHistMwpc(TString title, TString path = "");
     virtual ~BmnHistMwpc();
     void Reset();
     void Register(THttpServer *serv);

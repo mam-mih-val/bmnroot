@@ -13,7 +13,7 @@
 
 #include "BmnHistLAND.h"
 
-BmnHistLAND::BmnHistLAND(TString title) : BmnHist() {
+BmnHistLAND::BmnHistLAND(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     TString name;

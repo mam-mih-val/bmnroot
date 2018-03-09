@@ -15,7 +15,7 @@
 #include "BmnHitFinderRun1.h"
 #include "BmnRawDataDecoder.h"
 
-BmnHistMwpc::BmnHistMwpc(TString title) : BmnHist() {
+BmnHistMwpc::BmnHistMwpc(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     //    for (Int_t i = 0; i < MWPC_PLANES; ++i){
@@ -90,7 +90,7 @@ BmnHistMwpc::BmnHistMwpc(TString title) : BmnHist() {
     NamesTimes.resize(MWPC_MODS * MWPC_STATIONS);
     for (Int_t iPlane = 0; iPlane < MWPC_MODS; iPlane++) {
         for (Int_t iStation = 0; iStation < MWPC_STATIONS; iStation++) {
-//            Int_t iPad = rowIndex * MWPC_STATIONS + colIndex;
+            //            Int_t iPad = rowIndex * MWPC_STATIONS + colIndex;
             Int_t iPad = iStation * MWPC_MODS + iPlane;
             PadInfo *p = new PadInfo();
             p->current = h_wires[iPlane][iStation];
@@ -109,10 +109,16 @@ BmnHistMwpc::BmnHistMwpc(TString title) : BmnHist() {
 BmnHistMwpc::~BmnHistMwpc() {
     if (fDir != NULL)
         return;
-//    for (Int_t i = 0; i < MWPC_PLANES; ++i) {
-//        delete h_wires[i];
-//        delete h_times[i];
-//    }
+    for (auto row : h_wires)
+        for (auto el : row)
+            delete el;
+    for (auto row : h_times)
+        for (auto el : row)
+            delete el;
+    for (auto pad : canTimesPads)
+        if (pad) delete pad;
+    for (auto pad : canWiresPads)
+        if (pad) delete pad;
     delete MwpcHits;
     delete h_MWPC0;
     delete h_MWPC1;
@@ -215,10 +221,10 @@ void BmnHistMwpc::ClearRefRun() {
 void BmnHistMwpc::Reset() {
     for (auto row : h_wires)
         for (auto el : row)
-                el->Reset();
+            el->Reset();
     for (auto row : h_times)
         for (auto el : row)
-                el->Reset();
+            el->Reset();
     h_MWPC0->Reset();
     h_MWPC1->Reset();
     h_MWPC2->Reset();

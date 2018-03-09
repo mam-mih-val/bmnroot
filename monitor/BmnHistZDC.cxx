@@ -2,7 +2,7 @@
 
 #include "BmnHistZDC.h"
 
-BmnHistZDC::BmnHistZDC(TString title) : BmnHist() {
+BmnHistZDC::BmnHistZDC(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     TGaxis::SetMaxDigits(2);

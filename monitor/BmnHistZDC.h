@@ -22,7 +22,7 @@
 
 class BmnHistZDC : public BmnHist {
 public:
-    BmnHistZDC(TString title = "ZDC");
+    BmnHistZDC(TString title = "ZDC", TString path = "");
     virtual ~BmnHistZDC();
     void Reset();
     void Register(THttpServer *serv);

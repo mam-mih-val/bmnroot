@@ -14,7 +14,7 @@
 #include "BmnHistToF.h"
 #include "BmnRawDataDecoder.h"
 
-BmnHistToF::BmnHistToF(TString title) : BmnHist() {
+BmnHistToF::BmnHistToF(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     fSelectedPlane = -1;

@@ -8,7 +8,7 @@
 #include "BmnHistTrigger.h"
 #include "BmnRawDataDecoder.h"
 
-BmnHistTrigger::BmnHistTrigger(TString title) : BmnHist() {
+BmnHistTrigger::BmnHistTrigger(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     fSelectedBDChannel = -1;

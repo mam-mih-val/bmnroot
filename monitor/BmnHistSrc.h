@@ -27,7 +27,7 @@ using namespace std;
 class BmnHistSrc : public BmnHist {
 public:
 
-    BmnHistSrc(TString title = "SRC", TString path = "");
+    BmnHistSrc(TString title, TString path = "");
     virtual ~BmnHistSrc();
     void Reset();
     void Register(THttpServer *serv);

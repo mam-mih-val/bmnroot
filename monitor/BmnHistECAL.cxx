@@ -15,7 +15,7 @@
 
 #include "BmnHistECAL.h"
 
-BmnHistECAL::BmnHistECAL(TString title) : BmnHist() {
+BmnHistECAL::BmnHistECAL(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     TGaxis::SetMaxDigits(1);

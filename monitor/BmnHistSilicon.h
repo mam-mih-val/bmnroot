@@ -36,7 +36,7 @@ using namespace std;
 
 class BmnHistSilicon : public BmnHist {
 public:
-    BmnHistSilicon(TString title = "Silicon", TString path = "", Int_t periodID = 7);
+    BmnHistSilicon(TString title, TString path = "", Int_t periodID = 7);
     virtual ~BmnHistSilicon();
     void Reset();
     void Register(THttpServer *serv);

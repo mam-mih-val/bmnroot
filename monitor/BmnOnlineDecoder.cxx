@@ -16,7 +16,6 @@
 #include <dirent.h>
 #include <sys/inotify.h>
 #include <zmq.h>
-#include <root/RtypesCore.h>
 
 #include "BmnOnlineDecoder.h"
 

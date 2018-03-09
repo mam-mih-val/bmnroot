@@ -492,174 +492,110 @@ inline vector<TVector3> CreateHitsBy3Planes(vector<BmnMwpcDigit*> x, vector<BmnM
 inline void ProcessMwpcDigits(TClonesArray* digits, TClonesArray * hits) {
 
     //temporary containers
-    vector<BmnMwpcDigit*> x1_mwpc0;
-    vector<BmnMwpcDigit*> u1_mwpc0;
-    vector<BmnMwpcDigit*> v1_mwpc0;
-    vector<BmnMwpcDigit*> x2_mwpc0;
-    vector<BmnMwpcDigit*> u2_mwpc0;
-    vector<BmnMwpcDigit*> v2_mwpc0;
-    vector<BmnMwpcDigit*> x1_mwpc1;
-    vector<BmnMwpcDigit*> u1_mwpc1;
-    vector<BmnMwpcDigit*> v1_mwpc1;
-    vector<BmnMwpcDigit*> x2_mwpc1;
-    vector<BmnMwpcDigit*> u2_mwpc1;
-    vector<BmnMwpcDigit*> v2_mwpc1;
-    vector<BmnMwpcDigit*> x1_mwpc2;
-    vector<BmnMwpcDigit*> u1_mwpc2;
-    vector<BmnMwpcDigit*> v1_mwpc2;
-    vector<BmnMwpcDigit*> x2_mwpc2;
-    vector<BmnMwpcDigit*> u2_mwpc2;
-    vector<BmnMwpcDigit*> v2_mwpc2;
+//    vector<BmnMwpcDigit*> x1_mwpc0;
+//    vector<BmnMwpcDigit*> u1_mwpc0;
+//    vector<BmnMwpcDigit*> v1_mwpc0;
+//    vector<BmnMwpcDigit*> x2_mwpc0;
+//    vector<BmnMwpcDigit*> u2_mwpc0;
+//    vector<BmnMwpcDigit*> v2_mwpc0;
+//    vector<BmnMwpcDigit*> x1_mwpc1;
+//    vector<BmnMwpcDigit*> u1_mwpc1;
+//    vector<BmnMwpcDigit*> v1_mwpc1;
+//    vector<BmnMwpcDigit*> x2_mwpc1;
+//    vector<BmnMwpcDigit*> u2_mwpc1;
+//    vector<BmnMwpcDigit*> v2_mwpc1;
+//    vector<BmnMwpcDigit*> x1_mwpc2;
+//    vector<BmnMwpcDigit*> u1_mwpc2;
+//    vector<BmnMwpcDigit*> v1_mwpc2;
+//    vector<BmnMwpcDigit*> x2_mwpc2;
+//    vector<BmnMwpcDigit*> u2_mwpc2;
+//    vector<BmnMwpcDigit*> v2_mwpc2;
+//    vector<BmnMwpcDigit*> x1_mwpc3;
+//    vector<BmnMwpcDigit*> u1_mwpc3;
+//    vector<BmnMwpcDigit*> v1_mwpc3;
+//    vector<BmnMwpcDigit*> x2_mwpc3;
+//    vector<BmnMwpcDigit*> u2_mwpc3;
+//    vector<BmnMwpcDigit*> v2_mwpc3;
+    
+    vector<BmnMwpcDigit*> x1_mwpc[4];
+    vector<BmnMwpcDigit*> u1_mwpc[4];
+    vector<BmnMwpcDigit*> v1_mwpc[4];
+    vector<BmnMwpcDigit*> x2_mwpc[4];
+    vector<BmnMwpcDigit*> u2_mwpc[4];
+    vector<BmnMwpcDigit*> v2_mwpc[4];
 
     for (Int_t i = 0; i < digits->GetEntriesFast(); ++i) {
         BmnMwpcDigit* digit = (BmnMwpcDigit*) digits->At(i);
-        Short_t dTime = digit->GetTime();
-        Short_t dPlane = digit->GetPlane();
-        Int_t dRef = digit->GetRefId();
+//        Short_t dTime = digit->GetTime();
+        
+        Short_t pl = digit->GetPlane();
+        Short_t st = digit->GetStation();
+//        Short_t wn = digit->GetWireNumber();
+//        Int_t dRef = digit->GetRefId();
 
         //if ((dPlane > -1 && dPlane < 6) && (dTime < mwpc0_leftTime || dTime > mwpc0_rightTime)) continue;
         //if ((dPlane > 5 && dPlane < 12) && (dTime < mwpc1_leftTime || dTime > mwpc1_rightTime)) continue;
         //if ((dPlane > 11 && dPlane < 18) && (dTime < mwpc2_leftTime || dTime > mwpc2_rightTime)) continue;
 
         digit->SetUsing(kFALSE); //not used in hit finding yet
-        //switch (dRef) {
-        //  case 0x046F304E: x1_mwpc1.push_back(digit);
-        // break;
-        //  case 0x046F3043: u1_mwpc1.push_back(digit);
-        // break;
-        //  case 0x046F1A8D: v1_mwpc1.push_back(digit);
-        // break;
-        ///  case 0x046F4504: x2_mwpc1.push_back(digit);
-        // break;
-        // case 0x046F4514: u2_mwpc1.push_back(digit);
-        //break;
-        //  case 0x046F45DF: v2_mwpc1.push_back(digit);
-        // break;
-        //  case 0x046EFA53: x1_mwpc0.push_back(digit);
-        // break;
-        //  case 0x046F3F1D: u1_mwpc0.push_back(digit);
-        // break;
-        //  case 0x046F028B: v1_mwpc0.push_back(digit);
-        //break;
-        //case 0x046F3F97: x2_mwpc0.push_back(digit);
-        //break;
-        //case 0x046F4513: u2_mwpc0.push_back(digit);
-        //break;
-        //case 0x046F3F8E: v2_mwpc0.push_back(digit);
-        //break;
-        //case 0x046F47CB: x1_mwpc2.push_back(digit);
-        //break;
-        //case 0x046F3F8B: u1_mwpc2.push_back(digit);
-        //break;
-        //case 0x046F30B8: v1_mwpc2.push_back(digit);
-        //break;
-        //case 0x046F2950: x2_mwpc2.push_back(digit);
-        // break;
-        //case 0x046F2A79: u2_mwpc2.push_back(digit);
-        // break;
-        //case 0x046F2FFF: v2_mwpc2.push_back(digit);
-        //    break;
-        //}
-        switch (dPlane) {
-            case 0: u1_mwpc0.push_back(digit);
+        switch (pl) {
+            case 0: u1_mwpc[st].push_back(digit);
                 break;
-            case 1: v1_mwpc0.push_back(digit);
+            case 1: v1_mwpc[st].push_back(digit);
                 break;
-            case 2: x1_mwpc0.push_back(digit);
+            case 2: x1_mwpc[st].push_back(digit);
                 break;
-            case 3: u2_mwpc0.push_back(digit);
+            case 3: u2_mwpc[st].push_back(digit);
                 break;
-            case 4: v2_mwpc0.push_back(digit);
+            case 4: v2_mwpc[st].push_back(digit);
                 break;
-            case 5: x2_mwpc0.push_back(digit);
-                break;
-            case 6: u1_mwpc1.push_back(digit);
-                break;
-            case 7: v1_mwpc1.push_back(digit);
-                break;
-            case 8: x1_mwpc1.push_back(digit);
-                break;
-            case 9: u2_mwpc1.push_back(digit);
-                break;
-            case 10: v2_mwpc1.push_back(digit);
-                break;
-            case 11: x2_mwpc1.push_back(digit);
+            case 5: x2_mwpc[st].push_back(digit);
                 break;
         }
     }
 
-    vector<BmnMwpcDigit*> x1_mwpc0_filtered = CheckDigits(x1_mwpc0);
-    vector<BmnMwpcDigit*> u1_mwpc0_filtered = CheckDigits(u1_mwpc0);
-    vector<BmnMwpcDigit*> v1_mwpc0_filtered = CheckDigits(v1_mwpc0);
-    vector<BmnMwpcDigit*> x2_mwpc0_filtered = CheckDigits(x2_mwpc0);
-    vector<BmnMwpcDigit*> u2_mwpc0_filtered = CheckDigits(u2_mwpc0);
-    vector<BmnMwpcDigit*> v2_mwpc0_filtered = CheckDigits(v2_mwpc0);
-    vector<BmnMwpcDigit*> x1_mwpc1_filtered = CheckDigits(x1_mwpc1);
-    vector<BmnMwpcDigit*> u1_mwpc1_filtered = CheckDigits(u1_mwpc1);
-    vector<BmnMwpcDigit*> v1_mwpc1_filtered = CheckDigits(v1_mwpc1);
-    vector<BmnMwpcDigit*> x2_mwpc1_filtered = CheckDigits(x2_mwpc1);
-    vector<BmnMwpcDigit*> u2_mwpc1_filtered = CheckDigits(u2_mwpc1);
-    vector<BmnMwpcDigit*> v2_mwpc1_filtered = CheckDigits(v2_mwpc1);
-    vector<BmnMwpcDigit*> x1_mwpc2_filtered = CheckDigits(x1_mwpc2);
-    vector<BmnMwpcDigit*> u1_mwpc2_filtered = CheckDigits(u1_mwpc2);
-    vector<BmnMwpcDigit*> v1_mwpc2_filtered = CheckDigits(v1_mwpc2);
-    vector<BmnMwpcDigit*> x2_mwpc2_filtered = CheckDigits(x2_mwpc2);
-    vector<BmnMwpcDigit*> u2_mwpc2_filtered = CheckDigits(u2_mwpc2);
-    vector<BmnMwpcDigit*> v2_mwpc2_filtered = CheckDigits(v2_mwpc2);
-
-    //    vector<TVector3> x1u1_mwpc0 = CreateHitsByTwoPlanes(x1_mwpc0_filtered, u1_mwpc0_filtered);
-    //    vector<TVector3> v1x2_mwpc0 = CreateHitsByTwoPlanes(v1_mwpc0_filtered, x2_mwpc0_filtered);
-    //    vector<TVector3> u2v2_mwpc0 = CreateHitsByTwoPlanes(u2_mwpc0_filtered, v2_mwpc0_filtered);
-    //
-    //    vector<TVector3> x1u1_mwpc1 = CreateHitsByTwoPlanes(x1_mwpc1_filtered, u1_mwpc1_filtered);
-    //    vector<TVector3> v1x2_mwpc1 = CreateHitsByTwoPlanes(v1_mwpc1_filtered, x2_mwpc1_filtered);
-    //    vector<TVector3> u2v2_mwpc1 = CreateHitsByTwoPlanes(u2_mwpc1_filtered, v2_mwpc1_filtered);
-    //
-    //    vector<TVector3> x1u1_mwpc2 = CreateHitsByTwoPlanes(x1_mwpc2_filtered, u1_mwpc2_filtered);
-    //    vector<TVector3> v1x2_mwpc2 = CreateHitsByTwoPlanes(v1_mwpc2_filtered, x2_mwpc2_filtered);
-    //    vector<TVector3> u2v2_mwpc2 = CreateHitsByTwoPlanes(u2_mwpc2_filtered, v2_mwpc2_filtered);
-
-    //    vector<TVector3> u1v1_mwpc0 = CreateHitsByTwoPlanes(u1_mwpc0_filtered, v1_mwpc0_filtered, -2.0);
-    //    vector<TVector3> x2u2_mwpc0 = CreateHitsByTwoPlanes(x2_mwpc0_filtered, u2_mwpc0_filtered, 0.0);
-    //    vector<TVector3> v2x1_mwpc0 = CreateHitsByTwoPlanes(v2_mwpc0_filtered, x1_mwpc0_filtered, 2.0);
-    //
-    //    vector<TVector3> v2u2_mwpc1 = CreateHitsByTwoPlanes(v2_mwpc1_filtered, u2_mwpc1_filtered, -2.0);
-    //    vector<TVector3> x2v1_mwpc1 = CreateHitsByTwoPlanes(x2_mwpc1_filtered, v1_mwpc1_filtered, 0.0);
-    //    vector<TVector3> u1x1_mwpc1 = CreateHitsByTwoPlanes(u1_mwpc1_filtered, x1_mwpc1_filtered, 2.0);
-    //
-    //    vector<TVector3> x1u1_mwpc2 = CreateHitsByTwoPlanes(x1_mwpc2_filtered, u1_mwpc2_filtered, -2.0);
-    //    vector<TVector3> v1x2_mwpc2 = CreateHitsByTwoPlanes(v1_mwpc2_filtered, x2_mwpc2_filtered, 0.0);
-    //    vector<TVector3> u2v2_mwpc2 = CreateHitsByTwoPlanes(u2_mwpc2_filtered, v2_mwpc2_filtered, 2.0);
+vector<BmnMwpcDigit*> x1_mwpc0_filtered = CheckDigits(x1_mwpc[0]);
+    vector<BmnMwpcDigit*> u1_mwpc0_filtered = CheckDigits(u1_mwpc[0]);
+    vector<BmnMwpcDigit*> v1_mwpc0_filtered = CheckDigits(v1_mwpc[0]);
+    vector<BmnMwpcDigit*> x2_mwpc0_filtered = CheckDigits(x2_mwpc[0]);
+    vector<BmnMwpcDigit*> u2_mwpc0_filtered = CheckDigits(u2_mwpc[0]);
+    vector<BmnMwpcDigit*> v2_mwpc0_filtered = CheckDigits(v2_mwpc[0]);
+    vector<BmnMwpcDigit*> x1_mwpc1_filtered = CheckDigits(x1_mwpc[1]);
+    vector<BmnMwpcDigit*> u1_mwpc1_filtered = CheckDigits(u1_mwpc[1]);
+    vector<BmnMwpcDigit*> v1_mwpc1_filtered = CheckDigits(v1_mwpc[1]);
+    vector<BmnMwpcDigit*> x2_mwpc1_filtered = CheckDigits(x2_mwpc[1]);
+    vector<BmnMwpcDigit*> u2_mwpc1_filtered = CheckDigits(u2_mwpc[1]);
+    vector<BmnMwpcDigit*> v2_mwpc1_filtered = CheckDigits(v2_mwpc[1]);
+    vector<BmnMwpcDigit*> x1_mwpc2_filtered = CheckDigits(x1_mwpc[2]);
+    vector<BmnMwpcDigit*> u1_mwpc2_filtered = CheckDigits(u1_mwpc[2]);
+    vector<BmnMwpcDigit*> v1_mwpc2_filtered = CheckDigits(v1_mwpc[2]);
+    vector<BmnMwpcDigit*> x2_mwpc2_filtered = CheckDigits(x2_mwpc[2]);
+    vector<BmnMwpcDigit*> u2_mwpc2_filtered = CheckDigits(u2_mwpc[2]);
+    vector<BmnMwpcDigit*> v2_mwpc2_filtered = CheckDigits(v2_mwpc[2]);
+    vector<BmnMwpcDigit*> x1_mwpc3_filtered = CheckDigits(x1_mwpc[3]);
+    vector<BmnMwpcDigit*> u1_mwpc3_filtered = CheckDigits(u1_mwpc[3]);
+    vector<BmnMwpcDigit*> v1_mwpc3_filtered = CheckDigits(v1_mwpc[3]);
+    vector<BmnMwpcDigit*> x2_mwpc3_filtered = CheckDigits(x2_mwpc[3]);
+    vector<BmnMwpcDigit*> u2_mwpc3_filtered = CheckDigits(u2_mwpc[3]);
+    vector<BmnMwpcDigit*> v2_mwpc3_filtered = CheckDigits(v2_mwpc[3]);
 
     vector<TVector3> xuv1_mwpc0 = CreateHitsBy3Planes(x1_mwpc0_filtered, u1_mwpc0_filtered, v1_mwpc0_filtered, 0.0);
     vector<TVector3> xuv2_mwpc0 = CreateHitsBy3Planes(x2_mwpc0_filtered, u2_mwpc0_filtered, v2_mwpc0_filtered, 0.0);
     vector<TVector3> xuv1_mwpc1 = CreateHitsBy3Planes(x1_mwpc1_filtered, u1_mwpc1_filtered, v1_mwpc1_filtered, 0.0);
     vector<TVector3> xuv2_mwpc1 = CreateHitsBy3Planes(x2_mwpc1_filtered, u2_mwpc1_filtered, v2_mwpc1_filtered, 0.0);
-
-    //    CreateMwpcHits(x1u1_mwpc0, hits, 0);
-    //    CreateMwpcHits(v1x2_mwpc0, hits, 0);
-    //    CreateMwpcHits(u2v2_mwpc0, hits, 0);
-    //    CreateMwpcHits(x1u1_mwpc1, hits, 1);
-    //    CreateMwpcHits(v1x2_mwpc1, hits, 1);
-    //    CreateMwpcHits(u2v2_mwpc1, hits, 1);
-    //    CreateMwpcHits(x1u1_mwpc2, hits, 2);
-    //    CreateMwpcHits(v1x2_mwpc2, hits, 2);
-    //    CreateMwpcHits(u2v2_mwpc2, hits, 2);
-
-    //    CreateMwpcHits(u1v1_mwpc0, hits, 0);
-    //    CreateMwpcHits(x2u2_mwpc0, hits, 0);
-    //    CreateMwpcHits(v2x1_mwpc0, hits, 0);
-    //    CreateMwpcHits(v2u2_mwpc1, hits, 1);
-    //    CreateMwpcHits(x2v1_mwpc1, hits, 1);
-    //    CreateMwpcHits(u1x1_mwpc1, hits, 1);
-    //    CreateMwpcHits(x1u1_mwpc2, hits, 2);
-    //    CreateMwpcHits(v1x2_mwpc2, hits, 2);
-    //    CreateMwpcHits(u2v2_mwpc2, hits, 2);
+    vector<TVector3> xuv1_mwpc2 = CreateHitsBy3Planes(x1_mwpc2_filtered, u1_mwpc2_filtered, v1_mwpc2_filtered, 0.0);
+    vector<TVector3> xuv2_mwpc2 = CreateHitsBy3Planes(x2_mwpc2_filtered, u2_mwpc2_filtered, v2_mwpc2_filtered, 0.0);
+    vector<TVector3> xuv1_mwpc3 = CreateHitsBy3Planes(x1_mwpc3_filtered, u1_mwpc3_filtered, v1_mwpc3_filtered, 0.0);
+    vector<TVector3> xuv2_mwpc3 = CreateHitsBy3Planes(x2_mwpc3_filtered, u2_mwpc3_filtered, v2_mwpc3_filtered, 0.0);
 
     CreateMwpcHits(xuv1_mwpc0, hits, 0);
     CreateMwpcHits(xuv2_mwpc0, hits, 0);
     CreateMwpcHits(xuv1_mwpc1, hits, 1);
     CreateMwpcHits(xuv2_mwpc1, hits, 1);
+    CreateMwpcHits(xuv1_mwpc2, hits, 2);
+    CreateMwpcHits(xuv2_mwpc2, hits, 2);
+    CreateMwpcHits(xuv1_mwpc3, hits, 3);
+    CreateMwpcHits(xuv2_mwpc3, hits, 3);
 }
 
 #endif /* BMNHITFINDERRUN1_H 1*/

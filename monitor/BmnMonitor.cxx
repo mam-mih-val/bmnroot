@@ -175,7 +175,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
 
 void BmnMonitor::InitServer() {
     TString cgiStr = Form("fastcgi:%d", _webPort);
-    if (gSystem->AccessPathName("auth.htdigest") != 0) {
+    if (gSystem->AccessPathName(_curDir + "auth.htdigest") != 0) {
         printf("Authorization file not found\nStarting server without authorization\n");
         fServer = new THttpServer(cgiStr.Data());
     } else
@@ -188,7 +188,7 @@ void BmnMonitor::InitServer() {
 BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     fEvents = 0;
     UpdateRuns();
-    TString outHistName = Form("%s\\bmn_run%04d_hist.root", _curDir.Data(), runID);
+    TString outHistName = Form("%s/bmn_run%04d_hist.root", _curDir.Data(), runID);
     fHistOut = new TFile(outHistName, "recreate");
     if (fHistOut)
         printf("file %s created\n", outHistName.Data());
@@ -217,15 +217,18 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir));
     bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir));
     bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
+    printf("Hist groups created\n");
     for (auto h : bhVec) {
         h->SetDir(fHistOut, fRecoTree);
     }
+    printf("Ref Hist dir set\n");
     for (auto h : bhVec4show) {
         //        h->SetDir(fHistOutTemp, fRecoTree4Show);
         h->SetDir(NULL, NULL);
         h->ClearRefRun();
         h->Reset();
     }
+    printf("Shown Hist dir set\n");
 
     return kBMNSUCCESS;
 }
@@ -433,7 +436,9 @@ TObjArray* BmnMonitor::GetAlikeRunsByElog(Int_t periodID, Int_t runID) {
 }
 
 TObjArray* BmnMonitor::GetAlikeRunsByUniDB(Int_t periodID, Int_t runID) {
+    printf("getalike \n");
     UniDbRun* Run = UniDbRun::GetRun(periodID, runID);
+    printf("getalike request returned\n");
     if (Run == NULL) {
         fprintf(stderr, "Run %d not found in UniDB!\n", runID);
         return NULL;
@@ -462,7 +467,9 @@ TObjArray* BmnMonitor::GetAlikeRunsByUniDB(Int_t periodID, Int_t runID) {
         searchCondition = new UniDbSearchCondition(columnFieldVoltage, conditionGreaterOrEqual, V_SP41 * 0.85);
         arrayConditions.Add((TObject*) searchCondition);
     }
+    printf("search\n");
     TObjArray* refRuns = UniDbRun::Search(arrayConditions);
+    printf("search request returned\n");
     arrayConditions.SetOwner(kTRUE);
     arrayConditions.Delete();
     return refRuns;

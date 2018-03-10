@@ -43,7 +43,6 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
         //        regex re(".*mpd_run_.*_(\\d+).data");
         //        string idstr = regex_replace(fRawFileName.Data(), re, "$1");
         //        runID = atoi(idstr.c_str());
-        //        runID = 1234; // @TODO remove
         if (runID < 0) {
             printf("!!! Error Could not detect runID\n");
             return kBMNERROR;
@@ -73,7 +72,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
-    setup[8] = 0; // ECAL
+    setup[8] = 1; // ECAL
     setup[9] = 1; // LAND
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);

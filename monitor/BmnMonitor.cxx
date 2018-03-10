@@ -192,8 +192,8 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     fHistOut = new TFile(outHistName, "recreate");
     if (fHistOut)
         printf("file %s created\n", outHistName.Data());
-    fRecoTree = new TTree("BmnMon", "BmnMon");
-    fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
+//    fRecoTree = new TTree("BmnMon", "BmnMon");
+//    fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
     //    if (fRecoTree4Show) {
     //        fRecoTree4Show->Clear();
     //        delete fRecoTree4Show;
@@ -202,7 +202,7 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     //    fHistOutTemp = new TFile("tempo.root", "recreate");
     if (fHistOutTemp)
         printf("file tempo.root created\n");
-    fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
+//    fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
     //    fRecoTree4Show->SetDirectory(NULL); // tree will not be saved
 
     TString refName = Form("ref%06d_", fRunID);
@@ -243,7 +243,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     //    //    clock_t prev = clock();
     //    //    printf("zdc fill %f\n", (clock() - prev)/ (double) CLOCKS_PER_SEC);
     // Fill data Tree //
-    fRecoTree->Fill();
+    if (fRecoTree) fRecoTree->Fill();
     // fill histograms what will be shown on the site//
     for (auto h : bhVec4show)
         if (h)
@@ -350,8 +350,8 @@ void BmnMonitor::UpdateRuns() {
 
 void BmnMonitor::FinishRun() {
     DBG("started")
-    if (fRecoTree)
-        printf("fRecoTree Write result = %d\n", fRecoTree->Write());
+//    if (fRecoTree)
+//        printf("fRecoTree Write result = %d\n", fRecoTree->Write());
     if (fHistOut) {
         printf("fHistOut  Write result = %d\n", fHistOut->Write());
         fHistOut->Close();

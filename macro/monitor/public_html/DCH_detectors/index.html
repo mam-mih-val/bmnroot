@@ -35,6 +35,8 @@ and open the template in the editor.
             var loco = window.location;
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
             var path = path0 + "DCH/";
+            var runPath = "../root.app/CurRun/root.json";
+            var refPath = "../root.app/refTable/root.json";
             function ResetDchHist() {
                 var filename = path + "Reset/cmd.json";
                 var xhr = new XMLHttpRequest();
@@ -57,26 +59,54 @@ and open the template in the editor.
                 dch1.src = path + "DCH_h_DCH1/draw.htm?monitoring=10000&opt=colz";
                 var dch2 = document.getElementById("h_DCH2");
                 dch2.src = path + "DCH_h_DCH2/draw.htm?monitoring=10000&opt=colz";
+                setRunInfo(runPath);
                 drawInfo();
+
             }
+
             function drawInfo() {
                 setTimeout(drawInfo, 10000);
-                var refPath = path0 + "refList" + "/root.json";
-                var filename = path0 + "infoCanvas" + "/root.json";
+                JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
+                    var info = JSON.parse(obj);
+                    if (info.arr.length > 0){
+                        var runInfo = info.arr[0];
+                        var runID = runInfo.i_run_number;
+                        var storedRunId = sessionStorage.getItem('runID');
+                        //alert('stored '+ storedRunId +'\n received '+ runID);
+                        if ((storedRunId === null) || (storedRunId == runID))
+                            return;
+                        sessionStorage.setItem('runID', runID);
+                        cleanCanvases();
+                    }
+                }).send(null);
+                redrawCanvases();
+                FillRefTable(refPath, "refTable");
+                //var refPath = path0 + "refList" + "/root.json";
+                //FillRefSelector(refPath, "refSelector");
+            }
+
+            function cleanCanvases() {
+                JSROOT.cleanup("infoC");
+                JSROOT.cleanup("wireTableC");
+                JSROOT.cleanup("timeTableC");
+                var sel = document.getElementById("refTable");
+                sel.innerHTML = "";
+            }
+
+            function redrawCanvases() {
+                var filename = path0 + "infoCanvas" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
 
-                filename = path + "DCHCanvasWires" + "/root.json";
+                filename = path + "DCHCanvasWires" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("wireTableC", obj, "");
                 }).send(null);
-                filename = path + "DCHCanvasTimes" + "/root.json";
+                filename = path + "DCHCanvasTimes" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeTableC", obj, "");
                 }).send(null);
-                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
-                FillRefSelector(refPath, "refSelector");
             }
             function SetRefRun() {
                 var runName = document.getElementById("refInput").value;
@@ -116,8 +146,8 @@ and open the template in the editor.
         <div align="center">
             <div id="infoC" style="width: 20vw;"> </div>
         </div>
-        <button onclick="ResetDchHist()"> 
-            <img src="../img/reset.png" width="200">
+        <button onclick="ResetDchHist()">
+            <h1 style="color:red;">Reset</h1>
         </button>
         <table>
             <tr>

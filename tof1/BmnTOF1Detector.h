@@ -62,7 +62,7 @@ private:
     Double_t fDoubleTemp, fMaxDelta;
     Int_t fHit_Per_Ev, fNEvents, fStrip, fFillHist;
     Bool_t fFlagHit[fNStr], fKilled[fNStr];
-    Double_t CorrLR[fNStr], CorrTimeShift[fNStr];
+    Double_t fCorrLR[fNStr], fCorrTimeShift[fNStr];
     Double_t fDigitL[fNStr], fDigitR[fNStr], fHit[fNStr];
     TVector3 fCentrStrip[fNStr], fCrossPoint[fNStr], fVectorTemp;
     BmnTrigDigit *fT0;

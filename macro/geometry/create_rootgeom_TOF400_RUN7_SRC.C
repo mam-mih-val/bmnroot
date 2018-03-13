@@ -25,7 +25,7 @@ void create_rootgeom_TOF400_RUN7_SRC() {
     // -------   Geometry file name (output)   -------------------------------
     const TString geoDetectorName = "TOF400";
     const TString geoDetectorVersion = "RUN7_SRC";
-    const TString geoFileName = geoPath + "/geometry/" + geoDetectorName + "_" + geoDetectorVersion + ".root";
+    const TString geoFileName = /*geoPath + "/geometry/"*/ + geoDetectorName + "_" + geoDetectorVersion + ".root";
 
     // -----------------   Get and create the required media    --------------
     FairGeoMedia* geoMedia = geoFace->getMedia();

@@ -1020,7 +1020,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fSiliconMapper) fSiliconMapper->FillEvent(adc128, silicon);
             if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
             if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
-            if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, tof400);
+            if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, &fTimeShifts, tof400);
             if (fTof700Mapper) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
             if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
@@ -1098,12 +1098,15 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
     if (fDetectorSetup[4]) {
         tof400 = new TClonesArray("BmnTof1Digit");
         fDigiTree->Branch("TOF400", &tof400);
-        if (fTof400PlaceMapFileName.Sizeof() > 1 && fTof400StripMapFileName.Sizeof() > 1) {
-            fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId);
-            TString dir = Form("%s%s", getenv("VMCWORKDIR"), "/input/");
-            fTof400Mapper->setMapFromFile(dir + fTof400PlaceMapFileName.Data(), dir + fTof400StripMapFileName.Data());
-        } else
-            fTof400Mapper = new BmnTof1Raw2Digit(fPeriodId, fRunId); //Pass period and run index here or by BmnTof1Raw2Digit->setRun(...)
+        fTof400Mapper = new BmnTof1Raw2Digit();
+        Bool_t FlagTemp = fTof400Mapper->setRun(fPeriodId, fRunId);
+        if (FlagTemp == kFALSE) {
+            if (fTof400PlaceMapFileName.Sizeof() > 1 && fTof400StripMapFileName.Sizeof() > 1) {
+                TString dir = Form("%s%s", getenv("VMCWORKDIR"), "/input/");
+                fTof400Mapper->setMapFromFile(dir + fTof400PlaceMapFileName.Data(), dir + fTof400StripMapFileName.Data());
+            } else 
+                cout << "Map for TOF400 are not loaded" << endl;
+        }
     }
 
     if (fDetectorSetup[5]) {
@@ -1199,7 +1202,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if ((fSiliconMapper) && (fPedEnough)) fSiliconMapper->FillEvent(adc128, silicon);
         if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
         if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
-        if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, tof400);
+        if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, &fTimeShifts, tof400);
         if (fTof700Mapper) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);

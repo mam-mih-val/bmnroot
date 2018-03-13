@@ -10,8 +10,8 @@ BmnTOF1Detector::BmnTOF1Detector() {
 BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0) {
     Clear();
     memset(fKilled, 0, sizeof (fKilled));
-    memset(CorrLR, 0, sizeof (CorrLR));
-    memset(CorrTimeShift, 0, sizeof (CorrTimeShift));
+    memset(fCorrLR, 0, sizeof (fCorrLR));
+    memset(fCorrTimeShift, 0, sizeof (fCorrTimeShift));
     fNEvents = 0;
     KillStrip(0);
     KillStrip(47);
@@ -191,7 +191,7 @@ Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
     fStrip = TofDigit->GetStrip();
     //cout << " Plane = " << TofDigit->GetPlane() << "; Strip " << TofDigit->GetStrip() << "; Side " << TofDigit->GetSide() << "; Time " << TofDigit->GetTime() << "; Amp " << TofDigit->GetAmplitude() << endl;
     if (TofDigit->GetSide() == 0 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE) {
-	fTimeLtemp[fStrip] = TofDigit->GetTime() - 2.*CorrLR[fStrip];
+	fTimeLtemp[fStrip] = TofDigit->GetTime() - 2.*fCorrLR[fStrip];
 	//cout << "Setting Shift: strip # " << fStrip << " shift val " << CorrLR[fStrip] << " curr timeL " << TofDigit->GetTime() << " shifted timeL " << fTimeLtemp[fStrip] <<  "\n";
         fWidthLtemp[fStrip] = TofDigit->GetAmplitude();
         fDigitL[fStrip]++;
@@ -335,17 +335,18 @@ void BmnTOF1Detector::FillHist() {
                     hWidth[fNStr]->Fill(fWidth[i]);
                     hDtLR[fNStr]->Fill((fTimeL[i] - fTimeR[i]) * 0.5);
                     if (fFillHist > 1) {
+                        if (hTime[i] == 0) 
                         hTime[i]->Fill(fTime[i]);
                         hWidth[i]->Fill(fWidth[i]);
                         hDtLR[i]->Fill((fTimeL[i] - fTimeR[i]) * 0.5);
                     }
                     if (fT0 != NULL) {
-                        hDt[fNStr]->Fill(fTof[i]-CorrTimeShift[i]);
+                        hDt[fNStr]->Fill(fTof[i]-fCorrTimeShift[i]);
                         hToF[fNStr]->Fill(fTof[i]);
 			hDtvsWidthDet[fNStr]->Fill(fWidth[i], fTof[i]);
                         hDtvsWidthT0[fNStr]->Fill(fT0->GetAmp(), fTof[i]);
                         if (fFillHist > 1) {
-			    hDt[i]->Fill(fTof[i]-CorrTimeShift[i]);
+			    hDt[i]->Fill(fTof[i]-fCorrTimeShift[i]);
                             hToF[i]->Fill(fTof[i]);
 			    hDtvsWidthDet[i]->Fill(fWidth[i], fTof[i]);
                             hDtvsWidthT0[i]->Fill(fT0->GetAmp(), fTof[i]);
@@ -369,7 +370,7 @@ Double_t BmnTOF1Detector::CalculateDt(Int_t Str = 0) {
             + 0.03428 * T0Amp * T0Amp
             - 0.0005853 * T0Amp * T0Amp * T0Amp);
 
-    if (gSlew[Str] != NULL) dt = dt - gSlew[Str]->Eval(fWidth[Str]) + CorrTimeShift[Str]; // CorrTimeShift is ToF for Gamma
+    if (gSlew[Str] != NULL) dt = dt - gSlew[Str]->Eval(fWidth[Str]) + fCorrTimeShift[Str]; // CorrTimeShift is ToF for Gamma
 
     return dt;
 }
@@ -394,7 +395,7 @@ TString BmnTOF1Detector::GetName() {
 
 Bool_t BmnTOF1Detector::SetCorrLR(Double_t* Mass) {
     for (Int_t i = 0; i < 48; i++)
-        CorrLR[i] = Mass[i];
+        fCorrLR[i] = Mass[i];
     return kTRUE;
 }
 
@@ -413,12 +414,11 @@ Bool_t BmnTOF1Detector::SetCorrLR(TString NameFile) {
         while (!f_corr.eof()) {
             f_corr >> Pl >> St >> Temp;
             if (Pl == fNPlane) {
-		
-                CorrLR[St] = Temp;
+                fCorrLR[St] = Temp;
 		f_corr >> Temp;
 		// If diff between my shift and old shift is greater than the actual cable, throw 
 		// strip out
-		if (TMath::Abs(Temp - CorrLR[St]) > 2.) CorrLR[St] = -11.9766;
+		if (TMath::Abs(Temp - fCorrLR[St]) > 2.) fCorrLR[St] = -11.9766;
             	//cout << Pl << " " << St << " " << CorrLR[St] << " " << Temp << "\n";
 	    } else
                 f_corr >> Temp;
@@ -469,7 +469,7 @@ Bool_t BmnTOF1Detector::SetCorrTimeShift(TString NameFile) {
         while (!f_corr.eof()) {
             f_corr >> Pl >> St >> Temp;
             if (Pl == fNPlane){
-                CorrTimeShift[St] = Temp;
+                fCorrTimeShift[St] = Temp;
 		//cout << Pl << " " << St << " " << CorrTimeShift[St] << "\n";
 		}
 	}

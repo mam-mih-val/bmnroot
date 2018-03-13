@@ -16,23 +16,23 @@ void CreateMapTof400_RUN7(std::string placementMapFile = "TOF400_PlaceMap_RUN7.t
     //Int_t MapR[24] = {21, 0, 15, 18, 20, 23, 14, 17, 19, 22, 13, 16, 6, 3, 12, 9, 5, 2, 11, 8, 4, 1, 10, 7};
 
     //UInt_t crate = 0x01690454;
-    UInt_t crate = 0x06ea9711;
+    UInt_t crate = 0x76d3027;
     static const Int_t kNSlot = 23;
     UInt_t slot[kNSlot] = {0.};
-    slot[1] = 0x076cad53;
-    slot[2] = 0x06e9403f;
-    slot[3] = 0x06e9da9d;
-    slot[4] = 0x06e9f5cb;
-    slot[5] = 0x06e9404a;
-    slot[6] = 0x046f3872;
-    slot[7] = 0x06e940b2;
-    slot[14] = 0x06e9403e;
-    slot[15] = 0x076ccf56;
-    slot[16] = 0x06e940b1;
-    slot[17] = 0x06e9043c;
-    slot[18] = 0x06e9da86;
-    slot[19] = 0x076ccf5f;
-    slot[20] = 0x06e94032;
+    slot[1] = 0x076ccf6e;
+    slot[2] = 0x06e9da91;
+    slot[3] = 0x076caef6;
+    slot[4] = 0x076cae7b;
+    slot[5] = 0x046f332f;
+    slot[6] = 0x06e9404b;
+    slot[7] = 0x06e9e4b0;
+    slot[14] = 0x046f408c;
+    slot[15] = 0x06e94033;
+    slot[16] = 0x076cae7a;
+    slot[17] = 0x07a8deb2;
+    slot[18] = 0x076cad52;
+    slot[19] = 0x076ccf62;
+    slot[20] = 0x06e940be;
 
     fstream ff, ffStrip;
 
@@ -122,21 +122,21 @@ void CreateMapTof400_RUN7(std::string placementMapFile = "TOF400_PlaceMap_RUN7.t
     ffStrip.close();
     // 
 
-    crate = 0x76d3027;
-    slot[1] = 0x076ccf6e;
-    slot[2] = 0x06e9da91;
-    slot[3] = 0x076caef6;
-    slot[4] = 0x076cae7b;
-    slot[5] = 0x046f332f;
-    slot[6] = 0x06e9404b;
-    slot[7] = 0x06e9e4b0;
-    slot[14] = 0x046f408c;
-    slot[15] = 0x06e94033;
-    slot[16] = 0x076cae7a;
-    slot[17] = 0x07a8deb2;
-    slot[18] = 0x076cad52;
-    slot[19] = 0x076ccf62;
-    slot[20] = 0x06e940be;
+    crate = 0x06ea9711;
+    slot[1] = 0x076cad53;
+    slot[2] = 0x06e9403f;
+    slot[3] = 0x06e9da9d;
+    slot[4] = 0x06e9f5cb;
+    slot[5] = 0x06e9404a;
+    slot[6] = 0x046f3872;
+    slot[7] = 0x06e940b2;
+    slot[14] = 0x06e9403e;
+    slot[15] = 0x076ccf56;
+    slot[16] = 0x06e940b1;
+    slot[17] = 0x06e9043c;
+    slot[18] = 0x06e9da86;
+    slot[19] = 0x076ccf5f;
+    slot[20] = 0x06e94032;
 
 
     //2. Fill Placement map

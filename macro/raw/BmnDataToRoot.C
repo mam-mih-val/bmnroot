@@ -32,7 +32,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
     decoder->SetTrigMapping(TString("Trig_map_Run") + PeriodSetupExt);
-    decoder->SetTrigINLFile("TRIG_INL.txt");
+    decoder->SetTrigINLFile("TRIG_INL_076D-16A8.txt");//INL only for TDC data 
     decoder->SetSiliconMapping("SILICON_map_run7.txt");
     decoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
     // in case comment out the line decoder->SetTof400Mapping("...")  

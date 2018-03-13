@@ -35,6 +35,8 @@ and open the template in the editor.
             var loco = window.location;
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
             var path = path0 + "Triggers/";
+            var runPath = "../root.app/CurRun/root.json";
+            var refPath = "../root.app/refTable/root.json";
             var refList;
             function ResetTrigHist() {
                 var filename = path + "Reset/cmd.json";
@@ -52,20 +54,22 @@ and open the template in the editor.
                 xhr.withCredentials = true;
                 xhr.send();
             }
-//            window.onload = "drawInfo()";
-
+            function createTable() {
+                setRunInfo(runPath);
+                drawInfo();
+            }
             function drawInfo() {
                 setTimeout(drawInfo, 10000);
-                var filename = path0 + "infoCanvas" + "/root.json";
+                var filename = path0 + "infoCanvas" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
                 var refPath = path0 + "refList" + "/root.json";
-                filename = path + "TriggersCanvasTimesByChannel" + "/root.json";
+                filename = path + "TriggersCanvasTimesByChannel" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeChannelTableC", obj, "");
                 }).send(null);
-                filename = path + "TriggersCanvasTimes" + "/root.json";
+                filename = path + "TriggersCanvasTimes" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeTableC", obj, "");
                 }).send(null);
@@ -84,7 +88,7 @@ and open the template in the editor.
             }
         </script>
     </head>
-    <body onload="drawInfo()">
+    <body onload="createTable()">
         <ul >
             <li><a href="../index.html"> <h3>Welcome to the BM@N Experiment</h3></a></li>
             <li><a href="../trigger_detectors/index.html"><h3>Triggers</h3></a></li>
@@ -107,8 +111,8 @@ and open the template in the editor.
             <div id="infoC" style="width: 20vw;"> </div>
         </div>
         <!--style="visibility:hidden;display:none"-->
-        <button onclick="ResetTrigHist()"> 
-            <img src="../img/reset.png" width="200">
+        <button onclick="ResetTrigHist()">
+            <h1 style="color:red;">Reset</h1>
         </button>
         <table>
             <tr>

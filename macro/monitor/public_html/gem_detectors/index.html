@@ -35,12 +35,18 @@ and open the template in the editor.
             var loco = window.location;
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
             var path = path0 + "GEM/";
+            var runPath = "../root.app/CurRun/root.json";
+            var refPath = "../root.app/refTable/root.json";
             function ResetGemHist() {
                 var filename = path + "Reset/cmd.json";
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", filename, true);
                 xhr.withCredentials = true;
                 xhr.send();
+            }
+            function createTable() {
+                setRunInfo(runPath);
+                drawInfo();
             }
 //            window.onload = setInterval("reloadIFrame();", 2000);
 //            body.onload = createGemTable();
@@ -52,21 +58,37 @@ and open the template in the editor.
             }
             function drawInfo() {
                 setTimeout(drawInfo, 10000);
-//                var infoFrame2 = document.getElementById("infoCan");
-//                infoFrame2.src = path0 + "infoCanvas" + "/draw.htm?nobrowser&monitoring=2000";
+                JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
+                    var info = JSON.parse(obj);
+                    if (info.arr.length > 0){
+                        var runInfo = info.arr[0];
+                        var runID = runInfo.i_run_number;
+                        var storedRunId = sessionStorage.getItem('runID');
+                        if ((storedRunId === null) || (storedRunId == runID))
+                            return;
+                        sessionStorage.setItem('runID', runID);
+                        cleanCanvases();
+                    }
+                }).send(null);
+                redrawCanvases();
+                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
+                //FillRefSelector(refPath, "refSelector");
+            }
+            function redrawCanvases() {
                 var filename = path0 + "infoCanvas" + "/root.json";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
-
-                var refPath = path0 + "refList" + "/root.json";
-
-                filename = path + "GEMCanvas" + "/root.json";
+                filename = path + "GEMCanvas" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("gemTableC", obj, "");
                 }).send(null);
-                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
-                FillRefSelector(refPath, "refSelector");
+            }
+            function cleanCanvases() {
+                JSROOT.cleanup("infoC");
+                JSROOT.cleanup("gemTableC");
+                var sel = document.getElementById("refTable");
+                sel.innerHTML = "";
             }
             function SetRefRun() {
                 var runName = document.getElementById("refInput").value;
@@ -80,7 +102,7 @@ and open the template in the editor.
             }
         </script>
     </head>
-    <body onload="drawInfo()">
+    <body onload="createTable()">
         <ul >
             <li><a href="../index.html"> <h3>Welcome to the BM@N Experiment</h3></a></li>
             <li><a href="../trigger_detectors/index.html"><h3>Triggers</h3></a></li>
@@ -107,8 +129,8 @@ and open the template in the editor.
         <table>
             <tr>
             <tb>
-                <button onclick="ResetGemHist()"> 
-                    <img src="../img/reset.png" width="200">
+                <button onclick="ResetGemHist()">
+                    <h1 style="color:red;">Reset</h1>
                 </button>
             </tb>
         </tr>

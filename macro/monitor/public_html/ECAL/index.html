@@ -35,6 +35,8 @@ and open the template in the editor.
             var loco = window.location;
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
             var path = path0 + "ECAL/";
+            var runPath = "../root.app/CurRun/root.json";
+            var refPath = "../root.app/refTable/root.json";
             var planesInRow = 4;
             function ResetHist() {
                 var filename = path + "Reset/cmd.json";
@@ -48,22 +50,43 @@ and open the template in the editor.
                 mwpc1.src = path + "ECAL_h2d_Grid/draw.htm?monitoring=10000&opt=colz";
                 var mwpc2 = document.getElementById("h2d_Profile");
                 mwpc2.src = path + "ECAL_h2d_Profile/draw.htm?monitoring=10000&opt=colz";
+                setRunInfo(runPath);
                 drawInfo();
             }
             function drawInfo() {
                 setTimeout(drawInfo, 10000);
-                var filename = path0 + "infoCanvas" + "/root.json";
+                JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
+                    var info = JSON.parse(obj);
+                    if (info.arr.length > 0){
+                        var runInfo = info.arr[0];
+                        var runID = runInfo.i_run_number;
+                        var storedRunId = sessionStorage.getItem('runID');
+                        if ((storedRunId === null) || (storedRunId == runID))
+                            return;
+                        sessionStorage.setItem('runID', runID);
+                        cleanCanvases();
+                    }
+                }).send(null);
+                redrawCanvases();
+                //var refPath = path0 + "refList" + "/root.json";
+                //FillRefSelector(refPath, "refSelector");
+                FillRefTable(path0 + "refTable" + "/root.json", "refTable.gz?compact=3");
+            }
+            function cleanCanvases() {
+                JSROOT.cleanup("infoC");
+                JSROOT.cleanup("timeTableC");
+                var sel = document.getElementById("refTable");
+                sel.innerHTML = "";
+            }
+            function redrawCanvases() {
+                var filename = path0 + "infoCanvas" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
-
-                var filename = path + "ECALCanvasAmplitudes" + "/root.json";
+                var filename = path + "ECALCanvasAmplitudes" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeTableC", obj, "");
                 }).send(null);
-                var refPath = path0 + "refList" + "/root.json";
-                FillRefSelector(refPath, "refSelector");
-                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
             }
             function SetRefRun() {
                 var runName = document.getElementById("refInput").value;

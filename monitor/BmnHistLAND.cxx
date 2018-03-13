@@ -135,14 +135,14 @@ void BmnHistLAND::DrawBoth() {
 }
 
 BmnStatus BmnHistLAND::SetRefRun(Int_t id) {
-    if (refID != id) {
-        TString FileName = Form("bmn_run%04d_hist.root", id);
-        printf("SetRefRun: %s\n", FileName.Data());
-        refRunName = FileName;
-        refID = id;
-        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canPads, Names);
-        DrawBoth();
-    }
+//    if (refID != id) {
+//        TString FileName = Form("bmn_run%04d_hist.root", id);
+//        printf("SetRefRun: %s\n", FileName.Data());
+//        refRunName = FileName;
+//        refID = id;
+//        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canPads, Names);
+//        DrawBoth();
+//    }
     return kBMNSUCCESS;
 }
 

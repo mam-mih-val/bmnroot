@@ -28,8 +28,8 @@ BmnMonitor::BmnMonitor() {
     itersToUpdate = 1000;
     TString name = "infoCanvas";
     infoCanvas = new TCanvas(name, name);
-//    refList = new TList();
-//    refList->SetName("refList");
+    //    refList = new TList();
+    //    refList->SetName("refList");
     refTable = new TList();
     refTable->SetName("refTable");
     runPub = new TList();
@@ -37,6 +37,7 @@ BmnMonitor::BmnMonitor() {
     fDigiArrays = NULL;
     _ctx = NULL;
     CurRun = new BmnRunInfo();
+    runPub->Add((TObject*) CurRun);
 }
 
 BmnMonitor::~BmnMonitor() {
@@ -120,7 +121,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                 if ((decoTimeout > DECO_SOCK_WAIT_LIMIT) && (fState == kBMNWORK)) {
                     //FinishRun();
                     fState = kBMNWAIT;
-                    keepWorking = false; // @TODO Remove
+                    //keepWorking = false; // @TODO Remove
                     fServer->SetTimer(50, kFALSE);
                     DBG("state changed to kBMNWAIT")
                 }
@@ -150,7 +151,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                     case kBMNWORK:
                         if (fRunID != runID) {
                             FinishRun();
-                            keepWorking = false; // @TODO Remove
+                            //keepWorking = false; // @TODO Remove
                             fRunID = runID;
                             CreateFile(fRunID);
                         }
@@ -192,8 +193,8 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     fHistOut = new TFile(outHistName, "recreate");
     if (fHistOut)
         printf("file %s created\n", outHistName.Data());
-//    fRecoTree = new TTree("BmnMon", "BmnMon");
-//    fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
+    //    fRecoTree = new TTree("BmnMon", "BmnMon");
+    //    fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
     //    if (fRecoTree4Show) {
     //        fRecoTree4Show->Clear();
     //        delete fRecoTree4Show;
@@ -202,7 +203,7 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     //    fHistOutTemp = new TFile("tempo.root", "recreate");
     if (fHistOutTemp)
         printf("file tempo.root created\n");
-//    fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
+    //    fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
     //    fRecoTree4Show->SetDirectory(NULL); // tree will not be saved
 
     TString refName = Form("ref%06d_", fRunID);
@@ -217,19 +218,15 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir));
     bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir));
     bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
-    printf("Hist groups created\n");
     for (auto h : bhVec) {
         h->SetDir(fHistOut, fRecoTree);
     }
-    printf("Ref Hist dir set\n");
     for (auto h : bhVec4show) {
         //        h->SetDir(fHistOutTemp, fRecoTree4Show);
         h->SetDir(NULL, NULL);
         h->ClearRefRun();
         h->Reset();
     }
-    printf("Shown Hist dir set\n");
-
     return kBMNSUCCESS;
 }
 
@@ -325,12 +322,16 @@ void BmnMonitor::UpdateRuns() {
     //        free(namelist);
     //    }
 
+    runPub->Clear();
     TObjArray* refRuns = GetAlikeRunsByUniDB(fPeriodID, fRunID);
     if (refRuns == NULL) {
         fprintf(stderr, "Ref list is empty!\n");
+        delete CurRun;
+        CurRun = new BmnRunInfo();
+        CurRun->SetRunNumber(fRunID);
+        runPub->Add((TObject*) CurRun);
         return;
     }
-    runPub->Clear();
     runPub->Add((TObject*) CurRun);
     refTable->Clear();
     for (Int_t iRun = 0; iRun < refRuns->GetEntriesFast(); iRun++) {
@@ -350,8 +351,8 @@ void BmnMonitor::UpdateRuns() {
 
 void BmnMonitor::FinishRun() {
     DBG("started")
-//    if (fRecoTree)
-//        printf("fRecoTree Write result = %d\n", fRecoTree->Write());
+            //    if (fRecoTree)
+            //        printf("fRecoTree Write result = %d\n", fRecoTree->Write());
     if (fHistOut) {
         printf("fHistOut  Write result = %d\n", fHistOut->Write());
         fHistOut->Close();

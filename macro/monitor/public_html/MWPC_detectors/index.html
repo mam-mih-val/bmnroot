@@ -35,7 +35,8 @@ and open the template in the editor.
             var loco = window.location;
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
             var path = path0 + "MWPC/";
-            var planesInRow = 4;
+            var runPath = "../root.app/CurRun/root.json";
+            var refPath = "../root.app/refTable/root.json";
             var stationsCount = 4;
             function ResetHist() {
                 var filename = path + "Reset/cmd.json";
@@ -44,57 +45,53 @@ and open the template in the editor.
                 xhr.withCredentials = true;
                 xhr.send();
             }
-//            window.onload = setInterval("reloadIFrame();", 2000);
-//            body.onload = createGemTable();
-            function reloadIFrame() {
-                var tc = document.getElementById("trig_counter");
-                var temp = tc.src;
-                tc.src = "";
-                tc.src = temp;
-            }
             function createTable() {
                 for (var i = 0; i < stationsCount; i++) {
                     var mwpc = document.getElementById("h_MWPC"+i);
                     mwpc.src = path + "MWPC_h_MWPC"+i+"/draw.htm?monitoring=10000&opt=colz";
                 }
-//                var kNPLANES = 12;
-//                var gd = document.getElementById("MWPC_div");
-//                var gtbl = document.createElement("table");
-//                gtbl.name = "hist_table";
-//                gd.appendChild(gtbl);
-//                for (var iRow = 0; iRow < kNPLANES / planesInRow; iRow++) {
-//                    var tr = document.createElement('tr');
-//                    for (var iCol = 0; iCol < planesInRow; iCol++) {
-//                        var td = document.createElement('td');
-//                        var ifr = document.createElement("iframe");
-//                        ifr.style = "width: 24vw;height: 16vw;";
-//                        ifr.src = path + "MWPC_Plane_" + (iRow * 4 + iCol);
-//                        ifr.src += "/draw.htm?monitoring=2000";
-//                        td.appendChild(ifr);
-//                        tr.appendChild(td);
-//                    }
-//                    gtbl.appendChild(tr);
-//                }
+                setRunInfo(runPath);
                 drawInfo();
             }
             function drawInfo() {
                 setTimeout(drawInfo, 10000);
-                var refPath = path0 + "refList" + "/root.json";
-                var filename = path0 + "infoCanvas" + "/root.json";
+                JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
+                    var info = JSON.parse(obj);
+                    if (info.arr.length > 0){
+                        var runInfo = info.arr[0];
+                        var runID = runInfo.i_run_number;
+                        var storedRunId = sessionStorage.getItem('runID');
+                        if ((storedRunId === null) || (storedRunId == runID))
+                            return;
+                        sessionStorage.setItem('runID', runID);
+                        cleanCanvases();
+                    }
+                }).send(null);
+                redrawCanvases();
+                FillRefTable(refPath, "refTable");
+                //var refPath = path0 + "refList" + "/root.json";
+                //FillRefSelector(refPath, "refSelector");
+            }
+            function redrawCanvases() {
+                var filename = path0 + "infoCanvas" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
-
-                filename = path + "MWPCCanvasWires" + "/root.json";
+                filename = path + "MWPCCanvasWires" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("wireTableC", obj, "");
                 }).send(null);
-                filename = path + "MWPCCanvasTimes" + "/root.json";
+                filename = path + "MWPCCanvasTimes" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeTableC", obj, "");
                 }).send(null);
-                FillRefTable(path0 + "refTable" + "/root.json", "refTable");
-                FillRefSelector(refPath, "refSelector");
+            }
+            function cleanCanvases() {
+                JSROOT.cleanup("infoC");
+                JSROOT.cleanup("wireTableC");
+                JSROOT.cleanup("timeTableC");
+                var sel = document.getElementById("refTable");
+                sel.innerHTML = "";
             }
             function SetRefRun() {
                 var runName = document.getElementById("refInput").value;
@@ -132,8 +129,8 @@ and open the template in the editor.
         <div align="center">
             <div id="infoC" style="width: 20vw;"> </div>
         </div>
-        <button onclick="ResetHist()"> 
-            <img src="../img/reset.png" width="200">
+        <button onclick="ResetHist()">
+            <h1 style="color:red;">Reset</h1>
         </button>
 
         <table>
@@ -155,10 +152,10 @@ and open the template in the editor.
     </table>
 
     <div class="tabs">
-        <!--<input type="radio" name="inset" value="" id="tab_1" checked>
-        <label for="tab_1">2D Profile</label>-->
+        <input type="radio" name="inset" value="" id="tab_1" checked>
+        <label for="tab_1">2D Profile</label>
 
-        <input type="radio" name="inset" value="" id="tab_2" checked>
+        <input type="radio" name="inset" value="" id="tab_2" >
         <label for="tab_2">Wires</label>
 
         <input type="radio" name="inset" value="" id="tab_3">

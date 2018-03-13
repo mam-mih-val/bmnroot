@@ -35,7 +35,8 @@ and open the template in the editor.
             var loco = window.location;
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
             var path = path0 + "ZDC/";
-            var planesInRow = 4;
+            var runPath = "../root.app/CurRun/root.json.gz?compact=3";
+            var refPath = "../root.app/refTable/root.json.gz?compact=3";
             function ResetHist() {
                 var filename = path + "Reset/cmd.json";
                 var xhr = new XMLHttpRequest();
@@ -48,16 +49,17 @@ and open the template in the editor.
                 mwpc1.src = path + "ZDC_h2d_Grid/draw.htm?monitoring=10000&opt=colz";
                 var mwpc2 = document.getElementById("h2d_Profile");
                 mwpc2.src = path + "ZDC_h2d_Profile/draw.htm?monitoring=10000&opt=colz";
+                setRunInfo(runPath);
                 drawInfo();
             }
             function drawInfo() {
                 setTimeout(drawInfo, 10000);
-                var filename = path0 + "infoCanvas" + "/root.json";
+                var filename = path0 + "infoCanvas" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
 
-                filename = path + "ZDCCanvasAmplitudes" + "/root.json";
+                filename = path + "ZDCCanvasAmplitudes" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("timeTableC", obj, "");
                 }).send(null);

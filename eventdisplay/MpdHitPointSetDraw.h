@@ -5,19 +5,20 @@
  *      Author: stockman
  */
 
-#ifndef MpdHitPointSetDraw_H
-#define MpdHitPointSetDraw_H
+#ifndef MPDHITPOINTSETDRAW_H
+#define MPDHITPOINTSETDRAW_H
 
 #include "MpdPointSetDraw.h"
+
 #include "TVector3.h"
 
 class MpdHitPointSetDraw : public MpdPointSetDraw
 {
   public:
-    MpdHitPointSetDraw();
+    MpdHitPointSetDraw() {}
     MpdHitPointSetDraw(const char* name, Color_t color, Style_t mstyle, Int_t iVerbose = 0)
         : MpdPointSetDraw(name, color, mstyle, iVerbose) {}
-    virtual ~MpdHitPointSetDraw();
+    virtual ~MpdHitPointSetDraw() {}
 
   protected:
     TVector3 GetVector(TObject* obj);
@@ -27,4 +28,4 @@ class MpdHitPointSetDraw : public MpdPointSetDraw
     ClassDef(MpdHitPointSetDraw,1);
 };
 
-#endif /* MpdHitPointSetDraw_H */
+#endif /* MPDHITPOINTSETDRAW_H */

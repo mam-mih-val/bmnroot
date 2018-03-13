@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------
-// -----                      MpdPointSetDraw header file                    -----
+// -----             MpdPointSetDraw header file                       -----
 // -----          Created 10/12/07  by M. Al-Turany                    -----
 // -------------------------------------------------------------------------
 
@@ -10,11 +10,12 @@
  **
  **/
 
-#ifndef MpdPointSetDraw_H
-#define MpdPointSetDraw_H
+#ifndef MPDPOINTSETDRAW_H
+#define MPDPOINTSETDRAW_H
+
+#include "MpdEventManager.h"
 
 #include "FairTask.h"
-#include "MpdEventManager.h"
 
 #include "TClonesArray.h"
 #include "TVector3.h"
@@ -37,7 +38,7 @@ class MpdPointSetDraw : public FairTask
     virtual ~MpdPointSetDraw();
 
     /** Set verbosity level. For this task and all of the subtasks. **/
-    void SetVerbose(Int_t iVerbose) {fVerbose = iVerbose;}
+    void SetVerbose(Int_t iVerbose) { fVerbose = iVerbose; }
 
     /** Executed task **/
     virtual void Exec(Option_t* option);
@@ -57,7 +58,7 @@ class MpdPointSetDraw : public FairTask
 
     // Verbosity level
     Int_t fVerbose;
-    MpdEventManager* fEventManager;    //!
+    MpdEventManager* fEventManager;     //!
     TClonesArray* fPointList;           //!
     TEvePointSet* fq;                   //!
 

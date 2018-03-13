@@ -1,15 +1,7 @@
-/********************************************************************************
- *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
- *                                                                              *
- *              This software is distributed under the terms of the             * 
- *              GNU Lesser General Public Licence (LGPL) version 3,             *  
- *                  copied verbatim in the file "LICENSE"                       *
- ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----              MpdBoxSet header file                       -----
 // -----          Created 26/03/09  by T. Stockmanns                   -----
 // -------------------------------------------------------------------------
-
 
 /** MpdBoxSet
  * @author T. Stockmanns
@@ -22,38 +14,26 @@
  **
  **/
 
-#ifndef MpdBoxSet_H
-#define MpdBoxSet_H
+#ifndef MPDBOXSET_H
+#define MPDBOXSET_H
 
-#include "TEveBoxSet.h"                 // for TEveBoxSet
-
-#include "MpdBoxSetDraw.h"             // for MpdBoxSetDraw
-
-#include "Rtypes.h"                     // for Double_t, MpdBoxSet::Class, etc
+#include "MpdBoxSetDraw.h"
+#include "TEveBoxSet.h"
 
 
 class MpdBoxSet : public TEveBoxSet
 {
-
   public:
-
-    /** Standard constructor
-       **/
+    /** Standard constructor **/
     MpdBoxSet(MpdBoxSetDraw* drawer, const char* name = "MpdBoxSet", const char* t = "");
-
-    void SetTimeWindowPlus(Double_t time) {fDraw->SetTimeWindowPlus(time);}
-    void SetTimeWindowMinus(Double_t time) {fDraw->SetTimeWindowMinus(time);}
-
-    Double_t GetTimeWindowPlus() {return fDraw->GetTimeWindowPlus();}
-    Double_t GetTimeWindowMinus() {return fDraw->GetTimeWindowMinus();}
-
-
     /** Destructor **/
-    virtual ~MpdBoxSet() {};
+    virtual ~MpdBoxSet() {}
 
+    void SetTimeWindowPlus(Double_t time) { fDraw->SetTimeWindowPlus(time); }
+    void SetTimeWindowMinus(Double_t time) { fDraw->SetTimeWindowMinus(time); }
 
-
-  protected:
+    Double_t GetTimeWindowPlus() { return fDraw->GetTimeWindowPlus(); }
+    Double_t GetTimeWindowMinus() { return fDraw->GetTimeWindowMinus(); }
 
   private:
     MpdBoxSetDraw* fDraw;
@@ -62,8 +42,6 @@ class MpdBoxSet : public TEveBoxSet
     MpdBoxSet operator=(const MpdBoxSet&);
 
     ClassDef(MpdBoxSet,1);
-
 };
-
 
 #endif

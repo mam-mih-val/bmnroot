@@ -3,8 +3,8 @@
 // -----                Created 09/10/08  by M. Al-Turany              -----
 // -------------------------------------------------------------------------
 
-#ifndef MpdMCStack_H
-#define MpdMCStack_H
+#ifndef MPDMCSTACK_H
+#define MPDMCSTACK_H
 
 #include "FairTask.h"
 #include "FairGeanePro.h"

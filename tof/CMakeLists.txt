@@ -45,6 +45,6 @@ BmnTofGeoUtils.cxx
 Set(HEADERS)
 Set(LINKDEF BmnTOFLinkDef.h)
 Set(LIBRARY_NAME TOF)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES BmnData Core Base)
 
 GENERATE_LIBRARY()

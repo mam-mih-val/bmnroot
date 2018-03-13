@@ -1,99 +1,71 @@
-/********************************************************************************
- *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
- *                                                                              *
- *              This software is distributed under the terms of the             * 
- *              GNU Lesser General Public Licence (LGPL) version 3,             *  
- *                  copied verbatim in the file "LICENSE"                       *
- ********************************************************************************/
-#include "MpdBoxSetEditor.h"
-
-#include "MpdEventManager.h"           // for MpdEventManager
-#include "FairRootManager.h"            // for FairRootManager
-
-#include <iosfwd>                       // for ostream
-#include "TGLabel.h"                    // for TGLabel
-#include "TGLayout.h"                   // for TGLayoutHints, etc
-#include "TGNumberEntry.h"              // for TGNumberEntry, etc
-
-class TGWindow;
-
-#include <stddef.h>                     // for NULL
-#include <iostream>                     // for operator<<, basic_ostream, etc
-
-//______________________________________________________________________________
 // MpdBoxSetEditor
 //
-// Specialization of TGedEditor for proper update propagation to
-// TEveManager.
+// Specialization of TGedEditor for proper update propagation to TEveManager
 
-ClassImp(MpdBoxSetEditor)
+#include "MpdBoxSetEditor.h"
+
+#include "MpdEventManager.h"
+
+#include "TGLabel.h"
+#include "TGLayout.h"       // for TGLayoutHints, etc
+
+#include <iostream>
+using namespace std;
 
 
-//______________________________________________________________________________
-MpdBoxSetEditor::MpdBoxSetEditor(const TGWindow* p, Int_t width, Int_t height,
-                                   UInt_t options, Pixel_t back)
-  :TGedFrame(p, width, height, options | kVerticalFrame, back),
-   fInfoFrame(NULL), fTimeWindowPlus(NULL), fTimeWindowMinus(NULL),
-   fObject(NULL), fM(NULL)
+MpdBoxSetEditor::MpdBoxSetEditor(const TGWindow* p, Int_t width, Int_t height, UInt_t options, Pixel_t back)
+  : TGedFrame(p, width, height, options | kVerticalFrame, back),
+    fInfoFrame(NULL), fTimeWindowPlus(NULL), fTimeWindowMinus(NULL), fObject(NULL), fM(NULL)
 {
-  std::cout << "MpdBoxSetEditor called!" << std::endl;
-  Init();
+    cout<<"MpdBoxSetEditor called!"<<endl;
+    Init();
 }
 
 void MpdBoxSetEditor::Init()
 {
+    MakeTitle("MpdBoxSet  Editor");
+    fInfoFrame = CreateEditorTabSubFrame("Time");
 
-//  FairRootManager* fRootManager=FairRootManager::Instance();
-//  TChain* chain =fRootManager->GetInChain();
-//  Int_t Entries= chain->GetEntriesFast();
+    TGCompositeFrame* title1 = new TGCompositeFrame(fInfoFrame, 250, 10,
+                                    kVerticalFrame | kLHintsExpandX |
+                                    kFixedWidth    | kOwnBackground);
 
-  MakeTitle("MpdBoxSet  Editor");
-  fInfoFrame= CreateEditorTabSubFrame("Time");
+    TGLabel* label1 = new TGLabel(title1,"Time window after event time [ns]: ");
+    title1->AddFrame(label1, new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 1, 2, 1, 1));
 
-  TGCompositeFrame* title1 = new TGCompositeFrame(fInfoFrame, 250, 10,
-      kVerticalFrame | kLHintsExpandX |
-      kFixedWidth    | kOwnBackground);
+    fTimeWindowPlus = new TGNumberEntry(title1);//, 0, 5, -1, TGNumberFormat::kNESRealTwo); //, TGNumberFormat::kNEANonNegative);
+    //fTimeWindow->SetLimits(0, MAXE, 2501, TGNumberFormat::kNESRealOne);
+    fTimeWindowPlus->GetNumberEntry()->SetToolTipText("Time window in ns for which points are shown");
+    fTimeWindowPlus->Connect("ValueSet(Long_t)", "MpdBoxSetEditor",this, "TimeWindow()");
+    title1->AddFrame(fTimeWindowPlus, new TGLayoutHints(kLHintsTop, 1, 1, 1, 0));
 
-  TGLabel* label1 = new TGLabel(title1,"Time window after event time [ns]: ");
-  title1->AddFrame(label1, new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 1, 2, 1, 1));
+    fInfoFrame->AddFrame(title1);
 
-  fTimeWindowPlus = new TGNumberEntry(title1);//, 0, 5, -1, TGNumberFormat::kNESRealTwo); //, TGNumberFormat::kNEANonNegative);
-// fTimeWindow->SetLimits(0, MAXE, 2501, TGNumberFormat::kNESRealOne);
-  fTimeWindowPlus->GetNumberEntry()->SetToolTipText("Time window in ns for which points are shown");
-  fTimeWindowPlus->Connect("ValueSet(Long_t)", "MpdBoxSetEditor",this, "TimeWindow()");
-  title1->AddFrame(fTimeWindowPlus, new TGLayoutHints(kLHintsTop, 1, 1, 1, 0));
+    TGCompositeFrame* title2 = new TGCompositeFrame(fInfoFrame, 250, 10,
+                                    kVerticalFrame | kLHintsExpandX |
+                                    kFixedWidth    | kOwnBackground);
 
-  fInfoFrame->AddFrame(title1);
+    TGLabel* label2 = new TGLabel(title2, "Time window before event time [ns]: ");
+    title2->AddFrame(label2, new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 1, 2, 1, 1));
+    fTimeWindowMinus = new TGNumberEntry(title2, 0., 6, -1, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);//, 1, 5, -1, TGNumberFormat::kNESRealTwo, TGNumberFormat::kNEANonNegative);
+    //fTimeWindow->SetLimits(0, MAXE, 2501, TGNumberFormat::kNESRealOne);
+    fTimeWindowMinus->GetNumberEntry()->SetToolTipText("Time window in ns for which points are shown");
+    fTimeWindowMinus->Connect("ValueSet(Long_t)", "MpdBoxSetEditor",this, "TimeWindow()");
+    title2->AddFrame(fTimeWindowMinus, new TGLayoutHints(kLHintsTop, 1, 1, 1, 0));
 
-  TGCompositeFrame* title2 = new TGCompositeFrame(fInfoFrame, 250, 10,
-      kVerticalFrame | kLHintsExpandX |
-      kFixedWidth    | kOwnBackground);
-
-  TGLabel* label2 = new TGLabel(title2, "Time window before event time [ns]: ");
-  title2->AddFrame(label2, new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 1, 2, 1, 1));
-  fTimeWindowMinus = new TGNumberEntry(title2, 0., 6, -1, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);//, 1, 5, -1, TGNumberFormat::kNESRealTwo, TGNumberFormat::kNEANonNegative);
-// fTimeWindow->SetLimits(0, MAXE, 2501, TGNumberFormat::kNESRealOne);
-  fTimeWindowMinus->GetNumberEntry()->SetToolTipText("Time window in ns for which points are shown");
-  fTimeWindowMinus->Connect("ValueSet(Long_t)", "MpdBoxSetEditor",this, "TimeWindow()");
-  title2->AddFrame(fTimeWindowMinus, new TGLayoutHints(kLHintsTop, 1, 1, 1, 0));
-
-  fInfoFrame->AddFrame(title2);
-
+    fInfoFrame->AddFrame(title2);
 }
 
 void MpdBoxSetEditor::TimeWindow()
 {
-  std::cout << "MpdBoxSetEditor::TimeWindowPlus " << fTimeWindowPlus->GetNumber() << std::endl;
-  std::cout << "MpdBoxSetEditor::TimeWindowMinus " << fTimeWindowMinus->GetNumber() << std::endl;
-  fM->SetTimeWindowPlus(fTimeWindowPlus->GetNumber());
-  fM->SetTimeWindowMinus(fTimeWindowMinus->GetNumber());
-  MpdEventManager* man = MpdEventManager::Instance();
-  man->GotoEvent(man->GetCurrentEvent());
-  Update();
+    cout<<"MpdBoxSetEditor::TimeWindowPlus "<<fTimeWindowPlus->GetNumber()<<endl;
+    cout<<"MpdBoxSetEditor::TimeWindowMinus "<<fTimeWindowMinus->GetNumber()<<endl;
+    fM->SetTimeWindowPlus(fTimeWindowPlus->GetNumber());
+    fM->SetTimeWindowMinus(fTimeWindowMinus->GetNumber());
+
+    MpdEventManager* man = MpdEventManager::Instance();
+    man->GotoEvent(man->GetCurrentEvent());
+    Update();
 }
 
-
-//______________________________________________________________________________
-
-
-
+ClassImp(MpdBoxSetEditor)

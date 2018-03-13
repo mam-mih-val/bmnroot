@@ -1,15 +1,7 @@
-/********************************************************************************
- *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
- *                                                                              *
- *              This software is distributed under the terms of the             * 
- *              GNU Lesser General Public Licence (LGPL) version 3,             *  
- *                  copied verbatim in the file "LICENSE"                       *
- ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----              MpdBoxSetDraw header file                       -----
 // -----          Created 26/03/09  by T. Stockmanns                   -----
 // -------------------------------------------------------------------------
-
 
 /** MpdBoxSetDraw
  * @author T. Stockmanns
@@ -22,30 +14,25 @@
  **
  **/
 
-#ifndef MpdBoxSetDraw_H
-#define MpdBoxSetDraw_H
+#ifndef MPDBOXSETDRAW_H
+#define MPDBOXSETDRAW_H
 
-#include "FairTask.h"                   // for FairTask, InitStatus
+#include "MpdEventManager.h"
 
-#include "FairTSBufferFunctional.h"     // IWYU pragma: keep needed for cint
+#include "FairTask.h"
+#include "FairRootManager.h"
+#include "FairTSBufferFunctional.h"     // for StopTime
 
-#include "Rtypes.h"                     // for Double_t, Int_t, Bool_t, etc
+#include "TClonesArray.h"
+#include "TVector3.h"
+#include "TObject.h"
 
 class MpdBoxSet;
-class TObject;
-class TVector3;
-class TClonesArray;
-class MpdEventManager;
-class FairRootManager;
-
 class MpdBoxSetDraw : public FairTask
 {
-
   public:
-
     /** Default constructor **/
     MpdBoxSetDraw();
-
 
     /** Standard constructor
     *@param name        Name of task
@@ -56,52 +43,54 @@ class MpdBoxSetDraw : public FairTask
     /** Destructor **/
     virtual ~MpdBoxSetDraw();
 
-    virtual Double_t GetTimeWindowPlus() {return fTimeWindowPlus;}
-    virtual Double_t GetTimeWindowMinus() {return fTimeWindowMinus;}
-
     /** Set verbosity level. For this task and all of the subtasks. **/
-    virtual void SetVerbose(Int_t iVerbose) {fVerbose = iVerbose;};
-    virtual void SetBoxDimensions(Double_t x, Double_t y, Double_t z) {
+    virtual void SetVerbose(Int_t iVerbose) { fVerbose = iVerbose; }
+    virtual void SetRedraw(Bool_t is_redraw) { isRedraw = is_redraw; }
+
+    virtual Double_t GetTimeWindowPlus() { return fTimeWindowPlus; }
+    virtual Double_t GetTimeWindowMinus() { return fTimeWindowMinus; }
+    virtual void SetTimeWindowMinus(Double_t val) { fTimeWindowMinus = val; }
+    virtual void SetTimeWindowPlus(Double_t val) { fTimeWindowPlus = val; }
+    virtual void SetStartTime(Double_t val) { fStartTime = val; }
+    virtual void UseEventTimeAsStartTime(Bool_t val = kTRUE) { fUseEventTime = val; }
+
+    MpdBoxSet* CreateBoxSet();
+    virtual void SetBoxDimensions(Double_t x, Double_t y, Double_t z)
+    {
       fX = x;
       fY = y;
       fZ = z;
     }
 
-    virtual void SetTimeWindowMinus(Double_t val);
-    virtual void SetTimeWindowPlus(Double_t val);
-    virtual void SetStartTime(Double_t val) {fStartTime = val;}
-    virtual void UseEventTimeAsStartTime(Bool_t val = kTRUE) {fUseEventTime = val;}
-
     /** Executed task **/
     virtual void Exec(Option_t* option);
-
-    MpdBoxSet* CreateBoxSet();
 
     void Reset();
 
   protected:
-
-    Int_t   fVerbose;       //  Verbosity level
-    virtual void SetParContainers() ;
+    virtual void SetParContainers();
     virtual InitStatus Init();
     /** Action after each event**/
     virtual void Finish();
 
     virtual TVector3 GetVector(TObject* obj) = 0;
-    virtual Int_t GetValue(TObject* obj,Int_t i);
+    virtual Int_t GetValue(TObject* obj, Int_t i);
     virtual void AddBoxes(MpdBoxSet* set, TObject* obj, Int_t i = 0);
 
-    TClonesArray* fList; //!
-    MpdEventManager* fEventManager;   //!
-    FairRootManager* fManager;
-    MpdBoxSet* fq;    //!
+    //  Verbosity level
+    Int_t fVerbose;
+
+    TClonesArray* fList;                //!
+    MpdEventManager* fEventManager;     //!
+    FairRootManager* fManager;          //!
+    MpdBoxSet* fq;                      //!
     Double_t fX, fY, fZ;
 
     Double_t fTimeWindowPlus;
     Double_t fTimeWindowMinus;
     Double_t fStartTime;
     Bool_t fUseEventTime;
-
+    Bool_t isRedraw;
 
   private:
     MpdBoxSetDraw(const MpdBoxSetDraw&);
@@ -110,8 +99,6 @@ class MpdBoxSetDraw : public FairTask
     BinaryFunctor* fStopFunctor;
 
     ClassDef(MpdBoxSetDraw,1);
-
 };
-
 
 #endif

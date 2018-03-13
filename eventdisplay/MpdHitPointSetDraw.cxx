@@ -6,22 +6,15 @@
  */
 
 #include "MpdHitPointSetDraw.h"
-#include "FairHit.h"
 #include "MpdEventManager.h"
-#include "MpdEventManagerEditor.h"
+
+#include "FairHit.h"
 
 #include "TEveManager.h"
 
 #include <iostream>
 using namespace std;
 
-MpdHitPointSetDraw::MpdHitPointSetDraw()
-{
-}
-
-MpdHitPointSetDraw::~MpdHitPointSetDraw()
-{
-}
 
 TVector3 MpdHitPointSetDraw::GetVector(TObject* obj)
 {

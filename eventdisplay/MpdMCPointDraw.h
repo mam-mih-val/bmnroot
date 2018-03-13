@@ -5,8 +5,8 @@
  *      Author: stockman
  */
 
-#ifndef MpdMCPointDraw_H
-#define MpdMCPointDraw_H
+#ifndef MPDMCPOINTDRAW_H
+#define MPDMCPOINTDRAW_H
 
 #include "MpdPointSetDraw.h"
 
@@ -16,10 +16,10 @@
 class MpdMCPointDraw : public MpdPointSetDraw
 {
   public:
-    MpdMCPointDraw();
+    MpdMCPointDraw() {}
     MpdMCPointDraw(const char* name, Color_t color, Style_t mstyle, Int_t iVerbose = 0)
         : MpdPointSetDraw(name, color, mstyle, iVerbose) {}
-    virtual ~MpdMCPointDraw();
+    virtual ~MpdMCPointDraw() {}
 
   protected:
     TVector3 GetVector(TObject* obj);
@@ -30,4 +30,4 @@ class MpdMCPointDraw : public MpdPointSetDraw
     ClassDef(MpdMCPointDraw,1);
 };
 
-#endif /* MpdMCPointDraw_H */
+#endif /* MPDMCPOINTDRAW_H */

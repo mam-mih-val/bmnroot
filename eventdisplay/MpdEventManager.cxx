@@ -87,6 +87,8 @@ MpdEventManager::MpdEventManager()
     fgRinstance = this;
 
     AddParticlesToPdgDataBase();
+
+    // set colors for particles
     fPDGToColor[22] = 623;	// photon
     fPDGToColor[-2112] = 2;	// anti-neutron
     fPDGToColor[-11] = 3;	// e+
@@ -140,21 +142,133 @@ MpdEventManager::MpdEventManager()
     InitColorStructure();
 }
 
-// COLOR SET:
-// white, black, gray,
-// blue, azure (темно-синий), cyan (морской волны), teal (бирюзовый),
-// green, spring (светло-зеленый), green+2 (темно-зеленый), spring+2 (темно-зеленый), khaki
-// yellow, orange (желтый с оттенком), orange+2 (оранжевый кор.), orange+1 (светло-оранжевый кор.), orange+7 (выделенно-оранжевый)
-// red, violet, magenta (бардовый), magenta-6 (светло-бардовый), pink (темно-розовый)
+// return integer value of color by string storing color number, RGB triple or color name (e.g. kBlue, RGB(51,63,73), RGB(#0039E1))
+// support following MAIN COLOR NAMESET + some additional colors as examples:
+// kWhite, kBlack, kGgray,
+// kBlue, kAzure (темно-синий), kCyan (морской волны), kTeal (бирюзовый),
+// kGreen, kSpring (светло-зеленый), kGreen+2 (темно-зеленый), kSpring+2 (темно-зеленый), kKhaki
+// kYellow, kOrange (желтый с оттенком), kOrange+2 (оранжевый кор.), kOrange+1 (светло-оранжевый кор.), kOrange+7 (выделенно-оранжевый)
+// kRed, kViolet, kMagenta (бардовый), kMagenta-6 (светло-бардовый), kPink (темно-розовый)
+Int_t MpdEventManager::StringToColor(TString color)
+{
+    color = color.ReplaceAll(" ", "");
+    color.ToLower();
+
+    // check if color is a RGB triple
+    if (color.BeginsWith("rgb"))
+    {
+        // parse RGB triple
+        if (color.Length() < 6)
+        {
+            cout<<color<<" - RGB triple isn't correct. Color set to default blue"<<endl;
+            return 600;
+        }
+        TString triple = color(3, color.Length() - 3);
+        triple.Remove(TString::kLeading, '('); triple.Remove(TString::kTrailing, ')');
+
+        int red_rgb = -1, green_rgb = -1, blue_rgb = -1;
+        if (triple[0] == '#')
+        {
+            if (triple.Length() < 7)
+            {
+                cout<<triple<<" - hex triple size after '#' isn't correct (should have 6 symbols). Color set to default blue"<<endl;
+                return 600;
+            }
+
+            TString str_red = triple(1,2);
+            TString str_green = triple(3,2);
+            TString str_blue = triple(5,2);
+            if ((!str_red.IsHex()) || (!str_green.IsHex()) || (!str_blue.IsHex()))
+            {
+                cout<<triple<<" - hex triple after '#' has not hex format. Color set to default blue"<<endl;
+                return 600;
+            }
+
+            red_rgb = hex_string_to_int(str_red.Data());
+            green_rgb = hex_string_to_int(str_green.Data());
+            blue_rgb = hex_string_to_int(str_blue.Data());
+        }
+        else
+        {
+            TObjArray* pRGB = triple.Tokenize(",");
+            if (pRGB->GetEntriesFast() < 3)
+            {
+                cout<<triple<<" - RGB string doesn't include color triple. Color set to default blue"<<endl;
+                return 600;
+            }
+            red_rgb = ((TObjString*)pRGB->At(0))->GetString().Atoi();
+            green_rgb = ((TObjString*)pRGB->At(1))->GetString().Atoi();
+            blue_rgb = ((TObjString*)pRGB->At(2))->GetString().Atoi();
+            delete pRGB;
+        }
+
+        Int_t ci = fLastUsedColor++;
+        new TColor(ci, red_rgb/255.0F, green_rgb/255.0F, blue_rgb/255.0F);
+        return ci;
+    }
+
+    if (color.Contains("k"))
+    {
+        Ssiz_t sign_index = color.First('+');
+        if (sign_index == kNPOS)
+            sign_index = color.First('-');
+
+        TString color_name = "";
+        if (sign_index == kNPOS)
+            color_name = color;
+        else
+            color_name = color(0, sign_index);
+
+        Int_t color_value;
+        if (color_name.EqualTo("kwhite")) color_value = 0;
+        else if (color_name.EqualTo("kblack")) color_value = 1;
+        else if (color_name.EqualTo("kgray")) color_value = 920;
+        else if (color_name.EqualTo("kred")) color_value = 632;
+        else if (color_name.EqualTo("kgreen")) color_value = 416;
+        else if (color_name.EqualTo("kblue")) color_value = 600;
+        else if (color_name.EqualTo("kyellow")) color_value = 400;
+        else if (color_name.EqualTo("kmagenta")) color_value = 616;
+        else if (color_name.EqualTo("kcyan")) color_value = 432;
+        else if (color_name.EqualTo("korange")) color_value = 800;
+        else if (color_name.EqualTo("kspring")) color_value = 820;
+        else if (color_name.EqualTo("kteal")) color_value = 840;
+        else if (color_name.EqualTo("kazure")) color_value = 860;
+        else if (color_name.EqualTo("kviolet")) color_value = 880;
+        else if (color_name.EqualTo("kpink")) color_value = 900;
+        else if (color_name.EqualTo("kkhaki")) color_value = 403;
+        else
+        {
+            cout<<color_name<<" not found. Color set to default blue"<<endl;
+            color_value = 600;
+        }
+
+        if ((sign_index != kNPOS) && (color.Length() > sign_index+2))
+        {
+            TString strNumber = color(sign_index+1, color.Length() - sign_index-1);
+            if (strNumber.IsDigit())
+            {
+                if (color(sign_index) == '+')
+                    color_value += strNumber.Atoi();
+                else
+                    color_value -= strNumber.Atoi();
+            }
+        }
+
+        return color_value;
+    }
+    else
+        return color.Atoi();
+}
+
 void MpdEventManager::InitColorStructure()
 {
-    // load colors from XML file
+    // check and load colors from my XML file
     TString coloring_xml_path = "$VMCWORKDIR/config/eventdisplay.xml";
     TString coloring_xsd_path = "$VMCWORKDIR/eventdisplay/coloring.xsd";
     gSystem->ExpandPathName(coloring_xml_path);
     gSystem->ExpandPathName(coloring_xsd_path);
 
-    // check XML
+    // check XML scheme
     if (ValidateXml(coloring_xml_path.Data(), coloring_xsd_path.Data()) == true)
     {   
         xmlDoc* doc = xmlReadFile(coloring_xml_path.Data(), NULL, 0);
@@ -172,13 +286,13 @@ void MpdEventManager::InitColorStructure()
             gVisualizationColoring = defaultColoring;
         }
         else
-        {          
+        {
+            structSelectedColoring* selected_coloring;
+            structLevelColoring* level_coloring;
             if (strcmp((char*)value, "detector") == 0)
                 gVisualizationColoring = selectedColoring;
             else
                 gVisualizationColoring = levelColoring;
-            structSelectedColoring* selected_coloring;
-            structLevelColoring* level_coloring;
 
             cur_node = root_element->children;
             while (cur_node)
@@ -186,6 +300,30 @@ void MpdEventManager::InitColorStructure()
                 if ((strcmp((char*)cur_node->name, "text") != 0) //skipping elements with no attributes
                    && (cur_node->type != XML_COMMENT_NODE))
                 {
+                    // set colors for particle tracks
+                    if (strcmp((char*)cur_node->name, "particle") == 0)
+                    {
+                        xmlAttr* attribute = cur_node->properties;
+                        TString strPDG = "", strColor = "";
+                        while (attribute)
+                        {
+                            xmlChar* attr_value = xmlNodeListGetString(root_element->doc, attribute->children, 1);
+                            if (strcmp((char*)attribute->name,"pdg") == 0)
+                                strPDG = (char*) attr_value;
+                            if (strcmp((char*)attribute->name,"color") == 0)
+                                strColor = (char*) attr_value;
+
+                            attribute = attribute->next;
+                            xmlFree(attr_value);
+                        }// while (attribute)
+                        xmlFree(attribute);
+
+                        if ((strPDG != "") && (strColor != ""))
+                            fPDGToColor[strPDG.Atoi()] = StringToColor(strColor);
+                        cur_node = cur_node->next;
+                        continue;
+                    }
+
                     if (gVisualizationColoring == selectedColoring)
                         selected_coloring = new structSelectedColoring();
                     else
@@ -227,7 +365,7 @@ void MpdEventManager::InitColorStructure()
                         vecSelectedColoring.push_back(selected_coloring);
                     else
                         vecLevelColoring.push_back(level_coloring);
-                }
+                }// if ((strcmp((char*)cur_node->name, "text") != 0) && (cur_node->type != XML_COMMENT_NODE))
                 cur_node = cur_node->next;
             }// while (cur_node)
         }
@@ -238,7 +376,7 @@ void MpdEventManager::InitColorStructure()
     }
     else
     {
-        cout<<"using default coloring"<<endl;
+        cout<<"Using default ROOT coloring"<<endl;
         gVisualizationColoring = defaultColoring;
     }
     
@@ -251,18 +389,23 @@ void MpdEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
     TEveManager::Create();
     fRunAna->Init();
 
-    if (gGeoManager == NULL) return;
+    if (gGeoManager == NULL)
+        return;
     TGeoNode* N = gGeoManager->GetTopNode();
     TEveGeoTopNode* TNod = new TEveGeoTopNode(gGeoManager, N, visopt, vislvl, maxvisnds);
 
     // change color and visibility of geometry nodes
-    if (!fXMLConfig.EqualTo("")) LoadXMLSettings();
-    if (gVisualizationColoring != defaultColoring)
+    if (!fXMLConfig.EqualTo(""))
+        LoadXMLSettings();
+    else
     {
-        if (gVisualizationColoring == selectedColoring)
-            SelectedGeometryColoring();
-        else
-            LevelChangeNodeProperty(N, 0);
+        if (gVisualizationColoring != defaultColoring)
+        {
+            if (gVisualizationColoring == selectedColoring)
+                SelectedGeometryColoring();
+            else
+                LevelChangeNodeProperty(N, 0);
+        }
     }
 
     gEve->AddGlobalElement(TNod);
@@ -292,13 +435,13 @@ void MpdEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
         gEve->GetDefaultViewer()->GetGLViewer()->UseLightColorSet();
     gEve->GetDefaultViewer()->GetGLViewer()->SetClearColor(background_color);
 
-    // different views and projections for Offline mode
+    // use only one View in Online mode
     if (isOnline)
         return;
 
     // ADD WINDOW in EventDisplay for RPhi projection
-    TEveWindowSlot *RPhiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
-    TEveWindowPack *RPhiPack = RPhiSlot->MakePack();
+    TEveWindowSlot* RPhiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
+    TEveWindowPack* RPhiPack = RPhiSlot->MakePack();
     RPhiPack->SetElementName("RPhi View");
     RPhiPack->SetShowTitleBar(kFALSE);
     RPhiPack->NewSlot()->MakeCurrent();
@@ -309,8 +452,8 @@ void MpdEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
     fRPhiGeomScene->AddElement(fAxesPhi);
 
     // ADD WINDOW in EvenDisplay for RhoZ projection
-    TEveWindowSlot *RhoZSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
-    TEveWindowPack *RhoZPack = RhoZSlot->MakePack();
+    TEveWindowSlot* RhoZSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
+    TEveWindowPack* RhoZPack = RhoZSlot->MakePack();
     RhoZPack->SetElementName("RhoZ View");
     RhoZPack->SetShowTitleBar(kFALSE);
     RhoZPack->NewSlot()->MakeCurrent();
@@ -320,17 +463,11 @@ void MpdEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
     // add axes for scene of RPhoZ view
     fRhoZGeomScene->AddElement(fAxesRho);
 
-    SetViewers(fRPhiView,fRhoZView);
-
-    // set clip plane for RPhi and RhoZ projections
-    fRPhiView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-    fRPhiView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, fRPhiPlane);
-    fRhoZView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-    fRhoZView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, fRhoZPlane);
+    SetViewers(fRPhiView, fRhoZView);
 
     // ADD WINDOW in EvenDisplay for MultiView
-    TEveWindowSlot *MultiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
-    TEveWindowPack *MultiPack = MultiSlot->MakePack();
+    TEveWindowSlot* MultiSlot = TEveWindow::CreateWindowInTab(gEve->GetBrowser()->GetTabRight());
+    TEveWindowPack* MultiPack = MultiSlot->MakePack();
     MultiPack->SetElementName("Multi View");
     MultiPack->SetHorizontal();
     MultiPack->SetShowTitleBar(kFALSE);
@@ -354,13 +491,7 @@ void MpdEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
     MultiPack->NewSlot()->MakeCurrent();
     fMultiRhoZView = gEve->SpawnNewViewer("RhoZ View (multi)", "");
 
-    SetViewers(fMultiRPhiView,fMultiRhoZView);
-
-    // set clip plane for RPhi and RhoZ projections in MultiView
-    fMultiRPhiView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-    fMultiRPhiView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, fRPhiPlane);
-    fMultiRhoZView->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
-    fMultiRhoZView->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, fRhoZPlane);
+    SetViewers(fMultiRPhiView, fMultiRhoZView);
 
     // don't change reposition camera on each update
     fRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
@@ -369,11 +500,52 @@ void MpdEventManager::Init(Int_t visopt, Int_t vislvl, Int_t maxvisnds)
     fMultiRPhiView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
     fMultiRhoZView->GetGLViewer()->SetResetCamerasOnUpdate(kFALSE);
 
-    // from FairRoot
+    // from FairRoot (not checked yet)
     fMulti3DView->GetEveFrame()->HideAllDecorations();
     fMultiRPhiView->GetEveFrame()->HideAllDecorations();
     fMultiRhoZView->GetEveFrame()->HideAllDecorations();
 }//MpdEventManager::Init
+
+void MpdEventManager::SetViewers(TEveViewer* RPhi, TEveViewer* RhoZ)
+{
+    RPhi->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoXOY);
+    // set camera parameters
+    RPhi->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
+    RPhi->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
+    // switch off left, right, top and bottom light sources
+    RPhi->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+    RPhi->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+    RPhi->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
+    RPhi->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
+    if (!isDarkColor)
+        RPhi->GetGLViewer()->UseLightColorSet();
+    RPhi->GetGLViewer()->SetClearColor(background_color);
+
+    RhoZ->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
+    // set camera parameters
+    RhoZ->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
+    RhoZ->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
+    // switch off left, right and front light sources
+    RhoZ->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
+    RhoZ->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
+    RhoZ->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
+    if (!isDarkColor)
+        RhoZ->GetGLViewer()->UseLightColorSet();
+    RhoZ->GetGLViewer()->SetClearColor(background_color);
+
+    RPhi->AddScene(fRPhiGeomScene);
+    RPhi->AddScene(gEve->GetGlobalScene());
+    RPhi->AddScene(gEve->GetEventScene());
+    RhoZ->AddScene(fRhoZGeomScene);
+    RhoZ->AddScene(gEve->GetGlobalScene());
+    RhoZ->AddScene(gEve->GetEventScene());
+
+    // set clip planes
+    RPhi->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
+    RPhi->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, fRPhiPlane);
+    RhoZ->GetGLViewer()->GetClipSet()->SetClipType(TGLClip::kClipPlane);
+    RhoZ->GetGLViewer()->GetClipSet()->SetClipState(TGLClip::kClipPlane, fRhoZPlane);
+}
 
 // setting of geometry colors for DETECTOR COLORING MODE
 void MpdEventManager::SelectedGeometryColoring()
@@ -391,7 +563,7 @@ void MpdEventManager::SelectedGeometryColoring()
             i--;
             continue;
         }
-        Int_t curColor = GetColor(selected_coloring->detector_color);
+        Int_t curColor = StringToColor(selected_coloring->detector_color);
         Int_t curTransparency = selected_coloring->detector_transparency;
 
         curVolume->SetFillColor(curColor);
@@ -411,9 +583,9 @@ void MpdEventManager::SelectedGeometryColoring()
 
                 if (child->GetNdaughters() != 0)
                     RecursiveChangeNodeProperty(child, curColor, curTransparency);
-            }
-        }
-    }
+            }// for (int j = 0; j < curVolume->GetNdaughters(); j++)
+        }// if (selected_coloring->isRecursiveColoring)
+    }// for (int i = 0; i < vecSelectedColoring.size(); i++)
 
     return;
 }
@@ -429,22 +601,7 @@ void MpdEventManager::RecursiveChangeNodeProperty(TGeoNode* node, Int_t color, i
         curVolume->SetLineColor(color);
         curVolume->SetTransparency(transparency);
 
-        if (child->GetNdaughters() != 0)
-            RecursiveChangeNodeProperty(child, color, transparency);
-    }
-}
-
-void MpdEventManager::RecursiveChangeNodeTransparent(TGeoNode* node, int transparency)
-{
-    for (int i = 0; i < node->GetNdaughters(); i++)
-    {
-        TGeoNode* child = node->GetDaughter(i);
-        TGeoVolume* curVolume = child->GetVolume();
-
-        curVolume->SetTransparency(transparency);
-
-        if (child->GetNdaughters() != 0)
-            RecursiveChangeNodeTransparent(child, transparency);
+        if (child->GetNdaughters() != 0) RecursiveChangeNodeProperty(child, color, transparency);
     }
 }
 
@@ -484,11 +641,11 @@ void MpdEventManager::SetTransparentGeometry(bool is_on)
 
                 if (child->GetNdaughters() != 0)
                     RecursiveChangeNodeTransparent(child, curTransparency);
-            }
-        }
+            }// or (int j = 0; j < curVolume->GetNdaughters(); j++)
+        }// for (int i = 0; i < vecSelectedColoring.size(); i++)
 
         break;
-    }
+    }// case selectedColoring:
     case levelColoring:
     {
         // NOT IMPLEMENTED
@@ -504,6 +661,19 @@ void MpdEventManager::SetTransparentGeometry(bool is_on)
     return;
 }
 
+void MpdEventManager::RecursiveChangeNodeTransparent(TGeoNode* node, int transparency)
+{
+    for (int i = 0; i < node->GetNdaughters(); i++)
+    {
+        TGeoNode* child = node->GetDaughter(i);
+        TGeoVolume* curVolume = child->GetVolume();
+
+        curVolume->SetTransparency(transparency);
+
+        if (child->GetNdaughters() != 0) RecursiveChangeNodeTransparent(child, transparency);
+    }
+}
+
 // hierarchical changing of nodes' properties: visibility, transparency, fill color and line color
 void MpdEventManager::LevelChangeNodeProperty(TGeoNode* node, int level)
 {
@@ -517,21 +687,18 @@ void MpdEventManager::LevelChangeNodeProperty(TGeoNode* node, int level)
             structLevelColoring* level_coloring = vecLevelColoring[level];
             curVolume->SetVisibility(level_coloring->visibility);
             curVolume->SetTransparency(level_coloring->transparency);
-            curVolume->SetFillColor(GetColor(level_coloring->fill_color));
-            if (level_coloring->isFillLine) curVolume->SetLineColor(GetColor(level_coloring->fill_color));
+            curVolume->SetFillColor(StringToColor(level_coloring->fill_color));
+            if (level_coloring->isFillLine) curVolume->SetLineColor(StringToColor(level_coloring->fill_color));
 
             if (child->GetNdaughters() != 0)
-            {
-                level++;
-                LevelChangeNodeProperty(child, level);
-            }
+                LevelChangeNodeProperty(child, ++level);
         }//if (level < arr_size)
     }
 }
 
 // validate XML file with geometry colors
 // returns true if successful or false if XML validation failed
-bool MpdEventManager::ValidateXml(const char *XMLFileName, const char *XSDFileName)
+bool MpdEventManager::ValidateXml(const char* XMLFileName, const char* XSDFileName)
 {
     bool ok = false;
 
@@ -575,120 +742,17 @@ bool MpdEventManager::ValidateXml(const char *XMLFileName, const char *XSDFileNa
     return ok;
 }
 
-// return integer value of color by color name (default, blue)
-// support following colors:
-// white, black, gray,
-// green, spring,
-// blue, cyan (бирюзовый), azure, teal,
-// red, pink (розовый), magenta, violet (фиолетовый),
-// yellow, orange
-Int_t MpdEventManager::GetColor(TString colorName)
-{
-    colorName = colorName.ReplaceAll(" ", "");
-    colorName.ToLower();
-
-    // check if instead of color name we have an RGB triple
-    if (colorName.BeginsWith("rgb"))
-    {
-        // parse rgb triple
-        if (colorName < 6)
-        {
-            cout<<colorName<<" - RGB triple isn't correct. Color set to default blue"<<endl;
-            return 600;
-        }
-        TString triple = colorName(3, colorName.Length() - 3);
-        triple.Remove(TString::kLeading, '('); triple.Remove(TString::kTrailing, ')');
-
-        int red_rgb = -1, green_rgb = -1, blue_rgb = -1;
-        if (triple[0] == '#')
-        {
-            if (triple < 7)
-            {
-                cout<<triple<<" - hex triple size after '#' isn't correct (should have 6 symbols). Color set to default blue"<<endl;
-                return 600;
-            }
-
-            TString str_red = triple(1,2);
-            TString str_green = triple(3,2);
-            TString str_blue = triple(5,2);
-            if ((!str_red.IsHex()) || (!str_green.IsHex()) || (!str_blue.IsHex()))
-            {
-                cout<<triple<<" - hex triple after '#' has not hex format. Color set to default blue"<<endl;
-                return 600;
-            }
-
-            red_rgb = hex_string_to_int(str_red.Data());
-            green_rgb = hex_string_to_int(str_green.Data());
-            blue_rgb = hex_string_to_int(str_blue.Data());
-        }
-        else
-        {
-            TObjArray* pRGB = triple.Tokenize(",");
-            if (pRGB->GetEntriesFast() < 3)
-            {
-                cout<<triple<<" - RGB string doesn't include color triple. Color set to default blue"<<endl;
-                return 600;
-            }
-            red_rgb = ((TObjString*)pRGB->At(0))->GetString().Atoi();
-            green_rgb = ((TObjString*)pRGB->At(1))->GetString().Atoi();
-            blue_rgb = ((TObjString*)pRGB->At(2))->GetString().Atoi();
-            delete pRGB;
-        }
-
-        Int_t ci = fLastUsedColor++;
-        new TColor(ci, red_rgb/255.0F, green_rgb/255.0F, blue_rgb/255.0F);
-        return ci;
-    }
-
-    if (colorName == "white") return 0;
-    else if (colorName == "black") return 1;
-    else if (colorName == "gray") return 920;
-    else if (colorName == "blue") return 600;
-    else if (colorName == "red") return 632;
-    else if (colorName == "green") return 416;
-    else if (colorName == "yellow") return 400;
-    else if (colorName == "magenta") return 616;
-    else if (colorName == "cyan") return 432;
-    else if (colorName == "orange") return 800;
-    else if (colorName == "pink") return 900;
-    else if (colorName == "violet") return 880;
-    else if (colorName == "azure") return 860;
-    else if (colorName == "teal") return 840;
-    else if (colorName == "spring") return 820;
-
-    else if (colorName == "green+2") return 418;
-    else if (colorName == "spring+2") return 823;
-    else if (colorName == "orange+1") return 801;
-    else if (colorName == "orange+2") return 802;
-    else if (colorName == "orange+7") return 807;
-    else if (colorName == "magenta-6") return 610;
-    else if (colorName == "khaki") return 403;
-    else
-    {
-        cout<<colorName<<" not found. Color set to default blue"<<endl;
-        return 600;
-    }
-}
-
-//______________________________________________________________________________
 void MpdEventManager::Open()
-{
-}
+{}
 
-//______________________________________________________________________________
 void MpdEventManager::Close()
-{
-}
+{}
 
-//______________________________________________________________________________
 void MpdEventManager::DisplaySettings()
-{
-}
+{}
 
-//______________________________________________________________________________
 void MpdEventManager::UpdateEditor()
-{
-}
+{}
 
 // MpdEventManager destructor
 MpdEventManager::~MpdEventManager()
@@ -737,7 +801,7 @@ Int_t MpdEventManager::Color(int pdg)
 }
 
 // add particles to the PDG data base: Deuteron, Triton, Alpha, HE3; Cherenkov, FeedbackPhoton
-void MpdEventManager::AddParticlesToPdgDataBase(Int_t pdg)
+void MpdEventManager::AddParticlesToPdgDataBase()
 {
     TDatabasePDG* pdgDB = TDatabasePDG::Instance();
 
@@ -766,180 +830,6 @@ void MpdEventManager::AddParticlesToPdgDataBase(Int_t pdg)
 
     if (!pdgDB->GetParticle(50000051))
         pdgDB->AddParticle("FeedbackPhoton","FeedbackPhoton", 0, kFALSE, 0, 0, "Special", 50000051);
-}
-
-void MpdEventManager::SetViewers(TEveViewer* RPhi, TEveViewer* RhoZ)
-{
-    RPhi->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoXOY);
-    // set camera parameters
-    RPhi->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
-    RPhi->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
-    // switch off left, right, top and bottom light sources
-    RPhi->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-    RPhi->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-    RPhi->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightTop, false);
-    RPhi->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightBottom, false);
-    if (!isDarkColor)
-        RPhi->GetGLViewer()->UseLightColorSet();
-    RPhi->GetGLViewer()->SetClearColor(background_color);
-
-    RhoZ->GetGLViewer()->SetCurrentCamera(TGLViewer::kCameraOrthoZOY);
-    // set camera parameters
-    RhoZ->GetGLViewer()->GetCameraOverlay()->SetOrthographicMode(TGLCameraOverlay::kAxis);
-    RhoZ->GetGLViewer()->GetCameraOverlay()->SetShowOrthographic(kTRUE);
-    // switch off left, right and front light sources
-    RhoZ->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightLeft, false);
-    RhoZ->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightRight, false);
-    RhoZ->GetGLViewer()->GetLightSet()->SetLight(TGLLightSet::kLightFront, false);
-    if (!isDarkColor)
-        RhoZ->GetGLViewer()->UseLightColorSet();
-    RhoZ->GetGLViewer()->SetClearColor(background_color);
-
-    RPhi->AddScene(fRPhiGeomScene);
-    RPhi->AddScene(gEve->GetGlobalScene());
-    RPhi->AddScene(gEve->GetEventScene());
-    RhoZ->AddScene(fRhoZGeomScene);
-    RhoZ->AddScene(gEve->GetGlobalScene());
-    RhoZ->AddScene(gEve->GetEventScene());
-}
-
-void MpdEventManager::SetRPhiPlane(Double_t a, Double_t b, Double_t c,
-        Double_t d) {
-    fRPhiPlane[0] =a;
-    fRPhiPlane[1] =b;
-    fRPhiPlane[2] =c;
-    fRPhiPlane[3] =d;
-}
-
-void MpdEventManager::SetRhoZPlane(Double_t a, Double_t b, Double_t c,
-        Double_t d) {
-    fRhoZPlane[0] =a;
-    fRhoZPlane[1] =b;
-    fRhoZPlane[2] =c;
-    fRhoZPlane[3] =d;
-}
-
-void MpdEventManager::LoadXMLSettings() {
-    TDOMParser *Parser = new TDOMParser();
-    Parser->SetValidate(kFALSE);
-    Parser->ParseFile(fXMLConfig);
-    TXMLNode *MainNode = Parser->GetXMLDocument()->GetRootNode();
-    FairXMLNode *xml = new FairXMLNode(MainNode);
-    for(int i =0;i<xml->GetNChildren();i++){
-        TString nodename = xml->GetChild(i)->GetName();
-        if(nodename.EqualTo("Detectors")){
-            TGeoNode *top = gGeoManager->GetTopNode();
-            FairXMLNode *top_xml = xml->GetChild(i)->GetChild(0);
-            if(!top_xml->IsNull())
-                LoadXMLDetector(top,top_xml);
-        }else if(nodename.EqualTo("MCTracksColors")){
-            FairXMLNode *colors = xml->GetChild(i);
-            for(int j=0;j<colors->GetNChildren();j++){
-                FairXMLNode *color = colors->GetChild(j);
-                TString pgd_code = color->GetAttribValue("pdg");
-                TString color_code = color->GetAttribValue("color");
-                fPDGToColor[pgd_code.Atoi()] = StringToColor(color_code);
-            }
-        }
-    }
-    delete xml;
-    delete Parser;
-    gEve->Redraw3D();
-}
-
-void MpdEventManager::LoadXMLDetector(TGeoNode* node, FairXMLNode* xml,Int_t depth) {
-    TString name = xml->GetAttribValue("name");
-    TString node_name = node->GetName();
-    Bool_t recursive = (xml->GetAttribValue("recursive").Length()!=0&&!name.EqualTo(node_name));
-    if(recursive&&depth==0) return;
-    TString transparency = xml->GetAttribValue("transparency");
-    TString color = xml->GetAttribValue("color");
-    if(!color.EqualTo("")){
-        node->GetVolume()->SetFillColor(StringToColor(color));
-        node->GetVolume()->SetLineColor(StringToColor(color));
-    }
-    if(!transparency.EqualTo("")){
-        node->GetVolume()->SetTransparency((Char_t)(transparency.Atoi()));
-    }
-    if(xml->GetAttribValue("recursive").Length()>0){
-        TString val = xml->GetAttribValue("recursive");
-        Int_t xml_depth = val.Atoi();
-        if(recursive){
-            xml_depth =depth-1;
-        }
-        for(int i=0;i<node->GetNdaughters();i++){
-            TGeoNode *daughter_node = node->GetDaughter(i);
-            LoadXMLDetector(daughter_node,xml,xml_depth);
-        }
-    }
-    if(xml->GetNChildren()>0&&!recursive){
-        for(int i=0;i<node->GetNdaughters();i++){
-            TString subdetector_name = node->GetDaughter(i)->GetName();
-            for(int j=0;j<xml->GetNChildren();j++){
-                FairXMLNode *subnode = xml->GetChild(j);
-                TString subnode_name = subnode->GetAttribValue("name");
-                if(subnode_name==subdetector_name){
-                    LoadXMLDetector(node->GetDaughter(i),subnode);
-                }
-            }
-        }
-    }
-}
-
-Int_t MpdEventManager::StringToColor(TString color) const {
-    Int_t color_val = 0;
-    if (color.Contains("k")) {
-        Int_t plus_index = color.First('+');
-        Int_t minus_index = color.First('-');
-        Int_t cut = plus_index;
-        if (cut == -1)
-            cut = minus_index;
-        if(cut==-1) cut = color.Length();
-        TString col_name(color( 0, cut));
-        Int_t col_val;
-        if (col_name.EqualTo("kWhite")) {
-            col_val = 0;
-        } else if (col_name.EqualTo("kBlack")) {
-            col_val = 1;
-        } else if (col_name.EqualTo("kGray")) {
-            col_val = 920;
-        } else if (col_name.EqualTo("kRed")) {
-            col_val = 632;
-        } else if (col_name.EqualTo("kGreen")) {
-            col_val = 416;
-        } else if (col_name.EqualTo("kBlue")) {
-            col_val = 600;
-        } else if (col_name.EqualTo("kYellow")) {
-            col_val = 400;
-        } else if (col_name.EqualTo("kMagenta")) {
-            col_val = 616;
-        } else if (col_name.EqualTo("kCyan")) {
-            col_val = 432;
-        } else if (col_name.EqualTo("kOrange")) {
-            col_val = 800;
-        } else if (col_name.EqualTo("kSpring")) {
-            col_val = 820;
-        } else if (col_name.EqualTo("kTeal")) {
-            col_val = 840;
-        } else if (col_name.EqualTo("kAzure")) {
-            col_val = 860;
-        } else if (col_name.EqualTo("kViolet")) {
-            col_val = 880;
-        } else if (col_name.EqualTo("kPink")) {
-            col_val = 900;
-        }
-        TString col_num(color( cut + 1, color.Length()));
-        if(col_num.Length()>0){
-            if(color.Contains("+")){
-                col_val +=col_num.Atoi();
-            }else{
-                col_val -=col_num.Atoi();
-            }
-        }
-        return col_val;
-    }else{
-        return color.Atoi();
-    }
 }
 
 void MpdEventManager::AddEventElement(TEveElement* element, ElementList element_list)
@@ -997,6 +887,92 @@ void MpdEventManager::AddEventElement(TEveElement* element, ElementList element_
 
             gEve->AddElement(element, EveRecoTracks);
             break;
+        }
+    }// switch (element_list)
+}
+
+
+void MpdEventManager::LoadXMLSettings()
+{
+    TDOMParser* Parser = new TDOMParser();
+    Parser->SetValidate(kFALSE);
+    Parser->ParseFile(fXMLConfig);
+
+    TXMLNode* MainNode = Parser->GetXMLDocument()->GetRootNode();
+    FairXMLNode* xml = new FairXMLNode(MainNode);
+    for (int i = 0; i < xml->GetNChildren(); i++)
+    {
+        TString nodename = xml->GetChild(i)->GetName();
+        if (nodename.EqualTo("Detectors"))
+        {
+            TGeoNode* top = gGeoManager->GetTopNode();
+            FairXMLNode* top_xml = xml->GetChild(i)->GetChild(0);
+            if (!top_xml->IsNull())
+                LoadXMLDetector(top, top_xml);
+        }
+        else if (nodename.EqualTo("MCTracksColors"))
+        {
+            FairXMLNode* colors = xml->GetChild(i);
+            for (int j = 0; j < colors->GetNChildren(); j++)
+            {
+                FairXMLNode* color = colors->GetChild(j);
+                TString pgd_code = color->GetAttribValue("pdg");
+                TString color_code = color->GetAttribValue("color");
+                fPDGToColor[pgd_code.Atoi()] = StringToColor(color_code);
+            }
+        }
+    }
+
+    delete xml;
+    delete Parser;
+}
+
+void MpdEventManager::LoadXMLDetector(TGeoNode* node, FairXMLNode* xml, Int_t depth)
+{
+    TString name = xml->GetAttribValue("name");
+    TString node_name = node->GetName();
+
+    Bool_t recursive = (xml->GetAttribValue("recursive").Length() != 0 && !name.EqualTo(node_name));
+    if (recursive && depth == 0)
+        return;
+
+    TString color = xml->GetAttribValue("color");
+    if (!color.EqualTo(""))
+    {
+        node->GetVolume()->SetFillColor(StringToColor(color));
+        node->GetVolume()->SetLineColor(StringToColor(color));
+    }
+
+    TString transparency = xml->GetAttribValue("transparency");
+    if (!transparency.EqualTo(""))
+        node->GetVolume()->SetTransparency((Char_t)(transparency.Atoi()));
+
+    if (xml->GetAttribValue("recursive").Length() > 0)
+    {
+        TString val = xml->GetAttribValue("recursive");
+        Int_t xml_depth = val.Atoi();
+        if (recursive)
+            xml_depth =depth-1;
+
+        for (int i = 0; i < node->GetNdaughters(); i++)
+        {
+            TGeoNode* daughter_node = node->GetDaughter(i);
+            LoadXMLDetector(daughter_node, xml, xml_depth);
+        }
+    }
+
+    if (xml->GetNChildren() > 0 && !recursive)
+    {
+        for (int i = 0; i < node->GetNdaughters(); i++)
+        {
+            TString subdetector_name = node->GetDaughter(i)->GetName();
+            for (int j = 0; j < xml->GetNChildren(); j++)
+            {
+                FairXMLNode* subnode = xml->GetChild(j);
+                TString subnode_name = subnode->GetAttribValue("name");
+                if (subnode_name == subdetector_name)
+                    LoadXMLDetector(node->GetDaughter(i), subnode);
+            }
         }
     }
 }

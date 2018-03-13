@@ -14,16 +14,14 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
 //      sim_run_info - run number in 'runN-NN' format, e.g. "run6-1" to obtain BM@N geometry from the Unified Database
 //      reco_file - path to the directory with raw '*.data' files, e.g. "/tdaq/data/" (last slash is required)
 // is_online: false (default) - use Offline Mode (manual switching of events); true - use Online Mode (continious view events)
+
 //void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "$VMCWORKDIR/macro/run/bmn_run1220.root", int data_source = 1, bool is_online = false)
 //void eventdisplay(char* sim_run_info = "run6-1220", char* reco_file = "/tdaq/data/", int data_source = 2, bool is_online = true)
 void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root", const char* reco_file = "$VMCWORKDIR/macro/run/bmndst.root", int data_source = 0, bool is_online = false)
 {
     gDebug = 0;
 
-    // load main and detectors libraries
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-#endif
+    // load main libraries
     bmnloadlibs();
 
     // load Event Display libraries
@@ -152,7 +150,7 @@ void eventdisplay(const char* sim_run_info = "$VMCWORKDIR/macro/run/evetest.root
         // set source as TDAQ Event Monitor
         if (data_source == 2)
         {
-            // load TDAQ
+            // load TDAQ libraries
             gSystem->Load("libemon");
             gSystem->Load("libemon-dal");
             gSystem->Load("libcmdline");
@@ -240,9 +238,9 @@ void SetTasks(MpdEventManager* fMan, int data_source, int run_period, int run_nu
         // save EventDisplay Screenshot
         //MpdWebScreenshots* WebScreenshots = new MpdWebScreenshots("WebScreenshots", "/var/www/html/events"); // for WEB-page
         //MpdWebScreenshots* WebScreenshots = new MpdWebScreenshots("WebScreenshots","screenshots"); // folder to save the screenshots
-        //WebScreenshots->SetFormatFiles(0); // 0 -.png, 1 -.jpg, 2 -.jpg and .png
-        //WebScreenshots->SetMultiFiles(0); //0 - the same file (event.png), 1 - multiple files (event_nnn.png)
-        //WebScreenshots->SetPort(8016); // 8016 by default
+        //WebScreenshots->SetFormatFiles(0);    // 0 -.png, 1 -.jpg, 2 -.jpg and .png
+        //WebScreenshots->SetMultiFiles(0);     // 0 - the same file (event.png), 1 - multiple files (event_nnn.png)
+        //WebScreenshots->SetPort(8016);        // 8016 by default
         //fMan->AddTask(WebScreenshots);
 
         return;

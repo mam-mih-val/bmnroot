@@ -1,7 +1,7 @@
 // Specialization of TGedEditor for proper update propagation to TEveManager
 
-#ifndef ROOT_MpdEventManagerEDITOR
-#define ROOT_MpdEventManagerEDITOR
+#ifndef MPDEVENTMANAGEREDITOR_H
+#define MPDEVENTMANAGEREDITOR_H
 
 #include "MpdEventManager.h"
 
@@ -45,11 +45,10 @@ class MpdEventManagerEditor : public TGedFrame
   public:
     MpdEventManagerEditor(const TGWindow* p = 0, Int_t width = 170, Int_t height = 30,
                            UInt_t options = kChildFrame, Pixel_t back = GetDefaultFrameBackground());
-
     virtual ~MpdEventManagerEditor() {}
 
     virtual void Init();
-    void SetModel(TObject* obj);
+    void SetModel(TObject* obj) { fObject = obj; }
 
     virtual void SelectEvent();
     virtual void UpdateEvent();
@@ -66,8 +65,7 @@ class MpdEventManagerEditor : public TGedFrame
     virtual void ShowRecoPoints(Bool_t is_show);
     virtual void ShowRecoTracks(Bool_t is_show);
 
-    bool RedrawZDC(bool isRedraw = true);
-    void RestoreZDC();
+    bool RedrawZDC(bool isFull = false, bool isRedraw = true);
 
     int iThreadState;
     void BlockUI();
@@ -88,7 +86,7 @@ class MpdEventManagerEditor : public TGedFrame
     TGNumberEntry* fCurrentEvent;
     // 'Show Geometry' checkbox
     TGCheckButton* fGeometry;
-    TGCheckButton* fShowMCPoints, *fShowMCTracks, *fShowRecoPoints, *fShowRecoTracks;
+    TGCheckButton *fShowMCPoints, *fShowMCTracks, *fShowRecoPoints, *fShowRecoTracks;
 
     ClassDef(MpdEventManagerEditor, 0);
 };

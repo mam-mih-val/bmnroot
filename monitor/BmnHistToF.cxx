@@ -81,7 +81,7 @@ BmnHistToF::BmnHistToF(TString title, TString path) : BmnHist() {
             canTimesPads[iPad]->current->SetLabelSize(0.08, "XY");
             TAxis *ax = canTimesPads[iPad]->current->GetYaxis();
             ax->SetTitleColor(kOrange + 10);
-            ax->SetTitleOffset(1.8);
+            ax->SetTitleOffset(0.8);
             ax->SetTitleFont(62);
             ax = canTimesPads[iPad]->current->GetXaxis();
         }

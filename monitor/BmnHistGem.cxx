@@ -77,6 +77,7 @@ BmnHistGem::BmnHistGem(TString title, TString path, Int_t PeriodID) : BmnHist(Pe
             BmnGemStripModule *mod = st->GetModule(iModule);
             for (Int_t iLayer = 0; iLayer < mod->GetNStripLayers(); iLayer++) {
                 PadInfo *p = new PadInfo();
+                p->opt = "";
                 p->current = histGemStrip[iStation][iModule][iLayer];
                 Int_t iPad = modCtr * maxLayers + iLayer;
                 canStripPads[iPad] = p;

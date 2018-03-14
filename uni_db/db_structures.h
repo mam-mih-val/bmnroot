@@ -7,6 +7,8 @@
 
 struct UniqueRunNumber
 {
+    UniqueRunNumber() {}
+    UniqueRunNumber(int period_num, int run_num) { period_number = period_num; run_number = run_num; }
     int period_number;
     int run_number;
 };

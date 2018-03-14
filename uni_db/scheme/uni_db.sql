@@ -289,6 +289,19 @@ create index det_name_lower_idx on detector_((lower(detector_name)));
 create index par_name_lower_idx on parameter_((lower(parameter_name)));
 create index det_name_par_lower_idx on detector_parameter((lower(detector_name)));
 
+-- function to set link to the existed geometry with a given id
+CREATE OR REPLACE FUNCTION set_geometry_id() RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.geometry_id is NULL THEN
+    NEW.geometry_id = 45;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER fixed_geometry_id
+BEFORE INSERT ON run_ FOR EACH ROW EXECUTE PROCEDURE set_geometry_id();
+
 -- trigger to remove large_object by OID
 CREATE OR REPLACE FUNCTION unlink_lo_parameter() RETURNS TRIGGER AS $$
 DECLARE

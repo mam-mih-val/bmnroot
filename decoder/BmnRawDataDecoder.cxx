@@ -799,7 +799,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
             if ((mode == 0) && (type == 4 || type == 5)) { // good
                 UInt_t rcdata = ((d[idx] >> 24) & 0x3) << 19; // fixed					
                 channel = (d[idx] >> 19) & 0x1F; // i think ok...
-                UInt_t time = 4 * (d[idx] & 0x7FF) + rcdata; // in 25 ps
+                UInt_t time = 4 * (d[idx] & 0x7FFFF) + rcdata; // in 25 ps
                 new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time);
                 //                printf("TDC: type %d channel %d time %d \n", type, channel, time);
             } else if ((type == 4) && (mode == 2)) {

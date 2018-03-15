@@ -144,7 +144,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                         fRunID = runID;
                         CreateFile(fRunID);
                         DBG("state changed to kBMNWORK")
-                        fServer->SetTimer(0, kTRUE);
+                        //fServer->SetTimer(0, kTRUE);
                         fState = kBMNWORK;
                         ProcessDigi(0);
                         break;
@@ -181,12 +181,11 @@ void BmnMonitor::InitServer() {
         fServer = new THttpServer(cgiStr.Data());
     } else
         fServer = new THttpServer(TString(cgiStr + "?auth_file=auth.htdigest&auth_domain=root").Data());
-    fServer->SetTimer(50, kFALSE);
-    fServer->SetItemField("/", "_monitoring", "10000");
-    fServer->SetItemField("/", "_layout", "grid3x3");
+    fServer->SetTimer(50, kTRUE);
 }
 
 BmnStatus BmnMonitor::CreateFile(Int_t runID) {
+    DBG("started")
     fEvents = 0;
     UpdateRuns();
     TString outHistName = Form("%s/bmn_run%04d_hist.root", _curDir.Data(), runID);
@@ -322,6 +321,7 @@ void BmnMonitor::UpdateRuns() {
     //        free(namelist);
     //    }
 
+    refTable->Clear();
     runPub->Clear();
     TObjArray* refRuns = GetAlikeRunsByUniDB(fPeriodID, fRunID);
     if (refRuns == NULL) {
@@ -333,7 +333,6 @@ void BmnMonitor::UpdateRuns() {
         return;
     }
     runPub->Add((TObject*) CurRun);
-    refTable->Clear();
     for (Int_t iRun = 0; iRun < refRuns->GetEntriesFast(); iRun++) {
         UniDbRun* run = (UniDbRun*) refRuns->At(iRun);
         BmnRunInfo* runInfo = new BmnRunInfo(run);
@@ -354,6 +353,7 @@ void BmnMonitor::FinishRun() {
             //    if (fRecoTree)
             //        printf("fRecoTree Write result = %d\n", fRecoTree->Write());
     if (fHistOut) {
+        printf("fHistOut is gona be written\n");
         printf("fHistOut  Write result = %d\n", fHistOut->Write());
         fHistOut->Close();
         fHistOut = NULL;
@@ -444,24 +444,30 @@ TObjArray* BmnMonitor::GetAlikeRunsByUniDB(Int_t periodID, Int_t runID) {
         fprintf(stderr, "Run %d not found in UniDB!\n", runID);
         return NULL;
     }
+    if (!(Run->GetFieldVoltage() && Run->GetEnergy())){
+        fprintf(stderr, "Not enough info on current run!\n");
+        return NULL;
+    }
     if (CurRun)
         delete CurRun;
     CurRun = new BmnRunInfo(Run);
     TObjArray arrayConditions;
     TString beamParticle = Run->GetBeamParticle();
+        printf("Beam particle %s\n", Run->GetBeamParticle().Data());
     UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnBeamParticle, conditionEqual, beamParticle);
     arrayConditions.Add((TObject*) searchCondition);
-    if (Run->GetTargetParticle() != NULL) {
-        TString targetParticle = *Run->GetTargetParticle();
+        TString targetParticle = Run->GetTargetParticle() ? *Run->GetTargetParticle() : "";
+        printf("Target particle %s\n", targetParticle.Data());
         searchCondition = new UniDbSearchCondition(columnTargetParticle, conditionEqual, targetParticle);
         arrayConditions.Add((TObject*) searchCondition);
-    }
     if (Run->GetEnergy() != NULL) {
+        printf("Beam Energy %f\n", *Run->GetEnergy());
         Double_t beamEnergy = *Run->GetEnergy();
         searchCondition = new UniDbSearchCondition(columnEnergy, conditionEqual, beamEnergy);
         arrayConditions.Add((TObject*) searchCondition);
     }
     if (Run->GetFieldVoltage() != NULL) {
+        printf("Field voltage %f\n", *Run->GetFieldVoltage());
         Double_t V_SP41 = *Run->GetFieldVoltage();
         searchCondition = new UniDbSearchCondition(columnFieldVoltage, conditionLessOrEqual, V_SP41 * 1.15);
         arrayConditions.Add((TObject*) searchCondition);

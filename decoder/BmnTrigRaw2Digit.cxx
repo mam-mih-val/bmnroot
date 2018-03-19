@@ -10,9 +10,28 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile) {
 
 BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *digiTree) {
     readMap(mappingFile);
+    UInt_t mapLen = fMap.size();
+    for (UInt_t i = 0; i < mapLen; ++i) {
+        TString detName = fMap[i].name;
+        if (detName.Contains("TQDC")) {
+            BmnTrigMapping rec;
+            rec.channel = fMap[i].channel;
+            rec.module = fMap[i].module;
+            rec.serial = fMap[i].serial;
+            rec.slot = fMap[i].slot;
+            rec.name = fMap[i].name;
+            rec.name.Replace(rec.name.Index("TQDC"), 4, "TQDC_ADC");
+            fMap.push_back(rec);
+        }
+    }
     for (BmnTrigMapping &record : fMap) {
         TString detName = record.name;
-        TString clsName = (detName.Contains("TQDC")) ? BmnTrigWaveDigit::Class_Name() : BmnTrigDigit::Class_Name();
+        TString clsName = detName.Contains("TQDC") ?
+                (detName.Contains("ADC") ?
+                BmnTrigWaveDigit::Class_Name() :
+                BmnTrigDigit::Class_Name()
+                ) :
+                BmnTrigDigit::Class_Name();
         TBranch* br = digiTree->GetBranch(detName.Data());
         if (!br) {
             TClonesArray *ar = new TClonesArray(clsName.Data());
@@ -86,19 +105,29 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
         BmnTrigMapping tM = fMap[iMap];
         Short_t iMod = tM.module;
         TClonesArray *trigAr = tM.branchRef;
-
-        Double_t time = 0;
-        for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
-            BmnTDCDigit* tdcDig = (BmnTDCDigit*) tdc->At(iTdc);
-            if (tdcDig->GetSerial() != tM.serial || tdcDig->GetSlot() != tM.slot) continue;
-            if (tdcDig->GetChannel() != tM.channel) continue;
-            time = tdcDig->GetValue() * 24.0 / 1024;
+        if (trigAr->GetClass() == BmnTrigDigit::Class()) {
+            for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
+                BmnTDCDigit* tdcDig = (BmnTDCDigit*) tdc->At(iTdc);
+                if (tdcDig->GetSerial() != tM.serial || tdcDig->GetSlot() != tM.slot) continue;
+                if (tdcDig->GetChannel() != tM.channel) continue;
+                Double_t time = tdcDig->GetValue() * 24.0 / 1024;
+                Double_t tdcTimestamp = tdcDig->GetTimestamp() * TDC_CLOCK;
+                new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigDigit(iMod, time, -1.0, tdcTimestamp);
+                //break;
+            }
+        } else {
             for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); iAdc++) {
                 BmnTQDCADCDigit *adcDig = (BmnTQDCADCDigit*) adc->At(iAdc);
-                if (adcDig->GetSerial() != tM.serial) continue;
+                if (adcDig->GetSerial() != tM.serial || adcDig->GetSlot() != tM.slot) continue;
                 if (adcDig->GetChannel() != tM.channel) continue;
-                new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigWaveDigit(iMod, time, -1.0, adcDig);
-                break;
+                Double_t adcTimestamp = adcDig->GetAdcTimestamp() * ADC_CLOCK_TQDC16VS;
+                Double_t trgTimestamp = adcDig->GetTrigTimestamp() * ADC_CLOCK_TQDC16VS;
+                new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigWaveDigit(
+                        adcDig->GetShortValue(),
+                        adcDig->GetNSamples(),
+                        trgTimestamp,
+                        adcTimestamp);
+                //break;
             }
         }
     }
@@ -110,7 +139,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
         BmnTrigMapping tM = fMap[iMap];
         Short_t iMod = tM.module;
         TClonesArray *trigAr = tM.branchRef;
-//        printf("tdc->GetEntriesFast() %d\n", tdc->GetEntriesFast());
+        //        printf("tdc->GetEntriesFast() %d\n", tdc->GetEntriesFast());
         for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
             BmnTDCDigit* tdcDig1 = (BmnTDCDigit*) tdc->At(iTdc);
             if (tdcDig1->GetSerial() != tM.serial || tdcDig1->GetSlot() != tM.slot) continue;
@@ -136,7 +165,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
             if (nearestDig != NULL) {
                 Double_t tL = (tdcDig1->GetValue() + fINLTable[rChannel1][tdcDig1->GetValue() % 1024]) * 24.0 / 1024;
                 Double_t tT = (nearestDig->GetValue() + fINLTable[rChannel1][nearestDig->GetValue() % 1024]) * 24.0 / 1024;
-//                printf("OK:   tT = %f    tL = %f\n", tT, tL);
+                //                printf("OK:   tT = %f    tL = %f\n", tT, tL);
                 new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigDigit(iMod, tL, tT - tL);
             }
         }

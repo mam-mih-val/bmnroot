@@ -18,29 +18,6 @@
 BmnHistMwpc::BmnHistMwpc(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
-    //    for (Int_t i = 0; i < MWPC_PLANES; ++i){
-    //        h_wires[i] = new TH1F(fTitle + "_" + Form("Plane_%d", i), Form("Plane_%d", i), MWPC_WIRES, 0, MWPC_WIRES);
-    //        h_wires[i]->SetTitleSize(0.06, "XY");
-    //        h_wires[i]->SetLabelSize(0.08, "XY");
-    //        h_wires[i]->GetXaxis()->SetTitle("Wire Number");
-    //        h_wires[i]->GetXaxis()->SetTitleColor(kOrange + 10);
-    //        h_wires[i]->GetXaxis()->SetTitleFont(62);
-    //        h_wires[i]->GetYaxis()->SetTitle("Activation Count");
-    //        h_wires[i]->GetYaxis()->SetTitleColor(kOrange + 10);
-    //        h_wires[i]->GetYaxis()->SetTitleOffset(1.8);
-    //        h_wires[i]->GetYaxis()->SetTitleFont(62);
-    //        h_times[i] = new TH1F(fTitle + "_" + Form("Plane_%d", i) + "_Time", TString(Form("Plane_%d", i)) + "_Time", 500, 0, 1000);
-    //        h_times[i]->SetTitleSize(0.06, "XY");
-    //        h_times[i]->SetLabelSize(0.08, "XY");
-    //        h_times[i]->GetXaxis()->SetTitle("Time");
-    //        h_times[i]->GetXaxis()->SetTitleColor(kOrange + 10);
-    //        h_times[i]->GetXaxis()->SetTitleFont(62);
-    //        h_times[i]->GetYaxis()->SetTitle("Activation Count");
-    //        h_times[i]->GetYaxis()->SetTitleColor(kOrange + 10);
-    //        h_times[i]->GetYaxis()->SetTitleOffset(1.8);
-    //        h_times[i]->GetYaxis()->SetTitleFont(62);
-    //    }
-
     TString name;
     for (Int_t iModule = 0; iModule < MWPC_MODS; iModule++) {
         vector<TH1F*> row;
@@ -70,6 +47,8 @@ BmnHistMwpc::BmnHistMwpc(TString title, TString path) : BmnHist() {
         h_times.push_back(rowTimes);
     }
     MwpcHits = new TClonesArray("BmnMwpcHit");
+    //for (Int_t iStation = 0; iStation < MWPC_STATIONS; iStation++) {
+    //name = Form(fTitle + "_h_MWPC%d", iStation);
     name = fTitle + "_h_MWPC0";
     h_MWPC0 = new TH2F(name, "MWPC #0", 200, -20, 20, 200, -20, 20);
     name = fTitle + "_h_MWPC1";

@@ -20,7 +20,7 @@
 class BmnTQDCADCDigit : public BmnADCDigit {
 public:
     BmnTQDCADCDigit();
-    BmnTQDCADCDigit(UInt_t iSerial, UInt_t iChannel, UInt_t n, Short_t *iValue, UShort_t TrigTS, UShort_t AdcTS);
+    BmnTQDCADCDigit(UInt_t iSerial, UInt_t iChannel, UChar_t iSlot, UInt_t n, Short_t *iValue, UShort_t TrigTS, UShort_t AdcTS);
     
     UShort_t GetTrigTimestamp() const {
         return fTrigTimestamp;
@@ -29,11 +29,15 @@ public:
     UShort_t GetAdcTimestamp() const {
         return fAdcTimestamp;
     }
+
+    UChar_t GetSlot() const {
+        return fSlot;
+    }
     virtual ~BmnTQDCADCDigit();
 protected:
     UShort_t fTrigTimestamp;
     UShort_t fAdcTimestamp;
-    
+    UChar_t fSlot;
 
     ClassDef(BmnTQDCADCDigit, 1);
 };

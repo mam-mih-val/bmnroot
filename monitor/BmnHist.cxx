@@ -47,9 +47,10 @@ void BmnHist::DrawRef(TCanvas *canGemStrip, vector<PadInfo*> *canGemStripPads) {
                 if (maxy < k)
                     maxy = k;
             }
-            info->current->GetYaxis()->SetRangeUser(0, maxy * 1.05);
+//            info->current->GetYaxis()->SetRangeUser(0, maxy * 1.1);
+            info->current->GetYaxis()->SetRange(0, maxy * 1.1);
         }
-        //        pad->Update();
+        pad->Update();
         pad->Modified();
     }
     canGemStrip->Update();

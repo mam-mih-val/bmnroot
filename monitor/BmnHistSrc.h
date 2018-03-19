@@ -16,10 +16,9 @@
 #include "THttpServer.h"
 
 #include "BmnHist.h"
-#include "BmnTDCDigit.h"
+#include "BmnTrigDigit.h"
 #include "BmnTrigWaveDigit.h"
 
-#define SRC_ROWS 13
 #define SRC_COLS  3
 
 using namespace std;

@@ -12,7 +12,7 @@ public:
     BmnTDCDigit();
 
     /** Constructor to use **/
-    BmnTDCDigit(UInt_t iSerial, UChar_t iType, UChar_t iSlot, Bool_t iLeading, UChar_t iChannel, UChar_t iHptdcId, UInt_t iValue);
+    BmnTDCDigit(UInt_t iSerial, UChar_t iType, UChar_t iSlot, Bool_t iLeading, UChar_t iChannel, UChar_t iHptdcId, UInt_t iValue, UShort_t iTimestamp = 0);
 
     UInt_t GetSerial() const {
         return fSerial;
@@ -42,6 +42,10 @@ public:
         return fHptdcId;
     }
 
+    UShort_t GetTimestamp() const {
+        return fTimestamp;
+    }
+
     /** Destructor **/
     virtual ~BmnTDCDigit();
 private:
@@ -52,6 +56,7 @@ private:
     UChar_t fChannel;
     UChar_t fHptdcId;
     UInt_t fValue;
+    UShort_t fTimestamp;
 
     ClassDef(BmnTDCDigit, 1);
 };

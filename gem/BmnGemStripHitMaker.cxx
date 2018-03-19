@@ -1,4 +1,5 @@
 #include <TChain.h>
+#include <zlib.h>
 #include "TSystem.h"
 
 #include "BmnGemStripHitMaker.h"
@@ -34,12 +35,12 @@ BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
     fIsExp = isExp;
-   
+
     fInputDigitMatchesBranchName = "BmnGemStripDigitMatch";
 
     fOutputHitsBranchName = "BmnGemStripHit";
     fOutputHitMatchesBranchName = "BmnGemStripHitMatch";
-    
+
     fBmnEvQualityBranchName = "BmnEventQuality";
 
     fVerbose = 1;
@@ -61,7 +62,7 @@ InitStatus BmnGemStripHitMaker::Init() {
     if (!fCurrentConfig) Fatal("BmnGemStripHitMaker::Init()", " !!! Current GEM config is not set !!! ");
 
     FairRootManager* ioman = FairRootManager::Instance();
-   
+
     fBmnGemStripDigitsArray = (TClonesArray*) ioman->GetObject(fInputDigitsBranchName);
     if (!fBmnGemStripDigitsArray) {
         cout << "BmnGemStripHitMaker::Init(): branch " << fInputDigitsBranchName << " not found! Task will be deactivated" << endl;
@@ -147,10 +148,27 @@ InitStatus BmnGemStripHitMaker::Init() {
     fField = FairRunAna::Instance()->GetField();
     if (!fField) Fatal("Init", "No Magnetic Field found");
 
+    // Initialize coefficients to be used when the Lorentz corrections calculating ...
+    if (fIsExp && Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
+        lorCorrsCoeff = new Double_t*[nStat];
+        UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", 6, fRunId);
+        LorentzShiftStructure* shifts;
+        Int_t element_count = 0;
+        coeffLorCorrs->GetLorentzShiftArray(shifts, element_count);
+        for (Int_t iEle = 0; iEle < nStat; iEle++) {
+            const Int_t nParams = 3; // Parabolic approximation is used
+            lorCorrsCoeff[iEle] = new Double_t[nParams];
+            for (Int_t iParam = 0; iParam < nParams; iParam++) {
+                lorCorrsCoeff[iEle][iParam] = shifts[iEle].ls[iParam];
+                // cout << lorCorrsCoeff[iEle][iParam] << endl;
+            }
+        }
+    }
+
     //--------------------------------------------------------------------------
 
     fBmnEvQuality = (TClonesArray*) ioman->GetObject(fBmnEvQualityBranchName);
-    
+
     if (fVerbose) cout << "BmnGemStripHitMaker::Init() finished\n";
 
     return kSUCCESS;
@@ -162,7 +180,7 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
         BmnEventQuality* evQual = (BmnEventQuality*) fBmnEvQuality->UncheckedAt(0);
         if (!evQual->GetIsGoodEvent())
             return;
-    } 
+    }
     fBmnGemStripHitsArray->Delete();
 
     if (fHitMatching && fBmnGemStripHitMatchesArray) {
@@ -170,13 +188,14 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
     }
 
     if (!IsActive() || fBmnGemStripDigitsArray->GetEntriesFast() > 400)
+        //   if (!IsActive() || fBmnGemStripDigitsArray->GetEntriesFast() > 700)
         return;
 
     if (fVerbose) cout << "\nBmnGemStripHitMaker::Exec()\n ";
     clock_t tStart = clock();
 
-    fField = FairRunAna::Instance()->GetField();   
-  
+    fField = FairRunAna::Instance()->GetField();
+
     if (fVerbose) cout << " BmnGemStripHitMaker::Exec(), Number of BmnGemStripDigits = " << fBmnGemStripDigitsArray->GetEntriesFast() << "\n";
 
     ProcessDigits();
@@ -320,6 +339,10 @@ void BmnGemStripHitMaker::Finish() {
         delete StationSet;
         StationSet = NULL;
     }
+
+    if (fIsExp && Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON)
+        delete [] lorCorrsCoeff;
+
     cout << "Work time of the GEM hit maker: " << workTime << endl;
 }
 

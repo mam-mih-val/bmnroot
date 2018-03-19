@@ -40,6 +40,7 @@
 #pragma link C++ struct GemMapStructure++;
 #pragma link C++ struct GemPedestalStructure++;
 #pragma link C++ struct TriggerMapStructure++;
+#pragma link C++ struct LorentzShiftStructure++;
 // the database enums
 #pragma link C++ struct enumColumns;
 #pragma link C++ struct enumConditions;

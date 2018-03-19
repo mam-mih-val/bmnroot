@@ -17,6 +17,11 @@
 #define HPTIMEBIN 0.02344
 #define INVHPTIMEBIN 42.6666
 #define KNBDCHANNELS 40
+#define ADC_CLOCK_TQDC16VS  8  // nano seconds
+#define ADC_CLOCK          12
+#define ADC_CLOCK_OLD    12.5
+#define TDC_CLOCK          24
+#define TDC_CLOCK_OLD      25
 
 using namespace std;
 using namespace TMath;

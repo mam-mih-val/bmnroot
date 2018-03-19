@@ -152,6 +152,7 @@ void BmnHistLAND::ClearRefRun() {
         if (pad->ref) delete pad->ref;
         pad->ref = NULL;
     }
+    refID = 0;
 }
 
 ClassImp(BmnHistLAND);

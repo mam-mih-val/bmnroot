@@ -14,15 +14,15 @@
 #ifndef BMNTRIGWAVEDIGIT_H
 #define BMNTRIGWAVEDIGIT_H
 
-#include "BmnTrigDigit.h"
+//#include "BmnTrigDigit.h"
 #include "BmnTQDCADCDigit.h"
 
 
-class BmnTrigWaveDigit: public BmnTrigDigit /*, public BmnADCSRCDigit */ {
+class BmnTrigWaveDigit: public TNamed {// BmnTrigDigit /*, public BmnADCSRCDigit */ {
 public:
     BmnTrigWaveDigit();
-    BmnTrigWaveDigit(BmnTrigDigit *trigDigit, BmnTQDCADCDigit *adcDigit);
-    BmnTrigWaveDigit(Short_t iMod, Double_t iTime, Double_t iAmp, BmnTQDCADCDigit *adcDigit);
+//    BmnTrigWaveDigit(/*BmnTrigDigit *trigDigit, */BmnTQDCADCDigit *adcDigit);
+    BmnTrigWaveDigit(Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp);
     
     UInt_t GetNSamples() const {
         return fNsmpl;
@@ -51,12 +51,20 @@ public:
             fValueI[i] = iValue[i];
     }
     
+    Double_t GetAdcTimestamp() const {
+        return fAdcTimestamp;
+    }
+    
+    Double_t GetTrigTimestamp() const {
+        return fTrigTimestamp;
+    }
+    
     virtual ~BmnTrigWaveDigit();
 protected:
     UInt_t fNsmpl;
     Short_t* fValueI; //[fNsmpl]
-    UShort_t fTrigTimestamp;
-    UShort_t fAdcTimestamp;
+    Double_t fTrigTimestamp;
+    Double_t fAdcTimestamp;
 
     ClassDef(BmnTrigWaveDigit, 1);
 };

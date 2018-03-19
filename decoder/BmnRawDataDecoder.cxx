@@ -796,6 +796,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
     UInt_t type = d[idx] >> 28; // good
     UShort_t trigTimestamp = 0;
     UShort_t adcTimestamp = 0;
+    UShort_t tdcTimestamp = 0;
     UInt_t iSampl = 0;
     UInt_t channel = 0;
     Short_t valI[ADC_SAMPLING_LIMIT];
@@ -812,7 +813,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 UInt_t rcdata = ((d[idx] >> 24) & 0x3) << 19; // fixed					
                 channel = (d[idx] >> 19) & 0x1F; // i think ok...
                 UInt_t time = 4 * (d[idx] & 0x7FFFF) + rcdata; // in 25 ps
-                new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time);
+                new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time, tdcTimestamp);
                 //                printf("TDC: type %d channel %d time %d \n", type, channel, time);
             } else if ((type == 4) && (mode == 2)) {
                 channel = (d[idx] >> 19) & 0x1F;
@@ -821,10 +822,11 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 inADC = kTRUE;
                 //                printf("ADC: channel %d trigTimestamp %d  adcTimestamp %d\n", channel, trigTimestamp, adcTimestamp);
             } else if ((type == 2) && (mode == 0)) {
-                UInt_t iEv = (d[idx] >> 12) & 0xC;
+                UInt_t iEv = (d[idx] >> 12) & 0x1FFF;
+                tdcTimestamp = d[idx] & 0xFFF;
                 //                printf("TDC ev header: %d\n", iEv);
             } else if ((type == 3) && (mode == 0)) {
-                UInt_t iEv = (d[idx] >> 12) & 0xC;
+                UInt_t iEv = (d[idx] >> 12) & 0x1FFF;
                 //                printf("TDC ev trailer: %d\n", iEv);
             }
         } else {
@@ -832,7 +834,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 Short_t val = (d[idx] & ((1 << 14) - 1)) - (1 << (14 - 1));
                 valI[iSampl++] = val;
             } else {
-                new((*tqdc_adc)[tqdc_adc->GetEntriesFast()]) BmnTQDCADCDigit(serial, channel, iSampl, valI, trigTimestamp, adcTimestamp);
+                new((*tqdc_adc)[tqdc_adc->GetEntriesFast()]) BmnTQDCADCDigit(serial, channel, slot, iSampl, valI, trigTimestamp, adcTimestamp);
                 inADC = kFALSE;
                 iSampl = 0;
             }

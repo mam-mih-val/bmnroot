@@ -26,7 +26,8 @@ using namespace TMath;
 BmnMwpcHitFinder::BmnMwpcHitFinder(Bool_t isExp) :
   fEventNo(0),
   fUseDigitsInTimeBin(kTRUE),
-  expData(isExp) {
+  expData(isExp), 
+  fBmnMwpcTracksArray(NULL) {
   fInputBranchName = "MWPC";
   // fOutputBranchName = "BmnMwpcHit";
   fOutputBranchName = "BmnMwpcTrack";
@@ -336,9 +337,11 @@ void BmnMwpcHitFinder::Exec(Option_t* opt) {
     PrepareArraysToProcessEvent();
     if (fVerbose) cout << "\n======================== MWPC hit finder exec started =====================\n" << endl;
     //if (fVerbose) 
-    cout << "Event number: " << fEventNo++ << endl; 
+    if (fVerbose) cout << "Event number: " << fEventNo++ << endl; 
     //  cout<<"NWires = "<<kNWires<<", NPlanes = "<<kNPlanes<<endl;
     
+    if (!fBmnMwpcTracksArray)
+        return;
     fBmnMwpcTracksArray->Clear();
 
     Short_t wn, pn, ts, pl;

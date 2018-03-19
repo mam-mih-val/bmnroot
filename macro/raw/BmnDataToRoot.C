@@ -35,6 +35,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     decoder->SetTrigINLFile("TRIG_INL_076D-16A8.txt");//INL only for TDC data 
     decoder->SetSiliconMapping("SILICON_map_run7.txt");
     decoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
+    decoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
     // in case comment out the line decoder->SetTof400Mapping("...")  
     // the maps of TOF400 will be read from DB (only for JINR network)
     decoder->SetTof400Mapping("TOF400_PlaceMap_RUN7.txt", "TOF400_StripMap_RUN7.txt");

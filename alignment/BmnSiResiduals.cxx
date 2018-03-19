@@ -85,9 +85,6 @@ void BmnSiResiduals::Residuals() {
         Int_t stat = hit->GetStation();
         Int_t mod = hit->GetModule();
 
-        cout << silIdx << " " << x << " " << y << " " << z << endl;
-        //getchar(); // FIXME
-
         Double_t xRes = 0., yRes = 0.;
         if (!isField) {
             xRes = x - (X0 + Tx * (z - Z0));

@@ -350,10 +350,10 @@ class UniDbDetectorParameter
 
     /// add new record - detector parameter value as GEM pedestal map Array
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                               GemPedestalStructure* parameter_value, int element_count);
+                                                           GemPedestalStructure* parameter_value, int element_count);
     /// add new record - detector parameter value as GEM pedestal map Array
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                               unsigned int dc_serial, int channel, GemPedestalStructure* parameter_value, int element_count);
+                                                           unsigned int dc_serial, int channel, GemPedestalStructure* parameter_value, int element_count);
     /// get GEM pedestal map Array for parameter
     int GetGemPedestalArray(GemPedestalStructure*& parameter_value, int& element_count);
     /// set GEM pedestal map Array for parameter
@@ -361,14 +361,25 @@ class UniDbDetectorParameter
 
     /// add new record - detector parameter value as Trigger mapping Array
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                               TriggerMapStructure* parameter_value, int element_count);
+                                                           TriggerMapStructure* parameter_value, int element_count);
     /// add new record - detector parameter value as Trigger mapping Array
     static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
-                                                               unsigned int dc_serial, int channel, TriggerMapStructure* parameter_value, int element_count);
+                                                           unsigned int dc_serial, int channel, TriggerMapStructure* parameter_value, int element_count);
     /// get Trigger mapping Array for parameter
     int GetTriggerMapArray(TriggerMapStructure*& parameter_value, int& element_count);
     /// set Trigger mapping Array for parameter
     int SetTriggerMapArray(TriggerMapStructure* parameter_value, int element_count);
+
+    /// add new record - detector parameter value as Lorents Shift Array
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                           LorentzShiftStructure* parameter_value, int element_count);
+    /// add new record - detector parameter value as Lorents Shift Array
+    static UniDbDetectorParameter* CreateDetectorParameter(TString detector_name, TString parameter_name, int start_period, int start_run, int end_period, int end_run,
+                                                           unsigned int dc_serial, int channel, LorentzShiftStructure* parameter_value, int element_count);
+    /// get Lorents Shift Array for parameter
+    int GetLorentzShiftArray(LorentzShiftStructure*& parameter_value, int& element_count);
+    /// set Lorents Shift Array for parameter
+    int SetLorentzShiftArray(LorentzShiftStructure* parameter_value, int element_count);
 
 	/// get parameters' values corresponding to the specified single condition
 	static TObjArray* Search(const UniDbSearchCondition& search_condition);

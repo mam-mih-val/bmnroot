@@ -78,7 +78,7 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetBmnSetup(fBmnSetup);
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
     rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN7.txt", "TOF400_StripMap_RUN7.txt");
-    rawDataDecoder->SetTof700Mapping("TOF700_map_period_6.txt");
+    rawDataDecoder->SetTof700Mapping("TOF700_map_period_7.txt");
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetECALMapping("ECAL_map_period_7.txt");

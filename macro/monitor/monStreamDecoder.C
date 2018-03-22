@@ -10,7 +10,7 @@ void monStreamDecoder() {
     
     BmnOnlineDecoder *deco = new BmnOnlineDecoder();
     deco->SetPeriodID(7);
-    deco->SetBmnSetup(kSRCSETUP);
+    deco->SetBmnSetup(kBMNSETUP);
 //    deco->OpenStream();
     deco->ProcessStream();
 //    deco->CloseStream();

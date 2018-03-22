@@ -143,6 +143,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
         for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
             BmnTDCDigit* tdcDig1 = (BmnTDCDigit*) tdc->At(iTdc);
             if (tdcDig1->GetSerial() != tM.serial || tdcDig1->GetSlot() != tM.slot) continue;
+            printf("tdcDig1->GetSerial() 0x%X\n",tdcDig1->GetSerial());
             if (!tdcDig1->GetLeading()) continue; // use only leading digits
             UShort_t rChannel1 = tdcDig1->GetHptdcId() * kNCHANNELS + tdcDig1->GetChannel();
             if (rChannel1 != tM.channel) continue;

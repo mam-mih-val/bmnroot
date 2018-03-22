@@ -6,7 +6,7 @@ void BatchDirectory(TString dirName = "/bmn/run/current/") {
     bmnloadlibs();
     gSystem->Load("libBmnMonitor");
     BmnOnlineDecoder *bm = new BmnOnlineDecoder();
-    bm->SetBmnSetup(kSRCSETUP);
+    bm->SetBmnSetup(kBMNSETUP);
     bm->SetPeriodID(7);
     bm->BatchDirectory(dirName);  
     delete bm;

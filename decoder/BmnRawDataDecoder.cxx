@@ -518,6 +518,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         }
         idx += payload;
     }
+    //printf("eventHeaderDAQ->GetEntriesFast() %d  eventID %d\n", eventHeaderDAQ->GetEntriesFast(), fEventId);
     new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TDatime(Int_t(TTimeStamp(time_t(fTime_s), fTime_ns).GetDate(kFALSE)), Int_t(TTimeStamp(time_t(fTime_s), fTime_ns).GetTime(kFALSE))), evType, trigType, kFALSE);
 }
 
@@ -616,6 +617,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
     for (UInt_t i = 0; i < len; i++) {
         type = d[i] >> 28;
         //        printf("type %x\n", type);
+        //printf("modid 0x%X  serial 0x%X\n", modId, serial);
         switch (type) {
             case kEVHEADER:
             case kEVTRAILER:
@@ -627,7 +629,6 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                 break;
             case kMODHEADER:
                 modId = (d[i] >> 16) & 0x7F;
-                //                printf("modid %x\n", modId);
                 slot = (d[i] >> 23) & 0x1F;
                 break;
             default: //data

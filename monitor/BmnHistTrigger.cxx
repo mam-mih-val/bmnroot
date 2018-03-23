@@ -67,7 +67,7 @@ void BmnHistTrigger::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     histBDTimeByChannel->GetXaxis()->SetTitle("Channel #");
     histBDTimeByChannel->GetYaxis()->SetTitle("Time, ns");
     name = fTitle + "_BD_Simultaneous";
-    histBDSimult = new TH1I(name, name, 10, 1, 10);
+    histBDSimult = new TH1I(name, name, 20, 1, 20 + 1);
     histBDSimult->GetXaxis()->SetTitle("Channels #");
     histBDSimult->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_Si_Channels";
@@ -79,7 +79,7 @@ void BmnHistTrigger::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     histSiTimeByChannel->GetXaxis()->SetTitle("Channel #");
     histSiTimeByChannel->GetYaxis()->SetTitle("Time, ns");
     name = fTitle + "_Si_Simultaneous";
-    histSiSimult = new TH1I(name, name, 10, 1, 10);
+    histSiSimult = new TH1I(name, name, 20, 1, 20 + 1);
     histSiSimult->GetXaxis()->SetTitle("Channels #");
     histSiSimult->GetYaxis()->SetTitle("Activation Count");
     name = fTitle + "_BD-Si_Correlation";
@@ -114,7 +114,7 @@ void BmnHistTrigger::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     canTimesPads[3]->opt = "col";
     for (Int_t iPad = 0; iPad < rows4Spectrum * fCols; iPad++) {
         PadInfo* p = new PadInfo();
-        p->opt = "colz";
+        p->opt = "colz logz";
         can2dPads[iPad] = p;
         can2d->GetPad(iPad + 1)->SetGrid();
     }
@@ -202,7 +202,7 @@ void BmnHistTrigger::FillFromDigi(DigiArrays *fDigiArrays) {
         }
         if (bdCount) histBDSimult->Fill(bdCount);
         if (SiCount) histSiSimult->Fill(SiCount);
-        if (bdCount * SiCount) 
+        if (bdCount || SiCount) 
             histCorr->Fill(SiCount, bdCount);
     }
 }

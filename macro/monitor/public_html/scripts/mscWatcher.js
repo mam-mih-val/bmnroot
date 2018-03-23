@@ -5,8 +5,8 @@ var jsroot = require("jsroot");
 
 const hostname = '127.0.0.1';
 const port = 3000;
-
 const unTime = 8; //time per histogram step unit, ns
+const colorMapCh = [2, 3, 4, 5, 6, 7, 46, 1, 0];
 
 var net = require('net');
 var dataHost = '10.18.11.32';//'bmn-msc1.he.jinr.ru';//'10.18.10.26';//'10.18.11.32';
@@ -99,10 +99,9 @@ function doParse() {
                 t = 0;
                 stepH = obj.DAQ.histogramStep; // obtain value of histogram step
                 //htext = makeHist(obj);
-                if (hists.length >= 4)
-                    for (var i = 0; i < 4; i++) {
+                if (hists.length >= 8)
+                    for (var i = 0; i < 8; i++) {
                         hists[i].fArray = obj.DAQ.histPlot['channel ' + (i).toString()];  // now channels in JSON are counted from 0
-                        //hists[i].fArray['200'] = 1000;
                         hists[i].fArray.push(0);
                         //hists[i].fArray.unshift(0);
 
@@ -126,7 +125,7 @@ function doParse() {
 var hists = [];
 
 for (var i = 0; i < 8; i++){
-    var hist = jsroot.CreateHistogram('TH1I', (nbinsX * stepH * unTime)); // numder of bins or maximal value of X?
+    var hist = jsroot.CreateHistogram('T1HI', (nbinsX * stepH * unTime)); // numder of bins or maximal value of X?
     //his.
     var named = ' ';
     if(i == 0) named = 'BC1';

@@ -10,6 +10,7 @@
 #include <TNamed.h>
 #include <exception>
 #include <stdlib.h>
+#include <algorithm> 
 #include <vector>
 #include "TChain.h"
 #include "TClonesArray.h"
@@ -24,10 +25,11 @@
 #include "BmnHist.h"
 #include "BmnTrigDigit.h"
 #include "BmnEventHeader.h"
-#define BD_CHANNELS 40
-#define SI_CHANNELS 64
-#define TRIG_ROWS    3
-#define TRIG_COLS    3
+#define TRIG_TIME_WIN 6000
+#define BD_CHANNELS     40
+#define SI_CHANNELS     64
+#define TRIG_ROWS        3
+#define TRIG_COLS        3
 
 class BmnHistTrigger : public BmnHist {
 public:
@@ -72,6 +74,7 @@ private:
     TH1I *histSiChannels;
     TH1I *histSiSimult;
     TH1I *histSiCircular;
+    TH2I *histCorr;
     TCanvas *can2d;
     TCanvas *canProfile;
     TCanvas *canTimes;

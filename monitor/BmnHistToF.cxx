@@ -117,16 +117,16 @@ void BmnHistToF::FillFromDigi(DigiArrays *fDigiArrays) {
             histL->Fill(strip);
         else
             histR->Fill(strip);
-//        if (
-//                ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0)) &&
-//                ((td->GetStrip() == fSelectedStrip) || (fSelectedStrip < 0)) &&
-//                ((td->GetSide() == fSelectedSide) || (fSelectedSide < 0))) {
-//            histAmpSpecific->Fill(td->GetAmplitude());
-//            histLeadingTimeSpecific->Fill(td->GetTime());
-//        }
+        if (
+                ((td->GetPlane() == fSelectedPlane) || (fSelectedPlane < 0)) &&
+                ((td->GetStrip() == fSelectedStrip) || (fSelectedStrip < 0)) &&
+                ((td->GetSide() == fSelectedSide) || (fSelectedSide < 0))) {
+            histAmpSpecific->Fill(td->GetAmplitude());
+            histLeadingTimeSpecific->Fill(td->GetTime());
+        }
 
-        new ((*Events)[Events->GetEntriesFast()])
-                BmnTof1Digit(td->GetPlane(), td->GetStrip(), td->GetSide(), td->GetTime(), td->GetAmplitude());
+//        new ((*Events)[Events->GetEntriesFast()])
+//                BmnTof1Digit(td->GetPlane(), td->GetStrip(), td->GetSide(), td->GetTime(), td->GetAmplitude());
         //        frecoTree->Fill();
     }
     //histSimultaneous = (*histL) * (*histR);

@@ -1315,7 +1315,7 @@ void BmnTof2Raw2DigitNew::readSlewingT0()
   } // loop on chambers
   if (good == 0)
   {
-    printf("No T0 slewing parameters files! Exit!\n");
+    printf("No T0 slewing parameters files! Use TOF700 digits raw time!\n");
   }
 }
 
@@ -1369,7 +1369,7 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
 	float W = (W1+W2)/2.;
 //	printf("Plane %d Strip %d Lead %f Width %f\n", mapa[ind].plane, mapa[ind].strip, L, W);
 	if (L >= LeadMin[mapa[ind].plane] && L < LeadMax[mapa[ind].plane])
-	if ((int)W1 < Wc && (int)W2 < Wc && (tmean[0][ind] != 0.))
+	if ((int)W1 < Wc && (int)W2 < Wc && ((tmean[0][ind] != 0.)||!EQUAL_AVERAGE_T0))
 	{
 //            if (mapa[ind].plane == 0) printf(" peak 1 l1 %f W %f\n",L,W);
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
@@ -1378,7 +1378,7 @@ void BmnTof2Raw2DigitNew::fillSlewing(TClonesArray *data, map<UInt_t,Long64_t> *
 //            if (mapa[ind].plane == 0) printf(" peak 1 l3 %f\n",L);
 	    TvsW[mapa[ind].plane][0]->Fill(W, L);
 	}
-	else if (W1 >= Wc && W2 >= Wc && W1 < Wm && W2 < Wm && (tmean[1][ind] != 0.))
+	else if (W1 >= Wc && W2 >= Wc && W1 < Wm && W2 < Wm && ((tmean[1][ind] != 0.)||!EQUAL_AVERAGE_T0))
 	{
 //            if (mapa[ind].plane == 0) printf(" peak 2 l1 %f W %f\n",L,W);
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
@@ -1621,7 +1621,7 @@ void BmnTof2Raw2DigitNew::readSlewing()
   } // loop on chambers
   if (good == 0)
   {
-    printf("No RPC slewing parameters files! Exit!\n");
+    printf("No RPC slewing parameters files! Use TOF700 digits raw time!\n");
   }
 }
 
@@ -1664,7 +1664,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
        int ind1 = mapa[ind].pair;
        if (ind1 < 0) continue;
        if(lead[ind1]==0 || trail[ind1]==0) continue;
-       if (tmeane[ind] == 0.) continue;
+//       if (tmeane[ind] == 0.) continue;
        if(lead[ind]!=0 && trail[ind]!=0){
 //    printf("Ok!\n");
 	Wc = Wcut;
@@ -1679,7 +1679,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
 //test!!!!
 //	if (L < LeadMin[mapa[ind].plane] || L >= LeadMax[mapa[ind].plane]) continue;
 //
-	if ((int)W1 < Wc && (int)W2 < Wc && (tmean[0][ind] != 0.))
+	if ((int)W1 < Wc && (int)W2 < Wc && ((tmean[0][ind] != 0.)||!EQUAL_AVERAGE))
 	{
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
 	    TvsWt0[mapa[ind].plane][0]->Fill(t0width*INVHPTIMEBIN, L);
@@ -1687,7 +1687,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
     	    L -= slewing_correction(mapa[ind].plane, W, 0);
 	    TvsW[mapa[ind].plane][0]->Fill(W, L);
 	}
-	else if (W1 >= Wc && W2 >= Wc && (tmean[1][ind] != 0.))
+	else if (W1 >= Wc && W2 >= Wc && ((tmean[1][ind] != 0.)||!EQUAL_AVERAGE))
 	{
     	    L -= slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
 	    TvsWt0[mapa[ind].plane][1]->Fill(t0width*INVHPTIMEBIN, L);
@@ -1695,7 +1695,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
     	    L -= slewing_correction(mapa[ind].plane, W, 1);
 	    TvsW[mapa[ind].plane][1]->Fill(W, L);
         }
-	else if (W1 >= Wc && W2 < Wc && (tmean[0][ind] != 0.) && (tmean[1][ind] != 0.))
+	else if (W1 >= Wc && W2 < Wc && (((tmean[0][ind] != 0.) && (tmean[1][ind] != 0.))||!EQUAL_AVERAGE))
 	{
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);
@@ -1703,7 +1703,7 @@ void BmnTof2Raw2DigitNew::fillEvent(TClonesArray *data, map<UInt_t,Long64_t> *ts
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W2, 0);
     	    L -= 0.5*slewing_correction(mapa[ind].plane, W1, 1);
 	}
-	else if (W1 < Wc && W2 > Wc && (tmean[0][ind] != 0.) && (tmean[1][ind] != 0.))
+	else if (W1 < Wc && W2 > Wc && (((tmean[0][ind] != 0.) && (tmean[1][ind] != 0.))||!EQUAL_AVERAGE))
 	{
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 0);
     	    L -= 0.5*slewingt0_correction(mapa[ind].plane, t0width*INVHPTIMEBIN, 1);

@@ -180,11 +180,12 @@ void BmnTofHitProducer::Exec(Option_t* opt)
   
 			trackID = pPoint->GetTrackID();	
 			UID	= pPoint->GetDetectorID();
-			Double_t time = pRandom->Gaus(pPoint->GetTime(), 0.100); // 100 ps		
+			Double_t time = pRandom->Gaus(pPoint->GetTime(), 0.140); // 100 ps		
 			Double_t length = pRandom->Gaus(pPoint->GetLength(), 1.); // 1 cm		
 			pPoint->Position(pos);
 			pPoint->Momentum(mom);
 			Double_t p = mom.Mag();
+			p = p*(1.+pRandom->Gaus(0.04*p));
 			Double_t cvel = 29.97925;
 			Double_t ct = cvel*time;
 			Double_t ctl = ct/length;
@@ -222,7 +223,7 @@ void BmnTofHitProducer::Exec(Option_t* opt)
 		
 			if(fDoTest) effTestEfficiencySingleHit->Fill(passed, distance);
         	
-        		if(passed = DoubleHitExist(distance)) // check cross hit
+        		if((passed = DoubleHitExist(distance))) // check cross hit
         		{
         			Int_t CrossUID = (side == LStrip::kUpper) ? pStrip->neighboring[LStrip::kUpper] : pStrip->neighboring[LStrip::kLower];
   			

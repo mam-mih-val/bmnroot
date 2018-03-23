@@ -187,11 +187,13 @@ const LStrip* BmnTofGeoUtils::FindStrip(Int_t UID, TVector3& p)
 {
 	Int_t uid = UID;
 	Int_t i = (UID>>8) - 1;
+	uid = UID & 0xFF00;
       	for ( int j = 0; j < nstrips[i]; j++ )		// strips
 	{
-	    if ((p.X() < (xmins[i][j]-0.05)) || (p.X() > (xmaxs[i][j]+0.05))) continue;
-	    if ((p.Y() < (ymins[i][j]-0.05)) || (p.Y() > (ymaxs[i][j]+0.05))) continue;
+	    if ((p.X() < (xmins[i][j]-0.05)) || (p.X() >= (xmaxs[i][j]+0.05))) continue;
+	    if ((p.Y() < (ymins[i][j]-0.05)) || (p.Y() >= (ymaxs[i][j]+0.05))) continue;
 	    uid |= (j+1);
+	    if (UID != uid) printf("UID 0x%0x uid 0x%0x\n", UID, uid);
 	    return FindStrip(uid);
 	}
 	printf("Point XYZ %f %f %f\n", p.X(), p.Y(), p.Z());

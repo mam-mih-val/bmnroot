@@ -1709,7 +1709,7 @@ BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {
     for (auto ar : *trigArr) {
         BmnTrigDigit* dig = (BmnTrigDigit*) ar->At(0);
         if (fPeriodId > 6) {
-            if (!strcmp(ar->GetName(), "BC2") && ar->GetEntriesFast()) {
+            if (!strcmp(ar->GetName(), "BC2") && ar->GetEntriesFast() && (dig->GetMod() == 0)) {
                 t0time = dig->GetTime();
                 t0width = dig->GetAmp();
 //		printf(" t0 %f t0w %f n %d\n", t0time, t0width, ar->GetEntriesFast());

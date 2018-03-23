@@ -26,6 +26,7 @@
 #include "BmnTrigDigit.h"
 #include "BmnEventHeader.h"
 #define TRIG_TIME_WIN 6000
+#define TRIG_MULTIPL    40
 #define BD_CHANNELS     40
 #define SI_CHANNELS     64
 #define TRIG_ROWS        3
@@ -74,6 +75,7 @@ private:
     TH1I *histSiChannels;
     TH1I *histSiSimult;
     TH1I *histSiCircular;
+    TH1I *histSiBSum;
     TH2I *histCorr;
     TCanvas *can2d;
     TCanvas *canProfile;

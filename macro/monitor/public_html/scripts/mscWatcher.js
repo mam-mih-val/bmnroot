@@ -6,11 +6,14 @@ var jsroot = require("jsroot");
 const hostname = '127.0.0.1';
 const port = 3000;
 
+const unTime = 8; //time per histogram step unit, ns
+
 var net = require('net');
 var dataHost = '10.18.11.32';//'bmn-msc1.he.jinr.ru';//'10.18.10.26';//'10.18.11.32';
 var dataPort = 33306;
 var strBuf = '';
 var nbinsX = 8192;
+var stepH = 1; // defaul histogram step value in units 
 var t = 0;
 var runs = 0;
 //var d3 = require('d3');
@@ -77,35 +80,43 @@ function getData() {
     //timeoutData = setInterval(getData, 10000);
 }
 
+//var chLst = [0, 2, 4, 5];
+
 function doParse() {
     var time = new Date().getTime();
-    while (strQue.length > 0) {
-        var chunk = strQue.shift();
-        strBuf += chunk;
-        var str = chunk.toString();
-        //console.log('   last ' + str[str.length - 1])
-        //var regex = '([^\\n]+)\\n(.*)';
-        if (str[str.length - 1] == '\n') {
-            //console.log(strBuf);
-            var obj = JSON.parse(strBuf);
-            strBuf = '';
-            str = null;
-            t = 0;
-            //htext = makeHist(obj);
-            if (hists.length >= 4)
-            for (var i = 0; i < 4; i++) {
-                hists[i].fArray = obj.DAQ.histPlot['channel ' + (i + 1).toString()];
-                //hists[i].fArray['200'] = 1000;
-                hists[i].fArray.push(0);
-                //hists[i].fArray.unshift(0);
+    try {
+        while (strQue.length > 0) {
+            var chunk = strQue.shift();
+            strBuf += chunk;
+            var str = chunk.toString();
+            //console.log('   last ' + str[str.length - 1])
+            //var regex = '([^\\n]+)\\n(.*)';
+            if (str[str.length - 1] == '\n') {
+                //console.log(strBuf);
+                var obj = JSON.parse(strBuf);
+                strBuf = '';
+                str = null;
+                t = 0;
+                stepH = obj.DAQ.histogramStep; // obtain value of histogram step
+                //htext = makeHist(obj);
+                if (hists.length >= 4)
+                    for (var i = 0; i < 4; i++) {
+                        hists[i].fArray = obj.DAQ.histPlot['channel ' + (i).toString()];  // now channels in JSON are counted from 0
+                        //hists[i].fArray['200'] = 1000;
+                        hists[i].fArray.push(0);
+                        //hists[i].fArray.unshift(0);
 
-                //console.log(hist.fArray);
+                        //console.log(hist.fArray);
+                    }
+                //console.log(obj);
+                //console.log('parsed ' + obj.DAQ.histPlot.histogramStep)
+                //console.log('parsed ' + obj.DAQ.histPlot["channel 1"])
+                break;
             }
-            //console.log(obj);
-            //console.log('parsed ' + obj.DAQ.histPlot.histogramStep)
-            //console.log('parsed ' + obj.DAQ.histPlot["channel 1"])
-            break;
         }
+    }
+    catch (er){
+        console.log("Catched error "+ er);
     }
     time = new Date().getTime() - time;
     //console.log('time spent = ', time);
@@ -113,25 +124,36 @@ function doParse() {
 }
 
 var hists = [];
-for (var i = 0; i < 4; i++){
-    var hist = jsroot.CreateHistogram('TH1I', nbinsX);
+
+for (var i = 0; i < 8; i++){
+    var hist = jsroot.CreateHistogram('TH1I', (nbinsX * stepH * unTime)); // numder of bins or maximal value of X?
     //his.
-    hist.fName = 'Channel '+ (i+1);
+    var named = ' ';
+    if(i == 0) named = 'BC1';
+    if(i == 2) named = 'SCR Trigger';
+    if(i == 4) named = 'Trigger Busy';
+    if(i == 5) named = 'Interaction Trigger';
+
+    hist.fName = 'Channel '+ i + ':   ' + named;
     hist.fTitle = hist.fName;
     hist.fEntries = 8193;
-    hist.fXaxis.fTitle = 'Time';
+    hist.fXaxis.fTitle = 'Time between hits, ns';
     hist.fXaxis.fTitleColor = 810;
     hist.fXaxis.fLabelSize = 0.04;
     hist.fXaxis.fTitleSize = 0.06;
-    hist.fYaxis.fTitleOffset = 0.1;
+    hist.fXaxis.fTitleOffset = 0.8;
     hist.fXaxis.fLineColor = 602;
     hist.fXaxis.fFillStyle = 1001;
+    hist.fXaxis.fXmin = (stepH * unTime);          
+    hist.fXaxis.fXmax = (nbinsX * stepH * unTime);
+    hist.fXaxis.fNbins = 8192;
 
-    hist.fYaxis.fTitle = 'Amplitude';
+
+    hist.fYaxis.fTitle = 'Count';
     hist.fYaxis.fLabelOffset = 0.005;
     hist.fYaxis.fLabelSize = 0.04;
     hist.fYaxis.fTickLength = 0.03;
-    hist.fYaxis.fTitleOffset = 0.3;
+    hist.fYaxis.fTitleOffset = 0.4;
     hist.fYaxis.fTitleSize = 0.06;
     hist.fYaxis.fTitleColor = 810;
     //hist.fYaxis.fTitleFont" : 42,

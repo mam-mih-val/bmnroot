@@ -13,7 +13,10 @@ source $BMNROOT/build/config.sh
 while true; 
 
 do
-/opt/fairsoft/install/bin/root.exe -b -q $BMNROOT/macro/monitor/monitor.C
-sleep 10
+cd "${BMNROOT}/macro/monitor/"
+/opt/fairsoft/install/bin/root.exe -b -q 'monitor.C( 7, "/bmn/test/mon/", "/bmn/test/mon/", "bmn-mon-3", 9001)'
+sleep 5
+/opt/fairsoft/install/bin/root.exe -b -q 'monitor.C( 7, "/bmn/test/mon/", "/bmn/test/mon/", "bmn-mon-3", 9000)'
+sleep 5
 
 done

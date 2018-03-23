@@ -43,7 +43,6 @@ BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
         //        regex re(".*mpd_run_.*_(\\d+).data");
         //        string idstr = regex_replace(fRawFileName.Data(), re, "$1");
         //        runID = atoi(idstr.c_str());
-        //        runID = 1234; // @TODO remove
         if (runID < 0) {
             printf("!!! Error Could not detect runID\n");
             return kBMNERROR;
@@ -73,13 +72,13 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     setup[5] = 1; // TOF-700
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
-    setup[8] = 0; // ECAL
+    setup[8] = 1; // ECAL
     setup[9] = 1; // LAND
     rawDataDecoder->SetDetectorSetup(setup);
     rawDataDecoder->SetBmnSetup(fBmnSetup);
     rawDataDecoder->SetTrigINLFile("TRIG_INL.txt");
     rawDataDecoder->SetTof400Mapping("TOF400_PlaceMap_RUN7.txt", "TOF400_StripMap_RUN7.txt");
-    rawDataDecoder->SetTof700Mapping("TOF700_map_period_6.txt");
+    rawDataDecoder->SetTof700Mapping("TOF700_map_period_7.txt");
     rawDataDecoder->SetZDCMapping("ZDC_map_period_5.txt");
     rawDataDecoder->SetZDCCalibration("zdc_muon_calibration.txt");
     rawDataDecoder->SetECALMapping("ECAL_map_period_7.txt");
@@ -240,15 +239,23 @@ void BmnOnlineDecoder::ProcessStream() {
     Int_t sendRes = 0;
     TBufferFile t(TBuffer::kWrite);
     UInt_t syncCounter = 0;
-    //isListening = kTRUE;
-    while (/*(isListening) &&*/ (msg_len < MAX_BUF_LEN)) {
+    Bool_t isListening = kTRUE;
+    while ((isListening) && (msg_len < MAX_BUF_LEN)) {
         conID_size = zmq_recv(_socket_data, &conID, sizeof (conID), 0);
         if (conID_size == -1) {
-            printf("Receive error #%s\n", zmq_strerror(errno));
-            if (errno == EAGAIN)
-                usleep(MSG_TIMEOUT);
-            else
-                break;
+            printf("Receive error #%d : %s\n", errno, zmq_strerror(errno));
+            switch (errno) {
+                case EAGAIN:
+                    usleep(MSG_TIMEOUT);
+                    break;
+                case EINTR:
+                    isListening = kFALSE;
+                    printf("Exit!\n");
+                    continue;
+                    break;
+                default:
+                    break;
+            }
         } else {
             //            printf("ID size =  %d\n Id:%x\n", conID_size, conID);
         }
@@ -262,10 +269,18 @@ void BmnOnlineDecoder::ProcessStream() {
             //frame_size = zmq_recv(_socket_data, buf, MAX_BUF_LEN, 0);
             if (frame_size == -1) {
                 printf("Receive error № %d #%s\n", errno, zmq_strerror(errno));
-                if (errno == EAGAIN)
-                    usleep(MSG_TIMEOUT);
-                else
-                    break;
+                switch (errno) {
+                    case EAGAIN:
+                        usleep(MSG_TIMEOUT);
+                        break;
+                    case EINTR:
+                        isListening = kFALSE;
+                        printf("Exit!\n");
+                        continue;
+                        break;
+                    default:
+                        break;
+                }
             } else {
                 //                UChar_t *str = (UChar_t*) malloc((frame_size + 1) * sizeof (UChar_t));
                 //                msgPtr = (UInt_t*) zmq_msg_data(&msg);
@@ -321,7 +336,7 @@ void BmnOnlineDecoder::ProcessStream() {
                             runlen = *(++word);
                             runID = *(++word);
                             printf("runID = %d\n", runID);
-                            if (fRunID != runID) {
+                            if (fRunID < runID) {
                                 fRunID = runID;
                                 if (rawDataDecoder) {
                                     rawDataDecoder->DisposeDecoder();
@@ -355,6 +370,7 @@ void BmnOnlineDecoder::ProcessStream() {
                             printf("RunNumberSync\n");
                             runlen = *(++word);
                             runID = *(++word);
+                            fRunID = runID;
                             printf("runID = %d, runlen = %d\n", runID, runlen);
                             if (rawDataDecoder) {
                                 rawDataDecoder->DisposeDecoder();
@@ -390,6 +406,7 @@ void BmnOnlineDecoder::ProcessStream() {
                                 evExit = kTRUE;
                                 break;
                             }
+                        rawDataDecoder->SetRunId(fRunID);
                         //                    printf("captured enough\n");
                         //                    UInt_t *p = &buf[++i];
                         //                        i++;

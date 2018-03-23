@@ -6,19 +6,12 @@
  */
 
 #include "MpdMCPointDraw.h"
-#include "FairMCPoint.h"
 #include "MpdEventManager.h"
-#include "MpdEventManagerEditor.h"
+
+#include "FairMCPoint.h"
 
 #include "TEveManager.h"
 
-MpdMCPointDraw::MpdMCPointDraw()
-{
-}
-
-MpdMCPointDraw::~MpdMCPointDraw()
-{
-}
 
 TVector3 MpdMCPointDraw::GetVector(TObject* obj)
 {

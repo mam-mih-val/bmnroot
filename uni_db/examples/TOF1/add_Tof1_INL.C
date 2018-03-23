@@ -12,7 +12,7 @@
 using namespace std;
 //add_Tof1_INL(the .ini filename, start period, start run, end period, end run)
 
-void add_Tof1_INL(TString ListOfINLFiles, int sP = 6, int sR = 1, int eP = 6, int eR = 10000)
+void add_Tof1_INL(TString ListOfINLFiles = "ListINLFiles.txt", int sP = 7, int sR = 1, int eP = 7, int eR = 10000)
 {
     gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
@@ -30,6 +30,7 @@ void add_Tof1_INL(TString ListOfINLFiles, int sP = 6, int sR = 1, int eP = 6, in
     Int_t counter = 0;
     TString dir = Form("%s%s", getenv("VMCWORKDIR"), "/input/");
     Double_t INL[100][CHANNEL_NUMBER][BIN_NUMBER];
+    cout << "Location for INL file is " << dir.Data() << endl << endl;
 
     while (!fList.eof())
     {
@@ -94,14 +95,14 @@ void add_Tof1_INL(TString ListOfINLFiles, int sP = 6, int sR = 1, int eP = 6, in
             lines_num++;
         }
         fINL.close();
-        cout << endl;
         if (lines_num != CHANNEL_NUMBER) cerr << "Wrong number of lines in the file (" << lines_num << ")" << endl;
+        cout << endl;
         counter++;
     }
     fList.close();
     // For convert file
     {
-        fstream fINL_out("TRIG_INL_076D-180A.txt", std::fstream::out);
+        fstream fINL_out("TRIG_INL_076D-16A8.txt", std::fstream::out);
         for (Int_t ii = 0; ii < 72; ii++)
         {
             for (Int_t jj = 0; jj < 72; jj++)

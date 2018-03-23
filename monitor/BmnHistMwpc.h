@@ -40,7 +40,7 @@
 
 class BmnHistMwpc : public BmnHist {
 public:
-    BmnHistMwpc(TString title = "MWPC");
+    BmnHistMwpc(TString title, TString path = "");
     virtual ~BmnHistMwpc();
     void Reset();
     void Register(THttpServer *serv);
@@ -57,6 +57,7 @@ private:
 //    TH1F * h_times[MWPC_PLANES];
     vector<vector<TH1F* > > h_wires;
     vector<vector<TH1F* > > h_times;
+    vector < TH2F* > h_2d;
     TClonesArray* MwpcHits;
     TH2F* h_MWPC0;
     TH2F* h_MWPC1;
@@ -64,8 +65,10 @@ private:
     TH2F* h_MWPC3;
     TCanvas *canWires;
     TCanvas *canTimes;
+    TCanvas *can2d;
     vector<PadInfo*> canWiresPads;
     vector<PadInfo*> canTimesPads;
+    vector<PadInfo*> can2dPads;
 
     ClassDef(BmnHistMwpc, 1)
 };

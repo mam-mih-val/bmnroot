@@ -39,7 +39,7 @@
 
 class BmnHistToF : public BmnHist {
 public:
-    BmnHistToF(TString title = "ToF");
+    BmnHistToF(TString title, TString path = "");
     virtual ~BmnHistToF();
     
     void Register(THttpServer *serv);

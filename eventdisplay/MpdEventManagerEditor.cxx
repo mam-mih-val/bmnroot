@@ -62,7 +62,7 @@ void MpdEventManagerEditor::Init()
     TFile* pChainFile = chain->GetFile();
     if (pChainFile == NULL)
     {
-        InSource = "Data Stream is used";
+        InSource = "Data Stream";
         isStreamSource = true;
     }
     else
@@ -236,17 +236,11 @@ void MpdEventManagerEditor::Init()
         return;
     }
 
-    // read first event in offline mode
+    // read first event in Offline mode
     if (!fEventManager->isOnline) fEventManager->GotoEvent(0);
 
     // update tab controls
     Update();
-}
-
-//______________________________________________________________________________
-void MpdEventManagerEditor::SetModel(TObject* obj)
-{
-    fObject = obj;
 }
 
 // set flag: show all particles or only primary
@@ -267,13 +261,13 @@ void MpdEventManagerEditor::SelectPDG()
 //______________________________________________________________________________
 void MpdEventManagerEditor::MinEnergy()
 {
-  fEventManager->SetMinEnergy(fMinEnergy->GetValue());
+    fEventManager->SetMinEnergy(fMinEnergy->GetValue());
 }
 
 //______________________________________________________________________________
 void MpdEventManagerEditor::MaxEnergy()
 {
-  fEventManager->SetMaxEnergy(fMaxEnergy->GetValue());
+    fEventManager->SetMaxEnergy(fMaxEnergy->GetValue());
 }
 
 // show or hide detector geometry
@@ -377,16 +371,16 @@ void MpdEventManagerEditor::ShowMCPoints(Bool_t is_show)
     if (fEventManager->isZDCModule)
     {
         if (is_show)
-            RedrawZDC();
+            RedrawZDC(false);
         else
-            RestoreZDC();
+            RedrawZDC(true);
     }
 
     // redraw points
     gEve->Redraw3D();
 }
 
-bool MpdEventManagerEditor::RedrawZDC(bool isRedraw)
+bool MpdEventManagerEditor::RedrawZDC(bool isFull, bool isRedraw)
 {
     TGeoVolume* curVolume = gGeoManager->GetVolume("VETO");
     if (!curVolume)
@@ -404,8 +398,19 @@ bool MpdEventManagerEditor::RedrawZDC(bool isRedraw)
                 continue;
             //cout<<"Node: "<<child->GetName()<<". Number is equal "<<i<<endl;
 
-            child->SetVisibility(fEventManager->isZDCModule[i]);
-            child->VisibleDaughters(fEventManager->isZDCModule[i]);
+            if (isFull)
+            {
+                if (fEventManager->isZDCModule[i] == false)
+                {
+                    child->SetVisibility(true);
+                    child->VisibleDaughters(true);
+                }
+            }
+            else
+            {
+                child->SetVisibility(fEventManager->isZDCModule[i]);
+                child->VisibleDaughters(fEventManager->isZDCModule[i]);
+            }
         }
 
         for (; i < 104; i++)
@@ -415,11 +420,22 @@ bool MpdEventManagerEditor::RedrawZDC(bool isRedraw)
                 continue;
             //cout<<"Node: "<<child->GetName()<<". Number is equal "<<i<<endl;
 
-            child->SetVisibility(fEventManager->isZDCModule[i]);
-            child->VisibleDaughters(fEventManager->isZDCModule[i]);
+            if (isFull)
+            {
+                if (fEventManager->isZDCModule[i] == false)
+                {
+                    child->SetVisibility(true);
+                    child->VisibleDaughters(true);
+                }
+            }
+            else
+            {
+                child->SetVisibility(fEventManager->isZDCModule[i]);
+                child->VisibleDaughters(fEventManager->isZDCModule[i]);
+            }
         }
 
-        if ((isRedraw) && (gEve->GetGlobalScene()->GetRnrState()))
+        if ((isFull || isRedraw) && (gEve->GetGlobalScene()->GetRnrState()))
         {
             gEve->GetGlobalScene()->SetRnrState(kFALSE);
             gEve->GetGlobalScene()->SetRnrState(kTRUE);
@@ -429,53 +445,6 @@ bool MpdEventManagerEditor::RedrawZDC(bool isRedraw)
     }// else - ZDC detector was found
 
     return false;
-}
-
-void MpdEventManagerEditor::RestoreZDC()
-{
-    TGeoVolume* curVolume = gGeoManager->GetVolume("VETO");
-    if (!curVolume)
-    {
-        cout<<"ERROR: There is no volume with given name: VETO"<<endl;
-        return;
-    }
-    else
-    {
-        int i = 0;
-        for (; i < 68; i++)
-        {
-            TGeoNode* child = curVolume->FindNode(Form("VMDL_%d", i+1));
-            if (child == NULL)
-                continue;
-            //cout<<"Node: "<<child->GetName()<<". Number is equal "<<i<<endl;
-
-            if (fEventManager->isZDCModule[i] == false)
-            {
-                child->SetVisibility(true);
-                child->VisibleDaughters(true);
-            }
-        }
-
-        for (; i < 104; i++)
-        {
-            TGeoNode* child = curVolume->FindNode(Form("UMDL_%d", i+1-68));
-            if (child == NULL)
-                continue;
-            //cout<<"Node: "<<child->GetName()<<". Number is equal "<<i<<endl;
-
-            if (fEventManager->isZDCModule[i] == false)
-            {
-                child->SetVisibility(true);
-                child->VisibleDaughters(true);
-            }
-        }
-
-        if (gEve->GetGlobalScene()->GetRnrState())
-        {
-            gEve->GetGlobalScene()->SetRnrState(kFALSE);
-            gEve->GetGlobalScene()->SetRnrState(kTRUE);
-        }
-    }// else - ZDC detector was found
 }
 
 //______________________________________________________________________________
@@ -528,20 +497,18 @@ void MpdEventManagerEditor::ShowRecoTracks(Bool_t is_show)
     gEve->Redraw3D();
 }
 
-void MpdEventManagerEditor::BlockUI()
+void MpdEventManagerEditor::SaveImage()
 {
-    //fCurrentEvent->SetState(kFALSE);
-    //fUpdate->SetEnabled(kFALSE);
-    fUpdate->SetText("Stop online display");
-    //fGeometry->SetEnabled(kFALSE);
-}
+    const char* filetypes[] = {"PNG", "*.png", "JPG", "*.jpg", 0, 0};
+    TGFileInfo fi;
+    fi.fFileTypes = filetypes;
+    fi.fIniDir    = StrDup(".");
+    new TGFileDialog(gClient->GetRoot(), gEve->GetMainWindow(), kFDSave, &fi);
 
-void MpdEventManagerEditor::UnblockUI()
-{
-    //fCurrentEvent->SetState(kTRUE);
-    //fUpdate->SetEnabled(kTRUE);
-    fUpdate->SetText("Start online display");
-    //fGeometry->SetEnabled(kTRUE);
+    printf("Saving file: %s (dir: %s)\n", fi.fFilename, fi.fIniDir);
+    gEve->GetDefaultGLViewer()-> SavePicture(fi.fFilename);
+
+    return;
 }
 
 // update event display when setting event number in textbox
@@ -555,7 +522,7 @@ void MpdEventManagerEditor::SelectEvent()
         fEventManager->GotoEvent(iNewEvent);
 
         if ((fEventManager->isZDCModule) && (fShowMCPoints->IsOn()))
-            RedrawZDC();
+            RedrawZDC(false);
 
         if (iOldEvent != iNewEvent)
         {
@@ -585,8 +552,7 @@ void MpdEventManagerEditor::SelectEvent()
 }
 
 
-// clicking 'Update event' or 'Start online display' button
-// Update event display or Start/Stop online event display
+// clicking 'Update event' button to update event display OR 'Start online display' button to start/stop online event display
 void MpdEventManagerEditor::UpdateEvent()
 {
     if (iThreadState == 1)
@@ -603,7 +569,7 @@ void MpdEventManagerEditor::UpdateEvent()
         fEventManager->GotoEvent(iNewEvent);
 
         if ((fEventManager->isZDCModule) && (fShowMCPoints->IsOn()))
-            RedrawZDC();
+            RedrawZDC(false);
 
         if (iOldEvent != iNewEvent)
         {
@@ -646,6 +612,22 @@ void MpdEventManagerEditor::UpdateEvent()
 
         return;
     }
+}
+
+void MpdEventManagerEditor::BlockUI()
+{
+    //fCurrentEvent->SetState(kFALSE);
+    //fUpdate->SetEnabled(kFALSE);
+    fUpdate->SetText("Stop online display");
+    //fGeometry->SetEnabled(kFALSE);
+}
+
+void MpdEventManagerEditor::UnblockUI()
+{
+    //fCurrentEvent->SetState(kTRUE);
+    //fUpdate->SetEnabled(kTRUE);
+    fUpdate->SetText("Start online display");
+    //fGeometry->SetEnabled(kTRUE);
 }
 
 // thread function for Online Display
@@ -691,7 +673,6 @@ void* RunOnlineDisplay(void* ptr)
         if (isZDCRedraw)
             fEditor->RedrawZDC();
 
-
         // redraw points
         cout<<"Redrawing event #"<<i<<"..."<<endl<<endl;
         gEve->Redraw3D();
@@ -701,20 +682,6 @@ void* RunOnlineDisplay(void* ptr)
 
     fEditor->UnblockUI();
     fEditor->iThreadState = 0;
-}
-
-void MpdEventManagerEditor::SaveImage()
-{
-    const char* filetypes[] = {"PNG", "*.png", "JPG", "*.jpg", 0, 0};
-    TGFileInfo fi;
-    fi.fFileTypes = filetypes;
-    fi.fIniDir    = StrDup(".");
-    new TGFileDialog(gClient->GetRoot(), gEve->GetMainWindow(), kFDSave, &fi);
-
-    printf("Saving file: %s (dir: %s)\n", fi.fFilename, fi.fIniDir);
-    gEve->GetDefaultGLViewer()-> SavePicture(fi.fFilename);
-
-    return;
 }
 
 ClassImp(MpdEventManagerEditor);

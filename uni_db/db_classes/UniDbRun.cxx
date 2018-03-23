@@ -1469,5 +1469,55 @@ TObjArray* UniDbRun::Search(const UniDbSearchCondition& search_condition)
     return Search(search_conditions);
 }
 
+// get number of the closest run below the given one
+UniqueRunNumber* UniDbRun::FindPreviousRun(int run_period, int run_number)
+{
+    UniDbConnection* connUniDb = UniDbConnection::Open(UNIFIED_DB);
+    if (connUniDb == 0x00)
+    {
+        cout<<"ERROR: connection to the Database was failed"<<endl;
+        return NULL;
+    }
+
+    TSQLServer* uni_db = connUniDb->GetSQLServer();
+
+    TString sql = TString::Format(
+        "select period_number, run_number "
+        "from run_ "
+        "where (period_number < %d) OR ((period_number = %d) AND (run_number < %d)) "
+        "order by period_number desc, run_number desc "
+        "limit 1", run_period, run_period, run_number);
+    TSQLStatement* stmt = uni_db->Statement(sql);
+
+    // get table record from DB
+    if (!stmt->Process())
+    {
+        cout<<"ERROR: getting previous run number from DB has been failed"<<endl;
+        delete stmt;
+        delete connUniDb;
+        return NULL;
+    }
+
+    // store result of statement in buffer
+    stmt->StoreResult();
+
+    // extract row
+    if (!stmt->NextResultRow())
+    {
+        cout<<"ERROR: previous run was not found in the database"<<endl;
+
+        delete stmt;
+        delete connUniDb;
+        return NULL;
+    }
+
+    UniqueRunNumber* pRunNumber = new UniqueRunNumber(stmt->GetInt(0), stmt->GetInt(1));
+
+    delete stmt;
+    delete connUniDb;
+
+    return pRunNumber;
+}
+
 // -------------------------------------------------------------------
 ClassImp(UniDbRun);

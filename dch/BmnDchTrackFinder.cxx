@@ -3381,6 +3381,8 @@ void BmnDchTrackFinder::Exec(Option_t* opt) {
   if(!expData)
     PrepareDigitsFromMC();
   else{
+      if (!fBmnDchDigitsArray)
+          return;
     if(fBmnDchDigitsArray->GetEntriesFast()<5){
       return ;
     }

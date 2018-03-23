@@ -25,12 +25,13 @@
 #include "BmnTrigDigit.h"
 #include "BmnEventHeader.h"
 #define BD_CHANNELS 40
+#define SI_CHANNELS 64
 #define TRIG_ROWS    3
 #define TRIG_COLS    3
 
 class BmnHistTrigger : public BmnHist {
 public:
-    BmnHistTrigger(TString title = "Triggers");
+    BmnHistTrigger(TString title = "Triggers", TString path = "");
     virtual ~BmnHistTrigger();
 
     void Register(THttpServer *serv);
@@ -61,15 +62,21 @@ private:
 //    TH1D *histVDTimeLen;
 //    TH1D *histFDTimeLen;
 //    TH1I *histBDTime;
-    TH2I *histBDTimeByChannel;
+    TH1I *histTriggers;
     TH2I *histTrigTimeByChannel;
+    TH2I *histBDTimeByChannel;
     TH1I *histBDChannels;
     TH1I *histBDSimult;
-    TH1I *histBDSpecific;
-    TH1I *histTriggers;
-    TCanvas *canTimes;
+    TH1I *histBDCircular;
+    TH2I *histSiTimeByChannel;
+    TH1I *histSiChannels;
+    TH1I *histSiSimult;
+    TH1I *histSiCircular;
     TCanvas *can2d;
+    TCanvas *canProfile;
+    TCanvas *canTimes;
     vector<TH1I*> hists;
+    vector<PadInfo*> canProfilePads;
     vector<PadInfo*> canTimesPads;
     vector<PadInfo*> can2dPads;
     Int_t fSelectedBDChannel;

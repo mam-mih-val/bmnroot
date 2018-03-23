@@ -13,7 +13,7 @@
 
 #include "BmnHistLAND.h"
 
-BmnHistLAND::BmnHistLAND(TString title) : BmnHist() {
+BmnHistLAND::BmnHistLAND(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     TString name;
@@ -83,16 +83,17 @@ BmnHistLAND::~BmnHistLAND() {
 
 void BmnHistLAND::FillFromDigi(DigiArrays *fDigiArrays) {
     TClonesArray * digits = fDigiArrays->land;
-    if (!digits)
+    if (!digits || 0 == digits->GetEntriesFast())
         return;
-    for (Int_t digIndex = 0; digIndex < digits->GetEntriesFast(); digIndex++) {
+    BmnLANDDigit *t0 = (BmnLANDDigit *) digits->At(0);
+    for (Int_t digIndex = 1; digIndex < digits->GetEntriesFast(); digIndex++) {
         BmnLANDDigit *dig = (BmnLANDDigit *) digits->At(digIndex);
         Q0vsBar->Fill(dig->GetGlobBar(), dig->GetEnergy(0));
         Q1vsBar->Fill(dig->GetGlobBar(), dig->GetEnergy(1));
         T0vsBar->Fill(dig->GetGlobBar(), dig->GetTime(0));
         T1vsBar->Fill(dig->GetGlobBar(), dig->GetTime(1));
         TDiffvsBar->Fill(dig->GetGlobBar(), dig->GetTime(1) - dig->GetTime(0));
-        QvsToF->Fill(dig->GetTime() - dig->GetTime(), dig->GetEnergy());
+        QvsToF->Fill(dig->GetTime() - t0->GetTDiff(0), dig->GetEnergy());
     }
 }
 
@@ -135,14 +136,14 @@ void BmnHistLAND::DrawBoth() {
 }
 
 BmnStatus BmnHistLAND::SetRefRun(Int_t id) {
-    if (refID != id) {
-        TString FileName = Form("bmn_run%04d_hist.root", id);
-        printf("SetRefRun: %s\n", FileName.Data());
-        refRunName = FileName;
-        refID = id;
-        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canPads, Names);
-        DrawBoth();
-    }
+//    if (refID != id) {
+//        TString FileName = Form("bmn_run%04d_hist.root", id);
+//        printf("SetRefRun: %s\n", FileName.Data());
+//        refRunName = FileName;
+//        refID = id;
+//        BmnHist::LoadRefRun(refID, refPath + FileName, fTitle, canPads, Names);
+//        DrawBoth();
+//    }
     return kBMNSUCCESS;
 }
 
@@ -151,6 +152,7 @@ void BmnHistLAND::ClearRefRun() {
         if (pad->ref) delete pad->ref;
         pad->ref = NULL;
     }
+    refID = 0;
 }
 
 ClassImp(BmnHistLAND);

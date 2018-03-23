@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------
 #include "MpdMCTracks.h"
 
-#include "MpdEventManagerEditor.h"
 #include "FairRootManager.h"
 #include "FairLogger.h"
 
@@ -15,7 +14,6 @@
 #include "TMathBase.h"
 #include "TObjArray.h"
 
-#include <string.h>
 #include <iostream>
 using namespace std;
 

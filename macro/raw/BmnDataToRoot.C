@@ -12,7 +12,7 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
 #endif
     bmnloadlibs(); // load BmnRoot libraries
     UInt_t period = 7;
-    BmnSetup stp = kSRCSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
+    BmnSetup stp = kBMNSETUP; // use kSRCSETUP for Short-Range Correlation program and kBMNSETUP otherwise
     BmnRawDataDecoder* decoder = new BmnRawDataDecoder(file, nEvents, period);
     decoder->SetBmnSetup(stp);
 
@@ -27,21 +27,22 @@ void BmnDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kTRUE)
     setup[6] = 1; // DCH
     setup[7] = 1; // ZDC
     setup[8] = 1; // ECAL
-    setup[9] = 1; // LAND
+    setup[9] = 0; // LAND
     decoder->SetDetectorSetup(setup);
 
     TString PeriodSetupExt = Form("%d%s.txt", period, ((stp == kBMNSETUP) ? "" : "_SRC"));
     decoder->SetTrigMapping(TString("Trig_map_Run") + PeriodSetupExt);
-    decoder->SetTrigINLFile("TRIG_INL.txt");
+    decoder->SetTrigINLFile("TRIG_INL_076D-16A8.txt");//INL only for TDC data 
     decoder->SetSiliconMapping("SILICON_map_run7.txt");
     decoder->SetGemMapping(TString("GEM_map_run") + PeriodSetupExt);
+    decoder->SetCSCMapping(TString("CSC_map_period") + PeriodSetupExt);
     // in case comment out the line decoder->SetTof400Mapping("...")  
     // the maps of TOF400 will be read from DB (only for JINR network)
     decoder->SetTof400Mapping("TOF400_PlaceMap_RUN7.txt", "TOF400_StripMap_RUN7.txt");
-    decoder->SetTof700Mapping("TOF700_map_period_6.txt");
+    decoder->SetTof700Mapping("TOF700_map_period_7.txt");
     decoder->SetZDCMapping("ZDC_map_period_5.txt");
     decoder->SetZDCCalibration("zdc_muon_calibration.txt");
-    decoder->SetECALMapping("ECAL_map_period_5.txt");
+    decoder->SetECALMapping("ECAL_map_period_7.txt");
     decoder->SetECALCalibration("");
     decoder->SetMwpcMapping(TString("MWPC_map_period") + PeriodSetupExt);
     decoder->SetLANDMapping("land_mapping_jinr_triplex.txt");

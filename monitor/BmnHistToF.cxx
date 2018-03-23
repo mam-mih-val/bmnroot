@@ -14,7 +14,7 @@
 #include "BmnHistToF.h"
 #include "BmnRawDataDecoder.h"
 
-BmnHistToF::BmnHistToF(TString title) : BmnHist() {
+BmnHistToF::BmnHistToF(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     fSelectedPlane = -1;
@@ -22,11 +22,11 @@ BmnHistToF::BmnHistToF(TString title) : BmnHist() {
     fSelectedSide = -1;
     TString name;
     name = fTitle + "_Leading_Time";
-    histLeadingTime = new TH1D(name, name, 500, 0, 1000);
+    histLeadingTime = new TH1D(name, name, 500, 0, 2500);
     histLeadingTime->GetXaxis()->SetTitle("Time, ns");
     histLeadingTime->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Leading_Time_Specific";
-    histLeadingTimeSpecific = new TH1D(name, name, 500, 0, 1000);
+    histLeadingTimeSpecific = new TH1D(name, name, 500, 0, 2500);
     histLeadingTimeSpecific->GetXaxis()->SetTitle("Time, ns");
     histLeadingTimeSpecific->GetYaxis()->SetTitle("Activations count");
     name = fTitle + "_Amplitude";
@@ -81,7 +81,7 @@ BmnHistToF::BmnHistToF(TString title) : BmnHist() {
             canTimesPads[iPad]->current->SetLabelSize(0.08, "XY");
             TAxis *ax = canTimesPads[iPad]->current->GetYaxis();
             ax->SetTitleColor(kOrange + 10);
-            ax->SetTitleOffset(1.8);
+            ax->SetTitleOffset(0.8);
             ax->SetTitleFont(62);
             ax = canTimesPads[iPad]->current->GetXaxis();
         }
@@ -256,6 +256,7 @@ void BmnHistToF::ClearRefRun() {
         if (pad->ref) delete pad->ref;
         pad->ref = NULL;
     }
+    refID = 0;
 }
 
 ClassImp(BmnHistToF);

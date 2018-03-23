@@ -6,7 +6,7 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>GEM detectors</title>
+        <title>SRC Triggers</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style type="text/css">
@@ -35,6 +35,8 @@ and open the template in the editor.
             var loco = window.location;
             var path0 = loco.protocol + "//" + loco.hostname + "/root.app/";
             var path = path0 + "SRC/";
+            var runPath = "../root.app/CurRun/root.json";
+            var refPath = "../root.app/refTable/root.json";
             function ResetHist() {
                 var filename = path + "Reset/cmd.json";
                 var xhr = new XMLHttpRequest();
@@ -42,56 +44,44 @@ and open the template in the editor.
                 xhr.withCredentials = true;
                 xhr.send();
             }
-//            window.onload = setInterval("reloadIFrame();", 2000);
-//            body.onload = createTable();
-            function reloadIFrame() {
-                var tc = document.getElementById("trig_counter");
-                var temp = tc.src;
-                tc.src = "";
-                tc.src = temp;
-            }
             function createTable() {
-                var moduleCount = [1, 1, 1, 1, 2, 2, 2];
-                moduleCount.forEach(createRow);
-//                drawInfo();
-            }
-            function createRow(item, i, arr) {
-                var layerCount = [2, 4, 4, 4, 4, 4, 4];
-                var gd = document.getElementById("SRC_div");
-                var gtbl = document.createElement("table");
-                gtbl.name = "hist_table";
-                gd.appendChild(gtbl);
-                for (var iMod = 0; iMod < item; iMod++) {
-                    var tr = document.createElement('tr');
-                    for (var iLayer = 0; iLayer < layerCount[i]; iLayer++) {
-                        var td = document.createElement('td');
-                        var ifr = document.createElement("iframe");
-                        ifr.style = "width: 24vw;height: 18vw;";
-                        ifr.src = path + "GEM_Station_" + i + "_module_" + iMod + "_layer_" + iLayer;
-                        ifr.src += "/draw.htm?monitoring=2000";
-                        td.appendChild(ifr);
-                        tr.appendChild(td);
-                    }
-                    gtbl.appendChild(tr);
-                }
+                setRunInfo(runPath);
+                drawInfo();
             }
             function drawInfo() {
                 setTimeout(drawInfo, 10000);
-//                var infoFrame2 = document.getElementById("infoCan");
-//                infoFrame2.src = path0 + "infoCanvas" + "/draw.htm?nobrowser&monitoring=2000";
-                var filename = path0 + "infoCanvas" + "/root.json";
+                JSROOT.NewHttpRequest(runPath, 'text', function (obj) {
+                    var info = JSON.parse(obj);
+                    if (info.arr.length > 0){
+                        var runInfo = info.arr[0];
+                        var runID = runInfo.i_run_number;
+                        var storedRunId = sessionStorage.getItem('runID');
+                        if ((storedRunId === null) || (storedRunId == runID))
+                            return;
+                        sessionStorage.setItem('runID', runID);
+                        cleanCanvases();
+                    }
+                }).send(null);
+                redrawCanvases();
+                FillRefTable(refPath, "refTable");
+                //var refPath = path0 + "refList" + "/root.json";
+                //FillRefSelector(refPath, "refSelector");
+            }
+            function redrawCanvases(){
+                var filename = path0 + "infoCanvas" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("infoC", obj, "");
                 }).send(null);
-
-                var refPath = path0 + "refList" + "/root.json";
-                //FillRefSelector(refPath, "refSelector");
-
-                filename = path + "SRCCanvas" + "/root.json";
+                filename = path + "SRCCanvas" + "/root.json.gz?compact=3";
                 JSROOT.NewHttpRequest(filename, 'object', function (obj) {
                     JSROOT.redraw("srcTableC", obj, "");
                 }).send(null);
-                //FillRefTable(path0 + "refTable" + "/root.json", "refTable");
+            }
+            function cleanCanvases() {
+                JSROOT.cleanup("infoC");
+                JSROOT.cleanup("srcTableC");
+                var sel = document.getElementById("refTable");
+                sel.innerHTML = "";
             }
             function SetRefRun() {
                 var runName = document.getElementById("refInput").value;
@@ -105,7 +95,7 @@ and open the template in the editor.
             }
         </script>
     </head>
-    <body onload="drawInfo()">
+    <body onload="createTable()">
         <ul >
             <li><a href="../index.html"> <h3>Welcome to the BM@N Experiment</h3></a></li>
             <li><a href="../trigger_detectors/index.html"><h3>Triggers</h3></a></li>
@@ -122,7 +112,7 @@ and open the template in the editor.
             <li><a href="../msc/index.html"><h3>MSC</h3></a></li>
         </ul>
         <div id="total_counter" align="center">
-            <h1>BM@N SRC</h1>  
+            <h1>SRC Triggers</h1>
             <!--<iframe id="infoCan" ></iframe>--> 
         </div>
         <div align="center">
@@ -132,8 +122,8 @@ and open the template in the editor.
         <table>
             <tr>
             <tb>
-                <button onclick="ResetHist()"> 
-                    <img src="../img/reset.png" width="200">
+                <button onclick="ResetHist()">
+                    <h1 style="color:red;">Reset</h1>
                 </button>
             </tb>
         </tr>

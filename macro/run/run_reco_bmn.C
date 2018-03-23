@@ -164,11 +164,6 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp);
     // fRunAna->AddTask(triggs);  
     // ====================================================================== //
-    // ===			     LAND hit finder			  === //
-    // ====================================================================== //
-    BmnLANDHitProducer* land = new BmnLANDHitProducer("LAND", !isExp, iVerbose, kTRUE);
-    fRunAna->AddTask(land);
-    // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
     BmnMwpcHitFinder* mwpcHM = new BmnMwpcHitFinder(isExp);
@@ -176,7 +171,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->AddTask(mwpcHM);
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
-    // ====================================================================== //
+    // ====================================================================== //    
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
     fRunAna->AddTask(siliconHM);
     // ====================================================================== //
@@ -190,24 +185,23 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);
-    // Set name of file with the alignment corrections for GEMs using one of the
-    // two variants of the SetAlignmentCorrectionsFileName function defined in
-    // BmnGemStripHitMaker.h
-    if (isExp) {
-        if (alignCorrFileName == "default")
-            // retrieve from UniDb (default)
-            gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
-        else {
-            // set explicitly, for testing purposes and for interactive
-            // alignment; in case of determining alignment corrections from
-            // scratch, set alignCorrFileName == "" (at first iteration) and it
-            // will be properly used in BmnGemStripHitMaker.cxx, i.e. the input
-            // alignment corrections will be set to zeros
-            gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
-        }
-    }
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
+
+    // ====================================================================== //
+    // ===                           ALIGNMENT (GEM + SI)                 === //
+    // ====================================================================== //
+    if (isExp) {
+        if (alignCorrFileName == "default") {
+            gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
+            siliconHM->SetAlignmentCorrectionsFileName(run_period, run_number);
+        }
+        else {
+            gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
+            siliconHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
+        }
+    }
+
     // ====================================================================== //
     // ===                           TOF1 hit finder                      === //
     // ====================================================================== //
@@ -233,7 +227,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     gemTF->SetField(isField);
     TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, -21.7);
     gemTF->SetRoughVertex(vAppr);
-    fRunAna->AddTask(gemTF);  
+    fRunAna->AddTask(gemTF);
 
     // ====================================================================== //
     // ===                           Tracking (DCH)                       === //
@@ -255,7 +249,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     gemVF->SetField(isField);
     gemVF->SetVertexApproximation(vAppr);
     fRunAna->AddTask(gemVF);
-    
+
     // Residual analysis
     if (isExp) {
         BmnGemResiduals* residAnalGem = new BmnGemResiduals(run_period, run_number, fieldScale);

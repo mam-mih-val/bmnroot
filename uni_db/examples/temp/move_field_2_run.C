@@ -37,7 +37,7 @@ void move_field_2_run(int period)
         pRun->SetFieldVoltage(&field_voltage);
         delete pRun;
 
-        cout<<"Average magnetic field for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<field_voltage<<" mv"<<endl;
+        cout<<"Average magnetic field for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<field_voltage<<" mV"<<endl;
     }
 
     delete run_numbers;
@@ -86,10 +86,10 @@ void convert_current_2_voltage(int period)
         if (current_voltage == NULL)
         {
             pRun->SetFieldVoltage(&field_voltage);
-            cout<<"Field voltage was written for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<field_voltage<<" mv"<<endl;
+            cout<<"Field voltage was written for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<field_voltage<<" mV"<<endl;
         }
         else
-            cout<<"Field voltage exists for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<*current_voltage<<" mv"<<endl;
+            cout<<"Field voltage exists for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<*current_voltage<<" mV"<<endl;
 
         delete pRun;
     }

@@ -2,7 +2,7 @@
 
 #include "BmnHistZDC.h"
 
-BmnHistZDC::BmnHistZDC(TString title) : BmnHist() {
+BmnHistZDC::BmnHistZDC(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     TGaxis::SetMaxDigits(2);
@@ -143,6 +143,7 @@ void BmnHistZDC::ClearRefRun() {
         if (pad->ref) delete pad->ref;
         pad->ref = NULL;
     }
+    refID = 0;
 }
 
 void BmnHistZDC::Reset() {

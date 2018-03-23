@@ -10,7 +10,7 @@ void monDecoder(TString dirName = "/bmn/run/current/", TString rawFileName = "",
     
     BmnOnlineDecoder *deco = new BmnOnlineDecoder();
     deco->SetPeriodID(7);
-    deco->SetBmnSetup(kSRCSETUP);
+    deco->SetBmnSetup(kBMNSETUP);
     deco->Decode(dirName, rawFileName, runCurrent);
     delete deco;
 }

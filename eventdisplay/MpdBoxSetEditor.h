@@ -1,15 +1,7 @@
-/********************************************************************************
- *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
- *                                                                              *
- *              This software is distributed under the terms of the             * 
- *              GNU Lesser General Public Licence (LGPL) version 3,             *  
- *                  copied verbatim in the file "LICENSE"                       *
- ********************************************************************************/
 // -------------------------------------------------------------------------
 // -----              MpdBoxSetEditor header file                       -----
 // -----          Created 26/03/09  by T. Stockmanns                   -----
 // -------------------------------------------------------------------------
-
 
 /** MpdBoxSetEditor
  * @author T. Stockmanns
@@ -22,38 +14,35 @@
  **
  **/
 
-#ifndef MpdBoxSetEditor_H
-#define MpdBoxSetEditor_H
+#ifndef MPDBOXSETEDITOR_H
+#define MPDBOXSETEDITOR_H
 
-#include "TGedFrame.h"                  // for TGedFrame
+#include "MpdBoxSet.h"
 
-#include "MpdBoxSet.h"                 // for MpdBoxSet
+#include "TGedFrame.h"
+#include "TGWindow.h"
+#include "GuiTypes.h"           // for Pixel_t
+#include "TGFrame.h"            // for EFrameType::kChildFrame, etc
+#include "TGNumberEntry.h"
 
-#include "GuiTypes.h"                   // for Pixel_t
-#include "Rtypes.h"                     // for MpdBoxSetEditor::Class, etc
-#include "TGFrame.h"                    // for EFrameType::kChildFrame, etc
-#include "TGNumberEntry.h"              // for TGNumberEntry
-#include "TObject.h"                    // for TObject
-
-class TGWindow;
 
 class MpdBoxSetEditor : public TGedFrame
 {
-
   public:
-
-    MpdBoxSetEditor(const TGWindow* p=0, Int_t width=170, Int_t height=30,
-                     UInt_t options = kChildFrame, Pixel_t back=GetDefaultFrameBackground());
-    virtual ~MpdBoxSetEditor() {};
+    MpdBoxSetEditor(const TGWindow* p = 0, Int_t width = 170, Int_t height = 30,
+                    UInt_t options = kChildFrame, Pixel_t back = GetDefaultFrameBackground());
+    virtual ~MpdBoxSetEditor() {}
 
     virtual void Init();
 
-    virtual void SetModel(TObject* obj) {
-      fM = dynamic_cast<MpdBoxSet*>(obj);
-      if (fM) {
-        fTimeWindowPlus->SetNumber(fM->GetTimeWindowPlus());
-        fTimeWindowMinus->SetNumber(fM->GetTimeWindowMinus());
-      }
+    virtual void SetModel(TObject* obj)
+    {
+        fM = dynamic_cast<MpdBoxSet*>(obj);
+        if (fM)
+        {
+            fTimeWindowPlus->SetNumber(fM->GetTimeWindowPlus());
+            fTimeWindowMinus->SetNumber(fM->GetTimeWindowMinus());
+        }
     }
 
     virtual void TimeWindow();
@@ -62,21 +51,15 @@ class MpdBoxSetEditor : public TGedFrame
     TGNumberEntry* fTimeWindowPlus;
     TGNumberEntry* fTimeWindowMinus;
 
-
   protected:
     TObject* fObject;
     MpdBoxSet* fM;
-
-
 
   private:
     MpdBoxSetEditor(const MpdBoxSetEditor&);
     MpdBoxSetEditor& operator=(const MpdBoxSetEditor&);
 
-
     ClassDef(MpdBoxSetEditor,2);
-
 };
-
 
 #endif

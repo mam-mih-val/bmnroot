@@ -21,7 +21,7 @@ void add_DCH_mapping() {
     Bool_t return_error = kFALSE;
 
     const int kNitems1 = 120;
-    const int kNitems2 = 100;
+    const int kNitems2 = 120;
 
     DchMapStructure* pValues1 = new DchMapStructure[kNitems1];
     DchMapStructure* pValues2 = new DchMapStructure[kNitems2];

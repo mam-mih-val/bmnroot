@@ -53,7 +53,7 @@ double tango_avg_field(int period = 6, int run = 1886)
 
     double average_current = average_field * 900 / 55.87;
     double average_coeff = average_field / 55.87;
-    cout<<"Average magnetic field from TangoDB for run "<<period<<"-"<<run<<": "<<average_field<<" mv. Calculated current: "
+    cout<<"Average magnetic field from TangoDB for run "<<period<<"-"<<run<<": "<<average_field<<" mV. Calculated current: "
         <<average_current<<" A. Ratio: "<<average_coeff<<endl<<"Macro finished successfully"<<endl;
 
     return average_coeff;
@@ -117,7 +117,7 @@ void tango_avg_field_write_db(int period = 6)
         double average_field = vec_average[0];
         delete tango_data;
 
-        cout<<"Average magnetic field for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<average_field<<" mv"<<endl;
+        cout<<"Average magnetic field for run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<": "<<average_field<<" mV"<<endl;
 
         // write average magnetic field to run_ in DB
         pRun->SetFieldVoltage(&average_field);
@@ -191,13 +191,13 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
     }
 
     // print
-    db_tango.PrintTangoDataMultiGraph(tango_data, "hall sensor voltage, mv");
+    db_tango.PrintTangoDataMultiGraph(tango_data, "hall sensor voltage, mV");
 
     delete tango_data;
     return 0;
 }
 
-// additional function to compare magnetic field value (current, A) from ELog database and average magnetic field (voltage, mv) from the Tango database
+// additional function to compare magnetic field value (current, A) from ELog database and average magnetic field (voltage, mV) from the Tango database
 void compare_avg_field(int period = 6, bool isOnlyDifferent = false)
 {
 #if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
@@ -264,7 +264,7 @@ void compare_avg_field(int period = 6, bool isOnlyDifferent = false)
         double elog_voltage = (*pField) * 55.87 / 900;
         delete arrayRecords;
 
-        // calculate average magnetic field (voltage, mv) from the Tango database
+        // calculate average magnetic field (voltage, mV) from the Tango database
         TObjArray* tango_data = db_tango.GetTangoParameter(detector_name, parameter_name, strDateStart.Data(), strDateEnd.Data());
         if (tango_data == NULL)
         {
@@ -294,10 +294,10 @@ void compare_avg_field(int period = 6, bool isOnlyDifferent = false)
         }
 
         cout<<"Run "<<run_numbers[i].period_number<<"-"<<run_numbers[i].run_number<<endl;
-        cout<<"Average Tango magnetic field: "<<average_field<<" mv"<<endl;
-        cout<<"ELOG magnetic field: "<<elog_voltage<<" mv ("<<(*pField)<<" A)"<<endl;
+        cout<<"Average Tango magnetic field: "<<average_field<<" mV"<<endl;
+        cout<<"ELOG magnetic field: "<<elog_voltage<<" mV ("<<(*pField)<<" A)"<<endl;
         if (fabs(average_field - elog_voltage) > 5)
-            cout<<"ERROR: ELOG and Tango magnetic fields differ by more than 5 mv!"<<endl;
+            cout<<"ERROR: ELOG and Tango magnetic fields differ by more than 5 mV!"<<endl;
         cout<<endl;
 
         delete pField;
@@ -307,7 +307,7 @@ void compare_avg_field(int period = 6, bool isOnlyDifferent = false)
     cout<<"Macro finished successfully"<<endl;
 }
 
-// additional function to compare magnetic field value (current, A) from Elog database and average magnetic field (voltage, mv) from UniDb saved from the Tango
+// additional function to compare magnetic field value (current, A) from Elog database and average magnetic field (voltage, mV) from UniDb saved from the Tango
 // and show in TGraph object
 void compare_avg_field_graph(int period = 6)
 {
@@ -404,7 +404,7 @@ void compare_avg_field_graph(int period = 6)
             run_error[i] = 1;
         }
         if (dAvgFieldVoltage)
-            cout<<"Average magnetic field voltage from Tango: "<<*dAvgFieldVoltage<<" mv"<<endl<<endl;
+            cout<<"Average magnetic field voltage from Tango: "<<*dAvgFieldVoltage<<" mV"<<endl<<endl;
         else
         {
             cout<<"WARNING: average magnetic field voltage was not calculated from Tango"<<endl<<endl;
@@ -425,7 +425,7 @@ void compare_avg_field_graph(int period = 6)
     TGraph* gr = new TGraph(run_count,x,y);
     gr->SetTitle("");
     gr->GetXaxis()->SetTitle("I, A");
-    gr->GetYaxis()->SetTitle("U, mv");
+    gr->GetYaxis()->SetTitle("U, mV");
     gr->Draw("AP*");
 
     TFitResultPtr fit_result = gr->Fit("pol1", "S");
@@ -454,7 +454,7 @@ void compare_avg_field_graph(int period = 6)
     TGraph* grN = new TGraph(run_count, x2, y2);
     grN->SetTitle("");
     grN->GetXaxis()->SetTitle("run number");
-    grN->GetYaxis()->SetTitle("#DeltaU, mv");
+    grN->GetYaxis()->SetTitle("#DeltaU, mV");
     grN->SetMarkerStyle(2);
     grN->GetXaxis()->Set(run_count, 0, run_count-1);
 

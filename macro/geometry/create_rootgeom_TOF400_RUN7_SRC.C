@@ -25,7 +25,7 @@ void create_rootgeom_TOF400_RUN7_SRC() {
     // -------   Geometry file name (output)   -------------------------------
     const TString geoDetectorName = "TOF400";
     const TString geoDetectorVersion = "RUN7_SRC";
-    const TString geoFileName = geoPath + "/geometry/" + geoDetectorName + "_" + geoDetectorVersion + ".root";
+    const TString geoFileName = /*geoPath + "/geometry/"*/ + geoDetectorName + "_" + geoDetectorVersion + ".root";
 
     // -----------------   Get and create the required media    --------------
     FairGeoMedia* geoMedia = geoFace->getMedia();
@@ -144,17 +144,17 @@ void create_rootgeom_TOF400_RUN7_SRC() {
 
     const double tofXgap = 0.; // [cm] RUN5, part1
     //const double tofXgap = 2. * 24.4; // [cm] RUN5, part2
-    const double tofZ_1box = -245.705; // [cm] :
-    const double tofZ_2box = -206.705; // [cm] :
-    const double tofZ_3box = -206.705; // [cm] :
-    const double tofZ_4box = -245.27; // [cm] :
+    const double tofZ_1box = -217.27; // [cm] :
+    const double tofZ_2box = -234.705; // [cm] :
+    const double tofZ_3box = -234.705; // [cm] :
+    const double tofZ_4box = -217.27; // [cm] :
 
     double tofX = tofXgap / 2. + DetXsize / 2.;
     double tofZshift = tofZgap + DetZsize;
-    double box1_x = 271.199; // [cm]
-    double box2_x = 228.801; // [cm]
-    double box3_x = -228.801; // [cm]
-    double box4_x = -271.199; // [cm]
+    double box1_x = 222.701; // [cm]
+    double box2_x = 277.299; // [cm]
+    double box3_x = -277.299; // [cm]
+    double box4_x = -222.701; // [cm]
 
     Double_t angleDegBox1_2 = 30., angleDegBox3_4 = -30.;
 

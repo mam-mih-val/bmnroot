@@ -10,7 +10,7 @@
 <StationSet>
 
 <!-- Station 0 -->
-    <Station xPosition="0.0" yPosition="0.0" zPosition="0.0" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
+    <Station xPosition="0.0" yPosition="-4.5" zPosition="0.0" rotAngleDeg="0.0" rotCenterX="0.0" rotCenterY="0.0">
 
         <!-- module 0 -->
         <Module xShift="0.0" yShift="0.0" zShift="3.31">

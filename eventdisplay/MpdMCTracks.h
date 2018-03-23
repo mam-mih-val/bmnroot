@@ -9,8 +9,8 @@
  **
  **/
 
-#ifndef MpdMCTracks_H
-#define MpdMCTracks_H
+#ifndef MPDMCTRACKS_H
+#define MPDMCTRACKS_H
 
 #include "FairTask.h"
 #include "MpdEventManager.h"

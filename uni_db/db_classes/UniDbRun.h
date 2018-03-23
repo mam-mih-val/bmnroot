@@ -156,6 +156,8 @@ class UniDbRun
 	static TObjArray* Search(const UniDbSearchCondition& search_condition);
 	/// get runs corresponding to the specified (vector) conditions
 	static TObjArray* Search(const TObjArray& search_conditions);
+    /// get number of the closest run below the given one
+    static UniqueRunNumber* FindPreviousRun(int run_period, int run_number);
 
 	ClassDef(UniDbRun,1);
 };

@@ -29,6 +29,7 @@
 #include "TGDMLParse.h"
 #include "TGeoVoxelFinder.h"
 #include "TGeoManager.h"
+#include "TRegexp.h"
 
 #include <iostream>
 
@@ -122,30 +123,21 @@ Bool_t CbmSts::ProcessHits(FairVolume* vol) {
     Int_t stationNum = -1; // current station number (default)
     Int_t moduleNum = -1; // current module number (default)
 
-    TGeoNode *currentNode = gGeoManager->GetMother(0);
-    TString currentNodeName = currentNode->GetName();
+    TGeoVolume *currentVolume = gGeoManager->GetCurrentVolume();
+    TString currentVolumeName = currentVolume->GetName();
 
-    if(currentNodeName.Contains("hot_zone_Sensor") || currentNodeName.Contains("inner_zone_Sensor")) {
-        currentNode = gGeoManager->GetMother(1);
-        currentNodeName = currentNode->GetName();
-    }
+    TRegexp expr = "^Sensor_module[0-9]+_station[0-9]+$";
+    if(currentVolumeName.Contains(expr)) {
+        TRegexp mod_expt = "module[0-9]+";
+        TRegexp stat_expt = "station[0-9]+";
 
-    if( currentNodeName.Contains("module_Sensor_") ) {
-        TString trimPattern = "module_Sensor_";
-        moduleNum = atoi(currentNodeName.Remove(0, trimPattern.Length()));
-        currentNode = gGeoManager->GetMother(1);
-        currentNodeName = currentNode->GetName();
-    }
-
-    TString currentVolumeName = currentNode->GetVolume()->GetName();
-
-    if( currentVolumeName.Contains("station") ) {
-        TString trimPattern = "station";
-        stationNum = atoi(currentVolumeName.Remove(0, trimPattern.Length()));
+        moduleNum = TString(TString(currentVolumeName(mod_expt))(TRegexp("[0-9]+"))).Atoi();
+        stationNum = TString(TString(currentVolumeName(stat_expt))(TRegexp("[0-9]+"))).Atoi();
     }
 
     //cout << "stationNum = " << stationNum << "\n";
     //cout << "moduleNum = " << moduleNum << "\n";
+    //cout << "\n";
 
     // -------------------------------------------------------------------------
 

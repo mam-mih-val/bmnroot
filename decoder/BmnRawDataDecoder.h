@@ -227,6 +227,10 @@ public:
         fSiliconMapFileName = map;
     }
 
+    void SetCSCMapping(TString map) {
+        fCSCMapFileName = map;
+    }
+
     void SetTrigINLFile(TString file) {
         fTrigINLFileName = file;
     }
@@ -341,6 +345,8 @@ private:
     UInt_t fNSiliconSerials;
     vector<UInt_t> fGemSerials; //list of serial id for GEM
     UInt_t fNGemSerials;
+    vector<UInt_t> fCSCSerials; //list of serial id for CSC
+    UInt_t fNCSCSerials;
     vector<UInt_t> fZDCSerials; //list of serial id for ZDC
     UInt_t fNZDCSerials;
     vector<UInt_t> fECALSerials; //list of serial id for ECal
@@ -388,6 +394,7 @@ private:
     TString fLANDDiffSyncFileName;
     TString fLANDVScintFileName;
     TString fSiliconMapFileName;
+    TString fCSCMapFileName;
     TString fTrigMapFileName;
     TString fTrigINLFileName;
 

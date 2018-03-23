@@ -15,7 +15,7 @@
 
 #include "BmnHistECAL.h"
 
-BmnHistECAL::BmnHistECAL(TString title) : BmnHist() {
+BmnHistECAL::BmnHistECAL(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     TGaxis::SetMaxDigits(1);
@@ -160,6 +160,7 @@ void BmnHistECAL::ClearRefRun() {
         if (pad->ref) delete pad->ref;
         pad->ref = NULL;
     }
+    refID = 0;
 }
 
 void BmnHistECAL::Reset() {

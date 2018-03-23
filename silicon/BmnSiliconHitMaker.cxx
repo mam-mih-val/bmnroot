@@ -161,6 +161,8 @@ void BmnSiliconHitMaker::ProcessDigits() {
         digit = (BmnSiliconDigit*) fBmnSiliconDigitsArray->At(idigit);
         station = StationSet->GetSiliconStation(digit->GetStation());
         module = station->GetModule(digit->GetModule());
+        if (!module)
+            return;
 
         if (module->SetStripSignalInLayerByZoneId(digit->GetStripLayer(), digit->GetStripNumber(), digit->GetStripSignal())) AddedDigits++;
 
@@ -281,8 +283,8 @@ void BmnSiliconHitMaker::ReadAlignCorrFile(TString fname, Double_t*** Corr) {
         t->GetEntry(iEntry);
         for (Int_t iCorr = 0; iCorr < corrs->GetEntriesFast(); iCorr++) {
             BmnSiliconAlignCorrections* align = (BmnSiliconAlignCorrections*) corrs->UncheckedAt(iCorr);
-            Int_t iStat = 0; // FIXME
-            Int_t iMod = 0; // FIXME
+            Int_t iStat = align->GetStation(); 
+            Int_t iMod = align->GetModule();
             Corr[iStat][iMod][0] = align->GetCorrections().X();
             Corr[iStat][iMod][1] = align->GetCorrections().Y();
             Corr[iStat][iMod][2] = align->GetCorrections().Z();

@@ -8,7 +8,7 @@
 #include "BmnHistToF700.h"
 #include "BmnRawDataDecoder.h"
 
-BmnHistToF700::BmnHistToF700(TString title) : BmnHist() {
+BmnHistToF700::BmnHistToF700(TString title, TString path) : BmnHist() {
     fTitle = title;
     fName = title + "_cl";
     fSelectedPlane = -1;
@@ -220,6 +220,7 @@ void BmnHistToF700::ClearRefRun() {
         if (pad->ref) delete pad->ref;
         pad->ref = NULL;
     }
+    refID = 0;
 }
 
 ClassImp(BmnHistToF700);

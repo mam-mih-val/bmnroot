@@ -17,6 +17,26 @@ public:
     BmnSiliconAlignCorrections(TVector3);
     
     virtual ~BmnSiliconAlignCorrections() { };
+    
+    void SetStation(Int_t num) {
+        fStation = num;
+    }
+
+    void SetModule(Int_t num) {
+        fModule = num;
+    }
+    
+    Int_t GetStation() {
+        return fStation;
+    }
+    
+    Int_t GetModule() {
+        return fModule;
+    }
+
+private:
+    Int_t fStation;
+    Int_t fModule;
   
     ClassDef(BmnSiliconAlignCorrections, 1)
 };

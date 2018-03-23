@@ -25,7 +25,7 @@ const TString names[kNPLANES] = {
     "VA_2", "VB_2", "UA_2", "UB_2", "YA_2", "YB_2", "XA_2", "XB_2"
 };
 
-BmnHistDch::BmnHistDch(TString title) : BmnHist() {
+BmnHistDch::BmnHistDch(TString title, TString path) : BmnHist() {
     TGaxis::SetMaxDigits(2);
     fTitle = title;
     fName = title + "_cl";
@@ -190,6 +190,7 @@ void BmnHistDch::ClearRefRun() {
         if (pad->ref) delete pad->ref;
         pad->ref = NULL;
     }
+    refID = 0;
 }
 
 void BmnHistDch::Reset() {

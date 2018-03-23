@@ -47,7 +47,7 @@ using namespace std;
 
 class BmnHistDch : public BmnHist {
 public:
-    BmnHistDch(TString title = "DCH");
+    BmnHistDch(TString title, TString path = "");
     virtual ~BmnHistDch();
     void Reset();
     void Register(THttpServer *serv);

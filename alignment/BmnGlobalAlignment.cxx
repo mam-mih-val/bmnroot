@@ -314,8 +314,16 @@ void BmnGlobalAlignment::PrintToFullFormat(TString detName, Char_t* buff) {
             zeroLine[iCase] += "0. ";
 
     sprintf(buff, "%s%s\n", buff, detName.Data());
-    for (Int_t iRow = 0; iRow < nCases; iRow++)
-        sprintf(buff, "%s%s\n", buff, zeroLine[iRow].Data());
+
+    if (detName == "SILICON") {
+        for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+            for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++)
+                for (Int_t iRow = 0; iRow < nCases; iRow++)
+                    sprintf(buff, "%s%d %d %s\n", buff, iStat, iMod, zeroLine[iRow].Data());
+    }
+    else
+        for (Int_t iRow = 0; iRow < nCases; iRow++)
+            sprintf(buff, "%s%s\n", buff, zeroLine[iRow].Data());
 }
 
 FairTrackParam BmnGlobalAlignment::UseKalman(BmnGemTrack* track, Int_t iHit, Int_t sign) {
@@ -917,16 +925,12 @@ void BmnGlobalAlignment::MakeSteerFile() {
                     fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedGemElements[iStat][iPar / nParams]) ? -1. : fPreSigma);
                 startIdx += fDetectorGEM->GetGemStation(iStat)->GetNModules() * nParams;
             }
-        } 
-        
-        else if (iDet == 4) { // Process SILICON to mark fixed modules if exist
+        } else if (iDet == 4) { // Process SILICON to mark fixed modules if exist
             for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
                 for (Int_t iPar = 0; iPar < fDetectorSI->GetSiliconStation(iStat)->GetNModules() * nParams; iPar++)
                     fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedSiElements[iStat][iPar / nParams]) ? -1. : fPreSigma);
             }
-        } 
-        
-        else if (iDet == 1 || iDet == 2 || iDet == 3) {// MWPC, DCH, VERTEX
+        } else if (iDet == 1 || iDet == 2 || iDet == 3) {// MWPC, DCH, VERTEX
             //  if (iDet == 1) startIdx -= nParams;
             for (Int_t iPar = 0; iPar < nParams; iPar++)
                 fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fDetectorSet[iDet]) ? fPreSigma : -1.);
@@ -1016,8 +1020,8 @@ void BmnGlobalAlignment::ReadPedeOutput(ifstream& resFile) {
         }
     }
 
-    // Read MWPC and DCH
-    for (Int_t iDet = 0; iDet < nDetectors - 1; iDet++) {
+    // Read MWPC, DCH and VERTEX
+    for (Int_t iDet = 0; iDet < 3; iDet++) {
         ExtractCorrValues(resFile, corrs);
         if (iDet == 0) {
             BmnMwpcAlignCorrections* mwpcCorrs = new((*fMwpcAlignCorr)[fMwpcAlignCorr->GetEntriesFast()]) BmnMwpcAlignCorrections();
@@ -1025,11 +1029,23 @@ void BmnGlobalAlignment::ReadPedeOutput(ifstream& resFile) {
         } else if (iDet == 1) {
             BmnDchAlignCorrections* dchCorrs = new((*fDchAlignCorr)[fDchAlignCorr->GetEntriesFast()]) BmnDchAlignCorrections();
             dchCorrs->SetCorrections(corrs);
-        } else if (iDet == 3) {
+        } 
+        else {
+          // VERTEX??? // FIXME
+        }
+    }
+    
+    // Read SILICON
+    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
+        for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++) {
+            ExtractCorrValues(resFile, corrs);
             BmnSiliconAlignCorrections* siCorrs = new((*fSiAlignCorr)[fSiAlignCorr->GetEntriesFast()]) BmnSiliconAlignCorrections();
+            siCorrs->SetStation(iStat);
+            siCorrs->SetModule(iMod);
             siCorrs->SetCorrections(corrs);
         }
     }
+    
     delete [] corrs;
 }
 

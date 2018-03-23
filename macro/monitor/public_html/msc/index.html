@@ -1,9 +1,4 @@
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html>
     <head>
         <title>Trigger detectors</title>
@@ -17,7 +12,6 @@ and open the template in the editor.
                 width: 100vw; 
                 height: 56.25vw;
                 /*width: max-content;*/
-
             }
             hist_trig_table{
                 align-self: stretch;
@@ -38,31 +32,8 @@ and open the template in the editor.
                 setTimeout(drawH, 50);
                 var loco = window.location;
                 var path0 = loco.protocol + "//" + loco.hostname;
-                //var filename = "/msc2/root.app/infoCanvas/root.json";
-                //var filename = "bmn-mon.jinr.ru/root.app/infoCanvas/root.json";
-                //var filename = '/root.app/MWPC/MWPCCanvasWires/root.json';
-                //alert(filename)
-                /*var xhr = new XMLHttpRequest();
-                xhr.open("GET", filename, true);
-                xhr.withCredentials = true;
-                xhr.onreadystatechange = function() {
-                       // alert(xhr.responseText);
-                    if (this.readyState == 4 && this.status == 200) {
-                        //alert(xhr.responseText);
-                        try {
-                            var obj = JSON.parse(xhr.responseText);
-                            //alert(obj);
-                            //alert(obj['_typename'])
-                            //alert(obj._typename)
-                            JSROOT.redraw("infoC", obj, "");
-                        }catch (e) {
-                            alert(e);
-                        }
-                    }
-                };
-                xhr.send();*/
                 try {
-                    for (var i = 0; i < 4; i++) {
+                    for (var i = 0; i < 8; i++) {
                         var filename = '/msc1?histid=' + i;
                         let divid = 'msc_' + i;
                         JSROOT.NewHttpRequest(filename, 'object', function (obj2) {
@@ -115,20 +86,36 @@ and open the template in the editor.
         <div id="msc" style="width: 98vw;">
             <table>
                 <tr>
-                <td>
-                    <div id="msc_0" style = "width: 48vw;height: 24vw;"> </div>
-                </td>
-                <td>
-                    <div id="msc_1" style = "width: 48vw;height: 24vw;"> </div>
-                </td>
+                    <td>
+                        <div id="msc_0" style = "width: 48vw;height: 24vw;"> </div>
+                    </td>
+                    <td>
+                        <div id="msc_1" style = "width: 48vw;height: 24vw;"> </div>
+                    </td>
                 </tr>
                 <tr>
-                <td>
-                    <div id="msc_2" style = "width: 48vw;height: 24vw;"> </div>
-                </td>
-                <td>
-                    <div id="msc_3" style = "width: 48vw;height: 24vw;"> </div>
-                </td>
+                    <td>
+                        <div id="msc_2" style = "width: 48vw;height: 24vw;"> </div>
+                    </td>
+                    <td>
+                        <div id="msc_3" style = "width: 48vw;height: 24vw;"> </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div id="msc_4" style = "width: 48vw;height: 24vw;"> </div>
+                    </td>
+                    <td>
+                        <div id="msc_5" style = "width: 48vw;height: 24vw;"> </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div id="msc_6" style = "width: 48vw;height: 24vw;"> </div>
+                    </td>
+                    <td>
+                        <div id="msc_7" style = "width: 48vw;height: 24vw;"> </div>
+                    </td>
                 </tr>
             </table> </div>
     </div>

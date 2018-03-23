@@ -1,23 +1,25 @@
- <!-- // you can set color name in 'color="color_name"' from predefined:
- white, black, gray,
- blue, azure (темно-синий), cyan (морской волны), teal (бирюзовый),
- green, spring (светло-зеленый), green+2 (темно-зеленый), spring+2 (темно-зеленый), khaki
- yellow, orange (желтый с оттенком), orange+2 (оранжевый кор.), orange+1 (светло-оранжевый кор.), orange+7 (выделенно-оранжевый)
- red, violet, magenta (бардовый), magenta-6 (светло-бардовый), pink (темно-розовый).
- or set rgb as decimal triple: 'color="RGB(r,g,b)"' or hex triple: 'color="RGB(#rgb_hex)"'
+ <!-- You can set color name in 'color="color_name"'
+ 1. From predefined set and with '+' or '-' operation, e.g.:
+ kWhite, kBlack, kGgray,
+ kBlue, kAzure (темно-синий), kCyan (морской волны), kTeal (бирюзовый),
+ kGreen, kSpring (светло-зеленый), kGreen+2 (темно-зеленый), kSpring+2 (темно-зеленый), kKhaki
+ kYellow, kOrange (желтый с оттенком), kOrange+2 (оранжевый кор.), kOrange+1 (светло-оранжевый кор.), kOrange+7 (выделенно-оранжевый)
+ kRed, kViolet, kMagenta (бардовый), kMagenta-6 (светло-бардовый), kPink (темно-розовый).
+ 2. Set RGB triple as decimal or hex number: 'color="RGB(r,g,b)"' or 'color="RGB(#rgb_hex)"'
+ 3. Write color number in ROOT palette
  -->
 <coloring type="detector">
-    <subdetector name="Magnet" color="RGB(51,63,73)" transparency="45" isRecursiveColoring="true"/> <!--gray-->
-    <subdetector name="Coil" color="RGB(0,57,225)" transparency="90" isRecursiveColoring="true"/> <!--blue-->
-    <subdetector name="targ" color="RGB(170,225,0)" transparency="0" isRecursiveColoring="true"/> <!--yellow-->
-    <subdetector name="recoil01" color="RGB(0,57,225)" transparency="67" isRecursiveColoring="true"/> <!--blue-->
-    <subdetector name="GEMS" color="RGB(225,55,0)" transparency="15" isRecursiveColoring="true"/> <!--orange-->
-    <subdetector name="TOF400" color="RGB(167,0,225)" transparency="15" isRecursiveColoring="true"/> <!--violet-->
-    <subdetector name="tof1DetPlateV" color="RGB(167,0,225)" transparency="90" isRecursiveColoring="true"/> <!--violet-->
-    <subdetector name="DCH" color="RGB(0,170,225)" transparency="30" isRecursiveColoring="true"/> <!--cyan-->
-    <subdetector name="tof700" color="RGB(167,0,225)" transparency="15" isRecursiveColoring="true"/> <!--violet-->
-    <subdetector name="VMDL" color="RGB(170,225,0)" transparency="0" isRecursiveColoring="true"/> <!--yellow-->
-    <subdetector name="UMDL" color="RGB(0,170,225)" transparency="0" isRecursiveColoring="true"/> <!--cyan-->
-    <subdetector name="Silicon" color="khaki" transparency="0" isRecursiveColoring="true"/>
+    <detector name="Magnet" color="RGB(51,63,73)" transparency="45" isRecursiveColoring="true"/> <!--gray-->
+    <detector name="Coil" color="RGB(0,57,225)" transparency="90" isRecursiveColoring="true"/> <!--blue-->
+    <detector name="targ" color="RGB(170,225,0)" transparency="0" isRecursiveColoring="true"/> <!--yellow-->
+    <detector name="recoil01" color="RGB(0,57,225)" transparency="67" isRecursiveColoring="true"/> <!--blue-->
+    <detector name="GEMS" color="RGB(225,55,0)" transparency="15" isRecursiveColoring="true"/> <!--orange-->
+    <detector name="TOF400" color="RGB(167,0,225)" transparency="15" isRecursiveColoring="true"/> <!--violet-->
+    <detector name="tof1DetPlateV" color="RGB(167,0,225)" transparency="90" isRecursiveColoring="true"/> <!--violet-->
+    <detector name="DCH" color="RGB(0,170,225)" transparency="30" isRecursiveColoring="true"/> <!--cyan-->
+    <detector name="tof700" color="RGB(167,0,225)" transparency="15" isRecursiveColoring="true"/> <!--violet-->
+    <detector name="VMDL" color="RGB(170,225,0)" transparency="0" isRecursiveColoring="true"/> <!--yellow-->
+    <detector name="UMDL" color="RGB(0,170,225)" transparency="0" isRecursiveColoring="true"/> <!--cyan-->
+    <detector name="Silicon" color="kKhaki" transparency="0" isRecursiveColoring="true"/>
 </coloring>
 

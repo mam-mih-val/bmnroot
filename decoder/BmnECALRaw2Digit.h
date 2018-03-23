@@ -15,7 +15,7 @@
 #include <cstdlib> 
 
 #define MAX_ECAL_EVENTS 10000
-#define MAX_ECAL_CHANNELS 384
+#define MAX_ECAL_CHANNELS 504
 #define MAX_ECAL_LOG_CHANNELS 24
 
 static int nevents_ecal;

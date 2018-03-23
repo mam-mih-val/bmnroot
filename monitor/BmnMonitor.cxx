@@ -28,13 +28,16 @@ BmnMonitor::BmnMonitor() {
     itersToUpdate = 1000;
     TString name = "infoCanvas";
     infoCanvas = new TCanvas(name, name);
-    refList = new TList();
-    refList->SetName("refList");
+    //    refList = new TList();
+    //    refList->SetName("refList");
     refTable = new TList();
     refTable->SetName("refTable");
+    runPub = new TList();
+    runPub->SetName("CurRun");
     fDigiArrays = NULL;
     _ctx = NULL;
     CurRun = new BmnRunInfo();
+    runPub->Add((TObject*) CurRun);
 }
 
 BmnMonitor::~BmnMonitor() {
@@ -57,6 +60,10 @@ BmnMonitor::~BmnMonitor() {
         zmq_ctx_destroy(_ctx);
         _ctx = NULL;
     }
+    if (CurRun)
+        delete CurRun;
+    if (runPub)
+        delete runPub;
 }
 
 void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAddr, Int_t webPort) {
@@ -99,12 +106,12 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
     decoTimeout = 0;
     keepWorking = kTRUE;
     while (keepWorking) {
-//        try {
-            gSystem->ProcessEvents();
-            fServer->ProcessRequests();
-//        }        catch (exception& ex) {
-//            printf("Exception: %s\n", ex.what());
-//        }
+        //        try {
+        gSystem->ProcessEvents();
+        fServer->ProcessRequests();
+        //        }        catch (exception& ex) {
+        //            printf("Exception: %s\n", ex.what());
+        //        }
         zmq_msg_init(&msg);
         frame_size = zmq_msg_recv(&msg, _decoSocket, ZMQ_DONTWAIT); // ZMQ_DONTWAIT
         if (frame_size == -1) {
@@ -114,8 +121,8 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                 if ((decoTimeout > DECO_SOCK_WAIT_LIMIT) && (fState == kBMNWORK)) {
                     //FinishRun();
                     fState = kBMNWAIT;
-                    //                    keepWorking = false;
-                    fServer->SetTimer(10, kFALSE);
+                    //keepWorking = false; // @TODO Remove
+                    fServer->SetTimer(50, kFALSE);
                     DBG("state changed to kBMNWAIT")
                 }
             } else {
@@ -137,13 +144,14 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                         fRunID = runID;
                         CreateFile(fRunID);
                         DBG("state changed to kBMNWORK")
-                        fServer->SetTimer(0, kTRUE);
+                        //fServer->SetTimer(0, kTRUE);
                         fState = kBMNWORK;
                         ProcessDigi(0);
                         break;
                     case kBMNWORK:
                         if (fRunID != runID) {
                             FinishRun();
+                            //keepWorking = false; // @TODO Remove
                             fRunID = runID;
                             CreateFile(fRunID);
                         }
@@ -152,6 +160,8 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                     default:
                         break;
                 }
+            } else {
+                printf("No header??\n");
             }
             fDigiArrays->Clear();
             delete fDigiArrays;
@@ -166,58 +176,56 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
 
 void BmnMonitor::InitServer() {
     TString cgiStr = Form("fastcgi:%d", _webPort);
-    if (gSystem->AccessPathName("auth.htdigest") != 0) {
+    if (gSystem->AccessPathName(_curDir + "auth.htdigest") != 0) {
         printf("Authorization file not found\nStarting server without authorization\n");
         fServer = new THttpServer(cgiStr.Data());
     } else
         fServer = new THttpServer(TString(cgiStr + "?auth_file=auth.htdigest&auth_domain=root").Data());
-    fServer->SetTimer(0, kFALSE);
-    fServer->SetItemField("/", "_monitoring", "10000");
-    fServer->SetItemField("/", "_layout", "grid3x3");
+    fServer->SetTimer(50, kTRUE);
 }
 
 BmnStatus BmnMonitor::CreateFile(Int_t runID) {
+    DBG("started")
     fEvents = 0;
     UpdateRuns();
-    TString outHistName = Form("bmn_run%04d_hist.root", runID);
+    TString outHistName = Form("%s/bmn_run%04d_hist.root", _curDir.Data(), runID);
     fHistOut = new TFile(outHistName, "recreate");
     if (fHistOut)
         printf("file %s created\n", outHistName.Data());
-    fRecoTree = new TTree("BmnMon", "BmnMon");
-    fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
+    //    fRecoTree = new TTree("BmnMon", "BmnMon");
+    //    fRecoTree->SetMaxTreeSize(TTREE_MAX_SIZE); // file will not be divided
     //    if (fRecoTree4Show) {
     //        fRecoTree4Show->Clear();
     //        delete fRecoTree4Show;
     //        fRecoTree4Show = NULL;
     //    }
-//    fHistOutTemp = new TFile("tempo.root", "recreate");
+    //    fHistOutTemp = new TFile("tempo.root", "recreate");
     if (fHistOutTemp)
         printf("file tempo.root created\n");
-    fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
+    //    fRecoTree4Show = new TTree("BmnMon4Show", "BmnMon");
     //    fRecoTree4Show->SetDirectory(NULL); // tree will not be saved
 
     TString refName = Form("ref%06d_", fRunID);
     bhVec.push_back(new BmnHistGem(refName + "GEM", _curDir, fPeriodID));
     bhVec.push_back(new BmnHistSilicon(refName + "Silicon", _curDir, fPeriodID));
-    bhVec.push_back(new BmnHistDch(refName + "DCH"));
-    bhVec.push_back(new BmnHistMwpc(refName + "MWPC"));
-    bhVec.push_back(new BmnHistZDC(refName + "ZDC"));
-    bhVec.push_back(new BmnHistECAL(refName + "ECAL"));
-    bhVec.push_back(new BmnHistToF(refName + "ToF400"));
-    bhVec.push_back(new BmnHistToF700(refName + "ToF700"));
-    bhVec.push_back(new BmnHistTrigger(refName + "Triggers"));
+    bhVec.push_back(new BmnHistDch(refName + "DCH", _curDir));
+    bhVec.push_back(new BmnHistMwpc(refName + "MWPC", _curDir));
+    bhVec.push_back(new BmnHistZDC(refName + "ZDC", _curDir));
+    bhVec.push_back(new BmnHistECAL(refName + "ECAL", _curDir));
+    bhVec.push_back(new BmnHistToF(refName + "ToF400", _curDir));
+    bhVec.push_back(new BmnHistToF700(refName + "ToF700", _curDir));
+    bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir));
     bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir));
-    bhVec.push_back(new BmnHistLAND(refName + "LAND"));
-    for (auto h : bhVec){
+    bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
+    for (auto h : bhVec) {
         h->SetDir(fHistOut, fRecoTree);
     }
     for (auto h : bhVec4show) {
-//        h->SetDir(fHistOutTemp, fRecoTree4Show);
+        //        h->SetDir(fHistOutTemp, fRecoTree4Show);
         h->SetDir(NULL, NULL);
         h->ClearRefRun();
         h->Reset();
     }
-
     return kBMNSUCCESS;
 }
 
@@ -231,7 +239,7 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     //    //    clock_t prev = clock();
     //    //    printf("zdc fill %f\n", (clock() - prev)/ (double) CLOCKS_PER_SEC);
     // Fill data Tree //
-    fRecoTree->Fill();
+    if (fRecoTree) fRecoTree->Fill();
     // fill histograms what will be shown on the site//
     for (auto h : bhVec4show)
         if (h)
@@ -274,19 +282,20 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
 void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistGem("GEM", _curDir, fPeriodID));
     bhVec4show.push_back(new BmnHistSilicon("Silicon", _curDir, fPeriodID));
-    bhVec4show.push_back(new BmnHistDch("DCH"));
-    bhVec4show.push_back(new BmnHistMwpc("MWPC"));
-    bhVec4show.push_back(new BmnHistZDC("ZDC"));
-    bhVec4show.push_back(new BmnHistECAL("ECAL"));
-    bhVec4show.push_back(new BmnHistToF("ToF400"));
-    bhVec4show.push_back(new BmnHistToF700("ToF700"));
-    bhVec4show.push_back(new BmnHistTrigger("Triggers"));
+    bhVec4show.push_back(new BmnHistDch("DCH", _curDir));
+    bhVec4show.push_back(new BmnHistMwpc("MWPC", _curDir));
+    bhVec4show.push_back(new BmnHistZDC("ZDC", _curDir));
+    bhVec4show.push_back(new BmnHistECAL("ECAL", _curDir));
+    bhVec4show.push_back(new BmnHistToF("ToF400", _curDir));
+    bhVec4show.push_back(new BmnHistToF700("ToF700", _curDir));
+    bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir));
     bhVec4show.push_back(new BmnHistSrc("SRC", _curDir));
-    bhVec4show.push_back(new BmnHistLAND("LAND"));
+    bhVec4show.push_back(new BmnHistLAND("LAND", _curDir));
 
     fServer->Register("/", infoCanvas);
     //fServer->Register("/", refList);
     fServer->Register("/", refTable);
+    fServer->Register("/", runPub);
     for (auto h : bhVec4show) {
         h->Register(fServer);
         h->SetRefPath(_refDir);
@@ -294,30 +303,36 @@ void BmnMonitor::RegisterAll() {
 }
 
 void BmnMonitor::UpdateRuns() {
-//    struct dirent **namelist;
-//    TPRegexp re(".*bmn_run0*(\\d+)_hist.root");
-//    Int_t n;
-//    refList->Clear();
-//    n = scandir(_refDir, &namelist, 0, versionsort);
-//    if (n < 0)
-//        perror("scandir");
-//    else {
-//        for (Int_t i = 0; i < n; ++i) {
-//            TObjArray *subStr = re.MatchS(namelist[i]->d_name);
-//            if (subStr->GetEntriesFast() > 1)
-//                refList->Add((TObjString*) subStr->At(1));
-//            free(namelist[i]);
-//            subStr->Clear();
-//        }
-//        free(namelist);
-//    }
+    //    struct dirent **namelist;
+    //    TPRegexp re(".*bmn_run0*(\\d+)_hist.root");
+    //    Int_t n;
+    //    refList->Clear();
+    //    n = scandir(_refDir, &namelist, 0, versionsort);
+    //    if (n < 0)
+    //        perror("scandir");
+    //    else {
+    //        for (Int_t i = 0; i < n; ++i) {
+    //            TObjArray *subStr = re.MatchS(namelist[i]->d_name);
+    //            if (subStr->GetEntriesFast() > 1)
+    //                refList->Add((TObjString*) subStr->At(1));
+    //            free(namelist[i]);
+    //            subStr->Clear();
+    //        }
+    //        free(namelist);
+    //    }
 
-    TObjArray* refRuns = BmnMonitor::GetAlikeRunsByUniDB(fPeriodID, fRunID);
+    refTable->Clear();
+    runPub->Clear();
+    TObjArray* refRuns = GetAlikeRunsByUniDB(fPeriodID, fRunID);
     if (refRuns == NULL) {
         fprintf(stderr, "Ref list is empty!\n");
+        delete CurRun;
+        CurRun = new BmnRunInfo();
+        CurRun->SetRunNumber(fRunID);
+        runPub->Add((TObject*) CurRun);
         return;
     }
-    refTable->Clear();
+    runPub->Add((TObject*) CurRun);
     for (Int_t iRun = 0; iRun < refRuns->GetEntriesFast(); iRun++) {
         UniDbRun* run = (UniDbRun*) refRuns->At(iRun);
         BmnRunInfo* runInfo = new BmnRunInfo(run);
@@ -335,9 +350,10 @@ void BmnMonitor::UpdateRuns() {
 
 void BmnMonitor::FinishRun() {
     DBG("started")
-    if (fRecoTree)
-        printf("fRecoTree Write result = %d\n", fRecoTree->Write());
+            //    if (fRecoTree)
+            //        printf("fRecoTree Write result = %d\n", fRecoTree->Write());
     if (fHistOut) {
+        printf("fHistOut is gona be written\n");
         printf("fHistOut  Write result = %d\n", fHistOut->Write());
         fHistOut->Close();
         fHistOut = NULL;
@@ -355,18 +371,18 @@ void BmnMonitor::FinishRun() {
     for (auto h : bhVec)
         if (h) delete h;
     bhVec.clear();
-//    if (fRecoTree4Show){
-//        printf("fRecoTree4Show Write result = %d\n", fRecoTree4Show->Write());
-//    }
-//    if (fHistOutTemp) {
-//        printf("fHistOutMem Write result = %d\n", fHistOutTemp->Write());
-//        for (auto h : bhVec4show)
-//            h->SetDir(NULL, NULL);
-//        printf("SetDir\n");
-//        fHistOutTemp->Close();
-//        printf("fHistOutMem closed\n");
-//        fHistOutTemp = NULL;
-//    }
+    //    if (fRecoTree4Show){
+    //        printf("fRecoTree4Show Write result = %d\n", fRecoTree4Show->Write());
+    //    }
+    //    if (fHistOutTemp) {
+    //        printf("fHistOutMem Write result = %d\n", fHistOutTemp->Write());
+    //        for (auto h : bhVec4show)
+    //            h->SetDir(NULL, NULL);
+    //        printf("SetDir\n");
+    //        fHistOutTemp->Close();
+    //        printf("fHistOutMem closed\n");
+    //        fHistOutTemp = NULL;
+    //    }
 }
 
 TObjArray* BmnMonitor::GetAlikeRunsByElog(Int_t periodID, Int_t runID) {
@@ -421,33 +437,46 @@ TObjArray* BmnMonitor::GetAlikeRunsByElog(Int_t periodID, Int_t runID) {
 }
 
 TObjArray* BmnMonitor::GetAlikeRunsByUniDB(Int_t periodID, Int_t runID) {
-    UniDbRun* curRun = UniDbRun::GetRun(periodID, runID);
-    if (curRun == NULL) {
+    printf("getalike \n");
+    UniDbRun* Run = UniDbRun::GetRun(periodID, runID);
+    printf("getalike request returned\n");
+    if (Run == NULL) {
         fprintf(stderr, "Run %d not found in UniDB!\n", runID);
         return NULL;
     }
+    if (!(Run->GetFieldVoltage() && Run->GetEnergy())){
+        fprintf(stderr, "Not enough info on current run!\n");
+        return NULL;
+    }
+    if (CurRun)
+        delete CurRun;
+    CurRun = new BmnRunInfo(Run);
     TObjArray arrayConditions;
-    TString beamParticle = curRun->GetBeamParticle();
+    TString beamParticle = Run->GetBeamParticle();
+        printf("Beam particle %s\n", Run->GetBeamParticle().Data());
     UniDbSearchCondition* searchCondition = new UniDbSearchCondition(columnBeamParticle, conditionEqual, beamParticle);
     arrayConditions.Add((TObject*) searchCondition);
-    if (curRun->GetTargetParticle() != NULL) {
-        TString targetParticle = *curRun->GetTargetParticle();
+        TString targetParticle = Run->GetTargetParticle() ? *Run->GetTargetParticle() : "";
+        printf("Target particle %s\n", targetParticle.Data());
         searchCondition = new UniDbSearchCondition(columnTargetParticle, conditionEqual, targetParticle);
         arrayConditions.Add((TObject*) searchCondition);
-    }
-    if (curRun->GetEnergy() != NULL) {
-        Double_t beamEnergy = *curRun->GetEnergy();
+    if (Run->GetEnergy() != NULL) {
+        printf("Beam Energy %f\n", *Run->GetEnergy());
+        Double_t beamEnergy = *Run->GetEnergy();
         searchCondition = new UniDbSearchCondition(columnEnergy, conditionEqual, beamEnergy);
         arrayConditions.Add((TObject*) searchCondition);
     }
-    if (curRun->GetFieldVoltage() != NULL) {
-        Double_t V_SP41 = *curRun->GetFieldVoltage();
+    if (Run->GetFieldVoltage() != NULL) {
+        printf("Field voltage %f\n", *Run->GetFieldVoltage());
+        Double_t V_SP41 = *Run->GetFieldVoltage();
         searchCondition = new UniDbSearchCondition(columnFieldVoltage, conditionLessOrEqual, V_SP41 * 1.15);
         arrayConditions.Add((TObject*) searchCondition);
         searchCondition = new UniDbSearchCondition(columnFieldVoltage, conditionGreaterOrEqual, V_SP41 * 0.85);
         arrayConditions.Add((TObject*) searchCondition);
     }
+    printf("search\n");
     TObjArray* refRuns = UniDbRun::Search(arrayConditions);
+    printf("search request returned\n");
     arrayConditions.SetOwner(kTRUE);
     arrayConditions.Delete();
     return refRuns;

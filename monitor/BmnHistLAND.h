@@ -36,7 +36,7 @@
 
 class BmnHistLAND : public BmnHist {
 public:
-    BmnHistLAND(TString title = "LAND");
+    BmnHistLAND(TString title, TString path = "");
     virtual ~BmnHistLAND();
     
     void Register(THttpServer *serv);

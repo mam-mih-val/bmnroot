@@ -22,7 +22,7 @@
 
 #define TOF1_CHANNEL_NUMBER 72
 #define TOF1_BIN_NUMBER 1024
-#define TOF1_MAX_TIME (24.) //In ns?
+#define TOF1_MAX_TIME (24.) //In ns
 #define TOF1_TDC_TYPE (0x12) //TDC72VHL
 
 //A simple class to compare the TDCDigits. See .cxx code
@@ -53,7 +53,7 @@ class BmnTof1Raw2Digit {
 		BmnTof1Raw2Digit(int nPeriod, int nRun); //Calls setRun(...)
 		~BmnTof1Raw2Digit(); //Destructor
 		
-		void setRun(int nPerion, int nRun); //Load mapping and INL from the DB for run #nRun in period #nPeriod
+		Bool_t setRun(int nPerion, int nRun); //Load mapping and INL from the DB for run #nRun in period #nPeriod
 		void setMapFromFile(TString placementMapFile, TString mapFile); //Load mapping from two files
 		void saveMapToFile(std::string placementMapFile, std::string mapFile); //Save the mapping to two files
 		
@@ -62,9 +62,10 @@ class BmnTof1Raw2Digit {
 		
 		void print(){} //Prints some info
 		
-		void FillEvent(TClonesArray *data, TClonesArray *tof1digit); //
+		void FillEvent(TClonesArray *data, map<UInt_t, Long64_t> *mapTS,TClonesArray *tof1digit); //
 		
 		static UShort_t ToGlobalChannel(UChar_t HptdcId, UChar_t channel);
+                
 	private:
 		ClassDef(BmnTof1Raw2Digit, 1);
 		void init(); //BmnTof1Raw2Digit init function (called in BmnTof1Raw2Digit constructors)

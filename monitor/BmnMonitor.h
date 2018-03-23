@@ -58,8 +58,8 @@ public:
     void MonitorStreamZ(TString dir, TString refDir = "", TString decoAddr = "localhost", Int_t webPort = 9000);
     static void threadDecodeWrapper(TString dirname, TString startFile, Bool_t runCurrent);
     static void threadCmdWrapper(string cmd);
-    static TObjArray* GetAlikeRunsByElog(Int_t periodID, Int_t rinID);
-    static TObjArray* GetAlikeRunsByUniDB(Int_t periodID, Int_t rinID);
+    TObjArray* GetAlikeRunsByElog(Int_t periodID, Int_t rinID);
+    TObjArray* GetAlikeRunsByUniDB(Int_t periodID, Int_t rinID);
     
     // Getters
     deque<UInt_t> * GetDataQue() { return fDataQue;}
@@ -104,8 +104,9 @@ private:
     vector < BmnHist* > bhVec4show;
     
     TCanvas *infoCanvas;
-    TList *refList;
+//    TList *refList;
     TList *refTable;
+    TList *runPub;
     BmnRunInfo *CurRun;
 
     BmnDataReceiver *dataReceiver;

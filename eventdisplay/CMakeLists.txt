@@ -65,6 +65,7 @@ if (MPDROOT)
   Set(INCLUDE_DIRECTORIES
     ${INCLUDE_DIRECTORIES}
     ${CMAKE_SOURCE_DIR}/mcstack
+    ${CMAKE_SOURCE_DIR}/mpdbase
     ${CMAKE_SOURCE_DIR}/mpddata
     ${CMAKE_SOURCE_DIR}/kalman
     ${CMAKE_SOURCE_DIR}/tpc
@@ -131,8 +132,11 @@ else (TDAQ_FOUND)
   Set(DEPENDENCIES Base Eve Geom EG Physics Ged Gui Graf3d Tree Core xml2)
 endif (TDAQ_FOUND)
 if (BMNROOT)
- Set(DEPENDENCIES Geane BmnData ${DEPENDENCIES})
+ Set(DEPENDENCIES BmnData Geane ${DEPENDENCIES})
 endif (BMNROOT)
+if (MPDROOT)
+ Set(DEPENDENCIES Emc Geane ${DEPENDENCIES})
+endif (MPDROOT)
 
 Set(LIBRARY_NAME EventDisplay)
 

@@ -712,7 +712,7 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
     for (unsigned chain = 0; chain < 2; ++chain) {
         uint32_t header = ntohl(*p32++);
 #define TACQUILA_PRINT_HEADER << "(header=" << header << ")" <<
-        unsigned count = header & 0xff;
+        unsigned count = header & 0x1ff;
         if (count & 1) {
             cerr << __FILE__ << ':' << __LINE__ << ": Odd data count forbidden "
                     TACQUILA_PRINT_HEADER ".\n";

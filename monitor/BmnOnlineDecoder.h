@@ -38,7 +38,7 @@
 #define RAW_DECODER_SOCKET_PORT 5555
 #define RUN_FILE_CHECK_PERIOD    1e5
 #define RUN_FILE_CHECK_PERIOD    1e5
-#define DECO_SOCK_WAIT_PERIOD    5e2
+#define DECO_SOCK_WAIT_PERIOD     10
 #define DECO_SOCK_WAIT_LIMIT     5*60e3
 #define INOTIF_BUF_LEN (255 * (sizeof(struct inotify_event) + 255))
 #define DAQ_ADDR     "bmn-daq"  //"bmn-hrb-3.jinr.ru"

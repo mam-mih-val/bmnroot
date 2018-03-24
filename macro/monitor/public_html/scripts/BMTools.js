@@ -20,10 +20,10 @@ function FillRefSelector(path, selID) {
 
 function FillRefTable(path, selID) {
     var sel = document.getElementById(selID);
-    if (sel.innerHTML == "")
+    if ((sel.size == 0) || (sel.innerHTML == ""))
         JSROOT.NewHttpRequest(path, 'text', function (obj) {
             var refList = JSON.parse(obj);
-            //sel.innerHTML = "";
+            sel.innerHTML = "";
             refList.arr.forEach(function (item) {
                 var op = document.createElement("option");
                 var s = 'Run ' + item.i_run_number + ', beam ' + item.str_beam_particle + ', energy ' + item.d_energy;
@@ -45,6 +45,8 @@ function makeSelection() {
     var rt = document.getElementById("refTable");
     var id = rt.value;
     var refInput = document.getElementById("refInput");
+    if (rt.innerHTML == "")
+        return;
     refInput.value = id;
 }
 

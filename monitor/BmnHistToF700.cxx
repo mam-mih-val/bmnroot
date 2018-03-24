@@ -103,8 +103,8 @@ void BmnHistToF700::FillFromDigi(DigiArrays *fDigiArrays) {
             histLeadingTimeSpecific->Fill(td->GetTime());
         }
 
-        new ((*Events)[Events->GetEntriesFast()])
-                BmnTof2Digit(td->GetPlane(), td->GetStrip(), td->GetTime(), td->GetAmplitude(), td->GetDiff());
+//        new ((*Events)[Events->GetEntriesFast()])
+//                BmnTof2Digit(td->GetPlane(), td->GetStrip(), td->GetTime(), td->GetAmplitude(), td->GetDiff());
 //        frecoTree->Fill();
     }
 }

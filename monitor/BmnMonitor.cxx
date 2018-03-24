@@ -119,10 +119,10 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                 usleep(DECO_SOCK_WAIT_PERIOD * 1000);
                 decoTimeout += DECO_SOCK_WAIT_PERIOD;
                 if ((decoTimeout > DECO_SOCK_WAIT_LIMIT) && (fState == kBMNWORK)) {
-                    //FinishRun();
+                    FinishRun();
                     fState = kBMNWAIT;
-                    //keepWorking = false; // @TODO Remove
-                    fServer->SetTimer(50, kFALSE);
+                    keepWorking = false; // @TODO Remove
+                    //fServer->SetTimer(50, kTRUE);
                     DBG("state changed to kBMNWAIT")
                 }
             } else {
@@ -151,7 +151,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                     case kBMNWORK:
                         if (fRunID != runID) {
                             FinishRun();
-                            //keepWorking = false; // @TODO Remove
+                            keepWorking = false; // @TODO Remove
                             fRunID = runID;
                             CreateFile(fRunID);
                         }

@@ -657,6 +657,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                             if (evType == kBMNPEDESTAL)
                                 fPedoCounter++;
                         }
+                        FillU40VE(d, serial, slot, modId, i);
                         break;
                 }
             }
@@ -772,6 +773,26 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
         }
     }
     return kBMNSUCCESS;
+}
+
+BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
+    UInt_t type = d[idx] >> 28;
+    while (type == 2 ||type == 3 ||type == 4){
+        if (type == 4){
+            UInt_t trigCand = d[idx + 0] & 0x1FFFFFFF;
+            UInt_t trigAcce = d[idx + 1] & 0x1FFFFFFF;
+            UInt_t trigBefo = d[idx + 2] & 0x1FFFFFFF;
+            UInt_t trigAfte = d[idx + 3] & 0x1FFFFFFF;
+            UInt_t trigRjCt = d[idx + 4] & 0x1FFFFFFF;
+            idx+=5;
+//            printf("cand %04d, acc %04d, bef %04d, after %04d, rjct %04d\n",
+//                    trigCand, trigAcce, trigBefo, trigAfte, trigRjCt);
+            break;
+        }
+        idx++; //go to the next DATA-word
+        type = d[idx] >> 28;
+    }
+    idx--;
 }
 
 BmnStatus BmnRawDataDecoder::FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {

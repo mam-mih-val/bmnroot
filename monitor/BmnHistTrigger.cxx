@@ -118,7 +118,7 @@ void BmnHistTrigger::InitHistsFromArr(vector<TClonesArray*> *trigAr) {
     canTimesPads[3]->current = histSiBSum;
     for (Int_t iPad = 0; iPad < rows4Spectrum * fCols; iPad++) {
         PadInfo* p = new PadInfo();
-        p->opt = "colz logz";
+        p->opt = "colz logz nostat";
         can2dPads[iPad] = p;
         can2d->GetPad(iPad + 1)->SetGrid();
     }

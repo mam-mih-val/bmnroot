@@ -424,7 +424,6 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRootIterateFile(UInt_t limit) {
 }
 
 BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
-
     sync->Delete();
     tdc->Delete();
     tqdc_adc->Delete();
@@ -616,8 +615,6 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
     UInt_t type = 0;
     for (UInt_t i = 0; i < len; i++) {
         type = d[i] >> 28;
-        //        printf("type %x\n", type);
-        //printf("modid 0x%X  serial 0x%X\n", modId, serial);
         switch (type) {
             case kEVHEADER:
             case kEVTRAILER:
@@ -630,6 +627,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
             case kMODHEADER:
                 modId = (d[i] >> 16) & 0x7F;
                 slot = (d[i] >> 23) & 0x1F;
+                //printf("modid 0x%X slot %d serial 0x%X\n", modId, slot, serial);
                 break;
             default: //data
             {
@@ -650,14 +648,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                         FillSYNC(d, serial, i);
                         break;
                     case kU40VE_RC:
-                            //printf("d[i] %x\n", d[i]);
-                        if (fPeriodId > 4 && type == kGEMTRIGTYPE && slot == kEVENTTYPESLOT) {
-                            trType = ((d[i] & 0x7) == kTRIGMINBIAS) ? kBMNMINBIAS : kBMNBEAM;
-                            evType = ((d[i] & 0x8) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
-                            if (evType == kBMNPEDESTAL)
-                                fPedoCounter++;
-                        }
-                        FillU40VE(d, serial, slot, modId, i);
+                        FillU40VE(d, evType, trType, slot, i);
                         break;
                 }
             }
@@ -775,9 +766,18 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
+BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, BmnTriggerType &trType, UInt_t slot, UInt_t & idx) {
     UInt_t type = d[idx] >> 28;
     while (type == 2 || type == 3 || type == 4) {
+        //printf("type %d  slot %d\n", type, slot);
+        if (fPeriodId > 4 && type == kGEMTRIGTYPE && slot == kEVENTTYPESLOT) {
+            trType = ((d[idx] & 0x7) == kTRIGMINBIAS) ? kBMNMINBIAS : kBMNBEAM;
+            //                            evType = ((d[i] & 0x8) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
+            evType = (d[idx] & 0x8) ? kBMNPEDESTAL : kBMNPAYLOAD;
+            //printf("evType %d\n", evType);
+            if (evType == kBMNPEDESTAL)
+                fPedoCounter++;
+        }
         if (type == 4) {
             UInt_t trigCand = d[idx + 0] & 0x1FFFFFFF;
             UInt_t trigAcce = d[idx + 1] & 0x1FFFFFFF;
@@ -955,7 +955,6 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
             if (curEventType != kBMNPEDESTAL) continue;
             if (fPedEvCntr != fEvForPedestals - 1) {
-                printf("fPedEvCntr %d\n", fPedEvCntr);
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
             } else {

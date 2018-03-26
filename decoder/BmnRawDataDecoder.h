@@ -484,7 +484,7 @@ private:
     BmnStatus Process_FVME(UInt_t *data, UInt_t len, UInt_t serial, BmnEventType &ped, BmnTriggerType &trig);
     BmnStatus Process_HRB(UInt_t *data, UInt_t len, UInt_t serial);
     BmnStatus Process_Tacquila(UInt_t *data, UInt_t len);
-    BmnStatus FillU40VE(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
+    BmnStatus FillU40VE(UInt_t *d, BmnEventType &evType, BmnTriggerType &trType, UInt_t slot, UInt_t &idx);
     BmnStatus FillTDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);

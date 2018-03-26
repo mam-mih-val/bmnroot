@@ -134,7 +134,7 @@ void BmnHistToF::FillFromDigi(DigiArrays *fDigiArrays) {
     histStripSimult->ResetStats();
     for (Int_t binIndex = 1; binIndex < TOF400_STRIP_COUNT; binIndex++) {
         s = ((histL->GetBinContent(binIndex) * histR->GetBinContent(binIndex)) != 0) ? 1 : 0;
-        histStripSimult->AddBinContent(s);
+        if (s) histStripSimult->AddBinContent(s);
     }
     //    if (fEventsBranch != NULL)
     //        fEventsBranch->Fill();
@@ -159,8 +159,6 @@ void BmnHistToF::Register(THttpServer *serv) {
     fServer->Restrict(cmdTitle.Data(), "visible=shift");
     fServer->Restrict(cmdTitle.Data(), "allow=shift");
     fServer->Restrict(cmdTitle.Data(), "deny=guest");
-    fServer->SetItemField(path.Data(), "_monitoring", "2000");
-    fServer->SetItemField(path.Data(), "_layout", "grid3x3");
     cmdTitle = path + "ChangeSlection";
     fServer->RegisterCommand(cmdTitle, TString("/") + fName.Data() + "/->SetSelection(%arg1%,%arg2%,%arg3%)", "button;");
     fServer->Restrict(cmdTitle, "visible=shift");

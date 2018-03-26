@@ -58,6 +58,7 @@ private:
     Int_t fCols = 0;
     vector<TString> histNames;
     vector<TString> trigNames;
+    vector<TString> shortNames;
     TClonesArray *BDEvents;
 //    TH1D *histBC1TimeLen;
 //    TH1D *histBC2TimeLen;

@@ -650,9 +650,9 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                         FillSYNC(d, serial, i);
                         break;
                     case kU40VE_RC:
+                            //printf("d[i] %x\n", d[i]);
                         if (fPeriodId > 4 && type == kGEMTRIGTYPE && slot == kEVENTTYPESLOT) {
                             trType = ((d[i] & 0x7) == kTRIGMINBIAS) ? kBMNMINBIAS : kBMNBEAM;
-                            //                            printf("trType %d\n", trType);
                             evType = ((d[i] & 0x8) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
                             if (evType == kBMNPEDESTAL)
                                 fPedoCounter++;
@@ -777,16 +777,16 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
 
 BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t & idx) {
     UInt_t type = d[idx] >> 28;
-    while (type == 2 ||type == 3 ||type == 4){
-        if (type == 4){
+    while (type == 2 || type == 3 || type == 4) {
+        if (type == 4) {
             UInt_t trigCand = d[idx + 0] & 0x1FFFFFFF;
             UInt_t trigAcce = d[idx + 1] & 0x1FFFFFFF;
             UInt_t trigBefo = d[idx + 2] & 0x1FFFFFFF;
             UInt_t trigAfte = d[idx + 3] & 0x1FFFFFFF;
             UInt_t trigRjCt = d[idx + 4] & 0x1FFFFFFF;
-            idx+=5;
-//            printf("cand %04d, acc %04d, bef %04d, after %04d, rjct %04d\n",
-//                    trigCand, trigAcce, trigBefo, trigAfte, trigRjCt);
+            idx += 5;
+            //            printf("cand %04d, acc %04d, bef %04d, after %04d, rjct %04d\n",
+            //                    trigCand, trigAcce, trigBefo, trigAfte, trigRjCt);
             break;
         }
         idx++; //go to the next DATA-word
@@ -955,6 +955,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
 
             if (curEventType != kBMNPEDESTAL) continue;
             if (fPedEvCntr != fEvForPedestals - 1) {
+                printf("fPedEvCntr %d\n", fPedEvCntr);
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
             } else {

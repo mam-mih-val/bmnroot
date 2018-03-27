@@ -27,7 +27,8 @@ BmnMonitor::BmnMonitor() {
     fState = kBMNRECON;
     itersToUpdate = 1000;
     TString name = "infoCanvas";
-    infoCanvas = new TCanvas(name, name);
+    infoCanvas = new TCanvas(name, name, 3 * PAD_WIDTH, 1 * PAD_HEIGHT);
+    infoCanvas->Divide(3,1);
     //    refList = new TList();
     //    refList->SetName("refList");
     refTable = new TList();
@@ -119,9 +120,9 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                 usleep(DECO_SOCK_WAIT_PERIOD * 1000);
                 decoTimeout += DECO_SOCK_WAIT_PERIOD;
                 if ((decoTimeout > DECO_SOCK_WAIT_LIMIT) && (fState == kBMNWORK)) {
-                    FinishRun();
+                    //FinishRun();
                     fState = kBMNWAIT;
-                    keepWorking = false; // @TODO Remove
+                    //keepWorking = false; // @TODO Remove
                     //fServer->SetTimer(50, kTRUE);
                     DBG("state changed to kBMNWAIT")
                 }
@@ -151,7 +152,7 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
                     case kBMNWORK:
                         if (fRunID != runID) {
                             FinishRun();
-                            keepWorking = false; // @TODO Remove
+                            //keepWorking = false; // @TODO Remove
                             fRunID = runID;
                             CreateFile(fRunID);
                         }
@@ -247,8 +248,9 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
     //fRecoTree4Show->Fill();
     if (fEvents % 200 == 0) {
         // print info canvas //
-        infoCanvas->Clear();
-        infoCanvas->cd(1);
+        //infoCanvas->Clear();
+        TVirtualPad *pad = infoCanvas->cd(1);
+        pad->Clear();
         TString runType;
         switch (head->GetTrig()) {
             case kBMNBEAM:
@@ -262,15 +264,26 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
                 break;
         }
         TLatex Tl;
-        Tl.SetTextAlign(23);
+        Tl.SetTextAlign(12);
         Tl.SetTextSize(0.16);
         TString shownID = head->GetRunId() == UNKNOWN_RUNID ? " o_O" : TString::UItoa(head->GetRunId(), 10);
         Tl.DrawLatex(0.5, 0.9, Form("Run: %s", shownID.Data()));
         Tl.DrawLatex(0.5, 0.6, Form("Event: %d", head->GetEventId()));
         Tl.DrawLatex(0.5, 0.3, Form("Run Type: %s", runType.Data()));
         Tl.Draw();
-        infoCanvas->Modified();
-        infoCanvas->Update();
+        pad->Update();
+        pad->Modified();
+        pad = infoCanvas->cd(2);
+        pad->Clear();
+        TLatex l2;
+        l2.SetTextAlign(12);
+        l2.SetTextSize(0.16);
+        l2.DrawLatex(0.5, 0.9, Form("Energy: %0.0f", CurRun->GetEnergy()));
+        l2.DrawLatex(0.5, 0.6, Form("Beam: %s", CurRun->GetBeamParticle().Data()));
+        l2.DrawLatex(0.5, 0.3, Form("Target: %s", CurRun->GetTargetParticle().Data()));
+        l2.Draw();
+        pad->Update();
+        pad->Modified();
         for (auto h : bhVec4show)
             h->DrawBoth();
         if (fEvents % 2000 == 0)

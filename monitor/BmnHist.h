@@ -29,8 +29,8 @@
 #include "BmnEventHeader.h"
 #include "DigiArrays.h"
 
-#define PAD_WIDTH   200
-#define PAD_HEIGHT  150
+#define PAD_WIDTH   256
+#define PAD_HEIGHT  144
 
 using namespace std;
 

@@ -836,7 +836,7 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
                 channel = (d[idx] >> 19) & 0x1F; // i think ok...
                 UInt_t time = 4 * (d[idx] & 0x7FFFF) + rcdata; // in 25 ps
                 new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time, tdcTimestamp);
-                //                printf("TDC: type %d channel %d time %d \n", type, channel, time);
+//                printf("TDC: serial 0x%X slot %d channel %d type %d  time %d \n", serial, slot, channel, type, time);
             } else if ((type == 4) && (mode == 2)) {
                 channel = (d[idx] >> 19) & 0x1F;
                 trigTimestamp = d[idx++] & 0xFF;

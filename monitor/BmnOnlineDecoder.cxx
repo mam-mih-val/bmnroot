@@ -336,8 +336,9 @@ void BmnOnlineDecoder::ProcessStream() {
                             runlen = *(++word);
                             runID = *(++word);
                             printf("runID = %d\n", runID);
-                            if (fRunID < runID) {
+                            if (fRunID != runID) {
                                 fRunID = runID;
+                                printf("fRunID %d\n", fRunID);
                                 if (rawDataDecoder) {
                                     rawDataDecoder->DisposeDecoder();
                                     delete rawDataDecoder;

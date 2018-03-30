@@ -10,31 +10,14 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile) {
 
 BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *digiTree) {
     readMap(mappingFile);
-    UInt_t mapLen = fMap.size();
-    for (UInt_t i = 0; i < mapLen; ++i) {
-        TString detName = fMap[i].name;
-        if (detName.Contains("TQDC")) {
-            BmnTrigMapping rec;
-            rec.channel = fMap[i].channel;
-            rec.module = fMap[i].module;
-            rec.serial = fMap[i].serial;
-            rec.slot = fMap[i].slot;
-            rec.name = fMap[i].name;
-            rec.name.Replace(rec.name.Index("TQDC"), 4, "TQDC_ADC");
-            fMap.push_back(rec);
-        }
-    }
+    TPRegexp re("TQDC_(\\S+)");
     for (BmnTrigMapping &record : fMap) {
-        TString detName = record.name;
-        TString clsName = detName.Contains("TQDC") ?
-                (detName.Contains("ADC") ?
-                BmnTrigWaveDigit::Class_Name() :
-                BmnTrigDigit::Class_Name()
-                ) :
-                BmnTrigDigit::Class_Name();
+        TString chName = record.name; // channel name in mapping
+        TString detName = chName;     // real detector name
+        re.Substitute(detName, "$1"); // real detector name
         TBranch* br = digiTree->GetBranch(detName.Data());
         if (!br) {
-            TClonesArray *ar = new TClonesArray(clsName.Data());
+            TClonesArray *ar = new TClonesArray(BmnTrigDigit::Class());
             ar->SetName(detName.Data());
             digiTree->Branch(detName.Data(), &ar);
             trigArrays.push_back(ar);
@@ -45,11 +28,28 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *
                     record.branchRef = tca;
                     break;
                 }
+        if (chName.Contains("TQDC")) {
+            TString adcName = chName;
+            re.Substitute(adcName, "TQDC_ADC_$1");// name for corresponding ADC branch
+            TBranch* brADC = digiTree->GetBranch(adcName.Data());
+            if (!brADC) {
+                TClonesArray *arADC = new TClonesArray(BmnTrigWaveDigit::Class());
+                arADC->SetName(adcName.Data());
+                digiTree->Branch(adcName.Data(), &arADC);
+                trigArrays.push_back(arADC);
+                record.branchRefADC = arADC;
+            }
+            for (auto tca : trigArrays)
+                if (TString(tca->GetName()) == adcName) {
+                    record.branchRefADC = tca;
+                    break;
+                }
+        }
     }
     readINLCorrections(INLFile);
 }
 
-BmnStatus BmnTrigRaw2Digit::readMap(TString mappingFile) {
+BmnStatus BmnTrigRaw2Digit::readMap(TString mappingFile) { // in mapping TQDC channels must appear earlier than TDC
     fMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + mappingFile;
     printf("Reading Triggers mapping file %s...\n", fMapFileName.Data());
     //========== read mapping file            ==========//
@@ -69,6 +69,8 @@ BmnStatus BmnTrigRaw2Digit::readMap(TString mappingFile) {
         fMapFile >> name >> mod >> hex >> ser >> dec >> slot >> ch;
         if (!fMapFile.good()) break;
         BmnTrigMapping record;
+        record.branchRef = NULL;
+        record.branchRefADC = NULL;
         record.name = name;
         record.serial = ser;
         record.module = mod;
@@ -105,7 +107,8 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
         BmnTrigMapping tM = fMap[iMap];
         Short_t iMod = tM.module;
         TClonesArray *trigAr = tM.branchRef;
-        if (trigAr->GetClass() == BmnTrigDigit::Class()) {
+        TClonesArray *trigArADC = tM.branchRefADC;
+        if (trigAr)
             for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); ++iTdc) {
                 BmnTDCDigit* tdcDig = (BmnTDCDigit*) tdc->At(iTdc);
                 if (tdcDig->GetSerial() != tM.serial || tdcDig->GetSlot() != tM.slot) continue;
@@ -113,23 +116,21 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
                 Double_t time = tdcDig->GetValue() * 24.0 / 1024;
                 Double_t tdcTimestamp = tdcDig->GetTimestamp() * TDC_CLOCK;
                 new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigDigit(iMod, time, -1.0, tdcTimestamp);
-                //break;
             }
-        } else {
+        if (trigArADC)
             for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); iAdc++) {
                 BmnTQDCADCDigit *adcDig = (BmnTQDCADCDigit*) adc->At(iAdc);
                 if (adcDig->GetSerial() != tM.serial || adcDig->GetSlot() != tM.slot) continue;
                 if (adcDig->GetChannel() != tM.channel) continue;
                 Double_t adcTimestamp = adcDig->GetAdcTimestamp() * ADC_CLOCK_TQDC16VS;
                 Double_t trgTimestamp = adcDig->GetTrigTimestamp() * ADC_CLOCK_TQDC16VS;
-                new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigWaveDigit(
+                new ((*trigArADC)[trigArADC->GetEntriesFast()]) BmnTrigWaveDigit(
+                        iMod,
                         adcDig->GetShortValue(),
                         adcDig->GetNSamples(),
                         trgTimestamp,
                         adcTimestamp);
-                //break;
             }
-        }
     }
     return kBMNSUCCESS;
 }

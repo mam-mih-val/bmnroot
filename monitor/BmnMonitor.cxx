@@ -27,7 +27,7 @@ BmnMonitor::BmnMonitor() {
     fState = kBMNRECON;
     itersToUpdate = 1000;
     TString name = "infoCanvas";
-    infoCanvas = new TCanvas(name, name, 3 * PAD_WIDTH, 1 * PAD_HEIGHT);
+    infoCanvas = new TCanvas(name, name, 3 * PAD_WIDTH, 1 * PAD_HEIGHT *2/3);
     infoCanvas->Divide(3,1);
     //    refList = new TList();
     //    refList->SetName("refList");
@@ -267,9 +267,9 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         Tl.SetTextAlign(12);
         Tl.SetTextSize(0.16);
         TString shownID = head->GetRunId() == UNKNOWN_RUNID ? " o_O" : TString::UItoa(head->GetRunId(), 10);
-        Tl.DrawLatex(0.5, 0.9, Form("Run: %s", shownID.Data()));
-        Tl.DrawLatex(0.5, 0.6, Form("Event: %d", head->GetEventId()));
-        Tl.DrawLatex(0.5, 0.3, Form("Run Type: %s", runType.Data()));
+        Tl.DrawLatex(0.3, 0.9, Form("Run: %s", shownID.Data()));
+        Tl.DrawLatex(0.3, 0.6, Form("Event: %d", head->GetEventId()));
+        Tl.DrawLatex(0.3, 0.3, Form("Run Type: %s", runType.Data()));
         Tl.Draw();
         pad->Update();
         pad->Modified();
@@ -278,9 +278,10 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         TLatex l2;
         l2.SetTextAlign(12);
         l2.SetTextSize(0.16);
-        l2.DrawLatex(0.5, 0.9, Form("Energy: %0.0f", CurRun->GetEnergy()));
-        l2.DrawLatex(0.5, 0.6, Form("Beam: %s", CurRun->GetBeamParticle().Data()));
-        l2.DrawLatex(0.5, 0.3, Form("Target: %s", CurRun->GetTargetParticle().Data()));
+        l2.DrawLatex(0.3, 0.9, Form("Energy: %1.2f", CurRun->GetEnergy()));
+        l2.DrawLatex(0.3, 0.7, Form("Beam: %s", CurRun->GetBeamParticle().Data()));
+        l2.DrawLatex(0.3, 0.5, Form("Target: %s", CurRun->GetTargetParticle().Data()));
+        l2.DrawLatex(0.3, 0.3, Form("Field Voltage: %1.2f", CurRun->GetFieldVoltage()));
         l2.Draw();
         pad->Update();
         pad->Modified();

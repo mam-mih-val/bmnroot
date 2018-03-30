@@ -12,7 +12,7 @@ public:
     BmnTrigDigit();
 
     /** Constructor to use **/
-    BmnTrigDigit(Short_t iMod, Double_t iTime, Double_t iAmp, Double_t iTimestamp = 0);
+    BmnTrigDigit(Short_t iMod, Double_t iTime, Double_t iAmp, Double_t iTimestamp = -1.0);
 
     Short_t GetMod() const {
         return fMod;

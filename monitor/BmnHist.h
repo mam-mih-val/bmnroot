@@ -30,7 +30,7 @@
 #include "DigiArrays.h"
 
 #define PAD_WIDTH   256
-#define PAD_HEIGHT  144
+#define PAD_HEIGHT  192
 
 using namespace std;
 

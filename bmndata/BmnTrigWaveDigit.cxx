@@ -13,7 +13,8 @@
 
 #include "BmnTrigWaveDigit.h"
 
-BmnTrigWaveDigit::BmnTrigWaveDigit(){// : BmnTrigDigit()/*, BmnADCSRCDigit() */{
+BmnTrigWaveDigit::BmnTrigWaveDigit(){
+    fMod = -1;
     fNsmpl = 0;
     fValueI = new Short_t[fNsmpl];
     for (Int_t i = 0; i < fNsmpl; ++i)
@@ -22,22 +23,8 @@ BmnTrigWaveDigit::BmnTrigWaveDigit(){// : BmnTrigDigit()/*, BmnADCSRCDigit() */{
     fAdcTimestamp = 0;
 }
 
-//BmnTrigWaveDigit::BmnTrigWaveDigit(/*BmnTrigDigit* trig, */BmnTQDCADCDigit* adc) 
-//    /*: BmnTrigDigit(trig->GetMod(), trig->GetTime(), trig->GetAmp()),
-//    BmnADCSRCDigit(
-//            adc->GetSerial(), adc->GetChannel(), adc->GetNSamples(),
-//            adc->GetShortValue(), adc->GetTrigTimestamp(), adc->GetAdcTimestamp()
-//            ) */{
-//    Short_t *iValue = adc->GetShortValue();
-//    fNsmpl = adc->GetNSamples();
-//    fValueI = new Short_t[fNsmpl];
-//    for (Int_t i = 0; i < fNsmpl; ++i)
-//        fValueI[i] = iValue[i];
-//    fTrigTimestamp = adc->GetTrigTimestamp();
-//    fAdcTimestamp = adc->GetAdcTimestamp();
-//}
-
-BmnTrigWaveDigit::BmnTrigWaveDigit(Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp){
+BmnTrigWaveDigit::BmnTrigWaveDigit(Short_t iMod, Short_t *iValue, UInt_t nVals, Double_t trigTimestamp, Double_t adcTimestamp){
+    fMod = iMod;
     fNsmpl = nVals;
     fValueI = new Short_t[fNsmpl];
     for (Int_t i = 0; i < fNsmpl; ++i)

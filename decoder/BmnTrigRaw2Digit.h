@@ -4,6 +4,7 @@
 #include "BmnEnums.h"
 #include "TString.h"
 #include "TClonesArray.h"
+#include "TPRegexp.h"
 #include "TTree.h"
 #include "BmnTDCDigit.h"
 #include <iostream>
@@ -33,6 +34,7 @@ struct BmnTrigMapping {
     Short_t slot;
     Short_t channel;
     TClonesArray* branchRef;
+    TClonesArray* branchRefADC;
 };
 
 class BmnTrigRaw2Digit {

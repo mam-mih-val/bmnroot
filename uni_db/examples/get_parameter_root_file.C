@@ -1,7 +1,8 @@
+#include "../../gconfig/basiclibs.C"
+
 // macro for getting parameter storing as ROOT file (e.g. detector alignment, lorentz shift) from the database
 void get_parameter_root_file(char* root_file_path, int period_number, int run_number)
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
     gSystem->Load("libUniDb");
 

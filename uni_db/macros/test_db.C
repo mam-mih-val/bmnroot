@@ -10,10 +10,7 @@ void test_db()
 
     UniDbConnection* connectionUniDb = UniDbConnection::Open(UNIFIED_DB);
     if (connectionUniDb == 0x00)
-    {
-        cout<<"Error: connection to the database can't be established"<<endl;
         return;
-    }
 
     TSQLServer* uni_db = connectionUniDb->GetSQLServer();
 
@@ -32,7 +29,7 @@ void test_db()
     // extract rows one after another
     if (!stmt->NextResultRow())
     {
-        cout<<"Error: parameter with number 1 wasn't found!"<<endl;
+        cout<<"ERROR: parameter with number 1 wasn't found!"<<endl;
         delete stmt;
         return;
     }

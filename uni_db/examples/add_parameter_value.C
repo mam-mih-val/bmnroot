@@ -1,7 +1,8 @@
+#include "../../gconfig/basiclibs.C"
+
 // macro for adding parameter value (if parameter exist - you could check existing parameters by 'UniDbParameter::PrintAll()' function)
 void add_parameter_value()
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
     gSystem->Load("libUniDb");
 

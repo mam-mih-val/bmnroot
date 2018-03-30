@@ -1,8 +1,9 @@
+#include "../../gconfig/basiclibs.C"
+
 // macro for getting 'noise channels' parameter value
 // example runs for all run numbers from 12 to 688 (if run number is not present then error "table record wasn't found" wiil arise - it's ok)
 void histo_noise()
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
     gSystem->Load("libUniDb");
 

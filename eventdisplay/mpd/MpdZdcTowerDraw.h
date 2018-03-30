@@ -2,8 +2,8 @@
 // -----                      ZdcTowerDraw header file                 -----
 // -------------------------------------------------------------------------
 
-#ifndef ZDCTOWERDRAW_H
-#define ZDCTOWERDRAW_H
+#ifndef MPDZDCTOWERDRAW_H
+#define MPDZDCTOWERDRAW_H
 
 #include "FairTask.h"
 #include "MpdEventManager.h"
@@ -38,10 +38,12 @@ class MpdZdcTowerDraw : public FairTask
     TEvePointSet* fq;    //!
     
     virtual InitStatus Init();
-    virtual void Finish(); ///< Action after each event
+    // Action after each event
+    virtual void Finish();
 
     void RecursiveChangeNodeTransparent(TGeoNode* node, int transparency);
-    void DrawTowers(); ///< adjust towers heights
+    // adjust towers heights
+    void DrawTowers();
     
     /** Accessors **/
     UInt_t GetVerbose() const { return fVerbose; }
@@ -55,23 +57,24 @@ class MpdZdcTowerDraw : public FairTask
     
     /** Modifiers **/
     void SetResetRequiredFlag(Bool_t resetRequiredFlag) { fResetRequiredFlag = resetRequiredFlag; }
-    void SetEneArr(UInt_t i, Double_t val) { fEneArr[i] = val; } ///< set energy loss array value
+    // set energy loss array value
+    void SetEneArr(UInt_t i, Double_t val) { fEneArr[i] = val; }
     void SetMaxE(Double_t maxE) { fMaxE = maxE; }
     void SetNumModules(UInt_t numModules) { fNumModules = numModules; }
     void SetModuleZLen(Double_t moduleZLen) { fModuleZLen = moduleZLen; }
     
   private:
-    Int_t fVerbose; ///< Verbosity level
-    Bool_t fShadow; ///< kTRUE to display transparent contur of zdc
-    Bool_t fResetRequiredFlag; ///< flag true is box sizes are adjusted
+    Int_t fVerbose; // Verbosity level
+    Bool_t fShadow; // kTRUE to display transparent contur of zdc
+    Bool_t fResetRequiredFlag; // flag true is box sizes are adjusted
     
-    Double_t* fEneArr; //!< array of energies in each box of ZDC, GeV
-    Double_t fMaxE; ///< energy loss at the bin with maximum energy loss, GeV
+    Double_t* fEneArr; //! array of energies in each box of ZDC, GeV
+    Double_t fMaxE; // energy loss at the bin with maximum energy loss, GeV
     
-    UInt_t fNumModules; ///< number of modules in one ZDC detector
-    Double_t fModuleZLen; ///< z lenght of ZDC module, cm    
+    UInt_t fNumModules; // number of modules in one ZDC detector
+    Double_t fModuleZLen; // z lenght of ZDC module, cm
     
-    Double_t fZdcMinEnergyThreshold;///< min energy threshold
+    Double_t fZdcMinEnergyThreshold;// min energy threshold
     
     MpdZdcTowerDraw(const MpdZdcTowerDraw&);
     MpdZdcTowerDraw& operator=(const MpdZdcTowerDraw&);

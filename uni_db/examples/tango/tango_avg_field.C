@@ -4,9 +4,6 @@
 // returns average magnetic field coefficient (in case of errors the return value <= -1)
 double tango_avg_field(int period = 6, int run = 1886)
 {
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-#endif
     basiclibs();
     gSystem->Load("libUniDb");
 
@@ -63,9 +60,6 @@ class UniqueRunNumber;
 // additional function for calculating Tango average magnetic field for all runs of the given period/session and writing it to the BM@N Database
 void tango_avg_field_write_db(int period = 6)
 {
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-#endif
     basiclibs();
     gSystem->Load("libUniDb");
 
@@ -135,9 +129,6 @@ void tango_avg_field_write_db(int period = 6)
 // if period_end == -1 and run_end != -1 then the end period is the same as begin period
 int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end = -1, int run_end = -1)
 {
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-#endif
     basiclibs();
     gSystem->Load("libUniDb");
 
@@ -200,9 +191,6 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
 // additional function to compare magnetic field value (current, A) from ELog database and average magnetic field (voltage, mV) from the Tango database
 void compare_avg_field(int period = 6, bool isOnlyDifferent = false)
 {
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-#endif
     basiclibs();
     gSystem->Load("libUniDb");
 
@@ -307,13 +295,10 @@ void compare_avg_field(int period = 6, bool isOnlyDifferent = false)
     cout<<"Macro finished successfully"<<endl;
 }
 
-// additional function to compare magnetic field value (current, A) from Elog database and average magnetic field (voltage, mV) from UniDb saved from the Tango
-// and show in TGraph object
+// additional function to compare magnetic field value (current, A) from Elog database
+// and average magnetic field (voltage, mV) from UniDb saved from the Tango, and show in TGraph object
 void compare_avg_field_graph(int period = 6)
 {
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-#endif
     basiclibs();
     gSystem->Load("libUniDb");
 
@@ -327,31 +312,14 @@ void compare_avg_field_graph(int period = 6)
     bool* run_error = new bool[run_count];
     for (int i = 0; i < run_count; i++)
     {
-        // get average field for run
-        UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
-        if (pRun == NULL)
-        {
-            cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
-            continue;
-        }
-
-        double* avg_field = pRun->GetFieldVoltage();
-        delete pRun;
-
-        if (avg_field == NULL)
-        {
-            cout<<"The function encountered with errors: no magnet field in the BM@N database ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
-            continue;
-        }
-        double average_field = *avg_field;
-
-        // get elog info
+        // get ELOG info
         TObjArray* arrayRecords = ElogDbRecord::GetRecords(run_numbers[i].period_number, run_numbers[i].run_number);
         if (arrayRecords == NULL)
         {
             cout<<"The function encountered with errors: no ELOG record was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
         }
+
         int* pField = NULL;
         for (int j = 0; j < arrayRecords->GetEntriesFast(); j++)
         {
@@ -360,72 +328,48 @@ void compare_avg_field_graph(int period = 6)
             if (pField != NULL)
                 break;
         }
-
         if (pField == NULL)
         {
             cout<<"The function encountered with errors: no SP-41 field was set in ELOG ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             delete arrayRecords;
+            run_error[i] = 1;
             continue;
         }
-
-        double elog_voltage = (*pField) * 55.87 / 900;
+        double elog_voltage = (*pField) * 55.87 / 900;  // 0,062077778
         delete arrayRecords;
 
-/*
-        // get run time
+        // get UniDb average field for run
         UniDbRun* pRun = UniDbRun::GetRun(run_numbers[i].period_number, run_numbers[i].run_number);
         if (pRun == NULL)
         {
             cout<<"The function encountered with errors: no experimental run was found ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             continue;
         }
-
-        TString strDateStart = pRun->GetStartDatetime().AsSQLString();
-        TDatime* dateEnd = pRun->GetEndDatetime();
-        if (dateEnd == NULL)
-        {
-            cout<<"The function encountered with errors: no end datetime in the database for the run ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
-            delete dateEnd;
-            delete pRun;
-            continue;
-        }
-        TString strDateEnd = dateEnd->AsSQLString();
-        delete dateEnd;
+        double* avg_field = pRun->GetFieldVoltage();
         delete pRun;
-*/
-
-/*
-
-        if (dFieldCurrent)
-            cout<<"Magnetic field current from detector group: "<<*dFieldCurrent<<" A"<<endl;
-        else
+        if (avg_field == NULL)
         {
-            cout<<"WARNING: magnetic field current from detector group was not set in the database"<<endl;
-            run_error[i] = 1;
-        }
-        if (dAvgFieldVoltage)
-            cout<<"Average magnetic field voltage from Tango: "<<*dAvgFieldVoltage<<" mV"<<endl<<endl;
-        else
-        {
-            cout<<"WARNING: average magnetic field voltage was not calculated from Tango"<<endl<<endl;
+            cout<<"The function encountered with errors: no magnet field in the BM@N database ("<<run_numbers[i].period_number<<":"<<run_numbers[i].run_number<<"). This run will be skipped!"<<endl;
             if (run_error[i] == 1) run_error[i] = 3;
             else run_error[i] = 2;
+            continue;
         }
+        double average_field = *avg_field;
 
-        if ((dFieldCurrent) && (dAvgFieldVoltage))
-        {
-            x[i] = *dFieldCurrent;
-            y[i] = *dAvgFieldVoltage;
-        }
-*/
+        cout<<"Magnetic field current from detector group: "<<(*pField)<<" A, "<<elog_voltage<<" mV"<<endl<<endl;
+        cout<<"Average magnetic field voltage from Tango: "<<average_field<<" mV"<<endl;
+
+
+        x[i] = *pField;
+        y[i] = average_field;
     }
 
     TCanvas* c1 = new TCanvas("c1","U/I dependence",100,70,700,500);
 
     TGraph* gr = new TGraph(run_count,x,y);
     gr->SetTitle("");
-    gr->GetXaxis()->SetTitle("I, A");
-    gr->GetYaxis()->SetTitle("U, mV");
+    gr->GetXaxis()->SetTitle("Ielog, A");
+    gr->GetYaxis()->SetTitle("Utango, mV");
     gr->Draw("AP*");
 
     TFitResultPtr fit_result = gr->Fit("pol1", "S");

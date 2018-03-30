@@ -1,9 +1,9 @@
 // Macro for printing TANGO data for GEM high voltage
+#include "../../../gconfig/basiclibs.C"
 
 // for datetime range
-void tango_gem_u(char* date_start = "2016-12-21 12:20:00", char* date_end = "2016-12-21 12:40:00")
+void tango_gem_u(const char* date_start = "2016-12-21 12:20:00", const char* date_end = "2016-12-21 12:40:00")
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
     gSystem->Load("libUniDb");
 
@@ -26,7 +26,7 @@ void tango_gem_u(char* date_start = "2016-12-21 12:20:00", char* date_end = "201
 
     // graph output
     //db_tango.PrintTangoDataSurface(tango_data);
-    db_tango.PrintTangoDataMulti3D(tango_data);
+    db_tango.PrintTangoDataMultiGraph(tango_data);  //, "U", true);
 
     delete tango_data;
 
@@ -36,7 +36,6 @@ void tango_gem_u(char* date_start = "2016-12-21 12:20:00", char* date_end = "201
 // for a given run
 void tango_gem_u(int period, int run)
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
     gSystem->Load("libUniDb");
 
@@ -78,7 +77,7 @@ void tango_gem_u(int period, int run)
 
     // graph output
     //db_tango.PrintTangoDataSurface(tango_data);
-    db_tango.PrintTangoDataMulti3D(tango_data);
+    db_tango.PrintTangoDataMultiGraph(tango_data);
 
     delete tango_data;
 

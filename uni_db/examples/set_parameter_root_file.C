@@ -1,8 +1,9 @@
+#include "../../gconfig/basiclibs.C"
+
 // macro for writing ROOT file with detector parameter (e.g BM@N alignment, lorentz shift) to the database
 // e.g. root 'set_parameter_root_file.C("$VMCWORKDIR/input/align.root", 6, 1170, 6, 1177)'
 void set_parameter_root_file(char* root_file_path, int start_period, int start_run, int end_period, int end_run)
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
     gSystem->Load("libUniDb");
 

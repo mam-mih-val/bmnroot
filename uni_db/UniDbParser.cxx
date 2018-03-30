@@ -738,7 +738,7 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
     txtFile.open(txtName, ios::in);
     if (!txtFile.is_open())
     {
-        cout<<"Error: reading TXT file '"<<txtName<<"' was failed"<<endl;
+        cout<<"ERROR: reading TXT file '"<<txtName<<"' was failed"<<endl;
         return -1;
     }
 
@@ -746,20 +746,20 @@ int UniDbParser::ParseTxt2Db(TString txtName, TString schemaPath, bool isUpdate)
     xmlDocPtr docSchema = xmlReadFile(schemaPath, NULL, 0);
     if (!docSchema)
     {
-        cout<<"Error: reading schema file '"<<schemaPath<<"' was failed"<<endl;
+        cout<<"ERROR: reading schema file '"<<schemaPath<<"' was failed"<<endl;
         return - 2;
     }
 
     xmlNodePtr cur_schema_node = xmlDocGetRootElement(docSchema);
     if (!cur_schema_node)
     {
-        cout<<"Error: schema of XML parsing is empty"<<endl;
+        cout<<"ERROR: schema of XML parsing is empty"<<endl;
         xmlFreeDoc(docSchema);
         return -4;
     }
     if (strcmp((char*)cur_schema_node->name, "unidbparser_schema") != 0)
     {
-        cout<<"Error: it is not UniDbParser schema"<<endl;
+        cout<<"ERROR: it is not UniDbParser schema"<<endl;
         xmlFreeDoc(docSchema);
         return -5;
     }

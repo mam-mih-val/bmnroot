@@ -1,3 +1,5 @@
+#include "../../gconfig/basiclibs.C"
+
 // Macro for changing single detector in facility geometry for a given run range in the database
 //
 // start_period - start number of the period to change single detector geometry in full geometry
@@ -9,7 +11,6 @@
 void change_1detector_geometry(int start_period=5, int start_run=798, int end_period=5, int end_run=1014, char* detector_name="GEM", char* detector_file_path = "$VMCWORKDIR/geometry/GEMS_RunWinter2016.root")
 {
     // load libraries
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
 
     // check existence of the file with new detector geometry

@@ -70,7 +70,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
     TSQLServer* db = connUniDb->GetSQLServer();
     if (db == NULL) return NULL;
 
-    if (db->GetTables(TANGO_DB_NAME) == NULL)
+    if (db->GetTables(db->GetDB()) == NULL)
         return NULL;
 
     // searching for parameters with given parameter_name for detector with detector_name
@@ -443,8 +443,6 @@ void UniDbTangoData::PrintTangoDataMultiGraph(TObjArray* tango_data, const char*
         Int_t color = gRandom->Integer(50);
         if ((color == 0) || (color == 10) || ((color > 16) && (color < 20))) color += 20;
         tango_graphs[j].SetLineColor(color);
-        tango_graphs[j].SetTitle(TString::Format("%d", j));
-        tango_graphs[j].SetLineWidth(3);
     }
 
     for (int i = 0; i < tango_data->GetEntriesFast(); i++)
@@ -462,7 +460,11 @@ void UniDbTangoData::PrintTangoDataMultiGraph(TObjArray* tango_data, const char*
     TMultiGraph* tango_multi = new TMultiGraph();
     tango_multi->SetTitle(tango_data->GetName());
     for (int j = 0; j < par_length; j++)
+    {
         tango_multi->Add(&tango_graphs[j]);
+        tango_graphs[j].SetTitle(TString::Format("%d", j));
+        tango_graphs[j].SetLineWidth(3);
+    }
 
     TString draw_par = "AL";
     if (is3D) draw_par += "3D";
@@ -491,8 +493,10 @@ void UniDbTangoData::PrintTangoDataMultiGraph(TObjArray* tango_data, const char*
         //gr->GetYaxis()->SetNdivisions(10, 0, 0);
     }
 
-    c1->Modified();
+    TLegend* pLegend = c1->BuildLegend(0.92, 0.77, 0.99, 0.98, "", "");
+    pLegend->SetMargin(0.80);
 
+    c1->Modified();
     return;
 }
 

@@ -1,7 +1,8 @@
+#include "../../gconfig/basiclibs.C"
+
 // macro for printing parameter values for selected detector
 void print_parameter_values(char* pcDetectorName="")
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
     gSystem->Load("libUniDb");
 

@@ -1,7 +1,8 @@
+#include "../../gconfig/basiclibs.C"
+
 // macro for setting 'on' detectors for all current runs
 void set_detector_run_on()
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
     gSystem->Load("libUniDb");
 

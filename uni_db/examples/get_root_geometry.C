@@ -1,9 +1,9 @@
+#include "../../gconfig/basiclibs.C"
 #include <stdio.h>
 
 // macro for downloading ROOT file with detector geometry from database
 void get_root_geometry(char* root_file_path, int period_number, int run_number)
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
     gSystem->Load("libUniDb");
 

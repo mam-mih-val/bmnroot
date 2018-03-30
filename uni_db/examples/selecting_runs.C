@@ -1,7 +1,8 @@
+#include "../../gconfig/basiclibs.C"
+
 // macro for run selection by specified conditions
 void selecting_runs()
 {
-    gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
     basiclibs();
     gSystem->Load("libUniDb");
 

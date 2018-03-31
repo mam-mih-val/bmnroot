@@ -493,7 +493,7 @@ void UniDbTangoData::PrintTangoDataMultiGraph(TObjArray* tango_data, const char*
         //gr->GetYaxis()->SetNdivisions(10, 0, 0);
     }
 
-    TLegend* pLegend = c1->BuildLegend(0.92, 0.77, 0.99, 0.98, "", "");
+    TLegend* pLegend = c1->BuildLegend(0.92, 0.77, 0.99, 0.98, "");
     pLegend->SetMargin(0.80);
 
     c1->Modified();

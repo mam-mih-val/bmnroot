@@ -48,8 +48,8 @@ public:
             delete ar;
     };
 
-    vector<BmnTrigMapping> GetMap() const {
-        return fMap;
+    vector<BmnTrigMapping>* GetMap() {
+        return &fMap;
     }
 
     BmnStatus FillEvent(TClonesArray *tdc);
@@ -61,7 +61,7 @@ public:
     vector<TClonesArray*> *GetTrigArrays(){
         return &trigArrays;
     }
-    
+        
     BmnTrigMapping GetT0Map(){        
         for (BmnTrigMapping tM : fMap){
             if (tM.name == "T0")
@@ -91,10 +91,6 @@ private:
     Float_t fINLTable[72][1024];
 //    TDirectory *fDir;
     vector<TClonesArray*> trigArrays;
-    //    TString trigNames[13] = {
-    //        "BC1", "BC2", "BC3", "BC4", "VC",
-    //        "X1_Left", "X1_Right", "X2_Left", "X2_Right",
-    //        "Y1_Left", "Y1_Right", "Y2_Left", "Y2_Right"};
 
     ClassDef(BmnTrigRaw2Digit, 1);
 };

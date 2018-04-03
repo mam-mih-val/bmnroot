@@ -155,11 +155,12 @@ public:
         d.header = eventHeader;
         d.trigAr = NULL;
         d.trigSrcAr = NULL;
-        if (fTrigMapper)
+        if (fTrigMapper){
             if (fBmnSetup == kBMNSETUP)
                 d.trigAr = fTrigMapper->GetTrigArrays();
             else
                 d.trigSrcAr = fTrigMapper->GetTrigArrays();
+        }
         return d;
     }
 

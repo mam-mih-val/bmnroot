@@ -32,7 +32,7 @@
 // BmnRoot
 #include "BmnHist.h"
 #include "BmnTof1Digit.h"
-#define TOF400_PLANE_COUNT  4
+#define TOF400_PLANE_COUNT 20
 #define TOF400_STRIP_COUNT 48
 #define TOF_COLS    3
 #define TOF_ROWS    2
@@ -67,6 +67,7 @@ private:
     TH1D *histAmpSpecific;
     TH1I *histStrip;
     TH1I *histStripSimult;
+    TH2I *histStrip2d;
     TH2F *histState;
     Int_t fSelectedPlane;
     Int_t fSelectedStrip;
@@ -76,7 +77,9 @@ private:
     TH1I histSimultaneous;
     vector<TString> Names;
     TCanvas *canTimes;
+    TCanvas *can2d;
     vector<PadInfo*> canTimesPads;
+    vector<PadInfo*> can2dPads;
     
     ClassDef(BmnHistToF, 1)
 };

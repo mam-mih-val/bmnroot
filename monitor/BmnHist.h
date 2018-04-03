@@ -107,6 +107,14 @@ public:
         return fPeriodID;
     }
     
+    void SetBmnSetup(BmnSetup v) {
+        this->fBmnSetup = v;
+    }
+
+    BmnSetup GetBmnSetup() const {
+        return fBmnSetup;
+    }
+    
 protected:
 
     Bool_t isShown = kFALSE;
@@ -118,6 +126,7 @@ protected:
     Int_t refID;
     TFile *refFile;
     Int_t fPeriodID;
+    BmnSetup fBmnSetup = kBMNSETUP;
 
     ClassDef(BmnHist, 1)
 

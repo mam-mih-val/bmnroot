@@ -11,6 +11,8 @@
  * Created on February 2, 2017, 2:10 PM
  */
 
+#include <root/RtypesCore.h>
+
 #include "BmnHist.h"
 
 BmnHist::BmnHist(Int_t PeriodID) {
@@ -18,6 +20,8 @@ BmnHist::BmnHist(Int_t PeriodID) {
     frecoTree = NULL;
     fDir = NULL;
     fPeriodID = PeriodID;
+    fBmnSetup = kBMNSETUP;
+    isShown = kFALSE;
 }
 
 BmnHist::~BmnHist() {

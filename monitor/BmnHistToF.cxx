@@ -33,7 +33,7 @@ BmnHistToF::BmnHistToF(TString title, TString path) : BmnHist() {
     histAmp = new TH1D(name, name, 4096, 0, 96);
     histAmp->GetXaxis()->SetTitle("Amplitude, ns");
     histAmp->GetYaxis()->SetTitle("Activations count");
-    TGaxis *ay = (TGaxis*)histAmp->GetYaxis();
+    TGaxis *ay = (TGaxis*) histAmp->GetYaxis();
     ay->SetMaxDigits(2);
     name = fTitle + "_Amplitude_Specific";
     histAmpSpecific = new TH1D(name, name, 4096, 0, 96);
@@ -52,6 +52,10 @@ BmnHistToF::BmnHistToF(TString title, TString path) : BmnHist() {
     histState = new TH2F(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT, 2, 0, 2);
     histState->GetXaxis()->SetTitle("Strip #");
     histState->GetYaxis()->SetTitle("Side");
+    name = fTitle + "_State";
+    histStrip2d = new TH2I(name, name, TOF400_STRIP_COUNT, 0, TOF400_STRIP_COUNT, TOF400_PLANE_COUNT, 0, TOF400_PLANE_COUNT);
+    histStrip2d->GetXaxis()->SetTitle("Strip #");
+    histStrip2d->GetYaxis()->SetTitle("Plane #");
 
     histSimultaneous.SetDirectory(0);
     histL->SetDirectory(0);
@@ -59,6 +63,17 @@ BmnHistToF::BmnHistToF(TString title, TString path) : BmnHist() {
     fServer = NULL;
     frecoTree = NULL;
     Events = NULL;
+    name = fTitle + "Canvas2d";
+    can2d = new TCanvas(name, name, PAD_WIDTH * 2, PAD_HEIGHT * 1);
+    can2d->Divide(2, 1);
+    can2dPads.resize(2 * 1);
+    for (Int_t iPad = 0; iPad < 2 * 1; iPad++) {
+        PadInfo* p = new PadInfo();
+        can2dPads[iPad] = p;
+        p->opt = "colz nostat";
+    }
+    can2dPads[0]->current = histStrip2d;
+    can2dPads[1]->current = histState;
     name = fTitle + "CanvasTimes";
     canTimes = new TCanvas(name, name, PAD_WIDTH * TOF_ROWS, PAD_HEIGHT * TOF_COLS);
     canTimes->Divide(TOF_ROWS, TOF_COLS);
@@ -81,9 +96,26 @@ BmnHistToF::BmnHistToF(TString title, TString path) : BmnHist() {
             canTimesPads[iPad]->current->SetLabelSize(0.08, "XY");
             TAxis *ax = canTimesPads[iPad]->current->GetYaxis();
             ax->SetTitleColor(kOrange + 10);
-            ax->SetTitleOffset(0.8);
+            ax->SetTitleOffset(1);
             ax->SetTitleFont(62);
             ax = canTimesPads[iPad]->current->GetXaxis();
+            ax->SetTitleColor(kOrange + 10);
+            ax->SetTitleOffset(1);
+            ax->SetTitleFont(62);
+        }
+    for (Int_t iPad = 0; iPad < can2dPads.size(); iPad++)
+        if (can2dPads[iPad]->current) {
+            //            Names.push_back(canTimesPads[iPad]->current->GetName());
+            can2dPads[iPad]->current->SetTitleSize(0.06, "XY");
+            can2dPads[iPad]->current->SetLabelSize(0.08, "XY");
+            TAxis *ax = can2dPads[iPad]->current->GetYaxis();
+            ax->SetTitleColor(kOrange + 10);
+            ax->SetTitleOffset(1);
+            ax->SetTitleFont(62);
+            ax = can2dPads[iPad]->current->GetXaxis();
+            ax->SetTitleColor(kOrange + 10);
+            ax->SetTitleOffset(1);
+            ax->SetTitleFont(62);
         }
 }
 
@@ -104,11 +136,12 @@ void BmnHistToF::FillFromDigi(DigiArrays *fDigiArrays) {
     for (Int_t digIndex = 0; digIndex < digits->GetEntriesFast(); digIndex++) {
         BmnTof1Digit *td = (BmnTof1Digit *) digits->At(digIndex);
         Int_t strip = td->GetStrip();
-        if ((strip == 0) || (strip == (TOF400_STRIP_COUNT-1))) // noisy
+        if ((strip == 0) || (strip == (TOF400_STRIP_COUNT - 1))) // noisy
             continue;
         histLeadingTime->Fill(td->GetTime());
         histAmp->Fill(td->GetAmplitude());
         histStrip->Fill(strip);
+        histStrip2d->Fill(strip, td->GetPlane(), 1);
         if ((td->GetPlane() == fSelectedPlane)) {
             histState->Reset();
             histState->Fill(td->GetStrip(), td->GetSide(), td->GetAmplitude());
@@ -125,8 +158,8 @@ void BmnHistToF::FillFromDigi(DigiArrays *fDigiArrays) {
             histLeadingTimeSpecific->Fill(td->GetTime());
         }
 
-//        new ((*Events)[Events->GetEntriesFast()])
-//                BmnTof1Digit(td->GetPlane(), td->GetStrip(), td->GetSide(), td->GetTime(), td->GetAmplitude());
+        //        new ((*Events)[Events->GetEntriesFast()])
+        //                BmnTof1Digit(td->GetPlane(), td->GetStrip(), td->GetSide(), td->GetTime(), td->GetAmplitude());
         //        frecoTree->Fill();
     }
     //histSimultaneous = (*histL) * (*histR);
@@ -145,13 +178,7 @@ void BmnHistToF::Register(THttpServer *serv) {
     fServer->Register("/", this);
     TString path = "/" + fTitle + "/";
     fServer->Register(path, canTimes);
-    //    fServer->Register(path, histAmp);
-    //    fServer->Register(path, histAmpSpecific);
-    //    fServer->Register(path, histStrip);
-    //    fServer->Register(path, histStripSimult);
-    fServer->Register(path, histState);
-    //    fServer->Register(path, histLeadingTime);
-    //    fServer->Register(path, histLeadingTimeSpecific);
+    fServer->Register(path, can2d);
 
     TString cmd = "/" + fName + "/->SetRefRun(%arg1%)";
     TString cmdTitle = path + "SetRefRun";
@@ -207,34 +234,36 @@ void BmnHistToF::SetSelection(Int_t Plane, Int_t Strip, Int_t Side) {
             command = command + " && ";
         command = command + Form("%s.fSide == %d", fTitle.Data(), fSelectedSide);
     }
+    histAmpSpecific->Reset();
+    histLeadingTimeSpecific->Reset();
+    histAmpSpecific->SetTitle("Amplitude For: " + command);
+    histLeadingTimeSpecific->SetTitle("Leading Time For: " + command);
     if (frecoTree != NULL) {
-        histAmpSpecific->Reset();
         histAmpSpecific->SetTitle("Amplitude For: " + command);
         TString direction = "fAmplitude>>" + TString(histAmpSpecific->GetName());
-//        TCanvas *c1 = new TCanvas("c1");
+        //        TCanvas *c1 = new TCanvas("c1");
         frecoTree->Draw(direction.Data(), command.Data(), "");
-        histLeadingTimeSpecific->Reset();
         histLeadingTimeSpecific->SetTitle("Leading Time For: " + command);
         direction = "fTime>>" + TString(histLeadingTimeSpecific->GetName());
         //        TDirectory *d = gDirectory->GetDirectory();
         //        TDirectory()
         frecoTree->Draw(direction.Data(), command.Data(), "goff");
-//        delete c1;
+        //        delete c1;
     }
 }
 
 void BmnHistToF::Reset() {
-    histLeadingTime->Reset();
-    histLeadingTimeSpecific->Reset();
-    histAmp->Reset();
-    histAmpSpecific->Reset();
-    histStrip->Reset();
-    histStripSimult->Reset();
-    histState->Reset();
+    for (auto &h : canTimesPads) {
+        h->current->Reset();
+    }
+    for (auto &h : can2dPads) {
+        h->current->Reset();
+    }
 }
 
 void BmnHistToF::DrawBoth() {
     BmnHist::DrawRef(canTimes, &canTimesPads);
+    BmnHist::DrawRef(can2d, &can2dPads);
 }
 
 BmnStatus BmnHistToF::SetRefRun(Int_t id) {
@@ -250,7 +279,7 @@ BmnStatus BmnHistToF::SetRefRun(Int_t id) {
 }
 
 void BmnHistToF::ClearRefRun() {
-    for (auto pad : canTimesPads){
+    for (auto pad : canTimesPads) {
         if (pad->ref) delete pad->ref;
         pad->ref = NULL;
     }

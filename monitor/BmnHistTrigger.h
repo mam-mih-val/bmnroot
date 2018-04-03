@@ -24,8 +24,10 @@
 #include "BmnRawDataDecoder.h"
 #include "BmnHist.h"
 #include "BmnTrigDigit.h"
+#include "BmnTrigRaw2Digit.h"
 #include "BmnEventHeader.h"
 #define TRIG_TIME_WIN 6000
+#define AMP_WIN       3000
 #define TRIG_MULTIPL    40
 #define BD_CHANNELS     40
 #define SI_CHANNELS     64
@@ -34,7 +36,7 @@
 
 class BmnHistTrigger : public BmnHist {
 public:
-    BmnHistTrigger(TString title = "Triggers", TString path = "");
+    BmnHistTrigger(TString title = "Triggers", TString path = "", Int_t periodID = 7);
     virtual ~BmnHistTrigger();
 
     void Register(THttpServer *serv);
@@ -77,7 +79,9 @@ private:
     TH1I *histSiSimult;
     TH1I *histSiCircular;
     TH1I *histSiBSum;
-    TH2I *histCorr;
+    TH2I *histCorrBCBC;
+    TH2I *histCorrBCVC;
+    TH2I *histCorrSiBD;
     TCanvas *can2d;
     TCanvas *canProfile;
     TCanvas *canTimes;

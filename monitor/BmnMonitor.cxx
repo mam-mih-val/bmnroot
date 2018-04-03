@@ -107,12 +107,8 @@ void BmnMonitor::MonitorStreamZ(TString dirname, TString refDir, TString decoAdd
     decoTimeout = 0;
     keepWorking = kTRUE;
     while (keepWorking) {
-        //        try {
         gSystem->ProcessEvents();
         fServer->ProcessRequests();
-        //        }        catch (exception& ex) {
-        //            printf("Exception: %s\n", ex.what());
-        //        }
         zmq_msg_init(&msg);
         frame_size = zmq_msg_recv(&msg, _decoSocket, ZMQ_DONTWAIT); // ZMQ_DONTWAIT
         if (frame_size == -1) {
@@ -215,17 +211,19 @@ BmnStatus BmnMonitor::CreateFile(Int_t runID) {
     bhVec.push_back(new BmnHistECAL(refName + "ECAL", _curDir));
     bhVec.push_back(new BmnHistToF(refName + "ToF400", _curDir));
     bhVec.push_back(new BmnHistToF700(refName + "ToF700", _curDir));
-    bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir));
+    bhVec.push_back(new BmnHistTrigger(refName + "Triggers", _curDir, fPeriodID));
     bhVec.push_back(new BmnHistSrc(refName + "SRC", _curDir));
     bhVec.push_back(new BmnHistLAND(refName + "LAND", _curDir));
     for (auto h : bhVec) {
         h->SetDir(fHistOut, fRecoTree);
+        h->SetperiodID(fPeriodID);
     }
     for (auto h : bhVec4show) {
         //        h->SetDir(fHistOutTemp, fRecoTree4Show);
         h->SetDir(NULL, NULL);
         h->ClearRefRun();
         h->Reset();
+        h->SetperiodID(fPeriodID);
     }
     return kBMNSUCCESS;
 }
@@ -275,19 +273,19 @@ void BmnMonitor::ProcessDigi(Int_t iEv) {
         pad->Modified();
         pad = infoCanvas->cd(2);
         pad->Clear();
-        TLatex l2;
-        l2.SetTextAlign(12);
-        l2.SetTextSize(0.16);
-        l2.DrawLatex(0.3, 0.9, Form("Energy: %1.2f", CurRun->GetEnergy()));
-        l2.DrawLatex(0.3, 0.7, Form("Beam: %s", CurRun->GetBeamParticle().Data()));
-        l2.DrawLatex(0.3, 0.5, Form("Target: %s", CurRun->GetTargetParticle().Data()));
-        l2.DrawLatex(0.3, 0.3, Form("Field Voltage: %1.2f", CurRun->GetFieldVoltage()));
-        l2.Draw();
+//        TLatex l2;
+        Tl.SetTextAlign(12);
+        Tl.SetTextSize(0.16);
+        Tl.DrawLatex(0.3, 0.9, Form("Energy: %1.2f", CurRun->GetEnergy()));
+        Tl.DrawLatex(0.3, 0.7, Form("Beam: %s", CurRun->GetBeamParticle().Data()));
+        Tl.DrawLatex(0.3, 0.5, Form("Target: %s", CurRun->GetTargetParticle().Data()));
+        Tl.DrawLatex(0.3, 0.3, Form("Field Voltage: %1.2f", CurRun->GetFieldVoltage()));
+        Tl.Draw();
         pad->Update();
         pad->Modified();
         for (auto h : bhVec4show)
             h->DrawBoth();
-        if (fEvents % 2000 == 0)
+        if (fEvents % 1000 == 0)
             if (refTable->GetEntries() == 0)
                 UpdateRuns();
     }
@@ -302,7 +300,7 @@ void BmnMonitor::RegisterAll() {
     bhVec4show.push_back(new BmnHistECAL("ECAL", _curDir));
     bhVec4show.push_back(new BmnHistToF("ToF400", _curDir));
     bhVec4show.push_back(new BmnHistToF700("ToF700", _curDir));
-    bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir));
+    bhVec4show.push_back(new BmnHistTrigger("Triggers", _curDir, fPeriodID));
     bhVec4show.push_back(new BmnHistSrc("SRC", _curDir));
     bhVec4show.push_back(new BmnHistLAND("LAND", _curDir));
 
@@ -313,6 +311,7 @@ void BmnMonitor::RegisterAll() {
     for (auto h : bhVec4show) {
         h->Register(fServer);
         h->SetRefPath(_refDir);
+        h->SetperiodID(fPeriodID);
     }
 }
 

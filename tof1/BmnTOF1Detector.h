@@ -71,7 +71,7 @@ private:
 
     TH1I *hHitByCh, *hHitPerEv;
     TH2I *hXY;
-    TH2S *hHitLR, *hDtvsWidthDet[fNStr], *hDtvsWidthT0[fNStr];
+    TH2S *hHitLR, *hDtvsWidthDet[fNStr + 1], *hDtvsWidthT0[fNStr + 1];
     TH1I *hWidth[fNStr + 1], *hTime[fNStr + 1];
     TH1D * hDtLR[fNStr + 1], *hDt[fNStr + 1], *hToF[fNStr + 1];
     TGraphErrors *gSlew[fNStr];
@@ -79,6 +79,7 @@ private:
     TH1S *hDy_near, *hDtime_near, *hDWidth_near;
     TH1S *hDy_acros, *hDtime_acros, *hDWidth_acros;
     TH2S *hTempDtimeDy_near, *hTempDtimeDy_acros;
+    TH1S *hWidthL[fNStr + 1], *hWidthR[fNStr + 1];
 
     void FillHist();
     Double_t CalculateDt(Int_t Str);

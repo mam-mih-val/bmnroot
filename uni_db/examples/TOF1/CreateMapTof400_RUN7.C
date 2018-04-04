@@ -69,16 +69,16 @@ void CreateMapTof400_RUN7(std::string placementMapFile = "TOF400_PlaceMap_RUN7.t
 
     // Left arm
     Int_t MapDetL[kNDet][kNIt] = {
-        {1201, 1103, 1002, 2204},
-        {2111, 2013, 3212, 3114},
-        {3021, 4223, 4122, 4024},
-        {5231, 5133, 5032, 6234},
-        {6141, 6043, 7242, 7144},
-        {14251, 14153, 14052, 15254},
-        {15161, 15063, 16262, 16164},
-        {16071, 17273, 17172, 17074},
-        {18281, 18183, 18082, 19284},
-        {19191, 19093, 20292, 20194},
+        {1202, 1104, 1001, 2203},
+        {2112, 2014, 3211, 3113},
+        {3022, 4224, 4121, 4023},
+        {5232, 5134, 5031, 6233},
+        {6142, 6044, 7241, 7143},
+        {14252, 14154, 14051, 15253},
+        {15162, 15064, 16261, 16163},
+        {16072, 17274, 17171, 17073},
+        {18282, 18184, 18081, 19283},
+        {19192, 19094, 20291, 20193},
         {7005, 20005, 7005, 20005}
     };
 
@@ -153,7 +153,7 @@ void CreateMapTof400_RUN7(std::string placementMapFile = "TOF400_PlaceMap_RUN7.t
         }
     ff.close();
 
-   Int_t MapDetR[kNDet][kNIt] = {
+    Int_t MapDetR[kNDet][kNIt] = {
         {1201, 1103, 1002, 2204},
         {2111, 2013, 3212, 3114},
         {3021, 4223, 4122, 4024},
@@ -190,16 +190,30 @@ void CreateMapTof400_RUN7(std::string placementMapFile = "TOF400_PlaceMap_RUN7.t
 
                 ffStrip << std::hex << std::setfill('0') << std::setw(8) << slot[GetSlot(MapDetR[det][i])] << std::setfill(' ') << '\t';
                 ffStrip << std::dec << j + 24 * GetCon(MapDetR[det][i]) << '\t';
-                ffStrip << GetDet(MapDetR[det][i]) + 10<< '\t';
+                ffStrip << GetDet(MapDetR[det][i]) + 10 << '\t';
                 if (GetSide(MapDetR[det][i]) == 1 || GetSide(MapDetR[det][i]) == 2) {
-                    if (det >= 5) ffStrip << 47 - (MapL[j] + (GetSide(MapDetR[det][i]) - 1)*24) << '\t';
-                    else ffStrip << MapL[j] + (GetSide(MapDetR[det][i]) - 1)*24 << '\t';
+                    if (det >= 5) {
+                        Int_t strTemp = 47 - (MapL[j] + (GetSide(MapDetR[det][i]) - 1)*24);
+                        if (strTemp < 24) ffStrip << 48-(23 - strTemp) - 1 << '\t';
+                        else ffStrip << 48-(71 - strTemp) - 1 << '\t';
+                    } else {
+                        Int_t strTemp = MapL[j] + (GetSide(MapDetR[det][i]) - 1)*24;
+                        if (strTemp < 24) ffStrip << 48-(23 - strTemp) - 1 << '\t';
+                        else ffStrip << 48-(71 - strTemp) - 1 << '\t';
+                    }
                     //ffStrip << MapL[j] + (GetSide(MapDet[det][i]) - 1)*24 << '\t';
                     ffStrip << 'L';
                     ffStrip << endl;
                 } else if (GetSide(MapDetR[det][i]) == 3 || GetSide(MapDetR[det][i]) == 4) {
-                    if (det >= 5) ffStrip << 47 - (MapR[j] + (GetSide(MapDetR[det][i]) - 3)*24) << '\t';
-                    else ffStrip << MapR[j] + (GetSide(MapDetR[det][i]) - 3)*24 << '\t';
+                    if (det >= 5) {
+                        Int_t strTemp = 47 - (MapR[j] + (GetSide(MapDetR[det][i]) - 3)*24);
+                        if (strTemp < 24) ffStrip << 48-(23 - strTemp) - 1 << '\t';
+                        else ffStrip << 48-(71 - strTemp) - 1 << '\t';
+                    } else {
+                        Int_t strTemp = MapR[j] + (GetSide(MapDetR[det][i]) - 3)*24;
+                        if (strTemp < 24) ffStrip << 48-(23 - strTemp) - 1 << '\t'; 
+                        else ffStrip << 48-(71 - strTemp) - 1 << '\t';
+                    }
                     //ffStrip << MapR[j] + (GetSide(MapDet[det][i]) - 3)*24 << '\t';
                     ffStrip << 'R';
                     ffStrip << endl;

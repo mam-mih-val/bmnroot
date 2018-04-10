@@ -338,10 +338,10 @@ Bool_t BmnGemStripModule::AddRealPointFull(Double_t x, Double_t y, Double_t z,
 
                     //x-shift of the electon depends on the electron drift direction
                     if(ElectronDriftDirection == ForwardZAxisEDrift) {
-                        x_readout = gRandom->Gaus(xcoll-xmean, sigma);
+                        x_readout = gRandom->Gaus(xcoll+xmean, sigma);
                     }
                     else {
-                        x_readout = gRandom->Gaus(xcoll+xmean, sigma);
+                        x_readout = gRandom->Gaus(xcoll-xmean, sigma);
                     }
 
                     y_readout = gRandom->Gaus(ycoll, sigma);

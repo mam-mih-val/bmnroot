@@ -80,25 +80,26 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 #ifdef PART
     // ------- Particle Generator
     FairParticleGenerator* partGen =
-            new FairParticleGenerator(211, 10, 1, 0, 3, 1, 0, 0);
+            new FairIonGenerator(79, 197, 79, 1, 0., 0., 2., 0., -3.5, -21.7.);
     primGen->AddGenerator(partGen);
 
 #else
 #ifdef ION
     // ------- Ion Generator
     FairIonGenerator *fIongen =
-            new FairIonGenerator(79, 197, 79, 1, 0., 0., 25, 0., 0., -1.);
+            new FairIonGenerator(79, 197, 79, 1, 0., 0., 2., 0., -3.5, -21.7.);
+    // new FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -21.7);
     primGen->AddGenerator(fIongen);
 
 #else
 #ifdef BOX
     gRandom->SetSeed(0);
     // ------- Box Generator
-    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(0.2, 5.0); // GeV/c //setPRange vs setPtRange
+    FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 13 = muon; 1 = multipl.
+    boxGen->SetPRange(1., 1.); // GeV/c //setPRange vs setPtRange
     boxGen->SetPhiRange(0, 360); // Azimuth angle range [degree]
-    boxGen->SetThetaRange(5, 20); // Polar angle in lab system range [degree]
-    boxGen->SetXYZ(0., 0., -21.7); // Approximate position of target (RunSpring2017)
+    boxGen->SetThetaRange(10, 15); // Polar angle in lab system range [degree]
+    boxGen->SetXYZ(0., -3.5, -21.7); // Approximate position of target (RunSpring2017)
     primGen->AddGenerator(boxGen);
 
 #else
@@ -139,7 +140,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     if (!CheckFileExist(dataFile)) return;
 
     MpdLAQGSMGenerator* guGen = new MpdLAQGSMGenerator(dataFile.Data(), kFALSE);
-    // guGen->SetXYZ(0., 0., -21.7); IP = (0., 0., 0.)
+    guGen->SetXYZ(0., -3.5, -21.7); //IP = (0., 0., 0.)
     primGen->AddGenerator(guGen);
     if (nStartEvent > 0) guGen->SkipEvents(nStartEvent);
 
@@ -159,7 +160,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     // -----   Create magnetic field   ----------------------------------------
     BmnFieldMap* magField = NULL;
     if (isFieldMap) {
-        Double_t fieldScale = 2.;
+        Double_t fieldScale = 1.33;
         // magField = new BmnNewFieldMap("field_sp41v2_ascii_noExtrap.dat");
         magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
         // Double_t fieldZ = 124.5; // field centre z position
@@ -183,7 +184,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 
     // GEM-Digitizer
     BmnGemStripConfiguration::GEM_CONFIG gem_config = BmnGemStripConfiguration::RunSpring2017;
-    BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARCO2_70_30_E_1000_2500_3750_6300_B_0_0T);
+    BmnGemStripMedium::GetInstance().SetCurrentConfiguration(BmnGemStripMediumConfiguration::ARCO2_70_30_E_1000_2500_3750_6300_B_0_59T);
     BmnGemStripDigitizer* gemDigit = new BmnGemStripDigitizer();
     gemDigit->SetCurrentConfig(gem_config);
     gemDigit->SetOnlyPrimary(kFALSE);
@@ -237,7 +238,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     timer.Stop();
     Double_t rtime = timer.RealTime(), ctime = timer.CpuTime();
     printf("RealTime=%f seconds, CpuTime=%f seconds\n", rtime, ctime);
-    cout<<"Macro finished successfully."<<endl;     // marker of successfully execution for CDASH
+    cout << "Macro finished successfully." << endl; // marker of successfully execution for CDASH
 
     gApplication->Terminate();
 }

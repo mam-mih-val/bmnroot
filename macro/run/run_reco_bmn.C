@@ -156,13 +156,13 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
     if (iVerbose == 0) { // print only progress bar in terminal in quiet mode
         BmnCounter* cntr = new BmnCounter(nEvents);
-        fRunAna->AddTask(cntr);
+         fRunAna->AddTask(cntr);
     }
     // ====================================================================== //
     // ===                           Check Triggers                       === //
     // ====================================================================== //
-    BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp);
-    // fRunAna->AddTask(triggs);  
+    BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp, run_period, run_number);
+    fRunAna->AddTask(triggs);  
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
@@ -197,7 +197,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
             siliconHM->SetAlignmentCorrectionsFileName(run_period, run_number);
         }
         else {
-            gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
+            gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName, run_period, run_number);
             siliconHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
         }
     }

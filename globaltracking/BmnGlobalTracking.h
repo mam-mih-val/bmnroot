@@ -37,6 +37,8 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TGraph.h"
+#include "TFitResult.h"
+#include "TFitResultPtr.h"
 
 
 class TClonesArray;
@@ -70,7 +72,7 @@ public:
      * \brief Inherited from FairTask.
      */
     virtual void Finish();
-    
+
     Float_t Sqr(Float_t x);
 
     void SetRun1(Bool_t run) {
@@ -88,9 +90,9 @@ public:
     void SetField(Bool_t f) {
         fIsField = f;
     }
-    
+
     BmnStatus CreateDchHitsFromTracks();
-    
+
 private:
 
     //AM 7.08
@@ -98,7 +100,7 @@ private:
     TClonesArray* fGemHitArray;
     BmnGemStripHit * GetGemHit(Int_t i);
     BmnStatus MatchGemDCH(BmnGlobalTrack* tr);
-    BmnStatus MatchDCHTOF(BmnGlobalTrack* tr,Int_t num);
+    BmnStatus MatchDCHTOF(BmnGlobalTrack* tr, Int_t num);
     BmnStatus MatchDCHMPWC(BmnGlobalTrack* tr);
     void FitDCHTracks();
     void FitGemTracks();
@@ -128,7 +130,7 @@ private:
     TClonesArray* fDchHits;
     TClonesArray* fTof1Hits;
     TClonesArray* fTof2Hits;
-    
+
     TClonesArray* fEvHead;
 
     // INPUT FOR CHECKING EFFICIENCY
@@ -137,18 +139,18 @@ private:
     TClonesArray* fTof2McPoints;
     TClonesArray* fDchMcPoints;
     TClonesArray* fMcTracks;
-    
+
     TClonesArray* fMCTracks;
     TClonesArray* fBmnMPWCPointsArray;
     TClonesArray* fBmnTOFPointsArray;
     TClonesArray* fBmnTOF1PointsArray;
-	TClonesArray* fBmnDchPointsArray;
-	TClonesArray* fBmnGemPointsArray;
-    
+    TClonesArray* fBmnDchPointsArray;
+    TClonesArray* fBmnGemPointsArray;
+
     // OUTPUT ARRAYS
 
     TClonesArray* fGlobalTracks; //output BmnGlobalTrack array
-    
+
     Bool_t fIsField; // run with mag.field or not
 
     /*
@@ -168,17 +170,17 @@ private:
 
     Int_t fPDG; // PDG hypothesis
     Float_t fChiSqCut; // Chi square cut for hit to be attached to track.
-    
+
     CbmVertex *fVertex; // vertex information
 
     BmnStatus MatchingTOF(BmnGlobalTrack* tr, Int_t num, Int_t trIndex);
     BmnStatus MatchingDCH(BmnGlobalTrack* tr);
     BmnStatus MatchingMWPC(BmnGlobalTrack* tr);
-    BmnStatus MatchingSil(BmnGlobalTrack* tr);
-    
+    BmnStatus MatchingSil(map <Double_t, pair<Int_t, Int_t> >);
+
     BmnStatus Refit(BmnGlobalTrack* tr);
     BmnStatus EfficiencyCalculation();
-    
+
     BmnStatus Run1GlobalTrackFinder();
     BmnStatus FillHoughHistogram(TH1F* h, TGraph* orig, TH2F* cm, TGraph* seeds, TClonesArray* arr);
 
@@ -187,6 +189,7 @@ private:
     BmnGlobalTracking(const BmnGlobalTracking&);
     //    BmnGlobalTracking& operator=(const BmnGlobalTracking&);
     BmnStatus RefitToDetector(BmnGlobalTrack* tr, Int_t hitId, TClonesArray* hitArr, FairTrackParam* par, Int_t* nodeIdx, vector<BmnFitNode>* nodes);
+    void CalcSiliconDist(BmnGlobalTrack*, map <Double_t, pair<Int_t, Int_t> >&);
 
     ClassDef(BmnGlobalTracking, 1);
 };

@@ -15,6 +15,7 @@ public:
     };
 
     BmnSiliconAlignCorrections(TVector3);
+    BmnSiliconAlignCorrections(Int_t, Int_t, TVector3);
     
     virtual ~BmnSiliconAlignCorrections() { };
     

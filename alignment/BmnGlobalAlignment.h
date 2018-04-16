@@ -13,6 +13,7 @@
 #ifndef BMNGLOBALALIGNMENT_H
 #define BMNGLOBALALIGNMENT_H 1
 
+#include <vector>
 #include <fstream>
 #include <sstream>
 #include <TMath.h>
@@ -65,11 +66,14 @@ public:
     virtual void Finish();
 
     void SetDetectors(Bool_t gem, Bool_t mwpc, Bool_t dch, Bool_t vp, Bool_t si) {
-        fDetectorSet[0] = gem;
+        fDetectorSet[0] = kTRUE;
         fDetectorSet[1] = mwpc;
         fDetectorSet[2] = dch;
         fDetectorSet[3] = vp;
         fDetectorSet[4] = si;
+        
+        fUseGemConstraints = gem;
+        fUseSiliconConstraints = si;
     }
 
     void SetUseRealHitErrors(Bool_t flag) {
@@ -335,6 +339,10 @@ private:
 
     TString fBranchVertex;
     TClonesArray* fVertex;
+    
+    // Use constraints or not
+    Bool_t fUseGemConstraints;
+    Bool_t fUseSiliconConstraints;
 
     ClassDef(BmnGlobalAlignment, 1)
 };

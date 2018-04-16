@@ -66,6 +66,10 @@ public:
     Int_t GetHitId() {
         return fHitId;
     }
+    
+    Int_t GetTrackId() {
+        return fTrackId;   
+    }
 
 private:
     Double_t fdX;

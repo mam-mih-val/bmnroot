@@ -88,7 +88,9 @@ fMagField(NULL),
 fField(NULL),
 fKalman(NULL),
 Labels(NULL),
-fUseVp(kTRUE) {
+fUseVp(kTRUE),
+fUseGemConstraints(kTRUE),
+fUseSiliconConstraints(kTRUE) {
     fRecoFileName = inFileName;
 
     fBranchMwpcHits = "BmnMwpcHit";
@@ -187,6 +189,7 @@ InitStatus BmnGlobalAlignment::Init() {
     TGeoManager::Import(geoFileName);
 
     fVertex = (TClonesArray*) ioman->GetObject(fBranchVertex.Data());
+    fKalman = new BmnKalmanFilter();
     return kSUCCESS;
 }
 
@@ -320,8 +323,7 @@ void BmnGlobalAlignment::PrintToFullFormat(TString detName, Char_t* buff) {
             for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++)
                 for (Int_t iRow = 0; iRow < nCases; iRow++)
                     sprintf(buff, "%s%d %d %s\n", buff, iStat, iMod, zeroLine[iRow].Data());
-    }
-    else
+    } else
         for (Int_t iRow = 0; iRow < nCases; iRow++)
             sprintf(buff, "%s%s\n", buff, zeroLine[iRow].Data());
 }
@@ -927,8 +929,10 @@ void BmnGlobalAlignment::MakeSteerFile() {
             }
         } else if (iDet == 4) { // Process SILICON to mark fixed modules if exist
             for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
-                for (Int_t iPar = 0; iPar < fDetectorSI->GetSiliconStation(iStat)->GetNModules() * nParams; iPar++)
-                    fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedSiElements[iStat][iPar / nParams]) ? -1. : fPreSigma);
+                for (Int_t iPar = 0; iPar < fDetectorSI->GetSiliconStation(iStat)->GetNModules() * nParams; iPar++) {
+                    //                   Double_t scale = ((startIdx + iPar + 1) % 3 == 2) ? 0.01 : 1.;
+                    fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedSiElements[iStat][iPar / nParams]) ? -1. : (fPreSigma * 1.));
+                }
             }
         } else if (iDet == 1 || iDet == 2 || iDet == 3) {// MWPC, DCH, VERTEX
             //  if (iDet == 1) startIdx -= nParams;
@@ -938,28 +942,36 @@ void BmnGlobalAlignment::MakeSteerFile() {
         }
     }
 
-    // GEMs
-    // 1. Calculate center-of-gravity along Z-axis
+    // 1. Calculate center-of-gravity along Z-axis (GEM + SI)
+    vector <Double_t> z_GEM;
+    vector <Double_t> z_SI;
+
+    vector <Double_t> z_GEM_SI;
+
+    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
+        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++)
+            z_GEM.push_back(fDetectorGEM->GetGemStation(iStat)->GetModule(iMod)->GetZPositionRegistered());
+
+    for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++)
+        for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++)
+            z_SI.push_back(fDetectorSI->GetSiliconStation(iStat)->GetModule(iMod)->GetZPositionRegistered());
+
+    z_GEM_SI.reserve(z_GEM.size() + z_SI.size());
+    z_GEM_SI.insert(z_GEM_SI.end(), z_GEM.begin(), z_GEM.end());
+    z_GEM_SI.insert(z_GEM_SI.end(), z_SI.begin(), z_SI.end());
+
     Double_t zSum = 0.;
-    Int_t modCounter = 0;
-    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
-        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
-            zSum += fDetectorGEM->GetGemStation(iStat)->GetModule(iMod)->GetZStartModulePosition();
-            modCounter++;
-        }
-    Double_t zC = zSum / modCounter;
+    for (Int_t iSize = 0; iSize < z_GEM_SI.size(); iSize++)
+        zSum += z_GEM_SI[iSize];
 
-    // 2. Calculate dZ = Zpos - Zc for each GEM plane
-    Double_t deltaZ[modCounter];
-    for (Int_t iMod = 0; iMod < modCounter; iMod++)
-        deltaZ[iMod] = 0.;
+    Double_t zC = zSum / z_GEM_SI.size();
 
-    modCounter = 0;
-    for (Int_t iStat = 0; iStat < fDetectorGEM->GetNStations(); iStat++)
-        for (Int_t iMod = 0; iMod < fDetectorGEM->GetGemStation(iStat)->GetNModules(); iMod++) {
-            deltaZ[modCounter] = fDetectorGEM->GetGemStation(iStat)->GetModule(iMod)->GetZStartModulePosition() - zC;
-            modCounter++;
-        }
+    // 2. Calculate dZ = Zpos - Zc (GEM + SI)
+    vector <Double_t> deltaZ;
+
+    for (Int_t iSize = 0; iSize < z_GEM_SI.size(); iSize++) {
+        deltaZ.push_back(z_GEM_SI[iSize] - zC);
+    }
 
     // 3. Apply constraints (six in general) to prevent a total shift of the detector (iStep = 0, 1) and define scaling (iStep = 2)
     //          iConstrSet = 0
@@ -971,14 +983,14 @@ void BmnGlobalAlignment::MakeSteerFile() {
     // Wi * a_Yi = 0,    (iStep = 1), Wi = 1.
     // Wi * a_Zi = 0,    (iStep = 2), Wi = 1.
 
+    Int_t modCounter = 0;
     for (Int_t iConstrSet = 0; iConstrSet < 2; iConstrSet++)
         for (Int_t iStep = 0; iStep < 3; iStep++) {
             fprintf(steer, "constraint 0.0\n");
             modCounter = 0;
             for (Int_t iPar = 0; iPar < dim; iPar++) {
-                // Remember: this condition is used for GEMs only
-                if (Labels[iPar] > nParams * parCounterGem)
-                    break;
+                if (Labels[iPar] > nParams * parCounterGem && Labels[iPar] < 1 + nParams * parCounterGem + nParams * 3)
+                    continue;
 
                 if (Labels[iPar] % 3 == iStep + 1) {
                     fprintf(steer, "%d %G\n", Labels[iPar], (iConstrSet == 0) ? deltaZ[modCounter] : 1.);
@@ -1029,12 +1041,11 @@ void BmnGlobalAlignment::ReadPedeOutput(ifstream& resFile) {
         } else if (iDet == 1) {
             BmnDchAlignCorrections* dchCorrs = new((*fDchAlignCorr)[fDchAlignCorr->GetEntriesFast()]) BmnDchAlignCorrections();
             dchCorrs->SetCorrections(corrs);
-        } 
-        else {
-          // VERTEX??? // FIXME
+        } else {
+            // VERTEX??? // FIXME
         }
     }
-    
+
     // Read SILICON
     for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
         for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++) {
@@ -1045,7 +1056,7 @@ void BmnGlobalAlignment::ReadPedeOutput(ifstream& resFile) {
             siCorrs->SetCorrections(corrs);
         }
     }
-    
+
     delete [] corrs;
 }
 

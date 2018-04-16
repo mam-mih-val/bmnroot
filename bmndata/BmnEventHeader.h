@@ -106,6 +106,14 @@ public:
         fStartSignalWidth = width;
     }
 
+    void SetTrigType(BmnTriggerType type) {
+        fTrigType = type;
+    }
+    
+    void SetTripWord(Bool_t flag) {
+        fTripWord = flag;
+    }
+
     /**
      * Destructor
      */

@@ -1,7 +1,9 @@
 #include "BmnTriggersCheck.h"
 
-BmnTriggersCheck::BmnTriggersCheck(Bool_t isExp) {
+BmnTriggersCheck::BmnTriggersCheck(Bool_t isExp, Int_t runP, Int_t runN) {
     fIsExp = isExp;
+    fRunPeriod = runP;
+    fRunNumber = runN;
     
     fT0Branch = "T0";
     fVetoBranch = "VETO";
@@ -36,14 +38,14 @@ void BmnTriggersCheck::Exec(Option_t* opt) {
     const Int_t kTargets = 5;
     Double_t energies[kEnergies] = {3.5, 4., 4.5, 5.14};
     TString targets[kTargets] = {"C", "Al", "Cu", "Pb", "C2H4"};
-
+   
     BmnEventHeader* evHeader = (BmnEventHeader*) fBmnEventHeader->UncheckedAt(0);
     if (!evHeader)
         return;
-               
-    UniDbRun* runInfo = UniDbRun::GetRun(6, evHeader->GetRunId());
+              
+    UniDbRun* runInfo = UniDbRun::GetRun(fRunPeriod, fRunNumber);
 
-    BmnTriggerType trigType = evHeader->GetTrig();
+    BmnTriggerType trigType = evHeader->GetTrig(); 
     if (trigType == kBMNMINBIAS) {
         // Setup BD-threshold
         // To be read subsequently from the UniDB directly when processing RUN7, FIXME
@@ -66,7 +68,7 @@ void BmnTriggersCheck::Exec(Option_t* opt) {
             bdThresh = 0;             
         
         if (fT0Array->GetEntriesFast() != 1 || fBC2Array->GetEntriesFast() != 1 || fVetoArray->GetEntriesFast() != 0 || fBDArray->GetEntriesFast() < bdThresh)
-            evQual->SetIsGoodEvent("BAD");
+            evQual->SetIsGoodEvent("BAD");        
     }
 
     else if (trigType == kBMNBEAM) {

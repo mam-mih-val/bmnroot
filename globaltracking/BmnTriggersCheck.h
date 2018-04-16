@@ -20,7 +20,7 @@ public:
     BmnTriggersCheck() {
     };
 
-    BmnTriggersCheck(Bool_t);
+    BmnTriggersCheck(Bool_t, Int_t, Int_t);
 
     virtual ~BmnTriggersCheck() {
     };
@@ -31,7 +31,8 @@ public:
 
 private:
     Bool_t fIsExp;
-
+    Int_t fRunPeriod;
+    Int_t fRunNumber;
     TString fBmnEventHeaderBranchName;
     TString fT0Branch;
     TString fVetoBranch;

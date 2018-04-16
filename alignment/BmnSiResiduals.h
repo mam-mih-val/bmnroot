@@ -78,7 +78,7 @@ public:
     BmnSiliconStationSet* fDetector;
 
     // tmp histos to fit resid. 
-    TH1F* hRes[1][8][2]; // stat -- mod -- resX (Y)
+    TH1F* hRes[1][8][2]; //! stat -- mod -- resX (Y)
 
     Bool_t isPrintToFile;
     Bool_t isMergedDigits; // file with merged digits from different files

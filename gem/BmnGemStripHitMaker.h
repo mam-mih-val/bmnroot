@@ -52,7 +52,8 @@ public:
         fCurrentConfig = config;
     }
 
-    void SetAlignmentCorrectionsFileName(TString filename) {
+    void SetAlignmentCorrectionsFileName(TString filename, Int_t run_period, Int_t file_number) {
+        fRunId = file_number;
         fAlignCorrFileName = filename;
     }
 
@@ -106,6 +107,7 @@ private:
     void ReadAlignCorrFile(TString, Double_t***); // read corrections from the file
     Double_t*** corr; // array to store the corrections
 
+    Double_t*** misAlign; // an array to introduce remain misalignment
     FairField* fField;
     Double_t** lorCorrsCoeff;
 

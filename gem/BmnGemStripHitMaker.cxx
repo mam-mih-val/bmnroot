@@ -1,5 +1,6 @@
 #include <TChain.h>
 #include <zlib.h>
+#include <TRandom.h>
 #include "TSystem.h"
 
 #include "BmnGemStripHitMaker.h"
@@ -114,44 +115,50 @@ InitStatus BmnGemStripHitMaker::Init() {
     const Int_t nStat = StationSet->GetNStations();
     const Int_t nParams = 3;
 
+    TRandom* rand = new TRandom();
+    rand->SetSeed(2);
+
     corr = new Double_t**[nStat];
+    misAlign = new Double_t**[nStat];
     for (Int_t iStat = 0; iStat < nStat; iStat++) {
         Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
         corr[iStat] = new Double_t*[nModul];
+        misAlign[iStat] = new Double_t*[nModul];
         for (Int_t iMod = 0; iMod < nModul; iMod++) {
             corr[iStat][iMod] = new Double_t[nParams];
+            misAlign[iStat][iMod] = new Double_t[nParams];
             for (Int_t iPar = 0; iPar < nParams; iPar++) {
                 corr[iStat][iMod][iPar] = 0.;
+                if (!fIsExp)
+                    misAlign[iStat][iMod][iPar] = rand->Gaus(0., (iPar == 0) ? 0.03 : (iPar == 1) ? 0.05 : 0.);
             }
         }
     }
+    
+    delete rand;
 
-    // NB! When fAlignCorrFileName == "", i.e. is empty string, no alinment
-    // corrections are used at all, they remain to be simply zeros; this is used
-    // when e.g. we want to run alignment from scratch.
-    // Otherwise, fAlignCorrFileName is assigned in the run_reco_bmn.C
-    // using SetAlignmentCorrectionsFileName (in BmnGemStripHitMaker.h)
-    // Anatoly.Solomin@jinr.ru 2017-02-21 15:12:07
-    // Anatoly.Solomin@jinr.ru 2017-11-18 13:06:30
-    if (fAlignCorrFileName != "") {
+    if (fAlignCorrFileName != "") 
         ReadAlignCorrFile(fAlignCorrFileName, corr);
 
-    }
-    cout << "GEM-alignment corrections in use:" << endl;
+    if (fIsExp)
+        cout << "GEM-alignment corrections in use: " << endl;
+    else
+        cout << "Remain GEM-misalignment in use: " << endl;
     for (Int_t iStat = 0; iStat != nStat; iStat++) {
         Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
         for (Int_t iMod = 0; iMod != nModul; iMod++) {
             for (Int_t iPar = 0; iPar != nParams; iPar++)
-                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << TString::Format("% 7.4f", corr[iStat][iMod][iPar]) << endl; //
+                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << 
+                        TString::Format("% 7.4f", (fIsExp) ? corr[iStat][iMod][iPar] : misAlign[iStat][iMod][iPar]) << endl; //
         }
     }
     fField = FairRunAna::Instance()->GetField();
     if (!fField) Fatal("Init", "No Magnetic Field found");
 
     // Initialize coefficients to be used when the Lorentz corrections calculating ...
-    if (fIsExp && Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
+    if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
         lorCorrsCoeff = new Double_t*[nStat];
-        UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", 6, fRunId);
+        UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", 6, (!fIsExp) ? 1587 : fRunId);
         LorentzShiftStructure* shifts;
         Int_t element_count = 0;
         coeffLorCorrs->GetLorentzShiftArray(shifts, element_count);
@@ -160,7 +167,6 @@ InitStatus BmnGemStripHitMaker::Init() {
             lorCorrsCoeff[iEle] = new Double_t[nParams];
             for (Int_t iParam = 0; iParam < nParams; iParam++) {
                 lorCorrsCoeff[iEle][iParam] = shifts[iEle].ls[iParam];
-                // cout << lorCorrsCoeff[iEle][iParam] << endl;
             }
         }
     }
@@ -285,11 +291,13 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
                 //Add hit ------------------------------------------------------
                 x *= -1; // invert to global X
+                Double_t deltaX = fIsExp ? corr[iStation][iModule][0] : misAlign[iStation][iModule][0];
+                Double_t deltaY = fIsExp ? corr[iStation][iModule][1] : misAlign[iStation][iModule][1];
 
-                x += corr[iStation][iModule][0];
-                y += corr[iStation][iModule][1];
+                x += deltaX;
+                y += deltaY;
 
-                if (fIsExp && Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
+                if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
                     Int_t sign = (module->GetElectronDriftDirection() == ForwardZAxisEDrift) ? +1 : -1;
                     Double_t ls = GetLorentzByField(Abs(fField->GetBy(x, y, z)), iStation) * sign;
                     x += ls;

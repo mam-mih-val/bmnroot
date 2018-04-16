@@ -19,7 +19,9 @@ fDCA12X(0.), fDCA12Y(0.),
 fPathX(0.), fPathY(0.),
 fInvMassX(0.), fInvMassY(0.), 
 fMomPart1(0.), fMomPart2(0.),
-fEtaPart1(0.), fEtaPart2(0.) {
+fEtaPart1(0.), fEtaPart2(0.), 
+fAlphaX(0.), fPtPodolX(0.), 
+fAlphaY(0.), fPtPodolY(0.) {
 
 }
 

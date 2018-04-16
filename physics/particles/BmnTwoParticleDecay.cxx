@@ -180,7 +180,7 @@ vector <Double_t> BmnTwoParticleDecay::GeomTopology(FairTrackParam proton_V0, Fa
     cuts.push_back(protonVpVp);
     cuts.push_back(pionVpVp);
     cuts.push_back(protonV0PionV0);
-    cuts.push_back(vertexDiff);
+    cuts.push_back(Abs(vertexDiff));
 
     return cuts;
 }
@@ -266,7 +266,7 @@ void BmnTwoParticleDecay::Analysis() {
     const Int_t nV0 = 2;
     TLorentzVector lPos[nV0], lNeg[nV0];
     TClonesArray* arr = ((fUseMc && fGlobalMatches) || !fUseMc) ? fGlobalTracks : fMCTracks;
-    // cout << arr->GetName() << endl; getchar();
+    
     for (Int_t iTrack = 0; iTrack < arr->GetEntriesFast(); iTrack++) {
         BmnGlobalTrack Track1;
         BmnGlobalTrack* track1 = &Track1;
@@ -383,6 +383,8 @@ void BmnTwoParticleDecay::Analysis() {
             Double_t Tx1[nV0], Ty1[nV0], Tx2[nV0], Ty2[nV0], p1[nV0], p2[nV0];
             Double_t A1[nV0], A2[nV0];
 
+            TVector2 armenPodol[nV0];
+
             for (Int_t iProj = 0; iProj < nV0; iProj++) {
                 Tx1[iProj] = proton_V0[iProj].GetTx();
                 Ty1[iProj] = proton_V0[iProj].GetTy();
@@ -390,6 +392,8 @@ void BmnTwoParticleDecay::Analysis() {
                 Ty2[iProj] = pion_V0[iProj].GetTy();
                 p1[iProj] = 1. / proton_V0[iProj].GetQp();
                 p2[iProj] = 1. / pion_V0[iProj].GetQp();
+
+                armenPodol[iProj] = ArmenterosPodol(proton_V0[iProj], pion_V0[iProj]);
 
                 A1[iProj] = 1. / Sqrt(Tx1[iProj] * Tx1[iProj] + Ty1[iProj] * Ty1[iProj] + 1);
                 lPos[iProj].SetXYZM(Tx1[iProj] * A1[iProj] * p1[iProj], Ty1[iProj] * A1[iProj] * p1[iProj], p1[iProj] * A1[iProj],
@@ -401,6 +405,8 @@ void BmnTwoParticleDecay::Analysis() {
                 lNeg[iProj].SetXYZM(Tx2[iProj] * A2[iProj] * p2[iProj], Ty2[iProj] * A2[iProj] * p2[iProj], p2[iProj] * A2[iProj],
                         fPDG->GetParticle(fPdgParticle2)->Mass());
             }
+            partPair->SetAlpha(armenPodol[0].X(), armenPodol[1].X());
+            partPair->SetPtPodol(armenPodol[0].Y(), armenPodol[1].Y());
             partPair->SetInvMass(TLorentzVector((lPos[0] + lNeg[0])).Mag(), TLorentzVector((lPos[1] + lNeg[1])).Mag());
 
             if (fGlobalMatches) {
@@ -562,10 +568,10 @@ InitStatus BmnTwoParticleDecay::Init() {
 
         h3Sim = new TH2F**[fN3]();
 
-	const Int_t _fN = 8;
-	const Int_t _fN2 = 7;
-	const Int_t _fN3 = 2;
-	const Int_t _fN4 = 3;
+        const Int_t _fN = 8;
+        const Int_t _fN2 = 7;
+        const Int_t _fN3 = 2;
+        const Int_t _fN4 = 3;
 
         TString hTitles[_fN];
         TString hTitles2[_fN2];
@@ -667,10 +673,14 @@ void BmnTwoParticleDecay::Exec(Option_t* option) {
     }// Real data .. 
     else {
         fEventVertex = (CbmVertex*) fVertex->UncheckedAt(0);
+
+        if (fEventVertex->GetNTracks() < 3 || fEventVertex->GetNTracks() > 20)
+            return;
+
         TVector3 roughVert(fEventVertex->GetRoughX(), fEventVertex->GetRoughY(), fEventVertex->GetRoughZ());
         TVector3 realVert(fEventVertex->GetX(), fEventVertex->GetY(), fEventVertex->GetZ());
 
-        const Double_t vertexCut = 10.;
+        const Double_t vertexCut = 100.;
 
         for (Int_t iProj = 0; iProj < 3; iProj++)
             if (Abs(TVector3(roughVert - realVert)[iProj]) > vertexCut)
@@ -795,5 +805,36 @@ void BmnTwoParticleDecay::CalculateMinDistance(TVector3 paramsCurv1, TVector3 pa
         arr[3] = x2;
     }
 }
+
+TVector2 BmnTwoParticleDecay::ArmenterosPodol(FairTrackParam prot, FairTrackParam pion) {
+    Float_t mom1 = 1. / prot.GetQp();
+    Float_t Tx1 = prot.GetTx();
+    Float_t Ty1 = prot.GetTy();
+
+    Float_t mom1sq = mom1 * mom1;
+    Float_t Pz1 = Abs(mom1) / Sqrt(Tx1 * Tx1 + Ty1 * Ty1 + 1);
+    Float_t Px1 = Pz1 * Tx1;
+    Float_t Py1 = Pz1 * Ty1;
+
+    Float_t mom2 = 1. / pion.GetQp();
+    Float_t Tx2 = pion.GetTx();
+    Float_t Ty2 = pion.GetTy();
+
+    Float_t mom2sq = mom2 * mom2;
+    Float_t Pz2 = Abs(mom2) / Sqrt(Tx2 * Tx2 + Ty2 * Ty2 + 1);
+    Float_t Px2 = Pz2 * Tx2;
+    Float_t Py2 = Pz2 * Ty2;
+
+    Float_t momHyp2 = (Px1 + Px2) * (Px1 + Px2) + (Py1 + Py2) * (Py1 + Py2) + (Pz1 + Pz2) * (Pz1 + Pz2);
+    Float_t momHyp = Sqrt(momHyp2);
+    Float_t oneOver2MomHyp = 1 / (2 * momHyp);
+    Float_t L1 = (momHyp2 + mom1sq - mom2sq) * oneOver2MomHyp;
+    Float_t L2 = (momHyp2 + mom2sq - mom1sq) * oneOver2MomHyp;
+    Float_t alpha = (L1 - L2) / (L1 + L2);
+    Float_t Pt = Sqrt((mom1sq + mom2sq + momHyp2) * (mom1sq + mom2sq + momHyp2) - 2 * (mom1sq * mom1sq + mom2sq * mom2sq + momHyp2 * momHyp2)) * oneOver2MomHyp;
+
+    return TVector2(alpha, Pt);
+}
+
 
 ClassImp(BmnTwoParticleDecay);

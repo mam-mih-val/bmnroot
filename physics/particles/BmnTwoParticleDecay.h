@@ -202,6 +202,8 @@ private:
     inline Int_t CheckSign(Double_t val) {
         return (val > 0) ? 1 : ((val < 0) ? -1 : 0);
     }
+    
+    TVector2 ArmenterosPodol(FairTrackParam, FairTrackParam); 
 
     ClassDef(BmnTwoParticleDecay, 0)
 };

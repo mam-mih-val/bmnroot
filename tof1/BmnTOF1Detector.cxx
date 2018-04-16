@@ -208,7 +208,7 @@ Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
         //cout << "Setting Shift: strip # " << fStrip << " shift val " << CorrLR[fStrip] << " curr timeL " << TofDigit->GetTime() << " shifted timeL " << fTimeLtemp[fStrip] <<  "\n";
         fWidthLtemp[fStrip] = TofDigit->GetAmplitude();
         fDigitL[fStrip]++;
-        hWidthL[fStrip]->Fill(fWidthLtemp[fStrip]);
+        //hWidthL[fStrip]->Fill(fWidthLtemp[fStrip]);
         hWidthL[fNStr]->Fill(fWidthLtemp[fStrip]);
     }
     if (TofDigit->GetSide() == 1 && fFlagHit[fStrip] == kFALSE && fKilled[fStrip] == kFALSE) {
@@ -216,7 +216,7 @@ Bool_t BmnTOF1Detector::SetDigit(BmnTof1Digit * TofDigit) {
         //cout << "Setting Shift: strip # " << fStrip << " shift val " << CorrLR[fStrip] << " curr timeR " << TofDigit->GetTime() << " shifted timeR " << fTimeRtemp[fStrip] <<  "\n";
         fWidthRtemp[fStrip] = TofDigit->GetAmplitude();
         fDigitR[fStrip]++;
-        hWidthR[fStrip]->Fill(fWidthRtemp[fStrip]);
+        //hWidthR[fStrip]->Fill(fWidthRtemp[fStrip]);
         hWidthR[fNStr]->Fill(fWidthRtemp[fStrip]);
     }
     if (

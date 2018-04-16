@@ -5,6 +5,7 @@
 
 BmnTrack::BmnTrack()
 : TObject(),
+fUsing(kFALSE),       
 fHits(),
 fNhits(0),
 fParamFirst(),

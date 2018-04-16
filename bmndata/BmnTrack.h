@@ -112,6 +112,14 @@ public:
     void SetLength(Double_t length) {
         fLength = length;
     }
+    
+    Bool_t IsUsed() {
+        return fUsing;
+    }
+    
+    void SetUsing(Bool_t flag) {
+        fUsing = flag;
+    }
 
 private:
 
@@ -143,6 +151,8 @@ private:
      ** The Hit index arrays will be filled by the method SortHits.
      **/
     map<Float_t, Int_t> fHitMap; //!
+    
+    Bool_t fUsing;
 
     ClassDef(BmnTrack, 2);
 

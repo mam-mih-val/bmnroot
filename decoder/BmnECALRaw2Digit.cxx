@@ -7,7 +7,7 @@
 #include "BmnECALRaw2Digit.h"
 
 #define PRINT_ECAL_CALIBRATION 0
-#define SHIFT 4
+#define SHIFT 0
 
 static void fcn1(Int_t& npar, Double_t *gin, Double_t& f, Double_t *par, Int_t iflag);
 
@@ -134,7 +134,7 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(TString mappingFile, TString RunFile, TString
     int RUN;
     const char *fname = RunFile.Data();
     char *delim = NULL;
-    sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
+    sscanf(&fname[strlen(fname) - 13], "%d", &RUN);
     strcpy(filname_base, gSystem->BaseName(fname));
     if ((delim = strrchr(filname_base, (int)'.'))) *delim = '\0';
     FILE *fin = 0;
@@ -233,7 +233,7 @@ BmnECALRaw2Digit::BmnECALRaw2Digit(TString mappingFile, TString RunFile, TString
     {
 	sprintf(tit, "samprof%d_ecal", ecal_map_element[i].chan+1);
 	sprintf(nam, "Average sampling wave, module %d (ecal)", ecal_map_element[i].chan+1);
-	SampleProf[ecal_map_element[i].chan]   = new TProfile(tit, nam, 200, 0., 200., -100000., +100000.,"s");
+	SampleProf[ecal_map_element[i].chan]   = new TProfile(tit, nam, 50, 0., 50., -100000., +100000.,"s");
     }
 }
 
@@ -386,7 +386,7 @@ void BmnECALRaw2Digit::fillSampleProfiles(TClonesArray *data, Float_t x, Float_t
        if(ind==n_rec) continue; 
        if(ecal_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
-       UShort_t *sam = digit->GetUShortValue();
+       Short_t *sam = (Short_t *)digit->GetUShortValue();
        int j2 = 0;
        for (int j = 0;j<digit->GetNSamples(); j++)
        {
@@ -482,7 +482,7 @@ void BmnECALRaw2Digit::fillSampleProfilesAll(TClonesArray *data, Float_t x, Floa
        if(ind==n_rec) continue; 
        if(ecal_map_element[ind].used==0) continue;
        if((num=number[ind])<0) continue;
-       UShort_t *sam = digit->GetUShortValue();
+       Short_t *sam = (Short_t *)digit->GetUShortValue();
        int j2 = 0;
        for (int j1 = 0;j1<digit->GetNSamples(); j1++)
        {
@@ -1118,6 +1118,7 @@ float BmnECALRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 {
 	    float pedest = 0., ampl = 0., signal = 0., signal_max = 0.;
 	    int nsignal = 0, nsignal_max = 0, ismax = -1, m1 = 0;
+	    short si = 0;
 	    float ampl_max = 0.;
 	    if (ns > 0)
 	    {
@@ -1125,9 +1126,10 @@ float BmnECALRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 		{
 //		    m1 = 1 - (m%2) + (m/2)*2;
 		    m1 = m;
+		    si = (short)s[m1];
 		    if (m < ped_samples)
 		    {
-			pedest += (s[m1]>>SHIFT);
+			pedest += (si>>SHIFT);
 			if (m == (ped_samples-1))
 			{
 			    pedest /= ped_samples;
@@ -1136,7 +1138,7 @@ float BmnECALRaw2Digit::wave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 		    }
 		    else
 		    {
-			ampl = -(float)(s[m1]>>SHIFT) + pedest;
+			ampl = fabs((float)(si>>SHIFT) - pedest);
 			if (ampl > thres)
 			{
 			    signal += ampl;
@@ -1184,6 +1186,7 @@ float BmnECALRaw2Digit::testwave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 {
 	    float pedest = 0., ampl = 0., signal = 0., signal_max = 0.;
 	    int nsignal = 0, nsignal_max = 0, ismax = -1, m1 = 0;
+	    short si = 0;
 	    float ampl_max = 0.;
 	    if (ns > 0)
 	    {
@@ -1191,9 +1194,10 @@ float BmnECALRaw2Digit::testwave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 		{
 //		    m1 = 1 - (m%2) + (m/2)*2;
 		    m1 = m;
+		    si = (short)s[m1];
 		    if (m < ped_samples)
 		    {
-			pedest += s[m1]>>SHIFT;
+			pedest += si>>SHIFT;
 			if (m == (ped_samples-1))
 			{
 			    pedest /= ped_samples;
@@ -1202,7 +1206,7 @@ float BmnECALRaw2Digit::testwave2amp(UChar_t ns, UShort_t *s, Float_t *pedestal)
 		    }
 		    else
 		    {
-			ampl = -(float)(s[m1]>>SHIFT) + pedest;
+			ampl = fabs((float)(si>>SHIFT) - pedest);
 			if (ampl > 0)
 			{
 			    signal += ampl;

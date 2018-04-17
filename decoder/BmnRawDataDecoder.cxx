@@ -169,7 +169,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fEvForPedestals = N_EV_FOR_PEDESTALS;
     fBmnSetup = kBMNSETUP;
     fT0Map = NULL;
-    //    InitMaps();
+    //InitMaps();
 }
 
 BmnRawDataDecoder::~BmnRawDataDecoder() {
@@ -484,6 +484,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
             case kADC64WR:
             {
                 Bool_t isZDC = kFALSE;
+                Bool_t isECAL = kFALSE;
                 for (Int_t iSer = 0; (iSer < fNZDCSerials); ++iSer) {
                     if (serial == fZDCSerials[iSer]) {
                         isZDC = kTRUE;
@@ -493,7 +494,6 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 if (isZDC)
                     Process_ADC64WR(&d[idx], payload, serial, adc);
                 else {
-                    Bool_t isECAL = kFALSE;
                     for (Int_t iSer = 0; (iSer < fNECALSerials); ++iSer) {
                         if (serial == fECALSerials[iSer]) {
                             isECAL = kTRUE;
@@ -503,6 +503,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                     if (isECAL)
                         Process_ADC64WR(&d[idx], payload, serial, adc);
                 }
+		//if (isECAL) printf("Serial 0x%08x %d %d\n",serial,isZDC,isECAL);
                 break;
             }
             case kFVME:
@@ -1172,7 +1173,7 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         ecal = new TClonesArray("BmnECALDigit");
         fDigiTree->Branch("ECAL", &ecal);
         fECALMapper = new BmnECALRaw2Digit(fECALMapFileName, fRootFileName, fECALCalibrationFileName);
-        //        fECALMapper->print();
+                //fECALMapper->print();
     }
 
     if (fDetectorSetup[9]) {
@@ -1727,7 +1728,7 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
     seials.clear();
     name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fECALMapFileName;
     ifstream inFileECAL(name.Data());
-    printf("ECal name = %s\n", name.Data());
+//    printf("ECal name = %s\n", name.Data());
     if (!inFileECAL.is_open())
         cout << "Error opening map-file (" << name << ")!" << endl;
     for (Int_t i = 0; i < 2; ++i) getline(inFileECAL, dummy); //comment line in input file
@@ -1736,9 +1737,11 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
         inFileECAL >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy;
         if (!inFileECAL.good()) break;
         seials.insert(ser);
+        //printf("ECAL serial: 0x%08x\n", ser);
     }
     for (auto s : seials) fECALSerials.push_back(s);
     fNECALSerials = fECALSerials.size();
+    printf("ECal name = %s, Nboards = %d, \n", name.Data(), fNECALSerials);
 
     //    Int_t nEntries = 1;
     //    if (mapPar != NULL) delete mapPar;

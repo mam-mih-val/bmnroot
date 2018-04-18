@@ -1,7 +1,7 @@
 
 using namespace std;
 
-void BmnResultsECAL(char *fname="../raw/bmn_run0814_digi.root") {
+void BmnResultsECAL(char *fname="bmn_run4926_digi.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////

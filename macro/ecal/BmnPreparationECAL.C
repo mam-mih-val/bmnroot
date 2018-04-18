@@ -1,18 +1,15 @@
 
-using namespace std;
-
-void BmnPreparationECAL(char *fname="../raw/bmn_run0814_raw.root") {
+void BmnPreparationECAL(char *fname="bmn_run4926_raw.root") {
     gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs();
     /////////////////////////////////////////////////////////////////////////////////////
     int RUN;
-    sscanf(&fname[strlen(fname) - 8], "%d", &RUN);
+    sscanf(&fname[strlen(fname) - 13], "%d", &RUN);
 
-    const char *mapping;
-    mapping = "ECAL_map_period_5.txt";
+    char mapping[128] = {"ECAL_map_period_7.txt"};
 
-    BmnECALRaw2Digit ECAL(mapping, fname);
-    ECAL.print();
+    BmnECALRaw2Digit *ECAL = new BmnECALRaw2Digit(mapping, fname);
+    ECAL->print();
 
     cout << "Process RUN:  " << RUN << endl;
 
@@ -25,19 +22,18 @@ void BmnPreparationECAL(char *fname="../raw/bmn_run0814_raw.root") {
 
     for (int ev = 0; ev < _t_in->GetEntries(); ev++) {
 
-        if ((ev % 1000) == 0) printf("Preparation ECAL, event %d\n", ev);
+        if ((ev % 5000) == 0) printf("Preparation ECAL, event %d\n", ev);
 
         ecal_raw->Clear(); 
 
         _t_in->GetEntry(ev);
 
-	ECAL.fillAmplitudes(ecal_raw);
-	ECAL.fillSampleProfilesAll(ecal_raw, 0., 0., 48.);
-	//ECAL.fillSampleProfiles(ecal_raw, 0., 0., 48., 3);
+	ECAL->fillAmplitudes(ecal_raw);
+	ECAL->fillSampleProfilesAll(ecal_raw, 0., 0., 48.);
     }
     /////////////////////////////////////////////////////////////////////////////////////
-    ECAL.drawecal(1);   // draw ECAL modules with module number and calibration coefficient
-    ECAL.drawprof(229); // average waveform for module 229
+    ECAL->drawecal(1);   // draw ECAL modules with module number and calibration coefficient
+    ECAL->drawprof(229); // average waveform for module 229
     /////////////////////////////////////////////////////////////////////////////////////
    
     _f_in->Close();

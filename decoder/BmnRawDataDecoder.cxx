@@ -1037,6 +1037,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
             fTrigMapper->FillEvent(tdc);
         }
+        fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
         new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig(), isTripEvent, fTimeShifts);
         BmnEventHeader* evHdr = (BmnEventHeader*) eventHeader->At(eventHeader->GetEntriesFast() - 1);
@@ -1058,7 +1059,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
             if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
             if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
             if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, &fTimeShifts, tof400);
-            if (fTof700Mapper) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+            if (fTof700Mapper && fT0Time != 0. && fT0Width != -1.) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
             if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
             if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
             if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
@@ -1220,6 +1221,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         fTrigMapper->FillEvent(tqdc_tdc, tqdc_adc);
         fTrigMapper->FillEvent(tdc);
     }
+    fT0Time = 0.;
     GetT0Info(fT0Time, fT0Width);
 
     if (fCurEventType == kBMNPEDESTAL) {
@@ -1240,7 +1242,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fDchMapper) fDchMapper->FillEvent(tdc, &fTimeShifts, dch, fT0Time);
         if (fMwpcMapper) fMwpcMapper->FillEvent(hrb, mwpc);
         if (fTof400Mapper) fTof400Mapper->FillEvent(tdc, &fTimeShifts, tof400);
-        if (fTof700Mapper) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
+        if (fTof700Mapper && fT0Time != 0. && fT0Width != -1.) fTof700Mapper->fillEvent(tdc, &fTimeShifts, fT0Time, fT0Width, tof700);
         if (fZDCMapper) fZDCMapper->fillEvent(adc, zdc);
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
         if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
@@ -1758,22 +1760,29 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
 
 BmnStatus BmnRawDataDecoder::GetT0Info(Double_t& t0time, Double_t &t0width) {
     vector<TClonesArray*>* trigArr = fTrigMapper->GetTrigArrays();
+    BmnTrigDigit* dig = 0;
     for (auto ar : *trigArr) {
-        BmnTrigDigit* dig = (BmnTrigDigit*) ar->At(0);
-        if (fPeriodId > 6) {
-            if (!strcmp(ar->GetName(), "BC2") && ar->GetEntriesFast() && (dig->GetMod() == 0)) {
-                t0time = dig->GetTime();
-                t0width = dig->GetAmp();
-                //		printf(" t0 %f t0w %f n %d\n", t0time, t0width, ar->GetEntriesFast());
-                return kBMNSUCCESS;
-            }
-        } else {
-            if (!strcmp(ar->GetName(), "T0") && ar->GetEntriesFast()) {
-                t0time = dig->GetTime();
-                t0width = dig->GetAmp();
-                return kBMNSUCCESS;
-            }
-        }
+    	if (fPeriodId > 6) {
+    	    if (strcmp(ar->GetName(), "BC2")) continue;
+    	} else {
+    	    if (strcmp(ar->GetName(), "T0")) continue;
+    	}
+	for (int i=0; i<ar->GetEntriesFast(); i++)
+	{
+    	    dig = (BmnTrigDigit*) ar->At(i);
+    	    if (fPeriodId > 6) {
+        	if (dig->GetMod() == 0) {
+            	    t0time = dig->GetTime();
+            	    t0width = dig->GetAmp();
+            	    //		printf(" t0 %f t0w %f n %d\n", t0time, t0width, ar->GetEntriesFast());
+            	    return kBMNSUCCESS;
+        	}
+    	    } else {
+            	    t0time = dig->GetTime();
+            	    t0width = dig->GetAmp();
+            	    return kBMNSUCCESS;
+    	    }
+    	}
     }
     return kBMNERROR;
 }

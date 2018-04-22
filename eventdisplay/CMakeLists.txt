@@ -1,16 +1,9 @@
 # Create a library called "libEventDisplay" 
 
 Set(INCLUDE_DIRECTORIES
-  ${CMAKE_SOURCE_DIR}/base/event
-  ${CMAKE_SOURCE_DIR}/base/sim
-  ${CMAKE_SOURCE_DIR}/base/source
-  ${CMAKE_SOURCE_DIR}/base/steer
-  ${CMAKE_SOURCE_DIR}/geane
-  ${CMAKE_SOURCE_DIR}/config
-  ${CMAKE_SOURCE_DIR}/fairtools
-  ${CMAKE_SOURCE_DIR}/geobase
-  ${CMAKE_SOURCE_DIR}/parbase
-  ${CMAKE_SOURCE_DIR}/eventdisplay
+ ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/config
+ ${CMAKE_SOURCE_DIR}/eventdisplay
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -21,8 +14,9 @@ Set(SYSTEM_INCLUDE_DIRECTORIES
 )
 
 set(LINK_DIRECTORIES
-  ${ROOT_LIBRARY_DIR}
-  ${XML2_LIBRARY_DIR}
+ ${ROOT_LIBRARY_DIR}
+ ${XML2_LIBRARY_DIR}
+ ${FAIRROOT_LIBRARY_DIR}
 )
 
 set(SRCS

@@ -3,9 +3,6 @@
 void bmnloadlibs()
 {
   // Load basic libraries
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-  gROOT->LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C");
-#endif
   basiclibs();
   // Load other libraries  
   gSystem->Load("libBase");
@@ -17,6 +14,7 @@ void bmnloadlibs()
   gSystem->Load("libGen");
   gSystem->Load("libTrkBase");
   gSystem->Load("libBmnData");
+  gSystem->Load("libMpdGen");
 
   gSystem->Load("libTOF");
   gSystem->Load("libPsd");
@@ -27,7 +25,7 @@ void bmnloadlibs()
   gSystem->Load("libBd");
   gSystem->Load("libGem");
   gSystem->Load("libSilicon");
-  gSystem->Load("libGlobalTracking");
+
   gSystem->Load("libTOF1");
   gSystem->Load("libDch");
   gSystem->Load("libMwpc");
@@ -39,6 +37,7 @@ void bmnloadlibs()
 
   gSystem->Load("libUniDb");
   gSystem->Load("libBmnAlignment");
+  gSystem->Load("libGlobalTracking");
   gSystem->Load("libzmq");
   gSystem->Load("libBmnParticles");
   gSystem->Load("libDecoder");

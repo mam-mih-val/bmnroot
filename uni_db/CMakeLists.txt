@@ -3,10 +3,10 @@
 # The extension is already found.  Any number of sources could be listed here.
 
 set(INCLUDE_DIRECTORIES
-${ROOT_INCLUDE_DIR}
-${XML2_INCLUDE_DIR}
-${CMAKE_SOURCE_DIR}/uni_db
-${CMAKE_SOURCE_DIR}/uni_db/db_classes
+ ${ROOT_INCLUDE_DIR}
+ ${XML2_INCLUDE_DIR}
+ ${CMAKE_SOURCE_DIR}/uni_db
+ ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -18,8 +18,8 @@ include_directories(${INCLUDE_DIRECTORIES})
 Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
-${ROOT_LIBRARY_DIR}
-${XML2_LIBRARY_DIR}
+ ${ROOT_LIBRARY_DIR}
+ ${XML2_LIBRARY_DIR}
 )
  
 link_directories(${LINK_DIRECTORIES})
@@ -80,7 +80,7 @@ elog_classes/ElogDbAttachment.h
 
 Set(LINKDEF UniDbLinkDef.h)
 Set(LIBRARY_NAME UniDb)
-Set(DEPENDENCIES Core Base xml2)
+Set(DEPENDENCIES Core Geom xml2)
 
 add_executable (show_simulation_files show_simulation_files.cxx)
 target_link_libraries(show_simulation_files ${ROOT_LIBRARIES})

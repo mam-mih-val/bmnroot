@@ -25,9 +25,9 @@
 #include <TClonesArray.h>
 #include <TVector2.h>
 #include <Rtypes.h>
-#include  "FairTask.h"
-#include  "FairTrackParam.h"
-#include "../base/event/FairMCPoint.h"
+#include "FairTask.h"
+#include "FairTrackParam.h"
+#include "FairMCPoint.h"
 
 #include "BmnDchDigit.h"
 #include "BmnDchHit.h"

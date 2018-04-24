@@ -120,7 +120,6 @@ find_package(ZeroMQ)
 #find_package(IWYU)
 #find_package(Protobuf)
 #find_package(DDS)
-#find_package(GSL)
 
 Set(Boost_NO_SYSTEM_PATHS TRUE)
 Set(Boost_NO_BOOST_CMAKE TRUE)
@@ -145,6 +144,8 @@ If (Boost_FOUND)
 Else (Boost_FOUND)
   Set(Boost_Avail 0)
 EndIf (Boost_FOUND)
+
+find_package(GSL)
 
 # set a variable which should be used in all CMakeLists.txt
 # Defines all basic include directories from fairbase

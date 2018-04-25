@@ -195,7 +195,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
         if (fCurentPositionRawFile >= fLengthRawFile) break;
         if (fDat == kSYNC1) { //search for start of event
             // read number of bytes in event
-            if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) return kBMNERROR;
+            if (fread(&fDat, kWORDSIZE, 1, fRawFileIn) != 1) continue;
             fDat = fDat / kNBYTESINWORD + 1; // bytes --> words
             if (fDat >= 100000) { // what the constant?
                 printf("Wrong data size: %d:  skip this event\n", fDat);
@@ -203,7 +203,7 @@ BmnStatus BmnRawDataDecoder::ConvertRawToRoot() {
             } else {
 
                 //read array of current event data and process them
-                if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) return kBMNERROR;
+                if (fread(data, kWORDSIZE, fDat, fRawFileIn) != fDat) continue;
                 fEventId = data[0];
                 if (fEventId <= 0) continue; // skip bad events
                 ProcessEvent(data, fDat);

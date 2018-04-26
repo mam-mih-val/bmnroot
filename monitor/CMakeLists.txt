@@ -3,24 +3,17 @@
 # The extension is already found.  Any number of sources could be listed here.
 
 Set(INCLUDE_DIRECTORIES
-${CMAKE_SOURCE_DIR}/base
-${CMAKE_SOURCE_DIR}/base/field
-${CMAKE_SOURCE_DIR}/base/steer
-${CMAKE_SOURCE_DIR}/base/sim
-${CMAKE_SOURCE_DIR}/base/event
-${CMAKE_SOURCE_DIR}/base/source
-${CMAKE_SOURCE_DIR}/parbase
-${CMAKE_SOURCE_DIR}/fairtools
-${CMAKE_SOURCE_DIR}/bmndata
-${CMAKE_SOURCE_DIR}/bmnfield
-${CMAKE_SOURCE_DIR}/gem
-${CMAKE_SOURCE_DIR}/silicon
-${CMAKE_SOURCE_DIR}/dch
-${CMAKE_SOURCE_DIR}/globaltracking
-${CMAKE_SOURCE_DIR}/decoder
-${CMAKE_SOURCE_DIR}/monitor
-${CMAKE_SOURCE_DIR}/uni_db
-${CMAKE_SOURCE_DIR}/uni_db/db_classes
+ ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/bmndata
+ ${CMAKE_SOURCE_DIR}/bmnfield
+ ${CMAKE_SOURCE_DIR}/gem
+ ${CMAKE_SOURCE_DIR}/silicon
+ ${CMAKE_SOURCE_DIR}/dch
+ ${CMAKE_SOURCE_DIR}/globaltracking
+ ${CMAKE_SOURCE_DIR}/decoder
+ ${CMAKE_SOURCE_DIR}/monitor
+ ${CMAKE_SOURCE_DIR}/uni_db
+ ${CMAKE_SOURCE_DIR}/uni_db/db_classes
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -34,6 +27,7 @@ include_directories(${SYSTEM_INCLUDE_DIRECTORIES})
 
 Set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
+ ${FAIRROOT_LIBRARY_DIR}
 )
 
 link_directories(${LINK_DIRECTORIES})

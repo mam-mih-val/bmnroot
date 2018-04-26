@@ -35,7 +35,7 @@ public:
     void Close();
     void Reset();
 
-    virtual Source_Type GetSourceType() {return kBMNFILE;}
+    virtual Source_Type GetSourceType() {return kONLINE;} //kBMNFILE
     virtual void SetParUnpackers() {}
     virtual Bool_t InitUnpackers() {return kTRUE;}
     virtual Bool_t ReInitUnpackers() {return kTRUE;}

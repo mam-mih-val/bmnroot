@@ -8,12 +8,11 @@ fEventId(0),
 fStartSignalTime(0),
 fStartSignalWidth(0),
 fEventTime(TDatime()),
-fType(kBMNPAYLOAD),
-fTrigType(kBMNBEAM) {
-
+fType(kBMNPAYLOAD) {
+    fTrigInfo = NULL;
 }
 
-BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TDatime time, BmnEventType type, BmnTriggerType trig, Bool_t trip)
+BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TDatime time, BmnEventType type, Bool_t trip, BmnTrigInfo* info)
 : fRunId(run),
 fEventId(ev),
 fType(type),
@@ -21,11 +20,11 @@ fEventTime(time),
 fStartSignalTime(0),
 fStartSignalWidth(0),
 fTripWord(trip),
-fTrigType(trig) {
+fTrigInfo(info) {
 
 }
 
-BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TDatime time, BmnEventType type, BmnTriggerType trig, Bool_t trip, map<UInt_t, Long64_t> ts)
+BmnEventHeader::BmnEventHeader(UInt_t run, UInt_t ev, TDatime time, BmnEventType type, Bool_t trip, BmnTrigInfo* info, map<UInt_t, Long64_t> ts)
 : fRunId(run),
 fEventId(ev),
 fType(type),
@@ -33,7 +32,7 @@ fEventTime(time),
 fTripWord(trip),
 fStartSignalTime(0),
 fStartSignalWidth(0),
-fTrigType(trig),
+fTrigInfo(info),
 fTimeShift(ts) {
 
 }

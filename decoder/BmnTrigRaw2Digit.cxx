@@ -113,7 +113,7 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *adc) {
                 BmnTDCDigit* tdcDig = (BmnTDCDigit*) tdc->At(iTdc);
                 if (tdcDig->GetSerial() != tM.serial || tdcDig->GetSlot() != tM.slot) continue;
                 if (tdcDig->GetChannel() != tM.channel) continue;
-                Double_t time = tdcDig->GetValue() * 24.0 / 1024;
+                Double_t time = tdcDig->GetValue() * TDC_CLOCK / 1024;
                 Double_t tdcTimestamp = tdcDig->GetTimestamp() * TDC_CLOCK;
                 new ((*trigAr)[trigAr->GetEntriesFast()]) BmnTrigDigit(iMod, time, -1.0, tdcTimestamp);
             }

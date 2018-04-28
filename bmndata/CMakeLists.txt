@@ -110,6 +110,7 @@ BmnGemTrack.cxx
  BmnHit.cxx
  BmnLink.cxx
  BmnMatch.cxx
+BmnTrigInfo.cxx
 )
 
 Set(HEADERS)

@@ -101,5 +101,6 @@
 #pragma link C++ class BmnHit+;
 #pragma link C++ class BmnLink+;
 #pragma link C++ class BmnMatch+;
+#pragma link C++ class BmnTrigInfo+;
 
 #endif

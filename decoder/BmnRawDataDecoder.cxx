@@ -435,6 +435,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     tacquila->Delete();
     msc->Delete();
     eventHeaderDAQ->Delete();
+    BmnTrigInfo* trigInfo = new BmnTrigInfo();
 
     if (fEventId % 100 == 0) {
         printf(ANSI_COLOR_BLUE "[%.2f%%]   " ANSI_COLOR_RESET, fCurentPositionRawFile * 100.0 / fLengthRawFile);
@@ -443,7 +444,6 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
 
     Long64_t idx = 1;
     BmnEventType evType = kBMNPAYLOAD;
-    BmnTriggerType trigType = kBMNBEAM;
 
     while (idx < len) {
         UInt_t serial = d[idx++];
@@ -507,7 +507,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
                 break;
             }
             case kFVME:
-                Process_FVME(&d[idx], payload, serial, evType, trigType);
+                Process_FVME(&d[idx], payload, serial, evType, trigInfo);
                 break;
             case kHRB:
                 Process_HRB(&d[idx], payload, serial);
@@ -519,7 +519,7 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
         idx += payload;
     }
     //printf("eventHeaderDAQ->GetEntriesFast() %d  eventID %d\n", eventHeaderDAQ->GetEntriesFast(), fEventId);
-    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TDatime(Int_t(TTimeStamp(time_t(fTime_s), fTime_ns).GetDate(kFALSE)), Int_t(TTimeStamp(time_t(fTime_s), fTime_ns).GetTime(kFALSE))), evType, trigType, kFALSE);
+    new((*eventHeaderDAQ)[eventHeaderDAQ->GetEntriesFast()]) BmnEventHeader(fRunId, fEventId, TDatime(Int_t(TTimeStamp(time_t(fTime_s), fTime_ns).GetDate(kFALSE)), Int_t(TTimeStamp(time_t(fTime_s), fTime_ns).GetTime(kFALSE))), evType, kFALSE, trigInfo);
 }
 
 BmnStatus BmnRawDataDecoder::Process_ADC64VE(UInt_t *d, UInt_t len, UInt_t serial, UInt_t nSmpl, TClonesArray *arr) {
@@ -610,7 +610,7 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, BmnEventType &evType, BmnTriggerType &trType) {
+BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, BmnEventType &evType, BmnTrigInfo* spillInfo) {
     UInt_t modId = 0;
     UInt_t slot = 0;
     UInt_t type = 0;
@@ -649,7 +649,7 @@ BmnStatus BmnRawDataDecoder::Process_FVME(UInt_t *d, UInt_t len, UInt_t serial, 
                         FillSYNC(d, serial, i);
                         break;
                     case kU40VE_RC:
-                        FillU40VE(d, evType, trType, slot, i);
+                        FillU40VE(d, evType, slot, i, spillInfo);
                         break;
                 }
             }
@@ -767,28 +767,35 @@ BmnStatus BmnRawDataDecoder::Process_Tacquila(UInt_t *d, UInt_t len) {
     return kBMNSUCCESS;
 }
 
-BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, BmnTriggerType &trType, UInt_t slot, UInt_t & idx) {
+BmnStatus BmnRawDataDecoder::FillU40VE(UInt_t *d, BmnEventType &evType, UInt_t slot, UInt_t & idx, BmnTrigInfo* trigInfo) {
+    BmnTriggerType trType;
     UInt_t type = d[idx] >> 28;
+    Bool_t countersDone = kFALSE;
     while (type == 2 || type == 3 || type == 4) {
         //printf("type %d  slot %d\n", type, slot);
         if (fPeriodId > 4 && type == kGEMTRIGTYPE && slot == kEVENTTYPESLOT) {
             trType = ((d[idx] & 0x7) == kTRIGMINBIAS) ? kBMNMINBIAS : kBMNBEAM;
+            trigInfo->SetTrigType(trType);
             //                            evType = ((d[i] & 0x8) >> 3) ? kBMNPEDESTAL : kBMNPAYLOAD;
             evType = (d[idx] & 0x8) ? kBMNPEDESTAL : kBMNPAYLOAD;
             //printf("evType %d\n", evType);
             if (evType == kBMNPEDESTAL)
                 fPedoCounter++;
         }
-        if (type == 4) {
-            UInt_t trigCand = d[idx + 0] & 0x1FFFFFFF;
-            UInt_t trigAcce = d[idx + 1] & 0x1FFFFFFF;
-            UInt_t trigBefo = d[idx + 2] & 0x1FFFFFFF;
-            UInt_t trigAfte = d[idx + 3] & 0x1FFFFFFF;
-            UInt_t trigRjCt = d[idx + 4] & 0x1FFFFFFF;
+        if (type == 4 && !countersDone) {
+            trigInfo->SetTrigCand    (d[idx + 0] & 0x1FFFFFFF);
+            trigInfo->SetTrigAccepted(d[idx + 1] & 0x1FFFFFFF);
+            trigInfo->SetTrigBefo    (d[idx + 2] & 0x1FFFFFFF);
+            trigInfo->SetTrigAfter   (d[idx + 3] & 0x1FFFFFFF);
+            trigInfo->SetTrigRjct    (d[idx + 4] & 0x1FFFFFFF);
             idx += 5;
-            //            printf("cand %04d, acc %04d, bef %04d, after %04d, rjct %04d\n",
-            //                    trigCand, trigAcce, trigBefo, trigAfte, trigRjCt);
-            break;
+//                printf("cand %04u, acc %04u, bef %04u, after %04u, rjct %04u\n",
+//                        trigInfo->GetTrigCand(),
+//                        trigInfo->GetTrigAccepted(),
+//                        trigInfo->GetTrigBefo(),
+//                        trigInfo->GetTrigAfter(),
+//                        trigInfo->GetTrigRjct());
+            countersDone = kTRUE;
         }
         idx++; //go to the next DATA-word
         type = d[idx] >> 28;
@@ -832,12 +839,11 @@ BmnStatus BmnRawDataDecoder::FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UIn
         UInt_t mode = (d[idx] >> 26) & 0x3; // good
         if (!inADC) {
             //            printf("type %d mode %d\n", type, mode);
-            if ((mode == 0) && (type == 4 || type == 5)) { // good
-                UInt_t rcdata = ((d[idx] >> 24) & 0x3) << 19; // fixed					
-                channel = (d[idx] >> 19) & 0x1F; // i think ok...
+            if ((mode == 0) && (type == 4 || type == 5)) {
+                UInt_t rcdata = (d[idx] >> 24) & 0x3;
+                channel = (d[idx] >> 19) & 0x1F;
                 UInt_t time = 4 * (d[idx] & 0x7FFFF) + rcdata; // in 25 ps
                 new((*tqdc_tdc)[tqdc_tdc->GetEntriesFast()]) BmnTDCDigit(serial, modId, slot, (type == 4), channel, 0, time, tdcTimestamp);
-//                printf("TDC: serial 0x%X slot %d channel %d type %d  time %d \n", serial, slot, channel, type, time);
             } else if ((type == 4) && (mode == 2)) {
                 channel = (d[idx] >> 19) & 0x1F;
                 trigTimestamp = d[idx++] & 0xFF;
@@ -1039,7 +1045,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
         }
         fT0Time = 0.;
         GetT0Info(fT0Time, fT0Width);
-        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, headDAQ->GetTrig(), isTripEvent, fTimeShifts);
+        new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), curEventType, isTripEvent, headDAQ->GetTrigInfo(), fTimeShifts);
         BmnEventHeader* evHdr = (BmnEventHeader*) eventHeader->At(eventHeader->GetEntriesFast() - 1);
         evHdr->SetStartSignalInfo(fT0Time, fT0Width);
 
@@ -1247,7 +1253,7 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigiIterate() {
         if (fECALMapper) fECALMapper->fillEvent(adc, ecal);
         if (fLANDMapper) fLANDMapper->fillEvent(tacquila, land);
     }
-    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, headDAQ->GetTrig(), kFALSE);
+    new((*eventHeader)[eventHeader->GetEntriesFast()]) BmnEventHeader(headDAQ->GetRunId(), headDAQ->GetEventId(), headDAQ->GetEventTime(), fCurEventType, kFALSE, headDAQ->GetTrigInfo());
     //        fDigiTree->Fill();
     fPrevEventType = fCurEventType;
 

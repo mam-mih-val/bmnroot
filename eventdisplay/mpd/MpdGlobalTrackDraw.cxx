@@ -58,27 +58,36 @@ InitStatus MpdGlobalTrackDraw::Init()
     FairRootManager* fManager = FairRootManager::Instance();
 
     MpdEvent* fDstEvent = (MpdEvent*) fManager->GetObject("MPDEvent.");
+    if (fDstEvent == 0)
+    {
+        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch 'MPDEvent.' not found! Task will be deactivated"<<FairLogger::endl;
+        SetActive(kFALSE);
+        return kERROR;
+    }
 
     fTrackList = fDstEvent->GetGlobalTracks();
     if (fTrackList == 0)
     {
-        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch "<<GetName()<<" not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch '"<<GetName()<<"' not found! Task will be deactivated"<<FairLogger::endl;
         SetActive(kFALSE);
+        return kERROR;
     }
     if (fVerbose > 2) cout<<"MpdGlobalTrackDraw::Init() get track list "<<fTrackList<<endl;
 
     fKalmanTrackList = (TClonesArray*) fManager->GetObject("TpcKalmanTrack");
     if (fKalmanTrackList == 0)
     {
-        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch TpcKalmanTrack not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch 'TpcKalmanTrack' not found! Task will be deactivated"<<FairLogger::endl;
         SetActive(kFALSE);
+        return kERROR;
     } 
 
     fTpcHitList = (TClonesArray*) fManager->GetObject("TpcHit");
     if (fTpcHitList == 0)
     {
-        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch TpcHit not found! Task will be deactivated"<<FairLogger::endl;
+        LOG(ERROR)<<"MpdGlobalTrackDraw::Init() branch 'TpcHit' not found! Task will be deactivated"<<FairLogger::endl;
         SetActive(kFALSE);
+        return kERROR;
     }
 
     fEventManager = MpdEventManager::Instance();
@@ -88,10 +97,7 @@ InitStatus MpdGlobalTrackDraw::Init()
     MaxEnergyLimit = fEventManager->GetEvtMaxEnergy();
     PEnergy = 0;
 
-    if (IsActive())
-        return kSUCCESS;
-    else
-        return kERROR;
+    return kSUCCESS;
 }
 // -------------------------------------------------------------------------
 void MpdGlobalTrackDraw::Exec(Option_t* /*option*/)

@@ -7,7 +7,7 @@
 #include <iostream>
 using namespace std;
 
-MpdLibZ::MpdLibZ(char * filename)
+MpdLibZ::MpdLibZ(const char* filename)
 {
     fileName = filename;
 }
@@ -221,7 +221,7 @@ bool MpdGetNumEvents::GetQGSMEventHeader(char* ss, MpdLibZ* libz, Int_t& fQGSM_f
     return true;
 }
 
-Int_t MpdGetNumEvents::GetNumPHSDEvents(char* filename)
+Int_t MpdGetNumEvents::GetNumPHSDEvents(const char* filename)
 {
     MpdLibZ *libz = new MpdLibZ(filename);
     libz->open("rb");
@@ -272,7 +272,7 @@ Int_t MpdGetNumEvents::GetNumPHSDEvents(char* filename)
     return num;
 }
 
-Int_t MpdGetNumEvents::GetNumQGSMEvents(char* fileName)
+Int_t MpdGetNumEvents::GetNumQGSMEvents(const char* fileName)
 {
     Int_t fQGSM_format_ID = 0;
     MpdLibZ* libz = new MpdLibZ(fileName);
@@ -301,7 +301,7 @@ Int_t MpdGetNumEvents::GetNumQGSMEvents(char* fileName)
     return num;
 }
 
-Int_t MpdGetNumEvents::GetNumURQMDEvents(char* fileName)
+Int_t MpdGetNumEvents::GetNumURQMDEvents(const char* fileName)
 {
     MpdLibZ *libz = new MpdLibZ(fileName);
     libz->open("rb");
@@ -342,7 +342,7 @@ Int_t MpdGetNumEvents::GetNumURQMDEvents(char* fileName)
     return num;
 }
 
-Int_t MpdGetNumEvents::GetNumROOTEvents(char* filename)
+Int_t MpdGetNumEvents::GetNumROOTEvents(const char* filename)
 {
     TChain* fileTree = new TChain(FairRootManager::GetTreeName());
     fileTree->Add(filename);

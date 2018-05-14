@@ -15,15 +15,7 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     timer.Start();
     gDebug = 0;
 
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-#endif
     bmnloadlibs(); // load libraries
-
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
-    //gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry_run/geometry_run[NUMBER].C");
-#endif
 
     // -----   Create simulation run   ----------------------------------------
     FairRunSim *fRun = new FairRunSim();
@@ -80,14 +72,14 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
 #ifdef PART
     // ------- Particle Generator
     FairParticleGenerator* partGen =
-            new FairIonGenerator(79, 197, 79, 1, 0., 0., 2., 0., -3.5, -21.7.);
+            new FairParticleGenerator(211, 10, 1, 0, 3, 1, 0, 0);
     primGen->AddGenerator(partGen);
 
 #else
 #ifdef ION
     // ------- Ion Generator
     FairIonGenerator *fIongen =
-            new FairIonGenerator(79, 197, 79, 1, 0., 0., 2., 0., -3.5, -21.7.);
+            new FairIonGenerator(79, 197, 79, 1, 0., 0., 2., 0., -3.5, -21.7);
     // new FairIonGenerator(6, 12, 6, 1, 0., 0., 4.4, 0., 0., -21.7);
     primGen->AddGenerator(fIongen);
 

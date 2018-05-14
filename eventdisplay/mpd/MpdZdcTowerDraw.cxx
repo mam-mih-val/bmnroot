@@ -22,6 +22,8 @@
 #include <iostream>
 using namespace std;
 
+#define ZDC_PARENT "/cave_1/ZDC_common_0"
+
 // -----   Default constructor   -------------------------------------------
 MpdZdcTowerDraw::MpdZdcTowerDraw()
   : FairTask("MpdZdcTowerDraw", 0),
@@ -232,7 +234,12 @@ void MpdZdcTowerDraw::DrawTowers()
     
     for (UInt_t zdcId = 0; zdcId < 2; zdcId++)
     {
-        gGeoManager->cd(Form("/cave_1/zdc01_%d", zdcId+1));
+        TString zdc_path = Form("%s/zdc01_%d", ZDC_PARENT, zdcId+1);
+        if (gGeoManager->cd(zdc_path) == false)
+        {
+            cout<<"ERROR: MpdZdcTowerDraw::DrawTowers(): Path '"<<zdc_path<<"' not found"<<endl;
+            return;
+        }
         TGeoNode* zdcNode = gGeoManager->GetCurrentNode();
         TGeoVolume* zdcVolumeClone = zdcNode->GetVolume()->CloneVolume();
         TObjArray* zdcArr= zdcNode->GetVolume()->GetNodes();

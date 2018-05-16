@@ -1,0 +1,127 @@
+stages:
+- build
+- test_run_sim
+- test_run_reco
+#- test_run_digi
+ 
+before_script:
+ - source ./SetEnv.sh
+ 
+variables:
+ GIT_SUBMODULE_STRATEGY: recursive
+ 
+.build_template: &build
+  stage: build
+  artifacts:
+    paths:
+      - build
+  script:
+    - mkdir build
+    - cd build
+    - cmake "$CI_PROJECT_DIR"
+    - make
+  only:
+    - dev
+  allow_failure: false
+  
+build:centos:
+  tags:
+    - build
+    - centos
+  <<: *build
+
+build:ubuntu:
+  tags: 
+    - build
+    - ubuntu
+  <<: *build 
+  
+.run_sim_template: &run_sim
+  stage: test_run_sim
+  artifacts:
+    paths:
+      - macro/run/evetest.root
+  script:
+    - source build/config.sh
+    - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_sim_bmn.C' | tee output.txt
+    - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
+  only:
+    - dev
+  allow_failure: false
+  
+run_sim:centos:
+  tags:
+    - test
+    - centos
+  dependencies:
+    - build:centos
+  <<: *run_sim
+
+run_sim:ubuntu:
+  tags:
+    - test
+    - ubuntu
+  dependencies:
+    - build:ubuntu
+  <<: *run_sim
+  
+.run_reco_template: &run_reco
+  stage: test_run_reco
+  artifacts:
+    paths:
+      - macro/run/bmndst_exp.root
+  script:
+    - source build/config.sh
+    - root -b -q -l "$CI_PROJECT_DIR/macro/run/run_reco_bmn.C" | tee output.txt
+    - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
+  only:
+    - dev
+  allow_failure: false
+  
+run_reco:centos:
+  tags:
+    - test
+    - centos
+  dependencies:
+    - build:centos
+    - run_sim:centos
+  <<: *run_reco
+  
+run_reco:ubuntu:
+  tags:
+    - test
+    - ubuntu
+  dependencies:
+    - build:ubuntu
+    - run_sim:ubuntu
+  <<: *run_reco
+  
+#.run_digi_template: &run_digi
+#  stage: test_run_digi
+#  script:
+#    - source build/config.sh
+#    - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("run6-1889:/nica/bmn_run1889_digi.root", "$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)' | tee output.txt
+#    - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
+#  only:
+#    - dev
+#  allow_failure: false
+#  
+#run_digi:centos:
+#  tags:
+#    - test
+#    - centos
+#  dependencies:
+#    - build:centos
+#    - run_sim:centos
+#    - run_reco:centos
+#  <<: *run_digi
+#  
+#run_digi:ubuntu:
+#  tags:
+#    - test
+#    - ubuntu
+#  dependencies:
+#    - build:ubuntu
+#    - run_sim:ubuntu
+#    - run_reco:ubuntu
+#  <<: *run_digi

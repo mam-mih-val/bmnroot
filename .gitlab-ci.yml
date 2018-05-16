@@ -113,7 +113,6 @@ run_reco:ubuntu:
 #  dependencies:
 #    - build:centos
 #    - run_sim:centos
-#    - run_reco:centos
 #  <<: *run_digi
 #  
 #run_digi:ubuntu:

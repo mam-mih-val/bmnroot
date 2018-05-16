@@ -1,12 +1,5 @@
 //---------------------------
-#include "TGeoManager.h"
-#include "TFile.h"
-#include "TString.h"
-#include "TMath.h"
-#include "TGeoShape.h"
-#include "TGeoCompositeShape.h"
-#include "TGeoBBox.h"
-#include "TGeoXtru.h"
+
 
 using namespace TMath;
 
@@ -14,7 +7,7 @@ using namespace TMath;
 TGeoManager* gGeoMan = NULL;
 
 const Double_t XStationPosition = 0.0;
-const Double_t YStationPosition = 0.0;
+const Double_t YStationPosition = -4.5;
 const Double_t ZStationPosition = 0.0;
 
 //Geometry parameters (sizes, positions, shifts): all units is in cm!!!
@@ -23,66 +16,73 @@ enum ModuleType {RIGHT_ANGLED_MODULE, BEVEL_MODULE};
 //Station
 const Int_t NModules = 8; //Number of modules in a station
 
-Double_t XModulesPositions[NModules]; // in bm@n coordinate system
-   XModulesPositions[0] = +12.15;
-   XModulesPositions[1] = +6.15;
-   XModulesPositions[2] = -6.15;
-   XModulesPositions[3] = -12.15;
-   XModulesPositions[4] = +12.15;
-   XModulesPositions[5] = +6.15;
-   XModulesPositions[6] = -6.15;
-   XModulesPositions[7] = -12.15;
+Double_t XModulesPositions[NModules] = { // in bm@n coordinate system
+    +12.15, // module 0
+    +6.15,  // module 1
+    -6.15,  // module 2
+    -12.15, // module 3
+    +12.15, // module 4
+    +6.15,  // module 5
+    -6.15,  // module 6
+    -12.15  // module 7
+};
 
-Double_t YModulesPositions[NModules]; // in bm@n coordinate system
-   YModulesPositions[0] = -0.15;
-   YModulesPositions[1] = -0.15;
-   YModulesPositions[2] = -0.15;
-   YModulesPositions[3] = -0.15;
-   YModulesPositions[4] = +0.15;
-   YModulesPositions[5] = +0.15;
-   YModulesPositions[6] = +0.15;
-   YModulesPositions[7] = +0.15;
+Double_t YModulesPositions[NModules] = { // in bm@n coordinate system
+    -0.15,  // module 0
+    -0.15,  // module 1
+    -0.15,  // module 2
+    -0.15,  // module 3
+    +0.15,  // module 4
+    +0.15,  // module 5
+    +0.15,  // module 6
+    +0.15   // module 7
+};
 
+Double_t ZModulesPositions[NModules] = { // in bm@n coordinate system
+    3.31,   // module 0
+    1.78,   // module 1
+    3.09,   // module 2
+    1.56,   // module 3
+    2.05,   // module 4
+    3.58,   // module 5
+    2.27,   // module 6
+    3.80    // module 7
+};
 
-Double_t ZModulesPositions[NModules]; // in bm@n coordinate system
-   ZModulesPositions[0] = 3.31;
-   ZModulesPositions[1] = 1.78;
-   ZModulesPositions[2] = 3.09;
-   ZModulesPositions[3] = 1.56;
-   ZModulesPositions[4] = 2.05;
-   ZModulesPositions[5] = 3.58;
-   ZModulesPositions[6] = 2.27;
-   ZModulesPositions[7] = 3.80;
+ModuleType ModulesTypes[NModules] = {
+    RIGHT_ANGLED_MODULE, // module 0
+    BEVEL_MODULE,        // module 1
+    BEVEL_MODULE,        // module 2
+    RIGHT_ANGLED_MODULE, // module 3
+    RIGHT_ANGLED_MODULE, // module 4
+    BEVEL_MODULE,        // module 5
+    BEVEL_MODULE,        // module 6
+    RIGHT_ANGLED_MODULE  // module 7
+};
 
-ModuleType ModulesTypes[NModules];
-    ModulesTypes[0] = RIGHT_ANGLED_MODULE;
-    ModulesTypes[1] = BEVEL_MODULE;
-    ModulesTypes[2] = BEVEL_MODULE;
-    ModulesTypes[3] = RIGHT_ANGLED_MODULE;
-    ModulesTypes[4] = RIGHT_ANGLED_MODULE;
-    ModulesTypes[5] = BEVEL_MODULE;
-    ModulesTypes[6] = BEVEL_MODULE;
-    ModulesTypes[7] = RIGHT_ANGLED_MODULE;
+//rotations of modules around y-axis by 180 deg.
+Bool_t ModulesYRotations[NModules] = {
+    true,   // module 0
+    true,   // module 1
+    false,  // module 2
+    false,  // module 3
+    true,   // module 4
+    true,   // module 5
+    false,  // module 6
+    false   // module 7
+};
 
-Bool_t ModulesYRotations[NModules]; //rotation of the module around y-axis by 180 deg.
-    ModulesYRotations[0] = true;
-    ModulesYRotations[1] = true;
-    ModulesYRotations[2] = false;
-    ModulesYRotations[3] = false;
-    ModulesYRotations[4] = true;
-    ModulesYRotations[5] = true;
-    ModulesYRotations[6] = false;
-    ModulesYRotations[7] = false;
-
-Bool_t ModulesXRotations[NModules]; //rotation of the module around x-axis by 180 deg.
-    ModulesXRotations[0] = false;
-    ModulesXRotations[1] = false;
-    ModulesXRotations[2] = false;
-    ModulesXRotations[3] = false;
-    ModulesXRotations[4] = true;
-    ModulesXRotations[5] = true;
-    ModulesXRotations[6] = true;
-    ModulesXRotations[7] = true;
+//rotations of modules around x-axis by 180 deg.
+Bool_t ModulesXRotations[NModules] = {
+    false,  // module 0
+    false,  // module 1
+    false,  // module 2
+    false,  // module 3
+    true,   // module 4
+    true,   // module 5
+    true,   // module 6
+    true    // module 7
+};
 
 //Module -----------------------------------------------------------------------
 
@@ -178,6 +178,13 @@ TGeoMedium *pMedSilicon = 0;
 class FairGeoMedia;
 class FairGeoBuilder;
 
+//function declarations
+void CreateSiliconStation(TGeoVolume* mother_volume, TString station_name,
+                          Double_t x_station_pos, Double_t y_station_pos, Double_t z_station_pos);
+
+void CreateSiliconModule(TGeoVolume* mother_volume, Int_t module_num, ModuleType module_type,
+                         Double_t x_module_pos, Double_t y_module_pos, Double_t z_module_pos,
+                         Bool_t y_module_rotated, Bool_t x_module_rotated);
 
 void DefineRequiredMedia(FairGeoMedia* geoMedia, FairGeoBuilder* geoBuild) {
 
@@ -250,10 +257,6 @@ void PrintInfoAboutModuleParameters() {
 
 void create_rootgeom_Silicon_v1() {
 
-    // Load the necessary FairRoot libraries
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-    bmnloadlibs(); // load libraries
-
     // ----  set working directory  --------------------------------------------
     TString gPath = gSystem->Getenv("VMCWORKDIR");
 
@@ -320,10 +323,7 @@ void CreateSiliconStation(TGeoVolume* mother_volume, TString station_name,
 
     for(Int_t imodule = 0; imodule < NModules; ++imodule) {
 
-        TString module_name = "module";
-        module_name += imodule;
-
-        CreateSiliconModule(stationA, imodule, module_name, ModulesTypes[imodule],
+        CreateSiliconModule(stationA, imodule, ModulesTypes[imodule],
                             XModulesPositions[imodule], YModulesPositions[imodule], ZModulesPositions[imodule],
                             ModulesYRotations[imodule], ModulesXRotations[imodule]);
     }
@@ -335,7 +335,7 @@ void CreateSiliconStation(TGeoVolume* mother_volume, TString station_name,
     mother_volume->AddNode(stationA, 0, station_pos);
 }
 
-void CreateSiliconModule(TGeoVolume* mother_volume, Int_t module_num, TString module_name, ModuleType module_type,
+void CreateSiliconModule(TGeoVolume* mother_volume, Int_t module_num, ModuleType module_type,
                          Double_t x_module_pos, Double_t y_module_pos, Double_t z_module_pos,
                          Bool_t y_module_rotated, Bool_t x_module_rotated) {
 

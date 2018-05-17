@@ -1,4 +1,5 @@
 #include "BmnAdcProcessor.h"
+#include <BmnMath.h>
 
 BmnAdcProcessor::BmnAdcProcessor() {
 }
@@ -16,22 +17,18 @@ BmnAdcProcessor::BmnAdcProcessor(Int_t period, Int_t run, TString det, Int_t nCh
     fPedVal = new Double_t**[fNSerials];
     fPedRms = new Double_t**[fNSerials];
     fAdcProfiles = new UInt_t**[fNSerials];
-    fNoiseChannels = new Bool_t**[fNSerials];
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
         fPedVal[iCr] = new Double_t*[fNChannels];
         fPedRms[iCr] = new Double_t*[fNChannels];
         fAdcProfiles[iCr] = new UInt_t*[fNChannels];
-        fNoiseChannels[iCr] = new Bool_t*[fNChannels];
         for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
             fPedVal[iCr][iCh] = new Double_t[fNSamples];
             fPedRms[iCr][iCh] = new Double_t[fNSamples];
             fAdcProfiles[iCr][iCh] = new UInt_t[fNSamples];
-            fNoiseChannels[iCr][iCh] = new Bool_t[fNSamples];
             for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl) {
                 fPedVal[iCr][iCh][iSmpl] = 0.0;
                 fPedRms[iCr][iCh][iSmpl] = 0.0;
                 fAdcProfiles[iCr][iCh][iSmpl] = 0;
-                fNoiseChannels[iCr][iCh][iSmpl] = kFALSE;
             }
         }
     }
@@ -65,90 +62,30 @@ BmnAdcProcessor::~BmnAdcProcessor() {
             delete[] fPedVal[iCr][iCh];
             delete[] fPedRms[iCr][iCh];
             delete[] fAdcProfiles[iCr][iCh];
-            delete[] fNoiseChannels[iCr][iCh];
         }
         delete[] fPedVal[iCr];
         delete[] fPedRms[iCr];
         delete[] fAdcProfiles[iCr];
-        delete[] fNoiseChannels[iCr];
     }
     delete[] fPedVal;
     delete[] fPedRms;
     delete[] fAdcProfiles;
-    delete[] fNoiseChannels;
-}
-
-BmnStatus BmnAdcProcessor::FindNoisyStrips() {
-    const Short_t kNBUNCHES = 16;
-    const Short_t kNSAMPLES = fNSamples / kNBUNCHES;
-    const Short_t kNITER = 4;
-    Float_t coeff[kNITER];
-    for (Short_t i = 0; i < kNITER; ++i) coeff[i] = 1.5;
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr) {
-        for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-            Bool_t channelOk[fNSamples];
-            Short_t nOk[kNBUNCHES];
-            for (Short_t i = 0; i < kNBUNCHES; ++i) nOk[i] = kNSAMPLES;
-            for (Short_t i = 0; i < fNSamples; ++i) channelOk[i] = kTRUE;
-
-            for (Short_t itr = 0; itr < kNITER; ++itr) {
-                for (Int_t iBunch = 0; iBunch < kNBUNCHES; ++iBunch) {
-                    Double_t mean = 0.0;
-                    for (Short_t i = 0; i < kNSAMPLES; ++i) {
-                        Short_t idx = i + iBunch * kNSAMPLES;
-                        if (fAdcProfiles[iCr][iCh][idx] > 0.7 * N_EV_FOR_PEDESTALS && channelOk[idx] == kTRUE) {
-                            nOk[iBunch]--;
-                            channelOk[idx] = kFALSE;
-                            continue;
-                        }
-                        if (channelOk[idx] == kTRUE && fAdcProfiles[iCr][iCh][idx] == 0) {
-                            //channelOk[idx] = kFALSE;
-                            nOk[iBunch]--;
-                            continue;
-                        }
-                        mean += (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx]);
-                    }
-                    if (nOk[iBunch] == 0) continue;
-                    mean /= nOk[iBunch];
-                    for (Short_t i = 0; i < kNSAMPLES; ++i) {
-                        Short_t idx = i + iBunch * kNSAMPLES;
-                        if (((Int_t) channelOk[idx]) * fAdcProfiles[iCr][iCh][idx] > coeff[itr] * mean) {
-                            channelOk[idx] = kFALSE;
-                            nOk[iBunch]--;
-                        }
-                    }
-                }
-            }
-            for (Short_t i = 0; i < fNSamples; ++i)
-                fNoiseChannels[iCr][iCh][i] = !(channelOk[i]);
-        }
-    }
-
-    ofstream pedFile(Form("%s/input/%s_noisy_Channels_%d.txt", getenv("VMCWORKDIR"), fDetName.Data(), fRun));
-    pedFile << "Serial\tCh_id\tIsNoisy" << endl;
-    pedFile << "============================================" << endl;
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-        for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
-            for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl)
-                pedFile << hex << fSerials[iCr] << dec << "\t" << iCh * fNSamples + iSmpl << "\t" << fNoiseChannels[iCr][iCh][iSmpl] << endl;
-    pedFile.close();
-
-    return kBMNSUCCESS;
 }
 
 BmnStatus BmnAdcProcessor::RecalculatePedestals() {
+    printf("\n[INFO]");
+    printf(ANSI_COLOR_BLUE " ADC pedestals recalculation\n" ANSI_COLOR_RESET);
     const UShort_t nSmpl = fNSamples;
 
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
         for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
             for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl) {
-                fNoiseChannels[iCr][iCh][iSmpl] = kFALSE;
                 fPedVal[iCr][iCh][iSmpl] = 0.0;
                 fPedRms[iCr][iCh][iSmpl] = 0.0;
                 fAdcProfiles[iCr][iCh][iSmpl] = 0;
             }
         }
-    cout << fDetName << " pedestals calculation..." << endl;
+    //cout << fDetName << " pedestals calculation..." << endl;
     for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
         for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
             for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
@@ -167,7 +104,7 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
             }
     }
 
-    cout << fDetName << " RMS calculation..." << endl;
+    //cout << fDetName << " RMS calculation..." << endl;
     for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
         for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
             for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
@@ -192,31 +129,6 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
             for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
                 fPedRms[iCr][iCh][iSmpl] = Sqrt(fPedRms[iCr][iCh][iSmpl] / N_EV_FOR_PEDESTALS);
 
-    cout << fDetName << " profile filling..." << endl;
-    for (Int_t iEv = 0; iEv < N_EV_FOR_PEDESTALS; ++iEv) {
-        for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-            for (Int_t iCh = 0; iCh < fNChannels; ++iCh) {
-                Double_t signals[nSmpl];
-                for (Int_t i = 0; i < nSmpl; ++i) signals[i] = 0.0;
-                Int_t nOk = 0;
-                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0) continue;
-                    signals[iSmpl] = fPedDat[iCr][iEv][iCh][iSmpl];
-                    nOk++;
-                }
-                Double_t CMS = CalcCMS(signals, nOk);
-                for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-
-                    if (fPedDat[iCr][iEv][iCh][iSmpl] == 0 || CMS == 0.0) continue;
-                    Float_t thresh = (fDetName == "SILICON") ? 120 : 15 + 4 * fPedRms[iCr][iCh][iSmpl]; //7 * fPedRms[iCr][iCh][iSmpl];
-                    //                    Double_t thresh = 7 * fPedRms[iCr][iCh][iSmpl];
-                    Double_t sig = Abs(fPedDat[iCr][iEv][iCh][iSmpl] - CMS - fPedVal[iCr][iCh][iSmpl]);
-                    if (sig < thresh || sig == 0.0) continue;
-                    fAdcProfiles[iCr][iCh][iSmpl]++;
-                }
-            }
-    }
-
     ofstream pedFile(Form("%s/input/%s_pedestals_%d.txt", getenv("VMCWORKDIR"), fDetName.Data(), fRun));
     pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
     pedFile << "============================================" << endl;
@@ -225,9 +137,7 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
             for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
                 pedFile << hex << fSerials[iCr] << dec << "\t" << iCh * nSmpl + iSmpl << "\t" << fPedVal[iCr][iCh][iSmpl] << "\t" << fPedRms[iCr][iCh][iSmpl] << endl;
     pedFile.close();
-
-    FindNoisyStrips();
-
+    
     return kBMNSUCCESS;
 }
 

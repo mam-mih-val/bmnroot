@@ -1,7 +1,7 @@
 
 //
 // Base class for processing data from ADC detectors
-// It's used for pedestal and noisy strips calculation
+// It's used for pedestal calculation
 //
 
 #ifndef BMNADCPROCESSOR_H
@@ -21,7 +21,7 @@
 #include <UniDbDetectorParameter.h>
 #include <UniDbDetector.h>
 
-#define N_EV_FOR_PEDESTALS 500
+#define N_EV_FOR_PEDESTALS 50
 #define ADC_N_CHANNELS 64 //number of ADC channels
 #define ADC128_N_SAMPLES 128 //number of samples in one ADC digit //silicon
 #define ADC32_N_SAMPLES 32 //number of samples in one ADC digit //gem
@@ -54,16 +54,8 @@ public:
         fNChannels = n;
     }
 
-    Bool_t IsChannelNoisy(Int_t ser, Int_t ch, Int_t smpl) {
-        return fNoiseChannels[ser][ch][smpl];
-    }
-
     Double_t GetPedestal(Int_t ser, Int_t ch, Int_t smpl) {
         return fPedVal[ser][ch][smpl];
-    }
-
-    Bool_t*** GetNoiseChannels() {
-        return fNoiseChannels;
     }
 
     Double_t*** GetPedestals() {
@@ -97,7 +89,6 @@ public:
 private:
 
     vector<UInt_t> fSerials; //list of serial id for ADC-detector
-    BmnStatus FindNoisyStrips();
 
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
 
@@ -112,7 +103,6 @@ private:
     Double_t*** fPedVal; //set of calculated pedestals
     Double_t*** fPedRms; // set of calculated pedestal errors
     UInt_t*** fAdcProfiles;
-    Bool_t*** fNoiseChannels; //false = good channel, true = noisy channel
 
     ClassDef(BmnAdcProcessor, 1);
 };

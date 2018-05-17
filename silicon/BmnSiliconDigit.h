@@ -15,6 +15,8 @@ private:
     Int_t fLayer; // 0 - lower layer, 1 - upper layer
     Int_t fStrip;
     Double_t fSignal;
+    Bool_t fIsGoodDigit;
+    
 public:
     BmnSiliconDigit();
     BmnSiliconDigit(BmnSiliconDigit* digit);
@@ -61,6 +63,10 @@ public:
     void SetStripSignal(Double_t signal) {
         fSignal = signal;
     }
+    
+    
+    void SetIsGoodDigit(Bool_t tmp) { fIsGoodDigit = tmp; }
+    Bool_t IsGoodDigit() { return fIsGoodDigit; }
 
     ClassDef(BmnSiliconDigit, 1);
 };

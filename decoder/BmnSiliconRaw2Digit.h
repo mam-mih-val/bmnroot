@@ -5,6 +5,7 @@
 #include "TTree.h"
 #include "TClonesArray.h"
 #include <iostream>
+#include "TH1F.h"
 #include "BmnADCDigit.h"
 #include "BmnEnums.h"
 #include "TMath.h"
@@ -35,6 +36,8 @@ public:
     virtual ~BmnSiliconRaw2Digit();
 
     BmnStatus FillEvent(TClonesArray *adc, TClonesArray *sts);
+    BmnStatus FillProfiles(TClonesArray *adc);
+    BmnStatus FillNoisyChannels();
     vector<UInt_t> GetSerials() {
         return fSerials;
     }
@@ -44,10 +47,13 @@ private:
     vector<UInt_t> fSerials;
     vector<BmnSiliconMapping> fMap;
     Int_t fEventId;
-    TString fMapFileName;
+    TString fMapFileName;    
+        
+    TH1F**** fSigProf;
+    Bool_t**** fNoisyChannels;
 
     BmnStatus ReadMapFile();
-    void ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon);
+    void ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon, Bool_t doFill);
 
     ClassDef(BmnSiliconRaw2Digit, 1);
 };

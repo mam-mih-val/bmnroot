@@ -12,9 +12,51 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
     fEventId = 0;
     fMapFileName = Form("SILICON_map_run%d.txt", period);
     ReadMapFile();
+
+    const Int_t kNStations = 3;
+    const Int_t kNModules = 8;
+    const Int_t kNLayers = 2;
+    const Int_t kNStrips = 640;
+
+    fSigProf = new TH1F***[kNStations];
+    fNoisyChannels = new Bool_t***[kNStations];
+    for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
+        fSigProf[iSt] = new TH1F**[kNModules];
+        fNoisyChannels[iSt] = new Bool_t**[kNModules];
+        for (UInt_t iMod = 0; iMod < kNModules; ++iMod) {
+            fSigProf[iSt][iMod] = new TH1F*[kNLayers];
+            fNoisyChannels[iSt][iMod] = new Bool_t*[kNLayers];
+            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
+                TString histName;
+                histName.Form("SIL_%d_%d_%d", iSt, iMod, iLay);
+                fSigProf[iSt][iMod][iLay] = new TH1F(histName, histName, kNStrips, 0, kNStrips);
+                fNoisyChannels[iSt][iMod][iLay] = new Bool_t[kNStrips];
+                for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip)
+                    fNoisyChannels[iSt][iMod][iLay][iStrip] = kFALSE;
+            }
+        }
+    }
 }
 
 BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
+    const Int_t kNStations = 3;
+    const Int_t kNModules = 8;
+    const Int_t kNLayers = 2;
+
+    for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
+        for (UInt_t iMod = 0; iMod < kNModules; ++iMod) {
+            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
+                delete fSigProf[iSt][iMod][iLay];
+                delete[] fNoisyChannels[iSt][iMod][iLay];
+            }
+            delete[] fSigProf[iSt][iMod];
+            delete[] fNoisyChannels[iSt][iMod];
+        }
+        delete[] fSigProf[iSt];
+        delete[] fNoisyChannels[iSt];
+    }
+    delete[] fNoisyChannels;
+    delete[] fSigProf;
 }
 
 BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
@@ -52,20 +94,63 @@ BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
 
 BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silicon) {
     fEventId++;
-//            printf("adc->GetEntriesFast() %x\n", adc->GetEntriesFast());
     for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
         BmnSiliconMapping tM = fMap[iMap];
         for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
-//            printf("adcDig->GetSerial() %x\n", adcDig->GetSerial());
             if (adcDig->GetSerial() == tM.serial && (adcDig->GetChannel() >= tM.channel_low && adcDig->GetChannel() <= tM.channel_high)) {
-                ProcessDigit(adcDig, &tM, silicon);
+                ProcessDigit(adcDig, &tM, silicon, kFALSE);
             }
         }
     }
 }
 
-void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon) {
+BmnStatus BmnSiliconRaw2Digit::FillProfiles(TClonesArray *adc) {
+    for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
+        BmnSiliconMapping tM = fMap[iMap];
+        for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
+            BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
+            if (adcDig->GetSerial() == tM.serial && (adcDig->GetChannel() >= tM.channel_low && adcDig->GetChannel() <= tM.channel_high)) {
+                ProcessDigit(adcDig, &tM, NULL, kTRUE);
+            }
+        }
+    }
+}
+
+BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
+    const Int_t kNStations = 3;
+    const Int_t kNModules = 8;
+    const Int_t kNLayers = 2;
+    const Int_t kNStrips = 640;
+    const Int_t kNStripsInBunch = 32;
+    const Int_t kNBunches = kNStrips / kNStripsInBunch;
+    const Int_t kNThresh = 3;
+
+    for (Int_t iSt = 0; iSt < kNStations; ++iSt)
+        for (UInt_t iMod = 0; iMod < kNModules; ++iMod)
+            for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
+                TH1F* prof = fSigProf[iSt][iMod][iLay];
+                for (Int_t iBunch = 0; iBunch < kNBunches; ++iBunch) {
+                    Double_t meanDiff = 0.0;
+                    for (Int_t iStrip = 0; iStrip < kNStripsInBunch - 1; ++iStrip) {
+                        Int_t strip = iStrip + iBunch * kNStripsInBunch;
+                        Double_t curr = prof->GetBinContent(strip);
+                        Double_t next = prof->GetBinContent(strip + 1);
+                        meanDiff += Abs(next - curr);
+                    }
+                    meanDiff /= kNStripsInBunch;
+                    for (Int_t iStrip = 0; iStrip < kNStripsInBunch - 1; ++iStrip) {
+                        Int_t strip = iStrip + iBunch * kNStripsInBunch;
+                        Double_t curr = prof->GetBinContent(strip);
+                        Double_t next = prof->GetBinContent(strip + 1);
+                        if (kNThresh * meanDiff < next - curr)
+                            fNoisyChannels[iSt][iMod][iLay][strip] = kTRUE;
+                    }
+                }
+            }
+}
+
+void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon, Bool_t doFill) {
     const UInt_t nSmpl = adcDig->GetNSamples();
     UInt_t ch = adcDig->GetChannel();
     UInt_t ser = adcDig->GetSerial();
@@ -97,20 +182,26 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     }
     Double_t CMS = CalcCMS(signals, nOk);
 
-    Bool_t*** nc = GetNoiseChannels();
     Double_t*** vPed = GetPedestals();
     Double_t*** vPedRMS = GetPedestalsRMS();
 
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         if ((candDig[iSmpl]).GetStation() == -1) continue;
 
-        if (nc[iSer][ch][iSmpl]) continue;
         BmnSiliconDigit * dig = &candDig[iSmpl];
         Double_t ped = vPed[iSer][ch][iSmpl];
         Double_t sig = Abs(dig->GetStripSignal() - CMS - ped);
-        Double_t threshold = 120;// * vPedRMS[iSer][ch][iSmpl]; //50;//120;//160;
+        Double_t threshold = 120; // * vPedRMS[iSer][ch][iSmpl]; //50;//120;//160;
         if (sig < threshold || sig == 0.0) continue;
-        new((*silicon)[silicon->GetEntriesFast()]) BmnSiliconDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
+        if (doFill) {
+            fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
+        } else {
+            BmnSiliconDigit * resDig = new((*silicon)[silicon->GetEntriesFast()]) BmnSiliconDigit(dig->GetStation(), dig->GetModule(), dig->GetStripLayer(), dig->GetStripNumber(), sig);
+            if (fNoisyChannels[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()][dig->GetStripNumber()])
+                resDig->SetIsGoodDigit(kFALSE);
+            else
+                resDig->SetIsGoodDigit(kTRUE);
+        }
     }
 
 }

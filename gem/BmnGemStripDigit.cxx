@@ -6,6 +6,7 @@ BmnGemStripDigit::BmnGemStripDigit() {
     fStripLayer = 0;
     fStripNumber = 0;
     fStripSignal = 0.0;
+    fIsGoodDigit = kTRUE;
 }
 
 BmnGemStripDigit::BmnGemStripDigit(BmnGemStripDigit* digit) {

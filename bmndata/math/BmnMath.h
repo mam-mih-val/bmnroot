@@ -13,6 +13,12 @@ class CbmStripHit;
 class CbmPixelHit;
 class CbmGlobalTrack;
 
+#define ANSI_COLOR_RED   "\x1b[91m"
+#define ANSI_COLOR_BLUE  "\x1b[94m"
+#define ANSI_COLOR_RESET "\x1b[0m"
+#define ANSI_COLOR_YELLOW_BG "\x1b[33;7m"
+#define ANSI_COLOR_BLUE_BG "\x1b[94;7m"
+
 namespace lit
 {
 
@@ -53,5 +59,8 @@ Float_t Dist(Float_t x1, Float_t y1, Float_t x2, Float_t y2);
 
 void fit_seg(Double_t*, Double_t*, Double_t*, Double_t*, Int_t, Int_t);
 void Pol2Fit(BmnGemTrack*, const TClonesArray*, Double_t&, Double_t&, Double_t&, Int_t);
+
+void DrawBar(UInt_t iEv, UInt_t nEv);
+void DrawBar(Long64_t iEv, Long64_t nEv);
 
 #endif /*BMNMATH_H_*/

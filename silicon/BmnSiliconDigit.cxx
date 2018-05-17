@@ -6,6 +6,7 @@ BmnSiliconDigit::BmnSiliconDigit() {
     fLayer = 0;
     fStrip = 0;
     fSignal = 0.0;
+    fIsGoodDigit = kTRUE;
 }
 
 BmnSiliconDigit::BmnSiliconDigit(BmnSiliconDigit* digit) {

@@ -4,6 +4,7 @@
 #include "TString.h"
 #include "TTree.h"
 #include "TClonesArray.h"
+#include "TH1F.h"
 #include <iostream>
 #include "BmnGemStripDigit.h"
 #include "BmnADCDigit.h"
@@ -49,6 +50,8 @@ public:
     ~BmnGemRaw2Digit();
 
     BmnStatus FillEvent(TClonesArray *adc, TClonesArray *gem);
+    BmnStatus FillProfiles(TClonesArray *adc);
+    BmnStatus FillNoisyChannels();
 
 private:
 
@@ -58,12 +61,15 @@ private:
     BmnGemMap* fBigL1;
     BmnGemMap* fBigR0;
     BmnGemMap* fBigR1;
+        
+    TH1F**** fSigProf;
+    Bool_t**** fNoisyChannels;
     
     TString fMapFileName;
 
     vector<GemMapStructure> fMap;
 
-    void ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, TClonesArray *gem);
+    void ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, TClonesArray *gem, Bool_t doFill);
     BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod);
 
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping

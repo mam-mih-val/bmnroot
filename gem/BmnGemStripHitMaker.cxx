@@ -232,6 +232,8 @@ void BmnGemStripHitMaker::ProcessDigits() {
 
     for (UInt_t idigit = 0; idigit < fBmnGemStripDigitsArray->GetEntriesFast(); idigit++) {
         digit = (BmnGemStripDigit*) fBmnGemStripDigitsArray->At(idigit);
+        if (!digit->IsGoodDigit())
+            continue;
         station = StationSet->GetGemStation(digit->GetStation());
         module = station->GetModule(digit->GetModule());
 

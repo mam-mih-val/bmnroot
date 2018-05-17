@@ -967,10 +967,10 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
                 fPedEvCntr = 0;
                 break;
             }
-            DrawBar(iEv, fNevents);
+            DrawBar(fPedEvCntr, fEvForPedestals);
         }
 
-        Int_t nEvForNoiseCorrection = 1000;
+        Int_t nEvForNoiseCorrection = 10000;
         printf("\n[INFO]");
         printf(ANSI_COLOR_BLUE " Clear noisy channels:\n" ANSI_COLOR_RESET);
         printf("\tFilling signal profiles for station-module-layer histograms\n");

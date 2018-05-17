@@ -21,7 +21,7 @@
 #include <UniDbDetectorParameter.h>
 #include <UniDbDetector.h>
 
-#define N_EV_FOR_PEDESTALS 50
+#define N_EV_FOR_PEDESTALS 500
 #define ADC_N_CHANNELS 64 //number of ADC channels
 #define ADC128_N_SAMPLES 128 //number of samples in one ADC digit //silicon
 #define ADC32_N_SAMPLES 32 //number of samples in one ADC digit //gem

@@ -73,8 +73,8 @@ BmnAdcProcessor::~BmnAdcProcessor() {
 }
 
 BmnStatus BmnAdcProcessor::RecalculatePedestals() {
-    printf("\n[INFO]");
-    printf(ANSI_COLOR_BLUE " ADC pedestals recalculation\n" ANSI_COLOR_RESET);
+//    printf("\n[INFO]");
+//    printf(ANSI_COLOR_BLUE " ADC pedestals recalculation\n" ANSI_COLOR_RESET);
     const UShort_t nSmpl = fNSamples;
 
     for (Int_t iCr = 0; iCr < fNSerials; ++iCr)

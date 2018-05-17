@@ -108,6 +108,12 @@ InitStatus BmnGemStripHitMaker::Init() {
             //StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2017.xml");
             if (fVerbose) cout << "   Current Configuration : RunSpring2017" << "\n";
             break;
+
+        case BmnGemStripConfiguration::RunSpring2018 :
+            StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
+            cout << "   Current Configuration : RunSpring2018" << "\n";
+            break;
+
         default:
             StationSet = NULL;
     }
@@ -134,10 +140,10 @@ InitStatus BmnGemStripHitMaker::Init() {
             }
         }
     }
-    
+
     delete rand;
 
-    if (fAlignCorrFileName != "") 
+    if (fAlignCorrFileName != "")
         ReadAlignCorrFile(fAlignCorrFileName, corr);
 
     if (fIsExp)
@@ -148,7 +154,7 @@ InitStatus BmnGemStripHitMaker::Init() {
         Int_t nModul = StationSet->GetGemStation(iStat)->GetNModules();
         for (Int_t iMod = 0; iMod != nModul; iMod++) {
             for (Int_t iPar = 0; iPar != nParams; iPar++)
-                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " << 
+                cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " <<
                         TString::Format("% 7.4f", (fIsExp) ? corr[iStat][iMod][iPar] : misAlign[iStat][iMod][iPar]) << endl; //
         }
     }
@@ -181,7 +187,7 @@ InitStatus BmnGemStripHitMaker::Init() {
 }
 
 void BmnGemStripHitMaker::Exec(Option_t* opt) {
-    // Event separation by triggers ...    
+    // Event separation by triggers ...
     if (fIsExp && fBmnEvQuality) {
         BmnEventQuality* evQual = (BmnEventQuality*) fBmnEvQuality->UncheckedAt(0);
         if (!evQual->GetIsGoodEvent())

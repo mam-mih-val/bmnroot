@@ -162,7 +162,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ===                           Check Triggers                       === //
     // ====================================================================== //
     BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp, run_period, run_number);
-    fRunAna->AddTask(triggs);  
+    fRunAna->AddTask(triggs);
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
@@ -171,17 +171,26 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->AddTask(mwpcHM);
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
-    // ====================================================================== //    
+    // ====================================================================== //
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
     fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //
     // ====================================================================== //
     BmnGemStripConfiguration::GEM_CONFIG gem_config;
-    if (!isExp || run_period == 6)
-        gem_config = BmnGemStripConfiguration::RunSpring2017;
-    else if (run_period == 5) {
-        gem_config = BmnGemStripConfiguration::RunWinter2016;
+    switch(run_period) {
+        case 5: //BM@N RUN-5
+            gem_config = BmnGemStripConfiguration::RunWinter2016;
+            break;
+        case 6: //BM@N RUN-6
+            gem_config = BmnGemStripConfiguration::RunSpring2017;
+            break;
+        case 7: //BM@N RUN-7
+            gem_config = BmnGemStripConfiguration::RunSpring2018;
+            break;
+        default:
+            gem_config = BmnGemStripConfiguration::RunSpring2017;
+            //gem_config = BmnGemStripConfiguration::RunSpring2018;
     }
     BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
     gemHM->SetCurrentConfig(gem_config);

@@ -63,4 +63,10 @@ void Pol2Fit(BmnGemTrack*, const TClonesArray*, Double_t&, Double_t&, Double_t&,
 void DrawBar(UInt_t iEv, UInt_t nEv);
 void DrawBar(Long64_t iEv, Long64_t nEv);
 
+// Some supplementary functions to calculate Tukey weights
+vector <Double_t> dist(vector <Double_t>, Double_t);
+vector <Double_t> W(vector <Double_t>, Double_t);
+Double_t Sigma(vector <Double_t>, vector <Double_t>);
+Double_t Mu(vector <Double_t>, vector <Double_t>);
+
 #endif /*BMNMATH_H_*/

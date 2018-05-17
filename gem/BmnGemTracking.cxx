@@ -3,6 +3,7 @@
 #include <TMath.h>
 #include <TGraph.h>
 #include <map>
+#include <cfloat>
 #include "TStyle.h"
 #include "BmnGemTracking.h"
 #include "TObjArray.h"
@@ -56,6 +57,7 @@ BmnGemTracking::BmnGemTracking() {
     fGemHitsBranchName = "BmnGemStripHit";
     fTracksBranchName = "BmnGemTrack";
     fGemDetector = NULL;
+    fUseRefit = kTRUE;
 }
 
 BmnGemTracking::~BmnGemTracking() {
@@ -213,6 +215,9 @@ Int_t BmnGemTracking::Tracking(vector<BmnGemTrack>& seeds) {
     }
 
     SortTracks(tracks, sortedTracks);
+    if (fUseRefit)
+        for (Int_t iTrack = 0; iTrack < sortedTracks.size(); iTrack++)
+            RefitTrack(&sortedTracks[iTrack]);
 
     if (!fIsTarget) {
         if (sortedTracks.size() != 0)
@@ -225,7 +230,7 @@ Int_t BmnGemTracking::Tracking(vector<BmnGemTrack>& seeds) {
                 SetHitsUsing(&sortedTracks[iTr], kTRUE);
                 num_of_tracks++;
             }
-        }
+    }
     return num_of_tracks;
 }
 
@@ -335,72 +340,111 @@ void BmnGemTracking::FillAddrWithLorentz() {
     }
 }
 
+TVector2 BmnGemTracking::CalcMeanSigma(vector <Double_t> QpSegm) {
+    Double_t QpSum = 0.;
+    for (Int_t iSegm = 0; iSegm < QpSegm.size(); iSegm++)
+        QpSum += QpSegm[iSegm];
+
+    Double_t QpMean = QpSum / QpSegm.size();
+
+    Double_t sqSigmaSum = 0.;
+    for (Int_t iSegm = 0; iSegm < QpSegm.size(); iSegm++)
+        sqSigmaSum += Sqr(QpSegm[iSegm] - QpMean);
+
+    return TVector2(QpMean, Sqrt(sqSigmaSum / QpSegm.size()));
+}
+
 BmnStatus BmnGemTracking::RefitTrack(BmnGemTrack* track) {
+    Bool_t fRobustRefit = true;
+    Bool_t fSimpleRefit = false;
+    vector <BmnGemStripHit*> hits;
 
-    const Short_t nHits = track->GetNHits();
+    for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++)
+        hits.push_back((BmnGemStripHit*) fGemHitsArray->UncheckedAt(track->GetHitIndex(iHit)));
 
-    Double_t *xx = new Double_t[nHits];
-    Double_t *yy = new Double_t[nHits];
+    Int_t kNSegm = track->GetNHits() - 2;
+    
+    Double_t QpRefit = 0.;
+    vector <Double_t> QpSegmBefore;
 
-    BmnGemStripHit* firstHit = (BmnGemStripHit*) fGemHitsArray->At(track->GetHitIndex(0));
+    // Get q/p info from all track segments
+    for (Int_t iHit = 0; iHit < kNSegm; iHit++) {
+        BmnGemStripHit* first = hits[iHit];
+        BmnGemStripHit* second = hits[iHit + 1];
+        BmnGemStripHit* third = hits[iHit + 2];
 
-    Double_t fSum = 0.0;
-    Double_t minField = FLT_MAX;
-    Double_t maxField = -FLT_MAX;
-    UInt_t nOk = 0;
-    Double_t A = 0;
-    Double_t B = 0;
-    Double_t C = 0;
+        TVector3 CircParZX = CircleBy3Hit(track, first, second, third);
+        Double_t R = CircParZX.Z();
+        Double_t Xc = CircParZX.Y();
 
-    for (Int_t iHit = 0; iHit < nHits; ++iHit) {
-        BmnGemStripHit *hit = (BmnGemStripHit*) fGemHitsArray->At(track->GetHitIndex(iHit));
-        if (!hit) continue;
-        if (!hit->GetFlag()) continue;
-        Double_t f = Abs(fField->GetBy(hit->GetX(), hit->GetY(), hit->GetZ()));
-        if (f < minField) minField = f;
-        if (f > maxField) maxField = f;
-        fSum += f;
-        nOk++;
-        xx[iHit] = hit->GetZ();
-        yy[iHit] = hit->GetX();
+        Double_t Q = (Xc > 0) ? +1. : -1.;
+
+        Double_t S = 0.0003 * (Abs(fField->GetBy(third->GetX(), third->GetY(), third->GetZ())) +
+                Abs(fField->GetBy(second->GetX(), second->GetY(), second->GetZ())) +
+                Abs(fField->GetBy(first->GetX(), first->GetY(), first->GetZ()))) / 3.;
+
+        QpSegmBefore.push_back(Q / S / R);
     }
-    Double_t chi2 = 0.0;
-    TVector3 circPar = CircleFit(track, fGemHitsArray, chi2);
-    //    printf("chi^2 / NDF = %f\n", chi2 / (track->GetNHits() - 3));
 
+    // Non-robust (simple) refit when segments with bad q/p are not taken into account
+    if (fSimpleRefit) {
+        vector <Double_t> QpSegmAfter;
+        while (kTRUE) {
+            TVector2 meanSig = CalcMeanSigma(QpSegmBefore);
+            Double_t mean = meanSig.X();
+            Double_t sigma = meanSig.Y();
+            if (std::isnan(sigma)) {
+                cout << "Bad refit convergence for track segment!!" << endl;
+                return kBMNERROR;
+            }
+ 
+            for (Int_t iSegm = 0; iSegm < QpSegmBefore.size(); iSegm++)
+                if (Abs(QpSegmBefore[iSegm] - mean) - sigma <= 0.001) // Топорное сравнение FIXME
+                    QpSegmAfter.push_back(QpSegmBefore[iSegm]);
 
-    //    FitWLSQ *fit = new FitWLSQ(xx, 0.3, 0.9, 0.9, (Int_t) nHits, 3, true, true, 4);
-    //    if (fit->Fit(yy)) {
-    //        A = fit->param[2];
-    //        B = fit->param[1];
-    //        C = fit->param[0];
-    //    } else {
-    //        return kBMNERROR;
-    //    }
-    //    const Double_t R = Power(1 - (2 * A * firstHit->GetZ() + B) * (2 * A * firstHit->GetZ() + B), 1.5) / Abs(2 * A); //radii of trajectory in the first hit position
-    //    const Double_t Q = (A > 0) ? +1 : -1;
+            if (QpSegmAfter.size() == QpSegmBefore.size()) {
+                QpRefit = mean;
+                break;
+            } else {
+                QpSegmBefore.clear();
+                QpSegmBefore.resize(0);
 
+                for (Int_t iSegm = 0; iSegm < QpSegmAfter.size(); iSegm++)
+                    QpSegmBefore.push_back(QpSegmAfter[iSegm]);
 
-    const Double_t R = circPar.Z();
-    const Double_t Xc = circPar.Y();
-    const Double_t Q = (Xc > 0) ? +1 : -1;
+                QpSegmAfter.clear();
+                QpSegmAfter.resize(0);
+            }
+        }
+    }
 
+    // Robust refit with use of Tukey weights calculation algorithm
+    if (fRobustRefit) {
+        for (Int_t iEle = 0; iEle < QpSegmBefore.size(); iEle++)
+            QpRefit += QpSegmBefore[iEle];
 
-    fSum /= nOk;
-    const Double_t S = 0.0003 * fSum;
-    //    const Double_t S = 0.0003 * maxField;
-    //    Double_t S = 0.0003 * Abs(fField->GetBy(lastHit->GetX(), lastHit->GetY(), lastHit->GetZ()));
-    //    const Double_t S = 0.0003 * Abs(fField->GetBy(firstHit->GetX(), firstHit->GetY(), firstHit->GetZ()));
-    const Double_t QP = Q / S / R;
+        QpRefit /= QpSegmBefore.size();
 
-    track->SetChi2(chi2);
-    track->SetNDF(track->GetNHits() - 3);
-    track->GetParamFirst()->SetQp(QP);
+        vector <Double_t> d = dist(QpSegmBefore, QpRefit);
 
-    //    delete fit;
-    delete[] xx;
-    delete[] yy;
+        Double_t sigma = 0.;
+        for (Int_t i = 0; i < QpSegmBefore.size(); i++)
+            sigma += (QpSegmBefore[i] - QpRefit) * (QpSegmBefore[i] - QpRefit);
+        sigma = Sqrt(sigma / QpSegmBefore.size());
 
+        vector <Double_t> w = W(d, sigma);
+        sigma = Sigma(d, w);
+
+        const Int_t kNIter = 20; // FIXME
+        for (Int_t iIter = 1; iIter < kNIter; iIter++) {
+            QpRefit = Mu(QpSegmBefore, w);
+            d = dist(QpSegmBefore, QpRefit);
+            w = W(d, sigma);
+            sigma = Sigma(d, w);
+        }
+    }
+
+    track->GetParamFirst()->SetQp(QpRefit); // set new q/p after refit done
     return kBMNSUCCESS;
 }
 

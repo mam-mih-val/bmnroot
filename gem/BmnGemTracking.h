@@ -107,9 +107,14 @@ public:
     void SetNHitsCut(Short_t n) {
         fNHitsCut = n;
     }
+    
+    void SetUseRefit(Bool_t flag) {
+        fUseRefit = flag;
+    }
 
 private:
-
+    TVector2 CalcMeanSigma(vector <Double_t>);  
+    
     BmnGemStripStationSet* fGemDetector;
     TString fGemHitsBranchName;
     TString fTracksBranchName;
@@ -159,6 +164,8 @@ private:
     Double_t fLineFitCut;
     
     vector<Int_t>* fHitsOnStation;
+    
+    Bool_t fUseRefit;
     
     ClassDef(BmnGemTracking, 1);
 };

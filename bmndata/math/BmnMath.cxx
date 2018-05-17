@@ -822,6 +822,55 @@ void Pol2Fit(BmnGemTrack* track, const TClonesArray* arr, Double_t &A, Double_t 
     C = ptr->Parameter(0);
 }
 
+vector <Double_t> dist(vector <Double_t> qp, Double_t mu) {
+    vector <Double_t> res;
+    for (Int_t iEle = 0; iEle < qp.size(); iEle++)
+        res.push_back(Abs(qp[iEle] - mu));
+
+    return res;
+}
+
+vector <Double_t> W(vector <Double_t> dist, Double_t sig) {
+    vector <Double_t> res;
+    const Int_t C = 10;
+    for (Int_t iEle = 0; iEle < dist.size(); iEle++) {
+        Double_t w = (dist[iEle] > C * sig) ? 0. : Power(1 - Power(dist[iEle] / C / sig, 2), 2); 
+        res.push_back(w);
+    }
+    
+    return res;
+}
+
+Double_t Sigma(vector <Double_t> dist, vector <Double_t> w) {
+    if (dist.size() != w.size())
+        throw;
+
+    Double_t WiDi2Sum = 0.;
+    Double_t WiSum = 0.;
+
+    for (Int_t iEle = 0; iEle < dist.size(); iEle++) {
+        WiSum += w[iEle];
+        WiDi2Sum += w[iEle] * dist[iEle] * dist[iEle];
+    }
+
+    return Sqrt(WiDi2Sum / WiSum);
+}
+
+Double_t Mu(vector <Double_t> qp, vector <Double_t> w) {
+    if (qp.size() != w.size())
+        throw;
+
+    Double_t WiQpSum = 0.;
+    Double_t WiSum = 0.;
+
+    for (Int_t iEle = 0; iEle < qp.size(); iEle++) {
+        WiSum += w[iEle];
+        WiQpSum += w[iEle] * qp[iEle];
+    }
+
+    return WiQpSum / WiSum;
+}
+
 //void DrawBar(Int_t iEv, Int_t nEv) {
 //    cout.flush();
 //    Float_t progress = iEv * 1.0 / nEv;

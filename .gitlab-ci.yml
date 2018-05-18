@@ -1,8 +1,8 @@
 stages:
-- build
-- test_run_sim
-- test_run_reco
-#- test_run_digi
+ - build
+ - test_run_sim
+ - test_run_reco
+ - test_run_digi
  
 before_script:
  - source ./SetEnv.sh
@@ -96,31 +96,29 @@ run_reco:ubuntu:
     - run_sim:ubuntu
   <<: *run_reco
   
-#.run_digi_template: &run_digi
-#  stage: test_run_digi
-#  script:
-#    - source build/config.sh
-#    - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("run6-1889:/nica/bmn_run1889_digi.root", "$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)' | tee output.txt
-#    - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
-#  only:
-#    - dev
-#  allow_failure: false
-#  
-#run_digi:centos:
-#  tags:
-#    - test
-#    - centos
-#  dependencies:
-#    - build:centos
-#    - run_sim:centos
-#  <<: *run_digi
-#  
-#run_digi:ubuntu:
-#  tags:
-#    - test
-#    - ubuntu
-#  dependencies:
-#    - build:ubuntu
-#    - run_sim:ubuntu
-#    - run_reco:ubuntu
-#  <<: *run_digi
+.run_digi_template: &run_digi
+  stage: test_run_digi
+  script:
+    - source build/config.sh
+    - root -b -q -l '$CI_PROJECT_DIR/macro/run/run_reco_bmn.C("run6-1889:/nica/bmn_run1889_digi.root", "$VMCWORKDIR/macro/run/bmndst_exp.root", 0, 100)' | tee output.txt
+    - (if grep -q "Macro finished successfully." output.txt; then $(exit 0); else $(exit -1); fi);
+  only:
+    - dev
+  allow_failure: false
+  
+run_digi:centos:
+  tags:
+    - test
+    - centos
+  dependencies:
+    - build:centos
+    - run_sim:centos
+  <<: *run_digi
+  
+run_digi:ubuntu:
+  tags:
+    - test
+    - ubuntu
+  dependencies:
+    - build:ubuntu
+  <<: *run_digi

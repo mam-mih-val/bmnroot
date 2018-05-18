@@ -1,10 +1,10 @@
-// -----------------------------------------------------------------------------
 // Macro for reconstruction of simulated or experimental events.
 //
 // inputFileName - input file with data.
 //
-// To process experimental data, you must use 'runN-NNN:'-like prefix
-// and then the geometry will be obtained from the Unified Database.
+// To process experimental data, you must use 'run[#period]-[#run]:'-like prefix,
+// and then the geometry will be obtained from the Unified Database
+// e.g. "run6-1986:/dataBMN/bmndata1/run6/root/digi/bmn_run1986_digi.root"
 //
 // bmndstFileName - output file with reconstructed data.
 //
@@ -30,21 +30,21 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
         Int_t nEvents = 10000,
-        TString alignCorrFileName = "default") { // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
+        TString alignCorrFileName = "default")
+{
+    // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
+
     // ----    Debug option   --------------------------------------------------
     gDebug = 0;
-    // -------------------------------------------------------------------------
+
     // ----  Load libraries   --------------------------------------------------
-#if ROOT_VERSION_CODE < ROOT_VERSION(5,99,99)
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
-#endif
     bmnloadlibs(); // load BmnRoot libraries
-    // -------------------------------------------------------------------------
+
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
-    // -------------------------------------------------------------------------
+
     // -----   Reconstruction run   --------------------------------------------
     FairRunAna* fRunAna = new FairRunAna();
 
@@ -78,14 +78,14 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         Int_t res_code = UniDbRun::ReadGeometryFile(run_period, run_number, (char*) geoFileName.Data());
         if (res_code != 0) {
             cout << "Geometry file can't be read from the database" << endl;
-            exit(-1);
+            exit(-2);
         }
 
         // get gGeoManager from ROOT file (if required)
         TFile* geoFile = new TFile(geoFileName, "READ");
         if (!geoFile->IsOpen()) {
             cout << "Error: could not open ROOT file with geometry: " + geoFileName << endl;
-            exit(-2);
+            exit(-3);
         }
         TList* keyList = geoFile->GetListOfKeys();
         TIter next(keyList);
@@ -95,21 +95,26 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
             key->ReadObj();
         else {
             cout << "Error: TGeoManager isn't top element in geometry file " + geoFileName << endl;
-            exit(-3);
+            exit(-4);
         }
+
         // set magnet field with factor corresponding to the given run
         UniDbRun* pCurrentRun = UniDbRun::GetRun(run_period, run_number);
-        if (pCurrentRun == 0) {
-            exit(-2);
+        if (pCurrentRun == 0)
+            exit(-5);
+        Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
+        if (field_voltage == NULL)
+        {
+            cout<<"Error: no field voltage was found for run "<<run_period<<":"<<run_number<<endl;
+            exit(-6);
         }
         Double_t map_current = 55.87;
-        Double_t* field_voltage = pCurrentRun->GetFieldVoltage();
         if (*field_voltage < 10) {
             fieldScale = 0;
             isField = kFALSE;
-        } else {
+        } else
             fieldScale = (*field_voltage) / map_current;
-        }
+
         BmnFieldMap* magField = new BmnNewFieldMap("field_sp41v4_ascii_Extrap.root");
         magField->SetScale(fieldScale);
         magField->Init();
@@ -156,7 +161,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
 
     if (iVerbose == 0) { // print only progress bar in terminal in quiet mode
         BmnCounter* cntr = new BmnCounter(nEvents);
-         fRunAna->AddTask(cntr);
+        fRunAna->AddTask(cntr);
     }
     // ====================================================================== //
     // ===                           Check Triggers                       === //

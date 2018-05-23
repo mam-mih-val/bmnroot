@@ -1,4 +1,5 @@
-#include "../../gconfig/basiclibs.C"
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "gconfig/basiclibs.C"
 
 void bmnloadlibs()
 {

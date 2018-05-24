@@ -64,6 +64,12 @@ UniDbTangoData::~UniDbTangoData() {}
 // Returns TobjArray with TangoTimeParameter objects (i.e. conditionally TObjArray<TangoTimeParameter*>), or NULL in case errors.
 TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const char* parameter_name, const char* date_start, const char* date_end)
 {
+    if ((date_start == NULL) || (date_end == NULL))
+    {
+        cout<<"ERROR: date start and date end should be not NULL!"<<endl;
+        return NULL;
+    }
+
     // TANGO database connection
     UniDbConnection* connUniDb = UniDbConnection::Open(TANGO_DB);
     if (connUniDb == 0x00) return NULL;
@@ -80,7 +86,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
     TSQLStatement* stmt_select = db->Statement(strStatement);
     if (!stmt_select->Process())
     {
-            cout<<"Error: getting info about parameter from Tango has been failed: detector_name = "<<detector_name<<", parameter_name = "<<parameter_name<<endl;
+            cout<<"ERROR: getting info about parameter from Tango has been failed: detector_name = "<<detector_name<<", parameter_name = "<<parameter_name<<endl;
             delete stmt_select;
             return NULL;
     }
@@ -88,9 +94,19 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
     stmt_select->StoreResult();
     if (!stmt_select->NextResultRow())
     {
-        cout<<"Error: There is no parameter '"<<parameter_name<<"' for "<<detector_name<<" detector"<<endl;
+        cout<<"ERROR: There is no parameter '"<<parameter_name<<"' for "<<detector_name<<" detector"<<endl;
         delete stmt_select;
         return NULL;
+    }
+    // Now Tango team duplicates parameters for every Nuclotron session
+    if ((stmt_select->GetNumAffectedRows() > 1) && (strcmp(date_end, "2018-01-01") > 0))
+    {
+        if (!stmt_select->NextResultRow())
+        {
+            cout<<"ERROR: There is no second row for parameter '"<<parameter_name<<"' for "<<detector_name<<" detector"<<endl;
+            delete stmt_select;
+            return NULL;
+        }
     }
 
     int data_id = stmt_select->GetInt(0);
@@ -113,7 +129,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
                 par_type = Tango_Double;
             else
             {
-                cout<<"Error: This Tango type is not supported: '"<<data_type<<"'"<<endl;
+                cout<<"ERROR: This Tango type is not supported: '"<<data_type<<"'"<<endl;
                 return NULL;
             }
         }
@@ -132,7 +148,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
     stmt_select = db->Statement(query_data);
     if (!stmt_select->Process())
     {
-            cout<<"Error: getting info about parameter values from Tango has been failed"<<endl;
+            cout<<"ERROR: getting info about parameter values from Tango has been failed"<<endl;
             delete stmt_select;
             return NULL;
     }
@@ -151,7 +167,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
         if (par_type > 10) i_par_len = stmt_select->GetInt(2);
         if (i_par_len == 0)
         {
-            cout<<"Error: Parameter length can't be equal 0"<<endl;
+            cout<<"ERROR: Parameter length can't be equal 0"<<endl;
             delete tango_data;
             delete stmt_select;
             return NULL;
@@ -161,7 +177,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
         if (par_type > 10) i_real_par_len = stmt_select->GetInt(3);
         if (i_real_par_len == 0)
         {
-            cout<<"Error: Real parameter length can't be equal 0"<<endl;
+            cout<<"ERROR: Real parameter length can't be equal 0"<<endl;
             delete tango_data;
             delete stmt_select;
             return NULL;
@@ -180,7 +196,7 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
             //cout<<"idx:ind - "<<idx<<":"<<ind<<endl;
             if (i_idx != ind)
             {
-                cout<<"Error: idx should be equal index of the parameter array"<<endl;
+                cout<<"ERROR: idx should be equal index of the parameter array"<<endl;
                 delete tango_data;
                 delete stmt_select;
                 return NULL;
@@ -278,7 +294,7 @@ TObjArray* UniDbTangoData::SearchTangoIntervals(char* detector_name, char* param
                 case conditionGreaterOrEqual:   isCondition = pParameter->bool_parameter_value[j] >= value; break;
                 default:
                 {
-                    cout<<"Error: comparison operator in the searching of intervals is not appropriable for boolean type"<<endl;
+                    cout<<"ERROR: comparison operator in the searching of intervals is not appropriable for boolean type"<<endl;
                     delete tango_data;
                     delete pTimeIntervals;
                     return NULL;

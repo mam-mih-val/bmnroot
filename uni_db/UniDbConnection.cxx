@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------
-// -----                      UniDbConnection header file              -----
+// -----                      UniDbConnection source file              -----
 // -----                  Created 28/01/13 by K. Gertsenberger         -----
 // -------------------------------------------------------------------------
 #include "UniDbConnection.h"

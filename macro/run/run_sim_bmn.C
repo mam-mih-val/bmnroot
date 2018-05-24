@@ -1,5 +1,6 @@
-#include "bmnloadlibs.C"
-#include "geometry.C"
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
+#include "macro/run/geometry.C"
 
 // inFile - input file with generator data, default: dc4mb.r12 for LAQGSM event generator (deuteron - carbon target, mbias, 4 GeV)
 // outFile - output file with MC data, default: evetest.root

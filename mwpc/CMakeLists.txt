@@ -44,6 +44,6 @@ BmnMwpcPoint.cxx
 Set(HEADERS)
 Set(LINKDEF LinkDef.h)
 Set(LIBRARY_NAME Mwpc)
-Set(DEPENDENCIES Core Base)
+Set(DEPENDENCIES Core Base BmnData)
 
 GENERATE_LIBRARY()

@@ -1,15 +1,12 @@
-#include "../../../gconfig/basiclibs.C"
-
-// macro for getting average magnetic field for a given run (930 run of 5-th session by default)
+// macro for getting average magnetic field for a given run (1886 run of 6-th period by default)
 // returns average magnetic field coefficient (in case of errors the return value <= -1)
 double tango_avg_field(int period = 6, int run = 1886)
 {
-    basiclibs();
     gSystem->Load("libUniDb");
 
     UniDbTangoData db_tango;
 
-    // get run time (period 5, run 930)
+    // get run time
     UniDbRun* pRun = UniDbRun::GetRun(period, run);
     if (pRun == NULL)
     {
@@ -56,11 +53,10 @@ double tango_avg_field(int period = 6, int run = 1886)
     return average_coeff;
 }
 
-class UniqueRunNumber;
+//class UniqueRunNumber;
 // additional function for calculating Tango average magnetic field for all runs of the given period/session and writing it to the BM@N Database
-void tango_avg_field_write_db(int period = 6)
+void tango_avg_field_write_db(int period = 7)
 {
-    basiclibs();
     gSystem->Load("libUniDb");
 
     UniqueRunNumber* run_numbers;
@@ -129,7 +125,6 @@ void tango_avg_field_write_db(int period = 6)
 // if period_end == -1 and run_end != -1 then the end period is the same as begin period
 int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end = -1, int run_end = -1)
 {
-    basiclibs();
     gSystem->Load("libUniDb");
 
     UniDbTangoData db_tango;
@@ -189,9 +184,8 @@ int show_field_graph(int period_begin = 6, int run_begin = 1886, int period_end 
 }
 
 // additional function to compare magnetic field value (current, A) from ELog database and average magnetic field (voltage, mV) from the Tango database
-void compare_avg_field(int period = 6, bool isOnlyDifferent = false)
+void compare_avg_field(int period = 7, bool isOnlyDifferent = false)
 {
-    basiclibs();
     gSystem->Load("libUniDb");
 
     UniqueRunNumber* run_numbers;
@@ -297,9 +291,8 @@ void compare_avg_field(int period = 6, bool isOnlyDifferent = false)
 
 // additional function to compare magnetic field value (current, A) from Elog database
 // and average magnetic field (voltage, mV) from UniDb saved from the Tango, and show in TGraph object
-void compare_avg_field_graph(int period = 6)
+void compare_avg_field_graph(int period = 7)
 {
-    basiclibs();
     gSystem->Load("libUniDb");
 
     UniqueRunNumber* run_numbers;

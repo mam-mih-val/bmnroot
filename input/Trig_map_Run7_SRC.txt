@@ -30,3 +30,8 @@ X2_Left		0           0x076D2E12        10	   7
 X2_Right	0           0x076D2E12        10	   7
 Y2_Left		0           0x076D2E12        10	   3
 Y2_Right	0           0x076D2E12        10	   3
+FFD             0           0x076D2E12        5            15       
+FFD             1           0x076D2E12        5            28
+FFD             2           0x076D2E12        5            29
+FFD             3           0x076D2E12        5            30
+FFD             4           0x076D2E12        5            31      

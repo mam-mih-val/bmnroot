@@ -138,10 +138,10 @@ TObjArray* UniDbTangoData::GetTangoParameter(const char* detector_name, const ch
     // getting data from the table found by attribute type
     TString query_data = "";
     if (par_type > 10)
-        query_data = TString::Format("SELECT data_time, value_r, dim_x_r, dim_x_w, idx FROM %s WHERE att_conf_id=\"%d\" and data_time>=\"%s\" and data_time<=\"%s\" ORDER BY data_time,idx",
+        query_data = TString::Format("SELECT data_time, value_r, dim_x_r, dim_x_w, idx FROM %s WHERE att_conf_id=\"%d\" and data_time>=\"%s\" and data_time<=\"%s\" and value_r is not null ORDER BY data_time,idx",
                                      table_name.Data(), data_id, date_start, date_end);
     else
-        query_data = TString::Format("SELECT data_time, value_r FROM %s WHERE att_conf_id=\"%d\" and data_time>=\"%s\" and data_time<=\"%s\" ORDER BY data_time",
+        query_data = TString::Format("SELECT data_time, value_r FROM %s WHERE att_conf_id=\"%d\" and data_time>=\"%s\" and data_time<=\"%s\" and value_r is not null ORDER BY data_time",
                                       table_name.Data(), data_id, date_start, date_end);
     //cout<<"Query data: "<<query_data<<endl;
 

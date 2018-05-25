@@ -24,6 +24,7 @@
 #include "BmnTOF1Point.h"
 #include "BmnTof1GeoUtils.h"
 #include "BmnTofHit.h"
+#include "BmnTOF1Conteiner.h"
 #include "TH1I.h"
 #include "TH2I.h"
 #include "TFile.h"
@@ -56,11 +57,12 @@ private:
     TString fName;
     Int_t fNPlane;
     Int_t fMaxL, fMaxR, fMax;
+    Int_t fFillHist;
     Double_t fTimeL[fNStr], fTimeR[fNStr], fTimeLtemp[fNStr], fTimeRtemp[fNStr], fTime[fNStr];
     Double_t fWidthL[fNStr], fWidthR[fNStr], fWidthLtemp[fNStr], fWidthRtemp[fNStr], fWidth[fNStr];
     Double_t fTof[fNStr];
     Double_t fDoubleTemp, fMaxDelta;
-    Int_t fHit_Per_Ev, fNEvents, fStrip, fFillHist;
+    Int_t fHit_Per_Ev, fNEvents, fStrip;
     Bool_t fFlagHit[fNStr], fKilled[fNStr];
     Double_t fCorrLR[fNStr], fCorrTimeShift[fNStr];
     Double_t fDigitL[fNStr], fDigitR[fNStr], fHit[fNStr];
@@ -68,19 +70,20 @@ private:
     BmnTrigDigit *fT0;
 
     TList *fHistListStat, *fHistListCh, *fHistListDt;
-
+    
+    TBranch *fDateToSave;
     TH1I *hHitByCh, *hHitPerEv;
-    TH2I *hXY;
-    TH2S *hHitLR, *hDtvsWidthDet[fNStr + 1], *hDtvsWidthT0[fNStr + 1];
-    TH1I *hWidth[fNStr + 1], *hTime[fNStr + 1];
-    TH1D * hDtLR[fNStr + 1], *hDt[fNStr + 1], *hToF[fNStr + 1];
-    TGraphErrors *gSlew[fNStr];
-
+    TH2I *hHitLR, *hXY;
     TH1S *hDy_near, *hDtime_near, *hDWidth_near;
     TH1S *hDy_acros, *hDtime_acros, *hDWidth_acros;
     TH2S *hTempDtimeDy_near, *hTempDtimeDy_acros;
-    TH1S *hWidthL[fNStr + 1], *hWidthR[fNStr + 1];
 
+    TGraphErrors *gSlew[fNStr];
+    
+    TTree *fTree4Save;
+    TClonesArray *arrayConteiner;
+    BmnTOF1Conteiner *fConteiner;
+            
     void FillHist();
     Double_t CalculateDt(Int_t Str);
     Bool_t GetCrossPoint(Int_t NStrip);
@@ -90,7 +93,7 @@ private:
 public:
     BmnTOF1Detector();
 
-    BmnTOF1Detector(Int_t NPlane, Int_t FillHistLevel); // FillHistLevel=0-don"t fill, FillHistLevel=1-fill statistic, FillHistLevel>1-fill all
+    BmnTOF1Detector(Int_t NPlane, Int_t FillHistLevel, TTree *tree); // FillHistLevel=0-don"t fill, FillHistLevel=1-fill statistic, FillHistLevel>1-fill all
 
     virtual ~BmnTOF1Detector() {
     };
@@ -111,7 +114,10 @@ public:
     Bool_t GetXYZTime(Int_t Str, TVector3 *XYZ, Double_t *ToF);
     Double_t GetWidth(Int_t Str);
     Bool_t SaveHistToFile(TString NameFile);
-    ClassDef(BmnTOF1Detector, 2);
+    Bool_t SetTree (TTree *tree);
+    Int_t GetFillHistLevel () {return fFillHist;};
+    
+    ClassDef(BmnTOF1Detector, 3);
 
 };
 

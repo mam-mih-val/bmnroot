@@ -36,6 +36,7 @@ BmnTof1HitProducerIdeal.cxx
 BmnTof1GeoUtils.cxx
 BmnTOF1TDC.cxx
 BmnTOF1Detector.cxx
+BmnTOF1Conteiner.cxx
 )
 
 Set(HEADERS)

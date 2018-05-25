@@ -115,8 +115,8 @@ InitStatus 		BmnTof1HitProducer::Init()
             NameFileTimeShiftCorrection = Form("TOF400_TimeShiftCorr_RUN%i.dat", NPeriod);
             for (Int_t i = 0; i < fNDetectors; i++) {
                 Int_t DoTestForDetector = 0;
-                if (fDoTest == kTRUE) DoTestForDetector = 1; // Level of Histograms filling (0-don't fill, 1-low, 2-high)
-                pDetector[i] = new BmnTOF1Detector(i, DoTestForDetector);
+                //if (fDoTest == kTRUE) DoTestForDetector = 1; // Level of Histograms filling (0-don't fill, 1-low, 2-high)
+                pDetector[i] = new BmnTOF1Detector(i, DoTestForDetector, NULL);
 		pDetector[i]->SetCorrLR(NameFileLRcorrection);
                 pDetector[i]->SetCorrSlewing(NameFileSlewingCorrection);
                 pDetector[i]->SetCorrTimeShift(NameFileTimeShiftCorrection);

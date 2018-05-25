@@ -17,5 +17,6 @@
 #pragma link C++ class  BmnTof1TDCMapping;
 #pragma link C++ class  BmnTof1DigitConvertor;
 #pragma link C++ class  BmnTOF1Detector;
+#pragma link C++ class  BmnTOF1Conteiner;
 
 #endif

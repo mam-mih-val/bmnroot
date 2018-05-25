@@ -84,6 +84,7 @@ BmnMSCDigit.cxx
 BmnZDCDigit.cxx
 BmnECALDigit.cxx
 BmnLANDDigit.cxx
+BmnCscDigit.cxx
 BmnEventHeader.cxx
 BmnRunHeader.cxx
 BmnCounterTask.cxx

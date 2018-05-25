@@ -63,8 +63,7 @@ public:
     void SetStripSignal(Double_t signal) {
         fSignal = signal;
     }
-    
-    
+        
     void SetIsGoodDigit(Bool_t tmp) { fIsGoodDigit = tmp; }
     Bool_t IsGoodDigit() { return fIsGoodDigit; }
 

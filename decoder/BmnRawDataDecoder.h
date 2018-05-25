@@ -31,6 +31,7 @@
 #include "BmnECALRaw2Digit.h"
 #include "BmnLANDRaw2Digit.h"
 #include "BmnTrigRaw2Digit.h"
+#include "BmnCscRaw2Digit.h"
 #include "BmnEventHeader.h"
 #include "BmnRunHeader.h"
 #include "BmnEnums.h"
@@ -142,6 +143,7 @@ public:
         DigiArrays d; // = new DigiArrays();
         d.silicon = silicon;
         d.gem = gem;
+        d.csc = csc;
         d.tof400 = tof400;
         d.tof700 = tof700;
         d.zdc = zdc;
@@ -226,7 +228,7 @@ public:
     }
 
     void SetCSCMapping(TString map) {
-        fCSCMapFileName = map;
+        fCscMapFileName = map;
     }
 
     void SetTrigINLFile(TString file) {
@@ -343,8 +345,8 @@ private:
     UInt_t fNSiliconSerials;
     vector<UInt_t> fGemSerials; //list of serial id for GEM
     UInt_t fNGemSerials;
-    vector<UInt_t> fCSCSerials; //list of serial id for CSC
-    UInt_t fNCSCSerials;
+    vector<UInt_t> fCscSerials; //list of serial id for CSC
+    UInt_t fNCscSerials;
     vector<UInt_t> fZDCSerials; //list of serial id for ZDC
     UInt_t fNZDCSerials;
     vector<UInt_t> fECALSerials; //list of serial id for ECal
@@ -392,13 +394,14 @@ private:
     TString fLANDDiffSyncFileName;
     TString fLANDVScintFileName;
     TString fSiliconMapFileName;
-    TString fCSCMapFileName;
+    TString fCscMapFileName;
     TString fTrigMapFileName;
     TString fTrigINLFileName;
 
     ifstream fDchMapFile;
     ifstream fMwpcMapFile;
     ifstream fGemMapFile;
+    ifstream fCscMapFile;
     ifstream fTof400MapFile;
     ifstream fTof700MapFile;
     ifstream fZDCMapFile;
@@ -432,6 +435,7 @@ private:
     //Digi arrays
     TClonesArray *silicon;
     TClonesArray *gem;
+    TClonesArray *csc;
     TClonesArray *tof400;
     TClonesArray *tof700;
     TClonesArray *zdc;
@@ -450,6 +454,7 @@ private:
 
     UInt_t fDat; //current 32-bits word
     UInt_t syncCounter;
+    BmnCscRaw2Digit *fCscMapper;
     BmnGemRaw2Digit *fGemMapper;
     BmnSiliconRaw2Digit *fSiliconMapper;
     BmnDchRaw2Digit *fDchMapper;

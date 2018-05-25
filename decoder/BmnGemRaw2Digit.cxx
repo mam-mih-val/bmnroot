@@ -129,7 +129,7 @@ BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     //    if (fMap) delete[] fMap;
 
     const Int_t kNStations = 10;
-    
+
     for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
         for (UInt_t iMod = 0; iMod < N_MODULES; ++iMod) {
             for (Int_t iLay = 0; iLay < N_LAYERS; ++iLay) {
@@ -229,14 +229,14 @@ void BmnGemRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, T
             if ((gemM->channel_high - gemM->channel_low) < 128) realChannel = (2048 + ch2048 - gemM->channel_low);
             fBigMap = fMid;
         } else {
-            if (gemM->hotZone % 2 == 0) {
+            if (gemM->hotZone % 2 == 0) { //hot zone
                 if (gemM->channel_low == 0)
                     realChannel += 1024;
                 if (gemM->id % 10 == 0)
                     fBigMap = fBigL0;
                 else
                     fBigMap = fBigR0;
-            } else {
+            } else { //big zone
                 if (gemM->id % 10 == 0)
                     fBigMap = fBigL1;
                 else

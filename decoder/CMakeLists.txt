@@ -44,6 +44,7 @@ set(SRCS
  BmnSiliconRaw2Digit.cxx
  BmnRawDataDecoder.cxx
  BmnTrigRaw2Digit.cxx
+ BmnCscRaw2Digit.cxx
 )
 
 Set(HEADERS)

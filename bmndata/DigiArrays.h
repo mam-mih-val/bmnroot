@@ -23,6 +23,7 @@ public:
 
     DigiArrays() {
         gem = NULL;
+        csc = NULL;
         tof400 = NULL;
         tof700 = NULL;
         zdc = NULL;
@@ -47,6 +48,10 @@ public:
         if (gem) {
             gem->Delete();
             delete gem;
+        }
+        if (csc) {
+            csc->Delete();
+            delete csc;
         }
         if (header) {
             header->Delete();
@@ -99,6 +104,7 @@ public:
     };
     TClonesArray *silicon;
     TClonesArray *gem;
+    TClonesArray *csc;
     TClonesArray *tof400;
     TClonesArray *tof700;
     TClonesArray *zdc;

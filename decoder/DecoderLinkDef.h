@@ -18,6 +18,7 @@
 #pragma link C++ class BmnAdcProcessor+;
 #pragma link C++ class BmnLANDRaw2Digit+;
 #pragma link C++ class BmnSiliconRaw2Digit+;
+#pragma link C++ class BmnCscRaw2Digit+;
 #pragma link C++ class BmnRawDataDecoder+;
 
 #endif

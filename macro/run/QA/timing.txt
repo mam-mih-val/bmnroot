@@ -1,2 +1,0 @@
-Track Finder Time: 131.05
-Vertex Finder Time: 0.00677598

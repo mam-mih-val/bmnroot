@@ -51,6 +51,6 @@ Set(HEADERS)
 
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES BmnData Core Base)
+Set(DEPENDENCIES Core Base BmnData UniDb)
 
 GENERATE_LIBRARY()

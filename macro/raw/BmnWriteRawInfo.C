@@ -1,5 +1,5 @@
-#include "../run/bmnloadlibs.C"
-#include "../../bmndata/BmnEnums.h"
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "bmndata/BmnEnums.h"
 
 enum WriteAction { OnlyCreate, OnlyUpdate, CreateAndUpdate };
 int append_log(TString log_name, TString message);
@@ -16,8 +16,6 @@ int append_log(TString log_name, TString message);
 void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction = OnlyCreate, TString error_log_name = "")
 {
     Int_t nEvents = 0;
-    bmnloadlibs(); // load BmnRoot libraries
-
     bool isLog = false;
     if (error_log_name != "")
     {
@@ -184,6 +182,7 @@ void BmnWriteRawInfo(TString file, TString output_file = "", WriteAction iAction
         // write output digi file if required
         if (output_file != "")
         {
+            TString fDigiFileName = Form("bmn_run%04d_digi.root", decoder->GetRunId());
             decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.
 
             gSystem->ExpandPathName(output_file);

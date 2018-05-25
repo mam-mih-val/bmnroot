@@ -267,7 +267,6 @@ void BmnTOF1Detector::FillHist() {
                 if (i == j) {
                     hHitByCh->Fill(i);
                     hXY->Fill(fCrossPoint[i].x(), fCrossPoint[i].y());
-                    cout << 1 << endl;
                     if (fT0 != NULL && arrayConteiner != NULL)
                         new((*arrayConteiner)[arrayConteiner->GetEntriesFast()]) BmnTOF1Conteiner(fNPlane, i, fTimeL[i], fTimeR[i], fTime[i], fWidthL[i], fWidthR[i], fWidth[i], fCrossPoint[i].x(), fCrossPoint[i].y(), fCrossPoint[i].z(), fT0->GetTime(), fT0->GetAmp());
                 }

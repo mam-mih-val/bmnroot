@@ -11,9 +11,8 @@
  * Created on May 24, 2018, 3:17 PM
  */
 
-#include <TChain.h>
-
-#include "../run/bmnloadlibs.C"
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
 
 using namespace std;
 

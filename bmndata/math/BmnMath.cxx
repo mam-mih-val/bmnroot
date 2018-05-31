@@ -191,6 +191,20 @@ Bool_t IsParCorrect(const FairTrackParam* par) {
     return kTRUE;
 }
 
+Bool_t IsParCorrectStraight(const FairTrackParam* par) {
+    const Float_t maxSlopeX = 5.;
+    const Float_t maxSlopeY = 0.5;
+    const Float_t maxX = 150.0;
+    const Float_t maxY = 100.0;
+    const Float_t minSlope = 1e-10;
+
+    if (abs(par->GetTx()) > maxSlopeX || abs(par->GetTy()) > maxSlopeY || abs(par->GetTx()) < minSlope || abs(par->GetTy()) < minSlope) return kFALSE;
+    if (abs(par->GetX()) > maxX || abs(par->GetY()) > maxY) return kFALSE;
+    if (IsNaN(par->GetX()) || IsNaN(par->GetY()) || IsNaN(par->GetTx()) || IsNaN(par->GetTy())) return kFALSE;
+
+    return kTRUE;
+}
+
 Float_t ChiSq(const TVector3* par, const BmnGemTrack* tr, const TClonesArray* arr, const TString type) {
     if (type.Contains("spiral")) {
         Float_t a = par->X();

@@ -69,9 +69,8 @@ private:
     TVector3 fCentrStrip[fNStr], fCrossPoint[fNStr], fVectorTemp;
     BmnTrigDigit *fT0;
 
-    TList *fHistListStat, *fHistListCh, *fHistListDt;
+    TList *fHistListStat;
     
-    TBranch *fDateToSave;
     TH1I *hHitByCh, *hHitPerEv;
     TH2I *hHitLR, *hXY;
     TH1S *hDy_near, *hDtime_near, *hDWidth_near;
@@ -81,8 +80,7 @@ private:
     TGraphErrors *gSlew[fNStr];
     
     TTree *fTree4Save;
-    TClonesArray *arrayConteiner;
-    BmnTOF1Conteiner *fConteiner;
+    TClonesArray *fArrayConteiner;
             
     void FillHist();
     Double_t CalculateDt(Int_t Str);

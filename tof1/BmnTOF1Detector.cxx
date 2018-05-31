@@ -25,35 +25,40 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0, TTree *tree =
     for (Int_t i = 0; i < fNStr; i++)
         gSlew[i] = NULL;
 
-    TString Name = Form("Plane_%d", NPlane);
+    fName = Form("Plane_%d", NPlane);
+    TString Name;
+
     if (fFillHist > 0) {
         fHistListStat = new TList();
 
-        fHistListCh = new TList();
-        fHistListDt = new TList();
-
-        if (tree != NULL)
+        if (tree != NULL) {
             SetTree(tree);
-        else arrayConteiner = NULL;
+        } else {
+            fTree4Save = new TTree(Name.Data(), Name.Data());
+            cout << fTree4Save->GetName() << ";   " << fTree4Save ->GetTitle() << endl;
+            Name = Form("Plane_%d", fNPlane);
+            fArrayConteiner = new TClonesArray("BmnTOF1Conteiner");
+            fTree4Save->Branch(Name.Data(), &fArrayConteiner);
+        }
 
-        fName.Clear();
-        fName = Form("Hist_HitByCh_%s", Name.Data());
-        hHitByCh = new TH1I(fName, fName, fNStr + 1, -0.5, fNStr + 0.5);
+        Name.Clear();
+        Name = Form("Hist_HitByCh_%s", fName.Data());
+        hHitByCh = new TH1I(Name, Name, fNStr + 1, -0.5, fNStr + 0.5);
         fHistListStat->Add(hHitByCh);
 
-        fName.Clear();
-        fName = Form("Hist_HitPerEv_%s", Name.Data());
-        hHitPerEv = new TH1I(fName, fName, fNStr + 1, -0.5, fNStr + 0.5);
+        Name.Clear();
+        Name = Form("Hist_HitPerEv_%s", fName.Data());
+        hHitPerEv = new TH1I(Name, Name, fNStr + 1, -0.5, fNStr + 0.5);
         fHistListStat->Add(hHitPerEv);
 
-        fName.Clear();
-        fName = Form("Hist_HitLR_%s", Name.Data());
-        hHitLR = new TH2I(fName, fName, fNStr, 0, fNStr, fNStr, 0, fNStr);
+        Name.Clear();
+        Name = Form("Hist_HitLR_%s", fName.Data());
+        hHitLR = new TH2I(Name, Name, fNStr, 0, fNStr, fNStr, 0, fNStr);
         fHistListStat->Add(hHitLR);
 
-        fName.Clear();
-        fName = Form("Hist_XY_%s", Name.Data());
-        hXY = new TH2I(fName, fName, 240, -150, 150, 120, -75, 75);
+        Name.Clear();
+        Name = Form("Hist_XY_%s", fName.Data());
+        hXY = new TH2I(Name, Name, 240, -150, 150, 120, -75, 75);
         fHistListStat->Add(hXY);
 
         hDy_near = new TH1S(Form("hDy_near_%s", fName.Data()), Form("hDy_near_%s", fName.Data()), 400, -20, 20);
@@ -89,11 +94,8 @@ BmnTOF1Detector::BmnTOF1Detector(Int_t NPlane, Int_t FillHist = 0, TTree *tree =
         hDWidth_acros = NULL;
         hTempDtimeDy_acros = NULL;
 
-
     }
 
-    fName.Clear();
-    fName = Name;
 }
 
 //----------------------------------------------------------------------------------------
@@ -219,7 +221,7 @@ Int_t BmnTOF1Detector::FindHits(BmnTrigDigit *T0, TClonesArray *TofHit) {
             fTime[i] = (fTimeL[i] + fTimeR[i]) * 0.5;
             flag = GetCrossPoint(i);
             if (fT0 != NULL) fTof[i] = CalculateDt(i);
-            if (i > 1 && fFillHist > 0) {
+            if (fFillHist > 0 && i > 1) {
                 if (fFlagHit[i - 1] == kTRUE) {
                     hDy_near->Fill(fCrossPoint[i].Y() - fCrossPoint[i - 1].Y());
                     hDtime_near->Fill(fTof[i] - fTof[i - 1]);
@@ -259,20 +261,21 @@ void BmnTOF1Detector::AddHit(Int_t Str, TClonesArray *TofHit) {
 //----------------------------------------------------------------------------------------
 
 void BmnTOF1Detector::FillHist() {
+    fArrayConteiner->Delete();
     hHitPerEv->Fill(fHit_Per_Ev);
-    for (Int_t i = 0; i < fNStr; i++) {
+    for (Int_t i = 0; i < fNStr; i++) 
         for (Int_t j = 0; j < fNStr; j++) {
             if (fWidthL[i] != 0 && fWidthR[j] != 0) {
                 hHitLR->Fill(i, j);
                 if (i == j) {
                     hHitByCh->Fill(i);
                     hXY->Fill(fCrossPoint[i].x(), fCrossPoint[i].y());
-                    if (fT0 != NULL && arrayConteiner != NULL)
-                        new((*arrayConteiner)[arrayConteiner->GetEntriesFast()]) BmnTOF1Conteiner(fNPlane, i, fTimeL[i], fTimeR[i], fTime[i], fWidthL[i], fWidthR[i], fWidth[i], fCrossPoint[i].x(), fCrossPoint[i].y(), fCrossPoint[i].z(), fT0->GetTime(), fT0->GetAmp());
+                    if (fT0 != NULL && fArrayConteiner != NULL)
+                        new((*fArrayConteiner)[fArrayConteiner->GetEntriesFast()]) BmnTOF1Conteiner(fNPlane, i, fTimeL[i], fTimeR[i], fTime[i], fWidthL[i], fWidthR[i], fWidth[i], fCrossPoint[i].x(), fCrossPoint[i].y(), fCrossPoint[i].z(), fT0->GetTime(), fT0->GetAmp());
                 }
             }
         }
-    }
+    fTree4Save->Fill();
 }
 
 //----------------------------------------------------------------------------------------
@@ -290,11 +293,11 @@ Double_t BmnTOF1Detector::CalculateDt(Int_t Str = 0) {
 
     /* dt = dt - (-4.45271 + 0.270843 * T0Amp
              + 0.0 * T0Amp * T0Amp
-             - 0.0 * T0Amp * T0Amp * T0Amp);// RUN7 SRC*/
+             - 0.0 * T0Amp * T0Amp * T0Amp);// RUN7 SRC preliminarily*/
 
     /*dt = dt - (1.564 + 0.1065 * T0Amp
              + 0.0 * T0Amp * T0Amp
-             - 0.0 * T0Amp * T0Amp * T0Amp);//RUN7 BM@N*/
+             - 0.0 * T0Amp * T0Amp * T0Amp);//RUN7 BM@N preliminarily*/
 
     if (gSlew[Str] != NULL) dt = dt - gSlew[Str]->Eval(fWidth[Str]) + fCorrTimeShift[Str]; // CorrTimeShift is ToF for Gamma
     //cout << dt << endl;
@@ -306,8 +309,6 @@ Double_t BmnTOF1Detector::CalculateDt(Int_t Str = 0) {
 TList* BmnTOF1Detector::GetList(Int_t n = 0) {
     if (fFillHist > 0) {
         if (n == 0) return fHistListStat;
-        if (n == 1) return fHistListCh;
-        if (n == 2) return fHistListDt;
     } else return NULL;
 }
 
@@ -496,40 +497,43 @@ Double_t BmnTOF1Detector::GetWidth(Int_t Str = 1) {
 
 Bool_t BmnTOF1Detector::SaveHistToFile(TString NameFile) {
 
-    TFile *fileout = new TFile(NameFile.Data(), "UPDATE");
-    TDirectory *Dir;
-    Bool_t flag;
+    if (fFillHist > 0) {
+    /*    TFile *fileout = new TFile(NameFile.Data(), "UPDATE");
 
-    flag = fileout->cd("Tof400");
-    if (flag == kFALSE)
-        Dir = fileout->mkdir("Tof400");
-    else
-        Dir = fileout-> CurrentDirectory();
-    Dir->cd();
+        TDirectory *Dir;
+        TString Name;
+        Name = Form("Tof400_%s", fName.Data());
+        Dir = fileout->mkdir(Name.Data());
+        Dir->cd();
+        Dir->pwd();
 
-    TDirectory * DirPlane;
-    TDirectory * Dir1Plane;
-    TDirectory * Dir2Plane;
-    DirPlane = Dir->mkdir(fName.Data());
-    DirPlane -> cd();
-    fHistListStat->Write();
-    Dir1Plane = DirPlane->mkdir("Detector");
-    Dir1Plane -> cd();
-    fHistListCh->Write();
-    Dir2Plane = DirPlane->mkdir("ToF");
-    Dir2Plane -> cd();
-    fHistListDt->Write();
+        TDirectory * DirStat;
+        DirStat = Dir->mkdir("Statistic");
+        DirStat -> cd();
+        DirStat->pwd();
+        Int_t ResWrite = 0;
+        //ResWrite = fHistListStat->Write();
+        cout << "Res write = " << ResWrite;
 
-    fileout->Close();
+        TDirectory * DirTree;
+        DirTree = Dir->mkdir("Data");
+        DirTree -> cd();
+        fTree4Save->Write();
+
+        fileout->Close();*/
+        return kTRUE;//*/
+        
+    } else
+        return kFALSE;
+
 }
 
 //----------------------------------------------------------------------------------------
 
 Bool_t BmnTOF1Detector::SetTree(TTree *tree) {
     fTree4Save = tree;
-    fName.Clear();
-    fName = Form("Plane_%d", fNPlane);
-    arrayConteiner = new TClonesArray(fName.Data());
-    fConteiner = new BmnTOF1Conteiner();
-    fTree4Save->Branch(fName.Data(), &arrayConteiner);
+    TString Name;
+    Name = Form("Plane_%d", fNPlane);
+    fArrayConteiner = new TClonesArray("BmnTOF1Conteiner");
+    fTree4Save->Branch(Name.Data(), &fArrayConteiner);
 }

@@ -70,7 +70,7 @@ void BmnGemVertexFinder::Exec(Option_t* opt) {
 
     fVertexArray->Delete();
 
-    fNTracks = fGemTracksArray->GetEntriesFast();
+    fNTracks = fGlobalTracksArray->GetEntriesFast();
 
     if (fNTracks > 1)
         FindVertexByVirtualPlanes();

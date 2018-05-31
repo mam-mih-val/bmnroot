@@ -325,7 +325,7 @@ InitStatus BmnGlobalTracking::Init() {
             cout << "Init. No BmnSiliconHit array!" << endl;
 
     // GEM
-    if (fDet.GetDet(kGEM)) {
+//    if (fDet.GetDet(kGEM)) {
         fGemHits = (TClonesArray*) ioman->GetObject("BmnGemStripHit");
         if (!fGemHits)
             if (fVerbose)
@@ -336,7 +336,7 @@ InitStatus BmnGlobalTracking::Init() {
             SetActive(kFALSE);
             return kERROR;
         }
-    }
+//    }
 
     // Vertex
     fGemVertex = (TClonesArray*) ioman->GetObject("BmnVertex");

@@ -1,5 +1,6 @@
 #include <BmnGemResiduals.h>
 #include <Fit/FitResult.h>
+#include <TSystem.h>
 
 BmnGemResiduals::BmnGemResiduals(Int_t run_period, Int_t run_number, Double_t fieldScale) :
 isField(kFALSE),
@@ -9,28 +10,21 @@ outRes(NULL),
 isPrintToFile(kFALSE),
 isMergedDigits(kFALSE),
 fGeometry(BmnGemStripConfiguration::RunSpring2017) {
-//fGeometry(BmnGemStripConfiguration::RunWinter2016) {
+    //fGeometry(BmnGemStripConfiguration::RunWinter2016) {
     fPeriod = run_period;
     fNumber = run_number;
 
     if (Abs(fieldScale) > DBL_EPSILON)
         isField = kTRUE;
 
-    // Create GEM detector ------------------------------------------------------
-    switch (fGeometry) {
-        case BmnGemStripConfiguration::RunWinter2016:
-            fDetector = new BmnGemStripStationSet_RunWinter2016(fGeometry);
-            cout << "   Current Configuration : RunWinter2016" << "\n";
-            break;
-
-        case BmnGemStripConfiguration::RunSpring2017:
-            fDetector = new BmnGemStripStationSet_RunSpring2017(fGeometry);
-            cout << "   Current Configuration : RunSpring2017" << "\n";
-            break;
-
-        default:
-            fDetector = NULL;
+    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
+    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    TString confGem = (fPeriod == 7) ? "GemRunSpring2018.xml" : (fPeriod == 6) ? "GemRunSpring2017.xml" : "";
+    if (confGem == "") {
+        printf(ANSI_COLOR_RED "No GEM geometry defined!\n" ANSI_COLOR_RESET);
+        throw;
     }
+    fDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
 
     fBranchGemHits = "BmnGemStripHit";
     fBranchGemTracks = "BmnGemTrack";
@@ -103,8 +97,7 @@ void BmnGemResiduals::ResidualsAndDistances() {
                     LineFit(a, b, track, fGemHits, 2, iHit);
                     yRes = y - (a * z + b);
                 }
-            }
-            else {
+            } else {
                 isResid = kFALSE;
                 Double_t A = 0., B = 0., C = 0.;
                 Pol2Fit(track, fGemHits, A, B, C, iHit); // XZ-plane
@@ -127,7 +120,7 @@ void BmnGemResiduals::ResidualsAndDistances() {
 }
 
 void BmnGemResiduals::Finish() {
-    if (isPrintToFile) {        
+    if (isPrintToFile) {
         for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
             for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStat)->GetNModules(); iMod++) {
                 fprintf(outRes, "Stat %d Mod %d", iStat, iMod);
@@ -144,5 +137,5 @@ void BmnGemResiduals::Finish() {
                     delete hRes[iStat][iMod][iRes];
     }
     if (outRes)
-      fclose(outRes);
+        fclose(outRes);
 }

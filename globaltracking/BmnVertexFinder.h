@@ -1,5 +1,5 @@
-#ifndef BMNGEMVERTEXFINDER_H
-#define BMNGEMVERTEXFINDER_H
+#ifndef BMNVERTEXFINDER_H
+#define BMNVERTEXFINDER_H
 
 #include "FairTask.h"
 #include "TClonesArray.h"
@@ -19,12 +19,12 @@
 
 using namespace std;
 
-class BmnGemVertexFinder : public FairTask {
+class BmnVertexFinder : public FairTask {
 public:
 
     // Constructors/Destructors ---------
-    BmnGemVertexFinder();
-    virtual ~BmnGemVertexFinder();
+    BmnVertexFinder();
+    virtual ~BmnVertexFinder();
 
     virtual InitStatus Init();
     virtual void Exec(Option_t* opt);
@@ -34,38 +34,28 @@ public:
         fIsField = f;
     }
 
-    void SetVertexApproximation(TVector3 vertex) {
-        fRoughVertex3D = vertex;
-    }
-
     void FindVertexByVirtualPlanes();
     Float_t FindVZByVirtualPlanes(Float_t z_0, Float_t range);
 
 private:
 
     // Private Data Members ------------
-    TString fGemTracksBranchName;
     TString fGlobalTracksBranchName;
     TString fVertexBranchName;
 
     Int_t fEventNo; // event counter
     Int_t fNTracks; // number of reco tracks in event
 
-    BmnGemStripStationSet* fDetector;
-
     TClonesArray* fGlobalTracksArray;
-    TClonesArray* fGemTracksArray;
     TClonesArray* fVertexArray;
 
     Bool_t fIsField;
-    FairField* fField;
     BmnKalmanFilter* fKalman;
-    TVector3 fRoughVertex3D;
 
-    ClassDef(BmnGemVertexFinder, 1);
+    ClassDef(BmnVertexFinder, 1);
 };
 
 
-#endif /* BMNGEMVERTEXFINDER_H */
+#endif /* BMNVERTEXFINDER_H */
 
 

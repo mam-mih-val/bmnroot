@@ -36,6 +36,7 @@ Set(SRCS
  BmnGlobalTracking.cxx
  #BmnSRCTriggersCheck.cxx
  BmnTriggersCheck.cxx
+ BmnVertexFinder.cxx
 )
 
 Set(HEADERS
@@ -44,6 +45,7 @@ Set(HEADERS
  #BmnSRCTriggersCheck.h - compilation failed
  BmnTriggersCheck.h
  BmnHitFinderRun1.h
+ BmnVertexFinder.h
 )
 
 If (Boost_FOUND)

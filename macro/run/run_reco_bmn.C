@@ -167,8 +167,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                           Check Triggers                       === //
     // ====================================================================== //
-    BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp, run_period, run_number);
-    fRunAna->AddTask(triggs);
+    //    BmnTriggersCheck* triggs = new BmnTriggersCheck(isExp, run_period, run_number);
+    //    fRunAna->AddTask(triggs);
     // ====================================================================== //
     // ===                           MWPC hit finder                      === //
     // ====================================================================== //
@@ -237,11 +237,9 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
-    BmnGemTracking* gemTF = new BmnGemTracking();
-    gemTF->SetTarget(isTarget);
-    gemTF->SetField(isField);
-    TVector3 vAppr = (isExp) ? TVector3(0.0, -3.5, -21.7) : TVector3(0.0, 0.0, -21.7);
-    gemTF->SetRoughVertex(vAppr);
+
+    BmnGemTracking* gemTF = new BmnGemTracking(run_period, isField, isTarget);
+    if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
     fRunAna->AddTask(gemTF);
 
     // ====================================================================== //
@@ -260,9 +258,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //
     // ====================================================================== //
-    BmnGemVertexFinder* gemVF = new BmnGemVertexFinder();
+    BmnVertexFinder* gemVF = new BmnVertexFinder();
     gemVF->SetField(isField);
-    gemVF->SetVertexApproximation(vAppr);
     fRunAna->AddTask(gemVF);
 
     // Residual analysis
@@ -272,7 +269,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
         fRunAna->AddTask(residAnalGem);
         BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
-        fRunAna->AddTask(residAnalSi);
+        //        fRunAna->AddTask(residAnalSi);
     }
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();

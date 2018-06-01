@@ -52,7 +52,6 @@ set(SRCS
   BmnGemStripDigitizer.cxx
   BmnGemStripHitMaker.cxx
   BmnKalmanFilter.cxx
-  BmnGemVertexFinder.cxx
   BmnGemStripMedium.cxx
   BmnMaterialEffects.cxx
 )

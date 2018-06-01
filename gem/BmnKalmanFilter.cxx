@@ -15,250 +15,250 @@ BmnKalmanFilter::~BmnKalmanFilter() {
 }
 
 BmnStatus BmnKalmanFilter::Prediction(FairTrackParam* par, Double_t zOut, BmnFitNode& node) {
-
-    //        cout << "Pred\n";
-
-    if (!IsParCorrect(par)) {
-        //        par->Print();
-        //        cout << "PREDICTION: BAD PARAMETER IN THE BEGINNING" << endl;
-        return kBMNERROR;
-    }
-
-    TMatrixD F(5, 5); //transport matrix
-
-    //    F = Transport(par, zOut, "line");
-    //            F = Transport(par, zOut, "circle");
-    F = Transport(par, zOut, "pol2");
-
-    TMatrixD Ft(5, 5); // just transposition of F
-    Ft.Transpose(F);
-
-    TMatrixD X(5, 1); //state vector
-    X = FillVecFromPar(par);
-    //        X.Print();
-
-    TMatrixD Xpred(5, 1); //predicted state vector
-    Xpred = F * X;
-    //    cout << "Xpred:";
-    //    Xpred.Print();
-
-    TMatrixD C(5, 5); //covariance matrix
-    C = FillCovFromPar(par);
-    //    C.Print();
-
-    TMatrixD Cpred(5, 5); //predicted covariance matrix
-    Cpred = F * C * Ft; //     Ccorr = F * C * F.T() + Q !!!
-    //    cout << "Cpred:";
-    //    Cpred.Print();
-
-    //write predicted state vector and covariance matrix into track parameter
-    FillParFromVecAndCov(Xpred, Cpred, par);
-    par->SetZ(zOut);
-
-    node.SetPredictedParam(par);
-    if (!IsParCorrect(par)) {
-        //        cout << "PREDICTION: BAD PARAMETER AT THE END" << endl;
-        return kBMNERROR;
-    }
-    node.SetF_matr(F);
+//
+//    //        cout << "Pred\n";
+//
+//    if (!IsParCorrect(par)) {
+//        //        par->Print();
+//        //        cout << "PREDICTION: BAD PARAMETER IN THE BEGINNING" << endl;
+//        return kBMNERROR;
+//    }
+//
+//    TMatrixD F(5, 5); //transport matrix
+//
+//    //    F = Transport(par, zOut, "line");
+//    //            F = Transport(par, zOut, "circle");
+//    F = Transport(par, zOut, "pol2");
+//
+//    TMatrixD Ft(5, 5); // just transposition of F
+//    Ft.Transpose(F);
+//
+//    TMatrixD X(5, 1); //state vector
+//    X = FillVecFromPar(par);
+//    //        X.Print();
+//
+//    TMatrixD Xpred(5, 1); //predicted state vector
+//    Xpred = F * X;
+//    //    cout << "Xpred:";
+//    //    Xpred.Print();
+//
+//    TMatrixD C(5, 5); //covariance matrix
+//    C = FillCovFromPar(par);
+//    //    C.Print();
+//
+//    TMatrixD Cpred(5, 5); //predicted covariance matrix
+//    Cpred = F * C * Ft; //     Ccorr = F * C * F.T() + Q !!!
+//    //    cout << "Cpred:";
+//    //    Cpred.Print();
+//
+//    //write predicted state vector and covariance matrix into track parameter
+//    FillParFromVecAndCov(Xpred, Cpred, par);
+//    par->SetZ(zOut);
+//
+//    node.SetPredictedParam(par);
+//    if (!IsParCorrect(par)) {
+//        //        cout << "PREDICTION: BAD PARAMETER AT THE END" << endl;
+//        return kBMNERROR;
+//    }
+//    node.SetF_matr(F);
     return kBMNSUCCESS;
 }
 
 BmnStatus BmnKalmanFilter::Correction(FairTrackParam* par, BmnHit* hit, Double_t &chi2, BmnFitNode& node) {
-
-
-    if (!IsParCorrect(par)) {
-        //        cout << "CORRECTION: BAD PARAMETER IN THE BEGINNING" << endl;
-        return kBMNERROR;
-    }
-    //        cout << "Corr\n";
-    TMatrixD H(2, 5); //measurement matrix (only for X and Y)
-    H.Zero();
-    H[0][0] = 1.0;
-    H[1][1] = 1.0;
-
-    TMatrixD Ht(5, 2); //just transposition of H
-    Ht.Transpose(H);
-
-    TMatrixD Cpred(5, 5); //predicted covariance matrix
-    Cpred = FillCovFromPar(par);
-
-    TMatrixD Xpred(5, 1); //predicted state vector
-    Xpred = FillVecFromPar(par);
-
-    TMatrixD R(2, 2); //covariance matrix of measurement errors
-    R.Zero();
-    R[0][0] = hit->GetDx() * hit->GetDx();
-    R[1][1] = hit->GetDy() * hit->GetDy();
-
-    TMatrixD K(5, 2); //Kalman gain matrix
-    K = Cpred * Ht * (H * Cpred * Ht + R).Invert();
-
-    //        (H * Cpred * Ht + R).Print();
-    //    ((H * Cpred * Ht + R).Invert()).Print();
-    //    (Ht * (H * Cpred * Ht + R).Invert()).Print();
-    //    K.Print();
-
-    //    cout << "x = " << hit->GetX() << " y = " << hit->GetY() << " z = " << hit->GetZ() << endl;
-
-    TMatrixD Xmeas(2, 1); //measured values on current step
-    Xmeas[0][0] = hit->GetX();
-    Xmeas[1][0] = hit->GetY();
-
-    TMatrixD Xcorr(5, 1); //corrected state vector
-    Xcorr = Xpred + K * (Xmeas - H * Xpred);
-    //    cout << "Xcorr:";
-    //    Xcorr.Print();
-
-    TMatrixD I(5, 5); //unit matrix
-    I.UnitMatrix();
-
-    TMatrixD Ccorr(5, 5); //corrected covariance matrix
-    Ccorr = (I - K * H) * Cpred;
-    //    cout << "Ccorr:";
-    //    (I - K * H).Print();
-    //    Ccorr.Print();
-    //
-    //write corrected state vector and covariance matrix into track parameter 
-    FillParFromVecAndCov(Xcorr, Ccorr, par);
-    par->SetZ(hit->GetZ());
-
-    chi2 = ((Xmeas - H * Xcorr).T() * (R + H * Ccorr * Ht).Invert() * (Xmeas - H * Xcorr)).Determinant();
-
-    node.SetUpdatedParam(par);
-
-    if (!IsParCorrect(par)) {
-        //        cout << "CORRECTION: BAD PARANETERS AT THE END" << endl;
-        return kBMNERROR;
-    }
-
-    node.SetChiSqFiltered(chi2);
+//
+//
+//    if (!IsParCorrect(par)) {
+//        //        cout << "CORRECTION: BAD PARAMETER IN THE BEGINNING" << endl;
+//        return kBMNERROR;
+//    }
+//    //        cout << "Corr\n";
+//    TMatrixD H(2, 5); //measurement matrix (only for X and Y)
+//    H.Zero();
+//    H[0][0] = 1.0;
+//    H[1][1] = 1.0;
+//
+//    TMatrixD Ht(5, 2); //just transposition of H
+//    Ht.Transpose(H);
+//
+//    TMatrixD Cpred(5, 5); //predicted covariance matrix
+//    Cpred = FillCovFromPar(par);
+//
+//    TMatrixD Xpred(5, 1); //predicted state vector
+//    Xpred = FillVecFromPar(par);
+//
+//    TMatrixD R(2, 2); //covariance matrix of measurement errors
+//    R.Zero();
+//    R[0][0] = hit->GetDx() * hit->GetDx();
+//    R[1][1] = hit->GetDy() * hit->GetDy();
+//
+//    TMatrixD K(5, 2); //Kalman gain matrix
+//    K = Cpred * Ht * (H * Cpred * Ht + R).Invert();
+//
+//    //        (H * Cpred * Ht + R).Print();
+//    //    ((H * Cpred * Ht + R).Invert()).Print();
+//    //    (Ht * (H * Cpred * Ht + R).Invert()).Print();
+//    //    K.Print();
+//
+//    //    cout << "x = " << hit->GetX() << " y = " << hit->GetY() << " z = " << hit->GetZ() << endl;
+//
+//    TMatrixD Xmeas(2, 1); //measured values on current step
+//    Xmeas[0][0] = hit->GetX();
+//    Xmeas[1][0] = hit->GetY();
+//
+//    TMatrixD Xcorr(5, 1); //corrected state vector
+//    Xcorr = Xpred + K * (Xmeas - H * Xpred);
+//    //    cout << "Xcorr:";
+//    //    Xcorr.Print();
+//
+//    TMatrixD I(5, 5); //unit matrix
+//    I.UnitMatrix();
+//
+//    TMatrixD Ccorr(5, 5); //corrected covariance matrix
+//    Ccorr = (I - K * H) * Cpred;
+//    //    cout << "Ccorr:";
+//    //    (I - K * H).Print();
+//    //    Ccorr.Print();
+//    //
+//    //write corrected state vector and covariance matrix into track parameter 
+//    FillParFromVecAndCov(Xcorr, Ccorr, par);
+//    par->SetZ(hit->GetZ());
+//
+//    chi2 = ((Xmeas - H * Xcorr).T() * (R + H * Ccorr * Ht).Invert() * (Xmeas - H * Xcorr)).Determinant();
+//
+//    node.SetUpdatedParam(par);
+//
+//    if (!IsParCorrect(par)) {
+//        //        cout << "CORRECTION: BAD PARANETERS AT THE END" << endl;
+//        return kBMNERROR;
+//    }
+//
+//    node.SetChiSqFiltered(chi2);
 
     return kBMNSUCCESS;
 }
 
 FairTrackParam BmnKalmanFilter::Filtration(BmnGemTrack* tr, TClonesArray* hits) {
-
-    //    cout << "Smoothing started\n";
-    vector<BmnFitNode> fitNodes = tr->GetFitNodes();
-    Int_t nNodes = fitNodes.size();
-
-    //    cout << "nodes = " << nNodes << " | hits = " << tr->GetNHits() << endl;
-
+//
+//    //    cout << "Smoothing started\n";
+//    vector<BmnFitNode> fitNodes = tr->GetFitNodes();
+//    Int_t nNodes = fitNodes.size();
+//
+//    //    cout << "nodes = " << nNodes << " | hits = " << tr->GetNHits() << endl;
+//
     FairTrackParam outputPar;
-
-    for (Int_t i = nNodes - 2; i >= 0; --i) {
-        //        cout << "i = " << i << endl;
-        BmnFitNode* prevNode = &(fitNodes.at(i + 1));
-        BmnFitNode* currNode = &(fitNodes.at(i));
-
-        BmnHit* hit = (BmnHit*) hits->At(tr->GetHitIndex(i));
-        //        cout << "x = " << hit->GetX() << " y = " << hit->GetY() << " z = " << hit->GetZ() << endl;
-        const FairTrackParam* prevPredPar = prevNode->GetPredictedParam();
-        const FairTrackParam* prevCorrPar = prevNode->GetUpdatedParam();
-        const FairTrackParam* prevSmoothPar = (i == nNodes - 2) ? prevNode->GetUpdatedParam() : prevNode->GetSmoothedParam();
-        const FairTrackParam* currPredPar = currNode->GetPredictedParam();
-        const FairTrackParam* currCorrPar = currNode->GetUpdatedParam();
-        FairTrackParam* currSmoothPar = new FairTrackParam();
-
-        if (!IsParCorrect(prevPredPar)) continue;
-        if (!IsParCorrect(prevCorrPar)) continue;
-        if (!IsParCorrect(prevSmoothPar)) continue;
-        if (!IsParCorrect(currCorrPar)) continue;
-
-        TMatrixD prevPredX(5, 1); //predicted state vector on previous node
-        prevPredX = FillVecFromPar(prevPredPar);
-        //                        cout << "prevPredX:\n";
-        //                        prevPredX.Print();
-
-        TMatrixD prevCorrX(5, 1); //predicted state vector on previous node
-        prevCorrX = FillVecFromPar(prevCorrPar);
-        //                        cout << "prevCorrX:\n";
-        //                        prevCorrX.Print();
-
-        TMatrixD prevSmoothX(5, 1); //smoothed state vector on previous node
-        prevSmoothX = FillVecFromPar(prevSmoothPar);
-        //                        cout << "prevSmoothX:\n";
-        //                        prevSmoothX.Print();
-
-        TMatrixD currCorrX(5, 1); //corrected state vector on current node
-        currCorrX = FillVecFromPar(currCorrPar);
-
-        TMatrixD currCorrC(5, 5); //corrected covariance matrix on current node
-        currCorrC = FillCovFromPar(currCorrPar);
-        //        currCorrC.Print();
-
-        TMatrixD prevSmoothC(5, 5); //smoothed covariance matrix on previous node
-        prevSmoothC = FillCovFromPar(prevSmoothPar);
-        //        prevSmoothC.Print();
-
-        TMatrixD prevCorrC(5, 5); //predicted covariance matrix on previous node
-        prevCorrC = FillCovFromPar(prevCorrPar);
-
-        TMatrixD prevPredC(5, 5); //predicted covariance matrix on previous node
-        prevPredC = FillCovFromPar(prevPredPar);
-
-        TMatrixD prevPredCInv(5, 5); //inversion of predicted covariance matrix on previous node
-        prevPredCInv = FillCovFromPar(prevPredPar);
-        for (Int_t i = 0; i < 5; ++i) {
-            if (prevPredCInv[i][i] < 1e-13) prevPredCInv[i][i] = 1e-8;
-        }
-        prevPredCInv.Invert();
-
-        //        TMatrixD F = prevNode->GetF_matr(); // or currNode??
-        TMatrixD F = currNode->GetF_matr();
-        F.T();
-
-        TMatrixD A(5, 5); //Smoother gain matrix
-        A = currCorrC * F * prevPredCInv;
-        TMatrixD At(5, 5); //transposition of smoother gain matrix
-        At.Transpose(A);
-
-        TMatrixD currSmoothX(5, 1); //smoothed state vector on current node
-        currSmoothX = currCorrX + A * (prevSmoothX - prevPredX);
-
-        //        currCorrX.Print();
-        //        currSmoothX.Print();
-
-        TMatrixD currSmoothC(5, 5); //smoothed covariance matrix on current node
-        currSmoothC = currCorrC + A * (prevSmoothC - prevPredC) * At;
-        //        currCorrC.Print();
-        //        A.Print();
-        //        prevSmoothC.Print();
-        //        prevPredC.Print();
-        //        At.Print();
-
-        TMatrixD H(2, 5); //measurement matrix (only for X and Y)
-        H.Zero();
-        H[0][0] = 1.0;
-        H[1][1] = 1.0;
-
-        TMatrixD Ht(5, 2); //just transposition of H
-        Ht.Transpose(H);
-
-        TMatrixD Xmeas(2, 1); //measured values on current step
-        Xmeas[0][0] = hit->GetX();
-        Xmeas[1][0] = hit->GetY();
-
-        TMatrixD R(2, 2); //covariance matrix of measurement errors
-        R.Zero();
-        R[0][0] = hit->GetDx() * hit->GetDx();
-        R[1][1] = hit->GetDy() * hit->GetDy();
-
-        Double_t chi2 = ((Xmeas - H * currSmoothX).T() * (R + H * currSmoothC * Ht).Invert() * (Xmeas - H * currSmoothX)).Determinant();
-        //                cout << "i = " << i << " | chi2 = " << chi2 << endl;
-
-        //write smoothed state vector and covariance matrix into track parameter 
-        FillParFromVecAndCov(currSmoothX, currSmoothC, currSmoothPar);
-        currSmoothPar->SetZ(hit->GetZ());
-
-        currNode->SetSmoothedParam(currSmoothPar);
-        currNode->SetChiSqSmoothed(chi2);
-
-        if (i == 0) outputPar = *currSmoothPar;
-    }
-
-    //    cout << "Smoothing finished\n";
+//
+//    for (Int_t i = nNodes - 2; i >= 0; --i) {
+//        //        cout << "i = " << i << endl;
+//        BmnFitNode* prevNode = &(fitNodes.at(i + 1));
+//        BmnFitNode* currNode = &(fitNodes.at(i));
+//
+//        BmnHit* hit = (BmnHit*) hits->At(tr->GetHitIndex(i));
+//        //        cout << "x = " << hit->GetX() << " y = " << hit->GetY() << " z = " << hit->GetZ() << endl;
+//        const FairTrackParam* prevPredPar = prevNode->GetPredictedParam();
+//        const FairTrackParam* prevCorrPar = prevNode->GetUpdatedParam();
+//        const FairTrackParam* prevSmoothPar = (i == nNodes - 2) ? prevNode->GetUpdatedParam() : prevNode->GetSmoothedParam();
+//        const FairTrackParam* currPredPar = currNode->GetPredictedParam();
+//        const FairTrackParam* currCorrPar = currNode->GetUpdatedParam();
+//        FairTrackParam* currSmoothPar = new FairTrackParam();
+//
+//        if (!IsParCorrect(prevPredPar)) continue;
+//        if (!IsParCorrect(prevCorrPar)) continue;
+//        if (!IsParCorrect(prevSmoothPar)) continue;
+//        if (!IsParCorrect(currCorrPar)) continue;
+//
+//        TMatrixD prevPredX(5, 1); //predicted state vector on previous node
+//        prevPredX = FillVecFromPar(prevPredPar);
+//        //                        cout << "prevPredX:\n";
+//        //                        prevPredX.Print();
+//
+//        TMatrixD prevCorrX(5, 1); //predicted state vector on previous node
+//        prevCorrX = FillVecFromPar(prevCorrPar);
+//        //                        cout << "prevCorrX:\n";
+//        //                        prevCorrX.Print();
+//
+//        TMatrixD prevSmoothX(5, 1); //smoothed state vector on previous node
+//        prevSmoothX = FillVecFromPar(prevSmoothPar);
+//        //                        cout << "prevSmoothX:\n";
+//        //                        prevSmoothX.Print();
+//
+//        TMatrixD currCorrX(5, 1); //corrected state vector on current node
+//        currCorrX = FillVecFromPar(currCorrPar);
+//
+//        TMatrixD currCorrC(5, 5); //corrected covariance matrix on current node
+//        currCorrC = FillCovFromPar(currCorrPar);
+//        //        currCorrC.Print();
+//
+//        TMatrixD prevSmoothC(5, 5); //smoothed covariance matrix on previous node
+//        prevSmoothC = FillCovFromPar(prevSmoothPar);
+//        //        prevSmoothC.Print();
+//
+//        TMatrixD prevCorrC(5, 5); //predicted covariance matrix on previous node
+//        prevCorrC = FillCovFromPar(prevCorrPar);
+//
+//        TMatrixD prevPredC(5, 5); //predicted covariance matrix on previous node
+//        prevPredC = FillCovFromPar(prevPredPar);
+//
+//        TMatrixD prevPredCInv(5, 5); //inversion of predicted covariance matrix on previous node
+//        prevPredCInv = FillCovFromPar(prevPredPar);
+//        for (Int_t i = 0; i < 5; ++i) {
+//            if (prevPredCInv[i][i] < 1e-13) prevPredCInv[i][i] = 1e-8;
+//        }
+//        prevPredCInv.Invert();
+//
+//        //        TMatrixD F = prevNode->GetF_matr(); // or currNode??
+//        TMatrixD F = currNode->GetF_matr();
+//        F.T();
+//
+//        TMatrixD A(5, 5); //Smoother gain matrix
+//        A = currCorrC * F * prevPredCInv;
+//        TMatrixD At(5, 5); //transposition of smoother gain matrix
+//        At.Transpose(A);
+//
+//        TMatrixD currSmoothX(5, 1); //smoothed state vector on current node
+//        currSmoothX = currCorrX + A * (prevSmoothX - prevPredX);
+//
+//        //        currCorrX.Print();
+//        //        currSmoothX.Print();
+//
+//        TMatrixD currSmoothC(5, 5); //smoothed covariance matrix on current node
+//        currSmoothC = currCorrC + A * (prevSmoothC - prevPredC) * At;
+//        //        currCorrC.Print();
+//        //        A.Print();
+//        //        prevSmoothC.Print();
+//        //        prevPredC.Print();
+//        //        At.Print();
+//
+//        TMatrixD H(2, 5); //measurement matrix (only for X and Y)
+//        H.Zero();
+//        H[0][0] = 1.0;
+//        H[1][1] = 1.0;
+//
+//        TMatrixD Ht(5, 2); //just transposition of H
+//        Ht.Transpose(H);
+//
+//        TMatrixD Xmeas(2, 1); //measured values on current step
+//        Xmeas[0][0] = hit->GetX();
+//        Xmeas[1][0] = hit->GetY();
+//
+//        TMatrixD R(2, 2); //covariance matrix of measurement errors
+//        R.Zero();
+//        R[0][0] = hit->GetDx() * hit->GetDx();
+//        R[1][1] = hit->GetDy() * hit->GetDy();
+//
+//        Double_t chi2 = ((Xmeas - H * currSmoothX).T() * (R + H * currSmoothC * Ht).Invert() * (Xmeas - H * currSmoothX)).Determinant();
+//        //                cout << "i = " << i << " | chi2 = " << chi2 << endl;
+//
+//        //write smoothed state vector and covariance matrix into track parameter 
+//        FillParFromVecAndCov(currSmoothX, currSmoothC, currSmoothPar);
+//        currSmoothPar->SetZ(hit->GetZ());
+//
+//        currNode->SetSmoothedParam(currSmoothPar);
+//        currNode->SetChiSqSmoothed(chi2);
+//
+//        if (i == 0) outputPar = *currSmoothPar;
+//    }
+//
+//    //    cout << "Smoothing finished\n";
     return outputPar;
 
 }
@@ -818,7 +818,7 @@ BmnStatus BmnKalmanFilter::Smooth(BmnFitNode* thisNode, BmnFitNode* prevNode) {
 
 BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam* par, Double_t zOut, Int_t pdg, vector<Double_t>* F, Double_t* length, Bool_t isField) {
 
-    if (!IsParCorrect(par)) return kBMNERROR;
+    if (!IsParCorrect(par, isField)) return kBMNERROR;
     Double_t zIn = par->GetZ();
     Double_t dz = zOut - zIn;
 
@@ -850,7 +850,7 @@ BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam* par, Double_t zOut
         //if (length) *length = 0;
         // Loop over steps + additional step to propagate to virtual plane at zOut
         for (Int_t iStep = 0; iStep < nofSteps + 1; iStep++) { //FIXME possible problems with geometry...
-            if (!IsParCorrect(par)) return kBMNERROR;
+            if (!IsParCorrect(par, isField)) return kBMNERROR;
             // Check if already at exit position
             if (z == zOut) break;
             // Update current z position
@@ -866,7 +866,7 @@ BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam* par, Double_t zOut
             for (UInt_t iMat = 0; iMat < inter.size(); iMat++) {
                 BmnMaterialInfo mat = inter[iMat];
                 // Check if track parameters are correct
-                if (!IsParCorrect(par)) return kBMNERROR;
+                if (!IsParCorrect(par, isField)) return kBMNERROR;
                 vector<Double_t>* Fnew = NULL;
                 if (F != NULL) Fnew = new vector<Double_t > (25, 0.);
 
@@ -896,7 +896,7 @@ BmnStatus BmnKalmanFilter::TGeoTrackPropagate(FairTrackParam* par, Double_t zOut
         par->SetZ(zOut);
     }
 
-    if (!IsParCorrect(par)) {
+    if (!IsParCorrect(par, isField)) {
         return kBMNERROR;
     } else {
         return kBMNSUCCESS;

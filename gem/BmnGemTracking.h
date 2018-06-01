@@ -26,7 +26,8 @@ class BmnGemTracking : public FairTask {
 public:
 
     // Constructors/Destructors ---------
-    BmnGemTracking();
+    BmnGemTracking() {};
+    BmnGemTracking(Short_t period, Bool_t field, Bool_t target);
     virtual ~BmnGemTracking();
 
     virtual InitStatus Init();
@@ -49,7 +50,7 @@ public:
     TVector2 GetTransXY(BmnGemStripHit* hit);
     BmnStatus SortTracks(vector<BmnGemTrack>& inTracks, vector<BmnGemTrack>& sortedTracks);
     BmnStatus CheckSharedHits(vector<BmnGemTrack>& sortedTracks);
-
+    
     void SetLorentzThresh(Double_t trs) {
         fLorentzThresh = trs;
     }
@@ -147,6 +148,7 @@ private:
     Double_t fWidth;
 
     UInt_t fEventNo; // event counter
+    Short_t fPeriodId;
 
     TVector3 fRoughVertex; // for correct transformation
 

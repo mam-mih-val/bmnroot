@@ -23,7 +23,6 @@
 #pragma link C++ class BmnGemStripDigitizer+;
 #pragma link C++ class BmnGemStripHitMaker+;
 #pragma link C++ class BmnKalmanFilter+;
-#pragma link C++ class BmnGemVertexFinder+;
 #pragma link C++ class BmnGemTracking+;
 #pragma link C++ class BmnGemStripMedium+;
 #pragma link C++ class BmnMaterialEffects+;

@@ -1,6 +1,7 @@
 
 // This Class' Header ------------------
 #include <TMath.h>
+#include "BmnMath.h"
 #include <TGraph.h>
 #include <map>
 #include <cfloat>
@@ -26,18 +27,19 @@ static Double_t workTime = 0.0;
 using namespace std;
 using namespace TMath;
 
-BmnGemTracking::BmnGemTracking() {
-    fPDG = 2212;
+BmnGemTracking::BmnGemTracking(Short_t period, Bool_t field, Bool_t target) {
+    fPeriodId = period;
+    fPDG = 211;
     fEventNo = 0;
-    fIsField = kTRUE;
-    fIsTarget = kTRUE;
+    fIsField = field;
+    fIsTarget = target;
     fGemHitsArray = NULL;
     fXmin = -DBL_MAX;
     fXmax = DBL_MAX;
     fYmin = -DBL_MAX;
     fYmax = DBL_MAX;
     fAddresses = NULL;
-    fRoughVertex = TVector3(0.0, 0.0, -21.7);
+    fRoughVertex = (fPeriodId == 7) ? TVector3(0.5, -4.6, -2.3) : (fPeriodId == 6) ? TVector3(0.0, -3.5, -21.9) : TVector3(0.0, 0.0, 0.0);
     fLineFitCut = 0.5;
     fSigX = 0.05;
     fYstep = 1;
@@ -92,12 +94,19 @@ InitStatus BmnGemTracking::Init() {
     fAddresses = new Int_t*[fNBins];
     for (Int_t i = 0; i < fNBins; ++i) {
         fAddresses[i] = new Int_t[fNBins];
-        for (Int_t j = 0; j < fNBins; ++j) {
+        for (Int_t j = 0; j < fNBins; ++j)
             fAddresses[i][j] = -1;
-        }
     }
 
-    fGemDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
+    TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
+    TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
+    TString confGem = (fPeriodId == 7) ? "GemRunSpring2018.xml" : (fPeriodId == 6) ? "GemRunSpring2017.xml" : "";
+    if (confGem == "") {
+        printf(ANSI_COLOR_RED "No GEM geometry defined!\n" ANSI_COLOR_RESET);
+        throw;
+    }
+    fGemDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
+
     fHitsOnStation = new vector<Int_t>[fGemDetector->GetNStations()];
 
     if (fVerbose) cout << "======================== GEM tracking init finished ===================" << endl;
@@ -225,7 +234,7 @@ Int_t BmnGemTracking::Tracking(vector<BmnGemTrack>& seeds) {
     } else {
         CheckSharedHits(sortedTracks);
         for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr)
-            if (sortedTracks[iTr].GetFlag() != -1 && IsParCorrect(sortedTracks[iTr].GetParamFirst()) && IsParCorrect(sortedTracks[iTr].GetParamLast())) {
+            if (sortedTracks[iTr].GetFlag() != -1 && IsParCorrect(sortedTracks[iTr].GetParamFirst(), fIsField) && IsParCorrect(sortedTracks[iTr].GetParamLast(), fIsField)) {
                 new((*fGemTracksArray)[fGemTracksArray->GetEntriesFast()]) BmnGemTrack(sortedTracks[iTr]);
                 SetHitsUsing(&sortedTracks[iTr], kTRUE);
                 num_of_tracks++;
@@ -239,9 +248,8 @@ BmnStatus BmnGemTracking::SortTracks(vector<BmnGemTrack>& inTracks, vector<BmnGe
     for (Int_t iTr = 0; iTr < inTracks.size(); ++iTr)
         sortedTracksMap.insert(pair<Float_t, Int_t>(inTracks.at(iTr).GetChi2() / inTracks.at(iTr).GetNDF(), iTr));
 
-    multimap<Float_t, Int_t>::iterator it;
-    for (it = sortedTracksMap.begin(); it != sortedTracksMap.end(); ++it)
-        sortedTracks.push_back(inTracks.at(it->second));
+    for (auto it : sortedTracksMap)
+        sortedTracks.push_back(inTracks.at(it.second));
 }
 
 BmnStatus BmnGemTracking::CheckSharedHits(vector<BmnGemTrack>& sortedTracks) {
@@ -363,7 +371,7 @@ BmnStatus BmnGemTracking::RefitTrack(BmnGemTrack* track) {
         hits.push_back((BmnGemStripHit*) fGemHitsArray->UncheckedAt(track->GetHitIndex(iHit)));
 
     Int_t kNSegm = track->GetNHits() - 2;
-    
+
     Double_t QpRefit = 0.;
     vector <Double_t> QpSegmBefore;
 
@@ -397,7 +405,7 @@ BmnStatus BmnGemTracking::RefitTrack(BmnGemTrack* track) {
                 cout << "Bad refit convergence for track segment!!" << endl;
                 return kBMNERROR;
             }
- 
+
             for (Int_t iSegm = 0; iSegm < QpSegmBefore.size(); iSegm++)
                 if (Abs(QpSegmBefore[iSegm] - mean) - sigma <= 0.001) // Топорное сравнение FIXME
                     QpSegmAfter.push_back(QpSegmBefore[iSegm]);
@@ -578,7 +586,7 @@ BmnStatus BmnGemTracking::CalculateTrackParamsPol2(BmnGemTrack *tr) {
     par.SetTy(Ty_last);
     par.SetQp(QP);
     tr->SetParamLast(par);
-    if (!IsParCorrect(&par)) return kBMNERROR;
+    if (!IsParCorrect(&par, fIsField)) return kBMNERROR;
 
     //update for firstParam
     par.SetPosition(TVector3(fX, fY, fZ));
@@ -586,7 +594,7 @@ BmnStatus BmnGemTracking::CalculateTrackParamsPol2(BmnGemTrack *tr) {
     par.SetTx(Tx_first);
     par.SetTy(Ty_first);
     tr->SetParamFirst(par);
-    if (!IsParCorrect(&par)) return kBMNERROR;
+    if (!IsParCorrect(&par, fIsField)) return kBMNERROR;
 
     return kBMNSUCCESS;
 }
@@ -779,7 +787,7 @@ BmnStatus BmnGemTracking::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     par.SetTy(Ty_last);
     par.SetQp(QP);
     tr->SetParamLast(par);
-    if (!IsParCorrect(&par)) return kBMNERROR;
+    if (!IsParCorrect(&par, fIsField)) return kBMNERROR;
 
     //update for firstParam
     par.SetPosition(TVector3(fX, fY, fZ));
@@ -788,7 +796,7 @@ BmnStatus BmnGemTracking::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     par.SetTx(Tx_first);
     par.SetTy(Ty_first); //par.SetTy(-B / (firstHit->GetX() - Xc));
     tr->SetParamFirst(par);
-    if (!IsParCorrect(&par)) return kBMNERROR;
+    if (!IsParCorrect(&par, fIsField)) return kBMNERROR;
 
     return kBMNSUCCESS;
 }

@@ -343,7 +343,7 @@ void create_rootgeom_Silicon_RunSpring2018() {
 
         for(Int_t imodule = 0; imodule < NModules; ++imodule) {
 
-            TString module_name = TString("Sensor_module") + TString::Itoa(imodule, 10) + TString("_") + station->GetName();
+            TString module_name = TString("module") + TString::Itoa(imodule, 10) + TString("_") + station->GetName();
             modules[imodule] = CreateModule(module_name, ModulesTypes[istation][imodule]);
 
 
@@ -519,10 +519,10 @@ TGeoVolume *CreateModule(TString module_name, ModuleType module_type) {
     TGeoVolume *moduleV = new TGeoVolume(module_name, moduleS);
 
     //sensor zone volume (upper part of the module)
-    TGeoVolume *sensor_zone_upper_part_rectV = new TGeoVolume("sensor_zone_upper_part_rectV", sensor_zone_upper_part_rectS);
+    TGeoVolume *sensor_zone_upper_part_rectV = new TGeoVolume("Sensor_zone_upper_part_rectV", sensor_zone_upper_part_rectS);
 
     //sensor zone volume (lower part of the module)
-    TGeoVolume *sensor_zone_upper_part_bevelV = new TGeoVolume("sensor_zone_upper_part_bevelV", sensor_zone_upper_part_bevelS);
+    TGeoVolume *sensor_zone_upper_part_bevelV = new TGeoVolume("Sensor_zone_upper_part_bevelV", sensor_zone_upper_part_bevelS);
 
     //sensor zone volume (lower part of the module: rectangle zone)
     TGeoVolume *sensor_zone_lower_part_rectV = new TGeoVolume("Sensor_zone_lower_part_rectV", sensor_zone_lower_part_rectS);

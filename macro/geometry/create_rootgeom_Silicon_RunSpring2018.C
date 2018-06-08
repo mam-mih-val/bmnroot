@@ -98,8 +98,8 @@ Double_t BevelAngleDeg = BevelAngleRad*TMath::RadToDeg();
 Double_t XLeftBorder = 0.1145;
 Double_t XRightBorder = 0.1118;
 Double_t YTopBorder = 0.1143;
-Double_t YMiddleBorderUpperPart = 0.1171;
-Double_t YMiddleBorderLowerPart = 0.1097;
+Double_t YMiddleBorderUpperPart = 0.1121;
+Double_t YMiddleBorderLowerPart = 0.1147;
 Double_t YBottomBorder = 0.1148;
 Double_t XYBevelBorder = 0.1146;
 //------------------------------------------------------------------------------

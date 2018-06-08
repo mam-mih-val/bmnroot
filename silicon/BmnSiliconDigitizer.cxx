@@ -17,6 +17,7 @@ BmnSiliconDigitizer::BmnSiliconDigitizer()
 
     fVerbose = 1;
 
+    fCurrentConfig = BmnSiliconConfiguration::None;
     StationSet = NULL;
 }
 
@@ -49,10 +50,22 @@ InitStatus BmnSiliconDigitizer::Init() {
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
         gPathSiliconConfig += "/silicon/XMLConfigs/";
 
-    //Create Silicon detector --------------------------------------------------
+    //Create SILICON detector ------------------------------------------------------
+    switch (fCurrentConfig) {
 
-    StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
-    cout << "   Current Configuration : RunSpring2017" << "\n";
+        case BmnSiliconConfiguration::RunSpring2017 :
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2017" << "\n";
+            break;
+
+        case BmnSiliconConfiguration::RunSpring2018 :
+            StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2018.xml");
+            if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
+            break;
+
+        default:
+            StationSet = NULL;
+    }
 
     //--------------------------------------------------------------------------
 

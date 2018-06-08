@@ -17,6 +17,8 @@
 #include <BmnSiliconAlignCorrections.h>
 #include <BmnEventQuality.h>
 
+#include "BmnSiliconConfiguration.h"
+
 class BmnSiliconHitMaker : public FairTask {
 public:
 
@@ -35,6 +37,10 @@ public:
 
     void SetHitMatching(Bool_t opt = kTRUE) {
         fHitMatching = opt;
+    }
+
+    void SetCurrentConfig(BmnSiliconConfiguration::SILICON_CONFIG config) {
+        fCurrentConfig = config;
     }
 
     void SetAlignmentCorrectionsFileName(TString filename) {
@@ -72,11 +78,14 @@ private:
 
     Bool_t fHitMatching;
 
+    BmnSiliconConfiguration::SILICON_CONFIG fCurrentConfig;
+
     BmnSiliconStationSet *StationSet; //Entire Silicon detector
+    
     TString fAlignCorrFileName; // a file with geometry corrections
     void ReadAlignCorrFile(TString, Double_t***); // read corrections from the file
     Double_t*** corr; // array to store the corrections
-    
+
     Bool_t fIsExp;
     TString fBmnEvQualityBranchName;
     TClonesArray* fBmnEvQuality;

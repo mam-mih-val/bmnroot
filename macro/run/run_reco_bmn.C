@@ -56,7 +56,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
     // for experimental datasource
-    Int_t run_period, run_number;
+    Int_t run_period=6, run_number;
     Double_t fieldScale = 0.;
     TPRegexp run_prefix("^run[0-9]+-[0-9]+:");
     if (inputFileName.Contains(run_prefix)) {
@@ -178,7 +178,20 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                         Silicon hit finder                     === //
     // ====================================================================== //
+    BmnSiliconConfiguration::SILICON_CONFIG si_config;
+    switch(run_period) {
+        case 6: //BM@N RUN-6
+            si_config = BmnSiliconConfiguration::RunSpring2017;
+            break;
+        case 7: //BM@N RUN-7
+            si_config = BmnSiliconConfiguration::RunSpring2018;
+            break;
+        default:
+            si_config = BmnSiliconConfiguration::RunSpring2017;
+            //si_config = BmnSiliconConfiguration::RunSpring2018;
+    }
     BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
+    siliconHM->SetCurrentConfig(si_config);
     fRunAna->AddTask(siliconHM);
     // ====================================================================== //
     // ===                         GEM hit finder                         === //

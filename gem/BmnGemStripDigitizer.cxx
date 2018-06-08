@@ -60,23 +60,23 @@ InitStatus BmnGemStripDigitizer::Init() {
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016 :
             StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            cout << "   Current Configuration : RunSummer2016" << "\n";
+            if (fVerbose) cout << "   Current GEM Configuration : RunSummer2016" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunWinter2016 :
             StationSet = new BmnGemStripStationSet_RunWinter2016(fCurrentConfig);
-            cout << "   Current Configuration : RunWinter2016" << "\n";
+            if (fVerbose) cout << "   Current GEM Configuration : RunWinter2016" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunSpring2017 :
             StationSet = new BmnGemStripStationSet_RunSpring2017(fCurrentConfig);
             //StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2017.xml");
-            cout << "   Current Configuration : RunSpring2017" << "\n";
+            if (fVerbose) cout << "   Current GEM Configuration : RunSpring2017" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunSpring2018 :
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
-            cout << "   Current Configuration : RunSpring2018" << "\n";
+            if (fVerbose) cout << "   Current GEM Configuration : RunSpring2018" << "\n";
             break;
 
         default:

@@ -171,7 +171,10 @@ void run_sim_bmn(TString inFile = "dC.04gev.mbias.100k.urqmd23.f14", TString out
     fRun->SetRadLenRegister(flag_store_FairRadLenPoint); // radiation length manager
 
     // SI-Digitizer
+    BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2017;
+    //BmnSiliconConfiguration::SILICON_CONFIG si_config = BmnSiliconConfiguration::RunSpring2018;
     BmnSiliconDigitizer* siliconDigit = new BmnSiliconDigitizer();
+    siliconDigit->SetCurrentConfig(si_config);
     siliconDigit->SetOnlyPrimary(kFALSE);
     fRun->AddTask(siliconDigit);
 

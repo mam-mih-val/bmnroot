@@ -63,6 +63,8 @@ void geometry(FairRunSim *fRun)
     fRun->AddModule(emc);
 
     FairDetector* silicon = new BmnSilicon("SILICON", kTRUE);
-    silicon->SetGeometryFileName("Silicon_v1.root");
+    //silicon->SetGeometryFileName("Silicon_v1.root");
+    silicon->SetGeometryFileName("Silicon_RunSpring2017.root");
+    //silicon->SetGeometryFileName("Silicon_RunSpring2018.root");
     fRun->AddModule(silicon);
 }

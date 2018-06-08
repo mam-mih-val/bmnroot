@@ -12,6 +12,8 @@
 #include "BmnSiliconDigit.h"
 #include "BmnSiliconStationSet.h"
 
+#include "BmnSiliconConfiguration.h"
+
 using namespace std;
 
 class BmnSiliconDigitizer : public FairTask {
@@ -39,6 +41,10 @@ public:
         fStripMatching = opt;
     }
 
+    void SetCurrentConfig(BmnSiliconConfiguration::SILICON_CONFIG config) {
+        fCurrentConfig = config;
+    }
+
 private:
 
     TString fInputBranchName;
@@ -59,6 +65,8 @@ private:
 
     Bool_t fOnlyPrimary;
     Bool_t fStripMatching;
+
+    BmnSiliconConfiguration::SILICON_CONFIG fCurrentConfig;
 
     BmnSiliconStationSet *StationSet; //Entire Silicon detector
 

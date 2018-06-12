@@ -3,11 +3,11 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// BMN_EventCounter                                                           //
+// SRC_EventCounter                                                           //
 //                                                                            //
 // A useful macro to visualize number of collected events (RUN7)              //
 // to be used for physics analysis in form of chart pies as a function of     //
-// projectile, energy, target                                                 // 
+// projectile, energy, target                                                 //
 // The  BM@N UniDb used                                                       //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -27,13 +27,13 @@
 using namespace std;
 using namespace TMath;
 
-void BMN_EventCounter(Int_t run_period = 7) {
+void SrcEventCounter(Int_t run_period = 7) {
     // ----  Load libraries   --------------------------------------------------
     bmnloadlibs(); // load BmnRoot libraries
 
-    // BM@N file numbers ...
-    const Int_t kStart = 3681;
-    const Int_t kFinish = 5185;
+    // SRC file numbers ...
+    const Int_t kStart = 2041;
+    const Int_t kFinish = 3589;
 
     set <Double_t> energies;
     set <TString> targets;
@@ -65,17 +65,14 @@ void BMN_EventCounter(Int_t run_period = 7) {
     c->Divide(energies.size(), beams.size());
     TPie * charts[beams.size()][energies.size()];
 
-    TCanvas* d = new TCanvas("d", "d", 500, 200);
-    d->Divide(4, 1);
+    const Int_t nProjectiles = 1; //beams.size();
+    TString PROJECTILES[nProjectiles] = {"C"};
 
-    const Int_t nProjectiles = 2; //beams.size();
-    TString PROJECTILES[nProjectiles] = {"Ar", "Kr"};
-
-    const Int_t nEnergies = 4; //energies.size();
-    const Double_t ENERGIES[nEnergies] = {2.3, 2.6, 2.94, 3.2};
+    const Int_t nEnergies = 1; //energies.size();
+    const Double_t ENERGIES[nEnergies] = {3.17};
 
     const Int_t nTargs = 5; //targets.size();
-    const TString TARGETS[nTargs] = {"C", "Al", "Cu", "Sn", "Pb"};
+    const TString TARGETS[nTargs] = {"H2", "Pb", "SRC Lead 1", "SRC Lead 2", "SRC Lead 3"};
 
     Long_t nEvs[beams.size()][energies.size()][nTargs]; // [] proj, [] ene, [] nEvs per each target
     for (Int_t iProj = 0; iProj < beams.size(); iProj++)
@@ -114,19 +111,9 @@ void BMN_EventCounter(Int_t run_period = 7) {
                 TString targ = *pCurrentRun->GetTargetParticle();
 
                 // Set indices ... 
-                Int_t idxBeam = -1;
-                for (Int_t iProj = 0; iProj < nProjectiles; iProj++)
-                    if (proj == PROJECTILES[iProj]) {
-                        idxBeam = iProj;
-                        break;
-                    }
+                Int_t idxBeam = (proj == PROJECTILES[0]) ? 0 : -1;
 
-                Int_t idxEne = -1;
-                for (Int_t iEne = 0; iEne < nEnergies; iEne++)
-                    if (Abs(*eneStar - ENERGIES[iEne]) < FLT_EPSILON) {
-                        idxEne = iEne;
-                        break;
-                    }
+                Int_t idxEne = (Abs(*eneStar - ENERGIES[0]) < FLT_EPSILON) ? 0 : -1;
 
                 Int_t idxTarg = -1;
                 for (Int_t iTarg = 0; iTarg < nTargs; iTarg++)
@@ -145,8 +132,7 @@ void BMN_EventCounter(Int_t run_period = 7) {
             for (Int_t iTarg = 0; iTarg < nTargs; iTarg++)
                 cout << iProj << " " << iEne << " " << iTarg << " " << nEvs[iProj][iEne][iTarg] / 1e6 << " MEvs" << endl;
 
-    Int_t iPadC = 1;
-    Int_t iPadD = 1;
+    Int_t iPad = 1;
     for (Int_t iProj = 0; iProj < beams.size(); iProj++)
         for (Int_t iEne = 0; iEne < energies.size(); iEne++) {
             Double_t pieContent[nTargs];
@@ -162,33 +148,27 @@ void BMN_EventCounter(Int_t run_period = 7) {
 
             charts[iProj][iEne] = new TPie(Form("Projectile %s (T =  %G GeV/n)", PROJECTILES[iProj].Data(), ENERGIES[iEne]),
                     Form("Projectile %s (T =  %G GeV/n)", PROJECTILES[iProj].Data(), ENERGIES[iEne]), nTargs, pieContent, colors);
-            c->cd(iPadC);
+            c->cd(iPad);
             for (Int_t iTarg = 0; iTarg < nTargs; iTarg++) {
                 TPieSlice* slice = charts[iProj][iEne]->GetSlice(iTarg);
                 Double_t valSlice = slice->GetValue();
                 TString sliceTitle = (valSlice > FLT_EPSILON) ? TARGETS[iTarg] : "";
-                if (valSlice < FLT_EPSILON)
+                if (valSlice < FLT_EPSILON )
                     slice->SetRadiusOffset(DBL_MAX);
                 slice->SetTitle(Form("%s", sliceTitle.Data()));
             }
 
-            charts[iProj][iEne]->SetRadius(.2);
-            charts[iProj][iEne]->SetLabelsOffset(.03);
-            charts[iProj][iEne]->SetAngularOffset(-16.);
-            charts[iProj][iEne]->SetTextAngle(0.);
-            charts[iProj][iEne]->SetLabelFormat("#splitline{%txt (%perc)}{%val MEvs}");
+            charts[iProj][iEne]->SetRadius(.25);
+            charts[iProj][iEne]->SetLabelsOffset(.06);
+            charts[iProj][iEne]->SetAngularOffset(-75.);
+            charts[iProj][iEne]->SetTextSize(0.05);
+                charts[iProj][iEne]->SetLabelFormat("#splitline{%txt (%perc)}{%val MEvs}");
             if (pieContentSum > FLT_EPSILON) {
-                charts[iProj][iEne]->SetY(.5);
-                charts[iProj][iEne]->Draw("3d nol");
-                d->cd(iPadD++);
                 //charts[iProj][iEne]->SetY(.75);
                 charts[iProj][iEne]->Draw("3d nol");
             }
-            iPadC++;
-        }
-    c->SaveAs("BMN_physEvents_Run7.pdf");
-    d->SaveAs("BMN_physEvents_Run7_nonEmpty.pdf");
 
-    delete c;
-    delete d;
+            iPad++;
+        }
+    c->SaveAs("SRC_physEvents_Run7.pdf");
 }

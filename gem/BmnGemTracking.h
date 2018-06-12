@@ -7,6 +7,7 @@
 #include "BmnGemTrack.h"
 #include <iostream>
 #include <vector>
+#include <map>
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TArc.h"
@@ -19,6 +20,7 @@
 #include "BmnGemStripStationSet.h"
 #include "BmnGemStripStationSet_RunSpring2017.h"
 #include "FitWLSQ.h"
+#include "BmnSteeringGemTracking.h"
 
 using namespace std;
 
@@ -27,7 +29,7 @@ public:
 
     // Constructors/Destructors ---------
     BmnGemTracking() {};
-    BmnGemTracking(Short_t period, Bool_t field, Bool_t target);
+    BmnGemTracking(Short_t period, Bool_t field, Bool_t target, TString steerFile);
     virtual ~BmnGemTracking();
 
     virtual InitStatus Init();
@@ -79,19 +81,15 @@ public:
         fIsTarget = f;
     }
 
-    void SetGemDistCut(Double_t dist) {
-        fGemDistCut = dist;
-    }
-
-    void SetXRange(Double_t xMin, Double_t xMax) {
-        fXmax = xMax;
-        fXmin = xMin;
-    }
-
-    void SetYRange(Double_t yMin, Double_t yMax) {
-        fYmax = yMax;
-        fYmin = yMin;
-    }
+//    void SetXRange(Double_t xMin, Double_t xMax) {
+//        fXmax = xMax;
+//        fXmin = xMin;
+//    }
+//
+//    void SetYRange(Double_t yMin, Double_t yMax) {
+//        fYmax = yMax;
+//        fYmin = yMin;
+//    }
 
     void AddStationToSkip(Short_t st) {
         skipStations.push_back(st);
@@ -114,8 +112,8 @@ public:
     }
 
 private:
-    TVector2 CalcMeanSigma(vector <Double_t>);  
-    
+    TVector2 CalcMeanSigma(vector <Double_t>); 
+      
     BmnGemStripStationSet* fGemDetector;
     TString fGemHitsBranchName;
     TString fTracksBranchName;
@@ -125,7 +123,7 @@ private:
     BmnKalmanFilter* fKalman;
 
     Int_t fPDG; // PDG hypothesis
-    Double_t fGemDistCut;
+    Double_t* fGemDistCut;
 
     Bool_t fIsField; // run with mag.field or not
     Bool_t fIsTarget; // run with target or not
@@ -153,10 +151,10 @@ private:
     TVector3 fRoughVertex; // for correct transformation
 
     //ranges for seed finder
-    Double_t fXmin;
-    Double_t fXmax;
-    Double_t fYmin;
-    Double_t fYmax;
+//    Double_t fXmin;
+//    Double_t fXmax;
+//    Double_t fYmin;
+//    Double_t fYmax;
 
     vector<Short_t> skipStations;
 
@@ -168,6 +166,9 @@ private:
     vector<Int_t>* fHitsOnStation;
     
     Bool_t fUseRefit;
+    
+    TString fSteerFile; 
+    BmnSteeringGemTracking* fSteering;
     
     ClassDef(BmnGemTracking, 1);
 };

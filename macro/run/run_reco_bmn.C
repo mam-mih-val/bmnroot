@@ -31,7 +31,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         TString bmndstFileName = "$VMCWORKDIR/macro/run/bmndst.root",
         Int_t nStartEvent = 0,
         Int_t nEvents = 10000,
-        TString alignCorrFileName = "default")
+        TString alignCorrFileName = "default",
+        TString steerGemTrackingFile = "gemTrackingSteer.dat")
 {
     // Verbosity level (0=quiet, 1=event-level, 2=track-level, 3=debug)
     Int_t iVerbose = 0;
@@ -211,7 +212,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
             gem_config = BmnGemStripConfiguration::RunSpring2017;
             //gem_config = BmnGemStripConfiguration::RunSpring2018;
     }
-    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(isExp);
+    BmnGemStripHitMaker* gemHM = new BmnGemStripHitMaker(run_period, isExp);
     gemHM->SetCurrentConfig(gem_config);
     gemHM->SetHitMatching(kTRUE);
     fRunAna->AddTask(gemHM);
@@ -221,11 +222,11 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     if (isExp) {
         if (alignCorrFileName == "default") {
-            gemHM->SetAlignmentCorrectionsFileName(run_period, run_number);
+            gemHM->SetAlignmentCorrectionsFileName(run_number);
             siliconHM->SetAlignmentCorrectionsFileName(run_period, run_number);
         }
         else {
-            gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName, run_period, run_number);
+            gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
             siliconHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
         }
     }
@@ -251,7 +252,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ===                           Tracking (GEM)                       === //
     // ====================================================================== //
 
-    BmnGemTracking* gemTF = new BmnGemTracking(run_period, isField, isTarget);
+    BmnGemTracking* gemTF = new BmnGemTracking(run_period, isField, isTarget, steerGemTrackingFile);
     if (!isExp) gemTF->SetRoughVertex(TVector3(0.0, 0.0, 0.0)); //for MC case use correct vertex
     fRunAna->AddTask(gemTF);
 
@@ -271,8 +272,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // ====================================================================== //
     // ===                     Primary vertex finding                     === //
     // ====================================================================== //
-    BmnVertexFinder* gemVF = new BmnVertexFinder();
-    gemVF->SetField(isField);
+    BmnVertexFinder* gemVF = new BmnVertexFinder(run_period, isField);
+    // gemVF->SetVertexApproximation(TVector3(0., 0., 0.));
     fRunAna->AddTask(gemVF);
 
     // Residual analysis
@@ -281,8 +282,8 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
         // residAnal->SetPrintResToFile("file.txt");
         // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
         fRunAna->AddTask(residAnalGem);
-        BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
-        //        fRunAna->AddTask(residAnalSi);
+        // BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
+        // fRunAna->AddTask(residAnalSi);
     }
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();

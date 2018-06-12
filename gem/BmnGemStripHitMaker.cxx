@@ -30,8 +30,8 @@ BmnGemStripHitMaker::BmnGemStripHitMaker()
     StationSet = NULL;
 }
 
-BmnGemStripHitMaker::BmnGemStripHitMaker(Bool_t isExp)
-: fHitMatching(kTRUE), fAlignCorrFileName(""), fRunId(-1) {
+BmnGemStripHitMaker::BmnGemStripHitMaker(Int_t run_period, Bool_t isExp)
+: fHitMatching(kTRUE), fAlignCorrFileName(""), fRunId(-1), fPeriodId(run_period) {
 
     fInputPointsBranchName = "StsPoint";
     fInputDigitsBranchName = (!isExp) ? "BmnGemStripDigit" : "GEM";
@@ -95,23 +95,23 @@ InitStatus BmnGemStripHitMaker::Init() {
     switch (fCurrentConfig) {
         case BmnGemStripConfiguration::RunSummer2016:
             StationSet = new BmnGemStripStationSet_RunSummer2016(fCurrentConfig);
-            if (fVerbose) cout << "   Current GEM Configuration : RunSummer2016" << "\n";
+            if (fVerbose) cout << "   Current Configuration : RunSummer2016" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunWinter2016:
             StationSet = new BmnGemStripStationSet_RunWinter2016(fCurrentConfig);
-            if (fVerbose) cout << "   Current GEM Configuration : RunWinter2016" << "\n";
+            if (fVerbose) cout << "   Current Configuration : RunWinter2016" << "\n";
             break;
 
         case BmnGemStripConfiguration::RunSpring2017:
             StationSet = new BmnGemStripStationSet_RunSpring2017(fCurrentConfig);
             //StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2017.xml");
-            if (fVerbose) cout << "   Current GEM Configuration : RunSpring2017" << "\n";
+            if (fVerbose) cout << "   Current Configuration : RunSpring2017" << "\n";
             break;
 
-        case BmnGemStripConfiguration::RunSpring2018 :
+        case BmnGemStripConfiguration::RunSpring2018:
             StationSet = new BmnGemStripStationSet(gPathGemConfig + "GemRunSpring2018.xml");
-            cout << "   Current GEM Configuration : RunSpring2018" << "\n";
+            cout << "   Current Configuration : RunSpring2018" << "\n";
             break;
 
         default:
@@ -155,7 +155,7 @@ InitStatus BmnGemStripHitMaker::Init() {
         for (Int_t iMod = 0; iMod != nModul; iMod++) {
             for (Int_t iPar = 0; iPar != nParams; iPar++)
                 cout << "Stat " << iStat << " Module " << iMod << " Param. " << iPar << " Value (in cm.) " <<
-                        TString::Format("% 7.4f", (fIsExp) ? corr[iStat][iMod][iPar] : misAlign[iStat][iMod][iPar]) << endl; //
+                    TString::Format("% 7.4f", (fIsExp) ? corr[iStat][iMod][iPar] : misAlign[iStat][iMod][iPar]) << endl; //
         }
     }
     fField = FairRunAna::Instance()->GetField();
@@ -164,16 +164,16 @@ InitStatus BmnGemStripHitMaker::Init() {
     // Initialize coefficients to be used when the Lorentz corrections calculating ...
     if (Abs(fField->GetBy(0., 0., 0.)) > FLT_EPSILON) {
         lorCorrsCoeff = new Double_t*[nStat];
-        UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", 6, (!fIsExp) ? 1587 : fRunId);
+        UniDbDetectorParameter* coeffLorCorrs = UniDbDetectorParameter::GetDetectorParameter("GEM", "lorentz_shift", fPeriodId, fRunId);
         LorentzShiftStructure* shifts;
         Int_t element_count = 0;
-        coeffLorCorrs->GetLorentzShiftArray(shifts, element_count);
+        if (coeffLorCorrs)
+            coeffLorCorrs->GetLorentzShiftArray(shifts, element_count);
         for (Int_t iEle = 0; iEle < nStat; iEle++) {
             const Int_t nParams = 3; // Parabolic approximation is used
             lorCorrsCoeff[iEle] = new Double_t[nParams];
-            for (Int_t iParam = 0; iParam < nParams; iParam++) {
-                lorCorrsCoeff[iEle][iParam] = shifts[iEle].ls[iParam];
-            }
+            for (Int_t iParam = 0; iParam < nParams; iParam++)
+                lorCorrsCoeff[iEle][iParam] = (coeffLorCorrs) ? shifts[iEle].ls[iParam] : 0.;
         }
     }
 
@@ -199,8 +199,8 @@ void BmnGemStripHitMaker::Exec(Option_t* opt) {
         fBmnGemStripHitMatchesArray->Delete();
     }
 
-    if (!IsActive() || fBmnGemStripDigitsArray->GetEntriesFast() > 400)
-        //   if (!IsActive() || fBmnGemStripDigitsArray->GetEntriesFast() > 700)
+    Int_t kDigitCut = (fPeriodId == 7) ? 1000 : 400;
+    if (!IsActive() || fBmnGemStripDigitsArray->GetEntriesFast() > kDigitCut)
         return;
 
     if (fVerbose) cout << "\nBmnGemStripHitMaker::Exec()\n ";
@@ -363,11 +363,6 @@ void BmnGemStripHitMaker::Finish() {
 }
 
 void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
-    // NB! the following is not needed, because in case fname == "" we simply
-    // do not call this function at all:
-    //if (fname == "") // case when we do not use any alignment corrections
-    //    return;
-
     Int_t coeff = 0; // -1 for RunWinter2016, +1 for RunSpring2017 and in the future
     TString branchName = "";
     switch (fCurrentConfig) {
@@ -376,13 +371,10 @@ void BmnGemStripHitMaker::ReadAlignCorrFile(TString fname, Double_t*** corr) {
             branchName = "BmnGemAlignmentCorrections";
             break;
 
-        case BmnGemStripConfiguration::RunSpring2017:
+        default:
             coeff = 1;
             branchName = "BmnGemAlignCorrections";
             break;
-
-        default:
-            StationSet = NULL;
     }
 
     TFile* f = new TFile(fname.Data());

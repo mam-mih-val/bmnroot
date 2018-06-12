@@ -11,6 +11,7 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/globaltracking
  ${CMAKE_SOURCE_DIR}/uni_db
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
+ ${CMAKE_SOURCE_DIR}/steering
  ${CMAKE_SOURCE_DIR}/gem
 )
 

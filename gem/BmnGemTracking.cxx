@@ -27,31 +27,27 @@ static Double_t workTime = 0.0;
 using namespace std;
 using namespace TMath;
 
-BmnGemTracking::BmnGemTracking(Short_t period, Bool_t field, Bool_t target) {
+BmnGemTracking::BmnGemTracking(Short_t period, Bool_t field, Bool_t target, TString steerFile) :
+fSteering(NULL),
+fSteerFile(steerFile) {
+    fSteering = new BmnSteeringGemTracking(fSteerFile);
     fPeriodId = period;
     fPDG = 211;
     fEventNo = 0;
     fIsField = field;
     fIsTarget = target;
     fGemHitsArray = NULL;
-    fXmin = -DBL_MAX;
-    fXmax = DBL_MAX;
-    fYmin = -DBL_MAX;
-    fYmax = DBL_MAX;
     fAddresses = NULL;
     fRoughVertex = (fPeriodId == 7) ? TVector3(0.5, -4.6, -2.3) : (fPeriodId == 6) ? TVector3(0.0, -3.5, -21.9) : TVector3(0.0, 0.0, 0.0);
-    fLineFitCut = 0.5;
-    fSigX = 0.05;
-    fYstep = 1;
-    fLorentzThresh = 1.01;
-    fNHitsCut = 4;
-    fNBins = 1000;
-    fMin = -0.5;
-    fNSeedsCut = 5000;
-    fNHitsInGemCut = 1000;
-    fMax = -fMin;
+    fSigX = fSteering->GetSigX();
+    fLorentzThresh = fSteering->GetLorentzThresh();
+    fNHitsCut = fSteering->GetNHitsCut();
+    fNBins = fSteering->GetNBins();
+    fMin = fSteering->GetMin();
+    fNSeedsCut = fSteering->GetNSeedsCut();
+    fNHitsInGemCut = fSteering->GetNHitsInGemCut();
+    fMax = fSteering->GetMax();
     fWidth = (fMax - fMin) / fNBins;
-    fGemDistCut = 1.0;
     fKalman = new BmnKalmanFilter();
     fGemTracksArray = NULL;
     fField = NULL;
@@ -60,6 +56,8 @@ BmnGemTracking::BmnGemTracking(Short_t period, Bool_t field, Bool_t target) {
     fTracksBranchName = "BmnGemTrack";
     fGemDetector = NULL;
     fUseRefit = kTRUE;
+    
+    fSteering->PrintParamTable();
 }
 
 BmnGemTracking::~BmnGemTracking() {
@@ -100,14 +98,25 @@ InitStatus BmnGemTracking::Init() {
 
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
     TString gPathGemConfig = gPathConfig + "/gem/XMLConfigs/";
-    TString confGem = (fPeriodId == 7) ? "GemRunSpring2018.xml" : (fPeriodId == 6) ? "GemRunSpring2017.xml" : "";
+    TString confGem = (fPeriodId == 7) ? "GemRunSpring2018.xml" : (fPeriodId == 6) ? "GemRunSpring2017.xml" : "GemRunSpring2017.xml";
     if (confGem == "") {
         printf(ANSI_COLOR_RED "No GEM geometry defined!\n" ANSI_COLOR_RESET);
         throw;
     }
     fGemDetector = new BmnGemStripStationSet(gPathGemConfig + confGem);
 
+    if (fSteering->GetNStations() != fGemDetector->GetNStations()) {
+        cout << "Something wrong with steering file! Please check number of GEM-stations!" << endl;
+        throw;
+    }
+
     fHitsOnStation = new vector<Int_t>[fGemDetector->GetNStations()];
+    fGemDistCut = new Double_t[fGemDetector->GetNStations()];
+    for (Int_t iSt = 0; iSt < fGemDetector->GetNStations(); ++iSt)
+        fGemDistCut[iSt] = fSteering->GetGemDistCut()[iSt];
+
+    if (fSteering->IsRoughVertexApproxUsed())
+        fRoughVertex.SetXYZ(fSteering->GetRoughVertex().X(), fSteering->GetRoughVertex().Y(), fSteering->GetRoughVertex().Z());
 
     if (fVerbose) cout << "======================== GEM tracking init finished ===================" << endl;
 
@@ -130,9 +139,8 @@ void BmnGemTracking::Exec(Option_t* opt) {
 
     fEventNo++;
 
-    fYstep = 20;
-    fGemDistCut = 1.0;
-    fLineFitCut = 1.0;
+    fYstep = fSteering->GetYStep();
+    fLineFitCut = fSteering->GetLineFitCut();
 
     for (Int_t i = 0; i < fNBins; ++i)
         for (Int_t j = 0; j < fNBins; ++j)
@@ -149,16 +157,16 @@ void BmnGemTracking::Exec(Option_t* opt) {
         fHitsOnStation[hit->GetStation()].push_back(iHit);
     }
 
-    for (int j = 0;; j++) {
+    for (Int_t j = 0;; j++) {
         vector<BmnGemTrack> seeds;
         for (Int_t i = 0; i < fNBins / fYstep; ++i) FindSeedsByCombinatoricsInCoridor(i, seeds);
         if (seeds.size() < 1 || seeds.size() > fNSeedsCut) break;
         FitSeeds(seeds);
         Int_t br = Tracking(seeds);
         if (br == 0) break;
-        fYstep *= 2;
-        //fLineFitCut *= 2;
-        //fGemDistCut *= 2;
+        fYstep *= fSteering->GetCoeffYStep();
+        fLineFitCut *= fSteering->GetCoeffLineFitCut();
+        // fGemDistCut *= fSteering->GetCoeffGemDistCut();
     }
 
     clock_t tFinish = clock();
@@ -175,6 +183,8 @@ void BmnGemTracking::Finish() {
     outFile.open("QA/timing.txt");
     outFile << "Track Finder Time: " << workTime << endl;
     cout << "Full work time of the GEM tracking: " << workTime << endl;
+
+    delete fSteering;
 }
 
 Int_t BmnGemTracking::Tracking(vector<BmnGemTrack>& seeds) {
@@ -217,7 +227,7 @@ Int_t BmnGemTracking::Tracking(vector<BmnGemTrack>& seeds) {
                 NearestHitMergeGem(iSt, &track, wasSkipped);
         }
 
-        if (track.GetFlag() != -1 && track.GetNHits() >= fNHitsCut && (track.GetChi2() / track.GetNDF()) < 100.0) {
+        if (track.GetFlag() != -1 && track.GetNHits() >= fNHitsCut && (track.GetChi2() / track.GetNDF()) < fLineFitCut) {
             CalculateLength(&track);
             tracks.push_back(track);
         }
@@ -244,19 +254,38 @@ Int_t BmnGemTracking::Tracking(vector<BmnGemTrack>& seeds) {
 }
 
 BmnStatus BmnGemTracking::SortTracks(vector<BmnGemTrack>& inTracks, vector<BmnGemTrack>& sortedTracks) {
-    multimap<Float_t, Int_t> sortedTracksMap; //map<Chi2,trIdx>
-    for (Int_t iTr = 0; iTr < inTracks.size(); ++iTr)
-        sortedTracksMap.insert(pair<Float_t, Int_t>(inTracks.at(iTr).GetChi2() / inTracks.at(iTr).GetNDF(), iTr));
+    Bool_t isChi2Sort = fSteering->IsChi2SortUsed();
+    Bool_t isNHitsSort = fSteering->IsNHitsSortUsed();
 
-    for (auto it : sortedTracksMap)
-        sortedTracks.push_back(inTracks.at(it.second));
+    if ((isChi2Sort && isNHitsSort) || (!isChi2Sort && !isNHitsSort)) {
+        cout << "Something wrong with steering file!" << endl;
+        throw;
+    }
+
+    if (isChi2Sort) {
+        multimap <Float_t, Int_t> sortedTracksMap; //map<Chi2,trIdx>
+        for (Int_t iTr = 0; iTr < inTracks.size(); ++iTr)
+            sortedTracksMap.insert(pair<Float_t, Int_t>(inTracks.at(iTr).GetChi2() / inTracks.at(iTr).GetNDF(), iTr));
+
+        for (auto it : sortedTracksMap)
+            sortedTracks.push_back(inTracks.at(it.second));
+    }
+
+    else if (isNHitsSort) {
+        multimap <Int_t, Int_t> sortedTracksMap; //map<nHits,trIdx>
+        for (Int_t iTr = 0; iTr < inTracks.size(); ++iTr)
+            sortedTracksMap.insert(pair<Int_t, Int_t>(inTracks.at(iTr).GetNHits(), iTr));
+
+        for (auto it : sortedTracksMap)
+            sortedTracks.push_back(inTracks.at(it.second));
+    }
 }
 
 BmnStatus BmnGemTracking::CheckSharedHits(vector<BmnGemTrack>& sortedTracks) {
 
     set<Int_t> hitsId;
 
-    const Int_t kNSharedHits = 0; //FIXME!!! Which cut is better
+    const Int_t kNSharedHits = fSteering->GetNSharedHits(); //FIXME!!! Which cut is better
 
     for (Int_t iTr = 0; iTr < sortedTracks.size(); ++iTr) {
         BmnGemTrack* tr = &(sortedTracks.at(iTr));
@@ -290,8 +319,13 @@ void BmnGemTracking::FillAddrWithLorentz() {
         if (!hit) continue;
 
         hit->SetFlag(kFALSE); // by default hits are not filtered 
-        //hit->SetDxyz(hit->GetDx() * 2, hit->GetDy() * 2, 0.0); // just for test
-        //        hit->SetDxyz(1.0, 1.0, 1.0); // just for test
+        if (fSteering->IsHitErrorsScaleUsed()) {
+            Double_t xScale = fSteering->GetErrorScales()[0];
+            Double_t yScale = fSteering->GetErrorScales()[1];
+            Double_t zScale = fSteering->GetErrorScales()[2];
+            hit->SetDxyz(hit->GetDx() * xScale, hit->GetDy() * yScale, zScale); // just for test
+        }
+
 
         TVector2 XYnew = GetTransXY(hit);
 
@@ -474,6 +508,14 @@ BmnStatus BmnGemTracking::FindSeedsByCombinatoricsInCoridor(Int_t iCorridor, vec
     SeedsByThreeStations(2, 3, 4, hitsOnStation, cand);
     SeedsByThreeStations(3, 4, 5, hitsOnStation, cand);
 
+    for (Int_t iTrio = 0; iTrio < fSteering->GetNCombs(); iTrio++) {
+        Int_t st0 = fSteering->GetStatsForSeeding()[iTrio][0];
+        Int_t st1 = fSteering->GetStatsForSeeding()[iTrio][1];
+        Int_t st2 = fSteering->GetStatsForSeeding()[iTrio][2];
+        // cout << "iTrio = " << iTrio << " " << st0 << " " << st1 << " " << st2 << endl;
+        SeedsByThreeStations(st0, st1, st2, hitsOnStation, cand);
+    }
+
     return kBMNSUCCESS;
 }
 
@@ -581,6 +623,9 @@ BmnStatus BmnGemTracking::CalculateTrackParamsPol2(BmnGemTrack *tr) {
     Double_t Ty_last = lineParZY.X();
     Double_t Ty_first = lineParZY.X();
 
+    if (Ty_first * (fY - fRoughVertex.Y()) < 0) return kBMNERROR; //check it
+    if (Tx_first * (fX - fRoughVertex.X()) < 0) return kBMNERROR; //check it
+
     par.SetPosition(TVector3(lX, lY, lZ));
     par.SetTx(Tx_last);
     par.SetTy(Ty_last);
@@ -613,22 +658,13 @@ BmnStatus BmnGemTracking::CalculateTrackParamsCircle(BmnGemTrack * tr) {
     if (!firstHit->GetFlag()) return kBMNERROR;
     if (!midHit->GetFlag()) return kBMNERROR;
 
-    Double_t chi2circ = 0.0;
-
-    TVector3 CircParZX;
     TVector3 lineParZY = LineFit(tr, fGemHitsArray, "ZY");
-    if (lineParZY.Z() > fLineFitCut) return kBMNERROR;
-    if (nHits == 3) {
-        CircParZX = CircleBy3Hit(tr, fGemHitsArray);
-        tr->SetChi2(0.0);
-        tr->SetNDF(0);
-    } else {
-        //        CircParZX = CircleBy3Hit(tr, fGemHitsArray);
-        CircParZX = CircleFit(tr, fGemHitsArray, chi2circ);
-        //    tr->SetChi2(lineParZY.Z());
-        tr->SetChi2(chi2circ);
-        tr->SetNDF(nHits - 3);
-    }
+    Double_t chi2line = lineParZY.Z();
+    if (chi2line > fLineFitCut) return kBMNERROR;
+    Double_t chi2circ = 0.0;
+    TVector3 CircParZX = (nHits == 3) ? CircleBy3Hit(tr, fGemHitsArray) : CircleFit(tr, fGemHitsArray, chi2circ);
+    tr->SetChi2(chi2circ + chi2line);
+    tr->SetNDF(nHits - 3);
 
     Double_t R = CircParZX.Z(); // radius of fit-circle
     Double_t Xc = CircParZX.Y(); // x-coordinate of fit-circle center
@@ -699,73 +735,42 @@ BmnStatus BmnGemTracking::CalculateTrackParamsCircle(BmnGemTrack * tr) {
         sumTx2 += Sqr((Zi - Zc) / (Xi - Xc));
     }
 
-    Cov_X_X = sumX2 / nHits - Sqr(sumX / nHits);
-    Cov_X_Y = sumXY / nHits - sumX / nHits * sumY / nHits;
-    Cov_X_Tx = -sumXTx / nHits + sumX / nHits * sumTx / nHits;
-    Cov_X_Ty = 0.0;
-    Cov_X_Qp = 0.0;
-    Cov_Y_Y = sumY2 / nHits - Sqr(sumY / nHits);
-    Cov_Y_Tx = -sumYTx / nHits + sumY / nHits * sumTx / nHits;
-    Cov_Y_Ty = 0.0;
-    Cov_Y_Qp = 0.0;
-    Cov_Tx_Tx = sumTx2 / nHits - Sqr(sumTx / nHits);
-    Cov_Tx_Ty = 0.0;
-    Cov_Tx_Qp = 0.0;
-    Cov_Ty_Ty = 0.0;
-    Cov_Qp_Qp = 0.0;
-    Cov_Ty_Qp = 0.0;
+    Bool_t useCovMatrixAppr = fSteering->IsCovMatrixApproxUsed();
+    Double_t* covMatrix = fSteering->GetCovMatrix();
+
+    Cov_X_X = (useCovMatrixAppr) ? covMatrix[0] : sumX2 / nHits - Sqr(sumX / nHits);
+    Cov_X_Y = (useCovMatrixAppr) ? covMatrix[1] : sumXY / nHits - sumX / nHits * sumY / nHits;
+    Cov_X_Tx = (useCovMatrixAppr) ? covMatrix[2] : -sumXTx / nHits + sumX / nHits * sumTx / nHits;
+    Cov_X_Ty = (useCovMatrixAppr) ? covMatrix[3] : 0.0;
+    Cov_X_Qp = (useCovMatrixAppr) ? covMatrix[4] : 0.0;
+    Cov_Y_Y = (useCovMatrixAppr) ? covMatrix[5] : sumY2 / nHits - Sqr(sumY / nHits);
+    Cov_Y_Tx = (useCovMatrixAppr) ? covMatrix[6] : -sumYTx / nHits + sumY / nHits * sumTx / nHits;
+    Cov_Y_Ty = (useCovMatrixAppr) ? covMatrix[7] : 0.0;
+    Cov_Y_Qp = (useCovMatrixAppr) ? covMatrix[8] : 0.0;
+    Cov_Tx_Tx = (useCovMatrixAppr) ? covMatrix[9] : sumTx2 / nHits - Sqr(sumTx / nHits);
+    Cov_Tx_Ty = (useCovMatrixAppr) ? covMatrix[10] : 0.0;
+    Cov_Tx_Qp = (useCovMatrixAppr) ? covMatrix[11] : 0.0;
+    Cov_Ty_Ty = (useCovMatrixAppr) ? covMatrix[12] : 0.0;
+    Cov_Ty_Qp = (useCovMatrixAppr) ? covMatrix[13] : 0.0;
+    Cov_Qp_Qp = (useCovMatrixAppr) ? covMatrix[14] : 0.0;
 
     FairTrackParam par;
-    const Double_t minVal = 1e-10;
 
-    // THE BEST
-    //    par.SetCovariance(0, 0, 2.74e-05);
-    //    par.SetCovariance(0, 1, -1.3e-07);
-    //    par.SetCovariance(0, 2, 1.67e-07);
-    //    par.SetCovariance(0, 3, 3.19e-08);
-    //    par.SetCovariance(0, 4, 1.4315e-08);
-    //    par.SetCovariance(1, 1, 0.00781875);
-    //    par.SetCovariance(1, 2, -1.36e-07);
-    //    par.SetCovariance(1, 3, 4.23125e-05);
-    //    par.SetCovariance(1, 4, -3.6808e-07);
-    //    par.SetCovariance(2, 2, 3.005e-06);
-    //    par.SetCovariance(2, 3, 1.11e-07);
-    //    par.SetCovariance(2, 4, 1.5355e-07);
-    //    par.SetCovariance(3, 3, 1.5025e-06);
-    //    par.SetCovariance(3, 4, -3.175e-09);
-    //    par.SetCovariance(4, 4, 7.2375e-07);
-
-    par.SetCovariance(0, 0, 2.7e-05);
-    par.SetCovariance(0, 1, -1.3e-07);
-    par.SetCovariance(0, 2, 1.8e-07);
-    par.SetCovariance(0, 3, 3.2e-08);
-    par.SetCovariance(0, 4, 1.4e-08);
-    par.SetCovariance(1, 1, 7.8e-03);
-    par.SetCovariance(1, 2, -1.4e-07);
-    par.SetCovariance(1, 3, 4.2e-05);
-    par.SetCovariance(1, 4, -3.7e-07);
-    par.SetCovariance(2, 2, 3.0e-06);
-    par.SetCovariance(2, 3, 1.1e-07);
-    par.SetCovariance(2, 4, 1.5e-07);
-    par.SetCovariance(3, 3, 1.5e-06);
-    par.SetCovariance(3, 4, -3.2e-09);
-    par.SetCovariance(4, 4, 7.2e-07);
-
-    //        par.SetCovariance(0, 0, Cov_X_X);
-    //        par.SetCovariance(0, 1, Cov_X_Y);
-    //        par.SetCovariance(0, 2, Cov_X_Tx);
-    //        par.SetCovariance(0, 3, Cov_X_Ty);
-    //        par.SetCovariance(0, 4, Cov_X_Qp);
-    //        par.SetCovariance(1, 1, Cov_Y_Y);
-    //        par.SetCovariance(1, 2, Cov_Y_Tx);
-    //        par.SetCovariance(1, 3, Cov_Y_Ty);
-    //        par.SetCovariance(1, 4, Cov_Y_Qp);
-    //        par.SetCovariance(2, 2, Cov_Tx_Tx);
-    //        par.SetCovariance(2, 3, Cov_Tx_Ty);
-    //        par.SetCovariance(2, 4, Cov_Tx_Qp);
-    //        par.SetCovariance(3, 3, Cov_Ty_Ty);
-    //        par.SetCovariance(3, 4, Cov_Ty_Qp);
-    //        par.SetCovariance(4, 4, Cov_Qp_Qp);
+    par.SetCovariance(0, 0, Cov_X_X);
+    par.SetCovariance(0, 1, Cov_X_Y);
+    par.SetCovariance(0, 2, Cov_X_Tx);
+    par.SetCovariance(0, 3, Cov_X_Ty);
+    par.SetCovariance(0, 4, Cov_X_Qp);
+    par.SetCovariance(1, 1, Cov_Y_Y);
+    par.SetCovariance(1, 2, Cov_Y_Tx);
+    par.SetCovariance(1, 3, Cov_Y_Ty);
+    par.SetCovariance(1, 4, Cov_Y_Qp);
+    par.SetCovariance(2, 2, Cov_Tx_Tx);
+    par.SetCovariance(2, 3, Cov_Tx_Ty);
+    par.SetCovariance(2, 4, Cov_Tx_Qp);
+    par.SetCovariance(3, 3, Cov_Ty_Ty);
+    par.SetCovariance(3, 4, Cov_Ty_Qp);
+    par.SetCovariance(4, 4, Cov_Qp_Qp);
 
     Double_t lX = lastHit->GetX();
     Double_t lY = lastHit->GetY();
@@ -942,7 +947,7 @@ BmnStatus BmnGemTracking::NearestHitMergeGem(UInt_t station, BmnGemTrack* track,
         if (!hit) continue;
         if (!hit->GetFlag()) continue;
         dist = (parPredict.GetX() - hit->GetX()) * (parPredict.GetX() - hit->GetX()) + (parPredict.GetY() - hit->GetY()) * (parPredict.GetY() - hit->GetY());
-        if (dist < minDist && dist < fGemDistCut) {
+        if (dist < minDist && dist < fGemDistCut[station]) {
             minDist = dist;
             minHit = hit;
             minIdx = fHitsOnStation[station].at(iHit);

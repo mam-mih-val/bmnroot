@@ -30,7 +30,7 @@ class BmnGemStripHitMaker : public FairTask {
 public:
 
     BmnGemStripHitMaker();
-    BmnGemStripHitMaker(Bool_t);
+    BmnGemStripHitMaker(Int_t, Bool_t);
 
     virtual ~BmnGemStripHitMaker();
 
@@ -52,18 +52,17 @@ public:
         fCurrentConfig = config;
     }
 
-    void SetAlignmentCorrectionsFileName(TString filename, Int_t run_period, Int_t file_number) {
-        fRunId = file_number;
+    void SetAlignmentCorrectionsFileName(TString filename) {
         fAlignCorrFileName = filename;
     }
 
-    void SetAlignmentCorrectionsFileName(Int_t run_period, Int_t file_number) {
+    void SetAlignmentCorrectionsFileName(Int_t file_number) {
         fRunId = file_number;
-        if (run_period == 5)
+        if (fPeriodId == 5)
             fAlignCorrFileName = "$VMCWORKDIR/input/alignCorrsLocal_GEM.root";
-        else if (run_period == 6) {
+        else if (fPeriodId == 6) {
             fAlignCorrFileName = "alignment_GEM.root";
-            UniDbDetectorParameter::ReadRootFile(run_period, file_number, "BM@N", "alignment", (Char_t*) fAlignCorrFileName.Data());
+            UniDbDetectorParameter::ReadRootFile(fPeriodId, file_number, "BM@N", "alignment", (Char_t*) fAlignCorrFileName.Data());
         } else {
             fAlignCorrFileName = "";
         }
@@ -96,7 +95,8 @@ private:
     TClonesArray* fBmnGemStripHitMatchesArray;
 
     Bool_t fHitMatching;
-    UInt_t fRunId;
+    Int_t fRunId;
+    Int_t fPeriodId;
     Bool_t fIsExp; // Specify type of input data (MC or real data)
 
     BmnGemStripConfiguration::GEM_CONFIG fCurrentConfig;

@@ -1,0 +1,34 @@
+nGemStats 6 # Number of GEM-stations to be used when doing tracking 
+distCuts 1.0 1.33 1.67 2.0 2.33 2.67 # Array of distance cuts containing a cut value valid for a certain station
+
+nHitsCut 4           # Cut on min. number of hits per track
+lineFitCut 10        # Cut on Chi2/NDF
+nHitsInGemCut 1000   # Cut on max. number of hits per event
+nSeedsCut 5000       # Cut on max. number of seeds per event
+nSharedHits 0        # Cut on max. number of shared hits per each track found
+
+yStep 10           # Width of corridor valid for hit finding when looking for seeds 
+sigX 0.05          # RMS to be used when rejecting hits after x/R-y/R-transformation
+nBins 1000         # Number of bins valid for transformation
+min -0.5           # Lower limit for transformed coordinates
+max 0.5            # Upper limit for transformed coordinates
+lorentzThresh 1.01 # Threshold valid for selection of hits
+coeffYStep 2       # Coefficient to be used when multiplying yStep at each iteration
+coeffLineFitCut 2  # Coefficient to be used when multiplying fLineFitCut at each iteration
+coeffGemDistCut 1  # Coefficient to be used when multiplying fGemDistCut at each iteration
+
+isCovMatrixApproxUsed 1 # Is an initial approximation for cov. matrix used?
+сovMatrixElements 2.74e-05 -1.3e-07 1.67e-07 3.19e-08 1.4315e-08 0.00781875 -1.36e-07 4.23125e-05 -3.6808e-07 3.005e-06 1.11e-07 1.5355e-07 1.5025e-06 -3.175e-09 7.2375e-07 # Valid if isCovMatrixApproxUsed is equal to 1
+
+isUseRoughVertex 1 # Is an initial approximation for Vp used?
+roughVertex 0.5 -4.6 -2.3 # Valid if isUseRoughVertex is equal to 1
+
+isHitErrorsScaleUsed 0 # Is a factor to scale hit errors used?
+XYZ 5. 4. 3. # Valid if isHitErrorsScaleUsed is equal to 1
+
+Ncomb_stats_for_seeding 4 # Number of stat. combinations to be used when seeding
+Stats_for_seeding 012 123 234 345 # 
+
+isChi2SortUsed 1 # Is a sort over Chi2 used?
+isNHitsSortUsed 0 # Is a sort over nHits used?
+

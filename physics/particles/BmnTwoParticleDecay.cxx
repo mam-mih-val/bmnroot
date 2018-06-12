@@ -195,7 +195,7 @@ vector <TVector3> BmnTwoParticleDecay::KalmanTrackPropagation(BmnGlobalTrack* tr
 
     vector <Double_t>* F = new vector <Double_t> (25, 0.);
 
-    for (Int_t iStep = 1; iStep <= Int_t(zStart); iStep++) {
+    for (Int_t iStep = 1; iStep <= Int_t(zStart); iStep++) { //FIXME
         fKalman->TGeoTrackPropagate(&parPredict, zStart - Double_t(iStep), pdg, F, NULL, kTRUE);
         pointsPerTrack.push_back(TVector3(parPredict.GetX(), parPredict.GetY(), parPredict.GetZ()));
     }
@@ -349,6 +349,9 @@ void BmnTwoParticleDecay::Analysis() {
             Double_t* pointsAndMinDist = new Double_t[5];
             CalculateMinDistance(protParametrizedTraject, pionParametrizedTraject, pointsAndMinDist);
 
+            Double_t zPartOrigDeath = (pointsAndMinDist[0] + pointsAndMinDist[2]) / 2.0;
+            Double_t xPartOrigDeath = (pointsAndMinDist[1] + pointsAndMinDist[3]) / 2.0;
+            
             V0Z[0] = Min(pointsAndMinDist[0], pointsAndMinDist[2]); // V0ZX
             delete [] pointsAndMinDist;
 
@@ -366,8 +369,18 @@ void BmnTwoParticleDecay::Analysis() {
                 pion_V0[iProj] = KalmanTrackPropagation(track2, fPdgParticle2, V0Z[iProj]);
                 geomTopology[iProj] = GeomTopology(proton_V0[iProj], pion_V0[iProj], proton_Vp, pion_Vp);
             }
+            
+            Double_t protonPz = 1.0 / proton_V0[0].GetQp() / Sqrt(Sqr(proton_V0[0].GetTx()) + Sqr(proton_V0[0].GetTy()) + 1.0);
+            Double_t pionPz = 1.0 / pion_V0[0].GetQp() / Sqrt(Sqr(pion_V0[0].GetTx()) + Sqr(pion_V0[0].GetTy()) + 1.0);
+            Double_t protonPx = proton_V0[0].GetTx() * protonPz;
+            Double_t pionPx = pion_V0[0].GetTx() * pionPz;
+            
+            Double_t txPartOrig = (protonPx + pionPx) / (protonPz + pionPz);
+            
+            Double_t PartOrigBX = txPartOrig * (Vpz - zPartOrigDeath) + xPartOrigDeath;
 
             BmnParticlePair* partPair = new((*fParticlePair)[fParticlePair->GetEntriesFast()]) BmnParticlePair();
+            partPair->SetPartOrigB(PartOrigBX, 0.0); //FIXME
             partPair->SetV0XZ(V0Z[0]);
             partPair->SetV0YZ(V0Z[1]);
 
@@ -674,7 +687,7 @@ void BmnTwoParticleDecay::Exec(Option_t* option) {
     else {
         fEventVertex = (CbmVertex*) fVertex->UncheckedAt(0);
 
-        if (fEventVertex->GetNTracks() < 3 || fEventVertex->GetNTracks() > 20)
+        if (fEventVertex->GetNTracks() < 2 || fEventVertex->GetNTracks() > 20) //FIXME!
             return;
 
         TVector3 roughVert(fEventVertex->GetRoughX(), fEventVertex->GetRoughY(), fEventVertex->GetRoughZ());

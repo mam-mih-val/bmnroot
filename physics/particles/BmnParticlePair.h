@@ -63,6 +63,11 @@ public:
         fEtaPart1 = val1;
         fEtaPart2 = val2;
     }
+    
+    void SetPartOrigB(Double_t bx, Double_t by) {
+        fPartOrigBX = bx;
+        fPartOrigBY = by;
+    }
 
     Double_t GetInvMass(TString flag) {
         return flag.Contains("X") ? fInvMassX : flag.Contains("Y") ? fInvMassY : throw;
@@ -107,6 +112,14 @@ public:
     Double_t GetV0YZ() {
         return fV0YZ;
     }
+    
+    Double_t GetPartOrigBX() {
+        return fPartOrigBX;
+    }
+
+    Double_t GetPartOrigBY() {
+        return fPartOrigBY;
+    }
 
     void SetAlpha(Double_t val1, Double_t val2) {
         fAlphaX = val1;
@@ -147,6 +160,10 @@ private:
 
     Double_t fEtaPart1;
     Double_t fEtaPart2;
+    
+    //impact param of orig. particle (Lambda, K0s, ...)
+    Double_t fPartOrigBX;
+    Double_t fPartOrigBY; 
 
     // Armenteros-Podolyansky ... 
     Double_t fAlphaX;

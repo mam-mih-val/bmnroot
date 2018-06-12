@@ -6,7 +6,6 @@
 
 #pragma link C++ class BmnGlobalAlignment+;
 #pragma link C++ class BmnGemAlignCorrections+;
-#pragma link C++ class BmnGemAlignmentCorrections+;
 #pragma link C++ class BmnDchAlignCorrections+;
 #pragma link C++ class BmnMwpcAlignCorrections+;
 #pragma link C++ class BmnSiliconAlignCorrections+;

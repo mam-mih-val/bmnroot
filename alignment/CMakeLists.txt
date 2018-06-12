@@ -9,13 +9,13 @@ set(INCLUDE_DIRECTORIES
  ${CMAKE_SOURCE_DIR}/bmndata/math
  ${CMAKE_SOURCE_DIR}/bmnfield
  ${CMAKE_SOURCE_DIR}/globaltracking
- ${CMAKE_SOURCE_DIR}/gem
  ${CMAKE_SOURCE_DIR}/silicon
  ${CMAKE_SOURCE_DIR}/mwpc
  ${CMAKE_SOURCE_DIR}/dch
  ${CMAKE_SOURCE_DIR}/uni_db
  ${CMAKE_SOURCE_DIR}/uni_db/db_classes
  ${CMAKE_SOURCE_DIR}/alignment
+ ${CMAKE_SOURCE_DIR}/gem
 )
 
 Set(SYSTEM_INCLUDE_DIRECTORIES
@@ -37,7 +37,6 @@ link_directories(${LINK_DIRECTORIES})
 set(SRCS
  BmnGlobalAlignment.cxx
  BmnGemAlignCorrections.cxx
- BmnGemAlignmentCorrections.cxx
  BmnDchAlignCorrections.cxx
  BmnMwpcAlignCorrections.cxx
  BmnSiliconAlignCorrections.cxx

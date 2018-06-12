@@ -135,7 +135,7 @@ InitStatus BmnGlobalAlignment::Init() {
     Double_t fieldVolt = 0.;
     UniDbRun* runInfo = NULL;
     if (fRunId != 0) {
-        runInfo = UniDbRun::GetRun(6, fRunId);
+        runInfo = UniDbRun::GetRun(7, fRunId); // FIXME
         if (!runInfo)
             throw;
         fieldVolt = *runInfo->GetFieldVoltage();
@@ -181,7 +181,7 @@ InitStatus BmnGlobalAlignment::Init() {
 
     // Read current geometry (RunSpring2017) from database
     Char_t* geoFileName = (Char_t*) "current_geo_file.root";
-    Int_t res_code = UniDbRun::ReadGeometryFile(6, fRunId, geoFileName);
+    Int_t res_code = UniDbRun::ReadGeometryFile(7, fRunId, geoFileName); // FIXME
     if (res_code != 0) {
         cout << "Geometry file can't be read from the database" << endl;
         exit(-1);
@@ -1093,7 +1093,7 @@ void BmnGlobalAlignment::CreateDetectorGeometries() {
 
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
     TString confSi = "SiliconRunSpring2017.xml"; // FIXME for RUN7 (should be got from the BM@N UniDb)
-    TString confGem = "GemRunSpring2017.xml";
+    TString confGem = "GemRunSpring2018.xml"; // FIXME
 
     /// SI
     TString gPathSiliconConfig = gPathConfig + "/silicon/XMLConfigs/";

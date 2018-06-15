@@ -36,7 +36,7 @@ void SetDefaultDrawStyle() {
     gStyle->SetPadColor(kWhite);
     gStyle->SetStatColor(kWhite);
     gStyle->SetTitleFillColor(kWhite);
-    gStyle->SetPalette(1);
+    gStyle->SetPalette(110);
 }
 
 /* Draw TH1 histogram.*/
@@ -87,7 +87,7 @@ void DrawH2(
         HistScale logy,
         HistScale logz,
         const string& drawOpt) {
-    Double_t textSize = BmnDrawingOptions::TextSize();
+        Double_t textSize = BmnDrawingOptions::TextSize();
     if (logx == kLog) {
         gPad->SetLogx();
     }

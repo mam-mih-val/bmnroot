@@ -113,7 +113,7 @@ void BmnMCTrackCreator::FairMCPointToBmnMCPoint(const FairMCPoint* fairPoint, Bm
     TParticlePDG* pdgParticle = TDatabasePDG::Instance()->GetParticle(mcTrack->GetPdgCode());
     Float_t charge = (pdgParticle != NULL) ? pdgParticle->Charge() : 0.;
     Float_t q = (charge > 0) ? 1. : -1.;
-    bmnPoint->SetQ(q);
+    bmnPoint->SetQ(charge / 3); //Потому что, сука, кварки!
 }
 
 void BmnMCTrackCreator::FairMCPointCoordinatesAndMomentumToBmnMCPoint(const FairMCPoint* fairPoint, BmnMCPoint* bmnPoint) {

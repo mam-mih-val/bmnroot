@@ -30,7 +30,7 @@ public:
     /**
      * \brief Constructor with parameters.
      */
-    BmnTrackingQaReport(vector<string> header);
+    BmnTrackingQaReport(TString name);
 
     /**
      * \brief Destructor.
@@ -48,11 +48,12 @@ protected:
      */
     virtual void Draw();
 
-    void DrawMomResGem(const string& canvasName, TString name2d, TString nameSigma, TString nameMean, TString nameAver);
+    void DrawMomResGem(const TString canvasName, TString name2d, TString nameSigma, TString nameMean, TString nameAver);
     void DrawResAndPull(const TString canvasName, TString* inNames);
-    void DrawHitRes(TString axis);
+    void DrawResAndPull_2D(const TString canvasName, TString* inNames);
+    void DrawHitRes(TString pref, TString axis);
     void DrawPar(const TString canvasName, TString* inNames);
-    void DrawVertResGem(const string& canvasName, TString name1dX, TString name1dY, TString name1dZ);
+    void DrawVertResGem(const TString canvasName, TString name1dX, TString name1dY, TString name1dZ);
     void FillAndFitSlice(TString nameSigma, TString nameMean, TString name2d);
     void DrawMuSigma(TVirtualPad* pad, TH1* h);
    
@@ -63,20 +64,20 @@ protected:
     void DrawThreeH1(const TString canvasName, const TString name1, const TString name2, const TString name3);
     void DrawThreeH2(const TString canvasName, const TString name1, const TString name2, const TString name3);
 
-    void DrawEffGhostGem(const string& canvasName);
+    void DrawEffGhostGem(const TString canvasName);
     void DrawEffGem(const TString canvasName, TString* inNames, TString* outNames);
 
-    void DrawNhitsGem(const string& canvasName);
-    void DrawPtSimPtRec(const string& canvasName);
+    void DrawNhitsGem(const TString canvasName);
+    void DrawPtSimPtRec(const TString canvasName);
     void DrawMeanLine(TH1* hist);
 
-    void DrawEventsInfo(const string& canvasName);
+    void DrawEventsInfo(const TString canvasName);
 
     string PrintEventInfo();
 
     vector<string> fGlobalTrackVariants;
 
-    vector<string> fHeader;
+    TString fPrefix;
 
     ClassDef(BmnTrackingQaReport, 1)
 };

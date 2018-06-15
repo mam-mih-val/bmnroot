@@ -28,6 +28,11 @@ public:
      * \brief Constructor.
      */
     BmnTrackingQa();
+    
+    /**
+     * \brief Constructor.
+     */
+    BmnTrackingQa(Short_t ch, TString name);
 
     /**
      * \brief Destructor.
@@ -138,56 +143,17 @@ private:
 
     void CreateTrackHitsHistogram(const string& detName);
 
-    vector<string> CreateGlobalTrackingHistogramNames(const vector<string>& detectors);
-
-    vector<string> CreateGlobalTrackingHistogramNames();
-
     void ReadEventHeader();
-
-    vector<string> GlobalTrackVariants();
 
 
     void CreateHistograms();
-
-    //    /**
-    //     * \brief Loop over the reconstructed global tracks.
-    //     * Check if track is correct and fill
-    //     * multimap <MC track index, reconstructed track index>.
-    //     */
-    //    void ProcessGlobalTracks();
-
     void ProcessGem();
     void ProcessGlobal();
 
-    void FillTrackQualityHistograms(const BmnTrackMatch* trackMatch, DetectorId detId);
-
-    /**
-     * \brief Fill histograms of accepted and reconstructed tracks.
-     * \param[in] mcTrack MC track pointer.
-     * \param[in] mcId MC track index in array.
-     * \param[in] mcMap Map from MC track index to reconstructed track index. Map is filled in ProcessGlobalTrack function.
-     * \param[in] hist main name of the histograms to be filled.
-     * \param[in] par Value that will be added in histogram (momentum or number of points).
-     */
-    void FillGlobalReconstructionHistos(
-            Int_t mcId,
-            const multimap<Int_t, Int_t>& mcMap,
-            const string& histName,
-            const string& histTypeName,
-            const string& effName,
-            const string& catName,
-            const vector<Double_t>& par);
-
-    /**
-     * \brief Increase number of objects counters.
-     */
-    void IncreaseCounters();
-
-    vector<string> fHeader;
+    TString fOutName;
 
     BmnHistManager* fHM; // Histogram manager
     string fOutputDir; // Output directory for results
-    BmnDetectorSetup fDet; // Detector presence information
     BmnMCTrackCreator* fMCTrackCreator; // MC track creator tool
 
     // Acceptance defined by MC points
@@ -250,9 +216,8 @@ private:
     TClonesArray* fDchHits;
     
     TClonesArray* fVertex;
-
-    // Global track segment name maps to multimap <MC track index, reconstructed track index>
-    map<string, multimap<Int_t, Int_t> > fMcToRecoMap;
+    
+    Short_t fChargeCut; //(-1, 0, +1) do QA for negative, all or positive particles
 
     vector<string> fTrackCategories; // Vector of track category names
 

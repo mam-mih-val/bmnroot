@@ -23,7 +23,8 @@ class BmnVertexFinder : public FairTask {
 public:
 
     // Constructors/Destructors ---------
-    BmnVertexFinder();
+    BmnVertexFinder() {};
+    BmnVertexFinder(Int_t period, Bool_t isField);
     virtual ~BmnVertexFinder();
 
     virtual InitStatus Init();
@@ -32,6 +33,10 @@ public:
 
     void SetField(Bool_t f) {
         fIsField = f;
+    }
+
+    void SetVertexApproximation(TVector3 vertex) {
+        fRoughVertex3D = vertex;
     }
 
     void FindVertexByVirtualPlanes();
@@ -44,13 +49,18 @@ private:
     TString fVertexBranchName;
 
     Int_t fEventNo; // event counter
+    Int_t fPeriodId; // event counter
     Int_t fNTracks; // number of reco tracks in event
+
+    BmnGemStripStationSet* fDetector;
 
     TClonesArray* fGlobalTracksArray;
     TClonesArray* fVertexArray;
 
     Bool_t fIsField;
+    FairField* fField;
     BmnKalmanFilter* fKalman;
+    TVector3 fRoughVertex3D;
 
     ClassDef(BmnVertexFinder, 1);
 };

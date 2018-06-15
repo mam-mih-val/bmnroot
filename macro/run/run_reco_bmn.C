@@ -51,7 +51,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     FairRunAna* fRunAna = new FairRunAna();
 
     Bool_t isField = kTRUE; // flag for tracking (to use mag.field or not)
-    Bool_t isTarget = kFALSE; // flag for tracking (run with target or not)
+    Bool_t isTarget = kTRUE;//kFALSE; // flag for tracking (run with target or not)
     Bool_t isExp = kFALSE; // flag for hit finder (to create digits or take them from data-file)
 
     // Declare input source as simulation file or experimental data

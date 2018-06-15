@@ -503,11 +503,6 @@ BmnStatus BmnGemTracking::FindSeedsByCombinatoricsInCoridor(Int_t iCorridor, vec
             if (hit->GetStation() == iSt) hitsOnStation[iSt].push_back(iHit);
     }
 
-    SeedsByThreeStations(0, 1, 2, hitsOnStation, cand);
-    SeedsByThreeStations(1, 2, 3, hitsOnStation, cand);
-    SeedsByThreeStations(2, 3, 4, hitsOnStation, cand);
-    SeedsByThreeStations(3, 4, 5, hitsOnStation, cand);
-
     for (Int_t iTrio = 0; iTrio < fSteering->GetNCombs(); iTrio++) {
         Int_t st0 = fSteering->GetStatsForSeeding()[iTrio][0];
         Int_t st1 = fSteering->GetStatsForSeeding()[iTrio][1];

@@ -94,27 +94,23 @@ BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
 
 BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silicon) {
     fEventId++;
-    for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
-        BmnSiliconMapping tM = fMap[iMap];
+    for (auto it : fMap)
         for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
-            if (adcDig->GetSerial() == tM.serial && (adcDig->GetChannel() >= tM.channel_low && adcDig->GetChannel() <= tM.channel_high)) {
-                ProcessDigit(adcDig, &tM, silicon, kFALSE);
+            if (adcDig->GetSerial() == it.serial && (adcDig->GetChannel() >= it.channel_low && adcDig->GetChannel() <= it.channel_high)) {
+                ProcessDigit(adcDig, &it, silicon, kFALSE);
             }
         }
-    }
 }
 
 BmnStatus BmnSiliconRaw2Digit::FillProfiles(TClonesArray *adc) {
-    for (Int_t iMap = 0; iMap < fMap.size(); ++iMap) {
-        BmnSiliconMapping tM = fMap[iMap];
+    for (auto it : fMap)
         for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
-            if (adcDig->GetSerial() == tM.serial && (adcDig->GetChannel() >= tM.channel_low && adcDig->GetChannel() <= tM.channel_high)) {
-                ProcessDigit(adcDig, &tM, NULL, kTRUE);
+            if (adcDig->GetSerial() == it.serial && (adcDig->GetChannel() >= it.channel_low && adcDig->GetChannel() <= it.channel_high)) {
+                ProcessDigit(adcDig, &it, NULL, kTRUE);
             }
         }
-    }
 }
 
 BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {

@@ -10,12 +10,15 @@ static Float_t workTime = 0.0;
 using namespace std;
 using namespace TMath;
 
-BmnVertexFinder::BmnVertexFinder() : fEventNo(0) {
-
+BmnVertexFinder::BmnVertexFinder(Int_t period, Bool_t isField) {
+    fPeriodId = period;
+    fEventNo = 0; 
     fGlobalTracksArray = NULL;
     fKalman = NULL;
     fNTracks = 0;
-    fIsField = kTRUE;
+    fRoughVertex3D = (fPeriodId == 7) ? TVector3(0.5, -4.6, -2.3) : (fPeriodId == 6) ? TVector3(0.0, -3.5, -21.9) : TVector3(0.0, 0.0, 0.0);
+    fIsField = isField;
+    fField = NULL;
     fGlobalTracksBranchName = "BmnGlobalTrack";
     fVertexBranchName = "BmnVertex";
 }
@@ -27,6 +30,7 @@ InitStatus BmnVertexFinder::Init() {
 
     if (fVerbose) cout << "=========================== Vertex finder init started ====================" << endl;
 
+    //Get ROOT Manager
     FairRootManager* ioman = FairRootManager::Instance();
     if (NULL == ioman) Fatal("Init", "FairRootManager is not instantiated");
 
@@ -39,6 +43,9 @@ InitStatus BmnVertexFinder::Init() {
 
     fVertexArray = new TClonesArray("CbmVertex", 1); //out
     ioman->Register(fVertexBranchName, "GEM", fVertexArray, kTRUE);
+
+    fField = FairRunAna::Instance()->GetField();
+    fDetector = new BmnGemStripStationSet_RunSpring2017(BmnGemStripConfiguration::RunSpring2017);
 
     if (fVerbose) cout << "=========================== Vertex finder init finished ===================" << endl;
 
@@ -61,7 +68,7 @@ void BmnVertexFinder::Exec(Option_t* opt) {
         FindVertexByVirtualPlanes();
         // To prevent crash caused by uninitialized TClonesArray due to unsufficient number of tracks when reading event by event in user's code
     else
-        new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", -1000., -1000., -1000., 0.0, 0, fNTracks, TMatrixFSym(3), TVector3());
+        new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", -1000., -1000., -1000., 0.0, 0, fNTracks, TMatrixFSym(3), fRoughVertex3D);
 
     if (fVerbose) cout << "\n======================== Vertex finder exec finished ======================" << endl;
 
@@ -74,7 +81,7 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
     fKalman = new BmnKalmanFilter();
 
     const Int_t nPlanes = 5;
-    Float_t minZ = 0.0;
+    Float_t minZ = fRoughVertex3D.Z();
 
     while (range >= 0.1) {
         Float_t zMax = z_0 + range;
@@ -92,6 +99,8 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
 
         for (Int_t iTr = 0; iTr < fNTracks; ++iTr) {
             BmnGlobalTrack* track = (BmnGlobalTrack*) fGlobalTracksArray->At(iTr);
+            //            BmnGemTrack* track = (BmnGemTrack*) fGemTracksArray->At(iTr);
+            //            if (track->GetFlag() == kBMNBAD) continue;
             FairTrackParam par0 = *(track->GetParamFirst());
 
             for (Int_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
@@ -136,19 +145,17 @@ Float_t BmnVertexFinder::FindVZByVirtualPlanes(Float_t z_0, Float_t range) {
 
 void BmnVertexFinder::FindVertexByVirtualPlanes() {
 
-    Float_t range = 50.0;
-    Float_t z_init = 0.0;
-
-    Float_t vz = FindVZByVirtualPlanes(z_init, range);
+    Float_t vz = FindVZByVirtualPlanes(fRoughVertex3D.Z(), 50.0);
     Float_t vx = 0.0;
     Float_t vy = 0.0;
     UInt_t nOk = 0;
 
     for (Int_t iTr = 0; iTr < fNTracks; ++iTr) {
         BmnGlobalTrack* track = (BmnGlobalTrack*) fGlobalTracksArray->At(iTr);
+        //        if (track->GetFlag() == kBMNBAD) continue;
         FairTrackParam par0 = *(track->GetParamFirst());
 
-        fKalman->TGeoTrackPropagate(&par0, vz, 211, NULL, NULL, fIsField);
+        fKalman->TGeoTrackPropagate(&par0, vz, 2212, NULL, NULL, fIsField);
         vx += par0.GetX();
         vy += par0.GetY();
         track->SetB(Sqrt(par0.GetX() * par0.GetX() + par0.GetY() * par0.GetY())); //impact parameter
@@ -158,12 +165,13 @@ void BmnVertexFinder::FindVertexByVirtualPlanes() {
     vx /= nOk;
     vy /= nOk;
 
-    if (Abs(vz - z_init) > range) {
-        vx = -1000;
-        vy = -1000;
-        vz = -1000;
-    }
-    new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", vx, vy, vz, 0.0, 0, fNTracks, TMatrixFSym(3), TVector3());
+    Double_t range = 50.0;
+    // 2.5 - the best range from MC simulations and reconstruction (by A.Zelenoff)
+    Double_t VX = (Abs(vz - fRoughVertex3D.Z()) < range) ? vx : -1000.;
+    Double_t VY = (Abs(vz - fRoughVertex3D.Z()) < range) ? vy : -1000.;
+    Double_t VZ = (Abs(vz - fRoughVertex3D.Z()) < range) ? vz : -1000.;
+
+    new((*fVertexArray)[fVertexArray->GetEntriesFast()]) CbmVertex("vertex", "vertex", VX, VY, VZ, 0.0, 0, fNTracks, TMatrixFSym(3), fRoughVertex3D);
 
     delete fKalman;
 }

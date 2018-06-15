@@ -48,7 +48,7 @@ public:
    ostream& Out() const { return *fOut; }
 
    /* Setters */
-   void SetReportName(const string& name) { fReportName = name; }
+   void SetReportName(TString name) { fReportName = name.Data(); }
    void SetReportTitle(const string& title) { fReportTitle = title; }
    void SetOutputDir(const string& outputDir) { fOutputDir = outputDir; }
 

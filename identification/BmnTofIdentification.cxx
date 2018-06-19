@@ -1,0 +1,95 @@
+#include "BmnTofIdentification.h"
+
+BmnTofIdentification::BmnTofIdentification() {
+}
+
+BmnTofIdentification::~BmnTofIdentification() {
+}
+
+void BmnTofIdentification::MakePlots(TString NameFileIn, Int_t nEvForRead) {
+
+    TDatabasePDG *pdg = new TDatabasePDG();
+    Double_t Mp = pdg->GetParticle("proton")->Mass();
+    
+    
+    TStopwatch timer;
+    timer.Start();
+    Int_t nBytes = 0;
+
+    TH1I *hBetta = new TH1I("hBetta", "hBetta", 400, -2., 2.);
+    hBetta->GetXaxis()->SetTitle("beta ");
+    hBetta->SetMarkerStyle(8);
+    hBetta->SetMarkerColor(2);
+
+    TH2I *hMomentumBetta = new TH2I("hMomentumBeta", "hMomentumBeta", 1000, -10., 10., 400, -2., 2.);
+    hMomentumBetta->GetXaxis()->SetTitle("momentum, GeV/c ");
+    hMomentumBetta->GetYaxis()->SetTitle("beta ");
+
+    //--------Data Analysis-----------------------------------------------------------------
+
+    TChain *eveTree = new TChain("cbmsim");
+    TString inName = Form("$VMCWORKDIR/macro/run/%s", NameFileIn.Data());
+    //inName = file;
+    cout << "Open file " << inName << endl << endl;
+    eveTree->Add(inName);
+
+    TClonesArray *Tof400Hits;
+    eveTree->SetBranchAddress("BmnTof1Hit", &Tof400Hits);
+
+    TClonesArray *BmnGlobTr;
+    eveTree->SetBranchAddress("BmnGlobalTrack", &BmnGlobTr);
+
+    Long64_t nEvents = eveTree->GetEntries();
+    if (nEvForRead == 0 || nEvForRead > nEvents) nEvForRead = nEvents;
+    cout << "Will be read " << nEvForRead << " events from " << nEvents << endl;
+
+    for (Int_t iEv = 0; iEv < nEvForRead; iEv++) {
+
+        if (iEv % 50000 == 0)
+            cout << "EVENT: " << iEv << endl;
+        nBytes = eveTree->GetEntry(iEv);
+
+        for (Int_t iGlobTrack = 0; iGlobTrack < BmnGlobTr->GetEntriesFast(); iGlobTrack++) {
+            BmnGlobalTrack* Track = (BmnGlobalTrack*) BmnGlobTr->At(iGlobTrack);
+            FairTrackParam parLast(*(Track->GetParamLast()));
+            FairTrackParam parFirst(*(Track->GetParamFirst()));
+            Int_t IndexTof1Hit = Track->GetTof1HitIndex();
+            if (IndexTof1Hit == -1) continue;
+            //cout << "Event#" << iEv << endl;
+            BmnTofHit* hitTof400 = (BmnTofHit*) Tof400Hits->At(IndexTof1Hit);
+            Double_t Velocity = hitTof400->GetLength() / hitTof400->GetTimeStamp() / 10.; // * 10^8 m/s
+            Double_t Betta = Velocity / TMath::C(); // 
+            hBetta->Fill(Betta);
+            Double_t Momentum = 1. / Track->GetParamLast()->GetQp();
+            hMomentumBetta ->Fill(Momentum, Betta);
+
+        } // end for (Int_t iGlobTrack = 0; iGlobTrack < BmnGlobalTrack->GetEntriesFast(); iGlobTrack++) 
+    }// end for (Int_t iEv = 0; iEv < nEvForRead; iEv++)
+
+    timer.Stop();
+    cout << "Readed " << nEvForRead << " events" << endl;
+    cout << "Time          = " << timer.RealTime() << " s" << endl;
+    cout << "Time/Event    = " << timer.RealTime() / (Double_t) nEvForRead * 1000. << " ms/Event" << endl;
+    cout << "TimeCPU       = " << timer.CpuTime() << " s" << endl;
+    cout << "TimeCPU/Event = " << timer.CpuTime() / (Double_t) nEvForRead * 1000. << " ms/Event" << endl;
+
+    timer.Reset();
+    timer.Start();
+    TString outName = NameFileIn;
+    Int_t Point = outName.First('.');
+    outName.Replace(Point, 15, "_Identification.root");
+    outName = Form("/home/storage/analysis/%s", outName.Data());
+    cout << "Save data to " << outName.Data() << endl;
+    TFile *fileout = new TFile(outName.Data(), "RECREATE");
+
+    hBetta->Write();
+    hMomentumBetta->Write();
+
+    fileout->Close();
+
+    timer.Stop();
+
+    cout << "Time for write root = " << timer.RealTime() << " s" << endl;
+}
+
+ClassImp(BmnTofIdentification);

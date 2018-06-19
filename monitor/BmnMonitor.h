@@ -5,7 +5,7 @@
 #include <iterator>
 #include <regex>
 #include <exception>
-// FairROOT
+// FairSoft
 #include <TNamed.h>
 #include "TFile.h"
 #include "TChain.h"

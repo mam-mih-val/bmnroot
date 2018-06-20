@@ -56,7 +56,7 @@ fSteerFile(steerFile) {
     fTracksBranchName = "BmnGemTrack";
     fGemDetector = NULL;
     fUseRefit = kTRUE;
-    
+
     fSteering->PrintParamTable();
 }
 
@@ -269,9 +269,7 @@ BmnStatus BmnGemTracking::SortTracks(vector<BmnGemTrack>& inTracks, vector<BmnGe
 
         for (auto it : sortedTracksMap)
             sortedTracks.push_back(inTracks.at(it.second));
-    }
-
-    else if (isNHitsSort) {
+    } else if (isNHitsSort) {
         multimap <Int_t, Int_t> sortedTracksMap; //map<nHits,trIdx>
         for (Int_t iTr = 0; iTr < inTracks.size(); ++iTr)
             sortedTracksMap.insert(pair<Int_t, Int_t>(inTracks.at(iTr).GetNHits(), iTr));
@@ -951,10 +949,32 @@ BmnStatus BmnGemTracking::NearestHitMergeGem(UInt_t station, BmnGemTrack* track,
     }
 
     if (minHit != NULL) {
-
         Double_t chi = 0.0;
         FairTrackParam parUpdate = parPredict;
         if (fKalman->Update(&parUpdate, minHit, chi) == kBMNERROR) return kBMNERROR;
+
+        if (!fIsField) {
+            TGraph XZ;
+            TGraph YZ;
+            Int_t iPos = 0;
+            // Add hits already connected to track ...
+            for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
+                Int_t idx = track->GetHitIndex(iHit);
+                BmnGemStripHit* hitGem = (BmnGemStripHit*) fGemHitsArray->UncheckedAt(idx);
+                XZ.SetPoint(iPos, hitGem->GetZ(), hitGem->GetX());
+                YZ.SetPoint(iPos, hitGem->GetZ(), hitGem->GetY());
+                iPos++;
+            }
+            
+            // Add minHit ...
+            XZ.SetPoint(iPos, minHit->GetZ(), minHit->GetX());
+            YZ.SetPoint(iPos, minHit->GetZ(), minHit->GetY());
+            iPos++;
+            
+            parUpdate.SetTx(XZ.Fit("pol1", "SQww")->Parameter(1));
+            parUpdate.SetTy(YZ.Fit("pol1", "SQww")->Parameter(1));
+        }
+
         if (goForward)
             track->SetParamLast(parUpdate);
         else

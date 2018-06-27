@@ -67,4 +67,8 @@ void geometry(FairRunSim *fRun)
     silicon->SetGeometryFileName("Silicon_RunSpring2017.root");
     //silicon->SetGeometryFileName("Silicon_RunSpring2018.root");
     fRun->AddModule(silicon);
+
+    FairDetector* ssd = new BmnSSD("SSD", kTRUE);
+    ssd->SetGeometryFileName("SSD_v17a.root");
+    //fRun->AddModule(ssd);
 }

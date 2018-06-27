@@ -1,6 +1,6 @@
 # The name of our project is "BMNROOT".  CMakeLists files in this project can
-# refer to the root source directory of the project as ${BMNROOT_SOURCE_DIR} 
-# or as ${CMAKE_SOURCE_DIR} and to the root binary directory of the project as 
+# refer to the root source directory of the project as ${BMNROOT_SOURCE_DIR}
+# or as ${CMAKE_SOURCE_DIR} and to the root binary directory of the project as
 # ${BMNROOT_BINARY_DIR} or ${CMAKE_BINARY_DIR}.
 
 # Check if cmake has the required version
@@ -20,7 +20,7 @@ foreach(p
 endforeach()
 
 # Set name of our project to "BMNROOT". Has to be done
-# after check of cmake version                        
+# after check of cmake version
 project(BMNROOT)
 
 Option(USE_PATH_INFO "Information from PATH and LD_LIBRARY_PATH are used." ON)
@@ -33,14 +33,14 @@ IF (NOT ALIBUILD)
   MESSAGE(FATAL_ERROR "You did not define the environment variable FAIRROOTPATH which is needed to find FairRoot. Please set this variable and execute cmake again.")
  ENDIF(NOT DEFINED ENV{FAIRROOTPATH})
  IF(NOT DEFINED ENV{SIMPATH})
-  MESSAGE(FATAL_ERROR "You did not define the environment variable SIMPATH which is nedded to find the external packages. Please set this variable and execute cmake again.") 
+  MESSAGE(FATAL_ERROR "You did not define the environment variable SIMPATH which is nedded to find the external packages. Please set this variable and execute cmake again.")
  ENDIF(NOT DEFINED ENV{SIMPATH})
 
  SET(SIMPATH $ENV{SIMPATH})
  SET(FAIRROOTPATH $ENV{FAIRROOTPATH})
 ENDIF (NOT ALIBUILD)
 
-# where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ 
+# where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/
 # is checked
 set(CMAKE_MODULE_PATH "${FAIRROOTPATH}/share/fairbase/cmake/modules" ${CMAKE_MODULE_PATH})
 set(CMAKE_MODULE_PATH "${FAIRROOTPATH}/share/fairbase/cmake/modules_old" ${CMAKE_MODULE_PATH})
@@ -56,7 +56,7 @@ include(WriteConfigFile)
 include(CTest)
 include(CheckCompiler)
 
-# Set the build type: None, Debug, Release, RelWithDebInfo or MinSizeRel 
+# Set the build type: None, Debug, Release, RelWithDebInfo or MinSizeRel
 If(NOT CMAKE_BUILD_TYPE)
   Message("Set BuildType DEBUG")
   set(CMAKE_BUILD_TYPE Debug)
@@ -132,8 +132,8 @@ Else(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
 EndIf(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
 Message("-- Looking for Boost ...")
 # If an older version of boost is found both of the variables below are
-# cached and in a second cmake run, a good boost version is found even 
-# if the version is to old. 
+# cached and in a second cmake run, a good boost version is found even
+# if the version is to old.
 # To overcome this problem both variables are cleared before checking
 # for boost.
 Unset(Boost_INCLUDE_DIR CACHE)
@@ -208,6 +208,7 @@ add_subdirectory (monitor)
 add_subdirectory (physics/particles)
 add_subdirectory (steering)
 add_subdirectory (identification)
+add_subdirectory (ssd)
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/macro/mpd_scheduler/CMakeLists.txt")
  add_subdirectory (macro/mpd_scheduler)
@@ -222,6 +223,6 @@ endif(BUILD_DOXYGEN)
 WRITE_CONFIG_FILE(config.sh)
 SET(ROOT_INCLUDE_PATH ${CMAKE_INSTALL_PREFIX}/include)
 
-configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake 
+configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake
                ${CMAKE_BINARY_DIR}/CTestCustom.cmake
               )

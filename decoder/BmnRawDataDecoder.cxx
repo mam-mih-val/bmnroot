@@ -1187,6 +1187,13 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         fDigiTree->Branch("TOF700", &tof700);
         fTof700Mapper = new BmnTof2Raw2DigitNew(fTof700MapFileName, fRootFileName, fTOF700ReferenceRun, fTOF700ReferenceChamber, fTof700GeomFileName);
         //        fTof700Mapper->print();
+	for (int i=0; i<60; i++)
+	{
+	    if (type_tof700_slewing[i])
+	    {
+		fTof700Mapper->SetSlewingReference(i+1,refrun_tof700_slewing[i],refchamber_tof700_slewing[i]);
+	    }
+	}
         fTof700Mapper->readSlewingT0();
         fTof700Mapper->readSlewing();
         fTof700Mapper->BookSlewingResults();
@@ -1685,6 +1692,29 @@ BmnStatus BmnRawDataDecoder::PreparationTOF700() {
     //    delete tof700Mapper;
 
     return kBMNSUCCESS;
+}
+
+void BmnRawDataDecoder::SetTof700SlewingReference(Int_t chamber, Int_t refrun, Int_t refchamber)
+{
+	if (chamber <= 0 || chamber > 60)
+	{
+	    printf("Wrong slewing chamber number %d\n", chamber);
+	    return;
+	}
+	if (refchamber <= 0 || refchamber > 60)
+	{
+	    printf("Wrong slewing reference chamber number %d\n", refchamber);
+	    return;
+	}
+	if (refrun < 0 || refrun > 9999)
+	{
+	    printf("Wrong slewing reference run number %d\n", refrun);
+	    return;
+	}
+	refrun_tof700_slewing[chamber-1] = refrun;
+	refchamber_tof700_slewing[chamber-1] = refchamber;
+	type_tof700_slewing[chamber-1] = 1;
+	return;
 }
 
 Int_t BmnRawDataDecoder::GetRunIdFromFile(TString name) {

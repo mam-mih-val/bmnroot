@@ -44,6 +44,6 @@ BmnSiliconTrack.cxx
 Set(HEADERS)
 Set(LINKDEF SiliconLinkDef.h)
 Set(LIBRARY_NAME Silicon)
-Set(DEPENDENCIES XMLParser Core Base)
+Set(DEPENDENCIES BmnData XMLParser Core Base)
 
 GENERATE_LIBRARY()

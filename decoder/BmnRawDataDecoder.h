@@ -260,6 +260,8 @@ public:
         fTof700GeomFileName = geom;
     }
 
+    void SetTof700SlewingReference(Int_t chamber, Int_t refrun, Int_t refchamber);
+
     void SetZDCMapping(TString map) {
         fZDCMapFileName = map;
     }
@@ -479,6 +481,10 @@ private:
     map<UInt_t, Long64_t> fTimeShifts;
     Double_t fT0Time; //ns
     Double_t fT0Width; //ns
+
+    int refrun_tof700_slewing[60];
+    int refchamber_tof700_slewing[60];
+    int type_tof700_slewing[60];
 
     BmnStatus GetT0Info(Double_t& t0time, Double_t &t0width);
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);

@@ -44,7 +44,7 @@ BmnGlobalAlignment::~BmnGlobalAlignment() {
     }
 }
 
-BmnGlobalAlignment::BmnGlobalAlignment(TString inFileName) :
+BmnGlobalAlignment::BmnGlobalAlignment(TString inFileName, Int_t period) :
 fMwpcHits(NULL),
 fGemHits(NULL),
 fTof1Hits(NULL),
@@ -90,7 +90,8 @@ fKalman(NULL),
 Labels(NULL),
 fUseVp(kTRUE),
 fUseGemConstraints(kTRUE),
-fUseSiliconConstraints(kTRUE) {
+fUseSiliconConstraints(kTRUE),
+fRunPeriod(period) {
     fRecoFileName = inFileName;
 
     fBranchMwpcHits = "BmnMwpcHit";
@@ -135,7 +136,7 @@ InitStatus BmnGlobalAlignment::Init() {
     Double_t fieldVolt = 0.;
     UniDbRun* runInfo = NULL;
     if (fRunId != 0) {
-        runInfo = UniDbRun::GetRun(7, fRunId); // FIXME
+        runInfo = UniDbRun::GetRun(fRunPeriod, fRunId);
         if (!runInfo)
             throw;
         fieldVolt = *runInfo->GetFieldVoltage();
@@ -179,9 +180,8 @@ InitStatus BmnGlobalAlignment::Init() {
     fCanv = new TCanvas("c1", "c1", 1200, 800);
     fCanv->Divide(2, 1);
 
-    // Read current geometry (RunSpring2017) from database
     Char_t* geoFileName = (Char_t*) "current_geo_file.root";
-    Int_t res_code = UniDbRun::ReadGeometryFile(7, fRunId, geoFileName); // FIXME
+    Int_t res_code = UniDbRun::ReadGeometryFile(fRunPeriod, fRunId, geoFileName);
     if (res_code != 0) {
         cout << "Geometry file can't be read from the database" << endl;
         exit(-1);
@@ -250,7 +250,7 @@ void BmnGlobalAlignment::Exec(Option_t* opt) {
             continue;
 
         Int_t idx[] = {globTrack->GetGemTrackIndex(), globTrack->GetMwpcTrackIndex(), globTrack->GetDchTrackIndex(),
-            globTrack->GetGemTrackIndex(), globTrack->GetSilHitIndex()};
+            globTrack->GetGemTrackIndex(), 0};
 
         Char_t buff[50000] = {""};
         Bool_t zhopa = kFALSE;
@@ -297,9 +297,9 @@ void BmnGlobalAlignment::PrintToFullFormat(TString detName, Char_t* buff) {
     Int_t zeroLoc[nCases] = {(!fIsField) ? fNLC : 2, (!fIsField) ? fNLC : 2};
     // Int_t zeroLoc[nCases] = {(!fIsField) ? fNLC : 6, (!fIsField) ? fNLC : 2};
     Int_t zeroGem = 0;
-    Int_t zeroMwpc = 3; // To be fixed !!!
-    Int_t zeroDch = 3; // To be fixed !!!
-    Int_t zeroVertex = 3; // To be fixed !!!
+    Int_t zeroMwpc = 3; 
+    Int_t zeroDch = 3; 
+    Int_t zeroVertex = 3;
     Int_t zeroSi = 0;
     Int_t nMeas = 2;
 
@@ -715,11 +715,20 @@ void BmnGlobalAlignment::MilleNoFieldRuns(BmnGlobalTrack* glTrack, Int_t idx, In
         for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
             for (Int_t iMod = 0; iMod < fDetectorSI->GetSiliconStation(iStat)->GetNModules(); iMod++) {
                 nModulesProcessed++;
-                BmnSiliconHit* hit = (BmnSiliconHit*) fSiHits->UncheckedAt(idx);
-                Int_t stat = hit->GetStation();
-                Int_t mod = hit->GetModule();
+                BmnSiliconHit* hit = NULL;
+                Int_t stat = -1, mod = -1;
+                for (Int_t iHit = 0; iHit < glTrack->GetSilHitIndices().size(); iHit++) {
+                    hit = (BmnSiliconHit*) fSiHits->UncheckedAt(glTrack->GetSilHitIndices().at(iHit));
+                    stat = hit->GetStation();
+                    mod = hit->GetModule();
+                    
+                    if (stat == iStat && mod == iMod)
+                        break;
+                }
+               
                 TString zeroEnd = "", zeroBeg = "";
                 if (stat == iStat && mod == iMod) {
+                    // cout << hit->GetStation() << " " << hit->GetModule() << " " << hit->GetZ() << endl;
                     Char_t* locDerX = Form("%d %d 1. %f 0. 0. ", hit->GetStation(), hit->GetModule(), hit->GetZ());
                     Char_t* locDerY = Form("%d %d 0. 0. 1. %f ", hit->GetStation(), hit->GetModule(), hit->GetZ());
 
@@ -929,10 +938,9 @@ void BmnGlobalAlignment::MakeSteerFile() {
             }
         } else if (iDet == 4) { // Process SILICON to mark fixed modules if exist
             for (Int_t iStat = 0; iStat < fDetectorSI->GetNStations(); iStat++) {
-                for (Int_t iPar = 0; iPar < fDetectorSI->GetSiliconStation(iStat)->GetNModules() * nParams; iPar++) {
-                    //                   Double_t scale = ((startIdx + iPar + 1) % 3 == 2) ? 0.01 : 1.;
-                    fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedSiElements[iStat][iPar / nParams]) ? -1. : (fPreSigma * 1.));
-                }
+                for (Int_t iPar = 0; iPar < fDetectorSI->GetSiliconStation(iStat)->GetNModules() * nParams; iPar++) 
+                    fprintf(steer, "%d %G %G\n", Labels[startIdx + iPar], 0., (fixedSiElements[iStat][iPar / nParams]) ? -1. : fPreSigma);
+                startIdx += fDetectorSI->GetSiliconStation(iStat)->GetNModules() * nParams;
             }
         } else if (iDet == 1 || iDet == 2 || iDet == 3) {// MWPC, DCH, VERTEX
             //  if (iDet == 1) startIdx -= nParams;
@@ -1042,7 +1050,7 @@ void BmnGlobalAlignment::ReadPedeOutput(ifstream& resFile) {
             BmnDchAlignCorrections* dchCorrs = new((*fDchAlignCorr)[fDchAlignCorr->GetEntriesFast()]) BmnDchAlignCorrections();
             dchCorrs->SetCorrections(corrs);
         } else {
-            // VERTEX??? // FIXME
+          // FIXME
         }
     }
 
@@ -1092,8 +1100,8 @@ void BmnGlobalAlignment::CreateDetectorGeometries() {
     mwpcGeo = new BmnMwpcGeometry();
 
     TString gPathConfig = gSystem->Getenv("VMCWORKDIR");
-    TString confSi = "SiliconRunSpring2017.xml"; // FIXME for RUN7 (should be got from the BM@N UniDb)
-    TString confGem = "GemRunSpring2018.xml"; // FIXME
+    TString confSi = (fRunPeriod == 7) ? "SiliconRunSpring2018.xml" : (fRunPeriod == 6) ? "SiliconRunSpring2017.xml" : "";
+    TString confGem = (fRunPeriod == 7) ? "GemRunSpring2018.xml" : (fRunPeriod == 6) ? "GemRunSpring2017.xml" : ""; 
 
     /// SI
     TString gPathSiliconConfig = gPathConfig + "/silicon/XMLConfigs/";

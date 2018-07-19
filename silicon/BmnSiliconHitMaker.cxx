@@ -76,17 +76,17 @@ InitStatus BmnSiliconHitMaker::Init() {
     }
 
     TString gPathSiliconConfig = gSystem->Getenv("VMCWORKDIR");
-        gPathSiliconConfig += "/silicon/XMLConfigs/";
+    gPathSiliconConfig += "/silicon/XMLConfigs/";
 
     //Create SILICON detector ------------------------------------------------------
     switch (fCurrentConfig) {
 
-        case BmnSiliconConfiguration::RunSpring2017 :
+        case BmnSiliconConfiguration::RunSpring2017:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2017" << "\n";
             break;
 
-        case BmnSiliconConfiguration::RunSpring2018 :
+        case BmnSiliconConfiguration::RunSpring2018:
             StationSet = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2018.xml");
             if (fVerbose) cout << "   Current SILICON Configuration : RunSpring2018" << "\n";
             break;
@@ -110,10 +110,9 @@ InitStatus BmnSiliconHitMaker::Init() {
         }
     }
 
-    if (fAlignCorrFileName != "") {
+    if (fAlignCorrFileName != "")
         ReadAlignCorrFile(fAlignCorrFileName, corr);
 
-    }
     cout << "SI-alignment corrections in use:" << endl;
     for (Int_t iStat = 0; iStat != nStat; iStat++) {
         Int_t nModul = StationSet->GetSiliconStation(iStat)->GetNModules();
@@ -173,6 +172,8 @@ void BmnSiliconHitMaker::ProcessDigits() {
 
     for (UInt_t idigit = 0; idigit < fBmnSiliconDigitsArray->GetEntriesFast(); idigit++) {
         digit = (BmnSiliconDigit*) fBmnSiliconDigitsArray->At(idigit);
+        if (!digit->IsGoodDigit())
+            continue;
         station = StationSet->GetSiliconStation(digit->GetStation());
         module = station->GetModule(digit->GetModule());
         if (!module)

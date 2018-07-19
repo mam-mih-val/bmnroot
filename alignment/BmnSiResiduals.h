@@ -2,6 +2,7 @@
 #define BMNSIRESIDUALS_H 1
 
 #include <fstream>
+#include <vector>
 #include <sstream>
 #include <TMath.h>
 #include <TNamed.h>
@@ -76,9 +77,6 @@ public:
     FairEventHeader* fFairEventHeader;
 
     BmnSiliconStationSet* fDetector;
-
-    // tmp histos to fit resid. 
-    TH1F* hRes[1][8][2]; //! stat -- mod -- resX (Y)
 
     Bool_t isPrintToFile;
     Bool_t isMergedDigits; // file with merged digits from different files

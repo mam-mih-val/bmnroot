@@ -41,6 +41,7 @@ public:
 
     virtual void Finish();
 
+
     void SetUseDistance(Bool_t flag) {
         if (flag)
             isResid = kFALSE;
@@ -75,10 +76,6 @@ public:
     FairEventHeader* fFairEventHeader;
 
     BmnGemStripStationSet* fDetector; // Detector geometry
-    BmnGemStripConfiguration::GEM_CONFIG fGeometry;
-
-    // tmp histos to fit resid. 
-    TH1F* hRes[6][2][2]; //! stat -- mod -- resX (Y)
 
     Bool_t isPrintToFile;
     Bool_t isMergedDigits; // file with merged digits from different files

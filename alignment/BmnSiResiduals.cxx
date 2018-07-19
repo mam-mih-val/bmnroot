@@ -16,29 +16,18 @@ isMergedDigits(kFALSE) {
     gPathSiliconConfig += "/silicon/XMLConfigs/";
 
     //Create Silicon detector --------------------------------------------------
-    fDetector = new BmnSiliconStationSet(gPathSiliconConfig + "SiliconRunSpring2017.xml");
-    cout << "   Current Configuration : RunSpring2017" << "\n";
+    TString config = (fPeriod == 6) ? "SiliconRunSpring2017.xml" : (fPeriod == 7) ? "SiliconRunSpring2018.xml" : "";
+
+    fDetector = new BmnSiliconStationSet(gPathSiliconConfig + config);
 
     fBranchSiHits = "BmnSiliconHit";
     fBranchGlobalTracks = "BmnGlobalTrack";
     fBranchResiduals = "BmnResiduals";
     fBranchFairEventHeader = "EventHeader.";
-
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-        for (Int_t iMod = 0; iMod < fDetector->GetSiliconStation(iStat)->GetNModules(); iMod++)
-            for (Int_t iRes = 0; iRes < 2; iRes++) {
-                hRes[iStat][iMod][iRes] = new TH1F(Form("Stat %d Mod %d Res %d", iStat, iMod, iRes), Form("Stat %d Mod %d Res %d", iStat, iMod, iRes), 100, 0., 0.);
-                //cout << iStat << " " << iMod << " " << iRes << endl;
-            }
 }
 
 void BmnSiResiduals::Finish() {
     delete fDetector;
-
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-        for (Int_t iMod = 0; iMod < fDetector->GetSiliconStation(iStat)->GetNModules(); iMod++)
-            for (Int_t iRes = 0; iRes < 2; iRes++)
-                delete hRes[iStat][iMod][iRes];
 }
 
 InitStatus BmnSiResiduals::Init() {
@@ -57,7 +46,7 @@ InitStatus BmnSiResiduals::Init() {
 }
 
 void BmnSiResiduals::Exec(Option_t* opt) {
-    fFairEventHeader->SetRunId((isMergedDigits) ? 0 : fNumber);
+   //  fFairEventHeader->SetRunId((isMergedDigits) ? 0 : fNumber);
     fSiResiduals->Delete();
     Residuals();
 }
@@ -73,86 +62,33 @@ void BmnSiResiduals::Residuals() {
 
         Double_t Z0 = glTrack->GetParamFirst()->GetZ();
 
-        Int_t silIdx = glTrack->GetSilHitIndex();
-        if (silIdx == -1)
+        //        Int_t silIdx = glTrack->GetSilHitIndex();
+        //        if (silIdx == -1)
+        //            return;
+        vector <Int_t> silIndices = glTrack->GetSilHitIndices();
+        if (silIndices.size() == 0)
             return;
 
-        BmnSiliconHit* hit = (BmnSiliconHit*) fSiHits->UncheckedAt(silIdx);
-        Double_t x = hit->GetX();
-        Double_t y = hit->GetY();
-        Double_t z = hit->GetZ();
+        for (Int_t iHitIdx = 0; iHitIdx < silIndices.size(); iHitIdx++) {
+            Double_t xRes = 0., yRes = 0.;
+            BmnSiliconHit* hit = (BmnSiliconHit*) fSiHits->UncheckedAt(silIndices.at(iHitIdx));
+            Double_t x = hit->GetX();
+            Double_t y = hit->GetY();
+            Double_t z = hit->GetZ();
 
-        Int_t stat = hit->GetStation();
-        Int_t mod = hit->GetModule();
+            Int_t stat = hit->GetStation();
+            Int_t mod = hit->GetModule();
 
-        Double_t xRes = 0., yRes = 0.;
-        if (!isField) {
-            xRes = x - (X0 + Tx * (z - Z0));
-            yRes = y - (Y0 + Ty * (z - Z0));
-        } 
-        
-        else {
+            if (!isField) {
+                xRes = x - (X0 + Tx * (z - Z0));
+                yRes = y - (Y0 + Ty * (z - Z0));
+            }          
 
+            BmnResiduals* resid = new((*fSiResiduals)[fSiResiduals->GetEntriesFast()]) BmnResiduals(hit->GetStation(), hit->GetModule(), xRes, yRes, 0., isField);
+            resid->SetTrackId(iGlobTrack);
+            resid->SetHitId(silIndices.at(iHitIdx));
         }
-
-        BmnResiduals* resid = new((*fSiResiduals)[fSiResiduals->GetEntriesFast()]) BmnResiduals(hit->GetStation(), hit->GetModule(), xRes, yRes, 0., isField);
-        resid->SetTrackId(iGlobTrack);
-        resid->SetHitId(silIdx);
-
-        hRes[stat][mod][0]->Fill(xRes);
-        hRes[stat][mod][1]->Fill(yRes);
     }
-
-
-    //    for (Int_t iTrack = 0; iTrack < fGemTracks->GetEntriesFast(); iTrack++) {
-    //        BmnGemTrack* track = (BmnGemTrack*) fGemTracks->UncheckedAt(iTrack);
-    //
-    //        Double_t tx = track->GetParamFirst()->GetTx();
-    //        Double_t ty = track->GetParamFirst()->GetTy();
-    //
-    //        Double_t xFirst = track->GetParamFirst()->GetX();
-    //        Double_t yFirst = track->GetParamFirst()->GetY();
-    //        Double_t zFirst = track->GetParamFirst()->GetZ();
-    //
-    //        for (Int_t iHit = 0; iHit < track->GetNHits(); iHit++) {
-    //            BmnGemStripHit* hit = (BmnGemStripHit*) fGemHits->At(track->GetHitIndex(iHit));
-    //            Double_t x = hit->GetX();
-    //            Double_t y = hit->GetY();
-    //            Double_t z = hit->GetZ();
-    //
-    //            Double_t xRes = 0., yRes = 0.;
-    //            if (!isField) {
-    //                if (isResid) {
-    //                    xRes = x - (xFirst + tx * (z - zFirst));
-    //                    yRes = y - (yFirst + ty * (z - zFirst));
-    //                } else {
-    //                    Double_t a = 0., b = 0.;
-    //                    LineFit(a, b, track, fGemHits, 1, iHit); // bmnbase/BmnMath.h
-    //                    xRes = x - (a * z + b);
-    //                    LineFit(a, b, track, fGemHits, 2, iHit);
-    //                    yRes = y - (a * z + b);
-    //                }
-    //            } else {
-    //                isResid = kFALSE;
-    //                Double_t A = 0., B = 0., C = 0.;
-    //                Pol2Fit(track, fGemHits, A, B, C, iHit); // XZ-plane
-    //                xRes = x - A * z * z - B * z - C;
-    //
-    //                Double_t a = 0., b = 0.;
-    //                LineFit(a, b, track, fGemHits, 2, iHit);
-    //                yRes = y - (a * z + b); // YZ-plane               
-    //            }
-
-    //           BmnResiduals* resid = new((*fSiResiduals)[fSiResiduals->GetEntriesFast()]) BmnResiduals(hit->GetStation(), hit->GetModule(), xRes, yRes, 0., isField, isResid);
-    //            resid->SetTrackId(iTrack);
-    //            resid->SetHitId(track->GetHitIndex(iHit));
-    //            resid->SetIsMergedDigits(isMergedDigits);
-    //
-    //            hRes[hit->GetStation()][hit->GetModule()][0]->Fill(xRes);
-    //            hRes[hit->GetStation()][hit->GetModule()][1]->Fill(yRes);
-    //        }
-    //    }
-
 }
 
 

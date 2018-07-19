@@ -8,9 +8,7 @@ isResid(kTRUE),
 fDebug(kFALSE),
 outRes(NULL),
 isPrintToFile(kFALSE),
-isMergedDigits(kFALSE),
-fGeometry(BmnGemStripConfiguration::RunSpring2017) {
-    //fGeometry(BmnGemStripConfiguration::RunWinter2016) {
+isMergedDigits(kFALSE) {
     fPeriod = run_period;
     fNumber = run_number;
 
@@ -30,11 +28,6 @@ fGeometry(BmnGemStripConfiguration::RunSpring2017) {
     fBranchGemTracks = "BmnGemTrack";
     fBranchResiduals = "BmnResiduals";
     fBranchFairEventHeader = "EventHeader.";
-
-    for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-        for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStat)->GetNModules(); iMod++)
-            for (Int_t iRes = 0; iRes < 2; iRes++)
-                hRes[iStat][iMod][iRes] = new TH1F(Form("Stat %d Mod %d Res %d", iStat, iMod, iRes), Form("Stat %d Mod %d Res %d", iStat, iMod, iRes), 100, 0., 0.);
 }
 
 InitStatus BmnGemResiduals::Init() {
@@ -112,30 +105,10 @@ void BmnGemResiduals::ResidualsAndDistances() {
             resid->SetTrackId(iTrack);
             resid->SetHitId(track->GetHitIndex(iHit));
             resid->SetIsMergedDigits(isMergedDigits);
-
-            hRes[hit->GetStation()][hit->GetModule()][0]->Fill(xRes);
-            hRes[hit->GetStation()][hit->GetModule()][1]->Fill(yRes);
         }
     }
 }
 
 void BmnGemResiduals::Finish() {
-    if (isPrintToFile) {
-        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-            for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStat)->GetNModules(); iMod++) {
-                fprintf(outRes, "Stat %d Mod %d", iStat, iMod);
-                for (Int_t iRes = 0; iRes < 2; iRes++) {
-                    TFitResultPtr fitRes = hRes[iStat][iMod][iRes]->Fit("gaus", "SQww");
-                    fprintf(outRes, " misAlign%d %G sigma%d %G ", iRes, fitRes->Parameter(1), iRes, fitRes->Parameter(2));
-                }
-                fprintf(outRes, "\n");
-            }
-
-        for (Int_t iStat = 0; iStat < fDetector->GetNStations(); iStat++)
-            for (Int_t iMod = 0; iMod < fDetector->GetGemStation(iStat)->GetNModules(); iMod++)
-                for (Int_t iRes = 0; iRes < 2; iRes++)
-                    delete hRes[iStat][iMod][iRes];
-    }
-    if (outRes)
-        fclose(outRes);
+    delete fDetector;
 }

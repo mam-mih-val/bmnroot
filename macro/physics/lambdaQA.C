@@ -9,6 +9,11 @@
 #include <TVirtualPad.h>
 #include <TMath.h>
 
+#include <TString.h>
+#include <Rtypes.h>
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
+
 using namespace std;
 using namespace TMath;
 
@@ -50,14 +55,11 @@ Double_t ArmenPodolEllipseCut(Double_t alpha) {
 }
 
 void lambdaQA(TString fileName, Bool_t useCuts = kTRUE, Bool_t useCutHistoLimits = kFALSE) {
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     gStyle->SetOptStat(0);
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;
     timer.Start();
-
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/geometry.C");
 
     TChain* out = new TChain("cbmsim");
     out->Add(fileName.Data());
@@ -333,7 +335,6 @@ void lambdaQA(TString fileName, Bool_t useCuts = kTRUE, Bool_t useCutHistoLimits
     delete canv;
     for (Int_t iHist = 0; iHist < nHists; iHist++)
         delete hists[iHist];
-    delete hists;
     timer.Stop();
     Double_t rtime = timer.RealTime();
     Double_t ctime = timer.CpuTime();

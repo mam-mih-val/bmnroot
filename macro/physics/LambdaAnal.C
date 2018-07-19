@@ -1,8 +1,10 @@
 #include <TString.h>
+#include <Rtypes.h>
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
 
 // Macro to be used for Lambda0->Pi- + p reconstruction
 void LambdaAnal(UInt_t nEvents, Int_t runNumb, TString input, TString output) {
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;

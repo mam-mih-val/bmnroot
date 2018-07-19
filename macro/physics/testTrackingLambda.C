@@ -1,8 +1,11 @@
 #include <TString.h>
+#include <TString.h>
+#include <Rtypes.h>
+R__ADD_INCLUDE_PATH($VMCWORKDIR)
+#include "macro/run/bmnloadlibs.C"
 
 // QA-macro related to Lambda0->Pi- + p reconstruction
 void testTrackingLambda(UInt_t nEvents, TString recoFile, TString mcFile, TString output) {
-    gROOT->LoadMacro("$VMCWORKDIR/macro/run/bmnloadlibs.C");
     bmnloadlibs(); // load BmnRoot libraries
     // -----   Timer   ---------------------------------------------------------
     TStopwatch timer;

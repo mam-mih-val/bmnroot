@@ -172,7 +172,7 @@ InitStatus BmnGemStripHitMaker::Init() {
         for (Int_t iEle = 0; iEle < nStat; iEle++) {
             const Int_t nParams = 3; // Parabolic approximation is used
             lorCorrsCoeff[iEle] = new Double_t[nParams];
-            for (Int_t iParam = 0; iParam < nParams; iParam++)
+            for (Int_t iParam = 0; iParam < nParams; iParam++) 
                 lorCorrsCoeff[iEle][iParam] = (coeffLorCorrs) ? shifts[iEle].ls[iParam] : 0.;
         }
     }

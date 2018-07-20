@@ -60,12 +60,10 @@ public:
         fRunId = file_number;
         if (fPeriodId == 5)
             fAlignCorrFileName = "$VMCWORKDIR/input/alignCorrsLocal_GEM.root";
-        else if (fPeriodId == 6) {
+        else {
             fAlignCorrFileName = "alignment_GEM.root";
             UniDbDetectorParameter::ReadRootFile(fPeriodId, file_number, "BM@N", "alignment", (Char_t*) fAlignCorrFileName.Data());
-        } else {
-            fAlignCorrFileName = "";
-        }
+        } 
     }
 
     inline Double_t GetLorentzByField(Double_t By, Int_t station) {

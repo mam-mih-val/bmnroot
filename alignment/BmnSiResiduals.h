@@ -29,7 +29,7 @@ public:
 
     BmnSiResiduals() {
     };
-    BmnSiResiduals(Int_t, Int_t, Double_t);
+    BmnSiResiduals(Int_t period = 7, Int_t number = -1, Double_t scale = 0.);
 
     virtual ~BmnSiResiduals() {
     };

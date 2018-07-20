@@ -84,7 +84,7 @@ void BmnSiResiduals::Residuals() {
                 yRes = y - (Y0 + Ty * (z - Z0));
             }          
 
-            BmnResiduals* resid = new((*fSiResiduals)[fSiResiduals->GetEntriesFast()]) BmnResiduals(hit->GetStation(), hit->GetModule(), xRes, yRes, 0., isField);
+            BmnResiduals* resid = new((*fSiResiduals)[fSiResiduals->GetEntriesFast()]) BmnResiduals(stat, mod, xRes, yRes, 0., isField);
             resid->SetTrackId(iGlobTrack);
             resid->SetHitId(silIndices.at(iHitIdx));
         }

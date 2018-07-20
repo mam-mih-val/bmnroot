@@ -24,6 +24,11 @@
 // If alignCorrFileName == '<path>/<file-name>', then the corrections are taken
 // from that file.
 
+#include <Rtypes.h>
+#include <TString.h>
+#include <TStopwatch.h>
+#include <TFile.h>
+#include <TKey.h>
 R__ADD_INCLUDE_PATH($VMCWORKDIR)
 #include "macro/run/bmnloadlibs.C"
 
@@ -57,7 +62,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     // Declare input source as simulation file or experimental data
     FairSource* fFileSource;
     // for experimental datasource
-    Int_t run_period=6, run_number;
+    Int_t run_period = 7, run_number = -1;
     Double_t fieldScale = 0.;
     TPRegexp run_prefix("^run[0-9]+-[0-9]+:");
     if (inputFileName.Contains(run_prefix)) {
@@ -191,7 +196,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
             si_config = BmnSiliconConfiguration::RunSpring2017;
             //si_config = BmnSiliconConfiguration::RunSpring2018;
     }
-    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(isExp);
+    BmnSiliconHitMaker* siliconHM = new BmnSiliconHitMaker(run_period, isExp);
     siliconHM->SetCurrentConfig(si_config);
     fRunAna->AddTask(siliconHM);
     // ====================================================================== //
@@ -223,7 +228,7 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     if (isExp) {
         if (alignCorrFileName == "default") {
             gemHM->SetAlignmentCorrectionsFileName(run_number);
-            siliconHM->SetAlignmentCorrectionsFileName(run_period, run_number);
+            siliconHM->SetAlignmentCorrectionsFileName(run_number);
         }
         else {
             gemHM->SetAlignmentCorrectionsFileName(alignCorrFileName);
@@ -277,14 +282,12 @@ void run_reco_bmn(TString inputFileName = "$VMCWORKDIR/macro/run/evetest.root",
     fRunAna->AddTask(gemVF);
 
     // Residual analysis
-    if (isExp) {
-        BmnGemResiduals* residAnalGem = new BmnGemResiduals(run_period, run_number, fieldScale);
-        // residAnal->SetPrintResToFile("file.txt");
-        // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
-        fRunAna->AddTask(residAnalGem);
-        // BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
-        // fRunAna->AddTask(residAnalSi);
-    }
+    BmnGemResiduals* residAnalGem = new BmnGemResiduals(run_period, run_number, fieldScale);
+    // residAnal->SetUseDistance(kTRUE); // Use distance instead of residuals
+    fRunAna->AddTask(residAnalGem);
+    BmnSiResiduals* residAnalSi = new BmnSiResiduals(run_period, run_number, fieldScale);
+    fRunAna->AddTask(residAnalSi);
+
     // -----   Parameter database   --------------------------------------------
     FairRuntimeDb* rtdb = fRunAna->GetRuntimeDb();
     FairParRootFileIo* parIo1 = new FairParRootFileIo();

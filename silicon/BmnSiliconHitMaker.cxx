@@ -23,8 +23,8 @@ BmnSiliconHitMaker::BmnSiliconHitMaker()
     StationSet = NULL;
 }
 
-BmnSiliconHitMaker::BmnSiliconHitMaker(Bool_t isExp)
-: fHitMatching(kTRUE) {
+BmnSiliconHitMaker::BmnSiliconHitMaker(Int_t run_period, Bool_t isExp)
+: fHitMatching(kTRUE), fRunId(-1), fPeriodId(run_period) {
 
     fIsExp = isExp;
     fInputPointsBranchName = "SiliconPoint";
@@ -143,7 +143,7 @@ void BmnSiliconHitMaker::Exec(Option_t* opt) {
     if (fHitMatching && fBmnSiliconHitMatchesArray) {
         fBmnSiliconHitMatchesArray->Delete();
     }
-
+    
     if (!IsActive())
         return;
     clock_t tStart = clock();

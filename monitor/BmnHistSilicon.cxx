@@ -20,7 +20,7 @@ BmnHistSilicon::BmnHistSilicon(TString title, TString path, Int_t PeriodID) : Bm
     fTitle = title;
     fName = title + "_cl";
     TString name;
-    TString xmlConfFileName = fPeriodID == 7 ? "SiliconRunSpring2018dummy.xml" : "SiliconRunSpring2017.xml";
+    TString xmlConfFileName = fPeriodID == 7 ? "SiliconRunSpring2018.xml" : "SiliconRunSpring2017.xml";
     xmlConfFileName = TString(getenv("VMCWORKDIR")) + "/silicon/XMLConfigs/" + xmlConfFileName;
     printf("xmlConfFileName %s\n", xmlConfFileName.Data());
     BmnSiliconStationSet* stationSet = new BmnSiliconStationSet(xmlConfFileName);

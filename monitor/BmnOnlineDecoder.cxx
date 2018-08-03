@@ -24,6 +24,7 @@ BmnOnlineDecoder::BmnOnlineDecoder() {
     rawDataDecoder = NULL;
     _ctx = NULL;
     fBmnSetup = kBMNSETUP;
+    fRecoChain = NULL;
 }
 
 BmnOnlineDecoder::~BmnOnlineDecoder() {
@@ -32,6 +33,7 @@ BmnOnlineDecoder::~BmnOnlineDecoder() {
         zmq_ctx_destroy(_ctx);
         _ctx = NULL;
     }
+    if (fRecoChain) delete fRecoChain;
 }
 
 BmnStatus BmnOnlineDecoder::InitDecoder(TString fRawFileName) {
@@ -57,11 +59,6 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
         rawDataDecoder = new BmnRawDataDecoder();
     rawDataDecoder->SetRunId(runID);
     rawDataDecoder->SetPeriodId(fPeriodID);
-    /*if (rawDataDecoder->InitMaps() == kBMNERROR) {
-        printf("InitMaps failed\n");
-        delete rawDataDecoder;
-        return kBMNERROR;
-    }*/
     Bool_t setup[11]; //array of flags to determine BM@N setup
     //Just put "0" to exclude detector from decoding
     setup[0] = 1; // TRIGGERS
@@ -87,7 +84,6 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
     rawDataDecoder->SetLANDTCal("r0030_land_tcal.hh");
     rawDataDecoder->SetLANDDiffSync("r352_cosmic1.hh");
     rawDataDecoder->SetLANDVScint("neuland_sync_2.txt");
-
     TString PeriodSetupExt = Form("%d%s.txt", fPeriodID, ((fBmnSetup == kBMNSETUP) ? "" : "_SRC"));
     rawDataDecoder->SetTrigMapping(TString("Trig_map_Run") + PeriodSetupExt);
     rawDataDecoder->SetSiliconMapping("SILICON_map_run7.txt");
@@ -98,7 +94,24 @@ BmnStatus BmnOnlineDecoder::InitDecoder(Int_t runID) {
         rawDataDecoder->InitConverter(_curDir + _curFile);
     else
         rawDataDecoder->InitConverter();
-    return rawDataDecoder->InitDecoder();
+    BmnStatus iniStatus = rawDataDecoder->InitDecoder();
+    if (iniStatus == kBMNSUCCESS){
+        InitReco();
+    }
+    return iniStatus;
+    
+}
+
+BmnStatus BmnOnlineDecoder::InitReco(){
+        TTree *digiTree = rawDataDecoder->GetDigiTree();
+        fRecoChain = new TChain();
+        fRecoChain->AddFriend(digiTree);
+        fRunAna = new FairRunAna();
+        //fRunAna->SetSource(fRecoChain);
+}
+
+BmnStatus BmnOnlineDecoder::IterReco(){
+    
 }
 
 BmnStatus BmnOnlineDecoder::DecodeStream() {

@@ -112,6 +112,7 @@ BmnGemTrack.cxx
  BmnLink.cxx
  BmnMatch.cxx
 BmnTrigInfo.cxx
+BmnDecoSource.cxx
 )
 
 Set(HEADERS)

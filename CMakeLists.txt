@@ -114,7 +114,7 @@ find_package(PLUTO)
 find_package(GENERATORS REQUIRED)
 find_package(XML2 REQUIRED)
 find_package(TDAQ)
-find_package(ZeroMQ)
+find_package(ZeroMQ REQUIRED)
 
 #find_package(CUDA)
 #find_package(IWYU)
